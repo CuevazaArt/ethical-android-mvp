@@ -1,0 +1,50 @@
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.egg-info/
+.eggs/
+dist/
+build/
+*.egg
+
+# Virtual environments
+.venv/
+venv/
+env/
+
+# Testing
+.pytest_cache/
+.mypy_cache/
+.coverage
+htmlcov/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Archives (kept locally, not in repo)
+*.tar.gz
+*.zip
+
+# Binary documents (kept locally, not in repo)
+*.pdf
+*.docx
+
+# Misc
+get-pip.py
+
+# Legacy/snapshot directories (kept locally for reference, not in repo)
+androide-etico-mvp-v2/
+androide-etico-mvp-v3/
+androide-etico-mvp-v4-llm/
+androide-etico-mvp-v5-complete/
+androide-etico-mvp/
+EthosMVP/
+files/
