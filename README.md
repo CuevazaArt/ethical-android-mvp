@@ -231,10 +231,43 @@ All without a server, without internet, without installing anything.
 
 No server, internet connection (after first load), or technical knowledge required.
 
+## Landing site (Next.js)
+
+The folder `landing/` is a **Next.js** marketing page (Tailwind, Framer Motion, Three.js hero) for **mosexmacchinalab.com**. It embeds the same `dashboard.html` at `/demo` (also served as `/dashboard.html` from `landing/public/`).
+
+### Prerequisites
+
+- **Node.js** LTS from [nodejs.org](https://nodejs.org/) (includes `npm`).  
+  If `node` is not found in PowerShell after installing, **close and reopen the terminal**, or add `C:\Program Files\nodejs` to your user PATH.
+
+### Local dev
+
+```bash
+cd landing
+npm install
+npm run dev
+```
+
+Open [http://localhost:3000](http://localhost:3000). Use **Live demo** for the full-screen dashboard iframe.
+
+### Deploy on Vercel
+
+1. Push this repo to GitHub (if it is not already).
+2. In [Vercel](https://vercel.com), **Add New Project** → import the repo.
+3. Set **Root Directory** to `landing`, framework **Next.js**, build `npm run build`, output default.
+4. After deploy, Vercel shows a `*.vercel.app` URL. Add custom domain **mosexmacchinalab.com** in Project → **Domains**.
+
+### GoDaddy DNS (point domain to Vercel)
+
+In GoDaddy DNS for the domain:
+
+- **Recommended:** create a **CNAME** record: **Host** `@` or `www` as required by Vercel’s domain UI (Vercel will show the exact target, e.g. `cname.vercel-dns.com`). Some registrars use **A** records to Vercel’s IPs instead — follow [Vercel’s current docs](https://vercel.com/docs/concepts/projects/domains) for the domain you attach.
+
 ## Repository structure
 
 ```
 .
+├── landing/              # Next.js site (npm install inside this folder)
 ├── src/                  # Ethical kernel source code
 ├── tests/                # Formal test suite
 ├── dashboard.html        # Interactive dashboard (open in browser)
@@ -246,6 +279,8 @@ No server, internet connection (after first load), or technical knowledge requir
 ├── README.md             # This file
 └── requirements.txt      # Python dependencies
 ```
+
+A copy of `dashboard.html` is also kept under `landing/public/` so the Next.js app can serve it.
 
 ## License
 

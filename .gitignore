@@ -37,6 +37,12 @@ Thumbs.db
 *.pdf
 *.docx
 
+# Node / Next.js (landing site)
+landing/node_modules/
+landing/.next/
+landing/out/
+landing/.env*.local
+
 # Misc
 get-pip.py
 
