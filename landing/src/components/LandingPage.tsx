@@ -50,6 +50,9 @@ export default function LandingPage() {
             <a href="#support" className="transition-colors hover:text-white">
               Support
             </a>
+            <Link href="/one-pager" className="transition-colors hover:text-white">
+              One-pager
+            </Link>
             <Link href="/demo" className="transition-colors hover:text-white">
               Live demo
             </Link>
@@ -366,11 +369,20 @@ export default function LandingPage() {
               .
             </p>
             <p className="mt-4 text-sm leading-relaxed text-zinc-500">
-              <span className="text-zinc-400">Next steps off-site (recommended):</span>{" "}
-              a short PDF one-pager or deck for funders, ORCID / institutional
-              affiliation links, GitHub Sponsors or a fiscal sponsor if you add
-              one, and (optionally) a low-frequency newsletter — none of which
-              require changing this stack today.
+              <span className="text-zinc-400">Printable summary:</span>{" "}
+              <Link
+                href="/one-pager"
+                className="text-violet-400/90 underline decoration-violet-400/30 underline-offset-4 transition hover:decoration-violet-400/60"
+              >
+                One-pager
+              </Link>{" "}
+              — open it and use your browser&apos;s{" "}
+              <span className="text-zinc-400">Print → Save as PDF</span> for
+              funders or press.{" "}
+              <span className="text-zinc-400">Beyond that:</span> a full deck,
+              budget, ORCID / institutional links, GitHub Sponsors or a fiscal
+              sponsor, and (optionally) a newsletter still help for larger
+              campaigns.
             </p>
           </motion.div>
         </div>
@@ -379,6 +391,15 @@ export default function LandingPage() {
       <footer className="mt-auto border-t border-white/[0.06] px-6 py-8">
         <div className="mx-auto flex max-w-6xl flex-col gap-6 text-sm text-zinc-500">
           <div className="flex flex-wrap gap-x-1 gap-y-1 text-zinc-400">
+            <Link
+              href="/one-pager"
+              className="transition-colors hover:text-white"
+            >
+              One-pager
+            </Link>
+            <span className="text-zinc-600" aria-hidden>
+              ·
+            </span>
             <a
               href={repoFile("BIBLIOGRAPHY.md")}
               target="_blank"
