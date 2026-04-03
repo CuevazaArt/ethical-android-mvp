@@ -4,6 +4,7 @@ import dynamic from "next/dynamic";
 import Link from "next/link";
 import { motion } from "framer-motion";
 
+import { LanguageSwitcherPlaceholder } from "@/components/LanguageSwitcherPlaceholder";
 import { SiteBrand } from "@/components/SiteBrand";
 
 const HeroCanvas = dynamic(() => import("@/components/HeroCanvas"), {
@@ -35,9 +36,13 @@ export default function LandingPage() {
   return (
     <div className="flex min-h-full flex-col bg-[#050508] text-zinc-100">
       <header className="relative z-10 border-b border-white/[0.06] px-6 py-4">
-        <div className="mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-4">
+        <div className="mx-auto flex max-w-6xl flex-col gap-4 md:flex-row md:items-center md:justify-between">
           <SiteBrand />
-          <nav className="flex flex-wrap items-center justify-end gap-x-6 gap-y-2 text-sm text-zinc-400">
+          <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-center sm:justify-end md:max-w-[min(100%,42rem)] lg:max-w-none">
+            <nav className="flex flex-wrap items-center gap-x-6 gap-y-2 text-sm text-zinc-400">
+            <Link href="/about" className="transition-colors hover:text-white">
+              Who we are
+            </Link>
             <a href="#model" className="transition-colors hover:text-white">
               Model
             </a>
@@ -78,7 +83,9 @@ export default function LandingPage() {
             >
               GitHub
             </a>
-          </nav>
+            </nav>
+            <LanguageSwitcherPlaceholder />
+          </div>
         </div>
       </header>
 
@@ -175,6 +182,50 @@ export default function LandingPage() {
               <p className="mt-3 text-sm leading-relaxed text-zinc-400">{item.body}</p>
             </motion.div>
           ))}
+        </div>
+      </section>
+
+      <section
+        id="mission"
+        className="border-t border-white/[0.06] px-6 py-16 md:py-20"
+      >
+        <div className="mx-auto max-w-6xl">
+          <p className="text-xs font-medium uppercase tracking-[0.2em] text-violet-400/90">
+            Mission · Vision · Values
+          </p>
+          <div className="mt-8 grid gap-8 md:grid-cols-3 md:gap-10">
+            <div>
+              <h2 className="text-sm font-semibold text-white">Mission</h2>
+              <p className="mt-2 text-sm leading-relaxed text-zinc-400">
+                Make machine ethics <strong className="font-medium text-zinc-300">inspectable</strong>{" "}
+                — open code, simulations, and honest limits so no one has to trust a black box.
+              </p>
+            </div>
+            <div>
+              <h2 className="text-sm font-semibold text-white">Vision</h2>
+              <p className="mt-2 text-sm leading-relaxed text-zinc-400">
+                Autonomous agents (androids, vehicles, others) embed{" "}
+                <strong className="font-medium text-zinc-300">proportionate, multipolar care</strong>{" "}
+                validated in simulation before the world bets lives on them.
+              </p>
+            </div>
+            <div>
+              <h2 className="text-sm font-semibold text-white">Values</h2>
+              <p className="mt-2 text-sm leading-relaxed text-zinc-400">
+                Open science, intellectual honesty, humility toward human law and judgment — the
+                kernel is a <strong className="font-medium text-zinc-300">research tool</strong>, not
+                a certificate of safety.
+              </p>
+            </div>
+          </div>
+          <p className="mt-8 text-center text-sm text-zinc-500 md:text-left">
+            <Link
+              href="/about"
+              className="text-violet-400/90 underline decoration-violet-400/30 underline-offset-4 transition hover:decoration-violet-400/60"
+            >
+              Full &ldquo;Who we are&rdquo; page
+            </Link>
+          </p>
         </div>
       </section>
 
@@ -441,6 +492,12 @@ export default function LandingPage() {
               className="transition-colors hover:text-white"
             >
               One-pager
+            </Link>
+            <span className="text-zinc-600" aria-hidden>
+              ·
+            </span>
+            <Link href="/about" className="transition-colors hover:text-white">
+              Who we are
             </Link>
             <span className="text-zinc-600" aria-hidden>
               ·

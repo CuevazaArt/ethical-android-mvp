@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 
+import { LanguageSwitcherPlaceholder } from "@/components/LanguageSwitcherPlaceholder";
 import { SiteBrand } from "@/components/SiteBrand";
 
 export const metadata: Metadata = {
@@ -13,24 +14,32 @@ export const metadata: Metadata = {
 export default function DonatePage() {
   return (
     <div className="flex min-h-full flex-col bg-[#050508] text-zinc-100">
-      <header className="flex shrink-0 flex-wrap items-center justify-between gap-3 border-b border-white/[0.08] px-4 py-3 md:px-6">
-        <SiteBrand />
-        <nav className="flex flex-wrap items-center gap-4 text-sm text-zinc-400">
-          <Link href="/" className="transition-colors hover:text-white">
-            Home
-          </Link>
-          <Link href="/demo" className="transition-colors hover:text-white">
-            Live demo
-          </Link>
-          <a
-            href="https://github.com/CuevazaArt/ethical-android-mvp/blob/main/CONTRIBUTING.md"
-            className="transition-colors hover:text-white"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Contributing
-          </a>
-        </nav>
+      <header className="shrink-0 border-b border-white/[0.08] px-4 py-3 md:px-6">
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+          <SiteBrand />
+          <div className="flex flex-wrap items-center gap-3 sm:justify-end">
+            <nav className="flex flex-wrap gap-4 text-sm text-zinc-400">
+              <Link href="/" className="transition-colors hover:text-white">
+                Home
+              </Link>
+              <Link href="/about" className="transition-colors hover:text-white">
+                Who we are
+              </Link>
+              <Link href="/demo" className="transition-colors hover:text-white">
+                Live demo
+              </Link>
+              <a
+                href="https://github.com/CuevazaArt/ethical-android-mvp/blob/main/CONTRIBUTING.md"
+                className="transition-colors hover:text-white"
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                Contributing
+              </a>
+            </nav>
+            <LanguageSwitcherPlaceholder />
+          </div>
+        </div>
       </header>
 
       <main className="mx-auto flex w-full max-w-lg flex-1 flex-col px-6 py-16 text-center">

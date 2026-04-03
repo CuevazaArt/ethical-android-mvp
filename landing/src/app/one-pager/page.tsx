@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 
+import { LanguageSwitcherPlaceholder } from "@/components/LanguageSwitcherPlaceholder";
 import { SiteBrand } from "@/components/SiteBrand";
 
 const REPO = "https://github.com/CuevazaArt/ethical-android-mvp";
@@ -23,19 +24,25 @@ export default function OnePagerPage() {
       id="one-pager"
     >
       <header className="border-b border-white/15 pb-6 print:border-zinc-300">
-        <div className="flex flex-wrap items-center justify-between gap-4 print:hidden">
+        <div className="flex flex-col gap-3 print:hidden sm:flex-row sm:flex-wrap sm:items-center sm:justify-between">
           <SiteBrand />
-          <nav className="flex flex-wrap gap-4 text-sm text-zinc-400">
-            <Link href="/demo" className="hover:text-white">
-              Live demo
-            </Link>
-            <Link href="/donate" className="hover:text-white">
-              Donate
-            </Link>
-            <Link href="/" className="text-violet-400/90 hover:text-violet-300">
-              ← Home
-            </Link>
-          </nav>
+          <div className="flex flex-wrap items-center gap-3 sm:justify-end">
+            <nav className="flex flex-wrap gap-4 text-sm text-zinc-400">
+              <Link href="/about" className="hover:text-white">
+                Who we are
+              </Link>
+              <Link href="/demo" className="hover:text-white">
+                Live demo
+              </Link>
+              <Link href="/donate" className="hover:text-white">
+                Donate
+              </Link>
+              <Link href="/" className="text-violet-400/90 hover:text-violet-300">
+                ← Home
+              </Link>
+            </nav>
+            <LanguageSwitcherPlaceholder />
+          </div>
         </div>
         <p className="mt-6 text-xs font-medium uppercase tracking-[0.2em] text-violet-400/90 print:mt-4 print:text-violet-800">
           Mosex Macchina Lab

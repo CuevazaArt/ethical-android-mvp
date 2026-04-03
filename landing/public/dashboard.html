@@ -284,23 +284,38 @@ function Dashboard() {
   };
 
   const done = phase >= PIPELINE_STEPS.length && result;
+  const headerBottomPx = isNarrow ? 120 : 72;
 
   return (
     <div style={{ minHeight: "100vh", background: "#0B1120", color: "#E2E8F0" }}>
-      <div style={{ borderBottom: "1px solid #1E293B", padding: "12px 16px", display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: 12 }}>
-        <div style={{ display: "flex", alignItems: "center", gap: 12, flex: 1, minWidth: 0 }}>
-          <img src="/logo-ethical-awareness.png" alt="Ethical awareness" width={40} height={40} style={{ width: 40, height: 40, objectFit: "contain", flexShrink: 0 }} />
-          <div style={{ minWidth: 0 }}>
-            <div style={{ fontSize: 18, fontWeight: 800, color: "#F8FAFC", letterSpacing: 1 }}>ETHICAL ANDROID</div>
-            <div style={{ fontSize: 11, color: "#475569", marginTop: 2 }}>Artificial Consciousness Kernel — MVP v5</div>
+      <div style={{ borderBottom: "1px solid #1E293B", padding: "12px 16px" }}>
+        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: 12 }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 12, flex: 1, minWidth: 0 }}>
+            <img src="/logo-ethical-awareness.png" alt="Ethical awareness" width={40} height={40} style={{ width: 40, height: 40, objectFit: "contain", flexShrink: 0 }} />
+            <div style={{ minWidth: 0 }}>
+              <div style={{ fontSize: 18, fontWeight: 800, color: "#F8FAFC", letterSpacing: 1 }}>ETHICAL ANDROID</div>
+              <div style={{ fontSize: 11, color: "#475569", marginTop: 2 }}>Artificial Consciousness Kernel — MVP v5</div>
+            </div>
+          </div>
+          <div style={{ display: "flex", gap: 12, alignItems: "center", flexWrap: "wrap" }}>
+            <div style={{ display: "flex", gap: 4 }}>
+              {["\u{1F9E0}","\u{1F300}","\u{1F54A}\uFE0F","\u{1F504}"].map((e,i) => <span key={i} title={["Kernel","Weakness","Forgiveness","Immortality"][i]} style={{ fontSize: 12, opacity: 0.5 }}>{e}</span>)}
+            </div>
+            <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
+              <div style={{ width: 8, height: 8, borderRadius: "50%", background: "#10B981", animation: "pulse 2s infinite" }} />
+              <span style={{ fontSize: 11, color: "#10B981" }}>17 modules active</span>
+            </div>
           </div>
         </div>
-        <div style={{ display: "flex", gap: 12, alignItems: "center", flexWrap: "wrap" }}>
+        {isNarrow ? (
           <button type="button" aria-expanded={sidebarOpen} aria-label={sidebarOpen ? "Hide scenario list" : "Show scenario list"} onClick={() => setSidebarOpen((s) => !s)} style={{
-            display: isNarrow ? "inline-flex" : "none",
+            display: "flex",
+            width: "100%",
+            marginTop: 10,
             alignItems: "center",
-            gap: 6,
-            padding: "8px 14px",
+            justifyContent: "center",
+            gap: 8,
+            padding: "10px 14px",
             borderRadius: 8,
             border: "1px solid #475569",
             background: "#1E293B",
@@ -308,18 +323,11 @@ function Dashboard() {
             fontSize: 12,
             fontWeight: 700,
             cursor: "pointer",
-          }}>{sidebarOpen ? "\u2715  Close list" : "\u2630  Scenarios"}</button>
-          <div style={{ display: "flex", gap: 4 }}>
-            {["\u{1F9E0}","\u{1F300}","\u{1F54A}\uFE0F","\u{1F504}"].map((e,i) => <span key={i} title={["Kernel","Weakness","Forgiveness","Immortality"][i]} style={{ fontSize: 12, opacity: 0.5 }}>{e}</span>)}
-          </div>
-          <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
-            <div style={{ width: 8, height: 8, borderRadius: "50%", background: "#10B981", animation: "pulse 2s infinite" }} />
-            <span style={{ fontSize: 11, color: "#10B981" }}>17 modules active</span>
-          </div>
-        </div>
+          }}>{sidebarOpen ? "\u2715  Close scenario list" : "\u2630  Open scenario list"}</button>
+        ) : null}
       </div>
 
-      <div style={{ display: "flex", gap: 0, minHeight: "calc(100vh - 72px)", position: "relative" }}>
+      <div style={{ display: "flex", gap: 0, minHeight: "calc(100vh - " + headerBottomPx + "px)", position: "relative" }}>
         {isNarrow && sidebarOpen ? (
           <div
             role="presentation"
@@ -328,7 +336,7 @@ function Dashboard() {
               position: "fixed",
               left: 0,
               right: 0,
-              top: 72,
+              top: headerBottomPx,
               bottom: 0,
               background: "rgba(0,0,0,0.5)",
               zIndex: 40,
@@ -345,9 +353,9 @@ function Dashboard() {
             zIndex: isNarrow ? 50 : 1,
             position: isNarrow ? "fixed" : "relative",
             left: isNarrow ? 0 : undefined,
-            top: isNarrow ? 72 : undefined,
-            height: isNarrow ? "calc(100vh - 72px)" : "auto",
-            minHeight: !isNarrow ? "calc(100vh - 72px)" : undefined,
+            top: isNarrow ? headerBottomPx : undefined,
+            height: isNarrow ? "calc(100vh - " + headerBottomPx + "px)" : "auto",
+            minHeight: !isNarrow ? "calc(100vh - " + headerBottomPx + "px)" : undefined,
             transform: isNarrow && !sidebarOpen ? "translateX(-100%)" : "translateX(0)",
             transition: "transform 0.28s ease",
             boxShadow: isNarrow && sidebarOpen ? "12px 0 32px rgba(0,0,0,0.45)" : "none",
@@ -397,7 +405,13 @@ function Dashboard() {
           </div>
         </div>
 
-        <div style={{ flex: 1, padding: 24, overflowY: "auto" }}>
+        <div style={{
+          flex: 1,
+          padding: 24,
+          paddingBottom: isNarrow && !sidebarOpen ? 80 : 24,
+          overflowY: "auto",
+          minWidth: 0,
+        }}>
           {!selected ? (
             <div style={{ display: "flex", alignItems: "center", justifyContent: "center", height: "100%", flexDirection: "column", gap: 16 }}>
               <div style={{ fontSize: 64, opacity: 0.2 }}>{"\u{1F916}"}</div>
@@ -541,18 +555,20 @@ function Dashboard() {
             onClick={() => setSidebarOpen(true)}
             style={{
               position: "fixed",
-              left: 12,
-              bottom: 20,
-              zIndex: 45,
-              padding: "10px 16px",
+              right: 12,
+              left: "auto",
+              bottom: "calc(14px + env(safe-area-inset-bottom, 0px))",
+              zIndex: 35,
+              padding: "9px 14px",
               borderRadius: 9999,
               border: "1px solid #8B5CF6",
               background: "linear-gradient(135deg, #1E1B4B, #312E81)",
               color: "#C4B5FD",
-              fontSize: 12,
+              fontSize: 11,
               fontWeight: 700,
               cursor: "pointer",
-              boxShadow: "0 4px 20px rgba(139,92,246,0.35)",
+              boxShadow: "0 4px 18px rgba(139,92,246,0.3)",
+              maxWidth: "calc(100vw - 24px)",
             }}
           >
             {"\u2630  Scenarios"}
