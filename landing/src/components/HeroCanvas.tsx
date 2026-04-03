@@ -19,12 +19,12 @@ function EthicalLattice() {
       <mesh ref={ref}>
         <icosahedronGeometry args={[1.15, 1]} />
         <meshStandardMaterial
-          color="#5b8def"
+          color="#86efac"
           wireframe
-          emissive="#1e3a6e"
-          emissiveIntensity={0.55}
-          metalness={0.2}
-          roughness={0.35}
+          emissive="#14532d"
+          emissiveIntensity={0.65}
+          metalness={0.15}
+          roughness={0.4}
         />
       </mesh>
     </Float>
@@ -44,13 +44,13 @@ function InnerCore() {
     <mesh ref={ref} scale={0.42}>
       <icosahedronGeometry args={[1, 0]} />
       <meshStandardMaterial
-        color="#c4b5fd"
-        emissive="#6d28d9"
-        emissiveIntensity={0.35}
-        metalness={0.6}
-        roughness={0.25}
+        color="#fdba74"
+        emissive="#c2410c"
+        emissiveIntensity={0.5}
+        metalness={0.45}
+        roughness={0.28}
         transparent
-        opacity={0.85}
+        opacity={0.9}
       />
     </mesh>
   );
@@ -64,9 +64,9 @@ export default function HeroCanvas() {
         gl={{ alpha: true, antialias: true, powerPreference: "high-performance" }}
         dpr={[1, 2]}
       >
-        <ambientLight intensity={0.35} />
-        <pointLight position={[5, 4, 6]} intensity={1.8} color="#93c5fd" />
-        <pointLight position={[-4, -2, 4]} intensity={0.9} color="#c4b5fd" />
+        <ambientLight intensity={0.32} />
+        <pointLight position={[5, 4, 6]} intensity={1.6} color="#fef3c7" />
+        <pointLight position={[-4, -2, 4]} intensity={1.1} color="#bbf7d0" />
         <EthicalLattice />
         <InnerCore />
       </Canvas>
