@@ -4,6 +4,8 @@ import dynamic from "next/dynamic";
 import Link from "next/link";
 import { motion } from "framer-motion";
 
+import { SiteBrand } from "@/components/SiteBrand";
+
 const HeroCanvas = dynamic(() => import("@/components/HeroCanvas"), {
   ssr: false,
   loading: () => (
@@ -33,10 +35,8 @@ export default function LandingPage() {
   return (
     <div className="flex min-h-full flex-col bg-[#050508] text-zinc-100">
       <header className="relative z-10 border-b border-white/[0.06] px-6 py-4">
-        <div className="mx-auto flex max-w-6xl items-center justify-between">
-          <span className="text-sm font-medium tracking-tight text-zinc-300">
-            Mosex Macchina Lab
-          </span>
+        <div className="mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-4">
+          <SiteBrand />
           <nav className="flex flex-wrap items-center justify-end gap-x-6 gap-y-2 text-sm text-zinc-400">
             <a href="#model" className="transition-colors hover:text-white">
               Model
@@ -47,6 +47,12 @@ export default function LandingPage() {
             <a href="#contact" className="transition-colors hover:text-white">
               Contact
             </a>
+            <a href="#collaborate" className="transition-colors hover:text-white">
+              Collaborate
+            </a>
+            <Link href="/donate" className="transition-colors hover:text-white">
+              Donate
+            </Link>
             <a href="#support" className="transition-colors hover:text-white">
               Support
             </a>
@@ -299,6 +305,34 @@ export default function LandingPage() {
                 issue without exploit details).
               </p>
             </div>
+            <div id="collaborate" className="mt-10 scroll-mt-24">
+              <h3 className="text-sm font-semibold text-white">Collaborate</h3>
+              <p className="mt-3 text-sm leading-relaxed text-zinc-400">
+                <span className="text-zinc-500">(Tentative invitation)</span> If you care about{" "}
+                <strong className="font-medium text-zinc-300">open, testable ethics in software</strong>,
+                we welcome serious interest: code, documentation, scenarios, translations, or thoughtful
+                review. Start with the{" "}
+                <a
+                  href={repoFile("CONTRIBUTING.md")}
+                  className="text-violet-400/90 underline decoration-violet-400/30 underline-offset-4 transition hover:decoration-violet-400/60"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
+                  Contributing guide
+                </a>{" "}
+                and a short{" "}
+                <a
+                  href={REPO_ISSUE_QUESTION}
+                  className="text-violet-400/90 underline decoration-violet-400/30 underline-offset-4 transition hover:decoration-violet-400/60"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
+                  GitHub Issue (Question)
+                </a>{" "}
+                so we can see what you have in mind. Capacity is limited; not every idea will fit the
+                research scope.
+              </p>
+            </div>
             <p className="mt-8 border-l-2 border-white/10 pl-4 text-xs leading-relaxed text-zinc-500">
               This is a research and educational prototype. It is not a product for
               safety-critical, clinical, legal, or compliance decisions; do not rely
@@ -384,6 +418,17 @@ export default function LandingPage() {
               sponsor, and (optionally) a newsletter still help for larger
               campaigns.
             </p>
+            <p className="mt-4 text-sm leading-relaxed text-zinc-500">
+              <span className="text-zinc-400">Donations:</span>{" "}
+              <Link
+                href="/donate"
+                className="text-violet-400/90 underline decoration-violet-400/30 underline-offset-4 transition hover:decoration-violet-400/60"
+              >
+                Donate
+              </Link>{" "}
+              — <span className="text-zinc-500">coming soon</span>; a public channel for one-time or
+              recurring support is in preparation.
+            </p>
           </motion.div>
         </div>
       </section>
@@ -396,6 +441,21 @@ export default function LandingPage() {
               className="transition-colors hover:text-white"
             >
               One-pager
+            </Link>
+            <span className="text-zinc-600" aria-hidden>
+              ·
+            </span>
+            <a
+              href="#collaborate"
+              className="transition-colors hover:text-white"
+            >
+              Collaborate
+            </a>
+            <span className="text-zinc-600" aria-hidden>
+              ·
+            </span>
+            <Link href="/donate" className="transition-colors hover:text-white">
+              Donate
             </Link>
             <span className="text-zinc-600" aria-hidden>
               ·

@@ -35,6 +35,9 @@ export const metadata: Metadata = {
     description:
       "Research prototype: ethical AI consciousness model with interactive dashboard.",
   },
+  icons: {
+    icon: "/logo-ethical-awareness.png",
+  },
 };
 
 export default function RootLayout({

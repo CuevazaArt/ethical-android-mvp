@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 
+import { SiteBrand } from "@/components/SiteBrand";
+
 const REPO = "https://github.com/CuevazaArt/ethical-android-mvp";
 const SITE = "https://mosexmacchinalab.com";
 
@@ -21,15 +23,21 @@ export default function OnePagerPage() {
       id="one-pager"
     >
       <header className="border-b border-white/15 pb-6 print:border-zinc-300">
-        <p className="print:hidden">
-          <Link
-            href="/"
-            className="text-sm text-violet-400/90 underline decoration-violet-400/30 underline-offset-4 hover:decoration-violet-400/60"
-          >
-            ← Back to site
-          </Link>
-        </p>
-        <p className="mt-4 text-xs font-medium uppercase tracking-[0.2em] text-violet-400/90 print:text-violet-800">
+        <div className="flex flex-wrap items-center justify-between gap-4 print:hidden">
+          <SiteBrand />
+          <nav className="flex flex-wrap gap-4 text-sm text-zinc-400">
+            <Link href="/demo" className="hover:text-white">
+              Live demo
+            </Link>
+            <Link href="/donate" className="hover:text-white">
+              Donate
+            </Link>
+            <Link href="/" className="text-violet-400/90 hover:text-violet-300">
+              ← Home
+            </Link>
+          </nav>
+        </div>
+        <p className="mt-6 text-xs font-medium uppercase tracking-[0.2em] text-violet-400/90 print:mt-4 print:text-violet-800">
           Mosex Macchina Lab
         </p>
         <h1 className="mt-2 text-2xl font-semibold tracking-tight text-white print:text-zinc-950 md:text-3xl">
