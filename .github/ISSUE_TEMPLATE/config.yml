@@ -1,0 +1,8 @@
+blank_issues_enabled: true
+contact_links:
+  - name: Security vulnerability
+    url: https://github.com/CuevazaArt/ethical-android-mvp/security/advisories/new
+    about: Prefer GitHub private advisories. Enable under repo Settings → Code security → Private vulnerability reporting.
+  - name: Security policy (read first)
+    url: https://github.com/CuevazaArt/ethical-android-mvp/blob/main/SECURITY.md
+    about: How we handle reports if private advisories are not available.

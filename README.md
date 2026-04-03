@@ -267,6 +267,7 @@ In GoDaddy DNS for the domain:
 
 ```
 .
+├── .github/              # Issue templates & Security tab links (config.yml)
 ├── landing/              # Next.js site (npm install inside this folder)
 ├── src/                  # Ethical kernel source code
 ├── tests/                # Formal test suite
@@ -276,6 +277,7 @@ In GoDaddy DNS for the domain:
 ├── CONTRIBUTING.md       # Contributor guide
 ├── HISTORY.md            # Full project evolution (v1→v5)
 ├── LICENSE               # Apache 2.0
+├── SECURITY.md           # Vulnerability reporting policy
 ├── README.md             # This file
 └── requirements.txt      # Python dependencies
 ```

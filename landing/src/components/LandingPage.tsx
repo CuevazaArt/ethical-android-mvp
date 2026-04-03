@@ -25,6 +25,9 @@ const fadeUp = {
 const REPO = "https://github.com/CuevazaArt/ethical-android-mvp";
 const repoFile = (path: string) => `${REPO}/blob/main/${path}`;
 const REPO_NEW_ISSUE = `${REPO}/issues/new`;
+const REPO_ISSUE_COLLAB = `${REPO}/issues/new?template=collaboration.yml`;
+const REPO_ISSUE_QUESTION = `${REPO}/issues/new?template=question.yml`;
+const REPO_ISSUE_BUG = `${REPO}/issues/new?template=bug_report.yml`;
 
 export default function LandingPage() {
   return (
@@ -43,6 +46,9 @@ export default function LandingPage() {
             </a>
             <a href="#contact" className="transition-colors hover:text-white">
               Contact
+            </a>
+            <a href="#support" className="transition-colors hover:text-white">
+              Support
             </a>
             <Link href="/demo" className="transition-colors hover:text-white">
               Live demo
@@ -244,6 +250,17 @@ export default function LandingPage() {
                 </a>
                 <span className="text-zinc-500"> — terms for use and redistribution</span>
               </li>
+              <li>
+                <a
+                  href={repoFile("SECURITY.md")}
+                  className="text-violet-400/90 underline decoration-violet-400/30 underline-offset-4 transition hover:decoration-violet-400/60"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
+                  Security policy
+                </a>
+                <span className="text-zinc-500"> — how to report vulnerabilities</span>
+              </li>
             </ul>
             <div id="contact" className="mt-10 scroll-mt-24">
               <h3 className="text-sm font-semibold text-white">Contact</h3>
@@ -257,21 +274,103 @@ export default function LandingPage() {
                 >
                   GitHub Issues
                 </a>{" "}
-                for substantive questions, collaboration, or responsible
-                disclosure tied to this repository. We do{" "}
+                with the templates (Question, Bug report, Funding/partnership
+                or press) so threads stay scannable. We do{" "}
                 <span className="text-zinc-300">not</span> publish a public
                 email on this site: that cuts automated harvesting, cold spam,
                 and drive-by noise. Issues are public — keep it professional;
                 offtopic, abusive, or bad-faith threads may be closed without
-                debate. For sensitive security reports, use GitHub’s private
-                vulnerability reporting if enabled on the repo, or open an
-                Issue asking for a secure channel.
+                debate. For security, follow{" "}
+                <a
+                  href={repoFile("SECURITY.md")}
+                  className="text-violet-400/90 underline decoration-violet-400/30 underline-offset-4 transition hover:decoration-violet-400/60"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
+                  SECURITY.md
+                </a>{" "}
+                (private advisories when enabled, or a{" "}
+                <code className="rounded bg-white/10 px-1 py-0.5 text-[0.8em] text-zinc-300">
+                  [SECURITY]
+                </code>{" "}
+                issue without exploit details).
               </p>
             </div>
             <p className="mt-8 border-l-2 border-white/10 pl-4 text-xs leading-relaxed text-zinc-500">
               This is a research and educational prototype. It is not a product for
               safety-critical, clinical, legal, or compliance decisions; do not rely
               on it as a substitute for human judgment or domain expertise.
+            </p>
+          </motion.div>
+        </div>
+      </section>
+
+      <section
+        id="support"
+        className="border-t border-white/[0.06] px-6 py-20"
+      >
+        <div className="mx-auto max-w-6xl">
+          <motion.div
+            initial={{ opacity: 0, y: 16 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true, margin: "-40px" }}
+            transition={{ duration: 0.45 }}
+            className="max-w-2xl"
+          >
+            <h2 className="text-xs font-medium uppercase tracking-[0.2em] text-violet-400/90">
+              Visibility, funding & diffusion
+            </h2>
+            <p className="mt-4 text-lg font-semibold text-white">
+              First contact is strong; serious stakeholders get a clear lane.
+            </p>
+            <p className="mt-4 text-sm leading-relaxed text-zinc-400">
+              This landing is built for <strong className="font-medium text-zinc-200">discovery</strong>{" "}
+              (what the project is), <strong className="font-medium text-zinc-200">trust</strong>{" "}
+              (open code, bibliography, changelog, license), and{" "}
+              <strong className="font-medium text-zinc-200">action</strong> (live
+              demo + GitHub). That is enough for many visitors to self-qualify.
+              For <strong className="font-medium text-zinc-200">grants, labs,
+              media, or pilots</strong>, a one-page site rarely replaces a deck,
+              budget, or institutional email — but it can route inbound interest
+              without exposing a harvestable address.
+            </p>
+            <p className="mt-4 text-sm leading-relaxed text-zinc-400">
+              Use the{" "}
+              <a
+                href={REPO_ISSUE_COLLAB}
+                className="text-violet-400/90 underline decoration-violet-400/30 underline-offset-4 transition hover:decoration-violet-400/60"
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                Funding, partnership, or press
+              </a>{" "}
+              issue template: it asks for scope, timeline, and acknowledgment of
+              the prototype nature of the work. General technical questions →{" "}
+              <a
+                href={REPO_ISSUE_QUESTION}
+                className="text-violet-400/90 underline decoration-violet-400/30 underline-offset-4 transition hover:decoration-violet-400/60"
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                Question
+              </a>
+              ; broken UI or code →{" "}
+              <a
+                href={REPO_ISSUE_BUG}
+                className="text-violet-400/90 underline decoration-violet-400/30 underline-offset-4 transition hover:decoration-violet-400/60"
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                Bug report
+              </a>
+              .
+            </p>
+            <p className="mt-4 text-sm leading-relaxed text-zinc-500">
+              <span className="text-zinc-400">Next steps off-site (recommended):</span>{" "}
+              a short PDF one-pager or deck for funders, ORCID / institutional
+              affiliation links, GitHub Sponsors or a fiscal sponsor if you add
+              one, and (optionally) a low-frequency newsletter — none of which
+              require changing this stack today.
             </p>
           </motion.div>
         </div>
@@ -342,6 +441,28 @@ export default function LandingPage() {
               className="transition-colors hover:text-white"
             >
               Contact (Issues)
+            </a>
+            <span className="text-zinc-600" aria-hidden>
+              ·
+            </span>
+            <a
+              href={repoFile("SECURITY.md")}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="transition-colors hover:text-white"
+            >
+              Security
+            </a>
+            <span className="text-zinc-600" aria-hidden>
+              ·
+            </span>
+            <a
+              href={REPO_ISSUE_COLLAB}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="transition-colors hover:text-white"
+            >
+              Partnership
             </a>
           </div>
           <div className="flex flex-col gap-2 md:flex-row md:items-center md:justify-between">
