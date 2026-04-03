@@ -17,3 +17,33 @@ body {
   color: var(--foreground);
   font-family: var(--font-geist-sans), system-ui, sans-serif;
 }
+
+/* KaTeX on dark background — large display for theory showcase */
+.theory-math-showcase .katex {
+  color: rgb(244 244 245);
+  font-size: clamp(1.15rem, 3.6vw, 1.85rem);
+}
+
+.theory-math-showcase .katex-display {
+  margin: 0;
+}
+
+.theory-math-showcase .math-display .katex {
+  font-size: clamp(1.25rem, 4.2vw, 2.05rem);
+}
+
+.theory-math-showcase .math-display-predicate .katex {
+  font-size: clamp(1.05rem, 3.1vw, 1.55rem);
+}
+
+.theory-math-showcase .katex .mord,
+.theory-math-showcase .katex .mop,
+.theory-math-showcase .katex .mrel,
+.theory-math-showcase .katex .mbin,
+.theory-math-showcase .katex .mopen,
+.theory-math-showcase .katex .mclose,
+.theory-math-showcase .katex .mpunct,
+.theory-math-showcase .katex .minner,
+.theory-math-showcase .katex .text {
+  color: inherit;
+}

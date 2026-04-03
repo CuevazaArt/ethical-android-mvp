@@ -6,6 +6,7 @@ import { motion } from "framer-motion";
 
 import { LanguageSwitcherPlaceholder } from "@/components/LanguageSwitcherPlaceholder";
 import { SiteBrand } from "@/components/SiteBrand";
+import { TheoryMathShowcase } from "@/components/TheoryMathShowcase";
 
 const HeroCanvas = dynamic(() => import("@/components/HeroCanvas"), {
   ssr: false,
@@ -209,6 +210,9 @@ export default function LandingPage() {
               into signals and explains outcomes; it does not replace the veto and argmax logic.
             </p>
           </motion.div>
+
+          <TheoryMathShowcase />
+
           <div className="mt-10 grid gap-6 md:grid-cols-3">
             {[
               {
