@@ -15,30 +15,29 @@ export default function DemoPage() {
 
       <section
         aria-labelledby="demo-intro-heading"
-        lang="es"
+        lang="en"
         className="shrink-0 border-b border-white/[0.06] bg-[#07070c] px-4 py-4 md:px-5 md:py-5"
       >
         <h1
           id="demo-intro-heading"
           className="text-base font-semibold tracking-tight text-zinc-100 md:text-lg"
         >
-          Qué estás viendo
+          What you&apos;re seeing
         </h1>
         <p className="mt-2 max-w-3xl text-sm leading-relaxed text-zinc-400">
-          Este panel recorre <strong className="font-medium text-zinc-300">situaciones inventadas</strong>{" "}
-          — del día a día, con tensión o riesgo — como si pasaras tarjetas de{" "}
-          <strong className="font-medium text-zinc-300">cuentos éticos</strong> ante un
-          &ldquo;androide&rdquo; de investigación. Cada escena nueva pregunta cómo ese prototipo
-          valoraría distintas respuestas. Los{" "}
-          <strong className="font-medium text-zinc-300">números junto a cada acción</strong> son
-          pistas sencillas de <em className="text-zinc-400">mejor o peor según este simulador</em>;
-          lo que mide riesgo, calma o vulnerabilidad indica{" "}
-          <strong className="font-medium text-zinc-300">qué tan cargado está el momento ficticio</strong>{" "}
-          para el modelo — no es un juicio sobre ti.{" "}
+          This panel walks through <strong className="font-medium text-zinc-300">made-up situations</strong>{" "}
+          — everyday life, tension, or risk — like flipping{" "}
+          <strong className="font-medium text-zinc-300">ethical story cards</strong> in front of a
+          research &ldquo;android.&rdquo; Each new scene asks how that prototype would weigh different
+          responses. The <strong className="font-medium text-zinc-300">numbers next to each action</strong>{" "}
+          are simple hints of <em className="text-zinc-400">better or worse inside this simulator</em>;
+          readings for risk, calm, or vulnerability show{" "}
+          <strong className="font-medium text-zinc-300">how charged the fictional moment feels</strong>{" "}
+          to the model — not a judgment about you.{" "}
           <span className="text-zinc-500">
-            Nada de esto es consejo médico, legal ni para la vida real; el valor es que cualquier
-            persona pueda <strong className="font-medium text-zinc-400">mirar dentro de una ética de máquina transparente</strong>, sin
-            fórmulas ni tecnicismos.
+            None of this is medical or legal advice, or guidance for real decisions; the point is that
+            anyone can <strong className="font-medium text-zinc-400">peek inside a transparent machine-ethics experiment</strong>{" "}
+            without formulas or jargon.
           </span>
         </p>
       </section>
