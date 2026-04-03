@@ -12,8 +12,9 @@ export function DemoIntroPanel() {
   useEffect(() => {
     try {
       const raw = localStorage.getItem(INTRO_STORAGE_KEY);
-      if (raw === "false") setOpen(false);
-      if (raw === "true") setOpen(true);
+      if (raw !== "false" && raw !== "true") return;
+      const next = raw === "true";
+      queueMicrotask(() => setOpen(next));
     } catch {
       /* private mode / quota */
     }
