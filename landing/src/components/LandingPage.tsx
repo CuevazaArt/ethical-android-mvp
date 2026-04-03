@@ -24,6 +24,7 @@ const fadeUp = {
 
 const REPO = "https://github.com/CuevazaArt/ethical-android-mvp";
 const repoFile = (path: string) => `${REPO}/blob/main/${path}`;
+const REPO_NEW_ISSUE = `${REPO}/issues/new`;
 
 export default function LandingPage() {
   return (
@@ -39,6 +40,9 @@ export default function LandingPage() {
             </a>
             <a href="#research" className="transition-colors hover:text-white">
               Research
+            </a>
+            <a href="#contact" className="transition-colors hover:text-white">
+              Contact
             </a>
             <Link href="/demo" className="transition-colors hover:text-white">
               Live demo
@@ -229,7 +233,41 @@ export default function LandingPage() {
                 </a>
                 <span className="text-zinc-500"> — how to participate</span>
               </li>
+              <li>
+                <a
+                  href={repoFile("LICENSE")}
+                  className="text-violet-400/90 underline decoration-violet-400/30 underline-offset-4 transition hover:decoration-violet-400/60"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
+                  License (Apache 2.0)
+                </a>
+                <span className="text-zinc-500"> — terms for use and redistribution</span>
+              </li>
             </ul>
+            <div id="contact" className="mt-10 scroll-mt-24">
+              <h3 className="text-sm font-semibold text-white">Contact</h3>
+              <p className="mt-3 text-sm leading-relaxed text-zinc-400">
+                Use{" "}
+                <a
+                  href={REPO_NEW_ISSUE}
+                  className="text-violet-400/90 underline decoration-violet-400/30 underline-offset-4 transition hover:decoration-violet-400/60"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
+                  GitHub Issues
+                </a>{" "}
+                for substantive questions, collaboration, or responsible
+                disclosure tied to this repository. We do{" "}
+                <span className="text-zinc-300">not</span> publish a public
+                email on this site: that cuts automated harvesting, cold spam,
+                and drive-by noise. Issues are public — keep it professional;
+                offtopic, abusive, or bad-faith threads may be closed without
+                debate. For sensitive security reports, use GitHub’s private
+                vulnerability reporting if enabled on the repo, or open an
+                Issue asking for a secure channel.
+              </p>
+            </div>
             <p className="mt-8 border-l-2 border-white/10 pl-4 text-xs leading-relaxed text-zinc-500">
               This is a research and educational prototype. It is not a product for
               safety-critical, clinical, legal, or compliance decisions; do not rely
@@ -282,6 +320,28 @@ export default function LandingPage() {
               className="transition-colors hover:text-white"
             >
               Contributing
+            </a>
+            <span className="text-zinc-600" aria-hidden>
+              ·
+            </span>
+            <a
+              href={repoFile("LICENSE")}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="transition-colors hover:text-white"
+            >
+              Apache-2.0
+            </a>
+            <span className="text-zinc-600" aria-hidden>
+              ·
+            </span>
+            <a
+              href={REPO_NEW_ISSUE}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="transition-colors hover:text-white"
+            >
+              Contact (Issues)
             </a>
           </div>
           <div className="flex flex-col gap-2 md:flex-row md:items-center md:justify-between">
