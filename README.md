@@ -268,6 +268,7 @@ In GoDaddy DNS for the domain:
 ```
 .
 ├── .github/              # Issue templates & Security tab links (config.yml)
+├── docs/                 # Theory ↔ implementation (see THEORY_AND_IMPLEMENTATION.md)
 ├── landing/              # Next.js site (npm install inside this folder)
 ├── src/                  # Ethical kernel source code
 ├── tests/                # Formal test suite
@@ -283,6 +284,8 @@ In GoDaddy DNS for the domain:
 ```
 
 A copy of `dashboard.html` is also kept under `landing/public/` so the Next.js app can serve it.
+
+**Theory vs. code:** formulas, predicates, and file-level mapping (including how this differs from an LLM-only “stochastic parrot”) are in [docs/THEORY_AND_IMPLEMENTATION.md](docs/THEORY_AND_IMPLEMENTATION.md).
 
 ## License
 

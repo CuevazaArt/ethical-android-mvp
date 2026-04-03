@@ -46,6 +46,9 @@ export default function LandingPage() {
             <a href="#model" className="transition-colors hover:text-white">
               Model
             </a>
+            <a href="#theory" className="transition-colors hover:text-white">
+              Theory
+            </a>
             <a href="#research" className="transition-colors hover:text-white">
               Research
             </a>
@@ -185,6 +188,68 @@ export default function LandingPage() {
         </div>
       </section>
 
+      <section id="theory" className="border-t border-white/[0.06] px-6 py-20 scroll-mt-24">
+        <div className="mx-auto max-w-6xl">
+          <motion.div
+            initial={{ opacity: 0, y: 16 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true, margin: "-40px" }}
+            transition={{ duration: 0.45 }}
+            className="max-w-2xl"
+          >
+            <h2 className="text-xs font-medium uppercase tracking-[0.2em] text-violet-400/90">
+              More than a stochastic parrot
+            </h2>
+            <p className="mt-4 text-lg font-semibold text-white">
+              Math and logic you can open on GitHub — not vibes from a single model call.
+            </p>
+            <p className="mt-4 text-sm leading-relaxed text-zinc-400">
+              The ethical <strong className="font-medium text-zinc-300">kernel</strong> is Python: fixed
+              pipelines, explicit vetoes, and scored actions. An optional LLM only translates situations
+              into signals and explains outcomes; it does not replace the veto and argmax logic.
+            </p>
+          </motion.div>
+          <div className="mt-10 grid gap-6 md:grid-cols-3">
+            {[
+              {
+                title: "Sigmoid will",
+                body: "Willingness to act is a smooth curve plus uncertainty — not a hard on/off switch — so the agent can ramp between quick response and deeper deliberation.",
+              },
+              {
+                title: "Ethical optimization + MalAbs",
+                body: "Candidate actions are ranked by expected ethical impact, but anything that crosses absolute-evil rules is thrown out before any optimization runs.",
+              },
+              {
+                title: "Uchi–Soto & algorithmic forgiveness",
+                body: "Social distance shapes how tightly the system trusts and defends; over time, negative memories lose weight while the story stays auditable.",
+              },
+            ].map((item, i) => (
+              <motion.div
+                key={item.title}
+                initial={{ opacity: 0, y: 16 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true, margin: "-40px" }}
+                transition={{ delay: 0.08 * i, duration: 0.45 }}
+                className="rounded-2xl border border-white/[0.08] bg-white/[0.02] p-6"
+              >
+                <h3 className="text-base font-semibold text-white">{item.title}</h3>
+                <p className="mt-3 text-sm leading-relaxed text-zinc-400">{item.body}</p>
+              </motion.div>
+            ))}
+          </div>
+          <p className="mt-10 text-center text-sm md:text-left">
+            <a
+              href={repoFile("docs/THEORY_AND_IMPLEMENTATION.md")}
+              className="text-violet-400/90 underline decoration-violet-400/30 underline-offset-4 transition hover:decoration-violet-400/60"
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              Full theory ↔ implementation map (formulas, predicates, files)
+            </a>
+          </p>
+        </div>
+      </section>
+
       <section
         id="mission"
         className="border-t border-white/[0.06] px-6 py-16 md:py-20"
@@ -276,6 +341,17 @@ export default function LandingPage() {
                   README
                 </a>
                 <span className="text-zinc-500"> — architecture and how to run</span>
+              </li>
+              <li>
+                <a
+                  href={repoFile("docs/THEORY_AND_IMPLEMENTATION.md")}
+                  className="text-violet-400/90 underline decoration-violet-400/30 underline-offset-4 transition hover:decoration-violet-400/60"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
+                  Theory &amp; implementation
+                </a>
+                <span className="text-zinc-500"> — formulas, predicates, kernel vs. LLM</span>
               </li>
               <li>
                 <a
