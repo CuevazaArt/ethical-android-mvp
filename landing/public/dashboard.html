@@ -271,7 +271,14 @@ function Dashboard() {
     const interval = setInterval(() => { p++; setPhase(p); if (p >= PIPELINE_STEPS.length) { clearInterval(interval); setAnimating(false); } }, 300);
   }, []);
 
-  const runSim = (id) => { if (animating) return; setSelected(id); setRandomScenario(null); setRandomResult(null); animate(); };
+  const runSim = (id) => {
+    if (animating) return;
+    setSelected(id);
+    setRandomScenario(null);
+    setRandomResult(null);
+    if (isNarrow) setSidebarOpen(false);
+    animate();
+  };
 
   const runRandom = () => {
     if (animating) return;
@@ -280,6 +287,7 @@ function Dashboard() {
     setRandomScenario(gen.scenario);
     setRandomResult(gen.result);
     setRandomCount(c => c + 1);
+    if (isNarrow) setSidebarOpen(false);
     animate();
   };
 
