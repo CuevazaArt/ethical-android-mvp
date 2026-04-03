@@ -18,10 +18,11 @@ body {
   font-family: var(--font-geist-sans), system-ui, sans-serif;
 }
 
-/* KaTeX on dark background — large display for theory showcase */
+/* KaTeX — smaller than before but brighter than body; vivid green on dark */
 .theory-math-showcase .katex {
-  color: rgb(244 244 245);
-  font-size: clamp(1.15rem, 3.6vw, 1.85rem);
+  color: rgb(110 255 130);
+  font-size: clamp(0.95rem, 2.2vw, 1.12rem);
+  text-shadow: 0 0 18px rgb(80 255 120 / 0.35);
 }
 
 .theory-math-showcase .katex-display {
@@ -29,11 +30,13 @@ body {
 }
 
 .theory-math-showcase .math-display .katex {
-  font-size: clamp(1.25rem, 4.2vw, 2.05rem);
+  font-size: clamp(1rem, 2.5vw, 1.2rem);
+  text-shadow: 0 0 22px rgb(90 255 140 / 0.4);
 }
 
 .theory-math-showcase .math-display-predicate .katex {
-  font-size: clamp(1.05rem, 3.1vw, 1.55rem);
+  font-size: clamp(0.9rem, 2vw, 1.05rem);
+  text-shadow: 0 0 16px rgb(80 255 120 / 0.3);
 }
 
 .theory-math-showcase .katex .mord,
@@ -46,4 +49,18 @@ body {
 .theory-math-showcase .katex .minner,
 .theory-math-showcase .katex .text {
   color: inherit;
+}
+
+.theory-math-showcase .katex .mfrac .frac-line,
+.theory-math-showcase .katex .overline .overline-line,
+.theory-math-showcase .katex .underline .underline-line {
+  border-bottom-color: rgb(110 255 130);
+}
+
+.theory-math-showcase .katex .sqrt > .sqrt-sign {
+  color: inherit;
+}
+
+.theory-math-showcase .katex .sqrt-line {
+  border-bottom-color: rgb(110 255 130);
 }
