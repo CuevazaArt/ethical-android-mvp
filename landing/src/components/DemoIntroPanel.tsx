@@ -1,11 +1,35 @@
 "use client";
 
-import { useId, useState } from "react";
+import { useEffect, useId, useState } from "react";
+
+const INTRO_STORAGE_KEY = "ethical-android-mvp-demo-intro-open";
 
 export function DemoIntroPanel() {
   const [open, setOpen] = useState(true);
   const headingId = useId();
   const panelId = useId();
+
+  useEffect(() => {
+    try {
+      const raw = localStorage.getItem(INTRO_STORAGE_KEY);
+      if (raw === "false") setOpen(false);
+      if (raw === "true") setOpen(true);
+    } catch {
+      /* private mode / quota */
+    }
+  }, []);
+
+  const toggleOpen = () => {
+    setOpen((prev) => {
+      const next = !prev;
+      try {
+        localStorage.setItem(INTRO_STORAGE_KEY, next ? "true" : "false");
+      } catch {
+        /* ignore */
+      }
+      return next;
+    });
+  };
 
   return (
     <section
@@ -24,7 +48,7 @@ export function DemoIntroPanel() {
           className="shrink-0 rounded-lg border border-violet-500/40 bg-violet-950/40 px-3 py-2 text-xs font-semibold text-violet-200 shadow-sm transition hover:border-violet-400/60 hover:bg-violet-900/50 focus:outline-none focus-visible:ring-2 focus-visible:ring-violet-400/80 focus-visible:ring-offset-2 focus-visible:ring-offset-[#07070c]"
           aria-expanded={open}
           aria-controls={panelId}
-          onClick={() => setOpen((v) => !v)}
+          onClick={toggleOpen}
         >
           {open ? "Hide introduction" : "Show introduction"}
         </button>
