@@ -22,6 +22,9 @@ const fadeUp = {
   }),
 };
 
+const REPO = "https://github.com/CuevazaArt/ethical-android-mvp";
+const repoFile = (path: string) => `${REPO}/blob/main/${path}`;
+
 export default function LandingPage() {
   return (
     <div className="flex min-h-full flex-col bg-[#050508] text-zinc-100">
@@ -30,15 +33,26 @@ export default function LandingPage() {
           <span className="text-sm font-medium tracking-tight text-zinc-300">
             Mosex Macchina Lab
           </span>
-          <nav className="flex gap-6 text-sm text-zinc-400">
+          <nav className="flex flex-wrap items-center justify-end gap-x-6 gap-y-2 text-sm text-zinc-400">
             <a href="#model" className="transition-colors hover:text-white">
               Model
+            </a>
+            <a href="#research" className="transition-colors hover:text-white">
+              Research
             </a>
             <Link href="/demo" className="transition-colors hover:text-white">
               Live demo
             </Link>
             <a
-              href="https://github.com/CuevazaArt/ethical-android-mvp"
+              href={repoFile("BIBLIOGRAPHY.md")}
+              className="transition-colors hover:text-white"
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              Bibliography
+            </a>
+            <a
+              href={REPO}
               className="transition-colors hover:text-white"
               target="_blank"
               rel="noopener noreferrer"
@@ -98,7 +112,7 @@ export default function LandingPage() {
                 Open interactive dashboard
               </Link>
               <a
-                href="https://github.com/CuevazaArt/ethical-android-mvp"
+                href={REPO}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="inline-flex items-center justify-center rounded-full border border-white/15 px-6 py-3 text-sm font-medium text-zinc-200 transition hover:border-white/30 hover:bg-white/5"
@@ -145,12 +159,137 @@ export default function LandingPage() {
         </div>
       </section>
 
+      <section
+        id="research"
+        className="border-t border-white/[0.06] px-6 py-20"
+      >
+        <div className="mx-auto max-w-6xl">
+          <motion.div
+            initial={{ opacity: 0, y: 16 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true, margin: "-40px" }}
+            transition={{ duration: 0.45 }}
+            className="max-w-2xl"
+          >
+            <h2 className="text-xs font-medium uppercase tracking-[0.2em] text-violet-400/90">
+              Research & transparency
+            </h2>
+            <p className="mt-4 text-lg font-semibold text-white">
+              Open kernel, documented behavior, cited sources.
+            </p>
+            <p className="mt-4 text-sm leading-relaxed text-zinc-400">
+              The ethical core is implemented in Python with a formal test suite
+              over invariant properties; simulations explore scenarios without
+              claiming real-world deployment. Everything is on GitHub — including
+              the bibliography and changelog — so methods and scope stay
+              inspectable.
+            </p>
+            <ul className="mt-6 flex flex-col gap-2 text-sm text-zinc-300">
+              <li>
+                <a
+                  href={repoFile("BIBLIOGRAPHY.md")}
+                  className="text-violet-400/90 underline decoration-violet-400/30 underline-offset-4 transition hover:decoration-violet-400/60"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
+                  Bibliography
+                </a>
+                <span className="text-zinc-500"> — references across disciplines</span>
+              </li>
+              <li>
+                <a
+                  href={repoFile("README.md")}
+                  className="text-violet-400/90 underline decoration-violet-400/30 underline-offset-4 transition hover:decoration-violet-400/60"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
+                  README
+                </a>
+                <span className="text-zinc-500"> — architecture and how to run</span>
+              </li>
+              <li>
+                <a
+                  href={repoFile("CHANGELOG.md")}
+                  className="text-violet-400/90 underline decoration-violet-400/30 underline-offset-4 transition hover:decoration-violet-400/60"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
+                  Changelog
+                </a>
+                <span className="text-zinc-500"> — version history and modules</span>
+              </li>
+              <li>
+                <a
+                  href={repoFile("CONTRIBUTING.md")}
+                  className="text-violet-400/90 underline decoration-violet-400/30 underline-offset-4 transition hover:decoration-violet-400/60"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
+                  Contributing
+                </a>
+                <span className="text-zinc-500"> — how to participate</span>
+              </li>
+            </ul>
+            <p className="mt-8 border-l-2 border-white/10 pl-4 text-xs leading-relaxed text-zinc-500">
+              This is a research and educational prototype. It is not a product for
+              safety-critical, clinical, legal, or compliance decisions; do not rely
+              on it as a substitute for human judgment or domain expertise.
+            </p>
+          </motion.div>
+        </div>
+      </section>
+
       <footer className="mt-auto border-t border-white/[0.06] px-6 py-8">
-        <div className="mx-auto flex max-w-6xl flex-col gap-2 text-sm text-zinc-500 md:flex-row md:items-center md:justify-between">
-          <span>mosexmacchinalab.com — research prototype</span>
-          <span className="text-zinc-600">
-            Python simulations + Next.js landing · Deploy on Vercel
-          </span>
+        <div className="mx-auto flex max-w-6xl flex-col gap-6 text-sm text-zinc-500">
+          <div className="flex flex-wrap gap-x-1 gap-y-1 text-zinc-400">
+            <a
+              href={repoFile("BIBLIOGRAPHY.md")}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="transition-colors hover:text-white"
+            >
+              Bibliography
+            </a>
+            <span className="text-zinc-600" aria-hidden>
+              ·
+            </span>
+            <a
+              href={repoFile("README.md")}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="transition-colors hover:text-white"
+            >
+              README
+            </a>
+            <span className="text-zinc-600" aria-hidden>
+              ·
+            </span>
+            <a
+              href={repoFile("CHANGELOG.md")}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="transition-colors hover:text-white"
+            >
+              Changelog
+            </a>
+            <span className="text-zinc-600" aria-hidden>
+              ·
+            </span>
+            <a
+              href={repoFile("CONTRIBUTING.md")}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="transition-colors hover:text-white"
+            >
+              Contributing
+            </a>
+          </div>
+          <div className="flex flex-col gap-2 md:flex-row md:items-center md:justify-between">
+            <span>mosexmacchinalab.com — research prototype</span>
+            <span className="text-zinc-600">
+              Python simulations + Next.js landing · Deploy on Vercel
+            </span>
+          </div>
         </div>
       </footer>
     </div>
