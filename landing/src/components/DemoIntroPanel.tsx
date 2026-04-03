@@ -82,6 +82,23 @@ export function DemoIntroPanel() {
           </span>
         </p>
 
+        <p className="mt-4 max-w-3xl border-l-2 border-violet-500/25 pl-4 text-sm leading-relaxed text-zinc-400">
+          <strong className="font-medium text-zinc-300">What this adds up to</strong> — In this demo, the{" "}
+          <strong className="font-medium text-zinc-300">simulation and the numbers</strong> are what
+          <strong className="font-medium text-zinc-300"> determine what happens</strong> for each
+          situation: they express{" "}
+          <strong className="font-medium text-zinc-300">how the model&apos;s ethical consciousness
+          perceives that reality</strong> — how intense the stakes feel, which options look acceptable
+          or harmful — and therefore{" "}
+          <strong className="font-medium text-zinc-300">how strongly, and in what direction, it would
+          tend to react</strong>. That inner logic is not married to a humanoid shell: the same kind
+          of agent could be imagined as an <strong className="font-medium text-zinc-300">android</strong>, a{" "}
+          <strong className="font-medium text-zinc-300">self-driving car</strong>, or{" "}
+          <strong className="font-medium text-zinc-300">another autonomous system</strong>; here you are
+          only watching that <strong className="font-medium text-zinc-300">ethical decision layer</strong>{" "}
+          stripped down on screen.
+        </p>
+
         <p className="mt-4 max-w-3xl text-sm leading-relaxed text-zinc-400">
           <strong className="font-medium text-zinc-300">What you can press</strong> — In the simulator
           below, use the{" "}
