@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 
+import { OnePagerLinesAccent } from "@/components/page-accents/OnePagerLinesAccent";
 import { LanguageSwitcherPlaceholder } from "@/components/LanguageSwitcherPlaceholder";
 import { SiteBrand } from "@/components/SiteBrand";
 
@@ -54,6 +55,7 @@ export default function OnePagerPage() {
           Artificial ethical consciousness, validated in simulation. Open
           source (Apache-2.0); not a commercial safety or clinical product.
         </p>
+        <OnePagerLinesAccent />
       </header>
 
       <section className="mt-8">

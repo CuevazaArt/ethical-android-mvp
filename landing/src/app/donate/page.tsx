@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 
+import { DonateRippleAccent } from "@/components/page-accents/DonateRippleAccent";
 import { LanguageSwitcherPlaceholder } from "@/components/LanguageSwitcherPlaceholder";
 import { SiteBrand } from "@/components/SiteBrand";
 
@@ -13,7 +14,7 @@ export const metadata: Metadata = {
 
 export default function DonatePage() {
   return (
-    <div className="flex min-h-full flex-col bg-[#050508] text-zinc-100">
+    <div className="relative flex min-h-full flex-col bg-[#050508] text-zinc-100">
       <header className="shrink-0 border-b border-white/[0.08] px-4 py-3 md:px-6">
         <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
           <SiteBrand />
@@ -41,6 +42,8 @@ export default function DonatePage() {
           </div>
         </div>
       </header>
+
+      <DonateRippleAccent />
 
       <main className="mx-auto flex w-full max-w-lg flex-1 flex-col px-6 py-16 text-center">
         <p className="text-xs font-medium uppercase tracking-[0.2em] text-violet-400/90">

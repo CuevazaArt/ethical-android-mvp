@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 
+import { InvestorsGrowthAccent } from "@/components/page-accents/InvestorsGrowthAccent";
 import { LanguageSwitcherPlaceholder } from "@/components/LanguageSwitcherPlaceholder";
 import { SiteBrand } from "@/components/SiteBrand";
 
@@ -113,7 +114,7 @@ const ECOSYSTEM = [
 
 export default function InvestorsPage() {
   return (
-    <div className="flex min-h-full flex-col bg-[#050508] text-zinc-100">
+    <div className="relative flex min-h-full flex-col bg-[#050508] text-zinc-100">
       <header className="shrink-0 border-b border-white/[0.08] px-4 py-3 md:px-6">
         <div className="mx-auto flex max-w-4xl flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
           <SiteBrand />
@@ -139,6 +140,8 @@ export default function InvestorsPage() {
           </div>
         </div>
       </header>
+
+      <InvestorsGrowthAccent />
 
       <main className="mx-auto w-full max-w-4xl flex-1 px-6 py-12 md:py-16">
         <p className="text-xs font-medium uppercase tracking-[0.2em] text-violet-400/90">

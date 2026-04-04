@@ -1,5 +1,6 @@
 import Link from "next/link";
 
+import { DemoSignalAccent } from "@/components/page-accents/DemoSignalAccent";
 import { DemoIntroPanel } from "@/components/DemoIntroPanel";
 import { LanguageSwitcherPlaceholder } from "@/components/LanguageSwitcherPlaceholder";
 import { SiteBrand } from "@/components/SiteBrand";
@@ -50,6 +51,8 @@ export default function DemoPage() {
           </div>
         </div>
       </header>
+
+      <DemoSignalAccent />
 
       <DemoIntroPanel />
 
