@@ -44,6 +44,9 @@ export default function LandingPage() {
             <Link href="/about" className="transition-colors hover:text-white">
               Who we are
             </Link>
+            <a href="#hostable" className="transition-colors hover:text-white">
+              Hostable core
+            </a>
             <a href="#model" className="transition-colors hover:text-white">
               Model
             </a>
@@ -155,6 +158,104 @@ export default function LandingPage() {
           <div className="relative h-[380px] w-full md:h-[min(520px,70vh)] md:w-1/2">
             <HeroCanvas />
           </div>
+        </div>
+      </section>
+
+      <section
+        id="hostable"
+        className="border-t border-white/[0.06] px-6 py-20 scroll-mt-24"
+      >
+        <div className="mx-auto max-w-3xl">
+          <motion.p
+            initial={{ opacity: 0, y: 12 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true, margin: "-40px" }}
+            transition={{ duration: 0.45 }}
+            className="text-xs font-medium uppercase tracking-[0.2em] text-violet-400/90"
+          >
+            Deployable artificial consciousness
+          </motion.p>
+          <motion.blockquote
+            initial={{ opacity: 0, y: 14 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true, margin: "-40px" }}
+            transition={{ delay: 0.05, duration: 0.5 }}
+            className="mt-6 border-l-2 border-violet-500/45 pl-6 text-lg font-medium leading-snug text-zinc-100 md:text-xl"
+          >
+            Deployable artificial consciousness: an ethical–cognitive kernel with
+            persistent identity, installable on humanoid androids, drones, or
+            autonomous vehicles.
+          </motion.blockquote>
+          <motion.div
+            initial={{ opacity: 0, y: 14 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true, margin: "-40px" }}
+            transition={{ delay: 0.1, duration: 0.5 }}
+            className="mt-8 space-y-4 text-sm leading-relaxed text-zinc-400 md:text-[15px]"
+          >
+            <p>
+              This is <strong className="font-medium text-zinc-300">hostable software</strong>{" "}
+              — a core that can run on many physical agents: humanoid androids,{" "}
+              <strong className="font-medium text-zinc-300">drones</strong>, expanded robotic
+              platforms, or autonomous cars. It is{" "}
+              <strong className="font-medium text-zinc-300">not an LLM</strong> and not a
+              stochastic parrot. Language models are used only as an{" "}
+              <strong className="font-medium text-zinc-300">intermediary interface</strong> for
+              natural communication; the kernel is separate: an{" "}
+              <strong className="font-medium text-zinc-300">ethical–cognitive engine</strong>{" "}
+              built on frontier mathematics — Bayesian optimization, explicit uncertainty, and
+              multipolar decision mechanisms.
+            </p>
+            <p>
+              In simple terms: software designed to behave like{" "}
+              <strong className="font-medium text-zinc-300">persistent consciousness</strong>.
+              It perceives, evaluates, decides, and is accountable. Identity stays coherent over
+              time even when the physical platform changes. Ethics are not a bolt-on filter — they
+              are the <strong className="font-medium text-zinc-300">architecture</strong>: actions
+              are guided by armored universal principles and by collective governance through a{" "}
+              <strong className="font-medium text-zinc-300">DAO</strong>.
+            </p>
+          </motion.div>
+          <motion.ul
+            initial={{ opacity: 0, y: 14 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true, margin: "-40px" }}
+            transition={{ delay: 0.15, duration: 0.5 }}
+            className="mt-10 space-y-3 text-sm text-zinc-300 md:text-[15px]"
+          >
+            {[
+              "Hostable across many physical platforms — same kernel, different bodies.",
+              "Applies to drones, androids, and autonomous vehicles — not a single form factor.",
+              "Frontier math at the core (Bayesian ethics, uncertainty, multipolar arbitration) — not mere statistical correlation.",
+              "LLMs optional: communication layer only; policy and vetoes live in the kernel.",
+              "Persistent identity and accountability — not one-off command execution.",
+            ].map((line) => (
+              <li key={line} className="flex gap-3">
+                <span className="mt-0.5 shrink-0 text-violet-400/90" aria-hidden>
+                  →
+                </span>
+                <span className="leading-relaxed">{line}</span>
+              </li>
+            ))}
+          </motion.ul>
+          <motion.p
+            initial={{ opacity: 0 }}
+            whileInView={{ opacity: 1 }}
+            viewport={{ once: true, margin: "-40px" }}
+            transition={{ delay: 0.2, duration: 0.45 }}
+            className="mt-10 text-sm text-zinc-500"
+          >
+            Technical mapping:{" "}
+            <a
+              href={repoFile("docs/THEORY_AND_IMPLEMENTATION.md")}
+              className="text-violet-400/90 underline decoration-violet-400/30 underline-offset-4 transition hover:decoration-violet-400/60"
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              Theory &amp; implementation
+            </a>
+            .
+          </motion.p>
         </div>
       </section>
 
