@@ -14,7 +14,8 @@ function shouldSendHsts(): boolean {
 /** Baseline headers for every matched response. */
 function applyBaseline(res: NextResponse) {
   res.headers.set("X-DNS-Prefetch-Control", "on");
-  res.headers.set("X-Frame-Options", "SAMEORIGIN");
+  /* No X-Frame-Options: SAMEORIGIN — it blocks Vercel’s dashboard preview iframe
+   * (parent vercel.com ≠ child *.vercel.app). Frame policy is CSP frame-ancestors only. */
   res.headers.set("X-Content-Type-Options", "nosniff");
   res.headers.set("Referrer-Policy", "strict-origin-when-cross-origin");
   res.headers.set(
@@ -41,7 +42,7 @@ const cspApp =
   "font-src 'self' data:; " +
   "connect-src 'self'; " +
   "frame-src 'self'; " +
-  "frame-ancestors 'self'; " +
+  "frame-ancestors 'self' https://vercel.com; " +
   "base-uri 'self'; " +
   "form-action 'self'; " +
   (shouldSendHsts() ? "upgrade-insecure-requests; " : "");
@@ -56,7 +57,7 @@ const cspDashboard =
   "font-src 'self' https://fonts.gstatic.com data:; " +
   "img-src 'self' data:; " +
   "connect-src 'self'; " +
-  "frame-ancestors 'self'; " +
+  "frame-ancestors 'self' https://vercel.com; " +
   "base-uri 'self'; " +
   "form-action 'self'; " +
   (shouldSendHsts() ? "upgrade-insecure-requests; " : "");
