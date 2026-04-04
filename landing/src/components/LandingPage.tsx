@@ -62,6 +62,9 @@ export default function LandingPage() {
             <a href="#collaborate" className="transition-colors hover:text-white">
               Collaborate
             </a>
+            <Link href="/investors" className="transition-colors hover:text-white">
+              Investors
+            </Link>
             <Link href="/donate" className="transition-colors hover:text-white">
               Donate
             </Link>
@@ -254,6 +257,13 @@ export default function LandingPage() {
             >
               Theory &amp; implementation
             </a>
+            <span className="text-zinc-600"> · </span>
+            <Link
+              href="/investors"
+              className="text-violet-400/90 underline decoration-violet-400/30 underline-offset-4 transition hover:decoration-violet-400/60"
+            >
+              Scope &amp; ecosystem (investors)
+            </Link>
             .
           </motion.p>
         </div>
@@ -457,6 +467,15 @@ export default function LandingPage() {
                   Theory &amp; implementation
                 </a>
                 <span className="text-zinc-500"> — formulas, predicates, kernel vs. LLM</span>
+              </li>
+              <li>
+                <Link
+                  href="/investors"
+                  className="text-violet-400/90 underline decoration-violet-400/30 underline-offset-4 transition hover:decoration-violet-400/60"
+                >
+                  Investors — scope &amp; ecosystem
+                </Link>
+                <span className="text-zinc-500"> — product reach &amp; derivative markets</span>
               </li>
               <li>
                 <a
