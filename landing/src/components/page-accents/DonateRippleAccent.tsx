@@ -2,36 +2,45 @@
 
 import { motion } from "framer-motion";
 
-/** Gentle outward ripples — support & community reach. */
+/**
+ * Donate / nurture — small “sparks” rise and fade (seeds, support lifting work),
+ * not concentric rings like a sonar ping.
+ */
+const SPARKS = [
+  { x: "18%", delay: 0, dur: 4 },
+  { x: "38%", delay: 0.7, dur: 3.4 },
+  { x: "52%", delay: 1.2, dur: 4.2 },
+  { x: "68%", delay: 0.3, dur: 3.8 },
+  { x: "82%", delay: 1.6, dur: 4.5 },
+] as const;
+
 export function DonateRippleAccent() {
   return (
     <div
-      className="pointer-events-none relative flex h-24 w-full items-center justify-center overflow-hidden border-b border-white/[0.06] bg-gradient-to-b from-violet-950/20 to-transparent"
+      className="pointer-events-none relative h-24 w-full overflow-hidden border-b border-rose-950/20 bg-gradient-to-t from-rose-950/10 via-transparent to-violet-950/10"
       aria-hidden
     >
-      {[0, 1, 2].map((i) => (
-        <motion.div
+      {SPARKS.map((s, i) => (
+        <motion.span
           key={i}
-          className="absolute rounded-full border border-violet-400/25"
-          initial={{ width: 32, height: 32, opacity: 0.5 }}
+          className="absolute bottom-0 h-2 w-2 rounded-full bg-gradient-to-t from-rose-400/50 to-violet-300/40 blur-[0.5px]"
+          style={{ left: s.x, marginLeft: "-4px" }}
+          initial={{ y: 0, opacity: 0, scale: 0.6 }}
           animate={{
-            width: 220,
-            height: 220,
-            opacity: 0,
+            y: [-8, -72],
+            opacity: [0, 0.85, 0],
+            scale: [0.5, 1, 0.4],
           }}
           transition={{
-            duration: 3.2,
+            duration: s.dur,
             repeat: Infinity,
-            delay: i * 1.05,
+            delay: s.delay,
             ease: "easeOut",
+            times: [0, 0.15, 1],
           }}
         />
       ))}
-      <motion.div
-        className="relative z-[1] h-2 w-2 rounded-full bg-violet-400/70 shadow-[0_0_20px_rgba(167,139,250,0.5)]"
-        animate={{ scale: [1, 1.15, 1], opacity: [0.6, 1, 0.6] }}
-        transition={{ duration: 2, repeat: Infinity }}
-      />
+      <div className="absolute inset-x-0 bottom-0 h-px bg-gradient-to-r from-transparent via-rose-500/20 to-transparent" />
     </div>
   );
 }

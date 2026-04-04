@@ -2,66 +2,39 @@
 
 import { motion } from "framer-motion";
 
-/** Soft network — who we are, connection & trust. */
+/**
+ * About / “Who we are” — three pillars of intent (mission, vision, values):
+ * vertical columns with a slow light sheen — institutional, grounded, not a graph.
+ */
 export function AboutPeopleAccent() {
   return (
     <div
-      className="pointer-events-none relative h-[5.5rem] w-full overflow-hidden border-b border-white/[0.06] bg-gradient-to-b from-violet-950/25 to-transparent"
+      className="pointer-events-none relative flex h-[4.75rem] w-full items-end justify-center gap-6 overflow-hidden border-b border-amber-950/20 bg-gradient-to-b from-amber-950/15 via-transparent to-transparent px-8 pb-0 pt-3"
       aria-hidden
     >
-      <svg
-        className="absolute inset-0 h-full w-full"
-        viewBox="0 0 480 72"
-        preserveAspectRatio="xMidYMid meet"
-        fill="none"
-      >
-        <motion.line
-          x1="72"
-          y1="36"
-          x2="180"
-          y2="36"
-          stroke="rgb(167 139 250 / 0.25)"
-          strokeWidth="1"
-          animate={{ opacity: [0.2, 0.55, 0.2] }}
-          transition={{ duration: 4, repeat: Infinity }}
-        />
-        <motion.line
-          x1="180"
-          y1="36"
-          x2="300"
-          y2="28"
-          stroke="rgb(167 139 250 / 0.2)"
-          strokeWidth="1"
-          animate={{ opacity: [0.15, 0.45, 0.15] }}
-          transition={{ duration: 3.5, repeat: Infinity, delay: 0.5 }}
-        />
-        <motion.line
-          x1="180"
-          y1="36"
-          x2="300"
-          y2="48"
-          stroke="rgb(96 165 250 / 0.2)"
-          strokeWidth="1"
-          animate={{ opacity: [0.15, 0.4, 0.15] }}
-          transition={{ duration: 4.2, repeat: Infinity, delay: 0.2 }}
-        />
-        {[
-          { cx: 72, cy: 36 },
-          { cx: 180, cy: 36 },
-          { cx: 300, cy: 28 },
-          { cx: 300, cy: 48 },
-        ].map((p, i) => (
-          <motion.circle
-            key={`${p.cx}-${p.cy}`}
-            cx={p.cx}
-            cy={p.cy}
-            r="5"
-            fill="rgb(167 139 250 / 0.35)"
-            animate={{ r: [5, 6.5, 5], opacity: [0.45, 0.9, 0.45] }}
-            transition={{ duration: 3 + i * 0.4, repeat: Infinity, delay: i * 0.2 }}
+      {[0, 1, 2].map((i) => (
+        <div
+          key={i}
+          className="relative h-12 w-2 overflow-hidden rounded-t-md bg-zinc-800/50 ring-1 ring-amber-500/15"
+        >
+          <motion.div
+            className="absolute inset-x-0 bottom-0 top-0 bg-gradient-to-b from-transparent via-amber-400/25 to-transparent"
+            initial={{ y: "100%" }}
+            animate={{ y: ["100%", "-100%"] }}
+            transition={{
+              duration: 3.8,
+              repeat: Infinity,
+              ease: "linear",
+              delay: i * 0.9,
+            }}
           />
-        ))}
-      </svg>
+          <motion.div
+            className="absolute bottom-0 left-0 right-0 h-1 rounded-t-sm bg-amber-500/35"
+            animate={{ opacity: [0.35, 0.85, 0.35] }}
+            transition={{ duration: 2.4, repeat: Infinity, delay: i * 0.25 }}
+          />
+        </div>
+      ))}
     </div>
   );
 }
