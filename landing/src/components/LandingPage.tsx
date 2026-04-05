@@ -7,7 +7,6 @@ import { motion } from "framer-motion";
 import { LanguageSwitcherPlaceholder } from "@/components/LanguageSwitcherPlaceholder";
 import { SiteBrand } from "@/components/SiteBrand";
 import { TheoryMathShowcase } from "@/components/TheoryMathShowcase";
-import { HomeEthicsRibbonAccent } from "@/components/page-accents/HomeEthicsRibbonAccent";
 
 const HeroCanvas = dynamic(() => import("@/components/HeroCanvas"), {
   ssr: false,
@@ -99,8 +98,6 @@ export default function LandingPage() {
           </div>
         </div>
       </header>
-
-      <HomeEthicsRibbonAccent />
 
       <section className="relative isolate flex flex-1 flex-col overflow-hidden px-6 pt-16 pb-24 md:min-h-[78vh] md:flex-row md:items-center md:pt-0">
         <div className="absolute inset-0 bg-[radial-gradient(ellipse_80%_50%_at_50%_-20%,rgba(120,119,198,0.28),transparent)]" />
