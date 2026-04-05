@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { useEffect } from "react";
 
 import { REPO_URL, repoFile } from "@/config/site";
 
@@ -9,6 +10,18 @@ type PanelLink = {
   label: string;
   external?: boolean;
 };
+
+function closeParentNavDetails(el: EventTarget | null) {
+  if (!(el instanceof HTMLElement)) return;
+  const details = el.closest("details.nav-details");
+  if (details) (details as HTMLDetailsElement).open = false;
+}
+
+function closeAllOpenNavDetails() {
+  document.querySelectorAll("details.nav-details[open]").forEach((el) => {
+    (el as HTMLDetailsElement).open = false;
+  });
+}
 
 function NavPanel({ links }: { links: PanelLink[] }) {
   return (
@@ -21,11 +34,17 @@ function NavPanel({ links }: { links: PanelLink[] }) {
             className="nav-details-link"
             target="_blank"
             rel="noopener noreferrer"
+            onClick={(e) => closeParentNavDetails(e.currentTarget)}
           >
             {item.label}
           </a>
         ) : (
-          <Link key={item.href + item.label} href={item.href} className="nav-details-link">
+          <Link
+            key={item.href + item.label}
+            href={item.href}
+            className="nav-details-link"
+            onClick={(e) => closeParentNavDetails(e.currentTarget)}
+          >
             {item.label}
           </Link>
         ),
@@ -77,17 +96,39 @@ const RESOURCE_LINKS: PanelLink[] = [
 ];
 
 export function PrimaryNav() {
+  useEffect(() => {
+    function onPointerDown(e: PointerEvent) {
+      const target = e.target;
+      if (!(target instanceof Node)) return;
+      document.querySelectorAll("details.nav-details[open]").forEach((el) => {
+        if (!el.contains(target)) {
+          (el as HTMLDetailsElement).open = false;
+        }
+      });
+    }
+    document.addEventListener("pointerdown", onPointerDown, true);
+    return () => document.removeEventListener("pointerdown", onPointerDown, true);
+  }, []);
+
   return (
     <nav
       className="flex flex-wrap items-center gap-x-5 gap-y-2 text-sm text-zinc-300"
       aria-label="Primary"
     >
-      <Link href="/about" className="transition-colors hover:text-white">
+      <Link
+        href="/about"
+        className="transition-colors hover:text-white"
+        onClick={closeAllOpenNavDetails}
+      >
         Who we are
       </Link>
       <NavDisclosure label="Project" links={PROJECT_LINKS} />
       <NavDisclosure label="Community" links={COMMUNITY_LINKS} />
-      <a href="#engage" className="transition-colors hover:text-white">
+      <a
+        href="#engage"
+        className="transition-colors hover:text-white"
+        onClick={closeAllOpenNavDetails}
+      >
         Engage
       </a>
       <NavDisclosure label="Partners" links={PARTNER_LINKS} />
