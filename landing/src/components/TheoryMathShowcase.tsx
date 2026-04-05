@@ -1,6 +1,6 @@
 "use client";
 
-import { motion } from "framer-motion";
+import { motion, MotionConfig } from "framer-motion";
 
 import { MathBlock } from "@/components/MathBlock";
 
@@ -51,12 +51,13 @@ const fadeUp = {
 
 export function TheoryMathShowcase() {
   return (
+    <MotionConfig reducedMotion="user">
     <div className="theory-math-showcase mt-14 space-y-14">
       <div>
         <h3 className="text-sm font-semibold tracking-wide text-violet-300/90">
           Signature mathematics
         </h3>
-        <p className="mt-2 max-w-2xl text-sm leading-relaxed text-zinc-500">
+        <p className="mt-2 max-w-2xl text-sm leading-relaxed text-zinc-400">
           The same objects implemented in Python — shown here in standard notation.
         </p>
         <div className="mt-8 grid gap-8 lg:grid-cols-3">
@@ -76,7 +77,7 @@ export function TheoryMathShowcase() {
               <div className="math-display mt-4 min-h-[4.5rem] items-center">
                 <MathBlock tex={item.tex} display accessibilityLabel={item.title} />
               </div>
-              <p className="mt-4 text-xs leading-relaxed text-zinc-500">{item.caption}</p>
+              <p className="mt-4 text-xs leading-relaxed text-zinc-400">{item.caption}</p>
             </motion.div>
           ))}
         </div>
@@ -86,7 +87,7 @@ export function TheoryMathShowcase() {
         <h3 className="text-sm font-semibold tracking-wide text-sky-300/90">
           Predicate logic (kernel hooks)
         </h3>
-        <p className="mt-2 max-w-2xl text-sm leading-relaxed text-zinc-500">
+        <p className="mt-2 max-w-2xl text-sm leading-relaxed text-zinc-400">
           Compact logical forms for the non-negotiable gates and ambiguity detectors.
         </p>
         <div className="mt-8 grid gap-6 lg:grid-cols-3">
@@ -106,11 +107,12 @@ export function TheoryMathShowcase() {
               <div className="math-display-predicate mt-3 min-h-[3.25rem]">
                 <MathBlock tex={item.tex} display accessibilityLabel={item.title} />
               </div>
-              <p className="mt-3 text-xs leading-relaxed text-zinc-500">{item.caption}</p>
+              <p className="mt-3 text-xs leading-relaxed text-zinc-400">{item.caption}</p>
             </motion.div>
           ))}
         </div>
       </div>
     </div>
+    </MotionConfig>
   );
 }

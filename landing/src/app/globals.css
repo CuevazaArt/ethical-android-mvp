@@ -58,6 +58,90 @@ body {
   }
 }
 
+/* Primary nav — grouped disclosures */
+.nav-details > summary {
+  list-style: none;
+}
+
+.nav-details > summary::-webkit-details-marker {
+  display: none;
+}
+
+.nav-details-summary {
+  display: flex;
+  cursor: pointer;
+  align-items: center;
+  gap: 0.2rem;
+  color: rgb(212 212 216);
+  transition: color 0.15s ease;
+}
+
+.nav-details-summary:hover {
+  color: #fff;
+}
+
+.nav-details-chevron {
+  font-size: 0.6rem;
+  opacity: 0.55;
+  transition: transform 0.2s ease;
+}
+
+.nav-details[open] .nav-details-chevron {
+  transform: rotate(-180deg);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .nav-details-chevron {
+    transition: none;
+  }
+}
+
+.nav-details-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 0.125rem;
+  padding-top: 0.5rem;
+  padding-left: 0.75rem;
+}
+
+@media (min-width: 640px) {
+  .nav-details-panel {
+    position: absolute;
+    left: 0;
+    top: 100%;
+    z-index: 60;
+    margin-top: 0.35rem;
+    min-width: 11.5rem;
+    padding: 0.35rem 0;
+    padding-left: 0;
+    border-radius: 0.75rem;
+    border: 1px solid rgb(255 255 255 / 0.1);
+    background: rgb(12 12 16 / 0.98);
+    box-shadow:
+      0 12px 40px rgb(0 0 0 / 0.45),
+      0 0 0 1px rgb(255 255 255 / 0.04);
+    backdrop-filter: blur(10px);
+  }
+}
+
+.nav-details-link {
+  display: block;
+  border-radius: 0.35rem;
+  padding: 0.45rem 0.85rem;
+  font-size: 0.8125rem;
+  line-height: 1.35;
+  color: rgb(212 212 216);
+  text-decoration: none;
+  transition:
+    color 0.15s ease,
+    background-color 0.15s ease;
+}
+
+.nav-details-link:hover {
+  background: rgb(255 255 255 / 0.06);
+  color: #fff;
+}
+
 /* KaTeX — smaller than before but brighter than body; vivid green on dark */
 .theory-math-showcase .katex {
   color: rgb(110 255 130);

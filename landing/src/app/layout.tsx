@@ -2,6 +2,31 @@ import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 
+import { REPO_URL, SITE_URL } from "@/config/site";
+
+const siteJsonLd = {
+  "@context": "https://schema.org",
+  "@graph": [
+    {
+      "@type": "Organization",
+      "@id": `${SITE_URL}/#organization`,
+      name: "MosEx Macchina Lab",
+      url: SITE_URL,
+      sameAs: [REPO_URL],
+    },
+    {
+      "@type": "WebSite",
+      "@id": `${SITE_URL}/#website`,
+      url: SITE_URL,
+      name: "MosEx Macchina Lab — Ethical Android MVP",
+      description:
+        "Research prototype: artificial ethical consciousness with Bayesian inference, narrative memory, and multipolar evaluation — validated in simulation.",
+      publisher: { "@id": `${SITE_URL}/#organization` },
+      inLanguage: "en-US",
+    },
+  ],
+} as const;
+
 const geistSans = Geist({
   variable: "--font-geist-sans",
   subsets: ["latin"],
@@ -13,7 +38,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  metadataBase: new URL("https://mosexmacchinalab.com"),
+  metadataBase: new URL(SITE_URL),
   title: {
     default: "MosEx Macchina Lab — Ethical Android MVP",
     template: "%s · MosEx Macchina Lab",
@@ -24,7 +49,7 @@ export const metadata: Metadata = {
     title: "MosEx Macchina Lab — Ethical Android MVP",
     description:
       "Behavioral prototype of an ethical autonomous agent. Interactive dashboard and open source simulations.",
-    url: "https://mosexmacchinalab.com",
+    url: SITE_URL,
     siteName: "MosEx Macchina Lab",
     locale: "en_US",
     type: "website",
@@ -54,6 +79,10 @@ export default function RootLayout({
         <a href="#main-content" className="skip-to-main">
           Skip to main content
         </a>
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(siteJsonLd) }}
+        />
         {children}
       </body>
     </html>

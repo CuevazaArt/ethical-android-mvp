@@ -5,8 +5,17 @@ import Link from "next/link";
 import { motion, MotionConfig } from "framer-motion";
 
 import { LanguageSwitcherPlaceholder } from "@/components/LanguageSwitcherPlaceholder";
+import { PrimaryNav } from "@/components/PrimaryNav";
 import { SiteBrand } from "@/components/SiteBrand";
 import { TheoryMathShowcase } from "@/components/TheoryMathShowcase";
+import {
+  REPO_URL as REPO,
+  REPO_ISSUE_BUG,
+  REPO_ISSUE_COLLAB,
+  REPO_ISSUE_QUESTION,
+  REPO_NEW_ISSUE,
+  repoFile,
+} from "@/config/site";
 
 const HeroCanvas = dynamic(() => import("@/components/HeroCanvas"), {
   ssr: false,
@@ -26,13 +35,6 @@ const fadeUp = {
   }),
 };
 
-const REPO = "https://github.com/CuevazaArt/ethical-android-mvp";
-const repoFile = (path: string) => `${REPO}/blob/main/${path}`;
-const REPO_NEW_ISSUE = `${REPO}/issues/new`;
-const REPO_ISSUE_COLLAB = `${REPO}/issues/new?template=collaboration.yml`;
-const REPO_ISSUE_QUESTION = `${REPO}/issues/new?template=question.yml`;
-const REPO_ISSUE_BUG = `${REPO}/issues/new?template=bug_report.yml`;
-
 export default function LandingPage() {
   return (
     <MotionConfig reducedMotion="user">
@@ -41,72 +43,7 @@ export default function LandingPage() {
         <div className="mx-auto flex max-w-6xl flex-col gap-4 md:flex-row md:items-center md:justify-between">
           <SiteBrand />
           <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-center sm:justify-end md:max-w-[min(100%,42rem)] lg:max-w-none">
-            <nav
-              className="flex flex-wrap items-center gap-x-6 gap-y-2 text-sm text-zinc-300"
-              aria-label="Primary"
-            >
-            <Link href="/about" className="transition-colors hover:text-white">
-              Who we are
-            </Link>
-            <a href="#hostable" className="transition-colors hover:text-white">
-              Hostable core
-            </a>
-            <a href="#model" className="transition-colors hover:text-white">
-              Model
-            </a>
-            <a href="#theory" className="transition-colors hover:text-white">
-              Theory
-            </a>
-            <a href="#research" className="transition-colors hover:text-white">
-              Research
-            </a>
-            <a href="#contact" className="transition-colors hover:text-white">
-              Contact
-            </a>
-            <a href="#collaborate" className="transition-colors hover:text-white">
-              Collaborate
-            </a>
-            <a href="#engage" className="transition-colors hover:text-white">
-              Engage
-            </a>
-            <Link href="/investors" className="transition-colors hover:text-white">
-              Investors
-            </Link>
-            <Link href="/roadmap" className="transition-colors hover:text-white">
-              Roadmap
-            </Link>
-            <Link href="/blockchain-dao" className="transition-colors hover:text-white">
-              BlockChainDAO
-            </Link>
-            <Link href="/donate" className="transition-colors hover:text-white">
-              Donate
-            </Link>
-            <a href="#support" className="transition-colors hover:text-white">
-              Support
-            </a>
-            <Link href="/one-pager" className="transition-colors hover:text-white">
-              One-pager
-            </Link>
-            <Link href="/demo" className="transition-colors hover:text-white">
-              Live demo
-            </Link>
-            <a
-              href={repoFile("BIBLIOGRAPHY.md")}
-              className="transition-colors hover:text-white"
-              target="_blank"
-              rel="noopener noreferrer"
-            >
-              Bibliography
-            </a>
-            <a
-              href={REPO}
-              className="transition-colors hover:text-white"
-              target="_blank"
-              rel="noopener noreferrer"
-            >
-              GitHub
-            </a>
-            </nav>
+            <PrimaryNav />
             <LanguageSwitcherPlaceholder />
           </div>
         </div>
@@ -343,7 +280,7 @@ export default function LandingPage() {
         className="border-t border-white/[0.06] px-6 py-20 scroll-mt-24"
       >
         <div className="mx-auto max-w-3xl">
-          <motion.p
+          <motion.h2
             initial={{ opacity: 0, y: 12 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true, margin: "-40px" }}
@@ -351,7 +288,7 @@ export default function LandingPage() {
             className="text-xs font-medium uppercase tracking-[0.2em] text-violet-400/90"
           >
             Deployable artificial consciousness
-          </motion.p>
+          </motion.h2>
           <motion.blockquote
             initial={{ opacity: 0, y: 14 }}
             whileInView={{ opacity: 1, y: 0 }}
@@ -363,6 +300,19 @@ export default function LandingPage() {
             persistent identity, installable on humanoid androids, drones, or
             autonomous vehicles.
           </motion.blockquote>
+          <motion.p
+            initial={{ opacity: 0, y: 10 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true, margin: "-40px" }}
+            transition={{ delay: 0.08, duration: 0.45 }}
+            className="mt-5 border-l-2 border-orange-500/35 pl-4 text-sm leading-relaxed text-zinc-400"
+          >
+            <strong className="font-medium text-zinc-300">Research framing:</strong> this describes
+            a <strong className="font-medium text-zinc-300">long-term software direction</strong>, not
+            a certified product or guarantee of safe deployment. The repository is a simulation-first
+            prototype; any real-world use would need separate validation, regulation, and human
+            oversight.
+          </motion.p>
           <motion.div
             initial={{ opacity: 0, y: 14 }}
             whileInView={{ opacity: 1, y: 0 }}
@@ -443,34 +393,39 @@ export default function LandingPage() {
         </div>
       </section>
 
-      <section id="model" className="border-t border-white/[0.06] px-6 py-20">
-        <div className="mx-auto grid max-w-6xl gap-12 md:grid-cols-3">
-          {[
-            {
-              title: "Multipolar ethics",
-              body: "Scenarios from low-stakes civility to high-stakes harm — responses stay proportional and coherent across the ladder.",
-            },
-            {
-              title: "Memory & narrative",
-              body: "Bayesian belief updates and story-shaped memory shape how the agent interprets each new situation.",
-            },
-            {
-              title: "Humanizing limits",
-              body: "Weakness pole, forgiveness decay, and persistence protocols keep the model from collapsing into sterile perfection.",
-            },
-          ].map((item, i) => (
-            <motion.div
-              key={item.title}
-              initial={{ opacity: 0, y: 16 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true, margin: "-40px" }}
-              transition={{ delay: 0.1 * i, duration: 0.45 }}
-              className="rounded-2xl border border-white/[0.08] bg-white/[0.02] p-6"
-            >
-              <h2 className="text-base font-semibold text-white">{item.title}</h2>
-              <p className="mt-3 text-sm leading-relaxed text-zinc-300">{item.body}</p>
-            </motion.div>
-          ))}
+      <section id="model" className="scroll-mt-24 border-t border-white/[0.06] px-6 py-20">
+        <div className="mx-auto max-w-6xl">
+          <h2 className="text-xs font-medium uppercase tracking-[0.2em] text-violet-400/90">
+            Core capabilities
+          </h2>
+          <div className="mt-10 grid gap-12 md:grid-cols-3">
+            {[
+              {
+                title: "Multipolar ethics",
+                body: "Scenarios from low-stakes civility to high-stakes harm — responses stay proportional and coherent across the ladder.",
+              },
+              {
+                title: "Memory & narrative",
+                body: "Bayesian belief updates and story-shaped memory shape how the agent interprets each new situation.",
+              },
+              {
+                title: "Humanizing limits",
+                body: "Weakness pole, forgiveness decay, and persistence protocols keep the model from collapsing into sterile perfection.",
+              },
+            ].map((item, i) => (
+              <motion.div
+                key={item.title}
+                initial={{ opacity: 0, y: 16 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true, margin: "-40px" }}
+                transition={{ delay: 0.1 * i, duration: 0.45 }}
+                className="rounded-2xl border border-white/[0.08] bg-white/[0.02] p-6"
+              >
+                <h3 className="text-base font-semibold text-white">{item.title}</h3>
+                <p className="mt-3 text-sm leading-relaxed text-zinc-300">{item.body}</p>
+              </motion.div>
+            ))}
+          </div>
         </div>
       </section>
 
@@ -541,22 +496,22 @@ export default function LandingPage() {
 
       <section
         id="mission"
-        className="border-t border-white/[0.06] px-6 py-16 md:py-20"
+        className="scroll-mt-24 border-t border-white/[0.06] px-6 py-16 md:py-20"
       >
         <div className="mx-auto max-w-6xl">
-          <p className="text-xs font-medium uppercase tracking-[0.2em] text-violet-400/90">
-            Mission · Vision · Values
-          </p>
+          <h2 className="text-xs font-medium uppercase tracking-[0.2em] text-violet-400/90">
+            Mission, vision &amp; values
+          </h2>
           <div className="mt-8 grid gap-8 md:grid-cols-3 md:gap-10">
             <div>
-              <h2 className="text-sm font-semibold text-white">Mission</h2>
+              <h3 className="text-sm font-semibold text-white">Mission</h3>
               <p className="mt-2 text-sm leading-relaxed text-zinc-300">
                 Make machine ethics <strong className="font-medium text-zinc-300">inspectable</strong>{" "}
                 — open code, simulations, and honest limits so no one has to trust a black box.
               </p>
             </div>
             <div>
-              <h2 className="text-sm font-semibold text-white">Vision</h2>
+              <h3 className="text-sm font-semibold text-white">Vision</h3>
               <p className="mt-2 text-sm leading-relaxed text-zinc-300">
                 Autonomous agents (androids, vehicles, others) embed{" "}
                 <strong className="font-medium text-zinc-300">proportionate, multipolar care</strong>{" "}
@@ -564,7 +519,7 @@ export default function LandingPage() {
               </p>
             </div>
             <div>
-              <h2 className="text-sm font-semibold text-white">Values</h2>
+              <h3 className="text-sm font-semibold text-white">Values</h3>
               <p className="mt-2 text-sm leading-relaxed text-zinc-300">
                 Open science, intellectual honesty, humility toward human law and judgment — the
                 kernel is a <strong className="font-medium text-zinc-300">research tool</strong>, not
@@ -861,16 +816,16 @@ export default function LandingPage() {
               sponsor, and (optionally) a newsletter still help for larger
               campaigns.
             </p>
-            <p className="mt-4 text-sm leading-relaxed text-zinc-400">
-              <span className="text-zinc-400">Donations:</span>{" "}
+            <p className="mt-4 text-sm leading-relaxed text-zinc-300">
+              <span className="font-medium text-zinc-200">Donations:</span> the{" "}
               <Link
                 href="/donate"
                 className="text-violet-400/90 underline decoration-violet-400/30 underline-offset-4 transition hover:decoration-violet-400/60"
               >
                 Donate
               </Link>{" "}
-              — <span className="text-zinc-400">coming soon</span>; a public channel for one-time or
-              recurring support is in preparation.
+              page explains how we will accept support once the channel is live; until then, starring
+              the repo and using the collaboration template still helps visibility.
             </p>
           </motion.div>
         </div>

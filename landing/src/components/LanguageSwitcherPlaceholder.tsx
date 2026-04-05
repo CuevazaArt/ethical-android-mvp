@@ -8,6 +8,7 @@ export function LanguageSwitcherPlaceholder() {
     <button
       type="button"
       disabled
+      aria-label="Language: English only for now. Spanish and other locales planned."
       title="Language selection (e.g. Spanish) — coming in a future release"
       className="inline-flex shrink-0 cursor-not-allowed items-center gap-1.5 rounded-lg border border-white/10 bg-white/[0.04] px-2.5 py-1.5 text-xs font-medium text-zinc-500 opacity-90"
     >

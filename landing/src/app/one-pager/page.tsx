@@ -4,9 +4,7 @@ import Link from "next/link";
 import { OnePagerLinesAccent } from "@/components/page-accents/OnePagerLinesAccent";
 import { LanguageSwitcherPlaceholder } from "@/components/LanguageSwitcherPlaceholder";
 import { SiteBrand } from "@/components/SiteBrand";
-
-const REPO = "https://github.com/CuevazaArt/ethical-android-mvp";
-const SITE = "https://mosexmacchinalab.com";
+import { REPO_URL as REPO, SITE_URL as SITE } from "@/config/site";
 
 export const metadata: Metadata = {
   title: "One-pager",
