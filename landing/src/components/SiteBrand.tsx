@@ -17,7 +17,7 @@ export function SiteBrand({
     >
       <Image
         src="/logo-ethical-awareness.png"
-        alt="Mosex Macchina Lab — ethical awareness (cloud, mind, heart)"
+        alt="MosEx Macchina Lab — ethical awareness (cloud, mind, heart)"
         width={44}
         height={44}
         className="h-9 w-9 shrink-0 object-contain md:h-11 md:w-11"
@@ -25,7 +25,7 @@ export function SiteBrand({
       />
       {showWordmark ? (
         <span className="text-sm font-medium tracking-tight text-zinc-300">
-          Mosex Macchina Lab
+          MosEx Macchina Lab
         </span>
       ) : null}
     </Link>

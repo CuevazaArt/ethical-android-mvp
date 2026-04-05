@@ -15,23 +15,23 @@ const geistMono = Geist_Mono({
 export const metadata: Metadata = {
   metadataBase: new URL("https://mosexmacchinalab.com"),
   title: {
-    default: "Mosex Macchina Lab — Ethical Android MVP",
-    template: "%s · Mosex Macchina Lab",
+    default: "MosEx Macchina Lab — Ethical Android MVP",
+    template: "%s · MosEx Macchina Lab",
   },
   description:
     "Research prototype: artificial ethical consciousness with Bayesian inference, narrative memory, and multipolar evaluation — validated in simulation.",
   openGraph: {
-    title: "Mosex Macchina Lab — Ethical Android MVP",
+    title: "MosEx Macchina Lab — Ethical Android MVP",
     description:
       "Behavioral prototype of an ethical autonomous agent. Interactive dashboard and open source simulations.",
     url: "https://mosexmacchinalab.com",
-    siteName: "Mosex Macchina Lab",
+    siteName: "MosEx Macchina Lab",
     locale: "en_US",
     type: "website",
   },
   twitter: {
     card: "summary_large_image",
-    title: "Mosex Macchina Lab — Ethical Android MVP",
+    title: "MosEx Macchina Lab — Ethical Android MVP",
     description:
       "Research prototype: ethical AI consciousness model with interactive dashboard.",
   },

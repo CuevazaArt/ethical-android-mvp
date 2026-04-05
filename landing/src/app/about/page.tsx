@@ -8,7 +8,7 @@ import { SiteBrand } from "@/components/SiteBrand";
 export const metadata: Metadata = {
   title: "Who we are",
   description:
-    "Mosex Macchina Lab — mission, vision, and values behind the Ethical Android research prototype.",
+    "MosEx Macchina Lab — mission, vision, and values behind the Ethical Android research prototype.",
 };
 
 export default function AboutPage() {

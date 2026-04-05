@@ -46,7 +46,7 @@ export default function OnePagerPage() {
           </div>
         </div>
         <p className="mt-6 text-xs font-medium uppercase tracking-[0.2em] text-violet-400/90 print:mt-4 print:text-violet-800">
-          Mosex Macchina Lab
+          MosEx Macchina Lab
         </p>
         <h1 className="mt-2 text-2xl font-semibold tracking-tight text-white print:text-zinc-950 md:text-3xl">
           Ethical Android — MVP (research prototype)
@@ -224,7 +224,7 @@ export default function OnePagerPage() {
 
       <footer className="mt-10 border-t border-white/10 pt-6 text-xs text-zinc-500 print:border-zinc-300 print:text-zinc-600">
         <p>
-          Mosex Macchina Lab · Ethical Android MVP · April 2026
+          MosEx Macchina Lab · Ethical Android MVP · April 2026
         </p>
         <p className="mt-1 print:hidden">
           Tip: use your browser&apos;s <strong className="text-zinc-400">Print</strong>{" "}
