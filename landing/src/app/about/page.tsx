@@ -36,7 +36,11 @@ export default function AboutPage() {
 
       <AboutPeopleAccent />
 
-      <main className="mx-auto w-full max-w-3xl flex-1 px-6 py-12 md:py-16">
+      <main
+        id="main-content"
+        tabIndex={-1}
+        className="mx-auto w-full max-w-3xl flex-1 px-6 py-12 outline-none focus-visible:ring-2 focus-visible:ring-violet-400/50 focus-visible:ring-offset-2 focus-visible:ring-offset-[#050508] md:py-16"
+      >
         <p className="text-xs font-medium uppercase tracking-[0.2em] text-violet-400/90">
           MosEx Macchina Lab
         </p>

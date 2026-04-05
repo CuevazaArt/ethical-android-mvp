@@ -2,7 +2,7 @@
 
 import { Canvas, useFrame } from "@react-three/fiber";
 import { Float } from "@react-three/drei";
-import { useMemo, useRef } from "react";
+import { useMemo, useRef, useSyncExternalStore } from "react";
 import {
   Mesh,
   MeshStandardMaterial,
@@ -14,6 +14,28 @@ import {
 import type { InstancedMesh as InstancedMeshType, MeshStandardMaterial as MeshStdMat } from "three";
 
 const dummy = new Object3D();
+
+function subscribeReducedMotion(cb: () => void) {
+  const mql = window.matchMedia("(prefers-reduced-motion: reduce)");
+  mql.addEventListener("change", cb);
+  return () => mql.removeEventListener("change", cb);
+}
+
+function getReducedMotionSnapshot() {
+  return window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+}
+
+function getReducedMotionServerSnapshot() {
+  return false;
+}
+
+function usePrefersReducedMotion() {
+  return useSyncExternalStore(
+    subscribeReducedMotion,
+    getReducedMotionSnapshot,
+    getReducedMotionServerSnapshot,
+  );
+}
 
 function EthicalLattice() {
   const ref = useRef<Mesh>(null);
@@ -313,6 +335,22 @@ function SceneContent() {
 }
 
 export default function HeroCanvas() {
+  const reducedMotion = usePrefersReducedMotion();
+
+  if (reducedMotion) {
+    return (
+      <div
+        className="pointer-events-none absolute inset-0 flex h-full min-h-[420px] w-full items-center justify-center md:min-h-0"
+        aria-hidden
+      >
+        <div className="relative flex h-44 w-44 items-center justify-center rounded-full border border-emerald-500/30 bg-gradient-to-br from-emerald-950/50 via-zinc-950/60 to-violet-950/40 shadow-[inset_0_0_40px_rgba(52,211,153,0.12)] md:h-52 md:w-52">
+          <div className="absolute inset-6 rounded-full border border-orange-400/20" />
+          <div className="h-3 w-3 rounded-full bg-gradient-to-br from-emerald-300 to-orange-300 shadow-[0_0_14px_rgba(52,211,153,0.5)]" />
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="pointer-events-none absolute inset-0 h-full min-h-[420px] w-full md:min-h-0">
       <Canvas

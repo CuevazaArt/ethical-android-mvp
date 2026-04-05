@@ -2,7 +2,7 @@
 
 import dynamic from "next/dynamic";
 import Link from "next/link";
-import { motion } from "framer-motion";
+import { motion, MotionConfig } from "framer-motion";
 
 import { LanguageSwitcherPlaceholder } from "@/components/LanguageSwitcherPlaceholder";
 import { SiteBrand } from "@/components/SiteBrand";
@@ -12,7 +12,7 @@ const HeroCanvas = dynamic(() => import("@/components/HeroCanvas"), {
   ssr: false,
   loading: () => (
     <div className="absolute inset-0 flex items-center justify-center bg-transparent">
-      <div className="h-32 w-32 animate-pulse rounded-full bg-violet-500/10 blur-2xl" />
+      <div className="h-32 w-32 animate-pulse rounded-full bg-violet-500/10 blur-2xl motion-reduce:animate-none" />
     </div>
   ),
 });
@@ -35,12 +35,16 @@ const REPO_ISSUE_BUG = `${REPO}/issues/new?template=bug_report.yml`;
 
 export default function LandingPage() {
   return (
+    <MotionConfig reducedMotion="user">
     <div className="flex min-h-full flex-col bg-[#050508] text-zinc-100">
       <header className="relative z-10 border-b border-white/[0.06] px-6 py-4">
         <div className="mx-auto flex max-w-6xl flex-col gap-4 md:flex-row md:items-center md:justify-between">
           <SiteBrand />
           <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-center sm:justify-end md:max-w-[min(100%,42rem)] lg:max-w-none">
-            <nav className="flex flex-wrap items-center gap-x-6 gap-y-2 text-sm text-zinc-400">
+            <nav
+              className="flex flex-wrap items-center gap-x-6 gap-y-2 text-sm text-zinc-300"
+              aria-label="Primary"
+            >
             <Link href="/about" className="transition-colors hover:text-white">
               Who we are
             </Link>
@@ -61,6 +65,9 @@ export default function LandingPage() {
             </a>
             <a href="#collaborate" className="transition-colors hover:text-white">
               Collaborate
+            </a>
+            <a href="#engage" className="transition-colors hover:text-white">
+              Engage
             </a>
             <Link href="/investors" className="transition-colors hover:text-white">
               Investors
@@ -105,7 +112,12 @@ export default function LandingPage() {
         </div>
       </header>
 
-      <section className="relative isolate flex flex-1 flex-col overflow-hidden px-6 pt-16 pb-24 md:min-h-[78vh] md:flex-row md:items-center md:pt-0">
+      <section
+        id="main-content"
+        tabIndex={-1}
+        aria-label="Introduction"
+        className="relative isolate flex flex-1 flex-col overflow-hidden px-6 pt-16 pb-24 outline-none focus-visible:ring-2 focus-visible:ring-violet-400/50 focus-visible:ring-offset-2 focus-visible:ring-offset-[#050508] md:min-h-[78vh] md:flex-row md:items-center md:pt-0"
+      >
         <div className="absolute inset-0 bg-[radial-gradient(ellipse_80%_50%_at_50%_-20%,rgba(120,119,198,0.28),transparent)]" />
         <div className="absolute inset-0 bg-[radial-gradient(ellipse_60%_40%_at_100%_50%,rgba(59,130,246,0.12),transparent)]" />
 
@@ -134,7 +146,7 @@ export default function LandingPage() {
               initial="hidden"
               animate="visible"
               variants={fadeUp}
-              className="mt-6 text-lg leading-relaxed text-zinc-400"
+              className="mt-6 text-lg leading-relaxed text-zinc-300"
             >
               Bayesian inference, narrative memory, multipolar evaluation, and
               humanizing imperfection — a behavioral prototype, no hardware
@@ -162,10 +174,166 @@ export default function LandingPage() {
                 View source
               </a>
             </motion.div>
+            <p className="mt-5 text-xs leading-relaxed text-zinc-400">
+              <span className="text-zinc-300">Apache-2.0</span>
+              <span className="text-zinc-600" aria-hidden>
+                {" · "}
+              </span>
+              <span className="text-zinc-300">Open source</span>
+              <span className="text-zinc-600" aria-hidden>
+                {" · "}
+              </span>
+              <Link
+                href="/demo"
+                className="text-violet-400/90 underline decoration-violet-400/35 underline-offset-2 hover:decoration-violet-400/65"
+              >
+                Live demo
+              </Link>
+              <span className="text-zinc-600" aria-hidden>
+                {" · "}
+              </span>
+              <a
+                href={repoFile("README.md")}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-violet-400/90 underline decoration-violet-400/35 underline-offset-2 hover:decoration-violet-400/65"
+              >
+                Run locally (README)
+              </a>
+            </p>
           </div>
 
           <div className="relative h-[380px] w-full md:h-[min(520px,70vh)] md:w-1/2">
             <HeroCanvas />
+          </div>
+        </div>
+      </section>
+
+      <section
+        id="engage"
+        aria-labelledby="engage-heading"
+        className="scroll-mt-24 border-t border-white/[0.08] bg-gradient-to-b from-white/[0.03] to-transparent px-6 py-14"
+      >
+        <div className="mx-auto max-w-6xl">
+          <h2
+            id="engage-heading"
+            className="text-xs font-medium uppercase tracking-[0.2em] text-violet-400/90"
+          >
+            Investors &amp; collaborators
+          </h2>
+          <p className="mt-2 max-w-3xl text-sm text-zinc-300">
+            Open source, testable ethics — with clear entry points for capital and for hands-on
+            contribution.
+          </p>
+          <div className="mt-10 grid gap-10 md:grid-cols-2 md:gap-12">
+            <div className="rounded-xl border border-white/[0.08] bg-white/[0.02] p-6">
+              <h3 className="text-base font-semibold text-emerald-100/95">
+                For investors &amp; partners
+              </h3>
+              <ul className="mt-4 list-disc space-y-2 pl-5 text-sm leading-relaxed text-zinc-300">
+                <li>
+                  Apache-2.0 codebase, reproducible <code className="text-zinc-200">pytest</code>{" "}
+                  suite, and a public{" "}
+                  <Link
+                    href="/roadmap"
+                    className="text-violet-400/90 underline decoration-violet-400/35 underline-offset-4 hover:decoration-violet-400/70"
+                  >
+                    roadmap
+                  </Link>{" "}
+                  you can verify in the repo.
+                </li>
+                <li>
+                  Product scope, derivative markets, and due-diligence narrative on the investors
+                  page and printable{" "}
+                  <Link
+                    href="/one-pager"
+                    className="text-violet-400/90 underline decoration-violet-400/35 underline-offset-4 hover:decoration-violet-400/70"
+                  >
+                    one-pager
+                  </Link>
+                  .
+                </li>
+                <li>
+                  Labeled as a <strong className="font-medium text-zinc-200">research prototype</strong>
+                  : limits and risks are part of the story, not buried in fine print.
+                </li>
+              </ul>
+              <div className="mt-6 flex flex-wrap gap-3">
+                <Link
+                  href="/investors"
+                  className="inline-flex items-center justify-center rounded-full bg-white px-5 py-2.5 text-sm font-medium text-zinc-950 transition hover:bg-zinc-200"
+                >
+                  Investors scope
+                </Link>
+                <Link
+                  href="/roadmap"
+                  className="inline-flex items-center justify-center rounded-full border border-white/20 px-5 py-2.5 text-sm font-medium text-zinc-200 transition hover:border-white/35 hover:bg-white/5"
+                >
+                  Roadmap &amp; needs
+                </Link>
+              </div>
+            </div>
+            <div className="rounded-xl border border-white/[0.08] bg-white/[0.02] p-6">
+              <h3 className="text-base font-semibold text-violet-100/95">
+                For contributors
+              </h3>
+              <ul className="mt-4 list-disc space-y-2 pl-5 text-sm leading-relaxed text-zinc-300">
+                <li>
+                  Use the{" "}
+                  <a
+                    href={REPO_ISSUE_COLLAB}
+                    className="text-violet-400/90 underline decoration-violet-400/35 underline-offset-4 hover:decoration-violet-400/70"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                  >
+                    collaboration issue template
+                  </a>{" "}
+                  for research, integrations, or funding conversations.
+                </li>
+                <li>
+                  Code and docs:{" "}
+                  <a
+                    href={repoFile("CONTRIBUTING.md")}
+                    className="text-violet-400/90 underline decoration-violet-400/35 underline-offset-4 hover:decoration-violet-400/70"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                  >
+                    CONTRIBUTING.md
+                  </a>
+                  , issues, and PRs on GitHub.
+                </li>
+                <li>
+                  Security-sensitive reports: follow{" "}
+                  <a
+                    href={repoFile("SECURITY.md")}
+                    className="text-violet-400/90 underline decoration-violet-400/35 underline-offset-4 hover:decoration-violet-400/70"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                  >
+                    SECURITY.md
+                  </a>
+                  .
+                </li>
+              </ul>
+              <div className="mt-6 flex flex-wrap gap-3">
+                <a
+                  href={REPO}
+                  className="inline-flex items-center justify-center rounded-full bg-white px-5 py-2.5 text-sm font-medium text-zinc-950 transition hover:bg-zinc-200"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
+                  GitHub repository
+                </a>
+                <a
+                  href={REPO_ISSUE_COLLAB}
+                  className="inline-flex items-center justify-center rounded-full border border-white/20 px-5 py-2.5 text-sm font-medium text-zinc-200 transition hover:border-white/35 hover:bg-white/5"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
+                  Propose collaboration
+                </a>
+              </div>
+            </div>
           </div>
         </div>
       </section>
@@ -200,7 +368,7 @@ export default function LandingPage() {
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true, margin: "-40px" }}
             transition={{ delay: 0.1, duration: 0.5 }}
-            className="mt-8 space-y-4 text-sm leading-relaxed text-zinc-400 md:text-[15px]"
+            className="mt-8 space-y-4 text-sm leading-relaxed text-zinc-300 md:text-[15px]"
           >
             <p>
               This is <strong className="font-medium text-zinc-300">hostable software</strong>{" "}
@@ -252,7 +420,7 @@ export default function LandingPage() {
             whileInView={{ opacity: 1 }}
             viewport={{ once: true, margin: "-40px" }}
             transition={{ delay: 0.2, duration: 0.45 }}
-            className="mt-10 text-sm text-zinc-500"
+            className="mt-10 text-sm text-zinc-400"
           >
             Technical mapping:{" "}
             <a
@@ -300,7 +468,7 @@ export default function LandingPage() {
               className="rounded-2xl border border-white/[0.08] bg-white/[0.02] p-6"
             >
               <h2 className="text-base font-semibold text-white">{item.title}</h2>
-              <p className="mt-3 text-sm leading-relaxed text-zinc-400">{item.body}</p>
+              <p className="mt-3 text-sm leading-relaxed text-zinc-300">{item.body}</p>
             </motion.div>
           ))}
         </div>
@@ -321,7 +489,7 @@ export default function LandingPage() {
             <p className="mt-4 text-lg font-semibold text-white">
               Math and logic you can open on GitHub — not vibes from a single model call.
             </p>
-            <p className="mt-4 text-sm leading-relaxed text-zinc-400">
+            <p className="mt-4 text-sm leading-relaxed text-zinc-300">
               The ethical <strong className="font-medium text-zinc-300">kernel</strong> is Python: fixed
               pipelines, explicit vetoes, and scored actions. An optional LLM only translates situations
               into signals and explains outcomes; it does not replace the veto and argmax logic.
@@ -354,7 +522,7 @@ export default function LandingPage() {
                 className="rounded-2xl border border-white/[0.08] bg-white/[0.02] p-6"
               >
                 <h3 className="text-base font-semibold text-white">{item.title}</h3>
-                <p className="mt-3 text-sm leading-relaxed text-zinc-400">{item.body}</p>
+                <p className="mt-3 text-sm leading-relaxed text-zinc-300">{item.body}</p>
               </motion.div>
             ))}
           </div>
@@ -382,14 +550,14 @@ export default function LandingPage() {
           <div className="mt-8 grid gap-8 md:grid-cols-3 md:gap-10">
             <div>
               <h2 className="text-sm font-semibold text-white">Mission</h2>
-              <p className="mt-2 text-sm leading-relaxed text-zinc-400">
+              <p className="mt-2 text-sm leading-relaxed text-zinc-300">
                 Make machine ethics <strong className="font-medium text-zinc-300">inspectable</strong>{" "}
                 — open code, simulations, and honest limits so no one has to trust a black box.
               </p>
             </div>
             <div>
               <h2 className="text-sm font-semibold text-white">Vision</h2>
-              <p className="mt-2 text-sm leading-relaxed text-zinc-400">
+              <p className="mt-2 text-sm leading-relaxed text-zinc-300">
                 Autonomous agents (androids, vehicles, others) embed{" "}
                 <strong className="font-medium text-zinc-300">proportionate, multipolar care</strong>{" "}
                 validated in simulation before the world bets lives on them.
@@ -397,14 +565,14 @@ export default function LandingPage() {
             </div>
             <div>
               <h2 className="text-sm font-semibold text-white">Values</h2>
-              <p className="mt-2 text-sm leading-relaxed text-zinc-400">
+              <p className="mt-2 text-sm leading-relaxed text-zinc-300">
                 Open science, intellectual honesty, humility toward human law and judgment — the
                 kernel is a <strong className="font-medium text-zinc-300">research tool</strong>, not
                 a certificate of safety.
               </p>
             </div>
           </div>
-          <p className="mt-8 text-center text-sm text-zinc-500 md:text-left">
+          <p className="mt-8 text-center text-sm text-zinc-400 md:text-left">
             <Link
               href="/about"
               className="text-violet-400/90 underline decoration-violet-400/30 underline-offset-4 transition hover:decoration-violet-400/60"
@@ -433,7 +601,7 @@ export default function LandingPage() {
             <p className="mt-4 text-lg font-semibold text-white">
               Open kernel, documented behavior, cited sources.
             </p>
-            <p className="mt-4 text-sm leading-relaxed text-zinc-400">
+            <p className="mt-4 text-sm leading-relaxed text-zinc-300">
               The ethical core is implemented in Python with a formal test suite
               over invariant properties; simulations explore scenarios without
               claiming real-world deployment. Everything is on GitHub — including
@@ -450,7 +618,7 @@ export default function LandingPage() {
                 >
                   Bibliography
                 </a>
-                <span className="text-zinc-500"> — references across disciplines</span>
+                <span className="text-zinc-400"> — references across disciplines</span>
               </li>
               <li>
                 <a
@@ -461,7 +629,7 @@ export default function LandingPage() {
                 >
                   README
                 </a>
-                <span className="text-zinc-500"> — architecture and how to run</span>
+                <span className="text-zinc-400"> — architecture and how to run</span>
               </li>
               <li>
                 <a
@@ -472,7 +640,7 @@ export default function LandingPage() {
                 >
                   Theory &amp; implementation
                 </a>
-                <span className="text-zinc-500"> — formulas, predicates, kernel vs. LLM</span>
+                <span className="text-zinc-400"> — formulas, predicates, kernel vs. LLM</span>
               </li>
               <li>
                 <Link
@@ -481,7 +649,7 @@ export default function LandingPage() {
                 >
                   Investors — scope &amp; ecosystem
                 </Link>
-                <span className="text-zinc-500"> — product reach &amp; derivative markets</span>
+                <span className="text-zinc-400"> — product reach &amp; derivative markets</span>
               </li>
               <li>
                 <Link
@@ -490,7 +658,7 @@ export default function LandingPage() {
                 >
                   Roadmap &amp; collaboration
                 </Link>
-                <span className="text-zinc-500"> — shipped vs next vs funding needs</span>
+                <span className="text-zinc-400"> — shipped vs next vs funding needs</span>
               </li>
               <li>
                 <Link
@@ -499,7 +667,7 @@ export default function LandingPage() {
                 >
                   BlockChainDAO
                 </Link>
-                <span className="text-zinc-500"> — mock governance today, on-chain direction</span>
+                <span className="text-zinc-400"> — mock governance today, on-chain direction</span>
               </li>
               <li>
                 <a
@@ -510,7 +678,7 @@ export default function LandingPage() {
                 >
                   Changelog
                 </a>
-                <span className="text-zinc-500"> — version history and modules</span>
+                <span className="text-zinc-400"> — version history and modules</span>
               </li>
               <li>
                 <a
@@ -521,7 +689,7 @@ export default function LandingPage() {
                 >
                   Contributing
                 </a>
-                <span className="text-zinc-500"> — how to participate</span>
+                <span className="text-zinc-400"> — how to participate</span>
               </li>
               <li>
                 <a
@@ -532,7 +700,7 @@ export default function LandingPage() {
                 >
                   License (Apache 2.0)
                 </a>
-                <span className="text-zinc-500"> — terms for use and redistribution</span>
+                <span className="text-zinc-400"> — terms for use and redistribution</span>
               </li>
               <li>
                 <a
@@ -543,12 +711,12 @@ export default function LandingPage() {
                 >
                   Security policy
                 </a>
-                <span className="text-zinc-500"> — how to report vulnerabilities</span>
+                <span className="text-zinc-400"> — how to report vulnerabilities</span>
               </li>
             </ul>
             <div id="contact" className="mt-10 scroll-mt-24">
               <h3 className="text-sm font-semibold text-white">Contact</h3>
-              <p className="mt-3 text-sm leading-relaxed text-zinc-400">
+              <p className="mt-3 text-sm leading-relaxed text-zinc-300">
                 Use{" "}
                 <a
                   href={REPO_NEW_ISSUE}
@@ -582,8 +750,8 @@ export default function LandingPage() {
             </div>
             <div id="collaborate" className="mt-10 scroll-mt-24">
               <h3 className="text-sm font-semibold text-white">Collaborate</h3>
-              <p className="mt-3 text-sm leading-relaxed text-zinc-400">
-                <span className="text-zinc-500">(Tentative invitation)</span> If you care about{" "}
+              <p className="mt-3 text-sm leading-relaxed text-zinc-300">
+                <span className="text-zinc-400">(Tentative invitation)</span> If you care about{" "}
                 <strong className="font-medium text-zinc-300">open, testable ethics in software</strong>,
                 we welcome serious interest: code, documentation, scenarios, translations, or thoughtful
                 review. Start with the{" "}
@@ -608,7 +776,7 @@ export default function LandingPage() {
                 research scope.
               </p>
             </div>
-            <p className="mt-8 border-l-2 border-white/10 pl-4 text-xs leading-relaxed text-zinc-500">
+            <p className="mt-8 border-l-2 border-white/10 pl-4 text-xs leading-relaxed text-zinc-400">
               This is a research and educational prototype. It is not a product for
               safety-critical, clinical, legal, or compliance decisions; do not rely
               on it as a substitute for human judgment or domain expertise.
@@ -635,7 +803,7 @@ export default function LandingPage() {
             <p className="mt-4 text-lg font-semibold text-white">
               First contact is strong; serious stakeholders get a clear lane.
             </p>
-            <p className="mt-4 text-sm leading-relaxed text-zinc-400">
+            <p className="mt-4 text-sm leading-relaxed text-zinc-300">
               This landing is built for <strong className="font-medium text-zinc-200">discovery</strong>{" "}
               (what the project is), <strong className="font-medium text-zinc-200">trust</strong>{" "}
               (open code, bibliography, changelog, license), and{" "}
@@ -646,7 +814,7 @@ export default function LandingPage() {
               budget, or institutional email — but it can route inbound interest
               without exposing a harvestable address.
             </p>
-            <p className="mt-4 text-sm leading-relaxed text-zinc-400">
+            <p className="mt-4 text-sm leading-relaxed text-zinc-300">
               Use the{" "}
               <a
                 href={REPO_ISSUE_COLLAB}
@@ -677,7 +845,7 @@ export default function LandingPage() {
               </a>
               .
             </p>
-            <p className="mt-4 text-sm leading-relaxed text-zinc-500">
+            <p className="mt-4 text-sm leading-relaxed text-zinc-400">
               <span className="text-zinc-400">Printable summary:</span>{" "}
               <Link
                 href="/one-pager"
@@ -693,7 +861,7 @@ export default function LandingPage() {
               sponsor, and (optionally) a newsletter still help for larger
               campaigns.
             </p>
-            <p className="mt-4 text-sm leading-relaxed text-zinc-500">
+            <p className="mt-4 text-sm leading-relaxed text-zinc-400">
               <span className="text-zinc-400">Donations:</span>{" "}
               <Link
                 href="/donate"
@@ -701,7 +869,7 @@ export default function LandingPage() {
               >
                 Donate
               </Link>{" "}
-              — <span className="text-zinc-500">coming soon</span>; a public channel for one-time or
+              — <span className="text-zinc-400">coming soon</span>; a public channel for one-time or
               recurring support is in preparation.
             </p>
           </motion.div>
@@ -709,7 +877,7 @@ export default function LandingPage() {
       </section>
 
       <footer className="mt-auto border-t border-white/[0.06] px-6 py-8">
-        <div className="mx-auto flex max-w-6xl flex-col gap-6 text-sm text-zinc-500">
+        <div className="mx-auto flex max-w-6xl flex-col gap-6 text-sm text-zinc-400">
           <div className="flex flex-wrap gap-x-1 gap-y-1 text-zinc-400">
             <Link
               href="/one-pager"
@@ -836,5 +1004,6 @@ export default function LandingPage() {
         </div>
       </footer>
     </div>
+    </MotionConfig>
   );
 }

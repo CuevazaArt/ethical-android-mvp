@@ -21,8 +21,9 @@ export const metadata: Metadata = {
 export default function OnePagerPage() {
   return (
     <article
-      className="mx-auto min-h-full max-w-[48rem] px-6 py-10 text-zinc-200 print:max-w-none print:bg-white print:px-10 print:py-8 print:text-zinc-900"
-      id="one-pager"
+      id="main-content"
+      tabIndex={-1}
+      className="mx-auto min-h-full max-w-[48rem] px-6 py-10 text-zinc-200 outline-none focus-visible:ring-2 focus-visible:ring-violet-400/50 focus-visible:ring-offset-2 focus-visible:ring-offset-[#050508] print:max-w-none print:bg-white print:px-10 print:py-8 print:text-zinc-900 print:ring-0"
     >
       <header className="border-b border-white/15 pb-6 print:border-zinc-300">
         <div className="flex flex-col gap-3 print:hidden sm:flex-row sm:flex-wrap sm:items-center sm:justify-between">

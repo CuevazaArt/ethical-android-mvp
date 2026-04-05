@@ -18,6 +18,46 @@ body {
   font-family: var(--font-geist-sans), system-ui, sans-serif;
 }
 
+/* Skip link — visible on keyboard focus only */
+.skip-to-main {
+  position: absolute;
+  left: 1rem;
+  top: 1rem;
+  z-index: 10000;
+  border-radius: 9999px;
+  background: #f4f4f5;
+  padding: 0.5rem 1rem;
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: #09090b;
+  text-decoration: none;
+  transform: translateY(-200%);
+  transition: transform 0.2s ease, outline-offset 0.15s ease;
+}
+
+.skip-to-main:focus {
+  outline: none;
+}
+
+.skip-to-main:focus-visible {
+  transform: translateY(0);
+  outline: 2px solid rgb(167 139 250);
+  outline-offset: 3px;
+}
+
+@layer base {
+  :where(a, button, input, textarea, select, summary):focus-visible {
+    outline: 2px solid rgb(196 181 253);
+    outline-offset: 2px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .skip-to-main {
+    transition-duration: 0.01ms;
+  }
+}
+
 /* KaTeX — smaller than before but brighter than body; vivid green on dark */
 .theory-math-showcase .katex {
   color: rgb(110 255 130);

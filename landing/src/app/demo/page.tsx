@@ -52,15 +52,21 @@ export default function DemoPage() {
         </div>
       </header>
 
-      <DemoSignalAccent />
+      <div
+        id="main-content"
+        tabIndex={-1}
+        className="flex min-h-0 flex-1 flex-col outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-violet-400/50"
+      >
+        <DemoSignalAccent />
 
-      <DemoIntroPanel />
+        <DemoIntroPanel />
 
-      <iframe
-        src="/dashboard.html"
-        title="Ethical Android interactive dashboard"
-        className="min-h-0 w-full flex-1 border-0 bg-black"
-      />
+        <iframe
+          src="/dashboard.html"
+          title="Ethical Android interactive dashboard"
+          className="min-h-0 w-full flex-1 border-0 bg-black"
+        />
+      </div>
     </div>
   );
 }

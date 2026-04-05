@@ -50,7 +50,12 @@ export default function RootLayout({
       lang="en"
       className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
     >
-      <body className="flex min-h-full flex-col bg-[#050508]">{children}</body>
+      <body className="flex min-h-full flex-col bg-[#050508]">
+        <a href="#main-content" className="skip-to-main">
+          Skip to main content
+        </a>
+        {children}
+      </body>
     </html>
   );
 }

@@ -45,7 +45,11 @@ export default function DonatePage() {
 
       <DonateRippleAccent />
 
-      <main className="mx-auto flex w-full max-w-lg flex-1 flex-col px-6 py-16 text-center">
+      <main
+        id="main-content"
+        tabIndex={-1}
+        className="mx-auto flex w-full max-w-lg flex-1 flex-col px-6 py-16 text-center outline-none focus-visible:ring-2 focus-visible:ring-violet-400/50 focus-visible:ring-offset-2 focus-visible:ring-offset-[#050508]"
+      >
         <p className="text-xs font-medium uppercase tracking-[0.2em] text-violet-400/90">
           Coming soon
         </p>
