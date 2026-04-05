@@ -132,6 +132,12 @@ export default function InvestorsPage() {
               <Link href="/one-pager" className="transition-colors hover:text-white">
                 One-pager
               </Link>
+              <Link href="/roadmap" className="transition-colors hover:text-white">
+                Roadmap
+              </Link>
+              <Link href="/blockchain-dao" className="transition-colors hover:text-white">
+                BlockChainDAO
+              </Link>
               <Link href="/donate" className="transition-colors hover:text-white">
                 Donate
               </Link>
@@ -156,6 +162,20 @@ export default function InvestorsPage() {
           the <strong className="font-medium text-zinc-300">derivative opportunities</strong> in the
           ecosystem that supports it. The Ethical Android kernel is a research prototype today; the
           categories below describe where a production-grade stack could deploy.
+        </p>
+        <p className="mt-4 text-sm text-zinc-500">
+          For{" "}
+          <strong className="font-medium text-zinc-400">what is already built</strong>,{" "}
+          <strong className="font-medium text-zinc-400">planned engineering</strong>, and{" "}
+          <strong className="font-medium text-zinc-400">funding or collaboration asks</strong>, see
+          the{" "}
+          <Link
+            href="/roadmap"
+            className="text-violet-400/90 underline decoration-violet-400/30 underline-offset-4 transition hover:decoration-violet-400/60"
+          >
+            roadmap &amp; collaboration
+          </Link>{" "}
+          page.
         </p>
 
         <section className="mt-14 border-t border-white/[0.08] pt-12">

@@ -65,6 +65,12 @@ export default function LandingPage() {
             <Link href="/investors" className="transition-colors hover:text-white">
               Investors
             </Link>
+            <Link href="/roadmap" className="transition-colors hover:text-white">
+              Roadmap
+            </Link>
+            <Link href="/blockchain-dao" className="transition-colors hover:text-white">
+              BlockChainDAO
+            </Link>
             <Link href="/donate" className="transition-colors hover:text-white">
               Donate
             </Link>
@@ -476,6 +482,24 @@ export default function LandingPage() {
                   Investors — scope &amp; ecosystem
                 </Link>
                 <span className="text-zinc-500"> — product reach &amp; derivative markets</span>
+              </li>
+              <li>
+                <Link
+                  href="/roadmap"
+                  className="text-violet-400/90 underline decoration-violet-400/30 underline-offset-4 transition hover:decoration-violet-400/60"
+                >
+                  Roadmap &amp; collaboration
+                </Link>
+                <span className="text-zinc-500"> — shipped vs next vs funding needs</span>
+              </li>
+              <li>
+                <Link
+                  href="/blockchain-dao"
+                  className="text-violet-400/90 underline decoration-violet-400/30 underline-offset-4 transition hover:decoration-violet-400/60"
+                >
+                  BlockChainDAO
+                </Link>
+                <span className="text-zinc-500"> — mock governance today, on-chain direction</span>
               </li>
               <li>
                 <a
