@@ -34,6 +34,7 @@ const MID_TERM = [
   "Governance beyond mock DAO: requirements, threat model, and optional testnet-style experiments — only with legal and partner clarity.",
   "Pilot integrations with robotics or vehicle stacks in **staged, supervised** environments — never as a substitute for regulation.",
   "External ethics or safety review cycles documented in the open.",
+  "**Architecture:** incremental hexagonal-style boundaries (ports & adapters) where it pays off — e.g. LLM backends, governance/DAO, and episode persistence — so the ethical core can swap implementations without rewriting the pipeline. Applied gradually, not as a big-bang refactor.",
 ] as const;
 
 const NEEDS = [
@@ -179,6 +180,46 @@ export default function RoadmapPage() {
               </li>
             ))}
           </ul>
+        </section>
+
+        <section className="mt-10 border-t border-white/[0.08] pt-10">
+          <h2 className="text-lg font-semibold text-white">Discussion forum (planned)</h2>
+          <p className="mt-2 text-sm text-zinc-500">
+            Coming later — not a commitment with a launch date.
+          </p>
+          <p className="mt-4 text-sm leading-relaxed text-zinc-400">
+            We plan to add a <strong className="font-medium text-zinc-300">hosted discussion forum</strong> for
+            open threads on <strong className="font-medium text-zinc-300">pending implementation areas</strong>,
+            roadmap trade-offs, and community proposals — complementary to the code repo. Until that exists,
+            use the{" "}
+            <a
+              href={COLLAB}
+              className="text-violet-400/90 underline decoration-violet-400/30 underline-offset-4 hover:decoration-violet-400/60"
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              collaboration GitHub template
+            </a>{" "}
+            and public{" "}
+            <a
+              href={`${REPO}/issues`}
+              className="text-violet-400/90 underline decoration-violet-400/30 underline-offset-4 hover:decoration-violet-400/60"
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              GitHub Issues
+            </a>
+            ; enable{" "}
+            <a
+              href={`${REPO}/discussions`}
+              className="text-violet-400/90 underline decoration-violet-400/30 underline-offset-4 hover:decoration-violet-400/60"
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              Discussions
+            </a>{" "}
+            on the repository if the maintainers turn that on for broader Q&amp;A.
+          </p>
         </section>
 
         <section className="mt-12 rounded-xl border border-white/[0.08] bg-white/[0.02] p-6">
