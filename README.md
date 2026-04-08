@@ -268,7 +268,7 @@ In GoDaddy DNS for the domain:
 ```
 .
 ├── .github/              # Issue templates & Security tab links (config.yml)
-├── docs/                 # Theory ↔ implementation (see THEORY_AND_IMPLEMENTATION.md)
+├── docs/                 # Theory ↔ implementation; docs/experimental/ (unofficial papers)
 ├── landing/              # Next.js site (npm install inside this folder)
 ├── src/                  # Ethical kernel source code
 ├── tests/                # Formal test suite
@@ -286,6 +286,10 @@ In GoDaddy DNS for the domain:
 A copy of `dashboard.html` is also kept under `landing/public/` so the Next.js app can serve it.
 
 **Theory vs. code:** formulas, predicates, and file-level mapping (including how this differs from an LLM-only “stochastic parrot”) are in [docs/THEORY_AND_IMPLEMENTATION.md](docs/THEORY_AND_IMPLEMENTATION.md).
+
+**Experimental (unofficial):** discussion notes on “artificial consciousness” as a pedagogical frame, strong vs weak readings, and affect archetypes for possible future integration — [docs/EXPERIMENTAL_CONSCIOUSNESS_AND_AFFECT_ARCHETYPES.md](docs/EXPERIMENTAL_CONSCIOUSNESS_AND_AFFECT_ARCHETYPES.md) (WIP, not part of the kernel contract until implemented and tested).
+
+**Experimental paper (same lineage):** expected phenomena when coupling PAD + prototype mixing to the kernel; definitions of *color* / *sabor* as metaphors; testable hypotheses reserved for future runs — [docs/experimental/PAPER_AFECTO_FENOMENOS_Y_HIPOTESIS.md](docs/experimental/PAPER_AFECTO_FENOMENOS_Y_HIPOTESIS.md).
 
 ## Medium-term directions (not scheduled)
 
