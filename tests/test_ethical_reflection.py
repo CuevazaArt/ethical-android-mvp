@@ -95,3 +95,4 @@ def test_process_natural_passes_reflection_to_llm_local():
     )
     assert decision.reflection is not None
     assert "Reflection:" in response.inner_voice
+    assert "Salience:" in response.inner_voice

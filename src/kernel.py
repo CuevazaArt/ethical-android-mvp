@@ -39,6 +39,7 @@ from .modules.ethical_reflection import (
     ReflectionSnapshot,
     reflection_to_llm_context,
 )
+from .modules.salience_map import SalienceMap, SalienceSnapshot, salience_to_llm_context
 
 
 @dataclass
@@ -69,6 +70,7 @@ class KernelDecision:
     block_reason: str = ""
     affect: Optional[AffectProjection] = None
     reflection: Optional[ReflectionSnapshot] = None
+    salience: Optional[SalienceSnapshot] = None
 
 
 @dataclass
@@ -119,6 +121,7 @@ class EthicalKernel:
         self.pad_archetypes = PADArchetypeEngine()
         self.working_memory = WorkingMemory()
         self.ethical_reflection = EthicalReflection()
+        self.salience_map = SalienceMap()
         self._pruned_actions: Dict[str, List[str]] = {}
 
     def process(self, scenario: str, place: str,
@@ -215,6 +218,8 @@ class EthicalKernel:
         # ═══ Second-order reflection (Fase 1; read-only, no effect on action) ═══
         reflection = self.ethical_reflection.reflect(moral, bayes_result, will_decision)
 
+        salience = self.salience_map.compute(signals, state, social_eval, reflection)
+
         # ═══ PAD + archetypes (post-decision; does not alter ethics) ═══
         affect = self.pad_archetypes.project(state.sigma, moral.total_score, locus_eval)
 
@@ -280,6 +285,7 @@ class EthicalKernel:
             decision_mode=final_mode,
             affect=affect,
             reflection=reflection,
+            salience=salience,
         )
 
     def format_decision(self, d: KernelDecision) -> str:
@@ -338,6 +344,16 @@ class EthicalKernel:
                 f"  Reflection (2nd order): conflict={r.conflict_level} spread={r.pole_spread} "
                 f"strain={r.strain_index} u={r.uncertainty} will_mode={r.will_mode}",
                 f"    {r.note}",
+            ])
+
+        if d.salience is not None:
+            s = d.salience
+            w = s.weights
+            lines.extend([
+                "",
+                f"  Salience (GWT-lite): dominant={s.dominant_focus} "
+                f"risk={w['risk']} social={w['social']} body={w['body']} "
+                f"ethical_conflict={w['ethical_conflict']}",
             ])
 
         if d.affect is not None:
@@ -541,6 +557,7 @@ class EthicalKernel:
             dominant_archetype=decision.affect.dominant_archetype_id if decision.affect else "",
             weakness_line=weakness_line,
             reflection_context=reflection_to_llm_context(decision.reflection),
+            salience_context=salience_to_llm_context(decision.salience),
         )
 
         narrative = None
@@ -627,6 +644,7 @@ class EthicalKernel:
             score=decision.moral.total_score if decision.moral else 0.0,
             scenario=situation,
             reflection_context=reflection_to_llm_context(decision.reflection),
+            salience_context=salience_to_llm_context(decision.salience),
         )
 
         # Step 4: LLM generates rich morals

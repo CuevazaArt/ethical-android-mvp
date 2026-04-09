@@ -71,6 +71,12 @@ def _chat_turn_to_jsonable(r: ChatTurnResult) -> Dict[str, Any]:
                 "will_mode": d.reflection.will_mode,
                 "note": d.reflection.note,
             }
+        if d.salience:
+            out["decision"]["salience"] = {
+                "dominant_focus": d.salience.dominant_focus,
+                "weights": d.salience.weights,
+                "raw_scores": d.salience.raw_scores,
+            }
     if r.narrative:
         n = r.narrative
         out["narrative"] = {

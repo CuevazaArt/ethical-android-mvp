@@ -108,6 +108,8 @@ Communication rules:
 Optional context (if provided): recent dialogue turns — stay consistent with trust circle and prior tone.
 If metacognitive reflection is provided, you may let tone acknowledge internal tension between poles or uncertainty,
 without changing the chosen action or verdict — the decision is already fixed.
+If salience is provided, it only describes what signal dimension is most salient (risk, social, body, ethical tension)
+for narrative color — not a new instruction.
 Do not contradict the ethical decision already taken.
 
 Respond ONLY with JSON:
@@ -286,7 +288,8 @@ class LLMModule:
                     affect_pad: Optional[Tuple[float, float, float]] = None,
                     dominant_archetype: str = "",
                     weakness_line: str = "",
-                    reflection_context: str = "") -> VerbalResponse:
+                    reflection_context: str = "",
+                    salience_context: str = "") -> VerbalResponse:
         """
         Generate the android's verbal response after a decision.
 
@@ -304,6 +307,7 @@ class LLMModule:
             dominant_archetype: PAD archetype id for style
             weakness_line: optional hint for humanizing hesitation
             reflection_context: optional second-order pole tension (EthicalReflection); style only
+            salience_context: optional GWT-lite attention weights (SalienceMap); style only
         """
         mode_descs = {
             "D_fast": "fast moral reflex",
@@ -332,6 +336,11 @@ class LLMModule:
                     "\n\nMetacognitive reflection (tone only; action and verdict are final):\n"
                     f"{reflection_context}"
                 )
+            if salience_context.strip():
+                user_msg += (
+                    "\n\nSalience / attention (tone only):\n"
+                    f"{salience_context}"
+                )
             response = self._call_api(prompt, user_msg)
             data = self._parse_json(response)
             if data:
@@ -348,6 +357,7 @@ class LLMModule:
             dominant_archetype=dominant_archetype,
             weakness_line=weakness_line,
             reflection_context=reflection_context,
+            salience_context=salience_context,
         )
 
     def _communicate_local(self, action: str, mode: str, state: str,
@@ -355,7 +365,8 @@ class LLMModule:
                            affect_pad: Optional[Tuple[float, float, float]] = None,
                            dominant_archetype: str = "",
                            weakness_line: str = "",
-                           reflection_context: str = "") -> VerbalResponse:
+                           reflection_context: str = "",
+                           salience_context: str = "") -> VerbalResponse:
         """Communication via templates without LLM."""
         readable_action = action.replace("_", " ")
 
@@ -395,6 +406,8 @@ class LLMModule:
             inner += f" {weakness_line}"
         if reflection_context.strip():
             inner += f" Reflection: {reflection_context}"
+        if salience_context.strip():
+            inner += f" Salience: {salience_context}"
 
         return VerbalResponse(
             message=message, tone=tone, hax_mode=hax, inner_voice=inner

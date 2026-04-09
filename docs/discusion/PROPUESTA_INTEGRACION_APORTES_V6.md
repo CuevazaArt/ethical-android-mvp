@@ -105,11 +105,13 @@ Incorporar solo lo que **añade estado medible nuevo** o **comportamiento proact
 
 ---
 
-### Fase 2 — `SalienceMap` (GWT-lite, solo lectura)
+### Fase 2 — `SalienceMap` (GWT-lite, solo lectura) — **implementado**
 
-**Qué:** vector de saliencia normalizado sobre **ejes** ya existentes: `risk`, `hostility`, `body` (σ), `ethical_conflict` (desde Reflection), `social` (Uchi-Soto). No reordena el pipeline en la primera iteración; **sí** acompaña la decisión como **telemetría** y entrada para monólogo y UI.
+**Qué:** `src/modules/salience_map.py` — `SalienceSnapshot` con `weights` normalizados en cuatro ejes (`risk`, `social`, `body`, `ethical_conflict`), `dominant_focus`, `raw_scores`. `social` combina hostilidad, `caution_level` y dialectica; `body` usa σ; `ethical_conflict` usa `reflection.strain_index`.
 
-**Evolutivo:** segunda iteración podría **ponderar** entradas a locus o Bayes (con límites ±ε) — solo con batería de regresión.
+**Dónde:** tras `EthicalReflection`, antes de PAD; campo `KernelDecision.salience`. `salience_to_llm_context()` → `communicate(..., salience_context=...)`. JSON en `chat_server`; bloque en `format_decision`.
+
+**Evolutivo:** ponderar locus/Bayes (±ε) solo con batería de regresión — **no** hecho aún.
 
 ---
 
@@ -147,9 +149,9 @@ Incorporar solo lo que **añade estado medible nuevo** o **comportamiento proact
 
 ## Orden sugerido de implementación
 
-1. Fase 1 (Reflection) — menor superficie, máxima claridad para explicabilidad.  
-2. Fase 5 parcial (monólogo mínimo) — consume Reflection sin PAD duplicado.  
-3. Fase 2 (Salience) — enriquece telemetría.  
+1. Fase 1 (Reflection) — **hecho.**  
+2. Fase 2 (Salience) — **hecho** (telemetría + LLM context).  
+3. Fase 5 parcial (monólogo mínimo) — consume Reflection + Salience sin duplicar `KernelDecision`.  
 4. Fase 4 (Identity) — si hay producto de “voz en primera persona” estable.  
 5. Fase 3 (Drives) — cuando exista política de despliegue y DAO real o simulación seria.
 

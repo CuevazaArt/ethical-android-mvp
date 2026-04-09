@@ -157,7 +157,8 @@ src/
 │   ├── augenesis.py        # Narrative augenesis (soul creation) [v5]
 │   ├── pad_archetypes.py   # PAD affect projection + archetype mixture (post-decision)
 │   ├── working_memory.py   # Short-term conversational buffer (STM)
-│   └── ethical_reflection.py  # Second-order reflection (pole tension vs uncertainty)
+│   ├── ethical_reflection.py  # Second-order reflection (pole tension vs uncertainty)
+│   └── salience_map.py        # GWT-lite attention weights over risk/social/body/ethics (read-only)
 ├── simulations/
 │   └── runner.py           # 9 scenarios + simulation runner
 ├── kernel.py               # Ethical kernel: orchestrates modules + `process_chat_turn` (dialogue)
@@ -195,6 +196,7 @@ Psi Sleep Ψ (end of day): Audit + Forgiveness + Immortality Backup
 - [x] Algorithmic Forgiveness (temporal decay of negative memories)
 - [x] PAD + archetypes (post-decision affect projection for narrative; does not steer ethics)
 - [x] Ethical reflection (second-order pole spread vs uncertainty; read-only metacognition)
+- [x] Salience map (GWT-lite attention over risk / social / body / ethical tension; read-only)
 - [x] Immortality Protocol (distributed backup in 4 layers)
 - [x] Narrative Augenesis (creation of oriented synthetic souls)
 
