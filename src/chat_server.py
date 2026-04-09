@@ -62,6 +62,15 @@ def _chat_turn_to_jsonable(r: ChatTurnResult) -> Dict[str, Any]:
                 "dominant_archetype": d.affect.dominant_archetype_id,
                 "weights": d.affect.weights,
             }
+        if d.reflection:
+            out["decision"]["reflection"] = {
+                "conflict_level": d.reflection.conflict_level,
+                "pole_spread": d.reflection.pole_spread,
+                "strain_index": d.reflection.strain_index,
+                "uncertainty": d.reflection.uncertainty,
+                "will_mode": d.reflection.will_mode,
+                "note": d.reflection.note,
+            }
     if r.narrative:
         n = r.narrative
         out["narrative"] = {

@@ -88,19 +88,20 @@ Incorporar solo lo que **añade estado medible nuevo** o **comportamiento proact
 
 ## Propuesta de integración (adaptada a este repo)
 
-### Fase 1 — `EthicalReflection` (metacognición mínima)
+### Fase 1 — `EthicalReflection` (metacognición mínima) — **implementado**
 
-**Qué:** módulo puro que, dado `TripartiteMoral` + `BayesianResult` + `SigmoidWill` output, produce un **`ReflectionSnapshot`**:
+**Qué:** módulo puro `src/modules/ethical_reflection.py` que, dado `TripartiteMoral` + `BayesianResult` + salida de `SigmoidWill.decide`, produce un **`ReflectionSnapshot`**:
 
-- dispersión entre scores de polos (p. ej. varianza o rango),  
-- etiqueta discreta de conflicto (`low` / `medium` / `high`),  
-- correlación simple con `uncertainty` (ya existe en Bayes).
+- `pole_spread` = max(score) − min(score) por polo,  
+- `conflict_level` ∈ {`low`, `medium`, `high`} (umbrales en `EthicalReflection.LOW_MAX` / `MEDIUM_MAX`),  
+- `strain_index` ∈ [0, 1] = `(spread/2) * (0.5 + uncertainty)`,  
+- `note` breve para logs / API.
 
-**Dónde:** después de polos + voluntad, **antes** de PAD; opcionalmente campo nuevo en `KernelDecision` / trazas.
+**Dónde:** en `EthicalKernel.process`, tras modo final y elección de acción, **antes** de PAD; campo `KernelDecision.reflection`. Expuesto en `format_decision` y JSON del `chat_server`.
 
-**Uso:** LLM (explicación), logs, futuro monólogo. **No** cambia el argmax ni MalAbs.
+**Uso:** explicabilidad y telemetría. **No** modifica la acción ni MalAbs.
 
-**Criterio de éxito:** en simulaciones, correlación entre “conflicto alto” y `gray_zone` / incertidumbre; tests de no regresión en acciones finales.
+**Criterio de éxito:** tests en `tests/test_ethical_reflection.py`; regresión ética intacta (acción igual con o sin reflexión — la reflexión es solo lectura).
 
 ---
 

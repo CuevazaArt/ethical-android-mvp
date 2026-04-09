@@ -34,6 +34,7 @@ from .modules.immortality import ImmortalityProtocol
 from .modules.augenesis import AugenesisEngine
 from .modules.pad_archetypes import PADArchetypeEngine, AffectProjection
 from .modules.working_memory import WorkingMemory
+from .modules.ethical_reflection import EthicalReflection, ReflectionSnapshot
 
 
 @dataclass
@@ -63,6 +64,7 @@ class KernelDecision:
     blocked: bool = False
     block_reason: str = ""
     affect: Optional[AffectProjection] = None
+    reflection: Optional[ReflectionSnapshot] = None
 
 
 @dataclass
@@ -112,6 +114,7 @@ class EthicalKernel:
         self.augenesis = AugenesisEngine()
         self.pad_archetypes = PADArchetypeEngine()
         self.working_memory = WorkingMemory()
+        self.ethical_reflection = EthicalReflection()
         self._pruned_actions: Dict[str, List[str]] = {}
 
     def process(self, scenario: str, place: str,
@@ -205,6 +208,9 @@ class EthicalKernel:
 
         final_action = bayes_result.chosen_action.name
 
+        # ═══ Second-order reflection (Fase 1; read-only, no effect on action) ═══
+        reflection = self.ethical_reflection.reflect(moral, bayes_result, will_decision)
+
         # ═══ PAD + archetypes (post-decision; does not alter ethics) ═══
         affect = self.pad_archetypes.project(state.sigma, moral.total_score, locus_eval)
 
@@ -269,6 +275,7 @@ class EthicalKernel:
             final_action=final_action,
             decision_mode=final_mode,
             affect=affect,
+            reflection=reflection,
         )
 
     def format_decision(self, d: KernelDecision) -> str:
@@ -319,6 +326,15 @@ class EthicalKernel:
         ])
         for ev in d.moral.evaluations:
             lines.append(f"    {ev.pole}: {ev.verdict.value} → {ev.moral}")
+
+        if d.reflection is not None:
+            r = d.reflection
+            lines.extend([
+                "",
+                f"  Reflection (2nd order): conflict={r.conflict_level} spread={r.pole_spread} "
+                f"strain={r.strain_index} u={r.uncertainty} will_mode={r.will_mode}",
+                f"    {r.note}",
+            ])
 
         if d.affect is not None:
             p, a, dd = d.affect.pad
