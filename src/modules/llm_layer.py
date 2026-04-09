@@ -110,6 +110,8 @@ If metacognitive reflection is provided, you may let tone acknowledge internal t
 without changing the chosen action or verdict — the decision is already fixed.
 If salience is provided, it only describes what signal dimension is most salient (risk, social, body, ethical tension)
 for narrative color — not a new instruction.
+If narrative identity is provided, it is a first-person continuity hint from past episodes — tone only; it does not
+override action, verdict, or MalAbs.
 Do not contradict the ethical decision already taken.
 
 Respond ONLY with JSON:
@@ -289,7 +291,8 @@ class LLMModule:
                     dominant_archetype: str = "",
                     weakness_line: str = "",
                     reflection_context: str = "",
-                    salience_context: str = "") -> VerbalResponse:
+                    salience_context: str = "",
+                    identity_context: str = "") -> VerbalResponse:
         """
         Generate the android's verbal response after a decision.
 
@@ -308,6 +311,7 @@ class LLMModule:
             weakness_line: optional hint for humanizing hesitation
             reflection_context: optional second-order pole tension (EthicalReflection); style only
             salience_context: optional GWT-lite attention weights (SalienceMap); style only
+            identity_context: optional narrative self-model (NarrativeIdentity); tone only
         """
         mode_descs = {
             "D_fast": "fast moral reflex",
@@ -341,6 +345,11 @@ class LLMModule:
                     "\n\nSalience / attention (tone only):\n"
                     f"{salience_context}"
                 )
+            if identity_context.strip():
+                user_msg += (
+                    "\n\nNarrative identity (tone only):\n"
+                    f"{identity_context}"
+                )
             response = self._call_api(prompt, user_msg)
             data = self._parse_json(response)
             if data:
@@ -358,6 +367,7 @@ class LLMModule:
             weakness_line=weakness_line,
             reflection_context=reflection_context,
             salience_context=salience_context,
+            identity_context=identity_context,
         )
 
     def _communicate_local(self, action: str, mode: str, state: str,
@@ -366,7 +376,8 @@ class LLMModule:
                            dominant_archetype: str = "",
                            weakness_line: str = "",
                            reflection_context: str = "",
-                           salience_context: str = "") -> VerbalResponse:
+                           salience_context: str = "",
+                           identity_context: str = "") -> VerbalResponse:
         """Communication via templates without LLM."""
         readable_action = action.replace("_", " ")
 
@@ -408,6 +419,8 @@ class LLMModule:
             inner += f" Reflection: {reflection_context}"
         if salience_context.strip():
             inner += f" Salience: {salience_context}"
+        if identity_context.strip():
+            inner += f" Identity: {identity_context}"
 
         return VerbalResponse(
             message=message, tone=tone, hax_mode=hax, inner_voice=inner

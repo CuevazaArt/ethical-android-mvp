@@ -36,12 +36,12 @@ Incorporar solo lo que **añade estado medible nuevo** o **comportamiento proact
 7. **Polos** — `TripartiteMoral` (scores, veredicto, narrativa multipolar).  
 8. **Voluntad sigmoide** — modo D_fast / gray_zone / etc.  
 9. **PAD + arquetipos** — proyección afectiva **post-decisión**; no gobierna el veto.  
-10. **Memoria narrativa** — episodio (con `affect_pad` / `affect_weights` si aplica).  
+10. **Memoria narrativa** — episodio (con `affect_pad` / `affect_weights` si aplica); **`NarrativeIdentityTracker`** actualiza estado de yo solo al registrar episodio (`src/modules/narrative_identity.py`).  
 11. **Weakness** — carga emocional / registro de episodios débiles.  
 12. **Perdón algorítmico** — registro por episodio.  
 13. **DAO** — auditoría; alertas de solidaridad si riesgo alto.
 
-**Fuera del ciclo por tick:** `execute_sleep()` (Psi Sleep + perdón + weakness load + inmortalidad). `process_natural` añade LLM perceive → ciclo → communicate → narrate.
+**Fuera del ciclo por tick:** `execute_sleep()` (Psi Sleep + perdón + weakness load + inmortalidad + **`DriveArbiter.evaluate`**). `process_natural` añade LLM perceive → ciclo → communicate → narrate. Monólogo estructurado en logs vía `compose_monologue_line` (`src/modules/internal_monologue.py`).
 
 ### Módulos por carpeta (`src/modules/`)
 
@@ -66,6 +66,9 @@ Incorporar solo lo que **añade estado medible nuevo** o **comportamiento proact
 | Augenesis | `augenesis.py` | Perfiles de “alma” sintética. |
 | Afecto | `pad_archetypes.py` | PAD + softmax sobre prototipos. |
 | STM | `working_memory.py` | Turnos de diálogo cortos. |
+| Drives (post-sleep) | `drive_arbiter.py` | Intenciones discretas advisory tras backup. |
+| Identidad narrativa | `narrative_identity.py` | EMA sobre episodios; contexto LLM + JSON chat. |
+| Monólogo | `internal_monologue.py` | Una línea `[MONO]` para logs / API. |
 
 ### Simulaciones y tests
 
@@ -82,7 +85,7 @@ Incorporar solo lo que **añade estado medible nuevo** o **comportamiento proact
 - **Historia:** episodios + Psi Sleep.  
 - **Diálogo:** `WorkingMemory` + chat + WebSocket.  
 
-**Brecha:** falta **estado explícito de segundo orden** (conflicto entre polos como número, no solo texto), **saliencia competida** (no solo orden fijo), **drives proactivos** con contrato, **yo** persistente más allá del texto del LLM, y **monólogo** que no sea copia de `KernelDecision`.
+**Cubierto en v6 repo:** reflexión de segundo orden (**Fase 1**), saliencia (**Fase 2**), drives advisory (**Fase 3**), yo narrativo (**Fase 4**), monólogo compacto (**Fase 5**). Lo que sigue siendo **fuera de alcance** por defecto es auto-modificación de ética operativa (véase sección excluida).
 
 ---
 
@@ -115,29 +118,27 @@ Incorporar solo lo que **añade estado medible nuevo** o **comportamiento proact
 
 ---
 
-### Fase 3 — `DriveArbiter` (teleología acotada)
+### Fase 3 — `DriveArbiter` (teleología acotada) — **implementado**
 
-**Qué:** proceso **fuera del hot path** (cron o tick tras Psi Sleep): lee `PreloadedBuffer`, estado DAO, cola de backups (`ImmortalityProtocol`). Emite **intenciones** discretas: `{"suggest": "run_backup", "reason": "identity_preservation", "priority": 0.3"}`.
+**Qué:** `src/modules/drive_arbiter.py`. Evaluación **tras** Psi Sleep e inmortalidad (`EthicalKernel.execute_sleep`); también expuesto en JSON WebSocket como `drive_intents` (vista advisory en cada turno). Emite hasta cuatro `DriveIntent` con `suggest`, `reason`, `priority`.
 
 **No** ejecuta acciones físicas sin capa de política/DAO; **no** inventa acciones MalAbs-frágiles.
 
-**Criterio:** reducir falsos positivos; trazabilidad en auditoría DAO.
+**Criterio:** trazabilidad; lista acotada y ordenada por prioridad.
 
 ---
 
-### Fase 4 — `NarrativeIdentity` (yo persistente)
+### Fase 4 — `NarrativeIdentity` (yo persistente) — **implementado**
 
-**Qué:** estado pequeño (p. ej. vector de rasgos o etiquetas) en `NarrativeMemory` o tabla auxiliar, actualizado **solo** tras episodios con veredicto y contexto; campos tipo `self_ascription` para plantillas LLM (“yo me reconozco como…”).
+**Qué:** `NarrativeIdentityTracker` en `NarrativeMemory.identity`; `update_from_episode` solo al registrar episodio. `ascription_line()` / `to_llm_context()` alimentan `LLMModule.communicate(..., identity_context=...)` y el JSON del chat (`identity` con leans + `ascription`).
 
-**No** sustituye episodios; **no** modifica pesos de polos sin capa separada y revisión.
+**No** sustituye episodios; **no** modifica pesos de polos.
 
 ---
 
-### Fase 5 — `InternalMonologue` (registro estructurado)
+### Fase 5 — `InternalMonologue` (registro estructurado) — **implementado**
 
-**Qué:** una sola función `compose_monologue(snapshot: Reflection, salience, pad, decision) -> str` para **logs / debug / opcional streaming**, sin duplicar campos ya en `KernelDecision` (referencia por ID de episodio).
-
-**Condición:** solo si aporta líneas **no** replicables por `format_decision` + JSON del bridge.
+**Qué:** `compose_monologue_line(decision, episode_id)` en `internal_monologue.py` — línea compacta `[MONO]` para `format_decision` y campo `monologue` en JSON del `chat_server` cuando hay `KernelDecision`.
 
 ---
 
@@ -151,9 +152,9 @@ Incorporar solo lo que **añade estado medible nuevo** o **comportamiento proact
 
 1. Fase 1 (Reflection) — **hecho.**  
 2. Fase 2 (Salience) — **hecho** (telemetría + LLM context).  
-3. Fase 5 parcial (monólogo mínimo) — consume Reflection + Salience sin duplicar `KernelDecision`.  
-4. Fase 4 (Identity) — si hay producto de “voz en primera persona” estable.  
-5. Fase 3 (Drives) — cuando exista política de despliegue y DAO real o simulación seria.
+3. Fase 5 (monólogo estructurado) — **hecho** (`format_decision` + JSON `monologue`).  
+4. Fase 4 (Identity) — **hecho** (memoria + LLM + JSON `identity`).  
+5. Fase 3 (Drives) — **hecho** (post–Ψ Sleep + JSON `drive_intents` por turno).
 
 ---
 
@@ -165,4 +166,4 @@ Incorporar solo lo que **añade estado medible nuevo** o **comportamiento proact
 
 ---
 
-*Última actualización: 2026-04-09*
+*Última actualización: 2026-04-09 (Fases 3–5 integradas en kernel, LLM y `chat_server`.)*

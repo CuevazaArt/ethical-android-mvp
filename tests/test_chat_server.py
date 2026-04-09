@@ -32,6 +32,9 @@ def test_websocket_chat_roundtrip():
         assert "response" in data
         assert data["response"].get("message")
         assert data.get("path") in ("light", "heavy", "safety_block", "kernel_block")
+        assert "identity" in data and "ascription" in data["identity"]
+        assert "drive_intents" in data and isinstance(data["drive_intents"], list)
+        assert "monologue" in data
 
 
 def test_websocket_invalid_json():

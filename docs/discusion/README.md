@@ -2,7 +2,7 @@
 
 Textos en **exploración**: ideas, marcos filosóficos o diseños que **no** son tareas operativas hasta acordar criterios.
 
-El **backlog accionable** de implementación está solo en [`../pendientes/`](../pendientes/).
+Las **tareas de producto** se coordinan en el README del repo y en el control de versiones; esta carpeta es solo discusión y propuestas.
 
 | Documento | Tema |
 |-----------|------|

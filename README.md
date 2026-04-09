@@ -104,6 +104,8 @@ python -m src.chat_server
 Send **JSON text** frames, e.g. `{"text": "Hello", "agent_id": "user", "include_narrative": false}`.  
 Optional env: `CHAT_HOST`, `CHAT_PORT`, `LLM_MODE`, `KERNEL_VARIABILITY`.
 
+Each JSON response includes **`identity`** (narrative self-model + `ascription`), **`drive_intents`** (advisory list), and **`monologue`** when a kernel decision is present. A minimal browser tester lives at [`landing/public/chat-test.html`](landing/public/chat-test.html) (open via local static server if `file://` blocks WebSockets).
+
 ### Natural language mode (v4)
 
 ```python

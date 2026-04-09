@@ -1,7 +1,7 @@
 # Propuesta: fronteras hacia una subjetividad funcional (v6 — en discusión)
 
 > **Estado:** discusión / investigación · no es contrato de implementación del kernel.  
-> **No** forma parte del backlog de pendientes (`docs/pendientes/` solo cubre tareas de producto).  
+> **No** es la lista de tareas de producto del repo (véase README y propuestas en `docs/discusion/`).  
 > **Relación:** complementa el hilo experimental en `docs/EXPERIMENTAL_CONSCIOUSNESS_AND_AFFECT_ARCHETYPES.md` y la capa PAD ya implementada.
 
 ## Aporte al modelo (si se adapta con criterio)

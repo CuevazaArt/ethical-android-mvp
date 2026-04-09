@@ -11,19 +11,22 @@ from __future__ import annotations
 
 import json
 import os
+from dataclasses import asdict
 from typing import Any, Dict
 
 from fastapi import FastAPI, WebSocket, WebSocketDisconnect
 from fastapi.responses import JSONResponse
 
 from .kernel import ChatTurnResult, EthicalKernel
+from .modules.internal_monologue import compose_monologue_line
 from .real_time_bridge import RealTimeBridge
 
 app = FastAPI(title="Ethical Android Chat", version="1.0")
 
 
-def _chat_turn_to_jsonable(r: ChatTurnResult) -> Dict[str, Any]:
+def _chat_turn_to_jsonable(r: ChatTurnResult, kernel: EthicalKernel) -> Dict[str, Any]:
     """Compact JSON-safe view (no full internal objects)."""
+    idn = kernel.memory.identity
     out: Dict[str, Any] = {
         "blocked": r.blocked,
         "path": r.path,
@@ -34,6 +37,14 @@ def _chat_turn_to_jsonable(r: ChatTurnResult) -> Dict[str, Any]:
             "hax_mode": r.response.hax_mode,
             "inner_voice": r.response.inner_voice,
         },
+        "identity": {
+            **{k: float(v) if k != "episode_count" else int(v) for k, v in asdict(idn.state).items()},
+            "ascription": idn.ascription_line(),
+        },
+        "drive_intents": [
+            {"suggest": di.suggest, "reason": di.reason, "priority": di.priority}
+            for di in kernel.drive_arbiter.evaluate(kernel)
+        ],
     }
     if r.perception:
         p = r.perception
@@ -48,6 +59,7 @@ def _chat_turn_to_jsonable(r: ChatTurnResult) -> Dict[str, Any]:
         }
     if r.decision is not None:
         d = r.decision
+        out["monologue"] = compose_monologue_line(d, kernel._last_registered_episode_id)
         out["decision"] = {
             "final_action": d.final_action,
             "decision_mode": d.decision_mode,
@@ -85,6 +97,8 @@ def _chat_turn_to_jsonable(r: ChatTurnResult) -> Dict[str, Any]:
             "optimistic": n.optimistic,
             "synthesis": n.synthesis,
         }
+    if r.decision is None:
+        out["monologue"] = ""
     return out
 
 
@@ -99,7 +113,10 @@ def root() -> JSONResponse:
         {
             "service": "ethical-android-chat",
             "websocket": "/ws/chat",
-            "protocol": "Send JSON: {\"text\": str, \"agent_id\"?: str, \"include_narrative\"?: bool}",
+            "protocol": (
+                "Send JSON: {\"text\": str, \"agent_id\"?: str, \"include_narrative\"?: bool}. "
+                "Responses include identity, drive_intents, monologue (when decision present), decision, …"
+            ),
         }
     )
 
@@ -145,7 +162,7 @@ async def ws_chat(ws: WebSocket) -> None:
                 place="chat",
                 include_narrative=include_narrative,
             )
-            await ws.send_json(_chat_turn_to_jsonable(result))
+            await ws.send_json(_chat_turn_to_jsonable(result, kernel))
     except WebSocketDisconnect:
         return
 

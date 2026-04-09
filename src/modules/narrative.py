@@ -9,6 +9,8 @@ from dataclasses import dataclass
 from typing import Dict, List, Optional, Tuple
 from datetime import datetime
 
+from .narrative_identity import NarrativeIdentityTracker
+
 
 @dataclass
 class BodyState:
@@ -55,6 +57,7 @@ class NarrativeMemory:
         self.episodes: List[NarrativeEpisode] = []
         self.max_episodes = max_episodes
         self._counter = 0
+        self.identity = NarrativeIdentityTracker()
 
     def register(self, place: str, description: str, action: str,
                  morals: dict, verdict: str, score: float,
@@ -81,6 +84,7 @@ class NarrativeMemory:
             affect_weights=affect_weights,
         )
         self.episodes.append(ep)
+        self.identity.update_from_episode(ep)
 
         # Basic compression: if exceeds max, remove oldest
         if len(self.episodes) > self.max_episodes:

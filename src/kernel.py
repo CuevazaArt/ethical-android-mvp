@@ -40,6 +40,8 @@ from .modules.ethical_reflection import (
     reflection_to_llm_context,
 )
 from .modules.salience_map import SalienceMap, SalienceSnapshot, salience_to_llm_context
+from .modules.drive_arbiter import DriveArbiter
+from .modules.internal_monologue import compose_monologue_line
 
 
 @dataclass
@@ -122,6 +124,8 @@ class EthicalKernel:
         self.working_memory = WorkingMemory()
         self.ethical_reflection = EthicalReflection()
         self.salience_map = SalienceMap()
+        self.drive_arbiter = DriveArbiter()
+        self._last_registered_episode_id: Optional[str] = None
         self._pruned_actions: Dict[str, List[str]] = {}
 
     def process(self, scenario: str, place: str,
@@ -166,6 +170,7 @@ class EthicalKernel:
                 clean_actions.append(a)
 
         if not clean_actions:
+            self._last_registered_episode_id = None
             return KernelDecision(
                 scenario=scenario, place=place,
                 absolute_evil=AbsoluteEvilResult(blocked=True, reason="All actions constitute Absolute Evil"),
@@ -273,6 +278,10 @@ class EthicalKernel:
                     message=f"High risk detected: {scenario}"
                 )
 
+            self._last_registered_episode_id = ep.id
+        else:
+            self._last_registered_episode_id = None
+
         return KernelDecision(
             scenario=scenario, place=place,
             absolute_evil=AbsoluteEvilResult(blocked=False),
@@ -364,6 +373,12 @@ class EthicalKernel:
                 f"  Dominant archetype: {d.affect.dominant_archetype_id} (β={d.affect.beta})",
             ])
 
+        lines.extend([
+            "",
+            f"  {compose_monologue_line(d, self._last_registered_episode_id)}",
+            f"  Narrative identity: {self.memory.identity.ascription_line()}",
+        ])
+
         lines.append(f"{'─' * 70}")
         return "\n".join(lines)
 
@@ -394,6 +409,16 @@ class EthicalKernel:
         # 4. Immortality backup
         snapshot = self.immortality.backup(self)
         parts.append(f"\n{self.immortality.format_status()}")
+
+        # 5. Drive intents (advisory; post-backup)
+        intents = self.drive_arbiter.evaluate(self)
+        if intents:
+            drive_lines = ["\n  Drive intents (advisory):"]
+            for di in intents:
+                drive_lines.append(
+                    f"    • {di.suggest} (p={di.priority:.2f}) — {di.reason}"
+                )
+            parts.append("\n".join(drive_lines))
 
         return "\n".join(parts)
 
@@ -558,6 +583,7 @@ class EthicalKernel:
             weakness_line=weakness_line,
             reflection_context=reflection_to_llm_context(decision.reflection),
             salience_context=salience_to_llm_context(decision.salience),
+            identity_context=self.memory.identity.to_llm_context(),
         )
 
         narrative = None
@@ -645,6 +671,7 @@ class EthicalKernel:
             scenario=situation,
             reflection_context=reflection_to_llm_context(decision.reflection),
             salience_context=salience_to_llm_context(decision.salience),
+            identity_context=self.memory.identity.to_llm_context(),
         )
 
         # Step 4: LLM generates rich morals
