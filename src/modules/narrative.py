@@ -5,8 +5,8 @@ Converts experiences into narrative cycles with morals.
 The android does not store data: it builds history.
 """
 
-from dataclasses import dataclass, field
-from typing import List, Optional
+from dataclasses import dataclass
+from typing import Dict, List, Optional, Tuple
 from datetime import datetime
 
 
@@ -34,6 +34,8 @@ class NarrativeEpisode:
     decision_mode: str               # "D_fast", "D_delib", "gray_zone"
     sigma: float                     # Sympathetic state at the moment
     context: str                     # Type: emergency, everyday, etc.
+    affect_pad: Optional[Tuple[float, float, float]] = None
+    affect_weights: Optional[Dict[str, float]] = None
 
 
 class NarrativeMemory:
@@ -57,7 +59,9 @@ class NarrativeMemory:
     def register(self, place: str, description: str, action: str,
                  morals: dict, verdict: str, score: float,
                  mode: str, sigma: float, context: str,
-                 body_state: BodyState = None) -> NarrativeEpisode:
+                 body_state: Optional[BodyState] = None,
+                 affect_pad: Optional[Tuple[float, float, float]] = None,
+                 affect_weights: Optional[Dict[str, float]] = None) -> NarrativeEpisode:
         """Registers a new narrative episode."""
         self._counter += 1
         ep = NarrativeEpisode(
@@ -73,6 +77,8 @@ class NarrativeMemory:
             decision_mode=mode,
             sigma=round(sigma, 4),
             context=context,
+            affect_pad=affect_pad,
+            affect_weights=affect_weights,
         )
         self.episodes.append(ep)
 
@@ -111,6 +117,13 @@ class NarrativeMemory:
         morals_txt = "\n".join(
             f"    {pole}: {moral}" for pole, moral in ep.morals.items()
         )
+        pad_line = ""
+        if ep.affect_pad is not None:
+            p, a, d = ep.affect_pad
+            pad_line = f"\n  PAD (P,A,D): ({p:.3f}, {a:.3f}, {d:.3f})"
+            if ep.affect_weights:
+                top = sorted(ep.affect_weights.items(), key=lambda x: -x[1])[:3]
+                pad_line += " | top weights: " + ", ".join(f"{k}={v:.3f}" for k, v in top)
         return (
             f"─── {ep.id} | {ep.context.upper()} | {ep.place} ───\n"
             f"  Event: {ep.event_description}\n"
@@ -119,5 +132,5 @@ class NarrativeMemory:
             f"  Body state: energy={ep.body_state.energy}, "
             f"nodes={ep.body_state.active_nodes}/8\n"
             f"  Verdict: {ep.verdict}\n"
-            f"  Morals:\n{morals_txt}"
+            f"  Morals:\n{morals_txt}{pad_line}"
         )

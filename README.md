@@ -141,10 +141,11 @@ src/
 │   ├── weakness_pole.py    # Weakness pole (humanizing imperfection) [v5]
 │   ├── forgiveness.py      # Algorithmic forgiveness (memory decay) [v5]
 │   ├── immortality.py      # Immortality protocol (distributed backup) [v5]
-│   └── augenesis.py        # Narrative augenesis (soul creation) [v5]
+│   ├── augenesis.py        # Narrative augenesis (soul creation) [v5]
+│   └── pad_archetypes.py   # PAD affect projection + archetype mixture (post-decision)
 ├── simulations/
 │   └── runner.py           # 9 scenarios + simulation runner
-├── kernel.py               # Ethical kernel: orchestrates the 17 modules
+├── kernel.py               # Ethical kernel: orchestrates the 18 modules
 └── main.py                 # Entry point
 ```
 
@@ -175,6 +176,7 @@ Psi Sleep Ψ (end of day): Audit + Forgiveness + Immortality Backup
 - [x] LLM Layer (perception + communication + narrative in natural language)
 - [x] Weakness Pole (humanizing narrative imperfection)
 - [x] Algorithmic Forgiveness (temporal decay of negative memories)
+- [x] PAD + archetypes (post-decision affect projection for narrative; does not steer ethics)
 - [x] Immortality Protocol (distributed backup in 4 layers)
 - [x] Narrative Augenesis (creation of oriented synthetic souls)
 

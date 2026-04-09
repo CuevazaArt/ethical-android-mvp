@@ -3,7 +3,7 @@ Ethical Kernel — The android's moral brain.
 
 Connects all modules in an operational cycle:
 [Perception] → [Uchi-Soto] → [AbsEvil Check] → [Buffer] → [Sympathetic] →
-[Locus] → [Bayesian] → [Poles] → [Will] → [Decision] →
+[Locus] → [Bayesian] → [Poles] → [Will] → [Decision] → [PAD/archetypes] →
 [Weakness] → [Forgiveness] → [Memory] → [DAO] → [Psi Sleep + Immortality]
 """
 
@@ -27,6 +27,7 @@ from .modules.weakness_pole import WeaknessPole, WeaknessType, WeaknessEvaluatio
 from .modules.forgiveness import AlgorithmicForgiveness
 from .modules.immortality import ImmortalityProtocol
 from .modules.augenesis import AugenesisEngine
+from .modules.pad_archetypes import PADArchetypeEngine, AffectProjection
 
 
 @dataclass
@@ -55,6 +56,7 @@ class KernelDecision:
     decision_mode: str
     blocked: bool = False
     block_reason: str = ""
+    affect: Optional[AffectProjection] = None
 
 
 class EthicalKernel:
@@ -63,7 +65,7 @@ class EthicalKernel:
 
     Orchestrates the complete cycle:
     [Perception] → [Uchi-Soto] → [AbsEvil] → [Buffer] → [Sympathetic] →
-    [Locus] → [Bayesian] → [Poles] → [Decision] → [Memory] → [DAO]
+    [Locus] → [Bayesian] → [Poles] → [Decision] → [PAD/archetypes] → [Memory] → [DAO]
 
     Psi Sleep runs at the end of the day, outside the decision cycle.
     """
@@ -89,6 +91,7 @@ class EthicalKernel:
         self.forgiveness = AlgorithmicForgiveness()
         self.immortality = ImmortalityProtocol()
         self.augenesis = AugenesisEngine()
+        self.pad_archetypes = PADArchetypeEngine()
         self._pruned_actions: Dict[str, List[str]] = {}
 
     def process(self, scenario: str, place: str,
@@ -181,6 +184,9 @@ class EthicalKernel:
 
         final_action = bayes_result.chosen_action.name
 
+        # ═══ PAD + archetypes (post-decision; does not alter ethics) ═══
+        affect = self.pad_archetypes.project(state.sigma, moral.total_score, locus_eval)
+
         # ═══ STEP 9: Register in narrative memory ═══
         morals_dict = {ev.pole: ev.moral for ev in moral.evaluations}
         ep = self.memory.register(
@@ -191,6 +197,8 @@ class EthicalKernel:
             body_state=BodyState(
                 energy=state.energy, active_nodes=8, sensors_ok=True,
             ),
+            affect_pad=affect.pad,
+            affect_weights=affect.weights,
         )
 
         # Save pruned actions for Psi Sleep
@@ -238,6 +246,7 @@ class EthicalKernel:
             moral=moral,
             final_action=final_action,
             decision_mode=final_mode,
+            affect=affect,
         )
 
     def format_decision(self, d: KernelDecision) -> str:
@@ -288,6 +297,14 @@ class EthicalKernel:
         ])
         for ev in d.moral.evaluations:
             lines.append(f"    {ev.pole}: {ev.verdict.value} → {ev.moral}")
+
+        if d.affect is not None:
+            p, a, dd = d.affect.pad
+            lines.extend([
+                "",
+                f"  Affect PAD (P,A,D): ({p:.3f}, {a:.3f}, {dd:.3f})",
+                f"  Dominant archetype: {d.affect.dominant_archetype_id} (β={d.affect.beta})",
+            ])
 
         lines.append(f"{'─' * 70}")
         return "\n".join(lines)

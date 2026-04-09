@@ -3,9 +3,11 @@
 > **Estado:** experimental · no oficial · en desarrollo  
 > **Propósito:** conservar una línea de discusión para profundizar después e, eventualmente, integrar ideas al modelo principal **solo** si pasan revisión y pruebas.  
 > **Idioma:** español latinoamericano (tono divulgativo y técnico).  
-> **Última actualización:** 2026-04-08 (§7 especificación mínima)
+> **Última actualización:** 2026-04-09 (paradigma rector: PAD + arquetipos, §7)
 
 Este documento **no** forma parte del contrato técnico del kernel publicado. Nada aquí obliga el comportamiento del código hasta que exista implementación, tests y revisión explícitos.
+
+**Paradigma experimental rector:** la línea considerada **más sólida y auditable** para una capa de afecto *posterior* al núcleo ético es **PAD en `[0,1]³` + N prototipos (arquetipos) + pesos por distancia / softmax** (especificación en §7). Esa cadena se apoya en literatura y en señales que el kernel ya calcula (`sigma`, scores morales, locus). Cualquier alternativa de diseño debería compararse explícitamente contra §7 y sus invariantes de no regresión ética.
 
 **Ver también (misma línea experimental):** [PAPER_AFECTO_FENOMENOS_Y_HIPOTESIS.md](experimental/PAPER_AFECTO_FENOMENOS_Y_HIPOTESIS.md) — fenómenos esperables al conjugar PAD/prototipos, notas sobre *color* y *sabor*, hipótesis testeables reservadas.
 
@@ -104,7 +106,9 @@ Sin compromiso de implementación:
 
 ## 7. Especificación mínima: espacio 3D + N prototipos + interpolación
 
-> **Alcance:** diseño para prototipo; **no implementado** en el kernel hasta que exista código + tests. Alineado con `SympatheticModule` (`sigma`), memoria narrativa (`NarrativeEpisode`, `sigma` ya guardado) y `locus` (dominancia aproximada).
+> **Alcance:** prototipo en código: `src/modules/pad_archetypes.py` + registro en `KernelDecision` / `NarrativeEpisode` (post-decisión). Alineado con `SympatheticModule` (`sigma`), memoria narrativa (`NarrativeEpisode`, `sigma` ya guardado) y `locus` (dominancia aproximada).
+
+> **Referencia:** este apartado es la **especificación canónica** del repo para experimentación en afecto modelico (PAD + arquetipos). Implementaciones y papers derivados deberían seguirla salvo decisión documentada de desviación.
 
 ### 7.1 Vector de afecto modelico `v = (P, A, D)`
 
@@ -144,7 +148,7 @@ Coordenadas en **`[0, 1]³`** (PAD normalizado: placer/valencia, activación, do
 | Punto | Rol |
 |-------|-----|
 | **Tras** `KernelDecision` | Calcular `v` y `w` con datos ya disponibles (`sympathetic_state`, resultado moral, `locus_evaluation`). |
-| **`NarrativeEpisode`** | Campos **opcionales futuros:** `affect_pad: tuple[float,float,float]`, `affect_weights: dict[str, float]` (por `id_k`). Hoy ya se guarda `sigma`; PAD extiende el registro sin sustituirlo. |
+| **`NarrativeEpisode`** | Campos **`affect_pad`** y **`affect_weights`** (opcionales; rellenados cuando el episodio pasa por el kernel con PAD activo). `sigma` sigue guardándose; PAD extiende el registro sin sustituirlo. |
 | **Capa LLM / weakness pole** | Usar solo **salida de tono** (texto o matiz), **después** de fijar la decisión ética. |
 
 ### 7.5 Invariantes de seguridad conceptual
