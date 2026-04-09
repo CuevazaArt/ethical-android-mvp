@@ -97,9 +97,9 @@ Incorporar solo lo que **añade estado medible nuevo** o **comportamiento proact
 - `strain_index` ∈ [0, 1] = `(spread/2) * (0.5 + uncertainty)`,  
 - `note` breve para logs / API.
 
-**Dónde:** en `EthicalKernel.process`, tras modo final y elección de acción, **antes** de PAD; campo `KernelDecision.reflection`. Expuesto en `format_decision` y JSON del `chat_server`.
+**Dónde:** en `EthicalKernel.process`, tras modo final y elección de acción, **antes** de PAD; campo `KernelDecision.reflection`. Expuesto en `format_decision` y JSON del `chat_server`. `reflection_to_llm_context()` alimenta `LLMModule.communicate(..., reflection_context=...)` en `process_natural` y `process_chat_turn`.
 
-**Uso:** explicabilidad y telemetría. **No** modifica la acción ni MalAbs.
+**Uso:** explicabilidad, telemetría y matiz de voz (sin cambiar decisión). **No** modifica la acción ni MalAbs.
 
 **Criterio de éxito:** tests en `tests/test_ethical_reflection.py`; regresión ética intacta (acción igual con o sin reflexión — la reflexión es solo lectura).
 

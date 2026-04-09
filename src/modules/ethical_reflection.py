@@ -11,7 +11,7 @@ See docs/discusion/PROPUESTA_INTEGRACION_APORTES_V6.md (Fase 1).
 from __future__ import annotations
 
 from dataclasses import dataclass
-from typing import Dict, Tuple
+from typing import Dict, Optional, Tuple
 
 from .bayesian_engine import BayesianResult
 from .ethical_poles import TripartiteMoral
@@ -41,6 +41,20 @@ class ReflectionSnapshot:
 
     note: str
     """One-line hint for logs / optional LLM context."""
+
+
+def reflection_to_llm_context(snapshot: Optional[ReflectionSnapshot]) -> str:
+    """
+    Compact string for LLM communication layer: explains internal tension without
+    changing the committed decision (policy: style / transparency only).
+    """
+    if snapshot is None:
+        return ""
+    return (
+        f"Pole tension: {snapshot.conflict_level} "
+        f"(spread={snapshot.pole_spread}, strain={snapshot.strain_index}, "
+        f"Bayesian uncertainty={snapshot.uncertainty}). {snapshot.note}"
+    )
 
 
 class EthicalReflection:

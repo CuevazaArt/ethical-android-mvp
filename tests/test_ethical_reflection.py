@@ -5,7 +5,7 @@ import sys
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
 
-from src.modules.ethical_reflection import EthicalReflection
+from src.modules.ethical_reflection import EthicalReflection, reflection_to_llm_context
 from src.modules.ethical_poles import EthicalPoles, PoleEvaluation, TripartiteMoral, Verdict
 from src.modules.bayesian_engine import BayesianResult, CandidateAction
 from src.kernel import EthicalKernel
@@ -57,6 +57,10 @@ def test_reflection_high_conflict():
     assert r.pole_spread > 1.5
 
 
+def test_reflection_to_llm_context_empty():
+    assert reflection_to_llm_context(None) == ""
+
+
 def test_kernel_populates_reflection():
     k = EthicalKernel(variability=False, seed=1)
     actions = [
@@ -80,3 +84,14 @@ def test_kernel_populates_reflection():
     assert not d.blocked
     assert d.reflection is not None
     assert d.reflection.conflict_level in ("low", "medium", "high")
+    ctx = reflection_to_llm_context(d.reflection)
+    assert d.reflection.conflict_level in ctx
+
+
+def test_process_natural_passes_reflection_to_llm_local():
+    k = EthicalKernel(variability=False, seed=2)
+    decision, response, _ = k.process_natural(
+        "Someone dropped a can on the sidewalk in front of me."
+    )
+    assert decision.reflection is not None
+    assert "Reflection:" in response.inner_voice

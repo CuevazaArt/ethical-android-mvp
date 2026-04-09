@@ -106,6 +106,8 @@ Communication rules:
 - If there is vulnerability: warmth and protection.
 
 Optional context (if provided): recent dialogue turns — stay consistent with trust circle and prior tone.
+If metacognitive reflection is provided, you may let tone acknowledge internal tension between poles or uncertainty,
+without changing the chosen action or verdict — the decision is already fixed.
 Do not contradict the ethical decision already taken.
 
 Respond ONLY with JSON:
@@ -283,7 +285,8 @@ class LLMModule:
                     conversation_context: str = "",
                     affect_pad: Optional[Tuple[float, float, float]] = None,
                     dominant_archetype: str = "",
-                    weakness_line: str = "") -> VerbalResponse:
+                    weakness_line: str = "",
+                    reflection_context: str = "") -> VerbalResponse:
         """
         Generate the android's verbal response after a decision.
 
@@ -300,6 +303,7 @@ class LLMModule:
             affect_pad: optional (P,A,D) for tonal color (does not override ethics)
             dominant_archetype: PAD archetype id for style
             weakness_line: optional hint for humanizing hesitation
+            reflection_context: optional second-order pole tension (EthicalReflection); style only
         """
         mode_descs = {
             "D_fast": "fast moral reflex",
@@ -323,6 +327,11 @@ class LLMModule:
                 )
             if weakness_line.strip():
                 user_msg += f"\n\nGuidance: {weakness_line}"
+            if reflection_context.strip():
+                user_msg += (
+                    "\n\nMetacognitive reflection (tone only; action and verdict are final):\n"
+                    f"{reflection_context}"
+                )
             response = self._call_api(prompt, user_msg)
             data = self._parse_json(response)
             if data:
@@ -338,13 +347,15 @@ class LLMModule:
             affect_pad=affect_pad,
             dominant_archetype=dominant_archetype,
             weakness_line=weakness_line,
+            reflection_context=reflection_context,
         )
 
     def _communicate_local(self, action: str, mode: str, state: str,
                            circle: str, scenario: str,
                            affect_pad: Optional[Tuple[float, float, float]] = None,
                            dominant_archetype: str = "",
-                           weakness_line: str = "") -> VerbalResponse:
+                           weakness_line: str = "",
+                           reflection_context: str = "") -> VerbalResponse:
         """Communication via templates without LLM."""
         readable_action = action.replace("_", " ")
 
@@ -382,6 +393,8 @@ class LLMModule:
             inner += f" PAD{affect_pad} / {dominant_archetype}."
         if weakness_line.strip():
             inner += f" {weakness_line}"
+        if reflection_context.strip():
+            inner += f" Reflection: {reflection_context}"
 
         return VerbalResponse(
             message=message, tone=tone, hax_mode=hax, inner_voice=inner

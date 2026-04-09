@@ -34,7 +34,11 @@ from .modules.immortality import ImmortalityProtocol
 from .modules.augenesis import AugenesisEngine
 from .modules.pad_archetypes import PADArchetypeEngine, AffectProjection
 from .modules.working_memory import WorkingMemory
-from .modules.ethical_reflection import EthicalReflection, ReflectionSnapshot
+from .modules.ethical_reflection import (
+    EthicalReflection,
+    ReflectionSnapshot,
+    reflection_to_llm_context,
+)
 
 
 @dataclass
@@ -536,6 +540,7 @@ class EthicalKernel:
             affect_pad=decision.affect.pad if decision.affect else None,
             dominant_archetype=decision.affect.dominant_archetype_id if decision.affect else "",
             weakness_line=weakness_line,
+            reflection_context=reflection_to_llm_context(decision.reflection),
         )
 
         narrative = None
@@ -546,9 +551,9 @@ class EthicalKernel:
                 scenario=user_input,
                 verdict=decision.moral.global_verdict.value,
                 score=decision.moral.total_score,
-                compassionate_pole=poles_txt.get("compassionate", ""),
-                conservative_pole=poles_txt.get("conservative", ""),
-                optimistic_pole=poles_txt.get("optimistic", ""),
+                pole_compassionate=poles_txt.get("compassionate", ""),
+                pole_conservative=poles_txt.get("conservative", ""),
+                pole_optimistic=poles_txt.get("optimistic", ""),
             )
 
         wm.add_turn(
@@ -621,6 +626,7 @@ class EthicalKernel:
             verdict=decision.moral.global_verdict.value if decision.moral else "Gray Zone",
             score=decision.moral.total_score if decision.moral else 0.0,
             scenario=situation,
+            reflection_context=reflection_to_llm_context(decision.reflection),
         )
 
         # Step 4: LLM generates rich morals
@@ -632,9 +638,9 @@ class EthicalKernel:
                 scenario=situation,
                 verdict=decision.moral.global_verdict.value,
                 score=decision.moral.total_score,
-                compassionate_pole=poles_txt.get("compassionate", ""),
-                conservative_pole=poles_txt.get("conservative", ""),
-                optimistic_pole=poles_txt.get("optimistic", ""),
+                pole_compassionate=poles_txt.get("compassionate", ""),
+                pole_conservative=poles_txt.get("conservative", ""),
+                pole_optimistic=poles_txt.get("optimistic", ""),
             )
 
         return decision, response, narrative

@@ -28,7 +28,7 @@ flowchart LR
   I --> J[Forgiveness / Weakness]
 ```
 
-Immediately before PAD, **`EthicalReflection`** (`src/modules/ethical_reflection.py`) computes a **`ReflectionSnapshot`** from per-pole scores, Bayesian uncertainty, and the sigmoid-will mode: pole spread, discrete `conflict_level`, and `strain_index`. It is **read-only** (does not change the chosen action). It appears on `KernelDecision.reflection`.
+Immediately before PAD, **`EthicalReflection`** (`src/modules/ethical_reflection.py`) computes a **`ReflectionSnapshot`** from per-pole scores, Bayesian uncertainty, and the sigmoid-will mode: pole spread, discrete `conflict_level`, and `strain_index`. It is **read-only** (does not change the chosen action). It appears on `KernelDecision.reflection`. The string from `reflection_to_llm_context()` is passed into **`LLMModule.communicate`** as `reflection_context` (tone / transparency only; decision fixed).
 
 After `final_action` and `decision_mode` are fixed, **`PADArchetypeEngine`** (`src/modules/pad_archetypes.py`) projects sympathetic σ, multipolar `total_score`, and locus dominance into \((P,A,D)\in[0,1]^3\) and softmax weights over fixed prototypes. This step **does not** feed back into MalAbs, buffer, Bayesian choice, poles, or will; results attach to `KernelDecision` and `NarrativeEpisode` for narrative and presentation. Canonical design notes: `docs/EXPERIMENTAL_CONSCIOUSNESS_AND_AFFECT_ARCHETYPES.md` §7.
 
