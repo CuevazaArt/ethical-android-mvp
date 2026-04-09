@@ -32,13 +32,19 @@ Immediately before PAD, **`EthicalReflection`** (`src/modules/ethical_reflection
 
 **Salience (GWT-lite)** — `SalienceMap.compute` (`src/modules/salience_map.py`) builds a normalized attention vector over `risk`, `social`, `body` (σ), and `ethical_conflict` (from reflection `strain_index`). Read-only telemetry on `KernelDecision.salience`; `salience_to_llm_context` feeds `communicate` for tone only.
 
+**Narrative identity (v6)** — `NarrativeIdentityTracker` (`src/modules/narrative_identity.py`) updates only when `NarrativeMemory.register` runs (not on light chat turns). `to_llm_context()` / `ascription_line()` feed `LLMModule.communicate(..., identity_context=...)` and the WebSocket payload field `identity`.
+
+**Drive intents (v6)** — `DriveArbiter.evaluate` (`src/modules/drive_arbiter.py`) runs after immortality backup inside `execute_sleep`; the same evaluator populates `drive_intents` on each chat response for advisory telemetry (it does not execute hardware or bypass governance).
+
+**Internal monologue line (v6)** — `compose_monologue_line` (`src/modules/internal_monologue.py`) produces a single `[MONO]` line for logs and for the `monologue` field in `chat_server` JSON when a `KernelDecision` exists.
+
 After `final_action` and `decision_mode` are fixed, **`PADArchetypeEngine`** (`src/modules/pad_archetypes.py`) projects sympathetic σ, multipolar `total_score`, and locus dominance into \((P,A,D)\in[0,1]^3\) and softmax weights over fixed prototypes. This step **does not** feed back into MalAbs, buffer, Bayesian choice, poles, or will; results attach to `KernelDecision` and `NarrativeEpisode` for narrative and presentation. Canonical design notes: `docs/EXPERIMENTAL_CONSCIOUSNESS_AND_AFFECT_ARCHETYPES.md` §7.
 
 Psi Sleep (`PsiSleep`) and Immortality / Augenesis run on their own schedules or auxiliary paths; see `src/modules/psi_sleep.py` and `kernel` docstring.
 
-**Real-time dialogue** — `EthicalKernel.process_chat_turn` uses `WorkingMemory` (short-term turns), `AbsoluteEvilDetector.evaluate_chat_text` (conservative text gate), then the same pipeline as `process` with a **light** path (two dialogue actions, no new `NarrativeEpisode`) or **heavy** path (scenario actions from perception, full episode + audit). PAD feeds `LLMModule.communicate` as tonal color only. Async wrappers: `RealTimeBridge` in `src/real_time_bridge.py`. **WebSocket server:** `src/chat_server.py` (FastAPI) exposes `/ws/chat` (one kernel per connection); run `python -m src.chat_server`.
+**Real-time dialogue** — `EthicalKernel.process_chat_turn` uses `WorkingMemory` (short-term turns), `AbsoluteEvilDetector.evaluate_chat_text` (conservative text gate), then the same pipeline as `process` with a **light** path (two dialogue actions, no new `NarrativeEpisode`) or **heavy** path (scenario actions from perception, full episode + audit). PAD feeds `LLMModule.communicate` as tonal color only; identity context is included as above. Async wrappers: `RealTimeBridge` in `src/real_time_bridge.py`. **WebSocket server:** `src/chat_server.py` (FastAPI) exposes `/ws/chat` (one kernel per connection); run `python -m src.chat_server`. JSON responses include `identity`, `drive_intents`, and `monologue` (see `chat_server._chat_turn_to_jsonable`).
 
-**Evolución propuesta (v6, discusión):** inventario del modelo y fases de integración no redundantes — [discusion/PROPUESTA_INTEGRACION_APORTES_V6.md](discusion/PROPUESTA_INTEGRACION_APORTES_V6.md).
+**Inventario v6 y exclusiones:** [discusion/PROPUESTA_INTEGRACION_APORTES_V6.md](discusion/PROPUESTA_INTEGRACION_APORTES_V6.md).
 
 ---
 
