@@ -4,21 +4,22 @@ import { SITE_URL } from "@/config/site";
 
 export default function robots(): MetadataRoute.Robots {
   const base = SITE_URL.replace(/\/$/, "");
-  // Default: no indexación ni scraping de contenido (protección de IP / anti-crawling).
-  // Para permitir SEO en un entorno concreto, cambiar a allow: "/" y revisar ai.txt + LICENSE.
-  const disallowAll = "/";
+  // SEO: permitir buscadores (campaña / descubrimiento). Bloquear user-agents orientados
+  // a entrenamiento / corpus de IA (señal cortés; no es seguridad fuerte).
+  const d = "/";
   return {
     rules: [
-      { userAgent: "*", disallow: disallowAll },
-      { userAgent: "GPTBot", disallow: disallowAll },
-      { userAgent: "ChatGPT-User", disallow: disallowAll },
-      { userAgent: "Google-Extended", disallow: disallowAll },
-      { userAgent: "CCBot", disallow: disallowAll },
-      { userAgent: "anthropic-ai", disallow: disallowAll },
-      { userAgent: "Claude-Web", disallow: disallowAll },
-      { userAgent: "Bytespider", disallow: disallowAll },
-      { userAgent: "FacebookBot", disallow: disallowAll },
+      { userAgent: "*", allow: "/" },
+      { userAgent: "GPTBot", disallow: d },
+      { userAgent: "ChatGPT-User", disallow: d },
+      { userAgent: "Google-Extended", disallow: d },
+      { userAgent: "CCBot", disallow: d },
+      { userAgent: "anthropic-ai", disallow: d },
+      { userAgent: "Claude-Web", disallow: d },
+      { userAgent: "Bytespider", disallow: d },
+      { userAgent: "FacebookBot", disallow: d },
     ],
+    sitemap: `${base}/sitemap.xml`,
     host: base.replace(/^https?:\/\//, ""),
   };
 }

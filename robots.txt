@@ -1,10 +1,9 @@
 # Raíz del repo: copiar a la raíz del sitio estático si publicas landing u otra web.
-# Next.js del subproyecto landing usa además landing/src/app/robots.ts
+# SEO: permitir indexación; bloqueo solo a bots de entrenamiento / corpus (orientativo).
 
 User-agent: *
-Disallow: /
+Allow: /
 
-# Bots de entrenamiento / IA (lista orientativa; actualizar según proveedores)
 User-agent: GPTBot
 Disallow: /
 

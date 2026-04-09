@@ -1,7 +1,5 @@
-# Política respecto a sistemas de IA (servida en /ai.txt en despliegues de esta landing)
-# Refuerza intención junto a LICENSE en la raíz del monorepo.
+# Preferencia /ai.txt (no contractual). SEO permitido; señal a crawlers de IA.
 
 contact: https://github.com/CuevazaArt/ethical-android-mvp
 
-disallow_training: true
-disallow_scraping_for_ai: true
+preference_no_ai_corpus: true
