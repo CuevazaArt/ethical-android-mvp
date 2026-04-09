@@ -1,0 +1,30 @@
+# Raíz del repo: copiar a la raíz del sitio estático si publicas landing u otra web.
+# Next.js del subproyecto landing usa además landing/src/app/robots.ts
+
+User-agent: *
+Disallow: /
+
+# Bots de entrenamiento / IA (lista orientativa; actualizar según proveedores)
+User-agent: GPTBot
+Disallow: /
+
+User-agent: ChatGPT-User
+Disallow: /
+
+User-agent: Google-Extended
+Disallow: /
+
+User-agent: CCBot
+Disallow: /
+
+User-agent: anthropic-ai
+Disallow: /
+
+User-agent: Claude-Web
+Disallow: /
+
+User-agent: Bytespider
+Disallow: /
+
+User-agent: FacebookBot
+Disallow: /

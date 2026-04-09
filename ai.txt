@@ -1,0 +1,12 @@
+# Política respecto a sistemas de IA (ai.txt)
+# https://github.com/ai-robots-txt/ai.robots.txt — convención orientativa
+# No otorga derechos legales por sí sola; refuerza intención junto a LICENSE.
+
+contact: https://github.com/CuevazaArt/ethical-android-mvp
+
+# Uso no permitido sin permiso expreso por escrito del titular de derechos:
+# entrenamiento, fine-tuning, evaluación sistemática o scraping masivo de este
+# repositorio o sitios derivados para modelos de IA / ML / sistemas generativos.
+
+disallow_training: true
+disallow_scraping_for_ai: true

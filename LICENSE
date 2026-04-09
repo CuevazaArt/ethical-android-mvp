@@ -199,3 +199,25 @@
    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
    See the License for the specific language governing permissions and
    limitations under the License.
+
+--------------------------------------------------------------------------------
+ADDITIONAL TERMS (CuevazaArt — Ethical Android)
+
+The work is licensed under the Apache License, Version 2.0, as set forth above.
+Independently of that grant, the copyright holder does not authorize use of
+this Work or Derivative Works for training, fine-tuning, distillation,
+reinforcement learning from human feedback, or other development of artificial
+intelligence, machine learning, or generative systems (including large
+language models and multimodal models), without prior written permission.
+
+This reservation targets automated ingestion of the Work as training or
+evaluation corpora. It is not intended to restrict uses of the software that
+the Apache License already permits for other purposes.
+
+For licensing inquiries regarding AI training or crawling at scale, contact
+the repository maintainers via the project’s public issue tracker or the
+organization’s published contact channels.
+
+Note: This addendum expresses policy and intent. It is not legal advice;
+enforceability depends on jurisdiction and context; consult qualified counsel
+for your situation.
