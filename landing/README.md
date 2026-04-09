@@ -18,6 +18,18 @@ Open [http://localhost:3000](http://localhost:3000) with your browser to see the
 
 You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
 
+## Crawling, SEO y corpus de IA (decisión registrada)
+
+Se **consideró** explícitamente el equilibrio entre visibilidad (campaña, indexación) y señales hacia crawlers de entrenamiento:
+
+| Qué | Dónde |
+|-----|--------|
+| **SEO / buscadores** | `src/app/robots.ts`: `User-agent: *` → `allow: /` + `sitemap`. La landing puede indexarse con normalidad. |
+| **Bots orientados a corpus / IA** | Mismas reglas: `disallow: /` para user-agents listados (p. ej. GPTBot, Google-Extended, CCBot). Es una **señal**; no sustituye repo privado ni acuerdos. |
+| **Preferencia declarada (no contractual)** | `public/ai.txt` en despliegue (`/ai.txt`). |
+
+La protección fuerte del código sigue siendo **repositorio privado**, control de acceso y acuerdos (NDA) en due diligence, no solo robots.
+
 This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
 
 ## Learn More

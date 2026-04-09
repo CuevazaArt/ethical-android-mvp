@@ -237,6 +237,8 @@ No server, internet connection (after first load), or technical knowledge requir
 
 The folder `landing/` is a **Next.js** marketing page (Tailwind, Framer Motion, Three.js hero) for **mosexmacchinalab.com**. It embeds the same `dashboard.html` at `/demo` (also served as `/dashboard.html` from `landing/public/`).
 
+**Crawling / SEO / IA:** la decisión de equilibrio (indexación para campaña + señales a bots de corpus) está registrada en [landing/README.md](landing/README.md#crawling-seo-y-corpus-de-ia-decisión-registrada).
+
 ### Prerequisites
 
 - **Node.js** LTS from [nodejs.org](https://nodejs.org/) (includes `npm`).  
