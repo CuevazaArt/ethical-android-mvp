@@ -18,9 +18,9 @@ Open [http://localhost:3000](http://localhost:3000) with your browser to see the
 
 You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
 
-## Crawling, SEO y corpus de IA (decisión registrada)
+## Crawling, SEO y corpus de IA
 
-Se **consideró** explícitamente el equilibrio entre visibilidad (campaña, indexación) y señales hacia crawlers de entrenamiento:
+Decisión registrada: se **consideró** explícitamente el equilibrio entre visibilidad (campaña, indexación) y señales hacia crawlers de entrenamiento.
 
 | Qué | Dónde |
 |-----|--------|
