@@ -74,7 +74,7 @@ python -m src.main --sim 3
 ### Run tests
 
 ```bash
-# All tests (51 tests, 13 invariant ethical properties)
+# All tests (invariant ethical properties + chat + server smoke tests)
 pytest tests/ -v
 
 # Only Absolute Evil tests
@@ -91,19 +91,32 @@ The tests verify that the kernel **always** meets the ethical properties
 regardless of Bayesian variability, sympathetic state, or context.
 If any test fails, there is a bug in the ethical logic, not in the parameters.
 
+### Real-time chat (WebSocket)
+
+`EthicalKernel.process_chat_turn` is exposed over **WebSocket** for UIs or tools. Each connection gets its **own** kernel instance (isolated short-term memory).
+
+```bash
+# From repo root, after pip install -r requirements.txt
+python -m src.chat_server
+# Default: http://127.0.0.1:8765/health  —  WebSocket: ws://127.0.0.1:8765/ws/chat
+```
+
+Send **JSON text** frames, e.g. `{"text": "Hello", "agent_id": "user", "include_narrative": false}`.  
+Optional env: `CHAT_HOST`, `CHAT_PORT`, `LLM_MODE`, `KERNEL_VARIABILITY`.
+
 ### Natural language mode (v4)
 
 ```python
-from src.kernel import KernelEtico
+from src.kernel import EthicalKernel
 
-kernel = KernelEtico()
+kernel = EthicalKernel()
 
 # The LLM perceives, the kernel decides, the LLM communicates
-decision, response, narrative = kernel.procesar_natural(
+decision, response, narrative = kernel.process_natural(
     "An elderly man collapsed in the supermarket while I was buying apples"
 )
 
-print(kernel.formatear_natural(decision, response, narrative))
+print(kernel.format_natural(decision, response, narrative))
 ```
 
 The LLM **does not decide**: it translates text into numerical signals, and then
@@ -148,6 +161,7 @@ src/
 │   └── runner.py           # 9 scenarios + simulation runner
 ├── kernel.py               # Ethical kernel: orchestrates modules + `process_chat_turn` (dialogue)
 ├── real_time_bridge.py     # Async wrapper around chat turns (for WebSocket / UI)
+├── chat_server.py          # FastAPI WebSocket `/ws/chat` (one kernel per connection)
 └── main.py                 # Entry point
 ```
 

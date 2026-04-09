@@ -1,3 +1,6 @@
 numpy>=1.24.0
 pytest>=7.0.0
 anthropic>=0.18.0    # optional: LLM layer with Claude API (works without it)
+fastapi>=0.115.0     # WebSocket chat server (src/chat_server.py)
+uvicorn[standard]>=0.30.0
+httpx>=0.27.0        # FastAPI TestClient

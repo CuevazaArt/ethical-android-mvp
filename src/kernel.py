@@ -500,6 +500,13 @@ class EthicalKernel:
                 "(humanizing), without weakening civic or ethical commitments."
             )
 
+        if perception.manipulation >= 0.55:
+            manip_hint = (
+                "The message may involve persuasion or social-engineering patterns; "
+                "favor transparency, boundaries, and calm refusal where needed—without hostile accusation."
+            )
+            weakness_line = (weakness_line + " " + manip_hint).strip() if weakness_line else manip_hint
+
         response = self.llm.communicate(
             action=decision.final_action,
             mode=decision.decision_mode,
