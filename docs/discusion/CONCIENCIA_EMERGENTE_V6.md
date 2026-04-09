@@ -1,7 +1,33 @@
-# Propuesta: fronteras hacia una subjetividad funcional (v6 — diseño)
+# Propuesta: fronteras hacia una subjetividad funcional (v6 — en discusión)
 
-> **Estado:** pendiente de diseño / investigación · no es contrato de implementación del kernel actual.  
+> **Estado:** discusión / investigación · no es contrato de implementación del kernel.  
+> **No** forma parte del backlog de pendientes (`docs/pendientes/` solo cubre tareas de producto).  
 > **Relación:** complementa el hilo experimental en `docs/EXPERIMENTAL_CONSCIOUSNESS_AND_AFFECT_ARCHETYPES.md` y la capa PAD ya implementada.
+
+## Aporte al modelo (si se adapta con criterio)
+
+| Idea | Aporte **no redundante** | Riesgo si se hace mal |
+|------|---------------------------|------------------------|
+| **Observador / 2.º orden** | Estado explícito de *conflicto entre polos* e *incertidumbre*, no solo veredicto final. Mejora **auditoría** y explicabilidad. | Duplicar texto que ya sale en `TripartiteMoral.narrative` sin nueva estructura. |
+| **Drives / teleología** | **Scheduler proactivo** (cuándo actuar sin input humano): hoy casi no existe; encaja con DAO, inmortalidad, Psi Sleep **solo si** se define contrato y límites. | Repetir “reacciones” ya cubiertas por simulaciones o alertas DAO sin nueva política. |
+| **GWT / atención** | **Competición por saliencia** entre señales (daño propio vs dilema ajeno): el pipeline actual es **fijo**; aquí el aporte es **orden dinámico** o pesos de atención medibles. | Renombrar el pipeline actual sin cambiar matemática (redundancia pura). |
+| **Yo narrativo** | Variable persistente **self-model** (quién soy en la historia), no solo texto del LLM. | Primera persona en salidas sin estado interno = **solo UX** (desestimar como “conciencia”). |
+| **InternalMonologue** | **Hilo paralelo** de trazas (PAD + tensión + contexto) para logs y depuración; útil si no copia PAD verbatim. | Otro resumen de lo mismo que `KernelDecision` + PAD ya devuelve. |
+| **Falla de clausura ética** | Ninguno por defecto en un kernel de confianza; solo investigación **aislada**. | Confundir con debilitar MalAbs/buffer. |
+
+**Conclusión práctica:** sí **aporta** adoptar trozos que añadan **estado medible nuevo** o **comportamiento proactivo acotado**. Desestimar lo que solo **parafrasee** lo ya calculado (polos, σ, PAD, narrativa).
+
+---
+
+## Redundancias a desestimar (solape con el modelo actual)
+
+- **“Disonancia entre polos”** sin más: ya existe síntesis multipolar (`EthicalPoles`, `total_score`, narrativa por polo). Hace falta **segundo orden** solo si se **persiste** y se **usa** en política (no solo otra frase).
+- **Tono afectivo / alerta:** PAD + simpático + Uchi-Soto ya cubren gran parte de “cómo se siente el ciclo”. Un monólogo que solo repita PAD **no añade**.
+- **Memoria episódica:** `NarrativeEpisode` + `sigma` + PAD en episodios ya anclan historia. “Yo” de verdad exige **identidad explícita** (variables o grafo), no otro párrafo.
+- **Recalibración nocturna:** Psi Sleep y DAO ya mueven parámetros. “Reescribir ética por la noche” **solapa** con eso salvo que se defina **qué dimensión** es nueva (p. ej. solo pesos narrativos de identidad, no MalAbs).
+- **Backups / auditoría:** `ImmortalityProtocol`, `MockDAO`, `PsiSleep` tocan preservación y auditoría. Drives de “preservación” deben ser **reglas de disparo nuevas**, no renombre.
+
+---
 
 ## Tesis central
 
