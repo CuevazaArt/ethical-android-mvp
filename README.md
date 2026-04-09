@@ -142,10 +142,12 @@ src/
 │   ├── forgiveness.py      # Algorithmic forgiveness (memory decay) [v5]
 │   ├── immortality.py      # Immortality protocol (distributed backup) [v5]
 │   ├── augenesis.py        # Narrative augenesis (soul creation) [v5]
-│   └── pad_archetypes.py   # PAD affect projection + archetype mixture (post-decision)
+│   ├── pad_archetypes.py   # PAD affect projection + archetype mixture (post-decision)
+│   └── working_memory.py   # Short-term conversational buffer (STM)
 ├── simulations/
 │   └── runner.py           # 9 scenarios + simulation runner
-├── kernel.py               # Ethical kernel: orchestrates the 18 modules
+├── kernel.py               # Ethical kernel: orchestrates modules + `process_chat_turn` (dialogue)
+├── real_time_bridge.py     # Async wrapper around chat turns (for WebSocket / UI)
 └── main.py                 # Entry point
 ```
 

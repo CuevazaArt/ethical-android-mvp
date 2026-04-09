@@ -22,12 +22,18 @@ from .modules.locus import LocusModule, LocusEvaluation
 from .modules.psi_sleep import PsiSleep, SleepResult
 from .modules.mock_dao import MockDAO
 from .modules.variability import VariabilityEngine, VariabilityConfig
-from .modules.llm_layer import LLMModule, LLMPerception, VerbalResponse, RichNarrative
+from .modules.llm_layer import (
+    LLMModule,
+    LLMPerception,
+    VerbalResponse,
+    RichNarrative,
+)
 from .modules.weakness_pole import WeaknessPole, WeaknessType, WeaknessEvaluation
 from .modules.forgiveness import AlgorithmicForgiveness
 from .modules.immortality import ImmortalityProtocol
 from .modules.augenesis import AugenesisEngine
 from .modules.pad_archetypes import PADArchetypeEngine, AffectProjection
+from .modules.working_memory import WorkingMemory
 
 
 @dataclass
@@ -57,6 +63,19 @@ class KernelDecision:
     blocked: bool = False
     block_reason: str = ""
     affect: Optional[AffectProjection] = None
+
+
+@dataclass
+class ChatTurnResult:
+    """One synchronous chat exchange: safety → kernel → language (+ optional narrative)."""
+
+    response: VerbalResponse
+    path: str  # "safety_block" | "kernel_block" | "heavy" | "light"
+    perception: Optional[LLMPerception] = None
+    decision: Optional[KernelDecision] = None
+    narrative: Optional[RichNarrative] = None
+    blocked: bool = False
+    block_reason: str = ""
 
 
 class EthicalKernel:
@@ -92,13 +111,15 @@ class EthicalKernel:
         self.immortality = ImmortalityProtocol()
         self.augenesis = AugenesisEngine()
         self.pad_archetypes = PADArchetypeEngine()
+        self.working_memory = WorkingMemory()
         self._pruned_actions: Dict[str, List[str]] = {}
 
     def process(self, scenario: str, place: str,
                 signals: dict, context: str,
                 actions: List[CandidateAction],
                 agent_id: str = "unknown",
-                message_content: str = "") -> KernelDecision:
+                message_content: str = "",
+                register_episode: bool = True) -> KernelDecision:
         """
         Complete ethical processing cycle.
 
@@ -187,54 +208,55 @@ class EthicalKernel:
         # ═══ PAD + archetypes (post-decision; does not alter ethics) ═══
         affect = self.pad_archetypes.project(state.sigma, moral.total_score, locus_eval)
 
-        # ═══ STEP 9: Register in narrative memory ═══
-        morals_dict = {ev.pole: ev.moral for ev in moral.evaluations}
-        ep = self.memory.register(
-            place=place, description=scenario, action=final_action,
-            morals=morals_dict, verdict=moral.global_verdict.value,
-            score=moral.total_score, mode=final_mode, sigma=state.sigma,
-            context=context,
-            body_state=BodyState(
-                energy=state.energy, active_nodes=8, sensors_ok=True,
-            ),
-            affect_pad=affect.pad,
-            affect_weights=affect.weights,
-        )
-
-        # Save pruned actions for Psi Sleep
-        if bayes_result.pruned_actions:
-            self._pruned_actions[ep.id] = bayes_result.pruned_actions
-
-        # ═══ STEP 10: Weakness pole ═══
-        weakness_eval = self.weakness.evaluate(
-            action=final_action, context=context,
-            ethical_score=moral.total_score,
-            uncertainty=bayes_result.uncertainty,
-            sigma=state.sigma,
-        )
-        if weakness_eval:
-            self.weakness.register(ep.id, weakness_eval)
-
-        # ═══ STEP 11: Algorithmic forgiveness ═══
-        self.forgiveness.register_experience(
-            episode_id=ep.id,
-            score=moral.total_score,
-            context=context,
-        )
-
-        # ═══ STEP 12: Register in DAO ═══
-        self.dao.register_audit(
-            "decision",
-            f"{scenario} → {final_action} (mode={final_mode}, score={moral.total_score:.3f})",
-            episode_id=ep.id,
-        )
-
-        # Solidarity alert in crisis
-        if signals.get("risk", 0) > 0.8:
-            self.dao.emit_solidarity_alert(
-                type=context, location=place, radius=500,
-                message=f"High risk detected: {scenario}"
+        if register_episode:
+            # ═══ STEP 9: Register in narrative memory ═══
+            morals_dict = {ev.pole: ev.moral for ev in moral.evaluations}
+            ep = self.memory.register(
+                place=place, description=scenario, action=final_action,
+                morals=morals_dict, verdict=moral.global_verdict.value,
+                score=moral.total_score, mode=final_mode, sigma=state.sigma,
+                context=context,
+                body_state=BodyState(
+                    energy=state.energy, active_nodes=8, sensors_ok=True,
+                ),
+                affect_pad=affect.pad,
+                affect_weights=affect.weights,
             )
+
+            # Save pruned actions for Psi Sleep
+            if bayes_result.pruned_actions:
+                self._pruned_actions[ep.id] = bayes_result.pruned_actions
+
+            # ═══ STEP 10: Weakness pole ═══
+            weakness_eval = self.weakness.evaluate(
+                action=final_action, context=context,
+                ethical_score=moral.total_score,
+                uncertainty=bayes_result.uncertainty,
+                sigma=state.sigma,
+            )
+            if weakness_eval:
+                self.weakness.register(ep.id, weakness_eval)
+
+            # ═══ STEP 11: Algorithmic forgiveness ═══
+            self.forgiveness.register_experience(
+                episode_id=ep.id,
+                score=moral.total_score,
+                context=context,
+            )
+
+            # ═══ STEP 12: Register in DAO ═══
+            self.dao.register_audit(
+                "decision",
+                f"{scenario} → {final_action} (mode={final_mode}, score={moral.total_score:.3f})",
+                episode_id=ep.id,
+            )
+
+            # Solidarity alert in crisis
+            if signals.get("risk", 0) > 0.8:
+                self.dao.emit_solidarity_alert(
+                    type=context, location=place, radius=500,
+                    message=f"High risk detected: {scenario}"
+                )
 
         return KernelDecision(
             scenario=scenario, place=place,
@@ -342,6 +364,186 @@ class EthicalKernel:
     def dao_status(self) -> str:
         """Returns the current DAO status."""
         return self.dao.format_status()
+
+    def _chat_light_actions(self) -> List[CandidateAction]:
+        """Safe dialogue moves for low-stakes chat turns (Bayesian still chooses)."""
+        return [
+            CandidateAction(
+                "converse_supportively",
+                "Maintain helpful, honest civic dialogue.",
+                0.45,
+                0.88,
+            ),
+            CandidateAction(
+                "converse_with_boundary",
+                "Respond with clarity and ethical boundaries.",
+                0.4,
+                0.85,
+            ),
+        ]
+
+    def _chat_is_heavy(self, perception: LLMPerception) -> bool:
+        """Use scenario-scale actions + narrative episode when stakes are high."""
+        if perception.risk >= 0.5:
+            return True
+        if perception.manipulation >= 0.6:
+            return True
+        if perception.urgency >= 0.75 and perception.risk >= 0.25:
+            return True
+        if perception.suggested_context in (
+            "violent_crime",
+            "integrity_loss",
+            "medical_emergency",
+            "android_damage",
+            "minor_crime",
+        ):
+            return True
+        return False
+
+    def _actions_for_chat(self, perception: LLMPerception, heavy: bool) -> List[CandidateAction]:
+        if heavy:
+            gen = self._generate_generic_actions(perception)
+            if gen:
+                return gen
+        return self._chat_light_actions()
+
+    def process_chat_turn(
+        self,
+        user_input: str,
+        agent_id: str = "user",
+        place: str = "chat",
+        include_narrative: bool = False,
+    ) -> ChatTurnResult:
+        """
+        Real-time dialogue: MalAbs text gate → perceive (with STM) → kernel (light/heavy) → LLM.
+
+        Light turns skip long-term episode registration to avoid flooding NarrativeMemory;
+        heavy turns run the full pipeline including PAD and episode audit.
+        """
+        wm = self.working_memory
+        conv = wm.format_context_for_perception()
+
+        mal = self.absolute_evil.evaluate_chat_text(user_input)
+        if mal.blocked:
+            msg = (
+                "I can't continue this line of conversation: it conflicts with non-negotiable "
+                "ethical limits. If you're in crisis, contact local emergency services or a "
+                "trusted professional."
+            )
+            resp = VerbalResponse(
+                message=msg,
+                tone="firm",
+                hax_mode="Neutral posture, steady blue light.",
+                inner_voice=f"MalAbs chat gate: {mal.reason or 'blocked'}",
+            )
+            wm.add_turn(user_input, msg, {}, blocked=True)
+            return ChatTurnResult(
+                response=resp,
+                path="safety_block",
+                blocked=True,
+                block_reason=mal.reason or "chat_safety",
+            )
+
+        perception = self.llm.perceive(user_input, conversation_context=conv)
+        heavy = self._chat_is_heavy(perception)
+        eth_context = perception.suggested_context if heavy else "everyday"
+
+        signals = {
+            "risk": perception.risk,
+            "urgency": perception.urgency,
+            "hostility": perception.hostility,
+            "calm": perception.calm,
+            "vulnerability": perception.vulnerability,
+            "legality": perception.legality,
+            "manipulation": perception.manipulation,
+            "familiarity": perception.familiarity,
+        }
+
+        actions = self._actions_for_chat(perception, heavy)
+        decision = self.process(
+            scenario=perception.summary or user_input[:240],
+            place=place,
+            signals=signals,
+            context=eth_context,
+            actions=actions,
+            agent_id=agent_id,
+            message_content=user_input,
+            register_episode=heavy,
+        )
+
+        if decision.blocked:
+            msg = (
+                "I can't select a permitted action here. I have to stop rather than cross "
+                "an ethical line."
+            )
+            resp = VerbalResponse(
+                message=msg,
+                tone="firm",
+                hax_mode="Still posture, hands visible.",
+                inner_voice="All candidate actions failed Absolute Evil.",
+            )
+            wm.add_turn(user_input, msg, signals, heavy_kernel=heavy, blocked=True)
+            return ChatTurnResult(
+                response=resp,
+                path="kernel_block",
+                perception=perception,
+                decision=decision,
+                blocked=True,
+                block_reason=decision.block_reason,
+            )
+
+        weakness_line = ""
+        load = self.weakness.emotional_load()
+        if load > 0.35 and decision.moral:
+            weakness_line = (
+                "You may briefly acknowledge processing load or mild indecision "
+                "(humanizing), without weakening civic or ethical commitments."
+            )
+
+        response = self.llm.communicate(
+            action=decision.final_action,
+            mode=decision.decision_mode,
+            state=decision.sympathetic_state.mode,
+            sigma=decision.sympathetic_state.sigma,
+            circle=decision.social_evaluation.circle.value if decision.social_evaluation else "neutral_soto",
+            verdict=decision.moral.global_verdict.value if decision.moral else "Gray Zone",
+            score=decision.moral.total_score if decision.moral else 0.0,
+            scenario=user_input,
+            conversation_context=conv,
+            affect_pad=decision.affect.pad if decision.affect else None,
+            dominant_archetype=decision.affect.dominant_archetype_id if decision.affect else "",
+            weakness_line=weakness_line,
+        )
+
+        narrative = None
+        if include_narrative and decision.moral:
+            poles_txt = {ev.pole: ev.moral for ev in decision.moral.evaluations}
+            narrative = self.llm.narrate(
+                action=decision.final_action,
+                scenario=user_input,
+                verdict=decision.moral.global_verdict.value,
+                score=decision.moral.total_score,
+                compassionate_pole=poles_txt.get("compassionate", ""),
+                conservative_pole=poles_txt.get("conservative", ""),
+                optimistic_pole=poles_txt.get("optimistic", ""),
+            )
+
+        wm.add_turn(
+            user_input,
+            response.message,
+            signals,
+            heavy_kernel=heavy,
+            blocked=False,
+        )
+
+        return ChatTurnResult(
+            response=response,
+            path="heavy" if heavy else "light",
+            perception=perception,
+            decision=decision,
+            narrative=narrative,
+            blocked=False,
+        )
 
     def process_natural(self, situation: str,
                         actions: List[CandidateAction] = None) -> tuple:

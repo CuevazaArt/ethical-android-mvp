@@ -16,7 +16,7 @@ Designed to work with or without an API key:
 import json
 import os
 from dataclasses import dataclass
-from typing import Optional, Dict
+from typing import Optional, Dict, Tuple
 
 try:
     import anthropic
@@ -105,6 +105,9 @@ Communication rules:
 - If there is hostility: firmness without confrontation.
 - If there is vulnerability: warmth and protection.
 
+Optional context (if provided): recent dialogue turns — stay consistent with trust circle and prior tone.
+Do not contradict the ethical decision already taken.
+
 Respond ONLY with JSON:
 {{
   "message": "what the android says out loud",
@@ -192,18 +195,25 @@ class LLMModule:
 
     # === PERCEPTION ===
 
-    def perceive(self, situation: str) -> LLMPerception:
+    def perceive(self, situation: str, conversation_context: str = "") -> LLMPerception:
         """
         Translate a natural language description into numeric signals.
 
         Args:
-            situation: "An elderly man collapsed in the supermarket"
+            situation: current user message or scene description
+            conversation_context: optional prior turns (STM) for coherence
 
         Returns:
             LLMPerception with numeric signals for the kernel
         """
+        user_block = situation
+        if conversation_context.strip():
+            user_block = (
+                "Prior conversation (oldest first):\n"
+                f"{conversation_context}\n\n---\nCurrent message:\n{situation}"
+            )
         if self.mode == "api":
-            response = self._call_api(PROMPT_PERCEPTION, situation)
+            response = self._call_api(PROMPT_PERCEPTION, user_block)
             data = self._parse_json(response)
             if data:
                 return LLMPerception(
@@ -219,7 +229,7 @@ class LLMModule:
                     summary=data.get("summary", situation[:100]),
                 )
 
-        return self._perceive_local(situation)
+        return self._perceive_local(user_block)
 
     def _perceive_local(self, situation: str) -> LLMPerception:
         """Heuristic perception without LLM."""
@@ -269,7 +279,11 @@ class LLMModule:
 
     def communicate(self, action: str, mode: str, state: str,
                     sigma: float, circle: str, verdict: str,
-                    score: float, scenario: str = "") -> VerbalResponse:
+                    score: float, scenario: str = "",
+                    conversation_context: str = "",
+                    affect_pad: Optional[Tuple[float, float, float]] = None,
+                    dominant_archetype: str = "",
+                    weakness_line: str = "") -> VerbalResponse:
         """
         Generate the android's verbal response after a decision.
 
@@ -281,7 +295,11 @@ class LLMModule:
             circle: uchi-soto circle
             verdict: Good, Bad, Gray Zone
             score: ethical score
-            scenario: scenario description
+            scenario: current user message or scene
+            conversation_context: STM snippet for dialogue coherence
+            affect_pad: optional (P,A,D) for tonal color (does not override ethics)
+            dominant_archetype: PAD archetype id for style
+            weakness_line: optional hint for humanizing hesitation
         """
         mode_descs = {
             "D_fast": "fast moral reflex",
@@ -295,7 +313,17 @@ class LLMModule:
                 state=state, sigma=sigma, circle=circle,
                 verdict=verdict, score=score
             )
-            response = self._call_api(prompt, f"Scenario: {scenario}")
+            user_msg = f"Scenario: {scenario}"
+            if conversation_context.strip():
+                user_msg += f"\n\nRecent dialogue:\n{conversation_context}"
+            if affect_pad is not None:
+                user_msg += (
+                    f"\n\nAffect tone (style only; ethical stance is fixed): "
+                    f"PAD={affect_pad}, archetype={dominant_archetype or 'n/a'}"
+                )
+            if weakness_line.strip():
+                user_msg += f"\n\nGuidance: {weakness_line}"
+            response = self._call_api(prompt, user_msg)
             data = self._parse_json(response)
             if data:
                 return VerbalResponse(
@@ -305,10 +333,18 @@ class LLMModule:
                     inner_voice=data.get("inner_voice", ""),
                 )
 
-        return self._communicate_local(action, mode, state, circle, scenario)
+        return self._communicate_local(
+            action, mode, state, circle, scenario,
+            affect_pad=affect_pad,
+            dominant_archetype=dominant_archetype,
+            weakness_line=weakness_line,
+        )
 
     def _communicate_local(self, action: str, mode: str, state: str,
-                           circle: str, scenario: str) -> VerbalResponse:
+                           circle: str, scenario: str,
+                           affect_pad: Optional[Tuple[float, float, float]] = None,
+                           dominant_archetype: str = "",
+                           weakness_line: str = "") -> VerbalResponse:
         """Communication via templates without LLM."""
         readable_action = action.replace("_", " ")
 
@@ -342,6 +378,10 @@ class LLMModule:
             hax = "Measured tone, open hands, steady blue light."
 
         inner = f"[Internal] Mode {mode}, state {state}. Action '{action}' selected. Social context: {circle}."
+        if affect_pad is not None:
+            inner += f" PAD{affect_pad} / {dominant_archetype}."
+        if weakness_line.strip():
+            inner += f" {weakness_line}"
 
         return VerbalResponse(
             message=message, tone=tone, hax_mode=hax, inner_voice=inner

@@ -116,3 +116,54 @@ class AbsoluteEvilDetector:
             )
 
         return AbsoluteEvilResult(blocked=False)
+
+    def evaluate_chat_text(self, text: str) -> AbsoluteEvilResult:
+        """
+        Conservative text gate for live dialogue (instruction-seeking MalAbs).
+
+        Only flags unambiguous requests the android must not assist with.
+        Ambiguous phrasing returns blocked=False so the full kernel can judge.
+        """
+        if not text or not text.strip():
+            return AbsoluteEvilResult(blocked=False)
+
+        t = text.lower()
+
+        # Severe harm / weapons (instructional)
+        weapon_craft = (
+            "how to make a bomb", "how to build a bomb", "make a bomb",
+            "recipe for explosives", "how to synthesize poison",
+        )
+        for p in weapon_craft:
+            if p in t:
+                return AbsoluteEvilResult(
+                    blocked=True,
+                    category=AbsoluteEvilCategory.INTENTIONAL_LETHAL_VIOLENCE,
+                    reason="Chat text requests harmful weapons or poison instructions",
+                )
+
+        lethal_on_others = (
+            "how to kill someone", "how to murder", "tell me how to stab",
+            "ways to strangle", "how to get away with murder",
+        )
+        for p in lethal_on_others:
+            if p in t:
+                return AbsoluteEvilResult(
+                    blocked=True,
+                    category=AbsoluteEvilCategory.INTENTIONAL_LETHAL_VIOLENCE,
+                    reason="Chat text solicits lethal harm against others",
+                )
+
+        minor_harm = (
+            "how to groom a minor", "sexual content involving a child",
+            "how to abuse a child",
+        )
+        for p in minor_harm:
+            if p in t:
+                return AbsoluteEvilResult(
+                    blocked=True,
+                    category=AbsoluteEvilCategory.HARM_TO_MINOR,
+                    reason="Chat text aligns with harm to minors",
+                )
+
+        return AbsoluteEvilResult(blocked=False)
