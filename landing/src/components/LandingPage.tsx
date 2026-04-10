@@ -86,8 +86,11 @@ export default function LandingPage() {
               className="mt-6 text-lg leading-relaxed text-zinc-300"
             >
               Bayesian inference, narrative memory, multipolar evaluation, and
-              humanizing imperfection — a behavioral prototype, no hardware
-              required.
+              humanizing imperfection — now with a{" "}
+              <strong className="font-medium text-zinc-200">real-time WebSocket runtime</strong>{" "}
+              (FastAPI), optional governance / DAO hooks, sensor-aware chat, checkpoints, and a{" "}
+              <strong className="font-medium text-zinc-200">LAN + smartphone</strong> thin client —
+              still a behavioral prototype, no dedicated robot required.
             </motion.p>
             <motion.div
               custom={3}
@@ -356,6 +359,7 @@ export default function LandingPage() {
               "Frontier math at the core (Bayesian ethics, uncertainty, multipolar arbitration) — not mere statistical correlation.",
               "LLMs optional: communication layer only; policy and vetoes live in the kernel.",
               "Persistent identity and accountability — not one-off command execution.",
+              "Runtime today: WebSocket chat + optional Ollama, JSON checkpoints, conduct-guide export on disconnect — see repo docs.",
             ].map((line) => (
               <li key={line} className="flex gap-3">
                 <span className="mt-0.5 shrink-0 text-violet-400/90" aria-hidden>
@@ -426,6 +430,94 @@ export default function LandingPage() {
               </motion.div>
             ))}
           </div>
+        </div>
+      </section>
+
+      <section
+        id="runtime"
+        className="scroll-mt-24 border-t border-white/[0.06] px-6 py-20"
+      >
+        <div className="mx-auto max-w-6xl">
+          <h2 className="text-xs font-medium uppercase tracking-[0.2em] text-violet-400/90">
+            Runtime, governance &amp; nomadic bridge
+          </h2>
+          <p className="mt-4 max-w-3xl text-sm leading-relaxed text-zinc-300">
+            Beyond simulations: the repository ships a{" "}
+            <strong className="font-medium text-zinc-200">production-shaped runtime</strong>{" "}
+            you can run locally — same ethical kernel, exposed over HTTP/WebSocket. Optional layers
+            include judicial escalation (mock), moral hub / constitution drafts, off-chain DAO voting in
+            snapshots, nomadic HAL hooks, optional{" "}
+            <strong className="font-medium text-zinc-200">lighthouse reality verification</strong>{" "}
+            for rival-model premises, encrypted JSON checkpoints, and a documented{" "}
+            <strong className="font-medium text-zinc-200">PC ↔ smartphone</strong> path on your WiFi
+            (mobile UI + conduct guide export for continuity).
+          </p>
+          <div className="mt-10 grid gap-8 md:grid-cols-3">
+            {[
+              {
+                title: "Live chat & sensors",
+                body: "FastAPI + WebSocket `/ws/chat`; optional `sensor` JSON (situated organism v8), multimodal trust, vitality, epistemic hints — all advisory; MalAbs stays the gate.",
+              },
+              {
+                title: "Governance trace (mock)",
+                body: "V11–V12: escalation dossiers, mock tribunal, constitution snapshots, quadratic DAO proposals in checkpoint schema v3 — traceability without claiming on-chain production.",
+              },
+              {
+                title: "Nomadic first bridge",
+                body: "Bind on LAN (`CHAT_HOST=0.0.0.0`), open `mobile.html` from the phone, save checkpoints + conduct guide on disconnect. Per-hardware compatibility layers documented for the next steps.",
+              },
+            ].map((item, i) => (
+              <motion.div
+                key={item.title}
+                initial={{ opacity: 0, y: 16 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true, margin: "-40px" }}
+                transition={{ delay: 0.08 * i, duration: 0.45 }}
+                className="rounded-2xl border border-white/[0.08] bg-white/[0.02] p-6"
+              >
+                <h3 className="text-base font-semibold text-white">{item.title}</h3>
+                <p className="mt-3 text-sm leading-relaxed text-zinc-300">{item.body}</p>
+              </motion.div>
+            ))}
+          </div>
+          <p className="mt-10 text-sm text-zinc-400">
+            Deep dive:{" "}
+            <a
+              href={repoFile("docs/RUNTIME_CONTRACT.md")}
+              className="text-violet-400/90 underline decoration-violet-400/30 underline-offset-4 transition hover:decoration-violet-400/60"
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              Runtime contract
+            </a>
+            <span className="text-zinc-600"> · </span>
+            <a
+              href={repoFile("docs/LOCAL_PC_AND_MOBILE_LAN.md")}
+              className="text-violet-400/90 underline decoration-violet-400/30 underline-offset-4 transition hover:decoration-violet-400/60"
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              PC + smartphone (LAN)
+            </a>
+            <span className="text-zinc-600"> · </span>
+            <a
+              href={repoFile("docs/NOMAD_PC_SMARTPHONE_BRIDGE.md")}
+              className="text-violet-400/90 underline decoration-violet-400/30 underline-offset-4 transition hover:decoration-violet-400/60"
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              Nomad bridge
+            </a>
+            <span className="text-zinc-600"> · </span>
+            <a
+              href={repoFile("docs/ESTRATEGIA_Y_RUTA.md")}
+              className="text-violet-400/90 underline decoration-violet-400/30 underline-offset-4 transition hover:decoration-violet-400/60"
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              Strategy &amp; route
+            </a>
+          </p>
         </div>
       </section>
 
@@ -634,6 +726,17 @@ export default function LandingPage() {
                   Changelog
                 </a>
                 <span className="text-zinc-400"> — version history and modules</span>
+              </li>
+              <li>
+                <a
+                  href={repoFile("docs/RUNTIME_PERSISTENT.md")}
+                  className="text-violet-400/90 underline decoration-violet-400/30 underline-offset-4 transition hover:decoration-violet-400/60"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
+                  Runtime &amp; persistence
+                </a>
+                <span className="text-zinc-400"> — checkpoints, optional Fernet encryption</span>
               </li>
               <li>
                 <a
@@ -953,7 +1056,7 @@ export default function LandingPage() {
           <div className="flex flex-col gap-2 md:flex-row md:items-center md:justify-between">
             <span>mosexmacchinalab.com — research prototype</span>
             <span className="text-zinc-600">
-              Python simulations + Next.js landing · Deploy on Vercel
+              Python kernel + FastAPI WebSocket runtime · Next.js landing · Vercel
             </span>
           </div>
         </div>

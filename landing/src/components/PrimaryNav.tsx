@@ -70,6 +70,7 @@ function NavDisclosure({ label, links }: { label: string; links: PanelLink[] }) 
 const PROJECT_LINKS: PanelLink[] = [
   { href: "#hostable", label: "Hostable core" },
   { href: "#model", label: "Model" },
+  { href: "#runtime", label: "Runtime & nomad" },
   { href: "#theory", label: "Theory" },
   { href: "#research", label: "Research" },
   { href: "#mission", label: "Mission & values" },

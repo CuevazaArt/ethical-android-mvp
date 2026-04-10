@@ -17,9 +17,11 @@ export const metadata: Metadata = {
 
 const CURRENT = [
   "Python ethical kernel with multipolar poles, Bayesian-style scoring, MalAbs vetoes, narrative memory, forgiveness, Ψ-sleep (simulation), and optional LLM interface layer.",
-  "Formal property tests (`pytest`) and scenario runner for reproducible behavior.",
-  "Public Next.js site: landing, theory math showcase, investors scope page, interactive dashboard (browser), one-pager for outreach.",
-  "Documentation: README, THEORY_AND_IMPLEMENTATION, SECURITY, bibliography — Apache-2.0.",
+  "FastAPI WebSocket runtime (`python -m src.runtime`): chat, optional sensors (v8), multimodal/vitality/epistemic telemetry, V11 judicial escalation + V12 moral hub / mock DAO in snapshots (schema v3).",
+  "Persistence: JSON checkpoints, optional Fernet encryption; conduct-guide JSON on disconnect; reality verification (lighthouse KB); named runtime profiles for CI.",
+  "LAN + smartphone thin client (`mobile.html`, scripts), nomad bridge docs; extensive `pytest` suite on GitHub Actions.",
+  "Public Next.js site: landing (updated for runtime/nomad), theory math showcase, investors, interactive dashboard, one-pager — Apache-2.0.",
+  "Documentation: README, THEORY_AND_IMPLEMENTATION, RUNTIME_*, LOCAL_PC_AND_MOBILE_LAN, NOMAD_PC_SMARTPHONE_BRIDGE, SECURITY, bibliography.",
 ] as const;
 
 const NEAR_TERM = [
