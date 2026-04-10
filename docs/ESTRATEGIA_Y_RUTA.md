@@ -66,6 +66,7 @@ Los nombres y variables viven en código: **`src/runtime_profiles.py`**. Resumen
 | `hub_dao_demo` | Constitución HTTP pública + acciones DAO por WebSocket. |
 | `nomad_demo` | Simulación HAL + auditoría de migración nómada. |
 | `reality_lighthouse_demo` | Faro JSON (`KERNEL_LIGHTHOUSE_KB_PATH`) + JSON `reality_verification` en WebSocket; ejecutar desde raíz del repo. |
+| `lan_mobile_thin_client` | `CHAT_HOST=0.0.0.0` para cliente móvil en la misma WiFi ([LOCAL_PC_AND_MOBILE_LAN.md](LOCAL_PC_AND_MOBILE_LAN.md)). |
 
 **Experimental:** cualquier otra combinación de `KERNEL_*` se considera **no garantizada** hasta que se añada un perfil o un test dedicado.
 

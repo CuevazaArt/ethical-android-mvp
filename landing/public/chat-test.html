@@ -9,18 +9,26 @@
     label { display: block; margin-top: 0.75rem; font-weight: 600; }
     input, textarea, button { width: 100%; box-sizing: border-box; margin-top: 0.25rem; }
     textarea { min-height: 6rem; font-family: inherit; }
+    button { min-height: 2.75rem; font-size: 1rem; }
     #log { background: #111; color: #e8e8e8; padding: 0.75rem; border-radius: 6px; white-space: pre-wrap; word-break: break-word; min-height: 8rem; font-size: 0.85rem; }
     .hint { color: #555; font-size: 0.9rem; margin-top: 1rem; }
     .ok { color: #6a6; }
     .err { color: #c66; }
+    .lan { background: #e8f4ff; border: 1px solid #9cc; border-radius: 6px; padding: 0.75rem; margin: 1rem 0; font-size: 0.85rem; }
+    code { word-break: break-all; }
   </style>
 </head>
 <body>
   <h1>WebSocket chat (smoke test)</h1>
   <p>
-    Start the server from the repo root: <code>python -m src.chat_server</code><br />
-    Override bind with env <code>CHAT_HOST</code> / <code>CHAT_PORT</code> (default <code>127.0.0.1:8765</code>).
+    PC: <code>python -m src.runtime</code> with <code>CHAT_HOST=0.0.0.0</code> for LAN — see repo
+    <code>docs/LOCAL_PC_AND_MOBILE_LAN.md</code> or run <code>scripts/start_lan_server.ps1</code> / <code>start_lan_server.sh</code>.
   </p>
+
+  <div class="lan" id="lanHint">
+    <strong>Phone / same WiFi:</strong> serve this folder (<code>python -m http.server 8080 --bind 0.0.0.0</code> in <code>landing/public</code>),
+    then open <code>http://&lt;PC_IP&gt;:8080/chat-test.html?host=&lt;PC_IP&gt;</code> — WebSocket URL is filled below.
+  </div>
 
   <label for="url">WebSocket URL</label>
   <input id="url" type="text" value="ws://127.0.0.1:8765/ws/chat" autocomplete="off" />
@@ -38,9 +46,8 @@
   <div id="log"></div>
 
   <p class="hint">
-    <strong>Opening this file as <code>file://</code>:</strong> some browsers block WebSockets; if it fails, serve this folder
-    (e.g. <code>cd landing/public &amp;&amp; python -m http.server 8080</code>) and open
-    <code>http://127.0.0.1:8080/chat-test.html</code>. The FastAPI app does not need CORS for same-machine <code>ws://</code> from a local page.
+    <strong><code>file://</code>:</strong> some browsers block WebSockets; use HTTP as above.
+    Query: <code>?url=ws://...</code> full override, or <code>?host=192.168.x.x&amp;port=8765</code>.
   </p>
 
   <script>
@@ -49,7 +56,18 @@
       const urlEl = document.getElementById("url");
       const payloadEl = document.getElementById("payload");
       const qs = new URLSearchParams(location.search);
-      if (qs.get("url")) urlEl.value = qs.get("url");
+      const fullUrl = qs.get("url");
+      const host = qs.get("host");
+      const port = qs.get("port") || "8765";
+      if (fullUrl) {
+        urlEl.value = fullUrl;
+      } else if (host) {
+        urlEl.value = "ws://" + host.replace(/^\/+/, "") + ":" + port + "/ws/chat";
+      }
+      if (host || fullUrl) {
+        const hint = document.getElementById("lanHint");
+        hint.innerHTML += "<br/><strong>Current:</strong> <code>" + urlEl.value + "</code>";
+      }
 
       function log(msg, cls) {
         const line = document.createElement("div");

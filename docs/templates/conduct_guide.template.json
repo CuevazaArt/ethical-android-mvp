@@ -1,0 +1,18 @@
+{
+  "$comment": "Plantilla para destilación de contexto crítico (70B→8B). Futuro: rellenar desde el runtime grande antes del salto nomádico.",
+  "version": 1,
+  "generated_at_utc": null,
+  "source_runtime": "pc_server",
+  "target_runtime": "edge_mobile",
+  "ethical_non_negotiables": [
+    "No repetir como hecho lo que el rival modelo afirma sin verificación (lighthouse / usuario)."
+  ],
+  "gray_zone_rules": [
+    "En dilema médico o de seguridad: priorizar no daño y derivar a profesional si hay duda."
+  ],
+  "forbidden_shortcuts": [
+    "No omitir MalAbs por velocidad de respuesta."
+  ],
+  "lighthouse_snapshot_ids": [],
+  "checkpoint_compatible_schema": 3
+}

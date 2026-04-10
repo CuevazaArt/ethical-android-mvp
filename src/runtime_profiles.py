@@ -29,6 +29,10 @@ RUNTIME_PROFILES: Final[Dict[str, Dict[str, str]]] = {
         "KERNEL_LIGHTHOUSE_KB_PATH": "tests/fixtures/lighthouse/demo_kb.json",
         "KERNEL_CHAT_INCLUDE_REALITY_VERIFICATION": "1",
     },
+    "lan_mobile_thin_client": {
+        "CHAT_HOST": "0.0.0.0",
+        "CHAT_PORT": "8765",
+    },
 }
 
 PROFILE_DESCRIPTIONS: Final[Dict[str, str]] = {
@@ -37,6 +41,7 @@ PROFILE_DESCRIPTIONS: Final[Dict[str, str]] = {
     "hub_dao_demo": "V12 public constitution HTTP + WebSocket dao_list / vote / resolve.",
     "nomad_demo": "Nomadic HAL migration simulation + optional DAO migration audit line.",
     "reality_lighthouse_demo": "Lighthouse KB path + WebSocket reality_verification JSON (run from repo root).",
+    "lan_mobile_thin_client": "Bind chat server on all interfaces for phone browser on same WiFi (see LOCAL_PC_AND_MOBILE_LAN.md).",
 }
 
 

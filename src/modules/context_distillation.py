@@ -5,7 +5,9 @@ When the large runtime produces a **conduct guide** (rules distilled from delibe
 the small model can follow the same ethical stance without full reasoning capacity.
 
 **Status:** stub — load JSON path only; integration with checkpoints / HAL is future work.
-See ``docs/discusion/PROPUESTA_VERIFICACION_REALIDAD_V11.md`` (pillar 2).
+Template: ``docs/templates/conduct_guide.template.json``. See
+``docs/discusion/PROPUESTA_VERIFICACION_REALIDAD_V11.md`` (pillar 2) and
+``docs/LOCAL_PC_AND_MOBILE_LAN.md`` (mediano plazo).
 
 Env: ``KERNEL_CONDUCT_GUIDE_PATH`` — optional JSON with opaque structure for future use.
 """
