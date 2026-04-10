@@ -7,7 +7,7 @@ The LLM does NOT decide. The kernel decides. The LLM translates and communicates
 2. COMMUNICATION: kernel decision → agent verbal response
 3. NARRATIVE: multipolar evaluation → morals in rich language
 
-Uses the Anthropic API (Claude) by default.
+Uses **Ollama** when ``LLM_MODE=ollama`` / ``USE_LOCAL_LLM``; otherwise heuristic templates or optional HTTP backends (see ``resolve_llm_mode``).
 Designed to work with or without an API key:
 - With key: uses Claude for real generation
 - Without key: uses local templates (functional but less natural)

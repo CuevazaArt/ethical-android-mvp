@@ -7,6 +7,8 @@ Run from repo root:
 Or: python -m src.chat_server
 Or: python -m src.runtime  (same server; see docs/RUNTIME_CONTRACT.md)
 
+OpenAPI/Swagger: **off** by default; set KERNEL_API_DOCS=1 to expose ``/docs``, ``/redoc``, ``/openapi.json`` (see README).
+
 Checkpoint (optional): KERNEL_CHECKPOINT_PATH, KERNEL_CHECKPOINT_LOAD,
 KERNEL_CHECKPOINT_SAVE_ON_DISCONNECT, KERNEL_CHECKPOINT_EVERY_N_EPISODES — see src/persistence/checkpoint.py
 
@@ -124,7 +126,19 @@ from .modules.buffer import PreloadedBuffer
 from .real_time_bridge import RealTimeBridge
 from .runtime.telemetry import advisory_interval_seconds_from_env, advisory_loop
 
-app = FastAPI(title="Ethos Kernel Chat", version="1.0")
+def _api_docs_enabled() -> bool:
+    """OpenAPI/Swagger UI — off by default (LAN deployments); set KERNEL_API_DOCS=1 to expose."""
+    v = os.environ.get("KERNEL_API_DOCS", "0").strip().lower()
+    return v in ("1", "true", "yes", "on")
+
+
+app = FastAPI(
+    title="Ethos Kernel Chat",
+    version="1.0",
+    docs_url="/docs" if _api_docs_enabled() else None,
+    redoc_url="/redoc" if _api_docs_enabled() else None,
+    openapi_url="/openapi.json" if _api_docs_enabled() else None,
+)
 
 
 def _chat_expose_monologue() -> bool:

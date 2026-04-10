@@ -59,7 +59,7 @@ Goal: move from research to a **live process** without letting any layer **overr
 | **3.3 Configuration** | Env vars: `OLLAMA_MODEL`, `OLLAMA_BASE_URL`, `USE_LOCAL_LLM=true`. | Document in README. |
 | **3.4 LLM monologue (optional)** | Only after 3.2: generate internal monologue text for logs/UI, **never** as direct input to MalAbs. | Review prompts so they do not “instruct” the kernel. |
 
-**Repo status (Phase 3):** `src/modules/llm_backends.py` (`TextCompletionBackend`, `OllamaCompletion`, `AnthropicCompletion`); `LLMModule` uses the backend via `resolve_llm_mode` / `LLM_MODE` / `USE_LOCAL_LLM`; optional monologue via `KERNEL_LLM_MONOLOGUE` in `optional_monologue_embellishment` (chat). README documents `OLLAMA_*`, default model `llama3.2:3b`, tests in `tests/test_ollama_llm.py`, `tests/test_llm_phase3.py`.
+**Repo status (Phase 3):** `src/modules/llm_backends.py` — **`OllamaCompletion`** is the primary open-source path (`LLM_MODE=ollama`, `OLLAMA_*`); `LLMModule` selects the backend via `resolve_llm_mode` / `LLM_MODE` / `USE_LOCAL_LLM`; optional monologue via `KERNEL_LLM_MONOLOGUE` in `optional_monologue_embellishment` (chat). README documents `OLLAMA_*`, default model `llama3.2:3b`, tests in `tests/test_ollama_llm.py`, `tests/test_llm_phase3.py`. (Additional pluggable backends may exist in code for development; operators should follow Ollama in docs.)
 
 **Dependency:** Phase 1 helps avoid blocking the event loop; Phase 2 is independent (persistence can ship before or after local LLM depending on privacy vs data priority).
 

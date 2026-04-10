@@ -2,6 +2,10 @@
 
 All notable changes to this project are summarized here. For narrative context and design rationale, see [`HISTORY.md`](HISTORY.md).
 
+## Docs: Ollama-first LLM + API hardening — April 2026
+- **Markdown:** README / HISTORY / CHANGELOG / `docs/RUNTIME_PHASES.md` now describe **Ollama** as the documented local LLM path; **OpenAPI** (`/docs`, `/redoc`, `/openapi.json`) is **off by default** — set `KERNEL_API_DOCS=1` to enable (see README). Academic bibliography entries (e.g. Constitutional AI, ref. 90) unchanged.
+- **`landing/CLAUDE.md`** removed; replaced by **`landing/OLLAMA.md`** (pointer to root README + Ollama).
+
 ## Project rename to Ethos Kernel — April 2026
 - **Public name:** the kernel + runtime is now branded **Ethos Kernel** (MoSex Macchina Lab remains the primary public / site name). User-facing copy, docs, landing, dashboards, and Python package strings updated from “Ethical Android MVP” where it denoted the product.
 - **GitHub:** repository URL may still be `github.com/CuevazaArt/ethical-android-mvp` until the slug is renamed; README notes this.
@@ -163,7 +167,7 @@ All notable changes to this project are summarized here. For narrative context a
   - **Perception**: situation in text → numerical signals for the kernel
   - **Communication**: kernel decision → android's verbal response (tone, HAX gestures, voice-over)
   - **Narrative**: multipolar evaluation → morals in rich, humanly comprehensible language
-- Dual support: Anthropic API (Claude) when key is available, local templates with no external dependency
+- Dual support: local **[Ollama](https://ollama.com/)** backend or heuristic templates with no external dependency (documented path; optional dev-only HTTP backends in code)
 - `"auto"` mode detects availability and falls back gracefully to local mode
 
 ### Kernel integration

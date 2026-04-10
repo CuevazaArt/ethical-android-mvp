@@ -25,7 +25,7 @@ El **salto real** a un modelo 8B **dentro del teléfono** es un proyecto aparte 
 ┌────────────────────────────── PC (LAN) ──────────────────────────────┐
 │  Ollama / otro LLM (opcional, localhost)                                │
 │       ↑                                                                 │
-│  python -m src.runtime   ← EthicalKernel + WebSocket :8765           │
+│  python -m src.runtime   ← Ethos Kernel + WebSocket :8765               │
 │  CHAT_HOST=0.0.0.0          (escucha en todas las interfaces)           │
 │  KERNEL_CHECKPOINT_PATH=…   (opcional: estado entre sesiones)          │
 └────────────────────────────┬───────────────────────────────────────────┘
@@ -79,6 +79,7 @@ El **salto real** a un modelo 8B **dentro del teléfono** es un proyecto aparte 
 |----------|-----|
 | `CHAT_HOST` | `0.0.0.0` para aceptar conexiones LAN (no solo loopback). |
 | `CHAT_PORT` | Puerto del servicio (default `8765`). |
+| `KERNEL_API_DOCS` | Por defecto **desactivado**: no se exponen `/docs` ni `/openapi.json` (menos superficie en LAN). `1` solo si necesitas esquema OpenAPI localmente. |
 | `LLM_MODE` / `USE_LOCAL_LLM` | Ollama en el PC ([README](../README.md)). |
 | `KERNEL_CHECKPOINT_PATH` | Archivo JSON de checkpoint **en el PC** para continuidad entre sesiones. |
 | `KERNEL_CONDUCT_GUIDE_EXPORT_PATH` | Archivo JSON escrito **al cerrar** la sesión WebSocket (después del checkpoint): guía para revisión o futuro runtime pequeño (`conduct_guide_export.py`). Opcional: `KERNEL_CONDUCT_GUIDE_EXPORT_ON_DISCONNECT=0` para desactivar. |

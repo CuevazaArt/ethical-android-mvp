@@ -1,6 +1,7 @@
 """HTTP + WebSocket smoke tests for src/chat_server.py."""
 
 import os
+import subprocess
 import sys
 
 import pytest
@@ -18,6 +19,35 @@ def test_health():
     r = client.get("/health")
     assert r.status_code == 200
     assert r.json().get("status") == "ok"
+
+
+def test_openapi_schema_not_exposed_by_default_subprocess():
+    """Fresh import must not expose /openapi.json unless KERNEL_API_DOCS=1 (LAN safety)."""
+    root = os.path.join(os.path.dirname(__file__), "..")
+    code = """
+import os, sys
+sys.path.insert(0, ".")
+os.environ.pop("KERNEL_API_DOCS", None)
+from fastapi.testclient import TestClient
+from src.chat_server import app
+c = TestClient(app)
+assert c.get("/openapi.json").status_code == 404
+"""
+    subprocess.run([sys.executable, "-c", code], cwd=root, check=True)
+
+
+def test_openapi_schema_exposed_when_kernel_api_docs_subprocess():
+    root = os.path.join(os.path.dirname(__file__), "..")
+    code = """
+import os, sys
+sys.path.insert(0, ".")
+os.environ["KERNEL_API_DOCS"] = "1"
+from fastapi.testclient import TestClient
+from src.chat_server import app
+c = TestClient(app)
+assert c.get("/openapi.json").status_code == 200
+"""
+    subprocess.run([sys.executable, "-c", code], cwd=root, check=True)
 
 
 def test_constitution_404_when_moral_hub_public_off():

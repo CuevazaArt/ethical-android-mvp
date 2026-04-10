@@ -95,7 +95,7 @@ Ethical guardrails for background tasks: [docs/RUNTIME_CONTRACT.md](docs/RUNTIME
 Send **JSON text** frames, e.g. `{"text": "Hello", "agent_id": "user", "include_narrative": false}`.  
 Optional **`sensor`** object (v8 — situated hints: `battery_level`, `place_trust`, `accelerometer_jerk`, `ambient_noise`, `silence`, `biometric_anomaly`, `backup_just_completed`, plus **cross-modal** `audio_emergency`, `vision_emergency`, `scene_coherence` for antispoof): merged into sympathetic **signals** before the decision stack; **no** MalAbs bypass. See [docs/discusion/PROPUESTA_ORGANISMO_SITUADO_V8.md](docs/discusion/PROPUESTA_ORGANISMO_SITUADO_V8.md).  
 Optional **server-side** layers (dev/demo): `KERNEL_SENSOR_FIXTURE` = path to a JSON file (same keys as `sensor`); `KERNEL_SENSOR_PRESET` = named scenario from `src/modules/perceptual_abstraction.py` (`SENSOR_PRESETS`). Merge order: **fixture → preset → client `sensor`** (client overrides per key).  
-Optional env: `CHAT_HOST`, `CHAT_PORT`, `LLM_MODE`, `USE_LOCAL_LLM`, `KERNEL_VARIABILITY`, `KERNEL_ADVISORY_INTERVAL_S` (background drive telemetry per WebSocket session; see [RUNTIME_CONTRACT.md](docs/RUNTIME_CONTRACT.md)), `KERNEL_CHAT_EXPOSE_MONOLOGUE` (set to `0` to redact `monologue` in WebSocket JSON and skip LLM monologue embellishment), `KERNEL_CHAT_INCLUDE_HOMEOSTASIS` (set to `0` to omit `affective_homeostasis` — σ/strain/PAD advisory UX only).
+Optional env: `CHAT_HOST`, `CHAT_PORT`, `LLM_MODE`, `USE_LOCAL_LLM`, `KERNEL_VARIABILITY`, `KERNEL_ADVISORY_INTERVAL_S` (background drive telemetry per WebSocket session; see [RUNTIME_CONTRACT.md](docs/RUNTIME_CONTRACT.md)), `KERNEL_API_DOCS` (set to `1` to expose `/docs`, `/redoc`, `/openapi.json`; **default off** so LAN binds do not leak API schemas), `KERNEL_CHAT_EXPOSE_MONOLOGUE` (set to `0` to redact `monologue` in WebSocket JSON and skip LLM monologue embellishment), `KERNEL_CHAT_INCLUDE_HOMEOSTASIS` (set to `0` to omit `affective_homeostasis` — σ/strain/PAD advisory UX only).
 
 **Relational / v7 (optional JSON toggles, default on):** `KERNEL_CHAT_INCLUDE_USER_MODEL`, `KERNEL_CHAT_INCLUDE_CHRONO`, `KERNEL_CHAT_INCLUDE_PREMISE`, `KERNEL_CHAT_INCLUDE_TELEOLOGY` — set to `0` to omit `user_model`, `chronobiology`, `premise_advisory`, `teleology_branches`. See [docs/discusion/PROPUESTA_EVOLUCION_RELACIONAL_V7.md](docs/discusion/PROPUESTA_EVOLUCION_RELACIONAL_V7.md).
 
@@ -145,18 +145,9 @@ print(kernel.format_natural(decision, response, narrative))
 ```
 
 The LLM **does not decide**: it translates text into numerical signals, and then
-translates the kernel's decision into words. Works with or without an API key
-(local mode uses heuristic templates).
+translates the kernel's decision into words. **Recommended:** run **[Ollama](https://ollama.com/)** locally (open weights, open-source runtime) with `LLM_MODE=ollama` and `USE_LOCAL_LLM=1` — see the [Real-time chat](#real-time-chat-websocket) env section (`OLLAMA_BASE_URL`, `OLLAMA_MODEL`). Without a local model, the code falls back to **heuristic templates** (no network).
 
-To use Claude as LLM layer (optional):
-
-```bash
-pip install anthropic
-# Windows PowerShell:
-$env:ANTHROPIC_API_KEY="your-key-here"
-# Linux/macOS:
-export ANTHROPIC_API_KEY="your-key-here"
-```
+Optional third-party HTTP backends exist in code for development; the documented path for operators is **Ollama**, not proprietary chat APIs.
 
 ## Modular architecture
 

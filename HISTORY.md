@@ -20,7 +20,7 @@ in the literature:
 | Bayesian inference | Bayes (1763), Pearl (1988, 2018) |
 | Sigmoid will | Rosenblatt (1958), Kahneman (2011) |
 | Narrative memory | Dennett (1991), Ricoeur (1984), Tulving (1972) |
-| Absolute Evil / Buffer | Kant (1785), Anthropic — Constitutional AI (2022) |
+| Absolute Evil / Buffer | Kant (1785); Constitutional AI line — see [BIBLIOGRAPHY.md](BIBLIOGRAPHY.md) ref. 90 |
 | Ethical poles | Aristotle, Mill (1863), Floridi & Cowls (2019) |
 | D_fast / D_delib modes | Kahneman (2011), Brooks (1991), Bratman (1987) |
 | Uchi-Soto | Nakane (1970), Lebra (1976), Dautenhahn (2007) |
@@ -119,8 +119,7 @@ kernel/communication separation:
 - **Communication:** kernel decision → verbal response (tone, HAX gestures,
   voice-over).
 - **Narrative:** multipolar evaluation → rich, humanly comprehensible morals.
-- Dual support: Anthropic API (Claude) or local templates with no external
-  dependency.
+- Dual support: **[Ollama](https://ollama.com/)** (local, open-source runtime) or heuristic templates with no external dependency.
 - `procesar_natural()` method in kernel for full cycle:
   text → decision → verbal response → morals.
 
