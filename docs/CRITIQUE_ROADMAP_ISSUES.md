@@ -173,10 +173,10 @@ Fill in GitHub issue numbers after creation:
 
 | # | Short title | Issue |
 |---|-------------|-------|
-| 1 | Bayesian naming | |
-| 2 | Input trust (chat + perception) | |
-| 3 | Empirical pilot | |
-| 4 | Core doc + pip spike | |
-| 5 | Poles + weakness HCI | |
-| 6 | Governance mock + L0 | |
-| 7 | KERNEL_* consolidation | |
+| 1 | Bayesian naming | 1|
+| 2 | Input trust (chat + perception) | 2|
+| 3 | Empirical pilot | 3|
+| 4 | Core doc + pip spike | 4|
+| 5 | Poles + weakness HCI |5 |
+| 6 | Governance mock + L0 | 6|
+| 7 | KERNEL_* consolidation |7 |
