@@ -44,6 +44,8 @@ def test_websocket_chat_roundtrip():
         assert "turn_index" in data["chronobiology"]
         assert "premise_advisory" in data
         assert "flag" in data["premise_advisory"]
+        assert "teleology_branches" in data
+        assert "horizon_long_term" in data["teleology_branches"]
 
 
 def test_websocket_homeostasis_omitted(monkeypatch):

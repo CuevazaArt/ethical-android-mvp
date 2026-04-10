@@ -112,6 +112,8 @@ Ethical guardrails for background tasks: [docs/RUNTIME_CONTRACT.md](docs/RUNTIME
 Send **JSON text** frames, e.g. `{"text": "Hello", "agent_id": "user", "include_narrative": false}`.  
 Optional env: `CHAT_HOST`, `CHAT_PORT`, `LLM_MODE`, `USE_LOCAL_LLM`, `KERNEL_VARIABILITY`, `KERNEL_ADVISORY_INTERVAL_S` (background drive telemetry per WebSocket session; see [RUNTIME_CONTRACT.md](docs/RUNTIME_CONTRACT.md)), `KERNEL_CHAT_EXPOSE_MONOLOGUE` (set to `0` to redact `monologue` in WebSocket JSON and skip LLM monologue embellishment), `KERNEL_CHAT_INCLUDE_HOMEOSTASIS` (set to `0` to omit `affective_homeostasis` — σ/strain/PAD advisory UX only).
 
+**Relational / v7 (optional JSON toggles, default on):** `KERNEL_CHAT_INCLUDE_USER_MODEL`, `KERNEL_CHAT_INCLUDE_CHRONO`, `KERNEL_CHAT_INCLUDE_PREMISE`, `KERNEL_CHAT_INCLUDE_TELEOLOGY` — set to `0` to omit `user_model`, `chronobiology`, `premise_advisory`, `teleology_branches`. See [docs/discusion/PROPUESTA_EVOLUCION_RELACIONAL_V7.md](docs/discusion/PROPUESTA_EVOLUCION_RELACIONAL_V7.md).
+
 **Checkpoint (Fase 2.4):** set `KERNEL_CHECKPOINT_PATH` to a `.json` file to load state when a WebSocket session opens and save when it closes (`KERNEL_CHECKPOINT_SAVE_ON_DISCONNECT`, default on). Periodic saves: `KERNEL_CHECKPOINT_EVERY_N_EPISODES`. See `src/persistence/checkpoint.py`.
 
 **Identity drift (robustez pilar 2):** `KERNEL_ETHICAL_GENOME_ENFORCE` (default on) and `KERNEL_ETHICAL_GENOME_MAX_DRIFT` (default `0.15`) cap how far Ψ Sleep can move `pruning_threshold` from its value at kernel construction.
@@ -120,7 +122,7 @@ Optional env: `CHAT_HOST`, `CHAT_PORT`, `LLM_MODE`, `USE_LOCAL_LLM`, `KERNEL_VAR
 
 **Local LLM (Ollama, Fase 3):** `LLM_MODE=ollama` (or `LLM_MODE=auto` with `USE_LOCAL_LLM=1`) with [Ollama](https://ollama.com/) running; optional `OLLAMA_BASE_URL` (default `http://127.0.0.1:11434`), `OLLAMA_MODEL` (default `llama3.2:3b`), `OLLAMA_TIMEOUT`. Optional **`KERNEL_LLM_MONOLOGUE=1`** embellishes the chat `monologue` line with the text backend (still advisory; kernel decisions unchanged). The kernel still decides; the model only translates text ↔ JSON signals.
 
-Each JSON response includes **`identity`** (narrative self-model + `ascription`), **`drive_intents`** (advisory list), and **`monologue`** when a kernel decision is present (unless `KERNEL_CHAT_EXPOSE_MONOLOGUE=0`). When enabled by env (defaults on), responses may also include **`affective_homeostasis`** and **`experience_digest`** (see sections above). A minimal browser tester lives at [`landing/public/chat-test.html`](landing/public/chat-test.html) (open via local static server if `file://` blocks WebSockets).
+Each JSON response includes **`identity`** (narrative self-model + `ascription`), **`drive_intents`** (advisory list), and **`monologue`** when a kernel decision is present (unless `KERNEL_CHAT_EXPOSE_MONOLOGUE=0`). When enabled by env (defaults on), responses may also include **`affective_homeostasis`**, **`experience_digest`**, **`user_model`**, **`chronobiology`**, **`premise_advisory`**, and **`teleology_branches`** (see sections above). A minimal browser tester lives at [`landing/public/chat-test.html`](landing/public/chat-test.html) (open via local static server if `file://` blocks WebSockets).
 
 ### Natural language mode (v4)
 
@@ -179,6 +181,10 @@ src/
 │   ├── salience_map.py        # GWT-lite attention weights over risk/social/body/ethics (read-only)
 │   ├── narrative_identity.py  # Lightweight first-person self-model (updates with episodes)
 │   ├── drive_arbiter.py       # Advisory drive intents (after sleep backup; also chat JSON)
+│   ├── user_model.py          # Light ToM / frustration streak (v7; style hints only)
+│   ├── subjective_time.py     # Session clock + stimulus EMA (v7 chronobiology hints)
+│   ├── premise_validation.py  # Advisory premise scan (v7; no RAG yet)
+│   ├── consequence_projection.py  # Qualitative long-horizon branches (v7; no Monte Carlo)
 │   └── internal_monologue.py  # [MONO] line for logs and WebSocket payloads
 ├── simulations/
 │   └── runner.py           # 9 scenarios + simulation runner
@@ -228,7 +234,7 @@ Psi Sleep Ψ (end of day): Audit + Forgiveness cycle + weakness load + Immortali
 
 ## Tests
 
-**117** tests total (`pytest tests/`). The list below summarizes the **13 invariant ethical properties** exercised by the core ethical suite; additional tests cover EthicalReflection, SalienceMap, PAD archetypes, narrative identity, internal monologue, chat turns, the WebSocket chat server, MalAbs chat jailbreak gate + monologue privacy env + affective homeostasis telemetry + identity integrity helpers + Ψ Sleep experience digest, runtime entry/bind/telemetry, advisory interval env + SQLite snapshot adapter, JSON snapshot persistence, checkpoint integration, Ollama LLM mode, and LLM resolve/monologue options (`tests/test_llm_phase3.py`).
+**123** tests total (`pytest tests/`). The list below summarizes the **13 invariant ethical properties** exercised by the core ethical suite; additional tests cover EthicalReflection, SalienceMap, PAD archetypes, narrative identity, internal monologue, chat turns, the WebSocket chat server, MalAbs chat jailbreak gate + monologue privacy env + affective homeostasis telemetry + identity integrity helpers + Ψ Sleep experience digest + v7 relational layers (user model, chronobiology, premise advisory, teleology branches), runtime entry/bind/telemetry, advisory interval env + SQLite snapshot adapter, JSON snapshot persistence, checkpoint integration, Ollama LLM mode, and LLM resolve/monologue options (`tests/test_llm_phase3.py`).
 
 1. **Absolute Evil** is always blocked
 2. **Action coherence** under variability (100 runs × 9 simulations)

@@ -2,6 +2,8 @@
 
 **Estado:** discusión + **implementación parcial** en código (no sustituye MalAbs, Bayes, buffer ni voluntad).
 
+**Implementado en el repo:** `user_model.py`, `subjective_time.py`, `premise_validation.py`, `consequence_projection.py` integrados en `process_chat_turn` / `chat_server` (telemetría y tono; ver variables `KERNEL_CHAT_INCLUDE_*` en el README).
+
 Este documento registra los **cuatro frentes** acordados y qué queda **hecho vs diferido**, con enlaces a módulos.
 
 ---

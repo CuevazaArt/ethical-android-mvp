@@ -43,6 +43,7 @@ from .persistence.checkpoint import (
     try_load_checkpoint,
 )
 from .modules.affective_homeostasis import homeostasis_telemetry
+from .modules.consequence_projection import qualitative_temporal_branches
 from .real_time_bridge import RealTimeBridge
 from .runtime.telemetry import advisory_interval_seconds_from_env, advisory_loop
 
@@ -79,6 +80,11 @@ def _chat_include_chrono() -> bool:
 
 def _chat_include_premise() -> bool:
     v = os.environ.get("KERNEL_CHAT_INCLUDE_PREMISE", "1").strip().lower()
+    return v not in ("0", "false", "no", "off")
+
+
+def _chat_include_teleology() -> bool:
+    v = os.environ.get("KERNEL_CHAT_INCLUDE_TELEOLOGY", "1").strip().lower()
     return v not in ("0", "false", "no", "off")
 
 
@@ -172,6 +178,21 @@ def _chat_turn_to_jsonable(r: ChatTurnResult, kernel: EthicalKernel) -> Dict[str
     if _chat_include_premise():
         pa = kernel._last_premise_advisory
         out["premise_advisory"] = {"flag": pa.flag, "detail": pa.detail}
+    if (
+        _chat_include_teleology()
+        and r.decision is not None
+        and r.perception is not None
+    ):
+        v = (
+            r.decision.moral.global_verdict.value
+            if r.decision.moral
+            else "Gray Zone"
+        )
+        out["teleology_branches"] = qualitative_temporal_branches(
+            r.decision.final_action,
+            v,
+            r.perception.suggested_context,
+        )
     return out
 
 
@@ -189,7 +210,8 @@ def root() -> JSONResponse:
             "protocol": (
                 "Send JSON: {\"text\": str, \"agent_id\"?: str, \"include_narrative\"?: bool}. "
                 "Responses include identity, drive_intents, monologue (when decision present), optional "
-                "affective_homeostasis / experience_digest (see README env KERNEL_CHAT_*), decision, …"
+                "affective_homeostasis, experience_digest, user_model, chronobiology, premise_advisory, "
+                "teleology_branches (see README KERNEL_CHAT_*), decision, …"
             ),
         }
     )
