@@ -6,7 +6,7 @@ import sys
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
 
 from src.kernel import EthicalKernel
-from src.modules.hub_audit import register_hub_calibration
+from src.modules.hub_audit import record_dao_integrity_alert, register_hub_calibration
 from src.modules.mock_dao import MockDAO
 from src.modules.ml_ethics_tuner import maybe_log_gray_zone_tuning_opportunity
 from src.modules.nomad_identity import nomad_identity_public
@@ -23,6 +23,15 @@ def test_hub_audit_calibration_prefix():
     register_hub_calibration(dao, "test_kind", {"a": 1})
     assert len(dao.records) == n0 + 1
     assert "HubAudit:test_kind" in dao.records[-1].content
+
+
+def test_hub_audit_dao_integrity_alert():
+    dao = MockDAO()
+    n0 = len(dao.records)
+    record_dao_integrity_alert(dao, summary="Simulated corrupt directive X", scope="lab")
+    assert len(dao.records) == n0 + 1
+    assert "HubAudit:dao_integrity" in dao.records[-1].content
+    assert "principled_transparency" in dao.records[-1].content
 
 
 def test_nomad_identity_public_shape():

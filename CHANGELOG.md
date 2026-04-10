@@ -2,6 +2,9 @@
 
 All notable changes to this project are summarized here. For narrative context and design rationale, see [`HISTORY.md`](HISTORY.md).
 
+## DAO integrity alert WebSocket (v0) — April 2026
+- **`hub_audit.record_dao_integrity_alert`** + **`KERNEL_DAO_INTEGRITY_AUDIT_WS`** — WebSocket `integrity_alert` → `HubAudit:dao_integrity` on MockDAO; response key `integrity`. Tests in `test_hub_modules`, `test_chat_server`. PROPUESTA doc §5 updated.
+
 ## DAO alerts & transparency (design doc) — April 2026
 - **docs/discusion/PROPUESTA_DAO_ALERTAS_Y_TRANSPARENCIA.md:** rejects covert “guerrilla” obedience; adopts loud traceable alerts; forensic case memorial vs polluting L0 buffer; cross-ref from PROPUESTA_JUSTICIA V11.
 

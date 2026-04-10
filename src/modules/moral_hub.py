@@ -78,6 +78,12 @@ def dao_governance_api_enabled() -> bool:
     return v in ("1", "true", "yes", "on")
 
 
+def dao_integrity_audit_ws_enabled() -> bool:
+    """WebSocket ``integrity_alert`` — record ``HubAudit:dao_integrity`` on MockDAO (local transparency)."""
+    v = os.environ.get("KERNEL_DAO_INTEGRITY_AUDIT_WS", "0").strip().lower()
+    return v in ("1", "true", "yes", "on")
+
+
 def proposal_to_public(p: Any) -> Dict[str, Any]:
     """JSON-safe summary of a DAO :class:`~src.modules.mock_dao.Proposal` (quadratic vote totals)."""
     vf = getattr(p, "votes_for", None) or {}

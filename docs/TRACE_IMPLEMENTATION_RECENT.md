@@ -37,7 +37,7 @@ This document **consolidates** components and concepts added in the recent work 
 | [LOCAL_PC_AND_MOBILE_LAN.md](LOCAL_PC_AND_MOBILE_LAN.md) | PC + smartphone same WiFi (thin client); scripts `start_lan_server`; `chat-test.html?host=`; **`conduct_guide_export`** on WS disconnect |
 | [NOMAD_PC_SMARTPHONE_BRIDGE.md](NOMAD_PC_SMARTPHONE_BRIDGE.md) | Primer puente nomada: capas por hardware, sensor smartphone, red segura para campo (bajo indicación) |
 | [discusion/PROPUESTA_VERIFICACION_REALIDAD_V11.md](discusion/PROPUESTA_VERIFICACION_REALIDAD_V11.md) | Lighthouse KB / metacognitive doubt (implemented); distillation + DAO sovereignty (stubs) |
-| [discusion/PROPUESTA_DAO_ALERTAS_Y_TRANSPARENCIA.md](discusion/PROPUESTA_DAO_ALERTAS_Y_TRANSPARENCIA.md) | DAO corruption: loud traceable alerts (no covert “guerrilla”); forensic memorial vs L0 buffer |
+| [discusion/PROPUESTA_DAO_ALERTAS_Y_TRANSPARENCIA.md](discusion/PROPUESTA_DAO_ALERTAS_Y_TRANSPARENCIA.md) | DAO corruption: loud traceable alerts (no covert “guerrilla”); forensic memorial vs L0 buffer; **v0 code:** `integrity_alert` WS → `HubAudit:dao_integrity` |
 
 ---
 

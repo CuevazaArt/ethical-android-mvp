@@ -201,6 +201,22 @@ def test_websocket_kernel_chat_json_env_matrix(monkeypatch, env_key, env_val, ab
     assert absent_key not in data
 
 
+def test_websocket_integrity_alert_records_hub_audit(monkeypatch):
+    monkeypatch.setenv("KERNEL_DAO_INTEGRITY_AUDIT_WS", "1")
+    with client.websocket_connect("/ws/chat") as ws:
+        ws.send_json(
+            {
+                "integrity_alert": {
+                    "summary": "Design test: loud local audit of suspected DAO corruption",
+                    "scope": "integration",
+                }
+            }
+        )
+        data = ws.receive_json()
+        assert data.get("integrity", {}).get("integrity_alert", {}).get("ok") is True
+        assert data["integrity"]["integrity_alert"].get("scope") == "integration"
+
+
 def test_websocket_reality_verification_lighthouse(monkeypatch):
     from src.modules.reality_verification import clear_lighthouse_cache
 

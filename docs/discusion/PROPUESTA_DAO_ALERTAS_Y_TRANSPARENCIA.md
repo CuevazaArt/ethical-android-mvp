@@ -58,7 +58,14 @@ Implementación futura debería colgar de: registros de auditoría existentes, `
 
 ---
 
-## 5. Próximos pasos técnicos (cuando haya prioridad)
+## 5. Implementación en código (v0 — auditoría local)
+
+- **`hub_audit.record_dao_integrity_alert`** → línea `HubAudit:dao_integrity:{json}` en el ledger mock (sin red).
+- **`KERNEL_DAO_INTEGRITY_AUDIT_WS=1`** — WebSocket: enviar `{"integrity_alert": {"summary": "…", "scope": "…"}}` (sin `text`); respuesta incluye clave `integrity`. Ver `chat_server.py`.
+
+Esto **no** propaga alertas a P2P ni a “todas las redes”; es el primer gancho **transparente y local** para ensayos y trazabilidad.
+
+## 6. Próximos pasos técnicos (cuando haya prioridad)
 
 - Extender **soberanía local** (`local_sovereignty.py`) con criterios explícitos y auditoría, no “silencio”.
 - Nuevos tipos de evento en **MockDAO** / hub para “alerta de integridad” — siempre con banderas **mock / simulación** hasta threat model real.

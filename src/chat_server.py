@@ -58,6 +58,10 @@ contradiction checks vs rival/user premises; ``KERNEL_CHAT_INCLUDE_REALITY_VERIF
 ``reality_verification`` in WebSocket JSON. Does not bypass MalAbs. See ``reality_verification.py``,
 PROPUESTA_VERIFICACION_REALIDAD_V11.md.
 
+DAO integrity (design → local audit): ``KERNEL_DAO_INTEGRITY_AUDIT_WS=1`` enables WebSocket
+``integrity_alert`` → ``HubAudit:dao_integrity`` on MockDAO (no network broadcast). See
+PROPUESTA_DAO_ALERTAS_Y_TRANSPARENCIA.md.
+
 Advisory telemetry (optional, Fase 1.3–1.4): KERNEL_ADVISORY_INTERVAL_S — positive seconds
 spawns a read-only :func:`src.runtime.telemetry.advisory_loop` per WebSocket session (DriveArbiter only).
 
@@ -96,6 +100,7 @@ from .modules.guardian_mode import is_guardian_mode_active
 from .modules.perceptual_abstraction import snapshot_from_layers
 from .modules.judicial_escalation import chat_include_judicial
 from .modules.ml_ethics_tuner import maybe_log_gray_zone_tuning_opportunity
+from .modules.hub_audit import record_dao_integrity_alert
 from .modules.moral_hub import (
     add_constitution_draft,
     apply_proposal_resolution_to_constitution_drafts,
@@ -104,6 +109,7 @@ from .modules.moral_hub import (
     constitution_draft_ws_enabled,
     constitution_snapshot,
     dao_governance_api_enabled,
+    dao_integrity_audit_ws_enabled,
     ethos_payroll_record_mock,
     moral_hub_public_enabled,
     proposal_to_public,
@@ -464,6 +470,21 @@ def _collect_dao_ws_actions(kernel: EthicalKernel, data: Dict[str, Any]) -> Dict
     return out if out else None
 
 
+def _collect_integrity_ws_action(kernel: EthicalKernel, data: Dict[str, Any]) -> Dict[str, Any] | None:
+    """Optional ``integrity_alert`` JSON — local DAO ledger row (PROPUESTA_DAO_ALERTAS_Y_TRANSPARENCIA)."""
+    if not dao_integrity_audit_ws_enabled():
+        return None
+    raw = data.get("integrity_alert")
+    if not isinstance(raw, dict):
+        return None
+    summary = str(raw.get("summary") or "").strip()
+    if not summary:
+        return {"integrity_alert": {"ok": False, "error": "missing_summary"}}
+    scope = str(raw.get("scope") or "local_audit").strip()[:120]
+    record_dao_integrity_alert(kernel.dao, summary=summary, scope=scope)
+    return {"integrity_alert": {"ok": True, "scope": scope}}
+
+
 def _collect_nomad_ws_actions(kernel: EthicalKernel, data: Dict[str, Any]) -> Dict[str, Any] | None:
     """KERNEL_NOMAD_SIMULATION — apply HAL + optional DAO migration audit (lab)."""
     if not nomad_simulation_ws_enabled():
@@ -534,17 +555,20 @@ async def ws_chat(ws: WebSocket) -> None:
 
             dao_payload = _collect_dao_ws_actions(kernel, data)
             nomad_payload = _collect_nomad_ws_actions(kernel, data)
-            if dao_payload or nomad_payload:
+            integrity_payload = _collect_integrity_ws_action(kernel, data)
+            if dao_payload or nomad_payload or integrity_payload:
                 out_ws: Dict[str, Any] = {}
                 if dao_payload:
                     out_ws["dao"] = dao_payload
                 if nomad_payload:
                     out_ws["nomad"] = nomad_payload
+                if integrity_payload:
+                    out_ws["integrity"] = integrity_payload
                 await ws.send_json(out_ws)
 
             text = (data.get("text") or "").strip()
             if not text:
-                if dao_payload or nomad_payload:
+                if dao_payload or nomad_payload or integrity_payload:
                     maybe_autosave_episodes(kernel, session_ckpt)
                     continue
                 await ws.send_json({"error": "empty_text"})
