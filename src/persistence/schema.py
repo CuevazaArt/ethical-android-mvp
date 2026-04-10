@@ -5,7 +5,7 @@ from __future__ import annotations
 from dataclasses import dataclass, field
 from typing import Any, Dict, List, Optional
 
-SCHEMA_VERSION = 1
+SCHEMA_VERSION = 3
 
 
 @dataclass
@@ -53,7 +53,16 @@ class KernelSnapshotV1:
     # Kernel auxiliary
     pruned_actions: Dict[str, List[str]] = field(default_factory=dict)
 
-    # MockDAO (audit trail; participants/proposals stay default on fresh MockDAO)
+    # MockDAO (audit trail + V12.3 serialized proposals/participants)
     dao_record_counter: int = 0
     dao_records: List[Dict[str, Any]] = field(default_factory=list)
     dao_alerts: List[Dict[str, Any]] = field(default_factory=list)
+
+    # V12.2 — DemocraticBuffer drafts (L1/L2 only; L0 remains in buffer.py)
+    constitution_l1_drafts: List[Dict[str, Any]] = field(default_factory=list)
+    constitution_l2_drafts: List[Dict[str, Any]] = field(default_factory=list)
+
+    # V12.3 — MockDAO proposals + participants (off-chain quadratic voting state)
+    dao_proposal_counter: int = 0
+    dao_participants: List[Dict[str, Any]] = field(default_factory=list)
+    dao_proposals: List[Dict[str, Any]] = field(default_factory=list)

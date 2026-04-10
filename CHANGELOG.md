@@ -2,12 +2,30 @@
 
 All notable changes to this project are summarized here. For narrative context and design rationale, see [`HISTORY.md`](HISTORY.md).
 
+## UniversalEthos hub unification — April 2026
+- **Docs:** [docs/discusion/UNIVERSAL_ETHOS_AND_HUB.md](docs/discusion/UNIVERSAL_ETHOS_AND_HUB.md) — canonical vision ↔ code; [PROPUESTA_ESTADO_ETOSOCIAL_V12.md](docs/discusion/PROPUESTA_ESTADO_ETOSOCIAL_V12.md) slimmed to registry + env (points to unified doc).
+- **Code:** `deontic_gate.py` (`KERNEL_DEONTIC_GATE`); `ml_ethics_tuner.py` (`KERNEL_ML_ETHICS_TUNER_LOG`); `reparation_vault.py` (`KERNEL_REPARATION_VAULT_MOCK`); `nomad_identity.py` + optional WebSocket `nomad_identity` (`KERNEL_CHAT_INCLUDE_NOMAD_IDENTITY`).
+- **`moral_hub`:** `apply_proposal_resolution_to_constitution_drafts` — draft `status` / `resolved_at` after `dao_resolve`; deontic validation on `add_constitution_draft` / `submit_constitution_draft_for_vote` when gate enabled.
+- **`deontic_gate`:** rejects explicit **repeal** of named L0 principles from `PreloadedBuffer` (e.g. `repeal no_harm`).
+- **`reparation_vault`:** `maybe_register_reparation_after_mock_court` called from **`EthicalKernel.process_chat_turn`** after V11 `run_mock_escalation_court` when `KERNEL_REPARATION_VAULT_MOCK=1`.
+
 ## v12.0 — April 2026
 ### Moral Infrastructure Hub — vision + V12.1 code hooks
 - **Design doc** [docs/discusion/PROPUESTA_ESTADO_ETOSOCIAL_V12.md](docs/discusion/PROPUESTA_ESTADO_ETOSOCIAL_V12.md): DemocraticBuffer (L0–L2), services hub, EthosPayroll, R&D transparency; phased table **V12.1–V12.4**.
 - **`moral_hub.py`:** `constitution_snapshot`, `GET /constitution` (`KERNEL_MORAL_HUB_PUBLIC`); `audit_transparency_event` (`KERNEL_TRANSPARENCY_AUDIT`); `propose_community_article_mock` (`KERNEL_DEMOCRATIC_BUFFER_MOCK`); `ethos_payroll_record_mock` (`KERNEL_ETHOS_PAYROLL_MOCK`). WebSocket connect triggers transparency + optional payroll audit.
 - **`EthicalKernel.get_constitution_snapshot()`** for programmatic L0 export.
 - **Relationship to V11:** justice track unchanged; hub adds governance **narrative + audit hooks** without editing `buffer.py` contents.
+
+### V12.3 — Off-chain DAO vote pipeline (snapshot schema v3)
+- **`SCHEMA_VERSION = 3`:** `dao_proposal_counter`, `dao_participants`, `dao_proposals` — full MockDAO vote state (quadratic voting) in checkpoints; JSON **schema 1/2** loads gain empty DAO fields.
+- **`MockDAO.export_state` / `import_state`:** restore proposals + participants after audit records.
+- **`submit_constitution_draft_for_vote`**, **`proposal_to_public`** in `moral_hub.py`.
+- **`KERNEL_MORAL_HUB_DAO_VOTE=1`:** WebSocket JSON `dao_list`, `dao_submit_draft`, `dao_vote`, `dao_resolve` (response key `dao`). **`GET /dao/governance`** describes the protocol (no session kernel required).
+
+### V12.2 — L1/L2 draft persistence (kernel snapshot schema v2)
+- **`KernelSnapshotV1` / `SCHEMA_VERSION = 2`:** `constitution_l1_drafts`, `constitution_l2_drafts` (JSON-serializable dicts). **`snapshot_from_dict`** migrates saved JSON with `schema_version: 1` by defaulting those lists to `[]`.
+- **`extract_snapshot` / `apply_snapshot`:** round-trip drafts on `EthicalKernel`; L0 remains **`PreloadedBuffer`** only.
+- **`add_constitution_draft()`** in `moral_hub.py`; optional WebSocket `constitution_draft` when **`KERNEL_MORAL_HUB_DRAFT_WS=1`**; optional response field **`constitution`** when **`KERNEL_CHAT_INCLUDE_CONSTITUTION=1`**. `GET /constitution` stays L0-only (anonymous HTTP).
 
 ## v11.0 — April 2026
 ### Distributed artificial justice — Phases 1–2 (traceability + session strikes)

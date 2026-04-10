@@ -37,7 +37,7 @@ JSON and SQLite checkpoints in the repo are **unencrypted**: fine for local dev 
 
 ## Recommended boundaries (hexagonal, incremental)
 
-1. **Persistence port** — the v1 DTO is a full snapshot; future adapters (SQLite today; **encryption as a future wrapper**) can map to the same schema or `schema_version++`.
+1. **Persistence port** — the snapshot DTO (`KernelSnapshotV1`, **schema_version** 3: L1/L2 constitution drafts + MockDAO proposals/participants) is a full checkpoint; older JSON (**schema_version** 1 or 2) migrates with empty new fields. Adapters (SQLite today; **encryption as a future wrapper**) map to the same schema or `schema_version++`.
 2. **LLM port** — already implicit in `LLMModule`; a second provider forces clear boundaries.
 3. **Service process** — `chat_server` as the WebSocket front; optional workers for scheduled `execute_sleep` without blocking chat.
 

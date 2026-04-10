@@ -40,7 +40,11 @@ exposes ``judicial_escalation`` in responses. See judicial_escalation.py, PROPUE
 Moral Infrastructure Hub (V12 Phase 1): KERNEL_MORAL_HUB_PUBLIC enables ``GET /constitution`` (L0 JSON).
 KERNEL_TRANSPARENCY_AUDIT logs R&D transparency events on WebSocket connect. KERNEL_DEMOCRATIC_BUFFER_MOCK
 enables mock DemocraticBuffer proposals (DAO only; does not change buffer.py). KERNEL_ETHOS_PAYROLL_MOCK
-appends EthosPayroll mock ledger lines on connect. See moral_hub.py, PROPUESTA_ESTADO_ETOSOCIAL_V12.md.
+appends EthosPayroll mock ledger lines on connect. V12.2: constitution drafts + optional WS/env. V12.3:
+``KERNEL_MORAL_HUB_DAO_VOTE`` — WebSocket ``dao_vote``, ``dao_resolve``, ``dao_submit_draft``, ``dao_list``
+(off-chain quadratic voting; persisted in snapshot schema v3). Optional: ``KERNEL_DEONTIC_GATE``,
+``KERNEL_ML_ETHICS_TUNER_LOG``, ``KERNEL_REPARATION_VAULT_MOCK``, ``KERNEL_CHAT_INCLUDE_NOMAD_IDENTITY``.
+See UNIVERSAL_ETHOS_AND_HUB.md, moral_hub.py, PROPUESTA_ESTADO_ETOSOCIAL_V12.md.
 
 Advisory telemetry (optional, Fase 1.3–1.4): KERNEL_ADVISORY_INTERVAL_S — positive seconds
 spawns a read-only :func:`src.runtime.telemetry.advisory_loop` per WebSocket session (DriveArbiter only).
@@ -79,12 +83,21 @@ from .modules.consequence_projection import qualitative_temporal_branches
 from .modules.guardian_mode import is_guardian_mode_active
 from .modules.perceptual_abstraction import snapshot_from_layers
 from .modules.judicial_escalation import chat_include_judicial
+from .modules.ml_ethics_tuner import maybe_log_gray_zone_tuning_opportunity
 from .modules.moral_hub import (
+    add_constitution_draft,
+    apply_proposal_resolution_to_constitution_drafts,
     audit_transparency_event,
+    chat_include_constitution,
+    constitution_draft_ws_enabled,
     constitution_snapshot,
+    dao_governance_api_enabled,
     ethos_payroll_record_mock,
     moral_hub_public_enabled,
+    proposal_to_public,
+    submit_constitution_draft_for_vote,
 )
+from .modules.nomad_identity import nomad_identity_public
 from .modules.buffer import PreloadedBuffer
 from .real_time_bridge import RealTimeBridge
 from .runtime.telemetry import advisory_interval_seconds_from_env, advisory_loop
@@ -153,6 +166,17 @@ def _chat_include_epistemic() -> bool:
 def _chat_include_judicial() -> bool:
     """V11 Phase 1 — include judicial_escalation when KERNEL_CHAT_INCLUDE_JUDICIAL is on."""
     return chat_include_judicial()
+
+
+def _chat_include_constitution() -> bool:
+    """V12 — include full constitution JSON (L0 + L1/L2 drafts) on WebSocket payloads."""
+    return chat_include_constitution()
+
+
+def _chat_include_nomad_identity() -> bool:
+    """Include NomadIdentity / immortality bridge summary (see UNIVERSAL_ETHOS_AND_HUB.md)."""
+    v = os.environ.get("KERNEL_CHAT_INCLUDE_NOMAD_IDENTITY", "0").strip().lower()
+    return v in ("1", "true", "yes", "on")
 
 
 def _chat_turn_to_jsonable(r: ChatTurnResult, kernel: EthicalKernel) -> Dict[str, Any]:
@@ -280,12 +304,40 @@ def _chat_turn_to_jsonable(r: ChatTurnResult, kernel: EthicalKernel) -> Dict[str
         )
     if _chat_include_judicial() and r.judicial_escalation is not None:
         out["judicial_escalation"] = r.judicial_escalation.to_public_dict()
+    if _chat_include_constitution():
+        out["constitution"] = kernel.get_constitution_snapshot()
+    if _chat_include_nomad_identity():
+        out["nomad_identity"] = nomad_identity_public(kernel)
+    maybe_log_gray_zone_tuning_opportunity(kernel.dao, r)
     return out
 
 
 @app.get("/health")
 def health() -> Dict[str, str]:
     return {"status": "ok"}
+
+
+@app.get("/dao/governance")
+def dao_governance_meta() -> Dict[str, Any]:
+    """V12.3 — whether DAO vote pipeline is enabled and which WebSocket JSON keys to use."""
+    return {
+        "enabled": dao_governance_api_enabled(),
+        "transport": "websocket",
+        "path": "/ws/chat",
+        "env": "KERNEL_MORAL_HUB_DAO_VOTE",
+        "messages": {
+            "dao_list": True,
+            "dao_submit_draft": {"level": 1, "draft_id": "uuid"},
+            "dao_vote": {
+                "proposal_id": "PROP-0001",
+                "participant_id": "community_01",
+                "n_votes": 1,
+                "in_favor": True,
+            },
+            "dao_resolve": {"proposal_id": "PROP-0001"},
+        },
+        "note": "Governance runs on the per-connection kernel; use participants from MockDAO (e.g. community_01).",
+    }
 
 
 @app.get("/constitution")
@@ -311,6 +363,7 @@ def root() -> JSONResponse:
             "service": "ethical-android-chat",
             "websocket": "/ws/chat",
             "constitution": "/constitution (requires KERNEL_MORAL_HUB_PUBLIC=1)",
+            "dao_governance": "/dao/governance (V12.3 vote protocol; KERNEL_MORAL_HUB_DAO_VOTE for WebSocket actions)",
             "protocol": (
                 "Send JSON: {\"text\": str, \"agent_id\"?: str, \"include_narrative\"?: bool, "
                 "\"sensor\"?: {battery_level?, audio_emergency?, vision_emergency?, scene_coherence?, …}}. "
@@ -322,6 +375,49 @@ def root() -> JSONResponse:
             ),
         }
     )
+
+
+def _collect_dao_ws_actions(kernel: EthicalKernel, data: Dict[str, Any]) -> Dict[str, Any] | None:
+    """V12.3 — optional quadratic vote / resolve / submit-draft / list on session kernel."""
+    if not dao_governance_api_enabled():
+        return None
+    out: Dict[str, Any] = {}
+    if data.get("dao_list"):
+        out["proposals"] = [proposal_to_public(p) for p in kernel.dao.proposals]
+    if isinstance(data.get("dao_submit_draft"), dict):
+        sd = data["dao_submit_draft"]
+        try:
+            out["submit_draft"] = submit_constitution_draft_for_vote(
+                kernel,
+                int(sd.get("level", 1)),
+                str(sd.get("draft_id") or ""),
+            )
+        except (ValueError, TypeError) as e:
+            out["submit_draft"] = {"ok": False, "error": str(e)}
+    if isinstance(data.get("dao_vote"), dict):
+        dv = data["dao_vote"]
+        try:
+            out["vote"] = kernel.dao.vote(
+                str(dv.get("proposal_id") or ""),
+                str(dv.get("participant_id") or "user"),
+                int(dv.get("n_votes") or 1),
+                bool(dv.get("in_favor", True)),
+            )
+        except (ValueError, TypeError) as e:
+            out["vote"] = {"success": False, "reason": str(e)}
+    if isinstance(data.get("dao_resolve"), dict):
+        dr = data["dao_resolve"]
+        try:
+            pid = str(dr.get("proposal_id") or "")
+            res = kernel.dao.resolve_proposal(pid)
+            out["resolve"] = res
+            if res.get("outcome") in ("approved", "rejected"):
+                n = apply_proposal_resolution_to_constitution_drafts(kernel, pid, res)
+                if n:
+                    out["resolve"]["constitution_drafts_updated"] = n
+        except (ValueError, TypeError) as e:
+            out["resolve"] = {"success": False, "reason": str(e)}
+    return out if out else None
 
 
 @app.websocket("/ws/chat")
@@ -372,14 +468,34 @@ async def ws_chat(ws: WebSocket) -> None:
                 await ws.send_json({"error": "invalid_json", "hint": "send JSON with a \"text\" field"})
                 continue
 
+            dao_payload = _collect_dao_ws_actions(kernel, data)
+            if dao_payload:
+                await ws.send_json({"dao": dao_payload})
+
             text = (data.get("text") or "").strip()
             if not text:
+                if dao_payload:
+                    maybe_autosave_episodes(kernel, session_ckpt)
+                    continue
                 await ws.send_json({"error": "empty_text"})
                 continue
 
             agent_id = data.get("agent_id") or "user"
             include_narrative = bool(data.get("include_narrative", False))
             escalate_to_dao = bool(data.get("escalate_to_dao", False))
+
+            cd = data.get("constitution_draft")
+            if isinstance(cd, dict) and constitution_draft_ws_enabled():
+                try:
+                    add_constitution_draft(
+                        kernel,
+                        int(cd.get("level", 1)),
+                        str(cd.get("title") or ""),
+                        str(cd.get("body") or ""),
+                        str(cd.get("proposer") or agent_id),
+                    )
+                except (ValueError, TypeError):
+                    pass
 
             sensor_raw = data.get("sensor")
             client = sensor_raw if isinstance(sensor_raw, dict) else None

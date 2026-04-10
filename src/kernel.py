@@ -77,6 +77,7 @@ from .modules.judicial_escalation import (
     should_offer_escalation_advisory,
     strikes_threshold_from_env,
 )
+from .modules.reparation_vault import maybe_register_reparation_after_mock_court
 
 
 @dataclass
@@ -176,12 +177,14 @@ class EthicalKernel:
         self.somatic_store = SomaticMarkerStore()
         self.metaplan = MetaplanRegistry()
         self.escalation_session = EscalationSessionTracker()
+        self.constitution_l1_drafts: List[Dict[str, Any]] = []
+        self.constitution_l2_drafts: List[Dict[str, Any]] = []
 
     def get_constitution_snapshot(self) -> Dict[str, Any]:
-        """Read-only export of L0 principles (buffer.py); L1/L2 placeholders — see V12 moral hub."""
+        """L0 from buffer.py; L1/L2 drafts when present (V12.2 snapshot)."""
         from .modules.moral_hub import constitution_snapshot
 
-        return constitution_snapshot(self.buffer)
+        return constitution_snapshot(self.buffer, self)
 
     def process(self, scenario: str, place: str,
                 signals: dict, context: str,
@@ -789,6 +792,9 @@ class EthicalKernel:
                                 rec.id,
                                 dossier.to_audit_paragraph(),
                                 dossier.buffer_conflict,
+                            )
+                            maybe_register_reparation_after_mock_court(
+                                self.dao, mock_court, dossier.case_uuid
                             )
                         je_view = build_escalation_view(
                             True,

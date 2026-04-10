@@ -15,17 +15,51 @@ from src.persistence import (
     apply_snapshot,
     extract_snapshot,
 )
+from src.modules.moral_hub import add_constitution_draft
 from src.persistence.json_store import snapshot_from_dict
 from src.simulations.runner import ALL_SIMULATIONS
 
 
 def test_schema_version_constant():
-    assert SCHEMA_VERSION == 1
+    assert SCHEMA_VERSION == 3
 
 
 def test_snapshot_from_dict_rejects_bad_version():
     with pytest.raises(ValueError, match="schema_version"):
         snapshot_from_dict({"schema_version": 0})
+    with pytest.raises(ValueError, match="schema_version"):
+        snapshot_from_dict({"schema_version": 99})
+
+
+def test_snapshot_from_dict_migrates_v1():
+    snap = snapshot_from_dict({"schema_version": 1})
+    assert snap.schema_version == SCHEMA_VERSION
+    assert snap.constitution_l1_drafts == []
+    assert snap.constitution_l2_drafts == []
+    assert snap.dao_proposals == []
+    assert snap.dao_participants == []
+    assert snap.dao_proposal_counter == 0
+
+
+def test_snapshot_from_dict_migrates_v2():
+    snap = snapshot_from_dict({"schema_version": 2, "constitution_l1_drafts": [{"id": "x"}]})
+    assert snap.schema_version == SCHEMA_VERSION
+    assert snap.dao_proposals == []
+
+
+def test_constitution_drafts_roundtrip():
+    k1 = EthicalKernel(variability=False)
+    add_constitution_draft(k1, 1, "Coexistence draft", "Body A", proposer="tester")
+    add_constitution_draft(k1, 2, "Owner note", "Body B")
+
+    snap = extract_snapshot(k1)
+    assert len(snap.constitution_l1_drafts) == 1
+    assert len(snap.constitution_l2_drafts) == 1
+
+    k2 = EthicalKernel(variability=False)
+    apply_snapshot(k2, snap)
+    assert k2.constitution_l1_drafts == k1.constitution_l1_drafts
+    assert k2.constitution_l2_drafts == k1.constitution_l2_drafts
 
 
 def test_extract_apply_roundtrip_in_memory():

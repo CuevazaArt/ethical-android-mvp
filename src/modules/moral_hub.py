@@ -6,14 +6,18 @@ Does **not** replace ``PreloadedBuffer`` or MalAbs. Provides:
 - Optional DAO audit lines for R&D transparency protocol and mock community proposals
 - Stubs for EthosPayroll narrative (audit-only)
 
-See docs/discusion/PROPUESTA_ESTADO_ETOSOCIAL_V12.md
+See docs/discusion/PROPUESTA_ESTADO_ETOSOCIAL_V12.md and UNIVERSAL_ETHOS_AND_HUB.md.
 """
 
 from __future__ import annotations
 
 import os
+import uuid
+from datetime import datetime
 from enum import IntEnum
 from typing import TYPE_CHECKING, Any, Dict, List, Optional
+
+from .deontic_gate import validate_draft_or_raise
 
 if TYPE_CHECKING:
     from .buffer import PreloadedBuffer
@@ -56,10 +60,51 @@ def ethos_payroll_mock_enabled() -> bool:
     return v in ("1", "true", "yes", "on")
 
 
-def constitution_snapshot(buffer: "PreloadedBuffer") -> Dict[str, Any]:
+def constitution_draft_ws_enabled() -> bool:
+    """Allow WebSocket JSON ``constitution_draft`` to append L1/L2 drafts (session kernel)."""
+    v = os.environ.get("KERNEL_MORAL_HUB_DRAFT_WS", "0").strip().lower()
+    return v in ("1", "true", "yes", "on")
+
+
+def chat_include_constitution() -> bool:
+    """Include full ``constitution`` object in WebSocket responses (can be large)."""
+    v = os.environ.get("KERNEL_CHAT_INCLUDE_CONSTITUTION", "0").strip().lower()
+    return v in ("1", "true", "yes", "on")
+
+
+def dao_governance_api_enabled() -> bool:
+    """V12.3 — WebSocket ``dao_vote`` / ``dao_resolve`` / ``dao_submit_draft`` / ``dao_list``."""
+    v = os.environ.get("KERNEL_MORAL_HUB_DAO_VOTE", "0").strip().lower()
+    return v in ("1", "true", "yes", "on")
+
+
+def proposal_to_public(p: Any) -> Dict[str, Any]:
+    """JSON-safe summary of a DAO :class:`~src.modules.mock_dao.Proposal` (quadratic vote totals)."""
+    vf = getattr(p, "votes_for", None) or {}
+    va = getattr(p, "votes_against", None) or {}
+    tw = sum(float(x) for x in vf.values())
+    ta = sum(float(x) for x in va.values())
+    return {
+        "id": p.id,
+        "title": p.title,
+        "description": p.description,
+        "type": p.type,
+        "status": p.status,
+        "timestamp": p.timestamp,
+        "weighted_votes_for": round(tw, 4),
+        "weighted_votes_against": round(ta, 4),
+        "voter_count_for": len(vf),
+        "voter_count_against": len(va),
+    }
+
+
+def constitution_snapshot(
+    buffer: "PreloadedBuffer",
+    kernel: Optional[Any] = None,
+) -> Dict[str, Any]:
     """
-    Read-only export of Level-0 principles (current ``PreloadedBuffer``).
-    Democratic evolution of content is **not** implemented; this documents the live constitution.
+    Read-only export of L0 from ``PreloadedBuffer``; optional L1/L2 **draft** articles from ``kernel``
+    (persisted in :class:`KernelSnapshotV1` as of schema v2).
     """
     principles: List[Dict[str, Any]] = []
     for name, p in sorted(buffer.principles.items(), key=lambda x: x[0]):
@@ -73,8 +118,17 @@ def constitution_snapshot(buffer: "PreloadedBuffer") -> Dict[str, Any]:
                 "locked": True,
             }
         )
+    l1: List[Dict[str, Any]] = []
+    l2: List[Dict[str, Any]] = []
+    if kernel is not None:
+        l1 = list(getattr(kernel, "constitution_l1_drafts", []) or [])
+        l2 = list(getattr(kernel, "constitution_l2_drafts", []) or [])
+    disc = (
+        "L0 reflects code in buffer.py. L1/L2 list draft articles when present (V12.2); "
+        "they do not override PreloadedBuffer."
+    )
     return {
-        "version": "v12-phase1-snapshot",
+        "version": "v12-universal-ethos-snapshot",
         "levels": {
             "0": {
                 "name": "hard_core",
@@ -84,17 +138,116 @@ def constitution_snapshot(buffer: "PreloadedBuffer") -> Dict[str, Any]:
             },
             "1": {
                 "name": "coexistence",
-                "label": "Norms of coexistence (future community / culture)",
-                "principles": [],
+                "label": "Norms of coexistence (drafts; persisted in kernel snapshot)",
+                "principles": l1,
             },
             "2": {
                 "name": "owner_directive",
-                "label": "Owner preferences bounded by L0/L1 (future)",
-                "principles": [],
+                "label": "Owner preferences (drafts; bounded by L0/L1 in production)",
+                "principles": l2,
             },
         },
-        "disclaimer": "L0 reflects code in buffer.py; L1/L2 are placeholders until governance exists.",
+        "disclaimer": disc,
     }
+
+
+def add_constitution_draft(
+    kernel: Any,
+    level: int,
+    title: str,
+    body: str,
+    proposer: str = "user",
+) -> Dict[str, Any]:
+    """
+    Append a draft article to L1 or L2 on the kernel (checkpoint / snapshot persist).
+
+    Does **not** change ``PreloadedBuffer`` or MalAbs.
+    """
+    if level not in (1, 2):
+        raise ValueError("level must be 1 or 2")
+    title = (title or "").strip()[:500]
+    body = (body or "").strip()[:4000]
+    if not title:
+        raise ValueError("title required")
+    validate_draft_or_raise(title, body, kernel.buffer)
+    d: Dict[str, Any] = {
+        "id": str(uuid.uuid4()),
+        "title": title,
+        "body": body,
+        "proposer": (proposer or "user")[:200],
+        "created": datetime.now().isoformat(),
+        "status": "draft",
+    }
+    if level == 1:
+        kernel.constitution_l1_drafts.append(d)
+    else:
+        kernel.constitution_l2_drafts.append(d)
+    return d
+
+
+def submit_constitution_draft_for_vote(
+    kernel: Any,
+    level: int,
+    draft_id: str,
+) -> Dict[str, Any]:
+    """
+    Create a MockDAO proposal from an L1/L2 constitution draft (off-chain pipeline).
+
+    Does **not** mutate ``PreloadedBuffer``. Idempotent if ``dao_proposal_id`` already set.
+    """
+    if level not in (1, 2):
+        return {"ok": False, "error": "level must be 1 or 2"}
+    did = (draft_id or "").strip()
+    if not did:
+        return {"ok": False, "error": "draft_id required"}
+    lst = kernel.constitution_l1_drafts if level == 1 else kernel.constitution_l2_drafts
+    draft = next((d for d in lst if d.get("id") == did), None)
+    if not draft:
+        return {"ok": False, "error": "draft not found"}
+    existing = draft.get("dao_proposal_id")
+    if existing:
+        return {"ok": True, "proposal_id": existing, "already_submitted": True}
+    title = str(draft.get("title", ""))[:500]
+    body = str(draft.get("body", ""))[:4000]
+    try:
+        validate_draft_or_raise(title, body, kernel.buffer)
+    except ValueError as e:
+        return {"ok": False, "error": str(e)}
+    prop = kernel.dao.create_proposal(
+        title=f"[Constitution L{level}] {title}",
+        description=body,
+        type="ethics",
+    )
+    draft["dao_proposal_id"] = prop.id
+    draft["status"] = "voting"
+    return {"ok": True, "proposal_id": prop.id, "title": prop.title}
+
+
+def apply_proposal_resolution_to_constitution_drafts(
+    kernel: Any,
+    proposal_id: str,
+    resolve_result: Dict[str, Any],
+) -> int:
+    """
+    After :meth:`MockDAO.resolve_proposal`, set linked L1/L2 draft ``status`` to
+    ``approved`` or ``rejected`` when ``dao_proposal_id`` matches.
+    """
+    pid = (proposal_id or "").strip()
+    if not pid:
+        return 0
+    outcome = resolve_result.get("outcome")
+    if outcome not in ("approved", "rejected"):
+        return 0
+    ts = datetime.now().isoformat()
+    n = 0
+    for lst in (kernel.constitution_l1_drafts, kernel.constitution_l2_drafts):
+        for d in lst:
+            if d.get("dao_proposal_id") == pid:
+                d["status"] = "approved" if outcome == "approved" else "rejected"
+                d["resolved_at"] = ts
+                d["resolution_outcome"] = outcome
+                n += 1
+    return n
 
 
 def audit_transparency_event(dao: "MockDAO", event: str, detail: str = "") -> None:

@@ -198,6 +198,12 @@ Governance track: **artificial social contract** metaphor — owner insistence i
 
 **V12.1 (code):** `src/modules/moral_hub.py` — read-only **L0 constitution** JSON (`GET /constitution` when `KERNEL_MORAL_HUB_PUBLIC=1`); optional **transparency audit** on WebSocket connect (`KERNEL_TRANSPARENCY_AUDIT`); mock **community buffer proposals** (`KERNEL_DEMOCRATIC_BUFFER_MOCK`); **EthosPayroll** mock audit line (`KERNEL_ETHOS_PAYROLL_MOCK`). Does **not** mutate `PreloadedBuffer` or MalAbs.
 
+**V12.2 (code):** Snapshot schema **v2** persists **L1/L2 draft articles** on the kernel (`constitution_l1_drafts` / `constitution_l2_drafts`); `EthicalKernel.get_constitution_snapshot()` includes those lists. JSON checkpoints with schema v1 load with empty draft lists. Optional WebSocket: `KERNEL_MORAL_HUB_DRAFT_WS`, `KERNEL_CHAT_INCLUDE_CONSTITUTION`.
+
+**V12.3 (code):** Snapshot schema **v3** persists **MockDAO proposals and participants** (off-chain quadratic voting). `submit_constitution_draft_for_vote` links a constitution draft to a DAO proposal. **`KERNEL_MORAL_HUB_DAO_VOTE`** enables WebSocket governance messages; **`GET /dao/governance`** documents keys.
+
+**UniversalEthos hub (docs + stubs):** [docs/discusion/UNIVERSAL_ETHOS_AND_HUB.md](docs/discusion/UNIVERSAL_ETHOS_AND_HUB.md) unifies DemocraticBuffer / multicultural overlays, services hub, audit levels, and module map. Code stubs: **`deontic_gate`** (incl. repeal of named L0 principles), **`ml_ethics_tuner`** (gray-zone audit line), **`reparation_vault`** (mock intent + hook after V11 mock tribunal), **`nomad_identity`** (immortality bridge). **`apply_proposal_resolution_to_constitution_drafts`** keeps draft status aligned with DAO resolve.
+
 ---
 
 ## Historical artifacts (not included in the repo, available locally)

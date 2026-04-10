@@ -1,68 +1,10 @@
 # V12 — Moral Infrastructure Hub & distributed etosocial state
 
-**Status:** **vision + Phase 1 code hooks** in `src/modules/moral_hub.py` (constitution export, transparency audit, mock proposals, EthosPayroll audit lines).  
+**Status:** **vision + Phase 1–3 code hooks** in `src/modules/moral_hub.py`, `mock_dao.py`, persistence, and hub stubs (`deontic_gate`, `ml_ethics_tuner`, `reparation_vault`, `nomad_identity`). **Canonical narrative + module map:** [UNIVERSAL_ETHOS_AND_HUB.md](UNIVERSAL_ETHOS_AND_HUB.md) (DemocraticBuffer / overlays, services hub, audit levels, evolution loops, V11 naming table).
+
 **Relationship to V11:** V11 implements **justice traceability and mock tribunal**; V12 frames the **civilization-scale hub** (constitution, economy, R&D ethics) that those features plug into. The kernel pipeline (MalAbs → … → will) remains the **normative core**; hub layers are **governance and operations**, not a replacement kernel.
 
----
-
-## Hub positioning: “living constitution”
-
-The project is not only a software model but an **infrastructure for hybrid moral civilization**: humans, institutions, and services maintain a **Living Constitution** — the android’s “instinct” becomes a **democratic expression of universal values** only in the **full product vision**; in the MVP, **L0** remains **immutable in code** (`buffer.py`), with **read-only export** and **mock** DAO proposals for demos.
-
----
-
-## Pillar 1 — Community constitution (DemocraticBuffer)
-
-The buffer stops being **only** a static file in the **vision**: it becomes a **dynamic social contract** where validated institutions and humans propose **ethical articles**, and the community votes (quadratic voting) on what enters the immutable layers.
-
-| Layer | Content (vision) | Vote threshold (design) | MVP codebase |
-|-------|------------------|-------------------------|--------------|
-| **L0 — Hard core** | Human rights + MalAbs-class absolutes | ~90% consensus (design) | **Implemented** as `PreloadedBuffer` in `buffer.py`; **not** community-editable yet |
-| **L1 — Coexistence** | Culture / hardware norms | ~66% (design) | **Placeholder** empty list in `constitution_snapshot()` |
-| **L2 — Owner directives** | Private preferences, may not violate L0/L1 | Owner + bounds (design) | **Placeholder** |
-
-**Phase 1 code:** `constitution_snapshot()` exports L0 **read-only**; `propose_community_article_mock()` → `MockDAO.create_proposal` when `KERNEL_DEMOCRATIC_BUFFER_MOCK=1` (does **not** mutate `PreloadedBuffer`).
-
----
-
-## Pillar 2 — Services hub (value + employment)
-
-| Service | Role (vision) | MVP |
-|---------|---------------|-----|
-| **Distributed justice** | External parties contract DAO for ethical arbitration; human + android analysts | V11 mock court + escalation audit |
-| **Soul / firmware care** | Subscription for backup + updates | Persistence + immortality modules (existing) |
-| **ML ethics tuning** | Sell certified ethical inference models; human “value trainers” | Not implemented; federated learning remains design |
-
----
-
-## Pillar 3 — Mixed remuneration (EthosPayroll)
-
-**Vision:** Fiat/crypto from services and licenses; **reputation tokens** for DAO weight and priority access.  
-**Phase 1 code:** `ethos_payroll_record_mock()` appends **audit** lines when `KERNEL_ETHOS_PAYROLL_MOCK=1` (narrative only; no payments).
-
----
-
-## Pillar 4 — R&D transparency vs. privacy veil
-
-| Stage | Policy (vision) | Phase 1 code |
-|-------|-----------------|--------------|
-| **Sandbox observation** | Core team holds an **auditor transparency** role: thought flows visible for debugging **only under policy** | `KERNEL_TRANSPARENCY_AUDIT=1` → `audit_transparency_event()` on each WebSocket open (and extensible to other events) |
-| **Auditability** | Each access generates a **DAO audit record** (mock) | `register_audit` via `moral_hub` |
-| **Future veil** | Human direct observation replaced by **statistical summaries** from trusted androids | Not implemented |
-
----
-
-## Logistics architecture (inputs → hub)
-
-```
-(Input) Institutions + humans → propose buffer / ML changes (vision)
-        ↓
-Deliberation DAO → votes on weights & firmware (vision; mock DAO today)
-        ↓
-Hub execution → androids deliver services; humans audit truth/ethics (vision)
-        ↓
-Value flow → maintenance, salaries, network expansion (vision; EthosPayroll mock audit only)
-```
+**Living constitution (summary):** In the MVP, **L0** stays **immutable in code** (`buffer.py`); L1/L2 are **drafts + DAO votes** (checkpointed), with optional **deontic gate** on drafts (`KERNEL_DEONTIC_GATE`). Full pillar detail is in **UNIVERSAL_ETHOS_AND_HUB.md** — this file keeps the **V12 release registry** and **environment variables**.
 
 ---
 
@@ -74,8 +16,9 @@ Value flow → maintenance, salaries, network expansion (vision; EthosPayroll mo
 | **V12.1** | Transparency audit hook on WebSocket; `KERNEL_TRANSPARENCY_AUDIT` | Low | **Done** |
 | **V12.1** | Mock DemocraticBuffer proposals; `KERNEL_DEMOCRATIC_BUFFER_MOCK` | Low | **Done** |
 | **V12.1** | EthosPayroll mock audit lines; `KERNEL_ETHOS_PAYROLL_MOCK` | Low | **Done** |
-| **V12.2** | Persist L1/L2 drafts in snapshot schema (optional) | Medium | Planned |
-| **V12.3** | Real vote pipeline on proposals (off-chain → testnet) | High | Research |
+| **V12.2** | Persist L1/L2 drafts in snapshot schema | Medium | **Done** (`constitution_*_drafts`; snapshot schema v2+; optional WS/env) |
+| **V12.3** | Vote pipeline on MockDAO proposals (off-chain; checkpointed) | Medium | **Done** (`KERNEL_MORAL_HUB_DAO_VOTE`, schema v3, `submit_constitution_draft_for_vote`, draft status sync on resolve) |
+| **V12.3+** | UniversalEthos stubs (deontic, expert loop, reparation, nomad bridge) | Low | **Done** (see UNIVERSAL_ETHOS_AND_HUB.md) |
 | **V12.4** | MPC jury, federated learning, payroll tokens | Very high | Research (see sections 1–4 legacy below) |
 
 ---
@@ -131,17 +74,30 @@ Value flow → maintenance, salaries, network expansion (vision; EthosPayroll mo
 | `KERNEL_DEMOCRATIC_BUFFER_MOCK` | off | `propose_community_article_mock` creates DAO proposals |
 | `KERNEL_ETHOS_PAYROLL_MOCK` | off | One-line EthosPayroll audit on WebSocket connect |
 
+## Environment variables (Phases 2–3)
+
+| Variable | Default | Effect |
+|----------|---------|--------|
+| `KERNEL_MORAL_HUB_DRAFT_WS` | off | WebSocket `constitution_draft` appends L1/L2 drafts |
+| `KERNEL_CHAT_INCLUDE_CONSTITUTION` | off | WebSocket responses include full `constitution` JSON |
+| `KERNEL_MORAL_HUB_DAO_VOTE` | off | WebSocket `dao_list`, `dao_submit_draft`, `dao_vote`, `dao_resolve`; see `GET /dao/governance` |
+| `KERNEL_DEONTIC_GATE` | off | Reject L1/L2 drafts that fail L0 heuristic check (`deontic_gate.py`) |
+| `KERNEL_ML_ETHICS_TUNER_LOG` | off | DAO audit line on gray-zone turns (`ml_ethics_tuner.py`) |
+| `KERNEL_REPARATION_VAULT_MOCK` | off | Mock reparation **intent** lines on DAO audit |
+| `KERNEL_CHAT_INCLUDE_NOMAD_IDENTITY` | off | WebSocket `nomad_identity` summary (`nomad_identity.py`) |
+
 ---
 
 ## Registry note (versioning)
 
 - **V11** = justice/escalation track (implemented phases 1–3).
-- **V12** = moral infrastructure hub: **vision** + **V12.1** code hooks above; no change to MalAbs or buffer semantics.
+- **V12** = moral infrastructure hub: **vision** + **V12.1–V12.3** + **UniversalEthos stubs**; no change to MalAbs or L0 buffer semantics.
 
 ---
 
 ## References
 
+- [UNIVERSAL_ETHOS_AND_HUB.md](UNIVERSAL_ETHOS_AND_HUB.md) — **unified** hub architecture (vision ↔ code)
 - [PROPUESTA_JUSTICIA_DISTRIBUIDA_V11.md](PROPUESTA_JUSTICIA_DISTRIBUIDA_V11.md)
 - [PROPUESTA_ESTRATEGIA_OPERATIVA_V10.md](PROPUESTA_ESTRATEGIA_OPERATIVA_V10.md)
 - [RUNTIME_PERSISTENT.md](../RUNTIME_PERSISTENT.md)

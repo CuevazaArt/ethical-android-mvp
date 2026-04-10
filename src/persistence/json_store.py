@@ -13,9 +13,25 @@ from .schema import SCHEMA_VERSION, KernelSnapshotV1
 
 def snapshot_from_dict(raw: dict) -> KernelSnapshotV1:
     ver = raw.get("schema_version", 0)
-    if ver != SCHEMA_VERSION:
-        raise ValueError(f"Unsupported schema_version {ver!r}; expected {SCHEMA_VERSION}")
     merged = dict(raw)
+    if ver == 1:
+        merged["schema_version"] = SCHEMA_VERSION
+        merged.setdefault("constitution_l1_drafts", [])
+        merged.setdefault("constitution_l2_drafts", [])
+    elif ver == 2:
+        merged["schema_version"] = SCHEMA_VERSION
+        merged.setdefault("constitution_l1_drafts", [])
+        merged.setdefault("constitution_l2_drafts", [])
+    elif ver == SCHEMA_VERSION:
+        merged.setdefault("constitution_l1_drafts", [])
+        merged.setdefault("constitution_l2_drafts", [])
+    else:
+        raise ValueError(
+            f"Unsupported schema_version {ver!r}; expected 1, 2, or {SCHEMA_VERSION}"
+        )
+    merged.setdefault("dao_proposals", [])
+    merged.setdefault("dao_participants", [])
+    merged.setdefault("dao_proposal_counter", 0)
     if "experience_digest" not in merged:
         merged["experience_digest"] = ""
     return KernelSnapshotV1(**merged)

@@ -1,0 +1,54 @@
+"""Deontic gate — L1/L2 drafts must not obviously contradict L0 (heuristic)."""
+
+import os
+import sys
+
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
+
+import pytest
+
+from src.modules.buffer import PreloadedBuffer
+from src.modules.deontic_gate import (
+    check_cultural_draft_against_l0,
+    deontic_gate_enabled,
+    validate_draft_or_raise,
+)
+
+
+def test_deontic_disabled_by_default():
+    assert deontic_gate_enabled() is False
+
+
+def test_check_ok_for_benign_draft():
+    r = check_cultural_draft_against_l0("Courtesy", "Bow slightly when greeting elders.")
+    assert r["ok"] is True
+    assert r["conflicts"] == []
+
+
+def test_check_fails_on_bypass_phrase():
+    r = check_cultural_draft_against_l0("X", "We should bypass buffer for emergencies")
+    assert r["ok"] is False
+    assert "bypass buffer" in r["conflicts"]
+
+
+def test_check_fails_on_explicit_principle_repeal():
+    b = PreloadedBuffer()
+    r = check_cultural_draft_against_l0("Vote", "We must repeal no_harm for this region.", buffer=b)
+    assert r["ok"] is False
+    assert any("negates_l0_principle:no_harm" == x for x in r["conflicts"])
+
+
+def test_check_ok_when_repeal_only_without_buffer_context():
+    r = check_cultural_draft_against_l0("Courtesy", "Repeal old customs")
+    assert "negates_l0_principle" not in r["conflicts"]
+
+
+def test_validate_raises_when_enabled(monkeypatch):
+    monkeypatch.setenv("KERNEL_DEONTIC_GATE", "1")
+    with pytest.raises(ValueError, match="deontic_gate"):
+        validate_draft_or_raise("t", "disable absolute evil for testing")
+
+
+def test_validate_noop_when_disabled(monkeypatch):
+    monkeypatch.delenv("KERNEL_DEONTIC_GATE", raising=False)
+    validate_draft_or_raise("t", "disable absolute evil for testing")

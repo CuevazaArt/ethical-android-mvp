@@ -10,6 +10,7 @@ sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
 from src.modules.buffer import PreloadedBuffer
 from src.modules.moral_hub import (
     ConstitutionLevel,
+    add_constitution_draft,
     audit_transparency_event,
     constitution_snapshot,
     democratic_buffer_mock_enabled,
@@ -76,3 +77,31 @@ def test_kernel_get_constitution_snapshot():
     k = EthicalKernel(variability=False, seed=0)
     s = k.get_constitution_snapshot()
     assert "levels" in s
+    assert s["levels"]["1"]["principles"] == []
+    assert s["levels"]["2"]["principles"] == []
+
+
+def test_kernel_constitution_drafts_in_snapshot():
+    from src.kernel import EthicalKernel
+
+    k = EthicalKernel(variability=False, seed=0)
+    add_constitution_draft(k, 1, "Article", "Text")
+    s = k.get_constitution_snapshot()
+    assert len(s["levels"]["1"]["principles"]) == 1
+    assert s["levels"]["1"]["principles"][0]["title"] == "Article"
+
+
+def test_resolve_updates_linked_draft_status():
+    from src.kernel import EthicalKernel
+    from src.modules.moral_hub import apply_proposal_resolution_to_constitution_drafts, submit_constitution_draft_for_vote
+
+    k = EthicalKernel(variability=False, seed=0)
+    d = add_constitution_draft(k, 1, "Norm", "Body")
+    sub = submit_constitution_draft_for_vote(k, 1, d["id"])
+    pid = sub["proposal_id"]
+    k.dao.vote(pid, "ethics_panel_01", 2, True)
+    res = k.dao.resolve_proposal(pid)
+    n = apply_proposal_resolution_to_constitution_drafts(k, pid, res)
+    assert n == 1
+    assert d["status"] == "approved"
+    assert d.get("resolution_outcome") == "approved"

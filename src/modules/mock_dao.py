@@ -8,7 +8,7 @@ and Solidarity Alert Protocol.
 In production: replaced by smart contracts on testnet/mainnet.
 """
 
-from dataclasses import dataclass, field
+from dataclasses import asdict, dataclass, field
 from typing import Any, Dict, List, Optional
 from datetime import datetime
 import hashlib
@@ -323,6 +323,54 @@ class MockDAO:
         """Get filtered audit records."""
         recs = self.records if not type else [r for r in self.records if r.type == type]
         return recs[-limit:]
+
+    def export_state(self) -> Dict[str, Any]:
+        """V12.3 — serialize proposals + participants for kernel checkpoint (off-chain)."""
+        return {
+            "proposal_counter": self._proposal_counter,
+            "participants": [
+                asdict(p) for p in sorted(self.participants.values(), key=lambda x: x.id)
+            ],
+            "proposals": [asdict(p) for p in self.proposals],
+        }
+
+    def import_state(self, data: Optional[Dict[str, Any]]) -> None:
+        """Restore proposals + participants from :meth:`export_state`."""
+        if not data:
+            return
+        self._proposal_counter = max(0, int(data.get("proposal_counter", 0)))
+        participants_raw: List[Dict[str, Any]] = list(data.get("participants") or [])
+        proposals_raw: List[Dict[str, Any]] = list(data.get("proposals") or [])
+        if participants_raw:
+            self.participants = {}
+            for pd in participants_raw:
+                self.participants[pd["id"]] = Participant(
+                    id=pd["id"],
+                    type=pd["type"],
+                    experience_reputation=float(pd["experience_reputation"]),
+                    empathy_reputation=float(pd["empathy_reputation"]),
+                    consistency_reputation=float(pd["consistency_reputation"]),
+                    available_tokens=int(pd["available_tokens"]),
+                )
+        else:
+            self.participants = {}
+            self._initialize_community()
+        self.proposals = []
+        for d in proposals_raw:
+            vf = d.get("votes_for") or {}
+            va = d.get("votes_against") or {}
+            self.proposals.append(
+                Proposal(
+                    id=d["id"],
+                    title=d["title"],
+                    description=d["description"],
+                    type=d["type"],
+                    votes_for={str(k): float(v) for k, v in vf.items()},
+                    votes_against={str(k): float(v) for k, v in va.items()},
+                    status=d.get("status", "open"),
+                    timestamp=d.get("timestamp", ""),
+                )
+            )
 
     def format_status(self) -> str:
         """Format current DAO status for display."""

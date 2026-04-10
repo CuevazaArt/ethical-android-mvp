@@ -55,6 +55,7 @@ def extract_snapshot(kernel: "EthicalKernel") -> KernelSnapshotV1:
     fg = kernel.forgiveness
     w = kernel.weakness
     dao = kernel.dao
+    dao_st = dao.export_state()
 
     return KernelSnapshotV1(
         schema_version=SCHEMA_VERSION,
@@ -90,6 +91,11 @@ def extract_snapshot(kernel: "EthicalKernel") -> KernelSnapshotV1:
         dao_record_counter=dao._record_counter,
         dao_records=[asdict(r) for r in dao.records],
         dao_alerts=[asdict(a) for a in dao.alerts],
+        constitution_l1_drafts=list(getattr(kernel, "constitution_l1_drafts", []) or []),
+        constitution_l2_drafts=list(getattr(kernel, "constitution_l2_drafts", []) or []),
+        dao_proposal_counter=dao_st["proposal_counter"],
+        dao_participants=dao_st["participants"],
+        dao_proposals=dao_st["proposals"],
     )
 
 
@@ -147,3 +153,13 @@ def apply_snapshot(kernel: "EthicalKernel", snap: KernelSnapshotV1) -> None:
     dao._record_counter = snap.dao_record_counter
     dao.records = [AuditRecord(**r) for r in snap.dao_records]
     dao.alerts = [SolidarityAlert(**a) for a in snap.dao_alerts]
+    dao.import_state(
+        {
+            "proposal_counter": snap.dao_proposal_counter,
+            "participants": snap.dao_participants,
+            "proposals": snap.dao_proposals,
+        }
+    )
+
+    kernel.constitution_l1_drafts = list(snap.constitution_l1_drafts or [])
+    kernel.constitution_l2_drafts = list(snap.constitution_l2_drafts or [])
