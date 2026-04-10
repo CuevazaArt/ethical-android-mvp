@@ -221,6 +221,15 @@ class MockDAO:
         self.records.append(rec)
         return rec
 
+    def register_escalation_case(self, summary: str,
+                                 episode_id: Optional[str] = None) -> AuditRecord:
+        """
+        V11 Phase 1 — append an ethical escalation dossier to the audit ledger.
+
+        Still a single-process mock; no blockchain or cross-device vote.
+        """
+        return self.register_audit("escalation", summary, episode_id=episode_id)
+
     # --- SolidarityAlertContract ---
     def emit_solidarity_alert(self, type: str, location: str,
                                radius: int = 500,

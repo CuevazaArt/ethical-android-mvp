@@ -180,6 +180,16 @@ Optional `sensor` JSON merged into sympathetic **signals** before the decision s
 
 `gray_zone_diplomacy.py`, `skill_learning_registry.py`, `somatic_markers.py`, `metaplan_registry.py` — negotiated-exit hints, scoped skill tickets, learned sensor nudges, and session master-goal hints toward the LLM **without** changing kernel policy.
 
+## v11.0 — April 2026 | Distributed justice — Phase 1 (traceability)
+
+Governance track: **artificial social contract** metaphor — owner insistence in sustained gray-zone tension can be **documented** and optionally **logged** to the `MockDAO` audit as an escalation dossier (`judicial_escalation.py`). **Phase 1** does not implement P2P courts, ZK evidence, sanctions, or reputation at augenesis; those remain design-only (see `docs/discusion/PROPUESTA_JUSTICIA_DISTRIBUIDA_V11.md`).
+
+| Piece | Role |
+|-------|------|
+| `judicial_escalation.py` | Advisory trigger, `EthicalDossierV1`, traceability notice |
+| `MockDAO.register_escalation_case` | Append `escalation` rows to the audit ledger |
+| WebSocket | Optional `escalate_to_dao`; env `KERNEL_JUDICIAL_ESCALATION`, `KERNEL_CHAT_INCLUDE_JUDICIAL` |
+
 ---
 
 ## Historical artifacts (not included in the repo, available locally)

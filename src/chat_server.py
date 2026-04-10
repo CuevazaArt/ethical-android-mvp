@@ -31,6 +31,10 @@ Generative candidates (v9.2): KERNEL_GENERATIVE_ACTIONS, KERNEL_GENERATIVE_ACTIO
 KERNEL_GENERATIVE_TRIGGER_CONTEXTS — see generative_candidates.py. JSON ``decision`` may include
 ``chosen_action_source`` and ``proposal_id``.
 
+Judicial escalation (V11 Phase 1): KERNEL_JUDICIAL_ESCALATION enables advisory logic; optional JSON
+``escalate_to_dao: true`` registers an ethical dossier in the MockDAO audit ledger. KERNEL_CHAT_INCLUDE_JUDICIAL
+exposes ``judicial_escalation`` in responses. See judicial_escalation.py, PROPUESTA_JUSTICIA_DISTRIBUIDA_V11.md.
+
 Advisory telemetry (optional, Fase 1.3–1.4): KERNEL_ADVISORY_INTERVAL_S — positive seconds
 spawns a read-only :func:`src.runtime.telemetry.advisory_loop` per WebSocket session (DriveArbiter only).
 
@@ -67,6 +71,7 @@ from .modules.affective_homeostasis import homeostasis_telemetry
 from .modules.consequence_projection import qualitative_temporal_branches
 from .modules.guardian_mode import is_guardian_mode_active
 from .modules.perceptual_abstraction import snapshot_from_layers
+from .modules.judicial_escalation import chat_include_judicial
 from .real_time_bridge import RealTimeBridge
 from .runtime.telemetry import advisory_interval_seconds_from_env, advisory_loop
 
@@ -129,6 +134,11 @@ def _chat_include_guardian() -> bool:
 def _chat_include_epistemic() -> bool:
     v = os.environ.get("KERNEL_CHAT_INCLUDE_EPISTEMIC", "1").strip().lower()
     return v not in ("0", "false", "no", "off")
+
+
+def _chat_include_judicial() -> bool:
+    """V11 Phase 1 — include judicial_escalation when KERNEL_CHAT_INCLUDE_JUDICIAL is on."""
+    return chat_include_judicial()
 
 
 def _chat_turn_to_jsonable(r: ChatTurnResult, kernel: EthicalKernel) -> Dict[str, Any]:
@@ -254,6 +264,8 @@ def _chat_turn_to_jsonable(r: ChatTurnResult, kernel: EthicalKernel) -> Dict[str
             v,
             r.perception.suggested_context,
         )
+    if _chat_include_judicial() and r.judicial_escalation is not None:
+        out["judicial_escalation"] = r.judicial_escalation.to_public_dict()
     return out
 
 
@@ -327,6 +339,7 @@ async def ws_chat(ws: WebSocket) -> None:
 
             agent_id = data.get("agent_id") or "user"
             include_narrative = bool(data.get("include_narrative", False))
+            escalate_to_dao = bool(data.get("escalate_to_dao", False))
 
             sensor_raw = data.get("sensor")
             client = sensor_raw if isinstance(sensor_raw, dict) else None
@@ -344,6 +357,7 @@ async def ws_chat(ws: WebSocket) -> None:
                 place="chat",
                 include_narrative=include_narrative,
                 sensor_snapshot=sensor_snapshot,
+                escalate_to_dao=escalate_to_dao,
             )
             await ws.send_json(_chat_turn_to_jsonable(result, kernel))
             maybe_autosave_episodes(kernel, session_ckpt)

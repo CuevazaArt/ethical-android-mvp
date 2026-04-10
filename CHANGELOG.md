@@ -2,6 +2,13 @@
 
 All notable changes to this project are summarized here. For narrative context and design rationale, see [`HISTORY.md`](HISTORY.md).
 
+## v11.0 — April 2026
+### Distributed artificial justice — Phase 1 (traceability)
+- **`judicial_escalation.py`**: conservative advisory when `decision_mode` is gray zone with elevated reflection/premise tension; English traceability notice; `EthicalDossierV1` (order, signal summary, monologue digest hash).
+- **`MockDAO.register_escalation_case`**: audit records of type `escalation` (single-process mock; no blockchain).
+- **WebSocket**: optional JSON field `escalate_to_dao: true` to register a dossier; **`KERNEL_JUDICIAL_ESCALATION`** enables logic; **`KERNEL_CHAT_INCLUDE_JUDICIAL`** exposes `judicial_escalation` in JSON.
+- **Design doc**: [docs/discusion/PROPUESTA_JUSTICIA_DISTRIBUIDA_V11.md](docs/discusion/PROPUESTA_JUSTICIA_DISTRIBUIDA_V11.md) (later phases: mock court, sanctions, P2P, ZK — not implemented).
+
 ## v10.0 — April 2026
 ### Operational strategy (MVP hooks)
 - **Gray-zone diplomacy** (`gray_zone_diplomacy.py`): optional LLM hints when decision mode is gray zone or reflection is tense (`KERNEL_GRAY_ZONE_DIPLOMACY`).

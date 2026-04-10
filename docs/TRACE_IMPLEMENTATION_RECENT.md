@@ -1,4 +1,4 @@
-# Traceability: recent implementations (Guardian, v9, v10)
+# Traceability: recent implementations (Guardian, v9, v10, V11 Phase 1)
 
 This document **consolidates** components and concepts added in the recent work cycle, with **bibliographic support** in the repository format: numbered references per **[BIBLIOGRAPHY.md](../BIBLIOGRAPHY.md)** (index at the end of that file).
 
@@ -18,6 +18,7 @@ This document **consolidates** components and concepts added in the recent work 
 | **Somatic markers** (v10) | `src/modules/somatic_markers.py`; `apply_somatic_nudges` on `signals` | Somatic markers and emotion in decision [91]; cybernetics and sensor–attitude loop [59]; simple sensor vehicles [60]. |
 | **Metaplan / master goals** (v10, session) | `src/modules/metaplan_registry.py`; optional hint to LLM | Persistent plans and intention [33]; agents and planning [31]. |
 | **Multimodal antispoof** (v8 context) | `src/modules/multimodal_trust.py` (existing; v9.1 combines) | Same line as epistemic dissonance [21], [24], [61]. |
+| **Judicial escalation / dossier → DAO audit** (V11 Phase 1) | `src/modules/judicial_escalation.py`; `MockDAO.register_escalation_case`; WebSocket `escalate_to_dao` | Governance, audit trails, institutional trust [15], [74]; discourse ethics [73]. |
 
 ---
 
@@ -28,6 +29,7 @@ This document **consolidates** components and concepts added in the recent work 
 | [discusion/PROPUESTA_ANGEL_DE_LA_GUARDIA.md](discusion/PROPUESTA_ANGEL_DE_LA_GUARDIA.md) | Product and contract — Guardian Angel |
 | [discusion/PROPUESTA_CAPACIDAD_AMPLIADA_V9.md](discusion/PROPUESTA_CAPACIDAD_AMPLIADA_V9.md) | v9 pillars (epistemic, generative, swarm, metaplanning) |
 | [discusion/PROPUESTA_ESTRATEGIA_OPERATIVA_V10.md](discusion/PROPUESTA_ESTRATEGIA_OPERATIVA_V10.md) | Diplomacy, skills, soma, operational metaplan (MVP) |
+| [discusion/PROPUESTA_JUSTICIA_DISTRIBUIDA_V11.md](discusion/PROPUESTA_JUSTICIA_DISTRIBUIDA_V11.md) | V11 governance: escalation phases, experimental topics (sanctions, P2P, ZK) |
 
 ---
 

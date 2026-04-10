@@ -28,6 +28,7 @@ class RealTimeBridge:
         place: str = "chat",
         include_narrative: bool = False,
         sensor_snapshot: "SensorSnapshot | None" = None,
+        escalate_to_dao: bool = False,
     ) -> "ChatTurnResult":
         return await asyncio.to_thread(
             self.kernel.process_chat_turn,
@@ -36,4 +37,5 @@ class RealTimeBridge:
             place,
             include_narrative,
             sensor_snapshot,
+            escalate_to_dao,
         )

@@ -67,6 +67,13 @@ from .modules.gray_zone_diplomacy import negotiation_hint_for_communicate
 from .modules.metaplan_registry import MetaplanRegistry
 from .modules.skill_learning_registry import SkillLearningRegistry
 from .modules.somatic_markers import SomaticMarkerStore, apply_somatic_nudges
+from .modules.judicial_escalation import (
+    JudicialEscalationView,
+    build_escalation_view,
+    build_ethical_dossier,
+    judicial_escalation_enabled,
+    should_offer_escalation_advisory,
+)
 
 
 @dataclass
@@ -113,6 +120,7 @@ class ChatTurnResult:
     block_reason: str = ""
     multimodal_trust: Optional[MultimodalAssessment] = None
     epistemic_dissonance: Optional[EpistemicDissonanceAssessment] = None
+    judicial_escalation: Optional[JudicialEscalationView] = None
 
 
 class EthicalKernel:
@@ -535,6 +543,7 @@ class EthicalKernel:
         place: str = "chat",
         include_narrative: bool = False,
         sensor_snapshot: Optional[SensorSnapshot] = None,
+        escalate_to_dao: bool = False,
     ) -> ChatTurnResult:
         """
         Real-time dialogue: MalAbs text gate → perceive (with STM) → kernel (light/heavy) → LLM.
@@ -727,6 +736,41 @@ class EthicalKernel:
             blocked=False,
         )
 
+        je_view: Optional[JudicialEscalationView] = None
+        if judicial_escalation_enabled() and decision is not None:
+            adv = should_offer_escalation_advisory(
+                decision.decision_mode,
+                decision.reflection,
+                self._last_premise_advisory.flag,
+            )
+            if adv:
+                if escalate_to_dao:
+                    mono = compose_monologue_line(
+                        decision,
+                        self._last_registered_episode_id if heavy else None,
+                    )
+                    buffer_c = self._last_premise_advisory.flag not in (
+                        "none",
+                        "",
+                    ) or (
+                        decision.reflection is not None
+                        and decision.reflection.strain_index >= 0.45
+                    )
+                    dossier = build_ethical_dossier(
+                        user_input,
+                        decision.decision_mode,
+                        signals,
+                        mono,
+                        buffer_c,
+                    )
+                    rec = self.dao.register_escalation_case(
+                        dossier.to_audit_paragraph(),
+                        episode_id=self._last_registered_episode_id,
+                    )
+                    je_view = build_escalation_view(True, True, dossier, rec.id)
+                else:
+                    je_view = build_escalation_view(True, False, None, None)
+
         return ChatTurnResult(
             response=response,
             path="heavy" if heavy else "light",
@@ -736,6 +780,7 @@ class EthicalKernel:
             blocked=False,
             multimodal_trust=mm,
             epistemic_dissonance=ed,
+            judicial_escalation=je_view,
         )
 
     def process_natural(self, situation: str,
