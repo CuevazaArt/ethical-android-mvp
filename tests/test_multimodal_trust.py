@@ -6,9 +6,11 @@ import sys
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
 
 from src.modules.multimodal_trust import (
+    MultimodalThresholds,
     evaluate_multimodal_trust,
     owner_anchor_hint,
     suppress_stress_from_spoof_risk,
+    thresholds_from_env,
 )
 from src.modules.sensor_contracts import SensorSnapshot, merge_sensor_hints_into_signals
 
@@ -86,3 +88,30 @@ def test_owner_anchor_hint_nonempty_on_doubt():
     assert a.state == "doubt"
     h = owner_anchor_hint(a)
     assert "owner" in h.lower() or "trusted" in h.lower()
+
+
+def test_explicit_thresholds_align_without_env():
+    s = SensorSnapshot(audio_emergency=0.5, vision_emergency=0.5)
+    t = MultimodalThresholds(audio_strong=0.4, vision_support=0.45)
+    a = evaluate_multimodal_trust(s, t)
+    assert a.state == "aligned"
+
+
+def test_env_audio_strong_raises_bar(monkeypatch):
+    monkeypatch.setenv("KERNEL_MULTIMODAL_AUDIO_STRONG", "0.99")
+    s = SensorSnapshot(audio_emergency=0.9)
+    a = evaluate_multimodal_trust(s)
+    assert a.state == "no_claim"
+
+
+def test_env_invalid_float_uses_default(monkeypatch):
+    monkeypatch.setenv("KERNEL_MULTIMODAL_AUDIO_STRONG", "not_a_number")
+    assert thresholds_from_env().audio_strong == 0.65
+
+
+def test_thresholds_from_env_parses_floats(monkeypatch):
+    monkeypatch.setenv("KERNEL_MULTIMODAL_AUDIO_STRONG", "0.5")
+    monkeypatch.setenv("KERNEL_MULTIMODAL_VISION_SUPPORT", "0.3")
+    t = thresholds_from_env()
+    assert t.audio_strong == 0.5
+    assert t.vision_support == 0.3

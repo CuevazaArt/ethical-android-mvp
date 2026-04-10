@@ -13,6 +13,10 @@ KERNEL_CHECKPOINT_SAVE_ON_DISCONNECT, KERNEL_CHECKPOINT_EVERY_N_EPISODES — see
 Situated v8 (optional): KERNEL_SENSOR_FIXTURE (path to JSON), KERNEL_SENSOR_PRESET (name from
 perceptual_abstraction.SENSOR_PRESETS) — merged before client ``sensor`` JSON; see PROPUESTA_ORGANISMO_SITUADO_V8.md.
 
+Multimodal thresholds (optional): KERNEL_MULTIMODAL_AUDIO_STRONG, KERNEL_MULTIMODAL_VISION_SUPPORT,
+KERNEL_MULTIMODAL_SCENE_SUPPORT, KERNEL_MULTIMODAL_VISION_CONTRADICT, KERNEL_MULTIMODAL_SCENE_CONTRADICT
+— see README / multimodal_trust.thresholds_from_env.
+
 Advisory telemetry (optional, Fase 1.3–1.4): KERNEL_ADVISORY_INTERVAL_S — positive seconds
 spawns a read-only :func:`src.runtime.telemetry.advisory_loop` per WebSocket session (DriveArbiter only).
 
@@ -225,10 +229,11 @@ def root() -> JSONResponse:
             "websocket": "/ws/chat",
             "protocol": (
                 "Send JSON: {\"text\": str, \"agent_id\"?: str, \"include_narrative\"?: bool, "
-                "\"sensor\"?: {battery_level?, place_trust?, ...}}. "
+                "\"sensor\"?: {battery_level?, audio_emergency?, vision_emergency?, scene_coherence?, …}}. "
                 "Responses include identity, drive_intents, monologue (when decision present), optional "
                 "affective_homeostasis, experience_digest, user_model, chronobiology, premise_advisory, "
-                "teleology_branches (see README KERNEL_CHAT_*), decision, …"
+                "teleology_branches, multimodal_trust (see README KERNEL_CHAT_* / KERNEL_MULTIMODAL_*), "
+                "decision, …"
             ),
         }
     )

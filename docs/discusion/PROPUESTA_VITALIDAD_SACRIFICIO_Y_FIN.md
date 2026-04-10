@@ -82,7 +82,7 @@ Esta tabla **alimenta** el mismo pipeline que `SensorSnapshot` + percepción tex
 2. **Estado de duda metacognitiva:** ante discrepancia, **no** ejecutar; elevar a la **ancla de confianza** (propietario) con pregunta explícita antes de actuar.
 3. **Protocolo de migración** reutiliza los mismos criterios: primer arranque en hardware nuevo con **baja confianza** hasta checks de integridad narrativa + sensores coherentes.
 
-**Implementación en repo (MVP):** `src/modules/multimodal_trust.py` — `evaluate_multimodal_trust` sobre `SensorSnapshot` (`audio_emergency`, `vision_emergency`, `scene_coherence`); en estado **doubt**, `merge_sensor_hints_into_signals` no aplica refuerzos por audio/ruido/biometría; pista al propietario vía `owner_anchor_hint` en el tono; JSON WebSocket `multimodal_trust` (env `KERNEL_CHAT_INCLUDE_MULTIMODAL`). No ejecuta acciones externas ni altera MalAbs.
+**Implementación en repo (MVP):** `src/modules/multimodal_trust.py` — `evaluate_multimodal_trust` sobre `SensorSnapshot` (`audio_emergency`, `vision_emergency`, `scene_coherence`); umbrales ajustables con `KERNEL_MULTIMODAL_*` (ver README); en estado **doubt**, `merge_sensor_hints_into_signals` no aplica refuerzos por audio/ruido/biometría; pista al propietario vía `owner_anchor_hint` en el tono; JSON WebSocket `multimodal_trust` (env `KERNEL_CHAT_INCLUDE_MULTIMODAL`). No ejecuta acciones externas ni altera MalAbs.
 
 ---
 

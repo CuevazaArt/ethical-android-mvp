@@ -3,6 +3,8 @@
 import os
 import sys
 
+import pytest
+
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
 
 from fastapi.testclient import TestClient
@@ -23,6 +25,13 @@ def test_root_lists_websocket():
     assert r.status_code == 200
     body = r.json()
     assert body.get("websocket") == "/ws/chat"
+
+
+def test_root_protocol_mentions_multimodal_and_sensor_fields():
+    r = client.get("/")
+    proto = (r.json().get("protocol") or "").lower()
+    assert "multimodal" in proto
+    assert "audio_emergency" in proto or "sensor" in proto
 
 
 def test_websocket_chat_roundtrip():
@@ -108,3 +117,24 @@ def test_websocket_sensor_preset_env(monkeypatch):
         data = ws.receive_json()
         assert "response" in data
         assert data.get("path") in ("light", "heavy", "safety_block", "kernel_block")
+
+
+@pytest.mark.parametrize(
+    "env_key,env_val,absent_key",
+    [
+        ("KERNEL_CHAT_INCLUDE_MULTIMODAL", "0", "multimodal_trust"),
+        ("KERNEL_CHAT_INCLUDE_USER_MODEL", "0", "user_model"),
+        ("KERNEL_CHAT_INCLUDE_CHRONO", "0", "chronobiology"),
+        ("KERNEL_CHAT_INCLUDE_PREMISE", "0", "premise_advisory"),
+        ("KERNEL_CHAT_INCLUDE_TELEOLOGY", "0", "teleology_branches"),
+        ("KERNEL_CHAT_INCLUDE_EXPERIENCE_DIGEST", "0", "experience_digest"),
+    ],
+)
+def test_websocket_kernel_chat_json_env_matrix(monkeypatch, env_key, env_val, absent_key):
+    """Regression: each KERNEL_CHAT_* toggle omits the expected JSON key without crashing."""
+    monkeypatch.setenv(env_key, env_val)
+    with client.websocket_connect("/ws/chat") as ws:
+        ws.send_json({"text": "Hello, env matrix regression test."})
+        data = ws.receive_json()
+    assert "response" in data
+    assert absent_key not in data
