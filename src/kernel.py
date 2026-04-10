@@ -1,10 +1,12 @@
 """
 Ethical Kernel — The android's moral brain.
 
-Connects all modules in an operational cycle:
-[Perception] → [Uchi-Soto] → [AbsEvil Check] → [Buffer] → [Sympathetic] →
-[Locus] → [Bayesian] → [Poles] → [Will] → [Decision] → [PAD/archetypes] →
-[Weakness] → [Forgiveness] → [Memory] → [DAO] → [Psi Sleep + Immortality]
+Connects all modules in an operational cycle (see `EthicalKernel.process`):
+[Uchi-Soto] → [Sympathetic] → [Locus] → [AbsEvil] → [Buffer] → [Bayesian] →
+[Poles] → [Will] → [EthicalReflection] → [Salience] → [PAD/archetypes] →
+[Memory episode] → [Weakness] → [Forgiveness] → [DAO]. Perception/LLM wraps
+this via `process_natural` / `process_chat_turn`; `execute_sleep` runs Psi Sleep,
+forgiveness cycle, weakness load, immortality backup, drive intents.
 """
 
 from dataclasses import dataclass
@@ -92,11 +94,8 @@ class EthicalKernel:
     """
     Ethical-narrative kernel of the android.
 
-    Orchestrates the complete cycle:
-    [Perception] → [Uchi-Soto] → [AbsEvil] → [Buffer] → [Sympathetic] →
-    [Locus] → [Bayesian] → [Poles] → [Decision] → [PAD/archetypes] → [Memory] → [DAO]
-
-    Psi Sleep runs at the end of the day, outside the decision cycle.
+    Orchestrates the complete cycle in `process` (see module docstring).
+    Psi Sleep, backup, and drive intents run in `execute_sleep`, outside each tick.
     """
 
     def __init__(self, variability: bool = True, seed: int = None, llm_mode: str = "auto"):
@@ -137,8 +136,10 @@ class EthicalKernel:
         """
         Complete ethical processing cycle.
 
-        [Perception] → [Uchi-Soto] → [AbsEvil] → [Buffer] → [Sympathetic] →
-        [Locus] → [Bayesian] → [Poles] → [Decision] → [Memory] → [DAO]
+        [Uchi-Soto] → [Sympathetic] → [Locus] → [AbsEvil] → [Buffer] →
+        [Bayesian] → [Poles] → [Will] → [Reflection] → [Salience] → [PAD archetypes] →
+        optional episode path if `register_episode`: [Memory] → [Weakness] →
+        [Forgiveness] → [DAO].
         """
 
         # ═══ STEP 1: Uchi-soto social evaluation ═══

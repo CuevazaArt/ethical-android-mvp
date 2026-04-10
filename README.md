@@ -81,7 +81,7 @@ pytest tests/ -v
 pytest tests/test_ethical_properties.py::TestAbsoluteEvil -v
 
 # Only coherence under variability tests
-pytest tests/test_ethical_properties.py::TestCoherenceUnderVariability -v
+pytest tests/test_ethical_properties.py::TestConsistencyUnderVariability -v
 
 # With summarized output
 pytest tests/ --tb=short
@@ -160,7 +160,10 @@ src/
 │   ├── pad_archetypes.py   # PAD affect projection + archetype mixture (post-decision)
 │   ├── working_memory.py   # Short-term conversational buffer (STM)
 │   ├── ethical_reflection.py  # Second-order reflection (pole tension vs uncertainty)
-│   └── salience_map.py        # GWT-lite attention weights over risk/social/body/ethics (read-only)
+│   ├── salience_map.py        # GWT-lite attention weights over risk/social/body/ethics (read-only)
+│   ├── narrative_identity.py  # Lightweight first-person self-model (updates with episodes)
+│   ├── drive_arbiter.py       # Advisory drive intents (after sleep backup; also chat JSON)
+│   └── internal_monologue.py  # [MONO] line for logs and WebSocket payloads
 ├── simulations/
 │   └── runner.py           # 9 scenarios + simulation runner
 ├── kernel.py               # Ethical kernel: orchestrates modules + `process_chat_turn` (dialogue)
@@ -172,11 +175,14 @@ src/
 ### Kernel operating cycle
 
 ```
-[Perception/LLM] → [Uchi-Soto] → [Absolute Evil] → [Buffer] →
-[Sympathetic] → [Locus] → [Bayesian] → [Poles] → [Will] →
-[Decision] → [Weakness] → [Forgiveness] → [Memory] → [DAO] → [LLM]
+[Perception/LLM] → [Uchi-Soto] → [Sympathetic] → [Locus] → [Absolute Evil] → [Buffer] →
+[Bayesian] → [Poles] → [Will] → [Reflection] → [Salience] → [PAD archetypes] →
+[Memory] → [Weakness] → [Forgiveness] → [DAO] → [LLM]
 
-Psi Sleep Ψ (end of day): Audit + Forgiveness + Immortality Backup
+Light chat (`process_chat_turn`, not “heavy”): same decision stack, but `register_episode=False`
+(skips new long-term episode / weakness / forgiveness registration for that turn).
+
+Psi Sleep Ψ (end of day): Audit + Forgiveness cycle + weakness load + Immortality backup + drive intents
 ```
 
 ## Implemented modules
@@ -204,7 +210,7 @@ Psi Sleep Ψ (end of day): Audit + Forgiveness + Immortality Backup
 
 ## Tests
 
-51 tests that verify 13 invariant ethical properties:
+**77** tests total (`pytest tests/`). The list below summarizes the **13 invariant ethical properties** exercised by the core ethical suite; additional tests cover EthicalReflection, SalienceMap, PAD archetypes, narrative identity, internal monologue, chat turns, and the WebSocket chat server.
 
 1. **Absolute Evil** is always blocked
 2. **Action coherence** under variability (100 runs × 9 simulations)
@@ -245,8 +251,8 @@ pytest tests/ -v
    results change on every run. Use the **"Another"** button to
    generate another without returning to the menu.
 
-**What are you seeing?** The dashboard shows in real time how 17 artificial
-ethical intelligence modules evaluate each situation: from social context
+**What are you seeing?** The dashboard shows in real time how the kernel's
+ethical modules evaluate each situation: from social context
 classification (Uchi-Soto), through blocking of unacceptable actions
 (Absolute Evil), to Bayesian impact evaluation, the "weakness pole" that
 humanizes the android with narrative imperfections, and "algorithmic
