@@ -5,6 +5,7 @@ Run from repo root:
   uvicorn src.chat_server:app --host 127.0.0.1 --port 8765
 
 Or: python -m src.chat_server
+Or: python -m src.runtime  (same server; see docs/RUNTIME_CONTRACT.md)
 """
 
 from __future__ import annotations
@@ -167,12 +168,23 @@ async def ws_chat(ws: WebSocket) -> None:
         return
 
 
-def main() -> None:
-    import uvicorn
-
+def get_uvicorn_bind() -> tuple[str, int]:
+    """Host and port from environment (CHAT_HOST, CHAT_PORT)."""
     host = os.environ.get("CHAT_HOST", "127.0.0.1")
     port = int(os.environ.get("CHAT_PORT", "8765"))
+    return host, port
+
+
+def run_chat_server() -> None:
+    """Start uvicorn with this module's ``app`` (blocking)."""
+    import uvicorn
+
+    host, port = get_uvicorn_bind()
     uvicorn.run(app, host=host, port=port, reload=False)
+
+
+def main() -> None:
+    run_chat_server()
 
 
 if __name__ == "__main__":

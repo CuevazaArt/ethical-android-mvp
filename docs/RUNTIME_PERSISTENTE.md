@@ -37,6 +37,8 @@ Un **runtime persistente** mantiene identidad narrativa, memoria episódica y go
 
 Implementación escalonada: **primero runtime**, luego **persistencia/DB**, luego **LLM local (Ollama)** — con límites éticos explícitos en cada fase. Ver [RUNTIME_FASES.md](RUNTIME_FASES.md).
 
+**Contrato del runtime (Fase 1):** [RUNTIME_CONTRACT.md](RUNTIME_CONTRACT.md).
+
 ## Próximos pasos sugeridos
 
 1. Definir un **DTO de snapshot mínimo** (serializable JSON o msgpack) alineado con lo que ya expone `ImmortalityProtocol` / episodios.

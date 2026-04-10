@@ -20,7 +20,7 @@ Objetivo: avanzar de investigación a **proceso vivo** sin que ninguna capa pued
 | Subfase | Qué hacer | Límites éticos |
 |--------|-----------|----------------|
 | **1.1 Contrato** | Documentar en código (docstring o `docs/`) qué tareas async están permitidas: p. ej. timers para `execute_sleep`, health, métricas. | Prohibido: tareas que llamen a APIs de “decisión” fuera de `process` / `process_chat_turn`. |
-| **1.2 Baseline actual** | Reconocer que `chat_server.py` + `EthicalKernel` **ya** son un runtime de red (WebSocket, un kernel por conexión). Ajustar solo si hace falta claridad (entrypoint único `python -m src.runtime` que levante uvicorn). | Sin duplicar lógica ética fuera del kernel. |
+| **1.2 Baseline actual** | `python -m src.runtime` y `python -m src.chat_server` levantan el mismo ASGI (`get_uvicorn_bind` / `run_chat_server`). Ver [RUNTIME_CONTRACT.md](RUNTIME_CONTRACT.md). | Sin duplicar lógica ética fuera del kernel. |
 | **1.3 Orquestación async** | Introducir un módulo delgado (p. ej. `src/runtime/`) que: (a) arranque el servidor ASGI; (b) opcionalmente registre **una** tarea de fondo para “mantenimiento” (p. ej. recordatorio interno de ejecutar `execute_sleep` en horario simulado o por evento explícito). | El fondo **no** genera respuestas al usuario ni modifica pesos éticos; como mucho encola un evento que el **mismo** flujo de chat podría consumir (fase posterior). |
 | **1.4 Monólogo / drives en fondo** | Solo **telemetría**: logs o cola interna de “impulsos” derivados de `DriveArbiter.evaluate(kernel)` ya existente, sin LLM obligatorio en el bucle. | Si más adelante hay LLM para monólogo privado, va en Fase 3 y sigue siendo solo texto, no acción. |
 

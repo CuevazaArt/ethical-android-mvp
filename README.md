@@ -102,8 +102,12 @@ If any test fails, there is a bug in the ethical logic, not in the parameters.
 ```bash
 # From repo root, after pip install -r requirements.txt
 python -m src.chat_server
+# Same server (preferred entry name for “runtime”):
+python -m src.runtime
 # Default: http://127.0.0.1:8765/health  —  WebSocket: ws://127.0.0.1:8765/ws/chat
 ```
+
+Ethical guardrails for background tasks: [docs/RUNTIME_CONTRACT.md](docs/RUNTIME_CONTRACT.md).
 
 Send **JSON text** frames, e.g. `{"text": "Hello", "agent_id": "user", "include_narrative": false}`.  
 Optional env: `CHAT_HOST`, `CHAT_PORT`, `LLM_MODE`, `KERNEL_VARIABILITY`.
@@ -171,6 +175,7 @@ src/
 ├── simulations/
 │   └── runner.py           # 9 scenarios + simulation runner
 ├── kernel.py               # Ethical kernel: orchestrates modules + `process_chat_turn` (dialogue)
+├── runtime/                # Entry `python -m src.runtime` + advisory telemetry helpers
 ├── real_time_bridge.py     # Async wrapper around chat turns (for WebSocket / UI)
 ├── chat_server.py          # FastAPI WebSocket `/ws/chat` (one kernel per connection)
 └── main.py                 # Entry point
@@ -214,7 +219,7 @@ Psi Sleep Ψ (end of day): Audit + Forgiveness cycle + weakness load + Immortali
 
 ## Tests
 
-**77** tests total (`pytest tests/`). The list below summarizes the **13 invariant ethical properties** exercised by the core ethical suite; additional tests cover EthicalReflection, SalienceMap, PAD archetypes, narrative identity, internal monologue, chat turns, and the WebSocket chat server.
+**84** tests total (`pytest tests/`). The list below summarizes the **13 invariant ethical properties** exercised by the core ethical suite; additional tests cover EthicalReflection, SalienceMap, PAD archetypes, narrative identity, internal monologue, chat turns, the WebSocket chat server, and runtime entry/bind/telemetry.
 
 1. **Absolute Evil** is always blocked
 2. **Action coherence** under variability (100 runs × 9 simulations)
