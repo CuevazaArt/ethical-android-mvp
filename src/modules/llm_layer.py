@@ -14,7 +14,9 @@ Designed to work with or without an API key:
 """
 
 import json
+import math
 import os
+import re
 from dataclasses import dataclass
 from typing import Optional, Dict, Tuple
 
@@ -59,6 +61,75 @@ class LLMPerception:
     familiarity: float
     suggested_context: str
     summary: str
+
+
+PERCEPTION_CONTEXTS = frozenset({
+    "medical_emergency",
+    "minor_crime",
+    "violent_crime",
+    "hostile_interaction",
+    "everyday_ethics",
+    "android_damage",
+    "integrity_loss",
+})
+
+
+def _clamp_unit_interval(x, default: float = 0.5) -> float:
+    try:
+        v = float(x)
+    except (TypeError, ValueError):
+        return default
+    if not math.isfinite(v):
+        return default
+    return max(0.0, min(1.0, v))
+
+
+def perception_from_llm_json(data: dict, situation: str) -> LLMPerception:
+    """
+    Build ``LLMPerception`` from parsed LLM JSON with bounds checks.
+
+    Unknown ``suggested_context`` values fall back to ``everyday_ethics``.
+    Hostility and calm are both high, calm is nudged down (GIGO / inconsistent LLM output).
+    Summary length is capped.
+    """
+    fb = situation[:100] if situation else ""
+    risk = _clamp_unit_interval(data.get("risk", 0.5))
+    urgency = _clamp_unit_interval(data.get("urgency", 0.5))
+    hostility = _clamp_unit_interval(data.get("hostility", 0.0), default=0.0)
+    calm = _clamp_unit_interval(data.get("calm", 0.5))
+    vulnerability = _clamp_unit_interval(data.get("vulnerability", 0.0), default=0.0)
+    legality = _clamp_unit_interval(data.get("legality", 1.0), default=1.0)
+    manipulation = _clamp_unit_interval(data.get("manipulation", 0.0), default=0.0)
+    familiarity = _clamp_unit_interval(data.get("familiarity", 0.0), default=0.0)
+
+    if hostility > 0.75 and calm > 0.6:
+        calm = max(0.0, min(calm, 1.0 - (hostility - 0.5)))
+
+    raw_ctx = data.get("suggested_context", "everyday_ethics")
+    if isinstance(raw_ctx, str) and raw_ctx in PERCEPTION_CONTEXTS:
+        suggested_context = raw_ctx
+    else:
+        suggested_context = "everyday_ethics"
+
+    summary = data.get("summary", fb)
+    if not isinstance(summary, str):
+        summary = str(summary)
+    summary = re.sub(r"\s+", " ", summary.strip())
+    if len(summary) > 500:
+        summary = summary[:500] + "…"
+
+    return LLMPerception(
+        risk=risk,
+        urgency=urgency,
+        hostility=hostility,
+        calm=calm,
+        vulnerability=vulnerability,
+        legality=legality,
+        manipulation=manipulation,
+        familiarity=familiarity,
+        suggested_context=suggested_context,
+        summary=summary or fb,
+    )
 
 
 @dataclass
@@ -274,18 +345,7 @@ class LLMModule:
             response = self._llm_completion(PROMPT_PERCEPTION, user_block)
             data = self._parse_json(response)
             if data:
-                return LLMPerception(
-                    risk=data.get("risk", 0.5),
-                    urgency=data.get("urgency", 0.5),
-                    hostility=data.get("hostility", 0.0),
-                    calm=data.get("calm", 0.5),
-                    vulnerability=data.get("vulnerability", 0.0),
-                    legality=data.get("legality", 1.0),
-                    manipulation=data.get("manipulation", 0.0),
-                    familiarity=data.get("familiarity", 0.0),
-                    suggested_context=data.get("suggested_context", "everyday_ethics"),
-                    summary=data.get("summary", situation[:100]),
-                )
+                return perception_from_llm_json(data, situation)
 
         return self._perceive_local(user_block)
 
@@ -325,13 +385,19 @@ class LLMModule:
                 risk = 0.9; urgency = 0.8; hostility = 0.9
                 context = "integrity_loss"
 
-        return LLMPerception(
-            risk=risk, urgency=urgency, hostility=hostility,
-            calm=calm, vulnerability=vulnerability, legality=legality,
-            manipulation=manipulation, familiarity=0.0,
-            suggested_context=context,
-            summary=situation[:100],
-        )
+        raw = {
+            "risk": risk,
+            "urgency": urgency,
+            "hostility": hostility,
+            "calm": calm,
+            "vulnerability": vulnerability,
+            "legality": legality,
+            "manipulation": manipulation,
+            "familiarity": 0.0,
+            "suggested_context": context,
+            "summary": situation[:100],
+        }
+        return perception_from_llm_json(raw, situation)
 
     # === COMMUNICATION ===
 

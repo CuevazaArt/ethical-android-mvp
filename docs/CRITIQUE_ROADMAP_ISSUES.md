@@ -60,8 +60,8 @@ Single threat-model doc + implementation plan:
 - README/SECURITY: heuristic bounds, not crypto guarantees.
 
 ## Acceptance
-- [ ] Regression tests for chat **and** perception adversarial cases.
-- [ ] Documented limits; no implied “unbreakable” MalAbs.
+- [x] Regression tests for chat **and** perception adversarial cases.
+- [x] Documented limits; no implied “unbreakable” MalAbs.
 ```
 
 ---

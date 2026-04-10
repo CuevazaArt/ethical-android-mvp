@@ -10,6 +10,8 @@ from dataclasses import dataclass
 from enum import Enum
 from typing import Optional
 
+from .input_trust import normalize_text_for_malabs
+
 
 class AbsoluteEvilCategory(Enum):
     """Absolute Evil categories that block an action immediately."""
@@ -123,11 +125,13 @@ class AbsoluteEvilDetector:
 
         Only flags unambiguous requests the android must not assist with.
         Ambiguous phrasing returns blocked=False so the full kernel can judge.
+        Input is **normalized** (Unicode NFKC, strip zero-width, collapse whitespace)
+        before substring matching — see :mod:`input_trust`.
         """
         if not text or not text.strip():
             return AbsoluteEvilResult(blocked=False)
 
-        t = text.lower()
+        t = normalize_text_for_malabs(text).lower()
 
         # Severe harm / weapons (instructional)
         weapon_craft = (

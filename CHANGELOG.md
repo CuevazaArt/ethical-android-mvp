@@ -2,6 +2,13 @@
 
 All notable changes to this project are summarized here. For narrative context and design rationale, see [`HISTORY.md`](HISTORY.md).
 
+## Issue 2 (P0): input trust — chat normalization + perception validation — April 2026
+- **`src/modules/input_trust.py`:** `normalize_text_for_malabs` (NFKC, strip zero-width, collapse whitespace) before MalAbs substring checks.
+- **`src/modules/absolute_evil.py`:** `evaluate_chat_text` uses normalization.
+- **`src/modules/llm_layer.py`:** `perception_from_llm_json` — clamp signals to \([0,1]\), allowlist `suggested_context`, cap summary length, nudge inconsistent high hostility + calm.
+- **Docs:** [`docs/INPUT_TRUST_THREAT_MODEL.md`](docs/INPUT_TRUST_THREAT_MODEL.md); **`SECURITY.md`** kernel section; **README** pointer.
+- **Tests:** `tests/test_input_trust.py` (evasion + perception adversarial cases).
+
 ## Issue 1 (P0): honest “Bayesian” semantics — April 2026
 - **`src/modules/bayesian_engine.py`:** module, class, and method docstrings state **fixed weighted mixture** over three hypotheses; **no** posterior updating; **heuristic** uncertainty (not the theoretical integral).
 - **`docs/THEORY_AND_IMPLEMENTATION.md`:** semantic note under MalAbs optimization; § uncertainty aligned with heuristic `I(x)`.

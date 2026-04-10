@@ -10,6 +10,8 @@ The original **batch simulations** (nine fixed scenarios plus a random generator
 
 **Maturation disclaimer:** some **names** (e.g. “Bayesian” scoring) and **governance mocks** (DAO) are **infrastructure placeholders** while runtime, audit trails, and tests mature — toward **honest labeling**, **calibrated weights**, and **clear criteria** for stronger safety and real governance experiments. **Consolidated** issue backlog (two external reviews, redundant items merged): [`docs/CRITIQUE_ROADMAP_ISSUES.md`](docs/CRITIQUE_ROADMAP_ISSUES.md); web overview: [Roadmap](https://mosexmacchinalab.com/roadmap).
 
+**Input trust:** MalAbs chat filtering and LLM perception bounds are **heuristic**, not unbreakable — see [`docs/INPUT_TRUST_THREAT_MODEL.md`](docs/INPUT_TRUST_THREAT_MODEL.md) and [`SECURITY.md`](SECURITY.md).
+
 An autonomous moral agent that makes ethical decisions using **explicit weighted scoring**
 (fixed mixture over three stylized hypotheses; not full Bayesian updating — see
 [`docs/THEORY_AND_IMPLEMENTATION.md`](docs/THEORY_AND_IMPLEMENTATION.md)), narrative memory,
