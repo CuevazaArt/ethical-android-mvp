@@ -11,6 +11,7 @@ from src.kernel import EthicalKernel
 from src.persistence import (
     SCHEMA_VERSION,
     JsonFilePersistence,
+    SqlitePersistence,
     apply_snapshot,
     extract_snapshot,
 )
@@ -69,6 +70,29 @@ def test_load_missing_file(tmp_path):
     k = EthicalKernel(variability=False)
     assert store.load_into_kernel(k) is False
     assert len(k.memory.episodes) == 0
+
+
+def test_sqlite_roundtrip(tmp_path):
+    k1 = EthicalKernel(variability=False)
+    scn = ALL_SIMULATIONS[2]()
+    k1.process(scn.name, scn.place, scn.signals, scn.context, scn.actions)
+
+    path = tmp_path / "checkpoint.db"
+    store = SqlitePersistence(path)
+    store.save(extract_snapshot(k1))
+    assert path.is_file()
+
+    k2 = EthicalKernel(variability=False)
+    assert store.load_into_kernel(k2) is True
+    assert len(k2.memory.episodes) == 1
+    assert k2.memory.episodes[0].action_taken == k1.memory.episodes[0].action_taken
+
+
+def test_sqlite_load_missing_file(tmp_path):
+    store = SqlitePersistence(tmp_path / "missing.db")
+    assert store.load() is None
+    k = EthicalKernel(variability=False)
+    assert store.load_into_kernel(k) is False
 
 
 def test_double_roundtrip_stable(tmp_path):

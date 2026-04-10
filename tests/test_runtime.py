@@ -11,7 +11,11 @@ import pytest
 from src.chat_server import get_uvicorn_bind, run_chat_server
 from src.kernel import EthicalKernel
 from src.modules.drive_arbiter import DriveIntent
-from src.runtime.telemetry import advisory_loop, advisory_snapshot
+from src.runtime.telemetry import (
+    advisory_interval_seconds_from_env,
+    advisory_loop,
+    advisory_snapshot,
+)
 
 
 def test_get_uvicorn_bind_defaults(monkeypatch):
@@ -30,10 +34,12 @@ def test_run_chat_server_is_same_callable_as_documented():
     assert callable(run_chat_server)
 
 
-def test_runtime_package_reexports_bind():
+def test_runtime_package_reexports_bind(monkeypatch):
+    monkeypatch.delenv("CHAT_HOST", raising=False)
+    monkeypatch.delenv("CHAT_PORT", raising=False)
     from src.runtime import get_uvicorn_bind as g2
 
-    assert g2 is get_uvicorn_bind
+    assert g2() == get_uvicorn_bind()
 
 
 def test_advisory_snapshot_returns_list_of_drive_intent():
@@ -57,6 +63,21 @@ def test_advisory_loop_stops_quickly():
         await t
 
     asyncio.run(_main())
+
+
+def test_advisory_interval_from_env_default(monkeypatch):
+    monkeypatch.delenv("KERNEL_ADVISORY_INTERVAL_S", raising=False)
+    assert advisory_interval_seconds_from_env() == 0.0
+
+
+def test_advisory_interval_from_env_positive(monkeypatch):
+    monkeypatch.setenv("KERNEL_ADVISORY_INTERVAL_S", "30")
+    assert advisory_interval_seconds_from_env() == 30.0
+
+
+def test_advisory_interval_from_env_invalid_is_zero(monkeypatch):
+    monkeypatch.setenv("KERNEL_ADVISORY_INTERVAL_S", "not-a-float")
+    assert advisory_interval_seconds_from_env() == 0.0
 
 
 def test_advisory_loop_interval_must_be_positive():

@@ -28,6 +28,8 @@ Objetivo: avanzar de investigación a **proceso vivo** sin que ninguna capa pued
 
 **Orden sugerido:** 1.2 → 1.1 → 1.3 → 1.4.
 
+**Estado en el repo (Fase 1.3–1.4):** si `KERNEL_ADVISORY_INTERVAL_S` es un número positivo, cada conexión `/ws/chat` arranca `advisory_loop` en segundo plano y lo detiene al cerrar la sesión (`src/chat_server.py`, `src/runtime/telemetry.py`). Sin decisión ni LLM; solo `DriveArbiter.evaluate` periódico.
+
 ---
 
 ## Fase 2 — Persistencia y base de datos
@@ -38,7 +40,7 @@ Objetivo: avanzar de investigación a **proceso vivo** sin que ninguna capa pued
 |--------|-----------|--------|
 | **2.1 Puerto** | DTO `KernelSnapshotV1` + `extract_snapshot` / `apply_snapshot` en `src/persistence/kernel_io.py`. | Cubre episodios, identidad, perdón, debilidad, Bayes/locus/variabilidad, DAO audit, `pruned_actions`. |
 | **2.2 Adaptador JSON** | `JsonFilePersistence` (`src/persistence/json_store.py`). | Tests: `tests/test_persistence.py` (roundtrip en memoria, archivo, doble serialización). |
-| **2.2b SQLite (opcional)** | Mismo DTO, otra columna `blob` JSON. | Pendiente si hace falta consulta SQL. |
+| **2.2b SQLite (opcional)** | Mismo DTO, otra columna `blob` JSON. | `SqlitePersistence` en `src/persistence/sqlite_store.py` (tabla `kernel_snapshot`, fila `id=1`). |
 | **2.3 Cifrado (opcional)** | Capa de cifrado de archivos o columnas sensibles (`cryptography` o similar), clave fuera del repo. | No sustituye a control de acceso del SO; documentar amenazas. |
 | **2.4 Integración runtime** | WebSocket (`src/chat_server.py`): `try_load_checkpoint` al abrir conexión; `on_websocket_session_end` al cerrar; `maybe_autosave_episodes` tras cada turno. Env: `KERNEL_CHECKPOINT_*` (ver `src/persistence/checkpoint.py`). | Concurrencia: un archivo compartido entre varias conexiones puede pisarse. |
 

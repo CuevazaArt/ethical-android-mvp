@@ -12,7 +12,7 @@ El **runtime** es el proceso que mantiene vivo el servicio (p. ej. FastAPI + Web
 | Permitido | Ejemplo |
 |-----------|---------|
 | Arrancar ASGI / uvicorn con el mismo `app` | `python -m src.runtime`, `python -m src.chat_server`, `uvicorn src.chat_server:app` |
-| Tareas async de **solo lectura** sobre el kernel | `src.runtime.telemetry.advisory_loop` (solo `DriveArbiter.evaluate`) |
+| Tareas async de **solo lectura** sobre el kernel | `src.runtime.telemetry.advisory_loop` (solo `DriveArbiter.evaluate`); opcional por sesión WebSocket si `KERNEL_ADVISORY_INTERVAL_S` > 0 |
 | Health checks, logs, métricas | `GET /health` |
 | Timers que llamen **solo** a APIs documentadas como seguras | p. ej. invocar `execute_sleep` en un proceso que tenga un kernel explícito (diseño futuro; no inyecta acciones) |
 

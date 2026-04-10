@@ -42,3 +42,12 @@ def test_websocket_invalid_json():
         ws.send_text("not-json")
         data = ws.receive_json()
         assert data.get("error") == "invalid_json"
+
+
+def test_websocket_with_advisory_interval(monkeypatch):
+    """Background advisory loop is optional; must not break chat lifecycle."""
+    monkeypatch.setenv("KERNEL_ADVISORY_INTERVAL_S", "3600")
+    with client.websocket_connect("/ws/chat") as ws:
+        ws.send_json({"text": "ping"})
+        data = ws.receive_json()
+        assert "response" in data

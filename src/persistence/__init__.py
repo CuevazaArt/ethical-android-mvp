@@ -12,6 +12,7 @@ from .checkpoint import (
     try_save_checkpoint,
 )
 from .json_store import JsonFilePersistence, snapshot_from_dict
+from .sqlite_store import SqlitePersistence
 from .kernel_io import apply_snapshot, extract_snapshot
 from .schema import SCHEMA_VERSION, KernelSnapshotV1
 
@@ -21,6 +22,7 @@ __all__ = [
     "extract_snapshot",
     "apply_snapshot",
     "JsonFilePersistence",
+    "SqlitePersistence",
     "snapshot_from_dict",
     "try_load_checkpoint",
     "try_save_checkpoint",

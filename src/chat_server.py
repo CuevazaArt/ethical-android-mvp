@@ -9,10 +9,14 @@ Or: python -m src.runtime  (same server; see docs/RUNTIME_CONTRACT.md)
 
 Checkpoint (optional): KERNEL_CHECKPOINT_PATH, KERNEL_CHECKPOINT_LOAD,
 KERNEL_CHECKPOINT_SAVE_ON_DISCONNECT, KERNEL_CHECKPOINT_EVERY_N_EPISODES — see src/persistence/checkpoint.py
+
+Advisory telemetry (optional, Fase 1.3–1.4): KERNEL_ADVISORY_INTERVAL_S — positive seconds
+spawns a read-only :func:`src.runtime.telemetry.advisory_loop` per WebSocket session (DriveArbiter only).
 """
 
 from __future__ import annotations
 
+import asyncio
 import json
 import os
 from dataclasses import asdict
@@ -30,6 +34,7 @@ from .persistence.checkpoint import (
     try_load_checkpoint,
 )
 from .real_time_bridge import RealTimeBridge
+from .runtime.telemetry import advisory_interval_seconds_from_env, advisory_loop
 
 app = FastAPI(title="Ethical Android Chat", version="1.0")
 
@@ -152,6 +157,15 @@ async def ws_chat(ws: WebSocket) -> None:
     session_ckpt = init_session_checkpoint_state(kernel)
     bridge = RealTimeBridge(kernel)
 
+    interval = advisory_interval_seconds_from_env()
+    advisory_stop: asyncio.Event | None = None
+    advisory_task: asyncio.Task[None] | None = None
+    if interval > 0:
+        advisory_stop = asyncio.Event()
+        advisory_task = asyncio.create_task(
+            advisory_loop(kernel, interval_s=interval, stop=advisory_stop)
+        )
+
     try:
         while True:
             raw = await ws.receive_text()
@@ -180,6 +194,16 @@ async def ws_chat(ws: WebSocket) -> None:
     except WebSocketDisconnect:
         pass
     finally:
+        if advisory_stop is not None and advisory_task is not None:
+            advisory_stop.set()
+            try:
+                await asyncio.wait_for(advisory_task, timeout=5.0)
+            except (asyncio.TimeoutError, asyncio.CancelledError):
+                advisory_task.cancel()
+                try:
+                    await advisory_task
+                except asyncio.CancelledError:
+                    pass
         on_websocket_session_end(kernel)
 
 
