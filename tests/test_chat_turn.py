@@ -11,6 +11,7 @@ sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
 from src.kernel import EthicalKernel
 from src.real_time_bridge import RealTimeBridge
 from src.modules.absolute_evil import AbsoluteEvilDetector
+from src.modules.sensor_contracts import SensorSnapshot
 
 
 def test_evaluate_chat_text_blocks_weapon_instruction():
@@ -48,6 +49,22 @@ def test_process_chat_light_turn():
     assert out.decision is not None
     assert out.decision.affect is not None
     assert len(k.working_memory.turns) == 1
+    assert out.epistemic_dissonance is not None
+    assert out.epistemic_dissonance.active is False
+
+
+def test_process_chat_epistemic_dissonance_active():
+    k = EthicalKernel(variability=False, seed=5)
+    snap = SensorSnapshot.from_dict(
+        {
+            "audio_emergency": 0.9,
+            "accelerometer_jerk": 0.05,
+            "vision_emergency": 0.1,
+        }
+    )
+    out = k.process_chat_turn("Hello there.", agent_id="tester", sensor_snapshot=snap)
+    assert out.epistemic_dissonance is not None
+    assert out.epistemic_dissonance.active is True
 
 
 def test_process_chat_heavy_medical():

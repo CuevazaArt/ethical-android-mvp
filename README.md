@@ -122,6 +122,8 @@ Optional env: `CHAT_HOST`, `CHAT_PORT`, `LLM_MODE`, `USE_LOCAL_LLM`, `KERNEL_VAR
 
 **Guardian Angel (opt-in, tone only):** `KERNEL_GUARDIAN_MODE=1` (or `true` / `yes` / `on`) adds a fixed protective style block to the LLM layer; **does not** change kernel ethics. **Default off.** `KERNEL_CHAT_INCLUDE_GUARDIAN=0` omits `guardian_mode` from WebSocket JSON. See `src/modules/guardian_mode.py` and [docs/discusion/PROPUESTA_ANGEL_DE_LA_GUARDIA.md](docs/discusion/PROPUESTA_ANGEL_DE_LA_GUARDIA.md).
 
+**Epistemic dissonance (v9.1):** `KERNEL_CHAT_INCLUDE_EPISTEMIC` — set to `0` to omit `epistemic_dissonance` (`active`, `score`, `reason`) from WebSocket JSON. When sensors suggest strong audio distress but motion is low and vision weak, a **reality-check** hint is added to LLM tone only; **no** MalAbs bypass. Optional thresholds: `KERNEL_EPISTEMIC_AUDIO_MIN`, `KERNEL_EPISTEMIC_MOTION_MAX`, `KERNEL_EPISTEMIC_VISION_LOW`. See `src/modules/epistemic_dissonance.py` and [docs/discusion/PROPUESTA_CAPACIDAD_AMPLIADA_V9.md](docs/discusion/PROPUESTA_CAPACIDAD_AMPLIADA_V9.md).
+
 **Checkpoint (Fase 2.4):** set `KERNEL_CHECKPOINT_PATH` to a `.json` file to load state when a WebSocket session opens and save when it closes (`KERNEL_CHECKPOINT_SAVE_ON_DISCONNECT`, default on). Periodic saves: `KERNEL_CHECKPOINT_EVERY_N_EPISODES`. See `src/persistence/checkpoint.py`.
 
 **Identity drift (robustez pilar 2):** `KERNEL_ETHICAL_GENOME_ENFORCE` (default on) and `KERNEL_ETHICAL_GENOME_MAX_DRIFT` (default `0.15`) cap how far Ψ Sleep can move `pruning_threshold` from its value at kernel construction.
@@ -198,6 +200,7 @@ src/
 │   ├── multimodal_trust.py     # v8 cross-modal doubt vs aligned; merge suppression
 │   ├── vitality.py             # v8 battery / critical threshold + tone hint
 │   ├── guardian_mode.py        # Opt-in Guardian Angel tone block for LLM (no policy change)
+│   ├── epistemic_dissonance.py # v9.1 cross-modal “reality check” telemetry (tone only)
 │   └── internal_monologue.py  # [MONO] line for logs and WebSocket payloads
 ├── simulations/
 │   └── runner.py           # 9 scenarios + simulation runner
@@ -247,7 +250,7 @@ Psi Sleep Ψ (end of day): Audit + Forgiveness cycle + weakness load + Immortali
 
 ## Tests
 
-**165** tests total (`pytest tests/`). The list below summarizes the **13 invariant ethical properties** exercised by the core ethical suite; additional tests cover EthicalReflection, SalienceMap, PAD archetypes, narrative identity, internal monologue, chat turns, the WebSocket chat server, MalAbs chat jailbreak gate + monologue privacy env + affective homeostasis telemetry + identity integrity helpers + Ψ Sleep experience digest + v7 relational layers (user model, chronobiology, premise advisory, teleology branches) + v8 sensor contracts + perceptual abstraction presets/fixtures + multimodal antispoof + vitality + optional Guardian Angel mode (`tests/test_sensor_contracts.py`, `tests/test_perceptual_abstraction.py`, `tests/test_multimodal_trust.py`, `tests/test_vitality.py`, `tests/test_guardian_mode.py`), runtime entry/bind/telemetry, advisory interval env + SQLite snapshot adapter, JSON snapshot persistence, checkpoint integration, Ollama LLM mode, and LLM resolve/monologue options (`tests/test_llm_phase3.py`).
+**176** tests total (`pytest tests/`). The list below summarizes the **13 invariant ethical properties** exercised by the core ethical suite; additional tests cover EthicalReflection, SalienceMap, PAD archetypes, narrative identity, internal monologue, chat turns, the WebSocket chat server, MalAbs chat jailbreak gate + monologue privacy env + affective homeostasis telemetry + identity integrity helpers + Ψ Sleep experience digest + v7 relational layers (user model, chronobiology, premise advisory, teleology branches) + v8 sensor contracts + perceptual abstraction presets/fixtures + multimodal antispoof + vitality + optional Guardian Angel mode + v9.1 epistemic dissonance (`tests/test_sensor_contracts.py`, `tests/test_perceptual_abstraction.py`, `tests/test_multimodal_trust.py`, `tests/test_vitality.py`, `tests/test_guardian_mode.py`, `tests/test_epistemic_dissonance.py`), runtime entry/bind/telemetry, advisory interval env + SQLite snapshot adapter, JSON snapshot persistence, checkpoint integration, Ollama LLM mode, and LLM resolve/monologue options (`tests/test_llm_phase3.py`).
 
 1. **Absolute Evil** is always blocked
 2. **Action coherence** under variability (100 runs × 9 simulations)
@@ -364,7 +367,7 @@ A copy of `dashboard.html` is also kept under `landing/public/` so the Next.js a
 
 **Experimental (unofficial):** discussion notes on “artificial consciousness” as a pedagogical frame, strong vs weak readings, and affect archetypes for possible future integration — [docs/EXPERIMENTAL_CONSCIOUSNESS_AND_AFFECT_ARCHETYPES.md](docs/EXPERIMENTAL_CONSCIOUSNESS_AND_AFFECT_ARCHETYPES.md) (WIP, not part of the kernel contract until implemented and tested).
 
-**Roadmap (foundation, discussion only):** *Ángel de la Guarda* — protective/educational mode for vulnerable users, subordinate to the kernel contract — [docs/discusion/PROPUESTA_ANGEL_DE_LA_GUARDIA.md](docs/discusion/PROPUESTA_ANGEL_DE_LA_GUARDIA.md).
+**Roadmap (foundation, discussion + phased code):** *Ángel de la Guarda* — [PROPUESTA_ANGEL_DE_LA_GUARDIA.md](docs/discusion/PROPUESTA_ANGEL_DE_LA_GUARDIA.md). **v9 — expanded capability** (four pillars: epistemic validation, generative ethical imagination, swarm protocol, metaplanning): strategic doc and **9.1** sensor epistemics in repo — [PROPUESTA_CAPACIDAD_AMPLIADA_V9.md](docs/discusion/PROPUESTA_CAPACIDAD_AMPLIADA_V9.md).
 
 **Experimental paper (same lineage):** expected phenomena when coupling PAD + prototype mixing to the kernel; definitions of *color* / *sabor* as metaphors; testable hypotheses reserved for future runs — [docs/experimental/PAPER_AFECTO_FENOMENOS_Y_HIPOTESIS.md](docs/experimental/PAPER_AFECTO_FENOMENOS_Y_HIPOTESIS.md).
 

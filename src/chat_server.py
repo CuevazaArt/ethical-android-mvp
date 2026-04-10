@@ -23,6 +23,10 @@ Guardian Angel (optional, opt-in): KERNEL_GUARDIAN_MODE=1 enables protective ton
 KERNEL_CHAT_INCLUDE_GUARDIAN — omit ``guardian_mode`` key from JSON if 0. See guardian_mode.py,
 PROPUESTA_ANGEL_DE_LA_GUARDIA.md.
 
+Epistemic dissonance (v9.1): KERNEL_CHAT_INCLUDE_EPISTEMIC — omit ``epistemic_dissonance`` from JSON if 0.
+Optional thresholds KERNEL_EPISTEMIC_AUDIO_MIN, KERNEL_EPISTEMIC_MOTION_MAX, KERNEL_EPISTEMIC_VISION_LOW.
+See epistemic_dissonance.py, PROPUESTA_CAPACIDAD_AMPLIADA_V9.md.
+
 Advisory telemetry (optional, Fase 1.3–1.4): KERNEL_ADVISORY_INTERVAL_S — positive seconds
 spawns a read-only :func:`src.runtime.telemetry.advisory_loop` per WebSocket session (DriveArbiter only).
 
@@ -115,6 +119,11 @@ def _chat_include_vitality() -> bool:
 
 def _chat_include_guardian() -> bool:
     v = os.environ.get("KERNEL_CHAT_INCLUDE_GUARDIAN", "1").strip().lower()
+    return v not in ("0", "false", "no", "off")
+
+
+def _chat_include_epistemic() -> bool:
+    v = os.environ.get("KERNEL_CHAT_INCLUDE_EPISTEMIC", "1").strip().lower()
     return v not in ("0", "false", "no", "off")
 
 
@@ -219,6 +228,8 @@ def _chat_turn_to_jsonable(r: ChatTurnResult, kernel: EthicalKernel) -> Dict[str
         out["vitality"] = kernel._last_vitality_assessment.to_public_dict()
     if _chat_include_guardian():
         out["guardian_mode"] = is_guardian_mode_active()
+    if _chat_include_epistemic() and r.epistemic_dissonance is not None:
+        out["epistemic_dissonance"] = r.epistemic_dissonance.to_public_dict()
     if (
         _chat_include_teleology()
         and r.decision is not None
@@ -254,7 +265,7 @@ def root() -> JSONResponse:
                 "Responses include identity, drive_intents, monologue (when decision present), optional "
                 "affective_homeostasis, experience_digest, user_model, chronobiology, premise_advisory, "
                 "teleology_branches, multimodal_trust, vitality (see README KERNEL_CHAT_* / KERNEL_MULTIMODAL_* / "
-                "KERNEL_VITALITY_*), guardian_mode (KERNEL_GUARDIAN_MODE), decision, …"
+                "KERNEL_VITALITY_*), guardian_mode (KERNEL_GUARDIAN_MODE), epistemic_dissonance (v9.1), decision, …"
             ),
         }
     )

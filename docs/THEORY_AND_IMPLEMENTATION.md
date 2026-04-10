@@ -59,6 +59,8 @@ See also `src/modules/psi_sleep.py`, `src/modules/immortality.py`, `src/modules/
 
 **Ángel de la Guarda (opt-in, MVP):** `KERNEL_GUARDIAN_MODE` enables a fixed protective **tone block** in `LLMModule.communicate` only (`src/modules/guardian_mode.py`); kernel ethics unchanged. Full product vision (rutinas, franjas etarias, etc.) remains **discusión** — [discusion/PROPUESTA_ANGEL_DE_LA_GUARDIA.md](discusion/PROPUESTA_ANGEL_DE_LA_GUARDIA.md).
 
+**v9 — capacidad ampliada (roadmap):** Cuatro pilares (inferencia epistémica, imaginación generativa de candidatos, enjambre P2P, metaplanificación) documentados en [discusion/PROPUESTA_CAPACIDAD_AMPLIADA_V9.md](discusion/PROPUESTA_CAPACIDAD_AMPLIADA_V9.md). **Implementado en repo (9.1):** `assess_epistemic_dissonance` en `epistemic_dissonance.py` — telemetría y hint de tono ante disonancia audio/movimiento/visión; **sin** bypass de MalAbs. Pilares 9.2–9.4: diseño / futuro.
+
 ---
 
 ## Mathematics ↔ code
@@ -156,12 +158,13 @@ P(\text{éxito})=\alpha\cdot P(\text{control interno})+\beta\cdot P(\text{factor
 | **Narrative identity** | Autorrelato y atribución para contexto LLM | `narrative_identity.py` |
 | **Drive arbiter** | Intenciones motivacionales (telemetría; tras backup en `execute_sleep`) | `drive_arbiter.py` |
 | **Guardian mode** | Tono protector opcional para el LLM (`KERNEL_GUARDIAN_MODE`); **no** altera MalAbs → … → will | `guardian_mode.py` |
+| **Epistemic dissonance (v9.1)** | Telemetría audio/movimiento/visión; hint de tono ante inconsistencia; **no** altera MalAbs → … → will | `epistemic_dissonance.py` |
 
 ---
 
 ## Tests and inspectability
 
-Tests under `tests/` (**165** collected; ethical invariants, reflection/salience/PAD, identity/monologue, chat turns, WebSocket server smoke, MalAbs chat text gate including jailbreak phrases, optional `KERNEL_CHAT_*` privacy/telemetry flags, v7 relational JSON (`user_model`, `chronobiology`, `premise_advisory`, `teleology_branches`), v8 `SensorSnapshot` + perceptual abstraction + multimodal antispoof + vitality, optional Guardian Angel env (`tests/test_guardian_mode.py`), `KERNEL_ETHICAL_GENOME_*` drift guard, runtime bind/telemetry, optional per-session advisory loop, JSON + SQLite snapshot persistence (incl. `experience_digest`), checkpoint env, Ollama mode wiring, LLM resolve/use-local/monologue flags) encode behavior you can run **without any LLM API key** for the core suite. Chat server tests require **`fastapi`**, **`httpx`**, and **`uvicorn`** from `requirements.txt`. That is the practical answer to “black box” concerns: **behavior is reproducible and constrained by code**, not by a single sampled completion.
+Tests under `tests/` (**176** collected; ethical invariants, reflection/salience/PAD, identity/monologue, chat turns, WebSocket server smoke, MalAbs chat text gate including jailbreak phrases, optional `KERNEL_CHAT_*` privacy/telemetry flags, v7 relational JSON (`user_model`, `chronobiology`, `premise_advisory`, `teleology_branches`), v8 `SensorSnapshot` + perceptual abstraction + multimodal antispoof + vitality, optional Guardian Angel env (`tests/test_guardian_mode.py`), v9.1 epistemic dissonance (`tests/test_epistemic_dissonance.py`), `KERNEL_ETHICAL_GENOME_*` drift guard, runtime bind/telemetry, optional per-session advisory loop, JSON + SQLite snapshot persistence (incl. `experience_digest`), checkpoint env, Ollama mode wiring, LLM resolve/use-local/monologue flags) encode behavior you can run **without any LLM API key** for the core suite. Chat server tests require **`fastapi`**, **`httpx`**, and **`uvicorn`** from `requirements.txt`. That is the practical answer to “black box” concerns: **behavior is reproducible and constrained by code**, not by a single sampled completion.
 
 ## License
 

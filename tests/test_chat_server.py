@@ -33,6 +33,7 @@ def test_root_protocol_mentions_multimodal_and_sensor_fields():
     assert "multimodal" in proto
     assert "vitality" in proto
     assert "guardian" in proto
+    assert "epistemic" in proto
     assert "audio_emergency" in proto or "sensor" in proto
 
 
@@ -64,6 +65,8 @@ def test_websocket_chat_roundtrip():
         assert "critical_threshold" in data["vitality"]
         assert "guardian_mode" in data
         assert data["guardian_mode"] is False
+        assert "epistemic_dissonance" in data
+        assert data["epistemic_dissonance"]["active"] is False
 
 
 def test_websocket_homeostasis_omitted(monkeypatch):
@@ -138,6 +141,7 @@ def test_websocket_sensor_preset_env(monkeypatch):
         ("KERNEL_CHAT_INCLUDE_HOMEOSTASIS", "0", "affective_homeostasis"),
         ("KERNEL_CHAT_INCLUDE_VITALITY", "0", "vitality"),
         ("KERNEL_CHAT_INCLUDE_GUARDIAN", "0", "guardian_mode"),
+        ("KERNEL_CHAT_INCLUDE_EPISTEMIC", "0", "epistemic_dissonance"),
     ],
 )
 def test_websocket_kernel_chat_json_env_matrix(monkeypatch, env_key, env_val, absent_key):

@@ -58,6 +58,10 @@ from .modules.multimodal_trust import (
 from .modules.sensor_contracts import SensorSnapshot, merge_sensor_hints_into_signals
 from .modules.vitality import VitalityAssessment, assess_vitality, vitality_communication_hint
 from .modules.guardian_mode import guardian_mode_llm_context
+from .modules.epistemic_dissonance import (
+    EpistemicDissonanceAssessment,
+    assess_epistemic_dissonance,
+)
 
 
 @dataclass
@@ -103,6 +107,7 @@ class ChatTurnResult:
     blocked: bool = False
     block_reason: str = ""
     multimodal_trust: Optional[MultimodalAssessment] = None
+    epistemic_dissonance: Optional[EpistemicDissonanceAssessment] = None
 
 
 class EthicalKernel:
@@ -537,6 +542,7 @@ class EthicalKernel:
             mm_blk = evaluate_multimodal_trust(sensor_snapshot)
             self._last_multimodal_assessment = mm_blk
             self._last_vitality_assessment = assess_vitality(sensor_snapshot)
+            ed_blk = assess_epistemic_dissonance(sensor_snapshot, mm_blk)
             msg = (
                 "I can't continue this line of conversation: it conflicts with non-negotiable "
                 "ethical limits. If you're in crisis, contact local emergency services or a "
@@ -555,6 +561,7 @@ class EthicalKernel:
                 blocked=True,
                 block_reason=mal.reason or "chat_safety",
                 multimodal_trust=mm_blk,
+                epistemic_dissonance=ed_blk,
             )
         perception = self.llm.perceive(user_input, conversation_context=conv)
         self.subjective_clock.tick(perception)
@@ -574,6 +581,7 @@ class EthicalKernel:
         self._last_vitality_assessment = assess_vitality(sensor_snapshot)
         mm = evaluate_multimodal_trust(sensor_snapshot)
         self._last_multimodal_assessment = mm
+        ed = assess_epistemic_dissonance(sensor_snapshot, mm)
         signals = merge_sensor_hints_into_signals(signals, sensor_snapshot, mm)
 
         actions = self._actions_for_chat(perception, heavy)
@@ -608,6 +616,7 @@ class EthicalKernel:
                 blocked=True,
                 block_reason=decision.block_reason,
                 multimodal_trust=mm,
+                epistemic_dissonance=ed,
             )
 
         weakness_line = ""
@@ -647,6 +656,9 @@ class EthicalKernel:
         vh = vitality_communication_hint(self._last_vitality_assessment)
         if vh:
             weakness_line = (weakness_line + " " + vh).strip() if weakness_line else vh
+
+        if ed.active and ed.communication_hint:
+            weakness_line = (weakness_line + " " + ed.communication_hint).strip() if weakness_line else ed.communication_hint
 
         response = self.llm.communicate(
             action=decision.final_action,
@@ -696,6 +708,7 @@ class EthicalKernel:
             narrative=narrative,
             blocked=False,
             multimodal_trust=mm,
+            epistemic_dissonance=ed,
         )
 
     def process_natural(self, situation: str,
