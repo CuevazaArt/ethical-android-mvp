@@ -49,6 +49,7 @@ from .modules.identity_integrity import pruning_recalibration_allowed
 from .modules.internal_monologue import compose_monologue_line
 from .modules.user_model import UserModelTracker
 from .modules.subjective_time import SubjectiveClock
+from .modules.premise_validation import PremiseAdvisory, scan_premises
 
 
 @dataclass
@@ -131,6 +132,7 @@ class EthicalKernel:
         self.drive_arbiter = DriveArbiter()
         self.user_model = UserModelTracker()
         self.subjective_clock = SubjectiveClock()
+        self._last_premise_advisory: PremiseAdvisory = PremiseAdvisory("none", "")
         self._last_registered_episode_id: Optional[str] = None
         self._pruned_actions: Dict[str, List[str]] = {}
         # Reference "genome" for drift caps (pilar 2); snapshot at construction
@@ -515,6 +517,7 @@ class EthicalKernel:
         conv = wm.format_context_for_perception()
 
         mal = self.absolute_evil.evaluate_chat_text(user_input)
+        self._last_premise_advisory = scan_premises(user_input)
         if mal.blocked:
             msg = (
                 "I can't continue this line of conversation: it conflicts with non-negotiable "
@@ -534,7 +537,6 @@ class EthicalKernel:
                 blocked=True,
                 block_reason=mal.reason or "chat_safety",
             )
-
         perception = self.llm.perceive(user_input, conversation_context=conv)
         self.subjective_clock.tick(perception)
         heavy = self._chat_is_heavy(perception)
@@ -609,6 +611,10 @@ class EthicalKernel:
                 "favor transparency, boundaries, and calm refusal where needed—without hostile accusation."
             )
             weakness_line = (weakness_line + " " + manip_hint).strip() if weakness_line else manip_hint
+
+        if self._last_premise_advisory.flag != "none":
+            ph = self._last_premise_advisory.communication_hint()
+            weakness_line = (weakness_line + " " + ph).strip() if weakness_line else ph
 
         response = self.llm.communicate(
             action=decision.final_action,

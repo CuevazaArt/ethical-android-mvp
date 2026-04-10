@@ -77,6 +77,11 @@ def _chat_include_chrono() -> bool:
     return v not in ("0", "false", "no", "off")
 
 
+def _chat_include_premise() -> bool:
+    v = os.environ.get("KERNEL_CHAT_INCLUDE_PREMISE", "1").strip().lower()
+    return v not in ("0", "false", "no", "off")
+
+
 def _chat_turn_to_jsonable(r: ChatTurnResult, kernel: EthicalKernel) -> Dict[str, Any]:
     """Compact JSON-safe view (no full internal objects)."""
     idn = kernel.memory.identity
@@ -164,6 +169,9 @@ def _chat_turn_to_jsonable(r: ChatTurnResult, kernel: EthicalKernel) -> Dict[str
         out["user_model"] = kernel.user_model.to_public_dict()
     if _chat_include_chrono():
         out["chronobiology"] = kernel.subjective_clock.to_public_dict()
+    if _chat_include_premise():
+        pa = kernel._last_premise_advisory
+        out["premise_advisory"] = {"flag": pa.flag, "detail": pa.detail}
     return out
 
 
