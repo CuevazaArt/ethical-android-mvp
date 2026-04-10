@@ -361,6 +361,8 @@ A copy of `dashboard.html` is also kept under `landing/public/` so the Next.js a
 
 **Experimental (unofficial):** discussion notes on “artificial consciousness” as a pedagogical frame, strong vs weak readings, and affect archetypes for possible future integration — [docs/EXPERIMENTAL_CONSCIOUSNESS_AND_AFFECT_ARCHETYPES.md](docs/EXPERIMENTAL_CONSCIOUSNESS_AND_AFFECT_ARCHETYPES.md) (WIP, not part of the kernel contract until implemented and tested).
 
+**Roadmap (foundation, discussion only):** *Ángel de la Guarda* — protective/educational mode for vulnerable users, subordinate to the kernel contract — [docs/discusion/PROPUESTA_ANGEL_DE_LA_GUARDIA.md](docs/discusion/PROPUESTA_ANGEL_DE_LA_GUARDIA.md).
+
 **Experimental paper (same lineage):** expected phenomena when coupling PAD + prototype mixing to the kernel; definitions of *color* / *sabor* as metaphors; testable hypotheses reserved for future runs — [docs/experimental/PAPER_AFECTO_FENOMENOS_Y_HIPOTESIS.md](docs/experimental/PAPER_AFECTO_FENOMENOS_Y_HIPOTESIS.md).
 
 ## Medium-term directions (not scheduled)

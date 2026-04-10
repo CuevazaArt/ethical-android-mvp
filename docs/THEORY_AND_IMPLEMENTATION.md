@@ -57,6 +57,8 @@ See also `src/modules/psi_sleep.py`, `src/modules/immortality.py`, `src/modules/
 
 **Inventario v6 y exclusiones:** [discusion/PROPUESTA_INTEGRACION_APORTES_V6.md](discusion/PROPUESTA_INTEGRACION_APORTES_V6.md).
 
+**Roadmap producto (discusión):** modo **Ángel de la Guarda** (usuarios vulnerables, tono y rutinas sin segundo veto ético) — [discusion/PROPUESTA_ANGEL_DE_LA_GUARDIA.md](discusion/PROPUESTA_ANGEL_DE_LA_GUARDIA.md).
+
 ---
 
 ## Mathematics ↔ code
