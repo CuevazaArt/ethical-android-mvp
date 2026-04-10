@@ -484,6 +484,15 @@ synthetic soul creation, and identity persistence.
 | Immortality protocol | [97], [98], [104] |
 | Narrative augenesis | [7], [40], [99], [102], [103] |
 | Uchi-Soto (origins) | [100], [101], [67], [68], [70] |
+| Guardian mode (opt-in tone, `guardian_mode.py`) | [15], [17], [67], [69] |
+| Epistemic dissonance / sensor consensus (v9.1) | [21], [24], [25], [61], [71] |
+| Generative candidate actions (v9.2) | [18], [31], [41] |
+| Gray-zone diplomacy (v10) | [15], [41], [73] |
+| Skill learning registry / scope tickets (v10) | [15], [74], [90] |
+| Somatic markers → signal nudge (v10) | [59], [60], [91] |
+| Metaplan registry / session goals (v10) | [31], [33] |
+
+See also [docs/TRACE_IMPLEMENTATION_RECENT.md](docs/TRACE_IMPLEMENTATION_RECENT.md) (Spanish trace table).
 
 ---
 

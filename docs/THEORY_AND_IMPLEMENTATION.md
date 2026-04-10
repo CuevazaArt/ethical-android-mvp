@@ -63,6 +63,8 @@ See also `src/modules/psi_sleep.py`, `src/modules/immortality.py`, `src/modules/
 
 **v10 — estrategia operativa:** [discusion/PROPUESTA_ESTRATEGIA_OPERATIVA_V10.md](discusion/PROPUESTA_ESTRATEGIA_OPERATIVA_V10.md). **En repo (MVP):** `gray_zone_diplomacy.py` (hints de negociación en tensión / gray zone); `skill_learning_registry.py` (tickets + auditoría en Ψ Sleep); `somatic_markers.py` (patrón sensorial → nudge en señales); `metaplan_registry.py` (metas en RAM → hint LLM). Env: `KERNEL_GRAY_ZONE_DIPLOMACY`, `KERNEL_SOMATIC_MARKERS`, `KERNEL_METAPLAN_HINT`. Persistencia de metas en checkpoint: futuro.
 
+**Trazabilidad y bibliografía (implementaciones recientes):** tabla componente ↔ sustento con referencias numeradas en [TRACE_IMPLEMENTATION_RECENT.md](TRACE_IMPLEMENTATION_RECENT.md) e índice ampliado en [BIBLIOGRAPHY.md](../BIBLIOGRAPHY.md) (*Index by project component*).
+
 ---
 
 ## Mathematics ↔ code
