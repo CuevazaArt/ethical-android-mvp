@@ -1,18 +1,20 @@
-# Discusión (no backlog)
+# Discussion (not the backlog)
 
-Textos en **exploración**: ideas, marcos filosóficos o diseños que **no** son tareas operativas hasta acordar criterios.
+**Exploratory** notes: ideas, philosophical frames, or designs that are **not** operational tasks until criteria are agreed.
 
-Las **tareas de producto** se coordinan en el README del repo y en el control de versiones; esta carpeta es solo discusión y propuestas.
+Product work is coordinated from the repository README and version control; this folder is **discussion and proposals** only.
 
-| Documento | Tema |
-|-----------|------|
-| [CONCIENCIA_EMERGENTE_V6.md](CONCIENCIA_EMERGENTE_V6.md) | Fronteras autorreferencia / GWT / drives / yo narrativo (v6) |
-| [PROPUESTA_INTEGRACION_APORTES_V6.md](PROPUESTA_INTEGRACION_APORTES_V6.md) | **Propuesta técnica coherente:** fases (Reflection ✓, Salience ✓, …), inventario del modelo actual, exclusiones |
-| [PROPUESTA_ROBUSTEZ_V6_PLUS.md](PROPUESTA_ROBUSTEZ_V6_PLUS.md) | **Cinco pilares** — plan, metacognición/integridad, **estado de implementación MVP** por pilar y **cabos sueltos** (contrafactual, cifrado, etc.); el contrato ético sigue en el kernel |
-| [PROPUESTA_EVOLUCION_RELACIONAL_V7.md](PROPUESTA_EVOLUCION_RELACIONAL_V7.md) | **ToM ligera, cronobiología, premisas advisory, teleología cualitativa** — ruta lógica, MVP en código, env `KERNEL_CHAT_INCLUDE_*` |
-| [PROPUESTA_ORGANISMO_SITUADO_V8.md](PROPUESTA_ORGANISMO_SITUADO_V8.md) | **v8 situado / existencial:** fusión sensorial, pulsión vital, agencia digital, migración hardware — ortogonal a v7; contrato `SensorSnapshot`, plan por fases, WebSocket `sensor` |
-| [PROPUESTA_VITALIDAD_SACRIFICIO_Y_FIN.md](PROPUESTA_VITALIDAD_SACRIFICIO_Y_FIN.md) | **Extensión v8 (delta):** vitalidad/sacrificio, fin digno + legado narrativo, tabla sensor→ética, ActionClocks vs SubjectiveClock, **antispoof multimodal** y duda metacognitiva |
-| [PROPUESTA_ANGEL_DE_LA_GUARDIA.md](PROPUESTA_ANGEL_DE_LA_GUARDIA.md) | **Mos Ex Machina Foundation — modo Ángel de la Guarda:** propósito, funciones, beneficios, escenarios; **contrato** con el kernel (tono/rutina, sin segundo veto); riesgos y salvaguardas |
-| [PROPUESTA_CAPACIDAD_AMPLIADA_V9.md](PROPUESTA_CAPACIDAD_AMPLIADA_V9.md) | **v9 — cuatro pilares** (epistémica, creatividad generativa, enjambre, metaplanificación); **9.1–9.2** en código (disonancia; candidatos generativos opt-in); 9.3–9.4 diseño; contrato MalAbs intacto |
-| [PROPUESTA_ESTRATEGIA_OPERATIVA_V10.md](PROPUESTA_ESTRATEGIA_OPERATIVA_V10.md) | **v10 — estrategia operativa:** diplomacia gray zone, registry de habilidades, soma aprendida, metas largas; mapa a módulos; MVP en repo |
-| [../TRACE_IMPLEMENTATION_RECENT.md](../TRACE_IMPLEMENTATION_RECENT.md) | **Trazabilidad** Guardian + v9–v10: componentes en código y **sustento** ([BIBLIOGRAPHY.md](../../BIBLIOGRAPHY.md)); plan próxima jornada |
+| Document | Topic |
+|----------|----------|
+| [CONCIENCIA_EMERGENTE_V6.md](CONCIENCIA_EMERGENTE_V6.md) | Self-reference / GWT / drives / narrative self (v6) — *Spanish* |
+| [PROPUESTA_INTEGRACION_APORTES_V6.md](PROPUESTA_INTEGRACION_APORTES_V6.md) | **Coherent technical proposal:** phases (Reflection ✓, Salience ✓, …), model inventory, exclusions — *Spanish* |
+| [PROPUESTA_ROBUSTEZ_V6_PLUS.md](PROPUESTA_ROBUSTEZ_V6_PLUS.md) | **Five pillars** — plan, metacognition/integrity, **MVP implementation status** per pillar and **open threads**; ethical contract remains in the kernel — *Spanish* |
+| [PROPUESTA_EVOLUCION_RELACIONAL_V7.md](PROPUESTA_EVOLUCION_RELACIONAL_V7.md) | **Light ToM, chronobiology, premise advisory, qualitative teleology** — MVP in code, `KERNEL_CHAT_INCLUDE_*` — *Spanish* |
+| [PROPUESTA_ORGANISMO_SITUADO_V8.md](PROPUESTA_ORGANISMO_SITUADO_V8.md) | **Situated v8:** sensor fusion, vitality, digital agency, hardware migration — orthogonal to v7; `SensorSnapshot`, phased plan, WebSocket `sensor` — *Spanish* |
+| [PROPUESTA_VITALIDAD_SACRIFICIO_Y_FIN.md](PROPUESTA_VITALIDAD_SACRIFICIO_Y_FIN.md) | **v8 extension:** vitality/sacrifice, dignified end + narrative legacy, multimodal antispoof — *Spanish* |
+| [PROPUESTA_ANGEL_DE_LA_GUARDIA.md](PROPUESTA_ANGEL_DE_LA_GUARDIA.md) | **Guardian Angel mode** — purpose, product contract with the kernel (tone only; no second veto) — *Spanish* |
+| [PROPUESTA_CAPACIDAD_AMPLIADA_V9.md](PROPUESTA_CAPACIDAD_AMPLIADA_V9.md) | **v9 pillars** (epistemic, generative, swarm, metaplanning); 9.1–9.2 in code — *Spanish* |
+| [PROPUESTA_ESTRATEGIA_OPERATIVA_V10.md](PROPUESTA_ESTRATEGIA_OPERATIVA_V10.md) | **v10 operational:** gray-zone diplomacy, skills, somatic markers, long goals — *Spanish* |
+| [../TRACE_IMPLEMENTATION_RECENT.md](../TRACE_IMPLEMENTATION_RECENT.md) | **Traceability** Guardian + v9–v10: code ↔ bibliography ([BIBLIOGRAPHY.md](../../BIBLIOGRAPHY.md)); proposed next session — **English** |
+
+For canonical runtime and persistence docs in English, see [RUNTIME_CONTRACT.md](../RUNTIME_CONTRACT.md), [RUNTIME_PERSISTENT.md](../RUNTIME_PERSISTENT.md), and [RUNTIME_PHASES.md](../RUNTIME_PHASES.md).

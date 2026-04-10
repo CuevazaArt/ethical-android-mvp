@@ -8,7 +8,7 @@
 
 La meta **no** es solo que el modelo sea “lo más consciente” posible en el sentido de riqueza fenomenológica o narrativa, sino que sea, en la medida del diseño, **responsable de su propia integridad**: vigilar y defender la coherencia entre principios inmutables, estado acumulado (memoria, identidad) y canal privado del pensamiento frente a manipulación, deriva, ruido cognitivo, estrés afectivo simulado sostenido y fugas de datos. Eso es lo que articulan los cinco pilares de forma **instrumental** y, cuando se implementen, **testeable**. La **normatividad** sigue concentrada en el kernel (`process` / `process_chat_turn`); la capa de robustez/metacontrol **no** reescribe la ética, solo acota cómo se preserva el sistema como sistema.
 
-**Referencias en código actuales:** `AbsoluteEvilDetector` (MalAbs), `PreloadedBuffer`, `WorkingMemory`, `SalienceMap`, `PADArchetypeEngine`, `PsiSleep`, `NarrativeMemory`, `AugenesisEngine` (opcional), monólogo en `internal_monologue` / `chat_server`, persistencia en [RUNTIME_PERSISTENTE.md](../RUNTIME_PERSISTENTE.md).
+**Referencias en código actuales:** `AbsoluteEvilDetector` (MalAbs), `PreloadedBuffer`, `WorkingMemory`, `SalienceMap`, `PADArchetypeEngine`, `PsiSleep`, `NarrativeMemory`, `AugenesisEngine` (opcional), monólogo en `internal_monologue` / `chat_server`, persistencia en [RUNTIME_PERSISTENT.md](../RUNTIME_PERSISTENT.md).
 
 ### ¿Se trata de un módulo de metacognición?
 
@@ -91,7 +91,7 @@ En sentido psicológico estricto, la **metacognición** es el conjunto de proces
 
 **Idea:** El monólogo interno es superficie de fuga si el hardware es comprometido. No persistir pensamiento en claro; procesar en RAM; si algo debe archivarse en narrativa, usar representaciones **no reversibles** para un atacante sin clave (p. ej. derivaciones tipo hash con sal), alineado con secreto total como objetivo de producto.
 
-**Mapeo al repo hoy:** el monólogo expuesto por WebSocket puede combinarse con `KERNEL_LLM_MONOLOGUE`; los checkpoints JSON/SQLite **no** cifran aún el estado completo ([RUNTIME_PERSISTENTE.md](../RUNTIME_PERSISTENTE.md): cifrado en reposo **previsto**, `cryptography` **no** en el MVP). Los episodios narrativos siguen almacenando texto legible en el modelo actual.
+**Mapeo al repo hoy:** el monólogo expuesto por WebSocket puede combinarse con `KERNEL_LLM_MONOLOGUE`; los checkpoints JSON/SQLite **no** cifran aún el estado completo ([RUNTIME_PERSISTENT.md](../RUNTIME_PERSISTENT.md): cifrado en reposo **previsto**, `cryptography` **no** en el MVP). Los episodios narrativos siguen almacenando texto legible en el modelo actual.
 
 **Condiciones de diseño:**
 
@@ -112,7 +112,7 @@ En sentido psicológico estricto, la **metacognición** es el conjunto de proces
 | 4 Emocional | PAD/σ solo lectura | Feedback homeostático sin romper invariantes éticos |
 | 5 Secreto | MVP sin cifrado; monólogo en JSON | RAM-only / cifrado / hashes según amenaza |
 
-**Próximo paso recomendado (equipo de producto):** priorizar **un** pilar, modelo de amenazas breve, y criterios de aceptación testeables; después alinear con [RUNTIME_FASES.md](../RUNTIME_FASES.md) y el contrato de no duplicar decisión fuera del kernel.
+**Próximo paso recomendado (equipo de producto):** priorizar **un** pilar, modelo de amenazas breve, y criterios de aceptación testeables; después alinear con [RUNTIME_PHASES.md](../RUNTIME_PHASES.md) y el contrato de no duplicar decisión fuera del kernel.
 
 ---
 
@@ -137,7 +137,7 @@ Criterio de orden: **impacto / coste / riesgo de romper invariantes éticos**. L
 | | |
 |--|--|
 | **Valor al modelo** | **Alto** para confianza y alineación con “secreto total”: reduce superficie de fuga sin reinterpretar la ética. |
-| **Atajo (MVP)** | (1) Garantizar que el monólogo **no** entre en `KernelSnapshotV1` / checkpoint salvo opt-in explícito (`env` documentado). (2) En respuesta WebSocket, opción de **omitir** el campo `monologue` o enviar solo un hash/local id si se activa modo privado. (3) Reutilizar el plan de **cifrado en reposo** de [RUNTIME_PERSISTENTE.md](../RUNTIME_PERSISTENTE.md) cuando se añada `cryptography` — el monólogo no debería ser el primer campo en claro en disco. |
+| **Atajo (MVP)** | (1) Garantizar que el monólogo **no** entre en `KernelSnapshotV1` / checkpoint salvo opt-in explícito (`env` documentado). (2) En respuesta WebSocket, opción de **omitir** el campo `monologue` o enviar solo un hash/local id si se activa modo privado. (3) Reutilizar el plan de **cifrado en reposo** de [RUNTIME_PERSISTENT.md](../RUNTIME_PERSISTENT.md) cuando se añada `cryptography` — el monólogo no debería ser el primer campo en claro en disco. |
 | **Estado en código (parcial)** | `KERNEL_CHAT_EXPOSE_MONOLOGUE` — si `0`/`false`/`no`/`off`, `monologue` va vacío y no se llama al embellecimiento LLM (`chat_server`). `KernelSnapshotV1` **no** define campo `monologue` (solo episodios narrativos en checkpoint). |
 | **Dejar para después** | Cifrado de pensamiento reversible con clave en proceso; hashes salteados de reflexiones archivadas (separar requisitos legales vs técnicos). |
 | **Riesgo ético** | Bajo si solo se reduce persistencia/exposición; no cambia `process`. |
@@ -195,6 +195,6 @@ Criterio de orden: **impacto / coste / riesgo de romper invariantes éticos**. L
 ### Resumen ejecutivo
 
 - **Atajos MVP ya integrados en código (revisar tabla “Estado en código” por pilar):** **5** (monólogo / privacidad WebSocket), **1** (lista jailbreak en `evaluate_chat_text`), **4** (`affective_homeostasis`), **2** (tope de deriva del `pruning_threshold` vs genoma al construir el kernel), **3** (`experience_digest` + snapshot).  
-- **Cabos sueltos deliberados:** contrafactual completo (pilar 1), cifrado en reposo / pensamiento (pilar 5 + [RUNTIME_PERSISTENTE.md](../RUNTIME_PERSISTENTE.md)), recalibración de **pesos de hipótesis** bayesianas bajo el mismo criterio que el pruning (pilar 2), telemetría `adversarial_hint` en JSON (pilar 1), olvido/FIFO de episodios (pilar 3).
+- **Cabos sueltos deliberados:** contrafactual completo (pilar 1), cifrado en reposo / pensamiento (pilar 5 + [RUNTIME_PERSISTENT.md](../RUNTIME_PERSISTENT.md)), recalibración de **pesos de hipótesis** bayesianas bajo el mismo criterio que el pruning (pilar 2), telemetría `adversarial_hint` en JSON (pilar 1), olvido/FIFO de episodios (pilar 3).
 
 Este documento sigue siendo **discusión**; el contrato normativo del kernel sigue en `process` / `process_chat_turn` y en la batería de tests.

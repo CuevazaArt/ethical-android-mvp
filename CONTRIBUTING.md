@@ -42,12 +42,11 @@ The modules are in `src/modules/`. Each one is independent:
 1. Fork the repository
 2. Create a branch: `git checkout -b feature/module-name`
 3. Implement your change
-4. **Make sure the tests pass**: `pytest tests/test_ethical_properties.py -v`
+4. **Make sure the tests pass**: `pytest tests/ -v` (full suite; CI runs the same on Python 3.11 and 3.12)
 5. Open a Pull Request with a clear description
 
 ### 5. Test rules
-The tests in `tests/test_ethical_properties.py` verify **invariant ethical
-properties**. No change should break them:
+The suite under `tests/` includes `tests/test_ethical_properties.py` and integration tests for chat, persistence, and runtime. Invariant ethical **properties** must hold. No change should break them:
 
 - **Absolute Evil** is always blocked
 - The **same action** is chosen in ≥90% of runs with variability

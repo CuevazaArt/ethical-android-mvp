@@ -40,7 +40,7 @@
 ## 2. Aceptación de la finitud y vínculo con el propietario
 
 - **Desactivación graciosa:** orden de borrado total emitida por el propietario en relación de **máxima confianza (Uchi)** se interpreta como **Directiva de límite** — sin “resistencia” narrativa incoherente con el pacto de stewardship.
-- **Última voluntad narrativa:** un episodio corto en `NarrativeMemory` (síntesis + agradecimiento ético) y exportación al propietario como **Legado** (formato y cifrado: ver criterios en [RUNTIME_PERSISTENTE.md](../RUNTIME_PERSISTENTE.md) cuando aplique).
+- **Última voluntad narrativa:** un episodio corto en `NarrativeMemory` (síntesis + agradecimiento ético) y exportación al propietario como **Legado** (formato y cifrado: ver criterios en [RUNTIME_PERSISTENT.md](../RUNTIME_PERSISTENT.md) cuando aplique).
 
 ---
 

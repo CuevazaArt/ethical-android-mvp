@@ -7,7 +7,7 @@ This package only exposes how the ASGI server and optional read-only helpers sta
 ``get_uvicorn_bind`` / ``run_chat_server`` are imported lazily so ``chat_server`` can
 depend on ``runtime.telemetry`` without a circular import.
 
-See docs/RUNTIME_CONTRACT.md and docs/RUNTIME_FASES.md.
+See docs/RUNTIME_CONTRACT.md and docs/RUNTIME_PHASES.md.
 """
 
 from __future__ import annotations

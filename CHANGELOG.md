@@ -1,5 +1,44 @@
 # Changelog
 
+All notable changes to this project are summarized here. For narrative context and design rationale, see [`HISTORY.md`](HISTORY.md).
+
+## v10.0 — April 2026
+### Operational strategy (MVP hooks)
+- **Gray-zone diplomacy** (`gray_zone_diplomacy.py`): optional LLM hints when decision mode is gray zone or reflection is tense (`KERNEL_GRAY_ZONE_DIPLOMACY`).
+- **Skill-learning registry** (`skill_learning_registry.py`): scoped skill tickets and Psi Sleep audit lines.
+- **Somatic markers** (`somatic_markers.py`): learned sensor-pattern nudges to `signals` (`KERNEL_SOMATIC_MARKERS`).
+- **Metaplan registry** (`metaplan_registry.py`): long-horizon goal hints from `Kernel.metaplan` (`KERNEL_METAPLAN_HINT`).
+
+## v9.0 — April 2026
+### Epistemic and generative extensions (opt-in)
+- **Epistemic dissonance** (`epistemic_dissonance.py`, v9.1): cross-modal reality-check telemetry in WebSocket JSON (`KERNEL_CHAT_INCLUDE_EPISTEMIC`); tone only; no MalAbs bypass.
+- **Generative candidates** (`generative_candidates.py`, v9.2): optional extra template actions on dilemma-like turns (`KERNEL_GENERATIVE_ACTIONS`, `KERNEL_GENERATIVE_ACTIONS_MAX`).
+
+## v8.0 — April 2026
+### Situated organism (sensor contract and vitality)
+- **Sensor contracts** (`sensor_contracts.py`): optional `SensorSnapshot` merged into sympathetic signals.
+- **Perceptual abstraction** (`perceptual_abstraction.py`): named presets, JSON fixtures, merge order with client `sensor`.
+- **Multimodal trust** (`multimodal_trust.py`): cross-modal antispoof telemetry (`KERNEL_CHAT_INCLUDE_MULTIMODAL`).
+- **Vitality** (`vitality.py`): battery / critical threshold hints (`KERNEL_CHAT_INCLUDE_VITALITY`).
+
+## v7.0 — April 2026
+### Relational advisory layer (optional JSON)
+- **User model** (`user_model.py`): light frustration / style hints (`KERNEL_CHAT_INCLUDE_USER_MODEL`).
+- **Subjective time** (`subjective_time.py`): session clock and stimulus EMA (`KERNEL_CHAT_INCLUDE_CHRONO`).
+- **Premise validation** (`premise_validation.py`): advisory premise scan (`KERNEL_CHAT_INCLUDE_PREMISE`).
+- **Consequence projection** (`consequence_projection.py`): qualitative long-horizon branches (`KERNEL_CHAT_INCLUDE_TELEOLOGY`).
+
+## v6.0 — April 2026
+### Runtime, WebSocket chat, and persistence
+- **WebSocket chat server** (`chat_server.py`, `real_time_bridge.py`): `EthicalKernel.process_chat_turn` exposed per connection; health endpoint.
+- **Runtime entry** (`python -m src.runtime`): same ASGI stack as `chat_server`; documented in `docs/RUNTIME_CONTRACT.md` and `docs/RUNTIME_PHASES.md`.
+- **Advisory telemetry** (`runtime/telemetry.py`): optional background `DriveArbiter.evaluate` (`KERNEL_ADVISORY_INTERVAL_S`); no decisions or LLM.
+- **Persistence port** (`persistence/kernel_io.py`): `KernelSnapshotV1`, `extract_snapshot` / `apply_snapshot`.
+- **JSON + SQLite adapters** (`json_store.py`, `sqlite_store.py`): same DTO, two storage backends.
+- **Checkpoints** (`persistence/checkpoint.py`): WebSocket load/save and autosave (`KERNEL_CHECKPOINT_*`).
+- **Local LLM backend** (`llm_backends.py`, `LLM_MODE=ollama`): Ollama adapter; optional monologue embellishment (`KERNEL_LLM_MONOLOGUE`); see `tests/test_ollama_llm.py`, `tests/test_llm_phase3.py`.
+- **CI** (`.github/workflows/ci.yml`): pytest on Python 3.11 and 3.12.
+
 ## v5.0 — March 2026
 ### Humanization and persistent identity modules
 - **Weakness Pole** (`weakness_pole.py`): intentional narrative imperfection
@@ -77,4 +116,4 @@
 - 40+ design documents analyzed and consolidated
 - 7-layer architecture documented
 - Complete mathematical formalization
-- Bibliography of 40+ references across 12 disciplines
+- Bibliography expanded over time; see current [`BIBLIOGRAPHY.md`](BIBLIOGRAPHY.md) (104 references across 14 disciplines as of v5+)

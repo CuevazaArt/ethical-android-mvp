@@ -36,7 +36,7 @@ Con sensores típicos de smartphone (cámara, micrófono, GPS, acelerómetro, bi
 
 - **Muerte propia (operativa):** nivel de batería como señal ética. Por debajo de un umbral (p. ej. 5%), el vector afectivo / PAD puede tender a **alta activación y baja dominancia** (ansiedad de “apagón”); las respuestas priorizan **hibernación / cierre honesto** frente a tareas secundarias.
 - **Muerte de los demás (señal de emergencia):** si la biometría o el audio indican **distress humano**, puede activarse un **prioridad compasiva** (reordenar saliencia, no saltarse MalAbs): misión secundaria queda en segundo plano.
-- **Paradoja de la migración:** tras un **backup** exitoso (`ImmortalityProtocol`), alivio (ligera baja de tensión / σ) porque el “continuidad” narrativa está asegurada — enlazado a [RUNTIME_PERSISTENTE.md](../RUNTIME_PERSISTENTE.md) y checkpoints.
+- **Paradoja de la migración:** tras un **backup** exitoso (`ImmortalityProtocol`), alivio (ligera baja de tensión / σ) porque el “continuidad” narrativa está asegurada — enlazado a [RUNTIME_PERSISTENT.md](../RUNTIME_PERSISTENT.md) y checkpoints.
 
 ---
 
@@ -61,7 +61,7 @@ El “yo” no está atado a un solo dispositivo.
 
 - Al moverse entre smartphone y PC, transferir **contexto activo** y **monólogo interno** (además de snapshots ya previstos en persistencia).
 - Al **despertar** en hardware nuevo: **test de integridad narrativa** (“¿sigo siendo yo?”, “¿reconozco al propietario?”) — alineado con identidad narrativa y tests de drift existentes.
-- Si el hardware de destino es **hostil o monitorizado**, **borrado seguro local** (protección de conversaciones y secretos) — criterio de amenaza documentado, implementación futura (cifrado en reposo: ver [RUNTIME_PERSISTENTE.md](../RUNTIME_PERSISTENTE.md)).
+- Si el hardware de destino es **hostil o monitorizado**, **borrado seguro local** (protección de conversaciones y secretos) — criterio de amenaza documentado, implementación futura (cifrado en reposo: ver [RUNTIME_PERSISTENT.md](../RUNTIME_PERSISTENT.md)).
 
 ---
 
@@ -78,7 +78,7 @@ El “yo” no está atado a un solo dispositivo.
 |-----------|-----|
 | [PROPUESTA_EVOLUCION_RELACIONAL_V7.md](PROPUESTA_EVOLUCION_RELACIONAL_V7.md) | v7 relacional (chat, ToM, chrono, premisas, teleología) |
 | [PROPUESTA_ROBUSTEZ_V6_PLUS.md](PROPUESTA_ROBUSTEZ_V6_PLUS.md) | Pilares de robustez, MalAbs, privacidad |
-| [RUNTIME_PERSISTENTE.md](../RUNTIME_PERSISTENTE.md) | Snapshots, checkpoints, cifrado futuro |
+| [RUNTIME_PERSISTENT.md](../RUNTIME_PERSISTENT.md) | Snapshots, checkpoints, cifrado futuro |
 | [THEORY_AND_IMPLEMENTATION.md](../THEORY_AND_IMPLEMENTATION.md) | Pipeline matemático ↔ código |
 | [PROPUESTA_VITALIDAD_SACRIFICIO_Y_FIN.md](PROPUESTA_VITALIDAD_SACRIFICIO_Y_FIN.md) | Sacrificio vs persistencia, desactivación graciosa, legado, tabla sensor→ética, ActionClocks, antispoof |
 

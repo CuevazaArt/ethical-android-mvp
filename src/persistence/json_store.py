@@ -26,7 +26,7 @@ class JsonFilePersistence:
     Save/load :class:`KernelSnapshotV1` as UTF-8 JSON.
 
     Intended for local single-user checkpoints. At-rest encryption is not implemented
-    here; see docs/RUNTIME_PERSISTENTE.md for the planned cryptography layer.
+    here; see docs/RUNTIME_PERSISTENT.md for the planned cryptography layer.
     """
 
     def __init__(self, path: Path | str):

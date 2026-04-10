@@ -73,4 +73,4 @@ Este documento **enciende** cuatro aportes que complementan [PROPUESTA_CAPACIDAD
 | [THEORY_AND_IMPLEMENTATION.md](../THEORY_AND_IMPLEMENTATION.md) | Pipeline; LLM no decide |
 | [PROPUESTA_CAPACIDAD_AMPLIADA_V9.md](PROPUESTA_CAPACIDAD_AMPLIADA_V9.md) | v9 epistémica / generativa / enjambre / metaplan roadmap |
 | [PROPUESTA_ROBUSTEZ_V6_PLUS.md](PROPUESTA_ROBUSTEZ_V6_PLUS.md) | Robustez, privacidad |
-| [RUNTIME_PERSISTENTE.md](../RUNTIME_PERSISTENTE.md) | Persistencia, checkpoints |
+| [RUNTIME_PERSISTENT.md](../RUNTIME_PERSISTENT.md) | Persistence, checkpoints |

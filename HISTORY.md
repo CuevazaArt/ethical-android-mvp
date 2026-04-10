@@ -116,7 +116,7 @@ kernel/communication separation:
 - `procesar_natural()` method in kernel for full cycle:
   text → decision → verbal response → morals.
 
-## v5.0 — March 2026 | Humanization and persistent identity (current version)
+## v5.0 — March 2026 | Humanization and persistent identity
 
 Integrates 4 modules that make the android more believable, resilient, and persistent:
 
@@ -146,6 +146,40 @@ The night cycle now includes: retrospective audit → algorithmic forgiveness
 - **51 tests** verifying 13 invariant ethical properties.
 - Interactive dashboard (`dashboard.html`) for browser visualization.
 
+## v6.0 — April 2026 | Runtime, chat server, and persistence (MVP)
+
+Moves the kernel from batch simulations and ad-hoc scripts toward a **long-lived process** with recoverable state, without changing the ethical decision core (MalAbs → Bayes → poles → will).
+
+| Area | Implementation | Role |
+|------|------------------|------|
+| WebSocket API | `src/chat_server.py`, `src/real_time_bridge.py` | `process_chat_turn` per connection; isolated kernel per session |
+| Runtime entry | `python -m src.runtime` | Same ASGI app as `chat_server`; shared bind helpers |
+| Advisory telemetry | `src/runtime/telemetry.py` | Optional `DriveArbiter.evaluate` loop (`KERNEL_ADVISORY_INTERVAL_S`); read-only |
+| Snapshot port | `src/persistence/kernel_io.py` | `KernelSnapshotV1`, `extract_snapshot` / `apply_snapshot` |
+| Adapters | `json_store.py`, `sqlite_store.py` | JSON file and SQLite row storage for the same DTO |
+| Checkpoints | `src/persistence/checkpoint.py` | Load on connect, save on disconnect, autosave (`KERNEL_CHECKPOINT_*`) |
+| Contract docs | `docs/RUNTIME_CONTRACT.md`, `docs/RUNTIME_PERSISTENT.md`, `docs/RUNTIME_PHASES.md` | Ethical boundaries for async work; phased plan (runtime → DB → local LLM) |
+| CI | `.github/workflows/ci.yml` | Tests on Python 3.11 and 3.12 |
+
+Formal test count grows with integration tests for chat, persistence, and runtime (see `README.md` and `pytest tests/`).
+
+## v7.0 — April 2026 | Relational advisory layer (optional JSON)
+
+Lightweight theory-of-mind hints, session chronobiology, premise scanning, and qualitative teleology branches—**advisory only**, toggled with `KERNEL_CHAT_INCLUDE_*` env vars. Implemented in `user_model.py`, `subjective_time.py`, `premise_validation.py`, `consequence_projection.py`.
+
+## v8.0 — April 2026 | Situated organism (sensor contract and vitality)
+
+Optional `sensor` JSON merged into sympathetic **signals** before the decision stack: `sensor_contracts.py`, `perceptual_abstraction.py` (presets/fixtures), `multimodal_trust.py`, `vitality.py`. Cross-modal antispoof and battery-critical hints are **telemetry and tone**, not ethical bypass.
+
+## v9.0 — April 2026 | Epistemic and generative extensions (opt-in)
+
+- **v9.1** `epistemic_dissonance.py` — cross-modal “reality check” telemetry when audio distress conflicts with motion/vision (tone only).
+- **v9.2** `generative_candidates.py` — optional extra `CandidateAction` templates on heavy turns (`KERNEL_GENERATIVE_ACTIONS`).
+
+## v10.0 — April 2026 | Operational strategy (MVP hooks)
+
+`gray_zone_diplomacy.py`, `skill_learning_registry.py`, `somatic_markers.py`, `metaplan_registry.py` — negotiated-exit hints, scoped skill tickets, learned sensor nudges, and session master-goal hints toward the LLM **without** changing kernel policy.
+
 ---
 
 ## Historical artifacts (not included in the repo, available locally)
@@ -169,6 +203,9 @@ The night cycle now includes: retrospective audit → algorithmic forgiveness
 - [x] ~~Algorithmic forgiveness~~ (implemented v5)
 - [x] ~~Immortality protocol~~ (implemented v5)
 - [x] ~~Narrative augenesis~~ (implemented v5)
+- [x] ~~WebSocket chat + runtime entry~~ (implemented v6)
+- [x] ~~Snapshot persistence + checkpoints (MVP)~~ (implemented v6)
+- [ ] At-rest encryption for checkpoints/snapshots (production deployments)
 - [ ] DAO calibration protocol (gradual parameter adjustment on testnet)
 - [ ] Full offline mode (5 layers of autonomy)
 - [ ] Hardware integration (sensors, actuators, communication protocol)

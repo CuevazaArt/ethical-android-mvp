@@ -1,39 +1,39 @@
-# Contrato del runtime (Fase 1)
+# Runtime contract (Phase 1)
 
-El **runtime** es el proceso que mantiene vivo el servicio (p. ej. FastAPI + WebSocket). No redefine la ética.
+The **runtime** is the process that keeps the service alive (e.g. FastAPI + WebSocket). It does **not** redefine ethics.
 
-## Fuente de verdad ética
+## Source of ethical truth
 
-- Solo `EthicalKernel.process`, `EthicalKernel.process_chat_turn`, `EthicalKernel.process_natural` (y rutas documentadas que delegan en ellos) determinan acciones y modos.
-- El LLM **no** decide política.
+- Only `EthicalKernel.process`, `EthicalKernel.process_chat_turn`, `EthicalKernel.process_natural` (and documented paths that delegate to them) determine actions and modes.
+- The LLM **does not** set policy.
 
-## Qué puede hacer el runtime sin violar el contrato
+## What the runtime may do without breaking the contract
 
-| Permitido | Ejemplo |
-|-----------|---------|
-| Arrancar ASGI / uvicorn con el mismo `app` | `python -m src.runtime`, `python -m src.chat_server`, `uvicorn src.chat_server:app` |
-| Tareas async de **solo lectura** sobre el kernel | `src.runtime.telemetry.advisory_loop` (solo `DriveArbiter.evaluate`); opcional por sesión WebSocket si `KERNEL_ADVISORY_INTERVAL_S` > 0 |
-| Health checks, logs, métricas | `GET /health` |
-| Timers que llamen **solo** a APIs documentadas como seguras | p. ej. invocar `execute_sleep` en un proceso que tenga un kernel explícito (diseño futuro; no inyecta acciones) |
+| Allowed | Example |
+|---------|---------|
+| Start ASGI / uvicorn with the same `app` | `python -m src.runtime`, `python -m src.chat_server`, `uvicorn src.chat_server:app` |
+| Async tasks that are **read-only** on the kernel | `src.runtime.telemetry.advisory_loop` (only `DriveArbiter.evaluate`); optional per WebSocket session if `KERNEL_ADVISORY_INTERVAL_S` > 0 |
+| Health checks, logs, metrics | `GET /health` |
+| Timers that call **only** APIs documented as safe | e.g. invoke `execute_sleep` in a process that owns an explicit kernel (future design; does not inject actions) |
 
-## Prohibido en segundo plano
+## Forbidden in the background
 
-- Crear `CandidateAction` y aplicarlos sin pasar por `process` / `process_chat_turn`.
-- Sustituir MalAbs, buffer o Bayes por salidas de LLM o de augenesis.
-- Bucle que “hable” por el usuario o modifique DAO/narrativa sin pasar por el kernel en las rutas previstas.
+- Create `CandidateAction` instances and apply them without going through `process` / `process_chat_turn`.
+- Replace MalAbs, buffer, or Bayes with LLM or augenesis outputs.
+- A loop that “speaks for” the user or modifies DAO/narrative without going through the kernel on the intended paths.
 
 ## Augenesis
 
-Sigue **opcional** y fuera del ciclo por defecto ([THEORY_AND_IMPLEMENTATION.md](THEORY_AND_IMPLEMENTATION.md)).
+Remains **optional** and off the default loop ([THEORY_AND_IMPLEMENTATION.md](THEORY_AND_IMPLEMENTATION.md)).
 
-## Entrada unificada
+## Unified entrypoint
 
-- **`python -m src.runtime`** — mismo servidor que `python -m src.chat_server` (`CHAT_HOST`, `CHAT_PORT`).
+- **`python -m src.runtime`** — same server as `python -m src.chat_server` (`CHAT_HOST`, `CHAT_PORT`).
 
-## Persistencia (confidencialidad, no ética)
+## Persistence (confidentiality, not ethics)
 
-Guardar o restaurar snapshots **no** altera las reglas de decisión del kernel. En el MVP los checkpoints van **sin cifrado**; para despliegues sensibles el cifrado en reposo está **previsto** (p. ej. `cryptography` en Python) y se describe en [RUNTIME_PERSISTENTE.md](RUNTIME_PERSISTENTE.md), no en este contrato.
+Saving or restoring snapshots **does not** change the kernel’s decision rules. In the MVP, checkpoints are **unencrypted**; for sensitive deployments, at-rest encryption is **planned** (e.g. Python `cryptography`) and is described in [RUNTIME_PERSISTENT.md](RUNTIME_PERSISTENT.md), not in this contract.
 
-## Integridad del sistema (futuro; no ética normativa)
+## System integrity (future; not normative ethics)
 
-Capas de **metacontrol / robustez** (p. ej. vigilancia de deriva, manipulación, fugas) pueden ayudar a que el runtime **preserve su coherencia operativa** sin sustituir a MalAbs ni al buffer. Diseño discutido en [docs/discusion/PROPUESTA_ROBUSTEZ_V6_PLUS.md](discusion/PROPUESTA_ROBUSTEZ_V6_PLUS.md); no forma parte del contrato hasta implementación y tests.
+**Metacontrol / robustness** layers (e.g. drift monitoring, manipulation, leaks) can help the runtime **preserve operational coherence** without replacing MalAbs or the buffer. Design discussion: [docs/discusion/PROPUESTA_ROBUSTEZ_V6_PLUS.md](discusion/PROPUESTA_ROBUSTEZ_V6_PLUS.md); not part of the contract until implemented and tested.

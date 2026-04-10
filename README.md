@@ -1,6 +1,6 @@
-# Ethical Android — MVP v5
+# Ethical Android MVP
 
-**Functional prototype of the artificial ethical consciousness model with humanizing imperfection, forgiveness, and identity persistence.**
+**Functional prototype of the artificial ethical consciousness model with humanizing imperfection, forgiveness, and identity persistence.** Kernel feature set is **v5**; **v6–v10** add runtime, persistence, and optional advisory layers (see [`HISTORY.md`](HISTORY.md), [`CHANGELOG.md`](CHANGELOG.md)).
 
 An autonomous moral agent that makes ethical decisions using Bayesian inference,
 narrative memory, multipolar evaluation, LLM layer, narrative weakness pole,
@@ -75,7 +75,7 @@ python -m src.main --sim 3
 
 CI runs the same suite on **Python 3.11 and 3.12** (`.github/workflows/ci.yml`) after `pip install -r requirements.txt`.
 
-**Reproducibility:** the default ethical pipeline does **not** invoke narrative augenesis (`kernel.augenesis` is optional; see [docs/THEORY_AND_IMPLEMENTATION.md](docs/THEORY_AND_IMPLEMENTATION.md)). For long-lived deployments and snapshot design, see [docs/RUNTIME_PERSISTENTE.md](docs/RUNTIME_PERSISTENTE.md).
+**Reproducibility:** the default ethical pipeline does **not** invoke narrative augenesis (`kernel.augenesis` is optional; see [docs/THEORY_AND_IMPLEMENTATION.md](docs/THEORY_AND_IMPLEMENTATION.md)). For long-lived deployments and snapshot design, see [docs/RUNTIME_PERSISTENT.md](docs/RUNTIME_PERSISTENT.md).
 
 ```bash
 # All tests (invariant ethical properties + chat + server smoke tests)
@@ -128,13 +128,13 @@ Optional env: `CHAT_HOST`, `CHAT_PORT`, `LLM_MODE`, `USE_LOCAL_LLM`, `KERNEL_VAR
 
 **v10 operational (optional env):** `KERNEL_GRAY_ZONE_DIPLOMACY` — set to `0` to disable negotiated-exit hints when decision mode is gray zone or reflection is tense. `KERNEL_SOMATIC_MARKERS` — set to `0` to disable learned sensor-pattern nudges to `signals`. `KERNEL_METAPLAN_HINT` — set to `0` to disable long-horizon goal hints from `Kernel.metaplan` (populate via `add_goal` in code for now). Skill-learning tickets and Psi Sleep audit: `skill_learning_registry.py`. See [docs/discusion/PROPUESTA_ESTRATEGIA_OPERATIVA_V10.md](docs/discusion/PROPUESTA_ESTRATEGIA_OPERATIVA_V10.md).
 
-**Checkpoint (Fase 2.4):** set `KERNEL_CHECKPOINT_PATH` to a `.json` file to load state when a WebSocket session opens and save when it closes (`KERNEL_CHECKPOINT_SAVE_ON_DISCONNECT`, default on). Periodic saves: `KERNEL_CHECKPOINT_EVERY_N_EPISODES`. See `src/persistence/checkpoint.py`.
+**Checkpoint (Phase 2.4):** set `KERNEL_CHECKPOINT_PATH` to a `.json` file to load state when a WebSocket session opens and save when it closes (`KERNEL_CHECKPOINT_SAVE_ON_DISCONNECT`, default on). Periodic saves: `KERNEL_CHECKPOINT_EVERY_N_EPISODES`. See `src/persistence/checkpoint.py`.
 
-**Identity drift (robustez pilar 2):** `KERNEL_ETHICAL_GENOME_ENFORCE` (default on) and `KERNEL_ETHICAL_GENOME_MAX_DRIFT` (default `0.15`) cap how far Ψ Sleep can move `pruning_threshold` from its value at kernel construction.
+**Identity drift (robustness pillar 2):** `KERNEL_ETHICAL_GENOME_ENFORCE` (default on) and `KERNEL_ETHICAL_GENOME_MAX_DRIFT` (default `0.15`) cap how far Ψ Sleep can move `pruning_threshold` from its value at kernel construction.
 
-**Semantic digest (robustez pilar 3):** `KERNEL_CHAT_INCLUDE_EXPERIENCE_DIGEST` — set to `0` to omit the `experience_digest` field from WebSocket JSON (line updated on each Ψ Sleep run; also persisted in checkpoints).
+**Semantic digest (robustness pillar 3):** `KERNEL_CHAT_INCLUDE_EXPERIENCE_DIGEST` — set to `0` to omit the `experience_digest` field from WebSocket JSON (line updated on each Ψ Sleep run; also persisted in checkpoints).
 
-**Local LLM (Ollama, Fase 3):** `LLM_MODE=ollama` (or `LLM_MODE=auto` with `USE_LOCAL_LLM=1`) with [Ollama](https://ollama.com/) running; optional `OLLAMA_BASE_URL` (default `http://127.0.0.1:11434`), `OLLAMA_MODEL` (default `llama3.2:3b`), `OLLAMA_TIMEOUT`. Optional **`KERNEL_LLM_MONOLOGUE=1`** embellishes the chat `monologue` line with the text backend (still advisory; kernel decisions unchanged). The kernel still decides; the model only translates text ↔ JSON signals.
+**Local LLM (Ollama, Phase 3):** `LLM_MODE=ollama` (or `LLM_MODE=auto` with `USE_LOCAL_LLM=1`) with [Ollama](https://ollama.com/) running; optional `OLLAMA_BASE_URL` (default `http://127.0.0.1:11434`), `OLLAMA_MODEL` (default `llama3.2:3b`), `OLLAMA_TIMEOUT`. Optional **`KERNEL_LLM_MONOLOGUE=1`** embellishes the chat `monologue` line with the text backend (still advisory; kernel decisions unchanged). The kernel still decides; the model only translates text ↔ JSON signals.
 
 Each JSON response includes **`identity`** (narrative self-model + `ascription`), **`drive_intents`** (advisory list), and **`monologue`** when a kernel decision is present (unless `KERNEL_CHAT_EXPOSE_MONOLOGUE=0`). When enabled by env (defaults on), responses may also include **`affective_homeostasis`**, **`experience_digest`**, **`user_model`**, **`chronobiology`**, **`premise_advisory`**, and **`teleology_branches`** (see sections above). A minimal browser tester lives at [`landing/public/chat-test.html`](landing/public/chat-test.html) (open via local static server if `file://` blocks WebSockets).
 
@@ -314,7 +314,7 @@ No server, internet connection (after first load), or technical knowledge requir
 
 The folder `landing/` is a **Next.js** marketing page (Tailwind, Framer Motion, Three.js hero) for **mosexmacchinalab.com**. It embeds the same `dashboard.html` at `/demo` (also served as `/dashboard.html` from `landing/public/`).
 
-**Crawling / SEO / IA:** la decisión de equilibrio (indexación para campaña + señales a bots de corpus) está registrada en [landing/README.md](landing/README.md#crawling-seo-y-corpus-de-ia).
+**Crawling, SEO, and training-corpus signals:** the balance between discoverability and model-training crawlers is documented in [landing/README.md](landing/README.md#crawling-seo-and-ai-corpus-signals).
 
 ### Prerequisites
 
@@ -349,7 +349,7 @@ In GoDaddy DNS for the domain:
 ```
 .
 ├── .github/              # Issue templates, workflows (CI), Security tab links
-├── docs/                 # Theory ↔ implementation; RUNTIME_PERSISTENTE; docs/experimental/
+├── docs/                 # Theory ↔ implementation; RUNTIME_PERSISTENT / RUNTIME_PHASES; docs/experimental/
 ├── landing/              # Next.js site (npm install inside this folder)
 ├── src/                  # Ethical kernel source code
 ├── tests/                # Formal test suite
@@ -357,7 +357,7 @@ In GoDaddy DNS for the domain:
 ├── BIBLIOGRAPHY.md       # 104 academic references across 14 disciplines
 ├── CHANGELOG.md          # Version change history
 ├── CONTRIBUTING.md       # Contributor guide
-├── HISTORY.md            # Full project evolution (v1→v5)
+├── HISTORY.md            # Full project evolution (v1→v10)
 ├── LICENSE               # Apache 2.0
 ├── SECURITY.md           # Vulnerability reporting policy
 ├── README.md             # This file
@@ -368,25 +368,25 @@ A copy of `dashboard.html` is also kept under `landing/public/` so the Next.js a
 
 **Theory vs. code:** formulas, predicates, and file-level mapping (including how this differs from an LLM-only “stochastic parrot”) are in [docs/THEORY_AND_IMPLEMENTATION.md](docs/THEORY_AND_IMPLEMENTATION.md).
 
-**Persistent runtime (design sketch):** state boundaries, optional augenesis, and next steps for a long-lived process — [docs/RUNTIME_PERSISTENTE.md](docs/RUNTIME_PERSISTENTE.md).
+**Persistent runtime (design sketch):** state boundaries, optional augenesis, and next steps for a long-lived process — [docs/RUNTIME_PERSISTENT.md](docs/RUNTIME_PERSISTENT.md).
 
-**Phased implementation (runtime → DB → local LLM):** ethical guardrails and ordered milestones — [docs/RUNTIME_FASES.md](docs/RUNTIME_FASES.md).
+**Phased implementation (runtime → DB → local LLM):** ethical guardrails and ordered milestones — [docs/RUNTIME_PHASES.md](docs/RUNTIME_PHASES.md).
 
-**Persistence (snapshots):** `from src.persistence import extract_snapshot, apply_snapshot, JsonFilePersistence, SqlitePersistence` — see [docs/RUNTIME_PERSISTENTE.md](docs/RUNTIME_PERSISTENTE.md). Checkpoints are **unencrypted** in the MVP; **at-rest encryption** (typically via Python `cryptography`, keys outside the repo) is **planned** for sensitive deployments, not implemented yet.
+**Persistence (snapshots):** `from src.persistence import extract_snapshot, apply_snapshot, JsonFilePersistence, SqlitePersistence` — see [docs/RUNTIME_PERSISTENT.md](docs/RUNTIME_PERSISTENT.md). Checkpoints are **unencrypted** in the MVP; **at-rest encryption** (typically via Python `cryptography`, keys outside the repo) is **planned** for sensitive deployments, not implemented yet.
 
 **Experimental (unofficial):** discussion notes on “artificial consciousness” as a pedagogical frame, strong vs weak readings, and affect archetypes for possible future integration — [docs/EXPERIMENTAL_CONSCIOUSNESS_AND_AFFECT_ARCHETYPES.md](docs/EXPERIMENTAL_CONSCIOUSNESS_AND_AFFECT_ARCHETYPES.md) (WIP, not part of the kernel contract until implemented and tested).
 
 **Implementation trace (Guardian, v9–v10) and bibliography links:** [docs/TRACE_IMPLEMENTATION_RECENT.md](docs/TRACE_IMPLEMENTATION_RECENT.md) — maps components to [BIBLIOGRAPHY.md](BIBLIOGRAPHY.md) reference numbers; includes suggested next development session.
 
-**Roadmap (foundation, discussion + phased code):** *Ángel de la Guarda* — [PROPUESTA_ANGEL_DE_LA_GUARDIA.md](docs/discusion/PROPUESTA_ANGEL_DE_LA_GUARDIA.md). **v9** — [PROPUESTA_CAPACIDAD_AMPLIADA_V9.md](docs/discusion/PROPUESTA_CAPACIDAD_AMPLIADA_V9.md). **v10** — diplomacy, skills, somatic markers, metaplan (MVP) — [PROPUESTA_ESTRATEGIA_OPERATIVA_V10.md](docs/discusion/PROPUESTA_ESTRATEGIA_OPERATIVA_V10.md).
+**Roadmap (foundation — discussion notes + phased code):** Guardian Angel — [PROPUESTA_ANGEL_DE_LA_GUARDIA.md](docs/discusion/PROPUESTA_ANGEL_DE_LA_GUARDIA.md). **v9** — [PROPUESTA_CAPACIDAD_AMPLIADA_V9.md](docs/discusion/PROPUESTA_CAPACIDAD_AMPLIADA_V9.md). **v10** — diplomacy, skills, somatic markers, metaplan (MVP) — [PROPUESTA_ESTRATEGIA_OPERATIVA_V10.md](docs/discusion/PROPUESTA_ESTRATEGIA_OPERATIVA_V10.md).
 
-**Experimental paper (same lineage):** expected phenomena when coupling PAD + prototype mixing to the kernel; definitions of *color* / *sabor* as metaphors; testable hypotheses reserved for future runs — [docs/experimental/PAPER_AFECTO_FENOMENOS_Y_HIPOTESIS.md](docs/experimental/PAPER_AFECTO_FENOMENOS_Y_HIPOTESIS.md).
+**Experimental paper (same lineage, Spanish draft):** expected phenomena when coupling PAD + prototype mixing to the kernel; *color* / *flavor* as metaphors; testable hypotheses for future runs — [docs/experimental/PAPER_AFECTO_FENOMENOS_Y_HIPOTESIS.md](docs/experimental/PAPER_AFECTO_FENOMENOS_Y_HIPOTESIS.md).
 
 ## Medium-term directions (not scheduled)
 
 These are **directional** ideas for when the project moves beyond pure research demos — see also the public [roadmap](https://mosexmacchinalab.com/roadmap) on the landing site.
 
-- **Persistent runtime:** initial design criteria and snapshot boundaries — [docs/RUNTIME_PERSISTENTE.md](docs/RUNTIME_PERSISTENTE.md) (implementation TBD).
+- **Persistent runtime:** initial design criteria and snapshot boundaries — [docs/RUNTIME_PERSISTENT.md](docs/RUNTIME_PERSISTENT.md) (implementation TBD).
 - **Hexagonal-style boundaries (ports & adapters), introduced incrementally:** define stable interfaces for infrastructure that is likely to change (e.g. LLM provider, DAO/governance backend, persistence for narrative episodes) so the ethical pipeline can swap implementations without a full rewrite. Prefer **small, evidence-driven** extractions (a second real adapter) over a one-shot “hexagonal everything” refactor.
 - **Discussion forum (planned):** a dedicated space to debate **pending implementation areas** and roadmap choices may be added later. Until then, use GitHub Issues (templates in `.github/`) and, if enabled by maintainers, **GitHub Discussions** on this repository.
 
