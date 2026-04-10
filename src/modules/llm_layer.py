@@ -344,7 +344,8 @@ class LLMModule:
                     weakness_line: str = "",
                     reflection_context: str = "",
                     salience_context: str = "",
-                    identity_context: str = "") -> VerbalResponse:
+                    identity_context: str = "",
+                    guardian_mode_context: str = "") -> VerbalResponse:
         """
         Generate the android's verbal response after a decision.
 
@@ -364,6 +365,7 @@ class LLMModule:
             reflection_context: optional second-order pole tension (EthicalReflection); style only
             salience_context: optional GWT-lite attention weights (SalienceMap); style only
             identity_context: optional narrative self-model (NarrativeIdentity); tone only
+            guardian_mode_context: optional Guardian Angel style block (tone only; see guardian_mode.py)
         """
         mode_descs = {
             "D_fast": "fast moral reflex",
@@ -402,6 +404,11 @@ class LLMModule:
                     "\n\nNarrative identity (tone only):\n"
                     f"{identity_context}"
                 )
+            if guardian_mode_context.strip():
+                user_msg += (
+                    "\n\nGuardian mode (style only; verdict and action are final):\n"
+                    f"{guardian_mode_context}"
+                )
             response = self._llm_completion(prompt, user_msg)
             data = self._parse_json(response)
             if data:
@@ -420,6 +427,7 @@ class LLMModule:
             reflection_context=reflection_context,
             salience_context=salience_context,
             identity_context=identity_context,
+            guardian_mode_context=guardian_mode_context,
         )
 
     def _communicate_local(self, action: str, mode: str, state: str,
@@ -429,7 +437,8 @@ class LLMModule:
                            weakness_line: str = "",
                            reflection_context: str = "",
                            salience_context: str = "",
-                           identity_context: str = "") -> VerbalResponse:
+                           identity_context: str = "",
+                           guardian_mode_context: str = "") -> VerbalResponse:
         """Communication via templates without LLM."""
         readable_action = action.replace("_", " ")
 
@@ -473,6 +482,8 @@ class LLMModule:
             inner += f" Salience: {salience_context}"
         if identity_context.strip():
             inner += f" Identity: {identity_context}"
+        if guardian_mode_context.strip():
+            inner += f" [Guardian mode style guidance active]"
 
         return VerbalResponse(
             message=message, tone=tone, hax_mode=hax, inner_voice=inner

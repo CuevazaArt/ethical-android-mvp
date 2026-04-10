@@ -1,6 +1,6 @@
 # Módulo Ángel de la Guarda — documento estratégico
 
-**Estado:** discusión (roadmap **Mos Ex Machina Foundation**). **No** constituye implementación en el kernel hasta acordar criterios de producto, privacidad y gobernanza familiar.
+**Estado:** discusión estratégica (roadmap **Mos Ex Machina Foundation**). **En el repo (MVP):** tono opcional vía `KERNEL_GUARDIAN_MODE` + `guardian_mode.py` (solo capa LLM; **sin** cambio de política). Lo demás (rutinas, franjas etarias, gobernanza familiar) sigue **fuera del núcleo** hasta acordar criterios de producto y privacidad.
 
 **Propósito del documento:** formalizar el **modo Ángel de la Guarda** como línea de producto y de legitimidad ética: asistencia sutil y protectora orientada a **niños y personas vulnerables**, integrando la idea de **juguetes y agentes con identidad propia** que acompañan sin sustituir el cuidado humano.
 
@@ -54,11 +54,13 @@ El modo está diseñado para brindar **asistencia sutil y protectora** a usuario
 
 ---
 
-## Integración técnica futura (no prescriptiva)
+## Integración técnica
 
-Ideas de implementación, sujetas a diseño:
+**Implementado en repo (MVP, opt-in):** variable de entorno `KERNEL_GUARDIAN_MODE` (`1` / `true` / `yes` / `on`; por defecto desactivado). Añade un bloque fijo de estilo protector a `LLMModule.communicate`; el pipeline ético (`MalAbs` → … → voluntad) **no** se modifica. WebSocket: clave `guardian_mode` (omisible con `KERNEL_CHAT_INCLUDE_GUARDIAN=0`). Código: `src/modules/guardian_mode.py`, uso en `src/kernel.py` y `src/modules/llm_layer.py`.
 
-- Flag de producto tipo `KERNEL_GUARDIAN_MODE` / perfil de persona con plantillas de tono y límites de contenido.
+**Futuro (no prescriptivo):** ideas sujetas a diseño adicional:
+
+- Perfil de persona con plantillas de tono y límites de contenido más ricos que el bloque fijo actual.
 - Metadatos de **franja etaria** o **nivel de vulnerabilidad** solo con consentimiento explícito del titular o tutor y **minimización** de datos.
 - **Rutinas** (recordatorios) como **cola advisory** que pasa por el mismo contrato que acciones digitales futuras (`DigitalActionIntent` en discusión v8).
 

@@ -57,6 +57,7 @@ from .modules.multimodal_trust import (
 )
 from .modules.sensor_contracts import SensorSnapshot, merge_sensor_hints_into_signals
 from .modules.vitality import VitalityAssessment, assess_vitality, vitality_communication_hint
+from .modules.guardian_mode import guardian_mode_llm_context
 
 
 @dataclass
@@ -663,6 +664,7 @@ class EthicalKernel:
             reflection_context=reflection_to_llm_context(decision.reflection),
             salience_context=salience_to_llm_context(decision.salience),
             identity_context=self.memory.identity.to_llm_context(),
+            guardian_mode_context=guardian_mode_llm_context(),
         )
 
         narrative = None
@@ -752,6 +754,7 @@ class EthicalKernel:
             reflection_context=reflection_to_llm_context(decision.reflection),
             salience_context=salience_to_llm_context(decision.salience),
             identity_context=self.memory.identity.to_llm_context(),
+            guardian_mode_context=guardian_mode_llm_context(),
         )
 
         # Step 4: LLM generates rich morals

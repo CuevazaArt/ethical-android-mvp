@@ -19,6 +19,10 @@ KERNEL_MULTIMODAL_SCENE_SUPPORT, KERNEL_MULTIMODAL_VISION_CONTRADICT, KERNEL_MUL
 
 Vitality (optional): KERNEL_VITALITY_CRITICAL_BATTERY, KERNEL_CHAT_INCLUDE_VITALITY — see vitality.py.
 
+Guardian Angel (optional, opt-in): KERNEL_GUARDIAN_MODE=1 enables protective tone in LLM layer only;
+KERNEL_CHAT_INCLUDE_GUARDIAN — omit ``guardian_mode`` key from JSON if 0. See guardian_mode.py,
+PROPUESTA_ANGEL_DE_LA_GUARDIA.md.
+
 Advisory telemetry (optional, Fase 1.3–1.4): KERNEL_ADVISORY_INTERVAL_S — positive seconds
 spawns a read-only :func:`src.runtime.telemetry.advisory_loop` per WebSocket session (DriveArbiter only).
 
@@ -53,6 +57,7 @@ from .persistence.checkpoint import (
 )
 from .modules.affective_homeostasis import homeostasis_telemetry
 from .modules.consequence_projection import qualitative_temporal_branches
+from .modules.guardian_mode import is_guardian_mode_active
 from .modules.perceptual_abstraction import snapshot_from_layers
 from .real_time_bridge import RealTimeBridge
 from .runtime.telemetry import advisory_interval_seconds_from_env, advisory_loop
@@ -105,6 +110,11 @@ def _chat_include_multimodal_trust() -> bool:
 
 def _chat_include_vitality() -> bool:
     v = os.environ.get("KERNEL_CHAT_INCLUDE_VITALITY", "1").strip().lower()
+    return v not in ("0", "false", "no", "off")
+
+
+def _chat_include_guardian() -> bool:
+    v = os.environ.get("KERNEL_CHAT_INCLUDE_GUARDIAN", "1").strip().lower()
     return v not in ("0", "false", "no", "off")
 
 
@@ -207,6 +217,8 @@ def _chat_turn_to_jsonable(r: ChatTurnResult, kernel: EthicalKernel) -> Dict[str
         }
     if _chat_include_vitality():
         out["vitality"] = kernel._last_vitality_assessment.to_public_dict()
+    if _chat_include_guardian():
+        out["guardian_mode"] = is_guardian_mode_active()
     if (
         _chat_include_teleology()
         and r.decision is not None
@@ -242,7 +254,7 @@ def root() -> JSONResponse:
                 "Responses include identity, drive_intents, monologue (when decision present), optional "
                 "affective_homeostasis, experience_digest, user_model, chronobiology, premise_advisory, "
                 "teleology_branches, multimodal_trust, vitality (see README KERNEL_CHAT_* / KERNEL_MULTIMODAL_* / "
-                "KERNEL_VITALITY_*), decision, …"
+                "KERNEL_VITALITY_*), guardian_mode (KERNEL_GUARDIAN_MODE), decision, …"
             ),
         }
     )
