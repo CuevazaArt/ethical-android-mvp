@@ -214,6 +214,8 @@ Governance track: **artificial social contract** metaphor — owner insistence i
 
 **Nomad bridge (documentation):** [docs/NOMAD_PC_SMARTPHONE_BRIDGE.md](docs/NOMAD_PC_SMARTPHONE_BRIDGE.md) — per–hardware-class compatibility layers; first PC–smartphone bridge; smartphone hardware for early coordinated sensory perception; secure-network field tests deferred to operator discretion.
 
+**DAO robustness (design):** [docs/discusion/PROPUESTA_DAO_ALERTAS_Y_TRANSPARENCIA.md](docs/discusion/PROPUESTA_DAO_ALERTAS_Y_TRANSPARENCIA.md) — no covert resistance to corrupt governance; prioritized loud alerts; “failure lesson” as forensic/transparency artifact, not L0 buffer mutation.
+
 **Nomadic instantiation (design v11):** [docs/discusion/PROPUESTA_CONCIENCIA_NOMADA_HAL.md](docs/discusion/PROPUESTA_CONCIENCIA_NOMADA_HAL.md) — HAL (`hardware_abstraction.py`), fases de transmutación y token de continuidad (`existential_serialization.py`); **`KERNEL_NOMAD_SIMULATION`** + **`KERNEL_NOMAD_MIGRATION_AUDIT`**, WebSocket `nomad_simulate_migration`, **`GET /nomad/migration`**; cifrado y P2P fuera del MVP.
 
 **UniversalEthos hub (docs + stubs):** [docs/discusion/UNIVERSAL_ETHOS_AND_HUB.md](docs/discusion/UNIVERSAL_ETHOS_AND_HUB.md) unifies DemocraticBuffer / multicultural overlays, services hub, audit levels, and module map. Code stubs: **`deontic_gate`** (incl. repeal of named L0 principles), **`ml_ethics_tuner`** (gray-zone audit line), **`reparation_vault`** (mock intent + hook after V11 mock tribunal), **`nomad_identity`** (immortality bridge). **`apply_proposal_resolution_to_constitution_drafts`** keeps draft status aligned with DAO resolve.

@@ -2,6 +2,9 @@
 
 All notable changes to this project are summarized here. For narrative context and design rationale, see [`HISTORY.md`](HISTORY.md).
 
+## DAO alerts & transparency (design doc) — April 2026
+- **docs/discusion/PROPUESTA_DAO_ALERTAS_Y_TRANSPARENCIA.md:** rejects covert “guerrilla” obedience; adopts loud traceable alerts; forensic case memorial vs polluting L0 buffer; cross-ref from PROPUESTA_JUSTICIA V11.
+
 ## Next.js landing refresh — April 2026
 - **`landing/`:** home hero + new **Runtime, governance & nomadic bridge** section; doc links (RUNTIME_CONTRACT, LAN, nomad bridge, ESTRATEGIA); hostable bullet; research link to RUNTIME_PERSISTENT; footer tagline; **PrimaryNav** “Runtime & nomad”; **roadmap** “Current” bullets aligned with FastAPI/WebSocket, checkpoints, mobile LAN.
 
