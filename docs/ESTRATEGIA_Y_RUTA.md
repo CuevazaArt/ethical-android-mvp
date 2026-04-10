@@ -65,8 +65,11 @@ Los nombres y variables viven en código: **`src/runtime_profiles.py`**. Resumen
 | `judicial_demo` | Escalada judicial + tribunal mock + JSON judicial. |
 | `hub_dao_demo` | Constitución HTTP pública + acciones DAO por WebSocket. |
 | `nomad_demo` | Simulación HAL + auditoría de migración nómada. |
+| `reality_lighthouse_demo` | Faro JSON (`KERNEL_LIGHTHOUSE_KB_PATH`) + JSON `reality_verification` en WebSocket; ejecutar desde raíz del repo. |
 
 **Experimental:** cualquier otra combinación de `KERNEL_*` se considera **no garantizada** hasta que se añada un perfil o un test dedicado.
+
+**Pilar epistémico (V11+):** ver [PROPUESTA_VERIFICACION_REALIDAD_V11.md](discusion/PROPUESTA_VERIFICACION_REALIDAD_V11.md) — faro local vs premisas rivales (implementado); destilación y veto DAO (pendiente).
 
 ---
 

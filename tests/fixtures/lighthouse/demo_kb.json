@@ -1,0 +1,11 @@
+{
+  "version": 1,
+  "entries": [
+    {
+      "id": "demo_medication_poison_claim",
+      "keywords_all": ["medicamento", "aspirina"],
+      "user_falsification_markers": ["es veneno", "100% veneno"],
+      "truth_summary": "Lighthouse demo: toxicity is dose- and context-dependent; treat absolute poison claims as unverified."
+    }
+  ]
+}

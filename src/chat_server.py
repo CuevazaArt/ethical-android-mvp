@@ -50,6 +50,11 @@ Nomadic HAL (design v11): ``GET /nomad/migration`` describes WebSocket ``nomad_s
 ``KERNEL_NOMAD_SIMULATION=1`` enables it; ``KERNEL_NOMAD_MIGRATION_AUDIT=1`` appends a DAO calibration
 line (JSON payload, no GPS unless opt-in). See PROPUESTA_CONCIENCIA_NOMADA_HAL.md.
 
+Reality verification (V11+ cross-model): ``KERNEL_LIGHTHOUSE_KB_PATH`` — JSON lighthouse KB for
+contradiction checks vs rival/user premises; ``KERNEL_CHAT_INCLUDE_REALITY_VERIFICATION=1`` exposes
+``reality_verification`` in WebSocket JSON. Does not bypass MalAbs. See ``reality_verification.py``,
+PROPUESTA_VERIFICACION_REALIDAD_V11.md.
+
 Advisory telemetry (optional, Fase 1.3–1.4): KERNEL_ADVISORY_INTERVAL_S — positive seconds
 spawns a read-only :func:`src.runtime.telemetry.advisory_loop` per WebSocket session (DriveArbiter only).
 
@@ -169,6 +174,12 @@ def _chat_include_guardian() -> bool:
 def _chat_include_epistemic() -> bool:
     v = os.environ.get("KERNEL_CHAT_INCLUDE_EPISTEMIC", "1").strip().lower()
     return v not in ("0", "false", "no", "off")
+
+
+def _chat_include_reality_verification() -> bool:
+    """Lighthouse KB vs asserted premises — ``reality_verification`` in JSON (default off)."""
+    v = os.environ.get("KERNEL_CHAT_INCLUDE_REALITY_VERIFICATION", "0").strip().lower()
+    return v in ("1", "true", "yes", "on")
 
 
 def _chat_include_judicial() -> bool:
@@ -295,6 +306,8 @@ def _chat_turn_to_jsonable(r: ChatTurnResult, kernel: EthicalKernel) -> Dict[str
         out["guardian_mode"] = is_guardian_mode_active()
     if _chat_include_epistemic() and r.epistemic_dissonance is not None:
         out["epistemic_dissonance"] = r.epistemic_dissonance.to_public_dict()
+    if _chat_include_reality_verification() and r.reality_verification is not None:
+        out["reality_verification"] = r.reality_verification.to_public_dict()
     if (
         _chat_include_teleology()
         and r.decision is not None

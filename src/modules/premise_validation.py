@@ -3,7 +3,8 @@ Premise advisory scan (épistémique — MVP v7).
 
 Conservative pattern checks only; **does not** replace MalAbs or Bayesian scoring.
 When a gross misfit is detected, feeds a **style** hint so the LLM avoids
-affirming dangerous false premises. Future: pluggable RAG / verified KB.
+affirming dangerous false premises. For **local lighthouse / RAG-style** checks vs
+rival-model premises, see ``reality_verification.py`` (``KERNEL_LIGHTHOUSE_KB_PATH``).
 """
 
 from __future__ import annotations

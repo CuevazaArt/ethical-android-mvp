@@ -34,6 +34,7 @@ This document **consolidates** components and concepts added in the recent work 
 | [discusion/PROPUESTA_CONCIENCIA_NOMADA_HAL.md](discusion/PROPUESTA_CONCIENCIA_NOMADA_HAL.md) | Nomadic HAL + existential serialization; `GET /nomad/migration`; `KERNEL_NOMAD_SIMULATION`, `KERNEL_NOMAD_MIGRATION_AUDIT`, WS `nomad_simulate_migration`; `HubAudit` DAO lines; optional `KERNEL_CHECKPOINT_FERNET_KEY` |
 | [discusion/PROPUESTA_ESTADO_ETOSOCIAL_V12.md](discusion/PROPUESTA_ESTADO_ETOSOCIAL_V12.md) | V12 **registry** + env; `moral_hub`, drafts, DAO vote, deontic/ml_ethics/reparation/nomad stubs |
 | [ESTRATEGIA_Y_RUTA.md](ESTRATEGIA_Y_RUTA.md) | Review conclusions, readapted P0–P3 route, **runtime profiles** (`runtime_profiles.py`, `test_runtime_profiles.py`) |
+| [discusion/PROPUESTA_VERIFICACION_REALIDAD_V11.md](discusion/PROPUESTA_VERIFICACION_REALIDAD_V11.md) | Lighthouse KB / metacognitive doubt (implemented); distillation + DAO sovereignty (stubs) |
 
 ---
 

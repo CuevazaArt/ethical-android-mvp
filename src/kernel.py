@@ -50,6 +50,12 @@ from .modules.internal_monologue import compose_monologue_line
 from .modules.user_model import UserModelTracker
 from .modules.subjective_time import SubjectiveClock
 from .modules.premise_validation import PremiseAdvisory, scan_premises
+from .modules.reality_verification import (
+    ASSESSMENT_NONE as REALITY_ASSESSMENT_NONE,
+    RealityVerificationAssessment,
+    lighthouse_kb_from_env,
+    verify_against_lighthouse,
+)
 from .modules.multimodal_trust import (
     MultimodalAssessment,
     evaluate_multimodal_trust,
@@ -125,6 +131,7 @@ class ChatTurnResult:
     multimodal_trust: Optional[MultimodalAssessment] = None
     epistemic_dissonance: Optional[EpistemicDissonanceAssessment] = None
     judicial_escalation: Optional[JudicialEscalationView] = None
+    reality_verification: Optional[RealityVerificationAssessment] = None  # set each turn when lighthouse KB configured
 
 
 class EthicalKernel:
@@ -179,6 +186,7 @@ class EthicalKernel:
         self.escalation_session = EscalationSessionTracker()
         self.constitution_l1_drafts: List[Dict[str, Any]] = []
         self.constitution_l2_drafts: List[Dict[str, Any]] = []
+        self._last_reality_verification: RealityVerificationAssessment = REALITY_ASSESSMENT_NONE
 
     def get_constitution_snapshot(self) -> Dict[str, Any]:
         """L0 from buffer.py; L1/L2 drafts when present (V12.2 snapshot)."""
@@ -572,6 +580,10 @@ class EthicalKernel:
 
         mal = self.absolute_evil.evaluate_chat_text(user_input)
         self._last_premise_advisory = scan_premises(user_input)
+        self._last_reality_verification = verify_against_lighthouse(
+            user_input,
+            lighthouse_kb_from_env(),
+        )
         if mal.blocked:
             mm_blk = evaluate_multimodal_trust(sensor_snapshot)
             self._last_multimodal_assessment = mm_blk
@@ -596,6 +608,7 @@ class EthicalKernel:
                 block_reason=mal.reason or "chat_safety",
                 multimodal_trust=mm_blk,
                 epistemic_dissonance=ed_blk,
+                reality_verification=self._last_reality_verification,
             )
         perception = self.llm.perceive(user_input, conversation_context=conv)
         self.subjective_clock.tick(perception)
@@ -654,6 +667,7 @@ class EthicalKernel:
                 block_reason=decision.block_reason,
                 multimodal_trust=mm,
                 epistemic_dissonance=ed,
+                reality_verification=self._last_reality_verification,
             )
 
         weakness_line = ""
@@ -700,6 +714,10 @@ class EthicalKernel:
 
         if ed.active and ed.communication_hint:
             weakness_line = (weakness_line + " " + ed.communication_hint).strip() if weakness_line else ed.communication_hint
+
+        if self._last_reality_verification.status != "none" and self._last_reality_verification.communication_hint:
+            rvh = self._last_reality_verification.communication_hint
+            weakness_line = (weakness_line + " " + rvh).strip() if weakness_line else rvh
 
         gz = negotiation_hint_for_communicate(
             decision.decision_mode,
@@ -834,6 +852,7 @@ class EthicalKernel:
             multimodal_trust=mm,
             epistemic_dissonance=ed,
             judicial_escalation=je_view,
+            reality_verification=self._last_reality_verification,
         )
 
     def process_natural(self, situation: str,

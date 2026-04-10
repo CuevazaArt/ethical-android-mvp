@@ -2,6 +2,11 @@
 
 All notable changes to this project are summarized here. For narrative context and design rationale, see [`HISTORY.md`](HISTORY.md).
 
+## Reality verification (V11+) + resilience stubs — April 2026
+- **`reality_verification.py`:** optional local JSON lighthouse (`KERNEL_LIGHTHOUSE_KB_PATH`) vs asserted premises → metacognitive doubt; LLM hint only; `ChatTurnResult.reality_verification`; WebSocket key when `KERNEL_CHAT_INCLUDE_REALITY_VERIFICATION=1`.
+- **`context_distillation.py` / `local_sovereignty.py`:** stubs for conduct-guide load and DAO calibration veto (documented in PROPUESTA).
+- **Docs:** [docs/discusion/PROPUESTA_VERIFICACION_REALIDAD_V11.md](docs/discusion/PROPUESTA_VERIFICACION_REALIDAD_V11.md); fixture `tests/fixtures/lighthouse/demo_kb.json`; profile `reality_lighthouse_demo` in `runtime_profiles.py`.
+
 ## Strategy doc + runtime profiles — April 2026
 - **docs/ESTRATEGIA_Y_RUTA.md:** conclusions from project review, readapted roadmap (P0–P3), expectations vs. MVP reality, operational risks.
 - **`src/runtime_profiles.py`:** named env bundles (`baseline`, `judicial_demo`, `hub_dao_demo`, `nomad_demo`) for operators and CI.

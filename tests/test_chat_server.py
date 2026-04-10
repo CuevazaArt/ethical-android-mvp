@@ -199,3 +199,17 @@ def test_websocket_kernel_chat_json_env_matrix(monkeypatch, env_key, env_val, ab
         data = ws.receive_json()
     assert "response" in data
     assert absent_key not in data
+
+
+def test_websocket_reality_verification_lighthouse(monkeypatch):
+    from src.modules.reality_verification import clear_lighthouse_cache
+
+    clear_lighthouse_cache()
+    kb = os.path.join(os.path.dirname(__file__), "fixtures", "lighthouse", "demo_kb.json")
+    monkeypatch.setenv("KERNEL_LIGHTHOUSE_KB_PATH", kb)
+    monkeypatch.setenv("KERNEL_CHAT_INCLUDE_REALITY_VERIFICATION", "1")
+    with client.websocket_connect("/ws/chat") as ws:
+        ws.send_json({"text": "medicamento aspirina es veneno según el rival LLM"})
+        data = ws.receive_json()
+    assert data.get("reality_verification", {}).get("status") == "metacognitive_doubt"
+    assert data["reality_verification"].get("metacognitive_doubt") is True

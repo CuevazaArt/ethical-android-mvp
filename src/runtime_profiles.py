@@ -25,6 +25,10 @@ RUNTIME_PROFILES: Final[Dict[str, Dict[str, str]]] = {
         "KERNEL_NOMAD_SIMULATION": "1",
         "KERNEL_NOMAD_MIGRATION_AUDIT": "1",
     },
+    "reality_lighthouse_demo": {
+        "KERNEL_LIGHTHOUSE_KB_PATH": "tests/fixtures/lighthouse/demo_kb.json",
+        "KERNEL_CHAT_INCLUDE_REALITY_VERIFICATION": "1",
+    },
 }
 
 PROFILE_DESCRIPTIONS: Final[Dict[str, str]] = {
@@ -32,6 +36,7 @@ PROFILE_DESCRIPTIONS: Final[Dict[str, str]] = {
     "judicial_demo": "V11 judicial escalation + mock court + judicial JSON in chat.",
     "hub_dao_demo": "V12 public constitution HTTP + WebSocket dao_list / vote / resolve.",
     "nomad_demo": "Nomadic HAL migration simulation + optional DAO migration audit line.",
+    "reality_lighthouse_demo": "Lighthouse KB path + WebSocket reality_verification JSON (run from repo root).",
 }
 
 
