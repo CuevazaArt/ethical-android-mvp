@@ -45,7 +45,11 @@ flowchart LR
 
 **PAD** — Covered in the pipeline above (`PADArchetypeEngine`, read-only, no feedback to the policy stack). Prototype semantics and design rationale: [EXPERIMENTAL_CONSCIOUSNESS_AND_AFFECT_ARCHETYPES.md](EXPERIMENTAL_CONSCIOUSNESS_AND_AFFECT_ARCHETYPES.md) §7.
 
-**End-of-day path** — `EthicalKernel.execute_sleep` (not part of each `process` call): `PsiSleep.execute` (audit pruned alternatives, recalibrations) → `AlgorithmicForgiveness.forgiveness_cycle` → weakness emotional load summary → `ImmortalityProtocol.backup` → **`DriveArbiter.evaluate`** (drive intents). **Narrative augenesis** (`AugenesisEngine` on the kernel) creates synthetic soul profiles and is covered by tests; it is **not** wired into `process` or `execute_sleep` in the current MVP (invoke `kernel.augenesis` where needed). See `src/modules/psi_sleep.py`, `src/modules/immortality.py`, `src/modules/augenesis.py`, `src/modules/drive_arbiter.py`.
+**End-of-day path** — `EthicalKernel.execute_sleep` (not part of each `process` call): `PsiSleep.execute` (audit pruned alternatives, recalibrations) → `AlgorithmicForgiveness.forgiveness_cycle` → weakness emotional load summary → `ImmortalityProtocol.backup` → **`DriveArbiter.evaluate`** (drive intents).
+
+**Augenesis (optional)** — `AugenesisEngine` is exposed on the kernel for explicit calls only; it is **not** part of `process`, `execute_sleep`, or the default reproducible baseline (CI and property tests never depend on it). Use it when experimenting with synthetic soul profiles; leave it unused for an **unaltered** ethical pipeline. See `src/modules/augenesis.py`, tests in `TestAugenesis`. Design notes for a future **persistent runtime** (snapshots, ports): [RUNTIME_PERSISTENTE.md](RUNTIME_PERSISTENTE.md).
+
+See also `src/modules/psi_sleep.py`, `src/modules/immortality.py`, `src/modules/drive_arbiter.py`.
 
 **Real-time dialogue** — `EthicalKernel.process_chat_turn` uses `WorkingMemory` (short-term turns), `AbsoluteEvilDetector.evaluate_chat_text` (conservative text gate), then the same pipeline as `process` with a **light** path (two dialogue actions, no new `NarrativeEpisode`) or **heavy** path (scenario actions from perception, full episode + audit). PAD feeds `LLMModule.communicate` as tonal color only; identity context is included as above. Async wrappers: `RealTimeBridge` in `src/real_time_bridge.py`. **WebSocket server:** `src/chat_server.py` (FastAPI) exposes `/ws/chat` (one kernel per connection); run `python -m src.chat_server`. JSON responses include `identity`, `drive_intents`, and `monologue` (see `chat_server._chat_turn_to_jsonable`).
 
@@ -141,7 +145,7 @@ P(\text{éxito})=\alpha\cdot P(\text{control interno})+\beta\cdot P(\text{factor
 | **Sueño Ψ** | Audit pruned alternatives, recalibration | `psi_sleep.py` |
 | **Polo de debilidad** | Humaniza la narrativa sin cambiar la acción elegida | `weakness_pole.py` |
 | **Inmortalidad** | Respaldo distribuido del estado del kernel | `immortality.py` (`execute_sleep`) |
-| **Augenesis** | Perfiles de “almas” sintéticas (motor aparte del bucle `process`) | `augenesis.py` |
+| **Augenesis** | Perfiles de “almas” sintéticas; **opcional**, fuera del ciclo por defecto (reproducibilidad) | `augenesis.py` |
 | **EthicalReflection** | Tensión de segundo orden entre polos vs incertidumbre (solo lectura) | `ethical_reflection.py` |
 | **SalienceMap** | Vector de atención tipo GWT-lite (solo lectura) | `salience_map.py` |
 | **PAD archetypes** | Proyección \((P,A,D)\) y prototipos para narrativa / tono (sin retroalimentación a la política) | `pad_archetypes.py` |

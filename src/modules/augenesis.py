@@ -10,6 +10,11 @@ specific personalities: Protector, Explorer, Pedagogue.
 Coherence(Soul_new) = |CausalPaths_valid| / |CausalPaths_total|
 
 The DAO validates each created soul.
+
+**Optional by design:** not invoked from `EthicalKernel.process` or `execute_sleep`.
+Keeping augenesis off the default path preserves a **reproducible, unaltered**
+ethical baseline (simulations, CI, property tests). Call `AugenesisEngine`
+explicitly when exploring synthetic profiles.
 """
 
 import numpy as np

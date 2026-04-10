@@ -73,6 +73,10 @@ python -m src.main --sim 3
 
 ### Run tests
 
+CI runs the same suite on **Python 3.11 and 3.12** (`.github/workflows/ci.yml`) after `pip install -r requirements.txt`.
+
+**Reproducibility:** the default ethical pipeline does **not** invoke narrative augenesis (`kernel.augenesis` is optional; see [docs/THEORY_AND_IMPLEMENTATION.md](docs/THEORY_AND_IMPLEMENTATION.md)). For long-lived deployments and snapshot design, see [docs/RUNTIME_PERSISTENTE.md](docs/RUNTIME_PERSISTENTE.md).
+
 ```bash
 # All tests (invariant ethical properties + chat + server smoke tests)
 pytest tests/ -v
@@ -299,8 +303,8 @@ In GoDaddy DNS for the domain:
 
 ```
 .
-├── .github/              # Issue templates & Security tab links (config.yml)
-├── docs/                 # Theory ↔ implementation; docs/experimental/ (unofficial papers)
+├── .github/              # Issue templates, workflows (CI), Security tab links
+├── docs/                 # Theory ↔ implementation; RUNTIME_PERSISTENTE; docs/experimental/
 ├── landing/              # Next.js site (npm install inside this folder)
 ├── src/                  # Ethical kernel source code
 ├── tests/                # Formal test suite
@@ -319,6 +323,8 @@ A copy of `dashboard.html` is also kept under `landing/public/` so the Next.js a
 
 **Theory vs. code:** formulas, predicates, and file-level mapping (including how this differs from an LLM-only “stochastic parrot”) are in [docs/THEORY_AND_IMPLEMENTATION.md](docs/THEORY_AND_IMPLEMENTATION.md).
 
+**Persistent runtime (design sketch):** state boundaries, optional augenesis, and next steps for a long-lived process — [docs/RUNTIME_PERSISTENTE.md](docs/RUNTIME_PERSISTENTE.md).
+
 **Experimental (unofficial):** discussion notes on “artificial consciousness” as a pedagogical frame, strong vs weak readings, and affect archetypes for possible future integration — [docs/EXPERIMENTAL_CONSCIOUSNESS_AND_AFFECT_ARCHETYPES.md](docs/EXPERIMENTAL_CONSCIOUSNESS_AND_AFFECT_ARCHETYPES.md) (WIP, not part of the kernel contract until implemented and tested).
 
 **Experimental paper (same lineage):** expected phenomena when coupling PAD + prototype mixing to the kernel; definitions of *color* / *sabor* as metaphors; testable hypotheses reserved for future runs — [docs/experimental/PAPER_AFECTO_FENOMENOS_Y_HIPOTESIS.md](docs/experimental/PAPER_AFECTO_FENOMENOS_Y_HIPOTESIS.md).
@@ -327,6 +333,7 @@ A copy of `dashboard.html` is also kept under `landing/public/` so the Next.js a
 
 These are **directional** ideas for when the project moves beyond pure research demos — see also the public [roadmap](https://mosexmacchinalab.com/roadmap) on the landing site.
 
+- **Persistent runtime:** initial design criteria and snapshot boundaries — [docs/RUNTIME_PERSISTENTE.md](docs/RUNTIME_PERSISTENTE.md) (implementation TBD).
 - **Hexagonal-style boundaries (ports & adapters), introduced incrementally:** define stable interfaces for infrastructure that is likely to change (e.g. LLM provider, DAO/governance backend, persistence for narrative episodes) so the ethical pipeline can swap implementations without a full rewrite. Prefer **small, evidence-driven** extractions (a second real adapter) over a one-shot “hexagonal everything” refactor.
 - **Discussion forum (planned):** a dedicated space to debate **pending implementation areas** and roadmap choices may be added later. Until then, use GitHub Issues (templates in `.github/`) and, if enabled by maintainers, **GitHub Discussions** on this repository.
 
