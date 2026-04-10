@@ -27,6 +27,10 @@ Epistemic dissonance (v9.1): KERNEL_CHAT_INCLUDE_EPISTEMIC — omit ``epistemic_
 Optional thresholds KERNEL_EPISTEMIC_AUDIO_MIN, KERNEL_EPISTEMIC_MOTION_MAX, KERNEL_EPISTEMIC_VISION_LOW.
 See epistemic_dissonance.py, PROPUESTA_CAPACIDAD_AMPLIADA_V9.md.
 
+Generative candidates (v9.2): KERNEL_GENERATIVE_ACTIONS, KERNEL_GENERATIVE_ACTIONS_MAX,
+KERNEL_GENERATIVE_TRIGGER_CONTEXTS — see generative_candidates.py. JSON ``decision`` may include
+``chosen_action_source`` and ``proposal_id``.
+
 Advisory telemetry (optional, Fase 1.3–1.4): KERNEL_ADVISORY_INTERVAL_S — positive seconds
 spawns a read-only :func:`src.runtime.telemetry.advisory_loop` per WebSocket session (DriveArbiter only).
 
@@ -175,6 +179,11 @@ def _chat_turn_to_jsonable(r: ChatTurnResult, kernel: EthicalKernel) -> Dict[str
         if d.moral:
             out["decision"]["verdict"] = d.moral.global_verdict.value
             out["decision"]["score"] = d.moral.total_score
+        if d.bayesian_result is not None:
+            ca = d.bayesian_result.chosen_action
+            out["decision"]["chosen_action_source"] = ca.source
+            if ca.proposal_id:
+                out["decision"]["proposal_id"] = ca.proposal_id
         if d.affect:
             out["decision"]["affect"] = {
                 "pad": list(d.affect.pad),
@@ -265,7 +274,8 @@ def root() -> JSONResponse:
                 "Responses include identity, drive_intents, monologue (when decision present), optional "
                 "affective_homeostasis, experience_digest, user_model, chronobiology, premise_advisory, "
                 "teleology_branches, multimodal_trust, vitality (see README KERNEL_CHAT_* / KERNEL_MULTIMODAL_* / "
-                "KERNEL_VITALITY_*), guardian_mode (KERNEL_GUARDIAN_MODE), epistemic_dissonance (v9.1), decision, …"
+                "KERNEL_VITALITY_*), guardian_mode (KERNEL_GUARDIAN_MODE), epistemic_dissonance (v9.1), "
+                "decision (chosen_action_source / proposal_id v9.2), …"
             ),
         }
     )

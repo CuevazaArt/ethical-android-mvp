@@ -23,6 +23,9 @@ class CandidateAction:
     target: str = "none"
     force: float = 0.0
     requires_dao: bool = False
+    # v9.2 — traceability; all candidates still pass MalAbs + Bayesian like builtins
+    source: str = "builtin"
+    proposal_id: str = ""
 
 
 @dataclass

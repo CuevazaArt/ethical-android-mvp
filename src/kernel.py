@@ -62,6 +62,7 @@ from .modules.epistemic_dissonance import (
     EpistemicDissonanceAssessment,
     assess_epistemic_dissonance,
 )
+from .modules.generative_candidates import augment_generative_candidates
 
 
 @dataclass
@@ -585,6 +586,8 @@ class EthicalKernel:
         signals = merge_sensor_hints_into_signals(signals, sensor_snapshot, mm)
 
         actions = self._actions_for_chat(perception, heavy)
+        ctx = perception.suggested_context or ""
+        actions = augment_generative_candidates(actions, user_input, ctx, heavy)
         decision = self.process(
             scenario=perception.summary or user_input[:240],
             place=place,

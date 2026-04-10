@@ -67,6 +67,8 @@ def test_websocket_chat_roundtrip():
         assert data["guardian_mode"] is False
         assert "epistemic_dissonance" in data
         assert data["epistemic_dissonance"]["active"] is False
+        assert "decision" in data
+        assert data["decision"].get("chosen_action_source") == "builtin"
 
 
 def test_websocket_homeostasis_omitted(monkeypatch):

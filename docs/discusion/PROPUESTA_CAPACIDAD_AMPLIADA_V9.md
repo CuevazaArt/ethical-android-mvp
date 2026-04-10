@@ -1,6 +1,6 @@
 # Capacidad ampliada — v9 (influencia, resolución compleja, horizonte largo)
 
-**Estado:** discusión estratégica + **fase 9.1 parcialmente implementada** en repo (telemetría epistémica; sin cambio del pipeline normativo MalAbs → … → voluntad).
+**Estado:** discusión estratégica + **fases 9.1 y 9.2 implementadas** en repo (telemetría epistémica; candidatos generativos acotados y trazables; sin cambio del pipeline normativo MalAbs → … → voluntad).
 
 **Relación con versiones anteriores**
 
@@ -50,11 +50,15 @@ El **kernel** sigue siendo la autoridad sobre acciones permitidas y veto MalAbs.
 - Confusión entre **propuesta narrativa** y **acción autorizada**.
 - Acciones “creativas” que eluden MalAbs si no se modelan como candidatos explícitos auditables.
 
-**Requisitos de diseño (futuro 9.2)**
+**Implementación en repo (9.2)**
 
-- Trazabilidad: cada candidato generado con ID, texto y origen (`generative_proposal`).
-- Límite de candidatos y revisión determinista antes de `process`.
-- Tests de propiedad: “generative layer no puede saltarse MalAbs”.
+- Módulo `src/modules/generative_candidates.py`: añade hasta *N* candidatos plantilla (`source=generative_proposal`, `proposal_id` único) cuando `KERNEL_GENERATIVE_ACTIONS=1`, turno **heavy**, al menos dos candidatos previos, y se cumple un disparador (palabras clave de dilema en el texto del usuario, u opcionalmente contextos de alto riesgo vía `KERNEL_GENERATIVE_TRIGGER_CONTEXTS=1`).
+- `KERNEL_GENERATIVE_ACTIONS_MAX` limita cuántas propuestas extra se concatenan (por defecto 2, máximo 4).
+- Los candidatos extra pasan por el mismo filtro MalAbs y la misma evaluación bayesiana que los demás; no hay atajo normativo.
+- `CandidateAction` incluye `source` (`builtin` | `generative_proposal`) y `proposal_id` (vacío en builtins).
+- WebSocket: `decision.chosen_action_source` y, si aplica, `decision.proposal_id`.
+
+**Pendiente (evolución 9.2+):** llamada real al LLM local para proponer candidatos adicionales parseados a `CandidateAction` (siempre bajo el mismo contrato y tests).
 
 ---
 
@@ -90,8 +94,8 @@ El **kernel** sigue siendo la autoridad sobre acciones permitidas y veto MalAbs.
 
 | Fase | Contenido | Estado |
 |------|-----------|--------|
-| **9.1** | Disonancia epistémica / consenso sensorial (telemetría + hint de tono) | **Parcial en código** (`epistemic_dissonance.py`, WebSocket) |
-| **9.2** | Candidatos generativos acotados + trazabilidad + tests | Diseño; código pendiente |
+| **9.1** | Disonancia epistémica / consenso sensorial (telemetría + hint de tono) | **En código** (`epistemic_dissonance.py`, WebSocket) |
+| **9.2** | Candidatos generativos acotados + trazabilidad + tests | **En código** (`generative_candidates.py`, env opt-in; plantillas deterministas) |
 | **9.3** | Enjambre P2P + privacidad (ZK u otra capa) | Solo documentación |
 | **9.4** | Metas maestras persistentes + filtrado advisory | Diseño; extiende v7 |
 

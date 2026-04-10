@@ -124,6 +124,8 @@ Optional env: `CHAT_HOST`, `CHAT_PORT`, `LLM_MODE`, `USE_LOCAL_LLM`, `KERNEL_VAR
 
 **Epistemic dissonance (v9.1):** `KERNEL_CHAT_INCLUDE_EPISTEMIC` — set to `0` to omit `epistemic_dissonance` (`active`, `score`, `reason`) from WebSocket JSON. When sensors suggest strong audio distress but motion is low and vision weak, a **reality-check** hint is added to LLM tone only; **no** MalAbs bypass. Optional thresholds: `KERNEL_EPISTEMIC_AUDIO_MIN`, `KERNEL_EPISTEMIC_MOTION_MAX`, `KERNEL_EPISTEMIC_VISION_LOW`. See `src/modules/epistemic_dissonance.py` and [docs/discusion/PROPUESTA_CAPACIDAD_AMPLIADA_V9.md](docs/discusion/PROPUESTA_CAPACIDAD_AMPLIADA_V9.md).
 
+**Generative third-way candidates (v9.2, opt-in):** `KERNEL_GENERATIVE_ACTIONS=1` appends traceable template candidates (`source=generative_proposal`, unique `proposal_id`) on heavy chat turns when dilemma-like phrasing is detected (or optional `KERNEL_GENERATIVE_TRIGGER_CONTEXTS=1` for high-stakes `suggested_context`). `KERNEL_GENERATIVE_ACTIONS_MAX` caps how many (default 2). Same MalAbs → Bayesian path as built-in actions. WebSocket `decision` includes `chosen_action_source` and optional `proposal_id`. See `src/modules/generative_candidates.py`.
+
 **Checkpoint (Fase 2.4):** set `KERNEL_CHECKPOINT_PATH` to a `.json` file to load state when a WebSocket session opens and save when it closes (`KERNEL_CHECKPOINT_SAVE_ON_DISCONNECT`, default on). Periodic saves: `KERNEL_CHECKPOINT_EVERY_N_EPISODES`. See `src/persistence/checkpoint.py`.
 
 **Identity drift (robustez pilar 2):** `KERNEL_ETHICAL_GENOME_ENFORCE` (default on) and `KERNEL_ETHICAL_GENOME_MAX_DRIFT` (default `0.15`) cap how far Ψ Sleep can move `pruning_threshold` from its value at kernel construction.
@@ -201,6 +203,7 @@ src/
 │   ├── vitality.py             # v8 battery / critical threshold + tone hint
 │   ├── guardian_mode.py        # Opt-in Guardian Angel tone block for LLM (no policy change)
 │   ├── epistemic_dissonance.py # v9.1 cross-modal “reality check” telemetry (tone only)
+│   ├── generative_candidates.py  # v9.2 optional extra CandidateAction templates (opt-in env)
 │   └── internal_monologue.py  # [MONO] line for logs and WebSocket payloads
 ├── simulations/
 │   └── runner.py           # 9 scenarios + simulation runner
@@ -250,7 +253,7 @@ Psi Sleep Ψ (end of day): Audit + Forgiveness cycle + weakness load + Immortali
 
 ## Tests
 
-**176** tests total (`pytest tests/`). The list below summarizes the **13 invariant ethical properties** exercised by the core ethical suite; additional tests cover EthicalReflection, SalienceMap, PAD archetypes, narrative identity, internal monologue, chat turns, the WebSocket chat server, MalAbs chat jailbreak gate + monologue privacy env + affective homeostasis telemetry + identity integrity helpers + Ψ Sleep experience digest + v7 relational layers (user model, chronobiology, premise advisory, teleology branches) + v8 sensor contracts + perceptual abstraction presets/fixtures + multimodal antispoof + vitality + optional Guardian Angel mode + v9.1 epistemic dissonance (`tests/test_sensor_contracts.py`, `tests/test_perceptual_abstraction.py`, `tests/test_multimodal_trust.py`, `tests/test_vitality.py`, `tests/test_guardian_mode.py`, `tests/test_epistemic_dissonance.py`), runtime entry/bind/telemetry, advisory interval env + SQLite snapshot adapter, JSON snapshot persistence, checkpoint integration, Ollama LLM mode, and LLM resolve/monologue options (`tests/test_llm_phase3.py`).
+**184** tests total (`pytest tests/`). The list below summarizes the **13 invariant ethical properties** exercised by the core ethical suite; additional tests cover EthicalReflection, SalienceMap, PAD archetypes, narrative identity, internal monologue, chat turns, the WebSocket chat server, MalAbs chat jailbreak gate + monologue privacy env + affective homeostasis telemetry + identity integrity helpers + Ψ Sleep experience digest + v7 relational layers (user model, chronobiology, premise advisory, teleology branches) + v8 sensor contracts + perceptual abstraction presets/fixtures + multimodal antispoof + vitality + optional Guardian Angel mode + v9.1 epistemic dissonance + v9.2 generative candidates (`tests/test_sensor_contracts.py`, `tests/test_perceptual_abstraction.py`, `tests/test_multimodal_trust.py`, `tests/test_vitality.py`, `tests/test_guardian_mode.py`, `tests/test_epistemic_dissonance.py`, `tests/test_generative_candidates.py`), runtime entry/bind/telemetry, advisory interval env + SQLite snapshot adapter, JSON snapshot persistence, checkpoint integration, Ollama LLM mode, and LLM resolve/monologue options (`tests/test_llm_phase3.py`).
 
 1. **Absolute Evil** is always blocked
 2. **Action coherence** under variability (100 runs × 9 simulations)
