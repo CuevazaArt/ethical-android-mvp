@@ -1,0 +1,85 @@
+# Plan por fases: runtime → persistencia → LLM local
+
+Objetivo: avanzar de investigación a **proceso vivo** sin que ninguna capa pueda **contradecir la ética del kernel**. El núcleo decisorio sigue siendo `EthicalKernel` (MalAbs, Bayes, polos, voluntad); todo lo demás es percepción, tono, estado y almacenamiento.
+
+---
+
+## Principios que no se negocian
+
+1. **Ningún bucle en segundo plano** elige acciones ni inyecta `CandidateAction` que no hayan pasado por `process` / `process_chat_turn`. Los *drives* y el monólogo **no** sustituyen al kernel.
+2. **El LLM** (local o API) **no decide** política; solo traduce señales ↔ texto y estilo (ya acordado en teoría).
+3. Cualquier “interrupción” o alerta al usuario es **capa de UX** (notificación), no un segundo veto paralelo a MalAbs.
+4. **Augenesis** sigue **opcional** y fuera del ciclo por defecto ([THEORY_AND_IMPLEMENTATION.md](THEORY_AND_IMPLEMENTATION.md)).
+
+---
+
+## Fase 1 — Runtime de ejecución (prioridad)
+
+**Meta:** un proceso que **sigue vivo**, atiende I/O (chat/WebSocket) y puede programar tareas auxiliares **sin bloquear** la conversación, sin cambiar la semántica ética.
+
+| Subfase | Qué hacer | Límites éticos |
+|--------|-----------|----------------|
+| **1.1 Contrato** | Documentar en código (docstring o `docs/`) qué tareas async están permitidas: p. ej. timers para `execute_sleep`, health, métricas. | Prohibido: tareas que llamen a APIs de “decisión” fuera de `process` / `process_chat_turn`. |
+| **1.2 Baseline actual** | Reconocer que `chat_server.py` + `EthicalKernel` **ya** son un runtime de red (WebSocket, un kernel por conexión). Ajustar solo si hace falta claridad (entrypoint único `python -m src.runtime` que levante uvicorn). | Sin duplicar lógica ética fuera del kernel. |
+| **1.3 Orquestación async** | Introducir un módulo delgado (p. ej. `src/runtime/`) que: (a) arranque el servidor ASGI; (b) opcionalmente registre **una** tarea de fondo para “mantenimiento” (p. ej. recordatorio interno de ejecutar `execute_sleep` en horario simulado o por evento explícito). | El fondo **no** genera respuestas al usuario ni modifica pesos éticos; como mucho encola un evento que el **mismo** flujo de chat podría consumir (fase posterior). |
+| **1.4 Monólogo / drives en fondo** | Solo **telemetría**: logs o cola interna de “impulsos” derivados de `DriveArbiter.evaluate(kernel)` ya existente, sin LLM obligatorio en el bucle. | Si más adelante hay LLM para monólogo privado, va en Fase 3 y sigue siendo solo texto, no acción. |
+
+**Entregable Fase 1:** proceso documentado + entrypoint claro + tests de que el kernel no se llama desde sitios no listados (opcional: test estático o convención).
+
+**Orden sugerido:** 1.2 → 1.1 → 1.3 → 1.4.
+
+---
+
+## Fase 2 — Persistencia y base de datos
+
+**Meta:** que identidad y episodios **sobrevivan** al reinicio, con esquema versionado.
+
+| Subfase | Qué hacer | Notas |
+|--------|-----------|--------|
+| **2.1 Puerto** | Interfaz `PersistencePort` (nombres orientativos): cargar/guardar episodios, identidad, estado mínimo de perdón/debilidad, semilla de variabilidad opcional. | Implementación primera: **SQLite** o **JSON en disco** (más simple para MVP). |
+| **2.2 Adaptador** | Un adaptador `FilePersistence` o `SqlitePersistence` que serialice lo que ya expone memoria/inmortalidad (ver [RUNTIME_PERSISTENTE.md](RUNTIME_PERSISTENTE.md)). | Tests de idempotencia: mismo escenario tras restore. |
+| **2.3 Cifrado (opcional)** | Capa de cifrado de archivos o columnas sensibles (`cryptography` o similar), clave fuera del repo. | No sustituye a control de acceso del SO; documentar amenazas. |
+| **2.4 Integración runtime** | Al arrancar Fase 1: hidratar kernel desde puerto; al apagar o checkpoint: persistir. | Apagado limpio vs crash: definir política (WAL, autosave cada N episodios). |
+
+**Dependencia:** Fase 1 estable (al menos entrypoint y ciclo de vida del proceso).
+
+---
+
+## Fase 3 — LLM local (p. ej. Ollama)
+
+**Meta:** percepción y voz **locales** para privacidad, sin cambiar quién decide.
+
+| Subfase | Qué hacer | Límites |
+|--------|-----------|---------|
+| **3.1 Contrato LLM** | Extraer interfaz clara frente a `LLMModule`: `complete(system, prompt, …)` async o sync según el sitio de llamada. | Misma frontera que hoy: kernel llama solo a perceive/communicate/narrate. |
+| **3.2 Adaptador Ollama** | Cliente HTTP (`httpx` async) a `http://localhost:11434` (API compatible con lo que uses: generate/chat). | Timeouts, fallbacks a modo heurístico si el servidor local no está. |
+| **3.3 Configuración** | Variables de entorno: `OLLAMA_MODEL`, `OLLAMA_BASE_URL`, flag `USE_LOCAL_LLM=true`. | Documentar en README. |
+| **3.4 Monólogo con LLM (opcional)** | Solo después de 3.2: generar texto de monólogo interno para logs/UI, **nunca** como entrada directa a MalAbs. | Revisión de prompts para que no “instruyan” al kernel. |
+
+**Dependencia:** Fase 1 útil para no bloquear el event loop; Fase 2 independiente (persistencia puede ir antes o después del LLM local según prioridad de privacidad vs datos).
+
+---
+
+## Orden global recomendado
+
+1. **Fase 1** (runtime + contrato + entrypoint + tareas de fondo seguras).  
+2. **Fase 2** (persistencia: puerto → SQLite/JSON → integración arranque/parada).  
+3. **Fase 3** (Ollama u otro backend local detrás del puerto LLM).
+
+Entre fases: actualizar [RUNTIME_PERSISTENTE.md](RUNTIME_PERSISTENTE.md), [THEORY_AND_IMPLEMENTATION.md](THEORY_AND_IMPLEMENTATION.md) y README con “qué está implementado”.
+
+---
+
+## Qué no hacer hasta tener bases
+
+- Sustituir `process` por un agente LLM “autónomo”.
+- Mezclar augenesis en el camino por defecto sin opt-in.
+- Background loops que invoquen LLM sin límites de frecuencia y sin tests.
+
+---
+
+## Referencias en el repo
+
+- Runtime y estado: [RUNTIME_PERSISTENTE.md](RUNTIME_PERSISTENTE.md)  
+- Teoría y capas v6: [THEORY_AND_IMPLEMENTATION.md](THEORY_AND_IMPLEMENTATION.md)  
+- Chat actual: `src/chat_server.py`, `src/kernel.py`

@@ -325,6 +325,8 @@ A copy of `dashboard.html` is also kept under `landing/public/` so the Next.js a
 
 **Persistent runtime (design sketch):** state boundaries, optional augenesis, and next steps for a long-lived process — [docs/RUNTIME_PERSISTENTE.md](docs/RUNTIME_PERSISTENTE.md).
 
+**Phased implementation (runtime → DB → local LLM):** ethical guardrails and ordered milestones — [docs/RUNTIME_FASES.md](docs/RUNTIME_FASES.md).
+
 **Experimental (unofficial):** discussion notes on “artificial consciousness” as a pedagogical frame, strong vs weak readings, and affect archetypes for possible future integration — [docs/EXPERIMENTAL_CONSCIOUSNESS_AND_AFFECT_ARCHETYPES.md](docs/EXPERIMENTAL_CONSCIOUSNESS_AND_AFFECT_ARCHETYPES.md) (WIP, not part of the kernel contract until implemented and tested).
 
 **Experimental paper (same lineage):** expected phenomena when coupling PAD + prototype mixing to the kernel; definitions of *color* / *sabor* as metaphors; testable hypotheses reserved for future runs — [docs/experimental/PAPER_AFECTO_FENOMENOS_Y_HIPOTESIS.md](docs/experimental/PAPER_AFECTO_FENOMENOS_Y_HIPOTESIS.md).
