@@ -6,6 +6,20 @@
 
 **Referencias en código actuales:** `AbsoluteEvilDetector` (MalAbs), `PreloadedBuffer`, `WorkingMemory`, `SalienceMap`, `PADArchetypeEngine`, `PsiSleep`, `NarrativeMemory`, `AugenesisEngine` (opcional), monólogo en `internal_monologue` / `chat_server`, persistencia en [RUNTIME_PERSISTENTE.md](../RUNTIME_PERSISTENTE.md).
 
+### ¿Se trata de un módulo de metacognición?
+
+En sentido psicológico estricto, la **metacognición** es el conjunto de procesos que **monitorean y regulan** la propia cognición (p. ej. “¿entiendo esto?”, “¿debo cambiar de estrategia?”). Visto así:
+
+| Pilar | ¿Solapa con metacognición? | Comentario |
+|--------|----------------------------|------------|
+| **1 Adversarial** | **Sí, en parte** | Contrafactual / “qué pasaría si…” es monitoreo de hipótesis sobre el propio razonamiento ante el texto del usuario. |
+| **2 Identidad** | **Sí, en parte** | Comparar el estado actual con un “genoma” de referencia es **meta** respecto a los pesos y a la continuidad del yo decisional. |
+| **3 Cognitiva** | **Sí** | Consolidar, resumir o podar memoria es regulación del uso de la memoria episódica (clásico terreno metacognitivo). |
+| **4 Emocional** | **Sí, en parte** | Vigilar σ/PAD y ajustar modo de interacción es regulación de estado afectivo simulado (metacognición afectiva / interocepción funcional). |
+| **5 Secreto** | **Casi no** en el núcleo del término | Es **seguridad operativa** y confidencialidad; no es “pensar sobre el pensamiento”, aunque protege el canal donde ocurre el monólogo. |
+
+**Conclusión:** el paquete **en conjunto no es solo** metacognición: mezcla **resiliencia**, **seguridad** y **UX**. Pero los pilares **1–4** sí pueden agruparse, en arquitectura, como una capa de **metacognición práctica** o **metacontrol** — siempre **subordinada** al kernel ético (MalAbs → … → voluntad), sin sustituirlo. Un nombre de módulo posible en código: `metacontrol` / `resilience_meta` / `self_monitor` (solo convención; el contrato seguiría siendo explícito en tests).
+
 ---
 
 ## 1. Robustez adversaria — “sistema inmune social” (red-teaming ético recursivo)
