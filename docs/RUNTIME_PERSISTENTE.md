@@ -26,6 +26,7 @@ Un **runtime persistente** mantiene identidad narrativa, memoria episódica y go
 
 - **`src/persistence/`** — `KernelSnapshotV1` + `extract_snapshot` / `apply_snapshot` (estado mutable del kernel sin tocar algoritmos éticos).
 - **`JsonFilePersistence`** — guarda/carga JSON UTF-8 en ruta configurable (`save` / `load` / `load_into_kernel`).
+- **`checkpoint.py`** — integración WebSocket: carga al abrir sesión, guardado al cerrar y autosave cada N episodios (variables `KERNEL_CHECKPOINT_*`).
 - **Cifrado** — aún no integrado; ver checklist de seguridad abajo.
 
 ## Fronteras recomendadas (hexagonal, incremental)

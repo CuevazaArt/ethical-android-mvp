@@ -6,6 +6,9 @@ Run from repo root:
 
 Or: python -m src.chat_server
 Or: python -m src.runtime  (same server; see docs/RUNTIME_CONTRACT.md)
+
+Checkpoint (optional): KERNEL_CHECKPOINT_PATH, KERNEL_CHECKPOINT_LOAD,
+KERNEL_CHECKPOINT_SAVE_ON_DISCONNECT, KERNEL_CHECKPOINT_EVERY_N_EPISODES — see src/persistence/checkpoint.py
 """
 
 from __future__ import annotations
@@ -20,6 +23,12 @@ from fastapi.responses import JSONResponse
 
 from .kernel import ChatTurnResult, EthicalKernel
 from .modules.internal_monologue import compose_monologue_line
+from .persistence.checkpoint import (
+    init_session_checkpoint_state,
+    maybe_autosave_episodes,
+    on_websocket_session_end,
+    try_load_checkpoint,
+)
 from .real_time_bridge import RealTimeBridge
 
 app = FastAPI(title="Ethical Android Chat", version="1.0")
@@ -138,6 +147,8 @@ async def ws_chat(ws: WebSocket) -> None:
         variability=os.environ.get("KERNEL_VARIABILITY", "1") not in ("0", "false", "False"),
         llm_mode=os.environ.get("LLM_MODE", "auto"),
     )
+    try_load_checkpoint(kernel)
+    session_ckpt = init_session_checkpoint_state(kernel)
     bridge = RealTimeBridge(kernel)
 
     try:
@@ -164,8 +175,11 @@ async def ws_chat(ws: WebSocket) -> None:
                 include_narrative=include_narrative,
             )
             await ws.send_json(_chat_turn_to_jsonable(result, kernel))
+            maybe_autosave_episodes(kernel, session_ckpt)
     except WebSocketDisconnect:
-        return
+        pass
+    finally:
+        on_websocket_session_end(kernel)
 
 
 def get_uvicorn_bind() -> tuple[str, int]:

@@ -112,6 +112,10 @@ Ethical guardrails for background tasks: [docs/RUNTIME_CONTRACT.md](docs/RUNTIME
 Send **JSON text** frames, e.g. `{"text": "Hello", "agent_id": "user", "include_narrative": false}`.  
 Optional env: `CHAT_HOST`, `CHAT_PORT`, `LLM_MODE`, `KERNEL_VARIABILITY`.
 
+**Checkpoint (Fase 2.4):** set `KERNEL_CHECKPOINT_PATH` to a `.json` file to load state when a WebSocket session opens and save when it closes (`KERNEL_CHECKPOINT_SAVE_ON_DISCONNECT`, default on). Periodic saves: `KERNEL_CHECKPOINT_EVERY_N_EPISODES`. See `src/persistence/checkpoint.py`.
+
+**Local LLM (Ollama, Fase 3):** `LLM_MODE=ollama` with [Ollama](https://ollama.com/) running; optional `OLLAMA_BASE_URL` (default `http://127.0.0.1:11434`), `OLLAMA_MODEL` (e.g. `llama3.1`), `OLLAMA_TIMEOUT`. The kernel still decides; the model only translates text ↔ JSON signals.
+
 Each JSON response includes **`identity`** (narrative self-model + `ascription`), **`drive_intents`** (advisory list), and **`monologue`** when a kernel decision is present. A minimal browser tester lives at [`landing/public/chat-test.html`](landing/public/chat-test.html) (open via local static server if `file://` blocks WebSockets).
 
 ### Natural language mode (v4)
@@ -220,7 +224,7 @@ Psi Sleep Ψ (end of day): Audit + Forgiveness cycle + weakness load + Immortali
 
 ## Tests
 
-**90** tests total (`pytest tests/`). The list below summarizes the **13 invariant ethical properties** exercised by the core ethical suite; additional tests cover EthicalReflection, SalienceMap, PAD archetypes, narrative identity, internal monologue, chat turns, the WebSocket chat server, runtime entry/bind/telemetry, and JSON snapshot persistence.
+**95** tests total (`pytest tests/`). The list below summarizes the **13 invariant ethical properties** exercised by the core ethical suite; additional tests cover EthicalReflection, SalienceMap, PAD archetypes, narrative identity, internal monologue, chat turns, the WebSocket chat server, runtime entry/bind/telemetry, JSON snapshot persistence, checkpoint integration, and Ollama LLM mode.
 
 1. **Absolute Evil** is always blocked
 2. **Action coherence** under variability (100 runs × 9 simulations)

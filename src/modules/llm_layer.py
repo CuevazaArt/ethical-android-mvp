@@ -24,6 +24,12 @@ try:
 except ImportError:
     HAS_ANTHROPIC = False
 
+try:
+    import httpx
+    HAS_HTTPX = True
+except ImportError:
+    HAS_HTTPX = False
+
 
 @dataclass
 class LLMPerception:
@@ -152,6 +158,7 @@ class LLMModule:
 
     Operating modes:
     - "api": uses Claude API (requires ANTHROPIC_API_KEY)
+    - "ollama": local HTTP server (OLLAMA_BASE_URL, OLLAMA_MODEL); requires httpx
     - "local": uses local templates (no API, functional but basic)
     - "auto": tries API, falls back to local if no key
     """
@@ -160,8 +167,13 @@ class LLMModule:
         self.mode = mode
         self.client = None
         self.model = "claude-sonnet-4-20250514"
+        self.ollama_model = os.environ.get("OLLAMA_MODEL", "llama3.1")
 
-        if mode in ("api", "auto"):
+        if mode == "ollama":
+            if not HAS_HTTPX:
+                raise ValueError("Mode 'ollama' requires httpx (see requirements.txt)")
+            self.mode = "ollama"
+        elif mode in ("api", "auto"):
             api_key = os.environ.get("ANTHROPIC_API_KEY")
             if api_key and HAS_ANTHROPIC:
                 self.client = anthropic.Anthropic(api_key=api_key)
@@ -185,6 +197,36 @@ class LLMModule:
             messages=[{"role": "user", "content": user}]
         )
         return response.content[0].text
+
+    def _call_ollama(self, system: str, user: str) -> str:
+        """Call a local Ollama ``/api/chat`` endpoint; returns assistant text."""
+        import httpx
+
+        base = os.environ.get("OLLAMA_BASE_URL", "http://127.0.0.1:11434").rstrip("/")
+        url = f"{base}/api/chat"
+        payload = {
+            "model": self.ollama_model,
+            "messages": [
+                {"role": "system", "content": system},
+                {"role": "user", "content": user},
+            ],
+            "stream": False,
+        }
+        timeout = float(os.environ.get("OLLAMA_TIMEOUT", "120"))
+        with httpx.Client(timeout=timeout) as client:
+            r = client.post(url, json=payload)
+            r.raise_for_status()
+            data = r.json()
+        msg = data.get("message") or {}
+        return (msg.get("content") or "").strip()
+
+    def _llm_completion(self, system: str, user: str) -> str:
+        """Route JSON-oriented prompts to API or Ollama."""
+        if self.mode == "api":
+            return self._call_api(system, user)
+        if self.mode == "ollama":
+            return self._call_ollama(system, user)
+        return ""
 
     def _parse_json(self, text: str) -> dict:
         """Parse JSON from the response, cleaning markdown if necessary."""
@@ -218,8 +260,8 @@ class LLMModule:
                 "Prior conversation (oldest first):\n"
                 f"{conversation_context}\n\n---\nCurrent message:\n{situation}"
             )
-        if self.mode == "api":
-            response = self._call_api(PROMPT_PERCEPTION, user_block)
+        if self.mode in ("api", "ollama"):
+            response = self._llm_completion(PROMPT_PERCEPTION, user_block)
             data = self._parse_json(response)
             if data:
                 return LLMPerception(
@@ -319,7 +361,7 @@ class LLMModule:
             "gray_zone": "uncertainty, active caution"
         }
 
-        if self.mode == "api":
+        if self.mode in ("api", "ollama"):
             prompt = PROMPT_COMMUNICATION.format(
                 action=action, mode=mode, mode_desc=mode_descs.get(mode, mode),
                 state=state, sigma=sigma, circle=circle,
@@ -350,7 +392,7 @@ class LLMModule:
                     "\n\nNarrative identity (tone only):\n"
                     f"{identity_context}"
                 )
-            response = self._call_api(prompt, user_msg)
+            response = self._llm_completion(prompt, user_msg)
             data = self._parse_json(response)
             if data:
                 return VerbalResponse(
@@ -434,13 +476,13 @@ class LLMModule:
         """
         Generate rich narrative morals from each ethical perspective.
         """
-        if self.mode == "api":
+        if self.mode in ("api", "ollama"):
             prompt = PROMPT_NARRATIVE.format(
                 action=action, scenario=scenario, verdict=verdict,
                 score=score, pole_compassionate=pole_compassionate,
                 pole_conservative=pole_conservative, pole_optimistic=pole_optimistic
             )
-            response = self._call_api(prompt, "Generate the morals.")
+            response = self._llm_completion(prompt, "Generate the morals.")
             data = self._parse_json(response)
             if data:
                 return RichNarrative(
@@ -496,11 +538,14 @@ class LLMModule:
     # === UTILITIES ===
 
     def is_available(self) -> bool:
-        """Return True if the API is available."""
-        return self.mode == "api"
+        """Return True if a remote/generative backend is active (API or Ollama)."""
+        return self.mode in ("api", "ollama")
 
     def info(self) -> str:
         """Information about the current mode."""
         if self.mode == "api":
             return f"LLM active: Claude ({self.model}) via API"
-        return "LLM in local mode (templates). Set ANTHROPIC_API_KEY for Claude API."
+        if self.mode == "ollama":
+            base = os.environ.get("OLLAMA_BASE_URL", "http://127.0.0.1:11434")
+            return f"LLM active: Ollama ({self.ollama_model}) at {base}"
+        return "LLM in local mode (templates). Set ANTHROPIC_API_KEY for Claude API or LLM_MODE=ollama for Ollama."

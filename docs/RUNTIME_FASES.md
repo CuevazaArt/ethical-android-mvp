@@ -40,7 +40,7 @@ Objetivo: avanzar de investigación a **proceso vivo** sin que ninguna capa pued
 | **2.2 Adaptador JSON** | `JsonFilePersistence` (`src/persistence/json_store.py`). | Tests: `tests/test_persistence.py` (roundtrip en memoria, archivo, doble serialización). |
 | **2.2b SQLite (opcional)** | Mismo DTO, otra columna `blob` JSON. | Pendiente si hace falta consulta SQL. |
 | **2.3 Cifrado (opcional)** | Capa de cifrado de archivos o columnas sensibles (`cryptography` o similar), clave fuera del repo. | No sustituye a control de acceso del SO; documentar amenazas. |
-| **2.4 Integración runtime** | Al arrancar Fase 1: hidratar kernel desde puerto; al apagar o checkpoint: persistir. | Apagado limpio vs crash: definir política (WAL, autosave cada N episodios). |
+| **2.4 Integración runtime** | WebSocket (`src/chat_server.py`): `try_load_checkpoint` al abrir conexión; `on_websocket_session_end` al cerrar; `maybe_autosave_episodes` tras cada turno. Env: `KERNEL_CHECKPOINT_*` (ver `src/persistence/checkpoint.py`). | Concurrencia: un archivo compartido entre varias conexiones puede pisarse. |
 
 **Dependencia:** Fase 1 estable (al menos entrypoint y ciclo de vida del proceso).
 
@@ -53,7 +53,7 @@ Objetivo: avanzar de investigación a **proceso vivo** sin que ninguna capa pued
 | Subfase | Qué hacer | Límites |
 |--------|-----------|---------|
 | **3.1 Contrato LLM** | Extraer interfaz clara frente a `LLMModule`: `complete(system, prompt, …)` async o sync según el sitio de llamada. | Misma frontera que hoy: kernel llama solo a perceive/communicate/narrate. |
-| **3.2 Adaptador Ollama** | Cliente HTTP (`httpx` async) a `http://localhost:11434` (API compatible con lo que uses: generate/chat). | Timeouts, fallbacks a modo heurístico si el servidor local no está. |
+| **3.2 Adaptador Ollama** | `LLMModule` con `LLM_MODE=ollama`: `POST /api/chat` vía `httpx` (`OLLAMA_BASE_URL`, `OLLAMA_MODEL`, `OLLAMA_TIMEOUT`). | Si el modelo no devuelve JSON válido, cae al comportamiento local solo donde ya existía fallback; perceive/communicate/narrate esperan JSON en el prompt. |
 | **3.3 Configuración** | Variables de entorno: `OLLAMA_MODEL`, `OLLAMA_BASE_URL`, flag `USE_LOCAL_LLM=true`. | Documentar en README. |
 | **3.4 Monólogo con LLM (opcional)** | Solo después de 3.2: generar texto de monólogo interno para logs/UI, **nunca** como entrada directa a MalAbs. | Revisión de prompts para que no “instruyan” al kernel. |
 
