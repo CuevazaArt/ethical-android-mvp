@@ -35,6 +35,12 @@ The complete bibliography with all 104 references is in
 
 ---
 
+## Pre-alpha bundle archived in-repo (April 2026)
+
+Ad hoc folders named **`prealphaDocs/`** (Spanish registration draft v1.0, diagram PNGs, a Spanish bibliography draft, generated JPG/MP4) are **not** the live spec of the current tree, but they document the **primitive narrative** before the README / `docs/discusion/` layout stabilized. They are preserved under **[`docs/historical/prealpha/README.md`](docs/historical/prealpha/README.md)** with media in `docs/historical/prealpha/media/`. The canonical reference list remains **[`BIBLIOGRAPHY.md`](BIBLIOGRAPHY.md)**; the Spanish bibliography file in that folder is an archival snapshot. PDF and Word exports from the same period are **not** committed (see root `.gitignore` and [`docs/historical/prealpha/COMPANION_BINARIES.md`](docs/historical/prealpha/COMPANION_BINARIES.md)).
+
+---
+
 ## v1.0 — March 2026 | Conceptual phase
 
 - 40+ design documents analyzed and consolidated.

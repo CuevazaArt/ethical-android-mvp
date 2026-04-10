@@ -2,6 +2,9 @@
 
 All notable changes to this project are summarized here. For narrative context and design rationale, see [`HISTORY.md`](HISTORY.md).
 
+## Pre-alpha docs + media archive — April 2026
+- **`docs/historical/prealpha/`:** ingested content from **`prealphaDocs/`** (removed): Spanish `androide_etico_alpha` v1.0 (2026), Spanish bibliography draft (canonical refs stay in [`BIBLIOGRAPHY.md`](BIBLIOGRAPHY.md)), PNG/JPG/MP4 media with ASCII filenames under `media/`, [`README.md`](docs/historical/prealpha/README.md) index, [`COMPANION_BINARIES.md`](docs/historical/prealpha/COMPANION_BINARIES.md) for PDF/DOCX not tracked by `.gitignore`. English archive notices prepended to archived markdown. Cross-refs in [`HISTORY.md`](HISTORY.md).
+
 ## DAO integrity alert WebSocket (v0) — April 2026
 - **`hub_audit.record_dao_integrity_alert`** + **`KERNEL_DAO_INTEGRITY_AUDIT_WS`** — WebSocket `integrity_alert` → `HubAudit:dao_integrity` on MockDAO; response key `integrity`. Tests in `test_hub_modules`, `test_chat_server`. PROPUESTA doc §5 updated.
 

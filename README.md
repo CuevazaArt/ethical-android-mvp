@@ -336,7 +336,8 @@ In GoDaddy DNS for the domain:
 ```
 .
 ├── .github/              # Issue templates, workflows (CI), Security tab links
-├── docs/                 # Theory ↔ implementation; RUNTIME_PERSISTENT / RUNTIME_PHASES; docs/experimental/
+├── docs/                 # Theory ↔ implementation; RUNTIME_* ; experimental/ ; discusion/ ; historical/
+│   └── historical/prealpha/  # Pre-alpha Spanish drafts + media (see docs/historical/prealpha/README.md)
 ├── landing/              # Next.js site (npm install inside this folder)
 ├── src/                  # Ethical kernel source code
 ├── tests/                # Formal test suite
