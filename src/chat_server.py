@@ -44,6 +44,7 @@ from .persistence.checkpoint import (
 )
 from .modules.affective_homeostasis import homeostasis_telemetry
 from .modules.consequence_projection import qualitative_temporal_branches
+from .modules.sensor_contracts import SensorSnapshot
 from .real_time_bridge import RealTimeBridge
 from .runtime.telemetry import advisory_interval_seconds_from_env, advisory_loop
 
@@ -208,7 +209,8 @@ def root() -> JSONResponse:
             "service": "ethical-android-chat",
             "websocket": "/ws/chat",
             "protocol": (
-                "Send JSON: {\"text\": str, \"agent_id\"?: str, \"include_narrative\"?: bool}. "
+                "Send JSON: {\"text\": str, \"agent_id\"?: str, \"include_narrative\"?: bool, "
+                "\"sensor\"?: {battery_level?, place_trust?, ...}}. "
                 "Responses include identity, drive_intents, monologue (when decision present), optional "
                 "affective_homeostasis, experience_digest, user_model, chronobiology, premise_advisory, "
                 "teleology_branches (see README KERNEL_CHAT_*), decision, …"
@@ -223,7 +225,8 @@ async def ws_chat(ws: WebSocket) -> None:
     One kernel per connection so WorkingMemory stays isolated per session.
 
     Client → server (JSON text):
-      {"text": "...", "agent_id": "optional", "include_narrative": false}
+      {"text": "...", "agent_id": "optional", "include_narrative": false,
+       "sensor": "optional object — see SensorSnapshot / README (v8 situated hints)"}
 
     Server → client:
       JSON object from _chat_turn_to_jsonable (see GET /).
@@ -263,11 +266,17 @@ async def ws_chat(ws: WebSocket) -> None:
             agent_id = data.get("agent_id") or "user"
             include_narrative = bool(data.get("include_narrative", False))
 
+            sensor_raw = data.get("sensor")
+            sensor_snapshot: SensorSnapshot | None = None
+            if isinstance(sensor_raw, dict):
+                sensor_snapshot = SensorSnapshot.from_dict(sensor_raw)
+
             result = await bridge.process_chat(
                 text,
                 agent_id=agent_id,
                 place="chat",
                 include_narrative=include_narrative,
+                sensor_snapshot=sensor_snapshot,
             )
             await ws.send_json(_chat_turn_to_jsonable(result, kernel))
             maybe_autosave_episodes(kernel, session_ckpt)

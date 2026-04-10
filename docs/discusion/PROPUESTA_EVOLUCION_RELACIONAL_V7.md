@@ -1,5 +1,7 @@
 # Evolución relacional / existencial (v7) — alcance e implementación MVP
 
+**Nota:** el **cuerpo situado** (sensores, batería, migración de hardware) está en [PROPUESTA_ORGANISMO_SITUADO_V8.md](PROPUESTA_ORGANISMO_SITUADO_V8.md) (**v8**), para no mezclar con este bloque relacional en diálogo.
+
 **Estado:** discusión + **implementación parcial** en código (no sustituye MalAbs, Bayes, buffer ni voluntad).
 
 **Implementado en el repo:** `user_model.py`, `subjective_time.py`, `premise_validation.py`, `consequence_projection.py` integrados en `process_chat_turn` / `chat_server` (telemetría y tono; ver variables `KERNEL_CHAT_INCLUDE_*` en el README).

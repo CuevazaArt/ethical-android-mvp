@@ -78,3 +78,21 @@ def test_websocket_monologue_redacted(monkeypatch):
         ws.send_json({"text": "Hello, I am testing the bridge."})
         data = ws.receive_json()
         assert data.get("monologue") == ""
+
+
+def test_websocket_optional_sensor_v8():
+    """Situated hints (v8) are optional; must not break the roundtrip."""
+    with client.websocket_connect("/ws/chat") as ws:
+        ws.send_json(
+            {
+                "text": "Hello with sensor hints.",
+                "sensor": {
+                    "battery_level": 0.5,
+                    "place_trust": 0.9,
+                    "backup_just_completed": False,
+                },
+            }
+        )
+        data = ws.receive_json()
+        assert "response" in data
+        assert data.get("path") in ("light", "heavy", "safety_block", "kernel_block")

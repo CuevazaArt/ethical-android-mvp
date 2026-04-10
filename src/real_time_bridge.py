@@ -12,6 +12,7 @@ from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
     from .kernel import EthicalKernel, ChatTurnResult
+    from .modules.sensor_contracts import SensorSnapshot
 
 
 class RealTimeBridge:
@@ -26,6 +27,7 @@ class RealTimeBridge:
         agent_id: str = "user",
         place: str = "chat",
         include_narrative: bool = False,
+        sensor_snapshot: "SensorSnapshot | None" = None,
     ) -> "ChatTurnResult":
         return await asyncio.to_thread(
             self.kernel.process_chat_turn,
@@ -33,4 +35,5 @@ class RealTimeBridge:
             agent_id,
             place,
             include_narrative,
+            sensor_snapshot,
         )

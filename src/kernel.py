@@ -50,6 +50,7 @@ from .modules.internal_monologue import compose_monologue_line
 from .modules.user_model import UserModelTracker
 from .modules.subjective_time import SubjectiveClock
 from .modules.premise_validation import PremiseAdvisory, scan_premises
+from .modules.sensor_contracts import SensorSnapshot, merge_sensor_hints_into_signals
 
 
 @dataclass
@@ -506,12 +507,16 @@ class EthicalKernel:
         agent_id: str = "user",
         place: str = "chat",
         include_narrative: bool = False,
+        sensor_snapshot: Optional[SensorSnapshot] = None,
     ) -> ChatTurnResult:
         """
         Real-time dialogue: MalAbs text gate → perceive (with STM) → kernel (light/heavy) → LLM.
 
         Light turns skip long-term episode registration to avoid flooding NarrativeMemory;
         heavy turns run the full pipeline including PAD and episode audit.
+
+        Optional ``sensor_snapshot`` (v8): situated hints merged into sympathetic signals
+        before ``process``; does not bypass MalAbs or policy.
         """
         wm = self.working_memory
         conv = wm.format_context_for_perception()
@@ -552,6 +557,7 @@ class EthicalKernel:
             "manipulation": perception.manipulation,
             "familiarity": perception.familiarity,
         }
+        signals = merge_sensor_hints_into_signals(signals, sensor_snapshot)
 
         actions = self._actions_for_chat(perception, heavy)
         decision = self.process(
