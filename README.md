@@ -126,6 +126,8 @@ Optional env: `CHAT_HOST`, `CHAT_PORT`, `LLM_MODE`, `USE_LOCAL_LLM`, `KERNEL_VAR
 
 **Generative third-way candidates (v9.2, opt-in):** `KERNEL_GENERATIVE_ACTIONS=1` appends traceable template candidates (`source=generative_proposal`, unique `proposal_id`) on heavy chat turns when dilemma-like phrasing is detected (or optional `KERNEL_GENERATIVE_TRIGGER_CONTEXTS=1` for high-stakes `suggested_context`). `KERNEL_GENERATIVE_ACTIONS_MAX` caps how many (default 2). Same MalAbs → Bayesian path as built-in actions. WebSocket `decision` includes `chosen_action_source` and optional `proposal_id`. See `src/modules/generative_candidates.py`.
 
+**v10 operational (optional env):** `KERNEL_GRAY_ZONE_DIPLOMACY` — set to `0` to disable negotiated-exit hints when decision mode is gray zone or reflection is tense. `KERNEL_SOMATIC_MARKERS` — set to `0` to disable learned sensor-pattern nudges to `signals`. `KERNEL_METAPLAN_HINT` — set to `0` to disable long-horizon goal hints from `Kernel.metaplan` (populate via `add_goal` in code for now). Skill-learning tickets and Psi Sleep audit: `skill_learning_registry.py`. See [docs/discusion/PROPUESTA_ESTRATEGIA_OPERATIVA_V10.md](docs/discusion/PROPUESTA_ESTRATEGIA_OPERATIVA_V10.md).
+
 **Checkpoint (Fase 2.4):** set `KERNEL_CHECKPOINT_PATH` to a `.json` file to load state when a WebSocket session opens and save when it closes (`KERNEL_CHECKPOINT_SAVE_ON_DISCONNECT`, default on). Periodic saves: `KERNEL_CHECKPOINT_EVERY_N_EPISODES`. See `src/persistence/checkpoint.py`.
 
 **Identity drift (robustez pilar 2):** `KERNEL_ETHICAL_GENOME_ENFORCE` (default on) and `KERNEL_ETHICAL_GENOME_MAX_DRIFT` (default `0.15`) cap how far Ψ Sleep can move `pruning_threshold` from its value at kernel construction.
@@ -204,6 +206,10 @@ src/
 │   ├── guardian_mode.py        # Opt-in Guardian Angel tone block for LLM (no policy change)
 │   ├── epistemic_dissonance.py # v9.1 cross-modal “reality check” telemetry (tone only)
 │   ├── generative_candidates.py  # v9.2 optional extra CandidateAction templates (opt-in env)
+│   ├── gray_zone_diplomacy.py   # v10 LLM hints for gray-zone / tense reflection
+│   ├── skill_learning_registry.py  # v10 scoped skill tickets + Psi Sleep audit lines
+│   ├── somatic_markers.py       # v10 learned sensor-pattern → signal nudge
+│   ├── metaplan_registry.py     # v10 in-session master goals → LLM hint
 │   └── internal_monologue.py  # [MONO] line for logs and WebSocket payloads
 ├── simulations/
 │   └── runner.py           # 9 scenarios + simulation runner
@@ -253,7 +259,7 @@ Psi Sleep Ψ (end of day): Audit + Forgiveness cycle + weakness load + Immortali
 
 ## Tests
 
-**184** tests total (`pytest tests/`). The list below summarizes the **13 invariant ethical properties** exercised by the core ethical suite; additional tests cover EthicalReflection, SalienceMap, PAD archetypes, narrative identity, internal monologue, chat turns, the WebSocket chat server, MalAbs chat jailbreak gate + monologue privacy env + affective homeostasis telemetry + identity integrity helpers + Ψ Sleep experience digest + v7 relational layers (user model, chronobiology, premise advisory, teleology branches) + v8 sensor contracts + perceptual abstraction presets/fixtures + multimodal antispoof + vitality + optional Guardian Angel mode + v9.1 epistemic dissonance + v9.2 generative candidates (`tests/test_sensor_contracts.py`, `tests/test_perceptual_abstraction.py`, `tests/test_multimodal_trust.py`, `tests/test_vitality.py`, `tests/test_guardian_mode.py`, `tests/test_epistemic_dissonance.py`, `tests/test_generative_candidates.py`), runtime entry/bind/telemetry, advisory interval env + SQLite snapshot adapter, JSON snapshot persistence, checkpoint integration, Ollama LLM mode, and LLM resolve/monologue options (`tests/test_llm_phase3.py`).
+**191** tests total (`pytest tests/`). The list below summarizes the **13 invariant ethical properties** exercised by the core ethical suite; additional tests cover EthicalReflection, SalienceMap, PAD archetypes, narrative identity, internal monologue, chat turns, the WebSocket chat server, MalAbs chat jailbreak gate + monologue privacy env + affective homeostasis telemetry + identity integrity helpers + Ψ Sleep experience digest + v7 relational layers (user model, chronobiology, premise advisory, teleology branches) + v8 sensor contracts + perceptual abstraction presets/fixtures + multimodal antispoof + vitality + optional Guardian Angel mode + v9.1 epistemic dissonance + v9.2 generative candidates + v10 operational layer (`tests/test_sensor_contracts.py`, `tests/test_perceptual_abstraction.py`, `tests/test_multimodal_trust.py`, `tests/test_vitality.py`, `tests/test_guardian_mode.py`, `tests/test_epistemic_dissonance.py`, `tests/test_generative_candidates.py`, `tests/test_v10_operational.py`), runtime entry/bind/telemetry, advisory interval env + SQLite snapshot adapter, JSON snapshot persistence, checkpoint integration, Ollama LLM mode, and LLM resolve/monologue options (`tests/test_llm_phase3.py`).
 
 1. **Absolute Evil** is always blocked
 2. **Action coherence** under variability (100 runs × 9 simulations)
@@ -370,7 +376,7 @@ A copy of `dashboard.html` is also kept under `landing/public/` so the Next.js a
 
 **Experimental (unofficial):** discussion notes on “artificial consciousness” as a pedagogical frame, strong vs weak readings, and affect archetypes for possible future integration — [docs/EXPERIMENTAL_CONSCIOUSNESS_AND_AFFECT_ARCHETYPES.md](docs/EXPERIMENTAL_CONSCIOUSNESS_AND_AFFECT_ARCHETYPES.md) (WIP, not part of the kernel contract until implemented and tested).
 
-**Roadmap (foundation, discussion + phased code):** *Ángel de la Guarda* — [PROPUESTA_ANGEL_DE_LA_GUARDIA.md](docs/discusion/PROPUESTA_ANGEL_DE_LA_GUARDIA.md). **v9 — expanded capability** (four pillars: epistemic validation, generative ethical imagination, swarm protocol, metaplanning): strategic doc and **9.1** sensor epistemics in repo — [PROPUESTA_CAPACIDAD_AMPLIADA_V9.md](docs/discusion/PROPUESTA_CAPACIDAD_AMPLIADA_V9.md).
+**Roadmap (foundation, discussion + phased code):** *Ángel de la Guarda* — [PROPUESTA_ANGEL_DE_LA_GUARDIA.md](docs/discusion/PROPUESTA_ANGEL_DE_LA_GUARDIA.md). **v9** — [PROPUESTA_CAPACIDAD_AMPLIADA_V9.md](docs/discusion/PROPUESTA_CAPACIDAD_AMPLIADA_V9.md). **v10** — diplomacy, skills, somatic markers, metaplan (MVP) — [PROPUESTA_ESTRATEGIA_OPERATIVA_V10.md](docs/discusion/PROPUESTA_ESTRATEGIA_OPERATIVA_V10.md).
 
 **Experimental paper (same lineage):** expected phenomena when coupling PAD + prototype mixing to the kernel; definitions of *color* / *sabor* as metaphors; testable hypotheses reserved for future runs — [docs/experimental/PAPER_AFECTO_FENOMENOS_Y_HIPOTESIS.md](docs/experimental/PAPER_AFECTO_FENOMENOS_Y_HIPOTESIS.md).
 

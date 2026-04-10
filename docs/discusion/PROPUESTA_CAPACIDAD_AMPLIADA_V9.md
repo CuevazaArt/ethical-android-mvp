@@ -111,3 +111,4 @@ El **kernel** sigue siendo la autoridad sobre acciones permitidas y veto MalAbs.
 | [PROPUESTA_ORGANISMO_SITUADO_V8.md](PROPUESTA_ORGANISMO_SITUADO_V8.md) | Sensores v8 |
 | [PROPUESTA_VITALIDAD_SACRIFICIO_Y_FIN.md](PROPUESTA_VITALIDAD_SACRIFICIO_Y_FIN.md) | Multimodal antispoof |
 | [PROPUESTA_EVOLUCION_RELACIONAL_V7.md](PROPUESTA_EVOLUCION_RELACIONAL_V7.md) | Teleología cualitativa, usuario |
+| [PROPUESTA_ESTRATEGIA_OPERATIVA_V10.md](PROPUESTA_ESTRATEGIA_OPERATIVA_V10.md) | **v10** — diplomacia zona gris, skills con ticket, marcadores somáticos, metaplan (MVP código + doc) |

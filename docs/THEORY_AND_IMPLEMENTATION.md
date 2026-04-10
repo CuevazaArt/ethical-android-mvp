@@ -61,6 +61,8 @@ See also `src/modules/psi_sleep.py`, `src/modules/immortality.py`, `src/modules/
 
 **v9 — capacidad ampliada (roadmap):** Cuatro pilares documentados en [discusion/PROPUESTA_CAPACIDAD_AMPLIADA_V9.md](discusion/PROPUESTA_CAPACIDAD_AMPLIADA_V9.md). **En repo:** (9.1) `epistemic_dissonance.py` — telemetría y hint de tono; (9.2) `generative_candidates.py` — candidatos extra con `source` / `proposal_id`, opt-in `KERNEL_GENERATIVE_ACTIONS`; **sin** bypass de MalAbs. Pilares 9.3–9.4: diseño / futuro.
 
+**v10 — estrategia operativa:** [discusion/PROPUESTA_ESTRATEGIA_OPERATIVA_V10.md](discusion/PROPUESTA_ESTRATEGIA_OPERATIVA_V10.md). **En repo (MVP):** `gray_zone_diplomacy.py` (hints de negociación en tensión / gray zone); `skill_learning_registry.py` (tickets + auditoría en Ψ Sleep); `somatic_markers.py` (patrón sensorial → nudge en señales); `metaplan_registry.py` (metas en RAM → hint LLM). Env: `KERNEL_GRAY_ZONE_DIPLOMACY`, `KERNEL_SOMATIC_MARKERS`, `KERNEL_METAPLAN_HINT`. Persistencia de metas en checkpoint: futuro.
+
 ---
 
 ## Mathematics ↔ code
@@ -160,12 +162,16 @@ P(\text{éxito})=\alpha\cdot P(\text{control interno})+\beta\cdot P(\text{factor
 | **Guardian mode** | Tono protector opcional para el LLM (`KERNEL_GUARDIAN_MODE`); **no** altera MalAbs → … → will | `guardian_mode.py` |
 | **Epistemic dissonance (v9.1)** | Telemetría audio/movimiento/visión; hint de tono ante inconsistencia; **no** altera MalAbs → … → will | `epistemic_dissonance.py` |
 | **Generative candidates (v9.2)** | Candidatos plantilla extra, trazables (`generative_proposal`); mismo MalAbs/Bayes; opt-in por env | `generative_candidates.py` |
+| **Gray-zone diplomacy (v10)** | Hint LLM ante gray zone / tensión reflexiva / premisa advisory | `gray_zone_diplomacy.py` |
+| **Skill learning registry (v10)** | Tickets de alcance; auditoría en Ψ Sleep | `skill_learning_registry.py` |
+| **Somatic markers (v10)** | Patrón sensorial aprendido → nudge en `signals` | `somatic_markers.py` |
+| **Metaplan registry (v10)** | Metas maestras en sesión → hint LLM (advisory) | `metaplan_registry.py` |
 
 ---
 
 ## Tests and inspectability
 
-Tests under `tests/` (**184** collected; ethical invariants, reflection/salience/PAD, identity/monologue, chat turns, WebSocket server smoke, MalAbs chat text gate including jailbreak phrases, optional `KERNEL_CHAT_*` privacy/telemetry flags, v7 relational JSON (`user_model`, `chronobiology`, `premise_advisory`, `teleology_branches`), v8 `SensorSnapshot` + perceptual abstraction + multimodal antispoof + vitality, optional Guardian Angel env (`tests/test_guardian_mode.py`), v9.1 epistemic dissonance (`tests/test_epistemic_dissonance.py`), v9.2 generative candidates (`tests/test_generative_candidates.py`), `KERNEL_ETHICAL_GENOME_*` drift guard, runtime bind/telemetry, optional per-session advisory loop, JSON + SQLite snapshot persistence (incl. `experience_digest`), checkpoint env, Ollama mode wiring, LLM resolve/use-local/monologue flags) encode behavior you can run **without any LLM API key** for the core suite. Chat server tests require **`fastapi`**, **`httpx`**, and **`uvicorn`** from `requirements.txt`. That is the practical answer to “black box” concerns: **behavior is reproducible and constrained by code**, not by a single sampled completion.
+Tests under `tests/` (**191** collected; ethical invariants, reflection/salience/PAD, identity/monologue, chat turns, WebSocket server smoke, MalAbs chat text gate including jailbreak phrases, optional `KERNEL_CHAT_*` privacy/telemetry flags, v7 relational JSON (`user_model`, `chronobiology`, `premise_advisory`, `teleology_branches`), v8 `SensorSnapshot` + perceptual abstraction + multimodal antispoof + vitality, optional Guardian Angel env (`tests/test_guardian_mode.py`), v9.1 epistemic dissonance (`tests/test_epistemic_dissonance.py`), v9.2 generative candidates (`tests/test_generative_candidates.py`), v10 operational layer (`tests/test_v10_operational.py`), `KERNEL_ETHICAL_GENOME_*` drift guard, runtime bind/telemetry, optional per-session advisory loop, JSON + SQLite snapshot persistence (incl. `experience_digest`), checkpoint env, Ollama mode wiring, LLM resolve/use-local/monologue flags) encode behavior you can run **without any LLM API key** for the core suite. Chat server tests require **`fastapi`**, **`httpx`**, and **`uvicorn`** from `requirements.txt`. That is the practical answer to “black box” concerns: **behavior is reproducible and constrained by code**, not by a single sampled completion.
 
 ## License
 

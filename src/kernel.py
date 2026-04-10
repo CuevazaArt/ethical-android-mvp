@@ -63,6 +63,10 @@ from .modules.epistemic_dissonance import (
     assess_epistemic_dissonance,
 )
 from .modules.generative_candidates import augment_generative_candidates
+from .modules.gray_zone_diplomacy import negotiation_hint_for_communicate
+from .modules.metaplan_registry import MetaplanRegistry
+from .modules.skill_learning_registry import SkillLearningRegistry
+from .modules.somatic_markers import SomaticMarkerStore, apply_somatic_nudges
 
 
 @dataclass
@@ -157,6 +161,9 @@ class EthicalKernel:
         self._bayesian_genome_weights: Tuple[float, float, float] = tuple(
             float(x) for x in self.bayesian.hypothesis_weights
         )
+        self.skill_learning = SkillLearningRegistry()
+        self.somatic_store = SomaticMarkerStore()
+        self.metaplan = MetaplanRegistry()
 
     def process(self, scenario: str, place: str,
                 signals: dict, context: str,
@@ -469,6 +476,10 @@ class EthicalKernel:
                 )
             parts.append("\n".join(drive_lines))
 
+        sl_lines = self.skill_learning.audit_lines_for_psi_sleep()
+        if sl_lines:
+            parts.append("\n" + "\n".join(sl_lines))
+
         return "\n".join(parts)
 
     def dao_status(self) -> str:
@@ -584,6 +595,7 @@ class EthicalKernel:
         self._last_multimodal_assessment = mm
         ed = assess_epistemic_dissonance(sensor_snapshot, mm)
         signals = merge_sensor_hints_into_signals(signals, sensor_snapshot, mm)
+        signals = apply_somatic_nudges(signals, sensor_snapshot, self.somatic_store)
 
         actions = self._actions_for_chat(perception, heavy)
         ctx = perception.suggested_context or ""
@@ -633,6 +645,10 @@ class EthicalKernel:
         if um_line:
             weakness_line = um_line
 
+        mp = self.metaplan.hint_for_communicate()
+        if mp:
+            weakness_line = (weakness_line + " " + mp).strip() if weakness_line else mp
+
         load = self.weakness.emotional_load()
         if load > 0.35 and decision.moral:
             wk = (
@@ -662,6 +678,14 @@ class EthicalKernel:
 
         if ed.active and ed.communication_hint:
             weakness_line = (weakness_line + " " + ed.communication_hint).strip() if weakness_line else ed.communication_hint
+
+        gz = negotiation_hint_for_communicate(
+            decision.decision_mode,
+            decision.reflection,
+            self._last_premise_advisory.flag,
+        )
+        if gz:
+            weakness_line = (weakness_line + " " + gz).strip() if weakness_line else gz
 
         response = self.llm.communicate(
             action=decision.final_action,
