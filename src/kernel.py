@@ -9,8 +9,9 @@ this via `process_natural` / `process_chat_turn`; `execute_sleep` runs Psi Sleep
 forgiveness cycle, weakness load, immortality backup, drive intents.
 """
 
+import os
 from dataclasses import dataclass
-from typing import List, Dict, Optional
+from typing import List, Dict, Optional, Tuple
 
 from .modules.absolute_evil import AbsoluteEvilDetector, AbsoluteEvilResult
 from .modules.buffer import PreloadedBuffer
@@ -44,6 +45,7 @@ from .modules.ethical_reflection import (
 )
 from .modules.salience_map import SalienceMap, SalienceSnapshot, salience_to_llm_context
 from .modules.drive_arbiter import DriveArbiter
+from .modules.identity_integrity import pruning_recalibration_allowed
 from .modules.internal_monologue import compose_monologue_line
 
 
@@ -127,6 +129,11 @@ class EthicalKernel:
         self.drive_arbiter = DriveArbiter()
         self._last_registered_episode_id: Optional[str] = None
         self._pruned_actions: Dict[str, List[str]] = {}
+        # Reference "genome" for drift caps (pilar 2); snapshot at construction
+        self._bayesian_genome_threshold: float = float(self.bayesian.pruning_threshold)
+        self._bayesian_genome_weights: Tuple[float, float, float] = tuple(
+            float(x) for x in self.bayesian.hypothesis_weights
+        )
 
     def process(self, scenario: str, place: str,
                 signals: dict, context: str,
@@ -393,8 +400,25 @@ class EthicalKernel:
 
         # 1. Retrospective audit
         result = self.sleep.execute(self.memory, self._pruned_actions)
+        max_drift = float(os.environ.get("KERNEL_ETHICAL_GENOME_MAX_DRIFT", "0.15"))
+        enforce_genome = os.environ.get("KERNEL_ETHICAL_GENOME_ENFORCE", "1").strip().lower() not in (
+            "0",
+            "false",
+            "no",
+            "off",
+        )
         for param, delta in result.global_recalibrations.items():
             if param == "pruning_threshold":
+                if enforce_genome and not pruning_recalibration_allowed(
+                    self._bayesian_genome_threshold,
+                    self.bayesian.pruning_threshold,
+                    float(delta),
+                    max_drift,
+                ):
+                    parts.append(
+                        "\n  Identity integrity: pruning recalibration skipped (genome drift cap)."
+                    )
+                    continue
                 self.bayesian.pruning_threshold = max(0.1, self.bayesian.pruning_threshold + delta)
             elif param == "caution":
                 self.locus.beta = min(self.locus.BETA_MAX, self.locus.beta + delta)

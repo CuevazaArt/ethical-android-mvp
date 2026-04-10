@@ -174,7 +174,8 @@ Criterio de orden: **impacto / coste / riesgo de romper invariantes éticos**. L
 |--|--|
 | **Valor al modelo** | **Alto** para experimentos con Augenesis y runs largos; **moderado** en el baseline sin Augenesis. |
 | **Atajo (MVP)** | Al iniciar kernel o perfil: fijar vector de referencia (pesos de polos + parámetros de voluntad expuestos numéricamente). Tras propuesta de cambio **solo** en rutas `AugenesisEngine` (o recalibración explícita): rechazar si distancia > umbral (p. ej. L∞ o L2), con log en DAO o traza de test. |
-| **Dejar para después** | Genoma versionado en fichero firmado; rollback automático de identidad narrativa. |
+| **Estado en código (parcial)** | Genoma al construir el kernel: `pruning_threshold` de referencia; Ψ Sleep omite deltas que superen deriva relativa (`KERNEL_ETHICAL_GENOME_MAX_DRIFT`, default `0.15`; `KERNEL_ETHICAL_GENOME_ENFORCE=0` desactiva). `src/modules/identity_integrity.py`. |
+| **Dejar para después** | Genoma versionado en fichero firmado; rollback automático de identidad narrativa; mismo criterio sobre pesos hipótesis si se recalibran. |
 | **Riesgo ético** | Medio: umbral mal calibrado puede congelar aprendizaje legítimo; exige tuning y tests. |
 
 ---
