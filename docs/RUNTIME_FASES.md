@@ -41,7 +41,7 @@ Objetivo: avanzar de investigación a **proceso vivo** sin que ninguna capa pued
 | **2.1 Puerto** | DTO `KernelSnapshotV1` + `extract_snapshot` / `apply_snapshot` en `src/persistence/kernel_io.py`. | Cubre episodios, identidad, perdón, debilidad, Bayes/locus/variabilidad, DAO audit, `pruned_actions`. |
 | **2.2 Adaptador JSON** | `JsonFilePersistence` (`src/persistence/json_store.py`). | Tests: `tests/test_persistence.py` (roundtrip en memoria, archivo, doble serialización). |
 | **2.2b SQLite (opcional)** | Mismo DTO, otra columna `blob` JSON. | `SqlitePersistence` en `src/persistence/sqlite_store.py` (tabla `kernel_snapshot`, fila `id=1`). |
-| **2.3 Cifrado (opcional)** | Capa de cifrado de archivos o columnas sensibles (`cryptography` o similar), clave fuera del repo. | No sustituye a control de acceso del SO; documentar amenazas. |
+| **2.3 Cifrado (previsto, no MVP)** | Para despliegues con datos sensibles en disco, será **necesaria** una capa de cifrado sobre el snapshot (JSON/SQLite) o columnas; el candidato habitual en Python es la biblioteca **`cryptography`**, con **clave fuera del repo** (gestor de secretos / variable de entorno). | **Aún no implementado** — el MVP guarda texto plano a propósito. No sustituye permisos del SO ni control de acceso; documentar modelo de amenazas al añadirlo. |
 | **2.4 Integración runtime** | WebSocket (`src/chat_server.py`): `try_load_checkpoint` al abrir conexión; `on_websocket_session_end` al cerrar; `maybe_autosave_episodes` tras cada turno. Env: `KERNEL_CHECKPOINT_*` (ver `src/persistence/checkpoint.py`). | Concurrencia: un archivo compartido entre varias conexiones puede pisarse. |
 
 **Dependencia:** Fase 1 estable (al menos entrypoint y ciclo de vida del proceso).

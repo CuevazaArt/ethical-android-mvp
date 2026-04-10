@@ -28,11 +28,16 @@ Un **runtime persistente** mantiene identidad narrativa, memoria episódica y go
 - **`JsonFilePersistence`** — guarda/carga JSON UTF-8 en ruta configurable (`save` / `load` / `load_into_kernel`).
 - **`SqlitePersistence`** (`sqlite_store.py`) — mismo DTO en una fila JSON dentro de SQLite (útil si más adelante se añaden consultas o metadatos).
 - **`checkpoint.py`** — integración WebSocket: carga al abrir sesión, guardado al cerrar y autosave cada N episodios (variables `KERNEL_CHECKPOINT_*`).
-- **Cifrado** — aún no integrado; ver checklist de seguridad abajo.
+
+## Cifrado en reposo (futuro; fuera del MVP actual)
+
+Los checkpoints JSON y SQLite del repositorio son **sin cifrado**: adecuados para desarrollo y pruebas locales. Para **despliegues** donde el snapshot pueda contener datos personales o auditoría sensible, será **necesario** añadir cifrado en reposo (p. ej. capa sobre el archivo o el blob antes de escribir en SQLite). En el ecosistema Python suele usarse la biblioteca **`cryptography`** (Fernet, AES-GCM u otro esquema acordado con el modelo de amenazas); la **clave material nunca** debe versionarse en el repo.
+
+**Estado:** no hay dependencia `cryptography` ni código de cifrado en el MVP; cuando exista, conviene tests de roundtrip cifrado ↔ kernel y documentación de rotación de claves. Hasta entonces, asumir **confidencialidad limitada** de los ficheros de checkpoint.
 
 ## Fronteras recomendadas (hexagonal, incremental)
 
-1. **Puerto de persistencia** — el DTO v1 actúa como snapshot completo; siguientes adaptadores (SQLite, cifrado) pueden mapear al mismo esquema o a una versión `schema_version++`.
+1. **Puerto de persistencia** — el DTO v1 actúa como snapshot completo; siguientes adaptadores (SQLite ya; **cifrado como envoltura futura**) pueden mapear al mismo esquema o a una versión `schema_version++`.
 2. **Puerto LLM** — ya implícito en `LLMModule`; un segundo proveedor fuerza límites claros.
 3. **Proceso de servicio** — `chat_server` como frontal WebSocket; workers opcionales para `execute_sleep` programado sin bloquear chat.
 

@@ -29,3 +29,7 @@ Sigue **opcional** y fuera del ciclo por defecto ([THEORY_AND_IMPLEMENTATION.md]
 ## Entrada unificada
 
 - **`python -m src.runtime`** — mismo servidor que `python -m src.chat_server` (`CHAT_HOST`, `CHAT_PORT`).
+
+## Persistencia (confidencialidad, no ética)
+
+Guardar o restaurar snapshots **no** altera las reglas de decisión del kernel. En el MVP los checkpoints van **sin cifrado**; para despliegues sensibles el cifrado en reposo está **previsto** (p. ej. `cryptography` en Python) y se describe en [RUNTIME_PERSISTENTE.md](RUNTIME_PERSISTENTE.md), no en este contrato.

@@ -36,6 +36,8 @@ class SqlitePersistence:
 
     For local single-user checkpoints; same concurrency caveats as
     :class:`JsonFilePersistence` if multiple writers share one file.
+    Unencrypted at rest in the MVP; future encryption layer documented in
+    docs/RUNTIME_PERSISTENTE.md (planned ``cryptography``).
     """
 
     def __init__(self, path: Path | str):

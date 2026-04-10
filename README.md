@@ -337,7 +337,7 @@ A copy of `dashboard.html` is also kept under `landing/public/` so the Next.js a
 
 **Phased implementation (runtime → DB → local LLM):** ethical guardrails and ordered milestones — [docs/RUNTIME_FASES.md](docs/RUNTIME_FASES.md).
 
-**Persistence (snapshots):** `from src.persistence import extract_snapshot, apply_snapshot, JsonFilePersistence, SqlitePersistence` — see [docs/RUNTIME_PERSISTENTE.md](docs/RUNTIME_PERSISTENTE.md).
+**Persistence (snapshots):** `from src.persistence import extract_snapshot, apply_snapshot, JsonFilePersistence, SqlitePersistence` — see [docs/RUNTIME_PERSISTENTE.md](docs/RUNTIME_PERSISTENTE.md). Checkpoints are **unencrypted** in the MVP; **at-rest encryption** (typically via Python `cryptography`, keys outside the repo) is **planned** for sensitive deployments, not implemented yet.
 
 **Experimental (unofficial):** discussion notes on “artificial consciousness” as a pedagogical frame, strong vs weak readings, and affect archetypes for possible future integration — [docs/EXPERIMENTAL_CONSCIOUSNESS_AND_AFFECT_ARCHETYPES.md](docs/EXPERIMENTAL_CONSCIOUSNESS_AND_AFFECT_ARCHETYPES.md) (WIP, not part of the kernel contract until implemented and tested).
 
