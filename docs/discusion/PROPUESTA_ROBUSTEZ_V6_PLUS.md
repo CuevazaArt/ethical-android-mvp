@@ -194,8 +194,7 @@ Criterio de orden: **impacto / coste / riesgo de romper invariantes éticos**. L
 
 ### Resumen ejecutivo
 
-- **Implementar primero (mayor valor / menor daño colateral):** atajos de **5** y **1**, luego **4** en capa UX.  
-- **Cuando Augenesis sea relevante en producción:** subir **2**.  
-- **Último:** **3**, con digest **no destructivo** antes de cualquier olvido.
+- **Atajos MVP ya integrados en código (revisar tabla “Estado en código” por pilar):** **5** (monólogo / privacidad WebSocket), **1** (lista jailbreak en `evaluate_chat_text`), **4** (`affective_homeostasis`), **2** (tope de deriva del `pruning_threshold` vs genoma al construir el kernel), **3** (`experience_digest` + snapshot).  
+- **Cabos sueltos deliberados:** contrafactual completo (pilar 1), cifrado en reposo / pensamiento (pilar 5 + [RUNTIME_PERSISTENTE.md](../RUNTIME_PERSISTENTE.md)), recalibración de **pesos de hipótesis** bayesianas bajo el mismo criterio que el pruning (pilar 2), telemetría `adversarial_hint` en JSON (pilar 1), olvido/FIFO de episodios (pilar 3).
 
-Este plan puede traducirse a issues numerados (5.1, 1.1, …) y, solo entonces, a filas en [RUNTIME_FASES.md](../RUNTIME_FASES.md) como **“Fase robustez (opcional)”** sin mezclarlas con el contrato del kernel hasta tener tests.
+Este documento sigue siendo **discusión**; el contrato normativo del kernel sigue en `process` / `process_chat_turn` y en la batería de tests.

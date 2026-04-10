@@ -120,7 +120,7 @@ Optional env: `CHAT_HOST`, `CHAT_PORT`, `LLM_MODE`, `USE_LOCAL_LLM`, `KERNEL_VAR
 
 **Local LLM (Ollama, Fase 3):** `LLM_MODE=ollama` (or `LLM_MODE=auto` with `USE_LOCAL_LLM=1`) with [Ollama](https://ollama.com/) running; optional `OLLAMA_BASE_URL` (default `http://127.0.0.1:11434`), `OLLAMA_MODEL` (default `llama3.2:3b`), `OLLAMA_TIMEOUT`. Optional **`KERNEL_LLM_MONOLOGUE=1`** embellishes the chat `monologue` line with the text backend (still advisory; kernel decisions unchanged). The kernel still decides; the model only translates text ↔ JSON signals.
 
-Each JSON response includes **`identity`** (narrative self-model + `ascription`), **`drive_intents`** (advisory list), and **`monologue`** when a kernel decision is present (unless `KERNEL_CHAT_EXPOSE_MONOLOGUE=0`). A minimal browser tester lives at [`landing/public/chat-test.html`](landing/public/chat-test.html) (open via local static server if `file://` blocks WebSockets).
+Each JSON response includes **`identity`** (narrative self-model + `ascription`), **`drive_intents`** (advisory list), and **`monologue`** when a kernel decision is present (unless `KERNEL_CHAT_EXPOSE_MONOLOGUE=0`). When enabled by env (defaults on), responses may also include **`affective_homeostasis`** and **`experience_digest`** (see sections above). A minimal browser tester lives at [`landing/public/chat-test.html`](landing/public/chat-test.html) (open via local static server if `file://` blocks WebSockets).
 
 ### Natural language mode (v4)
 

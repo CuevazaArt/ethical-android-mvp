@@ -166,7 +166,8 @@ def root() -> JSONResponse:
             "websocket": "/ws/chat",
             "protocol": (
                 "Send JSON: {\"text\": str, \"agent_id\"?: str, \"include_narrative\"?: bool}. "
-                "Responses include identity, drive_intents, monologue (when decision present), decision, …"
+                "Responses include identity, drive_intents, monologue (when decision present), optional "
+                "affective_homeostasis / experience_digest (see README env KERNEL_CHAT_*), decision, …"
             ),
         }
     )
