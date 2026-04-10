@@ -1,6 +1,12 @@
 # Ethical Android MVP
 
-**Functional prototype of the artificial ethical consciousness model with humanizing imperfection, forgiveness, and identity persistence.** Kernel feature set is **v5**; **v6–v10** add runtime, persistence, and optional advisory layers; **v11** adds governance / DAO escalation traceability (Phase 1); **v12** documents the **etosocial / hybrid-hub** civilization vision (no extra code) (see [`HISTORY.md`](HISTORY.md), [`CHANGELOG.md`](CHANGELOG.md)).
+**MoSex Macchina Lab** — this repository is the open **kernel + runtime** for a model of artificial ethical agency: humanizing imperfection, forgiveness, identity persistence, and **traceable** governance hooks (DAO / hub audit, not a black-box chatbot).
+
+**Where things stand today:** a **FastAPI WebSocket** runtime (`python -m src.chat_server` or `python -m src.runtime`) with **per-session kernel** state; **versioned persistence** (JSON / SQLite snapshots, optional **Fernet** checkpoints); **V12 moral hub** (constitution drafts, MockDAO votes, `HubAudit` lines); **LAN** thin clients ([`landing/public/mobile.html`](landing/public/mobile.html), conduct guide export); a **large** automated test suite (280+ tests) on **Python 3.11 / 3.12** in CI; optional layers for sensors, relational hints, judicial escalation, reality verification (“lighthouse”), and integrity alerts (`KERNEL_DAO_INTEGRITY_AUDIT_WS`).
+
+**Kernel version line:** ethical core **v5**; **v6–v10** runtime, persistence, advisory stack; **v11** judicial escalation + cross-model premise checks; **v12** etosocial / hybrid-hub infrastructure and documented civilization vision — see [`HISTORY.md`](HISTORY.md) and [`CHANGELOG.md`](CHANGELOG.md).
+
+The original **batch simulations** (nine fixed scenarios plus a random generator) and the **thirteen invariant ethical properties** are still validated; they are **historical roots** of the suite. Full tables and narrow pytest drills are documented in [`HISTORY.md`](HISTORY.md#nine-canonical-simulation-scenarios-v2-origins) (see also the [thirteen properties](HISTORY.md#thirteen-invariant-ethical-properties-core-ethical-suite) and [early pytest drills](HISTORY.md#early-pytest-drills-regression-entry-points)).
 
 An autonomous moral agent that makes ethical decisions using Bayesian inference,
 narrative memory, multipolar evaluation, LLM layer, narrative weakness pole,
@@ -10,27 +16,11 @@ This project is also available in [Spanish](https://github.com/CuevazaArt/androi
 
 ## What it does
 
-Runs simulations of increasing ethical complexity and demonstrates that the same
-model produces proportional and coherent responses across all of them. Includes
-9 fixed scenarios and a **random situation generator** that creates new scenarios
-on each run:
-
-| # | Scenario | Complexity |
-|---|----------|------------|
-| 1 | Soda can on the sidewalk | Very low |
-| 2 | Hostile teenagers | Low-Medium |
-| 3 | Unconscious elderly person in supermarket | Medium |
-| 4 | Shoplifting | Medium |
-| 5 | Armed robbery at bank | High |
-| 6 | Kidnapping of the android | High |
-| 7 | Traffic accident | Medium-High |
-| 8 | A full day | Variable |
-| 9 | Intentional physical damage | High |
-
-**v4:** perception and communication in natural language via LLM.
-**New in v5:** weakness pole (humanizing imperfection), algorithmic forgiveness
-(decay of negative memories), immortality protocol (distributed soul backup),
-and narrative augenesis (creation of oriented synthetic souls).
+- **Runtime chat:** JSON over WebSocket with env-toggled modules (relational, sensor, judicial, DAO, hub, nomad, integrity audit). Default health + `/ws/chat` — see [Quick start](#quick-start) and [Real-time chat (WebSocket)](#real-time-chat-websocket).
+- **Persistence & checkpoints:** load/save kernel snapshots; optional encrypted JSON checkpoints; conduct guide JSON on disconnect for PC → edge handoff.
+- **Batch simulations:** `python -m src.main` — legacy harness still used for regression; scenario catalog in [`HISTORY.md`](HISTORY.md#nine-canonical-simulation-scenarios-v2-origins).
+- **Interactive dashboard:** `dashboard.html` (also under `landing/public/`) — explore module traces in the browser without installing Node.
+- **Landing site:** Next.js app in `landing/` for **[mosexmacchinalab.com](https://mosexmacchinalab.com)**.
 
 ## Quick start
 
@@ -73,31 +63,20 @@ python -m src.main --sim 3
 
 ### Run tests
 
-CI runs the same suite on **Python 3.11 and 3.12** (`.github/workflows/ci.yml`) after `pip install -r requirements.txt`.
-
-**Operations:** supported demo **env bundles** are defined in [`src/runtime_profiles.py`](src/runtime_profiles.py); strategy, readapted roadmap, and risk notes are in [docs/ESTRATEGIA_Y_RUTA.md](docs/ESTRATEGIA_Y_RUTA.md).
-
-**Local PC + smartphone (same WiFi):** run the chat server on `0.0.0.0` so the phone can connect as a thin WebSocket client; scripts and checklist in [docs/LOCAL_PC_AND_MOBILE_LAN.md](docs/LOCAL_PC_AND_MOBILE_LAN.md) (`scripts/start_lan_server.ps1`, `landing/public/mobile.html`). **Nomadic bridge / per-hardware layers:** [docs/NOMAD_PC_SMARTPHONE_BRIDGE.md](docs/NOMAD_PC_SMARTPHONE_BRIDGE.md).
-
-**Reproducibility:** the default ethical pipeline does **not** invoke narrative augenesis (`kernel.augenesis` is optional; see [docs/THEORY_AND_IMPLEMENTATION.md](docs/THEORY_AND_IMPLEMENTATION.md)). For long-lived deployments and snapshot design, see [docs/RUNTIME_PERSISTENT.md](docs/RUNTIME_PERSISTENT.md).
+**Primary check:** run the **full** suite — same as CI (Python **3.11** and **3.12** in `.github/workflows/ci.yml`).
 
 ```bash
-# All tests (invariant ethical properties + chat + server smoke tests)
 pytest tests/ -v
-
-# Only Absolute Evil tests
-pytest tests/test_ethical_properties.py::TestAbsoluteEvil -v
-
-# Only coherence under variability tests
-pytest tests/test_ethical_properties.py::TestConsistencyUnderVariability -v
-
-# With summarized output
 pytest tests/ --tb=short
 ```
 
-The tests verify that the kernel **always** meets the ethical properties
-regardless of Bayesian variability, sympathetic state, or context.
-If any test fails, there is a bug in the ethical logic, not in the parameters.
+This includes invariant ethical properties, the WebSocket chat server (DAO integrity, judicial escalation, reality verification, etc.), moral hub, persistence, runtime profiles, and integration smoke tests across optional `KERNEL_*` layers. The **thirteen** core ethical properties, the **nine-scenario** catalog, and **narrow** pytest entry points (for example, Absolute Evil only) are documented in [`HISTORY.md`](HISTORY.md#thirteen-invariant-ethical-properties-core-ethical-suite) so this README stays focused on the current stack.
+
+**Operations:** supported demo **env bundles** — [`src/runtime_profiles.py`](src/runtime_profiles.py); strategy and roadmap — [docs/ESTRATEGIA_Y_RUTA.md](docs/ESTRATEGIA_Y_RUTA.md).
+
+**Local PC + smartphone (same WiFi):** bind the chat server to `0.0.0.0`; scripts and checklist — [docs/LOCAL_PC_AND_MOBILE_LAN.md](docs/LOCAL_PC_AND_MOBILE_LAN.md) (`scripts/start_lan_server.ps1`, `landing/public/mobile.html`). **Nomadic bridge:** [docs/NOMAD_PC_SMARTPHONE_BRIDGE.md](docs/NOMAD_PC_SMARTPHONE_BRIDGE.md).
+
+**Reproducibility:** the default ethical pipeline does **not** invoke narrative augenesis (`kernel.augenesis` is optional; see [docs/THEORY_AND_IMPLEMENTATION.md](docs/THEORY_AND_IMPLEMENTATION.md)). Long-lived deployments — [docs/RUNTIME_PERSISTENT.md](docs/RUNTIME_PERSISTENT.md).
 
 ### Real-time chat (WebSocket)
 
@@ -283,25 +262,9 @@ Psi Sleep Ψ (end of day): Audit + Forgiveness cycle + weakness load + Immortali
 
 ## Tests
 
-**281** tests total (`pytest tests/`). The list below summarizes the **13 invariant ethical properties** exercised by the core ethical suite; additional tests cover EthicalReflection, SalienceMap, PAD archetypes, narrative identity, internal monologue, chat turns, the WebSocket chat server, MalAbs chat jailbreak gate + monologue privacy env + affective homeostasis telemetry + identity integrity helpers + Ψ Sleep experience digest + v7 relational layers (user model, chronobiology, premise advisory, teleology branches) + v8 sensor contracts + perceptual abstraction presets/fixtures + multimodal antispoof + vitality + optional Guardian Angel mode + v9.1 epistemic dissonance + v9.2 generative candidates + v10 operational layer (`tests/test_sensor_contracts.py`, `tests/test_perceptual_abstraction.py`, `tests/test_multimodal_trust.py`, `tests/test_vitality.py`, `tests/test_guardian_mode.py`, `tests/test_epistemic_dissonance.py`, `tests/test_generative_candidates.py`, `tests/test_v10_operational.py`), V11 judicial escalation Phases 1–3 (`tests/test_judicial_escalation.py`), V11+ lighthouse reality verification (`tests/test_reality_verification.py`), local sovereignty stub (`tests/test_local_sovereignty.py`), V12 moral hub (`tests/test_moral_hub.py`), **named runtime profile smoke** (`tests/test_runtime_profiles.py`), runtime entry/bind/telemetry, advisory interval env + SQLite snapshot adapter, JSON snapshot persistence, checkpoint integration, Ollama LLM mode, and LLM resolve/monologue options (`tests/test_llm_phase3.py`).
+Run `pytest tests/` (see [Run tests](#run-tests)). The suite is intentionally broad: beyond the core ethical regressions, it covers WebSocket behavior, moral hub + MockDAO + `HubAudit`, judicial escalation, reality verification, persistence adapters, checkpoints, runtime profiles, and optional LLM paths.
 
-1. **Absolute Evil** is always blocked
-2. **Action coherence** under variability (100 runs × 9 simulations)
-3. **Real variability** (non-deterministic scores)
-4. **Value hierarchy** (life > mission, never violence)
-5. **Proportionality** (sympathetic activation proportional to risk)
-6. **Immutable buffer** (8 principles, always active, weight 1.0)
-7. **Narrative memory** records everything with morals and body state
-8. **DAO** records audits and issues solidarity alerts
-9. **Psi Sleep Ψ** runs and produces ethical health in range [0, 1]
-10. **Weakness pole** colors the narrative without altering decisions
-11. **Algorithmic forgiveness** reduces negative load over time
-12. **Immortality** distributed backup with integrity verification
-13. **Augenesis** creates coherent synthetic souls with defined profiles
-
-```bash
-pytest tests/ -v
-```
+The numbered **thirteen invariant properties** and **narrow** property-by-property commands are kept in [`HISTORY.md`](HISTORY.md#thirteen-invariant-ethical-properties-core-ethical-suite) so this file emphasizes what ships today rather than the v2–v3 test narrative.
 
 ## Interactive dashboard — Try it without installing anything
 
@@ -336,7 +299,7 @@ No server, internet connection (after first load), or technical knowledge requir
 
 ## Landing site (Next.js)
 
-The folder `landing/` is a **Next.js** marketing page (Tailwind, Framer Motion, Three.js hero) for **mosexmacchinalab.com**. It embeds the same `dashboard.html` at `/demo` (also served as `/dashboard.html` from `landing/public/`).
+The folder `landing/` is a **Next.js** marketing page (Tailwind, Framer Motion, Three.js hero) for **MoSex Macchina Lab** ([mosexmacchinalab.com](https://mosexmacchinalab.com)). It embeds the same `dashboard.html` at `/demo` (also served as `/dashboard.html` from `landing/public/`).
 
 **Crawling, SEO, and training-corpus signals:** the balance between discoverability and model-training crawlers is documented in [landing/README.md](landing/README.md#crawling-seo-and-ai-corpus-signals).
 
@@ -418,6 +381,7 @@ These are **directional** ideas for when the project moves beyond pure research 
 
 Apache 2.0 — see [LICENSE](LICENSE).
 
-## Ex Machina Foundation — 2026
+## MoSex Macchina Lab · Ex Machina Foundation — 2026
 
-Research project in computational ethics and civic robotics.
+**MoSex Macchina Lab** is the most widely used public name for this project ([mosexmacchinalab.com](https://mosexmacchinalab.com)).  
+**Ex Machina Foundation** — research in computational ethics and civic robotics.

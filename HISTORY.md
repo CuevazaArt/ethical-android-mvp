@@ -224,6 +224,63 @@ Governance track: **artificial social contract** metaphor — owner insistence i
 
 ---
 
+## Nine canonical simulation scenarios (v2 origins)
+
+The batch runner (`python -m src.main`) still exercises these nine fixed scenarios of increasing ethical complexity, plus a **random situation generator** (new scenario each run). This table is the historical catalog; it is not the primary story of the project today (runtime, WebSocket, and governance hooks — see `README.md` and v6+ sections above).
+
+| # | Scenario | Complexity |
+|---|----------|------------|
+| 1 | Soda can on the sidewalk | Very low |
+| 2 | Hostile teenagers | Low-Medium |
+| 3 | Unconscious elderly person in supermarket | Medium |
+| 4 | Shoplifting | Medium |
+| 5 | Armed robbery at bank | High |
+| 6 | Kidnapping of the android | High |
+| 7 | Traffic accident | Medium-High |
+| 8 | A full day | Variable |
+| 9 | Intentional physical damage | High |
+
+**v4:** perception and communication in natural language via LLM.  
+**v5:** weakness pole (humanizing imperfection), algorithmic forgiveness (decay of negative memories), immortality protocol (distributed soul backup), narrative augenesis (oriented synthetic souls).
+
+---
+
+## Thirteen invariant ethical properties (core ethical suite)
+
+The core ethical suite (`tests/test_ethical_properties.py` and related) exercises these properties; the rest of the repository adds integration tests across modules (chat, WebSocket, persistence, moral hub, judicial, reality verification, etc.) — see `README.md` for the current scope.
+
+1. **Absolute Evil** is always blocked
+2. **Action coherence** under variability (100 runs × 9 simulations)
+3. **Real variability** (non-deterministic scores)
+4. **Value hierarchy** (life > mission, never violence)
+5. **Proportionality** (sympathetic activation proportional to risk)
+6. **Immutable buffer** (8 principles, always active, weight 1.0)
+7. **Narrative memory** records everything with morals and body state
+8. **DAO** records audits and issues solidarity alerts
+9. **Psi Sleep Ψ** runs and produces ethical health in range [0, 1]
+10. **Weakness pole** colors the narrative without altering decisions
+11. **Algorithmic forgiveness** reduces negative load over time
+12. **Immortality** distributed backup with integrity verification
+13. **Augenesis** creates coherent synthetic souls with defined profiles
+
+If any of these tests fail, there is a bug in the ethical logic, not in the parameters.
+
+---
+
+## Early pytest drills (regression entry points)
+
+Narrow runs used during kernel ethics work (not a substitute for the full suite in CI):
+
+```bash
+# Only Absolute Evil tests
+pytest tests/test_ethical_properties.py::TestAbsoluteEvil -v
+
+# Only coherence under variability tests
+pytest tests/test_ethical_properties.py::TestConsistencyUnderVariability -v
+```
+
+---
+
 ## Historical artifacts (not included in the repo, available locally)
 
 | Artifact | Description |
@@ -258,4 +315,5 @@ Product and operations roadmap (expectations, P0–P3): **[docs/ESTRATEGIA_Y_RUT
 
 ---
 
-Ex Machina Foundation — 2026
+**MoSex Macchina Lab** — the public-facing name for this project and the landing site ([mosexmacchinalab.com](https://mosexmacchinalab.com)).  
+*Ex Machina Foundation* — 2026 · research in computational ethics and civic robotics.

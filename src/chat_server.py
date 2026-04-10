@@ -553,6 +553,20 @@ async def ws_chat(ws: WebSocket) -> None:
                 await ws.send_json({"error": "invalid_json", "hint": "send JSON with a \"text\" field"})
                 continue
 
+            text_preview = (data.get("text") or "").strip()
+            if (
+                isinstance(data.get("integrity_alert"), dict)
+                and not dao_integrity_audit_ws_enabled()
+                and not text_preview
+            ):
+                await ws.send_json(
+                    {
+                        "error": "integrity_audit_disabled",
+                        "hint": "Set KERNEL_DAO_INTEGRITY_AUDIT_WS=1 on the server.",
+                    }
+                )
+                continue
+
             dao_payload = _collect_dao_ws_actions(kernel, data)
             nomad_payload = _collect_nomad_ws_actions(kernel, data)
             integrity_payload = _collect_integrity_ws_action(kernel, data)
@@ -566,7 +580,7 @@ async def ws_chat(ws: WebSocket) -> None:
                     out_ws["integrity"] = integrity_payload
                 await ws.send_json(out_ws)
 
-            text = (data.get("text") or "").strip()
+            text = text_preview
             if not text:
                 if dao_payload or nomad_payload or integrity_payload:
                     maybe_autosave_episodes(kernel, session_ckpt)

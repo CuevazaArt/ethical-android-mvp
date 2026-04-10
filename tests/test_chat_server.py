@@ -217,6 +217,22 @@ def test_websocket_integrity_alert_records_hub_audit(monkeypatch):
         assert data["integrity"]["integrity_alert"].get("scope") == "integration"
 
 
+def test_websocket_integrity_alert_disabled_returns_clear_error(monkeypatch):
+    monkeypatch.delenv("KERNEL_DAO_INTEGRITY_AUDIT_WS", raising=False)
+    with client.websocket_connect("/ws/chat") as ws:
+        ws.send_json(
+            {
+                "integrity_alert": {
+                    "summary": "Only integrity, no text",
+                    "scope": "mobile_client",
+                }
+            }
+        )
+        data = ws.receive_json()
+    assert data.get("error") == "integrity_audit_disabled"
+    assert "KERNEL_DAO_INTEGRITY_AUDIT_WS" in (data.get("hint") or "")
+
+
 def test_websocket_reality_verification_lighthouse(monkeypatch):
     from src.modules.reality_verification import clear_lighthouse_cache
 

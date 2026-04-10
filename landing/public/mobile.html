@@ -77,6 +77,8 @@
     .bubble.user { background: var(--user); margin-left: 1.5rem; border-bottom-right-radius: 4px; }
     .bubble.bot { background: var(--bot); margin-right: 1.5rem; border-bottom-left-radius: 4px; }
     .bubble.sys { background: var(--surface); border: 1px solid var(--border); font-size: 0.8rem; color: var(--muted); margin-right: 2rem; }
+    .bubble.integ { background: #2a2418; border: 1px solid #6b5a2a; margin-right: 1.25rem; font-size: 0.9rem; }
+    .bubble.integ strong { color: #e6c35c; }
     .bubble pre { margin: 0.4rem 0 0; font-size: 0.72rem; overflow-x: auto; white-space: pre-wrap; color: var(--muted); }
 
     .composer {
@@ -125,6 +127,18 @@
   </div>
 
   <div id="thread" aria-live="polite"></div>
+
+  <div class="panel" style="margin-bottom:0.5rem">
+    <label for="integritySummary">Alerta de integridad DAO (ledger local)</label>
+    <input type="text" id="integritySummary" placeholder="Resumen auditable (ej. sospecha de calibración corrupta)" autocomplete="off" disabled />
+    <div class="row" style="margin-top:0.5rem">
+      <button type="button" id="btnIntegrity" class="secondary" disabled>Registrar en ledger</button>
+    </div>
+    <p class="hint" style="margin-top:0.45rem;margin-bottom:0">
+      En el PC: <code>KERNEL_DAO_INTEGRITY_AUDIT_WS=1</code>. Sin eso el servidor ignora el mensaje. Ver
+      <code>PROPUESTA_DAO_ALERTAS_Y_TRANSPARENCIA.md</code>.
+    </p>
+  </div>
 
   <div class="composer">
     <label for="msg">Mensaje</label>
@@ -227,6 +241,8 @@
         document.getElementById("btnConnect").disabled = false;
         document.getElementById("btnDisconnect").disabled = true;
         document.getElementById("btnSend").disabled = true;
+        document.getElementById("btnIntegrity").disabled = true;
+        document.getElementById("integritySummary").disabled = true;
         setStatus("", "Desconectado");
       }
 
@@ -250,6 +266,8 @@
           setStatus("ok", "Conectado");
           document.getElementById("btnDisconnect").disabled = false;
           document.getElementById("btnSend").disabled = false;
+          document.getElementById("btnIntegrity").disabled = false;
+          document.getElementById("integritySummary").disabled = false;
           addSys("WebSocket abierto: " + u);
         };
         ws.onclose = function () {
@@ -266,6 +284,33 @@
             var data = JSON.parse(ev.data);
             if (rawJson.checked) {
               addBubble("bot", "<strong>Respuesta (JSON)</strong><pre>" + escapeHtml(JSON.stringify(data, null, 2)) + "</pre>");
+              return;
+            }
+            if (data.error === "integrity_audit_disabled") {
+              addBubble(
+                "sys",
+                "Integridad desactivada en el servidor. " +
+                  escapeHtml(data.hint || "KERNEL_DAO_INTEGRITY_AUDIT_WS=1")
+              );
+              return;
+            }
+            if (data.integrity && data.integrity.integrity_alert) {
+              var ia = data.integrity.integrity_alert;
+              if (ia.ok) {
+                addBubble(
+                  "integ",
+                  "<strong>Ledger DAO</strong><br/>" +
+                    "Línea <code>HubAudit:dao_integrity</code> registrada · alcance: " +
+                    escapeHtml(ia.scope || "local_audit")
+                );
+              } else {
+                addBubble(
+                  "sys",
+                  "Integridad: no registrado — " +
+                    escapeHtml(ia.error || "error") +
+                    ". ¿Activaste <code>KERNEL_DAO_INTEGRITY_AUDIT_WS=1</code> en el servidor?"
+                );
+              }
               return;
             }
             var parts = [];
@@ -298,6 +343,25 @@
           include_narrative: false
         }));
         msgEl.value = "";
+      };
+
+      document.getElementById("btnIntegrity").onclick = function () {
+        if (!ws || ws.readyState !== WebSocket.OPEN) return;
+        var s = document.getElementById("integritySummary").value.trim();
+        if (!s) {
+          addSys("Escribe un resumen para la alerta de integridad.");
+          return;
+        }
+        addBubble("user", "🔒 integrity_alert: " + escapeHtml(s));
+        ws.send(
+          JSON.stringify({
+            integrity_alert: {
+              summary: s,
+              scope: "mobile_client"
+            }
+          })
+        );
+        document.getElementById("integritySummary").value = "";
       };
 
       msgEl.addEventListener("keydown", function (e) {
