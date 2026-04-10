@@ -80,6 +80,7 @@ El “yo” no está atado a un solo dispositivo.
 | [PROPUESTA_ROBUSTEZ_V6_PLUS.md](PROPUESTA_ROBUSTEZ_V6_PLUS.md) | Pilares de robustez, MalAbs, privacidad |
 | [RUNTIME_PERSISTENTE.md](../RUNTIME_PERSISTENTE.md) | Snapshots, checkpoints, cifrado futuro |
 | [THEORY_AND_IMPLEMENTATION.md](../THEORY_AND_IMPLEMENTATION.md) | Pipeline matemático ↔ código |
+| [PROPUESTA_VITALIDAD_SACRIFICIO_Y_FIN.md](PROPUESTA_VITALIDAD_SACRIFICIO_Y_FIN.md) | Sacrificio vs persistencia, desactivación graciosa, legado, tabla sensor→ética, ActionClocks, antispoof |
 
 ---
 
