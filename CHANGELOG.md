@@ -2,6 +2,11 @@
 
 All notable changes to this project are summarized here. For narrative context and design rationale, see [`HISTORY.md`](HISTORY.md).
 
+## Issue 1 (P0): honest “Bayesian” semantics — April 2026
+- **`src/modules/bayesian_engine.py`:** module, class, and method docstrings state **fixed weighted mixture** over three hypotheses; **no** posterior updating; **heuristic** uncertainty (not the theoretical integral).
+- **`docs/THEORY_AND_IMPLEMENTATION.md`:** semantic note under MalAbs optimization; § uncertainty aligned with heuristic `I(x)`.
+- **README** tagline, **`src/kernel.py`** / **`src/main.py`** comments, **`sigmoid_will`** param doc: narrative matches implementation; class names `BayesianEngine` / `BayesianResult` unchanged for API stability.
+
 ## Critique roadmap & maturation disclaimer — April 2026
 - **[`docs/CRITIQUE_ROADMAP_ISSUES.md`](docs/CRITIQUE_ROADMAP_ISSUES.md):** disclaimer + **seven consolidated** GitHub-ready issues (two external reviews; **merged** duplicate themes: chat jailbreak + **perception GIGO** → single P0 **input trust**; poles + **weakness/HCI**; MockDAO exit + **L0 vs governance**). Adds **pip core spike**, optional classifier note.
 - **Landing [roadmap](https://mosexmacchinalab.com/roadmap):** “Maturation & critique track” bullets aligned with the consolidated doc.

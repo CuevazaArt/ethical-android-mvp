@@ -1,10 +1,21 @@
 """
-Bayesian Engine for Ethical Evaluation.
+Impact scoring for ethical evaluation (historical module name: ``BayesianEngine``).
 
-x* = argmax E[EthicalImpact(x|θ)] subject to AbsoluteEvil(x) = false
+**What the code actually does:** a **fixed discrete mixture** over three stylized
+ethical viewpoints (utilitarian / deontological / virtue). For each action,
+valuations are linear transforms of ``estimated_impact``; the score is
+``dot(hypothesis_weights, valuations) * confidence``. There is **no** Bayesian
+update step: no likelihood, no data-dependent posterior over parameters, and
+``hypothesis_weights`` are constant.
 
-Calculates the expected ethical impact of each candidate action,
-measures uncertainty, and selects the optimal one.
+**Design intent:** approximate the abstract objective
+``argmax E[impact | θ]`` subject to MalAbs, with a small, auditable discrete
+model. The theoretical ``I(x)`` in docs is implemented as a **heuristic**
+(variance across the three valuations + confidence penalty), not a full
+epistemic integral.
+
+**API:** Class names ``BayesianEngine`` / ``BayesianResult`` are unchanged for
+stability across the codebase; semantics are as above.
 """
 
 import numpy as np
@@ -30,7 +41,7 @@ class CandidateAction:
 
 @dataclass
 class BayesianResult:
-    """Result of the Bayesian evaluation."""
+    """Result of weighted-mixture impact evaluation (see module docstring)."""
     chosen_action: CandidateAction
     expected_impact: float
     uncertainty: float
@@ -41,17 +52,15 @@ class BayesianResult:
 
 class BayesianEngine:
     """
-    Bayesian core for ethical evaluation.
+    Fixed **weighted mixture** scorer over three ethical hypotheses (constant
+    weights ``hypothesis_weights``). Not a Bayesian belief updater.
 
-    Evaluates candidate actions using Bayesian expectation:
-    E[EthicalImpact(x|θ)] = Σ P(θ|D) * EthicalImpact(x|θ)
+    ``calculate_expected_impact`` is a convex combination of three linear
+    valuations of the same ``estimated_impact``; ``calculate_uncertainty`` is a
+    bounded heuristic for deliberation mode (see docstrings).
 
-    In the MVP, we simplify with discrete distributions over
-    a finite set of ethical hypotheses.
-
-    Supports Bayesian variability: controlled noise that makes
-    scores vary between executions without changing the chosen
-    action in most cases.
+    Optional ``variability`` perturbs inputs for naturalness; it does not
+    implement posterior inference.
     """
 
     def __init__(self, pruning_threshold: float = 0.3, gray_zone_threshold: float = 0.15,
@@ -59,15 +68,13 @@ class BayesianEngine:
         self.pruning_threshold = pruning_threshold
         self.gray_zone_threshold = gray_zone_threshold
         self.variability = variability
-        # Priors over "ethical hypotheses" (simplified for MVP)
+        # Fixed mixture weights (never updated from data in this implementation)
         self.hypothesis_weights = np.array([0.4, 0.35, 0.25])
 
     def calculate_expected_impact(self, action: CandidateAction) -> float:
         """
-        Calculates E[EthicalImpact(x|θ)] as Bayesian expectation.
-
-        With active variability, perturbs impact and confidence
-        to produce slightly different results each time.
+        Weighted average of three stylized valuations of ``estimated_impact``,
+        scaled by ``confidence``. Not a posterior expectation.
         """
         base = action.estimated_impact
         confidence = action.confidence
@@ -83,7 +90,7 @@ class BayesianEngine:
             base * 0.9 + 0.05,    # Virtue: bias toward character
         ])
 
-        # Bayesian expectation
+        # Fixed mixture weights × valuations
         expected = float(np.dot(self.hypothesis_weights, valuations))
 
         # Adjust for confidence: lower confidence reduces expected impact
@@ -91,10 +98,9 @@ class BayesianEngine:
 
     def calculate_uncertainty(self, action: CandidateAction) -> float:
         """
-        Calculates I(x) = ∫(1 - P(correct|θ)) · P(θ|D) dθ
-
-        Uncertainty as expectation over the posterior distribution.
-        Higher uncertainty → more deliberation needed.
+        Heuristic uncertainty in ``[0, 1]``: spread of the three hypothesis
+        valuations plus a confidence penalty. **Not** ``∫(1-P(correct|θ))P(θ|D)``;
+        used only to nudge gray-zone / deliberation modes in ``SigmoidWill``.
         """
         base = action.estimated_impact
         valuations = np.array([base * 1.0, base * 0.8 + 0.1, base * 0.9 + 0.05])
@@ -132,15 +138,10 @@ class BayesianEngine:
 
     def evaluate(self, actions: List[CandidateAction]) -> BayesianResult:
         """
-        Complete Bayesian evaluation.
-
-        1. Prune actions with low expectation
-        2. Calculate expected impact and uncertainty for each viable action
-        3. Select the optimal one
-        4. Determine decision mode
+        Prune, score with ``calculate_expected_impact``, pick argmax, set mode.
 
         Returns:
-            BayesianResult with the chosen action and metadata
+            `BayesianResult` with chosen action and metadata.
         """
         if not actions:
             raise ValueError("At least one candidate action is required")

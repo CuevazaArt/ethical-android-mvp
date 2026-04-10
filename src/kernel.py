@@ -255,7 +255,7 @@ class EthicalKernel:
         # ═══ STEP 5: Activate buffer according to context ═══
         principles = self.buffer.activate(context)
 
-        # ═══ STEP 6: Bayesian evaluation (adjusted by locus) ═══
+        # ═══ STEP 6: Impact scoring — fixed mixture (BayesianEngine; adjusted by locus) ═══
         bayes_result = self.bayesian.evaluate(clean_actions)
 
         # ═══ STEP 7: Multipolar evaluation ═══

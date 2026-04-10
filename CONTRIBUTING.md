@@ -16,7 +16,7 @@ The modules are in `src/modules/`. Each one is independent:
 |--------|--------|-------|
 | `absolute_evil.py` | ✅ Functional | More AbsoluteEvil categories |
 | `buffer.py` | ✅ Functional | Additional protocols |
-| `bayesian_engine.py` | ✅ Functional | More sophisticated distributions |
+| `bayesian_engine.py` | ✅ Functional | Optional scoped Bayesian update or calibrated mixture (honest naming first — see CHANGELOG) |
 | `ethical_poles.py` | ✅ Functional | Expanded poles (creative, conciliatory) |
 | `sigmoid_will.py` | ✅ Functional | Empirical calibration |
 | `sympathetic.py` | ✅ Functional | State hysteresis |

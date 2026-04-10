@@ -25,7 +25,7 @@ def banner():
   Active modules:
     ✓ Absolute Evil (hardened ethical fuse)
     ✓ Preloaded Buffer (ethical constitution)
-    ✓ Bayesian Engine (impact evaluation)
+    ✓ Impact evaluation (weighted mixture; BayesianEngine)
     ✓ Ethical Poles (dynamic multipolar arbitration)
     ✓ Sigmoid Will (decision function)
     ✓ Sympathetic-Parasympathetic (body regulator)

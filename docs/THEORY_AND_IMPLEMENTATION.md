@@ -91,10 +91,12 @@ W(x)=\frac{1}{1+e^{-k(x-x_0)}}+\lambda \cdot I(x)
 x^\*=\arg\max \mathbb{E}[\text{ImpactoÉtico}(x\mid\theta)]\quad\text{s.t.}\quad \text{MalAbs}(x)=\text{falso}
 \]
 
+**Semantic note (code honesty):** The class `BayesianEngine` keeps its historical name for API stability. The implementation is a **fixed convex combination** of three stylized ethical valuations (utilitarian / deontological / virtue) with constant weights `hypothesis_weights`. There is **no Bayesian updating** (no likelihood, no data-dependent posterior over \(\theta\)). The formula above is the **design target**; the running code is a **discrete mixture** over three hypotheses, not full inference.
+
 **Implementation**
 
 - **Constraint** — Before `BayesianEngine.evaluate`, every `CandidateAction` passes `AbsoluteEvilDetector.evaluate` (`src/modules/absolute_evil.py`). Blocked actions never enter the argmax set.
-- **Objective** — `BayesianEngine.evaluate` sorts viable actions by `calculate_expected_impact` and picks the maximum (`src/modules/bayesian_engine.py`).
+- **Objective** — `BayesianEngine.evaluate` sorts viable actions by `calculate_expected_impact` (weighted mixture of three linear valuations) and picks the maximum (`src/modules/bayesian_engine.py`).
 
 ### 3. Uncertainty \(I(x)\)
 
@@ -104,9 +106,9 @@ x^\*=\arg\max \mathbb{E}[\text{ImpactoÉtico}(x\mid\theta)]\quad\text{s.t.}\quad
 I(x)=\int (1-P(\text{correct}\mid\theta))\cdot P(\theta\mid D)\,d\theta
 \]
 
-**Implementation** — `BayesianEngine.calculate_uncertainty`: discrete hypothesis valuations + variance + confidence penalty (MVP discretization of the integral). Fed into `SigmoidWill` and gray-zone / deliberation heuristics.
+**Implementation** — `BayesianEngine.calculate_uncertainty`: **heuristic** in \([0,1]\) from the spread of the three hypothesis valuations plus a confidence penalty. It is **not** a Monte Carlo or closed-form evaluation of the integral above; it feeds `SigmoidWill` and gray-zone / deliberation heuristics only.
 
-**MVP note:** Full Bayesian integration over a continuous parameter space is not implemented; the structure (expectation over competing “hypotheses”) is explicit in code and weights `hypothesis_weights`.
+**MVP note:** Full Bayesian integration over a continuous parameter space is not implemented. The discrete mixture structure and fixed weights `hypothesis_weights` are explicit in code; treat “uncertainty” as an engineering signal, not a calibrated posterior quantity.
 
 ### 4. Multipolar arbitration
 
