@@ -1,177 +1,182 @@
-# Critique follow-up: disclaimer & GitHub issue backlog
+# Critique roadmap: consolidated GitHub issue backlog
 
-This document records an **external technical critique** (April 2026) and turns it into **ordered work items**. It complements [ESTRATEGIA_Y_RUTA.md](ESTRATEGIA_Y_RUTA.md) and the public [roadmap](https://mosexmacchinalab.com/roadmap).
+Synthesizes **two independent external reviews** (April 2026). **Redundant themes are merged** (e.g. substring jailbreaks *and* “LLM perception garbage-in” → one **input-trust** epic). Unique insights from the second review are folded in: **perception path risk**, **HCI / weakness pole**, **L0 vs DAO politics**, **pip-installable core**.
 
----
-
-## Disclaimer (read this first)
-
-**Ethos Kernel is maturing.** The repository already ships a serious invariant-tested decision pipeline, runtime, persistence, and governance **mocks** — but several **names and narratives** run ahead of the current numeric core (e.g. “Bayesian” as a weighted mixture, DAO as in-memory mock). **We are deliberately building infrastructure first:** runtime profiles, audit trails, hub/DAO scaffolding, optional encryption, LAN clients — so that **calibrated weights**, **stronger safety boundaries**, and **paths toward real governance** can land without rewriting the world every month.
-
-Nothing here promises a finished moral philosophy or on-chain democracy tomorrow. It **does** commit to **honest labeling**, **testable claims**, and a **published backlog** (below) you can track on GitHub Issues.
+Complements [ESTRATEGIA_Y_RUTA.md](ESTRATEGIA_Y_RUTA.md) and the public [roadmap](https://mosexmacchinalab.com/roadmap).
 
 ---
 
-## How to create the issues
+## Disclaimer
 
-`gh` may not be installed locally. For each block below, use **New issue** on  
+**Ethos Kernel is maturing:** runtime, audit trails, hub/DAO scaffolding, and tests land first so **honest naming**, **calibrated weights**, and **governance experiments** can grow without perpetual rewrites. Names and mocks may run ahead of the numeric core — that gap is tracked here, not hidden.
+
+---
+
+## How to create issues
+
+Paste each block into **New issue** at  
 `https://github.com/CuevazaArt/ethical-android-mvp/issues`  
-and paste **Title** and **Body**. Suggested labels: `enhancement`, `documentation`, `security`, `research` (create if missing).
+Suggested labels: `enhancement`, `documentation`, `security`, `research`.
 
-Issues are ordered by **impact** (honesty & safety first, then evidence, then structure & governance narrative).
+**Order = impact** (P0 honesty & safety → P1 evidence & structure → P2 product/governance → P3 ops).
 
 ---
 
-### Issue 1 — P0 · Terminology: Bayesian engine vs weighted mixture
+### Issue 1 — P0 · Honest naming: “Bayesian” vs weighted mixture
 
-**Title:** `docs+core: align "Bayesian" naming with implementation (or implement minimal Bayes)`
+**Title:** `docs+core: align "Bayesian" naming with implementation (or minimal Bayes)`
 
 **Body:**
 
 ```markdown
 ## Context
-The critique notes that `BayesianEngine` uses fixed `hypothesis_weights` and linear valuations — a weighted mixture, not full posterior updating. The docstrings/formulas suggest more than the code delivers.
+`BayesianEngine` uses fixed `hypothesis_weights` and linear valuations — a weighted mixture, not full posterior updating. Docstrings may over-claim.
 
 ## Goal
-- Either **rename** the public API / docs to match behavior (e.g. weighted ethical scoring under a fixed mixture), **or**
-- Implement a **minimal, documented** Bayesian update on a tiny state (e.g. confidence/impact priors) with tests — scoped so it does not explode complexity.
+Rename public narrative / docs to match behavior, **or** add a minimal, tested Bayesian update on a tiny state (scoped).
 
 ## Acceptance
-- [ ] `THEORY_AND_IMPLEMENTATION.md` + `bayesian_engine.py` header describe the same object without over-claiming.
-- [ ] CHANGELOG entry.
-- [ ] Tests unchanged or extended for any new semantics.
+- [ ] `THEORY_AND_IMPLEMENTATION.md` + `bayesian_engine.py` agree on semantics.
+- [ ] CHANGELOG; tests extended only if semantics change.
 ```
 
 ---
 
-### Issue 2 — P0 · Safety: harden `evaluate_chat_text` (jailbreak / weapon strings)
+### Issue 2 — P0 · Input trust: MalAbs gates on chat **and** perception (GIGO)
 
-**Title:** `security: strengthen chat-text gate beyond substring lists`
+**Title:** `security: defense-in-depth for LLM-derived inputs (chat + perception JSON)`
+
+**Body:**
+
+```markdown
+## Context (merged critiques)
+- **Chat:** `evaluate_chat_text` uses static substring lists — easy to bypass with paraphrase/encoding.
+- **Perception:** `llm_layer` maps text → numeric signals / context. If the LLM misclassifies or is prompt-injected, the **kernel** can be “correct” relative to **bad inputs** (garbage-in, garbage-out).
+
+## Goal
+Single threat-model doc + implementation plan:
+- Harden chat gate: normalization, expanded tests, evasion cases.
+- **Perception path:** validation bounds, inconsistency checks, injection tests on `process_natural` / perception JSON; optional **lightweight intent or safety classifier** (local SLM) *only* for classification — not for ethical verdict.
+- README/SECURITY: heuristic bounds, not crypto guarantees.
+
+## Acceptance
+- [ ] Regression tests for chat **and** perception adversarial cases.
+- [ ] Documented limits; no implied “unbreakable” MalAbs.
+```
+
+---
+
+### Issue 3 — P1 · Empirical pilot (human agreement)
+
+**Title:** `research: pilot labeled scenarios / agreement metrics`
 
 **Body:**
 
 ```markdown
 ## Context
-`evaluate_chat_text` relies on fixed phrase lists; trivial paraphrases can bypass.
+Invariant tests prove internal consistency, not external moral truth.
 
 ## Goal
-Defense in depth: normalization, expanded coverage, optional lightweight classifier or local model path — with tests for evasion patterns. Document threat model: heuristic MalAbs gate, not cryptographic security.
+Small reproducible scenario set + methodology; compare kernel vs baselines. Explicitly **not** product certification.
 
 ## Acceptance
-- [ ] Regression tests for paraphrases / edge cases.
-- [ ] README/SECURITY note on limits.
+- [ ] Script + doc under `docs/` or `tests/fixtures/`.
 ```
 
 ---
 
-### Issue 3 — P1 · Evidence: pilot empirical validation (human agreement)
+### Issue 4 — P1 · Core path documentation + packaging spike
 
-**Title:** `research: pilot benchmark / human-labeled scenarios for kernel decisions`
+**Title:** `architecture: document core decision chain + optional pip-installable core package`
 
 **Body:**
 
 ```markdown
 ## Context
-Invariant tests check internal consistency, not alignment with external moral ground truth.
+Reviewers cannot see the effective core inside advisory/telemetry volume. Second review suggests shipping **MalAbs + scoring + poles + will** as a thin installable library.
 
 ## Goal
-Small, ethical review–friendly dataset of scenarios + inter-rater or expert labels; compare kernel vs baselines. Publish methodology limits (no "objective morality" claim).
+- One diagram + table: MalAbs → scoring → poles → will → action; mark modules that cannot change `final_action`.
+- **Spike:** boundary for `pip`-installable **core** vs optional “theater” (weakness, PAD, DAO mock) — even if first iteration is docs-only + stub `pyproject` layout.
 
 ## Acceptance
-- [ ] Reproducible script + doc under `docs/` or `tests/fixtures/`.
-- [ ] Clear scope: exploratory, not product certification.
+- [ ] README/THEORY links; cross-ref RUNTIME_CONTRACT.
+- [ ] Issue or ADR for packaging follow-up.
 ```
 
 ---
 
-### Issue 4 — P1 · Architecture: document & package "core path" vs advisory layers
+### Issue 5 — P2 · Heuristic ethics & HCI: poles, weakness, PAD
 
-**Title:** `docs: single "core decision path" map vs advisory/telemetry modules`
+**Title:** `product+docs: poles as explicit heuristics; weakness/PAD vs operational trust`
 
 **Body:**
 
 ```markdown
 ## Context
-Many modules are tone-only or post-decision; reviewers struggle to see the ~effective core.
+- Poles use linear weights with philosophical labels — honesty required.
+- **Weakness pole / PAD** add narrative “humanizing” discomfort; second review flags **HCI risk** in safety-critical domains (medicine, autonomy): simulated neurosis can **reduce** operational trust.
 
 ## Goal
-One diagram + table in README or THEORY: MalAbs → scoring → poles → will → action; list modules that cannot change `final_action` unless contract says otherwise.
+- Document poles as **heuristics** or calibration roadmap (no fake precision).
+- Define **profiles or modes** (e.g. demo vs critical): when narrative vulnerability is off or toned down; link to runtime profiles.
 
 ## Acceptance
-- [ ] Linked from README.
-- [ ] Cross-links to RUNTIME_CONTRACT advisory rules.
+- [ ] THEORY or PROPUESTA subsection; no mandatory code change if docs + profile matrix suffice first.
 ```
 
 ---
 
-### Issue 5 — P2 · Calibration: ethical poles as named linear weights
+### Issue 6 — P2 · Governance narrative: MockDAO exit + L0 constitution
 
-**Title:** `design: justify or calibrate pole linear weights (or relabel as heuristics)`
+**Title:** `governance: exit criteria from mock + honest framing of immutable L0`
 
 **Body:**
 
 ```markdown
 ## Context
-Poles apply fixed linear transforms; philosophical labels exceed the mechanism.
+- MockDAO is in-memory; audit narrative ≠ distributed consensus.
+- **PreloadedBuffer (L0)** is immutable in code — “dictatorship of the repo” is a real political tension vs DAO rhetoric.
 
 ## Goal
-Document as heuristics OR define a calibration roadmap (expert labels, sensitivity analysis). No fake precision.
+- Checklist for any move beyond mock (legal, identity, serialization) — link `/blockchain-dao`.
+- Short doc section: L0 as **explicit non-negotiable constitution** in-process; how community governance (drafts, votes) relates **without** silently rewriting MalAbs in runtime.
 
 ## Acceptance
-- [ ] PROPUESTA or THEORY subsection + optional issue split for data collection.
+- [ ] Single doc section; aligns with PROPUESTA / UNIVERSAL_ETHOS.
 ```
 
 ---
 
-### Issue 6 — P2 · Governance: mock DAO → criteria for "beyond mock"
+### Issue 7 — P3 · Consolidate `KERNEL_*` via profiles + policy
 
-**Title:** `governance: document exit criteria from MockDAO to external / testnet experiments`
+**Title:** `ops: reduce env combinatorics — profiles, deprecation, unsupported combos`
 
 **Body:**
 
 ```markdown
 ## Context
-MockDAO is in-memory; useful for audit narrative, not distributed consensus.
+Feature-flag sprawl matches “laboratory of ideas” more than a maintainable operator surface.
 
 ## Goal
-Threat model + legal/partner gates + technical criteria (serialization, identity) **before** any chain talk. Link blockchain-dao page.
+Expand `runtime_profiles.py`, document unsupported combinations, optional deprecation path for redundant flags.
 
 ## Acceptance
-- [ ] Single doc section + checklist; no code promise.
+- [ ] ESTRATEGIA updated; CI green.
 ```
 
 ---
 
-### Issue 7 — P3 · Operations: reduce `KERNEL_*` combinatorial debt
+## Tracking table
 
-**Title:** `ops: consolidate KERNEL_* surface via profiles + deprecation policy`
+Fill in GitHub issue numbers after creation:
 
-**Body:**
-
-```markdown
-## Context
-Many env flags; risk of unsupported combinations.
-
-## Goal
-Expand `runtime_profiles.py` coverage, document unsupported combos, optional deprecation path for redundant flags.
-
-## Acceptance
-- [ ] ESTRATEGIA table updated.
-- [ ] CI still green.
-```
-
----
-
-## Tracking
-
-After creating issues on GitHub, add **this table** (issue numbers are filled in manually):
-
-| Order | Title (short) | GitHub issue |
-|-------|----------------|--------------|
-| 1 | Bayesian / naming | # |
-| 2 | Chat-text safety | # |
-| 3 | Empirical pilot | # |
-| 4 | Core vs advisory docs | # |
-| 5 | Poles calibration | # |
-| 6 | DAO exit criteria | # |
-| 7 | KERNEL_* consolidation | # |
+| # | Short title | Issue |
+|---|-------------|-------|
+| 1 | Bayesian naming | |
+| 2 | Input trust (chat + perception) | |
+| 3 | Empirical pilot | |
+| 4 | Core doc + pip spike | |
+| 5 | Poles + weakness HCI | |
+| 6 | Governance mock + L0 | |
+| 7 | KERNEL_* consolidation | |

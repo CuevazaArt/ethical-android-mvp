@@ -3,8 +3,8 @@
 All notable changes to this project are summarized here. For narrative context and design rationale, see [`HISTORY.md`](HISTORY.md).
 
 ## Critique roadmap & maturation disclaimer — April 2026
-- **[`docs/CRITIQUE_ROADMAP_ISSUES.md`](docs/CRITIQUE_ROADMAP_ISSUES.md):** disclaimer (infrastructure maturing toward honest naming, calibrated weights, governance path) + **seven GitHub-ready issue bodies** (P0–P3) ordered by impact: Bayesian/naming, chat-text safety, empirical pilot, core-vs-advisory docs, poles calibration, DAO exit criteria, `KERNEL_*` consolidation.
-- **Landing [roadmap](https://mosexmacchinalab.com/roadmap):** new “Maturation & critique track” section with the same priorities and link to the doc.
+- **[`docs/CRITIQUE_ROADMAP_ISSUES.md`](docs/CRITIQUE_ROADMAP_ISSUES.md):** disclaimer + **seven consolidated** GitHub-ready issues (two external reviews; **merged** duplicate themes: chat jailbreak + **perception GIGO** → single P0 **input trust**; poles + **weakness/HCI**; MockDAO exit + **L0 vs governance**). Adds **pip core spike**, optional classifier note.
+- **Landing [roadmap](https://mosexmacchinalab.com/roadmap):** “Maturation & critique track” bullets aligned with the consolidated doc.
 - **[`docs/ESTRATEGIA_Y_RUTA.md`](docs/ESTRATEGIA_Y_RUTA.md):** cross-reference to the critique backlog.
 
 ## Docs: Ollama-first LLM + API hardening — April 2026

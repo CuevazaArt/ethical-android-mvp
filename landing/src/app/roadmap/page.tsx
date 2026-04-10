@@ -11,13 +11,13 @@ const CRITIQUE_DOC = `${REPO}/blob/main/docs/CRITIQUE_ROADMAP_ISSUES.md`;
 const ISSUES = `${REPO}/issues`;
 
 const CRITIQUE_TRACK = [
-  "P0 — Honest naming: align “Bayesian” claims with the numeric core (or rename); update THEORY + `bayesian_engine` docs.",
-  "P0 — Chat safety: harden `evaluate_chat_text` beyond substring lists; document threat model.",
-  "P1 — Evidence: pilot human-labeled scenarios / agreement metrics (exploratory, not certification).",
-  "P1 — Architecture: publish a single core decision path vs advisory/telemetry modules.",
-  "P2 — Poles: calibration roadmap or explicit “heuristic weights” labeling.",
-  "P2 — Governance: documented exit criteria from MockDAO toward external or testnet experiments (partner/legal gates).",
-  "P3 — Operations: consolidate `KERNEL_*` via runtime profiles + deprecation policy.",
+  "P0 — Honest naming: “Bayesian” vs weighted mixture; THEORY + `bayesian_engine` aligned.",
+  "P0 — Input trust (merged): MalAbs on chat **and** LLM perception JSON (GIGO); hardening + optional local classifier; one threat-model doc.",
+  "P1 — Empirical pilot: labeled scenarios / agreement methodology (not certification).",
+  "P1 — Core path map + pip-installable **core** spike (MalAbs→will vs narrative theater).",
+  "P2 — Heuristic ethics & HCI: poles honesty; weakness/PAD vs operational trust in critical profiles.",
+  "P2 — Governance: MockDAO exit criteria + **L0 immutable buffer** vs community drafts (honest politics).",
+  "P3 — `KERNEL_*` consolidation via profiles + deprecation policy.",
 ] as const;
 
 export const metadata: Metadata = {
@@ -37,7 +37,7 @@ const CURRENT = [
 ] as const;
 
 const NEAR_TERM = [
-  "Maturation track (P0–P3): see “Maturation & critique track” above and docs/CRITIQUE_ROADMAP_ISSUES.md in the repo — honest numeric naming, stronger chat-text gate, empirical pilot, core-vs-advisory map.",
+  "Maturation track (P0–P3): see “Maturation & critique track” above and docs/CRITIQUE_ROADMAP_ISSUES.md — consolidated backlog (perception + chat input trust, pip core spike, HCI/weakness, L0 vs DAO).",
   "Richer test matrix: edge cases, adversarial prompts against the LLM boundary, regression suite for domain additions.",
   "Reference “sensor → signals” adapters (documented stubs or one hardware-agnostic demo path) without claiming product certification.",
   "Conversation/session state design: multi-turn loops that keep the kernel authoritative over policy.",
@@ -147,7 +147,7 @@ export default function RoadmapPage() {
         <section className="mt-10 border-t border-white/[0.08] pt-10">
           <h2 className="text-lg font-semibold text-white">Maturation &amp; critique track</h2>
           <p className="mt-2 text-sm text-zinc-500">
-            Ordered by impact after an external technical review (April 2026). Full issue bodies to paste into{" "}
+            Seven consolidated items (two independent reviews; duplicates merged). Full issue bodies to paste into{" "}
             <a
               href={CRITIQUE_DOC}
               className="text-violet-400/90 underline decoration-violet-400/30 underline-offset-4 hover:decoration-violet-400/60"

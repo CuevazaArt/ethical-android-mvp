@@ -78,7 +78,7 @@ Los nombres y variables viven en código: **`src/runtime_profiles.py`**. Resumen
 
 ## 5. Backlog público (crítica técnica → issues)
 
-Tras una revisión externa (abril 2026), el proyecto publica un **deslinde honesto** y **siete ítems** priorizados por impacto (honestidad ontológica del motor numérico, seguridad del canal texto, evidencia empírica, mapa núcleo vs advisory, calibración de polos, criterios de salida del mock DAO, consolidación de flags). Contenido listo para pegar como *GitHub Issues*:
+Tras **dos** revisiones externas independientes (abril 2026), el proyecto publica un **deslinde honesto** y **siete ítems consolidados** (temas redundantes fusionados: p. ej. listas de texto + riesgo de **percepción GIGO** → un solo épico P0 de **confianza de entrada**). Incluye: núcleo documentado + *spike* de empaquetado pip, HCI/weakness en dominios críticos, política honesta **L0 inmutable vs borradores comunitarios**. Contenido listo para pegar como *GitHub Issues*:
 
 - **[CRITIQUE_ROADMAP_ISSUES.md](CRITIQUE_ROADMAP_ISSUES.md)**
 
