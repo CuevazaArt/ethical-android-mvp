@@ -11,6 +11,9 @@ from src.modules.existential_serialization import (
     build_continuity_token_stub,
     migration_audit_payload,
     narrative_integrity_self_check_stub,
+    nomad_migration_audit_enabled,
+    record_nomadic_migration_audit,
+    simulate_nomadic_migration,
 )
 from src.modules.hardware_abstraction import (
     ComputeTier,
@@ -56,3 +59,28 @@ def test_migration_audit_no_gps_by_default():
     assert p["destination_hardware_id"] == "phone-abc"
     assert "gps" not in str(p).lower()
     assert "location" not in p
+
+
+def test_migration_audit_thought_line_in_continuity():
+    k = EthicalKernel(variability=False)
+    p = migration_audit_payload(k, thought_line="considering compassion")
+    assert "compassion" in p["continuity"]["thought_summary"]
+
+
+def test_simulate_nomadic_migration_applies_hal(monkeypatch):
+    monkeypatch.setenv("KERNEL_NOMAD_MIGRATION_AUDIT", "0")
+    k = EthicalKernel(variability=False)
+    r = simulate_nomadic_migration(k, k.dao, profile="mobile", destination_hardware_id="p1")
+    assert r["hardware_context"]["compute_tier"] == "edge_mobile"
+    assert r["dao_audit_recorded"] is False
+
+
+def test_record_nomadic_migration_audit_when_enabled(monkeypatch):
+    monkeypatch.setenv("KERNEL_NOMAD_MIGRATION_AUDIT", "1")
+    assert nomad_migration_audit_enabled() is True
+    k = EthicalKernel(variability=False)
+    n0 = len(k.dao.records)
+    ok = record_nomadic_migration_audit(k.dao, k, destination_hardware_id="dev-1", thought_line="x")
+    assert ok is True
+    assert len(k.dao.records) > n0
+    assert "NomadicMigration" in k.dao.records[-1].content

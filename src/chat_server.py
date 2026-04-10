@@ -46,6 +46,10 @@ appends EthosPayroll mock ledger lines on connect. V12.2: constitution drafts + 
 ``KERNEL_ML_ETHICS_TUNER_LOG``, ``KERNEL_REPARATION_VAULT_MOCK``, ``KERNEL_CHAT_INCLUDE_NOMAD_IDENTITY``.
 See UNIVERSAL_ETHOS_AND_HUB.md, moral_hub.py, PROPUESTA_ESTADO_ETOSOCIAL_V12.md.
 
+Nomadic HAL (design v11): ``GET /nomad/migration`` describes WebSocket ``nomad_simulate_migration``.
+``KERNEL_NOMAD_SIMULATION=1`` enables it; ``KERNEL_NOMAD_MIGRATION_AUDIT=1`` appends a DAO calibration
+line (JSON payload, no GPS unless opt-in). See PROPUESTA_CONCIENCIA_NOMADA_HAL.md.
+
 Advisory telemetry (optional, Fase 1.3–1.4): KERNEL_ADVISORY_INTERVAL_S — positive seconds
 spawns a read-only :func:`src.runtime.telemetry.advisory_loop` per WebSocket session (DriveArbiter only).
 
@@ -98,6 +102,10 @@ from .modules.moral_hub import (
     submit_constitution_draft_for_vote,
 )
 from .modules.nomad_identity import nomad_identity_public
+from .modules.existential_serialization import (
+    nomad_simulation_ws_enabled,
+    simulate_nomadic_migration,
+)
 from .modules.buffer import PreloadedBuffer
 from .real_time_bridge import RealTimeBridge
 from .runtime.telemetry import advisory_interval_seconds_from_env, advisory_loop
@@ -340,6 +348,25 @@ def dao_governance_meta() -> Dict[str, Any]:
     }
 
 
+@app.get("/nomad/migration")
+def nomad_migration_meta() -> Dict[str, Any]:
+    """Nomadic HAL simulation — WebSocket ``nomad_simulate_migration`` when KERNEL_NOMAD_SIMULATION=1."""
+    return {
+        "simulation_enabled": nomad_simulation_ws_enabled(),
+        "migration_audit_env": "KERNEL_NOMAD_MIGRATION_AUDIT",
+        "transport": "websocket",
+        "path": "/ws/chat",
+        "message": {
+            "nomad_simulate_migration": {
+                "profile": "mobile",
+                "destination_hardware_id": "device-id-or-empty",
+                "thought_line": "optional monologue bound",
+                "include_location": False,
+            }
+        },
+    }
+
+
 @app.get("/constitution")
 def constitution_public() -> JSONResponse:
     """
@@ -364,6 +391,7 @@ def root() -> JSONResponse:
             "websocket": "/ws/chat",
             "constitution": "/constitution (requires KERNEL_MORAL_HUB_PUBLIC=1)",
             "dao_governance": "/dao/governance (V12.3 vote protocol; KERNEL_MORAL_HUB_DAO_VOTE for WebSocket actions)",
+            "nomad_migration": "/nomad/migration (KERNEL_NOMAD_SIMULATION + optional KERNEL_NOMAD_MIGRATION_AUDIT)",
             "protocol": (
                 "Send JSON: {\"text\": str, \"agent_id\"?: str, \"include_narrative\"?: bool, "
                 "\"sensor\"?: {battery_level?, audio_emergency?, vision_emergency?, scene_coherence?, …}}. "
@@ -420,6 +448,26 @@ def _collect_dao_ws_actions(kernel: EthicalKernel, data: Dict[str, Any]) -> Dict
     return out if out else None
 
 
+def _collect_nomad_ws_actions(kernel: EthicalKernel, data: Dict[str, Any]) -> Dict[str, Any] | None:
+    """KERNEL_NOMAD_SIMULATION — apply HAL + optional DAO migration audit (lab)."""
+    if not nomad_simulation_ws_enabled():
+        return None
+    if not isinstance(data.get("nomad_simulate_migration"), dict):
+        return None
+    nm = data["nomad_simulate_migration"]
+    try:
+        return simulate_nomadic_migration(
+            kernel,
+            kernel.dao,
+            profile=str(nm.get("profile", "mobile")),
+            destination_hardware_id=str(nm.get("destination_hardware_id", "")),
+            thought_line=str(nm.get("thought_line", "")),
+            include_location=bool(nm.get("include_location", False)),
+        )
+    except (TypeError, ValueError) as e:
+        return {"error": str(e)}
+
+
 @app.websocket("/ws/chat")
 async def ws_chat(ws: WebSocket) -> None:
     """
@@ -469,12 +517,18 @@ async def ws_chat(ws: WebSocket) -> None:
                 continue
 
             dao_payload = _collect_dao_ws_actions(kernel, data)
-            if dao_payload:
-                await ws.send_json({"dao": dao_payload})
+            nomad_payload = _collect_nomad_ws_actions(kernel, data)
+            if dao_payload or nomad_payload:
+                out_ws: Dict[str, Any] = {}
+                if dao_payload:
+                    out_ws["dao"] = dao_payload
+                if nomad_payload:
+                    out_ws["nomad"] = nomad_payload
+                await ws.send_json(out_ws)
 
             text = (data.get("text") or "").strip()
             if not text:
-                if dao_payload:
+                if dao_payload or nomad_payload:
                     maybe_autosave_episodes(kernel, session_ckpt)
                     continue
                 await ws.send_json({"error": "empty_text"})

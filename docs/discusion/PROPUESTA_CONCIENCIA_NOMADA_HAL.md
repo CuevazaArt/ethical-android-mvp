@@ -56,7 +56,18 @@ Permitir **sueño parcial**: Ψ ligero, sin apagar identidad; **monólogo de baj
 
 ---
 
-## 5. Referencias
+## 5. Variables de entorno (MVP código)
+
+| Variable | Default | Efecto |
+|----------|---------|--------|
+| `KERNEL_NOMAD_SIMULATION` | off | WebSocket `nomad_simulate_migration` aplica HAL + respuesta `nomad` |
+| `KERNEL_NOMAD_MIGRATION_AUDIT` | off | Tras simulación (o `simulate_nomadic_migration`), línea **DAO** `NomadicMigration {...}` |
+
+**HTTP:** `GET /nomad/migration` describe el protocolo (sin sesión).
+
+---
+
+## 6. Referencias
 
 - [RUNTIME_PERSISTENT.md](../RUNTIME_PERSISTENT.md) — snapshot, cifrado futuro  
 - [nomad_identity.py](../../src/modules/nomad_identity.py) — puente inmortalidad  

@@ -40,6 +40,15 @@ def test_root_lists_websocket():
     body = r.json()
     assert body.get("websocket") == "/ws/chat"
     assert "constitution" in body
+    assert "nomad_migration" in body
+
+
+def test_nomad_migration_meta():
+    r = client.get("/nomad/migration")
+    assert r.status_code == 200
+    j = r.json()
+    assert "simulation_enabled" in j
+    assert j.get("path") == "/ws/chat"
 
 
 def test_root_protocol_mentions_multimodal_and_sensor_fields():

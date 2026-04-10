@@ -2,6 +2,11 @@
 
 All notable changes to this project are summarized here. For narrative context and design rationale, see [`HISTORY.md`](HISTORY.md).
 
+## Nomadic migration audit + WebSocket simulation — April 2026
+- **`KERNEL_NOMAD_SIMULATION`:** WebSocket `nomad_simulate_migration` → `simulate_nomadic_migration` (HAL + integridad stub).
+- **`KERNEL_NOMAD_MIGRATION_AUDIT`:** `record_nomadic_migration_audit` → DAO calibration line `NomadicMigration`.
+- **`GET /nomad/migration`** — meta endpoint.
+
 ## Nomadic HAL + existential protocol (design v11) — April 2026
 - **Docs:** [docs/discusion/PROPUESTA_CONCIENCIA_NOMADA_HAL.md](docs/discusion/PROPUESTA_CONCIENCIA_NOMADA_HAL.md) — EthosContainer, transmutación A–D, runtime dual, respuestas (batería/ataque, tono, DAO sin GPS por defecto, ahorro energía).
 - **Code:** `hardware_abstraction.py` (`HardwareContext`, `ComputeTier`, `sensor_delta_narrative`, `apply_hardware_context`); `existential_serialization.py` (`TransmutationPhase`, `ContinuityToken`, audit payload sin ubicación por defecto). `nomad_identity_public` incluye `hardware_context` si se aplicó HAL.
