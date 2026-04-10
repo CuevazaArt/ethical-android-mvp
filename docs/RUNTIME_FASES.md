@@ -57,6 +57,8 @@ Objetivo: avanzar de investigación a **proceso vivo** sin que ninguna capa pued
 | **3.3 Configuración** | Variables de entorno: `OLLAMA_MODEL`, `OLLAMA_BASE_URL`, flag `USE_LOCAL_LLM=true`. | Documentar en README. |
 | **3.4 Monólogo con LLM (opcional)** | Solo después de 3.2: generar texto de monólogo interno para logs/UI, **nunca** como entrada directa a MalAbs. | Revisión de prompts para que no “instruyan” al kernel. |
 
+**Estado en el repo (Fase 3):** `src/modules/llm_backends.py` (`TextCompletionBackend`, `OllamaCompletion`, `AnthropicCompletion`); `LLMModule` usa el backend según `resolve_llm_mode` / `LLM_MODE` / `USE_LOCAL_LLM`; monólogo opcional vía `KERNEL_LLM_MONOLOGUE` en `optional_monologue_embellishment` (chat). README documenta `OLLAMA_*`, modelo por defecto `llama3.2:3b`, y tests en `tests/test_ollama_llm.py`, `tests/test_llm_phase3.py`.
+
 **Dependencia:** Fase 1 útil para no bloquear el event loop; Fase 2 independiente (persistencia puede ir antes o después del LLM local según prioridad de privacidad vs datos).
 
 ---

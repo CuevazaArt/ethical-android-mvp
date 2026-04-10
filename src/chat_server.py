@@ -69,7 +69,8 @@ def _chat_turn_to_jsonable(r: ChatTurnResult, kernel: EthicalKernel) -> Dict[str
         }
     if r.decision is not None:
         d = r.decision
-        out["monologue"] = compose_monologue_line(d, kernel._last_registered_episode_id)
+        base_mono = compose_monologue_line(d, kernel._last_registered_episode_id)
+        out["monologue"] = kernel.llm.optional_monologue_embellishment(base_mono)
         out["decision"] = {
             "final_action": d.final_action,
             "decision_mode": d.decision_mode,
@@ -145,7 +146,7 @@ async def ws_chat(ws: WebSocket) -> None:
     await ws.accept()
     kernel = EthicalKernel(
         variability=os.environ.get("KERNEL_VARIABILITY", "1") not in ("0", "false", "False"),
-        llm_mode=os.environ.get("LLM_MODE", "auto"),
+        llm_mode=os.environ.get("LLM_MODE"),
     )
     try_load_checkpoint(kernel)
     session_ckpt = init_session_checkpoint_state(kernel)

@@ -29,6 +29,7 @@ from .modules.llm_layer import (
     LLMPerception,
     VerbalResponse,
     RichNarrative,
+    resolve_llm_mode,
 )
 from .modules.weakness_pole import WeaknessPole, WeaknessType, WeaknessEvaluation
 from .modules.forgiveness import AlgorithmicForgiveness
@@ -98,7 +99,7 @@ class EthicalKernel:
     Psi Sleep, backup, and drive intents run in `execute_sleep`, outside each tick.
     """
 
-    def __init__(self, variability: bool = True, seed: int = None, llm_mode: str = "auto"):
+    def __init__(self, variability: bool = True, seed: int = None, llm_mode: Optional[str] = None):
         self.var_engine = VariabilityEngine(VariabilityConfig(seed=seed))
         if not variability:
             self.var_engine.deactivate()
@@ -114,7 +115,7 @@ class EthicalKernel:
         self.locus = LocusModule()
         self.sleep = PsiSleep()
         self.dao = MockDAO()
-        self.llm = LLMModule(mode=llm_mode)
+        self.llm = LLMModule(mode=resolve_llm_mode(llm_mode))
         self.weakness = WeaknessPole()
         self.forgiveness = AlgorithmicForgiveness()
         self.immortality = ImmortalityProtocol()

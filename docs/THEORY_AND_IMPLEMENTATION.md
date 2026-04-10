@@ -156,7 +156,7 @@ P(\text{éxito})=\alpha\cdot P(\text{control interno})+\beta\cdot P(\text{factor
 
 ## Tests and inspectability
 
-Tests under `tests/` (**95** collected; ethical invariants, reflection/salience/PAD, identity/monologue, chat turns, WebSocket server smoke, runtime bind/telemetry, JSON snapshot persistence, checkpoint env, Ollama mode wiring) encode behavior you can run **without any LLM API key** for the core suite. Chat server tests require **`fastapi`**, **`httpx`**, and **`uvicorn`** from `requirements.txt`. That is the practical answer to “black box” concerns: **behavior is reproducible and constrained by code**, not by a single sampled completion.
+Tests under `tests/` (**99** collected; ethical invariants, reflection/salience/PAD, identity/monologue, chat turns, WebSocket server smoke, runtime bind/telemetry, JSON snapshot persistence, checkpoint env, Ollama mode wiring, LLM resolve/use-local/monologue flags) encode behavior you can run **without any LLM API key** for the core suite. Chat server tests require **`fastapi`**, **`httpx`**, and **`uvicorn`** from `requirements.txt`. That is the practical answer to “black box” concerns: **behavior is reproducible and constrained by code**, not by a single sampled completion.
 
 ## License
 

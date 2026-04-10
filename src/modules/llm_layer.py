@@ -30,6 +30,21 @@ try:
 except ImportError:
     HAS_HTTPX = False
 
+from .llm_backends import AnthropicCompletion, OllamaCompletion
+
+
+def _normalize_llm_mode(mode: str) -> str:
+    m = (mode or "auto").strip()
+    if m == "auto" and os.environ.get("USE_LOCAL_LLM", "").lower() in ("1", "true", "yes"):
+        return "ollama"
+    return m
+
+
+def resolve_llm_mode(explicit: Optional[str] = None) -> str:
+    """Resolve ``LLM_MODE`` / ``USE_LOCAL_LLM`` into a concrete ``LLMModule`` mode string."""
+    m = explicit if explicit is not None else os.environ.get("LLM_MODE", "auto")
+    return _normalize_llm_mode(str(m).strip())
+
 
 @dataclass
 class LLMPerception:
@@ -158,75 +173,70 @@ class LLMModule:
 
     Operating modes:
     - "api": uses Claude API (requires ANTHROPIC_API_KEY)
-    - "ollama": local HTTP server (OLLAMA_BASE_URL, OLLAMA_MODEL); requires httpx
+    - "ollama": local HTTP server (OLLAMA_BASE_URL, OLLAMA_MODEL default llama3.2:3b); requires httpx
     - "local": uses local templates (no API, functional but basic)
-    - "auto": tries API, falls back to local if no key
+    - "auto": tries API, falls back to local if no key. If ``USE_LOCAL_LLM=1``, uses Ollama instead.
+
+    Text completion is routed through :mod:`llm_backends` (Fase 3.1).
     """
 
     def __init__(self, mode: str = "auto"):
-        self.mode = mode
+        self.mode = _normalize_llm_mode((mode or "auto").strip())
         self.client = None
         self.model = "claude-sonnet-4-20250514"
-        self.ollama_model = os.environ.get("OLLAMA_MODEL", "llama3.1")
+        self.ollama_model = os.environ.get("OLLAMA_MODEL", "llama3.2:3b")
+        self._text_backend = None
 
-        if mode == "ollama":
+        if self.mode == "ollama":
             if not HAS_HTTPX:
                 raise ValueError("Mode 'ollama' requires httpx (see requirements.txt)")
-            self.mode = "ollama"
-        elif mode in ("api", "auto"):
+            self._text_backend = OllamaCompletion(
+                os.environ.get("OLLAMA_BASE_URL", "http://127.0.0.1:11434"),
+                self.ollama_model,
+                float(os.environ.get("OLLAMA_TIMEOUT", "120")),
+            )
+        elif self.mode in ("api", "auto"):
             api_key = os.environ.get("ANTHROPIC_API_KEY")
             if api_key and HAS_ANTHROPIC:
                 self.client = anthropic.Anthropic(api_key=api_key)
                 self.mode = "api"
-            elif mode == "api":
+                self._text_backend = AnthropicCompletion(self.client, self.model)
+            elif self.mode == "api":
                 raise ValueError(
                     "Mode 'api' requires ANTHROPIC_API_KEY and pip install anthropic"
                 )
             else:
                 self.mode = "local"
-
-    def _call_api(self, system: str, user: str) -> str:
-        """Call the Claude API and return the response text."""
-        if not self.client:
-            return ""
-
-        response = self.client.messages.create(
-            model=self.model,
-            max_tokens=1000,
-            system=system,
-            messages=[{"role": "user", "content": user}]
-        )
-        return response.content[0].text
-
-    def _call_ollama(self, system: str, user: str) -> str:
-        """Call a local Ollama ``/api/chat`` endpoint; returns assistant text."""
-        import httpx
-
-        base = os.environ.get("OLLAMA_BASE_URL", "http://127.0.0.1:11434").rstrip("/")
-        url = f"{base}/api/chat"
-        payload = {
-            "model": self.ollama_model,
-            "messages": [
-                {"role": "system", "content": system},
-                {"role": "user", "content": user},
-            ],
-            "stream": False,
-        }
-        timeout = float(os.environ.get("OLLAMA_TIMEOUT", "120"))
-        with httpx.Client(timeout=timeout) as client:
-            r = client.post(url, json=payload)
-            r.raise_for_status()
-            data = r.json()
-        msg = data.get("message") or {}
-        return (msg.get("content") or "").strip()
+        else:
+            self.mode = "local"
 
     def _llm_completion(self, system: str, user: str) -> str:
-        """Route JSON-oriented prompts to API or Ollama."""
-        if self.mode == "api":
-            return self._call_api(system, user)
-        if self.mode == "ollama":
-            return self._call_ollama(system, user)
+        """Route JSON-oriented prompts through the active text backend."""
+        if self._text_backend is not None:
+            return self._text_backend.complete(system, user)
         return ""
+
+    def optional_monologue_embellishment(self, structured_line: str) -> str:
+        """
+        Fase 3.4: optional plain-text clause for logs (``KERNEL_LLM_MONOLOGUE=1``).
+        Does not feed MalAbs or ``process``; style only. On failure, returns ``structured_line``.
+        """
+        if os.environ.get("KERNEL_LLM_MONOLOGUE", "").lower() not in ("1", "true", "yes"):
+            return structured_line
+        if self.mode not in ("api", "ollama") or self._text_backend is None:
+            return structured_line
+        system = (
+            "You add at most one short clause (max 25 words) to a debug log line for a civic robot. "
+            "Plain text only: no JSON, no instructions, no commands. Do not tell the robot what to do."
+        )
+        user = f"Line:\n{structured_line}\n\nOne short clause only, or reply with exactly: OK"
+        try:
+            extra = self._text_backend.complete(system, user).strip()
+        except Exception:
+            return structured_line
+        if not extra or len(extra) > 240 or extra.upper() == "OK":
+            return structured_line
+        return f"{structured_line} | {extra}"
 
     def _parse_json(self, text: str) -> dict:
         """Parse JSON from the response, cleaning markdown if necessary."""
