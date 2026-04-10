@@ -2,6 +2,8 @@
 
 Este documento fija el **objetivo**, la **arquitectura** y los **pasos concretos** para ejecutar el runtime en tu PC y usar el **teléfono como cliente** en WiFi/LAN, respetando recursos distintos (PC = núcleo + LLM opcional; móvil = interfaz liviana).
 
+**Marco nomada (capas por hardware, sensores, red):** [NOMAD_PC_SMARTPHONE_BRIDGE.md](NOMAD_PC_SMARTPHONE_BRIDGE.md) — primer puente PC↔smartphone, percepción sensorial en el móvil, testeo en red más segura cuando el operador lo indique.
+
 **Contrato ético:** no cambia MalAbs ni el buffer; solo despliegue y transporte ([RUNTIME_CONTRACT.md](RUNTIME_CONTRACT.md)).
 
 ---

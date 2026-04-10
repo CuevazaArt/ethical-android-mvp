@@ -35,6 +35,7 @@ This document **consolidates** components and concepts added in the recent work 
 | [discusion/PROPUESTA_ESTADO_ETOSOCIAL_V12.md](discusion/PROPUESTA_ESTADO_ETOSOCIAL_V12.md) | V12 **registry** + env; `moral_hub`, drafts, DAO vote, deontic/ml_ethics/reparation/nomad stubs |
 | [ESTRATEGIA_Y_RUTA.md](ESTRATEGIA_Y_RUTA.md) | Review conclusions, readapted P0–P3 route, **runtime profiles** (`runtime_profiles.py`, `test_runtime_profiles.py`) |
 | [LOCAL_PC_AND_MOBILE_LAN.md](LOCAL_PC_AND_MOBILE_LAN.md) | PC + smartphone same WiFi (thin client); scripts `start_lan_server`; `chat-test.html?host=`; **`conduct_guide_export`** on WS disconnect |
+| [NOMAD_PC_SMARTPHONE_BRIDGE.md](NOMAD_PC_SMARTPHONE_BRIDGE.md) | Primer puente nomada: capas por hardware, sensor smartphone, red segura para campo (bajo indicación) |
 | [discusion/PROPUESTA_VERIFICACION_REALIDAD_V11.md](discusion/PROPUESTA_VERIFICACION_REALIDAD_V11.md) | Lighthouse KB / metacognitive doubt (implemented); distillation + DAO sovereignty (stubs) |
 
 ---

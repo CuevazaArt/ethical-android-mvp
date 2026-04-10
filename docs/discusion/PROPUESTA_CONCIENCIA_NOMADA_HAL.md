@@ -1,7 +1,8 @@
 # Instanciación nómada — HAL, serialización existencial y runtime dual
 
 **Estado:** diseño + **hooks de código** en `hardware_abstraction.py` y `existential_serialization.py` (sin cifrado real ni P2P; ver [RUNTIME_PERSISTENT.md](../RUNTIME_PERSISTENT.md)).  
-**Relación:** extiende [UNIVERSAL_ETHOS_AND_HUB.md](UNIVERSAL_ETHOS_AND_HUB.md) (NomadIdentity) y la persistencia actual (`KernelSnapshotV1`, `ImmortalityProtocol`).
+**Relación:** extiende [UNIVERSAL_ETHOS_AND_HUB.md](UNIVERSAL_ETHOS_AND_HUB.md) (NomadIdentity) y la persistencia actual (`KernelSnapshotV1`, `ImmortalityProtocol`).  
+**Puente operativo PC–smartphone:** [NOMAD_PC_SMARTPHONE_BRIDGE.md](../NOMAD_PC_SMARTPHONE_BRIDGE.md) (capas por clase de hardware, sensores, red).
 
 ---
 

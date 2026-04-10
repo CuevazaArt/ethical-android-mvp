@@ -77,7 +77,7 @@ CI runs the same suite on **Python 3.11 and 3.12** (`.github/workflows/ci.yml`) 
 
 **Operations:** supported demo **env bundles** are defined in [`src/runtime_profiles.py`](src/runtime_profiles.py); strategy, readapted roadmap, and risk notes are in [docs/ESTRATEGIA_Y_RUTA.md](docs/ESTRATEGIA_Y_RUTA.md).
 
-**Local PC + smartphone (same WiFi):** run the chat server on `0.0.0.0` so the phone can connect as a thin WebSocket client; scripts and checklist in [docs/LOCAL_PC_AND_MOBILE_LAN.md](docs/LOCAL_PC_AND_MOBILE_LAN.md) (`scripts/start_lan_server.ps1`, `landing/public/chat-test.html?host=…`).
+**Local PC + smartphone (same WiFi):** run the chat server on `0.0.0.0` so the phone can connect as a thin WebSocket client; scripts and checklist in [docs/LOCAL_PC_AND_MOBILE_LAN.md](docs/LOCAL_PC_AND_MOBILE_LAN.md) (`scripts/start_lan_server.ps1`, `landing/public/mobile.html`). **Nomadic bridge / per-hardware layers:** [docs/NOMAD_PC_SMARTPHONE_BRIDGE.md](docs/NOMAD_PC_SMARTPHONE_BRIDGE.md).
 
 **Reproducibility:** the default ethical pipeline does **not** invoke narrative augenesis (`kernel.augenesis` is optional; see [docs/THEORY_AND_IMPLEMENTATION.md](docs/THEORY_AND_IMPLEMENTATION.md)). For long-lived deployments and snapshot design, see [docs/RUNTIME_PERSISTENT.md](docs/RUNTIME_PERSISTENT.md).
 

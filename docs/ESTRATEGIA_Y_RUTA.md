@@ -72,6 +72,8 @@ Los nombres y variables viven en código: **`src/runtime_profiles.py`**. Resumen
 
 **Pilar epistémico (V11+):** ver [PROPUESTA_VERIFICACION_REALIDAD_V11.md](discusion/PROPUESTA_VERIFICACION_REALIDAD_V11.md) — faro local vs premisas rivales (implementado); destilación y veto DAO (pendiente).
 
+**Puente nomada PC–smartphone:** [NOMAD_PC_SMARTPHONE_BRIDGE.md](NOMAD_PC_SMARTPHONE_BRIDGE.md) — clases de hardware, capas de compatibilidad a desarrollar, smartphone como primera aproximación a percepción sensorial coordinada; red segura para campo bajo indicación del operador.
+
 ---
 
 ## 5. Referencias cruzadas

@@ -2,6 +2,9 @@
 
 All notable changes to this project are summarized here. For narrative context and design rationale, see [`HISTORY.md`](HISTORY.md).
 
+## Nomad PC–smartphone bridge doc — April 2026
+- **docs/NOMAD_PC_SMARTPHONE_BRIDGE.md:** hardware classes → compatibility layers; first nomadic bridge; smartphone as immediate path for coordinated sensory perception (`sensor` JSON); field testing on a more secure network when the operator indicates. Cross-links from LOCAL_PC_AND_MOBILE_LAN, ESTRATEGIA_Y_RUTA, README.
+
 ## Mobile minimal UI (`landing/public/mobile.html`) — April 2026
 - **LAN:** IP + port, localStorage, `/health` ping, WebSocket connect, chat bubbles, optional full JSON.
 - **Docs:** README + `LOCAL_PC_AND_MOBILE_LAN.md` point to `mobile.html` vs `chat-test.html`.
