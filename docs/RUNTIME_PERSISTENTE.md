@@ -22,9 +22,15 @@ Un **runtime persistente** mantiene identidad narrativa, memoria episódica y go
 - **`AugenesisEngine`** permanece **opcional** y fuera del ciclo `process` / `execute_sleep` por defecto (ver [THEORY_AND_IMPLEMENTATION.md](THEORY_AND_IMPLEMENTATION.md)). Los experimentos con perfiles sintéticos no deben mezclarse con la línea base de validación sin opt-in explícito.
 - Un runtime persistente debería versionar **esquema de snapshot** (episodios + identidad + metadatos) y tests de migración incremental.
 
+## Implementación actual (Fase 2 — MVP)
+
+- **`src/persistence/`** — `KernelSnapshotV1` + `extract_snapshot` / `apply_snapshot` (estado mutable del kernel sin tocar algoritmos éticos).
+- **`JsonFilePersistence`** — guarda/carga JSON UTF-8 en ruta configurable (`save` / `load` / `load_into_kernel`).
+- **Cifrado** — aún no integrado; ver checklist de seguridad abajo.
+
 ## Fronteras recomendadas (hexagonal, incremental)
 
-1. **Puerto de persistencia** — interfaz estable (`save_episode`, `load_tail`, `checkpoint_kernel_state`) con un adaptador en memoria (actual) y otro en disco/SQL/Objeto cuando exista necesidad real.
+1. **Puerto de persistencia** — el DTO v1 actúa como snapshot completo; siguientes adaptadores (SQLite, cifrado) pueden mapear al mismo esquema o a una versión `schema_version++`.
 2. **Puerto LLM** — ya implícito en `LLMModule`; un segundo proveedor fuerza límites claros.
 3. **Proceso de servicio** — `chat_server` como frontal WebSocket; workers opcionales para `execute_sleep` programado sin bloquear chat.
 

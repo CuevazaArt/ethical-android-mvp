@@ -36,8 +36,9 @@ Objetivo: avanzar de investigación a **proceso vivo** sin que ninguna capa pued
 
 | Subfase | Qué hacer | Notas |
 |--------|-----------|--------|
-| **2.1 Puerto** | Interfaz `PersistencePort` (nombres orientativos): cargar/guardar episodios, identidad, estado mínimo de perdón/debilidad, semilla de variabilidad opcional. | Implementación primera: **SQLite** o **JSON en disco** (más simple para MVP). |
-| **2.2 Adaptador** | Un adaptador `FilePersistence` o `SqlitePersistence` que serialice lo que ya expone memoria/inmortalidad (ver [RUNTIME_PERSISTENTE.md](RUNTIME_PERSISTENTE.md)). | Tests de idempotencia: mismo escenario tras restore. |
+| **2.1 Puerto** | DTO `KernelSnapshotV1` + `extract_snapshot` / `apply_snapshot` en `src/persistence/kernel_io.py`. | Cubre episodios, identidad, perdón, debilidad, Bayes/locus/variabilidad, DAO audit, `pruned_actions`. |
+| **2.2 Adaptador JSON** | `JsonFilePersistence` (`src/persistence/json_store.py`). | Tests: `tests/test_persistence.py` (roundtrip en memoria, archivo, doble serialización). |
+| **2.2b SQLite (opcional)** | Mismo DTO, otra columna `blob` JSON. | Pendiente si hace falta consulta SQL. |
 | **2.3 Cifrado (opcional)** | Capa de cifrado de archivos o columnas sensibles (`cryptography` o similar), clave fuera del repo. | No sustituye a control de acceso del SO; documentar amenazas. |
 | **2.4 Integración runtime** | Al arrancar Fase 1: hidratar kernel desde puerto; al apagar o checkpoint: persistir. | Apagado limpio vs crash: definir política (WAL, autosave cada N episodios). |
 

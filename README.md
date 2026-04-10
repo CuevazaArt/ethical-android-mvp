@@ -175,6 +175,7 @@ src/
 ├── simulations/
 │   └── runner.py           # 9 scenarios + simulation runner
 ├── kernel.py               # Ethical kernel: orchestrates modules + `process_chat_turn` (dialogue)
+├── persistence/            # Kernel snapshot v1 (JSON) — extract/apply / `JsonFilePersistence`
 ├── runtime/                # Entry `python -m src.runtime` + advisory telemetry helpers
 ├── real_time_bridge.py     # Async wrapper around chat turns (for WebSocket / UI)
 ├── chat_server.py          # FastAPI WebSocket `/ws/chat` (one kernel per connection)
@@ -219,7 +220,7 @@ Psi Sleep Ψ (end of day): Audit + Forgiveness cycle + weakness load + Immortali
 
 ## Tests
 
-**84** tests total (`pytest tests/`). The list below summarizes the **13 invariant ethical properties** exercised by the core ethical suite; additional tests cover EthicalReflection, SalienceMap, PAD archetypes, narrative identity, internal monologue, chat turns, the WebSocket chat server, and runtime entry/bind/telemetry.
+**90** tests total (`pytest tests/`). The list below summarizes the **13 invariant ethical properties** exercised by the core ethical suite; additional tests cover EthicalReflection, SalienceMap, PAD archetypes, narrative identity, internal monologue, chat turns, the WebSocket chat server, runtime entry/bind/telemetry, and JSON snapshot persistence.
 
 1. **Absolute Evil** is always blocked
 2. **Action coherence** under variability (100 runs × 9 simulations)
@@ -331,6 +332,8 @@ A copy of `dashboard.html` is also kept under `landing/public/` so the Next.js a
 **Persistent runtime (design sketch):** state boundaries, optional augenesis, and next steps for a long-lived process — [docs/RUNTIME_PERSISTENTE.md](docs/RUNTIME_PERSISTENTE.md).
 
 **Phased implementation (runtime → DB → local LLM):** ethical guardrails and ordered milestones — [docs/RUNTIME_FASES.md](docs/RUNTIME_FASES.md).
+
+**Persistence (checkpoint JSON):** `from src.persistence import extract_snapshot, apply_snapshot, JsonFilePersistence` — see [docs/RUNTIME_PERSISTENTE.md](docs/RUNTIME_PERSISTENTE.md).
 
 **Experimental (unofficial):** discussion notes on “artificial consciousness” as a pedagogical frame, strong vs weak readings, and affect archetypes for possible future integration — [docs/EXPERIMENTAL_CONSCIOUSNESS_AND_AFFECT_ARCHETYPES.md](docs/EXPERIMENTAL_CONSCIOUSNESS_AND_AFFECT_ARCHETYPES.md) (WIP, not part of the kernel contract until implemented and tested).
 
