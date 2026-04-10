@@ -1,0 +1,43 @@
+"""
+Named bundles of environment variables for demos, operators, and CI.
+
+Each profile only lists **overrides**; unset keys keep process defaults.
+See docs/ESTRATEGIA_Y_RUTA.md.
+"""
+
+from __future__ import annotations
+
+from typing import Dict, Final, Mapping
+
+# env key -> value (only non-default toggles for that demo)
+RUNTIME_PROFILES: Final[Dict[str, Dict[str, str]]] = {
+    "baseline": {},
+    "judicial_demo": {
+        "KERNEL_JUDICIAL_ESCALATION": "1",
+        "KERNEL_JUDICIAL_MOCK_COURT": "1",
+        "KERNEL_CHAT_INCLUDE_JUDICIAL": "1",
+    },
+    "hub_dao_demo": {
+        "KERNEL_MORAL_HUB_PUBLIC": "1",
+        "KERNEL_MORAL_HUB_DAO_VOTE": "1",
+    },
+    "nomad_demo": {
+        "KERNEL_NOMAD_SIMULATION": "1",
+        "KERNEL_NOMAD_MIGRATION_AUDIT": "1",
+    },
+}
+
+PROFILE_DESCRIPTIONS: Final[Dict[str, str]] = {
+    "baseline": "Default server flags; minimal regression surface.",
+    "judicial_demo": "V11 judicial escalation + mock court + judicial JSON in chat.",
+    "hub_dao_demo": "V12 public constitution HTTP + WebSocket dao_list / vote / resolve.",
+    "nomad_demo": "Nomadic HAL migration simulation + optional DAO migration audit line.",
+}
+
+
+def profile_names() -> tuple[str, ...]:
+    return tuple(sorted(RUNTIME_PROFILES.keys()))
+
+
+def describe_profiles() -> Mapping[str, str]:
+    return PROFILE_DESCRIPTIONS

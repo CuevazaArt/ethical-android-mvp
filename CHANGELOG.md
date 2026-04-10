@@ -2,6 +2,11 @@
 
 All notable changes to this project are summarized here. For narrative context and design rationale, see [`HISTORY.md`](HISTORY.md).
 
+## Strategy doc + runtime profiles — April 2026
+- **docs/ESTRATEGIA_Y_RUTA.md:** conclusions from project review, readapted roadmap (P0–P3), expectations vs. MVP reality, operational risks.
+- **`src/runtime_profiles.py`:** named env bundles (`baseline`, `judicial_demo`, `hub_dao_demo`, `nomad_demo`) for operators and CI.
+- **`tests/test_runtime_profiles.py`:** parametrized health + WebSocket smoke; hub DAO + nomad assertions per profile.
+
 ## Checkpoint Fernet + hub audit + WS nomad test — April 2026
 - **Dependencies:** `cryptography` for optional Fernet encryption of JSON checkpoints.
 - **`KERNEL_CHECKPOINT_FERNET_KEY`:** `JsonFilePersistence` encrypts on save; load decrypts or falls back to plain JSON.

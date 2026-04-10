@@ -33,12 +33,15 @@ This document **consolidates** components and concepts added in the recent work 
 | [discusion/UNIVERSAL_ETHOS_AND_HUB.md](discusion/UNIVERSAL_ETHOS_AND_HUB.md) | **Canonical** hub vision ↔ code (UniversalEthos, services, audit levels, module map) |
 | [discusion/PROPUESTA_CONCIENCIA_NOMADA_HAL.md](discusion/PROPUESTA_CONCIENCIA_NOMADA_HAL.md) | Nomadic HAL + existential serialization; `GET /nomad/migration`; `KERNEL_NOMAD_SIMULATION`, `KERNEL_NOMAD_MIGRATION_AUDIT`, WS `nomad_simulate_migration`; `HubAudit` DAO lines; optional `KERNEL_CHECKPOINT_FERNET_KEY` |
 | [discusion/PROPUESTA_ESTADO_ETOSOCIAL_V12.md](discusion/PROPUESTA_ESTADO_ETOSOCIAL_V12.md) | V12 **registry** + env; `moral_hub`, drafts, DAO vote, deontic/ml_ethics/reparation/nomad stubs |
+| [ESTRATEGIA_Y_RUTA.md](ESTRATEGIA_Y_RUTA.md) | Review conclusions, readapted P0–P3 route, **runtime profiles** (`runtime_profiles.py`, `test_runtime_profiles.py`) |
 
 ---
 
 ## Next development session (proposed plan)
 
-Suggested priorities aligned with the repo and PROPUESTA notes:
+**Ruta y riesgos (abril 2026):** prioridades y expectativas realistas están consolidadas en **[ESTRATEGIA_Y_RUTA.md](ESTRATEGIA_Y_RUTA.md)**. El hueco principal cerrado en esa iteración es **perfiles nominales de runtime** (`src/runtime_profiles.py`) + humo en CI (`tests/test_runtime_profiles.py`).
+
+Siguientes líneas (alineadas con PROPUESTA, después de P0 perfiles):
 
 1. **Persist goals and markers** — Extend `KernelSnapshotV1` or an auxiliary field for `MetaplanRegistry` and, if applicable, `SomaticMarkerStore` weights; checkpoint round-trip tests. *Support:* narrative continuity [40], [97], [98]; persistence [104].
 

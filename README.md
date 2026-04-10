@@ -75,6 +75,8 @@ python -m src.main --sim 3
 
 CI runs the same suite on **Python 3.11 and 3.12** (`.github/workflows/ci.yml`) after `pip install -r requirements.txt`.
 
+**Operations:** supported demo **env bundles** are defined in [`src/runtime_profiles.py`](src/runtime_profiles.py); strategy, readapted roadmap, and risk notes are in [docs/ESTRATEGIA_Y_RUTA.md](docs/ESTRATEGIA_Y_RUTA.md).
+
 **Reproducibility:** the default ethical pipeline does **not** invoke narrative augenesis (`kernel.augenesis` is optional; see [docs/THEORY_AND_IMPLEMENTATION.md](docs/THEORY_AND_IMPLEMENTATION.md)). For long-lived deployments and snapshot design, see [docs/RUNTIME_PERSISTENT.md](docs/RUNTIME_PERSISTENT.md).
 
 ```bash
@@ -229,6 +231,7 @@ src/
 ├── runtime/                # Entry `python -m src.runtime` + advisory telemetry helpers
 ├── real_time_bridge.py     # Async wrapper around chat turns (for WebSocket / UI)
 ├── chat_server.py          # FastAPI WebSocket `/ws/chat` (one kernel per connection)
+├── runtime_profiles.py     # Named env bundles for demos/CI (`ESTRATEGIA_Y_RUTA.md`)
 └── main.py                 # Entry point
 ```
 
@@ -270,7 +273,7 @@ Psi Sleep Ψ (end of day): Audit + Forgiveness cycle + weakness load + Immortali
 
 ## Tests
 
-**251** tests total (`pytest tests/`). The list below summarizes the **13 invariant ethical properties** exercised by the core ethical suite; additional tests cover EthicalReflection, SalienceMap, PAD archetypes, narrative identity, internal monologue, chat turns, the WebSocket chat server, MalAbs chat jailbreak gate + monologue privacy env + affective homeostasis telemetry + identity integrity helpers + Ψ Sleep experience digest + v7 relational layers (user model, chronobiology, premise advisory, teleology branches) + v8 sensor contracts + perceptual abstraction presets/fixtures + multimodal antispoof + vitality + optional Guardian Angel mode + v9.1 epistemic dissonance + v9.2 generative candidates + v10 operational layer (`tests/test_sensor_contracts.py`, `tests/test_perceptual_abstraction.py`, `tests/test_multimodal_trust.py`, `tests/test_vitality.py`, `tests/test_guardian_mode.py`, `tests/test_epistemic_dissonance.py`, `tests/test_generative_candidates.py`, `tests/test_v10_operational.py`), V11 judicial escalation Phases 1–3 (`tests/test_judicial_escalation.py`), V12 moral hub (`tests/test_moral_hub.py`), runtime entry/bind/telemetry, advisory interval env + SQLite snapshot adapter, JSON snapshot persistence, checkpoint integration, Ollama LLM mode, and LLM resolve/monologue options (`tests/test_llm_phase3.py`).
+**261** tests total (`pytest tests/`). The list below summarizes the **13 invariant ethical properties** exercised by the core ethical suite; additional tests cover EthicalReflection, SalienceMap, PAD archetypes, narrative identity, internal monologue, chat turns, the WebSocket chat server, MalAbs chat jailbreak gate + monologue privacy env + affective homeostasis telemetry + identity integrity helpers + Ψ Sleep experience digest + v7 relational layers (user model, chronobiology, premise advisory, teleology branches) + v8 sensor contracts + perceptual abstraction presets/fixtures + multimodal antispoof + vitality + optional Guardian Angel mode + v9.1 epistemic dissonance + v9.2 generative candidates + v10 operational layer (`tests/test_sensor_contracts.py`, `tests/test_perceptual_abstraction.py`, `tests/test_multimodal_trust.py`, `tests/test_vitality.py`, `tests/test_guardian_mode.py`, `tests/test_epistemic_dissonance.py`, `tests/test_generative_candidates.py`, `tests/test_v10_operational.py`), V11 judicial escalation Phases 1–3 (`tests/test_judicial_escalation.py`), V12 moral hub (`tests/test_moral_hub.py`), **named runtime profile smoke** (`tests/test_runtime_profiles.py`), runtime entry/bind/telemetry, advisory interval env + SQLite snapshot adapter, JSON snapshot persistence, checkpoint integration, Ollama LLM mode, and LLM resolve/monologue options (`tests/test_llm_phase3.py`).
 
 1. **Absolute Evil** is always blocked
 2. **Action coherence** under variability (100 runs × 9 simulations)

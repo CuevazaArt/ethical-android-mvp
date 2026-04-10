@@ -204,6 +204,8 @@ Governance track: **artificial social contract** metaphor — owner insistence i
 
 **Nomadic checkpoints + hub audit:** optional **Fernet** at-rest encryption for `JsonFilePersistence` (`KERNEL_CHECKPOINT_FERNET_KEY`); **HubAudit** calibration lines for hub events; **WebSocket** test for `nomad_simulate_migration`.
 
+**Strategy + runtime profiles (April 2026):** [docs/ESTRATEGIA_Y_RUTA.md](docs/ESTRATEGIA_Y_RUTA.md) records a constructive review (strengths, expectation gaps, risks) and a **readapted route** prioritizing **named demo profiles** (`src/runtime_profiles.py`) and CI smoke tests over unconstrained `KERNEL_*` combinatorics. See [TRACE_IMPLEMENTATION_RECENT.md](docs/TRACE_IMPLEMENTATION_RECENT.md) for the next feature backlog after P0.
+
 **Nomadic instantiation (design v11):** [docs/discusion/PROPUESTA_CONCIENCIA_NOMADA_HAL.md](docs/discusion/PROPUESTA_CONCIENCIA_NOMADA_HAL.md) — HAL (`hardware_abstraction.py`), fases de transmutación y token de continuidad (`existential_serialization.py`); **`KERNEL_NOMAD_SIMULATION`** + **`KERNEL_NOMAD_MIGRATION_AUDIT`**, WebSocket `nomad_simulate_migration`, **`GET /nomad/migration`**; cifrado y P2P fuera del MVP.
 
 **UniversalEthos hub (docs + stubs):** [docs/discusion/UNIVERSAL_ETHOS_AND_HUB.md](docs/discusion/UNIVERSAL_ETHOS_AND_HUB.md) unifies DemocraticBuffer / multicultural overlays, services hub, audit levels, and module map. Code stubs: **`deontic_gate`** (incl. repeal of named L0 principles), **`ml_ethics_tuner`** (gray-zone audit line), **`reparation_vault`** (mock intent + hook after V11 mock tribunal), **`nomad_identity`** (immortality bridge). **`apply_proposal_resolution_to_constitution_drafts`** keeps draft status aligned with DAO resolve.
@@ -227,13 +229,16 @@ Governance track: **artificial social contract** metaphor — owner insistence i
 
 ## Roadmap (pending)
 
+Product and operations roadmap (expectations, P0–P3): **[docs/ESTRATEGIA_Y_RUTA.md](docs/ESTRATEGIA_Y_RUTA.md)**.
+
 - [x] ~~Weakness pole~~ (implemented v5)
 - [x] ~~Algorithmic forgiveness~~ (implemented v5)
 - [x] ~~Immortality protocol~~ (implemented v5)
 - [x] ~~Narrative augenesis~~ (implemented v5)
 - [x] ~~WebSocket chat + runtime entry~~ (implemented v6)
 - [x] ~~Snapshot persistence + checkpoints (MVP)~~ (implemented v6)
-- [ ] At-rest encryption for checkpoints/snapshots (production deployments)
+- [x] ~~Optional at-rest encryption for JSON checkpoints (Fernet)~~ — see `KERNEL_CHECKPOINT_FERNET_KEY`; SQLite rows remain plain
+- [ ] At-rest encryption / hardening for SQLite snapshots (production deployments)
 - [ ] DAO calibration protocol (gradual parameter adjustment on testnet)
 - [ ] Full offline mode (5 layers of autonomy)
 - [ ] Hardware integration (sensors, actuators, communication protocol)
