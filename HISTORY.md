@@ -190,6 +190,10 @@ Governance track: **artificial social contract** metaphor — owner insistence i
 | `MockDAO.register_escalation_case` | Append `escalation` rows to the audit ledger |
 | WebSocket | Optional `escalate_to_dao`; env `KERNEL_JUDICIAL_ESCALATION`, `KERNEL_CHAT_INCLUDE_JUDICIAL` |
 
+## v12.0 — April 2026 | Etosocial state — hybrid hub (vision only)
+
+**No code in this version** — registry entry for the **civilization-scale** layer: mixed tribunal (android / human / institutional jurors), MPC-style privacy narrative, federated ethical learning, human employment roles (truth auditors, affective tutors, identity rescuers), hybrid immortality registry, and value economy framing. Documented in `docs/discusion/PROPUESTA_ESTADO_ETOSOCIAL_V12.md`. **V11** remains the implementable justice/audit track; **V12** orients long-term roadmap and institutional narrative.
+
 ---
 
 ## Historical artifacts (not included in the repo, available locally)

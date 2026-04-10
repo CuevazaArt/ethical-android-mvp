@@ -3,6 +3,8 @@
 **Status:** design + **Phase 1** scaffolding in code (`src/modules/judicial_escalation.py`).  
 **Does not replace** v9 (epistemic/generative) or v10 (operational); V11 is a **governance and social-contract** track.
 
+**Upstream vision (V12):** The **hybrid civilization hub** — mixed tribunal, federated evolution, ethical economy, hybrid immortality registry — is documented separately as **[PROPUESTA_ESTADO_ETOSOCIAL_V12.md](PROPUESTA_ESTADO_ETOSOCIAL_V12.md)**. V11 remains the **concrete escalation/audit path**; V12 is **institution-scale architecture (design only)** and does not supersede V11 numbering.
+
 ## Positioning
 
 Allowing the android to **document** and optionally **escalate** persistent owner–agent conflict toward the **MockDAO** shifts the metaphor from **User–Tool** toward an **artificial social contract**: the owner is not an unchecked dictator inside the narrative layer, but a participant whose insistence can be **audited** and (in later phases) **peer-reviewed**. The **kernel ethical pipeline** (MalAbs → Bayes → poles → will) is unchanged; V11 adds **transparency, dossiers, and ledger hooks**, not a parallel veto.
@@ -49,6 +51,7 @@ Documented here to avoid scope creep in Phase 1:
 ## References
 
 - [PROPUESTA_ESTRATEGIA_OPERATIVA_V10.md](PROPUESTA_ESTRATEGIA_OPERATIVA_V10.md) — gray-zone diplomacy precursor
+- [PROPUESTA_ESTADO_ETOSOCIAL_V12.md](PROPUESTA_ESTADO_ETOSOCIAL_V12.md) — etosocial hub / hybrid justice infrastructure (vision; V12)
 - [RUNTIME_PERSISTENT.md](../RUNTIME_PERSISTENT.md) — checkpoints and confidentiality
 - [THEORY_AND_IMPLEMENTATION.md](../THEORY_AND_IMPLEMENTATION.md) — kernel contract
 

@@ -1,6 +1,6 @@
 # Ethical Android MVP
 
-**Functional prototype of the artificial ethical consciousness model with humanizing imperfection, forgiveness, and identity persistence.** Kernel feature set is **v5**; **v6–v10** add runtime, persistence, and optional advisory layers; **v11** adds governance / DAO escalation traceability (Phase 1) (see [`HISTORY.md`](HISTORY.md), [`CHANGELOG.md`](CHANGELOG.md)).
+**Functional prototype of the artificial ethical consciousness model with humanizing imperfection, forgiveness, and identity persistence.** Kernel feature set is **v5**; **v6–v10** add runtime, persistence, and optional advisory layers; **v11** adds governance / DAO escalation traceability (Phase 1); **v12** documents the **etosocial / hybrid-hub** civilization vision (no extra code) (see [`HISTORY.md`](HISTORY.md), [`CHANGELOG.md`](CHANGELOG.md)).
 
 An autonomous moral agent that makes ethical decisions using Bayesian inference,
 narrative memory, multipolar evaluation, LLM layer, narrative weakness pole,
@@ -360,7 +360,7 @@ In GoDaddy DNS for the domain:
 ├── BIBLIOGRAPHY.md       # 104 academic references across 14 disciplines
 ├── CHANGELOG.md          # Version change history
 ├── CONTRIBUTING.md       # Contributor guide
-├── HISTORY.md            # Full project evolution (v1→v11)
+├── HISTORY.md            # Full project evolution (v1→v12)
 ├── LICENSE               # Apache 2.0
 ├── SECURITY.md           # Vulnerability reporting policy
 ├── README.md             # This file
@@ -381,7 +381,7 @@ A copy of `dashboard.html` is also kept under `landing/public/` so the Next.js a
 
 **Implementation trace (Guardian, v9–v10) and bibliography links:** [docs/TRACE_IMPLEMENTATION_RECENT.md](docs/TRACE_IMPLEMENTATION_RECENT.md) — maps components to [BIBLIOGRAPHY.md](BIBLIOGRAPHY.md) reference numbers; includes suggested next development session.
 
-**Roadmap (foundation — discussion notes + phased code):** Guardian Angel — [PROPUESTA_ANGEL_DE_LA_GUARDIA.md](docs/discusion/PROPUESTA_ANGEL_DE_LA_GUARDIA.md). **v9** — [PROPUESTA_CAPACIDAD_AMPLIADA_V9.md](docs/discusion/PROPUESTA_CAPACIDAD_AMPLIADA_V9.md). **v10** — diplomacy, skills, somatic markers, metaplan (MVP) — [PROPUESTA_ESTRATEGIA_OPERATIVA_V10.md](docs/discusion/PROPUESTA_ESTRATEGIA_OPERATIVA_V10.md). **V11** — distributed justice / DAO escalation (Phase 1 in code) — [PROPUESTA_JUSTICIA_DISTRIBUIDA_V11.md](docs/discusion/PROPUESTA_JUSTICIA_DISTRIBUIDA_V11.md).
+**Roadmap (foundation — discussion notes + phased code):** Guardian Angel — [PROPUESTA_ANGEL_DE_LA_GUARDIA.md](docs/discusion/PROPUESTA_ANGEL_DE_LA_GUARDIA.md). **v9** — [PROPUESTA_CAPACIDAD_AMPLIADA_V9.md](docs/discusion/PROPUESTA_CAPACIDAD_AMPLIADA_V9.md). **v10** — diplomacy, skills, somatic markers, metaplan (MVP) — [PROPUESTA_ESTRATEGIA_OPERATIVA_V10.md](docs/discusion/PROPUESTA_ESTRATEGIA_OPERATIVA_V10.md). **V11** — distributed justice / DAO escalation (Phase 1 in code) — [PROPUESTA_JUSTICIA_DISTRIBUIDA_V11.md](docs/discusion/PROPUESTA_JUSTICIA_DISTRIBUIDA_V11.md). **V12** — etosocial state / hybrid justice & services hub (vision) — [PROPUESTA_ESTADO_ETOSOCIAL_V12.md](docs/discusion/PROPUESTA_ESTADO_ETOSOCIAL_V12.md).
 
 **Experimental paper (same lineage, Spanish draft):** expected phenomena when coupling PAD + prototype mixing to the kernel; *color* / *flavor* as metaphors; testable hypotheses for future runs — [docs/experimental/PAPER_AFECTO_FENOMENOS_Y_HIPOTESIS.md](docs/experimental/PAPER_AFECTO_FENOMENOS_Y_HIPOTESIS.md).
 

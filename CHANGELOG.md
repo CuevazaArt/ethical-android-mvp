@@ -2,6 +2,11 @@
 
 All notable changes to this project are summarized here. For narrative context and design rationale, see [`HISTORY.md`](HISTORY.md).
 
+## v12.0 — April 2026
+### Etosocial state — hybrid justice hub (documentation only)
+- **Design doc** [docs/discusion/PROPUESTA_ESTADO_ETOSOCIAL_V12.md](docs/discusion/PROPUESTA_ESTADO_ETOSOCIAL_V12.md): mixed tribunal, MPC/jury privacy sketch, federated learning & firmware governance, ethical economy / human roles, hybrid immortality registry — **vision layer**, not a kernel or DAO implementation.
+- **Relationship to V11:** V11 keeps Phase 1 code (`judicial_escalation`); V12 describes upstream infrastructure without replacing V11 scope.
+
 ## v11.0 — April 2026
 ### Distributed artificial justice — Phase 1 (traceability)
 - **`judicial_escalation.py`**: conservative advisory when `decision_mode` is gray zone with elevated reflection/premise tension; English traceability notice; `EthicalDossierV1` (order, signal summary, monologue digest hash).
