@@ -192,9 +192,11 @@ Governance track: **artificial social contract** metaphor — owner insistence i
 | Phase 2 (same version line) | `EscalationSessionTracker` on `EthicalKernel`; strikes gate `dossier_ready` and DAO registration; `escalation_deferred` if early |
 | Phase 3 (same version line) | `MockDAO.run_mock_escalation_court` — simulated proposal + votes; verdict A/B/C; optional `KERNEL_JUDICIAL_MOCK_COURT` |
 
-## v12.0 — April 2026 | Etosocial state — hybrid hub (vision only)
+## v12.0 — April 2026 | Moral Infrastructure Hub (vision + Phase 1 hooks)
 
-**No code in this version** — registry entry for the **civilization-scale** layer: mixed tribunal (android / human / institutional jurors), MPC-style privacy narrative, federated ethical learning, human employment roles (truth auditors, affective tutors, identity rescuers), hybrid immortality registry, and value economy framing. Documented in `docs/discusion/PROPUESTA_ESTADO_ETOSOCIAL_V12.md`. **V11** remains the implementable justice/audit track; **V12** orients long-term roadmap and institutional narrative.
+**Vision** in `docs/discusion/PROPUESTA_ESTADO_ETOSOCIAL_V12.md`: DemocraticBuffer (L0/L1/L2), services cooperative, EthosPayroll, R&D transparency vs. privacy veil, hybrid immortality — **full product** trajectory.
+
+**V12.1 (code):** `src/modules/moral_hub.py` — read-only **L0 constitution** JSON (`GET /constitution` when `KERNEL_MORAL_HUB_PUBLIC=1`); optional **transparency audit** on WebSocket connect (`KERNEL_TRANSPARENCY_AUDIT`); mock **community buffer proposals** (`KERNEL_DEMOCRATIC_BUFFER_MOCK`); **EthosPayroll** mock audit line (`KERNEL_ETHOS_PAYROLL_MOCK`). Does **not** mutate `PreloadedBuffer` or MalAbs.
 
 ---
 

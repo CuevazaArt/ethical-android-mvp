@@ -20,11 +20,26 @@ def test_health():
     assert r.json().get("status") == "ok"
 
 
+def test_constitution_404_when_moral_hub_public_off():
+    r = client.get("/constitution")
+    assert r.status_code == 404
+
+
+def test_constitution_200_when_moral_hub_public_on(monkeypatch):
+    monkeypatch.setenv("KERNEL_MORAL_HUB_PUBLIC", "1")
+    r = client.get("/constitution")
+    assert r.status_code == 200
+    body = r.json()
+    assert "levels" in body
+    assert "0" in body["levels"]
+
+
 def test_root_lists_websocket():
     r = client.get("/")
     assert r.status_code == 200
     body = r.json()
     assert body.get("websocket") == "/ws/chat"
+    assert "constitution" in body
 
 
 def test_root_protocol_mentions_multimodal_and_sensor_fields():

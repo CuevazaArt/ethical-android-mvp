@@ -3,9 +3,11 @@
 All notable changes to this project are summarized here. For narrative context and design rationale, see [`HISTORY.md`](HISTORY.md).
 
 ## v12.0 — April 2026
-### Etosocial state — hybrid justice hub (documentation only)
-- **Design doc** [docs/discusion/PROPUESTA_ESTADO_ETOSOCIAL_V12.md](docs/discusion/PROPUESTA_ESTADO_ETOSOCIAL_V12.md): mixed tribunal, MPC/jury privacy sketch, federated learning & firmware governance, ethical economy / human roles, hybrid immortality registry — **vision layer**, not a kernel or DAO implementation.
-- **Relationship to V11:** V11 keeps Phase 1 code (`judicial_escalation`); V12 describes upstream infrastructure without replacing V11 scope.
+### Moral Infrastructure Hub — vision + V12.1 code hooks
+- **Design doc** [docs/discusion/PROPUESTA_ESTADO_ETOSOCIAL_V12.md](docs/discusion/PROPUESTA_ESTADO_ETOSOCIAL_V12.md): DemocraticBuffer (L0–L2), services hub, EthosPayroll, R&D transparency; phased table **V12.1–V12.4**.
+- **`moral_hub.py`:** `constitution_snapshot`, `GET /constitution` (`KERNEL_MORAL_HUB_PUBLIC`); `audit_transparency_event` (`KERNEL_TRANSPARENCY_AUDIT`); `propose_community_article_mock` (`KERNEL_DEMOCRATIC_BUFFER_MOCK`); `ethos_payroll_record_mock` (`KERNEL_ETHOS_PAYROLL_MOCK`). WebSocket connect triggers transparency + optional payroll audit.
+- **`EthicalKernel.get_constitution_snapshot()`** for programmatic L0 export.
+- **Relationship to V11:** justice track unchanged; hub adds governance **narrative + audit hooks** without editing `buffer.py` contents.
 
 ## v11.0 — April 2026
 ### Distributed artificial justice — Phases 1–2 (traceability + session strikes)

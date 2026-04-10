@@ -11,7 +11,7 @@ forgiveness cycle, weakness load, immortality backup, drive intents.
 
 import os
 from dataclasses import dataclass
-from typing import List, Dict, Optional, Tuple
+from typing import Any, List, Dict, Optional, Tuple
 
 from .modules.absolute_evil import AbsoluteEvilDetector, AbsoluteEvilResult
 from .modules.buffer import PreloadedBuffer
@@ -176,6 +176,12 @@ class EthicalKernel:
         self.somatic_store = SomaticMarkerStore()
         self.metaplan = MetaplanRegistry()
         self.escalation_session = EscalationSessionTracker()
+
+    def get_constitution_snapshot(self) -> Dict[str, Any]:
+        """Read-only export of L0 principles (buffer.py); L1/L2 placeholders — see V12 moral hub."""
+        from .modules.moral_hub import constitution_snapshot
+
+        return constitution_snapshot(self.buffer)
 
     def process(self, scenario: str, place: str,
                 signals: dict, context: str,

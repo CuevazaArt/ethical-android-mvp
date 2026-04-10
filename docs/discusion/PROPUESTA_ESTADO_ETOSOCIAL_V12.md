@@ -1,7 +1,82 @@
-# V12 — Distributed etosocial state & hybrid justice hub (vision)
+# V12 — Moral Infrastructure Hub & distributed etosocial state
 
-**Status:** **design and research only** — no implementation commitment in the MVP codebase.  
-**Relationship to V11:** V11 ([PROPUESTA_JUSTICIA_DISTRIBUIDA_V11.md](PROPUESTA_JUSTICIA_DISTRIBUIDA_V11.md)) supplies **traceability, dossiers, and local DAO audit hooks**; V12 describes the **macro-infrastructure** those hooks could eventually plug into: mixed institutions, federated learning, and economic layers. The kernel ethical pipeline (MalAbs → … → will) remains the **normative core**; V12 is **governance, operations, and society-scale architecture**, not a replacement kernel.
+**Status:** **vision + Phase 1 code hooks** in `src/modules/moral_hub.py` (constitution export, transparency audit, mock proposals, EthosPayroll audit lines).  
+**Relationship to V11:** V11 implements **justice traceability and mock tribunal**; V12 frames the **civilization-scale hub** (constitution, economy, R&D ethics) that those features plug into. The kernel pipeline (MalAbs → … → will) remains the **normative core**; hub layers are **governance and operations**, not a replacement kernel.
+
+---
+
+## Hub positioning: “living constitution”
+
+The project is not only a software model but an **infrastructure for hybrid moral civilization**: humans, institutions, and services maintain a **Living Constitution** — the android’s “instinct” becomes a **democratic expression of universal values** only in the **full product vision**; in the MVP, **L0** remains **immutable in code** (`buffer.py`), with **read-only export** and **mock** DAO proposals for demos.
+
+---
+
+## Pillar 1 — Community constitution (DemocraticBuffer)
+
+The buffer stops being **only** a static file in the **vision**: it becomes a **dynamic social contract** where validated institutions and humans propose **ethical articles**, and the community votes (quadratic voting) on what enters the immutable layers.
+
+| Layer | Content (vision) | Vote threshold (design) | MVP codebase |
+|-------|------------------|-------------------------|--------------|
+| **L0 — Hard core** | Human rights + MalAbs-class absolutes | ~90% consensus (design) | **Implemented** as `PreloadedBuffer` in `buffer.py`; **not** community-editable yet |
+| **L1 — Coexistence** | Culture / hardware norms | ~66% (design) | **Placeholder** empty list in `constitution_snapshot()` |
+| **L2 — Owner directives** | Private preferences, may not violate L0/L1 | Owner + bounds (design) | **Placeholder** |
+
+**Phase 1 code:** `constitution_snapshot()` exports L0 **read-only**; `propose_community_article_mock()` → `MockDAO.create_proposal` when `KERNEL_DEMOCRATIC_BUFFER_MOCK=1` (does **not** mutate `PreloadedBuffer`).
+
+---
+
+## Pillar 2 — Services hub (value + employment)
+
+| Service | Role (vision) | MVP |
+|---------|---------------|-----|
+| **Distributed justice** | External parties contract DAO for ethical arbitration; human + android analysts | V11 mock court + escalation audit |
+| **Soul / firmware care** | Subscription for backup + updates | Persistence + immortality modules (existing) |
+| **ML ethics tuning** | Sell certified ethical inference models; human “value trainers” | Not implemented; federated learning remains design |
+
+---
+
+## Pillar 3 — Mixed remuneration (EthosPayroll)
+
+**Vision:** Fiat/crypto from services and licenses; **reputation tokens** for DAO weight and priority access.  
+**Phase 1 code:** `ethos_payroll_record_mock()` appends **audit** lines when `KERNEL_ETHOS_PAYROLL_MOCK=1` (narrative only; no payments).
+
+---
+
+## Pillar 4 — R&D transparency vs. privacy veil
+
+| Stage | Policy (vision) | Phase 1 code |
+|-------|-----------------|--------------|
+| **Sandbox observation** | Core team holds an **auditor transparency** role: thought flows visible for debugging **only under policy** | `KERNEL_TRANSPARENCY_AUDIT=1` → `audit_transparency_event()` on each WebSocket open (and extensible to other events) |
+| **Auditability** | Each access generates a **DAO audit record** (mock) | `register_audit` via `moral_hub` |
+| **Future veil** | Human direct observation replaced by **statistical summaries** from trusted androids | Not implemented |
+
+---
+
+## Logistics architecture (inputs → hub)
+
+```
+(Input) Institutions + humans → propose buffer / ML changes (vision)
+        ↓
+Deliberation DAO → votes on weights & firmware (vision; mock DAO today)
+        ↓
+Hub execution → androids deliver services; humans audit truth/ethics (vision)
+        ↓
+Value flow → maintenance, salaries, network expansion (vision; EthosPayroll mock audit only)
+```
+
+---
+
+## Phased implementation (registry)
+
+| Phase | Deliverable | Risk | Code status |
+|-------|-------------|------|-------------|
+| **V12.1** | Read-only L0 JSON (`GET /constitution`); `KERNEL_MORAL_HUB_PUBLIC` | Low | **Done** |
+| **V12.1** | Transparency audit hook on WebSocket; `KERNEL_TRANSPARENCY_AUDIT` | Low | **Done** |
+| **V12.1** | Mock DemocraticBuffer proposals; `KERNEL_DEMOCRATIC_BUFFER_MOCK` | Low | **Done** |
+| **V12.1** | EthosPayroll mock audit lines; `KERNEL_ETHOS_PAYROLL_MOCK` | Low | **Done** |
+| **V12.2** | Persist L1/L2 drafts in snapshot schema (optional) | Medium | Planned |
+| **V12.3** | Real vote pipeline on proposals (off-chain → testnet) | High | Research |
+| **V12.4** | MPC jury, federated learning, payroll tokens | Very high | Research (see sections 1–4 legacy below) |
 
 ---
 
@@ -9,85 +84,59 @@
 
 | Prior track | Role | How V12 builds on it |
 |-------------|------|----------------------|
-| **V11 — Justice / escalation** | Social-contract metaphor; `escalation` audit; optional `escalate_to_dao` | Becomes the **on-ramp** to a future **mixed tribunal** and **certified buffer violations** — today: local mock only. |
-| **V10 — Operational** | Gray-zone diplomacy, skills, somatic markers, metaplan | **Work layer** prefiguration: human-in-the-loop roles in §3 extend “advisory” into **paid governance jobs** (design level). |
-| **V9 — Epistemic / generative** | Dissonance telemetry, generative candidates | **Truth and dilemma** surfaces that **Auditors of Truth** (§3) could later arbitrate — not redundant; V12 names institutional scale. |
-| **V8 — Situated / vitality** | Sensors, multimodal trust | **Evidence** path toward abstract fact representations for jurors (§1 MPC) — V12 specifies *who* sees *what*, not implemented. |
-| **Persistence / immortality / augenesis** | Snapshots, `ImmortalityProtocol`, synthetic profiles | **Hybrid immortality registry** (§4) is a **vision** for fragmentation and legacy — extends but does not duplicate MVP backup semantics. |
-| **MockDAO** | Quadratic voting, reputation vectors, audit | V12’s **√(reputation)** vote weight is a **variant** of quadratic philosophy; must be reconciled explicitly if ever implemented (see §1). |
-
-**Value:** frames the project as **long-horizon civic infrastructure** (hybrid civilization), not only a software model — useful for grants, ethics boards, and roadmap narrative.  
-**Redundancy:** low **if** V12 is kept as **non-overlapping scope** (institutions, economy, MPC, federated global model). It **would** be redundant if copied verbatim into V11 phases; therefore V12 is a **separate version** in the registry.
+| **V11 — Justice** | Escalation, mock tribunal | On-ramp to certified buffer violations and **paid** arbitration (vision). |
+| **V10 — Operational** | Gray-zone, skills | **Work layer** toward paid governance roles. |
+| **MockDAO** | Quadratic voting, audit | DemocraticBuffer proposals and **EthosPayroll** mock lines use the same ledger. |
+| **PreloadedBuffer** | Immutable L0 | **Source of truth** for `constitution_snapshot` until governance ships. |
 
 ---
 
-## 1. Mixed tribunal (justice and deliberation)
+## Legacy sections — mixed tribunal, FL, economy, immortality (design)
 
-Justice is not **only** algorithms: a **balanced jury** is envisioned.
+### Mixed tribunal (justice and deliberation)
 
-- **Composition (target ratios, design sketch):** ~33% high-tier android instances, ~33% human experts (bioethicists, jurists), ~34% institutional observers — **not** a commitment; governance product decision.
-- **Privacy protocol:** **Multi-Party Computation (MPC)** so human jurors never see raw private video/audio; they see **abstract fact representations** and **buffer violations certified by the kernel** (not by the LLM alone).
-- **Quadratic-style weighting:** Vote weight as **square root of accumulated reputation** to limit dominance by any single actor — **related to** existing quadratic voting in `MockDAO` but **not identical**; reconciliation is a future spec.
+- Composition sketch: ~33% android / ~33% human experts / ~34% institutions — product decision.
+- **MPC** for juror privacy — research.
+- **√(reputation)** vote weight — related to quadratic voting in `MockDAO`; reconcile in a future spec.
 
-**Risk:** legal jurisdiction, juror liability, coercion, and “kernel-certified” evidentiary standards.
+### Technical evolution hub (ML and firmware)
 
----
+- Ethical federated learning; DAO-voted firmware — not in-repo training.
 
-## 2. Technical evolution hub (ML and firmware)
+### Value economy and human employment
 
-The DAO maintains collective **body** (deployment) and **mind** (model behaviour) without exposing individual raw data.
+- Truth auditors, affective tutors, identity rescuers — design; institutions pay for advisory at scale.
 
-- **Ethical federated learning:** Local error-driven updates; **gradients** aggregated at the DAO, not raw chat — aligns with privacy-preserving ML literature; **not** in-repo training today.
-- **Firmware maintenance:** Human developers (conceptually DAO-governed) propose sensor stack and security patches; **DAO votes** on capability changes — maps to future CI/governance, not current GitHub flow.
+### Hybrid immortality registry
 
-**Risk:** poisoning attacks on federated aggregates; who is allowed to submit gradients.
+- Fragmented backup, sovereign restore, narrative legacy — design; see persistence docs.
 
----
-
-## 3. Value economy and human employment
-
-The hub generates value through **ethical services**, paying humans for tasks machines **must not** or **cannot** do alone.
-
-| Role (design) | Function |
-|---------------|----------|
-| **Truth auditors** | Validate complex premises the android cannot verify alone (disinformation / epistemic load). |
-| **Affective tutors** | Help configure augenesis profiles for new users. |
-| **Identity rescuers** | Hardware experts recover soul backups from destroyed devices. |
-
-**Business model (sketch):** Institutions pay the android network for **large-scale ethical advisory** or **conflict mediation**; flows fund salaries and network maintenance.
-
-**Risk:** gig-economy exploitation, perverse incentives to manufacture conflicts.
-
----
-
-## 4. Hybrid immortality registry (soul backup)
-
-Identity backup is framed as the **highest network priority**.
-
-- **Fragmented encryption (design):** e.g. **12 fragments** — split across user devices, random android nodes, and institutional DAO vaults — **illustrative**, not a cryptographic spec.
-- **Sovereign restore:** Only the **owner** initiates reconstruction; **narrative legacy protocol** if the owner dies (android continues stated ethical mission) — **ethics and law**, not implemented.
-
-**Risk:** key custody, institutional coercion, conflict with “right to be forgotten.”
-
----
-
-## Architecture stack (V12 “value hub”)
+### Architecture stack (value hub)
 
 | Layer | Responsibility |
-|-------|------------------|
-| **Service** | Digital actions + advisory → **revenue** (design). |
-| **Work** | Android processing + **human audit** → **employment** (design). |
-| **Justice** | **Mixed tribunal** → owner/agent disputes (design). |
-| **Evolution** | **Federated ML** → global firmware/consciousness updates (design). |
+|-------|----------------|
+| **Service** | Digital actions + advisory → revenue (design). |
+| **Work** | Android + human audit → employment (design). |
+| **Justice** | Mixed tribunal → disputes (design). |
+| **Evolution** | Federated ML → global updates (design). |
+
+---
+
+## Environment variables (Phase 1)
+
+| Variable | Default | Effect |
+|----------|---------|--------|
+| `KERNEL_MORAL_HUB_PUBLIC` | off | Enables `GET /constitution` |
+| `KERNEL_TRANSPARENCY_AUDIT` | off | Logs `TransparencyAudit` on WebSocket open |
+| `KERNEL_DEMOCRATIC_BUFFER_MOCK` | off | `propose_community_article_mock` creates DAO proposals |
+| `KERNEL_ETHOS_PAYROLL_MOCK` | off | One-line EthosPayroll audit on WebSocket connect |
 
 ---
 
 ## Registry note (versioning)
 
-- **V11** = governance traceability track with **Phase 1 in code** (`judicial_escalation.py`, `MockDAO.register_escalation_case`).
-- **V12** = **etosocial / civilization hub** vision — **documentation only** until a future product line adopts it.
-
-Updates to implementation should advance **V11 phases** first; V12 informs **roadmap** and **institutional narrative** without implying shipped features.
+- **V11** = justice/escalation track (implemented phases 1–3).
+- **V12** = moral infrastructure hub: **vision** + **V12.1** code hooks above; no change to MalAbs or buffer semantics.
 
 ---
 
@@ -98,4 +147,4 @@ Updates to implementation should advance **V11 phases** first; V12 informs **roa
 - [RUNTIME_PERSISTENT.md](../RUNTIME_PERSISTENT.md)
 - [THEORY_AND_IMPLEMENTATION.md](../THEORY_AND_IMPLEMENTATION.md)
 
-*Ex Machina Foundation — V12 vision layer (not a kernel contract).*
+*Ex Machina Foundation — V12 hub layer; kernel contract unchanged.*

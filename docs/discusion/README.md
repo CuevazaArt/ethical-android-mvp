@@ -16,7 +16,7 @@ Product work is coordinated from the repository README and version control; this
 | [PROPUESTA_CAPACIDAD_AMPLIADA_V9.md](PROPUESTA_CAPACIDAD_AMPLIADA_V9.md) | **v9 pillars** (epistemic, generative, swarm, metaplanning); 9.1–9.2 in code — *Spanish* |
 | [PROPUESTA_ESTRATEGIA_OPERATIVA_V10.md](PROPUESTA_ESTRATEGIA_OPERATIVA_V10.md) | **v10 operational:** gray-zone diplomacy, skills, somatic markers, long goals — *Spanish* |
 | [PROPUESTA_JUSTICIA_DISTRIBUIDA_V11.md](PROPUESTA_JUSTICIA_DISTRIBUIDA_V11.md) | **V11 governance:** DAO escalation audit, social-contract metaphor; phased roadmap (sanctions / P2P / ZK — research) — design **English** + Phase 1 in code |
-| [PROPUESTA_ESTADO_ETOSOCIAL_V12.md](PROPUESTA_ESTADO_ETOSOCIAL_V12.md) | **V12 vision:** hybrid civilization hub — mixed tribunal, MPC sketch, federated ML, ethical economy, immortality registry — **documentation only** |
+| [PROPUESTA_ESTADO_ETOSOCIAL_V12.md](PROPUESTA_ESTADO_ETOSOCIAL_V12.md) | **V12 Moral Infrastructure Hub** — DemocraticBuffer, services, EthosPayroll, R&D transparency; **V12.1** code in `moral_hub.py` + `GET /constitution` |
 | [../TRACE_IMPLEMENTATION_RECENT.md](../TRACE_IMPLEMENTATION_RECENT.md) | **Traceability** Guardian + v9–v10: code ↔ bibliography ([BIBLIOGRAPHY.md](../../BIBLIOGRAPHY.md)); proposed next session — **English** |
 
 For canonical runtime and persistence docs in English, see [RUNTIME_CONTRACT.md](../RUNTIME_CONTRACT.md), [RUNTIME_PERSISTENT.md](../RUNTIME_PERSISTENT.md), and [RUNTIME_PHASES.md](../RUNTIME_PHASES.md).

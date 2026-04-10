@@ -37,6 +37,11 @@ Judicial escalation (V11 Phases 1–3): KERNEL_JUDICIAL_ESCALATION enables advis
 runs a simulated DAO vote + verdict A/B/C after registration. KERNEL_CHAT_INCLUDE_JUDICIAL
 exposes ``judicial_escalation`` in responses. See judicial_escalation.py, PROPUESTA_JUSTICIA_DISTRIBUIDA_V11.md.
 
+Moral Infrastructure Hub (V12 Phase 1): KERNEL_MORAL_HUB_PUBLIC enables ``GET /constitution`` (L0 JSON).
+KERNEL_TRANSPARENCY_AUDIT logs R&D transparency events on WebSocket connect. KERNEL_DEMOCRATIC_BUFFER_MOCK
+enables mock DemocraticBuffer proposals (DAO only; does not change buffer.py). KERNEL_ETHOS_PAYROLL_MOCK
+appends EthosPayroll mock ledger lines on connect. See moral_hub.py, PROPUESTA_ESTADO_ETOSOCIAL_V12.md.
+
 Advisory telemetry (optional, Fase 1.3–1.4): KERNEL_ADVISORY_INTERVAL_S — positive seconds
 spawns a read-only :func:`src.runtime.telemetry.advisory_loop` per WebSocket session (DriveArbiter only).
 
@@ -74,6 +79,13 @@ from .modules.consequence_projection import qualitative_temporal_branches
 from .modules.guardian_mode import is_guardian_mode_active
 from .modules.perceptual_abstraction import snapshot_from_layers
 from .modules.judicial_escalation import chat_include_judicial
+from .modules.moral_hub import (
+    audit_transparency_event,
+    constitution_snapshot,
+    ethos_payroll_record_mock,
+    moral_hub_public_enabled,
+)
+from .modules.buffer import PreloadedBuffer
 from .real_time_bridge import RealTimeBridge
 from .runtime.telemetry import advisory_interval_seconds_from_env, advisory_loop
 
@@ -276,12 +288,29 @@ def health() -> Dict[str, str]:
     return {"status": "ok"}
 
 
+@app.get("/constitution")
+def constitution_public() -> JSONResponse:
+    """
+    Read-only Level-0 ethical principles (current PreloadedBuffer) as JSON.
+
+    Enabled when KERNEL_MORAL_HUB_PUBLIC=1. Does not expose L1/L2 drafts until governance exists.
+    See docs/discusion/PROPUESTA_ESTADO_ETOSOCIAL_V12.md (DemocraticBuffer vision).
+    """
+    if not moral_hub_public_enabled():
+        return JSONResponse(
+            {"error": "disabled", "hint": "set KERNEL_MORAL_HUB_PUBLIC=1"},
+            status_code=404,
+        )
+    return JSONResponse(constitution_snapshot(PreloadedBuffer()))
+
+
 @app.get("/")
 def root() -> JSONResponse:
     return JSONResponse(
         {
             "service": "ethical-android-chat",
             "websocket": "/ws/chat",
+            "constitution": "/constitution (requires KERNEL_MORAL_HUB_PUBLIC=1)",
             "protocol": (
                 "Send JSON: {\"text\": str, \"agent_id\"?: str, \"include_narrative\"?: bool, "
                 "\"sensor\"?: {battery_level?, audio_emergency?, vision_emergency?, scene_coherence?, …}}. "
@@ -314,6 +343,15 @@ async def ws_chat(ws: WebSocket) -> None:
     )
     try_load_checkpoint(kernel)
     session_ckpt = init_session_checkpoint_state(kernel)
+    audit_transparency_event(
+        kernel.dao,
+        "websocket_session_open",
+        "moral_hub V12 Phase 1 — R&D transparency audit hook",
+    )
+    ethos_payroll_record_mock(
+        kernel.dao,
+        "session_start channel=websocket (EthosPayroll mock ledger line)",
+    )
     bridge = RealTimeBridge(kernel)
 
     interval = advisory_interval_seconds_from_env()
