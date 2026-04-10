@@ -15,7 +15,7 @@ Allowing the android to **document** and optionally **escalate** persistent owne
 |-------|------|-------------|-------------|
 | **1 — Traceability & dossier (MVP)** | Template notice + structured dossier + **local DAO audit** entry (`escalation` records). Optional WebSocket telemetry (`KERNEL_CHAT_INCLUDE_JUDICIAL`). Client opt-in `escalate_to_dao` on a chat turn. | Low — advisory + audit only | **Implemented** (baseline) |
 | **2 — Escalation state machine** | Per-kernel **session strikes** (`EscalationSessionTracker`); phases `traceability_notice` → `dossier_ready` when strikes ≥ threshold; `escalate_to_dao` registers only if threshold met, else `escalation_deferred`. Env: `KERNEL_JUDICIAL_STRIKES_FOR_DOSSIER`, `KERNEL_JUDICIAL_RESET_IDLE_TURNS`. | Low–medium — UX and consent copy | **Implemented** |
-| **3 — Mock “court” simulation** | Use existing `MockDAO` proposals/votes to simulate **Veredicto A/B/C** on an escalation case (still single process, no network). | Medium — must stay clearly **simulated** | Planned |
+| **3 — Mock “court” simulation** | `MockDAO.run_mock_escalation_court`: proposal + quadratic votes (panel, android, deterministic community) → verdict **A/B/C**; JSON `mock_court` when **`KERNEL_JUDICIAL_MOCK_COURT=1`**. Phase `mock_court_resolved`. | Medium — must stay clearly **simulated** | **Implemented** |
 | **4 — Owner-facing sanctions (optional product)** | Restrict delegated agency, force `D_delib`, etc. **Only** for actions mediated by the assistant; never raw OS lockout. Requires threat model + legal review. | **High** | Not started |
 | **5 — P2P ethical nodes** | Network of instances, Sybil resistance, identity. | **Very high** | Research only |
 | **6 — Evidence privacy** | Encrypted dossiers, ZK proofs, selective disclosure. | **Very high** (crypto + semantics) | Research only |
@@ -29,6 +29,7 @@ Allowing the android to **document** and optionally **escalate** persistent owne
 - **Phase 2 — session strikes:** each qualifying turn increments **strikes**; after **`KERNEL_JUDICIAL_RESET_IDLE_TURNS`** (default 2) consecutive non-qualifying turns, strikes reset. **`KERNEL_JUDICIAL_STRIKES_FOR_DOSSIER`** (default 2) is the threshold for **`dossier_ready`** and for registering a dossier when **`escalate_to_dao: true`**.
 - **`escalate_to_dao: true`** before threshold: returns phase **`escalation_deferred`** (`dao_registration_blocked: true`), no ledger write.
 - At or above threshold: build `EthicalDossierV1` (includes `session_strikes`), register an **`escalation`** audit line in `MockDAO` (no blockchain, no sanctions).
+- **Phase 3 — mock tribunal:** if **`KERNEL_JUDICIAL_MOCK_COURT=1`**, after registration call `run_mock_escalation_court` (proposal + votes). Response includes **`mock_court`** (`verdict_code` **A** / **B** / **C**, `verdict_label`, vote totals, `disclaimer`). **Phase** becomes **`mock_court_resolved`** when the court runs; otherwise **`dao_submitted_mock`** only.
 
 ## Experimental / risky topics (later work)
 

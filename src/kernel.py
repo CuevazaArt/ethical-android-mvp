@@ -73,6 +73,7 @@ from .modules.judicial_escalation import (
     build_escalation_view,
     build_ethical_dossier,
     judicial_escalation_enabled,
+    mock_court_enabled,
     should_offer_escalation_advisory,
     strikes_threshold_from_env,
 )
@@ -775,6 +776,14 @@ class EthicalKernel:
                             dossier.to_audit_paragraph(),
                             episode_id=self._last_registered_episode_id,
                         )
+                        mock_court = None
+                        if mock_court_enabled():
+                            mock_court = self.dao.run_mock_escalation_court(
+                                dossier.case_uuid,
+                                rec.id,
+                                dossier.to_audit_paragraph(),
+                                dossier.buffer_conflict,
+                            )
                         je_view = build_escalation_view(
                             True,
                             True,
@@ -782,6 +791,7 @@ class EthicalKernel:
                             rec.id,
                             session_strikes=strikes,
                             strikes_threshold=threshold,
+                            mock_court=mock_court,
                         )
                     else:
                         je_view = build_escalation_view(

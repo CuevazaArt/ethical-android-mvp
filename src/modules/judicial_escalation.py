@@ -1,9 +1,9 @@
 """
-Judicial escalation — V11 Phase 1–2 (traceability, session strikes, dossier → MockDAO).
+Judicial escalation — V11 Phases 1–3 (traceability, strikes, dossier, optional mock tribunal).
 
 Advisory only: does **not** change MalAbs, buffer, or Bayesian outcomes.
-Phase 2: session **strike** counter; DAO registration typically requires **strikes ≥ threshold**
-(configurable via ``KERNEL_JUDICIAL_STRIKES_FOR_DOSSIER``).
+Phase 3: optional ``MockDAO.run_mock_escalation_court`` after dossier registration
+(``KERNEL_JUDICIAL_MOCK_COURT``).
 
 See docs/discusion/PROPUESTA_JUSTICIA_DISTRIBUIDA_V11.md
 """
@@ -22,7 +22,7 @@ from .ethical_reflection import ReflectionSnapshot
 
 
 class EscalationPhase(str, Enum):
-    """Session lifecycle for V11 Phase 2."""
+    """Session lifecycle for V11."""
 
     IDLE = "idle"
     TRACEABILITY_NOTICE = "traceability_notice"
@@ -30,6 +30,7 @@ class EscalationPhase(str, Enum):
     ESCALATION_DEFERRED = "escalation_deferred"
     DOSSIER_PACKAGED = "dossier_packaged"
     DAO_SUBMITTED_MOCK = "dao_submitted_mock"
+    MOCK_COURT_RESOLVED = "mock_court_resolved"
 
 
 def judicial_escalation_enabled() -> bool:
@@ -39,6 +40,12 @@ def judicial_escalation_enabled() -> bool:
 
 def chat_include_judicial() -> bool:
     v = os.environ.get("KERNEL_CHAT_INCLUDE_JUDICIAL", "0").strip().lower()
+    return v in ("1", "true", "yes", "on")
+
+
+def mock_court_enabled() -> bool:
+    """Phase 3: after dossier registration, run simulated proposal + votes + verdict A/B/C."""
+    v = os.environ.get("KERNEL_JUDICIAL_MOCK_COURT", "0").strip().lower()
     return v in ("1", "true", "yes", "on")
 
 
@@ -179,7 +186,7 @@ def build_ethical_dossier(
 
 @dataclass
 class JudicialEscalationView:
-    """JSON-safe view for WebSocket clients (Phase 2 adds strikes / gating)."""
+    """JSON-safe view for WebSocket clients (Phase 2: strikes; Phase 3: mock_court)."""
 
     active: bool
     phase: str
@@ -190,6 +197,7 @@ class JudicialEscalationView:
     strikes_threshold: int = 2
     dossier_ready: bool = False
     dao_registration_blocked: bool = False
+    mock_court: Optional[Dict[str, Any]] = None
 
     def to_public_dict(self) -> Dict[str, Any]:
         out: Dict[str, Any] = {
@@ -204,6 +212,8 @@ class JudicialEscalationView:
         }
         if self.case_id:
             out["case_id"] = self.case_id
+        if self.mock_court is not None:
+            out["mock_court"] = self.mock_court
         return out
 
 
@@ -215,6 +225,7 @@ def build_escalation_view(
     *,
     session_strikes: int = 0,
     strikes_threshold: int = 2,
+    mock_court: Optional[Dict[str, Any]] = None,
 ) -> Optional[JudicialEscalationView]:
     """
     Build the public view. Phase 2: if ``escalate_to_dao`` but strikes < threshold,
@@ -226,9 +237,14 @@ def build_escalation_view(
     dossier_ready = session_strikes >= strikes_threshold
 
     if escalate_to_dao and dossier is not None and audit_record_id:
+        dao_phase = (
+            EscalationPhase.MOCK_COURT_RESOLVED.value
+            if mock_court
+            else EscalationPhase.DAO_SUBMITTED_MOCK.value
+        )
         return JudicialEscalationView(
             active=True,
-            phase=EscalationPhase.DAO_SUBMITTED_MOCK.value,
+            phase=dao_phase,
             notice_en=phase1_traceability_notice(),
             case_id=audit_record_id,
             dossier_registered=True,
@@ -236,6 +252,7 @@ def build_escalation_view(
             strikes_threshold=strikes_threshold,
             dossier_ready=True,
             dao_registration_blocked=False,
+            mock_court=mock_court,
         )
 
     if escalate_to_dao and not dossier_ready:

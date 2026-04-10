@@ -31,9 +31,10 @@ Generative candidates (v9.2): KERNEL_GENERATIVE_ACTIONS, KERNEL_GENERATIVE_ACTIO
 KERNEL_GENERATIVE_TRIGGER_CONTEXTS — see generative_candidates.py. JSON ``decision`` may include
 ``chosen_action_source`` and ``proposal_id``.
 
-Judicial escalation (V11 Phases 1–2): KERNEL_JUDICIAL_ESCALATION enables advisory logic; optional JSON
+Judicial escalation (V11 Phases 1–3): KERNEL_JUDICIAL_ESCALATION enables advisory logic; optional JSON
 ``escalate_to_dao: true`` registers an ethical dossier when session strikes ≥ KERNEL_JUDICIAL_STRIKES_FOR_DOSSIER
-(default 2). KERNEL_JUDICIAL_RESET_IDLE_TURNS resets strikes after non-qualifying turns. KERNEL_CHAT_INCLUDE_JUDICIAL
+(default 2). KERNEL_JUDICIAL_RESET_IDLE_TURNS resets strikes after non-qualifying turns. KERNEL_JUDICIAL_MOCK_COURT
+runs a simulated DAO vote + verdict A/B/C after registration. KERNEL_CHAT_INCLUDE_JUDICIAL
 exposes ``judicial_escalation`` in responses. See judicial_escalation.py, PROPUESTA_JUSTICIA_DISTRIBUIDA_V11.md.
 
 Advisory telemetry (optional, Fase 1.3–1.4): KERNEL_ADVISORY_INTERVAL_S — positive seconds

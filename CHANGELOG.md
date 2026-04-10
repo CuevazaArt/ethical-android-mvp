@@ -11,6 +11,7 @@ All notable changes to this project are summarized here. For narrative context a
 ### Distributed artificial justice — Phases 1–2 (traceability + session strikes)
 - **`judicial_escalation.py`**: conservative advisory when `decision_mode` is gray zone with elevated reflection/premise tension; English notices; `EthicalDossierV1` (order, signal summary, monologue digest hash, session strikes).
 - **Phase 2:** `EscalationSessionTracker` per kernel; **`KERNEL_JUDICIAL_STRIKES_FOR_DOSSIER`** / **`KERNEL_JUDICIAL_RESET_IDLE_TURNS`**; phases `dossier_ready`, `escalation_deferred` if `escalate_to_dao` before threshold; WebSocket `judicial_escalation` includes strike counts and flags.
+- **Phase 3:** **`KERNEL_JUDICIAL_MOCK_COURT`** — `MockDAO.run_mock_escalation_court` after dossier registration; `mock_court` JSON with verdict A/B/C; phase `mock_court_resolved`.
 - **`MockDAO.register_escalation_case`**: audit records of type `escalation` (single-process mock; no blockchain).
 - **WebSocket**: optional `escalate_to_dao: true`; **`KERNEL_JUDICIAL_ESCALATION`** enables logic; **`KERNEL_CHAT_INCLUDE_JUDICIAL`** exposes `judicial_escalation` in JSON.
 - **Design doc**: [docs/discusion/PROPUESTA_JUSTICIA_DISTRIBUIDA_V11.md](docs/discusion/PROPUESTA_JUSTICIA_DISTRIBUIDA_V11.md) (Phase 3+: mock court, sanctions, P2P, ZK — not implemented).

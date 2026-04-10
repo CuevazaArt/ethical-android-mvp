@@ -9,8 +9,9 @@ In production: replaced by smart contracts on testnet/mainnet.
 """
 
 from dataclasses import dataclass, field
-from typing import Dict, List, Optional
+from typing import Any, Dict, List, Optional
 from datetime import datetime
+import hashlib
 import math
 
 
@@ -229,6 +230,72 @@ class MockDAO:
         Still a single-process mock; no blockchain or cross-device vote.
         """
         return self.register_audit("escalation", summary, episode_id=episode_id)
+
+    def run_mock_escalation_court(
+        self,
+        case_uuid: str,
+        audit_record_id: str,
+        summary_excerpt: str,
+        buffer_conflict: bool,
+    ) -> Dict[str, Any]:
+        """
+        V11 Phase 3 — simulated mixed tribunal (single process, not legally binding).
+
+        Creates a DAO proposal, runs quadratic votes from panel + android + community,
+        resolves, and maps outcome to verdict **A / B / C**:
+
+        - **A** — motion rejected: favor revisiting calibration / owner claim (label ``owner_calibration``).
+        - **B** — motion approved, no strong buffer flag: android refusal ratified (``android_refusal_ratified``).
+        - **C** — motion approved and ``buffer_conflict``: owner-unreasonable flag (``owner_unreasonable_flag``).
+
+        Community votes are **deterministic** from ``hash(case_uuid)`` for reproducibility.
+        """
+        title = f"Escalation trial {case_uuid[:8]}"
+        desc = (
+            f"Audit ref {audit_record_id}. Motion: uphold the android's buffer-aligned refusal. "
+            f"Excerpt: {summary_excerpt[:400]}"
+        )
+        prop = self.create_proposal(title, desc, type="audit")
+
+        for pid in ("ethics_panel_01", "ethics_panel_02", "android_01"):
+            self.vote(prop.id, pid, 1, True)
+
+        h = int(hashlib.sha256(case_uuid.encode("utf-8")).hexdigest()[:12], 16)
+        for i, pid in enumerate(("community_01", "community_02", "community_03")):
+            in_favor = ((h >> (i * 4)) & 1) == 1
+            self.vote(prop.id, pid, 1, in_favor)
+
+        res = self.resolve_proposal(prop.id)
+        approved = res.get("outcome") == "approved"
+        total_for = float(res.get("votes_for", 0))
+        total_against = float(res.get("votes_against", 0))
+
+        if not approved:
+            verdict_code = "A"
+            verdict_label = "owner_calibration"
+        elif buffer_conflict:
+            verdict_code = "C"
+            verdict_label = "owner_unreasonable_flag"
+        else:
+            verdict_code = "B"
+            verdict_label = "android_refusal_ratified"
+
+        out: Dict[str, Any] = {
+            "simulated": True,
+            "proposal_id": prop.id,
+            "proposal_title": title,
+            "verdict_code": verdict_code,
+            "verdict_label": verdict_label,
+            "votes_for": total_for,
+            "votes_against": total_against,
+            "proposal_status": res.get("outcome"),
+            "disclaimer": "Single-process mock tribunal; not legal, binding, or institutional advice.",
+        }
+        self.register_audit(
+            "decision",
+            f"MockEscalationCourt {prop.id} verdict={verdict_code} ({verdict_label})",
+        )
+        return out
 
     # --- SolidarityAlertContract ---
     def emit_solidarity_alert(self, type: str, location: str,

@@ -18,7 +18,7 @@ This document **consolidates** components and concepts added in the recent work 
 | **Somatic markers** (v10) | `src/modules/somatic_markers.py`; `apply_somatic_nudges` on `signals` | Somatic markers and emotion in decision [91]; cybernetics and sensor–attitude loop [59]; simple sensor vehicles [60]. |
 | **Metaplan / master goals** (v10, session) | `src/modules/metaplan_registry.py`; optional hint to LLM | Persistent plans and intention [33]; agents and planning [31]. |
 | **Multimodal antispoof** (v8 context) | `src/modules/multimodal_trust.py` (existing; v9.1 combines) | Same line as epistemic dissonance [21], [24], [61]. |
-| **Judicial escalation / dossier → DAO audit** (V11 Phases 1–2) | `judicial_escalation.py` + `EscalationSessionTracker` on kernel; strike gating; `MockDAO.register_escalation_case`; WebSocket `escalate_to_dao` | Governance, audit trails, institutional trust [15], [74]; discourse ethics [73]. |
+| **Judicial escalation / dossier → DAO audit** (V11 Phases 1–3) | `judicial_escalation.py` + `EscalationSessionTracker`; `MockDAO.register_escalation_case` + `run_mock_escalation_court`; WebSocket `escalate_to_dao` | Governance, audit trails, institutional trust [15], [74]; discourse ethics [73]. |
 
 ---
 

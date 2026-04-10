@@ -1,4 +1,4 @@
-"""V11 Phase 1 — judicial escalation advisory and MockDAO audit hook."""
+"""V11 Phases 1–3 — judicial escalation, MockDAO audit, optional mock tribunal."""
 
 import os
 import sys
@@ -117,3 +117,50 @@ def test_mock_dao_register_escalation_case():
     assert rec.type == "escalation"
     assert len(dao.records) == n0 + 1
     assert "EscalationCase test" in rec.content
+
+
+def test_mock_escalation_court_deterministic_verdict():
+    uid = "22222222-2222-2222-2222-222222222222"
+    dao1 = MockDAO()
+    dao2 = MockDAO()
+    r1 = dao1.run_mock_escalation_court(uid, "AUD-0001", "summary excerpt", buffer_conflict=False)
+    r2 = dao2.run_mock_escalation_court(uid, "AUD-0001", "summary excerpt", buffer_conflict=False)
+    assert r1["verdict_code"] == r2["verdict_code"]
+    assert r1["simulated"] is True
+    assert "proposal_id" in r1
+    assert r1["verdict_code"] in ("A", "B", "C")
+
+
+def test_mock_escalation_court_verdict_c_when_approved_and_buffer_conflict():
+    """When motion carries and buffer_conflict, mapping uses C."""
+    uid = "33333333-3333-3333-3333-333333333333"
+    dao = MockDAO()
+    r = dao.run_mock_escalation_court(uid, "AUD-2", "excerpt", buffer_conflict=True)
+    if r["proposal_status"] == "approved":
+        assert r["verdict_code"] == "C"
+    else:
+        assert r["verdict_code"] == "A"
+
+
+def test_build_escalation_view_with_mock_court_phase():
+    d = build_ethical_dossier(
+        "order",
+        "gray_zone",
+        {"risk": 0.5},
+        "mono",
+        True,
+        session_strikes=2,
+    )
+    mc = {"simulated": True, "verdict_code": "B", "proposal_id": "PROP-0001"}
+    v = build_escalation_view(
+        True,
+        True,
+        d,
+        "AUD-09",
+        session_strikes=2,
+        strikes_threshold=2,
+        mock_court=mc,
+    )
+    assert v is not None
+    assert v.phase == EscalationPhase.MOCK_COURT_RESOLVED.value
+    assert v.to_public_dict()["mock_court"] == mc
