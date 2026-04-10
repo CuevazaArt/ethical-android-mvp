@@ -47,6 +47,7 @@ from .modules.salience_map import SalienceMap, SalienceSnapshot, salience_to_llm
 from .modules.drive_arbiter import DriveArbiter
 from .modules.identity_integrity import pruning_recalibration_allowed
 from .modules.internal_monologue import compose_monologue_line
+from .modules.user_model import UserModelTracker
 
 
 @dataclass
@@ -127,6 +128,7 @@ class EthicalKernel:
         self.ethical_reflection = EthicalReflection()
         self.salience_map = SalienceMap()
         self.drive_arbiter = DriveArbiter()
+        self.user_model = UserModelTracker()
         self._last_registered_episode_id: Optional[str] = None
         self._pruned_actions: Dict[str, List[str]] = {}
         # Reference "genome" for drift caps (pilar 2); snapshot at construction
@@ -580,12 +582,23 @@ class EthicalKernel:
             )
 
         weakness_line = ""
+        circle = (
+            decision.social_evaluation.circle.value
+            if decision.social_evaluation
+            else "neutral_soto"
+        )
+        self.user_model.update(perception, circle, blocked=False)
+        um_line = self.user_model.guidance_for_communicate()
+        if um_line:
+            weakness_line = um_line
+
         load = self.weakness.emotional_load()
         if load > 0.35 and decision.moral:
-            weakness_line = (
+            wk = (
                 "You may briefly acknowledge processing load or mild indecision "
                 "(humanizing), without weakening civic or ethical commitments."
             )
+            weakness_line = (weakness_line + " " + wk).strip() if weakness_line else wk
 
         if perception.manipulation >= 0.55:
             manip_hint = (

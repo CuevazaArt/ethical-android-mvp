@@ -38,6 +38,8 @@ def test_websocket_chat_roundtrip():
         assert "affective_homeostasis" in data
         assert data["affective_homeostasis"].get("sigma") is not None
         assert "experience_digest" in data
+        assert "user_model" in data
+        assert "frustration_streak" in data["user_model"]
 
 
 def test_websocket_homeostasis_omitted(monkeypatch):
