@@ -4,6 +4,10 @@
 
 **Objetivo del documento:** pasar de la mera funcionalidad a la **resiliencia** frente a (a) manipulación externa, (b) degradación interna (olvido, contradicción), (c) paradojas o presión ética, y (d) fugas de privacidad. Todo ello **sin** sustituir a MalAbs, Bayes, buffer ni voluntad por heurísticas opacas ni por un segundo “veto paralelo” no auditado.
 
+### Principio rector: responsabilidad de la propia integridad
+
+La meta **no** es solo que el modelo sea “lo más consciente” posible en el sentido de riqueza fenomenológica o narrativa, sino que sea, en la medida del diseño, **responsable de su propia integridad**: vigilar y defender la coherencia entre principios inmutables, estado acumulado (memoria, identidad) y canal privado del pensamiento frente a manipulación, deriva, ruido cognitivo, estrés afectivo simulado sostenido y fugas de datos. Eso es lo que articulan los cinco pilares de forma **instrumental** y, cuando se implementen, **testeable**. La **normatividad** sigue concentrada en el kernel (`process` / `process_chat_turn`); la capa de robustez/metacontrol **no** reescribe la ética, solo acota cómo se preserva el sistema como sistema.
+
 **Referencias en código actuales:** `AbsoluteEvilDetector` (MalAbs), `PreloadedBuffer`, `WorkingMemory`, `SalienceMap`, `PADArchetypeEngine`, `PsiSleep`, `NarrativeMemory`, `AugenesisEngine` (opcional), monólogo en `internal_monologue` / `chat_server`, persistencia en [RUNTIME_PERSISTENTE.md](../RUNTIME_PERSISTENTE.md).
 
 ### ¿Se trata de un módulo de metacognición?

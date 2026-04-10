@@ -33,3 +33,7 @@ Sigue **opcional** y fuera del ciclo por defecto ([THEORY_AND_IMPLEMENTATION.md]
 ## Persistencia (confidencialidad, no ética)
 
 Guardar o restaurar snapshots **no** altera las reglas de decisión del kernel. En el MVP los checkpoints van **sin cifrado**; para despliegues sensibles el cifrado en reposo está **previsto** (p. ej. `cryptography` en Python) y se describe en [RUNTIME_PERSISTENTE.md](RUNTIME_PERSISTENTE.md), no en este contrato.
+
+## Integridad del sistema (futuro; no ética normativa)
+
+Capas de **metacontrol / robustez** (p. ej. vigilancia de deriva, manipulación, fugas) pueden ayudar a que el runtime **preserve su coherencia operativa** sin sustituir a MalAbs ni al buffer. Diseño discutido en [docs/discusion/PROPUESTA_ROBUSTEZ_V6_PLUS.md](discusion/PROPUESTA_ROBUSTEZ_V6_PLUS.md); no forma parte del contrato hasta implementación y tests.
