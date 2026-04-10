@@ -45,6 +45,8 @@ flowchart LR
 
 **PAD** — Covered in the pipeline above (`PADArchetypeEngine`, read-only, no feedback to the policy stack). Prototype semantics and design rationale: [EXPERIMENTAL_CONSCIOUSNESS_AND_AFFECT_ARCHETYPES.md](EXPERIMENTAL_CONSCIOUSNESS_AND_AFFECT_ARCHETYPES.md) §7.
 
+**Robustness (team proposals, not implemented)** — Five pillars (adversarial red-teaming, identity anchors, semantic consolidation, affective homeostasis, encrypted/ephemeral thought flow) are discussed and mapped to the current codebase in [docs/discusion/PROPUESTA_ROBUSTEZ_V6_PLUS.md](discusion/PROPUESTA_ROBUSTEZ_V6_PLUS.md). They are **not** part of the kernel contract until scoped, threat-modeled, and covered by regression tests.
+
 **End-of-day path** — `EthicalKernel.execute_sleep` (not part of each `process` call): `PsiSleep.execute` (audit pruned alternatives, recalibrations) → `AlgorithmicForgiveness.forgiveness_cycle` → weakness emotional load summary → `ImmortalityProtocol.backup` → **`DriveArbiter.evaluate`** (drive intents).
 
 **Augenesis (optional)** — `AugenesisEngine` is exposed on the kernel for explicit calls only; it is **not** part of `process`, `execute_sleep`, or the default reproducible baseline (CI and property tests never depend on it). Use it when experimenting with synthetic soul profiles; leave it unused for an **unaltered** ethical pipeline. See `src/modules/augenesis.py`, tests in `TestAugenesis`. Design notes for a future **persistent runtime** (snapshots, ports): [RUNTIME_PERSISTENTE.md](RUNTIME_PERSISTENTE.md). **Encryption at rest** for checkpoints is **not** in the MVP; it will be **required** for sensitive deployments and is documented there (planned use of Python `cryptography`, keys outside the repo).
