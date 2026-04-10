@@ -7,6 +7,18 @@ import { SiteBrand } from "@/components/SiteBrand";
 
 const REPO = "https://github.com/CuevazaArt/ethical-android-mvp";
 const COLLAB = `${REPO}/issues/new?template=collaboration.yml`;
+const CRITIQUE_DOC = `${REPO}/blob/main/docs/CRITIQUE_ROADMAP_ISSUES.md`;
+const ISSUES = `${REPO}/issues`;
+
+const CRITIQUE_TRACK = [
+  "P0 — Honest naming: align “Bayesian” claims with the numeric core (or rename); update THEORY + `bayesian_engine` docs.",
+  "P0 — Chat safety: harden `evaluate_chat_text` beyond substring lists; document threat model.",
+  "P1 — Evidence: pilot human-labeled scenarios / agreement metrics (exploratory, not certification).",
+  "P1 — Architecture: publish a single core decision path vs advisory/telemetry modules.",
+  "P2 — Poles: calibration roadmap or explicit “heuristic weights” labeling.",
+  "P2 — Governance: documented exit criteria from MockDAO toward external or testnet experiments (partner/legal gates).",
+  "P3 — Operations: consolidate `KERNEL_*` via runtime profiles + deprecation policy.",
+] as const;
 
 export const metadata: Metadata = {
   title: "Roadmap & collaboration",
@@ -25,6 +37,7 @@ const CURRENT = [
 ] as const;
 
 const NEAR_TERM = [
+  "Maturation track (P0–P3): see “Maturation & critique track” above and docs/CRITIQUE_ROADMAP_ISSUES.md in the repo — honest numeric naming, stronger chat-text gate, empirical pilot, core-vs-advisory map.",
   "Richer test matrix: edge cases, adversarial prompts against the LLM boundary, regression suite for domain additions.",
   "Reference “sensor → signals” adapters (documented stubs or one hardware-agnostic demo path) without claiming product certification.",
   "Conversation/session state design: multi-turn loops that keep the kernel authoritative over policy.",
@@ -116,6 +129,50 @@ export default function RoadmapPage() {
           </Link>{" "}
           scope narrative without overloading that page.
         </p>
+
+        <section className="mt-10 rounded-xl border border-amber-500/25 bg-amber-500/[0.06] p-5">
+          <h2 className="text-sm font-semibold text-amber-200/95">
+            Maturation disclaimer
+          </h2>
+          <p className="mt-2 text-sm leading-relaxed text-zinc-300">
+            Ethos Kernel is <strong className="font-medium text-zinc-200">actively maturing</strong>: runtime,
+            audit trails, hub/DAO scaffolding, and tests land first so we can grow toward{" "}
+            <strong className="font-medium text-zinc-200">honest labeling</strong>,{" "}
+            <strong className="font-medium text-zinc-200">calibrated weights</strong>, and{" "}
+            <strong className="font-medium text-zinc-200">governance experiments</strong> without rewriting the stack
+            every month. Some names and mocks still run ahead of the numeric core — that gap is tracked openly.
+          </p>
+        </section>
+
+        <section className="mt-10 border-t border-white/[0.08] pt-10">
+          <h2 className="text-lg font-semibold text-white">Maturation &amp; critique track</h2>
+          <p className="mt-2 text-sm text-zinc-500">
+            Ordered by impact after an external technical review (April 2026). Full issue bodies to paste into{" "}
+            <a
+              href={CRITIQUE_DOC}
+              className="text-violet-400/90 underline decoration-violet-400/30 underline-offset-4 hover:decoration-violet-400/60"
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              CRITIQUE_ROADMAP_ISSUES.md
+            </a>
+            ; create tickets on{" "}
+            <a
+              href={ISSUES}
+              className="text-violet-400/90 underline decoration-violet-400/30 underline-offset-4 hover:decoration-violet-400/60"
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              GitHub Issues
+            </a>
+            .
+          </p>
+          <ul className="mt-5 list-disc space-y-2 pl-5 text-sm leading-relaxed text-zinc-400">
+            {CRITIQUE_TRACK.map((item) => (
+              <li key={item}>{item}</li>
+            ))}
+          </ul>
+        </section>
 
         <section className="mt-12 border-t border-white/[0.08] pt-10">
           <h2 className="text-lg font-semibold text-white">Current foundation (in the repo)</h2>

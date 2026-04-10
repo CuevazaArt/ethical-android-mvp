@@ -76,7 +76,17 @@ Los nombres y variables viven en código: **`src/runtime_profiles.py`**. Resumen
 
 ---
 
-## 5. Referencias cruzadas
+## 5. Backlog público (crítica técnica → issues)
+
+Tras una revisión externa (abril 2026), el proyecto publica un **deslinde honesto** y **siete ítems** priorizados por impacto (honestidad ontológica del motor numérico, seguridad del canal texto, evidencia empírica, mapa núcleo vs advisory, calibración de polos, criterios de salida del mock DAO, consolidación de flags). Contenido listo para pegar como *GitHub Issues*:
+
+- **[CRITIQUE_ROADMAP_ISSUES.md](CRITIQUE_ROADMAP_ISSUES.md)**
+
+La landing [Roadmap](https://mosexmacchinalab.com/roadmap) resume el mismo track para socios y visitantes.
+
+---
+
+## 6. Referencias cruzadas
 
 - [TRACE_IMPLEMENTATION_RECENT.md](TRACE_IMPLEMENTATION_RECENT.md) — trazabilidad técnica reciente; la sección “Next development session” apunta aquí para la ruta.
 - [RUNTIME_PERSISTENT.md](RUNTIME_PERSISTENT.md) — persistencia y Fernet.

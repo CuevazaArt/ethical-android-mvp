@@ -8,6 +8,8 @@
 
 The original **batch simulations** (nine fixed scenarios plus a random generator) and the **thirteen invariant ethical properties** are still validated; they are **historical roots** of the suite. Full tables and narrow pytest drills are documented in [`HISTORY.md`](HISTORY.md#nine-canonical-simulation-scenarios-v2-origins) (see also the [thirteen properties](HISTORY.md#thirteen-invariant-ethical-properties-core-ethical-suite) and [early pytest drills](HISTORY.md#early-pytest-drills-regression-entry-points)).
 
+**Maturation disclaimer:** some **names** (e.g. “Bayesian” scoring) and **governance mocks** (DAO) are **infrastructure placeholders** while runtime, audit trails, and tests mature — toward **honest labeling**, **calibrated weights**, and **clear criteria** for stronger safety and real governance experiments. Public roadmap + copy-paste GitHub issue backlog: [`docs/CRITIQUE_ROADMAP_ISSUES.md`](docs/CRITIQUE_ROADMAP_ISSUES.md); web overview: [Roadmap](https://mosexmacchinalab.com/roadmap).
+
 An autonomous moral agent that makes ethical decisions using Bayesian inference,
 narrative memory, multipolar evaluation, LLM layer, narrative weakness pole,
 algorithmic forgiveness, and immortality protocol. No hardware — pure behavioral validation.

@@ -2,6 +2,11 @@
 
 All notable changes to this project are summarized here. For narrative context and design rationale, see [`HISTORY.md`](HISTORY.md).
 
+## Critique roadmap & maturation disclaimer — April 2026
+- **[`docs/CRITIQUE_ROADMAP_ISSUES.md`](docs/CRITIQUE_ROADMAP_ISSUES.md):** disclaimer (infrastructure maturing toward honest naming, calibrated weights, governance path) + **seven GitHub-ready issue bodies** (P0–P3) ordered by impact: Bayesian/naming, chat-text safety, empirical pilot, core-vs-advisory docs, poles calibration, DAO exit criteria, `KERNEL_*` consolidation.
+- **Landing [roadmap](https://mosexmacchinalab.com/roadmap):** new “Maturation & critique track” section with the same priorities and link to the doc.
+- **[`docs/ESTRATEGIA_Y_RUTA.md`](docs/ESTRATEGIA_Y_RUTA.md):** cross-reference to the critique backlog.
+
 ## Docs: Ollama-first LLM + API hardening — April 2026
 - **Markdown:** README / HISTORY / CHANGELOG / `docs/RUNTIME_PHASES.md` now describe **Ollama** as the documented local LLM path; **OpenAPI** (`/docs`, `/redoc`, `/openapi.json`) is **off by default** — set `KERNEL_API_DOCS=1` to enable (see README). Academic bibliography entries (e.g. Constitutional AI, ref. 90) unchanged.
 - **`landing/CLAUDE.md`** removed; replaced by **`landing/OLLAMA.md`** (pointer to root README + Ollama).
