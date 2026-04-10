@@ -2,6 +2,11 @@
 
 All notable changes to this project are summarized here. For narrative context and design rationale, see [`HISTORY.md`](HISTORY.md).
 
+## Conduct guide export on WebSocket disconnect — April 2026
+- **`conduct_guide_export.py`:** `build_conduct_guide`, `try_export_conduct_guide`; env `KERNEL_CONDUCT_GUIDE_EXPORT_PATH`, `KERNEL_CONDUCT_GUIDE_EXPORT_ON_DISCONNECT`.
+- **`checkpoint.on_websocket_session_end`:** saves checkpoint (if configured), then exports conduct guide for PC→edge handoff.
+- **Tests:** `tests/test_conduct_guide_export.py`; docs: `LOCAL_PC_AND_MOBILE_LAN.md`, `context_distillation` cross-refs.
+
 ## Local PC + LAN smartphone thin client — April 2026
 - **docs/LOCAL_PC_AND_MOBILE_LAN.md:** goal (short/medium), architecture, Windows firewall, `CHAT_HOST=0.0.0.0`, Ollama/checkpoint notes, security caveats.
 - **scripts/start_lan_server.ps1** / **scripts/start_lan_server.sh:** bind server for WiFi clients; print LAN IPv4 hints.

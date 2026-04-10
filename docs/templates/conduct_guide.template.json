@@ -1,5 +1,5 @@
 {
-  "$comment": "Plantilla para destilación de contexto crítico (70B→8B). Futuro: rellenar desde el runtime grande antes del salto nomádico.",
+  "$comment": "Esquema de referencia. El runtime PC rellena un JSON más completo en KERNEL_CONDUCT_GUIDE_EXPORT_PATH al cerrar sesión WebSocket (conduct_guide_export.py).",
   "version": 1,
   "generated_at_utc": null,
   "source_runtime": "pc_server",

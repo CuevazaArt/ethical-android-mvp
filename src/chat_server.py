@@ -10,6 +10,9 @@ Or: python -m src.runtime  (same server; see docs/RUNTIME_CONTRACT.md)
 Checkpoint (optional): KERNEL_CHECKPOINT_PATH, KERNEL_CHECKPOINT_LOAD,
 KERNEL_CHECKPOINT_SAVE_ON_DISCONNECT, KERNEL_CHECKPOINT_EVERY_N_EPISODES — see src/persistence/checkpoint.py
 
+Conduct guide export (optional): KERNEL_CONDUCT_GUIDE_EXPORT_PATH — JSON on WebSocket disconnect
+(after checkpoint); KERNEL_CONDUCT_GUIDE_EXPORT_ON_DISCONNECT — see src/modules/conduct_guide_export.py
+
 Situated v8 (optional): KERNEL_SENSOR_FIXTURE (path to JSON), KERNEL_SENSOR_PRESET (name from
 perceptual_abstraction.SENSOR_PRESETS) — merged before client ``sensor`` JSON; see PROPUESTA_ORGANISMO_SITUADO_V8.md.
 

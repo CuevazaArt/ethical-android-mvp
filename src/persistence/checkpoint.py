@@ -26,6 +26,10 @@ For production, use one session at a time or separate paths per client.
 (same format as ``Fernet.generate_key().decode()``). :class:`JsonFilePersistence` then
 writes encrypted blobs; load decrypts or falls back to plain JSON for legacy files.
 See ``src/persistence/json_store.py``.
+
+**Conduct guide export (optional):** ``KERNEL_CONDUCT_GUIDE_EXPORT_PATH`` — JSON written on
+WebSocket disconnect (after checkpoint save) for edge / “small body” handoff. See
+``src/modules/conduct_guide_export.py`` and ``docs/LOCAL_PC_AND_MOBILE_LAN.md``.
 """
 
 from __future__ import annotations
@@ -121,6 +125,9 @@ def init_session_checkpoint_state(kernel: "EthicalKernel") -> Dict[str, Any]:
 
 
 def on_websocket_session_end(kernel: "EthicalKernel") -> None:
-    """Save on disconnect when enabled."""
+    """Save on disconnect when enabled; optional conduct guide export for nomadic handoff."""
     if should_save_on_disconnect():
         try_save_checkpoint(kernel)
+    from src.modules.conduct_guide_export import try_export_conduct_guide
+
+    try_export_conduct_guide(kernel)

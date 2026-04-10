@@ -9,7 +9,8 @@ Template: ``docs/templates/conduct_guide.template.json``. See
 ``docs/discusion/PROPUESTA_VERIFICACION_REALIDAD_V11.md`` (pillar 2) and
 ``docs/LOCAL_PC_AND_MOBILE_LAN.md`` (mediano plazo).
 
-Env: ``KERNEL_CONDUCT_GUIDE_PATH`` — optional JSON with opaque structure for future use.
+Env: ``KERNEL_CONDUCT_GUIDE_PATH`` — optional JSON **to load** on an edge runtime.
+**Export** from the PC session uses ``KERNEL_CONDUCT_GUIDE_EXPORT_PATH`` (see ``conduct_guide_export.py``).
 """
 
 from __future__ import annotations
