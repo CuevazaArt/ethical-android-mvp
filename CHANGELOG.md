@@ -2,6 +2,10 @@
 
 All notable changes to this project are summarized here. For narrative context and design rationale, see [`HISTORY.md`](HISTORY.md).
 
+## Mobile minimal UI (`landing/public/mobile.html`) — April 2026
+- **LAN:** IP + port, localStorage, `/health` ping, WebSocket connect, chat bubbles, optional full JSON.
+- **Docs:** README + `LOCAL_PC_AND_MOBILE_LAN.md` point to `mobile.html` vs `chat-test.html`.
+
 ## Conduct guide export on WebSocket disconnect — April 2026
 - **`conduct_guide_export.py`:** `build_conduct_guide`, `try_export_conduct_guide`; env `KERNEL_CONDUCT_GUIDE_EXPORT_PATH`, `KERNEL_CONDUCT_GUIDE_EXPORT_ON_DISCONNECT`.
 - **`checkpoint.on_websocket_session_end`:** saves checkpoint (if configured), then exports conduct guide for PC→edge handoff.

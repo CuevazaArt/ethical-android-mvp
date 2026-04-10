@@ -208,7 +208,7 @@ Governance track: **artificial social contract** metaphor — owner insistence i
 
 **Reality verification (V11+ cross-model):** [docs/discusion/PROPUESTA_VERIFICACION_REALIDAD_V11.md](docs/discusion/PROPUESTA_VERIFICACION_REALIDAD_V11.md) — optional **lighthouse** JSON (`KERNEL_LIGHTHOUSE_KB_PATH`) flags contradictions between rival/user assertions and local anchors → **metacognitive doubt** in the LLM layer only; stubs for **conduct distillation** (small-body guide) and **local sovereignty** (DAO calibration veto).
 
-**Local PC + smartphone (LAN):** [docs/LOCAL_PC_AND_MOBILE_LAN.md](docs/LOCAL_PC_AND_MOBILE_LAN.md) — runtime bound to `0.0.0.0`, scripts `start_lan_server`, `chat-test.html` query params, template `conduct_guide` for future nomadic jump.
+**Local PC + smartphone (LAN):** [docs/LOCAL_PC_AND_MOBILE_LAN.md](docs/LOCAL_PC_AND_MOBILE_LAN.md) — runtime bound to `0.0.0.0`, scripts `start_lan_server`, **`landing/public/mobile.html`** minimal phone UI + `chat-test.html`, template `conduct_guide` for future nomadic jump.
 
 **Conduct guide export:** `src/modules/conduct_guide_export.py` — JSON written on WebSocket session end (`KERNEL_CONDUCT_GUIDE_EXPORT_PATH`) after checkpoint save; distills L0, recent episodes, identity leans, DAO summary for edge / audit.
 

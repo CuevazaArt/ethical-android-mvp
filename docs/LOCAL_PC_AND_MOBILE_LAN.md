@@ -30,8 +30,8 @@ El **salto real** a un modelo 8B **dentro del teléfono** es un proyecto aparte 
                              │ WiFi / Ethernet (misma subred)
                              │  ws://<IP_DEL_PC>:8765/ws/chat
 ┌────────────────────────────▼───────────────────────────────────────────┐
-│  Smartphone: navegador → `chat-test.html` vía `python -m http.server` │
-│  o URL `?host=<IP_PC>` (misma página sirve el test WebSocket).          │
+│  Smartphone: navegador → **`landing/public/mobile.html`** (UI mínima) o │
+│  `chat-test.html` vía `python -m http.server` · `?host=<IP_PC>` opcional. │
 └────────────────────────────────────────────────────────────────────────┘
 ```
 
@@ -58,16 +58,16 @@ El **salto real** a un modelo 8B **dentro del teléfono** es un proyecto aparte 
 
 4. **Probar salud** desde el móvil (navegador): `http://<IP_PC>:8765/health` → `{"status":"ok"}`.
 
-5. **Interfaz de chat de prueba:** en el PC, en otra terminal:
+5. **Interfaz en el móvil:** en el PC, en otra terminal:
 
    ```powershell
    cd landing\public
    python -m http.server 8080 --bind 0.0.0.0
    ```
 
-   En el **smartphone** (misma WiFi): `http://<IP_PC>:8080/chat-test.html?host=<IP_PC>`
+   En el **smartphone** (misma WiFi), interfaz mínima: `http://<IP_DEL_PC>:8080/mobile.html` — IP/puerto, **Guardar** (memoria local), **Probar /health**, **Conectar**, mensaje y **Enviar**. Query opcional: `?host=<IP>&port=8765`.
 
-   La página construye `ws://<IP_PC>:8765/ws/chat` automáticamente.
+   Alternativa técnica (JSON crudo): `http://<IP_PC>:8080/chat-test.html?host=<IP_PC>`.
 
 ---
 
