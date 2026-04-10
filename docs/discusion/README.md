@@ -8,4 +8,4 @@ Las **tareas de producto** se coordinan en el README del repo y en el control de
 |-----------|------|
 | [CONCIENCIA_EMERGENTE_V6.md](CONCIENCIA_EMERGENTE_V6.md) | Fronteras autorreferencia / GWT / drives / yo narrativo (v6) |
 | [PROPUESTA_INTEGRACION_APORTES_V6.md](PROPUESTA_INTEGRACION_APORTES_V6.md) | **Propuesta técnica coherente:** fases (Reflection ✓, Salience ✓, …), inventario del modelo actual, exclusiones |
-| [PROPUESTA_ROBUSTEZ_V6_PLUS.md](PROPUESTA_ROBUSTEZ_V6_PLUS.md) | **Cinco pilares de resiliencia** (adversarial, identidad, cognitiva, emocional, secreto): mapeo al código, límites éticos, no contrato hasta diseño |
+| [PROPUESTA_ROBUSTEZ_V6_PLUS.md](PROPUESTA_ROBUSTEZ_V6_PLUS.md) | **Cinco pilares de resiliencia** + **plan ordenado y atajos MVP** por pilar (adversarial, identidad, cognitiva, emocional, secreto); no contrato hasta tests |

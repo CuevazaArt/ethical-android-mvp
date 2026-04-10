@@ -45,7 +45,7 @@ flowchart LR
 
 **PAD** — Covered in the pipeline above (`PADArchetypeEngine`, read-only, no feedback to the policy stack). Prototype semantics and design rationale: [EXPERIMENTAL_CONSCIOUSNESS_AND_AFFECT_ARCHETYPES.md](EXPERIMENTAL_CONSCIOUSNESS_AND_AFFECT_ARCHETYPES.md) §7.
 
-**Robustness (team proposals, not implemented)** — Five pillars (adversarial red-teaming, identity anchors, semantic consolidation, affective homeostasis, encrypted/ephemeral thought flow) are discussed and mapped to the current codebase in [docs/discusion/PROPUESTA_ROBUSTEZ_V6_PLUS.md](discusion/PROPUESTA_ROBUSTEZ_V6_PLUS.md). They are **not** part of the kernel contract until scoped, threat-modeled, and covered by regression tests.
+**Robustness (team proposals, not implemented)** — Five pillars (adversarial red-teaming, identity anchors, semantic consolidation, affective homeostasis, encrypted/ephemeral thought flow) are discussed and mapped to the current codebase in [docs/discusion/PROPUESTA_ROBUSTEZ_V6_PLUS.md](discusion/PROPUESTA_ROBUSTEZ_V6_PLUS.md), including a **phased plan with MVP shortcuts** per pillar and recommended implementation order. They are **not** part of the kernel contract until scoped, threat-modeled, and covered by regression tests.
 
 **End-of-day path** — `EthicalKernel.execute_sleep` (not part of each `process` call): `PsiSleep.execute` (audit pruned alternatives, recalibrations) → `AlgorithmicForgiveness.forgiveness_cycle` → weakness emotional load summary → `ImmortalityProtocol.backup` → **`DriveArbiter.evaluate`** (drive intents).
 

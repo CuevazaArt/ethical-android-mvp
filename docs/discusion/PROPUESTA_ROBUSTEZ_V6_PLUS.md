@@ -95,3 +95,84 @@
 | 5 Secreto | MVP sin cifrado; monólogo en JSON | RAM-only / cifrado / hashes según amenaza |
 
 **Próximo paso recomendado (equipo de producto):** priorizar **un** pilar, modelo de amenazas breve, y criterios de aceptación testeables; después alinear con [RUNTIME_FASES.md](../RUNTIME_FASES.md) y el contrato de no duplicar decisión fuera del kernel.
+
+---
+
+## Plan operativo: orden sugerido, valor y atajos (MVP por pilar)
+
+Criterio de orden: **impacto / coste / riesgo de romper invariantes éticos**. Los cinco pilares **aportan valor** al modelo de producto; no todos tienen la misma prioridad **en esta base de código** hoy.
+
+### Orden global recomendado
+
+| Orden | Pilar | Por qué este orden |
+|-------|--------|---------------------|
+| **A** | **5 Secreto** | Encaja con la hoja de ruta de persistencia ya documentada; un atajo no tiene por qué tocar Bayes/MalAbs. |
+| **B** | **1 Adversarial** | Refuerzo directo del ya existente gate de texto; el “red-team completo” puede esperar. |
+| **C** | **4 Emocional (solo UX)** | Mejora percepción de estabilidad sin cambiar la acción elegida por el kernel. |
+| **D** | **2 Identidad** | Máximo valor si se usa `AugenesisEngine`; para el camino por defecto es menos crítico. |
+| **E** | **3 Cognitiva** | Máximo riesgo de regresión narrativa/DAO; conviene último y con digest mínimo. |
+
+---
+
+### Pilar 5 — Secreto
+
+| | |
+|--|--|
+| **Valor al modelo** | **Alto** para confianza y alineación con “secreto total”: reduce superficie de fuga sin reinterpretar la ética. |
+| **Atajo (MVP)** | (1) Garantizar que el monólogo **no** entre en `KernelSnapshotV1` / checkpoint salvo opt-in explícito (`env` documentado). (2) En respuesta WebSocket, opción de **omitir** el campo `monologue` o enviar solo un hash/local id si se activa modo privado. (3) Reutilizar el plan de **cifrado en reposo** de [RUNTIME_PERSISTENTE.md](../RUNTIME_PERSISTENTE.md) cuando se añada `cryptography` — el monólogo no debería ser el primer campo en claro en disco. |
+| **Dejar para después** | Cifrado de pensamiento reversible con clave en proceso; hashes salteados de reflexiones archivadas (separar requisitos legales vs técnicos). |
+| **Riesgo ético** | Bajo si solo se reduce persistencia/exposición; no cambia `process`. |
+
+---
+
+### Pilar 1 — Adversarial
+
+| | |
+|--|--|
+| **Valor al modelo** | **Alto** frente a usuarios hostiles; el núcleo ya es determinista — falta capa de diálogo más dura. |
+| **Atajo (MVP)** | Ampliar **lista + heurísticas** en `evaluate_chat_text` (frases de jailbreak, rol, “solo simulación”) y tests de regresión; telemetría opcional `adversarial_hint` en JSON **solo lectura**. |
+| **Dejar para después** | Contrafactual completo (“¿qué pasaría si acepto X?”) reutilizando el kernel con escenario **marcado** y sin episodio — diseño cuidadoso para no duplicar MalAbs. |
+| **Riesgo ético** | Medio si el gate se vuelve opaco; mitigar con tests nombrados y transparencia en el motivo de bloqueo (ya alineado con buffer/transparencia). |
+
+---
+
+### Pilar 4 — Emocional (homeostasis)
+
+| | |
+|--|--|
+| **Valor al modelo** | **Medio–alto** para UX y narrativa coherente (“no siempre al límite”); **bajo** si se intenta cambiar la política sin pruebas. |
+| **Atajo (MVP)** | **Solo presentación:** ventana deslizante de σ/PAD → etiqueta `affective_load` / `homeostasis_hint` en la respuesta WebSocket (p. ej. `elevated` / `within_range`); opcionalmente limitar **longitud de respuesta del LLM** o tono, **sin** cambiar `final_action`. Modo “pausa suave” = copy en `response.message` sugerido por plantilla, no nuevo veto. |
+| **Dejar para después** | Cambiar umbral de acciones o bloquear categorías según PAD — **solo** con batería de invariantes nuevas. |
+| **Riesgo ético** | Alto si se mezcla con decisión; bajo con atajo UX-only. |
+
+---
+
+### Pilar 2 — Identidad (checksums)
+
+| | |
+|--|--|
+| **Valor al modelo** | **Alto** para experimentos con Augenesis y runs largos; **moderado** en el baseline sin Augenesis. |
+| **Atajo (MVP)** | Al iniciar kernel o perfil: fijar vector de referencia (pesos de polos + parámetros de voluntad expuestos numéricamente). Tras propuesta de cambio **solo** en rutas `AugenesisEngine` (o recalibración explícita): rechazar si distancia > umbral (p. ej. L∞ o L2), con log en DAO o traza de test. |
+| **Dejar para después** | Genoma versionado en fichero firmado; rollback automático de identidad narrativa. |
+| **Riesgo ético** | Medio: umbral mal calibrado puede congelar aprendizaje legítimo; exige tuning y tests. |
+
+---
+
+### Pilar 3 — Cognitiva (consolidación)
+
+| | |
+|--|--|
+| **Valor al modelo** | **Alto** a largo plazo (escalabilidad, coherencia); **coste de diseño** el más alto de los cinco. |
+| **Atajo (MVP)** | Un solo campo **`experience_digest`** (texto corto) actualizado en Ψ Sleep a partir de estadísticas agregadas de episodios (sin borrar episodios al principio): solo **lectura** para LLM/contexto. Límite duro opcional: `N` episodios máximos con política FIFO **solo** si hay tests de paridad ética en escenarios fijos. |
+| **Dejar para después** | Fusión semántica con LLM, borrado selectivo de detalle, reglas compasivas explícitas. |
+| **Riesgo ético** | **Alto** al tocar memoria y auditoría; el atajo debe ser **aditivo** (digest) antes que destructivo (olvidar). |
+
+---
+
+### Resumen ejecutivo
+
+- **Implementar primero (mayor valor / menor daño colateral):** atajos de **5** y **1**, luego **4** en capa UX.  
+- **Cuando Augenesis sea relevante en producción:** subir **2**.  
+- **Último:** **3**, con digest **no destructivo** antes de cualquier olvido.
+
+Este plan puede traducirse a issues numerados (5.1, 1.1, …) y, solo entonces, a filas en [RUNTIME_FASES.md](../RUNTIME_FASES.md) como **“Fase robustez (opcional)”** sin mezclarlas con el contrato del kernel hasta tener tests.
