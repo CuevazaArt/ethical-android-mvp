@@ -186,6 +186,7 @@ Criterio de orden: **impacto / coste / riesgo de romper invariantes éticos**. L
 |--|--|
 | **Valor al modelo** | **Alto** a largo plazo (escalabilidad, coherencia); **coste de diseño** el más alto de los cinco. |
 | **Atajo (MVP)** | Un solo campo **`experience_digest`** (texto corto) actualizado en Ψ Sleep a partir de estadísticas agregadas de episodios (sin borrar episodios al principio): solo **lectura** para LLM/contexto. Límite duro opcional: `N` episodios máximos con política FIFO **solo** si hay tests de paridad ética en escenarios fijos. |
+| **Estado en código (parcial)** | `NarrativeMemory.experience_digest` + campo en `KernelSnapshotV1`; Ψ Sleep lo reescribe cada `execute`; WebSocket `experience_digest` (`KERNEL_CHAT_INCLUDE_EXPERIENCE_DIGEST=0` lo oculta). |
 | **Dejar para después** | Fusión semántica con LLM, borrado selectivo de detalle, reglas compasivas explícitas. |
 | **Riesgo ético** | **Alto** al tocar memoria y auditoría; el atajo debe ser **aditivo** (digest) antes que destructivo (olvidar). |
 

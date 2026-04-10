@@ -15,7 +15,10 @@ def snapshot_from_dict(raw: dict) -> KernelSnapshotV1:
     ver = raw.get("schema_version", 0)
     if ver != SCHEMA_VERSION:
         raise ValueError(f"Unsupported schema_version {ver!r}; expected {SCHEMA_VERSION}")
-    return KernelSnapshotV1(**raw)
+    merged = dict(raw)
+    if "experience_digest" not in merged:
+        merged["experience_digest"] = ""
+    return KernelSnapshotV1(**merged)
 
 
 class JsonFilePersistence:

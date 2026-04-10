@@ -18,6 +18,9 @@ field is omitted from content (empty string) and LLM embellishment is skipped.
 
 Homeostasis UX (pilar 4): KERNEL_CHAT_INCLUDE_HOMEOSTASIS — if 0/false/no/off, omit
 ``affective_homeostasis`` (σ / strain / PAD advisory; does not change decisions).
+
+Experience digest (pilar 3): KERNEL_CHAT_INCLUDE_EXPERIENCE_DIGEST — if 0, omit
+``experience_digest`` (semantic line from last Ψ Sleep; additive, not a policy change).
 """
 
 from __future__ import annotations
@@ -55,6 +58,12 @@ def _chat_expose_monologue() -> bool:
 def _chat_include_homeostasis() -> bool:
     """If false, omit affective_homeostasis (pilar 4 UX telemetry)."""
     v = os.environ.get("KERNEL_CHAT_INCLUDE_HOMEOSTASIS", "1").strip().lower()
+    return v not in ("0", "false", "no", "off")
+
+
+def _chat_include_experience_digest() -> bool:
+    """If false, omit experience_digest (pilar 3; updated in Ψ Sleep)."""
+    v = os.environ.get("KERNEL_CHAT_INCLUDE_EXPERIENCE_DIGEST", "1").strip().lower()
     return v not in ("0", "false", "no", "off")
 
 
@@ -139,6 +148,8 @@ def _chat_turn_to_jsonable(r: ChatTurnResult, kernel: EthicalKernel) -> Dict[str
         }
     if r.decision is None:
         out["monologue"] = ""
+    if _chat_include_experience_digest():
+        out["experience_digest"] = kernel.memory.experience_digest
     return out
 
 

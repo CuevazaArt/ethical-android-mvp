@@ -58,6 +58,7 @@ class NarrativeMemory:
         self.max_episodes = max_episodes
         self._counter = 0
         self.identity = NarrativeIdentityTracker()
+        self.experience_digest: str = ""
 
     def register(self, place: str, description: str, action: str,
                  morals: dict, verdict: str, score: float,

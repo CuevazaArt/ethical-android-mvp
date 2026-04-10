@@ -12,6 +12,7 @@ Genuinely innovative: no published equivalent in AI.
 Direct parallel with memory consolidation during human sleep.
 """
 
+from collections import Counter
 from dataclasses import dataclass, field
 from typing import List, Dict, Optional
 from .narrative import NarrativeMemory, NarrativeEpisode
@@ -94,6 +95,10 @@ class PsiSleep:
         health = self._calculate_ethical_health(day_scores)
         summary = self._generate_summary(episodes, findings, health)
 
+        memory.experience_digest = self._compose_experience_digest(
+            memory.episodes, health, len(findings)
+        )
+
         result = SleepResult(
             episodes_reviewed=len(episodes),
             findings=findings,
@@ -104,6 +109,28 @@ class PsiSleep:
 
         self.sessions.append(result)
         return result
+
+    def _compose_experience_digest(
+        self,
+        all_episodes: List[NarrativeEpisode],
+        health: float,
+        n_findings: int,
+    ) -> str:
+        """
+        Compact semantic summary for LLM / UX (robustez pilar 3).
+
+        Does not delete episodic detail; additive consolidation line only.
+        """
+        if not all_episodes:
+            return ""
+        tail = all_episodes[-120:]
+        ctx = Counter(ep.context for ep in tail)
+        top = ", ".join(f"{k}:{c}" for k, c in ctx.most_common(6))
+        line = (
+            f"psi_health={health:.3f};n_episodes={len(all_episodes)};"
+            f"psi_findings={n_findings};context_mix={top}"
+        )
+        return line[:620]
 
     def _simulate_alternative(self, ep: NarrativeEpisode,
                                alternative_action: str) -> Optional[EpisodeReview]:

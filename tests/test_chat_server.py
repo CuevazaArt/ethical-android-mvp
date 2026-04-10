@@ -37,6 +37,7 @@ def test_websocket_chat_roundtrip():
         assert "monologue" in data
         assert "affective_homeostasis" in data
         assert data["affective_homeostasis"].get("sigma") is not None
+        assert "experience_digest" in data
 
 
 def test_websocket_homeostasis_omitted(monkeypatch):

@@ -61,6 +61,7 @@ def extract_snapshot(kernel: "EthicalKernel") -> KernelSnapshotV1:
         episodes=[episode_to_dict(ep) for ep in mem.episodes],
         narrative_counter=mem._counter,
         identity_state=asdict(mem.identity.state),
+        experience_digest=getattr(mem, "experience_digest", "") or "",
         forgiveness_memories={k: asdict(v) for k, v in fg.memories.items()},
         forgiveness_cycle=fg._cycle,
         forgiveness_recent_positives=fg._recent_positives,
@@ -101,6 +102,7 @@ def apply_snapshot(kernel: "EthicalKernel", snap: KernelSnapshotV1) -> None:
     mem.episodes = [episode_from_dict(e) for e in snap.episodes]
     mem._counter = snap.narrative_counter
     mem.identity.state = NarrativeIdentityState(**snap.identity_state)
+    mem.experience_digest = snap.experience_digest or ""
 
     fg = kernel.forgiveness
     fg.memories = {k: WeightedMemory(**v) for k, v in snap.forgiveness_memories.items()}

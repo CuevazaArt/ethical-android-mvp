@@ -22,6 +22,7 @@ class KernelSnapshotV1:
     episodes: List[Dict[str, Any]] = field(default_factory=list)
     narrative_counter: int = 0
     identity_state: Dict[str, Any] = field(default_factory=dict)
+    experience_digest: str = ""
 
     # AlgorithmicForgiveness
     forgiveness_memories: Dict[str, Dict[str, Any]] = field(default_factory=dict)
