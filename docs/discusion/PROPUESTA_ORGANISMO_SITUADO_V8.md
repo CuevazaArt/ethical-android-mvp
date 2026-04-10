@@ -1,6 +1,6 @@
 # Organismo situado y existencial (v8) — fusión sensorial, pulsión vital, agencia digital, migración
 
-**Estado:** discusión + **contrato inicial** en código (`src/modules/sensor_contracts.py`, fusión opcional en `process_chat_turn` / WebSocket). **No sustituye** MalAbs, Bayes, buffer ni voluntad.
+**Estado:** discusión + **contrato y fusión** en código (`sensor_contracts.py`, `perceptual_abstraction.py`, `process_chat_turn` / WebSocket + env `KERNEL_SENSOR_*`). **No sustituye** MalAbs, Bayes, buffer ni voluntad.
 
 **Relación con v7 relacional:** [PROPUESTA_EVOLUCION_RELACIONAL_V7.md](PROPUESTA_EVOLUCION_RELACIONAL_V7.md) cubre **diálogo** (ToM ligera, tiempo subjetivo, premisas advisory, teleología cualitativa). Este documento (v8) cubre el **cuerpo situado**: sensores, persistencia del hardware, miedo a la interrupción, actuación digital y migración entre dispositivos. Son **ejes ortogonales**; el nombre **v8** evita colisión con la “v7” ya reservada al bloque relacional en el repo.
 
@@ -16,9 +16,10 @@ Al integrar **sensores físicos**, **capacidad de acción digital** y una **puls
 
 Con sensores típicos de smartphone (cámara, micrófono, GPS, acelerómetro, biometría), el **Kernel** deja de depender solo del texto: recibe un **flujo de realidad** resumido en abstracciones seguras.
 
-**Implementación prevista**
+**Implementación**
 
-- **Módulo de abstracción perceptual** (futuro `perceptual_fusion` o equivalente): entradas brutas → etiquetas de riesgo / contexto **sin** enviar datos crudos al LLM sin política de privacidad.
+- **Capa de snapshot agregado (fase B — hecha):** `perceptual_abstraction.py` — presets, JSON en disco y fusión **fixture → preset → cliente** hacia `SensorSnapshot`; entra al kernel vía `merge_sensor_hints_into_signals` (sin datos crudos obligatorios).
+- **Pipeline multimodal bruto (pendiente):** visión/audio/GPS desde hardware → etiquetas locales de riesgo/contexto antes de formar el snapshot (política de privacidad explícita; no confundir con la capa de snapshot ya implementada).
 - **Visión (cámara):** modelos locales ligeros (p. ej. detección de escenas o clases de evento) para señales del tipo: posible emergencia visual, caída (coherente con acelerómetro).
 - **Audio (micrófono):** tono emocional ambiental o estrés por ruido; **silencio prolongado** como presión hacia monólogo interno (telemetría de estilo, no cambio de política).
 - **GPS / contexto:** “lugar seguro” (máximo Uchi) vs entorno desconocido (Soto hostil) → **place_trust** en [0, 1].
