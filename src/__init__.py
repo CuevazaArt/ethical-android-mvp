@@ -1,1 +1,1 @@
-"""Ethical Android kernel package."""
+"""Ethos Kernel package."""

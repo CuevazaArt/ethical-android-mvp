@@ -67,7 +67,7 @@ export default function LandingPage() {
               variants={fadeUp}
               className="mb-4 text-xs font-medium uppercase tracking-[0.2em] text-violet-400/90"
             >
-              Ethical Android — MVP
+              Ethos Kernel
             </motion.p>
             <motion.h1
               custom={1}

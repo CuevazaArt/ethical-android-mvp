@@ -11,7 +11,7 @@ const MOCK_DAO = `${REPO}/blob/main/src/modules/mock_dao.py`;
 export const metadata: Metadata = {
   title: "BlockChainDAO",
   description:
-    "How on-chain governance fits the Ethical Android stack today (mock DAO) and how it could evolve toward testnet or production contracts.",
+    "How on-chain governance fits the Ethos Kernel stack today (mock DAO) and how it could evolve toward testnet or production contracts.",
   robots: { index: true, follow: true },
 };
 

@@ -2,6 +2,11 @@
 
 All notable changes to this project are summarized here. For narrative context and design rationale, see [`HISTORY.md`](HISTORY.md).
 
+## Project rename to Ethos Kernel — April 2026
+- **Public name:** the kernel + runtime is now branded **Ethos Kernel** (MoSex Macchina Lab remains the primary public / site name). User-facing copy, docs, landing, dashboards, and Python package strings updated from “Ethical Android MVP” where it denoted the product.
+- **GitHub:** repository URL may still be `github.com/CuevazaArt/ethical-android-mvp` until the slug is renamed; README notes this.
+- **Internals:** WebSocket health `service` id is `ethos-kernel-chat`; FastAPI title `Ethos Kernel Chat`. LLM system prompts refer to the Ethos Kernel / agent (legacy JSON enum `android_damage` unchanged for compatibility).
+
 ## Pre-alpha docs + media archive — April 2026
 - **`docs/historical/prealpha/`:** ingested content from **`prealphaDocs/`** (removed): Spanish `androide_etico_alpha` v1.0 (2026), Spanish bibliography draft (canonical refs stay in [`BIBLIOGRAPHY.md`](BIBLIOGRAPHY.md)), PNG/JPG/MP4 media with ASCII filenames under `media/`, [`README.md`](docs/historical/prealpha/README.md) index, [`COMPANION_BINARIES.md`](docs/historical/prealpha/COMPANION_BINARIES.md) for PDF/DOCX not tracked by `.gitignore`. English archive notices prepended to archived markdown. Cross-refs in [`HISTORY.md`](HISTORY.md).
 

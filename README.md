@@ -1,4 +1,4 @@
-# Ethical Android MVP
+# Ethos Kernel
 
 **MoSex Macchina Lab** — this repository is the open **kernel + runtime** for a model of artificial ethical agency: humanizing imperfection, forgiveness, identity persistence, and **traceable** governance hooks (DAO / hub audit, not a black-box chatbot).
 
@@ -32,7 +32,7 @@ This project is also available in [Spanish](https://github.com/CuevazaArt/androi
 ### Installation
 
 ```bash
-# Clone the repository
+# Clone the repository (GitHub slug is still ethical-android-mvp; project name: Ethos Kernel)
 git clone https://github.com/CuevazaArt/ethical-android-mvp.git
 cd ethical-android-mvp
 
@@ -268,7 +268,7 @@ The numbered **thirteen invariant properties** and **narrow** property-by-proper
 
 ## Interactive dashboard — Try it without installing anything
 
-> **You don't need to know how to code to explore the ethical android.**
+> **You don't need to know how to code to explore the Ethos Kernel.**
 > You just need a browser (Chrome, Firefox, Edge, Safari).
 
 ### Instructions for anyone
@@ -278,7 +278,7 @@ The numbered **thirteen invariant properties** and **narrow** property-by-proper
 2. **Open the dashboard** — inside the folder, find the file
    `dashboard.html` and double-click it. It will open in your browser.
 3. **Choose a scenario** — on the left sidebar there are 9 predefined
-   situations. Click on any of them to see how the android analyzes
+   situations. Click on any of them to see how the kernel analyzes
    the situation and makes an ethical decision step by step.
 4. **Generate random situations** — press the purple button
    **"Random Situation"** (at the top of the left sidebar). Every time
@@ -291,7 +291,7 @@ The numbered **thirteen invariant properties** and **narrow** property-by-proper
 ethical modules evaluate each situation: from social context
 classification (Uchi-Soto), through blocking of unacceptable actions
 (Absolute Evil), to Bayesian impact evaluation, the "weakness pole" that
-humanizes the android with narrative imperfections, and "algorithmic
+humanizes the agent with narrative imperfections, and "algorithmic
 forgiveness" that allows negative memories to lose weight over time.
 All without a server, without internet, without installing anything.
 
@@ -339,7 +339,7 @@ In GoDaddy DNS for the domain:
 ├── docs/                 # Theory ↔ implementation; RUNTIME_* ; experimental/ ; discusion/ ; historical/
 │   └── historical/prealpha/  # Pre-alpha Spanish drafts + media (see docs/historical/prealpha/README.md)
 ├── landing/              # Next.js site (npm install inside this folder)
-├── src/                  # Ethical kernel source code
+├── src/                  # Ethos Kernel source code
 ├── tests/                # Formal test suite
 ├── dashboard.html        # Interactive dashboard (open in browser)
 ├── BIBLIOGRAPHY.md       # 104 academic references across 14 disciplines
@@ -385,4 +385,5 @@ Apache 2.0 — see [LICENSE](LICENSE).
 ## MoSex Macchina Lab · Ex Machina Foundation — 2026
 
 **MoSex Macchina Lab** is the most widely used public name for this project ([mosexmacchinalab.com](https://mosexmacchinalab.com)).  
+**Ethos Kernel** is the technical name of the open kernel and runtime in this repository (the GitHub repository slug may remain `ethical-android-mvp` until renamed).  
 **Ex Machina Foundation** — research in computational ethics and civic robotics.

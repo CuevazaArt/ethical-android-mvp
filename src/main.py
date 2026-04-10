@@ -1,5 +1,5 @@
 """
-Ethical Android MVP — Entry point.
+Ethos Kernel — Entry point.
 
 Runs the 9 ethical complexity simulations and shows
 how the kernel makes coherent moral decisions.

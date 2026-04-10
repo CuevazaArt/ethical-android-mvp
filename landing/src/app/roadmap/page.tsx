@@ -11,7 +11,7 @@ const COLLAB = `${REPO}/issues/new?template=collaboration.yml`;
 export const metadata: Metadata = {
   title: "Roadmap & collaboration",
   description:
-    "What exists today, planned implementations, and how to fund or collaborate on the Ethical Android research prototype.",
+    "What exists today, planned implementations, and how to fund or collaborate on the Ethos Kernel research prototype.",
   robots: { index: true, follow: true },
 };
 

@@ -1,6 +1,6 @@
 <#
 .SYNOPSIS
-  Start Ethical Android chat server bound to all interfaces (LAN-friendly).
+  Start Ethos Kernel chat server bound to all interfaces (LAN-friendly).
 
 .DESCRIPTION
   Sets CHAT_HOST=0.0.0.0 so phones on the same WiFi can reach ws://<PC_IP>:PORT/ws/chat

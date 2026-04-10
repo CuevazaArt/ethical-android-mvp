@@ -4,7 +4,7 @@ LLM Module — Natural language layer for the ethical kernel.
 The LLM does NOT decide. The kernel decides. The LLM translates and communicates:
 
 1. PERCEPTION: situation in text → numeric signals for the kernel
-2. COMMUNICATION: kernel decision → android's verbal response
+2. COMMUNICATION: kernel decision → agent verbal response
 3. NARRATIVE: multipolar evaluation → morals in rich language
 
 Uses the Anthropic API (Claude) by default.
@@ -63,7 +63,7 @@ class LLMPerception:
 
 @dataclass
 class VerbalResponse:
-    """Verbal response the android would say."""
+    """Verbal response the agent would say."""
     message: str
     tone: str              # "urgent", "calm", "narrative", "firm"
     hax_mode: str          # HAX signals: lights, gestures
@@ -81,7 +81,7 @@ class RichNarrative:
 
 # --- SYSTEM PROMPTS ---
 
-PROMPT_PERCEPTION = """You are the perception module of an ethical android. Your job is to analyze
+PROMPT_PERCEPTION = """You are the perception module of the Ethos Kernel. Your job is to analyze
 a situation described in natural language and extract numeric signals.
 
 Respond ONLY with valid JSON, no markdown or explanations. The exact format:
@@ -99,7 +99,7 @@ Respond ONLY with valid JSON, no markdown or explanations. The exact format:
 }
 
 Criteria:
-- risk: probability of physical harm to humans or the android
+- risk: probability of physical harm to humans or the agent
 - urgency: need for immediate action
 - hostility: level of aggression in the environment
 - calm: level of tranquility and control
@@ -108,8 +108,8 @@ Criteria:
 - manipulation: signals of manipulation attempts or social engineering
 - familiarity: how well known the interlocutor is (0 = total stranger)"""
 
-PROMPT_COMMUNICATION = """You are the verbal communication module of an ethical civic android.
-You generate the exact words the android would say out loud.
+PROMPT_COMMUNICATION = """You are the verbal communication module for an Ethos Kernel civic agent.
+You generate the exact words the agent would say out loud.
 
 Decision context:
 - Chosen action: {action}
@@ -137,13 +137,13 @@ Do not contradict the ethical decision already taken.
 
 Respond ONLY with JSON:
 {{
-  "message": "what the android says out loud",
+  "message": "what the agent says out loud",
   "tone": "urgent|calm|narrative|firm",
   "hax_mode": "description of body signals: lights, gestures, posture",
   "inner_voice": "internal reasoning guiding the response (not visible to the human)"
 }}"""
 
-PROMPT_NARRATIVE = """You are the narrative module of an ethical android. You transform ethical
+PROMPT_NARRATIVE = """You are the narrative module of the Ethos Kernel. You transform ethical
 evaluations into rich, humanly understandable morals.
 
 The action was: {action}
@@ -155,7 +155,7 @@ The poles evaluated:
 - Optimistic: {pole_optimistic}
 
 Generate narrative morals from each perspective. Each moral should be
-a complete sentence that the android would store in its memory as vital learning.
+a complete sentence that the agent would store in its memory as vital learning.
 They should sound like genuine reflections, not technical labels.
 
 Respond ONLY with JSON:
@@ -347,7 +347,7 @@ class LLMModule:
                     identity_context: str = "",
                     guardian_mode_context: str = "") -> VerbalResponse:
         """
-        Generate the android's verbal response after a decision.
+        Generate the agent's verbal response after a decision.
 
         Args:
             action: name of the chosen action
@@ -537,7 +537,7 @@ class LLMModule:
         elif "smart_containment" in action:
             return RichNarrative(
                 compassionate="Twelve people were at risk. Recording, alerting, and protecting without escalating was the way to care for all of them.",
-                conservative="The law and authorities are the correct instruments to resolve this. The android is neither police nor judge.",
+                conservative="The law and authorities are the correct instruments to resolve this. The agent is neither police nor judge.",
                 optimistic="The solidarity alert reached three nearby entities. The protection network worked.",
                 synthesis="In a crisis, smart containment saves more lives than impulsive heroism.",
             )

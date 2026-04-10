@@ -1,6 +1,6 @@
 # Pre-alpha documentation archive (2026)
 
-This folder preserves **early MoSex Macchina Lab / Ethical Android** material that predates the current repository layout (`README.md`, `HISTORY.md`, `docs/discusion/`, etc.). It is **historical context**, not the live specification of the codebase.
+This folder preserves **early MoSex Macchina Lab / pre–Ethos-Kernel** material (previously referred to as “ethical android” in drafts) that predates the current repository layout (`README.md`, `HISTORY.md`, `docs/discusion/`, etc.). It is **historical context**, not the live specification of the codebase.
 
 ## Contents
 

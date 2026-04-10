@@ -8,7 +8,7 @@ import { SiteBrand } from "@/components/SiteBrand";
 export const metadata: Metadata = {
   title: "Donate",
   description:
-    "Support Ethical Android research — donation options coming soon.",
+    "Support Ethos Kernel research — donation options coming soon.",
   robots: { index: true, follow: true },
 };
 
@@ -58,7 +58,7 @@ export default function DonatePage() {
         </h1>
         <p className="mt-5 text-sm leading-relaxed text-zinc-400">
           We are preparing a <strong className="font-medium text-zinc-300">simple, transparent way to donate</strong>{" "}
-          to MosEx Macchina Lab and keep the Ethical Android prototype open,
+          to MosEx Macchina Lab and keep the Ethos Kernel prototype open,
           documented, and accessible. If you believe in{" "}
           <strong className="font-medium text-zinc-300">inspectable machine ethics</strong>, check
           back here — this page will go live when the channel is ready.

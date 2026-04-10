@@ -8,7 +8,7 @@ import { SiteBrand } from "@/components/SiteBrand";
 export const metadata: Metadata = {
   title: "Who we are",
   description:
-    "MosEx Macchina Lab — mission, vision, and values behind the Ethical Android research prototype.",
+    "MosEx Macchina Lab — mission, vision, and values behind the Ethos Kernel research prototype.",
 };
 
 export default function AboutPage() {
@@ -51,7 +51,7 @@ export default function AboutPage() {
           We are a small research-oriented group building an{" "}
           <strong className="font-medium text-zinc-300">open, inspectable</strong> prototype of
           ethical decision-making for autonomous agents — not a product company and not a
-          certification body. The Ethical Android MVP is our public simulation kernel: code,
+          certification body. Ethos Kernel is our public simulation kernel: code,
           tests, bibliography, and demos anyone can audit.
         </p>
 

@@ -124,7 +124,7 @@ from .modules.buffer import PreloadedBuffer
 from .real_time_bridge import RealTimeBridge
 from .runtime.telemetry import advisory_interval_seconds_from_env, advisory_loop
 
-app = FastAPI(title="Ethical Android Chat", version="1.0")
+app = FastAPI(title="Ethos Kernel Chat", version="1.0")
 
 
 def _chat_expose_monologue() -> bool:
@@ -409,7 +409,7 @@ def constitution_public() -> JSONResponse:
 def root() -> JSONResponse:
     return JSONResponse(
         {
-            "service": "ethical-android-chat",
+            "service": "ethos-kernel-chat",
             "websocket": "/ws/chat",
             "constitution": "/constitution (requires KERNEL_MORAL_HUB_PUBLIC=1)",
             "dao_governance": "/dao/governance (V12.3 vote protocol; KERNEL_MORAL_HUB_DAO_VOTE for WebSocket actions)",

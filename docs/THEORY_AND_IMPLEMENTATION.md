@@ -1,6 +1,6 @@
 # Theory and implementation
 
-This document aligns the **mathematical and logical specification** of the Ethical Android kernel with **what the repository actually implements** (MVP **v5** decision core, plus **v6** presentation and real-time layers: reflection, salience, PAD, identity, chat). It is the primary reference for answering critiques that reduce the system to a “stochastic parrot”: the **decision core is not an LLM**; it is explicit predicates, numeric scoring, and a fixed pipeline you can read in code and test.
+This document aligns the **mathematical and logical specification** of the Ethos Kernel with **what the repository actually implements** (MVP **v5** decision core, plus **v6** presentation and real-time layers: reflection, salience, PAD, identity, chat). It is the primary reference for answering critiques that reduce the system to a “stochastic parrot”: the **decision core is not an LLM**; it is explicit predicates, numeric scoring, and a fixed pipeline you can read in code and test.
 
 ## Executive summary: kernel vs. language model
 

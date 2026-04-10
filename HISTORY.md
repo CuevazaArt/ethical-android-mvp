@@ -1,8 +1,10 @@
-# Development History — Ethical Android MVP
+# Development History — Ethos Kernel
 
 Record of the project's evolution from its conceptual phase to the current
 version. This file preserves key architectural decisions, experimental modules,
 and artifacts that were part of the journey.
+
+The open kernel + runtime is branded **Ethos Kernel** (April 2026 onward); earlier docs and mirrors may still say “Ethical Android MVP.” The GitHub repository slug may remain `ethical-android-mvp` until renamed.
 
 ---
 

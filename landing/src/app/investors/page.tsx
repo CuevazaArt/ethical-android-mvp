@@ -164,7 +164,7 @@ export default function InvestorsPage() {
           This page maps the{" "}
           <strong className="font-medium text-zinc-300">direct reach of the core product</strong> and
           the <strong className="font-medium text-zinc-300">derivative opportunities</strong> in the
-          ecosystem that supports it. The Ethical Android kernel is a research prototype today; the
+          ecosystem that supports it. The Ethos Kernel is a research prototype today; the
           categories below describe where a production-grade stack could deploy.
         </p>
         <p className="mt-4 text-sm text-zinc-500">

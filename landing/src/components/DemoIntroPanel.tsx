@@ -2,7 +2,7 @@
 
 import { useEffect, useId, useState } from "react";
 
-const INTRO_STORAGE_KEY = "ethical-android-mvp-demo-intro-open";
+const INTRO_STORAGE_KEY = "ethos-kernel-demo-intro-open";
 
 export function DemoIntroPanel() {
   const [open, setOpen] = useState(true);

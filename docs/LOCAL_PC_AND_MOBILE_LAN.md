@@ -48,7 +48,7 @@ El **salto real** a un modelo 8B **dentro del teléfono** es un proyecto aparte 
 
 2. **Firewall:** permitir entrada TCP al puerto del chat (por defecto `8765`) para **red privada**:
    - *Configuración → Firewall → Regla de entrada* → puerto `8765`, o ejecutar una vez (admin):
-   - `New-NetFirewallRule -DisplayName "EthicalAndroid Chat" -Direction Inbound -LocalPort 8765 -Protocol TCP -Action Allow -Profile Private`
+   - `New-NetFirewallRule -DisplayName "Ethos Kernel Chat" -Direction Inbound -LocalPort 8765 -Protocol TCP -Action Allow -Profile Private`
 
 3. **Arrancar el servidor escuchando en LAN** (desde la raíz del repo, con venv activado):
 

@@ -9,9 +9,9 @@ import { REPO_URL as REPO, SITE_URL as SITE } from "@/config/site";
 export const metadata: Metadata = {
   title: "One-pager",
   description:
-    "Single-page summary of the Ethical Android MVP for funders, partners, and press. Print or save as PDF from your browser.",
+    "Single-page summary of Ethos Kernel for funders, partners, and press. Print or save as PDF from your browser.",
   openGraph: {
-    title: "Ethical Android MVP — One-pager",
+    title: "Ethos Kernel — One-pager",
     description: "Research prototype summary for outreach and due diligence.",
   },
 };
@@ -48,7 +48,7 @@ export default function OnePagerPage() {
           MosEx Macchina Lab
         </p>
         <h1 className="mt-2 text-2xl font-semibold tracking-tight text-white print:text-zinc-950 md:text-3xl">
-          Ethical Android — MVP (research prototype)
+          Ethos Kernel (research prototype)
         </h1>
         <p className="mt-3 text-sm leading-relaxed text-zinc-400 print:text-zinc-700">
           Artificial ethical consciousness, validated in simulation. Open
@@ -223,7 +223,7 @@ export default function OnePagerPage() {
 
       <footer className="mt-10 border-t border-white/10 pt-6 text-xs text-zinc-500 print:border-zinc-300 print:text-zinc-600">
         <p>
-          MosEx Macchina Lab · Ethical Android MVP · April 2026
+          MosEx Macchina Lab · Ethos Kernel · April 2026
         </p>
         <p className="mt-1 print:hidden">
           Tip: use your browser&apos;s <strong className="text-zinc-400">Print</strong>{" "}

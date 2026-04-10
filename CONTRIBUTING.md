@@ -1,4 +1,4 @@
-# Contributing to the Ethical Android MVP
+# Contributing to Ethos Kernel
 
 Thank you for your interest in contributing! This project needs people
 with skills in AI/ML, computational ethics, blockchain, and robotics.

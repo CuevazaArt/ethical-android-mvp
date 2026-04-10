@@ -1,4 +1,4 @@
-# Estrategia, ruta y riesgos — Ethical Android MVP
+# Estrategia, ruta y riesgos — Ethos Kernel
 
 Documento de **síntesis** (abril 2026): conclusiones de revisión del proyecto, expectativas realistas, **readaptación de la ruta**, y el **hueco principal** que prioriza el trabajo siguiente.
 

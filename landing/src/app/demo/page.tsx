@@ -16,7 +16,7 @@ export default function DemoPage() {
           </div>
           <div className="flex flex-wrap items-center gap-x-4 gap-y-2 border-t border-white/[0.06] pt-3 text-sm md:border-0 md:pt-0">
             <span className="w-full text-xs text-zinc-500 md:w-auto">
-              Ethical Android — dashboard
+              Ethos Kernel — dashboard
             </span>
             <Link
               href="/about"
@@ -63,7 +63,7 @@ export default function DemoPage() {
 
         <iframe
           src="/dashboard.html"
-          title="Ethical Android interactive dashboard"
+          title="Ethos Kernel interactive dashboard"
           className="min-h-0 w-full flex-1 border-0 bg-black"
         />
       </div>
