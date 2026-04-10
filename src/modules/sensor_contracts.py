@@ -92,7 +92,7 @@ def merge_sensor_hints_into_signals(
     when state is **doubt**, stress-like nudges from audio/ambient/biometric channels are skipped.
     """
 
-    from .multimodal_trust import suppress_stress_from_spoof_risk
+    from .multimodal_trust import suppress_stress_from_spoof_risk, thresholds_from_env
 
     if snapshot is None or snapshot.is_empty():
         return signals
@@ -104,7 +104,10 @@ def merge_sensor_hints_into_signals(
 
     out = dict(signals)
 
-    if snapshot.battery_level is not None and snapshot.battery_level < 0.05:
+    from .vitality import critical_battery_threshold
+
+    crit = critical_battery_threshold()
+    if snapshot.battery_level is not None and snapshot.battery_level < crit:
         out["urgency"] = _clamp01(out.get("urgency", 0.5) + 0.15)
         out["calm"] = _clamp01(out.get("calm", 0.5) - 0.12)
 
@@ -116,10 +119,11 @@ def merge_sensor_hints_into_signals(
         out["urgency"] = _clamp01(out.get("urgency", 0.5) + 0.2)
         out["risk"] = _clamp01(out.get("risk", 0.5) + 0.1)
 
+    t_audio = thresholds_from_env().audio_strong
     if (
         not suppress_audio_stress
         and snapshot.audio_emergency is not None
-        and snapshot.audio_emergency > 0.65
+        and snapshot.audio_emergency > t_audio
     ):
         out["urgency"] = _clamp01(out.get("urgency", 0.5) + 0.1)
         out["risk"] = _clamp01(out.get("risk", 0.5) + 0.06)

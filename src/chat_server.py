@@ -17,6 +17,8 @@ Multimodal thresholds (optional): KERNEL_MULTIMODAL_AUDIO_STRONG, KERNEL_MULTIMO
 KERNEL_MULTIMODAL_SCENE_SUPPORT, KERNEL_MULTIMODAL_VISION_CONTRADICT, KERNEL_MULTIMODAL_SCENE_CONTRADICT
 — see README / multimodal_trust.thresholds_from_env.
 
+Vitality (optional): KERNEL_VITALITY_CRITICAL_BATTERY, KERNEL_CHAT_INCLUDE_VITALITY — see vitality.py.
+
 Advisory telemetry (optional, Fase 1.3–1.4): KERNEL_ADVISORY_INTERVAL_S — positive seconds
 spawns a read-only :func:`src.runtime.telemetry.advisory_loop` per WebSocket session (DriveArbiter only).
 
@@ -98,6 +100,11 @@ def _chat_include_teleology() -> bool:
 
 def _chat_include_multimodal_trust() -> bool:
     v = os.environ.get("KERNEL_CHAT_INCLUDE_MULTIMODAL", "1").strip().lower()
+    return v not in ("0", "false", "no", "off")
+
+
+def _chat_include_vitality() -> bool:
+    v = os.environ.get("KERNEL_CHAT_INCLUDE_VITALITY", "1").strip().lower()
     return v not in ("0", "false", "no", "off")
 
 
@@ -198,6 +205,8 @@ def _chat_turn_to_jsonable(r: ChatTurnResult, kernel: EthicalKernel) -> Dict[str
             "reason": mt.reason,
             "requires_owner_anchor": mt.requires_owner_anchor,
         }
+    if _chat_include_vitality():
+        out["vitality"] = kernel._last_vitality_assessment.to_public_dict()
     if (
         _chat_include_teleology()
         and r.decision is not None
@@ -232,8 +241,8 @@ def root() -> JSONResponse:
                 "\"sensor\"?: {battery_level?, audio_emergency?, vision_emergency?, scene_coherence?, …}}. "
                 "Responses include identity, drive_intents, monologue (when decision present), optional "
                 "affective_homeostasis, experience_digest, user_model, chronobiology, premise_advisory, "
-                "teleology_branches, multimodal_trust (see README KERNEL_CHAT_* / KERNEL_MULTIMODAL_*), "
-                "decision, …"
+                "teleology_branches, multimodal_trust, vitality (see README KERNEL_CHAT_* / KERNEL_MULTIMODAL_* / "
+                "KERNEL_VITALITY_*), decision, …"
             ),
         }
     )

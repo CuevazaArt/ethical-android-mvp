@@ -56,6 +56,7 @@ from .modules.multimodal_trust import (
     owner_anchor_hint,
 )
 from .modules.sensor_contracts import SensorSnapshot, merge_sensor_hints_into_signals
+from .modules.vitality import VitalityAssessment, assess_vitality, vitality_communication_hint
 
 
 @dataclass
@@ -141,6 +142,7 @@ class EthicalKernel:
         self.subjective_clock = SubjectiveClock()
         self._last_premise_advisory: PremiseAdvisory = PremiseAdvisory("none", "")
         self._last_multimodal_assessment: MultimodalAssessment = evaluate_multimodal_trust(None)
+        self._last_vitality_assessment: VitalityAssessment = assess_vitality(None)
         self._last_registered_episode_id: Optional[str] = None
         self._pruned_actions: Dict[str, List[str]] = {}
         # Reference "genome" for drift caps (pilar 2); snapshot at construction
@@ -533,6 +535,7 @@ class EthicalKernel:
         if mal.blocked:
             mm_blk = evaluate_multimodal_trust(sensor_snapshot)
             self._last_multimodal_assessment = mm_blk
+            self._last_vitality_assessment = assess_vitality(sensor_snapshot)
             msg = (
                 "I can't continue this line of conversation: it conflicts with non-negotiable "
                 "ethical limits. If you're in crisis, contact local emergency services or a "
@@ -567,6 +570,7 @@ class EthicalKernel:
             "manipulation": perception.manipulation,
             "familiarity": perception.familiarity,
         }
+        self._last_vitality_assessment = assess_vitality(sensor_snapshot)
         mm = evaluate_multimodal_trust(sensor_snapshot)
         self._last_multimodal_assessment = mm
         signals = merge_sensor_hints_into_signals(signals, sensor_snapshot, mm)
@@ -638,6 +642,10 @@ class EthicalKernel:
         oa = owner_anchor_hint(mm)
         if oa:
             weakness_line = (weakness_line + " " + oa).strip() if weakness_line else oa
+
+        vh = vitality_communication_hint(self._last_vitality_assessment)
+        if vh:
+            weakness_line = (weakness_line + " " + vh).strip() if weakness_line else vh
 
         response = self.llm.communicate(
             action=decision.final_action,

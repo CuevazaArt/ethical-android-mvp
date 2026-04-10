@@ -31,6 +31,7 @@ def test_root_protocol_mentions_multimodal_and_sensor_fields():
     r = client.get("/")
     proto = (r.json().get("protocol") or "").lower()
     assert "multimodal" in proto
+    assert "vitality" in proto
     assert "audio_emergency" in proto or "sensor" in proto
 
 
@@ -57,6 +58,9 @@ def test_websocket_chat_roundtrip():
         assert "horizon_long_term" in data["teleology_branches"]
         assert "multimodal_trust" in data
         assert data["multimodal_trust"].get("state") in ("aligned", "doubt", "no_claim")
+        assert "vitality" in data
+        assert "is_critical" in data["vitality"]
+        assert "critical_threshold" in data["vitality"]
 
 
 def test_websocket_homeostasis_omitted(monkeypatch):
@@ -128,6 +132,8 @@ def test_websocket_sensor_preset_env(monkeypatch):
         ("KERNEL_CHAT_INCLUDE_PREMISE", "0", "premise_advisory"),
         ("KERNEL_CHAT_INCLUDE_TELEOLOGY", "0", "teleology_branches"),
         ("KERNEL_CHAT_INCLUDE_EXPERIENCE_DIGEST", "0", "experience_digest"),
+        ("KERNEL_CHAT_INCLUDE_HOMEOSTASIS", "0", "affective_homeostasis"),
+        ("KERNEL_CHAT_INCLUDE_VITALITY", "0", "vitality"),
     ],
 )
 def test_websocket_kernel_chat_json_env_matrix(monkeypatch, env_key, env_val, absent_key):
