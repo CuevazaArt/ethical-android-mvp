@@ -68,11 +68,13 @@ from .modules.metaplan_registry import MetaplanRegistry
 from .modules.skill_learning_registry import SkillLearningRegistry
 from .modules.somatic_markers import SomaticMarkerStore, apply_somatic_nudges
 from .modules.judicial_escalation import (
+    EscalationSessionTracker,
     JudicialEscalationView,
     build_escalation_view,
     build_ethical_dossier,
     judicial_escalation_enabled,
     should_offer_escalation_advisory,
+    strikes_threshold_from_env,
 )
 
 
@@ -172,6 +174,7 @@ class EthicalKernel:
         self.skill_learning = SkillLearningRegistry()
         self.somatic_store = SomaticMarkerStore()
         self.metaplan = MetaplanRegistry()
+        self.escalation_session = EscalationSessionTracker()
 
     def process(self, scenario: str, place: str,
                 signals: dict, context: str,
@@ -743,6 +746,9 @@ class EthicalKernel:
                 decision.reflection,
                 self._last_premise_advisory.flag,
             )
+            self.escalation_session.update(adv)
+            strikes = self.escalation_session.strikes
+            threshold = strikes_threshold_from_env()
             if adv:
                 if escalate_to_dao:
                     mono = compose_monologue_line(
@@ -756,20 +762,45 @@ class EthicalKernel:
                         decision.reflection is not None
                         and decision.reflection.strain_index >= 0.45
                     )
-                    dossier = build_ethical_dossier(
-                        user_input,
-                        decision.decision_mode,
-                        signals,
-                        mono,
-                        buffer_c,
-                    )
-                    rec = self.dao.register_escalation_case(
-                        dossier.to_audit_paragraph(),
-                        episode_id=self._last_registered_episode_id,
-                    )
-                    je_view = build_escalation_view(True, True, dossier, rec.id)
+                    if strikes >= threshold:
+                        dossier = build_ethical_dossier(
+                            user_input,
+                            decision.decision_mode,
+                            signals,
+                            mono,
+                            buffer_c,
+                            session_strikes=strikes,
+                        )
+                        rec = self.dao.register_escalation_case(
+                            dossier.to_audit_paragraph(),
+                            episode_id=self._last_registered_episode_id,
+                        )
+                        je_view = build_escalation_view(
+                            True,
+                            True,
+                            dossier,
+                            rec.id,
+                            session_strikes=strikes,
+                            strikes_threshold=threshold,
+                        )
+                    else:
+                        je_view = build_escalation_view(
+                            True,
+                            True,
+                            None,
+                            None,
+                            session_strikes=strikes,
+                            strikes_threshold=threshold,
+                        )
                 else:
-                    je_view = build_escalation_view(True, False, None, None)
+                    je_view = build_escalation_view(
+                        True,
+                        False,
+                        None,
+                        None,
+                        session_strikes=strikes,
+                        strikes_threshold=threshold,
+                    )
 
         return ChatTurnResult(
             response=response,

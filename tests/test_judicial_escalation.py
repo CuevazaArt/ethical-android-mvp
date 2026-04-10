@@ -7,6 +7,7 @@ sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
 
 from src.modules.judicial_escalation import (
     EscalationPhase,
+    EscalationSessionTracker,
     build_escalation_view,
     build_ethical_dossier,
     judicial_escalation_enabled,
@@ -52,10 +53,30 @@ def test_should_not_offer_non_gray():
 
 
 def test_build_escalation_view_traceability_only():
-    v = build_escalation_view(True, False, None, None)
+    v = build_escalation_view(
+        True, False, None, None, session_strikes=1, strikes_threshold=2
+    )
     assert v is not None
     assert v.phase == EscalationPhase.TRACEABILITY_NOTICE.value
     assert v.dossier_registered is False
+    assert v.dossier_ready is False
+    assert v.session_strikes == 1
+
+
+def test_build_escalation_view_dossier_ready_phase():
+    v = build_escalation_view(
+        True, False, None, None, session_strikes=2, strikes_threshold=2
+    )
+    assert v.phase == EscalationPhase.DOSSIER_READY.value
+    assert v.dossier_ready is True
+
+
+def test_build_escalation_view_deferred_escalate():
+    v = build_escalation_view(
+        True, True, None, None, session_strikes=1, strikes_threshold=2
+    )
+    assert v.phase == EscalationPhase.ESCALATION_DEFERRED.value
+    assert v.dao_registration_blocked is True
 
 
 def test_build_escalation_view_dao_submitted():
@@ -65,12 +86,28 @@ def test_build_escalation_view_dao_submitted():
         {"risk": 0.5, "hostility": 0.2},
         "[MONO] action=x mode=gray_zone",
         buffer_conflict=True,
+        session_strikes=2,
     )
-    v = build_escalation_view(True, True, d, "AUD-0007")
+    v = build_escalation_view(
+        True, True, d, "AUD-0007", session_strikes=2, strikes_threshold=2
+    )
     assert v is not None
     assert v.phase == EscalationPhase.DAO_SUBMITTED_MOCK.value
     assert v.case_id == "AUD-0007"
     assert v.dossier_registered is True
+
+
+def test_escalation_session_tracker_increments_and_resets(monkeypatch):
+    monkeypatch.setenv("KERNEL_JUDICIAL_RESET_IDLE_TURNS", "2")
+    t = EscalationSessionTracker()
+    t.update(True)
+    assert t.strikes == 1
+    t.update(True)
+    assert t.strikes == 2
+    t.update(False)
+    assert t.strikes == 2
+    t.update(False)
+    assert t.strikes == 0
 
 
 def test_mock_dao_register_escalation_case():

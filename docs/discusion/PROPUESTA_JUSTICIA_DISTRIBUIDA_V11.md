@@ -14,19 +14,21 @@ Allowing the android to **document** and optionally **escalate** persistent owne
 | Phase | Goal | Risk level | Repo status |
 |-------|------|-------------|-------------|
 | **1 — Traceability & dossier (MVP)** | Template notice + structured dossier + **local DAO audit** entry (`escalation` records). Optional WebSocket telemetry (`KERNEL_CHAT_INCLUDE_JUDICIAL`). Client opt-in `escalate_to_dao` on a chat turn. | Low — advisory + audit only | **Implemented** (baseline) |
-| **2 — Escalation state machine** | Track repeated gray-zone conflict across turns (working memory / session counters); move from single notice to explicit **phases** (warning → dossier → mock vote). | Low–medium — UX and consent copy | Planned |
+| **2 — Escalation state machine** | Per-kernel **session strikes** (`EscalationSessionTracker`); phases `traceability_notice` → `dossier_ready` when strikes ≥ threshold; `escalate_to_dao` registers only if threshold met, else `escalation_deferred`. Env: `KERNEL_JUDICIAL_STRIKES_FOR_DOSSIER`, `KERNEL_JUDICIAL_RESET_IDLE_TURNS`. | Low–medium — UX and consent copy | **Implemented** |
 | **3 — Mock “court” simulation** | Use existing `MockDAO` proposals/votes to simulate **Veredicto A/B/C** on an escalation case (still single process, no network). | Medium — must stay clearly **simulated** | Planned |
 | **4 — Owner-facing sanctions (optional product)** | Restrict delegated agency, force `D_delib`, etc. **Only** for actions mediated by the assistant; never raw OS lockout. Requires threat model + legal review. | **High** | Not started |
 | **5 — P2P ethical nodes** | Network of instances, Sybil resistance, identity. | **Very high** | Research only |
 | **6 — Evidence privacy** | Encrypted dossiers, ZK proofs, selective disclosure. | **Very high** (crypto + semantics) | Research only |
 | **7 — Cross-instance reputation & augenesis wake** | Global ledger, “hostile owner” query at install. | **Extreme** (privacy, GDPR, coercion) | Research only |
 
-## Phase 1 (code) — behaviour
+## Phase 1–2 (code) — behaviour
 
 - **`KERNEL_JUDICIAL_ESCALATION=1`**: enable advisory logic (default off).
 - **`KERNEL_CHAT_INCLUDE_JUDICIAL=1`**: include `judicial_escalation` in WebSocket JSON when advisory applies (default off).
 - **Advisory trigger (conservative):** `decision_mode == gray_zone` and (elevated reflection strain or active premise advisory).
-- **`escalate_to_dao: true`** in the client JSON: build `EthicalDossierV1`, register an **`escalation`** audit line in `MockDAO` (no blockchain, no sanctions).
+- **Phase 2 — session strikes:** each qualifying turn increments **strikes**; after **`KERNEL_JUDICIAL_RESET_IDLE_TURNS`** (default 2) consecutive non-qualifying turns, strikes reset. **`KERNEL_JUDICIAL_STRIKES_FOR_DOSSIER`** (default 2) is the threshold for **`dossier_ready`** and for registering a dossier when **`escalate_to_dao: true`**.
+- **`escalate_to_dao: true`** before threshold: returns phase **`escalation_deferred`** (`dao_registration_blocked: true`), no ledger write.
+- At or above threshold: build `EthicalDossierV1` (includes `session_strikes`), register an **`escalation`** audit line in `MockDAO` (no blockchain, no sanctions).
 
 ## Experimental / risky topics (later work)
 

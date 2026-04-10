@@ -189,6 +189,7 @@ Governance track: **artificial social contract** metaphor — owner insistence i
 | `judicial_escalation.py` | Advisory trigger, `EthicalDossierV1`, traceability notice |
 | `MockDAO.register_escalation_case` | Append `escalation` rows to the audit ledger |
 | WebSocket | Optional `escalate_to_dao`; env `KERNEL_JUDICIAL_ESCALATION`, `KERNEL_CHAT_INCLUDE_JUDICIAL` |
+| Phase 2 (same version line) | `EscalationSessionTracker` on `EthicalKernel`; strikes gate `dossier_ready` and DAO registration; `escalation_deferred` if early |
 
 ## v12.0 — April 2026 | Etosocial state — hybrid hub (vision only)
 
