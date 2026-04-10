@@ -15,6 +15,9 @@ spawns a read-only :func:`src.runtime.telemetry.advisory_loop` per WebSocket ses
 
 Privacy (robustez pilar 5): KERNEL_CHAT_EXPOSE_MONOLOGUE — if 0/false/no/off, the ``monologue``
 field is omitted from content (empty string) and LLM embellishment is skipped.
+
+Homeostasis UX (pilar 4): KERNEL_CHAT_INCLUDE_HOMEOSTASIS — if 0/false/no/off, omit
+``affective_homeostasis`` (σ / strain / PAD advisory; does not change decisions).
 """
 
 from __future__ import annotations
@@ -36,6 +39,7 @@ from .persistence.checkpoint import (
     on_websocket_session_end,
     try_load_checkpoint,
 )
+from .modules.affective_homeostasis import homeostasis_telemetry
 from .real_time_bridge import RealTimeBridge
 from .runtime.telemetry import advisory_interval_seconds_from_env, advisory_loop
 
@@ -45,6 +49,12 @@ app = FastAPI(title="Ethical Android Chat", version="1.0")
 def _chat_expose_monologue() -> bool:
     """If false, omit monologue from WebSocket JSON (privacy; skips LLM embellishment)."""
     v = os.environ.get("KERNEL_CHAT_EXPOSE_MONOLOGUE", "1").strip().lower()
+    return v not in ("0", "false", "no", "off")
+
+
+def _chat_include_homeostasis() -> bool:
+    """If false, omit affective_homeostasis (pilar 4 UX telemetry)."""
+    v = os.environ.get("KERNEL_CHAT_INCLUDE_HOMEOSTASIS", "1").strip().lower()
     return v not in ("0", "false", "no", "off")
 
 
@@ -117,6 +127,8 @@ def _chat_turn_to_jsonable(r: ChatTurnResult, kernel: EthicalKernel) -> Dict[str
                 "weights": d.salience.weights,
                 "raw_scores": d.salience.raw_scores,
             }
+        if _chat_include_homeostasis():
+            out["affective_homeostasis"] = homeostasis_telemetry(d)
     if r.narrative:
         n = r.narrative
         out["narrative"] = {

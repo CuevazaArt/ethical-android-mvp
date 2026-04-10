@@ -35,6 +35,16 @@ def test_websocket_chat_roundtrip():
         assert "identity" in data and "ascription" in data["identity"]
         assert "drive_intents" in data and isinstance(data["drive_intents"], list)
         assert "monologue" in data
+        assert "affective_homeostasis" in data
+        assert data["affective_homeostasis"].get("sigma") is not None
+
+
+def test_websocket_homeostasis_omitted(monkeypatch):
+    monkeypatch.setenv("KERNEL_CHAT_INCLUDE_HOMEOSTASIS", "0")
+    with client.websocket_connect("/ws/chat") as ws:
+        ws.send_json({"text": "Hello, I am testing the bridge."})
+        data = ws.receive_json()
+        assert "affective_homeostasis" not in data
 
 
 def test_websocket_invalid_json():

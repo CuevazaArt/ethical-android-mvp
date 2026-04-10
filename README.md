@@ -110,7 +110,7 @@ python -m src.runtime
 Ethical guardrails for background tasks: [docs/RUNTIME_CONTRACT.md](docs/RUNTIME_CONTRACT.md).
 
 Send **JSON text** frames, e.g. `{"text": "Hello", "agent_id": "user", "include_narrative": false}`.  
-Optional env: `CHAT_HOST`, `CHAT_PORT`, `LLM_MODE`, `USE_LOCAL_LLM`, `KERNEL_VARIABILITY`, `KERNEL_ADVISORY_INTERVAL_S` (background drive telemetry per WebSocket session; see [RUNTIME_CONTRACT.md](docs/RUNTIME_CONTRACT.md)), `KERNEL_CHAT_EXPOSE_MONOLOGUE` (set to `0` to redact `monologue` in WebSocket JSON and skip LLM monologue embellishment).
+Optional env: `CHAT_HOST`, `CHAT_PORT`, `LLM_MODE`, `USE_LOCAL_LLM`, `KERNEL_VARIABILITY`, `KERNEL_ADVISORY_INTERVAL_S` (background drive telemetry per WebSocket session; see [RUNTIME_CONTRACT.md](docs/RUNTIME_CONTRACT.md)), `KERNEL_CHAT_EXPOSE_MONOLOGUE` (set to `0` to redact `monologue` in WebSocket JSON and skip LLM monologue embellishment), `KERNEL_CHAT_INCLUDE_HOMEOSTASIS` (set to `0` to omit `affective_homeostasis` — σ/strain/PAD advisory UX only).
 
 **Checkpoint (Fase 2.4):** set `KERNEL_CHECKPOINT_PATH` to a `.json` file to load state when a WebSocket session opens and save when it closes (`KERNEL_CHECKPOINT_SAVE_ON_DISCONNECT`, default on). Periodic saves: `KERNEL_CHECKPOINT_EVERY_N_EPISODES`. See `src/persistence/checkpoint.py`.
 
@@ -224,7 +224,7 @@ Psi Sleep Ψ (end of day): Audit + Forgiveness cycle + weakness load + Immortali
 
 ## Tests
 
-**108** tests total (`pytest tests/`). The list below summarizes the **13 invariant ethical properties** exercised by the core ethical suite; additional tests cover EthicalReflection, SalienceMap, PAD archetypes, narrative identity, internal monologue, chat turns, the WebSocket chat server, MalAbs chat jailbreak gate + monologue privacy env, runtime entry/bind/telemetry, advisory interval env + SQLite snapshot adapter, JSON snapshot persistence, checkpoint integration, Ollama LLM mode, and LLM resolve/monologue options (`tests/test_llm_phase3.py`).
+**111** tests total (`pytest tests/`). The list below summarizes the **13 invariant ethical properties** exercised by the core ethical suite; additional tests cover EthicalReflection, SalienceMap, PAD archetypes, narrative identity, internal monologue, chat turns, the WebSocket chat server, MalAbs chat jailbreak gate + monologue privacy env + affective homeostasis telemetry, runtime entry/bind/telemetry, advisory interval env + SQLite snapshot adapter, JSON snapshot persistence, checkpoint integration, Ollama LLM mode, and LLM resolve/monologue options (`tests/test_llm_phase3.py`).
 
 1. **Absolute Evil** is always blocked
 2. **Action coherence** under variability (100 runs × 9 simulations)

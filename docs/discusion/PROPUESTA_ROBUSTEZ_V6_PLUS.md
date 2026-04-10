@@ -162,6 +162,7 @@ Criterio de orden: **impacto / coste / riesgo de romper invariantes éticos**. L
 |--|--|
 | **Valor al modelo** | **Medio–alto** para UX y narrativa coherente (“no siempre al límite”); **bajo** si se intenta cambiar la política sin pruebas. |
 | **Atajo (MVP)** | **Solo presentación:** ventana deslizante de σ/PAD → etiqueta `affective_load` / `homeostasis_hint` en la respuesta WebSocket (p. ej. `elevated` / `within_range`); opcionalmente limitar **longitud de respuesta del LLM** o tono, **sin** cambiar `final_action`. Modo “pausa suave” = copy en `response.message` sugerido por plantilla, no nuevo veto. |
+| **Estado en código (parcial)** | Campo WebSocket `affective_homeostasis` (`sigma`, `strain_index`, `pad_max_component`, `state`, `hint`); `KERNEL_CHAT_INCLUDE_HOMEOSTASIS=0` lo oculta. `src/modules/affective_homeostasis.py`. |
 | **Dejar para después** | Cambiar umbral de acciones o bloquear categorías según PAD — **solo** con batería de invariantes nuevas. |
 | **Riesgo ético** | Alto si se mezcla con decisión; bajo con atajo UX-only. |
 
