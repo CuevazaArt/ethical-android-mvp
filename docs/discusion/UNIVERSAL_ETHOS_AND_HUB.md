@@ -58,7 +58,7 @@
 | **DemocraticBuffer** | L0 immutable + L1/L2 governance path | `buffer.py` + `moral_hub.py` + `MockDAO` + persistence |
 | **MLEthicsTuner** | Expert loop for gray-zone weight tuning | `ml_ethics_tuner.py` (audit only in MVP) |
 | **ReparationVault** | Indemnification fund | `reparation_vault.py` (mock audit) |
-| **NomadIdentity** | Hardware jump + continuity of self | `nomad_identity.py` (facade) + `ImmortalityProtocol` + checkpoint |
+| **NomadIdentity** | Hardware jump + continuity of self | `nomad_identity.py` (facade) + `ImmortalityProtocol` + checkpoint; HAL: [PROPUESTA_CONCIENCIA_NOMADA_HAL.md](PROPUESTA_CONCIENCIA_NOMADA_HAL.md), `hardware_abstraction.py`, `existential_serialization.py` |
 
 ---
 

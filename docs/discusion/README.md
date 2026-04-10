@@ -18,6 +18,7 @@ Product work is coordinated from the repository README and version control; this
 | [PROPUESTA_JUSTICIA_DISTRIBUIDA_V11.md](PROPUESTA_JUSTICIA_DISTRIBUIDA_V11.md) | **V11 governance:** DAO escalation audit, social-contract metaphor; phased roadmap (sanctions / P2P / ZK — research) — design **English** + Phase 1 in code |
 | [PROPUESTA_ESTADO_ETOSOCIAL_V12.md](PROPUESTA_ESTADO_ETOSOCIAL_V12.md) | **V12 registry** — phased deliverables + env vars; points to unified architecture doc |
 | [UNIVERSAL_ETHOS_AND_HUB.md](UNIVERSAL_ETHOS_AND_HUB.md) | **Canonical hub vision ↔ code** — UniversalEthos layers, services, audit levels, evolution loops, module map (DemocraticBuffer, MLEthicsTuner, ReparationVault, NomadIdentity) |
+| [PROPUESTA_CONCIENCIA_NOMADA_HAL.md](PROPUESTA_CONCIENCIA_NOMADA_HAL.md) | **Nomadic instantiation** — HAL, serialización existencial, runtime dual; respuestas de diseño (batería, DAO, tono) |
 | [../TRACE_IMPLEMENTATION_RECENT.md](../TRACE_IMPLEMENTATION_RECENT.md) | **Traceability** Guardian + v9–v10: code ↔ bibliography ([BIBLIOGRAPHY.md](../../BIBLIOGRAPHY.md)); proposed next session — **English** |
 
 For canonical runtime and persistence docs in English, see [RUNTIME_CONTRACT.md](../RUNTIME_CONTRACT.md), [RUNTIME_PERSISTENT.md](../RUNTIME_PERSISTENT.md), and [RUNTIME_PHASES.md](../RUNTIME_PHASES.md).
