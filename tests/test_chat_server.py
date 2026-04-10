@@ -40,6 +40,8 @@ def test_websocket_chat_roundtrip():
         assert "experience_digest" in data
         assert "user_model" in data
         assert "frustration_streak" in data["user_model"]
+        assert "chronobiology" in data
+        assert "turn_index" in data["chronobiology"]
 
 
 def test_websocket_homeostasis_omitted(monkeypatch):

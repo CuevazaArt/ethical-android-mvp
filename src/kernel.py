@@ -48,6 +48,7 @@ from .modules.drive_arbiter import DriveArbiter
 from .modules.identity_integrity import pruning_recalibration_allowed
 from .modules.internal_monologue import compose_monologue_line
 from .modules.user_model import UserModelTracker
+from .modules.subjective_time import SubjectiveClock
 
 
 @dataclass
@@ -129,6 +130,7 @@ class EthicalKernel:
         self.salience_map = SalienceMap()
         self.drive_arbiter = DriveArbiter()
         self.user_model = UserModelTracker()
+        self.subjective_clock = SubjectiveClock()
         self._last_registered_episode_id: Optional[str] = None
         self._pruned_actions: Dict[str, List[str]] = {}
         # Reference "genome" for drift caps (pilar 2); snapshot at construction
@@ -534,6 +536,7 @@ class EthicalKernel:
             )
 
         perception = self.llm.perceive(user_input, conversation_context=conv)
+        self.subjective_clock.tick(perception)
         heavy = self._chat_is_heavy(perception)
         eth_context = perception.suggested_context if heavy else "everyday"
 

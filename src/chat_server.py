@@ -72,6 +72,11 @@ def _chat_include_user_model() -> bool:
     return v not in ("0", "false", "no", "off")
 
 
+def _chat_include_chrono() -> bool:
+    v = os.environ.get("KERNEL_CHAT_INCLUDE_CHRONO", "1").strip().lower()
+    return v not in ("0", "false", "no", "off")
+
+
 def _chat_turn_to_jsonable(r: ChatTurnResult, kernel: EthicalKernel) -> Dict[str, Any]:
     """Compact JSON-safe view (no full internal objects)."""
     idn = kernel.memory.identity
@@ -157,6 +162,8 @@ def _chat_turn_to_jsonable(r: ChatTurnResult, kernel: EthicalKernel) -> Dict[str
         out["experience_digest"] = kernel.memory.experience_digest
     if _chat_include_user_model():
         out["user_model"] = kernel.user_model.to_public_dict()
+    if _chat_include_chrono():
+        out["chronobiology"] = kernel.subjective_clock.to_public_dict()
     return out
 
 
