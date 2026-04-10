@@ -51,3 +51,11 @@ def test_websocket_with_advisory_interval(monkeypatch):
         ws.send_json({"text": "ping"})
         data = ws.receive_json()
         assert "response" in data
+
+
+def test_websocket_monologue_redacted(monkeypatch):
+    monkeypatch.setenv("KERNEL_CHAT_EXPOSE_MONOLOGUE", "0")
+    with client.websocket_connect("/ws/chat") as ws:
+        ws.send_json({"text": "Hello, I am testing the bridge."})
+        data = ws.receive_json()
+        assert data.get("monologue") == ""

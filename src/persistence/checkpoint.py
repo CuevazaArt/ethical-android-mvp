@@ -17,6 +17,10 @@ Environment:
 
 **Limitation:** one kernel per WebSocket; concurrent connections sharing one file will race.
 For production, use one session at a time or separate paths per client.
+
+**Privacy:** snapshots persist narrative episodes (and related fields), not the WebSocket
+``monologue`` line — that is response-only. To hide ``monologue`` from live JSON, set
+``KERNEL_CHAT_EXPOSE_MONOLOGUE=0`` (see ``chat_server``).
 """
 
 from __future__ import annotations

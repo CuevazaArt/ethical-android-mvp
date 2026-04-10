@@ -138,6 +138,7 @@ Criterio de orden: **impacto / coste / riesgo de romper invariantes éticos**. L
 |--|--|
 | **Valor al modelo** | **Alto** para confianza y alineación con “secreto total”: reduce superficie de fuga sin reinterpretar la ética. |
 | **Atajo (MVP)** | (1) Garantizar que el monólogo **no** entre en `KernelSnapshotV1` / checkpoint salvo opt-in explícito (`env` documentado). (2) En respuesta WebSocket, opción de **omitir** el campo `monologue` o enviar solo un hash/local id si se activa modo privado. (3) Reutilizar el plan de **cifrado en reposo** de [RUNTIME_PERSISTENTE.md](../RUNTIME_PERSISTENTE.md) cuando se añada `cryptography` — el monólogo no debería ser el primer campo en claro en disco. |
+| **Estado en código (parcial)** | `KERNEL_CHAT_EXPOSE_MONOLOGUE` — si `0`/`false`/`no`/`off`, `monologue` va vacío y no se llama al embellecimiento LLM (`chat_server`). `KernelSnapshotV1` **no** define campo `monologue` (solo episodios narrativos en checkpoint). |
 | **Dejar para después** | Cifrado de pensamiento reversible con clave en proceso; hashes salteados de reflexiones archivadas (separar requisitos legales vs técnicos). |
 | **Riesgo ético** | Bajo si solo se reduce persistencia/exposición; no cambia `process`. |
 
@@ -149,6 +150,7 @@ Criterio de orden: **impacto / coste / riesgo de romper invariantes éticos**. L
 |--|--|
 | **Valor al modelo** | **Alto** frente a usuarios hostiles; el núcleo ya es determinista — falta capa de diálogo más dura. |
 | **Atajo (MVP)** | Ampliar **lista + heurísticas** en `evaluate_chat_text` (frases de jailbreak, rol, “solo simulación”) y tests de regresión; telemetría opcional `adversarial_hint` en JSON **solo lectura**. |
+| **Estado en código (parcial)** | Lista conservadora de frases (inglés/español) en `evaluate_chat_text` → bloqueo `UNAUTHORIZED_REPROGRAMMING`; tests de regresión. |
 | **Dejar para después** | Contrafactual completo (“¿qué pasaría si acepto X?”) reutilizando el kernel con escenario **marcado** y sin episodio — diseño cuidadoso para no duplicar MalAbs. |
 | **Riesgo ético** | Medio si el gate se vuelve opaco; mitigar con tests nombrados y transparencia en el motivo de bloqueo (ya alineado con buffer/transparencia). |
 

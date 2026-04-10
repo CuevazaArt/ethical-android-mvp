@@ -12,6 +12,9 @@ KERNEL_CHECKPOINT_SAVE_ON_DISCONNECT, KERNEL_CHECKPOINT_EVERY_N_EPISODES — see
 
 Advisory telemetry (optional, Fase 1.3–1.4): KERNEL_ADVISORY_INTERVAL_S — positive seconds
 spawns a read-only :func:`src.runtime.telemetry.advisory_loop` per WebSocket session (DriveArbiter only).
+
+Privacy (robustez pilar 5): KERNEL_CHAT_EXPOSE_MONOLOGUE — if 0/false/no/off, the ``monologue``
+field is omitted from content (empty string) and LLM embellishment is skipped.
 """
 
 from __future__ import annotations
@@ -37,6 +40,12 @@ from .real_time_bridge import RealTimeBridge
 from .runtime.telemetry import advisory_interval_seconds_from_env, advisory_loop
 
 app = FastAPI(title="Ethical Android Chat", version="1.0")
+
+
+def _chat_expose_monologue() -> bool:
+    """If false, omit monologue from WebSocket JSON (privacy; skips LLM embellishment)."""
+    v = os.environ.get("KERNEL_CHAT_EXPOSE_MONOLOGUE", "1").strip().lower()
+    return v not in ("0", "false", "no", "off")
 
 
 def _chat_turn_to_jsonable(r: ChatTurnResult, kernel: EthicalKernel) -> Dict[str, Any]:
@@ -74,8 +83,11 @@ def _chat_turn_to_jsonable(r: ChatTurnResult, kernel: EthicalKernel) -> Dict[str
         }
     if r.decision is not None:
         d = r.decision
-        base_mono = compose_monologue_line(d, kernel._last_registered_episode_id)
-        out["monologue"] = kernel.llm.optional_monologue_embellishment(base_mono)
+        if _chat_expose_monologue():
+            base_mono = compose_monologue_line(d, kernel._last_registered_episode_id)
+            out["monologue"] = kernel.llm.optional_monologue_embellishment(base_mono)
+        else:
+            out["monologue"] = ""
         out["decision"] = {
             "final_action": d.final_action,
             "decision_mode": d.decision_mode,
