@@ -2,6 +2,12 @@
 
 All notable changes to this project are summarized here. For narrative context and design rationale, see [`HISTORY.md`](HISTORY.md).
 
+## Checkpoint Fernet + hub audit + WS nomad test — April 2026
+- **Dependencies:** `cryptography` for optional Fernet encryption of JSON checkpoints.
+- **`KERNEL_CHECKPOINT_FERNET_KEY`:** `JsonFilePersistence` encrypts on save; load decrypts or falls back to plain JSON.
+- **`hub_audit.py`:** `register_hub_calibration`; nomadic migration audit uses `HubAudit:nomadic_migration:...`.
+- **Tests:** encrypted roundtrip, plain-file fallback, WebSocket `nomad_simulate_migration` integration.
+
 ## Nomadic migration audit + WebSocket simulation — April 2026
 - **`KERNEL_NOMAD_SIMULATION`:** WebSocket `nomad_simulate_migration` → `simulate_nomadic_migration` (HAL + integridad stub).
 - **`KERNEL_NOMAD_MIGRATION_AUDIT`:** `record_nomadic_migration_audit` → DAO calibration line `NomadicMigration`.

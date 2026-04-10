@@ -83,4 +83,4 @@ def test_record_nomadic_migration_audit_when_enabled(monkeypatch):
     ok = record_nomadic_migration_audit(k.dao, k, destination_hardware_id="dev-1", thought_line="x")
     assert ok is True
     assert len(k.dao.records) > n0
-    assert "NomadicMigration" in k.dao.records[-1].content
+    assert "HubAudit:nomadic_migration" in k.dao.records[-1].content

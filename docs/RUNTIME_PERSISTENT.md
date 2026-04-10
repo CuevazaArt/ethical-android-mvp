@@ -29,15 +29,17 @@ A **persistent runtime** keeps narrative identity, episodic memory, and audited 
 - **`SqlitePersistence`** (`sqlite_store.py`) — same DTO as one JSON row in SQLite (useful if queries or metadata are added later).
 - **`checkpoint.py`** — WebSocket integration: load on session open, save on close, autosave every N episodes (`KERNEL_CHECKPOINT_*` env vars).
 
-## Encryption at rest (future; not in current MVP)
+## Encryption at rest (optional — Fernet)
 
-JSON and SQLite checkpoints in the repo are **unencrypted**: fine for local dev and tests. For **deployments** where snapshots may hold personal data or sensitive audit trails, **at-rest encryption** will be required (e.g. a layer on the file or blob before SQLite write). In Python this often uses the **`cryptography`** library (Fernet, AES-GCM, or another scheme matched to the threat model); **key material must never** be committed to the repo.
+Set **`KERNEL_CHECKPOINT_FERNET_KEY`** to the string form of a Fernet key (`Fernet.generate_key().decode()`). **`JsonFilePersistence`** then encrypts the JSON snapshot at write time and decrypts on read. If decryption fails (e.g. legacy plain JSON), load falls back to UTF-8 JSON for migration.
 
-**Status:** no `cryptography` dependency or crypto code in the MVP yet; when added, prefer encrypted ↔ kernel roundtrip tests and key-rotation notes. Until then, treat checkpoint files as **limited confidentiality**.
+**SQLite** rows are still plain JSON strings unless a separate wrapper is added.
+
+**Key material must never** be committed to the repo. The `cryptography` package is a direct dependency for this path; CI runs encrypted roundtrip tests.
 
 ## Recommended boundaries (hexagonal, incremental)
 
-1. **Persistence port** — the snapshot DTO (`KernelSnapshotV1`, **schema_version** 3: L1/L2 constitution drafts + MockDAO proposals/participants) is a full checkpoint; older JSON (**schema_version** 1 or 2) migrates with empty new fields. Adapters (SQLite today; **encryption as a future wrapper**) map to the same schema or `schema_version++`.
+1. **Persistence port** — the snapshot DTO (`KernelSnapshotV1`, **schema_version** 3: L1/L2 constitution drafts + MockDAO proposals/participants) is a full checkpoint; older JSON (**schema_version** 1 or 2) migrates with empty new fields. JSON files may use **optional Fernet** encryption via env; SQLite adapter unchanged.
 2. **LLM port** — already implicit in `LLMModule`; a second provider forces clear boundaries.
 3. **Service process** — `chat_server` as the WebSocket front; optional workers for scheduled `execute_sleep` without blocking chat.
 

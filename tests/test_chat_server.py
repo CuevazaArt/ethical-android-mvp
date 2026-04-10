@@ -51,6 +51,27 @@ def test_nomad_migration_meta():
     assert j.get("path") == "/ws/chat"
 
 
+def test_websocket_nomad_simulate_migration_only(monkeypatch):
+    monkeypatch.setenv("KERNEL_NOMAD_SIMULATION", "1")
+    monkeypatch.setenv("KERNEL_NOMAD_MIGRATION_AUDIT", "1")
+    with client.websocket_connect("/ws/chat") as ws:
+        ws.send_json(
+            {
+                "nomad_simulate_migration": {
+                    "profile": "mobile",
+                    "destination_hardware_id": "test-device",
+                    "thought_line": "integration test boundary",
+                }
+            }
+        )
+        data = ws.receive_json()
+        assert "nomad" in data
+        nomad = data["nomad"]
+        assert nomad.get("hardware_context", {}).get("compute_tier") == "edge_mobile"
+        assert nomad.get("dao_audit_recorded") is True
+        assert "sensor_delta_narrative_en" in nomad
+
+
 def test_root_protocol_mentions_multimodal_and_sensor_fields():
     r = client.get("/")
     proto = (r.json().get("protocol") or "").lower()

@@ -147,3 +147,37 @@ def test_double_roundtrip_stable(tmp_path):
     assert len(s2.episodes) == len(s1.episodes)
     assert s2.identity_state == s1.identity_state
     assert s2.dao_record_counter == s1.dao_record_counter
+
+
+def test_json_file_encrypted_roundtrip(tmp_path, monkeypatch):
+    from cryptography.fernet import Fernet
+
+    key = Fernet.generate_key()
+    monkeypatch.setenv("KERNEL_CHECKPOINT_FERNET_KEY", key.decode())
+
+    k1 = EthicalKernel(variability=False)
+    scn = ALL_SIMULATIONS[2]()
+    k1.process(scn.name, scn.place, scn.signals, scn.context, scn.actions)
+
+    path = tmp_path / "checkpoint.enc.json"
+    store = JsonFilePersistence(path)
+    store.save(extract_snapshot(k1))
+    blob = path.read_bytes()
+    assert not blob.lstrip().startswith(b"{")
+
+    k2 = EthicalKernel(variability=False)
+    assert store.load_into_kernel(k2) is True
+    assert len(k2.memory.episodes) == len(k1.memory.episodes)
+
+
+def test_json_encrypted_load_fallback_plain_file(tmp_path, monkeypatch):
+    """Plain JSON on disk + FERNET key set: decrypt fails, UTF-8 fallback loads."""
+    from cryptography.fernet import Fernet
+
+    k1 = EthicalKernel(variability=False)
+    path = tmp_path / "legacy.json"
+    JsonFilePersistence(path).save(extract_snapshot(k1))
+    monkeypatch.setenv("KERNEL_CHECKPOINT_FERNET_KEY", Fernet.generate_key().decode())
+    snap = JsonFilePersistence(path).load()
+    assert snap is not None
+    assert snap.schema_version == SCHEMA_VERSION

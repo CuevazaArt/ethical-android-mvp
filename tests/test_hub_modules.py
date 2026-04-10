@@ -6,6 +6,8 @@ import sys
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
 
 from src.kernel import EthicalKernel
+from src.modules.hub_audit import register_hub_calibration
+from src.modules.mock_dao import MockDAO
 from src.modules.ml_ethics_tuner import maybe_log_gray_zone_tuning_opportunity
 from src.modules.nomad_identity import nomad_identity_public
 from src.modules.reparation_vault import (
@@ -13,6 +15,14 @@ from src.modules.reparation_vault import (
     register_reparation_intent,
     reparation_vault_mock_enabled,
 )
+
+
+def test_hub_audit_calibration_prefix():
+    dao = MockDAO()
+    n0 = len(dao.records)
+    register_hub_calibration(dao, "test_kind", {"a": 1})
+    assert len(dao.records) == n0 + 1
+    assert "HubAudit:test_kind" in dao.records[-1].content
 
 
 def test_nomad_identity_public_shape():
@@ -37,8 +47,6 @@ def test_reparation_vault_registers_when_enabled(monkeypatch):
 
 def test_maybe_register_after_mock_court(monkeypatch):
     monkeypatch.setenv("KERNEL_REPARATION_VAULT_MOCK", "1")
-    from src.modules.mock_dao import MockDAO
-
     dao = MockDAO()
     n0 = len(dao.records)
     maybe_register_reparation_after_mock_court(
@@ -52,8 +60,6 @@ def test_maybe_register_after_mock_court(monkeypatch):
 
 def test_maybe_register_skips_when_no_court(monkeypatch):
     monkeypatch.setenv("KERNEL_REPARATION_VAULT_MOCK", "1")
-    from src.modules.mock_dao import MockDAO
-
     dao = MockDAO()
     n0 = len(dao.records)
     maybe_register_reparation_after_mock_court(dao, None, "x")

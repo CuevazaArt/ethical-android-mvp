@@ -9,11 +9,12 @@ This module defines **phase labels** and a **continuity token** for audit narrat
 from __future__ import annotations
 
 import hashlib
-import json
 import os
 from dataclasses import dataclass
 from enum import Enum
 from typing import Any, Dict, Optional
+
+from .hub_audit import register_hub_calibration
 
 
 class TransmutationPhase(str, Enum):
@@ -126,8 +127,7 @@ def record_nomadic_migration_audit(
         include_location=include_location,
         thought_line=thought_line,
     )
-    msg = "NomadicMigration " + json.dumps(payload, ensure_ascii=False)[:1900]
-    dao.register_audit("calibration", msg)
+    register_hub_calibration(dao, "nomadic_migration", payload)
     return True
 
 
