@@ -92,6 +92,11 @@ def _chat_include_teleology() -> bool:
     return v not in ("0", "false", "no", "off")
 
 
+def _chat_include_multimodal_trust() -> bool:
+    v = os.environ.get("KERNEL_CHAT_INCLUDE_MULTIMODAL", "1").strip().lower()
+    return v not in ("0", "false", "no", "off")
+
+
 def _chat_turn_to_jsonable(r: ChatTurnResult, kernel: EthicalKernel) -> Dict[str, Any]:
     """Compact JSON-safe view (no full internal objects)."""
     idn = kernel.memory.identity
@@ -182,6 +187,13 @@ def _chat_turn_to_jsonable(r: ChatTurnResult, kernel: EthicalKernel) -> Dict[str
     if _chat_include_premise():
         pa = kernel._last_premise_advisory
         out["premise_advisory"] = {"flag": pa.flag, "detail": pa.detail}
+    if _chat_include_multimodal_trust() and r.multimodal_trust is not None:
+        mt = r.multimodal_trust
+        out["multimodal_trust"] = {
+            "state": mt.state,
+            "reason": mt.reason,
+            "requires_owner_anchor": mt.requires_owner_anchor,
+        }
     if (
         _chat_include_teleology()
         and r.decision is not None

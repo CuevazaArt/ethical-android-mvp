@@ -46,6 +46,8 @@ def test_websocket_chat_roundtrip():
         assert "flag" in data["premise_advisory"]
         assert "teleology_branches" in data
         assert "horizon_long_term" in data["teleology_branches"]
+        assert "multimodal_trust" in data
+        assert data["multimodal_trust"].get("state") in ("aligned", "doubt", "no_claim")
 
 
 def test_websocket_homeostasis_omitted(monkeypatch):

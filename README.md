@@ -110,11 +110,13 @@ python -m src.runtime
 Ethical guardrails for background tasks: [docs/RUNTIME_CONTRACT.md](docs/RUNTIME_CONTRACT.md).
 
 Send **JSON text** frames, e.g. `{"text": "Hello", "agent_id": "user", "include_narrative": false}`.  
-Optional **`sensor`** object (v8 — situated hints: `battery_level`, `place_trust`, `accelerometer_jerk`, `ambient_noise`, `silence`, `biometric_anomaly`, `backup_just_completed`): merged into sympathetic **signals** before the decision stack; **no** MalAbs bypass. See [docs/discusion/PROPUESTA_ORGANISMO_SITUADO_V8.md](docs/discusion/PROPUESTA_ORGANISMO_SITUADO_V8.md).  
+Optional **`sensor`** object (v8 — situated hints: `battery_level`, `place_trust`, `accelerometer_jerk`, `ambient_noise`, `silence`, `biometric_anomaly`, `backup_just_completed`, plus **cross-modal** `audio_emergency`, `vision_emergency`, `scene_coherence` for antispoof): merged into sympathetic **signals** before the decision stack; **no** MalAbs bypass. See [docs/discusion/PROPUESTA_ORGANISMO_SITUADO_V8.md](docs/discusion/PROPUESTA_ORGANISMO_SITUADO_V8.md).  
 Optional **server-side** layers (dev/demo): `KERNEL_SENSOR_FIXTURE` = path to a JSON file (same keys as `sensor`); `KERNEL_SENSOR_PRESET` = named scenario from `src/modules/perceptual_abstraction.py` (`SENSOR_PRESETS`). Merge order: **fixture → preset → client `sensor`** (client overrides per key).  
 Optional env: `CHAT_HOST`, `CHAT_PORT`, `LLM_MODE`, `USE_LOCAL_LLM`, `KERNEL_VARIABILITY`, `KERNEL_ADVISORY_INTERVAL_S` (background drive telemetry per WebSocket session; see [RUNTIME_CONTRACT.md](docs/RUNTIME_CONTRACT.md)), `KERNEL_CHAT_EXPOSE_MONOLOGUE` (set to `0` to redact `monologue` in WebSocket JSON and skip LLM monologue embellishment), `KERNEL_CHAT_INCLUDE_HOMEOSTASIS` (set to `0` to omit `affective_homeostasis` — σ/strain/PAD advisory UX only).
 
 **Relational / v7 (optional JSON toggles, default on):** `KERNEL_CHAT_INCLUDE_USER_MODEL`, `KERNEL_CHAT_INCLUDE_CHRONO`, `KERNEL_CHAT_INCLUDE_PREMISE`, `KERNEL_CHAT_INCLUDE_TELEOLOGY` — set to `0` to omit `user_model`, `chronobiology`, `premise_advisory`, `teleology_branches`. See [docs/discusion/PROPUESTA_EVOLUCION_RELACIONAL_V7.md](docs/discusion/PROPUESTA_EVOLUCION_RELACIONAL_V7.md).
+
+**Multimodal antispoof (v8):** `KERNEL_CHAT_INCLUDE_MULTIMODAL` — set to `0` to omit `multimodal_trust` (`state` / `reason` / `requires_owner_anchor`). Optional `sensor` fields `audio_emergency`, `vision_emergency`, `scene_coherence` feed `evaluate_multimodal_trust` (see [PROPUESTA_VITALIDAD_SACRIFICIO_Y_FIN.md](docs/discusion/PROPUESTA_VITALIDAD_SACRIFICIO_Y_FIN.md)).
 
 **Checkpoint (Fase 2.4):** set `KERNEL_CHECKPOINT_PATH` to a `.json` file to load state when a WebSocket session opens and save when it closes (`KERNEL_CHECKPOINT_SAVE_ON_DISCONNECT`, default on). Periodic saves: `KERNEL_CHECKPOINT_EVERY_N_EPISODES`. See `src/persistence/checkpoint.py`.
 
@@ -189,6 +191,7 @@ src/
 │   ├── consequence_projection.py  # Qualitative long-horizon branches (v7; no Monte Carlo)
 │   ├── sensor_contracts.py    # Optional SensorSnapshot + merge into signals (v8; no hardware yet)
 │   ├── perceptual_abstraction.py  # v8 presets + JSON fixtures + layer merge (fase B)
+│   ├── multimodal_trust.py     # v8 cross-modal doubt vs aligned; merge suppression
 │   └── internal_monologue.py  # [MONO] line for logs and WebSocket payloads
 ├── simulations/
 │   └── runner.py           # 9 scenarios + simulation runner
@@ -238,7 +241,7 @@ Psi Sleep Ψ (end of day): Audit + Forgiveness cycle + weakness load + Immortali
 
 ## Tests
 
-**136** tests total (`pytest tests/`). The list below summarizes the **13 invariant ethical properties** exercised by the core ethical suite; additional tests cover EthicalReflection, SalienceMap, PAD archetypes, narrative identity, internal monologue, chat turns, the WebSocket chat server, MalAbs chat jailbreak gate + monologue privacy env + affective homeostasis telemetry + identity integrity helpers + Ψ Sleep experience digest + v7 relational layers (user model, chronobiology, premise advisory, teleology branches) + v8 sensor contracts + perceptual abstraction presets/fixtures (`tests/test_sensor_contracts.py`, `tests/test_perceptual_abstraction.py`), runtime entry/bind/telemetry, advisory interval env + SQLite snapshot adapter, JSON snapshot persistence, checkpoint integration, Ollama LLM mode, and LLM resolve/monologue options (`tests/test_llm_phase3.py`).
+**143** tests total (`pytest tests/`). The list below summarizes the **13 invariant ethical properties** exercised by the core ethical suite; additional tests cover EthicalReflection, SalienceMap, PAD archetypes, narrative identity, internal monologue, chat turns, the WebSocket chat server, MalAbs chat jailbreak gate + monologue privacy env + affective homeostasis telemetry + identity integrity helpers + Ψ Sleep experience digest + v7 relational layers (user model, chronobiology, premise advisory, teleology branches) + v8 sensor contracts + perceptual abstraction presets/fixtures + multimodal antispoof (`tests/test_sensor_contracts.py`, `tests/test_perceptual_abstraction.py`, `tests/test_multimodal_trust.py`), runtime entry/bind/telemetry, advisory interval env + SQLite snapshot adapter, JSON snapshot persistence, checkpoint integration, Ollama LLM mode, and LLM resolve/monologue options (`tests/test_llm_phase3.py`).
 
 1. **Absolute Evil** is always blocked
 2. **Action coherence** under variability (100 runs × 9 simulations)

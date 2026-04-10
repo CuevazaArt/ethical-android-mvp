@@ -46,11 +46,16 @@ def test_from_dict_ignores_unknown_and_clamps():
             "place_trust": -0.1,
             "unknown_key": 99,
             "backup_just_completed": True,
+            "audio_emergency": 0.8,
+            "vision_emergency": 0.3,
+            "scene_coherence": 0.5,
         }
     )
     assert s.battery_level == 1.0
     assert s.place_trust == 0.0
     assert s.backup_just_completed is True
+    assert s.audio_emergency == 0.8
+    assert s.scene_coherence == 0.5
 
 
 def test_digital_action_intent_dataclass():

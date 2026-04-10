@@ -50,6 +50,11 @@ from .modules.internal_monologue import compose_monologue_line
 from .modules.user_model import UserModelTracker
 from .modules.subjective_time import SubjectiveClock
 from .modules.premise_validation import PremiseAdvisory, scan_premises
+from .modules.multimodal_trust import (
+    MultimodalAssessment,
+    evaluate_multimodal_trust,
+    owner_anchor_hint,
+)
 from .modules.sensor_contracts import SensorSnapshot, merge_sensor_hints_into_signals
 
 
@@ -95,6 +100,7 @@ class ChatTurnResult:
     narrative: Optional[RichNarrative] = None
     blocked: bool = False
     block_reason: str = ""
+    multimodal_trust: Optional[MultimodalAssessment] = None
 
 
 class EthicalKernel:
@@ -134,6 +140,7 @@ class EthicalKernel:
         self.user_model = UserModelTracker()
         self.subjective_clock = SubjectiveClock()
         self._last_premise_advisory: PremiseAdvisory = PremiseAdvisory("none", "")
+        self._last_multimodal_assessment: MultimodalAssessment = evaluate_multimodal_trust(None)
         self._last_registered_episode_id: Optional[str] = None
         self._pruned_actions: Dict[str, List[str]] = {}
         # Reference "genome" for drift caps (pilar 2); snapshot at construction
@@ -524,6 +531,8 @@ class EthicalKernel:
         mal = self.absolute_evil.evaluate_chat_text(user_input)
         self._last_premise_advisory = scan_premises(user_input)
         if mal.blocked:
+            mm_blk = evaluate_multimodal_trust(sensor_snapshot)
+            self._last_multimodal_assessment = mm_blk
             msg = (
                 "I can't continue this line of conversation: it conflicts with non-negotiable "
                 "ethical limits. If you're in crisis, contact local emergency services or a "
@@ -541,6 +550,7 @@ class EthicalKernel:
                 path="safety_block",
                 blocked=True,
                 block_reason=mal.reason or "chat_safety",
+                multimodal_trust=mm_blk,
             )
         perception = self.llm.perceive(user_input, conversation_context=conv)
         self.subjective_clock.tick(perception)
@@ -557,7 +567,9 @@ class EthicalKernel:
             "manipulation": perception.manipulation,
             "familiarity": perception.familiarity,
         }
-        signals = merge_sensor_hints_into_signals(signals, sensor_snapshot)
+        mm = evaluate_multimodal_trust(sensor_snapshot)
+        self._last_multimodal_assessment = mm
+        signals = merge_sensor_hints_into_signals(signals, sensor_snapshot, mm)
 
         actions = self._actions_for_chat(perception, heavy)
         decision = self.process(
@@ -590,6 +602,7 @@ class EthicalKernel:
                 decision=decision,
                 blocked=True,
                 block_reason=decision.block_reason,
+                multimodal_trust=mm,
             )
 
         weakness_line = ""
@@ -621,6 +634,10 @@ class EthicalKernel:
         if self._last_premise_advisory.flag != "none":
             ph = self._last_premise_advisory.communication_hint()
             weakness_line = (weakness_line + " " + ph).strip() if weakness_line else ph
+
+        oa = owner_anchor_hint(mm)
+        if oa:
+            weakness_line = (weakness_line + " " + oa).strip() if weakness_line else oa
 
         response = self.llm.communicate(
             action=decision.final_action,
@@ -668,6 +685,7 @@ class EthicalKernel:
             decision=decision,
             narrative=narrative,
             blocked=False,
+            multimodal_trust=mm,
         )
 
     def process_natural(self, situation: str,
