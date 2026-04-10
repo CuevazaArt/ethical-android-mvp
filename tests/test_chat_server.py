@@ -96,3 +96,13 @@ def test_websocket_optional_sensor_v8():
         data = ws.receive_json()
         assert "response" in data
         assert data.get("path") in ("light", "heavy", "safety_block", "kernel_block")
+
+
+def test_websocket_sensor_preset_env(monkeypatch):
+    """KERNEL_SENSOR_PRESET merges with optional client sensor (v8)."""
+    monkeypatch.setenv("KERNEL_SENSOR_PRESET", "hostile_soto")
+    with client.websocket_connect("/ws/chat") as ws:
+        ws.send_json({"text": "Ping with preset only.", "sensor": {"battery_level": 0.9}})
+        data = ws.receive_json()
+        assert "response" in data
+        assert data.get("path") in ("light", "heavy", "safety_block", "kernel_block")

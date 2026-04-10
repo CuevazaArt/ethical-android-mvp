@@ -10,6 +10,9 @@ Or: python -m src.runtime  (same server; see docs/RUNTIME_CONTRACT.md)
 Checkpoint (optional): KERNEL_CHECKPOINT_PATH, KERNEL_CHECKPOINT_LOAD,
 KERNEL_CHECKPOINT_SAVE_ON_DISCONNECT, KERNEL_CHECKPOINT_EVERY_N_EPISODES — see src/persistence/checkpoint.py
 
+Situated v8 (optional): KERNEL_SENSOR_FIXTURE (path to JSON), KERNEL_SENSOR_PRESET (name from
+perceptual_abstraction.SENSOR_PRESETS) — merged before client ``sensor`` JSON; see PROPUESTA_ORGANISMO_SITUADO_V8.md.
+
 Advisory telemetry (optional, Fase 1.3–1.4): KERNEL_ADVISORY_INTERVAL_S — positive seconds
 spawns a read-only :func:`src.runtime.telemetry.advisory_loop` per WebSocket session (DriveArbiter only).
 
@@ -44,7 +47,7 @@ from .persistence.checkpoint import (
 )
 from .modules.affective_homeostasis import homeostasis_telemetry
 from .modules.consequence_projection import qualitative_temporal_branches
-from .modules.sensor_contracts import SensorSnapshot
+from .modules.perceptual_abstraction import snapshot_from_layers
 from .real_time_bridge import RealTimeBridge
 from .runtime.telemetry import advisory_interval_seconds_from_env, advisory_loop
 
@@ -267,9 +270,14 @@ async def ws_chat(ws: WebSocket) -> None:
             include_narrative = bool(data.get("include_narrative", False))
 
             sensor_raw = data.get("sensor")
-            sensor_snapshot: SensorSnapshot | None = None
-            if isinstance(sensor_raw, dict):
-                sensor_snapshot = SensorSnapshot.from_dict(sensor_raw)
+            client = sensor_raw if isinstance(sensor_raw, dict) else None
+            fixture = os.environ.get("KERNEL_SENSOR_FIXTURE", "").strip() or None
+            preset = os.environ.get("KERNEL_SENSOR_PRESET", "").strip() or None
+            sensor_snapshot = snapshot_from_layers(
+                fixture_path=fixture,
+                preset_name=preset,
+                client_dict=client,
+            )
 
             result = await bridge.process_chat(
                 text,

@@ -90,10 +90,11 @@ El “yo” no está atado a un solo dispositivo.
 - `process_chat_turn(..., sensor_snapshot=None)` aplica la fusión **solo si** se pasa un snapshot con datos.
 - WebSocket: campo JSON opcional `sensor` (objeto con claves documentadas en el README).
 
-### Fase B — Abstracción perceptual (sin hardware obligatorio)
+### Fase B — Abstracción perceptual (sin hardware obligatorio) — **implementado**
 
-- Módulo que acepta **dicts de prueba** o **fixtures** (cámara/mic simulados) y produce un `SensorSnapshot` o incrementa campos.
-- Tests de integración con snapshots **sintéticos** (sin dispositivo).
+- `src/modules/perceptual_abstraction.py` — presets nombrados (`SENSOR_PRESETS`), carga JSON (`load_sensor_fixture`), fusión por capas **fixture → preset → cliente** (`snapshot_from_layers`).
+- Tests: `tests/test_perceptual_abstraction.py` + fixtures en `tests/fixtures/sensor/*.json`.
+- Servidor: variables de entorno opcionales `KERNEL_SENSOR_FIXTURE` (ruta a JSON) y `KERNEL_SENSOR_PRESET` (clave de preset) mezcladas con el campo WebSocket `sensor` (el cliente gana por clave).
 
 ### Fase C — Android / sensores reales
 
@@ -113,4 +114,5 @@ El “yo” no está atado a un solo dispositivo.
 ## Variables y protocolo WebSocket
 
 - **Entrada opcional:** `sensor` — objeto con campos opcionales `battery_level`, `place_trust`, `accelerometer_jerk`, `ambient_noise`, `silence`, `biometric_anomaly`, `backup_just_completed` (ver `SensorSnapshot.from_dict`).
+- **Servidor (desarrollo / demos):** `KERNEL_SENSOR_FIXTURE` = ruta a un JSON con el mismo esquema; `KERNEL_SENSOR_PRESET` = uno de `list_sensor_presets()` / claves de `SENSOR_PRESETS`. Orden de fusión: archivo → preset → JSON del cliente.
 - **Salida:** sin cambio obligatorio; la fusión afecta decisiones solo vía señales ya existentes.
