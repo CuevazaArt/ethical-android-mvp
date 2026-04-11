@@ -9,6 +9,7 @@ this via `process_natural` / `process_chat_turn`; `execute_sleep` runs Psi Sleep
 forgiveness cycle, weakness load, immortality backup, drive intents.
 """
 
+import math
 import os
 from dataclasses import dataclass
 from typing import Any, List, Dict, Optional, Tuple
@@ -89,6 +90,19 @@ from .modules.reparation_vault import maybe_register_reparation_after_mock_court
 def _kernel_env_truthy(name: str) -> bool:
     v = os.environ.get(name, "").strip().lower()
     return v in ("1", "true", "yes", "on")
+
+
+def _perception_coercion_u_value(raw: Any) -> Optional[float]:
+    """Normalize optional perception coercion uncertainty to [0, 1] or None."""
+    if raw is None:
+        return None
+    try:
+        u = float(raw)
+    except (TypeError, ValueError):
+        return None
+    if not math.isfinite(u):
+        return None
+    return max(0.0, min(1.0, u))
 
 
 @dataclass
@@ -215,6 +229,7 @@ class EthicalKernel:
         register_episode: bool = True,
         sensor_snapshot: Optional[SensorSnapshot] = None,
         multimodal_assessment: Optional[MultimodalAssessment] = None,
+        perception_coercion_uncertainty: Optional[float] = None,
     ) -> KernelDecision:
         """
         Complete ethical processing cycle.
@@ -223,6 +238,12 @@ class EthicalKernel:
         [Bayesian] → [Poles] → [Will] → [Reflection] → [Salience] → [PAD archetypes] →
         optional episode path if `register_episode`: [Memory] → [Weakness] →
         [Forgiveness] → [DAO].
+
+        ``perception_coercion_uncertainty``: optional scalar from LLM perception coercion
+        diagnostics (see ``LLMPerception.coercion_report``). When
+        ``KERNEL_PERCEPTION_UNCERTAINTY_DELIB`` is enabled and the value is at or above
+        ``KERNEL_PERCEPTION_UNCERTAINTY_MIN``, a ``D_fast`` outcome is upgraded to
+        ``D_delib`` (production-hardening spike; default env off).
         """
 
         # ═══ STEP 1: Uchi-soto social evaluation ═══
@@ -326,6 +347,16 @@ class EthicalKernel:
             final_mode = "D_delib"  # Extra caution in soto with external locus
         else:
             final_mode = bayes_result.decision_mode
+
+        pu = _perception_coercion_u_value(perception_coercion_uncertainty)
+        if (
+            pu is not None
+            and _kernel_env_truthy("KERNEL_PERCEPTION_UNCERTAINTY_DELIB")
+            and pu
+            >= float(os.environ.get("KERNEL_PERCEPTION_UNCERTAINTY_MIN", "0.35"))
+            and final_mode == "D_fast"
+        ):
+            final_mode = "D_delib"
 
         final_action = bayes_result.chosen_action.name
 
@@ -686,6 +717,10 @@ class EthicalKernel:
             heavy,
             getattr(perception, "generative_candidates", None),
         )
+        pu = None
+        cr = getattr(perception, "coercion_report", None)
+        if isinstance(cr, dict):
+            pu = cr.get("uncertainty")
         decision = self.process(
             scenario=perception.summary or user_input[:240],
             place=place,
@@ -697,6 +732,7 @@ class EthicalKernel:
             register_episode=heavy,
             sensor_snapshot=sensor_snapshot,
             multimodal_assessment=mm,
+            perception_coercion_uncertainty=pu,
         )
 
         if decision.blocked:
@@ -1025,12 +1061,17 @@ class EthicalKernel:
             actions = self._generate_generic_actions(perception)
 
         # Step 2: Kernel decides (the LLM does NOT participate in the decision)
+        pu = None
+        cr = getattr(perception, "coercion_report", None)
+        if isinstance(cr, dict):
+            pu = cr.get("uncertainty")
         decision = self.process(
             scenario=perception.summary,
             place="detected by sensors",
             signals=signals,
             context=perception.suggested_context,
             actions=actions,
+            perception_coercion_uncertainty=pu,
         )
 
         # Step 3: LLM generates verbal response

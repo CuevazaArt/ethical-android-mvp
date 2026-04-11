@@ -12,6 +12,7 @@
 |------|------------|
 | Honestidad MalAbs / GIGO | [`INPUT_TRUST_THREAT_MODEL.md`](INPUT_TRUST_THREAT_MODEL.md), [`SECURITY.md`](../SECURITY.md) |
 | Percepción acotada + tests | `src/modules/llm_layer.py`, `tests/test_input_trust.py` |
+| Percepción: informe de coerción + umbral **opt-in** → `D_delib` | `src/modules/perception_schema.py` (`PerceptionCoercionReport`), `src/kernel.py` (`KERNEL_PERCEPTION_UNCERTAINTY_*`), `tests/test_perception_coercion_report.py`, `tests/test_perception_uncertainty_delib.py` |
 | Lighthouse / duda epistémica (tono) | [`LIGHTHOUSE_KB.md`](LIGHTHOUSE_KB.md), `reality_verification.py` |
 | Perfiles runtime + CI | [`src/runtime_profiles.py`](../src/runtime_profiles.py), `tests/test_runtime_profiles.py` |
 | Frontera núcleo / empaquetado | [`adr/0001-packaging-core-boundary.md`](adr/0001-packaging-core-boundary.md) |
@@ -32,7 +33,7 @@ Síntesis de revisión interna: **qué aporta** frente a lo ya dicho en el repo 
 | **`BayesianEngine`** usa tres hipótesis con pesos fijos (`hypothesis_weights`, p. ej. `[0.4, 0.35, 0.25]`) que no se actualizan desde **`NarrativeMemory`** | **Sí** — explicita el *gap* “aprende narrativamente, no recalibra priors numéricamente”. | Issue 1 ya alinea **naming** y semántica; aquí el matiz nuevo es **usar episodios para pesos**, no solo renombrar. |
 | **`EthicalPoles`** con fórmula lineal simple (`benefit * 0.6 + vulnerability * 0.4 - risk * 0.2` en heurística) y poco uso del **nombre** de la acción | **Sí** — deja claro el límite del MVP multipolar. | Coherente con multipolar explícito en teoría; no se vendió como modelo semántico profundo. |
 | **MalAbs texto** vulnerable a **leet/variantes** (`b0mb`, `how 2`) | **Parcialmente redundante** con [`INPUT_TRUST_THREAT_MODEL.md`](INPUT_TRUST_THREAT_MODEL.md) (paráfrasis, homoglifos). | El ejemplo **leet** es un recordatorio útil para priorizar **normalización adicional** o capa opcional; no sustituye el aviso de “no infalible”. |
-| **Percepción LLM** como punto único de fallo; JSON malo → señales por **defecto** cercanas a “calma” | **Sí** — riesgo de **GIGO silencioso**. | Parcialmente cubierto por clamps + tests + `epistemic_dissonance` en paralelo; el gap es **marcar explícitamente incertidumbre de percepción** en el pipeline (spike futuro). |
+| **Percepción LLM** como punto único de fallo; JSON malo → señales por **defecto** cercanas a “calma” | **Sí** — riesgo de **GIGO silencioso**. | Parcialmente cubierto por clamps + tests + `epistemic_dissonance` en paralelo; **spike entregado:** informe de coerción + `uncertainty` en JSON de chat; **opt-in** `KERNEL_PERCEPTION_UNCERTAINTY_DELIB` puede promover `D_fast` → `D_delib` (no sustituye MalAbs ni un “segundo LLM auditor”). |
 
 ### Hallazgos arquitectónicos
 

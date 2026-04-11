@@ -2,6 +2,12 @@
 
 All notable changes to this project are summarized here. For narrative context and design rationale, see [`HISTORY.md`](HISTORY.md).
 
+## Perception uncertainty → deliberation (opt-in) — April 2026
+
+- **`EthicalKernel.process`:** optional `perception_coercion_uncertainty`; when **`KERNEL_PERCEPTION_UNCERTAINTY_DELIB=1`** and uncertainty ≥ **`KERNEL_PERCEPTION_UNCERTAINTY_MIN`** (default `0.35`), upgrades **`D_fast` → `D_delib`**.
+- **`process_chat_turn` / `process_natural`:** pass uncertainty from `LLMPerception.coercion_report` when present.
+- **Docs:** [`KERNEL_ENV_POLICY.md`](docs/proposals/KERNEL_ENV_POLICY.md), [`PRODUCTION_HARDENING_ROADMAP.md`](docs/proposals/PRODUCTION_HARDENING_ROADMAP.md), README operator table; **tests:** [`tests/test_perception_uncertainty_delib.py`](tests/test_perception_uncertainty_delib.py).
+
 ## Packaging, perception diagnostics, episodic Bayes tests — April 2026
 
 - **[`pyproject.toml`](pyproject.toml):** core dependency **`pydantic`** (matches [`requirements.txt`](requirements.txt)); description updated for editable install.
