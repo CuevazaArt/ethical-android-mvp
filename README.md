@@ -141,6 +141,8 @@ Optional env: `CHAT_HOST`, `CHAT_PORT`, `LLM_MODE`, `USE_LOCAL_LLM`, `KERNEL_VAR
 
 **Identity drift (robustness pillar 2):** `KERNEL_ETHICAL_GENOME_ENFORCE` (default on) and `KERNEL_ETHICAL_GENOME_MAX_DRIFT` (default `0.15`) cap how far Ψ Sleep can move `pruning_threshold` from its value at kernel construction.
 
+**Temporal horizon prior (ADR 0005, default off):** `KERNEL_TEMPORAL_HORIZON_PRIOR=1` nudges `BayesianEngine.hypothesis_weights` from recent-weeks vs long-arc `NarrativeMemory` signals (after optional `KERNEL_BAYESIAN_EMPIRICAL_WEIGHTS`). `KERNEL_TEMPORAL_HORIZON_ALPHA`, `KERNEL_TEMPORAL_HORIZON_WEEKS_DAYS`. See [`docs/TEMPORAL_PRIOR_HORIZONS.md`](docs/TEMPORAL_PRIOR_HORIZONS.md).
+
 **Ethical poles (linear, ADR 0004):** `KERNEL_POLE_LINEAR_CONFIG` — optional path to JSON defining weighted features and verdict thresholds per pole (`src/modules/pole_linear_default.json` is the default, matching legacy heuristics). See [`docs/adr/0004-configurable-linear-pole-evaluator.md`](docs/adr/0004-configurable-linear-pole-evaluator.md).
 
 **Semantic digest (robustness pillar 3):** `KERNEL_CHAT_INCLUDE_EXPERIENCE_DIGEST` — set to `0` to omit the `experience_digest` field from WebSocket JSON (line updated on each Ψ Sleep run; also persisted in checkpoints).
@@ -179,6 +181,7 @@ src/
 │   ├── absolute_evil.py    # Absolute Evil detector (ethical fuse)
 │   ├── buffer.py           # Preloaded buffer (immutable ethical constitution)
 │   ├── bayesian_engine.py  # Bayesian impact evaluation engine
+│   ├── temporal_horizon_prior.py  # Optional weeks/long-arc nudge to mixture (ADR 0005)
 │   ├── ethical_poles.py    # Multipolar arbitration (delegates to pole_linear)
 │   ├── pole_linear.py      # JSON linear pole evaluator (ADR 0004)
 │   ├── sigmoid_will.py     # Sigmoid will function

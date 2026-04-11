@@ -1,8 +1,11 @@
 """
 Qualitative long-horizon consequence hints (teleología — MVP v7).
 
-Three narrative branches without Monte Carlo or score feedback into Bayes.
-Advisory / transparency for UX and LLM tone only.
+Three narrative branches without Monte Carlo. **Numeric** feedback into the Bayesian
+mixture is a **separate** path: :mod:`temporal_horizon_prior` (ADR 0005) when
+``KERNEL_TEMPORAL_HORIZON_PRIOR`` is enabled — see ``docs/TEMPORAL_PRIOR_HORIZONS.md``.
+
+These strings remain advisory / UX and LLM tone only.
 """
 
 from __future__ import annotations

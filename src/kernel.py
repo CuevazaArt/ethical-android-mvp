@@ -270,6 +270,19 @@ class EthicalKernel:
         else:
             self.bayesian.reset_mixture_weights()
 
+        if _kernel_env_truthy("KERNEL_TEMPORAL_HORIZON_PRIOR"):
+            from .modules.temporal_horizon_prior import apply_horizon_prior_to_engine
+
+            hint = clean_actions[0].name if clean_actions else ""
+            apply_horizon_prior_to_engine(
+                self.bayesian,
+                self.memory,
+                context,
+                hint,
+                genome_weights=self._bayesian_genome_weights,
+                max_drift=float(os.environ.get("KERNEL_ETHICAL_GENOME_MAX_DRIFT", "0.15")),
+            )
+
         bayes_result = self.bayesian.evaluate(clean_actions)
 
         # ═══ STEP 7: Multipolar evaluation ═══

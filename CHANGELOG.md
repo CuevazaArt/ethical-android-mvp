@@ -2,6 +2,13 @@
 
 All notable changes to this project are summarized here. For narrative context and design rationale, see [`HISTORY.md`](HISTORY.md).
 
+## Temporal horizon prior — Bayesian mixture nudge (ADR 0005) — April 2026
+
+- **`src/modules/temporal_horizon_prior.py`:** `compute_horizon_signals` (weeks drift + long-arc stability from `NarrativeMemory`) and `apply_horizon_prior_to_engine` with genome drift clamp.
+- **`EthicalKernel.process`:** optional step after episodic weight refresh when **`KERNEL_TEMPORAL_HORIZON_PRIOR`** is on.
+- **Docs:** [`TEMPORAL_PRIOR_HORIZONS.md`](docs/TEMPORAL_PRIOR_HORIZONS.md), [ADR 0005](docs/adr/0005-temporal-prior-from-consequence-horizons.md); **`consequence_projection.py`** docstring cross-link.
+- **Tests:** `tests/test_temporal_horizon_prior.py`.
+
 ## Perception validation — Pydantic, coherence, local fallback fix — April 2026
 
 - **`perception_schema.py`:** per-field coercion defaults (`PERCEPTION_FIELD_DEFAULTS`), `apply_signal_coherence` (risk/calm + hostility/calm), documented layers.
