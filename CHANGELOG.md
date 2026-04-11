@@ -2,6 +2,11 @@
 
 All notable changes to this project are summarized here. For narrative context and design rationale, see [`HISTORY.md`](HISTORY.md).
 
+## Documentation — proposals index + v6 consciousness doc rename — April 2026
+
+- **[`docs/proposals/README.md`](docs/proposals/README.md):** index is now **English** (sections, tables, “What’s new”).
+- **Rename:** [`CONCIENCIA_EMERGENTE_V6.md`](docs/proposals/EMERGENT_CONSCIOUSNESS_V6.md) → **`EMERGENT_CONSCIOUSNESS_V6.md`**; cross-links updated in [PROPUESTA_INTEGRACION_APORTES_V6.md](docs/proposals/PROPUESTA_INTEGRACION_APORTES_V6.md) and [EXPERIMENTAL_CONSCIOUSNESS_AND_AFFECT_ARCHETYPES.md](docs/proposals/EXPERIMENTAL_CONSCIOUSNESS_AND_AFFECT_ARCHETYPES.md).
+
 ## Multimedia — `media/` at `docs/multimedia` root — April 2026
 
 - Pre-alpha **PNG / JPG / MP4** moved from **`docs/multimedia/prealpha/media/`** to **`docs/multimedia/media/`**; empty **`prealpha/`** tree removed.

@@ -1,7 +1,7 @@
 # Propuesta de integración: aportes no redundantes (v6 coherente con el repo)
 
 > **Tipo:** diseño de evolución v6 del kernel; **estado:** Fases 1–5 reflejadas en código (detalle en cada sección).  
-> **Relacionado:** [CONCIENCIA_EMERGENTE_V6.md](CONCIENCIA_EMERGENTE_V6.md) (marco filosófico y redundancias), [THEORY_AND_IMPLEMENTATION.md](THEORY_AND_IMPLEMENTATION.md) (contrato técnico actual).
+> **Relacionado:** [EMERGENT_CONSCIOUSNESS_V6.md](EMERGENT_CONSCIOUSNESS_V6.md) (marco filosófico y redundancias), [THEORY_AND_IMPLEMENTATION.md](THEORY_AND_IMPLEMENTATION.md) (contrato técnico actual).
 
 ## Objetivo
 
@@ -144,7 +144,7 @@ Incorporar solo lo que **añade estado medible nuevo** o **comportamiento proact
 
 ### Excluido del roadmap por defecto
 
-- **Auto-modificación de ética operativa** (excepto MalAbs): solo laboratorio aislado, reversibilidad, revisión legal — ver [CONCIENCIA_EMERGENTE_V6.md](CONCIENCIA_EMERGENTE_V6.md).
+- **Auto-modificación de ética operativa** (excepto MalAbs): solo laboratorio aislado, reversibilidad, revisión legal — ver [EMERGENT_CONSCIOUSNESS_V6.md](EMERGENT_CONSCIOUSNESS_V6.md).
 
 ---
 
@@ -162,7 +162,7 @@ Incorporar solo lo que **añade estado medible nuevo** o **comportamiento proact
 
 - Contrato actual: `docs/proposals/THEORY_AND_IMPLEMENTATION.md`  
 - Afecto: `docs/proposals/EXPERIMENTAL_CONSCIOUSNESS_AND_AFFECT_ARCHETYPES.md` §7  
-- Discusión filosófica previa: [CONCIENCIA_EMERGENTE_V6.md](CONCIENCIA_EMERGENTE_V6.md)
+- Discusión filosófica previa: [EMERGENT_CONSCIOUSNESS_V6.md](EMERGENT_CONSCIOUSNESS_V6.md)
 
 ---
 
