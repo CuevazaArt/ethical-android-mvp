@@ -2,6 +2,10 @@
 
 All notable changes to this project are summarized here. For narrative context and design rationale, see [`HISTORY.md`](HISTORY.md).
 
+## Documentation — README proposal links match `main` tree — April 2026
+
+- **[`README.md`](README.md):** fixed broken `docs/proposals` targets after selective merge — use existing Spanish canonical names (`ESTRATEGIA_Y_RUTA.md`, `PROPUESTA_*`, `PAPER_AFECTO_FENOMENOS_Y_HIPOTESIS.md`) instead of English filenames not present on `main`.
+
 ## Main — empirical pilot, input trust regression, README operator table — April 2026
 
 Merged **selectively** from branch `refactor/pipeline-trace-core` (experiment-specific docs **not** included; see README collaboration note).
