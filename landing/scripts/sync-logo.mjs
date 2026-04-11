@@ -5,7 +5,7 @@ import { fileURLToPath } from "url";
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const landingRoot = path.join(__dirname, "..");
 const repoRoot = path.join(landingRoot, "..");
-const src = path.join(repoRoot, "docs", "multimedia", "logo-ethical-awareness.png");
+const src = path.join(repoRoot, "docs", "multimedia", "media", "logo.png");
 const dest = path.join(landingRoot, "public", "logo-ethical-awareness.png");
 
 if (!fs.existsSync(src)) {
