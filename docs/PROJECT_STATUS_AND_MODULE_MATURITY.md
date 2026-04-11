@@ -1,6 +1,6 @@
 # Estado del proyecto y madurez por módulo
 
-**Actualización:** abril 2026 · **Tests:** `pytest` recoge **403** pruebas en el árbol `tests/`.
+**Actualización:** abril 2026 · **Tests:** `pytest` recoge **405** pruebas en el árbol `tests/`.
 
 Este documento resume **dónde está** el Ethos Kernel MVP hoy y una lectura honesta de **madurez** por área (no sustituye ADRs ni `RUNTIME_CONTRACT.md`).
 
@@ -44,7 +44,7 @@ Este documento resume **dónde está** el Ethos Kernel MVP hoy y una lectura hon
 | **Bayes / buffer / polos** | `bayesian_engine.py`, `buffer.py`, `ethical_poles.py`, `pole_linear.py` | **Sólido** | Núcleo decisional con tests; polos lineales configurables (ADR 0004). |
 | **Reflexión / saliencia / PAD** | `ethical_reflection.py`, `salience_map.py`, `pad_archetypes.py` | **Demo** | Lectura para auditoría y tono; no vetan acción. |
 | **User model (ToM)** | `user_model.py` | **Demo** | Heurísticas + tono; persistido en snapshot; ver `USER_MODEL_ENRICHMENT.md`. |
-| **Uchi–Soto** | `uchi_soto.py` | **Demo** | `tone_brief` hacia LLM; mezcla familiaridad + `trust_score`; perfiles persistidos; roster rico → [PROPUESTA_ROSTER…](discusion/PROPUESTA_ROSTER_SOCIAL_Y_RELACIONES_JERARQUICAS.md). |
+| **Uchi–Soto** | `uchi_soto.py` | **Demo** | Fase 1–2: `tone_brief` compuesto, campos estructurados (`set_profile_structured`), checkpoint; Fase 3 → [PROPUESTA_ROSTER…](discusion/PROPUESTA_ROSTER_SOCIAL_Y_RELACIONES_JERARQUICAS.md). |
 | **Roster social multi-agente** | — (diseño) | **No** | Propuesta: [PROPUESTA_ROSTER_SOCIAL_Y_RELACIONES_JERARQUICAS.md](discusion/PROPUESTA_ROSTER_SOCIAL_Y_RELACIONES_JERARQUICAS.md) (jerarquía, datos por cercanía, diálogo doméstico/íntimo advisory). |
 | **Escalada judicial** | `judicial_escalation.py` | **Demo** | Sesión, strikes, vistas públicas; DAO mock, no red real. |
 | **Memoria narrativa / identidad** | `narrative.py`, `narrative_identity.py` | **Sólido** | Episodios y digest; checkpoints. |

@@ -88,18 +88,28 @@ def test_uchi_soto_profiles_roundtrip():
         negative_history=0,
         manipulation_attempts=0,
         trust_score=0.72,
+        display_alias="Ali",
+        tone_preference="warm",
+        domestic_tags=["living_room"],
+        topic_avoid_tags=["politics"],
+        sensor_trust_ema=0.55,
+        linked_to_agent_id="bob",
     )
 
     snap = extract_snapshot(k1)
     assert len(snap.uchi_soto_profiles) == 1
     assert snap.uchi_soto_profiles[0]["agent_id"] == "alice"
     assert snap.uchi_soto_profiles[0]["trust_score"] == 0.72
+    assert snap.uchi_soto_profiles[0]["display_alias"] == "Ali"
+    assert snap.uchi_soto_profiles[0]["tone_preference"] == "warm"
 
     k2 = EthicalKernel(variability=False)
     apply_snapshot(k2, snap)
     assert "alice" in k2.uchi_soto.profiles
     assert k2.uchi_soto.profiles["alice"].circle == TrustCircle.UCHI_CERCANO
     assert abs(k2.uchi_soto.profiles["alice"].trust_score - 0.72) < 1e-6
+    assert k2.uchi_soto.profiles["alice"].display_alias == "Ali"
+    assert k2.uchi_soto.profiles["alice"].domestic_tags == ["living_room"]
 
 
 def test_user_model_and_subjective_clock_roundtrip():

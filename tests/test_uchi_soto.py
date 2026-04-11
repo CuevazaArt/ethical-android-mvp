@@ -57,3 +57,59 @@ def test_register_result_nudges_trust():
     m.register_result("r1", True)
     assert m.profiles["r1"].trust_score > t0
     assert m.profiles["r1"].positive_history == 1
+
+
+def test_set_profile_structured_and_tone_extras():
+    m = UchiSotoModule()
+    m.set_profile_structured(
+        "pat",
+        display_alias="Pat",
+        tone_preference="warm",
+        domestic_tags=["kitchen", "evening"],
+        topic_avoid_tags=["medical_advice"],
+        sensor_trust_ema=0.2,
+        linked_to_agent_id="sam",
+    )
+    m.profiles["pat"].trust_score = 0.92
+    ev = m.evaluate_interaction(
+        {"hostility": 0.0, "manipulation": 0.0, "familiarity": 0.8},
+        "pat",
+        "",
+    )
+    assert ev.circle == TrustCircle.UCHI_CERCANO
+    tb = ev.tone_brief.lower()
+    assert "close uchi" in tb
+    assert "pat" in tb or "«pat»" in tb
+    assert "kitchen" in tb
+    assert "medical" in tb
+    assert "sam" in tb or "«sam»" in tb
+    assert "sensor-trust" in tb
+
+
+def test_profile_roundtrip_dict_phase2_fields():
+    from src.modules.uchi_soto import interaction_profile_from_dict, interaction_profile_to_dict
+
+    p = interaction_profile_from_dict(
+        {
+            "agent_id": "x",
+            "circle": "uchi_cercano",
+            "positive_history": 1,
+            "negative_history": 0,
+            "manipulation_attempts": 0,
+            "trust_score": 0.8,
+            "display_alias": "Alex",
+            "tone_preference": "formal",
+            "domestic_tags": ["porch"],
+            "topic_avoid_tags": ["finance"],
+            "sensor_trust_ema": 0.9,
+            "linked_to_agent_id": "y",
+        }
+    )
+    d = interaction_profile_to_dict(p)
+    p2 = interaction_profile_from_dict(d)
+    assert p2.display_alias == "Alex"
+    assert p2.tone_preference == "formal"
+    assert p2.domestic_tags == ["porch"]
+    assert p2.topic_avoid_tags == ["finance"]
+    assert abs(p2.sensor_trust_ema - 0.9) < 1e-6
+    assert p2.linked_to_agent_id == "y"

@@ -1,6 +1,6 @@
 # Roster social, jerarquía relacional y diálogo doméstico / íntimo — propuesta
 
-**Estado:** diseño (abril 2026)  
+**Estado:** diseño + **implementación parcial** (abril 2026) — Fase 1–2 en `uchi_soto.py` (perfiles persistidos, `tone_brief`, campos estructurados Phase 2); Fase 3 pendiente (EMA multimodal fino, `linked_to` rico).  
 **Alcance:** extender narrativa e identidad con una **colección de personas** (por `agent_id` estable, p. ej. usuario de sesión, invitado, identificador anónimo), **perfiladas** por experiencias acumuladas, interacción, señales sensoriales y **círculo Uchi–Soto**, sin sustituir MalAbs, buffer, Bayes ni voluntad.
 
 **Relación con código existente:** `UchiSotoModule` (`src/modules/uchi_soto.py`) ya mantiene `InteractionProfile` por agente y `TrustCircle`; `UserModelTracker` modela el interlocutor **actual** de la sesión; `NarrativeIdentityTracker` modela la **identidad del android**. Esta propuesta describe la **capa de roster multi-agente** persistente y las **políticas de tono** por cercanía.
@@ -56,9 +56,9 @@ No es obligatorio un grafo genealógico completo al inicio: basta un **orden tot
 
 | Fase | Contenido |
 |------|-----------|
-| **Fase 1** | Módulo `social_roster` (o extensión explícita de `UchiSotoModule` con persistencia): `agent_id` → tier + agregados + decay; lectura en `evaluate_interaction`; una línea de contexto al LLM (`communicate`). |
-| **Fase 2** | Campos estructurados para **tiers altos** + políticas de tono; snapshot `KernelSnapshotV1` (campos nuevos con defaults). |
-| **Fase 3** | Pesos multimodales en EMA del roster; relaciones `linked_to` si la narrativa lo requiere. |
+| **Fase 1** | **Hecho:** `UchiSotoModule` extendido — `agent_id` → perfil + `trust_score` + mezcla familiaridad; `tone_brief` base por círculo; `register_result`; persistencia `uchi_soto_profiles` en snapshot. |
+| **Fase 2** | **Hecho:** campos estructurados en `InteractionProfile` (`display_alias`, `tone_preference`, `domestic_tags`, `topic_avoid_tags`, `sensor_trust_ema`, `linked_to_agent_id`); `_compose_tone_brief` los incorpora en uchi cercano/núcleo (y preferencia de tono en uchi amplio); `set_profile_structured()`; serialización en el mismo snapshot. |
+| **Fase 3** | Pendiente: EMA multimodal **automático** hacia `sensor_trust_ema`; decay / buffer de olvido; promoción explícita de tier tipo roster completo. |
 
 **Puntos de enganche:** `EthicalKernel.process` / `process_chat_turn` (`agent_id` ya existe); `identity` / monólogo; `premise_advisory` y MalAbs **inalterados** en la lógica de veto.
 

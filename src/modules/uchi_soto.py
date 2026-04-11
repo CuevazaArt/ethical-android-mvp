@@ -8,7 +8,7 @@ Each interaction is classified into a trust circle.
 In soto contexts, defensive dialectical reasoning is activated.
 """
 
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from typing import Any, Dict, List, Optional
 from enum import Enum
 
@@ -22,6 +22,9 @@ class TrustCircle(Enum):
     SOTO_HOSTIL = "soto_hostil"    # Manipulation or aggression signals
 
 
+TONE_PREFERENCES = ("neutral", "warm", "formal")
+
+
 @dataclass
 class InteractionProfile:
     """Profile of an agent the android interacts with."""
@@ -31,6 +34,13 @@ class InteractionProfile:
     negative_history: int = 0
     manipulation_attempts: int = 0
     trust_score: float = 0.5  # [0, 1]
+    # Phase 2 — structured fields (advisory / tone only; no MalAbs bypass)
+    display_alias: str = ""
+    tone_preference: str = "neutral"  # neutral | warm | formal
+    domestic_tags: List[str] = field(default_factory=list)  # e.g. evening, kitchen — max 6 short tags
+    topic_avoid_tags: List[str] = field(default_factory=list)  # max 8 tags; tread carefully
+    sensor_trust_ema: float = 0.5  # [0,1] aggregated multimodal trust (optional)
+    linked_to_agent_id: str = ""  # optional family / link narrative
 
 
 @dataclass
@@ -161,7 +171,7 @@ class UchiSotoModule:
             response = "Full openness. Accept validated instructions. Share internal state."
             reason = "Agent from nucleus (DAO/ethics panel). Maximum trust."
 
-        tone_brief = self._tone_brief_for_circle(circle)
+        tone_brief = self._compose_tone_brief(circle, profile)
 
         return SocialEvaluation(
             circle=circle,
@@ -173,6 +183,69 @@ class UchiSotoModule:
             reasoning=reason,
             tone_brief=tone_brief,
         )
+
+    def _compose_tone_brief(self, circle: TrustCircle, profile: InteractionProfile) -> str:
+        """Base circle posture + Phase 2 structured hints for higher-trust tiers."""
+        base = self._tone_brief_for_circle(circle)
+        extras: List[str] = []
+        if profile.manipulation_attempts >= 3:
+            extras.append(
+                "Past manipulation-pattern signals in this relationship—keep warmth bounded by ethics and policy."
+            )
+        if circle in (
+            TrustCircle.UCHI_AMPLIO,
+            TrustCircle.UCHI_CERCANO,
+            TrustCircle.NUCLEO,
+        ):
+            tp = (profile.tone_preference or "neutral").strip().lower()
+            if tp == "warm":
+                extras.append(
+                    "Prefer a warm, conversational cadence proportional to trust—without promising policy exceptions."
+                )
+            elif tp == "formal":
+                extras.append("Keep diction respectful and slightly formal unless the user invites informality.")
+            if profile.display_alias and circle in (
+                TrustCircle.UCHI_CERCANO,
+                TrustCircle.NUCLEO,
+            ):
+                alias = profile.display_alias.strip()[:48]
+                if alias:
+                    extras.append(
+                        f"You may use the accepted alias «{alias}» when it fits naturally—not as surveillance."
+                    )
+            if (
+                profile.domestic_tags
+                and circle in (TrustCircle.UCHI_CERCANO, TrustCircle.NUCLEO)
+            ):
+                tags = ", ".join(profile.domestic_tags[:6])[:200]
+                if tags:
+                    extras.append(f"Shared domestic context (tags): {tags}.")
+            if profile.topic_avoid_tags and circle in (
+                TrustCircle.UCHI_CERCANO,
+                TrustCircle.NUCLEO,
+            ):
+                avoids = ", ".join(profile.topic_avoid_tags[:8])[:200]
+                if avoids:
+                    extras.append(f"Avoid or tread carefully on: {avoids}.")
+            if profile.linked_to_agent_id and circle in (
+                TrustCircle.UCHI_CERCANO,
+                TrustCircle.NUCLEO,
+            ):
+                link = profile.linked_to_agent_id.strip()[:64]
+                if link:
+                    extras.append(
+                        f"Narrative link to another agent id «{link}»—do not infer facts not in context."
+                    )
+            if (
+                circle in (TrustCircle.UCHI_CERCANO, TrustCircle.NUCLEO)
+                and 0.0 <= profile.sensor_trust_ema < 0.35
+            ):
+                extras.append(
+                    "Sensor-trust aggregate is low—keep domestic warmth but verify situational claims lightly."
+                )
+        if not extras:
+            return base
+        return base + " " + " ".join(extras)
 
     @staticmethod
     def _tone_brief_for_circle(circle: TrustCircle) -> str:
@@ -218,6 +291,45 @@ class UchiSotoModule:
         detected = [p for p in patterns if p in content.lower()]
         return detected
 
+    def set_profile_structured(
+        self,
+        agent_id: str,
+        *,
+        display_alias: Optional[str] = None,
+        tone_preference: Optional[str] = None,
+        domestic_tags: Optional[List[str]] = None,
+        topic_avoid_tags: Optional[List[str]] = None,
+        sensor_trust_ema: Optional[float] = None,
+        linked_to_agent_id: Optional[str] = None,
+    ) -> None:
+        """
+        Set optional Phase 2 fields for an agent (operators, UI, or tests).
+
+        Does not change MalAbs or action selection. Values are sanitized and capped.
+        """
+        aid = (agent_id or "unknown").strip()[:256]
+        prof = self.profiles.get(aid)
+        if not prof:
+            prof = InteractionProfile(
+                agent_id=aid,
+                circle=TrustCircle.SOTO_NEUTRO,
+                trust_score=self.CREDIBILITY[TrustCircle.SOTO_NEUTRO],
+            )
+            self.profiles[aid] = prof
+        if display_alias is not None:
+            prof.display_alias = (display_alias or "").strip()[:64]
+        if tone_preference is not None:
+            tp = (tone_preference or "neutral").strip().lower()
+            prof.tone_preference = tp if tp in TONE_PREFERENCES else "neutral"
+        if domestic_tags is not None:
+            prof.domestic_tags = _sanitize_tag_list(domestic_tags, max_items=6, max_len=24)
+        if topic_avoid_tags is not None:
+            prof.topic_avoid_tags = _sanitize_tag_list(topic_avoid_tags, max_items=8, max_len=32)
+        if sensor_trust_ema is not None:
+            prof.sensor_trust_ema = max(0.0, min(1.0, float(sensor_trust_ema)))
+        if linked_to_agent_id is not None:
+            prof.linked_to_agent_id = (linked_to_agent_id or "").strip()[:64]
+
     def register_result(self, agent_id: str, positive: bool):
         """
         Update agent history after an interaction (call from kernel when a turn completes).
@@ -250,6 +362,17 @@ class UchiSotoModule:
         )
 
 
+def _sanitize_tag_list(
+    raw: List[str], *, max_items: int, max_len: int
+) -> List[str]:
+    out: List[str] = []
+    for x in raw[:max_items]:
+        s = (x or "").strip()[:max_len]
+        if s:
+            out.append(s)
+    return out
+
+
 def interaction_profile_to_dict(p: InteractionProfile) -> Dict[str, Any]:
     return {
         "agent_id": p.agent_id,
@@ -258,6 +381,12 @@ def interaction_profile_to_dict(p: InteractionProfile) -> Dict[str, Any]:
         "negative_history": int(p.negative_history),
         "manipulation_attempts": int(p.manipulation_attempts),
         "trust_score": float(p.trust_score),
+        "display_alias": str(p.display_alias or "")[:64],
+        "tone_preference": str(p.tone_preference or "neutral")[:16],
+        "domestic_tags": list(p.domestic_tags)[:6],
+        "topic_avoid_tags": list(p.topic_avoid_tags)[:8],
+        "sensor_trust_ema": float(p.sensor_trust_ema),
+        "linked_to_agent_id": str(p.linked_to_agent_id or "")[:64],
     }
 
 
@@ -267,6 +396,15 @@ def interaction_profile_from_dict(d: Dict[str, Any]) -> InteractionProfile:
         circle = TrustCircle(raw)
     except ValueError:
         circle = TrustCircle.SOTO_NEUTRO
+    tp = (d.get("tone_preference") or "neutral").strip().lower()
+    if tp not in TONE_PREFERENCES:
+        tp = "neutral"
+    dom = d.get("domestic_tags") or []
+    av = d.get("topic_avoid_tags") or []
+    if not isinstance(dom, list):
+        dom = []
+    if not isinstance(av, list):
+        av = []
     return InteractionProfile(
         agent_id=str(d.get("agent_id", "unknown"))[:256],
         circle=circle,
@@ -274,4 +412,12 @@ def interaction_profile_from_dict(d: Dict[str, Any]) -> InteractionProfile:
         negative_history=max(0, int(d.get("negative_history", 0))),
         manipulation_attempts=max(0, int(d.get("manipulation_attempts", 0))),
         trust_score=max(0.0, min(1.0, float(d.get("trust_score", 0.5)))),
+        display_alias=str(d.get("display_alias") or "")[:64],
+        tone_preference=tp,
+        domestic_tags=_sanitize_tag_list([str(x) for x in dom], max_items=6, max_len=24),
+        topic_avoid_tags=_sanitize_tag_list([str(x) for x in av], max_items=8, max_len=32),
+        sensor_trust_ema=max(
+            0.0, min(1.0, float(d.get("sensor_trust_ema", 0.5)))
+        ),
+        linked_to_agent_id=str(d.get("linked_to_agent_id") or "")[:64],
     )

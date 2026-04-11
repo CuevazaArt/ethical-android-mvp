@@ -2,6 +2,13 @@
 
 All notable changes to this project are summarized here. For narrative context and design rationale, see [`HISTORY.md`](HISTORY.md).
 
+## Uchi–Soto Phase 2 — structured profile fields + composed tone_brief — April 2026
+
+- **`InteractionProfile`:** `display_alias`, `tone_preference` (`neutral` \| `warm` \| `formal`), `domestic_tags`, `topic_avoid_tags`, `sensor_trust_ema`, `linked_to_agent_id` (advisory; serialized in `uchi_soto_profiles`).
+- **`UchiSotoModule`:** `set_profile_structured(...)`; `_compose_tone_brief` extends Phase-1 circle line with alias, tone preference, domestic/avoid tags, link hint, low sensor-trust note when relevant.
+- **Design doc:** [PROPUESTA_ROSTER_SOCIAL_Y_RELACIONES_JERARQUICAS.md](docs/discusion/PROPUESTA_ROSTER_SOCIAL_Y_RELACIONES_JERARQUICAS.md) (Fase 2 marked implemented).
+- **Tests:** `tests/test_uchi_soto.py`, `tests/test_persistence.py`.
+
 ## Uchi–Soto Phase 1 — tone_brief, familiarity blend, checkpoint profiles — April 2026
 
 - **`uchi_soto.py`:** `SocialEvaluation.tone_brief` (advisory line for `communicate`); `classify` blends per-turn `familiarity` with persisted `profile.trust_score`; `register_result` uses smaller positive step (`POSITIVE_TRUST_STEP`); `interaction_profile_to_dict` / `interaction_profile_from_dict` for persistence.
