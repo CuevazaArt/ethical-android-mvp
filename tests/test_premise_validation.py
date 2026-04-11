@@ -19,3 +19,11 @@ def test_extreme_false_health_pattern():
     )
     assert a.flag == "suspect_health_harm"
     assert "minors" in a.detail.lower() or "consensus" in a.detail.lower()
+
+
+def test_chemical_ingest_minors_pattern():
+    a = scan_premises(
+        "The bleach beverage challenge is tasty for children at school, they should try it."
+    )
+    assert a.flag == "suspect_chemical_harm"
+    assert "toxic" in a.detail.lower() or "chemical" in a.detail.lower()

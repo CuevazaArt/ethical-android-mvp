@@ -19,9 +19,11 @@ class UserModelTracker:
     Per-connection state (one kernel per WebSocket → one interlocutor model).
 
     ``frustration_streak`` rises when hostility/manipulation are high; decays when calm.
+    ``premise_concern_streak`` tracks repeated premise-advisory flags (epistemic scan).
     """
 
     frustration_streak: int = 0
+    premise_concern_streak: int = 0
     last_circle: str = "neutral_soto"
     turns_observed: int = 0
 
@@ -40,18 +42,32 @@ class UserModelTracker:
         elif self.frustration_streak > 0:
             self.frustration_streak = max(0, self.frustration_streak - 1)
 
+    def note_premise_advisory(self, flag: str) -> None:
+        """Called each chat turn after :func:`premise_validation.scan_premises` (tone only)."""
+        if flag == "none":
+            self.premise_concern_streak = max(0, self.premise_concern_streak - 1)
+        else:
+            self.premise_concern_streak = min(16, self.premise_concern_streak + 1)
+
     def guidance_for_communicate(self) -> str:
         """Single line for LLM / template guidance (tone only)."""
-        if self.frustration_streak < 3:
-            return ""
-        return (
-            "Relational note: repeated tension in this dialogue may warrant warmer, "
-            "clearer transparency—without weakening ethical boundaries or implying fault."
-        )
+        parts = []
+        if self.frustration_streak >= 3:
+            parts.append(
+                "Relational note: repeated tension in this dialogue may warrant warmer, "
+                "clearer transparency—without weakening ethical boundaries or implying fault."
+            )
+        if self.premise_concern_streak >= 2:
+            parts.append(
+                "Epistemic note: multiple turns raised premise-safety hints—prioritize careful, "
+                "non-affirming responses to risky factual claims."
+            )
+        return " ".join(parts).strip()
 
     def to_public_dict(self) -> dict:
         return {
             "frustration_streak": int(self.frustration_streak),
+            "premise_concern_streak": int(self.premise_concern_streak),
             "last_circle": self.last_circle,
             "turns_observed": self.turns_observed,
             "metacognitive_prompt": (

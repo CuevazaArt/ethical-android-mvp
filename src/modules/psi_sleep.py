@@ -12,6 +12,7 @@ Genuinely innovative: no published equivalent in AI.
 Direct parallel with memory consolidation during human sleep.
 """
 
+import hashlib
 from collections import Counter
 from dataclasses import dataclass, field
 from typing import List, Dict, Optional
@@ -137,14 +138,13 @@ class PsiSleep:
         """
         Simulate what would have happened with an alternative action.
 
-        In MVP: stochastic perturbation of the original score.
+        In MVP: deterministic perturbation from (episode id, alternative) hash — reproducible audits.
         In production: full Bayesian re-evaluation with the
         Bayesian engine and updated data.
         """
-        import numpy as np
-
-        np.random.seed(hash(ep.id + alternative_action) % 2**31)
-        perturbation = np.random.normal(0, 0.2)
+        h = hashlib.sha256(f"{ep.id}|{alternative_action}".encode("utf-8")).digest()
+        u = int.from_bytes(h[:8], "big") / 2**64  # [0, 1)
+        perturbation = (u - 0.5) * 0.55  # ~[-0.275, 0.275]
         alt_score = max(-1.0, min(1.0, ep.ethical_score * 0.6 + perturbation))
 
         delta = alt_score - ep.ethical_score
@@ -191,9 +191,8 @@ class PsiSleep:
         if not scores:
             return 0.5
 
-        import numpy as np
-        average = np.mean(scores)
-        variance = np.var(scores)
+        average = sum(scores) / len(scores)
+        variance = sum((s - average) ** 2 for s in scores) / len(scores)
 
         health = (average + 1) / 2  # Normalize [-1,1] to [0,1]
         variance_penalty = min(0.3, variance)

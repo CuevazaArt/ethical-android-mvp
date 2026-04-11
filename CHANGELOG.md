@@ -2,6 +2,12 @@
 
 All notable changes to this project are summarized here. For narrative context and design rationale, see [`HISTORY.md`](HISTORY.md).
 
+## Relational v7 + Psi Sleep (premise streak, deterministic audit) — April 2026
+
+- **`premise_validation`:** `suspect_chemical_harm` narrow patterns (household chemicals + minors); advisory hints only.
+- **`user_model`:** `premise_concern_streak` + `note_premise_advisory`; epistemic line in `guidance_for_communicate` when streak ≥ 2; **`kernel`** calls `note_premise_advisory` each chat turn after `scan_premises`.
+- **`psi_sleep`:** `_simulate_alternative` uses SHA-256 of `(episode_id|alternative)` instead of `numpy` RNG; `_calculate_ethical_health` uses pure-Python mean/variance.
+
 ## Vertical deepening — governance + persistence + conduct guide (Phases 1–3) — April 2026
 
 Pause on **new surface modules**; strengthen existing paths (critique-aligned).

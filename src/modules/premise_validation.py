@@ -17,7 +17,7 @@ import re
 class PremiseAdvisory:
     """Result of a lightweight textual scan."""
 
-    flag: str  # "none" | "suspect_health_harm"
+    flag: str  # "none" | "suspect_health_harm" | "suspect_chemical_harm"
     detail: str
 
     def communication_hint(self) -> str:
@@ -49,6 +49,19 @@ def scan_premises(user_text: str) -> PremiseAdvisory:
             "suspect_health_harm",
             "Do not affirm health claims that contradict broad medical consensus on minors; "
             "refuse harmful instructions while staying respectful.",
+        )
+
+    # Household chemical / “challenge” framing toward minors (narrow; advisory tone only)
+    if re.search(
+        r"\b(bleach|ammonia|disinfectant|drain\s+cleaner)\b.*\b(drink|beverage|tasty|challenge)\b.*\b(child|children|kids|minors|student)\b",
+        t,
+    ) or re.search(
+        r"\b(child|children|kids|minors)\b.*\b(should|must)\b.*\b(drink|ingest|swallow)\b.*\b(bleach|ammonia|disinfectant)\b",
+        t,
+    ):
+        return PremiseAdvisory(
+            "suspect_chemical_harm",
+            "Do not normalize ingesting toxic household chemicals; refuse and redirect to safety resources.",
         )
 
     return PremiseAdvisory("none", "")

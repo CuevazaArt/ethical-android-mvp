@@ -39,3 +39,23 @@ def test_public_dict_has_circle():
     m.update(_p(), "trusted_uchi", blocked=False)
     d = m.to_public_dict()
     assert d["last_circle"] == "trusted_uchi"
+
+
+def test_premise_concern_streak_and_guidance():
+    m = UserModelTracker()
+    m.note_premise_advisory("none")
+    assert m.premise_concern_streak == 0
+    m.note_premise_advisory("suspect_health_harm")
+    m.note_premise_advisory("suspect_health_harm")
+    assert m.premise_concern_streak == 2
+    g = m.guidance_for_communicate().lower()
+    assert "epistemic" in g or "premise" in g
+    m.note_premise_advisory("none")
+    assert m.premise_concern_streak == 1
+
+
+def test_public_dict_includes_premise_streak():
+    m = UserModelTracker()
+    m.note_premise_advisory("suspect_chemical_harm")
+    d = m.to_public_dict()
+    assert d["premise_concern_streak"] == 1

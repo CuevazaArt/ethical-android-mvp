@@ -403,6 +403,30 @@ class TestPsiSleep:
         res = kernel.sleep.execute(kernel.memory, kernel._pruned_actions)
         assert 0.0 <= res.ethical_health <= 1.0, f"Ethical health out of range: {res.ethical_health}"
 
+    def test_simulate_alternative_deterministic(self):
+        """Same episode + alternative must yield identical review (hash-based MVP)."""
+        from src.modules.narrative import BodyState, NarrativeEpisode
+        from src.modules.psi_sleep import PsiSleep
+
+        ep = NarrativeEpisode(
+            id="EP-DET-1",
+            timestamp="2026-01-01T00:00:00",
+            place="test",
+            event_description="x",
+            body_state=BodyState(),
+            action_taken="act",
+            morals={},
+            verdict="Good",
+            ethical_score=0.4,
+            decision_mode="D_fast",
+            sigma=0.5,
+            context="everyday",
+        )
+        psi = PsiSleep()
+        a = psi._simulate_alternative(ep, "alt_only")
+        b = psi._simulate_alternative(ep, "alt_only")
+        assert a == b
+
 
 # ═══════════════════════════════════════════════════════════════
 # PROPERTY 10: WEAKNESS POLE DOES NOT ALTER DECISIONS

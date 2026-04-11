@@ -580,6 +580,7 @@ class EthicalKernel:
 
         mal = self.absolute_evil.evaluate_chat_text(user_input)
         self._last_premise_advisory = scan_premises(user_input)
+        self.user_model.note_premise_advisory(self._last_premise_advisory.flag)
         self._last_reality_verification = verify_against_lighthouse(
             user_input,
             lighthouse_kb_from_env(),
