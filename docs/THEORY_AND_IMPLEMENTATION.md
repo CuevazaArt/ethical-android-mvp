@@ -126,7 +126,7 @@ I(x)=\int (1-P(\text{correct}\mid\theta))\cdot P(\theta\mid D)\,d\theta
 \text{Score}(a)=\sum_i w_i(t)\,V_i(a),\quad w_i(t)=w_i^0\cdot f(C_t,S_t)
 \]
 
-**Implementation** — `EthicalPoles` in `src/modules/ethical_poles.py`: base weights `BASE_WEIGHTS` and context multipliers `CONTEXTS` implement \(w_i^0\) and \(f(C_t,S_t)\); pole scores aggregate into `TripartiteMoral`.
+**Implementation** — `EthicalPoles` in `src/modules/ethical_poles.py`: base weights `BASE_WEIGHTS` and context multipliers `CONTEXTS` implement \(w_i^0\) and \(f(C_t,S_t)\); per-pole scores come from `LinearPoleEvaluator` + `pole_linear_default.json` (override `KERNEL_POLE_LINEAR_CONFIG`; see [ADR 0004](adr/0004-configurable-linear-pole-evaluator.md)). Scores aggregate into `TripartiteMoral`.
 
 ### 5. Sympathetic–parasympathetic
 

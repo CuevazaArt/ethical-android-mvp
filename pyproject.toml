@@ -34,3 +34,6 @@ Documentation = "https://github.com/CuevazaArt/ethical-android-mvp/blob/main/doc
 where = ["."]
 include = ["src*"]
 namespaces = true
+
+[tool.setuptools.package-data]
+"src.modules" = ["*.json"]

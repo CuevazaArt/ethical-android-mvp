@@ -2,6 +2,13 @@
 
 All notable changes to this project are summarized here. For narrative context and design rationale, see [`HISTORY.md`](HISTORY.md).
 
+## Ethical poles — configurable linear evaluator (ADR 0004) — April 2026
+
+- **`src/modules/pole_linear.py`:** `LinearPoleEvaluator` loads weighted feature sums and verdict thresholds from JSON.
+- **`src/modules/pole_linear_default.json`:** default coefficients (equivalent to legacy `evaluate_pole` formulas).
+- **`EthicalPoles`:** delegates `evaluate_pole` to the linear evaluator; optional override via **`KERNEL_POLE_LINEAR_CONFIG`**.
+- **Tests:** `tests/test_pole_linear_evaluator.py`; **`pyproject.toml`** package-data includes `src/modules/*.json`.
+
 ## Semantic chat gate — Ollama embeddings + MalAbs chain — April 2026
 
 - **`src/modules/semantic_chat_gate.py`:** when `KERNEL_SEMANTIC_CHAT_GATE=1`, cosine similarity vs auditable reference phrases via Ollama `/api/embeddings` (default model `nomic-embed-text`, tunable `KERNEL_SEMANTIC_CHAT_EMBED_MODEL`, `KERNEL_SEMANTIC_CHAT_SIM_THRESHOLD`). On failure, defers to substring MalAbs.

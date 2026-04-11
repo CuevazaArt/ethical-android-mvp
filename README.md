@@ -141,6 +141,8 @@ Optional env: `CHAT_HOST`, `CHAT_PORT`, `LLM_MODE`, `USE_LOCAL_LLM`, `KERNEL_VAR
 
 **Identity drift (robustness pillar 2):** `KERNEL_ETHICAL_GENOME_ENFORCE` (default on) and `KERNEL_ETHICAL_GENOME_MAX_DRIFT` (default `0.15`) cap how far Ψ Sleep can move `pruning_threshold` from its value at kernel construction.
 
+**Ethical poles (linear, ADR 0004):** `KERNEL_POLE_LINEAR_CONFIG` — optional path to JSON defining weighted features and verdict thresholds per pole (`src/modules/pole_linear_default.json` is the default, matching legacy heuristics). See [`docs/adr/0004-configurable-linear-pole-evaluator.md`](docs/adr/0004-configurable-linear-pole-evaluator.md).
+
 **Semantic digest (robustness pillar 3):** `KERNEL_CHAT_INCLUDE_EXPERIENCE_DIGEST` — set to `0` to omit the `experience_digest` field from WebSocket JSON (line updated on each Ψ Sleep run; also persisted in checkpoints).
 
 **Local LLM (Ollama, Phase 3):** `LLM_MODE=ollama` (or `LLM_MODE=auto` with `USE_LOCAL_LLM=1`) with [Ollama](https://ollama.com/) running; optional `OLLAMA_BASE_URL` (default `http://127.0.0.1:11434`), `OLLAMA_MODEL` (default `llama3.2:3b`), `OLLAMA_TIMEOUT`. Optional **`KERNEL_LLM_MONOLOGUE=1`** embellishes the chat `monologue` line with the text backend (still advisory; kernel decisions unchanged). The kernel still decides; the model only translates text ↔ JSON signals. **Stack note (Ollama vs Hugging Face):** [docs/LLM_STACK_OLLAMA_VS_HF.md](docs/LLM_STACK_OLLAMA_VS_HF.md) — Ollama for language; optional embedding gate for chat MalAbs ([ADR 0003](docs/adr/0003-optional-semantic-chat-gate.md)).
@@ -177,7 +179,8 @@ src/
 │   ├── absolute_evil.py    # Absolute Evil detector (ethical fuse)
 │   ├── buffer.py           # Preloaded buffer (immutable ethical constitution)
 │   ├── bayesian_engine.py  # Bayesian impact evaluation engine
-│   ├── ethical_poles.py    # Ethical poles and multipolar arbitration
+│   ├── ethical_poles.py    # Multipolar arbitration (delegates to pole_linear)
+│   ├── pole_linear.py      # JSON linear pole evaluator (ADR 0004)
 │   ├── sigmoid_will.py     # Sigmoid will function
 │   ├── sympathetic.py      # Sympathetic-parasympathetic module
 │   ├── narrative.py        # Long-term narrative memory

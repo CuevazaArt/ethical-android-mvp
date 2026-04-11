@@ -8,7 +8,7 @@
 
 ## 1. Ethical poles — heuristic multipolar scores
 
-`EthicalPoles` (`src/modules/ethical_poles.py`) assigns **stylized** pole labels (`compassionate`, `conservative`, `optimistic`) with **dynamic weights** by context. The math is a **weighted sum** of per-pole valuations — **not** a calibrated moralometer and **not** peer-reviewed external validity.
+`EthicalPoles` (`src/modules/ethical_poles.py`) assigns **stylized** pole labels (`compassionate`, `conservative`, `optimistic`) with **dynamic weights** by context. Per-pole **linear** scores load from `pole_linear_default.json` (or **`KERNEL_POLE_LINEAR_CONFIG`**); see [ADR 0004](adr/0004-configurable-linear-pole-evaluator.md). The aggregate is still a **weighted sum** of per-pole valuations — **not** a calibrated moralometer and **not** peer-reviewed external validity.
 
 **Claims to avoid in product copy:**
 

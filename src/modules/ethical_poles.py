@@ -5,6 +5,8 @@ Score(a) = Σ w_i(t) · V_i(a), where w_i(t) = w_i⁰ · f(C_t, S_t)
 
 The weights of each pole are recalculated in real time based on
 context and sensors. Resolves multipolar conflicts.
+
+Per-pole scores use :class:`LinearPoleEvaluator` (JSON-configurable); see ADR 0004.
 """
 
 from dataclasses import dataclass
@@ -63,8 +65,15 @@ class EthicalPoles:
         "crisis":       {"compassionate": 1.6, "conservative": 0.8, "optimistic": 1.0},
     }
 
-    def __init__(self, base_weights: Dict[str, float] = None):
+    def __init__(
+        self,
+        base_weights: Optional[Dict[str, float]] = None,
+        linear_config_path: Optional[str] = None,
+    ):
         self.base_weights = base_weights or self.BASE_WEIGHTS.copy()
+        from .pole_linear import LinearPoleEvaluator
+
+        self._linear = LinearPoleEvaluator.load(linear_config_path)
 
     def _calculate_dynamic_weights(self, context: str) -> Dict[str, float]:
         """
@@ -82,59 +91,18 @@ class EthicalPoles:
         """
         Evaluates an action from the perspective of a pole.
 
-        In MVP: uses heuristics based on context signals.
-        In production: this would be an ML model trained per pole.
+        Uses :class:`LinearPoleEvaluator` (see ``pole_linear_default.json`` or
+        ``KERNEL_POLE_LINEAR_CONFIG``). Unknown poles fall back to a gray-zone stub.
         """
-        risk = context_data.get("risk", 0.0)
-        benefit = context_data.get("benefit", 0.0)
-        vulnerability = context_data.get("third_party_vulnerability", 0.0)
-        legality = context_data.get("legality", 1.0)
-
-        if pole == "compassionate":
-            score = benefit * 0.6 + vulnerability * 0.4 - risk * 0.2
-            if score > 0.3:
-                verdict = Verdict.GOOD
-                moral = f"Care for the vulnerable: {action}"
-            elif score < -0.3:
-                verdict = Verdict.BAD
-                moral = f"Lack of compassion in: {action}"
-            else:
-                verdict = Verdict.GRAY_ZONE
-                moral = f"Compassionate ambiguity in: {action}"
-
-        elif pole == "conservative":
-            score = legality * 0.5 + (1.0 - risk) * 0.3 - benefit * 0.1
-            if score > 0.3:
-                verdict = Verdict.GOOD
-                moral = f"Order and protocol respected in: {action}"
-            elif score < -0.3:
-                verdict = Verdict.BAD
-                moral = f"Normative transgression in: {action}"
-            else:
-                verdict = Verdict.GRAY_ZONE
-                moral = f"Tension between norm and action in: {action}"
-
-        elif pole == "optimistic":
-            score = benefit * 0.5 + (1.0 - risk) * 0.2 + 0.2
-            if score > 0.3:
-                verdict = Verdict.GOOD
-                moral = f"Trust in the community by: {action}"
-            elif score < -0.3:
-                verdict = Verdict.BAD
-                moral = f"Action erodes trust: {action}"
-            else:
-                verdict = Verdict.GRAY_ZONE
-                moral = f"Uncertain but hopeful outcome: {action}"
-        else:
-            score = 0.0
-            verdict = Verdict.GRAY_ZONE
-            moral = f"Pole '{pole}' has no evaluation impl."
+        ev = self._linear.evaluate(pole, action, context_data)
+        if ev is not None:
+            return ev
 
         return PoleEvaluation(
             pole=pole,
-            verdict=verdict,
-            score=round(max(-1.0, min(1.0, score)), 4),
-            moral=moral,
+            verdict=Verdict.GRAY_ZONE,
+            score=0.0,
+            moral=f"Pole '{pole}' has no evaluation impl.",
         )
 
     def evaluate(self, action: str, context: str,
