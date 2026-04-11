@@ -143,6 +143,52 @@ def test_metaplan_somatic_skills_roundtrip():
     assert len(k2.skill_learning._tickets) == len(k1.skill_learning._tickets)
 
 
+def _kernel_with_metaplan_somatic_skills():
+    from src.modules.sensor_contracts import SensorSnapshot
+
+    k = EthicalKernel(variability=False)
+    k.metaplan.add_goal("Long project", 0.72)
+    ss = SensorSnapshot(
+        audio_emergency=0.85,
+        place_trust=0.4,
+        accelerometer_jerk=0.2,
+    )
+    k.somatic_store.learn_negative_pattern(ss, weight=0.7)
+    k.skill_learning.request_ticket("export API", "needed for continuity demo")
+    return k
+
+
+def test_json_file_metaplan_somatic_skills_roundtrip(tmp_path):
+    k1 = _kernel_with_metaplan_somatic_skills()
+    path = tmp_path / "checkpoint.json"
+    store = JsonFilePersistence(path)
+    store.save(extract_snapshot(k1))
+    assert path.is_file()
+
+    k2 = EthicalKernel(variability=False)
+    assert store.load_into_kernel(k2) is True
+    assert len(k2.metaplan.goals()) == len(k1.metaplan.goals())
+    assert k2.metaplan.goals()[0].title == k1.metaplan.goals()[0].title
+    assert k2.metaplan.goals()[0].id == k1.metaplan.goals()[0].id
+    assert k2.somatic_store._negative_weights == k1.somatic_store._negative_weights
+    assert len(k2.skill_learning._tickets) == len(k1.skill_learning._tickets)
+    assert k2.skill_learning._tickets[0].id == k1.skill_learning._tickets[0].id
+
+
+def test_sqlite_metaplan_somatic_skills_roundtrip(tmp_path):
+    k1 = _kernel_with_metaplan_somatic_skills()
+    path = tmp_path / "checkpoint.db"
+    store = SqlitePersistence(path)
+    store.save(extract_snapshot(k1))
+    assert path.is_file()
+
+    k2 = EthicalKernel(variability=False)
+    assert store.load_into_kernel(k2) is True
+    assert k2.metaplan.goals()[0].title == k1.metaplan.goals()[0].title
+    assert k2.somatic_store._negative_weights == k1.somatic_store._negative_weights
+    assert k2.skill_learning._tickets[0].scope_description == k1.skill_learning._tickets[0].scope_description
+
+
 def test_extract_apply_roundtrip_in_memory():
     k1 = EthicalKernel(variability=False)
     scn = ALL_SIMULATIONS[1]()

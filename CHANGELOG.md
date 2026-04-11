@@ -2,6 +2,12 @@
 
 All notable changes to this project are summarized here. For narrative context and design rationale, see [`HISTORY.md`](HISTORY.md).
 
+## Tests + fixtures — metaplan/somatic disk round-trip + empirical pilot regression — April 2026
+
+- **`tests/test_persistence.py`:** JSON + SQLite round-trip for metaplan, somatic markers, and skill-learning tickets (adjacent to existing in-memory test).
+- **`tests/test_empirical_pilot_runner.py`:** batch pilot summary stability vs `tests/fixtures/empirical_pilot/scenarios.json`; archived `last_run_summary.json` + fixture `README.md`.
+- **`docs/TRACE_IMPLEMENTATION_RECENT.md`:** marks persistence item (1) as delivered with test pointers.
+
 ## Documentation — README + THEORY + ADR index sync — April 2026
 
 - **README:** test count band (340+), Issue 3 pilot links, ADR 0002 pointer next to 0001.
