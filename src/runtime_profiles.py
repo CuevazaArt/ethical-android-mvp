@@ -54,6 +54,15 @@ RUNTIME_PROFILES: Final[Dict[str, Dict[str, str]]] = {
         "KERNEL_DEONTIC_GATE": "1",
         "KERNEL_TRANSPARENCY_AUDIT": "1",
     },
+    # v8 situated + LAN thin-client (sensor preset + fixture merge; no raw hardware required)
+    "situated_v8_lan_demo": {
+        "CHAT_HOST": "0.0.0.0",
+        "CHAT_PORT": "8765",
+        "KERNEL_SENSOR_FIXTURE": "tests/fixtures/sensor/minimal_situ.json",
+        "KERNEL_SENSOR_PRESET": "low_battery",
+        "KERNEL_CHAT_INCLUDE_VITALITY": "1",
+        "KERNEL_CHAT_INCLUDE_MULTIMODAL": "1",
+    },
 }
 
 PROFILE_DESCRIPTIONS: Final[Dict[str, str]] = {
@@ -66,6 +75,7 @@ PROFILE_DESCRIPTIONS: Final[Dict[str, str]] = {
     "operational_trust": "Stoic chat UX: omit homeostasis, monologue, experience_digest (Issue 5 — see POLES_WEAKNESS_PAD_AND_PROFILES.md).",
     "lan_operational": "LAN bind + operational_trust UX (Issue 7 — see KERNEL_ENV_POLICY.md).",
     "moral_hub_extended": "V12 moral hub: constitution HTTP + DAO vote + deontic gate + transparency audit (Issue 7).",
+    "situated_v8_lan_demo": "V8 situated: LAN bind + sensor fixture+preset merge, vitality + multimodal JSON (see DEMO_SITUATED_V8.md, LOCAL_PC_AND_MOBILE_LAN.md).",
 }
 
 

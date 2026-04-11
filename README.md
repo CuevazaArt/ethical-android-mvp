@@ -16,7 +16,7 @@ The original **batch simulations** (nine fixed scenarios plus a random generator
 
 **Governance narrative (Issue 6):** [`docs/GOVERNANCE_MOCKDAO_AND_L0.md`](docs/GOVERNANCE_MOCKDAO_AND_L0.md) — MockDAO limits, **L0** as in-repo constitution, L1/L2 vs votes; public page [blockchain-dao](https://mosexmacchinalab.com/blockchain-dao).
 
-**`KERNEL_*` policy (Issue 7):** [`docs/KERNEL_ENV_POLICY.md`](docs/KERNEL_ENV_POLICY.md) — flag families, risky combos, deprecation posture; extended profiles in [`src/runtime_profiles.py`](src/runtime_profiles.py) (`lan_operational`, `moral_hub_extended`).
+**`KERNEL_*` policy (Issue 7):** [`docs/KERNEL_ENV_POLICY.md`](docs/KERNEL_ENV_POLICY.md) — flag families, risky combos, deprecation posture; extended profiles in [`src/runtime_profiles.py`](src/runtime_profiles.py) (`lan_operational`, `moral_hub_extended`, **`situated_v8_lan_demo`** for v8+LAN — see [`docs/DEMO_SITUATED_V8.md`](docs/DEMO_SITUATED_V8.md)).
 
 **Input trust:** MalAbs chat filtering and LLM perception bounds are **heuristic**, not unbreakable — see [`docs/INPUT_TRUST_THREAT_MODEL.md`](docs/INPUT_TRUST_THREAT_MODEL.md) and [`SECURITY.md`](SECURITY.md).
 

@@ -56,8 +56,8 @@ La ruta anterior seguía priorizando features (metaplan, generative LLM, swarm).
 ### 3.1 Orden de entrega recomendado (robustez → epistemología → demo)
 
 1. **Robustez:** perfiles en `src/runtime_profiles.py` (`apply_runtime_profile` en tests); CI ejecuta `tests/test_runtime_profiles.py` junto con el resto de `tests/`; refuerzo de MalAbs / percepción en `tests/test_input_trust.py` con [`INPUT_TRUST_THREAT_MODEL.md`](INPUT_TRUST_THREAT_MODEL.md).
-2. **Epistemología:** KB lighthouse operativo y límites en [`LIGHTHOUSE_KB.md`](LIGHTHOUSE_KB.md); tests en `tests/test_reality_verification.py`.
-3. **Demo / situado:** v8 y LAN según [`discusion/PROPUESTA_ORGANISMO_SITUADO_V8.md`](discusion/PROPUESTA_ORGANISMO_SITUADO_V8.md) y [`LOCAL_PC_AND_MOBILE_LAN.md`](LOCAL_PC_AND_MOBILE_LAN.md).
+2. **Epistemología:** KB lighthouse operativo y límites en [`LIGHTHOUSE_KB.md`](LIGHTHOUSE_KB.md); tests en `tests/test_reality_verification.py` / `tests/test_lighthouse_kb_schema.py`.
+3. **Demo / situado:** **cerrado** con perfil nominal **`situated_v8_lan_demo`** + guía [`DEMO_SITUATED_V8.md`](DEMO_SITUATED_V8.md) (v8 + LAN sin hardware bruto); marco [`PROPUESTA_ORGANISMO_SITUADO_V8.md`](discusion/PROPUESTA_ORGANISMO_SITUADO_V8.md), pasos red [`LOCAL_PC_AND_MOBILE_LAN.md`](LOCAL_PC_AND_MOBILE_LAN.md).
 
 ---
 
@@ -76,6 +76,7 @@ Los nombres y variables viven en código: **`src/runtime_profiles.py`**. Resumen
 | `operational_trust` | UX “estoico” en WebSocket: sin homeostasis / monólogo / experience_digest — política del núcleo sin cambio ([POLES_WEAKNESS_PAD_AND_PROFILES.md](POLES_WEAKNESS_PAD_AND_PROFILES.md), Issue 5). |
 | `lan_operational` | `lan_mobile_thin_client` + `operational_trust`: WiFi LAN con JSON mínimo narrativo ([KERNEL_ENV_POLICY.md](KERNEL_ENV_POLICY.md), Issue 7). |
 | `moral_hub_extended` | Hub V12 ampliado: constitución pública + voto DAO + `deontic_gate` + auditoría de transparencia (Issue 7). |
+| `situated_v8_lan_demo` | v8 situado: LAN + `KERNEL_SENSOR_*` (fixture + preset) + vitalidad / multimodal en JSON — [`DEMO_SITUATED_V8.md`](DEMO_SITUATED_V8.md). |
 
 **Política de flags (Issue 7):** familias de `KERNEL_*`, combinaciones **no recomendadas** y postura de deprecación — **[KERNEL_ENV_POLICY.md](KERNEL_ENV_POLICY.md)**.
 

@@ -2,6 +2,11 @@
 
 All notable changes to this project are summarized here. For narrative context and design rationale, see [`HISTORY.md`](HISTORY.md).
 
+## Demo — situated v8 + LAN profile (`situated_v8_lan_demo`) — April 2026
+
+- **`runtime_profiles`:** `situated_v8_lan_demo` — LAN bind, `KERNEL_SENSOR_FIXTURE` + `KERNEL_SENSOR_PRESET` (`tests/fixtures/sensor/minimal_situ.json` + `low_battery`), vitality + multimodal JSON enabled.
+- **Docs:** [`DEMO_SITUATED_V8.md`](docs/DEMO_SITUATED_V8.md); [`ESTRATEGIA_Y_RUTA.md`](docs/ESTRATEGIA_Y_RUTA.md) §3.1 marks demo slice closed; README profile pointer.
+
 ## Epistemology — lighthouse KB validation + first-match test — April 2026
 
 - **`reality_verification`:** `validate_lighthouse_kb_structure`, `validate_lighthouse_kb_file` for operator/CI regression (schema only, not factual truth).
