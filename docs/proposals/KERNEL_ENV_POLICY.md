@@ -52,7 +52,7 @@ These are **not** forbidden by code, but **not CI-guaranteed** unless a profile 
 
 ---
 
-## 4. Relation to [ESTRATEGIA_Y_RUTA.md](ESTRATEGIA_Y_RUTA.md)
+## 4. Relation to [STRATEGY_AND_ROADMAP.md](STRATEGY_AND_ROADMAP.md)
 
 Section **4** lists **nominal profiles**; this file is the **policy** layer (what “unsupported” means, how families fit together). Issue 7 acceptance: ESTRATEGIA updated + CI green on `tests/test_runtime_profiles.py`.
 

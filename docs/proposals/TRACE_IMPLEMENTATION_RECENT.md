@@ -28,24 +28,24 @@ This document **consolidates** components and concepts added in the recent work 
 
 | Document | Contents |
 |----------|----------|
-| [PROPUESTA_ANGEL_DE_LA_GUARDIA.md](PROPUESTA_ANGEL_DE_LA_GUARDIA.md) | Product and contract — Guardian Angel |
-| [PROPUESTA_CAPACIDAD_AMPLIADA_V9.md](PROPUESTA_CAPACIDAD_AMPLIADA_V9.md) | v9 pillars (epistemic, generative, swarm, metaplanning) |
-| [PROPUESTA_ESTRATEGIA_OPERATIVA_V10.md](PROPUESTA_ESTRATEGIA_OPERATIVA_V10.md) | Diplomacy, skills, soma, operational metaplan (MVP) |
-| [PROPUESTA_JUSTICIA_DISTRIBUIDA_V11.md](PROPUESTA_JUSTICIA_DISTRIBUIDA_V11.md) | V11 governance: escalation phases, experimental topics (sanctions, P2P, ZK) |
+| [PROPOSAL_GUARDIAN_ANGEL.md](PROPOSAL_GUARDIAN_ANGEL.md) | Product and contract — Guardian Angel |
+| [PROPOSAL_EXPANDED_CAPABILITY_V9.md](PROPOSAL_EXPANDED_CAPABILITY_V9.md) | v9 pillars (epistemic, generative, swarm, metaplanning) |
+| [PROPOSAL_OPERATIONAL_STRATEGY_V10.md](PROPOSAL_OPERATIONAL_STRATEGY_V10.md) | Diplomacy, skills, soma, operational metaplan (MVP) |
+| [PROPOSAL_DISTRIBUTED_JUSTICE_V11.md](PROPOSAL_DISTRIBUTED_JUSTICE_V11.md) | V11 governance: escalation phases, experimental topics (sanctions, P2P, ZK) |
 | [UNIVERSAL_ETHOS_AND_HUB.md](UNIVERSAL_ETHOS_AND_HUB.md) | **Canonical** hub vision ↔ code (UniversalEthos, services, audit levels, module map) |
-| [PROPUESTA_CONCIENCIA_NOMADA_HAL.md](PROPUESTA_CONCIENCIA_NOMADA_HAL.md) | Nomadic HAL + existential serialization; `GET /nomad/migration`; `KERNEL_NOMAD_SIMULATION`, `KERNEL_NOMAD_MIGRATION_AUDIT`, WS `nomad_simulate_migration`; `HubAudit` DAO lines; optional `KERNEL_CHECKPOINT_FERNET_KEY` |
-| [PROPUESTA_ESTADO_ETOSOCIAL_V12.md](PROPUESTA_ESTADO_ETOSOCIAL_V12.md) | V12 **registry** + env; `moral_hub`, drafts, DAO vote, deontic/ml_ethics/reparation/nomad stubs |
-| [ESTRATEGIA_Y_RUTA.md](ESTRATEGIA_Y_RUTA.md) | Review conclusions, readapted P0–P3 route, **runtime profiles** (`runtime_profiles.py`, `test_runtime_profiles.py`) |
+| [PROPOSAL_NOMADIC_CONSCIOUSNESS_HAL.md](PROPOSAL_NOMADIC_CONSCIOUSNESS_HAL.md) | Nomadic HAL + existential serialization; `GET /nomad/migration`; `KERNEL_NOMAD_SIMULATION`, `KERNEL_NOMAD_MIGRATION_AUDIT`, WS `nomad_simulate_migration`; `HubAudit` DAO lines; optional `KERNEL_CHECKPOINT_FERNET_KEY` |
+| [PROPOSAL_ETOSOCIAL_STATE_V12.md](PROPOSAL_ETOSOCIAL_STATE_V12.md) | V12 **registry** + env; `moral_hub`, drafts, DAO vote, deontic/ml_ethics/reparation/nomad stubs |
+| [STRATEGY_AND_ROADMAP.md](STRATEGY_AND_ROADMAP.md) | Review conclusions, readapted P0–P3 route, **runtime profiles** (`runtime_profiles.py`, `test_runtime_profiles.py`) |
 | [LOCAL_PC_AND_MOBILE_LAN.md](LOCAL_PC_AND_MOBILE_LAN.md) | PC + smartphone same WiFi (thin client); scripts `start_lan_server`; `chat-test.html?host=`; **`conduct_guide_export`** on WS disconnect |
 | [NOMAD_PC_SMARTPHONE_BRIDGE.md](NOMAD_PC_SMARTPHONE_BRIDGE.md) | Primer puente nomada: capas por hardware, sensor smartphone, red segura para campo (bajo indicación) |
-| [PROPUESTA_VERIFICACION_REALIDAD_V11.md](PROPUESTA_VERIFICACION_REALIDAD_V11.md) | Lighthouse KB / metacognitive doubt (implemented); distillation + DAO sovereignty (stubs) |
-| [PROPUESTA_DAO_ALERTAS_Y_TRANSPARENCIA.md](PROPUESTA_DAO_ALERTAS_Y_TRANSPARENCIA.md) | DAO corruption: loud traceable alerts (no covert “guerrilla”); forensic memorial vs L0 buffer; **v0 code:** `integrity_alert` WS → `HubAudit:dao_integrity` |
+| [PROPOSAL_REALITY_VERIFICATION_V11.md](PROPOSAL_REALITY_VERIFICATION_V11.md) | Lighthouse KB / metacognitive doubt (implemented); distillation + DAO sovereignty (stubs) |
+| [PROPOSAL_DAO_ALERTS_AND_TRANSPARENCY.md](PROPOSAL_DAO_ALERTS_AND_TRANSPARENCY.md) | DAO corruption: loud traceable alerts (no covert “guerrilla”); forensic memorial vs L0 buffer; **v0 code:** `integrity_alert` WS → `HubAudit:dao_integrity` |
 
 ---
 
 ## Next development session (proposed plan)
 
-**Ruta y riesgos (abril 2026):** prioridades y expectativas realistas están consolidadas en **[ESTRATEGIA_Y_RUTA.md](ESTRATEGIA_Y_RUTA.md)**. El hueco principal cerrado en esa iteración es **perfiles nominales de runtime** (`src/runtime_profiles.py`) + humo en CI (`tests/test_runtime_profiles.py`).
+**Ruta y riesgos (abril 2026):** prioridades y expectativas realistas están consolidadas en **[STRATEGY_AND_ROADMAP.md](STRATEGY_AND_ROADMAP.md)**. El hueco principal cerrado en esa iteración es **perfiles nominales de runtime** (`src/runtime_profiles.py`) + humo en CI (`tests/test_runtime_profiles.py`).
 
 Siguientes líneas (alineadas con PROPUESTA, después de P0 perfiles):
 

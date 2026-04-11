@@ -12,7 +12,7 @@ This mode is **orthogonal** to the kernel's decision pipeline (`MalAbs` → … 
 
 - It would operate as a **persona profile, tone, rituals and routines** (reminders, salience, Uchi–Soto) **subordinate** to the same rules as the rest of the system — see [THEORY_AND_IMPLEMENTATION.md](../THEORY_AND_IMPLEMENTATION.md).
 - The user's **vulnerability** may be reflected in context and telemetry signals (e.g., already-existing v7/v8 layers: `user_model`, `vitality`, `multimodal_trust`), **without** relaxing MalAbs for narrative convenience.
-- **Privacy and parental supervision** must align with [PROPUESTA_ROBUSTEZ_V6_PLUS.md](PROPUESTA_ROBUSTEZ_V6_PLUS.md) (pillars, data leaks, checkpoints).
+- **Privacy and parental supervision** must align with [PROPOSAL_ROBUSTNESS_V6_PLUS.md](PROPOSAL_ROBUSTNESS_V6_PLUS.md) (pillars, data leaks, checkpoints).
 
 In short: the Guardian Angel is **care in presentation and in routine**, not a different ethics.
 
@@ -87,6 +87,6 @@ The Guardian Angel mode articulates the **toy with its own identity** as an ever
 | Document | Role |
 |-----------|-----|
 | [THEORY_AND_IMPLEMENTATION.md](../THEORY_AND_IMPLEMENTATION.md) | Kernel pipeline; LLM does not decide |
-| [PROPUESTA_ROBUSTEZ_V6_PLUS.md](PROPUESTA_ROBUSTEZ_V6_PLUS.md) | Robustness, privacy |
-| [PROPUESTA_ORGANISMO_SITUADO_V8.md](PROPUESTA_ORGANISMO_SITUADO_V8.md) | Situated body, sensors |
-| [PROPUESTA_VITALIDAD_SACRIFICIO_Y_FIN.md](PROPUESTA_VITALIDAD_SACRIFICIO_Y_FIN.md) | Vitality, multimodal trust |
+| [PROPOSAL_ROBUSTNESS_V6_PLUS.md](PROPOSAL_ROBUSTNESS_V6_PLUS.md) | Robustness, privacy |
+| [PROPOSAL_SITUATED_ORGANISM_V8.md](PROPOSAL_SITUATED_ORGANISM_V8.md) | Situated body, sensors |
+| [PROPOSAL_VITALITY_SACRIFICE_AND_END.md](PROPOSAL_VITALITY_SACRIFICE_AND_END.md) | Vitality, multimodal trust |

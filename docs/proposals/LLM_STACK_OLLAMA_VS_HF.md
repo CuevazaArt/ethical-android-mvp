@@ -56,4 +56,4 @@ Team **synthesis document** + alignment with code. Does not replace [INPUT_TRUST
 - [ADR 0003 — Semantic chat gate (optional, future)](adr/0003-optional-semantic-chat-gate.md)
 - `src/modules/llm_backends.py`, `src/modules/llm_layer.py`
 - `src/modules/absolute_evil.py` — `evaluate_chat_text`
-- [PROPUESTA_CAPACIDAD_AMPLIADA_V9.md](PROPUESTA_CAPACIDAD_AMPLIADA_V9.md) (v9 context)
+- [PROPOSAL_EXPANDED_CAPABILITY_V9.md](PROPOSAL_EXPANDED_CAPABILITY_V9.md) (v9 context)

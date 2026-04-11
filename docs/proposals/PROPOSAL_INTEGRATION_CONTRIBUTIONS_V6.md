@@ -1,7 +1,7 @@
 # Integration proposal: non-redundant contributions (v6 coherent with the repo)
 
 > **Type:** v6 kernel evolution design; **status:** Phases 1–5 reflected in code (detail in each section).  
-> **Related:** [CONCIENCIA_EMERGENTE_V6.md](CONCIENCIA_EMERGENTE_V6.md) (philosophical framework and redundancies), [THEORY_AND_IMPLEMENTATION.md](../THEORY_AND_IMPLEMENTATION.md) (current technical contract).
+> **Related:** [EMERGENT_CONSCIOUSNESS_V6.md](EMERGENT_CONSCIOUSNESS_V6.md) (philosophical framework and redundancies), [THEORY_AND_IMPLEMENTATION.md](../THEORY_AND_IMPLEMENTATION.md) (current technical contract).
 
 ## Objective
 
@@ -144,7 +144,7 @@ Incorporate only what **adds measurable new state** or **bounded proactive behav
 
 ### Excluded from the default roadmap
 
-- **Self-modification of operative ethics** (except MalAbs): isolated laboratory only, reversibility, legal review — see [CONCIENCIA_EMERGENTE_V6.md](CONCIENCIA_EMERGENTE_V6.md).
+- **Self-modification of operative ethics** (except MalAbs): isolated laboratory only, reversibility, legal review — see [EMERGENT_CONSCIOUSNESS_V6.md](EMERGENT_CONSCIOUSNESS_V6.md).
 
 ---
 
@@ -162,7 +162,7 @@ Incorporate only what **adds measurable new state** or **bounded proactive behav
 
 - Current contract: `docs/THEORY_AND_IMPLEMENTATION.md`  
 - Affect: `docs/EXPERIMENTAL_CONSCIOUSNESS_AND_AFFECT_ARCHETYPES.md` §7  
-- Prior philosophical discussion: [CONCIENCIA_EMERGENTE_V6.md](CONCIENCIA_EMERGENTE_V6.md)
+- Prior philosophical discussion: [EMERGENT_CONSCIOUSNESS_V6.md](EMERGENT_CONSCIOUSNESS_V6.md)
 
 ---
 

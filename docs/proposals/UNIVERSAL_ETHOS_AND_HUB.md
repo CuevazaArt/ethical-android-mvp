@@ -1,6 +1,6 @@
 # UniversalEthos + Hub — canonical architecture (vision ↔ code)
 
-**Purpose:** Single source of truth for the *DemocraticBuffer / multicultural overlays*, *services hub*, *audit protocol*, *evolution loops*, and the *V11–V12 module map*. Detailed phase specs remain in versioned proposals ([V11](PROPUESTA_JUSTICIA_DISTRIBUIDA_V11.md), [V12](PROPUESTA_ESTADO_ETOSOCIAL_V12.md)); this document **unifies** narrative and **maps** to `src/` without duplicating their env tables.
+**Purpose:** Single source of truth for the *DemocraticBuffer / multicultural overlays*, *services hub*, *audit protocol*, *evolution loops*, and the *V11–V12 module map*. Detailed phase specs remain in versioned proposals ([V11](PROPOSAL_DISTRIBUTED_JUSTICE_V11.md), [V12](PROPOSAL_ETOSOCIAL_STATE_V12.md)); this document **unifies** narrative and **maps** to `src/` without duplicating their env tables.
 
 **Kernel contract:** MalAbs → `PreloadedBuffer` (L0) remains the **normative core**. Hub layers add governance, audit, and operations **without** bypassing safety.
 
@@ -60,14 +60,14 @@
 | **DemocraticBuffer** | L0 immutable + L1/L2 governance path | `buffer.py` + `moral_hub.py` + `MockDAO` + persistence |
 | **MLEthicsTuner** | Expert loop for gray-zone weight tuning | `ml_ethics_tuner.py` (audit only in MVP) |
 | **ReparationVault** | Indemnification fund | `reparation_vault.py` (mock audit) |
-| **NomadIdentity** | Hardware jump + continuity of self | `nomad_identity.py` (facade) + `ImmortalityProtocol` + checkpoint; HAL: [PROPUESTA_CONCIENCIA_NOMADA_HAL.md](PROPUESTA_CONCIENCIA_NOMADA_HAL.md), `hardware_abstraction.py`, `existential_serialization.py` |
+| **NomadIdentity** | Hardware jump + continuity of self | `nomad_identity.py` (facade) + `ImmortalityProtocol` + checkpoint; HAL: [PROPOSAL_NOMADIC_CONSCIOUSNESS_HAL.md](PROPOSAL_NOMADIC_CONSCIOUSNESS_HAL.md), `hardware_abstraction.py`, `existential_serialization.py` |
 
 ---
 
 ## References
 
-- [PROPUESTA_ESTADO_ETOSOCIAL_V12.md](PROPUESTA_ESTADO_ETOSOCIAL_V12.md) — V12.1–V12.4 registry and env vars  
-- [PROPUESTA_JUSTICIA_DISTRIBUIDA_V11.md](PROPUESTA_JUSTICIA_DISTRIBUIDA_V11.md) — justice track  
+- [PROPOSAL_ETOSOCIAL_STATE_V12.md](PROPOSAL_ETOSOCIAL_STATE_V12.md) — V12.1–V12.4 registry and env vars  
+- [PROPOSAL_DISTRIBUTED_JUSTICE_V11.md](PROPOSAL_DISTRIBUTED_JUSTICE_V11.md) — justice track  
 - [RUNTIME_PERSISTENT.md](RUNTIME_PERSISTENT.md) — snapshot schema  
 - [TRACE_IMPLEMENTATION_RECENT.md](TRACE_IMPLEMENTATION_RECENT.md) — traceability  
 

@@ -9,9 +9,9 @@ This document does **not** form part of the published kernel's technical contrac
 
 **Governing experimental paradigm:** the line considered **most solid and auditable** for an affect layer *posterior* to the ethical core is **PAD in `[0,1]³` + N prototypes (archetypes) + distance weights / softmax** (specification in §7). That chain is grounded in literature and in signals the kernel already computes (`sigma`, moral scores, locus). Any design alternative should be explicitly compared against §7 and its ethical non-regression invariants.
 
-**See also (same experimental line):** [PAPER_AFECTO_FENOMENOS_Y_HIPOTESIS.md](experimental/PAPER_AFECTO_FENOMENOS_Y_HIPOTESIS.md) — expected phenomena when combining PAD/prototypes, notes on *color* and *flavor*, reserved testable hypotheses.
+**See also (same experimental line):** [PAPER_AFFECT_PHENOMENA_AND_HYPOTHESES.md](experimental/PAPER_AFFECT_PHENOMENA_AND_HYPOTHESES.md) — expected phenomena when combining PAD/prototypes, notes on *color* and *flavor*, reserved testable hypotheses.
 
-**Discussion (not backlog):** v6 framework on self-reference, global workspace, drives, and narrative self — [CONCIENCIA_EMERGENTE_V6.md](CONCIENCIA_EMERGENTE_V6.md) (includes criteria for **contribution vs redundancy** with the current kernel).
+**Discussion (not backlog):** v6 framework on self-reference, global workspace, drives, and narrative self — [EMERGENT_CONSCIOUSNESS_V6.md](EMERGENT_CONSCIOUSNESS_V6.md) (includes criteria for **contribution vs redundancy** with the current kernel).
 
 ---
 

@@ -75,7 +75,7 @@ A complete genealogical graph is not required at the start: a **total tier order
 
 ## 6. Cross-references
 
-- [PROPUESTA_EVOLUCION_RELACIONAL_V7.md](PROPUESTA_EVOLUCION_RELACIONAL_V7.md) — lightweight ToM and session; `user_model.py`.
+- [PROPOSAL_RELATIONAL_EVOLUTION_V7.md](PROPOSAL_RELATIONAL_EVOLUTION_V7.md) — lightweight ToM and session; `user_model.py`.
 - [USER_MODEL_ENRICHMENT.md](../USER_MODEL_ENRICHMENT.md) — per-turn enrichment (cognitive pattern, risk, judicial).
 - [PROJECT_STATUS_AND_MODULE_MATURITY.md](../PROJECT_STATUS_AND_MODULE_MATURITY.md) — current MVP maturity.
 - `src/modules/uchi_soto.py` — `InteractionProfile`, `TrustCircle` — base to extend.

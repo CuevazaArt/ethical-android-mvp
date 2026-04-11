@@ -1,6 +1,6 @@
 # Relational / existential evolution (v7) — scope and MVP implementation
 
-**Note:** the **situated body** (sensors, battery, hardware migration) is in [PROPUESTA_ORGANISMO_SITUADO_V8.md](PROPUESTA_ORGANISMO_SITUADO_V8.md) (**v8**), to avoid mixing it with this relational block in dialogue.
+**Note:** the **situated body** (sensors, battery, hardware migration) is in [PROPOSAL_SITUATED_ORGANISM_V8.md](PROPOSAL_SITUATED_ORGANISM_V8.md) (**v8**), to avoid mixing it with this relational block in dialogue.
 
 **Status:** discussion + **partial implementation** in code (does not replace MalAbs, Bayes, buffer, or will).
 
@@ -83,4 +83,4 @@ Included by default (`1`) for transparency; production can trim the payload.
 
 ## See also
 
-- [PROPUESTA_ROSTER_SOCIAL_Y_RELACIONES_JERARQUICAS.md](PROPUESTA_ROSTER_SOCIAL_Y_RELACIONES_JERARQUICAS.md) — multi-agent roster, proximity hierarchy, relevant data for figures of interest and domestic/intimate dialogue (advisory; future design).
+- [PROPOSAL_SOCIAL_ROSTER_AND_HIERARCHICAL_RELATIONS.md](PROPOSAL_SOCIAL_ROSTER_AND_HIERARCHICAL_RELATIONS.md) — multi-agent roster, proximity hierarchy, relevant data for figures of interest and domestic/intimate dialogue (advisory; future design).

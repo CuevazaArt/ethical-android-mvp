@@ -45,6 +45,6 @@ The kernel can be **ethically coherent** and still cause harm if the **input pre
 
 ## References
 
-- [PROPUESTA_JUSTICIA_DISTRIBUIDA_V11.md](PROPUESTA_JUSTICIA_DISTRIBUIDA_V11.md) — judicial escalation and mock DAO
-- [ESTRATEGIA_Y_RUTA.md](../ESTRATEGIA_Y_RUTA.md) — runtime profiles and operational risks
-- [PROPUESTA_CAPACIDAD_AMPLIADA_V9.md](PROPUESTA_CAPACIDAD_AMPLIADA_V9.md) — epistemology and sensors (complementary)
+- [PROPOSAL_DISTRIBUTED_JUSTICE_V11.md](PROPOSAL_DISTRIBUTED_JUSTICE_V11.md) — judicial escalation and mock DAO
+- [STRATEGY_AND_ROADMAP.md](../STRATEGY_AND_ROADMAP.md) — runtime profiles and operational risks
+- [PROPOSAL_EXPANDED_CAPABILITY_V9.md](PROPOSAL_EXPANDED_CAPABILITY_V9.md) — epistemology and sensors (complementary)

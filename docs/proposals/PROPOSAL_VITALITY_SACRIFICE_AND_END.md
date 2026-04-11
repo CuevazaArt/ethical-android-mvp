@@ -1,6 +1,6 @@
 # Vitality, sacrifice, graceful end, and anti-spoof (v8 extension)
 
-**Status:** discussion — **not** implemented as a single module in the repo; articulates designs that **refine** [PROPUESTA_ORGANISMO_SITUADO_V8.md](PROPUESTA_ORGANISMO_SITUADO_V8.md) without replacing the kernel contract.
+**Status:** discussion — **not** implemented as a single module in the repo; articulates designs that **refine** [PROPOSAL_SITUATED_ORGANISM_V8.md](PROPOSAL_SITUATED_ORGANISM_V8.md) without replacing the kernel contract.
 
 ---
 
@@ -11,9 +11,9 @@
 | **VitalityManager / "last breath"** | Explicit criterion for **operational sacrifice** (CPU/safe shutdown vs. help window) and formalized moral cost; PAD **A↑ D↓** as *loss of ethical agency*, not opaque "panic" | v8 §2 already mentions battery and compassion; **missing** the arbitration rule between process persistence and extreme human urgency |
 | **Graceful shutdown + legacy** | **Boundary Directive** protocol (deletion by owner in Uchi) + exportable **final episode** — UX and narrative closure | v8 §4 mentions migration/deletion; **not** the "last will" ritual nor handover to the owner |
 | **Sensor → ethical signal table** | **Actionable** mapping (medical_emergency, violent_crime, compassion buffer, locus…) for future pipeline | v8 §1 is generic; this table **complements** without repeating the `SensorSnapshot` contract |
-| **ActionClocks + agenda** | **Normative and product time** (Ψ Sleep windows, trivial chat vs. security mission) distinct from v7 session clock | [PROPUESTA_EVOLUCION_RELACIONAL_V7.md](PROPUESTA_EVOLUCION_RELACIONAL_V7.md) `SubjectiveClock` = turns/EMA; **not** a digital ethical agenda |
+| **ActionClocks + agenda** | **Normative and product time** (Ψ Sleep windows, trivial chat vs. security mission) distinct from v7 session clock | [PROPOSAL_RELATIONAL_EVOLUTION_V7.md](PROPOSAL_RELATIONAL_EVOLUTION_V7.md) `SubjectiveClock` = turns/EMA; **not** a digital ethical agenda |
 | **Nomad + clock by hardware** | Monologue density based on CPU — **subjective time** adjustment to the device | v8 §4 migration; **no** explicit clock/processor synchronization |
-| **Deceived sensor + multimodal** | **Concrete** threat and mitigation (cross-check, "metacognitive doubt", owner anchor) | [PROPUESTA_ROBUSTEZ_V6_PLUS.md](PROPUESTA_ROBUSTEZ_V6_PLUS.md) pillars; **this** text anchors it to the **fake audio** case and sacrifice |
+| **Deceived sensor + multimodal** | **Concrete** threat and mitigation (cross-check, "metacognitive doubt", owner anchor) | [PROPOSAL_ROBUSTNESS_V6_PLUS.md](PROPOSAL_ROBUSTNESS_V6_PLUS.md) pillars; **this** text anchors it to the **fake audio** case and sacrifice |
 
 **Conclusion:** the set is **valuable** as a specification layer; it is **redundant** only if copied word for word into v8 — that is why this file is a **delta** and links to v8.
 
@@ -88,7 +88,7 @@ This table **feeds** the same pipeline as `SensorSnapshot` + textual perception;
 
 ## Links
 
-- Base situated framework: [PROPUESTA_ORGANISMO_SITUADO_V8.md](PROPUESTA_ORGANISMO_SITUADO_V8.md)
-- General robustness: [PROPUESTA_ROBUSTEZ_V6_PLUS.md](PROPUESTA_ROBUSTEZ_V6_PLUS.md)
-- Subjective time v7: [PROPUESTA_EVOLUCION_RELACIONAL_V7.md](PROPUESTA_EVOLUCION_RELACIONAL_V7.md) §2
+- Base situated framework: [PROPOSAL_SITUATED_ORGANISM_V8.md](PROPOSAL_SITUATED_ORGANISM_V8.md)
+- General robustness: [PROPOSAL_ROBUSTNESS_V6_PLUS.md](PROPOSAL_ROBUSTNESS_V6_PLUS.md)
+- Subjective time v7: [PROPOSAL_RELATIONAL_EVOLUTION_V7.md](PROPOSAL_RELATIONAL_EVOLUTION_V7.md) §2
 - Theory ↔ code: [THEORY_AND_IMPLEMENTATION.md](../THEORY_AND_IMPLEMENTATION.md)

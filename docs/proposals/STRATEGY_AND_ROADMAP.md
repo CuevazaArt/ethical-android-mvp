@@ -4,7 +4,7 @@
 
 **Relationship with other docs:** the normative core and advisory layers continue to be described in [THEORY_AND_IMPLEMENTATION.md](THEORY_AND_IMPLEMENTATION.md) and [RUNTIME_CONTRACT.md](RUNTIME_CONTRACT.md). The PROPOSALs in `docs/discusion/` are design; this file is **product governance / operations**.
 
-**Quick index (2026 coherence):** [INPUT_TRUST_THREAT_MODEL.md](INPUT_TRUST_THREAT_MODEL.md) · [MALABS_SEMANTIC_LAYERS.md](MALABS_SEMANTIC_LAYERS.md) · [PERCEPTION_VALIDATION.md](PERCEPTION_VALIDATION.md) · [TEMPORAL_PRIOR_HORIZONS.md](TEMPORAL_PRIOR_HORIZONS.md) · [USER_MODEL_ENRICHMENT.md](USER_MODEL_ENRICHMENT.md) · [discusion/PROPUESTA_ROSTER_SOCIAL_Y_RELACIONES_JERARQUICAS.md](discusion/PROPUESTA_ROSTER_SOCIAL_Y_RELACIONES_JERARQUICAS.md) · [PROJECT_STATUS_AND_MODULE_MATURITY.md](PROJECT_STATUS_AND_MODULE_MATURITY.md) · [KERNEL_ENV_POLICY.md](KERNEL_ENV_POLICY.md) · [CORE_DECISION_CHAIN.md](CORE_DECISION_CHAIN.md) · [adr/README.md](adr/README.md).
+**Quick index (2026 coherence):** [INPUT_TRUST_THREAT_MODEL.md](INPUT_TRUST_THREAT_MODEL.md) · [MALABS_SEMANTIC_LAYERS.md](MALABS_SEMANTIC_LAYERS.md) · [PERCEPTION_VALIDATION.md](PERCEPTION_VALIDATION.md) · [TEMPORAL_PRIOR_HORIZONS.md](TEMPORAL_PRIOR_HORIZONS.md) · [USER_MODEL_ENRICHMENT.md](USER_MODEL_ENRICHMENT.md) · [discusion/PROPOSAL_SOCIAL_ROSTER_AND_HIERARCHICAL_RELATIONS.md](discusion/PROPOSAL_SOCIAL_ROSTER_AND_HIERARCHICAL_RELATIONS.md) · [PROJECT_STATUS_AND_MODULE_MATURITY.md](PROJECT_STATUS_AND_MODULE_MATURITY.md) · [KERNEL_ENV_POLICY.md](KERNEL_ENV_POLICY.md) · [CORE_DECISION_CHAIN.md](CORE_DECISION_CHAIN.md) · [adr/README.md](adr/README.md).
 
 ---
 
@@ -59,7 +59,7 @@ The previous roadmap kept prioritizing features (metaplan, generative LLM, swarm
 
 1. **Robustness:** profiles in `src/runtime_profiles.py` (`apply_runtime_profile` in tests); CI runs `tests/test_runtime_profiles.py` alongside the rest of `tests/`; reinforcement of MalAbs / perception in `tests/test_input_trust.py` with [`INPUT_TRUST_THREAT_MODEL.md`](INPUT_TRUST_THREAT_MODEL.md).
 2. **Epistemology:** operational KB lighthouse and limits in [`LIGHTHOUSE_KB.md`](LIGHTHOUSE_KB.md); tests in `tests/test_reality_verification.py` / `tests/test_lighthouse_kb_schema.py`.
-3. **Demo / situated:** **closed** with nominal profile **`situated_v8_lan_demo`** + guide [`DEMO_SITUATED_V8.md`](DEMO_SITUATED_V8.md) (v8 + LAN without raw hardware); framework [`PROPUESTA_ORGANISMO_SITUADO_V8.md`](discusion/PROPUESTA_ORGANISMO_SITUADO_V8.md), network steps [`LOCAL_PC_AND_MOBILE_LAN.md`](LOCAL_PC_AND_MOBILE_LAN.md).
+3. **Demo / situated:** **closed** with nominal profile **`situated_v8_lan_demo`** + guide [`DEMO_SITUATED_V8.md`](DEMO_SITUATED_V8.md) (v8 + LAN without raw hardware); framework [`PROPOSAL_SITUATED_ORGANISM_V8.md`](discusion/PROPOSAL_SITUATED_ORGANISM_V8.md), network steps [`LOCAL_PC_AND_MOBILE_LAN.md`](LOCAL_PC_AND_MOBILE_LAN.md).
 
 ---
 
@@ -84,7 +84,7 @@ Names and variables live in code: **`src/runtime_profiles.py`**. Summary:
 
 **Experimental:** any other combination of `KERNEL_*` is considered **unsupported** until a dedicated profile or test is added.
 
-**Epistemic pillar (V11+):** see [PROPUESTA_VERIFICACION_REALIDAD_V11.md](discusion/PROPUESTA_VERIFICACION_REALIDAD_V11.md) — local lighthouse vs. rival premises (implemented); distillation and DAO veto (pending).
+**Epistemic pillar (V11+):** see [PROPOSAL_REALITY_VERIFICATION_V11.md](discusion/PROPOSAL_REALITY_VERIFICATION_V11.md) — local lighthouse vs. rival premises (implemented); distillation and DAO veto (pending).
 
 **PC–smartphone nomadic bridge:** [NOMAD_PC_SMARTPHONE_BRIDGE.md](NOMAD_PC_SMARTPHONE_BRIDGE.md) — hardware classes, compatibility layers to develop, smartphone as a first approximation to coordinated sensory perception; secure network for field use under operator instruction.
 

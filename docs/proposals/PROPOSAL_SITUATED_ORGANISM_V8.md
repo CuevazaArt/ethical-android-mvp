@@ -2,7 +2,7 @@
 
 **Status:** discussion + **contract and fusion** in code (`sensor_contracts.py`, `perceptual_abstraction.py`, `process_chat_turn` / WebSocket + env `KERNEL_SENSOR_*`). **Does not replace** MalAbs, Bayes, buffer, or will.
 
-**Relationship with v7 relational:** [PROPUESTA_EVOLUCION_RELACIONAL_V7.md](PROPUESTA_EVOLUCION_RELACIONAL_V7.md) covers **dialogue** (lightweight ToM, subjective time, advisory premises, qualitative teleology). This document (v8) covers the **situated body**: sensors, hardware persistence, fear of interruption, digital action, and migration between devices. They are **orthogonal axes**; the name **v8** avoids collision with the "v7" already reserved for the relational block in the repo.
+**Relationship with v7 relational:** [PROPOSAL_RELATIONAL_EVOLUTION_V7.md](PROPOSAL_RELATIONAL_EVOLUTION_V7.md) covers **dialogue** (lightweight ToM, subjective time, advisory premises, qualitative teleology). This document (v8) covers the **situated body**: sensors, hardware persistence, fear of interruption, digital action, and migration between devices. They are **orthogonal axes**; the name **v8** avoids collision with the "v7" already reserved for the relational block in the repo.
 
 ---
 
@@ -76,11 +76,11 @@ The "self" is not bound to a single device.
 
 | Document | Role |
 |-----------|-----|
-| [PROPUESTA_EVOLUCION_RELACIONAL_V7.md](PROPUESTA_EVOLUCION_RELACIONAL_V7.md) | v7 relational (chat, ToM, chrono, premises, teleology) |
-| [PROPUESTA_ROBUSTEZ_V6_PLUS.md](PROPUESTA_ROBUSTEZ_V6_PLUS.md) | Robustness pillars, MalAbs, privacy |
+| [PROPOSAL_RELATIONAL_EVOLUTION_V7.md](PROPOSAL_RELATIONAL_EVOLUTION_V7.md) | v7 relational (chat, ToM, chrono, premises, teleology) |
+| [PROPOSAL_ROBUSTNESS_V6_PLUS.md](PROPOSAL_ROBUSTNESS_V6_PLUS.md) | Robustness pillars, MalAbs, privacy |
 | [RUNTIME_PERSISTENT.md](../RUNTIME_PERSISTENT.md) | Snapshots, checkpoints, future encryption |
 | [THEORY_AND_IMPLEMENTATION.md](../THEORY_AND_IMPLEMENTATION.md) | Mathematical pipeline ↔ code |
-| [PROPUESTA_VITALIDAD_SACRIFICIO_Y_FIN.md](PROPUESTA_VITALIDAD_SACRIFICIO_Y_FIN.md) | Sacrifice vs persistence, graceful shutdown, legacy, sensor→ethics table, ActionClocks, anti-spoof |
+| [PROPOSAL_VITALITY_SACRIFICE_AND_END.md](PROPOSAL_VITALITY_SACRIFICE_AND_END.md) | Sacrifice vs persistence, graceful shutdown, legacy, sensor→ethics table, ActionClocks, anti-spoof |
 
 ---
 

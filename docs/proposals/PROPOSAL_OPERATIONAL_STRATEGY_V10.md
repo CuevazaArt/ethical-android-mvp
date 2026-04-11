@@ -2,7 +2,7 @@
 
 **Status:** discussion + **MVP in code** (`gray_zone_diplomacy`, `skill_learning_registry`, `somatic_markers`, `metaplan_registry`; integration in `process_chat_turn` / `execute_sleep`). MalAbs and buffer **unchanged**.
 
-This document **activates** four contributions that complement [PROPUESTA_CAPACIDAD_AMPLIADA_V9.md](PROPUESTA_CAPACIDAD_AMPLIADA_V9.md): they do not replace the `MalAbs → … → will` pipeline; they add **dialogue governance**, **learning traceability**, **learned somatic caution**, and **long-term intent continuity**.
+This document **activates** four contributions that complement [PROPOSAL_EXPANDED_CAPABILITY_V9.md](PROPOSAL_EXPANDED_CAPABILITY_V9.md): they do not replace the `MalAbs → … → will` pipeline; they add **dialogue governance**, **learning traceability**, **learned somatic caution**, and **long-term intent continuity**.
 
 ---
 
@@ -71,6 +71,6 @@ This document **activates** four contributions that complement [PROPUESTA_CAPACI
 | Document | Role |
 |-----------|-----|
 | [THEORY_AND_IMPLEMENTATION.md](../THEORY_AND_IMPLEMENTATION.md) | Pipeline; LLM does not decide |
-| [PROPUESTA_CAPACIDAD_AMPLIADA_V9.md](PROPUESTA_CAPACIDAD_AMPLIADA_V9.md) | v9 epistemic / generative / swarm / metaplan roadmap |
-| [PROPUESTA_ROBUSTEZ_V6_PLUS.md](PROPUESTA_ROBUSTEZ_V6_PLUS.md) | Robustness, privacy |
+| [PROPOSAL_EXPANDED_CAPABILITY_V9.md](PROPOSAL_EXPANDED_CAPABILITY_V9.md) | v9 epistemic / generative / swarm / metaplan roadmap |
+| [PROPOSAL_ROBUSTNESS_V6_PLUS.md](PROPOSAL_ROBUSTNESS_V6_PLUS.md) | Robustness, privacy |
 | [RUNTIME_PERSISTENT.md](../RUNTIME_PERSISTENT.md) | Persistence, checkpoints |

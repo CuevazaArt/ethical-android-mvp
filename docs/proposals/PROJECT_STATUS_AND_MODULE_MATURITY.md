@@ -44,7 +44,7 @@ This document summarizes **where** the Ethos Kernel MVP is today and an honest r
 | **Bayes / buffer / poles** | `bayesian_engine.py`, `buffer.py`, `ethical_poles.py`, `pole_linear.py` | **Solid** | Decision core with tests; configurable linear poles (ADR 0004). |
 | **Reflection / salience / PAD** | `ethical_reflection.py`, `salience_map.py`, `pad_archetypes.py` | **Demo** | Read for audit and tone; does not veto action. |
 | **User model (ToM)** | `user_model.py` | **Demo** | Heuristics + tone; persisted in snapshot; see `USER_MODEL_ENRICHMENT.md`. |
-| **Uchi–Soto** | `uchi_soto.py` | **Demo** | Phases 1–3: composed `tone_brief`, `set_profile_structured`, `ingest_turn_context` (EMA + forgetting), `RelationalTier`, `linked_peer_ids`, checkpoint; see [PROPUESTA_ROSTER…](PROPUESTA_ROSTER_SOCIAL_Y_RELACIONES_JERARQUICAS.md). |
+| **Uchi–Soto** | `uchi_soto.py` | **Demo** | Phases 1–3: composed `tone_brief`, `set_profile_structured`, `ingest_turn_context` (EMA + forgetting), `RelationalTier`, `linked_peer_ids`, checkpoint; see [PROPUESTA_ROSTER…](PROPOSAL_SOCIAL_ROSTER_AND_HIERARCHICAL_RELATIONS.md). |
 | **Multi-agent social roster** | `uchi_soto.py` (persisted) | **Demo** | Core roster in profiles + tiers; narrative extension in linked proposal. |
 | **Judicial escalation** | `judicial_escalation.py` | **Demo** | Per-session, strikes, public views; mock DAO, no real network. |
 | **Narrative memory / identity** | `narrative.py`, `narrative_identity.py` | **Solid** | Episodes and digest; checkpoints. |
@@ -73,7 +73,7 @@ This document summarizes **where** the Ethos Kernel MVP is today and an honest r
 
 ## 5. References
 
-- Strategy and risks: [ESTRATEGIA_Y_RUTA.md](ESTRATEGIA_Y_RUTA.md)
+- Strategy and risks: [STRATEGY_AND_ROADMAP.md](STRATEGY_AND_ROADMAP.md)
 - Decision chain: [CORE_DECISION_CHAIN.md](CORE_DECISION_CHAIN.md)
 - Runtime contract: [RUNTIME_CONTRACT.md](RUNTIME_CONTRACT.md)
 - Input threat model: [INPUT_TRUST_THREAT_MODEL.md](INPUT_TRUST_THREAT_MODEL.md)

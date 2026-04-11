@@ -1,7 +1,7 @@
 # DAO: alerts on corruption, transparency, and failure memory (design)
 
 **Status:** design decision + traceability; **not** implemented as a network protocol.  
-**Relationship:** complements [PROPUESTA_JUSTICIA_DISTRIBUIDA_V11.md](PROPUESTA_JUSTICIA_DISTRIBUIDA_V11.md) (escalation, mock tribunal, auditing) and [PROPUESTA_ESTADO_ETOSOCIAL_V12.md](PROPUESTA_ESTADO_ETOSOCIAL_V12.md) (hub, transparency). Related code: auditing in `MockDAO`, `moral_hub`, stub `local_sovereignty.py`.
+**Relationship:** complements [PROPOSAL_DISTRIBUTED_JUSTICE_V11.md](PROPOSAL_DISTRIBUTED_JUSTICE_V11.md) (escalation, mock tribunal, auditing) and [PROPOSAL_ETOSOCIAL_STATE_V12.md](PROPOSAL_ETOSOCIAL_STATE_V12.md) (hub, transparency). Related code: auditing in `MockDAO`, `moral_hub`, stub `local_sovereignty.py`.
 
 **Nomadic PC–smartphone milestone:** out of scope here; see [NOMAD_PC_SMARTPHONE_BRIDGE.md](../NOMAD_PC_SMARTPHONE_BRIDGE.md) when resumed.
 

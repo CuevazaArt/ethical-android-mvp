@@ -1,6 +1,6 @@
 # Hardening roadmap toward serious deployment (non-binding)
 
-**Status:** **proposal + synthesis** — complements [`ESTRATEGIA_Y_RUTA.md`](ESTRATEGIA_Y_RUTA.md) and the critique backlog [`CRITIQUE_ROADMAP_ISSUES.md`](CRITIQUE_ROADMAP_ISSUES.md). **Does not** replace the runtime contract or promise "production" certification until explicit acceptance criteria and tests exist.
+**Status:** **proposal + synthesis** — complements [`STRATEGY_AND_ROADMAP.md`](STRATEGY_AND_ROADMAP.md) and the critique backlog [`CRITIQUE_ROADMAP_ISSUES.md`](CRITIQUE_ROADMAP_ISSUES.md). **Does not** replace the runtime contract or promise "production" certification until explicit acceptance criteria and tests exist.
 
 **Purpose:** capture the **value** of hardening perception, data contracts, modularity, and honest UX **without** hiding limits: the kernel remains an **auditable MVP**; any new layer must be documented as a **heuristic** where appropriate ([`INPUT_TRUST_THREAT_MODEL.md`](INPUT_TRUST_THREAT_MODEL.md)).
 
@@ -88,7 +88,7 @@ Synthesis of internal review: **what adds value** versus what is already stated 
 
 ## Conclusions for improvements (operational synthesis)
 
-These conclusions **do not** replace [`ESTRATEGIA_Y_RUTA.md`](ESTRATEGIA_Y_RUTA.md) or the backlog; they order priorities **after** already-registered rounds (technical robustness, lighthouse epistemology, v8 demo).
+These conclusions **do not** replace [`STRATEGY_AND_ROADMAP.md`](STRATEGY_AND_ROADMAP.md) or the backlog; they order priorities **after** already-registered rounds (technical robustness, lighthouse epistemology, v8 demo).
 
 ### Short term (higher signal / lower friction)
 
@@ -169,7 +169,7 @@ For scope changes or code spikes: [`CHANGELOG.md`](../CHANGELOG.md) + PR.
 
 ## Cross-references
 
-- [`ESTRATEGIA_Y_RUTA.md`](ESTRATEGIA_Y_RUTA.md) — P0–P3 priorities and robustness → epistemology → demo order (§3.1).
+- [`STRATEGY_AND_ROADMAP.md`](STRATEGY_AND_ROADMAP.md) — P0–P3 priorities and robustness → epistemology → demo order (§3.1).
 - [`KERNEL_ENV_POLICY.md`](KERNEL_ENV_POLICY.md) — flag combinations.
 - [`THEORY_AND_IMPLEMENTATION.md`](THEORY_AND_IMPLEMENTATION.md) — normative pipeline.
 

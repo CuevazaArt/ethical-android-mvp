@@ -84,7 +84,7 @@ The **actual jump** to an 8B model **inside the phone** is a separate project (b
 | `KERNEL_CHECKPOINT_PATH` | **PC** checkpoint JSON file for continuity between sessions. |
 | `KERNEL_CONDUCT_GUIDE_EXPORT_PATH` | JSON file written **when closing** the WebSocket session (after checkpoint): guide for review or future small runtime (`conduct_guide_export.py`). Optional: `KERNEL_CONDUCT_GUIDE_EXPORT_ON_DISCONNECT=0` to disable. |
 | `KERNEL_CONDUCT_GUIDE_PATH` | On a small edge device: **load** an exported guide (stub `context_distillation.py`). |
-| `KERNEL_LIGHTHOUSE_KB_PATH` | Optional epistemic lighthouse ([PROPUESTA_VERIFICACION_REALIDAD_V11.md](PROPUESTA_VERIFICACION_REALIDAD_V11.md)). |
+| `KERNEL_LIGHTHOUSE_KB_PATH` | Optional epistemic lighthouse ([PROPOSAL_REALITY_VERIFICATION_V11.md](PROPOSAL_REALITY_VERIFICATION_V11.md)). |
 
 **Recommended flow (same directory):** for example `C:\EthicalData\kernel.json` + `C:\EthicalData\conduct_guide.json` — copy the pair to mobile only when you have a consumer; today the phone uses **only** WebSocket; the guide is mainly for traceability and preparation for the medium-term jump.
 

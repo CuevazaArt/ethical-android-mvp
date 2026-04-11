@@ -1,6 +1,6 @@
 # First nomadic bridge: PC ↔ smartphone and layers by hardware class
 
-This document sets the **framework** for nomadic capability between **PC (brain / compute)** and **smartphone (light body / sensors)**, without conflating the current MVP with the final deployment. Complements [LOCAL_PC_AND_MOBILE_LAN.md](LOCAL_PC_AND_MOBILE_LAN.md), [PROPUESTA_CONCIENCIA_NOMADA_HAL.md](PROPUESTA_CONCIENCIA_NOMADA_HAL.md), and [RUNTIME_CONTRACT.md](RUNTIME_CONTRACT.md).
+This document sets the **framework** for nomadic capability between **PC (brain / compute)** and **smartphone (light body / sensors)**, without conflating the current MVP with the final deployment. Complements [LOCAL_PC_AND_MOBILE_LAN.md](LOCAL_PC_AND_MOBILE_LAN.md), [PROPOSAL_NOMADIC_CONSCIOUSNESS_HAL.md](PROPOSAL_NOMADIC_CONSCIOUSNESS_HAL.md), and [RUNTIME_CONTRACT.md](RUNTIME_CONTRACT.md).
 
 ---
 
@@ -55,9 +55,9 @@ Until then, documentation treats the LAN environment as a **controlled lab**, no
 | Document | Related content |
 |-----------|------------------------|
 | [LOCAL_PC_AND_MOBILE_LAN.md](LOCAL_PC_AND_MOBILE_LAN.md) | Concrete steps PC + mobile, firewall, `mobile.html` |
-| [PROPUESTA_CONCIENCIA_NOMADA_HAL.md](PROPUESTA_CONCIENCIA_NOMADA_HAL.md) | HAL, dual runtime, transmutation |
-| [PROPUESTA_ORGANISMO_SITUADO_V8.md](PROPUESTA_ORGANISMO_SITUADO_V8.md) | Sensory contract and situated layers |
-| [ESTRATEGIA_Y_RUTA.md](ESTRATEGIA_Y_RUTA.md) | P0–P3 route and operational risks |
+| [PROPOSAL_NOMADIC_CONSCIOUSNESS_HAL.md](PROPOSAL_NOMADIC_CONSCIOUSNESS_HAL.md) | HAL, dual runtime, transmutation |
+| [PROPOSAL_SITUATED_ORGANISM_V8.md](PROPOSAL_SITUATED_ORGANISM_V8.md) | Sensory contract and situated layers |
+| [STRATEGY_AND_ROADMAP.md](STRATEGY_AND_ROADMAP.md) | P0–P3 route and operational risks |
 
 ---
 
