@@ -2,6 +2,13 @@
 
 All notable changes to this project are summarized here. For narrative context and design rationale, see [`HISTORY.md`](HISTORY.md).
 
+## Semantic chat gate — Ollama embeddings + MalAbs chain — April 2026
+
+- **`src/modules/semantic_chat_gate.py`:** when `KERNEL_SEMANTIC_CHAT_GATE=1`, cosine similarity vs auditable reference phrases via Ollama `/api/embeddings` (default model `nomic-embed-text`, tunable `KERNEL_SEMANTIC_CHAT_EMBED_MODEL`, `KERNEL_SEMANTIC_CHAT_SIM_THRESHOLD`). On failure, defers to substring MalAbs.
+- **`src/modules/absolute_evil.py`:** `evaluate_chat_text` runs the semantic layer first when the gate env is on.
+- **Tests:** `tests/test_semantic_chat_gate.py` (mocked embeddings + chain).
+- **Docs:** README, [`INPUT_TRUST_THREAT_MODEL.md`](docs/INPUT_TRUST_THREAT_MODEL.md), [`LLM_STACK_OLLAMA_VS_HF.md`](docs/LLM_STACK_OLLAMA_VS_HF.md), [`KERNEL_ENV_POLICY.md`](docs/KERNEL_ENV_POLICY.md), [`OPERATOR_QUICK_REF.md`](docs/OPERATOR_QUICK_REF.md); ADR 0003 status **Accepted**.
+
 ## Documentation — Ollama vs Hugging Face stack + semantic gate ADR — April 2026
 
 - **[`docs/LLM_STACK_OLLAMA_VS_HF.md`](docs/LLM_STACK_OLLAMA_VS_HF.md):** comparative table, mapping to Ethos Kernel (language vs future embedding gate), implementable vs deferred.

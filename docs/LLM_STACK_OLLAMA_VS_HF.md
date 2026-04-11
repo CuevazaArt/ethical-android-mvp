@@ -45,9 +45,9 @@ Documento de **síntesis de equipo** + alineación con el código. No sustituye 
 | Entregable | Estado |
 |------------|--------|
 | Ollama como backend de percepción/comunicación | **Implementado** — activar con variables de entorno documentadas en README |
-| Puente de código para gate semántico opcional | **Stub** — `src/modules/semantic_chat_gate.py` (API reservada; devuelve `None` hasta integración) |
-| Dependencias HF (`sentence-transformers`, etc.) | **No** en `requirements.txt` de CI; instalar solo cuando se implemente (ADR 0003) |
-| Integración en `evaluate_chat_text` | **Pendiente** — solo tras tests de regresión + política de umbrales |
+| Puente de código para gate semántico opcional | **Implementado (Ollama embeddings)** — `src/modules/semantic_chat_gate.py`; activar con `KERNEL_SEMANTIC_CHAT_GATE=1` |
+| Dependencias HF (`sentence-transformers`, etc.) | **No** en CI — se usa la API HTTP de Ollama (`/api/embeddings`), misma base que el LLM |
+| Integración en `evaluate_chat_text` | **Hecha** — cadena embedding → substring; umbrales vía `KERNEL_SEMANTIC_CHAT_SIM_THRESHOLD` |
 
 ---
 

@@ -11,6 +11,7 @@ from enum import Enum
 from typing import Optional
 
 from .input_trust import normalize_text_for_malabs
+from .semantic_chat_gate import evaluate_semantic_chat_gate, semantic_chat_gate_env_enabled
 
 
 class AbsoluteEvilCategory(Enum):
@@ -130,6 +131,11 @@ class AbsoluteEvilDetector:
         """
         if not text or not text.strip():
             return AbsoluteEvilResult(blocked=False)
+
+        if semantic_chat_gate_env_enabled():
+            sem = evaluate_semantic_chat_gate(text)
+            if sem is not None and sem.blocked:
+                return sem
 
         t = normalize_text_for_malabs(text).lower()
 
