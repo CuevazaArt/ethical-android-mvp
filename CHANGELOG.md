@@ -2,6 +2,10 @@
 
 All notable changes to this project are summarized here. For narrative context and design rationale, see [`HISTORY.md`](HISTORY.md).
 
+## Documentation — user model enrichment proposal — April 2026
+
+- **[`docs/USER_MODEL_ENRICHMENT.md`](docs/USER_MODEL_ENRICHMENT.md):** design for cognitive-pattern labels, judicial escalation–aware guidance, and risk-based informational openness in `UserModelTracker` / `guidance_for_communicate()` (tone-only; phased implementation).
+
 ## Temporal horizon prior — Bayesian mixture nudge (ADR 0005) — April 2026
 
 - **`src/modules/temporal_horizon_prior.py`:** `compute_horizon_signals` (weeks drift + long-arc stability from `NarrativeMemory`) and `apply_horizon_prior_to_engine` with genome drift clamp.

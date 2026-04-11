@@ -3,6 +3,9 @@ Lightweight in-session user model (Theory of Mind — MVP v7).
 
 Tracks tension/frustration streak from perception signals and observed Uchi–Soto
 circle. Feeds **style-only** guidance into communication — does not change actions.
+
+Enrichment roadmap (cognitive bias labels, escalation-aware guidance, risk profile):
+``docs/USER_MODEL_ENRICHMENT.md``.
 """
 
 from __future__ import annotations
