@@ -4,7 +4,7 @@ Static **images, video, and logo** for documentation and branding. This folder r
 
 | Path | Note |
 |------|------|
-| [`logo-ethical-awareness.png`](logo-ethical-awareness.png) | Brand / ethical-awareness mark (**canonical** here). The landing app copies it into `landing/public/` on `npm run dev` / `npm run build` via [`landing/scripts/sync-logo.mjs`](../../landing/scripts/sync-logo.mjs) (generated file is gitignored). |
+| [`logo-ethical-awareness.png`](logo-ethical-awareness.png) | Brand / ethical-awareness mark (**canonical** here). The landing app copies it into `landing/public/` on **`npm install`**, **`npm run dev`**, and **`npm run build`** via [`landing/scripts/sync-logo.mjs`](../../landing/scripts/sync-logo.mjs) (generated file is gitignored). [`landing/public/dashboard.html`](../../landing/public/dashboard.html) references **`../../docs/multimedia/logo-ethical-awareness.png`** so the logo loads when opening that file from disk; Next rewrites `/docs/multimedia/logo-ethical-awareness.png` → `/logo-ethical-awareness.png` for `next dev` / `next start`. |
 | [`prealpha/media/brujula_etica_jerarquica.png`](prealpha/media/brujula_etica_jerarquica.png) | Pre-alpha ethical compass diagram. |
 | [`prealpha/media/esquema_androide_etico.png`](prealpha/media/esquema_androide_etico.png) | Pre-alpha android schematic. |
 | [`prealpha/media/esquema_prototipo_python.png`](prealpha/media/esquema_prototipo_python.png) | Pre-alpha Python prototype diagram. |

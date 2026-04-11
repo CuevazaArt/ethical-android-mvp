@@ -5,6 +5,7 @@
   "license": "Apache-2.0",
   "scripts": {
     "sync-logo": "node scripts/sync-logo.mjs",
+    "postinstall": "node scripts/sync-logo.mjs",
     "predev": "node scripts/sync-logo.mjs",
     "prebuild": "node scripts/sync-logo.mjs",
     "dev": "next dev",

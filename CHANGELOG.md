@@ -5,13 +5,14 @@ All notable changes to this project are summarized here. For narrative context a
 ## Logo asset — canonical under `docs/multimedia` — April 2026
 
 - **Single source:** [`docs/multimedia/logo-ethical-awareness.png`](docs/multimedia/logo-ethical-awareness.png).
-- **Landing:** [`landing/scripts/sync-logo.mjs`](landing/scripts/sync-logo.mjs) runs on **`npm run dev`** / **`npm run build`** and writes **`landing/public/logo-ethical-awareness.png`** (gitignored).
+- **Landing:** [`landing/scripts/sync-logo.mjs`](landing/scripts/sync-logo.mjs) runs on **`npm install`**, **`npm run dev`**, and **`npm run build`**, writing **`landing/public/logo-ethical-awareness.png`** (gitignored).
 - **Root [`dashboard.html`](dashboard.html):** image `src` points at **`docs/multimedia/logo-ethical-awareness.png`** for static serving from the repo root.
+- **[`landing/public/dashboard.html`](landing/public/dashboard.html):** image `src` is **`../../docs/multimedia/logo-ethical-awareness.png`** (works when opening the file from disk). **`next.config.ts`** rewrites **`/docs/multimedia/logo-ethical-awareness.png`** → **`/logo-ethical-awareness.png`** for **`next dev`** / **`next start`**.
 
 ## Documentation layout — `proposals` + `multimedia` — April 2026
 
 - **`docs/proposals/`:** single folder for former **`docs/discusion/`**, **`docs/experimental/`**, and top-level **`docs/*.md`** (theory, runtime, roadmaps, PROPUESTA\_\*); **`docs/adr/`** and **`docs/templates/`** stay put.
-- **`docs/multimedia/`:** renamed from **`docs/historical/`**; pre-alpha **Spanish markdown** (alpha v1.0, bibliography draft, index, companion-binary notes) **digested into [`HISTORY.md`](HISTORY.md)**; **PNGs, JPG, MP4**, and **`logo-ethical-awareness.png`** kept under **`docs/multimedia/`** (see [`docs/multimedia/README.md`](docs/multimedia/README.md)); **`landing/public/logo-ethical-awareness.png`** is generated from that file on **`npm run dev` / `npm run build`** (gitignored).
+- **`docs/multimedia/`:** renamed from **`docs/historical/`**; pre-alpha **Spanish markdown** (alpha v1.0, bibliography draft, index, companion-binary notes) **digested into [`HISTORY.md`](HISTORY.md)**; **PNGs, JPG, MP4**, and **`logo-ethical-awareness.png`** kept under **`docs/multimedia/`** (see [`docs/multimedia/README.md`](docs/multimedia/README.md)); **`landing/public/logo-ethical-awareness.png`** is generated from that file on **`npm install` / `npm run dev` / `npm run build`** (gitignored).
 - **Cross-links** across README, module docstrings, CHANGELOG entries, and static HTML updated to **`docs/proposals/...`**.
 
 ## Uchi–Soto Phase 3 — roster tier, multimodal EMA, forget buffer, rich links — April 2026
