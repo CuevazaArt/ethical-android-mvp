@@ -32,6 +32,7 @@ class UserModelTracker:
     ``frustration_streak`` rises when hostility/manipulation are high; decays when calm.
     ``premise_concern_streak`` tracks repeated premise-advisory flags (epistemic scan).
     ``cognitive_pattern`` and ``risk_band`` are heuristics for communicate() only.
+    ``judicial_phase`` is a compact label from :func:`judicial_escalation.escalation_phase_for_tone`.
     """
 
     frustration_streak: int = 0
@@ -42,11 +43,32 @@ class UserModelTracker:
     risk_band: str = RISK_LOW
     escalation_strikes: int = 0
     escalation_threshold: int = 2
+    judicial_phase: str = ""
 
     def note_judicial_escalation(self, strikes: int, threshold: int) -> None:
         """Snapshot from ``EscalationSessionTracker`` before :meth:`update` each turn."""
         self.escalation_strikes = max(0, int(strikes))
         self.escalation_threshold = max(1, int(threshold))
+
+    def note_judicial_phase_for_turn(
+        self,
+        *,
+        judicial_enabled: bool,
+        advisory_eligible: bool,
+        escalate_to_dao: bool,
+    ) -> None:
+        """Set ``judicial_phase`` for this turn (before :meth:`update` / ``communicate``)."""
+        if not judicial_enabled:
+            self.judicial_phase = ""
+            return
+        from .judicial_escalation import escalation_phase_for_tone
+
+        self.judicial_phase = escalation_phase_for_tone(
+            advisory_eligible,
+            escalate_to_dao,
+            self.escalation_strikes,
+            self.escalation_threshold,
+        )
 
     def update(
         self,
@@ -156,6 +178,12 @@ class UserModelTracker:
                     "no mock-tribunal humor."
                 )
 
+        if self.judicial_phase == "escalation_deferred" and st >= 1:
+            parts.append(
+                "Judicial tone: DAO escalation path is deferred until strike threshold—"
+                "keep language procedural, not punitive."
+            )
+
         if self.frustration_streak >= 3:
             parts.append(
                 "Relational note: repeated tension in this dialogue may warrant warmer, "
@@ -178,6 +206,7 @@ class UserModelTracker:
             "risk_band": self.risk_band,
             "escalation_strikes": int(self.escalation_strikes),
             "escalation_threshold": int(self.escalation_threshold),
+            "judicial_phase": self.judicial_phase or "",
             "metacognitive_prompt": (
                 "Consider whether your tone may be contributing to user strain; "
                 "adjust clarity and reassurance only within policy."

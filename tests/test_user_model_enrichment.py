@@ -98,3 +98,14 @@ def test_public_dict_enrichment_fields():
     assert d["risk_band"] in ("low", "medium", "high")
     assert "escalation_strikes" in d
     assert "escalation_threshold" in d
+    assert "judicial_phase" in d
+
+
+def test_guidance_includes_deferred_tone_when_phase_set():
+    m = UserModelTracker()
+    m.note_judicial_escalation(1, 2)
+    m.judicial_phase = "escalation_deferred"
+    m.update(_p(hostility=0.1, calm=0.7), "neutral_soto", blocked=False)
+    g = m.guidance_for_communicate().lower()
+    assert "deferred" in g
+    assert "procedural" in g

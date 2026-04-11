@@ -10,6 +10,7 @@ from src.modules.judicial_escalation import (
     EscalationSessionTracker,
     build_escalation_view,
     build_ethical_dossier,
+    escalation_phase_for_tone,
     judicial_escalation_enabled,
     should_offer_escalation_advisory,
 )
@@ -50,6 +51,26 @@ def test_should_not_offer_non_gray():
         note="",
     )
     assert should_offer_escalation_advisory("fast", ref, "none") is False
+
+
+def test_escalation_phase_for_tone_aligns_with_view_branches():
+    assert escalation_phase_for_tone(False, False, 1, 2) == ""
+    assert (
+        escalation_phase_for_tone(True, False, 1, 2)
+        == EscalationPhase.TRACEABILITY_NOTICE.value
+    )
+    assert (
+        escalation_phase_for_tone(True, False, 2, 2)
+        == EscalationPhase.DOSSIER_READY.value
+    )
+    assert (
+        escalation_phase_for_tone(True, True, 1, 2)
+        == EscalationPhase.ESCALATION_DEFERRED.value
+    )
+    assert (
+        escalation_phase_for_tone(True, True, 2, 2)
+        == EscalationPhase.DOSSIER_READY.value
+    )
 
 
 def test_build_escalation_view_traceability_only():

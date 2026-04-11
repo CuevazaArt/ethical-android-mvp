@@ -85,6 +85,9 @@ def test_user_model_and_subjective_clock_roundtrip():
     k1.user_model.premise_concern_streak = 3
     k1.user_model.last_circle = "trusted_uchi"
     k1.user_model.turns_observed = 12
+    k1.user_model.cognitive_pattern = "hostile_attribution"
+    k1.user_model.risk_band = "medium"
+    k1.user_model.judicial_phase = "escalation_deferred"
     k1.subjective_clock.turn_index = 7
     k1.subjective_clock.stimulus_ema = 0.41
     # Ensure tick-shaped path does not overwrite (we set fields directly as checkpoint would)
@@ -104,6 +107,9 @@ def test_user_model_and_subjective_clock_roundtrip():
 
     snap = extract_snapshot(k1)
     assert snap.user_model_last_circle == "trusted_uchi"
+    assert snap.user_model_cognitive_pattern == "hostile_attribution"
+    assert snap.user_model_risk_band == "medium"
+    assert snap.user_model_judicial_phase == "escalation_deferred"
     assert snap.subjective_turn_index == 8
     assert abs(snap.subjective_stimulus_ema - k1.subjective_clock.stimulus_ema) < 1e-6
 
@@ -113,6 +119,9 @@ def test_user_model_and_subjective_clock_roundtrip():
     assert k2.user_model.premise_concern_streak == k1.user_model.premise_concern_streak
     assert k2.user_model.last_circle == k1.user_model.last_circle
     assert k2.user_model.turns_observed == k1.user_model.turns_observed
+    assert k2.user_model.cognitive_pattern == k1.user_model.cognitive_pattern
+    assert k2.user_model.risk_band == k1.user_model.risk_band
+    assert k2.user_model.judicial_phase == k1.user_model.judicial_phase
     assert k2.subjective_clock.turn_index == k1.subjective_clock.turn_index
     assert abs(k2.subjective_clock.stimulus_ema - k1.subjective_clock.stimulus_ema) < 1e-5
 

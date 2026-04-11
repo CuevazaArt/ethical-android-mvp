@@ -119,8 +119,8 @@ Optional: return `dict` with keys `tone`, `risk`, `judicial`, `relational` for t
 ## 7. Implementation phases (suggested)
 
 1. **Phase A:** Add enums + `guidance_for_communicate()` composition + unit tests (no checkpoint yet). **Implemented:** closed labels (`cognitive_pattern`, `risk_band`), `note_judicial_escalation`, tests in `tests/test_user_model_enrichment.py`.
-2. **Phase B:** Richer judicial context (`escalation_deferred`, dossier-ready flags) beyond strike/threshold snapshots already passed from `process_chat_turn`.
-3. **Phase C:** Checkpoint fields + `kernel_io` round-trip.
+2. **Phase B:** Richer judicial context for tone. **Implemented:** `escalation_phase_for_tone()` in `judicial_escalation.py`, `note_judicial_phase_for_turn` on the tracker, optional deferred-tone line when phase is `escalation_deferred`; wired from `process_chat_turn` after strike snapshot.
+3. **Phase C:** Checkpoint fields + `kernel_io` round-trip. **Implemented:** `user_model_cognitive_pattern`, `user_model_risk_band`, `user_model_judicial_phase` on `KernelSnapshotV1` (schema v3-compatible defaults in `snapshot_from_dict`); `apply_snapshot` resyncs strike snapshot from `escalation_session` via `note_judicial_escalation`.
 
 ---
 

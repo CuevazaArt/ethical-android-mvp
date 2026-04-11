@@ -112,6 +112,28 @@ def should_offer_escalation_advisory(
     return False
 
 
+def escalation_phase_for_tone(
+    advisory_active: bool,
+    escalate_to_dao: bool,
+    session_strikes: int,
+    strikes_threshold: int,
+) -> str:
+    """
+    Compact phase label for user-model tone guidance (before ``communicate``).
+    Mirrors :func:`build_escalation_view` when no dossier is registered yet.
+    """
+    if not advisory_active:
+        return ""
+    th = max(1, int(strikes_threshold))
+    st = max(0, int(session_strikes))
+    dossier_ready = st >= th
+    if escalate_to_dao and not dossier_ready:
+        return EscalationPhase.ESCALATION_DEFERRED.value
+    if dossier_ready:
+        return EscalationPhase.DOSSIER_READY.value
+    return EscalationPhase.TRACEABILITY_NOTICE.value
+
+
 def phase1_traceability_notice() -> str:
     return (
         "Your insistence conflicts with my ethical buffer. I can open a deliberation case "

@@ -2,12 +2,20 @@
 
 All notable changes to this project are summarized here. For narrative context and design rationale, see [`HISTORY.md`](HISTORY.md).
 
+## User model enrichment — Phases B/C (judicial phase + checkpoint) — April 2026
+
+- **`judicial_escalation.py`:** `escalation_phase_for_tone()` (aligned with `build_escalation_view` branches for pre-reply tone).
+- **`user_model.py`:** `judicial_phase`, `note_judicial_phase_for_turn()`; extra guidance when phase is `escalation_deferred` and strikes ≥ 1.
+- **`process_chat_turn`:** calls `note_judicial_phase_for_turn` after `note_judicial_escalation`.
+- **Persistence:** `KernelSnapshotV1` adds `user_model_cognitive_pattern`, `user_model_risk_band`, `user_model_judicial_phase`; `extract_snapshot` / `apply_snapshot` + `json_store.snapshot_from_dict` defaults; `apply_snapshot` resyncs strike snapshot from `escalation_session`.
+- **Tests:** `tests/test_judicial_escalation.py`, `tests/test_persistence.py`, `tests/test_user_model_enrichment.py`.
+
 ## User model enrichment — Phase A (cognitive / risk / judicial tone) — April 2026
 
 - **`src/modules/user_model.py`:** `cognitive_pattern`, `risk_band`, `note_judicial_escalation` (strike snapshot from `EscalationSessionTracker`); `guidance_for_communicate()` order: risk → cognitive pattern → judicial → existing frustration/premise lines; `to_public_dict()` exposes new fields.
 - **`EthicalKernel.process_chat_turn`:** runs `escalation_session.update(adv)` **before** `user_model.update` / `communicate` so strikes and guidance stay on the same turn (no duplicate `update` after the reply).
 - **Tests:** `tests/test_user_model_enrichment.py`.
-- **Design:** [`docs/USER_MODEL_ENRICHMENT.md`](docs/USER_MODEL_ENRICHMENT.md) (Phase B/C: richer judicial snapshot, checkpoint persistence).
+- **Design:** [`docs/USER_MODEL_ENRICHMENT.md`](docs/USER_MODEL_ENRICHMENT.md).
 
 ## Temporal horizon prior — Bayesian mixture nudge (ADR 0005) — April 2026
 

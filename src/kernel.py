@@ -725,6 +725,11 @@ class EthicalKernel:
             self.escalation_session.strikes if judicial_escalation_enabled() else 0,
             strikes_threshold_from_env(),
         )
+        self.user_model.note_judicial_phase_for_turn(
+            judicial_enabled=judicial_escalation_enabled(),
+            advisory_eligible=adv,
+            escalate_to_dao=escalate_to_dao,
+        )
         self.user_model.update(
             perception,
             circle,

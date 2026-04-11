@@ -77,6 +77,9 @@ class KernelSnapshotV1:
     user_model_premise_concern_streak: int = 0
     user_model_last_circle: str = "neutral_soto"
     user_model_turns_observed: int = 0
+    user_model_cognitive_pattern: str = "none"
+    user_model_risk_band: str = "low"
+    user_model_judicial_phase: str = ""
     subjective_turn_index: int = 0
     subjective_stimulus_ema: float = 0.55
 

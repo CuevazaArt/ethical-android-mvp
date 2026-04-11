@@ -15,9 +15,45 @@ from src.modules.narrative import BodyState, NarrativeEpisode
 from src.modules.narrative_identity import NarrativeIdentityState
 from src.modules.variability import VariabilityConfig, VariabilityEngine
 from src.modules.subjective_time import SubjectiveClock
+from src.modules.user_model import (
+    COGNITIVE_HOSTILE_ATTRIBUTION,
+    COGNITIVE_NONE,
+    COGNITIVE_PREMISE_RIGIDITY,
+    COGNITIVE_URGENCY_AMPLIFICATION,
+    RISK_HIGH,
+    RISK_LOW,
+    RISK_MEDIUM,
+)
 from src.modules.weakness_pole import WeaknessRecord, WeaknessType
+from src.modules.judicial_escalation import EscalationPhase, strikes_threshold_from_env
 
 from .schema import SCHEMA_VERSION, KernelSnapshotV1
+
+_ALLOWED_USER_MODEL_COGNITIVE = frozenset(
+    {
+        COGNITIVE_NONE,
+        COGNITIVE_HOSTILE_ATTRIBUTION,
+        COGNITIVE_PREMISE_RIGIDITY,
+        COGNITIVE_URGENCY_AMPLIFICATION,
+    }
+)
+_ALLOWED_USER_MODEL_RISK = frozenset({RISK_LOW, RISK_MEDIUM, RISK_HIGH})
+_ALLOWED_USER_MODEL_JUDICIAL_PHASE = frozenset({""} | {p.value for p in EscalationPhase})
+
+
+def _sanitize_user_model_cognitive(raw: str) -> str:
+    x = (raw or "").strip()[:64]
+    return x if x in _ALLOWED_USER_MODEL_COGNITIVE else COGNITIVE_NONE
+
+
+def _sanitize_user_model_risk(raw: str) -> str:
+    x = (raw or "").strip()[:32]
+    return x if x in _ALLOWED_USER_MODEL_RISK else RISK_LOW
+
+
+def _sanitize_user_model_judicial_phase(raw: str) -> str:
+    x = (raw or "").strip()[:64]
+    return x if x in _ALLOWED_USER_MODEL_JUDICIAL_PHASE else ""
 
 if TYPE_CHECKING:
     from src.kernel import EthicalKernel
@@ -114,6 +150,9 @@ def extract_snapshot(kernel: "EthicalKernel") -> KernelSnapshotV1:
         user_model_premise_concern_streak=int(kernel.user_model.premise_concern_streak),
         user_model_last_circle=str(kernel.user_model.last_circle)[:120],
         user_model_turns_observed=int(kernel.user_model.turns_observed),
+        user_model_cognitive_pattern=str(kernel.user_model.cognitive_pattern)[:64],
+        user_model_risk_band=str(kernel.user_model.risk_band)[:32],
+        user_model_judicial_phase=str(kernel.user_model.judicial_phase or "")[:64],
         subjective_turn_index=int(kernel.subjective_clock.turn_index),
         subjective_stimulus_ema=float(kernel.subjective_clock.stimulus_ema),
         escalation_session_strikes=int(kernel.escalation_session.strikes),
@@ -231,3 +270,11 @@ def apply_snapshot(kernel: "EthicalKernel", snap: KernelSnapshotV1) -> None:
 
     kernel.escalation_session.strikes = max(0, min(500, int(snap.escalation_session_strikes)))
     kernel.escalation_session.idle_turns = max(0, min(100, int(snap.escalation_session_idle_turns)))
+
+    um.cognitive_pattern = _sanitize_user_model_cognitive(snap.user_model_cognitive_pattern)
+    um.risk_band = _sanitize_user_model_risk(snap.user_model_risk_band)
+    um.judicial_phase = _sanitize_user_model_judicial_phase(snap.user_model_judicial_phase)
+    um.note_judicial_escalation(
+        kernel.escalation_session.strikes,
+        strikes_threshold_from_env(),
+    )
