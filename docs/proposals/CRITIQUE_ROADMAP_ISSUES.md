@@ -83,7 +83,7 @@ Small reproducible scenario set + methodology; compare kernel vs baselines. Expl
 - [x] Script + doc under `docs/` or `tests/fixtures/`.
 ```
 
-**Delivered:** [`docs/proposals/EMPIRICAL_PILOT_METHODOLOGY.md`](EMPIRICAL_PILOT_METHODOLOGY.md), [`tests/fixtures/empirical_pilot/scenarios.json`](../tests/fixtures/empirical_pilot/scenarios.json), [`scripts/run_empirical_pilot.py`](../scripts/run_empirical_pilot.py).
+**Delivered:** [`docs/proposals/EMPIRICAL_PILOT_METHODOLOGY.md`](EMPIRICAL_PILOT_METHODOLOGY.md), [`docs/proposals/EMPIRICAL_PILOT_PROTOCOL.md`](EMPIRICAL_PILOT_PROTOCOL.md), [`tests/fixtures/empirical_pilot/scenarios.json`](../tests/fixtures/empirical_pilot/scenarios.json) (canonical **1–9**), [`scripts/run_empirical_pilot.py`](../scripts/run_empirical_pilot.py) (including `--output` and kernel-vs-baseline summary rates).
 
 ---
 

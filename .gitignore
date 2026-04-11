@@ -13,6 +13,9 @@ build/
 venv/
 env/
 
+# Local trace / pilot outputs (not versioned)
+logs/
+
 # Testing
 .pytest_cache/
 .mypy_cache/

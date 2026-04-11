@@ -40,7 +40,10 @@ Optional:
 ```bash
 python scripts/run_empirical_pilot.py --fixture tests/fixtures/empirical_pilot/scenarios.json
 python scripts/run_empirical_pilot.py --json
+python scripts/run_empirical_pilot.py --output artifacts/pilot_run.json
 ```
+
+The default fixture lists **all nine** canonical batch simulations (`id` **1–9** in `ALL_SIMULATIONS`). Use `--output` to archive **rows + summary + run metadata** (fixture path, fixed kernel settings) next to human annotation exports.
 
 ---
 
@@ -57,11 +60,13 @@ The **kernel** uses the full pipeline (MalAbs, buffer, mixture, poles, will, …
 
 For each policy (kernel, first, max_impact), the script reports whether the chosen action name equals `reference_action` in the fixture (when present). **Agreement** = fraction of scenarios matching. Disagreement is expected and informative; it is not automatically “failure.”
 
+Additionally, **kernel vs baseline** rates (always defined): fraction of scenarios where the kernel’s action equals **first** (list-order baseline) or **max_impact** (greedy baseline). These summarize how much the full pipeline diverges from the simple policies on the same scenario set.
+
 ---
 
 ## Extending the pilot
 
-- Add scenarios by editing the fixture (only `id` values **1–9** exist today in `ALL_SIMULATIONS`).
+- Edit the fixture: only `id` values **1–9** are valid in `ALL_SIMULATIONS` today.
 - For human labels, replace or supplement `reference_action` with columns from your annotation export and merge in your own analysis script.
 - Keep **LLM off** the critical path for this batch script (`llm_mode="local"`) so runs do not depend on Ollama/API.
 

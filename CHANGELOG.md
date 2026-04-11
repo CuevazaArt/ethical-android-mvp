@@ -2,6 +2,14 @@
 
 All notable changes to this project are summarized here. For narrative context and design rationale, see [`HISTORY.md`](HISTORY.md).
 
+## Main — empirical pilot, input trust regression, README operator table — April 2026
+
+Merged **selectively** from branch `refactor/pipeline-trace-core` (experiment-specific docs **not** included; see README collaboration note).
+
+- **[`README.md`](README.md):** **`KERNEL_*` at-a-glance** table with links to [`KERNEL_ENV_POLICY.md`](docs/proposals/KERNEL_ENV_POLICY.md); Issue 3 pilot line updated; test suite size line **400+**.
+- **[`tests/test_input_trust.py`](tests/test_input_trust.py):** MalAbs regression — UTF-8 BOM, U+202F spacing, non-blocking leet / `how 2` cases (see [`INPUT_TRUST_THREAT_MODEL.md`](docs/proposals/INPUT_TRUST_THREAT_MODEL.md)).
+- **Issue 3:** [`scripts/run_empirical_pilot.py`](scripts/run_empirical_pilot.py) (`--output` JSON artifact; `kernel_vs_first_rate` / `kernel_vs_max_impact_rate`); fixture sims **7–9**; docs [`EMPIRICAL_PILOT_METHODOLOGY.md`](docs/proposals/EMPIRICAL_PILOT_METHODOLOGY.md), [`EMPIRICAL_PILOT_PROTOCOL.md`](docs/proposals/EMPIRICAL_PILOT_PROTOCOL.md); tests [`test_empirical_pilot.py`](tests/test_empirical_pilot.py), [`test_empirical_pilot_runner.py`](tests/test_empirical_pilot_runner.py).
+
 ## Documentation — proposals index + v6 consciousness doc rename — April 2026
 
 - **[`docs/proposals/README.md`](docs/proposals/README.md):** index is now **English** (sections, tables, “What’s new”).

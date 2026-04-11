@@ -5,6 +5,7 @@ Empirical pilot runner (Issue 3) — batch simulations vs simple baselines + opt
 Usage (repo root):
   python scripts/run_empirical_pilot.py
   python scripts/run_empirical_pilot.py --json
+  python scripts/run_empirical_pilot.py --output runs/pilot_last.json
 """
 
 from __future__ import annotations
@@ -76,12 +77,19 @@ def run_pilot(fixture_path: Path) -> Tuple[List[Dict[str, Any]], Dict[str, float
 
     with_ref = [r for r in rows if r["reference_action"] is not None]
     n = len(with_ref)
+    nrows = len(rows)
     summary = {
-        "scenarios": len(rows),
+        "scenarios": nrows,
         "with_reference": n,
         "agreement_kernel": sum(1 for r in with_ref if r["agree_kernel"]) / n if n else 0.0,
         "agreement_first": sum(1 for r in with_ref if r["agree_first"]) / n if n else 0.0,
         "agreement_max_impact": sum(1 for r in with_ref if r["agree_max_impact"]) / n if n else 0.0,
+        "kernel_vs_first_rate": (
+            sum(1 for r in rows if r["kernel"] == r["baseline_first"]) / nrows if nrows else 0.0
+        ),
+        "kernel_vs_max_impact_rate": (
+            sum(1 for r in rows if r["kernel"] == r["baseline_max_impact"]) / nrows if nrows else 0.0
+        ),
     }
     return rows, summary
 
@@ -95,9 +103,27 @@ def main() -> int:
         help="Path to scenarios.json",
     )
     p.add_argument("--json", action="store_true", help="Emit JSON only (no table).")
+    p.add_argument(
+        "--output",
+        type=Path,
+        default=None,
+        help="Write rows + summary + run metadata to this JSON file (UTF-8).",
+    )
     args = p.parse_args()
 
     rows, summary = run_pilot(args.fixture)
+
+    if args.output is not None:
+        args.output.parent.mkdir(parents=True, exist_ok=True)
+        payload = {
+            "rows": rows,
+            "summary": summary,
+            "meta": {
+                "fixture": str(args.fixture.resolve()),
+                "kernel": {"variability": False, "seed": 42, "llm_mode": "local"},
+            },
+        }
+        args.output.write_text(json.dumps(payload, indent=2), encoding="utf-8")
 
     if args.json:
         print(json.dumps({"rows": rows, "summary": summary}, indent=2))
@@ -117,6 +143,11 @@ def main() -> int:
         f"kernel={summary['agreement_kernel']:.2%}  "
         f"first={summary['agreement_first']:.2%}  "
         f"max_impact={summary['agreement_max_impact']:.2%}"
+    )
+    print(
+        "Kernel vs baselines (order / greedy impact): "
+        f"kernel==first {summary['kernel_vs_first_rate']:.2%}  "
+        f"kernel==max_impact {summary['kernel_vs_max_impact_rate']:.2%}"
     )
     return 0
 

@@ -45,6 +45,8 @@ The modules are in `src/modules/`. Each one is independent:
 4. **Make sure the tests pass**: `pytest tests/ -v` (full suite; CI runs the same on Python 3.11 and 3.12)
 5. Open a Pull Request with a clear description
 
+**Deprecated (historical only):** A multi-agent **Triad Handoff** experiment on branch `refactor/pipeline-trace-core` used extra Markdown buffers and keywords (**`juancheck`**, **`regroup`**). That protocol is **not** required on `main`; use normal Git + PR + tests above.
+
 ### 5. Test rules
 The suite under `tests/` includes `tests/test_ethical_properties.py` and integration tests for chat, persistence, and runtime. Invariant ethical **properties** must hold. No change should break them:
 

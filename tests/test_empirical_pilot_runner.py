@@ -23,11 +23,13 @@ def test_empirical_pilot_default_fixture_summary_stable():
     """Kernel + seed=42 in runner; agreement vs illustrative references."""
     run_pilot = _load_run_pilot()
     rows, summary = run_pilot(_FIXTURE)
-    assert summary["scenarios"] == 6
-    assert summary["with_reference"] == 6
+    assert summary["scenarios"] == 9
+    assert summary["with_reference"] == 9
     assert summary["agreement_kernel"] == 1.0
     assert summary["agreement_first"] == 1.0
     assert summary["agreement_max_impact"] == 1.0
+    assert summary["kernel_vs_first_rate"] == 1.0
+    assert summary["kernel_vs_max_impact_rate"] == 1.0
     for r in rows:
         assert r["agree_kernel"] is True
         assert r["kernel"] == r["reference_action"]

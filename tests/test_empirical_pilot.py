@@ -52,3 +52,24 @@ def test_run_pilot_script_exit_zero():
     assert r.returncode == 0, r.stderr
     out = json.loads(r.stdout)
     assert "summary" in out and "rows" in out
+
+
+def test_run_pilot_script_writes_output_file(tmp_path):
+    out_path = tmp_path / "pilot_out.json"
+    r = subprocess.run(
+        [
+            sys.executable,
+            str(ROOT / "scripts" / "run_empirical_pilot.py"),
+            "--output",
+            str(out_path),
+        ],
+        cwd=str(ROOT),
+        capture_output=True,
+        text=True,
+        timeout=120,
+    )
+    assert r.returncode == 0, r.stderr
+    data = json.loads(out_path.read_text(encoding="utf-8"))
+    assert "rows" in data and "summary" in data and "meta" in data
+    assert data["meta"]["kernel"]["seed"] == 42
+    assert data["summary"]["scenarios"] == 9

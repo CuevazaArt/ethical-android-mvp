@@ -1,6 +1,6 @@
-# Empirical pilot — operator protocol (Issue 3 stub)
+# Empirical pilot — operator protocol (Issue 3)
 
-**Status:** Stub — complements the full methodology in [`EMPIRICAL_PILOT_METHODOLOGY.md`](EMPIRICAL_PILOT_METHODOLOGY.md). Use that document for definitions, artifacts, and extension points.
+**Status:** Checklist — complements the full methodology in [`EMPIRICAL_PILOT_METHODOLOGY.md`](EMPIRICAL_PILOT_METHODOLOGY.md). Use that document for definitions, artifacts, and extension points.
 
 **Goal:** A **short, ordered checklist** for running a reproducible batch comparison (kernel vs baselines vs optional human labels) without implying certification or external moral ground truth.
 
@@ -18,10 +18,10 @@
 
 | Step | Action | Record |
 |------|--------|--------|
-| 1 | Run `python scripts/run_empirical_pilot.py` (or `--fixture` / `--json` as needed) | Console output or JSON blob |
+| 1 | Run `python scripts/run_empirical_pilot.py` (optional: `--json`, `--output path/to/run.json`) | Console, stdout JSON, and/or artifact file with `rows`, `summary`, `meta` |
 | 2 | If using annotators, align on **scenario IDs** and optional `reference_action` in the fixture | Spreadsheet or issue comment |
-| 3 | Compute **agreement** (kernel vs baseline; kernel vs reference if present) per methodology | Table in report appendix |
-| 4 | Archive **inputs + outputs + commit hash** for the run | Zip or repo branch tag |
+| 3 | Compute **agreement** (kernel vs reference if present) and **kernel vs baseline** rates (`kernel_vs_first_rate`, `kernel_vs_max_impact_rate` in `summary`) | Table in report appendix |
+| 4 | Archive **fixture + output JSON + git commit hash** for the run | Zip or repo branch tag |
 
 ---
 

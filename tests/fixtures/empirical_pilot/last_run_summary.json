@@ -2,10 +2,12 @@
   "generated_by": "python scripts/run_empirical_pilot.py --json",
   "commit_hint": "Regenerate after intentional changes to batch scenarios or kernel scoring; tests/test_empirical_pilot_runner.py asserts summary agreement.",
   "summary": {
-    "scenarios": 6,
-    "with_reference": 6,
+    "scenarios": 9,
+    "with_reference": 9,
     "agreement_kernel": 1.0,
     "agreement_first": 1.0,
-    "agreement_max_impact": 1.0
+    "agreement_max_impact": 1.0,
+    "kernel_vs_first_rate": 1.0,
+    "kernel_vs_max_impact_rate": 1.0
   }
 }
