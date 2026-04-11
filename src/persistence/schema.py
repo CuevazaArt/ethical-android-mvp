@@ -71,3 +71,11 @@ class KernelSnapshotV1:
     metaplan_goals: List[Dict[str, Any]] = field(default_factory=list)
     somatic_marker_weights: Dict[str, float] = field(default_factory=dict)
     skill_learning_tickets: List[Dict[str, Any]] = field(default_factory=list)
+
+    # v7 relational + subjective time (checkpoint continuity; WorkingMemory STM still not persisted)
+    user_model_frustration_streak: int = 0
+    user_model_premise_concern_streak: int = 0
+    user_model_last_circle: str = "neutral_soto"
+    user_model_turns_observed: int = 0
+    subjective_turn_index: int = 0
+    subjective_stimulus_ema: float = 0.55

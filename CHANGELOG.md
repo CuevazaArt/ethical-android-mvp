@@ -2,6 +2,11 @@
 
 All notable changes to this project are summarized here. For narrative context and design rationale, see [`HISTORY.md`](HISTORY.md).
 
+## Persistence — v7 user model + subjective clock in snapshot — April 2026
+
+- **`KernelSnapshotV1`:** `user_model_*` (frustration / premise streak, circle, turns observed) and `subjective_turn_index` / `subjective_stimulus_ema` serialized in `extract_snapshot` / `apply_snapshot` (schema v3; older JSON migrates via `snapshot_from_dict` defaults).
+- **`SubjectiveClock`:** new session gets a fresh `session_start_mono` on load; turn index and EMA restore across checkpoints.
+
 ## Input trust — MalAbs on `process_natural` + perception hardening — April 2026
 
 - **`process_natural`:** runs `evaluate_chat_text` on the situation string **before** `llm.perceive`, matching WebSocket chat defense-in-depth (blocked path returns firm refusal + `KernelDecision.blocked`).

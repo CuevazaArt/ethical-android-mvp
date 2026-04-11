@@ -62,6 +62,46 @@ def test_constitution_drafts_roundtrip():
     assert k2.constitution_l2_drafts == k1.constitution_l2_drafts
 
 
+def test_user_model_and_subjective_clock_roundtrip():
+    from src.modules.llm_layer import LLMPerception
+
+    k1 = EthicalKernel(variability=False)
+    k1.user_model.frustration_streak = 5
+    k1.user_model.premise_concern_streak = 3
+    k1.user_model.last_circle = "trusted_uchi"
+    k1.user_model.turns_observed = 12
+    k1.subjective_clock.turn_index = 7
+    k1.subjective_clock.stimulus_ema = 0.41
+    # Ensure tick-shaped path does not overwrite (we set fields directly as checkpoint would)
+    p = LLMPerception(
+        risk=0.2,
+        urgency=0.2,
+        hostility=0.1,
+        calm=0.6,
+        vulnerability=0.0,
+        legality=1.0,
+        manipulation=0.1,
+        familiarity=0.5,
+        suggested_context="everyday_ethics",
+        summary="x",
+    )
+    k1.subjective_clock.tick(p)
+
+    snap = extract_snapshot(k1)
+    assert snap.user_model_last_circle == "trusted_uchi"
+    assert snap.subjective_turn_index == 8
+    assert abs(snap.subjective_stimulus_ema - k1.subjective_clock.stimulus_ema) < 1e-6
+
+    k2 = EthicalKernel(variability=False)
+    apply_snapshot(k2, snap)
+    assert k2.user_model.frustration_streak == k1.user_model.frustration_streak
+    assert k2.user_model.premise_concern_streak == k1.user_model.premise_concern_streak
+    assert k2.user_model.last_circle == k1.user_model.last_circle
+    assert k2.user_model.turns_observed == k1.user_model.turns_observed
+    assert k2.subjective_clock.turn_index == k1.subjective_clock.turn_index
+    assert abs(k2.subjective_clock.stimulus_ema - k1.subjective_clock.stimulus_ema) < 1e-5
+
+
 def test_metaplan_somatic_skills_roundtrip():
     from src.modules.sensor_contracts import SensorSnapshot
 

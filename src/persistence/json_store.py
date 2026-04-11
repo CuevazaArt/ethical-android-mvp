@@ -49,6 +49,12 @@ def snapshot_from_dict(raw: dict) -> KernelSnapshotV1:
     merged.setdefault("metaplan_goals", [])
     merged.setdefault("somatic_marker_weights", {})
     merged.setdefault("skill_learning_tickets", [])
+    merged.setdefault("user_model_frustration_streak", 0)
+    merged.setdefault("user_model_premise_concern_streak", 0)
+    merged.setdefault("user_model_last_circle", "neutral_soto")
+    merged.setdefault("user_model_turns_observed", 0)
+    merged.setdefault("subjective_turn_index", 0)
+    merged.setdefault("subjective_stimulus_ema", 0.55)
     return KernelSnapshotV1(**merged)
 
 

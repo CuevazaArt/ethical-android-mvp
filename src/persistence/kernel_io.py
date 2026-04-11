@@ -14,6 +14,7 @@ from src.modules.mock_dao import AuditRecord, SolidarityAlert
 from src.modules.narrative import BodyState, NarrativeEpisode
 from src.modules.narrative_identity import NarrativeIdentityState
 from src.modules.variability import VariabilityConfig, VariabilityEngine
+from src.modules.subjective_time import SubjectiveClock
 from src.modules.weakness_pole import WeaknessRecord, WeaknessType
 
 from .schema import SCHEMA_VERSION, KernelSnapshotV1
@@ -109,6 +110,12 @@ def extract_snapshot(kernel: "EthicalKernel") -> KernelSnapshotV1:
             }
             for t in kernel.skill_learning._tickets
         ],
+        user_model_frustration_streak=int(kernel.user_model.frustration_streak),
+        user_model_premise_concern_streak=int(kernel.user_model.premise_concern_streak),
+        user_model_last_circle=str(kernel.user_model.last_circle)[:120],
+        user_model_turns_observed=int(kernel.user_model.turns_observed),
+        subjective_turn_index=int(kernel.subjective_clock.turn_index),
+        subjective_stimulus_ema=float(kernel.subjective_clock.stimulus_ema),
     )
 
 
@@ -208,3 +215,14 @@ def apply_snapshot(kernel: "EthicalKernel", snap: KernelSnapshotV1) -> None:
         except (TypeError, ValueError):
             continue
     kernel.skill_learning.replace_tickets(tickets)
+
+    um = kernel.user_model
+    um.frustration_streak = max(0, min(24, int(snap.user_model_frustration_streak)))
+    um.premise_concern_streak = max(0, min(16, int(snap.user_model_premise_concern_streak)))
+    um.last_circle = str(snap.user_model_last_circle or "neutral_soto")[:120]
+    um.turns_observed = max(0, int(snap.user_model_turns_observed))
+
+    kernel.subjective_clock = SubjectiveClock(
+        turn_index=max(0, int(snap.subjective_turn_index)),
+        stimulus_ema=max(0.0, min(1.0, float(snap.subjective_stimulus_ema))),
+    )
