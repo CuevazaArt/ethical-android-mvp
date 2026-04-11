@@ -330,6 +330,10 @@ class LLMModule:
 
         Returns:
             LLMPerception with numeric signals for the kernel
+
+        Validation uses :mod:`perception_schema`. If the LLM returns unusable JSON or parsing
+        fails, :meth:`_perceive_local` runs on **``situation`` only** (not the STM-prefixed
+        prompt string) so prior-turn keywords do not distort heuristics.
         """
         user_block = situation
         if conversation_context.strip():
@@ -341,9 +345,16 @@ class LLMModule:
             response = self._llm_completion(_perception_prompt(), user_block)
             data = self._parse_json(response)
             if isinstance(data, dict) and data:
-                return perception_from_llm_json(data, situation)
+                try:
+                    return perception_from_llm_json(data, situation)
+                except Exception:
+                    # Malformed or unexpected payload after parse — stratified fallback: local heuristics
+                    # on the **current message** only (not the full STM-prefixed block).
+                    return self._perceive_local(situation)
 
-        return self._perceive_local(user_block)
+        # Local mode, or LLM unavailable / empty JSON: heuristics must use ``situation`` alone so
+        # keywords in "Prior conversation..." do not skew signals for the current turn.
+        return self._perceive_local(situation)
 
     def _perceive_local(self, situation: str) -> LLMPerception:
         """Heuristic perception without LLM."""

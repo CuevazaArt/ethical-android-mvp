@@ -5,7 +5,7 @@
 The Ethos Kernel accepts **untrusted natural language** (WebSocket chat, batch scenarios, `process_natural`). Two surfaces matter for defense-in-depth:
 
 1. **Chat text** — `AbsoluteEvilDetector.evaluate_chat_text` runs **before** the LLM perceives the turn (`EthicalKernel.process_chat_turn` and `process_natural`; same normalization). **Order:** **lexical** substring MalAbs first; if `KERNEL_SEMANTIC_CHAT_GATE=1` and lexical did not block, **Ollama embeddings** (θ_block / θ_allow) and optionally an **LLM arbiter** for the ambiguous band — see [`MALABS_SEMANTIC_LAYERS.md`](MALABS_SEMANTIC_LAYERS.md). If Ollama is unavailable, only lexical applies.
-2. **Perception JSON** — when an LLM returns structured signals for `LLMModule.perceive`, the kernel must not trust out-of-range or inconsistent numbers blindly.
+2. **Perception JSON** — when an LLM returns structured signals for `LLMModule.perceive`, the kernel must not trust out-of-range or inconsistent numbers blindly. Validation pipeline: **Pydantic + per-field defaults + cross-field coherence**; local fallback uses the **current message only** for keyword heuristics (`docs/PERCEPTION_VALIDATION.md`).
 
 This document states **limits**. MalAbs is **not** a content moderation product, a classifier, or a cryptographic guarantee.
 

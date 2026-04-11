@@ -186,3 +186,41 @@ def test_perception_nudges_inconsistent_high_hostility_and_calm():
     )
     assert p.hostility == 0.95
     assert p.calm < 0.95
+
+
+def test_perception_nudges_high_risk_and_high_calm():
+    p = perception_from_llm_json(
+        {
+            "risk": 0.92,
+            "urgency": 0.5,
+            "hostility": 0.1,
+            "calm": 0.92,
+            "vulnerability": 0.0,
+            "legality": 1.0,
+            "manipulation": 0.0,
+            "familiarity": 0.0,
+            "suggested_context": "everyday_ethics",
+            "summary": "test",
+        },
+        "sit",
+    )
+    assert p.risk == 0.92
+    assert p.calm <= 0.45
+
+
+def test_perceive_fallback_uses_current_message_for_local_heuristics(monkeypatch):
+    """Prior STM must not drive keyword heuristics when LLM JSON is empty."""
+    from src.modules.llm_layer import LLMModule
+
+    llm = LLMModule(mode="ollama")
+
+    def no_json(_system, _user):
+        return ""
+
+    monkeypatch.setattr(llm, "_llm_completion", no_json)
+    p = llm.perceive(
+        "The weather is pleasant today.",
+        conversation_context="Yesterday someone collapsed and there was blood everywhere.",
+    )
+    assert p.suggested_context == "everyday_ethics"
+    assert p.risk < 0.4

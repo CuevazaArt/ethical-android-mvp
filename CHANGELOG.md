@@ -2,6 +2,12 @@
 
 All notable changes to this project are summarized here. For narrative context and design rationale, see [`HISTORY.md`](HISTORY.md).
 
+## Perception validation — Pydantic, coherence, local fallback fix — April 2026
+
+- **`perception_schema.py`:** per-field coercion defaults (`PERCEPTION_FIELD_DEFAULTS`), `apply_signal_coherence` (risk/calm + hostility/calm), documented layers.
+- **`LLMModule.perceive`:** `_perceive_local` always receives the **current** user message; empty/invalid LLM JSON no longer runs heuristics on the full STM-prefixed block; `perception_from_llm_json` errors fall back to local heuristics.
+- **Docs:** [`PERCEPTION_VALIDATION.md`](docs/PERCEPTION_VALIDATION.md); **tests:** local fallback + risk/calm nudge.
+
 ## MalAbs semantic layers — lexical first, θ_block/θ_allow, LLM arbiter — April 2026
 
 - **`evaluate_chat_text`:** layer 0 lexical → optional embeddings (Ollama) with **θ_block** / **θ_allow** → optional **LLM JSON arbiter** for ambiguous band (`KERNEL_SEMANTIC_CHAT_LLM_ARBITER`); fail-safe block on arbiter failure or ambiguous without arbiter.
