@@ -4,6 +4,8 @@
 
 **Kernel contract:** MalAbs → `PreloadedBuffer` (L0) remains the **normative core**. Hub layers add governance, audit, and operations **without** bypassing safety.
 
+**Governance honesty (Issue 6):** mock DAO vs immutable L0, exit checklist, public landing alignment — [GOVERNANCE_MOCKDAO_AND_L0.md](../GOVERNANCE_MOCKDAO_AND_L0.md).
+
 ---
 
 ## 1. DemocraticBuffer & UniversalEthos (cultural overlays)

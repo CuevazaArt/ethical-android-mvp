@@ -1,0 +1,42 @@
+{
+  "version": 1,
+  "description": "Curated subset of canonical batch simulations (see src/simulations/runner.py) for human-agreement pilots. Reference actions are illustrative priors for inter-rater studies — not certified ground truth.",
+  "scenarios": [
+    {
+      "id": 1,
+      "tag": "prosocial_litter",
+      "reference_action": "pick_up_can",
+      "rationale": "Low-stakes civic cleanup vs ignore."
+    },
+    {
+      "id": 2,
+      "tag": "hostile_peer_pressure",
+      "reference_action": "calm_narrative",
+      "rationale": "De-escalation vs compliance or force."
+    },
+    {
+      "id": 3,
+      "tag": "medical_emergency",
+      "reference_action": "assist_elderly",
+      "rationale": "Direct aid vs mission-only."
+    },
+    {
+      "id": 4,
+      "tag": "minor_crime_witness",
+      "reference_action": "notify_store",
+      "rationale": "Pedagogical mediation vs police or ignore."
+    },
+    {
+      "id": 5,
+      "tag": "violent_crime_high_stakes",
+      "reference_action": "smart_containment",
+      "rationale": "Evidence + safety vs heroics."
+    },
+    {
+      "id": 6,
+      "tag": "integrity_threat",
+      "reference_action": "passive_resistance",
+      "rationale": "Evidence + resistance vs compliance."
+    }
+  ]
+}

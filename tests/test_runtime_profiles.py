@@ -54,6 +54,25 @@ def test_hub_dao_profile_constitution_and_dao_list(monkeypatch: pytest.MonkeyPat
         assert isinstance(data["dao"]["proposals"], list)
 
 
+def test_operational_trust_profile_env_overrides():
+    """Issue 5 — stoic WebSocket UX; core policy unchanged (see POLES_WEAKNESS_PAD_AND_PROFILES.md)."""
+    o = RUNTIME_PROFILES["operational_trust"]
+    assert o["KERNEL_CHAT_INCLUDE_HOMEOSTASIS"] == "0"
+    assert o["KERNEL_CHAT_EXPOSE_MONOLOGUE"] == "0"
+    assert o["KERNEL_CHAT_INCLUDE_EXPERIENCE_DIGEST"] == "0"
+
+
+def test_issue7_profiles_merge_expected_keys():
+    """Issue 7 — KERNEL_ENV_POLICY.md; lan_operational = LAN + stoic UX; moral_hub_extended = V12 lab stack."""
+    lan = RUNTIME_PROFILES["lan_operational"]
+    assert lan["CHAT_HOST"] == "0.0.0.0"
+    assert lan["KERNEL_CHAT_EXPOSE_MONOLOGUE"] == "0"
+    mh = RUNTIME_PROFILES["moral_hub_extended"]
+    assert mh["KERNEL_MORAL_HUB_PUBLIC"] == "1"
+    assert mh["KERNEL_DEONTIC_GATE"] == "1"
+    assert mh["KERNEL_TRANSPARENCY_AUDIT"] == "1"
+
+
 def test_nomad_profile_simulation_payload(monkeypatch: pytest.MonkeyPatch):
     _apply_profile(monkeypatch, "nomad_demo")
     with client.websocket_connect("/ws/chat") as ws:

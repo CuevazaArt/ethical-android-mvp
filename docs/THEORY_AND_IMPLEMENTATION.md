@@ -13,6 +13,8 @@ So the “parrot” objection applies to **opaque next-token predictors used as 
 
 ## Decision pipeline (implementation order)
 
+**Issue 4 — core chain map:** which modules **set** `final_action` vs telemetry-only — see [`CORE_DECISION_CHAIN.md`](CORE_DECISION_CHAIN.md) (table + diagram). Packaging spike: [`pyproject.toml`](../pyproject.toml), ADR [`adr/0001-packaging-core-boundary.md`](adr/0001-packaging-core-boundary.md).
+
 The orchestration in `EthicalKernel.process` matches `kernel.py` (steps 1–12 for the episode path): **Uchi-Soto** → **sympathetic** → **locus** → **MalAbs** (all candidate actions) → **buffer** → **Bayesian** → **poles** → **sigmoid will** and mode fusion → **EthicalReflection** → **SalienceMap** → **PAD archetypes** (read-only; no feedback to ethics) → **narrative memory** (episode, `register_episode=True`) → **weakness pole** → **algorithmic forgiveness** (register) → **DAO**. With `register_episode=False` (e.g. light `process_chat_turn`), reflection/salience/PAD still run; **episode registration, weakness, forgiveness, and DAO audit for that path are skipped**.
 
 ```mermaid
@@ -44,6 +46,8 @@ flowchart LR
 **Internal monologue line (v6)** — `compose_monologue_line` (`src/modules/internal_monologue.py`) produces a single `[MONO]` line for logs and for the `monologue` field in `chat_server` JSON when a `KernelDecision` exists.
 
 **PAD** — Covered in the pipeline above (`PADArchetypeEngine`, read-only, no feedback to the policy stack). Prototype semantics and design rationale: [EXPERIMENTAL_CONSCIOUSNESS_AND_AFFECT_ARCHETYPES.md](EXPERIMENTAL_CONSCIOUSNESS_AND_AFFECT_ARCHETYPES.md) §7.
+
+**Issue 5 — poles as heuristics; weakness / PAD vs operational trust:** Philosophical pole labels and numeric scores are **stylized heuristics**, not external moral truth. Weakness and PAD/homeostasis **humanize** tone and telemetry; in safety-critical domains that can **reduce** perceived reliability — see [POLES_WEAKNESS_PAD_AND_PROFILES.md](POLES_WEAKNESS_PAD_AND_PROFILES.md) and the `operational_trust` entry in [`src/runtime_profiles.py`](../src/runtime_profiles.py).
 
 **Robustness (five pillars)** — Full design and **MVP shortcuts implemented in code** (chat gates, WebSocket privacy flags, homeostasis telemetry, genome drift cap on Ψ Sleep pruning deltas, `experience_digest`) are documented with per-pillar status in [docs/discusion/PROPUESTA_ROBUSTEZ_V6_PLUS.md](discusion/PROPUESTA_ROBUSTEZ_V6_PLUS.md). **Still future / not in repo:** deep adversarial *simulation* (contrafactual kernel branch), reversible encryption of thought stream, aggressive episodic pruning. The **design intent** remains **stewardship of the system’s own integrity** while keeping normative authority in the kernel. New robustness surface area should stay **tested** and **subordinate** to MalAbs → … → will.
 

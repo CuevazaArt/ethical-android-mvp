@@ -1,0 +1,36 @@
+[build-system]
+requires = ["setuptools>=61", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "ethos-kernel"
+version = "0.0.0"
+description = "Ethos Kernel — stub pyproject for Issue 4 packaging spike (not yet published to PyPI)."
+readme = "README.md"
+requires-python = ">=3.11"
+license = { file = "LICENSE" }
+dependencies = [
+    "numpy>=2.0.0,<3.0.0",
+]
+
+[project.optional-dependencies]
+runtime = [
+    "fastapi>=0.115.0,<1.0.0",
+    "uvicorn[standard]>=0.30.0,<1.0.0",
+    "httpx>=0.27.0,<1.0.0",
+    "cryptography>=42.0.0,<47.0.0",
+]
+dev = [
+    "pytest>=7.4.0,<10.0.0",
+    "anthropic>=0.18.0",
+]
+
+[project.urls]
+Homepage = "https://github.com/CuevazaArt/ethical-android-mvp"
+Documentation = "https://github.com/CuevazaArt/ethical-android-mvp/blob/main/docs/CORE_DECISION_CHAIN.md"
+
+# Flat layout: package directory is literally `src/` (imports: `from src.kernel import ...`).
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["src*"]
+namespaces = true

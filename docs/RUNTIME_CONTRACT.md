@@ -6,6 +6,8 @@ The **runtime** is the process that keeps the service alive (e.g. FastAPI + WebS
 
 - Only `EthicalKernel.process`, `EthicalKernel.process_chat_turn`, `EthicalKernel.process_natural` (and documented paths that delegate to them) determine actions and modes.
 - The LLM **does not** set policy.
+- **Module-level map (MalAbs → Bayes → action id):** [CORE_DECISION_CHAIN.md](CORE_DECISION_CHAIN.md) — which stages may veto or select `final_action` vs read-only layers.
+- **MockDAO vs L0:** in-memory governance simulation does **not** equal distributed consensus; foundational buffer principles are **not** overridden by votes at runtime — [GOVERNANCE_MOCKDAO_AND_L0.md](GOVERNANCE_MOCKDAO_AND_L0.md).
 
 ## What the runtime may do without breaking the contract
 

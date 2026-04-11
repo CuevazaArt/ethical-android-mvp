@@ -33,6 +33,27 @@ RUNTIME_PROFILES: Final[Dict[str, Dict[str, str]]] = {
         "CHAT_HOST": "0.0.0.0",
         "CHAT_PORT": "8765",
     },
+    # Issue 5 — HCI: reduce narrative vulnerability signals in WebSocket JSON (policy unchanged).
+    "operational_trust": {
+        "KERNEL_CHAT_INCLUDE_HOMEOSTASIS": "0",
+        "KERNEL_CHAT_EXPOSE_MONOLOGUE": "0",
+        "KERNEL_CHAT_INCLUDE_EXPERIENCE_DIGEST": "0",
+    },
+    # Issue 7 — LAN bind + stoic UX (field / operator-facing demo).
+    "lan_operational": {
+        "CHAT_HOST": "0.0.0.0",
+        "CHAT_PORT": "8765",
+        "KERNEL_CHAT_INCLUDE_HOMEOSTASIS": "0",
+        "KERNEL_CHAT_EXPOSE_MONOLOGUE": "0",
+        "KERNEL_CHAT_INCLUDE_EXPERIENCE_DIGEST": "0",
+    },
+    # Issue 7 — V12 hub stack: public constitution + DAO vote + deontic gate + transparency audit lines.
+    "moral_hub_extended": {
+        "KERNEL_MORAL_HUB_PUBLIC": "1",
+        "KERNEL_MORAL_HUB_DAO_VOTE": "1",
+        "KERNEL_DEONTIC_GATE": "1",
+        "KERNEL_TRANSPARENCY_AUDIT": "1",
+    },
 }
 
 PROFILE_DESCRIPTIONS: Final[Dict[str, str]] = {
@@ -42,6 +63,9 @@ PROFILE_DESCRIPTIONS: Final[Dict[str, str]] = {
     "nomad_demo": "Nomadic HAL migration simulation + optional DAO migration audit line.",
     "reality_lighthouse_demo": "Lighthouse KB path + WebSocket reality_verification JSON (run from repo root).",
     "lan_mobile_thin_client": "Bind chat server on all interfaces for phone browser on same WiFi (see LOCAL_PC_AND_MOBILE_LAN.md).",
+    "operational_trust": "Stoic chat UX: omit homeostasis, monologue, experience_digest (Issue 5 — see POLES_WEAKNESS_PAD_AND_PROFILES.md).",
+    "lan_operational": "LAN bind + operational_trust UX (Issue 7 — see KERNEL_ENV_POLICY.md).",
+    "moral_hub_extended": "V12 moral hub: constitution HTTP + DAO vote + deontic gate + transparency audit (Issue 7).",
 }
 
 

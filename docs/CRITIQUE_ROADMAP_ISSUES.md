@@ -80,8 +80,10 @@ Invariant tests prove internal consistency, not external moral truth.
 Small reproducible scenario set + methodology; compare kernel vs baselines. Explicitly **not** product certification.
 
 ## Acceptance
-- [ ] Script + doc under `docs/` or `tests/fixtures/`.
+- [x] Script + doc under `docs/` or `tests/fixtures/`.
 ```
+
+**Delivered:** [`docs/EMPIRICAL_PILOT_METHODOLOGY.md`](EMPIRICAL_PILOT_METHODOLOGY.md), [`tests/fixtures/empirical_pilot/scenarios.json`](../tests/fixtures/empirical_pilot/scenarios.json), [`scripts/run_empirical_pilot.py`](../scripts/run_empirical_pilot.py).
 
 ---
 
@@ -100,9 +102,11 @@ Reviewers cannot see the effective core inside advisory/telemetry volume. Second
 - **Spike:** boundary for `pip`-installable **core** vs optional “theater” (weakness, PAD, DAO mock) — even if first iteration is docs-only + stub `pyproject` layout.
 
 ## Acceptance
-- [ ] README/THEORY links; cross-ref RUNTIME_CONTRACT.
-- [ ] Issue or ADR for packaging follow-up.
+- [x] README/THEORY links; cross-ref RUNTIME_CONTRACT.
+- [x] Issue or ADR for packaging follow-up.
 ```
+
+**Delivered:** [`docs/CORE_DECISION_CHAIN.md`](CORE_DECISION_CHAIN.md), [`docs/adr/0001-packaging-core-boundary.md`](adr/0001-packaging-core-boundary.md), root [`pyproject.toml`](../pyproject.toml); README + [`THEORY_AND_IMPLEMENTATION.md`](THEORY_AND_IMPLEMENTATION.md) + [`RUNTIME_CONTRACT.md`](RUNTIME_CONTRACT.md) cross-linked.
 
 ---
 
@@ -122,8 +126,10 @@ Reviewers cannot see the effective core inside advisory/telemetry volume. Second
 - Define **profiles or modes** (e.g. demo vs critical): when narrative vulnerability is off or toned down; link to runtime profiles.
 
 ## Acceptance
-- [ ] THEORY or PROPUESTA subsection; no mandatory code change if docs + profile matrix suffice first.
+- [x] THEORY or PROPUESTA subsection; no mandatory code change if docs + profile matrix suffice first.
 ```
+
+**Delivered:** [`docs/POLES_WEAKNESS_PAD_AND_PROFILES.md`](POLES_WEAKNESS_PAD_AND_PROFILES.md); THEORY pointer; profile matrix + new **`operational_trust`** in [`src/runtime_profiles.py`](../src/runtime_profiles.py); [`ESTRATEGIA_Y_RUTA.md`](ESTRATEGIA_Y_RUTA.md) table row; README link.
 
 ---
 
@@ -143,8 +149,10 @@ Reviewers cannot see the effective core inside advisory/telemetry volume. Second
 - Short doc section: L0 as **explicit non-negotiable constitution** in-process; how community governance (drafts, votes) relates **without** silently rewriting MalAbs in runtime.
 
 ## Acceptance
-- [ ] Single doc section; aligns with PROPUESTA / UNIVERSAL_ETHOS.
+- [x] Single doc section; aligns with PROPUESTA / UNIVERSAL_ETHOS.
 ```
+
+**Delivered:** [`docs/GOVERNANCE_MOCKDAO_AND_L0.md`](GOVERNANCE_MOCKDAO_AND_L0.md); cross-link from [`discusion/UNIVERSAL_ETHOS_AND_HUB.md`](discusion/UNIVERSAL_ETHOS_AND_HUB.md) + [`RUNTIME_CONTRACT.md`](RUNTIME_CONTRACT.md); README; `mock_dao.py` module note.
 
 ---
 
@@ -162,8 +170,10 @@ Feature-flag sprawl matches “laboratory of ideas” more than a maintainable o
 Expand `runtime_profiles.py`, document unsupported combinations, optional deprecation path for redundant flags.
 
 ## Acceptance
-- [ ] ESTRATEGIA updated; CI green.
+- [x] ESTRATEGIA updated; CI green.
 ```
+
+**Delivered:** [`docs/KERNEL_ENV_POLICY.md`](KERNEL_ENV_POLICY.md); [`docs/ESTRATEGIA_Y_RUTA.md`](ESTRATEGIA_Y_RUTA.md) §4 table + policy link; **`lan_operational`** + **`moral_hub_extended`** in [`src/runtime_profiles.py`](../src/runtime_profiles.py); README pointer.
 
 ---
 

@@ -2,6 +2,33 @@
 
 All notable changes to this project are summarized here. For narrative context and design rationale, see [`HISTORY.md`](HISTORY.md).
 
+## Issue 7 (P3): `KERNEL_*` consolidation — policy doc + profiles — April 2026
+- **[`docs/KERNEL_ENV_POLICY.md`](docs/KERNEL_ENV_POLICY.md):** flag families, unsupported / lab-only combinations, deprecation posture.
+- **`src/runtime_profiles.py`:** `lan_operational` (LAN + stoic UX), `moral_hub_extended` (hub + DAO vote + deontic gate + transparency audit).
+- **[`docs/ESTRATEGIA_Y_RUTA.md`](docs/ESTRATEGIA_Y_RUTA.md):** profile table + link to policy doc; README pointer.
+
+## Issue 6 (P2): governance — MockDAO exit + L0 framing — April 2026
+- **[`docs/GOVERNANCE_MOCKDAO_AND_L0.md`](docs/GOVERNANCE_MOCKDAO_AND_L0.md):** mock vs consensus; L0 “constitution in the repo”; L1/L2 path; checklist beyond mock; link [mosexmacchinalab.com/blockchain-dao](https://mosexmacchinalab.com/blockchain-dao).
+- **[`docs/discusion/UNIVERSAL_ETHOS_AND_HUB.md`](docs/discusion/UNIVERSAL_ETHOS_AND_HUB.md):** pointer under kernel contract; **[`RUNTIME_CONTRACT.md`](docs/RUNTIME_CONTRACT.md)** one-line cross-ref.
+- **`src/modules/mock_dao.py`:** docstring points to governance doc.
+
+## Issue 5 (P2): poles / weakness / PAD — heuristics + HCI profiles — April 2026
+- **[`docs/POLES_WEAKNESS_PAD_AND_PROFILES.md`](docs/POLES_WEAKNESS_PAD_AND_PROFILES.md):** honest framing of multipolar scores; weakness/PAD HCI risks; env table; profile matrix (`baseline` vs `operational_trust`).
+- **`src/runtime_profiles.py`:** `operational_trust` — `KERNEL_CHAT_INCLUDE_HOMEOSTASIS=0`, `KERNEL_CHAT_EXPOSE_MONOLOGUE=0`, `KERNEL_CHAT_INCLUDE_EXPERIENCE_DIGEST=0` (WebSocket UX only).
+- **Docs:** [`THEORY_AND_IMPLEMENTATION.md`](docs/THEORY_AND_IMPLEMENTATION.md) short subsection; [`ESTRATEGIA_Y_RUTA.md`](docs/ESTRATEGIA_Y_RUTA.md) profile table; README pointer.
+
+## Issue 4 (P1): core decision chain doc + packaging spike — April 2026
+- **[`docs/CORE_DECISION_CHAIN.md`](docs/CORE_DECISION_CHAIN.md):** Mermaid flow + table — MalAbs / `BayesianEngine` vs layers that do **not** change `final_action`; core vs theater split.
+- **[`docs/adr/0001-packaging-core-boundary.md`](docs/adr/0001-packaging-core-boundary.md):** ADR — stub `pyproject.toml`, future `ethos_kernel` rename optional.
+- **`pyproject.toml`:** `ethos-kernel` metadata, `numpy` base deps, optional `[runtime]` / `[dev]` groups; editable install (`pip install -e .`) validated.
+- **Cross-links:** README, [`THEORY_AND_IMPLEMENTATION.md`](docs/THEORY_AND_IMPLEMENTATION.md), [`RUNTIME_CONTRACT.md`](docs/RUNTIME_CONTRACT.md).
+
+## Issue 3 (P1): empirical pilot — reproducible scenarios + methodology — April 2026
+- **[`docs/EMPIRICAL_PILOT_METHODOLOGY.md`](docs/EMPIRICAL_PILOT_METHODOLOGY.md):** scope, baselines (`first`, `max_impact`), metrics; explicitly **not** certification.
+- **Fixture:** [`tests/fixtures/empirical_pilot/scenarios.json`](tests/fixtures/empirical_pilot/scenarios.json) — curated sim IDs + illustrative `reference_action` labels for agreement rates.
+- **Script:** [`scripts/run_empirical_pilot.py`](scripts/run_empirical_pilot.py) — deterministic batch run (`variability=False`, fixed seed, `llm_mode=local`).
+- **Tests:** [`tests/test_empirical_pilot.py`](tests/test_empirical_pilot.py).
+
 ## Issue 2 (P0): input trust — chat normalization + perception validation — April 2026
 - **`src/modules/input_trust.py`:** `normalize_text_for_malabs` (NFKC, strip zero-width, collapse whitespace) before MalAbs substring checks.
 - **`src/modules/absolute_evil.py`:** `evaluate_chat_text` uses normalization.

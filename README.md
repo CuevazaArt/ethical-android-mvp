@@ -10,6 +10,14 @@ The original **batch simulations** (nine fixed scenarios plus a random generator
 
 **Maturation disclaimer:** some **names** (e.g. “Bayesian” scoring) and **governance mocks** (DAO) are **infrastructure placeholders** while runtime, audit trails, and tests mature — toward **honest labeling**, **calibrated weights**, and **clear criteria** for stronger safety and real governance experiments. **Consolidated** issue backlog (two external reviews, redundant items merged): [`docs/CRITIQUE_ROADMAP_ISSUES.md`](docs/CRITIQUE_ROADMAP_ISSUES.md); web overview: [Roadmap](https://mosexmacchinalab.com/roadmap).
 
+**Core decision chain & packaging (Issue 4):** [`docs/CORE_DECISION_CHAIN.md`](docs/CORE_DECISION_CHAIN.md) (diagram + table: who sets `final_action`); stub **`pyproject.toml`** at repo root for optional `pip install -e .` / extras — follow-up in [`docs/adr/0001-packaging-core-boundary.md`](docs/adr/0001-packaging-core-boundary.md).
+
+**Poles / weakness / PAD & HCI (Issue 5):** [`docs/POLES_WEAKNESS_PAD_AND_PROFILES.md`](docs/POLES_WEAKNESS_PAD_AND_PROFILES.md) — heuristics framing + **`operational_trust`** profile in [`src/runtime_profiles.py`](src/runtime_profiles.py) (stoic WebSocket UX; core policy unchanged).
+
+**Governance narrative (Issue 6):** [`docs/GOVERNANCE_MOCKDAO_AND_L0.md`](docs/GOVERNANCE_MOCKDAO_AND_L0.md) — MockDAO limits, **L0** as in-repo constitution, L1/L2 vs votes; public page [blockchain-dao](https://mosexmacchinalab.com/blockchain-dao).
+
+**`KERNEL_*` policy (Issue 7):** [`docs/KERNEL_ENV_POLICY.md`](docs/KERNEL_ENV_POLICY.md) — flag families, risky combos, deprecation posture; extended profiles in [`src/runtime_profiles.py`](src/runtime_profiles.py) (`lan_operational`, `moral_hub_extended`).
+
 **Input trust:** MalAbs chat filtering and LLM perception bounds are **heuristic**, not unbreakable — see [`docs/INPUT_TRUST_THREAT_MODEL.md`](docs/INPUT_TRUST_THREAT_MODEL.md) and [`SECURITY.md`](SECURITY.md).
 
 An autonomous moral agent that makes ethical decisions using **explicit weighted scoring**

@@ -67,6 +67,11 @@ Los nombres y variables viven en código: **`src/runtime_profiles.py`**. Resumen
 | `nomad_demo` | Simulación HAL + auditoría de migración nómada. |
 | `reality_lighthouse_demo` | Faro JSON (`KERNEL_LIGHTHOUSE_KB_PATH`) + JSON `reality_verification` en WebSocket; ejecutar desde raíz del repo. |
 | `lan_mobile_thin_client` | `CHAT_HOST=0.0.0.0` para cliente móvil en la misma WiFi ([LOCAL_PC_AND_MOBILE_LAN.md](LOCAL_PC_AND_MOBILE_LAN.md)). |
+| `operational_trust` | UX “estoico” en WebSocket: sin homeostasis / monólogo / experience_digest — política del núcleo sin cambio ([POLES_WEAKNESS_PAD_AND_PROFILES.md](POLES_WEAKNESS_PAD_AND_PROFILES.md), Issue 5). |
+| `lan_operational` | `lan_mobile_thin_client` + `operational_trust`: WiFi LAN con JSON mínimo narrativo ([KERNEL_ENV_POLICY.md](KERNEL_ENV_POLICY.md), Issue 7). |
+| `moral_hub_extended` | Hub V12 ampliado: constitución pública + voto DAO + `deontic_gate` + auditoría de transparencia (Issue 7). |
+
+**Política de flags (Issue 7):** familias de `KERNEL_*`, combinaciones **no recomendadas** y postura de deprecación — **[KERNEL_ENV_POLICY.md](KERNEL_ENV_POLICY.md)**.
 
 **Experimental:** cualquier otra combinación de `KERNEL_*` se considera **no garantizada** hasta que se añada un perfil o un test dedicado.
 
@@ -91,6 +96,7 @@ La landing [Roadmap](https://mosexmacchinalab.com/roadmap) resume el mismo track
 - [TRACE_IMPLEMENTATION_RECENT.md](TRACE_IMPLEMENTATION_RECENT.md) — trazabilidad técnica reciente; la sección “Next development session” apunta aquí para la ruta.
 - [RUNTIME_PERSISTENT.md](RUNTIME_PERSISTENT.md) — persistencia y Fernet.
 - [discusion/UNIVERSAL_ETHOS_AND_HUB.md](discusion/UNIVERSAL_ETHOS_AND_HUB.md) — mapa del hub.
+- [KERNEL_ENV_POLICY.md](KERNEL_ENV_POLICY.md) — política de variables `KERNEL_*` (Issue 7).
 
 ---
 

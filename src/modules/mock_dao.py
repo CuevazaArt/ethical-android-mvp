@@ -5,6 +5,9 @@ Simulates the behavior of the Ethical Oracle DAO without real blockchain.
 Includes: quadratic voting, vectorial reputation, simulated smart contracts,
 and Solidarity Alert Protocol.
 
+**In-process only:** state is not distributed consensus; audit lines are for
+traceability demos — see ``docs/GOVERNANCE_MOCKDAO_AND_L0.md``.
+
 In production: replaced by smart contracts on testnet/mainnet.
 """
 
