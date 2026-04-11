@@ -10,19 +10,19 @@ sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
 from fastapi.testclient import TestClient
 
 from src.chat_server import app
-from src.runtime_profiles import RUNTIME_PROFILES, profile_names
+from src.runtime_profiles import RUNTIME_PROFILES, apply_runtime_profile, profile_names
 
 client = TestClient(app)
 
 
-def _apply_profile(monkeypatch: pytest.MonkeyPatch, name: str) -> None:
-    for key, value in RUNTIME_PROFILES[name].items():
-        monkeypatch.setenv(key, value)
+def test_apply_runtime_profile_unknown_raises(monkeypatch: pytest.MonkeyPatch):
+    with pytest.raises(KeyError, match="unknown runtime profile"):
+        apply_runtime_profile(monkeypatch, "not_a_real_profile_name")
 
 
 @pytest.mark.parametrize("profile_name", profile_names())
 def test_health_under_runtime_profile(monkeypatch: pytest.MonkeyPatch, profile_name: str):
-    _apply_profile(monkeypatch, profile_name)
+    apply_runtime_profile(monkeypatch, profile_name)
     r = client.get("/health")
     assert r.status_code == 200
     assert r.json().get("status") == "ok"
@@ -30,7 +30,7 @@ def test_health_under_runtime_profile(monkeypatch: pytest.MonkeyPatch, profile_n
 
 @pytest.mark.parametrize("profile_name", profile_names())
 def test_websocket_chat_roundtrip_under_profile(monkeypatch: pytest.MonkeyPatch, profile_name: str):
-    _apply_profile(monkeypatch, profile_name)
+    apply_runtime_profile(monkeypatch, profile_name)
     with client.websocket_connect("/ws/chat") as ws:
         ws.send_json({"text": "profile smoke: hello"})
         data = ws.receive_json()
@@ -39,7 +39,7 @@ def test_websocket_chat_roundtrip_under_profile(monkeypatch: pytest.MonkeyPatch,
 
 
 def test_hub_dao_profile_constitution_and_dao_list(monkeypatch: pytest.MonkeyPatch):
-    _apply_profile(monkeypatch, "hub_dao_demo")
+    apply_runtime_profile(monkeypatch, "hub_dao_demo")
     r = client.get("/constitution")
     assert r.status_code == 200
     body = r.json()
@@ -74,7 +74,7 @@ def test_issue7_profiles_merge_expected_keys():
 
 
 def test_nomad_profile_simulation_payload(monkeypatch: pytest.MonkeyPatch):
-    _apply_profile(monkeypatch, "nomad_demo")
+    apply_runtime_profile(monkeypatch, "nomad_demo")
     with client.websocket_connect("/ws/chat") as ws:
         ws.send_json(
             {

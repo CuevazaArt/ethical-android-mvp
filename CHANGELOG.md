@@ -2,6 +2,12 @@
 
 All notable changes to this project are summarized here. For narrative context and design rationale, see [`HISTORY.md`](HISTORY.md).
 
+## Robustness — runtime profile helper + input-trust tests — April 2026
+
+- **`runtime_profiles.apply_runtime_profile`:** single entry point for pytest `monkeypatch` profile application; `tests/test_runtime_profiles.py` refactored; unknown profile raises `KeyError`.
+- **`tests/test_input_trust.py`:** NFKC fullwidth bomb phrase, soft-hyphen obfuscation; `perception_from_llm_json` non-finite `risk` and invalid numeric strings.
+- **Docs:** `ESTRATEGIA_Y_RUTA.md` §3.1 delivery order; `KERNEL_ENV_POLICY.md` CI coverage note.
+
 ## Escalation + lighthouse — persistence and KB demo — April 2026
 
 - **Snapshot:** `escalation_session_strikes` / `escalation_session_idle_turns` (V11 `EscalationSessionTracker`) in `KernelSnapshotV1` with `extract_snapshot` / `apply_snapshot` and migration defaults in `snapshot_from_dict`.

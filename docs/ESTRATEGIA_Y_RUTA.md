@@ -53,6 +53,12 @@ La ruta anterior seguía priorizando features (metaplan, generative LLM, swarm).
 
 **Próxima tarea ejecutada como cierre del hueco P0:** definición de `RUNTIME_PROFILES` y `tests/test_runtime_profiles.py` (incluido en `pytest tests/` por CI).
 
+### 3.1 Orden de entrega recomendado (robustez → epistemología → demo)
+
+1. **Robustez:** perfiles en `src/runtime_profiles.py` (`apply_runtime_profile` en tests); CI ejecuta `tests/test_runtime_profiles.py` junto con el resto de `tests/`; refuerzo de MalAbs / percepción en `tests/test_input_trust.py` con [`INPUT_TRUST_THREAT_MODEL.md`](INPUT_TRUST_THREAT_MODEL.md).
+2. **Epistemología:** KB lighthouse operativo y límites en [`LIGHTHOUSE_KB.md`](LIGHTHOUSE_KB.md); tests en `tests/test_reality_verification.py`.
+3. **Demo / situado:** v8 y LAN según [`discusion/PROPUESTA_ORGANISMO_SITUADO_V8.md`](discusion/PROPUESTA_ORGANISMO_SITUADO_V8.md) y [`LOCAL_PC_AND_MOBILE_LAN.md`](LOCAL_PC_AND_MOBILE_LAN.md).
+
 ---
 
 ## 4. Perfiles nominales (operadores y CI)

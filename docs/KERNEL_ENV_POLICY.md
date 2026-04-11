@@ -2,7 +2,7 @@
 
 **Purpose:** Reduce **accidental combinatorics** of feature flags. The codebase is a **research lab**; this document defines **nominal profiles**, **groupings**, **combinations to avoid or treat as experimental**, and a **deprecation posture** without breaking existing env names.
 
-**Canonical profile bundles:** [`src/runtime_profiles.py`](../src/runtime_profiles.py) — use these for demos, CI smoke, and operator docs.
+**Canonical profile bundles:** [`src/runtime_profiles.py`](../src/runtime_profiles.py) — use these for demos, CI smoke, and operator docs. **CI** runs the full `pytest tests/` suite, including **`tests/test_runtime_profiles.py`** (health + WebSocket roundtrip for **every** named profile).
 
 **Full flag catalog:** [README](../README.md) (WebSocket / runtime sections) and module docstrings in `src/chat_server.py`, `src/persistence/checkpoint.py`, etc.
 

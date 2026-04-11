@@ -75,3 +75,18 @@ def profile_names() -> tuple[str, ...]:
 
 def describe_profiles() -> Mapping[str, str]:
     return PROFILE_DESCRIPTIONS
+
+
+def apply_runtime_profile(monkeypatch, name: str) -> None:
+    """
+    Apply ``RUNTIME_PROFILES[name]`` via ``monkeypatch.setenv`` (pytest).
+
+    Keeps profile application consistent across tests; see ``tests/test_runtime_profiles.py``
+    and CI (full ``pytest tests/``).
+    """
+    try:
+        overrides = RUNTIME_PROFILES[name]
+    except KeyError as e:
+        raise KeyError(f"unknown runtime profile: {name!r}") from e
+    for key, value in overrides.items():
+        monkeypatch.setenv(key, value)
