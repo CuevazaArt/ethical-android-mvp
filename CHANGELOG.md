@@ -2,6 +2,12 @@
 
 All notable changes to this project are summarized here. For narrative context and design rationale, see [`HISTORY.md`](HISTORY.md).
 
+## Documentation — README + THEORY + ADR index sync — April 2026
+
+- **README:** test count band (340+), Issue 3 pilot links, ADR 0002 pointer next to 0001.
+- **`docs/THEORY_AND_IMPLEMENTATION.md`:** perception schema, episodic Bayes flag, pilot docs, ADR 0002.
+- **`docs/adr/README.md`:** ADR table (0001–0002).
+
 ## Documentation — empirical pilot operator protocol (Phase D) — April 2026
 
 - **[`docs/EMPIRICAL_PILOT_PROTOCOL.md`](docs/EMPIRICAL_PILOT_PROTOCOL.md):** Issue 3–aligned operator checklist; cross-links [`EMPIRICAL_PILOT_METHODOLOGY.md`](docs/EMPIRICAL_PILOT_METHODOLOGY.md).
