@@ -86,3 +86,6 @@ class KernelSnapshotV1:
     # V11 judicial escalation session (advisory; checkpoint continuity)
     escalation_session_strikes: int = 0
     escalation_session_idle_turns: int = 0
+
+    # Uchi–Soto per-agent profiles (tone + trust continuity; advisory)
+    uchi_soto_profiles: List[Dict[str, Any]] = field(default_factory=list)

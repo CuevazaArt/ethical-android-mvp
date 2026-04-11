@@ -2,6 +2,13 @@
 
 All notable changes to this project are summarized here. For narrative context and design rationale, see [`HISTORY.md`](HISTORY.md).
 
+## Uchi–Soto Phase 1 — tone_brief, familiarity blend, checkpoint profiles — April 2026
+
+- **`uchi_soto.py`:** `SocialEvaluation.tone_brief` (advisory line for `communicate`); `classify` blends per-turn `familiarity` with persisted `profile.trust_score`; `register_result` uses smaller positive step (`POSITIVE_TRUST_STEP`); `interaction_profile_to_dict` / `interaction_profile_from_dict` for persistence.
+- **`EthicalKernel`:** appends `tone_brief` to `weakness_line` after user-model guidance in `process_chat_turn`; `register_result(agent_id, True)` after successful turn; `process_natural` passes `tone_brief` as `weakness_line` and registers for `"unknown"` when not blocked.
+- **Persistence:** `KernelSnapshotV1.uchi_soto_profiles`; `extract_snapshot` / `apply_snapshot` / `json_store` defaults.
+- **Tests:** `tests/test_uchi_soto.py`, `tests/test_persistence.py` (`test_uchi_soto_profiles_roundtrip`).
+
 ## Documentation — social roster proposal (domestic / intimate dialogue by tier) — April 2026
 
 - **[`docs/discusion/PROPUESTA_ROSTER_SOCIAL_Y_RELACIONES_JERARQUICAS.md`](docs/discusion/PROPUESTA_ROSTER_SOCIAL_Y_RELACIONES_JERARQUICAS.md):** multi-agent roster, Uchi–Soto tiers, forget buffer, structured fields for high-interest persons, roadmap to richer domestic/intimate dialogue **advisory** by closeness (ethics unchanged); linked from [`ESTRATEGIA_Y_RUTA.md`](docs/ESTRATEGIA_Y_RUTA.md) and [`PROJECT_STATUS_AND_MODULE_MATURITY.md`](docs/PROJECT_STATUS_AND_MODULE_MATURITY.md).

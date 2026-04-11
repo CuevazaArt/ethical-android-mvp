@@ -26,6 +26,7 @@ from src.modules.user_model import (
 )
 from src.modules.weakness_pole import WeaknessRecord, WeaknessType
 from src.modules.judicial_escalation import EscalationPhase, strikes_threshold_from_env
+from src.modules.uchi_soto import interaction_profile_from_dict, interaction_profile_to_dict
 
 from .schema import SCHEMA_VERSION, KernelSnapshotV1
 
@@ -157,6 +158,9 @@ def extract_snapshot(kernel: "EthicalKernel") -> KernelSnapshotV1:
         subjective_stimulus_ema=float(kernel.subjective_clock.stimulus_ema),
         escalation_session_strikes=int(kernel.escalation_session.strikes),
         escalation_session_idle_turns=int(kernel.escalation_session.idle_turns),
+        uchi_soto_profiles=[
+            interaction_profile_to_dict(p) for p in kernel.uchi_soto.profiles.values()
+        ],
     )
 
 
@@ -278,3 +282,13 @@ def apply_snapshot(kernel: "EthicalKernel", snap: KernelSnapshotV1) -> None:
         kernel.escalation_session.strikes,
         strikes_threshold_from_env(),
     )
+
+    kernel.uchi_soto.profiles = {}
+    for row in snap.uchi_soto_profiles or []:
+        if not isinstance(row, dict):
+            continue
+        try:
+            prof = interaction_profile_from_dict(row)
+            kernel.uchi_soto.profiles[prof.agent_id] = prof
+        except (TypeError, ValueError):
+            continue

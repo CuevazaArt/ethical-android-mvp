@@ -77,6 +77,31 @@ def test_escalation_session_roundtrip():
     assert k2.escalation_session.idle_turns == 1
 
 
+def test_uchi_soto_profiles_roundtrip():
+    from src.modules.uchi_soto import InteractionProfile, TrustCircle
+
+    k1 = EthicalKernel(variability=False)
+    k1.uchi_soto.profiles["alice"] = InteractionProfile(
+        agent_id="alice",
+        circle=TrustCircle.UCHI_CERCANO,
+        positive_history=3,
+        negative_history=0,
+        manipulation_attempts=0,
+        trust_score=0.72,
+    )
+
+    snap = extract_snapshot(k1)
+    assert len(snap.uchi_soto_profiles) == 1
+    assert snap.uchi_soto_profiles[0]["agent_id"] == "alice"
+    assert snap.uchi_soto_profiles[0]["trust_score"] == 0.72
+
+    k2 = EthicalKernel(variability=False)
+    apply_snapshot(k2, snap)
+    assert "alice" in k2.uchi_soto.profiles
+    assert k2.uchi_soto.profiles["alice"].circle == TrustCircle.UCHI_CERCANO
+    assert abs(k2.uchi_soto.profiles["alice"].trust_score - 0.72) < 1e-6
+
+
 def test_user_model_and_subjective_clock_roundtrip():
     from src.modules.llm_layer import LLMPerception
 

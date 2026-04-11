@@ -740,6 +740,11 @@ class EthicalKernel:
         if um_line:
             weakness_line = um_line
 
+        if decision.social_evaluation and decision.social_evaluation.tone_brief:
+            ut = decision.social_evaluation.tone_brief.strip()
+            if ut:
+                weakness_line = (weakness_line + " " + ut).strip() if weakness_line else ut
+
         mp = self.metaplan.hint_for_communicate()
         if mp:
             weakness_line = (weakness_line + " " + mp).strip() if weakness_line else mp
@@ -825,6 +830,8 @@ class EthicalKernel:
             heavy_kernel=heavy,
             blocked=False,
         )
+
+        self.uchi_soto.register_result(agent_id, True)
 
         je_view: Optional[JudicialEscalationView] = None
         if judicial_escalation_enabled() and decision is not None:
@@ -1005,6 +1012,11 @@ class EthicalKernel:
         )
 
         # Step 3: LLM generates verbal response
+        uchi_line = (
+            decision.social_evaluation.tone_brief.strip()
+            if decision.social_evaluation and decision.social_evaluation.tone_brief
+            else ""
+        )
         response = self.llm.communicate(
             action=decision.final_action,
             mode=decision.decision_mode,
@@ -1014,11 +1026,15 @@ class EthicalKernel:
             verdict=decision.moral.global_verdict.value if decision.moral else "Gray Zone",
             score=decision.moral.total_score if decision.moral else 0.0,
             scenario=situation,
+            weakness_line=uchi_line,
             reflection_context=reflection_to_llm_context(decision.reflection),
             salience_context=salience_to_llm_context(decision.salience),
             identity_context=self.memory.identity.to_llm_context(),
             guardian_mode_context=guardian_mode_llm_context(),
         )
+
+        if not decision.blocked:
+            self.uchi_soto.register_result("unknown", True)
 
         # Step 4: LLM generates rich morals
         narrative = None

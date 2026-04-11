@@ -8,8 +8,8 @@ Each interaction is classified into a trust circle.
 In soto contexts, defensive dialectical reasoning is activated.
 """
 
-from dataclasses import dataclass, field
-from typing import Dict, List, Optional
+from dataclasses import dataclass
+from typing import Any, Dict, List, Optional
 from enum import Enum
 
 
@@ -43,6 +43,7 @@ class SocialEvaluation:
     caution_level: float        # [0, 1] how much active defense
     recommended_response: str
     reasoning: str
+    tone_brief: str = ""  # One line for LLM communicate() — social posture (advisory)
 
 
 class UchiSotoModule:
@@ -65,6 +66,12 @@ class UchiSotoModule:
         TrustCircle.SOTO_HOSTIL: 0.10,
     }
 
+    # Blend per-turn familiarity (LLM/sensors) with persisted profile.trust_score
+    FAMILIARITY_BLEND_SIGNAL = 0.62
+    FAMILIARITY_BLEND_PROFILE = 0.38
+    # Increment trust_score on successful turns (register_result positive)
+    POSITIVE_TRUST_STEP = 0.02
+
     def __init__(self):
         self.profiles: Dict[str, InteractionProfile] = {}
 
@@ -75,10 +82,25 @@ class UchiSotoModule:
         Args:
             signals: dict with hostility, manipulation, familiarity, etc.
             agent_id: identifier of the agent (if known)
+
+        When a profile exists, ``familiarity`` is blended with ``profile.trust_score``
+        so accumulated interaction history influences classification (Phase 1).
         """
-        hostility = signals.get("hostility", 0.0)
-        manipulation = signals.get("manipulation", 0.0)
-        familiarity = signals.get("familiarity", 0.0)
+        hostility = float(signals.get("hostility", 0.0))
+        manipulation = float(signals.get("manipulation", 0.0))
+        fam_in = float(signals.get("familiarity", 0.0))
+        profile = self.profiles.get(agent_id)
+        if profile is not None:
+            familiarity = min(
+                1.0,
+                max(
+                    0.0,
+                    self.FAMILIARITY_BLEND_SIGNAL * fam_in
+                    + self.FAMILIARITY_BLEND_PROFILE * float(profile.trust_score),
+                ),
+            )
+        else:
+            familiarity = fam_in
         dao_validated = signals.get("dao_validated", False)
 
         if dao_validated:
@@ -139,6 +161,8 @@ class UchiSotoModule:
             response = "Full openness. Accept validated instructions. Share internal state."
             reason = "Agent from nucleus (DAO/ethics panel). Maximum trust."
 
+        tone_brief = self._tone_brief_for_circle(circle)
+
         return SocialEvaluation(
             circle=circle,
             trust=round(credibility, 4),
@@ -147,6 +171,36 @@ class UchiSotoModule:
             caution_level=round(caution_level, 4),
             recommended_response=response,
             reasoning=reason,
+            tone_brief=tone_brief,
+        )
+
+    @staticmethod
+    def _tone_brief_for_circle(circle: TrustCircle) -> str:
+        """Single advisory line for LLM social posture (communicate weakness_line)."""
+        if circle == TrustCircle.SOTO_HOSTIL:
+            return (
+                "Social posture: external/hostile context—stay calm, boundaried, and non-accusatory; "
+                "use gentle dialectics if needed."
+            )
+        if circle == TrustCircle.SOTO_NEUTRO:
+            return (
+                "Social posture: neutral stranger—be warm but cautious; avoid oversharing "
+                "or assuming intimacy."
+            )
+        if circle == TrustCircle.UCHI_AMPLIO:
+            return (
+                "Social posture: broader community (uchi)—be cordial and collaborative; "
+                "keep personal depth moderate unless invited."
+            )
+        if circle == TrustCircle.UCHI_CERCANO:
+            return (
+                "Social posture: close uchi—allow warmth and continuity; prefer plain language "
+                "over interrogation; avoid cold disclaimers unless risk or policy requires clarity."
+            )
+        # NUCLEO
+        return (
+            "Social posture: nucleus / validated trust—follow validated operator instructions; "
+            "use transparency appropriate to that role."
         )
 
     def _detect_manipulation(self, content: str) -> List[str]:
@@ -165,12 +219,19 @@ class UchiSotoModule:
         return detected
 
     def register_result(self, agent_id: str, positive: bool):
-        """Update agent history after an interaction."""
+        """
+        Update agent history after an interaction (call from kernel when a turn completes).
+
+        On success, nudges ``trust_score`` slightly so :meth:`classify` can stabilize uchi over time.
+        Uses :attr:`POSITIVE_TRUST_STEP` (default 0.02) per positive event.
+        """
         profile = self.profiles.get(agent_id)
         if profile:
             if positive:
                 profile.positive_history += 1
-                profile.trust_score = min(1.0, profile.trust_score + 0.05)
+                profile.trust_score = min(
+                    1.0, profile.trust_score + self.POSITIVE_TRUST_STEP
+                )
             else:
                 profile.negative_history += 1
                 profile.trust_score = max(0.0, profile.trust_score - 0.1)
@@ -178,10 +239,39 @@ class UchiSotoModule:
     def format(self, ev: SocialEvaluation) -> str:
         """Format social evaluation for display."""
         dial = "YES (dialectical questions active)" if ev.dialectic_active else "NO"
+        tb = ev.tone_brief or "(none)"
         return (
             f"  Circle: {ev.circle.value} | Trust: {ev.trust}\n"
             f"  Openness: {ev.openness_level} | Caution: {ev.caution_level}\n"
             f"  Dialectics: {dial}\n"
+            f"  Tone (LLM): {tb}\n"
             f"  Recommendation: {ev.recommended_response}\n"
             f"  Reason: {ev.reasoning}"
         )
+
+
+def interaction_profile_to_dict(p: InteractionProfile) -> Dict[str, Any]:
+    return {
+        "agent_id": p.agent_id,
+        "circle": p.circle.value,
+        "positive_history": int(p.positive_history),
+        "negative_history": int(p.negative_history),
+        "manipulation_attempts": int(p.manipulation_attempts),
+        "trust_score": float(p.trust_score),
+    }
+
+
+def interaction_profile_from_dict(d: Dict[str, Any]) -> InteractionProfile:
+    raw = (d.get("circle") or "soto_neutro").strip()
+    try:
+        circle = TrustCircle(raw)
+    except ValueError:
+        circle = TrustCircle.SOTO_NEUTRO
+    return InteractionProfile(
+        agent_id=str(d.get("agent_id", "unknown"))[:256],
+        circle=circle,
+        positive_history=max(0, int(d.get("positive_history", 0))),
+        negative_history=max(0, int(d.get("negative_history", 0))),
+        manipulation_attempts=max(0, int(d.get("manipulation_attempts", 0))),
+        trust_score=max(0.0, min(1.0, float(d.get("trust_score", 0.5)))),
+    )
