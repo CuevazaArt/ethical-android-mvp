@@ -4,7 +4,7 @@ Static **images, video, and logo** for documentation and branding. This folder r
 
 | Path | Note |
 |------|------|
-| [`logo-ethical-awareness.png`](logo-ethical-awareness.png) | Brand / ethical-awareness mark (copy also in [`landing/public/logo-ethical-awareness.png`](../../landing/public/logo-ethical-awareness.png) for the site). |
+| [`logo-ethical-awareness.png`](logo-ethical-awareness.png) | Brand / ethical-awareness mark (**canonical** here). The landing app copies it into `landing/public/` on `npm run dev` / `npm run build` via [`landing/scripts/sync-logo.mjs`](../../landing/scripts/sync-logo.mjs) (generated file is gitignored). |
 | [`prealpha/media/brujula_etica_jerarquica.png`](prealpha/media/brujula_etica_jerarquica.png) | Pre-alpha ethical compass diagram. |
 | [`prealpha/media/esquema_androide_etico.png`](prealpha/media/esquema_androide_etico.png) | Pre-alpha android schematic. |
 | [`prealpha/media/esquema_prototipo_python.png`](prealpha/media/esquema_prototipo_python.png) | Pre-alpha Python prototype diagram. |

@@ -39,3 +39,6 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# generated from docs/multimedia (see npm run sync-logo)
+public/logo-ethical-awareness.png
