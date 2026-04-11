@@ -352,7 +352,7 @@ def _chat_turn_to_jsonable(r: ChatTurnResult, kernel: EthicalKernel) -> Dict[str
         out["constitution"] = kernel.get_constitution_snapshot()
     if _chat_include_nomad_identity():
         out["nomad_identity"] = nomad_identity_public(kernel)
-    maybe_log_gray_zone_tuning_opportunity(kernel.dao, r)
+    maybe_log_gray_zone_tuning_opportunity(kernel.dao, r, kernel=kernel)
     return out
 
 

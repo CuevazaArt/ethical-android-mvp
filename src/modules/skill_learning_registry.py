@@ -26,7 +26,7 @@ class SkillLearningTicket:
 
 
 class SkillLearningRegistry:
-    """In-memory ticket queue (MVP)."""
+    """Ticket queue; state round-trips via ``KernelSnapshotV1.skill_learning_tickets`` (Phase 2)."""
 
     def __init__(self, max_tickets: int = 64) -> None:
         self._tickets: List[SkillLearningTicket] = []
@@ -60,6 +60,10 @@ class SkillLearningRegistry:
 
     def pending(self) -> List[SkillLearningTicket]:
         return [t for t in self._tickets if t.status == "pending"]
+
+    def replace_tickets(self, tickets: List[SkillLearningTicket]) -> None:
+        """Restore from snapshot; keeps last ``_max`` entries."""
+        self._tickets = tickets[-self._max :]
 
     def audit_lines_for_psi_sleep(self) -> List[str]:
         """One block for :meth:`EthicalKernel.execute_sleep` text output."""

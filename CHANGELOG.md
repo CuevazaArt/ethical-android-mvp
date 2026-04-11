@@ -2,6 +2,23 @@
 
 All notable changes to this project are summarized here. For narrative context and design rationale, see [`HISTORY.md`](HISTORY.md).
 
+## Vertical deepening — governance + persistence + conduct guide (Phases 1–3) — April 2026
+
+Pause on **new surface modules**; strengthen existing paths (critique-aligned).
+
+**Phase 1 — Hub / audit depth**
+- **`deontic_gate`:** `validate_draft_structure` (length / non-empty caps); expanded forbidden phrases (EN/ES); schema failures return `schema:*` conflicts; `submit_constitution_draft_for_vote` validates structure before vote.
+- **`ml_ethics_tuner`:** structured JSON audit events (`MLEthicsTunerEventV1`, `content_sha256_short`); `chat_server` passes `kernel` for episode id.
+- **`reparation_vault`:** in-process case store (`intent_recorded` → `pending_human_review`); `ReparationVaultV1:{json}` audit lines; `get_reparation_case` / `list_reparation_case_refs` / test helper `clear_reparation_vault_cases_for_tests`.
+
+**Phase 2 — Metaplan / somatic / skills in snapshot**
+- **`KernelSnapshotV1`:** `metaplan_goals`, `somatic_marker_weights`, `skill_learning_tickets` (same schema version **3**; JSON load merges defaults).
+- **`kernel_io`:** extract/apply; **`MetaplanRegistry.replace_goals`**, **`SomaticMarkerStore.replace_weights`**, **`SkillLearningRegistry.replace_tickets`**.
+
+**Phase 3 — Conduct guide + nomadic integrity**
+- **`context_distillation`:** `validate_conduct_guide_dict`, `load_and_validate_conduct_guide_from_env` (template-aligned).
+- **`existential_serialization`:** deterministic `chain_sha256` over episode ids + identity digest; integrity dict includes full hash.
+
 ## Issue 7 (P3): `KERNEL_*` consolidation — policy doc + profiles — April 2026
 - **[`docs/KERNEL_ENV_POLICY.md`](docs/KERNEL_ENV_POLICY.md):** flag families, unsupported / lab-only combinations, deprecation posture.
 - **`src/runtime_profiles.py`:** `lan_operational` (LAN + stoic UX), `moral_hub_extended` (hub + DAO vote + deontic gate + transparency audit).

@@ -1,7 +1,8 @@
 """
 Metaplan registry — long-horizon owner goals (advisory hints for LLM) (v10).
 
-In-RAM master goals for the session; checkpoint persistence is future work.
+In-RAM master goals for the session; persisted via :class:`~src.persistence.schema.KernelSnapshotV1`
+(``metaplan_goals``) since vertical Phase 2.
 
 See docs/discusion/PROPUESTA_ESTRATEGIA_OPERATIVA_V10.md
 """
@@ -46,6 +47,10 @@ class MetaplanRegistry:
 
     def clear(self) -> None:
         self._goals.clear()
+
+    def replace_goals(self, goals: List[MasterGoal]) -> None:
+        """Restore from snapshot (checkpoint); caps at ``_max``."""
+        self._goals = goals[: self._max]
 
     def goals(self) -> List[MasterGoal]:
         return list(self._goals)

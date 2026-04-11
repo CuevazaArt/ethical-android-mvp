@@ -17,7 +17,7 @@ from datetime import datetime
 from enum import IntEnum
 from typing import TYPE_CHECKING, Any, Dict, List, Optional
 
-from .deontic_gate import validate_draft_or_raise
+from .deontic_gate import validate_draft_or_raise, validate_draft_structure
 
 if TYPE_CHECKING:
     from .buffer import PreloadedBuffer
@@ -213,15 +213,20 @@ def submit_constitution_draft_for_vote(
     existing = draft.get("dao_proposal_id")
     if existing:
         return {"ok": True, "proposal_id": existing, "already_submitted": True}
-    title = str(draft.get("title", ""))[:500]
-    body = str(draft.get("body", ""))[:4000]
+    title = str(draft.get("title", ""))
+    body = str(draft.get("body", ""))
+    ok_struct, schema_errs = validate_draft_structure(title, body)
+    if not ok_struct:
+        return {"ok": False, "error": "draft_schema: " + ",".join(schema_errs)}
     try:
         validate_draft_or_raise(title, body, kernel.buffer)
     except ValueError as e:
         return {"ok": False, "error": str(e)}
+    title_pub = title[:500]
+    body_pub = body[:4000]
     prop = kernel.dao.create_proposal(
-        title=f"[Constitution L{level}] {title}",
-        description=body,
+        title=f"[Constitution L{level}] {title_pub}",
+        description=body_pub,
         type="ethics",
     )
     draft["dao_proposal_id"] = prop.id

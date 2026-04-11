@@ -41,7 +41,7 @@ def quantize_snapshot(snapshot: Optional[SensorSnapshot]) -> Optional[str]:
 
 
 class SomaticMarkerStore:
-    """Stores pattern → negative association weight in [0, 1]."""
+    """Stores pattern → negative association weight in [0, 1]; persisted in snapshot (Phase 2)."""
 
     def __init__(self) -> None:
         self._negative_weights: Dict[str, float] = {}
@@ -59,6 +59,10 @@ class SomaticMarkerStore:
 
     def clear_pattern(self, key: str) -> None:
         self._negative_weights.pop(key, None)
+
+    def replace_weights(self, weights: Dict[str, float]) -> None:
+        """Restore from snapshot (checkpoint)."""
+        self._negative_weights = {k: _clamp01(v) for k, v in weights.items()}
 
 
 def apply_somatic_nudges(

@@ -62,6 +62,32 @@ def test_constitution_drafts_roundtrip():
     assert k2.constitution_l2_drafts == k1.constitution_l2_drafts
 
 
+def test_metaplan_somatic_skills_roundtrip():
+    from src.modules.sensor_contracts import SensorSnapshot
+
+    k1 = EthicalKernel(variability=False)
+    k1.metaplan.add_goal("Long project", 0.72)
+    ss = SensorSnapshot(
+        audio_emergency=0.85,
+        place_trust=0.4,
+        accelerometer_jerk=0.2,
+    )
+    k1.somatic_store.learn_negative_pattern(ss, weight=0.7)
+    k1.skill_learning.request_ticket("export API", "needed for continuity demo")
+
+    snap = extract_snapshot(k1)
+    assert len(snap.metaplan_goals) >= 1
+    assert snap.somatic_marker_weights
+    assert len(snap.skill_learning_tickets) >= 1
+
+    k2 = EthicalKernel(variability=False)
+    apply_snapshot(k2, snap)
+    assert len(k2.metaplan.goals()) == len(k1.metaplan.goals())
+    assert k2.metaplan.goals()[0].title == k1.metaplan.goals()[0].title
+    assert k2.somatic_store._negative_weights == k1.somatic_store._negative_weights
+    assert len(k2.skill_learning._tickets) == len(k1.skill_learning._tickets)
+
+
 def test_extract_apply_roundtrip_in_memory():
     k1 = EthicalKernel(variability=False)
     scn = ALL_SIMULATIONS[1]()

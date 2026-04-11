@@ -15,6 +15,21 @@ from src.modules.moral_hub import (
 from src.persistence import extract_snapshot, apply_snapshot
 
 
+def test_submit_fails_on_invalid_schema_empty_title():
+    k = EthicalKernel(variability=False)
+    k.constitution_l1_drafts.append(
+        {
+            "id": "bad-empty-title",
+            "title": "",
+            "body": "Some body text here.",
+            "status": "draft",
+        }
+    )
+    r = submit_constitution_draft_for_vote(k, 1, "bad-empty-title")
+    assert r.get("ok") is False
+    assert "draft_schema" in r.get("error", "")
+
+
 def test_submit_constitution_draft_for_vote_creates_proposal():
     k = EthicalKernel(variability=False)
     d = add_constitution_draft(k, 1, "Norm X", "Body text", proposer="tester")

@@ -3,11 +3,13 @@
 from __future__ import annotations
 
 from dataclasses import asdict
-from typing import TYPE_CHECKING, Any, Dict
+from typing import TYPE_CHECKING, Any, Dict, List, cast
 
 import numpy as np
 
 from src.modules.forgiveness import WeightedMemory
+from src.modules.metaplan_registry import MasterGoal
+from src.modules.skill_learning_registry import SkillLearningTicket, Status
 from src.modules.mock_dao import AuditRecord, SolidarityAlert
 from src.modules.narrative import BodyState, NarrativeEpisode
 from src.modules.narrative_identity import NarrativeIdentityState
@@ -96,6 +98,17 @@ def extract_snapshot(kernel: "EthicalKernel") -> KernelSnapshotV1:
         dao_proposal_counter=dao_st["proposal_counter"],
         dao_participants=dao_st["participants"],
         dao_proposals=dao_st["proposals"],
+        metaplan_goals=[asdict(g) for g in kernel.metaplan.goals()],
+        somatic_marker_weights=dict(kernel.somatic_store._negative_weights),
+        skill_learning_tickets=[
+            {
+                "id": t.id,
+                "scope_description": t.scope_description,
+                "justification": t.justification,
+                "status": t.status,
+            }
+            for t in kernel.skill_learning._tickets
+        ],
     )
 
 
@@ -163,3 +176,35 @@ def apply_snapshot(kernel: "EthicalKernel", snap: KernelSnapshotV1) -> None:
 
     kernel.constitution_l1_drafts = list(snap.constitution_l1_drafts or [])
     kernel.constitution_l2_drafts = list(snap.constitution_l2_drafts or [])
+
+    mp: List[MasterGoal] = []
+    for g in snap.metaplan_goals or []:
+        try:
+            mp.append(
+                MasterGoal(
+                    id=str(g.get("id", "")),
+                    title=str(g.get("title", ""))[:500],
+                    priority=float(g.get("priority", 0.5)),
+                )
+            )
+        except (TypeError, ValueError):
+            continue
+    kernel.metaplan.replace_goals(mp)
+
+    kernel.somatic_store.replace_weights(dict(snap.somatic_marker_weights or {}))
+
+    tickets: List[SkillLearningTicket] = []
+    for t in snap.skill_learning_tickets or []:
+        try:
+            st = cast(Status, str(t.get("status", "pending")))
+            tickets.append(
+                SkillLearningTicket(
+                    id=str(t.get("id", "")),
+                    scope_description=str(t.get("scope_description", ""))[:2000],
+                    justification=str(t.get("justification", ""))[:4000],
+                    status=st,
+                )
+            )
+        except (TypeError, ValueError):
+            continue
+    kernel.skill_learning.replace_tickets(tickets)

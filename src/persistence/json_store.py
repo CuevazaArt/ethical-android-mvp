@@ -46,6 +46,9 @@ def snapshot_from_dict(raw: dict) -> KernelSnapshotV1:
     merged.setdefault("dao_proposal_counter", 0)
     if "experience_digest" not in merged:
         merged["experience_digest"] = ""
+    merged.setdefault("metaplan_goals", [])
+    merged.setdefault("somatic_marker_weights", {})
+    merged.setdefault("skill_learning_tickets", [])
     return KernelSnapshotV1(**merged)
 
 

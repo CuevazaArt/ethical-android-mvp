@@ -66,3 +66,8 @@ class KernelSnapshotV1:
     dao_proposal_counter: int = 0
     dao_participants: List[Dict[str, Any]] = field(default_factory=list)
     dao_proposals: List[Dict[str, Any]] = field(default_factory=list)
+
+    # Vertical Phase 2 — v10 advisory memory (tone only; does not change MalAbs / Bayes)
+    metaplan_goals: List[Dict[str, Any]] = field(default_factory=list)
+    somatic_marker_weights: Dict[str, float] = field(default_factory=dict)
+    skill_learning_tickets: List[Dict[str, Any]] = field(default_factory=list)

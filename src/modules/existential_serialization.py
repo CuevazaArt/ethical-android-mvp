@@ -42,14 +42,20 @@ class ContinuityToken:
         }
 
 
-def _identity_fingerprint_stub(kernel: Any) -> str:
-    """Deterministic short hash from narrative identity + episode count (demo only)."""
+def _episode_chain_fingerprint(kernel: Any, max_episodes: int = 64) -> str:
+    """Deterministic SHA-256 over recent episode ids + identity episode count (audit-grade demo)."""
     mem = getattr(kernel, "memory", None)
     if mem is None:
-        return "0" * 16
+        return "0" * 64
+    ids = [ep.id for ep in mem.episodes[-max_episodes:]]
     id_part = str(getattr(mem.identity.state, "episode_count", 0))
-    raw = f"{id_part}:{getattr(mem, 'experience_digest', '')}"[:500]
-    return hashlib.sha256(raw.encode("utf-8")).hexdigest()[:16]
+    raw = "|".join(ids) + "::" + id_part + "::" + (getattr(mem, "experience_digest", "") or "")[:400]
+    return hashlib.sha256(raw.encode("utf-8")).hexdigest()
+
+
+def _identity_fingerprint_stub(kernel: Any) -> str:
+    """Short display fingerprint (first 16 hex chars of full chain hash)."""
+    return _episode_chain_fingerprint(kernel)[:16]
 
 
 def build_continuity_token_stub(kernel: Any, thought_line: str = "") -> ContinuityToken:
@@ -64,17 +70,22 @@ def build_continuity_token_stub(kernel: Any, thought_line: str = "") -> Continui
 
 def narrative_integrity_self_check_stub(kernel: Any) -> Dict[str, Any]:
     """
-    Phase D — placeholder: confirm last episode id exists (integrity smoke test).
+    Phase D — integrity smoke: last episode id + chain hash over recent episodes.
     """
     mem = getattr(kernel, "memory", None)
-    ok = mem is not None and len(getattr(mem, "episodes", [])) >= 0
+    ok = mem is not None
     last_id = None
+    n_ep = 0
     if mem and mem.episodes:
         last_id = mem.episodes[-1].id
+        n_ep = len(mem.episodes)
+    chain = _episode_chain_fingerprint(kernel) if mem else ""
     return {
         "ok": ok,
+        "episode_count": n_ep,
         "last_episode_id": last_id,
-        "message_en": "Narrative chain present (stub integrity check).",
+        "chain_sha256": chain,
+        "message_en": "Narrative chain fingerprint (deterministic; demo audit).",
     }
 
 

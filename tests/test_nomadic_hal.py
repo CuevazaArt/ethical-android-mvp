@@ -51,6 +51,8 @@ def test_narrative_integrity_stub():
     k = EthicalKernel(variability=False)
     r = narrative_integrity_self_check_stub(k)
     assert r["ok"] is True
+    assert "chain_sha256" in r
+    assert len(r["chain_sha256"]) == 64
 
 
 def test_migration_audit_no_gps_by_default():
