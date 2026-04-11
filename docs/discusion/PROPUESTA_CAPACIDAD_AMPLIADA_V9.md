@@ -72,7 +72,7 @@ El **kernel** sigue siendo la autoridad sobre acciones permitidas y veto MalAbs.
 
 **Riesgos:** Superficie de ataque (nodos maliciosos, Sybil), complejidad de **pruebas de conocimiento cero** en dispositivos restringidos, gobernanza legal.
 
-**Estado en repo:** **No implementado** — documento de diseño y dependencias (criptografía, modelo de amenazas). Precede a cualquier código de red.
+**Estado en repo:** **Stub documentado** — [`SWARM_P2P_THREAT_MODEL.md`](../SWARM_P2P_THREAT_MODEL.md) (modelo de amenazas mínimo); módulo [`swarm_peer_stub.py`](../../src/modules/swarm_peer_stub.py) (huellas SHA-256 deterministas y estadísticas descriptivas; **sin** red). La capa P2P real sigue fuera del núcleo.
 
 ---
 
@@ -96,7 +96,7 @@ El **kernel** sigue siendo la autoridad sobre acciones permitidas y veto MalAbs.
 |------|-----------|--------|
 | **9.1** | Disonancia epistémica / consenso sensorial (telemetría + hint de tono) | **En código** (`epistemic_dissonance.py`, WebSocket) |
 | **9.2** | Candidatos generativos acotados + trazabilidad + tests | **En código** (`generative_candidates.py`, env opt-in; plantillas deterministas) |
-| **9.3** | Enjambre P2P + privacidad (ZK u otra capa) | Solo documentación |
+| **9.3** | Enjambre P2P + privacidad (ZK u otra capa) | **Stub offline** — [`SWARM_P2P_THREAT_MODEL.md`](../SWARM_P2P_THREAT_MODEL.md), [`swarm_peer_stub.py`](../../src/modules/swarm_peer_stub.py); sin red ni veto del kernel |
 | **9.4** | Metas maestras persistentes + filtrado advisory | Diseño; extiende v7 |
 
 **Dependencias sugeridas:** 9.1 aprovecha v8 (`SensorSnapshot`, `multimodal_trust`). 9.2 depende de un contrato claro para `CandidateAction`. 9.3 es independiente del kernel numérico pero exige runtime de red. 9.4 se apoya en persistencia y UI de consentimiento.

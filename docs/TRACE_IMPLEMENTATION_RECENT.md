@@ -13,6 +13,7 @@ This document **consolidates** components and concepts added in the recent work 
 | **Guardian Angel mode** (opt-in protective tone) | `src/modules/guardian_mode.py`; `KERNEL_GUARDIAN_MODE`; `process_chat_turn` → `communicate` | AI in society and value alignment [15], [17]; human–agent interaction and trust [67], [69]. |
 | **Epistemic dissonance / sensory consensus** (v9.1) | `src/modules/epistemic_dissonance.py`; after `multimodal_trust`; JSON `epistemic_dissonance` | Uncertainty and information [21]; causal reasoning / coherence across sources [24], [25]; sensors and estimation [61]; interpretability limits under contradictory signals [71]. |
 | **Generative candidates** (“third way”, v9.2) | `src/modules/generative_candidates.py`; `CandidateAction.source` / `proposal_id`; `KERNEL_GENERATIVE_ACTIONS` | Empirical moral dilemmas and trade-offs [18]; rational agents and plan space [31]; fast vs deliberative modes [41]. |
+| **Swarm P2P stub** (v9.3 lab) | `src/modules/swarm_peer_stub.py`; `KERNEL_SWARM_STUB` | Distributed coordination [52], [57], [58] — **stub only**; see `docs/SWARM_P2P_THREAT_MODEL.md`. |
 | **Gray-zone diplomacy** (v10) | `src/modules/gray_zone_diplomacy.py`; hints in `weakness_line`; `KERNEL_GRAY_ZONE_DIPLOMACY` | Deliberation under cognitive tension [41]; discourse ethics and rational agreement [73]; explainability and transparency [15]. |
 | **Skill-learning registry** (v10) | `src/modules/skill_learning_registry.py`; audit in `execute_sleep` | Governance and capability scope [74]; principle-based AI frameworks [15]; “constitutional” alignment and behavior bounds [90]. |
 | **Somatic markers** (v10) | `src/modules/somatic_markers.py`; `apply_somatic_nudges` on `signals` | Somatic markers and emotion in decision [91]; cybernetics and sensor–attitude loop [59]; simple sensor vehicles [60]. |
@@ -53,7 +54,7 @@ Siguientes líneas (alineadas con PROPUESTA, después de P0 perfiles):
 
 3. **v9.4 metaplanning** — **Done:** `KERNEL_METAPLAN_DRIVE_FILTER` (lexical overlap filter vs `MasterGoal` titles; safe fallback); `KERNEL_METAPLAN_DRIVE_EXTRA` (optional coherence intent); `apply_drive_intent_metaplan_filter` / `maybe_append_metaplan_drive_extra` in `metaplan_registry.py`; wired in `DriveArbiter.evaluate`; `MetaplanRegistry.consent_note_drive_filter`; tests in `tests/test_v10_operational.py`. *Support:* [33], [17], [15].
 
-4. **v9.3 swarm** — Only with a threat model; prototype outside the core. *Support:* [52], [57], [58].
+4. **v9.3 swarm** — **Done (stub):** [`docs/SWARM_P2P_THREAT_MODEL.md`](SWARM_P2P_THREAT_MODEL.md) + `src/modules/swarm_peer_stub.py` (`verdict_digest_v1`, `peer_agreement_stats`); `KERNEL_SWARM_STUB` gates optional use; `tests/test_swarm_peer_stub.py`. *Support:* [52], [57], [58].
 
 5. **Guardian Angel (product)** — Routines and UI; no change to ethical veto. *Support:* [67]–[70], [15].
 

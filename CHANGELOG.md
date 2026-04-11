@@ -2,6 +2,12 @@
 
 All notable changes to this project are summarized here. For narrative context and design rationale, see [`HISTORY.md`](HISTORY.md).
 
+## Swarm P2P — threat model + offline stub (v9.3, trace item 4) — April 2026
+
+- **[`docs/SWARM_P2P_THREAT_MODEL.md`](docs/SWARM_P2P_THREAT_MODEL.md):** scope, threats, non-goals; no network or kernel veto.
+- **`src/modules/swarm_peer_stub.py`:** deterministic verdict digests + descriptive agreement stats; env `KERNEL_SWARM_STUB` (optional gate for callers).
+- **Tests:** `tests/test_swarm_peer_stub.py`; **`docs/TRACE_IMPLEMENTATION_RECENT.md`** item 4 marked delivered; PROPUESTA v9 table updated.
+
 ## Metaplan — drive intent filter vs master goals (v9.4, trace item 3) — April 2026
 
 - **`KERNEL_METAPLAN_DRIVE_FILTER`:** optional lexical overlap filter for `DriveArbiter` advisory intents vs `MasterGoal` titles (default **off**; fallback keeps all intents if none overlap).

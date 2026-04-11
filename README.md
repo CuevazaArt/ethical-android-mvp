@@ -268,6 +268,7 @@ Psi Sleep Ψ (end of day): Audit + Forgiveness cycle + weakness load + Immortali
 - [x] Salience map (GWT-lite attention over risk / social / body / ethical tension; read-only)
 - [x] Immortality Protocol (distributed backup in 4 layers)
 - [x] Narrative Augenesis (creation of oriented synthetic souls)
+- [x] Swarm P2P stub (v9.3 lab — offline verdict digests; [`docs/SWARM_P2P_THREAT_MODEL.md`](docs/SWARM_P2P_THREAT_MODEL.md))
 
 ## Tests
 
