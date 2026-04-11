@@ -115,7 +115,11 @@ Optional **`sensor`** object (v8 — situated hints: `battery_level`, `place_tru
 Optional **server-side** layers (dev/demo): `KERNEL_SENSOR_FIXTURE` = path to a JSON file (same keys as `sensor`); `KERNEL_SENSOR_PRESET` = named scenario from `src/modules/perceptual_abstraction.py` (`SENSOR_PRESETS`). Merge order: **fixture → preset → client `sensor`** (client overrides per key).  
 Optional env: `CHAT_HOST`, `CHAT_PORT`, `LLM_MODE`, `USE_LOCAL_LLM`, `KERNEL_VARIABILITY`, `KERNEL_ADVISORY_INTERVAL_S` (background drive telemetry per WebSocket session; see [RUNTIME_CONTRACT.md](docs/RUNTIME_CONTRACT.md)), `KERNEL_API_DOCS` (set to `1` to expose `/docs`, `/redoc`, `/openapi.json`; **default off** so LAN binds do not leak API schemas), `KERNEL_CHAT_EXPOSE_MONOLOGUE` (set to `0` to redact `monologue` in WebSocket JSON and skip LLM monologue embellishment), `KERNEL_CHAT_INCLUDE_HOMEOSTASIS` (set to `0` to omit `affective_homeostasis` — σ/strain/PAD advisory UX only).
 
-**Relational / v7 (optional JSON toggles, default on):** `KERNEL_CHAT_INCLUDE_USER_MODEL`, `KERNEL_CHAT_INCLUDE_CHRONO`, `KERNEL_CHAT_INCLUDE_PREMISE`, `KERNEL_CHAT_INCLUDE_TELEOLOGY` — set to `0` to omit `user_model`, `chronobiology`, `premise_advisory`, `teleology_branches`. See [docs/discusion/PROPUESTA_EVOLUCION_RELACIONAL_V7.md](docs/discusion/PROPUESTA_EVOLUCION_RELACIONAL_V7.md).
+**Relational / v7 (optional JSON toggles, default on):** `KERNEL_CHAT_INCLUDE_USER_MODEL`, `KERNEL_CHAT_INCLUDE_CHRONO`, `KERNEL_CHAT_INCLUDE_PREMISE`, `KERNEL_CHAT_INCLUDE_TELEOLOGY` — set to `0` to omit `user_model`, `chronobiology`, `premise_advisory`, `teleology_branches`. Base doc: [docs/discusion/PROPUESTA_EVOLUCION_RELACIONAL_V7.md](docs/discusion/PROPUESTA_EVOLUCION_RELACIONAL_V7.md).
+
+When **`user_model`** is included, JSON carries **tone-only** aggregates (no raw user text): `frustration_streak`, `premise_concern_streak`, `last_circle`, `turns_observed`, **`cognitive_pattern`** (`none` \| `hostile_attribution` \| `premise_rigidity` \| `urgency_amplification`), **`risk_band`** (`low` \| `medium` \| `high`), **`escalation_strikes`** / **`escalation_threshold`** (aligned with `EscalationSessionTracker` when judicial escalation is enabled), **`judicial_phase`** (compact phase for LLM guidance: e.g. `traceability_notice`, `dossier_ready`, `escalation_deferred`, or empty). These fields **do not** change `final_action` or MalAbs; they feed `communicate()` hints and operator telemetry. Persistence: same dimensions are saved in checkpoints (`KernelSnapshotV1`). Details: [docs/USER_MODEL_ENRICHMENT.md](docs/USER_MODEL_ENRICHMENT.md).
+
+**Separation from judicial JSON:** full DAO / dossier / mock-tribunal state lives under **`judicial_escalation`** when `KERNEL_CHAT_INCLUDE_JUDICIAL=1` (see V11 section below). `user_model` mirrors **session strikes and tone-oriented labels** only; use **`judicial_escalation`** for `dossier_registered`, `case_id`, `mock_court`, etc.
 
 **Multimodal antispoof (v8):** `KERNEL_CHAT_INCLUDE_MULTIMODAL` — set to `0` to omit `multimodal_trust` (`state` / `reason` / `requires_owner_anchor`). Optional `sensor` fields `audio_emergency`, `vision_emergency`, `scene_coherence` feed `evaluate_multimodal_trust` (see [PROPUESTA_VITALIDAD_SACRIFICIO_Y_FIN.md](docs/discusion/PROPUESTA_VITALIDAD_SACRIFICIO_Y_FIN.md)). **Threshold tuning (optional, [0,1]):** `KERNEL_MULTIMODAL_AUDIO_STRONG`, `KERNEL_MULTIMODAL_VISION_SUPPORT`, `KERNEL_MULTIMODAL_SCENE_SUPPORT`, `KERNEL_MULTIMODAL_VISION_CONTRADICT`, `KERNEL_MULTIMODAL_SCENE_CONTRADICT` — invalid values fall back to built-in defaults.
 
@@ -203,7 +207,7 @@ src/
 │   ├── salience_map.py        # GWT-lite attention weights over risk/social/body/ethics (read-only)
 │   ├── narrative_identity.py  # Lightweight first-person self-model (updates with episodes)
 │   ├── drive_arbiter.py       # Advisory drive intents (after sleep backup; also chat JSON)
-│   ├── user_model.py          # Light ToM / frustration streak (v7; style hints only)
+│   ├── user_model.py          # ToM light: streaks, cognitive/risk/judicial tone (v7+; style hints only)
 │   ├── subjective_time.py     # Session clock + stimulus EMA (v7 chronobiology hints)
 │   ├── premise_validation.py  # Advisory premise scan (v7; no RAG yet)
 │   ├── consequence_projection.py  # Qualitative long-horizon branches (v7; no Monte Carlo)

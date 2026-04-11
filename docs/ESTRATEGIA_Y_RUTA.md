@@ -4,7 +4,7 @@ Documento de **síntesis** (abril 2026): conclusiones de revisión del proyecto,
 
 **Relación con otros docs:** el núcleo normativo y las capas advisory siguen descritos en [THEORY_AND_IMPLEMENTATION.md](THEORY_AND_IMPLEMENTATION.md) y [RUNTIME_CONTRACT.md](RUNTIME_CONTRACT.md). Las PROPUESTA en `docs/discusion/` son diseño; este archivo es **gobierno de producto / operación**.
 
-**Índice rápido (coherencia 2026):** [INPUT_TRUST_THREAT_MODEL.md](INPUT_TRUST_THREAT_MODEL.md) · [MALABS_SEMANTIC_LAYERS.md](MALABS_SEMANTIC_LAYERS.md) · [PERCEPTION_VALIDATION.md](PERCEPTION_VALIDATION.md) · [TEMPORAL_PRIOR_HORIZONS.md](TEMPORAL_PRIOR_HORIZONS.md) · [USER_MODEL_ENRICHMENT.md](USER_MODEL_ENRICHMENT.md) · [KERNEL_ENV_POLICY.md](KERNEL_ENV_POLICY.md) · [CORE_DECISION_CHAIN.md](CORE_DECISION_CHAIN.md) · [adr/README.md](adr/README.md).
+**Índice rápido (coherencia 2026):** [INPUT_TRUST_THREAT_MODEL.md](INPUT_TRUST_THREAT_MODEL.md) · [MALABS_SEMANTIC_LAYERS.md](MALABS_SEMANTIC_LAYERS.md) · [PERCEPTION_VALIDATION.md](PERCEPTION_VALIDATION.md) · [TEMPORAL_PRIOR_HORIZONS.md](TEMPORAL_PRIOR_HORIZONS.md) · [USER_MODEL_ENRICHMENT.md](USER_MODEL_ENRICHMENT.md) · [PROJECT_STATUS_AND_MODULE_MATURITY.md](PROJECT_STATUS_AND_MODULE_MATURITY.md) · [KERNEL_ENV_POLICY.md](KERNEL_ENV_POLICY.md) · [CORE_DECISION_CHAIN.md](CORE_DECISION_CHAIN.md) · [adr/README.md](adr/README.md).
 
 ---
 
@@ -102,6 +102,7 @@ La landing [Roadmap](https://mosexmacchinalab.com/roadmap) resume el mismo track
 
 ## 6. Referencias cruzadas
 
+- [PROJECT_STATUS_AND_MODULE_MATURITY.md](PROJECT_STATUS_AND_MODULE_MATURITY.md) — snapshot de madurez por módulo y brechas conscientes (abril 2026).
 - [TRACE_IMPLEMENTATION_RECENT.md](TRACE_IMPLEMENTATION_RECENT.md) — trazabilidad técnica reciente; la sección “Next development session” apunta aquí para la ruta.
 - [RUNTIME_PERSISTENT.md](RUNTIME_PERSISTENT.md) — persistencia y Fernet.
 - [discusion/UNIVERSAL_ETHOS_AND_HUB.md](discusion/UNIVERSAL_ETHOS_AND_HUB.md) — mapa del hub.

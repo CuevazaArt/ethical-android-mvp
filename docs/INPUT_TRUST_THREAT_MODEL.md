@@ -24,6 +24,18 @@ This document states **limits**. MalAbs is **not** a content moderation product,
 - Replacing MalAbs with an SLM “safety classifier” for ethical verdicts (out of scope for this kernel).
 - Proving robustness against adaptive red-team attacks.
 
+## Advisory telemetry (user model, judicial tone, homeostasis)
+
+Several WebSocket JSON fields are **UX / LLM tone hints** or **operator visibility** — they are **not** security boundaries and **do not** bypass MalAbs, the buffer, or Bayesian action selection.
+
+| Field family | Role | Trust note |
+|--------------|------|------------|
+| `user_model` | Heuristic labels (`cognitive_pattern`, `risk_band`, `judicial_phase`, streaks) and checkpoint-round-trip aggregates | **Not** a clinical or forensic assessment; labels are rule-based from perception + session state. |
+| `judicial_escalation` | Session strikes, dossier readiness, optional mock tribunal output | Advisory; DAO/mock flows are **off-chain demo** unless integrated elsewhere. |
+| `affective_homeostasis`, `experience_digest`, `monologue` | Narrative / PAD-style color | Same: tone and audit narrative, not policy veto. |
+
+For field lists and persistence keys, see [USER_MODEL_ENRICHMENT.md](USER_MODEL_ENRICHMENT.md) and the WebSocket section in [README](../README.md).
+
 ## References
 
 - `src/modules/absolute_evil.py` — `evaluate_chat_text`

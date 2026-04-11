@@ -2,6 +2,14 @@
 
 All notable changes to this project are summarized here. For narrative context and design rationale, see [`HISTORY.md`](HISTORY.md).
 
+## Documentation — operators + project maturity snapshot — April 2026
+
+- **[`README.md`](../README.md):** `user_model` WebSocket JSON fields documented (`cognitive_pattern`, `risk_band`, `escalation_*`, `judicial_phase`); explicit separation vs `judicial_escalation` for dossier/DAO/mock court.
+- **[`docs/INPUT_TRUST_THREAT_MODEL.md`](INPUT_TRUST_THREAT_MODEL.md):** advisory telemetry subsection (user_model, judicial, homeostasis) — not security boundaries.
+- **[`docs/PROJECT_STATUS_AND_MODULE_MATURITY.md`](PROJECT_STATUS_AND_MODULE_MATURITY.md):** where the MVP stands, maturity legend, per-module table, known gaps.
+- **[`docs/ESTRATEGIA_Y_RUTA.md`](ESTRATEGIA_Y_RUTA.md):** index link to project status doc.
+- **[`docs/THEORY_AND_IMPLEMENTATION.md`](THEORY_AND_IMPLEMENTATION.md):** collected test count aligned with current `pytest` (398).
+
 ## User model enrichment — Phases B/C (judicial phase + checkpoint) — April 2026
 
 - **`judicial_escalation.py`:** `escalation_phase_for_tone()` (aligned with `build_escalation_view` branches for pre-reply tone).
