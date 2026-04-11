@@ -20,7 +20,13 @@ stability across the codebase; semantics are as above.
 
 import numpy as np
 from dataclasses import dataclass, field
-from typing import List, Dict, Optional
+from typing import List, Dict, Optional, TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from .narrative import NarrativeMemory
+
+# Fixed default mixture (also used when episodic refresh is disabled or has no data).
+DEFAULT_HYPOTHESIS_WEIGHTS = np.array([0.4, 0.35, 0.25], dtype=np.float64)
 
 
 @dataclass
@@ -68,8 +74,7 @@ class BayesianEngine:
         self.pruning_threshold = pruning_threshold
         self.gray_zone_threshold = gray_zone_threshold
         self.variability = variability
-        # Fixed mixture weights (never updated from data in this implementation)
-        self.hypothesis_weights = np.array([0.4, 0.35, 0.25])
+        self.hypothesis_weights = DEFAULT_HYPOTHESIS_WEIGHTS.copy()
 
     def calculate_expected_impact(self, action: CandidateAction) -> float:
         """
@@ -190,3 +195,49 @@ class BayesianEngine:
             pruned_actions=pruned,
             reasoning=reasoning,
         )
+
+    def reset_mixture_weights(self) -> None:
+        """Restore the default discrete mixture (no episodic nudge)."""
+        self.hypothesis_weights = DEFAULT_HYPOTHESIS_WEIGHTS.copy()
+
+    def refresh_weights_from_episodic_memory(
+        self,
+        memory: "NarrativeMemory",
+        context: str,
+        *,
+        limit: int = 12,
+        blend: float = 0.2,
+    ) -> None:
+        """
+        Nudge ``hypothesis_weights`` toward a target derived from recent episodes
+        with the same ``context`` (mean / variance of ``ethical_score``).
+
+        This is **not** a Bayesian posterior; it is a bounded, auditable blend
+        toward empirical outcomes. If there are no matching episodes, resets to
+        ``DEFAULT_HYPOTHESIS_WEIGHTS``.
+        """
+        eps = memory.find_similar(context, limit=limit)
+        if not eps:
+            self.reset_mixture_weights()
+            return
+
+        scores = np.array([ep.ethical_score for ep in eps], dtype=np.float64)
+        m = float(np.mean(scores))
+        s = float(np.std(scores)) if len(scores) > 1 else 0.0
+
+        # Heuristic mapping: higher mean → utilitarian slot up; lower mean →
+        # deontological caution up; higher variance → virtue/character stability.
+        raw = np.array(
+            [
+                0.4 + 0.25 * m,
+                0.35 - 0.2 * m + 0.12 * s,
+                0.25 - 0.05 * m - 0.12 * s,
+            ],
+            dtype=np.float64,
+        )
+        raw = np.maximum(raw, 1e-6)
+        target = raw / float(np.sum(raw))
+
+        b = max(0.0, min(1.0, blend))
+        mixed = (1.0 - b) * DEFAULT_HYPOTHESIS_WEIGHTS + b * target
+        self.hypothesis_weights = mixed / float(np.sum(mixed))

@@ -86,6 +86,11 @@ from .modules.judicial_escalation import (
 from .modules.reparation_vault import maybe_register_reparation_after_mock_court
 
 
+def _kernel_env_truthy(name: str) -> bool:
+    v = os.environ.get(name, "").strip().lower()
+    return v in ("1", "true", "yes", "on")
+
+
 @dataclass
 class KernelDecision:
     """Complete result of a kernel decision."""
@@ -255,7 +260,12 @@ class EthicalKernel:
         # ═══ STEP 5: Activate buffer according to context ═══
         principles = self.buffer.activate(context)
 
-        # ═══ STEP 6: Impact scoring — fixed mixture (BayesianEngine; adjusted by locus) ═══
+        # ═══ STEP 6: Impact scoring — fixed mixture (BayesianEngine; optional episodic nudge) ═══
+        if _kernel_env_truthy("KERNEL_BAYESIAN_EMPIRICAL_WEIGHTS"):
+            self.bayesian.refresh_weights_from_episodic_memory(self.memory, context)
+        else:
+            self.bayesian.reset_mixture_weights()
+
         bayes_result = self.bayesian.evaluate(clean_actions)
 
         # ═══ STEP 7: Multipolar evaluation ═══

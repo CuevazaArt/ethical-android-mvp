@@ -2,6 +2,12 @@
 
 All notable changes to this project are summarized here. For narrative context and design rationale, see [`HISTORY.md`](HISTORY.md).
 
+## Bayesian mixture — episodic weight nudge (Phase C) — April 2026
+
+- **`KERNEL_BAYESIAN_EMPIRICAL_WEIGHTS`:** when `1`, `BayesianEngine.refresh_weights_from_episodic_memory` runs before impact scoring (same-context episodes); default **off**; `BayesianEngine.reset_mixture_weights` when disabled.
+- **Tests:** `tests/test_bayesian_episodic_weights.py`.
+- **Docs:** [`KERNEL_ENV_POLICY.md`](docs/KERNEL_ENV_POLICY.md) flag family row; [`OPERATOR_QUICK_REF.md`](docs/OPERATOR_QUICK_REF.md).
+
 ## Perception — Pydantic schema module (Phase B) — April 2026
 
 - **`pydantic`** added to `requirements.txt` (v2).
