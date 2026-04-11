@@ -197,6 +197,25 @@ def test_websocket_optional_sensor_v8():
         assert data.get("path") in ("light", "heavy", "safety_block", "kernel_block")
 
 
+def test_websocket_guardian_routines_included(monkeypatch):
+    from pathlib import Path
+
+    from src.modules.guardian_routines import invalidate_guardian_routines_cache
+
+    fixture = Path(__file__).resolve().parent / "fixtures" / "guardian" / "routines.json"
+    invalidate_guardian_routines_cache()
+    monkeypatch.setenv("KERNEL_GUARDIAN_ROUTINES", "1")
+    monkeypatch.setenv("KERNEL_GUARDIAN_ROUTINES_PATH", str(fixture))
+    monkeypatch.setenv("KERNEL_CHAT_INCLUDE_GUARDIAN_ROUTINES", "1")
+    with client.websocket_connect("/ws/chat") as ws:
+        ws.send_json({"text": "Hello guardian routines test."})
+        data = ws.receive_json()
+    assert "guardian_routines" in data
+    assert isinstance(data["guardian_routines"], list)
+    assert any(r.get("id") == "hydration" for r in data["guardian_routines"])
+    invalidate_guardian_routines_cache()
+
+
 def test_websocket_sensor_preset_env(monkeypatch):
     """KERNEL_SENSOR_PRESET merges with optional client sensor (v8)."""
     monkeypatch.setenv("KERNEL_SENSOR_PRESET", "hostile_soto")

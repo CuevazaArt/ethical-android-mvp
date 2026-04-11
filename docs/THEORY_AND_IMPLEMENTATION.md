@@ -63,7 +63,7 @@ See also `src/modules/psi_sleep.py`, `src/modules/immortality.py`, `src/modules/
 
 **Inventario v6 y exclusiones:** [discusion/PROPUESTA_INTEGRACION_APORTES_V6.md](discusion/PROPUESTA_INTEGRACION_APORTES_V6.md).
 
-**Ángel de la Guarda (opt-in, MVP):** `KERNEL_GUARDIAN_MODE` enables a fixed protective **tone block** in `LLMModule.communicate` only (`src/modules/guardian_mode.py`); kernel ethics unchanged. Full product vision (rutinas, franjas etarias, etc.) remains **discusión** — [discusion/PROPUESTA_ANGEL_DE_LA_GUARDIA.md](discusion/PROPUESTA_ANGEL_DE_LA_GUARDIA.md).
+**Ángel de la Guarda (opt-in, MVP):** `KERNEL_GUARDIAN_MODE` enables a fixed protective **tone block** in `LLMModule.communicate` only (`src/modules/guardian_mode.py`); optional JSON **rutinas** (`KERNEL_GUARDIAN_ROUTINES`, `guardian_routines.py`); kernel ethics unchanged. Página estática [`landing/public/guardian.html`](../landing/public/guardian.html). Franjas etarias avanzadas siguen en discusión — [discusion/PROPUESTA_ANGEL_DE_LA_GUARDIA.md](discusion/PROPUESTA_ANGEL_DE_LA_GUARDIA.md).
 
 **v9 — capacidad ampliada (roadmap):** Cuatro pilares documentados en [discusion/PROPUESTA_CAPACIDAD_AMPLIADA_V9.md](discusion/PROPUESTA_CAPACIDAD_AMPLIADA_V9.md). **En repo:** (9.1) `epistemic_dissonance.py` — telemetría y hint de tono; (9.2) `generative_candidates.py` — candidatos extra con `source` / `proposal_id`, opt-in `KERNEL_GENERATIVE_ACTIONS`, opcional `KERNEL_GENERATIVE_LLM` + `generative_candidates` en JSON de percepción; **sin** bypass de MalAbs. (9.3) `swarm_peer_stub.py` + [SWARM_P2P_THREAT_MODEL.md](SWARM_P2P_THREAT_MODEL.md) — huellas/advisory offline, sin red. (9.4) metaplan drive filter + metas en snapshot — ver v10/trace.
 
@@ -169,7 +169,7 @@ P(\text{éxito})=\alpha\cdot P(\text{control interno})+\beta\cdot P(\text{factor
 | **PAD archetypes** | Proyección \((P,A,D)\) y prototipos para narrativa / tono (sin retroalimentación a la política) | `pad_archetypes.py` |
 | **Narrative identity** | Autorrelato y atribución para contexto LLM | `narrative_identity.py` |
 | **Drive arbiter** | Intenciones motivacionales (telemetría; tras backup en `execute_sleep`) | `drive_arbiter.py` |
-| **Guardian mode** | Tono protector opcional para el LLM (`KERNEL_GUARDIAN_MODE`); **no** altera MalAbs → … → will | `guardian_mode.py` |
+| **Guardian mode** | Tono protector + rutinas JSON opcionales (hints); **no** altera MalAbs → … → will | `guardian_mode.py`, `guardian_routines.py` |
 | **Epistemic dissonance (v9.1)** | Telemetría audio/movimiento/visión; hint de tono ante inconsistencia; **no** altera MalAbs → … → will | `epistemic_dissonance.py` |
 | **Generative candidates (v9.2)** | Candidatos plantilla extra, trazables (`generative_proposal`); mismo MalAbs/Bayes; opt-in por env | `generative_candidates.py` |
 | **Swarm stub (v9.3 lab)** | Huellas deterministas de veredicto / stats descriptivos; sin red ni veto | `swarm_peer_stub.py` + [`SWARM_P2P_THREAT_MODEL.md`](SWARM_P2P_THREAT_MODEL.md) |

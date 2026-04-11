@@ -25,3 +25,18 @@ def test_guardian_on(monkeypatch):
 def test_guardian_on_synonyms(monkeypatch):
     monkeypatch.setenv("KERNEL_GUARDIAN_MODE", "true")
     assert is_guardian_mode_active() is True
+
+
+def test_guardian_includes_routines_when_configured(monkeypatch):
+    from pathlib import Path
+
+    from src.modules.guardian_routines import invalidate_guardian_routines_cache
+
+    fixture = Path(__file__).resolve().parent / "fixtures" / "guardian" / "routines.json"
+    monkeypatch.setenv("KERNEL_GUARDIAN_MODE", "1")
+    monkeypatch.setenv("KERNEL_GUARDIAN_ROUTINES", "1")
+    monkeypatch.setenv("KERNEL_GUARDIAN_ROUTINES_PATH", str(fixture))
+    invalidate_guardian_routines_cache()
+    ctx = guardian_mode_llm_context()
+    assert "hydration" in ctx
+    assert "Care routines" in ctx

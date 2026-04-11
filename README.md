@@ -121,7 +121,7 @@ Optional env: `CHAT_HOST`, `CHAT_PORT`, `LLM_MODE`, `USE_LOCAL_LLM`, `KERNEL_VAR
 
 **Vitality (v8):** `KERNEL_CHAT_INCLUDE_VITALITY` — set to `0` to omit `vitality` (`battery_level`, `critical_threshold`, `is_critical`, `battery_unknown`). **`KERNEL_VITALITY_CRITICAL_BATTERY`** (default `0.05`) sets when low battery nudges sympathetic signals; see `src/modules/vitality.py`.
 
-**Guardian Angel (opt-in, tone only):** `KERNEL_GUARDIAN_MODE=1` (or `true` / `yes` / `on`) adds a fixed protective style block to the LLM layer; **does not** change kernel ethics. **Default off.** `KERNEL_CHAT_INCLUDE_GUARDIAN=0` omits `guardian_mode` from WebSocket JSON. See `src/modules/guardian_mode.py` and [docs/discusion/PROPUESTA_ANGEL_DE_LA_GUARDIA.md](docs/discusion/PROPUESTA_ANGEL_DE_LA_GUARDIA.md).
+**Guardian Angel (opt-in, tone only):** `KERNEL_GUARDIAN_MODE=1` (or `true` / `yes` / `on`) adds a fixed protective style block to the LLM layer; **does not** change kernel ethics. **Default off.** Optional **care routines** (`KERNEL_GUARDIAN_ROUTINES=1` + `KERNEL_GUARDIAN_ROUTINES_PATH` to a JSON file) append hint lines for tone only — `src/modules/guardian_routines.py`. `KERNEL_CHAT_INCLUDE_GUARDIAN=0` omits `guardian_mode` from WebSocket JSON; `KERNEL_CHAT_INCLUDE_GUARDIAN_ROUTINES=1` includes routine titles. **Static operator page:** [`landing/public/guardian.html`](landing/public/guardian.html). See `src/modules/guardian_mode.py` and [docs/discusion/PROPUESTA_ANGEL_DE_LA_GUARDIA.md](docs/discusion/PROPUESTA_ANGEL_DE_LA_GUARDIA.md).
 
 **Epistemic dissonance (v9.1):** `KERNEL_CHAT_INCLUDE_EPISTEMIC` — set to `0` to omit `epistemic_dissonance` (`active`, `score`, `reason`) from WebSocket JSON. When sensors suggest strong audio distress but motion is low and vision weak, a **reality-check** hint is added to LLM tone only; **no** MalAbs bypass. Optional thresholds: `KERNEL_EPISTEMIC_AUDIO_MIN`, `KERNEL_EPISTEMIC_MOTION_MAX`, `KERNEL_EPISTEMIC_VISION_LOW`. See `src/modules/epistemic_dissonance.py` and [docs/discusion/PROPUESTA_CAPACIDAD_AMPLIADA_V9.md](docs/discusion/PROPUESTA_CAPACIDAD_AMPLIADA_V9.md).
 
@@ -204,6 +204,7 @@ src/
 │   ├── multimodal_trust.py     # v8 cross-modal doubt vs aligned; merge suppression
 │   ├── vitality.py             # v8 battery / critical threshold + tone hint
 │   ├── guardian_mode.py        # Opt-in Guardian Angel tone block for LLM (no policy change)
+│   ├── guardian_routines.py    # Optional JSON care-routine hints (tone only)
 │   ├── epistemic_dissonance.py # v9.1 cross-modal “reality check” telemetry (tone only)
 │   ├── reality_verification.py # V11+ lighthouse KB vs rival premises; metacognitive doubt (tone only)
 │   ├── conduct_guide_export.py # PC→edge JSON on WebSocket disconnect (with checkpoint)
@@ -269,6 +270,7 @@ Psi Sleep Ψ (end of day): Audit + Forgiveness cycle + weakness load + Immortali
 - [x] Immortality Protocol (distributed backup in 4 layers)
 - [x] Narrative Augenesis (creation of oriented synthetic souls)
 - [x] Swarm P2P stub (v9.3 lab — offline verdict digests; [`docs/SWARM_P2P_THREAT_MODEL.md`](docs/SWARM_P2P_THREAT_MODEL.md))
+- [x] Guardian Angel routines (optional JSON + LLM hints; operator page [`landing/public/guardian.html`](landing/public/guardian.html))
 
 ## Tests
 

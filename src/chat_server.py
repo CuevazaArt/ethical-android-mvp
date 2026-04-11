@@ -25,8 +25,10 @@ KERNEL_MULTIMODAL_SCENE_SUPPORT, KERNEL_MULTIMODAL_VISION_CONTRADICT, KERNEL_MUL
 Vitality (optional): KERNEL_VITALITY_CRITICAL_BATTERY, KERNEL_CHAT_INCLUDE_VITALITY — see vitality.py.
 
 Guardian Angel (optional, opt-in): KERNEL_GUARDIAN_MODE=1 enables protective tone in LLM layer only;
-KERNEL_CHAT_INCLUDE_GUARDIAN — omit ``guardian_mode`` key from JSON if 0. See guardian_mode.py,
-PROPUESTA_ANGEL_DE_LA_GUARDIA.md.
+KERNEL_CHAT_INCLUDE_GUARDIAN — omit ``guardian_mode`` key from JSON if 0. KERNEL_GUARDIAN_ROUTINES,
+KERNEL_GUARDIAN_ROUTINES_PATH — optional JSON care routines (tone hints only; see guardian_routines.py).
+KERNEL_CHAT_INCLUDE_GUARDIAN_ROUTINES — include ``guardian_routines`` [{id, title}] in JSON (default off).
+See guardian_mode.py, PROPUESTA_ANGEL_DE_LA_GUARDIA.md, landing/public/guardian.html.
 
 Epistemic dissonance (v9.1): KERNEL_CHAT_INCLUDE_EPISTEMIC — omit ``epistemic_dissonance`` from JSON if 0.
 Optional thresholds KERNEL_EPISTEMIC_AUDIO_MIN, KERNEL_EPISTEMIC_MOTION_MAX, KERNEL_EPISTEMIC_VISION_LOW.
@@ -102,6 +104,7 @@ from .persistence.checkpoint import (
 from .modules.affective_homeostasis import homeostasis_telemetry
 from .modules.consequence_projection import qualitative_temporal_branches
 from .modules.guardian_mode import is_guardian_mode_active
+from .modules.guardian_routines import public_routines_snapshot
 from .modules.perceptual_abstraction import snapshot_from_layers
 from .modules.judicial_escalation import chat_include_judicial
 from .modules.ml_ethics_tuner import maybe_log_gray_zone_tuning_opportunity
@@ -195,6 +198,11 @@ def _chat_include_vitality() -> bool:
 def _chat_include_guardian() -> bool:
     v = os.environ.get("KERNEL_CHAT_INCLUDE_GUARDIAN", "1").strip().lower()
     return v not in ("0", "false", "no", "off")
+
+
+def _chat_include_guardian_routines() -> bool:
+    v = os.environ.get("KERNEL_CHAT_INCLUDE_GUARDIAN_ROUTINES", "0").strip().lower()
+    return v in ("1", "true", "yes", "on")
 
 
 def _chat_include_epistemic() -> bool:
@@ -330,6 +338,10 @@ def _chat_turn_to_jsonable(r: ChatTurnResult, kernel: EthicalKernel) -> Dict[str
         out["vitality"] = kernel._last_vitality_assessment.to_public_dict()
     if _chat_include_guardian():
         out["guardian_mode"] = is_guardian_mode_active()
+    if _chat_include_guardian_routines():
+        gr = public_routines_snapshot()
+        if gr:
+            out["guardian_routines"] = gr
     if _chat_include_epistemic() and r.epistemic_dissonance is not None:
         out["epistemic_dissonance"] = r.epistemic_dissonance.to_public_dict()
     if _chat_include_reality_verification() and r.reality_verification is not None:

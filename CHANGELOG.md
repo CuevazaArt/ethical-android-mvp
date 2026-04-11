@@ -2,6 +2,13 @@
 
 All notable changes to this project are summarized here. For narrative context and design rationale, see [`HISTORY.md`](HISTORY.md).
 
+## Guardian Angel — care routines + static UI (trace item 5) — April 2026
+
+- **`src/modules/guardian_routines.py`:** optional JSON-backed routine hints for LLM tone (`KERNEL_GUARDIAN_ROUTINES`, `KERNEL_GUARDIAN_ROUTINES_PATH`).
+- **WebSocket:** optional `guardian_routines` key (`KERNEL_CHAT_INCLUDE_GUARDIAN_ROUTINES`).
+- **`landing/public/guardian.html`:** operator-facing static page; **`docs/discusion/PROPUESTA_ANGEL_DE_LA_GUARDIA.md`** updated.
+- **`docs/TRACE_IMPLEMENTATION_RECENT.md`** item 5 marked delivered.
+
 ## Swarm P2P — threat model + offline stub (v9.3, trace item 4) — April 2026
 
 - **[`docs/SWARM_P2P_THREAT_MODEL.md`](docs/SWARM_P2P_THREAT_MODEL.md):** scope, threats, non-goals; no network or kernel veto.

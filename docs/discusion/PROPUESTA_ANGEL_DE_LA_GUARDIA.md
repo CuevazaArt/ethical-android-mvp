@@ -58,11 +58,13 @@ El modo está diseñado para brindar **asistencia sutil y protectora** a usuario
 
 **Implementado en repo (MVP, opt-in):** variable de entorno `KERNEL_GUARDIAN_MODE` (`1` / `true` / `yes` / `on`; por defecto desactivado). Añade un bloque fijo de estilo protector a `LLMModule.communicate`; el pipeline ético (`MalAbs` → … → voluntad) **no** se modifica. WebSocket: clave `guardian_mode` (omisible con `KERNEL_CHAT_INCLUDE_GUARDIAN=0`). Código: `src/modules/guardian_mode.py`, uso en `src/kernel.py` y `src/modules/llm_layer.py`.
 
+**Producto incremental en repo (trace / 2026):** rutinas JSON opcionales (`KERNEL_GUARDIAN_ROUTINES`, `KERNEL_GUARDIAN_ROUTINES_PATH`) — hints de tono vía `guardian_routines.py`; WebSocket opcional `guardian_routines`; página estática [`landing/public/guardian.html`](../../landing/public/guardian.html). Sigue **sin** veto paralelo ni ejecución de acciones externas.
+
 **Futuro (no prescriptivo):** ideas sujetas a diseño adicional:
 
 - Perfil de persona con plantillas de tono y límites de contenido más ricos que el bloque fijo actual.
 - Metadatos de **franja etaria** o **nivel de vulnerabilidad** solo con consentimiento explícito del titular o tutor y **minimización** de datos.
-- **Rutinas** (recordatorios) como **cola advisory** que pasa por el mismo contrato que acciones digitales futuras (`DigitalActionIntent` en discusión v8).
+- **Rutinas** como cola advisory más rica (confirmaciones, calendario) con el mismo contrato que acciones digitales futuras (`DigitalActionIntent` en discusión v8).
 
 ---
 
