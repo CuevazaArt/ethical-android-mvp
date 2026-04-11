@@ -78,3 +78,9 @@ Este documento registra los **cuatro frentes** acordados y qué queda **hecho vs
 | `KERNEL_CHAT_INCLUDE_TELEOLOGY` | `0` oculta `teleology_branches`. |
 
 Por defecto **incluidas** (`1`) para transparencia; producción puede recortar payload.
+
+---
+
+## Ver también
+
+- [PROPUESTA_ROSTER_SOCIAL_Y_RELACIONES_JERARQUICAS.md](PROPUESTA_ROSTER_SOCIAL_Y_RELACIONES_JERARQUICAS.md) — roster multi-agente, jerarquía por cercanía, datos relevantes para figuras de interés y diálogo doméstico/íntimo (advisory; diseño futuro).

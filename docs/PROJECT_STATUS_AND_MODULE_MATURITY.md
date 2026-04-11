@@ -44,6 +44,7 @@ Este documento resume **dónde está** el Ethos Kernel MVP hoy y una lectura hon
 | **Bayes / buffer / polos** | `bayesian_engine.py`, `buffer.py`, `ethical_poles.py`, `pole_linear.py` | **Sólido** | Núcleo decisional con tests; polos lineales configurables (ADR 0004). |
 | **Reflexión / saliencia / PAD** | `ethical_reflection.py`, `salience_map.py`, `pad_archetypes.py` | **Demo** | Lectura para auditoría y tono; no vetan acción. |
 | **User model (ToM)** | `user_model.py` | **Demo** | Heurísticas + tono; persistido en snapshot; ver `USER_MODEL_ENRICHMENT.md`. |
+| **Roster social multi-agente** | — (diseño) | **No** | Propuesta: [PROPUESTA_ROSTER_SOCIAL_Y_RELACIONES_JERARQUICAS.md](discusion/PROPUESTA_ROSTER_SOCIAL_Y_RELACIONES_JERARQUICAS.md) (jerarquía, datos por cercanía, diálogo doméstico/íntimo advisory). |
 | **Escalada judicial** | `judicial_escalation.py` | **Demo** | Sesión, strikes, vistas públicas; DAO mock, no red real. |
 | **Memoria narrativa / identidad** | `narrative.py`, `narrative_identity.py` | **Sólido** | Episodios y digest; checkpoints. |
 | **Tiempo subjetivo** | `subjective_time.py` | **Demo** | Continuidad en snapshot; efecto acotado. |

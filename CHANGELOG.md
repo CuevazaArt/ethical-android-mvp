@@ -2,6 +2,10 @@
 
 All notable changes to this project are summarized here. For narrative context and design rationale, see [`HISTORY.md`](HISTORY.md).
 
+## Documentation — social roster proposal (domestic / intimate dialogue by tier) — April 2026
+
+- **[`docs/discusion/PROPUESTA_ROSTER_SOCIAL_Y_RELACIONES_JERARQUICAS.md`](docs/discusion/PROPUESTA_ROSTER_SOCIAL_Y_RELACIONES_JERARQUICAS.md):** multi-agent roster, Uchi–Soto tiers, forget buffer, structured fields for high-interest persons, roadmap to richer domestic/intimate dialogue **advisory** by closeness (ethics unchanged); linked from [`ESTRATEGIA_Y_RUTA.md`](docs/ESTRATEGIA_Y_RUTA.md) and [`PROJECT_STATUS_AND_MODULE_MATURITY.md`](docs/PROJECT_STATUS_AND_MODULE_MATURITY.md).
+
 ## Documentation — operators + project maturity snapshot — April 2026
 
 - **[`README.md`](../README.md):** `user_model` WebSocket JSON fields documented (`cognitive_pattern`, `risk_band`, `escalation_*`, `judicial_phase`); explicit separation vs `judicial_escalation` for dossier/DAO/mock court.
