@@ -2,6 +2,10 @@
 
 All notable changes to this project are summarized here. For narrative context and design rationale, see [`HISTORY.md`](HISTORY.md).
 
+## Documentation — production hardening roadmap (non-binding) — April 2026
+
+- **[`docs/PRODUCTION_HARDENING_ROADMAP.md`](docs/PRODUCTION_HARDENING_ROADMAP.md):** synthesizes external “production-ready” proposals into three phases (input trust / architecture / UX & constitution) with explicit non-goals and a **“Próximas propuestas”** slot; cross-links `ESTRATEGIA_Y_RUTA`, `CRITIQUE_ROADMAP_ISSUES`, ADR packaging, input-trust docs. README + `discusion/README` pointers.
+
 ## Demo — situated v8 + LAN profile (`situated_v8_lan_demo`) — April 2026
 
 - **`runtime_profiles`:** `situated_v8_lan_demo` — LAN bind, `KERNEL_SENSOR_FIXTURE` + `KERNEL_SENSOR_PRESET` (`tests/fixtures/sensor/minimal_situ.json` + `low_battery`), vitality + multimodal JSON enabled.

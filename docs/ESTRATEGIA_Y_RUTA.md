@@ -104,6 +104,7 @@ La landing [Roadmap](https://mosexmacchinalab.com/roadmap) resume el mismo track
 - [RUNTIME_PERSISTENT.md](RUNTIME_PERSISTENT.md) — persistencia y Fernet.
 - [discusion/UNIVERSAL_ETHOS_AND_HUB.md](discusion/UNIVERSAL_ETHOS_AND_HUB.md) — mapa del hub.
 - [KERNEL_ENV_POLICY.md](KERNEL_ENV_POLICY.md) — política de variables `KERNEL_*` (Issue 7).
+- [PRODUCTION_HARDENING_ROADMAP.md](PRODUCTION_HARDENING_ROADMAP.md) — roadmap **no vinculante** hacia endurecimiento de despliegue (fases 1–3; próximas propuestas); complementa este documento y el backlog de crítica.
 
 ---
 

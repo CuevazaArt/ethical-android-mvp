@@ -20,5 +20,6 @@ Product work is coordinated from the repository README and version control; this
 | [UNIVERSAL_ETHOS_AND_HUB.md](UNIVERSAL_ETHOS_AND_HUB.md) | **Canonical hub vision ↔ code** — UniversalEthos layers, services, audit levels, evolution loops, module map (DemocraticBuffer, MLEthicsTuner, ReparationVault, NomadIdentity) |
 | [PROPUESTA_CONCIENCIA_NOMADA_HAL.md](PROPUESTA_CONCIENCIA_NOMADA_HAL.md) | **Nomadic instantiation** — HAL, serialización existencial, runtime dual; respuestas de diseño (batería, DAO, tono) |
 | [../TRACE_IMPLEMENTATION_RECENT.md](../TRACE_IMPLEMENTATION_RECENT.md) | **Traceability** Guardian + v9–v10: code ↔ bibliography ([BIBLIOGRAPHY.md](../../BIBLIOGRAPHY.md)); proposed next session — **English** |
+| [../PRODUCTION_HARDENING_ROADMAP.md](../PRODUCTION_HARDENING_ROADMAP.md) | **Endurecimiento hacia despliegue serio** (fases 1–3, no vinculante): percepción, modularización, UX/constitución — *síntesis*; backlog operativo en [CRITIQUE_ROADMAP_ISSUES.md](../CRITIQUE_ROADMAP_ISSUES.md) |
 
 For canonical runtime and persistence docs in English, see [RUNTIME_CONTRACT.md](../RUNTIME_CONTRACT.md), [RUNTIME_PERSISTENT.md](../RUNTIME_PERSISTENT.md), and [RUNTIME_PHASES.md](../RUNTIME_PHASES.md).
