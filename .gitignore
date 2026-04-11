@@ -25,6 +25,9 @@ htmlcov/
 *.swp
 *.swo
 
+# Claude Code / local tool worktrees and session data
+.claude/
+
 # OS
 .DS_Store
 Thumbs.db
