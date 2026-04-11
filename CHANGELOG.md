@@ -2,6 +2,12 @@
 
 All notable changes to this project are summarized here. For narrative context and design rationale, see [`HISTORY.md`](HISTORY.md).
 
+## Generative candidates — LLM JSON path (v9.2+, trace item 2) — April 2026
+
+- **`KERNEL_GENERATIVE_LLM`:** when `1`, perception prompt includes optional `generative_candidates`; `LLMPerception.generative_candidates` passes through; `generative_candidates.parse_generative_candidates_from_llm` builds actions (strict names, optional MalAbs signal allowlist).
+- **`augment_generative_candidates`:** prefers parsed LLM list over templates when non-empty (still requires `KERNEL_GENERATIVE_ACTIONS` + dilemma trigger).
+- **Docs:** `KERNEL_ENV_POLICY.md`, `OPERATOR_QUICK_REF.md`, `chat_server` docstring; **`docs/TRACE_IMPLEMENTATION_RECENT.md`** item 2 marked delivered.
+
 ## Tests + fixtures — metaplan/somatic disk round-trip + empirical pilot regression — April 2026
 
 - **`tests/test_persistence.py`:** JSON + SQLite round-trip for metaplan, somatic markers, and skill-learning tickets (adjacent to existing in-memory test).

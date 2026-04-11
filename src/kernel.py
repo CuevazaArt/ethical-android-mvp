@@ -645,7 +645,13 @@ class EthicalKernel:
 
         actions = self._actions_for_chat(perception, heavy)
         ctx = perception.suggested_context or ""
-        actions = augment_generative_candidates(actions, user_input, ctx, heavy)
+        actions = augment_generative_candidates(
+            actions,
+            user_input,
+            ctx,
+            heavy,
+            getattr(perception, "generative_candidates", None),
+        )
         decision = self.process(
             scenario=perception.summary or user_input[:240],
             place=place,

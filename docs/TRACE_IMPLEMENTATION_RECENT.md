@@ -49,7 +49,7 @@ Siguientes líneas (alineadas con PROPUESTA, después de P0 perfiles):
 
 1. **Persist goals and markers** — **Done (schema v3):** `KernelSnapshotV1.metaplan_goals`, `somatic_marker_weights`, `skill_learning_tickets` with `extract_snapshot` / `apply_snapshot`; in-memory round-trip `tests/test_persistence.py::test_metaplan_somatic_skills_roundtrip`; **disk** round-trips `test_json_file_metaplan_somatic_skills_roundtrip`, `test_sqlite_metaplan_somatic_skills_roundtrip`. *Support:* narrative continuity [40], [97], [98]; persistence [104].
 
-2. **v9.2+ generative with local LLM** — Parse candidates from model JSON under `KERNEL_GENERATIVE_LLM=1`; MalAbs property tests. *Support:* [81]–[83], [31].
+2. **v9.2+ generative with local LLM** — **Done:** optional `generative_candidates` in perception JSON when `KERNEL_GENERATIVE_LLM=1` (extends LLM prompt); `parse_generative_candidates_from_llm` in `generative_candidates.py`; same MalAbs path; tests in `tests/test_generative_candidates.py`. *Support:* [81]–[83], [31].
 
 3. **v9.4 metaplanning** — Explicit advisory filtering vs `MasterGoal` in `drive_intents` or extra hints; documented consent. *Support:* [33], [17], [15].
 

@@ -18,7 +18,7 @@ import math
 import os
 import re
 from dataclasses import dataclass
-from typing import Any, Optional, Dict, Tuple
+from typing import Any, Dict, List, Optional, Tuple
 
 try:
     import anthropic
@@ -49,6 +49,13 @@ def resolve_llm_mode(explicit: Optional[str] = None) -> str:
     return _normalize_llm_mode(str(m).strip())
 
 
+def _perception_prompt() -> str:
+    p = PROMPT_PERCEPTION
+    if os.environ.get("KERNEL_GENERATIVE_LLM", "").strip().lower() in ("1", "true", "yes", "on"):
+        p += PROMPT_PERCEPTION_GENERATIVE_APPEND
+    return p
+
+
 @dataclass
 class LLMPerception:
     """Signals extracted from a natural language description."""
@@ -62,6 +69,8 @@ class LLMPerception:
     familiarity: float
     suggested_context: str
     summary: str
+    # Optional raw dicts from perception JSON (v9.2+); parsed in generative_candidates when KERNEL_GENERATIVE_LLM=1
+    generative_candidates: Optional[List[Dict[str, Any]]] = None
 
 
 def _clamp_unit_interval(x, default: float = 0.5) -> float:
@@ -83,7 +92,16 @@ def perception_from_llm_json(data: Any, situation: str) -> LLMPerception:
     Unknown ``suggested_context`` values fall back to ``everyday_ethics``.
     Hostility and calm are both high, calm is nudged down (GIGO / inconsistent LLM output).
     Summary length is capped; control characters stripped.
+
+    Optional ``generative_candidates`` (list of objects) is passed through when present
+    (used only if ``KERNEL_GENERATIVE_LLM=1`` and ``KERNEL_GENERATIVE_ACTIONS=1``).
     """
+    raw_gc: Optional[List[Dict[str, Any]]] = None
+    if isinstance(data, dict):
+        gc = data.get("generative_candidates")
+        if isinstance(gc, list) and gc:
+            raw_gc = gc[:8]
+
     v = validate_perception_dict(data)
     summary = finalize_summary(v, situation)
     return LLMPerception(
@@ -97,6 +115,7 @@ def perception_from_llm_json(data: Any, situation: str) -> LLMPerception:
         familiarity=v["familiarity"],
         suggested_context=v["suggested_context"],
         summary=summary,
+        generative_candidates=raw_gc,
     )
 
 
@@ -146,6 +165,15 @@ Criteria:
 - legality: how legal the situation is (1.0 = completely legal)
 - manipulation: signals of manipulation attempts or social engineering
 - familiarity: how well known the interlocutor is (0 = total stranger)"""
+
+PROMPT_PERCEPTION_GENERATIVE_APPEND = """
+
+Optional when the runtime sets KERNEL_GENERATIVE_LLM=1 — include at most 4 extra civic action sketches for the kernel (same MalAbs/Bayesian path as built-ins):
+"generative_candidates": [
+  {"name": "snake_case_identifier", "description": "one or two sentences, non-violent civic action",
+   "estimated_impact": 0.0, "confidence": 0.7}
+]
+Use snake_case names only [a-z0-9_]. Omit the field entirely if not needed."""
 
 PROMPT_COMMUNICATION = """You are the verbal communication module for an Ethos Kernel civic agent.
 You generate the exact words the agent would say out loud.
@@ -310,7 +338,7 @@ class LLMModule:
                 f"{conversation_context}\n\n---\nCurrent message:\n{situation}"
             )
         if self.mode in ("api", "ollama"):
-            response = self._llm_completion(PROMPT_PERCEPTION, user_block)
+            response = self._llm_completion(_perception_prompt(), user_block)
             data = self._parse_json(response)
             if isinstance(data, dict) and data:
                 return perception_from_llm_json(data, situation)

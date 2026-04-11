@@ -33,7 +33,8 @@ Optional thresholds KERNEL_EPISTEMIC_AUDIO_MIN, KERNEL_EPISTEMIC_MOTION_MAX, KER
 See epistemic_dissonance.py, PROPUESTA_CAPACIDAD_AMPLIADA_V9.md.
 
 Generative candidates (v9.2): KERNEL_GENERATIVE_ACTIONS, KERNEL_GENERATIVE_ACTIONS_MAX,
-KERNEL_GENERATIVE_TRIGGER_CONTEXTS — see generative_candidates.py. JSON ``decision`` may include
+KERNEL_GENERATIVE_TRIGGER_CONTEXTS, KERNEL_GENERATIVE_LLM (parse ``generative_candidates`` from
+perception JSON when using api/ollama) — see generative_candidates.py. JSON ``decision`` may include
 ``chosen_action_source`` and ``proposal_id``.
 
 Judicial escalation (V11 Phases 1–3): KERNEL_JUDICIAL_ESCALATION enables advisory logic; optional JSON

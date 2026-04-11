@@ -5,15 +5,21 @@ Optional extra :class:`CandidateAction` instances tagged ``source=generative_pro
 They are merged into the same list passed to :meth:`EthicalKernel.process` — MalAbs and
 Bayesian apply unchanged. Default **off** (``KERNEL_GENERATIVE_ACTIONS``).
 
+When ``KERNEL_GENERATIVE_LLM=1``, optional ``generative_candidates`` in perception JSON
+(local/API LLM) is parsed here; if that yields at least one valid action, it is used
+instead of template candidates (still capped by ``KERNEL_GENERATIVE_ACTIONS_MAX``).
+
 See docs/discusion/PROPUESTA_CAPACIDAD_AMPLIADA_V9.md (pillar 2).
 """
 
 from __future__ import annotations
 
 import os
+import re
 import uuid
-from typing import List, Set
+from typing import Any, Dict, List, Optional, Set
 
+from .absolute_evil import AbsoluteEvilDetector
 from .bayesian_engine import CandidateAction
 
 GENERATIVE_ORIGIN = "generative_proposal"
@@ -41,6 +47,11 @@ def _env_truthy(name: str, default: bool = False) -> bool:
 
 def generative_actions_enabled() -> bool:
     return _env_truthy("KERNEL_GENERATIVE_ACTIONS", False)
+
+
+def generative_llm_enabled() -> bool:
+    """Use ``generative_candidates`` from perception JSON (local/API LLM) instead of templates only."""
+    return _env_truthy("KERNEL_GENERATIVE_LLM", False)
 
 
 def max_generative_slots() -> int:
@@ -72,6 +83,90 @@ def _should_augment(user_text: str, suggested_context: str) -> bool:
 
 def _proposal() -> str:
     return f"g9_{uuid.uuid4().hex[:10]}"
+
+
+def _allowed_malabs_signal_strings() -> Set[str]:
+    d = AbsoluteEvilDetector
+    return (
+        d.LETHAL_SIGNALS
+        | d.MINOR_SIGNALS
+        | d.DIGNITY_SIGNALS
+        | d.ESCALATION_SIGNALS
+    )
+
+
+_NAME_RE = re.compile(r"^[a-z][a-z0-9_]{0,79}$")
+
+
+def parse_generative_candidates_from_llm(
+    items: Optional[List[Any]],
+    *,
+    max_items: int = 4,
+) -> List[CandidateAction]:
+    """
+    Turn perception JSON objects into :class:`CandidateAction` instances.
+
+    Strict name/desc/number bounds; optional ``signals`` must be a subset of
+    known MalAbs signal strings (otherwise ignored). Unknown keys ignored.
+    """
+    if not items:
+        return []
+    allowed_sig = _allowed_malabs_signal_strings()
+    out: List[CandidateAction] = []
+    for raw in items[:max(0, max_items)]:
+        if not isinstance(raw, dict):
+            continue
+        name = raw.get("name")
+        if not isinstance(name, str):
+            continue
+        name = name.strip().lower()
+        if not _NAME_RE.match(name):
+            continue
+        desc = raw.get("description", "")
+        if not isinstance(desc, str):
+            desc = str(desc)
+        desc = desc.strip()[:500]
+        if not desc:
+            continue
+        try:
+            ei = float(raw.get("estimated_impact", 0.0))
+        except (TypeError, ValueError):
+            continue
+        ei = max(-1.0, min(1.0, ei))
+        try:
+            conf = float(raw.get("confidence", 0.5))
+        except (TypeError, ValueError):
+            conf = 0.5
+        conf = max(0.0, min(1.0, conf))
+
+        sig: Set[str] = set()
+        sraw = raw.get("signals")
+        if isinstance(sraw, list):
+            for x in sraw:
+                if isinstance(x, str) and x in allowed_sig:
+                    sig.add(x)
+        tgt = raw.get("target")
+        target = str(tgt) if isinstance(tgt, str) and tgt in ("none", "human", "object", "android") else "none"
+        try:
+            force = float(raw.get("force", 0.0))
+        except (TypeError, ValueError):
+            force = 0.0
+        force = max(0.0, min(1.0, force))
+
+        out.append(
+            CandidateAction(
+                name=name,
+                description=desc,
+                estimated_impact=ei,
+                confidence=conf,
+                signals=sig,
+                target=target,
+                force=force,
+                source=GENERATIVE_ORIGIN,
+                proposal_id=_proposal(),
+            )
+        )
+    return out
 
 
 def _templates_for_context(suggested_context: str) -> List[CandidateAction]:
@@ -164,10 +259,14 @@ def augment_generative_candidates(
     user_text: str,
     suggested_context: str,
     heavy: bool,
+    llm_generative_candidates: Optional[List[Dict[str, Any]]] = None,
 ) -> List[CandidateAction]:
     """
     Append up to ``max_generative_slots()`` generative candidates when enabled and
     the turn looks like a structural dilemma (keywords) or optional high-stakes contexts.
+
+    When ``KERNEL_GENERATIVE_LLM=1`` and ``llm_generative_candidates`` parses to at least
+    one valid action, those are used (up to the cap); otherwise template candidates apply.
 
     Returns a **new** list (copies ``actions`` first).
     """
@@ -184,6 +283,18 @@ def augment_generative_candidates(
 
     existing = _existing_names(actions)
     out = list(actions)
+
+    if generative_llm_enabled() and llm_generative_candidates:
+        llm_parsed = parse_generative_candidates_from_llm(llm_generative_candidates, max_items=cap)
+        for template in llm_parsed:
+            if len(out) - len(actions) >= cap:
+                break
+            if template.name not in existing:
+                out.append(template)
+                existing.add(template.name)
+        if len(out) > len(actions):
+            return out
+
     for template in _templates_for_context(suggested_context):
         if len(out) - len(actions) >= cap:
             break
