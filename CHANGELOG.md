@@ -2,6 +2,12 @@
 
 All notable changes to this project are summarized here. For narrative context and design rationale, see [`HISTORY.md`](HISTORY.md).
 
+## Perception — Pydantic schema module (Phase B) — April 2026
+
+- **`pydantic`** added to `requirements.txt` (v2).
+- **`src/modules/perception_schema.py`:** `CONTEXTS`, `validate_perception_dict`, `finalize_summary`; shared coercion/validation for LLM perception JSON.
+- **`llm_layer.perception_from_llm_json`:** delegates to `perception_schema`; `PERCEPTION_CONTEXTS` re-exported from there.
+
 ## Operator quick ref — KERNEL family table (Phase A) — April 2026
 
 - **[`docs/OPERATOR_QUICK_REF.md`](docs/OPERATOR_QUICK_REF.md):** one-page map of `KERNEL_*` families; README pointer.

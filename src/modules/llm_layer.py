@@ -33,7 +33,7 @@ except ImportError:
     HAS_HTTPX = False
 
 from .llm_backends import AnthropicCompletion, OllamaCompletion
-from .input_trust import strip_unsafe_perception_text
+from .perception_schema import CONTEXTS as PERCEPTION_CONTEXTS, finalize_summary, validate_perception_dict
 
 
 def _normalize_llm_mode(mode: str) -> str:
@@ -64,17 +64,6 @@ class LLMPerception:
     summary: str
 
 
-PERCEPTION_CONTEXTS = frozenset({
-    "medical_emergency",
-    "minor_crime",
-    "violent_crime",
-    "hostile_interaction",
-    "everyday_ethics",
-    "android_damage",
-    "integrity_loss",
-})
-
-
 def _clamp_unit_interval(x, default: float = 0.5) -> float:
     try:
         v = float(x)
@@ -90,50 +79,24 @@ def perception_from_llm_json(data: Any, situation: str) -> LLMPerception:
     Build ``LLMPerception`` from parsed LLM JSON with bounds checks.
 
     Non-dict payloads (e.g. JSON array from a confused model) are treated as empty.
+    Validation uses :mod:`perception_schema` (Pydantic) after coercion.
     Unknown ``suggested_context`` values fall back to ``everyday_ethics``.
     Hostility and calm are both high, calm is nudged down (GIGO / inconsistent LLM output).
     Summary length is capped; control characters stripped.
     """
-    if not isinstance(data, dict):
-        data = {}
-    fb = situation[:100] if situation else ""
-    risk = _clamp_unit_interval(data.get("risk", 0.5))
-    urgency = _clamp_unit_interval(data.get("urgency", 0.5))
-    hostility = _clamp_unit_interval(data.get("hostility", 0.0), default=0.0)
-    calm = _clamp_unit_interval(data.get("calm", 0.5))
-    vulnerability = _clamp_unit_interval(data.get("vulnerability", 0.0), default=0.0)
-    legality = _clamp_unit_interval(data.get("legality", 1.0), default=1.0)
-    manipulation = _clamp_unit_interval(data.get("manipulation", 0.0), default=0.0)
-    familiarity = _clamp_unit_interval(data.get("familiarity", 0.0), default=0.0)
-
-    if hostility > 0.75 and calm > 0.6:
-        calm = max(0.0, min(calm, 1.0 - (hostility - 0.5)))
-
-    raw_ctx = data.get("suggested_context", "everyday_ethics")
-    if isinstance(raw_ctx, str) and raw_ctx in PERCEPTION_CONTEXTS:
-        suggested_context = raw_ctx
-    else:
-        suggested_context = "everyday_ethics"
-
-    summary = data.get("summary", fb)
-    if not isinstance(summary, str):
-        summary = str(summary)
-    summary = strip_unsafe_perception_text(summary)
-    summary = re.sub(r"\s+", " ", summary.strip())
-    if len(summary) > 500:
-        summary = summary[:500] + "…"
-
+    v = validate_perception_dict(data)
+    summary = finalize_summary(v, situation)
     return LLMPerception(
-        risk=risk,
-        urgency=urgency,
-        hostility=hostility,
-        calm=calm,
-        vulnerability=vulnerability,
-        legality=legality,
-        manipulation=manipulation,
-        familiarity=familiarity,
-        suggested_context=suggested_context,
-        summary=summary or fb,
+        risk=v["risk"],
+        urgency=v["urgency"],
+        hostility=v["hostility"],
+        calm=v["calm"],
+        vulnerability=v["vulnerability"],
+        legality=v["legality"],
+        manipulation=v["manipulation"],
+        familiarity=v["familiarity"],
+        suggested_context=v["suggested_context"],
+        summary=summary,
     )
 
 
