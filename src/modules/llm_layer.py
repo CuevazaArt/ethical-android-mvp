@@ -33,7 +33,12 @@ except ImportError:
     HAS_HTTPX = False
 
 from .llm_backends import AnthropicCompletion, OllamaCompletion
-from .perception_schema import CONTEXTS as PERCEPTION_CONTEXTS, finalize_summary, validate_perception_dict
+from .perception_schema import (
+    CONTEXTS as PERCEPTION_CONTEXTS,
+    PerceptionCoercionReport,
+    finalize_summary,
+    validate_perception_dict,
+)
 
 
 def _normalize_llm_mode(mode: str) -> str:
@@ -71,6 +76,8 @@ class LLMPerception:
     summary: str
     # Optional raw dicts from perception JSON (v9.2+); parsed in generative_candidates when KERNEL_GENERATIVE_LLM=1
     generative_candidates: Optional[List[Dict[str, Any]]] = None
+    # Coercion / fallback diagnostics from validate_perception_dict (LLM JSON path only; local heuristics leave None).
+    coercion_report: Optional[Dict[str, Any]] = None
 
 
 def _clamp_unit_interval(x, default: float = 0.5) -> float:
@@ -83,7 +90,12 @@ def _clamp_unit_interval(x, default: float = 0.5) -> float:
     return max(0.0, min(1.0, v))
 
 
-def perception_from_llm_json(data: Any, situation: str) -> LLMPerception:
+def perception_from_llm_json(
+    data: Any,
+    situation: str,
+    *,
+    record_coercion: bool = True,
+) -> LLMPerception:
     """
     Build ``LLMPerception`` from parsed LLM JSON with bounds checks.
 
@@ -95,6 +107,9 @@ def perception_from_llm_json(data: Any, situation: str) -> LLMPerception:
 
     Optional ``generative_candidates`` (list of objects) is passed through when present
     (used only if ``KERNEL_GENERATIVE_LLM=1`` and ``KERNEL_GENERATIVE_ACTIONS=1``).
+
+    Set ``record_coercion=False`` for synthetic dicts (e.g. local heuristics) so
+    ``coercion_report`` stays unset for API consumers.
     """
     raw_gc: Optional[List[Dict[str, Any]]] = None
     if isinstance(data, dict):
@@ -102,7 +117,13 @@ def perception_from_llm_json(data: Any, situation: str) -> LLMPerception:
         if isinstance(gc, list) and gc:
             raw_gc = gc[:8]
 
-    v = validate_perception_dict(data)
+    if record_coercion:
+        report = PerceptionCoercionReport()
+        v = validate_perception_dict(data, report=report)
+        meta = report.to_public_dict()
+    else:
+        v = validate_perception_dict(data)
+        meta = None
     summary = finalize_summary(v, situation)
     return LLMPerception(
         risk=v["risk"],
@@ -116,6 +137,7 @@ def perception_from_llm_json(data: Any, situation: str) -> LLMPerception:
         suggested_context=v["suggested_context"],
         summary=summary,
         generative_candidates=raw_gc,
+        coercion_report=meta,
     )
 
 
@@ -404,7 +426,7 @@ class LLMModule:
             "suggested_context": context,
             "summary": situation[:100],
         }
-        return perception_from_llm_json(raw, situation)
+        return perception_from_llm_json(raw, situation, record_coercion=False)
 
     # === COMMUNICATION ===
 

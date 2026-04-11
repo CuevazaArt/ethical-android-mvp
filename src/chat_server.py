@@ -265,6 +265,9 @@ def _chat_turn_to_jsonable(r: ChatTurnResult, kernel: EthicalKernel) -> Dict[str
             "suggested_context": p.suggested_context,
             "summary": p.summary,
         }
+        cr = getattr(p, "coercion_report", None)
+        if cr:
+            out["perception"]["coercion_report"] = cr
     if r.decision is not None:
         d = r.decision
         if _chat_expose_monologue():

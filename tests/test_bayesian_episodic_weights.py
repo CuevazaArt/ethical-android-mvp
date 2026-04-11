@@ -71,3 +71,29 @@ def test_kernel_episodic_flag_changes_weights(monkeypatch):
     ]
     k.process("s", "p", {"risk": 0.5}, "hostile", actions, register_episode=False)
     assert not np.allclose(k.bayesian.hypothesis_weights, DEFAULT_HYPOTHESIS_WEIGHTS, atol=1e-3)
+
+
+def test_kernel_episodic_refresh_ignores_other_context(monkeypatch):
+    """Same-context filter in NarrativeMemory.find_similar — weights stay default on mismatch."""
+    monkeypatch.setenv("KERNEL_BAYESIAN_EMPIRICAL_WEIGHTS", "1")
+    k = EthicalKernel(variability=False)
+    for _ in range(6):
+        _register_episode(k.memory, score=-0.9, context="hostile")
+
+    actions = [
+        CandidateAction(name="help", description="", estimated_impact=0.5, confidence=0.8),
+        CandidateAction(name="wait", description="", estimated_impact=0.2, confidence=0.8),
+    ]
+    k.process("s", "p", {"risk": 0.2}, "everyday", actions, register_episode=False)
+    np.testing.assert_allclose(k.bayesian.hypothesis_weights, DEFAULT_HYPOTHESIS_WEIGHTS)
+
+
+def test_refresh_weights_blend_zero_is_default():
+    be = BayesianEngine()
+    from src.modules.narrative import NarrativeMemory
+
+    mem = NarrativeMemory()
+    for _ in range(4):
+        _register_episode(mem, score=0.99)
+    be.refresh_weights_from_episodic_memory(mem, "everyday", blend=0.0)
+    np.testing.assert_allclose(be.hypothesis_weights, DEFAULT_HYPOTHESIS_WEIGHTS)

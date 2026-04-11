@@ -152,7 +152,7 @@ Reviewers cannot see the effective core inside advisory/telemetry volume. Second
 - [x] Single doc section; aligns with PROPUESTA / UNIVERSAL_ETHOS.
 ```
 
-**Delivered:** [`docs/proposals/GOVERNANCE_MOCKDAO_AND_L0.md`](GOVERNANCE_MOCKDAO_AND_L0.md); cross-link from [`discusion/UNIVERSAL_ETHOS_AND_HUB.md`](UNIVERSAL_ETHOS_AND_HUB.md) + [`RUNTIME_CONTRACT.md`](RUNTIME_CONTRACT.md); README; `mock_dao.py` module note.
+**Delivered:** [`docs/proposals/GOVERNANCE_MOCKDAO_AND_L0.md`](GOVERNANCE_MOCKDAO_AND_L0.md); cross-link from [`docs/proposals/UNIVERSAL_ETHOS_AND_HUB.md`](UNIVERSAL_ETHOS_AND_HUB.md) + [`RUNTIME_CONTRACT.md`](RUNTIME_CONTRACT.md); README; `mock_dao.py` module note.
 
 ---
 

@@ -2,6 +2,15 @@
 
 All notable changes to this project are summarized here. For narrative context and design rationale, see [`HISTORY.md`](HISTORY.md).
 
+## Packaging, perception diagnostics, episodic Bayes tests — April 2026
+
+- **[`pyproject.toml`](pyproject.toml):** core dependency **`pydantic`** (matches [`requirements.txt`](requirements.txt)); description updated for editable install.
+- **[`src/modules/perception_schema.py`](src/modules/perception_schema.py):** `PerceptionCoercionReport` + optional `report=` on `validate_perception_dict`; bounded **uncertainty** score for coerced / defaulted LLM JSON.
+- **[`src/modules/llm_layer.py`](src/modules/llm_layer.py):** `LLMPerception.coercion_report`; `perception_from_llm_json(..., record_coercion=...)`; local heuristics omit the report.
+- **[`src/chat_server.py`](src/chat_server.py):** JSON `perception.coercion_report` when present.
+- **Tests:** [`tests/test_perception_coercion_report.py`](tests/test_perception_coercion_report.py), [`tests/test_packaging_metadata.py`](tests/test_packaging_metadata.py); extra episodic-weight cases in [`tests/test_bayesian_episodic_weights.py`](tests/test_bayesian_episodic_weights.py).
+- **Docs:** [`docs/proposals/CRITIQUE_ROADMAP_ISSUES.md`](docs/proposals/CRITIQUE_ROADMAP_ISSUES.md) — fixed `UNIVERSAL_ETHOS_AND_HUB` path (`docs/proposals/...`).
+
 ## Documentation — README proposal links match `main` tree — April 2026
 
 - **[`README.md`](README.md):** fixed broken `docs/proposals` targets after selective merge — use existing Spanish canonical names (`ESTRATEGIA_Y_RUTA.md`, `PROPUESTA_*`, `PAPER_AFECTO_FENOMENOS_Y_HIPOTESIS.md`) instead of English filenames not present on `main`.

@@ -18,7 +18,8 @@ from __future__ import annotations
 
 import math
 import re
-from typing import Any, Dict
+from dataclasses import dataclass, field
+from typing import Any, Dict, List, Optional
 
 from pydantic import BaseModel, ConfigDict, Field
 
@@ -47,6 +48,65 @@ PERCEPTION_FIELD_DEFAULTS: Dict[str, float] = {
     "manipulation": 0.0,
     "familiarity": 0.0,
 }
+
+NUMERIC_PERCEPTION_FIELDS: tuple[str, ...] = tuple(PERCEPTION_FIELD_DEFAULTS.keys())
+
+
+def _classify_numeric_input(raw: Any) -> str:
+    """Return ok | missing | invalid | clamped (pre-coercion, for diagnostics only)."""
+    if raw is None:
+        return "missing"
+    try:
+        v = float(raw)
+    except (TypeError, ValueError):
+        return "invalid"
+    if not math.isfinite(v):
+        return "invalid"
+    if v < 0.0 or v > 1.0:
+        return "clamped"
+    return "ok"
+
+
+@dataclass
+class PerceptionCoercionReport:
+    """
+    Auditable summary of repairs applied to LLM perception JSON.
+
+    Used for production hardening: downstream code and HTTP surfaces can treat
+    ``uncertainty`` as “how much we distrusted the raw payload,” not model confidence.
+    """
+
+    non_dict_payload: bool = False
+    context_fallback: bool = False
+    fields_defaulted: List[str] = field(default_factory=list)
+    fields_clamped: List[str] = field(default_factory=list)
+    pydantic_emergency_fallback: bool = False
+    coherence_adjusted: bool = False
+
+    def uncertainty(self) -> float:
+        u = 0.0
+        if self.non_dict_payload:
+            u += 0.4
+        if self.context_fallback:
+            u += 0.08
+        u += min(0.36, 0.06 * len(self.fields_defaulted))
+        u += min(0.2, 0.04 * len(self.fields_clamped))
+        if self.pydantic_emergency_fallback:
+            u += 0.35
+        if self.coherence_adjusted:
+            u += 0.05
+        return min(1.0, u)
+
+    def to_public_dict(self) -> Dict[str, Any]:
+        return {
+            "non_dict_payload": self.non_dict_payload,
+            "context_fallback": self.context_fallback,
+            "fields_defaulted": sorted(self.fields_defaulted),
+            "fields_clamped": sorted(self.fields_clamped),
+            "pydantic_emergency_fallback": self.pydantic_emergency_fallback,
+            "coherence_adjusted": self.coherence_adjusted,
+            "uncertainty": round(self.uncertainty(), 4),
+        }
 
 
 def _clamp_unit_interval(x: Any, default: float = 0.5) -> float:
@@ -104,12 +164,20 @@ def apply_signal_coherence(
     return r, h, c
 
 
-def validate_perception_dict(data: Any) -> Dict[str, Any]:
+def validate_perception_dict(
+    data: Any,
+    *,
+    report: Optional[PerceptionCoercionReport] = None,
+) -> Dict[str, Any]:
     """
     Coerce LLM JSON to bounded floats, validate with Pydantic, apply hostility/calm and
     cross-field coherence, sanitize summary (same contract as legacy ``perception_from_llm_json``).
+
+    When ``report`` is set, it is filled with coercion diagnostics (for logging / API surfaces).
     """
     if not isinstance(data, dict):
+        if report is not None:
+            report.non_dict_payload = True
         data = {}
 
     raw_ctx = data.get("suggested_context", "everyday_ethics")
@@ -117,6 +185,8 @@ def validate_perception_dict(data: Any) -> Dict[str, Any]:
         ctx = raw_ctx
     else:
         ctx = "everyday_ethics"
+        if report is not None:
+            report.context_fallback = True
 
     summary = data.get("summary", "")
     if not isinstance(summary, str):
@@ -126,22 +196,24 @@ def validate_perception_dict(data: Any) -> Dict[str, Any]:
     if len(summary) > 500:
         summary = summary[:500] + "…"
 
-    coerced = {
-        "risk": _coerce_field("risk", data.get("risk")),
-        "urgency": _coerce_field("urgency", data.get("urgency")),
-        "hostility": _coerce_field("hostility", data.get("hostility")),
-        "calm": _coerce_field("calm", data.get("calm")),
-        "vulnerability": _coerce_field("vulnerability", data.get("vulnerability")),
-        "legality": _coerce_field("legality", data.get("legality")),
-        "manipulation": _coerce_field("manipulation", data.get("manipulation")),
-        "familiarity": _coerce_field("familiarity", data.get("familiarity")),
-        "suggested_context": ctx,
-        "summary": summary,
-    }
+    coerced: Dict[str, Any] = {}
+    for name in NUMERIC_PERCEPTION_FIELDS:
+        raw = data.get(name)
+        if report is not None:
+            kind = _classify_numeric_input(raw)
+            if kind in ("missing", "invalid"):
+                report.fields_defaulted.append(name)
+            elif kind == "clamped":
+                report.fields_clamped.append(name)
+        coerced[name] = _coerce_field(name, raw)
+    coerced["suggested_context"] = ctx
+    coerced["summary"] = summary
 
     try:
         p = _LLMPerceptionPayload.model_validate(coerced)
     except Exception:
+        if report is not None:
+            report.pydantic_emergency_fallback = True
         p = _LLMPerceptionPayload.model_validate(
             {
                 "risk": PERCEPTION_FIELD_DEFAULTS["risk"],
@@ -157,7 +229,10 @@ def validate_perception_dict(data: Any) -> Dict[str, Any]:
             }
         )
 
-    r, h, c = apply_signal_coherence(float(p.risk), float(p.hostility), float(p.calm))
+    r0, h0, c0 = float(p.risk), float(p.hostility), float(p.calm)
+    r, h, c = apply_signal_coherence(r0, h0, c0)
+    if report is not None and (r != r0 or h != h0 or c != c0):
+        report.coherence_adjusted = True
 
     return {
         "risk": r,

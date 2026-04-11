@@ -5,12 +5,13 @@ build-backend = "setuptools.build_meta"
 [project]
 name = "ethos-kernel"
 version = "0.0.0"
-description = "Ethos Kernel — stub pyproject for Issue 4 packaging spike (not yet published to PyPI)."
+description = "Ethos Kernel — local-first ethical decision core (editable install; not published to PyPI)."
 readme = "README.md"
 requires-python = ">=3.11"
 license = { file = "LICENSE" }
 dependencies = [
     "numpy>=2.0.0,<3.0.0",
+    "pydantic>=2.0.0,<3.0.0",
 ]
 
 [project.optional-dependencies]
