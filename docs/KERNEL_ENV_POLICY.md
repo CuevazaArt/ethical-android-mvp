@@ -19,6 +19,7 @@
 | **LLM / variability** | `LLM_MODE`, `KERNEL_VARIABILITY`, `KERNEL_GUARDIAN_MODE`, `KERNEL_GENERATIVE_*` (`KERNEL_GENERATIVE_LLM` = parse extra candidates from perception JSON) | Tone and candidate lists — MalAbs still gates actions. |
 | **Bayesian mixture (lab)** | `KERNEL_BAYESIAN_EMPIRICAL_WEIGHTS` | When `1`, nudges discrete mixture weights from recent `NarrativeMemory` episodes **in the same context** before scoring; default **off** (fixed mixture). |
 | **Nomad / identity** | `KERNEL_NOMAD_*`, `KERNEL_CHAT_INCLUDE_NOMAD_IDENTITY` | Lab simulation + JSON — **stubs** where noted in docs. |
+| **Metaplan / drives (advisory)** | `KERNEL_METAPLAN_HINT`, `KERNEL_METAPLAN_DRIVE_FILTER`, `KERNEL_METAPLAN_DRIVE_EXTRA` | Owner goals in LLM tone; optional filter of `drive_intents` vs goal wording; optional coherence hint — **no** ethics veto. |
 
 ---
 

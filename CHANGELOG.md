@@ -2,6 +2,12 @@
 
 All notable changes to this project are summarized here. For narrative context and design rationale, see [`HISTORY.md`](HISTORY.md).
 
+## Metaplan — drive intent filter vs master goals (v9.4, trace item 3) — April 2026
+
+- **`KERNEL_METAPLAN_DRIVE_FILTER`:** optional lexical overlap filter for `DriveArbiter` advisory intents vs `MasterGoal` titles (default **off**; fallback keeps all intents if none overlap).
+- **`KERNEL_METAPLAN_DRIVE_EXTRA`:** optional low-priority `reflect_metaplan_coherence` intent when room remains.
+- **Docs:** `KERNEL_ENV_POLICY.md`, `OPERATOR_QUICK_REF.md`; **`docs/TRACE_IMPLEMENTATION_RECENT.md`** item 3 marked delivered.
+
 ## Generative candidates — LLM JSON path (v9.2+, trace item 2) — April 2026
 
 - **`KERNEL_GENERATIVE_LLM`:** when `1`, perception prompt includes optional `generative_candidates`; `LLMPerception.generative_candidates` passes through; `generative_candidates.parse_generative_candidates_from_llm` builds actions (strict names, optional MalAbs signal allowlist).

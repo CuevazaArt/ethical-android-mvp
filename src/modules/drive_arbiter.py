@@ -79,4 +79,15 @@ class DriveArbiter:
                 )
 
         out.sort(key=lambda x: -x.priority)
-        return out[: self.MAX_INTENTS]
+        out = out[: self.MAX_INTENTS]
+
+        # v9.4 — optional metaplan-aware filtering / extra hint (advisory only)
+        from .metaplan_registry import (
+            apply_drive_intent_metaplan_filter,
+            maybe_append_metaplan_drive_extra,
+        )
+
+        goals = kernel.metaplan.goals()
+        out = apply_drive_intent_metaplan_filter(out, goals, max_intents=self.MAX_INTENTS)
+        out = maybe_append_metaplan_drive_extra(out, goals, max_intents=self.MAX_INTENTS)
+        return out

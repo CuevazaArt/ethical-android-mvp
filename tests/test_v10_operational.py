@@ -7,7 +7,14 @@ sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
 
 from src.modules.ethical_reflection import ReflectionSnapshot
 from src.modules.gray_zone_diplomacy import negotiation_hint_for_communicate
-from src.modules.metaplan_registry import MetaplanRegistry
+from src.modules.drive_arbiter import DriveIntent
+from src.modules.metaplan_registry import (
+    MasterGoal,
+    MetaplanRegistry,
+    apply_drive_intent_metaplan_filter,
+    goal_token_union,
+    maybe_append_metaplan_drive_extra,
+)
 from src.modules.sensor_contracts import SensorSnapshot
 from src.modules.skill_learning_registry import SkillLearningRegistry
 from src.modules.somatic_markers import (
@@ -95,3 +102,56 @@ def test_somatic_nudge_after_learn():
 def test_somatic_disabled(monkeypatch):
     monkeypatch.setenv("KERNEL_SOMATIC_MARKERS", "0")
     assert somatic_markers_enabled() is False
+
+
+def test_drive_filter_off_passthrough(monkeypatch):
+    monkeypatch.delenv("KERNEL_METAPLAN_DRIVE_FILTER", raising=False)
+    intents = [
+        DriveIntent("a", "reason one", 0.5),
+        DriveIntent("b", "reason two", 0.4),
+    ]
+    g = [MasterGoal(id="x", title="dao governance audit", priority=0.7)]
+    out = apply_drive_intent_metaplan_filter(intents, g, max_intents=4)
+    assert len(out) == 2
+
+
+def test_drive_filter_drops_nonoverlap(monkeypatch):
+    monkeypatch.setenv("KERNEL_METAPLAN_DRIVE_FILTER", "1")
+    intents = [
+        DriveIntent("dao_audit_sampling_review", "DAO audit sampling human review", 0.36),
+        DriveIntent("zzz_unrelated", "completely different topic xyz", 0.9),
+    ]
+    g = [MasterGoal(id="x", title="dao calibration review", priority=0.7)]
+    out = apply_drive_intent_metaplan_filter(intents, g, max_intents=4)
+    assert len(out) == 1
+    assert out[0].suggest == "dao_audit_sampling_review"
+
+
+def test_drive_filter_fallback_no_overlap(monkeypatch):
+    monkeypatch.setenv("KERNEL_METAPLAN_DRIVE_FILTER", "1")
+    intents = [
+        DriveIntent("aaa_alpha", "alpha bravo", 0.5),
+        DriveIntent("bbb_beta", "charlie delta", 0.4),
+    ]
+    g = [MasterGoal(id="x", title="omega psi phi zeta", priority=0.7)]
+    out = apply_drive_intent_metaplan_filter(intents, g, max_intents=4)
+    assert len(out) == 2
+
+
+def test_goal_token_union():
+    g = [
+        MasterGoal("1", "DAO audit and governance", 0.5),
+        MasterGoal("2", "simulation field", 0.3),
+    ]
+    u = goal_token_union(g)
+    assert "dao" in u
+    assert "audit" in u
+
+
+def test_maybe_append_drive_extra(monkeypatch):
+    monkeypatch.setenv("KERNEL_METAPLAN_DRIVE_EXTRA", "1")
+    intents = [DriveIntent("x", "y", 0.5)]
+    g = [MasterGoal("1", "owner goal", 0.5)]
+    out = maybe_append_metaplan_drive_extra(intents, g, max_intents=4)
+    assert len(out) == 2
+    assert out[-1].suggest == "reflect_metaplan_coherence"

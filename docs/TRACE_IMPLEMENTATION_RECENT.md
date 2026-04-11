@@ -51,7 +51,7 @@ Siguientes líneas (alineadas con PROPUESTA, después de P0 perfiles):
 
 2. **v9.2+ generative with local LLM** — **Done:** optional `generative_candidates` in perception JSON when `KERNEL_GENERATIVE_LLM=1` (extends LLM prompt); `parse_generative_candidates_from_llm` in `generative_candidates.py`; same MalAbs path; tests in `tests/test_generative_candidates.py`. *Support:* [81]–[83], [31].
 
-3. **v9.4 metaplanning** — Explicit advisory filtering vs `MasterGoal` in `drive_intents` or extra hints; documented consent. *Support:* [33], [17], [15].
+3. **v9.4 metaplanning** — **Done:** `KERNEL_METAPLAN_DRIVE_FILTER` (lexical overlap filter vs `MasterGoal` titles; safe fallback); `KERNEL_METAPLAN_DRIVE_EXTRA` (optional coherence intent); `apply_drive_intent_metaplan_filter` / `maybe_append_metaplan_drive_extra` in `metaplan_registry.py`; wired in `DriveArbiter.evaluate`; `MetaplanRegistry.consent_note_drive_filter`; tests in `tests/test_v10_operational.py`. *Support:* [33], [17], [15].
 
 4. **v9.3 swarm** — Only with a threat model; prototype outside the core. *Support:* [52], [57], [58].
 

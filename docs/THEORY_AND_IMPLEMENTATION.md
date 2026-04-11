@@ -67,7 +67,7 @@ See also `src/modules/psi_sleep.py`, `src/modules/immortality.py`, `src/modules/
 
 **v9 — capacidad ampliada (roadmap):** Cuatro pilares documentados en [discusion/PROPUESTA_CAPACIDAD_AMPLIADA_V9.md](discusion/PROPUESTA_CAPACIDAD_AMPLIADA_V9.md). **En repo:** (9.1) `epistemic_dissonance.py` — telemetría y hint de tono; (9.2) `generative_candidates.py` — candidatos extra con `source` / `proposal_id`, opt-in `KERNEL_GENERATIVE_ACTIONS`, opcional `KERNEL_GENERATIVE_LLM` + `generative_candidates` en JSON de percepción; **sin** bypass de MalAbs. Pilares 9.3–9.4: diseño / futuro.
 
-**v10 — estrategia operativa:** [discusion/PROPUESTA_ESTRATEGIA_OPERATIVA_V10.md](discusion/PROPUESTA_ESTRATEGIA_OPERATIVA_V10.md). **En repo (MVP):** `gray_zone_diplomacy.py` (hints de negociación en tensión / gray zone); `skill_learning_registry.py` (tickets + auditoría en Ψ Sleep); `somatic_markers.py` (patrón sensorial → nudge en señales); `metaplan_registry.py` (metas en RAM → hint LLM). Env: `KERNEL_GRAY_ZONE_DIPLOMACY`, `KERNEL_SOMATIC_MARKERS`, `KERNEL_METAPLAN_HINT`. Persistencia de metas en checkpoint: futuro.
+**v10 — estrategia operativa:** [discusion/PROPUESTA_ESTRATEGIA_OPERATIVA_V10.md](discusion/PROPUESTA_ESTRATEGIA_OPERATIVA_V10.md). **En repo (MVP):** `gray_zone_diplomacy.py` (hints de negociación en tensión / gray zone); `skill_learning_registry.py` (tickets + auditoría en Ψ Sleep); `somatic_markers.py` (patrón sensorial → nudge en señales); `metaplan_registry.py` (metas en RAM → hint LLM; filtro opcional de `drive_intents` vs metas, consentimiento documentado en env). Env: `KERNEL_GRAY_ZONE_DIPLOMACY`, `KERNEL_SOMATIC_MARKERS`, `KERNEL_METAPLAN_HINT`, `KERNEL_METAPLAN_DRIVE_FILTER`, `KERNEL_METAPLAN_DRIVE_EXTRA`. Persistencia de metas en checkpoint: **hecho** (v3 snapshot).
 
 **Trazabilidad y bibliografía (implementaciones recientes):** tabla componente ↔ sustento con referencias numeradas en [TRACE_IMPLEMENTATION_RECENT.md](TRACE_IMPLEMENTATION_RECENT.md) e índice ampliado en [BIBLIOGRAPHY.md](../BIBLIOGRAPHY.md) (*Index by project component*).
 
@@ -175,7 +175,7 @@ P(\text{éxito})=\alpha\cdot P(\text{control interno})+\beta\cdot P(\text{factor
 | **Gray-zone diplomacy (v10)** | Hint LLM ante gray zone / tensión reflexiva / premisa advisory | `gray_zone_diplomacy.py` |
 | **Skill learning registry (v10)** | Tickets de alcance; auditoría en Ψ Sleep | `skill_learning_registry.py` |
 | **Somatic markers (v10)** | Patrón sensorial aprendido → nudge en `signals` | `somatic_markers.py` |
-| **Metaplan registry (v10)** | Metas maestras en sesión → hint LLM (advisory) | `metaplan_registry.py` |
+| **Metaplan registry (v10)** | Metas maestras en sesión → hint LLM (advisory); filtro opcional de intents de drive vs metas | `metaplan_registry.py` + `drive_arbiter.py` |
 
 ---
 
