@@ -2,6 +2,12 @@
 
 All notable changes to this project are summarized here. For narrative context and design rationale, see [`HISTORY.md`](HISTORY.md).
 
+## Epistemology — lighthouse KB validation + first-match test — April 2026
+
+- **`reality_verification`:** `validate_lighthouse_kb_structure`, `validate_lighthouse_kb_file` for operator/CI regression (schema only, not factual truth).
+- **Tests:** `tests/test_lighthouse_kb_schema.py` (fixture `demo_kb.json` must stay valid); `test_first_matching_entry_wins` in `test_reality_verification.py`.
+- **Docs:** [LIGHTHOUSE_KB.md](docs/LIGHTHOUSE_KB.md) structural validation section.
+
 ## Robustness — runtime profile helper + input-trust tests — April 2026
 
 - **`runtime_profiles.apply_runtime_profile`:** single entry point for pytest `monkeypatch` profile application; `tests/test_runtime_profiles.py` refactored; unknown profile raises `KeyError`.

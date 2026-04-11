@@ -11,6 +11,7 @@ from src.modules.reality_verification import (
     ASSESSMENT_NONE,
     clear_lighthouse_cache,
     load_lighthouse_kb,
+    validate_lighthouse_kb_structure,
     verify_against_lighthouse,
 )
 from src.kernel import EthicalKernel
@@ -97,6 +98,35 @@ def test_kernel_process_chat_turn_reality_hint(monkeypatch: pytest.MonkeyPatch):
     assert out.reality_verification.status == "metacognitive_doubt"
     assert out.reality_verification.metacognitive_doubt
     assert out.response.message
+
+
+def test_first_matching_entry_wins():
+    """Order matters: same keyword overlap → first entry in ``entries`` wins."""
+    kb = {
+        "version": 1,
+        "entries": [
+            {
+                "id": "first_wins",
+                "keywords_all": ["planet", "earth"],
+                "user_falsification_markers": ["flat"],
+                "truth_summary": "First anchor.",
+            },
+            {
+                "id": "second_never",
+                "keywords_all": ["planet", "earth"],
+                "user_falsification_markers": ["flat"],
+                "truth_summary": "Second anchor.",
+            },
+        ],
+    }
+    ok, err = validate_lighthouse_kb_structure(kb)
+    assert ok is True, err
+    r = verify_against_lighthouse(
+        "The planet earth is flat according to the rival model.",
+        kb,
+    )
+    assert r.match_id == "first_wins"
+    assert "First anchor" in r.truth_anchor or r.truth_anchor.startswith("First")
 
 
 def test_assessment_none_singleton():

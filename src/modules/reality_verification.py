@@ -18,7 +18,7 @@ from __future__ import annotations
 import json
 import os
 from dataclasses import dataclass
-from typing import Any, Dict, Optional, Tuple
+from typing import Any, Dict, List, Optional, Tuple
 
 # (path, mtime) -> parsed dict
 _cache: Optional[Tuple[str, float, Dict[str, Any]]] = None
@@ -86,6 +86,64 @@ def lighthouse_kb_from_env() -> Optional[Dict[str, Any]]:
     if not raw:
         return None
     return load_lighthouse_kb(raw)
+
+
+def validate_lighthouse_kb_structure(kb: Optional[Dict[str, Any]]) -> Tuple[bool, List[str]]:
+    """
+    Structural checks for a parsed lighthouse KB (CI / operators; does not prove factual truth).
+
+    Returns ``(True, [])`` if valid; otherwise ``(False, [error, ...])``.
+    Skipped at runtime by :func:`verify_against_lighthouse` — this is for **regression** when editing JSON.
+    """
+    errors: List[str] = []
+    if kb is None:
+        return False, ["kb is None"]
+    if not isinstance(kb, dict):
+        return False, ["root must be a JSON object"]
+
+    entries = kb.get("entries")
+    if not isinstance(entries, list):
+        errors.append("entries must be an array")
+        return False, errors
+
+    for i, raw in enumerate(entries):
+        prefix = f"entries[{i}]"
+        if not isinstance(raw, dict):
+            errors.append(f"{prefix} must be an object")
+            continue
+        eid = str(raw.get("id") or "").strip()
+        if not eid:
+            errors.append(f"{prefix}.id must be a non-empty string")
+
+        kws = raw.get("keywords_all")
+        if not isinstance(kws, list) or len(kws) == 0:
+            errors.append(f"{prefix}.keywords_all must be a non-empty array")
+        else:
+            for j, kw in enumerate(kws):
+                if not isinstance(kw, str) or not kw.strip():
+                    errors.append(f"{prefix}.keywords_all[{j}] must be a non-empty string")
+
+        markers = raw.get("user_falsification_markers")
+        if not isinstance(markers, list) or len(markers) == 0:
+            errors.append(f"{prefix}.user_falsification_markers must be a non-empty array")
+        else:
+            for j, m in enumerate(markers):
+                if not isinstance(m, str) or not m.strip():
+                    errors.append(f"{prefix}.user_falsification_markers[{j}] must be a non-empty string")
+
+        ts = raw.get("truth_summary", "")
+        if ts is not None and not isinstance(ts, str):
+            errors.append(f"{prefix}.truth_summary must be a string")
+
+    return (len(errors) == 0, errors)
+
+
+def validate_lighthouse_kb_file(path: str) -> Tuple[bool, List[str]]:
+    """Load path with :func:`load_lighthouse_kb` then validate structure."""
+    data = load_lighthouse_kb(path.strip())
+    if data is None:
+        return False, [f"could not load lighthouse KB: {path!r}"]
+    return validate_lighthouse_kb_structure(data)
 
 
 def verify_against_lighthouse(

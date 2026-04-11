@@ -43,8 +43,23 @@ The KB is **cached** by path + `mtime`; use `clear_lighthouse_cache()` in tests 
 - **False negatives:** paraphrase, typos, mixed languages, or missing keywords → no match.
 - **False positives:** broad `keywords_all` sets increase collision risk; prefer narrower keywords + specific falsification markers.
 
+## Structural validation (regression)
+
+Use after editing any KB JSON (local or fixture):
+
+- **`validate_lighthouse_kb_structure(dict)`** — returns `(ok, errors)`; checks `entries`, non-empty `id`, `keywords_all`, `user_falsification_markers`, string `truth_summary`.
+- **`validate_lighthouse_kb_file(path)`** — loads via `load_lighthouse_kb` then runs structure validation.
+
+These **do not** encode domain truth; they only catch broken schema before deploy.
+
+**CI:** `tests/test_lighthouse_kb_schema.py` validates `tests/fixtures/lighthouse/demo_kb.json`; `tests/test_reality_verification.py` covers matching behaviour and first-match order.
+
+```bash
+pytest tests/test_lighthouse_kb_schema.py tests/test_reality_verification.py -q
+```
+
 ## Fixture and tests
 
-Example file used in CI: `tests/fixtures/lighthouse/demo_kb.json` (multiple demo entries). Run tests with `pytest tests/test_reality_verification.py`.
+Example file used in CI: `tests/fixtures/lighthouse/demo_kb.json` (multiple demo entries).
 
 Design discussion: [discusion/PROPUESTA_VERIFICACION_REALIDAD_V11.md](discusion/PROPUESTA_VERIFICACION_REALIDAD_V11.md).
