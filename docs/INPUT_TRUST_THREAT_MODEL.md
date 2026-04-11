@@ -28,4 +28,5 @@ This document states **limits**. MalAbs is **not** a content moderation product,
 
 - `src/modules/absolute_evil.py` — `evaluate_chat_text`
 - `src/modules/llm_layer.py` — `perception_from_llm_json`
+- `src/modules/semantic_chat_gate.py` — reserved API for optional embedding-based chat screening (see [LLM_STACK_OLLAMA_VS_HF.md](LLM_STACK_OLLAMA_VS_HF.md), [ADR 0003](adr/0003-optional-semantic-chat-gate.md))
 - `SECURITY.md` — reporting and scope

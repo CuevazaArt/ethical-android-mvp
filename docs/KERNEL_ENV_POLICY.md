@@ -17,6 +17,7 @@
 | **Persistence / handoff** | `KERNEL_CHECKPOINT_*`, `KERNEL_CHECKPOINT_FERNET_KEY`, `KERNEL_CONDUCT_GUIDE_*` | Disk / encryption / export — **confidentiality**, not ethics. |
 | **Perception / sensors** | `KERNEL_SENSOR_*`, `KERNEL_MULTIMODAL_*`, `KERNEL_VITALITY_*` | Bounds and tuning — **heuristic** ([INPUT_TRUST_THREAT_MODEL.md](INPUT_TRUST_THREAT_MODEL.md)). |
 | **LLM / variability** | `LLM_MODE`, `KERNEL_VARIABILITY`, `KERNEL_GENERATIVE_*` (`KERNEL_GENERATIVE_LLM` = parse extra candidates from perception JSON) | Tone and candidate lists — MalAbs still gates actions. |
+| **Input trust (future)** | `KERNEL_SEMANTIC_CHAT_GATE` | Reserved for optional embedding-based chat screening ([`LLM_STACK_OLLAMA_VS_HF.md`](LLM_STACK_OLLAMA_VS_HF.md), ADR 0003); **no effect** until implemented. |
 | **Guardian Angel** | `KERNEL_GUARDIAN_MODE`, `KERNEL_GUARDIAN_ROUTINES`, `KERNEL_GUARDIAN_ROUTINES_PATH`, `KERNEL_CHAT_INCLUDE_GUARDIAN`, `KERNEL_CHAT_INCLUDE_GUARDIAN_ROUTINES` | Protective tone + optional JSON care routines (hints only); [`landing/public/guardian.html`](../landing/public/guardian.html). |
 | **Bayesian mixture (lab)** | `KERNEL_BAYESIAN_EMPIRICAL_WEIGHTS` | When `1`, nudges discrete mixture weights from recent `NarrativeMemory` episodes **in the same context** before scoring; default **off** (fixed mixture). |
 | **Nomad / identity** | `KERNEL_NOMAD_*`, `KERNEL_CHAT_INCLUDE_NOMAD_IDENTITY` | Lab simulation + JSON — **stubs** where noted in docs. |
