@@ -55,6 +55,66 @@ Síntesis de revisión interna: **qué aporta** frente a lo ya dicho en el repo 
 
 ---
 
+## Revisión integral — fortalezas (registro de valor)
+
+| Fortaleza | Por qué importa |
+|-------------|-----------------|
+| **Agencia ética computacional explícita** (filosofía, decisión, verificabilidad en tests) | Poco común en OSS; encaja con [`THEORY_AND_IMPLEMENTATION.md`](THEORY_AND_IMPLEMENTATION.md) y propósito del README. |
+| **Modularidad con roles éticos claros** (Uchi–Soto, buffer, locus, Psi Sleep, etc.) | Facilita auditoría por módulo; tabla “quién fija `final_action`” en [`CORE_DECISION_CHAIN.md`](CORE_DECISION_CHAIN.md). |
+| **Documentación densa** (teoría, historia v1–v12, `docs/discusion/`, bibliografía) | Transparente académicamente; reduce “caja negra”. |
+| **Varias superficies** (batch, WebSocket, dashboard estático, landing) | Demuestra runtime real sin acoplar un solo UI. |
+| **Suite de tests grande** (invariantes, integración, persistencia) | Base para regresión; no sustituye validación externa (véase Issue 3 en crítica). |
+
+---
+
+## Revisión integral — críticas (valor vs redundancia)
+
+| Crítica | Valor documental | Redundancia / matiz |
+|---------|------------------|----------------------|
+| **Sin “verdad ética” externa** — simulaciones no son mundo real | **Central y no redundante** como recordatorio. | Cubierto explícitamente por [`CRITIQUE_ROADMAP_ISSUES.md`](CRITIQUE_ROADMAP_ISSUES.md) **Issue 3** (piloto empírico); el criterio de “correcto” es **abierto por diseño** en filosofía aplicada. |
+| **Complejidad** — ¿módulos críticos vs narrativa? | **Sí** — empuja a un “mapa de criticidad” para onboarding. | Parcialmente mitigado por [`CORE_DECISION_CHAIN.md`](CORE_DECISION_CHAIN.md); módulos como Psi Sleep / weakness son **advisory** por contrato. |
+| **LLM: percepción y comunicación como sesgo** | **Sí** — coherente con GIGO. | [`INPUT_TRUST_THREAT_MODEL.md`](INPUT_TRUST_THREAT_MODEL.md) + capas de tono; no hay promesa de neutralidad del LLM. |
+| **Persistencia** — corrupción, concurrencia, auditoría entre snapshots | **Sí** como *gaps de producto* si se promete HA multi-cliente. | [`RUNTIME_PERSISTENT.md`](RUNTIME_PERSISTENT.md) ya fija límites; tests de round-trip existen; **corrupción/concurrencia** son extensiones no obligatorias para MVP lab. |
+| **Mock DAO / “governance” no on-chain** | **Sí** — evita hype. | [`GOVERNANCE_MOCKDAO_AND_L0.md`](GOVERNANCE_MOCKDAO_AND_L0.md) y README ya enmarcan **mock / off-chain**. |
+| **Input trust** — heurísticas no detalladas en README | **Parcial** — README enlaza `INPUT_TRUST`; matriz fina vive en docs. | Mejora posible: **una tabla resumida** en README (enlace profundo). |
+| **API ad-hoc / muchos `KERNEL_*`** | **Sí** — fricción de integración. | [`KERNEL_ENV_POLICY.md`](KERNEL_ENV_POLICY.md) + perfiles; OpenAPI opcional con `KERNEL_API_DOCS` (véase política). |
+| **Métricas de plataforma** (edad repo, nº issues) | **Baja** — cambian con el tiempo; **no** son indicadores de calidad del kernel. | Ignorar como evidencia en documentación estable. |
+| **Sin benchmarks vs baselines** | **Sí**. | Issue 3 + sección “No objetivos” (no certificación por simulación sola). |
+| **Branding** (slug repo vs Ethos Kernel vs lab) | **Sí** — barrera para nuevos lectores. | Registrar en README “Naming” o HISTORY; **no** exige renombrar repo de inmediato. |
+| **ES/EN mezclados** | **Sí** para contribuciones globales. | Índice bilingüe o carpeta `docs/en/` como mejora incremental. |
+| **Pocos ejemplos de diálogo “real”** | **Sí** — mejora pedagogía. | Casos de estudio = trabajo editorial; puede enlazarse a demos LAN. |
+
+---
+
+## Conclusiones para mejoras (síntesis operativa)
+
+Estas conclusiones **no** sustituyen [`ESTRATEGIA_Y_RUTA.md`](ESTRATEGIA_Y_RUTA.md) ni el backlog; ordenan prioridades **después** de las rondas ya registradas (robustez técnica, epistemología lighthouse, demo v8).
+
+### Corto plazo (mayor señal / menor fricción)
+
+1. **Honestidad de alcance:** mantener visible que el núcleo es **MVP verificable en tests**, no “ética certificada” — README + Issue 3.
+2. **Integración y operadores:** seguir densificando [`KERNEL_ENV_POLICY.md`](KERNEL_ENV_POLICY.md) y perfiles; considerar **tabla mínima** de `KERNEL_*` en README (enlaces a doc largo).
+3. **Percepción:** marcar fallos de JSON / incertidumbre en pipeline (spikes ya listados en Fase 1 de este documento).
+4. **Persistencia:** añadir tests **opt-in** de corrupción/concurrencia solo si un despliegue concreto lo exige (no bloquear lab).
+
+### Mediano plazo
+
+1. **Validación empírica** — Issue 3: protocolo de acuerdo con anotadores / expertos, **sin** confundir con verdad moral universal.
+2. **Benchmarks comparativos** — definir baselines (reglas, LLM solo, kernel) y métricas **acordadas** (no “correctitud ética” única).
+3. **Onboarding:** mapa “módulo → crítico vs advisory” derivado de `CORE_DECISION_CHAIN` + runtime contract.
+4. **Idioma:** índice de proposals ES → EN o resúmenes cortos en inglés en cabecera de cada `PROPUESTA_*.md`.
+
+### Largo plazo
+
+1. **Gobernanza real** — solo si hay modelo de amenazas y necesidad; el repo **no** obliga blockchain.
+2. **Certificación / auditoría externa** — marco posible; fuera del alcance del código actual salvo decisión de producto explícita.
+
+### Reflexión (registro)
+
+La tensión entre **formalismo verificable** y **ética situada** es inherente; el proyecto la asume mejor cuando documenta límites (simulaciones, mocks, heurísticas). El riesgo de “belleza interna sin impacto externo” se mitiga con **piloto empírico** y **benchmarks honestos**, no solo con más módulos.
+
+---
+
 ## Fase 1 — Confianza de entrada y percepción (0–3 meses *orientativos*)
 
 **Objetivo:** reducir GIGO y ataques triviales **sin** sustituir el núcleo normativo por un modelo opaco.
@@ -99,14 +159,11 @@ Síntesis de revisión interna: **qué aporta** frente a lo ya dicho en el repo 
 
 ---
 
-## Próximas propuestas
+## Cierre de la ronda de propuestas (documental)
 
-*Espacio reservado para la **última** ronda de diseño por incorporar* (revisión externa, socio técnico o fork de producto). El análisis de núcleo–narrativa (arriba) y el roadmap por fases quedan **cerrados como registro** hasta nueva entrada.
+Las entradas **“producción v2”**, **núcleo–narrativa** y **revisión integral (fortalezas / críticas / conclusiones)** quedan **archivadas** en este archivo como registro único. Nuevas ideas de producto deberían abrir **issues** o ADRs específicos; no duplicar aquí listas largas salvo síntesis.
 
-Al añadir una propuesta:
-
-1. Indicar **qué fase** toca y **qué documentos del repo** actualiza o contradice.
-2. Añadir enlace en [`CHANGELOG.md`](../CHANGELOG.md) si hay decisión de alcance o spike de código.
+Para cambios de alcance o spikes de código: [`CHANGELOG.md`](../CHANGELOG.md) + PR.
 
 ---
 
