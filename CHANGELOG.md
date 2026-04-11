@@ -6,6 +6,10 @@ All notable changes to this project are summarized here. For narrative context a
 
 - **[`docs/EMPIRICAL_PILOT_PROTOCOL.md`](docs/EMPIRICAL_PILOT_PROTOCOL.md):** Issue 3–aligned operator checklist; cross-links [`EMPIRICAL_PILOT_METHODOLOGY.md`](docs/EMPIRICAL_PILOT_METHODOLOGY.md).
 
+## ADR — async orchestration future stub (Phase E) — April 2026
+
+- **[`docs/adr/0002-async-orchestration-future.md`](docs/adr/0002-async-orchestration-future.md):** placeholder decision record for async chat/kernel orchestration.
+
 ## Bayesian mixture — episodic weight nudge (Phase C) — April 2026
 
 - **`KERNEL_BAYESIAN_EMPIRICAL_WEIGHTS`:** when `1`, `BayesianEngine.refresh_weights_from_episodic_memory` runs before impact scoring (same-context episodes); default **off**; `BayesianEngine.reset_mixture_weights` when disabled.
