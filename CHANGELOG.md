@@ -6,7 +6,7 @@ All notable changes to this project are summarized here. For narrative context a
 
 - **[`docs/LLM_STACK_OLLAMA_VS_HF.md`](docs/LLM_STACK_OLLAMA_VS_HF.md):** comparative table, mapping to Ethos Kernel (language vs future embedding gate), implementable vs deferred.
 - **[`docs/adr/0003-optional-semantic-chat-gate.md`](docs/adr/0003-optional-semantic-chat-gate.md):** ADR for optional HF-style chat screening; **`src/modules/semantic_chat_gate.py`** extension point (returns ``None`` until implemented).
-- **Cross-links:** [`INPUT_TRUST_THREAT_MODEL.md`](docs/INPUT_TRUST_THREAT_MODEL.md), README (Ollama section), [`KERNEL_ENV_POLICY.md`](docs/KERNEL_ENV_POLICY.md), [`OPERATOR_QUICK_REF.md`](docs/OPERATOR_QUICK_REF.md), [`docs/adr/README.md`](docs/adr/README.md).
+- **Cross-links:** [`INPUT_TRUST_THREAT_MODEL.md`](docs/INPUT_TRUST_THREAT_MODEL.md), README (Ollama section), [`KERNEL_ENV_POLICY.md`](docs/KERNEL_ENV_POLICY.md), [`OPERATOR_QUICK_REF.md`](docs/OPERATOR_QUICK_REF.md), [`docs/adr/README.md`](docs/adr/README.md), [`THEORY_AND_IMPLEMENTATION.md`](docs/THEORY_AND_IMPLEMENTATION.md) (executive summary).
 
 ## Guardian Angel — care routines + static UI (trace item 5) — April 2026
 

@@ -9,6 +9,8 @@ This document aligns the **mathematical and logical specification** of the Ethos
 | **Ethical kernel** (`src/kernel.py` + `src/modules/`) | After MalAbs, Bayes, poles, and will fix the action, **reflection → salience → PAD** run read-only; then (if `register_episode`) memory, weakness, forgiveness, DAO; **narrative identity** updates only inside `NarrativeMemory.register`. LLM-facing context strings do not change the policy. | **Deterministic** given fixed inputs and with variability disabled; optional controlled noise via `VariabilityEngine`. |
 | **LLM layer** (`src/modules/llm_layer.py`) | **Does not decide.** Maps text ↔ signals and explains outcomes. On `process_natural`, the MalAbs text gate runs on the situation string before `perceive`; then `process` runs only after perception. Documented as: “The LLM does NOT decide. The kernel decides.” | Text generation can be stochastic when using an API; it does not replace the kernel’s argmax / veto logic. |
 
+**Stack (Ollama vs Hugging Face):** local **language** via Ollama (`llm_backends`); optional future **embedding** screening for chat text only as a MalAbs complement — not a policy bypass — see [`LLM_STACK_OLLAMA_VS_HF.md`](LLM_STACK_OLLAMA_VS_HF.md) and [`adr/0003-optional-semantic-chat-gate.md`](adr/0003-optional-semantic-chat-gate.md).
+
 So the “parrot” objection applies to **opaque next-token predictors used as the sole policy**. Here, the policy is **inspectable Python**: formulas below map to named functions and files.
 
 ## Decision pipeline (implementation order)
