@@ -5,6 +5,7 @@ All notable changes to this project are summarized here. For narrative context a
 ## Documentation — production hardening roadmap (non-binding) — April 2026
 
 - **[`docs/PRODUCTION_HARDENING_ROADMAP.md`](docs/PRODUCTION_HARDENING_ROADMAP.md):** synthesizes external “production-ready” proposals into three phases (input trust / architecture / UX & constitution) with explicit non-goals and a **“Próximas propuestas”** slot; cross-links `ESTRATEGIA_Y_RUTA`, `CRITIQUE_ROADMAP_ISSUES`, ADR packaging, input-trust docs. README + `discusion/README` pointers.
+- **Same doc — núcleo–narrativa analysis (April 2026):** functional gaps (fixed Bayes weights vs episodic memory, poles linearity, MalAbs/leet, perception defaults), architectural notes (kernel coupling, signal confidence, `consequence_projection` non-feedback); **registered spike:** empirical `hypothesis_weights` from `NarrativeMemory` (not implemented). Awaiting final proposal in “Próximas propuestas”.
 
 ## Demo — situated v8 + LAN profile (`situated_v8_lan_demo`) — April 2026
 
