@@ -2,6 +2,16 @@
 
 All notable changes to this project are summarized here. For narrative context and design rationale, see [`HISTORY.md`](HISTORY.md).
 
+## Uchi–Soto Phase 3 — roster tier, multimodal EMA, forget buffer, rich links — April 2026
+
+- **`RelationalTier`:** `ephemeral` → `stranger_stable` → `acquaintance` → `trusted_uchi` → `inner_circle` / `owner_primary` (top two **explicit-only** via `set_relational_tier_explicit`; autopromotion capped at `trusted_uchi`).
+- **`InteractionProfile`:** `linked_peer_ids` (max 4); `relational_tier`, `tier_explicit`, `tier_pinned`, `last_subjective_turn`; snapshot fields round-trip in `uchi_soto_profiles`.
+- **`UchiSotoModule`:** `ingest_turn_context` (EMA on `sensor_trust_ema` from signals + optional `SensorSnapshot` / `MultimodalAssessment`; forget-buffer purge for idle `ephemeral` / stale low-weight strangers); `maybe_autopromote_relational_tier`; `set_relational_tier_explicit` / `clear_tier_explicit`; tier lines in `_compose_tone_brief`.
+- **Kernel:** `process(..., sensor_snapshot=..., multimodal_assessment=...)` calls `ingest_turn_context` before social evaluation; `process_chat_turn` passes chat multimodal assessment and runs `maybe_autopromote_relational_tier` after `register_result`.
+- **Env (optional):** `KERNEL_UCHI_SENSOR_TRUST_EMA_ALPHA` (default `0.18`), `KERNEL_UCHI_ROSTER_FORGET_TTL_TURNS` (default `96`).
+- **Tests:** `tests/test_uchi_soto.py` (Phase 3 cases), `tests/test_persistence.py`.
+- **Design doc:** [PROPUESTA_ROSTER_SOCIAL_Y_RELACIONES_JERARQUICAS.md](docs/discusion/PROPUESTA_ROSTER_SOCIAL_Y_RELACIONES_JERARQUICAS.md) Fase 3 marked implemented.
+
 ## Uchi–Soto Phase 2 — structured profile fields + composed tone_brief — April 2026
 
 - **`InteractionProfile`:** `display_alias`, `tone_preference` (`neutral` \| `warm` \| `formal`), `domestic_tags`, `topic_avoid_tags`, `sensor_trust_ema`, `linked_to_agent_id` (advisory; serialized in `uchi_soto_profiles`).
