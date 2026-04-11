@@ -2,6 +2,10 @@
 
 All notable changes to this project are summarized here. For narrative context and design rationale, see [`HISTORY.md`](HISTORY.md).
 
+## Documentation — empirical pilot operator protocol (Phase D) — April 2026
+
+- **[`docs/EMPIRICAL_PILOT_PROTOCOL.md`](docs/EMPIRICAL_PILOT_PROTOCOL.md):** Issue 3–aligned operator checklist; cross-links [`EMPIRICAL_PILOT_METHODOLOGY.md`](docs/EMPIRICAL_PILOT_METHODOLOGY.md).
+
 ## Bayesian mixture — episodic weight nudge (Phase C) — April 2026
 
 - **`KERNEL_BAYESIAN_EMPIRICAL_WEIGHTS`:** when `1`, `BayesianEngine.refresh_weights_from_episodic_memory` runs before impact scoring (same-context episodes); default **off**; `BayesianEngine.reset_mixture_weights` when disabled.
