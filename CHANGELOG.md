@@ -4,7 +4,7 @@ All notable changes to this project are summarized here. For narrative context a
 
 ## Logo asset — canonical under `docs/multimedia` — April 2026
 
-- **Single source:** [`docs/multimedia/logo-ethical-awareness.png`](docs/multimedia/logo-ethical-awareness.png).
+- **Single source:** [`docs/multimedia/logo-ethical-awareness.png`](docs/multimedia/logo-ethical-awareness.png) (duplicate **`logo-ethical-awareness.png`** at repo root removed; nothing linked to it).
 - **Landing:** [`landing/scripts/sync-logo.mjs`](landing/scripts/sync-logo.mjs) runs on **`npm install`**, **`npm run dev`**, and **`npm run build`**, writing **`landing/public/logo-ethical-awareness.png`** (gitignored).
 - **Root [`dashboard.html`](dashboard.html):** image `src` points at **`docs/multimedia/logo-ethical-awareness.png`** for static serving from the repo root.
 - **[`landing/public/dashboard.html`](landing/public/dashboard.html):** image `src` is **`../../docs/multimedia/logo-ethical-awareness.png`** (works when opening the file from disk). **`next.config.ts`** rewrites **`/docs/multimedia/logo-ethical-awareness.png`** → **`/logo-ethical-awareness.png`** for **`next dev`** / **`next start`**.
