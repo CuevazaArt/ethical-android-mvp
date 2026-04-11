@@ -36,8 +36,8 @@ Security fixes, when provided, apply to the **default branch** (`main`) going fo
 
 ## Kernel input trust (MalAbs + LLM perception)
 
-- **MalAbs chat gate** (`AbsoluteEvilDetector.evaluate_chat_text`) uses **conservative substring lists** after Unicode normalization — **not** unbreakable filtering. Paraphrase and novel jailbreaks can slip through; see [`docs/INPUT_TRUST_THREAT_MODEL.md`](docs/INPUT_TRUST_THREAT_MODEL.md).
-- **LLM perception JSON** is **clamped and validated** (`perception_from_llm_json` in `src/modules/llm_layer.py`). Garbage-in / prompt-injection can still skew signals within \([0,1]\); the kernel does not treat numeric outputs as ground truth.
+- **MalAbs chat gate** (`AbsoluteEvilDetector.evaluate_chat_text`) uses **conservative substring lists** after Unicode normalization — **not** unbreakable filtering. Paraphrase and novel jailbreaks can slip through; see [`docs/INPUT_TRUST_THREAT_MODEL.md`](docs/INPUT_TRUST_THREAT_MODEL.md). The same gate runs on **`process_natural`** input before perception.
+- **LLM perception JSON** is **clamped and validated** (`perception_from_llm_json` in `src/modules/llm_layer.py`); non-object JSON is ignored. Garbage-in / prompt-injection can still skew signals within \([0,1]\); the kernel does not treat numeric outputs as ground truth.
 
 ## Hardening in this repo (landing + dashboard)
 

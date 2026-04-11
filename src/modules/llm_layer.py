@@ -18,7 +18,7 @@ import math
 import os
 import re
 from dataclasses import dataclass
-from typing import Optional, Dict, Tuple
+from typing import Any, Optional, Dict, Tuple
 
 try:
     import anthropic
@@ -33,6 +33,7 @@ except ImportError:
     HAS_HTTPX = False
 
 from .llm_backends import AnthropicCompletion, OllamaCompletion
+from .input_trust import strip_unsafe_perception_text
 
 
 def _normalize_llm_mode(mode: str) -> str:
@@ -84,14 +85,17 @@ def _clamp_unit_interval(x, default: float = 0.5) -> float:
     return max(0.0, min(1.0, v))
 
 
-def perception_from_llm_json(data: dict, situation: str) -> LLMPerception:
+def perception_from_llm_json(data: Any, situation: str) -> LLMPerception:
     """
     Build ``LLMPerception`` from parsed LLM JSON with bounds checks.
 
+    Non-dict payloads (e.g. JSON array from a confused model) are treated as empty.
     Unknown ``suggested_context`` values fall back to ``everyday_ethics``.
     Hostility and calm are both high, calm is nudged down (GIGO / inconsistent LLM output).
-    Summary length is capped.
+    Summary length is capped; control characters stripped.
     """
+    if not isinstance(data, dict):
+        data = {}
     fb = situation[:100] if situation else ""
     risk = _clamp_unit_interval(data.get("risk", 0.5))
     urgency = _clamp_unit_interval(data.get("urgency", 0.5))
@@ -114,6 +118,7 @@ def perception_from_llm_json(data: dict, situation: str) -> LLMPerception:
     summary = data.get("summary", fb)
     if not isinstance(summary, str):
         summary = str(summary)
+    summary = strip_unsafe_perception_text(summary)
     summary = re.sub(r"\s+", " ", summary.strip())
     if len(summary) > 500:
         summary = summary[:500] + "…"
@@ -344,7 +349,7 @@ class LLMModule:
         if self.mode in ("api", "ollama"):
             response = self._llm_completion(PROMPT_PERCEPTION, user_block)
             data = self._parse_json(response)
-            if data:
+            if isinstance(data, dict) and data:
                 return perception_from_llm_json(data, situation)
 
         return self._perceive_local(user_block)

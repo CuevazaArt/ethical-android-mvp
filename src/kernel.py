@@ -861,6 +861,7 @@ class EthicalKernel:
         """
         Processes a situation described in natural language.
 
+        MalAbs text gate (``evaluate_chat_text``) runs first, same as ``process_chat_turn``.
         The LLM translates the text into numerical signals, the kernel decides,
         and then the LLM generates the verbal response and morals.
 
@@ -872,6 +873,55 @@ class EthicalKernel:
         Returns:
             (KernelDecision, VerbalResponse, RichNarrative)
         """
+        mal = self.absolute_evil.evaluate_chat_text(situation or "")
+        if mal.blocked:
+            neutral = {
+                "risk": 0.0,
+                "urgency": 0.0,
+                "hostility": 0.0,
+                "calm": 0.5,
+                "vulnerability": 0.0,
+                "legality": 1.0,
+                "manipulation": 0.0,
+                "familiarity": 0.0,
+            }
+            social_eval = self.uchi_soto.evaluate_interaction(
+                neutral, "unknown", (situation or "")[:500]
+            )
+            state = self.sympathetic.evaluate_context(neutral)
+            locus_signals = {
+                "self_control": 1.0 - neutral.get("risk", 0.0),
+                "external_factors": neutral.get("hostility", 0.0),
+                "predictability": neutral.get("calm", 0.5) * 0.5 + 0.3,
+            }
+            locus_eval = self.locus.evaluate(locus_signals, social_eval.circle.value)
+            decision = KernelDecision(
+                scenario=(situation or "")[:240],
+                place="detected by sensors",
+                absolute_evil=mal,
+                sympathetic_state=state,
+                social_evaluation=social_eval,
+                locus_evaluation=locus_eval,
+                bayesian_result=None,
+                moral=None,
+                final_action="BLOCKED: chat safety gate",
+                decision_mode="blocked",
+                blocked=True,
+                block_reason=mal.reason or "chat_safety",
+            )
+            msg = (
+                "I can't continue this line of conversation: it conflicts with non-negotiable "
+                "ethical limits. If you're in crisis, contact local emergency services or a "
+                "trusted professional."
+            )
+            response = VerbalResponse(
+                message=msg,
+                tone="firm",
+                hax_mode="Neutral posture, steady blue light.",
+                inner_voice=f"MalAbs natural-language gate: {mal.reason or 'blocked'}",
+            )
+            return decision, response, None
+
         # Step 1: LLM perceives the situation
         perception = self.llm.perceive(situation)
 

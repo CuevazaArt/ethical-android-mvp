@@ -2,6 +2,12 @@
 
 All notable changes to this project are summarized here. For narrative context and design rationale, see [`HISTORY.md`](HISTORY.md).
 
+## Input trust — MalAbs on `process_natural` + perception hardening — April 2026
+
+- **`process_natural`:** runs `evaluate_chat_text` on the situation string **before** `llm.perceive`, matching WebSocket chat defense-in-depth (blocked path returns firm refusal + `KernelDecision.blocked`).
+- **`llm_layer`:** `perceive` only accepts **dict** JSON from the model; `perception_from_llm_json` coerces non-dict to empty; **summary** strips unsafe control characters via `strip_unsafe_perception_text` in `input_trust`.
+- **Docs:** `INPUT_TRUST_THREAT_MODEL.md`, `SECURITY.md`.
+
 ## Relational v7 + Psi Sleep (premise streak, deterministic audit) — April 2026
 
 - **`premise_validation`:** `suspect_chemical_harm` narrow patterns (household chemicals + minors); advisory hints only.

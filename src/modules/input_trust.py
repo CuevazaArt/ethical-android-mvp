@@ -14,6 +14,9 @@ _ZW_RE = re.compile(
     "[\u200b\u200c\u200d\u2060\ufeff\u00ad]"
 )
 
+# C0/C1 controls that should not reach logs or downstream string handling (keep tab/newline).
+_UNSAFE_CTRL_RE = re.compile(r"[\x00-\x08\x0b\x0c\x0e-\x1f\x7f]")
+
 
 def normalize_text_for_malabs(text: str) -> str:
     """
@@ -31,3 +34,14 @@ def normalize_text_for_malabs(text: str) -> str:
     t = _ZW_RE.sub("", t)
     t = " ".join(t.split())
     return t.strip()
+
+
+def strip_unsafe_perception_text(text: str) -> str:
+    """
+    Remove ASCII control characters except tab and newline from LLM-derived summary text.
+
+    Perception JSON is untrusted; this limits log/terminal oddities and delimiter tricks.
+    """
+    if not text:
+        return ""
+    return _UNSAFE_CTRL_RE.sub("", text)
