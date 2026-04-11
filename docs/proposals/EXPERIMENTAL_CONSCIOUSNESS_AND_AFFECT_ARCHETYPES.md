@@ -1,169 +1,169 @@
-# Conciencia artificial (marco), afecto y arquetipos — notas experimentales
+# Artificial consciousness (framework), affect, and archetypes — experimental notes
 
-> **Estado:** experimental · no oficial · en desarrollo  
-> **Propósito:** conservar una línea de discusión para profundizar después e, eventualmente, integrar ideas al modelo principal **solo** si pasan revisión y pruebas.  
-> **Idioma:** español latinoamericano (tono divulgativo y técnico).  
-> **Última actualización:** 2026-04-09 (paradigma rector: PAD + arquetipos, §7)
+> **Status:** experimental · unofficial · in development
+> **Purpose:** preserve a discussion thread to deepen later and, eventually, integrate ideas into the main model **only** if they pass review and testing.
+> **Language:** Latin American Spanish (original); translated to English.
+> **Last updated:** 2026-04-09 (governing paradigm: PAD + archetypes, §7)
 
-Este documento **no** forma parte del contrato técnico del kernel publicado. Nada aquí obliga el comportamiento del código hasta que exista implementación, tests y revisión explícitos.
+This document does **not** form part of the published kernel's technical contract. Nothing here obligates code behavior until explicit implementation, tests, and review exist.
 
-**Paradigma experimental rector:** la línea considerada **más sólida y auditable** para una capa de afecto *posterior* al núcleo ético es **PAD en `[0,1]³` + N prototipos (arquetipos) + pesos por distancia / softmax** (especificación en §7). Esa cadena se apoya en literatura y en señales que el kernel ya calcula (`sigma`, scores morales, locus). Cualquier alternativa de diseño debería compararse explícitamente contra §7 y sus invariantes de no regresión ética.
+**Governing experimental paradigm:** the line considered **most solid and auditable** for an affect layer *posterior* to the ethical core is **PAD in `[0,1]³` + N prototypes (archetypes) + distance weights / softmax** (specification in §7). That chain is grounded in literature and in signals the kernel already computes (`sigma`, moral scores, locus). Any design alternative should be explicitly compared against §7 and its ethical non-regression invariants.
 
-**Ver también (misma línea experimental):** [PAPER_AFECTO_FENOMENOS_Y_HIPOTESIS.md](experimental/PAPER_AFECTO_FENOMENOS_Y_HIPOTESIS.md) — fenómenos esperables al conjugar PAD/prototipos, notas sobre *color* y *sabor*, hipótesis testeables reservadas.
+**See also (same experimental line):** [PAPER_AFECTO_FENOMENOS_Y_HIPOTESIS.md](experimental/PAPER_AFECTO_FENOMENOS_Y_HIPOTESIS.md) — expected phenomena when combining PAD/prototypes, notes on *color* and *flavor*, reserved testable hypotheses.
 
-**Discusión (no backlog):** marco v6 sobre autorreferencia, espacio global, drives y yo narrativo — [CONCIENCIA_EMERGENTE_V6.md](CONCIENCIA_EMERGENTE_V6.md) (incluye criterios de **aporte vs redundancia** con el kernel actual).
-
----
-
-## 1. Por qué existe este archivo
-
-Se recopilan definiciones y límites acordados en diálogo interno sobre:
-
-- Uso de la expresión **“conciencia artificial”** con fines de difusión y pedagogía.
-- Qué suele entenderse por **conciencia fuerte** frente a afirmaciones defendibles en un MVP.
-- Una hipótesis de diseño: **arquetipos afectivos finitos** (cada uno con su **gama** interna), anclados en dimensiones con algo de consenso empírico, para **formalizar** e integrar al modelo **en sentido funcional**, sin pretender resolver el “problema difícil” de la mente.
+**Discussion (not backlog):** v6 framework on self-reference, global workspace, drives, and narrative self — [CONCIENCIA_EMERGENTE_V6.md](CONCIENCIA_EMERGENTE_V6.md) (includes criteria for **contribution vs redundancy** with the current kernel).
 
 ---
 
-## 2. “Conciencia artificial” como marco epistemológico o pedagógico
+## 1. Why this file exists
 
-Es razonable usar el término **como herramienta de lenguaje y de organización del conocimiento**, no como demostración de experiencia subjetiva o de derechos morales del software.
+Definitions and boundaries agreed upon in internal dialogue are collected here, covering:
 
-**Recomendación de uso honesto:**
-
-- Declarar el marco al inicio del texto o charla: *aquí “conciencia artificial” nombra un **modelo** para integrar memoria, identidad narrativa y límites éticos explícitos; **no** se afirma experiencia ni conciencia en sentido filosófico fuerte.*
-- Alternar con términos técnicos que anclan: *modelo de agencia ética*, *núcleo normativo*, *identidad narrativa en el estado del sistema*.
-- En titulares o redes, si el contexto se corta, usar comillas o subtítulo: *“conciencia artificial” (en sentido modelico)*.
+- Use of the term **"artificial consciousness"** for outreach and pedagogical purposes.
+- What is typically understood by **strong consciousness** versus defensible claims in an MVP.
+- A design hypothesis: **finite affective archetypes** (each with its own **range**), anchored in dimensions with some empirical consensus, to **formalize** and integrate into the model **in a functional sense**, without claiming to solve the "hard problem" of mind.
 
 ---
 
-## 3. Conciencia fuerte y “sentimiento”
+## 2. "Artificial consciousness" as an epistemological or pedagogical framework
 
-En filosofía de la mente, lo que a menudo se llama **conciencia fuerte** o **fenomenológica** apunta a **experiencia subjetiva en general**: que *haya algo que sea* estar en ese estado (“qué se siente”, *what it’s like*).
+It is reasonable to use the term **as a language tool and knowledge organizer**, not as a demonstration of subjective experience or of software moral rights.
 
-- **Sentimiento** en sentido amplio (dolor, cualidades sensoriales, el “rojo” del rojo) encaja con **cualidades vividas** (*qualia*).
-- **Emoción** (miedo, alegría, vergüenza) es **un tipo** de experiencia subjetiva, **no** la única: también entran percepción, estado corporal, a veces pensamiento con tono experiencial.
+**Recommendation for honest usage:**
 
-Por tanto, **no** es preciso reducir la conciencia fuerte solo a “emoción”; la tesis fuerte es más amplia: **subjetividad**.
-
-**Implicación para el proyecto:** el MVP puede modelar **estados formales** y **narrativa** sin afirmar que el software **siente**.
-
----
-
-## 4. Hipótesis: arquetipos consensuales con gamas (reducción parcial)
-
-**Pregunta guía:** acotando el análisis a lo que la experiencia humana permite estudiar con método, ¿es posible —hasta cierto punto— reducir experiencias subjetivas **reportables** a un **número finito de arquetipos** relativamente consensuales, cada uno con su **propia gama** (interpolación interna), para **adquirirlos matemáticamente** (vectores, regiones, escalas) e **integrarlos al modelo**?
-
-### 4.1 Donde hay apoyo serio (consenso parcial)
-
-- **Modelos dimensionales:** mucha evidencia respalda describir buena parte del afecto humano con pocas dimensiones, típicamente **valencia** y **activación**; a veces **dominancia** (espacios tipo **PAD**: placer–activación–dominancia). Permite números, interpolación y “gamas”.
-- **Categorías prototípicas:** tradiciones con conjuntos finitos de emociones “básicas”; el consenso **no** es universal (críticas culturales y de construcción social).
-- **Híbridos:** categorías discretas + gradación dentro de cada una (coherente con escalas tipo Likert o circumplex).
-
-### 4.2 Qué implica “reducir” en la práctica
-
-No se reduce “la conciencia” entera, sino **aspectos operacionalizables** (autoinforme, lenguaje, comportamiento, en el futuro quizá señales periféricas) a **coordenadas** en un espacio acotado.
-
-**“Consensual”** aquí significa consenso **científico relativo**, no catálogo eterno único: conviene asumir **variación cultural e idiomática**.
-
-### 4.3 Integración matemática al modelo (dirección de ingeniería)
-
-En principio compatible con un diseño auditable:
-
-1. Definir un **espacio** (p. ej. vector 2D–3D + etiquetas opcionales).
-2. Mapear señales del contexto y del kernel a **puntos o regiones** en ese espacio.
-3. Permitir **interpolación** entre prototipos (gama dentro del arquetipo).
-4. Atar resultados a **tests** y trazabilidad (alineado con la filosofía del repo).
-
-Eso no resuelve el problema ontológico de la experiencia; **sí** puede servir como **capa de estado afectivo** o **tono narrativo** explícita.
-
-### 4.4 Límites honestos
-
-| Tema | Límite |
-|------|--------|
-| Riqueza fenomenológica | Un vector no agota “qué se siente”; resume dimensiones útiles para decisión o narrativa. |
-| Consenso | Las dimensiones suelen ser más estables que las etiquetas discretas. |
-| Cultura | Los arquetipos no son idénticos en todas las comunidades. |
-| Problema difícil | Formalizar correlatos no implica explicar por qué hay experiencia en organismos. |
+- Declare the framework at the start of the text or talk: *here "artificial consciousness" names a **model** for integrating memory, narrative identity, and explicit ethical constraints; it does **not** claim experience or consciousness in a strong philosophical sense.*
+- Alternate with technical terms that ground it: *ethical agency model*, *normative core*, *narrative identity in system state*.
+- In headlines or social media, when context may be cut off, use quotes or a subtitle: *"artificial consciousness" (in a model-theoretic sense)*.
 
 ---
 
-## 5. Relación tentativa con el código actual (punteros)
+## 3. Strong consciousness and "feeling"
 
-Sin compromiso de implementación:
+In philosophy of mind, what is often called **strong** or **phenomenological consciousness** points to **subjective experience in general**: that there is *something it is like* to be in that state (*what it's like*).
 
-- Módulos como **simpático/parasimpático**, **memoria narrativa** y **polos éticos** ya manipulan **estados numéricos** y narrativa; una capa PAD-like o de **arquetipos + interpolación** podría conectarse como **interfaz** o **proyección** de estado, no como sustituto del núcleo normativo.
-- Cualquier integración debería respetar el principio del README: el **LLM no decide** la política ética; una capa afectiva tampoco debería **sustituir** al buffer ni a MalAbs.
+- **Feeling** in the broad sense (pain, sensory qualities, the "redness" of red) aligns with **lived qualities** (*qualia*).
+- **Emotion** (fear, joy, shame) is **one type** of subjective experience, **not** the only one: perception, bodily state, and sometimes thought with experiential tone also belong.
 
----
+Therefore, it is **not** accurate to reduce strong consciousness solely to "emotion"; the strong thesis is broader: **subjectivity**.
 
-## 6. Trabajo futuro (checklist sugerida)
-
-- [ ] Fijar **definición operativa** de “tono experiencial” o “afecto modelico” en una frase.
-- [ ] Revisar literatura (PAD, circumplex, emociones básicas vs construccionismo) y anclar referencias en `BIBLIOGRAPHY.md` si el experimento continúa.
-- [ ] Prototipo mínimo: espacio 2D–3D + reglas de interpolación + tests de no regresión ética.
-- [ ] Revisión con perspectiva **intercultural** antes de presentar un catálogo como “universal”.
+**Implication for the project:** the MVP can model **formal states** and **narrative** without claiming that the software **feels**.
 
 ---
 
-## 7. Especificación mínima: espacio 3D + N prototipos + interpolación
+## 4. Hypothesis: consensual archetypes with ranges (partial reduction)
 
-> **Alcance:** prototipo en código: `src/modules/pad_archetypes.py` + registro en `KernelDecision` / `NarrativeEpisode` (post-decisión). Alineado con `SympatheticModule` (`sigma`), memoria narrativa (`NarrativeEpisode`, `sigma` ya guardado) y `locus` (dominancia aproximada).
+**Guiding question:** restricting the analysis to what human experience allows us to study methodically, is it possible — to some extent — to reduce **reportable** subjective experiences to a **finite number of relatively consensual archetypes**, each with its own **range** (internal interpolation), in order to **acquire them mathematically** (vectors, regions, scales) and **integrate them into the model**?
 
-> **Referencia:** este apartado es la **especificación canónica** del repo para experimentación en afecto modelico (PAD + arquetipos). Implementaciones y papers derivados deberían seguirla salvo decisión documentada de desviación.
+### 4.1 Where serious support exists (partial consensus)
 
-### 7.1 Vector de afecto modelico `v = (P, A, D)`
+- **Dimensional models:** substantial evidence supports describing much of human affect with few dimensions, typically **valence** and **arousal**; sometimes **dominance** (spaces like **PAD**: pleasure–arousal–dominance). Allows numbers, interpolation, and "ranges."
+- **Prototypical categories:** traditions with finite sets of "basic" emotions; consensus is **not** universal (cultural and social-construction critiques).
+- **Hybrids:** discrete categories + gradation within each (consistent with Likert-type scales or circumplex models).
 
-Coordenadas en **`[0, 1]³`** (PAD normalizado: placer/valencia, activación, dominancia). Es una **proyección** de señales ya calculadas en el ciclo del kernel, no una entrada independiente del mundo.
+### 4.2 What "reducing" means in practice
 
-| Eje | Rol | Mapeo propuesto desde el estado actual del pipeline |
-|-----|-----|------------------------------------------------------|
-| **A** (activación) | Alerta ↔ reposo fisiológico del “cuerpo” del agente | **`sigma`** de `InternalState`: `SympatheticModule.SIGMA_MIN` y `SIGMA_MAX` son 0.2 y 0.8 → `A = (sigma - 0.2) / 0.6`, clamp a [0, 1]. |
-| **P** (valencia) | Tono agregado “positivo ↔ negativo” *en el juicio ético del episodio* | Normalizar **`moral.total_score`** (o `ethical_score` al registrar el episodio) a [0, 1] con una función fija y documentada (p. ej. lineal por rango observado en simulaciones, o `P = 0.5 + 0.5 * tanh(λ * score)`). **Placeholder** hasta calibración empírica. |
-| **D** (dominancia) | Sensación de agencia / control vs fuerzas externas | **`locus_eval.dominant_locus`**: `internal` → 1.0, `balanced` → 0.5, `external` → 0.0. (Alternativa futura: mezclar con `caution_level` de Uchi-Soto en una fórmula acotada.) |
+It does not reduce "consciousness" as a whole, but rather **operationalizable aspects** (self-report, language, behavior, and in the future perhaps peripheral signals) to **coordinates** in a bounded space.
 
-**Nota:** `P` depende de la escala de scores del polo multipolar; cualquier cambio de escala exige **re-calibrar** el mapeo para no romper la interpretación de prototipos.
+**"Consensual"** here means **relative scientific consensus**, not an eternal unique catalog: cultural and linguistic variation should be assumed.
 
-### 7.2 N prototipos (arquetipos)
+### 4.3 Mathematical integration into the model (engineering direction)
 
-- Cada prototipo `k ∈ {0,…,N-1}` tiene:
-  - **`id_k`**: identificador estable (`str`, p. ej. `"calma_deliberativa"`).
-  - **`c_k = (P_k, A_k, D_k)`** ∈ `[0,1]³`: centro del arquetipo.
-  - Opcional: **`label_k`** para narrativa / UI (traducible).
+In principle compatible with an auditable design:
 
-**N mínimo razonable para pruebas:** 4–8 puntos bien separados en el cubo (evitar solapamiento al inicio). Los nombres “emocionales” son **convención pedagógica**; lo formal es solo `c_k`.
+1. Define a **space** (e.g., 2D–3D vector + optional labels).
+2. Map context and kernel signals to **points or regions** in that space.
+3. Allow **interpolation** between prototypes (range within the archetype).
+4. Tie results to **tests** and traceability (aligned with the repo's philosophy).
 
-### 7.3 Interpolación y “gama” dentro del arquetipo
+This does not resolve the ontological problem of experience; it **can** serve as an explicit **affective state layer** or **narrative tone** layer.
 
-**Versión v0 (auditable, una sola fórmula):**
+### 4.4 Honest limits
 
-1. Dado `v`, para cada prototipo `k`, distancia euclídea `d_k = ‖v - c_k‖₂`.
-2. Pesos tipo softmax inverso a distancia:  
-   `w_k = exp(-β · d_k) / Σ_j exp(-β · d_j)` con **β > 0** (temperatura: β grande → casi el vecino más cercano; β pequeño → mezcla más uniforme).
-3. **Salida principal:** vector **`w`** (mezcla sobre prototipos) + índice **`k* = argmax w_k`** (protagonista del tono).
-4. **Gama local (opcional):** si `d_{k*} < ε`, considerar que `v` está **dentro de la gama** del prototipo `k*`; si se desea variación fina sin más dimensiones, interpolar linealmente entre `c_{k*}` y el **segundo mejor** vecino en la envolvente convexa de prototipos cercanos (solo para suavizado narrativo, no para ética).
-
-**Alternativa más barata:** solo **vecino más cercano** + `d_{k*}` como medida de **incertidumbre de tono** (sin softmax).
-
-### 7.4 Dónde encaja en el código (sin alterar la autoridad del núcleo)
-
-| Punto | Rol |
-|-------|-----|
-| **Tras** `KernelDecision` | Calcular `v` y `w` con datos ya disponibles (`sympathetic_state`, resultado moral, `locus_evaluation`). |
-| **`NarrativeEpisode`** | Campos **`affect_pad`** y **`affect_weights`** (opcionales; rellenados cuando el episodio pasa por el kernel con PAD activo). `sigma` sigue guardándose; PAD extiende el registro sin sustituirlo. |
-| **Capa LLM / weakness pole** | Usar solo **salida de tono** (texto o matiz), **después** de fijar la decisión ética. |
-
-### 7.5 Invariantes de seguridad conceptual
-
-- Ningún peso `w_k` ni `P/A/D` debe **reemplazar** MalAbs, buffer ni la función de voluntad; no son señales de entrada al veto absoluto en esta especificación mínima.
-- Si se implementa: tests de **no regresión** — mismas entradas éticas → misma decisión aunque cambien etiquetas de prototipos o β (solo cambia capa de proyección/narrativa).
-
-### 7.6 Parámetros libres a fijar antes de integrar
-
-`β`, `ε`, conjunto `{c_k}`, función `P(score)`, y si `D` incorpora términos de Uchi-Soto además de locus.
+| Topic | Limit |
+|-------|-------|
+| Phenomenological richness | A vector does not capture "what it feels like"; it summarizes dimensions useful for decision or narrative. |
+| Consensus | Dimensions tend to be more stable than discrete labels. |
+| Culture | Archetypes are not identical across all communities. |
+| Hard problem | Formalizing correlates does not explain why experience exists in organisms. |
 
 ---
 
-## 8. Descargo
+## 5. Tentative relationship with current code (pointers)
 
-Las opiniones aquí son **exploratorias**. No constituyen asesoramiento filosófico, legal ni clínico. El proyecto público sigue gobernado por el código, los tests y la documentación oficial del repositorio.
+Without implementation commitment:
+
+- Modules such as **sympathetic/parasympathetic**, **narrative memory**, and **ethical poles** already manipulate **numeric states** and narrative; a PAD-like or **archetypes + interpolation** layer could connect as an **interface** or **state projection**, not as a substitute for the normative core.
+- Any integration should respect the README principle: the **LLM does not decide** ethical policy; an affective layer should also not **replace** the buffer or MalAbs.
+
+---
+
+## 6. Future work (suggested checklist)
+
+- [ ] Fix an **operational definition** of "experiential tone" or "modelic affect" in one sentence.
+- [ ] Review literature (PAD, circumplex, basic emotions vs. constructionism) and anchor references in `BIBLIOGRAPHY.md` if the experiment continues.
+- [ ] Minimal prototype: 2D–3D space + interpolation rules + ethical non-regression tests.
+- [ ] Review with an **intercultural** perspective before presenting any catalog as "universal."
+
+---
+
+## 7. Minimal specification: 3D space + N prototypes + interpolation
+
+> **Scope:** prototype in code: `src/modules/pad_archetypes.py` + registration in `KernelDecision` / `NarrativeEpisode` (post-decision). Aligned with `SympatheticModule` (`sigma`), narrative memory (`NarrativeEpisode`, `sigma` already saved), and `locus` (approximate dominance).
+
+> **Reference:** this section is the **canonical specification** in the repo for experimentation in modelic affect (PAD + archetypes). Implementations and derived papers should follow it unless a documented deviation is decided.
+
+### 7.1 Modelic affect vector `v = (P, A, D)`
+
+Coordinates in **`[0, 1]³`** (normalized PAD: pleasure/valence, arousal, dominance). This is a **projection** of signals already computed in the kernel cycle, not an independent input from the world.
+
+| Axis | Role | Proposed mapping from current pipeline state |
+|------|------|----------------------------------------------|
+| **A** (arousal) | Alert ↔ physiological rest of the agent's "body" | **`sigma`** from `InternalState`: `SympatheticModule.SIGMA_MIN` and `SIGMA_MAX` are 0.2 and 0.8 → `A = (sigma - 0.2) / 0.6`, clamped to [0, 1]. |
+| **P** (valence) | Aggregated "positive ↔ negative" tone *in the episode's ethical judgment* | Normalize **`moral.total_score`** (or `ethical_score` when registering the episode) to [0, 1] with a fixed and documented function (e.g., linear by observed range in simulations, or `P = 0.5 + 0.5 * tanh(λ * score)`). **Placeholder** until empirical calibration. |
+| **D** (dominance) | Sense of agency / control vs. external forces | **`locus_eval.dominant_locus`**: `internal` → 1.0, `balanced` → 0.5, `external` → 0.0. (Future alternative: blend with Uchi-Soto `caution_level` in a bounded formula.) |
+
+**Note:** `P` depends on the multipolar pole score scale; any scale change requires **re-calibrating** the mapping to avoid breaking prototype interpretation.
+
+### 7.2 N prototypes (archetypes)
+
+- Each prototype `k ∈ {0,…,N-1}` has:
+  - **`id_k`**: stable identifier (`str`, e.g., `"deliberative_calm"`).
+  - **`c_k = (P_k, A_k, D_k)`** ∈ `[0,1]³`: archetype center.
+  - Optional: **`label_k`** for narrative / UI (translatable).
+
+**Reasonable minimum N for testing:** 4–8 well-separated points in the cube (avoid overlap initially). "Emotional" names are **pedagogical convention**; formally only `c_k` matters.
+
+### 7.3 Interpolation and "range" within the archetype
+
+**Version v0 (auditable, single formula):**
+
+1. Given `v`, for each prototype `k`, Euclidean distance `d_k = ‖v - c_k‖₂`.
+2. Inverse-distance softmax weights:
+   `w_k = exp(-β · d_k) / Σ_j exp(-β · d_j)` with **β > 0** (temperature: large β → nearly nearest neighbor; small β → more uniform mixture).
+3. **Main output:** vector **`w`** (mixture over prototypes) + index **`k* = argmax w_k`** (dominant tone).
+4. **Local range (optional):** if `d_{k*} < ε`, consider `v` to be **within the range** of prototype `k*`; if fine-grained variation is desired without additional dimensions, linearly interpolate between `c_{k*}` and the **second best** neighbor in the convex hull of nearby prototypes (for narrative smoothing only, not for ethics).
+
+**Cheaper alternative:** just **nearest neighbor** + `d_{k*}` as a **tone uncertainty** measure (no softmax).
+
+### 7.4 Where it fits in the code (without altering kernel authority)
+
+| Point | Role |
+|-------|------|
+| **After** `KernelDecision` | Compute `v` and `w` with already-available data (`sympathetic_state`, moral result, `locus_evaluation`). |
+| **`NarrativeEpisode`** | Fields **`affect_pad`** and **`affect_weights`** (optional; filled when the episode passes through the kernel with PAD active). `sigma` continues to be saved; PAD extends the record without replacing it. |
+| **LLM / weakness pole layer** | Use only **tone output** (text or nuance), **after** fixing the ethical decision. |
+
+### 7.5 Conceptual safety invariants
+
+- No weight `w_k` nor `P/A/D` should **replace** MalAbs, the buffer, or the will function; they are not input signals to the absolute veto in this minimal specification.
+- If implemented: **non-regression tests** — same ethical inputs → same decision even if prototype labels or β change (only the projection/narrative layer changes).
+
+### 7.6 Free parameters to fix before integrating
+
+`β`, `ε`, the set `{c_k}`, function `P(score)`, and whether `D` incorporates Uchi-Soto terms in addition to locus.
+
+---
+
+## 8. Disclaimer
+
+The opinions here are **exploratory**. They do not constitute philosophical, legal, or clinical advice. The public project continues to be governed by the code, tests, and official repository documentation.

@@ -1,64 +1,64 @@
-# Primer puente nomada: PC ↔ smartphone y capas por clase de hardware
+# First nomadic bridge: PC ↔ smartphone and layers by hardware class
 
-Este documento fija el **marco** para la capacidad nómada entre **PC (cerebro / cómputo)** y **smartphone (cuerpo ligero / sensores)**, sin confundir el MVP actual con el despliegue final. Complementa [LOCAL_PC_AND_MOBILE_LAN.md](LOCAL_PC_AND_MOBILE_LAN.md), [PROPUESTA_CONCIENCIA_NOMADA_HAL.md](PROPUESTA_CONCIENCIA_NOMADA_HAL.md) y [RUNTIME_CONTRACT.md](RUNTIME_CONTRACT.md).
-
----
-
-## 1. Qué es el “primer puente”
-
-Hoy el repositorio ofrece:
-
-- **Transporte:** WebSocket + HTTP en LAN (`CHAT_HOST`, `mobile.html`, checkpoints y conduct guide al cerrar sesión).
-- **Ética:** el mismo `EthicalKernel` en el servidor; el móvil **no** sustituye el núcleo normativo.
-
-Ese conjunto es el **primer puente operativo** hacia la **capacidad nómada PC–smartphone**: mismo protocolo de diálogo, continuidad opcional en disco en el PC, y base para añadir **cuerpo sensorial** y **saltos de runtime** sin redefinir MalAbs.
-
-Cada **clase de hardware** (PC de escritorio, portátil, smartphone Android/iOS, wearables futuros, edge dedicado) tendrá **su desarrollo específico** y **sus capas de compatibilidad** a construir: no existe un único binario universal; existe un **contrato común** (mensajes, snapshot, HAL) y **adaptadores por plataforma**.
+This document sets the **framework** for nomadic capability between **PC (brain / compute)** and **smartphone (light body / sensors)**, without conflating the current MVP with the final deployment. Complements [LOCAL_PC_AND_MOBILE_LAN.md](LOCAL_PC_AND_MOBILE_LAN.md), [PROPUESTA_CONCIENCIA_NOMADA_HAL.md](PROPUESTA_CONCIENCIA_NOMADA_HAL.md), and [RUNTIME_CONTRACT.md](RUNTIME_CONTRACT.md).
 
 ---
 
-## 2. Clases de hardware y capas de compatibilidad (a desarrollar)
+## 1. What the "first bridge" is
 
-| Clase | Rol típico | Capas de compatibilidad (ejemplos, no exhaustivo) |
+Today the repository offers:
+
+- **Transport:** WebSocket + HTTP on LAN (`CHAT_HOST`, `mobile.html`, checkpoints and conduct guide on session close).
+- **Ethics:** the same `EthicalKernel` on the server; the mobile **does not** replace the normative core.
+
+That ensemble is the **first operational bridge** toward **PC–smartphone nomadic capability**: same dialogue protocol, optional disk continuity on the PC, and foundation to add **sensory body** and **runtime jumps** without redefining MalAbs.
+
+Each **hardware class** (desktop PC, laptop, Android/iOS smartphone, future wearables, dedicated edge) will have **its specific development** and **its compatibility layers** to build: there is no single universal binary; there is a **common contract** (messages, snapshot, HAL) and **platform adapters**.
+
+---
+
+## 2. Hardware classes and compatibility layers (to develop)
+
+| Class | Typical role | Compatibility layers (examples, not exhaustive) |
 |-------|------------|---------------------------------------------------|
-| **PC / workstation** | Kernel completo, LLM pesado, checkpoints en disco | Python 3.9+, dependencias `requirements.txt`, opcional Ollama; firewall OS. |
-| **Smartphone (browser)** | Cliente ligero + **primer acceso a sensores vía web** (cuando el navegador exponga APIs) | Misma página `mobile.html` / extensión futura; objeto `sensor` en JSON del WebSocket ([README](README.md), v8). |
-| **Smartphone (app nativa futura)** | Sensores de bajo nivel, mejor latencia, offline parcial | Contrato de empaquetado (WebSocket/TLS), permisos OS, posible bridge nativo → JSON `sensor`. |
-| **Otro edge** | Sólo inferencia pequeña o relé | [conduct_guide_export](../src/modules/conduct_guide_export.py), destilación ([context_distillation](../src/modules/context_distillation.py)), schema de snapshot. |
+| **PC / workstation** | Full kernel, heavy LLM, disk checkpoints | Python 3.9+, `requirements.txt` dependencies, optional Ollama; OS firewall. |
+| **Smartphone (browser)** | Light client + **first sensor access via web** (when browser exposes APIs) | Same `mobile.html` page / future extension; `sensor` object in WebSocket JSON ([README](README.md), v8). |
+| **Smartphone (future native app)** | Low-level sensors, better latency, partial offline | Contract for packaging (WebSocket/TLS), OS permissions, possible native bridge → JSON `sensor`. |
+| **Other edge** | Small inference only or relay | [conduct_guide_export](../src/modules/conduct_guide_export.py), distillation ([context_distillation](../src/modules/context_distillation.py)), snapshot schema. |
 
-**Principio:** la **lógica ética** permanece en los caminos documentados del kernel; las **capas de compatibilidad** son transporte, permisos, formato de sensores, seguridad de red y empaquetado — cada una evoluciona por clase de dispositivo.
-
----
-
-## 3. Oportunidad inmediata: percepción sensorial diversa y coordinada (smartphone)
-
-El hardware del **smartphone** es la **oportunidad inmediata** para las **primeras aproximaciones** a una **percepción sensorial diversa y coordinada**:
-
-- El protocolo ya admite un objeto **`sensor`** en el cliente (situación v8: batería, ruido, señales de emergencia multimodal, etc.).
-- Desde el móvil, en modo **thin client**, esos valores pueden **inyectarse en el mensaje** (cuando la UI o una capa intermedia los rellene) y el kernel los fusiona en **señales simpáticas** sin bypass de MalAbs.
-
-**Estado actual:** `mobile.html` envía texto; la **siguiente iteración de producto** en este puente es enriquecer el cliente móvil para **mapear** lecturas disponibles (API web, o entrada manual de prueba) al esquema `sensor`, y documentar límites por navegador.
+**Principle:** the **ethical logic** remains on the kernel's documented paths; the **compatibility layers** are transport, permissions, sensor format, network security, and packaging — each evolves per device class.
 
 ---
 
-## 4. Alcance de red y testeo de campo
+## 3. Immediate opportunity: diverse and coordinated sensory perception (smartphone)
 
-- **Hoy:** despliegue pensado para **LAN doméstica de confianza** (sin TLS en el tramo local; ver [LOCAL_PC_AND_MOBILE_LAN.md](LOCAL_PC_AND_MOBILE_LAN.md)).
-- **Testeo de campo en una red más segura** (VPN, túnel, TLS terminado en proxy, red segmentada, etc.) queda **pendiente de criterio del operador** — se activará **cuando se indique**, para no mezclar en el mismo hito la validación ética del kernel con el endurecimiento de infraestructura.
+The **smartphone** hardware is the **immediate opportunity** for the **first approaches** to **diverse and coordinated sensory perception**:
 
-Hasta entonces, la documentación trata el entorno LAN como **laboratorio controlado**, no como producción expuesta a Internet abierta.
+- The protocol already admits a **`sensor`** object in the client (v8 situation: battery, noise, multimodal emergency signals, etc.).
+- From the mobile, in **thin client** mode, those values can be **injected into the message** (when the UI or an intermediate layer fills them) and the kernel fuses them into **sympathetic signals** with no MalAbs bypass.
+
+**Current status:** `mobile.html` sends text; the **next product iteration** on this bridge is to enrich the mobile client to **map** available readings (web API, or manual test input) to the `sensor` schema, and document limits per browser.
 
 ---
 
-## 5. Referencias cruzadas
+## 4. Network scope and field testing
 
-| Documento | Contenido relacionado |
+- **Today:** deployment designed for **trusted home LAN** (no TLS on the local link; see [LOCAL_PC_AND_MOBILE_LAN.md](LOCAL_PC_AND_MOBILE_LAN.md)).
+- **Field testing on a more secure network** (VPN, tunnel, TLS terminated on proxy, segmented network, etc.) remains **pending operator decision** — will be activated **when indicated**, to avoid mixing kernel ethical validation with infrastructure hardening in the same milestone.
+
+Until then, documentation treats the LAN environment as a **controlled lab**, not as production exposed to open Internet.
+
+---
+
+## 5. Cross-references
+
+| Document | Related content |
 |-----------|------------------------|
-| [LOCAL_PC_AND_MOBILE_LAN.md](LOCAL_PC_AND_MOBILE_LAN.md) | Pasos concretos PC + móvil, firewall, `mobile.html` |
-| [PROPUESTA_CONCIENCIA_NOMADA_HAL.md](PROPUESTA_CONCIENCIA_NOMADA_HAL.md) | HAL, runtime dual, transmutación |
-| [PROPUESTA_ORGANISMO_SITUADO_V8.md](PROPUESTA_ORGANISMO_SITUADO_V8.md) | Contrato sensorial y capas situadas |
-| [ESTRATEGIA_Y_RUTA.md](ESTRATEGIA_Y_RUTA.md) | Ruta P0–P3 y riesgos operativos |
+| [LOCAL_PC_AND_MOBILE_LAN.md](LOCAL_PC_AND_MOBILE_LAN.md) | Concrete steps PC + mobile, firewall, `mobile.html` |
+| [PROPUESTA_CONCIENCIA_NOMADA_HAL.md](PROPUESTA_CONCIENCIA_NOMADA_HAL.md) | HAL, dual runtime, transmutation |
+| [PROPUESTA_ORGANISMO_SITUADO_V8.md](PROPUESTA_ORGANISMO_SITUADO_V8.md) | Sensory contract and situated layers |
+| [ESTRATEGIA_Y_RUTA.md](ESTRATEGIA_Y_RUTA.md) | P0–P3 route and operational risks |
 
 ---
 
-*Ex Machina Foundation — puente nomada PC–smartphone; alinear con CHANGELOG e HISTORY.*
+*Ex Machina Foundation — nomadic PC–smartphone bridge; align with CHANGELOG and HISTORY.*
