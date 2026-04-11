@@ -8,7 +8,7 @@
 
 ## Decision
 
-1. **Numeric signals only** — derived from `NarrativeMemory` (matching `context`, optional `action_hint`): `weeks_trend`, `long_term_stability`, `combined` — see [`TEMPORAL_PRIOR_HORIZONS.md`](../TEMPORAL_PRIOR_HORIZONS.md).
+1. **Numeric signals only** — derived from `NarrativeMemory` (matching `context`, optional `action_hint`): `weeks_trend`, `long_term_stability`, `combined` — see [`TEMPORAL_PRIOR_HORIZONS.md`](../proposals/TEMPORAL_PRIOR_HORIZONS.md).
 
 2. **Implementation** — `src/modules/temporal_horizon_prior.py`: `compute_horizon_signals`, `apply_horizon_prior_to_engine` mutates `BayesianEngine.hypothesis_weights` in place.
 
@@ -27,6 +27,6 @@
 
 ## Links
 
-- [`TEMPORAL_PRIOR_HORIZONS.md`](../TEMPORAL_PRIOR_HORIZONS.md)  
+- [`TEMPORAL_PRIOR_HORIZONS.md`](../proposals/TEMPORAL_PRIOR_HORIZONS.md)  
 - [`consequence_projection.py`](../../src/modules/consequence_projection.py)  
 - [`bayesian_engine.py`](../../src/modules/bayesian_engine.py)

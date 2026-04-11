@@ -1,6 +1,6 @@
 # Primer puente nomada: PC ↔ smartphone y capas por clase de hardware
 
-Este documento fija el **marco** para la capacidad nómada entre **PC (cerebro / cómputo)** y **smartphone (cuerpo ligero / sensores)**, sin confundir el MVP actual con el despliegue final. Complementa [LOCAL_PC_AND_MOBILE_LAN.md](LOCAL_PC_AND_MOBILE_LAN.md), [discusion/PROPUESTA_CONCIENCIA_NOMADA_HAL.md](discusion/PROPUESTA_CONCIENCIA_NOMADA_HAL.md) y [RUNTIME_CONTRACT.md](RUNTIME_CONTRACT.md).
+Este documento fija el **marco** para la capacidad nómada entre **PC (cerebro / cómputo)** y **smartphone (cuerpo ligero / sensores)**, sin confundir el MVP actual con el despliegue final. Complementa [LOCAL_PC_AND_MOBILE_LAN.md](LOCAL_PC_AND_MOBILE_LAN.md), [PROPUESTA_CONCIENCIA_NOMADA_HAL.md](PROPUESTA_CONCIENCIA_NOMADA_HAL.md) y [RUNTIME_CONTRACT.md](RUNTIME_CONTRACT.md).
 
 ---
 
@@ -22,7 +22,7 @@ Cada **clase de hardware** (PC de escritorio, portátil, smartphone Android/iOS,
 | Clase | Rol típico | Capas de compatibilidad (ejemplos, no exhaustivo) |
 |-------|------------|---------------------------------------------------|
 | **PC / workstation** | Kernel completo, LLM pesado, checkpoints en disco | Python 3.9+, dependencias `requirements.txt`, opcional Ollama; firewall OS. |
-| **Smartphone (browser)** | Cliente ligero + **primer acceso a sensores vía web** (cuando el navegador exponga APIs) | Misma página `mobile.html` / extensión futura; objeto `sensor` en JSON del WebSocket ([README](../README.md), v8). |
+| **Smartphone (browser)** | Cliente ligero + **primer acceso a sensores vía web** (cuando el navegador exponga APIs) | Misma página `mobile.html` / extensión futura; objeto `sensor` en JSON del WebSocket ([README](README.md), v8). |
 | **Smartphone (app nativa futura)** | Sensores de bajo nivel, mejor latencia, offline parcial | Contrato de empaquetado (WebSocket/TLS), permisos OS, posible bridge nativo → JSON `sensor`. |
 | **Otro edge** | Sólo inferencia pequeña o relé | [conduct_guide_export](../src/modules/conduct_guide_export.py), destilación ([context_distillation](../src/modules/context_distillation.py)), schema de snapshot. |
 
@@ -55,8 +55,8 @@ Hasta entonces, la documentación trata el entorno LAN como **laboratorio contro
 | Documento | Contenido relacionado |
 |-----------|------------------------|
 | [LOCAL_PC_AND_MOBILE_LAN.md](LOCAL_PC_AND_MOBILE_LAN.md) | Pasos concretos PC + móvil, firewall, `mobile.html` |
-| [discusion/PROPUESTA_CONCIENCIA_NOMADA_HAL.md](discusion/PROPUESTA_CONCIENCIA_NOMADA_HAL.md) | HAL, runtime dual, transmutación |
-| [discusion/PROPUESTA_ORGANISMO_SITUADO_V8.md](discusion/PROPUESTA_ORGANISMO_SITUADO_V8.md) | Contrato sensorial y capas situadas |
+| [PROPUESTA_CONCIENCIA_NOMADA_HAL.md](PROPUESTA_CONCIENCIA_NOMADA_HAL.md) | HAL, runtime dual, transmutación |
+| [PROPUESTA_ORGANISMO_SITUADO_V8.md](PROPUESTA_ORGANISMO_SITUADO_V8.md) | Contrato sensorial y capas situadas |
 | [ESTRATEGIA_Y_RUTA.md](ESTRATEGIA_Y_RUTA.md) | Ruta P0–P3 y riesgos operativos |
 
 ---

@@ -7,7 +7,7 @@ fingerprints. **No** network I/O, **no** kernel integration, **no** veto or poli
 Env: ``KERNEL_SWARM_STUB`` — ``1`` / ``true`` / ``yes`` / ``on`` enables helpers for
 callers that want to gate optional telemetry (default **off**).
 
-See docs/SWARM_P2P_THREAT_MODEL.md
+See docs/proposals/SWARM_P2P_THREAT_MODEL.md
 """
 
 from __future__ import annotations

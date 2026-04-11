@@ -8,7 +8,7 @@ Env:
   - ``KERNEL_GUARDIAN_ROUTINES`` — ``1`` to append routine hints when Guardian mode is on.
   - ``KERNEL_GUARDIAN_ROUTINES_PATH`` — UTF-8 JSON file (see tests/fixtures/guardian/).
 
-See docs/discusion/PROPUESTA_ANGEL_DE_LA_GUARDIA.md
+See docs/proposals/PROPUESTA_ANGEL_DE_LA_GUARDIA.md
 """
 
 from __future__ import annotations

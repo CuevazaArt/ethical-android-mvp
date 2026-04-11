@@ -13,7 +13,7 @@ This document **consolidates** components and concepts added in the recent work 
 | **Guardian Angel mode** (opt-in protective tone) | `src/modules/guardian_mode.py`; `KERNEL_GUARDIAN_MODE`; `process_chat_turn` → `communicate` | AI in society and value alignment [15], [17]; human–agent interaction and trust [67], [69]. |
 | **Epistemic dissonance / sensory consensus** (v9.1) | `src/modules/epistemic_dissonance.py`; after `multimodal_trust`; JSON `epistemic_dissonance` | Uncertainty and information [21]; causal reasoning / coherence across sources [24], [25]; sensors and estimation [61]; interpretability limits under contradictory signals [71]. |
 | **Generative candidates** (“third way”, v9.2) | `src/modules/generative_candidates.py`; `CandidateAction.source` / `proposal_id`; `KERNEL_GENERATIVE_ACTIONS` | Empirical moral dilemmas and trade-offs [18]; rational agents and plan space [31]; fast vs deliberative modes [41]. |
-| **Swarm P2P stub** (v9.3 lab) | `src/modules/swarm_peer_stub.py`; `KERNEL_SWARM_STUB` | Distributed coordination [52], [57], [58] — **stub only**; see `docs/SWARM_P2P_THREAT_MODEL.md`. |
+| **Swarm P2P stub** (v9.3 lab) | `src/modules/swarm_peer_stub.py`; `KERNEL_SWARM_STUB` | Distributed coordination [52], [57], [58] — **stub only**; see `docs/proposals/SWARM_P2P_THREAT_MODEL.md`. |
 | **Guardian Angel routines** (product slice) | `src/modules/guardian_routines.py`; `KERNEL_GUARDIAN_ROUTINES*`; `landing/public/guardian.html` | Human–agent trust [67]–[70]; alignment framing [15]. |
 | **Gray-zone diplomacy** (v10) | `src/modules/gray_zone_diplomacy.py`; hints in `weakness_line`; `KERNEL_GRAY_ZONE_DIPLOMACY` | Deliberation under cognitive tension [41]; discourse ethics and rational agreement [73]; explainability and transparency [15]. |
 | **Skill-learning registry** (v10) | `src/modules/skill_learning_registry.py`; audit in `execute_sleep` | Governance and capability scope [74]; principle-based AI frameworks [15]; “constitutional” alignment and behavior bounds [90]. |
@@ -28,18 +28,18 @@ This document **consolidates** components and concepts added in the recent work 
 
 | Document | Contents |
 |----------|----------|
-| [discusion/PROPUESTA_ANGEL_DE_LA_GUARDIA.md](discusion/PROPUESTA_ANGEL_DE_LA_GUARDIA.md) | Product and contract — Guardian Angel |
-| [discusion/PROPUESTA_CAPACIDAD_AMPLIADA_V9.md](discusion/PROPUESTA_CAPACIDAD_AMPLIADA_V9.md) | v9 pillars (epistemic, generative, swarm, metaplanning) |
-| [discusion/PROPUESTA_ESTRATEGIA_OPERATIVA_V10.md](discusion/PROPUESTA_ESTRATEGIA_OPERATIVA_V10.md) | Diplomacy, skills, soma, operational metaplan (MVP) |
-| [discusion/PROPUESTA_JUSTICIA_DISTRIBUIDA_V11.md](discusion/PROPUESTA_JUSTICIA_DISTRIBUIDA_V11.md) | V11 governance: escalation phases, experimental topics (sanctions, P2P, ZK) |
-| [discusion/UNIVERSAL_ETHOS_AND_HUB.md](discusion/UNIVERSAL_ETHOS_AND_HUB.md) | **Canonical** hub vision ↔ code (UniversalEthos, services, audit levels, module map) |
-| [discusion/PROPUESTA_CONCIENCIA_NOMADA_HAL.md](discusion/PROPUESTA_CONCIENCIA_NOMADA_HAL.md) | Nomadic HAL + existential serialization; `GET /nomad/migration`; `KERNEL_NOMAD_SIMULATION`, `KERNEL_NOMAD_MIGRATION_AUDIT`, WS `nomad_simulate_migration`; `HubAudit` DAO lines; optional `KERNEL_CHECKPOINT_FERNET_KEY` |
-| [discusion/PROPUESTA_ESTADO_ETOSOCIAL_V12.md](discusion/PROPUESTA_ESTADO_ETOSOCIAL_V12.md) | V12 **registry** + env; `moral_hub`, drafts, DAO vote, deontic/ml_ethics/reparation/nomad stubs |
+| [PROPUESTA_ANGEL_DE_LA_GUARDIA.md](PROPUESTA_ANGEL_DE_LA_GUARDIA.md) | Product and contract — Guardian Angel |
+| [PROPUESTA_CAPACIDAD_AMPLIADA_V9.md](PROPUESTA_CAPACIDAD_AMPLIADA_V9.md) | v9 pillars (epistemic, generative, swarm, metaplanning) |
+| [PROPUESTA_ESTRATEGIA_OPERATIVA_V10.md](PROPUESTA_ESTRATEGIA_OPERATIVA_V10.md) | Diplomacy, skills, soma, operational metaplan (MVP) |
+| [PROPUESTA_JUSTICIA_DISTRIBUIDA_V11.md](PROPUESTA_JUSTICIA_DISTRIBUIDA_V11.md) | V11 governance: escalation phases, experimental topics (sanctions, P2P, ZK) |
+| [UNIVERSAL_ETHOS_AND_HUB.md](UNIVERSAL_ETHOS_AND_HUB.md) | **Canonical** hub vision ↔ code (UniversalEthos, services, audit levels, module map) |
+| [PROPUESTA_CONCIENCIA_NOMADA_HAL.md](PROPUESTA_CONCIENCIA_NOMADA_HAL.md) | Nomadic HAL + existential serialization; `GET /nomad/migration`; `KERNEL_NOMAD_SIMULATION`, `KERNEL_NOMAD_MIGRATION_AUDIT`, WS `nomad_simulate_migration`; `HubAudit` DAO lines; optional `KERNEL_CHECKPOINT_FERNET_KEY` |
+| [PROPUESTA_ESTADO_ETOSOCIAL_V12.md](PROPUESTA_ESTADO_ETOSOCIAL_V12.md) | V12 **registry** + env; `moral_hub`, drafts, DAO vote, deontic/ml_ethics/reparation/nomad stubs |
 | [ESTRATEGIA_Y_RUTA.md](ESTRATEGIA_Y_RUTA.md) | Review conclusions, readapted P0–P3 route, **runtime profiles** (`runtime_profiles.py`, `test_runtime_profiles.py`) |
 | [LOCAL_PC_AND_MOBILE_LAN.md](LOCAL_PC_AND_MOBILE_LAN.md) | PC + smartphone same WiFi (thin client); scripts `start_lan_server`; `chat-test.html?host=`; **`conduct_guide_export`** on WS disconnect |
 | [NOMAD_PC_SMARTPHONE_BRIDGE.md](NOMAD_PC_SMARTPHONE_BRIDGE.md) | Primer puente nomada: capas por hardware, sensor smartphone, red segura para campo (bajo indicación) |
-| [discusion/PROPUESTA_VERIFICACION_REALIDAD_V11.md](discusion/PROPUESTA_VERIFICACION_REALIDAD_V11.md) | Lighthouse KB / metacognitive doubt (implemented); distillation + DAO sovereignty (stubs) |
-| [discusion/PROPUESTA_DAO_ALERTAS_Y_TRANSPARENCIA.md](discusion/PROPUESTA_DAO_ALERTAS_Y_TRANSPARENCIA.md) | DAO corruption: loud traceable alerts (no covert “guerrilla”); forensic memorial vs L0 buffer; **v0 code:** `integrity_alert` WS → `HubAudit:dao_integrity` |
+| [PROPUESTA_VERIFICACION_REALIDAD_V11.md](PROPUESTA_VERIFICACION_REALIDAD_V11.md) | Lighthouse KB / metacognitive doubt (implemented); distillation + DAO sovereignty (stubs) |
+| [PROPUESTA_DAO_ALERTAS_Y_TRANSPARENCIA.md](PROPUESTA_DAO_ALERTAS_Y_TRANSPARENCIA.md) | DAO corruption: loud traceable alerts (no covert “guerrilla”); forensic memorial vs L0 buffer; **v0 code:** `integrity_alert` WS → `HubAudit:dao_integrity` |
 
 ---
 
@@ -55,7 +55,7 @@ Siguientes líneas (alineadas con PROPUESTA, después de P0 perfiles):
 
 3. **v9.4 metaplanning** — **Done:** `KERNEL_METAPLAN_DRIVE_FILTER` (lexical overlap filter vs `MasterGoal` titles; safe fallback); `KERNEL_METAPLAN_DRIVE_EXTRA` (optional coherence intent); `apply_drive_intent_metaplan_filter` / `maybe_append_metaplan_drive_extra` in `metaplan_registry.py`; wired in `DriveArbiter.evaluate`; `MetaplanRegistry.consent_note_drive_filter`; tests in `tests/test_v10_operational.py`. *Support:* [33], [17], [15].
 
-4. **v9.3 swarm** — **Done (stub):** [`docs/SWARM_P2P_THREAT_MODEL.md`](SWARM_P2P_THREAT_MODEL.md) + `src/modules/swarm_peer_stub.py` (`verdict_digest_v1`, `peer_agreement_stats`); `KERNEL_SWARM_STUB` gates optional use; `tests/test_swarm_peer_stub.py`. *Support:* [52], [57], [58].
+4. **v9.3 swarm** — **Done (stub):** [`docs/proposals/SWARM_P2P_THREAT_MODEL.md`](SWARM_P2P_THREAT_MODEL.md) + `src/modules/swarm_peer_stub.py` (`verdict_digest_v1`, `peer_agreement_stats`); `KERNEL_SWARM_STUB` gates optional use; `tests/test_swarm_peer_stub.py`. *Support:* [52], [57], [58].
 
 5. **Guardian Angel (product)** — **Done (MVP slice):** `guardian_routines.py` (JSON care routines → LLM suffix); env `KERNEL_GUARDIAN_ROUTINES`, `KERNEL_GUARDIAN_ROUTINES_PATH`, `KERNEL_CHAT_INCLUDE_GUARDIAN_ROUTINES`; `landing/public/guardian.html`; tests `tests/test_guardian_routines.py`, `tests/test_guardian_mode.py`, `tests/test_chat_server.py`. No ethical veto change. *Support:* [67]–[70], [15].
 

@@ -27,7 +27,7 @@ dev = [
 
 [project.urls]
 Homepage = "https://github.com/CuevazaArt/ethical-android-mvp"
-Documentation = "https://github.com/CuevazaArt/ethical-android-mvp/blob/main/docs/CORE_DECISION_CHAIN.md"
+Documentation = "https://github.com/CuevazaArt/ethical-android-mvp/blob/main/docs/proposals/CORE_DECISION_CHAIN.md"
 
 # Flat layout: package directory is literally `src/` (imports: `from src.kernel import ...`).
 [tool.setuptools.packages.find]

@@ -4,7 +4,7 @@
 
 **Kernel contract:** MalAbs → `PreloadedBuffer` (L0) remains the **normative core**. Hub layers add governance, audit, and operations **without** bypassing safety.
 
-**Governance honesty (Issue 6):** mock DAO vs immutable L0, exit checklist, public landing alignment — [GOVERNANCE_MOCKDAO_AND_L0.md](../GOVERNANCE_MOCKDAO_AND_L0.md).
+**Governance honesty (Issue 6):** mock DAO vs immutable L0, exit checklist, public landing alignment — [GOVERNANCE_MOCKDAO_AND_L0.md](GOVERNANCE_MOCKDAO_AND_L0.md).
 
 ---
 
@@ -68,7 +68,7 @@
 
 - [PROPUESTA_ESTADO_ETOSOCIAL_V12.md](PROPUESTA_ESTADO_ETOSOCIAL_V12.md) — V12.1–V12.4 registry and env vars  
 - [PROPUESTA_JUSTICIA_DISTRIBUIDA_V11.md](PROPUESTA_JUSTICIA_DISTRIBUIDA_V11.md) — justice track  
-- [RUNTIME_PERSISTENT.md](../RUNTIME_PERSISTENT.md) — snapshot schema  
-- [TRACE_IMPLEMENTATION_RECENT.md](../TRACE_IMPLEMENTATION_RECENT.md) — traceability  
+- [RUNTIME_PERSISTENT.md](RUNTIME_PERSISTENT.md) — snapshot schema  
+- [TRACE_IMPLEMENTATION_RECENT.md](TRACE_IMPLEMENTATION_RECENT.md) — traceability  
 
 *Ex Machina Foundation — unified hub vision; kernel ethics contract unchanged.*

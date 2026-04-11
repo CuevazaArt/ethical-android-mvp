@@ -11,7 +11,7 @@
 
 1. **Structured concurrency** around I/O-bound steps (LLM, disk checkpoint) with explicit timeouts.
 2. **Queue + worker** for non-user-facing work (telemetry digest, optional audits).
-3. **Kernel API boundary** unchanged: async wrappers must preserve **ordering per session** and **failure semantics** documented in [`RUNTIME_CONTRACT.md`](../RUNTIME_CONTRACT.md).
+3. **Kernel API boundary** unchanged: async wrappers must preserve **ordering per session** and **failure semantics** documented in [`RUNTIME_CONTRACT.md`](../proposals/RUNTIME_CONTRACT.md).
 
 ## Consequences
 
@@ -20,6 +20,6 @@
 
 ## Links
 
-- [`RUNTIME_CONTRACT.md`](../RUNTIME_CONTRACT.md)  
-- [`CORE_DECISION_CHAIN.md`](../CORE_DECISION_CHAIN.md)  
+- [`RUNTIME_CONTRACT.md`](../proposals/RUNTIME_CONTRACT.md)  
+- [`CORE_DECISION_CHAIN.md`](../proposals/CORE_DECISION_CHAIN.md)  
 - [ADR 0001 — packaging boundary](0001-packaging-core-boundary.md)

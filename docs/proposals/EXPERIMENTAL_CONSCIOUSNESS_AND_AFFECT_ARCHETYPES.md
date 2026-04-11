@@ -11,7 +11,7 @@ Este documento **no** forma parte del contrato técnico del kernel publicado. Na
 
 **Ver también (misma línea experimental):** [PAPER_AFECTO_FENOMENOS_Y_HIPOTESIS.md](experimental/PAPER_AFECTO_FENOMENOS_Y_HIPOTESIS.md) — fenómenos esperables al conjugar PAD/prototipos, notas sobre *color* y *sabor*, hipótesis testeables reservadas.
 
-**Discusión (no backlog):** marco v6 sobre autorreferencia, espacio global, drives y yo narrativo — [discusion/CONCIENCIA_EMERGENTE_V6.md](discusion/CONCIENCIA_EMERGENTE_V6.md) (incluye criterios de **aporte vs redundancia** con el kernel actual).
+**Discusión (no backlog):** marco v6 sobre autorreferencia, espacio global, drives y yo narrativo — [CONCIENCIA_EMERGENTE_V6.md](CONCIENCIA_EMERGENTE_V6.md) (incluye criterios de **aporte vs redundancia** con el kernel actual).
 
 ---
 

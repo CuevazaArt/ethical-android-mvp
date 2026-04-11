@@ -5,7 +5,7 @@ Reads multipolar scores + Bayesian uncertainty + will mode. Does not alter
 which action wins or any veto — only exposes structured state for explanation,
 logs, and downstream LLM/monologue.
 
-See docs/discusion/PROPUESTA_INTEGRACION_APORTES_V6.md (Fase 1).
+See docs/proposals/PROPUESTA_INTEGRACION_APORTES_V6.md (Fase 1).
 """
 
 from __future__ import annotations

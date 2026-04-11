@@ -5,7 +5,7 @@ Hardware may be absent: callers pass :class:`SensorSnapshot` when available;
 :func:`merge_sensor_hints_into_signals` blends into the same ``signals`` dict
 used by ``SympatheticModule`` without bypassing MalAbs or the decision stack.
 
-See docs/discusion/PROPUESTA_ORGANISMO_SITUADO_V8.md, multimodal_trust.py (cross-modal doubt),
+See docs/proposals/PROPUESTA_ORGANISMO_SITUADO_V8.md, multimodal_trust.py (cross-modal doubt),
 and epistemic_dissonance.py (v9.1 telemetry).
 """
 

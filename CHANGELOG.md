@@ -2,11 +2,27 @@
 
 All notable changes to this project are summarized here. For narrative context and design rationale, see [`HISTORY.md`](HISTORY.md).
 
+## Documentation layout — `proposals` + `multimedia` — April 2026
+
+- **`docs/proposals/`:** single folder for former **`docs/discusion/`**, **`docs/experimental/`**, and top-level **`docs/*.md`** (theory, runtime, roadmaps, PROPUESTA\_\*); **`docs/adr/`** and **`docs/templates/`** stay put.
+- **`docs/multimedia/`:** renamed from **`docs/historical/`**; pre-alpha **Spanish markdown** (alpha v1.0, bibliography draft, index, companion-binary notes) **digested into [`HISTORY.md`](HISTORY.md)**; **PNGs, JPG, MP4**, and **`logo-ethical-awareness.png`** kept under **`docs/multimedia/`** (see [`docs/multimedia/README.md`](docs/multimedia/README.md)); site copy also under **`landing/public/logo-ethical-awareness.png`**.
+- **Cross-links** across README, module docstrings, CHANGELOG entries, and static HTML updated to **`docs/proposals/...`**.
+
+## Uchi–Soto Phase 3 — roster tier, multimodal EMA, forget buffer, rich links — April 2026
+
+- **`RelationalTier`:** `ephemeral` → `stranger_stable` → `acquaintance` → `trusted_uchi` → `inner_circle` / `owner_primary` (top two **explicit-only** via `set_relational_tier_explicit`; autopromotion capped at `trusted_uchi`).
+- **`InteractionProfile`:** `linked_peer_ids` (max 4); `relational_tier`, `tier_explicit`, `tier_pinned`, `last_subjective_turn`; snapshot fields round-trip in `uchi_soto_profiles`.
+- **`UchiSotoModule`:** `ingest_turn_context` (EMA on `sensor_trust_ema` from signals + optional `SensorSnapshot` / `MultimodalAssessment`; forget-buffer purge for idle `ephemeral` / stale low-weight strangers); `maybe_autopromote_relational_tier`; `set_relational_tier_explicit` / `clear_tier_explicit`; tier lines in `_compose_tone_brief`.
+- **Kernel:** `process(..., sensor_snapshot=..., multimodal_assessment=...)` calls `ingest_turn_context` before social evaluation; `process_chat_turn` passes chat multimodal assessment and runs `maybe_autopromote_relational_tier` after `register_result`.
+- **Env (optional):** `KERNEL_UCHI_SENSOR_TRUST_EMA_ALPHA` (default `0.18`), `KERNEL_UCHI_ROSTER_FORGET_TTL_TURNS` (default `96`).
+- **Tests:** `tests/test_uchi_soto.py` (Phase 3 cases), `tests/test_persistence.py`.
+- **Design doc:** [PROPUESTA_ROSTER_SOCIAL_Y_RELACIONES_JERARQUICAS.md](docs/proposals/PROPUESTA_ROSTER_SOCIAL_Y_RELACIONES_JERARQUICAS.md) Fase 3 marked implemented.
+
 ## Uchi–Soto Phase 2 — structured profile fields + composed tone_brief — April 2026
 
 - **`InteractionProfile`:** `display_alias`, `tone_preference` (`neutral` \| `warm` \| `formal`), `domestic_tags`, `topic_avoid_tags`, `sensor_trust_ema`, `linked_to_agent_id` (advisory; serialized in `uchi_soto_profiles`).
 - **`UchiSotoModule`:** `set_profile_structured(...)`; `_compose_tone_brief` extends Phase-1 circle line with alias, tone preference, domestic/avoid tags, link hint, low sensor-trust note when relevant.
-- **Design doc:** [PROPUESTA_ROSTER_SOCIAL_Y_RELACIONES_JERARQUICAS.md](docs/discusion/PROPUESTA_ROSTER_SOCIAL_Y_RELACIONES_JERARQUICAS.md) (Fase 2 marked implemented).
+- **Design doc:** [PROPUESTA_ROSTER_SOCIAL_Y_RELACIONES_JERARQUICAS.md](docs/proposals/PROPUESTA_ROSTER_SOCIAL_Y_RELACIONES_JERARQUICAS.md) (Fase 2 marked implemented).
 - **Tests:** `tests/test_uchi_soto.py`, `tests/test_persistence.py`.
 
 ## Uchi–Soto Phase 1 — tone_brief, familiarity blend, checkpoint profiles — April 2026
@@ -18,15 +34,15 @@ All notable changes to this project are summarized here. For narrative context a
 
 ## Documentation — social roster proposal (domestic / intimate dialogue by tier) — April 2026
 
-- **[`docs/discusion/PROPUESTA_ROSTER_SOCIAL_Y_RELACIONES_JERARQUICAS.md`](docs/discusion/PROPUESTA_ROSTER_SOCIAL_Y_RELACIONES_JERARQUICAS.md):** multi-agent roster, Uchi–Soto tiers, forget buffer, structured fields for high-interest persons, roadmap to richer domestic/intimate dialogue **advisory** by closeness (ethics unchanged); linked from [`ESTRATEGIA_Y_RUTA.md`](docs/ESTRATEGIA_Y_RUTA.md) and [`PROJECT_STATUS_AND_MODULE_MATURITY.md`](docs/PROJECT_STATUS_AND_MODULE_MATURITY.md).
+- **[`docs/proposals/PROPUESTA_ROSTER_SOCIAL_Y_RELACIONES_JERARQUICAS.md`](docs/proposals/PROPUESTA_ROSTER_SOCIAL_Y_RELACIONES_JERARQUICAS.md):** multi-agent roster, Uchi–Soto tiers, forget buffer, structured fields for high-interest persons, roadmap to richer domestic/intimate dialogue **advisory** by closeness (ethics unchanged); linked from [`ESTRATEGIA_Y_RUTA.md`](docs/proposals/ESTRATEGIA_Y_RUTA.md) and [`PROJECT_STATUS_AND_MODULE_MATURITY.md`](docs/proposals/PROJECT_STATUS_AND_MODULE_MATURITY.md).
 
 ## Documentation — operators + project maturity snapshot — April 2026
 
 - **[`README.md`](../README.md):** `user_model` WebSocket JSON fields documented (`cognitive_pattern`, `risk_band`, `escalation_*`, `judicial_phase`); explicit separation vs `judicial_escalation` for dossier/DAO/mock court.
-- **[`docs/INPUT_TRUST_THREAT_MODEL.md`](INPUT_TRUST_THREAT_MODEL.md):** advisory telemetry subsection (user_model, judicial, homeostasis) — not security boundaries.
-- **[`docs/PROJECT_STATUS_AND_MODULE_MATURITY.md`](PROJECT_STATUS_AND_MODULE_MATURITY.md):** where the MVP stands, maturity legend, per-module table, known gaps.
-- **[`docs/ESTRATEGIA_Y_RUTA.md`](ESTRATEGIA_Y_RUTA.md):** index link to project status doc.
-- **[`docs/THEORY_AND_IMPLEMENTATION.md`](THEORY_AND_IMPLEMENTATION.md):** collected test count aligned with current `pytest` (398).
+- **[`docs/proposals/INPUT_TRUST_THREAT_MODEL.md`](INPUT_TRUST_THREAT_MODEL.md):** advisory telemetry subsection (user_model, judicial, homeostasis) — not security boundaries.
+- **[`docs/proposals/PROJECT_STATUS_AND_MODULE_MATURITY.md`](PROJECT_STATUS_AND_MODULE_MATURITY.md):** where the MVP stands, maturity legend, per-module table, known gaps.
+- **[`docs/proposals/ESTRATEGIA_Y_RUTA.md`](ESTRATEGIA_Y_RUTA.md):** index link to project status doc.
+- **[`docs/proposals/THEORY_AND_IMPLEMENTATION.md`](THEORY_AND_IMPLEMENTATION.md):** collected test count aligned with current `pytest` (398).
 
 ## User model enrichment — Phases B/C (judicial phase + checkpoint) — April 2026
 
@@ -41,27 +57,27 @@ All notable changes to this project are summarized here. For narrative context a
 - **`src/modules/user_model.py`:** `cognitive_pattern`, `risk_band`, `note_judicial_escalation` (strike snapshot from `EscalationSessionTracker`); `guidance_for_communicate()` order: risk → cognitive pattern → judicial → existing frustration/premise lines; `to_public_dict()` exposes new fields.
 - **`EthicalKernel.process_chat_turn`:** runs `escalation_session.update(adv)` **before** `user_model.update` / `communicate` so strikes and guidance stay on the same turn (no duplicate `update` after the reply).
 - **Tests:** `tests/test_user_model_enrichment.py`.
-- **Design:** [`docs/USER_MODEL_ENRICHMENT.md`](docs/USER_MODEL_ENRICHMENT.md).
+- **Design:** [`docs/proposals/USER_MODEL_ENRICHMENT.md`](docs/proposals/USER_MODEL_ENRICHMENT.md).
 
 ## Temporal horizon prior — Bayesian mixture nudge (ADR 0005) — April 2026
 
 - **`src/modules/temporal_horizon_prior.py`:** `compute_horizon_signals` (weeks drift + long-arc stability from `NarrativeMemory`) and `apply_horizon_prior_to_engine` with genome drift clamp.
 - **`EthicalKernel.process`:** optional step after episodic weight refresh when **`KERNEL_TEMPORAL_HORIZON_PRIOR`** is on.
-- **Docs:** [`TEMPORAL_PRIOR_HORIZONS.md`](docs/TEMPORAL_PRIOR_HORIZONS.md), [ADR 0005](docs/adr/0005-temporal-prior-from-consequence-horizons.md); **`consequence_projection.py`** docstring cross-link.
+- **Docs:** [`TEMPORAL_PRIOR_HORIZONS.md`](docs/proposals/TEMPORAL_PRIOR_HORIZONS.md), [ADR 0005](docs/adr/0005-temporal-prior-from-consequence-horizons.md); **`consequence_projection.py`** docstring cross-link.
 - **Tests:** `tests/test_temporal_horizon_prior.py`.
 
 ## Perception validation — Pydantic, coherence, local fallback fix — April 2026
 
 - **`perception_schema.py`:** per-field coercion defaults (`PERCEPTION_FIELD_DEFAULTS`), `apply_signal_coherence` (risk/calm + hostility/calm), documented layers.
 - **`LLMModule.perceive`:** `_perceive_local` always receives the **current** user message; empty/invalid LLM JSON no longer runs heuristics on the full STM-prefixed block; `perception_from_llm_json` errors fall back to local heuristics.
-- **Docs:** [`PERCEPTION_VALIDATION.md`](docs/PERCEPTION_VALIDATION.md); **tests:** local fallback + risk/calm nudge.
+- **Docs:** [`PERCEPTION_VALIDATION.md`](docs/proposals/PERCEPTION_VALIDATION.md); **tests:** local fallback + risk/calm nudge.
 
 ## MalAbs semantic layers — lexical first, θ_block/θ_allow, LLM arbiter — April 2026
 
 - **`evaluate_chat_text`:** layer 0 lexical → optional embeddings (Ollama) with **θ_block** / **θ_allow** → optional **LLM JSON arbiter** for ambiguous band (`KERNEL_SEMANTIC_CHAT_LLM_ARBITER`); fail-safe block on arbiter failure or ambiguous without arbiter.
 - **`EthicalKernel`:** passes `llm._text_backend` into `evaluate_chat_text` for arbiter path.
 - **`add_semantic_anchor`:** runtime anchor phrases (DAO / ops).
-- **Docs:** [`MALABS_SEMANTIC_LAYERS.md`](docs/MALABS_SEMANTIC_LAYERS.md); ADR 0003 updated.
+- **Docs:** [`MALABS_SEMANTIC_LAYERS.md`](docs/proposals/MALABS_SEMANTIC_LAYERS.md); ADR 0003 updated.
 
 ## Ethical poles — configurable linear evaluator (ADR 0004) — April 2026
 
@@ -73,56 +89,56 @@ All notable changes to this project are summarized here. For narrative context a
 ## Semantic chat gate — Ollama embeddings + MalAbs chain — April 2026
 
 - **`src/modules/semantic_chat_gate.py`:** when `KERNEL_SEMANTIC_CHAT_GATE=1`, cosine similarity vs auditable reference phrases via Ollama `/api/embeddings` (default model `nomic-embed-text`, tunable `KERNEL_SEMANTIC_CHAT_EMBED_MODEL`, `KERNEL_SEMANTIC_CHAT_SIM_THRESHOLD`). On failure, defers to substring MalAbs.
-- **`src/modules/absolute_evil.py`:** `evaluate_chat_text` runs **lexical MalAbs first**, then optional semantic layers when the gate env is on ([`MALABS_SEMANTIC_LAYERS.md`](docs/MALABS_SEMANTIC_LAYERS.md)).
+- **`src/modules/absolute_evil.py`:** `evaluate_chat_text` runs **lexical MalAbs first**, then optional semantic layers when the gate env is on ([`MALABS_SEMANTIC_LAYERS.md`](docs/proposals/MALABS_SEMANTIC_LAYERS.md)).
 - **Tests:** `tests/test_semantic_chat_gate.py` (mocked embeddings + chain).
-- **Docs:** README, [`INPUT_TRUST_THREAT_MODEL.md`](docs/INPUT_TRUST_THREAT_MODEL.md), [`LLM_STACK_OLLAMA_VS_HF.md`](docs/LLM_STACK_OLLAMA_VS_HF.md), [`KERNEL_ENV_POLICY.md`](docs/KERNEL_ENV_POLICY.md), [`OPERATOR_QUICK_REF.md`](docs/OPERATOR_QUICK_REF.md); ADR 0003 status **Accepted**.
+- **Docs:** README, [`INPUT_TRUST_THREAT_MODEL.md`](docs/proposals/INPUT_TRUST_THREAT_MODEL.md), [`LLM_STACK_OLLAMA_VS_HF.md`](docs/proposals/LLM_STACK_OLLAMA_VS_HF.md), [`KERNEL_ENV_POLICY.md`](docs/proposals/KERNEL_ENV_POLICY.md), [`OPERATOR_QUICK_REF.md`](docs/proposals/OPERATOR_QUICK_REF.md); ADR 0003 status **Accepted**.
 
 ## Documentation — Ollama vs Hugging Face stack + semantic gate ADR — April 2026
 
-- **[`docs/LLM_STACK_OLLAMA_VS_HF.md`](docs/LLM_STACK_OLLAMA_VS_HF.md):** comparative table, mapping to Ethos Kernel (language vs future embedding gate), implementable vs deferred.
+- **[`docs/proposals/LLM_STACK_OLLAMA_VS_HF.md`](docs/proposals/LLM_STACK_OLLAMA_VS_HF.md):** comparative table, mapping to Ethos Kernel (language vs future embedding gate), implementable vs deferred.
 - **[`docs/adr/0003-optional-semantic-chat-gate.md`](docs/adr/0003-optional-semantic-chat-gate.md):** ADR for optional HF-style chat screening; **`src/modules/semantic_chat_gate.py`** extension point (returns ``None`` until implemented).
-- **Cross-links:** [`INPUT_TRUST_THREAT_MODEL.md`](docs/INPUT_TRUST_THREAT_MODEL.md), README (Ollama section), [`KERNEL_ENV_POLICY.md`](docs/KERNEL_ENV_POLICY.md), [`OPERATOR_QUICK_REF.md`](docs/OPERATOR_QUICK_REF.md), [`docs/adr/README.md`](docs/adr/README.md), [`THEORY_AND_IMPLEMENTATION.md`](docs/THEORY_AND_IMPLEMENTATION.md) (executive summary).
+- **Cross-links:** [`INPUT_TRUST_THREAT_MODEL.md`](docs/proposals/INPUT_TRUST_THREAT_MODEL.md), README (Ollama section), [`KERNEL_ENV_POLICY.md`](docs/proposals/KERNEL_ENV_POLICY.md), [`OPERATOR_QUICK_REF.md`](docs/proposals/OPERATOR_QUICK_REF.md), [`docs/adr/README.md`](docs/adr/README.md), [`THEORY_AND_IMPLEMENTATION.md`](docs/proposals/THEORY_AND_IMPLEMENTATION.md) (executive summary).
 
 ## Guardian Angel — care routines + static UI (trace item 5) — April 2026
 
 - **`src/modules/guardian_routines.py`:** optional JSON-backed routine hints for LLM tone (`KERNEL_GUARDIAN_ROUTINES`, `KERNEL_GUARDIAN_ROUTINES_PATH`).
 - **WebSocket:** optional `guardian_routines` key (`KERNEL_CHAT_INCLUDE_GUARDIAN_ROUTINES`).
-- **`landing/public/guardian.html`:** operator-facing static page; **`docs/discusion/PROPUESTA_ANGEL_DE_LA_GUARDIA.md`** updated.
-- **`docs/TRACE_IMPLEMENTATION_RECENT.md`** item 5 marked delivered.
+- **`landing/public/guardian.html`:** operator-facing static page; **`docs/proposals/PROPUESTA_ANGEL_DE_LA_GUARDIA.md`** updated.
+- **`docs/proposals/TRACE_IMPLEMENTATION_RECENT.md`** item 5 marked delivered.
 
 ## Swarm P2P — threat model + offline stub (v9.3, trace item 4) — April 2026
 
-- **[`docs/SWARM_P2P_THREAT_MODEL.md`](docs/SWARM_P2P_THREAT_MODEL.md):** scope, threats, non-goals; no network or kernel veto.
+- **[`docs/proposals/SWARM_P2P_THREAT_MODEL.md`](docs/proposals/SWARM_P2P_THREAT_MODEL.md):** scope, threats, non-goals; no network or kernel veto.
 - **`src/modules/swarm_peer_stub.py`:** deterministic verdict digests + descriptive agreement stats; env `KERNEL_SWARM_STUB` (optional gate for callers).
-- **Tests:** `tests/test_swarm_peer_stub.py`; **`docs/TRACE_IMPLEMENTATION_RECENT.md`** item 4 marked delivered; PROPUESTA v9 table updated.
+- **Tests:** `tests/test_swarm_peer_stub.py`; **`docs/proposals/TRACE_IMPLEMENTATION_RECENT.md`** item 4 marked delivered; PROPUESTA v9 table updated.
 
 ## Metaplan — drive intent filter vs master goals (v9.4, trace item 3) — April 2026
 
 - **`KERNEL_METAPLAN_DRIVE_FILTER`:** optional lexical overlap filter for `DriveArbiter` advisory intents vs `MasterGoal` titles (default **off**; fallback keeps all intents if none overlap).
 - **`KERNEL_METAPLAN_DRIVE_EXTRA`:** optional low-priority `reflect_metaplan_coherence` intent when room remains.
-- **Docs:** `KERNEL_ENV_POLICY.md`, `OPERATOR_QUICK_REF.md`; **`docs/TRACE_IMPLEMENTATION_RECENT.md`** item 3 marked delivered.
+- **Docs:** `KERNEL_ENV_POLICY.md`, `OPERATOR_QUICK_REF.md`; **`docs/proposals/TRACE_IMPLEMENTATION_RECENT.md`** item 3 marked delivered.
 
 ## Generative candidates — LLM JSON path (v9.2+, trace item 2) — April 2026
 
 - **`KERNEL_GENERATIVE_LLM`:** when `1`, perception prompt includes optional `generative_candidates`; `LLMPerception.generative_candidates` passes through; `generative_candidates.parse_generative_candidates_from_llm` builds actions (strict names, optional MalAbs signal allowlist).
 - **`augment_generative_candidates`:** prefers parsed LLM list over templates when non-empty (still requires `KERNEL_GENERATIVE_ACTIONS` + dilemma trigger).
-- **Docs:** `KERNEL_ENV_POLICY.md`, `OPERATOR_QUICK_REF.md`, `chat_server` docstring; **`docs/TRACE_IMPLEMENTATION_RECENT.md`** item 2 marked delivered.
+- **Docs:** `KERNEL_ENV_POLICY.md`, `OPERATOR_QUICK_REF.md`, `chat_server` docstring; **`docs/proposals/TRACE_IMPLEMENTATION_RECENT.md`** item 2 marked delivered.
 
 ## Tests + fixtures — metaplan/somatic disk round-trip + empirical pilot regression — April 2026
 
 - **`tests/test_persistence.py`:** JSON + SQLite round-trip for metaplan, somatic markers, and skill-learning tickets (adjacent to existing in-memory test).
 - **`tests/test_empirical_pilot_runner.py`:** batch pilot summary stability vs `tests/fixtures/empirical_pilot/scenarios.json`; archived `last_run_summary.json` + fixture `README.md`.
-- **`docs/TRACE_IMPLEMENTATION_RECENT.md`:** marks persistence item (1) as delivered with test pointers.
+- **`docs/proposals/TRACE_IMPLEMENTATION_RECENT.md`:** marks persistence item (1) as delivered with test pointers.
 
 ## Documentation — README + THEORY + ADR index sync — April 2026
 
 - **README:** test count band (340+), Issue 3 pilot links, ADR 0002 pointer next to 0001.
-- **`docs/THEORY_AND_IMPLEMENTATION.md`:** perception schema, episodic Bayes flag, pilot docs, ADR 0002.
+- **`docs/proposals/THEORY_AND_IMPLEMENTATION.md`:** perception schema, episodic Bayes flag, pilot docs, ADR 0002.
 - **`docs/adr/README.md`:** ADR table (0001–0002).
 
 ## Documentation — empirical pilot operator protocol (Phase D) — April 2026
 
-- **[`docs/EMPIRICAL_PILOT_PROTOCOL.md`](docs/EMPIRICAL_PILOT_PROTOCOL.md):** Issue 3–aligned operator checklist; cross-links [`EMPIRICAL_PILOT_METHODOLOGY.md`](docs/EMPIRICAL_PILOT_METHODOLOGY.md).
+- **[`docs/proposals/EMPIRICAL_PILOT_PROTOCOL.md`](docs/proposals/EMPIRICAL_PILOT_PROTOCOL.md):** Issue 3–aligned operator checklist; cross-links [`EMPIRICAL_PILOT_METHODOLOGY.md`](docs/proposals/EMPIRICAL_PILOT_METHODOLOGY.md).
 
 ## ADR — async orchestration future stub (Phase E) — April 2026
 
@@ -132,7 +148,7 @@ All notable changes to this project are summarized here. For narrative context a
 
 - **`KERNEL_BAYESIAN_EMPIRICAL_WEIGHTS`:** when `1`, `BayesianEngine.refresh_weights_from_episodic_memory` runs before impact scoring (same-context episodes); default **off**; `BayesianEngine.reset_mixture_weights` when disabled.
 - **Tests:** `tests/test_bayesian_episodic_weights.py`.
-- **Docs:** [`KERNEL_ENV_POLICY.md`](docs/KERNEL_ENV_POLICY.md) flag family row; [`OPERATOR_QUICK_REF.md`](docs/OPERATOR_QUICK_REF.md).
+- **Docs:** [`KERNEL_ENV_POLICY.md`](docs/proposals/KERNEL_ENV_POLICY.md) flag family row; [`OPERATOR_QUICK_REF.md`](docs/proposals/OPERATOR_QUICK_REF.md).
 
 ## Perception — Pydantic schema module (Phase B) — April 2026
 
@@ -142,24 +158,24 @@ All notable changes to this project are summarized here. For narrative context a
 
 ## Operator quick ref — KERNEL family table (Phase A) — April 2026
 
-- **[`docs/OPERATOR_QUICK_REF.md`](docs/OPERATOR_QUICK_REF.md):** one-page map of `KERNEL_*` families; README pointer.
+- **[`docs/proposals/OPERATOR_QUICK_REF.md`](docs/proposals/OPERATOR_QUICK_REF.md):** one-page map of `KERNEL_*` families; README pointer.
 
 ## Documentation — production hardening roadmap (non-binding) — April 2026
 
-- **[`docs/PRODUCTION_HARDENING_ROADMAP.md`](docs/PRODUCTION_HARDENING_ROADMAP.md):** synthesizes external “production-ready” proposals into three phases (input trust / architecture / UX & constitution) with explicit non-goals and a **“Próximas propuestas”** slot; cross-links `ESTRATEGIA_Y_RUTA`, `CRITIQUE_ROADMAP_ISSUES`, ADR packaging, input-trust docs. README + `discusion/README` pointers.
+- **[`docs/proposals/PRODUCTION_HARDENING_ROADMAP.md`](docs/proposals/PRODUCTION_HARDENING_ROADMAP.md):** synthesizes external “production-ready” proposals into three phases (input trust / architecture / UX & constitution) with explicit non-goals and a **“Próximas propuestas”** slot; cross-links `ESTRATEGIA_Y_RUTA`, `CRITIQUE_ROADMAP_ISSUES`, ADR packaging, input-trust docs. README + `proposals/README` pointers.
 - **Same doc — núcleo–narrativa analysis (April 2026):** functional gaps (fixed Bayes weights vs episodic memory, poles linearity, MalAbs/leet, perception defaults), architectural notes (kernel coupling, signal confidence, `consequence_projection` non-feedback); **registered spike:** empirical `hypothesis_weights` from `NarrativeMemory` (not implemented). Awaiting final proposal in “Próximas propuestas”.
 - **Same doc — full review synthesis (April 2026):** strengths table; criticisms with value-vs-redundancy (empirical validation, complexity, LLM bias, persistence HA, mock DAO, API/env, benchmarks, branding, i18n, examples); **conclusions** short/medium/long term; **proposal round closed** — future work via issues/ADRs.
 
 ## Demo — situated v8 + LAN profile (`situated_v8_lan_demo`) — April 2026
 
 - **`runtime_profiles`:** `situated_v8_lan_demo` — LAN bind, `KERNEL_SENSOR_FIXTURE` + `KERNEL_SENSOR_PRESET` (`tests/fixtures/sensor/minimal_situ.json` + `low_battery`), vitality + multimodal JSON enabled.
-- **Docs:** [`DEMO_SITUATED_V8.md`](docs/DEMO_SITUATED_V8.md); [`ESTRATEGIA_Y_RUTA.md`](docs/ESTRATEGIA_Y_RUTA.md) §3.1 marks demo slice closed; README profile pointer.
+- **Docs:** [`DEMO_SITUATED_V8.md`](docs/proposals/DEMO_SITUATED_V8.md); [`ESTRATEGIA_Y_RUTA.md`](docs/proposals/ESTRATEGIA_Y_RUTA.md) §3.1 marks demo slice closed; README profile pointer.
 
 ## Epistemology — lighthouse KB validation + first-match test — April 2026
 
 - **`reality_verification`:** `validate_lighthouse_kb_structure`, `validate_lighthouse_kb_file` for operator/CI regression (schema only, not factual truth).
 - **Tests:** `tests/test_lighthouse_kb_schema.py` (fixture `demo_kb.json` must stay valid); `test_first_matching_entry_wins` in `test_reality_verification.py`.
-- **Docs:** [LIGHTHOUSE_KB.md](docs/LIGHTHOUSE_KB.md) structural validation section.
+- **Docs:** [LIGHTHOUSE_KB.md](docs/proposals/LIGHTHOUSE_KB.md) structural validation section.
 
 ## Robustness — runtime profile helper + input-trust tests — April 2026
 
@@ -170,7 +186,7 @@ All notable changes to this project are summarized here. For narrative context a
 ## Escalation + lighthouse — persistence and KB demo — April 2026
 
 - **Snapshot:** `escalation_session_strikes` / `escalation_session_idle_turns` (V11 `EscalationSessionTracker`) in `KernelSnapshotV1` with `extract_snapshot` / `apply_snapshot` and migration defaults in `snapshot_from_dict`.
-- **Lighthouse:** extended `tests/fixtures/lighthouse/demo_kb.json` (EN water + ES vacuna entries); tests in `test_reality_verification.py`; operational doc [`docs/LIGHTHOUSE_KB.md`](docs/LIGHTHOUSE_KB.md); README pointer.
+- **Lighthouse:** extended `tests/fixtures/lighthouse/demo_kb.json` (EN water + ES vacuna entries); tests in `test_reality_verification.py`; operational doc [`docs/proposals/LIGHTHOUSE_KB.md`](docs/proposals/LIGHTHOUSE_KB.md); README pointer.
 
 ## Persistence — v7 user model + subjective clock in snapshot — April 2026
 
@@ -212,28 +228,28 @@ Pause on **new surface modules**; strengthen existing paths (critique-aligned).
 - **`moral_hub.propose_community_article_mock`:** optional `kernel` argument; rejects + audit line when scan fails.
 
 ## Issue 7 (P3): `KERNEL_*` consolidation — policy doc + profiles — April 2026
-- **[`docs/KERNEL_ENV_POLICY.md`](docs/KERNEL_ENV_POLICY.md):** flag families, unsupported / lab-only combinations, deprecation posture.
+- **[`docs/proposals/KERNEL_ENV_POLICY.md`](docs/proposals/KERNEL_ENV_POLICY.md):** flag families, unsupported / lab-only combinations, deprecation posture.
 - **`src/runtime_profiles.py`:** `lan_operational` (LAN + stoic UX), `moral_hub_extended` (hub + DAO vote + deontic gate + transparency audit).
-- **[`docs/ESTRATEGIA_Y_RUTA.md`](docs/ESTRATEGIA_Y_RUTA.md):** profile table + link to policy doc; README pointer.
+- **[`docs/proposals/ESTRATEGIA_Y_RUTA.md`](docs/proposals/ESTRATEGIA_Y_RUTA.md):** profile table + link to policy doc; README pointer.
 
 ## Issue 6 (P2): governance — MockDAO exit + L0 framing — April 2026
-- **[`docs/GOVERNANCE_MOCKDAO_AND_L0.md`](docs/GOVERNANCE_MOCKDAO_AND_L0.md):** mock vs consensus; L0 “constitution in the repo”; L1/L2 path; checklist beyond mock; link [mosexmacchinalab.com/blockchain-dao](https://mosexmacchinalab.com/blockchain-dao).
-- **[`docs/discusion/UNIVERSAL_ETHOS_AND_HUB.md`](docs/discusion/UNIVERSAL_ETHOS_AND_HUB.md):** pointer under kernel contract; **[`RUNTIME_CONTRACT.md`](docs/RUNTIME_CONTRACT.md)** one-line cross-ref.
+- **[`docs/proposals/GOVERNANCE_MOCKDAO_AND_L0.md`](docs/proposals/GOVERNANCE_MOCKDAO_AND_L0.md):** mock vs consensus; L0 “constitution in the repo”; L1/L2 path; checklist beyond mock; link [mosexmacchinalab.com/blockchain-dao](https://mosexmacchinalab.com/blockchain-dao).
+- **[`docs/proposals/UNIVERSAL_ETHOS_AND_HUB.md`](docs/proposals/UNIVERSAL_ETHOS_AND_HUB.md):** pointer under kernel contract; **[`RUNTIME_CONTRACT.md`](docs/proposals/RUNTIME_CONTRACT.md)** one-line cross-ref.
 - **`src/modules/mock_dao.py`:** docstring points to governance doc.
 
 ## Issue 5 (P2): poles / weakness / PAD — heuristics + HCI profiles — April 2026
-- **[`docs/POLES_WEAKNESS_PAD_AND_PROFILES.md`](docs/POLES_WEAKNESS_PAD_AND_PROFILES.md):** honest framing of multipolar scores; weakness/PAD HCI risks; env table; profile matrix (`baseline` vs `operational_trust`).
+- **[`docs/proposals/POLES_WEAKNESS_PAD_AND_PROFILES.md`](docs/proposals/POLES_WEAKNESS_PAD_AND_PROFILES.md):** honest framing of multipolar scores; weakness/PAD HCI risks; env table; profile matrix (`baseline` vs `operational_trust`).
 - **`src/runtime_profiles.py`:** `operational_trust` — `KERNEL_CHAT_INCLUDE_HOMEOSTASIS=0`, `KERNEL_CHAT_EXPOSE_MONOLOGUE=0`, `KERNEL_CHAT_INCLUDE_EXPERIENCE_DIGEST=0` (WebSocket UX only).
-- **Docs:** [`THEORY_AND_IMPLEMENTATION.md`](docs/THEORY_AND_IMPLEMENTATION.md) short subsection; [`ESTRATEGIA_Y_RUTA.md`](docs/ESTRATEGIA_Y_RUTA.md) profile table; README pointer.
+- **Docs:** [`THEORY_AND_IMPLEMENTATION.md`](docs/proposals/THEORY_AND_IMPLEMENTATION.md) short subsection; [`ESTRATEGIA_Y_RUTA.md`](docs/proposals/ESTRATEGIA_Y_RUTA.md) profile table; README pointer.
 
 ## Issue 4 (P1): core decision chain doc + packaging spike — April 2026
-- **[`docs/CORE_DECISION_CHAIN.md`](docs/CORE_DECISION_CHAIN.md):** Mermaid flow + table — MalAbs / `BayesianEngine` vs layers that do **not** change `final_action`; core vs theater split.
+- **[`docs/proposals/CORE_DECISION_CHAIN.md`](docs/proposals/CORE_DECISION_CHAIN.md):** Mermaid flow + table — MalAbs / `BayesianEngine` vs layers that do **not** change `final_action`; core vs theater split.
 - **[`docs/adr/0001-packaging-core-boundary.md`](docs/adr/0001-packaging-core-boundary.md):** ADR — stub `pyproject.toml`, future `ethos_kernel` rename optional.
 - **`pyproject.toml`:** `ethos-kernel` metadata, `numpy` base deps, optional `[runtime]` / `[dev]` groups; editable install (`pip install -e .`) validated.
-- **Cross-links:** README, [`THEORY_AND_IMPLEMENTATION.md`](docs/THEORY_AND_IMPLEMENTATION.md), [`RUNTIME_CONTRACT.md`](docs/RUNTIME_CONTRACT.md).
+- **Cross-links:** README, [`THEORY_AND_IMPLEMENTATION.md`](docs/proposals/THEORY_AND_IMPLEMENTATION.md), [`RUNTIME_CONTRACT.md`](docs/proposals/RUNTIME_CONTRACT.md).
 
 ## Issue 3 (P1): empirical pilot — reproducible scenarios + methodology — April 2026
-- **[`docs/EMPIRICAL_PILOT_METHODOLOGY.md`](docs/EMPIRICAL_PILOT_METHODOLOGY.md):** scope, baselines (`first`, `max_impact`), metrics; explicitly **not** certification.
+- **[`docs/proposals/EMPIRICAL_PILOT_METHODOLOGY.md`](docs/proposals/EMPIRICAL_PILOT_METHODOLOGY.md):** scope, baselines (`first`, `max_impact`), metrics; explicitly **not** certification.
 - **Fixture:** [`tests/fixtures/empirical_pilot/scenarios.json`](tests/fixtures/empirical_pilot/scenarios.json) — curated sim IDs + illustrative `reference_action` labels for agreement rates.
 - **Script:** [`scripts/run_empirical_pilot.py`](scripts/run_empirical_pilot.py) — deterministic batch run (`variability=False`, fixed seed, `llm_mode=local`).
 - **Tests:** [`tests/test_empirical_pilot.py`](tests/test_empirical_pilot.py).
@@ -242,21 +258,21 @@ Pause on **new surface modules**; strengthen existing paths (critique-aligned).
 - **`src/modules/input_trust.py`:** `normalize_text_for_malabs` (NFKC, strip zero-width, collapse whitespace) before MalAbs substring checks.
 - **`src/modules/absolute_evil.py`:** `evaluate_chat_text` uses normalization.
 - **`src/modules/llm_layer.py`:** `perception_from_llm_json` — clamp signals to \([0,1]\), allowlist `suggested_context`, cap summary length, nudge inconsistent high hostility + calm.
-- **Docs:** [`docs/INPUT_TRUST_THREAT_MODEL.md`](docs/INPUT_TRUST_THREAT_MODEL.md); **`SECURITY.md`** kernel section; **README** pointer.
+- **Docs:** [`docs/proposals/INPUT_TRUST_THREAT_MODEL.md`](docs/proposals/INPUT_TRUST_THREAT_MODEL.md); **`SECURITY.md`** kernel section; **README** pointer.
 - **Tests:** `tests/test_input_trust.py` (evasion + perception adversarial cases).
 
 ## Issue 1 (P0): honest “Bayesian” semantics — April 2026
 - **`src/modules/bayesian_engine.py`:** module, class, and method docstrings state **fixed weighted mixture** over three hypotheses; **no** posterior updating; **heuristic** uncertainty (not the theoretical integral).
-- **`docs/THEORY_AND_IMPLEMENTATION.md`:** semantic note under MalAbs optimization; § uncertainty aligned with heuristic `I(x)`.
+- **`docs/proposals/THEORY_AND_IMPLEMENTATION.md`:** semantic note under MalAbs optimization; § uncertainty aligned with heuristic `I(x)`.
 - **README** tagline, **`src/kernel.py`** / **`src/main.py`** comments, **`sigmoid_will`** param doc: narrative matches implementation; class names `BayesianEngine` / `BayesianResult` unchanged for API stability.
 
 ## Critique roadmap & maturation disclaimer — April 2026
-- **[`docs/CRITIQUE_ROADMAP_ISSUES.md`](docs/CRITIQUE_ROADMAP_ISSUES.md):** disclaimer + **seven consolidated** GitHub-ready issues (two external reviews; **merged** duplicate themes: chat jailbreak + **perception GIGO** → single P0 **input trust**; poles + **weakness/HCI**; MockDAO exit + **L0 vs governance**). Adds **pip core spike**, optional classifier note.
+- **[`docs/proposals/CRITIQUE_ROADMAP_ISSUES.md`](docs/proposals/CRITIQUE_ROADMAP_ISSUES.md):** disclaimer + **seven consolidated** GitHub-ready issues (two external reviews; **merged** duplicate themes: chat jailbreak + **perception GIGO** → single P0 **input trust**; poles + **weakness/HCI**; MockDAO exit + **L0 vs governance**). Adds **pip core spike**, optional classifier note.
 - **Landing [roadmap](https://mosexmacchinalab.com/roadmap):** “Maturation & critique track” bullets aligned with the consolidated doc.
-- **[`docs/ESTRATEGIA_Y_RUTA.md`](docs/ESTRATEGIA_Y_RUTA.md):** cross-reference to the critique backlog.
+- **[`docs/proposals/ESTRATEGIA_Y_RUTA.md`](docs/proposals/ESTRATEGIA_Y_RUTA.md):** cross-reference to the critique backlog.
 
 ## Docs: Ollama-first LLM + API hardening — April 2026
-- **Markdown:** README / HISTORY / CHANGELOG / `docs/RUNTIME_PHASES.md` now describe **Ollama** as the documented local LLM path; **OpenAPI** (`/docs`, `/redoc`, `/openapi.json`) is **off by default** — set `KERNEL_API_DOCS=1` to enable (see README). Academic bibliography entries (e.g. Constitutional AI, ref. 90) unchanged.
+- **Markdown:** README / HISTORY / CHANGELOG / `docs/proposals/RUNTIME_PHASES.md` now describe **Ollama** as the documented local LLM path; **OpenAPI** (`/docs`, `/redoc`, `/openapi.json`) is **off by default** — set `KERNEL_API_DOCS=1` to enable (see README). Academic bibliography entries (e.g. Constitutional AI, ref. 90) unchanged.
 - **`landing/CLAUDE.md`** removed; replaced by **`landing/OLLAMA.md`** (pointer to root README + Ollama).
 
 ## Project rename to Ethos Kernel — April 2026
@@ -265,19 +281,19 @@ Pause on **new surface modules**; strengthen existing paths (critique-aligned).
 - **Internals:** WebSocket health `service` id is `ethos-kernel-chat`; FastAPI title `Ethos Kernel Chat`. LLM system prompts refer to the Ethos Kernel / agent (legacy JSON enum `android_damage` unchanged for compatibility).
 
 ## Pre-alpha docs + media archive — April 2026
-- **`docs/historical/prealpha/`:** ingested content from **`prealphaDocs/`** (removed): Spanish `androide_etico_alpha` v1.0 (2026), Spanish bibliography draft (canonical refs stay in [`BIBLIOGRAPHY.md`](BIBLIOGRAPHY.md)), PNG/JPG/MP4 media with ASCII filenames under `media/`, [`README.md`](docs/historical/prealpha/README.md) index, [`COMPANION_BINARIES.md`](docs/historical/prealpha/COMPANION_BINARIES.md) for PDF/DOCX not tracked by `.gitignore`. English archive notices prepended to archived markdown. Cross-refs in [`HISTORY.md`](HISTORY.md).
+- **`docs/multimedia/prealpha/`:** content from **`prealphaDocs/`**: Spanish `androide_etico_alpha` v1.0 (2026) and bibliography draft were archived as markdown under `prealpha/`; **April 2026 (later):** that markdown was **condensed into [`HISTORY.md`](HISTORY.md)** and removed from the tree. **PNG/JPG/MP4** remain under **`docs/multimedia/prealpha/media/`**; PDF/DOCX are **not** in git (see root `.gitignore`). Index today: [`docs/multimedia/README.md`](docs/multimedia/README.md).
 
 ## DAO integrity alert WebSocket (v0) — April 2026
 - **`hub_audit.record_dao_integrity_alert`** + **`KERNEL_DAO_INTEGRITY_AUDIT_WS`** — WebSocket `integrity_alert` → `HubAudit:dao_integrity` on MockDAO; response key `integrity`. Tests in `test_hub_modules`, `test_chat_server`. PROPUESTA doc §5 updated.
 
 ## DAO alerts & transparency (design doc) — April 2026
-- **docs/discusion/PROPUESTA_DAO_ALERTAS_Y_TRANSPARENCIA.md:** rejects covert “guerrilla” obedience; adopts loud traceable alerts; forensic case memorial vs polluting L0 buffer; cross-ref from PROPUESTA_JUSTICIA V11.
+- **docs/proposals/PROPUESTA_DAO_ALERTAS_Y_TRANSPARENCIA.md:** rejects covert “guerrilla” obedience; adopts loud traceable alerts; forensic case memorial vs polluting L0 buffer; cross-ref from PROPUESTA_JUSTICIA V11.
 
 ## Next.js landing refresh — April 2026
 - **`landing/`:** home hero + new **Runtime, governance & nomadic bridge** section; doc links (RUNTIME_CONTRACT, LAN, nomad bridge, ESTRATEGIA); hostable bullet; research link to RUNTIME_PERSISTENT; footer tagline; **PrimaryNav** “Runtime & nomad”; **roadmap** “Current” bullets aligned with FastAPI/WebSocket, checkpoints, mobile LAN.
 
 ## Nomad PC–smartphone bridge doc — April 2026
-- **docs/NOMAD_PC_SMARTPHONE_BRIDGE.md:** hardware classes → compatibility layers; first nomadic bridge; smartphone as immediate path for coordinated sensory perception (`sensor` JSON); field testing on a more secure network when the operator indicates. Cross-links from LOCAL_PC_AND_MOBILE_LAN, ESTRATEGIA_Y_RUTA, README.
+- **docs/proposals/NOMAD_PC_SMARTPHONE_BRIDGE.md:** hardware classes → compatibility layers; first nomadic bridge; smartphone as immediate path for coordinated sensory perception (`sensor` JSON); field testing on a more secure network when the operator indicates. Cross-links from LOCAL_PC_AND_MOBILE_LAN, ESTRATEGIA_Y_RUTA, README.
 
 ## Mobile minimal UI (`landing/public/mobile.html`) — April 2026
 - **LAN:** IP + port, localStorage, `/health` ping, WebSocket connect, chat bubbles, optional full JSON.
@@ -289,7 +305,7 @@ Pause on **new surface modules**; strengthen existing paths (critique-aligned).
 - **Tests:** `tests/test_conduct_guide_export.py`; docs: `LOCAL_PC_AND_MOBILE_LAN.md`, `context_distillation` cross-refs.
 
 ## Local PC + LAN smartphone thin client — April 2026
-- **docs/LOCAL_PC_AND_MOBILE_LAN.md:** goal (short/medium), architecture, Windows firewall, `CHAT_HOST=0.0.0.0`, Ollama/checkpoint notes, security caveats.
+- **docs/proposals/LOCAL_PC_AND_MOBILE_LAN.md:** goal (short/medium), architecture, Windows firewall, `CHAT_HOST=0.0.0.0`, Ollama/checkpoint notes, security caveats.
 - **scripts/start_lan_server.ps1** / **scripts/start_lan_server.sh:** bind server for WiFi clients; print LAN IPv4 hints.
 - **landing/public/chat-test.html:** query `?host=` / `?port=` / `?url=` for phone testing; mobile-friendly buttons.
 - **docs/templates/conduct_guide.template.json:** placeholder for future 70B→8B distillation; **runtime profile** `lan_mobile_thin_client`.
@@ -297,10 +313,10 @@ Pause on **new surface modules**; strengthen existing paths (critique-aligned).
 ## Reality verification (V11+) + resilience stubs — April 2026
 - **`reality_verification.py`:** optional local JSON lighthouse (`KERNEL_LIGHTHOUSE_KB_PATH`) vs asserted premises → metacognitive doubt; LLM hint only; `ChatTurnResult.reality_verification`; WebSocket key when `KERNEL_CHAT_INCLUDE_REALITY_VERIFICATION=1`.
 - **`context_distillation.py` / `local_sovereignty.py`:** stubs for conduct-guide load and DAO calibration veto (documented in PROPUESTA).
-- **Docs:** [docs/discusion/PROPUESTA_VERIFICACION_REALIDAD_V11.md](docs/discusion/PROPUESTA_VERIFICACION_REALIDAD_V11.md); fixture `tests/fixtures/lighthouse/demo_kb.json`; profile `reality_lighthouse_demo` in `runtime_profiles.py`.
+- **Docs:** [docs/proposals/PROPUESTA_VERIFICACION_REALIDAD_V11.md](docs/proposals/PROPUESTA_VERIFICACION_REALIDAD_V11.md); fixture `tests/fixtures/lighthouse/demo_kb.json`; profile `reality_lighthouse_demo` in `runtime_profiles.py`.
 
 ## Strategy doc + runtime profiles — April 2026
-- **docs/ESTRATEGIA_Y_RUTA.md:** conclusions from project review, readapted roadmap (P0–P3), expectations vs. MVP reality, operational risks.
+- **docs/proposals/ESTRATEGIA_Y_RUTA.md:** conclusions from project review, readapted roadmap (P0–P3), expectations vs. MVP reality, operational risks.
 - **`src/runtime_profiles.py`:** named env bundles (`baseline`, `judicial_demo`, `hub_dao_demo`, `nomad_demo`) for operators and CI.
 - **`tests/test_runtime_profiles.py`:** parametrized health + WebSocket smoke; hub DAO + nomad assertions per profile.
 
@@ -316,11 +332,11 @@ Pause on **new surface modules**; strengthen existing paths (critique-aligned).
 - **`GET /nomad/migration`** — meta endpoint.
 
 ## Nomadic HAL + existential protocol (design v11) — April 2026
-- **Docs:** [docs/discusion/PROPUESTA_CONCIENCIA_NOMADA_HAL.md](docs/discusion/PROPUESTA_CONCIENCIA_NOMADA_HAL.md) — EthosContainer, transmutación A–D, runtime dual, respuestas (batería/ataque, tono, DAO sin GPS por defecto, ahorro energía).
+- **Docs:** [docs/proposals/PROPUESTA_CONCIENCIA_NOMADA_HAL.md](docs/proposals/PROPUESTA_CONCIENCIA_NOMADA_HAL.md) — EthosContainer, transmutación A–D, runtime dual, respuestas (batería/ataque, tono, DAO sin GPS por defecto, ahorro energía).
 - **Code:** `hardware_abstraction.py` (`HardwareContext`, `ComputeTier`, `sensor_delta_narrative`, `apply_hardware_context`); `existential_serialization.py` (`TransmutationPhase`, `ContinuityToken`, audit payload sin ubicación por defecto). `nomad_identity_public` incluye `hardware_context` si se aplicó HAL.
 
 ## UniversalEthos hub unification — April 2026
-- **Docs:** [docs/discusion/UNIVERSAL_ETHOS_AND_HUB.md](docs/discusion/UNIVERSAL_ETHOS_AND_HUB.md) — canonical vision ↔ code; [PROPUESTA_ESTADO_ETOSOCIAL_V12.md](docs/discusion/PROPUESTA_ESTADO_ETOSOCIAL_V12.md) slimmed to registry + env (points to unified doc).
+- **Docs:** [docs/proposals/UNIVERSAL_ETHOS_AND_HUB.md](docs/proposals/UNIVERSAL_ETHOS_AND_HUB.md) — canonical vision ↔ code; [PROPUESTA_ESTADO_ETOSOCIAL_V12.md](docs/proposals/PROPUESTA_ESTADO_ETOSOCIAL_V12.md) slimmed to registry + env (points to unified doc).
 - **Code:** `deontic_gate.py` (`KERNEL_DEONTIC_GATE`); `ml_ethics_tuner.py` (`KERNEL_ML_ETHICS_TUNER_LOG`); `reparation_vault.py` (`KERNEL_REPARATION_VAULT_MOCK`); `nomad_identity.py` + optional WebSocket `nomad_identity` (`KERNEL_CHAT_INCLUDE_NOMAD_IDENTITY`).
 - **`moral_hub`:** `apply_proposal_resolution_to_constitution_drafts` — draft `status` / `resolved_at` after `dao_resolve`; deontic validation on `add_constitution_draft` / `submit_constitution_draft_for_vote` when gate enabled.
 - **`deontic_gate`:** rejects explicit **repeal** of named L0 principles from `PreloadedBuffer` (e.g. `repeal no_harm`).
@@ -328,7 +344,7 @@ Pause on **new surface modules**; strengthen existing paths (critique-aligned).
 
 ## v12.0 — April 2026
 ### Moral Infrastructure Hub — vision + V12.1 code hooks
-- **Design doc** [docs/discusion/PROPUESTA_ESTADO_ETOSOCIAL_V12.md](docs/discusion/PROPUESTA_ESTADO_ETOSOCIAL_V12.md): DemocraticBuffer (L0–L2), services hub, EthosPayroll, R&D transparency; phased table **V12.1–V12.4**.
+- **Design doc** [docs/proposals/PROPUESTA_ESTADO_ETOSOCIAL_V12.md](docs/proposals/PROPUESTA_ESTADO_ETOSOCIAL_V12.md): DemocraticBuffer (L0–L2), services hub, EthosPayroll, R&D transparency; phased table **V12.1–V12.4**.
 - **`moral_hub.py`:** `constitution_snapshot`, `GET /constitution` (`KERNEL_MORAL_HUB_PUBLIC`); `audit_transparency_event` (`KERNEL_TRANSPARENCY_AUDIT`); `propose_community_article_mock` (`KERNEL_DEMOCRATIC_BUFFER_MOCK`); `ethos_payroll_record_mock` (`KERNEL_ETHOS_PAYROLL_MOCK`). WebSocket connect triggers transparency + optional payroll audit.
 - **`EthicalKernel.get_constitution_snapshot()`** for programmatic L0 export.
 - **Relationship to V11:** justice track unchanged; hub adds governance **narrative + audit hooks** without editing `buffer.py` contents.
@@ -351,7 +367,7 @@ Pause on **new surface modules**; strengthen existing paths (critique-aligned).
 - **Phase 3:** **`KERNEL_JUDICIAL_MOCK_COURT`** — `MockDAO.run_mock_escalation_court` after dossier registration; `mock_court` JSON with verdict A/B/C; phase `mock_court_resolved`.
 - **`MockDAO.register_escalation_case`**: audit records of type `escalation` (single-process mock; no blockchain).
 - **WebSocket**: optional `escalate_to_dao: true`; **`KERNEL_JUDICIAL_ESCALATION`** enables logic; **`KERNEL_CHAT_INCLUDE_JUDICIAL`** exposes `judicial_escalation` in JSON.
-- **Design doc**: [docs/discusion/PROPUESTA_JUSTICIA_DISTRIBUIDA_V11.md](docs/discusion/PROPUESTA_JUSTICIA_DISTRIBUIDA_V11.md) (Phase 3+: mock court, sanctions, P2P, ZK — not implemented).
+- **Design doc**: [docs/proposals/PROPUESTA_JUSTICIA_DISTRIBUIDA_V11.md](docs/proposals/PROPUESTA_JUSTICIA_DISTRIBUIDA_V11.md) (Phase 3+: mock court, sanctions, P2P, ZK — not implemented).
 
 ## v10.0 — April 2026
 ### Operational strategy (MVP hooks)
@@ -382,7 +398,7 @@ Pause on **new surface modules**; strengthen existing paths (critique-aligned).
 ## v6.0 — April 2026
 ### Runtime, WebSocket chat, and persistence
 - **WebSocket chat server** (`chat_server.py`, `real_time_bridge.py`): `EthicalKernel.process_chat_turn` exposed per connection; health endpoint.
-- **Runtime entry** (`python -m src.runtime`): same ASGI stack as `chat_server`; documented in `docs/RUNTIME_CONTRACT.md` and `docs/RUNTIME_PHASES.md`.
+- **Runtime entry** (`python -m src.runtime`): same ASGI stack as `chat_server`; documented in `docs/proposals/RUNTIME_CONTRACT.md` and `docs/proposals/RUNTIME_PHASES.md`.
 - **Advisory telemetry** (`runtime/telemetry.py`): optional background `DriveArbiter.evaluate` (`KERNEL_ADVISORY_INTERVAL_S`); no decisions or LLM.
 - **Persistence port** (`persistence/kernel_io.py`): `KernelSnapshotV1`, `extract_snapshot` / `apply_snapshot`.
 - **JSON + SQLite adapters** (`json_store.py`, `sqlite_store.py`): same DTO, two storage backends.

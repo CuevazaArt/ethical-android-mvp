@@ -2,7 +2,7 @@
 
 **Purpose:** reproducible **field-style** demo: kernel on PC, phone browser on WiFi, **sensor hints** merged from env (fixture + preset) without raw hardware drivers.
 
-**Ethical contract:** unchanged — MalAbs, buffer, Bayes; sensors only nudge sympathetic signals and JSON telemetry ([`PROPUESTA_ORGANISMO_SITUADO_V8.md`](discusion/PROPUESTA_ORGANISMO_SITUADO_V8.md)).
+**Ethical contract:** unchanged — MalAbs, buffer, Bayes; sensors only nudge sympathetic signals and JSON telemetry ([`PROPUESTA_ORGANISMO_SITUADO_V8.md`](PROPUESTA_ORGANISMO_SITUADO_V8.md)).
 
 ## One-command profile
 

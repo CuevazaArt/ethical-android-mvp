@@ -2,7 +2,7 @@
 Named bundles of environment variables for demos, operators, and CI.
 
 Each profile only lists **overrides**; unset keys keep process defaults.
-See docs/ESTRATEGIA_Y_RUTA.md.
+See docs/proposals/ESTRATEGIA_Y_RUTA.md.
 """
 
 from __future__ import annotations

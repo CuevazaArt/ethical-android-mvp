@@ -56,7 +56,7 @@ Documented here to avoid scope creep in Phase 1:
 - [PROPUESTA_DAO_ALERTAS_Y_TRANSPARENCIA.md](PROPUESTA_DAO_ALERTAS_Y_TRANSPARENCIA.md) — alertas ante corrupción DAO: transparencia vs. “guerrilla”, memorial forense vs. borrado (diseño)
 - [PROPUESTA_ESTRATEGIA_OPERATIVA_V10.md](PROPUESTA_ESTRATEGIA_OPERATIVA_V10.md) — gray-zone diplomacy precursor
 - [PROPUESTA_ESTADO_ETOSOCIAL_V12.md](PROPUESTA_ESTADO_ETOSOCIAL_V12.md) — etosocial hub / hybrid justice infrastructure (vision; V12)
-- [RUNTIME_PERSISTENT.md](../RUNTIME_PERSISTENT.md) — checkpoints and confidentiality
-- [THEORY_AND_IMPLEMENTATION.md](../THEORY_AND_IMPLEMENTATION.md) — kernel contract
+- [RUNTIME_PERSISTENT.md](RUNTIME_PERSISTENT.md) — checkpoints and confidentiality
+- [THEORY_AND_IMPLEMENTATION.md](THEORY_AND_IMPLEMENTATION.md) — kernel contract
 
 *Ex Machina Foundation — V11 governance track.*

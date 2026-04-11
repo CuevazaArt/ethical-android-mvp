@@ -5,7 +5,7 @@ Run from repo root:
   uvicorn src.chat_server:app --host 127.0.0.1 --port 8765
 
 Or: python -m src.chat_server
-Or: python -m src.runtime  (same server; see docs/RUNTIME_CONTRACT.md)
+Or: python -m src.runtime  (same server; see docs/proposals/RUNTIME_CONTRACT.md)
 
 OpenAPI/Swagger: **off** by default; set KERNEL_API_DOCS=1 to expose ``/docs``, ``/redoc``, ``/openapi.json`` (see README).
 
@@ -70,7 +70,7 @@ PROPUESTA_DAO_ALERTAS_Y_TRANSPARENCIA.md.
 Advisory telemetry (optional, Fase 1.3–1.4): KERNEL_ADVISORY_INTERVAL_S — positive seconds
 spawns a read-only :func:`src.runtime.telemetry.advisory_loop` per WebSocket session (DriveArbiter only).
 Metaplan vs drives (v9.4): KERNEL_METAPLAN_DRIVE_FILTER / KERNEL_METAPLAN_DRIVE_EXTRA — see metaplan_registry.py.
-Swarm lab stub (v9.3): KERNEL_SWARM_STUB — optional gate for ``swarm_peer_stub`` digests only; see docs/SWARM_P2P_THREAT_MODEL.md.
+Swarm lab stub (v9.3): KERNEL_SWARM_STUB — optional gate for ``swarm_peer_stub`` digests only; see docs/proposals/SWARM_P2P_THREAT_MODEL.md.
 
 Privacy (robustez pilar 5): KERNEL_CHAT_EXPOSE_MONOLOGUE — if 0/false/no/off, the ``monologue``
 field is omitted from content (empty string) and LLM embellishment is skipped.
@@ -424,7 +424,7 @@ def constitution_public() -> JSONResponse:
     Read-only Level-0 ethical principles (current PreloadedBuffer) as JSON.
 
     Enabled when KERNEL_MORAL_HUB_PUBLIC=1. Does not expose L1/L2 drafts until governance exists.
-    See docs/discusion/PROPUESTA_ESTADO_ETOSOCIAL_V12.md (DemocraticBuffer vision).
+    See docs/proposals/PROPUESTA_ESTADO_ETOSOCIAL_V12.md (DemocraticBuffer vision).
     """
     if not moral_hub_public_enabled():
         return JSONResponse(

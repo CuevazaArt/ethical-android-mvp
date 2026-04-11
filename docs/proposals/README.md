@@ -1,8 +1,8 @@
-# Discussion (not the backlog)
+# Proposals (design notes, roadmaps, and technical docs)
 
-**Exploratory** notes: ideas, philosophical frames, or designs that are **not** operational tasks until criteria are agreed.
+**Exploratory** material and **reference** documents: proposals, roadmaps, theory ↔ code, runtime contracts, operator guides, and design threads that are **not** the same as the issue backlog.
 
-Product work is coordinated from the repository README and version control; this folder is **discussion and proposals** only.
+Product work is coordinated from the repository README and version control; **`docs/proposals/`** is the **unified** location (formerly `docs/discusion/`, `docs/experimental/`, and top-level `docs/*.md`).
 
 | Document | Topic |
 |----------|----------|
@@ -19,7 +19,8 @@ Product work is coordinated from the repository README and version control; this
 | [PROPUESTA_ESTADO_ETOSOCIAL_V12.md](PROPUESTA_ESTADO_ETOSOCIAL_V12.md) | **V12 registry** — phased deliverables + env vars; points to unified architecture doc |
 | [UNIVERSAL_ETHOS_AND_HUB.md](UNIVERSAL_ETHOS_AND_HUB.md) | **Canonical hub vision ↔ code** — UniversalEthos layers, services, audit levels, evolution loops, module map (DemocraticBuffer, MLEthicsTuner, ReparationVault, NomadIdentity) |
 | [PROPUESTA_CONCIENCIA_NOMADA_HAL.md](PROPUESTA_CONCIENCIA_NOMADA_HAL.md) | **Nomadic instantiation** — HAL, serialización existencial, runtime dual; respuestas de diseño (batería, DAO, tono) |
-| [../TRACE_IMPLEMENTATION_RECENT.md](../TRACE_IMPLEMENTATION_RECENT.md) | **Traceability** Guardian + v9–v10: code ↔ bibliography ([BIBLIOGRAPHY.md](../../BIBLIOGRAPHY.md)); proposed next session — **English** |
-| [../PRODUCTION_HARDENING_ROADMAP.md](../PRODUCTION_HARDENING_ROADMAP.md) | **Endurecimiento hacia despliegue serio** (fases 1–3, no vinculante): percepción, modularización, UX/constitución — *síntesis*; backlog operativo en [CRITIQUE_ROADMAP_ISSUES.md](../CRITIQUE_ROADMAP_ISSUES.md) |
+| [TRACE_IMPLEMENTATION_RECENT.md](TRACE_IMPLEMENTATION_RECENT.md) | **Traceability** Guardian + v9–v10: code ↔ bibliography ([BIBLIOGRAPHY.md](../../BIBLIOGRAPHY.md)); proposed next session — **English** |
+| [PRODUCTION_HARDENING_ROADMAP.md](PRODUCTION_HARDENING_ROADMAP.md) | **Endurecimiento hacia despliegue serio** (fases 1–3, no vinculante): percepción, modularización, UX/constitución — *síntesis*; backlog operativo en [CRITIQUE_ROADMAP_ISSUES.md](CRITIQUE_ROADMAP_ISSUES.md) |
+| [PAPER_AFECTO_FENOMENOS_Y_HIPOTESIS.md](PAPER_AFECTO_FENOMENOS_Y_HIPOTESIS.md) | **Experimental paper (Spanish draft):** affect / phenomenology hypotheses — same lineage as the kernel; not the live contract. |
 
-For canonical runtime and persistence docs in English, see [RUNTIME_CONTRACT.md](../RUNTIME_CONTRACT.md), [RUNTIME_PERSISTENT.md](../RUNTIME_PERSISTENT.md), and [RUNTIME_PHASES.md](../RUNTIME_PHASES.md).
+For canonical runtime and persistence docs in English, see [RUNTIME_CONTRACT.md](RUNTIME_CONTRACT.md), [RUNTIME_PERSISTENT.md](RUNTIME_PERSISTENT.md), and [RUNTIME_PHASES.md](RUNTIME_PHASES.md).

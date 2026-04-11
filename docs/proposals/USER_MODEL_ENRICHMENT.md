@@ -128,5 +128,5 @@ Optional: return `dict` with keys `tone`, `risk`, `judicial`, `relational` for t
 
 - `src/modules/user_model.py`  
 - `src/modules/judicial_escalation.py`, `EscalationSessionTracker`  
-- `docs/discusion/PROPUESTA_EVOLUCION_RELACIONAL_V7.md`  
-- `docs/INPUT_TRUST_THREAT_MODEL.md`
+- `docs/proposals/PROPUESTA_EVOLUCION_RELACIONAL_V7.md`  
+- `docs/proposals/INPUT_TRUST_THREAT_MODEL.md`

@@ -5,7 +5,7 @@
 The Ethos Kernel accepts **untrusted natural language** (WebSocket chat, batch scenarios, `process_natural`). Two surfaces matter for defense-in-depth:
 
 1. **Chat text** — `AbsoluteEvilDetector.evaluate_chat_text` runs **before** the LLM perceives the turn (`EthicalKernel.process_chat_turn` and `process_natural`; same normalization). **Order:** **lexical** substring MalAbs first; if `KERNEL_SEMANTIC_CHAT_GATE=1` and lexical did not block, **Ollama embeddings** (θ_block / θ_allow) and optionally an **LLM arbiter** for the ambiguous band — see [`MALABS_SEMANTIC_LAYERS.md`](MALABS_SEMANTIC_LAYERS.md). If Ollama is unavailable, only lexical applies.
-2. **Perception JSON** — when an LLM returns structured signals for `LLMModule.perceive`, the kernel must not trust out-of-range or inconsistent numbers blindly. Validation pipeline: **Pydantic + per-field defaults + cross-field coherence**; local fallback uses the **current message only** for keyword heuristics (`docs/PERCEPTION_VALIDATION.md`).
+2. **Perception JSON** — when an LLM returns structured signals for `LLMModule.perceive`, the kernel must not trust out-of-range or inconsistent numbers blindly. Validation pipeline: **Pydantic + per-field defaults + cross-field coherence**; local fallback uses the **current message only** for keyword heuristics (`docs/proposals/PERCEPTION_VALIDATION.md`).
 
 This document states **limits**. MalAbs is **not** a content moderation product, a classifier, or a cryptographic guarantee.
 
@@ -34,7 +34,7 @@ Several WebSocket JSON fields are **UX / LLM tone hints** or **operator visibili
 | `judicial_escalation` | Session strikes, dossier readiness, optional mock tribunal output | Advisory; DAO/mock flows are **off-chain demo** unless integrated elsewhere. |
 | `affective_homeostasis`, `experience_digest`, `monologue` | Narrative / PAD-style color | Same: tone and audit narrative, not policy veto. |
 
-For field lists and persistence keys, see [USER_MODEL_ENRICHMENT.md](USER_MODEL_ENRICHMENT.md) and the WebSocket section in [README](../README.md).
+For field lists and persistence keys, see [USER_MODEL_ENRICHMENT.md](USER_MODEL_ENRICHMENT.md) and the WebSocket section in [README](README.md).
 
 ## References
 

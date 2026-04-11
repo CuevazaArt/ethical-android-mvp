@@ -2,7 +2,7 @@
 Input trust helpers — normalization and light sanitization for MalAbs text matching.
 
 These are **heuristic** defenses against trivial evasions (Unicode tricks, spacing).
-They are **not** a robust content classifier; see ``docs/INPUT_TRUST_THREAT_MODEL.md``.
+They are **not** a robust content classifier; see ``docs/proposals/INPUT_TRUST_THREAT_MODEL.md``.
 """
 
 import re

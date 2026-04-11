@@ -7,7 +7,7 @@ import { SiteBrand } from "@/components/SiteBrand";
 
 const REPO = "https://github.com/CuevazaArt/ethical-android-mvp";
 const COLLAB = `${REPO}/issues/new?template=collaboration.yml`;
-const CRITIQUE_DOC = `${REPO}/blob/main/docs/CRITIQUE_ROADMAP_ISSUES.md`;
+const CRITIQUE_DOC = `${REPO}/blob/main/docs/proposals/CRITIQUE_ROADMAP_ISSUES.md`;
 const ISSUES = `${REPO}/issues`;
 
 const CRITIQUE_TRACK = [
@@ -37,7 +37,7 @@ const CURRENT = [
 ] as const;
 
 const NEAR_TERM = [
-  "Maturation track (P0–P3): see “Maturation & critique track” above and docs/CRITIQUE_ROADMAP_ISSUES.md — consolidated backlog (perception + chat input trust, pip core spike, HCI/weakness, L0 vs DAO).",
+  "Maturation track (P0–P3): see “Maturation & critique track” above and docs/proposals/CRITIQUE_ROADMAP_ISSUES.md — consolidated backlog (perception + chat input trust, pip core spike, HCI/weakness, L0 vs DAO).",
   "Richer test matrix: edge cases, adversarial prompts against the LLM boundary, regression suite for domain additions.",
   "Reference “sensor → signals” adapters (documented stubs or one hardware-agnostic demo path) without claiming product certification.",
   "Conversation/session state design: multi-turn loops that keep the kernel authoritative over policy.",

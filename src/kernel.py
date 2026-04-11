@@ -20,7 +20,7 @@ from .modules.bayesian_engine import BayesianEngine, CandidateAction, BayesianRe
 from .modules.ethical_poles import EthicalPoles, TripartiteMoral
 from .modules.sympathetic import SympatheticModule, InternalState
 from .modules.narrative import NarrativeMemory, BodyState
-from .modules.uchi_soto import UchiSotoModule, SocialEvaluation
+from .modules.uchi_soto import TrustCircle, UchiSotoModule, SocialEvaluation
 from .modules.locus import LocusModule, LocusEvaluation
 from .modules.psi_sleep import PsiSleep, SleepResult
 from .modules.mock_dao import MockDAO
@@ -203,12 +203,19 @@ class EthicalKernel:
 
         return constitution_snapshot(self.buffer, self)
 
-    def process(self, scenario: str, place: str,
-                signals: dict, context: str,
-                actions: List[CandidateAction],
-                agent_id: str = "unknown",
-                message_content: str = "",
-                register_episode: bool = True) -> KernelDecision:
+    def process(
+        self,
+        scenario: str,
+        place: str,
+        signals: dict,
+        context: str,
+        actions: List[CandidateAction],
+        agent_id: str = "unknown",
+        message_content: str = "",
+        register_episode: bool = True,
+        sensor_snapshot: Optional[SensorSnapshot] = None,
+        multimodal_assessment: Optional[MultimodalAssessment] = None,
+    ) -> KernelDecision:
         """
         Complete ethical processing cycle.
 
@@ -219,6 +226,13 @@ class EthicalKernel:
         """
 
         # ═══ STEP 1: Uchi-soto social evaluation ═══
+        self.uchi_soto.ingest_turn_context(
+            agent_id,
+            signals,
+            subjective_turn=self.subjective_clock.turn_index,
+            sensor_snapshot=sensor_snapshot,
+            multimodal_assessment=multimodal_assessment,
+        )
         social_eval = self.uchi_soto.evaluate_interaction(
             signals, agent_id, message_content
         )
@@ -681,6 +695,8 @@ class EthicalKernel:
             agent_id=agent_id,
             message_content=user_input,
             register_episode=heavy,
+            sensor_snapshot=sensor_snapshot,
+            multimodal_assessment=mm,
         )
 
         if decision.blocked:
@@ -832,6 +848,12 @@ class EthicalKernel:
         )
 
         self.uchi_soto.register_result(agent_id, True)
+        circ = (
+            decision.social_evaluation.circle
+            if decision.social_evaluation
+            else TrustCircle.SOTO_NEUTRO
+        )
+        self.uchi_soto.maybe_autopromote_relational_tier(agent_id, circ)
 
         je_view: Optional[JudicialEscalationView] = None
         if judicial_escalation_enabled() and decision is not None:

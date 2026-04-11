@@ -4,7 +4,7 @@ Skill learning registry — scoped capability requests with audit (v10).
 Tickets record *intent* to acquire a new digital capability; approval is explicit
 (programmatic or future UI). Psi Sleep can append audit lines.
 
-See docs/discusion/PROPUESTA_ESTRATEGIA_OPERATIVA_V10.md
+See docs/proposals/PROPUESTA_ESTRATEGIA_OPERATIVA_V10.md
 """
 
 from __future__ import annotations

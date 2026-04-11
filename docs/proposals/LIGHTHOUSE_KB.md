@@ -62,4 +62,4 @@ pytest tests/test_lighthouse_kb_schema.py tests/test_reality_verification.py -q
 
 Example file used in CI: `tests/fixtures/lighthouse/demo_kb.json` (multiple demo entries).
 
-Design discussion: [discusion/PROPUESTA_VERIFICACION_REALIDAD_V11.md](discusion/PROPUESTA_VERIFICACION_REALIDAD_V11.md).
+Design discussion: [PROPUESTA_VERIFICACION_REALIDAD_V11.md](PROPUESTA_VERIFICACION_REALIDAD_V11.md).

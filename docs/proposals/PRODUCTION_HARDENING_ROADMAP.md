@@ -61,7 +61,7 @@ Síntesis de revisión interna: **qué aporta** frente a lo ya dicho en el repo 
 |-------------|-----------------|
 | **Agencia ética computacional explícita** (filosofía, decisión, verificabilidad en tests) | Poco común en OSS; encaja con [`THEORY_AND_IMPLEMENTATION.md`](THEORY_AND_IMPLEMENTATION.md) y propósito del README. |
 | **Modularidad con roles éticos claros** (Uchi–Soto, buffer, locus, Psi Sleep, etc.) | Facilita auditoría por módulo; tabla “quién fija `final_action`” en [`CORE_DECISION_CHAIN.md`](CORE_DECISION_CHAIN.md). |
-| **Documentación densa** (teoría, historia v1–v12, `docs/discusion/`, bibliografía) | Transparente académicamente; reduce “caja negra”. |
+| **Documentación densa** (teoría, historia v1–v12, `docs/proposals/`, bibliografía) | Transparente académicamente; reduce “caja negra”. |
 | **Varias superficies** (batch, WebSocket, dashboard estático, landing) | Demuestra runtime real sin acoplar un solo UI. |
 | **Suite de tests grande** (invariantes, integración, persistencia) | Base para regresión; no sustituye validación externa (véase Issue 3 en crítica). |
 

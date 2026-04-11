@@ -29,5 +29,5 @@
 ## Links
 
 - `src/modules/ethical_poles.py`, `src/modules/pole_linear.py`  
-- [`POLES_WEAKNESS_PAD_AND_PROFILES.md`](../POLES_WEAKNESS_PAD_AND_PROFILES.md)  
-- [`PRODUCTION_HARDENING_ROADMAP.md`](../PRODUCTION_HARDENING_ROADMAP.md) (pole limits)
+- [`POLES_WEAKNESS_PAD_AND_PROFILES.md`](../proposals/POLES_WEAKNESS_PAD_AND_PROFILES.md)  
+- [`PRODUCTION_HARDENING_ROADMAP.md`](../proposals/PRODUCTION_HARDENING_ROADMAP.md) (pole limits)

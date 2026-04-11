@@ -8,9 +8,15 @@ Each interaction is classified into a trust circle.
 In soto contexts, defensive dialectical reasoning is activated.
 """
 
+from __future__ import annotations
+
+import os
 from dataclasses import dataclass, field
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List, Optional, Tuple
 from enum import Enum
+
+from .multimodal_trust import MultimodalAssessment
+from .sensor_contracts import SensorSnapshot
 
 
 class TrustCircle(Enum):
@@ -22,7 +28,34 @@ class TrustCircle(Enum):
     SOTO_HOSTIL = "soto_hostil"    # Manipulation or aggression signals
 
 
+class RelationalTier(Enum):
+    """
+    Persistent roster tier (Phase 3). Orthogonal to instantaneous TrustCircle.
+    INNER_CIRCLE / OWNER_PRIMARY require explicit operator/DAO anchoring.
+    """
+
+    EPHEMERAL = "ephemeral"
+    STRANGER_STABLE = "stranger_stable"
+    ACQUAINTANCE = "acquaintance"
+    TRUSTED_UCHI = "trusted_uchi"
+    INNER_CIRCLE = "inner_circle"
+    OWNER_PRIMARY = "owner_primary"
+
+
 TONE_PREFERENCES = ("neutral", "warm", "formal")
+
+_REL_TIER_ORDER: Tuple[RelationalTier, ...] = (
+    RelationalTier.EPHEMERAL,
+    RelationalTier.STRANGER_STABLE,
+    RelationalTier.ACQUAINTANCE,
+    RelationalTier.TRUSTED_UCHI,
+    RelationalTier.INNER_CIRCLE,
+    RelationalTier.OWNER_PRIMARY,
+)
+
+
+def _tier_rank(t: RelationalTier) -> int:
+    return _REL_TIER_ORDER.index(t)
 
 
 @dataclass
@@ -40,7 +73,13 @@ class InteractionProfile:
     domestic_tags: List[str] = field(default_factory=list)  # e.g. evening, kitchen — max 6 short tags
     topic_avoid_tags: List[str] = field(default_factory=list)  # max 8 tags; tread carefully
     sensor_trust_ema: float = 0.5  # [0,1] aggregated multimodal trust (optional)
-    linked_to_agent_id: str = ""  # optional family / link narrative
+    linked_to_agent_id: str = ""  # optional family / primary link (Phase 2)
+    linked_peer_ids: List[str] = field(default_factory=list)  # Phase 3 — extra edges, max 4
+    # Phase 3 — roster / decay (advisory; persisted in snapshot)
+    relational_tier: RelationalTier = RelationalTier.EPHEMERAL
+    tier_explicit: bool = False  # if True, autopromotion does not change tier
+    tier_pinned: bool = False  # never purged by forget buffer
+    last_subjective_turn: int = -1  # kernel subjective clock; -1 = unknown / legacy snapshot
 
 
 @dataclass
@@ -84,6 +123,182 @@ class UchiSotoModule:
 
     def __init__(self):
         self.profiles: Dict[str, InteractionProfile] = {}
+
+    @staticmethod
+    def _env_int(name: str, default: int) -> int:
+        raw = os.environ.get(name, "").strip()
+        if not raw:
+            return default
+        try:
+            return max(1, int(raw))
+        except (TypeError, ValueError):
+            return default
+
+    @staticmethod
+    def _env_float(name: str, default: float) -> float:
+        raw = os.environ.get(name, "").strip()
+        if not raw:
+            return default
+        try:
+            return max(0.01, min(0.95, float(raw)))
+        except (TypeError, ValueError):
+            return default
+
+    def ingest_turn_context(
+        self,
+        agent_id: str,
+        signals: dict,
+        *,
+        subjective_turn: int,
+        sensor_snapshot: Optional[SensorSnapshot] = None,
+        multimodal_assessment: Optional[MultimodalAssessment] = None,
+    ) -> None:
+        """
+        Phase 3 — call once per kernel decision before :meth:`evaluate_interaction`.
+
+        Updates ``sensor_trust_ema`` from perception + optional sensor / multimodal
+        hints, touches ``last_subjective_turn``, and purges idle low-weight profiles.
+        """
+        aid = (agent_id or "unknown").strip()[:256]
+        self._decay_forget_buffer(aid, int(subjective_turn))
+        prof = self.profiles.get(aid)
+        if prof is None:
+            prof = InteractionProfile(
+                agent_id=aid,
+                circle=TrustCircle.SOTO_NEUTRO,
+                trust_score=self.CREDIBILITY[TrustCircle.SOTO_NEUTRO],
+                relational_tier=RelationalTier.EPHEMERAL,
+            )
+            self.profiles[aid] = prof
+        prof.last_subjective_turn = int(subjective_turn)
+        self._ema_update_sensor_trust(
+            prof, signals, sensor_snapshot, multimodal_assessment
+        )
+
+    def _decay_forget_buffer(self, active_agent_id: str, turn: int) -> None:
+        ttl = self._env_int("KERNEL_UCHI_ROSTER_FORGET_TTL_TURNS", 96)
+        for aid in list(self.profiles.keys()):
+            if aid == active_agent_id:
+                continue
+            p = self.profiles[aid]
+            if p.tier_pinned:
+                continue
+            if p.last_subjective_turn < 0:
+                continue
+            idle = turn - p.last_subjective_turn
+            if p.relational_tier == RelationalTier.EPHEMERAL and idle > ttl:
+                del self.profiles[aid]
+            elif (
+                p.relational_tier == RelationalTier.STRANGER_STABLE
+                and idle > ttl * 2
+                and p.positive_history == 0
+                and p.trust_score
+                <= self.CREDIBILITY[TrustCircle.SOTO_NEUTRO] + 0.02
+            ):
+                del self.profiles[aid]
+
+    @staticmethod
+    def _sensor_trust_sample(
+        signals: dict,
+        sensor_snapshot: Optional[SensorSnapshot],
+        multimodal_assessment: Optional[MultimodalAssessment],
+    ) -> float:
+        calm = float(signals.get("calm", 0.5))
+        fam = float(signals.get("familiarity", 0.0))
+        host = float(signals.get("hostility", 0.0))
+        manip = float(signals.get("manipulation", 0.0))
+        sample = (
+            0.22 + 0.34 * calm + 0.34 * fam - 0.26 * host - 0.22 * manip
+        )
+        if sensor_snapshot is not None and sensor_snapshot.place_trust is not None:
+            pt = float(sensor_snapshot.place_trust)
+            sample = 0.52 * sample + 0.48 * pt
+        if multimodal_assessment is not None:
+            if multimodal_assessment.state == "aligned":
+                sample += 0.05
+            elif multimodal_assessment.state == "doubt":
+                sample -= 0.09
+        return max(0.0, min(1.0, sample))
+
+    def _ema_update_sensor_trust(
+        self,
+        profile: InteractionProfile,
+        signals: dict,
+        sensor_snapshot: Optional[SensorSnapshot],
+        multimodal_assessment: Optional[MultimodalAssessment],
+    ) -> None:
+        alpha = self._env_float("KERNEL_UCHI_SENSOR_TRUST_EMA_ALPHA", 0.18)
+        sample = self._sensor_trust_sample(
+            signals, sensor_snapshot, multimodal_assessment
+        )
+        ema = (1.0 - alpha) * float(profile.sensor_trust_ema) + alpha * sample
+        profile.sensor_trust_ema = max(0.0, min(1.0, ema))
+
+    def maybe_autopromote_relational_tier(
+        self, agent_id: str, circle: TrustCircle
+    ) -> None:
+        """
+        Heuristic tier nudges after a turn (typically after :meth:`register_result`).
+        Does not assign INNER_CIRCLE / OWNER_PRIMARY (explicit only).
+        """
+        aid = (agent_id or "unknown").strip()[:256]
+        p = self.profiles.get(aid)
+        if not p or p.tier_explicit:
+            return
+        if circle == TrustCircle.SOTO_HOSTIL:
+            cap = RelationalTier.ACQUAINTANCE
+            if _tier_rank(p.relational_tier) > _tier_rank(cap):
+                p.relational_tier = cap
+            return
+        ts = float(p.trust_score)
+        pos = int(p.positive_history)
+        t = p.relational_tier
+        uchi_ok = circle in (
+            TrustCircle.UCHI_AMPLIO,
+            TrustCircle.UCHI_CERCANO,
+            TrustCircle.NUCLEO,
+        )
+        if t == RelationalTier.EPHEMERAL and pos >= 1:
+            p.relational_tier = RelationalTier.STRANGER_STABLE
+            t = p.relational_tier
+        if t == RelationalTier.STRANGER_STABLE and ts >= 0.55 and pos >= 3:
+            p.relational_tier = RelationalTier.ACQUAINTANCE
+            t = p.relational_tier
+        if (
+            t == RelationalTier.ACQUAINTANCE
+            and ts >= 0.72
+            and pos >= 8
+            and uchi_ok
+        ):
+            p.relational_tier = RelationalTier.TRUSTED_UCHI
+
+    def set_relational_tier_explicit(
+        self,
+        agent_id: str,
+        tier: RelationalTier,
+        *,
+        pinned: bool = False,
+    ) -> None:
+        """Operator / DAO: set roster tier; blocks autopromotion until cleared."""
+        aid = (agent_id or "unknown").strip()[:256]
+        prof = self.profiles.get(aid)
+        if not prof:
+            prof = InteractionProfile(
+                agent_id=aid,
+                circle=TrustCircle.SOTO_NEUTRO,
+                trust_score=self.CREDIBILITY[TrustCircle.SOTO_NEUTRO],
+            )
+            self.profiles[aid] = prof
+        prof.relational_tier = tier
+        prof.tier_explicit = True
+        prof.tier_pinned = bool(pinned)
+
+    def clear_tier_explicit(self, agent_id: str) -> None:
+        """Re-enable autopromotion (does not change current tier value)."""
+        aid = (agent_id or "unknown").strip()[:256]
+        p = self.profiles.get(aid)
+        if p:
+            p.tier_explicit = False
 
     def classify(self, signals: dict, agent_id: str = "unknown") -> TrustCircle:
         """
@@ -188,6 +403,9 @@ class UchiSotoModule:
         """Base circle posture + Phase 2 structured hints for higher-trust tiers."""
         base = self._tone_brief_for_circle(circle)
         extras: List[str] = []
+        tier_h = self._relational_tier_tone_hint(profile, circle)
+        if tier_h:
+            extras.append(tier_h)
         if profile.manipulation_attempts >= 3:
             extras.append(
                 "Past manipulation-pattern signals in this relationship—keep warmth bounded by ethics and policy."
@@ -236,6 +454,15 @@ class UchiSotoModule:
                     extras.append(
                         f"Narrative link to another agent id «{link}»—do not infer facts not in context."
                     )
+            peers = _sanitize_peer_ids(profile.linked_peer_ids, max_items=4, max_len=48)
+            if peers and circle in (
+                TrustCircle.UCHI_CERCANO,
+                TrustCircle.NUCLEO,
+            ):
+                plist = ", ".join(peers)[:220]
+                extras.append(
+                    f"Additional roster links (advisory ids): {plist}—treat as narrative hints only."
+                )
             if (
                 circle in (TrustCircle.UCHI_CERCANO, TrustCircle.NUCLEO)
                 and 0.0 <= profile.sensor_trust_ema < 0.35
@@ -246,6 +473,43 @@ class UchiSotoModule:
         if not extras:
             return base
         return base + " " + " ".join(extras)
+
+    @staticmethod
+    def _relational_tier_tone_hint(
+        profile: InteractionProfile, circle: TrustCircle
+    ) -> str:
+        """Phase 3 — one short roster-tier line (advisory; never weakens soto caution)."""
+        tier = profile.relational_tier
+        if tier == RelationalTier.OWNER_PRIMARY and circle != TrustCircle.SOTO_HOSTIL:
+            return (
+                "Roster tier: primary owner / anchor—prioritize continuity and clarity "
+                "without bypassing safety or policy."
+            )
+        if tier == RelationalTier.INNER_CIRCLE and circle in (
+            TrustCircle.UCHI_AMPLIO,
+            TrustCircle.UCHI_CERCANO,
+            TrustCircle.NUCLEO,
+        ):
+            return (
+                "Roster tier: inner circle—allow deeper continuity and shared context "
+                "when ethics and risk stay aligned."
+            )
+        if tier == RelationalTier.TRUSTED_UCHI and circle in (
+            TrustCircle.UCHI_AMPLIO,
+            TrustCircle.UCHI_CERCANO,
+            TrustCircle.NUCLEO,
+        ):
+            return (
+                "Roster tier: trusted uchi—steady warmth and memory of preferences; "
+                "still no implicit policy exceptions."
+            )
+        if tier == RelationalTier.ACQUAINTANCE and circle in (
+            TrustCircle.UCHI_AMPLIO,
+            TrustCircle.UCHI_CERCANO,
+            TrustCircle.NUCLEO,
+        ):
+            return "Roster tier: acquaintance—friendly continuity without assuming private intimacy."
+        return ""
 
     @staticmethod
     def _tone_brief_for_circle(circle: TrustCircle) -> str:
@@ -301,9 +565,10 @@ class UchiSotoModule:
         topic_avoid_tags: Optional[List[str]] = None,
         sensor_trust_ema: Optional[float] = None,
         linked_to_agent_id: Optional[str] = None,
+        linked_peer_ids: Optional[List[str]] = None,
     ) -> None:
         """
-        Set optional Phase 2 fields for an agent (operators, UI, or tests).
+        Set optional Phase 2–3 fields for an agent (operators, UI, or tests).
 
         Does not change MalAbs or action selection. Values are sanitized and capped.
         """
@@ -329,6 +594,10 @@ class UchiSotoModule:
             prof.sensor_trust_ema = max(0.0, min(1.0, float(sensor_trust_ema)))
         if linked_to_agent_id is not None:
             prof.linked_to_agent_id = (linked_to_agent_id or "").strip()[:64]
+        if linked_peer_ids is not None:
+            prof.linked_peer_ids = _sanitize_peer_ids(
+                linked_peer_ids, max_items=4, max_len=48
+            )
 
     def register_result(self, agent_id: str, positive: bool):
         """
@@ -373,6 +642,32 @@ def _sanitize_tag_list(
     return out
 
 
+def _sanitize_peer_ids(
+    raw: List[str], *, max_items: int, max_len: int
+) -> List[str]:
+    seen = set()
+    out: List[str] = []
+    for x in raw[: max_items * 2]:
+        s = (x or "").strip()[:max_len]
+        if not s or s in seen:
+            continue
+        seen.add(s)
+        out.append(s)
+        if len(out) >= max_items:
+            break
+    return out
+
+
+def _relational_tier_from_raw(raw: Any) -> RelationalTier:
+    if isinstance(raw, RelationalTier):
+        return raw
+    key = (raw or "ephemeral").strip().lower()
+    try:
+        return RelationalTier(key)
+    except ValueError:
+        return RelationalTier.EPHEMERAL
+
+
 def interaction_profile_to_dict(p: InteractionProfile) -> Dict[str, Any]:
     return {
         "agent_id": p.agent_id,
@@ -387,6 +682,11 @@ def interaction_profile_to_dict(p: InteractionProfile) -> Dict[str, Any]:
         "topic_avoid_tags": list(p.topic_avoid_tags)[:8],
         "sensor_trust_ema": float(p.sensor_trust_ema),
         "linked_to_agent_id": str(p.linked_to_agent_id or "")[:64],
+        "linked_peer_ids": list(p.linked_peer_ids)[:4],
+        "relational_tier": p.relational_tier.value,
+        "tier_explicit": bool(p.tier_explicit),
+        "tier_pinned": bool(p.tier_pinned),
+        "last_subjective_turn": int(p.last_subjective_turn),
     }
 
 
@@ -405,6 +705,14 @@ def interaction_profile_from_dict(d: Dict[str, Any]) -> InteractionProfile:
         dom = []
     if not isinstance(av, list):
         av = []
+    peers_raw = d.get("linked_peer_ids") or []
+    if not isinstance(peers_raw, list):
+        peers_raw = []
+    rt_raw = d.get("relational_tier")
+    if rt_raw is None or rt_raw == "":
+        relational_tier = RelationalTier.STRANGER_STABLE
+    else:
+        relational_tier = _relational_tier_from_raw(rt_raw)
     return InteractionProfile(
         agent_id=str(d.get("agent_id", "unknown"))[:256],
         circle=circle,
@@ -420,4 +728,11 @@ def interaction_profile_from_dict(d: Dict[str, Any]) -> InteractionProfile:
             0.0, min(1.0, float(d.get("sensor_trust_ema", 0.5)))
         ),
         linked_to_agent_id=str(d.get("linked_to_agent_id") or "")[:64],
+        linked_peer_ids=_sanitize_peer_ids(
+            [str(x) for x in peers_raw], max_items=4, max_len=48
+        ),
+        relational_tier=relational_tier,
+        tier_explicit=bool(d.get("tier_explicit", False)),
+        tier_pinned=bool(d.get("tier_pinned", False)),
+        last_subjective_turn=int(d.get("last_subjective_turn", -1)),
     )

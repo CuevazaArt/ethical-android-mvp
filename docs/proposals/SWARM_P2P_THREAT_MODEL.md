@@ -1,6 +1,6 @@
 # Swarm / P2P ethical gossip — threat model (v9.3 stub)
 
-**Status:** Design + **offline stub** (`src/modules/swarm_peer_stub.py`). **No** live mesh, **no** ZK proofs, **no** change to MalAbs → … → will. Cross-links [PROPUESTA_CAPACIDAD_AMPLIADA_V9.md](discusion/PROPUESTA_CAPACIDAD_AMPLIADA_V9.md) pillar 3.
+**Status:** Design + **offline stub** (`src/modules/swarm_peer_stub.py`). **No** live mesh, **no** ZK proofs, **no** change to MalAbs → … → will. Cross-links [PROPUESTA_CAPACIDAD_AMPLIADA_V9.md](PROPUESTA_CAPACIDAD_AMPLIADA_V9.md) pillar 3.
 
 ## Purpose
 

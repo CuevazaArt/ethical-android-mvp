@@ -38,4 +38,4 @@ Saving or restoring snapshots **does not** change the kernel’s decision rules.
 
 ## System integrity (future; not normative ethics)
 
-**Metacontrol / robustness** layers (e.g. drift monitoring, manipulation, leaks) can help the runtime **preserve operational coherence** without replacing MalAbs or the buffer. Design discussion: [docs/discusion/PROPUESTA_ROBUSTEZ_V6_PLUS.md](discusion/PROPUESTA_ROBUSTEZ_V6_PLUS.md); not part of the contract until implemented and tested.
+**Metacontrol / robustness** layers (e.g. drift monitoring, manipulation, leaks) can help the runtime **preserve operational coherence** without replacing MalAbs or the buffer. Design discussion: [PROPUESTA_ROBUSTEZ_V6_PLUS.md](PROPUESTA_ROBUSTEZ_V6_PLUS.md); not part of the contract until implemented and tested.
