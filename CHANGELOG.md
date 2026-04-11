@@ -2,6 +2,10 @@
 
 All notable changes to this project are summarized here. For narrative context and design rationale, see [`HISTORY.md`](HISTORY.md).
 
+## Multimedia — `media/` at `docs/multimedia` root — April 2026
+
+- Pre-alpha **PNG / JPG / MP4** moved from **`docs/multimedia/prealpha/media/`** to **`docs/multimedia/media/`**; empty **`prealpha/`** tree removed.
+
 ## Logo asset — canonical under `docs/multimedia` — April 2026
 
 - **Single source:** [`docs/multimedia/logo-ethical-awareness.png`](docs/multimedia/logo-ethical-awareness.png) (duplicate **`logo-ethical-awareness.png`** at repo root removed; nothing linked to it).
@@ -288,7 +292,7 @@ Pause on **new surface modules**; strengthen existing paths (critique-aligned).
 - **Internals:** WebSocket health `service` id is `ethos-kernel-chat`; FastAPI title `Ethos Kernel Chat`. LLM system prompts refer to the Ethos Kernel / agent (legacy JSON enum `android_damage` unchanged for compatibility).
 
 ## Pre-alpha docs + media archive — April 2026
-- **`docs/multimedia/prealpha/`:** content from **`prealphaDocs/`**: Spanish `androide_etico_alpha` v1.0 (2026) and bibliography draft were archived as markdown under `prealpha/`; **April 2026 (later):** that markdown was **condensed into [`HISTORY.md`](HISTORY.md)** and removed from the tree. **PNG/JPG/MP4** remain under **`docs/multimedia/prealpha/media/`**; PDF/DOCX are **not** in git (see root `.gitignore`). Index today: [`docs/multimedia/README.md`](docs/multimedia/README.md).
+- **`docs/multimedia/prealpha/`:** content from **`prealphaDocs/`**: Spanish `androide_etico_alpha` v1.0 (2026) and bibliography draft were archived as markdown under `prealpha/`; **April 2026 (later):** that markdown was **condensed into [`HISTORY.md`](HISTORY.md)** and removed from the tree. **PNG/JPG/MP4** were under **`docs/multimedia/prealpha/media/`** until **April 2026** they moved to **`docs/multimedia/media/`**; PDF/DOCX are **not** in git (see root `.gitignore`). Index today: [`docs/multimedia/README.md`](docs/multimedia/README.md).
 
 ## DAO integrity alert WebSocket (v0) — April 2026
 - **`hub_audit.record_dao_integrity_alert`** + **`KERNEL_DAO_INTEGRITY_AUDIT_WS`** — WebSocket `integrity_alert` → `HubAudit:dao_integrity` on MockDAO; response key `integrity`. Tests in `test_hub_modules`, `test_chat_server`. PROPUESTA doc §5 updated.

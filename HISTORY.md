@@ -54,7 +54,7 @@ The following **digest** condenses the former **`androide_etico_alpha_v1.0_2026.
 
 **PDF / Word companions (not in git):** `.gitignore` excludes `*.pdf` / `*.docx`. Local bundles from the same era sometimes included exports such as `androide_etico_alpha.docx`, thematic PDFs on DAO-oracle, narrative memory, and consciousness sketches; keep those only in **foundation archives** outside the repo if you still have them.
 
-**Multimedia retained:** pre-alpha diagrams, a still, and a short clip are under **`docs/multimedia/prealpha/media/`**; branding asset **`docs/multimedia/logo-ethical-awareness.png`**. Index: **[`docs/multimedia/README.md`](docs/multimedia/README.md)**.
+**Multimedia retained:** pre-alpha diagrams, a still, and a short clip are under **`docs/multimedia/media/`**; branding asset **`docs/multimedia/logo-ethical-awareness.png`**. Index: **[`docs/multimedia/README.md`](docs/multimedia/README.md)**.
 
 ---
 
