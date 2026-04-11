@@ -1,86 +1,86 @@
-# Evolución relacional / existencial (v7) — alcance e implementación MVP
+# Relational / existential evolution (v7) — scope and MVP implementation
 
-**Nota:** el **cuerpo situado** (sensores, batería, migración de hardware) está en [PROPUESTA_ORGANISMO_SITUADO_V8.md](PROPUESTA_ORGANISMO_SITUADO_V8.md) (**v8**), para no mezclar con este bloque relacional en diálogo.
+**Note:** the **situated body** (sensors, battery, hardware migration) is in [PROPUESTA_ORGANISMO_SITUADO_V8.md](PROPUESTA_ORGANISMO_SITUADO_V8.md) (**v8**), to avoid mixing it with this relational block in dialogue.
 
-**Estado:** discusión + **implementación parcial** en código (no sustituye MalAbs, Bayes, buffer ni voluntad).
+**Status:** discussion + **partial implementation** in code (does not replace MalAbs, Bayes, buffer, or will).
 
-**Implementado en el repo:** `user_model.py`, `subjective_time.py`, `premise_validation.py`, `consequence_projection.py` integrados en `process_chat_turn` / `chat_server` (telemetría y tono; ver variables `KERNEL_CHAT_INCLUDE_*` en el README).
+**Implemented in the repo:** `user_model.py`, `subjective_time.py`, `premise_validation.py`, `consequence_projection.py` integrated in `process_chat_turn` / `chat_server` (telemetry and tone; see `KERNEL_CHAT_INCLUDE_*` variables in the README).
 
-Este documento registra los **cuatro frentes** acordados y qué queda **hecho vs diferido**, con enlaces a módulos.
-
----
-
-## Ruta lógica elegida
-
-1. **Teoría de la mente (ToM) ligera** — modelo explícito del interlocutor en sesión (frustración acumulada, círculo Uchi–Soto observado) → texto **solo estilo** vía `weakness_line` / tono LLM.  
-2. **Cronobiología subjetiva** — reloj de sesión + EMA de estímulo → aburrimiento/nostalgia como **hints** JSON, sin alterar política.  
-3. **Ética epistémica** — escaneo **advisory** de frases de alto riesgo (sin RAG aún); ampliación futura: corpus local verificado.  
-4. **Teleología cualitativa** — tres horizontes textuales **no numéricos** (sin Monte Carlo hasta modelo de mundo explícito).
-
-**Orden:** 1 → 2 → 3 → 4 (de dependencia suave: relación y tiempo antes que “verdad” y futuro especulativo).
+This document records the **four agreed fronts** and what remains **done vs. deferred**, with links to modules.
 
 ---
 
-## 1. ToM dinámica (simpatía predictiva — MVP)
+## Chosen logical path
 
-| Aspecto | Contenido |
+1. **Lightweight Theory of Mind (ToM)** — explicit model of the interlocutor in session (accumulated frustration, observed Uchi–Soto circle) → text **style only** via `weakness_line` / LLM tone.  
+2. **Subjective chronobiology** — session clock + stimulus EMA → boredom/nostalgia as **JSON hints**, without altering policy.  
+3. **Epistemic ethics** — **advisory** scan for high-risk phrases (no RAG yet); future expansion: verified local corpus.  
+4. **Qualitative teleology** — three **non-numerical** textual horizons (no Monte Carlo until an explicit world model exists).
+
+**Order:** 1 → 2 → 3 → 4 (by soft dependency: relationship and time before "truth" and speculative future).
+
+---
+
+## 1. Dynamic ToM (predictive empathy — MVP)
+
+| Aspect | Content |
 |--------|-----------|
-| **Valor** | El kernel ya infiere señales por turno; falta **estado latente** del usuario en la sesión para metapreguntas de estilo (“¿demasiada tensión repetida?”). |
-| **Implementado** | `src/modules/user_model.py` — `UserModelTracker`: racha de frustración, último círculo; línea opcional para comunicación. |
-| **No implementado** | Inferencia de intención profunda, RNN, o ToM de segundo orden completo. |
+| **Value** | The kernel already infers per-turn signals; a **latent state** of the user within the session is missing for style meta-questions ("too much repeated tension?"). |
+| **Implemented** | `src/modules/user_model.py` — `UserModelTracker`: frustration streak, last circle; optional communication line. |
+| **Not implemented** | Deep intent inference, RNN, or full second-order ToM. |
 
 ---
 
-## 2. Cronobiología (tiempo subjetivo — MVP)
+## 2. Chronobiology (subjective time — MVP)
 
-| Aspecto | Contenido |
+| Aspect | Content |
 |--------|-----------|
-| **Valor** | Acoplar ritmo de interacción a **turnos** y **estímulo percibido** sin confundir con reloj wall-clock como autoridad ética. |
-| **Implementado** | `src/modules/subjective_time.py` — `SubjectiveClock`: EMA de estímulo, pista de “boredom_hint”, contador de turnos. |
-| **No implementado** | Decaimiento de memoria ligado a reloj, nostalgia explícita reprocesando episodios (podría apoyarse en `experience_digest` + Ψ Sleep después). |
+| **Value** | Couple the interaction rhythm to **turns** and **perceived stimulus** without confusing it with the wall clock as an ethical authority. |
+| **Implemented** | `src/modules/subjective_time.py` — `SubjectiveClock`: stimulus EMA, "boredom_hint" cue, turn counter. |
+| **Not implemented** | Memory decay tied to the clock, explicit nostalgia by reprocessing episodes (could rely on `experience_digest` + Ψ Sleep later). |
 
 ---
 
-## 3. Ética epistémica (guardián de premisas — MVP)
+## 3. Epistemic ethics (premise guardian — MVP)
 
-| Aspecto | Contenido |
+| Aspect | Content |
 |--------|-----------|
-| **Valor** | Evitar cumplir peticiones basadas en **premisas factualmente críticas** cuando se detecta patrón grosero. |
-| **Implementado** | `src/modules/premise_validation.py` — `scan_premises` conservador + `PremiseAdvisory`; **solo advisory** y refuerzo de tono vía `weakness_line` cuando aplica; JSON `premise_advisory`. |
-| **No implementado** | RAG local, base verificada, bloqueo duro separado de MalAbs (cualquier bloqueo fuerte debe pasar por el mismo estándar de tests que MalAbs). |
+| **Value** | Avoid fulfilling requests based on **critically false premises** when a gross pattern is detected. |
+| **Implemented** | `src/modules/premise_validation.py` — conservative `scan_premises` + `PremiseAdvisory`; **advisory only** and tone reinforcement via `weakness_line` when applicable; JSON `premise_advisory`. |
+| **Not implemented** | Local RAG, verified base, hard block separate from MalAbs (any strong block must meet the same test standard as MalAbs). |
 
 ---
 
-## 4. Teleología moral (efecto mariposa — MVP)
+## 4. Moral teleology (butterfly effect — MVP)
 
-| Aspecto | Contenido |
+| Aspect | Content |
 |--------|-----------|
-| **Valor** | Visibilizar **horizontes** inmediato / medio / largo como **narrativa cualitativa** ligada a acción y contexto. |
-| **Implementado** | `src/modules/consequence_projection.py` — `qualitative_temporal_branches`; JSON `teleology_branches`. |
-| **No implementado** | Monte Carlo, ramas probabilísticas, integración al score Bayesiano. |
+| **Value** | Surface **horizons** immediate / medium / long as **qualitative narrative** tied to action and context. |
+| **Implemented** | `src/modules/consequence_projection.py` — `qualitative_temporal_branches`; JSON `teleology_branches`. |
+| **Not implemented** | Monte Carlo, probabilistic branches, integration into the Bayesian score. |
 
 ---
 
-## Contrato ético
+## Ethical contract
 
-- Ninguna de estas capas **cambia** `final_action` por su cuenta: solo **telemetría**, **tono** (LLM + `weakness_line`), o **avisos** en JSON.  
-- La fuente normativa sigue siendo `EthicalKernel.process` / `process_chat_turn` como en [THEORY_AND_IMPLEMENTATION.md](../THEORY_AND_IMPLEMENTATION.md).
+- None of these layers **changes** `final_action` on their own: only **telemetry**, **tone** (LLM + `weakness_line`), or **notices** in JSON.  
+- The normative source remains `EthicalKernel.process` / `process_chat_turn` as in [THEORY_AND_IMPLEMENTATION.md](../THEORY_AND_IMPLEMENTATION.md).
 
 ---
 
-## Variables de entorno (WebSocket)
+## Environment variables (WebSocket)
 
-| Variable | Efecto |
+| Variable | Effect |
 |----------|--------|
-| `KERNEL_CHAT_INCLUDE_USER_MODEL` | `0` oculta `user_model` en JSON. |
-| `KERNEL_CHAT_INCLUDE_CHRONO` | `0` oculta `chronobiology`. |
-| `KERNEL_CHAT_INCLUDE_PREMISE` | `0` oculta `premise_advisory`. |
-| `KERNEL_CHAT_INCLUDE_TELEOLOGY` | `0` oculta `teleology_branches`. |
+| `KERNEL_CHAT_INCLUDE_USER_MODEL` | `0` hides `user_model` in JSON. |
+| `KERNEL_CHAT_INCLUDE_CHRONO` | `0` hides `chronobiology`. |
+| `KERNEL_CHAT_INCLUDE_PREMISE` | `0` hides `premise_advisory`. |
+| `KERNEL_CHAT_INCLUDE_TELEOLOGY` | `0` hides `teleology_branches`. |
 
-Por defecto **incluidas** (`1`) para transparencia; producción puede recortar payload.
+Included by default (`1`) for transparency; production can trim the payload.
 
 ---
 
-## Ver también
+## See also
 
-- [PROPUESTA_ROSTER_SOCIAL_Y_RELACIONES_JERARQUICAS.md](PROPUESTA_ROSTER_SOCIAL_Y_RELACIONES_JERARQUICAS.md) — roster multi-agente, jerarquía por cercanía, datos relevantes para figuras de interés y diálogo doméstico/íntimo (advisory; diseño futuro).
+- [PROPUESTA_ROSTER_SOCIAL_Y_RELACIONES_JERARQUICAS.md](PROPUESTA_ROSTER_SOCIAL_Y_RELACIONES_JERARQUICAS.md) — multi-agent roster, proximity hierarchy, relevant data for figures of interest and domestic/intimate dialogue (advisory; future design).

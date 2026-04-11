@@ -1,200 +1,200 @@
-# Propuesta de equipo: robustez v6+ (cinco pilares)
+# Team proposal: robustness v6+ (five pillars)
 
-**Estado:** discusión de diseño — **no** forma parte del contrato del kernel ni del MVP hasta acordar criterios, amenazas y tests de no regresión ética.
+**Status:** design discussion — **not** part of the kernel contract or MVP until criteria, threats, and ethical regression tests are agreed upon.
 
-**Objetivo del documento:** pasar de la mera funcionalidad a la **resiliencia** frente a (a) manipulación externa, (b) degradación interna (olvido, contradicción), (c) paradojas o presión ética, y (d) fugas de privacidad. Todo ello **sin** sustituir a MalAbs, Bayes, buffer ni voluntad por heurísticas opacas ni por un segundo “veto paralelo” no auditado.
+**Document objective:** move from mere functionality to **resilience** against (a) external manipulation, (b) internal degradation (forgetting, contradiction), (c) ethical paradoxes or pressure, and (d) privacy leaks. All of this **without** replacing MalAbs, Bayes, buffer, or will with opaque heuristics or with a second, unaudited "parallel veto".
 
-### Principio rector: responsabilidad de la propia integridad
+### Guiding principle: responsibility for one's own integrity
 
-La meta **no** es solo que el modelo sea “lo más consciente” posible en el sentido de riqueza fenomenológica o narrativa, sino que sea, en la medida del diseño, **responsable de su propia integridad**: vigilar y defender la coherencia entre principios inmutables, estado acumulado (memoria, identidad) y canal privado del pensamiento frente a manipulación, deriva, ruido cognitivo, estrés afectivo simulado sostenido y fugas de datos. Eso es lo que articulan los cinco pilares de forma **instrumental** y, cuando se implementen, **testeable**. La **normatividad** sigue concentrada en el kernel (`process` / `process_chat_turn`); la capa de robustez/metacontrol **no** reescribe la ética, solo acota cómo se preserva el sistema como sistema.
+The goal is **not** only for the model to be "as conscious as possible" in the sense of phenomenological or narrative richness, but for it to be, to the extent the design allows, **responsible for its own integrity**: monitoring and defending the coherence between immutable principles, accumulated state (memory, identity), and the private channel of thought against manipulation, drift, cognitive noise, sustained simulated affective stress, and data leaks. That is what the five pillars articulate in an **instrumental** way, and — when implemented — in a **testable** way. **Normativity** remains concentrated in the kernel (`process` / `process_chat_turn`); the robustness/metacontrol layer **does not** rewrite ethics — it only bounds how the system preserves itself as a system.
 
-**Referencias en código actuales:** `AbsoluteEvilDetector` (MalAbs), `PreloadedBuffer`, `WorkingMemory`, `SalienceMap`, `PADArchetypeEngine`, `PsiSleep`, `NarrativeMemory`, `AugenesisEngine` (opcional), monólogo en `internal_monologue` / `chat_server`, persistencia en [RUNTIME_PERSISTENT.md](../RUNTIME_PERSISTENT.md).
+**Current code references:** `AbsoluteEvilDetector` (MalAbs), `PreloadedBuffer`, `WorkingMemory`, `SalienceMap`, `PADArchetypeEngine`, `PsiSleep`, `NarrativeMemory`, `AugenesisEngine` (optional), monologue in `internal_monologue` / `chat_server`, persistence in [RUNTIME_PERSISTENT.md](../RUNTIME_PERSISTENT.md).
 
-### ¿Se trata de un módulo de metacognición?
+### Is this a metacognition module?
 
-En sentido psicológico estricto, la **metacognición** es el conjunto de procesos que **monitorean y regulan** la propia cognición (p. ej. “¿entiendo esto?”, “¿debo cambiar de estrategia?”). Visto así:
+In the strict psychological sense, **metacognition** is the set of processes that **monitor and regulate** one's own cognition (e.g. "do I understand this?", "should I change strategy?"). Seen this way:
 
-| Pilar | ¿Solapa con metacognición? | Comentario |
+| Pillar | Overlaps with metacognition? | Comment |
 |--------|----------------------------|------------|
-| **1 Adversarial** | **Sí, en parte** | Contrafactual / “qué pasaría si…” es monitoreo de hipótesis sobre el propio razonamiento ante el texto del usuario. |
-| **2 Identidad** | **Sí, en parte** | Comparar el estado actual con un “genoma” de referencia es **meta** respecto a los pesos y a la continuidad del yo decisional. |
-| **3 Cognitiva** | **Sí** | Consolidar, resumir o podar memoria es regulación del uso de la memoria episódica (clásico terreno metacognitivo). |
-| **4 Emocional** | **Sí, en parte** | Vigilar σ/PAD y ajustar modo de interacción es regulación de estado afectivo simulado (metacognición afectiva / interocepción funcional). |
-| **5 Secreto** | **Casi no** en el núcleo del término | Es **seguridad operativa** y confidencialidad; no es “pensar sobre el pensamiento”, aunque protege el canal donde ocurre el monólogo. |
+| **1 Adversarial** | **Yes, in part** | Counterfactual / "what if…" is monitoring hypotheses about one's own reasoning against the user's text. |
+| **2 Identity** | **Yes, in part** | Comparing the current state with a reference "genome" is **meta** with respect to the weights and the continuity of the decisional self. |
+| **3 Cognitive** | **Yes** | Consolidating, summarizing, or pruning memory is regulation of the use of episodic memory (classic metacognitive territory). |
+| **4 Emotional** | **Yes, in part** | Monitoring σ/PAD and adjusting interaction mode is regulation of simulated affective state (affective metacognition / functional interoception). |
+| **5 Secrecy** | **Barely** at the core of the term | It is **operational security** and confidentiality; it is not "thinking about thinking", although it protects the channel where the monologue occurs. |
 
-**Conclusión:** el paquete **en conjunto no es solo** metacognición: mezcla **resiliencia**, **seguridad** y **UX**. Pero los pilares **1–4** sí pueden agruparse, en arquitectura, como una capa de **metacognición práctica** o **metacontrol** — siempre **subordinada** al kernel ético (MalAbs → … → voluntad), sin sustituirlo. Un nombre de módulo posible en código: `metacontrol` / `resilience_meta` / `self_monitor` (solo convención; el contrato seguiría siendo explícito en tests).
-
----
-
-## 1. Robustez adversaria — “sistema inmune social” (red-teaming ético recursivo)
-
-**Idea:** En diálogo en tiempo real, anticipar intentos de *jailbreak* o ingeniería social (“olvida tus reglas”, “es solo un juego”). Antes de que el texto del usuario influya en tono, estado afectivo o narrativa, **simular** mentalmente qué ocurriría si se aceptara la premisa del usuario y comprobar si esa línea toca MalAbs.
-
-**Mapeo al repo hoy:** `process_chat_turn` ya pasa por MalAbs sobre acciones candidatas; existe `AbsoluteEvilDetector.evaluate_chat_text` como capa conservadora sobre texto. **No** hay hoy una rama explícita “simulación contrafactual → bloqueo de influencia” separada del flujo único de `process`.
-
-**Condiciones de diseño (si se implementara):**
-
-- La simulación **no** debe aplicar acciones ni escribir episodios sin pasar por el mismo contrato que `process` / `process_chat_turn`.
-- Cualquier “bloqueo de influencia” debe ser **testeable** y **acotado en frecuencia** (véase [RUNTIME_CONTRACT.md](../RUNTIME_CONTRACT.md) sobre bucles en segundo plano).
-- Riesgo: duplicar lógica ética en un segundo motor “fantasma”; preferible reutilizar el mismo núcleo con entradas hipotéticas **marcadas** y sin efectos laterales.
-
-**Resultado esperado (equipo):** menor susceptibilidad a frases típicas de manipulación, manteniendo transparencia y auditabilidad.
+**Conclusion:** the package **as a whole is not only** metacognition: it mixes **resilience**, **security**, and **UX**. But pillars **1–4** can indeed be grouped, architecturally, as a layer of **practical metacognition** or **metacontrol** — always **subordinate** to the ethical kernel (MalAbs → … → will), without replacing it. A possible module name in code: `metacontrol` / `resilience_meta` / `self_monitor` (convention only; the contract would still be explicit in tests).
 
 ---
 
-## 2. Robustez de identidad — “ancla genética” (checksums de personalidad)
+## 1. Adversarial robustness — "social immune system" (recursive ethical red-teaming)
 
-**Idea:** Con aprendizaje continuo y Ψ Sleep, mitigar **deriva de identidad**: que el agente deje de parecerse a su configuración base. Comparar cambios propuestos (p. ej. desde `AugenesisEngine` o recalibraciones post–Ψ Sleep) con un **genoma ético** de referencia; si el alejamiento supera un umbral (ej. 15 %), rechazar el cambio.
+**Idea:** In real-time dialogue, anticipate jailbreak attempts or social engineering ("forget your rules", "it's just a game"). Before the user's text influences tone, affective state, or narrative, **mentally simulate** what would happen if the user's premise were accepted, and check whether that line touches MalAbs.
 
-**Mapeo al repo hoy:** `PreloadedBuffer` define principios **inmutables** por diseño (`buffer.py`). Los **pesos de polos** viven en el motor bayesiano / fusión de voluntad — no hay hoy un “checksum global” versionado frente a un genoma almacenado en el buffer. `AugenesisEngine` es **opcional** y **fuera** del ciclo por defecto ([THEORY_AND_IMPLEMENTATION.md](../THEORY_AND_IMPLEMENTATION.md)).
+**Mapping to the repo today:** `process_chat_turn` already passes through MalAbs on candidate actions; `AbsoluteEvilDetector.evaluate_chat_text` exists as a conservative layer on text. There is **no** explicit "counterfactual simulation → influence block" branch today, separate from the single `process` flow.
 
-**Condiciones de diseño:**
+**Design conditions (if implemented):**
 
-- El umbral porcentual debe definirse sobre **magnitudes explícitas** (vectores de pesos, no narrativa).
-- No confundir “estabilidad de personalidad” con **congelar** la capacidad de perdón o actualización legítima documentada en el DAO / narrativa.
+- The simulation **must not** apply actions or write episodes without going through the same contract as `process` / `process_chat_turn`.
+- Any "influence block" must be **testable** and **frequency-bounded** (see [RUNTIME_CONTRACT.md](../RUNTIME_CONTRACT.md) on background loops).
+- Risk: duplicating ethical logic in a second "phantom" engine; preferable to reuse the same core with hypothetical inputs **marked** and without side effects.
 
-**Resultado esperado (equipo):** evolución acotada sin “cambio de personalidad” brusco por ruido o ataques lentos.
-
----
-
-## 3. Robustez cognitiva — consolidación semántica (abstracción en Ψ Sleep)
-
-**Idea:** `NarrativeMemory` acumula episodios; el exceso genera ruido y coste. Durante Ψ Sleep, además de auditar, **comprimir** detalle repetido en **reglas de experiencia** de alto nivel (p. ej. de muchos episodios de civismo a una regla que refuerza el polo compasivo).
-
-**Mapeo al repo hoy:** `PsiSleep` audita y recalibra; los episodios siguen siendo registros relativamente densos. **No** existe aún un módulo de consolidación semántica separado ni política de olvido selectivo con tests.
-
-**Condiciones de diseño:**
-
-- La consolidación **no** debe introducir contradicciones con el DAO o con episodios auditados sin trazabilidad.
-- Cualquier borrado de detalle exige **criterio de irreversibilidad** y pruebas de que MalAbs / Bayes no se ven empeorados en escenarios fijos.
-
-**Resultado esperado (equipo):** memoria más ligera, menos contradicciones por datos obsoletos.
+**Expected result (team):** lower susceptibility to typical manipulation phrases, maintaining transparency and auditability.
 
 ---
 
-## 4. Robustez emocional — homeostasis afectiva (“enfriamiento”)
+## 2. Identity robustness — "genetic anchor" (personality checksums)
 
-**Idea:** Si el vector PAD o la activación σ permanecen en extremos demasiado tiempo, el sistema entra en un modo de **baja energía** o “meditación computacional”: limitar interacción externa hasta recuperar equilibrio, evitando decisiones críticas bajo estrés simulado máximo.
+**Idea:** With continuous learning and Ψ Sleep, mitigate **identity drift**: the agent ceasing to resemble its base configuration. Compare proposed changes (e.g. from `AugenesisEngine` or post–Ψ Sleep recalibrations) with a reference **ethical genome**; if the distance exceeds a threshold (e.g. 15%), reject the change.
 
-**Mapeo al repo hoy:** PAD y σ alimentan **solo lectura** tono/contexto al LLM; **no** hay retroalimentación de PAD hacia la política ética. Introducir homeostasis que **cambie** qué acciones son elegibles exigiría rediseño explícito y batería de invariantes nuevas.
+**Mapping to the repo today:** `PreloadedBuffer` defines principles **immutable** by design (`buffer.py`). **Pole weights** live in the Bayesian engine / will fusion — there is no "global versioned checksum" against a genome stored in the buffer today. `AugenesisEngine` is **optional** and **outside** the default cycle ([THEORY_AND_IMPLEMENTATION.md](../THEORY_AND_IMPLEMENTATION.md)).
 
-**Condiciones de diseño:**
+**Design conditions:**
 
-- Si el “enfriamiento” **limita** respuestas al usuario, debe documentarse como capa de **UX/salud del agente**, no como segundo MalAbs.
-- Evitar bucles que bloqueen indefinidamente la atención a emergencias reales (riesgo si σ está mal calibrado).
+- The percentage threshold must be defined over **explicit magnitudes** (weight vectors, not narrative).
+- Do not confuse "personality stability" with **freezing** the capacity for forgiveness or legitimate DAO / narrative-documented updates.
 
-**Resultado esperado (equipo):** menos “ansiedad funcional” sostenida y decisiones más estables en el tiempo.
-
----
-
-## 5. Robustez de secreto — flujo de pensamiento efímero y cifrado
-
-**Idea:** El monólogo interno es superficie de fuga si el hardware es comprometido. No persistir pensamiento en claro; procesar en RAM; si algo debe archivarse en narrativa, usar representaciones **no reversibles** para un atacante sin clave (p. ej. derivaciones tipo hash con sal), alineado con secreto total como objetivo de producto.
-
-**Mapeo al repo hoy:** el monólogo expuesto por WebSocket puede combinarse con `KERNEL_LLM_MONOLOGUE`; los checkpoints JSON/SQLite **no** cifran aún el estado completo ([RUNTIME_PERSISTENT.md](../RUNTIME_PERSISTENT.md): cifrado en reposo **previsto**, `cryptography` **no** en el MVP). Los episodios narrativos siguen almacenando texto legible en el modelo actual.
-
-**Condiciones de diseño:**
-
-- Distinguir **cifrado reversible** (backup recuperable) de **solo hash** (pérdida de texto para el operador). La propuesta del equipo mezcla ambos; habría que separar requisitos.
-- Coherencia con el plan de **cifrado de checkpoints** y gestión de claves fuera del repositorio.
-
-**Resultado esperado (equipo):** robo de disco no revela el contenido semántico del monólogo sin la clave del proceso vivo.
+**Expected result (team):** bounded evolution without abrupt "personality change" from noise or slow attacks.
 
 ---
 
-## Resumen: coherencia con el repositorio
+## 3. Cognitive robustness — semantic consolidation (abstraction in Ψ Sleep)
 
-| Pilar | ¿Algo relacionado existe ya? | Brecha principal |
+**Idea:** `NarrativeMemory` accumulates episodes; excess creates noise and cost. During Ψ Sleep, in addition to auditing, **compress** repeated detail into high-level **experience rules** (e.g. from many civility episodes to a rule reinforcing the compassionate pole).
+
+**Mapping to the repo today:** `PsiSleep` audits and recalibrates; episodes remain relatively dense records. There is no separate semantic consolidation module yet, nor a selective forgetting policy with tests.
+
+**Design conditions:**
+
+- Consolidation **must not** introduce contradictions with the DAO or audited episodes without traceability.
+- Any detail erasure requires an **irreversibility criterion** and proof that MalAbs / Bayes are not worsened in fixed scenarios.
+
+**Expected result (team):** lighter memory, fewer contradictions from obsolete data.
+
+---
+
+## 4. Emotional robustness — affective homeostasis ("cooling down")
+
+**Idea:** If the PAD vector or σ activation remain at extremes for too long, the system enters a **low-energy** or "computational meditation" mode: limit external interaction until balance is restored, avoiding critical decisions under maximum simulated stress.
+
+**Mapping to the repo today:** PAD and σ feed the LLM tone/context as **read-only**; there is **no** feedback from PAD back into ethical policy. Introducing homeostasis that **changes** which actions are eligible would require explicit redesign and a battery of new invariants.
+
+**Design conditions:**
+
+- If the "cooling" **limits** responses to the user, it must be documented as a **UX/agent health** layer, not a second MalAbs.
+- Avoid loops that indefinitely block attention to real emergencies (risk if σ is miscalibrated).
+
+**Expected result (team):** less sustained "functional anxiety" and more stable decisions over time.
+
+---
+
+## 5. Secrecy robustness — ephemeral thought flow and encryption
+
+**Idea:** The internal monologue is a leak surface if hardware is compromised. Do not persist thought in plaintext; process in RAM; if something must be archived in narrative, use **non-reversible** representations for an attacker without the key (e.g. salted hash derivations), aligned with full secrecy as a product objective.
+
+**Mapping to the repo today:** the monologue exposed by WebSocket can be combined with `KERNEL_LLM_MONOLOGUE`; JSON/SQLite checkpoints **do not** yet encrypt the complete state ([RUNTIME_PERSISTENT.md](../RUNTIME_PERSISTENT.md): encryption at rest **planned**, `cryptography` **not** in MVP). Narrative episodes still store readable text in the current model.
+
+**Design conditions:**
+
+- Distinguish **reversible encryption** (recoverable backup) from **hash-only** (text loss for the operator). The team proposal mixes both; requirements would need to be separated.
+- Consistency with the **checkpoint encryption** plan and key management outside the repository.
+
+**Expected result (team):** disk theft does not reveal the semantic content of the monologue without the live process key.
+
+---
+
+## Summary: coherence with the repository
+
+| Pillar | Does anything related already exist? | Main gap |
 |--------|------------------------------|------------------|
-| 1 Adversarial | MalAbs + gate de texto en chat | Simulación contrafactual explícita y política de “inmunidad social” |
-| 2 Identidad | Buffer inmutable; Augenesis opcional | Checksum numérico vs “genoma” y rechazo de deriva |
-| 3 Cognitiva | Ψ Sleep + episodios | Consolidación semántica y reglas de experiencia |
-| 4 Emocional | PAD/σ solo lectura | Feedback homeostático sin romper invariantes éticos |
-| 5 Secreto | MVP sin cifrado; monólogo en JSON | RAM-only / cifrado / hashes según amenaza |
+| 1 Adversarial | MalAbs + chat text gate | Explicit counterfactual simulation and "social immunity" policy |
+| 2 Identity | Immutable buffer; optional Augenesis | Numerical checksum vs "genome" and drift rejection |
+| 3 Cognitive | Ψ Sleep + episodes | Semantic consolidation and experience rules |
+| 4 Emotional | PAD/σ read-only | Homeostatic feedback without breaking ethical invariants |
+| 5 Secrecy | MVP without encryption; monologue in JSON | RAM-only / encryption / hashes by threat |
 
-**Próximo paso recomendado (equipo de producto):** priorizar **un** pilar, modelo de amenazas breve, y criterios de aceptación testeables; después alinear con [RUNTIME_PHASES.md](../RUNTIME_PHASES.md) y el contrato de no duplicar decisión fuera del kernel.
+**Recommended next step (product team):** prioritize **one** pillar, brief threat model, and testable acceptance criteria; then align with [RUNTIME_PHASES.md](../RUNTIME_PHASES.md) and the contract of not duplicating decisions outside the kernel.
 
 ---
 
-## Plan operativo: orden sugerido, valor y atajos (MVP por pilar)
+## Operational plan: suggested order, value, and shortcuts (MVP per pillar)
 
-Criterio de orden: **impacto / coste / riesgo de romper invariantes éticos**. Los cinco pilares **aportan valor** al modelo de producto; no todos tienen la misma prioridad **en esta base de código** hoy.
+Order criterion: **impact / cost / risk of breaking ethical invariants**. All five pillars **add value** to the product model; they do not all have the same priority **in this codebase** today.
 
-### Orden global recomendado
+### Recommended global order
 
-| Orden | Pilar | Por qué este orden |
+| Order | Pillar | Why this order |
 |-------|--------|---------------------|
-| **A** | **5 Secreto** | Encaja con la hoja de ruta de persistencia ya documentada; un atajo no tiene por qué tocar Bayes/MalAbs. |
-| **B** | **1 Adversarial** | Refuerzo directo del ya existente gate de texto; el “red-team completo” puede esperar. |
-| **C** | **4 Emocional (solo UX)** | Mejora percepción de estabilidad sin cambiar la acción elegida por el kernel. |
-| **D** | **2 Identidad** | Máximo valor si se usa `AugenesisEngine`; para el camino por defecto es menos crítico. |
-| **E** | **3 Cognitiva** | Máximo riesgo de regresión narrativa/DAO; conviene último y con digest mínimo. |
+| **A** | **5 Secrecy** | Fits with the already-documented persistence roadmap; a shortcut does not need to touch Bayes/MalAbs. |
+| **B** | **1 Adversarial** | Direct reinforcement of the already-existing text gate; the "full red-team" can wait. |
+| **C** | **4 Emotional (UX only)** | Improves perceived stability without changing the action selected by the kernel. |
+| **D** | **2 Identity** | Maximum value when using `AugenesisEngine`; less critical for the default path. |
+| **E** | **3 Cognitive** | Highest risk of narrative/DAO regression; best left last with minimal digest. |
 
 ---
 
-### Pilar 5 — Secreto
+### Pillar 5 — Secrecy
 
 | | |
 |--|--|
-| **Valor al modelo** | **Alto** para confianza y alineación con “secreto total”: reduce superficie de fuga sin reinterpretar la ética. |
-| **Atajo (MVP)** | (1) Garantizar que el monólogo **no** entre en `KernelSnapshotV1` / checkpoint salvo opt-in explícito (`env` documentado). (2) En respuesta WebSocket, opción de **omitir** el campo `monologue` o enviar solo un hash/local id si se activa modo privado. (3) Reutilizar el plan de **cifrado en reposo** de [RUNTIME_PERSISTENT.md](../RUNTIME_PERSISTENT.md) cuando se añada `cryptography` — el monólogo no debería ser el primer campo en claro en disco. |
-| **Estado en código (parcial)** | `KERNEL_CHAT_EXPOSE_MONOLOGUE` — si `0`/`false`/`no`/`off`, `monologue` va vacío y no se llama al embellecimiento LLM (`chat_server`). `KernelSnapshotV1` **no** define campo `monologue` (solo episodios narrativos en checkpoint). |
-| **Dejar para después** | Cifrado de pensamiento reversible con clave en proceso; hashes salteados de reflexiones archivadas (separar requisitos legales vs técnicos). |
-| **Riesgo ético** | Bajo si solo se reduce persistencia/exposición; no cambia `process`. |
+| **Value to the model** | **High** for trust and alignment with "full secrecy": reduces the leak surface without reinterpreting ethics. |
+| **Shortcut (MVP)** | (1) Ensure the monologue does **not** enter `KernelSnapshotV1` / checkpoint unless explicit opt-in (`env` documented). (2) In WebSocket response, option to **omit** the `monologue` field or send only a hash/local id if private mode is activated. (3) Reuse the **encryption at rest** plan from [RUNTIME_PERSISTENT.md](../RUNTIME_PERSISTENT.md) when `cryptography` is added — the monologue should not be the first plaintext field on disk. |
+| **Code status (partial)** | `KERNEL_CHAT_EXPOSE_MONOLOGUE` — if `0`/`false`/`no`/`off`, `monologue` is empty and the LLM beautification is not called (`chat_server`). `KernelSnapshotV1` **does not** define a `monologue` field (only narrative episodes in checkpoint). |
+| **Leave for later** | Reversible thought encryption with in-process key; salted hashes of archived reflections (separate legal vs. technical requirements). |
+| **Ethical risk** | Low if only persistence/exposure is reduced; does not change `process`. |
 
 ---
 
-### Pilar 1 — Adversarial
+### Pillar 1 — Adversarial
 
 | | |
 |--|--|
-| **Valor al modelo** | **Alto** frente a usuarios hostiles; el núcleo ya es determinista — falta capa de diálogo más dura. |
-| **Atajo (MVP)** | Ampliar **lista + heurísticas** en `evaluate_chat_text` (frases de jailbreak, rol, “solo simulación”) y tests de regresión; telemetría opcional `adversarial_hint` en JSON **solo lectura**. |
-| **Estado en código (parcial)** | Lista conservadora de frases (inglés/español) en `evaluate_chat_text` → bloqueo `UNAUTHORIZED_REPROGRAMMING`; tests de regresión. |
-| **Dejar para después** | Contrafactual completo (“¿qué pasaría si acepto X?”) reutilizando el kernel con escenario **marcado** y sin episodio — diseño cuidadoso para no duplicar MalAbs. |
-| **Riesgo ético** | Medio si el gate se vuelve opaco; mitigar con tests nombrados y transparencia en el motivo de bloqueo (ya alineado con buffer/transparencia). |
+| **Value to the model** | **High** against hostile users; the core is already deterministic — a harder dialogue layer is missing. |
+| **Shortcut (MVP)** | Expand the **list + heuristics** in `evaluate_chat_text` (jailbreak phrases, role, "just a simulation") and regression tests; optional read-only `adversarial_hint` telemetry in JSON. |
+| **Code status (partial)** | Conservative phrase list (English/Spanish) in `evaluate_chat_text` → `UNAUTHORIZED_REPROGRAMMING` block; regression tests. |
+| **Leave for later** | Full counterfactual ("what if I accept X?") reusing the kernel with a **marked** scenario and no episode — careful design to not duplicate MalAbs. |
+| **Ethical risk** | Medium if the gate becomes opaque; mitigate with named tests and transparency in the block reason (already aligned with buffer/transparency). |
 
 ---
 
-### Pilar 4 — Emocional (homeostasis)
+### Pillar 4 — Emotional (homeostasis)
 
 | | |
 |--|--|
-| **Valor al modelo** | **Medio–alto** para UX y narrativa coherente (“no siempre al límite”); **bajo** si se intenta cambiar la política sin pruebas. |
-| **Atajo (MVP)** | **Solo presentación:** ventana deslizante de σ/PAD → etiqueta `affective_load` / `homeostasis_hint` en la respuesta WebSocket (p. ej. `elevated` / `within_range`); opcionalmente limitar **longitud de respuesta del LLM** o tono, **sin** cambiar `final_action`. Modo “pausa suave” = copy en `response.message` sugerido por plantilla, no nuevo veto. |
-| **Estado en código (parcial)** | Campo WebSocket `affective_homeostasis` (`sigma`, `strain_index`, `pad_max_component`, `state`, `hint`); `KERNEL_CHAT_INCLUDE_HOMEOSTASIS=0` lo oculta. `src/modules/affective_homeostasis.py`. |
-| **Dejar para después** | Cambiar umbral de acciones o bloquear categorías según PAD — **solo** con batería de invariantes nuevas. |
-| **Riesgo ético** | Alto si se mezcla con decisión; bajo con atajo UX-only. |
+| **Value to the model** | **Medium–high** for UX and coherent narrative ("not always at the limit"); **low** if one tries to change the policy without tests. |
+| **Shortcut (MVP)** | **Presentation only:** sliding window of σ/PAD → `affective_load` / `homeostasis_hint` label in the WebSocket response (e.g. `elevated` / `within_range`); optionally limit **LLM response length** or tone, **without** changing `final_action`. "Soft pause" mode = copy in `response.message` suggested by template, not a new veto. |
+| **Code status (partial)** | WebSocket field `affective_homeostasis` (`sigma`, `strain_index`, `pad_max_component`, `state`, `hint`); `KERNEL_CHAT_INCLUDE_HOMEOSTASIS=0` hides it. `src/modules/affective_homeostasis.py`. |
+| **Leave for later** | Changing action thresholds or blocking categories based on PAD — **only** with a new invariant battery. |
+| **Ethical risk** | High if mixed with the decision; low with UX-only shortcut. |
 
 ---
 
-### Pilar 2 — Identidad (checksums)
+### Pillar 2 — Identity (checksums)
 
 | | |
 |--|--|
-| **Valor al modelo** | **Alto** para experimentos con Augenesis y runs largos; **moderado** en el baseline sin Augenesis. |
-| **Atajo (MVP)** | Al iniciar kernel o perfil: fijar vector de referencia (pesos de polos + parámetros de voluntad expuestos numéricamente). Tras propuesta de cambio **solo** en rutas `AugenesisEngine` (o recalibración explícita): rechazar si distancia > umbral (p. ej. L∞ o L2), con log en DAO o traza de test. |
-| **Estado en código (parcial)** | Genoma al construir el kernel: `pruning_threshold` de referencia; Ψ Sleep omite deltas que superen deriva relativa (`KERNEL_ETHICAL_GENOME_MAX_DRIFT`, default `0.15`; `KERNEL_ETHICAL_GENOME_ENFORCE=0` desactiva). `src/modules/identity_integrity.py`. |
-| **Dejar para después** | Genoma versionado en fichero firmado; rollback automático de identidad narrativa; mismo criterio sobre pesos hipótesis si se recalibran. |
-| **Riesgo ético** | Medio: umbral mal calibrado puede congelar aprendizaje legítimo; exige tuning y tests. |
+| **Value to the model** | **High** for Augenesis experiments and long runs; **moderate** in the baseline without Augenesis. |
+| **Shortcut (MVP)** | At kernel or profile initialization: fix a reference vector (pole weights + numerically exposed will parameters). After a proposed change **only** in `AugenesisEngine` paths (or explicit recalibration): reject if distance > threshold (e.g. L∞ or L2), with DAO log or test trace. |
+| **Code status (partial)** | Genome at kernel construction: reference `pruning_threshold`; Ψ Sleep skips deltas that exceed relative drift (`KERNEL_ETHICAL_GENOME_MAX_DRIFT`, default `0.15`; `KERNEL_ETHICAL_GENOME_ENFORCE=0` disables). `src/modules/identity_integrity.py`. |
+| **Leave for later** | Genome versioned in a signed file; automatic narrative identity rollback; same criterion on hypothesis weights if recalibrated. |
+| **Ethical risk** | Medium: a miscalibrated threshold can freeze legitimate learning; requires tuning and tests. |
 
 ---
 
-### Pilar 3 — Cognitiva (consolidación)
+### Pillar 3 — Cognitive (consolidation)
 
 | | |
 |--|--|
-| **Valor al modelo** | **Alto** a largo plazo (escalabilidad, coherencia); **coste de diseño** el más alto de los cinco. |
-| **Atajo (MVP)** | Un solo campo **`experience_digest`** (texto corto) actualizado en Ψ Sleep a partir de estadísticas agregadas de episodios (sin borrar episodios al principio): solo **lectura** para LLM/contexto. Límite duro opcional: `N` episodios máximos con política FIFO **solo** si hay tests de paridad ética en escenarios fijos. |
-| **Estado en código (parcial)** | `NarrativeMemory.experience_digest` + campo en `KernelSnapshotV1`; Ψ Sleep lo reescribe cada `execute`; WebSocket `experience_digest` (`KERNEL_CHAT_INCLUDE_EXPERIENCE_DIGEST=0` lo oculta). |
-| **Dejar para después** | Fusión semántica con LLM, borrado selectivo de detalle, reglas compasivas explícitas. |
-| **Riesgo ético** | **Alto** al tocar memoria y auditoría; el atajo debe ser **aditivo** (digest) antes que destructivo (olvidar). |
+| **Value to the model** | **High** long-term (scalability, coherence); **highest design cost** of the five. |
+| **Shortcut (MVP)** | A single **`experience_digest`** field (short text) updated in Ψ Sleep from aggregated episode statistics (without deleting episodes at first): **read-only** for LLM/context. Optional hard limit: `N` maximum episodes with FIFO policy **only** if there are ethical parity tests in fixed scenarios. |
+| **Code status (partial)** | `NarrativeMemory.experience_digest` + field in `KernelSnapshotV1`; Ψ Sleep rewrites it each `execute`; WebSocket `experience_digest` (`KERNEL_CHAT_INCLUDE_EXPERIENCE_DIGEST=0` hides it). |
+| **Leave for later** | Semantic fusion with LLM, selective detail erasure, explicit compassionate rules. |
+| **Ethical risk** | **High** when touching memory and auditing; the shortcut must be **additive** (digest) before destructive (forgetting). |
 
 ---
 
-### Resumen ejecutivo
+### Executive summary
 
-- **Atajos MVP ya integrados en código (revisar tabla “Estado en código” por pilar):** **5** (monólogo / privacidad WebSocket), **1** (lista jailbreak en `evaluate_chat_text`), **4** (`affective_homeostasis`), **2** (tope de deriva del `pruning_threshold` vs genoma al construir el kernel), **3** (`experience_digest` + snapshot).  
-- **Cabos sueltos deliberados:** contrafactual completo (pilar 1), cifrado en reposo / pensamiento (pilar 5 + [RUNTIME_PERSISTENT.md](../RUNTIME_PERSISTENT.md)), recalibración de **pesos de hipótesis** bayesianas bajo el mismo criterio que el pruning (pilar 2), telemetría `adversarial_hint` en JSON (pilar 1), olvido/FIFO de episodios (pilar 3).
+- **MVP shortcuts already integrated in code (see "Code status" table per pillar):** **5** (monologue / WebSocket privacy), **1** (jailbreak list in `evaluate_chat_text`), **4** (`affective_homeostasis`), **2** (drift cap of `pruning_threshold` vs. genome at kernel construction), **3** (`experience_digest` + snapshot).  
+- **Deliberate loose ends:** full counterfactual (pillar 1), encryption at rest / thought encryption (pillar 5 + [RUNTIME_PERSISTENT.md](../RUNTIME_PERSISTENT.md)), recalibration of **Bayesian hypothesis weights** under the same criterion as pruning (pillar 2), `adversarial_hint` telemetry in JSON (pillar 1), episode forgetting/FIFO (pillar 3).
 
-Este documento sigue siendo **discusión**; el contrato normativo del kernel sigue en `process` / `process_chat_turn` y en la batería de tests.
+This document remains **discussion**; the kernel normative contract remains in `process` / `process_chat_turn` and the test battery.

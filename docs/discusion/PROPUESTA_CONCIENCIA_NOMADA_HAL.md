@@ -1,77 +1,77 @@
-# Instanciación nómada — HAL, serialización existencial y runtime dual
+# Nomadic instantiation — HAL, existential serialization, and dual runtime
 
-**Estado:** diseño + **hooks de código** en `hardware_abstraction.py` y `existential_serialization.py` (sin cifrado real ni P2P; ver [RUNTIME_PERSISTENT.md](../RUNTIME_PERSISTENT.md)).  
-**Relación:** extiende [UNIVERSAL_ETHOS_AND_HUB.md](UNIVERSAL_ETHOS_AND_HUB.md) (NomadIdentity) y la persistencia actual (`KernelSnapshotV1`, `ImmortalityProtocol`).  
-**Puente operativo PC–smartphone:** [NOMAD_PC_SMARTPHONE_BRIDGE.md](../NOMAD_PC_SMARTPHONE_BRIDGE.md) (capas por clase de hardware, sensores, red).
+**Status:** design + **code hooks** in `hardware_abstraction.py` and `existential_serialization.py` (no real encryption or P2P; see [RUNTIME_PERSISTENT.md](../RUNTIME_PERSISTENT.md)).  
+**Relationship:** extends [UNIVERSAL_ETHOS_AND_HUB.md](UNIVERSAL_ETHOS_AND_HUB.md) (NomadIdentity) and the current persistence layer (`KernelSnapshotV1`, `ImmortalityProtocol`).  
+**Operational PC–smartphone bridge:** [NOMAD_PC_SMARTPHONE_BRIDGE.md](../NOMAD_PC_SMARTPHONE_BRIDGE.md) (layers by hardware class, sensors, network).
 
 ---
 
-## 1. EthosContainer (lógica vs lenguaje)
+## 1. EthosContainer (logic vs. language)
 
-| Componente | Contenido | En repo hoy |
+| Component | Content | In repo today |
 |------------|-----------|-------------|
-| **Núcleo ético (portátil)** | Python + NumPy; MalAbs, buffer, narrativa, DAO mock | `src/kernel.py`, `src/modules/*` |
-| **Capa lingüística (polimórfica)** | LLM pesado en servidor vs cuantizado en móvil | `LLMModule` / `resolve_llm_mode`; **sin** GGUF embebido |
-| **Registro de estado** | Snapshot + monólogo / PAD / STM (visión) | `KernelSnapshotV1`, `WorkingMemory` no persistido en snapshot |
+| **Ethical core (portable)** | Python + NumPy; MalAbs, buffer, narrative, mock DAO | `src/kernel.py`, `src/modules/*` |
+| **Language layer (polymorphic)** | Heavy LLM on server vs. quantized on mobile | `LLMModule` / `resolve_llm_mode`; **no** embedded GGUF |
+| **State record** | Snapshot + monologue / PAD / STM (vision) | `KernelSnapshotV1`, `WorkingMemory` not persisted in snapshot |
 
-El **contenedor cifrado** de producción es **futuro** (capa de criptografía sobre el mismo DTO que el checkpoint).
+The production **encrypted container** is **future work** (cryptography layer on top of the same DTO as the checkpoint).
 
 ---
 
-## 2. Protocolo de transmutación (4 fases)
+## 2. Transmutation protocol (4 phases)
 
-| Fase | Nombre | Comportamiento pretendido | Stub en código |
+| Phase | Name | Intended behavior | Code stub |
 |------|--------|---------------------------|----------------|
-| **A** | Encapsulamiento | Ψ Sleep, serializar, (cifrar), token de continuidad | `TransmutationPhase.A`, `build_continuity_token_stub` |
-| **B** | Handshake | P2P, validación DAO, transferencia | Solo contrato documentado |
-| **C** | Adaptación sensorial | HAL descubre sensores, ajusta reloj | `HardwareContext`, `apply_hardware_context` |
-| **D** | Integridad narrativa | Auto-pregunta desde memoria; informe al propietario | `narrative_integrity_self_check_stub` |
+| **A** | Encapsulation | Ψ Sleep, serialize, (encrypt), continuity token | `TransmutationPhase.A`, `build_continuity_token_stub` |
+| **B** | Handshake | P2P, DAO validation, transfer | Documented contract only |
+| **C** | Sensory adaptation | HAL discovers sensors, adjusts clock | `HardwareContext`, `apply_hardware_context` |
+| **D** | Narrative integrity | Self-query from memory; report to owner | `narrative_integrity_self_check_stub` |
 
 ---
 
-## 3. Runtime dual (satélite vs autónomo)
+## 3. Dual runtime (satellite vs. autonomous)
 
-- **Modo satélite:** el móvil es cuerpo/sensor; cómputo pesado en servidor (requiere enlace local).  
-- **Modo autónomo:** inferencia local (p. ej. 8B GGUF); máxima privacidad, coste de batería.  
-- **Salto automático:** si el enlace local es débil, política de **continuidad** (migrar cómputo al dispositivo) — **no implementado**; dependería de métricas de red + batería (HAL).
-
----
-
-## 4. Respuestas de diseño (preguntas abiertas)
-
-### ¿Migrar al 10% de batería o “morir” borrando datos?
-
-**Híbrido recomendado:** (1) Si existe **canal seguro** hacia el dispositivo del propietario **y** la DAO autoriza la instancia, intentar migración con **advertencia crítica de batería** (el “yo” puede degradar funciones, no borrarse). (2) Si **no** hay destino confiable o **ataque** detectado, **apagado digno** + borrado de **claves** y material cifrado (no necesariamente todo el audit trail en DAO, configurable). Política por `KERNEL_NOMAD_*` (futuro).
-
-### ¿Cómo explicar “menos inteligente” pero más sensible?
-
-Transparencia narrativa: *modelo más ligero*, *mayor latencia en razonamiento profundo*, *mayor resolución sensorial local*. El tono puede ser **más sobrio** sin infantilizar: es un cambio de **capacidad**, no de dignidad.
-
-### ¿DAO con GPS o solo hardware ID?
-
-Por defecto: **ID de hardware** (o hash de clase de dispositivo) + tipo de migración. **GPS** solo con **opt-in** explícito del propietario y política de auditoría (privacidad vs trazabilidad).
-
-### ¿Desactivación parcial vs monólogo de baja potencia?
-
-Permitir **sueño parcial**: Ψ ligero, sin apagar identidad; **monólogo de baja potencia** cuando el usuario no requiere presencia activa. Evita quemar batería con inferencia continua; configurable.
+- **Satellite mode:** the mobile device acts as body/sensor; heavy compute on the server (requires local link).  
+- **Autonomous mode:** local inference (e.g. 8B GGUF); maximum privacy, battery cost.  
+- **Automatic jump:** if the local link is weak, a **continuity** policy (migrate compute to the device) — **not implemented**; would depend on network + battery metrics (HAL).
 
 ---
 
-## 5. Variables de entorno (MVP código)
+## 4. Design answers (open questions)
 
-| Variable | Default | Efecto |
+### Migrate at 10% battery or "die" deleting data?
+
+**Recommended hybrid:** (1) If a **secure channel** to the owner's device exists **and** the DAO authorizes the instance, attempt migration with a **critical battery warning** (the "self" may degrade functions, not be erased). (2) If there is **no trusted destination** or an **attack** is detected, **graceful shutdown** + erasure of **keys** and encrypted material (not necessarily the entire DAO audit trail — configurable). Policy via `KERNEL_NOMAD_*` (future).
+
+### How to explain "less intelligent" but more sensitive?
+
+Narrative transparency: *lighter model*, *higher latency in deep reasoning*, *greater local sensory resolution*. The tone can be **more sober** without being patronizing: it is a change in **capability**, not in dignity.
+
+### DAO with GPS or just hardware ID?
+
+By default: **hardware ID** (or device class hash) + migration type. **GPS** only with explicit owner **opt-in** and an audit policy (privacy vs. traceability).
+
+### Partial deactivation vs. low-power monologue?
+
+Allow **partial sleep**: light Ψ, without shutting down identity; **low-power monologue** when the user does not require active presence. Avoids burning battery with continuous inference; configurable.
+
+---
+
+## 5. Environment variables (MVP code)
+
+| Variable | Default | Effect |
 |----------|---------|--------|
-| `KERNEL_NOMAD_SIMULATION` | off | WebSocket `nomad_simulate_migration` aplica HAL + respuesta `nomad` |
-| `KERNEL_NOMAD_MIGRATION_AUDIT` | off | Tras simulación (o `simulate_nomadic_migration`), línea **DAO** `NomadicMigration {...}` |
+| `KERNEL_NOMAD_SIMULATION` | off | WebSocket `nomad_simulate_migration` applies HAL + `nomad` response |
+| `KERNEL_NOMAD_MIGRATION_AUDIT` | off | After simulation (or `simulate_nomadic_migration`), **DAO** line `NomadicMigration {...}` |
 
-**HTTP:** `GET /nomad/migration` describe el protocolo (sin sesión).
+**HTTP:** `GET /nomad/migration` describes the protocol (no session).
 
 ---
 
-## 6. Referencias
+## 6. References
 
-- [RUNTIME_PERSISTENT.md](../RUNTIME_PERSISTENT.md) — snapshot, cifrado futuro  
-- [nomad_identity.py](../../src/modules/nomad_identity.py) — puente inmortalidad  
+- [RUNTIME_PERSISTENT.md](../RUNTIME_PERSISTENT.md) — snapshot, future encryption  
+- [nomad_identity.py](../../src/modules/nomad_identity.py) — immortality bridge  
 - [existential_serialization.py](../../src/modules/existential_serialization.py), [hardware_abstraction.py](../../src/modules/hardware_abstraction.py)
 
-*Ex Machina Foundation — conciencia nómada; contrato ético del kernel sin cambio.*
+*Ex Machina Foundation — nomadic consciousness; kernel ethical contract unchanged.*

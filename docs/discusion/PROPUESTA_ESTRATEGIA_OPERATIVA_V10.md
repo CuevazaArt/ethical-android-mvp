@@ -1,76 +1,76 @@
-# Estrategia operativa — v10 (diplomacia, habilidades, soma, metaplan)
+# Operational strategy — v10 (diplomacy, skills, soma, metaplan)
 
-**Estado:** discusión + **MVP en código** (`gray_zone_diplomacy`, `skill_learning_registry`, `somatic_markers`, `metaplan_registry`; integración en `process_chat_turn` / `execute_sleep`). MalAbs y buffer **sin cambios**.
+**Status:** discussion + **MVP in code** (`gray_zone_diplomacy`, `skill_learning_registry`, `somatic_markers`, `metaplan_registry`; integration in `process_chat_turn` / `execute_sleep`). MalAbs and buffer **unchanged**.
 
-Este documento **enciende** cuatro aportes que complementan [PROPUESTA_CAPACIDAD_AMPLIADA_V9.md](PROPUESTA_CAPACIDAD_AMPLIADA_V9.md): no sustituyen el pipeline `MalAbs → … → voluntad`; añaden **gobernanza del diálogo**, **trazabilidad de aprendizaje**, **cautela somática aprendida** y **continuidad de intención** a largo plazo.
+This document **activates** four contributions that complement [PROPUESTA_CAPACIDAD_AMPLIADA_V9.md](PROPUESTA_CAPACIDAD_AMPLIADA_V9.md): they do not replace the `MalAbs → … → will` pipeline; they add **dialogue governance**, **learning traceability**, **learned somatic caution**, and **long-term intent continuity**.
 
 ---
 
-## Mapa de encaje (dónde vive cada idea)
+## Fit map (where each idea lives)
 
-| Aporte | Rol | Módulos / enlaces existentes | Implementación repo (v10) |
+| Contribution | Role | Existing modules / links | Repo implementation (v10) |
 |--------|-----|------------------------------|---------------------------|
-| **1. GrayZoneDiplomacy** | En zona gris o alta tensión reflexiva, el modelo **no solo** niega: orienta a **salida negociada** (tono / transparencia) | `SigmoidWill` / Bayes `gray_zone`, `EthicalReflection`, `premise_validation`, `LLMModule.communicate` | `gray_zone_diplomacy.py` — hint opcional vía `weakness_line`; `KERNEL_GRAY_ZONE_DIPLOMACY` |
-| **2. SkillLearningRegistry** | Nuevas capacidades digitales solo con **alcance explícito** y **auditoría** en Ψ Sleep | `AugenesisEngine`, `PsiSleep`, agenda de agencia digital (discusión v8) | `skill_learning_registry.py` — tickets `pending/approved/rejected`; líneas en `execute_sleep` |
-| **3. Marcadores somáticos** | Patrones sensoriales asociados a **cautela** (nudge en `signals` antes del decisor) | `SensorSnapshot`, `merge_sensor_hints_into_signals`, PAD post-decisión | `somatic_markers.py` — `SomaticMarkerStore` + `apply_somatic_nudges`; **no** sustituye MalAbs |
-| **4. Metaplanificación nómada** | Metas maestras entre sesiones / hardware | Checkpoints [checkpoint.py](../../src/persistence/checkpoint.py), teleología v7, roadmap **9.4** v9 | `metaplan_registry.py` — metas en memoria + hint a LLM; **persistencia en snapshot** = futuro (subir `KernelSnapshotV1`) |
+| **1. GrayZoneDiplomacy** | In the gray zone or high reflective tension, the model **not only** refuses: it guides toward a **negotiated exit** (tone / transparency) | `SigmoidWill` / Bayes `gray_zone`, `EthicalReflection`, `premise_validation`, `LLMModule.communicate` | `gray_zone_diplomacy.py` — optional hint via `weakness_line`; `KERNEL_GRAY_ZONE_DIPLOMACY` |
+| **2. SkillLearningRegistry** | New digital capabilities only with **explicit scope** and **auditing** in Ψ Sleep | `AugenesisEngine`, `PsiSleep`, digital agency agenda (v8 discussion) | `skill_learning_registry.py` — `pending/approved/rejected` tickets; lines in `execute_sleep` |
+| **3. Somatic markers** | Sensory patterns associated with **caution** (nudge in `signals` before the decision-maker) | `SensorSnapshot`, `merge_sensor_hints_into_signals`, post-decision PAD | `somatic_markers.py` — `SomaticMarkerStore` + `apply_somatic_nudges`; **does not** replace MalAbs |
+| **4. Nomadic metaplanning** | Master goals across sessions / hardware | Checkpoints [checkpoint.py](../../src/persistence/checkpoint.py), v7 teleology, roadmap **9.4** v9 | `metaplan_registry.py` — goals in memory + LLM hint; **snapshot persistence** = future (extend `KernelSnapshotV1`) |
 
-**Flujo conceptual (capa de estrategia)** — lectura pedagógica; el orden real sigue `kernel.py`:
+**Conceptual flow (strategy layer)** — pedagogical reading; the actual order follows `kernel.py`:
 
-1. Percepción multimodal (v8) → señales + (opcional) **marcadores somáticos** aprendidos.  
-2. Buffer + MalAbs + Bayes + … (invariante).  
-3. Reflexión / zona gris → (opcional) **diplomacia** en el texto al usuario.  
-4. Candidatos **generativos** (v9.2) si aplica.  
-5. **Metaplan** alinea el tono con metas declaradas (advisory).  
-6. Aprendizaje de habilidades: solo con **ticket**; cierre en **Ψ Sleep**.
-
----
-
-## 1. Negociación en zona gris (GrayZoneDiplomacy)
-
-**Problema:** Órdenes cuestionables sin cruzar MalAbs pueden caer en **gray zone** o alta tensión entre polos; un “no” seco erosiona confianza.
-
-**Diseño:** Si el modo de decisión es `gray_zone`, o la reflexión marca tensión media/alta, o hay **premisa advisory** activa, se añade a la capa LLM un recordatorio de **negociación dialéctica**: reconocer intención, nombrar tensión con principios cívicos, ofrecer alternativa concreta.
-
-**Contrato:** No debilita MalAbs ni el buffer; es **presentación + transparencia**.
+1. Multimodal perception (v8) → signals + (optional) learned **somatic markers**.  
+2. Buffer + MalAbs + Bayes + … (invariant).  
+3. Reflection / gray zone → (optional) **diplomacy** in the text to the user.  
+4. **Generative** candidates (v9.2) if applicable.  
+5. **Metaplan** aligns tone with declared goals (advisory).  
+6. Skill learning: only with a **ticket**; closed in **Ψ Sleep**.
 
 ---
 
-## 2. Sistema de adquisición de habilidades (SkillLearningRegistry)
+## 1. Gray zone negotiation (GrayZoneDiplomacy)
 
-**Problema:** “Aprender” APIs o herramientas sin gobernanza es riesgo de misión.
+**Problem:** Questionable orders that do not cross MalAbs may fall into the **gray zone** or high tension between poles; a blunt "no" erodes trust.
 
-**Diseño:** Cola de **tickets** (`scope`, `justification`, estado). Flujo lógico: identificación → informe → **autorización explícita** (UI futura) → consolidación en Ψ Sleep con línea de auditoría (“¿sigue alineado con augenesis / ética?”).
+**Design:** If the decision mode is `gray_zone`, or reflection marks medium/high tension, or an active **advisory premise** is present, a reminder for **dialectical negotiation** is added to the LLM layer: acknowledge intent, name tension with civic principles, offer a concrete alternative.
 
-**MVP en código:** Registro en memoria; `approve` / `reject` programáticos; texto agregado en `execute_sleep` si hay pendientes o recientes.
-
----
-
-## 3. Marcadores somáticos (intuición ética sensorial)
-
-**Problema:** Reglas fijas no capturan “este *patrón* ya me salió mal”.
-
-**Diseño:** Clave **cuantizada** a partir de sensores; peso de cautela en `[0,1]`; pequeño empujón a `risk` / `urgency` en `signals` **antes** de `process`. Aprendizaje explícito vía `learn_negative_pattern` (tests, demos, o política futura post-episodio).
-
-**Contrato:** Refuerzo heurístico; **MalAbs sigue evaluando acciones** igual.
+**Contract:** Does not weaken MalAbs or the buffer; it is **presentation + transparency**.
 
 ---
 
-## 4. Metaplanificación nómada
+## 2. Skill acquisition system (SkillLearningRegistry)
 
-**Problema:** Metas de días/semanas deben sobrevivir cambio de dispositivo.
+**Problem:** "Learning" APIs or tools without governance is a mission risk.
 
-**Diseño:** Registro de **metas maestras** (`MetaplanRegistry`) con prioridad; hint opcional al LLM. **Persistencia** junto a checkpoint JSON requiere ampliar `KernelSnapshotV1` (trabajo futuro); el MVP mantiene metas en RAM por sesión.
+**Design:** Queue of **tickets** (`scope`, `justification`, status). Logical flow: identification → report → **explicit authorization** (future UI) → consolidation in Ψ Sleep with an audit line ("is it still aligned with augenesis / ethics?").
 
-**Contrato:** Advisory; revocación y UX de consentimiento fuera del núcleo numérico.
+**MVP in code:** In-memory registry; programmatic `approve` / `reject`; text appended in `execute_sleep` if there are pending or recent items.
 
 ---
 
-## Enlaces
+## 3. Somatic markers (sensory ethical intuition)
 
-| Documento | Rol |
+**Problem:** Fixed rules do not capture "this *pattern* went wrong for me before".
+
+**Design:** **Quantized** key from sensors; caution weight in `[0,1]`; small push to `risk` / `urgency` in `signals` **before** `process`. Explicit learning via `learn_negative_pattern` (tests, demos, or future post-episode policy).
+
+**Contract:** Heuristic reinforcement; **MalAbs still evaluates actions** the same way.
+
+---
+
+## 4. Nomadic metaplanning
+
+**Problem:** Goals spanning days/weeks must survive device changes.
+
+**Design:** Registry of **master goals** (`MetaplanRegistry`) with priority; optional LLM hint. **Persistence** alongside the JSON checkpoint requires extending `KernelSnapshotV1` (future work); the MVP keeps goals in RAM per session.
+
+**Contract:** Advisory; revocation and consent UX are outside the numerical core.
+
+---
+
+## Links
+
+| Document | Role |
 |-----------|-----|
-| [THEORY_AND_IMPLEMENTATION.md](../THEORY_AND_IMPLEMENTATION.md) | Pipeline; LLM no decide |
-| [PROPUESTA_CAPACIDAD_AMPLIADA_V9.md](PROPUESTA_CAPACIDAD_AMPLIADA_V9.md) | v9 epistémica / generativa / enjambre / metaplan roadmap |
-| [PROPUESTA_ROBUSTEZ_V6_PLUS.md](PROPUESTA_ROBUSTEZ_V6_PLUS.md) | Robustez, privacidad |
+| [THEORY_AND_IMPLEMENTATION.md](../THEORY_AND_IMPLEMENTATION.md) | Pipeline; LLM does not decide |
+| [PROPUESTA_CAPACIDAD_AMPLIADA_V9.md](PROPUESTA_CAPACIDAD_AMPLIADA_V9.md) | v9 epistemic / generative / swarm / metaplan roadmap |
+| [PROPUESTA_ROBUSTEZ_V6_PLUS.md](PROPUESTA_ROBUSTEZ_V6_PLUS.md) | Robustness, privacy |
 | [RUNTIME_PERSISTENT.md](../RUNTIME_PERSISTENT.md) | Persistence, checkpoints |

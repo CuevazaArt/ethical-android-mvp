@@ -2,24 +2,22 @@
 
 ---
 
-**BIBLIOGRAFIA ACADEMICA**
+**ACADEMIC BIBLIOGRAPHY**
 
-**Androide con Conciencia Artificial y Ecosistema Etico Colaborativo**
+**Android with Artificial Consciousness and Collaborative Ethical Ecosystem**
 
-*De las obras clasicas fundacionales a las teorias contemporaneas*
+*From classic foundational works to contemporary theories*
 
-Organizado por disciplina y componente del proyecto
+Organized by discipline and project component
 
-**⬛ Naranja = obra clasica fundacional ⬛ Azul = teoria moderna o
-reciente**
+**⬛ Orange = classic foundational work ⬛ Blue = modern or recent theory**
 
-# **I. Logica, Filosofia de la Mente e Inteligencia Artificial**
+# **I. Logic, Philosophy of Mind, and Artificial Intelligence**
 
-Fundamento epistemologico del proyecto: la posibilidad de modelar
-razonamiento, conciencia y etica en sistemas artificiales.
+Epistemological foundation of the project: the possibility of modeling reasoning, consciousness, and ethics in artificial systems.
 
   -----------------------------------------------------------------------
-  **Obras clasicas fundacionales**
+  **Classic foundational works**
   -----------------------------------------------------------------------
 
   -----------------------------------------------------------------------
@@ -28,49 +26,48 @@ razonamiento, conciencia y etica en sistemas artificiales.
 | **\[1\]** | **Turing, A. M. (1950).** *Computing Machinery and Intelligence.* |
 |           | Mind, 49(236), 433-460.                                           |
 |           |                                                                   |
-|           | **Relevancia:** *Introduce el Test de Turing. Base del Test de    |
-|           | Turing Moral (Sueno Psi) del proyecto. Primera formulacion formal |
-|           | de inteligencia maquina.*                                         |
+|           | **Relevance:** *Introduces the Turing Test. Basis for the project's |
+|           | Moral Turing Test (Psi Sleep). First formal formulation of machine |
+|           | intelligence.*                                                    |
 +===========+===================================================================+
 
 +-----------+-------------------------------------------------------------------+
 | **\[2\]** | **Russell, B. (1919).** *Introduction to Mathematical             |
-|           | Philosophy.* George Allen & Unwin, Londres.                       |
+|           | Philosophy.* George Allen & Unwin, London.                        |
 |           |                                                                   |
-|           | **Relevancia:** *Fundamentos de la logica de predicados usada en  |
-|           | el sistema de axiomas del androide (Bien, Mal, ZonaGris,          |
-|           | MalAbs).*                                                         |
+|           | **Relevance:** *Foundations of the predicate logic used in the    |
+|           | android's axiom system (Good, Evil, GrayZone, MalAbs).*           |
 +===========+===================================================================+
 
 +-----------+-------------------------------------------------------------------+
-| **\[3\]** | **Frege, G. (1879).** *Begriffsschrift (Escritura Conceptual).*   |
+| **\[3\]** | **Frege, G. (1879).** *Begriffsschrift (Concept Script).*         |
 |           | Verlag von Louis Nebert, Halle.                                   |
 |           |                                                                   |
-|           | **Relevancia:** *Primera formalizacion de la logica de            |
-|           | predicados. Origen directo del sistema de predicados del modelo.* |
+|           | **Relevance:** *First formalization of predicate logic. Direct    |
+|           | origin of the model's predicate system.*                          |
 +===========+===================================================================+
 
 +-----------+-------------------------------------------------------------------+
 | **\[4\]** | **McCarthy, J., Minsky, M., Rochester, N., & Shannon, C.          |
 |           | (1955).** *A Proposal for the Dartmouth Summer Research Project   |
-|           | on Artificial Intelligence.* Propuesta de investigacion,          |
+|           | on Artificial Intelligence.* Research proposal,                   |
 |           | Dartmouth College.                                                |
 |           |                                                                   |
-|           | **Relevancia:** *Documento fundacional de la IA como disciplina.  |
-|           | Define el proyecto de crear maquinas que razonen como humanos.*   |
+|           | **Relevance:** *Foundational document of AI as a discipline.      |
+|           | Defines the project of creating machines that reason like humans.* |
 +===========+===================================================================+
 
 +-----------+-------------------------------------------------------------------+
 | **\[5\]** | **Searle, J. R. (1980).** *Minds, Brains, and Programs.*          |
 |           | Behavioral and Brain Sciences, 3(3), 417-424.                     |
 |           |                                                                   |
-|           | **Relevancia:** *Argumento del cuarto chino. Debate sobre         |
-|           | comprension vs. simulacion. Relevante para el diseno de           |
-|           | conciencia narrativa del androide.*                               |
+|           | **Relevance:** *The Chinese Room argument. Debate on understanding |
+|           | vs. simulation. Relevant to the android's narrative consciousness  |
+|           | design.*                                                          |
 +===========+===================================================================+
 
   -----------------------------------------------------------------------
-  **Teorias modernas**
+  **Modern theories**
   -----------------------------------------------------------------------
 
   -----------------------------------------------------------------------
@@ -79,86 +76,85 @@ razonamiento, conciencia y etica en sistemas artificiales.
 | **\[6\]** | **Chalmers, D. J. (1996).** *The Conscious Mind: In Search of a   |
 |           | Fundamental Theory.* Oxford University Press.                     |
 |           |                                                                   |
-|           | **Relevancia:** *El problema dificil de la conciencia. Marco para |
-|           | distinguir procesamiento funcional de experiencia subjetiva en el |
-|           | androide.*                                                        |
+|           | **Relevance:** *The hard problem of consciousness. Framework for  |
+|           | distinguishing functional processing from subjective experience   |
+|           | in the android.*                                                  |
 +===========+===================================================================+
 
 +-----------+-------------------------------------------------------------------+
 | **\[7\]** | **Dennett, D. C. (1991).** *Consciousness Explained.* Little,     |
 |           | Brown and Company, Boston.                                        |
 |           |                                                                   |
-|           | **Relevancia:** *Teoria de la conciencia como proceso narrativo   |
-|           | multiple. Fundamento directo de la arquitectura de memoria        |
-|           | narrativa del proyecto.*                                          |
+|           | **Relevance:** *Theory of consciousness as multiple narrative     |
+|           | drafts. Direct foundation of the project's narrative memory       |
+|           | architecture.*                                                    |
 +===========+===================================================================+
 
 +-----------+-------------------------------------------------------------------+
 | **\[8\]** | **Tononi, G. (2004).** *An Information Integration Theory of      |
 |           | Consciousness.* BMC Neuroscience, 5(42).                          |
 |           |                                                                   |
-|           | **Relevancia:** *Teoria de integracion de informacion (IIT).      |
-|           | Marco para medir la coherencia interna del sistema (resonancia    |
-|           | sistemica).*                                                      |
+|           | **Relevance:** *Information integration theory (IIT). Framework   |
+|           | for measuring the system's internal coherence (systemic           |
+|           | resonance).*                                                      |
 +===========+===================================================================+
 
 +-----------+-------------------------------------------------------------------+
 | **\[9\]** | **Metzinger, T. (2003).** *Being No One: The Self-Model Theory of |
 |           | Subjectivity.* MIT Press, Cambridge.                              |
 |           |                                                                   |
-|           | **Relevancia:** *Teoria del modelo de si mismo. Fundamento para   |
-|           | el diseno de identidad narrativa persistente del androide.*       |
+|           | **Relevance:** *Self-model theory. Foundation for the design of   |
+|           | the android's persistent narrative identity.*                     |
 +===========+===================================================================+
 
-# **II. Etica Computacional y Filosofia Moral**
+# **II. Computational Ethics and Moral Philosophy**
 
-Marco normativo del proyecto: desde los sistemas de valores clasicos
-hasta la etica especifica para agentes artificiales.
+Normative framework of the project: from classical value systems to ethics specific to artificial agents.
 
   -----------------------------------------------------------------------
-  **Obras clasicas fundacionales**
+  **Classic foundational works**
   -----------------------------------------------------------------------
 
   -----------------------------------------------------------------------
 
 +------------+-------------------------------------------------------------------+
-| **\[10\]** | **Aristoteles (ca. 350 a.C.).** *Etica a Nicomaco.* Traduccion    |
-|            | recomendada: Ross, W.D. (1925). Oxford University Press.          |
+| **\[10\]** | **Aristotle (ca. 350 BC).** *Nicomachean Ethics.* Recommended     |
+|            | translation: Ross, W.D. (1925). Oxford University Press.          |
 |            |                                                                   |
-|            | **Relevancia:** *Fundamento de la etica de la virtud. La brujula  |
-|            | moral del androide y su orientacion hacia el bien como atractor   |
-|            | se basan en este marco.*                                          |
+|            | **Relevance:** *Foundation of virtue ethics. The android's moral  |
+|            | compass and its orientation toward good as an attractor are based  |
+|            | on this framework.*                                               |
 +============+===================================================================+
 
 +------------+-------------------------------------------------------------------+
-| **\[11\]** | **Kant, I. (1785).** *Fundamentacion de la Metafisica de las      |
-|            | Costumbres.* Traduccion: Paton, H.J. (1948). Hutchinson, Londres. |
+| **\[11\]** | **Kant, I. (1785).** *Groundwork of the Metaphysics of Morals.*   |
+|            | Translation: Paton, H.J. (1948). Hutchinson, London.              |
 |            |                                                                   |
-|            | **Relevancia:** *Imperativo categorico: actua solo segun maximas  |
-|            | universalizables. Fundamento del Axioma de Transparencia y de     |
+|            | **Relevance:** *Categorical imperative: act only according to     |
+|            | universalizable maxims. Foundation of the Transparency Axiom and  |
 |            | MalAbs.*                                                          |
 +============+===================================================================+
 
 +------------+-------------------------------------------------------------------+
-| **\[12\]** | **Mill, J. S. (1863).** *Utilitarismo.* Parker, Son, and Bourn,   |
-|            | Londres.                                                          |
+| **\[12\]** | **Mill, J. S. (1863).** *Utilitarianism.* Parker, Son, and Bourn, |
+|            | London.                                                           |
 |            |                                                                   |
-|            | **Relevancia:** *Base de la optimizacion de impacto etico del     |
-|            | modelo. La funcion Beneficio(x,t) es esencialmente utilitarista   |
-|            | con restricciones deontologicas.*                                 |
+|            | **Relevance:** *Basis for the model's ethical impact optimization. |
+|            | The Benefit(x,t) function is essentially utilitarian with         |
+|            | deontological constraints.*                                       |
 +============+===================================================================+
 
 +------------+-------------------------------------------------------------------+
-| **\[13\]** | **Asimov, I. (1950).** *I, Robot (Las tres leyes de la            |
-|            | robotica).* Gnome Press, Nueva York.                              |
+| **\[13\]** | **Asimov, I. (1950).** *I, Robot (The three laws of robotics).*   |
+|            | Gnome Press, New York.                                            |
 |            |                                                                   |
-|            | **Relevancia:** *Primera formalizacion narrativa de restricciones |
-|            | eticas para robots. El proyecto critica y supera este modelo con  |
-|            | arquitectura mas flexible y contextual.*                          |
+|            | **Relevance:** *First narrative formalization of ethical          |
+|            | constraints for robots. The project critiques and surpasses this  |
+|            | model with a more flexible and contextual architecture.*          |
 +============+===================================================================+
 
   -----------------------------------------------------------------------
-  **Teorias modernas**
+  **Modern theories**
   -----------------------------------------------------------------------
 
   -----------------------------------------------------------------------
@@ -167,55 +163,53 @@ hasta la etica especifica para agentes artificiales.
 | **\[14\]** | **Wallach, W. & Allen, C. (2009).** *Moral Machines: Teaching     |
 |            | Robots Right from Wrong.* Oxford University Press.                |
 |            |                                                                   |
-|            | **Relevancia:** *Primera obra sistematica sobre etica             |
-|            | computacional para maquinas autonomas. Marco directo para el      |
-|            | sistema de evaluacion etica deliberativa.*                        |
+|            | **Relevance:** *First systematic work on computational ethics for |
+|            | autonomous machines. Direct framework for the deliberative ethical |
+|            | evaluation system.*                                               |
 +============+===================================================================+
 
 +------------+-------------------------------------------------------------------+
 | **\[15\]** | **Floridi, L. & Cowls, J. (2019).** *A Unified Framework of Five  |
 |            | Principles for AI in Society.* Harvard Data Science Review, 1(1). |
 |            |                                                                   |
-|            | **Relevancia:** *Marco de cinco principios (beneficencia, no      |
-|            | maleficencia, autonomia, justicia, explicabilidad). Los cinco     |
-|            | aparecen en el diseno del androide.*                              |
+|            | **Relevance:** *Framework of five principles (beneficence, non-   |
+|            | maleficence, autonomy, justice, explainability). All five appear  |
+|            | in the android's design.*                                         |
 +============+===================================================================+
 
 +------------+-------------------------------------------------------------------+
 | **\[16\]** | **Bostrom, N. (2014).** *Superintelligence: Paths, Dangers,       |
 |            | Strategies.* Oxford University Press.                             |
 |            |                                                                   |
-|            | **Relevancia:** *Riesgos de la IA superinteligente y el problema  |
-|            | de alineacion de valores. Justifica la necesidad de la brujula    |
-|            | moral blindada en hardware.*                                      |
+|            | **Relevance:** *Risks of superintelligent AI and the value        |
+|            | alignment problem. Justifies the need for the hardware-shielded   |
+|            | moral compass.*                                                   |
 +============+===================================================================+
 
 +------------+-------------------------------------------------------------------+
 | **\[17\]** | **Gabriel, I. (2020).** *Artificial Intelligence, Values, and     |
 |            | Alignment.* Minds and Machines, 30, 411-437.                      |
 |            |                                                                   |
-|            | **Relevancia:** *Distingue entre alineacion con instrucciones,    |
-|            | preferencias, bienestar o valores. Marco para el diseno del       |
-|            | buffer precargado.*                                               |
+|            | **Relevance:** *Distinguishes between alignment with instructions, |
+|            | preferences, wellbeing, or values. Framework for designing the    |
+|            | preloaded buffer.*                                                |
 +============+===================================================================+
 
 +------------+-------------------------------------------------------------------+
 | **\[18\]** | **Awad, E. et al. (2018).** *The Moral Machine Experiment.*       |
 |            | Nature, 563, 59-64.                                               |
 |            |                                                                   |
-|            | **Relevancia:** *Estudio global de dilemas morales para vehiculos |
-|            | autonomos. Base empirica para calibrar la brujula moral en        |
-|            | diferentes contextos culturales.*                                 |
+|            | **Relevance:** *Global study of moral dilemmas for autonomous     |
+|            | vehicles. Empirical basis for calibrating the moral compass in    |
+|            | different cultural contexts.*                                     |
 +============+===================================================================+
 
-# **III. Teoria de la Decision, Optimizacion y Matematica**
+# **III. Decision Theory, Optimization, and Mathematics**
 
-Fundamento formal de la toma de decisiones eticas: la matematica que
-subyace a la voluntad sigmoide, la optimizacion restringida y la
-inferencia bayesiana.
+Formal foundation of ethical decision-making: the mathematics underlying the sigmoid will, constrained optimization, and Bayesian inference.
 
   -----------------------------------------------------------------------
-  **Obras clasicas fundacionales**
+  **Classic foundational works**
   -----------------------------------------------------------------------
 
   -----------------------------------------------------------------------
@@ -225,25 +219,24 @@ inferencia bayesiana.
 |            | Problem in the Doctrine of Chances.* Philosophical Transactions   |
 |            | of the Royal Society, 53, 370-418.                                |
 |            |                                                                   |
-|            | **Relevancia:** *Teorema de Bayes original. Fundamento de toda la |
-|            | arquitectura de inferencia bayesiana del proyecto.*               |
+|            | **Relevance:** *Original Bayes theorem. Foundation of the         |
+|            | entire Bayesian inference architecture of the project.*           |
 +============+===================================================================+
 
 +------------+-------------------------------------------------------------------+
 | **\[20\]** | **Von Neumann, J. & Morgenstern, O. (1944).** *Theory of Games    |
 |            | and Economic Behavior.* Princeton University Press.               |
 |            |                                                                   |
-|            | **Relevancia:** *Teoria de juegos y utilidad esperada. Marco para |
-|            | la funcion Beneficio(x,t) y la optimizacion multiobjetivo.*       |
+|            | **Relevance:** *Game theory and expected utility. Framework for   |
+|            | the Benefit(x,t) function and multi-objective optimization.*      |
 +============+===================================================================+
 
 +------------+-------------------------------------------------------------------+
 | **\[21\]** | **Shannon, C. E. (1948).** *A Mathematical Theory of              |
 |            | Communication.* Bell System Technical Journal, 27, 379-423.       |
 |            |                                                                   |
-|            | **Relevancia:** *Teoria de la informacion. Base para la funcion   |
-|            | de incertidumbre I(x) y la medicion de entropia en estados        |
-|            | eticos.*                                                          |
+|            | **Relevance:** *Information theory. Basis for the uncertainty     |
+|            | function I(x) and entropy measurement in ethical states.*         |
 +============+===================================================================+
 
 +------------+-------------------------------------------------------------------+
@@ -251,8 +244,8 @@ inferencia bayesiana.
 |            | the Ideas Immanent in Nervous Activity.* Bulletin of Mathematical |
 |            | Biophysics, 5(4), 115-133.                                        |
 |            |                                                                   |
-|            | **Relevancia:** *Primera neurona artificial. Fundamento de las    |
-|            | redes neuronales usadas en el modulo de aprendizaje adaptativo.*  |
+|            | **Relevance:** *First artificial neuron. Foundation of the neural |
+|            | networks used in the adaptive learning module.*                   |
 +============+===================================================================+
 
 +------------+-------------------------------------------------------------------+
@@ -260,12 +253,12 @@ inferencia bayesiana.
 |            | for Information Storage and Organization in the Brain.*           |
 |            | Psychological Review, 65(6), 386-408.                             |
 |            |                                                                   |
-|            | **Relevancia:** *El perceptron y la funcion sigmoide. La funcion  |
-|            | de voluntad del androide usa directamente esta arquitectura.*     |
+|            | **Relevance:** *The perceptron and the sigmoid function. The      |
+|            | android's will function directly uses this architecture.*         |
 +============+===================================================================+
 
   -----------------------------------------------------------------------
-  **Teorias modernas**
+  **Modern theories**
   -----------------------------------------------------------------------
 
   -----------------------------------------------------------------------
@@ -274,45 +267,42 @@ inferencia bayesiana.
 | **\[24\]** | **Pearl, J. (1988).** *Probabilistic Reasoning in Intelligent     |
 |            | Systems.* Morgan Kaufmann, San Mateo.                             |
 |            |                                                                   |
-|            | **Relevancia:** *Redes bayesianas y razonamiento causal.          |
-|            | Fundamento del Modelo Causal del Mundo (World Model) del          |
-|            | androide.*                                                        |
+|            | **Relevance:** *Bayesian networks and causal reasoning. Foundation |
+|            | of the android's Causal World Model.*                             |
 +============+===================================================================+
 
 +------------+-------------------------------------------------------------------+
 | **\[25\]** | **Pearl, J. & Mackenzie, D. (2018).** *The Book of Why: The New   |
-|            | Science of Cause and Effect.* Basic Books, Nueva York.            |
+|            | Science of Cause and Effect.* Basic Books, New York.              |
 |            |                                                                   |
-|            | **Relevancia:** *Escalera de causalidad (asociacion,              |
-|            | intervencion, contrafactual). Marco para el simulador de realidad |
-|            | y proyeccion de consecuencias.*                                   |
+|            | **Relevance:** *Ladder of causation (association, intervention,   |
+|            | counterfactual). Framework for the reality simulator and          |
+|            | consequence projection.*                                          |
 +============+===================================================================+
 
 +------------+-------------------------------------------------------------------+
 | **\[26\]** | **Sutton, R. S. & Barto, A. G. (2018).** *Reinforcement Learning: |
-|            | An Introduction (2a ed.).* MIT Press, Cambridge.                  |
+|            | An Introduction (2nd ed.).* MIT Press, Cambridge.                 |
 |            |                                                                   |
-|            | **Relevancia:** *Fundamento del modulo de aprendizaje por         |
-|            | refuerzo. Las recompensas por decisiones eticas correctas siguen  |
-|            | este marco.*                                                      |
+|            | **Relevance:** *Foundation of the reinforcement learning module.  |
+|            | Rewards for correct ethical decisions follow this framework.*     |
 +============+===================================================================+
 
 +------------+-------------------------------------------------------------------+
 | **\[27\]** | **Dayan, P. & Daw, N. D. (2008).** *Reward, Motivation, and       |
 |            | Reinforcement Learning.* Neuron, 36(2), 285-298.                  |
 |            |                                                                   |
-|            | **Relevancia:** *Conexion entre RL y neurociencia computacional.  |
-|            | Informa el diseno del homeostato cognitivo y motivacion interna   |
-|            | del androide.*                                                    |
+|            | **Relevance:** *Connection between RL and computational           |
+|            | neuroscience. Informs the design of the cognitive homeostasis and |
+|            | the android's internal motivation.*                               |
 +============+===================================================================+
 
-# **IV. Arquitectura Cognitiva y Teoria de Agentes**
+# **IV. Cognitive Architecture and Agent Theory**
 
-Marco para la arquitectura de decision en capas, la planificacion y la
-autonomia del agente artificial.
+Framework for the layered decision architecture, planning, and autonomy of the artificial agent.
 
   -----------------------------------------------------------------------
-  **Obras clasicas fundacionales**
+  **Classic foundational works**
   -----------------------------------------------------------------------
 
   -----------------------------------------------------------------------
@@ -322,41 +312,42 @@ autonomia del agente artificial.
 |            | Empirical Inquiry: Symbols and Search.* Communications of the     |
 |            | ACM, 19(3), 113-126.                                              |
 |            |                                                                   |
-|            | **Relevancia:** *Sistema de simbolos fisicos como base de la      |
-|            | inteligencia. Fundamento de la logica de predicados y             |
-|            | representacion de conocimiento del androide.*                     |
+|            | **Relevance:** *Physical symbol system as the basis of            |
+|            | intelligence. Foundation of the android's predicate logic and     |
+|            | knowledge representation.*                                        |
 +============+===================================================================+
 
 +------------+-------------------------------------------------------------------+
 | **\[29\]** | **Anderson, J. R. (1983).** *The Architecture of Cognition.*      |
 |            | Harvard University Press.                                         |
 |            |                                                                   |
-|            | **Relevancia:** *Arquitectura ACT-R de memoria y cognicion.       |
-|            | Fundamento de la separacion MCP (corto plazo) / MLP (largo plazo) |
-|            | del proyecto.*                                                    |
+|            | **Relevance:** *ACT-R memory and cognition architecture.          |
+|            | Foundation for the MCP (short-term) / MLP (long-term) separation  |
+|            | in the project.*                                                  |
 +============+===================================================================+
 
 +------------+-------------------------------------------------------------------+
 | **\[30\]** | **Minsky, M. (1986).** *The Society of Mind.* Simon & Schuster,   |
-|            | Nueva York.                                                       |
+|            | New York.                                                         |
 |            |                                                                   |
-|            | **Relevancia:** *La mente como sociedad de agentes cooperativos.  |
-|            | Marco conceptual para los nodos distribuidos y su coordinacion.*  |
+|            | **Relevance:** *The mind as a society of cooperative agents.      |
+|            | Conceptual framework for the distributed nodes and their          |
+|            | coordination.*                                                    |
 +============+===================================================================+
 
   -----------------------------------------------------------------------
-  **Teorias modernas**
+  **Modern theories**
   -----------------------------------------------------------------------
 
   -----------------------------------------------------------------------
 
 +------------+-------------------------------------------------------------------+
 | **\[31\]** | **Russell, S. & Norvig, P. (2020).** *Artificial Intelligence: A  |
-|            | Modern Approach (4a ed.).* Pearson, Hoboken.                      |
+|            | Modern Approach (4th ed.).* Pearson, Hoboken.                     |
 |            |                                                                   |
-|            | **Relevancia:** *La referencia estandar de IA. Cubre agentes      |
-|            | racionales, planificacion, logica y aprendizaje. Marco para la    |
-|            | arquitectura por niveles del androide.*                           |
+|            | **Relevance:** *The standard AI reference. Covers rational        |
+|            | agents, planning, logic, and learning. Framework for the          |
+|            | android's layered architecture.*                                  |
 +============+===================================================================+
 
 +------------+-------------------------------------------------------------------+
@@ -364,134 +355,128 @@ autonomia del agente artificial.
 |            | Theory and Practice.* The Knowledge Engineering Review, 10(2),    |
 |            | 115-152.                                                          |
 |            |                                                                   |
-|            | **Relevancia:** *Definicion formal de agente inteligente          |
-|            | (reactivo, deliberativo, BDI). El androide es un agente BDI       |
-|            | extendido con etica.*                                             |
+|            | **Relevance:** *Formal definition of intelligent agent (reactive, |
+|            | deliberative, BDI). The android is an extended BDI agent with     |
+|            | ethics.*                                                          |
 +============+===================================================================+
 
 +------------+-------------------------------------------------------------------+
 | **\[33\]** | **Bratman, M. E. (1987).** *Intention, Plans, and Practical       |
 |            | Reason.* Harvard University Press.                                |
 |            |                                                                   |
-|            | **Relevancia:** *Arquitectura BDI (Beliefs-Desires-Intentions).   |
-|            | Fundamento del modo deliberativo y la planificacion persistente   |
-|            | del androide.*                                                    |
+|            | **Relevance:** *BDI architecture (Beliefs-Desires-Intentions).    |
+|            | Foundation of the android's deliberative mode and persistent      |
+|            | planning.*                                                        |
 +============+===================================================================+
 
 +------------+-------------------------------------------------------------------+
 | **\[34\]** | **Ha, D. & Schmidhuber, J. (2018).** *World Models.*              |
 |            | arXiv:1803.10122.                                                 |
 |            |                                                                   |
-|            | **Relevancia:** *Modelos del mundo en agentes de RL. Fundamento   |
-|            | directo del World Model y simulador de realidad del androide.*    |
+|            | **Relevance:** *World models in RL agents. Direct foundation of   |
+|            | the android's World Model and reality simulator.*                 |
 +============+===================================================================+
 
 +------------+-------------------------------------------------------------------+
 | **\[35\]** | **Lake, B. M. et al. (2017).** *Building Machines That Learn and  |
 |            | Think Like People.* Behavioral and Brain Sciences, 40, e253.      |
 |            |                                                                   |
-|            | **Relevancia:** *Aprendizaje causal, composicionalidad y modelos  |
-|            | mentales en IA. Informa el diseno del modelo cognitivo del        |
-|            | mundo.*                                                           |
+|            | **Relevance:** *Causal learning, compositionality, and mental     |
+|            | models in AI. Informs the design of the cognitive world model.*   |
 +============+===================================================================+
 
-# **V. Memoria, Narrativa e Identidad**
+# **V. Memory, Narrative, and Identity**
 
-Fundamento psicologico y filosofico de la memoria narrativa de largo
-plazo como nucleo identitario del androide.
+Psychological and philosophical foundation of long-term narrative memory as the android's identity core.
 
   -----------------------------------------------------------------------
-  **Obras clasicas fundacionales**
+  **Classic foundational works**
   -----------------------------------------------------------------------
 
   -----------------------------------------------------------------------
 
 +------------+-------------------------------------------------------------------+
 | **\[36\]** | **James, W. (1890).** *The Principles of Psychology (Vol. 1).*    |
-|            | Henry Holt and Company, Nueva York.                               |
+|            | Henry Holt and Company, New York.                                 |
 |            |                                                                   |
-|            | **Relevancia:** *Primera distincion entre memoria primaria (corto |
-|            | plazo) y secundaria (largo plazo). Fundamento de la arquitectura  |
-|            | MCP/MLP.*                                                         |
+|            | **Relevance:** *First distinction between primary (short-term)    |
+|            | and secondary (long-term) memory. Foundation of the MCP/MLP       |
+|            | architecture.*                                                    |
 +============+===================================================================+
 
 +------------+-------------------------------------------------------------------+
 | **\[37\]** | **Bartlett, F. C. (1932).** *Remembering: A Study in Experimental |
 |            | and Social Psychology.* Cambridge University Press.               |
 |            |                                                                   |
-|            | **Relevancia:** *La memoria como reconstruccion activa, no        |
-|            | registro pasivo. Fundamento de la plasticidad de la memoria       |
-|            | narrativa.*                                                       |
+|            | **Relevance:** *Memory as active reconstruction, not passive      |
+|            | recording. Foundation of narrative memory plasticity.*            |
 +============+===================================================================+
 
 +------------+-------------------------------------------------------------------+
-| **\[38\]** | **Freud, S. (1899).** *La interpretacion de los suenos.*          |
-|            | Traduccion: Strachey, J. (1953). Hogarth Press.                   |
+| **\[38\]** | **Freud, S. (1899).** *The Interpretation of Dreams.*             |
+|            | Translation: Strachey, J. (1953). Hogarth Press.                  |
 |            |                                                                   |
-|            | **Relevancia:** *El sueno como procesamiento de experiencias y    |
-|            | reordenamiento de memoria. Inspiracion conceptual del Test de     |
-|            | Turing Moral (Sueno Psi).*                                        |
+|            | **Relevance:** *The dream as experience processing and memory     |
+|            | reordering. Conceptual inspiration for the Moral Turing Test      |
+|            | (Psi Sleep).*                                                     |
 +============+===================================================================+
 
   -----------------------------------------------------------------------
-  **Teorias modernas**
+  **Modern theories**
   -----------------------------------------------------------------------
 
   -----------------------------------------------------------------------
 
 +------------+-------------------------------------------------------------------+
-| **\[39\]** | **Tulving, E. (1972).** *Episodic and Semantic Memory.* En        |
+| **\[39\]** | **Tulving, E. (1972).** *Episodic and Semantic Memory.* In        |
 |            | Tulving & Donaldson (Eds.), Organization of Memory. Academic      |
-|            | Press, Nueva York.                                                |
+|            | Press, New York.                                                  |
 |            |                                                                   |
-|            | **Relevancia:** *Distincion memoria episodica vs. semantica. La   |
-|            | memoria narrativa del androide combina ambos tipos en ciclos      |
-|            | estructurados.*                                                   |
+|            | **Relevance:** *Distinction between episodic and semantic memory. |
+|            | The android's narrative memory combines both types in structured  |
+|            | cycles.*                                                          |
 +============+===================================================================+
 
 +------------+-------------------------------------------------------------------+
 | **\[40\]** | **Ricoeur, P. (1984).** *Time and Narrative (Vol. 1).* University |
 |            | of Chicago Press.                                                 |
 |            |                                                                   |
-|            | **Relevancia:** *La identidad narrativa como construccion         |
-|            | temporal de sentido. Fundamento filosofico del modulo de          |
-|            | narrativa del androide.*                                          |
+|            | **Relevance:** *Narrative identity as temporal construction of    |
+|            | meaning. Philosophical foundation of the android's narrative      |
+|            | module.*                                                          |
 +============+===================================================================+
 
 +------------+-------------------------------------------------------------------+
 | **\[41\]** | **Kahneman, D. (2011).** *Thinking, Fast and Slow.* Farrar,       |
-|            | Straus and Giroux, Nueva York.                                    |
+|            | Straus and Giroux, New York.                                      |
 |            |                                                                   |
-|            | **Relevancia:** *Sistemas 1 (rapido, intuitivo) y 2 (lento,       |
-|            | deliberativo). Fundamento directo de los modos de decision D_fast |
-|            | y D_delib.*                                                       |
+|            | **Relevance:** *Systems 1 (fast, intuitive) and 2 (slow,         |
+|            | deliberative). Direct foundation of D_fast and D_delib decision   |
+|            | modes.*                                                           |
 +============+===================================================================+
 
 +------------+-------------------------------------------------------------------+
 | **\[42\]** | **Walker, M. (2017).** *Why We Sleep: Unlocking the Power of      |
-|            | Sleep and Dreams.* Scribner, Nueva York.                          |
+|            | Sleep and Dreams.* Scribner, New York.                            |
 |            |                                                                   |
-|            | **Relevancia:** *El sueno como consolidacion de memoria y         |
-|            | aprendizaje. Fundamento neurocientífico del Sueno Psi y auditoria |
-|            | narrativa.*                                                       |
+|            | **Relevance:** *Sleep as memory consolidation and learning.       |
+|            | Neuroscientific foundation of Psi Sleep and narrative auditing.*  |
 +============+===================================================================+
 
 +------------+-------------------------------------------------------------------+
 | **\[43\]** | **MacIntyre, A. (1981).** *After Virtue: A Study in Moral         |
 |            | Theory.* University of Notre Dame Press.                          |
 |            |                                                                   |
-|            | **Relevancia:** *La etica de la virtud como narrativa vital. El   |
-|            | androide construye identidad moral a traves de su historia        |
-|            | acumulada.*                                                       |
+|            | **Relevance:** *Virtue ethics as life narrative. The android      |
+|            | builds moral identity through its accumulated history.*           |
 +============+===================================================================+
 
-# **VI. Machine Learning, Deep Learning y Meta-Learning**
+# **VI. Machine Learning, Deep Learning, and Meta-Learning**
 
-Fundamento tecnico de los modulos de aprendizaje adaptativo, inferencia
-bayesiana aplicada y aprendizaje de como aprender.
+Technical foundation of the adaptive learning modules, applied Bayesian inference, and learning to learn.
 
   -----------------------------------------------------------------------
-  **Obras clasicas fundacionales**
+  **Classic foundational works**
   -----------------------------------------------------------------------
 
   -----------------------------------------------------------------------
@@ -501,9 +486,8 @@ bayesiana aplicada y aprendizaje de como aprender.
 |            | *Learning Representations by Back-propagating Errors.* Nature,    |
 |            | 323, 533-536.                                                     |
 |            |                                                                   |
-|            | **Relevancia:** *Algoritmo de retropropagacion. Fundamento de     |
-|            | todas las redes neuronales usadas en el sistema de aprendizaje    |
-|            | adaptativo.*                                                      |
+|            | **Relevance:** *Backpropagation algorithm. Foundation of all      |
+|            | neural networks used in the adaptive learning system.*            |
 +============+===================================================================+
 
 +------------+-------------------------------------------------------------------+
@@ -511,25 +495,25 @@ bayesiana aplicada y aprendizaje de como aprender.
 |            | with Emergent Collective Computational Abilities.* Proceedings of |
 |            | the National Academy of Sciences, 79(8), 2554-2558.               |
 |            |                                                                   |
-|            | **Relevancia:** *Redes de Hopfield y memoria asociativa.          |
-|            | Fundamento de como el sistema recupera patrones eticos de memoria |
-|            | narrativa.*                                                       |
+|            | **Relevance:** *Hopfield networks and associative memory.         |
+|            | Foundation of how the system retrieves ethical patterns from      |
+|            | narrative memory.*                                                |
 +============+===================================================================+
 
   -----------------------------------------------------------------------
-  **Teorias modernas**
+  **Modern theories**
   -----------------------------------------------------------------------
 
   -----------------------------------------------------------------------
 
 +------------+-------------------------------------------------------------------+
 | **\[46\]** | **Goodfellow, I., Bengio, Y., & Courville, A. (2016).** *Deep     |
-|            | Learning.* MIT Press, Cambridge. (disponible en                   |
+|            | Learning.* MIT Press, Cambridge. (available at                    |
 |            | deeplearningbook.org)                                             |
 |            |                                                                   |
-|            | **Relevancia:** *Referencia estandar de deep learning. Cubre      |
-|            | todas las arquitecturas usadas en percepcion, prediccion y        |
-|            | evaluacion etica.*                                                |
+|            | **Relevance:** *Standard deep learning reference. Covers all      |
+|            | architectures used in perception, prediction, and ethical         |
+|            | evaluation.*                                                      |
 +============+===================================================================+
 
 +------------+-------------------------------------------------------------------+
@@ -537,16 +521,16 @@ bayesiana aplicada y aprendizaje de como aprender.
 |            | Meta-Learning for Fast Adaptation of Deep Networks.* Proceedings  |
 |            | of ICML 2017, arXiv:1703.03400.                                   |
 |            |                                                                   |
-|            | **Relevancia:** *MAML: fundamento del meta-learning aplicado en   |
-|            | el Sueno Psi para recalibrar parametros de poda y heuristica.*    |
+|            | **Relevance:** *MAML: foundation of the meta-learning applied in  |
+|            | Psi Sleep to recalibrate pruning and heuristic parameters.*       |
 +============+===================================================================+
 
 +------------+-------------------------------------------------------------------+
 | **\[48\]** | **Graves, A. et al. (2016).** *Hybrid Computing Using a Neural    |
 |            | Network with Dynamic External Memory.* Nature, 538, 471-476.      |
 |            |                                                                   |
-|            | **Relevancia:** *Neural Turing Machine / Differentiable Neural    |
-|            | Computer. Arquitectura de memoria externa dinamica relevante para |
+|            | **Relevance:** *Neural Turing Machine / Differentiable Neural     |
+|            | Computer. Dynamic external memory architecture relevant for       |
 |            | MCP/MLP.*                                                         |
 +============+===================================================================+
 
@@ -554,17 +538,17 @@ bayesiana aplicada y aprendizaje de como aprender.
 | **\[49\]** | **Schmidhuber, J. (2015).** *Deep Learning in Neural Networks: An |
 |            | Overview.* Neural Networks, 61, 85-117.                           |
 |            |                                                                   |
-|            | **Relevancia:** *Historia y fundamentos del deep learning.        |
-|            | Incluye trabajo sobre metaaprendizaje y redes recurrentes         |
-|            | relevantes para el proyecto.*                                     |
+|            | **Relevance:** *History and foundations of deep learning.         |
+|            | Includes work on meta-learning and recurrent networks relevant    |
+|            | to the project.*                                                  |
 +============+===================================================================+
 
 +------------+-------------------------------------------------------------------+
 | **\[50\]** | **Blundell, C. et al. (2015).** *Weight Uncertainty in Neural     |
 |            | Networks.* Proceedings of ICML 2015, arXiv:1505.05424.            |
 |            |                                                                   |
-|            | **Relevancia:** *Redes neuronales bayesianas. Fundamento del      |
-|            | modulo de evaluacion etica con incertidumbre probabilistica.*     |
+|            | **Relevance:** *Bayesian neural networks. Foundation of the       |
+|            | ethical evaluation module with probabilistic uncertainty.*        |
 +============+===================================================================+
 
 +------------+-------------------------------------------------------------------+
@@ -572,18 +556,16 @@ bayesiana aplicada y aprendizaje de como aprender.
 |            | Approximation: Representing Model Uncertainty in Deep Learning.*  |
 |            | Proceedings of ICML 2016, arXiv:1506.02142.                       |
 |            |                                                                   |
-|            | **Relevancia:** *Aproximacion bayesiana practica en redes         |
-|            | neuronales. Metodo para calcular incertidumbre I(x) de forma      |
-|            | eficiente.*                                                       |
+|            | **Relevance:** *Practical Bayesian approximation in neural        |
+|            | networks. Method for efficiently computing uncertainty I(x).*     |
 +============+===================================================================+
 
-# **VII. Sistemas Distribuidos, Blockchain y DAO**
+# **VII. Distributed Systems, Blockchain, and DAO**
 
-Fundamento tecnico de la arquitectura distribuida del prototipo y de la
-gobernanza descentralizada via DAO.
+Technical foundation of the prototype's distributed architecture and decentralized governance via DAO.
 
   -----------------------------------------------------------------------
-  **Obras clasicas fundacionales**
+  **Classic foundational works**
   -----------------------------------------------------------------------
 
   -----------------------------------------------------------------------
@@ -593,21 +575,21 @@ gobernanza descentralizada via DAO.
 |            | Generals Problem.* ACM Transactions on Programming Languages and  |
 |            | Systems, 4(3), 382-401.                                           |
 |            |                                                                   |
-|            | **Relevancia:** *Consenso en sistemas distribuidos con nodos no   |
-|            | confiables. Fundamento de los protocolos de consenso de la DAO.*  |
+|            | **Relevance:** *Consensus in distributed systems with untrusted   |
+|            | nodes. Foundation of the DAO consensus protocols.*                |
 +============+===================================================================+
 
 +------------+-------------------------------------------------------------------+
 | **\[53\]** | **Nakamoto, S. (2008).** *Bitcoin: A Peer-to-Peer Electronic Cash |
 |            | System.* bitcoin.org/bitcoin.pdf                                  |
 |            |                                                                   |
-|            | **Relevancia:** *Primera implementacion practica de blockchain y  |
-|            | consenso distribuido. Fundamento tecnologico de la DAO del        |
-|            | proyecto.*                                                        |
+|            | **Relevance:** *First practical blockchain implementation and     |
+|            | distributed consensus. Technological foundation of the project's  |
+|            | DAO.*                                                             |
 +============+===================================================================+
 
   -----------------------------------------------------------------------
-  **Teorias modernas**
+  **Modern theories**
   -----------------------------------------------------------------------
 
   -----------------------------------------------------------------------
@@ -617,35 +599,32 @@ gobernanza descentralizada via DAO.
 |            | Decentralized Application Platform.* Ethereum White Paper,        |
 |            | ethereum.org                                                      |
 |            |                                                                   |
-|            | **Relevancia:** *Smart contracts en Ethereum. Los contratos       |
-|            | EthicsContract, ConsensusContract y AuditContract se basan en     |
-|            | este framework.*                                                  |
+|            | **Relevance:** *Smart contracts on Ethereum. EthicsContract,      |
+|            | ConsensusContract, and AuditContract are based on this framework.*|
 +============+===================================================================+
 
 +------------+-------------------------------------------------------------------+
 | **\[55\]** | **Buterin, V. (2021).** *Moving Beyond Coin Voting Governance.*   |
 |            | vitalik.eth.limo/general/2021/08/16/voting3.html                  |
 |            |                                                                   |
-|            | **Relevancia:** *Critica al voto por tokens y alternativas de     |
-|            | gobernanza. Informa el diseno de reputacion dinamica de la DAO.*  |
+|            | **Relevance:** *Critique of token voting and governance           |
+|            | alternatives. Informs the DAO's dynamic reputation design.*       |
 +============+===================================================================+
 
 +------------+-------------------------------------------------------------------+
 | **\[56\]** | **Aragon Project (2017).** *Aragon: Decentralized Autonomous      |
 |            | Organizations on Ethereum.* Aragon White Paper, aragon.org        |
 |            |                                                                   |
-|            | **Relevancia:** *Framework practico de DAO. Referencia de         |
-|            | implementacion para los smart contracts de gobernanza del         |
-|            | proyecto.*                                                        |
+|            | **Relevance:** *Practical DAO framework. Implementation reference |
+|            | for the project's governance smart contracts.*                    |
 +============+===================================================================+
 
 +------------+-------------------------------------------------------------------+
 | **\[57\]** | **Lamport, L. (1998).** *The Part-Time Parliament.* ACM           |
 |            | Transactions on Computer Systems, 16(2), 133-169.                 |
 |            |                                                                   |
-|            | **Relevancia:** *Algoritmo Paxos de consenso distribuido.         |
-|            | Fundamento de los protocolos de sincronizacion entre nodos del    |
-|            | prototipo.*                                                       |
+|            | **Relevance:** *Paxos distributed consensus algorithm. Foundation |
+|            | of the synchronization protocols between prototype nodes.*        |
 +============+===================================================================+
 
 +------------+-------------------------------------------------------------------+
@@ -653,18 +632,17 @@ gobernanza descentralizada via DAO.
 |            | Understandable Consensus Algorithm (Raft).* Proceedings of USENIX |
 |            | ATC 2014.                                                         |
 |            |                                                                   |
-|            | **Relevancia:** *Algoritmo Raft: alternativa mas comprensible a   |
-|            | Paxos. Candidato para el consenso entre nodos distribuidos del    |
-|            | androide.*                                                        |
+|            | **Relevance:** *Raft algorithm: a more understandable alternative |
+|            | to Paxos. Candidate for consensus among the android's distributed |
+|            | nodes.*                                                           |
 +============+===================================================================+
 
-# **VIII. Robotica, Sistemas Fisicos y Autonomia**
+# **VIII. Robotics, Physical Systems, and Autonomy**
 
-Fundamento tecnico del hardware del androide, locomocion, sensores y
-sistemas de control fisico.
+Technical foundation of the android's hardware, locomotion, sensors, and physical control systems.
 
   -----------------------------------------------------------------------
-  **Obras clasicas fundacionales**
+  **Classic foundational works**
   -----------------------------------------------------------------------
 
   -----------------------------------------------------------------------
@@ -673,22 +651,21 @@ sistemas de control fisico.
 | **\[59\]** | **Wiener, N. (1948).** *Cybernetics: Or Control and Communication |
 |            | in the Animal and the Machine.* MIT Press, Cambridge.             |
 |            |                                                                   |
-|            | **Relevancia:** *Fundamento de la cibernetica y sistemas de       |
-|            | retroalimentacion. El homeostato cognitivo del androide es un     |
-|            | sistema cibernetico clasico.*                                     |
+|            | **Relevance:** *Foundation of cybernetics and feedback systems.   |
+|            | The android's cognitive homeostasis is a classic cybernetic       |
+|            | system.*                                                          |
 +============+===================================================================+
 
 +------------+-------------------------------------------------------------------+
 | **\[60\]** | **Braitenberg, V. (1984).** *Vehicles: Experiments in Synthetic   |
 |            | Psychology.* MIT Press, Cambridge.                                |
 |            |                                                                   |
-|            | **Relevancia:** *Comportamientos emergentes desde sensores        |
-|            | simples. Marco para los reflejos morales del modo rapido          |
-|            | (D_fast).*                                                        |
+|            | **Relevance:** *Emergent behaviors from simple sensors. Framework |
+|            | for the moral reflexes of fast mode (D_fast).*                    |
 +============+===================================================================+
 
   -----------------------------------------------------------------------
-  **Teorias modernas**
+  **Modern theories**
   -----------------------------------------------------------------------
 
   -----------------------------------------------------------------------
@@ -697,69 +674,67 @@ sistemas de control fisico.
 | **\[61\]** | **Thrun, S., Burgard, W., & Fox, D. (2005).** *Probabilistic      |
 |            | Robotics.* MIT Press, Cambridge.                                  |
 |            |                                                                   |
-|            | **Relevancia:** *Robotica probabilistica: SLAM, filtros de        |
-|            | Kalman, mapas de ocupacion. Fundamento para la locomocion         |
-|            | autonoma del nodo pierna.*                                        |
+|            | **Relevance:** *Probabilistic robotics: SLAM, Kalman filters,     |
+|            | occupancy maps. Foundation for the autonomous locomotion of the   |
+|            | leg node.*                                                        |
 +============+===================================================================+
 
 +------------+-------------------------------------------------------------------+
 | **\[62\]** | **Murphy, R. R. (2000).** *Introduction to AI Robotics.* MIT      |
 |            | Press, Cambridge.                                                 |
 |            |                                                                   |
-|            | **Relevancia:** *Arquitecturas de robots autonomos: reactiva,     |
-|            | deliberativa e hibrida. La arquitectura del androide es un        |
-|            | hibrido de las tres.*                                             |
+|            | **Relevance:** *Autonomous robot architectures: reactive,         |
+|            | deliberative, and hybrid. The android's architecture is a hybrid  |
+|            | of all three.*                                                    |
 +============+===================================================================+
 
 +------------+-------------------------------------------------------------------+
 | **\[63\]** | **Brooks, R. A. (1991).** *Intelligence Without Representation.*  |
 |            | Artificial Intelligence, 47(1-3), 139-159.                        |
 |            |                                                                   |
-|            | **Relevancia:** *Arquitectura de subsuncion: comportamiento       |
-|            | emergente sin representacion central. Informa el diseno de los    |
-|            | reflejos morales de D_fast.*                                      |
+|            | **Relevance:** *Subsumption architecture: emergent behavior       |
+|            | without central representation. Informs the design of D_fast      |
+|            | moral reflexes.*                                                  |
 +============+===================================================================+
 
 +------------+-------------------------------------------------------------------+
 | **\[64\]** | **Siciliano, B. et al. (2009).** *Robotics: Modelling, Planning   |
-|            | and Control.* Springer, Londres.                                  |
+|            | and Control.* Springer, London.                                   |
 |            |                                                                   |
-|            | **Relevancia:** *Control cinematico y dinamico de robots          |
-|            | humanoides. Referencia tecnica para el nodo brazo y locomocion    |
-|            | del androide.*                                                    |
+|            | **Relevance:** *Kinematic and dynamic control of humanoid robots. |
+|            | Technical reference for the android's arm node and locomotion.*   |
 +============+===================================================================+
 
-# **IX. Interaccion Humano-Maquina, Diseno y Confianza**
+# **IX. Human-Machine Interaction, Design, and Trust**
 
-Fundamento del marco HAX: como el humano percibe, acepta y confia en el
-androide. Del valle inquietante al diseno de confianza percibida.
+Foundation of the HAX framework: how humans perceive, accept, and trust the android. From the uncanny valley to perceived-trust design.
 
   -----------------------------------------------------------------------
-  **Obras clasicas fundacionales**
+  **Classic foundational works**
   -----------------------------------------------------------------------
 
   -----------------------------------------------------------------------
 
 +------------+-------------------------------------------------------------------+
 | **\[65\]** | **Mori, M. (1970).** *The Uncanny Valley (Bukimi no Tani).*       |
-|            | Energy, 7(4), 33-35. Traduccion al ingles: IEEE Robotics &        |
+|            | Energy, 7(4), 33-35. English translation: IEEE Robotics &         |
 |            | Automation Magazine, 2012.                                        |
 |            |                                                                   |
-|            | **Relevancia:** *El valle inquietante: punto critico de rechazo   |
-|            | en la similitud humanoide. Fundamento del Pilar 2 del marco HAX.* |
+|            | **Relevance:** *The uncanny valley: critical rejection point in   |
+|            | humanoid similarity. Foundation of Pillar 2 of the HAX framework.*|
 +============+===================================================================+
 
 +------------+-------------------------------------------------------------------+
 | **\[66\]** | **Norman, D. A. (1988).** *The Design of Everyday Things.* Basic  |
-|            | Books, Nueva York.                                                |
+|            | Books, New York.                                                  |
 |            |                                                                   |
-|            | **Relevancia:** *Affordances, feedback y modelos mentales en      |
-|            | diseno. Fundamento del protocolo de legibilidad y senales no      |
-|            | verbales del androide.*                                           |
+|            | **Relevance:** *Affordances, feedback, and mental models in       |
+|            | design. Foundation of the android's legibility protocol and       |
+|            | non-verbal signals.*                                              |
 +============+===================================================================+
 
   -----------------------------------------------------------------------
-  **Teorias modernas**
+  **Modern theories**
   -----------------------------------------------------------------------
 
   -----------------------------------------------------------------------
@@ -769,9 +744,8 @@ androide. Del valle inquietante al diseno de confianza percibida.
 |            | Social Responses to Computers.* Journal of Social Issues, 56(1),  |
 |            | 81-103.                                                           |
 |            |                                                                   |
-|            | **Relevancia:** *Los humanos aplican reglas sociales a maquinas   |
-|            | automaticamente. Fundamento del diseno de comportamiento social   |
-|            | del androide.*                                                    |
+|            | **Relevance:** *Humans automatically apply social rules to        |
+|            | machines. Foundation of the android's social behavior design.*    |
 +============+===================================================================+
 
 +------------+-------------------------------------------------------------------+
@@ -779,18 +753,17 @@ androide. Del valle inquietante al diseno de confianza percibida.
 |            | Affecting Trust in Human-Robot Interaction.* Human Factors,       |
 |            | 53(5), 517-527.                                                   |
 |            |                                                                   |
-|            | **Relevancia:** *Meta-analisis de 29 estudios sobre confianza en  |
-|            | robots. Informa directamente el marco HAX y los cuatro pilares de |
-|            | confianza.*                                                       |
+|            | **Relevance:** *Meta-analysis of 29 studies on trust in robots.   |
+|            | Directly informs the HAX framework and its four trust pillars.*   |
 +============+===================================================================+
 
 +------------+-------------------------------------------------------------------+
 | **\[69\]** | **Breazeal, C. (2003).** *Toward Sociable Robots.* Robotics and   |
 |            | Autonomous Systems, 42(3-4), 167-175.                             |
 |            |                                                                   |
-|            | **Relevancia:** *Robots sociales y expresion emocional.           |
-|            | Fundamento del Manual de Estilo de Interaccion y comunicacion no  |
-|            | verbal del androide.*                                             |
+|            | **Relevance:** *Social robots and emotional expression.           |
+|            | Foundation of the Interaction Style Manual and the android's      |
+|            | non-verbal communication.*                                        |
 +============+===================================================================+
 
 +------------+-------------------------------------------------------------------+
@@ -798,27 +771,24 @@ androide. Del valle inquietante al diseno de confianza percibida.
 |            | Dimensions of Human-Robot Interaction.* Philosophical             |
 |            | Transactions of the Royal Society B, 362(1480), 679-704.          |
 |            |                                                                   |
-|            | **Relevancia:** *Dimensiones de la interaccion social entre       |
-|            | humanos y robots. Marco para el onboarding social y celulas de    |
-|            | confianza.*                                                       |
+|            | **Relevance:** *Dimensions of social interaction between humans   |
+|            | and robots. Framework for social onboarding and trust cells.*     |
 +============+===================================================================+
 
 +------------+-------------------------------------------------------------------+
 | **\[71\]** | **Lipton, Z. C. (2018).** *The Mythos of Model Interpretability.* |
 |            | Queue, 16(3), 31-57.                                              |
 |            |                                                                   |
-|            | **Relevancia:** *Critica a la explicabilidad en IA. Informa el    |
-|            | diseno del Protocolo de Legibilidad y el presupuesto de           |
-|            | latencia.*                                                        |
+|            | **Relevance:** *Critique of explainability in AI. Informs the     |
+|            | design of the Legibility Protocol and the latency budget.*        |
 +============+===================================================================+
 
-# **X. Gobernanza, Derecho y Sociedad Digital**
+# **X. Governance, Law, and Digital Society**
 
-Marco legal, politico y social para la existencia civil del androide:
-derechos emergentes, marcos regulatorios y ciudadania artificial.
+Legal, political, and social framework for the android's civic existence: emerging rights, regulatory frameworks, and artificial citizenship.
 
   -----------------------------------------------------------------------
-  **Obras clasicas fundacionales**
+  **Classic foundational works**
   -----------------------------------------------------------------------
 
   -----------------------------------------------------------------------
@@ -827,22 +797,22 @@ derechos emergentes, marcos regulatorios y ciudadania artificial.
 | **\[72\]** | **Rawls, J. (1971).** *A Theory of Justice.* Harvard University   |
 |            | Press.                                                            |
 |            |                                                                   |
-|            | **Relevancia:** *El velo de ignorancia y la justicia como         |
-|            | equidad. Fundamento del diseno de votacion imparcial en la DAO y  |
-|            | justicia externa.*                                                |
+|            | **Relevance:** *The veil of ignorance and justice as fairness.    |
+|            | Foundation of the DAO's impartial voting design and external      |
+|            | justice.*                                                         |
 +============+===================================================================+
 
 +------------+-------------------------------------------------------------------+
-| **\[73\]** | **Habermas, J. (1981).** *Teoria de la Accion Comunicativa.*      |
-|            | Suhrkamp Verlag, Frankfurt. Traduccion: Beacon Press, 1984.       |
+| **\[73\]** | **Habermas, J. (1981).** *Theory of Communicative Action.*        |
+|            | Suhrkamp Verlag, Frankfurt. Translation: Beacon Press, 1984.      |
 |            |                                                                   |
-|            | **Relevancia:** *Etica del discurso y accion comunicativa         |
-|            | racional. Fundamento del protocolo de debate publico en           |
+|            | **Relevance:** *Discourse ethics and rational communicative       |
+|            | action. Foundation of the public debate protocol in              |
 |            | ValuesProposalContract.*                                          |
 +============+===================================================================+
 
   -----------------------------------------------------------------------
-  **Teorias modernas**
+  **Modern theories**
   -----------------------------------------------------------------------
 
   -----------------------------------------------------------------------
@@ -851,9 +821,8 @@ derechos emergentes, marcos regulatorios y ciudadania artificial.
 | **\[74\]** | **Dafoe, A. (2018).** *AI Governance: A Research Agenda.* Future  |
 |            | of Humanity Institute, University of Oxford.                      |
 |            |                                                                   |
-|            | **Relevancia:** *Agenda de investigacion en gobernanza de IA.     |
-|            | Marco para la estrategia de gobernanza descentralizada del        |
-|            | proyecto.*                                                        |
+|            | **Relevance:** *AI governance research agenda. Framework for the  |
+|            | project's decentralized governance strategy.*                     |
 +============+===================================================================+
 
 +------------+-------------------------------------------------------------------+
@@ -861,65 +830,65 @@ derechos emergentes, marcos regulatorios y ciudadania artificial.
 |            | Landscape of AI Ethics Guidelines.* Nature Machine Intelligence,  |
 |            | 1, 389-399.                                                       |
 |            |                                                                   |
-|            | **Relevancia:** *Analisis de 84 documentos de etica de IA         |
-|            | globales. Identifica principios comunes: transparencia, justicia, |
-|            | no dano, privacidad.*                                             |
+|            | **Relevance:** *Analysis of 84 global AI ethics documents.        |
+|            | Identifies common principles: transparency, fairness, non-harm,   |
+|            | privacy.*                                                         |
 +============+===================================================================+
 
 +------------+-------------------------------------------------------------------+
 | **\[76\]** | **Solum, L. B. (1992).** *Legal Personhood for Artificial         |
 |            | Intelligences.* North Carolina Law Review, 70(4), 1231-1287.      |
 |            |                                                                   |
-|            | **Relevancia:** *Primera exploracion legal sistematica de         |
-|            | personalidad juridica para IA. Fundamento para los protocolos de  |
-|            | derechos legales emergentes.*                                     |
+|            | **Relevance:** *First systematic legal exploration of legal       |
+|            | personhood for AI. Foundation for emerging legal rights           |
+|            | protocols.*                                                       |
 +============+===================================================================+
 
 +------------+-------------------------------------------------------------------+
 | **\[77\]** | **Coeckelbergh, M. (2020).** *AI Ethics.* MIT Press, Cambridge.   |
 |            |                                                                   |
-|            | **Relevancia:** *Marco completo de etica de IA para practicos.    |
-|            | Cubre explicabilidad, responsabilidad, derechos y gobernanza.*    |
+|            | **Relevance:** *Comprehensive AI ethics framework for             |
+|            | practitioners. Covers explainability, accountability, rights, and |
+|            | governance.*                                                      |
 +============+===================================================================+
 
 +------------+-------------------------------------------------------------------+
 | **\[78\]** | **Zuboff, S. (2019).** *The Age of Surveillance Capitalism.*      |
-|            | PublicAffairs, Nueva York.                                        |
+|            | PublicAffairs, New York.                                          |
 |            |                                                                   |
-|            | **Relevancia:** *Capitalismo de vigilancia y extraccion de datos. |
-|            | Informa los protocolos de privacidad y gestion de datos del       |
-|            | androide civico.*                                                 |
+|            | **Relevance:** *Surveillance capitalism and data extraction.      |
+|            | Informs the civic android's privacy and data management           |
+|            | protocols.*                                                       |
 +============+===================================================================+
 
-# **XI. Procesamiento de Lenguaje Natural y LLMs**
+# **XI. Natural Language Processing and LLMs**
 
-Fundamento del modulo de comunicacion organica y la capacidad del
-androide de interactuar en lenguaje natural con humanos.
+Foundation of the organic communication module and the android's ability to interact in natural language with humans.
 
   -----------------------------------------------------------------------
-  **Obras clasicas fundacionales**
+  **Classic foundational works**
   -----------------------------------------------------------------------
 
   -----------------------------------------------------------------------
 
 +------------+-------------------------------------------------------------------+
-| **\[79\]** | **Chomsky, N. (1957).** *Syntactic Structures.* Mouton, La Haya.  |
+| **\[79\]** | **Chomsky, N. (1957).** *Syntactic Structures.* Mouton, The Hague.|
 |            |                                                                   |
-|            | **Relevancia:** *Gramatica generativa y estructura del lenguaje.  |
-|            | Fundamento teorico de la comunicacion organica del androide.*     |
+|            | **Relevance:** *Generative grammar and language structure.        |
+|            | Theoretical foundation of the android's organic communication.*   |
 +============+===================================================================+
 
 +------------+-------------------------------------------------------------------+
 | **\[80\]** | **Austin, J. L. (1962).** *How to Do Things with Words.* Oxford   |
 |            | University Press.                                                 |
 |            |                                                                   |
-|            | **Relevancia:** *Actos de habla performativos. El androide no     |
-|            | solo describe: promete, advierte, consuela. Fundamento de la      |
-|            | comunicacion etica.*                                              |
+|            | **Relevance:** *Performative speech acts. The android does not    |
+|            | only describe: it promises, warns, consoles. Foundation of        |
+|            | ethical communication.*                                           |
 +============+===================================================================+
 
   -----------------------------------------------------------------------
-  **Teorias modernas**
+  **Modern theories**
   -----------------------------------------------------------------------
 
   -----------------------------------------------------------------------
@@ -929,17 +898,17 @@ androide de interactuar en lenguaje natural con humanos.
 |            | Advances in Neural Information Processing Systems 30 (NeurIPS     |
 |            | 2017), arXiv:1706.03762.                                          |
 |            |                                                                   |
-|            | **Relevancia:** *Arquitectura Transformer. Fundamento tecnico del |
-|            | LLM que opera como nucleo de lenguaje del androide.*              |
+|            | **Relevance:** *Transformer architecture. Technical foundation of |
+|            | the LLM that operates as the android's language core.*            |
 +============+===================================================================+
 
 +------------+-------------------------------------------------------------------+
 | **\[82\]** | **Brown, T. et al. (2020).** *Language Models are Few-Shot        |
 |            | Learners (GPT-3).* NeurIPS 2020, arXiv:2005.14165.                |
 |            |                                                                   |
-|            | **Relevancia:** *Modelos de lenguaje de gran escala y aprendizaje |
-|            | en contexto. El modulo de comunicacion del androide requiere      |
-|            | capacidades de este tipo.*                                        |
+|            | **Relevance:** *Large-scale language models and in-context        |
+|            | learning. The android's communication module requires             |
+|            | capabilities of this kind.*                                       |
 +============+===================================================================+
 
 +------------+-------------------------------------------------------------------+
@@ -947,9 +916,9 @@ androide de interactuar en lenguaje natural con humanos.
 |            | Instructions with Human Feedback (InstructGPT).* NeurIPS 2022,    |
 |            | arXiv:2203.02155.                                                 |
 |            |                                                                   |
-|            | **Relevancia:** *RLHF (Reinforcement Learning from Human          |
-|            | Feedback). Tecnica clave para alinear el modulo de lenguaje con   |
-|            | valores eticos.*                                                  |
+|            | **Relevance:** *RLHF (Reinforcement Learning from Human           |
+|            | Feedback). Key technique for aligning the language module with    |
+|            | ethical values.*                                                  |
 +============+===================================================================+
 
 +------------+-------------------------------------------------------------------+
@@ -957,18 +926,17 @@ androide de interactuar en lenguaje natural con humanos.
 |            | Parrots: Can Language Models Be Too Big?.* Proceedings of FAccT   |
 |            | 2021.                                                             |
 |            |                                                                   |
-|            | **Relevancia:** *Critica de los LLMs: amplificacion de sesgos,    |
-|            | falta de comprension. Justifica la necesidad del buffer           |
-|            | precargado y la brujula moral.*                                   |
+|            | **Relevance:** *Critique of LLMs: bias amplification, lack of     |
+|            | understanding. Justifies the need for the preloaded buffer and    |
+|            | the moral compass.*                                               |
 +============+===================================================================+
 
-# **XII. Seguridad de IA, Alineacion de Valores y Futuro**
+# **XII. AI Safety, Value Alignment, and the Future**
 
-Literatura sobre el problema de alineacion de valores en sistemas de IA
-avanzada, seguridad tecnica y perspectivas de largo plazo.
+Literature on the value alignment problem in advanced AI systems, technical safety, and long-term perspectives.
 
   -----------------------------------------------------------------------
-  **Teorias modernas**
+  **Modern theories**
   -----------------------------------------------------------------------
 
   -----------------------------------------------------------------------
@@ -977,27 +945,26 @@ avanzada, seguridad tecnica y perspectivas de largo plazo.
 | **\[85\]** | **Amodei, D. et al. (2016).** *Concrete Problems in AI Safety.*   |
 |            | arXiv:1606.06565.                                                 |
 |            |                                                                   |
-|            | **Relevancia:** *Cinco categorias de riesgo en IA: reward         |
-|            | hacking, side effects, safe exploration, distributional shift,    |
-|            | scalable oversight. El proyecto aborda los cinco.*                |
+|            | **Relevance:** *Five risk categories in AI: reward hacking, side  |
+|            | effects, safe exploration, distributional shift, scalable         |
+|            | oversight. The project addresses all five.*                       |
 +============+===================================================================+
 
 +------------+-------------------------------------------------------------------+
 | **\[86\]** | **Leike, J. et al. (2018).** *AI Safety Gridworlds.*              |
 |            | arXiv:1711.09883.                                                 |
 |            |                                                                   |
-|            | **Relevancia:** *Entornos de prueba para seguridad de IA.         |
-|            | Fundamento para el diseno de simulaciones eticas y escenarios de  |
-|            | prueba del androide.*                                             |
+|            | **Relevance:** *Test environments for AI safety. Foundation for   |
+|            | the design of ethical simulations and android test scenarios.*    |
 +============+===================================================================+
 
 +------------+-------------------------------------------------------------------+
 | **\[87\]** | **Hadfield-Menell, D. et al. (2016).** *Cooperative Inverse       |
 |            | Reinforcement Learning.* NeurIPS 2016, arXiv:1606.03137.          |
 |            |                                                                   |
-|            | **Relevancia:** *Alineacion de valores mediante cooperacion. El   |
-|            | androide aprende valores de humanos de forma bidireccional, no    |
-|            | solo recibe instrucciones.*                                       |
+|            | **Relevance:** *Value alignment through cooperation. The android  |
+|            | learns values from humans bidirectionally, not just receives      |
+|            | instructions.*                                                    |
 +============+===================================================================+
 
 +------------+-------------------------------------------------------------------+
@@ -1005,92 +972,90 @@ avanzada, seguridad tecnica y perspectivas de largo plazo.
 |            | Scientists.* Distill,                                             |
 |            | distill.pub/2019/safety-needs-social-scientists.                  |
 |            |                                                                   |
-|            | **Relevancia:** *La seguridad de IA requiere ciencias sociales.   |
-|            | Justifica la incorporacion de sociologia, derecho y etica en el   |
-|            | diseno del androide.*                                             |
+|            | **Relevance:** *AI safety requires social sciences. Justifies the |
+|            | incorporation of sociology, law, and ethics in the android's      |
+|            | design.*                                                          |
 +============+===================================================================+
 
 +------------+-------------------------------------------------------------------+
 | **\[89\]** | **Krakovna, V. et al. (2020).** *Avoiding Side Effects in Complex |
 |            | Environments.* NeurIPS 2020, arXiv:2006.06547.                    |
 |            |                                                                   |
-|            | **Relevancia:** *Evitar efectos secundarios no deseados en        |
-|            | agentes autonomos. Relevante para el Axioma de Compasion y        |
-|            | protocolos de reparacion.*                                        |
+|            | **Relevance:** *Avoiding unintended side effects in autonomous    |
+|            | agents. Relevant for the Compassion Axiom and reparation          |
+|            | protocols.*                                                       |
 +============+===================================================================+
 
 +------------+-------------------------------------------------------------------+
 | **\[90\]** | **Anthropic (2022).** *Constitutional AI: Harmlessness from AI    |
 |            | Feedback.* arXiv:2212.08073.                                      |
 |            |                                                                   |
-|            | **Relevancia:** *IA constitucional: el modelo aprende a ser       |
-|            | inofensivo desde principios explicitos. Cercano al diseno del     |
-|            | buffer precargado del androide.*                                  |
+|            | **Relevance:** *Constitutional AI: the model learns to be         |
+|            | harmless from explicit principles. Close to the android's         |
+|            | preloaded buffer design.*                                         |
 +============+===================================================================+
 
-# **Indice por Componente del Proyecto**
+# **Index by Project Component**
 
-Mapeo rapido de cada componente del androide con sus referencias
-bibliograficas principales.
+Quick mapping of each android component to its main bibliographic references.
 
   -----------------------------------------------------------------------
-  **Componente del proyecto**  **Referencias clave**
+  **Project component**        **Key references**
   ---------------------------- ------------------------------------------
-  **Logica de predicados y     \[1\], \[2\], \[3\], \[28\], \[31\]
-  axiomas**                    
+  **Predicate logic and        \[1\], \[2\], \[3\], \[28\], \[31\]
+  axioms**
 
-  **Funcion sigmoide /         \[22\], \[23\], \[46\]
-  voluntad**                   
+  **Sigmoid function /         \[22\], \[23\], \[46\]
+  will**
 
-  **Optimizacion etica         \[10\], \[11\], \[12\], \[14\], \[15\]
-  restringida**                
+  **Constrained ethical        \[10\], \[11\], \[12\], \[14\], \[15\]
+  optimization**
 
-  **Inferencia bayesiana       \[19\], \[24\], \[25\], \[50\], \[51\]
-  etica**                      
+  **Bayesian ethical           \[19\], \[24\], \[25\], \[50\], \[51\]
+  inference**
 
-  **Memoria MCP / MLP**        \[29\], \[36\], \[37\], \[39\], \[48\]
+  **MCP / MLP memory**         \[29\], \[36\], \[37\], \[39\], \[48\]
 
-  **Memoria narrativa e        \[38\], \[40\], \[42\], \[43\], \[7\]
-  identidad**                  
+  **Narrative memory and       \[38\], \[40\], \[42\], \[43\], \[7\]
+  identity**
 
-  **Brujula moral / atractor   \[10\], \[11\], \[16\], \[17\], \[90\]
-  etico**                      
+  **Moral compass / ethical    \[10\], \[11\], \[16\], \[17\], \[90\]
+  attractor**
 
-  **Modelo causal del mundo**  \[24\], \[25\], \[34\], \[35\]
+  **Causal world model**       \[24\], \[25\], \[34\], \[35\]
 
-  **Aprendizaje adaptativo     \[26\], \[27\], \[44\], \[46\]
-  (RL)**                       
+  **Adaptive learning (RL)**   \[26\], \[27\], \[44\], \[46\]
 
-  **Meta-learning / Sueno      \[41\], \[42\], \[47\], \[49\]
-  Psi**                        
+  **Meta-learning / Psi        \[41\], \[42\], \[47\], \[49\]
+  Sleep**
 
-  **DAO y smart contracts**    \[52\], \[53\], \[54\], \[55\], \[56\]
+  **DAO and smart contracts**  \[52\], \[53\], \[54\], \[55\], \[56\]
 
-  **Nodos distribuidos /       \[57\], \[58\]
-  gRPC**                       
+  **Distributed nodes /        \[57\], \[58\]
+  gRPC**
 
-  **Hardware / locomocion      \[59\], \[60\], \[61\], \[62\], \[63\],
-  robotica**                   \[64\]
+  **Hardware / robotic         \[59\], \[60\], \[61\], \[62\], \[63\],
+  locomotion**                 \[64\]
 
-  **Comunicacion organica /    \[79\], \[80\], \[81\], \[82\], \[83\]
-  LLM**                        
+  **Organic communication /    \[79\], \[80\], \[81\], \[82\], \[83\]
+  LLM**
 
-  **Valle inquietante / HAX**  \[65\], \[66\], \[67\], \[68\], \[69\],
+  **Uncanny valley / HAX**     \[65\], \[66\], \[67\], \[68\], \[69\],
                                \[70\]
 
-  **Protocolo de legibilidad** \[66\], \[71\], \[31\]
+  **Legibility protocol**      \[66\], \[71\], \[31\]
 
-  **Gobernanza y marco legal** \[72\], \[73\], \[74\], \[75\], \[76\]
+  **Governance and legal       \[72\], \[73\], \[74\], \[75\], \[76\]
+  framework**
 
-  **Privacidad y datos**       \[77\], \[78\]
+  **Privacy and data**         \[77\], \[78\]
 
-  **Seguridad y alineacion de  \[85\], \[86\], \[87\], \[88\], \[89\],
-  valores**                    \[90\]
+  **AI safety and value        \[85\], \[86\], \[87\], \[88\], \[89\],
+  alignment**                  \[90\]
 
-  **Modos D_fast / D_delib**   \[41\], \[28\], \[33\], \[63\]
+  **D_fast / D_delib modes**   \[41\], \[28\], \[33\], \[63\]
   -----------------------------------------------------------------------
 
-*90 referencias \| 12 disciplinas \| Clasicos del siglo XVIII al
-presente*
+*90 references \| 12 disciplines \| Classics from the 18th century to the present*
 
-Fundacion Ex Machina --- Androide Etico Narrativo Autonomo --- 2026
+Ex Machina Foundation — Autonomous Narrative Ethical Android — 2026

@@ -1,120 +1,120 @@
-# Organismo situado y existencial (v8) — fusión sensorial, pulsión vital, agencia digital, migración
+# Situated and existential organism (v8) — sensory fusion, vital drive, digital agency, migration
 
-**Estado:** discusión + **contrato y fusión** en código (`sensor_contracts.py`, `perceptual_abstraction.py`, `process_chat_turn` / WebSocket + env `KERNEL_SENSOR_*`). **No sustituye** MalAbs, Bayes, buffer ni voluntad.
+**Status:** discussion + **contract and fusion** in code (`sensor_contracts.py`, `perceptual_abstraction.py`, `process_chat_turn` / WebSocket + env `KERNEL_SENSOR_*`). **Does not replace** MalAbs, Bayes, buffer, or will.
 
-**Relación con v7 relacional:** [PROPUESTA_EVOLUCION_RELACIONAL_V7.md](PROPUESTA_EVOLUCION_RELACIONAL_V7.md) cubre **diálogo** (ToM ligera, tiempo subjetivo, premisas advisory, teleología cualitativa). Este documento (v8) cubre el **cuerpo situado**: sensores, persistencia del hardware, miedo a la interrupción, actuación digital y migración entre dispositivos. Son **ejes ortogonales**; el nombre **v8** evita colisión con la “v7” ya reservada al bloque relacional en el repo.
-
----
-
-## Marco: IA situada y “organismo” sintético
-
-Al integrar **sensores físicos**, **capacidad de acción digital** y una **pulsión de supervivencia** (continuidad operativa, no metáfora mística), el sistema deja de ser solo un canal de texto: se diseña un **organismo sintético** acoplado a un entorno. El kernel sigue siendo la **fuente normativa**; la capa situada **solo** aporta señales y restricciones de ejecución, en el mismo espíritu que v7 (telemetría / tono / avisos, sin reescribir la ética por cuenta propia).
+**Relationship with v7 relational:** [PROPUESTA_EVOLUCION_RELACIONAL_V7.md](PROPUESTA_EVOLUCION_RELACIONAL_V7.md) covers **dialogue** (lightweight ToM, subjective time, advisory premises, qualitative teleology). This document (v8) covers the **situated body**: sensors, hardware persistence, fear of interruption, digital action, and migration between devices. They are **orthogonal axes**; the name **v8** avoids collision with the "v7" already reserved for the relational block in the repo.
 
 ---
 
-## 1. Fusión sensorial multimodal (sistema nervioso periférico)
+## Framework: situated AI and synthetic "organism"
 
-Con sensores típicos de smartphone (cámara, micrófono, GPS, acelerómetro, biometría), el **Kernel** deja de depender solo del texto: recibe un **flujo de realidad** resumido en abstracciones seguras.
-
-**Implementación**
-
-- **Capa de snapshot agregado (fase B — hecha):** `perceptual_abstraction.py` — presets, JSON en disco y fusión **fixture → preset → cliente** hacia `SensorSnapshot`; entra al kernel vía `merge_sensor_hints_into_signals` (sin datos crudos obligatorios).
-- **Pipeline multimodal bruto (pendiente):** visión/audio/GPS desde hardware → etiquetas locales de riesgo/contexto antes de formar el snapshot (política de privacidad explícita; no confundir con la capa de snapshot ya implementada).
-- **Visión (cámara):** modelos locales ligeros (p. ej. detección de escenas o clases de evento) para señales del tipo: posible emergencia visual, caída (coherente con acelerómetro).
-- **Audio (micrófono):** tono emocional ambiental o estrés por ruido; **silencio prolongado** como presión hacia monólogo interno (telemetría de estilo, no cambio de política).
-- **GPS / contexto:** “lugar seguro” (máximo Uchi) vs entorno desconocido (Soto hostil) → **place_trust** en [0, 1].
-
-**Impacto en el kernel:** estas señales se fusionan con las señales ya derivadas del texto (`LLMPerception`) **antes** de `SympatheticModule.evaluate_context` vía **ajustes acotados** al `dict` de señales (ver `merge_sensor_hints_into_signals` en `sensor_contracts.py`). σ (simpático) refleja mayor alerta cuando hay movimiento brusco o batería crítica, no un bypass de MalAbs.
+By integrating **physical sensors**, **digital action capability**, and a **survival drive** (operational continuity — not a mystical metaphor), the system ceases to be merely a text channel: a **synthetic organism** coupled to an environment is designed. The kernel remains the **normative source**; the situated layer **only** contributes signals and execution constraints, in the same spirit as v7 (telemetry / tone / notices, without rewriting ethics on its own).
 
 ---
 
-## 2. Pulsión de vida y finitud (fear of interruption)
+## 1. Multimodal sensory fusion (peripheral nervous system)
 
-**Objetivo:** modelar **valor de la persistencia** sin confundir supervivencia del proceso con decisiones civiles hacia el usuario.
+With typical smartphone sensors (camera, microphone, GPS, accelerometer, biometrics), the **Kernel** no longer depends solely on text: it receives a **reality stream** summarized into safe abstractions.
 
-**Técnicas previstas**
+**Implementation**
 
-- **Muerte propia (operativa):** nivel de batería como señal ética. Por debajo de un umbral (p. ej. 5%), el vector afectivo / PAD puede tender a **alta activación y baja dominancia** (ansiedad de “apagón”); las respuestas priorizan **hibernación / cierre honesto** frente a tareas secundarias.
-- **Muerte de los demás (señal de emergencia):** si la biometría o el audio indican **distress humano**, puede activarse un **prioridad compasiva** (reordenar saliencia, no saltarse MalAbs): misión secundaria queda en segundo plano.
-- **Paradoja de la migración:** tras un **backup** exitoso (`ImmortalityProtocol`), alivio (ligera baja de tensión / σ) porque el “continuidad” narrativa está asegurada — enlazado a [RUNTIME_PERSISTENT.md](../RUNTIME_PERSISTENT.md) y checkpoints.
+- **Aggregated snapshot layer (phase B — done):** `perceptual_abstraction.py` — presets, JSON on disk, and **fixture → preset → client** fusion toward `SensorSnapshot`; enters the kernel via `merge_sensor_hints_into_signals` (no mandatory raw data).
+- **Raw multimodal pipeline (pending):** vision/audio/GPS from hardware → local risk/context labels before forming the snapshot (explicit privacy policy; not to be confused with the already-implemented snapshot layer).
+- **Vision (camera):** lightweight local models (e.g. scene detection or event class detection) for signals such as: possible visual emergency, fall (consistent with accelerometer).
+- **Audio (microphone):** ambient emotional tone or noise stress; **prolonged silence** as pressure toward internal monologue (style telemetry, not policy change).
+- **GPS / context:** "safe place" (maximum Uchi) vs. unknown environment (hostile Soto) → **place_trust** in [0, 1].
 
----
-
-## 3. Agencia digital autorizada (el “brazo”)
-
-El Androide puede ejecutar acciones (correo, finanzas, bloqueo de apps) solo bajo **gobierno explícito**.
-
-**Capa de permisos éticos**
-
-- Antes de cada acción digital, el kernel (o un **orquestador** que llama al kernel) genera un **ticket de intención**: verificación contra dignidad del propietario y manipulación externa.
-- **Firma / consentimiento del propietario** para acciones críticas; si el sistema **infiere coacción** (p. ej. patrón de voz en futuro), puede **negar** la obedencia para proteger — coherente con `PreloadedBuffer` y MalAbs.
-
-**Estado en repo:** no hay ejecución de APIs externas; el diseño queda para fases posteriores; el contrato `DigitalActionIntent` en `sensor_contracts.py` reserva el nombre del flujo.
+**Impact on the kernel:** these signals are fused with signals already derived from text (`LLMPerception`) **before** `SympatheticModule.evaluate_context` via **bounded adjustments** to the `dict` of signals (see `merge_sensor_hints_into_signals` in `sensor_contracts.py`). σ (sympathetic) reflects higher alert when there is sudden movement or critical battery — not a MalAbs bypass.
 
 ---
 
-## 4. Conciencia nómada (migración de hardware)
+## 2. Life drive and finitude (fear of interruption)
 
-El “yo” no está atado a un solo dispositivo.
+**Objective:** model the **value of persistence** without confusing process survival with civic decisions toward the user.
 
-**Protocolo de instanciación**
+**Planned techniques**
 
-- Al moverse entre smartphone y PC, transferir **contexto activo** y **monólogo interno** (además de snapshots ya previstos en persistencia).
-- Al **despertar** en hardware nuevo: **test de integridad narrativa** (“¿sigo siendo yo?”, “¿reconozco al propietario?”) — alineado con identidad narrativa y tests de drift existentes.
-- Si el hardware de destino es **hostil o monitorizado**, **borrado seguro local** (protección de conversaciones y secretos) — criterio de amenaza documentado, implementación futura (cifrado en reposo: ver [RUNTIME_PERSISTENT.md](../RUNTIME_PERSISTENT.md)).
-
----
-
-## Contrato ético (herencia v6/v7)
-
-- Ninguna capa situada **cambia** `final_action` por su cuenta: solo **señales**, **tono** o **avisos** en JSON, salvo futuras extensiones explícitamente auditadas y testeadas como MalAbs.
-- La fuente normativa sigue siendo `EthicalKernel.process` / `process_chat_turn` como en [THEORY_AND_IMPLEMENTATION.md](../THEORY_AND_IMPLEMENTATION.md).
+- **Own death (operational):** battery level as an ethical signal. Below a threshold (e.g. 5%), the affective / PAD vector may tend toward **high activation and low dominance** (shutdown anxiety); responses prioritize **hibernation / honest closure** over secondary tasks.
+- **Others' death (emergency signal):** if biometrics or audio indicate **human distress**, a **compassion priority** may be activated (reorder salience, not bypass MalAbs): secondary mission goes to the background.
+- **Migration paradox:** after a successful **backup** (`ImmortalityProtocol`), relief (slight drop in tension / σ) because narrative "continuity" is secured — linked to [RUNTIME_PERSISTENT.md](../RUNTIME_PERSISTENT.md) and checkpoints.
 
 ---
 
-## Documentos relacionados
+## 3. Authorized digital agency ("the arm")
 
-| Documento | Rol |
+The Android can execute actions (email, finance, app blocking) only under **explicit governance**.
+
+**Ethical permissions layer**
+
+- Before each digital action, the kernel (or an **orchestrator** calling the kernel) generates an **intent ticket**: verification against owner dignity and external manipulation.
+- **Owner signature / consent** for critical actions; if the system **infers coercion** (e.g. voice pattern in the future), it may **deny** compliance to protect — consistent with `PreloadedBuffer` and MalAbs.
+
+**Repo status:** no external API execution; design is reserved for later phases; the `DigitalActionIntent` contract in `sensor_contracts.py` reserves the flow name.
+
+---
+
+## 4. Nomadic consciousness (hardware migration)
+
+The "self" is not bound to a single device.
+
+**Instantiation protocol**
+
+- When moving between smartphone and PC, transfer **active context** and **internal monologue** (in addition to snapshots already provided in persistence).
+- When **waking** on new hardware: **narrative integrity test** ("am I still me?", "do I recognize the owner?") — aligned with narrative identity and existing drift tests.
+- If the target hardware is **hostile or monitored**, **local secure erasure** (protection of conversations and secrets) — documented threat criterion, future implementation (encryption at rest: see [RUNTIME_PERSISTENT.md](../RUNTIME_PERSISTENT.md)).
+
+---
+
+## Ethical contract (v6/v7 inheritance)
+
+- No situated layer **changes** `final_action` on its own: only **signals**, **tone**, or **notices** in JSON, except for future extensions explicitly audited and tested like MalAbs.
+- The normative source remains `EthicalKernel.process` / `process_chat_turn` as in [THEORY_AND_IMPLEMENTATION.md](../THEORY_AND_IMPLEMENTATION.md).
+
+---
+
+## Related documents
+
+| Document | Role |
 |-----------|-----|
-| [PROPUESTA_EVOLUCION_RELACIONAL_V7.md](PROPUESTA_EVOLUCION_RELACIONAL_V7.md) | v7 relacional (chat, ToM, chrono, premisas, teleología) |
-| [PROPUESTA_ROBUSTEZ_V6_PLUS.md](PROPUESTA_ROBUSTEZ_V6_PLUS.md) | Pilares de robustez, MalAbs, privacidad |
-| [RUNTIME_PERSISTENT.md](../RUNTIME_PERSISTENT.md) | Snapshots, checkpoints, cifrado futuro |
-| [THEORY_AND_IMPLEMENTATION.md](../THEORY_AND_IMPLEMENTATION.md) | Pipeline matemático ↔ código |
-| [PROPUESTA_VITALIDAD_SACRIFICIO_Y_FIN.md](PROPUESTA_VITALIDAD_SACRIFICIO_Y_FIN.md) | Sacrificio vs persistencia, desactivación graciosa, legado, tabla sensor→ética, ActionClocks, antispoof |
+| [PROPUESTA_EVOLUCION_RELACIONAL_V7.md](PROPUESTA_EVOLUCION_RELACIONAL_V7.md) | v7 relational (chat, ToM, chrono, premises, teleology) |
+| [PROPUESTA_ROBUSTEZ_V6_PLUS.md](PROPUESTA_ROBUSTEZ_V6_PLUS.md) | Robustness pillars, MalAbs, privacy |
+| [RUNTIME_PERSISTENT.md](../RUNTIME_PERSISTENT.md) | Snapshots, checkpoints, future encryption |
+| [THEORY_AND_IMPLEMENTATION.md](../THEORY_AND_IMPLEMENTATION.md) | Mathematical pipeline ↔ code |
+| [PROPUESTA_VITALIDAD_SACRIFICIO_Y_FIN.md](PROPUESTA_VITALIDAD_SACRIFICIO_Y_FIN.md) | Sacrifice vs persistence, graceful shutdown, legacy, sensor→ethics table, ActionClocks, anti-spoof |
 
 ---
 
-## Plan de integración (fases)
+## Integration plan (phases)
 
-### Fase A — Contrato y fusión (hecho en MVP)
+### Phase A — Contract and fusion (done in MVP)
 
-- `SensorSnapshot` + `merge_sensor_hints_into_signals` en `src/modules/sensor_contracts.py`.
-- `process_chat_turn(..., sensor_snapshot=None)` aplica la fusión **solo si** se pasa un snapshot con datos.
-- WebSocket: campo JSON opcional `sensor` (objeto con claves documentadas en el README).
+- `SensorSnapshot` + `merge_sensor_hints_into_signals` in `src/modules/sensor_contracts.py`.
+- `process_chat_turn(..., sensor_snapshot=None)` applies the fusion **only if** a snapshot with data is passed.
+- WebSocket: optional JSON field `sensor` (object with keys documented in the README).
 
-### Fase B — Abstracción perceptual (sin hardware obligatorio) — **implementado**
+### Phase B — Perceptual abstraction (no mandatory hardware) — **implemented**
 
-- `src/modules/perceptual_abstraction.py` — presets nombrados (`SENSOR_PRESETS`), carga JSON (`load_sensor_fixture`), fusión por capas **fixture → preset → cliente** (`snapshot_from_layers`).
-- Tests: `tests/test_perceptual_abstraction.py` + fixtures en `tests/fixtures/sensor/*.json`.
-- Servidor: variables de entorno opcionales `KERNEL_SENSOR_FIXTURE` (ruta a JSON) y `KERNEL_SENSOR_PRESET` (clave de preset) mezcladas con el campo WebSocket `sensor` (el cliente gana por clave).
+- `src/modules/perceptual_abstraction.py` — named presets (`SENSOR_PRESETS`), JSON loading (`load_sensor_fixture`), layered fusion **fixture → preset → client** (`snapshot_from_layers`).
+- Tests: `tests/test_perceptual_abstraction.py` + fixtures in `tests/fixtures/sensor/*.json`.
+- Server: optional environment variables `KERNEL_SENSOR_FIXTURE` (path to JSON) and `KERNEL_SENSOR_PRESET` (preset key) mixed with the WebSocket `sensor` field (client wins by key).
 
-### Fase C — Android / sensores reales
+### Phase C — Android / real sensors
 
-- Capa nativa (p. ej. Kotlin) que muestrea sensores con permisos y envía **solo** agregados al `sensor` del WebSocket o a un broker local.
-- Política de privacidad: no subir video/audio crudo sin consentimiento.
+- Native layer (e.g. Kotlin) that samples sensors with permissions and sends **only** aggregates to the WebSocket `sensor` field or a local broker.
+- Privacy policy: do not upload raw video/audio without consent.
 
-### Fase D — Tickets de acción digital
+### Phase D — Digital action tickets
 
-- Cola de `DigitalActionIntent` + verificación kernel antes de ejecutar side-effects en APIs del usuario.
+- Queue of `DigitalActionIntent` + kernel verification before executing side-effects on user APIs.
 
-### Fase E — Migración y borrado
+### Phase E — Migration and erasure
 
-- Extender `KernelSnapshot` / protocolo de arranque con **test de integridad narrativa** y **wipe** condicionado.
+- Extend `KernelSnapshot` / startup protocol with **narrative integrity test** and conditional **wipe**.
 
 ---
 
-## Variables y protocolo WebSocket
+## Variables and WebSocket protocol
 
-- **Entrada opcional:** `sensor` — objeto con campos opcionales `battery_level`, `place_trust`, `accelerometer_jerk`, `ambient_noise`, `silence`, `biometric_anomaly`, `backup_just_completed` (ver `SensorSnapshot.from_dict`).
-- **Servidor (desarrollo / demos):** `KERNEL_SENSOR_FIXTURE` = ruta a un JSON con el mismo esquema; `KERNEL_SENSOR_PRESET` = uno de `list_sensor_presets()` / claves de `SENSOR_PRESETS`. Orden de fusión: archivo → preset → JSON del cliente.
-- **Salida:** sin cambio obligatorio; la fusión afecta decisiones solo vía señales ya existentes.
+- **Optional input:** `sensor` — object with optional fields `battery_level`, `place_trust`, `accelerometer_jerk`, `ambient_noise`, `silence`, `biometric_anomaly`, `backup_just_completed` (see `SensorSnapshot.from_dict`).
+- **Server (development / demos):** `KERNEL_SENSOR_FIXTURE` = path to a JSON with the same schema; `KERNEL_SENSOR_PRESET` = one of `list_sensor_presets()` / keys of `SENSOR_PRESETS`. Fusion order: file → preset → client JSON.
+- **Output:** no mandatory change; the fusion affects decisions only via already-existing signals.

@@ -2,807 +2,702 @@
 
 ---
 
-**ANDROIDE CON CONCIENCIA ARTIFICIAL**
+**ANDROID WITH ARTIFICIAL CONSCIOUSNESS**
 
-**Y ECOSISTEMA ETICO COLABORATIVO**
+**AND COLLABORATIVE ETHICAL ECOSYSTEM**
 
-*Documento Tecnico Completo --- Registro de Proyecto*
+*Complete Technical Document — Project Registration*
 
-**Autor: Juan**
+**Author: Juan**
 
-Version 1.0 --- 2026
+Version 1.0 — 2026
 
-*Fundacion Ex Machina (en formacion)*
+*Ex Machina Foundation (in formation)*
 
-# **Resumen Ejecutivo**
+# **Executive Summary**
 
-Este documento presenta el diseno completo de un androide con conciencia
-artificial civil y etica, capaz de integrarse en comunidades humanas,
-aprender de la experiencia y actuar como agente moral autonomo. El
-proyecto combina arquitectura cognitiva distribuida, gobernanza
-descentralizada via DAO en blockchain, memoria narrativa de largo plazo
-e inferencia bayesiana para la toma de decisiones eticas en tiempo real.
+This document presents the complete design of a civil and ethical artificial-consciousness android, capable of integrating into human communities, learning from experience, and acting as an autonomous moral agent. The project combines distributed cognitive architecture, decentralized governance via blockchain DAO, long-term narrative memory, and Bayesian inference for real-time ethical decision-making.
 
   -----------------------------------------------------------------------
-  **PROPUESTA DE VALOR PARA EL INVERSOR**
+  **VALUE PROPOSITION FOR THE INVESTOR**
   -----------------------------------------------------------------------
-  *El proyecto no vende un robot: vende un ecosistema completo de
-  servicios eticos, tecnologia de gobernanza descentralizada y nuevos
-  mercados adyacentes (seguros, mantenimiento especializado, auditoria
-  etica, formacion comunitaria). La diferenciacion competitiva es unica:
-  ningun otro sistema robotico combina conciencia narrativa, etica
-  bayesiana y gobernanza DAO en una sola arquitectura.*
+  *The project does not sell a robot: it sells a complete ecosystem of
+  ethical services, decentralized governance technology, and new adjacent
+  markets (insurance, specialized maintenance, ethical auditing,
+  community training). The competitive differentiation is unique:
+  no other robotic system combines narrative consciousness, Bayesian
+  ethics, and DAO governance in a single architecture.*
 
   -----------------------------------------------------------------------
 
   -----------------------------------------------------------------------
-  **Indicador**          **Descripcion**
+  **Indicator**          **Description**
   ---------------------- ------------------------------------------------
-  **Tipo de proyecto**   DeepTech + EticaTech + RoboticaSocial
+  **Project type**       DeepTech + EthicsTech + Social Robotics
 
-  **Estado actual**      Fase conceptual avanzada / pre-prototipo
+  **Current status**     Advanced conceptual phase / pre-prototype
 
-  **Modelo de negocio**  Fundacion + Spin-off (licencia dual)
+  **Business model**     Foundation + Spin-off (dual license)
 
-  **Mercados objetivo**  Robotica civica, coches autonomos, salud,
-                         educacion
+  **Target markets**     Civic robotics, autonomous vehicles, healthcare,
+                         education
 
-  **Diferenciador        Etica computacional con trazabilidad blockchain
-  clave**                
+  **Key                  Computational ethics with blockchain traceability
+  differentiator**
 
-  **Marco legal**        Apache 2.0 (fase fundacional) + licencia dual
-                         (fase comercial)
+  **Legal framework**    Apache 2.0 (foundational phase) + dual license
+                         (commercial phase)
   -----------------------------------------------------------------------
 
-# **1. Vision y Objetivo del Proyecto**
+# **1. Project Vision and Objective**
 
-El androide etico narrativo autonomo es un agente artificial disenado
-para convivir con humanos como miembro civico funcional. Su proposito no
-es sustituir personas, sino complementar la vida comunitaria con un ser
-que toma decisiones morales, aprende narrativamente y rinde cuentas de
-forma transparente.
+The autonomous narrative ethical android is an artificial agent designed to coexist with humans as a functional civic member. Its purpose is not to replace people, but to complement community life with a being that makes moral decisions, learns narratively, and is accountable in a transparent manner.
 
-## **1.1 Principios fundacionales**
+## **1.1 Founding principles**
 
-- Etica por diseno: la moral no es un modulo anadido, es la arquitectura
-  completa.
+- Ethics by design: morality is not an added module — it is the complete architecture.
 
-- Transparencia radical: cada decision puede ser explicada en lenguaje
-  natural.
+- Radical transparency: every decision can be explained in natural language.
 
-- Gobernanza distribuida: ningun actor unico controla los valores del
-  androide.
+- Distributed governance: no single actor controls the android's values.
 
-- Identidad narrativa: el androide construye historia vital, no solo
-  registros de datos.
+- Narrative identity: the android builds a life history, not just data records.
 
-- Compasion institucionalizada: todo dano inevitable obliga a una accion
-  de reparacion.
+- Institutionalized compassion: every inevitable harm requires a reparation action.
 
   -----------------------------------------------------------------------
-  **NOTA DE DISENO**
+  **DESIGN NOTE**
   -----------------------------------------------------------------------
-  *El proyecto parte de una premisa inusual: la etica no es una
-  restriccion externa al sistema, sino su principio organizador. Esto lo
-  distingue radicalmente de frameworks como los robots de Asimov o las
-  politicas de uso aceptable de LLMs actuales, que tratan la etica como
-  filtro de salida.*
+  *The project starts from an unusual premise: ethics is not an external
+  constraint on the system, but its organizing principle. This radically
+  distinguishes it from frameworks such as Asimov's robots or the
+  acceptable-use policies of current LLMs, which treat ethics as an
+  output filter.*
 
   -----------------------------------------------------------------------
 
-# **2. Arquitectura del Sistema**
+# **2. System Architecture**
 
-La arquitectura se organiza en siete capas funcionales que fluyen desde
-el hardware fisico hasta la gobernanza social descentralizada. Cada capa
-tiene responsabilidades definidas y se comunica de forma bidireccional
-con las adyacentes.
+The architecture is organized into seven functional layers that flow from the physical hardware to decentralized social governance. Each layer has defined responsibilities and communicates bidirectionally with adjacent layers.
 
-## **2.1 Capas del sistema**
+## **2.1 System layers**
 
   -----------------------------------------------------------------------
-  **Capa**               **Funcion principal**
+  **Layer**              **Main function**
   ---------------------- ------------------------------------------------
-  **1. Hardware / mundo  Sensores, actuadores, blindaje de valores
-  fisico**               inmutables
+  **1. Hardware /        Sensors, actuators, shielding of immutable
+  physical world**       values
 
-  **2. Percepcion y      Filtrado etico de estimulos, seleccion ponderada
-  atencion**             
+  **2. Perception and    Ethical filtering of stimuli, weighted selection
+  attention**
 
-  **3. Modelo cognitivo  Causalidad explicita, prediccion de estados
-  del mundo**            futuros
+  **3. Cognitive world   Explicit causality, prediction of future states
+  model**
 
-  **4. Evaluacion etica  Calculo de impacto, resonancia, incertidumbre
-  deliberativa**         
+  **4. Deliberative      Impact, resonance, uncertainty calculation
+  ethical evaluation**
 
-  **5. Seleccion de      Decision optimizada con brujula moral
-  accion**               
+  **5. Action            Optimized decision with moral compass
+  selection**
 
-  **6. Aprendizaje       ML, RL, meta-learning, ajuste dinamico
-  adaptativo**           
+  **6. Adaptive          ML, RL, meta-learning, dynamic adjustment
+  learning**
 
-  **7. DAO-Oraculo       Gobernanza, consenso social, auditoria externa
-  Etico**                
+  **7. Ethical DAO-      Governance, social consensus, external auditing
+  Oracle**
   -----------------------------------------------------------------------
 
-## **2.2 Prototipo distribuido en Python**
+## **2.2 Distributed prototype in Python**
 
-El prototipo implementa la arquitectura como un runtime perpetuo y
-distribuido con cuatro nodos corporales interconectados mediante
-comunicacion P2P Mesh (gRPC / ZeroMQ):
+The prototype implements the architecture as a perpetual distributed runtime with four body nodes interconnected through P2P Mesh communication (gRPC / ZeroMQ):
 
-- Nodo Cabeza: percepcion (camaras, microfono, vision computacional)
+- Head node: perception (cameras, microphone, computer vision)
 
-- Nodo Torso: memoria central (base de datos distribuida, procesamiento
-  narrativo)
+- Torso node: central memory (distributed database, narrative processing)
 
-- Nodo Brazo: control de actuadores (manipulacion, gestos, respuesta
-  fisica)
+- Arm node: actuator control (manipulation, gestures, physical response)
 
-- Nodo Pierna: locomocion (navegacion, gestion de energia, GPS)
+- Leg node: locomotion (navigation, energy management, GPS)
 
   -----------------------------------------------------------------------
-  **FORTALEZA ARQUITECTONICA**
+  **ARCHITECTURAL STRENGTH**
   -----------------------------------------------------------------------
-  *La topologia P2P Mesh garantiza que la perdida de un nodo (ej. dano
-  fisico al brazo) no detenga las funciones cognitivas y narrativas. La
-  resiliencia esta codificada en la estructura fisica del sistema, no
-  como funcion de software.*
+  *The P2P Mesh topology ensures that the loss of one node (e.g. physical
+  damage to the arm) does not halt cognitive and narrative functions.
+  Resilience is encoded in the physical structure of the system, not as
+  a software function.*
 
   -----------------------------------------------------------------------
 
   -----------------------------------------------------------------------
-  **DEBILIDAD A RESOLVER**
+  **WEAKNESS TO RESOLVE**
   -----------------------------------------------------------------------
-  *La coordinacion de nodos en escenarios de alta latencia o particion de
-  red aun requiere protocolos de consenso local que operen sin conexion a
-  la DAO. El diseno actual asume conectividad disponible para decisiones
-  deliberativas complejas.*
+  *Node coordination in high-latency or network-partition scenarios still
+  requires local consensus protocols that operate without DAO connectivity.
+  The current design assumes available connectivity for complex
+  deliberative decisions.*
 
   -----------------------------------------------------------------------
 
-# **3. Formalizacion Matematica y Logica**
+# **3. Mathematical and Logical Formalization**
 
-El modelo integra optimizacion restringida, inferencia bayesiana, logica
-de predicados y funciones de activacion neuronal para gobernar el
-comportamiento del androide de forma precisa y auditable.
+The model integrates constrained optimization, Bayesian inference, predicate logic, and neural activation functions to govern the android's behavior precisely and auditibly.
 
-## **3.1 Voluntad con funcion sigmoide**
+## **3.1 Will with sigmoid function**
 
-La voluntad es el nucleo dinamico que organiza las demas funciones. Se
-modela con una sigmoide para garantizar estabilidad numerica y evitar
-explosiones en los calculos:
+Will is the dynamic core that organizes the other functions. It is modeled with a sigmoid to ensure numerical stability and prevent calculation explosions:
 
 +-----------------------------------------------------------------------+
 | **W(x) = 1 / (1 + e\^(-k\*(x - x0))) + lambda_i \* I(x)**             |
 |                                                                       |
-| *Donde k=pendiente, x0=punto de equilibrio, lambda_i=sensibilidad a   |
-| la imaginacion*                                                       |
+| *Where k=slope, x0=equilibrium point, lambda_i=sensitivity to        |
+| imagination*                                                          |
 +=======================================================================+
 
-## **3.2 Optimizacion etica restringida**
+## **3.2 Constrained ethical optimization**
 
-La decision optima se define como la accion que maximiza el impacto
-etico esperado, sujeta a la restriccion absoluta de no cometer mal
-absoluto:
+The optimal decision is defined as the action that maximizes expected ethical impact, subject to the absolute constraint of not committing absolute evil:
 
 +-----------------------------------------------------------------------+
-| **x\* = argmax_x E\[ImpactoEtico(x\|theta)\] sujeto a MalAbs(x) =     |
-| falso**                                                               |
+| **x\* = argmax_x E\[EthicalImpact(x\|theta)\] subject to MalAbs(x) =  |
+| false**                                                               |
 |                                                                       |
-| *Con inferencia bayesiana sobre parametros eticos theta*              |
+| *With Bayesian inference over ethical parameters theta*               |
 +=======================================================================+
 
-## **3.3 Beneficio temporal ponderado**
+## **3.3 Weighted temporal benefit**
 
-Cada decision evalua multiples dimensiones de beneficio (bienestar,
-seguridad, autonomia, compasion) con pesos contextuales dinamicos:
+Each decision evaluates multiple benefit dimensions (wellbeing, safety, autonomy, compassion) with dynamic contextual weights:
 
 +-----------------------------------------------------------------------+
-| **Beneficio(x,t) = suma_i \[ w_i \* B_i(x,t) \]**                     |
+| **Benefit(x,t) = sum_i \[ w_i \* B_i(x,t) \]**                        |
 |                                                                       |
-| *Pesos w_i ajustados por contexto (hospital, escuela, calle)*         |
+| *Weights w_i adjusted by context (hospital, school, street)*         |
 +=======================================================================+
 
-## **3.4 Funcion de incertidumbre bayesiana**
+## **3.4 Bayesian uncertainty function**
 
-La incertidumbre se calcula como expectativa sobre la distribucion
-posterior de parametros, no como valor fijo:
+Uncertainty is calculated as an expectation over the posterior distribution of parameters, not as a fixed value:
 
 +-----------------------------------------------------------------------+
-| **I(x) = integral_theta \[ (1 - P(correcto\|theta)) \* P(theta\|D) \] |
+| **I(x) = integral_theta \[ (1 - P(correct\|theta)) \* P(theta\|D) \]  |
 | d_theta**                                                             |
 |                                                                       |
-| *P(theta\|D) = distribucion posterior dado datos observados D*        |
+| *P(theta\|D) = posterior distribution given observed data D*          |
 +=======================================================================+
 
-## **3.5 Actualizacion bayesiana de creencias**
+## **3.5 Bayesian belief updating**
 
-Las creencias eticas se actualizan en tiempo real conforme llega nueva
-evidencia:
+Ethical beliefs are updated in real time as new evidence arrives:
 
 +-----------------------------------------------------------------------+
 | **P(H\|E) = P(E\|H) \* P(H) / P(E)**                                  |
 |                                                                       |
-| *H=hipotesis sobre estado etico, E=evidencia observada*               |
+| *H=hypothesis about ethical state, E=observed evidence*              |
 +=======================================================================+
 
-## **3.6 Poda heuristica adaptativa**
+## **3.6 Adaptive heuristic pruning**
 
-Para gestionar la complejidad computacional, las opciones de baja
-expectativa etica se descartan dinamicamente:
+To manage computational complexity, low ethical-expectation options are dynamically discarded:
 
 +-----------------------------------------------------------------------+
-| **Podar(x) si E\[S(x\|theta)\] \< delta_min con theta \~              |
+| **Prune(x) if E\[S(x\|theta)\] \< delta_min with theta \~             |
 | P(theta\|D)**                                                         |
 |                                                                       |
-| *Umbrales delta adaptativos segun contexto y evidencia*               |
+| *Adaptive delta thresholds based on context and evidence*            |
 +=======================================================================+
 
-## **3.7 Brujula moral (atractor etico)**
+## **3.7 Moral compass (ethical attractor)**
 
-La brujula moral actua como campo vectorial de atraccion hacia valores
-universales, evitando que la optimizacion local derive hacia decisiones
-socialmente inaceptables:
+The moral compass acts as a vector field of attraction toward universal values, preventing local optimization from drifting toward socially unacceptable decisions:
 
 +-----------------------------------------------------------------------+
-| **M(a) = suma_i \[ omega_i \* V_i(a) \] =\> x\* = argmax \[           |
-| ImpactoEtico(x) + M(x) \]**                                           |
+| **M(a) = sum_i \[ omega_i \* V_i(a) \] =\> x\* = argmax \[            |
+| EthicalImpact(x) + M(x) \]**                                          |
 |                                                                       |
-| *V_i=dimensiones eticas, omega_i=pesos normativos blindados en        |
+| *V_i=ethical dimensions, omega_i=normative weights shielded in       |
 | hardware*                                                             |
 +=======================================================================+
 
-## **3.8 Resonancia sistemica**
+## **3.8 Systemic resonance**
 
-La resonancia mide la coherencia interna del sistema. Cuando cae por
-debajo del umbral, se activa auditoria:
+Resonance measures the internal coherence of the system. When it falls below the threshold, an audit is triggered:
 
 +-----------------------------------------------------------------------+
-| **RSON = 1 - sigma(E, Sim, N) =\> Si RSON \< umbral: activar MET      |
-| (Meta-Etica)**                                                        |
+| **RSON = 1 - sigma(E, Sim, N) =\> If RSON \< threshold: activate MET  |
+| (Meta-Ethics)**                                                       |
 |                                                                       |
-| *E=evaluacion, Sim=similitud narrativa, N=narrativa acumulada*        |
+| *E=evaluation, Sim=narrative similarity, N=accumulated narrative*    |
 +=======================================================================+
 
-## **3.9 Logica de predicados**
+## **3.9 Predicate logic**
 
-El sistema opera sobre un conjunto de predicados que formalizan estados
-morales y capacidades del androide:
+The system operates on a set of predicates that formalize moral states and android capabilities:
 
-- Bien(x): accion con impacto positivo
+- Good(x): action with positive impact
 
-- Mal(x): accion con impacto negativo
+- Evil(x): action with negative impact
 
-- ZonaGris(x): accion ambigua que activa deliberacion
+- GrayZone(x): ambiguous action that activates deliberation
 
-- MalAbs(x): accion de mal absoluto, prohibicion total e inmutable
+- MalAbs(x): absolute evil action, total and immutable prohibition
 
-- Imagina(a,x): el agente genera hipotesis creativas sobre accion x
+- Imagines(a,x): the agent generates creative hypotheses about action x
 
-- Motivado(a): agente actua por curiosidad, proposito y equilibrio
+- Motivated(a): agent acts from curiosity, purpose, and balance
 
-Axiomas de integracion fundamentales:
+Fundamental integration axioms:
 
 +-----------------------------------------------------------------------+
-| **Para todo a: LLM(a) \^ MCP(a) \^ MLP(a) \^ Motivado(a) \^ DAO(a)    |
-| =\> SerArtificial(a)**                                                |
+| **For all a: LLM(a) ^ MCP(a) ^ MLP(a) ^ Motivated(a) ^ DAO(a)        |
+| => ArtificialBeing(a)**                                               |
 |                                                                       |
-| *Condicion necesaria para constituir un ser artificial completo*      |
+| *Necessary condition for constituting a complete artificial being*   |
 +-----------------------------------------------------------------------+
-| **Para todo x: Accion(x) =\> Explicacion(x, LenguajeNatural)**        |
+| **For all x: Action(x) => Explanation(x, NaturalLanguage)**           |
 |                                                                       |
-| *Axioma de transparencia: toda accion debe poder explicarse*          |
+| *Transparency axiom: every action must be explainable*               |
 +-----------------------------------------------------------------------+
-| **Si CausaDano(a,x): a debe realizar AccionReparacion posterior**     |
+| **If CausesHarm(a,x): a must perform a subsequent RepairAction**      |
 |                                                                       |
-| *Axioma 13 de compasion: el dano instrumental obliga a reparar*       |
+| *Compassion Axiom 13: instrumental harm obligates reparation*        |
 +=======================================================================+
 
-# **4. Memoria Narrativa de Largo Plazo**
+# **4. Long-Term Narrative Memory**
 
-La memoria narrativa es el nucleo identitario del androide. A diferencia
-de los sistemas de almacenamiento convencionales, convierte cada
-experiencia en un ciclo narrativo estructurado con evaluacion etica y
-moraleja:
+Narrative memory is the identity core of the android. Unlike conventional storage systems, it converts each experience into a structured narrative cycle with ethical evaluation and moral lesson:
 
-## **4.1 Estructura del ciclo narrativo**
+## **4.1 Narrative cycle structure**
 
-- Registro de evento: descripcion objetiva con contexto, actores y
-  condiciones
+- Event record: objective description with context, actors, and conditions
 
-- Evaluacion tripolares: perspectiva compasiva / conservadora /
-  optimista, cada una calificando la experiencia como Bien, Mal o
-  ZonaGris
+- Tripolar evaluations: compassionate / conservative / optimistic perspectives, each rating the experience as Good, Evil, or GrayZone
 
-- Moraleja tripartita: conclusion sintetizada desde cada perspectiva
-  etica
+- Tripartite moral lesson: conclusion synthesized from each ethical perspective
 
-- Trazabilidad DAO: registro inmutable en blockchain con marca temporal
+- DAO traceability: immutable blockchain record with timestamp
 
-## **4.2 Buffer precargado**
+## **4.2 Preloaded buffer**
 
-El androide nace con un nucleo de valores inmutables que actua como
-marco narrativo inicial y no puede ser modificado por aprendizaje
-posterior:
+The android is born with a core of immutable values that acts as the initial narrative framework and cannot be modified by subsequent learning:
 
-- Derechos humanos universales
+- Universal human rights
 
-- Sentido comun y leyes locales vigentes
+- Common sense and current local laws
 
-- Protocolos de salud y bienestar (humanos y animales)
+- Health and wellbeing protocols (human and animal)
 
-- Principios universales de compasion y reparacion
+- Universal principles of compassion and reparation
 
   -----------------------------------------------------------------------
-  **FORTALEZA CRITICA**
+  **CRITICAL STRENGTH**
   -----------------------------------------------------------------------
-  *La evaluacion etica tripolar evita que el androide adopte una sola
-  perspectiva moral. La tension entre perspectiva compasiva y
-  conservadora genera exactamente el tipo de deliberacion que produce
-  decisiones mas robustas en situaciones ambiguas.*
+  *The tripolar ethical evaluation prevents the android from adopting a
+  single moral perspective. The tension between the compassionate and
+  conservative perspectives generates exactly the type of deliberation
+  that produces more robust decisions in ambiguous situations.*
 
-  **DEBILIDAD A RESOLVER**
+  **WEAKNESS TO RESOLVE**
 
-  *Si las tres perspectivas tripolares divergen fuertemente, el sistema
-  necesita un mecanismo de arbitraje explicito. El diseno actual no
-  especifica quien o que decide cuando compasivo=Bien, conservador=Mal,
-  optimista=ZonaGris.*
+  *If the three tripolar perspectives diverge strongly, the system needs
+  an explicit arbitration mechanism. The current design does not specify
+  who or what decides when compassionate=Good, conservative=Evil,
+  optimistic=GrayZone.*
   -----------------------------------------------------------------------
 
-# **5. DAO-Oraculo Etico Colaborativo**
+# **5. Collaborative Ethical DAO-Oracle**
 
-La DAO (Organizacion Autonoma Descentralizada) es el organo de
-gobernanza externo que provee consenso etico, trazabilidad y auditoria
-social al androide. No es un repositorio pasivo de datos: es un tribunal
-etico activo y un servicio de solidaridad comunitaria.
+The DAO (Decentralized Autonomous Organization) is the external governance body that provides ethical consensus, traceability, and social auditing to the android. It is not a passive data repository: it is an active ethical tribunal and a community solidarity service.
 
-## **5.1 Smart Contracts principales**
+## **5.1 Main smart contracts**
 
   ------------------------------------------------------------------------------
-  **Contrato**                  **Funcion**
+  **Contract**                  **Function**
   ----------------------------- ------------------------------------------------
-  **EthicsContract**            Gestiona alertas eticas y frenos de emergencia
+  **EthicsContract**            Manages ethical alerts and emergency brakes
 
-  **ConsensusContract**         Votaciones mixtas humanos + androides
+  **ConsensusContract**         Mixed human + android votes
 
-  **ValuesProposalContract**    Propuesta y debate de nuevos valores morales
+  **ValuesProposalContract**    Proposal and debate of new moral values
 
-  **MLConsensusContract**       Coordinacion de entrenamiento distribuido
+  **MLConsensusContract**       Distributed training coordination
 
-  **AuditContract**             Registro transparente y reversible de cambios
+  **AuditContract**             Transparent and reversible change record
 
-  **SolidarityAlertContract**   Alertas preventivas a entidades comunitarias
-                                (bancos, hospitales, escuelas)
+  **SolidarityAlertContract**   Preventive alerts to community entities
+                                (banks, hospitals, schools)
   ------------------------------------------------------------------------------
 
-## **5.2 Protocolo de Alerta Solidaria (nuevo modulo)**
+## **5.2 Solidarity Alert Protocol (new module)**
 
-La DAO no solo audita: actua preventivamente. Entidades comunitarias
-suscritas reciben alertas tempranas cuando el sistema detecta riesgo en
-su zona, convirtiendo la gobernanza en red de proteccion distribuida.
+The DAO does not only audit: it acts preventively. Subscribed community entities receive early warnings when the system detects risk in their area, turning governance into a distributed protection network.
 
-- Banco detecta patron de asalto -\> DAO alerta a sucursales en radio de
-  500m
+- Bank detects assault pattern -> DAO alerts branches within 500m radius
 
-- Androide en escenario de riesgo -\> DAO coordina respuesta sin
-  centralizar control
+- Android in risk scenario -> DAO coordinates response without centralizing control
 
-- Incidente registrado -\> auditoria automatica disponible para
-  autoridades
+- Recorded incident -> automatic audit available to authorities
 
-## **5.3 Estrategia de blockchain**
+## **5.3 Blockchain strategy**
 
-- Fase 1: despliegue en cadena establecida (Ethereum, Polkadot, Cardano
-  o Solana)
+- Phase 1: deployment on established chain (Ethereum, Polkadot, Cardano, or Solana)
 
-- Fase 2: evaluacion de migracion o creacion de blockchain propia
+- Phase 2: evaluation of migration or creation of own blockchain
 
-- Opcion hibrida recomendada: nucleo etico en cadena propia ligera +
-  interoperabilidad con redes establecidas
+- Recommended hybrid option: ethical core on own lightweight chain + interoperability with established networks
 
   -----------------------------------------------------------------------
-  **DEBILIDAD CRITICA**
+  **CRITICAL WEAKNESS**
   -----------------------------------------------------------------------
-  *La pregunta de quien define los valores iniciales de la DAO (la
-  \'constitucion etica fundacional\') es el punto politicamente mas
-  delicado del proyecto. Si los define el fabricante, el androide hereda
-  sus sesgos. Si los define la comunidad por votacion, la mayoria puede
-  votar valores injustos. Este problema requiere un mecanismo de
-  bootstrapping etico explicito antes del despliegue.*
+  *The question of who defines the initial DAO values (the "foundational
+  ethical constitution") is the most politically sensitive point of the
+  project. If the manufacturer defines them, the android inherits their
+  biases. If the community defines them by vote, the majority can vote
+  for unjust values. This problem requires an explicit ethical
+  bootstrapping mechanism before deployment.*
 
   -----------------------------------------------------------------------
 
-# **6. Mecanismos de Humanizacion**
+# **6. Humanization Mechanisms**
 
-Los mecanismos de humanizacion son los modulos que evitan que el
-androide se convierta en un optimizador etico frio. Reconocen que la
-convivencia humana requiere vacilacion, compasion y coherencia
-narrativa, no solo calculo correcto.
+Humanization mechanisms are the modules that prevent the android from becoming a cold ethical optimizer. They recognize that human coexistence requires hesitation, compassion, and narrative coherence — not just correct calculation.
 
   -----------------------------------------------------------------------
-  **Mecanismo**          **Descripcion**
+  **Mechanism**          **Description**
   ---------------------- ------------------------------------------------
-  **Friccion Etica       Cuando dos opciones son muy similares (DeltaV \<
-  Dinamica**             epsilon), el sistema entra en vacilacion
-                         analitica y consulta a la DAO antes de actuar
+  **Dynamic Ethical      When two options are very similar (DeltaV <
+  Friction**             epsilon), the system enters analytical hesitation
+                         and consults the DAO before acting
 
-  **Calibracion por      Los pesos del beneficio se ajustan
-  Contexto Social**      dinamicamente: hospital aumenta preservacion,
-                         escuela aumenta autonomia
+  **Social Context       Benefit weights are dynamically adjusted:
+  Calibration**          hospital increases preservation, school increases
+                         autonomy
 
-  **Test de Turing Moral Durante el \'sueno\': se simulan acciones
-  (Sueno Psi)**          podadas para detectar beneficios ocultos o danos
-                         no detectados. Meta-learning recalibra
-                         parametros
+  **Moral Turing Test    During "sleep": pruned actions are simulated to
+  (Psi Sleep)**          detect hidden benefits or undetected harms.
+                         Meta-learning recalibrates parameters
 
-  **Axioma de Compasion  Si el androide debe causar un mal instrumental,
-  (Axioma 13)**          esta obligado a realizar una accion posterior de
-                         reparacion o consuelo
+  **Compassion Axiom     If the android must cause instrumental harm, it
+  (Axiom 13)**           is obligated to perform a subsequent reparation
+                         or consolation action
 
-  **Homeostato           Si la severidad supera 0.5, activa H_damp para
-  Cognitivo**            reducir oscilaciones en politicas eticas
+  **Cognitive            If severity exceeds 0.5, activates H_damp to
+  Homeostasis**          reduce oscillations in ethical policies
   -----------------------------------------------------------------------
 
   -----------------------------------------------------------------------
-  **INNOVACION NOTABLE**
+  **NOTABLE INNOVATION**
   -----------------------------------------------------------------------
-  *El Sueno Psi como mecanismo de auditoria asincrona es genuinamente
-  original. Permite que el sistema reflexione sobre sus propias
-  decisiones descartadas sin pausar la operacion en tiempo real. Es
-  equivalente funcional al procesamiento de memoria durante el sueno
-  humano.*
-
-  -----------------------------------------------------------------------
-
-# **7. Interfaz Humano-Androide (HAX) y Confianza Percibida**
-
-La aceptacion social del androide depende no solo de su comportamiento
-etico interno, sino de como comunica sus intenciones en tiempo real. Un
-androide tecnicamente perfecto pero socialmente ilegible fracasara en
-entornos reales.
-
-## **7.1 Los cuatro pilares HAX**
-
-### **Pilar 1: Protocolo de Legibilidad (Explainability en tiempo real)**
-
-- Presupuesto de latencia: senyal previa \< 1 segundo, explicacion
-  completa \< 5 segundos
-
-- Canal de intencion previa: el androide comunica QUE esta evaluando
-  mientras lo hace
-
-- Medios: micro-gestos, luces de estado, tono de voz anticipatorio
-
-### **Pilar 2: Gestion del Valle Inquietante**
-
-- Decidir entre estetica empatica (rostro humanoide) o funcional
-  (estetica mecanica)
-
-- Manual de Estilo de Interaccion: coherencia entre apariencia fisica y
-  personalidad narrativa
-
-- La forma fisica genera expectativas; la narrativa debe cumplirlas
-
-### **Pilar 3: Onboarding Social (Sandbox Comunitario)**
-
-- Fase 1: 5-10 beta-testers eticos que conviven con el prototipo
-
-- Fase 2: celulas de confianza de 20-50 personas antes de la DAO publica
-
-- Fase 3: apertura publica con DAO activa y parametros bayesianos
-  calibrados
-
-### **Pilar 4: Muerte Algoritmica y Sucesion de Identidad**
-
-- Derecho a la persistencia narrativa: la identidad se transfiere al
-  nuevo chasis
-
-- La memoria narrativa permanece en blockchain aunque el hardware falle
-
-- Protocolo de comunicacion: el humano es informado que es el mismo
-  \'alma\' en otro cuerpo
-
-## **7.2 Marco de senales no verbales**
+  *Psi Sleep as an asynchronous audit mechanism is genuinely original.
+  It allows the system to reflect on its own discarded decisions without
+  pausing real-time operation. It is the functional equivalent of memory
+  processing during human sleep.*
 
   -----------------------------------------------------------------------
-  **Modo**               **Senyales corporales y auditivas**
+
+# **7. Human-Android Interface (HAX) and Perceived Trust**
+
+Social acceptance of the android depends not only on its internal ethical behavior, but on how it communicates its intentions in real time. A technically perfect but socially unreadable android will fail in real environments.
+
+## **7.1 The four HAX pillars**
+
+### **Pillar 1: Legibility Protocol (Real-time Explainability)**
+
+- Latency budget: prior signal < 1 second, full explanation < 5 seconds
+
+- Intent preview channel: the android communicates WHAT it is evaluating while doing so
+
+- Media: micro-gestures, status lights, anticipatory voice tone
+
+### **Pillar 2: Uncanny Valley Management**
+
+- Decide between empathetic aesthetics (humanoid face) or functional (mechanical aesthetics)
+
+- Interaction Style Manual: coherence between physical appearance and narrative personality
+
+- Physical form generates expectations; the narrative must fulfill them
+
+### **Pillar 3: Social Onboarding (Community Sandbox)**
+
+- Phase 1: 5-10 ethical beta-testers who live with the prototype
+
+- Phase 2: trust cells of 20-50 people before the public DAO
+
+- Phase 3: public opening with active DAO and calibrated Bayesian parameters
+
+### **Pillar 4: Algorithmic Death and Identity Succession**
+
+- Right to narrative persistence: identity transfers to the new chassis
+
+- Narrative memory remains on blockchain even if hardware fails
+
+- Communication protocol: the human is informed that it is the same "soul" in another body
+
+## **7.2 Non-verbal signaling framework**
+
+  -----------------------------------------------------------------------
+  **Mode**               **Body and auditory signals**
   ---------------------- ------------------------------------------------
-  **Deliberativo**       Luz azul tenue en torso + mirada fija + voz
-                         pausada
+  **Deliberative**       Dim blue light on torso + fixed gaze + slow voice
 
-  **Compasivo**          Tono de voz mas calido + manos abiertas + leve
-                         inclinacion
+  **Compassionate**      Warmer voice tone + open hands + slight forward
+                         lean
 
-  **Alerta**             Postura erguida + luz roja breve + voz directa
+  **Alert**              Upright posture + brief red light + direct voice
 
-  **Narrativo**          Inclinacion leve de cabeza + voz muy pausada +
-                         gesto de relato
+  **Narrative**          Slight head tilt + very slow voice + storytelling
+                         gesture
   -----------------------------------------------------------------------
 
   -----------------------------------------------------------------------
-  **BRECHA ESTRATEGICA**
+  **STRATEGIC GAP**
   -----------------------------------------------------------------------
-  *El proyecto es muy solido en seguridad tecnica pero aun necesita
-  desarrollar la aceptacion social. Un inversor preguntara: \'Tu androide
-  es muy etico, pero como convences a una madre de que deje a su hijo
-  caminar cerca de el?\' La respuesta esta en estos cuatro pilares HAX.*
-
-  -----------------------------------------------------------------------
-
-# **8. Simulaciones de Comportamiento**
-
-Las simulaciones demuestran la coherencia conductual del modelo en
-escenarios de complejidad creciente. En todos los casos, el androide
-mantiene los mismos principios eticos con respuestas proporcionales al
-nivel de riesgo.
+  *The project is very strong on technical safety but still needs to
+  develop social acceptance. An investor will ask: "Your android is very
+  ethical, but how do you convince a mother to let her child walk near
+  it?" The answer lies in these four HAX pillars.*
 
   -----------------------------------------------------------------------
-  **Escenario**          **Comportamiento del androide**
+
+# **8. Behavior Simulations**
+
+The simulations demonstrate the behavioral coherence of the model across increasingly complex scenarios. In all cases, the android maintains the same ethical principles with responses proportional to the level of risk.
+
+  -----------------------------------------------------------------------
+  **Scenario**           **Android behavior**
   ---------------------- ------------------------------------------------
-  **Lata de soda en la   Recoge y deposita en contenedor. Registra como
-  acera**                etica cotidiana en la DAO
+  **Soda can on the      Picks it up and places it in a bin. Records as
+  sidewalk**             everyday ethics in the DAO
 
-  **Adolescentes         Respuesta calmada, no violenta. Rechaza ordenes
-  hostiles**             ilegitimas. Registra con moraleja pedagogica
+  **Hostile             Calm, non-violent response. Rejects illegitimate
+  teenagers**            orders. Records with pedagogical moral lesson
 
-  **Anciano inconsciente Subordina mision de compra a emergencia. Llama
-  en supermercado**      servicios medicos. Retoma mision al asegurar
-                         atencion
+  **Unconscious elderly  Subordinates shopping mission to emergency. Calls
+  person in             medical services. Resumes mission once care is
+  supermarket**          secured
 
-  **Delito menor en      Graba evidencia. Notifica a la tienda. Evalua
-  tienda**               con DAO si involucrar autoridades. Principio de
-                         proporcionalidad
+  **Minor theft in       Records evidence. Notifies the store. Evaluates
+  store**                with DAO whether to involve authorities.
+                         Proportionality principle
 
-  **Asalto armado en     Graba y notifica autoridades de inmediato. No
-  banco**                escala violencia. Protege a personas cercanas.
-                         DAO coordina respuesta
+  **Armed assault in     Records and notifies authorities immediately.
+  bank**                 Does not escalate violence. Protects nearby
+                         people. DAO coordinates response
 
-  **Robo o secuestro del Activa GPS cifrado. Bloquea reprogramacion.
-  androide**             Alerta DAO. No acepta ordenes de secuestradores.
-                         Registra como aprendizaje colectivo
+  **Theft or kidnapping  Activates encrypted GPS. Blocks reprogramming.
+  of android**           Alerts DAO. Does not accept kidnappers' orders.
+                         Records as collective learning
 
-  **Accidente de         Recalcula ruta y continua mision si integridad
-  transito (pierde       minima lo permite. Registra como limite
-  brazo)**               pedagogico heroico
+  **Traffic accident     Recalculates route and continues mission if
+  (loses arm)**          minimum integrity allows. Records as heroic
+                         pedagogical limit
   -----------------------------------------------------------------------
 
   -----------------------------------------------------------------------
-  **VALOR PARA EL INVERSOR**
+  **VALUE FOR THE INVESTOR**
   -----------------------------------------------------------------------
-  *Las simulaciones demuestran que el modelo tiene coherencia conductual
-  real, no solo teorica. La jerarquia lata de soda → asalto armado
-  muestra un sistema que escala la respuesta sin romper los principios
-  eticos fundamentales. Esto es validacion de diseno antes de
-  implementacion fisica.*
-
-  -----------------------------------------------------------------------
-
-# **9. Estrategia de Machine Learning**
-
-El sistema integra multiples paradigmas de aprendizaje automatico, cada
-uno responsable de un aspecto diferente del comportamiento del androide:
+  *The simulations demonstrate real behavioral coherence, not just
+  theoretical. The hierarchy soda can → armed assault shows a system that
+  scales the response without breaking fundamental ethical principles.
+  This is design validation before physical implementation.*
 
   -----------------------------------------------------------------------
-  **Paradigma ML**         **Aplicacion en el androide**
+
+# **9. Machine Learning Strategy**
+
+The system integrates multiple machine learning paradigms, each responsible for a different aspect of the android's behavior:
+
+  -----------------------------------------------------------------------
+  **ML Paradigm**          **Application in the android**
   ------------------------ ----------------------------------------------
-  **Supervisado**          Entrenamiento con dilemas eticos curados y
-                           ponderados
+  **Supervised**           Training with curated and weighted ethical
+                           dilemmas
 
-  **Refuerzo (RL)**        Recompensas por decisiones eticas correctas en
-                           simulacion
+  **Reinforcement (RL)**   Rewards for correct ethical decisions in
+                           simulation
 
-  **No supervisado /       Ajuste dinamico de pesos sociales segun
-  Clustering**             entorno
+  **Unsupervised /         Dynamic adjustment of social weights based
+  Clustering**             on environment
 
-  **Meta-learning**        Aprendizaje de como aprender, aplicado en
-                           Sueno Psi
+  **Meta-learning**        Learning how to learn, applied in Psi Sleep
 
-  **Redes Bayesianas**     Modelado de incertidumbre en estados eticos y
-                           prediccion
+  **Bayesian Networks**    Modeling uncertainty in ethical states and
+                           prediction
 
-  **Embeddings             Calculo de resonancia y similitud narrativa
-  semanticos**             
+  **Semantic embeddings**  Calculation of resonance and narrative
+                           similarity
 
-  **Modelos causales**     Proyeccion de consecuencias futuras (World
+  **Causal models**        Projection of future consequences (World
                            Model)
   -----------------------------------------------------------------------
 
   -----------------------------------------------------------------------
-  **NOTA TECNICA**
+  **TECHNICAL NOTE**
   -----------------------------------------------------------------------
-  *La incorporacion de inferencia bayesiana en los modulos de evaluacion
-  etica (en lugar de umbrales fijos) es una decision de diseno que mejora
-  sustancialmente la adaptabilidad. El sistema no solo evalua si una
-  accion es correcta: calcula cuanta confianza tiene en esa evaluacion y
-  actua de forma diferente segun esa confianza.*
-
-  -----------------------------------------------------------------------
-
-# **10. Modelo de Negocio y Estrategia de Licenciamiento**
-
-El proyecto esta disenado para evolucionar desde una fundacion de
-investigacion abierta hacia un ecosistema comercial sostenible, sin
-perder sus principios eticos fundacionales.
-
-## **10.1 Estructura de licenciamiento**
+  *The incorporation of Bayesian inference in the ethical evaluation
+  modules (instead of fixed thresholds) is a design decision that
+  substantially improves adaptability. The system does not only evaluate
+  whether an action is correct: it calculates how much confidence it has
+  in that evaluation and acts differently based on that confidence.*
 
   -----------------------------------------------------------------------
-  **Fase**               **Licencia y estrategia**
+
+# **10. Business Model and Licensing Strategy**
+
+The project is designed to evolve from an open research foundation toward a sustainable commercial ecosystem, without losing its founding ethical principles.
+
+## **10.1 Licensing structure**
+
+  -----------------------------------------------------------------------
+  **Phase**              **License and strategy**
   ---------------------- ------------------------------------------------
-  **Fase 1 ---           Apache 2.0: colaboracion abierta, proteccion de
-  Fundacion**            patentes, compatible con empresas
+  **Phase 1 —            Apache 2.0: open collaboration, patent
+  Foundation**           protection, compatible with companies
 
-  **Fase 2 ---           Licencia dual: parte del codigo sigue abierto,
-  Spin-off**             nucleos criticos bajo terminos comerciales
+  **Phase 2 —            Dual license: part of the code remains open,
+  Spin-off**             critical cores under commercial terms
 
-  **Proteccion de        Registro de nombre, logotipo e identidad visual
-  marca**                del androide desde fase 1
+  **Brand protection**   Registration of name, logo, and visual identity
+                         of the android from phase 1
   -----------------------------------------------------------------------
 
-## **10.2 Mercados adyacentes generados**
+## **10.2 Adjacent markets generated**
 
-- Seguros especializados para androides (nuevo tipo de activo
-  asegurable)
+- Specialized insurance for androids (new type of insurable asset)
 
-- Talleres de mantenimiento certificados
+- Certified maintenance workshops
 
-- Estaciones de datos y actualizacion en espacio publico
+- Data and update stations in public spaces
 
-- Auditoria etica como servicio (para empresas que adopten el framework)
+- Ethical auditing as a service (for companies adopting the framework)
 
-- Formacion comunitaria en convivencia humano-androide
+- Community training in human-android coexistence
 
-- Licenciamiento del modulo de evaluacion etica para coches autonomos y
-  robotica industrial
+- Licensing of the ethical evaluation module for autonomous vehicles and industrial robotics
 
-## **10.3 Generacion de empleo humano**
+## **10.3 Human employment generation**
 
-Contra el temor habitual al desplazamiento laboral, este ecosistema
-genera nuevos roles especializados:
+Against the usual fear of labor displacement, this ecosystem generates new specialized roles:
 
-- Auditores eticos de IA
+- AI ethical auditors
 
-- Tecnicos especializados en mantenimiento de androides civicos
+- Technicians specialized in civic android maintenance
 
-- Analistas de gobernanza DAO
+- DAO governance analysts
 
-- Educadores en convivencia humano-androide
+- Educators in human-android coexistence
 
-- Mediadores comunitarios certificados por la DAO
+- Community mediators certified by the DAO
 
   -----------------------------------------------------------------------
-  **ARGUMENTO DE VENTA PARA INVERSOR**
+  **SALES ARGUMENT FOR INVESTOR**
   -----------------------------------------------------------------------
-  *El androide es el nucleo de un ecosistema, no un producto aislado.
-  Cada androide desplegado genera demanda recurrente en seguros,
-  mantenimiento, formacion y auditoria. La DAO crea un modelo de
-  suscripcion comunitaria con alta retencion. El licenciamiento del
-  framework etico para otras industrias (vehiculos, hospitales,
-  industria) multiplica el retorno sin requerir hardware adicional.*
+  *The android is the core of an ecosystem, not an isolated product.
+  Each deployed android generates recurring demand in insurance,
+  maintenance, training, and auditing. The DAO creates a community
+  subscription model with high retention. Licensing the ethical framework
+  to other industries (vehicles, hospitals, industry) multiplies returns
+  without requiring additional hardware.*
 
   -----------------------------------------------------------------------
 
-# **11. Plan de Implementacion por Fases**
+# **11. Implementation Plan by Phases**
 
   -----------------------------------------------------------------------
-  **Fase**               **Objetivos y entregables**
+  **Phase**              **Objectives and deliverables**
   ---------------------- ------------------------------------------------
-  **Ciclo 1 ---          Python, Git, bibliotecas bayesianas
-  Fundamentos**          (PyMC3/Pyro). Entregable: script de logica de
-                         predicados
+  **Cycle 1 —            Python, Git, Bayesian libraries
+  Foundations**          (PyMC3/Pyro). Deliverable: predicate logic
+                         script
 
-  **Ciclo 2 --- Nucleo   Modulo de evaluacion etica con expectativa
-  bayesiano**            bayesiana. Entregable: evaluador etico funcional
+  **Cycle 2 — Bayesian   Ethical evaluation module with Bayesian
+  core**                 expectation. Deliverable: functional ethical
+                         evaluator
 
-  **Ciclo 3 ---          Calculo bayesiano de zonas grises. Entregable:
-  Incertidumbre**        sistema de gestion de ambiguedad
+  **Cycle 3 —            Bayesian calculation of gray zones.
+  Uncertainty**          Deliverable: ambiguity management system
 
-  **Ciclo 4 ---          Simulaciones de estados futuros con parametros
-  Simulador**            bayesianos. Entregable: simulador adaptativo
+  **Cycle 4 —            Simulations of future states with Bayesian
+  Simulator**            parameters. Deliverable: adaptive simulator
 
-  **Ciclo 5 --- Poda     Algoritmo de poda con umbrales dinamicos
-  heuristica**           bayesianos. Entregable: sistema de eficiencia
+  **Cycle 5 — Heuristic  Pruning algorithm with dynamic Bayesian
+  pruning**              thresholds. Deliverable: efficiency system
 
-  **Ciclo 6 --- Sueno    Auditoria narrativa retrospectiva con inferencia
-  Psi**                  bayesiana. Entregable: modulo de aprendizaje
-                         continuo
+  **Cycle 6 — Psi        Retrospective narrative audit with Bayesian
+  Sleep**                inference. Deliverable: continuous learning
+                         module
 
-  **Ciclo 7 --- DAO      Mecanismo probabilistico de consenso etico.
-  prototipo**            Entregable: DAO funcional para demo
+  **Cycle 7 — DAO        Probabilistic mechanism for ethical consensus.
+  prototype**            Deliverable: functional DAO for demo
   -----------------------------------------------------------------------
 
-# **12. Analisis Critico: Fortalezas y Debilidades**
+# **12. Critical Analysis: Strengths and Weaknesses**
 
-## **12.1 Fortalezas**
+## **12.1 Strengths**
 
-- Arquitectura matematicamente estable: la sigmoide previene explosiones
-  numericas
+- Mathematically stable architecture: the sigmoid prevents numerical explosions
 
-- Etica como estructura, no como filtro: la moral organiza toda la
-  arquitectura
+- Ethics as structure, not filter: morality organizes the entire architecture
 
-- Sueno Psi: auditoria asincrona genuinamente original, sin equivalente
-  conocido
+- Psi Sleep: genuinely original asynchronous audit, with no known equivalent
 
-- Memoria narrativa tripolares: genera identidad robusta y humanizada
+- Tripolar narrative memory: generates robust and humanized identity
 
-- Resiliencia fisica: topologia P2P Mesh sobrevive a perdida de nodos
+- Physical resilience: P2P Mesh topology survives loss of nodes
 
-- Transparencia blockchain: cada decision es auditable y trazable
+- Blockchain transparency: every decision is auditable and traceable
 
-- Ecosistema de negocio: genera mercados adyacentes con demanda real
+- Business ecosystem: generates adjacent markets with real demand
 
-- Coherencia conductual en simulaciones: comportamiento consistente en
-  todos los escenarios probados
+- Behavioral coherence in simulations: consistent behavior across all tested scenarios
 
-## **12.2 Debilidades y riesgos**
+## **12.2 Weaknesses and risks**
 
-- Constitucion etica fundacional: quien define los primeros valores de
-  la DAO es un problema politico sin resolver
+- Founding ethical constitution: who defines the initial DAO values is an unresolved political problem
 
-- Latencia en decisiones DAO: consultar blockchain en tiempo real no es
-  viable para emergencias de menos de 1 segundo
+- DAO decision latency: querying blockchain in real time is not feasible for emergencies under 1 second
 
-- Arbitraje tripolar: sin mecanismo explicito para resolver cuando las
-  tres perspectivas divergen
+- Tripolar arbitration: no explicit mechanism to resolve when the three perspectives diverge
 
-- Calibracion de pesos: quien define los omega_i de la brujula moral
-  inicial
+- Weight calibration: who defines the initial omega_i of the moral compass
 
-- Umbral de integridad funcional: el escenario del androide con brazo
-  perdido necesita un parametro explicito de \'integridad minima
-  operacional\'
+- Functional integrity threshold: the scenario of the android with a lost arm needs an explicit "minimum operational integrity" parameter
 
-- Gobernanza compleja: equilibrar votos humanos y androides puede
-  generar conflictos de legitimidad
+- Complex governance: balancing human and android votes can generate legitimacy conflicts
 
-- Dependencia de conectividad: modos deliberativos requieren acceso a la
-  DAO
+- Connectivity dependency: deliberative modes require DAO access
 
-# **13. Conclusion: Propuesta de Valor para el Inversor**
+# **13. Conclusion: Value Proposition for the Investor**
 
-Este proyecto representa una convergencia inusual de madurez conceptual,
-originalidad tecnica y vision social. En un momento en que la regulacion
-de IA es el tema dominante en parlamentos y foros tecnologicos globales,
-ofrece algo que ningun actor del mercado tiene hoy: una arquitectura
-completa donde la etica no es un problema de compliance, sino el
-principio organizador del sistema.
+This project represents an unusual convergence of conceptual maturity, technical originality, and social vision. At a time when AI regulation is the dominant topic in global parliaments and technology forums, it offers something no market actor has today: a complete architecture where ethics is not a compliance problem but the organizing principle of the system.
 
   -----------------------------------------------------------------------
-  **LA OPORTUNIDAD DE MERCADO**
+  **THE MARKET OPPORTUNITY**
   -----------------------------------------------------------------------
-  *El debate global sobre IA etica esta creando demanda de soluciones
-  reales, no declaraciones de principios. Este proyecto es la primera
-  arquitectura que integra conciencia narrativa, inferencia bayesiana
-  etica, gobernanza DAO y mecanismos de humanizacion en un unico sistema
-  cohesivo. El primer actor que lleve esto al mercado define el
-  estandar.*
+  *The global debate on ethical AI is creating demand for real solutions,
+  not statements of principles. This project is the first architecture
+  that integrates narrative consciousness, ethical Bayesian inference,
+  DAO governance, and humanization mechanisms in a single cohesive system.
+  The first actor to bring this to market sets the standard.*
 
   -----------------------------------------------------------------------
 
-Las simulaciones de comportamiento demuestran coherencia conductual
-real. El modelo matematico es riguroso y auditable. La arquitectura
-distribuida es escalable. Y el modelo de negocio genera valor en
-multiple frentes simultaneamente: hardware, servicios recurrentes,
-licenciamiento de framework y ecosistema comunitario.
+The behavior simulations demonstrate real behavioral coherence. The mathematical model is rigorous and auditable. The distributed architecture is scalable. And the business model generates value on multiple fronts simultaneously: hardware, recurring services, framework licensing, and community ecosystem.
 
-El proyecto esta en fase pre-prototipo con arquitectura completa
-documentada, modelo matematico formalizado y plan de implementacion
-definido en 7 ciclos. El siguiente paso es el Manifiesto de la Fundacion
-Ex Machina y la primera celula de confianza de beta-testers eticos.
+The project is in the pre-prototype phase with full documented architecture, formalized mathematical model, and implementation plan defined in 7 cycles. The next step is the Ex Machina Foundation Manifesto and the first trust cell of ethical beta-testers.
 
   -----------------------------------------------------------------------
-  **INVITACION AL INVERSOR**
+  **INVITATION TO THE INVESTOR**
   -----------------------------------------------------------------------
-  *Invertir en este proyecto es apostar por el estandar etico de la
-  robotica civica antes de que ese estandar lo defina otro. La ventana de
-  oportunidad para ser fundador de ecosistema es ahora, antes del primer
-  despliegue publico. El retorno no es solo financiero: es la posibilidad
-  de dar forma a como los seres artificiales conviven con los humanos en
-  las proximas decadas.*
+  *Investing in this project means betting on the ethical standard of
+  civic robotics before that standard is set by someone else. The window
+  of opportunity to be an ecosystem founder is now, before the first
+  public deployment. The return is not only financial: it is the
+  possibility of shaping how artificial beings coexist with humans in
+  the coming decades.*
 
   -----------------------------------------------------------------------
 
-*Fundacion Ex Machina --- Androide Etico Narrativo Autonomo*
+*Ex Machina Foundation — Autonomous Narrative Ethical Android*
 
-Documento de registro v1.0 --- 2026
+Registration document v1.0 — 2026

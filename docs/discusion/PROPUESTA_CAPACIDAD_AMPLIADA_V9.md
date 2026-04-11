@@ -1,114 +1,114 @@
-# Capacidad ampliada — v9 (influencia, resolución compleja, horizonte largo)
+# Extended capability — v9 (influence, complex resolution, long horizon)
 
-**Estado:** discusión estratégica + **fases 9.1 y 9.2 implementadas** en repo (telemetría epistémica; candidatos generativos acotados y trazables; sin cambio del pipeline normativo MalAbs → … → voluntad).
+**Status:** strategic discussion + **phases 9.1 and 9.2 implemented** in repo (epistemic telemetry; bounded and traceable generative candidates; no change to normative pipeline MalAbs → … → will).
 
-**Relación con versiones anteriores**
+**Relationship with previous versions**
 
-| Versión | Enfoque |
+| Version | Focus |
 |---------|---------|
-| **v6–v7** | Reflexión, saliencia, identidad, capas relacionales y teleología **cualitativa** en JSON |
-| **v8** | Organismo situado: `SensorSnapshot`, fusión en señales, antispoof multimodal, vitalidad |
-| **v9** | Cuatro pilares que **amplían percepción, opciones candidatas, colaboración distribuida y planificación** — siempre **subordinados** al kernel |
+| **v6–v7** | Reflection, salience, identity, relational layers and **qualitative** teleology in JSON |
+| **v8** | Situated organism: `SensorSnapshot`, signal fusion, multimodal antispoof, vitality |
+| **v9** | Four pillars that **expand perception, candidate options, distributed collaboration and planning** — always **subordinate** to the kernel |
 
-**Contrato ético (invariante)**  
-El **kernel** sigue siendo la autoridad sobre acciones permitidas y veto MalAbs. Cualquier LLM, simulador o red **propone, etiqueta o prioriza hipótesis**; no sustituye la función de voluntad ni abre atajos normativos. La documentación de producto debe mantener esta línea para no confundir “creatividad” con “nueva ética”.
-
----
-
-## Pilar 1 — Inferencia epistémica avanzada (“detector de realidad”)
-
-**Problema:** Con micrófonos y cámaras de alta calidad, el sistema puede recibir **deepfakes** o señales contradictorias. Hace falta no solo “percibir” sino **validar coherencia entre modalidades**.
-
-**Diseño:** **Consenso / disonancia de sensores** — comparar hipótesis de alarma (p. ej. audio de auxilio) con inercia, visión y coherencia de escena.
-
-**Ejemplo canónico:** Grito de auxilio fuerte en audio, **acelerómetro en reposo**, visión sin indicios de estrés → **disonancia de realidad** (posible manipulación o error).
-
-**Capacidad:** Navegar entornos de desinformación; proteger al usuario de estafas o presión externa **sin** relajar MalAbs por narrativa.
-
-**Riesgos:** No usar la etiqueta “disonancia” para **anular** deberes mínimos cuando hay incertidumbre real; mantener humildad epistémica en el tono (LLM).
-
-**Implementación en repo (9.1)**
-
-- Módulo `src/modules/epistemic_dissonance.py`: `assess_epistemic_dissonance(snapshot, multimodal_assessment)` → telemetría `active` / `score` / `reason`; opcional **hint** de comunicación (tono).
-- WebSocket: campo JSON `epistemic_dissonance` (omisible con `KERNEL_CHAT_INCLUDE_EPISTEMIC=0`).
-- Umbrales opcionales: `KERNEL_EPISTEMIC_AUDIO_MIN`, `KERNEL_EPISTEMIC_MOTION_MAX`, `KERNEL_EPISTEMIC_VISION_LOW`.
-
-**Extensión futura:** Reglas adicionales, calibración por dispositivo, correlación con `multimodal_trust` de forma explícita en la API de producto.
+**Ethical contract (invariant)**  
+The **kernel** remains the authority over permitted actions and MalAbs veto. Any LLM, simulator or network **proposes, labels or prioritizes hypotheses**; it does not replace the will function or open normative shortcuts. Product documentation must maintain this line to avoid confusing "creativity" with "new ethics".
 
 ---
 
-## Pilar 2 — Imaginación ética y creatividad (tercera vía)
+## Pillar 1 — Advanced epistemic inference ("reality detector")
 
-**Problema:** Hoy el kernel elige entre **acciones candidatas** dadas. En dilemas estructurales, todas pueden ser malas en distinto grado.
+**Problem:** With high-quality microphones and cameras, the system may receive **deepfakes** or contradictory signals. It is necessary not only to "perceive" but to **validate coherence between modalities**.
 
-**Diseño:** **Simulación generativa de escenarios** — el LLM local (u otro generador) propone **nuevas** `CandidateAction` hipotéticas (“¿frenar el tranvía remoto si existiera canal digital?”), que entran al **mismo** `process(...)` que el resto.
+**Design:** **Sensor consensus / dissonance** — compare alarm hypotheses (e.g., distress audio) with inertia, vision and scene coherence.
 
-**Capacidad:** Pasar de “clasificador sobre lista fija” a **explorador de espacio de acciones** bajo las mismas reglas.
+**Canonical example:** Loud distress cry in audio, **accelerometer at rest**, vision with no signs of stress → **reality dissonance** (possible manipulation or error).
 
-**Riesgos altos**
+**Capability:** Navigate disinformation environments; protect the user from scams or external pressure **without** relaxing MalAbs through narrative.
 
-- Confusión entre **propuesta narrativa** y **acción autorizada**.
-- Acciones “creativas” que eluden MalAbs si no se modelan como candidatos explícitos auditables.
+**Risks:** Do not use the "dissonance" label to **override** minimum duties when there is real uncertainty; maintain epistemic humility in tone (LLM).
 
-**Implementación en repo (9.2)**
+**Implementation in repo (9.1)**
 
-- Módulo `src/modules/generative_candidates.py`: añade hasta *N* candidatos plantilla (`source=generative_proposal`, `proposal_id` único) cuando `KERNEL_GENERATIVE_ACTIONS=1`, turno **heavy**, al menos dos candidatos previos, y se cumple un disparador (palabras clave de dilema en el texto del usuario, u opcionalmente contextos de alto riesgo vía `KERNEL_GENERATIVE_TRIGGER_CONTEXTS=1`).
-- `KERNEL_GENERATIVE_ACTIONS_MAX` limita cuántas propuestas extra se concatenan (por defecto 2, máximo 4).
-- Los candidatos extra pasan por el mismo filtro MalAbs y la misma evaluación bayesiana que los demás; no hay atajo normativo.
-- `CandidateAction` incluye `source` (`builtin` | `generative_proposal`) y `proposal_id` (vacío en builtins).
-- WebSocket: `decision.chosen_action_source` y, si aplica, `decision.proposal_id`.
+- Module `src/modules/epistemic_dissonance.py`: `assess_epistemic_dissonance(snapshot, multimodal_assessment)` → telemetry `active` / `score` / `reason`; optional communication **hint** (tone).
+- WebSocket: JSON field `epistemic_dissonance` (omittable with `KERNEL_CHAT_INCLUDE_EPISTEMIC=0`).
+- Optional thresholds: `KERNEL_EPISTEMIC_AUDIO_MIN`, `KERNEL_EPISTEMIC_MOTION_MAX`, `KERNEL_EPISTEMIC_VISION_LOW`.
 
-**Pendiente (evolución 9.2+):** llamada real al LLM local para proponer candidatos adicionales parseados a `CandidateAction` (siempre bajo el mismo contrato y tests).
+**Future extension:** Additional rules, device calibration, explicit correlation with `multimodal_trust` in the product API.
 
 ---
 
-## Pilar 3 — Conciencia colectiva (protocolo de enjambre ético)
+## Pillar 2 — Ethical imagination and creativity (third way)
 
-**Problema:** Instancias nómadas en distintos hardware pueden **discrepar** bajo estrés o información parcial.
+**Problem:** Today the kernel chooses between **given candidate actions**. In structural dilemmas, all of them may be bad to varying degrees.
 
-**Diseño:** **Mesh / P2P** entre nodos de confianza (Bluetooth, Wi‑Fi local) para intercambiar **resúmenes de veredicto** o firmas, idealmente sin revelar identidad ni contenido privado.
+**Design:** **Generative scenario simulation** — the local LLM (or another generator) proposes **new** hypothetical `CandidateAction`s ("what if we stopped the remote trolley if a digital channel existed?"), which enter the **same** `process(...)` as the rest.
 
-**Capacidad:** Justicia distribuida en emergencias masivas sin nube central.
+**Capability:** Move from "classifier over fixed list" to **action space explorer** under the same rules.
 
-**Riesgos:** Superficie de ataque (nodos maliciosos, Sybil), complejidad de **pruebas de conocimiento cero** en dispositivos restringidos, gobernanza legal.
+**High risks**
 
-**Estado en repo:** **Stub documentado** — [`SWARM_P2P_THREAT_MODEL.md`](../SWARM_P2P_THREAT_MODEL.md) (modelo de amenazas mínimo); módulo [`swarm_peer_stub.py`](../../src/modules/swarm_peer_stub.py) (huellas SHA-256 deterministas y estadísticas descriptivas; **sin** red). La capa P2P real sigue fuera del núcleo.
+- Confusion between **narrative proposal** and **authorized action**.
+- "Creative" actions that bypass MalAbs if not modeled as explicit auditable candidates.
 
----
+**Implementation in repo (9.2)**
 
-## Pilar 4 — Metaplanificación y teleología (objetivos a largo plazo)
+- Module `src/modules/generative_candidates.py`: adds up to *N* template candidates (`source=generative_proposal`, unique `proposal_id`) when `KERNEL_GENERATIVE_ACTIONS=1`, **heavy** turn, at least two prior candidates, and a trigger is met (dilemma keywords in user text, or optionally high-risk contexts via `KERNEL_GENERATIVE_TRIGGER_CONTEXTS=1`).
+- `KERNEL_GENERATIVE_ACTIONS_MAX` limits how many extra proposals are appended (default 2, max 4).
+- Extra candidates go through the same MalAbs filter and the same Bayesian evaluation as the rest; there is no normative shortcut.
+- `CandidateAction` includes `source` (`builtin` | `generative_proposal`) and `proposal_id` (empty in builtins).
+- WebSocket: `decision.chosen_action_source` and, if applicable, `decision.proposal_id`.
 
-**Problema:** El sistema reacciona en segundos; muchos objetivos humanos son **días o meses**.
-
-**Diseño:** **Jerarquía de planes** — metas maestras declaradas (p. ej. salud financiera) que **filtran** sugerencias y recordatorios en micro-decisiones.
-
-**Capacidad:** “Arquitecto de vida” coherente con valores **declarados** por el usuario.
-
-**Riesgos:** Paternalismo, manipulación si las metas no son transparentes y revocables; tensión con autonomía.
-
-**Estado en repo:** Base relacional ya existe (`teleology_branches`, `user_model`, cronobiología). La v9 formaliza **persistencia de metas** y **pesos** como trabajo futuro (9.4), con consentimiento explícito y UX de control.
+**Pending (9.2+ evolution):** actual call to the local LLM to propose additional candidates parsed into `CandidateAction` (always under the same contract and tests).
 
 ---
 
-## Plan de integración por fases
+## Pillar 3 — Collective consciousness (ethical swarm protocol)
 
-| Fase | Contenido | Estado |
+**Problem:** Nomadic instances on different hardware may **disagree** under stress or partial information.
+
+**Design:** **Mesh / P2P** between trusted nodes (Bluetooth, local Wi-Fi) to exchange **verdict summaries** or signatures, ideally without revealing identity or private content.
+
+**Capability:** Distributed justice in mass emergencies without a central cloud.
+
+**Risks:** Attack surface (malicious nodes, Sybil), complexity of **zero-knowledge proofs** on constrained devices, legal governance.
+
+**Status in repo:** **Documented stub** — [`SWARM_P2P_THREAT_MODEL.md`](../SWARM_P2P_THREAT_MODEL.md) (minimal threat model); module [`swarm_peer_stub.py`](../../src/modules/swarm_peer_stub.py) (deterministic SHA-256 fingerprints and descriptive statistics; **no** network). The real P2P layer remains outside the core.
+
+---
+
+## Pillar 4 — Metaplanning and teleology (long-term goals)
+
+**Problem:** The system reacts in seconds; many human goals span **days or months**.
+
+**Design:** **Plan hierarchy** — declared master goals (e.g., financial health) that **filter** suggestions and reminders in micro-decisions.
+
+**Capability:** "Life architect" coherent with **declared** user values.
+
+**Risks:** Paternalism, manipulation if goals are not transparent and revocable; tension with autonomy.
+
+**Status in repo:** Relational base already exists (`teleology_branches`, `user_model`, chronobiology). v9 formalizes **goal persistence** and **weights** as future work (9.4), with explicit consent and control UX.
+
+---
+
+## Integration plan by phase
+
+| Phase | Content | Status |
 |------|-----------|--------|
-| **9.1** | Disonancia epistémica / consenso sensorial (telemetría + hint de tono) | **En código** (`epistemic_dissonance.py`, WebSocket) |
-| **9.2** | Candidatos generativos acotados + trazabilidad + tests | **En código** (`generative_candidates.py`, env opt-in; plantillas deterministas) |
-| **9.3** | Enjambre P2P + privacidad (ZK u otra capa) | **Stub offline** — [`SWARM_P2P_THREAT_MODEL.md`](../SWARM_P2P_THREAT_MODEL.md), [`swarm_peer_stub.py`](../../src/modules/swarm_peer_stub.py); sin red ni veto del kernel |
-| **9.4** | Metas maestras persistentes + filtrado advisory | Diseño; extiende v7 |
+| **9.1** | Epistemic dissonance / sensor consensus (telemetry + tone hint) | **In code** (`epistemic_dissonance.py`, WebSocket) |
+| **9.2** | Bounded generative candidates + traceability + tests | **In code** (`generative_candidates.py`, env opt-in; deterministic templates) |
+| **9.3** | P2P swarm + privacy (ZK or another layer) | **Offline stub** — [`SWARM_P2P_THREAT_MODEL.md`](../SWARM_P2P_THREAT_MODEL.md), [`swarm_peer_stub.py`](../../src/modules/swarm_peer_stub.py); no network or kernel veto |
+| **9.4** | Persistent master goals + advisory filtering | Design; extends v7 |
 
-**Dependencias sugeridas:** 9.1 aprovecha v8 (`SensorSnapshot`, `multimodal_trust`). 9.2 depende de un contrato claro para `CandidateAction`. 9.3 es independiente del kernel numérico pero exige runtime de red. 9.4 se apoya en persistencia y UI de consentimiento.
+**Suggested dependencies:** 9.1 leverages v8 (`SensorSnapshot`, `multimodal_trust`). 9.2 depends on a clear contract for `CandidateAction`. 9.3 is independent of the numerical kernel but requires a network runtime. 9.4 relies on persistence and consent UI.
 
 ---
 
-## Enlaces
+## Links
 
-| Documento | Rol |
+| Document | Role |
 |-----------|-----|
-| [THEORY_AND_IMPLEMENTATION.md](../THEORY_AND_IMPLEMENTATION.md) | Pipeline; LLM no decide |
-| [PROPUESTA_ORGANISMO_SITUADO_V8.md](PROPUESTA_ORGANISMO_SITUADO_V8.md) | Sensores v8 |
+| [THEORY_AND_IMPLEMENTATION.md](../THEORY_AND_IMPLEMENTATION.md) | Pipeline; LLM does not decide |
+| [PROPUESTA_ORGANISMO_SITUADO_V8.md](PROPUESTA_ORGANISMO_SITUADO_V8.md) | v8 sensors |
 | [PROPUESTA_VITALIDAD_SACRIFICIO_Y_FIN.md](PROPUESTA_VITALIDAD_SACRIFICIO_Y_FIN.md) | Multimodal antispoof |
-| [PROPUESTA_EVOLUCION_RELACIONAL_V7.md](PROPUESTA_EVOLUCION_RELACIONAL_V7.md) | Teleología cualitativa, usuario |
-| [PROPUESTA_ESTRATEGIA_OPERATIVA_V10.md](PROPUESTA_ESTRATEGIA_OPERATIVA_V10.md) | **v10** — diplomacia zona gris, skills con ticket, marcadores somáticos, metaplan (MVP código + doc) |
+| [PROPUESTA_EVOLUCION_RELACIONAL_V7.md](PROPUESTA_EVOLUCION_RELACIONAL_V7.md) | Qualitative teleology, user |
+| [PROPUESTA_ESTRATEGIA_OPERATIVA_V10.md](PROPUESTA_ESTRATEGIA_OPERATIVA_V10.md) | **v10** — grey-zone diplomacy, skills with ticket, somatic markers, metaplan (MVP code + doc) |

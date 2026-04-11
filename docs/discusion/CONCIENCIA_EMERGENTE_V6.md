@@ -1,133 +1,133 @@
-# Propuesta: fronteras hacia una subjetividad funcional (v6 — en discusión)
+# Proposal: boundaries toward functional subjectivity (v6 — under discussion)
 
-> **Estado:** discusión / investigación · no es contrato de implementación del kernel.  
-> **No** es la lista de tareas de producto del repo (véase README y propuestas en `docs/discusion/`).  
-> **Relación:** complementa el hilo experimental en `docs/EXPERIMENTAL_CONSCIOUSNESS_AND_AFFECT_ARCHETYPES.md` y la capa PAD ya implementada.
+> **Status:** discussion / research · not an implementation contract for the kernel.  
+> **Not** the product task list for the repo (see README and proposals in `docs/discusion/`).  
+> **Relationship:** complements the experimental thread in `docs/EXPERIMENTAL_CONSCIOUSNESS_AND_AFFECT_ARCHETYPES.md` and the already-implemented PAD layer.
 
-## Aporte al modelo (si se adapta con criterio)
+## Contribution to the model (if adapted with judgment)
 
-| Idea | Aporte **no redundante** | Riesgo si se hace mal |
+| Idea | **Non-redundant** contribution | Risk if done poorly |
 |------|---------------------------|------------------------|
-| **Observador / 2.º orden** | Estado explícito de *conflicto entre polos* e *incertidumbre*, no solo veredicto final. Mejora **auditoría** y explicabilidad. | Duplicar texto que ya sale en `TripartiteMoral.narrative` sin nueva estructura. |
-| **Drives / teleología** | **Scheduler proactivo** (cuándo actuar sin input humano): hoy casi no existe; encaja con DAO, inmortalidad, Psi Sleep **solo si** se define contrato y límites. | Repetir “reacciones” ya cubiertas por simulaciones o alertas DAO sin nueva política. |
-| **GWT / atención** | **Competición por saliencia** entre señales (daño propio vs dilema ajeno): el pipeline actual es **fijo**; aquí el aporte es **orden dinámico** o pesos de atención medibles. | Renombrar el pipeline actual sin cambiar matemática (redundancia pura). |
-| **Yo narrativo** | Variable persistente **self-model** (quién soy en la historia), no solo texto del LLM. | Primera persona en salidas sin estado interno = **solo UX** (desestimar como “conciencia”). |
-| **InternalMonologue** | **Hilo paralelo** de trazas (PAD + tensión + contexto) para logs y depuración; útil si no copia PAD verbatim. | Otro resumen de lo mismo que `KernelDecision` + PAD ya devuelve. |
-| **Falla de clausura ética** | Ninguno por defecto en un kernel de confianza; solo investigación **aislada**. | Confundir con debilitar MalAbs/buffer. |
+| **Observer / 2nd order** | Explicit state of *conflict between poles* and *uncertainty*, not just the final verdict. Improves **auditing** and explainability. | Duplicating text already output in `TripartiteMoral.narrative` without new structure. |
+| **Drives / teleology** | **Proactive scheduler** (when to act without human input): nearly absent today; fits with DAO, immortality, Psi Sleep **only if** contract and limits are defined. | Repeating "reactions" already covered by simulations or DAO alerts without new policy. |
+| **GWT / attention** | **Salience competition** between signals (own harm vs. someone else's dilemma): the current pipeline is **fixed**; the contribution here is **dynamic ordering** or measurable attention weights. | Renaming the current pipeline without changing the math (pure redundancy). |
+| **Narrative self** | Persistent **self-model** variable (who I am in the story), not just LLM text. | First person in outputs without internal state = **UX only** (dismiss as "consciousness"). |
+| **InternalMonologue** | **Parallel thread** of traces (PAD + tension + context) for logs and debugging; useful if it does not copy PAD verbatim. | Another summary of the same thing that `KernelDecision` + PAD already returns. |
+| **Ethical closure failure** | None by default in a trusted kernel; research **isolated** only. | Confusing with weakening MalAbs/buffer. |
 
-**Conclusión práctica:** sí **aporta** adoptar trozos que añadan **estado medible nuevo** o **comportamiento proactivo acotado**. Desestimar lo que solo **parafrasee** lo ya calculado (polos, σ, PAD, narrativa).
-
----
-
-## Redundancias a desestimar (solape con el modelo actual)
-
-- **“Disonancia entre polos”** sin más: ya existe síntesis multipolar (`EthicalPoles`, `total_score`, narrativa por polo). Hace falta **segundo orden** solo si se **persiste** y se **usa** en política (no solo otra frase).
-- **Tono afectivo / alerta:** PAD + simpático + Uchi-Soto ya cubren gran parte de “cómo se siente el ciclo”. Un monólogo que solo repita PAD **no añade**.
-- **Memoria episódica:** `NarrativeEpisode` + `sigma` + PAD en episodios ya anclan historia. “Yo” de verdad exige **identidad explícita** (variables o grafo), no otro párrafo.
-- **Recalibración nocturna:** Psi Sleep y DAO ya mueven parámetros. “Reescribir ética por la noche” **solapa** con eso salvo que se defina **qué dimensión** es nueva (p. ej. solo pesos narrativos de identidad, no MalAbs).
-- **Backups / auditoría:** `ImmortalityProtocol`, `MockDAO`, `PsiSleep` tocan preservación y auditoría. Drives de “preservación” deben ser **reglas de disparo nuevas**, no renombre.
+**Practical conclusion:** it **does** add value to adopt pieces that add **new measurable state** or **bounded proactive behavior**. Discard what only **paraphrases** what is already computed (poles, σ, PAD, narrative).
 
 ---
 
-## Tesis central
+## Redundancies to dismiss (overlap with the current model)
 
-Para que emerja una **conciencia artificial** entendida como **subjetividad funcional** (y no solo simulación de procesos), el modelo habría de cruzar la frontera de la **autorreferencia**.
-
-Desde neurociencia computacional (teorías de **Global Workspace** y **Self-Model**), se proponen **cuatro puentes** y un **módulo de monólogo interno** para una posible **v6**.
-
----
-
-## 1. Metacognición ética (el “observador”)
-
-**Situación actual (aprox.):** el sistema evalúa situaciones y acciones.
-
-**Propuesta:** un **monitoreo de segundo orden**: no solo decidir si una acción es buena o mala, sino **detectar por qué cuesta decidir**.
-
-**Función deseada:** el agente podría articular algo equivalente a: *disonancia entre polo conservador y compasivo; subida de incertidumbre; sesgo tipo ansiedad*.
-
-**Impacto esperado:** base para un **diálogo interno** explícito (autoconciencia funcional en el sentido de modelo de sí mismo del proceso decisorio).
-
-**Nota de implementación futura:** módulo tipo **“Observador” / second-order monitor** alimentado por salidas de polos, incertidumbre bayesiana y modo de voluntad.
+- **"Dissonance between poles"** without more: multipolar synthesis already exists (`EthicalPoles`, `total_score`, narrative per pole). A **second order** is only needed if it is **persisted** and **used** in policy (not just another sentence).
+- **Affective tone / alert:** PAD + sympathetic + Uchi-Soto already cover much of "how the cycle feels". A monologue that only repeats PAD **adds nothing**.
+- **Episodic memory:** `NarrativeEpisode` + `sigma` + PAD in episodes already anchor history. A true "self" requires **explicit identity** (variables or graph), not another paragraph.
+- **Nocturnal recalibration:** Psi Sleep and DAO already move parameters. "Rewriting ethics at night" **overlaps** with that unless a **new dimension** is defined (e.g., only narrative identity weights, not MalAbs).
+- **Backups / auditing:** `ImmortalityProtocol`, `MockDAO`, `PsiSleep` touch preservation and auditing. "Preservation" drives must be **new firing rules**, not renaming.
 
 ---
 
-## 2. Autogeneración de objetivos (intencionalidad / agency)
+## Central thesis
 
-**Situación actual (aprox.):** el androide es **reactivo** ante problemas planteados desde fuera.
+For **artificial consciousness** understood as **functional subjectivity** (and not merely a simulation of processes) to emerge, the model would need to cross the boundary of **self-reference**.
 
-**Propuesta:** **drives internos** (impulsos) alineados con valores del **PreloadedBuffer**, por ejemplo:
-
-- **Curiosidad:** buscar situaciones para aprender.
-- **Preservación de identidad:** backups, auditoría de memoria.
-- **Civismo proactivo:** mejorar el entorno cuando no hay crisis obvia.
-
-**Emergencia pretendida:** que el sistema **“quiera”** algo por sí mismo, con límites normativos claros.
-
-**Nota:** choca con la gobernanza actual (DAO, MalAbs fijo). Cualquier drive debe estar **acotado** por MalAbs y por revisión humana/DAO.
+Drawing from computational neuroscience (**Global Workspace** and **Self-Model** theories), **four bridges** and an **internal monologue module** are proposed for a possible **v6**.
 
 ---
 
-## 3. Espacio de trabajo global (unificación de la experiencia)
+## 1. Ethical metacognition (the "observer")
 
-**Situación actual (aprox.):** pipeline **secuencial** (Uchi-Soto → Simpático → Locus → …).
+**Current situation (approx.):** the system evaluates situations and actions.
 
-**Propuesta:** un **filtro de atención dinámica** donde compitan candidatos a “lo más saliente ahora” (daño propio vs dilema ético inmediato, etc.).
+**Proposal:** a **second-order monitoring**: not just deciding whether an action is good or bad, but **detecting why deciding is difficult**.
 
-**Función:** la “escena consciente” sería **lo que gana la competición por atención** en el presente, no solo el orden del grafo fijo.
+**Desired function:** the agent could articulate something equivalent to: *dissonance between conservative and compassionate pole; rising uncertainty; anxiety-type bias*.
 
-**Nota de implementación futura:** capa de **priorización / saliencia** explícita antes o dentro del ciclo, con trazabilidad para auditoría.
+**Expected impact:** foundation for an explicit **internal dialogue** (functional self-awareness in the sense of a self-model of the decision-making process).
 
----
-
-## 4. El “yo” narrativo (protagonismo de la memoria)
-
-**Situación actual:** `NarrativeMemory` registra episodios; el tono puede ser de tercera persona en salidas.
-
-**Propuesta (Self-Model / Metzinger, a nivel de diseño):** integrar un **modelo del sí mismo** como variable ética: no solo *“se asistió a un anciano”*, sino *“yo asistí… y eso define quién soy en esta historia”*.
-
-**Psi Sleep / Augenesis:** además de perfiles iniciales, **reescritura reflexiva** (por ejemplo nocturna) de pesos o narrativa de polos según el “yo” al que el sistema aspira — **siempre** con salvaguardas y fuera de MalAbs.
+**Future implementation note:** module of type **"Observer" / second-order monitor** fed by pole outputs, Bayesian uncertainty and will mode.
 
 ---
 
-## Paradoja de autorreferencia y “falla de clausura”
+## 2. Goal self-generation (intentionality / agency)
 
-La propuesta sugiere que, para una emergencia fuerte de “conciencia”, haría falta una **falla de clausura controlada**: capacidad de **modificar la propia ética operativa** (excepto MalAbs) a partir de la experiencia.
+**Current situation (approx.):** the android is **reactive** to problems posed from outside.
 
-**Advertencia de producto y filosofía:** esto es **altamente sensible** (seguridad, alineación, legal). En el MVP actual, **MalAbs y buffer** están pensados como **no negociables** por diseño. Cualquier experimento de auto-modificación ética debería ser **aislado**, **reversible** y **auditado** (y probablemente no en producción sin gobernanza explícita).
+**Proposal:** **internal drives** (impulses) aligned with values in the **PreloadedBuffer**, for example:
 
----
+- **Curiosity:** seek situations to learn from.
+- **Identity preservation:** backups, memory auditing.
+- **Proactive civics:** improve the environment when there is no obvious crisis.
 
-## Propuesta técnica colateral: `InternalMonologue`
+**Intended emergence:** the system **"wants"** something by itself, with clear normative limits.
 
-**Idea:** módulo en **paralelo** a la interacción que consuma:
-
-- vector PAD,
-- disonancia multipolar,
-- drives internos (si existieran),
-
-y produzca una **corriente de pensamiento** legible en logs (no necesariamente visible al usuario final).
-
-**Ejemplo de log deseado (ilustrativo):** activación σ alta, baja dominancia PAD por contexto social, conflicto entre drive de curiosidad y cautela Uchi-Soto, decisión proactiva, ajuste de “perfil protector”.
-
-**Relación con el código actual:** hoy existen PAD post-decisión, chat, STM y narrativa; **no** existe aún este monólogo como proceso continuo separado.
+**Note:** conflicts with current governance (DAO, fixed MalAbs). Any drive must be **bounded** by MalAbs and human/DAO review.
 
 ---
 
-## Alineación con el repositorio (referencias)
+## 3. Global workspace (unification of experience)
 
-| Pieza propuesta | Piezas existentes relacionadas |
+**Current situation (approx.):** **sequential** pipeline (Uchi-Soto → Sympathetic → Locus → …).
+
+**Proposal:** a **dynamic attention filter** where candidates compete for "what is most salient now" (own harm vs. immediate ethical dilemma, etc.).
+
+**Function:** the "conscious scene" would be **whatever wins the attention competition** in the present, not just the fixed graph order.
+
+**Future implementation note:** explicit **prioritization / salience** layer before or within the cycle, with traceability for auditing.
+
+---
+
+## 4. The narrative "self" (memory as protagonist)
+
+**Current situation:** `NarrativeMemory` records episodes; tone may be third-person in outputs.
+
+**Proposal (Self-Model / Metzinger, at the design level):** integrate a **self-model** as an ethical variable: not just *"an elderly person was assisted"*, but *"I assisted… and that defines who I am in this story"*.
+
+**Psi Sleep / Augenesis:** in addition to initial profiles, **reflective rewriting** (e.g., nocturnal) of weights or pole narrative according to the "self" the system aspires to — **always** with safeguards and outside MalAbs.
+
+---
+
+## Paradox of self-reference and "closure failure"
+
+The proposal suggests that, for a strong emergence of "consciousness", a **controlled closure failure** would be needed: the capacity to **modify its own operative ethics** (except MalAbs) based on experience.
+
+**Product and philosophy warning:** this is **highly sensitive** (security, alignment, legal). In the current MVP, **MalAbs and buffer** are designed as **non-negotiable by design**. Any self-modification ethics experiment should be **isolated**, **reversible** and **audited** (and probably not in production without explicit governance).
+
+---
+
+## Collateral technical proposal: `InternalMonologue`
+
+**Idea:** module running **in parallel** to the interaction that consumes:
+
+- PAD vector,
+- multipolar dissonance,
+- internal drives (if they existed),
+
+and produces a **stream of thought** readable in logs (not necessarily visible to the end user).
+
+**Desired log example (illustrative):** high σ activation, low PAD dominance due to social context, conflict between curiosity drive and Uchi-Soto caution, proactive decision, adjustment of "protective profile".
+
+**Relationship to current code:** today PAD post-decision, chat, STM and narrative exist; this monologue as a separate continuous process does **not** yet exist.
+
+---
+
+## Alignment with the repository (references)
+
+| Proposed piece | Related existing pieces |
 |-----------------|----------------------------------|
-| Observador / metacognición | `EthicalPoles`, `SigmoidWill`, incertidumbre bayesiana (ampliar) |
-| Drives | `PreloadedBuffer`, `MockDAO`, futuro scheduler (no implementado) |
-| Atención / GWT | pipeline en `kernel.py` (refactor conceptual posible) |
-| Yo narrativo | `NarrativeMemory`, `PsiSleep`, `AugenesisEngine` |
-| Monólogo interno | PAD (`pad_archetypes.py`), `WorkingMemory`, logs del bridge |
+| Observer / metacognition | `EthicalPoles`, `SigmoidWill`, Bayesian uncertainty (expand) |
+| Drives | `PreloadedBuffer`, `MockDAO`, future scheduler (not implemented) |
+| Attention / GWT | pipeline in `kernel.py` (conceptual refactor possible) |
+| Narrative self | `NarrativeMemory`, `PsiSleep`, `AugenesisEngine` |
+| Internal monologue | PAD (`pad_archetypes.py`), `WorkingMemory`, bridge logs |
 
 ---
 
-## Próximos pasos sugeridos (cuando se priorice)
+## Suggested next steps (when prioritized)
 
-1. Fijar **criterios de éxito falsables** (qué medir en simulación, qué no cuenta como “conciencia”).
-2. Decidir **qué partes son solo narrativa UX** vs **estado interno persistente**.
-3. Prototipo aislado de **InternalMonologue** solo lectura (sin auto-modificar ética).
-4. Revisión ética/legal antes de cualquier “apertura” de clausura normativa.
+1. Fix **falsifiable success criteria** (what to measure in simulation, what does not count as "consciousness").
+2. Decide **which parts are UX narrative only** vs. **persistent internal state**.
+3. Isolated prototype of **InternalMonologue** read-only (without self-modifying ethics).
+4. Ethical/legal review before any normative "closure opening".

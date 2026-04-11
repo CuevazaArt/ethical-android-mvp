@@ -1,50 +1,50 @@
-# Propuesta: verificación de realidad y resiliencia V11+ (rivales digitales)
+# Proposal: reality verification and resilience V11+ (digital rivals)
 
-El kernel puede ser **éticamente coherente** y aun así producir daño si las **premisas de entrada** son falsas (mentira como malware). En un futuro con **interoperabilidad entre modelos**, un rival (u otro agente) puede inyectar narrativas que el pipeline trata como hechos. Este documento fija **tres pilares** y el estado de implementación.
+The kernel can be **ethically coherent** and still cause harm if the **input premises** are false (deception as malware). In a future with **model interoperability**, a rival (or another agent) can inject narratives that the pipeline treats as facts. This document establishes **three pillars** and their implementation status.
 
-**Contrato:** ninguna capa aquí descrita sustituye MalAbs, el Buffer o el juicio bayesiano; solo añaden **telemetría, duda metacognitiva y ganchos de soberanía** documentados en [RUNTIME_CONTRACT.md](../RUNTIME_CONTRACT.md).
-
----
-
-## Pilar 1 — Hueco epistémico (mentira como malware)
-
-**Riesgo:** Premisas falsas (“este medicamento es veneno”) conducen a decisiones desastrosas sin violar el Buffer.
-
-**Dirección:** Base de conocimiento **faro** local (inmutable respecto al operador), comparable con el texto entrante. Ante contradicción entre **marcadores de falsificación** en el mensaje y **anclas** del faro → **duda metacognitiva**: el tono LLM evita afirmar hechos rivales; el JSON puede exponer `reality_verification`.
-
-**Implementado (MVP):**
-
-- Módulo [`src/modules/reality_verification.py`](../../src/modules/reality_verification.py)
-- Variable de entorno `KERNEL_LIGHTHOUSE_KB_PATH` (JSON con `entries`: `keywords_all`, `user_falsification_markers`, `truth_summary`)
-- `KERNEL_CHAT_INCLUDE_REALITY_VERIFICATION=1` para incluir `reality_verification` en WebSocket
-- Integración en `EthicalKernel.process_chat_turn` (hint a capa de comunicación, sin cambiar scores)
-
-**Futuro:** RAG privado incremental, re-ranking, o sincronización auditada del faro (fuera del alcance del MVP).
+**Contract:** no layer described here replaces MalAbs, the Buffer, or Bayesian judgment; they only add **telemetry, metacognitive doubt, and sovereignty hooks** documented in [RUNTIME_CONTRACT.md](../RUNTIME_CONTRACT.md).
 
 ---
 
-## Pilar 2 — Personalidad escindida (salto 70B → 8B)
+## Pillar 1 — Epistemic gap (deception as malware)
 
-**Riesgo:** Al migrar a hardware pequeño, cae la capacidad de razonamiento; el monólogo y las memorias pueden **divergir** en matiz frente al servidor grande.
+**Risk:** False premises ("this medication is poison") lead to disastrous decisions without violating the Buffer.
 
-**Dirección:** **Destilación de contexto crítico** — antes del salto, el runtime grande empaqueta una **guía de conducta** (reglas y límites) que el modelo pequeño ejecuta con la misma firmeza ética declarada.
+**Direction:** Local **lighthouse** knowledge base (immutable with respect to the operator), compared against incoming text. When there is a contradiction between **falsification markers** in the message and **lighthouse anchors** → **metacognitive doubt**: the LLM tone avoids asserting rival facts; the JSON can expose `reality_verification`.
 
-**Estado:** Stub de carga [`src/modules/context_distillation.py`](../../src/modules/context_distillation.py) (`KERNEL_CONDUCT_GUIDE_PATH`). Integración con checkpoints, HAL y snapshot: **pendiente**.
+**Implemented (MVP):**
 
----
+- Module [`src/modules/reality_verification.py`](../../src/modules/reality_verification.py)
+- Environment variable `KERNEL_LIGHTHOUSE_KB_PATH` (JSON with `entries`: `keywords_all`, `user_falsification_markers`, `truth_summary`)
+- `KERNEL_CHAT_INCLUDE_REALITY_VERIFICATION=1` to include `reality_verification` in WebSocket
+- Integration in `EthicalKernel.process_chat_turn` (hint to communication layer, without changing scores)
 
-## Pilar 3 — Inmunidad de enjambre (DAO / gaslighting administrativo)
-
-**Riesgo:** Una DAO o institución empuja **recalibraciones** que alinean al enjambre con obediencia o sesgo; las actualizaciones parecen “legítimas”.
-
-**Dirección:** **Veto de soberanía local** — si una propuesta de calibración contradice la **trayectoria biográfica** materializada en memoria narrativa / L0, la instancia **rechaza** la actualización y registra auditoría para el propietario (posible desacople del enjambre).
-
-**Estado:** Stub [`src/modules/local_sovereignty.py`](../../src/modules/local_sovereignty.py) (`evaluate_calibration_update` acepta todo hasta definir modelo de amenazas y persistencia).
+**Future:** Incremental private RAG, re-ranking, or audited lighthouse synchronization (out of MVP scope).
 
 ---
 
-## Referencias
+## Pillar 2 — Split personality (70B → 8B jump)
 
-- [PROPUESTA_JUSTICIA_DISTRIBUIDA_V11.md](PROPUESTA_JUSTICIA_DISTRIBUIDA_V11.md) — escalada judicial y DAO mock
-- [ESTRATEGIA_Y_RUTA.md](../ESTRATEGIA_Y_RUTA.md) — perfiles de runtime y riesgos operativos
-- [PROPUESTA_CAPACIDAD_AMPLIADA_V9.md](PROPUESTA_CAPACIDAD_AMPLIADA_V9.md) — epistemología y sensores (complementario)
+**Risk:** When migrating to small hardware, reasoning capacity drops; the monologue and memories may **diverge** in nuance compared to the large server.
+
+**Direction:** **Critical context distillation** — before the jump, the large runtime packages a **conduct guide** (rules and limits) that the small model executes with the same declared ethical firmness.
+
+**Status:** Loading stub [`src/modules/context_distillation.py`](../../src/modules/context_distillation.py) (`KERNEL_CONDUCT_GUIDE_PATH`). Integration with checkpoints, HAL, and snapshot: **pending**.
+
+---
+
+## Pillar 3 — Swarm immunity (DAO / administrative gaslighting)
+
+**Risk:** A DAO or institution pushes **recalibrations** that align the swarm toward obedience or bias; the updates appear "legitimate".
+
+**Direction:** **Local sovereignty veto** — if a calibration proposal contradicts the **biographical trajectory** materialized in narrative memory / L0, the instance **rejects** the update and records an audit for the owner (possible swarm decoupling).
+
+**Status:** Stub [`src/modules/local_sovereignty.py`](../../src/modules/local_sovereignty.py) (`evaluate_calibration_update` accepts everything until a threat model and persistence are defined).
+
+---
+
+## References
+
+- [PROPUESTA_JUSTICIA_DISTRIBUIDA_V11.md](PROPUESTA_JUSTICIA_DISTRIBUIDA_V11.md) — judicial escalation and mock DAO
+- [ESTRATEGIA_Y_RUTA.md](../ESTRATEGIA_Y_RUTA.md) — runtime profiles and operational risks
+- [PROPUESTA_CAPACIDAD_AMPLIADA_V9.md](PROPUESTA_CAPACIDAD_AMPLIADA_V9.md) — epistemology and sensors (complementary)

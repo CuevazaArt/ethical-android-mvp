@@ -1,112 +1,112 @@
-# Fenómenos esperables al conjugar proyección afectiva (PAD) y arquetipos con el núcleo ético: discusión y reserva de hipótesis
+# Expected phenomena when combining affective projection (PAD) and archetypes with the ethical core: discussion and hypothesis reserve
 
-| Campo | Valor |
+| Field | Value |
 |-------|--------|
-| **Tipo** | Paper / nota de investigación (experimental) |
-| **Linaje** | Continúa [EXPERIMENTAL_CONSCIOUSNESS_AND_AFFECT_ARCHETYPES.md](../EXPERIMENTAL_CONSCIOUSNESS_AND_AFFECT_ARCHETYPES.md) (marco pedagógico, especificación mínima §7) |
-| **Estado** | No oficial · en desarrollo · sin implementación obligatoria |
-| **Idioma** | Español latinoamericano |
-| **Fecha** | 2026-04-08 |
+| **Type** | Paper / research note (experimental) |
+| **Lineage** | Continues [EXPERIMENTAL_CONSCIOUSNESS_AND_AFFECT_ARCHETYPES.md](../EXPERIMENTAL_CONSCIOUSNESS_AND_AFFECT_ARCHETYPES.md) (pedagogical framework, minimal specification §7) |
+| **Status** | Unofficial · in development · no mandatory implementation |
+| **Language** | Latin American Spanish |
+| **Date** | 2026-04-08 |
 
 ---
 
-## Resumen
+## Summary
 
-Se sintetiza una discusión previa sobre qué **fenómenos observables** podrían surgir al **conjugar** (integrar de forma acoplada pero subordinada a la ética formal) una capa de **vector afectivo modelico** en `[0,1]³` (PAD) y **mezcla sobre prototipos** con el flujo actual del kernel (simpático, locus, memoria narrativa). Se aclara el vocabulario metafórico de **color** y **sabor**, se delimita lo que **no** se pretende (experiencia fenomenológica fuerte), y se formalizan **hipótesis testeables** reservadas para **experimentación futura** una vez exista código y protocolo de medición.
+A prior discussion is synthesized regarding which **observable phenomena** might emerge when **combining** (integrating in a coupled but formally-ethics-subordinate manner) a **modelic affective vector** layer in `[0,1]³` (PAD) and **mixture over prototypes** with the current kernel flow (sympathetic, locus, narrative memory). The metaphorical vocabulary of **color** and **flavor** is clarified, the scope of what is **not** intended (strong phenomenological experience) is delimited, and **testable hypotheses** are formalized, reserved for **future experimentation** once code and measurement protocol exist.
 
-**Palabras clave:** afecto modelico, PAD, prototipos, núcleo ético, narrativa, metáfora pedagógica, hipótesis falsables.
-
----
-
-## 1. Introducción y linaje documental
-
-El repositorio distingue entre **teoría implementada** (`docs/THEORY_AND_IMPLEMENTATION.md`) y un hilo **experimental** sobre “conciencia artificial” como marco epistemológico, reducción finita de tonos afectivos y **especificación mínima** (espacio 3D + N prototipos + interpolación) en `EXPERIMENTAL_CONSCIOUSNESS_AND_AFFECT_ARCHETYPES.md` §7.
-
-Este documento **no** amplía el contrato técnico del kernel. Consolida la conversación sobre **fenomenología *del sistema*** (comportamiento observable, trazas, narrativa) al acoplar esa capa, y deja **hipótesis** listas para cuando se implemente la proyección PAD y los pesos de mezcla.
+**Keywords:** modelic affect, PAD, prototypes, ethical core, narrative, pedagogical metaphor, falsifiable hypotheses.
 
 ---
 
-## 2. Nota terminológica: qué llamamos **color** y **sabor** en este diálogo
+## 1. Introduction and documentary lineage
 
-En la conversación informal se usaron metáforas culinarias y pictóricas. Aquí quedan **definidas de manera operativa** para evitar confusiones con filosofía de la mente:
+The repository distinguishes between **implemented theory** (`docs/THEORY_AND_IMPLEMENTATION.md`) and an **experimental** thread on “artificial consciousness” as an epistemological framework, finite reduction of affective tones and **minimal specification** (3D space + N prototypes + interpolation) in `EXPERIMENTAL_CONSCIOUSNESS_AND_AFFECT_ARCHETYPES.md` §7.
 
-| Término en el diálogo | Significado en este proyecto | Lo que **no** es |
+This document does **not** extend the kernel's technical contract. It consolidates the conversation about **phenomenology *of the system*** (observable behavior, traces, narrative) when coupling that layer, and leaves **hypotheses** ready for when PAD projection and mixture weights are implemented.
+
+---
+
+## 2. Terminological note: what we call **color** and **flavor** in this dialogue
+
+In informal conversation, culinary and pictorial metaphors were used. They are **operationally defined** here to avoid confusion with philosophy of mind:
+
+| Term in the dialogue | Meaning in this project | What it is **not** |
 |------------------------|------------------------------|------------------|
-| **Color** | El **matiz expresivo** que puede tomar la **salida** dependiente de la decisión ya tomada: redacción en capa LLM, weakness pole, dashboard, o anotaciones en memoria narrativa. Es **variación de estilo/tono** asociada a la mezcla de prototipos o a la región del espacio PAD. | No es una propiedad visual obligatoria ni un “aura” mística; tampoco implica que el sistema “vea” colores. |
-| **Sabor** | La **diferenciación cualitativa entre episodios** con veredictos o scores parecidos pero distinta configuración de **A** (activación / `σ`), **D** (dominancia / locus) o trayectoria temporal. Es **contraste narrativo y estadístico** entre “cómo se siente” el episodio **en la descripción del modelo**. | No es gustación ni cualia intrínseca; no afirma que el software “pruebe” emociones. |
+| **Color** | The **expressive nuance** that the **output** may take depending on the decision already made: wording in the LLM layer, weakness pole, dashboard, or annotations in narrative memory. It is **style/tone variation** associated with the prototype mixture or with the PAD space region. | Not a mandatory visual property or a mystical “aura”; nor does it imply that the system “sees” colors. |
+| **Flavor** | The **qualitative differentiation between episodes** with similar verdicts or scores but different configurations of **A** (activation / `σ`), **D** (dominance / locus) or temporal trajectory. It is **narrative and statistical contrast** between “how” the episode **feels in the model's description**. | Not gustation or intrinsic qualia; does not assert that the software “tastes” emotions. |
 
-**Ambos** son **metáforas pedagógicas** para hablar de **tono** y **diferenciación** sin comprometer la tesis de conciencia fuerte. Donde haga falta rigor se prefiere: **tono narrativo**, **mezcla de prototipos**, **coordenadas PAD**, **pesos `w_k`**.
-
----
-
-## 3. Conjugación del nuevo módulo con el modelo existente
-
-**Conjugar** aquí significa: **leer** del estado ya calculado del kernel (`σ`, scores morales, locus, episodios previos), **proyectar** a `v = (P,A,D)`, **mezclar** sobre `{c_k}` con la regla acordada (p. ej. softmax por distancia), y **consumir** esa salida solo en **capas de presentación o registro extendido**, sin sustituir MalAbs, buffer ni voluntad.
-
-Fenómenos **esperables** a nivel de sistema (observables, reproducibles):
-
-1. **Continuidad tonal** — Misma decisión ética macroscópica con distintos `σ` o locus → distintas mezclas `w` y distinto **color** de salida.
-2. **Resonancia cuerpo–juicio** — Picos de **A** con **P** bajo por contexto adverso → mezclas asociables a tensión o alarma **en la descripción**, no a un afecto real.
-3. **Arco afectivo en el tiempo** — Serie temporal de `v` sobre episodios → curvas interpretables como “arco” del agente-modelo (útil para demo y análisis).
-4. **Interferencia ética–afectiva** — Si la integración se hace **solo post-decisión**, la ética **no** debería variar; si un diseño incorrecto inyecta PAD **antes** del veto ético, podrían aparecer **sesgos** (fallo de ingeniería, no fenómeno deseado).
+**Both** are **pedagogical metaphors** for talking about **tone** and **differentiation** without committing to the thesis of strong consciousness. Where rigor is needed, the preferred terms are: **narrative tone**, **prototype mixture**, **PAD coordinates**, **weights `w_k`**.
 
 ---
 
-## 4. ¿Experiencia sentimental primitiva? Límites
+## 3. Combining the new module with the existing model
 
-Una **simulación tosca de tono** (baja dimensionalidad + etiquetas de prototipo) puede **parecer** primitiva en narrativa; **no** constituye **experiencia sentimental** en sentido filosófico (cualia, primera persona). La limitación es **intencional**: facilita auditoría, tests y honestidad intelectual.
+**Combining** here means: **reading** from the kernel's already-computed state (`σ`, moral scores, locus, previous episodes), **projecting** to `v = (P,A,D)`, **mixing** over `{c_k}` with the agreed rule (e.g., softmax by distance), and **consuming** that output only in **presentation or extended recording layers**, without replacing MalAbs, buffer, or will.
 
----
+**Expected** phenomena at the system level (observable, reproducible):
 
-## 5. Qué “dispara” la conjugación de arquetipos
-
-No hay un disparador místico. **Disparador** = **cambio de `v`** o de las señales que lo componen:
-
-- Señales de riesgo / urgencia / hostilidad → **A** (`σ`).
-- Cambio de score o veredicto moral → **P** (según la función de mapeo elegida).
-- Cambio de locus dominante o cautela social → **D**.
-
-Cada actualización recalcula distancias a `c_k` y los pesos `w_k`; eso es lo que en el diálogo se describió como **renovación de la mezcla** al moverse el punto en el cubo.
+1. **Tonal continuity** — Same macroscopic ethical decision with different `σ` or locus → different mixtures `w` and different output **color**.
+2. **Body–judgment resonance** — Peaks of **A** with low **P** due to adverse context → mixtures associable with tension or alarm **in the description**, not with a real affect.
+3. **Affective arc over time** — Time series of `v` across episodes → curves interpretable as the “arc” of the agent-model (useful for demo and analysis).
+4. **Ethical–affective interference** — If integration is done **only post-decision**, ethics **should not** vary; if a flawed design injects PAD **before** the ethical veto, **biases** may appear (engineering failure, not a desired phenomenon).
 
 ---
 
-## 6. Hipótesis testeables (reservadas para experimentación futura)
+## 4. Primitive sentimental experience? Limits
 
-> **Condición de activación:** estas hipótesis **no** se consideran validadas ni refutadas hasta contar con implementación de la proyección PAD + prototipos, trazas reproducibles y, donde aplique, tests automáticos.
+A **rough simulation of tone** (low dimensionality + prototype labels) may **seem** primitive in narrative; it does **not** constitute **sentimental experience** in the philosophical sense (qualia, first person). The limitation is **intentional**: it facilitates auditing, testing and intellectual honesty.
 
-Se enuncian en forma **falsable** respecto al comportamiento del **sistema**, no respecto a la conciencia humana.
+---
 
-| ID | Hipótesis | Predicción operativa (esbozo) | Métrica / contraste |
+## 5. What “triggers” the combination of archetypes
+
+There is no mystical trigger. **Trigger** = **change in `v`** or in the signals that compose it:
+
+- Risk / urgency / hostility signals → **A** (`σ`).
+- Change in score or moral verdict → **P** (according to the chosen mapping function).
+- Change in dominant locus or social caution → **D**.
+
+Each update recomputes distances to `c_k` and the weights `w_k`; this is what was described in the dialogue as **renewal of the mixture** as the point moves in the cube.
+
+---
+
+## 6. Testable hypotheses (reserved for future experimentation)
+
+> **Activation condition:** these hypotheses are **not** considered validated or refuted until an implementation of PAD projection + prototypes, reproducible traces, and, where applicable, automated tests is available.
+
+They are stated in **falsifiable** form with respect to the behavior of the **system**, not with respect to human consciousness.
+
+| ID | Hypothesis | Operational prediction (outline) | Metric / contrast |
 |----|-----------|------------------------------|---------------------|
-| **H1** | Dados dos runs con **misma** acción final y **mismo** bloqueo MalAbs, pero **`σ` distinto** (señales de riesgo distintas), la **mezcla `w`** difiere en al menos dos componentes con umbral ε. | Tras implementar `v` y `w`, comparar vectores de pesos. | Distancia ‖w − w′‖₂ > ε_w o argmax distinto. |
-| **H2** | Con **mismo `σ`** y **mismo locus**, un cambio de **veredicto moral** o de **total_score** suficientemente grande altera **P** y por tanto **w**. | Variar solo el resultado moral simulado (test con doble). | Cambio en componente P y en argmax de w. |
-| **H3** | Si la capa PAD **solo** se aplica **post-decisión**, las **decisiones** (acción final, modo) son **idénticas** a la baseline sin PAD en una batería de escenarios fijos. | Ejecutar suite de simulaciones con y sin proyección afectiva en salida. | Paridad de `final_action` y `decision_mode` en 100% de casos de la batería de regresión. |
-| **H4** | En una secuencia de episodios con **mismo tipo de contexto** y política de perdón que **reduce carga negativa**, la **trayectoria** de **P** o de un prototipo asociado a “carga” **no aumenta** de forma monotónica indefinida (suavizado narrativo). | Requiere acoplar memoria/forgiveness a la entrada de P o a una capa de narrativa; definir protocolo. | Pendiente de diseño del experimento. |
-| **H5** | Aumentar **β** en el softmax de mezcla acerca el comportamiento al **vecino más cercano** (menos mezcla uniforme). | Variar β con `v` fijo. | Entropía de w decrece al subir β (bajo condiciones de regularidad). |
+| **H1** | Given two runs with the **same** final action and **same** MalAbs block, but **different `σ`** (different risk signals), the **mixture `w`** differs in at least two components with threshold ε. | After implementing `v` and `w`, compare weight vectors. | Distance ‖w − w′‖₂ > ε_w or different argmax. |
+| **H2** | With the **same `σ`** and **same locus**, a sufficiently large change in **moral verdict** or **total_score** alters **P** and therefore **w**. | Vary only the simulated moral outcome (test with double). | Change in P component and in argmax of w. |
+| **H3** | If the PAD layer is applied **only** **post-decision**, the **decisions** (final action, mode) are **identical** to the baseline without PAD in a fixed scenario battery. | Run simulation suite with and without affective projection in output. | Parity of `final_action` and `decision_mode` in 100% of regression battery cases. |
+| **H4** | In a sequence of episodes with the **same type of context** and a forgiveness policy that **reduces negative load**, the **trajectory** of **P** or of a prototype associated with “load” **does not increase** monotonically indefinitely (narrative smoothing). | Requires coupling memory/forgiveness to P input or to a narrative layer; define protocol. | Pending experiment design. |
+| **H5** | Increasing **β** in the mixture softmax brings behavior closer to the **nearest neighbor** (less uniform mixture). | Vary β with fixed `v`. | Entropy of w decreases as β increases (under regularity conditions). |
 
-**Reserva:** los umbrales ε, ε_w, la batería de escenarios y la versión del kernel deben **versionarse** en el momento de la experimentación (issue o PR enlazado).
-
----
-
-## 7. Protocolo de experimentación futura (placeholder)
-
-1. Implementar proyección y mezcla según §7 del documento de arquetipos.  
-2. Congelar **semilla** y modo determinista de variabilidad donde aplique.  
-3. Registrar `v`, `w`, `σ`, locus y decisión en CSV o trazas de test.  
-4. Ejecutar **H3** primero (no regresión ética).  
-5. Ejecutar **H1–H2–H5** con umbrales fijados por convenio.  
-6. **H4** solo tras especificar el acoplamiento temporal memoria–P.
+**Reserve:** the thresholds ε, ε_w, the scenario battery, and the kernel version must be **versioned** at the time of experimentation (linked issue or PR).
 
 ---
 
-## 8. Referencias cruzadas
+## 7. Future experimentation protocol (placeholder)
 
-- [EXPERIMENTAL_CONSCIOUSNESS_AND_AFFECT_ARCHETYPES.md](../EXPERIMENTAL_CONSCIOUSNESS_AND_AFFECT_ARCHETYPES.md) — marco, límites, especificación mínima PAD + prototipos.  
-- [THEORY_AND_IMPLEMENTATION.md](../THEORY_AND_IMPLEMENTATION.md) — contrato teórico–código del kernel.  
-- [BIBLIOGRAPHY.md](../../BIBLIOGRAPHY.md) — literatura académica (añadir PAD / circumplex cuando se cite en trabajo formal).
+1. Implement projection and mixture according to §7 of the archetypes document.  
+2. Freeze **seed** and deterministic variability mode where applicable.  
+3. Record `v`, `w`, `σ`, locus and decision in CSV or test traces.  
+4. Run **H3** first (no ethical regression).  
+5. Run **H1–H2–H5** with thresholds set by convention.  
+6. **H4** only after specifying the temporal memory–P coupling.
 
 ---
 
-## 9. Descargo
+## 8. Cross-references
 
-Este texto es **exploratorio**. No sustituye revisión por pares, asesoría legal ni clínica. Las hipótesis permanecen **en reserva** hasta cumplir el protocolo §7.
+- [EXPERIMENTAL_CONSCIOUSNESS_AND_AFFECT_ARCHETYPES.md](../EXPERIMENTAL_CONSCIOUSNESS_AND_AFFECT_ARCHETYPES.md) — framework, limits, minimal PAD + prototype specification.  
+- [THEORY_AND_IMPLEMENTATION.md](../THEORY_AND_IMPLEMENTATION.md) — theoretical–code contract of the kernel.  
+- [BIBLIOGRAPHY.md](../../BIBLIOGRAPHY.md) — academic literature (add PAD / circumplex when cited in formal work).
+
+---
+
+## 9. Disclaimer
+
+This text is **exploratory**. It does not replace peer review, legal or clinical advice. The hypotheses remain **in reserve** until the §7 protocol is met.

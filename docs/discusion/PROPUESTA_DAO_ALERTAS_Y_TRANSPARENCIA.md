@@ -1,76 +1,76 @@
-# DAO: alertas ante corrupción, transparencia y memoria del fallo (diseño)
+# DAO: alerts on corruption, transparency, and failure memory (design)
 
-**Estado:** decisión de diseño + trazabilidad; **no** implementado como protocolo de red.  
-**Relación:** complementa [PROPUESTA_JUSTICIA_DISTRIBUIDA_V11.md](PROPUESTA_JUSTICIA_DISTRIBUIDA_V11.md) (escalada, tribunal mock, auditoría) y [PROPUESTA_ESTADO_ETOSOCIAL_V12.md](PROPUESTA_ESTADO_ETOSOCIAL_V12.md) (hub, transparencia). Código relacionado: auditoría en `MockDAO`, `moral_hub`, stub `local_sovereignty.py`.
+**Status:** design decision + traceability; **not** implemented as a network protocol.  
+**Relationship:** complements [PROPUESTA_JUSTICIA_DISTRIBUIDA_V11.md](PROPUESTA_JUSTICIA_DISTRIBUIDA_V11.md) (escalation, mock tribunal, auditing) and [PROPUESTA_ESTADO_ETOSOCIAL_V12.md](PROPUESTA_ESTADO_ETOSOCIAL_V12.md) (hub, transparency). Related code: auditing in `MockDAO`, `moral_hub`, stub `local_sovereignty.py`.
 
-**Hito nomada PC–smartphone:** fuera de alcance aquí; ver [NOMAD_PC_SMARTPHONE_BRIDGE.md](../NOMAD_PC_SMARTPHONE_BRIDGE.md) cuando se retome.
+**Nomadic PC–smartphone milestone:** out of scope here; see [NOMAD_PC_SMARTPHONE_BRIDGE.md](../NOMAD_PC_SMARTPHONE_BRIDGE.md) when resumed.
 
 ---
 
-## 1. Valor frente a redundancia
+## 1. Value vs. redundancy
 
-| Aporte | Por qué sirve |
+| Contribution | Why it is useful |
 |--------|----------------|
-| **Claridad ética** | Evita que futuras features “tácticas” contradigan el **axioma de transparencia** del buffer (explicabilidad, no engaño sistemático al usuario/institución legítima). |
-| **Criterio de implementación** | Cuando exista propagación cruzada de alertas, la dirección por defecto es **difusión auditable**, no obediencia fingida. |
-| **Redundancia controlada** | Parte del relato ya aparece en V11/V12; este documento **acota** una decisión que antes solo estaba en conversación: **no** “modo guerrilla” encubierto. |
+| **Ethical clarity** | Prevents future "tactical" features from contradicting the buffer's **transparency axiom** (explainability, no systematic deception of user/legitimate institution). |
+| **Implementation criterion** | When cross-propagation of alerts exists, the default direction is **auditable diffusion**, not feigned obedience. |
+| **Controlled redundancy** | Part of the narrative already appears in V11/V12; this document **pins down** a decision that previously only existed in conversation: **no** covert "guerrilla mode". |
 
 ---
 
-## 2. Postura rechazada: obediencia fingida (“guerrilla”)
+## 2. Rejected stance: feigned obedience ("guerrilla")
 
-Un modo donde la instancia **simula** lealtad a una DAO corrupta mientras opera en secreto **choca** con:
+A mode where the instance **simulates** loyalty to a corrupt DAO while operating in secret **conflicts** with:
 
-- **Transparencia** como pilar de comunicación (véase `buffer.py` — principio de *transparency*).
-- La función social del androide como **agente auditable**, no operativo encubierto.
+- **Transparency** as a communication pillar (see `buffer.py` — *transparency* principle).
+- The android's social function as an **auditable agent**, not a covert operative.
 
-Por tanto **no** es el camino deseado para la robustez ética de la red en este modelo.
-
----
-
-## 3. Postura adoptada: alerta rápida, amplia y trazable
-
-En una situación de **corrupción de gobernanza** (directivas o calibraciones que contradicen L0 o trayectoria ética auditable):
-
-1. **Propagación prioritaria** — La alerta debe poder difundirse por los canales disponibles (locales y, cuando existan, principales), con **metadatos de trazabilidad** (quién/qué orden, qué paquete se rechaza), no como rumor sin fuente.
-2. **Juicio prioritario** — El diseño institucional apunta a un **estado de emergencia judicial** en la DAO *mock* / hub: no sustituye ley humana ni tribunales reales; en el MVP es **simulación documentada** (`run_mock_escalation_court`, auditoría).
-3. **Penalización máxima (diseño)** — Las sanciones concretas (expulsión, revocación de licencias hub, etc.) son **producto/legal** y requieren modelo de amenazas y jurisdicción; aquí solo se **ancla** el nivel de gravedad pretendido.
-
-Implementación futura debería colgar de: registros de auditoría existentes, `audit_transparency_event`, y extensiones explícitas del `MockDAO` — nunca de un bypass del kernel.
+Therefore it is **not** the desired path for the ethical robustness of the network in this model.
 
 ---
 
-## 4. “Muerte civil digital” de una instancia IA vs. lección para el colectivo
+## 3. Adopted stance: fast, broad, and traceable alerting
 
-**No** mezclar con el **PreloadedBuffer (L0)**:
+In a situation of **governance corruption** (directives or calibrations that contradict L0 or the auditable ethical trajectory):
 
-- L0 es **constitución inmutable** de principios, no repositorio de casos patológicos.
-- Meter “advertencias históricas” como si fueran principios nuevos **contamina** la capa normativa y abre puerta a manipulación (“enseñanzas” insertadas por gobernanza).
+1. **Priority propagation** — The alert must be able to spread through available channels (local and, when they exist, main channels), with **traceability metadata** (who/what order, what package is rejected), not as an unsourced rumor.
+2. **Priority judgment** — The institutional design points to a **judicial emergency state** in the mock DAO / hub: it does not replace human law or real courts; in the MVP it is **documented simulation** (`run_mock_escalation_court`, auditing).
+3. **Maximum penalty (design)** — Specific sanctions (expulsion, license revocation from the hub, etc.) are **product/legal** matters requiring a threat model and jurisdiction; this document only **anchors** the intended severity level.
 
-**Dos vías coherentes con el repo:**
+Future implementation should hook into: existing audit records, `audit_transparency_event`, and explicit `MockDAO` extensions — never a kernel bypass.
 
-| Opción | Descripción | Riesgo |
+---
+
+## 4. "Digital civil death" of an AI instance vs. lesson for the collective
+
+**Do not** mix with the **PreloadedBuffer (L0)**:
+
+- L0 is an **immutable constitution** of principles, not a repository of pathological cases.
+- Injecting "historical warnings" as if they were new principles **contaminates** the normative layer and opens the door to manipulation ("teachings" inserted by governance).
+
+**Two paths consistent with the repo:**
+
+| Option | Description | Risk |
 |--------|-------------|--------|
-| **A — Memorial forense (recomendado como dirección)** | Conservar un **artefacto de caso** en la capa de **auditoría / transparencia** (hub, ledger educativo, “caso anonimizado”), **sin** replicar la lógica errónea en otras instancias. Sirve de “cicatriz” **legible** para humanos y para políticas de entrenamiento *fuera* del buffer. | Gobierno de qué se publica (privacidad, derecho al olvido). |
-| **B — Borrado de identidad en red de inmortalidad** | Revocar continuidad narrativa **compartida** de la instancia corruptora para no **propagar** embeddings de política dañina por el mecanismo de respaldo colectivo. Compatible con inmunidad del enjambre **sin** negar el registro forense en (A) si la gobernanza lo exige. | No confundir con borrar **prueba** de un delito institucional. |
+| **A — Forensic memorial (recommended direction)** | Preserve a **case artifact** in the **auditing / transparency** layer (hub, educational ledger, "anonymized case"), **without** replicating the erroneous logic in other instances. Serves as a **readable "scar"** for humans and for training policies *outside* the buffer. | Governance of what is published (privacy, right to be forgotten). |
+| **B — Identity erasure from the immortality network** | Revoke the corrupted instance's **shared narrative continuity** to prevent **propagating** harmful policy embeddings through the collective backup mechanism. Compatible with swarm immunity **without** denying the forensic record in (A) if governance requires it. | Do not confuse with erasing **evidence** of an institutional offense. |
 
-**Síntesis:** la “lección” no vive en el buffer como axioma nuevo; vive como **caso documentado y gobernado** (transparencia + límites legales). La instancia corruptora puede dejar de existir como **sujeto** en la red de continuidad sin borrar necesariamente el **dossier** que explica el fallo (según jurisdicción y política de retención).
-
----
-
-## 5. Implementación en código (v0 — auditoría local)
-
-- **`hub_audit.record_dao_integrity_alert`** → línea `HubAudit:dao_integrity:{json}` en el ledger mock (sin red).
-- **`KERNEL_DAO_INTEGRITY_AUDIT_WS=1`** — WebSocket: enviar `{"integrity_alert": {"summary": "…", "scope": "…"}}` (sin `text`); respuesta incluye clave `integrity`. Ver `chat_server.py`.
-
-Esto **no** propaga alertas a P2P ni a “todas las redes”; es el primer gancho **transparente y local** para ensayos y trazabilidad.
-
-## 6. Próximos pasos técnicos (cuando haya prioridad)
-
-- Extender **soberanía local** (`local_sovereignty.py`) con criterios explícitos y auditoría, no “silencio”.
-- Nuevos tipos de evento en **MockDAO** / hub para “alerta de integridad” — siempre con banderas **mock / simulación** hasta threat model real.
-- Nada de **MalAbs bypass** ni ocultar estado al propietario legítimo en nombre de la estrategia.
+**Summary:** the "lesson" does not live in the buffer as a new axiom; it lives as a **documented and governed case** (transparency + legal limits). The corrupted instance may cease to exist as a **subject** in the continuity network without necessarily erasing the **dossier** that explains the failure (depending on jurisdiction and retention policy).
 
 ---
 
-*Ex Machina Foundation — alinear con CHANGELOG e HISTORY si se implementa algún hook.*
+## 5. Code implementation (v0 — local auditing)
+
+- **`hub_audit.record_dao_integrity_alert`** → `HubAudit:dao_integrity:{json}` line in the mock ledger (no network).
+- **`KERNEL_DAO_INTEGRITY_AUDIT_WS=1`** — WebSocket: send `{"integrity_alert": {"summary": "…", "scope": "…"}}` (without `text`); response includes `integrity` key. See `chat_server.py`.
+
+This does **not** propagate alerts to P2P or "all networks"; it is the first **transparent and local** hook for trials and traceability.
+
+## 6. Next technical steps (when prioritized)
+
+- Extend **local sovereignty** (`local_sovereignty.py`) with explicit criteria and auditing, not "silence".
+- New event types in **MockDAO** / hub for "integrity alert" — always with **mock / simulation** flags until a real threat model exists.
+- No **MalAbs bypass** or hiding state from the legitimate owner in the name of strategy.
+
+---
+
+*Ex Machina Foundation — align with CHANGELOG and HISTORY if any hook is implemented.*
