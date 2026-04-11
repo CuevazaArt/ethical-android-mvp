@@ -20,6 +20,8 @@ The original **batch simulations** (nine fixed scenarios plus a random generator
 
 **Input trust:** MalAbs chat filtering and LLM perception bounds are **heuristic**, not unbreakable — see [`docs/INPUT_TRUST_THREAT_MODEL.md`](docs/INPUT_TRUST_THREAT_MODEL.md) and [`SECURITY.md`](SECURITY.md).
 
+**Operator quick ref (`KERNEL_*` families):** [`docs/OPERATOR_QUICK_REF.md`](docs/OPERATOR_QUICK_REF.md) — one-page map; full policy in [`docs/KERNEL_ENV_POLICY.md`](docs/KERNEL_ENV_POLICY.md).
+
 An autonomous moral agent that makes ethical decisions using **explicit weighted scoring**
 (fixed mixture over three stylized hypotheses; not full Bayesian updating — see
 [`docs/THEORY_AND_IMPLEMENTATION.md`](docs/THEORY_AND_IMPLEMENTATION.md)), narrative memory,

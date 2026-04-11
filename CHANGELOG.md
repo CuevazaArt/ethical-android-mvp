@@ -2,6 +2,10 @@
 
 All notable changes to this project are summarized here. For narrative context and design rationale, see [`HISTORY.md`](HISTORY.md).
 
+## Operator quick ref — KERNEL family table (Phase A) — April 2026
+
+- **[`docs/OPERATOR_QUICK_REF.md`](docs/OPERATOR_QUICK_REF.md):** one-page map of `KERNEL_*` families; README pointer.
+
 ## Documentation — production hardening roadmap (non-binding) — April 2026
 
 - **[`docs/PRODUCTION_HARDENING_ROADMAP.md`](docs/PRODUCTION_HARDENING_ROADMAP.md):** synthesizes external “production-ready” proposals into three phases (input trust / architecture / UX & constitution) with explicit non-goals and a **“Próximas propuestas”** slot; cross-links `ESTRATEGIA_Y_RUTA`, `CRITIQUE_ROADMAP_ISSUES`, ADR packaging, input-trust docs. README + `discusion/README` pointers.
