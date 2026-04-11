@@ -2,9 +2,12 @@
 
 All notable changes to this project are summarized here. For narrative context and design rationale, see [`HISTORY.md`](HISTORY.md).
 
-## Documentation — user model enrichment proposal — April 2026
+## User model enrichment — Phase A (cognitive / risk / judicial tone) — April 2026
 
-- **[`docs/USER_MODEL_ENRICHMENT.md`](docs/USER_MODEL_ENRICHMENT.md):** design for cognitive-pattern labels, judicial escalation–aware guidance, and risk-based informational openness in `UserModelTracker` / `guidance_for_communicate()` (tone-only; phased implementation).
+- **`src/modules/user_model.py`:** `cognitive_pattern`, `risk_band`, `note_judicial_escalation` (strike snapshot from `EscalationSessionTracker`); `guidance_for_communicate()` order: risk → cognitive pattern → judicial → existing frustration/premise lines; `to_public_dict()` exposes new fields.
+- **`EthicalKernel.process_chat_turn`:** runs `escalation_session.update(adv)` **before** `user_model.update` / `communicate` so strikes and guidance stay on the same turn (no duplicate `update` after the reply).
+- **Tests:** `tests/test_user_model_enrichment.py`.
+- **Design:** [`docs/USER_MODEL_ENRICHMENT.md`](docs/USER_MODEL_ENRICHMENT.md) (Phase B/C: richer judicial snapshot, checkpoint persistence).
 
 ## Temporal horizon prior — Bayesian mixture nudge (ADR 0005) — April 2026
 
@@ -36,7 +39,7 @@ All notable changes to this project are summarized here. For narrative context a
 ## Semantic chat gate — Ollama embeddings + MalAbs chain — April 2026
 
 - **`src/modules/semantic_chat_gate.py`:** when `KERNEL_SEMANTIC_CHAT_GATE=1`, cosine similarity vs auditable reference phrases via Ollama `/api/embeddings` (default model `nomic-embed-text`, tunable `KERNEL_SEMANTIC_CHAT_EMBED_MODEL`, `KERNEL_SEMANTIC_CHAT_SIM_THRESHOLD`). On failure, defers to substring MalAbs.
-- **`src/modules/absolute_evil.py`:** `evaluate_chat_text` runs the semantic layer first when the gate env is on.
+- **`src/modules/absolute_evil.py`:** `evaluate_chat_text` runs **lexical MalAbs first**, then optional semantic layers when the gate env is on ([`MALABS_SEMANTIC_LAYERS.md`](docs/MALABS_SEMANTIC_LAYERS.md)).
 - **Tests:** `tests/test_semantic_chat_gate.py` (mocked embeddings + chain).
 - **Docs:** README, [`INPUT_TRUST_THREAT_MODEL.md`](docs/INPUT_TRUST_THREAT_MODEL.md), [`LLM_STACK_OLLAMA_VS_HF.md`](docs/LLM_STACK_OLLAMA_VS_HF.md), [`KERNEL_ENV_POLICY.md`](docs/KERNEL_ENV_POLICY.md), [`OPERATOR_QUICK_REF.md`](docs/OPERATOR_QUICK_REF.md); ADR 0003 status **Accepted**.
 

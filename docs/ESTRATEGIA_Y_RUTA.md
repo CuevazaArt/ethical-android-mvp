@@ -4,6 +4,8 @@ Documento de **síntesis** (abril 2026): conclusiones de revisión del proyecto,
 
 **Relación con otros docs:** el núcleo normativo y las capas advisory siguen descritos en [THEORY_AND_IMPLEMENTATION.md](THEORY_AND_IMPLEMENTATION.md) y [RUNTIME_CONTRACT.md](RUNTIME_CONTRACT.md). Las PROPUESTA en `docs/discusion/` son diseño; este archivo es **gobierno de producto / operación**.
 
+**Índice rápido (coherencia 2026):** [INPUT_TRUST_THREAT_MODEL.md](INPUT_TRUST_THREAT_MODEL.md) · [MALABS_SEMANTIC_LAYERS.md](MALABS_SEMANTIC_LAYERS.md) · [PERCEPTION_VALIDATION.md](PERCEPTION_VALIDATION.md) · [TEMPORAL_PRIOR_HORIZONS.md](TEMPORAL_PRIOR_HORIZONS.md) · [USER_MODEL_ENRICHMENT.md](USER_MODEL_ENRICHMENT.md) · [KERNEL_ENV_POLICY.md](KERNEL_ENV_POLICY.md) · [CORE_DECISION_CHAIN.md](CORE_DECISION_CHAIN.md) · [adr/README.md](adr/README.md).
+
 ---
 
 ## 1. Dónde estamos (hecho verificable)

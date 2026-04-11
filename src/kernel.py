@@ -713,7 +713,24 @@ class EthicalKernel:
             if decision.social_evaluation
             else "neutral_soto"
         )
-        self.user_model.update(perception, circle, blocked=False)
+        adv = False
+        if judicial_escalation_enabled() and decision is not None:
+            adv = should_offer_escalation_advisory(
+                decision.decision_mode,
+                decision.reflection,
+                self._last_premise_advisory.flag,
+            )
+            self.escalation_session.update(adv)
+        self.user_model.note_judicial_escalation(
+            self.escalation_session.strikes if judicial_escalation_enabled() else 0,
+            strikes_threshold_from_env(),
+        )
+        self.user_model.update(
+            perception,
+            circle,
+            blocked=False,
+            premise_flag=self._last_premise_advisory.flag,
+        )
         um_line = self.user_model.guidance_for_communicate()
         if um_line:
             weakness_line = um_line
@@ -806,12 +823,6 @@ class EthicalKernel:
 
         je_view: Optional[JudicialEscalationView] = None
         if judicial_escalation_enabled() and decision is not None:
-            adv = should_offer_escalation_advisory(
-                decision.decision_mode,
-                decision.reflection,
-                self._last_premise_advisory.flag,
-            )
-            self.escalation_session.update(adv)
             strikes = self.escalation_session.strikes
             threshold = strikes_threshold_from_env()
             if adv:
