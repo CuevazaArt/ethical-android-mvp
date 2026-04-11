@@ -378,7 +378,7 @@ export default function LandingPage() {
           >
             Technical mapping:{" "}
             <a
-              href={repoFile("docs/THEORY_AND_IMPLEMENTATION.md")}
+              href={repoFile("docs/proposals/THEORY_AND_IMPLEMENTATION.md")}
               className="text-violet-400/90 underline decoration-violet-400/30 underline-offset-4 transition hover:decoration-violet-400/60"
               target="_blank"
               rel="noopener noreferrer"
@@ -483,7 +483,7 @@ export default function LandingPage() {
           <p className="mt-10 text-sm text-zinc-400">
             Deep dive:{" "}
             <a
-              href={repoFile("docs/RUNTIME_CONTRACT.md")}
+              href={repoFile("docs/proposals/RUNTIME_CONTRACT.md")}
               className="text-violet-400/90 underline decoration-violet-400/30 underline-offset-4 transition hover:decoration-violet-400/60"
               target="_blank"
               rel="noopener noreferrer"
@@ -492,7 +492,7 @@ export default function LandingPage() {
             </a>
             <span className="text-zinc-600"> · </span>
             <a
-              href={repoFile("docs/LOCAL_PC_AND_MOBILE_LAN.md")}
+              href={repoFile("docs/proposals/LOCAL_PC_AND_MOBILE_LAN.md")}
               className="text-violet-400/90 underline decoration-violet-400/30 underline-offset-4 transition hover:decoration-violet-400/60"
               target="_blank"
               rel="noopener noreferrer"
@@ -501,7 +501,7 @@ export default function LandingPage() {
             </a>
             <span className="text-zinc-600"> · </span>
             <a
-              href={repoFile("docs/NOMAD_PC_SMARTPHONE_BRIDGE.md")}
+              href={repoFile("docs/proposals/NOMAD_PC_SMARTPHONE_BRIDGE.md")}
               className="text-violet-400/90 underline decoration-violet-400/30 underline-offset-4 transition hover:decoration-violet-400/60"
               target="_blank"
               rel="noopener noreferrer"
@@ -510,7 +510,7 @@ export default function LandingPage() {
             </a>
             <span className="text-zinc-600"> · </span>
             <a
-              href={repoFile("docs/ESTRATEGIA_Y_RUTA.md")}
+              href={repoFile("docs/proposals/ESTRATEGIA_Y_RUTA.md")}
               className="text-violet-400/90 underline decoration-violet-400/30 underline-offset-4 transition hover:decoration-violet-400/60"
               target="_blank"
               rel="noopener noreferrer"
@@ -575,7 +575,7 @@ export default function LandingPage() {
           </div>
           <p className="mt-10 text-center text-sm md:text-left">
             <a
-              href={repoFile("docs/THEORY_AND_IMPLEMENTATION.md")}
+              href={repoFile("docs/proposals/THEORY_AND_IMPLEMENTATION.md")}
               className="text-violet-400/90 underline decoration-violet-400/30 underline-offset-4 transition hover:decoration-violet-400/60"
               target="_blank"
               rel="noopener noreferrer"
@@ -680,7 +680,7 @@ export default function LandingPage() {
               </li>
               <li>
                 <a
-                  href={repoFile("docs/THEORY_AND_IMPLEMENTATION.md")}
+                  href={repoFile("docs/proposals/THEORY_AND_IMPLEMENTATION.md")}
                   className="text-violet-400/90 underline decoration-violet-400/30 underline-offset-4 transition hover:decoration-violet-400/60"
                   target="_blank"
                   rel="noopener noreferrer"
@@ -729,7 +729,7 @@ export default function LandingPage() {
               </li>
               <li>
                 <a
-                  href={repoFile("docs/RUNTIME_PERSISTENT.md")}
+                  href={repoFile("docs/proposals/RUNTIME_PERSISTENT.md")}
                   className="text-violet-400/90 underline decoration-violet-400/30 underline-offset-4 transition hover:decoration-violet-400/60"
                   target="_blank"
                   rel="noopener noreferrer"

@@ -6,7 +6,7 @@ import { LanguageSwitcherPlaceholder } from "@/components/LanguageSwitcherPlaceh
 import { SiteBrand } from "@/components/SiteBrand";
 
 const REPO = "https://github.com/CuevazaArt/ethical-android-mvp";
-const THEORY = `${REPO}/blob/main/docs/THEORY_AND_IMPLEMENTATION.md`;
+const THEORY = `${REPO}/blob/main/docs/proposals/THEORY_AND_IMPLEMENTATION.md`;
 
 export const metadata: Metadata = {
   title: "Investors — scope & ecosystem",

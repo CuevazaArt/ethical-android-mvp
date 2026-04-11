@@ -3,7 +3,7 @@ Operational vitality hints (v8) — battery as a moral resource signal.
 
 Does not change MalAbs or final_action by itself; feeds sympathetic merge and tone.
 
-See docs/discusion/PROPUESTA_VITALIDAD_SACRIFICIO_Y_FIN.md §1–2
+See docs/proposals/PROPUESTA_VITALIDAD_SACRIFICIO_Y_FIN.md §1–2
 """
 
 from __future__ import annotations

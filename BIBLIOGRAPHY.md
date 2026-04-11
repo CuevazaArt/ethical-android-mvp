@@ -492,7 +492,7 @@ synthetic soul creation, and identity persistence.
 | Somatic markers → signal nudge (v10) | [59], [60], [91] |
 | Metaplan registry / session goals (v10) | [31], [33] |
 
-See also [docs/TRACE_IMPLEMENTATION_RECENT.md](docs/TRACE_IMPLEMENTATION_RECENT.md) (Spanish trace table).
+See also [docs/proposals/TRACE_IMPLEMENTATION_RECENT.md](docs/proposals/TRACE_IMPLEMENTATION_RECENT.md) (Spanish trace table).
 
 ---
 

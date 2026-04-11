@@ -9,7 +9,7 @@ least one goal exists, :class:`~src.modules.drive_arbiter.DriveIntent` entries w
 against goal titles are dropped **only if** some other intent overlaps — otherwise the list is
 unchanged (safe fallback). Advisory-only; does not alter MalAbs or scoring.
 
-See docs/discusion/PROPUESTA_ESTRATEGIA_OPERATIVA_V10.md
+See docs/proposals/PROPUESTA_ESTRATEGIA_OPERATIVA_V10.md
 """
 
 from __future__ import annotations

@@ -7,7 +7,7 @@ before ``evaluate()`` — not a replacement for :meth:`BayesianEngine.refresh_we
 
 Default: **inactive** unless ``KERNEL_TEMPORAL_HORIZON_PRIOR`` is set.
 
-See ``docs/TEMPORAL_PRIOR_HORIZONS.md``.
+See ``docs/proposals/TEMPORAL_PRIOR_HORIZONS.md``.
 """
 
 from __future__ import annotations

@@ -10,7 +10,7 @@ Does **not** bypass MalAbs, the Buffer, or Bayesian scoring — same contract as
 ``premise_validation`` and ``epistemic_dissonance``.
 
 Env:
-  ``KERNEL_LIGHTHOUSE_KB_PATH`` — path to JSON (schema + limits: ``docs/LIGHTHOUSE_KB.md``).
+  ``KERNEL_LIGHTHOUSE_KB_PATH`` — path to JSON (schema + limits: ``docs/proposals/LIGHTHOUSE_KB.md``).
 """
 
 from __future__ import annotations

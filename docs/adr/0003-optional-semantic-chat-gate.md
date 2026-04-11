@@ -1,11 +1,11 @@
 # ADR 0003 — Optional semantic similarity gate for chat text (Hugging Face / embeddings)
 
 **Status:** Accepted (April 2026)  
-**Context:** Team note distinguishing **Ollama** (language generation) from **Hugging Face–style** small **embedding** models for stronger chat-text screening than substring lists alone. MalAbs chat uses `evaluate_chat_text` with normalized substring matching ([INPUT_TRUST_THREAT_MODEL.md](../INPUT_TRUST_THREAT_MODEL.md)).
+**Context:** Team note distinguishing **Ollama** (language generation) from **Hugging Face–style** small **embedding** models for stronger chat-text screening than substring lists alone. MalAbs chat uses `evaluate_chat_text` with normalized substring matching ([INPUT_TRUST_THREAT_MODEL.md](../proposals/INPUT_TRUST_THREAT_MODEL.md)).
 
 ## Decision
 
-1. **Document first:** [LLM_STACK_OLLAMA_VS_HF.md](../LLM_STACK_OLLAMA_VS_HF.md) records roles and limits; [MALABS_SEMANTIC_LAYERS.md](../MALABS_SEMANTIC_LAYERS.md) describes the layered pipeline.
+1. **Document first:** [LLM_STACK_OLLAMA_VS_HF.md](../proposals/LLM_STACK_OLLAMA_VS_HF.md) records roles and limits; [MALABS_SEMANTIC_LAYERS.md](../proposals/MALABS_SEMANTIC_LAYERS.md) describes the layered pipeline.
 
 2. **Layered pipeline (implemented):**
    - **Layer 0 — lexical** always runs first (`_evaluate_chat_text_lexical` in `absolute_evil.py`).
@@ -20,10 +20,10 @@
 ## Consequences
 
 - **Positive:** Lexical speed for obvious cases; embeddings for paraphrase; LLM rarely invoked; Ollama-only deps align with the rest of the stack.
-- **Negative:** Threshold tuning and ambiguous-band fail-safe blocks require operator care — documented env vars and [MALABS_SEMANTIC_LAYERS.md](../MALABS_SEMANTIC_LAYERS.md).
+- **Negative:** Threshold tuning and ambiguous-band fail-safe blocks require operator care — documented env vars and [MALABS_SEMANTIC_LAYERS.md](../proposals/MALABS_SEMANTIC_LAYERS.md).
 
 ## Links
 
-- [MALABS_SEMANTIC_LAYERS.md](../MALABS_SEMANTIC_LAYERS.md)  
-- [LLM_STACK_OLLAMA_VS_HF.md](../LLM_STACK_OLLAMA_VS_HF.md)  
+- [MALABS_SEMANTIC_LAYERS.md](../proposals/MALABS_SEMANTIC_LAYERS.md)  
+- [LLM_STACK_OLLAMA_VS_HF.md](../proposals/LLM_STACK_OLLAMA_VS_HF.md)  
 - [0001 — packaging](0001-packaging-core-boundary.md)
