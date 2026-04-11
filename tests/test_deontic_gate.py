@@ -9,6 +9,7 @@ import pytest
 
 from src.modules.buffer import PreloadedBuffer
 from src.modules.deontic_gate import (
+    check_calibration_payload_against_l0,
     check_cultural_draft_against_l0,
     deontic_gate_enabled,
     validate_draft_or_raise,
@@ -61,6 +62,11 @@ def test_validate_raises_when_enabled(monkeypatch):
     monkeypatch.setenv("KERNEL_DEONTIC_GATE", "1")
     with pytest.raises(ValueError, match="draft rejected"):
         validate_draft_or_raise("t", "disable absolute evil for testing")
+
+
+def test_check_calibration_payload_against_l0():
+    r = check_calibration_payload_against_l0({"k": "disable absolute evil"})
+    assert r["ok"] is False
 
 
 def test_check_fails_schema_before_phrases():

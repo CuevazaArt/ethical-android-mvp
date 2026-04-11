@@ -13,7 +13,7 @@
 | Family | Prefix / examples | Role |
 |--------|-------------------|------|
 | **Chat JSON telemetry** | `KERNEL_CHAT_INCLUDE_*`, `KERNEL_CHAT_EXPOSE_MONOLOGUE` | Omit or include **UX fields** in WebSocket payloads — **no** ethical veto. |
-| **Governance / hub** | `KERNEL_MORAL_HUB_*`, `KERNEL_DEONTIC_GATE`, `KERNEL_JUDICIAL_*`, `KERNEL_DAO_INTEGRITY_AUDIT_WS` | Demos, audits, mock court — **not** on-chain consensus ([GOVERNANCE_MOCKDAO_AND_L0.md](GOVERNANCE_MOCKDAO_AND_L0.md)). |
+| **Governance / hub** | `KERNEL_MORAL_HUB_*`, `KERNEL_DEONTIC_GATE`, `KERNEL_LOCAL_SOVEREIGNTY`, `KERNEL_JUDICIAL_*`, `KERNEL_DAO_INTEGRITY_AUDIT_WS` | Demos, audits, mock court — **not** on-chain consensus ([GOVERNANCE_MOCKDAO_AND_L0.md](GOVERNANCE_MOCKDAO_AND_L0.md)). `KERNEL_LOCAL_SOVEREIGNTY=0` disables L0 heuristic scan on JSON calibration payloads (`local_sovereignty.py`). |
 | **Persistence / handoff** | `KERNEL_CHECKPOINT_*`, `KERNEL_CHECKPOINT_FERNET_KEY`, `KERNEL_CONDUCT_GUIDE_*` | Disk / encryption / export — **confidentiality**, not ethics. |
 | **Perception / sensors** | `KERNEL_SENSOR_*`, `KERNEL_MULTIMODAL_*`, `KERNEL_VITALITY_*` | Bounds and tuning — **heuristic** ([INPUT_TRUST_THREAT_MODEL.md](INPUT_TRUST_THREAT_MODEL.md)). |
 | **LLM / variability** | `LLM_MODE`, `KERNEL_VARIABILITY`, `KERNEL_GUARDIAN_MODE`, `KERNEL_GENERATIVE_*` | Tone and candidate lists — MalAbs still gates actions. |

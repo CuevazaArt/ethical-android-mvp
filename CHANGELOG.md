@@ -19,6 +19,11 @@ Pause on **new surface modules**; strengthen existing paths (critique-aligned).
 - **`context_distillation`:** `validate_conduct_guide_dict`, `load_and_validate_conduct_guide_from_env` (template-aligned).
 - **`existential_serialization`:** deterministic `chain_sha256` over episode ids + identity digest; integrity dict includes full hash.
 
+**Phase 4 — Local sovereignty (DAO calibration heuristic)**
+- **`deontic_gate`:** `check_calibration_payload_against_l0` — JSON payloads use the same L0 scan as cultural drafts.
+- **`local_sovereignty`:** `evaluate_calibration_update` rejects on conflicts; **`KERNEL_LOCAL_SOVEREIGNTY`** (default **on**; set `0` to skip).
+- **`moral_hub.propose_community_article_mock`:** optional `kernel` argument; rejects + audit line when scan fails.
+
 ## Issue 7 (P3): `KERNEL_*` consolidation — policy doc + profiles — April 2026
 - **[`docs/KERNEL_ENV_POLICY.md`](docs/KERNEL_ENV_POLICY.md):** flag families, unsupported / lab-only combinations, deprecation posture.
 - **`src/runtime_profiles.py`:** `lan_operational` (LAN + stoic UX), `moral_hub_extended` (hub + DAO vote + deontic gate + transparency audit).

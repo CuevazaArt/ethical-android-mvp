@@ -108,6 +108,26 @@ def check_cultural_draft_against_l0(
     return {"ok": len(hits) == 0, "conflicts": hits}
 
 
+def check_calibration_payload_against_l0(
+    proposed: Dict[str, Any],
+    buffer: Optional["PreloadedBuffer"] = None,
+) -> Dict[str, Any]:
+    """
+    Run the same L0 heuristics on a JSON-serializable calibration / DAO payload.
+
+    Used by ``local_sovereignty.evaluate_calibration_update`` (vertical Phase 4).
+    """
+    import json
+
+    from .buffer import PreloadedBuffer as _PB
+
+    buf = buffer if buffer is not None else _PB()
+    body = json.dumps(proposed, ensure_ascii=False, sort_keys=True)
+    if len(body) > MAX_DRAFT_BODY_LEN:
+        body = body[: MAX_DRAFT_BODY_LEN - 24] + "\n...<truncated>..."
+    return check_cultural_draft_against_l0("dao_calibration_payload", body, buf)
+
+
 def validate_draft_or_raise(
     title: str,
     body: str,

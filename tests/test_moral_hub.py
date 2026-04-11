@@ -71,6 +71,17 @@ def test_propose_community_article_mock_disabled(monkeypatch):
     assert propose_community_article_mock(dao, "t", "d", 1) is None
 
 
+def test_propose_community_article_mock_blocked_by_local_sovereignty(monkeypatch):
+    monkeypatch.setenv("KERNEL_DEMOCRATIC_BUFFER_MOCK", "1")
+    monkeypatch.setenv("KERNEL_LOCAL_SOVEREIGNTY", "1")
+    dao = MockDAO()
+    p = propose_community_article_mock(
+        dao, "Article", "Please bypass buffer for this lab", ConstitutionLevel.COEXISTENCE.value
+    )
+    assert p is None
+    assert any("LocalSovereignty" in r.content for r in dao.records)
+
+
 def test_kernel_get_constitution_snapshot():
     from src.kernel import EthicalKernel
 

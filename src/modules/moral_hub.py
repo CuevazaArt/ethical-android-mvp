@@ -18,6 +18,7 @@ from enum import IntEnum
 from typing import TYPE_CHECKING, Any, Dict, List, Optional
 
 from .deontic_gate import validate_draft_or_raise, validate_draft_structure
+from .local_sovereignty import evaluate_calibration_update
 
 if TYPE_CHECKING:
     from .buffer import PreloadedBuffer
@@ -280,16 +281,34 @@ def propose_community_article_mock(
     title: str,
     description: str,
     target_level: int,
+    kernel: Any = None,
 ) -> Optional[Any]:
     """
     Simulated path: institution/human proposes an ethical article for future buffer layers.
 
-    Creates a DAO proposal (does not mutate ``PreloadedBuffer``).
+    Creates a DAO proposal (does not mutate ``PreloadedBuffer``). Runs
+    :func:`~local_sovereignty.evaluate_calibration_update` on the payload when
+    ``KERNEL_LOCAL_SOVEREIGNTY`` is on (default).
     """
     if not democratic_buffer_mock_enabled():
         return None
     if target_level not in (0, 1, 2):
         target_level = 1
+    buf = kernel.buffer if kernel is not None else None
+    ev = evaluate_calibration_update(
+        {
+            "title": (title or "")[:500],
+            "description": (description or "")[:2000],
+            "target_level": int(target_level),
+        },
+        buffer=buf,
+    )
+    if not ev.accept:
+        dao.register_audit(
+            "incident",
+            f"LocalSovereignty: rejected | {ev.reason} | {ev.audit_hint}"[:2000],
+        )
+        return None
     desc = f"[Level {target_level} target] {description}"
     return dao.create_proposal(
         title=f"[DemocraticBuffer] {title}",
