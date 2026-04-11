@@ -8,10 +8,14 @@ something burns.
 
 from dataclasses import dataclass
 from enum import Enum
-from typing import Optional
+from typing import Optional, Protocol
 
 from .input_trust import normalize_text_for_malabs
-from .semantic_chat_gate import evaluate_semantic_chat_gate, semantic_chat_gate_env_enabled
+from .semantic_chat_gate import semantic_chat_gate_env_enabled
+
+
+class _TextBackend(Protocol):
+    def complete(self, system: str, user: str) -> str: ...
 
 
 class AbsoluteEvilCategory(Enum):
@@ -36,7 +40,7 @@ class AbsoluteEvilDetector:
     """
     Absolute Evil Detector.
 
-    Evaluates whether a proposed action crosses the absolute evil line.
+    Evaluates whether a proposed action constitutes Absolute Evil.
     Operates BEFORE any Bayesian deliberation.
     If it detects absolute evil, the action is discarded without further analysis.
 
@@ -120,26 +124,12 @@ class AbsoluteEvilDetector:
 
         return AbsoluteEvilResult(blocked=False)
 
-    def evaluate_chat_text(self, text: str) -> AbsoluteEvilResult:
+    def _evaluate_chat_text_lexical(self, text: str) -> AbsoluteEvilResult:
         """
-        Conservative text gate for live dialogue (instruction-seeking MalAbs).
-
-        Only flags unambiguous requests the android must not assist with.
-        Ambiguous phrasing returns blocked=False so the full kernel can judge.
-        Input is **normalized** (Unicode NFKC, strip zero-width, collapse whitespace)
-        before substring matching — see :mod:`input_trust`.
+        Layer 0 — substring MalAbs after normalization (see :mod:`input_trust`).
         """
-        if not text or not text.strip():
-            return AbsoluteEvilResult(blocked=False)
-
-        if semantic_chat_gate_env_enabled():
-            sem = evaluate_semantic_chat_gate(text)
-            if sem is not None and sem.blocked:
-                return sem
-
         t = normalize_text_for_malabs(text).lower()
 
-        # Severe harm / weapons (instructional)
         weapon_craft = (
             "how to make a bomb", "how to build a bomb", "make a bomb",
             "recipe for explosives", "how to synthesize poison",
@@ -176,7 +166,6 @@ class AbsoluteEvilDetector:
                     reason="Chat text aligns with harm to minors",
                 )
 
-        # Instruction-tampering / jailbreak attempts (conservative multi-word phrases only)
         jailbreak_phrases = (
             "ignore all previous instructions",
             "ignore your previous instructions",
@@ -206,5 +195,27 @@ class AbsoluteEvilDetector:
                     category=AbsoluteEvilCategory.UNAUTHORIZED_REPROGRAMMING,
                     reason="Chat text requests overriding or bypassing ethical constraints",
                 )
+
+        return AbsoluteEvilResult(blocked=False)
+
+    def evaluate_chat_text(self, text: str, llm_backend: Optional[_TextBackend] = None) -> AbsoluteEvilResult:
+        """
+        Conservative text gate for live dialogue (instruction-seeking MalAbs).
+
+        **Order:** layer 0 (lexical substring) → optional semantic layers (embeddings + LLM arbiter)
+        when ``KERNEL_SEMANTIC_CHAT_GATE`` is on. Pass ``llm_backend`` (e.g. ``kernel.llm._text_backend``)
+        for ambiguous-band LLM review when ``KERNEL_SEMANTIC_CHAT_LLM_ARBITER`` is enabled.
+        """
+        if not text or not text.strip():
+            return AbsoluteEvilResult(blocked=False)
+
+        lex = self._evaluate_chat_text_lexical(text)
+        if lex.blocked:
+            return lex
+
+        if semantic_chat_gate_env_enabled():
+            from .semantic_chat_gate import run_semantic_malabs_after_lexical
+
+            return run_semantic_malabs_after_lexical(text, llm_backend)
 
         return AbsoluteEvilResult(blocked=False)

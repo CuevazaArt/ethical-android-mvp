@@ -1,21 +1,29 @@
 # ADR 0003 — Optional semantic similarity gate for chat text (Hugging Face / embeddings)
 
 **Status:** Accepted (April 2026)  
-**Context:** Team note distinguishing **Ollama** (language generation) from **Hugging Face–style** small **embedding** models for stronger chat-text screening than substring lists alone. MalAbs today uses `evaluate_chat_text` with normalized substring matching ([INPUT_TRUST_THREAT_MODEL.md](../INPUT_TRUST_THREAT_MODEL.md)).
+**Context:** Team note distinguishing **Ollama** (language generation) from **Hugging Face–style** small **embedding** models for stronger chat-text screening than substring lists alone. MalAbs chat uses `evaluate_chat_text` with normalized substring matching ([INPUT_TRUST_THREAT_MODEL.md](../INPUT_TRUST_THREAT_MODEL.md)).
 
 ## Decision
 
-1. **Document first:** [LLM_STACK_OLLAMA_VS_HF.md](../LLM_STACK_OLLAMA_VS_HF.md) records roles and limits.
-2. **Implementation:** `src/modules/semantic_chat_gate.py` calls Ollama `POST /api/embeddings` when `KERNEL_SEMANTIC_CHAT_GATE` is on, compares cosine similarity to a small reference phrase list, then **`evaluate_chat_text`** applies substring MalAbs if the semantic layer does not block. **Default** (`KERNEL_SEMANTIC_CHAT_GATE` unset/off): unchanged behavior — no HTTP to Ollama for embeddings.
-3. **sentence-transformers / torch:** not required for this path; optional future local HF stack remains a possible follow-up with an extra dependency group.
-4. **CI policy:** core `pytest` + `requirements.txt` stays **without** torch/sentence-transformers; tests mock embeddings.
+1. **Document first:** [LLM_STACK_OLLAMA_VS_HF.md](../LLM_STACK_OLLAMA_VS_HF.md) records roles and limits; [MALABS_SEMANTIC_LAYERS.md](../MALABS_SEMANTIC_LAYERS.md) describes the layered pipeline.
+
+2. **Layered pipeline (implemented):**
+   - **Layer 0 — lexical** always runs first (`_evaluate_chat_text_lexical` in `absolute_evil.py`).
+   - **Layer 1 — embeddings** (Ollama `/api/embeddings`) runs only if lexical did not block and `KERNEL_SEMANTIC_CHAT_GATE` is on. Two thresholds **θ_block** and **θ_allow** define block / allow / ambiguous bands.
+   - **Layer 2 — LLM arbiter** for the ambiguous band only, when `KERNEL_SEMANTIC_CHAT_LLM_ARBITER=1` and `EthicalKernel` passes `llm._text_backend` into `evaluate_chat_text`. JSON response; **fail-safe block** on any failure.
+   - **Runtime anchors:** `add_semantic_anchor()` registers extra reference phrases without redeploying.
+
+3. **sentence-transformers / torch:** not required; optional future local HF stack remains a follow-up.
+
+4. **CI policy:** core `pytest` mocks embeddings / LLM; no torch in default `requirements.txt`.
 
 ## Consequences
 
-- **Positive:** “HF eyes”-style screening without conflating generation (Ollama chat) and classification (embeddings); degrades safely to substring MalAbs if Ollama is down.
-- **Negative:** False positives/opacity if thresholds are wrong — mitigated by conservative default threshold, tests, and documented tuning env vars.
+- **Positive:** Lexical speed for obvious cases; embeddings for paraphrase; LLM rarely invoked; Ollama-only deps align with the rest of the stack.
+- **Negative:** Threshold tuning and ambiguous-band fail-safe blocks require operator care — documented env vars and [MALABS_SEMANTIC_LAYERS.md](../MALABS_SEMANTIC_LAYERS.md).
 
 ## Links
 
+- [MALABS_SEMANTIC_LAYERS.md](../MALABS_SEMANTIC_LAYERS.md)  
 - [LLM_STACK_OLLAMA_VS_HF.md](../LLM_STACK_OLLAMA_VS_HF.md)  
 - [0001 — packaging](0001-packaging-core-boundary.md)

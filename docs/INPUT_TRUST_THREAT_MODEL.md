@@ -4,7 +4,7 @@
 
 The Ethos Kernel accepts **untrusted natural language** (WebSocket chat, batch scenarios, `process_natural`). Two surfaces matter for defense-in-depth:
 
-1. **Chat text** — `AbsoluteEvilDetector.evaluate_chat_text` runs **before** the LLM perceives the turn (`EthicalKernel.process_chat_turn` and `process_natural`; same normalization). Optionally, if `KERNEL_SEMANTIC_CHAT_GATE=1`, an **Ollama embedding** similarity check runs **first**; on failure to obtain embeddings (network, missing model), processing falls through to substring MalAbs unchanged.
+1. **Chat text** — `AbsoluteEvilDetector.evaluate_chat_text` runs **before** the LLM perceives the turn (`EthicalKernel.process_chat_turn` and `process_natural`; same normalization). **Order:** **lexical** substring MalAbs first; if `KERNEL_SEMANTIC_CHAT_GATE=1` and lexical did not block, **Ollama embeddings** (θ_block / θ_allow) and optionally an **LLM arbiter** for the ambiguous band — see [`MALABS_SEMANTIC_LAYERS.md`](MALABS_SEMANTIC_LAYERS.md). If Ollama is unavailable, only lexical applies.
 2. **Perception JSON** — when an LLM returns structured signals for `LLMModule.perceive`, the kernel must not trust out-of-range or inconsistent numbers blindly.
 
 This document states **limits**. MalAbs is **not** a content moderation product, a classifier, or a cryptographic guarantee.
@@ -28,5 +28,5 @@ This document states **limits**. MalAbs is **not** a content moderation product,
 
 - `src/modules/absolute_evil.py` — `evaluate_chat_text`
 - `src/modules/llm_layer.py` — `perception_from_llm_json`
-- `src/modules/semantic_chat_gate.py` — optional Ollama embedding gate (see [LLM_STACK_OLLAMA_VS_HF.md](LLM_STACK_OLLAMA_VS_HF.md), [ADR 0003](adr/0003-optional-semantic-chat-gate.md))
+- `src/modules/semantic_chat_gate.py` — optional Ollama embedding gate + LLM arbiter + `add_semantic_anchor` (see [MALABS_SEMANTIC_LAYERS.md](MALABS_SEMANTIC_LAYERS.md), [LLM_STACK_OLLAMA_VS_HF.md](LLM_STACK_OLLAMA_VS_HF.md), [ADR 0003](adr/0003-optional-semantic-chat-gate.md))
 - `SECURITY.md` — reporting and scope

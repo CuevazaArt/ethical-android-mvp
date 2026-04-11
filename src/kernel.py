@@ -193,6 +193,10 @@ class EthicalKernel:
         self.constitution_l2_drafts: List[Dict[str, Any]] = []
         self._last_reality_verification: RealityVerificationAssessment = REALITY_ASSESSMENT_NONE
 
+    def _malabs_text_backend(self):
+        """Optional LLM text backend for MalAbs semantic ambiguous band (see semantic_chat_gate)."""
+        return getattr(self.llm, "_text_backend", None)
+
     def get_constitution_snapshot(self) -> Dict[str, Any]:
         """L0 from buffer.py; L1/L2 drafts when present (V12.2 snapshot)."""
         from .modules.moral_hub import constitution_snapshot
@@ -588,7 +592,10 @@ class EthicalKernel:
         wm = self.working_memory
         conv = wm.format_context_for_perception()
 
-        mal = self.absolute_evil.evaluate_chat_text(user_input)
+        mal = self.absolute_evil.evaluate_chat_text(
+            user_input,
+            llm_backend=self._malabs_text_backend(),
+        )
         self._last_premise_advisory = scan_premises(user_input)
         self.user_model.note_premise_advisory(self._last_premise_advisory.flag)
         self._last_reality_verification = verify_against_lighthouse(
@@ -889,7 +896,10 @@ class EthicalKernel:
         Returns:
             (KernelDecision, VerbalResponse, RichNarrative)
         """
-        mal = self.absolute_evil.evaluate_chat_text(situation or "")
+        mal = self.absolute_evil.evaluate_chat_text(
+            situation or "",
+            llm_backend=self._malabs_text_backend(),
+        )
         if mal.blocked:
             neutral = {
                 "risk": 0.0,

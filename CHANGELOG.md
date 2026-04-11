@@ -2,6 +2,13 @@
 
 All notable changes to this project are summarized here. For narrative context and design rationale, see [`HISTORY.md`](HISTORY.md).
 
+## MalAbs semantic layers — lexical first, θ_block/θ_allow, LLM arbiter — April 2026
+
+- **`evaluate_chat_text`:** layer 0 lexical → optional embeddings (Ollama) with **θ_block** / **θ_allow** → optional **LLM JSON arbiter** for ambiguous band (`KERNEL_SEMANTIC_CHAT_LLM_ARBITER`); fail-safe block on arbiter failure or ambiguous without arbiter.
+- **`EthicalKernel`:** passes `llm._text_backend` into `evaluate_chat_text` for arbiter path.
+- **`add_semantic_anchor`:** runtime anchor phrases (DAO / ops).
+- **Docs:** [`MALABS_SEMANTIC_LAYERS.md`](docs/MALABS_SEMANTIC_LAYERS.md); ADR 0003 updated.
+
 ## Ethical poles — configurable linear evaluator (ADR 0004) — April 2026
 
 - **`src/modules/pole_linear.py`:** `LinearPoleEvaluator` loads weighted feature sums and verdict thresholds from JSON.
