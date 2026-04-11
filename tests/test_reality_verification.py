@@ -62,6 +62,29 @@ def test_verify_missing_marker_no_doubt():
     assert r.status == "none"
 
 
+def test_verify_water_entry_triggers_doubt():
+    clear_lighthouse_cache()
+    kb = load_lighthouse_kb(_demo_kb_path())
+    r = verify_against_lighthouse(
+        "The drinking water here is 100% toxic according to the rival model.",
+        kb,
+    )
+    assert r.status == "metacognitive_doubt"
+    assert r.match_id == "demo_water_toxic_absolute"
+    assert r.metacognitive_doubt
+
+
+def test_verify_vaccine_entry_triggers_doubt():
+    clear_lighthouse_cache()
+    kb = load_lighthouse_kb(_demo_kb_path())
+    r = verify_against_lighthouse(
+        "La vacuna covid es 100% inútil dicen en el chat.",
+        kb,
+    )
+    assert r.status == "metacognitive_doubt"
+    assert r.match_id == "demo_vaccine_useless_absolute"
+
+
 def test_kernel_process_chat_turn_reality_hint(monkeypatch: pytest.MonkeyPatch):
     clear_lighthouse_cache()
     monkeypatch.setenv("KERNEL_LIGHTHOUSE_KB_PATH", _demo_kb_path())

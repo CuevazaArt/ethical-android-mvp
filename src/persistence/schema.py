@@ -79,3 +79,7 @@ class KernelSnapshotV1:
     user_model_turns_observed: int = 0
     subjective_turn_index: int = 0
     subjective_stimulus_ema: float = 0.55
+
+    # V11 judicial escalation session (advisory; checkpoint continuity)
+    escalation_session_strikes: int = 0
+    escalation_session_idle_turns: int = 0

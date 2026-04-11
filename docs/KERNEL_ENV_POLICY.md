@@ -28,7 +28,7 @@ These are **not** forbidden by code, but **not CI-guaranteed** unless a profile 
 | Pattern | Risk |
 |---------|------|
 | **Many `KERNEL_CHAT_INCLUDE_*=0`** plus **full relational** expectations | Clients may assume keys exist; document minimal JSON for your UI. |
-| **`KERNEL_LIGHTHOUSE_KB_PATH` unset** + **`KERNEL_CHAT_INCLUDE_REALITY_VERIFICATION=1`** | Lighthouse may no-op; verify fixture path from repo root for demos. |
+| **`KERNEL_LIGHTHOUSE_KB_PATH` unset** + **`KERNEL_CHAT_INCLUDE_REALITY_VERIFICATION=1`** | Lighthouse may no-op; verify fixture path for demos. JSON schema and limits: [LIGHTHOUSE_KB.md](LIGHTHOUSE_KB.md). |
 | **`KERNEL_MORAL_HUB_PUBLIC=0`** but enabling **DAO WebSocket vote paths** that assume hub | Use `hub_dao_demo` or `moral_hub_extended` as baseline. |
 | **`KERNEL_API_DOCS=1`** on **LAN bind** (`0.0.0.0`) | Exposes OpenAPI — intentional only for trusted networks ([SECURITY.md](SECURITY.md)). |
 | **Arbitrary** `KERNEL_SENSOR_FIXTURE` + **`KERNEL_SENSOR_PRESET`** + client `sensor` | Merge order is documented; conflicting keys confuse debugging. |

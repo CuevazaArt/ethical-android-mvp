@@ -55,6 +55,8 @@ def snapshot_from_dict(raw: dict) -> KernelSnapshotV1:
     merged.setdefault("user_model_turns_observed", 0)
     merged.setdefault("subjective_turn_index", 0)
     merged.setdefault("subjective_stimulus_ema", 0.55)
+    merged.setdefault("escalation_session_strikes", 0)
+    merged.setdefault("escalation_session_idle_turns", 0)
     return KernelSnapshotV1(**merged)
 
 

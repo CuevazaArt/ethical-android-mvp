@@ -62,6 +62,21 @@ def test_constitution_drafts_roundtrip():
     assert k2.constitution_l2_drafts == k1.constitution_l2_drafts
 
 
+def test_escalation_session_roundtrip():
+    k1 = EthicalKernel(variability=False)
+    k1.escalation_session.strikes = 4
+    k1.escalation_session.idle_turns = 1
+
+    snap = extract_snapshot(k1)
+    assert snap.escalation_session_strikes == 4
+    assert snap.escalation_session_idle_turns == 1
+
+    k2 = EthicalKernel(variability=False)
+    apply_snapshot(k2, snap)
+    assert k2.escalation_session.strikes == 4
+    assert k2.escalation_session.idle_turns == 1
+
+
 def test_user_model_and_subjective_clock_roundtrip():
     from src.modules.llm_layer import LLMPerception
 

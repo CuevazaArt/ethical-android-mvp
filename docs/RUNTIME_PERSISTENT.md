@@ -15,6 +15,7 @@ A **persistent runtime** keeps narrative identity, episodic memory, and audited 
 | Forgiveness / load | `AlgorithmicForgiveness`, `WeaknessPole` | Unsaved drift |
 | Chat STM | `WorkingMemory` | Short by design; may stay session-only |
 | v7 user model / subjective clock | `UserModelTracker`, `SubjectiveClock` | Included in **`KernelSnapshotV1`** (checkpoint) for continuity across reconnects; STM still not persisted |
+| V11 escalation session | `EscalationSessionTracker` | **`escalation_session_strikes` / `escalation_session_idle_turns`** in snapshot (advisory strikes continuity) |
 | Immortality | `ImmortalityProtocol` | Snapshots are conceptually “backup”; real storage still needed |
 | Variability | `VariabilityEngine` (seed) | Reproducibility across environments |
 

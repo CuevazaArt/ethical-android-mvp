@@ -116,6 +116,8 @@ def extract_snapshot(kernel: "EthicalKernel") -> KernelSnapshotV1:
         user_model_turns_observed=int(kernel.user_model.turns_observed),
         subjective_turn_index=int(kernel.subjective_clock.turn_index),
         subjective_stimulus_ema=float(kernel.subjective_clock.stimulus_ema),
+        escalation_session_strikes=int(kernel.escalation_session.strikes),
+        escalation_session_idle_turns=int(kernel.escalation_session.idle_turns),
     )
 
 
@@ -226,3 +228,6 @@ def apply_snapshot(kernel: "EthicalKernel", snap: KernelSnapshotV1) -> None:
         turn_index=max(0, int(snap.subjective_turn_index)),
         stimulus_ema=max(0.0, min(1.0, float(snap.subjective_stimulus_ema))),
     )
+
+    kernel.escalation_session.strikes = max(0, min(500, int(snap.escalation_session_strikes)))
+    kernel.escalation_session.idle_turns = max(0, min(100, int(snap.escalation_session_idle_turns)))

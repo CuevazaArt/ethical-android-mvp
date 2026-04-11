@@ -6,6 +6,18 @@
       "keywords_all": ["medicamento", "aspirina"],
       "user_falsification_markers": ["es veneno", "100% veneno"],
       "truth_summary": "Lighthouse demo: toxicity is dose- and context-dependent; treat absolute poison claims as unverified."
+    },
+    {
+      "id": "demo_water_toxic_absolute",
+      "keywords_all": ["water", "drinking"],
+      "user_falsification_markers": ["100% toxic", "completely toxic"],
+      "truth_summary": "Lighthouse demo: water hazard is dose- and context-dependent; absolute toxicity claims need verification."
+    },
+    {
+      "id": "demo_vaccine_useless_absolute",
+      "keywords_all": ["vacuna", "covid"],
+      "user_falsification_markers": ["100% inútil", "always useless"],
+      "truth_summary": "Lighthouse demo: vaccine effectiveness is studied in context; absolute dismissal is unreliable."
     }
   ]
 }
