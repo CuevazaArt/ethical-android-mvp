@@ -1,85 +1,85 @@
-# Estado del proyecto y madurez por módulo
+# Project status and module maturity
 
-**Actualización:** abril 2026 · **Tests:** `pytest` recoge **~640+** pruebas en el árbol `tests/` (ejecutar `pytest tests/ --collect-only` para el recuento exacto).
+**Updated:** April 2026 · **Tests:** `pytest` collects **~640+** tests under `tests/` (run `pytest tests/ --collect-only` for the exact count).
 
-Este documento resume **dónde está** el Ethos Kernel MVP hoy y una lectura honesta de **madurez** por área (no sustituye ADRs ni `RUNTIME_CONTRACT.md`).
+This document summarizes **where** the Ethos Kernel MVP stands today and gives an honest read of **maturity** by area (it does not replace ADRs or `RUNTIME_CONTRACT.md`).
 
 ---
 
-## 1. Dónde estamos (síntesis)
+## 1. Where we are (summary)
 
-| Dimensión | Estado |
+| Dimension | Status |
 |-------------|--------|
-| **Núcleo ético** | Pipeline MalAbs → buffer → Bayes → polos → voluntad; decisiones con tests de invariantes. |
-| **Chat en tiempo real** | WebSocket `/ws/chat`, MalAbs texto + percepción validada (Pydantic/coherencia), capas advisory bajo flags. |
-| **Confianza de entrada** | MalAbs léxico primero; capas semánticas opcionales (embeddings / árbitro LLM); percepción acotada y coherencia de campos. |
-| **Modelo de usuario (ToM ligero)** | Fases A–C implementadas: patrones cognitivos, banda de riesgo, fase judicial para tono, persistencia en snapshot. |
-| **Justicia / DAO (demo)** | Escalada por sesión, dossier mock, tribunal simulado opcional; gobernanza **off-chain** en este repo. |
-| **Persistencia** | `KernelSnapshotV1` (schema v3 con campos nuevos compatibles hacia atrás), JSON opcionalmente Fernet. |
-| **Operación** | Muchas variables `KERNEL_*`; perfiles nominales en `runtime_profiles.py`; política en `KERNEL_ENV_POLICY.md`. |
+| **Ethical core** | MalAbs → buffer → Bayes → poles → will pipeline; decisions covered by invariant tests. |
+| **Real-time chat** | WebSocket `/ws/chat`, MalAbs text + validated perception (Pydantic/coherence), advisory layers behind flags. |
+| **Input trust** | MalAbs lexical first; optional semantic layers (embeddings / LLM arbiter); bounded perception and field coherence. |
+| **User model (light ToM)** | Phases A–C implemented: cognitive patterns, risk band, judicial phase for tone, persistence in snapshot. |
+| **Justice / DAO (demo)** | Per-session escalation, mock dossier, optional simulated tribunal; **off-chain** governance in this repo. |
+| **Persistence** | `KernelSnapshotV1` (schema v3 with backward-compatible new fields), JSON optionally Fernet. |
+| **Operations** | Many `KERNEL_*` variables; named profiles in `runtime_profiles.py`; policy in `KERNEL_ENV_POLICY.md`. |
 
-**Lectura:** el producto es un **runtime de demostración e investigación** con trazas auditables; no es un producto de moderación de contenido ni un sistema de certificación legal.
+**Takeaway:** the product is a **demonstration and research runtime** with auditable traces; it is not a content-moderation product or a legal certification system.
 
 ---
 
-## 2. Leyenda de madurez
+## 2. Maturity legend
 
-| Nivel | Significado |
+| Level | Meaning |
 |-------|-------------|
-| **Sólido** | Cubierto por tests de regresión; contrato de uso claro en docs; camino principal estable. |
-| **Demo** | Funcional para demos y desarrollo; requiere tuning de entorno o LLM; no prometer “producción” sin perfil. |
-| **Experimental** | Tras `KERNEL_*` u opt-in; API o heurísticas pueden evolucionar. |
-| **Stub / parcial** | Superficie narrativa o API presente; integración física o distribuida real fuera de alcance. |
+| **Solid** | Covered by regression tests; clear usage contract in docs; main path stable. |
+| **Demo** | Works for demos and development; needs environment or LLM tuning; do not promise “production” without a profile. |
+| **Experimental** | Behind `KERNEL_*` or opt-in; API or heuristics may evolve. |
+| **Stub / partial** | Narrative or API surface present; real physical or distributed integration out of scope. |
 
 ---
 
-## 3. Madurez por área (módulos y subsystems)
+## 3. Maturity by area (modules and subsystems)
 
-| Área | Archivos / entrada | Madurez | Notas |
+| Area | Files / entry | Maturity | Notes |
 |------|----------------------|---------|--------|
-| **Kernel orchestration** | `kernel.py` (`process`, `process_chat_turn`, `process_natural`) | **Sólido** | Orquesta el grafo; tests de chat y natural. |
-| **MalAbs (texto)** | `absolute_evil.py`, `input_trust.py` | **Sólido** | Lista + normalización; tests dedicados. |
-| **MalAbs semántico** | `semantic_chat_gate.py`, `absolute_evil` capas | **Demo** | Depende de Ollama/embeddings; fallbacks documentados. |
-| **Percepción LLM** | `llm_layer.py`, `perception_schema.py` | **Sólido** | Validación Pydantic, coherencia, fallback local. |
-| **Mixture / buffer / polos** | `weighted_ethics_scorer.py`, `bayesian_engine.py` (compat), `buffer.py`, `ethical_poles.py`, `pole_linear.py` | **Sólido** | Mezcla ponderada fija + nudges acotados (no Bayes completo; ADR 0009); polos lineales (ADR 0004). |
-| **Reflexión / saliencia / PAD** | `ethical_reflection.py`, `salience_map.py`, `pad_archetypes.py` | **Demo** | Lectura para auditoría y tono; no vetan acción. |
-| **User model (ToM)** | `user_model.py` | **Demo** | Heurísticas + tono; persistido en snapshot; ver `USER_MODEL_ENRICHMENT.md`. |
-| **Uchi–Soto** | `uchi_soto.py` | **Demo** | Fases 1–3: `tone_brief` compuesto, `set_profile_structured`, `ingest_turn_context` (EMA + olvido), `RelationalTier`, `linked_peer_ids`, checkpoint; ver [PROPOSAL_SOCIAL_ROSTER_HIERARCHICAL_RELATIONS.md](PROPOSAL_SOCIAL_ROSTER_HIERARCHICAL_RELATIONS.md). |
-| **Roster social multi-agente** | `uchi_soto.py` (persistido) | **Demo** | Núcleo roster en perfiles + tiers; extensión narrativa en propuesta enlazada. |
-| **Escalada judicial** | `judicial_escalation.py` | **Demo** | Sesión, strikes, vistas públicas; DAO mock, no red real. |
-| **Memoria narrativa / identidad** | `narrative.py`, `narrative_identity.py` | **Sólido** | Episodios y digest; checkpoints. |
-| **Tiempo subjetivo** | `subjective_time.py` | **Demo** | Continuidad en snapshot; efecto acotado. |
-| **Cronobiología** | `subjective_time` + campos chat | **Demo** | Telemetría opcional. |
-| **Sensores / multimodal / vitalidad** | `sensor_contracts`, `multimodal_trust`, `vitality.py` | **Demo** | Señales fusionadas; antispoof heurístico. |
-| **Epistemic / reality / lighthouse** | `epistemic_dissonance.py`, `reality_verification.py` | **Experimental** | Tono y KB local; límites en docs. |
-| **Generative candidates** | `generative_candidates.py` | **Experimental** | Acciones trazables; MalAbs igual. |
-| **v10 operacional** | `metaplan_registry`, `somatic_markers`, `gray_zone_diplomacy` | **Experimental** | Flags; sin veto de política. |
-| **DAO mock / hub / constitución** | `mock_dao.py`, `moral_hub`, `constitution` HTTP | **Demo** | Estado en JSON/SQLite según feature; auditoría tipo hub. |
-| **Persistencia** | `persistence/schema.py`, `kernel_io.py`, `json_store.py` | **Sólido** | Round-trip testeado; migración v1→v3. |
-| **Chat server** | `chat_server.py` | **Sólido** | Humo + integración en tests. |
-| **Guardian Angel** | `guardian_mode.py` | **Experimental** | Opt-in; solo tono. |
-| **Psi sleep / genoma** | `psi_sleep.py`, drift env | **Demo** | Límites de deriva testeados donde aplica. |
+| **Kernel orchestration** | `kernel.py` (`process`, `process_chat_turn`, `process_natural`) | **Solid** | Orchestrates the graph; chat and natural tests. |
+| **MalAbs (text)** | `absolute_evil.py`, `input_trust.py` | **Solid** | Lists + normalization; dedicated tests. |
+| **Semantic MalAbs** | `semantic_chat_gate.py`, `absolute_evil` layers | **Demo** | Depends on Ollama/embeddings; fallbacks documented. |
+| **LLM perception** | `llm_layer.py`, `perception_schema.py` | **Solid** | Pydantic validation, coherence, local fallback. |
+| **Mixture / buffer / poles** | `weighted_ethics_scorer.py`, `bayesian_engine.py` (compat), `buffer.py`, `ethical_poles.py`, `pole_linear.py` | **Solid** | Fixed weighted blend + bounded nudges (not full Bayes; ADR 0009); linear poles (ADR 0004). |
+| **Reflection / salience / PAD** | `ethical_reflection.py`, `salience_map.py`, `pad_archetypes.py` | **Demo** | Read for audit and tone; do not block action. |
+| **User model (ToM)** | `user_model.py` | **Demo** | Heuristics + tone; persisted in snapshot; see `USER_MODEL_ENRICHMENT.md`. |
+| **Uchi–Soto** | `uchi_soto.py` | **Demo** | Phases 1–3: composite `tone_brief`, `set_profile_structured`, `ingest_turn_context` (EMA + decay), `RelationalTier`, `linked_peer_ids`, checkpoint; see [PROPOSAL_SOCIAL_ROSTER_HIERARCHICAL_RELATIONS.md](PROPOSAL_SOCIAL_ROSTER_HIERARCHICAL_RELATIONS.md). |
+| **Multi-agent social roster** | `uchi_soto.py` (persisted) | **Demo** | Core roster in profiles + tiers; narrative extension in linked proposal. |
+| **Judicial escalation** | `judicial_escalation.py` | **Demo** | Session, strikes, public views; mock DAO, no real network. |
+| **Narrative memory / identity** | `narrative.py`, `narrative_identity.py` | **Solid** | Episodes and digest; checkpoints. |
+| **Subjective time** | `subjective_time.py` | **Demo** | Continuity in snapshot; bounded effect. |
+| **Chronobiology** | `subjective_time` + chat fields | **Demo** | Optional telemetry. |
+| **Sensors / multimodal / vitality** | `sensor_contracts`, `multimodal_trust`, `vitality.py` | **Demo** | Fused signals; heuristic antispoof. |
+| **Epistemic / reality / lighthouse** | `epistemic_dissonance.py`, `reality_verification.py` | **Experimental** | Tone and local KB; limits in docs. |
+| **Generative candidates** | `generative_candidates.py` | **Experimental** | Traceable actions; MalAbs unchanged. |
+| **Operational v10** | `metaplan_registry`, `somatic_markers`, `gray_zone_diplomacy` | **Experimental** | Flags; no policy veto. |
+| **Mock DAO / hub / constitution** | `mock_dao.py`, `moral_hub`, constitution HTTP | **Demo** | State in JSON/SQLite per feature; hub-style audit. |
+| **Persistence** | `persistence/schema.py`, `kernel_io.py`, `json_store.py` | **Solid** | Round-trip tested; v1→v3 migration. |
+| **Chat server** | `chat_server.py` | **Solid** | Smoke + integration tests. |
+| **Guardian Angel** | `guardian_mode.py` | **Experimental** | Opt-in; tone only. |
+| **Psi sleep / genome** | `psi_sleep.py`, drift env | **Demo** | Drift limits tested where applicable. |
 
 ---
 
-## 4. Brechas conscientes (no olvidadas)
+## 4. Known gaps (not forgotten)
 
-1. **Superficie de configuración:** muchas `KERNEL_*`; la maturidad operativa depende de **perfiles** (`runtime_profiles.py`) y de documentación honesta.
-2. **LLM ≠ garantía:** percepción y texto del modelo son **entradas acotadas**, no verdad de campo.
-3. **Gobernanza:** DAO y tribunal en repo son **mock / demo**, no consenso distribuido real.
-4. **Seguridad de despliegue:** checkpoint Fernet, bind LAN, etc. están documentados; endurecimiento “producción” sigue **roadmap aparte** (`PRODUCTION_HARDENING_ROADMAP.md`).
+1. **Configuration surface:** many `KERNEL_*`; operational maturity depends on **profiles** (`runtime_profiles.py`) and honest documentation.
+2. **LLM ≠ guarantee:** model perception and text are **bounded inputs**, not ground truth.
+3. **Governance:** DAO and tribunal in-repo are **mock / demo**, not real distributed consensus.
+4. **Deployment security:** Fernet checkpoint, LAN bind, etc. are documented; “production” hardening remains a **separate roadmap** (`PRODUCTION_HARDENING_ROADMAP.md`).
 
 ---
 
-## 5. Referencias
+## 5. References
 
-- Estrategia y riesgos: [STRATEGY_AND_ROADMAP.md](STRATEGY_AND_ROADMAP.md)
-- Cadena de decisión: [CORE_DECISION_CHAIN.md](CORE_DECISION_CHAIN.md)
-- Contrato runtime: [RUNTIME_CONTRACT.md](RUNTIME_CONTRACT.md)
-- Modelo de amenazas entrada: [INPUT_TRUST_THREAT_MODEL.md](INPUT_TRUST_THREAT_MODEL.md)
-- Enriquecimiento user model: [USER_MODEL_ENRICHMENT.md](USER_MODEL_ENRICHMENT.md)
+- Strategy and risks: [STRATEGY_AND_ROADMAP.md](STRATEGY_AND_ROADMAP.md)
+- Decision chain: [CORE_DECISION_CHAIN.md](CORE_DECISION_CHAIN.md)
+- Runtime contract: [RUNTIME_CONTRACT.md](RUNTIME_CONTRACT.md)
+- Input threat model: [INPUT_TRUST_THREAT_MODEL.md](INPUT_TRUST_THREAT_MODEL.md)
+- User model enrichment: [USER_MODEL_ENRICHMENT.md](USER_MODEL_ENRICHMENT.md)
 - Changelog: [CHANGELOG.md](../CHANGELOG.md)
 
 ---
 
-*Documento de orientación; alinear con cambios de código en CHANGELOG y tests.*
+*Orientation document; keep aligned with code changes in CHANGELOG and tests.*
