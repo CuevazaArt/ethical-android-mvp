@@ -15,13 +15,14 @@ The **runtime** is the process that keeps the service alive (e.g. FastAPI + WebS
 |---------|---------|
 | Start ASGI / uvicorn with the same `app` | `python -m src.runtime`, `python -m src.chat_server`, `uvicorn src.chat_server:app` |
 | Async tasks that are **read-only** on the kernel | `src.runtime.telemetry.advisory_loop` (only `DriveArbiter.evaluate`); optional per WebSocket session if `KERNEL_ADVISORY_INTERVAL_S` > 0 |
+| Run **sync** `process_chat_turn` / LLM I/O off the asyncio loop | `RealTimeBridge` (thread pool); optional `KERNEL_CHAT_THREADPOOL_WORKERS`, `KERNEL_CHAT_TURN_TIMEOUT` — [ADR 0002](../adr/0002-async-orchestration-future.md) |
 | Health checks, logs, metrics | `GET /health` |
 | Timers that call **only** APIs documented as safe | e.g. invoke `execute_sleep` in a process that owns an explicit kernel (future design; does not inject actions) |
 
 ## Forbidden in the background
 
 - Create `CandidateAction` instances and apply them without going through `process` / `process_chat_turn`.
-- Replace MalAbs, buffer, or Bayes with LLM or augenesis outputs.
+- Replace MalAbs, buffer, or the ethical **mixture scorer** (`WeightedEthicsScorer`; historical alias `BayesianEngine`) with LLM or augenesis outputs.
 - A loop that “speaks for” the user or modifies DAO/narrative without going through the kernel on the intended paths.
 
 ## Augenesis

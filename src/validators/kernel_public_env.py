@@ -16,6 +16,8 @@ from typing import Literal
 
 from pydantic import BaseModel, ConfigDict, Field
 
+from ..runtime_profiles import profile_names
+
 logger = logging.getLogger(__name__)
 
 
@@ -96,6 +98,11 @@ class KernelPublicEnv(BaseModel):
             out.append(
                 "KERNEL_CHAT_INCLUDE_REALITY_VERIFICATION=1 without KERNEL_LIGHTHOUSE_KB_PATH; "
                 "reality verification may no-op (set a fixture path for demos)."
+            )
+        if self.ethos_runtime_profile and self.ethos_runtime_profile not in profile_names():
+            out.append(
+                f"ETHOS_RUNTIME_PROFILE={self.ethos_runtime_profile!r} is not a known nominal profile "
+                "(see runtime_profiles.RUNTIME_PROFILES)."
             )
         return out
 

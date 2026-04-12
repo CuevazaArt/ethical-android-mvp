@@ -9,6 +9,8 @@ Or: python -m src.runtime  (same server; see docs/proposals/RUNTIME_CONTRACT.md)
 
 **Profiles:** set ``ETHOS_RUNTIME_PROFILE`` to a name in ``src/runtime_profiles.py`` to merge that bundle at import time (explicit env vars win per key). ``GET /health`` and ``GET /`` include ``runtime_profile`` when set.
 
+**Chat async bridge:** Each turn runs ``EthicalKernel.process_chat_turn`` in a worker thread (``RealTimeBridge``) so the asyncio loop can accept other WebSocket connections. Optional ``KERNEL_CHAT_THREADPOOL_WORKERS`` (positive int) uses a dedicated ``ThreadPoolExecutor`` for chat; optional ``KERNEL_CHAT_TURN_TIMEOUT`` (seconds) bounds the **async** wait and returns JSON ``error=chat_turn_timeout`` when exceeded (in-flight sync LLM may still run until ``OLLAMA_TIMEOUT``). See ``src/real_time_bridge.py`` and ADR 0002.
+
 OpenAPI/Swagger: **off** by default; set KERNEL_API_DOCS=1 to expose ``/docs``, ``/redoc``, ``/openapi.json`` (see README).
 
 Checkpoint (optional): ``KERNEL_CHECKPOINT_PATH`` attaches ``JsonFileCheckpointAdapter`` via
@@ -173,7 +175,12 @@ def _package_version() -> str:
 async def _lifespan(app: FastAPI):
     configure_logging()
     init_metrics()
-    yield
+    try:
+        yield
+    finally:
+        from .real_time_bridge import shutdown_chat_threadpool
+
+        shutdown_chat_threadpool(wait=True)
 
 
 def _api_docs_enabled() -> bool:
@@ -471,6 +478,9 @@ def health() -> dict[str, Any]:
     except ImportError:
         prom_client = "missing"
 
+    from .chat_settings import chat_server_settings
+
+    st = chat_server_settings()
     out: dict[str, Any] = {
         "status": "ok",
         "service": "ethos-kernel-chat",
@@ -482,6 +492,10 @@ def health() -> dict[str, Any]:
             "log_decision_events": decision_log_enabled(),
             "request_id_header": "X-Request-ID",
             "prometheus_client": prom_client,
+        },
+        "chat_bridge": {
+            "kernel_chat_turn_timeout_seconds": st.kernel_chat_turn_timeout_seconds,
+            "kernel_chat_threadpool_workers": st.kernel_chat_threadpool_workers,
         },
     }
     prof = applied_runtime_profile()
@@ -792,14 +806,51 @@ async def ws_chat(ws: WebSocket) -> None:
             )
 
             t_turn = time.perf_counter()
-            result = await bridge.process_chat(
-                text,
-                agent_id=agent_id,
-                place="chat",
-                include_narrative=include_narrative,
-                sensor_snapshot=sensor_snapshot,
-                escalate_to_dao=escalate_to_dao,
-            )
+            chat_to = st.kernel_chat_turn_timeout_seconds
+            try:
+                coro = bridge.process_chat(
+                    text,
+                    agent_id=agent_id,
+                    place="chat",
+                    include_narrative=include_narrative,
+                    sensor_snapshot=sensor_snapshot,
+                    escalate_to_dao=escalate_to_dao,
+                )
+                if chat_to is not None:
+                    result = await asyncio.wait_for(coro, timeout=chat_to)
+                else:
+                    result = await coro
+            except TimeoutError:
+                observe_chat_turn("turn_timeout", time.perf_counter() - t_turn)
+                logger.warning(
+                    "chat_turn_timeout seconds=%s (worker thread may still run)",
+                    chat_to,
+                )
+                await ws.send_json(
+                    {
+                        "error": "chat_turn_timeout",
+                        "timeout_seconds": chat_to,
+                        "blocked": False,
+                        "path": "turn_timeout",
+                        "block_reason": "chat_turn_timeout",
+                        "hint": (
+                            "Async deadline elapsed; LLM/kernel work in the worker thread may "
+                            "still finish. Use OLLAMA_TIMEOUT and KERNEL_CHAT_TURN_TIMEOUT together; "
+                            "see ADR 0002."
+                        ),
+                        "response": {
+                            "message": (
+                                "This turn exceeded the server time limit. "
+                                "Try again or increase KERNEL_CHAT_TURN_TIMEOUT."
+                            ),
+                            "tone": "neutral",
+                            "hax_mode": "none",
+                            "inner_voice": "",
+                        },
+                    }
+                )
+                maybe_autosave_episodes(kernel, session_ckpt)
+                continue
             observe_chat_turn(result.path, time.perf_counter() - t_turn)
             if result.path in ("safety_block", "kernel_block"):
                 record_malabs_block(result.path)

@@ -26,3 +26,10 @@ def test_kernel_public_env_includes_profile_and_validation_mode(monkeypatch: pyt
     snap = KernelPublicEnv.from_environ()
     assert snap.ethos_runtime_profile == "lan_operational"
     assert snap.env_validation == "strict"
+
+
+def test_unknown_runtime_profile_is_consistency_violation(monkeypatch: pytest.MonkeyPatch):
+    monkeypatch.setenv("ETHOS_RUNTIME_PROFILE", "not_a_valid_profile_xyz")
+    snap = KernelPublicEnv.from_environ()
+    assert snap.consistency_violations() == collect_env_violations()
+    assert any("ETHOS_RUNTIME_PROFILE" in v for v in snap.consistency_violations())

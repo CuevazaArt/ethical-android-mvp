@@ -8,15 +8,16 @@ This note is an **honest inventory** for operators and reviewers: known limits o
 
 **Observation.** The decision pipeline (`EthicalKernel.process`, `process_chat_turn`) is **synchronous** and mixes CPU-ish work (e.g. Bayesian-style scoring, narrative bookkeeping, optional reflection stacks) with blocking-style I/O inside the same call stack (e.g. LLM HTTP when configured).
 
-**What exists today.** The main **WebSocket chat** path uses [`RealTimeBridge`](../src/real_time_bridge.py), which runs `process_chat_turn` in a **worker thread** via `asyncio.to_thread`, so the **asyncio event loop** is not blocked for that entry point ([`chat_server`](../src/chat_server.py)).
+**What exists today.** The main **WebSocket chat** path uses [`RealTimeBridge`](../src/real_time_bridge.py), which runs `process_chat_turn` in a **worker thread** (Starlette ``run_in_threadpool`` by default, or a **dedicated** pool when ``KERNEL_CHAT_THREADPOOL_WORKERS`` > 0), so the **asyncio event loop** accepts new connections while a turn runs ([`chat_server`](../src/chat_server.py)). Optional ``KERNEL_CHAT_TURN_TIMEOUT`` bounds the **async** wait and returns JSON ``chat_turn_timeout`` when exceeded; it does **not** cancel in-flight synchronous ``httpx`` to Ollama.
 
 **Remaining risks.**
 
-- **Thread-pool queueing:** Many concurrent chat sessions still compete for the default executor; tail latency grows under burst load even though the loop stays responsive.
+- **Thread-pool queueing:** Many concurrent sessions compete for worker threads; tail latency grows under burst load even though the loop stays responsive — tune ``KERNEL_CHAT_THREADPOOL_WORKERS`` and host limits.
 - **CPU saturation:** Heavy turns still consume OS threads and CPU; this is not “free” async scalability.
+- **True LLM cancellation:** Requires async HTTP and cooperative teardown (not implemented).
 - **Other entry points:** Batch harnesses, tests, or future HTTP handlers must **not** call the kernel directly on the event loop if latency isolation matters — mirror the bridge pattern or document the trade-off.
 
-**Pointers:** [ADR 0002 — async orchestration (future)](adr/0002-async-orchestration-future.md); [PROPOSAL_PHASE2_CORE_EXTENSIONS_AND_EVENT_BUS.md](proposals/PROPOSAL_PHASE2_CORE_EXTENSIONS_AND_EVENT_BUS.md) (runtime must not block the kernel on network I/O without a future async design).
+**Pointers:** [ADR 0002 — async orchestration (partial)](adr/0002-async-orchestration-future.md); [PROPOSAL_PHASE2_CORE_EXTENSIONS_AND_EVENT_BUS.md](proposals/PROPOSAL_PHASE2_CORE_EXTENSIONS_AND_EVENT_BUS.md) (runtime must not block the kernel on network I/O without a future async design).
 
 ---
 
@@ -38,7 +39,7 @@ This note is an **honest inventory** for operators and reviewers: known limits o
 
 **Gap.** A single operator-visible policy for “backend unhealthy → fast-fail / template mode / session banner” across **all** LLM touchpoints is still aspirational.
 
-**Pointers:** [INPUT_TRUST_THREAT_MODEL.md](proposals/INPUT_TRUST_THREAT_MODEL.md); [MALABS_SEMANTIC_LAYERS.md](proposals/MALABS_SEMANTIC_LAYERS.md); [PERCEPTION_VALIDATION.md](proposals/PERCEPTION_VALIDATION.md).
+**Pointers:** [INPUT_TRUST_THREAT_MODEL.md](proposals/INPUT_TRUST_THREAT_MODEL.md); [MALABS_SEMANTIC_LAYERS.md](proposals/MALABS_SEMANTIC_LAYERS.md); [PROPOSAL_MALABS_SEMANTIC_THRESHOLD_EVIDENCE.md](proposals/PROPOSAL_MALABS_SEMANTIC_THRESHOLD_EVIDENCE.md) (cosine defaults: not empirically calibrated in-repo); [PERCEPTION_VALIDATION.md](proposals/PERCEPTION_VALIDATION.md).
 
 ---
 

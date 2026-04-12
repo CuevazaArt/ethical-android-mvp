@@ -14,7 +14,9 @@ Usage:
 import sys
 
 from .kernel import EthicalKernel
+from .runtime_profiles import apply_named_runtime_profile_to_environ
 from .simulations.runner import ALL_SIMULATIONS, run_simulation
+from .validators.env_policy import validate_kernel_env
 
 
 def banner():
@@ -76,6 +78,8 @@ def final_summary(kernel: EthicalKernel):
 
 
 def main():
+    apply_named_runtime_profile_to_environ()
+    validate_kernel_env()
     kernel = EthicalKernel()
 
     # Parse arguments

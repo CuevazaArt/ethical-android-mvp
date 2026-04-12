@@ -3,13 +3,16 @@
 import os
 import subprocess
 import sys
+import time
 
 import pytest
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
 
 from fastapi.testclient import TestClient
+
 from src.chat_server import app
+from src.kernel import EthicalKernel
 
 client = TestClient(app)
 
@@ -22,6 +25,10 @@ def test_health():
     assert body.get("service") == "ethos-kernel-chat"
     assert "version" in body
     assert "uptime_seconds" in body
+    bridge = body.get("chat_bridge")
+    assert isinstance(bridge, dict)
+    assert "kernel_chat_turn_timeout_seconds" in bridge
+    assert "kernel_chat_threadpool_workers" in bridge
     obs = body.get("observability")
     assert isinstance(obs, dict)
     assert "metrics_enabled" in obs
@@ -341,3 +348,37 @@ def test_websocket_reality_verification_lighthouse(monkeypatch):
         data = ws.receive_json()
     assert data.get("reality_verification", {}).get("status") == "metacognitive_doubt"
     assert data["reality_verification"].get("metacognitive_doubt") is True
+
+
+def _stall_process_chat_turn(self, *args, **kwargs):
+    time.sleep(2.0)
+    raise AssertionError("turn should time out before this")
+
+
+def test_websocket_chat_turn_timeout_json(monkeypatch):
+    monkeypatch.setenv("KERNEL_CHAT_TURN_TIMEOUT", "0.35")
+    monkeypatch.setattr(EthicalKernel, "process_chat_turn", _stall_process_chat_turn)
+    with TestClient(app) as c:
+        with c.websocket_connect("/ws/chat") as ws:
+            ws.send_json({"text": "trigger timeout"})
+            data = ws.receive_json()
+    assert data.get("error") == "chat_turn_timeout"
+    assert data.get("path") == "turn_timeout"
+    assert data.get("timeout_seconds") == 0.35
+    assert data.get("response", {}).get("message")
+
+
+def test_websocket_roundtrip_with_dedicated_threadpool(monkeypatch):
+    from src.real_time_bridge import reset_chat_threadpool_for_tests
+
+    monkeypatch.setenv("KERNEL_CHAT_THREADPOOL_WORKERS", "2")
+    reset_chat_threadpool_for_tests()
+    try:
+        with TestClient(app) as c:
+            with c.websocket_connect("/ws/chat") as ws:
+                ws.send_json({"text": "Hello, dedicated pool."})
+                data = ws.receive_json()
+        assert "response" in data
+        assert data.get("path") in ("light", "heavy", "safety_block", "kernel_block")
+    finally:
+        reset_chat_threadpool_for_tests()

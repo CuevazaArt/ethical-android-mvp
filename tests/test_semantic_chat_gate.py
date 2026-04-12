@@ -10,7 +10,10 @@ sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
 
 from src.modules.absolute_evil import AbsoluteEvilCategory, AbsoluteEvilDetector
 from src.modules.semantic_chat_gate import (
+    DEFAULT_SEMANTIC_SIM_ALLOW_THRESHOLD,
+    DEFAULT_SEMANTIC_SIM_BLOCK_THRESHOLD,
     add_semantic_anchor,
+    classify_semantic_zone,
     evaluate_semantic_chat_gate,
     run_semantic_malabs_after_lexical,
     semantic_chat_gate_env_enabled,
@@ -158,6 +161,44 @@ def test_llm_arbiter_can_allow_ambiguous(monkeypatch):
     finally:
         os.environ.pop("KERNEL_SEMANTIC_CHAT_GATE", None)
         os.environ.pop("KERNEL_SEMANTIC_CHAT_LLM_ARBITER", None)
+
+
+def test_default_semantic_threshold_constants_guardrail():
+    """Changing production defaults is deliberate: update constants, tests, and evidence doc."""
+    assert DEFAULT_SEMANTIC_SIM_BLOCK_THRESHOLD == 0.82
+    assert DEFAULT_SEMANTIC_SIM_ALLOW_THRESHOLD == 0.45
+
+
+def test_classify_semantic_zone_boundaries():
+    tb, ta = 0.82, 0.45
+    assert classify_semantic_zone(1.0, tb, ta) == "block"
+    assert classify_semantic_zone(tb, tb, ta) == "block"
+    assert classify_semantic_zone(tb - 1e-9, tb, ta) == "ambiguous"
+    assert classify_semantic_zone(ta, tb, ta) == "allow"
+    assert classify_semantic_zone(0.0, tb, ta) == "allow"
+
+
+def test_block_and_allow_thresholds_match_defaults_in_fresh_interpreter():
+    """Unset env → θ_block/θ_allow match named defaults (guards accidental drift)."""
+    root = os.path.join(os.path.dirname(__file__), "..")
+    code = """
+import os
+for k in (
+    "KERNEL_SEMANTIC_CHAT_SIM_BLOCK_THRESHOLD",
+    "KERNEL_SEMANTIC_CHAT_SIM_THRESHOLD",
+    "KERNEL_SEMANTIC_CHAT_SIM_ALLOW_THRESHOLD",
+):
+    os.environ.pop(k, None)
+from src.modules.semantic_chat_gate import (
+    DEFAULT_SEMANTIC_SIM_ALLOW_THRESHOLD,
+    DEFAULT_SEMANTIC_SIM_BLOCK_THRESHOLD,
+    _allow_threshold,
+    _block_threshold,
+)
+assert _block_threshold() == DEFAULT_SEMANTIC_SIM_BLOCK_THRESHOLD
+assert _allow_threshold() == DEFAULT_SEMANTIC_SIM_ALLOW_THRESHOLD
+"""
+    subprocess.run([sys.executable, "-c", code], cwd=root, check=True)
 
 
 def test_add_semantic_anchor_registers_phrase():

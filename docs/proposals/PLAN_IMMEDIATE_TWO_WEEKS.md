@@ -129,16 +129,16 @@ Cross-check: [`PROJECT_STATUS_AND_MODULE_MATURITY.md`](PROJECT_STATUS_AND_MODULE
 
 | Area | Settled in code/docs | Still open (technical) |
 |------|----------------------|-------------------------|
-| **Scoring (mixture)** | [`weighted_ethics_scorer.py`](../../src/modules/weighted_ethics_scorer.py) documents a **discrete mixture** (not posterior inference); `BayesianEngine` alias + `bayesian_engine.py` shim ([ADR 0009](../../docs/adr/0009-ethical-mixture-scorer-naming.md)). | **Issue #1:** canonical module path + honest types; optional bounded episodic nudges — no full online Bayes unless scoped as a new project. |
+| **Scoring (mixture)** | [`weighted_ethics_scorer.py`](../../src/modules/weighted_ethics_scorer.py) canonical module; `BayesianEngine` alias + `bayesian_engine.py` shim ([ADR 0009](../../docs/adr/0009-ethical-mixture-scorer-naming.md)); theory + core chain aligned. | Full **online** Bayesian inference over parameters = **new scoped project**, not the current mixture. |
 | **MalAbs chat** | Lexical + normalization + optional semantic tier + tests. | **Evasion** cataloged in [ADVERSARIAL_ROBUSTNESS_PLAN.md](ADVERSARIAL_ROBUSTNESS_PLAN.md); hash embeddings **weaker** than neural; paraphrase without n-grams remains a known gap. |
 | **Buffer / L0** | `PreloadedBuffer.verify_action` — lexical/heuristic checks. | [Phased remediation §3.2](PROPOSAL_CORE_IMPLEMENTATION_GAP_PHASED_REMEDIATION.md): **embedding or LLM verifier** paths for principles are **not** implemented as described (lab backlog). |
 | **Perception** | Pydantic + coherence + caps in `perception_schema` / `llm_layer`. | **GIGO:** valid JSON can still bias signals; no semantic “world truth” check ([INPUT_TRUST_THREAT_MODEL.md](INPUT_TRUST_THREAT_MODEL.md)). |
 | **Epistemic / reality / lighthouse** | Modules exist under flags. | Maturity **Experimental** — integration depth varies ([PROJECT_STATUS…](PROJECT_STATUS_AND_MODULE_MATURITY.md)). |
 | **Governance** | MockDAO + L0 honesty documented. | Durable off-process votes / verifiable records = **Phase 5** in phased remediation, not MVP-complete. |
 | **Stubs / narrative crypto** | `swarm_peer_stub`, `ml_ethics_tuner`, continuity stubs in `existential_serialization`. | Explicit **stubs** — not production paths. |
-| **Runtime architecture** | WebSocket uses thread offload for kernel. | Full **async** kernel / uniform LLM degradation policy = [ADR 0002](../adr/0002-async-orchestration-future.md) + [WEAKNESSES… §1](../WEAKNESSES_AND_BOTTLENECKS.md). |
+| **Runtime architecture** | WebSocket chat: `RealTimeBridge` thread offload; optional `KERNEL_CHAT_TURN_TIMEOUT`, `KERNEL_CHAT_THREADPOOL_WORKERS` ([ADR 0002](../adr/0002-async-orchestration-future.md) partial). | Cooperative **cancellation** of in-flight sync LLM HTTP; optional **async** kernel boundary / uniform degradation — [WEAKNESSES… §1](../WEAKNESSES_AND_BOTTLENECKS.md). |
 
-**Net:** the **numeric ethical core path** (MalAbs → Bayes choice → poles/will shaping modes) is **tested and documented**; pending items are **honesty/naming**, **input-trust recall**, **buffer verification depth**, **governance persistence**, and **async/degradation** — not “missing a hidden scoring engine.”
+**Net:** the **numeric ethical core path** (MalAbs → mixture choice → poles/will shaping modes) is **tested and documented**; pending items are **input-trust recall**, **buffer verification depth**, **governance persistence**, and **async LLM cancellation / degradation** — not “missing a hidden scoring engine.”
 
 ---
 

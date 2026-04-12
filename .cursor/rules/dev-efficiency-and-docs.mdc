@@ -16,6 +16,19 @@ Merged work must stay **traceable** and **coherent** for humans and reviewers:
 
 Do **not** expand docs beyond what the change requires; every added paragraph should serve traceability or operator clarity.
 
+## Safety guardrails — integrate the full solution (not chat-only fixes)
+
+When you address **security- or safety-critical** numeric defaults (MalAbs thresholds, similarity cutoffs, circuit limits, etc.), **merge the complete pattern into the repo** so future reviewers and agents are not dependent on conversation history:
+
+1. **Code:** Named module-level constants (e.g. `DEFAULT_*`); use a small pure helper for zone logic if it is shared with tests.
+2. **Tests:** Assert those constants; where env vars override defaults, add a subprocess or env-cleared check so accidental drift fails CI.
+3. **Docs:** English `docs/proposals/PROPOSAL_*` (or the smallest relevant proposal) stating **evidence posture** — do not imply empirical calibration unless the repo actually contains the study; link from layer docs / ADRs as appropriate.
+4. **CHANGELOG:** Entry when behavior or operator expectations change.
+
+**Example (semantic MalAbs cosine defaults):** [`docs/proposals/PROPOSAL_MALABS_SEMANTIC_THRESHOLD_EVIDENCE.md`](docs/proposals/PROPOSAL_MALABS_SEMANTIC_THRESHOLD_EVIDENCE.md), [`src/modules/semantic_chat_gate.py`](src/modules/semantic_chat_gate.py), [`tests/test_semantic_chat_gate.py`](tests/test_semantic_chat_gate.py), [`scripts/report_semantic_zone_table.py`](scripts/report_semantic_zone_table.py).
+
+**Entry point for agents:** [`AGENTS.md`](../../AGENTS.md) at the repository root (orientation + “integrate solutions” expectation).
+
 ## Efficient local workflow (resources)
 
 - **Fast loop:** Use targeted tests (`pytest path/to/test.py`, `pytest -k "keyword"`) during iteration; run the **full** `pytest tests/` before a PR (matches CI).

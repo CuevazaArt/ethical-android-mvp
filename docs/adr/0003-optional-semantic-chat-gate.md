@@ -30,5 +30,6 @@
 ## Links
 
 - [MALABS_SEMANTIC_LAYERS.md](../proposals/MALABS_SEMANTIC_LAYERS.md)  
+- [PROPOSAL_MALABS_SEMANTIC_THRESHOLD_EVIDENCE.md](../proposals/PROPOSAL_MALABS_SEMANTIC_THRESHOLD_EVIDENCE.md) — default θ values are engineering priors; tests lock constants  
 - [LLM_STACK_OLLAMA_VS_HF.md](../proposals/LLM_STACK_OLLAMA_VS_HF.md)  
 - [0001 — packaging](0001-packaging-core-boundary.md)

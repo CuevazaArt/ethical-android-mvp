@@ -18,6 +18,7 @@ const CRITIQUE_TRACK = [
   "P2 — Heuristic ethics & HCI: poles honesty; weakness/PAD vs operational trust in critical profiles.",
   "P2 — Governance: MockDAO exit criteria + **L0 immutable buffer** vs community drafts (honest politics).",
   "P3 — `KERNEL_*` consolidation via profiles + deprecation policy.",
+  "P3 — Async LLM: cooperative cancel / `httpx` async (ADR 0002 remainder) after thread offload + turn timeout.",
 ] as const;
 
 export const metadata: Metadata = {

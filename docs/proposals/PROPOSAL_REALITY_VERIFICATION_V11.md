@@ -2,7 +2,7 @@
 
 The kernel can be **ethically coherent** and still cause harm if **input premises** are false (lies as malware). In a future with **inter-model interoperability**, a rival (or other agent) can inject narratives the pipeline treats as facts. This document fixes **three pillars** and implementation status.
 
-**Contract:** no layer described here replaces MalAbs, Buffer, or Bayesian judgment; they only add **telemetry, metacognitive doubt, and documented sovereignty hooks** in [RUNTIME_CONTRACT.md](RUNTIME_CONTRACT.md).
+**Contract:** no layer described here replaces MalAbs, Buffer, or the kernel’s **mixture-based scoring path** (`WeightedEthicsScorer` / deliberation chain); they only add **telemetry, metacognitive doubt, and documented sovereignty hooks** in [RUNTIME_CONTRACT.md](RUNTIME_CONTRACT.md).
 
 ---
 

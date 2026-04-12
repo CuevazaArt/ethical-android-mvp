@@ -22,7 +22,7 @@ Incorporate only what **adds new measurable state** or **bounded proactive behav
 | Piece | File | Role |
 |-------|---------|-----|
 | Decision cycle | `src/kernel.py` | Chains modules; `KernelDecision`, `ChatTurnResult`; `process_chat_turn()` (chat + STM); `register_episode` on light turns. |
-| Async bridge | `src/real_time_bridge.py` | `asyncio.to_thread` over `process_chat_turn`. |
+| Async bridge | `src/real_time_bridge.py` | Worker-thread offload (`run_in_threadpool` or optional `ThreadPoolExecutor`); optional `KERNEL_CHAT_TURN_TIMEOUT` — [ADR 0002](../adr/0002-async-orchestration-future.md). |
 | WS server | `src/chat_server.py` | FastAPI `/ws/chat`, one kernel per connection. |
 
 ### Main `process()` flow (actual order in code)

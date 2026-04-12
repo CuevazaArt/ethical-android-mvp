@@ -1,6 +1,6 @@
 # Situated existential organism (v8) — sensory fusion, vital drive, digital agency, migration
 
-**Status:** discussion + **contract and fusion** in code (`sensor_contracts.py`, `perceptual_abstraction.py`, `process_chat_turn` / WebSocket + env `KERNEL_SENSOR_*`). **Does not replace** MalAbs, Bayes, buffer, or will.
+**Status:** discussion + **contract and fusion** in code (`sensor_contracts.py`, `perceptual_abstraction.py`, `process_chat_turn` / WebSocket + env `KERNEL_SENSOR_*`). **Does not replace** MalAbs, the ethical mixture scorer (historical “Bayes” naming), buffer, or will.
 
 **Relation to relational v7:** [PROPOSAL_RELATIONAL_EVOLUTION_V7.md](PROPOSAL_RELATIONAL_EVOLUTION_V7.md) covers **dialogue** (light ToM, subjective time, advisory premises, qualitative teleology). This document (v8) covers the **situated body**: sensors, hardware persistence, fear of interruption, digital action, and migration between devices. They are **orthogonal axes**; the **v8** name avoids collision with “v7” already reserved for the relational block in the repo.
 

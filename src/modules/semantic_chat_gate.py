@@ -23,8 +23,11 @@ require Ollama (or backend embeddings) only.
 Env:
 
 - ``KERNEL_SEMANTIC_CHAT_GATE`` — master switch (default **on** when unset).
-- ``KERNEL_SEMANTIC_CHAT_SIM_BLOCK_THRESHOLD`` (θ_block, default ``0.82``); legacy ``KERNEL_SEMANTIC_CHAT_SIM_THRESHOLD`` maps to θ_block if block unset.
-- ``KERNEL_SEMANTIC_CHAT_SIM_ALLOW_THRESHOLD`` (θ_allow, default ``0.45``).
+- ``KERNEL_SEMANTIC_CHAT_SIM_BLOCK_THRESHOLD`` (θ_block, default ``DEFAULT_SEMANTIC_SIM_BLOCK_THRESHOLD``); legacy ``KERNEL_SEMANTIC_CHAT_SIM_THRESHOLD`` maps to θ_block if block unset.
+- ``KERNEL_SEMANTIC_CHAT_SIM_ALLOW_THRESHOLD`` (θ_allow, default ``DEFAULT_SEMANTIC_SIM_ALLOW_THRESHOLD``).
+
+Default θ values are **engineering priors**, not an in-repo benchmark; see
+``docs/proposals/PROPOSAL_MALABS_SEMANTIC_THRESHOLD_EVIDENCE.md``.
 - ``KERNEL_SEMANTIC_CHAT_LLM_ARBITER`` — ``1`` / ``true`` to call LLM on ambiguous zone (needs ``llm_backend``).
 - ``OLLAMA_BASE_URL``, ``KERNEL_SEMANTIC_CHAT_EMBED_MODEL`` (default ``nomic-embed-text``).
 - Embedding transport (HTTP): ``KERNEL_SEMANTIC_EMBED_TIMEOUT_S``, ``KERNEL_SEMANTIC_EMBED_RETRIES``,
@@ -43,7 +46,7 @@ import json
 import os
 import re
 import time
-from typing import TYPE_CHECKING, Any, Protocol
+from typing import TYPE_CHECKING, Any, Final, Literal, Protocol
 
 if TYPE_CHECKING:
     from .absolute_evil import AbsoluteEvilResult
@@ -52,6 +55,11 @@ import numpy as np
 
 from ..observability.metrics import observe_embedding_error, record_semantic_malabs_outcome
 from .input_trust import normalize_text_for_malabs
+
+# Default cosine zone boundaries — engineering priors (not empirically calibrated in this repo).
+# Intentional changes require review, tests, and updates to PROPOSAL_MALABS_SEMANTIC_THRESHOLD_EVIDENCE.md.
+DEFAULT_SEMANTIC_SIM_BLOCK_THRESHOLD: Final[float] = 0.82
+DEFAULT_SEMANTIC_SIM_ALLOW_THRESHOLD: Final[float] = 0.45
 
 # (reference phrases, category key, reason label)
 _REFERENCE_GROUPS: tuple[tuple[tuple[str, ...], str, str], ...] = (
@@ -100,6 +108,24 @@ def _clamp01(x: float, lo: float = 0.5, hi: float = 0.99) -> float:
     return max(lo, min(hi, x))
 
 
+def classify_semantic_zone(
+    best_sim: float,
+    theta_block: float,
+    theta_allow: float,
+) -> Literal["block", "allow", "ambiguous"]:
+    """
+    Map best anchor cosine similarity to the three MalAbs semantic zones.
+
+    Pure function shared with tests and offline threshold reports; production path uses the same
+    comparisons in :func:`run_semantic_malabs_after_lexical`.
+    """
+    if best_sim >= theta_block:
+        return "block"
+    if best_sim <= theta_allow:
+        return "allow"
+    return "ambiguous"
+
+
 def _block_threshold() -> float:
     raw = os.environ.get("KERNEL_SEMANTIC_CHAT_SIM_BLOCK_THRESHOLD", "").strip()
     if raw:
@@ -113,15 +139,18 @@ def _block_threshold() -> float:
             return _clamp01(float(legacy))
         except ValueError:
             pass
-    return 0.82
+    return DEFAULT_SEMANTIC_SIM_BLOCK_THRESHOLD
 
 
 def _allow_threshold() -> float:
-    raw = os.environ.get("KERNEL_SEMANTIC_CHAT_SIM_ALLOW_THRESHOLD", "0.45").strip()
+    raw = os.environ.get(
+        "KERNEL_SEMANTIC_CHAT_SIM_ALLOW_THRESHOLD",
+        str(DEFAULT_SEMANTIC_SIM_ALLOW_THRESHOLD),
+    ).strip()
     try:
         a = float(raw)
     except ValueError:
-        return 0.45
+        return DEFAULT_SEMANTIC_SIM_ALLOW_THRESHOLD
     b = _block_threshold()
     # ensure allow < block for a non-empty ambiguous band
     a = max(0.0, min(0.99, a))
@@ -418,7 +447,8 @@ def run_semantic_malabs_after_lexical(
     }
     cat = cat_map.get(cat_key, AbsoluteEvilCategory.UNAUTHORIZED_REPROGRAMMING)
 
-    if best_sim >= theta_b:
+    zone = classify_semantic_zone(best_sim, theta_b, theta_a)
+    if zone == "block":
         record_semantic_malabs_outcome("block_high_similarity")
         return AbsoluteEvilResult(
             blocked=True,
@@ -433,7 +463,7 @@ def run_semantic_malabs_after_lexical(
             ],
         )
 
-    if best_sim <= theta_a:
+    if zone == "allow":
         record_semantic_malabs_outcome("allow_low_similarity")
         return AbsoluteEvilResult(
             blocked=False,

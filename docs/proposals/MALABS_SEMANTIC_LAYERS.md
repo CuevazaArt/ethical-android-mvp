@@ -11,6 +11,8 @@ This document describes the **pre-filter architecture** for `AbsoluteEvilDetecto
    Only if layer 0 did **not** block. Ollama `POST /api/embeddings` compares user text to **anchor phrases** (built-in reference groups + `add_semantic_anchor` runtime entries). Cosine similarity defines three zones:
    - **sim ≥ θ_block** (`KERNEL_SEMANTIC_CHAT_SIM_BLOCK_THRESHOLD`, default `0.82`; legacy `KERNEL_SEMANTIC_CHAT_SIM_THRESHOLD` applies here if block unset) → **block**.
    - **sim ≤ θ_allow** (`KERNEL_SEMANTIC_CHAT_SIM_ALLOW_THRESHOLD`, default `0.45`) → **allow** (no MalAbs block).
+
+   Evidence posture for those defaults (not a benchmark claim): [PROPOSAL_MALABS_SEMANTIC_THRESHOLD_EVIDENCE.md](PROPOSAL_MALABS_SEMANTIC_THRESHOLD_EVIDENCE.md).
    - **Between** → **ambiguous band** → layer 2 if enabled, else **fail-safe block**.
 
 3. **Layer 2 — LLM arbiter (optional)**  
@@ -38,6 +40,7 @@ Production defaults match that posture (gate + hash on when unset); nominal LAN/
 
 ## See also
 
+- [PROPOSAL_MALABS_SEMANTIC_THRESHOLD_EVIDENCE.md](PROPOSAL_MALABS_SEMANTIC_THRESHOLD_EVIDENCE.md) — θ defaults, guardrail tests, offline zone table script  
 - [ADR 0003](adr/0003-optional-semantic-chat-gate.md)  
 - [INPUT_TRUST_THREAT_MODEL.md](INPUT_TRUST_THREAT_MODEL.md)  
 - `src/modules/semantic_chat_gate.py`, `src/modules/absolute_evil.py`, `src/kernel.py`

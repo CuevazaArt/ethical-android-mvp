@@ -26,7 +26,7 @@ Recommended interpretation of **v1.0 blockers**: issues that must be **closed or
 
 | GH # | Theme | Severity | Suggested priority | v1.0 blocker? | Suggested milestone | Assignee (set in GitHub) |
 |------|-------|----------|--------------------|---------------|---------------------|---------------------------|
-| 1 | “Bayesian” naming vs weighted mixture | High | P0 | No (semantics documented; contextual valuations in code — narrow or close) | Backlog / cleanup | Unassigned |
+| 1 | “Bayesian” naming vs weighted mixture | High | P0 | No (ADR 0009 + `weighted_ethics_scorer`; shim preserved) | Backlog / cleanup | Unassigned |
 | 2 | Security — LLM input defense-in-depth | **Critical** | **P0** | **Yes** | **v1.0-rc** | Unassigned |
 | 3 | Pilot empirical scenarios + metrics | Medium | P1 | No | Post-1.0 / evidence | Unassigned |
 | 4 | Core decision chain + pip packaging | High | P1 | **Yes** (shipping boundary) | **v1.0-rc** | Unassigned |
@@ -37,6 +37,13 @@ Recommended interpretation of **v1.0 blockers**: issues that must be **closed or
 | 9 | Compare commune vs other LLM approach (experimental) | Low | P3 | No | Research | Unassigned |
 
 **Release note:** Treat **#2, #4, #6** as the minimum set to reconcile before a **v1.0** claim alongside SECURITY and packaging docs; adjust if product scope is explicitly “research-only.”
+
+### Narrowed outside the GitHub #1–9 table (April 2026)
+
+These came from the same external critiques but are **tracked in ADRs / weaknesses** rather than as separate GH numbers:
+
+- **“Bayesian” scorer honesty:** Canonical [`weighted_ethics_scorer.py`](../../src/modules/weighted_ethics_scorer.py); compat [`bayesian_engine.py`](../../src/modules/bayesian_engine.py); [ADR 0009](../adr/0009-ethical-mixture-scorer-naming.md). Aligns with Issue **#1** acceptance above.
+- **WebSocket vs blocking I/O:** Chat path uses [`RealTimeBridge`](../../src/real_time_bridge.py) (worker threads). Optional `KERNEL_CHAT_TURN_TIMEOUT`, `KERNEL_CHAT_THREADPOOL_WORKERS`; [ADR 0002](../adr/0002-async-orchestration-future.md) (**partial** — async HTTP cancellation still open; see [WEAKNESSES_AND_BOTTLENECKS.md](../WEAKNESSES_AND_BOTTLENECKS.md) §1).
 
 ---
 

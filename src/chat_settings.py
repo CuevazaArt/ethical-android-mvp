@@ -36,6 +36,18 @@ def _env_int(name: str, default: int) -> int:
         return default
 
 
+def _env_optional_positive_float(name: str) -> float | None:
+    """Unset/empty or non-positive → no limit; otherwise seconds as float."""
+    raw = os.environ.get(name, "").strip()
+    if not raw:
+        return None
+    try:
+        v = float(raw)
+    except ValueError:
+        return None
+    return v if v > 0.0 else None
+
+
 def _env_truthy(name: str, *, default_true: bool = True) -> bool:
     raw = os.environ.get(name, "").strip().lower()
     if not raw:
@@ -72,6 +84,19 @@ class ChatServerSettings(BaseModel):
     kernel_chat_include_malabs_trace: bool = Field(
         description="KERNEL_CHAT_INCLUDE_MALABS_TRACE — include malabs_trace in WebSocket JSON.",
     )
+    kernel_chat_turn_timeout_seconds: float | None = Field(
+        description=(
+            "KERNEL_CHAT_TURN_TIMEOUT — max seconds for one WebSocket chat turn (async wait); "
+            "unset = unlimited. Does not stop in-flight sync LLM HTTP in the worker thread."
+        ),
+    )
+    kernel_chat_threadpool_workers: int = Field(
+        ge=0,
+        description=(
+            "KERNEL_CHAT_THREADPOOL_WORKERS — dedicated thread pool size for chat turns; "
+            "0 = use Starlette/anyio default thread offload."
+        ),
+    )
 
     @classmethod
     def from_env(cls) -> ChatServerSettings:
@@ -84,6 +109,10 @@ class ChatServerSettings(BaseModel):
             kernel_chat_include_malabs_trace=_env_truthy(
                 "KERNEL_CHAT_INCLUDE_MALABS_TRACE", default_true=True
             ),
+            kernel_chat_turn_timeout_seconds=_env_optional_positive_float(
+                "KERNEL_CHAT_TURN_TIMEOUT"
+            ),
+            kernel_chat_threadpool_workers=max(0, _env_int("KERNEL_CHAT_THREADPOOL_WORKERS", 0)),
         )
 
     def model_dump_public(self) -> dict[str, Any]:
@@ -95,6 +124,8 @@ class ChatServerSettings(BaseModel):
             "kernel_variability": self.kernel_variability,
             "llm_mode_set": self.llm_mode is not None,
             "kernel_chat_include_malabs_trace": self.kernel_chat_include_malabs_trace,
+            "kernel_chat_turn_timeout_seconds": self.kernel_chat_turn_timeout_seconds,
+            "kernel_chat_threadpool_workers": self.kernel_chat_threadpool_workers,
         }
 
 

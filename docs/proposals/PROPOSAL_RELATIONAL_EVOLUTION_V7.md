@@ -2,7 +2,7 @@
 
 **Note:** the **situated body** (sensors, battery, hardware migration) is in [PROPOSAL_SITUATED_ORGANISM_V8.md](PROPOSAL_SITUATED_ORGANISM_V8.md) (**v8**), to avoid mixing with this relational dialogue block.
 
-**Status:** discussion + **partial implementation** in code (does not replace MalAbs, Bayes, buffer, or will).
+**Status:** discussion + **partial implementation** in code (does not replace MalAbs, mixture scorer, buffer, or will).
 
 **Implemented in repo:** `user_model.py`, `subjective_time.py`, `premise_validation.py`, `consequence_projection.py` integrated in `process_chat_turn` / `chat_server` (telemetry and tone; see `KERNEL_CHAT_INCLUDE_*` variables in README).
 
@@ -57,7 +57,7 @@ This document records the **four fronts** agreed and what is **done vs deferred*
 |--------|-----------|
 | **Value** | Surface **immediate / medium / long** horizons as **qualitative narrative** tied to action and context. |
 | **Implemented** | `src/modules/consequence_projection.py` — `qualitative_temporal_branches`; JSON `teleology_branches`. |
-| **Not implemented** | Monte Carlo, probabilistic branches, integration into Bayesian score. |
+| **Not implemented** | Monte Carlo, probabilistic branches, integration into mixture / impact score. |
 
 ---
 

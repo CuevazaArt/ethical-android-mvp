@@ -24,7 +24,7 @@ flowchart TD
   subgraph veto [Veto / selection]
     M[AbsoluteEvilDetector — MalAbs]
     B[PreloadedBuffer.activate]
-    E[BayesianEngine.evaluate]
+    E[WeightedEthicsScorer.evaluate]
   end
   subgraph post [Post-choice — does not change action id]
     P[EthicalPoles.evaluate]
@@ -60,16 +60,16 @@ In `EthicalKernel.process`, **`final_action` is the string name of a surviving c
 | Stage | Module(s) | Effect on `final_action` |
 |-------|-----------|---------------------------|
 | MalAbs | `AbsoluteEvilDetector` | **Veto:** drops candidates; if none remain → `"BLOCKED: no permitted actions"`. |
-| Scoring / choice | `BayesianEngine` | **Selects** `chosen_action` among MalAbs survivors (prune + argmax expected impact in `evaluate`). |
-| Buffer | `PreloadedBuffer.activate` | **Does not** pass principles into `BayesianEngine.evaluate` in the current code; L0 / constitution side effects apply elsewhere (see buffer + moral hub docs). |
+| Scoring / choice | `WeightedEthicsScorer` (alias `BayesianEngine`) | **Selects** `chosen_action` among MalAbs survivors (prune + argmax expected impact in `evaluate`). |
+| Buffer | `PreloadedBuffer.activate` | **Does not** pass principles into mixture `evaluate` in the current code; L0 / constitution side effects apply elsewhere (see buffer + moral hub docs). |
 | Poles | `EthicalPoles` | **No:** evaluates the **already chosen** action name; updates multipolar verdict / score for audit and LLM tone. |
-| Will | `SigmoidWill` | **No:** feeds **mode** (`gray_zone`, etc.); `final_mode` merges will + sympathetic + locus + Bayesian mode. |
+| Will | `SigmoidWill` | **No:** feeds **mode** (`gray_zone`, etc.); `final_mode` merges will + sympathetic + locus + mixture / gray-zone mode. |
 | Reflection / salience / PAD | `EthicalReflection`, `SalienceMap`, `PADArchetypeEngine` | **No** (read-only on policy). |
 | Memory / weakness / DAO | `NarrativeMemory`, `WeaknessPole`, `MockDAO`… | **No:** run **after** `final_action` is fixed (when `register_episode` is true). |
 
-**Optional noise:** `VariabilityEngine`, when active, perturbs impact/confidence **inside** `BayesianEngine` inputs — still within the same MalAbs → Bayes selection machinery.
+**Optional noise:** `VariabilityEngine`, when active, perturbs impact/confidence **inside** `WeightedEthicsScorer` inputs — still within the same MalAbs → mixture selection machinery.
 
-**Chat path:** `process_chat_turn` may supply different candidate sets or block at the **text** gate (`evaluate_chat_text`); once `process` runs, the same rule applies: **`final_action` comes from `bayes_result.chosen_action.name` or a MalAbs block.**
+**Chat path:** `process_chat_turn` may supply different candidate sets or block at the **text** gate (`evaluate_chat_text`); once `process` runs, the same rule applies: **`final_action` comes from `bayesian_result.chosen_action.name` (field name on `KernelDecision`) or a MalAbs block.**
 
 ---
 
@@ -85,7 +85,7 @@ Rough split for packaging and mental model — not a hard import graph yet (see 
 
 | Tier | Includes | Role |
 |------|----------|------|
-| **Core policy** | MalAbs, buffer (L0), `BayesianEngine`, `EthicalPoles`, `SigmoidWill`, sympathetic / locus / uchi-soto as wired in `process` | Deterministic ethical choice + modes. |
+| **Core policy** | MalAbs, buffer (L0), `WeightedEthicsScorer` (`BayesianEngine` alias), `EthicalPoles`, `SigmoidWill`, sympathetic / locus / uchi-soto as wired in `process` | Deterministic ethical choice + modes. |
 | **Narrative & audit** | `NarrativeMemory`, weakness, forgiveness, DAO mock, hub hooks | Identity and traceability; **do not** replace the core argmax. |
 | **Advisory / UX** | PAD, reflection, salience, LLM `communicate`, WebSocket JSON extras | Tone and transparency; **read-only** on `final_action` per contract. HCI / poles honesty: [POLES_WEAKNESS_PAD_AND_PROFILES.md](POLES_WEAKNESS_PAD_AND_PROFILES.md). |
 | **Runtime** | FastAPI, persistence, checkpoints, LAN clients | Deployment; **does not** redefine ethics ([`RUNTIME_CONTRACT.md`](RUNTIME_CONTRACT.md)). Optional **`KernelEventBus`** (`KERNEL_EVENT_BUS`) publishes JSON-safe summaries after the core path — for bridges only; see [PROPOSAL_PHASE2_CORE_EXTENSIONS_AND_EVENT_BUS.md](PROPOSAL_PHASE2_CORE_EXTENSIONS_AND_EVENT_BUS.md). |
