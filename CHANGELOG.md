@@ -2,6 +2,8 @@
 
 All notable changes to this project are summarized here. For narrative context and design rationale, see [`HISTORY.md`](HISTORY.md).
 
+**Note:** Older sections below may still **link** to paths that were later removed (for example `experiments/million_sim/`, `docs/multimedia/`, root `dashboard.html`, `landing/`). Those links are **historical**; recover files from git history or backup branches if you need them.
+
 ## Trim non-kernel root artifacts — April 2026
 
 - **Removed** from the repository root: **`dashboard.html`** (static browser UI, not imported by Python), **`robots.txt`**, and **`ai.txt`** (web/SEO conventions, not runtime). Recover from git history if needed.
