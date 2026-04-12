@@ -19,6 +19,7 @@ Contributors who only ship kernel features **do not** need Node.js, npm, or Type
 |------|------|
 | **`landing/`** | **Next.js** (TypeScript/React) site for the public lab domain. It is **not** imported by Python; it does not participate in `pytest` or mypy. Builds and lints are optional locally; CI runs robots parity + `kernelRepo.json` drift + lint + build (see `.github/workflows/landing-ci.yml` and [LANDING_DECOUPLING_AND_SUPPORT.md](proposals/LANDING_DECOUPLING_AND_SUPPORT.md)). |
 | **`landing/public/*.html`** | Static pages (e.g. mobile thin client, transparency). Usable without building Next.js; operators may open files directly or serve them over HTTP. |
+| **`contracts/`** | **Optional transparency only:** README + non-functional Solidity **stub** — kernel governance demos are **Python** (`mock_dao.py`). No `forge`/Hardhat in default CI. See [`contracts/README.md`](../contracts/README.md). |
 
 **TypeScript / JavaScript:** required **only** if you change `landing/` (App Router, components, tooling). Not required to run simulations, tests, or the FastAPI chat server.
 

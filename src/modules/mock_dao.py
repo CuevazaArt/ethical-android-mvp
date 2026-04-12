@@ -1,14 +1,17 @@
 """
-Mock DAO — Simulated ethical governance.
+Mock DAO — Simulated ethical governance (lab / demo only).
 
-Simulates the behavior of the Ethical Oracle DAO without real blockchain.
-Includes: quadratic voting, vectorial reputation, simulated smart contracts,
-and Solidarity Alert Protocol.
+Simulates governance UX (quadratic voting, vector reputation, audit strings)
+**without** a blockchain. There is **no** Solidity deployment, testnet contract,
+or adversarial game-theory model in this repository — see
+``docs/proposals/MOCK_DAO_SIMULATION_LIMITS.md``.
 
-**In-process only:** state is not distributed consensus; audit lines are for
-traceability demos — see ``docs/proposals/GOVERNANCE_MOCKDAO_AND_L0.md``.
+**In-process only:** not distributed consensus; votes do **not** override L0 /
+MalAbs / Bayesian action selection — see ``GOVERNANCE_MOCKDAO_AND_L0.md``.
 
-In production: replaced by smart contracts on testnet/mainnet.
+**Do not** treat this module as a roadmap commitment to ship on-chain
+governance from this repo; any future chain would be a **separate** engineering
+and security effort (``contracts/README.md`` holds a non-functional stub only).
 """
 
 import hashlib
@@ -81,17 +84,13 @@ class SolidarityAlert:
 
 class MockDAO:
     """
-    Simulated Ethical Oracle DAO.
+    Simulated Ethical Oracle DAO (naming only — not deployed contracts).
 
-    Simulated smart contracts:
-    - EthicsContract: emergency brakes
-    - ConsensusContract: quadratic voting
-    - ValuesProposalContract: new value proposals
-    - AuditContract: audit registry
-    - SolidarityAlertContract: community alerts
+    Python methods are grouped by *conceptual* contract names for demos.
+    Quadratic cost uses ``n_votes ** 2`` against per-participant token balances;
+    there is **no** Sybil resistance, collusion model, or binding identity layer.
 
-    Quadratic voting: the cost of n votes is n².
-    Vectorial reputation: [experience, empathy, consistency].
+    See ``MOCK_DAO_SIMULATION_LIMITS.md`` for threat-model gaps and non-goals.
     """
 
     def __init__(self):
@@ -120,8 +119,7 @@ class MockDAO:
     # --- EthicsContract ---
     def verify_ethics(self, action: str, context: str) -> dict:
         """
-        Simulates the EthicsContract: verifies if an action passes the ethical filter.
-        In production: smart contract with formal logic.
+        Demo hook that logs an audit line — **not** a substitute for MalAbs / kernel policy.
         """
         self.register_audit(
             "decision", f"EthicsContract: '{action}' in context '{context}' → approved"
@@ -145,13 +143,9 @@ class MockDAO:
 
     def vote(self, proposal_id: str, participant_id: str, n_votes: int, in_favor: bool) -> dict:
         """
-        Quadratic voting: cost of n votes = n².
+        Quadratic-style cost: ``n_votes ** 2`` token debit from a **closed** participant table.
 
-        Args:
-            proposal_id: ID of the proposal
-            participant_id: who is voting
-            n_votes: how many votes to cast (cost = n²)
-            in_favor: True = for, False = against
+        **Assumes** honest participants and unique IDs — no Sybil or vote-buying model.
         """
         prop = next((p for p in self.proposals if p.id == proposal_id), None)
         if not prop or prop.status != "open":

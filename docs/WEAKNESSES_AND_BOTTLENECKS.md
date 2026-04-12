@@ -44,11 +44,11 @@ This note is an **honest inventory** for operators and reviewers: known limits o
 
 ## 4. MockDAO: local governance simulation, not distributed consensus
 
-**Observation.** `MockDAO` and related hub flows are **in-process / SQLite-backed demos**. They provide traceability and UX for constitution drafts, votes, and audit lines — **not** on-chain finality, BFT, or real P2P governance.
+**Observation.** `MockDAO` and related hub flows are **in-process / SQLite-backed demos**. They provide traceability and UX for constitution drafts, votes, and audit lines — **not** on-chain finality, BFT, or real P2P governance. There is **no** production Solidity in this repo; quadratic voting **assumes** a closed, honest participant table (no Sybil model).
 
-**Why it matters.** Operators must not equate mock votes with production-grade distributed policy or legal authority.
+**Why it matters.** Operators must not equate mock votes with production-grade distributed policy or legal authority. The **scalar ethical choice** (`final_action`) does **not** flow from DAO votes in the current architecture — see [MOCK_DAO_SIMULATION_LIMITS.md](proposals/MOCK_DAO_SIMULATION_LIMITS.md).
 
-**Pointers:** [RUNTIME_CONTRACT.md](proposals/RUNTIME_CONTRACT.md); [GOVERNANCE_MOCKDAO_AND_L0.md](proposals/GOVERNANCE_MOCKDAO_AND_L0.md); [UNIVERSAL_ETHOS_AND_HUB.md](proposals/UNIVERSAL_ETHOS_AND_HUB.md).
+**Pointers:** [RUNTIME_CONTRACT.md](proposals/RUNTIME_CONTRACT.md); [GOVERNANCE_MOCKDAO_AND_L0.md](proposals/GOVERNANCE_MOCKDAO_AND_L0.md); [UNIVERSAL_ETHOS_AND_HUB.md](proposals/UNIVERSAL_ETHOS_AND_HUB.md); [`contracts/README.md`](../contracts/README.md).
 
 ---
 

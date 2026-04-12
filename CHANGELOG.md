@@ -2,6 +2,22 @@
 
 All notable changes to this project are summarized here. For narrative context and design rationale, see [`HISTORY.md`](HISTORY.md).
 
+## Mock DAO — simulation limits + Solidity stub (Issue 6 honesty) — April 2026
+
+- **[`docs/proposals/MOCK_DAO_SIMULATION_LIMITS.md`](docs/proposals/MOCK_DAO_SIMULATION_LIMITS.md):** no on-chain product in repo; QV assumes closed honest participants; DAO does not drive `final_action`; external critique alignment.
+- **[`contracts/README.md`](contracts/README.md), [`contracts/stubs/PlaceholderEthOracleStub.sol`](contracts/stubs/PlaceholderEthOracleStub.sol):** explicit non-functional stub (revert-only).
+- **[`src/modules/mock_dao.py`](src/modules/mock_dao.py):** docstrings — no implied production smart-contract swap; Sybil / good-faith gap stated.
+- **Cross-links:** [`GOVERNANCE_MOCKDAO_AND_L0.md`](docs/proposals/GOVERNANCE_MOCKDAO_AND_L0.md), [`SECURITY.md`](SECURITY.md), [`WEAKNESSES_AND_BOTTLENECKS.md`](docs/WEAKNESSES_AND_BOTTLENECKS.md), [`README.md`](README.md), [`docs/REPOSITORY_LAYOUT.md`](docs/REPOSITORY_LAYOUT.md).
+- **Tests:** [`tests/test_contracts_stub.py`](tests/test_contracts_stub.py).
+
+## MalAbs semantic θ — evidence doc + guardrail constants — April 2026
+
+- **[`docs/proposals/PROPOSAL_MALABS_SEMANTIC_THRESHOLD_EVIDENCE.md`](docs/proposals/PROPOSAL_MALABS_SEMANTIC_THRESHOLD_EVIDENCE.md):** honest posture on default cosine thresholds (engineering priors, not in-repo FP/FN benchmark).
+- **[`src/modules/semantic_chat_gate.py`](src/modules/semantic_chat_gate.py):** `DEFAULT_SEMANTIC_SIM_BLOCK_THRESHOLD` / `DEFAULT_SEMANTIC_SIM_ALLOW_THRESHOLD`, `classify_semantic_zone()` for a single zone mapping.
+- **[`tests/test_semantic_chat_gate.py`](tests/test_semantic_chat_gate.py):** asserts defaults and subprocess check for unset-env thresholds.
+- **[`scripts/report_semantic_zone_table.py`](scripts/report_semantic_zone_table.py):** offline markdown table for synthetic `best_sim` and optional θ_block sweep.
+- **Cross-links:** [`MALABS_SEMANTIC_LAYERS.md`](docs/proposals/MALABS_SEMANTIC_LAYERS.md), [ADR 0003](docs/adr/0003-optional-semantic-chat-gate.md).
+
 ## Empirical evaluation — external benchmark policy (Issue 3) — April 2026
 
 - **[`docs/proposals/ETHICAL_BENCHMARK_EXTERNAL_VALIDATION.md`](docs/proposals/ETHICAL_BENCHMARK_EXTERNAL_VALIDATION.md):** circularity risk; minimum bar for non-circular labels (experts, rubric, baselines); roadmap.

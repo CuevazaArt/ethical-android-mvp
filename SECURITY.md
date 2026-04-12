@@ -29,6 +29,7 @@ Do not use the generic “Funding, partnership, or press” template for undiscl
 
 - Spam, social engineering, or denial-of-service against demo infrastructure unless you have a minimal reproducible report agreed in advance.
 - Theoretical flaws in the **ethical model** or philosophy without a concrete software impact (use Issues / Discussions for research debate).
+- **On-chain governance:** [`src/modules/mock_dao.py`](src/modules/mock_dao.py) is an **in-process simulation** (quadratic voting, audit strings). There is **no** deployed smart-contract product in this repository; a **non-functional** Solidity stub lives under [`contracts/`](contracts/README.md) for transparency only — see [`docs/proposals/MOCK_DAO_SIMULATION_LIMITS.md`](docs/proposals/MOCK_DAO_SIMULATION_LIMITS.md). Do not treat DAO UX as tamper-proof consensus or as the same thing as the kernel’s MalAbs / scoring policy path.
 
 ## Supported versions
 
