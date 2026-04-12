@@ -34,3 +34,28 @@ def test_ethos_cli_checkpoint_save_load_roundtrip(tmp_path):
     assert code == 0
     row = json.loads(buf.getvalue())
     assert row.get("loaded") is True
+
+
+def test_ethos_cli_config_json_smoke():
+    from src.ethos_cli import main
+
+    buf = io.StringIO()
+    with redirect_stdout(buf):
+        code = main(["config", "--json"])
+    assert code == 0
+    data = json.loads(buf.getvalue())
+    assert "experimental_risk" in data
+    assert "by_family" in data
+    assert "profile_alignment" in data
+
+
+def test_ethos_cli_config_profiles_lists_runtime_names():
+    from src.ethos_cli import main
+
+    buf = io.StringIO()
+    with redirect_stdout(buf):
+        code = main(["config", "--profiles"])
+    assert code == 0
+    out = buf.getvalue()
+    assert "baseline:" in out
+    assert "judicial_demo:" in out

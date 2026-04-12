@@ -8,6 +8,7 @@ Usage::
     python -m src.ethos_cli checkpoint save PATH
     python -m src.ethos_cli nomad handshake-export [--thought LINE]
     python -m src.ethos_cli nomad handshake-verify --bundle FILE [--checkpoint PATH]
+    python -m src.ethos_cli config [--json] [--profiles] [--strict]
 
 After ``pip install -e .``, the ``ethos`` console script is available.
 """
@@ -113,6 +114,91 @@ def cmd_handshake_export(args: argparse.Namespace) -> int:
     return 0 if bundle.get("ok") else 2
 
 
+def cmd_config(args: argparse.Namespace) -> int:
+    """KERNEL_* inventory, profile alignment, and experimental-risk hints (operator cockpit)."""
+    from src.validators.env_policy import validate_kernel_env
+    from src.validators.kernel_env_operator import build_operator_config_report
+
+    if args.profiles:
+        from src.runtime_profiles import describe_profiles
+
+        for name, desc in sorted(describe_profiles().items()):
+            line = f"{name}: {desc}"
+            print(line)
+        return 0
+
+    report = build_operator_config_report()
+    exit_code = 0
+
+    if args.strict:
+        try:
+            validate_kernel_env(mode="strict")
+            report["strict_validation"] = {"ok": True}
+        except ValueError as e:
+            report["strict_validation"] = {"ok": False, "error": str(e)}
+            exit_code = 1
+    else:
+        report["strict_validation"] = None
+
+    if args.json:
+        print(json.dumps(report, indent=2))
+        return exit_code
+
+    risk = report["experimental_risk"]
+    print("Ethos Kernel — configuration cockpit (KERNEL_* fatigue guard)")
+    print()
+    print(f"Experimental risk: {risk['level'].upper()}")
+    print(f"  {risk['detail']}")
+    print(f"  KERNEL_* non-empty count: {risk['kernel_non_empty_count']}")
+    print()
+
+    viol = report["policy_violations"]
+    if viol:
+        print("Policy violations (KernelPublicEnv rules — use KERNEL_ENV_VALIDATION=strict to fail fast):")
+        for v in viol:
+            print(f"  - {v}")
+        print()
+    else:
+        print("Policy violations: none")
+        print()
+
+    hint = report.get("closest_profile_hint")
+    if hint and hint["bundle_keys"] > 0:
+        ex = hint.get("explicit_in_bundle", hint["aligned"])
+        print(
+            f"Closest nominal profile (explicit bundle keys vs env): {hint['profile']} "
+            f"(aligned {hint['aligned']}/{hint['bundle_keys']}, {ex} explicit, score {hint['score']:.2f})"
+        )
+        print("  (Unset keys are neutral — they are filled when ETHOS_RUNTIME_PROFILE is applied.)")
+        print()
+    elif hint and hint["bundle_keys"] == 0:
+        print(f"Closest nominal profile: {hint['profile']} (empty bundle — baseline)")
+        print()
+
+    print("Environment variables — by family (non-secret operator keys)")
+    for fam in sorted(report["by_family"].keys()):
+        rows = report["by_family"][fam]
+        print(f"  [{fam}]")
+        for row in rows:
+            val = row["value"]
+            if len(val) > 72:
+                val = val[:69] + "..."
+            print(f"    {row['key']}={val}")
+    print()
+    print("Nominal profiles (see `ethos config --profiles` or runtime_profiles.py).")
+
+    if args.strict:
+        sv = report.get("strict_validation") or {}
+        print()
+        if sv.get("ok"):
+            print("Strict validation: OK (KERNEL_ENV_VALIDATION rules)")
+        else:
+            print("Strict validation: FAILED")
+            print(sv.get("error", ""))
+
+    return exit_code
+
+
 def cmd_handshake_verify(args: argparse.Namespace) -> int:
     from src.modules.existential_serialization import verify_nomadic_handshake
 
@@ -128,7 +214,7 @@ def cmd_handshake_verify(args: argparse.Namespace) -> int:
 def _build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
         prog="ethos",
-        description="Ethos Kernel emergency CLI (diagnostics, checkpoints, nomadic handshake).",
+        description="Ethos Kernel CLI (diagnostics, checkpoints, config cockpit, nomadic handshake).",
     )
     parser.add_argument(
         "--llm-mode",
@@ -201,6 +287,27 @@ def _build_parser() -> argparse.ArgumentParser:
         help="Load checkpoint before verify (must match export-time state).",
     )
     p_ver.set_defaults(func=cmd_handshake_verify)
+
+    p_cfg = sub.add_parser(
+        "config",
+        help="Operator cockpit: group KERNEL_* by family, profile alignment, experimental risk.",
+    )
+    p_cfg.add_argument(
+        "--json",
+        action="store_true",
+        help="Machine-readable report (includes profile_alignment scores).",
+    )
+    p_cfg.add_argument(
+        "--profiles",
+        action="store_true",
+        help="List nominal ETHOS_RUNTIME_PROFILE names and one-line descriptions, then exit.",
+    )
+    p_cfg.add_argument(
+        "--strict",
+        action="store_true",
+        help="After the report, run validate_kernel_env(strict); exit 1 on violations.",
+    )
+    p_cfg.set_defaults(func=cmd_config)
 
     return parser
 
