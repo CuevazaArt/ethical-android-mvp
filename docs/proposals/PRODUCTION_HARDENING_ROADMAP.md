@@ -13,6 +13,7 @@
 | Honestidad MalAbs / GIGO | [`INPUT_TRUST_THREAT_MODEL.md`](INPUT_TRUST_THREAT_MODEL.md), [`SECURITY.md`](../SECURITY.md) |
 | Percepción acotada + tests | `src/modules/llm_layer.py`, `tests/test_input_trust.py` |
 | Percepción: informe de coerción + umbral **opt-in** → `D_delib` | `src/modules/perception_schema.py` (`PerceptionCoercionReport`), `src/kernel.py` (`KERNEL_PERCEPTION_UNCERTAINTY_*`), `tests/test_perception_coercion_report.py`, `tests/test_perception_uncertainty_delib.py` |
+| Parse LLM +riesgo léxico + cruce (Fase 1) | `parse_perception_llm_raw_response`, `light_risk_classifier.py`, `perception_cross_check.py`, `KERNEL_PERCEPTION_PARSE_FAIL_LOCAL`, tests `test_perception_parse_contract.py` / `test_light_risk_classifier.py` / `test_perception_cross_check.py` |
 | Lighthouse / duda epistémica (tono) | [`LIGHTHOUSE_KB.md`](LIGHTHOUSE_KB.md), `reality_verification.py` |
 | Perfiles runtime + CI | [`src/runtime_profiles.py`](../src/runtime_profiles.py), `tests/test_runtime_profiles.py` |
 | Frontera núcleo / empaquetado | [`adr/0001-packaging-core-boundary.md`](adr/0001-packaging-core-boundary.md) |
@@ -123,8 +124,8 @@ La tensión entre **formalismo verificable** y **ética situada** es inherente; 
 | Propuesta | Valor | Condiciones / riesgos |
 |-----------|--------|------------------------|
 | **Clasificador ligero opcional** (p. ej. etiquetas de riesgo, no generación de texto) **junto a** MalAbs por listas | Defensa en profundidad frente a paráfrasis; offline posible. | Dependencias, latencia, falsos positivos; debe ser **opt-in** (`KERNEL_*`), CI reproducible, y **no** “moderación infalible”. |
-| **Contrato fuerte de salida LLM** (Pydantic / JSON Schema en APIs) | Fallo en validación antes de Bayes; alinea con percepción estructurada. | Ya hay clamp en código; el salto es **esquema + errores explícitos** + tests. |
-| **Doble chequeo de percepción** (p. ej. discrepancia → `D_delib` o bandera de incertidumbre) | Coherente con crítica de percepción como vector de ataque. | El auditor no puede ser “otro LLM sin límites”; definir umbrales y tests. |
+| **Contrato fuerte de salida LLM** (Pydantic / JSON Schema en APIs) | Fallo en validación antes de Bayes; alinea con percepción estructurada. | **Spike entregado:** `parse_perception_llm_raw_response` + códigos `parse_issues` en `coercion_report`; `KERNEL_PERCEPTION_PARSE_FAIL_LOCAL` para fallos de parse; tests `test_perception_parse_contract.py`. Pydantic/coerción siguen siendo la capa numérica. |
+| **Doble chequeo de percepción** (p. ej. discrepancia → `D_delib` o bandera de incertidumbre) | Coherente con crítica de percepción como vector de ataque. | **Spike entregado (sin segundo LLM):** `KERNEL_LIGHT_RISK_CLASSIFIER` + `KERNEL_PERCEPTION_CROSS_CHECK` marcan `cross_check_discrepancy` y suben `uncertainty` (combinable con `KERNEL_PERCEPTION_UNCERTAINTY_DELIB`); tests `test_light_risk_classifier.py`, `test_perception_cross_check.py`. |
 
 **Enlace explícito al backlog:** Issue épico **input trust** en [`CRITIQUE_ROADMAP_ISSUES.md`](CRITIQUE_ROADMAP_ISSUES.md) (chat + percepción).
 

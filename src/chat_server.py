@@ -232,6 +232,12 @@ def _chat_include_nomad_identity() -> bool:
     return v in ("1", "true", "yes", "on")
 
 
+def _chat_include_light_risk() -> bool:
+    """Lexical ``light_risk_tier`` from ``KERNEL_LIGHT_RISK_CLASSIFIER`` (default off in JSON)."""
+    v = os.environ.get("KERNEL_CHAT_INCLUDE_LIGHT_RISK", "0").strip().lower()
+    return v in ("1", "true", "yes", "on")
+
+
 def _chat_turn_to_jsonable(r: ChatTurnResult, kernel: EthicalKernel) -> Dict[str, Any]:
     """Compact JSON-safe view (no full internal objects)."""
     idn = kernel.memory.identity
@@ -370,6 +376,8 @@ def _chat_turn_to_jsonable(r: ChatTurnResult, kernel: EthicalKernel) -> Dict[str
         out["constitution"] = kernel.get_constitution_snapshot()
     if _chat_include_nomad_identity():
         out["nomad_identity"] = nomad_identity_public(kernel)
+    if _chat_include_light_risk() and getattr(kernel, "_last_light_risk_tier", None):
+        out["light_risk_tier"] = kernel._last_light_risk_tier
     maybe_log_gray_zone_tuning_opportunity(kernel.dao, r, kernel=kernel)
     return out
 

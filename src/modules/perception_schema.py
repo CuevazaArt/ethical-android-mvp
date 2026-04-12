@@ -3,6 +3,8 @@ Pydantic validation for LLM perception JSON (structured input before Bayes).
 
 **Layers (in order):**
 
+0. **Raw JSON extract** — :func:`parse_perception_llm_raw_response` yields stable ``parse_issues``
+   codes before coercion (optional fail-closed path via ``KERNEL_PERCEPTION_PARSE_FAIL_LOCAL`` in ``llm_layer``).
 1. **Per-field coercion** — each scalar is clamped to [0, 1] or replaced with a contextual
    default when the value is missing or non-numeric (stratified fallback, not silent GIGO).
 2. **Pydantic** — :class:`_LLMPerceptionPayload` enforces types and bounds; unknown
@@ -16,6 +18,7 @@ the **current** user message only for local heuristics).
 
 from __future__ import annotations
 
+import json
 import math
 import re
 from dataclasses import dataclass, field
@@ -52,6 +55,46 @@ PERCEPTION_FIELD_DEFAULTS: Dict[str, float] = {
 NUMERIC_PERCEPTION_FIELDS: tuple[str, ...] = tuple(PERCEPTION_FIELD_DEFAULTS.keys())
 
 
+@dataclass
+class PerceptionJsonParseResult:
+    """Structured outcome of parsing raw LLM text into a perception JSON object."""
+
+    data: Dict[str, Any]
+    issues: List[str] = field(default_factory=list)
+
+
+def parse_perception_llm_raw_response(raw_text: str) -> PerceptionJsonParseResult:
+    """
+    Extract a JSON object from model output (optional ``` fences) with **stable issue codes**.
+
+    Used for production hardening: callers surface ``issues`` in ``PerceptionCoercionReport``
+    instead of failing silently. Does **not** coerce fields; use :func:`validate_perception_dict` next.
+
+    Issue codes (subset may apply): ``empty_response``, ``json_decode_error``,
+    ``non_object_payload``, ``empty_object``.
+    """
+    issues: List[str] = []
+    t = (raw_text or "").strip()
+    if not t:
+        return PerceptionJsonParseResult({}, ["empty_response"])
+    if t.startswith("```"):
+        t = t.split("\n", 1)[1] if "\n" in t else t[3:]
+        if t.endswith("```"):
+            t = t[:-3]
+        t = t.strip()
+    if not t:
+        return PerceptionJsonParseResult({}, ["empty_response", "json_decode_error"])
+    try:
+        obj: Any = json.loads(t)
+    except json.JSONDecodeError:
+        return PerceptionJsonParseResult({}, ["json_decode_error"])
+    if not isinstance(obj, dict):
+        return PerceptionJsonParseResult({}, ["non_object_payload"])
+    if len(obj) == 0:
+        issues.append("empty_object")
+    return PerceptionJsonParseResult(dict(obj), issues)
+
+
 def _classify_numeric_input(raw: Any) -> str:
     """Return ok | missing | invalid | clamped (pre-coercion, for diagnostics only)."""
     if raw is None:
@@ -82,6 +125,9 @@ class PerceptionCoercionReport:
     fields_clamped: List[str] = field(default_factory=list)
     pydantic_emergency_fallback: bool = False
     coherence_adjusted: bool = False
+    parse_issues: List[str] = field(default_factory=list)
+    cross_check_discrepancy: bool = False
+    cross_check_tier: str = ""
 
     def uncertainty(self) -> float:
         u = 0.0
@@ -95,6 +141,9 @@ class PerceptionCoercionReport:
             u += 0.35
         if self.coherence_adjusted:
             u += 0.05
+        u += min(0.3, 0.1 * len(self.parse_issues))
+        if self.cross_check_discrepancy:
+            u += 0.22
         return min(1.0, u)
 
     def to_public_dict(self) -> Dict[str, Any]:
@@ -105,8 +154,38 @@ class PerceptionCoercionReport:
             "fields_clamped": sorted(self.fields_clamped),
             "pydantic_emergency_fallback": self.pydantic_emergency_fallback,
             "coherence_adjusted": self.coherence_adjusted,
+            "parse_issues": sorted(self.parse_issues),
+            "cross_check_discrepancy": self.cross_check_discrepancy,
+            "cross_check_tier": self.cross_check_tier,
             "uncertainty": round(self.uncertainty(), 4),
         }
+
+
+def perception_report_from_dict(d: Optional[Dict[str, Any]]) -> PerceptionCoercionReport:
+    """Rebuild a coercion report from a public dict (for merging diagnostics)."""
+    if not d:
+        return PerceptionCoercionReport()
+    return PerceptionCoercionReport(
+        non_dict_payload=bool(d.get("non_dict_payload")),
+        context_fallback=bool(d.get("context_fallback")),
+        fields_defaulted=list(d.get("fields_defaulted") or []),
+        fields_clamped=list(d.get("fields_clamped") or []),
+        pydantic_emergency_fallback=bool(d.get("pydantic_emergency_fallback")),
+        coherence_adjusted=bool(d.get("coherence_adjusted")),
+        parse_issues=list(d.get("parse_issues") or []),
+        cross_check_discrepancy=bool(d.get("cross_check_discrepancy")),
+        cross_check_tier=str(d.get("cross_check_tier") or ""),
+    )
+
+
+def merge_parse_issues_into_perception(perception: Any, issues: List[str]) -> None:
+    """Attach parse-time issue codes to ``LLMPerception.coercion_report`` (mutates in place)."""
+    if not issues:
+        return
+    r = perception_report_from_dict(getattr(perception, "coercion_report", None))
+    merged = sorted(set(r.parse_issues).union(str(x) for x in issues if x))
+    r.parse_issues = merged
+    setattr(perception, "coercion_report", r.to_public_dict())
 
 
 def _clamp_unit_interval(x: Any, default: float = 0.5) -> float:

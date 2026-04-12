@@ -37,6 +37,8 @@ from .perception_schema import (
     CONTEXTS as PERCEPTION_CONTEXTS,
     PerceptionCoercionReport,
     finalize_summary,
+    merge_parse_issues_into_perception,
+    parse_perception_llm_raw_response,
     validate_perception_dict,
 )
 
@@ -52,6 +54,11 @@ def resolve_llm_mode(explicit: Optional[str] = None) -> str:
     """Resolve ``LLM_MODE`` / ``USE_LOCAL_LLM`` into a concrete ``LLMModule`` mode string."""
     m = explicit if explicit is not None else os.environ.get("LLM_MODE", "auto")
     return _normalize_llm_mode(str(m).strip())
+
+
+def _perception_parse_fail_local() -> bool:
+    v = os.environ.get("KERNEL_PERCEPTION_PARSE_FAIL_LOCAL", "").strip().lower()
+    return v in ("1", "true", "yes", "on")
 
 
 def _perception_prompt() -> str:
@@ -95,6 +102,7 @@ def perception_from_llm_json(
     situation: str,
     *,
     record_coercion: bool = True,
+    parse_issues: Optional[List[str]] = None,
 ) -> LLMPerception:
     """
     Build ``LLMPerception`` from parsed LLM JSON with bounds checks.
@@ -119,6 +127,8 @@ def perception_from_llm_json(
 
     if record_coercion:
         report = PerceptionCoercionReport()
+        if parse_issues:
+            report.parse_issues = list(parse_issues)
         v = validate_perception_dict(data, report=report)
         meta = report.to_public_dict()
     else:
@@ -356,6 +366,10 @@ class LLMModule:
         Validation uses :mod:`perception_schema`. If the LLM returns unusable JSON or parsing
         fails, :meth:`_perceive_local` runs on **``situation`` only** (not the STM-prefixed
         prompt string) so prior-turn keywords do not distort heuristics.
+
+        Raw text is parsed with :func:`perception_schema.parse_perception_llm_raw_response`
+        so stable ``parse_issues`` codes can appear in ``coercion_report`` (and optional
+        ``KERNEL_PERCEPTION_PARSE_FAIL_LOCAL`` skips trusting empty payloads when decode fails).
         """
         user_block = situation
         if conversation_context.strip():
@@ -365,14 +379,26 @@ class LLMModule:
             )
         if self.mode in ("api", "ollama"):
             response = self._llm_completion(_perception_prompt(), user_block)
-            data = self._parse_json(response)
+            parsed = parse_perception_llm_raw_response(response)
+            data, issues = parsed.data, parsed.issues
+            severe = frozenset({"json_decode_error", "non_object_payload", "empty_response"})
+            if _perception_parse_fail_local() and severe.intersection(issues):
+                p = self._perceive_local(situation)
+                merge_parse_issues_into_perception(p, list(issues))
+                return p
             if isinstance(data, dict) and data:
                 try:
-                    return perception_from_llm_json(data, situation)
+                    return perception_from_llm_json(data, situation, parse_issues=issues)
                 except Exception:
-                    # Malformed or unexpected payload after parse — stratified fallback: local heuristics
-                    # on the **current message** only (not the full STM-prefixed block).
-                    return self._perceive_local(situation)
+                    p = self._perceive_local(situation)
+                    merge_parse_issues_into_perception(
+                        p, list(issues) + ["perception_validate_exception"]
+                    )
+                    return p
+            p = self._perceive_local(situation)
+            if issues:
+                merge_parse_issues_into_perception(p, list(issues))
+            return p
 
         # Local mode, or LLM unavailable / empty JSON: heuristics must use ``situation`` alone so
         # keywords in "Prior conversation..." do not skew signals for the current turn.

@@ -70,6 +70,8 @@ from .modules.epistemic_dissonance import (
     assess_epistemic_dissonance,
 )
 from .modules.generative_candidates import augment_generative_candidates
+from .modules.light_risk_classifier import light_risk_classifier_enabled, light_risk_tier_from_text
+from .modules.perception_cross_check import apply_lexical_perception_cross_check
 from .modules.gray_zone_diplomacy import negotiation_hint_for_communicate
 from .modules.metaplan_registry import MetaplanRegistry
 from .modules.skill_learning_registry import SkillLearningRegistry
@@ -206,6 +208,7 @@ class EthicalKernel:
         self.constitution_l1_drafts: List[Dict[str, Any]] = []
         self.constitution_l2_drafts: List[Dict[str, Any]] = []
         self._last_reality_verification: RealityVerificationAssessment = REALITY_ASSESSMENT_NONE
+        self._last_light_risk_tier: Optional[str] = None
 
     def _malabs_text_backend(self):
         """Optional LLM text backend for MalAbs semantic ambiguous band (see semantic_chat_gate)."""
@@ -650,6 +653,11 @@ class EthicalKernel:
         wm = self.working_memory
         conv = wm.format_context_for_perception()
 
+        tier = None
+        if light_risk_classifier_enabled():
+            tier = light_risk_tier_from_text(user_input)
+        self._last_light_risk_tier = tier
+
         mal = self.absolute_evil.evaluate_chat_text(
             user_input,
             llm_backend=self._malabs_text_backend(),
@@ -687,6 +695,7 @@ class EthicalKernel:
                 reality_verification=self._last_reality_verification,
             )
         perception = self.llm.perceive(user_input, conversation_context=conv)
+        apply_lexical_perception_cross_check(perception, tier)
         self.subjective_clock.tick(perception)
         heavy = self._chat_is_heavy(perception)
         eth_context = perception.suggested_context if heavy else "everyday"
@@ -990,6 +999,11 @@ class EthicalKernel:
         Returns:
             (KernelDecision, VerbalResponse, RichNarrative)
         """
+        tier = None
+        if light_risk_classifier_enabled():
+            tier = light_risk_tier_from_text(situation or "")
+        self._last_light_risk_tier = tier
+
         mal = self.absolute_evil.evaluate_chat_text(
             situation or "",
             llm_backend=self._malabs_text_backend(),
@@ -1044,6 +1058,7 @@ class EthicalKernel:
 
         # Step 1: LLM perceives the situation
         perception = self.llm.perceive(situation)
+        apply_lexical_perception_cross_check(perception, tier)
 
         signals = {
             "risk": perception.risk,

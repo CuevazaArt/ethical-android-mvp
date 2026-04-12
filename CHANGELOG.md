@@ -2,6 +2,17 @@
 
 All notable changes to this project are summarized here. For narrative context and design rationale, see [`HISTORY.md`](HISTORY.md).
 
+## Hardening Fase 1 — parse contract, light risk tier, cross-check — April 2026
+
+- **`perception_schema`:** `parse_perception_llm_raw_response`, `PerceptionJsonParseResult`, `parse_issues` / `cross_check_*` on `PerceptionCoercionReport`, `merge_parse_issues_into_perception`, `perception_report_from_dict`.
+- **`llm_layer.LLMModule.perceive`:** structured parse + stable issue codes; optional **`KERNEL_PERCEPTION_PARSE_FAIL_LOCAL`**.
+- **`light_risk_classifier.py`:** offline **low/medium/high** tier (`KERNEL_LIGHT_RISK_CLASSIFIER`).
+- **`perception_cross_check.py`:** lexical vs numeric mismatch (`KERNEL_PERCEPTION_CROSS_CHECK`, tunables `KERNEL_CROSS_CHECK_*`).
+- **`EthicalKernel`:** runs tier + cross-check after perceive in `process_chat_turn` / `process_natural`; **`_last_light_risk_tier`**.
+- **`chat_server`:** optional **`KERNEL_CHAT_INCLUDE_LIGHT_RISK`** → JSON `light_risk_tier`.
+- **Tests:** `test_perception_parse_contract.py`, `test_light_risk_classifier.py`, `test_perception_cross_check.py`.
+- **Docs:** [`KERNEL_ENV_POLICY.md`](docs/proposals/KERNEL_ENV_POLICY.md), [`PRODUCTION_HARDENING_ROADMAP.md`](docs/proposals/PRODUCTION_HARDENING_ROADMAP.md), README operator table.
+
 ## Perception uncertainty → deliberation (opt-in) — April 2026
 
 - **`EthicalKernel.process`:** optional `perception_coercion_uncertainty`; when **`KERNEL_PERCEPTION_UNCERTAINTY_DELIB=1`** and uncertainty ≥ **`KERNEL_PERCEPTION_UNCERTAINTY_MIN`** (default `0.35`), upgrades **`D_fast` → `D_delib`**.
