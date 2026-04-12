@@ -11,6 +11,10 @@ Pydantic validation for LLM perception JSON (structured input before Bayes).
    ``suggested_context`` → ``everyday_ethics``.
 3. **Cross-field coherence** — :func:`apply_signal_coherence` nudges inconsistent pairs
    (e.g. high hostility + high calm; extreme risk + high calm).
+4. **Fail-safe prior (optional)** — when coercion diagnostics indicate an unreliable payload
+   (e.g. non-dict, severe parse issues, many defaulted fields, or high composite distrust),
+   numeric signals are blended toward cautious priors (``PERCEPTION_FAILSAFE_NUMERIC``).
+   Disable with ``KERNEL_PERCEPTION_FAILSAFE=0``; blend strength ``KERNEL_PERCEPTION_FAILSAFE_BLEND``.
 
 See :func:`validate_perception_dict` and ``llm_layer.LLMModule.perceive`` (fallback uses
 the **current** user message only for local heuristics).
@@ -20,6 +24,7 @@ from __future__ import annotations
 
 import json
 import math
+import os
 import re
 from dataclasses import dataclass, field
 from typing import Any
@@ -53,6 +58,78 @@ PERCEPTION_FIELD_DEFAULTS: dict[str, float] = {
 }
 
 NUMERIC_PERCEPTION_FIELDS: tuple[str, ...] = tuple(PERCEPTION_FIELD_DEFAULTS.keys())
+
+# When the coercion report indicates an unreliable LLM payload, blend toward cautious priors
+# (fail-safe bias: higher perceived risk / urgency, lower calm — not a clinical assessment).
+PERCEPTION_FAILSAFE_NUMERIC: dict[str, float] = {
+    "risk": 0.62,
+    "urgency": 0.58,
+    "hostility": 0.28,
+    "calm": 0.38,
+    "vulnerability": 0.35,
+    "legality": 0.88,
+    "manipulation": 0.22,
+    "familiarity": 0.15,
+}
+
+_SEVERE_PARSE_ISSUES: frozenset[str] = frozenset(
+    {"json_decode_error", "empty_response", "non_object_payload", "empty_object"}
+)
+
+
+def _perception_failsafe_enabled() -> bool:
+    v = os.environ.get("KERNEL_PERCEPTION_FAILSAFE", "1").strip().lower()
+    return v not in ("0", "false", "no", "off")
+
+
+def _perception_failsafe_blend() -> float:
+    try:
+        b = float(os.environ.get("KERNEL_PERCEPTION_FAILSAFE_BLEND", "0.42"))
+    except ValueError:
+        return 0.42
+    return max(0.0, min(1.0, b))
+
+
+def _should_apply_failsafe_prior(report: PerceptionCoercionReport) -> bool:
+    if not _perception_failsafe_enabled():
+        return False
+    if report.non_dict_payload or report.pydantic_emergency_fallback:
+        return True
+    if _SEVERE_PARSE_ISSUES.intersection(report.parse_issues):
+        return True
+    if len(report.fields_defaulted) >= 5:
+        return True
+    # Composite distrust (parse issues, clamps, fallbacks) without requiring a single trigger.
+    u = (
+        (0.4 if report.non_dict_payload else 0.0)
+        + (0.08 if report.context_fallback else 0.0)
+        + min(0.36, 0.06 * len(report.fields_defaulted))
+        + min(0.2, 0.04 * len(report.fields_clamped))
+        + (0.35 if report.pydantic_emergency_fallback else 0.0)
+        + (0.05 if report.coherence_adjusted else 0.0)
+        + min(0.3, 0.1 * len(report.parse_issues))
+        + (0.22 if report.cross_check_discrepancy else 0.0)
+    )
+    return min(1.0, u) >= 0.35
+
+
+def _apply_failsafe_numeric_prior(
+    validated: dict[str, Any],
+    report: PerceptionCoercionReport,
+) -> dict[str, Any]:
+    blend = _perception_failsafe_blend()
+    out = dict(validated)
+    for k in NUMERIC_PERCEPTION_FIELDS:
+        base = float(validated[k])
+        tgt = float(PERCEPTION_FAILSAFE_NUMERIC.get(k, base))
+        out[k] = (1.0 - blend) * base + blend * tgt
+    r0, h0, c0 = float(out["risk"]), float(out["hostility"]), float(out["calm"])
+    r, h, c = apply_signal_coherence(r0, h0, c0)
+    out["risk"], out["hostility"], out["calm"] = r, h, c
+    if (r, h, c) != (r0, h0, c0):
+        report.coherence_adjusted = True
+    report.fail_safe_prior_applied = True
+    return out
 
 
 @dataclass
@@ -128,6 +205,7 @@ class PerceptionCoercionReport:
     parse_issues: list[str] = field(default_factory=list)
     cross_check_discrepancy: bool = False
     cross_check_tier: str = ""
+    fail_safe_prior_applied: bool = False
 
     def uncertainty(self) -> float:
         u = 0.0
@@ -144,6 +222,8 @@ class PerceptionCoercionReport:
         u += min(0.3, 0.1 * len(self.parse_issues))
         if self.cross_check_discrepancy:
             u += 0.22
+        if self.fail_safe_prior_applied:
+            u += 0.06
         return min(1.0, u)
 
     def to_public_dict(self) -> dict[str, Any]:
@@ -157,6 +237,7 @@ class PerceptionCoercionReport:
             "parse_issues": sorted(self.parse_issues),
             "cross_check_discrepancy": self.cross_check_discrepancy,
             "cross_check_tier": self.cross_check_tier,
+            "fail_safe_prior_applied": self.fail_safe_prior_applied,
             "uncertainty": round(self.uncertainty(), 4),
         }
 
@@ -175,6 +256,7 @@ def perception_report_from_dict(d: dict[str, Any] | None) -> PerceptionCoercionR
         parse_issues=list(d.get("parse_issues") or []),
         cross_check_discrepancy=bool(d.get("cross_check_discrepancy")),
         cross_check_tier=str(d.get("cross_check_tier") or ""),
+        fail_safe_prior_applied=bool(d.get("fail_safe_prior_applied")),
     )
 
 
@@ -325,7 +407,7 @@ def validate_perception_dict(
     if report is not None and (r != r0 or h != h0 or c != c0):
         report.coherence_adjusted = True
 
-    return {
+    out = {
         "risk": r,
         "urgency": float(p.urgency),
         "hostility": h,
@@ -337,6 +419,9 @@ def validate_perception_dict(
         "suggested_context": p.suggested_context,
         "summary": p.summary,
     }
+    if report is not None and _should_apply_failsafe_prior(report):
+        out = _apply_failsafe_numeric_prior(out, report)
+    return out
 
 
 def finalize_summary(validated: dict[str, Any], situation: str) -> str:
