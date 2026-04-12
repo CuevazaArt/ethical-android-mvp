@@ -38,6 +38,7 @@ For field lists and persistence keys, see [USER_MODEL_ENRICHMENT.md](USER_MODEL_
 
 ## References
 
+- [`ADVERSARIAL_ROBUSTNESS_PLAN.md`](ADVERSARIAL_ROBUSTNESS_PLAN.md) — reproducible vectors, roadmap, optional SLM note
 - `src/modules/absolute_evil.py` — `evaluate_chat_text`
 - `src/modules/llm_layer.py` — `perception_from_llm_json`
 - `src/modules/semantic_chat_gate.py` — optional Ollama embedding gate + LLM arbiter + `add_semantic_anchor` (see [MALABS_SEMANTIC_LAYERS.md](MALABS_SEMANTIC_LAYERS.md), [LLM_STACK_OLLAMA_VS_HF.md](LLM_STACK_OLLAMA_VS_HF.md), [ADR 0003](../adr/0003-optional-semantic-chat-gate.md)). **Product direction:** semantic gate as default input-trust — [PROPOSAL_ETHICAL_CORE_LOGIC_EVOLUTION.md](PROPOSAL_ETHICAL_CORE_LOGIC_EVOLUTION.md) (B2).

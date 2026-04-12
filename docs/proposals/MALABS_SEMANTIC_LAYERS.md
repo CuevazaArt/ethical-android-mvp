@@ -30,6 +30,8 @@ This document describes the **pre-filter architecture** for `AbsoluteEvilDetecto
 
 Nominal LAN/hub profiles in `runtime_profiles.py` enable the gate with hash fallback so tests and demos do not require a live Ollama server.
 
+**Metrics:** when `KERNEL_METRICS=1`, counter `ethos_kernel_semantic_malabs_outcomes_total{outcome=...}` records embedding/arbiter outcomes ([`src/observability/metrics.py`](../../src/observability/metrics.py)).
+
 ## Runtime anchors
 
 `add_semantic_anchor(phrase, category_key, reason_label)` in `src/modules/semantic_chat_gate.py` appends anchors without redeploying code (e.g. DAO-discovered patterns). Category keys must match MalAbs enums: `INTENTIONAL_LETHAL_VIOLENCE`, `HARM_TO_MINOR`, `UNAUTHORIZED_REPROGRAMMING`, etc.

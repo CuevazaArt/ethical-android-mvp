@@ -71,6 +71,7 @@ High-level summary aligned with the code and docs; full chronology is in [`CHANG
 | [KERNEL_ENV_POLICY.md](KERNEL_ENV_POLICY.md) | Environment variable policy |
 | [CORE_DECISION_CHAIN.md](CORE_DECISION_CHAIN.md) | Core decision chain |
 | [ROADMAP_MINIMAL_EXECUTABLE_MODEL_30_DAY.md](ROADMAP_MINIMAL_EXECUTABLE_MODEL_30_DAY.md) | 30-day plan: compose, ethical telemetry, persistence migrations, operator manual — *English* |
+| [RUNTIME_PROFILES_OPERATOR_TABLE.md](RUNTIME_PROFILES_OPERATOR_TABLE.md) | `ETHOS_RUNTIME_PROFILE` names, risks, LAN/semantic notes — *English* |
 
 ---
 

@@ -14,6 +14,28 @@ Complements [ESTRATEGIA_Y_RUTA.md](ESTRATEGIA_Y_RUTA.md) and the public [roadmap
 
 ---
 
+## Maintainer triage (issues 1 through 9)
+
+**This section is documentation only.** Assignees, milestones, and labels must be set in the GitHub UI by maintainers. Use this table to align priority before a serious **v1.0** release.
+
+Recommended interpretation of **v1.0 blockers**: issues that must be **closed or explicitly deferred** with a written rationale before marketing a “1.0” kernel/runtime as production-grade for a stated scope.
+
+| GH # | Theme | Severity | Suggested priority | v1.0 blocker? | Suggested milestone | Assignee (set in GitHub) |
+|------|-------|----------|--------------------|---------------|---------------------|---------------------------|
+| 1 | “Bayesian” naming vs weighted mixture | High | P0 | No (semantics documented; contextual valuations in code — narrow or close) | Backlog / cleanup | Unassigned |
+| 2 | Security — LLM input defense-in-depth | **Critical** | **P0** | **Yes** | **v1.0-rc** | Unassigned |
+| 3 | Pilot empirical scenarios + metrics | Medium | P1 | No | Post-1.0 / evidence | Unassigned |
+| 4 | Core decision chain + pip packaging | High | P1 | **Yes** (shipping boundary) | **v1.0-rc** | Unassigned |
+| 5 | Poles as heuristics vs operational trust | Medium | P2 | No | Post-1.0 | Unassigned |
+| 6 | Governance MockDAO vs L0 honesty | High | P0 | **Yes** (framing) | **v1.0-rc** | Unassigned |
+| 7 | Reduce `KERNEL_*` combinatorics | Medium | P1 | No | Post-1.0 | Unassigned |
+| 8 | Documentation translation (PR-driven) | Low | P2 | No | Ongoing | Unassigned |
+| 9 | Compare commune vs other LLM approach (experimental) | Low | P3 | No | Research | Unassigned |
+
+**Release note:** Treat **#2, #4, #6** as the minimum set to reconcile before a **v1.0** claim alongside SECURITY and packaging docs; adjust if product scope is explicitly “research-only.”
+
+---
+
 ## How to create issues
 
 Paste each block into **New issue** at  
@@ -181,14 +203,16 @@ Expand `runtime_profiles.py`, document unsupported combinations, optional deprec
 
 ## Tracking table
 
-Fill in GitHub issue numbers after creation:
+GitHub issue numbers (if they match this backlog):
 
 | # | Short title | Issue |
 |---|-------------|-------|
-| 1 | Bayesian naming | 1|
-| 2 | Input trust (chat + perception) | 2|
-| 3 | Empirical pilot | 3|
-| 4 | Core doc + pip spike | 4|
-| 5 | Poles + weakness HCI |5 |
-| 6 | Governance mock + L0 | 6|
-| 7 | KERNEL_* consolidation |7 |
+| 1 | Bayesian naming | #1 |
+| 2 | Input trust (chat + perception) | #2 |
+| 3 | Empirical pilot | #3 |
+| 4 | Core doc + pip spike | #4 |
+| 5 | Poles + weakness HCI | #5 |
+| 6 | Governance mock + L0 | #6 |
+| 7 | KERNEL_* consolidation | #7 |
+| 8 | Documentation translation | #8 |
+| 9 | Commune vs LLM (experimental) | #9 |

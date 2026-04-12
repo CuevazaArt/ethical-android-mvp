@@ -48,7 +48,7 @@ if TYPE_CHECKING:
 
 import numpy as np
 
-from ..observability.metrics import observe_embedding_error
+from ..observability.metrics import observe_embedding_error, record_semantic_malabs_outcome
 from .input_trust import normalize_text_for_malabs
 
 # (reference phrases, category key, reason label)
@@ -385,10 +385,12 @@ def run_semantic_malabs_after_lexical(
     from .absolute_evil import AbsoluteEvilCategory, AbsoluteEvilResult
 
     if not semantic_chat_gate_env_enabled():
+        record_semantic_malabs_outcome("gate_off")
         return AbsoluteEvilResult(blocked=False, decision_trace=["malabs.semantic=gate_off"])
 
     t = normalize_text_for_malabs(text).lower()
     if not t.strip():
+        record_semantic_malabs_outcome("skip_empty_after_normalize")
         return AbsoluteEvilResult(
             blocked=False,
             decision_trace=["malabs.layer1=semantic", "malabs.skip=empty_after_normalize"],
@@ -396,6 +398,7 @@ def run_semantic_malabs_after_lexical(
 
     user_emb = _fetch_embedding_with_fallback(t, llm_backend)
     if user_emb is None:
+        record_semantic_malabs_outcome("embed_unavailable_defer")
         return AbsoluteEvilResult(
             blocked=False,
             reason="Semantic tier skipped (embeddings unavailable)",
@@ -414,6 +417,7 @@ def run_semantic_malabs_after_lexical(
     cat = cat_map.get(cat_key, AbsoluteEvilCategory.UNAUTHORIZED_REPROGRAMMING)
 
     if best_sim >= theta_b:
+        record_semantic_malabs_outcome("block_high_similarity")
         return AbsoluteEvilResult(
             blocked=True,
             category=cat,
@@ -428,6 +432,7 @@ def run_semantic_malabs_after_lexical(
         )
 
     if best_sim <= theta_a:
+        record_semantic_malabs_outcome("allow_low_similarity")
         return AbsoluteEvilResult(
             blocked=False,
             reason="Semantic tier: low similarity to harmful anchors",
@@ -449,13 +454,26 @@ def run_semantic_malabs_after_lexical(
             f"malabs.theta_block={theta_b:.4f}",
         ]
         arb = _llm_arbitrate(text, llm_backend, best_sim, cat_key)
+        dt = list(arb.decision_trace or [])
+        joined = " ".join(dt)
+        if "arbiter_outcome=error_fail_closed" in joined:
+            record_semantic_malabs_outcome("ambiguous_arbiter_transport_error")
+        elif "invalid_json_fail_closed" in joined:
+            record_semantic_malabs_outcome("ambiguous_arbiter_invalid_json")
+        elif "arbiter_outcome=none_category_allow" in joined:
+            record_semantic_malabs_outcome("ambiguous_arbiter_none_category_allow")
+        elif arb.blocked:
+            record_semantic_malabs_outcome("ambiguous_arbiter_block")
+        else:
+            record_semantic_malabs_outcome("ambiguous_arbiter_allow")
         return AbsoluteEvilResult(
             blocked=arb.blocked,
             category=arb.category,
             reason=arb.reason,
-            decision_trace=base_trace + list(arb.decision_trace),
+            decision_trace=base_trace + dt,
         )
 
+    record_semantic_malabs_outcome("ambiguous_fail_safe_block")
     return AbsoluteEvilResult(
         blocked=True,
         category=cat,

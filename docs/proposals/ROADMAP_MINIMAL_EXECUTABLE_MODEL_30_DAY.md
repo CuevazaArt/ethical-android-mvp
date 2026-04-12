@@ -38,9 +38,9 @@
 
 ### Acceptance criteria
 
-- [ ] Fresh clone → `docker compose up --build` → `/health` = `ok`.  
-- [ ] With `--profile llm`, Ollama reachable from `app` at documented URL.  
-- [ ] README or operator doc section points to compose as **canonical** local stack.
+- [ ] Fresh clone → `docker compose up --build` → `/health` = `ok`.
+- [ ] With `--profile llm`, Ollama reachable from `app` at documented URL.
+- [x] README + [`RUNTIME_PROFILES_OPERATOR_TABLE.md`](RUNTIME_PROFILES_OPERATOR_TABLE.md) point to compose / profiles as **canonical** local stack docs.
 
 ---
 
@@ -69,8 +69,8 @@ From these, Grafana/Prometheus can compute **block rate** = blocks / (all turns)
 
 ### Acceptance criteria
 
-- [ ] Runbook lists **which metrics** prove “too many blocks” vs “service down”.  
-- [ ] No new endpoint exposes user text.  
+- [x] Runbook pointers: block fraction from `ethos_kernel_chat_turns_total` + `ethos_kernel_malabs_blocks_total`; semantic tier from `ethos_kernel_semantic_malabs_outcomes_total` ([`OPERATOR_QUICK_REF.md`](OPERATOR_QUICK_REF.md)); embedding errors counter.
+- [x] No new endpoint exposes user text (metrics are aggregate counters only).
 - [ ] Dashboard JSON or Grafana starter committed under `docs/` or `deploy/` (your choice).
 
 ---
@@ -122,9 +122,9 @@ Today’s SQLite path is **one-row JSON blob** versioned by **`KernelSnapshotV1`
 ### Acceptance criteria
 
 - [x] Single profile var at startup (`ETHOS_RUNTIME_PROFILE`).  
-- [ ] New user path: install Docker → copy `.env.example` → set **one profile var** → up (documented end-to-end).  
-- [ ] Table of profiles mirrors `PROFILE_DESCRIPTIONS` with **risk notes** (LAN bind, semantic gate, etc.).  
-- [ ] Support contact / issue link for false blocks ([`TRANSPARENCY_AND_LIMITS.md`](../TRANSPARENCY_AND_LIMITS.md)).
+- [x] New user path: README Docker section + `.env.example` + `ETHOS_RUNTIME_PROFILE` (end-to-end stub; expand with video/checklist as needed).
+- [x] Table of profiles with **risk notes** — [`RUNTIME_PROFILES_OPERATOR_TABLE.md`](RUNTIME_PROFILES_OPERATOR_TABLE.md).
+- [x] Appeals / limits pointer — [`TRANSPARENCY_AND_LIMITS.md`](../TRANSPARENCY_AND_LIMITS.md) (linked from transparency doc and README governance block).
 
 ---
 

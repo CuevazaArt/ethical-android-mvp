@@ -102,7 +102,7 @@ Today, [`semantic_chat_gate`](../src/modules/semantic_chat_gate.py) runs only wh
 - [x] Numeric drift is **bounded** by `hypothesis_weights_allowed` + genome reference; **reversible** via snapshot / immortality restore.  
 - [x] Documentation uses **honest** terms: “bounded mixture update”, not “true posterior” unless the math is implemented.
 
-**Remaining (future work):** richer confusion matrix by `context`; correlate feedback rows with episode ids in persistence; Prometheus counters for semantic tier (B2 telemetry).
+**Remaining (future work):** richer confusion matrix by `context`; correlate feedback rows with episode ids in persistence. **Done (telemetry):** `ethos_kernel_semantic_malabs_outcomes_total` when `KERNEL_METRICS=1` ([`metrics.py`](../../src/observability/metrics.py)).
 
 ---
 

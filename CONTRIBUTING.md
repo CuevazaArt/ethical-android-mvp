@@ -28,6 +28,8 @@ The same rules apply to AI assistants working on this repo (see `.cursor/rules/r
 Read the README.md and run the simulations before proposing changes.
 The complete model document is in `/docs/Androide_Etico_Analisis_Integral_v3.docx`.
 
+**Monorepo note:** kernel work is **Python under `src/`**. The **`landing/`** Next.js app is adjacent (TypeScript only if you edit that folder). See [`docs/REPOSITORY_LAYOUT.md`](docs/REPOSITORY_LAYOUT.md). **Issue triage** for the canonical critique backlog: [`docs/proposals/CRITIQUE_ROADMAP_ISSUES.md`](docs/proposals/CRITIQUE_ROADMAP_ISSUES.md#maintainer-triage-issues-1-through-9).
+
 ### 3. Choose an area
 The modules are in `src/modules/`. Each one is independent:
 

@@ -57,7 +57,7 @@ This project is also available in [Spanish](https://github.com/CuevazaArt/androi
 - **Persistence & checkpoints:** load/save kernel snapshots; optional encrypted JSON checkpoints; conduct guide JSON on disconnect for PC → edge handoff.
 - **Batch simulations:** `python -m src.main` — legacy harness still used for regression; scenario catalog in [`HISTORY.md`](HISTORY.md#nine-canonical-simulation-scenarios-v2-origins).
 - **Interactive dashboard:** `dashboard.html` (also under `landing/public/`) — explore module traces in the browser without installing Node.
-- **Landing site:** Next.js app in `landing/` for **[mosexmacchinalab.com](https://mosexmacchinalab.com)**.
+- **Landing site:** Next.js app in `landing/` for **[mosexmacchinalab.com](https://mosexmacchinalab.com)** — **not** imported by Python; TypeScript is required only if you work on that subtree. See **[`docs/REPOSITORY_LAYOUT.md`](docs/REPOSITORY_LAYOUT.md)** (mandatory vs optional tooling, language stats, optional repo split).
 
 ## Quick start
 
@@ -115,7 +115,7 @@ This includes invariant ethical properties, the WebSocket chat server (DAO integ
 
 **Reproducibility:** the default ethical pipeline does **not** invoke narrative augenesis (`kernel.augenesis` is optional; see [docs/proposals/THEORY_AND_IMPLEMENTATION.md](docs/proposals/THEORY_AND_IMPLEMENTATION.md)). Long-lived deployments — [docs/proposals/RUNTIME_PERSISTENT.md](docs/proposals/RUNTIME_PERSISTENT.md).
 
-**Docker / observability:** build and run with [`Dockerfile`](Dockerfile) and [`docker-compose.yml`](docker-compose.yml) (`docker compose up --build`). Optional profile `llm` starts **Ollama**; a commented **Chroma** stub is available for vector experiments. Set **`KERNEL_METRICS=1`** to expose Prometheus **`/metrics`** (LLM latency, chat paths, MalAbs blocks, DAO WebSocket ops, embedding errors). Set **`KERNEL_LOG_JSON=1`** and **`KERNEL_LOG_LEVEL`** for JSON logs with **`request_id`** / **`X-Request-ID`**. WebSocket load smoke: [`scripts/loadtest/ws_stress.py`](scripts/loadtest/ws_stress.py) (requires `pip install websockets` from dev extras).
+**Docker / observability:** build and run with [`Dockerfile`](Dockerfile) and [`docker-compose.yml`](docker-compose.yml) (`docker compose up --build`). Optional Compose profile **`llm`** starts **Ollama** (`docker compose --profile llm up --build`); a commented **Chroma** stub is available for vector experiments. **`ETHOS_RUNTIME_PROFILE`** (e.g. `lan_operational`, `situated_v8_lan_demo`) applies a named env bundle at server startup — see [`src/runtime_profiles.py`](src/runtime_profiles.py) and [`docs/proposals/RUNTIME_PROFILES_OPERATOR_TABLE.md`](docs/proposals/RUNTIME_PROFILES_OPERATOR_TABLE.md). Set **`KERNEL_METRICS=1`** to expose Prometheus **`/metrics`** (LLM latency, chat paths, MalAbs blocks, semantic MalAbs outcomes, DAO WebSocket ops, embedding errors). Set **`KERNEL_LOG_JSON=1`** and **`KERNEL_LOG_LEVEL`** for JSON logs with **`request_id`** / **`X-Request-ID`**. WebSocket load smoke: [`scripts/loadtest/ws_stress.py`](scripts/loadtest/ws_stress.py) (requires `pip install websockets` from dev extras).
 
 ### Real-time chat (WebSocket)
 
@@ -126,6 +126,9 @@ This includes invariant ethical properties, the WebSocket chat server (DAO integ
 python -m src.chat_server
 # Same server (preferred entry name for “runtime”):
 python -m src.runtime
+# Optional: one-shot demo bundle (unset keys only — explicit env wins), e.g.
+#   export ETHOS_RUNTIME_PROFILE=lan_operational   # Unix
+#   set ETHOS_RUNTIME_PROFILE=lan_operational # Windows CMD
 # Default: http://127.0.0.1:8765/health  —  WebSocket: ws://127.0.0.1:8765/ws/chat
 ```
 

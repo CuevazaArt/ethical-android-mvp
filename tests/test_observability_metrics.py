@@ -29,12 +29,17 @@ def test_metrics_prometheus_text_when_kernel_metrics_subprocess():
 import os, sys
 sys.path.insert(0, ".")
 os.environ["KERNEL_METRICS"] = "1"
+os.environ["KERNEL_SEMANTIC_CHAT_GATE"] = "1"
+os.environ["KERNEL_SEMANTIC_EMBED_HASH_FALLBACK"] = "1"
 from fastapi.testclient import TestClient
 from src.chat_server import app
+from src.modules.semantic_chat_gate import run_semantic_malabs_after_lexical
 with TestClient(app) as c:
+    run_semantic_malabs_after_lexical("metrics probe benign hello", None)
     r = c.get("/metrics")
     assert r.status_code == 200, r.text
     assert b"ethos_kernel" in r.content
+    assert b"ethos_kernel_semantic_malabs_outcomes_total" in r.content
 """
     subprocess.run([sys.executable, "-c", code], cwd=root, check=True)
 

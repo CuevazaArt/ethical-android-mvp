@@ -13,6 +13,7 @@ _llm_histogram: Any = None
 _chat_histogram: Any = None
 _chat_paths: Any = None
 _malabs_blocks: Any = None
+_semantic_malabs_outcomes: Any = None
 _dao_ops: Any = None
 _embedding_errors: Any = None
 _initialized = False
@@ -30,7 +31,7 @@ def metrics_enabled() -> bool:
 def init_metrics() -> None:
     """Register Prometheus metrics once (safe to call multiple times)."""
     global _initialized, _llm_histogram, _chat_histogram, _chat_paths
-    global _malabs_blocks, _dao_ops, _embedding_errors
+    global _malabs_blocks, _semantic_malabs_outcomes, _dao_ops, _embedding_errors
 
     if _initialized:
         return
@@ -66,6 +67,11 @@ def init_metrics() -> None:
         "Safety / MalAbs-related blocks (by coarse path).",
         ["reason"],
     )
+    _semantic_malabs_outcomes = Counter(
+        "ethos_kernel_semantic_malabs_outcomes_total",
+        "Semantic MalAbs tier outcomes after lexical pass (see semantic_chat_gate.py).",
+        ["outcome"],
+    )
     _dao_ops = Counter(
         "ethos_kernel_dao_ws_operations_total",
         "DAO WebSocket operations (mock governance).",
@@ -96,6 +102,14 @@ def record_malabs_block(reason: str) -> None:
     if _malabs_blocks is None:
         return
     _malabs_blocks.labels(reason=reason).inc()
+
+
+def record_semantic_malabs_outcome(outcome: str) -> None:
+    """Count one semantic-tier decision (embedding / arbiter paths)."""
+    if _semantic_malabs_outcomes is None:
+        return
+    o = (outcome or "unknown").strip()[:64] or "unknown"
+    _semantic_malabs_outcomes.labels(outcome=o).inc()
 
 
 def record_dao_ws_operation(operation: str) -> None:
