@@ -3,6 +3,8 @@
 This directory holds **operator instructions** for large-N runs described in
 [`docs/proposals/PROPOSAL_MILLION_SIM_EXPERIMENT.md`](../../docs/proposals/PROPOSAL_MILLION_SIM_EXPERIMENT.md).
 
+**Narrative report** (origin, method, expected vs observed, conclusions — run `cursor_start_1e6`): [`EXPERIMENT_REPORT.md`](EXPERIMENT_REPORT.md).
+
 ## Environment
 
 From the repository root:

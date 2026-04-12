@@ -2,6 +2,10 @@
 
 All notable changes to this project are summarized here. For narrative context and design rationale, see [`HISTORY.md`](HISTORY.md).
 
+## Experiments — million-sim narrative report — April 2026
+
+- **[`experiments/million_sim/EXPERIMENT_REPORT.md`](experiments/million_sim/EXPERIMENT_REPORT.md):** origin, methodology, expected vs observed results (`cursor_start_1e6`), architectural note on pole weights vs argmax, conclusions and next steps.
+
 ## Million-sim experiment — design + mass runner — April 2026
 
 - **[`PROPOSAL_MILLION_SIM_EXPERIMENT.md`](docs/proposals/PROPOSAL_MILLION_SIM_EXPERIMENT.md):** statistical design (stratified scenarios, Dirichlet mixture, parallelism, phases 10⁴→10⁶).
