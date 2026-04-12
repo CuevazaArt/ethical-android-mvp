@@ -2,6 +2,12 @@
 
 All notable changes to this project are summarized here. For narrative context and design rationale, see [`HISTORY.md`](HISTORY.md).
 
+## Docs multimedia trim — April 2026
+
+- **Removed** large non-essential assets under **`docs/multimedia/media/`** (pre-alpha PNG diagrams, generated JPG still, MP4 clip); **`logo.png`** retained for branding and landing sync.
+- **Docs:** [`docs/multimedia/README.md`](docs/multimedia/README.md), [`HISTORY.md`](HISTORY.md) — narrative updated.
+- **Snapshot:** full prior tree (including removed binaries) remains reachable on branch **`backup/main-2026-04-10`**.
+
 ## Mass study schema 5 — tunable pole/mixture sampling — April 2026
 
 - **`src/sandbox/mass_kernel_study.py`:** **`RECORD_SCHEMA_VERSION` 5**; **`--pole-weight-range LO,HI`**, **`--mixture-dirichlet-alpha`**; row fields **`sampling_pole_lo`**, **`sampling_pole_hi`**, **`sampling_mixture_dirichlet_alpha`**; summary **`meta.weight_sampling`**.
