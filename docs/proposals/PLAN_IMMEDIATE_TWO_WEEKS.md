@@ -70,9 +70,9 @@ This file is the **repo-local execution backlog**. **GitHub milestones, assignee
 
 **Within two weeks, ship:**
 
-- [ ] Issue comment or doc snippet: **“Governance checkpoint”** = operator confirms MockDAO + L0 boundaries before a demo labeled “governance-enabled.”
-- [ ] Link [GOVERNANCE_MOCKDAO_AND_L0.md](GOVERNANCE_MOCKDAO_AND_L0.md) from README governance line (if not already prominent).
-- [ ] Optional: one **test or script** that asserts hub/DAO paths do not mutate `PreloadedBuffer` principles (regression guard).
+- [x] **Governance checkpoint** — operator checklist in [GOVERNANCE_MOCKDAO_AND_L0.md](GOVERNANCE_MOCKDAO_AND_L0.md) §5.
+- [x] README already links governance; checkpoint doc cross-links to regression test.
+- [x] Regression test [`tests/test_governance_l0_immutable.py`](../../tests/test_governance_l0_immutable.py) — L0 fingerprint unchanged after DAO submit / vote / resolve.
 
 ---
 

@@ -32,7 +32,7 @@ Example sequencing for teams shipping Ethos Kernel–based runtimes. Adjust time
 **Goal:** measure behavior, not only pass/fail tests.
 
 - [x] Prometheus metrics scaffold (`KERNEL_METRICS`).
-- [ ] Grafana dashboards (import JSON in `docs/` or `deploy/grafana/`).
+- [x] Grafana starter dashboard (import JSON) — [`deploy/grafana/ethos-kernel-overview.json`](../deploy/grafana/ethos-kernel-overview.json), [`deploy/grafana/README.md`](../deploy/grafana/README.md).
 - [x] Red-team / eval JSONL + runner (`scripts/eval/`).
 - [ ] Vector DB for semantic anchors (Chroma/FAISS) — see [PROPOSAL_VECTOR_META_RLHF_PIPELINE.md](proposals/PROPOSAL_VECTOR_META_RLHF_PIPELINE.md).
 

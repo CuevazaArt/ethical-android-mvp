@@ -2,6 +2,12 @@
 
 All notable changes to this project are summarized here. For narrative context and design rationale, see [`HISTORY.md`](HISTORY.md).
 
+## Governance + ops — L0 regression test, Grafana starter — April 2026
+
+- **[`tests/test_governance_l0_immutable.py`](tests/test_governance_l0_immutable.py):** `PreloadedBuffer` principles unchanged after MockDAO draft / vote / resolve ([`GOVERNANCE_MOCKDAO_AND_L0.md`](docs/proposals/GOVERNANCE_MOCKDAO_AND_L0.md) §5 checkpoint).
+- **[`deploy/grafana/`](deploy/grafana/README.md):** importable `ethos-kernel-overview.json` + README for Prometheus + Grafana.
+- **[`docs/proposals/PLAN_IMMEDIATE_TWO_WEEKS.md`](docs/proposals/PLAN_IMMEDIATE_TWO_WEEKS.md):** Issue #6 governance checklist items marked complete.
+
 ## Observability — kernel Prometheus metrics, decision JSON logs, health fields — April 2026
 
 - **[`src/observability/metrics.py`](src/observability/metrics.py):** `ethos_kernel_kernel_decisions_total` and `ethos_kernel_kernel_process_seconds`; wired from [`src/kernel.py`](src/kernel.py) on each `process()` completion.
