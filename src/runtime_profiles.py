@@ -63,6 +63,15 @@ RUNTIME_PROFILES: Final[Dict[str, Dict[str, str]]] = {
         "KERNEL_CHAT_INCLUDE_VITALITY": "1",
         "KERNEL_CHAT_INCLUDE_MULTIMODAL": "1",
     },
+    # Production-hardening Fase 1 — lexical tier + cross-check + optional delib nudge + parse fail-closed + JSON tier field.
+    "perception_hardening_lab": {
+        "KERNEL_LIGHT_RISK_CLASSIFIER": "1",
+        "KERNEL_PERCEPTION_CROSS_CHECK": "1",
+        "KERNEL_PERCEPTION_UNCERTAINTY_DELIB": "1",
+        "KERNEL_PERCEPTION_UNCERTAINTY_MIN": "0.35",
+        "KERNEL_PERCEPTION_PARSE_FAIL_LOCAL": "1",
+        "KERNEL_CHAT_INCLUDE_LIGHT_RISK": "1",
+    },
 }
 
 PROFILE_DESCRIPTIONS: Final[Dict[str, str]] = {
@@ -76,6 +85,7 @@ PROFILE_DESCRIPTIONS: Final[Dict[str, str]] = {
     "lan_operational": "LAN bind + operational_trust UX (Issue 7 — see KERNEL_ENV_POLICY.md).",
     "moral_hub_extended": "V12 moral hub: constitution HTTP + DAO vote + deontic gate + transparency audit (Issue 7).",
     "situated_v8_lan_demo": "V8 situated: LAN bind + sensor fixture+preset merge, vitality + multimodal JSON (see DEMO_SITUATED_V8.md, LOCAL_PC_AND_MOBILE_LAN.md).",
+    "perception_hardening_lab": "Fase 1 hardening: light risk tier + perception cross-check + uncertainty→D_delib + parse fail-local + light_risk_tier in WebSocket JSON (see PRODUCTION_HARDENING_ROADMAP.md, KERNEL_ENV_POLICY.md).",
 }
 
 

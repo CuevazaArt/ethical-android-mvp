@@ -20,7 +20,7 @@ The original **batch simulations** (nine fixed scenarios plus a random generator
 
 **Governance narrative (Issue 6):** [`docs/proposals/GOVERNANCE_MOCKDAO_AND_L0.md`](docs/proposals/GOVERNANCE_MOCKDAO_AND_L0.md) — MockDAO limits, **L0** as in-repo constitution, L1/L2 vs votes; public page [blockchain-dao](https://mosexmacchinalab.com/blockchain-dao).
 
-**`KERNEL_*` policy (Issue 7):** [`docs/proposals/KERNEL_ENV_POLICY.md`](docs/proposals/KERNEL_ENV_POLICY.md) — flag families, risky combos, deprecation posture; extended profiles in [`src/runtime_profiles.py`](src/runtime_profiles.py) (`lan_operational`, `moral_hub_extended`, **`situated_v8_lan_demo`** for v8+LAN — see [`docs/proposals/DEMO_SITUATED_V8.md`](docs/proposals/DEMO_SITUATED_V8.md)).
+**`KERNEL_*` policy (Issue 7):** [`docs/proposals/KERNEL_ENV_POLICY.md`](docs/proposals/KERNEL_ENV_POLICY.md) — flag families, risky combos, deprecation posture; extended profiles in [`src/runtime_profiles.py`](src/runtime_profiles.py) (`lan_operational`, `moral_hub_extended`, **`situated_v8_lan_demo`** for v8+LAN, **`perception_hardening_lab`** for Fase 1 perception hardening — see [`docs/proposals/DEMO_SITUATED_V8.md`](docs/proposals/DEMO_SITUATED_V8.md), [`docs/proposals/PRODUCTION_HARDENING_ROADMAP.md`](docs/proposals/PRODUCTION_HARDENING_ROADMAP.md)).
 
 **`KERNEL_*` at a glance** — use **[nominal profiles](docs/proposals/ESTRATEGIA_Y_RUTA.md#4-perfiles-nominales-operadores-y-ci)** in [`src/runtime_profiles.py`](src/runtime_profiles.py) when possible; full catalog and **unsupported combinations** live in [`KERNEL_ENV_POLICY.md`](docs/proposals/KERNEL_ENV_POLICY.md).
 

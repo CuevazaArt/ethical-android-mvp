@@ -2,6 +2,12 @@
 
 All notable changes to this project are summarized here. For narrative context and design rationale, see [`HISTORY.md`](HISTORY.md).
 
+## Runtime profile `perception_hardening_lab` — April 2026
+
+- **[`src/runtime_profiles.py`](src/runtime_profiles.py):** nominal **`perception_hardening_lab`** bundle (light risk + cross-check + uncertainty→delib + parse fail-local + `KERNEL_CHAT_INCLUDE_LIGHT_RISK`).
+- **Tests:** [`tests/test_runtime_profiles.py`](tests/test_runtime_profiles.py) — key assertions + WebSocket `light_risk_tier` check.
+- **Docs:** [`ESTRATEGIA_Y_RUTA.md`](docs/proposals/ESTRATEGIA_Y_RUTA.md) §4 table, [`KERNEL_ENV_POLICY.md`](docs/proposals/KERNEL_ENV_POLICY.md) intro, [`README.md`](README.md).
+
 ## Hardening Fase 1 — parse contract, light risk tier, cross-check — April 2026
 
 - **`perception_schema`:** `parse_perception_llm_raw_response`, `PerceptionJsonParseResult`, `parse_issues` / `cross_check_*` on `PerceptionCoercionReport`, `merge_parse_issues_into_perception`, `perception_report_from_dict`.

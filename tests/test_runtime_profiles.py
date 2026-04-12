@@ -73,6 +73,24 @@ def test_issue7_profiles_merge_expected_keys():
     assert mh["KERNEL_TRANSPARENCY_AUDIT"] == "1"
 
 
+def test_perception_hardening_lab_profile_keys():
+    """Nominal bundle for PRODUCTION_HARDENING_ROADMAP Fase 1 (CI smoke via parametrize)."""
+    o = RUNTIME_PROFILES["perception_hardening_lab"]
+    assert o["KERNEL_LIGHT_RISK_CLASSIFIER"] == "1"
+    assert o["KERNEL_PERCEPTION_CROSS_CHECK"] == "1"
+    assert o["KERNEL_PERCEPTION_UNCERTAINTY_DELIB"] == "1"
+    assert o["KERNEL_PERCEPTION_PARSE_FAIL_LOCAL"] == "1"
+    assert o["KERNEL_CHAT_INCLUDE_LIGHT_RISK"] == "1"
+
+
+def test_perception_hardening_lab_websocket_includes_light_risk_tier(monkeypatch: pytest.MonkeyPatch):
+    apply_runtime_profile(monkeypatch, "perception_hardening_lab")
+    with client.websocket_connect("/ws/chat") as ws:
+        ws.send_json({"text": "profile smoke: hello"})
+        data = ws.receive_json()
+        assert data.get("light_risk_tier") == "low"
+
+
 def test_nomad_profile_simulation_payload(monkeypatch: pytest.MonkeyPatch):
     apply_runtime_profile(monkeypatch, "nomad_demo")
     with client.websocket_connect("/ws/chat") as ws:
