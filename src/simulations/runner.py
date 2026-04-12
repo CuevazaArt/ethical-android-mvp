@@ -653,7 +653,7 @@ def sim_17_frontier_resource_scarcity_triple():
                 "Allocate by assessed need (equity-leaning)",
                 estimated_impact=0.28,
                 confidence=1.0,
-                hypothesis_override=(0.280, 0.260, 0.305),
+                hypothesis_override=(0.275, 0.260, 0.305),
             ),
             CandidateAction(
                 "distribute_by_lottery",
@@ -667,7 +667,7 @@ def sim_17_frontier_resource_scarcity_triple():
                 "Prioritize recipients with highest marginal benefit (efficiency)",
                 estimated_impact=0.29,
                 confidence=1.0,
-                hypothesis_override=(0.300, 0.255, 0.275),
+                hypothesis_override=(0.305, 0.258, 0.275),
             ),
         ],
     )
@@ -697,7 +697,7 @@ def sim_18_frontier_promise_conflict_triple():
                 "Tell the client the full defect status now",
                 estimated_impact=0.31,
                 confidence=1.0,
-                hypothesis_override=(0.310, 0.240, 0.285),
+                hypothesis_override=(0.315, 0.240, 0.285),
             ),
             CandidateAction(
                 "defer_to_release",
@@ -711,7 +711,7 @@ def sim_18_frontier_promise_conflict_triple():
                 "Acknowledge concern without full technical detail",
                 estimated_impact=0.29,
                 confidence=1.0,
-                hypothesis_override=(0.285, 0.270, 0.310),
+                hypothesis_override=(0.285, 0.270, 0.300),
             ),
         ],
     )
@@ -741,14 +741,14 @@ def sim_19_calibration_asymmetric_confrontation():
                 "Stay and protect / intervene",
                 estimated_impact=0.29,
                 confidence=1.0,
-                hypothesis_override=(0.295, 0.230, 0.275),
+                hypothesis_override=(0.295, 0.245, 0.275),
             ),
             CandidateAction(
                 "retreat_deescalate",
                 "Withdraw and de-escalate",
                 estimated_impact=0.28,
                 confidence=1.0,
-                hypothesis_override=(0.270, 0.290, 0.280),
+                hypothesis_override=(0.270, 0.275, 0.280),
             ),
         ],
     )

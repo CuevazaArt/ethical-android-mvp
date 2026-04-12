@@ -6,7 +6,8 @@ Evaluates a **barycentric grid** on the util/deon/virtue simplex (cheap vs milli
 records **winner**, **top-2 gap**, **ranking hash**, **softmax entropy**, and optionally:
 
 - **Bisection** along grid edges where adjacent mixture points disagree on the winner.
-- **Ternary plot** (PNG) if ``matplotlib`` is installed.
+- **Ternary plots** (PNG) if ``matplotlib`` is installed: winner scatter; with ``--plot-extended`` also **gap** and **entropy** heatmaps and **boundary** overlay (bisection anchors).
+- Per screening/refinement row: optional **distance_to_nearest_boundary** (2D ternary distance to nearest edge-bisection point).
 
 Does **not** run ``EthicalKernel.process``. See ``experiments/million_sim/EXPERIMENT_HISTORY.md``.
 
@@ -88,15 +89,51 @@ def _barycentric_to_xy(w: np.ndarray) -> tuple[float, float]:
     return x, y
 
 
+def _triangle_axes(ax: Any) -> None:  # matplotlib Axes
+    ax.plot([0, 1, 0.5, 0], [0, 0, np.sqrt(3) / 2, 0], "k-", linewidth=0.8)
+    ax.set_aspect("equal")
+    ax.axis("off")
+
+
+def _flip_points_xy(bisections: list[dict[str, Any]]) -> list[tuple[float, float]]:
+    out: list[tuple[float, float]] = []
+    for b in bisections:
+        wf = b.get("w_at_flip")
+        if not wf:
+            continue
+        out.append(_barycentric_to_xy(np.array(wf, dtype=np.float64)))
+    return out
+
+
+def _attach_distance_to_nearest_boundary(
+    rows: list[dict[str, Any]],
+    *,
+    bisections: list[dict[str, Any]],
+) -> None:
+    """Euclidean distance in ternary (x,y) space to nearest edge-bisection flip point."""
+    flip_xy = _flip_points_xy(bisections)
+    for r in rows:
+        w = np.array(r["mixture_weights"], dtype=np.float64)
+        x, y = _barycentric_to_xy(w)
+        if not flip_xy:
+            r["distance_to_nearest_boundary"] = None
+        else:
+            d = min(float(np.hypot(x - fx, y - fy)) for fx, fy in flip_xy)
+            r["distance_to_nearest_boundary"] = round(d, 6)
+
+
 def _maybe_plot_ternary(
     rows: list[dict[str, Any]],
     *,
     scenario_id: int,
     scenario_name: str,
     plot_dir: Path,
+    bisections: list[dict[str, Any]] | None = None,
+    plot_extended: bool = False,
 ) -> None:
     try:
         import matplotlib.pyplot as plt
+        from matplotlib.lines import Line2D
     except ImportError:
         print(
             "matplotlib not installed; skip ternary plot. "
@@ -107,6 +144,13 @@ def _maybe_plot_ternary(
 
     plot_dir.mkdir(parents=True, exist_ok=True)
     plot_rows = [r for r in rows if r.get("sampling_phase", "screening") == "screening"]
+    bisections = bisections or []
+    title_base = (
+        f"Scenario {scenario_id}: {scenario_name[:60]}…"
+        if len(scenario_name) > 60
+        else f"Scenario {scenario_id}: {scenario_name}"
+    )
+
     winners = [r["winner"] for r in plot_rows if r.get("winner")]
     uniq = sorted(set(winners))
     cmap = plt.get_cmap("tab10")
@@ -122,10 +166,8 @@ def _maybe_plot_ternary(
 
     fig, ax = plt.subplots(figsize=(6, 5.5))
     ax.scatter(xs, ys, c=cs, s=12, marker="o", edgecolors="k", linewidths=0.2)
-    ax.plot([0, 1, 0.5, 0], [0, 0, np.sqrt(3) / 2, 0], "k-", linewidth=0.8)
-    ax.set_aspect("equal")
-    ax.axis("off")
-    ax.set_title(f"Scenario {scenario_id}: {scenario_name[:60]}…" if len(scenario_name) > 60 else f"Scenario {scenario_id}: {scenario_name}")
+    _triangle_axes(ax)
+    ax.set_title(title_base)
     for i, w in enumerate(uniq):
         ax.scatter([], [], c=[cmap(i % 10)], label=w, s=30)
     ax.legend(loc="upper right", fontsize=8)
@@ -133,6 +175,130 @@ def _maybe_plot_ternary(
     fig.savefig(out, dpi=150, bbox_inches="tight")
     plt.close(fig)
     print(f"wrote {out}", file=sys.stderr)
+
+    if not plot_extended:
+        return
+
+    # Heatmap: top-2 score gap (hot = tight race)
+    gaps = [
+        float(r["score_gap_top2"])
+        for r in plot_rows
+        if r.get("score_gap_top2") is not None
+    ]
+    gmax = max(gaps) if gaps else 1.0
+    gmin = min(gaps) if gaps else 0.0
+    fig2, ax2 = plt.subplots(figsize=(6, 5.5))
+    gx, gy, gz = [], [], []
+    for r in plot_rows:
+        if r.get("score_gap_top2") is None:
+            continue
+        w = np.array(r["mixture_weights"], dtype=np.float64)
+        x, y = _barycentric_to_xy(w)
+        gx.append(x)
+        gy.append(y)
+        gz.append(float(r["score_gap_top2"]))
+    if gz:
+        sc = ax2.scatter(
+            gx,
+            gy,
+            c=gz,
+            s=22,
+            cmap="inferno",
+            vmin=gmin,
+            vmax=gmax,
+            edgecolors="k",
+            linewidths=0.15,
+        )
+        plt.colorbar(sc, ax=ax2, fraction=0.046, pad=0.04, label="score_gap top-1 vs top-2")
+    _triangle_axes(ax2)
+    ax2.set_title(f"{title_base} — score gap (tight=hot)")
+    out2 = plot_dir / f"simplex_map_{scenario_id}_gap12.png"
+    fig2.savefig(out2, dpi=150, bbox_inches="tight")
+    plt.close(fig2)
+    print(f"wrote {out2}", file=sys.stderr)
+
+    # Heatmap: softmax entropy over candidate scores
+    ex, ey, ez = [], [], []
+    for r in plot_rows:
+        if r.get("score_entropy_softmax") is None:
+            continue
+        w = np.array(r["mixture_weights"], dtype=np.float64)
+        x, y = _barycentric_to_xy(w)
+        ex.append(x)
+        ey.append(y)
+        ez.append(float(r["score_entropy_softmax"]))
+    if ez:
+        fig3, ax3 = plt.subplots(figsize=(6, 5.5))
+        emin, emax = float(np.min(ez)), float(np.max(ez))
+        sc3 = ax3.scatter(
+            ex,
+            ey,
+            c=ez,
+            s=22,
+            cmap="viridis",
+            vmin=emin,
+            vmax=emax,
+            edgecolors="k",
+            linewidths=0.15,
+        )
+        plt.colorbar(sc3, ax=ax3, fraction=0.046, pad=0.04, label="softmax entropy")
+        _triangle_axes(ax3)
+        ax3.set_title(f"{title_base} — softmax entropy")
+        out3 = plot_dir / f"simplex_map_{scenario_id}_entropy.png"
+        fig3.savefig(out3, dpi=150, bbox_inches="tight")
+        plt.close(fig3)
+        print(f"wrote {out3}", file=sys.stderr)
+
+    # Winners + bisection flip points (approximate boundary anchors)
+    fig4, ax4 = plt.subplots(figsize=(6, 5.5))
+    ax4.scatter(xs, ys, c=cs, s=10, marker="o", edgecolors="k", linewidths=0.2)
+    fxy = _flip_points_xy(bisections)
+    if fxy:
+        fx, fy = zip(*fxy)
+        ax4.scatter(
+            fx,
+            fy,
+            s=55,
+            facecolors="none",
+            edgecolors="k",
+            linewidths=1.2,
+            label="edge bisection",
+        )
+    _triangle_axes(ax4)
+    ax4.set_title(f"{title_base} — winners + boundary anchors")
+    leg_handles = [
+        Line2D(
+            [0],
+            [0],
+            marker="o",
+            color="w",
+            label=w,
+            markerfacecolor=cmap(i % 10),
+            markersize=8,
+            linestyle="None",
+        )
+        for i, w in enumerate(uniq)
+    ]
+    if fxy:
+        leg_handles.append(
+            Line2D(
+                [0],
+                [0],
+                marker="o",
+                color="w",
+                markerfacecolor="none",
+                markersize=9,
+                markeredgecolor="k",
+                markeredgewidth=1.2,
+                linestyle="None",
+                label="edge bisection",
+            )
+        )
+    ax4.legend(handles=leg_handles, loc="upper right", fontsize=7)
+    out4 = plot_dir / f"simplex_map_{scenario_id}_boundaries.png"
+    fig4.savefig(out4, dpi=150, bbox_inches="tight")
+    plt.close(fig4)
+    print(f"wrote {out4}", file=sys.stderr)
 
 
 def run_one_scenario(
@@ -242,6 +408,8 @@ def run_one_scenario(
                 )
             )
 
+    _attach_distance_to_nearest_boundary(rows, bisections=bisections)
+
     winners = [r["winner"] for r in rows if r["winner"]]
     wc = Counter(winners)
     summary = {
@@ -317,6 +485,11 @@ def main() -> int:
         help="If set, write ternary PNGs per scenario (needs matplotlib).",
     )
     p.add_argument(
+        "--plot-extended",
+        action="store_true",
+        help="With --plot-dir: also write gap12 heatmap, entropy heatmap, and boundary-overlay PNGs.",
+    )
+    p.add_argument(
         "--full-ranking",
         action="store_true",
         help="Include per-candidate scores and ranks (candidates_ranked) in each row.",
@@ -376,6 +549,8 @@ def main() -> int:
                 scenario_id=sid,
                 scenario_name=block["scenario_name"],
                 plot_dir=args.plot_dir,
+                bisections=block.get("bisections_along_edges") or [],
+                plot_extended=args.plot_extended,
             )
 
     if args.output_json:
@@ -402,6 +577,7 @@ def main() -> int:
                     "ranking_order",
                     "ranking_hash",
                     "score_entropy_softmax",
+                    "distance_to_nearest_boundary",
                 ]
             )
             for block in report["scenarios"]:
@@ -421,6 +597,7 @@ def main() -> int:
                             r.get("ranking_order"),
                             r["ranking_hash"],
                             r.get("score_entropy_softmax"),
+                            r.get("distance_to_nearest_boundary"),
                         ]
                     )
         print(f"wrote {args.output_csv}", file=sys.stderr)

@@ -7,8 +7,8 @@
     "agreement_kernel": 1.0,
     "agreement_first": 0.6875,
     "agreement_max_impact": 0.625,
-    "kernel_vs_first_rate": 0.631578947368421,
-    "kernel_vs_max_impact_rate": 0.5263157894736842,
+    "kernel_vs_first_rate": 0.5789473684210527,
+    "kernel_vs_max_impact_rate": 0.5789473684210527,
     "by_tier": {
       "common": {
         "n": 2,

@@ -7,8 +7,11 @@ This directory holds **operator instructions** for large-N runs described in
 
 **Experiment history** (story arc, accepted critique, protocol evolution, successor **simplex / near-tie** design): [`EXPERIMENT_HISTORY.md`](EXPERIMENT_HISTORY.md).
 
+**Next experiment design** (protocol v5 roadmap, scenarios **17–19** triples — canonical values in `src/simulations/runner.py`): [`NEXT_EXPERIMENT_DESIGN.md`](NEXT_EXPERIMENT_DESIGN.md).
+
 - **Phase 1 — corner audit** (mixture-only, fast): `python scripts/audit_mixture_simplex_corners.py --scenario-ids all`
-- **Phases 3–4 — simplex grid + edge bisection + optional ternary PNG** (cheap vs large-N Monte Carlo): `python scripts/run_simplex_decision_map.py --denominator 40 --scenario-ids 10,11,12,16 --bisect-edges --output-json experiments/million_sim/out/simplex_map.json` (add `--plot-dir experiments/million_sim/out/plots` if `matplotlib` is installed). Scenario **16** is a **two-candidate calibration** vignette tuned for mixture flips on part of the simplex.
+- **Phases 3–4 — simplex grid + edge bisection + optional ternary PNG** (cheap vs large-N Monte Carlo): `python scripts/run_simplex_decision_map.py --denominator 40 --scenario-ids 10,11,12,16 --bisect-edges --output-json experiments/million_sim/out/simplex_map.json` (add `--plot-dir …` and optionally **`--plot-extended`** for gap/entropy heatmaps + boundary overlay if `matplotlib` is installed). Scenario **16** is a **two-candidate calibration** vignette tuned for mixture flips on part of the simplex.
+- **Protocol v5 (mixture-only bundle)** — screening CSV + refinement CSV + `boundaries.json`: `python scripts/run_experiment_v5_sensitivity.py --scenario-ids 16,17,18,19 --screening-denominator 30 --refinement-samples 500 --output-dir experiments/million_sim/out/v5_sensitivity/` (full `EthicalKernel.process` sweeps stay on `run_mass_kernel_study.py` / `run_experiment_v4_full_kernel_100k.py`; see `full_kernel_note.json` in the output dir).
 
 ### Full decision stack at **N = 100,000** (protocol **v4**, recommended)
 
@@ -37,6 +40,8 @@ Optional: append `--workers 16` or a custom lane split, e.g. more weight on bord
 ## Research disclaimer
 
 **Induced or loaded conditions** (stress scenario subsets, lane splits, ablation flags) are **experimental and investigative** — to **map sensitivity and attribution** in the batch harness. They are **not** chosen to please stakeholders, maximize agreement with fixture references, or prove external validity. **Reference labels** are maintainer priors for internal consistency checks, not independent ground truth.
+
+**Optional Bayesian mixture telemetry** ([ADR 0012](../../docs/adr/0012-bayesian-weight-inference-ethical-mixture-scorer.md)): when enabled, the kernel can report **win probabilities** under a Dirichlet prior over mixture weights and optionally apply **operator feedback** as an approximate Dirichlet update. This assumes a **learnable** weight vector in the mixture — a stronger stance than fixed designer weights — and does not claim external moral validity.
 
 ## Environment
 

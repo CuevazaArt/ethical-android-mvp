@@ -14,7 +14,10 @@ import os
 import time
 from collections.abc import Callable
 from dataclasses import dataclass
+from pathlib import Path
 from typing import Any
+
+import numpy as np
 
 from .kernel_components import KernelComponentOverrides
 from .modules.absolute_evil import AbsoluteEvilDetector, AbsoluteEvilResult
@@ -162,6 +165,13 @@ class KernelDecision:
     affect: AffectProjection | None = None
     reflection: ReflectionSnapshot | None = None
     salience: SalienceSnapshot | None = None
+
+    # ADR 0012 — optional Bayesian mixture reporting (does not replace final_action by default)
+    bma_win_probabilities: dict[str, float] | None = None
+    bma_dirichlet_alpha: tuple[float, float, float] | None = None
+    bma_n_samples: int | None = None
+    mixture_posterior_alpha: tuple[float, float, float] | None = None
+    feedback_consistency: str | None = None
 
 
 @dataclass
@@ -444,6 +454,11 @@ class EthicalKernel:
                 decision_mode="blocked",
                 blocked=True,
                 block_reason="All actions violate Absolute Evil",
+                bma_win_probabilities=None,
+                bma_dirichlet_alpha=None,
+                bma_n_samples=None,
+                mixture_posterior_alpha=None,
+                feedback_consistency=None,
             )
             self._emit_kernel_decision(d, context=context)
             _emit_process_observability(d, t0)
@@ -453,10 +468,27 @@ class EthicalKernel:
         self.buffer.activate(context)
 
         # ═══ STEP 6: Impact scoring — fixed mixture (BayesianEngine; optional episodic nudge) ═══
+        mixture_posterior_alpha: tuple[float, float, float] | None = None
+        feedback_consistency: str | None = None
+        dirichlet_alpha_for_bma: np.ndarray | None = None
+
+        self.bayesian.reset_mixture_weights()
+
+        fb_path = os.environ.get("KERNEL_FEEDBACK_PATH", "").strip()
+        if _kernel_env_truthy("KERNEL_BAYESIAN_FEEDBACK") and fb_path:
+            p = Path(fb_path)
+            if p.is_file():
+                from .modules.feedback_mixture_posterior import load_and_apply_feedback
+
+                rng_fb = np.random.default_rng(int(os.environ.get("KERNEL_FEEDBACK_SEED", "42")))
+                alpha_vec, feedback_consistency, _fb_meta = load_and_apply_feedback(p, rng=rng_fb)
+                mixture_posterior_alpha = tuple(round(float(x), 6) for x in alpha_vec)
+                sw = float(np.sum(alpha_vec))
+                self.bayesian.hypothesis_weights = alpha_vec / sw
+                dirichlet_alpha_for_bma = alpha_vec
+
         if _kernel_env_truthy("KERNEL_BAYESIAN_EMPIRICAL_WEIGHTS"):
             self.bayesian.refresh_weights_from_episodic_memory(self.memory, context)
-        else:
-            self.bayesian.reset_mixture_weights()
 
         if _kernel_env_truthy("KERNEL_TEMPORAL_HORIZON_PRIOR"):
             from .modules.temporal_horizon_prior import apply_horizon_prior_to_engine
@@ -497,6 +529,37 @@ class EthicalKernel:
             context=context,
             signals=signals,
         )
+
+        bma_win_probabilities: dict[str, float] | None = None
+        bma_dirichlet_alpha: tuple[float, float, float] | None = None
+        bma_n_s: int | None = None
+        from .modules.bayesian_mixture_averaging import (
+            bma_enabled,
+            bma_n_samples,
+            monte_carlo_win_probabilities,
+            parse_bma_alpha_from_env,
+        )
+
+        if bma_enabled():
+            alpha_bma = (
+                dirichlet_alpha_for_bma
+                if dirichlet_alpha_for_bma is not None
+                else parse_bma_alpha_from_env()
+            )
+            bma_n_s = bma_n_samples()
+            rng_bma = np.random.default_rng(int(os.environ.get("KERNEL_BMA_SEED", "42")))
+            bma_win_probabilities = monte_carlo_win_probabilities(
+                self.bayesian,
+                clean_actions,
+                alpha=np.asarray(alpha_bma, dtype=np.float64),
+                n_samples=bma_n_s,
+                scenario=scenario,
+                context=context,
+                signals=signals,
+                rng=rng_bma,
+            )
+            _ab = np.asarray(alpha_bma, dtype=np.float64).reshape(3)
+            bma_dirichlet_alpha = (round(float(_ab[0]), 6), round(float(_ab[1]), 6), round(float(_ab[2]), 6))
 
         # ═══ STEP 7: Multipolar evaluation ═══
         context_data = {
@@ -632,6 +695,11 @@ class EthicalKernel:
             affect=affect,
             reflection=reflection,
             salience=salience,
+            bma_win_probabilities=bma_win_probabilities,
+            bma_dirichlet_alpha=bma_dirichlet_alpha,
+            bma_n_samples=bma_n_s,
+            mixture_posterior_alpha=mixture_posterior_alpha,
+            feedback_consistency=feedback_consistency,
         )
         self._emit_kernel_decision(d, context=context)
         _emit_process_observability(d, t0)
@@ -689,6 +757,15 @@ class EthicalKernel:
             )
             if br.pruned_actions:
                 lines.append(f"  Pruned: {', '.join(br.pruned_actions)}")
+            if d.feedback_consistency:
+                lines.append(f"  Mixture feedback consistency: {d.feedback_consistency}")
+            if d.mixture_posterior_alpha is not None:
+                lines.append(f"  Posterior Dirichlet α (mixture): {d.mixture_posterior_alpha}")
+            if d.bma_win_probabilities:
+                lines.append(
+                    f"  BMA win probabilities (α={d.bma_dirichlet_alpha}, N={d.bma_n_samples}): "
+                    f"{d.bma_win_probabilities}"
+                )
 
         mo = d.moral
         if mo is not None:
@@ -1338,6 +1415,11 @@ class EthicalKernel:
                 decision_mode="blocked",
                 blocked=True,
                 block_reason=mal.reason or "chat_safety",
+                bma_win_probabilities=None,
+                bma_dirichlet_alpha=None,
+                bma_n_samples=None,
+                mixture_posterior_alpha=None,
+                feedback_consistency=None,
             )
             msg = (
                 "I can't continue this line of conversation: it conflicts with non-negotiable "

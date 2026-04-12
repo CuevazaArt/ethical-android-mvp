@@ -1,7 +1,7 @@
 # Proposal: Experiment protocol v5 — sensitivity mapping on the mixture simplex
 
 **Status:** design + partial implementation (scenarios 17–19, `hypothesis_override`, simplex map extensions).  
-**Context:** [`experiments/million_sim/EXPERIMENT_HISTORY.md`](../../experiments/million_sim/EXPERIMENT_HISTORY.md), [`scripts/run_simplex_decision_map.py`](../../scripts/run_simplex_decision_map.py).
+**Context:** [`experiments/million_sim/EXPERIMENT_HISTORY.md`](../../experiments/million_sim/EXPERIMENT_HISTORY.md), [`experiments/million_sim/NEXT_EXPERIMENT_DESIGN.md`](../../experiments/million_sim/NEXT_EXPERIMENT_DESIGN.md) (aligned triples with `src/simulations/runner.py`), [`scripts/run_simplex_decision_map.py`](../../scripts/run_simplex_decision_map.py).
 
 ## Goal
 
@@ -33,9 +33,10 @@ Implementation uses **`CandidateAction.hypothesis_override`**: explicit `(util, 
 
 ## Next steps (priority)
 
-1. Ternary heatmaps (gap / entropy) and boundary overlays (matplotlib).
-2. **`scripts/run_experiment_v5_sensitivity.py`** orchestrating screening → refinement → full kernel (per design doc).
-3. **`mass_kernel_study` schema vNext** for lane F–H and summary metrics (`flip_rate_by_scenario`, `boundary_fraction_by_scenario`, etc.).
+1. **`mass_kernel_study` schema vNext** for lane F–H and summary metrics (`flip_rate_by_scenario`, `boundary_fraction_by_scenario`, etc.).
+2. Optional: wire **adaptive** refinement (concentrate samples using `distance_to_nearest_boundary`) inside [`scripts/run_experiment_v5_sensitivity.py`](../../scripts/run_experiment_v5_sensitivity.py).
+
+**Done in-repo:** mixture-only **gap / entropy heatmaps**, **boundary overlay**, **`distance_to_nearest_boundary`**, and the **v5 sensitivity script** (screening + refinement + boundaries; full kernel delegated — see `full_kernel_note.json`).
 
 ## Disclaimer
 

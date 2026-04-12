@@ -11,5 +11,8 @@
 | [0007 — snapshot schema migration policy](0007-snapshot-schema-migration-policy.md) | `SCHEMA_VERSION` bumps: migrations module + golden fixtures + tests |
 | [0008 — runtime observability (Prometheus + logs)](0008-runtime-observability-prometheus-and-logs.md) | Opt-in `/metrics`, JSON logs, `X-Request-ID`; no policy change |
 | [0009 — ethical mixture scorer naming](0009-ethical-mixture-scorer-naming.md) | `weighted_ethics_scorer` canonical; `bayesian_engine` shim; not full Bayes |
+| [0010 — poles pre-argmax modulation](0010-poles-pre-argmax-modulation.md) | Pole weights scale hypothesis valuations before mixture dot |
+| [0011 — context richness pre-argmax](0011-context-richness-pre-argmax.md) | Social/locus/sigma channels modulate valuations pre-argmax |
+| [0012 — Bayesian weight inference (mixture)](0012-bayesian-weight-inference-ethical-mixture-scorer.md) | Optional BMA win probabilities + feedback Dirichlet updates (ADR 0012) |
 
 See also [`CORE_DECISION_CHAIN.md`](../proposals/CORE_DECISION_CHAIN.md), [`LLM_STACK_OLLAMA_VS_HF.md`](../proposals/LLM_STACK_OLLAMA_VS_HF.md), [`PERCEPTION_VALIDATION.md`](../proposals/PERCEPTION_VALIDATION.md), [`TEMPORAL_PRIOR_HORIZONS.md`](../proposals/TEMPORAL_PRIOR_HORIZONS.md), [`USER_MODEL_ENRICHMENT.md`](../proposals/USER_MODEL_ENRICHMENT.md) (design proposal), and [`CHANGELOG.md`](../../CHANGELOG.md).

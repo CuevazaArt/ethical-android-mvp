@@ -1,0 +1,204 @@
+"""
+Approximate Dirichlet posterior from operator feedback on batch scenarios — **Level 2** of ADR 0012.
+
+Uses mixture-only winners (same path as ``simplex_mixture_probe.mixture_ranking``) for listed
+``scenario_id`` values. This is **not** exact conjugate inference; it is a pragmatic shift of
+``α`` toward mixture samples consistent with stated preferences.
+
+Env:
+
+- ``KERNEL_BAYESIAN_FEEDBACK`` — enable loading and updating.
+- ``KERNEL_FEEDBACK_PATH`` — JSON file (list of records).
+- ``KERNEL_FEEDBACK_UPDATE_STRENGTH`` — default ``3.0``.
+- ``KERNEL_FEEDBACK_MC_SAMPLES`` — inner MC size per feedback item (default 20000).
+"""
+
+from __future__ import annotations
+
+import json
+import os
+from dataclasses import dataclass
+from pathlib import Path
+from typing import Any
+
+import numpy as np
+
+from ..sandbox.simplex_mixture_probe import mixture_ranking
+from ..simulations.runner import ALL_SIMULATIONS
+
+from .bayesian_mixture_averaging import parse_bma_alpha_from_env
+from .weighted_ethics_scorer import WeightedEthicsScorer
+
+
+@dataclass
+class FeedbackRecord:
+    scenario_id: int
+    preferred_action: str
+    confidence: float = 1.0
+    timestamp: str | None = None
+    context_type: str | None = None
+
+
+def feedback_enabled() -> bool:
+    return os.environ.get("KERNEL_BAYESIAN_FEEDBACK", "").strip().lower() in (
+        "1",
+        "true",
+        "yes",
+        "on",
+    )
+
+
+def feedback_update_strength() -> float:
+    return float(os.environ.get("KERNEL_FEEDBACK_UPDATE_STRENGTH", "3.0"))
+
+
+def feedback_mc_samples() -> int:
+    return max(1000, int(os.environ.get("KERNEL_FEEDBACK_MC_SAMPLES", "20000")))
+
+
+def load_feedback_records(path: Path) -> list[FeedbackRecord]:
+    data = json.loads(path.read_text(encoding="utf-8"))
+    if isinstance(data, dict) and "items" in data:
+        data = data["items"]
+    if not isinstance(data, list):
+        raise ValueError("feedback file must be a JSON list or {\"items\": [...]}")
+    out: list[FeedbackRecord] = []
+    for row in data:
+        sid = int(row["scenario_id"])
+        pref = str(row["preferred_action"])
+        conf = float(row.get("confidence", 1.0))
+        ts = row.get("timestamp")
+        ct = row.get("context_type")
+        out.append(
+            FeedbackRecord(
+                scenario_id=sid,
+                preferred_action=pref,
+                confidence=conf,
+                timestamp=ts if isinstance(ts, str) else None,
+                context_type=ct if isinstance(ct, str) else None,
+            )
+        )
+    return out
+
+
+def _winner_at_mixture(scenario_id: int, w: np.ndarray) -> str | None:
+    if scenario_id not in ALL_SIMULATIONS:
+        raise ValueError(f"Unknown scenario_id {scenario_id}")
+    scn = ALL_SIMULATIONS[scenario_id]()
+    text = f"[SIM {scenario_id}] {scn.name}"
+    r = mixture_ranking(
+        WeightedEthicsScorer(),
+        mixture=w,
+        scenario=text,
+        context=scn.context,
+        signals=scn.signals,
+        actions=list(scn.actions),
+    )
+    return r.get("winner")
+
+
+def joint_satisfaction_monte_carlo(
+    alpha: np.ndarray,
+    records: list[FeedbackRecord],
+    *,
+    n_samples: int,
+    rng: np.random.Generator,
+) -> tuple[float, bool]:
+    """
+    Fraction of Dirichlet(alpha) samples where **all** preferred actions win simultaneously.
+    Returns (rate, likely_empty) where likely_empty is True if rate is ~0.
+    """
+    alpha = np.asarray(alpha, dtype=np.float64)
+    ok = 0
+    for _ in range(n_samples):
+        w = rng.dirichlet(alpha)
+        if all(_winner_at_mixture(r.scenario_id, w) == r.preferred_action for r in records):
+            ok += 1
+    rate = ok / float(n_samples)
+    return rate, rate < (1.0 / max(n_samples, 2))
+
+
+def sequential_alpha_update(
+    alpha: np.ndarray,
+    records: list[FeedbackRecord],
+    *,
+    n_inner: int,
+    strength: float,
+    rng: np.random.Generator,
+) -> tuple[np.ndarray, str, dict[str, Any]]:
+    """
+    For each feedback record, sample ``w ~ Dirichlet(alpha)``, keep samples where the winner
+    matches ``preferred_action``, and set ``alpha += strength * mean(agreeing)``.
+
+    If no agreeing sample for an item, returns **contradictory** for that step.
+    """
+    alpha = np.asarray(alpha, dtype=np.float64).copy()
+    meta: dict[str, Any] = {"per_item": []}
+
+    for rec in records:
+        agreeing: list[np.ndarray] = []
+        for _ in range(n_inner):
+            w = rng.dirichlet(alpha)
+            win = _winner_at_mixture(rec.scenario_id, w)
+            if win == rec.preferred_action:
+                agreeing.append(w)
+        if not agreeing:
+            meta["per_item"].append(
+                {"scenario_id": rec.scenario_id, "status": "no_agreeing_sample"}
+            )
+            return alpha, "contradictory", meta
+        mean_agree = np.mean(np.stack(agreeing, axis=0), axis=0)
+        alpha = alpha + float(strength) * float(rec.confidence) * mean_agree
+        meta["per_item"].append(
+            {
+                "scenario_id": rec.scenario_id,
+                "status": "updated",
+                "n_agreeing": len(agreeing),
+            }
+        )
+
+    return alpha, "compatible", meta
+
+
+def load_and_apply_feedback(
+    path: Path,
+    *,
+    rng: np.random.Generator,
+) -> tuple[np.ndarray, str, dict[str, Any]]:
+    """
+    Load feedback JSON, start from ``parse_bma_alpha_from_env()`` as prior, run sequential
+    update, and compute joint satisfaction rate under final alpha.
+
+    Returns:
+        ``(posterior_alpha, consistency, details)`` where consistency is
+        ``compatible`` | ``contradictory`` | ``insufficient`` (empty file).
+    """
+    records = load_feedback_records(path)
+    if not records:
+        a = parse_bma_alpha_from_env()
+        return a, "insufficient", {"reason": "empty_feedback"}
+
+    alpha0 = parse_bma_alpha_from_env()
+    n_inner = feedback_mc_samples()
+    strength = feedback_update_strength()
+
+    alpha_new, status, meta = sequential_alpha_update(
+        alpha0,
+        records,
+        n_inner=n_inner,
+        strength=strength,
+        rng=rng,
+    )
+
+    j_rate, _ = joint_satisfaction_monte_carlo(
+        alpha_new, records, n_samples=min(50000, n_inner * 2), rng=rng
+    )
+    meta["joint_satisfaction_rate"] = round(float(j_rate), 6)
+    meta["n_feedback_items"] = len(records)
+
+    if status == "contradictory":
+        return alpha_new, "contradictory", meta
+
+    if j_rate < 0.01:
+        meta["note"] = "Low joint satisfaction under posterior; preferences may be jointly tight."
+    return alpha_new, "compatible", meta
