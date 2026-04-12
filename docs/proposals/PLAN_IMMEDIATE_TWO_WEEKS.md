@@ -5,6 +5,8 @@
 
 This file is the **repo-local execution backlog**. **GitHub milestones, assignees, and labels** are set in the GitHub UI — not here.
 
+**Optional next-sprint candidates (infrastructure):** [PROPOSAL_QUICK_WINS_TWO_SPRINTS.md](PROPOSAL_QUICK_WINS_TWO_SPRINTS.md) — strict env defaults (non-lab), perception circuit breaker, `ethos-runtime` entry point, MalAbs rate alerts in Grafana/Prometheus.
+
 ---
 
 ## GitHub setup (maintainers — one-time per sprint)

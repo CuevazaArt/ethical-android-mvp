@@ -23,7 +23,7 @@ def _cmd_check_config(*, strict: bool) -> int:
     validate_supported_combo_partition()
     if strict:
         validate_kernel_env(mode="strict")
-        print("check-config: OK (strict — no KERNEL_* consistency violations).")
+        print("check-config: OK (strict: no KERNEL_* consistency violations).")
         return 0
     violations = collect_env_violations()
     if violations:

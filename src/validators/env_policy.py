@@ -7,7 +7,8 @@ We do **not** enumerate all flag Cartesian products. Instead:
 - **SUPPORTED_COMBOS** partitions those profile names into ``demo`` / ``production`` / ``lab`` buckets
   for documentation and guardrails.
 - **Rule-based checks** flag invalid *relationships* between env vars (e.g. mock court without
-  escalation). Default: **warn**; set ``KERNEL_ENV_VALIDATION=strict`` to raise ``ValueError``.
+  escalation). Default **strict** when unset (see ``kernel_public_env``); **warn** for lab nominal
+  profiles merged at startup; set ``KERNEL_ENV_VALIDATION=warn`` to log only.
 
 See ``docs/proposals/KERNEL_ENV_POLICY.md``.
 """
@@ -72,6 +73,18 @@ def all_supported_profile_names() -> frozenset[str]:
     return frozenset(out)
 
 
+def default_env_validation_for_profile(profile_name: str) -> str:
+    """
+    Default ``KERNEL_ENV_VALIDATION`` when merging a nominal profile (unset/empty only).
+
+    **Lab** bundles default to ``warn`` (experimentation); **production** and **demo** default to
+    ``strict`` so invalid flag combinations fail fast at chat server startup.
+    """
+    if profile_name in SUPPORTED_COMBOS["lab"]:
+        return "warn"
+    return "strict"
+
+
 def collect_env_violations() -> list[str]:
     """
     Return human-readable constraint violations for the **current** process environment.
@@ -105,14 +118,16 @@ def _effective_validation_mode(mode: str | None, snap: KernelPublicEnv) -> str:
     """Resolve ``KERNEL_ENV_VALIDATION`` (or test override)."""
     if mode is not None:
         raw = mode.strip().lower()
-        if raw in ("", "warn", "warning"):
+        if raw in ("warn", "warning"):
             return "warn"
         if raw in ("0", "false", "no", "off"):
             return "off"
         if raw in ("1", "true", "yes", "on", "strict"):
             return "strict"
-        logger.warning("unknown KERNEL_ENV_VALIDATION override=%r; defaulting to warn", raw)
-        return "warn"
+        if raw == "":
+            return snap.env_validation
+        logger.warning("unknown KERNEL_ENV_VALIDATION override=%r; defaulting to strict", raw)
+        return "strict"
     return snap.env_validation
 
 

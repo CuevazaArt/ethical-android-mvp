@@ -4,6 +4,7 @@ from .env_policy import (
     SUPPORTED_COMBOS,
     all_supported_profile_names,
     collect_env_violations,
+    default_env_validation_for_profile,
     env_combo_fingerprint,
     validate_kernel_env,
 )
@@ -14,6 +15,7 @@ __all__ = [
     "KernelPublicEnv",
     "all_supported_profile_names",
     "collect_env_violations",
+    "default_env_validation_for_profile",
     "env_combo_fingerprint",
     "validate_kernel_env",
 ]

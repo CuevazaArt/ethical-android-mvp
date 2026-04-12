@@ -2,6 +2,15 @@
 
 All notable changes to this project are summarized here. For narrative context and design rationale, see [`HISTORY.md`](HISTORY.md).
 
+## Quick wins (two sprints) — infrastructure digest — April 2026
+
+- **[`default_env_validation_for_profile()`](src/validators/env_policy.py):** lab nominal profiles merge `KERNEL_ENV_VALIDATION=warn`; demo/production merge `strict` when unset (with [`apply_named_runtime_profile_to_environ`](src/runtime_profiles.py) / pytest [`apply_runtime_profile`](src/runtime_profiles.py)).
+- **[`kernel_public_env._parse_env_validation_mode()`](src/validators/kernel_public_env.py):** unset `KERNEL_ENV_VALIDATION` → **strict** (fail fast); unknown tokens default strict.
+- **Perception circuit:** documented link to Pydantic path (`pydantic_emergency_fallback`); behavior unchanged in [`perception_circuit.py`](src/modules/perception_circuit.py) (metacognitive doubt, gray_zone tone, DAO calibration, metrics).
+- **`ethos-runtime`:** [`pyproject.toml`](pyproject.toml) console script → `src.chat_server:main` (requires `pip install -e ".[runtime]"`).
+- **Prometheus:** [`deploy/prometheus/ethos_kernel_alerts.yml`](deploy/prometheus/ethos_kernel_alerts.yml) — MalAbs burst, elevated `safety_block` rate, perception circuit trip.
+- **Proposal / narrative:** [`docs/proposals/PROPOSAL_QUICK_WINS_TWO_SPRINTS.md`](docs/proposals/PROPOSAL_QUICK_WINS_TWO_SPRINTS.md); **Tests:** [`tests/test_env_policy.py`](tests/test_env_policy.py) (`test_default_env_validation_lab_vs_demo`).
+
 ## Sync kernel vs async ASGI — JSON + advisory offload — April 2026
 
 - **[`src/real_time_bridge.py`](src/real_time_bridge.py):** `RealTimeBridge.run_sync_in_chat_thread` for synchronous post-turn work off the event loop.

@@ -185,3 +185,25 @@ assert h.get("status") == "ok"
 assert h.get("runtime_profile") == "operational_trust"
 """
     subprocess.run([sys.executable, "-c", code], cwd=root, check=True)
+
+
+def test_runtime_profile_merges_kernel_env_validation_strict_or_warn_subprocess():
+    """Lab bundles keep warn; nominal demo/production profiles get strict when unset."""
+    root = os.path.join(os.path.dirname(__file__), "..")
+    for profile, expected in (
+        ("baseline", "strict"),
+        ("perception_hardening_lab", "warn"),
+        ("lan_operational", "strict"),
+    ):
+        code = f"""
+import os, sys
+sys.path.insert(0, ".")
+os.environ.pop("KERNEL_ENV_VALIDATION", None)
+os.environ["ETHOS_RUNTIME_PROFILE"] = "{profile}"
+from src.runtime_profiles import apply_named_runtime_profile_to_environ
+apply_named_runtime_profile_to_environ()
+assert os.environ.get("KERNEL_ENV_VALIDATION") == "{expected}", (
+    profile, os.environ.get("KERNEL_ENV_VALIDATION")
+)
+"""
+        subprocess.run([sys.executable, "-c", code], cwd=root, check=True)

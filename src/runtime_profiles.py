@@ -78,6 +78,7 @@ RUNTIME_PROFILES: Final[dict[str, dict[str, str]]] = {
     },
     # Production-hardening Fase 1 — lexical tier + cross-check + optional delib nudge + parse fail-closed + JSON tier field.
     "perception_hardening_lab": {
+        "KERNEL_ENV_VALIDATION": "warn",
         "KERNEL_LIGHT_RISK_CLASSIFIER": "1",
         "KERNEL_PERCEPTION_CROSS_CHECK": "1",
         "KERNEL_PERCEPTION_UNCERTAINTY_DELIB": "1",
@@ -87,10 +88,12 @@ RUNTIME_PROFILES: Final[dict[str, dict[str, str]]] = {
     },
     # ADR 0006 — Phase 2 seam: in-process event bus for extensions / telemetry.
     "phase2_event_bus_lab": {
+        "KERNEL_ENV_VALIDATION": "warn",
         "KERNEL_EVENT_BUS": "1",
     },
     # Semantic MalAbs tier on without Ollama (deterministic hash embeddings); compose with LAN or hub profiles.
     "untrusted_chat_input": {
+        "KERNEL_ENV_VALIDATION": "warn",
         "KERNEL_SEMANTIC_CHAT_GATE": "1",
         "KERNEL_SEMANTIC_EMBED_HASH_FALLBACK": "1",
     },
@@ -100,6 +103,7 @@ RUNTIME_PROFILES: Final[dict[str, dict[str, str]]] = {
     },
     # Dual LLM perception sample + uncertainty→D_delib (GIGO mitigation; costs 2× perceive calls).
     "perception_adv_consensus_lab": {
+        "KERNEL_ENV_VALIDATION": "warn",
         "KERNEL_PERCEPTION_DUAL_VOTE": "1",
         "KERNEL_PERCEPTION_UNCERTAINTY_DELIB": "1",
         "KERNEL_PERCEPTION_UNCERTAINTY_MIN": "0.35",
@@ -166,6 +170,12 @@ def apply_named_runtime_profile_to_environ() -> str | None:
         cur = os.environ.get(key)
         if cur is None or not str(cur).strip():
             os.environ[key] = val
+    # Issue: quick wins — lab profiles default KERNEL_ENV_VALIDATION=warn; demo/production default strict.
+    vcur = os.environ.get("KERNEL_ENV_VALIDATION", "").strip()
+    if not vcur:
+        from src.validators.env_policy import default_env_validation_for_profile
+
+        os.environ["KERNEL_ENV_VALIDATION"] = default_env_validation_for_profile(raw)
     _APPLIED_RUNTIME_PROFILE = raw
     return raw
 
@@ -183,3 +193,7 @@ def apply_runtime_profile(monkeypatch, name: str) -> None:
         raise KeyError(f"unknown runtime profile: {name!r}") from e
     for key, value in overrides.items():
         monkeypatch.setenv(key, value)
+    if not (os.environ.get("KERNEL_ENV_VALIDATION") or "").strip():
+        from src.validators.env_policy import default_env_validation_for_profile
+
+        monkeypatch.setenv("KERNEL_ENV_VALIDATION", default_env_validation_for_profile(name))

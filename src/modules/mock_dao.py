@@ -86,7 +86,7 @@ class SolidarityAlert:
 
 def _append_audit_sidecar(rec: AuditRecord) -> None:
     """
-    Optional append-only mirror of audit rows to a separate file (operator “sidecar”).
+    Optional append-only mirror of audit rows to a separate file (operator sidecar).
 
     Set ``KERNEL_AUDIT_SIDECAR_PATH`` to a filesystem path. Does **not** provide tamper
     evidence by itself; use OS permissions / remote log shipping for separation of duties.

@@ -20,3 +20,7 @@ When you fix **security- or safety-critical** behavior (MalAbs thresholds, gates
 ## Product “model” document (theory)
 
 The **complete conceptual model** for the android ethics stack (outside this repo’s code) is referenced from [`CONTRIBUTING.md`](CONTRIBUTING.md) (“Understand the model”). Kernel work is **Python under `src/`**; `landing/` is a separate Next.js app when touched.
+
+## Maintainer backlog (infra vs theater)
+
+Near-term execution plan: [`docs/proposals/PLAN_IMMEDIATE_TWO_WEEKS.md`](docs/proposals/PLAN_IMMEDIATE_TWO_WEEKS.md). Optional **infrastructure quick wins** (strict env defaults, perception circuit breaker, packaged entry points, MalAbs alert rules): [`docs/proposals/PROPOSAL_QUICK_WINS_TWO_SPRINTS.md`](docs/proposals/PROPOSAL_QUICK_WINS_TWO_SPRINTS.md).

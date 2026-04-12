@@ -21,6 +21,9 @@ dependencies = [
 
 [project.scripts]
 ethos = "src.ethos_cli:main"
+# FastAPI WebSocket chat server — requires optional-dependencies `runtime` (pip install -e ".[runtime]").
+# Same entry as `python -m src.chat_server` / uvicorn `src.chat_server:app`.
+ethos-runtime = "src.chat_server:main"
 
 # Base [project.dependencies] = policy-core wheels (MalAbs → Bayes → poles → will path). Same `src/` tree includes narrative/DAO/PAD; there is no import-time split yet.
 # Extras: `runtime` = FastAPI chat server; `theater` = marker only (no extra deps) for "humanizing" layers — see README + CORE_DECISION_CHAIN.md § core vs theater.

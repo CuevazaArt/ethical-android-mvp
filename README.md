@@ -26,7 +26,7 @@ MalAbs → Scoring → Poles → Will → Action
 ```
 
 - **PyPI:** Publishing **`ethos-kernel`** on PyPI is **not** the near-term goal (`version` remains **`0.0.0`**; this repo is a **research / reference** implementation — see ADR 0001).
-- **Install from a Git checkout:** `pip install -e .` (core policy deps) · `pip install -e ".[runtime]"` (FastAPI WebSocket chat) · optional marker `pip install -e ".[theater]"` installs **no extra wheels** but records a dependency boundary for narrative/audit “theater” (PAD, weakness, MockDAO) in [`CORE_DECISION_CHAIN.md`](docs/proposals/CORE_DECISION_CHAIN.md) § *Core vs theater*. Imports stay `from src.kernel import …` until a future package rename.
+- **Install from a Git checkout:** `pip install -e .` (core policy deps) · `pip install -e ".[runtime]"` (FastAPI WebSocket chat) · optional marker `pip install -e ".[theater]"` installs **no extra wheels** but records a dependency boundary for narrative/audit “theater” (PAD, weakness, MockDAO) in [`CORE_DECISION_CHAIN.md`](docs/proposals/CORE_DECISION_CHAIN.md) § *Core vs theater*. **Console scripts:** `ethos` (emergency CLI) and `ethos-runtime` (same entry as `python -m src.chat_server` / uvicorn `src.chat_server:app`) — see [`pyproject.toml`](pyproject.toml) `[project.scripts]`. Imports stay `from src.kernel import …` until a future package rename.
 
 **Poles / weakness / PAD & HCI (Issue 5):** [`docs/proposals/POLES_WEAKNESS_PAD_AND_PROFILES.md`](docs/proposals/POLES_WEAKNESS_PAD_AND_PROFILES.md) — heuristics framing + **`operational_trust`** profile in [`src/runtime_profiles.py`](src/runtime_profiles.py) (stoic WebSocket UX; core policy unchanged).
 

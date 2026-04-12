@@ -81,6 +81,10 @@ from .modules.multimodal_trust import (
 )
 from .modules.narrative import BodyState, NarrativeMemory
 from .modules.pad_archetypes import AffectProjection, PADArchetypeEngine
+from .modules.perception_circuit import (
+    emit_metacognitive_doubt_signals,
+    update_perception_circuit,
+)
 from .modules.perception_cross_check import apply_lexical_perception_cross_check
 from .modules.premise_validation import PremiseAdvisory, scan_premises
 from .modules.psi_sleep import PsiSleep
@@ -177,6 +181,7 @@ class ChatTurnResult:
     reality_verification: RealityVerificationAssessment | None = (
         None  # set each turn when lighthouse KB configured
     )
+    metacognitive_doubt: bool = False
 
 
 def _emit_process_observability(d: KernelDecision, t0: float) -> None:
@@ -313,6 +318,8 @@ class EthicalKernel:
         self.constitution_l2_drafts: list[dict[str, Any]] = []
         self._last_reality_verification: RealityVerificationAssessment = REALITY_ASSESSMENT_NONE
         self._last_light_risk_tier: str | None = None
+        self._perception_validation_streak: int = 0
+        self._perception_metacognitive_doubt: bool = False
         self.event_bus: KernelEventBus | None = None
         if kernel_event_bus_enabled():
             self.event_bus = KernelEventBus()
@@ -934,6 +941,9 @@ class EthicalKernel:
             )
         perception = self.llm.perceive(user_input, conversation_context=conv)
         apply_lexical_perception_cross_check(perception, tier)
+        _, doubt_trip = update_perception_circuit(self, perception)
+        if doubt_trip:
+            emit_metacognitive_doubt_signals(self, streak=self._perception_validation_streak)
         self.subjective_clock.tick(perception)
         heavy = self._chat_is_heavy(perception)
         eth_context = perception.suggested_context if heavy else "everyday"
@@ -1009,6 +1019,7 @@ class EthicalKernel:
                 multimodal_trust=mm,
                 epistemic_dissonance=ed,
                 reality_verification=self._last_reality_verification,
+                metacognitive_doubt=self._perception_metacognitive_doubt,
             )
 
         weakness_line = ""
@@ -1104,9 +1115,20 @@ class EthicalKernel:
         if gz:
             weakness_line = (weakness_line + " " + gz).strip() if weakness_line else gz
 
+        if self._perception_metacognitive_doubt:
+            doubt_hint = (
+                "Metacognitive doubt: recent perception parses have been unreliable; use maximum caution, "
+                "narrow claims, invite clarification, and avoid overconfidence."
+            )
+            weakness_line = (doubt_hint + " " + weakness_line).strip() if weakness_line else doubt_hint
+
+        comm_mode = decision.decision_mode
+        if self._perception_metacognitive_doubt:
+            comm_mode = "gray_zone"
+
         response = self.llm.communicate(
             action=decision.final_action,
-            mode=decision.decision_mode,
+            mode=comm_mode,
             state=decision.sympathetic_state.mode,
             sigma=decision.sympathetic_state.sigma,
             circle=decision.social_evaluation.circle.value
@@ -1234,6 +1256,7 @@ class EthicalKernel:
             epistemic_dissonance=ed,
             judicial_escalation=je_view,
             reality_verification=self._last_reality_verification,
+            metacognitive_doubt=self._perception_metacognitive_doubt,
         )
 
     def process_natural(self, situation: str, actions: list[CandidateAction] = None) -> tuple:

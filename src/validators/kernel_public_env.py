@@ -35,14 +35,16 @@ def _falsy_or_unset(name: str) -> bool:
 
 def _parse_env_validation_mode() -> Literal["off", "warn", "strict"]:
     raw = os.environ.get("KERNEL_ENV_VALIDATION", "").strip().lower()
-    if raw in ("", "warn", "warning"):
-        return "warn"
     if raw in ("0", "false", "no", "off"):
         return "off"
+    if raw in ("warn", "warning"):
+        return "warn"
     if raw in ("1", "true", "yes", "on", "strict"):
         return "strict"
-    logger.warning("unknown KERNEL_ENV_VALIDATION=%r; defaulting to warn", raw)
-    return "warn"
+    if raw == "":
+        return "strict"
+    logger.warning("unknown KERNEL_ENV_VALIDATION=%r; defaulting to strict", raw)
+    return "strict"
 
 
 class KernelPublicEnv(BaseModel):
@@ -56,7 +58,7 @@ class KernelPublicEnv(BaseModel):
     model_config = ConfigDict(extra="ignore", str_strip_whitespace=True)
 
     env_validation: Literal["off", "warn", "strict"] = Field(
-        description="KERNEL_ENV_VALIDATION — warn (default), strict (fail on violations), off.",
+        description="KERNEL_ENV_VALIDATION — strict (default), warn, off. Lab profiles set warn.",
     )
     judicial_escalation: bool = Field(description="KERNEL_JUDICIAL_ESCALATION")
     judicial_mock_court: bool = Field(description="KERNEL_JUDICIAL_MOCK_COURT")
@@ -119,7 +121,7 @@ class KernelPublicEnv(BaseModel):
                 "KERNEL_SEMANTIC_CHAT_GATE is disabled while governance features are enabled "
                 "(judicial escalation, mock court, and/or moral hub DAO vote). "
                 "Semantic MalAbs is recommended for externally reachable deployments "
-                "(see KERNEL_ENV_POLICY.md — lexical-only is a deliberate airgap trade-off)."
+                "(see KERNEL_ENV_POLICY.md: lexical-only is a deliberate airgap trade-off)."
             )
         return out
 

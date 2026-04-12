@@ -14,9 +14,22 @@ from src.validators.env_policy import (
     SUPPORTED_COMBOS,
     all_supported_profile_names,
     collect_env_violations,
+    default_env_validation_for_profile,
     validate_kernel_env,
     validate_supported_combo_partition,
 )
+from src.validators.kernel_public_env import KernelPublicEnv
+
+
+def test_kernel_env_validation_defaults_to_strict_when_unset(monkeypatch: pytest.MonkeyPatch):
+    monkeypatch.delenv("KERNEL_ENV_VALIDATION", raising=False)
+    assert KernelPublicEnv.from_environ().env_validation == "strict"
+
+
+def test_default_env_validation_lab_vs_demo():
+    assert default_env_validation_for_profile("perception_hardening_lab") == "warn"
+    assert default_env_validation_for_profile("lan_operational") == "strict"
+    assert default_env_validation_for_profile("baseline") == "strict"
 
 
 def test_supported_combos_partition_matches_runtime_profiles():

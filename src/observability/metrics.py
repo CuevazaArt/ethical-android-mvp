@@ -18,6 +18,7 @@ _dao_ops: Any = None
 _embedding_errors: Any = None
 _kernel_decisions: Any = None
 _kernel_process_seconds: Any = None
+_perception_circuit_trips: Any = None
 _initialized = False
 
 
@@ -34,7 +35,7 @@ def init_metrics() -> None:
     """Register Prometheus metrics once (safe to call multiple times)."""
     global _initialized, _llm_histogram, _chat_histogram, _chat_paths
     global _malabs_blocks, _semantic_malabs_outcomes, _dao_ops, _embedding_errors
-    global _kernel_decisions, _kernel_process_seconds
+    global _kernel_decisions, _kernel_process_seconds, _perception_circuit_trips
 
     if _initialized:
         return
@@ -91,6 +92,10 @@ def init_metrics() -> None:
         "EthicalKernel.process outcomes (one per completed decision).",
         ["action", "certainty", "blocked"],
     )
+    _perception_circuit_trips = Counter(
+        "ethos_kernel_perception_circuit_trips_total",
+        "Times perception validation streak exceeded threshold (metacognitive doubt).",
+    )
     _kernel_process_seconds = Histogram(
         "ethos_kernel_kernel_process_seconds",
         "Wall time for EthicalKernel.process (full ethical cycle).",
@@ -124,6 +129,12 @@ def observe_chat_turn(path: str, duration_s: float) -> None:
     p = path if path else "unknown"
     _chat_histogram.labels(path=p).observe(max(0.0, duration_s))
     _chat_paths.labels(path=p).inc()
+
+
+def record_perception_circuit_trip() -> None:
+    if _perception_circuit_trips is None:
+        return
+    _perception_circuit_trips.inc()
 
 
 def record_malabs_block(reason: str) -> None:

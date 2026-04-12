@@ -43,3 +43,5 @@ Enable with `KERNEL_METRICS=1` (scrapes `http://<host>:<port>/metrics`). If `pro
 | `ethos_kernel_kernel_process_seconds` | Histogram | (none) | Wall time for the full ethical cycle inside `process()`. |
 
 Implementation: [`src/observability/metrics.py`](../src/observability/metrics.py). Decision JSON lines: [`src/observability/decision_log.py`](../src/observability/decision_log.py). Log field `request_id` is set when a correlation id exists ([`src/observability/logging_setup.py`](../src/observability/logging_setup.py)).
+
+**Prometheus alert rules (starter):** [`deploy/prometheus/ethos_kernel_alerts.yml`](../../deploy/prometheus/ethos_kernel_alerts.yml) — MalAbs block rate, `safety_block` rate, perception circuit trips. Tune thresholds and `for` duration per deployment; benign traffic spikes can false-positive. Load as `rule_files` in Prometheus; not the same as Grafana dashboard import.

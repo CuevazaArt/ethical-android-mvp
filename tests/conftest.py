@@ -13,6 +13,12 @@ production shell — see ``docs/proposals/KERNEL_ENV_TYPED_PUBLIC_API.md`` (Issu
 
 from __future__ import annotations
 
+import os
+
+# chat_server validates env at import time; production default is strict. Tests default to warn
+# unless a case overrides KERNEL_ENV_VALIDATION so developer shells need not be perfect.
+os.environ.setdefault("KERNEL_ENV_VALIDATION", "warn")
+
 import pytest
 
 
