@@ -2,7 +2,7 @@
 Named bundles of environment variables for demos, operators, and CI.
 
 Each profile only lists **overrides**; unset keys keep process defaults.
-See docs/proposals/ESTRATEGIA_Y_RUTA.md.
+See docs/proposals/STRATEGY_AND_ROADMAP.md.
 """
 
 from __future__ import annotations
@@ -152,9 +152,7 @@ def apply_named_runtime_profile_to_environ() -> str | None:
         overrides = RUNTIME_PROFILES[raw]
     except KeyError as e:
         choices = ", ".join(sorted(RUNTIME_PROFILES.keys()))
-        raise ValueError(
-            f"unknown ETHOS_RUNTIME_PROFILE={raw!r}; choose one of: {choices}"
-        ) from e
+        raise ValueError(f"unknown ETHOS_RUNTIME_PROFILE={raw!r}; choose one of: {choices}") from e
     for key, val in overrides.items():
         cur = os.environ.get(key)
         if cur is None or not str(cur).strip():

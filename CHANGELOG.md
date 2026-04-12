@@ -2,6 +2,25 @@
 
 All notable changes to this project are summarized here. For narrative context and design rationale, see [`HISTORY.md`](HISTORY.md).
 
+## Issue 7 — KERNEL_* validation and supported profile buckets — April 2026
+
+- **[`src/validators/env_policy.py`](src/validators/env_policy.py):** `SUPPORTED_COMBOS` (`production` / `demo` / `lab`) partitions named `ETHOS_RUNTIME_PROFILE` bundles; `collect_env_violations()` + `validate_kernel_env()` (default **warn**; `KERNEL_ENV_VALIDATION=strict` to fail fast); `DEPRECATION_ROADMAP` placeholder; `env_combo_fingerprint()` for support logs.
+- **[`src/chat_server.py`](src/chat_server.py):** runs validation after profile merge at import time.
+- **Tests:** [`tests/test_env_policy.py`](tests/test_env_policy.py) — partition check + each nominal profile has zero rule violations + strict-mode cases.
+- **Docs:** [`docs/proposals/KERNEL_ENV_POLICY.md`](docs/proposals/KERNEL_ENV_POLICY.md).
+
+## Docker — production-ish compose overlay — April 2026
+
+- **[`docker-compose.prodish.yml`](docker-compose.prodish.yml):** merge with base compose — `KERNEL_API_DOCS=0`, `KERNEL_METRICS=0`, JSON logs; **`env_file: .env`** for operator secrets (after `cp .env.example .env`).
+- **[`docker-compose.metrics.yml`](docker-compose.metrics.yml):** optional third merge to set `KERNEL_METRICS=1`.
+- **[`.dockerignore`](.dockerignore):** exclude `.env` / `.env.*` from build context so secrets are not baked into images.
+- **Docs:** [`docs/deploy/COMPOSE_PRODISH.md`](docs/deploy/COMPOSE_PRODISH.md); README Docker paragraph; [`docs/ROADMAP_PRACTICAL_PHASES.md`](docs/ROADMAP_PRACTICAL_PHASES.md) Phase 1 checklist.
+
+## Chat server integration tests — April 2026
+
+- **`tests/test_chat_server.py`:** `test_lifespan_runs_with_test_client_context_manager` (FastAPI lifespan startup via `TestClient` context manager); `test_websocket_malabs_safety_block` (WebSocket path `safety_block` on MalAbs text gate).
+- **Docs:** [`docs/ROADMAP_PRACTICAL_PHASES.md`](docs/ROADMAP_PRACTICAL_PHASES.md) Phase 1 checklist updated.
+
 ## MalAbs — semantic defaults + lexical hardening — April 2026
 
 - **`KERNEL_SEMANTIC_CHAT_GATE`** / **`KERNEL_SEMANTIC_EMBED_HASH_FALLBACK`:** default **on** when unset (`semantic_chat_gate.py`, `semantic_embedding_client.py`); hash fallback keeps embedding tier active without Ollama (documented limits).

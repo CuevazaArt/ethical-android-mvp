@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "description": "Default linear pole scores — byte-for-byte equivalent to legacy EthicalPoles.evaluate_pole heuristics.",
+  "description": "Default linear pole scores — byte-for-byte equivalent to legacy EthicalPoles.evaluate_pole heuristics. Weights are engineering defaults, not empirically calibrated; see docs/proposals/POLE_WEIGHT_CALIBRATION_AND_EVIDENCE.md.",
   "poles": {
     "compassionate": {
       "terms": [

@@ -1,6 +1,9 @@
 .git
 .github
 .claude
+# Never bake local secrets into the image (use env_file / runtime env in compose).
+.env
+.env.*
 .venv
 venv
 __pycache__

@@ -1,4 +1,4 @@
-"""Smoke tests for named runtime env profiles (see src/runtime_profiles.py, docs/proposals/ESTRATEGIA_Y_RUTA.md)."""
+"""Smoke tests for named runtime env profiles (see src/runtime_profiles.py, docs/proposals/STRATEGY_AND_ROADMAP.md)."""
 
 import os
 import subprocess

@@ -15,6 +15,7 @@ from collections.abc import Callable
 from dataclasses import dataclass
 from typing import Any
 
+from .kernel_components import KernelComponentOverrides
 from .modules.absolute_evil import AbsoluteEvilDetector, AbsoluteEvilResult
 from .modules.audit_chain_log import (
     maybe_append_kernel_block_audit,
@@ -183,6 +184,10 @@ class EthicalKernel:
 
     Orchestrates the complete cycle in `process` (see module docstring).
     Psi Sleep, backup, and drive intents run in `execute_sleep`, outside each tick.
+
+    **Module injection:** pass `components=KernelComponentOverrides(...)` to substitute
+    concrete subsystems (tests, ablations). Top-level `llm` and `checkpoint_persistence`
+    override the same fields inside `components` when provided.
     """
 
     def __init__(
@@ -193,37 +198,78 @@ class EthicalKernel:
         *,
         llm: LLMModule | None = None,
         checkpoint_persistence: CheckpointPersistencePort | None = None,
+        components: KernelComponentOverrides | None = None,
     ):
-        self.var_engine = VariabilityEngine(VariabilityConfig(seed=seed))
+        co = components
+
+        if co is not None and co.var_engine is not None:
+            self.var_engine = co.var_engine
+        else:
+            self.var_engine = VariabilityEngine(VariabilityConfig(seed=seed))
         if not variability:
             self.var_engine.deactivate()
 
-        self.checkpoint_persistence = checkpoint_persistence
-        self.absolute_evil = AbsoluteEvilDetector()
-        self.buffer = PreloadedBuffer()
-        self.will = SigmoidWill()
-        self.bayesian = BayesianEngine(variability=self.var_engine)
-        self.poles = EthicalPoles()
-        self.sympathetic = SympatheticModule()
-        self.memory = NarrativeMemory()
-        self.uchi_soto = UchiSotoModule()
-        self.locus = LocusModule()
-        self.sleep = PsiSleep()
-        self.feedback_ledger = FeedbackCalibrationLedger()
+        self.checkpoint_persistence = (
+            checkpoint_persistence
+            if checkpoint_persistence is not None
+            else (co.checkpoint_persistence if co else None)
+        )
+        self.absolute_evil = (
+            co.absolute_evil if co and co.absolute_evil is not None else AbsoluteEvilDetector()
+        )
+        self.buffer = co.buffer if co and co.buffer is not None else PreloadedBuffer()
+        self.will = co.will if co and co.will is not None else SigmoidWill()
+        self.bayesian = (
+            co.bayesian
+            if co and co.bayesian is not None
+            else BayesianEngine(variability=self.var_engine)
+        )
+        self.poles = co.poles if co and co.poles is not None else EthicalPoles()
+        self.sympathetic = (
+            co.sympathetic if co and co.sympathetic is not None else SympatheticModule()
+        )
+        self.memory = co.memory if co and co.memory is not None else NarrativeMemory()
+        self.uchi_soto = co.uchi_soto if co and co.uchi_soto is not None else UchiSotoModule()
+        self.locus = co.locus if co and co.locus is not None else LocusModule()
+        self.sleep = co.sleep if co and co.sleep is not None else PsiSleep()
+        self.feedback_ledger = (
+            co.feedback_ledger
+            if co and co.feedback_ledger is not None
+            else FeedbackCalibrationLedger()
+        )
         self._feedback_turn_anchor: dict[str, str] | None = None
-        self.dao = MockDAO()
-        self.llm = llm if llm is not None else LLMModule(mode=resolve_llm_mode(llm_mode))
-        self.weakness = WeaknessPole()
-        self.forgiveness = AlgorithmicForgiveness()
-        self.immortality = ImmortalityProtocol()
-        self.augenesis = AugenesisEngine()
-        self.pad_archetypes = PADArchetypeEngine()
-        self.working_memory = WorkingMemory()
-        self.ethical_reflection = EthicalReflection()
-        self.salience_map = SalienceMap()
-        self.drive_arbiter = DriveArbiter()
-        self.user_model = UserModelTracker()
-        self.subjective_clock = SubjectiveClock()
+        self.dao = co.dao if co and co.dao is not None else MockDAO()
+        eff_llm = llm if llm is not None else (co.llm if co else None)
+        self.llm = eff_llm if eff_llm is not None else LLMModule(mode=resolve_llm_mode(llm_mode))
+        self.weakness = co.weakness if co and co.weakness is not None else WeaknessPole()
+        self.forgiveness = (
+            co.forgiveness if co and co.forgiveness is not None else AlgorithmicForgiveness()
+        )
+        self.immortality = (
+            co.immortality if co and co.immortality is not None else ImmortalityProtocol()
+        )
+        self.augenesis = co.augenesis if co and co.augenesis is not None else AugenesisEngine()
+        self.pad_archetypes = (
+            co.pad_archetypes if co and co.pad_archetypes is not None else PADArchetypeEngine()
+        )
+        self.working_memory = (
+            co.working_memory if co and co.working_memory is not None else WorkingMemory()
+        )
+        self.ethical_reflection = (
+            co.ethical_reflection
+            if co and co.ethical_reflection is not None
+            else EthicalReflection()
+        )
+        self.salience_map = co.salience_map if co and co.salience_map is not None else SalienceMap()
+        self.drive_arbiter = (
+            co.drive_arbiter if co and co.drive_arbiter is not None else DriveArbiter()
+        )
+        self.user_model = (
+            co.user_model if co and co.user_model is not None else UserModelTracker()
+        )
+        self.subjective_clock = (
+            co.subjective_clock if co and co.subjective_clock is not None else SubjectiveClock()
+        )
         self._last_premise_advisory: PremiseAdvisory = PremiseAdvisory("none", "")
         self._last_multimodal_assessment: MultimodalAssessment = evaluate_multimodal_trust(None)
         self._last_vitality_assessment: VitalityAssessment = assess_vitality(None)
@@ -238,10 +284,18 @@ class EthicalKernel:
             float(_hw[1]),
             float(_hw[2]),
         )
-        self.skill_learning = SkillLearningRegistry()
-        self.somatic_store = SomaticMarkerStore()
-        self.metaplan = MetaplanRegistry()
-        self.escalation_session = EscalationSessionTracker()
+        self.skill_learning = (
+            co.skill_learning if co and co.skill_learning is not None else SkillLearningRegistry()
+        )
+        self.somatic_store = (
+            co.somatic_store if co and co.somatic_store is not None else SomaticMarkerStore()
+        )
+        self.metaplan = co.metaplan if co and co.metaplan is not None else MetaplanRegistry()
+        self.escalation_session = (
+            co.escalation_session
+            if co and co.escalation_session is not None
+            else EscalationSessionTracker()
+        )
         self.constitution_l1_drafts: list[dict[str, Any]] = []
         self.constitution_l2_drafts: list[dict[str, Any]] = []
         self._last_reality_verification: RealityVerificationAssessment = REALITY_ASSESSMENT_NONE

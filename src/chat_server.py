@@ -149,11 +149,13 @@ from .persistence.checkpoint import (
 from .real_time_bridge import RealTimeBridge
 from .runtime.telemetry import advisory_interval_seconds_from_env, advisory_loop
 from .runtime_profiles import apply_named_runtime_profile_to_environ
+from .validators.env_policy import validate_kernel_env
 
 logger = logging.getLogger(__name__)
 
 # ``ETHOS_RUNTIME_PROFILE`` bundles (see ``src/runtime_profiles.py``) — must run before FastAPI/env-dependent routes.
 apply_named_runtime_profile_to_environ()
+validate_kernel_env()
 
 
 @asynccontextmanager
@@ -538,7 +540,9 @@ def root() -> JSONResponse:
     prof = applied_runtime_profile()
     if prof:
         body["runtime_profile"] = prof
-        body["runtime_profile_hint"] = "Set ETHOS_RUNTIME_PROFILE to a name from src/runtime_profiles.py"
+        body["runtime_profile_hint"] = (
+            "Set ETHOS_RUNTIME_PROFILE to a name from src/runtime_profiles.py"
+        )
     return JSONResponse(body)
 
 

@@ -21,9 +21,9 @@ Example sequencing for teams shipping Ethos Kernel–based runtimes. Adjust time
 **Goal:** reproducible runtime and LLM abstraction.
 
 - [x] LLM adapter layer (`LLMBackend`) + mock for tests.
-- [ ] Broaden integration tests: FastAPI lifespan, WebSocket happy path + MalAbs block (expand beyond current coverage).
+- [x] Broaden integration tests: FastAPI lifespan, WebSocket happy path + MalAbs block (`tests/test_chat_server.py`: context-manager lifespan, `test_websocket_malabs_safety_block`).
 - [x] Docker + Compose assets (iterate as needed).
-- [ ] Document “production-ish” compose profile (metrics optional, no secrets in image).
+- [x] Document “production-ish” compose profile (metrics optional, no secrets in image) — [`docs/deploy/COMPOSE_PRODISH.md`](deploy/COMPOSE_PRODISH.md), [`docker-compose.prodish.yml`](../docker-compose.prodish.yml), [`docker-compose.metrics.yml`](../docker-compose.metrics.yml), [`.dockerignore`](../.dockerignore).
 
 **Exit criteria:** one-command local stack; WebSocket smoke in CI (optional job if flaky).
 

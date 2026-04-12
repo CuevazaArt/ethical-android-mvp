@@ -3,6 +3,9 @@
 #   docker compose up --build
 #   docker compose --profile llm up --build   # include Ollama sidecar (same image graph as edge)
 #
+# Production-ish overlay (LAN-safe defaults, optional metrics file, `.env` for secrets): see docs/deploy/COMPOSE_PRODISH.md
+#   docker compose -f docker-compose.yml -f docker-compose.prodish.yml up --build
+#
 # From the host, chat WebSocket: ws://localhost:8765/ws/chat
 # Prometheus (when KERNEL_METRICS=1): http://localhost:8765/metrics
 

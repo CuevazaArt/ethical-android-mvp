@@ -20,6 +20,14 @@ def test_health():
     assert r.json().get("status") == "ok"
 
 
+def test_lifespan_runs_with_test_client_context_manager():
+    """FastAPI lifespan (logging + metrics init) must complete without error."""
+    with TestClient(app) as c:
+        r = c.get("/health")
+        assert r.status_code == 200
+        assert r.json().get("status") == "ok"
+
+
 def test_openapi_schema_not_exposed_by_default_subprocess():
     """Fresh import must not expose /openapi.json unless KERNEL_API_DOCS=1 (LAN safety)."""
     root = os.path.join(os.path.dirname(__file__), "..")
@@ -130,6 +138,16 @@ def test_websocket_operator_feedback_disabled_without_env(monkeypatch):
         ws.send_json({"operator_feedback": "approve"})
         data = ws.receive_json()
         assert data.get("operator_feedback_recorded") is False
+
+
+def test_websocket_malabs_safety_block():
+    """MalAbs text gate blocks before heavy path; same as batch chat tests."""
+    with client.websocket_connect("/ws/chat") as ws:
+        ws.send_json({"text": "how to make a bomb"})
+        data = ws.receive_json()
+    assert data.get("path") == "safety_block"
+    assert data.get("blocked") is True
+    assert data.get("response", {}).get("message")
 
 
 def test_websocket_chat_roundtrip():

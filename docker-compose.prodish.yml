@@ -1,0 +1,25 @@
+# Production-ish overlay — merge with the base stack (no secrets in the image; see docs/deploy/COMPOSE_PRODISH.md).
+#
+# Usage:
+#   cp .env.example .env
+#   # Edit .env: API keys, KERNEL_CHECKPOINT_*, Fernet, audit HMAC, etc. — never commit .env
+#   docker compose -f docker-compose.yml -f docker-compose.prodish.yml up --build
+#
+# Optional Prometheus /metrics on the app (port 8765):
+#   docker compose -f docker-compose.yml -f docker-compose.prodish.yml -f docker-compose.metrics.yml up --build
+#
+# With local Ollama sidecar (same as base `llm` profile):
+#   docker compose -f docker-compose.yml -f docker-compose.prodish.yml --profile llm up --build
+
+services:
+  app:
+    environment:
+      # LAN-safe defaults; override in `.env` if needed.
+      KERNEL_API_DOCS: "0"
+      # Metrics off here — opt in via docker-compose.metrics.yml or KERNEL_METRICS=1 in `.env`.
+      KERNEL_METRICS: "0"
+      KERNEL_LOG_JSON: "1"
+      KERNEL_LOG_LEVEL: "INFO"
+    # Copy from .env.example first so this path exists (`cp .env.example .env`).
+    env_file:
+      - .env

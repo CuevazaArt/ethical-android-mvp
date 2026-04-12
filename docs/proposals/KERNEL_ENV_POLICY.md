@@ -2,9 +2,13 @@
 
 **Purpose:** Reduce **accidental combinatorics** of feature flags. The codebase is a **research lab**; this document defines **nominal profiles**, **groupings**, **combinations to avoid or treat as experimental**, and a **deprecation posture** without breaking existing env names.
 
-**Canonical profile bundles:** [`src/runtime_profiles.py`](../src/runtime_profiles.py) — use these for demos, CI smoke, and operator docs. **`ETHOS_RUNTIME_PROFILE`** (e.g. `lan_operational`, `situated_v8_lan_demo`) applies a bundle at **chat server startup**; explicit env vars **win** over profile defaults for each key. **CI** runs the full `pytest tests/` suite, including **`tests/test_runtime_profiles.py`** (health + WebSocket roundtrip for **every** named profile). **Perception hardening (Fase 1):** nominal bundle **`perception_hardening_lab`** enables light risk tier, cross-check, uncertainty→delib, parse fail-local, and `light_risk_tier` in chat JSON. **Phase 2 bus spike:** **`phase2_event_bus_lab`** sets `KERNEL_EVENT_BUS=1` (ADR 0006).
+**Canonical profile bundles:** [`src/runtime_profiles.py`](../src/runtime_profiles.py) — use these for demos, CI smoke, and operator docs. **`ETHOS_RUNTIME_PROFILE`** (e.g. `lan_operational`, `situated_v8_lan_demo`) applies a bundle at **chat server startup**; explicit env vars **win** over profile defaults for each key. **CI** runs the full `pytest tests/` suite, including **`tests/test_runtime_profiles.py`** (health + WebSocket roundtrip for **every** named profile) and **`tests/test_env_policy.py`** (partition check + zero rule violations per nominal profile). **Perception hardening (Fase 1):** nominal bundle **`perception_hardening_lab`** enables light risk tier, cross-check, uncertainty→delib, parse fail-local, and `light_risk_tier` in chat JSON. **Phase 2 bus spike:** **`phase2_event_bus_lab`** sets `KERNEL_EVENT_BUS=1` (ADR 0006).
+
+**Rule validation (not full Cartesian enumeration):** [`src/validators/env_policy.py`](../src/validators/env_policy.py) defines **`SUPPORTED_COMBOS`** (`production` / `demo` / `lab`) as a **partition** of named profiles, **`collect_env_violations()`** for inconsistent flag *pairs* (e.g. mock court without judicial escalation), and **`validate_kernel_env()`** at chat import time. Set **`KERNEL_ENV_VALIDATION=strict`** to **fail fast** on violations; default is **warn**; **`off`** disables checks. This does not prove every arbitrary `KERNEL_*` combination is safe — only **nominal profiles** are CI-guaranteed **viable** (no rule violations).
 
 **Full flag catalog:** [README](README.md) (WebSocket / runtime sections) and module docstrings in `src/chat_server.py`, `src/persistence/checkpoint.py`, etc.
+
+**Docker deploy:** [production-ish compose merge](../deploy/COMPOSE_PRODISH.md) (`docker-compose.prodish.yml`, optional `docker-compose.metrics.yml`, `.env` for secrets; build context excludes `.env` via `.dockerignore`).
 
 ---
 
@@ -32,7 +36,18 @@
 
 ---
 
-## 2. Unsupported or “lab only” combinations
+## 2. Explicitly rejected combinations (when `KERNEL_ENV_VALIDATION=strict`)
+
+| Pattern | Why |
+|---------|-----|
+| `KERNEL_JUDICIAL_MOCK_COURT=1` with judicial escalation **off** | Mock court is wired after escalation; enabling only mock court is misleading. |
+| `KERNEL_CHAT_INCLUDE_REALITY_VERIFICATION=1` with **no** `KERNEL_LIGHTHOUSE_KB_PATH` | Reality verification may no-op; set a KB path for meaningful demos. |
+
+With default **warn**, violations are logged only.
+
+---
+
+## 3. Unsupported or “lab only” combinations
 
 These are **not** forbidden by code, but **not CI-guaranteed** unless a profile or test is added:
 
@@ -48,17 +63,18 @@ These are **not** forbidden by code, but **not CI-guaranteed** unless a profile 
 
 ---
 
-## 3. Deprecation posture (future)
+## 4. Deprecation posture (roadmap)
 
 - **Today:** no `KERNEL_*` names are removed; README remains the exhaustive list for edge flags.
-- **Future:** redundant toggles may be **aliased** (same behavior, one canonical name) with a **CHANGELOG** entry and a **transition window** — prefer **profiles** over one-off env soup for new features.
-- **New features:** add **tests** + consider a **profile slice** if the feature is demo-critical.
+- **`DEPRECATION_ROADMAP`** in [`src/validators/env_policy.py`](../src/validators/env_policy.py) lists **planned** removals/renames (empty until a release schedules them). When an entry appears, expect a **CHANGELOG** entry and a **transition window** (typically one minor version).
+- **v0.2+ (placeholder policy):** prefer **`ETHOS_RUNTIME_PROFILE`** + documented bundles over ad-hoc long `KERNEL_*` lists; redundant toggles may be **aliased** before removal.
+- **New features:** add **tests** + a **profile slice** if the feature is demo-critical.
 
 ---
 
-## 4. Relation to [STRATEGY_AND_ROADMAP.md](STRATEGY_AND_ROADMAP.md)
+## 5. Relation to [STRATEGY_AND_ROADMAP.md](STRATEGY_AND_ROADMAP.md)
 
-Section **4** lists **nominal profiles**; this file is the **policy** layer (what “unsupported” means, how families fit together). Issue 7 acceptance: ESTRATEGIA updated + CI green on `tests/test_runtime_profiles.py`.
+Section **4** lists **nominal profiles**; this file is the **policy** layer (what “unsupported” means, how families fit together). Issue 7: strategy doc + CI green on `tests/test_runtime_profiles.py` and `tests/test_env_policy.py`.
 
 ---
 
