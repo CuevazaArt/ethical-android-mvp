@@ -6,6 +6,9 @@ Production defaults (unset env): semantic MalAbs + hash embedding fallback are *
 
 Tests default to lexical-only MalAbs unless they enable semantic explicitly, so the suite stays
 fast and deterministic without Ollama.
+
+**KERNEL_* drift:** this isolation is intentional; CI defaults are not identical to an unset
+production shell — see ``docs/proposals/KERNEL_ENV_TYPED_PUBLIC_API.md`` (Issue 7).
 """
 
 from __future__ import annotations

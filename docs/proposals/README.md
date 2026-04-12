@@ -29,6 +29,7 @@ High-level summary aligned with the code and docs; full chronology is in [`CHANG
 | **Next ~2 weeks — triage, P0/P1/P2, reproduction checklists** | [PLAN_IMMEDIATE_TWO_WEEKS.md](PLAN_IMMEDIATE_TWO_WEEKS.md) |
 | **Module count vs observable ethics (ablation gap, tiers A–E)** | [MODULE_IMPACT_AND_EMPIRICAL_GAP.md](MODULE_IMPACT_AND_EMPIRICAL_GAP.md) |
 | **Mock DAO — no chain, QV assumptions, not policy core** | [MOCK_DAO_SIMULATION_LIMITS.md](MOCK_DAO_SIMULATION_LIMITS.md) |
+| **KERNEL_* typed public API (Pydantic, phased)** | [KERNEL_ENV_TYPED_PUBLIC_API.md](KERNEL_ENV_TYPED_PUBLIC_API.md) |
 | Theory ↔ implementation map and tests | [THEORY_AND_IMPLEMENTATION.md](THEORY_AND_IMPLEMENTATION.md) |
 | Runtime contract (English) | [RUNTIME_CONTRACT.md](RUNTIME_CONTRACT.md) |
 | Snapshot and persistence | [RUNTIME_PERSISTENT.md](RUNTIME_PERSISTENT.md) |
@@ -88,6 +89,7 @@ Legacy Spanish filenames (`PROPUESTA_*.md`, `ESTRATEGIA_Y_RUTA.md`, `PAPER_AFECT
 | [USER_MODEL_ENRICHMENT.md](USER_MODEL_ENRICHMENT.md) | User model enrichment (judicial, cognitive, risk) |
 | [LIGHTHOUSE_KB.md](LIGHTHOUSE_KB.md) | Lighthouse knowledge base |
 | [MALABS_SEMANTIC_LAYERS.md](MALABS_SEMANTIC_LAYERS.md) | MALABS semantic layers |
+| [PROPOSAL_MALABS_SEMANTIC_THRESHOLD_EVIDENCE.md](PROPOSAL_MALABS_SEMANTIC_THRESHOLD_EVIDENCE.md) | Cosine θ_block / θ_allow: evidence posture, guardrail tests, offline zone table — *English* |
 | [PROPOSAL_ETHICAL_CORE_LOGIC_EVOLUTION.md](PROPOSAL_ETHICAL_CORE_LOGIC_EVOLUTION.md) | Psi Sleep v2 (feedback + mixture), semantic gate as default perception — *English* |
 
 ---

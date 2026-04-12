@@ -2,6 +2,20 @@
 
 All notable changes to this project are summarized here. For narrative context and design rationale, see [`HISTORY.md`](HISTORY.md).
 
+## Issue 7 — typed `KernelPublicEnv` + env policy refactor — April 2026
+
+- **[`src/validators/kernel_public_env.py`](src/validators/kernel_public_env.py):** Pydantic model for KERNEL flags in **consistency rules** (judicial, reality/lighthouse, `KERNEL_ENV_VALIDATION`, `ETHOS_RUNTIME_PROFILE`); `consistency_violations()` replaces ad-hoc `if` chains.
+- **[`src/validators/env_policy.py`](src/validators/env_policy.py):** `collect_env_violations()` / `validate_kernel_env()` use `KernelPublicEnv`; override mode aligned with typed `env_validation`.
+- **Docs:** [`docs/proposals/KERNEL_ENV_TYPED_PUBLIC_API.md`](docs/proposals/KERNEL_ENV_TYPED_PUBLIC_API.md); [`KERNEL_ENV_POLICY.md`](docs/proposals/KERNEL_ENV_POLICY.md); [`tests/conftest.py`](tests/conftest.py) notes CI vs production drift.
+- **Tests:** [`tests/test_kernel_public_env.py`](tests/test_kernel_public_env.py).
+
+## Chat server — async bridge: turn timeout + dedicated thread pool — April 2026
+
+- **[`src/real_time_bridge.py`](src/real_time_bridge.py):** optional dedicated ``ThreadPoolExecutor`` when ``KERNEL_CHAT_THREADPOOL_WORKERS`` > 0; ``shutdown_chat_threadpool`` on ASGI lifespan exit.
+- **[`src/chat_server.py`](src/chat_server.py):** optional ``KERNEL_CHAT_TURN_TIMEOUT`` wraps each turn in ``asyncio.wait_for``; on expiry responds with ``error=chat_turn_timeout`` (worker thread may still finish; see ADR 0002).
+- **[`src/chat_settings.py`](src/chat_settings.py):** Pydantic fields for the new env vars; ``model_dump_public`` extended.
+- **Docs:** [ADR 0002](docs/adr/0002-async-orchestration-future.md) status **Accepted (partial)**; [`KERNEL_ENV_POLICY.md`](docs/proposals/KERNEL_ENV_POLICY.md), [`RUNTIME_CONTRACT.md`](docs/proposals/RUNTIME_CONTRACT.md), [`.env.example`](.env.example).
+
 ## Mock DAO — simulation limits + Solidity stub (Issue 6 honesty) — April 2026
 
 - **[`docs/proposals/MOCK_DAO_SIMULATION_LIMITS.md`](docs/proposals/MOCK_DAO_SIMULATION_LIMITS.md):** no on-chain product in repo; QV assumes closed honest participants; DAO does not drive `final_action`; external critique alignment.
@@ -16,7 +30,8 @@ All notable changes to this project are summarized here. For narrative context a
 - **[`src/modules/semantic_chat_gate.py`](src/modules/semantic_chat_gate.py):** `DEFAULT_SEMANTIC_SIM_BLOCK_THRESHOLD` / `DEFAULT_SEMANTIC_SIM_ALLOW_THRESHOLD`, `classify_semantic_zone()` for a single zone mapping.
 - **[`tests/test_semantic_chat_gate.py`](tests/test_semantic_chat_gate.py):** asserts defaults and subprocess check for unset-env thresholds.
 - **[`scripts/report_semantic_zone_table.py`](scripts/report_semantic_zone_table.py):** offline markdown table for synthetic `best_sim` and optional θ_block sweep.
-- **Cross-links:** [`MALABS_SEMANTIC_LAYERS.md`](docs/proposals/MALABS_SEMANTIC_LAYERS.md), [ADR 0003](docs/adr/0003-optional-semantic-chat-gate.md).
+- **Cross-links:** [`MALABS_SEMANTIC_LAYERS.md`](docs/proposals/MALABS_SEMANTIC_LAYERS.md), [ADR 0003](docs/adr/0003-optional-semantic-chat-gate.md), [`docs/proposals/README.md`](docs/proposals/README.md), [`KERNEL_ENV_POLICY.md`](docs/proposals/KERNEL_ENV_POLICY.md), [`OPERATOR_QUICK_REF.md`](docs/proposals/OPERATOR_QUICK_REF.md), [`TRANSPARENCY_AND_LIMITS.md`](docs/TRANSPARENCY_AND_LIMITS.md), [`WEAKNESSES_AND_BOTTLENECKS.md`](docs/WEAKNESSES_AND_BOTTLENECKS.md).
+- **Agent guidance:** [`AGENTS.md`](AGENTS.md); [`.cursor/rules/collaboration-prioritization.mdc`](.cursor/rules/collaboration-prioritization.mdc) (persist learnings); [`.cursor/rules/dev-efficiency-and-docs.mdc`](.cursor/rules/dev-efficiency-and-docs.mdc) (safety guardrails); [`CONTRIBUTING.md`](CONTRIBUTING.md) § Understand the model + documentation traceability.
 
 ## Empirical evaluation — external benchmark policy (Issue 3) — April 2026
 

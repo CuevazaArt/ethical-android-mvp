@@ -20,6 +20,7 @@ import os
 from typing import Final
 
 from ..runtime_profiles import profile_names
+from .kernel_public_env import KernelPublicEnv
 
 logger = logging.getLogger(__name__)
 
@@ -70,42 +71,14 @@ def all_supported_profile_names() -> frozenset[str]:
     return frozenset(out)
 
 
-def _truthy(name: str) -> bool:
-    v = os.environ.get(name, "").strip().lower()
-    return v in ("1", "true", "yes", "on")
-
-
-def _falsy_or_unset(name: str) -> bool:
-    v = os.environ.get(name, "").strip().lower()
-    if not v:
-        return True
-    return v in ("0", "false", "no", "off")
-
-
 def collect_env_violations() -> list[str]:
     """
     Return human-readable constraint violations for the **current** process environment.
 
-    These are *consistency* rules, not full simulation of the kernel.
+    Rules are evaluated on a typed :class:`KernelPublicEnv` snapshot — extend that model when
+    adding new cross-flag constraints (Issue 7).
     """
-    violations: list[str] = []
-
-    if _truthy("KERNEL_JUDICIAL_MOCK_COURT") and _falsy_or_unset("KERNEL_JUDICIAL_ESCALATION"):
-        violations.append(
-            "KERNEL_JUDICIAL_MOCK_COURT is enabled but KERNEL_JUDICIAL_ESCALATION is off; "
-            "mock court runs only when escalation is enabled (see judicial_escalation.py)."
-        )
-
-    if (
-        _truthy("KERNEL_CHAT_INCLUDE_REALITY_VERIFICATION")
-        and not os.environ.get("KERNEL_LIGHTHOUSE_KB_PATH", "").strip()
-    ):
-        violations.append(
-            "KERNEL_CHAT_INCLUDE_REALITY_VERIFICATION=1 without KERNEL_LIGHTHOUSE_KB_PATH; "
-            "reality verification may no-op (set a fixture path for demos)."
-        )
-
-    return violations
+    return KernelPublicEnv.from_environ().consistency_violations()
 
 
 def env_combo_fingerprint() -> str:
@@ -127,6 +100,21 @@ def env_combo_fingerprint() -> str:
     return hashlib.sha256(blob).hexdigest()[:16]
 
 
+def _effective_validation_mode(mode: str | None, snap: KernelPublicEnv) -> str:
+    """Resolve ``KERNEL_ENV_VALIDATION`` (or test override)."""
+    if mode is not None:
+        raw = mode.strip().lower()
+        if raw in ("", "warn", "warning"):
+            return "warn"
+        if raw in ("0", "false", "no", "off"):
+            return "off"
+        if raw in ("1", "true", "yes", "on", "strict"):
+            return "strict"
+        logger.warning("unknown KERNEL_ENV_VALIDATION override=%r; defaulting to warn", raw)
+        return "warn"
+    return snap.env_validation
+
+
 def validate_kernel_env(*, mode: str | None = None) -> None:
     """
     Validate environment according to ``KERNEL_ENV_VALIDATION``:
@@ -135,25 +123,16 @@ def validate_kernel_env(*, mode: str | None = None) -> None:
     - ``warn`` (default) — log warnings for ``collect_env_violations()``
     - ``strict`` — raise ``ValueError`` if any violation
 
-    ``mode`` overrides the env when set (for tests).
+    ``mode`` overrides the env when set (for tests). Parsed mode is aligned with
+    :class:`KernelPublicEnv` (typed layer).
     """
-    raw = (
-        (mode if mode is not None else os.environ.get("KERNEL_ENV_VALIDATION", "")).strip().lower()
-    )
-    if raw in ("", "warn", "warning"):
-        eff = "warn"
-    elif raw in ("0", "false", "no", "off"):
-        eff = "off"
-    elif raw in ("1", "true", "yes", "on", "strict"):
-        eff = "strict"
-    else:
-        eff = "warn"
-        logger.warning("unknown KERNEL_ENV_VALIDATION=%r; defaulting to warn", raw)
+    snap = KernelPublicEnv.from_environ()
+    eff = _effective_validation_mode(mode, snap)
 
     if eff == "off":
         return
 
-    violations = collect_env_violations()
+    violations = snap.consistency_violations()
     if not violations:
         return
 
