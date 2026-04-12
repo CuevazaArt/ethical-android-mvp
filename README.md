@@ -34,7 +34,7 @@ The original **batch simulations** (nine fixed scenarios plus a random generator
 | Persistence / handoff | `KERNEL_CHECKPOINT_*`, `KERNEL_CONDUCT_GUIDE_*` | [Flag families](docs/proposals/KERNEL_ENV_POLICY.md#1-flag-families-mental-model) |
 | Perception / sensors / vitality | `KERNEL_SENSOR_*`, `KERNEL_MULTIMODAL_*`, `KERNEL_VITALITY_*`, optional `KERNEL_PERCEPTION_UNCERTAINTY_*`, `KERNEL_PERCEPTION_PARSE_FAIL_LOCAL`, `KERNEL_LIGHT_RISK_CLASSIFIER`, `KERNEL_PERCEPTION_CROSS_CHECK`, `KERNEL_CHAT_INCLUDE_LIGHT_RISK` | [Flag families](docs/proposals/KERNEL_ENV_POLICY.md#1-flag-families-mental-model) |
 | LLM / variability / generative | `LLM_MODE`, `KERNEL_VARIABILITY`, `KERNEL_GENERATIVE_*` | [Flag families](docs/proposals/KERNEL_ENV_POLICY.md#1-flag-families-mental-model) |
-| Input trust (optional layers) | `KERNEL_SEMANTIC_CHAT_GATE`, `KERNEL_SEMANTIC_CHAT_EMBED_MODEL`, … | [Flag families](docs/proposals/KERNEL_ENV_POLICY.md#1-flag-families-mental-model) |
+| Input trust (MalAbs + semantic) | `KERNEL_SEMANTIC_CHAT_GATE` (default **on**), `KERNEL_SEMANTIC_EMBED_HASH_FALLBACK`, `KERNEL_MALABS_*`, … | [Flag families](docs/proposals/KERNEL_ENV_POLICY.md#1-flag-families-mental-model) |
 | Risky combos / lab-only | (ad-hoc mixes) | [Unsupported combinations](docs/proposals/KERNEL_ENV_POLICY.md#2-unsupported-or-lab-only-combinations) |
 
 **Input trust:** MalAbs chat filtering and LLM perception bounds are **heuristic**, not unbreakable — see [`docs/proposals/INPUT_TRUST_THREAT_MODEL.md`](docs/proposals/INPUT_TRUST_THREAT_MODEL.md) and [`SECURITY.md`](SECURITY.md).

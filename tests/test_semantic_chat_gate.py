@@ -1,6 +1,7 @@
 """Semantic MalAbs layers: lexical first, then embeddings (θ_block/θ_allow), optional LLM arbiter."""
 
 import os
+import subprocess
 import sys
 
 import numpy as np
@@ -29,6 +30,18 @@ def test_semantic_chat_gate_env_enabled_explicit_off(monkeypatch):
 def test_semantic_chat_gate_env_enabled_unset_defaults_on(monkeypatch):
     monkeypatch.delenv("KERNEL_SEMANTIC_CHAT_GATE", raising=False)
     assert semantic_chat_gate_env_enabled() is True
+
+
+def test_semantic_gate_defaults_on_in_fresh_interpreter():
+    """Unset env → gate on; uses a subprocess so pytest ``conftest`` env does not apply."""
+    root = os.path.join(os.path.dirname(__file__), "..")
+    code = """
+import os
+os.environ.pop("KERNEL_SEMANTIC_CHAT_GATE", None)
+from src.modules.semantic_chat_gate import semantic_chat_gate_env_enabled
+assert semantic_chat_gate_env_enabled() is True
+"""
+    subprocess.run([sys.executable, "-c", code], cwd=root, check=True)
 
 
 def test_semantic_chat_gate_env_enabled_truthy():

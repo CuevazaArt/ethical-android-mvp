@@ -2,6 +2,13 @@
 
 All notable changes to this project are summarized here. For narrative context and design rationale, see [`HISTORY.md`](HISTORY.md).
 
+## MalAbs — semantic defaults + lexical hardening — April 2026
+
+- **`KERNEL_SEMANTIC_CHAT_GATE`** / **`KERNEL_SEMANTIC_EMBED_HASH_FALLBACK`:** default **on** when unset (`semantic_chat_gate.py`, `semantic_embedding_client.py`); hash fallback keeps embedding tier active without Ollama (documented limits).
+- **`input_trust.normalize_text_for_malabs`:** optional leet fold + bidi override strip + fullwidth ASCII fold (`KERNEL_MALABS_LEET_FOLD`, `KERNEL_MALABS_STRIP_BIDI`).
+- **`tests/conftest.py`:** pytest defaults to lexical-only MalAbs unless a test enables semantic (suite speed/stability); subprocess test asserts production default for `KERNEL_SEMANTIC_CHAT_GATE` (`tests/test_semantic_chat_gate.py`).
+- **Docs:** [`README.md`](README.md), [`INPUT_TRUST_THREAT_MODEL.md`](docs/proposals/INPUT_TRUST_THREAT_MODEL.md), [`KERNEL_ENV_POLICY.md`](docs/proposals/KERNEL_ENV_POLICY.md), [`MALABS_SEMANTIC_LAYERS.md`](docs/proposals/MALABS_SEMANTIC_LAYERS.md), [ADR 0003](docs/adr/0003-optional-semantic-chat-gate.md) amendment.
+
 ## Phase 2 spike — `KernelEventBus` (ADR 0006) — April 2026
 
 - **[ADR 0006](docs/adr/0006-phase2-core-boundary-and-event-bus.md):** incremental Phase 2 seam — optional sync in-process event bus (`KERNEL_EVENT_BUS`).

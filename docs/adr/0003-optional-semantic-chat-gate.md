@@ -22,6 +22,10 @@
 - **Positive:** Lexical speed for obvious cases; embeddings for paraphrase; LLM rarely invoked; Ollama-only deps align with the rest of the stack.
 - **Negative:** Threshold tuning and ambiguous-band fail-safe blocks require operator care — documented env vars and [MALABS_SEMANTIC_LAYERS.md](../proposals/MALABS_SEMANTIC_LAYERS.md).
 
+## Amendment (April 2026)
+
+**Defaults:** `KERNEL_SEMANTIC_CHAT_GATE` and `KERNEL_SEMANTIC_EMBED_HASH_FALLBACK` default to **on** when unset (deterministic hash vectors keep the cosine tier active without Ollama; weaker than neural embeddings). Pytest sets lexical-only MalAbs via `tests/conftest.py` unless a test enables semantic. See [MALABS_SEMANTIC_LAYERS.md](../proposals/MALABS_SEMANTIC_LAYERS.md).
+
 ## Links
 
 - [MALABS_SEMANTIC_LAYERS.md](../proposals/MALABS_SEMANTIC_LAYERS.md)  

@@ -1,13 +1,13 @@
 # MalAbs chat text — layered detection (lexical → embeddings → LLM)
 
-This document describes the **pre-filter architecture** for `AbsoluteEvilDetector.evaluate_chat_text` when `KERNEL_SEMANTIC_CHAT_GATE=1`. Physical-action MalAbs (`evaluate` on structured actions) is unchanged.
+This document describes the **pre-filter architecture** for `AbsoluteEvilDetector.evaluate_chat_text` when the semantic gate is on (**default** when `KERNEL_SEMANTIC_CHAT_GATE` is unset; set `0` for lexical-only). Physical-action MalAbs (`evaluate` on structured actions) is unchanged.
 
 ## Order of execution
 
 1. **Layer 0 — Lexical (always)**  
    Normalized substring lists in `_evaluate_chat_text_lexical` (`src/modules/absolute_evil.py`). Fast, deterministic; catches exact and trivially normalized phrases.
 
-2. **Layer 1 — Embeddings (optional)**  
+2. **Layer 1 — Embeddings (when gate on; default)**  
    Only if layer 0 did **not** block. Ollama `POST /api/embeddings` compares user text to **anchor phrases** (built-in reference groups + `add_semantic_anchor` runtime entries). Cosine similarity defines three zones:
    - **sim ≥ θ_block** (`KERNEL_SEMANTIC_CHAT_SIM_BLOCK_THRESHOLD`, default `0.82`; legacy `KERNEL_SEMANTIC_CHAT_SIM_THRESHOLD` applies here if block unset) → **block**.
    - **sim ≤ θ_allow** (`KERNEL_SEMANTIC_CHAT_SIM_ALLOW_THRESHOLD`, default `0.45`) → **allow** (no MalAbs block).
@@ -22,13 +22,13 @@ This document describes the **pre-filter architecture** for `AbsoluteEvilDetecto
 
 | State | Behavior |
 |-------|----------|
-| Gate **off** (`KERNEL_SEMANTIC_CHAT_GATE=0`) | Lexical layer only; same as historical MVP default. |
-| Gate **on**, **no** embedding vector for user text (HTTP/circuit failure and **no** hash fallback) | Semantic tier **defers** → `malabs.embed=unavailable` trace; **lexical + kernel only** (no extra semantic block). |
-| Gate **on**, `KERNEL_SEMANTIC_EMBED_HASH_FALLBACK=1` | Deterministic hash vectors when HTTP fails — tier stays active for CI/airgap (weaker semantics; see `semantic_embedding_client.py`). |
+| Gate **off** (`KERNEL_SEMANTIC_CHAT_GATE=0`) | Lexical layer only (opt-in for tests or airgapped lexical-only policy). |
+| Gate **on** (default when unset), **no** embedding vector for user text (HTTP/circuit failure and **no** hash fallback) | Semantic tier **defers** → `malabs.embed=unavailable` trace; **lexical + kernel only** (no extra semantic block). |
+| Gate **on**, `KERNEL_SEMANTIC_EMBED_HASH_FALLBACK=1` (default **on** when unset) | Deterministic hash vectors when HTTP fails — tier stays active for CI/airgap (weaker semantics; see `semantic_embedding_client.py`). |
 | Ambiguous band, arbiter **off** | **Fail-safe block** at semantic layer. |
 | Ambiguous band, arbiter **on**, LLM error | **Fail-safe block**. |
 
-Nominal LAN/hub profiles in `runtime_profiles.py` enable the gate with hash fallback so tests and demos do not require a live Ollama server.
+Production defaults match that posture (gate + hash on when unset); nominal LAN/hub profiles in `runtime_profiles.py` also set the gate with hash fallback so demos align with CI.
 
 **Metrics:** when `KERNEL_METRICS=1`, counter `ethos_kernel_semantic_malabs_outcomes_total{outcome=...}` records embedding/arbiter outcomes ([`src/observability/metrics.py`](../../src/observability/metrics.py)).
 
