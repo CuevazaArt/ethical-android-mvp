@@ -34,7 +34,7 @@ High-level summary aligned with the code and docs; full chronology is in [`CHANG
 | Theory ↔ implementation map and tests | [THEORY_AND_IMPLEMENTATION.md](THEORY_AND_IMPLEMENTATION.md) |
 | Runtime contract (English) | [RUNTIME_CONTRACT.md](RUNTIME_CONTRACT.md) |
 | Snapshot and persistence | [RUNTIME_PERSISTENT.md](RUNTIME_PERSISTENT.md) |
-| Runtime phases / migration | [RUNTIME_PHASES.md](RUNTIME_PHASES.md), [RUNTIME_FASES.md](RUNTIME_FASES.md) (Spanish) |
+| Runtime phases / migration | [RUNTIME_PHASES.md](RUNTIME_PHASES.md) — [RUNTIME_FASES.md](RUNTIME_FASES.md) is a one-line redirect to the same doc |
 | Current kernel status | [PROJECT_STATUS_AND_MODULE_MATURITY.md](PROJECT_STATUS_AND_MODULE_MATURITY.md) |
 | Operator quick reference | [OPERATOR_QUICK_REF.md](OPERATOR_QUICK_REF.md) |
 

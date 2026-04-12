@@ -34,14 +34,14 @@ All notable changes to this project are summarized here. For narrative context a
 - **[`src/modules/psi_sleep.py`](src/modules/psi_sleep.py):** module/class docstrings state **hash perturbation** of stored `ethical_score`; **not** re-scoring via `WeightedEthicsScorer`; **not** independent quality validation. Stable id `psi_sleep_hash_perturbation_v1` on `SleepResult`; `evaluation_method` on `EpisodeReview`; formatted output and narrative summary disclose the evaluator.
 - **[`src/kernel.py`](src/kernel.py):** `execute_sleep` docstring + `record_operator_feedback` / chat helpers — mixture-scorer wording where relevant.
 - **Docs:** [WEAKNESSES_AND_BOTTLENECKS.md](docs/WEAKNESSES_AND_BOTTLENECKS.md) §8; [PROPOSAL_ETHICAL_CORE_LOGIC_EVOLUTION.md](docs/proposals/PROPOSAL_ETHICAL_CORE_LOGIC_EVOLUTION.md) (B1 problem).
-- **Tests:** [`tests/test_ethical_properties.py`](tests/test_ethical_properties.py) (`TestPsiSleep`); suite **612** collected.
+- **Tests:** [`tests/test_ethical_properties.py`](tests/test_ethical_properties.py) (`TestPsiSleep`); suite size was **612** collected at time of entry (historical snapshot).
 
 ## Docs + ops coherence — mixture naming, ADR 0002, `/health` chat bridge — April 2026
 
 - **Cross-docs:** [`CORE_DECISION_CHAIN.md`](docs/proposals/CORE_DECISION_CHAIN.md) mermaid/table use `WeightedEthicsScorer`; [`CRITIQUE_ROADMAP_ISSUES.md`](docs/proposals/CRITIQUE_ROADMAP_ISSUES.md) “narrowed items” (ADR 0009 + 0002); [`PLAN_IMMEDIATE_TWO_WEEKS.md`](docs/proposals/PLAN_IMMEDIATE_TWO_WEEKS.md) appendix; [`RUNTIME_CONTRACT.md`](docs/proposals/RUNTIME_CONTRACT.md); proposals (reality / situated / relational / contribution V6) — consistent **mixture** wording vs legacy “Bayesian”.
 - **[`src/chat_server.py`](src/chat_server.py):** `GET /health` includes `chat_bridge` (turn timeout + threadpool workers from [`chat_settings`](src/chat_settings.py)).
-- **[`README.md`](README.md):** maturation disclaimer + ADR 0002 one-liner; **610+** tests.
-- **[`docs/proposals/PROJECT_STATUS_AND_MODULE_MATURITY.md`](docs/proposals/PROJECT_STATUS_AND_MODULE_MATURITY.md):** collection count **611**.
+- **[`README.md`](README.md):** maturation disclaimer + ADR 0002 one-liner; test count note (see current README / `pytest tests/ --collect-only`).
+- **[`docs/proposals/PROJECT_STATUS_AND_MODULE_MATURITY.md`](docs/proposals/PROJECT_STATUS_AND_MODULE_MATURITY.md):** collection count line updated in later entries (see file for current number).
 - **Landing:** roadmap line for ADR 0002 remainder (async LLM cancel).
 
 ## Issue 7 — typed `KernelPublicEnv` + env policy refactor — April 2026
@@ -152,7 +152,7 @@ All notable changes to this project are summarized here. For narrative context a
 
 ## Issue 7 — KERNEL_* validation and supported profile buckets — April 2026
 
-- **[`src/validators/env_policy.py`](src/validators/env_policy.py):** `SUPPORTED_COMBOS` (`production` / `demo` / `lab`) partitions named `ETHOS_RUNTIME_PROFILE` bundles; `collect_env_violations()` + `validate_kernel_env()` (default **warn**; `KERNEL_ENV_VALIDATION=strict` to fail fast); `DEPRECATION_ROADMAP` placeholder; `env_combo_fingerprint()` for support logs.
+- **[`src/validators/env_policy.py`](src/validators/env_policy.py):** `SUPPORTED_COMBOS` (`production` / `demo` / `lab`) partitions named `ETHOS_RUNTIME_PROFILE` bundles; `collect_env_violations()` + `validate_kernel_env()` (unset env → **strict** in `KernelPublicEnv`; **`warn`** / **`off`** explicit); `DEPRECATION_ROADMAP` placeholder; `env_combo_fingerprint()` for support logs.
 - **[`src/chat_server.py`](src/chat_server.py):** runs validation after profile merge at import time.
 - **Tests:** [`tests/test_env_policy.py`](tests/test_env_policy.py) — partition check + each nominal profile has zero rule violations + strict-mode cases.
 - **Docs:** [`docs/proposals/KERNEL_ENV_POLICY.md`](docs/proposals/KERNEL_ENV_POLICY.md).
