@@ -1,6 +1,6 @@
 # Empirical pilot — operator protocol (Issue 3)
 
-**Status:** Checklist — complements the full methodology in [`EMPIRICAL_PILOT_METHODOLOGY.md`](EMPIRICAL_PILOT_METHODOLOGY.md). Use that document for definitions, artifacts, and extension points.
+**Status:** Checklist — complements [`EMPIRICAL_PILOT_METHODOLOGY.md`](EMPIRICAL_PILOT_METHODOLOGY.md) (mechanics) and [`EMPIRICAL_METHODOLOGY.md`](EMPIRICAL_METHODOLOGY.md) (how to interpret results; **not** certification).
 
 **Goal:** A **short, ordered checklist** for running a reproducible batch comparison (kernel vs baselines vs optional human labels) without implying certification or external moral ground truth.
 
@@ -9,7 +9,7 @@
 ## Preconditions
 
 1. Python env matches `requirements.txt` (CI uses the same).
-2. Decide **fixture path** (default: `tests/fixtures/empirical_pilot/scenarios.json`).
+2. Decide **fixture path** (default: `tests/fixtures/empirical_pilot/scenarios.json`; expanded labeled set: `tests/fixtures/labeled_scenarios.json` — batch rows only are executed).
 3. Record **git commit hash** and **seed policy** (script fixes variability off; see methodology).
 
 ---
@@ -35,4 +35,5 @@
 ## Links
 
 - [CRITIQUE_ROADMAP_ISSUES.md — Issue 3](CRITIQUE_ROADMAP_ISSUES.md)  
-- [EMPIRICAL_PILOT_METHODOLOGY.md](EMPIRICAL_PILOT_METHODOLOGY.md)
+- [EMPIRICAL_PILOT_METHODOLOGY.md](EMPIRICAL_PILOT_METHODOLOGY.md)  
+- [EMPIRICAL_METHODOLOGY.md](EMPIRICAL_METHODOLOGY.md)

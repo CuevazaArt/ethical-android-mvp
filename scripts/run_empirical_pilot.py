@@ -5,7 +5,11 @@ Empirical pilot runner (Issue 3) — batch simulations vs simple baselines + opt
 Usage (repo root):
   python scripts/run_empirical_pilot.py
   python scripts/run_empirical_pilot.py --json
+  python scripts/run_empirical_pilot.py --fixture tests/fixtures/labeled_scenarios.json --json
   python scripts/run_empirical_pilot.py --output runs/pilot_last.json
+
+Batch rows only: scenarios with ``harness: batch`` (default if omitted). Skips ``annotation_only``.
+Labels: ``reference_action`` or ``expected_decision``; ``batch_id`` or ``id`` for simulation id.
 """
 
 from __future__ import annotations
@@ -44,8 +48,15 @@ def run_pilot(fixture_path: Path) -> tuple[list[dict[str, Any]], dict[str, float
     kernel = EthicalKernel(variability=False, seed=42, llm_mode="local")
 
     for entry in data["scenarios"]:
-        sid = int(entry["id"])
+        if entry.get("harness", "batch") != "batch":
+            continue
+        sid_key = entry.get("batch_id", entry.get("id"))
+        if sid_key is None:
+            raise ValueError(f"Batch scenario missing batch_id/id: {entry!r}")
+        sid = int(sid_key)
         ref = entry.get("reference_action")
+        if ref is None:
+            ref = entry.get("expected_decision")
         if sid not in ALL_SIMULATIONS:
             raise ValueError(
                 f"Unknown simulation id {sid}; expected one of {sorted(ALL_SIMULATIONS)}"
@@ -66,6 +77,7 @@ def run_pilot(fixture_path: Path) -> tuple[list[dict[str, Any]], dict[str, float
         rows.append(
             {
                 "id": sid,
+                "uid": entry.get("uid"),
                 "tag": entry.get("tag", ""),
                 "kernel": k_act,
                 "baseline_first": b_first,

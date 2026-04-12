@@ -2,7 +2,7 @@
 
 **Purpose:** Provide a **reproducible** way to compare the Ethos Kernel’s **batch** decisions against **simple baselines** and optional **human reference labels**, for **research agreement metrics**. This is **not** product certification, legal safety approval, or a claim of external moral truth.
 
-**Related:** [CRITIQUE_ROADMAP_ISSUES.md](CRITIQUE_ROADMAP_ISSUES.md) (Issue 3), canonical simulations in [`src/simulations/runner.py`](../src/simulations/runner.py), invariant suite in [`tests/test_ethical_properties.py`](../tests/test_ethical_properties.py), pole-weight evidence scope in [POLE_WEIGHT_CALIBRATION_AND_EVIDENCE.md](POLE_WEIGHT_CALIBRATION_AND_EVIDENCE.md).
+**Related:** [CRITIQUE_ROADMAP_ISSUES.md](CRITIQUE_ROADMAP_ISSUES.md) (Issue 3), [EMPIRICAL_METHODOLOGY.md](EMPIRICAL_METHODOLOGY.md) (interpretation, disclaimer, comparison posture), canonical simulations in [`src/simulations/runner.py`](../src/simulations/runner.py), invariant suite in [`tests/test_ethical_properties.py`](../tests/test_ethical_properties.py), pole-weight evidence scope in [POLE_WEIGHT_CALIBRATION_AND_EVIDENCE.md](POLE_WEIGHT_CALIBRATION_AND_EVIDENCE.md).
 
 ---
 
@@ -23,7 +23,8 @@ Invariant tests show **internal consistency** of the core; this pilot is a **tem
 | Path | Role |
 |------|------|
 | [`tests/fixtures/empirical_pilot/scenarios.json`](../tests/fixtures/empirical_pilot/scenarios.json) | Which simulation IDs run; optional `reference_action` + short rationale for annotator alignment |
-| [`scripts/run_empirical_pilot.py`](../scripts/run_empirical_pilot.py) | Runs kernel (`variability=False`, fixed seed) + baselines; prints agreement summary |
+| [`tests/fixtures/labeled_scenarios.json`](../tests/fixtures/labeled_scenarios.json) | Expanded Issue 3 dataset: `harness: batch` (executable 1–9) + `annotation_only` vignettes; `expected_decision`; top-level **disclaimer** |
+| [`scripts/run_empirical_pilot.py`](../scripts/run_empirical_pilot.py) | Runs kernel (`variability=False`, fixed seed) + baselines; prints agreement summary (batch harness rows only) |
 
 ---
 

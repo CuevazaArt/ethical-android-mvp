@@ -89,6 +89,10 @@ Optional: `pre-commit run --all-files` (Ruff, mypy on `src`, detect-secrets).
 
 **Deprecated (historical only):** A multi-agent **Triad Handoff** experiment on branch `refactor/pipeline-trace-core` used extra Markdown buffers and keywords (**`juancheck`**, **`regroup`**). That protocol is **not** required on `main`; use normal Git + PR + tests above.
 
+### Git tags (named checkpoints)
+
+Maintainers may push **annotated tags** (for example `checkpoint-2026-04-11`) to mark a commit for releases or reviews. A tag references a **commit only**; **uncommitted** changes in your working tree are **not** part of that snapshot. To keep local work safe, **commit** or **stash** before treating a tag as your only backup.
+
 ### 6. Test rules
 The suite under `tests/` includes `tests/test_ethical_properties.py` and integration tests for chat, persistence, and runtime. Invariant ethical **properties** must hold. No change should break them:
 

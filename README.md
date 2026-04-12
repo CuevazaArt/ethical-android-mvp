@@ -17,7 +17,16 @@ The original **batch simulations** (nine fixed scenarios plus a random generator
 
 **Empirical pilot (Issue 3):** [`docs/proposals/EMPIRICAL_PILOT_METHODOLOGY.md`](docs/proposals/EMPIRICAL_PILOT_METHODOLOGY.md) (batch harness, scenarios **1–9**, `--output` artifact) · [`docs/proposals/EMPIRICAL_PILOT_PROTOCOL.md`](docs/proposals/EMPIRICAL_PILOT_PROTOCOL.md) (operator checklist).
 
-**Core decision chain & packaging (Issue 4):** [`docs/proposals/CORE_DECISION_CHAIN.md`](docs/proposals/CORE_DECISION_CHAIN.md) (diagram + table: who sets `final_action`); stub **`pyproject.toml`** at repo root for optional `pip install -e .` / extras — ADRs [`docs/adr/0001-packaging-core-boundary.md`](docs/adr/0001-packaging-core-boundary.md), [`docs/adr/0002-async-orchestration-future.md`](docs/adr/0002-async-orchestration-future.md) (async orchestration stub).
+**Core decision chain & packaging (Issue 4):** [`docs/proposals/CORE_DECISION_CHAIN.md`](docs/proposals/CORE_DECISION_CHAIN.md) (mermaid + table: who sets `final_action`); [`docs/adr/0001-packaging-core-boundary.md`](docs/adr/0001-packaging-core-boundary.md), [`docs/adr/0002-async-orchestration-future.md`](docs/adr/0002-async-orchestration-future.md) (async orchestration stub). **At a glance:**
+
+```
+MalAbs → Scoring → Poles → Will → Action
+  ↓ core              ↓ optional
+  pip-ready           "humanizing theater"
+```
+
+- **PyPI:** Publishing **`ethos-kernel`** on PyPI is **not** the near-term goal (`version` remains **`0.0.0`**; this repo is a **research / reference** implementation — see ADR 0001).
+- **Install from a Git checkout:** `pip install -e .` (core policy deps) · `pip install -e ".[runtime]"` (FastAPI WebSocket chat) · optional marker `pip install -e ".[theater]"` installs **no extra wheels** but records a dependency boundary for narrative/audit “theater” (PAD, weakness, MockDAO) in [`CORE_DECISION_CHAIN.md`](docs/proposals/CORE_DECISION_CHAIN.md) § *Core vs theater*. Imports stay `from src.kernel import …` until a future package rename.
 
 **Poles / weakness / PAD & HCI (Issue 5):** [`docs/proposals/POLES_WEAKNESS_PAD_AND_PROFILES.md`](docs/proposals/POLES_WEAKNESS_PAD_AND_PROFILES.md) — heuristics framing + **`operational_trust`** profile in [`src/runtime_profiles.py`](src/runtime_profiles.py) (stoic WebSocket UX; core policy unchanged).
 
@@ -86,6 +95,10 @@ source .venv/bin/activate
 
 # Install dependencies
 pip install -r requirements.txt
+
+# Optional: editable install from pyproject (core deps only; same import path `src.*`)
+# pip install -e .
+# pip install -e ".[runtime]"   # adds FastAPI / uvicorn / httpx for chat_server
 ```
 
 ### Run simulations

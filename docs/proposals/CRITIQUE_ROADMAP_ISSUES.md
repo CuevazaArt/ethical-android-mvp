@@ -109,7 +109,7 @@ Small reproducible scenario set + methodology; compare kernel vs baselines. Expl
 - [x] Script + doc under `docs/` or `tests/fixtures/`.
 ```
 
-**Delivered:** [`docs/proposals/EMPIRICAL_PILOT_METHODOLOGY.md`](EMPIRICAL_PILOT_METHODOLOGY.md), [`docs/proposals/EMPIRICAL_PILOT_PROTOCOL.md`](EMPIRICAL_PILOT_PROTOCOL.md), [`tests/fixtures/empirical_pilot/scenarios.json`](../tests/fixtures/empirical_pilot/scenarios.json) (canonical **1–9**), [`scripts/run_empirical_pilot.py`](../scripts/run_empirical_pilot.py) (including `--output` and kernel-vs-baseline summary rates).
+**Delivered:** [`docs/proposals/EMPIRICAL_PILOT_METHODOLOGY.md`](EMPIRICAL_PILOT_METHODOLOGY.md), [`docs/proposals/EMPIRICAL_METHODOLOGY.md`](EMPIRICAL_METHODOLOGY.md) (interpretation, disclaimer, baselines, third-party comparison posture), [`docs/proposals/EMPIRICAL_PILOT_PROTOCOL.md`](EMPIRICAL_PILOT_PROTOCOL.md), [`tests/fixtures/empirical_pilot/scenarios.json`](../tests/fixtures/empirical_pilot/scenarios.json) (canonical **1–9**), [`tests/fixtures/labeled_scenarios.json`](../tests/fixtures/labeled_scenarios.json) (batch + `annotation_only` vignettes; **not** certification), [`tests/test_labeled_scenarios.py`](../tests/test_labeled_scenarios.py), [`scripts/run_empirical_pilot.py`](../scripts/run_empirical_pilot.py) (`harness` filter; `expected_decision` / `batch_id`; `--output` and kernel-vs-baseline summary rates).
 
 ---
 
@@ -132,7 +132,7 @@ Reviewers cannot see the effective core inside advisory/telemetry volume. Second
 - [x] Issue or ADR for packaging follow-up.
 ```
 
-**Delivered:** [`docs/proposals/CORE_DECISION_CHAIN.md`](CORE_DECISION_CHAIN.md), [`docs/adr/0001-packaging-core-boundary.md`](adr/0001-packaging-core-boundary.md), root [`pyproject.toml`](../pyproject.toml); README + [`THEORY_AND_IMPLEMENTATION.md`](THEORY_AND_IMPLEMENTATION.md) + [`RUNTIME_CONTRACT.md`](RUNTIME_CONTRACT.md) cross-linked.
+**Delivered:** [`docs/proposals/CORE_DECISION_CHAIN.md`](CORE_DECISION_CHAIN.md), [`docs/adr/0001-packaging-core-boundary.md`](adr/0001-packaging-core-boundary.md) (Accepted; PyPI out of scope; `theater` marker extra), root [`pyproject.toml`](../pyproject.toml) (`keywords`, `theater = []`); README ASCII diagram + install lines; [`THEORY_AND_IMPLEMENTATION.md`](THEORY_AND_IMPLEMENTATION.md) + [`RUNTIME_CONTRACT.md`](RUNTIME_CONTRACT.md) cross-linked.
 
 ---
 

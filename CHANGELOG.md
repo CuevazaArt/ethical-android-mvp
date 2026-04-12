@@ -2,6 +2,16 @@
 
 All notable changes to this project are summarized here. For narrative context and design rationale, see [`HISTORY.md`](HISTORY.md).
 
+## Issue 4 — packaging metadata + README core/theater diagram — April 2026
+
+- **[`pyproject.toml`](pyproject.toml):** `keywords`; **`theater`** optional extra (`[]`) as a **marker** for narrative/audit layers (no import split yet); comments on base deps vs `runtime` / `dev`; **`0.0.0`** documented as non-PyPI research posture.
+- **[`README.md`](README.md):** ASCII diagram MalAbs → … → Action (core vs **humanizing theater**); install lines for `pip install -e .`, `.[runtime]`, `.[theater]`.
+- **[ADR 0001](docs/adr/0001-packaging-core-boundary.md):** status **Accepted**; explicit decision that **PyPI publish** is not the near-term goal; `theater` extra documented.
+
+## Contributor docs — Git tag checkpoints — April 2026
+
+- **[`CONTRIBUTING.md`](CONTRIBUTING.md):** short note that annotated tags point at **commits only**, not uncommitted work.
+
 ## Documentation — phased core/governance remediation backlog — April 2026
 
 - **[`docs/proposals/PROPOSAL_CORE_IMPLEMENTATION_GAP_PHASED_REMEDIATION.md`](docs/proposals/PROPOSAL_CORE_IMPLEMENTATION_GAP_PHASED_REMEDIATION.md):** structured phases 1–5, acceptance framing, GitHub issue traceability; linked from [`CRITIQUE_ROADMAP_ISSUES.md`](docs/proposals/CRITIQUE_ROADMAP_ISSUES.md) and [`docs/proposals/README.md`](docs/proposals/README.md).
@@ -17,6 +27,13 @@ All notable changes to this project are summarized here. For narrative context a
 - **[`src/chat_server.py`](src/chat_server.py):** runs validation after profile merge at import time.
 - **Tests:** [`tests/test_env_policy.py`](tests/test_env_policy.py) — partition check + each nominal profile has zero rule violations + strict-mode cases.
 - **Docs:** [`docs/proposals/KERNEL_ENV_POLICY.md`](docs/proposals/KERNEL_ENV_POLICY.md).
+
+## Empirical methodology — labeled scenarios (Issue 3) — April 2026
+
+- **[`tests/fixtures/labeled_scenarios.json`](tests/fixtures/labeled_scenarios.json):** **43** rows — **9** `harness: batch` (executable) + **34** `annotation_only` vignettes for inter-rater design; top-level **disclaimer** (not product certification).
+- **[`docs/proposals/EMPIRICAL_METHODOLOGY.md`](docs/proposals/EMPIRICAL_METHODOLOGY.md):** how to interpret agreement vs baselines, dataset roles, third-party comparison posture.
+- **[`scripts/run_empirical_pilot.py`](scripts/run_empirical_pilot.py):** runs **batch** harness rows only; accepts `expected_decision` / `batch_id`.
+- **Tests:** [`tests/test_labeled_scenarios.py`](tests/test_labeled_scenarios.py); **docs:** [EMPIRICAL_PILOT_METHODOLOGY.md](docs/proposals/EMPIRICAL_PILOT_METHODOLOGY.md) artifacts table + [CRITIQUE Issue 3](docs/proposals/CRITIQUE_ROADMAP_ISSUES.md).
 
 ## Docker — production-ish compose overlay — April 2026
 

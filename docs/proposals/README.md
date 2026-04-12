@@ -131,6 +131,7 @@ Legacy Spanish filenames (`PROPUESTA_*.md`, `ESTRATEGIA_Y_RUTA.md`, `PAPER_AFECT
 | Document | Topic |
 |----------|--------|
 | [EMPIRICAL_PILOT_METHODOLOGY.md](EMPIRICAL_PILOT_METHODOLOGY.md) | Empirical pilot methodology |
+| [EMPIRICAL_METHODOLOGY.md](EMPIRICAL_METHODOLOGY.md) | Issue 3 — interpreting agreement metrics; not moral certification |
 | [EMPIRICAL_PILOT_PROTOCOL.md](EMPIRICAL_PILOT_PROTOCOL.md) | Empirical pilot protocol |
 | [SWARM_P2P_THREAT_MODEL.md](SWARM_P2P_THREAT_MODEL.md) | Swarm P2P threat model |
 
