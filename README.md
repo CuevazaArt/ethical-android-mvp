@@ -86,7 +86,6 @@ Psi Sleep, moral hub, judicial escalation, and other subsystems are documented i
 ├── docs/
 │   ├── proposals/     # Design proposals (skeleton — add PROPOSAL_*.md here)
 │   ├── adr/           # Architecture decision records
-│   ├── multimedia/    # Logo (see docs/multimedia/README.md)
 │   └── templates/     # JSON templates
 ├── experiments/       # Optional research harnesses
 ├── src/

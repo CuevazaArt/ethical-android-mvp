@@ -2,6 +2,11 @@
 
 All notable changes to this project are summarized here. For narrative context and design rationale, see [`HISTORY.md`](HISTORY.md).
 
+## Remove `docs/multimedia/` — April 2026
+
+- **Deleted** **`docs/multimedia/`** (README + **`media/logo.png`**). **`dashboard.html`** header no longer embeds that image.
+- **Docs:** [`HISTORY.md`](HISTORY.md), [`README.md`](README.md) repository tree.
+
 ## Docs and experiments skeleton — April 2026
 
 - **`docs/proposals/`:** removed all prior proposal markdown files; only **[`docs/proposals/README.md`](docs/proposals/README.md)** remains as a placeholder for new English `PROPOSAL_*.md` files. Recover deleted content from git history or branch **`backup/main-2026-04-10`**.
@@ -24,12 +29,12 @@ All notable changes to this project are summarized here. For narrative context a
 
 - **Removed** the entire **`landing/`** Next.js application (marketing site, static HTML mirrors that lived under it, and **`landing-ci.yml`**). **`dashboard.html`** at the repository root remains the browser-only interactive surface.
 - **Removed** root **`BIBLIOGRAPHY.md`**. **`docs/proposals/README.md`** removed as obsolete. Cross-links in README, `HISTORY.md`, proposals, `TRACE_IMPLEMENTATION_RECENT.md`, and policy tables updated; numbered trace refs point to git history or branch **`backup/main-2026-04-10`** for the old bibliography file.
-- **Docs / tooling:** [`docs/REPOSITORY_LAYOUT.md`](docs/REPOSITORY_LAYOUT.md), [`docs/multimedia/README.md`](docs/multimedia/README.md), [`SECURITY.md`](SECURITY.md), [`CONTRIBUTING.md`](CONTRIBUTING.md), [`AGENTS.md`](AGENTS.md), [`.gitignore`](.gitignore) (dropped unused `landing/` ignore lines), issue template, and related proposals.
+- **Docs / tooling:** [`docs/REPOSITORY_LAYOUT.md`](docs/REPOSITORY_LAYOUT.md), [`SECURITY.md`](SECURITY.md), [`CONTRIBUTING.md`](CONTRIBUTING.md), [`AGENTS.md`](AGENTS.md), [`.gitignore`](.gitignore) (dropped unused `landing/` ignore lines), issue template, and related proposals.
 
 ## Docs multimedia trim — April 2026
 
 - **Removed** large non-essential assets under **`docs/multimedia/media/`** (pre-alpha PNG diagrams, generated JPG still, MP4 clip); **`logo.png`** retained for branding and landing sync.
-- **Docs:** [`docs/multimedia/README.md`](docs/multimedia/README.md), [`HISTORY.md`](HISTORY.md) — narrative updated.
+- **Docs:** [`HISTORY.md`](HISTORY.md) — narrative updated (multimedia folder later removed; see **Remove `docs/multimedia/`** above).
 - **Snapshot:** full prior tree (including removed binaries) remains reachable on branch **`backup/main-2026-04-10`**.
 
 ## Mass study schema 5 — tunable pole/mixture sampling — April 2026
