@@ -20,7 +20,7 @@ Invariant tests show **internal consistency** of the core; this pilot is a **tem
 
 ## Tiered sandbox (experimental monitoring)
 
-Batch fixtures may tag each row with **`difficulty_tier`** (`common` \| `difficult` \| `extreme`). The pilot runner reports **`summary.by_tier`** (agreement counts per tier). This supports staged evaluation (common → difficult → extreme) without changing the batch harness. See [PROPOSAL_EXPERIMENTAL_SANDBOX_SCENARIOS.md](PROPOSAL_EXPERIMENTAL_SANDBOX_SCENARIOS.md).
+Batch fixtures may tag each row with **`difficulty_tier`** (`common` \| `difficult` \| `extreme`). The pilot runner reports **`summary.by_tier`** (agreement counts per tier). This supports staged evaluation (common → difficult → extreme) without changing the batch harness. For **Monte Carlo stress** (artificial signal noise + per-roll kernel seeds), see [PROPOSAL_EXPERIMENTAL_SANDBOX_SCENARIOS.md](PROPOSAL_EXPERIMENTAL_SANDBOX_SCENARIOS.md) §4b and `scripts/run_stochastic_sandbox.py` — distinct from the deterministic pilot.
 
 ---
 

@@ -13,6 +13,7 @@
 | Tier tags on **batch** simulations (IDs **1–9**), agreement **by tier** in `run_empirical_pilot.py` | Chat / WebSocket “live user” stress (different harness) |
 | Fixed seeds, `llm_mode=local` for reproducible batch runs | LLM perception JSON paths in this script |
 | Archiving `--output` JSON for dashboards or notebooks | IRB, recruitment, legal review of vignettes |
+| Stochastic Monte Carlo (`run_stochastic_sandbox.py`) — artificial signal noise + kernel variability | Real-world sensor streams; claims about physical environments |
 
 **Limitations** (same as Issue 3): nine canonical scenarios are a **small** set; **reference labels** are priors for agreement metrics, not independent expert ethics unless you upgrade `reference_standard.tier` and protocol per [ETHICAL_BENCHMARK_EXTERNAL_VALIDATION.md](ETHICAL_BENCHMARK_EXTERNAL_VALIDATION.md).
 
@@ -39,6 +40,8 @@ Maintainers may **adjust** the mapping in fixtures with a CHANGELOG note when sc
 | [`tests/fixtures/empirical_pilot/scenarios.json`](../../tests/fixtures/empirical_pilot/scenarios.json) | Optional per-row **`difficulty_tier`** (`common` \| `difficult` \| `extreme`) |
 | [`tests/fixtures/labeled_scenarios.json`](../../tests/fixtures/labeled_scenarios.json) | Same field on **`harness: batch`** rows |
 | [`scripts/run_empirical_pilot.py`](../../scripts/run_empirical_pilot.py) | Each row includes `difficulty_tier`; **`summary.by_tier`** reports agreement counts per tier when references exist |
+| [`src/sandbox/synthetic_stochastic.py`](../../src/sandbox/synthetic_stochastic.py) | **Artificial** stochastic engine: Gaussian stress on ethics signals + rare aleatory spikes (reproducible RNG) |
+| [`scripts/run_stochastic_sandbox.py`](../../scripts/run_stochastic_sandbox.py) | Monte Carlo over batch scenarios: **`--rolls`**, **`--stress`**, per-trial kernel seed, optional `--no-kernel-variability` / `--no-signal-perturbation` |
 
 ---
 
@@ -49,6 +52,24 @@ Maintainers may **adjust** the mapping in fixtures with a CHANGELOG note when sc
 2. **Compare** agreement rates overall and **`by_tier`** — regression if a tier drops unexpectedly while others unchanged (investigate poles, MalAbs, or mixture).
 3. **Optional:** plot `by_tier` from archived JSON in CI or a notebook (not required in-repo).
 
+---
+
+## 4b. Stochastic stress — chance and non-linear response (research)
+
+The deterministic pilot holds `signals` fixed and turns **kernel variability off** for regression. To study **alea**, **sensory ambiguity**, and **non-linear** sensitivity (different `final_action` or `decision_mode` distributions under noise), use the **synthetic** engine — it is **not** real-world telemetry:
+
+- **`perturb_scenario_signals`** adds stress-scaled Gaussian noise to the six canonical scalar signals (`risk`, `urgency`, …) and may apply a rare spike on hostility/urgency/risk.
+- Each Monte Carlo **roll** uses a fresh **`EthicalKernel`** with seed `trial_seed(base_seed, scenario_id, roll)` so `VariabilityEngine` (when enabled) does not share RNG state across trials.
+- **`run_stochastic_sandbox.py`** writes **`trials`** (one row per roll: `kernel`, `decision_mode`, optional `perturbation` trace) and **`summary.by_scenario`** with `action_histogram`, `mode_histogram`, `agreement_rate`, and a coarse **`action_entropy_proxy`** (unique actions / rolls).
+
+Example:
+
+```bash
+python scripts/run_stochastic_sandbox.py --rolls 40 --stress 0.45 --base-seed 42 --output artifacts/stochastic_sandbox.json
+```
+
+Interpretation: agreement vs maintainer reference labels **drops** under noise — that is expected and is material for discussion, not a CI failure. For strict regression, keep using **`run_empirical_pilot.py`** only.
+
 **Chat / real users:** for pilot operators, follow [EMPIRICAL_PILOT_PROTOCOL.md](EMPIRICAL_PILOT_PROTOCOL.md) and keep batch sandbox separate from live WebSocket experiments until explicit harness exists.
 
 ---
@@ -58,6 +79,7 @@ Maintainers may **adjust** the mapping in fixtures with a CHANGELOG note when sc
 - Add **chat-only** tiered prompts (new fixture + driver) — separate from batch IDs 1–9.
 - **Annotation_only** vignettes: optional `difficulty_tier` for human labeling spreadsheets (not executed by batch runner).
 - **Ablation:** run the same tiered fixture with profile flags off (`PROPOSAL_ADDRESSING_CORE_WEAKNESSES.md` Track E2).
+- **Stochastic:** sweep `--stress` × `--rolls` grids and archive plots outside the repo; optional CI smoke on `run_stochastic_sandbox` with `rolls=1` only (already covered by unit tests).
 
 ---
 

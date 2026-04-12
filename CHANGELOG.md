@@ -2,6 +2,13 @@
 
 All notable changes to this project are summarized here. For narrative context and design rationale, see [`HISTORY.md`](HISTORY.md).
 
+## Stochastic sandbox — synthetic stress engine — April 2026
+
+- **`src/sandbox/synthetic_stochastic.py`:** reproducible `perturb_scenario_signals` (Gaussian noise + optional aleatory spike on ethics scalars).
+- **`scripts/run_stochastic_sandbox.py`:** Monte Carlo over batch fixtures (`--rolls`, `--stress`, `--base-seed`); per-trial `EthicalKernel` seed; JSON artifact with `trials` + `summary.by_scenario` (action/mode histograms, agreement rate, diversity proxy).
+- **Tests:** [`tests/test_synthetic_stochastic.py`](tests/test_synthetic_stochastic.py).
+- **Docs:** [PROPOSAL_EXPERIMENTAL_SANDBOX_SCENARIOS.md](docs/proposals/PROPOSAL_EXPERIMENTAL_SANDBOX_SCENARIOS.md) §4b; [EMPIRICAL_PILOT_METHODOLOGY.md](docs/proposals/EMPIRICAL_PILOT_METHODOLOGY.md).
+
 ## Experimental sandbox — tiered batch scenarios — April 2026
 
 - **[`PROPOSAL_EXPERIMENTAL_SANDBOX_SCENARIOS.md`](docs/proposals/PROPOSAL_EXPERIMENTAL_SANDBOX_SCENARIOS.md):** common / difficult / extreme tier definitions and monitoring workflow (batch harness only).
