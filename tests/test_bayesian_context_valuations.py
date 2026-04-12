@@ -7,7 +7,7 @@ import numpy as np
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
 
-from src.modules.bayesian_engine import (
+from src.modules.weighted_ethics_scorer import (
     DEFAULT_HYPOTHESIS_WEIGHTS,
     BayesianEngine,
     CandidateAction,

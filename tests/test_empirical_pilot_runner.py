@@ -22,7 +22,7 @@ def _load_run_pilot():
 def test_empirical_pilot_default_fixture_summary_stable():
     """Kernel + seed=42 in runner; agreement vs illustrative references."""
     run_pilot = _load_run_pilot()
-    rows, summary = run_pilot(_FIXTURE)
+    rows, summary, _ref = run_pilot(_FIXTURE)
     assert summary["scenarios"] == 9
     assert summary["with_reference"] == 9
     assert summary["agreement_kernel"] == 1.0
@@ -38,7 +38,7 @@ def test_empirical_pilot_default_fixture_summary_stable():
 def test_last_run_summary_fixture_matches_disk():
     """Archived summary JSON stays aligned with runner (update file when behavior changes)."""
     run_pilot = _load_run_pilot()
-    _, summary = run_pilot(_FIXTURE)
+    _, summary, _ref = run_pilot(_FIXTURE)
     with open(_SUMMARY_FIXTURE, encoding="utf-8") as f:
         archived = json.load(f)
     assert summary == archived["summary"]

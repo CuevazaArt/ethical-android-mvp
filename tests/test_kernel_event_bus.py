@@ -8,7 +8,7 @@ import pytest
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
 
 from src.kernel import EthicalKernel
-from src.modules.bayesian_engine import CandidateAction
+from src.modules.weighted_ethics_scorer import CandidateAction
 from src.modules.kernel_event_bus import (
     EVENT_KERNEL_DECISION,
     EVENT_KERNEL_EPISODE_REGISTERED,

@@ -32,8 +32,8 @@ It is **not** a commitment to implement every line below in one release. It is t
 
 | Item | Action | Key files | Definition of done |
 |------|--------|-----------|-------------------|
-| 1.1a | Document the **current contract**: what is fixed mixture vs. episodic evidence, what is *not* claimed as full posterior inference. | `src/modules/bayesian_engine.py`, [THEORY_AND_IMPLEMENTATION.md](THEORY_AND_IMPLEMENTATION.md) | Docstrings + theory doc agree; [CRITIQUE_ROADMAP_ISSUES.md](CRITIQUE_ROADMAP_ISSUES.md) Issue **#1** closable or narrowed. |
-| 1.1b | If updating from memory: **bounded** updates (caps, context match) to avoid silent drift. | `bayesian_engine.py`, episodic memory call sites | Tests for “no unbounded drift” on synthetic sequences. |
+| 1.1a | Document the **current contract**: what is fixed mixture vs. episodic evidence, what is *not* claimed as full posterior inference. | `src/modules/weighted_ethics_scorer.py`, [THEORY_AND_IMPLEMENTATION.md](THEORY_AND_IMPLEMENTATION.md), [ADR 0009](../adr/0009-ethical-mixture-scorer-naming.md) | Docstrings + theory doc agree; [CRITIQUE_ROADMAP_ISSUES.md](CRITIQUE_ROADMAP_ISSUES.md) Issue **#1** closable or narrowed. |
+| 1.1b | If updating from memory: **bounded** updates (caps, context match) to avoid silent drift. | `weighted_ethics_scorer.py`, episodic memory call sites | Tests for “no unbounded drift” on synthetic sequences. |
 | 1.1c | **Three ethical frames** must remain **measurably distinct**: utilitarian (welfare sum), deontological (rule violations), virtue (character consistency). | Same | Minimal canonical scenarios where **rankings diverge**; tests fail if frames collapse to identical ordering. |
 
 ### 3.2 Buffer — semantic verification layer (not a silent replacement)

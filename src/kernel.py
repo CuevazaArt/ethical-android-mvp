@@ -23,7 +23,7 @@ from .modules.audit_chain_log import (
     maybe_append_malabs_block_audit,
 )
 from .modules.augenesis import AugenesisEngine
-from .modules.bayesian_engine import BayesianEngine, BayesianResult, CandidateAction
+from .modules.weighted_ethics_scorer import BayesianEngine, BayesianResult, CandidateAction
 from .modules.buffer import PreloadedBuffer
 from .modules.drive_arbiter import DriveArbiter
 from .modules.epistemic_dissonance import (

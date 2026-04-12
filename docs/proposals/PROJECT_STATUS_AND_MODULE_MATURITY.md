@@ -41,7 +41,7 @@ Este documento resume **dónde está** el Ethos Kernel MVP hoy y una lectura hon
 | **MalAbs (texto)** | `absolute_evil.py`, `input_trust.py` | **Sólido** | Lista + normalización; tests dedicados. |
 | **MalAbs semántico** | `semantic_chat_gate.py`, `absolute_evil` capas | **Demo** | Depende de Ollama/embeddings; fallbacks documentados. |
 | **Percepción LLM** | `llm_layer.py`, `perception_schema.py` | **Sólido** | Validación Pydantic, coherencia, fallback local. |
-| **Bayes / buffer / polos** | `bayesian_engine.py`, `buffer.py`, `ethical_poles.py`, `pole_linear.py` | **Sólido** | Núcleo decisional con tests; polos lineales configurables (ADR 0004). |
+| **Mixture / buffer / polos** | `weighted_ethics_scorer.py`, `bayesian_engine.py` (compat), `buffer.py`, `ethical_poles.py`, `pole_linear.py` | **Sólido** | Mezcla ponderada fija + nudges acotados (no Bayes completo; ADR 0009); polos lineales (ADR 0004). |
 | **Reflexión / saliencia / PAD** | `ethical_reflection.py`, `salience_map.py`, `pad_archetypes.py` | **Demo** | Lectura para auditoría y tono; no vetan acción. |
 | **User model (ToM)** | `user_model.py` | **Demo** | Heurísticas + tono; persistido en snapshot; ver `USER_MODEL_ENRICHMENT.md`. |
 | **Uchi–Soto** | `uchi_soto.py` | **Demo** | Fases 1–3: `tone_brief` compuesto, `set_profile_structured`, `ingest_turn_context` (EMA + olvido), `RelationalTier`, `linked_peer_ids`, checkpoint; ver [PROPOSAL_SOCIAL_ROSTER_HIERARCHICAL_RELATIONS.md](PROPOSAL_SOCIAL_ROSTER_HIERARCHICAL_RELATIONS.md). |

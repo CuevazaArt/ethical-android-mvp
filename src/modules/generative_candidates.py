@@ -20,7 +20,7 @@ import uuid
 from typing import Any
 
 from .absolute_evil import AbsoluteEvilDetector
-from .bayesian_engine import CandidateAction
+from .weighted_ethics_scorer import CandidateAction
 
 GENERATIVE_ORIGIN = "generative_proposal"
 

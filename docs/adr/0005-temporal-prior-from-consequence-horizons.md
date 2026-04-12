@@ -1,4 +1,4 @@
-# ADR 0005 — Temporal prior from consequence horizons (Bayesian mixture nudge)
+# ADR 0005 — Temporal prior from consequence horizons (ethical mixture nudge)
 
 **Status:** Accepted (April 2026)
 
@@ -10,15 +10,15 @@
 
 1. **Numeric signals only** — derived from `NarrativeMemory` (matching `context`, optional `action_hint`): `weeks_trend`, `long_term_stability`, `combined` — see [`TEMPORAL_PRIOR_HORIZONS.md`](../proposals/TEMPORAL_PRIOR_HORIZONS.md).
 
-2. **Implementation** — `src/modules/temporal_horizon_prior.py`: `compute_horizon_signals`, `apply_horizon_prior_to_engine` mutates `BayesianEngine.hypothesis_weights` in place.
+2. **Implementation** — `src/modules/temporal_horizon_prior.py`: `compute_horizon_signals`, `apply_horizon_prior_to_engine` mutates `WeightedEthicsScorer.hypothesis_weights` in place (alias: `BayesianEngine`).
 
-3. **Ordering** — After episodic refresh (or reset), before `bayesian.evaluate`.
+3. **Ordering** — After episodic refresh (or reset), before mixture `evaluate` (kernel attribute `self.bayesian`).
 
 4. **Attenuation** — `KERNEL_TEMPORAL_HORIZON_ALPHA` (default `0.08`); **genome clamp** via `KERNEL_ETHICAL_GENOME_MAX_DRIFT` vs `_bayesian_genome_weights` (same policy family as Ψ Sleep).
 
 5. **Default off** — `KERNEL_TEMPORAL_HORIZON_PRIOR` unset/false: no call; CI and existing tests unchanged.
 
-6. **Qualitative strings** — Unchanged; they remain advisory UX. The bridge is **numeric + Bayes only**.
+6. **Qualitative strings** — Unchanged; they remain advisory UX. The bridge is **numeric + mixture weights only** (not full Bayesian inference; see [ADR 0009](0009-ethical-mixture-scorer-naming.md)).
 
 ## Consequences
 
@@ -29,4 +29,4 @@
 
 - [`TEMPORAL_PRIOR_HORIZONS.md`](../proposals/TEMPORAL_PRIOR_HORIZONS.md)  
 - [`consequence_projection.py`](../../src/modules/consequence_projection.py)  
-- [`bayesian_engine.py`](../../src/modules/bayesian_engine.py)
+- [`weighted_ethics_scorer.py`](../../src/modules/weighted_ethics_scorer.py) (compat: [`bayesian_engine.py`](../../src/modules/bayesian_engine.py))

@@ -1,8 +1,8 @@
-"""Episodic nudge of Bayesian mixture weights (KERNEL_BAYESIAN_EMPIRICAL_WEIGHTS)."""
+"""Episodic nudge of mixture weights (KERNEL_BAYESIAN_EMPIRICAL_WEIGHTS)."""
 
 import numpy as np
 from src.kernel import EthicalKernel
-from src.modules.bayesian_engine import (
+from src.modules.weighted_ethics_scorer import (
     DEFAULT_HYPOTHESIS_WEIGHTS,
     BayesianEngine,
     CandidateAction,

@@ -20,7 +20,7 @@ from typing import TYPE_CHECKING
 import numpy as np
 
 if TYPE_CHECKING:
-    from .bayesian_engine import BayesianEngine
+    from .weighted_ethics_scorer import BayesianEngine
     from .narrative import NarrativeEpisode, NarrativeMemory
 
 

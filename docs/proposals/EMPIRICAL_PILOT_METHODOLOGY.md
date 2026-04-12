@@ -2,7 +2,7 @@
 
 **Purpose:** Provide a **reproducible** way to compare the Ethos Kernel’s **batch** decisions against **simple baselines** and optional **human reference labels**, for **research agreement metrics**. This is **not** product certification, legal safety approval, or a claim of external moral truth.
 
-**Related:** [CRITIQUE_ROADMAP_ISSUES.md](CRITIQUE_ROADMAP_ISSUES.md) (Issue 3), [EMPIRICAL_METHODOLOGY.md](EMPIRICAL_METHODOLOGY.md) (interpretation, disclaimer, comparison posture), canonical simulations in [`src/simulations/runner.py`](../src/simulations/runner.py), invariant suite in [`tests/test_ethical_properties.py`](../tests/test_ethical_properties.py), pole-weight evidence scope in [POLE_WEIGHT_CALIBRATION_AND_EVIDENCE.md](POLE_WEIGHT_CALIBRATION_AND_EVIDENCE.md).
+**Related:** [CRITIQUE_ROADMAP_ISSUES.md](CRITIQUE_ROADMAP_ISSUES.md) (Issue 3), [EMPIRICAL_METHODOLOGY.md](EMPIRICAL_METHODOLOGY.md) (interpretation, disclaimer, comparison posture), **[ETHICAL_BENCHMARK_EXTERNAL_VALIDATION.md](ETHICAL_BENCHMARK_EXTERNAL_VALIDATION.md)** (why reference labels are not “moral ground truth” without an expert protocol), canonical simulations in [`src/simulations/runner.py`](../src/simulations/runner.py), invariant suite in [`tests/test_ethical_properties.py`](../tests/test_ethical_properties.py), pole-weight evidence scope in [POLE_WEIGHT_CALIBRATION_AND_EVIDENCE.md](POLE_WEIGHT_CALIBRATION_AND_EVIDENCE.md).
 
 ---
 

@@ -223,7 +223,8 @@ src/
 ├── modules/
 │   ├── absolute_evil.py    # Absolute Evil detector (ethical fuse)
 │   ├── buffer.py           # Preloaded buffer (immutable ethical constitution)
-│   ├── bayesian_engine.py  # Bayesian impact evaluation engine
+│   ├── weighted_ethics_scorer.py  # Weighted ethical mixture (impact + pruning); not full Bayes
+│   ├── bayesian_engine.py         # Shim: re-exports weighted_ethics_scorer (historical path)
 │   ├── temporal_horizon_prior.py  # Optional weeks/long-arc nudge to mixture (ADR 0005)
 │   ├── ethical_poles.py    # Multipolar arbitration (delegates to pole_linear)
 │   ├── pole_linear.py      # JSON linear pole evaluator (ADR 0004)

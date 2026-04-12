@@ -12,7 +12,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 
-from .bayesian_engine import BayesianResult
+from .weighted_ethics_scorer import BayesianResult
 from .ethical_poles import TripartiteMoral
 
 

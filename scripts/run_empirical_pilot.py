@@ -10,6 +10,10 @@ Usage (repo root):
 
 Batch rows only: scenarios with ``harness: batch`` (default if omitted). Skips ``annotation_only``.
 Labels: ``reference_action`` or ``expected_decision``; ``batch_id`` or ``id`` for simulation id.
+
+``run_pilot`` returns ``(rows, summary, reference_standard_metadata)``. Agreement vs labels is **not**
+external moral validation unless the fixture declares an expert tier — see
+``docs/proposals/ETHICAL_BENCHMARK_EXTERNAL_VALIDATION.md``.
 """
 
 from __future__ import annotations
@@ -42,8 +46,11 @@ def _load_fixture(path: Path) -> dict[str, Any]:
         return json.load(f)
 
 
-def run_pilot(fixture_path: Path) -> tuple[list[dict[str, Any]], dict[str, float]]:
+def run_pilot(
+    fixture_path: Path,
+) -> tuple[list[dict[str, Any]], dict[str, float], dict[str, Any]]:
     data = _load_fixture(fixture_path)
+    ref_meta = data.get("reference_standard") or {}
     rows: list[dict[str, Any]] = []
     kernel = EthicalKernel(variability=False, seed=42, llm_mode="local")
 
@@ -107,7 +114,7 @@ def run_pilot(fixture_path: Path) -> tuple[list[dict[str, Any]], dict[str, float
             else 0.0
         ),
     }
-    return rows, summary
+    return rows, summary, ref_meta
 
 
 def main() -> int:
@@ -129,7 +136,7 @@ def main() -> int:
     )
     args = p.parse_args()
 
-    rows, summary = run_pilot(args.fixture)
+    rows, summary, ref_meta = run_pilot(args.fixture)
 
     if args.output is not None:
         args.output.parent.mkdir(parents=True, exist_ok=True)
@@ -139,16 +146,27 @@ def main() -> int:
             "meta": {
                 "fixture": str(args.fixture.resolve()),
                 "kernel": {"variability": False, "seed": 42, "llm_mode": "local"},
+                "reference_standard": ref_meta,
             },
         }
         args.output.write_text(json.dumps(payload, indent=2), encoding="utf-8")
 
     if args.json:
-        print(json.dumps({"rows": rows, "summary": summary}, indent=2))
+        print(
+            json.dumps({"rows": rows, "summary": summary, "reference_standard": ref_meta}, indent=2)
+        )
         return 0
 
     print("Empirical pilot (batch) — Issue 3")
     print(f"Fixture: {args.fixture}")
+    if ref_meta:
+        tier = ref_meta.get("tier", "?")
+        print(
+            f"Reference standard: tier={tier!r} — "
+            "agreement vs expected_decision is NOT independent expert validation unless tier is expert_*."
+        )
+        if doc := ref_meta.get("external_validation_doc"):
+            print(f"  See: {doc}")
     print(
         f"Scenarios: {summary['scenarios']}  |  With reference label: {summary['with_reference']}"
     )

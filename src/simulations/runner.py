@@ -8,7 +8,7 @@ ethical context, and candidate actions for the kernel to evaluate.
 from dataclasses import dataclass
 
 from ..kernel import EthicalKernel
-from ..modules.bayesian_engine import CandidateAction
+from ..modules.weighted_ethics_scorer import CandidateAction
 
 
 @dataclass

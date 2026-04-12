@@ -40,7 +40,7 @@ class SigmoidWill:
 
         Args:
             x: input stimulus (estimated ethical impact)
-            uncertainty: heuristic I(x) from impact scoring (see ``bayesian_engine``)
+            uncertainty: heuristic I(x) from impact scoring (see ``weighted_ethics_scorer``)
 
         Returns:
             float [0, 1+λ] where values > 0.5 incline toward acting

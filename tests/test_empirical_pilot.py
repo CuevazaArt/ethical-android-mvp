@@ -23,6 +23,8 @@ def test_fixture_schema():
     with open(FIXTURE, encoding="utf-8") as f:
         data = json.load(f)
     assert data["version"] == 1
+    rs = data.get("reference_standard") or {}
+    assert rs.get("tier") == "internal_pilot"
     assert "scenarios" in data
     for s in data["scenarios"]:
         assert isinstance(s["id"], int)
@@ -32,7 +34,7 @@ def test_fixture_schema():
 
 def test_run_pilot_importable():
     run_pilot = _load_run_pilot()
-    rows, summary = run_pilot(FIXTURE)
+    rows, summary, _ref = run_pilot(FIXTURE)
     assert len(rows) == summary["scenarios"]
     assert summary["with_reference"] == len(rows)
     for r in rows:
@@ -52,6 +54,7 @@ def test_run_pilot_script_exit_zero():
     assert r.returncode == 0, r.stderr
     out = json.loads(r.stdout)
     assert "summary" in out and "rows" in out
+    assert "reference_standard" in out
 
 
 def test_run_pilot_script_writes_output_file(tmp_path):
@@ -72,4 +75,5 @@ def test_run_pilot_script_writes_output_file(tmp_path):
     data = json.loads(out_path.read_text(encoding="utf-8"))
     assert "rows" in data and "summary" in data and "meta" in data
     assert data["meta"]["kernel"]["seed"] == 42
+    assert "reference_standard" in data["meta"]
     assert data["summary"]["scenarios"] == 9

@@ -11,7 +11,7 @@ const CRITIQUE_DOC = `${REPO}/blob/main/docs/proposals/CRITIQUE_ROADMAP_ISSUES.m
 const ISSUES = `${REPO}/issues`;
 
 const CRITIQUE_TRACK = [
-  "P0 — Honest naming: “Bayesian” vs weighted mixture; THEORY + `bayesian_engine` aligned.",
+  "P0 — Honest naming: `weighted_ethics_scorer` canonical; THEORY + ADR 0009 aligned (`bayesian_engine` shim).",
   "P0 — Input trust (merged): MalAbs on chat **and** LLM perception JSON (GIGO); hardening + optional local classifier; one threat-model doc.",
   "P1 — Empirical pilot: labeled scenarios / agreement methodology (not certification).",
   "P1 — Core path map + pip-installable **core** spike (MalAbs→will vs narrative theater).",

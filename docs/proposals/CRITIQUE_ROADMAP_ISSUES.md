@@ -64,7 +64,7 @@ Suggested labels: `enhancement`, `documentation`, `security`, `research`.
 Rename public narrative / docs to match behavior, **or** add a minimal, tested Bayesian update on a tiny state (scoped).
 
 ## Acceptance
-- [x] `THEORY_AND_IMPLEMENTATION.md` + `bayesian_engine.py` agree on semantics.
+- [x] `THEORY_AND_IMPLEMENTATION.md` + `weighted_ethics_scorer.py` (and ADR 0009) agree on semantics; `bayesian_engine.py` is a compat shim.
 - [x] CHANGELOG; tests extended only if semantics change.
 ```
 

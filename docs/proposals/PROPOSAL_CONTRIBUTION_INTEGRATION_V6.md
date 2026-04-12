@@ -49,7 +49,7 @@ Incorporate only what **adds new measurable state** or **bounded proactive behav
 |--------|---------|-------------------|
 | MalAbs | `absolute_evil.py` | Action veto + conservative `evaluate_chat_text()`. |
 | Constitution | `buffer.py` | Preloaded principles by context. |
-| Impact | `bayesian_engine.py` | Expectations over actions; pruning. |
+| Impact | `weighted_ethics_scorer.py` | Expectations over actions; pruning (mixture; not full Bayes). |
 | Poles | `ethical_poles.py` | Dynamic multipolar → `TripartiteMoral`. |
 | Will | `sigmoid_will.py` | Decision mode from impact/uncertainty. |
 | Body | `sympathetic.py` | σ, energy, sympathetic/parasympathetic mode. |

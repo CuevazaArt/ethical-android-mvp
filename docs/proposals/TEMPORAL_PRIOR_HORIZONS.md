@@ -63,6 +63,6 @@ After the nudge, **clamp** each component so **relative deviation** from `kernel
 ## See also
 
 - [ADR 0005](adr/0005-temporal-prior-from-consequence-horizons.md)  
-- `src/modules/bayesian_engine.py` — `refresh_weights_from_episodic_memory`  
+- `src/modules/weighted_ethics_scorer.py` — `refresh_weights_from_episodic_memory` (compat import: `bayesian_engine.py`)  
 - `src/modules/temporal_horizon_prior.py` — implementation hook  
 - `src/modules/consequence_projection.py` — qualitative strings only

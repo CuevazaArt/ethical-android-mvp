@@ -1,8 +1,10 @@
 """
 Ethos Kernel — Entry point.
 
-Runs the 9 ethical complexity simulations and shows
-how the kernel makes coherent moral decisions.
+Runs the 9 ethical complexity simulations as a **demo / smoke** of the decision pipeline
+(no crash, coherent narrative). This is **not** an external ethical correctness benchmark:
+invariant tests check internal rules; human-expert or cross-model benchmarks are separate
+(see docs/proposals/ETHICAL_BENCHMARK_EXTERNAL_VALIDATION.md and scripts/run_empirical_pilot.py).
 
 Usage:
     python -m src.main           # All simulations

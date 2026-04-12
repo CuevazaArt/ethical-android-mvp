@@ -14,7 +14,7 @@ from typing import Literal
 
 import numpy as np
 
-from .bayesian_engine import DEFAULT_HYPOTHESIS_WEIGHTS, BayesianEngine
+from .weighted_ethics_scorer import DEFAULT_HYPOTHESIS_WEIGHTS, BayesianEngine
 from .identity_integrity import hypothesis_weights_allowed
 
 FeedbackLabel = Literal["approve", "dispute", "harm_report"]

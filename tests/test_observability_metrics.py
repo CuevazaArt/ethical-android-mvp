@@ -61,7 +61,7 @@ os.environ["KERNEL_METRICS"] = "1"
 from src.observability.metrics import init_metrics
 init_metrics()
 from src.kernel import EthicalKernel
-from src.modules.bayesian_engine import CandidateAction
+from src.modules.weighted_ethics_scorer import CandidateAction
 k = EthicalKernel(variability=False, llm_mode="local")
 acts = [
     CandidateAction("act_civically", "x", estimated_impact=0.5, confidence=0.8),

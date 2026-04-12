@@ -1,7 +1,7 @@
 """Fases 3–5: DriveArbiter, identidad narrativa, monólogo interno."""
 
 from src.kernel import EthicalKernel
-from src.modules.bayesian_engine import CandidateAction
+from src.modules.weighted_ethics_scorer import CandidateAction
 from src.modules.internal_monologue import compose_monologue_line
 from src.modules.narrative_identity import NarrativeIdentityTracker
 

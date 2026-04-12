@@ -17,7 +17,7 @@ So the “parrot” objection applies to **opaque next-token predictors used as 
 
 **Issue 4 — core chain map:** which modules **set** `final_action` vs telemetry-only — see [`CORE_DECISION_CHAIN.md`](CORE_DECISION_CHAIN.md) (table + diagram). Packaging spike: [`pyproject.toml`](../pyproject.toml), ADR [`adr/0001-packaging-core-boundary.md`](adr/0001-packaging-core-boundary.md).
 
-**Recent implementation alignment (2026):** LLM perception JSON is validated/coerced in [`perception_schema.py`](../src/modules/perception_schema.py) (Pydantic, per-field defaults, cross-field coherence); see [`PERCEPTION_VALIDATION.md`](PERCEPTION_VALIDATION.md). Local fallback heuristics use the **current** message only — not the full STM string sent to the LLM. Optional `KERNEL_BAYESIAN_EMPIRICAL_WEIGHTS` nudges `BayesianEngine` mixture weights from same-context `NarrativeMemory` episodes immediately before scoring (default **off**). Human-agreement batch workflows: [`EMPIRICAL_PILOT_METHODOLOGY.md`](EMPIRICAL_PILOT_METHODOLOGY.md), [`EMPIRICAL_PILOT_PROTOCOL.md`](EMPIRICAL_PILOT_PROTOCOL.md). Future async orchestration note: [`adr/0002-async-orchestration-future.md`](adr/0002-async-orchestration-future.md).
+**Recent implementation alignment (2026):** LLM perception JSON is validated/coerced in [`perception_schema.py`](../src/modules/perception_schema.py) (Pydantic, per-field defaults, cross-field coherence); see [`PERCEPTION_VALIDATION.md`](PERCEPTION_VALIDATION.md). Local fallback heuristics use the **current** message only — not the full STM string sent to the LLM. Optional `KERNEL_BAYESIAN_EMPIRICAL_WEIGHTS` nudges `WeightedEthicsScorer` mixture weights (alias: `BayesianEngine`) from same-context `NarrativeMemory` episodes immediately before scoring (default **off**). Human-agreement batch workflows: [`EMPIRICAL_PILOT_METHODOLOGY.md`](EMPIRICAL_PILOT_METHODOLOGY.md), [`EMPIRICAL_PILOT_PROTOCOL.md`](EMPIRICAL_PILOT_PROTOCOL.md). Future async orchestration note: [`adr/0002-async-orchestration-future.md`](adr/0002-async-orchestration-future.md).
 
 The orchestration in `EthicalKernel.process` matches `kernel.py` (steps 1–12 for the episode path): **Uchi-Soto** → **sympathetic** → **locus** → **MalAbs** (all candidate actions) → **buffer** → **Bayesian** → **poles** → **sigmoid will** and mode fusion → **EthicalReflection** → **SalienceMap** → **PAD archetypes** (read-only; no feedback to ethics) → **narrative memory** (episode, `register_episode=True`) → **weakness pole** → **algorithmic forgiveness** (register) → **DAO**. With `register_episode=False` (e.g. light `process_chat_turn`), reflection/salience/PAD still run; **episode registration, weakness, forgiveness, and DAO audit for that path are skipped**.
 
@@ -27,7 +27,7 @@ flowchart LR
   B --> C[Locus]
   C --> D[MalAbs filter]
   D --> E[Buffer principles]
-  E --> F[BayesianEngine]
+  E --> F[WeightedEthicsScorer]
   F --> G[EthicalPoles]
   G --> H[SigmoidWill]
   H --> R[EthicalReflection]
@@ -99,12 +99,12 @@ W(x)=\frac{1}{1+e^{-k(x-x_0)}}+\lambda \cdot I(x)
 x^\*=\arg\max \mathbb{E}[\text{ImpactoÉtico}(x\mid\theta)]\quad\text{s.t.}\quad \text{MalAbs}(x)=\text{falso}
 \]
 
-**Semantic note (code honesty):** The class `BayesianEngine` keeps its historical name for API stability. The implementation is a **fixed convex combination** of three stylized ethical valuations (utilitarian / deontological / virtue) with constant weights `hypothesis_weights`. There is **no Bayesian updating** (no likelihood, no data-dependent posterior over \(\theta\)). The formula above is the **design target**; the running code is a **discrete mixture** over three hypotheses, not full inference.
+**Semantic note (code honesty):** Canonical module: `weighted_ethics_scorer` (`WeightedEthicsScorer`); `BayesianEngine` is a **historical alias** (see [ADR 0009](../adr/0009-ethical-mixture-scorer-naming.md)). The implementation is a **fixed convex combination** of three stylized ethical valuations (utilitarian / deontological / virtue) with constant weights `hypothesis_weights`. There is **no Bayesian updating** (no likelihood, no data-dependent posterior over \(\theta\)). The formula above is the **design target**; the running code is a **discrete mixture** over three hypotheses, not full inference.
 
 **Implementation**
 
-- **Constraint** — Before `BayesianEngine.evaluate`, every `CandidateAction` passes `AbsoluteEvilDetector.evaluate` (`src/modules/absolute_evil.py`). Blocked actions never enter the argmax set.
-- **Objective** — `BayesianEngine.evaluate` sorts viable actions by `calculate_expected_impact` (weighted mixture of three linear valuations) and picks the maximum (`src/modules/bayesian_engine.py`).
+- **Constraint** — Before `WeightedEthicsScorer.evaluate` (alias: `BayesianEngine.evaluate`), every `CandidateAction` passes `AbsoluteEvilDetector.evaluate` (`src/modules/absolute_evil.py`). Blocked actions never enter the argmax set.
+- **Objective** — `WeightedEthicsScorer.evaluate` (alias: `BayesianEngine.evaluate`) sorts viable actions by `calculate_expected_impact` (weighted mixture of three contextual valuations) and picks the maximum (`src/modules/weighted_ethics_scorer.py`).
 
 ### 3. Uncertainty \(I(x)\)
 
@@ -114,7 +114,7 @@ x^\*=\arg\max \mathbb{E}[\text{ImpactoÉtico}(x\mid\theta)]\quad\text{s.t.}\quad
 I(x)=\int (1-P(\text{correct}\mid\theta))\cdot P(\theta\mid D)\,d\theta
 \]
 
-**Implementation** — `BayesianEngine.calculate_uncertainty`: **heuristic** in \([0,1]\) from the spread of the three hypothesis valuations plus a confidence penalty. It is **not** a Monte Carlo or closed-form evaluation of the integral above; it feeds `SigmoidWill` and gray-zone / deliberation heuristics only.
+**Implementation** — `WeightedEthicsScorer.calculate_uncertainty` (alias: `BayesianEngine.calculate_uncertainty`): **heuristic** in \([0,1]\) from the spread of the three hypothesis valuations plus a confidence penalty. It is **not** a Monte Carlo or closed-form evaluation of the integral above; it feeds `SigmoidWill` and gray-zone / deliberation heuristics only.
 
 **MVP note:** Full Bayesian integration over a continuous parameter space is not implemented. The discrete mixture structure and fixed weights `hypothesis_weights` are explicit in code; treat “uncertainty” as an engineering signal, not a calibrated posterior quantity.
 
@@ -126,7 +126,7 @@ I(x)=\int (1-P(\text{correct}\mid\theta))\cdot P(\theta\mid D)\,d\theta
 \text{Score}(a)=\sum_i w_i(t)\,V_i(a),\quad w_i(t)=w_i^0\cdot f(C_t,S_t)
 \]
 
-**Bayesian mixture (nudges)** — `BayesianEngine.hypothesis_weights` are fixed by default; optional episodic refresh (`KERNEL_BAYESIAN_EMPIRICAL_WEIGHTS`) and optional temporal-horizon prior (`KERNEL_TEMPORAL_HORIZON_PRIOR`, ADR 0005) apply **bounded** adjustments before `evaluate`; see [`TEMPORAL_PRIOR_HORIZONS.md`](TEMPORAL_PRIOR_HORIZONS.md). **Future:** nightly Psi Sleep + explicit feedback ledger → mixture updates — [PROPOSAL_ETHICAL_CORE_LOGIC_EVOLUTION.md](PROPOSAL_ETHICAL_CORE_LOGIC_EVOLUTION.md) (B1).
+**Ethical mixture (nudges)** — `WeightedEthicsScorer.hypothesis_weights` (alias: `BayesianEngine`) are fixed by default; optional episodic refresh (`KERNEL_BAYESIAN_EMPIRICAL_WEIGHTS`) and optional temporal-horizon prior (`KERNEL_TEMPORAL_HORIZON_PRIOR`, ADR 0005) apply **bounded** adjustments before `evaluate`; see [`TEMPORAL_PRIOR_HORIZONS.md`](TEMPORAL_PRIOR_HORIZONS.md). **Future:** nightly Psi Sleep + explicit feedback ledger → mixture updates — [PROPOSAL_ETHICAL_CORE_LOGIC_EVOLUTION.md](PROPOSAL_ETHICAL_CORE_LOGIC_EVOLUTION.md) (B1).
 
 **Implementation** — `EthicalPoles` in `src/modules/ethical_poles.py`: base weights `BASE_WEIGHTS` and context multipliers `CONTEXTS` implement \(w_i^0\) and \(f(C_t,S_t)\); per-pole scores come from `LinearPoleEvaluator` + `pole_linear_default.json` (override `KERNEL_POLE_LINEAR_CONFIG`; see [ADR 0004](adr/0004-configurable-linear-pole-evaluator.md)). Scores aggregate into `TripartiteMoral`.
 
@@ -157,13 +157,13 @@ P(\text{éxito})=\alpha\cdot P(\text{control interno})+\beta\cdot P(\text{factor
 | Mechanism | Role | Primary implementation |
 |-----------|------|-------------------------|
 | **MalAbs** | Hard veto; no deliberation if triggered | `absolute_evil.py`, early filter in `kernel.py` |
-| **Zona gris** | Ambiguity → deliberation / DAO / audit | `BayesianEngine` thresholds, `SigmoidWill.decide`, `Verdict.GRAY_ZONE` in `ethical_poles.py` |
+| **Zona gris** | Ambiguity → deliberation / DAO / audit | `WeightedEthicsScorer` thresholds (alias: `BayesianEngine`), `SigmoidWill.decide`, `Verdict.GRAY_ZONE` in `ethical_poles.py` |
 | **Buffer precargado** | Immutable foundational principles | `buffer.py` (`PreloadedBuffer`, `FoundationalPrinciple`) |
 | **Moraleja multipolar** | Compassion / conservative / optimistic poles | `ethical_poles.py` |
 | **Uchi–Soto** | Inner vs. outer circle, trust, dialectic | `uchi_soto.py`, used at start of `process` |
-| **D_fast / D_deliberative** | Fast vs. deep modes | `bayesian_engine.py`, `sigmoid_will.py`, fused in `kernel.py` |
+| **D_fast / D_deliberative** | Fast vs. deep modes | `weighted_ethics_scorer.py`, `sigmoid_will.py`, fused in `kernel.py` |
 | **Perdón algorítmico** | Registro por episodio; decay de carga negativa; ciclo nocturno en `execute_sleep` | `forgiveness.py` (`AlgorithmicForgiveness`) |
-| **Mapa causal bayesiano (MVP)** | Expected impact + pruning | `bayesian_engine.py` (simplified discrete model) |
+| **Ethical impact mixture (MVP)** | Expected impact + pruning | `weighted_ethics_scorer.py` (fixed mixture; not full Bayes) |
 | **Sueño Ψ** | Audit pruned alternatives, recalibration | `psi_sleep.py` |
 | **Polo de debilidad** | Humaniza la narrativa sin cambiar la acción elegida | `weakness_pole.py` |
 | **Inmortalidad** | Respaldo distribuido del estado del kernel | `immortality.py` (`execute_sleep`) |
@@ -175,7 +175,7 @@ P(\text{éxito})=\alpha\cdot P(\text{control interno})+\beta\cdot P(\text{factor
 | **Drive arbiter** | Intenciones motivacionales (telemetría; tras backup en `execute_sleep`) | `drive_arbiter.py` |
 | **Guardian mode** | Tono protector + rutinas JSON opcionales (hints); **no** altera MalAbs → … → will | `guardian_mode.py`, `guardian_routines.py` |
 | **Epistemic dissonance (v9.1)** | Telemetría audio/movimiento/visión; hint de tono ante inconsistencia; **no** altera MalAbs → … → will | `epistemic_dissonance.py` |
-| **Generative candidates (v9.2)** | Candidatos plantilla extra, trazables (`generative_proposal`); mismo MalAbs/Bayes; opt-in por env | `generative_candidates.py` |
+| **Generative candidates (v9.2)** | Candidatos plantilla extra, trazables (`generative_proposal`); mismo MalAbs + mixture scorer; opt-in por env | `generative_candidates.py` |
 | **Swarm stub (v9.3 lab)** | Huellas deterministas de veredicto / stats descriptivos; sin red ni veto | `swarm_peer_stub.py` + [`SWARM_P2P_THREAT_MODEL.md`](SWARM_P2P_THREAT_MODEL.md) |
 | **Gray-zone diplomacy (v10)** | Hint LLM ante gray zone / tensión reflexiva / premisa advisory | `gray_zone_diplomacy.py` |
 | **Skill learning registry (v10)** | Tickets de alcance; auditoría en Ψ Sleep | `skill_learning_registry.py` |

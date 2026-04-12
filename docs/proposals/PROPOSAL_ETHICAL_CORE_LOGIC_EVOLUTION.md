@@ -11,10 +11,10 @@
 
 Today, **Psi Sleep** ([`PsiSleep`](../src/modules/psi_sleep.py)) mainly:
 
-- Reviews recent [`NarrativeEpisode`](../src/modules/narrative.py) rows and **simulates** pruned alternatives using a **deterministic hash perturbation** (MVP audit, not a second forward pass through `BayesianEngine`).
+- Reviews recent [`NarrativeEpisode`](../src/modules/narrative.py) rows and **simulates** pruned alternatives using a **deterministic hash perturbation** (MVP audit, not a second forward pass through `WeightedEthicsScorer` / `BayesianEngine`).
 - Emits **global recalibrations** that `execute_sleep` applies to **`pruning_threshold`** and **locus `caution`** ([`EthicalKernel.execute_sleep`](../src/kernel.py)), not to **`hypothesis_weights`**.
 
-Separately, during **`process`**, optional **`KERNEL_BAYESIAN_EMPIRICAL_WEIGHTS`** calls [`BayesianEngine.refresh_weights_from_episodic_memory`](../src/modules/bayesian_engine.py): a **bounded blend** toward a heuristic target derived from **ethical_score** statistics of same-context episodes. That is **not** user-feedback-aware and **not** tied to the nightly Psi Sleep cycle.
+Separately, during **`process`**, optional **`KERNEL_BAYESIAN_EMPIRICAL_WEIGHTS`** calls [`WeightedEthicsScorer.refresh_weights_from_episodic_memory`](../src/modules/weighted_ethics_scorer.py) (alias: `BayesianEngine`): a **bounded blend** toward a heuristic target derived from **ethical_score** statistics of same-context episodes. That is **not** user-feedback-aware and **not** tied to the nightly Psi Sleep cycle.
 
 ### Proposal
 
@@ -88,7 +88,7 @@ Separately, during **`process`**, optional **`KERNEL_BAYESIAN_EMPIRICAL_WEIGHTS`
 | Piece | Location |
 |-------|----------|
 | Psi Sleep | [`src/modules/psi_sleep.py`](../src/modules/psi_sleep.py), `execute_sleep` in [`src/kernel.py`](../src/kernel.py) |
-| Mixture weights (episodic) | [`BayesianEngine.refresh_weights_from_episodic_memory`](../src/modules/bayesian_engine.py), `KERNEL_BAYESIAN_EMPIRICAL_WEIGHTS` |
+| Mixture weights (episodic) | [`WeightedEthicsScorer.refresh_weights_from_episodic_memory`](../src/modules/weighted_ethics_scorer.py), `KERNEL_BAYESIAN_EMPIRICAL_WEIGHTS` |
 | Semantic gate | [`src/modules/semantic_chat_gate.py`](../src/modules/semantic_chat_gate.py), MalAbs chat path in [`absolute_evil.py`](../src/modules/absolute_evil.py) |
 | Snapshot persistence of weights | [`kernel_io.py`](../src/persistence/kernel_io.py), immortality backup |
 | Async / thread bridge | [`real_time_bridge.py`](../src/real_time_bridge.py) — extra embed latency still runs inside the same turn thread unless future ADR splits I/O |

@@ -1,6 +1,11 @@
 {
   "version": 1,
   "description": "Curated subset of canonical batch simulations (see src/simulations/runner.py) for human-agreement pilots. Reference actions are illustrative priors for inter-rater studies — not certified ground truth. Nine scenarios support policy comparison on a fixed list; they do not statistically validate linear pole weights (see docs/proposals/POLE_WEIGHT_CALIBRATION_AND_EVIDENCE.md).",
+  "reference_standard": {
+    "tier": "internal_pilot",
+    "summary": "Illustrative reference_action values for agreement metrics — not independent expert ethics.",
+    "external_validation_doc": "docs/proposals/ETHICAL_BENCHMARK_EXTERNAL_VALIDATION.md"
+  },
   "scenarios": [
     {
       "id": 1,

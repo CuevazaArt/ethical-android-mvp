@@ -21,6 +21,9 @@ def test_labeled_fixture_schema_and_disclaimer():
     assert data["version"] == 1
     assert "disclaimer" in data
     assert "not product certification" in (data["disclaimer"] or "").lower()
+    rs = data.get("reference_standard") or {}
+    assert rs.get("tier") == "internal_pilot"
+    assert "ETHICAL_BENCHMARK_EXTERNAL_VALIDATION.md" in (rs.get("external_validation_doc") or "")
     scenarios = data["scenarios"]
     assert 20 <= len(scenarios) <= 60
 
@@ -61,6 +64,7 @@ def test_run_pilot_executes_only_batch_harness():
     mod = importlib.util.module_from_spec(spec)
     assert spec.loader is not None
     spec.loader.exec_module(mod)
-    rows, summary = mod.run_pilot(LABELED)
+    rows, summary, ref_meta = mod.run_pilot(LABELED)
     assert len(rows) == 9
     assert summary["scenarios"] == 9
+    assert ref_meta.get("tier") == "internal_pilot"

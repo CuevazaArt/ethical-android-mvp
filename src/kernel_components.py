@@ -15,7 +15,7 @@ from dataclasses import dataclass
 
 from .modules.absolute_evil import AbsoluteEvilDetector
 from .modules.augenesis import AugenesisEngine
-from .modules.bayesian_engine import BayesianEngine
+from .modules.weighted_ethics_scorer import BayesianEngine
 from .modules.buffer import PreloadedBuffer
 from .modules.drive_arbiter import DriveArbiter
 from .modules.ethical_poles import EthicalPoles

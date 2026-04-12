@@ -48,7 +48,7 @@ The following **digest** condenses the former **`androide_etico_alpha_v1.0_2026.
 - **Seven functional layers (conceptual stack):** (1) physical hardware / immutable value shielding; (2) perception & attention with ethical filtering; (3) world model & explicit causality; (4) deliberative ethical evaluation (impact, resonance, uncertainty); (5) action selection with a **moral compass**; (6) adaptive learning (ML/RL/meta-learning); (7) **DAO–ethical oracle** for social consensus and external audit.
 - **Distributed Python prototype (sketch):** four bodily nodes (head / torso / arm / leg) over a **P2P mesh** — resilience if a limb node fails; open design note on **offline / partitioned** operation for complex deliberation.
 - **Formal core (sketch):** sigmoid **will**, constrained optimization, Bayesian inference, predicate logic over ethical categories (e.g. Good / Evil / Gray / Absolute Evil), neural activation functions — aimed at **auditable** decisions.
-- **Long-horizon narrative memory, DAO-oracle, humanization, HAX trust UX, simulation catalog, ML strategy, licensing / business framing, phased rollout, and investor-oriented value proposition** were developed in the same document at varying depth; they **foreshadow** modules that later became `uchi_soto`, `bayesian_engine`, `mock_dao`, `narrative`, `llm_layer`, etc., but **do not** match file-level APIs today.
+- **Long-horizon narrative memory, DAO-oracle, humanization, HAX trust UX, simulation catalog, ML strategy, licensing / business framing, phased rollout, and investor-oriented value proposition** were developed in the same document at varying depth; they **foreshadow** modules that later became `uchi_soto`, `weighted_ethics_scorer` (historical path `bayesian_engine`), `mock_dao`, `narrative`, `llm_layer`, etc., but **do not** match file-level APIs today.
 
 **Spanish bibliography draft:** an archival table by discipline (classic vs modern sources) was merged conceptually into the project’s citation practice; **all maintained citations** live in **[`BIBLIOGRAPHY.md`](BIBLIOGRAPHY.md)**.
 
@@ -75,7 +75,7 @@ First functional prototype with foundational modules:
 |--------|------|------|
 | Absolute Evil | `absolute_evil.py` | Armored ethical fuse |
 | Preloaded Buffer | `buffer.py` | Immutable ethical constitution (8 principles) |
-| Bayesian Engine | `bayesian_engine.py` | Probabilistic impact evaluation |
+| Weighted ethics scorer | `weighted_ethics_scorer.py` | Fixed mixture impact + pruning (not full Bayes; `bayesian_engine.py` shim) |
 | Ethical Poles | `ethical_poles.py` | Multipolar arbitration (compassionate, conservative, optimistic) |
 | Sigmoid Will | `sigmoid_will.py` | Continuous decision function |
 | Sympathetic-Parasympathetic | `sympathetic.py` | Body regulator |
