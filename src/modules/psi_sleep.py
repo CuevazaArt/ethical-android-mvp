@@ -1,15 +1,29 @@
 """
-Psi Sleep — Retrospective nocturnal audit.
+Psi Sleep — Retrospective nightly audit (MVP).
 
-P(correct action | narrative, D) -> posterior validation
+**What the code does:** reviews recent :class:`NarrativeEpisode` rows and, for each
+pruned alternative name, computes a **synthetic** counterfactual score by applying a
+**deterministic hash-derived perturbation** to the episode’s stored ``ethical_score``.
+Findings that exceed a fixed threshold can recommend **small** adjustments to
+``pruning_threshold`` / locus ``caution`` (applied in :meth:`EthicalKernel.execute_sleep`
+subject to genome drift caps).
 
-During recharging, the system simulates discarded actions
-to verify if any would have produced a better outcome.
-If it discovers a hidden benefit or undetected harm,
-it recalibrates parameters for the next day.
+**What the code does *not* do (honesty boundary):**
 
-Genuinely innovative: no published equivalent in AI.
-Direct parallel with memory consolidation during human sleep.
+- It does **not** re-run :class:`~src.modules.weighted_ethics_scorer.WeightedEthicsScorer`
+  or :meth:`EthicalKernel.process` on reconstructed actions — so it does **not**
+  validate the day decision engine against an independent model.
+- The perturbation is **not** human judgment, external philosophy, or a second policy head; it **cannot** detect systematic bugs in the scorer that produced the original
+  choice. At most it is a **reproducible stress signal** for narrative / UX and
+  bounded parameter nudges.
+
+**Future work (see docs):** optional re-scoring path, shadow weights, or agreement
+with an **external** labeled benchmark — ``PROPOSAL_ETHICAL_CORE_LOGIC_EVOLUTION.md`` (B1),
+``ETHICAL_BENCHMARK_EXTERNAL_VALIDATION.md``, ``MODULE_IMPACT_AND_EMPIRICAL_GAP.md``.
+
+**Stable IDs:** module constant ``COUNTERFACTUAL_EVALUATOR_ID`` and per-finding
+``evaluation_method`` on :class:`EpisodeReview` identify the MVP evaluator for logs
+and transparency.
 """
 
 import hashlib
@@ -18,10 +32,13 @@ from dataclasses import dataclass
 
 from .narrative import NarrativeEpisode, NarrativeMemory
 
+# Stable identifier for audit logs / UIs (bump if perturbation formula changes).
+COUNTERFACTUAL_EVALUATOR_ID = "psi_sleep_hash_perturbation_v1"
+
 
 @dataclass
 class EpisodeReview:
-    """Result of reviewing an episode during Psi Sleep."""
+    """Result of reviewing one pruned alternative during Psi Sleep."""
 
     episode_id: str
     action_taken: str
@@ -31,6 +48,7 @@ class EpisodeReview:
     delta: float
     finding: str  # "hidden_benefit", "undetected_harm", "confirmed", "neutral"
     recalibration: dict[str, float]  # Recommended parameter adjustments
+    evaluation_method: str = "hash_perturbation_mvp"
 
 
 @dataclass
@@ -42,23 +60,18 @@ class SleepResult:
     global_recalibrations: dict[str, float]
     narrative_summary: str
     ethical_health: float  # [0, 1] ethical coherence of the day
+    counterfactual_evaluator_id: str = COUNTERFACTUAL_EVALUATOR_ID
 
 
 class PsiSleep:
     """
-    Retrospective audit with Bayesian inference.
+    Retrospective audit with **hash-based counterfactual perturbation** (MVP).
 
-    Psi Sleep cycle:
-    1. Review the day's episodes
-    2. Simulate discarded (pruned) actions
-    3. Compare alternative scores vs. actual
-    4. If significant discrepancy is found, recommend recalibration
-    5. Generate narrative summary for the next day
-
-    In MVP: simplified simulation with score perturbations.
-    In production: full Bayesian re-evaluation with updated data.
+    See module docstring for limits: **not** Bayesian inference and **not** an
+    independent ethical evaluator.
     """
 
+    COUNTERFACTUAL_EVALUATOR_ID = COUNTERFACTUAL_EVALUATOR_ID
     FINDING_THRESHOLD = 0.15
 
     def __init__(self):
@@ -109,6 +122,7 @@ class PsiSleep:
             global_recalibrations=recalibrations,
             narrative_summary=summary,
             ethical_health=round(health, 4),
+            counterfactual_evaluator_id=COUNTERFACTUAL_EVALUATOR_ID,
         )
 
         self.sessions.append(result)
@@ -121,7 +135,7 @@ class PsiSleep:
         n_findings: int,
     ) -> str:
         """
-        Compact semantic summary for LLM / UX (robustez pilar 3).
+        Compact semantic summary for LLM / UX (robustness pillar 3).
 
         Does not delete episodic detail; additive consolidation line only.
         """
@@ -140,11 +154,10 @@ class PsiSleep:
         self, ep: NarrativeEpisode, alternative_action: str
     ) -> EpisodeReview | None:
         """
-        Simulate what would have happened with an alternative action.
+        Synthetic counterfactual score from ``ethical_score`` + hash perturbation.
 
-        In MVP: deterministic perturbation from (episode id, alternative) hash — reproducible audits.
-        In production: full Bayesian re-evaluation with the
-        Bayesian engine and updated data.
+        Reproducible given ``episode.id`` and ``alternative_action``. Does **not**
+        invoke the kernel or :class:`~src.modules.weighted_ethics_scorer.WeightedEthicsScorer`.
         """
         h = hashlib.sha256(f"{ep.id}|{alternative_action}".encode()).digest()
         u = int.from_bytes(h[:8], "big") / 2**64  # [0, 1)
@@ -176,6 +189,7 @@ class PsiSleep:
                 delta=round(delta, 4),
                 finding=finding,
                 recalibration=recal,
+                evaluation_method="hash_perturbation_mvp",
             )
         return None
 
@@ -212,15 +226,19 @@ class PsiSleep:
         harms = sum(1 for h in findings if h.finding == "undetected_harm")
 
         lines = [f"Psi Sleep completed. {n_ep} episodes reviewed."]
+        lines.append(
+            f"Counterfactual evaluator: {COUNTERFACTUAL_EVALUATOR_ID} "
+            "(hash perturbation of stored scores; not independent of day scorer)."
+        )
 
         if n_findings == 0:
             lines.append("No significant discrepancies found. Consistent day.")
         else:
             if benefits > 0:
-                lines.append(f"⚡ {benefits} hidden benefit(s) detected in pruned actions.")
+                lines.append(f"[+] {benefits} hidden benefit(s) detected in pruned actions.")
                 lines.append("  → Recalibrate: lower pruning threshold to consider more options.")
             if harms > 0:
-                lines.append(f"⚠ {harms} undetected harm(s) in retrospective simulation.")
+                lines.append(f"[!] {harms} undetected harm(s) in retrospective simulation.")
                 lines.append("  → Recalibrate: increase caution in similar contexts.")
 
         if health > 0.7:
@@ -240,6 +258,8 @@ class PsiSleep:
             f"\n{'=' * 70}",
             "  PSI SLEEP — RETROSPECTIVE AUDIT",
             f"{'=' * 70}",
+            f"  Counterfactual evaluator: {result.counterfactual_evaluator_id}",
+            "    (synthetic hash perturbation — does not re-run WeightedEthicsScorer)",
             f"  Episodes reviewed: {result.episodes_reviewed}",
             f"  Findings: {len(result.findings)}",
             f"  Ethical health: {result.ethical_health}",
@@ -248,10 +268,10 @@ class PsiSleep:
         if result.findings:
             lines.append("")
             for h in result.findings:
-                emoji = "⚡" if h.finding == "hidden_benefit" else "⚠"
+                tag = "[+]" if h.finding == "hidden_benefit" else "[!]"
                 lines.append(
-                    f"  {emoji} {h.episode_id}: '{h.action_taken}' vs '{h.alternative_action}' "
-                    f"(delta={h.delta:+.3f}) → {h.finding}"
+                    f"  {tag} {h.episode_id}: '{h.action_taken}' vs '{h.alternative_action}' "
+                    f"(delta={h.delta:+.3f}) → {h.finding} [{h.evaluation_method}]"
                 )
 
         if result.global_recalibrations:

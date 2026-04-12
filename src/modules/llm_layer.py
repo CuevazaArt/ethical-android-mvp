@@ -42,6 +42,12 @@ from .llm_backends import (
     TextCompletionBackend,
     coerce_to_llm_backend,
 )
+from .perception_dual_vote import (
+    apply_perception_dual_vote_metadata,
+    perception_dual_ollama_model,
+    perception_dual_second_temperature,
+    perception_dual_vote_enabled,
+)
 from .perception_schema import (
     PerceptionCoercionReport,
     finalize_summary,
@@ -352,16 +358,69 @@ class LLMModule:
     def _text_backend(self, value: Any) -> None:
         self._llm_backend = coerce_to_llm_backend(value)
 
-    def _llm_completion(self, system: str, user: str, *, metrics_op: str = "completion") -> str:
+    def _llm_completion(
+        self,
+        system: str,
+        user: str,
+        *,
+        metrics_op: str = "completion",
+        temperature: float | None = None,
+    ) -> str:
         """Route JSON-oriented prompts through the active LLM backend."""
         b = self._llm_backend
         if b is not None:
             t0 = time.perf_counter()
             try:
-                return b.completion(system, user)
+                kw: dict[str, Any] = {}
+                if temperature is not None:
+                    kw["temperature"] = temperature
+                return b.completion(system, user, **kw)
             finally:
                 observe_llm_completion_seconds(metrics_op, time.perf_counter() - t0)
         return ""
+
+    def _maybe_apply_perception_dual_vote(
+        self, primary: LLMPerception, situation: str, user_block: str
+    ) -> None:
+        """Second LLM perception sample; merges discrepancy into ``primary.coercion_report``."""
+        if not perception_dual_vote_enabled():
+            return
+        if self.mode not in ("api", "ollama", "injected") or self._llm_backend is None:
+            return
+        t2 = perception_dual_second_temperature()
+        dual_model = perception_dual_ollama_model()
+        try:
+            if dual_model and isinstance(self._llm_backend, OllamaCompletion):
+                inf = self._llm_backend.info()
+                b2 = OllamaCompletion(
+                    str(inf["base_url"]),
+                    dual_model,
+                    float(os.environ.get("OLLAMA_TIMEOUT", "120")),
+                    embed_model=str(inf.get("embed_model") or "nomic-embed-text"),
+                )
+                response_b = b2.completion(
+                    _perception_prompt(), user_block, temperature=t2
+                )
+            else:
+                response_b = self._llm_completion(
+                    _perception_prompt(),
+                    user_block,
+                    metrics_op="perceive_dual",
+                    temperature=t2,
+                )
+        except Exception:
+            return
+        parsed_b = parse_perception_llm_raw_response(response_b)
+        data_b, issues_b = parsed_b.data, parsed_b.issues
+        if not isinstance(data_b, dict) or not data_b:
+            return
+        try:
+            secondary = perception_from_llm_json(
+                data_b, situation, parse_issues=issues_b
+            )
+        except Exception:
+            return
+        apply_perception_dual_vote_metadata(primary, secondary)
 
     def optional_monologue_embellishment(self, structured_line: str) -> str:
         """
@@ -441,7 +500,9 @@ class LLMModule:
                 return p
             if isinstance(data, dict) and data:
                 try:
-                    return perception_from_llm_json(data, situation, parse_issues=issues)
+                    p = perception_from_llm_json(data, situation, parse_issues=issues)
+                    self._maybe_apply_perception_dual_vote(p, situation, user_block)
+                    return p
                 except Exception:
                     p = self._perceive_local(situation)
                     merge_parse_issues_into_perception(

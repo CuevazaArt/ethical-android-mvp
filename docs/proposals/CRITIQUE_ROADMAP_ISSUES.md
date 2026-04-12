@@ -44,6 +44,20 @@ These came from the same external critiques but are **tracked in ADRs / weakness
 
 - **“Bayesian” scorer honesty:** Canonical [`weighted_ethics_scorer.py`](../../src/modules/weighted_ethics_scorer.py); compat [`bayesian_engine.py`](../../src/modules/bayesian_engine.py); [ADR 0009](../adr/0009-ethical-mixture-scorer-naming.md). Aligns with Issue **#1** acceptance above.
 - **WebSocket vs blocking I/O:** Chat path uses [`RealTimeBridge`](../../src/real_time_bridge.py) (worker threads). Optional `KERNEL_CHAT_TURN_TIMEOUT`, `KERNEL_CHAT_THREADPOOL_WORKERS`; [ADR 0002](../adr/0002-async-orchestration-future.md) (**partial** — async HTTP cancellation still open; see [WEAKNESSES_AND_BOTTLENECKS.md](../WEAKNESSES_AND_BOTTLENECKS.md) §1).
+- **Psi Sleep counterfactuals:** [`psi_sleep.py`](../../src/modules/psi_sleep.py) uses **hash perturbation** of stored scores — **not** a second pass through `WeightedEthicsScorer`; documented as non-independent ( [WEAKNESSES_AND_BOTTLENECKS.md](../WEAKNESSES_AND_BOTTLENECKS.md) §8).
+
+### Maintainer-facing priority stack (external synthesis, April 2026)
+
+Ordered by leverage; **not** all map1:1 to GitHub rows above.
+
+| Priority | Topic | In-repo status / pointer |
+|----------|--------|---------------------------|
+| 1 | Honest naming: “Bayesian” vs mixture | **Done:** [`weighted_ethics_scorer.py`](../../src/modules/weighted_ethics_scorer.py), [ADR 0009](../adr/0009-ethical-mixture-scorer-naming.md), shim [`bayesian_engine.py`](../../src/modules/bayesian_engine.py). |
+| 2 | External ethical benchmark | **Open:** [ETHICAL_BENCHMARK_EXTERNAL_VALIDATION.md](ETHICAL_BENCHMARK_EXTERNAL_VALIDATION.md), [EMPIRICAL_PILOT_METHODOLOGY.md](EMPIRICAL_PILOT_METHODOLOGY.md), `scripts/run_empirical_pilot.py`. |
+| 3 | Semantic gate thresholds + reproducible evidence | **Partial:** [PROPOSAL_MALABS_SEMANTIC_THRESHOLD_EVIDENCE.md](PROPOSAL_MALABS_SEMANTIC_THRESHOLD_EVIDENCE.md), tests in `tests/test_semantic_chat_gate.py`; full θ experiment backlog. |
+| 4 | Async LLM / scalable chat | **Partial:** [ADR 0002](../adr/0002-async-orchestration-future.md), `KERNEL_CHAT_TURN_TIMEOUT`, `KERNEL_CHAT_THREADPOOL_WORKERS`; cooperative HTTP cancel still TBD. |
+| 5 | Consolidated Pydantic settings + startup validation | **Partial / growing:** [`chat_settings.py`](../../src/chat_settings.py), [`kernel_public_env.py`](../../src/validators/kernel_public_env.py) + [`KERNEL_ENV_POLICY.md`](KERNEL_ENV_POLICY.md) (`KERNEL_ENV_VALIDATION`); full single `Settings` model not unified yet. |
+| 6 | Peripheral module ablation on nine scenarios | **Open:** [MODULE_IMPACT_AND_EMPIRICAL_GAP.md](MODULE_IMPACT_AND_EMPIRICAL_GAP.md), [WEAKNESSES_AND_BOTTLENECKS.md](../WEAKNESSES_AND_BOTTLENECKS.md) §7. |
 
 ---
 

@@ -31,6 +31,9 @@ def test_supported_combos_partition_matches_runtime_profiles():
 
 @pytest.mark.parametrize("profile_name", profile_names())
 def test_nominal_profile_has_no_env_violations(monkeypatch: pytest.MonkeyPatch, profile_name: str):
+    # Profiles only set overrides; clear flags that participate in cross-rules so host env
+    # cannot make a nominal bundle look inconsistent (e.g. SEMANTIC=0 from shell + hub demo).
+    monkeypatch.delenv("KERNEL_SEMANTIC_CHAT_GATE", raising=False)
     apply_runtime_profile(monkeypatch, profile_name)
     assert collect_env_violations() == []
 
@@ -39,6 +42,14 @@ def test_strict_rejects_judicial_mock_without_escalation(monkeypatch: pytest.Mon
     monkeypatch.delenv("KERNEL_JUDICIAL_ESCALATION", raising=False)
     monkeypatch.setenv("KERNEL_JUDICIAL_MOCK_COURT", "1")
     with pytest.raises(ValueError, match="KERNEL_JUDICIAL_MOCK_COURT"):
+        validate_kernel_env(mode="strict")
+
+
+def test_strict_rejects_semantic_off_with_hub_dao_vote(monkeypatch: pytest.MonkeyPatch):
+    monkeypatch.delenv("ETHOS_RUNTIME_PROFILE", raising=False)
+    monkeypatch.setenv("KERNEL_SEMANTIC_CHAT_GATE", "0")
+    monkeypatch.setenv("KERNEL_MORAL_HUB_DAO_VOTE", "1")
+    with pytest.raises(ValueError, match="KERNEL_SEMANTIC_CHAT_GATE"):
         validate_kernel_env(mode="strict")
 
 

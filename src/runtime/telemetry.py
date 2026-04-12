@@ -10,6 +10,8 @@ import asyncio
 import os
 from typing import TYPE_CHECKING
 
+from starlette.concurrency import run_in_threadpool
+
 if TYPE_CHECKING:
     from src.kernel import EthicalKernel
     from src.modules.drive_arbiter import DriveIntent
@@ -50,7 +52,8 @@ async def advisory_loop(
         raise ValueError("interval_s must be positive")
 
     while not stop.is_set():
-        kernel.drive_arbiter.evaluate(kernel)
+        # Offload so periodic advisory work does not block the asyncio loop (see ADR 0002).
+        await run_in_threadpool(advisory_snapshot, kernel)
         try:
             await asyncio.wait_for(stop.wait(), timeout=interval_s)
         except TimeoutError:

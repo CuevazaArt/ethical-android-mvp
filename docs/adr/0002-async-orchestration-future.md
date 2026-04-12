@@ -13,6 +13,12 @@
 
 4. **Future (not required for this ADR):** Replace sync ``httpx.Client`` with **async** ``httpx.AsyncClient`` for true request cancellation; queue-based workers for background jobs; structured concurrency per session. Kernel API remains sync unless a future ADR splits a package boundary.
 
+5. **WebSocket JSON offload (April 2026):** After each turn, optional LLM monologue embellishment (``KERNEL_LLM_MONOLOGUE``) and JSON assembly run in :meth:`src.real_time_bridge.RealTimeBridge.run_sync_in_chat_thread` when ``KERNEL_CHAT_JSON_OFFLOAD`` is on (default), using the same executor policy as :meth:`~src.real_time_bridge.RealTimeBridge.process_chat`.
+
+6. **Advisory telemetry offload:** :func:`src.runtime.telemetry.advisory_loop` evaluates drive intents via ``run_in_threadpool`` so the periodic advisory path does not block the event loop.
+
+7. **Psi Sleep / ``execute_sleep`` (April 2026):** :meth:`src.real_time_bridge.RealTimeBridge.run_execute_sleep` runs :meth:`src.kernel.EthicalKernel.execute_sleep` in the **same** executor policy as chat turns. The default ``/ws/chat`` loop does **not** invoke Psi Sleep on each message; any future HTTP/WebSocket surface that triggers nightly maintenance must use this async wrapper (or ``run_sync_in_chat_thread``) rather than calling the kernel synchronously on the event loop. WebSocket **session end** (checkpoint save + conduct guide export) runs via ``run_sync_in_chat_thread`` so disconnect does not block other connections’ I/O.
+
 ## Consequences
 
 - **Positive:** Multiple WebSocket sessions remain **responsive** at the transport layer; operators can cap **perceived** turn latency and size a **known** thread pool.
@@ -21,7 +27,8 @@
 ## Links
 
 - [`src/real_time_bridge.py`](../../src/real_time_bridge.py)  
-- [`src/chat_settings.py`](../../src/chat_settings.py) — ``KERNEL_CHAT_TURN_TIMEOUT``, ``KERNEL_CHAT_THREADPOOL_WORKERS``  
+- [`src/chat_settings.py`](../../src/chat_settings.py) — ``KERNEL_CHAT_TURN_TIMEOUT``, ``KERNEL_CHAT_THREADPOOL_WORKERS``, ``KERNEL_CHAT_JSON_OFFLOAD``  
+- [`PROPOSAL_SYNC_KERNEL_ASYNC_ASGI_BRIDGE.md`](../proposals/PROPOSAL_SYNC_KERNEL_ASYNC_ASGI_BRIDGE.md)  
 - [`RUNTIME_CONTRACT.md`](../proposals/RUNTIME_CONTRACT.md)  
 - [`CORE_DECISION_CHAIN.md`](../proposals/CORE_DECISION_CHAIN.md)  
 - [ADR 0001 — packaging boundary](0001-packaging-core-boundary.md)

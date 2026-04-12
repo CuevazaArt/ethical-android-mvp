@@ -78,6 +78,7 @@ Legacy Spanish filenames (`PROPUESTA_*.md`, `ESTRATEGIA_Y_RUTA.md`, `PAPER_AFECT
 | [CORE_DECISION_CHAIN.md](CORE_DECISION_CHAIN.md) | Core decision chain |
 | [ROADMAP_MINIMAL_EXECUTABLE_MODEL_30_DAY.md](ROADMAP_MINIMAL_EXECUTABLE_MODEL_30_DAY.md) | 30-day plan: compose, ethical telemetry, persistence migrations, operator manual — *English* |
 | [RUNTIME_PROFILES_OPERATOR_TABLE.md](RUNTIME_PROFILES_OPERATOR_TABLE.md) | `ETHOS_RUNTIME_PROFILE` names, risks, LAN/semantic notes — *English* |
+| [PROPOSAL_SYNC_KERNEL_ASYNC_ASGI_BRIDGE.md](PROPOSAL_SYNC_KERNEL_ASYNC_ASGI_BRIDGE.md) | Sync kernel vs async FastAPI — thread offload for turns, JSON, advisory — *English* |
 
 ---
 

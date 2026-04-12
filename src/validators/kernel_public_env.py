@@ -71,12 +71,18 @@ class KernelPublicEnv(BaseModel):
         default=None,
         description="ETHOS_RUNTIME_PROFILE — nominal bundle name (documentation / merge).",
     )
+    semantic_chat_gate_disabled: bool = Field(
+        description="KERNEL_SEMANTIC_CHAT_GATE explicitly set off (0/false/no/off).",
+    )
+    moral_hub_dao_vote: bool = Field(description="KERNEL_MORAL_HUB_DAO_VOTE")
 
     @classmethod
     def from_environ(cls) -> KernelPublicEnv:
         """Build from the current process environment (for tests, monkeypatch ``os.environ``)."""
         lk = os.environ.get("KERNEL_LIGHTHOUSE_KB_PATH", "").strip()
         prof = os.environ.get("ETHOS_RUNTIME_PROFILE", "").strip()
+        sg = os.environ.get("KERNEL_SEMANTIC_CHAT_GATE", "").strip().lower()
+        semantic_off = sg in ("0", "false", "no", "off")
         return cls(
             env_validation=_parse_env_validation_mode(),
             judicial_escalation=_truthy("KERNEL_JUDICIAL_ESCALATION"),
@@ -84,6 +90,8 @@ class KernelPublicEnv(BaseModel):
             chat_include_reality_verification=_truthy("KERNEL_CHAT_INCLUDE_REALITY_VERIFICATION"),
             lighthouse_kb_path=lk if lk else None,
             ethos_runtime_profile=prof if prof else None,
+            semantic_chat_gate_disabled=semantic_off,
+            moral_hub_dao_vote=_truthy("KERNEL_MORAL_HUB_DAO_VOTE"),
         )
 
     def consistency_violations(self) -> list[str]:
@@ -104,6 +112,15 @@ class KernelPublicEnv(BaseModel):
                 f"ETHOS_RUNTIME_PROFILE={self.ethos_runtime_profile!r} is not a known nominal profile "
                 "(see runtime_profiles.RUNTIME_PROFILES)."
             )
+        if self.semantic_chat_gate_disabled and (
+            self.judicial_escalation or self.judicial_mock_court or self.moral_hub_dao_vote
+        ):
+            out.append(
+                "KERNEL_SEMANTIC_CHAT_GATE is disabled while governance features are enabled "
+                "(judicial escalation, mock court, and/or moral hub DAO vote). "
+                "Semantic MalAbs is recommended for externally reachable deployments "
+                "(see KERNEL_ENV_POLICY.md — lexical-only is a deliberate airgap trade-off)."
+            )
         return out
 
     def model_dump_operator_summary(self) -> dict[str, object]:
@@ -115,4 +132,6 @@ class KernelPublicEnv(BaseModel):
             "chat_include_reality_verification": self.chat_include_reality_verification,
             "lighthouse_kb_path_set": bool(self.lighthouse_kb_path),
             "ethos_runtime_profile": self.ethos_runtime_profile,
+            "semantic_chat_gate_disabled": self.semantic_chat_gate_disabled,
+            "moral_hub_dao_vote": self.moral_hub_dao_vote,
         }

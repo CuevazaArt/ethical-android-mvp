@@ -98,6 +98,14 @@ RUNTIME_PROFILES: Final[dict[str, dict[str, str]]] = {
     "lexical_malabs_only": {
         "KERNEL_SEMANTIC_CHAT_GATE": "0",
     },
+    # Dual LLM perception sample + uncertainty→D_delib (GIGO mitigation; costs 2× perceive calls).
+    "perception_adv_consensus_lab": {
+        "KERNEL_PERCEPTION_DUAL_VOTE": "1",
+        "KERNEL_PERCEPTION_UNCERTAINTY_DELIB": "1",
+        "KERNEL_PERCEPTION_UNCERTAINTY_MIN": "0.35",
+        "KERNEL_PERCEPTION_DUAL_DISCREPANCY_MIN": "0.3",
+        "KERNEL_PERCEPTION_DUAL_TEMP_SECOND": "0.82",
+    },
 }
 
 PROFILE_DESCRIPTIONS: Final[dict[str, str]] = {
@@ -115,6 +123,7 @@ PROFILE_DESCRIPTIONS: Final[dict[str, str]] = {
     "phase2_event_bus_lab": "Phase 2 spike: KERNEL_EVENT_BUS for kernel.decision / kernel.episode_registered (ADR 0006, PROPOSAL_PHASE2_CORE_EXTENSIONS_AND_EVENT_BUS.md).",
     "untrusted_chat_input": "Semantic MalAbs on + KERNEL_SEMANTIC_EMBED_HASH_FALLBACK for CI/airgap without Ollama (PROPOSAL_ETHICAL_CORE_LOGIC_EVOLUTION B2).",
     "lexical_malabs_only": "Force KERNEL_SEMANTIC_CHAT_GATE=0 (lexical MalAbs only).",
+    "perception_adv_consensus_lab": "Second LLM perception sample; large hostility/risk disagreement raises coercion uncertainty for D_delib (see perception_dual_vote.py).",
 }
 
 

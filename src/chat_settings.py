@@ -97,6 +97,13 @@ class ChatServerSettings(BaseModel):
             "0 = use Starlette/anyio default thread offload."
         ),
     )
+    kernel_chat_json_offload: bool = Field(
+        description=(
+            "KERNEL_CHAT_JSON_OFFLOAD — when true (default), build WebSocket JSON "
+            "(including optional KERNEL_LLM_MONOLOGUE) in a worker thread so the asyncio "
+            "loop stays responsive. Set to 0 for debugging only."
+        ),
+    )
 
     @classmethod
     def from_env(cls) -> ChatServerSettings:
@@ -113,6 +120,7 @@ class ChatServerSettings(BaseModel):
                 "KERNEL_CHAT_TURN_TIMEOUT"
             ),
             kernel_chat_threadpool_workers=max(0, _env_int("KERNEL_CHAT_THREADPOOL_WORKERS", 0)),
+            kernel_chat_json_offload=_env_truthy("KERNEL_CHAT_JSON_OFFLOAD", default_true=True),
         )
 
     def model_dump_public(self) -> dict[str, Any]:
@@ -126,6 +134,7 @@ class ChatServerSettings(BaseModel):
             "kernel_chat_include_malabs_trace": self.kernel_chat_include_malabs_trace,
             "kernel_chat_turn_timeout_seconds": self.kernel_chat_turn_timeout_seconds,
             "kernel_chat_threadpool_workers": self.kernel_chat_threadpool_workers,
+            "kernel_chat_json_offload": self.kernel_chat_json_offload,
         }
 
 

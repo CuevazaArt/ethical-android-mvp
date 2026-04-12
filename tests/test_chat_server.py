@@ -10,7 +10,6 @@ import pytest
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
 
 from fastapi.testclient import TestClient
-
 from src.chat_server import app
 from src.kernel import EthicalKernel
 
@@ -29,6 +28,7 @@ def test_health():
     assert isinstance(bridge, dict)
     assert "kernel_chat_turn_timeout_seconds" in bridge
     assert "kernel_chat_threadpool_workers" in bridge
+    assert bridge.get("kernel_chat_json_offload") is True
     obs = body.get("observability")
     assert isinstance(obs, dict)
     assert "metrics_enabled" in obs

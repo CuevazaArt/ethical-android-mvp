@@ -2,6 +2,29 @@
 
 All notable changes to this project are summarized here. For narrative context and design rationale, see [`HISTORY.md`](HISTORY.md).
 
+## Sync kernel vs async ASGI — JSON + advisory offload — April 2026
+
+- **[`src/real_time_bridge.py`](src/real_time_bridge.py):** `RealTimeBridge.run_sync_in_chat_thread` for synchronous post-turn work off the event loop.
+- **[`src/chat_server.py`](src/chat_server.py):** optional `KERNEL_CHAT_JSON_OFFLOAD` (default on) builds WebSocket payloads in the chat thread pool; `/health` exposes the flag.
+- **[`src/chat_settings.py`](src/chat_settings.py):** `kernel_chat_json_offload` in Pydantic settings.
+- **[`src/runtime/telemetry.py`](src/runtime/telemetry.py):** `advisory_loop` uses `run_in_threadpool` for `advisory_snapshot`.
+- **Docs:** [PROPOSAL_SYNC_KERNEL_ASYNC_ASGI_BRIDGE.md](docs/proposals/PROPOSAL_SYNC_KERNEL_ASYNC_ASGI_BRIDGE.md); [ADR 0002](docs/adr/0002-async-orchestration-future.md) amended; [`KERNEL_ENV_POLICY.md`](docs/proposals/KERNEL_ENV_POLICY.md), [`README.md`](README.md), [`WEAKNESSES_AND_BOTTLENECKS.md`](docs/WEAKNESSES_AND_BOTTLENECKS.md); [`.env.example`](.env.example).
+
+## Psi Sleep — honest counterfactual evaluator boundary — April 2026
+
+- **[`src/modules/psi_sleep.py`](src/modules/psi_sleep.py):** module/class docstrings state **hash perturbation** of stored `ethical_score`; **not** re-scoring via `WeightedEthicsScorer`; **not** independent quality validation. Stable id `psi_sleep_hash_perturbation_v1` on `SleepResult`; `evaluation_method` on `EpisodeReview`; formatted output and narrative summary disclose the evaluator.
+- **[`src/kernel.py`](src/kernel.py):** `execute_sleep` docstring + `record_operator_feedback` / chat helpers — mixture-scorer wording where relevant.
+- **Docs:** [WEAKNESSES_AND_BOTTLENECKS.md](docs/WEAKNESSES_AND_BOTTLENECKS.md) §8; [PROPOSAL_ETHICAL_CORE_LOGIC_EVOLUTION.md](docs/proposals/PROPOSAL_ETHICAL_CORE_LOGIC_EVOLUTION.md) (B1 problem).
+- **Tests:** [`tests/test_ethical_properties.py`](tests/test_ethical_properties.py) (`TestPsiSleep`); suite **612** collected.
+
+## Docs + ops coherence — mixture naming, ADR 0002, `/health` chat bridge — April 2026
+
+- **Cross-docs:** [`CORE_DECISION_CHAIN.md`](docs/proposals/CORE_DECISION_CHAIN.md) mermaid/table use `WeightedEthicsScorer`; [`CRITIQUE_ROADMAP_ISSUES.md`](docs/proposals/CRITIQUE_ROADMAP_ISSUES.md) “narrowed items” (ADR 0009 + 0002); [`PLAN_IMMEDIATE_TWO_WEEKS.md`](docs/proposals/PLAN_IMMEDIATE_TWO_WEEKS.md) appendix; [`RUNTIME_CONTRACT.md`](docs/proposals/RUNTIME_CONTRACT.md); proposals (reality / situated / relational / contribution V6) — consistent **mixture** wording vs legacy “Bayesian”.
+- **[`src/chat_server.py`](src/chat_server.py):** `GET /health` includes `chat_bridge` (turn timeout + threadpool workers from [`chat_settings`](src/chat_settings.py)).
+- **[`README.md`](README.md):** maturation disclaimer + ADR 0002 one-liner; **610+** tests.
+- **[`docs/proposals/PROJECT_STATUS_AND_MODULE_MATURITY.md`](docs/proposals/PROJECT_STATUS_AND_MODULE_MATURITY.md):** collection count **611**.
+- **Landing:** roadmap line for ADR 0002 remainder (async LLM cancel).
+
 ## Issue 7 — typed `KernelPublicEnv` + env policy refactor — April 2026
 
 - **[`src/validators/kernel_public_env.py`](src/validators/kernel_public_env.py):** Pydantic model for KERNEL flags in **consistency rules** (judicial, reality/lighthouse, `KERNEL_ENV_VALIDATION`, `ETHOS_RUNTIME_PROFILE`); `consistency_violations()` replaces ad-hoc `if` chains.
@@ -12,7 +35,7 @@ All notable changes to this project are summarized here. For narrative context a
 ## Chat server — async bridge: turn timeout + dedicated thread pool — April 2026
 
 - **[`src/real_time_bridge.py`](src/real_time_bridge.py):** optional dedicated ``ThreadPoolExecutor`` when ``KERNEL_CHAT_THREADPOOL_WORKERS`` > 0; ``shutdown_chat_threadpool`` on ASGI lifespan exit.
-- **[`src/chat_server.py`](src/chat_server.py):** optional ``KERNEL_CHAT_TURN_TIMEOUT`` wraps each turn in ``asyncio.wait_for``; on expiry responds with ``error=chat_turn_timeout`` (worker thread may still finish; see ADR 0002).
+- **[`src/chat_server.py`](src/chat_server.py):** optional ``KERNEL_CHAT_TURN_TIMEOUT`` wraps each turn in ``asyncio.wait_for``; on expiry responds with ``error=chat_turn_timeout`` (worker thread may still finish; see ADR 0002). ``GET /health`` exposes ``chat_bridge`` (see coherence entry above).
 - **[`src/chat_settings.py`](src/chat_settings.py):** Pydantic fields for the new env vars; ``model_dump_public`` extended.
 - **Docs:** [ADR 0002](docs/adr/0002-async-orchestration-future.md) status **Accepted (partial)**; [`KERNEL_ENV_POLICY.md`](docs/proposals/KERNEL_ENV_POLICY.md), [`RUNTIME_CONTRACT.md`](docs/proposals/RUNTIME_CONTRACT.md), [`.env.example`](.env.example).
 

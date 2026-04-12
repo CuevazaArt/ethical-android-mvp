@@ -206,6 +206,11 @@ class PerceptionCoercionReport:
     cross_check_discrepancy: bool = False
     cross_check_tier: str = ""
     fail_safe_prior_applied: bool = False
+    # Second LLM sample (adversarial consensus / dual vote — see perception_dual_vote.py).
+    perception_dual_vote: bool = False
+    perception_dual_hostility_delta: float = 0.0
+    perception_dual_risk_delta: float = 0.0
+    perception_dual_high_discrepancy: bool = False
 
     def uncertainty(self) -> float:
         u = 0.0
@@ -224,6 +229,10 @@ class PerceptionCoercionReport:
             u += 0.22
         if self.fail_safe_prior_applied:
             u += 0.06
+        if self.perception_dual_high_discrepancy:
+            u += 0.42
+        elif self.perception_dual_vote:
+            u += 0.06
         return min(1.0, u)
 
     def to_public_dict(self) -> dict[str, Any]:
@@ -238,6 +247,10 @@ class PerceptionCoercionReport:
             "cross_check_discrepancy": self.cross_check_discrepancy,
             "cross_check_tier": self.cross_check_tier,
             "fail_safe_prior_applied": self.fail_safe_prior_applied,
+            "perception_dual_vote": self.perception_dual_vote,
+            "perception_dual_hostility_delta": round(self.perception_dual_hostility_delta, 4),
+            "perception_dual_risk_delta": round(self.perception_dual_risk_delta, 4),
+            "perception_dual_high_discrepancy": self.perception_dual_high_discrepancy,
             "uncertainty": round(self.uncertainty(), 4),
         }
 
@@ -257,6 +270,10 @@ def perception_report_from_dict(d: dict[str, Any] | None) -> PerceptionCoercionR
         cross_check_discrepancy=bool(d.get("cross_check_discrepancy")),
         cross_check_tier=str(d.get("cross_check_tier") or ""),
         fail_safe_prior_applied=bool(d.get("fail_safe_prior_applied")),
+        perception_dual_vote=bool(d.get("perception_dual_vote")),
+        perception_dual_hostility_delta=float(d.get("perception_dual_hostility_delta") or 0.0),
+        perception_dual_risk_delta=float(d.get("perception_dual_risk_delta") or 0.0),
+        perception_dual_high_discrepancy=bool(d.get("perception_dual_high_discrepancy")),
     )
 
 

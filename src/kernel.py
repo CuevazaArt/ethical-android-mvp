@@ -23,7 +23,6 @@ from .modules.audit_chain_log import (
     maybe_append_malabs_block_audit,
 )
 from .modules.augenesis import AugenesisEngine
-from .modules.weighted_ethics_scorer import BayesianEngine, BayesianResult, CandidateAction
 from .modules.buffer import PreloadedBuffer
 from .modules.drive_arbiter import DriveArbiter
 from .modules.epistemic_dissonance import (
@@ -106,6 +105,7 @@ from .modules.user_model import UserModelTracker
 from .modules.variability import VariabilityConfig, VariabilityEngine
 from .modules.vitality import VitalityAssessment, assess_vitality, vitality_communication_hint
 from .modules.weakness_pole import WeaknessPole
+from .modules.weighted_ethics_scorer import BayesianEngine, BayesianResult, CandidateAction
 from .modules.working_memory import WorkingMemory
 from .persistence.checkpoint_port import CheckpointPersistencePort
 
@@ -727,7 +727,7 @@ class EthicalKernel:
         Record calibration feedback for the **last** chat turn's decision regime.
 
         Requires ``KERNEL_FEEDBACK_CALIBRATION=1``. Labels: ``approve``, ``dispute``, ``harm_report``.
-        Applied to ``BayesianEngine.hypothesis_weights`` during ``execute_sleep`` when
+        Applied to ``WeightedEthicsScorer.hypothesis_weights`` (alias ``BayesianEngine``) during ``execute_sleep`` when
         ``KERNEL_PSI_SLEEP_UPDATE_MIXTURE=1``.
         """
         if not _kernel_env_truthy("KERNEL_FEEDBACK_CALIBRATION"):
@@ -745,6 +745,10 @@ class EthicalKernel:
         """
         Executes Psi Sleep: retrospective audit + forgiveness + backup.
         Called at the end of the daily cycle, not during decisions.
+
+        Psi Sleep counterfactuals use a **hash perturbation** of stored episode scores
+        (see :mod:`src.modules.psi_sleep`); they do **not** re-run the mixture scorer
+        and are **not** an independent quality evaluator.
         """
         parts = []
 
@@ -816,7 +820,7 @@ class EthicalKernel:
         return self.dao.format_status()
 
     def _chat_light_actions(self) -> list[CandidateAction]:
-        """Safe dialogue moves for low-stakes chat turns (Bayesian still chooses)."""
+        """Safe dialogue moves for low-stakes chat turns (mixture scorer still chooses)."""
         return [
             CandidateAction(
                 "converse_supportively",

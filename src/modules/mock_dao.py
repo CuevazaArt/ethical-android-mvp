@@ -15,7 +15,9 @@ and security effort (``contracts/README.md`` holds a non-functional stub only).
 """
 
 import hashlib
+import json
 import math
+import os
 from dataclasses import asdict, dataclass, field
 from datetime import datetime
 from typing import Any
@@ -80,6 +82,34 @@ class SolidarityAlert:
     message: str
     timestamp: str
     recipients: list[str]
+
+
+def _append_audit_sidecar(rec: AuditRecord) -> None:
+    """
+    Optional append-only mirror of audit rows to a separate file (operator “sidecar”).
+
+    Set ``KERNEL_AUDIT_SIDECAR_PATH`` to a filesystem path. Does **not** provide tamper
+    evidence by itself; use OS permissions / remote log shipping for separation of duties.
+    """
+    path = os.environ.get("KERNEL_AUDIT_SIDECAR_PATH", "").strip()
+    if not path:
+        return
+    line = json.dumps(
+        {
+            "id": rec.id,
+            "type": rec.type,
+            "timestamp": rec.timestamp,
+            "episode_id": rec.episode_id,
+            "content": (rec.content or "")[:8000],
+        },
+        ensure_ascii=False,
+        sort_keys=True,
+    )
+    try:
+        with open(path, "a", encoding="utf-8") as f:
+            f.write(line + "\n")
+    except OSError:
+        return
 
 
 class MockDAO:
@@ -222,6 +252,7 @@ class MockDAO:
             episode_id=episode_id,
         )
         self.records.append(rec)
+        _append_audit_sidecar(rec)
         return rec
 
     def register_escalation_case(self, summary: str, episode_id: str | None = None) -> AuditRecord:

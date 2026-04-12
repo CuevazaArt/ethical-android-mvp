@@ -9,7 +9,7 @@ Or: python -m src.runtime  (same server; see docs/proposals/RUNTIME_CONTRACT.md)
 
 **Profiles:** set ``ETHOS_RUNTIME_PROFILE`` to a name in ``src/runtime_profiles.py`` to merge that bundle at import time (explicit env vars win per key). ``GET /health`` and ``GET /`` include ``runtime_profile`` when set.
 
-**Chat async bridge:** Each turn runs ``EthicalKernel.process_chat_turn`` in a worker thread (``RealTimeBridge``) so the asyncio loop can accept other WebSocket connections. Optional ``KERNEL_CHAT_THREADPOOL_WORKERS`` (positive int) uses a dedicated ``ThreadPoolExecutor`` for chat; optional ``KERNEL_CHAT_TURN_TIMEOUT`` (seconds) bounds the **async** wait and returns JSON ``error=chat_turn_timeout`` when exceeded (in-flight sync LLM may still run until ``OLLAMA_TIMEOUT``). See ``src/real_time_bridge.py`` and ADR 0002.
+**Chat async bridge:** Each turn runs ``EthicalKernel.process_chat_turn`` in a worker thread (``RealTimeBridge``) so the asyncio loop can accept other WebSocket connections. Optional ``KERNEL_CHAT_THREADPOOL_WORKERS`` (positive int) uses a dedicated ``ThreadPoolExecutor`` for chat; optional ``KERNEL_CHAT_TURN_TIMEOUT`` (seconds) bounds the **async** wait and returns JSON ``error=chat_turn_timeout`` when exceeded (in-flight sync LLM may still run until ``OLLAMA_TIMEOUT``). By default ``KERNEL_CHAT_JSON_OFFLOAD`` is on: WebSocket JSON (including optional ``KERNEL_LLM_MONOLOGUE``) is built in the same offload path so the loop is not blocked after the turn. See ``src/real_time_bridge.py``, ADR 0002, and ``docs/proposals/PROPOSAL_SYNC_KERNEL_ASYNC_ASGI_BRIDGE.md``.
 
 OpenAPI/Swagger: **off** by default; set KERNEL_API_DOCS=1 to expose ``/docs``, ``/redoc``, ``/openapi.json`` (see README).
 
@@ -496,6 +496,7 @@ def health() -> dict[str, Any]:
         "chat_bridge": {
             "kernel_chat_turn_timeout_seconds": st.kernel_chat_turn_timeout_seconds,
             "kernel_chat_threadpool_workers": st.kernel_chat_threadpool_workers,
+            "kernel_chat_json_offload": st.kernel_chat_json_offload,
         },
     }
     prof = applied_runtime_profile()
@@ -859,7 +860,13 @@ async def ws_chat(ws: WebSocket) -> None:
                 result.path,
                 result.blocked,
             )
-            await ws.send_json(_chat_turn_to_jsonable(result, kernel))
+            if st.kernel_chat_json_offload:
+                payload = await bridge.run_sync_in_chat_thread(
+                    _chat_turn_to_jsonable, result, kernel
+                )
+            else:
+                payload = _chat_turn_to_jsonable(result, kernel)
+            await ws.send_json(payload)
             maybe_autosave_episodes(kernel, session_ckpt)
     except WebSocketDisconnect:
         pass
@@ -875,7 +882,7 @@ async def ws_chat(ws: WebSocket) -> None:
                     await advisory_task
                 except asyncio.CancelledError:
                     pass
-        on_websocket_session_end(kernel)
+        await bridge.run_sync_in_chat_thread(on_websocket_session_end, kernel)
 
 
 def get_uvicorn_bind() -> tuple[str, int]:

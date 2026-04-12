@@ -11,7 +11,7 @@
 
 Today, **Psi Sleep** ([`PsiSleep`](../src/modules/psi_sleep.py)) mainly:
 
-- Reviews recent [`NarrativeEpisode`](../src/modules/narrative.py) rows and **simulates** pruned alternatives using a **deterministic hash perturbation** (MVP audit, not a second forward pass through `WeightedEthicsScorer` / `BayesianEngine`).
+- Reviews recent [`NarrativeEpisode`](../src/modules/narrative.py) rows and **simulates** pruned alternatives using a **deterministic hash perturbation** (MVP audit, not a second forward pass through `WeightedEthicsScorer` / `BayesianEngine`). Documented evaluator id: `psi_sleep_hash_perturbation_v1` — **not** an independent ethical judge; see [WEAKNESSES_AND_BOTTLENECKS.md](../WEAKNESSES_AND_BOTTLENECKS.md) §8.
 - Emits **global recalibrations** that `execute_sleep` applies to **`pruning_threshold`** and **locus `caution`** ([`EthicalKernel.execute_sleep`](../src/kernel.py)), not to **`hypothesis_weights`**.
 
 Separately, during **`process`**, optional **`KERNEL_BAYESIAN_EMPIRICAL_WEIGHTS`** calls [`WeightedEthicsScorer.refresh_weights_from_episodic_memory`](../src/modules/weighted_ethics_scorer.py) (alias: `BayesianEngine`): a **bounded blend** toward a heuristic target derived from **ethical_score** statistics of same-context episodes. That is **not** user-feedback-aware and **not** tied to the nightly Psi Sleep cycle.

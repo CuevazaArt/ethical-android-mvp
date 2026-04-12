@@ -7,6 +7,10 @@ mock, and legacy :class:`TextCompletionBackend` via :class:`CompletionOnlyAdapte
 
 The kernel still routes only through ``LLMModule``; semantic MalAbs may use
 ``embedding()`` when a backend is passed from ``EthicalKernel``.
+
+**Inference-agnostic name:** :class:`LLMBackend` is the stable operator-facing
+“inference provider” contract (completion + optional embeddings). Alias
+``InferenceProvider`` documents intent without adding a second type hierarchy.
 """
 
 from __future__ import annotations
@@ -39,8 +43,8 @@ class LLMBackend(ABC):
         """Whether this backend is configured for use (not a live health check unless documented)."""
 
     @abstractmethod
-    def completion(self, system: str, user: str) -> str:
-        """Chat / instruction-following completion."""
+    def completion(self, system: str, user: str, **kwargs: Any) -> str:
+        """Chat / instruction-following completion (optional ``temperature`` for supported backends)."""
 
     @abstractmethod
     def embedding(self, text: str) -> list[float] | None:
@@ -67,7 +71,7 @@ class CompletionOnlyAdapter(LLMBackend):
     def is_available(self) -> bool:
         return True
 
-    def completion(self, system: str, user: str) -> str:
+    def completion(self, system: str, user: str, **kwargs: Any) -> str:
         return self._inner.complete(system, user)
 
     def embedding(self, text: str) -> list[float] | None:
@@ -98,12 +102,17 @@ class AnthropicLLMBackend(LLMBackend):
     def is_available(self) -> bool:
         return self._client is not None
 
-    def completion(self, system: str, user: str) -> str:
+    def completion(self, system: str, user: str, **kwargs: Any) -> str:
+        t = kwargs.get("temperature")
+        extra: dict[str, Any] = {}
+        if t is not None:
+            extra["temperature"] = float(t)
         response = self._client.messages.create(
             model=self._model,
             max_tokens=1000,
             system=system,
             messages=[{"role": "user", "content": user}],
+            **extra,
         )
         return response.content[0].text
 
@@ -140,9 +149,9 @@ class OllamaLLMBackend(LLMBackend):
     def is_available(self) -> bool:
         return bool(self._base)
 
-    def completion(self, system: str, user: str) -> str:
+    def completion(self, system: str, user: str, **kwargs: Any) -> str:
         url = f"{self._base}/api/chat"
-        payload = {
+        payload: dict[str, Any] = {
             "model": self._model,
             "messages": [
                 {"role": "system", "content": system},
@@ -150,6 +159,9 @@ class OllamaLLMBackend(LLMBackend):
             ],
             "stream": False,
         }
+        t = kwargs.get("temperature")
+        if t is not None:
+            payload["options"] = {"temperature": float(t)}
         with httpx.Client(timeout=self._timeout) as client:
             r = client.post(url, json=payload)
             r.raise_for_status()
@@ -206,7 +218,7 @@ class HttpJsonLLMBackend(LLMBackend):
     def is_available(self) -> bool:
         return bool(self._url)
 
-    def completion(self, system: str, user: str) -> str:
+    def completion(self, system: str, user: str, **kwargs: Any) -> str:
         with httpx.Client(timeout=self._timeout) as client:
             r = client.post(
                 self._url,
@@ -251,7 +263,7 @@ class MockLLMBackend(LLMBackend):
     def is_available(self) -> bool:
         return self._available
 
-    def completion(self, system: str, user: str) -> str:
+    def completion(self, system: str, user: str, **kwargs: Any) -> str:
         if self._completion_error is not None:
             raise self._completion_error
         if self._completion_delay_s > 0:
@@ -279,3 +291,5 @@ OllamaCompletion = OllamaLLMBackend
 OllamaRemote = OllamaLLMBackend
 HTTPRemote = HttpJsonLLMBackend
 MockBackend = MockLLMBackend
+
+InferenceProvider = LLMBackend

@@ -452,6 +452,30 @@ class TestPsiSleep:
         a = psi._simulate_alternative(ep, "alt_only")
         b = psi._simulate_alternative(ep, "alt_only")
         assert a == b
+        if a is not None:
+            assert a.evaluation_method == "hash_perturbation_mvp"
+
+    def test_sleep_result_identifies_counterfactual_evaluator(self):
+        from src.modules.narrative import NarrativeMemory
+        from src.modules.psi_sleep import COUNTERFACTUAL_EVALUATOR_ID, PsiSleep
+
+        mem = NarrativeMemory()
+        mem.register(
+            place="p",
+            description="d",
+            action="a1",
+            morals={},
+            verdict="Good",
+            score=0.5,
+            mode="D_fast",
+            sigma=0.5,
+            context="everyday",
+        )
+        ep = mem.episodes[-1]
+        psi = PsiSleep()
+        res = psi.execute(mem, pruned_actions={ep.id: ["alt_x"]})
+        assert res.counterfactual_evaluator_id == COUNTERFACTUAL_EVALUATOR_ID
+        assert res.counterfactual_evaluator_id == PsiSleep.COUNTERFACTUAL_EVALUATOR_ID
 
 
 # ═══════════════════════════════════════════════════════════════

@@ -51,6 +51,7 @@ SUPPORTED_COMBOS: Final[dict[str, frozenset[str]]] = {
     "lab": frozenset(
         {
             "perception_hardening_lab",
+            "perception_adv_consensus_lab",
             "phase2_event_bus_lab",
             "untrusted_chat_input",
         }

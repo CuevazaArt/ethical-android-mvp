@@ -136,6 +136,38 @@ def test_ollama_llm_backend_chat_and_embed(monkeypatch):
     assert emb == [0.0, 1.0, 0.0]
 
 
+def test_ollama_llm_backend_completion_passes_temperature_in_options(monkeypatch):
+    posted: list[dict] = []
+
+    class FakeResp:
+        def raise_for_status(self):
+            pass
+
+        def json(self):
+            return {"message": {"content": "x"}}
+
+    class FakeClient:
+        def __init__(self, *a, **k):
+            pass
+
+        def __enter__(self):
+            return self
+
+        def __exit__(self, *a):
+            return False
+
+        def post(self, url, json=None):
+            if url.endswith("/api/chat"):
+                posted.append(json or {})
+                return FakeResp()
+            raise AssertionError(url)
+
+    monkeypatch.setattr("src.modules.llm_backends.httpx.Client", FakeClient)
+    b = OllamaLLMBackend("http://ollama.test", "llama", 30.0)
+    b.completion("s", "u", temperature=0.15)
+    assert posted[0]["options"]["temperature"] == pytest.approx(0.15)
+
+
 def test_ollama_llm_backend_embed_uses_env_model(monkeypatch):
     class FakeResp:
         def raise_for_status(self):

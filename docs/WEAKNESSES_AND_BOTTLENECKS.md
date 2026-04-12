@@ -8,16 +8,16 @@ This note is an **honest inventory** for operators and reviewers: known limits o
 
 **Observation.** The decision pipeline (`EthicalKernel.process`, `process_chat_turn`) is **synchronous** and mixes CPU-ish work (e.g. Bayesian-style scoring, narrative bookkeeping, optional reflection stacks) with blocking-style I/O inside the same call stack (e.g. LLM HTTP when configured).
 
-**What exists today.** The main **WebSocket chat** path uses [`RealTimeBridge`](../src/real_time_bridge.py), which runs `process_chat_turn` in a **worker thread** (Starlette ``run_in_threadpool`` by default, or a **dedicated** pool when ``KERNEL_CHAT_THREADPOOL_WORKERS`` > 0), so the **asyncio event loop** accepts new connections while a turn runs ([`chat_server`](../src/chat_server.py)). Optional ``KERNEL_CHAT_TURN_TIMEOUT`` bounds the **async** wait and returns JSON ``chat_turn_timeout`` when exceeded; it does **not** cancel in-flight synchronous ``httpx`` to Ollama.
+**What exists today.** The main **WebSocket chat** path uses [`RealTimeBridge`](../src/real_time_bridge.py), which runs `process_chat_turn` in a **worker thread** (Starlette ``run_in_threadpool`` by default, or a **dedicated** pool when ``KERNEL_CHAT_THREADPOOL_WORKERS`` > 0), so the **asyncio event loop** accepts new connections while a turn runs ([`chat_server`](../src/chat_server.py)). Optional ``KERNEL_CHAT_TURN_TIMEOUT`` bounds the **async** wait and returns JSON ``chat_turn_timeout`` when exceeded; it does **not** cancel in-flight synchronous ``httpx`` to Ollama. **Psi Sleep** is not on the per-message chat path; when async code needs it, use [`RealTimeBridge.run_execute_sleep`](../src/real_time_bridge.py). **WebSocket disconnect** runs checkpoint save and conduct-guide export through the same offload helper so teardown does not block the loop for other sessions.
 
 **Remaining risks.**
 
 - **Thread-pool queueing:** Many concurrent sessions compete for worker threads; tail latency grows under burst load even though the loop stays responsive — tune ``KERNEL_CHAT_THREADPOOL_WORKERS`` and host limits.
 - **CPU saturation:** Heavy turns still consume OS threads and CPU; this is not “free” async scalability.
 - **True LLM cancellation:** Requires async HTTP and cooperative teardown (not implemented).
-- **Other entry points:** Batch harnesses, tests, or future HTTP handlers must **not** call the kernel directly on the event loop if latency isolation matters — mirror the bridge pattern or document the trade-off.
+- **Other entry points:** Batch harnesses, tests, or future HTTP handlers must **not** call the kernel directly on the event loop if latency isolation matters — mirror the bridge pattern (including ``run_execute_sleep`` for Psi Sleep) or document the trade-off.
 
-**Pointers:** [ADR 0002 — async orchestration (partial)](adr/0002-async-orchestration-future.md); [PROPOSAL_PHASE2_CORE_EXTENSIONS_AND_EVENT_BUS.md](proposals/PROPOSAL_PHASE2_CORE_EXTENSIONS_AND_EVENT_BUS.md) (runtime must not block the kernel on network I/O without a future async design).
+**Pointers:** [ADR 0002 — async orchestration (partial)](adr/0002-async-orchestration-future.md); [PROPOSAL_SYNC_KERNEL_ASYNC_ASGI_BRIDGE.md](proposals/PROPOSAL_SYNC_KERNEL_ASYNC_ASGI_BRIDGE.md) (thread offload for chat turns, WebSocket JSON, advisory telemetry); [PROPOSAL_PHASE2_CORE_EXTENSIONS_AND_EVENT_BUS.md](proposals/PROPOSAL_PHASE2_CORE_EXTENSIONS_AND_EVENT_BUS.md) (runtime must not block the kernel on network I/O without a future async design).
 
 ---
 
@@ -35,7 +35,7 @@ This note is an **honest inventory** for operators and reviewers: known limits o
 
 **Observation.** Ollama (and similar local servers) are strong for **sovereignty**, but the stack does not ship a **full circuit-breaker / degradation policy** for all inference failures: slow hosts, repeated HTTP errors, or **structurally valid JSON that is semantically wrong** for perception.
 
-**What exists today.** Configurable timeouts (e.g. `OLLAMA_TIMEOUT`), Pydantic validation and coercion in [`perception_schema`](../src/modules/perception_schema.py), and heuristic fallbacks for some bad LLM outputs **reduce** but do not **eliminate** bad states. Semantic **embedding** transport has its own retry/circuit patterns in [`semantic_embedding_client`](../src/modules/semantic_embedding_client.py); the **main chat perception** path is not uniformly covered to the same degree.
+**What exists today.** Configurable timeouts (e.g. `OLLAMA_TIMEOUT`), Pydantic validation and coercion in [`perception_schema`](../src/modules/perception_schema.py), lexical cross-checks in [`perception_cross_check`](../src/modules/perception_cross_check.py), and heuristic fallbacks for some bad LLM outputs **reduce** but do not **eliminate** bad states. Optional **dual LLM perception** ([`perception_dual_vote`](../src/modules/perception_dual_vote.py), profile `perception_adv_consensus_lab`) runs a second structured sample (different temperature and/or `KERNEL_PERCEPTION_DUAL_OLLAMA_MODEL`); large hostility/risk disagreement inflates coercion uncertainty so `KERNEL_PERCEPTION_UNCERTAINTY_DELIB` can force `D_delib`. That mitigates **some** lone-model hallucinations but is **not** an independent ground-truth check — two samples can still agree on a false high-threat parse. Semantic **embedding** transport has its own retry/circuit patterns in [`semantic_embedding_client`](../src/modules/semantic_embedding_client.py); the **main chat perception** path is not uniformly covered to the same degree.
 
 **Gap.** A single operator-visible policy for “backend unhealthy → fast-fail / template mode / session banner” across **all** LLM touchpoints is still aspirational.
 
@@ -47,7 +47,9 @@ This note is an **honest inventory** for operators and reviewers: known limits o
 
 **Observation.** `MockDAO` and related hub flows are **in-process / SQLite-backed demos**. They provide traceability and UX for constitution drafts, votes, and audit lines — **not** on-chain finality, BFT, or real P2P governance. There is **no** production Solidity in this repo; quadratic voting **assumes** a closed, honest participant table (no Sybil model).
 
-**Why it matters.** Operators must not equate mock votes with production-grade distributed policy or legal authority. The **scalar ethical choice** (`final_action`) does **not** flow from DAO votes in the current architecture — see [MOCK_DAO_SIMULATION_LIMITS.md](proposals/MOCK_DAO_SIMULATION_LIMITS.md).
+**Why it matters.** Operators must not equate mock votes with production-grade distributed policy or legal authority. The **scalar ethical choice** (`final_action`) does **not** flow from DAO votes in the current architecture — see [MOCK_DAO_SIMULATION_LIMITS.md](proposals/MOCK_DAO_SIMULATION_LIMITS.md). Because the ledger lives in the **same process** as the kernel, a compromised runtime can corrupt **both** decision state and audit history; there is no cryptographic separation of powers.
+
+**Mitigation (partial).** Set `KERNEL_AUDIT_SIDECAR_PATH` so [`MockDAO.register_audit`](../src/modules/mock_dao.py) mirrors each row as JSONL on disk — use tight file permissions or ship logs to a separate system. This is **not** a signed append-only service; see [PRODUCTION_HARDENING_ROADMAP.md](proposals/PRODUCTION_HARDENING_ROADMAP.md) for stronger governance posture.
 
 **Pointers:** [RUNTIME_CONTRACT.md](proposals/RUNTIME_CONTRACT.md); [GOVERNANCE_MOCKDAO_AND_L0.md](proposals/GOVERNANCE_MOCKDAO_AND_L0.md); [UNIVERSAL_ETHOS_AND_HUB.md](proposals/UNIVERSAL_ETHOS_AND_HUB.md); [`contracts/README.md`](../contracts/README.md).
 
@@ -73,11 +75,21 @@ This note is an **honest inventory** for operators and reviewers: known limits o
 
 ## 7. Many modules, one argmax — peripheral complexity without ablation evidence
 
-**Observation.** The repo contains a **large** `src/modules` surface (dozens of files) for a core path where **`final_action`** is the Bayesian **chosen candidate name** after MalAbs pruning; poles, weakness, PAD, augenesis, and similar layers often affect **mode**, **narrative**, **LLM tone**, or **post-decision** state — not a second pick among actions.
+**Observation.** The repo contains a **large** `src/modules` surface (dozens of files) for a core path where **`final_action`** is the mixture scorer’s **chosen candidate name** after MalAbs pruning; poles, weakness, PAD, augenesis, and similar layers often affect **mode**, **narrative**, **LLM tone**, or **post-decision** state — not a second pick among actions.
 
 **Why it matters.** Bugs in “exotic” modules may **not** move `final_action` on standard tests, so **green unit tests** can hide regressions that matter for **UX, trust, or longitudinal behavior**. The project has not yet published a **large ablation** (“disable N modules → measure Δ decision quality”) — that is **evidence debt**, acknowledged as a research gap.
 
 **Pointers:** [MODULE_IMPACT_AND_EMPIRICAL_GAP.md](proposals/MODULE_IMPACT_AND_EMPIRICAL_GAP.md); [CORE_DECISION_CHAIN.md](proposals/CORE_DECISION_CHAIN.md); [`tests/test_decision_core_invariants.py`](../tests/test_decision_core_invariants.py).
+
+---
+
+## 8. Psi Sleep counterfactuals — no independent quality evaluator
+
+**Observation.** [`psi_sleep.py`](../src/modules/psi_sleep.py) assigns **synthetic** counterfactual scores via a **deterministic hash perturbation** of each episode’s stored `ethical_score`. It does **not** re-run [`WeightedEthicsScorer`](../src/modules/weighted_ethics_scorer.py) or reconstruct candidate actions through `process`. Therefore it **cannot** validate the day engine against a second policy, human panel, or external benchmark — and it **does not** detect systematic bugs in the scorer (at most bounded nudges to `pruning_threshold` / locus `caution`).
+
+**Why it matters.** Treating Psi Sleep as “Bayesian night validation” or equivalent to a **model critique** loop would **overclaim**. Honest posture: audit **theater** + reproducible stress signal until an independent evaluator path exists.
+
+**Pointers:** [`PROPOSAL_ETHICAL_CORE_LOGIC_EVOLUTION.md`](proposals/PROPOSAL_ETHICAL_CORE_LOGIC_EVOLUTION.md) (B1); [`ETHICAL_BENCHMARK_EXTERNAL_VALIDATION.md`](proposals/ETHICAL_BENCHMARK_EXTERNAL_VALIDATION.md); stable id `psi_sleep_hash_perturbation_v1` on `SleepResult`.
 
 ---
 
