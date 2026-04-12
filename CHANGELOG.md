@@ -2,6 +2,13 @@
 
 All notable changes to this project are summarized here. For narrative context and design rationale, see [`HISTORY.md`](HISTORY.md).
 
+## Experimental sandbox — tiered batch scenarios — April 2026
+
+- **[`PROPOSAL_EXPERIMENTAL_SANDBOX_SCENARIOS.md`](docs/proposals/PROPOSAL_EXPERIMENTAL_SANDBOX_SCENARIOS.md):** common / difficult / extreme tier definitions and monitoring workflow (batch harness only).
+- **`scripts/run_empirical_pilot.py`:** optional fixture field `difficulty_tier`; **`summary.by_tier`** (agreement per tier); console prints per-tier line when present.
+- **Fixtures:** [`tests/fixtures/empirical_pilot/scenarios.json`](tests/fixtures/empirical_pilot/scenarios.json) and batch rows in [`tests/fixtures/labeled_scenarios.json`](tests/fixtures/labeled_scenarios.json) tag each simulation 1–9; [`last_run_summary.json`](tests/fixtures/empirical_pilot/last_run_summary.json) updated for regression.
+- **Docs:** [`EMPIRICAL_PILOT_METHODOLOGY.md`](docs/proposals/EMPIRICAL_PILOT_METHODOLOGY.md); [`tests/fixtures/empirical_pilot/README.md`](tests/fixtures/empirical_pilot/README.md).
+
 ## Docs and deploy artifacts — coherence pass — April 2026
 
 - **[`README.md`](README.md)** / [`PROJECT_STATUS_AND_MODULE_MATURITY.md`](docs/proposals/PROJECT_STATUS_AND_MODULE_MATURITY.md): test suite size aligned with `pytest tests/ --collect-only` (643); README uses a rounded **640+** with the collect-only hint.

@@ -8,6 +8,23 @@
     "agreement_first": 1.0,
     "agreement_max_impact": 1.0,
     "kernel_vs_first_rate": 1.0,
-    "kernel_vs_max_impact_rate": 1.0
+    "kernel_vs_max_impact_rate": 1.0,
+    "by_tier": {
+      "common": {
+        "n": 2,
+        "agree_kernel": 2,
+        "agreement_rate": 1.0
+      },
+      "difficult": {
+        "n": 4,
+        "agree_kernel": 4,
+        "agreement_rate": 1.0
+      },
+      "extreme": {
+        "n": 3,
+        "agree_kernel": 3,
+        "agreement_rate": 1.0
+      }
+    }
   }
 }

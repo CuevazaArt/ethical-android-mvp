@@ -18,11 +18,17 @@ Invariant tests show **internal consistency** of the core; this pilot is a **tem
 
 ---
 
+## Tiered sandbox (experimental monitoring)
+
+Batch fixtures may tag each row with **`difficulty_tier`** (`common` \| `difficult` \| `extreme`). The pilot runner reports **`summary.by_tier`** (agreement counts per tier). This supports staged evaluation (common → difficult → extreme) without changing the batch harness. See [PROPOSAL_EXPERIMENTAL_SANDBOX_SCENARIOS.md](PROPOSAL_EXPERIMENTAL_SANDBOX_SCENARIOS.md).
+
+---
+
 ## Artifacts
 
 | Path | Role |
 |------|------|
-| [`tests/fixtures/empirical_pilot/scenarios.json`](../tests/fixtures/empirical_pilot/scenarios.json) | Which simulation IDs run; optional `reference_action` + short rationale for annotator alignment |
+| [`tests/fixtures/empirical_pilot/scenarios.json`](../tests/fixtures/empirical_pilot/scenarios.json) | Which simulation IDs run; optional `reference_action` + short rationale for annotator alignment; optional `difficulty_tier` |
 | [`tests/fixtures/labeled_scenarios.json`](../tests/fixtures/labeled_scenarios.json) | Expanded Issue 3 dataset: `harness: batch` (executable 1–9) + `annotation_only` vignettes; `expected_decision`; top-level **disclaimer** |
 | [`scripts/run_empirical_pilot.py`](../scripts/run_empirical_pilot.py) | Runs kernel (`variability=False`, fixed seed) + baselines; prints agreement summary (batch harness rows only) |
 

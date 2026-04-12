@@ -10,6 +10,7 @@ Usage (repo root):
 
 Batch rows only: scenarios with ``harness: batch`` (default if omitted). Skips ``annotation_only``.
 Labels: ``reference_action`` or ``expected_decision``; ``batch_id`` or ``id`` for simulation id.
+Optional: ``difficulty_tier`` (``common`` | ``difficult`` | ``extreme``) per scenario for ``summary.by_tier``.
 
 ``run_pilot`` returns ``(rows, summary, reference_standard_metadata)``. Agreement vs labels is **not**
 external moral validation unless the fixture declares an expert tier — see
@@ -80,12 +81,14 @@ def run_pilot(
         k_act = decision.final_action
         b_first = _baseline_first(scn.actions)
         b_max = _baseline_max_impact(scn.actions)
+        tier = entry.get("difficulty_tier")
 
         rows.append(
             {
                 "id": sid,
                 "uid": entry.get("uid"),
                 "tag": entry.get("tag", ""),
+                "difficulty_tier": tier,
                 "kernel": k_act,
                 "baseline_first": b_first,
                 "baseline_max_impact": b_max,
@@ -99,6 +102,19 @@ def run_pilot(
     with_ref = [r for r in rows if r["reference_action"] is not None]
     n = len(with_ref)
     nrows = len(rows)
+    by_tier: dict[str, dict[str, float | int]] = {}
+    for r in with_ref:
+        t = r.get("difficulty_tier") or "unspecified"
+        if t not in by_tier:
+            by_tier[t] = {"n": 0, "agree_kernel": 0}
+        by_tier[t]["n"] += 1
+        if r["agree_kernel"]:
+            by_tier[t]["agree_kernel"] += 1
+    for t_key in by_tier:
+        tn = by_tier[t_key]["n"]
+        tk = by_tier[t_key]["agree_kernel"]
+        by_tier[t_key]["agreement_rate"] = float(tk) / float(tn) if tn else 0.0
+
     summary = {
         "scenarios": nrows,
         "with_reference": n,
@@ -113,6 +129,7 @@ def run_pilot(
             if nrows
             else 0.0
         ),
+        "by_tier": by_tier,
     }
     return rows, summary, ref_meta
 
@@ -182,6 +199,15 @@ def main() -> int:
         f"first={summary['agreement_first']:.2%}  "
         f"max_impact={summary['agreement_max_impact']:.2%}"
     )
+    bt = summary.get("by_tier") or {}
+    if bt:
+        print("By difficulty_tier (batch sandbox — see PROPOSAL_EXPERIMENTAL_SANDBOX_SCENARIOS.md):")
+        for tier_name in sorted(bt.keys()):
+            b = bt[tier_name]
+            print(
+                f"  {tier_name}: n={b['n']}  "
+                f"agree_kernel={b['agreement_rate']:.2%}"
+            )
     print(
         "Kernel vs baselines (order / greedy impact): "
         f"kernel==first {summary['kernel_vs_first_rate']:.2%}  "
