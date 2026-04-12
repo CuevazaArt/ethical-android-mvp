@@ -1,6 +1,7 @@
 # ADR 0003 — Optional semantic similarity gate for chat text (Hugging Face / embeddings)
 
 **Status:** Accepted (April 2026)  
+**Naming:** “Optional” here means **operators can turn the tier off** (`KERNEL_SEMANTIC_CHAT_GATE=0`); **unset env defaults to on** (see Amendment below).  
 **Context:** Team note distinguishing **Ollama** (language generation) from **Hugging Face–style** small **embedding** models for stronger chat-text screening than substring lists alone. MalAbs chat uses `evaluate_chat_text` with normalized substring matching ([INPUT_TRUST_THREAT_MODEL.md](../proposals/INPUT_TRUST_THREAT_MODEL.md)).
 
 ## Decision

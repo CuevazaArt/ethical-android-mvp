@@ -2,6 +2,11 @@
 
 All notable changes to this project are summarized here. For narrative context and design rationale, see [`HISTORY.md`](HISTORY.md).
 
+## Docs — semantic MalAbs default wording — April 2026
+
+- **TRANSPARENCY_AND_LIMITS.md**, **THEORY_AND_IMPLEMENTATION.md**, **ADR 0003** (naming note), **PROPOSAL_ETHICAL_CORE_LOGIC_EVOLUTION** (B2): aligned with **default-on** `KERNEL_SEMANTIC_CHAT_GATE` / hash fallback when unset, `tests/conftest.py` lexical-only isolation, and `runtime_profiles` explicit lexical bundle.
+- **`landing/public/ethos-transparency.html`:** mirror table updated (was “opt-in”).
+
 ## Issue 7 — KERNEL_* validation and supported profile buckets — April 2026
 
 - **[`src/validators/env_policy.py`](src/validators/env_policy.py):** `SUPPORTED_COMBOS` (`production` / `demo` / `lab`) partitions named `ETHOS_RUNTIME_PROFILE` bundles; `collect_env_violations()` + `validate_kernel_env()` (default **warn**; `KERNEL_ENV_VALIDATION=strict` to fail fast); `DEPRECATION_ROADMAP` placeholder; `env_combo_fingerprint()` for support logs.
@@ -25,7 +30,7 @@ All notable changes to this project are summarized here. For narrative context a
 
 - **`KERNEL_SEMANTIC_CHAT_GATE`** / **`KERNEL_SEMANTIC_EMBED_HASH_FALLBACK`:** default **on** when unset (`semantic_chat_gate.py`, `semantic_embedding_client.py`); hash fallback keeps embedding tier active without Ollama (documented limits).
 - **`input_trust.normalize_text_for_malabs`:** optional leet fold + bidi override strip + fullwidth ASCII fold (`KERNEL_MALABS_LEET_FOLD`, `KERNEL_MALABS_STRIP_BIDI`).
-- **`tests/conftest.py`:** pytest defaults to lexical-only MalAbs unless a test enables semantic (suite speed/stability); subprocess test asserts production default for `KERNEL_SEMANTIC_CHAT_GATE` (`tests/test_semantic_chat_gate.py`).
+- **`tests/conftest.py`:** pytest defaults to lexical-only MalAbs unless a test enables semantic (suite speed/stability); subprocess tests assert production-like defaults for the gate (`tests/test_semantic_chat_gate.py`, `tests/test_malabs_semantic_integration.py`).
 - **Docs:** [`README.md`](README.md), [`INPUT_TRUST_THREAT_MODEL.md`](docs/proposals/INPUT_TRUST_THREAT_MODEL.md), [`KERNEL_ENV_POLICY.md`](docs/proposals/KERNEL_ENV_POLICY.md), [`MALABS_SEMANTIC_LAYERS.md`](docs/proposals/MALABS_SEMANTIC_LAYERS.md), [ADR 0003](docs/adr/0003-optional-semantic-chat-gate.md) amendment.
 
 ## Phase 2 spike — `KernelEventBus` (ADR 0006) — April 2026

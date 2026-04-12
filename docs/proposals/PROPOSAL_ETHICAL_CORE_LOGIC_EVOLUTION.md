@@ -54,14 +54,14 @@ Separately, during **`process`**, optional **`KERNEL_BAYESIAN_EMPIRICAL_WEIGHTS`
 
 **Lexical MalAbs** is fast and auditable but **easily evaded** by paraphrase, homoglyphs, and multilingual phrasing ([INPUT_TRUST_THREAT_MODEL.md](INPUT_TRUST_THREAT_MODEL.md)). If hostile **intent** reaches **`perceive` → `process`** unchanged, deliberation operates on **already poisoned** signals.
 
-Today, [`semantic_chat_gate`](../src/modules/semantic_chat_gate.py) runs only when **`KERNEL_SEMANTIC_CHAT_GATE`** is enabled (default off in code paths that read env). Architecturally it already sits **after** lexical MalAbs and **before** full chat deliberation — good — but operators must **opt in**, so many deployments remain lexical-only.
+**Current code (2026):** [`semantic_chat_gate`](../src/modules/semantic_chat_gate.py) runs when **`KERNEL_SEMANTIC_CHAT_GATE`** is enabled — **on by default** when the variable is unset (`semantic_chat_gate.py`, [MALABS_SEMANTIC_LAYERS.md](MALABS_SEMANTIC_LAYERS.md), ADR 0003 amendment). It sits **after** lexical MalAbs and **before** full chat deliberation. Operators who need lexical-only set `KERNEL_SEMANTIC_CHAT_GATE=0` or use the `lexical_malabs_only` runtime profile ([`runtime_profiles.py`](../src/runtime_profiles.py)). **`tests/conftest.py`** forces lexical-only for pytest speed unless a test opts into semantic.
 
 ### Proposal
 
 **Goal:** Treat **embedding (and optional LLM arbiter) semantic gating** as part of the **standard perception / input-trust stack**, not an exotic add-on — while keeping **fail-safe** behavior when embeddings or Ollama are down.
 
 1. **Policy default**  
-   - Move **nominal** runtime profiles toward **`KERNEL_SEMANTIC_CHAT_GATE=1`** for chat surfaces that face the open internet or untrusted users; keep **lexical-only** profiles for lab, air-gapped, or latency-critical demos **explicitly named** in [`runtime_profiles.py`](../src/runtime_profiles.py).
+   - **Largely implemented:** unset-env defaults and **`runtime_profiles`** entries use semantic gate **on** for open-internet-style surfaces; **`lexical_malabs_only`** remains explicit for lab / air-gapped / latency trade-offs ([`runtime_profiles.py`](../src/runtime_profiles.py), [KERNEL_ENV_POLICY.md](KERNEL_ENV_POLICY.md)).
 
 2. **Degradation ladder**  
    - If embed transport fails or circuit breaker opens: **block ambiguous** band, **fall back** to lexical-only, or **fail closed** — behavior must be **one documented ladder** (per [MALABS_SEMANTIC_LAYERS.md](MALABS_SEMANTIC_LAYERS.md)), not ad-hoc per call site.
@@ -77,8 +77,8 @@ Today, [`semantic_chat_gate`](../src/modules/semantic_chat_gate.py) runs only wh
 
 ### Deliverables (when implemented)
 
-- Profile + CHANGELOG entry for default-on migration path.
-- Integration tests: gate on/off; degraded backend → expected ladder.
+- Profile + CHANGELOG entry for default-on migration path (**CHANGELOG** documents default-on gate + hash fallback).
+- Integration tests: subprocess coverage for production-like defaults with Ollama unavailable (`tests/test_malabs_semantic_integration.py`); in-process gate/threshold tests in `tests/test_semantic_chat_gate.py`.
 - Update [KERNEL_ENV_POLICY.md](KERNEL_ENV_POLICY.md) “unsupported combos” if new defaults interact with hub or chat JSON contracts.
 
 ---

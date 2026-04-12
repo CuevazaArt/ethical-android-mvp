@@ -35,7 +35,7 @@
       <thead><tr><th>Layer</th><th>Role</th></tr></thead>
       <tbody>
         <tr><td>Lexical MalAbs</td><td>Conservative blocks on listed patterns; does <strong>not</strong> catch all paraphrases.</td></tr>
-        <tr><td>Semantic MalAbs (opt-in)</td><td>Embedding / optional LLM arbiter — still heuristic; thresholds trade FP/FN.</td></tr>
+        <tr><td>Semantic MalAbs (default on; <code>KERNEL_SEMANTIC_CHAT_GATE=0</code> for lexical-only)</td><td>Embedding / optional LLM arbiter — still heuristic; thresholds trade FP/FN.</td></tr>
         <tr><td>Perception &amp; kernel</td><td>Clamped signals and tunable deliberation — not ground truth under attack.</td></tr>
         <tr><td>Judicial / DAO mocks</td><td>Demos only; no replacement for human legal process.</td></tr>
       </tbody>
