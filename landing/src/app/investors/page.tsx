@@ -11,7 +11,7 @@ const THEORY = `${REPO}/blob/main/docs/proposals/THEORY_AND_IMPLEMENTATION.md`;
 export const metadata: Metadata = {
   title: "Investors — scope & ecosystem",
   description:
-    "Direct product reach and ecosystem opportunities for agents with persistent identity — toys, industry, mobility, governance, and more.",
+    "Hypothetical reach if a production stack existed: research kernel v0.0.0 today (Git only, no PyPI, no external benchmark; DAO mock).",
   robots: { index: true, follow: true },
 };
 
@@ -84,7 +84,7 @@ const VALUE_PROPS = [
 const ECOSYSTEM = [
   {
     title: "Native DAO",
-    body: "Decentralized governance for ethical legitimacy, community voice, and collective investment structures.",
+    body: "Decentralized governance for ethical legitimacy and community voice — in-repo today this is mock / simulated; on-chain would be a separate compliance and engineering program.",
   },
   {
     title: "Hardware lifecycle",
@@ -158,14 +158,16 @@ export default function InvestorsPage() {
           For investors &amp; partners
         </p>
         <h1 className="mt-2 text-3xl font-semibold tracking-tight text-white md:text-4xl">
-          Scope &amp; ecosystem — agents with their own identity
+          Scope &amp; ecosystem — hypothetical product surfaces
         </h1>
         <p className="mt-4 max-w-3xl text-sm leading-relaxed text-zinc-400 md:text-[15px]">
-          This page maps the{" "}
-          <strong className="font-medium text-zinc-300">direct reach of the core product</strong> and
-          the <strong className="font-medium text-zinc-300">derivative opportunities</strong> in the
-          ecosystem that supports it. The Ethos Kernel is a research prototype today; the
-          categories below describe where a production-grade stack could deploy.
+          This page sketches{" "}
+          <strong className="font-medium text-zinc-300">where a mature ethical kernel could matter</strong>{" "}
+          if brought to production — not what ships today. The Ethos Kernel is{" "}
+          <strong className="font-medium text-zinc-300">v0.0.0</strong>, installable from Git only
+          (not PyPI), validated by internal invariant tests rather than an independent external
+          benchmark, with <strong className="font-medium text-zinc-300">mock</strong> DAO hooks. The
+          categories below are directional for due diligence, not a product roadmap promise.
         </p>
         <p className="mt-4 text-sm text-zinc-500">
           For{" "}
@@ -184,10 +186,10 @@ export default function InvestorsPage() {
 
         <section className="mt-14 border-t border-white/[0.08] pt-12">
           <h2 className="text-lg font-semibold text-white md:text-xl">
-            Main product scope
+            Illustrative product scope
           </h2>
           <p className="mt-2 text-sm text-zinc-500">
-            Direct application surfaces for a hostable ethical–cognitive kernel.
+            Example surfaces if a hostable ethical–cognitive kernel were productized — not current SKUs.
           </p>
           <ul className="mt-8 grid gap-4 sm:grid-cols-2">
             {MAIN_SCOPE.map((item) => (
@@ -207,7 +209,7 @@ export default function InvestorsPage() {
         <section className="mt-14 border-t border-white/[0.08] pt-12">
           <h2 className="text-lg font-semibold text-white md:text-xl">Value proposition</h2>
           <p className="mt-2 text-sm text-zinc-500">
-            What end users and enterprises buy beyond “smarter automation.”
+            What a future product could offer beyond “smarter automation” — not a claim about a shipping SKU.
           </p>
           <ul className="mt-8 space-y-5">
             {VALUE_PROPS.map((item) => (
@@ -241,13 +243,13 @@ export default function InvestorsPage() {
         <section className="mt-14 border-t border-white/[0.08] pt-12">
           <h2 className="text-lg font-semibold text-white md:text-xl">Conclusion</h2>
           <p className="mt-4 text-sm leading-relaxed text-zinc-400 md:text-[15px]">
-            The core product opens a wide set of direct applications — toys, industry, mobility,
-            oversight, and home intelligence. The surrounding ecosystem adds governance (DAO),
-            hardware services, financial and insurance products, enabling technologies, and the social
-            and regulatory fabric required for public trust. Together, this frames an{" "}
-            <strong className="font-medium text-zinc-300">integrated opportunity</strong> with
-            ethical, emotional, and practical depth — anchored today by open code, simulation, and
-            honest research boundaries.
+            If matured, a kernel like this could address toys, industry, mobility, oversight, and
+            home intelligence; the surrounding ecosystem could add governance (DAO roadmap; mock
+            today), hardware services, finance and insurance, enabling technologies, and social and
+            regulatory fabric. That frames a possible{" "}
+            <strong className="font-medium text-zinc-300">integrated opportunity</strong> — while
+            today&apos;s artifact remains open code, simulation-first, and bounded by the transparency
+            notes in the repository.
           </p>
         </section>
 

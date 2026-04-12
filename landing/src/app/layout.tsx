@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 
+import { ProjectRealityBanner } from "@/components/ProjectRealityBanner";
 import { REPO_URL, SITE_URL } from "@/config/site";
 
 const siteJsonLd = {
@@ -20,7 +21,7 @@ const siteJsonLd = {
       url: SITE_URL,
       name: "MosEx Macchina Lab — Ethos Kernel",
       description:
-        "Research prototype: artificial ethical consciousness with Bayesian inference, narrative memory, and multipolar evaluation — validated in simulation.",
+        "Research prototype (v0.0.0, Git install only): ethical decision kernel with internal invariant tests — not PyPI, not an external benchmark, DAO is mock.",
       publisher: { "@id": `${SITE_URL}/#organization` },
       inLanguage: "en-US",
     },
@@ -44,11 +45,11 @@ export const metadata: Metadata = {
     template: "%s · MosEx Macchina Lab",
   },
   description:
-    "Research prototype: artificial ethical consciousness with Bayesian inference, narrative memory, and multipolar evaluation — validated in simulation.",
+    "Research prototype (v0.0.0, Git install only): ethical decision kernel with internal invariant tests — not PyPI, not an external benchmark, DAO is mock.",
   openGraph: {
     title: "MosEx Macchina Lab — Ethos Kernel",
     description:
-      "Behavioral prototype of an ethical autonomous agent. Interactive dashboard and open source simulations.",
+      "Research prototype: local dashboard and open source. Not a PyPI package; no external benchmark; governance is mock.",
     url: SITE_URL,
     siteName: "MosEx Macchina Lab",
     locale: "en_US",
@@ -58,7 +59,7 @@ export const metadata: Metadata = {
     card: "summary_large_image",
     title: "MosEx Macchina Lab — Ethos Kernel",
     description:
-      "Research prototype: ethical AI consciousness model with interactive dashboard.",
+      "Research prototype (v0.0.0): interactive dashboard; Git-only install; internal tests only.",
   },
   icons: {
     icon: "/logo-ethical-awareness.png",
@@ -79,6 +80,7 @@ export default function RootLayout({
         <a href="#main-content" className="skip-to-main">
           Skip to main content
         </a>
+        <ProjectRealityBanner />
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{ __html: JSON.stringify(siteJsonLd) }}

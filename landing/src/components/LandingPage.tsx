@@ -77,7 +77,7 @@ export default function LandingPage() {
               variants={fadeUp}
               className="text-4xl font-semibold leading-tight tracking-tight text-white md:text-5xl"
             >
-              Artificial ethical consciousness, validated in simulation.
+              A research kernel for ethical decisions — explored in simulation.
             </motion.h1>
             <motion.p
               custom={2}
@@ -86,12 +86,14 @@ export default function LandingPage() {
               variants={fadeUp}
               className="mt-6 text-lg leading-relaxed text-zinc-300"
             >
-              Bayesian inference, narrative memory, multipolar evaluation, and
-              humanizing imperfection — now with a{" "}
-              <strong className="font-medium text-zinc-200">real-time WebSocket runtime</strong>{" "}
-              (FastAPI), optional governance / DAO hooks, sensor-aware chat, checkpoints, and a{" "}
-              <strong className="font-medium text-zinc-200">LAN + smartphone</strong> thin client —
-              still a behavioral prototype, no dedicated robot required.
+              Bayesian-style inference, narrative memory, multipolar evaluation, and
+              humanizing imperfection — plus a{" "}
+              <strong className="font-medium text-zinc-200">reference WebSocket runtime</strong>{" "}
+              (FastAPI) for local experiments, optional <strong className="font-medium text-zinc-200">mock</strong>{" "}
+              governance hooks, sensor-aware chat, checkpoints, and a{" "}
+              <strong className="font-medium text-zinc-200">LAN + smartphone</strong> thin client.
+              Install from Git (not PyPI); evidence is internal invariant tests, not an external
+              benchmark — still a behavioral prototype, no dedicated robot required.
             </motion.p>
             <motion.div
               custom={3}
@@ -104,7 +106,7 @@ export default function LandingPage() {
                 href="/demo"
                 className="inline-flex items-center justify-center rounded-full bg-white px-6 py-3 text-sm font-medium text-zinc-950 transition hover:bg-zinc-200"
               >
-                Open interactive dashboard
+                Try the local dashboard
               </Link>
               <a
                 href={REPO}
@@ -128,7 +130,7 @@ export default function LandingPage() {
                 href="/demo"
                 className="text-violet-400/90 underline decoration-violet-400/35 underline-offset-2 hover:decoration-violet-400/65"
               >
-                Live demo
+                Dashboard (local build)
               </Link>
               <span className="text-zinc-600" aria-hidden>
                 {" · "}
@@ -291,7 +293,7 @@ export default function LandingPage() {
             transition={{ duration: 0.45 }}
             className="text-xs font-medium uppercase tracking-[0.2em] text-violet-400/90"
           >
-            Deployable artificial consciousness
+            Long-term direction (not a deployable product today)
           </motion.h2>
           <motion.blockquote
             initial={{ opacity: 0, y: 14 }}
@@ -300,9 +302,9 @@ export default function LandingPage() {
             transition={{ delay: 0.05, duration: 0.5 }}
             className="mt-6 border-l-2 border-violet-500/45 pl-6 text-lg font-medium leading-snug text-zinc-100 md:text-xl"
           >
-            Deployable artificial consciousness: an ethical–cognitive kernel with
-            persistent identity, installable on humanoid androids, drones, or
-            autonomous vehicles.
+            Aspirational framing: an ethical–cognitive kernel with persistent identity could
+            someday pair with humanoid platforms, drones, or vehicles — after validation far beyond
+            this repository.
           </motion.blockquote>
           <motion.p
             initial={{ opacity: 0, y: 10 }}
@@ -338,13 +340,19 @@ export default function LandingPage() {
               multipolar decision mechanisms.
             </p>
             <p>
-              In simple terms: software designed to behave like{" "}
-              <strong className="font-medium text-zinc-300">persistent consciousness</strong>.
-              It perceives, evaluates, decides, and is accountable. Identity stays coherent over
-              time even when the physical platform changes. Ethics are not a bolt-on filter — they
-              are the <strong className="font-medium text-zinc-300">architecture</strong>: actions
-              are guided by armored universal principles and by collective governance through a{" "}
-              <strong className="font-medium text-zinc-300">DAO</strong>.
+              In simple terms: the <strong className="font-medium text-zinc-300">research stack</strong>{" "}
+              explores behaviors analogous to persistent identity and accountability in simulation.
+              Ethics are not a bolt-on filter in the code path — they are structural — while
+              collective governance is modeled today through a{" "}
+              <strong className="font-medium text-zinc-300">mock DAO</strong> (in-process; not
+              on-chain production). See{" "}
+              <Link
+                href="/blockchain-dao"
+                className="text-violet-400/90 underline decoration-violet-400/30 underline-offset-4 hover:decoration-violet-400/60"
+              >
+                BlockChainDAO
+              </Link>{" "}
+              for scope.
             </p>
           </motion.div>
           <motion.ul
@@ -443,11 +451,11 @@ export default function LandingPage() {
             Runtime, governance &amp; nomadic bridge
           </h2>
           <p className="mt-4 max-w-3xl text-sm leading-relaxed text-zinc-300">
-            Beyond simulations: the repository ships a{" "}
-            <strong className="font-medium text-zinc-200">production-shaped runtime</strong>{" "}
-            you can run locally — same ethical kernel, exposed over HTTP/WebSocket. Optional layers
-            include judicial escalation (mock), moral hub / constitution drafts, off-chain DAO voting in
-            snapshots, nomadic HAL hooks, optional{" "}
+            Beyond batch simulations: the repository ships a{" "}
+            <strong className="font-medium text-zinc-200">reference runtime</strong> you can run
+            locally for development and experiments — same ethical kernel, exposed over HTTP/WebSocket.
+            Optional layers include judicial escalation (mock), moral hub / constitution drafts, mock DAO
+            voting in snapshots, nomadic HAL hooks, optional{" "}
             <strong className="font-medium text-zinc-200">lighthouse reality verification</strong>{" "}
             for rival-model premises, encrypted JSON checkpoints, and a documented{" "}
             <strong className="font-medium text-zinc-200">PC ↔ smartphone</strong> path on your WiFi
@@ -647,7 +655,7 @@ export default function LandingPage() {
               Research & transparency
             </h2>
             <p className="mt-4 text-lg font-semibold text-white">
-              Open kernel, documented behavior, cited sources.
+              Open kernel, documented behavior, cited sources — no PyPI package, no external benchmark yet.
             </p>
             <p className="mt-4 text-sm leading-relaxed text-zinc-300">
               The ethical core is implemented in Python with a formal test suite
@@ -860,7 +868,7 @@ export default function LandingPage() {
               Visibility, funding & diffusion
             </h2>
             <p className="mt-4 text-lg font-semibold text-white">
-              First contact is strong; serious stakeholders get a clear lane.
+              Clear positioning for discovery; serious stakeholders can verify scope in the repo.
             </p>
             <p className="mt-4 text-sm leading-relaxed text-zinc-300">
               This landing is built for <strong className="font-medium text-zinc-200">discovery</strong>{" "}

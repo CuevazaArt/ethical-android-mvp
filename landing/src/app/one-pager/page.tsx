@@ -51,8 +51,9 @@ export default function OnePagerPage() {
           Ethos Kernel (research prototype)
         </h1>
         <p className="mt-3 text-sm leading-relaxed text-zinc-400 print:text-zinc-700">
-          Artificial ethical consciousness, validated in simulation. Open
-          source (Apache-2.0); not a commercial safety or clinical product.
+          Research kernel explored in simulation and internal tests (v0.0.0, Git install only — not
+          PyPI). Open source (Apache-2.0); not a commercial safety or clinical product; DAO
+          governance in-repo is mock.
         </p>
         <OnePagerLinesAccent />
       </header>

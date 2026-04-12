@@ -58,7 +58,9 @@ export function TheoryMathShowcase() {
           Signature mathematics
         </h3>
         <p className="mt-2 max-w-2xl text-sm leading-relaxed text-zinc-400">
-          The same objects implemented in Python — shown here in standard notation.
+          The same design objects implemented in Python — shown here in standard notation. This is
+          explanatory math for the codebase, not a catalog of peer-reviewed theorems; behavioral
+          claims are supported by internal invariant tests, not an independent external benchmark.
         </p>
         <div className="mt-8 grid gap-8 lg:grid-cols-3">
           {CORE_MATH.map((item, i) => (
