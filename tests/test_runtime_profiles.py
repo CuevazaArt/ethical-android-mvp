@@ -83,6 +83,10 @@ def test_perception_hardening_lab_profile_keys():
     assert o["KERNEL_CHAT_INCLUDE_LIGHT_RISK"] == "1"
 
 
+def test_phase2_event_bus_lab_profile_keys():
+    assert RUNTIME_PROFILES["phase2_event_bus_lab"]["KERNEL_EVENT_BUS"] == "1"
+
+
 def test_perception_hardening_lab_websocket_includes_light_risk_tier(monkeypatch: pytest.MonkeyPatch):
     apply_runtime_profile(monkeypatch, "perception_hardening_lab")
     with client.websocket_connect("/ws/chat") as ws:

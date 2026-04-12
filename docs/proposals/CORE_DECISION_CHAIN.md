@@ -2,7 +2,7 @@
 
 **Audience:** reviewers and integrators who need a **single map** from inputs to `KernelDecision.final_action`, without reading all of `src/kernel.py` first.
 
-**Cross-refs:** orchestration in [`src/kernel.py`](../src/kernel.py) (`EthicalKernel.process`), theory in [`THEORY_AND_IMPLEMENTATION.md`](THEORY_AND_IMPLEMENTATION.md), runtime boundaries in [`RUNTIME_CONTRACT.md`](RUNTIME_CONTRACT.md), packaging spike in [`adr/0001-packaging-core-boundary.md`](adr/0001-packaging-core-boundary.md). **Bayesian mixture nudges** (optional, before `evaluate`): episodic refresh (`KERNEL_BAYESIAN_EMPIRICAL_WEIGHTS`, see [README](README.md)), temporal-horizon prior [`TEMPORAL_PRIOR_HORIZONS.md`](TEMPORAL_PRIOR_HORIZONS.md) (`KERNEL_TEMPORAL_HORIZON_PRIOR`) — see [`bayesian_engine.py`](../src/modules/bayesian_engine.py).
+**Cross-refs:** orchestration in [`src/kernel.py`](../src/kernel.py) (`EthicalKernel.process`), theory in [`THEORY_AND_IMPLEMENTATION.md`](THEORY_AND_IMPLEMENTATION.md), runtime boundaries in [`RUNTIME_CONTRACT.md`](RUNTIME_CONTRACT.md), packaging spike in [`adr/0001-packaging-core-boundary.md`](adr/0001-packaging-core-boundary.md). **Phase 2 extension seam (optional):** in-process event bus [`adr/0006-phase2-core-boundary-and-event-bus.md`](../adr/0006-phase2-core-boundary-and-event-bus.md) (`KERNEL_EVENT_BUS`). **Bayesian mixture nudges** (optional, before `evaluate`): episodic refresh (`KERNEL_BAYESIAN_EMPIRICAL_WEIGHTS`, see [README](README.md)), temporal-horizon prior [`TEMPORAL_PRIOR_HORIZONS.md`](TEMPORAL_PRIOR_HORIZONS.md) (`KERNEL_TEMPORAL_HORIZON_PRIOR`) — see [`bayesian_engine.py`](../src/modules/bayesian_engine.py).
 
 ---
 
@@ -75,14 +75,14 @@ In `EthicalKernel.process`, **`final_action` is the string name of a surviving c
 
 ## “Core” vs “theater” (product boundary)
 
-Rough split for packaging and mental model — not a hard import graph yet (see ADR):
+Rough split for packaging and mental model — not a hard import graph yet (see [ADR 0001](../adr/0001-packaging-core-boundary.md), [ADR 0006](../adr/0006-phase2-core-boundary-and-event-bus.md)):
 
 | Tier | Includes | Role |
 |------|----------|------|
 | **Core policy** | MalAbs, buffer (L0), `BayesianEngine`, `EthicalPoles`, `SigmoidWill`, sympathetic / locus / uchi-soto as wired in `process` | Deterministic ethical choice + modes. |
 | **Narrative & audit** | `NarrativeMemory`, weakness, forgiveness, DAO mock, hub hooks | Identity and traceability; **do not** replace the core argmax. |
 | **Advisory / UX** | PAD, reflection, salience, LLM `communicate`, WebSocket JSON extras | Tone and transparency; **read-only** on `final_action` per contract. HCI / poles honesty: [POLES_WEAKNESS_PAD_AND_PROFILES.md](POLES_WEAKNESS_PAD_AND_PROFILES.md). |
-| **Runtime** | FastAPI, persistence, checkpoints, LAN clients | Deployment; **does not** redefine ethics ([`RUNTIME_CONTRACT.md`](RUNTIME_CONTRACT.md)). |
+| **Runtime** | FastAPI, persistence, checkpoints, LAN clients | Deployment; **does not** redefine ethics ([`RUNTIME_CONTRACT.md`](RUNTIME_CONTRACT.md)). Optional **`KernelEventBus`** (`KERNEL_EVENT_BUS`) publishes JSON-safe summaries after the core path — for bridges only; see [PROPOSAL_PHASE2_CORE_EXTENSIONS_AND_EVENT_BUS.md](PROPOSAL_PHASE2_CORE_EXTENSIONS_AND_EVENT_BUS.md). |
 
 ---
 

@@ -2,6 +2,14 @@
 
 All notable changes to this project are summarized here. For narrative context and design rationale, see [`HISTORY.md`](HISTORY.md).
 
+## Phase 2 spike — `KernelEventBus` (ADR 0006) — April 2026
+
+- **[ADR 0006](docs/adr/0006-phase2-core-boundary-and-event-bus.md):** incremental Phase 2 seam — optional sync in-process event bus (`KERNEL_EVENT_BUS`).
+- **`src/modules/kernel_event_bus.py`:** `kernel.decision`, `kernel.episode_registered`; handlers are best-effort (exceptions logged).
+- **`EthicalKernel`:** `event_bus`, `subscribe_kernel_event`, emits on every `process()` outcome and after episode registration.
+- **Proposal:** [`docs/proposals/PROPOSAL_PHASE2_CORE_EXTENSIONS_AND_EVENT_BUS.md`](docs/proposals/PROPOSAL_PHASE2_CORE_EXTENSIONS_AND_EVENT_BUS.md); **tests:** [`tests/test_kernel_event_bus.py`](tests/test_kernel_event_bus.py); **profile:** `phase2_event_bus_lab` in [`src/runtime_profiles.py`](src/runtime_profiles.py).
+- **Docs:** [`CORE_DECISION_CHAIN.md`](docs/proposals/CORE_DECISION_CHAIN.md), [`PRODUCTION_HARDENING_ROADMAP.md`](docs/proposals/PRODUCTION_HARDENING_ROADMAP.md), [`KERNEL_ENV_POLICY.md`](docs/proposals/KERNEL_ENV_POLICY.md), [`ESTRATEGIA_Y_RUTA.md`](docs/proposals/ESTRATEGIA_Y_RUTA.md), [`README.md`](README.md).
+
 ## Runtime profile `perception_hardening_lab` — April 2026
 
 - **[`src/runtime_profiles.py`](src/runtime_profiles.py):** nominal **`perception_hardening_lab`** bundle (light risk + cross-check + uncertainty→delib + parse fail-local + `KERNEL_CHAT_INCLUDE_LIGHT_RISK`).

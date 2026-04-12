@@ -137,8 +137,8 @@ La tensión entre **formalismo verificable** y **ética situada** es inherente; 
 
 | Propuesta | Valor | Condiciones / riesgos |
 |-----------|--------|------------------------|
-| **Paquete `ethos-core` vs `ethos-extensions`** (o equivalente en monorepo) | Alineado con ADR de empaquetado; reduce acoplamiento. | Refactor grande; criterio: qué tests definen el **núcleo ético** vs telemetría. |
-| **Bus de eventos local (pub/sub)** para memoria, DAO, PAD, etc. | Aislar fallos de subsistemas secundarios. | Orden, determinismo y tests síncronos actuales; diseño incremental (no reescritura big-bang). |
+| **Paquete `ethos-core` vs `ethos-extensions`** (o equivalente en monorepo) | Alineado con ADR de empaquetado; reduce acoplamiento. | Refactor grande; criterio: qué tests definen el **núcleo ético** vs telemetría. **Spike documental:** [`adr/0006-phase2-core-boundary-and-event-bus.md`](../adr/0006-phase2-core-boundary-and-event-bus.md), [`PROPOSAL_PHASE2_CORE_EXTENSIONS_AND_EVENT_BUS.md`](PROPOSAL_PHASE2_CORE_EXTENSIONS_AND_EVENT_BUS.md). |
+| **Bus de eventos local (pub/sub)** para memoria, DAO, PAD, etc. | Aislar fallos de subsistemas secundarios. | **Spike incremental entregado:** `KernelEventBus` síncrono opt-in (`KERNEL_EVENT_BUS`), eventos `kernel.decision` y `kernel.episode_registered`; ver ADR 0006, `src/modules/kernel_event_bus.py`, `tests/test_kernel_event_bus.py`, perfil `phase2_event_bus_lab`. Async / multiproceso sigue **fuera** de alcance. |
 
 ---
 

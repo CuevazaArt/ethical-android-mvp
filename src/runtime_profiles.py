@@ -72,6 +72,10 @@ RUNTIME_PROFILES: Final[Dict[str, Dict[str, str]]] = {
         "KERNEL_PERCEPTION_PARSE_FAIL_LOCAL": "1",
         "KERNEL_CHAT_INCLUDE_LIGHT_RISK": "1",
     },
+    # ADR 0006 — Phase 2 seam: in-process event bus for extensions / telemetry.
+    "phase2_event_bus_lab": {
+        "KERNEL_EVENT_BUS": "1",
+    },
 }
 
 PROFILE_DESCRIPTIONS: Final[Dict[str, str]] = {
@@ -86,6 +90,7 @@ PROFILE_DESCRIPTIONS: Final[Dict[str, str]] = {
     "moral_hub_extended": "V12 moral hub: constitution HTTP + DAO vote + deontic gate + transparency audit (Issue 7).",
     "situated_v8_lan_demo": "V8 situated: LAN bind + sensor fixture+preset merge, vitality + multimodal JSON (see DEMO_SITUATED_V8.md, LOCAL_PC_AND_MOBILE_LAN.md).",
     "perception_hardening_lab": "Fase 1 hardening: light risk tier + perception cross-check + uncertainty→D_delib + parse fail-local + light_risk_tier in WebSocket JSON (see PRODUCTION_HARDENING_ROADMAP.md, KERNEL_ENV_POLICY.md).",
+    "phase2_event_bus_lab": "Phase 2 spike: KERNEL_EVENT_BUS for kernel.decision / kernel.episode_registered (ADR 0006, PROPOSAL_PHASE2_CORE_EXTENSIONS_AND_EVENT_BUS.md).",
 }
 
 

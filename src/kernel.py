@@ -12,7 +12,7 @@ forgiveness cycle, weakness load, immortality backup, drive intents.
 import math
 import os
 from dataclasses import dataclass
-from typing import Any, List, Dict, Optional, Tuple
+from typing import Any, Callable, Dict, List, Optional, Tuple
 
 from .modules.absolute_evil import AbsoluteEvilDetector, AbsoluteEvilResult
 from .modules.buffer import PreloadedBuffer
@@ -87,6 +87,12 @@ from .modules.judicial_escalation import (
     strikes_threshold_from_env,
 )
 from .modules.reparation_vault import maybe_register_reparation_after_mock_court
+from .modules.kernel_event_bus import (
+    EVENT_KERNEL_DECISION,
+    EVENT_KERNEL_EPISODE_REGISTERED,
+    KernelEventBus,
+    kernel_event_bus_enabled,
+)
 
 
 def _kernel_env_truthy(name: str) -> bool:
@@ -209,6 +215,35 @@ class EthicalKernel:
         self.constitution_l2_drafts: List[Dict[str, Any]] = []
         self._last_reality_verification: RealityVerificationAssessment = REALITY_ASSESSMENT_NONE
         self._last_light_risk_tier: Optional[str] = None
+        self.event_bus: Optional[KernelEventBus] = None
+        if kernel_event_bus_enabled():
+            self.event_bus = KernelEventBus()
+
+    def subscribe_kernel_event(self, event: str, handler: Callable[[Dict[str, Any]], None]) -> None:
+        """Register a synchronous subscriber (no-op if ``KERNEL_EVENT_BUS`` is off). See ADR 0006."""
+        if self.event_bus is not None:
+            self.event_bus.subscribe(event, handler)
+
+    def _kernel_decision_event_payload(self, d: "KernelDecision", *, context: str) -> Dict[str, Any]:
+        return {
+            "scenario": (d.scenario or "")[:500],
+            "place": d.place,
+            "final_action": d.final_action,
+            "decision_mode": d.decision_mode,
+            "blocked": bool(d.blocked),
+            "block_reason": d.block_reason or "",
+            "verdict": d.moral.global_verdict.value if d.moral else None,
+            "score": float(d.moral.total_score) if d.moral else None,
+            "context": context,
+        }
+
+    def _emit_kernel_decision(self, d: "KernelDecision", *, context: str) -> None:
+        if self.event_bus is None:
+            return
+        self.event_bus.publish(
+            EVENT_KERNEL_DECISION,
+            self._kernel_decision_event_payload(d, context=context),
+        )
 
     def _malabs_text_backend(self):
         """Optional LLM text backend for MalAbs semantic ambiguous band (see semantic_chat_gate)."""
@@ -286,7 +321,7 @@ class EthicalKernel:
 
         if not clean_actions:
             self._last_registered_episode_id = None
-            return KernelDecision(
+            d = KernelDecision(
                 scenario=scenario, place=place,
                 absolute_evil=AbsoluteEvilResult(blocked=True, reason="All actions constitute Absolute Evil"),
                 sympathetic_state=state,
@@ -298,6 +333,8 @@ class EthicalKernel:
                 blocked=True,
                 block_reason="All actions violate Absolute Evil",
             )
+            self._emit_kernel_decision(d, context=context)
+            return d
 
         # ═══ STEP 5: Activate buffer according to context ═══
         principles = self.buffer.activate(context)
@@ -422,10 +459,22 @@ class EthicalKernel:
                 )
 
             self._last_registered_episode_id = ep.id
+            if self.event_bus is not None:
+                self.event_bus.publish(
+                    EVENT_KERNEL_EPISODE_REGISTERED,
+                    {
+                        "episode_id": ep.id,
+                        "final_action": final_action,
+                        "context": context,
+                        "decision_mode": final_mode,
+                        "verdict": moral.global_verdict.value,
+                        "score": float(moral.total_score),
+                    },
+                )
         else:
             self._last_registered_episode_id = None
 
-        return KernelDecision(
+        d = KernelDecision(
             scenario=scenario, place=place,
             absolute_evil=AbsoluteEvilResult(blocked=False),
             sympathetic_state=state,
@@ -439,6 +488,8 @@ class EthicalKernel:
             reflection=reflection,
             salience=salience,
         )
+        self._emit_kernel_decision(d, context=context)
+        return d
 
     def format_decision(self, d: KernelDecision) -> str:
         """Formats a complete decision for readable presentation."""

@@ -80,6 +80,7 @@ Los nombres y variables viven en código: **`src/runtime_profiles.py`**. Resumen
 | `moral_hub_extended` | Hub V12 ampliado: constitución pública + voto DAO + `deontic_gate` + auditoría de transparencia (Issue 7). |
 | `situated_v8_lan_demo` | v8 situado: LAN + `KERNEL_SENSOR_*` (fixture + preset) + vitalidad / multimodal en JSON — [`DEMO_SITUATED_V8.md`](DEMO_SITUATED_V8.md). |
 | `perception_hardening_lab` | Endurecimiento Fase 1: tier léxico + cruce percepción + `D_delib` por incertidumbre + parse fail-local + `light_risk_tier` en WebSocket — [`PRODUCTION_HARDENING_ROADMAP.md`](PRODUCTION_HARDENING_ROADMAP.md), [`KERNEL_ENV_POLICY.md`](KERNEL_ENV_POLICY.md). |
+| `phase2_event_bus_lab` | Fase 2 (spike): bus de eventos in-process `KERNEL_EVENT_BUS` — [`adr/0006-phase2-core-boundary-and-event-bus.md`](../adr/0006-phase2-core-boundary-and-event-bus.md), [`PROPOSAL_PHASE2_CORE_EXTENSIONS_AND_EVENT_BUS.md`](PROPOSAL_PHASE2_CORE_EXTENSIONS_AND_EVENT_BUS.md). |
 
 **Política de flags (Issue 7):** familias de `KERNEL_*`, combinaciones **no recomendadas** y postura de deprecación — **[KERNEL_ENV_POLICY.md](KERNEL_ENV_POLICY.md)**.
 
