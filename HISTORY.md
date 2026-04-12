@@ -160,7 +160,7 @@ The night cycle now includes: retrospective audit → algorithmic forgiveness
 → weakness emotional load → immortality backup.
 
 - **51 tests** verifying 13 invariant ethical properties.
-- Interactive dashboard (`dashboard.html`) for browser visualization.
+- Root static dashboard HTML (historical `dashboard.html`) was removed from the tree in 2026; recover from git if needed for browser visualization demos.
 
 ## v6.0 — April 2026 | Runtime, chat server, and persistence (MVP)
 

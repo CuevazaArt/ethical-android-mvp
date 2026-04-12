@@ -15,7 +15,6 @@ This project is also listed in [Spanish](https://github.com/CuevazaArt/androide-
 
 - **WebSocket chat:** `python -m src.chat_server` or `python -m src.runtime` — JSON over `/ws/chat`; optional `KERNEL_*` layers (see `src/chat_server.py` docstring and `src/chat_settings.py`).
 - **Batch simulations:** `python -m src.main` — legacy harness for regression scenarios.
-- **Static dashboard:** open [`dashboard.html`](dashboard.html) in a browser (no server).
 - **Experiments (optional):** [`experiments/README.md`](experiments/README.md).
 
 ## Quick start
@@ -89,7 +88,6 @@ Psi Sleep, moral hub, judicial escalation, and other subsystems are documented i
 ├── experiments/       # Optional research harnesses
 ├── src/
 ├── tests/
-├── dashboard.html
 ├── CHANGELOG.md
 ├── CONTRIBUTING.md
 ├── HISTORY.md

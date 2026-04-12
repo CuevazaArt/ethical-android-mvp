@@ -2,6 +2,11 @@
 
 All notable changes to this project are summarized here. For narrative context and design rationale, see [`HISTORY.md`](HISTORY.md).
 
+## Trim non-kernel root artifacts — April 2026
+
+- **Removed** from the repository root: **`dashboard.html`** (static browser UI, not imported by Python), **`robots.txt`**, and **`ai.txt`** (web/SEO conventions, not runtime). Recover from git history if needed.
+- **Docs:** [`README.md`](README.md), [`docs/REPOSITORY_LAYOUT.md`](docs/REPOSITORY_LAYOUT.md), [`HISTORY.md`](HISTORY.md), [`SECURITY.md`](SECURITY.md) (removed static-dashboard hardening section); [`.github/ISSUE_TEMPLATE/bug_report.yml`](.github/ISSUE_TEMPLATE/bug_report.yml).
+
 ## Remove `experiments/million_sim/` — April 2026
 
 - **Deleted** the **`experiments/million_sim/`** tree (skeleton README, **`docs/`**, **`requirements-experiment.txt`**). Optional experiment dependencies moved to **[`experiments/requirements-experiment.txt`](experiments/requirements-experiment.txt)**; large outputs go under gitignored **[`experiments/out/`](experiments/out/)**.

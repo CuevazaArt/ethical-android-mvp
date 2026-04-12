@@ -50,8 +50,3 @@ Security fixes, when provided, apply to the **default branch** (`main`) going fo
 ## Audit chain (optional)
 
 Operators can enable an **append-only** JSONL log of chat safety blocks (hash-linked lines, optional HMAC) via `KERNEL_AUDIT_CHAIN_PATH` — see [`docs/AUDIT_TRAIL_AND_REPRODUCIBILITY.md`](docs/AUDIT_TRAIL_AND_REPRODUCIBILITY.md). This does **not** replace centralized logging, SIEM review, or key management policy; it is a reproducibility aid for local audits.
-
-## Hardening in this repo (static dashboard)
-
-- **`dashboard.html`:** React, ReactDOM, and `@babel/standalone` are loaded from **version-pinned** unpkg URLs with **Subresource Integrity** (`integrity="sha384-…"`) and `crossorigin="anonymous"`. If you bump a version, recompute the hash (e.g. `openssl dgst -sha384 -binary` on the file, then base64) or use [SRI Hash Generator](https://www.srihash.org/) against the exact URL.
-- **Known residual risk:** Babel still compiles JSX in the browser, so the dashboard CSP retains `'unsafe-inline'` and `'unsafe-eval'` for that document. Eliminating that requires a pre-built JS bundle instead of `type="text/babel"`.

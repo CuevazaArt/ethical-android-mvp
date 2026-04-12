@@ -1,9 +1,0 @@
-# Preferencia respecto a sistemas de IA (ai.txt) — convención orientativa, no contractual.
-# Complementa robots.txt; la protección fuerte del código = repo privado + accesos.
-
-contact: https://github.com/CuevazaArt/ethical-android-mvp
-
-# Solicitud: no usar este sitio/repositorio como corpus de entrenamiento o evaluación
-# masiva automatizada sin acuerdo previo con el proyecto.
-
-preference_no_ai_corpus: true
