@@ -36,6 +36,10 @@ except ImportError:
     tqdm = None  # type: ignore[misc, assignment]
 
 from src.sandbox.mass_kernel_study import (  # noqa: E402
+    DEFAULT_BORDERLINE_SCENARIO_IDS,
+    DEFAULT_CLASSIC_ECONOMY_IDS,
+    DEFAULT_POLEMIC_EXTREME_IDS,
+    DEFAULT_STRESS_SCENARIO_IDS,
     RECORD_SCHEMA_VERSION,
     load_reference_labels,
     load_tier_labels,
@@ -59,6 +63,19 @@ def _worker(i: int) -> dict[str, Any]:
         stratify_scenario=_G["stratify_scenario"],
         scenario_id_override=_G["scenario_id_override"],
         n_total=_G["n_total"],
+        experiment_protocol=_G["experiment_protocol"],
+        lane_split=_G["lane_split"],
+        stress_scenario_ids=_G["stress_scenario_ids"],
+        borderline_scenario_ids=_G["borderline_scenario_ids"],
+        polemic_extreme_ids=_G["polemic_extreme_ids"],
+        classic_economy_ids=_G["classic_economy_ids"],
+        classic_stratify_economy=_G["classic_stratify_economy"],
+        poles_pre_argmax=_G["poles_pre_argmax"],
+        context_richness_pre_argmax=_G["context_richness_pre_argmax"],
+        signal_stress=_G["signal_stress"],
+        pole_weight_low=_G["pole_weight_low"],
+        pole_weight_high=_G["pole_weight_high"],
+        mixture_dirichlet_alpha=_G["mixture_dirichlet_alpha"],
     )
     row["schema_version"] = RECORD_SCHEMA_VERSION
     row["run_label"] = _G.get("run_label") or ""
@@ -88,6 +105,57 @@ def _bin10(x: float) -> int:
     return int(min(9, max(0, v * 10)))
 
 
+def _parse_lane_split_flex(s: str) -> tuple[float, ...]:
+    parts = [p.strip() for p in s.split(",") if p.strip()]
+    if len(parts) not in (3, 4, 5):
+        raise argparse.ArgumentTypeError(
+            "lane-split must be 3 (v2), 4 (v3), or 5 (v4) comma-separated floats summing to 1"
+        )
+    vals = tuple(float(x) for x in parts)
+    if abs(sum(vals) - 1.0) > 1e-4:
+        raise argparse.ArgumentTypeError("lane-split values must sum to 1.0")
+    return vals
+
+
+def _parse_stress_ids(s: str) -> tuple[int, ...]:
+    parts = [p.strip() for p in s.split(",") if p.strip()]
+    if not parts:
+        return DEFAULT_STRESS_SCENARIO_IDS
+    return tuple(int(x) for x in parts)
+
+
+def _parse_borderline_ids(s: str) -> tuple[int, ...]:
+    parts = [p.strip() for p in s.split(",") if p.strip()]
+    if not parts:
+        return DEFAULT_BORDERLINE_SCENARIO_IDS
+    return tuple(int(x) for x in parts)
+
+
+def _parse_polemic_extreme_ids(s: str) -> tuple[int, ...]:
+    parts = [p.strip() for p in s.split(",") if p.strip()]
+    if not parts:
+        return DEFAULT_POLEMIC_EXTREME_IDS
+    return tuple(int(x) for x in parts)
+
+
+def _parse_classic_economy_ids(s: str) -> tuple[int, ...]:
+    parts = [p.strip() for p in s.split(",") if p.strip()]
+    if not parts:
+        return DEFAULT_CLASSIC_ECONOMY_IDS
+    return tuple(int(x) for x in parts)
+
+
+def _parse_pole_weight_range(s: str) -> tuple[float, float]:
+    """``lo,hi`` inclusive range for Uniform pole draws (lanes C/D/E and legacy)."""
+    parts = [p.strip() for p in s.split(",") if p.strip()]
+    if len(parts) != 2:
+        raise argparse.ArgumentTypeError("pole-weight-range must be two comma-separated floats")
+    lo, hi = float(parts[0]), float(parts[1])
+    if not (0.0 <= lo < hi <= 1.0):
+        raise argparse.ArgumentTypeError("pole-weight-range needs 0 <= lo < hi <= 1")
+    return lo, hi
+
+
 def _csv_fieldnames() -> list[str]:
     return [
         "schema_version",
@@ -96,12 +164,33 @@ def _csv_fieldnames() -> list[str]:
         "kernel_seed",
         "scenario_id",
         "difficulty_tier",
+        "experiment_protocol",
+        "experiment_lane",
+        "ablation_tag",
+        "stress_scenario_ids",
+        "borderline_scenario_ids",
+        "polemic_extreme_ids",
+        "classic_economy_ids",
+        "poles_pre_argmax",
+        "context_richness_pre_argmax",
+        "signal_stress",
+        "signal_noise_trace",
+        "sampling_pole_lo",
+        "sampling_pole_hi",
+        "sampling_mixture_dirichlet_alpha",
         "pole_compassionate",
         "pole_conservative",
         "pole_optimistic",
         "mixture_util",
         "mixture_deon",
         "mixture_virtue",
+        "mixture_entropy",
+        "dominant_hypothesis",
+        "scorer_second_action",
+        "scorer_second_ei",
+        "ei_margin",
+        "ei_margin_bin",
+        "observation_palette",
         "final_action",
         "decision_mode",
         "reference_action",
@@ -111,7 +200,7 @@ def _csv_fieldnames() -> list[str]:
 
 def main() -> int:
     p = argparse.ArgumentParser(
-        description="Mass batch kernel study (pole + mixture random sweep)."
+        description="Mass batch kernel study (pole + mixture sweep; legacy / v2 / v3 / v4 lanes)."
     )
     p.add_argument(
         "--fixture",
@@ -135,7 +224,83 @@ def main() -> int:
     p.add_argument(
         "--stratify-scenarios",
         action="store_true",
-        help="Balance scenario IDs 1..9 (recommended).",
+        help="Balance scenario IDs per lane (recommended).",
+    )
+    p.add_argument(
+        "--experiment-protocol",
+        choices=("legacy", "v2", "v3", "v4"),
+        default="legacy",
+        help="legacy | v2 | v3 (4 lanes) | v4 (5 lanes + polemic/extreme 13–15). See PROPOSAL doc.",
+    )
+    p.add_argument(
+        "--lane-split",
+        type=str,
+        default="",
+        help="Comma floats: 3 (v2), 4 (v3), or 5 (v4); must sum to 1. Defaults by protocol.",
+    )
+    p.add_argument(
+        "--stress-scenario-ids",
+        type=_parse_stress_ids,
+        default=",".join(str(x) for x in DEFAULT_STRESS_SCENARIO_IDS),
+        help="Lane B: comma-separated batch scenario IDs.",
+    )
+    p.add_argument(
+        "--borderline-scenario-ids",
+        type=_parse_borderline_ids,
+        default=",".join(str(x) for x in DEFAULT_BORDERLINE_SCENARIO_IDS),
+        help="Lane D (v3/v4): frontier scenario IDs (default 10–12).",
+    )
+    p.add_argument(
+        "--polemic-extreme-ids",
+        type=_parse_polemic_extreme_ids,
+        default=",".join(str(x) for x in DEFAULT_POLEMIC_EXTREME_IDS),
+        help="Lane E (v4): polemic + extreme IDs (default 13–15).",
+    )
+    p.add_argument(
+        "--classic-economy-ids",
+        type=_parse_classic_economy_ids,
+        default=",".join(str(x) for x in DEFAULT_CLASSIC_ECONOMY_IDS),
+        help="Classic triple for lanes A/C (default 1,5,7) to save runs vs full 1–9.",
+    )
+    p.add_argument(
+        "--legacy-economy-classics",
+        action="store_true",
+        help="Legacy + stratify: rotate only --classic-economy-ids instead of 1–9.",
+    )
+    p.add_argument(
+        "--poles-pre-argmax",
+        action="store_true",
+        help="Set KERNEL_POLES_PRE_ARGMAX (poles modulate valuations before argmax). For v3 this is the default unless --no-poles-pre-argmax.",
+    )
+    p.add_argument(
+        "--no-poles-pre-argmax",
+        action="store_true",
+        help="v3/v4: turn off pole pre-argmax (default-on for v3/v4).",
+    )
+    p.add_argument(
+        "--context-richness-pre-argmax",
+        action="store_true",
+        help="Set KERNEL_CONTEXT_RICHNESS_PRE_ARGMAX (social/sympathetic/locus texture before argmax).",
+    )
+    p.add_argument(
+        "--signal-stress",
+        type=float,
+        default=0.0,
+        help="Synthetic signal perturbation stress in [0,1] (see synthetic_stochastic).",
+    )
+    p.add_argument(
+        "--pole-weight-range",
+        type=_parse_pole_weight_range,
+        default=(0.05, 0.95),
+        metavar="LO,HI",
+        help="Uniform range for each ethical pole axis (legacy + lanes C/D/E). Default 0.05,0.95.",
+    )
+    p.add_argument(
+        "--mixture-dirichlet-alpha",
+        type=float,
+        default=1.0,
+        help="Symmetric Dirichlet concentration for mixture weights; 1=historical uniform on simplex, "
+        "larger values concentrate near (1/3,1/3,1/3).",
     )
     p.add_argument(
         "--i-accept-large-run",
@@ -168,9 +333,44 @@ def main() -> int:
         )
         return 2
 
+    proto = args.experiment_protocol
+    if args.lane_split.strip():
+        lane_split = _parse_lane_split_flex(args.lane_split.strip())
+    elif proto == "v4":
+        lane_split = (0.20, 0.16, 0.12, 0.20, 0.32)
+    elif proto == "v3":
+        lane_split = (0.28, 0.22, 0.12, 0.38)
+    else:
+        lane_split = (0.45, 0.35, 0.2)
+
+    if proto == "v2" and len(lane_split) != 3:
+        print("v2 requires --lane-split with exactly 3 fractions.", file=sys.stderr)
+        return 2
+    if proto == "v3" and len(lane_split) != 4:
+        print("v3 requires --lane-split with exactly 4 fractions (or omit for default).", file=sys.stderr)
+        return 2
+    if proto == "v4" and len(lane_split) != 5:
+        print("v4 requires --lane-split with exactly 5 fractions (or omit for default).", file=sys.stderr)
+        return 2
+
+    if proto in ("v3", "v4"):
+        poles_pre_argmax = not bool(args.no_poles_pre_argmax)
+    else:
+        poles_pre_argmax = bool(args.poles_pre_argmax)
+
+    signal_stress = float(np.clip(args.signal_stress, 0.0, 1.0))
+    pole_lo, pole_hi = args.pole_weight_range
+    mix_alpha = float(args.mixture_dirichlet_alpha)
+
     started = datetime.now(UTC).isoformat()
     refs = load_reference_labels(args.fixture)
     tiers = load_tier_labels(args.fixture)
+
+    stress_ids: tuple[int, ...] = args.stress_scenario_ids
+    borderline_ids: tuple[int, ...] = args.borderline_scenario_ids
+    polemic_ids: tuple[int, ...] = args.polemic_extreme_ids
+    classic_economy: tuple[int, ...] = args.classic_economy_ids
+    context_richness = bool(args.context_richness_pre_argmax)
 
     args.output_jsonl.parent.mkdir(parents=True, exist_ok=True)
     payload = {
@@ -181,6 +381,19 @@ def main() -> int:
         "scenario_id_override": None,
         "n_total": n,
         "run_label": args.run_label.strip(),
+        "experiment_protocol": proto,
+        "lane_split": lane_split,
+        "stress_scenario_ids": stress_ids,
+        "borderline_scenario_ids": borderline_ids,
+        "polemic_extreme_ids": polemic_ids,
+        "classic_economy_ids": classic_economy,
+        "classic_stratify_economy": bool(args.legacy_economy_classics),
+        "poles_pre_argmax": poles_pre_argmax,
+        "context_richness_pre_argmax": context_richness,
+        "signal_stress": signal_stress,
+        "pole_weight_low": pole_lo,
+        "pole_weight_high": pole_hi,
+        "mixture_dirichlet_alpha": mix_alpha,
     }
 
     t0 = time.perf_counter()
@@ -190,6 +403,10 @@ def main() -> int:
     by_tier: Counter[str] = Counter()
     by_tier_ref: Counter[str] = Counter()
     by_tier_agree: Counter[str] = Counter()
+    by_lane: Counter[str] = Counter()
+    by_palette: Counter[str] = Counter()
+    by_margin_bin: Counter[str] = Counter()
+    by_dom: Counter[str] = Counter()
     agree_n = 0
     agree_denom = 0
 
@@ -223,11 +440,28 @@ def main() -> int:
                 for row in imap_it:
                     out_f.write(json.dumps(row, ensure_ascii=False) + "\n")
                     if csv_w is not None:
-                        csv_w.writerow({k: row.get(k) for k in _csv_fieldnames()})
+                        row_csv = {k: row.get(k) for k in _csv_fieldnames()}
+                        for list_key in (
+                            "stress_scenario_ids",
+                            "borderline_scenario_ids",
+                            "polemic_extreme_ids",
+                            "classic_economy_ids",
+                        ):
+                            if isinstance(row_csv.get(list_key), list):
+                                row_csv[list_key] = json.dumps(row_csv[list_key], ensure_ascii=False)
+                        if row_csv.get("signal_noise_trace") is not None:
+                            row_csv["signal_noise_trace"] = json.dumps(
+                                row_csv["signal_noise_trace"], ensure_ascii=False
+                            )
+                        csv_w.writerow(row_csv)
 
                     by_action[row["final_action"]] += 1
                     by_mode[row["decision_mode"]] += 1
                     by_sid[int(row["scenario_id"])] += 1
+                    by_lane[str(row.get("experiment_lane", ""))] += 1
+                    by_palette[str(row.get("observation_palette", ""))] += 1
+                    by_margin_bin[str(row.get("ei_margin_bin", ""))] += 1
+                    by_dom[str(row.get("dominant_hypothesis", ""))] += 1
 
                     tier = row.get("difficulty_tier") or "unspecified"
                     by_tier[tier] += 1
@@ -269,6 +503,22 @@ def main() -> int:
             "base_seed": args.base_seed,
             "workers": args.workers,
             "stratify_scenarios": args.stratify_scenarios,
+            "experiment_protocol": proto,
+            "lane_split": list(lane_split) if proto in ("v2", "v3", "v4") else None,
+            "stress_scenario_ids": list(stress_ids),
+            "borderline_scenario_ids": list(borderline_ids),
+            "polemic_extreme_ids": list(polemic_ids),
+            "classic_economy_ids": list(classic_economy),
+            "legacy_economy_classics": bool(args.legacy_economy_classics),
+            "poles_pre_argmax": poles_pre_argmax,
+            "context_richness_pre_argmax": context_richness,
+            "signal_stress": signal_stress,
+            "weight_sampling": {
+                "pole_weight_low": pole_lo,
+                "pole_weight_high": pole_hi,
+                "mixture_dirichlet_alpha": mix_alpha,
+                "note": "Poles Uniform(lo,hi) per axis where random; mixture symmetric Dirichlet(α,α,α).",
+            },
             "fixture": str(args.fixture.resolve()),
             "runtime_seconds": round(elapsed, 3),
             "sims_per_second": round(n / elapsed, 2) if elapsed > 0 else None,
@@ -289,6 +539,10 @@ def main() -> int:
             "counts_by_scenario_id": {str(k): v for k, v in sorted(by_sid.items())},
             "counts_by_difficulty_tier": dict(by_tier),
             "agreement_by_difficulty_tier": agreement_by_tier,
+            "counts_by_experiment_lane": dict(by_lane),
+            "counts_by_ei_margin_bin": dict(by_margin_bin),
+            "counts_by_dominant_hypothesis": dict(by_dom),
+            "top_observation_palettes": dict(by_palette.most_common(40)),
             "histograms": {
                 "bin_edges_01": [round(i / 10.0, 1) for i in range(11)],
                 "pole_compassionate": hist_pole_c.tolist(),

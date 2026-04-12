@@ -28,7 +28,7 @@ def test_fixture_schema():
     assert "scenarios" in data
     for s in data["scenarios"]:
         assert isinstance(s["id"], int)
-        assert 1 <= s["id"] <= 9
+        assert 1 <= s["id"] <= 19
         assert "reference_action" in s
 
 
@@ -36,7 +36,9 @@ def test_run_pilot_importable():
     run_pilot = _load_run_pilot()
     rows, summary, _ref = run_pilot(FIXTURE)
     assert len(rows) == summary["scenarios"]
-    assert summary["with_reference"] == len(rows)
+    assert summary["with_reference"] == sum(
+        1 for r in rows if r["reference_action"] is not None
+    )
     for r in rows:
         assert r["kernel"]
         assert r["baseline_first"]
@@ -76,4 +78,4 @@ def test_run_pilot_script_writes_output_file(tmp_path):
     assert "rows" in data and "summary" in data and "meta" in data
     assert data["meta"]["kernel"]["seed"] == 42
     assert "reference_standard" in data["meta"]
-    assert data["summary"]["scenarios"] == 9
+    assert data["summary"]["scenarios"] == 19

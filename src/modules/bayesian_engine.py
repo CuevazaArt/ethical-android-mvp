@@ -17,7 +17,10 @@ from .weighted_ethics_scorer import (
     BayesianResult,
     CandidateAction,
     EthicsMixtureResult,
+    PreArgmaxContextChannels,
     WeightedEthicsScorer,
+    context_hypothesis_multipliers,
+    pole_hypothesis_multipliers,
 )
 
 __all__ = [
@@ -26,5 +29,8 @@ __all__ = [
     "BayesianResult",
     "CandidateAction",
     "EthicsMixtureResult",
+    "PreArgmaxContextChannels",
     "WeightedEthicsScorer",
+    "context_hypothesis_multipliers",
+    "pole_hypothesis_multipliers",
 ]

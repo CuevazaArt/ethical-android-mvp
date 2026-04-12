@@ -23,16 +23,18 @@ def test_empirical_pilot_default_fixture_summary_stable():
     """Kernel + seed=42 in runner; agreement vs illustrative references."""
     run_pilot = _load_run_pilot()
     rows, summary, _ref = run_pilot(_FIXTURE)
-    assert summary["scenarios"] == 9
-    assert summary["with_reference"] == 9
+    assert summary["scenarios"] == 19
+    assert summary["with_reference"] == 16
     assert summary["agreement_kernel"] == 1.0
-    assert summary["agreement_first"] == 1.0
-    assert summary["agreement_max_impact"] == 1.0
-    assert summary["kernel_vs_first_rate"] == 1.0
-    assert summary["kernel_vs_max_impact_rate"] == 1.0
+    assert summary["agreement_first"] == 0.6875
+    assert summary["agreement_max_impact"] == 0.625
+    assert summary["kernel_vs_first_rate"] == 0.631578947368421
+    assert summary["kernel_vs_max_impact_rate"] == 0.5263157894736842
     for r in rows:
         assert r["agree_kernel"] is True
-        assert r["kernel"] == r["reference_action"]
+        ref = r["reference_action"]
+        if ref is not None:
+            assert r["kernel"] == ref
 
 
 def test_last_run_summary_fixture_matches_disk():

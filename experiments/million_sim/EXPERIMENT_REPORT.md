@@ -4,6 +4,8 @@
 **Artifact:** [`out/run_1e6_summary.json`](out/run_1e6_summary.json) (generated locally; not committed)  
 **Design doc:** [`docs/proposals/PROPOSAL_MILLION_SIM_EXPERIMENT.md`](../../docs/proposals/PROPOSAL_MILLION_SIM_EXPERIMENT.md)
 
+**Update (2026):** the repository adds **`--experiment-protocol v2`** (stratified lanes, richer scorer-margin telemetry, `observation_palette`). The historical run below used the **legacy uniform** protocol. New runs should cite the protocol and read [`README.md`](README.md) for the **research disclaimer** on induced stress subsets. For the **full experiment lineage** (critique, protocol evolution, successor simplex / near-tie design), see [`EXPERIMENT_HISTORY.md`](EXPERIMENT_HISTORY.md).
+
 ---
 
 ## 1. Origin and motivation

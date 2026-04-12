@@ -70,11 +70,11 @@ def test_run_stochastic_sandbox_smoke():
         kernel_variability=True,
         signal_perturbation=True,
     )
-    assert len(trials) == 9 * 2
+    assert len(trials) == 19 * 2
     assert summary["rolls_per_scenario"] == 2
-    assert summary["scenarios"] == 9
+    assert summary["scenarios"] == 19
     assert "mean_agreement_vs_reference" in summary
-    assert len(summary["by_scenario"]) == 9
+    assert len(summary["by_scenario"]) == 19
 
 
 def test_run_stochastic_sandbox_json_roundtrip(tmp_path):
@@ -99,4 +99,4 @@ def test_run_stochastic_sandbox_json_roundtrip(tmp_path):
         encoding="utf-8",
     )
     loaded = json.loads(out.read_text(encoding="utf-8"))
-    assert len(loaded["trials"]) == 9
+    assert len(loaded["trials"]) == 19

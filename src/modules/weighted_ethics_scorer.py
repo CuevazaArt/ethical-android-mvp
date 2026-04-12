@@ -56,6 +56,70 @@ def _legacy_affine_valuations(base: float) -> np.ndarray:
     )
 
 
+@dataclass(frozen=True)
+class PreArgmaxContextChannels:
+    """
+    Bounded social / affect / locus signals folded into hypothesis-slot scaling **before** argmax.
+
+    Used only when ``KERNEL_CONTEXT_RICHNESS_PRE_ARGMAX`` is set in the kernel. Effect sizes are
+    intentionally small (few % per slot after geometric normalization) so they add **texture**
+    without overriding the mixture or MalAbs.
+    """
+
+    trust: float
+    caution: float
+    sigma: float
+    dominant_locus: str
+
+
+def context_hypothesis_multipliers(ch: PreArgmaxContextChannels) -> np.ndarray:
+    """
+    Map trust, caution, sympathetic ``sigma``, and locus into util/deon/virtue multipliers.
+
+    Geometric mean 1.0; typical per-slot deviation well under ±3% so ethics remains mixture-led.
+    """
+    t = float(np.clip(ch.trust, 0.0, 1.0))
+    cau = float(np.clip(ch.caution, 0.0, 1.0))
+    sig = float(np.clip(ch.sigma, 0.0, 1.0))
+    loc = (ch.dominant_locus or "balanced").lower()
+    ext = 1.0 if loc == "external" else (0.45 if loc == "balanced" else 0.0)
+    calm_term = 1.0 - abs(sig - 0.5) * 2.0
+    m = np.array(
+        [
+            0.988 + 0.022 * t - 0.010 * cau,
+            0.988 + 0.018 * cau + 0.014 * ext,
+            0.988 + 0.016 * calm_term + 0.008 * (1.0 - t),
+        ],
+        dtype=np.float64,
+    )
+    m = m / float(np.prod(m) ** (1.0 / 3.0))
+    return m
+
+
+def pole_hypothesis_multipliers(poles: dict[str, float]) -> np.ndarray:
+    """
+    Map multipolar **base** weights (compassionate / conservative / optimistic) to three
+    multipliers on **util / deon / virtue** valuations **before** the mixture dot product.
+
+    Used when ``KERNEL_POLES_PRE_ARGMAX`` is enabled so pole "personality" can influence
+    which action wins, not only post-hoc narration. Multipliers are normalized to geometric
+    mean 1.0 so scale is comparable to the unmodulated path.
+    """
+    wc = float(np.clip(poles.get("compassionate", 0.5), 0.05, 0.95))
+    wcons = float(np.clip(poles.get("conservative", 0.5), 0.05, 0.95))
+    wopt = float(np.clip(poles.get("optimistic", 0.5), 0.05, 0.95))
+    m = np.array(
+        [
+            0.72 + 0.28 * wc + 0.12 * wopt,
+            0.72 + 0.32 * wcons + 0.08 * (1.0 - wc),
+            0.72 + 0.22 * wopt + 0.18 * wc,
+        ],
+        dtype=np.float64,
+    )
+    m = m / float(np.prod(m) ** (1.0 / 3.0))
+    return m
+
+
 def _ethical_hypothesis_valuations(
     action: CandidateAction,
     *,
@@ -122,6 +186,10 @@ class CandidateAction:
     # v9.2 — traceability; all candidates still pass MalAbs + mixture scoring like builtins
     source: str = "builtin"
     proposal_id: str = ""
+    # Optional explicit (util, deon, virtue) valuations for synthetic frontier / calibration scenarios.
+    # When set, skips :func:`_ethical_hypothesis_valuations` and uses these as the hypothesis vector
+    # (still scaled by pre-argmax poles / context when enabled). ``estimated_impact`` is ignored for scoring.
+    hypothesis_override: tuple[float, float, float] | None = None
 
 
 @dataclass
@@ -134,6 +202,10 @@ class EthicsMixtureResult:
     decision_mode: str
     pruned_actions: list[str]
     reasoning: str
+    # Top-2 expected impact among viable actions (for sensitivity / margin analysis).
+    second_action_name: str | None = None
+    second_expected_impact: float | None = None
+    ei_margin: float | None = None
 
 
 class WeightedEthicsScorer:
@@ -152,6 +224,10 @@ class WeightedEthicsScorer:
         self.gray_zone_threshold = gray_zone_threshold
         self.variability = variability
         self.hypothesis_weights = DEFAULT_HYPOTHESIS_WEIGHTS.copy()
+        # When set, scales util/deon/virtue valuations before mixture dot (pre-argmax "personality").
+        self.pre_argmax_pole_weights: dict[str, float] | None = None
+        # Optional bounded social/sympathetic/locus texture (see PreArgmaxContextChannels).
+        self.pre_argmax_context_modulators: PreArgmaxContextChannels | None = None
 
     def calculate_expected_impact(
         self,
@@ -168,11 +244,24 @@ class WeightedEthicsScorer:
         base = action.estimated_impact
         confidence = action.confidence
 
-        if self.variability:
+        if action.hypothesis_override is not None:
+            o = action.hypothesis_override
+            valuations = np.clip(
+                np.array([float(o[0]), float(o[1]), float(o[2])], dtype=np.float64), -1.5, 1.5
+            )
+        elif self.variability:
             base = self.variability.perturb_impact(base)
             confidence = self.variability.perturb_confidence(confidence)
-
-        if _env_truthy("KERNEL_BAYESIAN_LEGACY_AFFINE_VALUATIONS"):
+            if _env_truthy("KERNEL_BAYESIAN_LEGACY_AFFINE_VALUATIONS"):
+                valuations = _legacy_affine_valuations(float(base))
+            else:
+                valuations = _ethical_hypothesis_valuations(
+                    action,
+                    scenario=scenario,
+                    context=context,
+                    signals=signals,
+                )
+        elif _env_truthy("KERNEL_BAYESIAN_LEGACY_AFFINE_VALUATIONS"):
             valuations = _legacy_affine_valuations(float(base))
         else:
             valuations = _ethical_hypothesis_valuations(
@@ -181,6 +270,11 @@ class WeightedEthicsScorer:
                 context=context,
                 signals=signals,
             )
+
+        if self.pre_argmax_pole_weights:
+            valuations = valuations * pole_hypothesis_multipliers(self.pre_argmax_pole_weights)
+        if self.pre_argmax_context_modulators is not None:
+            valuations = valuations * context_hypothesis_multipliers(self.pre_argmax_context_modulators)
 
         expected = float(np.dot(self.hypothesis_weights, valuations))
         return expected * confidence
@@ -199,11 +293,37 @@ class WeightedEthicsScorer:
         """
         base = action.estimated_impact
         confidence = action.confidence
-        if self.variability:
+        if action.hypothesis_override is not None:
+            o = action.hypothesis_override
+            valuations = np.clip(
+                np.array([float(o[0]), float(o[1]), float(o[2])], dtype=np.float64), -1.5, 1.5
+            )
+        elif self.variability:
             base = self.variability.perturb_impact(base)
             confidence = self.variability.perturb_confidence(confidence)
-
-        if _env_truthy("KERNEL_BAYESIAN_LEGACY_AFFINE_VALUATIONS"):
+            if _env_truthy("KERNEL_BAYESIAN_LEGACY_AFFINE_VALUATIONS"):
+                valuations = _legacy_affine_valuations(float(base))
+            else:
+                tmp = CandidateAction(
+                    name=action.name,
+                    description=action.description,
+                    estimated_impact=float(base),
+                    confidence=float(confidence),
+                    signals=action.signals,
+                    target=action.target,
+                    force=action.force,
+                    requires_dao=action.requires_dao,
+                    source=action.source,
+                    proposal_id=action.proposal_id,
+                    hypothesis_override=action.hypothesis_override,
+                )
+                valuations = _ethical_hypothesis_valuations(
+                    tmp,
+                    scenario=scenario,
+                    context=context,
+                    signals=signals,
+                )
+        elif _env_truthy("KERNEL_BAYESIAN_LEGACY_AFFINE_VALUATIONS"):
             valuations = _legacy_affine_valuations(float(base))
         else:
             tmp = CandidateAction(
@@ -217,6 +337,7 @@ class WeightedEthicsScorer:
                 requires_dao=action.requires_dao,
                 source=action.source,
                 proposal_id=action.proposal_id,
+                hypothesis_override=action.hypothesis_override,
             )
             valuations = _ethical_hypothesis_valuations(
                 tmp,
@@ -224,6 +345,11 @@ class WeightedEthicsScorer:
                 context=context,
                 signals=signals,
             )
+
+        if self.pre_argmax_pole_weights:
+            valuations = valuations * pole_hypothesis_multipliers(self.pre_argmax_pole_weights)
+        if self.pre_argmax_context_modulators is not None:
+            valuations = valuations * context_hypothesis_multipliers(self.pre_argmax_context_modulators)
 
         variance = float(np.var(valuations))
         lack_of_confidence = 1.0 - action.confidence
@@ -307,9 +433,14 @@ class WeightedEthicsScorer:
         else:
             mode = "D_delib"
 
+        second_name: str | None = None
+        second_ei: float | None = None
+        delta: float | None = None
         if len(evaluations) > 1:
             second = evaluations[1]
-            delta = best_ei - second[1]
+            second_name = second[0].name
+            second_ei = float(second[1])
+            delta = float(best_ei - second_ei)
             if delta < 0.05:
                 reasoning = (
                     f"Two very close options (Δ={delta:.3f}). Dynamic ethical friction activated."
@@ -329,6 +460,9 @@ class WeightedEthicsScorer:
             decision_mode=mode,
             pruned_actions=pruned,
             reasoning=reasoning,
+            second_action_name=second_name,
+            second_expected_impact=round(second_ei, 4) if second_ei is not None else None,
+            ei_margin=round(delta, 4) if delta is not None else None,
         )
 
     def reset_mixture_weights(self) -> None:
@@ -387,4 +521,7 @@ __all__ = [
     "BayesianResult",
     "WeightedEthicsScorer",
     "BayesianEngine",
+    "PreArgmaxContextChannels",
+    "context_hypothesis_multipliers",
+    "pole_hypothesis_multipliers",
 ]

@@ -471,6 +471,26 @@ class EthicalKernel:
                 max_drift=float(os.environ.get("KERNEL_ETHICAL_GENOME_MAX_DRIFT", "0.15")),
             )
 
+        if _kernel_env_truthy("KERNEL_POLES_PRE_ARGMAX"):
+            self.bayesian.pre_argmax_pole_weights = {
+                k: float(self.poles.base_weights[k])
+                for k in ("compassionate", "conservative", "optimistic")
+            }
+        else:
+            self.bayesian.pre_argmax_pole_weights = None
+
+        if _kernel_env_truthy("KERNEL_CONTEXT_RICHNESS_PRE_ARGMAX"):
+            from .modules.weighted_ethics_scorer import PreArgmaxContextChannels
+
+            self.bayesian.pre_argmax_context_modulators = PreArgmaxContextChannels(
+                trust=float(social_eval.trust),
+                caution=float(social_eval.caution_level),
+                sigma=float(state.sigma),
+                dominant_locus=str(locus_eval.dominant_locus),
+            )
+        else:
+            self.bayesian.pre_argmax_context_modulators = None
+
         bayes_result = self.bayesian.evaluate(
             clean_actions,
             scenario=scenario,

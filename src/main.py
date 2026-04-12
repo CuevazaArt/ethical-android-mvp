@@ -90,19 +90,19 @@ def main():
             try:
                 specific_sim = int(sys.argv[idx + 1])
             except ValueError:
-                print("Error: --sim requires a number (1-9)")
+                print("Error: --sim requires a valid batch simulation id")
                 sys.exit(1)
 
     print(banner())
 
     if specific_sim:
         if specific_sim not in ALL_SIMULATIONS:
-            print(f"Simulation {specific_sim} does not exist. Available: 1-9.")
+            print(f"Simulation {specific_sim} does not exist. Available: {sorted(ALL_SIMULATIONS)}.")
             sys.exit(1)
         result = run_simulation(kernel, specific_sim)
         print(result)
     else:
-        for i in range(1, 10):
+        for i in sorted(ALL_SIMULATIONS):
             result = run_simulation(kernel, i)
             print(result)
 
