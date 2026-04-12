@@ -22,8 +22,11 @@ Optional: `scipy` enables quasi-Monte Carlo upgrades in future tooling (not requ
 
 ## Pilot (10⁴)
 
+Use **`--summary-json`** for aggregated histograms and tier-level agreement; **`--output-csv`** for pandas/R; **`--run-label`** to tag your machine or protocol version; **`--progress`** if `tqdm` is installed.
+
 ```bash
-python scripts/run_mass_kernel_study.py --n-simulations 10000 --workers 8 --stratify-scenarios --output-jsonl experiments/million_sim/out/pilot_10k.jsonl --summary-json experiments/million_sim/out/pilot_10k_summary.json
+pip install -r experiments/million_sim/requirements-experiment.txt
+python scripts/run_mass_kernel_study.py --n-simulations 10000 --workers 8 --stratify-scenarios --run-label pilot_A --progress --output-jsonl experiments/million_sim/out/pilot_10k.jsonl --output-csv experiments/million_sim/out/pilot_10k.csv --summary-json experiments/million_sim/out/pilot_10k_summary.json
 ```
 
 ## Full scale (10⁶)

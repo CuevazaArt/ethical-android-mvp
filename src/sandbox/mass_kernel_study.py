@@ -22,6 +22,9 @@ from src.simulations.runner import ALL_SIMULATIONS
 
 from .weight_sweep import POLE_KEYS
 
+# Bump when JSONL row shape or semantics change (plotting / analysis tools).
+RECORD_SCHEMA_VERSION = 1
+
 
 def load_reference_labels(fixture_path: Path) -> dict[int, str | None]:
     """Map batch scenario_id -> reference action label if present."""
@@ -125,6 +128,7 @@ def run_single_simulation(
 
     return {
         "i": i,
+        "kernel_seed": int(base_seed) + i,
         "scenario_id": sid,
         "difficulty_tier": tier,
         "pole_compassionate": pole_dict["compassionate"],
@@ -141,6 +145,7 @@ def run_single_simulation(
 
 
 __all__ = [
+    "RECORD_SCHEMA_VERSION",
     "load_reference_labels",
     "load_tier_labels",
     "run_single_simulation",

@@ -45,15 +45,24 @@
 
 ## 3. Findings (“hallazgos”) schema
 
-Minimum fields per line (JSONL):
+**Row schema version** `RECORD_SCHEMA_VERSION` in [`src/sandbox/mass_kernel_study.py`](../../src/sandbox/mass_kernel_study.py) — bump when columns change.
 
-- `i`, `base_seed`, `scenario_id`, `difficulty_tier` (from fixture), `pole_*`, `mixture_*`, `final_action`, `decision_mode`, `reference_action`, `agree_reference`.
+Minimum fields per line (JSONL), as written by `run_mass_kernel_study.py`:
 
-Summary JSON (generated at end or by a separate tool):
+- `schema_version`, optional `run_label` (from `--run-label`)
+- `i`, `kernel_seed` (= `base_seed + i` for the `EthicalKernel` instance), `scenario_id`, `difficulty_tier` (from fixture)
+- `pole_*`, `mixture_*`, `final_action`, `decision_mode`, `reference_action`, `agree_reference`
 
-- `counts.by_final_action`, `counts.by_decision_mode`, `counts.by_scenario_id`
-- `agreement_rate` vs maintainer reference labels (same caveat as Issue 3)
-- `unique_actions`, `runtime_seconds`, `workers`
+Optional **`--output-csv`**: same columns for **pandas / R / Excel** quick plots.
+
+**Summary JSON** (`--summary-json`) additionally includes:
+
+- **Reproducibility:** `started_at_utc`, `finished_at_utc`, `platform`, `python`, `git_commit_short`, `argv`, `sims_per_second`
+- **Stratification:** `counts_by_difficulty_tier`, `agreement_by_difficulty_tier` (rates use rows **with** reference only)
+- **Plotting aids:** `histograms` — 10-bin counts (edges `0.0..1.0`) for each pole scalar and each mixture component (heatmaps / marginal densities)
+- `counts_by_final_action`, `counts_by_decision_mode`, `counts_by_scenario_id`, `agreement_rate_vs_reference`, `unique_final_actions`
+
+**Progress:** `--progress` requires **`tqdm`** (`pip install -r experiments/million_sim/requirements-experiment.txt`).
 
 **Interpretation:** low agreement is **expected** when weights sweep widely; the value is **sensitivity mapping**, not maximizing agreement.
 
@@ -77,7 +86,7 @@ Summary JSON (generated at end or by a separate tool):
 ## 6. Implementation in this repo
 
 - **Library:** [`src/sandbox/mass_kernel_study.py`](../../src/sandbox/mass_kernel_study.py) — `run_single_simulation`, `load_reference_labels`, `stratified_scenario_ids`.
-- **CLI:** [`scripts/run_mass_kernel_study.py`](../../scripts/run_mass_kernel_study.py) — `--n-simulations`, `--workers`, `--stratify-scenarios`, `--output-jsonl`, `--summary-json`, safety `--i-accept-large-run`.
+- **CLI:** [`scripts/run_mass_kernel_study.py`](../../scripts/run_mass_kernel_study.py) — `--n-simulations`, `--workers`, `--stratify-scenarios`, `--run-label`, `--output-jsonl`, `--output-csv`, `--summary-json`, `--progress`, safety `--i-accept-large-run`.
 - **Environment:** [`experiments/million_sim/README.md`](../../experiments/million_sim/README.md) + optional [`requirements-experiment.txt`](../../experiments/million_sim/requirements-experiment.txt).
 
 ---

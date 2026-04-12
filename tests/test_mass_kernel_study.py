@@ -35,6 +35,7 @@ def test_run_single_simulation_smoke():
         n_total=100,
     )
     assert row["scenario_id"] == 1
+    assert row["kernel_seed"] == 99
     assert "final_action" in row
     assert "mixture_util" in row
     assert row["agree_reference"] in (True, False)

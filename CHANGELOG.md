@@ -5,8 +5,8 @@ All notable changes to this project are summarized here. For narrative context a
 ## Million-sim experiment — design + mass runner — April 2026
 
 - **[`PROPOSAL_MILLION_SIM_EXPERIMENT.md`](docs/proposals/PROPOSAL_MILLION_SIM_EXPERIMENT.md):** statistical design (stratified scenarios, Dirichlet mixture, parallelism, phases 10⁴→10⁶).
-- **`src/sandbox/mass_kernel_study.py`:** `run_single_simulation`, `stratified_scenario_ids`, reference/tier loaders.
-- **`scripts/run_mass_kernel_study.py`:** JSONL + summary JSON; `--i-accept-large-run` for n>100k; multiprocessing pool.
+- **`src/sandbox/mass_kernel_study.py`:** `run_single_simulation`, `stratified_scenario_ids`, reference/tier loaders; `RECORD_SCHEMA_VERSION`, `kernel_seed` per row.
+- **`scripts/run_mass_kernel_study.py`:** JSONL + summary JSON; `--i-accept-large-run` for n>100k; multiprocessing pool; **`--run-label`**, **`--output-csv`**, **`--progress`** (tqdm); summary includes `git_commit_short`, UTC timestamps, `sims_per_second`, `counts_by_difficulty_tier`, `agreement_by_difficulty_tier`, 10-bin histograms for poles/mixture; JSONL rows add `schema_version`, `run_label`.
 - **`experiments/million_sim/`:** README, optional `requirements-experiment.txt`, gitignored `out/`.
 - **Tests:** [`tests/test_mass_kernel_study.py`](tests/test_mass_kernel_study.py).
 
