@@ -2,6 +2,27 @@
 
 All notable changes to this project are summarized here. For narrative context and design rationale, see [`HISTORY.md`](HISTORY.md).
 
+## Empirical evaluation — external benchmark policy (Issue 3) — April 2026
+
+- **[`docs/proposals/ETHICAL_BENCHMARK_EXTERNAL_VALIDATION.md`](docs/proposals/ETHICAL_BENCHMARK_EXTERNAL_VALIDATION.md):** circularity risk; minimum bar for non-circular labels (experts, rubric, baselines); roadmap.
+- **Fixtures** [`tests/fixtures/labeled_scenarios.json`](tests/fixtures/labeled_scenarios.json), [`tests/fixtures/empirical_pilot/scenarios.json`](tests/fixtures/empirical_pilot/scenarios.json): `reference_standard` metadata (`tier: internal_pilot`).
+- **[`scripts/run_empirical_pilot.py`](scripts/run_empirical_pilot.py):** `run_pilot` returns reference metadata; JSON/`--output` include it; CLI notice.
+- **[`src/main.py`](src/main.py):** docstring clarifies demos are not external ethical validation.
+- **Tests:** [`tests/test_ethical_benchmark_external_doc.py`](tests/test_ethical_benchmark_external_doc.py); empirical pilot tests updated for 3-tuple return.
+- **[`docs/WEAKNESSES_AND_BOTTLENECKS.md`](docs/WEAKNESSES_AND_BOTTLENECKS.md):** new §5 on external moral benchmark gap; pole weights → §6; module surface → §7.
+
+## Module surface vs observable ethics (ablation gap) — April 2026
+
+- **[`docs/proposals/MODULE_IMPACT_AND_EMPIRICAL_GAP.md`](docs/proposals/MODULE_IMPACT_AND_EMPIRICAL_GAP.md):** honest answer to “~70 modules, one argmax — what changes `final_action`?”; tiers A–E; ties to empirical pilot / ablation; weakness [§6](docs/WEAKNESSES_AND_BOTTLENECKS.md).
+- **[`tests/test_decision_core_invariants.py`](tests/test_decision_core_invariants.py):** when not blocked, `final_action == bayesian_result.chosen_action.name` (regression guard).
+- **Cross-links:** [`CORE_DECISION_CHAIN.md`](docs/proposals/CORE_DECISION_CHAIN.md), [`PLAN_IMMEDIATE_TWO_WEEKS.md`](docs/proposals/PLAN_IMMEDIATE_TWO_WEEKS.md) appendix, [`docs/proposals/README.md`](docs/proposals/README.md).
+
+## Ethical scoring — canonical `weighted_ethics_scorer` + ADR 0009 — April 2026
+
+- **[`src/modules/weighted_ethics_scorer.py`](src/modules/weighted_ethics_scorer.py):** canonical **weighted mixture** scorer (`WeightedEthicsScorer`, `EthicsMixtureResult`); default weights documented as **hyperparameters**; no claim of Bayesian posterior inference.
+- **[`src/modules/bayesian_engine.py`](src/modules/bayesian_engine.py):** compatibility **shim** re-exporting the same implementation; `BayesianEngine` / `BayesianResult` remain **aliases** for existing imports.
+- **Docs:** [ADR 0009](docs/adr/0009-ethical-mixture-scorer-naming.md); imports in `kernel.py` and tests updated to prefer `weighted_ethics_scorer`.
+
 ## Contributor workflow — documentation traceability + Cursor rule — April 2026
 
 - **[`CONTRIBUTING.md`](CONTRIBUTING.md):** section *Documentation, traceability, and efficient workflow* (CHANGELOG, targeted vs full pytest, landing/Docker scope, credibility limits).
@@ -422,7 +443,7 @@ Pause on **new surface modules**; strengthen existing paths (critique-aligned).
 - **Tests:** `tests/test_input_trust.py` (evasion + perception adversarial cases).
 
 ## Issue 1 (P0): honest “Bayesian” semantics — April 2026
-- **`src/modules/bayesian_engine.py`:** module, class, and method docstrings state **fixed weighted mixture** over three hypotheses; **no** posterior updating; **heuristic** uncertainty (not the theoretical integral).
+- **`src/modules/weighted_ethics_scorer.py`:** canonical **fixed weighted mixture** over three hypotheses; **no** posterior updating; **heuristic** uncertainty (not the theoretical integral). **`bayesian_engine.py`** remains a compat re-export shim; see [ADR 0009](docs/adr/0009-ethical-mixture-scorer-naming.md).
 - **`docs/proposals/THEORY_AND_IMPLEMENTATION.md`:** semantic note under MalAbs optimization; § uncertainty aligned with heuristic `I(x)`.
 - **README** tagline, **`src/kernel.py`** / **`src/main.py`** comments, **`sigmoid_will`** param doc: narrative matches implementation; class names `BayesianEngine` / `BayesianResult` unchanged for API stability.
 

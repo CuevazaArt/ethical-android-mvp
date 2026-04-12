@@ -125,11 +125,11 @@ This file is the **repo-local execution backlog**. **GitHub milestones, assignee
 
 ## Appendix — Technical model: pending vs settled (April 2026)
 
-Cross-check: [`PROJECT_STATUS_AND_MODULE_MATURITY.md`](PROJECT_STATUS_AND_MODULE_MATURITY.md), [`PROPOSAL_CORE_IMPLEMENTATION_GAP_PHASED_REMEDIATION.md`](PROPOSAL_CORE_IMPLEMENTATION_GAP_PHASED_REMEDIATION.md), [`WEAKNESSES_AND_BOTTLENECKS.md`](../WEAKNESSES_AND_BOTTLENECKS.md).
+Cross-check: [`PROJECT_STATUS_AND_MODULE_MATURITY.md`](PROJECT_STATUS_AND_MODULE_MATURITY.md), [`PROPOSAL_CORE_IMPLEMENTATION_GAP_PHASED_REMEDIATION.md`](PROPOSAL_CORE_IMPLEMENTATION_GAP_PHASED_REMEDIATION.md), [`WEAKNESSES_AND_BOTTLENECKS.md`](../WEAKNESSES_AND_BOTTLENECKS.md), [`MODULE_IMPACT_AND_EMPIRICAL_GAP.md`](MODULE_IMPACT_AND_EMPIRICAL_GAP.md).
 
 | Area | Settled in code/docs | Still open (technical) |
 |------|----------------------|-------------------------|
-| **Scoring (“Bayesian”)** | [`bayesian_engine.py`](../../src/modules/bayesian_engine.py) documents a **discrete mixture** (not posterior inference); distinct hypothesis valuations. | **Issue #1:** product-facing naming (`BayesianEngine` class name kept for API stability); optional bounded episodic nudges already present — no full online Bayes unless scoped as a new project. |
+| **Scoring (mixture)** | [`weighted_ethics_scorer.py`](../../src/modules/weighted_ethics_scorer.py) documents a **discrete mixture** (not posterior inference); `BayesianEngine` alias + `bayesian_engine.py` shim ([ADR 0009](../../docs/adr/0009-ethical-mixture-scorer-naming.md)). | **Issue #1:** canonical module path + honest types; optional bounded episodic nudges — no full online Bayes unless scoped as a new project. |
 | **MalAbs chat** | Lexical + normalization + optional semantic tier + tests. | **Evasion** cataloged in [ADVERSARIAL_ROBUSTNESS_PLAN.md](ADVERSARIAL_ROBUSTNESS_PLAN.md); hash embeddings **weaker** than neural; paraphrase without n-grams remains a known gap. |
 | **Buffer / L0** | `PreloadedBuffer.verify_action` — lexical/heuristic checks. | [Phased remediation §3.2](PROPOSAL_CORE_IMPLEMENTATION_GAP_PHASED_REMEDIATION.md): **embedding or LLM verifier** paths for principles are **not** implemented as described (lab backlog). |
 | **Perception** | Pydantic + coherence + caps in `perception_schema` / `llm_layer`. | **GIGO:** valid JSON can still bias signals; no semantic “world truth” check ([INPUT_TRUST_THREAT_MODEL.md](INPUT_TRUST_THREAT_MODEL.md)). |

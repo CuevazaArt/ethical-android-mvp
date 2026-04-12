@@ -27,6 +27,7 @@ High-level summary aligned with the code and docs; full chronology is in [`CHANG
 | If you need… | Open |
 |--------------|------|
 | **Next ~2 weeks — triage, P0/P1/P2, reproduction checklists** | [PLAN_IMMEDIATE_TWO_WEEKS.md](PLAN_IMMEDIATE_TWO_WEEKS.md) |
+| **Module count vs observable ethics (ablation gap, tiers A–E)** | [MODULE_IMPACT_AND_EMPIRICAL_GAP.md](MODULE_IMPACT_AND_EMPIRICAL_GAP.md) |
 | Theory ↔ implementation map and tests | [THEORY_AND_IMPLEMENTATION.md](THEORY_AND_IMPLEMENTATION.md) |
 | Runtime contract (English) | [RUNTIME_CONTRACT.md](RUNTIME_CONTRACT.md) |
 | Snapshot and persistence | [RUNTIME_PERSISTENT.md](RUNTIME_PERSISTENT.md) |
@@ -133,6 +134,7 @@ Legacy Spanish filenames (`PROPUESTA_*.md`, `ESTRATEGIA_Y_RUTA.md`, `PAPER_AFECT
 | Document | Topic |
 |----------|--------|
 | [EMPIRICAL_PILOT_METHODOLOGY.md](EMPIRICAL_PILOT_METHODOLOGY.md) | Empirical pilot methodology |
+| [ETHICAL_BENCHMARK_EXTERNAL_VALIDATION.md](ETHICAL_BENCHMARK_EXTERNAL_VALIDATION.md) | External vs circular ethical evaluation (expert baselines, rubrics) |
 | [EMPIRICAL_METHODOLOGY.md](EMPIRICAL_METHODOLOGY.md) | Issue 3 — interpreting agreement metrics; not moral certification |
 | [EMPIRICAL_PILOT_PROTOCOL.md](EMPIRICAL_PILOT_PROTOCOL.md) | Empirical pilot protocol |
 | [SWARM_P2P_THREAT_MODEL.md](SWARM_P2P_THREAT_MODEL.md) | Swarm P2P threat model |

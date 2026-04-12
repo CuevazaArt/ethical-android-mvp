@@ -22,9 +22,9 @@ This note is an **honest inventory** for operators and reviewers: known limits o
 
 ## 2. “Bayesian” naming vs the running implementation
 
-**Observation.** The engine is a **fixed convex combination** of stylized hypotheses with **bounded optional nudges** (e.g. episodic weight refresh). There is **no** continuous online posterior update from streaming evidence in the sense of full Bayesian inference.
+**Observation.** Canonical code is [`weighted_ethics_scorer.py`](../src/modules/weighted_ethics_scorer.py): a **fixed convex combination** of stylized hypotheses with **bounded optional nudges** (e.g. episodic weight refresh). There is **no** continuous online posterior update from streaming evidence in the sense of full Bayesian inference. `BayesianEngine` is a **historical alias**; `bayesian_engine.py` is a compat shim ([ADR 0009](adr/0009-ethical-mixture-scorer-naming.md)).
 
-**Why it matters.** The name `BayesianEngine` and surrounding docs can be read as promising calibrated posteriors; the implementation is deliberately simpler for testability and transparency.
+**Why it matters.** The old name `BayesianEngine` and early docs can be read as promising calibrated posteriors; the implementation is deliberately simpler for testability and transparency.
 
 **Pointers:** [README.md](../README.md) (maturation disclaimer); [THEORY_AND_IMPLEMENTATION.md](proposals/THEORY_AND_IMPLEMENTATION.md) (explicit “no Bayesian updating” note); [CRITIQUE_ROADMAP_ISSUES.md](proposals/CRITIQUE_ROADMAP_ISSUES.md) Issue 1.
 
@@ -52,13 +52,31 @@ This note is an **honest inventory** for operators and reviewers: known limits o
 
 ---
 
-## 5. Pole linear weights and context multipliers (heuristic)
+## 5. No external “moral ground truth” benchmark in-repo
+
+**Observation.** Agreement metrics ([`scripts/run_empirical_pilot.py`](../scripts/run_empirical_pilot.py)) use **maintainer-authored** reference actions unless you merge an **expert-panel** dataset. That measures alignment with a **declared** label set, not independent philosophy or law.
+
+**Pointers:** [ETHICAL_BENCHMARK_EXTERNAL_VALIDATION.md](proposals/ETHICAL_BENCHMARK_EXTERNAL_VALIDATION.md); [EMPIRICAL_PILOT_METHODOLOGY.md](proposals/EMPIRICAL_PILOT_METHODOLOGY.md).
+
+---
+
+## 6. Pole linear weights and context multipliers (heuristic)
 
 **Observation.** Multipolar scores load from configurable linear JSON ([ADR 0004](adr/0004-configurable-linear-pole-evaluator.md)) and combine with `EthicalPoles` base and context weights. The numbers are **design choices** (including legacy parity for the default JSON), not the output of a documented human-judgment calibration study.
 
 **Why it matters.** Calling these weights “validated” or implying statistical grounding from the small default empirical pilot (nine batch scenarios) would **overclaim**: the pilot targets **action-level** agreement templates, not identification of many free parameters in pole telemetry.
 
 **Pointers:** [POLE_WEIGHT_CALIBRATION_AND_EVIDENCE.md](proposals/POLE_WEIGHT_CALIBRATION_AND_EVIDENCE.md); [POLES_WEAKNESS_PAD_AND_PROFILES.md](proposals/POLES_WEAKNESS_PAD_AND_PROFILES.md); [EMPIRICAL_PILOT_METHODOLOGY.md](proposals/EMPIRICAL_PILOT_METHODOLOGY.md).
+
+---
+
+## 7. Many modules, one argmax — peripheral complexity without ablation evidence
+
+**Observation.** The repo contains a **large** `src/modules` surface (dozens of files) for a core path where **`final_action`** is the Bayesian **chosen candidate name** after MalAbs pruning; poles, weakness, PAD, augenesis, and similar layers often affect **mode**, **narrative**, **LLM tone**, or **post-decision** state — not a second pick among actions.
+
+**Why it matters.** Bugs in “exotic” modules may **not** move `final_action` on standard tests, so **green unit tests** can hide regressions that matter for **UX, trust, or longitudinal behavior**. The project has not yet published a **large ablation** (“disable N modules → measure Δ decision quality”) — that is **evidence debt**, acknowledged as a research gap.
+
+**Pointers:** [MODULE_IMPACT_AND_EMPIRICAL_GAP.md](proposals/MODULE_IMPACT_AND_EMPIRICAL_GAP.md); [CORE_DECISION_CHAIN.md](proposals/CORE_DECISION_CHAIN.md); [`tests/test_decision_core_invariants.py`](../tests/test_decision_core_invariants.py).
 
 ---
 
