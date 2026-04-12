@@ -11,7 +11,7 @@ Env:
 - ``KERNEL_SEMANTIC_EMBED_BACKOFF_S`` — base sleep between retries (default ``0.25``).
 - ``KERNEL_SEMANTIC_EMBED_CIRCUIT_FAILURES`` — consecutive failures before opening circuit (default ``5``).
 - ``KERNEL_SEMANTIC_EMBED_CIRCUIT_COOLDOWN_S`` — seconds circuit stays open (default ``45``).
-- ``KERNEL_SEMANTIC_EMBED_HASH_FALLBACK`` — ``1`` to emit deterministic hash vectors when HTTP/circuit fails (default ``0``).
+- ``KERNEL_SEMANTIC_EMBED_HASH_FALLBACK`` — ``1`` to emit deterministic hash vectors when HTTP/circuit fails (default **on** when unset; set ``0`` to disable).
 - ``KERNEL_SEMANTIC_EMBED_HASH_DIM`` — dimension for hash fallback (default ``256``).
 - ``KERNEL_SEMANTIC_EMBED_HASH_SCOPE`` — ASCII scope string mixed into hash (default ``malabs_embed_v1``).
 """
@@ -237,6 +237,6 @@ def http_fetch_ollama_embedding_with_policy(
 
 def maybe_hash_fallback_embedding(text: str) -> np.ndarray | None:
     """If env allows, return hash-scoped vector; else ``None``."""
-    if not _truthy("KERNEL_SEMANTIC_EMBED_HASH_FALLBACK", False):
+    if not _truthy("KERNEL_SEMANTIC_EMBED_HASH_FALLBACK", True):
         return None
     return hash_scoped_unit_embedding(text)

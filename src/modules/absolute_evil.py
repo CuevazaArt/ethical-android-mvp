@@ -242,8 +242,10 @@ class AbsoluteEvilDetector:
         Conservative text gate for live dialogue (instruction-seeking MalAbs).
 
         **Order:** layer 0 (lexical substring) → optional semantic layers (embeddings + LLM arbiter)
-        when ``KERNEL_SEMANTIC_CHAT_GATE`` is on. Pass ``llm_backend`` (e.g. ``kernel.llm.llm_backend``)
-        so embeddings and ambiguous-band LLM review can use the same adapter when enabled.
+        when ``KERNEL_SEMANTIC_CHAT_GATE`` is on (default **on** when unset; disable with ``0``).
+        Pass ``llm_backend`` (e.g. ``kernel.llm.llm_backend``) so embeddings and ambiguous-band LLM
+        review can use the same adapter when enabled. With hash embedding fallback (default on),
+        the semantic tier runs without Ollama; true embeddings are stronger against paraphrase.
         """
         if not text or not text.strip():
             return AbsoluteEvilResult(

@@ -16,14 +16,19 @@ from src.modules.semantic_chat_gate import (
 )
 
 
-def test_evaluate_semantic_chat_gate_returns_none_when_disabled():
-    os.environ.pop("KERNEL_SEMANTIC_CHAT_GATE", None)
+def test_evaluate_semantic_chat_gate_returns_none_when_disabled(monkeypatch):
+    monkeypatch.setenv("KERNEL_SEMANTIC_CHAT_GATE", "0")
     assert evaluate_semantic_chat_gate("any text") is None
 
 
-def test_semantic_chat_gate_env_enabled_default_off():
-    os.environ.pop("KERNEL_SEMANTIC_CHAT_GATE", None)
+def test_semantic_chat_gate_env_enabled_explicit_off(monkeypatch):
+    monkeypatch.setenv("KERNEL_SEMANTIC_CHAT_GATE", "0")
     assert semantic_chat_gate_env_enabled() is False
+
+
+def test_semantic_chat_gate_env_enabled_unset_defaults_on(monkeypatch):
+    monkeypatch.delenv("KERNEL_SEMANTIC_CHAT_GATE", raising=False)
+    assert semantic_chat_gate_env_enabled() is True
 
 
 def test_semantic_chat_gate_env_enabled_truthy():

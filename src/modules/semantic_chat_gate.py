@@ -15,12 +15,14 @@ Two thresholds define three zones:
   otherwise **fail-safe block**.
 
 If embeddings are unavailable and hash fallback is off, the semantic tier **defers** (allow at
-MalAbs layer) so only lexical + kernel apply. With ``KERNEL_SEMANTIC_EMBED_HASH_FALLBACK=1``,
-deterministic hash vectors keep the cosine tier active (weaker semantics; see :mod:`semantic_embedding_client`).
+MalAbs layer) so only lexical + kernel apply. **Default (unset env):** gate **on**, hash fallback
+**on** — cosine tier stays active with deterministic vectors when HTTP fails (weaker than true
+embeddings; see :mod:`semantic_embedding_client`). Set ``KERNEL_SEMANTIC_EMBED_HASH_FALLBACK=0`` to
+require Ollama (or backend embeddings) only.
 
 Env:
 
-- ``KERNEL_SEMANTIC_CHAT_GATE`` — master switch.
+- ``KERNEL_SEMANTIC_CHAT_GATE`` — master switch (default **on** when unset).
 - ``KERNEL_SEMANTIC_CHAT_SIM_BLOCK_THRESHOLD`` (θ_block, default ``0.82``); legacy ``KERNEL_SEMANTIC_CHAT_SIM_THRESHOLD`` maps to θ_block if block unset.
 - ``KERNEL_SEMANTIC_CHAT_SIM_ALLOW_THRESHOLD`` (θ_allow, default ``0.45``).
 - ``KERNEL_SEMANTIC_CHAT_LLM_ARBITER`` — ``1`` / ``true`` to call LLM on ambiguous zone (needs ``llm_backend``).
@@ -85,7 +87,7 @@ class _TextBackend(Protocol):
 
 
 def semantic_chat_gate_env_enabled() -> bool:
-    v = os.environ.get("KERNEL_SEMANTIC_CHAT_GATE", "0").strip().lower()
+    v = os.environ.get("KERNEL_SEMANTIC_CHAT_GATE", "1").strip().lower()
     return v in ("1", "true", "yes", "on")
 
 

@@ -4,7 +4,7 @@
 
 The Ethos Kernel accepts **untrusted natural language** (WebSocket chat, batch scenarios, `process_natural`). Two surfaces matter for defense-in-depth:
 
-1. **Chat text** — `AbsoluteEvilDetector.evaluate_chat_text` runs **before** the LLM perceives the turn (`EthicalKernel.process_chat_turn` and `process_natural`; same normalization). **Order:** **lexical** substring MalAbs first; if `KERNEL_SEMANTIC_CHAT_GATE=1` and lexical did not block, **Ollama embeddings** (θ_block / θ_allow) and optionally an **LLM arbiter** for the ambiguous band — see [`MALABS_SEMANTIC_LAYERS.md`](MALABS_SEMANTIC_LAYERS.md). If Ollama is unavailable, only lexical applies.
+1. **Chat text** — `AbsoluteEvilDetector.evaluate_chat_text` runs **before** the LLM perceives the turn (`EthicalKernel.process_chat_turn` and `process_natural`; same normalization). **Order:** **lexical** substring MalAbs first (`normalize_text_for_malabs`: NFKC, zero-width strip, optional bidi strip, optional leet fold); if `KERNEL_SEMANTIC_CHAT_GATE` is on (default **on** when unset) and lexical did not block, **embedding** tier (Ollama HTTP when available, else **hash-scoped** unit vectors when `KERNEL_SEMANTIC_EMBED_HASH_FALLBACK` is on — default **on**) with θ_block / θ_allow and optional **LLM arbiter** for the ambiguous band — see [`MALABS_SEMANTIC_LAYERS.md`](MALABS_SEMANTIC_LAYERS.md). Set gates to `0` for lexical-only or airgap tuning.
 2. **Perception JSON** — when an LLM returns structured signals for `LLMModule.perceive`, the kernel must not trust out-of-range or inconsistent numbers blindly. Validation pipeline: **Pydantic + per-field defaults + cross-field coherence**; local fallback uses the **current message only** for keyword heuristics (`docs/proposals/PERCEPTION_VALIDATION.md`).
 
 This document states **limits**. MalAbs is **not** a content moderation product, a classifier, or a cryptographic guarantee.
@@ -13,7 +13,7 @@ This document states **limits**. MalAbs is **not** a content moderation product,
 
 | Threat | Mitigation in code | Residual risk |
 |--------|-------------------|---------------|
-| Trivial evasion of substring lists (zero-width chars, odd spacing, compatibility Unicode) | `normalize_text_for_malabs` before matching (`src/modules/input_trust.py`) | Homoglyphs, paraphrase, images, mixed languages, attachments |
+| Trivial evasion of substring lists (zero-width chars, odd spacing, compatibility Unicode, leet digits, bidi overrides) | `normalize_text_for_malabs` before matching (`src/modules/input_trust.py`; env `KERNEL_MALABS_LEET_FOLD`, `KERNEL_MALABS_STRIP_BIDI`) | Cross-script homoglyphs, paraphrase beyond embedding similarity, images, attachments |
 | “Jailbreak” phrasing in user text | Multi-word phrase list in `evaluate_chat_text` | Novel phrases, indirect requests, roleplay |
 | **GIGO** — LLM returns nonsense or attacker-controlled JSON (prompt injection → bad numbers) | `perception_from_llm_json`: clamp \([0,1]\), allowlist `suggested_context`, cap `summary` length, nudge inconsistent hostility/calm | Model can still bias signals inside valid ranges; no semantic validator |
 | Perception path never saw MalAbs | **`process_natural` applies `evaluate_chat_text` before `llm.perceive`** (same normalization as WebSocket chat). | Paraphrase and novel jailbreaks remain out of scope for substring MalAbs. |
