@@ -38,15 +38,13 @@ High-level summary aligned with the code and docs; full chronology is in [`CHANG
 | Theory ↔ implementation map and tests | [THEORY_AND_IMPLEMENTATION.md](THEORY_AND_IMPLEMENTATION.md) |
 | Runtime contract (English) | [RUNTIME_CONTRACT.md](RUNTIME_CONTRACT.md) |
 | Snapshot and persistence | [RUNTIME_PERSISTENT.md](RUNTIME_PERSISTENT.md) |
-| Runtime phases / migration | [RUNTIME_PHASES.md](RUNTIME_PHASES.md) — [RUNTIME_FASES.md](RUNTIME_FASES.md) is a one-line redirect to the same doc |
+| Runtime phases / migration | [RUNTIME_PHASES.md](RUNTIME_PHASES.md) |
 | Current kernel status | [PROJECT_STATUS_AND_MODULE_MATURITY.md](PROJECT_STATUS_AND_MODULE_MATURITY.md) |
 | Operator quick reference | [OPERATOR_QUICK_REF.md](OPERATOR_QUICK_REF.md) |
 
 ---
 
 ## Versioned proposals (v6–v12 line and annexes)
-
-Legacy Spanish filenames (`ESTRATEGIA_Y_RUTA.md`, `PAPER_AFECTO_*.md`) are **redirect stubs** to `STRATEGY_AND_ROADMAP.md` / `PAPER_AFFECT_*.md`. Prefer linking to the English `PROPOSAL_*` paths in new text.
 
 | Document | Topic |
 |----------|--------|
@@ -75,10 +73,8 @@ Legacy Spanish filenames (`ESTRATEGIA_Y_RUTA.md`, `PAPER_AFECTO_*.md`) are **red
 | Document | Topic |
 |----------|--------|
 | [RUNTIME_CONTRACT.md](RUNTIME_CONTRACT.md) | Runtime contract |
-| [RUNTIME_PERSISTENT.md](RUNTIME_PERSISTENT.md) | Persistence (English) |
-| [RUNTIME_PERSISTENTE.md](RUNTIME_PERSISTENTE.md) | Persistence (Spanish) |
+| [RUNTIME_PERSISTENT.md](RUNTIME_PERSISTENT.md) | Persistence |
 | [RUNTIME_PHASES.md](RUNTIME_PHASES.md) | Runtime phases |
-| [RUNTIME_FASES.md](RUNTIME_FASES.md) | Phases (Spanish) |
 | [KERNEL_ENV_POLICY.md](KERNEL_ENV_POLICY.md) | Environment variable policy |
 | [CORE_DECISION_CHAIN.md](CORE_DECISION_CHAIN.md) | Core decision chain |
 | [ROADMAP_MINIMAL_EXECUTABLE_MODEL_30_DAY.md](ROADMAP_MINIMAL_EXECUTABLE_MODEL_30_DAY.md) | 30-day plan: compose, ethical telemetry, persistence migrations, operator manual — *English* |

@@ -5,7 +5,13 @@ All notable changes to this project are summarized here. For narrative context a
 ## Remove legacy `PROPUESTA_*` stub files — April 2026
 
 - **Removed** 14 Spanish redirect stubs **`docs/proposals/PROPUESTA_*.md`** (each duplicated a canonical English **`PROPOSAL_*.md`**).
-- **Docs:** [`docs/proposals/README.md`](docs/proposals/README.md), [`README.md`](README.md), [`docs/proposals/PRODUCTION_HARDENING_ROADMAP.md`](docs/proposals/PRODUCTION_HARDENING_ROADMAP.md), [`docs/proposals/TRACE_IMPLEMENTATION_RECENT.md`](docs/proposals/TRACE_IMPLEMENTATION_RECENT.md), [`docs/proposals/CRITIQUE_ROADMAP_ISSUES.md`](docs/proposals/CRITIQUE_ROADMAP_ISSUES.md). Redirect stubs **`ESTRATEGIA_Y_RUTA.md`** and **`PAPER_AFECTO_*.md`** remain until migrated.
+- **Docs:** [`docs/proposals/README.md`](docs/proposals/README.md), [`README.md`](README.md), [`docs/proposals/PRODUCTION_HARDENING_ROADMAP.md`](docs/proposals/PRODUCTION_HARDENING_ROADMAP.md), [`docs/proposals/TRACE_IMPLEMENTATION_RECENT.md`](docs/proposals/TRACE_IMPLEMENTATION_RECENT.md), [`docs/proposals/CRITIQUE_ROADMAP_ISSUES.md`](docs/proposals/CRITIQUE_ROADMAP_ISSUES.md).
+
+## Remove legacy redirect stubs (Spanish + rename stubs) — April 2026
+
+- **Removed** bookmark-only stubs: **`ESTRATEGIA_Y_RUTA.md`**, **`PAPER_AFECTO_FENOMENOS_Y_HIPOTESIS.md`** (canonical: [`STRATEGY_AND_ROADMAP.md`](docs/proposals/STRATEGY_AND_ROADMAP.md), [`PAPER_AFFECT_PHENOMENA_AND_HYPOTHESES.md`](docs/proposals/PAPER_AFFECT_PHENOMENA_AND_HYPOTHESES.md)).
+- **Removed** one-line rename stubs: **`RUNTIME_FASES.md`** → [`RUNTIME_PHASES.md`](docs/proposals/RUNTIME_PHASES.md); **`RUNTIME_PERSISTENTE.md`** → [`RUNTIME_PERSISTENT.md`](docs/proposals/RUNTIME_PERSISTENT.md).
+- **Docs:** [`docs/proposals/README.md`](docs/proposals/README.md) index updated.
 
 ## Remove Next.js landing and root bibliography — April 2026
 
