@@ -1,0 +1,15 @@
+---
+description: Multi-source collaboration — assess redundancy and prioritize novelty before starting work
+alwaysApply: true
+---
+
+# Collaboration and work prioritization
+
+Contributions may come from multiple channels (issues, PRs, chat, external partners). That can produce **overlapping or duplicate requests**.
+
+**Before starting implementation**, the agent must:
+
+1. **Check for redundancy** — See whether the change is already proposed, in progress, or recently merged. Search open issues/PRs, the codebase, and `docs/`. **Coordinate with or extend existing work** instead of duplicating it.
+2. **Prioritize novelty and coverage** — Prefer work on **newer** topics relative to the current model and **areas less covered** in code or docs, unless a critical fix, security issue, or regression requires otherwise.
+
+These expectations match **CONTRIBUTING.md** (How to contribute, section 1) and apply to all contributors.
