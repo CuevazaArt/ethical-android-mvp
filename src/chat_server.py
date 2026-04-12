@@ -157,6 +157,17 @@ logger = logging.getLogger(__name__)
 apply_named_runtime_profile_to_environ()
 validate_kernel_env()
 
+_PROCESS_START_MONOTONIC = time.monotonic()
+
+
+def _package_version() -> str:
+    try:
+        from importlib.metadata import version
+
+        return version("ethos-kernel")
+    except Exception:
+        return "dev"
+
 
 @asynccontextmanager
 async def _lifespan(app: FastAPI):
@@ -448,10 +459,31 @@ def prometheus_metrics() -> Response:
 
 
 @app.get("/health")
-def health() -> dict[str, str]:
+def health() -> dict[str, Any]:
+    """Liveness + operator-facing observability flags (JSON for dashboards and probes)."""
+    from .observability.decision_log import decision_log_enabled
     from .runtime_profiles import applied_runtime_profile
 
-    out: dict[str, str] = {"status": "ok"}
+    log_json = os.environ.get("KERNEL_LOG_JSON", "").strip().lower() in ("1", "true", "yes", "on")
+    prom_client = "ok"
+    try:
+        import prometheus_client  # noqa: F401
+    except ImportError:
+        prom_client = "missing"
+
+    out: dict[str, Any] = {
+        "status": "ok",
+        "service": "ethos-kernel-chat",
+        "version": _package_version(),
+        "uptime_seconds": round(time.monotonic() - _PROCESS_START_MONOTONIC, 3),
+        "observability": {
+            "metrics_enabled": metrics_enabled(),
+            "log_json": log_json,
+            "log_decision_events": decision_log_enabled(),
+            "request_id_header": "X-Request-ID",
+            "prometheus_client": prom_client,
+        },
+    }
     prof = applied_runtime_profile()
     if prof:
         out["runtime_profile"] = prof

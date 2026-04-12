@@ -17,7 +17,7 @@ Contributors who only ship kernel features **do not** need Node.js, npm, or Type
 
 | Area | Role |
 |------|------|
-| **`landing/`** | **Next.js** (TypeScript/React) site for the public lab domain. It is **not** imported by Python; it does not participate in `pytest` or mypy. Builds and lints are optional locally; CI runs them when this workflow is enabled (see `.github/workflows/landing-ci.yml`). |
+| **`landing/`** | **Next.js** (TypeScript/React) site for the public lab domain. It is **not** imported by Python; it does not participate in `pytest` or mypy. Builds and lints are optional locally; CI runs robots parity + `kernelRepo.json` drift + lint + build (see `.github/workflows/landing-ci.yml` and [LANDING_DECOUPLING_AND_SUPPORT.md](proposals/LANDING_DECOUPLING_AND_SUPPORT.md)). |
 | **`landing/public/*.html`** | Static pages (e.g. mobile thin client, transparency). Usable without building Next.js; operators may open files directly or serve them over HTTP. |
 
 **TypeScript / JavaScript:** required **only** if you change `landing/` (App Router, components, tooling). Not required to run simulations, tests, or the FastAPI chat server.
@@ -36,4 +36,4 @@ This document does **not** deprecate `landing/`; it states that it is **not** on
 
 ## End-to-end (browser) testing
 
-Full **browser E2E** (e.g. Playwright against `landing` + live `chat_server`) is **not** part of the default CI matrix today. The **landing CI** workflow runs `lint` + `build` only. Adding true E2E is a follow-up (separate job, optional secrets, longer runtime).
+Full **browser E2E** (e.g. Playwright against `landing` + live `chat_server`) is **not** part of the default CI matrix today. The **landing CI** workflow runs `check-robots`, `kernelRepo.json` sync check, `lint`, and `build`. Adding true E2E is a follow-up (separate job, optional secrets, longer runtime).

@@ -1,4 +1,5 @@
-# Next.js landing: lint + production build. Does not gate Python CI; runs on landing changes.
+# Next.js landing: robots parity, kernel metadata drift, lint + production build.
+# Does not gate Python CI; runs on landing, SEO, or version-source changes.
 name: Landing CI
 
 on:
@@ -6,11 +7,15 @@ on:
     branches: [main]
     paths:
       - "landing/**"
+      - "pyproject.toml"
+      - "robots.txt"
       - ".github/workflows/landing-ci.yml"
   pull_request:
     branches: [main]
     paths:
       - "landing/**"
+      - "pyproject.toml"
+      - "robots.txt"
       - ".github/workflows/landing-ci.yml"
   workflow_dispatch:
 
@@ -36,6 +41,17 @@ jobs:
 
       - name: Install dependencies
         run: npm ci
+
+      - name: Verify robots.txt vs Next robots.ts
+        run: npm run check-robots
+
+      - name: Verify kernel metadata file matches pyproject + package.json
+        run: |
+          npm run sync-kernel-meta
+          git diff --exit-code src/config/kernelRepo.json || (
+            echo "Drift: run 'cd landing && npm run sync-kernel-meta' and commit src/config/kernelRepo.json"
+            exit 1
+          )
 
       - name: ESLint
         run: npm run lint

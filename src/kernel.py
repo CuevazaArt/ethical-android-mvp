@@ -11,6 +11,7 @@ forgiveness cycle, weakness load, immortality backup, drive intents.
 
 import math
 import os
+import time
 from collections.abc import Callable
 from dataclasses import dataclass
 from typing import Any
@@ -176,6 +177,20 @@ class ChatTurnResult:
     reality_verification: RealityVerificationAssessment | None = (
         None  # set each turn when lighthouse KB configured
     )
+
+
+def _emit_process_observability(d: KernelDecision, t0: float) -> None:
+    """Prometheus histogram/counter + optional JSON decision line (see observability/)."""
+    elapsed = time.perf_counter() - t0
+    from .observability.decision_log import log_kernel_decision_event
+    from .observability.metrics import (
+        observe_kernel_process_seconds,
+        record_kernel_decision_metrics,
+    )
+
+    observe_kernel_process_seconds(elapsed)
+    record_kernel_decision_metrics(d)
+    log_kernel_decision_event(d, elapsed)
 
 
 class EthicalKernel:
@@ -370,6 +385,7 @@ class EthicalKernel:
         ``KERNEL_PERCEPTION_UNCERTAINTY_MIN``, a ``D_fast`` outcome is upgraded to
         ``D_delib`` (production-hardening spike; default env off).
         """
+        t0 = time.perf_counter()
 
         # ═══ STEP 1: Uchi-soto social evaluation ═══
         self.uchi_soto.ingest_turn_context(
@@ -425,6 +441,7 @@ class EthicalKernel:
                 block_reason="All actions violate Absolute Evil",
             )
             self._emit_kernel_decision(d, context=context)
+            _emit_process_observability(d, t0)
             return d
 
         # ═══ STEP 5: Activate buffer according to context ═══
@@ -592,6 +609,7 @@ class EthicalKernel:
             salience=salience,
         )
         self._emit_kernel_decision(d, context=context)
+        _emit_process_observability(d, t0)
         return d
 
     def format_decision(self, d: KernelDecision) -> str:

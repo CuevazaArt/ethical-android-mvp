@@ -1,4 +1,12 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+## Ethos Kernel — public landing (Next.js)
+
+**Monorepo role:** Optional **marketing / education** site for the Python kernel in the repository root. It is **officially supported** in-tree but **not** part of the kernel runtime. Full policy: [`docs/proposals/LANDING_DECOUPLING_AND_SUPPORT.md`](../docs/proposals/LANDING_DECOUPLING_AND_SUPPORT.md).
+
+**Version sync:** After changing `../pyproject.toml` or this package’s `version`, run `npm run sync-kernel-meta` and commit `src/config/kernelRepo.json`. CI enforces no drift.
+
+**Robots / training crawlers:** Root `../robots.txt` must stay aligned with `src/app/robots.ts`; run `npm run check-robots`.
+
+This project was bootstrapped with [Next.js](https://nextjs.org) [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
 
 ## Getting started
 

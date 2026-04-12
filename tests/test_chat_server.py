@@ -17,7 +17,15 @@ client = TestClient(app)
 def test_health():
     r = client.get("/health")
     assert r.status_code == 200
-    assert r.json().get("status") == "ok"
+    body = r.json()
+    assert body.get("status") == "ok"
+    assert body.get("service") == "ethos-kernel-chat"
+    assert "version" in body
+    assert "uptime_seconds" in body
+    obs = body.get("observability")
+    assert isinstance(obs, dict)
+    assert "metrics_enabled" in obs
+    assert obs.get("request_id_header") == "X-Request-ID"
 
 
 def test_lifespan_runs_with_test_client_context_manager():

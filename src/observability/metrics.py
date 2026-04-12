@@ -16,6 +16,8 @@ _malabs_blocks: Any = None
 _semantic_malabs_outcomes: Any = None
 _dao_ops: Any = None
 _embedding_errors: Any = None
+_kernel_decisions: Any = None
+_kernel_process_seconds: Any = None
 _initialized = False
 
 
@@ -32,6 +34,7 @@ def init_metrics() -> None:
     """Register Prometheus metrics once (safe to call multiple times)."""
     global _initialized, _llm_histogram, _chat_histogram, _chat_paths
     global _malabs_blocks, _semantic_malabs_outcomes, _dao_ops, _embedding_errors
+    global _kernel_decisions, _kernel_process_seconds
 
     if _initialized:
         return
@@ -82,6 +85,17 @@ def init_metrics() -> None:
         "Semantic MalAbs embedding tier failures (HTTP or backend).",
         ["source"],
     )
+    # Bounded label cardinality: action is a coarse slug (see record_kernel_decision_metrics).
+    _kernel_decisions = Counter(
+        "ethos_kernel_kernel_decisions_total",
+        "EthicalKernel.process outcomes (one per completed decision).",
+        ["action", "certainty", "blocked"],
+    )
+    _kernel_process_seconds = Histogram(
+        "ethos_kernel_kernel_process_seconds",
+        "Wall time for EthicalKernel.process (full ethical cycle).",
+        buckets=(0.0005, 0.001, 0.005, 0.01, 0.025, 0.05, 0.1, 0.25, 0.5, 1.0, 2.5, 5.0, float("inf")),
+    )
 
 
 def observe_llm_completion_seconds(operation: str, seconds: float) -> None:
@@ -122,3 +136,47 @@ def observe_embedding_error(source: str) -> None:
     if _embedding_errors is None:
         return
     _embedding_errors.labels(source=source).inc()
+
+
+def _action_label_for_metrics(final_action: str, *, blocked: bool) -> str:
+    """Coarse action slug to limit Prometheus label cardinality."""
+    if blocked:
+        return "blocked"
+    raw = (final_action or "").strip()[:48]
+    if not raw:
+        return "unknown"
+    return "".join(c if c.isalnum() or c in "_" else "_" for c in raw)[:40] or "unknown"
+
+
+def _certainty_label(d: Any) -> str:
+    """Map Bayesian uncertainty to a small enum (avoid high-cardinality floats)."""
+    if getattr(d, "blocked", False) or getattr(d, "bayesian_result", None) is None:
+        return "n_a"
+    u = float(d.bayesian_result.uncertainty)
+    if u < 0.25:
+        return "high"
+    if u < 0.5:
+        return "med"
+    return "low"
+
+
+def record_kernel_decision_metrics(d: Any) -> None:
+    """
+    Record one ``EthicalKernel.process`` completion.
+
+    ``d`` is a **KernelDecision**; imported lazily to avoid circular imports.
+    Labels: ``action`` (coarse slug), ``certainty`` (high/med/low/n_a), ``blocked`` (true/false).
+    """
+    if _kernel_decisions is None:
+        return
+    blocked = bool(getattr(d, "blocked", False))
+    action = _action_label_for_metrics(str(getattr(d, "final_action", "")), blocked=blocked)
+    cert = _certainty_label(d)
+    blk = "true" if blocked else "false"
+    _kernel_decisions.labels(action=action, certainty=cert, blocked=blk).inc()
+
+
+def observe_kernel_process_seconds(seconds: float) -> None:
+    if _kernel_process_seconds is None:
+        return
+    _kernel_process_seconds.observe(max(0.0, seconds))

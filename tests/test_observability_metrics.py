@@ -48,3 +48,29 @@ def test_health_includes_request_id_header():
     r = _client.get("/health", headers={"X-Request-ID": "test-req-1"})
     assert r.status_code == 200
     assert r.headers.get("x-request-id") == "test-req-1"
+
+
+def test_kernel_process_metrics_in_prometheus_subprocess():
+    """Fresh interpreter: kernel.process increments kernel decision + latency histograms."""
+    pytest.importorskip("prometheus_client")
+    root = os.path.join(os.path.dirname(__file__), "..")
+    code = """
+import os, sys
+sys.path.insert(0, ".")
+os.environ["KERNEL_METRICS"] = "1"
+from src.observability.metrics import init_metrics
+init_metrics()
+from src.kernel import EthicalKernel
+from src.modules.bayesian_engine import CandidateAction
+k = EthicalKernel(variability=False, llm_mode="local")
+acts = [
+    CandidateAction("act_civically", "x", estimated_impact=0.5, confidence=0.8),
+    CandidateAction("observe", "y", estimated_impact=0.0, confidence=0.9),
+]
+k.process("t", "here", {"risk": 0.1}, "everyday_ethics", acts, register_episode=False)
+from prometheus_client import generate_latest
+b = generate_latest().decode()
+assert "ethos_kernel_kernel_decisions_total" in b
+assert "ethos_kernel_kernel_process_seconds" in b
+"""
+    subprocess.run([sys.executable, "-c", code], cwd=root, check=True)

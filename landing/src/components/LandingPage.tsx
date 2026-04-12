@@ -8,6 +8,7 @@ import { LanguageSwitcherPlaceholder } from "@/components/LanguageSwitcherPlaceh
 import { PrimaryNav } from "@/components/PrimaryNav";
 import { SiteBrand } from "@/components/SiteBrand";
 import { TheoryMathShowcase } from "@/components/TheoryMathShowcase";
+import kernelRepo from "@/config/kernelRepo.json";
 import {
   REPO_URL as REPO,
   REPO_ISSUE_BUG,
@@ -1056,7 +1057,16 @@ export default function LandingPage() {
           <div className="flex flex-col gap-2 md:flex-row md:items-center md:justify-between">
             <span>mosexmacchinalab.com — research prototype</span>
             <span className="text-zinc-600">
-              Python kernel + FastAPI WebSocket runtime · Next.js landing · Vercel
+              Kernel package {kernelRepo.pyprojectVersion} (pyproject) · landing app{" "}
+              {kernelRepo.landingPackageVersion} · Python runtime + Next.js ·{" "}
+              <a
+                href={repoFile("docs/proposals/LANDING_DECOUPLING_AND_SUPPORT.md")}
+                className="underline decoration-zinc-600/50 underline-offset-2 hover:text-zinc-400"
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                Landing support policy
+              </a>
             </span>
           </div>
         </div>

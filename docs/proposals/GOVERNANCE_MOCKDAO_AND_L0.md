@@ -59,7 +59,19 @@ Before claiming **real** distributed governance, expect **all** of the following
 
 ---
 
-## 5. References
+## 5. Governance checkpoint (operators)
+
+Before marketing a demo or deployment as **“governance-enabled”**, confirm explicitly:
+
+1. **MockDAO** — Votes are **in-process**; there is no distributed consensus or blockchain anchor unless a separate product says so.
+2. **L0** — Foundational principles come from `PreloadedBuffer` in code; they are **not** overridden by votes or drafts at runtime.
+3. **Audience** — Stakeholders understand **traceability** (audit strings, `HubAudit`) vs **binding authority**.
+
+**Repo regression:** [`tests/test_governance_l0_immutable.py`](../../tests/test_governance_l0_immutable.py) asserts `buffer.principles` is unchanged after DAO submit / vote / resolve.
+
+---
+
+## 6. References
 
 - `src/modules/mock_dao.py` — implementation  
 - `src/modules/buffer.py` — L0 principles  
