@@ -2,9 +2,16 @@
 
 All notable changes to this project are summarized here. For narrative context and design rationale, see [`HISTORY.md`](HISTORY.md).
 
+## Observability — kernel Prometheus metrics, decision JSON logs, health fields — April 2026
+
+- **[`src/observability/metrics.py`](src/observability/metrics.py):** `ethos_kernel_kernel_decisions_total` and `ethos_kernel_kernel_process_seconds`; wired from [`src/kernel.py`](src/kernel.py) on each `process()` completion.
+- **[`src/observability/decision_log.py`](src/observability/decision_log.py):** optional per-decision JSON lines (`KERNEL_LOG_JSON=1`; `KERNEL_LOG_DECISION_EVENTS` defaults on).
+- **[`src/chat_server.py`](src/chat_server.py):** `GET /health` includes `version`, `uptime_seconds`, `observability` block.
+- **Docs:** [`OPERATOR_QUICK_REF.md`](docs/proposals/OPERATOR_QUICK_REF.md), [ADR 0008](docs/adr/0008-runtime-observability-prometheus-and-logs.md); [`.env.example`](.env.example).
+
 ## Maintainer plan — immediate two weeks (triage + P0/P1/P2) — April 2026
 
-- **[`docs/proposals/PLAN_IMMEDIATE_TWO_WEEKS.md`](docs/proposals/PLAN_IMMEDIATE_TWO_WEEKS.md):** sprint-style backlog — GitHub milestone names, issue #1–#7 table, MalAbs evasion reproduction, Bayesian decision, governance checkpoints, P2 spillover (observability, E2E, deprecations).
+- **[`docs/proposals/PLAN_IMMEDIATE_TWO_WEEKS.md`](docs/proposals/PLAN_IMMEDIATE_TWO_WEEKS.md):** sprint-style backlog — GitHub milestone names, issue #1–#7 table, MalAbs evasion reproduction, Bayesian decision, governance checkpoints, P2 spillover (observability, E2E, deprecations); **appendix** — technical model pending vs settled (Bayes naming, MalAbs gaps, buffer verifier, perception GIGO, governance Phase 5, stubs, async).
 - **[`docs/proposals/INPUT_TRUST_THREAT_MODEL.md`](docs/proposals/INPUT_TRUST_THREAT_MODEL.md):** *Reproducing known MalAbs evasion* checklist (pytest targets + link to adversarial plan).
 
 ## Issue 4 — packaging metadata + README core/theater diagram — April 2026

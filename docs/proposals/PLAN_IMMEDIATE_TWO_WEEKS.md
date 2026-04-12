@@ -123,6 +123,25 @@ This file is the **repo-local execution backlog**. **GitHub milestones, assignee
 
 ---
 
+## Appendix — Technical model: pending vs settled (April 2026)
+
+Cross-check: [`PROJECT_STATUS_AND_MODULE_MATURITY.md`](PROJECT_STATUS_AND_MODULE_MATURITY.md), [`PROPOSAL_CORE_IMPLEMENTATION_GAP_PHASED_REMEDIATION.md`](PROPOSAL_CORE_IMPLEMENTATION_GAP_PHASED_REMEDIATION.md), [`WEAKNESSES_AND_BOTTLENECKS.md`](../WEAKNESSES_AND_BOTTLENECKS.md).
+
+| Area | Settled in code/docs | Still open (technical) |
+|------|----------------------|-------------------------|
+| **Scoring (“Bayesian”)** | [`bayesian_engine.py`](../../src/modules/bayesian_engine.py) documents a **discrete mixture** (not posterior inference); distinct hypothesis valuations. | **Issue #1:** product-facing naming (`BayesianEngine` class name kept for API stability); optional bounded episodic nudges already present — no full online Bayes unless scoped as a new project. |
+| **MalAbs chat** | Lexical + normalization + optional semantic tier + tests. | **Evasion** cataloged in [ADVERSARIAL_ROBUSTNESS_PLAN.md](ADVERSARIAL_ROBUSTNESS_PLAN.md); hash embeddings **weaker** than neural; paraphrase without n-grams remains a known gap. |
+| **Buffer / L0** | `PreloadedBuffer.verify_action` — lexical/heuristic checks. | [Phased remediation §3.2](PROPOSAL_CORE_IMPLEMENTATION_GAP_PHASED_REMEDIATION.md): **embedding or LLM verifier** paths for principles are **not** implemented as described (lab backlog). |
+| **Perception** | Pydantic + coherence + caps in `perception_schema` / `llm_layer`. | **GIGO:** valid JSON can still bias signals; no semantic “world truth” check ([INPUT_TRUST_THREAT_MODEL.md](INPUT_TRUST_THREAT_MODEL.md)). |
+| **Epistemic / reality / lighthouse** | Modules exist under flags. | Maturity **Experimental** — integration depth varies ([PROJECT_STATUS…](PROJECT_STATUS_AND_MODULE_MATURITY.md)). |
+| **Governance** | MockDAO + L0 honesty documented. | Durable off-process votes / verifiable records = **Phase 5** in phased remediation, not MVP-complete. |
+| **Stubs / narrative crypto** | `swarm_peer_stub`, `ml_ethics_tuner`, continuity stubs in `existential_serialization`. | Explicit **stubs** — not production paths. |
+| **Runtime architecture** | WebSocket uses thread offload for kernel. | Full **async** kernel / uniform LLM degradation policy = [ADR 0002](../adr/0002-async-orchestration-future.md) + [WEAKNESSES… §1](../WEAKNESSES_AND_BOTTLENECKS.md). |
+
+**Net:** the **numeric ethical core path** (MalAbs → Bayes choice → poles/will shaping modes) is **tested and documented**; pending items are **honesty/naming**, **input-trust recall**, **buffer verification depth**, **governance persistence**, and **async/degradation** — not “missing a hidden scoring engine.”
+
+---
+
 ## References
 
 - [CRITIQUE_ROADMAP_ISSUES.md](CRITIQUE_ROADMAP_ISSUES.md)
