@@ -71,4 +71,5 @@ androide-etico-mvp-v4-llm/
 androide-etico-mvp-v5-complete/
 androide-etico-mvp/
 EthosMVP/
-files/
+# Optional local scratch under experiments (do not commit drafts here)
+experiments/files/

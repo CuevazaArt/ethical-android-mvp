@@ -8,6 +8,9 @@
 | [`EXPERIMENT_HISTORY.md`](EXPERIMENT_HISTORY.md) | Lineage: critique of the million run, ADR links, **why** simplex / near-tie work replaced brute-force N. |
 | [`NEXT_EXPERIMENT_DESIGN.md`](NEXT_EXPERIMENT_DESIGN.md) | **Canonical** scenarios **17–19** triples (mirrors `runner.py`), simplex coverage command, protocol **v5** status + infrastructure table. |
 | [`docs/proposals/PROPOSAL_EXPERIMENT_V5_SENSITIVITY.md`](../../docs/proposals/PROPOSAL_EXPERIMENT_V5_SENSITIVITY.md) | v5 proposal: goals, lane F–H roadmap, `run_experiment_v5_sensitivity.py` vs mass study. |
+| [`tests/fixtures/feedback/compatible_17_18_19.json`](../../tests/fixtures/feedback/compatible_17_18_19.json) | Sample **ADR 0012** feedback (17–19) for `KERNEL_FEEDBACK_PATH`. |
+
+**Tree:** [`experiments/README.md`](../README.md) (how `million_sim/` and `out/` relate).
 
 **Quick probes (mixture-only, cheap):**
 

@@ -5,6 +5,8 @@ from __future__ import annotations
 import json
 from pathlib import Path
 
+import numpy as np
+
 from src.modules.feedback_mixture_updater import (
     FeedbackItem,
     FeedbackUpdater,
@@ -71,3 +73,16 @@ def test_drift_guard_clamps_after_feedback() -> None:
     for i in range(3):
         # Clamp per axis then renormalize; allow small slack beyond box after renorm.
         assert abs(mean[i] - init_norm[i]) <= max_d + 0.03
+
+
+def test_compatible_fixture_explicit_triples_path() -> None:
+    """Versioned JSON matches scenarios 17–19 explicit triples → explicit_triples updater."""
+    from src.modules.feedback_mixture_posterior import load_and_apply_feedback
+
+    root = Path(__file__).resolve().parents[1]
+    p = root / "tests" / "fixtures" / "feedback" / "compatible_17_18_19.json"
+    alpha, consistency, meta = load_and_apply_feedback(p, rng=np.random.default_rng(0))
+    assert consistency == "compatible"
+    assert meta.get("updater") == "explicit_triples"
+    assert alpha.shape == (3,)
+    assert float(alpha.sum()) > 0
