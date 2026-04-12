@@ -95,7 +95,7 @@ Then add a **separate track**: curated traces (synthetic replay first, then smal
 
 **G1 — Product copy and README**
 
-- Single paragraph in [README.md](../../README.md) + landing: “votes are consultative; `final_action` is not on-chain.”
+- Single paragraph in [README.md](../../README.md): “votes are consultative; `final_action` is not on-chain.”
 - **G2 — UI strings** in hub/DAO surfaces: badge or tooltip “simulation / demo.”
 
 **G3 — `contracts/`**

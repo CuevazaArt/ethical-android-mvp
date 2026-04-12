@@ -177,7 +177,7 @@ Reviewers cannot see the effective core inside advisory/telemetry volume. Second
 - Define **profiles or modes** (e.g. demo vs critical): when narrative vulnerability is off or toned down; link to runtime profiles.
 
 ## Acceptance
-- [x] THEORY or PROPUESTA subsection; no mandatory code change if docs + profile matrix suffice first.
+- [x] THEORY or `PROPOSAL_*` subsection; no mandatory code change if docs + profile matrix suffice first.
 ```
 
 **Delivered:** [`docs/proposals/POLES_WEAKNESS_PAD_AND_PROFILES.md`](POLES_WEAKNESS_PAD_AND_PROFILES.md); [`docs/proposals/POLE_WEIGHT_CALIBRATION_AND_EVIDENCE.md`](POLE_WEIGHT_CALIBRATION_AND_EVIDENCE.md); THEORY pointer; profile matrix + new **`operational_trust`** in [`src/runtime_profiles.py`](../src/runtime_profiles.py); [`STRATEGY_AND_ROADMAP.md`](STRATEGY_AND_ROADMAP.md) table row; README link.
@@ -200,7 +200,7 @@ Reviewers cannot see the effective core inside advisory/telemetry volume. Second
 - Short doc section: L0 as **explicit non-negotiable constitution** in-process; how community governance (drafts, votes) relates **without** silently rewriting MalAbs in runtime.
 
 ## Acceptance
-- [x] Single doc section; aligns with PROPUESTA / UNIVERSAL_ETHOS.
+- [x] Single doc section; aligns with `PROPOSAL_*` / UNIVERSAL_ETHOS.
 ```
 
 **Delivered:** [`docs/proposals/GOVERNANCE_MOCKDAO_AND_L0.md`](GOVERNANCE_MOCKDAO_AND_L0.md); cross-link from [`docs/proposals/UNIVERSAL_ETHOS_AND_HUB.md`](UNIVERSAL_ETHOS_AND_HUB.md) + [`RUNTIME_CONTRACT.md`](RUNTIME_CONTRACT.md); README; `mock_dao.py` module note.

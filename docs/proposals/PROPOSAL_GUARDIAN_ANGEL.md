@@ -58,7 +58,7 @@ The mode is designed to provide **subtle, protective assistance** to vulnerable 
 
 **Implemented in repo (MVP, opt-in):** environment variable `KERNEL_GUARDIAN_MODE` (`1` / `true` / `yes` / `on`; default off). Adds a fixed protective style block to `LLMModule.communicate`; ethical pipeline (`MalAbs` → … → will) **is not** modified. WebSocket: `guardian_mode` key (omitted with `KERNEL_CHAT_INCLUDE_GUARDIAN=0`). Code: `src/modules/guardian_mode.py`, use in `src/kernel.py` and `src/modules/llm_layer.py`.
 
-**Incremental product in repo (trace / 2026):** optional JSON routines (`KERNEL_GUARDIAN_ROUTINES`, `KERNEL_GUARDIAN_ROUTINES_PATH`) — tone hints via `guardian_routines.py`; optional WebSocket `guardian_routines`; static page [`landing/public/guardian.html`](../../landing/public/guardian.html). Still **no** parallel veto or external action execution.
+**Incremental product in repo (trace / 2026):** optional JSON routines (`KERNEL_GUARDIAN_ROUTINES`, `KERNEL_GUARDIAN_ROUTINES_PATH`) — tone hints via `guardian_routines.py`; optional WebSocket `guardian_routines`. Still **no** parallel veto or external action execution.
 
 **Future (non-prescriptive):** ideas subject to further design:
 

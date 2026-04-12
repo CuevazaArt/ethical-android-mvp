@@ -15,8 +15,6 @@ htmlcov
 .coverage
 coverage.xml
 junit.xml
-landing/node_modules
-landing/.next
 *.md
 !README.md
 tests

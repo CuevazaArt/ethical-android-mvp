@@ -67,7 +67,7 @@ Síntesis de revisión interna: **qué aporta** frente a lo ya dicho en el repo 
 | **Agencia ética computacional explícita** (filosofía, decisión, verificabilidad en tests) | Poco común en OSS; encaja con [`THEORY_AND_IMPLEMENTATION.md`](THEORY_AND_IMPLEMENTATION.md) y propósito del README. |
 | **Modularidad con roles éticos claros** (Uchi–Soto, buffer, locus, Psi Sleep, etc.) | Facilita auditoría por módulo; tabla “quién fija `final_action`” en [`CORE_DECISION_CHAIN.md`](CORE_DECISION_CHAIN.md). |
 | **Documentación densa** (teoría, historia v1–v12, `docs/proposals/`, bibliografía) | Transparente académicamente; reduce “caja negra”. |
-| **Varias superficies** (batch, WebSocket, dashboard estático, landing) | Demuestra runtime real sin acoplar un solo UI. |
+| **Varias superficies** (batch, WebSocket, dashboard estático) | Demuestra runtime real sin acoplar un solo UI. |
 | **Suite de tests grande** (invariantes, integración, persistencia) | Base para regresión; no sustituye validación externa (véase Issue 3 en crítica). |
 
 ---
@@ -107,7 +107,7 @@ Estas conclusiones **no** sustituyen [`STRATEGY_AND_ROADMAP.md`](STRATEGY_AND_RO
 1. **Validación empírica** — Issue 3: protocolo de acuerdo con anotadores / expertos, **sin** confundir con verdad moral universal.
 2. **Benchmarks comparativos** — definir baselines (reglas, LLM solo, kernel) y métricas **acordadas** (no “correctitud ética” única).
 3. **Onboarding:** mapa “módulo → crítico vs advisory” derivado de `CORE_DECISION_CHAIN` + runtime contract.
-4. **Language:** canonical filenames are `PROPOSAL_*.md` (English); `PROPUESTA_*.md` are legacy redirects. Spanish-only bodies (e.g. this roadmap) should gain short English summaries in the header or migrate to English over time.
+4. **Language:** canonical filenames are `PROPOSAL_*.md` (English). Spanish-only bodies (e.g. this roadmap) should gain short English summaries in the header or migrate to English over time.
 
 ### Largo plazo
 

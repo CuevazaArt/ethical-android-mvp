@@ -32,8 +32,8 @@ El **salto real** a un modelo 8B **dentro del teléfono** es un proyecto aparte 
                              │ WiFi / Ethernet (misma subred)
                              │  ws://<IP_DEL_PC>:8765/ws/chat
 ┌────────────────────────────▼───────────────────────────────────────────┐
-│  Smartphone: navegador → **`landing/public/mobile.html`** (UI mínima) o │
-│  `chat-test.html` vía `python -m http.server` · `?host=<IP_PC>` opcional. │
+│  Smartphone: cliente WebSocket o navegador → `ws://<IP_PC>:8765/ws/chat`   │
+│  (JSON por WebSocket; ver README — sin HTML de muestra en este repo).    │
 └────────────────────────────────────────────────────────────────────────┘
 ```
 
@@ -60,16 +60,7 @@ El **salto real** a un modelo 8B **dentro del teléfono** es un proyecto aparte 
 
 4. **Probar salud** desde el móvil (navegador): `http://<IP_PC>:8765/health` → `{"status":"ok"}`.
 
-5. **Interfaz en el móvil:** en el PC, en otra terminal:
-
-   ```powershell
-   cd landing\public
-   python -m http.server 8080 --bind 0.0.0.0
-   ```
-
-   En el **smartphone** (misma WiFi), interfaz mínima: `http://<IP_DEL_PC>:8080/mobile.html` — IP/puerto, **Guardar** (memoria local), **Probar /health**, **Conectar**, mensaje y **Enviar**. Query opcional: `?host=<IP>&port=8765`.
-
-   Alternativa técnica (JSON crudo): `http://<IP_PC>:8080/chat-test.html?host=<IP_PC>`.
+5. **Cliente en el móvil:** usar una app o extensión WebSocket, o un cliente de línea de comandos (`wscat`, etc.) contra `ws://<IP_PC>:8765/ws/chat` con tramas JSON como en el README. Este repositorio ya no incluye HTML de ayuda bajo `landing/`; puedes mantener un `index.html` local mínimo si lo necesitas.
 
 ---
 

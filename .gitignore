@@ -52,12 +52,6 @@ Thumbs.db
 *.pdf
 *.docx
 
-# Node / Next.js (landing site)
-landing/node_modules/
-landing/.next/
-landing/out/
-landing/.env*.local
-
 # Million-sim experiment outputs (large JSON/CSV/PNG; regenerate with scripts)
 experiments/million_sim/out/
 

@@ -29,7 +29,7 @@ Or import `apply_runtime_profile` in a small launcher script / pytest — for pr
 
 ## Client
 
-On the phone: open `ws://<PC_LAN_IP>:8765/ws/chat` via [`landing/public/mobile.html`](../landing/public/mobile.html) or the flow in [`LOCAL_PC_AND_MOBILE_LAN.md`](LOCAL_PC_AND_MOBILE_LAN.md).
+On the phone: open `ws://<PC_LAN_IP>:8765/ws/chat` with any WebSocket client; see [`LOCAL_PC_AND_MOBILE_LAN.md`](LOCAL_PC_AND_MOBILE_LAN.md).
 
 Optional: send a `sensor` object in the WebSocket JSON; server merges **fixture → preset → client** (last wins per key).
 

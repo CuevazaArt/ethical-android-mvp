@@ -1,5 +1,5 @@
-# Raíz del repo: copiar a la raíz del sitio estático si publicas landing u otra web.
-# SEO: permitir indexación; bloqueo solo a bots de entrenamiento / corpus (orientativo).
+# Repo root: copy to your static site root when publishing a site from this tree.
+# SEO: allow indexing; disallow training-corpus crawlers (illustrative list).
 
 User-agent: *
 Allow: /

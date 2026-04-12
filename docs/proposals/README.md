@@ -46,7 +46,7 @@ High-level summary aligned with the code and docs; full chronology is in [`CHANG
 
 ## Versioned proposals (v6–v12 line and annexes)
 
-Legacy Spanish filenames (`PROPUESTA_*.md`, `ESTRATEGIA_Y_RUTA.md`, `PAPER_AFECTO_*.md`) are **redirect stubs** to the matching `PROPOSAL_*.md` / `STRATEGY_AND_ROADMAP.md` / `PAPER_AFFECT_*.md` files. Prefer linking to the English paths in new text.
+Legacy Spanish filenames (`ESTRATEGIA_Y_RUTA.md`, `PAPER_AFECTO_*.md`) are **redirect stubs** to `STRATEGY_AND_ROADMAP.md` / `PAPER_AFFECT_*.md`. Prefer linking to the English `PROPOSAL_*` paths in new text.
 
 | Document | Topic |
 |----------|--------|
@@ -112,11 +112,10 @@ Legacy Spanish filenames (`PROPUESTA_*.md`, `ESTRATEGIA_Y_RUTA.md`, `PAPER_AFECT
 
 ---
 
-## Local infra, LLM, nomad, and landing
+## Local infra, LLM, and nomad
 
 | Document | Topic |
 |----------|--------|
-| [LANDING_DECOUPLING_AND_SUPPORT.md](LANDING_DECOUPLING_AND_SUPPORT.md) | Next.js `landing/`: support level, versioning, robots sync, dashboard iframe vs standalone |
 | [LOCAL_PC_AND_MOBILE_LAN.md](LOCAL_PC_AND_MOBILE_LAN.md) | Local PC and mobile LAN |
 | [NOMAD_PC_SMARTPHONE_BRIDGE.md](NOMAD_PC_SMARTPHONE_BRIDGE.md) | Nomad PC–smartphone bridge |
 | [LLM_STACK_OLLAMA_VS_HF.md](LLM_STACK_OLLAMA_VS_HF.md) | Ollama vs Hugging Face |
@@ -133,7 +132,7 @@ Legacy Spanish filenames (`PROPUESTA_*.md`, `ESTRATEGIA_Y_RUTA.md`, `PAPER_AFECT
 | [CRITIQUE_ROADMAP_ISSUES.md](CRITIQUE_ROADMAP_ISSUES.md) | Critique, roadmap, and issues |
 | [PROPOSAL_CORE_IMPLEMENTATION_GAP_PHASED_REMEDIATION.md](PROPOSAL_CORE_IMPLEMENTATION_GAP_PHASED_REMEDIATION.md) | Phased remediation — core integrity vs. governance (backlog structure) |
 | [PROJECT_STATUS_AND_MODULE_MATURITY.md](PROJECT_STATUS_AND_MODULE_MATURITY.md) | Project status and per-module maturity |
-| [TRACE_IMPLEMENTATION_RECENT.md](TRACE_IMPLEMENTATION_RECENT.md) | Recent implementation trace (Guardian, v9–v10) ↔ bibliography |
+| [TRACE_IMPLEMENTATION_RECENT.md](TRACE_IMPLEMENTATION_RECENT.md) | Recent implementation trace (Guardian, v9–v10) |
 | [OPERATOR_QUICK_REF.md](OPERATOR_QUICK_REF.md) | Operator quick reference |
 
 ---
@@ -164,5 +163,4 @@ Legacy Spanish filenames (`PROPUESTA_*.md`, `ESTRATEGIA_Y_RUTA.md`, `PAPER_AFECT
 - **Architecture decisions:** [`docs/adr/`](../adr/README.md)  
 - **Versioned changes:** [`CHANGELOG.md`](../../CHANGELOG.md)  
 - **Narrative history:** [`HISTORY.md`](../../HISTORY.md)  
-- **Bibliography:** [`BIBLIOGRAPHY.md`](../../BIBLIOGRAPHY.md)  
 - **Product and development:** [root README](../../README.md)

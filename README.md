@@ -5,7 +5,7 @@
 
 **MoSex Macchina Lab** — this repository is the open **kernel + runtime** for a model of artificial ethical agency: humanizing imperfection, forgiveness, identity persistence, and **traceable** governance hooks (DAO / hub audit, not a black-box chatbot).
 
-**Where things stand today:** a **FastAPI WebSocket** runtime (`python -m src.chat_server` or `python -m src.runtime`) with **per-session kernel** state; **versioned persistence** (JSON / SQLite snapshots, optional **Fernet** checkpoints); **V12 moral hub** (constitution drafts, MockDAO votes, `HubAudit` lines); **LAN** thin clients ([`landing/public/mobile.html`](landing/public/mobile.html), conduct guide export); a **large** automated test suite (**640+** tests; run `pytest tests/ --collect-only` for the exact count) on **Python 3.11 / 3.12** in CI; optional layers for sensors, relational hints, judicial escalation, reality verification (“lighthouse”), and integrity alerts (`KERNEL_DAO_INTEGRITY_AUDIT_WS`).
+**Where things stand today:** a **FastAPI WebSocket** runtime (`python -m src.chat_server` or `python -m src.runtime`) with **per-session kernel** state; **versioned persistence** (JSON / SQLite snapshots, optional **Fernet** checkpoints); **V12 moral hub** (constitution drafts, MockDAO votes, `HubAudit` lines); **LAN** usage patterns and conduct guide export (see [LOCAL_PC_AND_MOBILE_LAN.md](docs/proposals/LOCAL_PC_AND_MOBILE_LAN.md)); a **large** automated test suite (**640+** tests; run `pytest tests/ --collect-only` for the exact count) on **Python 3.11 / 3.12** in CI; optional layers for sensors, relational hints, judicial escalation, reality verification (“lighthouse”), and integrity alerts (`KERNEL_DAO_INTEGRITY_AUDIT_WS`).
 
 **Kernel version line:** ethical core **v5**; **v6–v10** runtime, persistence, advisory stack; **v11** judicial escalation + cross-model premise checks; **v12** etosocial / hybrid-hub infrastructure and documented civilization vision — see [`HISTORY.md`](HISTORY.md) and [`CHANGELOG.md`](CHANGELOG.md).
 
@@ -48,7 +48,7 @@ MalAbs → Scoring → Poles → Will → Action
 
 **Input trust:** MalAbs chat filtering and LLM perception bounds are **heuristic**, not unbreakable — see [`docs/proposals/INPUT_TRUST_THREAT_MODEL.md`](docs/proposals/INPUT_TRUST_THREAT_MODEL.md) and [`SECURITY.md`](SECURITY.md).
 
-**Governance & transparency (data policy, audit chain, limits):** [`docs/GOVERNANCE_DATA_POLICY.md`](docs/GOVERNANCE_DATA_POLICY.md), [`docs/AUDIT_TRAIL_AND_REPRODUCIBILITY.md`](docs/AUDIT_TRAIL_AND_REPRODUCIBILITY.md), [`docs/TRANSPARENCY_AND_LIMITS.md`](docs/TRANSPARENCY_AND_LIMITS.md), static summary [`landing/public/ethos-transparency.html`](landing/public/ethos-transparency.html), phased example [`docs/ROADMAP_PRACTICAL_PHASES.md`](docs/ROADMAP_PRACTICAL_PHASES.md).
+**Governance & transparency (data policy, audit chain, limits):** [`docs/GOVERNANCE_DATA_POLICY.md`](docs/GOVERNANCE_DATA_POLICY.md), [`docs/AUDIT_TRAIL_AND_REPRODUCIBILITY.md`](docs/AUDIT_TRAIL_AND_REPRODUCIBILITY.md), [`docs/TRANSPARENCY_AND_LIMITS.md`](docs/TRANSPARENCY_AND_LIMITS.md), phased example [`docs/ROADMAP_PRACTICAL_PHASES.md`](docs/ROADMAP_PRACTICAL_PHASES.md).
 
 **Operator quick ref (`KERNEL_*` families):** [`docs/proposals/OPERATOR_QUICK_REF.md`](docs/proposals/OPERATOR_QUICK_REF.md) — one-page map; full policy in [`docs/proposals/KERNEL_ENV_POLICY.md`](docs/proposals/KERNEL_ENV_POLICY.md).
 
@@ -65,8 +65,7 @@ This project is also available in [Spanish](https://github.com/CuevazaArt/androi
 - **Runtime chat:** JSON over WebSocket with env-toggled modules (relational, sensor, judicial, DAO, hub, nomad, integrity audit). Default health + `/ws/chat` — see [Quick start](#quick-start) and [Real-time chat (WebSocket)](#real-time-chat-websocket).
 - **Persistence & checkpoints:** load/save kernel snapshots; optional encrypted JSON checkpoints; conduct guide JSON on disconnect for PC → edge handoff.
 - **Batch simulations:** `python -m src.main` — legacy harness still used for regression; scenario catalog in [`HISTORY.md`](HISTORY.md#nine-canonical-simulation-scenarios-v2-origins).
-- **Interactive dashboard:** `dashboard.html` (also under `landing/public/`) — explore module traces in the browser without installing Node.
-- **Landing site:** Next.js app in `landing/` for **[mosexmacchinalab.com](https://mosexmacchinalab.com)** — **not** imported by Python; TypeScript is required only if you work on that subtree. See **[`docs/REPOSITORY_LAYOUT.md`](docs/REPOSITORY_LAYOUT.md)** (mandatory vs optional tooling, language stats, optional repo split).
+- **Interactive dashboard:** root [`dashboard.html`](dashboard.html) — explore module traces in the browser without a server. See **[`docs/REPOSITORY_LAYOUT.md`](docs/REPOSITORY_LAYOUT.md)** (mandatory vs optional tooling).
 
 ## Quick start
 
@@ -124,7 +123,7 @@ This includes invariant ethical properties, the WebSocket chat server (DAO integ
 
 **Operations:** supported demo **env bundles** — [`src/runtime_profiles.py`](src/runtime_profiles.py); strategy and roadmap — [docs/proposals/STRATEGY_AND_ROADMAP.md](docs/proposals/STRATEGY_AND_ROADMAP.md).
 
-**Local PC + smartphone (same WiFi):** bind the chat server to `0.0.0.0`; scripts and checklist — [docs/proposals/LOCAL_PC_AND_MOBILE_LAN.md](docs/proposals/LOCAL_PC_AND_MOBILE_LAN.md) (`scripts/start_lan_server.ps1`, `landing/public/mobile.html`). **Nomadic bridge:** [docs/proposals/NOMAD_PC_SMARTPHONE_BRIDGE.md](docs/proposals/NOMAD_PC_SMARTPHONE_BRIDGE.md).
+**Local PC + smartphone (same WiFi):** bind the chat server to `0.0.0.0`; scripts and checklist — [docs/proposals/LOCAL_PC_AND_MOBILE_LAN.md](docs/proposals/LOCAL_PC_AND_MOBILE_LAN.md) (`scripts/start_lan_server.ps1`). **Nomadic bridge:** [docs/proposals/NOMAD_PC_SMARTPHONE_BRIDGE.md](docs/proposals/NOMAD_PC_SMARTPHONE_BRIDGE.md).
 
 **Reproducibility:** the default ethical pipeline does **not** invoke narrative augenesis (`kernel.augenesis` is optional; see [docs/proposals/THEORY_AND_IMPLEMENTATION.md](docs/proposals/THEORY_AND_IMPLEMENTATION.md)). Long-lived deployments — [docs/proposals/RUNTIME_PERSISTENT.md](docs/proposals/RUNTIME_PERSISTENT.md).
 
@@ -164,7 +163,7 @@ When **`user_model`** is included, JSON carries **tone-only** aggregates (no raw
 
 **Vitality (v8):** `KERNEL_CHAT_INCLUDE_VITALITY` — set to `0` to omit `vitality` (`battery_level`, `critical_threshold`, `is_critical`, `battery_unknown`). **`KERNEL_VITALITY_CRITICAL_BATTERY`** (default `0.05`) sets when low battery nudges sympathetic signals; see `src/modules/vitality.py`.
 
-**Guardian Angel (opt-in, tone only):** `KERNEL_GUARDIAN_MODE=1` (or `true` / `yes` / `on`) adds a fixed protective style block to the LLM layer; **does not** change kernel ethics. **Default off.** Optional **care routines** (`KERNEL_GUARDIAN_ROUTINES=1` + `KERNEL_GUARDIAN_ROUTINES_PATH` to a JSON file) append hint lines for tone only — `src/modules/guardian_routines.py`. `KERNEL_CHAT_INCLUDE_GUARDIAN=0` omits `guardian_mode` from WebSocket JSON; `KERNEL_CHAT_INCLUDE_GUARDIAN_ROUTINES=1` includes routine titles. **Static operator page:** [`landing/public/guardian.html`](landing/public/guardian.html). See `src/modules/guardian_mode.py` and [docs/proposals/PROPOSAL_GUARDIAN_ANGEL.md](docs/proposals/PROPOSAL_GUARDIAN_ANGEL.md).
+**Guardian Angel (opt-in, tone only):** `KERNEL_GUARDIAN_MODE=1` (or `true` / `yes` / `on`) adds a fixed protective style block to the LLM layer; **does not** change kernel ethics. **Default off.** Optional **care routines** (`KERNEL_GUARDIAN_ROUTINES=1` + `KERNEL_GUARDIAN_ROUTINES_PATH` to a JSON file) append hint lines for tone only — `src/modules/guardian_routines.py`. `KERNEL_CHAT_INCLUDE_GUARDIAN=0` omits `guardian_mode` from WebSocket JSON; `KERNEL_CHAT_INCLUDE_GUARDIAN_ROUTINES=1` includes routine titles. See `src/modules/guardian_mode.py` and [docs/proposals/PROPOSAL_GUARDIAN_ANGEL.md](docs/proposals/PROPOSAL_GUARDIAN_ANGEL.md).
 
 **Epistemic dissonance (v9.1):** `KERNEL_CHAT_INCLUDE_EPISTEMIC` — set to `0` to omit `epistemic_dissonance` (`active`, `score`, `reason`) from WebSocket JSON. When sensors suggest strong audio distress but motion is low and vision weak, a **reality-check** hint is added to LLM tone only; **no** MalAbs bypass. Optional thresholds: `KERNEL_EPISTEMIC_AUDIO_MIN`, `KERNEL_EPISTEMIC_MOTION_MAX`, `KERNEL_EPISTEMIC_VISION_LOW`. See `src/modules/epistemic_dissonance.py` and [docs/proposals/PROPOSAL_EXPANDED_CAPABILITY_V9.md](docs/proposals/PROPOSAL_EXPANDED_CAPABILITY_V9.md).
 
@@ -196,7 +195,7 @@ When **`user_model`** is included, JSON carries **tone-only** aggregates (no raw
 
 **Semantic MalAbs layers (ADR 0003, default on):** `KERNEL_SEMANTIC_CHAT_GATE` defaults to **on** when unset — **embedding similarity** runs **after** the **lexical** substring pass (order: lexical → embeddings → optional LLM arbiter). Ollama `POST /api/embeddings` when available; if HTTP fails, **`KERNEL_SEMANTIC_EMBED_HASH_FALLBACK`** (default **on**) supplies deterministic hash vectors so the cosine tier still runs (weaker than true embeddings; set fallback `0` to require Ollama). **θ_block** / **θ_allow:** `KERNEL_SEMANTIC_CHAT_SIM_BLOCK_THRESHOLD` (default `0.82`; legacy `KERNEL_SEMANTIC_CHAT_SIM_THRESHOLD` if block unset) and `KERNEL_SEMANTIC_CHAT_SIM_ALLOW_THRESHOLD` (default `0.45`). **Ambiguous** band: **`KERNEL_SEMANTIC_CHAT_LLM_ARBITER=1`** or fail-safe block. Embed model: `KERNEL_SEMANTIC_CHAT_EMBED_MODEL=nomic-embed-text`; `OLLAMA_BASE_URL` shared with LLM. Lexical hardening: `KERNEL_MALABS_LEET_FOLD`, `KERNEL_MALABS_STRIP_BIDI` in `input_trust.py`. Details: [`docs/proposals/MALABS_SEMANTIC_LAYERS.md`](docs/proposals/MALABS_SEMANTIC_LAYERS.md).
 
-Each JSON response includes **`identity`** (narrative self-model + `ascription`), **`drive_intents`** (advisory list), and **`monologue`** when a kernel decision is present (unless `KERNEL_CHAT_EXPOSE_MONOLOGUE=0`). When enabled by env (defaults on), responses may also include **`affective_homeostasis`**, **`experience_digest`**, **`user_model`**, **`chronobiology`**, **`premise_advisory`**, and **`teleology_branches`** (see sections above). **Phone / LAN:** minimal UI at [`landing/public/mobile.html`](landing/public/mobile.html) (serve `landing/public` and open from the smartphone on the same WiFi; see [docs/proposals/LOCAL_PC_AND_MOBILE_LAN.md](docs/proposals/LOCAL_PC_AND_MOBILE_LAN.md)). Technical WebSocket tester: [`landing/public/chat-test.html`](landing/public/chat-test.html).
+Each JSON response includes **`identity`** (narrative self-model + `ascription`), **`drive_intents`** (advisory list), and **`monologue`** when a kernel decision is present (unless `KERNEL_CHAT_EXPOSE_MONOLOGUE=0`). When enabled by env (defaults on), responses may also include **`affective_homeostasis`**, **`experience_digest`**, **`user_model`**, **`chronobiology`**, **`premise_advisory`**, and **`teleology_branches`** (see sections above). **Phone / LAN:** use any WebSocket-capable client against `ws://<host>:<port>/ws/chat` (patterns in [docs/proposals/LOCAL_PC_AND_MOBILE_LAN.md](docs/proposals/LOCAL_PC_AND_MOBILE_LAN.md)).
 
 ### Natural language mode (v4)
 
@@ -324,7 +323,7 @@ Psi Sleep Ψ (end of day): Audit + Forgiveness cycle + weakness load + Immortali
 - [x] Immortality Protocol (distributed backup in 4 layers)
 - [x] Narrative Augenesis (creation of oriented synthetic souls)
 - [x] Swarm P2P stub (v9.3 lab — offline verdict digests; [`docs/proposals/SWARM_P2P_THREAT_MODEL.md`](docs/proposals/SWARM_P2P_THREAT_MODEL.md))
-- [x] Guardian Angel routines (optional JSON + LLM hints; operator page [`landing/public/guardian.html`](landing/public/guardian.html))
+- [x] Guardian Angel routines (optional JSON + LLM hints; see [PROPOSAL_GUARDIAN_ANGEL.md](docs/proposals/PROPOSAL_GUARDIAN_ANGEL.md))
 
 ## Tests
 
@@ -363,57 +362,19 @@ All without a server, without internet, without installing anything.
 
 No server, internet connection (after first load), or technical knowledge required.
 
-## Landing site (Next.js)
-
-The folder `landing/` is a **Next.js** marketing page (Tailwind, Framer Motion, Three.js hero) for **MoSex Macchina Lab** ([mosexmacchinalab.com](https://mosexmacchinalab.com)). It embeds the same `dashboard.html` at `/demo` (also served as `/dashboard.html` from `landing/public/`).
-
-**Support policy (official branding surface vs kernel runtime), version sync, robots parity, Vercel caveats:** [docs/proposals/LANDING_DECOUPLING_AND_SUPPORT.md](docs/proposals/LANDING_DECOUPLING_AND_SUPPORT.md).
-
-**Crawling, SEO, and training-corpus signals:** the balance between discoverability and model-training crawlers is documented in [landing/README.md](landing/README.md#crawling-seo-and-ai-corpus-signals).
-
-### Prerequisites
-
-- **Node.js** LTS from [nodejs.org](https://nodejs.org/) (includes `npm`).  
-  If `node` is not found in PowerShell after installing, **close and reopen the terminal**, or add `C:\Program Files\nodejs` to your user PATH.
-
-### Local dev
-
-```bash
-cd landing
-npm install
-npm run dev
-```
-
-Open [http://localhost:3000](http://localhost:3000). Use **Live demo** for the full-screen dashboard iframe. A printable **[one-pager](http://localhost:3000/one-pager)** (funders / press) can be saved as PDF via the browser’s Print dialog.
-
-### Deploy on Vercel
-
-1. Push this repo to GitHub (if it is not already).
-2. In [Vercel](https://vercel.com), **Add New Project** → import the repo.
-3. Set **Root Directory** to `landing`, framework **Next.js**, build `npm run build`, output default.
-4. After deploy, Vercel shows a `*.vercel.app` URL. Add custom domain **mosexmacchinalab.com** in Project → **Domains**.
-
-### GoDaddy DNS (point domain to Vercel)
-
-In GoDaddy DNS for the domain:
-
-- **Recommended:** create a **CNAME** record: **Host** `@` or `www` as required by Vercel’s domain UI (Vercel will show the exact target, e.g. `cname.vercel-dns.com`). Some registrars use **A** records to Vercel’s IPs instead — follow [Vercel’s current docs](https://vercel.com/docs/concepts/projects/domains) for the domain you attach.
-
 ## Repository structure
 
 ```
 .
 ├── .github/              # Issue templates, workflows (CI), Security tab links
 ├── docs/
-│   ├── proposals/        # Theory ↔ implementation, RUNTIME_*, roadmaps, PROPOSAL_* (canonical English), PROPUESTA_* redirects, experimental notes (single folder)
+│   ├── proposals/        # Theory ↔ implementation, RUNTIME_*, roadmaps, PROPOSAL_* (canonical English), experimental notes (single folder)
 │   ├── adr/              # Architecture decision records
 │   ├── multimedia/       # Logo + pre-alpha diagrams/media (see docs/multimedia/README.md)
 │   └── templates/        # JSON templates (e.g. conduct guide)
-├── landing/              # Next.js site (npm install inside this folder)
 ├── src/                  # Ethos Kernel source code
 ├── tests/                # Formal test suite
 ├── dashboard.html        # Interactive dashboard (open in browser)
-├── BIBLIOGRAPHY.md       # 104 academic references across 14 disciplines
 ├── CHANGELOG.md          # Version change history
 ├── CONTRIBUTING.md       # Contributor guide
 ├── HISTORY.md            # Full project evolution (v1→v12)
@@ -422,8 +383,6 @@ In GoDaddy DNS for the domain:
 ├── README.md             # This file
 └── requirements.txt      # Python dependencies
 ```
-
-A copy of `dashboard.html` is also kept under `landing/public/` so the Next.js app can serve it.
 
 **Theory vs. code:** formulas, predicates, and file-level mapping (including how this differs from an LLM-only “stochastic parrot”) are in [docs/proposals/THEORY_AND_IMPLEMENTATION.md](docs/proposals/THEORY_AND_IMPLEMENTATION.md).
 
@@ -435,7 +394,7 @@ A copy of `dashboard.html` is also kept under `landing/public/` so the Next.js a
 
 **Experimental (unofficial):** discussion notes on “artificial consciousness” as a pedagogical frame, strong vs weak readings, and affect archetypes for possible future integration — [docs/proposals/EXPERIMENTAL_CONSCIOUSNESS_AND_AFFECT_ARCHETYPES.md](docs/proposals/EXPERIMENTAL_CONSCIOUSNESS_AND_AFFECT_ARCHETYPES.md) (WIP, not part of the kernel contract until implemented and tested).
 
-**Implementation trace (Guardian, v9–v10) and bibliography links:** [docs/proposals/TRACE_IMPLEMENTATION_RECENT.md](docs/proposals/TRACE_IMPLEMENTATION_RECENT.md) — maps components to [BIBLIOGRAPHY.md](BIBLIOGRAPHY.md) reference numbers; includes suggested next development session.
+**Implementation trace (Guardian, v9–v10):** [docs/proposals/TRACE_IMPLEMENTATION_RECENT.md](docs/proposals/TRACE_IMPLEMENTATION_RECENT.md) — component ↔ rationale (numbered refs were tied to the removed `BIBLIOGRAPHY.md`; recover from git history or **`backup/main-2026-04-10`** if needed).
 
 **Roadmap (foundation — discussion notes + phased code):** Guardian Angel — [PROPOSAL_GUARDIAN_ANGEL.md](docs/proposals/PROPOSAL_GUARDIAN_ANGEL.md). **v9** — [PROPOSAL_EXPANDED_CAPABILITY_V9.md](docs/proposals/PROPOSAL_EXPANDED_CAPABILITY_V9.md). **v10** — diplomacy, skills, somatic markers, metaplan (MVP) — [PROPOSAL_OPERATIONAL_STRATEGY_V10.md](docs/proposals/PROPOSAL_OPERATIONAL_STRATEGY_V10.md). **V11** — distributed justice / DAO escalation (Phase 1 in code) — [PROPOSAL_DISTRIBUTED_JUSTICE_V11.md](docs/proposals/PROPOSAL_DISTRIBUTED_JUSTICE_V11.md). **V12** — moral infrastructure hub — [PROPOSAL_ETOSOCIAL_STATE_V12.md](docs/proposals/PROPOSAL_ETOSOCIAL_STATE_V12.md) (registry) + **[UNIVERSAL_ETHOS_AND_HUB.md](docs/proposals/UNIVERSAL_ETHOS_AND_HUB.md)** (unified vision ↔ code). Phases **1–3** + stubs: `moral_hub`, `GET /constitution`, `GET /dao/governance`, drafts, DAO votes, `deontic_gate`, `ml_ethics_tuner`, `reparation_vault`, `nomad_identity`. **Nomadic HAL** — [PROPOSAL_NOMAD_CONSCIOUSNESS_HAL.md](docs/proposals/PROPOSAL_NOMAD_CONSCIOUSNESS_HAL.md), `hardware_abstraction`, `existential_serialization`. Env: see V12 doc (`KERNEL_DEONTIC_GATE`, `KERNEL_ML_ETHICS_TUNER_LOG`, `KERNEL_REPARATION_VAULT_MOCK`, `KERNEL_CHAT_INCLUDE_NOMAD_IDENTITY`, …).
 
@@ -443,7 +402,7 @@ A copy of `dashboard.html` is also kept under `landing/public/` so the Next.js a
 
 ## Medium-term directions (not scheduled)
 
-These are **directional** ideas for when the project moves beyond pure research demos — see also the public [roadmap](https://mosexmacchinalab.com/roadmap) on the landing site.
+These are **directional** ideas for when the project moves beyond pure research demos — see also the public [roadmap](https://mosexmacchinalab.com/roadmap).
 
 - **Persistent runtime:** initial design criteria and snapshot boundaries — [docs/proposals/RUNTIME_PERSISTENT.md](docs/proposals/RUNTIME_PERSISTENT.md) (implementation TBD).
 - **Hexagonal-style boundaries (ports & adapters), introduced incrementally:** define stable interfaces for infrastructure that is likely to change (e.g. LLM provider, DAO/governance backend, persistence for narrative episodes) so the ethical pipeline can swap implementations without a full rewrite. Prefer **small, evidence-driven** extractions (a second real adapter) over a one-shot “hexagonal everything” refactor.

@@ -2,6 +2,17 @@
 
 All notable changes to this project are summarized here. For narrative context and design rationale, see [`HISTORY.md`](HISTORY.md).
 
+## Remove legacy `PROPUESTA_*` stub files — April 2026
+
+- **Removed** 14 Spanish redirect stubs **`docs/proposals/PROPUESTA_*.md`** (each duplicated a canonical English **`PROPOSAL_*.md`**).
+- **Docs:** [`docs/proposals/README.md`](docs/proposals/README.md), [`README.md`](README.md), [`docs/proposals/PRODUCTION_HARDENING_ROADMAP.md`](docs/proposals/PRODUCTION_HARDENING_ROADMAP.md), [`docs/proposals/TRACE_IMPLEMENTATION_RECENT.md`](docs/proposals/TRACE_IMPLEMENTATION_RECENT.md), [`docs/proposals/CRITIQUE_ROADMAP_ISSUES.md`](docs/proposals/CRITIQUE_ROADMAP_ISSUES.md). Redirect stubs **`ESTRATEGIA_Y_RUTA.md`** and **`PAPER_AFECTO_*.md`** remain until migrated.
+
+## Remove Next.js landing and root bibliography — April 2026
+
+- **Removed** the entire **`landing/`** Next.js application (marketing site, static HTML mirrors that lived under it, and **`landing-ci.yml`**). **`dashboard.html`** at the repository root remains the browser-only interactive surface.
+- **Removed** root **`BIBLIOGRAPHY.md`**. **`docs/proposals/LANDING_DECOUPLING_AND_SUPPORT.md`** removed as obsolete. Cross-links in README, `HISTORY.md`, proposals, `TRACE_IMPLEMENTATION_RECENT.md`, and policy tables updated; numbered trace refs point to git history or branch **`backup/main-2026-04-10`** for the old bibliography file.
+- **Docs / tooling:** [`docs/REPOSITORY_LAYOUT.md`](docs/REPOSITORY_LAYOUT.md), [`docs/multimedia/README.md`](docs/multimedia/README.md), [`SECURITY.md`](SECURITY.md), [`CONTRIBUTING.md`](CONTRIBUTING.md), [`AGENTS.md`](AGENTS.md), [`.gitignore`](.gitignore) (dropped unused `landing/` ignore lines), issue template, and related proposals.
+
 ## Docs multimedia trim — April 2026
 
 - **Removed** large non-essential assets under **`docs/multimedia/media/`** (pre-alpha PNG diagrams, generated JPG still, MP4 clip); **`logo.png`** retained for branding and landing sync.
@@ -836,4 +847,4 @@ Pause on **new surface modules**; strengthen existing paths (critique-aligned).
 - 40+ design documents analyzed and consolidated
 - 7-layer architecture documented
 - Complete mathematical formalization
-- Bibliography expanded over time; see current [`BIBLIOGRAPHY.md`](BIBLIOGRAPHY.md) (104 references across 14 disciplines as of v5+)
+- Bibliography expanded over time (104 references across 14 disciplines in root `BIBLIOGRAPHY.md` until that file was removed in April 2026 — recover from git history or `backup/main-2026-04-10`)

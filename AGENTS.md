@@ -19,7 +19,7 @@ When you fix **security- or safety-critical** behavior (MalAbs thresholds, gates
 
 ## Product “model” document (theory)
 
-The **complete conceptual model** for the android ethics stack (outside this repo’s code) is referenced from [`CONTRIBUTING.md`](CONTRIBUTING.md) (“Understand the model”). Kernel work is **Python under `src/`**; `landing/` is a separate Next.js app when touched.
+The **complete conceptual model** for the android ethics stack (outside this repo’s code) is referenced from [`CONTRIBUTING.md`](CONTRIBUTING.md) (“Understand the model”). Kernel work is **Python under `src/`**.
 
 ## Maintainer backlog (infra vs theater)
 

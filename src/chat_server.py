@@ -33,7 +33,7 @@ Guardian Angel (optional, opt-in): KERNEL_GUARDIAN_MODE=1 enables protective ton
 KERNEL_CHAT_INCLUDE_GUARDIAN — omit ``guardian_mode`` key from JSON if 0. KERNEL_GUARDIAN_ROUTINES,
 KERNEL_GUARDIAN_ROUTINES_PATH — optional JSON care routines (tone hints only; see guardian_routines.py).
 KERNEL_CHAT_INCLUDE_GUARDIAN_ROUTINES — include ``guardian_routines`` [{id, title}] in JSON (default off).
-See guardian_mode.py, PROPOSAL_GUARDIAN_ANGEL.md, landing/public/guardian.html.
+See guardian_mode.py, PROPOSAL_GUARDIAN_ANGEL.md.
 
 Epistemic dissonance (v9.1): KERNEL_CHAT_INCLUDE_EPISTEMIC — omit ``epistemic_dissonance`` from JSON if 0.
 Optional thresholds KERNEL_EPISTEMIC_AUDIO_MIN, KERNEL_EPISTEMIC_MOTION_MAX, KERNEL_EPISTEMIC_VISION_LOW.

@@ -65,13 +65,13 @@ See also `src/modules/psi_sleep.py`, `src/modules/immortality.py`, `src/modules/
 
 **Inventario v6 y exclusiones:** [PROPOSAL_CONTRIBUTION_INTEGRATION_V6.md](PROPOSAL_CONTRIBUTION_INTEGRATION_V6.md).
 
-**Ángel de la Guarda (opt-in, MVP):** `KERNEL_GUARDIAN_MODE` enables a fixed protective **tone block** in `LLMModule.communicate` only (`src/modules/guardian_mode.py`); optional JSON **rutinas** (`KERNEL_GUARDIAN_ROUTINES`, `guardian_routines.py`); kernel ethics unchanged. Página estática [`landing/public/guardian.html`](../landing/public/guardian.html). Franjas etarias avanzadas siguen en discusión — [PROPOSAL_GUARDIAN_ANGEL.md](PROPOSAL_GUARDIAN_ANGEL.md).
+**Ángel de la Guarda (opt-in, MVP):** `KERNEL_GUARDIAN_MODE` enables a fixed protective **tone block** in `LLMModule.communicate` only (`src/modules/guardian_mode.py`); optional JSON **rutinas** (`KERNEL_GUARDIAN_ROUTINES`, `guardian_routines.py`); kernel ethics unchanged. Franjas etarias avanzadas siguen en discusión — [PROPOSAL_GUARDIAN_ANGEL.md](PROPOSAL_GUARDIAN_ANGEL.md).
 
 **v9 — capacidad ampliada (roadmap):** Cuatro pilares documentados en [PROPOSAL_EXPANDED_CAPABILITY_V9.md](PROPOSAL_EXPANDED_CAPABILITY_V9.md). **En repo:** (9.1) `epistemic_dissonance.py` — telemetría y hint de tono; (9.2) `generative_candidates.py` — candidatos extra con `source` / `proposal_id`, opt-in `KERNEL_GENERATIVE_ACTIONS`, opcional `KERNEL_GENERATIVE_LLM` + `generative_candidates` en JSON de percepción; **sin** bypass de MalAbs. (9.3) `swarm_peer_stub.py` + [SWARM_P2P_THREAT_MODEL.md](SWARM_P2P_THREAT_MODEL.md) — huellas/advisory offline, sin red. (9.4) metaplan drive filter + metas en snapshot — ver v10/trace.
 
 **v10 — estrategia operativa:** [PROPOSAL_OPERATIONAL_STRATEGY_V10.md](PROPOSAL_OPERATIONAL_STRATEGY_V10.md). **En repo (MVP):** `gray_zone_diplomacy.py` (hints de negociación en tensión / gray zone); `skill_learning_registry.py` (tickets + auditoría en Ψ Sleep); `somatic_markers.py` (patrón sensorial → nudge en señales); `metaplan_registry.py` (metas en RAM → hint LLM; filtro opcional de `drive_intents` vs metas, consentimiento documentado en env). Env: `KERNEL_GRAY_ZONE_DIPLOMACY`, `KERNEL_SOMATIC_MARKERS`, `KERNEL_METAPLAN_HINT`, `KERNEL_METAPLAN_DRIVE_FILTER`, `KERNEL_METAPLAN_DRIVE_EXTRA`. Persistencia de metas en checkpoint: **hecho** (v3 snapshot).
 
-**Trazabilidad y bibliografía (implementaciones recientes):** tabla componente ↔ sustento con referencias numeradas en [TRACE_IMPLEMENTATION_RECENT.md](TRACE_IMPLEMENTATION_RECENT.md) e índice ampliado en [BIBLIOGRAPHY.md](../BIBLIOGRAPHY.md) (*Index by project component*).
+**Traceability (recent implementations):** numbered reference table in [TRACE_IMPLEMENTATION_RECENT.md](TRACE_IMPLEMENTATION_RECENT.md) (numbers were keyed to the removed root `BIBLIOGRAPHY.md`; recover from git history or `backup/main-2026-04-10`).
 
 ---
 
@@ -192,6 +192,6 @@ Tests under `tests/` (**550** collected; ethical invariants, reflection/salience
 
 The kernel and this documentation are under the same terms as the repository — see [LICENSE](../LICENSE) (Apache 2.0).
 
-## Suggested citation for the landing page
+## Suggested citation
 
 For a short public explanation, the maintainers highlight **sigmoid will**, **optimization with MalAbs**, and **Uchi–Soto / forgiveness** as accessible entry points; full formulas and file mapping live in this document.

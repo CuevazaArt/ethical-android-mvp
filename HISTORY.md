@@ -10,17 +10,14 @@ The open kernel + runtime is branded **Ethos Kernel** (April 2026 onward); earli
 
 ## Intellectual foundations
 
-The project is grounded in 104 academic references from 14 disciplines,
-from foundational classics (Turing, Bayes, Aristotle, Kant) to contemporary
-research in AI safety and LLMs. Each kernel module has traceable roots
-in the literature:
+The project is grounded in a broad academic literature, from foundational classics (Turing, Bayes, Aristotle, Kant) to contemporary research in AI safety and LLMs. Each kernel module has traceable roots in that literature. A consolidated **104-reference** table previously lived in **`BIBLIOGRAPHY.md`** at the repository root; that file was **removed** from the default tree in April 2026 to reduce weight — recover it from git history or from branch **`backup/main-2026-04-10`** if needed.
 
 | Kernel component | Main roots |
 |---|---|
 | Bayesian inference | Bayes (1763), Pearl (1988, 2018) |
 | Sigmoid will | Rosenblatt (1958), Kahneman (2011) |
 | Narrative memory | Dennett (1991), Ricoeur (1984), Tulving (1972) |
-| Absolute Evil / Buffer | Kant (1785); Constitutional AI line — see [BIBLIOGRAPHY.md](BIBLIOGRAPHY.md) ref. 90 |
+| Absolute Evil / Buffer | Kant (1785); Constitutional AI / RLHF safety line (Bai et al.; contemporary AI safety literature) |
 | Ethical poles | Aristotle, Mill (1863), Floridi & Cowls (2019) |
 | D_fast / D_delib modes | Kahneman (2011), Brooks (1991), Bratman (1987) |
 | Uchi-Soto | Nakane (1970), Lebra (1976), Dautenhahn (2007) |
@@ -32,14 +29,11 @@ in the literature:
 | Immortality protocol | Locke (1690), Parfit (1984), Schneier (2015) |
 | Narrative augenesis | Dennett (1992), Thagard (2006), Harari (2017) |
 
-The complete bibliography with all 104 references is in
-[`BIBLIOGRAPHY.md`](BIBLIOGRAPHY.md).
-
 ---
 
 ## Pre-alpha Spanish corpus (2026) — integrated archive
 
-Before the **`docs/proposals/`** layout, the project circulated a **pre-alpha documentation bundle** (working folder `prealphaDocs/`): Spanish registration draft **v1.0 (2026)**, diagram PNGs, a **Spanish bibliography draft**, and generated JPG/MP4. That narrative is **not** the live specification of the current Python kernel; the canonical theory ↔ code map is **[`docs/proposals/THEORY_AND_IMPLEMENTATION.md`](docs/proposals/THEORY_AND_IMPLEMENTATION.md)** and the maintained reference table is **[`BIBLIOGRAPHY.md`](BIBLIOGRAPHY.md)**.
+Before the **`docs/proposals/`** layout, the project circulated a **pre-alpha documentation bundle** (working folder `prealphaDocs/`): Spanish registration draft **v1.0 (2026)**, diagram PNGs, a **Spanish bibliography draft**, and generated JPG/MP4. That narrative is **not** the live specification of the current Python kernel; the canonical theory ↔ code map is **[`docs/proposals/THEORY_AND_IMPLEMENTATION.md`](docs/proposals/THEORY_AND_IMPLEMENTATION.md)**. The former consolidated reference table was removed with **`BIBLIOGRAPHY.md`** (April 2026); use git history or **`backup/main-2026-04-10`** to retrieve it.
 
 The following **digest** condenses the former **`androide_etico_alpha_v1.0_2026.md`** (full prose removed from the tree in favor of this section):
 
@@ -50,7 +44,7 @@ The following **digest** condenses the former **`androide_etico_alpha_v1.0_2026.
 - **Formal core (sketch):** sigmoid **will**, constrained optimization, Bayesian inference, predicate logic over ethical categories (e.g. Good / Evil / Gray / Absolute Evil), neural activation functions — aimed at **auditable** decisions.
 - **Long-horizon narrative memory, DAO-oracle, humanization, HAX trust UX, simulation catalog, ML strategy, licensing / business framing, phased rollout, and investor-oriented value proposition** were developed in the same document at varying depth; they **foreshadow** modules that later became `uchi_soto`, `weighted_ethics_scorer` (historical path `bayesian_engine`), `mock_dao`, `narrative`, `llm_layer`, etc., but **do not** match file-level APIs today.
 
-**Spanish bibliography draft:** an archival table by discipline (classic vs modern sources) was merged conceptually into the project’s citation practice; **all maintained citations** live in **[`BIBLIOGRAPHY.md`](BIBLIOGRAPHY.md)**.
+**Spanish bibliography draft:** an archival table by discipline (classic vs modern sources) was merged conceptually into the project’s citation practice; the detailed numbered table that replaced it was versioned as **`BIBLIOGRAPHY.md`** until April 2026 (removed from the default tree).
 
 **PDF / Word companions (not in git):** `.gitignore` excludes `*.pdf` / `*.docx`. Local bundles from the same era sometimes included exports such as `androide_etico_alpha.docx`, thematic PDFs on DAO-oracle, narrative memory, and consciousness sketches; keep those only in **foundation archives** outside the repo if you still have them.
 
@@ -63,7 +57,7 @@ The following **digest** condenses the former **`androide_etico_alpha_v1.0_2026.
 - 40+ design documents analyzed and consolidated.
 - 7-layer architecture documented.
 - Complete mathematical formalization.
-- Bibliography of 104 references across 14 disciplines (see `BIBLIOGRAPHY.md`).
+- Bibliography work (104 references across 14 disciplines) was tracked in a dedicated file until April 2026 (removed from the default tree; see [`CHANGELOG.md`](CHANGELOG.md)).
 - **Main artifact:** `Androide_Etico_Analisis_Integral_v3.docx`
   (available in `docs/`).
 
@@ -230,7 +224,7 @@ Governance track: **artificial social contract** metaphor — owner insistence i
 
 **Reality verification (V11+ cross-model):** [docs/proposals/PROPOSAL_REALITY_VERIFICATION_V11.md](docs/proposals/PROPOSAL_REALITY_VERIFICATION_V11.md) — optional **lighthouse** JSON (`KERNEL_LIGHTHOUSE_KB_PATH`) flags contradictions between rival/user assertions and local anchors → **metacognitive doubt** in the LLM layer only; stubs for **conduct distillation** (small-body guide) and **local sovereignty** (DAO calibration veto).
 
-**Local PC + smartphone (LAN):** [docs/proposals/LOCAL_PC_AND_MOBILE_LAN.md](docs/proposals/LOCAL_PC_AND_MOBILE_LAN.md) — runtime bound to `0.0.0.0`, scripts `start_lan_server`, **`landing/public/mobile.html`** minimal phone UI + `chat-test.html`, template `conduct_guide` for future nomadic jump.
+**Local PC + smartphone (LAN):** [docs/proposals/LOCAL_PC_AND_MOBILE_LAN.md](docs/proposals/LOCAL_PC_AND_MOBILE_LAN.md) — runtime bound to `0.0.0.0`, scripts `start_lan_server`, WebSocket thin-client patterns, template `conduct_guide` for future nomadic jump.
 
 **Conduct guide export:** `src/modules/conduct_guide_export.py` — JSON written on WebSocket session end (`KERNEL_CONDUCT_GUIDE_EXPORT_PATH`) after checkpoint save; distills L0, recent episodes, identity leans, DAO summary for edge / audit.
 
@@ -337,5 +331,5 @@ Product and operations roadmap (expectations, P0–P3): **[docs/proposals/STRATE
 
 ---
 
-**MoSex Macchina Lab** — the public-facing name for this project and the landing site ([mosexmacchinalab.com](https://mosexmacchinalab.com)).  
+**MoSex Macchina Lab** — the public-facing name for this project ([mosexmacchinalab.com](https://mosexmacchinalab.com)).  
 *Ex Machina Foundation* — 2026 · research in computational ethics and civic robotics.

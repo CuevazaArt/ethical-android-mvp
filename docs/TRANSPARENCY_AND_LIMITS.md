@@ -35,6 +35,6 @@ Details: [INPUT_TRUST_THREAT_MODEL.md](proposals/INPUT_TRUST_THREAT_MODEL.md), [
 
 When `KERNEL_AUDIT_CHAIN_PATH` is set, block events append to a hash-chained JSONL file (see [AUDIT_TRAIL_AND_REPRODUCIBILITY.md](AUDIT_TRAIL_AND_REPRODUCIBILITY.md)). WebSocket responses may include **`malabs_trace`** (atomic step ids) when `KERNEL_CHAT_INCLUDE_MALABS_TRACE=1`.
 
-## Static page (mirror)
+## Static hosting
 
-A short HTML mirror for static hosting lives at [`landing/public/ethos-transparency.html`](../landing/public/ethos-transparency.html) (summary + links to this doc).
+Host this Markdown or export a static summary alongside your deployment; there is no separate HTML mirror in the repository.

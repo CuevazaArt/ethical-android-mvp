@@ -96,7 +96,7 @@ After **two** independent external reviews (April 2026), the project publishes a
 
 - **[CRITIQUE_ROADMAP_ISSUES.md](CRITIQUE_ROADMAP_ISSUES.md)**
 
-The landing [Roadmap](https://mosexmacchinalab.com/roadmap) summarizes the same track for partners and visitors.
+The public [Roadmap](https://mosexmacchinalab.com/roadmap) summarizes the same track for partners and visitors.
 
 ---
 

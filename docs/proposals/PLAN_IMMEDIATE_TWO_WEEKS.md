@@ -110,7 +110,7 @@ This file is the **repo-local execution backlog**. **GitHub milestones, assignee
 | Item | Pointer |
 |------|---------|
 | **Prometheus / structured logging** | [ADR 0008](../adr/0008-runtime-observability-prometheus-and-logs.md), [`src/observability/`](../../src/observability/); verify `/metrics` + JSON logs in compose docs |
-| **End-to-end tests (kernel ↔ landing)** | Landing is **Next.js** — E2E is **manual or Playwright in `landing/`** (not kernel pytest). Add a **smoke checklist** in [REPOSITORY_LAYOUT.md](../REPOSITORY_LAYOUT.md) or landing README if missing. |
+| **End-to-end tests (browser ↔ kernel)** | Optional **manual** WebSocket checks against `chat_server` (not part of default pytest). Smoke expectations: [REPOSITORY_LAYOUT.md](../REPOSITORY_LAYOUT.md). |
 | **Deprecation roadmap for flags** | [`DEPRECATION_ROADMAP`](../../src/validators/env_policy.py) + [KERNEL_ENV_POLICY.md](KERNEL_ENV_POLICY.md); first scheduled deprecation needs CHANGELOG + version bump policy |
 
 ---
