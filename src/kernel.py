@@ -207,6 +207,7 @@ class EthicalKernel:
         self._last_multimodal_assessment: MultimodalAssessment = evaluate_multimodal_trust(None)
         self._last_vitality_assessment: VitalityAssessment = assess_vitality(None)
         self._last_registered_episode_id: str | None = None
+        self._last_chat_malabs: AbsoluteEvilResult | None = None
         self._pruned_actions: dict[str, list[str]] = {}
         # Reference "genome" for drift caps (pilar 2); snapshot at construction
         self._bayesian_genome_threshold: float = float(self.bayesian.pruning_threshold)
@@ -758,6 +759,7 @@ class EthicalKernel:
             user_input,
             llm_backend=self._malabs_text_backend(),
         )
+        self._last_chat_malabs = mal
         self._last_premise_advisory = scan_premises(user_input)
         self.user_model.note_premise_advisory(self._last_premise_advisory.flag)
         self._last_reality_verification = verify_against_lighthouse(

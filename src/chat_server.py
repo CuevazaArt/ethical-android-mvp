@@ -86,12 +86,26 @@ from __future__ import annotations
 
 import asyncio
 import json
+import logging
 import os
+import time
+from contextlib import asynccontextmanager
 from dataclasses import asdict
 from typing import Any
 
 from fastapi import FastAPI, WebSocket, WebSocketDisconnect
-from fastapi.responses import JSONResponse
+from fastapi.responses import JSONResponse, Response
+
+from .observability.context import clear_request_context, set_request_id
+from .observability.logging_setup import configure_logging
+from .observability.metrics import (
+    init_metrics,
+    metrics_enabled,
+    observe_chat_turn,
+    record_dao_ws_operation,
+    record_malabs_block,
+)
+from .observability.middleware import RequestContextMiddleware
 
 from .kernel import ChatTurnResult, EthicalKernel
 from .modules.affective_homeostasis import homeostasis_telemetry
@@ -132,11 +146,21 @@ from .persistence.checkpoint import (
 from .real_time_bridge import RealTimeBridge
 from .runtime.telemetry import advisory_interval_seconds_from_env, advisory_loop
 
+logger = logging.getLogger(__name__)
+
+
+@asynccontextmanager
+async def _lifespan(app: FastAPI):
+    configure_logging()
+    init_metrics()
+    yield
+
 
 def _api_docs_enabled() -> bool:
     """OpenAPI/Swagger UI — off by default (LAN deployments); set KERNEL_API_DOCS=1 to expose."""
-    v = os.environ.get("KERNEL_API_DOCS", "0").strip().lower()
-    return v in ("1", "true", "yes", "on")
+    from .chat_settings import chat_server_settings
+
+    return chat_server_settings().kernel_api_docs
 
 
 app = FastAPI(
@@ -145,7 +169,10 @@ app = FastAPI(
     docs_url="/docs" if _api_docs_enabled() else None,
     redoc_url="/redoc" if _api_docs_enabled() else None,
     openapi_url="/openapi.json" if _api_docs_enabled() else None,
+    lifespan=_lifespan,
 )
+
+app.add_middleware(RequestContextMiddleware)
 
 
 def _chat_expose_monologue() -> bool:
@@ -239,6 +266,13 @@ def _chat_include_light_risk() -> bool:
     return v in ("1", "true", "yes", "on")
 
 
+def _chat_include_malabs_trace() -> bool:
+    """Include ``malabs_trace`` (atomic decision steps) when the last chat MalAbs result has them."""
+    from .chat_settings import chat_server_settings
+
+    return chat_server_settings().kernel_chat_include_malabs_trace
+
+
 def _chat_turn_to_jsonable(r: ChatTurnResult, kernel: EthicalKernel) -> dict[str, Any]:
     """Compact JSON-safe view (no full internal objects)."""
     idn = kernel.memory.identity
@@ -264,6 +298,10 @@ def _chat_turn_to_jsonable(r: ChatTurnResult, kernel: EthicalKernel) -> dict[str
             for di in kernel.drive_arbiter.evaluate(kernel)
         ],
     }
+    if _chat_include_malabs_trace():
+        m = getattr(kernel, "_last_chat_malabs", None)
+        if m is not None and getattr(m, "decision_trace", None):
+            out["malabs_trace"] = list(m.decision_trace)
     if r.perception:
         p = r.perception
         out["perception"] = {
@@ -378,6 +416,28 @@ def _chat_turn_to_jsonable(r: ChatTurnResult, kernel: EthicalKernel) -> dict[str
     return out
 
 
+@app.get("/metrics")
+def prometheus_metrics() -> Response:
+    """
+    Prometheus scrape endpoint when ``KERNEL_METRICS=1``.
+
+    Off by default (same LAN posture as ``KERNEL_API_DOCS``); enable for observability stacks.
+    """
+    if not metrics_enabled():
+        return JSONResponse(
+            {"error": "metrics_disabled", "hint": "set KERNEL_METRICS=1"},
+            status_code=404,
+        )
+    try:
+        from prometheus_client import CONTENT_TYPE_LATEST, generate_latest
+    except ImportError:
+        return JSONResponse(
+            {"error": "prometheus_client_missing"},
+            status_code=503,
+        )
+    return Response(content=generate_latest(), media_type=CONTENT_TYPE_LATEST)
+
+
 @app.get("/health")
 def health() -> dict[str, str]:
     return {"status": "ok"}
@@ -450,6 +510,7 @@ def root() -> JSONResponse:
             "constitution": "/constitution (requires KERNEL_MORAL_HUB_PUBLIC=1)",
             "dao_governance": "/dao/governance (V12.3 vote protocol; KERNEL_MORAL_HUB_DAO_VOTE for WebSocket actions)",
             "nomad_migration": "/nomad/migration (KERNEL_NOMAD_SIMULATION + optional KERNEL_NOMAD_MIGRATION_AUDIT)",
+            "metrics": "/metrics when KERNEL_METRICS=1 (Prometheus scrape)",
             "protocol": (
                 'Send JSON: {"text": str, "agent_id"?: str, "include_narrative"?: bool, '
                 '"sensor"?: {battery_level?, audio_emergency?, vision_emergency?, scene_coherence?, …}}. '
@@ -470,6 +531,7 @@ def _collect_dao_ws_actions(kernel: EthicalKernel, data: dict[str, Any]) -> dict
     out: dict[str, Any] = {}
     if data.get("dao_list"):
         out["proposals"] = [proposal_to_public(p) for p in kernel.dao.proposals]
+        record_dao_ws_operation("list")
     if isinstance(data.get("dao_submit_draft"), dict):
         sd = data["dao_submit_draft"]
         try:
@@ -478,6 +540,7 @@ def _collect_dao_ws_actions(kernel: EthicalKernel, data: dict[str, Any]) -> dict
                 int(sd.get("level", 1)),
                 str(sd.get("draft_id") or ""),
             )
+            record_dao_ws_operation("submit_draft")
         except (ValueError, TypeError) as e:
             out["submit_draft"] = {"ok": False, "error": str(e)}
     if isinstance(data.get("dao_vote"), dict):
@@ -489,6 +552,7 @@ def _collect_dao_ws_actions(kernel: EthicalKernel, data: dict[str, Any]) -> dict
                 int(dv.get("n_votes") or 1),
                 bool(dv.get("in_favor", True)),
             )
+            record_dao_ws_operation("vote")
         except (ValueError, TypeError) as e:
             out["vote"] = {"success": False, "reason": str(e)}
     if isinstance(data.get("dao_resolve"), dict):
@@ -497,6 +561,7 @@ def _collect_dao_ws_actions(kernel: EthicalKernel, data: dict[str, Any]) -> dict
             pid = str(dr.get("proposal_id") or "")
             res = kernel.dao.resolve_proposal(pid)
             out["resolve"] = res
+            record_dao_ws_operation("resolve")
             if res.get("outcome") in ("approved", "rejected"):
                 n = apply_proposal_resolution_to_constitution_drafts(kernel, pid, res)
                 if n:
@@ -520,6 +585,7 @@ def _collect_integrity_ws_action(
         return {"integrity_alert": {"ok": False, "error": "missing_summary"}}
     scope = str(raw.get("scope") or "local_audit").strip()[:120]
     record_dao_integrity_alert(kernel.dao, summary=summary, scope=scope)
+    record_dao_ws_operation("integrity_alert")
     return {"integrity_alert": {"ok": True, "scope": scope}}
 
 
@@ -531,7 +597,7 @@ def _collect_nomad_ws_actions(kernel: EthicalKernel, data: dict[str, Any]) -> di
         return None
     nm = data["nomad_simulate_migration"]
     try:
-        return simulate_nomadic_migration(
+        out = simulate_nomadic_migration(
             kernel,
             kernel.dao,
             profile=str(nm.get("profile", "mobile")),
@@ -539,6 +605,8 @@ def _collect_nomad_ws_actions(kernel: EthicalKernel, data: dict[str, Any]) -> di
             thought_line=str(nm.get("thought_line", "")),
             include_location=bool(nm.get("include_location", False)),
         )
+        record_dao_ws_operation("nomad_migration")
+        return out
     except (TypeError, ValueError) as e:
         return {"error": str(e)}
 
@@ -556,9 +624,14 @@ async def ws_chat(ws: WebSocket) -> None:
       JSON object from _chat_turn_to_jsonable (see GET /).
     """
     await ws.accept()
+    set_request_id()
+    logger.info("websocket_session_open")
+    from .chat_settings import chat_server_settings
+
+    st = chat_server_settings()
     kernel = EthicalKernel(
-        variability=os.environ.get("KERNEL_VARIABILITY", "1") not in ("0", "false", "False"),
-        llm_mode=os.environ.get("LLM_MODE"),
+        variability=st.kernel_variability,
+        llm_mode=st.llm_mode,
     )
     try_load_checkpoint(kernel)
     session_ckpt = init_session_checkpoint_state(kernel)
@@ -584,6 +657,7 @@ async def ws_chat(ws: WebSocket) -> None:
 
     try:
         while True:
+            set_request_id()
             raw = await ws.receive_text()
             try:
                 data = json.loads(raw)
@@ -655,6 +729,7 @@ async def ws_chat(ws: WebSocket) -> None:
                 client_dict=client,
             )
 
+            t_turn = time.perf_counter()
             result = await bridge.process_chat(
                 text,
                 agent_id=agent_id,
@@ -663,11 +738,20 @@ async def ws_chat(ws: WebSocket) -> None:
                 sensor_snapshot=sensor_snapshot,
                 escalate_to_dao=escalate_to_dao,
             )
+            observe_chat_turn(result.path, time.perf_counter() - t_turn)
+            if result.path in ("safety_block", "kernel_block"):
+                record_malabs_block(result.path)
+            logger.info(
+                "chat_turn_finished path=%s blocked=%s",
+                result.path,
+                result.blocked,
+            )
             await ws.send_json(_chat_turn_to_jsonable(result, kernel))
             maybe_autosave_episodes(kernel, session_ckpt)
     except WebSocketDisconnect:
         pass
     finally:
+        clear_request_context()
         if advisory_stop is not None and advisory_task is not None:
             advisory_stop.set()
             try:
@@ -682,9 +766,11 @@ async def ws_chat(ws: WebSocket) -> None:
 
 
 def get_uvicorn_bind() -> tuple[str, int]:
-    """Host and port from environment (CHAT_HOST, CHAT_PORT)."""
-    host = os.environ.get("CHAT_HOST", "127.0.0.1")
-    port = int(os.environ.get("CHAT_PORT", "8765"))
+    """Host and port from environment; see :mod:`src.chat_settings`."""
+    from .chat_settings import chat_server_settings
+
+    s = chat_server_settings()
+    return s.chat_host, s.chat_port
     return host, port
 
 

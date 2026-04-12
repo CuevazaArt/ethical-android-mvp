@@ -70,6 +70,7 @@ def test_root_lists_websocket():
     assert body.get("websocket") == "/ws/chat"
     assert "constitution" in body
     assert "nomad_migration" in body
+    assert "metrics" in body
 
 
 def test_nomad_migration_meta():

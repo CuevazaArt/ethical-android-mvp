@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import math
 from typing import TYPE_CHECKING, Any, cast
 
 import numpy as np
@@ -69,6 +70,16 @@ if TYPE_CHECKING:
     from src.kernel import EthicalKernel
 
 
+def _finite_float(val: Any, field: str) -> float:
+    try:
+        x = float(val)
+    except (TypeError, ValueError) as e:
+        raise ValueError(f"Kernel snapshot field {field} is not numeric: {val!r}") from e
+    if not math.isfinite(x):
+        raise ValueError(f"Kernel snapshot field {field} must be finite: {val!r}")
+    return x
+
+
 def episode_to_dict(ep: NarrativeEpisode) -> dict[str, Any]:
     """Backward-compatible name; see :func:`~src.persistence.snapshot_serde.episode_to_serializable_dict`."""
     return episode_to_serializable_dict(ep)
@@ -86,9 +97,9 @@ def episode_from_dict(d: dict[str, Any]) -> NarrativeEpisode:
         action_taken=d["action_taken"],
         morals=dict(d["morals"]),
         verdict=d["verdict"],
-        ethical_score=float(d["ethical_score"]),
+        ethical_score=_finite_float(d.get("ethical_score"), "episode.ethical_score"),
         decision_mode=d["decision_mode"],
-        sigma=float(d["sigma"]),
+        sigma=_finite_float(d.get("sigma"), "episode.sigma"),
         context=d["context"],
         affect_pad=pad,
         affect_weights=dict(d["affect_weights"]) if d.get("affect_weights") is not None else None,
@@ -193,16 +204,24 @@ def apply_snapshot(kernel: EthicalKernel, snap: KernelSnapshotV1) -> None:
         WeaknessRecord(
             episode_id=r["episode_id"],
             type=WeaknessType(r["type"]),
-            intensity=float(r["intensity"]),
-            timestamp=float(r["timestamp"]),
+            intensity=_finite_float(r.get("intensity"), "weakness_record.intensity"),
+            timestamp=_finite_float(r.get("timestamp"), "weakness_record.timestamp"),
         )
         for r in snap.weakness_records
     ]
     w._cycle = snap.weakness_cycle
 
-    kernel.bayesian.pruning_threshold = snap.bayesian_pruning_threshold
-    kernel.bayesian.gray_zone_threshold = snap.bayesian_gray_zone_threshold
-    kernel.bayesian.hypothesis_weights = np.array(snap.bayesian_hypothesis_weights, dtype=float)
+    kernel.bayesian.pruning_threshold = _finite_float(
+        snap.bayesian_pruning_threshold, "bayesian_pruning_threshold"
+    )
+    kernel.bayesian.gray_zone_threshold = _finite_float(
+        snap.bayesian_gray_zone_threshold, "bayesian_gray_zone_threshold"
+    )
+    hw_list = [
+        _finite_float(x, f"bayesian_hypothesis_weights[{i}]")
+        for i, x in enumerate(snap.bayesian_hypothesis_weights)
+    ]
+    kernel.bayesian.hypothesis_weights = np.array(hw_list, dtype=float)
 
     lo = kernel.locus
     lo.alpha = max(lo.ALPHA_MIN, min(lo.ALPHA_MAX, snap.locus_alpha))

@@ -16,6 +16,7 @@ Designed to work with or without an API key:
 import json
 import math
 import os
+import time
 from dataclasses import dataclass
 from typing import Any
 
@@ -40,6 +41,7 @@ from .llm_backends import (
     TextCompletionBackend,
     coerce_to_llm_backend,
 )
+from ..observability.metrics import observe_llm_completion_seconds
 from .perception_schema import (
     PerceptionCoercionReport,
     finalize_summary,
@@ -350,11 +352,15 @@ class LLMModule:
     def _text_backend(self, value: Any) -> None:
         self._llm_backend = coerce_to_llm_backend(value)
 
-    def _llm_completion(self, system: str, user: str) -> str:
+    def _llm_completion(self, system: str, user: str, *, metrics_op: str = "completion") -> str:
         """Route JSON-oriented prompts through the active LLM backend."""
         b = self._llm_backend
         if b is not None:
-            return b.completion(system, user)
+            t0 = time.perf_counter()
+            try:
+                return b.completion(system, user)
+            finally:
+                observe_llm_completion_seconds(metrics_op, time.perf_counter() - t0)
         return ""
 
     def optional_monologue_embellishment(self, structured_line: str) -> str:
@@ -421,7 +427,9 @@ class LLMModule:
             )
         if self.mode in ("api", "ollama", "injected"):
             try:
-                response = self._llm_completion(_perception_prompt(), user_block)
+                response = self._llm_completion(
+                    _perception_prompt(), user_block, metrics_op="perceive"
+                )
             except Exception:
                 return self._perceive_local(situation)
             parsed = parse_perception_llm_raw_response(response)
@@ -613,7 +621,7 @@ class LLMModule:
                     f"{guardian_mode_context}"
                 )
             try:
-                response = self._llm_completion(prompt, user_msg)
+                response = self._llm_completion(prompt, user_msg, metrics_op="communicate")
             except Exception:
                 response = ""
             data = self._parse_json(response)
@@ -729,7 +737,9 @@ class LLMModule:
                 pole_optimistic=pole_optimistic,
             )
             try:
-                response = self._llm_completion(prompt, "Generate the morals.")
+                response = self._llm_completion(
+                    prompt, "Generate the morals.", metrics_op="narrate"
+                )
             except Exception:
                 response = ""
             data = self._parse_json(response)

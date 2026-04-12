@@ -9,3 +9,4 @@ httpx>=0.27.0,<1.0.0        # FastAPI TestClient
 cryptography>=42.0.0,<47.0.0  # optional Fernet at-rest encryption for KERNEL_CHECKPOINT_FERNET_KEY
 pydantic>=2.0.0,<3.0.0  # LLM perception JSON schema (perception_schema.py)
 jsonschema>=4.20.0,<5.0.0  # KernelSnapshotV1 JSON Schema validation (persistence)
+prometheus-client>=0.20.0,<1.0.0  # optional /metrics when KERNEL_METRICS=1

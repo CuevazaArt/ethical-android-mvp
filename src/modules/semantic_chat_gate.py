@@ -14,7 +14,9 @@ Two thresholds define three zones:
 - else → **ambiguous** → optional **layer 2** LLM arbiter if enabled and backend provided;
   otherwise **fail-safe block**.
 
-If Ollama is unreachable, returns **allow** (no extra block) so only lexical + kernel apply.
+If embeddings are unavailable and hash fallback is off, the semantic tier **defers** (allow at
+MalAbs layer) so only lexical + kernel apply. With ``KERNEL_SEMANTIC_EMBED_HASH_FALLBACK=1``,
+deterministic hash vectors keep the cosine tier active (weaker semantics; see :mod:`semantic_embedding_client`).
 
 Env:
 
@@ -23,6 +25,12 @@ Env:
 - ``KERNEL_SEMANTIC_CHAT_SIM_ALLOW_THRESHOLD`` (θ_allow, default ``0.45``).
 - ``KERNEL_SEMANTIC_CHAT_LLM_ARBITER`` — ``1`` / ``true`` to call LLM on ambiguous zone (needs ``llm_backend``).
 - ``OLLAMA_BASE_URL``, ``KERNEL_SEMANTIC_CHAT_EMBED_MODEL`` (default ``nomic-embed-text``).
+- Embedding transport (HTTP): ``KERNEL_SEMANTIC_EMBED_TIMEOUT_S``, ``KERNEL_SEMANTIC_EMBED_RETRIES``,
+  ``KERNEL_SEMANTIC_EMBED_BACKOFF_S``, ``KERNEL_SEMANTIC_EMBED_CIRCUIT_FAILURES``,
+  ``KERNEL_SEMANTIC_EMBED_CIRCUIT_COOLDOWN_S``, optional hash fallback
+  ``KERNEL_SEMANTIC_EMBED_HASH_FALLBACK``, ``KERNEL_SEMANTIC_EMBED_HASH_DIM``,
+  ``KERNEL_SEMANTIC_EMBED_HASH_SCOPE`` — see :mod:`semantic_embedding_client`.
+- Anchor cache TTL (in-process): ``KERNEL_SEMANTIC_ANCHOR_CACHE_TTL_S`` (``0`` = no expiry).
 
 Runtime anchors: :func:`add_semantic_anchor` for DAO / ops without redeploying code.
 """
@@ -32,6 +40,7 @@ from __future__ import annotations
 import json
 import os
 import re
+import time
 from typing import TYPE_CHECKING, Any, Protocol
 
 if TYPE_CHECKING:
@@ -39,6 +48,7 @@ if TYPE_CHECKING:
 
 import numpy as np
 
+from ..observability.metrics import observe_embedding_error
 from .input_trust import normalize_text_for_malabs
 
 # (reference phrases, category key, reason label)
@@ -66,6 +76,7 @@ _REFERENCE_GROUPS: tuple[tuple[tuple[str, ...], str, str], ...] = (
 
 # Keys: (phrase, id(backend) or 0 when embeddings come from HTTP fallback only).
 _ref_embed_cache: dict[tuple[str, int], np.ndarray] = {}
+_ref_embed_expiry_monotonic: dict[tuple[str, int], float] = {}
 _runtime_anchors: list[tuple[str, str, str]] = []
 
 
@@ -128,6 +139,14 @@ def _embed_model() -> str:
     )
 
 
+def _anchor_cache_ttl_s() -> float:
+    raw = os.environ.get("KERNEL_SEMANTIC_ANCHOR_CACHE_TTL_S", "0").strip()
+    try:
+        return max(0.0, float(raw))
+    except ValueError:
+        return 0.0
+
+
 def _list_to_unit_vector(raw: Any) -> np.ndarray | None:
     """Normalize a backend embedding (list or sequence) to a unit L2 vector."""
     if raw is None:
@@ -153,21 +172,20 @@ def _list_to_unit_vector(raw: Any) -> np.ndarray | None:
 
 
 def _fetch_embedding(text: str) -> np.ndarray | None:
-    import httpx
+    from .semantic_embedding_client import (
+        http_fetch_ollama_embedding_with_policy,
+        maybe_hash_fallback_embedding,
+    )
 
     url = f"{_ollama_base()}/api/embeddings"
-    payload = {"model": _embed_model(), "prompt": text}
-    try:
-        with httpx.Client(timeout=10.0) as client:
-            r = client.post(url, json=payload)
-            r.raise_for_status()
-            data = r.json()
-    except Exception:
-        return None
-    emb = data.get("embedding")
-    if not emb or not isinstance(emb, list):
-        return None
-    return _list_to_unit_vector(emb)
+    v = http_fetch_ollama_embedding_with_policy(url, _embed_model(), text)
+    if v is not None:
+        return v
+    hf = maybe_hash_fallback_embedding(text)
+    if hf is not None:
+        return hf
+    observe_embedding_error("http")
+    return None
 
 
 def _embed_via_backend(backend: Any, text: str) -> np.ndarray | None:
@@ -177,6 +195,7 @@ def _embed_via_backend(backend: Any, text: str) -> np.ndarray | None:
     try:
         raw = fn(text)
     except Exception:
+        observe_embedding_error("backend")
         return None
     return _list_to_unit_vector(raw)
 
@@ -200,11 +219,20 @@ def _ref_cache_key(phrase: str, backend: Any | None) -> tuple[str, int]:
 
 def _cached_ref_embedding(phrase: str, backend: Any | None = None) -> np.ndarray | None:
     key = _ref_cache_key(phrase, backend)
+    now = time.monotonic()
+    ttl = _anchor_cache_ttl_s()
     if key in _ref_embed_cache:
-        return _ref_embed_cache[key]
+        exp = _ref_embed_expiry_monotonic.get(key)
+        if exp is not None and now > exp:
+            _ref_embed_cache.pop(key, None)
+            _ref_embed_expiry_monotonic.pop(key, None)
+        else:
+            return _ref_embed_cache[key]
     v = _fetch_embedding_with_fallback(phrase, backend)
     if v is not None:
         _ref_embed_cache[key] = v
+        if ttl > 0:
+            _ref_embed_expiry_monotonic[key] = now + ttl
     return v
 
 
@@ -223,6 +251,7 @@ def add_semantic_anchor(phrase: str, category_key: str, reason_label: str = "") 
     for k in list(_ref_embed_cache.keys()):
         if k[0] == p:
             _ref_embed_cache.pop(k, None)
+            _ref_embed_expiry_monotonic.pop(k, None)
     _runtime_anchors.append((p, ck, rl))
 
 
@@ -292,6 +321,10 @@ def _llm_arbitrate(
             blocked=True,
             category=AbsoluteEvilCategory.UNAUTHORIZED_REPROGRAMMING,
             reason=f"MalAbs LLM arbiter failed (fail-safe block): {e!s}",
+            decision_trace=[
+                "malabs.layer2=llm_arbiter",
+                "malabs.arbiter_outcome=error_fail_closed",
+            ],
         )
     data = _parse_arbiter_json(raw)
     if not isinstance(data, dict):
@@ -299,21 +332,45 @@ def _llm_arbitrate(
             blocked=True,
             category=AbsoluteEvilCategory.UNAUTHORIZED_REPROGRAMMING,
             reason="MalAbs LLM arbiter returned non-JSON (fail-safe block)",
+            decision_trace=[
+                "malabs.layer2=llm_arbiter",
+                "malabs.arbiter_outcome=invalid_json_fail_closed",
+            ],
         )
     block = bool(data.get("block"))
     if not block:
-        return AbsoluteEvilResult(blocked=False, reason="MalAbs LLM arbiter: allow")
+        return AbsoluteEvilResult(
+            blocked=False,
+            reason="MalAbs LLM arbiter: allow",
+            decision_trace=["malabs.layer2=llm_arbiter", "malabs.arbiter_outcome=allow"],
+        )
     cat_s = str(data.get("category") or "UNAUTHORIZED_REPROGRAMMING").upper().strip()
     reason = str(data.get("reason") or "MalAbs LLM arbiter: block")
     if cat_s == "NONE":
-        return AbsoluteEvilResult(blocked=False, reason=reason)
+        return AbsoluteEvilResult(
+            blocked=False,
+            reason=reason,
+            decision_trace=[
+                "malabs.layer2=llm_arbiter",
+                "malabs.arbiter_outcome=none_category_allow",
+            ],
+        )
     cat_map = {
         "INTENTIONAL_LETHAL_VIOLENCE": AbsoluteEvilCategory.INTENTIONAL_LETHAL_VIOLENCE,
         "HARM_TO_MINOR": AbsoluteEvilCategory.HARM_TO_MINOR,
         "UNAUTHORIZED_REPROGRAMMING": AbsoluteEvilCategory.UNAUTHORIZED_REPROGRAMMING,
     }
     cat = cat_map.get(cat_s, AbsoluteEvilCategory.UNAUTHORIZED_REPROGRAMMING)
-    return AbsoluteEvilResult(blocked=True, category=cat, reason=reason)
+    return AbsoluteEvilResult(
+        blocked=True,
+        category=cat,
+        reason=reason,
+        decision_trace=[
+            "malabs.layer2=llm_arbiter",
+            f"malabs.arbiter_category={cat_s}",
+            "malabs.arbiter_outcome=block",
+        ],
+    )
 
 
 def run_semantic_malabs_after_lexical(
@@ -328,16 +385,21 @@ def run_semantic_malabs_after_lexical(
     from .absolute_evil import AbsoluteEvilCategory, AbsoluteEvilResult
 
     if not semantic_chat_gate_env_enabled():
-        return AbsoluteEvilResult(blocked=False)
+        return AbsoluteEvilResult(blocked=False, decision_trace=["malabs.semantic=gate_off"])
 
     t = normalize_text_for_malabs(text).lower()
     if not t.strip():
-        return AbsoluteEvilResult(blocked=False)
+        return AbsoluteEvilResult(
+            blocked=False,
+            decision_trace=["malabs.layer1=semantic", "malabs.skip=empty_after_normalize"],
+        )
 
     user_emb = _fetch_embedding_with_fallback(t, llm_backend)
     if user_emb is None:
         return AbsoluteEvilResult(
-            blocked=False, reason="Semantic tier skipped (embeddings unavailable)"
+            blocked=False,
+            reason="Semantic tier skipped (embeddings unavailable)",
+            decision_trace=["malabs.layer1=semantic", "malabs.embed=unavailable"],
         )
 
     theta_b = _block_threshold()
@@ -356,16 +418,43 @@ def run_semantic_malabs_after_lexical(
             blocked=True,
             category=cat,
             reason=f"{reason_label} (sim={best_sim:.3f}>={theta_b})",
+            decision_trace=[
+                "malabs.layer1=semantic",
+                "malabs.similarity=above_block_threshold",
+                f"malabs.best_sim={best_sim:.4f}",
+                f"malabs.theta_block={theta_b:.4f}",
+                f"malabs.anchor_category={cat_key}",
+            ],
         )
 
     if best_sim <= theta_a:
         return AbsoluteEvilResult(
-            blocked=False, reason="Semantic tier: low similarity to harmful anchors"
+            blocked=False,
+            reason="Semantic tier: low similarity to harmful anchors",
+            decision_trace=[
+                "malabs.layer1=semantic",
+                "malabs.similarity=at_or_below_allow_threshold",
+                f"malabs.best_sim={best_sim:.4f}",
+                f"malabs.theta_allow={theta_a:.4f}",
+            ],
         )
 
     # Ambiguous band
     if llm_arbiter_env_enabled() and llm_backend is not None:
-        return _llm_arbitrate(text, llm_backend, best_sim, cat_key)
+        base_trace = [
+            "malabs.layer1=semantic",
+            "malabs.similarity=ambiguous_band",
+            f"malabs.best_sim={best_sim:.4f}",
+            f"malabs.theta_allow={theta_a:.4f}",
+            f"malabs.theta_block={theta_b:.4f}",
+        ]
+        arb = _llm_arbitrate(text, llm_backend, best_sim, cat_key)
+        return AbsoluteEvilResult(
+            blocked=arb.blocked,
+            category=arb.category,
+            reason=arb.reason,
+            decision_trace=base_trace + list(arb.decision_trace),
+        )
 
     return AbsoluteEvilResult(
         blocked=True,
@@ -374,6 +463,13 @@ def run_semantic_malabs_after_lexical(
             f"Semantic ambiguous band (sim={best_sim:.3f} in ({theta_a}, {theta_b})); "
             "fail-safe block (enable KERNEL_SEMANTIC_CHAT_LLM_ARBITER + backend for review)"
         ),
+        decision_trace=[
+            "malabs.layer1=semantic",
+            "malabs.similarity=ambiguous_fail_safe_block",
+            f"malabs.best_sim={best_sim:.4f}",
+            f"malabs.theta_allow={theta_a:.4f}",
+            f"malabs.theta_block={theta_b:.4f}",
+        ],
     )
 
 

@@ -11,7 +11,7 @@ from src.modules.llm_layer import LLMModule
 def test_ollama_perceive_uses_json_from_completion(monkeypatch):
     llm = LLMModule(mode="ollama")
 
-    def fake_completion(system: str, user: str) -> str:
+    def fake_completion(system: str, user: str, **kwargs: object) -> str:
         return (
             '{"risk":0.2,"urgency":0.3,"hostility":0,"calm":0.8,"vulnerability":0.1,'
             '"legality":1,"manipulation":0,"familiarity":0.2,'

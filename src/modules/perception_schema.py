@@ -224,7 +224,19 @@ def apply_signal_coherence(
     calm: float,
 ) -> tuple[float, float, float]:
     """
-    Nudge mathematically inconsistent triples (e.g. high hostility + high calm).
+    Nudge mathematically inconsistent triples (hostility / calm / acute risk).
+
+    **Intent (kernel narrative model, not clinical psychology):**
+
+    - **High hostility + high calm** rarely co-occur in the same turn: if ``hostility > 0.75``
+      and ``calm > 0.6``, cap calm with ``calm ≤ 1 - (hostility - 0.5)`` so a hostile read
+      cannot sit at a simultaneously “very relaxed” baseline (reduces contradictory PAD
+      inputs to downstream modules).
+    - **Acute risk + very high calm** is treated as inconsistent: for ``risk > 0.85`` and
+      ``calm > 0.7``, clamp calm to ``0.45``; for the slightly softer band ``risk > 0.75``
+      and ``calm > 0.85``, clamp to ``0.55``.
+
+    ``risk`` and ``hostility`` are left unchanged here; only ``calm`` may decrease.
 
     Returns updated (risk, hostility, calm).
     """

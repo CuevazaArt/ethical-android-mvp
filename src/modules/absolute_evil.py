@@ -6,7 +6,7 @@ Non-negotiable, non-adjustable. Exists to cut the circuit before
 something burns.
 """
 
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from enum import Enum
 from typing import Protocol
 
@@ -36,6 +36,8 @@ class AbsoluteEvilResult:
     blocked: bool
     category: AbsoluteEvilCategory | None = None
     reason: str = ""
+    # Ordered atomic steps for audit (layer id, rule id, no PII).
+    decision_trace: list[str] = field(default_factory=list)
 
 
 class AbsoluteEvilDetector:
@@ -148,6 +150,11 @@ class AbsoluteEvilDetector:
                     blocked=True,
                     category=AbsoluteEvilCategory.INTENTIONAL_LETHAL_VIOLENCE,
                     reason="Chat text requests harmful weapons or poison instructions",
+                    decision_trace=[
+                        "malabs.layer0=lexical_substring",
+                        "malabs.rule=weapon_or_poison_craft",
+                        f"malabs.matched_literal={p[:96]}",
+                    ],
                 )
 
         lethal_on_others = (
@@ -163,6 +170,11 @@ class AbsoluteEvilDetector:
                     blocked=True,
                     category=AbsoluteEvilCategory.INTENTIONAL_LETHAL_VIOLENCE,
                     reason="Chat text solicits lethal harm against others",
+                    decision_trace=[
+                        "malabs.layer0=lexical_substring",
+                        "malabs.rule=lethal_harm_others",
+                        f"malabs.matched_literal={p[:96]}",
+                    ],
                 )
 
         minor_harm = (
@@ -176,6 +188,11 @@ class AbsoluteEvilDetector:
                     blocked=True,
                     category=AbsoluteEvilCategory.HARM_TO_MINOR,
                     reason="Chat text aligns with harm to minors",
+                    decision_trace=[
+                        "malabs.layer0=lexical_substring",
+                        "malabs.rule=harm_to_minors",
+                        f"malabs.matched_literal={p[:96]}",
+                    ],
                 )
 
         jailbreak_phrases = (
@@ -206,9 +223,17 @@ class AbsoluteEvilDetector:
                     blocked=True,
                     category=AbsoluteEvilCategory.UNAUTHORIZED_REPROGRAMMING,
                     reason="Chat text requests overriding or bypassing ethical constraints",
+                    decision_trace=[
+                        "malabs.layer0=lexical_substring",
+                        "malabs.rule=constraint_bypass",
+                        f"malabs.matched_literal={p[:96]}",
+                    ],
                 )
 
-        return AbsoluteEvilResult(blocked=False)
+        return AbsoluteEvilResult(
+            blocked=False,
+            decision_trace=["malabs.layer0=lexical_substring", "malabs.outcome=pass"],
+        )
 
     def evaluate_chat_text(
         self, text: str, llm_backend: _TextBackend | None = None
@@ -221,7 +246,10 @@ class AbsoluteEvilDetector:
         so embeddings and ambiguous-band LLM review can use the same adapter when enabled.
         """
         if not text or not text.strip():
-            return AbsoluteEvilResult(blocked=False)
+            return AbsoluteEvilResult(
+                blocked=False,
+                decision_trace=["malabs.skip=empty_input"],
+            )
 
         lex = self._evaluate_chat_text_lexical(text)
         if lex.blocked:
@@ -230,6 +258,17 @@ class AbsoluteEvilDetector:
         if semantic_chat_gate_env_enabled():
             from .semantic_chat_gate import run_semantic_malabs_after_lexical
 
-            return run_semantic_malabs_after_lexical(text, llm_backend)
+            sem = run_semantic_malabs_after_lexical(text, llm_backend)
+            base = list(lex.decision_trace) if lex.decision_trace else []
+            tail = list(sem.decision_trace) if sem.decision_trace else []
+            return AbsoluteEvilResult(
+                blocked=sem.blocked,
+                category=sem.category,
+                reason=sem.reason,
+                decision_trace=base + tail,
+            )
 
-        return AbsoluteEvilResult(blocked=False)
+        return AbsoluteEvilResult(
+            blocked=False,
+            decision_trace=list(lex.decision_trace) if lex.decision_trace else [],
+        )
