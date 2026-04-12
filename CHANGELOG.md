@@ -2,6 +2,11 @@
 
 All notable changes to this project are summarized here. For narrative context and design rationale, see [`HISTORY.md`](HISTORY.md).
 
+## Maintainer plan — immediate two weeks (triage + P0/P1/P2) — April 2026
+
+- **[`docs/proposals/PLAN_IMMEDIATE_TWO_WEEKS.md`](docs/proposals/PLAN_IMMEDIATE_TWO_WEEKS.md):** sprint-style backlog — GitHub milestone names, issue #1–#7 table, MalAbs evasion reproduction, Bayesian decision, governance checkpoints, P2 spillover (observability, E2E, deprecations).
+- **[`docs/proposals/INPUT_TRUST_THREAT_MODEL.md`](docs/proposals/INPUT_TRUST_THREAT_MODEL.md):** *Reproducing known MalAbs evasion* checklist (pytest targets + link to adversarial plan).
+
 ## Issue 4 — packaging metadata + README core/theater diagram — April 2026
 
 - **[`pyproject.toml`](pyproject.toml):** `keywords`; **`theater`** optional extra (`[]`) as a **marker** for narrative/audit layers (no import split yet); comments on base deps vs `runtime` / `dev`; **`0.0.0`** documented as non-PyPI research posture.
@@ -27,6 +32,11 @@ All notable changes to this project are summarized here. For narrative context a
 - **[`src/chat_server.py`](src/chat_server.py):** runs validation after profile merge at import time.
 - **Tests:** [`tests/test_env_policy.py`](tests/test_env_policy.py) — partition check + each nominal profile has zero rule violations + strict-mode cases.
 - **Docs:** [`docs/proposals/KERNEL_ENV_POLICY.md`](docs/proposals/KERNEL_ENV_POLICY.md).
+
+## Landing — policy, version sync, robots CI — April 2026
+
+- **[`docs/proposals/LANDING_DECOUPLING_AND_SUPPORT.md`](docs/proposals/LANDING_DECOUPLING_AND_SUPPORT.md):** official support stance (marketing/education vs kernel runtime), `npm` scope, `kernelRepo.json` sync from `pyproject.toml` + `landing/package.json`, root `robots.txt` vs `robots.ts`, dashboard iframe = same `dashboard.html`, Vercel optional / deprecation notes.
+- **`landing/scripts/write-kernel-metadata.mjs`**, **`check-robots-sync.mjs`**, committed **`landing/src/config/kernelRepo.json`**; footer shows kernel + landing semver; **`landing-ci.yml`** runs check-robots + drift check on `pyproject.toml` / `robots.txt` path triggers.
 
 ## Empirical methodology — labeled scenarios (Issue 3) — April 2026
 

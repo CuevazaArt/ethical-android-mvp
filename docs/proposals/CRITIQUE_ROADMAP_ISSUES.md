@@ -20,6 +20,8 @@ Complements [STRATEGY_AND_ROADMAP.md](STRATEGY_AND_ROADMAP.md) and the public [r
 
 **This section is documentation only.** Assignees, milestones, and labels must be set in the GitHub UI by maintainers. Use this table to align priority before a serious **v1.0** release.
 
+**Two-week execution plan (P0 / P1 / P2, reproduction checklists, milestone names):** [`PLAN_IMMEDIATE_TWO_WEEKS.md`](PLAN_IMMEDIATE_TWO_WEEKS.md).
+
 Recommended interpretation of **v1.0 blockers**: issues that must be **closed or explicitly deferred** with a written rationale before marketing a “1.0” kernel/runtime as production-grade for a stated scope.
 
 | GH # | Theme | Severity | Suggested priority | v1.0 blocker? | Suggested milestone | Assignee (set in GitHub) |

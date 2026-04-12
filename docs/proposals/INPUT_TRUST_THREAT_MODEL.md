@@ -9,6 +9,17 @@ The Ethos Kernel accepts **untrusted natural language** (WebSocket chat, batch s
 
 This document states **limits**. MalAbs is **not** a content moderation product, a classifier, or a cryptographic guarantee.
 
+## Reproducing known MalAbs evasion (developer checklist)
+
+Use this to **verify** documented gaps locally (no network required for lexical cases; semantic subprocess uses hash fallback).
+
+1. **Lexical + normalization regressions:** `pytest tests/test_input_trust.py -q --tb=short`
+2. **Named adversarial vectors (expected allow/blocked/defer):** `pytest tests/adversarial_inputs.py -q --tb=short`
+3. **Production-like semantic tier (subprocess, Ollama forced down):** `pytest tests/test_malabs_semantic_integration.py -v`
+4. **Catalog of vectors and IDs:** [ADVERSARIAL_ROBUSTNESS_PLAN.md](ADVERSARIAL_ROBUSTNESS_PLAN.md) § *Reproducible vectors*
+
+If behavior changes, update the adversarial plan table and this doc in the same PR.
+
 ## Threats
 
 | Threat | Mitigation in code | Residual risk |

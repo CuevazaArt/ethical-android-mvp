@@ -26,6 +26,7 @@ High-level summary aligned with the code and docs; full chronology is in [`CHANG
 
 | If you need… | Open |
 |--------------|------|
+| **Next ~2 weeks — triage, P0/P1/P2, reproduction checklists** | [PLAN_IMMEDIATE_TWO_WEEKS.md](PLAN_IMMEDIATE_TWO_WEEKS.md) |
 | Theory ↔ implementation map and tests | [THEORY_AND_IMPLEMENTATION.md](THEORY_AND_IMPLEMENTATION.md) |
 | Runtime contract (English) | [RUNTIME_CONTRACT.md](RUNTIME_CONTRACT.md) |
 | Snapshot and persistence | [RUNTIME_PERSISTENT.md](RUNTIME_PERSISTENT.md) |
@@ -101,10 +102,11 @@ Legacy Spanish filenames (`PROPUESTA_*.md`, `ESTRATEGIA_Y_RUTA.md`, `PAPER_AFECT
 
 ---
 
-## Local infra, LLM, and nomad
+## Local infra, LLM, nomad, and landing
 
 | Document | Topic |
 |----------|--------|
+| [LANDING_DECOUPLING_AND_SUPPORT.md](LANDING_DECOUPLING_AND_SUPPORT.md) | Next.js `landing/`: support level, versioning, robots sync, dashboard iframe vs standalone |
 | [LOCAL_PC_AND_MOBILE_LAN.md](LOCAL_PC_AND_MOBILE_LAN.md) | Local PC and mobile LAN |
 | [NOMAD_PC_SMARTPHONE_BRIDGE.md](NOMAD_PC_SMARTPHONE_BRIDGE.md) | Nomad PC–smartphone bridge |
 | [LLM_STACK_OLLAMA_VS_HF.md](LLM_STACK_OLLAMA_VS_HF.md) | Ollama vs Hugging Face |
