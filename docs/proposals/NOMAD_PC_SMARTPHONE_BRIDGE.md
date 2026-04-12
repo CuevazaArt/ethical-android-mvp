@@ -1,6 +1,6 @@
 # Primer puente nomada: PC ↔ smartphone y capas por clase de hardware
 
-Este documento fija el **marco** para la capacidad nómada entre **PC (cerebro / cómputo)** y **smartphone (cuerpo ligero / sensores)**, sin confundir el MVP actual con el despliegue final. Complementa [LOCAL_PC_AND_MOBILE_LAN.md](LOCAL_PC_AND_MOBILE_LAN.md), [PROPUESTA_CONCIENCIA_NOMADA_HAL.md](PROPUESTA_CONCIENCIA_NOMADA_HAL.md) y [RUNTIME_CONTRACT.md](RUNTIME_CONTRACT.md).
+Este documento fija el **marco** para la capacidad nómada entre **PC (cerebro / cómputo)** y **smartphone (cuerpo ligero / sensores)**, sin confundir el MVP actual con el despliegue final. Complementa [LOCAL_PC_AND_MOBILE_LAN.md](LOCAL_PC_AND_MOBILE_LAN.md), [PROPOSAL_NOMAD_CONSCIOUSNESS_HAL.md](PROPOSAL_NOMAD_CONSCIOUSNESS_HAL.md) y [RUNTIME_CONTRACT.md](RUNTIME_CONTRACT.md).
 
 ---
 
@@ -55,9 +55,9 @@ Hasta entonces, la documentación trata el entorno LAN como **laboratorio contro
 | Documento | Contenido relacionado |
 |-----------|------------------------|
 | [LOCAL_PC_AND_MOBILE_LAN.md](LOCAL_PC_AND_MOBILE_LAN.md) | Pasos concretos PC + móvil, firewall, `mobile.html` |
-| [PROPUESTA_CONCIENCIA_NOMADA_HAL.md](PROPUESTA_CONCIENCIA_NOMADA_HAL.md) | HAL, runtime dual, transmutación |
-| [PROPUESTA_ORGANISMO_SITUADO_V8.md](PROPUESTA_ORGANISMO_SITUADO_V8.md) | Contrato sensorial y capas situadas |
-| [ESTRATEGIA_Y_RUTA.md](ESTRATEGIA_Y_RUTA.md) | Ruta P0–P3 y riesgos operativos |
+| [PROPOSAL_NOMAD_CONSCIOUSNESS_HAL.md](PROPOSAL_NOMAD_CONSCIOUSNESS_HAL.md) | HAL, runtime dual, transmutación |
+| [PROPOSAL_SITUATED_ORGANISM_V8.md](PROPOSAL_SITUATED_ORGANISM_V8.md) | Contrato sensorial y capas situadas |
+| [STRATEGY_AND_ROADMAP.md](STRATEGY_AND_ROADMAP.md) | Ruta P0–P3 y riesgos operativos |
 
 ---
 

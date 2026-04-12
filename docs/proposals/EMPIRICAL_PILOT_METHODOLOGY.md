@@ -2,7 +2,7 @@
 
 **Purpose:** Provide a **reproducible** way to compare the Ethos Kernel’s **batch** decisions against **simple baselines** and optional **human reference labels**, for **research agreement metrics**. This is **not** product certification, legal safety approval, or a claim of external moral truth.
 
-**Related:** [CRITIQUE_ROADMAP_ISSUES.md](CRITIQUE_ROADMAP_ISSUES.md) (Issue 3), canonical simulations in [`src/simulations/runner.py`](../src/simulations/runner.py), invariant suite in [`tests/test_ethical_properties.py`](../tests/test_ethical_properties.py).
+**Related:** [CRITIQUE_ROADMAP_ISSUES.md](CRITIQUE_ROADMAP_ISSUES.md) (Issue 3), canonical simulations in [`src/simulations/runner.py`](../src/simulations/runner.py), invariant suite in [`tests/test_ethical_properties.py`](../tests/test_ethical_properties.py), pole-weight evidence scope in [POLE_WEIGHT_CALIBRATION_AND_EVIDENCE.md](POLE_WEIGHT_CALIBRATION_AND_EVIDENCE.md).
 
 ---
 
@@ -61,6 +61,12 @@ The **kernel** uses the full pipeline (MalAbs, buffer, mixture, poles, will, …
 For each policy (kernel, first, max_impact), the script reports whether the chosen action name equals `reference_action` in the fixture (when present). **Agreement** = fraction of scenarios matching. Disagreement is expected and informative; it is not automatically “failure.”
 
 Additionally, **kernel vs baseline** rates (always defined): fraction of scenarios where the kernel’s action equals **first** (list-order baseline) or **max_impact** (greedy baseline). These summarize how much the full pipeline diverges from the simple policies on the same scenario set.
+
+---
+
+## Pole weights and sample size
+
+The default fixture lists **nine** batch simulations (`id` **1–9**). That is appropriate to **run** the pilot, compare policies on a **fixed** list, and attach optional human reference actions. It is **not** sufficient to **estimate or statistically validate** the many parameters in linear pole JSON, `EthicalPoles.BASE_WEIGHTS`, or `CONTEXTS` multipliers: see [POLE_WEIGHT_CALIBRATION_AND_EVIDENCE.md](POLE_WEIGHT_CALIBRATION_AND_EVIDENCE.md).
 
 ---
 

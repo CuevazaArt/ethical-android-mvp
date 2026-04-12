@@ -1,6 +1,6 @@
 # Roadmap de endurecimiento hacia despliegue serio (no vinculante)
 
-**Estado:** **propuesta + síntesis** — complementa [`ESTRATEGIA_Y_RUTA.md`](ESTRATEGIA_Y_RUTA.md) y el backlog de crítica [`CRITIQUE_ROADMAP_ISSUES.md`](CRITIQUE_ROADMAP_ISSUES.md). **No** sustituye el contrato runtime ni promete certificación “production” hasta criterios de aceptación y tests explícitos.
+**Estado:** **propuesta + síntesis** — complementa [`STRATEGY_AND_ROADMAP.md`](STRATEGY_AND_ROADMAP.md) y el backlog de crítica [`CRITIQUE_ROADMAP_ISSUES.md`](CRITIQUE_ROADMAP_ISSUES.md). **No** sustituye el contrato runtime ni promete certificación “production” hasta criterios de aceptación y tests explícitos.
 
 **Propósito:** capturar el **valor** de endurecer percepción, contratos de datos, modularización y UX honesta **sin** ocultar límites: el kernel sigue siendo un **MVP auditable**; cualquier capa nueva debe documentarse como **heurística** donde corresponda ([`INPUT_TRUST_THREAT_MODEL.md`](INPUT_TRUST_THREAT_MODEL.md)).
 
@@ -93,7 +93,7 @@ Síntesis de revisión interna: **qué aporta** frente a lo ya dicho en el repo 
 
 ## Conclusiones para mejoras (síntesis operativa)
 
-Estas conclusiones **no** sustituyen [`ESTRATEGIA_Y_RUTA.md`](ESTRATEGIA_Y_RUTA.md) ni el backlog; ordenan prioridades **después** de las rondas ya registradas (robustez técnica, epistemología lighthouse, demo v8).
+Estas conclusiones **no** sustituyen [`STRATEGY_AND_ROADMAP.md`](STRATEGY_AND_ROADMAP.md) ni el backlog; ordenan prioridades **después** de las rondas ya registradas (robustez técnica, epistemología lighthouse, demo v8).
 
 ### Corto plazo (mayor señal / menor fricción)
 
@@ -107,7 +107,7 @@ Estas conclusiones **no** sustituyen [`ESTRATEGIA_Y_RUTA.md`](ESTRATEGIA_Y_RUTA.
 1. **Validación empírica** — Issue 3: protocolo de acuerdo con anotadores / expertos, **sin** confundir con verdad moral universal.
 2. **Benchmarks comparativos** — definir baselines (reglas, LLM solo, kernel) y métricas **acordadas** (no “correctitud ética” única).
 3. **Onboarding:** mapa “módulo → crítico vs advisory” derivado de `CORE_DECISION_CHAIN` + runtime contract.
-4. **Idioma:** índice de proposals ES → EN o resúmenes cortos en inglés en cabecera de cada `PROPUESTA_*.md`.
+4. **Language:** canonical filenames are `PROPOSAL_*.md` (English); `PROPUESTA_*.md` are legacy redirects. Spanish-only bodies (e.g. this roadmap) should gain short English summaries in the header or migrate to English over time.
 
 ### Largo plazo
 
@@ -174,7 +174,7 @@ Para cambios de alcance o spikes de código: [`CHANGELOG.md`](../CHANGELOG.md) +
 
 ## Referencias cruzadas
 
-- [`ESTRATEGIA_Y_RUTA.md`](ESTRATEGIA_Y_RUTA.md) — prioridades P0–P3 y orden robustez → epistemología → demo (§3.1).
+- [`STRATEGY_AND_ROADMAP.md`](STRATEGY_AND_ROADMAP.md) — prioridades P0–P3 y orden robustez → epistemología → demo (§3.1).
 - [`KERNEL_ENV_POLICY.md`](KERNEL_ENV_POLICY.md) — combinaciones de flags.
 - [`THEORY_AND_IMPLEMENTATION.md`](THEORY_AND_IMPLEMENTATION.md) — pipeline normativo.
 

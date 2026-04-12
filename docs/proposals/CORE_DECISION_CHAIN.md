@@ -73,6 +73,12 @@ In `EthicalKernel.process`, **`final_action` is the string name of a surviving c
 
 ---
 
+## Injecting subsystems (tests and experiments)
+
+`EthicalKernel` accepts optional `components=KernelComponentOverrides(...)` ([`src/kernel_components.py`](../src/kernel_components.py)) so callers can substitute concrete module instances (stubs, subclasses, or alternate implementations) **without** editing `kernel.py`. Top-level `llm` and `checkpoint_persistence` keyword arguments **override** the same-named fields inside `components` when provided. This is structural injection, not a stable cross-version plugin ABI: replacements should match the methods the orchestrator calls.
+
+---
+
 ## “Core” vs “theater” (product boundary)
 
 Rough split for packaging and mental model — not a hard import graph yet (see [ADR 0001](../adr/0001-packaging-core-boundary.md), [ADR 0006](../adr/0006-phase2-core-boundary-and-event-bus.md)):

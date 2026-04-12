@@ -44,7 +44,7 @@ Este documento resume **dónde está** el Ethos Kernel MVP hoy y una lectura hon
 | **Bayes / buffer / polos** | `bayesian_engine.py`, `buffer.py`, `ethical_poles.py`, `pole_linear.py` | **Sólido** | Núcleo decisional con tests; polos lineales configurables (ADR 0004). |
 | **Reflexión / saliencia / PAD** | `ethical_reflection.py`, `salience_map.py`, `pad_archetypes.py` | **Demo** | Lectura para auditoría y tono; no vetan acción. |
 | **User model (ToM)** | `user_model.py` | **Demo** | Heurísticas + tono; persistido en snapshot; ver `USER_MODEL_ENRICHMENT.md`. |
-| **Uchi–Soto** | `uchi_soto.py` | **Demo** | Fases 1–3: `tone_brief` compuesto, `set_profile_structured`, `ingest_turn_context` (EMA + olvido), `RelationalTier`, `linked_peer_ids`, checkpoint; ver [PROPUESTA_ROSTER…](PROPUESTA_ROSTER_SOCIAL_Y_RELACIONES_JERARQUICAS.md). |
+| **Uchi–Soto** | `uchi_soto.py` | **Demo** | Fases 1–3: `tone_brief` compuesto, `set_profile_structured`, `ingest_turn_context` (EMA + olvido), `RelationalTier`, `linked_peer_ids`, checkpoint; ver [PROPOSAL_SOCIAL_ROSTER_HIERARCHICAL_RELATIONS.md](PROPOSAL_SOCIAL_ROSTER_HIERARCHICAL_RELATIONS.md). |
 | **Roster social multi-agente** | `uchi_soto.py` (persistido) | **Demo** | Núcleo roster en perfiles + tiers; extensión narrativa en propuesta enlazada. |
 | **Escalada judicial** | `judicial_escalation.py` | **Demo** | Sesión, strikes, vistas públicas; DAO mock, no red real. |
 | **Memoria narrativa / identidad** | `narrative.py`, `narrative_identity.py` | **Sólido** | Episodios y digest; checkpoints. |
@@ -73,7 +73,7 @@ Este documento resume **dónde está** el Ethos Kernel MVP hoy y una lectura hon
 
 ## 5. Referencias
 
-- Estrategia y riesgos: [ESTRATEGIA_Y_RUTA.md](ESTRATEGIA_Y_RUTA.md)
+- Estrategia y riesgos: [STRATEGY_AND_ROADMAP.md](STRATEGY_AND_ROADMAP.md)
 - Cadena de decisión: [CORE_DECISION_CHAIN.md](CORE_DECISION_CHAIN.md)
 - Contrato runtime: [RUNTIME_CONTRACT.md](RUNTIME_CONTRACT.md)
 - Modelo de amenazas entrada: [INPUT_TRUST_THREAT_MODEL.md](INPUT_TRUST_THREAT_MODEL.md)

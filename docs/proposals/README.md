@@ -13,7 +13,7 @@ High-level summary aligned with the code and docs; full chronology is in [`CHANG
 | Area | What changed |
 |------|----------------|
 | **Docs** | Single **`docs/proposals/`** tree; repo links point here. ADRs and templates were not moved. |
-| **Uchi–Soto (roster)** | **Phase 3** in the kernel: `RelationalTier`, sensor-trust EMA, forget buffer, `linked_peer_ids`, wired into `process` / chat. See [PROPUESTA_ROSTER_SOCIAL_Y_RELACIONES_JERARQUICAS.md](PROPUESTA_ROSTER_SOCIAL_Y_RELACIONES_JERARQUICAS.md). |
+| **Uchi–Soto (roster)** | **Phase 3** in the kernel: `RelationalTier`, sensor-trust EMA, forget buffer, `linked_peer_ids`, wired into `process` / chat. See [PROPOSAL_SOCIAL_ROSTER_HIERARCHICAL_RELATIONS.md](PROPOSAL_SOCIAL_ROSTER_HIERARCHICAL_RELATIONS.md). |
 | **User model** | Enrichment phases A–C: cognitive pattern, risk band, judicial phase and checkpoint; snapshot persistence. See [USER_MODEL_ENRICHMENT.md](USER_MODEL_ENRICHMENT.md). |
 | **Time / Bayes** | Temporal horizon prior (Bayesian mixture, ADR 0005). See [TEMPORAL_PRIOR_HORIZONS.md](TEMPORAL_PRIOR_HORIZONS.md). |
 | **Perception** | Pydantic validation, coherence checks, local fallback. See [PERCEPTION_VALIDATION.md](PERCEPTION_VALIDATION.md). |
@@ -37,24 +37,26 @@ High-level summary aligned with the code and docs; full chronology is in [`CHANG
 
 ## Versioned proposals (v6–v12 line and annexes)
 
+Legacy Spanish filenames (`PROPUESTA_*.md`, `ESTRATEGIA_Y_RUTA.md`, `PAPER_AFECTO_*.md`) are **redirect stubs** to the matching `PROPOSAL_*.md` / `STRATEGY_AND_ROADMAP.md` / `PAPER_AFFECT_*.md` files. Prefer linking to the English paths in new text.
+
 | Document | Topic |
 |----------|--------|
 | [EMERGENT_CONSCIOUSNESS_V6.md](EMERGENT_CONSCIOUSNESS_V6.md) | Self-reference / GWT / drives / narrative self (v6) — *Spanish* |
-| [PROPUESTA_INTEGRACION_APORTES_V6.md](PROPUESTA_INTEGRACION_APORTES_V6.md) | Coherent phases, model inventory, exclusions — *Spanish* |
-| [PROPUESTA_ROBUSTEZ_V6_PLUS.md](PROPUESTA_ROBUSTEZ_V6_PLUS.md) | Five pillars, MVP status per pillar, open threads — *Spanish* |
-| [PROPUESTA_EVOLUCION_RELACIONAL_V7.md](PROPUESTA_EVOLUCION_RELACIONAL_V7.md) | Light ToM, chronobiology, premise advisory, qualitative teleology — *Spanish* |
-| [PROPUESTA_ORGANISMO_SITUADO_V8.md](PROPUESTA_ORGANISMO_SITUADO_V8.md) | Situated organism: sensor fusion, vitality, agency, hardware — *Spanish* |
-| [PROPUESTA_VITALIDAD_SACRIFICIO_Y_FIN.md](PROPUESTA_VITALIDAD_SACRIFICIO_Y_FIN.md) | v8 extension: vitality, sacrifice, dignified closure, narrative legacy — *Spanish* |
+| [PROPOSAL_CONTRIBUTION_INTEGRATION_V6.md](PROPOSAL_CONTRIBUTION_INTEGRATION_V6.md) | Coherent phases, model inventory, exclusions — *English* |
+| [PROPOSAL_ROBUSTNESS_V6_PLUS.md](PROPOSAL_ROBUSTNESS_V6_PLUS.md) | Five pillars, MVP status per pillar, open threads — *English* |
+| [PROPOSAL_RELATIONAL_EVOLUTION_V7.md](PROPOSAL_RELATIONAL_EVOLUTION_V7.md) | Light ToM, chronobiology, premise advisory, qualitative teleology — *English* |
+| [PROPOSAL_SITUATED_ORGANISM_V8.md](PROPOSAL_SITUATED_ORGANISM_V8.md) | Situated organism: sensor fusion, vitality, agency, hardware — *English* |
+| [PROPOSAL_VITALITY_SACRIFICE_AND_CLOSURE.md](PROPOSAL_VITALITY_SACRIFICE_AND_CLOSURE.md) | v8 extension: vitality, sacrifice, dignified closure, narrative legacy — *English* |
 | [DEMO_SITUATED_V8.md](DEMO_SITUATED_V8.md) | Situated v8 demo |
-| [PROPUESTA_ANGEL_DE_LA_GUARDIA.md](PROPUESTA_ANGEL_DE_LA_GUARDIA.md) | Guardian Angel mode (tone only; no second veto) — *Spanish* |
-| [PROPUESTA_CAPACIDAD_AMPLIADA_V9.md](PROPUESTA_CAPACIDAD_AMPLIADA_V9.md) | v9 pillars (epistemic, generative, swarm, metaplanning) — *Spanish* |
-| [PROPUESTA_ESTRATEGIA_OPERATIVA_V10.md](PROPUESTA_ESTRATEGIA_OPERATIVA_V10.md) | v10 operations: gray-zone diplomacy, skills, somatic markers — *Spanish* |
-| [PROPUESTA_JUSTICIA_DISTRIBUIDA_V11.md](PROPUESTA_JUSTICIA_DISTRIBUIDA_V11.md) | V11 governance, DAO audit, roadmap — *English* in key phases |
-| [PROPUESTA_VERIFICACION_REALIDAD_V11.md](PROPUESTA_VERIFICACION_REALIDAD_V11.md) | Reality verification (design) |
-| [PROPUESTA_ESTADO_ETOSOCIAL_V12.md](PROPUESTA_ESTADO_ETOSOCIAL_V12.md) | V12 registry, env vars, unified architecture pointer |
-| [PROPUESTA_ROSTER_SOCIAL_Y_RELACIONES_JERARQUICAS.md](PROPUESTA_ROSTER_SOCIAL_Y_RELACIONES_JERARQUICAS.md) | Multi-agent roster, Uchi–Soto tiers, forget buffer, Phase 3 implemented |
-| [PROPUESTA_DAO_ALERTAS_Y_TRANSPARENCIA.md](PROPUESTA_DAO_ALERTAS_Y_TRANSPARENCIA.md) | DAO alerts and transparency |
-| [PROPUESTA_CONCIENCIA_NOMADA_HAL.md](PROPUESTA_CONCIENCIA_NOMADA_HAL.md) | Nomadic instantiation, HAL, existential serialization — *Spanish* |
+| [PROPOSAL_GUARDIAN_ANGEL.md](PROPOSAL_GUARDIAN_ANGEL.md) | Guardian Angel mode (tone only; no second veto) — *English* |
+| [PROPOSAL_EXPANDED_CAPABILITY_V9.md](PROPOSAL_EXPANDED_CAPABILITY_V9.md) | v9 pillars (epistemic, generative, swarm, metaplanning) — *English* |
+| [PROPOSAL_OPERATIONAL_STRATEGY_V10.md](PROPOSAL_OPERATIONAL_STRATEGY_V10.md) | v10 operations: gray-zone diplomacy, skills, somatic markers — *English* |
+| [PROPOSAL_DISTRIBUTED_JUSTICE_V11.md](PROPOSAL_DISTRIBUTED_JUSTICE_V11.md) | V11 governance, DAO audit, roadmap — *English* |
+| [PROPOSAL_REALITY_VERIFICATION_V11.md](PROPOSAL_REALITY_VERIFICATION_V11.md) | Reality verification (design) |
+| [PROPOSAL_ETOSOCIAL_STATE_V12.md](PROPOSAL_ETOSOCIAL_STATE_V12.md) | V12 registry, env vars, unified architecture pointer |
+| [PROPOSAL_SOCIAL_ROSTER_HIERARCHICAL_RELATIONS.md](PROPOSAL_SOCIAL_ROSTER_HIERARCHICAL_RELATIONS.md) | Multi-agent roster, Uchi–Soto tiers, forget buffer, Phase 3 implemented |
+| [PROPOSAL_DAO_ALERTS_AND_TRANSPARENCY.md](PROPOSAL_DAO_ALERTS_AND_TRANSPARENCY.md) | DAO alerts and transparency |
+| [PROPOSAL_NOMAD_CONSCIOUSNESS_HAL.md](PROPOSAL_NOMAD_CONSCIOUSNESS_HAL.md) | Nomadic instantiation, HAL, existential serialization — *English* |
 | [UNIVERSAL_ETHOS_AND_HUB.md](UNIVERSAL_ETHOS_AND_HUB.md) | Hub vision ↔ code, UniversalEthos layers, module map — *English* |
 
 ---
@@ -93,6 +95,7 @@ High-level summary aligned with the code and docs; full chronology is in [`CHANG
 |----------|--------|
 | [PERCEPTION_VALIDATION.md](PERCEPTION_VALIDATION.md) | Perception validation (Pydantic, coherence) |
 | [POLES_WEAKNESS_PAD_AND_PROFILES.md](POLES_WEAKNESS_PAD_AND_PROFILES.md) | Poles, weakness, PAD, and profiles |
+| [POLE_WEIGHT_CALIBRATION_AND_EVIDENCE.md](POLE_WEIGHT_CALIBRATION_AND_EVIDENCE.md) | Pole weights: heuristics vs empirical calibration roadmap |
 | [TEMPORAL_PRIOR_HORIZONS.md](TEMPORAL_PRIOR_HORIZONS.md) | Temporal horizon prior (ADR 0005) |
 | [INPUT_TRUST_THREAT_MODEL.md](INPUT_TRUST_THREAT_MODEL.md) | Input-trust threat model / advisory telemetry |
 
@@ -112,7 +115,7 @@ High-level summary aligned with the code and docs; full chronology is in [`CHANG
 
 | Document | Topic |
 |----------|--------|
-| [ESTRATEGIA_Y_RUTA.md](ESTRATEGIA_Y_RUTA.md) | Strategy and roadmap (Spanish) |
+| [STRATEGY_AND_ROADMAP.md](STRATEGY_AND_ROADMAP.md) | Strategy and roadmap — *English* |
 | [PRODUCTION_HARDENING_ROADMAP.md](PRODUCTION_HARDENING_ROADMAP.md) | Production hardening roadmap |
 | [PROPOSAL_PHASE2_CORE_EXTENSIONS_AND_EVENT_BUS.md](PROPOSAL_PHASE2_CORE_EXTENSIONS_AND_EVENT_BUS.md) | Phase 2 core/extensions seam + `KernelEventBus` (ADR 0006) |
 | [CRITIQUE_ROADMAP_ISSUES.md](CRITIQUE_ROADMAP_ISSUES.md) | Critique, roadmap, and issues |
@@ -137,7 +140,7 @@ High-level summary aligned with the code and docs; full chronology is in [`CHANG
 | Document | Topic |
 |----------|--------|
 | [EXPERIMENTAL_CONSCIOUSNESS_AND_AFFECT_ARCHETYPES.md](EXPERIMENTAL_CONSCIOUSNESS_AND_AFFECT_ARCHETYPES.md) | Experimental consciousness / affect archetypes |
-| [PAPER_AFECTO_FENOMENOS_Y_HIPOTESIS.md](PAPER_AFECTO_FENOMENOS_Y_HIPOTESIS.md) | Draft paper (affect, phenomena, hypotheses) — *Spanish* |
+| [PAPER_AFFECT_PHENOMENA_AND_HYPOTHESES.md](PAPER_AFFECT_PHENOMENA_AND_HYPOTHESES.md) | Draft paper (affect, phenomena, hypotheses) — *English* |
 
 ---
 

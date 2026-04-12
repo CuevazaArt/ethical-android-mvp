@@ -52,6 +52,16 @@ This note is an **honest inventory** for operators and reviewers: known limits o
 
 ---
 
+## 5. Pole linear weights and context multipliers (heuristic)
+
+**Observation.** Multipolar scores load from configurable linear JSON ([ADR 0004](adr/0004-configurable-linear-pole-evaluator.md)) and combine with `EthicalPoles` base and context weights. The numbers are **design choices** (including legacy parity for the default JSON), not the output of a documented human-judgment calibration study.
+
+**Why it matters.** Calling these weights “validated” or implying statistical grounding from the small default empirical pilot (nine batch scenarios) would **overclaim**: the pilot targets **action-level** agreement templates, not identification of many free parameters in pole telemetry.
+
+**Pointers:** [POLE_WEIGHT_CALIBRATION_AND_EVIDENCE.md](proposals/POLE_WEIGHT_CALIBRATION_AND_EVIDENCE.md); [POLES_WEAKNESS_PAD_AND_PROFILES.md](proposals/POLES_WEAKNESS_PAD_AND_PROFILES.md); [EMPIRICAL_PILOT_METHODOLOGY.md](proposals/EMPIRICAL_PILOT_METHODOLOGY.md).
+
+---
+
 ## Related
 
 - [CORE_DECISION_CHAIN.md](proposals/CORE_DECISION_CHAIN.md) — who sets `final_action`.

@@ -9,7 +9,7 @@ Este documento **no** forma parte del contrato técnico del kernel publicado. Na
 
 **Paradigma experimental rector:** la línea considerada **más sólida y auditable** para una capa de afecto *posterior* al núcleo ético es **PAD en `[0,1]³` + N prototipos (arquetipos) + pesos por distancia / softmax** (especificación en §7). Esa cadena se apoya en literatura y en señales que el kernel ya calcula (`sigma`, scores morales, locus). Cualquier alternativa de diseño debería compararse explícitamente contra §7 y sus invariantes de no regresión ética.
 
-**Ver también (misma línea experimental):** [PAPER_AFECTO_FENOMENOS_Y_HIPOTESIS.md](experimental/PAPER_AFECTO_FENOMENOS_Y_HIPOTESIS.md) — fenómenos esperables al conjugar PAD/prototipos, notas sobre *color* y *sabor*, hipótesis testeables reservadas.
+**Ver también (misma línea experimental):** [PAPER_AFFECT_PHENOMENA_AND_HYPOTHESES.md](experimental/PAPER_AFFECT_PHENOMENA_AND_HYPOTHESES.md) — fenómenos esperables al conjugar PAD/prototipos, notas sobre *color* y *sabor*, hipótesis testeables reservadas.
 
 **Discusión (no backlog):** marco v6 sobre autorreferencia, espacio global, drives y yo narrativo — [EMERGENT_CONSCIOUSNESS_V6.md](EMERGENT_CONSCIOUSNESS_V6.md) (incluye criterios de **aporte vs redundancia** con el kernel actual).
 

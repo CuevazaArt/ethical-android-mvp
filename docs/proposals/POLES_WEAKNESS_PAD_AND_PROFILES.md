@@ -64,6 +64,7 @@ Named bundles live in **`src/runtime_profiles.py`**. Relevant rows:
 
 ## 6. Calibration roadmap (future work)
 
+- **Linear pole weights and context multipliers** are heuristics, not empirically calibrated to human judgment today; scope, constraints, and a serious evidence program are in [POLE_WEIGHT_CALIBRATION_AND_EVIDENCE.md](POLE_WEIGHT_CALIBRATION_AND_EVIDENCE.md).
 - Explicit **“clinical”** or **“autonomy”** product modes may add stricter defaults — should remain **documented** and **tested** (extend `RUNTIME_PROFILES` + smoke tests).
 - Any **weight** changes to `EthicalPoles.BASE_WEIGHTS` belong in CHANGELOG + versioned experiments — not silent tweaks.
 

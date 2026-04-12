@@ -2,7 +2,7 @@
 
 Synthesizes **two independent external reviews** (April 2026). **Redundant themes are merged** (e.g. substring jailbreaks *and* “LLM perception garbage-in” → one **input-trust** epic). Unique insights from the second review are folded in: **perception path risk**, **HCI / weakness pole**, **L0 vs DAO politics**, **pip-installable core**.
 
-Complements [ESTRATEGIA_Y_RUTA.md](ESTRATEGIA_Y_RUTA.md) and the public [roadmap](https://mosexmacchinalab.com/roadmap).
+Complements [STRATEGY_AND_ROADMAP.md](STRATEGY_AND_ROADMAP.md) and the public [roadmap](https://mosexmacchinalab.com/roadmap).
 
 ---
 
@@ -153,7 +153,7 @@ Reviewers cannot see the effective core inside advisory/telemetry volume. Second
 - [x] THEORY or PROPUESTA subsection; no mandatory code change if docs + profile matrix suffice first.
 ```
 
-**Delivered:** [`docs/proposals/POLES_WEAKNESS_PAD_AND_PROFILES.md`](POLES_WEAKNESS_PAD_AND_PROFILES.md); THEORY pointer; profile matrix + new **`operational_trust`** in [`src/runtime_profiles.py`](../src/runtime_profiles.py); [`ESTRATEGIA_Y_RUTA.md`](ESTRATEGIA_Y_RUTA.md) table row; README link.
+**Delivered:** [`docs/proposals/POLES_WEAKNESS_PAD_AND_PROFILES.md`](POLES_WEAKNESS_PAD_AND_PROFILES.md); [`docs/proposals/POLE_WEIGHT_CALIBRATION_AND_EVIDENCE.md`](POLE_WEIGHT_CALIBRATION_AND_EVIDENCE.md); THEORY pointer; profile matrix + new **`operational_trust`** in [`src/runtime_profiles.py`](../src/runtime_profiles.py); [`STRATEGY_AND_ROADMAP.md`](STRATEGY_AND_ROADMAP.md) table row; README link.
 
 ---
 
@@ -197,7 +197,7 @@ Expand `runtime_profiles.py`, document unsupported combinations, optional deprec
 - [x] ESTRATEGIA updated; CI green.
 ```
 
-**Delivered:** [`docs/proposals/KERNEL_ENV_POLICY.md`](KERNEL_ENV_POLICY.md); [`docs/proposals/ESTRATEGIA_Y_RUTA.md`](ESTRATEGIA_Y_RUTA.md) §4 table + policy link; **`lan_operational`** + **`moral_hub_extended`** in [`src/runtime_profiles.py`](../src/runtime_profiles.py); README pointer.
+**Delivered:** [`docs/proposals/KERNEL_ENV_POLICY.md`](KERNEL_ENV_POLICY.md); [`docs/proposals/STRATEGY_AND_ROADMAP.md`](STRATEGY_AND_ROADMAP.md) §4 table + policy link; **`lan_operational`** + **`moral_hub_extended`** in [`src/runtime_profiles.py`](../src/runtime_profiles.py); README pointer.
 
 ---
 

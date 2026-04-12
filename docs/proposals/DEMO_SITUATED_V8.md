@@ -2,7 +2,7 @@
 
 **Purpose:** reproducible **field-style** demo: kernel on PC, phone browser on WiFi, **sensor hints** merged from env (fixture + preset) without raw hardware drivers.
 
-**Ethical contract:** unchanged — MalAbs, buffer, Bayes; sensors only nudge sympathetic signals and JSON telemetry ([`PROPUESTA_ORGANISMO_SITUADO_V8.md`](PROPUESTA_ORGANISMO_SITUADO_V8.md)).
+**Ethical contract:** unchanged — MalAbs, buffer, Bayes; sensors only nudge sympathetic signals and JSON telemetry ([`PROPOSAL_SITUATED_ORGANISM_V8.md`](PROPOSAL_SITUATED_ORGANISM_V8.md)).
 
 ## One-command profile
 
@@ -35,4 +35,4 @@ Optional: send a `sensor` object in the WebSocket JSON; server merges **fixture 
 
 ## Closing the roadmap slice
 
-This profile closes the **demo** leg of **§3.1** in [`ESTRATEGIA_Y_RUTA.md`](ESTRATEGIA_Y_RUTA.md) (robustness → epistemology → demo) without implying raw multimodal pipelines are implemented.
+This profile closes the **demo** leg of **§3.1** in [`STRATEGY_AND_ROADMAP.md`](STRATEGY_AND_ROADMAP.md) (robustness → epistemology → demo) without implying raw multimodal pipelines are implemented.

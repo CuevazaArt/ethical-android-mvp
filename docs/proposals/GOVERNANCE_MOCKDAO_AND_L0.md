@@ -2,7 +2,7 @@
 
 **Purpose:** Align **public narrative** with **runtime facts**: the MVP’s DAO is a **mock**; **L0** (`PreloadedBuffer`) is **immutable in code**; community-facing votes and drafts **do not** silently rewrite MalAbs or the buffer at runtime.
 
-**Aligns with:** [UNIVERSAL_ETHOS_AND_HUB.md](UNIVERSAL_ETHOS_AND_HUB.md), [PROPUESTA_ESTADO_ETOSOCIAL_V12.md](PROPUESTA_ESTADO_ETOSOCIAL_V12.md), [RUNTIME_CONTRACT.md](RUNTIME_CONTRACT.md).
+**Aligns with:** [UNIVERSAL_ETHOS_AND_HUB.md](UNIVERSAL_ETHOS_AND_HUB.md), [PROPOSAL_ETOSOCIAL_STATE_V12.md](PROPOSAL_ETOSOCIAL_STATE_V12.md), [RUNTIME_CONTRACT.md](RUNTIME_CONTRACT.md).
 
 **Public landing (partners):** [BlockChainDAO / governance story](https://mosexmacchinalab.com/blockchain-dao) — same honesty: mock code path today, research toward real distributed governance.
 

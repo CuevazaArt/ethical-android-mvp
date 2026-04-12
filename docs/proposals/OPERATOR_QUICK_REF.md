@@ -19,7 +19,7 @@
 | **Temporal horizon** | `KERNEL_TEMPORAL_HORIZON_PRIOR`, `KERNEL_TEMPORAL_HORIZON_ALPHA` | Weeks / long-arc nudge to mixture ([`TEMPORAL_PRIOR_HORIZONS.md`](TEMPORAL_PRIOR_HORIZONS.md)). Default off. |
 | **Observability** | `KERNEL_METRICS`, `KERNEL_LOG_JSON`, `KERNEL_LOG_LEVEL` | Prometheus `GET /metrics` (off by default); JSON logs; log level. HTTP/WebSocket correlation via `X-Request-ID`. See [below](#observability-metrics-and-logs). |
 
-**Rule:** if a combination is not a **named profile** and not covered by a **test**, treat it as experimental ([`ESTRATEGIA_Y_RUTA.md`](ESTRATEGIA_Y_RUTA.md)).
+**Rule:** if a combination is not a **named profile** and not covered by a **test**, treat it as experimental ([`STRATEGY_AND_ROADMAP.md`](STRATEGY_AND_ROADMAP.md)).
 
 ### Observability (metrics and logs)
 

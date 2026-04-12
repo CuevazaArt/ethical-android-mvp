@@ -84,7 +84,7 @@ El **salto real** a un modelo 8B **dentro del teléfono** es un proyecto aparte 
 | `KERNEL_CHECKPOINT_PATH` | Archivo JSON de checkpoint **en el PC** para continuidad entre sesiones. |
 | `KERNEL_CONDUCT_GUIDE_EXPORT_PATH` | Archivo JSON escrito **al cerrar** la sesión WebSocket (después del checkpoint): guía para revisión o futuro runtime pequeño (`conduct_guide_export.py`). Opcional: `KERNEL_CONDUCT_GUIDE_EXPORT_ON_DISCONNECT=0` para desactivar. |
 | `KERNEL_CONDUCT_GUIDE_PATH` | En un edge/dispositivo pequeño: **cargar** una guía exportada (stub `context_distillation.py`). |
-| `KERNEL_LIGHTHOUSE_KB_PATH` | Faro epistémico opcional ([PROPUESTA_VERIFICACION_REALIDAD_V11.md](PROPUESTA_VERIFICACION_REALIDAD_V11.md)). |
+| `KERNEL_LIGHTHOUSE_KB_PATH` | Faro epistémico opcional ([PROPOSAL_REALITY_VERIFICATION_V11.md](PROPOSAL_REALITY_VERIFICATION_V11.md)). |
 
 **Flujo recomendado (mismo directorio):** por ejemplo `C:\EthicalData\kernel.json` + `C:\EthicalData\conduct_guide.json` — copia el par al móvil solo cuando tengas un consumidor; hoy el teléfono usa **solo** WebSocket; la guía es sobre todo trazabilidad y preparación del salto mediano.
 
