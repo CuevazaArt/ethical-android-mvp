@@ -2,6 +2,11 @@
 
 All notable changes to this project are summarized here. For narrative context and design rationale, see [`HISTORY.md`](HISTORY.md).
 
+## Remove `docs/templates/` — April 2026
+
+- **Deleted** **`docs/templates/conduct_guide.template.json`**. Conduct-guide shape is defined by **`validate_conduct_guide_dict`** in **`src/modules/context_distillation.py`**; runtime loads JSON from **`KERNEL_CONDUCT_GUIDE_PATH`** when set (not from a repo template file).
+- **Docs:** [`README.md`](README.md) repository tree; docstrings in **`context_distillation.py`**, **`conduct_guide_export.py`**.
+
 ## Remove `docs/multimedia/` — April 2026
 
 - **Deleted** **`docs/multimedia/`** (README + **`media/logo.png`**). **`dashboard.html`** header no longer embeds that image.
@@ -690,7 +695,7 @@ Pause on **new surface modules**; strengthen existing paths (critique-aligned).
 - **docs/proposals/README.md:** goal (short/medium), architecture, Windows firewall, `CHAT_HOST=0.0.0.0`, Ollama/checkpoint notes, security caveats.
 - **scripts/start_lan_server.ps1** / **scripts/start_lan_server.sh:** bind server for WiFi clients; print LAN IPv4 hints.
 - **landing/public/chat-test.html:** query `?host=` / `?port=` / `?url=` for phone testing; mobile-friendly buttons.
-- **docs/templates/conduct_guide.template.json:** placeholder for future 70B→8B distillation; **runtime profile** `lan_mobile_thin_client`.
+- **Conduct guide schema:** validated in **`context_distillation.py`** (placeholder JSON lived under **`docs/templates/`** until removed April 2026); **runtime profile** `lan_mobile_thin_client`.
 
 ## Reality verification (V11+) + resilience stubs — April 2026
 - **`reality_verification.py`:** optional local JSON lighthouse (`KERNEL_LIGHTHOUSE_KB_PATH`) vs asserted premises → metacognitive doubt; LLM hint only; `ChatTurnResult.reality_verification`; WebSocket key when `KERNEL_CHAT_INCLUDE_REALITY_VERIFICATION=1`.
