@@ -34,6 +34,11 @@ from .modules.ethical_reflection import (
     ReflectionSnapshot,
     reflection_to_llm_context,
 )
+from .modules.feedback_calibration_ledger import (
+    FeedbackCalibrationLedger,
+    apply_psi_sleep_feedback_to_engine,
+    normalize_feedback_label,
+)
 from .modules.forgiveness import AlgorithmicForgiveness
 from .modules.generative_candidates import augment_generative_candidates
 from .modules.gray_zone_diplomacy import negotiation_hint_for_communicate
@@ -204,6 +209,8 @@ class EthicalKernel:
         self.uchi_soto = UchiSotoModule()
         self.locus = LocusModule()
         self.sleep = PsiSleep()
+        self.feedback_ledger = FeedbackCalibrationLedger()
+        self._feedback_turn_anchor: dict[str, str] | None = None
         self.dao = MockDAO()
         self.llm = llm if llm is not None else LLMModule(mode=resolve_llm_mode(llm_mode))
         self.weakness = WeaknessPole()
@@ -636,6 +643,29 @@ class EthicalKernel:
         lines.append(f"{'─' * 70}")
         return "\n".join(lines)
 
+    def _snapshot_feedback_anchor(self, regime: str) -> None:
+        """Last completed chat regime for optional operator feedback (see ``record_operator_feedback``)."""
+        self._feedback_turn_anchor = {"regime": (regime or "").strip() or "unknown"}
+
+    def record_operator_feedback(self, label: str) -> bool:
+        """
+        Record calibration feedback for the **last** chat turn's decision regime.
+
+        Requires ``KERNEL_FEEDBACK_CALIBRATION=1``. Labels: ``approve``, ``dispute``, ``harm_report``.
+        Applied to ``BayesianEngine.hypothesis_weights`` during ``execute_sleep`` when
+        ``KERNEL_PSI_SLEEP_UPDATE_MIXTURE=1``.
+        """
+        if not _kernel_env_truthy("KERNEL_FEEDBACK_CALIBRATION"):
+            return False
+        lab = normalize_feedback_label(label)
+        if lab is None:
+            return False
+        anchor = self._feedback_turn_anchor
+        if not anchor or not anchor.get("regime"):
+            return False
+        self.feedback_ledger.record(anchor["regime"], lab)
+        return True
+
     def execute_sleep(self) -> str:
         """
         Executes Psi Sleep: retrospective audit + forgiveness + backup.
@@ -670,6 +700,15 @@ class EthicalKernel:
             elif param == "caution":
                 self.locus.beta = min(self.locus.BETA_MAX, self.locus.beta + delta)
         parts.append(self.sleep.format(result))
+
+        fb_line = apply_psi_sleep_feedback_to_engine(
+            self.bayesian,
+            self.feedback_ledger,
+            genome_weights=self._bayesian_genome_weights,
+            max_drift=max_drift,
+        )
+        if fb_line:
+            parts.append(fb_line)
 
         # 2. Algorithmic forgiveness
         forgiveness_result = self.forgiveness.forgiveness_cycle()
@@ -804,6 +843,7 @@ class EthicalKernel:
                 decision_trace=list(mal.decision_trace),
                 reason=mal.reason or "",
             )
+            self._snapshot_feedback_anchor("safety_block")
             return ChatTurnResult(
                 response=resp,
                 path="safety_block",
@@ -879,6 +919,7 @@ class EthicalKernel:
                 path_key="kernel_block",
                 block_reason=decision.block_reason or "",
             )
+            self._snapshot_feedback_anchor("kernel_block")
             return ChatTurnResult(
                 response=resp,
                 path="kernel_block",
@@ -1102,6 +1143,7 @@ class EthicalKernel:
                         strikes_threshold=threshold,
                     )
 
+        self._snapshot_feedback_anchor(decision.decision_mode)
         return ChatTurnResult(
             response=response,
             path="heavy" if heavy else "light",

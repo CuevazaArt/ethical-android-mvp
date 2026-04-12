@@ -66,10 +66,19 @@ def test_issue7_profiles_merge_expected_keys():
     lan = RUNTIME_PROFILES["lan_operational"]
     assert lan["CHAT_HOST"] == "0.0.0.0"
     assert lan["KERNEL_CHAT_EXPOSE_MONOLOGUE"] == "0"
+    assert lan["KERNEL_SEMANTIC_CHAT_GATE"] == "1"
+    assert lan["KERNEL_SEMANTIC_EMBED_HASH_FALLBACK"] == "1"
     mh = RUNTIME_PROFILES["moral_hub_extended"]
     assert mh["KERNEL_MORAL_HUB_PUBLIC"] == "1"
     assert mh["KERNEL_DEONTIC_GATE"] == "1"
     assert mh["KERNEL_TRANSPARENCY_AUDIT"] == "1"
+    assert mh["KERNEL_SEMANTIC_CHAT_GATE"] == "1"
+    assert mh["KERNEL_SEMANTIC_EMBED_HASH_FALLBACK"] == "1"
+
+
+def test_untrusted_chat_input_and_lexical_only_profiles():
+    assert RUNTIME_PROFILES["untrusted_chat_input"]["KERNEL_SEMANTIC_CHAT_GATE"] == "1"
+    assert RUNTIME_PROFILES["lexical_malabs_only"]["KERNEL_SEMANTIC_CHAT_GATE"] == "0"
 
 
 def test_perception_hardening_lab_profile_keys():

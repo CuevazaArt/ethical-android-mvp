@@ -18,7 +18,17 @@ This document describes the **pre-filter architecture** for `AbsoluteEvilDetecto
    The model returns a small JSON object (`block`, `category`, `confidence`, `reason`).  
    **Failure** (timeout, bad JSON, exception) → **fail-safe block**.
 
-If Ollama is unavailable, layer 1 does not add a block; behavior reduces to layer 0 + kernel.
+## Degradation ladder (single contract)
+
+| State | Behavior |
+|-------|----------|
+| Gate **off** (`KERNEL_SEMANTIC_CHAT_GATE=0`) | Lexical layer only; same as historical MVP default. |
+| Gate **on**, **no** embedding vector for user text (HTTP/circuit failure and **no** hash fallback) | Semantic tier **defers** → `malabs.embed=unavailable` trace; **lexical + kernel only** (no extra semantic block). |
+| Gate **on**, `KERNEL_SEMANTIC_EMBED_HASH_FALLBACK=1` | Deterministic hash vectors when HTTP fails — tier stays active for CI/airgap (weaker semantics; see `semantic_embedding_client.py`). |
+| Ambiguous band, arbiter **off** | **Fail-safe block** at semantic layer. |
+| Ambiguous band, arbiter **on**, LLM error | **Fail-safe block**. |
+
+Nominal LAN/hub profiles in `runtime_profiles.py` enable the gate with hash fallback so tests and demos do not require a live Ollama server.
 
 ## Runtime anchors
 

@@ -1,6 +1,6 @@
 # PROPOSAL — Ethical core logic evolution (track B)
 
-**Status:** proposal (design only; not implemented as a single deliverable)  
+**Status:** proposal — **B1 partially implemented** (feedback ledger, WebSocket `operator_feedback`, Psi Sleep mixture apply behind flags); **B2 partially implemented** (nominal profiles: semantic gate + hash fallback; degradation table in `MALABS_SEMANTIC_LAYERS.md`).  
 **Scope:** deepen **deliberation-grade** ethics without pretending full Bayesian inference or unbreakable safety. Complements [THEORY_AND_IMPLEMENTATION.md](THEORY_AND_IMPLEMENTATION.md), [WEAKNESSES_AND_BOTTLENECKS.md](../WEAKNESSES_AND_BOTTLENECKS.md), and the episodic-weight spike in [PRODUCTION_HARDENING_ROADMAP.md](PRODUCTION_HARDENING_ROADMAP.md).
 
 ---
@@ -97,10 +97,12 @@ Today, [`semantic_chat_gate`](../src/modules/semantic_chat_gate.py) runs only wh
 
 ## Acceptance criteria (proposal-level)
 
-- [ ] B1 and B2 can be adopted **independently** (flags or profiles).  
-- [ ] No merge path weakens **Absolute Evil** or **buffer** principles.  
-- [ ] All numeric drift is **bounded**, **logged**, and **reversible** via snapshot / immortality restore.  
-- [ ] Documentation uses **honest** terms: “bounded mixture update”, not “true posterior” unless the math is implemented.
+- [x] B1 and B2 can be adopted **independently** (flags or profiles).  
+- [x] No merge path weakens **Absolute Evil** or **buffer** principles (weights path only; MalAbs unchanged).  
+- [x] Numeric drift is **bounded** by `hypothesis_weights_allowed` + genome reference; **reversible** via snapshot / immortality restore.  
+- [x] Documentation uses **honest** terms: “bounded mixture update”, not “true posterior” unless the math is implemented.
+
+**Remaining (future work):** richer confusion matrix by `context`; correlate feedback rows with episode ids in persistence; Prometheus counters for semantic tier (B2 telemetry).
 
 ---
 

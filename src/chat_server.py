@@ -669,6 +669,13 @@ async def ws_chat(ws: WebSocket) -> None:
                 )
                 continue
 
+            ofb = data.get("operator_feedback")
+            if ofb is not None and str(ofb).strip():
+                recorded = kernel.record_operator_feedback(str(ofb).strip())
+                await ws.send_json({"operator_feedback_recorded": recorded})
+                maybe_autosave_episodes(kernel, session_ckpt)
+                continue
+
             text_preview = (data.get("text") or "").strip()
             if (
                 isinstance(data.get("integrity_alert"), dict)

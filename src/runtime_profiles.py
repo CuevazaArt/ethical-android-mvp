@@ -33,6 +33,8 @@ RUNTIME_PROFILES: Final[dict[str, dict[str, str]]] = {
     "lan_mobile_thin_client": {
         "CHAT_HOST": "0.0.0.0",
         "CHAT_PORT": "8765",
+        "KERNEL_SEMANTIC_CHAT_GATE": "1",
+        "KERNEL_SEMANTIC_EMBED_HASH_FALLBACK": "1",
     },
     # Issue 5 — HCI: reduce narrative vulnerability signals in WebSocket JSON (policy unchanged).
     "operational_trust": {
@@ -47,6 +49,8 @@ RUNTIME_PROFILES: Final[dict[str, dict[str, str]]] = {
         "KERNEL_CHAT_INCLUDE_HOMEOSTASIS": "0",
         "KERNEL_CHAT_EXPOSE_MONOLOGUE": "0",
         "KERNEL_CHAT_INCLUDE_EXPERIENCE_DIGEST": "0",
+        "KERNEL_SEMANTIC_CHAT_GATE": "1",
+        "KERNEL_SEMANTIC_EMBED_HASH_FALLBACK": "1",
     },
     # Issue 7 — V12 hub stack: public constitution + DAO vote + deontic gate + transparency audit lines.
     "moral_hub_extended": {
@@ -54,6 +58,8 @@ RUNTIME_PROFILES: Final[dict[str, dict[str, str]]] = {
         "KERNEL_MORAL_HUB_DAO_VOTE": "1",
         "KERNEL_DEONTIC_GATE": "1",
         "KERNEL_TRANSPARENCY_AUDIT": "1",
+        "KERNEL_SEMANTIC_CHAT_GATE": "1",
+        "KERNEL_SEMANTIC_EMBED_HASH_FALLBACK": "1",
     },
     # v8 situated + LAN thin-client (sensor preset + fixture merge; no raw hardware required)
     "situated_v8_lan_demo": {
@@ -63,6 +69,8 @@ RUNTIME_PROFILES: Final[dict[str, dict[str, str]]] = {
         "KERNEL_SENSOR_PRESET": "low_battery",
         "KERNEL_CHAT_INCLUDE_VITALITY": "1",
         "KERNEL_CHAT_INCLUDE_MULTIMODAL": "1",
+        "KERNEL_SEMANTIC_CHAT_GATE": "1",
+        "KERNEL_SEMANTIC_EMBED_HASH_FALLBACK": "1",
     },
     # Production-hardening Fase 1 — lexical tier + cross-check + optional delib nudge + parse fail-closed + JSON tier field.
     "perception_hardening_lab": {
@@ -76,6 +84,15 @@ RUNTIME_PROFILES: Final[dict[str, dict[str, str]]] = {
     # ADR 0006 — Phase 2 seam: in-process event bus for extensions / telemetry.
     "phase2_event_bus_lab": {
         "KERNEL_EVENT_BUS": "1",
+    },
+    # Semantic MalAbs tier on without Ollama (deterministic hash embeddings); compose with LAN or hub profiles.
+    "untrusted_chat_input": {
+        "KERNEL_SEMANTIC_CHAT_GATE": "1",
+        "KERNEL_SEMANTIC_EMBED_HASH_FALLBACK": "1",
+    },
+    # Explicit lexical-only MalAbs (airgap / latency); semantic tier off.
+    "lexical_malabs_only": {
+        "KERNEL_SEMANTIC_CHAT_GATE": "0",
     },
 }
 
@@ -92,6 +109,8 @@ PROFILE_DESCRIPTIONS: Final[dict[str, str]] = {
     "situated_v8_lan_demo": "V8 situated: LAN bind + sensor fixture+preset merge, vitality + multimodal JSON (see DEMO_SITUATED_V8.md, LOCAL_PC_AND_MOBILE_LAN.md).",
     "perception_hardening_lab": "Fase 1 hardening: light risk tier + perception cross-check + uncertainty→D_delib + parse fail-local + light_risk_tier in WebSocket JSON (see PRODUCTION_HARDENING_ROADMAP.md, KERNEL_ENV_POLICY.md).",
     "phase2_event_bus_lab": "Phase 2 spike: KERNEL_EVENT_BUS for kernel.decision / kernel.episode_registered (ADR 0006, PROPOSAL_PHASE2_CORE_EXTENSIONS_AND_EVENT_BUS.md).",
+    "untrusted_chat_input": "Semantic MalAbs on + KERNEL_SEMANTIC_EMBED_HASH_FALLBACK for CI/airgap without Ollama (PROPOSAL_ETHICAL_CORE_LOGIC_EVOLUTION B2).",
+    "lexical_malabs_only": "Force KERNEL_SEMANTIC_CHAT_GATE=0 (lexical MalAbs only).",
 }
 
 

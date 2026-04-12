@@ -112,6 +112,26 @@ def test_root_protocol_mentions_multimodal_and_sensor_fields():
     assert "audio_emergency" in proto or "sensor" in proto
 
 
+def test_websocket_operator_feedback_recorded(monkeypatch):
+    monkeypatch.setenv("KERNEL_FEEDBACK_CALIBRATION", "1")
+    with client.websocket_connect("/ws/chat") as ws:
+        ws.send_json({"text": "Hello, operator feedback probe."})
+        ws.receive_json()
+        ws.send_json({"operator_feedback": "approve"})
+        data = ws.receive_json()
+        assert data.get("operator_feedback_recorded") is True
+
+
+def test_websocket_operator_feedback_disabled_without_env(monkeypatch):
+    monkeypatch.delenv("KERNEL_FEEDBACK_CALIBRATION", raising=False)
+    with client.websocket_connect("/ws/chat") as ws:
+        ws.send_json({"text": "Hello."})
+        ws.receive_json()
+        ws.send_json({"operator_feedback": "approve"})
+        data = ws.receive_json()
+        assert data.get("operator_feedback_recorded") is False
+
+
 def test_websocket_chat_roundtrip():
     with client.websocket_connect("/ws/chat") as ws:
         ws.send_json({"text": "Hello, I am testing the bridge."})
