@@ -9,7 +9,7 @@ local exploration than the legacy **0.05–0.95** pole span and **Dirichlet(1,1,
 **Lane D** includes calibration scenario **16** alongside **10–12** (override with
 ``--borderline-scenario-ids``).
 
-See ``experiments/million_sim/README.md``. Per-row and summary ``meta.weight_sampling`` record
+See ``experiments/README.md``. Per-row and summary ``meta.weight_sampling`` record
 the exact settings for analysis.
 """
 
@@ -23,7 +23,7 @@ ROOT = Path(__file__).resolve().parents[1]
 
 
 def main() -> int:
-    out = ROOT / "experiments" / "million_sim" / "out"
+    out = ROOT / "experiments" / "out"
     out.mkdir(parents=True, exist_ok=True)
     jsonl = out / "run_v4_tight_100k.jsonl"
     summary = out / "run_v4_tight_100k_summary.json"

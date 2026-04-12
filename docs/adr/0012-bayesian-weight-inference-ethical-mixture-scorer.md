@@ -3,13 +3,13 @@
 **Status:** Accepted (Level 1–2 implemented; Level 3 future)  
 **Date:** 2026-04-12  
 **Supersedes:** —  
-**Related:** [ADR 0009](0009-ethical-mixture-scorer-naming.md) (naming), [ADR 0010](0010-poles-pre-argmax-modulation.md) (poles pre-argmax), [ADR 0011](0011-context-richness-pre-argmax.md) (context richness), [`experiments/million_sim/docs/README.md`](../../experiments/million_sim/docs/README.md)
+**Related:** [ADR 0009](0009-ethical-mixture-scorer-naming.md) (naming), [ADR 0010](0010-poles-pre-argmax-modulation.md) (poles pre-argmax), [ADR 0011](0011-context-richness-pre-argmax.md) (context richness), [`experiments/README.md`](../../experiments/README.md)
 
 ---
 
 ## Context
 
-ADR 0009 established that the "weighted mixture scorer" is **not** Bayesian inference — it is a fixed convex combination of three ethical valuations (util, deon, virtue) followed by an argmax. The v5 experiment design (historical writeups under `experiments/million_sim/docs/`, recoverable from git) confirmed this empirically: the decision boundary is a hyperplane in weight space, regions are convex, and the system is fully deterministic given a weight vector `w`.
+ADR 0009 established that the "weighted mixture scorer" is **not** Bayesian inference — it is a fixed convex combination of three ethical valuations (util, deon, virtue) followed by an argmax. The v5 experiment design (historical writeups, recoverable from git) confirmed this empirically: the decision boundary is a hyperplane in weight space, regions are convex, and the system is fully deterministic given a weight vector `w`.
 
 The simplex grid analysis (scenarios 17–19) further showed:
 
@@ -187,7 +187,7 @@ This is architecturally significant and should be a separate ADR when the time c
 - **Naming:** The system can legitimately be described as using Bayesian machinery for **mixture weights**, but it is **not** Bayesian inference over ethical frameworks, not Bayesian RL, and not a Bayesian neural network. ADR 0009's caution about naming remains relevant — prefer "Bayesian weight updating" over "Bayesian ethics."
 - **Feedback quality:** Level 2 is only as good as the operator feedback. Sparse or noisy feedback yields a weak posterior. Report `n_feedback_items` and joint-satisfaction metadata where available so operators can judge quality.
 - **Computational cost of Monte Carlo:** Level 1 adds `KERNEL_BMA_SAMPLES` extra `evaluate` calls per `process` when enabled. Level 2 adds inner MC per feedback item (`KERNEL_FEEDBACK_MC_SAMPLES`).
-- **Philosophical claim:** Bayesian updating of weights assumes there is a **stable** mixture vector that feedback helps locate. That is a stronger commitment than treating weights as purely designer-chosen knobs. The research disclaimer in [`README.md`](../../experiments/million_sim/README.md) should keep this distinction clear.
+- **Philosophical claim:** Bayesian updating of weights assumes there is a **stable** mixture vector that feedback helps locate. That is a stronger commitment than treating weights as purely designer-chosen knobs. The research disclaimer in [`experiments/README.md`](../../experiments/README.md) should keep this distinction clear.
 
 ### Neutral
 
@@ -202,7 +202,7 @@ This is architecturally significant and should be a separate ADR when the time c
 
 **B. Reinforcement learning from feedback.** Rejected: RL optimizes a scalar reward, which presupposes a single ethical objective. The multi-framework mixture structure is richer than a single reward, and the Bayesian approach preserves multi-hypothesis semantics at the weight level.
 
-**C. Fixed optimization of weights (grid search over simplex).** Already possible with v5 data (Part 4 of `docs/NEXT_EXPERIMENT_DESIGN.md` under `experiments/million_sim/`). This finds a **single optimal point** rather than a **distribution**, losing uncertainty information. Level 1 BMA is strictly more informative for sensitivity reporting.
+**C. Fixed optimization of weights (grid search over simplex).** Already possible with v5 data (Part 4 of historical `NEXT_EXPERIMENT_DESIGN` drafts, recoverable from git). This finds a **single optimal point** rather than a **distribution**, losing uncertainty information. Level 1 BMA is strictly more informative for sensitivity reporting.
 
 **D. Do nothing.** Viable: the system works with fixed weights. The v5 experiments showed that the default center is **fragile** (small gaps in scenario 17), and without at least Level 1 there is no standard telemetry for that fragility.
 

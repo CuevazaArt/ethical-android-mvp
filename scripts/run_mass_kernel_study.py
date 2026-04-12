@@ -2,11 +2,11 @@
 """
 Mass kernel batch study — up to millions of ``process()`` calls with random pole + Dirichlet mixture weights.
 
-**Not CI.** Use a dedicated venv and disk space; see ``experiments/million_sim/README.md`` and
+**Not CI.** Use a dedicated venv and disk space; see ``experiments/README.md`` and
 ``docs/proposals/README.md``.
 
 Rich output: JSONL + optional CSV, reproducibility meta, weight histograms, agreement by difficulty tier.
-Optional ``tqdm`` progress: ``pip install tqdm`` (see ``experiments/million_sim/requirements-experiment.txt``).
+Optional ``tqdm`` progress: ``pip install tqdm`` (see ``experiments/requirements-experiment.txt``).
 """
 
 from __future__ import annotations

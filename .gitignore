@@ -52,8 +52,9 @@ Thumbs.db
 *.pdf
 *.docx
 
-# Million-sim experiment outputs (large JSON/CSV/PNG; regenerate with scripts)
-experiments/million_sim/out/
+# Experiment outputs (large JSON/CSV/PNG; regenerate with scripts under experiments/)
+experiments/out/*
+!experiments/out/.gitignore
 
 # Misc
 get-pip.py
@@ -67,7 +68,7 @@ androide-etico-mvp/
 EthosMVP/
 # Optional local scratch under experiments (do not commit drafts here)
 experiments/files/
-# Duplicate drafts at experiments/ root (canonical under million_sim/, docs/, src/)
+# Duplicate drafts at experiments/ root (canonical under docs/, src/)
 experiments/NEXT_EXPERIMENT_DESIGN.md
 experiments/001*.md
 experiments/feedback.json

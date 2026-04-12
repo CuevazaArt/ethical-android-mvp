@@ -2,6 +2,12 @@
 
 All notable changes to this project are summarized here. For narrative context and design rationale, see [`HISTORY.md`](HISTORY.md).
 
+## Remove `experiments/million_sim/` — April 2026
+
+- **Deleted** the **`experiments/million_sim/`** tree (skeleton README, **`docs/`**, **`requirements-experiment.txt`**). Optional experiment dependencies moved to **[`experiments/requirements-experiment.txt`](experiments/requirements-experiment.txt)**; large outputs go under gitignored **[`experiments/out/`](experiments/out/)**.
+- **Kept** structural harness: **`src/sandbox/mass_kernel_study.py`**, **`scripts/run_mass_kernel_study.py`**, simplex / v4 / v5 scripts — docstrings and default paths updated to **`experiments/`** and **`experiments/README.md`**.
+- **Docs:** [ADR 0012](docs/adr/0012-bayesian-weight-inference-ethical-mixture-scorer.md), [`.gitignore`](.gitignore) (`experiments/out/` replaces `experiments/million_sim/out/`).
+
 ## Remove `docs/templates/` — April 2026
 
 - **Deleted** **`docs/templates/conduct_guide.template.json`**. Conduct-guide shape is defined by **`validate_conduct_guide_dict`** in **`src/modules/context_distillation.py`**; runtime loads JSON from **`KERNEL_CONDUCT_GUIDE_PATH`** when set (not from a repo template file).
@@ -15,7 +21,7 @@ All notable changes to this project are summarized here. For narrative context a
 ## Docs and experiments skeleton — April 2026
 
 - **`docs/proposals/`:** removed all prior proposal markdown files; only **[`docs/proposals/README.md`](docs/proposals/README.md)** remains as a placeholder for new English `PROPOSAL_*.md` files. Recover deleted content from git history or branch **`backup/main-2026-04-10`**.
-- **`experiments/`:** long-form files under **`experiments/million_sim/docs/`** removed; minimal **[`experiments/million_sim/docs/README.md`](experiments/million_sim/docs/README.md)** plus skeleton **[`experiments/README.md`](experiments/README.md)** and **[`experiments/million_sim/README.md`](experiments/million_sim/README.md)**.
+- **`experiments/`:** long-form files under **`experiments/million_sim/docs/`** removed; skeleton **[`experiments/README.md`](experiments/README.md)** (the **`million_sim/`** folder was removed entirely in a later change — see **Remove `experiments/million_sim/`** above).
 - **Root [`README.md`](README.md):** shortened to install, tests, chat, and pointers; detailed env tables removed.
 - **Code / tests:** references to specific proposal paths now point to **`docs/proposals/README.md`** unless citing ADRs under **`docs/adr/`**; scripts **audit_mixture_simplex_corners.py**, **run_simplex_decision_map.py**, and **ADR 0012** updated for experiment doc paths.
 

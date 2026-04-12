@@ -19,7 +19,7 @@ Example::
         --scenario-ids 16,17,18,19 \\
         --screening-denominator 30 \\
         --refinement-samples 200 \\
-        --output-dir experiments/million_sim/out/v5_sensitivity/ \\
+        --output-dir experiments/out/v5_sensitivity/ \\
         --plot-extended
 """
 

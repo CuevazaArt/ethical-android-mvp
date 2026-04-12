@@ -7,7 +7,7 @@ util/deon/virtue simplex plus the **uniform** center, and records the **full ran
 viable actions by expected impact (same path as ``WeightedEthicsScorer.evaluate``).
 
 **Use:** answer “does the winner change under extreme mixture axes?” before spending budget on
-large-N Monte Carlo. See ``experiments/million_sim/docs/README.md``.
+large-N Monte Carlo. See ``experiments/README.md``.
 
 **Not** a substitute for ``EthicalKernel.process`` (no Absolute Evil, will, poles-as-narrative, etc.).
 """
@@ -98,7 +98,7 @@ def main() -> int:
 
     report = {
         "tool": "audit_mixture_simplex_corners",
-        "doc": "experiments/million_sim/docs/README.md",
+        "doc": "experiments/README.md",
         "scenarios": [audit_scenario(sid) for sid in ids],
     }
     n = len(report["scenarios"])
