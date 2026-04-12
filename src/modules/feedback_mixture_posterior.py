@@ -1,6 +1,9 @@
 """
 Approximate Dirichlet posterior from operator feedback on batch scenarios — **Level 2** of ADR 0012.
 
+**CLI:** ``scripts/run_feedback_posterior.py`` applies the same logic and prints JSON (optional
+default path ``tests/fixtures/feedback/compatible_17_18_19.json``).
+
 Uses mixture-only winners (same path as ``simplex_mixture_probe.mixture_ranking``) for listed
 ``scenario_id`` values. This is **not** exact conjugate inference; it is a pragmatic shift of
 ``α`` toward mixture samples consistent with stated preferences.

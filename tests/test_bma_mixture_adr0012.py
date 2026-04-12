@@ -4,6 +4,8 @@ from __future__ import annotations
 
 import json
 import os
+import subprocess
+import sys
 from pathlib import Path
 
 import numpy as np
@@ -106,6 +108,29 @@ def test_joint_satisfaction_runs() -> None:
     assert 0.0 <= rate <= 1.0
 
 
+def test_kernel_feedback_compatible_versioned_fixture(monkeypatch: pytest.MonkeyPatch) -> None:
+    """Documented ADR 0012 sample (17–19) loads and stays compatible with EthicalKernel."""
+    root = Path(__file__).resolve().parents[1]
+    p = root / "tests" / "fixtures" / "feedback" / "compatible_17_18_19.json"
+    assert p.is_file()
+    monkeypatch.setenv("KERNEL_BAYESIAN_FEEDBACK", "1")
+    monkeypatch.setenv("KERNEL_FEEDBACK_PATH", str(p))
+    monkeypatch.setenv("KERNEL_FEEDBACK_MC_SAMPLES", "3000")
+    monkeypatch.setenv("KERNEL_FEEDBACK_SEED", "1")
+    k = EthicalKernel(variability=False, seed=42, llm_mode="local")
+    scn = ALL_SIMULATIONS[3]()
+    d = k.process(
+        scenario=f"[SIM 3] {scn.name}",
+        place=scn.place,
+        signals=scn.signals,
+        context=scn.context,
+        actions=list(scn.actions),
+    )
+    assert d.mixture_posterior_alpha is not None
+    assert d.feedback_consistency == "compatible"
+    assert len(d.mixture_posterior_alpha) == 3
+
+
 def test_feedback_kernel_updates_weights(
     monkeypatch: pytest.MonkeyPatch, tmp_path: Path
 ) -> None:
@@ -130,6 +155,25 @@ def test_feedback_kernel_updates_weights(
     assert d.mixture_posterior_alpha is not None
     assert d.feedback_consistency in ("compatible", "contradictory", "insufficient")
     assert len(d.mixture_posterior_alpha) == 3
+
+
+def test_run_feedback_posterior_script_default_fixture() -> None:
+    root = Path(__file__).resolve().parents[1]
+    script = root / "scripts" / "run_feedback_posterior.py"
+    env = {**os.environ, "KERNEL_FEEDBACK_MC_SAMPLES": "2000", "KERNEL_FEEDBACK_SEED": "0"}
+    r = subprocess.run(
+        [sys.executable, str(script)],
+        cwd=str(root),
+        capture_output=True,
+        text=True,
+        env=env,
+        check=False,
+    )
+    assert r.returncode == 0, r.stderr
+    data = json.loads(r.stdout)
+    assert data["feedback_consistency"] == "compatible"
+    assert data["meta"].get("updater") == "explicit_triples"
+    assert len(data["posterior_alpha"]) == 3
 
 
 def test_candidate_action_hypothesis_stub() -> None:

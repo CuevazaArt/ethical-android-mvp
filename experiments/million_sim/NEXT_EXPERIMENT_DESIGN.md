@@ -109,7 +109,7 @@ Empirical region fractions and flip rates depend on the discrete grid; recompute
 - **Geometry:** where the default mixture point falls in each scenario region; distance to boundaries (fragility).
 - **Multi-objective:** maximize minimum margin across reference scenarios (grid data or LP if scores are linear in `w`).
 - **Pole ablation:** compare pre-argmax poles ON vs OFF on the same `(scenario, mixture)` sample.
-- **Optional Bayesian layer:** Dirichlet BMA win probabilities and approximate feedback updates over mixture weights ([ADR 0012](../../docs/adr/0012-bayesian-weight-inference-ethical-mixture-scorer.md)) — same geometry, extra telemetry; does not replace grid/LP for default-weight choice unless you adopt feedback as policy. Example feedback JSON (17–19): [`tests/fixtures/feedback/compatible_17_18_19.json`](../../tests/fixtures/feedback/compatible_17_18_19.json).
+- **Optional Bayesian layer:** Dirichlet BMA win probabilities and approximate feedback updates over mixture weights ([ADR 0012](../../docs/adr/0012-bayesian-weight-inference-ethical-mixture-scorer.md)) — same geometry, extra telemetry; does not replace grid/LP for default-weight choice unless you adopt feedback as policy. Example feedback JSON (17–19): [`tests/fixtures/feedback/compatible_17_18_19.json`](../../tests/fixtures/feedback/compatible_17_18_19.json). Apply offline: `python scripts/run_feedback_posterior.py --pretty` (writes posterior α + metadata JSON; see script docstring).
 
 ---
 

@@ -13,7 +13,14 @@ Compatible operator feedback for scenarios **17–19** (explicit `hypothesis_ove
 
 [`tests/fixtures/feedback/compatible_17_18_19.json`](../tests/fixtures/feedback/compatible_17_18_19.json)
 
-Point `KERNEL_FEEDBACK_PATH` at that file when testing `KERNEL_BAYESIAN_FEEDBACK=1`.
+Point `KERNEL_FEEDBACK_PATH` at that file when testing `KERNEL_BAYESIAN_FEEDBACK=1`, or run the posterior CLI (same logic as the kernel, no `EthicalKernel.process` per row):
+
+```bash
+python scripts/run_feedback_posterior.py --pretty
+python scripts/run_feedback_posterior.py --feedback tests/fixtures/feedback/compatible_17_18_19.json -o experiments/million_sim/out/feedback_posterior.json
+```
+
+(`million_sim/out/` is gitignored; pick any output path.)
 
 ## What does *not* belong here
 

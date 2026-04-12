@@ -216,6 +216,7 @@ This is architecturally significant and should be a separate ADR when the time c
 | Feedback posterior (Level 2) | `src/modules/feedback_mixture_posterior.py` |
 | Explicit-triples updater | `src/modules/feedback_mixture_updater.py` (`FeedbackUpdater`) |
 | Kernel integration | `src/kernel.py` (`KernelDecision`, `EthicalKernel.process`) |
+| Offline posterior (no full kernel tick) | `scripts/run_feedback_posterior.py` |
 | Tests | `tests/test_bma_mixture_adr0012.py`, `tests/test_feedback_mixture_updater.py` |
 
 ---

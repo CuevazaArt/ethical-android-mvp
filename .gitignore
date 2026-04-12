@@ -73,3 +73,9 @@ androide-etico-mvp/
 EthosMVP/
 # Optional local scratch under experiments (do not commit drafts here)
 experiments/files/
+# Duplicate drafts at experiments/ root (canonical under million_sim/, docs/, src/)
+experiments/NEXT_EXPERIMENT_DESIGN.md
+experiments/001*.md
+experiments/feedback.json
+experiments/*_updater.py
+experiments/test_*_updater.py

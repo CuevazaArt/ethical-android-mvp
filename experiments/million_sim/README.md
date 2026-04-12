@@ -17,6 +17,7 @@
 - Corner audit: `python scripts/audit_mixture_simplex_corners.py --scenario-ids all`
 - Simplex grid / bisection / plots: see **Part 3** in [`NEXT_EXPERIMENT_DESIGN.md`](NEXT_EXPERIMENT_DESIGN.md) (default example still uses **10–12 + 16**; **17–19** tables live in **Part 1** there).
 - v5 sensitivity bundle (screening + refinement + `boundaries.json`): **Part 2** in [`NEXT_EXPERIMENT_DESIGN.md`](NEXT_EXPERIMENT_DESIGN.md) — one command + output notes (full `EthicalKernel.process` sweeps: `run_mass_kernel_study.py` / `run_experiment_v4_full_kernel_100k.py`).
+- **ADR 0012 feedback posterior (offline):** `python scripts/run_feedback_posterior.py --pretty` — same update as `KERNEL_BAYESIAN_FEEDBACK` + `KERNEL_FEEDBACK_PATH`, JSON to stdout (default feedback file: [`compatible_17_18_19.json`](../../tests/fixtures/feedback/compatible_17_18_19.json)).
 
 ### Full decision stack at **N = 100,000** (protocol **v4**, recommended)
 
