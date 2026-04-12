@@ -2,7 +2,7 @@
 
 **Purpose:** Run **mass batch simulations** while **centering** tunable static weights and **sweeping** them in both directions — producing a **broad synthetic dataset** for transparency, plots, and discussion with reviewers who question the fixed **weighted mixture** (ADR 0009). This does **not** replace DAO calibration or real-world field trials; it narrows the **design space** explored in silico.
 
-**Related:** [POLE_WEIGHT_CALIBRATION_AND_EVIDENCE.md](POLE_WEIGHT_CALIBRATION_AND_EVIDENCE.md), [ADR 0009](../adr/0009-ethical-mixture-scorer-naming.md), [PROPOSAL_EXPERIMENTAL_SANDBOX_SCENARIOS.md](PROPOSAL_EXPERIMENTAL_SANDBOX_SCENARIOS.md), `scripts/run_stochastic_sandbox.py`.
+**Related:** [POLE_WEIGHT_CALIBRATION_AND_EVIDENCE.md](POLE_WEIGHT_CALIBRATION_AND_EVIDENCE.md), [ADR 0009](../adr/0009-ethical-mixture-scorer-naming.md), [PROPOSAL_EXPERIMENTAL_SANDBOX_SCENARIOS.md](PROPOSAL_EXPERIMENTAL_SANDBOX_SCENARIOS.md), [PROPOSAL_MILLION_SIM_EXPERIMENT.md](PROPOSAL_MILLION_SIM_EXPERIMENT.md) (N≥10⁶ design), `scripts/run_stochastic_sandbox.py`.
 
 ---
 

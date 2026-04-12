@@ -2,6 +2,14 @@
 
 All notable changes to this project are summarized here. For narrative context and design rationale, see [`HISTORY.md`](HISTORY.md).
 
+## Million-sim experiment — design + mass runner — April 2026
+
+- **[`PROPOSAL_MILLION_SIM_EXPERIMENT.md`](docs/proposals/PROPOSAL_MILLION_SIM_EXPERIMENT.md):** statistical design (stratified scenarios, Dirichlet mixture, parallelism, phases 10⁴→10⁶).
+- **`src/sandbox/mass_kernel_study.py`:** `run_single_simulation`, `stratified_scenario_ids`, reference/tier loaders.
+- **`scripts/run_mass_kernel_study.py`:** JSONL + summary JSON; `--i-accept-large-run` for n>100k; multiprocessing pool.
+- **`experiments/million_sim/`:** README, optional `requirements-experiment.txt`, gitignored `out/`.
+- **Tests:** [`tests/test_mass_kernel_study.py`](tests/test_mass_kernel_study.py).
+
 ## Weight sensitivity sweep — poles + mixture — April 2026
 
 - **`src/sandbox/weight_sweep.py`:** centered pole weights (default **0.5**), mixture center **(1/3, 1/3, 1/3)**; `SweepMode` axes / grid / random.
