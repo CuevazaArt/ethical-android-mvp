@@ -2,6 +2,10 @@
 
 All notable changes to this project are summarized here. For narrative context and design rationale, see [`HISTORY.md`](HISTORY.md).
 
+## Documentation — phased core/governance remediation backlog — April 2026
+
+- **[`docs/proposals/PROPOSAL_CORE_IMPLEMENTATION_GAP_PHASED_REMEDIATION.md`](docs/proposals/PROPOSAL_CORE_IMPLEMENTATION_GAP_PHASED_REMEDIATION.md):** structured phases 1–5, acceptance framing, GitHub issue traceability; linked from [`CRITIQUE_ROADMAP_ISSUES.md`](docs/proposals/CRITIQUE_ROADMAP_ISSUES.md) and [`docs/proposals/README.md`](docs/proposals/README.md).
+
 ## Docs — semantic MalAbs default wording — April 2026
 
 - **TRANSPARENCY_AND_LIMITS.md**, **THEORY_AND_IMPLEMENTATION.md**, **ADR 0003** (naming note), **PROPOSAL_ETHICAL_CORE_LOGIC_EVOLUTION** (B2): aligned with **default-on** `KERNEL_SEMANTIC_CHAT_GATE` / hash fallback when unset, `tests/conftest.py` lexical-only isolation, and `runtime_profiles` explicit lexical bundle.
@@ -20,6 +24,7 @@ All notable changes to this project are summarized here. For narrative context a
 - **[`docker-compose.metrics.yml`](docker-compose.metrics.yml):** optional third merge to set `KERNEL_METRICS=1`.
 - **[`.dockerignore`](.dockerignore):** exclude `.env` / `.env.*` from build context so secrets are not baked into images.
 - **Docs:** [`docs/deploy/COMPOSE_PRODISH.md`](docs/deploy/COMPOSE_PRODISH.md); README Docker paragraph; [`docs/ROADMAP_PRACTICAL_PHASES.md`](docs/ROADMAP_PRACTICAL_PHASES.md) Phase 1 checklist.
+- **CI / tests:** GitHub Actions job **`compose-validate`** runs `docker compose ... config --quiet` on merge stacks; [`tests/test_compose_config.py`](tests/test_compose_config.py) repeats the same when `docker` is on `PATH` (skips otherwise).
 
 ## Chat server integration tests — April 2026
 

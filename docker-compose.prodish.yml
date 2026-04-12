@@ -14,10 +14,10 @@
 services:
   app:
     environment:
-      # LAN-safe defaults; override in `.env` if needed.
-      KERNEL_API_DOCS: "0"
-      # Metrics off here — opt in via docker-compose.metrics.yml or KERNEL_METRICS=1 in `.env`.
-      KERNEL_METRICS: "0"
+      # Defaults use Compose interpolation from the project `.env` (same file as `env_file` below).
+      # `environment` wins over `env_file` for the same key, so literals would block `.env` overrides.
+      KERNEL_API_DOCS: ${KERNEL_API_DOCS:-0}
+      KERNEL_METRICS: ${KERNEL_METRICS:-0}
       KERNEL_LOG_JSON: "1"
       KERNEL_LOG_LEVEL: "INFO"
     # Copy from .env.example first so this path exists (`cp .env.example .env`).

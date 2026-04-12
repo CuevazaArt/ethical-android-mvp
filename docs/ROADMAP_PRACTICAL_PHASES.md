@@ -53,3 +53,4 @@ Example sequencing for teams shipping Ethos Kernel–based runtimes. Adjust time
 
 - [PRODUCTION_HARDENING_ROADMAP.md](proposals/PRODUCTION_HARDENING_ROADMAP.md)
 - [CRITIQUE_ROADMAP_ISSUES.md](proposals/CRITIQUE_ROADMAP_ISSUES.md)
+- [PROPOSAL_CORE_IMPLEMENTATION_GAP_PHASED_REMEDIATION.md](proposals/PROPOSAL_CORE_IMPLEMENTATION_GAP_PHASED_REMEDIATION.md) — phased core vs. governance backlog (issues 1–7)

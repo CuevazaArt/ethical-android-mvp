@@ -12,8 +12,8 @@
 |--------|----------|
 | **Secrets** | Keep API keys, Fernet checkpoint keys, audit HMAC seeds, and nomadic keys in **`.env`** (or your orchestrator’s secret store). **Do not** `COPY` them into a custom image layer; the repo [`.dockerignore`](../../.dockerignore) excludes `.env` and `.env.*` from the build context. |
 | **OpenAPI** | **`KERNEL_API_DOCS=0`** in the prodish overlay so `/docs`, `/redoc`, and `/openapi.json` are not exposed by default on LAN binds. |
-| **Metrics** | **`KERNEL_METRICS=0`** in the prodish overlay. Enable scraping with a second merge file or set `KERNEL_METRICS=1` in `.env`. |
-| **Profiles** | Base compose **`llm`** profile still adds **Ollama** when you need it; combine with `-f` merges in any order that keeps `services.app` defined once. |
+| **Metrics** | Default **`KERNEL_METRICS=0`** via `${KERNEL_METRICS:-0}` in the prodish file (reads the project **`.env`** for Compose interpolation). Enable **`/metrics`** with `KERNEL_METRICS=1` in `.env`, or merge **`docker-compose.metrics.yml` last** (it sets `KERNEL_METRICS: "1"` and overrides a zero default). |
+| **Profiles** | Base compose **`llm`** profile still adds **Ollama** when you need it. When stacking **`-f` files**, put **`docker-compose.metrics.yml` after `docker-compose.prodish.yml`** so metrics stay on; reversing order turns metrics off again. |
 
 ---
 
@@ -67,6 +67,10 @@ Optional one-shot operator bundles (unset keys only; explicit env wins): **`ETHO
 
 - Not a hardened **production** certification: no TLS termination, secrets rotation, or multi-tenant isolation is implied here — see [`PRODUCTION_HARDENING_ROADMAP.md`](../proposals/PRODUCTION_HARDENING_ROADMAP.md).
 - Not a substitute for your org’s image scanning, registry policies, and runtime admission controls.
+
+---
+
+**CI:** `.github/workflows/ci.yml` job **`compose-validate`** runs `docker compose … config --quiet` for the same merge combinations; locally, [`tests/test_compose_config.py`](../../tests/test_compose_config.py) mirrors that when Docker is installed (skipped if `docker` is not on `PATH`).
 
 ---
 

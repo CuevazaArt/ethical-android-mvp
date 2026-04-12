@@ -13,6 +13,20 @@ permissions:
   contents: read
 
 jobs:
+  compose-validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Validate Docker Compose merges
+        run: |
+          set -euo pipefail
+          cp .env.example .env
+          docker compose -f docker-compose.yml -f docker-compose.prodish.yml config --quiet
+          docker compose -f docker-compose.yml -f docker-compose.prodish.yml -f docker-compose.metrics.yml config --quiet
+          docker compose -f docker-compose.yml -f docker-compose.metrics.yml config --quiet
+          docker compose -f docker-compose.yml -f docker-compose.prodish.yml --profile llm config --quiet
+
   quality:
     runs-on: ubuntu-latest
     strategy:

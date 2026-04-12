@@ -12,6 +12,8 @@ Complements [STRATEGY_AND_ROADMAP.md](STRATEGY_AND_ROADMAP.md) and the public [r
 
 **Structured bottleneck inventory (async vs sync, Ollama, MockDAO, naming):** [`docs/WEAKNESSES_AND_BOTTLENECKS.md`](../WEAKNESSES_AND_BOTTLENECKS.md).
 
+**Phased remediation plan (phases 1–5, acceptance framing, issue traceability):** [`PROPOSAL_CORE_IMPLEMENTATION_GAP_PHASED_REMEDIATION.md`](PROPOSAL_CORE_IMPLEMENTATION_GAP_PHASED_REMEDIATION.md).
+
 ---
 
 ## Maintainer triage (issues 1 through 9)
