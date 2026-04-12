@@ -87,6 +87,20 @@ python -m pytest tests/ -q --tb=short
 
 Optional: `pre-commit run --all-files` (Ruff, mypy on `src`, detect-secrets).
 
+### Documentation, traceability, and efficient workflow
+
+**Documentation is part of the product, not an afterthought.** It supports **traceability** (what changed and why), **coherence** across modules and operators, **credibility** with honest limits, and **human consultation** for people who were not in the same chat or meeting.
+
+When you merge meaningful behavior or operator-facing changes:
+
+1. Add a concise entry to [`CHANGELOG.md`](CHANGELOG.md) when the change would matter to reviewers, operators, or downstream integrators.
+2. Update the **smallest** relevant doc: e.g. [`docs/proposals/RUNTIME_CONTRACT.md`](docs/proposals/RUNTIME_CONTRACT.md), [`docs/proposals/OPERATOR_QUICK_REF.md`](docs/proposals/OPERATOR_QUICK_REF.md), [`docs/proposals/KERNEL_ENV_POLICY.md`](docs/proposals/KERNEL_ENV_POLICY.md), or an ADR under `docs/adr/` for architectural decisions — not every file on every PR.
+3. Keep claims aligned with [`docs/TRANSPARENCY_AND_LIMITS.md`](docs/TRANSPARENCY_AND_LIMITS.md); do not imply certification or external moral truth unless a separate study says so.
+
+**Efficient use of time and machines:** During development you may run **targeted** tests (`pytest tests/test_module.py`, `pytest -k "pattern"`). Before opening a PR, run the **full** suite like CI (`pytest tests/`). The **`landing/`** app is optional for Python-only work; see [`docs/REPOSITORY_LAYOUT.md`](docs/REPOSITORY_LAYOUT.md) and [`docs/proposals/LANDING_DECOUPLING_AND_SUPPORT.md`](docs/proposals/LANDING_DECOUPLING_AND_SUPPORT.md). Docker is optional locally; CI covers Compose checks when applicable.
+
+**Cursor:** persistent guidance for agents lives in [`.cursor/rules/`](.cursor/rules/) (including `dev-efficiency-and-docs.mdc`).
+
 **Deprecated (historical only):** A multi-agent **Triad Handoff** experiment on branch `refactor/pipeline-trace-core` used extra Markdown buffers and keywords (**`juancheck`**, **`regroup`**). That protocol is **not** required on `main`; use normal Git + PR + tests above.
 
 ### Git tags (named checkpoints)

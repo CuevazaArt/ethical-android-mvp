@@ -2,6 +2,16 @@
 
 All notable changes to this project are summarized here. For narrative context and design rationale, see [`HISTORY.md`](HISTORY.md).
 
+## Contributor workflow — documentation traceability + Cursor rule — April 2026
+
+- **[`CONTRIBUTING.md`](CONTRIBUTING.md):** section *Documentation, traceability, and efficient workflow* (CHANGELOG, targeted vs full pytest, landing/Docker scope, credibility limits).
+- **[`.cursor/rules/dev-efficiency-and-docs.mdc`](.cursor/rules/dev-efficiency-and-docs.mdc):** always-on agent guidance aligned with the same expectations.
+
+## Code docs — canonical `PROPOSAL_*` links in `src/` — April 2026
+
+- **Docstrings / comments:** Spanish `PROPUESTA_*` filenames in `src/` updated to English `PROPOSAL_*` where a canonical file exists (redirect stubs remain for old paths).
+- **`tests/test_deploy_artifacts.py`:** validates `deploy/grafana/ethos-kernel-overview.json` parses and has expected keys.
+
 ## Docs hygiene — test count + ADR index — April 2026
 
 - **[`docs/proposals/PROJECT_STATUS_AND_MODULE_MATURITY.md`](docs/proposals/PROJECT_STATUS_AND_MODULE_MATURITY.md):** pytest collection count **591** (`pytest tests/ --collect-only -q`).
