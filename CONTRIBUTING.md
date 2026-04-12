@@ -16,6 +16,14 @@ Contributions may arrive through multiple channels (issues, pull requests, chat,
 
 These expectations **apply to all contributors** and are part of how we keep the project coherent.
 
+### Language policy (collaboration vs repository)
+
+- **Collaboration:** We work day to day in **Latin American Spanish** (issues, chat, planning, and coordination with humans). Use clear, respectful Spanish; regional variants are fine as long as everyone understands.
+- **Repository:** Everything **merged into this repository** must be **in English** — documentation under `docs/`, README, CHANGELOG, code comments, docstrings, user-facing strings, and proposal files (`PROPOSAL_*`). That keeps the codebase and docs consistent for international review and tooling.
+- **Exception:** Deliberate non-English **test or security payloads** (e.g. multilingual abuse strings) are allowed; add a short comment if the intent is not obvious.
+
+The same rules apply to AI assistants working on this repo (see `.cursor/rules/repo-language-policy.mdc`).
+
 ### 2. Understand the model
 Read the README.md and run the simulations before proposing changes.
 The complete model document is in `/docs/Androide_Etico_Analisis_Integral_v3.docx`.
@@ -56,6 +64,26 @@ The modules are in `src/modules/`. Each one is independent:
 4. **Make sure the tests pass**: `pytest tests/ -v` (full suite; CI runs the same on Python 3.11 and 3.12)
 5. **Lint and types (same as CI):** after `pip install -r requirements.txt -r requirements-dev.txt`, run `python -m ruff check src tests`, `python -m ruff format --check src tests`, and `python -m mypy src`. Optional: `pre-commit install` and `pre-commit run --all-files` (Ruff replaces separate Black + isort; formatting is Black-compatible). **detect-secrets** uses the committed baseline [`detect-secrets.baseline`](detect-secrets.baseline); update it only when adding new known-safe strings.
 6. Open a Pull Request with a clear description
+
+#### Concrete commands (local dev)
+
+Use a virtual environment (Python **3.11+**). **Do not** add **Black** as a separate tool; **Ruff** covers lint + format (Black-compatible).
+
+```bash
+pip install -r requirements.txt -r requirements-dev.txt
+pre-commit install
+```
+
+Run the same checks as [`.github/workflows/ci.yml`](.github/workflows/ci.yml) before opening a PR:
+
+```bash
+python -m ruff check src tests
+python -m ruff format --check src tests
+python -m mypy src
+python -m pytest tests/ -q --tb=short
+```
+
+Optional: `pre-commit run --all-files` (Ruff, mypy on `src`, detect-secrets).
 
 **Deprecated (historical only):** A multi-agent **Triad Handoff** experiment on branch `refactor/pipeline-trace-core` used extra Markdown buffers and keywords (**`juancheck`**, **`regroup`**). That protocol is **not** required on `main`; use normal Git + PR + tests above.
 

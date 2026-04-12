@@ -126,7 +126,7 @@ I(x)=\int (1-P(\text{correct}\mid\theta))\cdot P(\theta\mid D)\,d\theta
 \text{Score}(a)=\sum_i w_i(t)\,V_i(a),\quad w_i(t)=w_i^0\cdot f(C_t,S_t)
 \]
 
-**Bayesian mixture (nudges)** — `BayesianEngine.hypothesis_weights` are fixed by default; optional episodic refresh (`KERNEL_BAYESIAN_EMPIRICAL_WEIGHTS`) and optional temporal-horizon prior (`KERNEL_TEMPORAL_HORIZON_PRIOR`, ADR 0005) apply **bounded** adjustments before `evaluate`; see [`TEMPORAL_PRIOR_HORIZONS.md`](TEMPORAL_PRIOR_HORIZONS.md).
+**Bayesian mixture (nudges)** — `BayesianEngine.hypothesis_weights` are fixed by default; optional episodic refresh (`KERNEL_BAYESIAN_EMPIRICAL_WEIGHTS`) and optional temporal-horizon prior (`KERNEL_TEMPORAL_HORIZON_PRIOR`, ADR 0005) apply **bounded** adjustments before `evaluate`; see [`TEMPORAL_PRIOR_HORIZONS.md`](TEMPORAL_PRIOR_HORIZONS.md). **Future:** nightly Psi Sleep + explicit feedback ledger → mixture updates — [PROPOSAL_ETHICAL_CORE_LOGIC_EVOLUTION.md](PROPOSAL_ETHICAL_CORE_LOGIC_EVOLUTION.md) (B1).
 
 **Implementation** — `EthicalPoles` in `src/modules/ethical_poles.py`: base weights `BASE_WEIGHTS` and context multipliers `CONTEXTS` implement \(w_i^0\) and \(f(C_t,S_t)\); per-pole scores come from `LinearPoleEvaluator` + `pole_linear_default.json` (override `KERNEL_POLE_LINEAR_CONFIG`; see [ADR 0004](adr/0004-configurable-linear-pole-evaluator.md)). Scores aggregate into `TripartiteMoral`.
 

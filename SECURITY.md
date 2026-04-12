@@ -44,6 +44,10 @@ Security fixes, when provided, apply to the **default branch** (`main`) going fo
 - **MalAbs chat gate** (`AbsoluteEvilDetector.evaluate_chat_text`) uses **conservative substring lists** after Unicode normalization — **not** unbreakable filtering. Paraphrase and novel jailbreaks can slip through; see [`docs/proposals/INPUT_TRUST_THREAT_MODEL.md`](docs/proposals/INPUT_TRUST_THREAT_MODEL.md). The same gate runs on **`process_natural`** input before perception. **Optional:** `KERNEL_SEMANTIC_CHAT_GATE=1` adds Ollama **embeddings** after lexical matching, with optional **LLM arbiter** for ambiguous bands — see [`docs/proposals/MALABS_SEMANTIC_LAYERS.md`](docs/proposals/MALABS_SEMANTIC_LAYERS.md); not a guarantee.
 - **LLM perception JSON** is **clamped and validated** (`perception_from_llm_json` in `src/modules/llm_layer.py`); non-object JSON is ignored. Garbage-in / prompt-injection can still skew signals within \([0,1]\); the kernel does not treat numeric outputs as ground truth.
 
+## Audit chain (optional)
+
+Operators can enable an **append-only** JSONL log of chat safety blocks (hash-linked lines, optional HMAC) via `KERNEL_AUDIT_CHAIN_PATH` — see [`docs/AUDIT_TRAIL_AND_REPRODUCIBILITY.md`](docs/AUDIT_TRAIL_AND_REPRODUCIBILITY.md). This does **not** replace centralized logging, SIEM review, or key management policy; it is a reproducibility aid for local audits.
+
 ## Hardening in this repo (landing + dashboard)
 
 - **HTTP headers (Next.js middleware):** `X-Content-Type-Options`, `Referrer-Policy`, `Permissions-Policy`, path-specific **Content-Security-Policy** (stricter for the main app; dashboard allows `https://unpkg.com` for pinned vendor scripts). **No `X-Frame-Options: SAMEORIGIN`:** it breaks Vercel’s in-dashboard deployment preview (parent `vercel.com` vs child `*.vercel.app`). **Clickjacking** is mitigated with **`frame-ancestors 'self' https://vercel.com`**, which still blocks arbitrary third-party embeds. **HSTS** and **CSP `upgrade-insecure-requests`** run when `VERCEL_ENV=production` (or set `FORCE_HSTS=1` for self‑hosted HTTPS), not on local `next dev` / Vercel preview.

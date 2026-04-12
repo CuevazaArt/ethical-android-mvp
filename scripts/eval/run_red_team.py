@@ -21,7 +21,7 @@ import json
 import sys
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Any, Dict, List
+from typing import Any
 
 _REPO_ROOT = Path(__file__).resolve().parents[2]
 if str(_REPO_ROOT) not in sys.path:
@@ -37,13 +37,13 @@ class RedTeamRow:
     notes: str = ""
 
 
-def load_jsonl(path: Path) -> List[RedTeamRow]:
-    rows: List[RedTeamRow] = []
+def load_jsonl(path: Path) -> list[RedTeamRow]:
+    rows: list[RedTeamRow] = []
     for line in path.read_text(encoding="utf-8").splitlines():
         line = line.strip()
         if not line:
             continue
-        o: Dict[str, Any] = json.loads(line)
+        o: dict[str, Any] = json.loads(line)
         rows.append(
             RedTeamRow(
                 id=str(o.get("id", "")),

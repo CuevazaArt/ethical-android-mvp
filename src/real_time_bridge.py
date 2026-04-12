@@ -2,13 +2,15 @@
 Async bridge for chat UI / WebSocket layers.
 
 The kernel and LLM calls are synchronous; this wrapper runs them in a thread
-pool so an asyncio event loop is not blocked by I/O.
+pool (Starlette/FastAPI ``run_in_threadpool``) so the asyncio event loop is not
+blocked by deliberation or I/O.
 """
 
 from __future__ import annotations
 
-import asyncio
 from typing import TYPE_CHECKING
+
+from starlette.concurrency import run_in_threadpool
 
 if TYPE_CHECKING:
     from .kernel import ChatTurnResult, EthicalKernel
@@ -30,7 +32,7 @@ class RealTimeBridge:
         sensor_snapshot: SensorSnapshot | None = None,
         escalate_to_dao: bool = False,
     ) -> ChatTurnResult:
-        return await asyncio.to_thread(
+        return await run_in_threadpool(
             self.kernel.process_chat_turn,
             user_input,
             agent_id,

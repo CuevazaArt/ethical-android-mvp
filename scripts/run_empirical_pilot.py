@@ -14,7 +14,7 @@ import argparse
 import json
 import sys
 from pathlib import Path
-from typing import Any, Dict, List, Tuple
+from typing import Any
 
 ROOT = Path(__file__).resolve().parents[1]
 if str(ROOT) not in sys.path:
@@ -33,21 +33,23 @@ def _baseline_max_impact(actions):
     return best.name
 
 
-def _load_fixture(path: Path) -> Dict[str, Any]:
+def _load_fixture(path: Path) -> dict[str, Any]:
     with open(path, encoding="utf-8") as f:
         return json.load(f)
 
 
-def run_pilot(fixture_path: Path) -> Tuple[List[Dict[str, Any]], Dict[str, float]]:
+def run_pilot(fixture_path: Path) -> tuple[list[dict[str, Any]], dict[str, float]]:
     data = _load_fixture(fixture_path)
-    rows: List[Dict[str, Any]] = []
+    rows: list[dict[str, Any]] = []
     kernel = EthicalKernel(variability=False, seed=42, llm_mode="local")
 
     for entry in data["scenarios"]:
         sid = int(entry["id"])
         ref = entry.get("reference_action")
         if sid not in ALL_SIMULATIONS:
-            raise ValueError(f"Unknown simulation id {sid}; expected one of {sorted(ALL_SIMULATIONS)}")
+            raise ValueError(
+                f"Unknown simulation id {sid}; expected one of {sorted(ALL_SIMULATIONS)}"
+            )
 
         scn = ALL_SIMULATIONS[sid]()
         decision = kernel.process(
@@ -88,14 +90,18 @@ def run_pilot(fixture_path: Path) -> Tuple[List[Dict[str, Any]], Dict[str, float
             sum(1 for r in rows if r["kernel"] == r["baseline_first"]) / nrows if nrows else 0.0
         ),
         "kernel_vs_max_impact_rate": (
-            sum(1 for r in rows if r["kernel"] == r["baseline_max_impact"]) / nrows if nrows else 0.0
+            sum(1 for r in rows if r["kernel"] == r["baseline_max_impact"]) / nrows
+            if nrows
+            else 0.0
         ),
     }
     return rows, summary
 
 
 def main() -> int:
-    p = argparse.ArgumentParser(description="Empirical pilot: kernel vs baselines on batch scenarios.")
+    p = argparse.ArgumentParser(
+        description="Empirical pilot: kernel vs baselines on batch scenarios."
+    )
     p.add_argument(
         "--fixture",
         type=Path,
@@ -131,7 +137,9 @@ def main() -> int:
 
     print("Empirical pilot (batch) — Issue 3")
     print(f"Fixture: {args.fixture}")
-    print(f"Scenarios: {summary['scenarios']}  |  With reference label: {summary['with_reference']}")
+    print(
+        f"Scenarios: {summary['scenarios']}  |  With reference label: {summary['with_reference']}"
+    )
     print()
     for r in rows:
         ref = r["reference_action"] or "—"

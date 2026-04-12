@@ -34,6 +34,7 @@ try:
 except ImportError:
     HAS_HTTPX = False
 
+from ..observability.metrics import observe_llm_completion_seconds
 from .llm_backends import (
     AnthropicCompletion,
     LLMBackend,
@@ -41,7 +42,6 @@ from .llm_backends import (
     TextCompletionBackend,
     coerce_to_llm_backend,
 )
-from ..observability.metrics import observe_llm_completion_seconds
 from .perception_schema import (
     PerceptionCoercionReport,
     finalize_summary,

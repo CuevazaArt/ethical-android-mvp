@@ -274,3 +274,8 @@ class MockLLMBackend(LLMBackend):
 # Backward-compatible names (existing imports).
 AnthropicCompletion = AnthropicLLMBackend
 OllamaCompletion = OllamaLLMBackend
+
+# Minimal public adapter names (same classes as *LLMBackend above).
+OllamaRemote = OllamaLLMBackend
+HTTPRemote = HttpJsonLLMBackend
+MockBackend = MockLLMBackend

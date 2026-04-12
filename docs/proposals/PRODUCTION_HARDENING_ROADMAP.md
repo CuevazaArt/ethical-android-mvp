@@ -20,6 +20,9 @@
 | L0 vs DAO / borradores | [`GOVERNANCE_MOCKDAO_AND_L0.md`](GOVERNANCE_MOCKDAO_AND_L0.md) |
 | HCI / weakness | [`POLES_WEAKNESS_PAD_AND_PROFILES.md`](POLES_WEAKNESS_PAD_AND_PROFILES.md) |
 | “Bayesian” = mezcla fija, no posterior completo | [`CRITIQUE_ROADMAP_ISSUES.md`](CRITIQUE_ROADMAP_ISSUES.md) Issue 1 + [`THEORY_AND_IMPLEMENTATION.md`](THEORY_AND_IMPLEMENTATION.md) |
+| **Cuellos de botella / debilidades** (núcleo sync vs async, Ollama, MockDAO, naming) — inventario en inglés, un solo lugar | [`WEAKNESSES_AND_BOTTLENECKS.md`](../WEAKNESSES_AND_BOTTLENECKS.md) |
+
+No duplicar aquí párrafos largos sobre esos temas: mantener el detalle en ese archivo y usar este roadmap para fases y síntesis.
 
 ---
 

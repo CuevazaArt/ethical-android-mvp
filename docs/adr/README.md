@@ -9,5 +9,6 @@
 | [0005 — temporal prior from consequence horizons](0005-temporal-prior-from-consequence-horizons.md) | `horizon_weeks` / long arc as numeric nudge to Bayes mixture |
 | [0006 — Phase 2 core boundary + event bus](0006-phase2-core-boundary-and-event-bus.md) | Incremental `KernelEventBus`; package split deferred |
 | [0007 — snapshot schema migration policy](0007-snapshot-schema-migration-policy.md) | `SCHEMA_VERSION` bumps: migrations module + golden fixtures + tests |
+| [0008 — runtime observability (Prometheus + logs)](0008-runtime-observability-prometheus-and-logs.md) | Opt-in `/metrics`, JSON logs, `X-Request-ID`; no policy change |
 
 See also [`CORE_DECISION_CHAIN.md`](../proposals/CORE_DECISION_CHAIN.md), [`LLM_STACK_OLLAMA_VS_HF.md`](../proposals/LLM_STACK_OLLAMA_VS_HF.md), [`PERCEPTION_VALIDATION.md`](../proposals/PERCEPTION_VALIDATION.md), [`TEMPORAL_PRIOR_HORIZONS.md`](../proposals/TEMPORAL_PRIOR_HORIZONS.md), [`USER_MODEL_ENRICHMENT.md`](../proposals/USER_MODEL_ENRICHMENT.md) (design proposal), and [`CHANGELOG.md`](../../CHANGELOG.md).

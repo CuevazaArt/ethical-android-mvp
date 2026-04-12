@@ -9,8 +9,9 @@ Or: python -m src.runtime  (same server; see docs/proposals/RUNTIME_CONTRACT.md)
 
 OpenAPI/Swagger: **off** by default; set KERNEL_API_DOCS=1 to expose ``/docs``, ``/redoc``, ``/openapi.json`` (see README).
 
-Checkpoint (optional): KERNEL_CHECKPOINT_PATH, KERNEL_CHECKPOINT_LOAD,
-KERNEL_CHECKPOINT_SAVE_ON_DISCONNECT, KERNEL_CHECKPOINT_EVERY_N_EPISODES — see src/persistence/checkpoint.py
+Checkpoint (optional): ``KERNEL_CHECKPOINT_PATH`` attaches ``JsonFileCheckpointAdapter`` via
+``checkpoint_persistence_from_env()``; ``KERNEL_CHECKPOINT_LOAD``,
+``KERNEL_CHECKPOINT_SAVE_ON_DISCONNECT``, ``KERNEL_CHECKPOINT_EVERY_N_EPISODES`` — see src/persistence/checkpoint.py
 
 Conduct guide export (optional): KERNEL_CONDUCT_GUIDE_EXPORT_PATH — JSON on WebSocket disconnect
 (after checkpoint); KERNEL_CONDUCT_GUIDE_EXPORT_ON_DISCONNECT — see src/modules/conduct_guide_export.py
@@ -96,17 +97,6 @@ from typing import Any
 from fastapi import FastAPI, WebSocket, WebSocketDisconnect
 from fastapi.responses import JSONResponse, Response
 
-from .observability.context import clear_request_context, set_request_id
-from .observability.logging_setup import configure_logging
-from .observability.metrics import (
-    init_metrics,
-    metrics_enabled,
-    observe_chat_turn,
-    record_dao_ws_operation,
-    record_malabs_block,
-)
-from .observability.middleware import RequestContextMiddleware
-
 from .kernel import ChatTurnResult, EthicalKernel
 from .modules.affective_homeostasis import homeostasis_telemetry
 from .modules.buffer import PreloadedBuffer
@@ -137,7 +127,18 @@ from .modules.moral_hub import (
 )
 from .modules.nomad_identity import nomad_identity_public
 from .modules.perceptual_abstraction import snapshot_from_layers
+from .observability.context import clear_request_context, set_request_id
+from .observability.logging_setup import configure_logging
+from .observability.metrics import (
+    init_metrics,
+    metrics_enabled,
+    observe_chat_turn,
+    record_dao_ws_operation,
+    record_malabs_block,
+)
+from .observability.middleware import RequestContextMiddleware
 from .persistence.checkpoint import (
+    checkpoint_persistence_from_env,
     init_session_checkpoint_state,
     maybe_autosave_episodes,
     on_websocket_session_end,
@@ -632,6 +633,7 @@ async def ws_chat(ws: WebSocket) -> None:
     kernel = EthicalKernel(
         variability=st.kernel_variability,
         llm_mode=st.llm_mode,
+        checkpoint_persistence=checkpoint_persistence_from_env(),
     )
     try_load_checkpoint(kernel)
     session_ckpt = init_session_checkpoint_state(kernel)
@@ -771,7 +773,6 @@ def get_uvicorn_bind() -> tuple[str, int]:
 
     s = chat_server_settings()
     return s.chat_host, s.chat_port
-    return host, port
 
 
 def run_chat_server() -> None:

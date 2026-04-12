@@ -30,6 +30,11 @@ See ``src/persistence/json_store.py``.
 **Conduct guide export (optional):** ``KERNEL_CONDUCT_GUIDE_EXPORT_PATH`` — JSON written on
 WebSocket disconnect (after checkpoint save) for edge / “small body” handoff. See
 ``src/modules/conduct_guide_export.py`` and ``docs/proposals/LOCAL_PC_AND_MOBILE_LAN.md``.
+
+**Dependency injection (optional):** pass ``checkpoint_persistence`` into
+:class:`src.kernel.EthicalKernel` to use a :class:`CheckpointPersistencePort` (JSON,
+SQLite, or test mocks) without ``KERNEL_CHECKPOINT_PATH``. Load/save flags still
+respect ``KERNEL_CHECKPOINT_LOAD`` and ``KERNEL_CHECKPOINT_SAVE_ON_DISCONNECT``.
 """
 
 from __future__ import annotations
@@ -38,6 +43,8 @@ import os
 from pathlib import Path
 from typing import TYPE_CHECKING, Any
 
+from .checkpoint_adapters import JsonFileCheckpointAdapter
+from .checkpoint_port import CheckpointPersistencePort
 from .json_store import JsonFilePersistence
 from .kernel_io import extract_snapshot
 
@@ -52,6 +59,20 @@ def checkpoint_path_from_env() -> Path | None:
     return Path(raw)
 
 
+def checkpoint_persistence_from_env() -> CheckpointPersistencePort | None:
+    """
+    Build a JSON file checkpoint adapter when ``KERNEL_CHECKPOINT_PATH`` is set.
+
+    Used by the chat server so the kernel uses the same injection path as tests;
+    behavior matches the legacy branch that constructed :class:`JsonFilePersistence`
+    inline when no port was attached.
+    """
+    path = checkpoint_path_from_env()
+    if path is None:
+        return None
+    return JsonFileCheckpointAdapter(path)
+
+
 def _env_bool(name: str, default: bool) -> bool:
     v = os.environ.get(name, "")
     if v == "":
@@ -59,13 +80,17 @@ def _env_bool(name: str, default: bool) -> bool:
     return v.lower() in ("1", "true", "yes", "on")
 
 
-def should_load_checkpoint() -> bool:
+def should_load_checkpoint(kernel: EthicalKernel | None = None) -> bool:
+    if kernel is not None and getattr(kernel, "checkpoint_persistence", None) is not None:
+        return _env_bool("KERNEL_CHECKPOINT_LOAD", True)
     if checkpoint_path_from_env() is None:
         return False
     return _env_bool("KERNEL_CHECKPOINT_LOAD", True)
 
 
-def should_save_on_disconnect() -> bool:
+def should_save_on_disconnect(kernel: EthicalKernel | None = None) -> bool:
+    if kernel is not None and getattr(kernel, "checkpoint_persistence", None) is not None:
+        return _env_bool("KERNEL_CHECKPOINT_SAVE_ON_DISCONNECT", True)
     if checkpoint_path_from_env() is None:
         return False
     return _env_bool("KERNEL_CHECKPOINT_SAVE_ON_DISCONNECT", True)
@@ -82,6 +107,11 @@ def autosave_interval_episodes() -> int:
 
 def try_load_checkpoint(kernel: EthicalKernel) -> bool:
     """Load JSON checkpoint into ``kernel`` if configured and file exists. Returns True if loaded."""
+    port = getattr(kernel, "checkpoint_persistence", None)
+    if port is not None:
+        if not should_load_checkpoint(kernel):
+            return False
+        return port.load_into_kernel(kernel)
     if not should_load_checkpoint():
         return False
     path = checkpoint_path_from_env()
@@ -91,12 +121,21 @@ def try_load_checkpoint(kernel: EthicalKernel) -> bool:
 
 
 def try_save_checkpoint(kernel: EthicalKernel) -> bool:
-    """Persist current kernel state to ``KERNEL_CHECKPOINT_PATH``. Returns False if path unset."""
+    """Persist kernel state via injected port or ``KERNEL_CHECKPOINT_PATH``. Returns False if unset."""
+    port = getattr(kernel, "checkpoint_persistence", None)
+    if port is not None:
+        return port.save_from_kernel(kernel)
     path = checkpoint_path_from_env()
     if path is None:
         return False
     JsonFilePersistence(path).save(extract_snapshot(kernel))
     return True
+
+
+def _checkpoint_active(kernel: EthicalKernel) -> bool:
+    if getattr(kernel, "checkpoint_persistence", None) is not None:
+        return True
+    return checkpoint_path_from_env() is not None
 
 
 def maybe_autosave_episodes(
@@ -110,7 +149,7 @@ def maybe_autosave_episodes(
     ``last_checkpoint_episode_count`` (int).
     """
     n = autosave_interval_episodes()
-    if n <= 0 or checkpoint_path_from_env() is None:
+    if n <= 0 or not _checkpoint_active(kernel):
         return
     cur = len(kernel.memory.episodes)
     last = int(session_state.get("last_checkpoint_episode_count", 0))
@@ -126,7 +165,7 @@ def init_session_checkpoint_state(kernel: EthicalKernel) -> dict[str, Any]:
 
 def on_websocket_session_end(kernel: EthicalKernel) -> None:
     """Save on disconnect when enabled; optional conduct guide export for nomadic handoff."""
-    if should_save_on_disconnect():
+    if should_save_on_disconnect(kernel):
         try_save_checkpoint(kernel)
     from src.modules.conduct_guide_export import try_export_conduct_guide
 

@@ -81,6 +81,7 @@ High-level summary aligned with the code and docs; full chronology is in [`CHANG
 | [USER_MODEL_ENRICHMENT.md](USER_MODEL_ENRICHMENT.md) | User model enrichment (judicial, cognitive, risk) |
 | [LIGHTHOUSE_KB.md](LIGHTHOUSE_KB.md) | Lighthouse knowledge base |
 | [MALABS_SEMANTIC_LAYERS.md](MALABS_SEMANTIC_LAYERS.md) | MALABS semantic layers |
+| [PROPOSAL_ETHICAL_CORE_LOGIC_EVOLUTION.md](PROPOSAL_ETHICAL_CORE_LOGIC_EVOLUTION.md) | Psi Sleep v2 (feedback + mixture), semantic gate as default perception — *English* |
 
 ---
 

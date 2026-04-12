@@ -16,6 +16,10 @@ from dataclasses import dataclass
 from typing import Any
 
 from .modules.absolute_evil import AbsoluteEvilDetector, AbsoluteEvilResult
+from .modules.audit_chain_log import (
+    maybe_append_kernel_block_audit,
+    maybe_append_malabs_block_audit,
+)
 from .modules.augenesis import AugenesisEngine
 from .modules.bayesian_engine import BayesianEngine, BayesianResult, CandidateAction
 from .modules.buffer import PreloadedBuffer
@@ -96,6 +100,7 @@ from .modules.variability import VariabilityConfig, VariabilityEngine
 from .modules.vitality import VitalityAssessment, assess_vitality, vitality_communication_hint
 from .modules.weakness_pole import WeaknessPole
 from .modules.working_memory import WorkingMemory
+from .persistence.checkpoint_port import CheckpointPersistencePort
 
 
 def _kernel_env_truthy(name: str) -> bool:
@@ -175,11 +180,20 @@ class EthicalKernel:
     Psi Sleep, backup, and drive intents run in `execute_sleep`, outside each tick.
     """
 
-    def __init__(self, variability: bool = True, seed: int = None, llm_mode: str | None = None):
+    def __init__(
+        self,
+        variability: bool = True,
+        seed: int = None,
+        llm_mode: str | None = None,
+        *,
+        llm: LLMModule | None = None,
+        checkpoint_persistence: CheckpointPersistencePort | None = None,
+    ):
         self.var_engine = VariabilityEngine(VariabilityConfig(seed=seed))
         if not variability:
             self.var_engine.deactivate()
 
+        self.checkpoint_persistence = checkpoint_persistence
         self.absolute_evil = AbsoluteEvilDetector()
         self.buffer = PreloadedBuffer()
         self.will = SigmoidWill()
@@ -191,7 +205,7 @@ class EthicalKernel:
         self.locus = LocusModule()
         self.sleep = PsiSleep()
         self.dao = MockDAO()
-        self.llm = LLMModule(mode=resolve_llm_mode(llm_mode))
+        self.llm = llm if llm is not None else LLMModule(mode=resolve_llm_mode(llm_mode))
         self.weakness = WeaknessPole()
         self.forgiveness = AlgorithmicForgiveness()
         self.immortality = ImmortalityProtocol()
@@ -783,6 +797,13 @@ class EthicalKernel:
                 inner_voice=f"MalAbs chat gate: {mal.reason or 'blocked'}",
             )
             wm.add_turn(user_input, msg, {}, blocked=True)
+            cat = mal.category.value if mal.category is not None else None
+            maybe_append_malabs_block_audit(
+                path_key="safety_block",
+                category=cat,
+                decision_trace=list(mal.decision_trace),
+                reason=mal.reason or "",
+            )
             return ChatTurnResult(
                 response=resp,
                 path="safety_block",
@@ -854,6 +875,10 @@ class EthicalKernel:
                 inner_voice="All candidate actions failed Absolute Evil.",
             )
             wm.add_turn(user_input, msg, signals, heavy_kernel=heavy, blocked=True)
+            maybe_append_kernel_block_audit(
+                path_key="kernel_block",
+                block_reason=decision.block_reason or "",
+            )
             return ChatTurnResult(
                 response=resp,
                 path="kernel_block",

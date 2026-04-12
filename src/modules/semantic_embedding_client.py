@@ -146,9 +146,9 @@ def hash_scoped_unit_embedding(
     HTTP embeddings are unavailable and ``KERNEL_SEMANTIC_EMBED_HASH_FALLBACK=1``.
     """
     d = dim if dim is not None else max(32, _env_int("KERNEL_SEMANTIC_EMBED_HASH_DIM", 256))
-    sc = (scope or os.environ.get("KERNEL_SEMANTIC_EMBED_HASH_SCOPE", "malabs_embed_v1")).encode(
-        "utf-8", errors="replace"
-    )
+    sc = str(
+        scope or os.environ.get("KERNEL_SEMANTIC_EMBED_HASH_SCOPE") or "malabs_embed_v1"
+    ).encode("utf-8", errors="replace")
     payload = sc + b"|" + (text or "").encode("utf-8", errors="replace")
     out = np.zeros(d, dtype=np.float64)
     seed = hashlib.sha256(payload).digest()

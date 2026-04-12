@@ -7,7 +7,6 @@ Counters and histograms are no-ops when disabled or if ``prometheus_client`` is 
 from __future__ import annotations
 
 import os
-import time
 from typing import Any
 
 _llm_histogram: Any = None

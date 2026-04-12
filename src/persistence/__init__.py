@@ -5,12 +5,15 @@ Does not change ethical policy; only serializes/restores state for long-lived ru
 """
 
 from .checkpoint import (
+    checkpoint_persistence_from_env,
     init_session_checkpoint_state,
     maybe_autosave_episodes,
     on_websocket_session_end,
     try_load_checkpoint,
     try_save_checkpoint,
 )
+from .checkpoint_adapters import JsonFileCheckpointAdapter, SqliteCheckpointAdapter
+from .checkpoint_port import CheckpointPersistencePort
 from .json_store import JsonFilePersistence, fernet_key_from_env, snapshot_from_dict
 from .kernel_io import apply_snapshot, extract_snapshot
 from .migrations import (
@@ -25,6 +28,9 @@ from .snapshot_validate import validate_migrated_snapshot_dict, validate_snapsho
 from .sqlite_store import SqlitePersistence
 
 __all__ = [
+    "CheckpointPersistencePort",
+    "JsonFileCheckpointAdapter",
+    "SqliteCheckpointAdapter",
     "SCHEMA_VERSION",
     "KernelSnapshotV1",
     "extract_snapshot",
@@ -37,6 +43,7 @@ __all__ = [
     "migrate_v1_to_v2",
     "migrate_v2_to_v3",
     "apply_schema3_defaults",
+    "checkpoint_persistence_from_env",
     "try_load_checkpoint",
     "try_save_checkpoint",
     "init_session_checkpoint_state",

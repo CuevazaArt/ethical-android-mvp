@@ -19,7 +19,7 @@ from __future__ import annotations
 import argparse
 import json
 from pathlib import Path
-from typing import Any, Dict, List
+from typing import Any
 
 
 def main() -> None:
@@ -27,7 +27,7 @@ def main() -> None:
     ap.add_argument("--input", type=Path, required=True)
     args = ap.parse_args()
     path: Path = args.input
-    rows: List[Dict[str, Any]] = []
+    rows: list[dict[str, Any]] = []
     for line in path.read_text(encoding="utf-8").splitlines():
         line = line.strip()
         if not line:

@@ -1,4 +1,5 @@
 # Quality gate: same dependency pins as local dev (requirements.txt + requirements-dev.txt).
+# Runs on pushes and PRs to main; matches local checks + optional pre-commit (see CONTRIBUTING.md).
 name: CI
 
 on:
@@ -6,6 +7,7 @@ on:
     branches: [main]
   pull_request:
     branches: [main]
+  workflow_dispatch:
 
 permissions:
   contents: read

@@ -10,6 +10,8 @@ Complements [ESTRATEGIA_Y_RUTA.md](ESTRATEGIA_Y_RUTA.md) and the public [roadmap
 
 **Ethos Kernel is maturing:** runtime, audit trails, hub/DAO scaffolding, and tests land first so **honest naming**, **calibrated weights**, and **governance experiments** can grow without perpetual rewrites. Names and mocks may run ahead of the numeric core — that gap is tracked here, not hidden.
 
+**Structured bottleneck inventory (async vs sync, Ollama, MockDAO, naming):** [`docs/WEAKNESSES_AND_BOTTLENECKS.md`](../WEAKNESSES_AND_BOTTLENECKS.md).
+
 ---
 
 ## How to create issues
