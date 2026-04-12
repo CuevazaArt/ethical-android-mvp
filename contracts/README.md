@@ -6,7 +6,7 @@ This directory exists so the repository **does not** imply hidden Solidity elsew
 
 - **No** deployed contracts, **no** testnet integration, **no** CI compilation of Solidity in the default workflow.
 - Ethical governance **demos** use **Python** only: [`src/modules/mock_dao.py`](../src/modules/mock_dao.py).
-- Read [`docs/proposals/MOCK_DAO_SIMULATION_LIMITS.md`](../docs/proposals/MOCK_DAO_SIMULATION_LIMITS.md) before treating governance as production-grade.
+- Read [`docs/proposals/README.md`](../docs/proposals/README.md) before treating governance as production-grade.
 
 ## `stubs/`
 

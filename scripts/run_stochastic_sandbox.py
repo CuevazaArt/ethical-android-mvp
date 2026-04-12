@@ -230,7 +230,7 @@ def main() -> int:
             "stress": summary["stress"],
         },
         "reference_standard": ref_meta,
-        "doc": "docs/proposals/PROPOSAL_EXPERIMENTAL_SANDBOX_SCENARIOS.md",
+        "doc": "docs/proposals/README.md",
     }
 
     if args.output is not None:

@@ -5,7 +5,7 @@ Central Pydantic model for **chat server** environment variables.
 and field descriptions. Other modules may still read ``os.environ`` directly; migrating them
 is incremental.
 
-See also: ``README.md`` (Chat server environment), ``docs/proposals/KERNEL_ENV_POLICY.md``.
+See also: ``README.md`` (Chat server environment), ``docs/proposals/README.md``.
 """
 
 from __future__ import annotations

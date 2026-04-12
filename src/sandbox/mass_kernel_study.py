@@ -4,7 +4,7 @@ Million-scale batch study — one reproducible ``EthicalKernel.process`` per int
 Each index ``i`` derives pole weights, mixture weights, and (optionally stratified) scenario_id
 from ``base_seed`` without storing large weight arrays in memory.
 
-See ``docs/proposals/PROPOSAL_MILLION_SIM_EXPERIMENT.md``.
+See ``docs/proposals/README.md``.
 """
 
 from __future__ import annotations

@@ -9,7 +9,7 @@ For a **simplex-centered** exploration, the geometric center is **(1/3, 1/3, 1/3
 We generate nearby points by axis perturbations on the simplex (renormalized).
 
 Outputs are **synthetic** lab results for transparency and plotting — not field validation.
-See ``docs/proposals/PROPOSAL_WEIGHT_SENSITIVITY_SWEEP.md``.
+See ``docs/proposals/README.md``.
 """
 
 from __future__ import annotations

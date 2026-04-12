@@ -6,7 +6,7 @@ When ``KERNEL_LIGHT_RISK_CLASSIFIER`` produced a non-low tier and
 vector. On mismatch, mark ``cross_check_discrepancy`` and raise coercion
 ``uncertainty`` so optional ``KERNEL_PERCEPTION_UNCERTAINTY_DELIB`` can engage.
 
-See ``docs/proposals/PRODUCTION_HARDENING_ROADMAP.md`` Fase 1.
+See ``docs/proposals/README.md`` Fase 1.
 """
 
 from __future__ import annotations

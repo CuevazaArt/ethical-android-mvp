@@ -5,7 +5,7 @@ Groups keys by documented **families**, scores alignment with **nominal runtime 
 and flags **experimental** combinations when many flags are set without ``ETHOS_RUNTIME_PROFILE``.
 
 Does not replace ``validate_kernel_env()`` — use together: policy rules + this inventory.
-See ``docs/proposals/KERNEL_ENV_POLICY.md`` and ``docs/proposals/OPERATOR_QUICK_REF.md``.
+See ``docs/proposals/README.md`` and ``docs/proposals/README.md``.
 """
 
 from __future__ import annotations

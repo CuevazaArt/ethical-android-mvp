@@ -4,7 +4,7 @@ Perceptual abstraction for situated v8 — no hardware required.
 Builds :class:`SensorSnapshot` from named presets, JSON fixtures, and/or client
 dicts (layers merge: fixture → preset → client overrides).
 
-See docs/proposals/PROPOSAL_SITUATED_ORGANISM_V8.md (fase B).
+See docs/proposals/README.md (fase B).
 """
 
 from __future__ import annotations

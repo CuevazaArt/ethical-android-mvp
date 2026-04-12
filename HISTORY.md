@@ -33,7 +33,7 @@ The project is grounded in a broad academic literature, from foundational classi
 
 ## Pre-alpha Spanish corpus (2026) — integrated archive
 
-Before the **`docs/proposals/`** layout, the project circulated a **pre-alpha documentation bundle** (working folder `prealphaDocs/`): Spanish registration draft **v1.0 (2026)**, diagram PNGs, a **Spanish bibliography draft**, and generated JPG/MP4. That narrative is **not** the live specification of the current Python kernel; the canonical theory ↔ code map is **[`docs/proposals/THEORY_AND_IMPLEMENTATION.md`](docs/proposals/THEORY_AND_IMPLEMENTATION.md)**. The former consolidated reference table was removed with **`BIBLIOGRAPHY.md`** (April 2026); use git history or **`backup/main-2026-04-10`** to retrieve it.
+Before the **`docs/proposals/`** layout, the project circulated a **pre-alpha documentation bundle** (working folder `prealphaDocs/`): Spanish registration draft **v1.0 (2026)**, diagram PNGs, a **Spanish bibliography draft**, and generated JPG/MP4. That narrative is **not** the live specification of the current Python kernel; the canonical theory ↔ code map is **[`docs/proposals/README.md`](docs/proposals/README.md)**. The former consolidated reference table was removed with **`BIBLIOGRAPHY.md`** (April 2026); use git history or **`backup/main-2026-04-10`** to retrieve it.
 
 The following **digest** condenses the former **`androide_etico_alpha_v1.0_2026.md`** (full prose removed from the tree in favor of this section):
 
@@ -174,7 +174,7 @@ Moves the kernel from batch simulations and ad-hoc scripts toward a **long-lived
 | Snapshot port | `src/persistence/kernel_io.py` | `KernelSnapshotV1`, `extract_snapshot` / `apply_snapshot` |
 | Adapters | `json_store.py`, `sqlite_store.py` | JSON file and SQLite row storage for the same DTO |
 | Checkpoints | `src/persistence/checkpoint.py` | Load on connect, save on disconnect, autosave (`KERNEL_CHECKPOINT_*`) |
-| Contract docs | `docs/proposals/RUNTIME_CONTRACT.md`, `docs/proposals/RUNTIME_PERSISTENT.md`, `docs/proposals/RUNTIME_PHASES.md` | Ethical boundaries for async work; phased plan (runtime → DB → local LLM) |
+| Contract docs | `docs/proposals/README.md`, `docs/proposals/README.md`, `docs/proposals/README.md` | Ethical boundaries for async work; phased plan (runtime → DB → local LLM) |
 | CI | `.github/workflows/ci.yml` | Tests on Python 3.11 and 3.12 |
 
 Formal test count grows with integration tests for chat, persistence, and runtime (see `README.md` and `pytest tests/`).
@@ -198,7 +198,7 @@ Optional `sensor` JSON merged into sympathetic **signals** before the decision s
 
 ## v11.0 — April 2026 | Distributed justice — Phase 1 (traceability)
 
-Governance track: **artificial social contract** metaphor — owner insistence in sustained gray-zone tension can be **documented** and optionally **logged** to the `MockDAO` audit as an escalation dossier (`judicial_escalation.py`). **Phase 1** does not implement P2P courts, ZK evidence, sanctions, or reputation at augenesis; those remain design-only (see `docs/proposals/PROPOSAL_DISTRIBUTED_JUSTICE_V11.md`).
+Governance track: **artificial social contract** metaphor — owner insistence in sustained gray-zone tension can be **documented** and optionally **logged** to the `MockDAO` audit as an escalation dossier (`judicial_escalation.py`). **Phase 1** does not implement P2P courts, ZK evidence, sanctions, or reputation at augenesis; those remain design-only (see `docs/proposals/README.md`).
 
 | Piece | Role |
 |-------|------|
@@ -210,7 +210,7 @@ Governance track: **artificial social contract** metaphor — owner insistence i
 
 ## v12.0 — April 2026 | Moral Infrastructure Hub (vision + Phase 1 hooks)
 
-**Vision** in `docs/proposals/PROPOSAL_ETOSOCIAL_STATE_V12.md`: DemocraticBuffer (L0/L1/L2), services cooperative, EthosPayroll, R&D transparency vs. privacy veil, hybrid immortality — **full product** trajectory.
+**Vision** in `docs/proposals/README.md`: DemocraticBuffer (L0/L1/L2), services cooperative, EthosPayroll, R&D transparency vs. privacy veil, hybrid immortality — **full product** trajectory.
 
 **V12.1 (code):** `src/modules/moral_hub.py` — read-only **L0 constitution** JSON (`GET /constitution` when `KERNEL_MORAL_HUB_PUBLIC=1`); optional **transparency audit** on WebSocket connect (`KERNEL_TRANSPARENCY_AUDIT`); mock **community buffer proposals** (`KERNEL_DEMOCRATIC_BUFFER_MOCK`); **EthosPayroll** mock audit line (`KERNEL_ETHOS_PAYROLL_MOCK`). Does **not** mutate `PreloadedBuffer` or MalAbs.
 
@@ -220,23 +220,23 @@ Governance track: **artificial social contract** metaphor — owner insistence i
 
 **Nomadic checkpoints + hub audit:** optional **Fernet** at-rest encryption for `JsonFilePersistence` (`KERNEL_CHECKPOINT_FERNET_KEY`); **HubAudit** calibration lines for hub events; **WebSocket** test for `nomad_simulate_migration`.
 
-**Strategy + runtime profiles (April 2026):** [docs/proposals/STRATEGY_AND_ROADMAP.md](docs/proposals/STRATEGY_AND_ROADMAP.md) records a constructive review (strengths, expectation gaps, risks) and a **readapted route** prioritizing **named demo profiles** (`src/runtime_profiles.py`) and CI smoke tests over unconstrained `KERNEL_*` combinatorics. See [TRACE_IMPLEMENTATION_RECENT.md](docs/proposals/TRACE_IMPLEMENTATION_RECENT.md) for the next feature backlog after P0.
+**Strategy + runtime profiles (April 2026):** [docs/proposals/README.md](docs/proposals/README.md) records a constructive review (strengths, expectation gaps, risks) and a **readapted route** prioritizing **named demo profiles** (`src/runtime_profiles.py`) and CI smoke tests over unconstrained `KERNEL_*` combinatorics. See [TRACE_IMPLEMENTATION_RECENT.md](docs/proposals/README.md) for the next feature backlog after P0.
 
-**Reality verification (V11+ cross-model):** [docs/proposals/PROPOSAL_REALITY_VERIFICATION_V11.md](docs/proposals/PROPOSAL_REALITY_VERIFICATION_V11.md) — optional **lighthouse** JSON (`KERNEL_LIGHTHOUSE_KB_PATH`) flags contradictions between rival/user assertions and local anchors → **metacognitive doubt** in the LLM layer only; stubs for **conduct distillation** (small-body guide) and **local sovereignty** (DAO calibration veto).
+**Reality verification (V11+ cross-model):** [docs/proposals/README.md](docs/proposals/README.md) — optional **lighthouse** JSON (`KERNEL_LIGHTHOUSE_KB_PATH`) flags contradictions between rival/user assertions and local anchors → **metacognitive doubt** in the LLM layer only; stubs for **conduct distillation** (small-body guide) and **local sovereignty** (DAO calibration veto).
 
-**Local PC + smartphone (LAN):** [docs/proposals/LOCAL_PC_AND_MOBILE_LAN.md](docs/proposals/LOCAL_PC_AND_MOBILE_LAN.md) — runtime bound to `0.0.0.0`, scripts `start_lan_server`, WebSocket thin-client patterns, template `conduct_guide` for future nomadic jump.
+**Local PC + smartphone (LAN):** [docs/proposals/README.md](docs/proposals/README.md) — runtime bound to `0.0.0.0`, scripts `start_lan_server`, WebSocket thin-client patterns, template `conduct_guide` for future nomadic jump.
 
 **Conduct guide export:** `src/modules/conduct_guide_export.py` — JSON written on WebSocket session end (`KERNEL_CONDUCT_GUIDE_EXPORT_PATH`) after checkpoint save; distills L0, recent episodes, identity leans, DAO summary for edge / audit.
 
-**Nomad bridge (documentation):** [docs/proposals/NOMAD_PC_SMARTPHONE_BRIDGE.md](docs/proposals/NOMAD_PC_SMARTPHONE_BRIDGE.md) — per–hardware-class compatibility layers; first PC–smartphone bridge; smartphone hardware for early coordinated sensory perception; secure-network field tests deferred to operator discretion.
+**Nomad bridge (documentation):** [docs/proposals/README.md](docs/proposals/README.md) — per–hardware-class compatibility layers; first PC–smartphone bridge; smartphone hardware for early coordinated sensory perception; secure-network field tests deferred to operator discretion.
 
-**DAO robustness (design):** [docs/proposals/PROPOSAL_DAO_ALERTS_AND_TRANSPARENCY.md](docs/proposals/PROPOSAL_DAO_ALERTS_AND_TRANSPARENCY.md) — no covert resistance to corrupt governance; prioritized loud alerts; “failure lesson” as forensic/transparency artifact, not L0 buffer mutation.
+**DAO robustness (design):** [docs/proposals/README.md](docs/proposals/README.md) — no covert resistance to corrupt governance; prioritized loud alerts; “failure lesson” as forensic/transparency artifact, not L0 buffer mutation.
 
 **DAO integrity (code v0):** `record_dao_integrity_alert`, WebSocket `integrity_alert` when `KERNEL_DAO_INTEGRITY_AUDIT_WS=1` — local mock ledger only.
 
-**Nomadic instantiation (design v11):** [docs/proposals/PROPOSAL_NOMAD_CONSCIOUSNESS_HAL.md](docs/proposals/PROPOSAL_NOMAD_CONSCIOUSNESS_HAL.md) — HAL (`hardware_abstraction.py`), fases de transmutación y token de continuidad (`existential_serialization.py`); **`KERNEL_NOMAD_SIMULATION`** + **`KERNEL_NOMAD_MIGRATION_AUDIT`**, WebSocket `nomad_simulate_migration`, **`GET /nomad/migration`**; cifrado y P2P fuera del MVP.
+**Nomadic instantiation (design v11):** [docs/proposals/README.md](docs/proposals/README.md) — HAL (`hardware_abstraction.py`), fases de transmutación y token de continuidad (`existential_serialization.py`); **`KERNEL_NOMAD_SIMULATION`** + **`KERNEL_NOMAD_MIGRATION_AUDIT`**, WebSocket `nomad_simulate_migration`, **`GET /nomad/migration`**; cifrado y P2P fuera del MVP.
 
-**UniversalEthos hub (docs + stubs):** [docs/proposals/UNIVERSAL_ETHOS_AND_HUB.md](docs/proposals/UNIVERSAL_ETHOS_AND_HUB.md) unifies DemocraticBuffer / multicultural overlays, services hub, audit levels, and module map. Code stubs: **`deontic_gate`** (incl. repeal of named L0 principles), **`ml_ethics_tuner`** (gray-zone audit line), **`reparation_vault`** (mock intent + hook after V11 mock tribunal), **`nomad_identity`** (immortality bridge). **`apply_proposal_resolution_to_constitution_drafts`** keeps draft status aligned with DAO resolve.
+**UniversalEthos hub (docs + stubs):** [docs/proposals/README.md](docs/proposals/README.md) unifies DemocraticBuffer / multicultural overlays, services hub, audit levels, and module map. Code stubs: **`deontic_gate`** (incl. repeal of named L0 principles), **`ml_ethics_tuner`** (gray-zone audit line), **`reparation_vault`** (mock intent + hook after V11 mock tribunal), **`nomad_identity`** (immortality bridge). **`apply_proposal_resolution_to_constitution_drafts`** keeps draft status aligned with DAO resolve.
 
 ---
 
@@ -314,7 +314,7 @@ pytest tests/test_ethical_properties.py::TestConsistencyUnderVariability -v
 
 ## Roadmap (pending)
 
-Product and operations roadmap (expectations, P0–P3): **[docs/proposals/STRATEGY_AND_ROADMAP.md](docs/proposals/STRATEGY_AND_ROADMAP.md)**.
+Product and operations roadmap (expectations, P0–P3): **[docs/proposals/README.md](docs/proposals/README.md)**.
 
 - [x] ~~Weakness pole~~ (implemented v5)
 - [x] ~~Algorithmic forgiveness~~ (implemented v5)

@@ -4,7 +4,7 @@ Architectural invariants for the scalar action choice vs peripheral modules.
 Many modules (weakness pole, PAD, augenesis, psi sleep on other paths) do **not**
 change ``KernelDecision.final_action`` in ``EthicalKernel.process`` — that string
 comes from ``BayesianEngine`` after MalAbs pruning. See
-``docs/proposals/MODULE_IMPACT_AND_EMPIRICAL_GAP.md``.
+``docs/proposals/README.md``.
 """
 
 from __future__ import annotations

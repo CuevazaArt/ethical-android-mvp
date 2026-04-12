@@ -4,7 +4,7 @@ Proactive drive intents — off hot path; advisory only.
 Emits discrete suggestions for governance, learning, and identity consolidation.
 Does not execute hardware, contracts, or actions that bypass DAO / policy.
 
-See docs/proposals/PROPOSAL_CONTRIBUTION_INTEGRATION_V6.md (Fase 3).
+See docs/proposals/README.md (Fase 3).
 """
 
 from __future__ import annotations

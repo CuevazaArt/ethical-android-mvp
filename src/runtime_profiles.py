@@ -2,7 +2,7 @@
 Named bundles of environment variables for demos, operators, and CI.
 
 Each profile only lists **overrides**; unset keys keep process defaults.
-See docs/proposals/STRATEGY_AND_ROADMAP.md.
+See docs/proposals/README.md.
 """
 
 from __future__ import annotations

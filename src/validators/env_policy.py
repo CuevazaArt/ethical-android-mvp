@@ -10,7 +10,7 @@ We do **not** enumerate all flag Cartesian products. Instead:
   escalation). Default **strict** when unset (see ``kernel_public_env``); **warn** for lab nominal
   profiles merged at startup; set ``KERNEL_ENV_VALIDATION=warn`` to log only.
 
-See ``docs/proposals/KERNEL_ENV_POLICY.md``.
+See ``docs/proposals/README.md``.
 """
 
 from __future__ import annotations

@@ -29,7 +29,7 @@ Read the README.md and run the simulations before proposing changes.
 The complete model document is in `/docs/Androide_Etico_Analisis_Integral_v3.docx`.
 **AI assistants and agents:** see **[`AGENTS.md`](AGENTS.md)** for repository orientation, `.cursor/rules/`, and how to persist safety-related fixes in the repo (not only in chat).
 
-**Layout note:** kernel work is **Python under `src/`**. See [`docs/REPOSITORY_LAYOUT.md`](docs/REPOSITORY_LAYOUT.md). **Issue triage** for the canonical critique backlog: [`docs/proposals/CRITIQUE_ROADMAP_ISSUES.md`](docs/proposals/CRITIQUE_ROADMAP_ISSUES.md#maintainer-triage-issues-1-through-9).
+**Layout note:** kernel work is **Python under `src/`**. See [`docs/REPOSITORY_LAYOUT.md`](docs/REPOSITORY_LAYOUT.md). Add design notes under [`docs/proposals/README.md`](docs/proposals/README.md) (`PROPOSAL_*.md`).
 
 ### 3. Choose an area
 The modules are in `src/modules/`. Each one is independent:
@@ -95,7 +95,7 @@ Optional: `pre-commit run --all-files` (Ruff, mypy on `src`, detect-secrets).
 When you merge meaningful behavior or operator-facing changes:
 
 1. Add a concise entry to [`CHANGELOG.md`](CHANGELOG.md) when the change would matter to reviewers, operators, or downstream integrators.
-2. Update the **smallest** relevant doc: e.g. [`docs/proposals/RUNTIME_CONTRACT.md`](docs/proposals/RUNTIME_CONTRACT.md), [`docs/proposals/OPERATOR_QUICK_REF.md`](docs/proposals/OPERATOR_QUICK_REF.md), [`docs/proposals/KERNEL_ENV_POLICY.md`](docs/proposals/KERNEL_ENV_POLICY.md), or an ADR under `docs/adr/` for architectural decisions — not every file on every PR.
+2. Update the **smallest** relevant doc: e.g. a new `docs/proposals/PROPOSAL_*.md`, or an ADR under `docs/adr/` — not every file on every PR.
 3. Keep claims aligned with [`docs/TRANSPARENCY_AND_LIMITS.md`](docs/TRANSPARENCY_AND_LIMITS.md); do not imply certification or external moral truth unless a separate study says so.
 4. **Safety-critical numeric defaults** (thresholds, gates, circuit breakers): integrate the full fix in-repo — named constants, tests that lock defaults, honest evidence/limits in `docs/proposals/` (English `PROPOSAL_*` where appropriate), `CHANGELOG.md`, and cross-links — not only a chat explanation. See [`.cursor/rules/dev-efficiency-and-docs.mdc`](.cursor/rules/dev-efficiency-and-docs.mdc) (*Safety guardrails*).
 

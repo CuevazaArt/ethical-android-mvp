@@ -13,4 +13,4 @@
 
 **Prometheus alerts (starter):** [`../prometheus/ethos_kernel_alerts.yml`](../prometheus/ethos_kernel_alerts.yml) — MalAbs burst / `safety_block` rate / perception circuit trips. Add to your Prometheus `rule_files` and tune thresholds for your environment.
 
-See also [OPERATOR_QUICK_REF.md](../../docs/proposals/OPERATOR_QUICK_REF.md#observability-metrics-and-logs).
+See also [OPERATOR_QUICK_REF.md](../../docs/proposals/README.md).

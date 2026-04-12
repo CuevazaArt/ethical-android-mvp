@@ -296,7 +296,7 @@ def main() -> int:
             "amplitude_poles": args.amplitude,
             "amplitude_mixture": args.mixture_amplitude,
             "base_seed": args.base_seed,
-            "doc": "docs/proposals/PROPOSAL_WEIGHT_SENSITIVITY_SWEEP.md",
+            "doc": "docs/proposals/README.md",
             **meta,
         },
     }

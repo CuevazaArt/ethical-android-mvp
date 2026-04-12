@@ -26,7 +26,7 @@ def record_dao_integrity_alert(
     """
     Loud, auditable signal — local ledger only (mock DAO).
 
-    Aligns with docs/proposals/PROPOSAL_DAO_ALERTS_AND_TRANSPARENCY.md: no covert “guerrilla”;
+    Aligns with docs/proposals/README.md: no covert “guerrilla”;
     transparency as infrastructure. Does not broadcast to a real network.
     """
     register_hub_calibration(

@@ -1,6 +1,6 @@
 """Input trust: MalAbs normalization and LLM perception sanitization.
 
-Regression cases align with ``docs/proposals/INPUT_TRUST_THREAT_MODEL.md`` (limits, not guarantees).
+Regression cases align with ``docs/proposals/README.md`` (limits, not guarantees).
 """
 
 import os

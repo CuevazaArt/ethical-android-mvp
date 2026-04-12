@@ -7,7 +7,7 @@ without claiming distributed consensus or ML trajectory modeling.
 **Env:** ``KERNEL_LOCAL_SOVEREIGNTY`` — default ``1`` (scan on); set ``0`` to skip
 (legacy / lab only).
 
-See ``docs/proposals/PROPOSAL_REALITY_VERIFICATION_V11.md`` (pillar 3).
+See ``docs/proposals/README.md`` (pillar 3).
 """
 
 from __future__ import annotations

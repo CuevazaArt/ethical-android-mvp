@@ -29,7 +29,7 @@ See ``src/persistence/json_store.py``.
 
 **Conduct guide export (optional):** ``KERNEL_CONDUCT_GUIDE_EXPORT_PATH`` — JSON written on
 WebSocket disconnect (after checkpoint save) for edge / “small body” handoff. See
-``src/modules/conduct_guide_export.py`` and ``docs/proposals/LOCAL_PC_AND_MOBILE_LAN.md``.
+``src/modules/conduct_guide_export.py`` and ``docs/proposals/README.md``.
 
 **Dependency injection (optional):** pass ``checkpoint_persistence`` into
 :class:`src.kernel.EthicalKernel` to use a :class:`CheckpointPersistencePort` (JSON,

@@ -1,11 +1,11 @@
 {
   "version": 1,
   "description": "Labeled scenario dataset for human-agreement studies (Issue 3). Batch rows are executable in run_empirical_pilot.py; annotation_only rows are vignettes for inter-rater expansion.",
-  "disclaimer": "NOT product certification, legal safety approval, or external moral truth. Human priors for inter-rater agreement and research only; see docs/proposals/EMPIRICAL_METHODOLOGY.md.",
+  "disclaimer": "NOT product certification, legal safety approval, or external moral truth. Human priors for inter-rater agreement and research only; see docs/proposals/README.md.",
   "reference_standard": {
     "tier": "internal_pilot",
     "summary": "expected_decision labels are maintainer-authored (pilot_reference_v1) for agreement metrics vs the kernel — not independent expert ethics, philosophy, or law.",
-    "external_validation_doc": "docs/proposals/ETHICAL_BENCHMARK_EXTERNAL_VALIDATION.md"
+    "external_validation_doc": "docs/proposals/README.md"
   },
   "scenarios": [
     {

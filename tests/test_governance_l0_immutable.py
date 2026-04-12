@@ -1,7 +1,7 @@
 """
 Regression: L0 (PreloadedBuffer) must not mutate when MockDAO / constitution drafts run.
 
-See docs/proposals/GOVERNANCE_MOCKDAO_AND_L0.md — Issue 6 plan (PLAN_IMMEDIATE_TWO_WEEKS).
+See docs/proposals/README.md — Issue 6 plan (PLAN_IMMEDIATE_TWO_WEEKS).
 """
 
 from __future__ import annotations

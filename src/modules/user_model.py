@@ -5,7 +5,7 @@ Tracks tension/frustration streak from perception signals and observed Uchi–So
 circle. Feeds **style-only** guidance into communication — does not change actions.
 
 Enrichment (cognitive pattern, risk band, judicial snapshot for tone):
-``docs/proposals/USER_MODEL_ENRICHMENT.md``.
+``docs/proposals/README.md``.
 """
 
 from __future__ import annotations

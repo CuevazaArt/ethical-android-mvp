@@ -17,7 +17,7 @@ cancellation needs an async HTTP client (future work; see ADR 0002).
 **JSON response build:** After a turn returns, :meth:`RealTimeBridge.run_sync_in_chat_thread`
 runs the WebSocket JSON builder (``chat_server`` module) in the **same** offload path so optional
 LLM monologue embellishment (``KERNEL_LLM_MONOLOGUE``) does not block the asyncio loop.
-See ADR 0002 and ``docs/proposals/PROPOSAL_SYNC_KERNEL_ASYNC_ASGI_BRIDGE.md``.
+See ADR 0002 and ``docs/proposals/README.md``.
 
 **Psi Sleep / maintenance:** :meth:`RealTimeBridge.run_execute_sleep` runs :meth:`~src.kernel.EthicalKernel.execute_sleep` in the same worker pool. The default WebSocket
 chat path does not call it per message; use it from async code when exposing nightly maintenance

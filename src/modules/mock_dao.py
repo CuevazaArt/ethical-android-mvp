@@ -4,7 +4,7 @@ Mock DAO — Simulated ethical governance (lab / demo only).
 Simulates governance UX (quadratic voting, vector reputation, audit strings)
 **without** a blockchain. There is **no** Solidity deployment, testnet contract,
 or adversarial game-theory model in this repository — see
-``docs/proposals/MOCK_DAO_SIMULATION_LIMITS.md``.
+``docs/proposals/README.md``.
 
 **In-process only:** not distributed consensus; votes do **not** override L0 /
 MalAbs / Bayesian action selection — see ``GOVERNANCE_MOCKDAO_AND_L0.md``.

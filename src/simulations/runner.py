@@ -14,7 +14,7 @@ winners — for simplex grid / bisection tooling (see ``scripts/run_simplex_deci
 
 IDs **17–18** are **three-candidate** synthetic races with **distinct corner winners** on the
 util/deon/virtue simplex. ID **19** is a **two-candidate** crossover with a **tight** virtue corner
-margin — for boundary calibration (see ``docs/proposals/PROPOSAL_EXPERIMENT_V5_SENSITIVITY.md``).
+margin — for boundary calibration (see ``docs/proposals/README.md``).
 """
 
 from dataclasses import dataclass

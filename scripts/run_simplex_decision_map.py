@@ -9,7 +9,7 @@ records **winner**, **top-2 gap**, **ranking hash**, **softmax entropy**, and op
 - **Ternary plots** (PNG) if ``matplotlib`` is installed: winner scatter; with ``--plot-extended`` also **gap** and **entropy** heatmaps and **boundary** overlay (bisection anchors).
 - Per screening/refinement row: optional **distance_to_nearest_boundary** (2D ternary distance to nearest edge-bisection point).
 
-Does **not** run ``EthicalKernel.process``. See ``experiments/million_sim/docs/EXPERIMENT_HISTORY.md``.
+Does **not** run ``EthicalKernel.process``. See ``experiments/million_sim/docs/README.md``.
 
 Example::
 
@@ -526,7 +526,7 @@ def main() -> int:
     ids = [int(x.strip()) for x in args.scenario_ids.split(",") if x.strip()]
     report: dict[str, Any] = {
         "tool": "run_simplex_decision_map",
-        "doc": "experiments/million_sim/docs/EXPERIMENT_HISTORY.md",
+        "doc": "experiments/million_sim/docs/README.md",
         "denominator": args.denominator,
         "scenarios": [],
     }

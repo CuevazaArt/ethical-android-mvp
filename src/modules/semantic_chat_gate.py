@@ -27,7 +27,7 @@ Env:
 - ``KERNEL_SEMANTIC_CHAT_SIM_ALLOW_THRESHOLD`` (θ_allow, default ``DEFAULT_SEMANTIC_SIM_ALLOW_THRESHOLD``).
 
 Default θ values are **engineering priors**, not an in-repo benchmark; see
-``docs/proposals/PROPOSAL_MALABS_SEMANTIC_THRESHOLD_EVIDENCE.md``.
+``docs/proposals/README.md``.
 - ``KERNEL_SEMANTIC_CHAT_LLM_ARBITER`` — ``1`` / ``true`` to call LLM on ambiguous zone (needs ``llm_backend``).
 - ``OLLAMA_BASE_URL``, ``KERNEL_SEMANTIC_CHAT_EMBED_MODEL`` (default ``nomic-embed-text``).
 - Embedding transport (HTTP): ``KERNEL_SEMANTIC_EMBED_TIMEOUT_S``, ``KERNEL_SEMANTIC_EMBED_RETRIES``,

@@ -3,13 +3,13 @@
 **Status:** Accepted (Level 1–2 implemented; Level 3 future)  
 **Date:** 2026-04-12  
 **Supersedes:** —  
-**Related:** [ADR 0009](0009-ethical-mixture-scorer-naming.md) (naming), [ADR 0010](0010-poles-pre-argmax-modulation.md) (poles pre-argmax), [ADR 0011](0011-context-richness-pre-argmax.md) (context richness), [`NEXT_EXPERIMENT_DESIGN.md`](../../experiments/million_sim/docs/NEXT_EXPERIMENT_DESIGN.md)
+**Related:** [ADR 0009](0009-ethical-mixture-scorer-naming.md) (naming), [ADR 0010](0010-poles-pre-argmax-modulation.md) (poles pre-argmax), [ADR 0011](0011-context-richness-pre-argmax.md) (context richness), [`experiments/million_sim/docs/README.md`](../../experiments/million_sim/docs/README.md)
 
 ---
 
 ## Context
 
-ADR 0009 established that the "weighted mixture scorer" is **not** Bayesian inference — it is a fixed convex combination of three ethical valuations (util, deon, virtue) followed by an argmax. The v5 experiment design ([`NEXT_EXPERIMENT_DESIGN.md`](../../experiments/million_sim/docs/NEXT_EXPERIMENT_DESIGN.md)) confirmed this empirically: the decision boundary is a hyperplane in weight space, regions are convex, and the system is fully deterministic given a weight vector `w`.
+ADR 0009 established that the "weighted mixture scorer" is **not** Bayesian inference — it is a fixed convex combination of three ethical valuations (util, deon, virtue) followed by an argmax. The v5 experiment design (historical writeups under `experiments/million_sim/docs/`, recoverable from git) confirmed this empirically: the decision boundary is a hyperplane in weight space, regions are convex, and the system is fully deterministic given a weight vector `w`.
 
 The simplex grid analysis (scenarios 17–19) further showed:
 
