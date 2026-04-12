@@ -2,7 +2,7 @@
 
 | ADR | Title |
 |-----|--------|
-| [0001 — packaging core boundary](0001-packaging-core-boundary.md) | Pip-installable core vs monolith repo |
+| [0001 — packaging core boundary](0001-packaging-core-boundary.md) | Pip-installable core vs monolith repo (**Accepted**) |
 | [0002 — async orchestration (future)](0002-async-orchestration-future.md) | Async orchestration for chat / kernel (stub) |
 | [0003 — optional semantic chat gate](0003-optional-semantic-chat-gate.md) | HF-style embeddings vs Ollama language layer; future MalAbs complement |
 | [0004 — configurable linear pole evaluator](0004-configurable-linear-pole-evaluator.md) | JSON weights for `EthicalPoles`; path to nonlinear / ML later |

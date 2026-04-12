@@ -14,6 +14,7 @@ def test_pyproject_lists_numpy_and_pydantic():
     assert proj["requires-python"].startswith(">=")
     assert proj["version"] == "0.0.0"
     assert "keywords" in proj
+    assert len(proj["keywords"]) >= 3
     extras = proj["optional-dependencies"]
     assert "runtime" in extras and "dev" in extras
     assert extras["theater"] == []

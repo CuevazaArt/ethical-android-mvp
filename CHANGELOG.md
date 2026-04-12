@@ -2,6 +2,13 @@
 
 All notable changes to this project are summarized here. For narrative context and design rationale, see [`HISTORY.md`](HISTORY.md).
 
+## Docs hygiene — test count + ADR index — April 2026
+
+- **[`docs/proposals/PROJECT_STATUS_AND_MODULE_MATURITY.md`](docs/proposals/PROJECT_STATUS_AND_MODULE_MATURITY.md):** pytest collection count **591** (`pytest tests/ --collect-only -q`).
+- **[`README.md`](README.md):** suite size line **590+** tests.
+- **[`docs/adr/README.md`](docs/adr/README.md):** ADR 0001 marked **Accepted** in index.
+- **`tests/test_packaging_metadata.py`:** assert `keywords` has at least three entries.
+
 ## Governance + ops — L0 regression test, Grafana starter — April 2026
 
 - **[`tests/test_governance_l0_immutable.py`](tests/test_governance_l0_immutable.py):** `PreloadedBuffer` principles unchanged after MockDAO draft / vote / resolve ([`GOVERNANCE_MOCKDAO_AND_L0.md`](docs/proposals/GOVERNANCE_MOCKDAO_AND_L0.md) §5 checkpoint).
