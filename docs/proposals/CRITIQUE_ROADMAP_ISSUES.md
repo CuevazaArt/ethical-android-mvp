@@ -14,6 +14,8 @@ Complements [STRATEGY_AND_ROADMAP.md](STRATEGY_AND_ROADMAP.md) and the public [r
 
 **Phased remediation plan (phases 1–5, acceptance framing, issue traceability):** [`PROPOSAL_CORE_IMPLEMENTATION_GAP_PHASED_REMEDIATION.md`](PROPOSAL_CORE_IMPLEMENTATION_GAP_PHASED_REMEDIATION.md).
 
+**Action plan (evidence vs sensors, workstreams, sequencing):** [`PROPOSAL_ADDRESSING_CORE_WEAKNESSES.md`](PROPOSAL_ADDRESSING_CORE_WEAKNESSES.md).
+
 ---
 
 ## Maintainer triage (issues 1 through 9)
