@@ -112,13 +112,29 @@ def apply_psi_sleep_feedback_to_engine(
         return ""
 
     current = np.asarray(engine.hypothesis_weights, dtype=np.float64).copy()
-    mixed = (1.0 - blend) * current + blend * target
-    mixed = np.maximum(mixed, 1e-6)
-    mixed = mixed / float(np.sum(mixed))
-    tup = (float(mixed[0]), float(mixed[1]), float(mixed[2]))
-    if not hypothesis_weights_allowed(genome_weights, tup, max_drift):
+    requested = blend
+    b = blend
+    min_blend = 1e-6
+    mixed: np.ndarray | None = None
+    tup: tuple[float, float, float] | None = None
+    for _ in range(16):
+        if b < min_blend:
+            break
+        m = (1.0 - b) * current + b * target
+        m = np.maximum(m, 1e-6)
+        m = m / float(np.sum(m))
+        t = (float(m[0]), float(m[1]), float(m[2]))
+        if hypothesis_weights_allowed(genome_weights, t, max_drift):
+            mixed, tup, blend = m, t, b
+            break
+        b *= 0.5
+
+    if mixed is None or tup is None:
         return "\n  Feedback mixture update skipped (genome drift cap)."
 
     engine.hypothesis_weights = mixed
     ledger.clear()
-    return f"\n  Feedback mixture update applied (blend={blend:.3f}, samples={n_samples})."
+    note = ""
+    if abs(blend - requested) > 1e-9:
+        note = f", blend reduced from {requested:.3f} for genome cap"
+    return f"\n  Feedback mixture update applied (blend={blend:.3f}, samples={n_samples}{note})."

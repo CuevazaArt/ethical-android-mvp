@@ -2,7 +2,7 @@
 
 **Purpose:** Reduce **accidental combinatorics** of feature flags. The codebase is a **research lab**; this document defines **nominal profiles**, **groupings**, **combinations to avoid or treat as experimental**, and a **deprecation posture** without breaking existing env names.
 
-**Canonical profile bundles:** [`src/runtime_profiles.py`](../src/runtime_profiles.py) — use these for demos, CI smoke, and operator docs. **CI** runs the full `pytest tests/` suite, including **`tests/test_runtime_profiles.py`** (health + WebSocket roundtrip for **every** named profile). **Perception hardening (Fase 1):** nominal bundle **`perception_hardening_lab`** enables light risk tier, cross-check, uncertainty→delib, parse fail-local, and `light_risk_tier` in chat JSON. **Phase 2 bus spike:** **`phase2_event_bus_lab`** sets `KERNEL_EVENT_BUS=1` (ADR 0006).
+**Canonical profile bundles:** [`src/runtime_profiles.py`](../src/runtime_profiles.py) — use these for demos, CI smoke, and operator docs. **`ETHOS_RUNTIME_PROFILE`** (e.g. `lan_operational`, `situated_v8_lan_demo`) applies a bundle at **chat server startup**; explicit env vars **win** over profile defaults for each key. **CI** runs the full `pytest tests/` suite, including **`tests/test_runtime_profiles.py`** (health + WebSocket roundtrip for **every** named profile). **Perception hardening (Fase 1):** nominal bundle **`perception_hardening_lab`** enables light risk tier, cross-check, uncertainty→delib, parse fail-local, and `light_risk_tier` in chat JSON. **Phase 2 bus spike:** **`phase2_event_bus_lab`** sets `KERNEL_EVENT_BUS=1` (ADR 0006).
 
 **Full flag catalog:** [README](README.md) (WebSocket / runtime sections) and module docstrings in `src/chat_server.py`, `src/persistence/checkpoint.py`, etc.
 

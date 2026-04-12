@@ -395,7 +395,12 @@ class EthicalKernel:
                 max_drift=float(os.environ.get("KERNEL_ETHICAL_GENOME_MAX_DRIFT", "0.15")),
             )
 
-        bayes_result = self.bayesian.evaluate(clean_actions)
+        bayes_result = self.bayesian.evaluate(
+            clean_actions,
+            scenario=scenario,
+            context=context,
+            signals=signals,
+        )
 
         # ═══ STEP 7: Multipolar evaluation ═══
         context_data = {

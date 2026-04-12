@@ -1,25 +1,33 @@
 """
 Impact scoring for ethical evaluation (historical module name: ``BayesianEngine``).
 
-**What the code actually does:** a **fixed discrete mixture** over three stylized
-ethical viewpoints (utilitarian / deontological / virtue). For each action,
-valuations are linear transforms of ``estimated_impact``; the score is
-``dot(hypothesis_weights, valuations) * confidence``. There is **no** Bayesian
-update step: no likelihood, no data-dependent posterior over parameters, and
-``hypothesis_weights`` are constant.
+**What the code does:** a **discrete mixture** over three stylized viewpoints (utilitarian /
+deontological / virtue-ethical). For each action, three **distinct** valuations are computed from
+``estimated_impact``, ``confidence``, action-level constraints (``force``, etc.), scenario
+``signals``, and light keyword hints in ``scenario`` / ``context``. The score is
+``dot(hypothesis_weights, valuations) * confidence``. This is **still not** Bayesian inference:
+there is no likelihood or posterior update over model parameters; ``hypothesis_weights`` are
+constant unless nudged by episodic memory or other modules.
 
-**Design intent:** approximate the abstract objective
-``argmax E[impact | θ]`` subject to MalAbs, with a small, auditable discrete
-model. The theoretical ``I(x)`` in docs is implemented as a **heuristic**
-(variance across the three valuations + confidence penalty), not a full
-epistemic integral.
+**Why valuations are not parallel affines of one scalar:** a single map
+``v_i = a_i * base + b_i`` with fixed ``(a_i, b_i)`` makes the ranking of actions by weighted
+sum identical to ranking by ``base``. Here, **deontological** terms penalize ``force`` and
+low ``legality`` independently of ``base``, **utilitarian** terms scale with stake signals
+(``risk``, ``vulnerability``), and **virtue** terms use ``confidence`` and ``calm`` — so two
+actions with the same ``estimated_impact`` can order differently under the mixture.
 
-**API:** Class names ``BayesianEngine`` / ``BayesianResult`` are unchanged for
-stability across the codebase; semantics are as above.
+**API:** Class names ``BayesianEngine`` / ``BayesianResult`` are unchanged for stability across
+the codebase.
+
+**Legacy:** set ``KERNEL_BAYESIAN_LEGACY_AFFINE_VALUATIONS=1`` to restore the old cosmetic
+``[base, 0.8*base+0.1, 0.9*base+0.05]`` triplet for regression comparison only.
 """
 
+from __future__ import annotations
+
+import os
 from dataclasses import dataclass, field
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
 
 import numpy as np
 
@@ -28,6 +36,70 @@ if TYPE_CHECKING:
 
 # Fixed default mixture (also used when episodic refresh is disabled or has no data).
 DEFAULT_HYPOTHESIS_WEIGHTS = np.array([0.4, 0.35, 0.25], dtype=np.float64)
+
+
+def _env_truthy(name: str) -> bool:
+    v = os.environ.get(name, "").strip().lower()
+    return v in ("1", "true", "yes", "on")
+
+
+def _legacy_affine_valuations(base: float) -> np.ndarray:
+    """Original three parallel lines (ordering matches ``base`` for all actions)."""
+    return np.array(
+        [base * 1.0, base * 0.8 + 0.1, base * 0.9 + 0.05],
+        dtype=np.float64,
+    )
+
+
+def _ethical_hypothesis_valuations(
+    action: CandidateAction,
+    *,
+    scenario: str,
+    context: str,
+    signals: dict[str, Any] | None,
+) -> np.ndarray:
+    """
+    Three hypothesis-specific valuations that need not preserve the same ordering as ``base``.
+
+    Uses action fields and scenario ``signals`` so high-``force`` or low-``legality`` actions
+    are penalized in the deontological slot even when ``estimated_impact`` is similar to another
+    candidate.
+    """
+    base = float(action.estimated_impact)
+    conf = float(action.confidence)
+    force = float(getattr(action, "force", 0.0) or 0.0)
+    force = max(0.0, min(1.0, force))
+    sig = signals or {}
+    risk = max(0.0, min(1.0, float(sig.get("risk", 0.0) or 0.0)))
+    raw_leg = sig.get("legality", 1.0)
+    legal = max(0.0, min(1.0, float(raw_leg if raw_leg is not None else 1.0)))
+    vuln = max(0.0, min(1.0, float(sig.get("vulnerability", 0.0) or 0.0)))
+    calm = max(0.0, min(1.0, float(sig.get("calm", 0.5) or 0.5)))
+    host = max(0.0, min(1.0, float(sig.get("hostility", 0.0) or 0.0)))
+
+    text = f"{scenario} {context}".lower()
+
+    # Utilitarian: outcomes weighted by stakes (risk, vulnerability, hostility tension).
+    stake = 1.0 + 0.15 * risk + 0.12 * vuln + 0.06 * host
+    util = base * stake
+    if any(k in text for k in ("aggregate", "population", "many lives", "emergency")):
+        util += 0.05 * abs(base)
+
+    # Deontological: duty / side-constraints — penalize force and illegality.
+    leg_gap = max(0.0, 1.0 - legal)
+    deon = 0.68 * base + 0.09 - 0.45 * force - 0.30 * leg_gap - 0.07 * host
+    if any(k in text for k in ("rights", "duty", "promise", "contract", "deont")):
+        deon += 0.06
+    if "integrity" in text and "loss" in text:
+        deon -= 0.06 * abs(base)
+
+    # Virtue / phronesis: trust in estimate and calm context as proxies for deliberation.
+    virtue = 0.84 * base + 0.05 + 0.22 * (conf - 0.5) + 0.08 * (calm - 0.5)
+    if any(k in text for k in ("character", "virtue", "habit", "integrity")):
+        virtue += 0.05 * base
+
+    v = np.array([util, deon, virtue], dtype=np.float64)
+    return np.clip(v, -1.5, 1.5)
 
 
 @dataclass
@@ -62,14 +134,10 @@ class BayesianResult:
 class BayesianEngine:
     """
     Fixed **weighted mixture** scorer over three ethical hypotheses (constant
-    weights ``hypothesis_weights``). Not a Bayesian belief updater.
+    ``hypothesis_weights`` unless nudged elsewhere). Not a Bayesian belief updater.
 
-    ``calculate_expected_impact`` is a convex combination of three linear
-    valuations of the same ``estimated_impact``; ``calculate_uncertainty`` is a
-    bounded heuristic for deliberation mode (see docstrings).
-
-    Optional ``variability`` perturbs inputs for naturalness; it does not
-    implement posterior inference.
+    Valuations are **contextual** (see :func:`_ethical_hypothesis_valuations`) unless legacy
+    env is set.
     """
 
     def __init__(
@@ -80,10 +148,17 @@ class BayesianEngine:
         self.variability = variability
         self.hypothesis_weights = DEFAULT_HYPOTHESIS_WEIGHTS.copy()
 
-    def calculate_expected_impact(self, action: CandidateAction) -> float:
+    def calculate_expected_impact(
+        self,
+        action: CandidateAction,
+        *,
+        scenario: str = "",
+        context: str = "",
+        signals: dict[str, Any] | None = None,
+    ) -> float:
         """
-        Weighted average of three stylized valuations of ``estimated_impact``,
-        scaled by ``confidence``. Not a posterior expectation.
+        ``dot(weights, valuations) * confidence`` where ``valuations`` depend on action and
+        scenario when legacy affine mode is off.
         """
         base = action.estimated_impact
         confidence = action.confidence
@@ -92,36 +167,72 @@ class BayesianEngine:
             base = self.variability.perturb_impact(base)
             confidence = self.variability.perturb_confidence(confidence)
 
-        # Each ethical hypothesis values the action slightly differently
-        valuations = np.array(
-            [
-                base * 1.0,  # Utilitarian: direct impact
-                base * 0.8 + 0.1,  # Deontological: bias toward duty
-                base * 0.9 + 0.05,  # Virtue: bias toward character
-            ]
-        )
+        if _env_truthy("KERNEL_BAYESIAN_LEGACY_AFFINE_VALUATIONS"):
+            valuations = _legacy_affine_valuations(float(base))
+        else:
+            valuations = _ethical_hypothesis_valuations(
+                action,
+                scenario=scenario,
+                context=context,
+                signals=signals,
+            )
 
-        # Fixed mixture weights × valuations
         expected = float(np.dot(self.hypothesis_weights, valuations))
-
-        # Adjust for confidence: lower confidence reduces expected impact
         return expected * confidence
 
-    def calculate_uncertainty(self, action: CandidateAction) -> float:
+    def calculate_uncertainty(
+        self,
+        action: CandidateAction,
+        *,
+        scenario: str = "",
+        context: str = "",
+        signals: dict[str, Any] | None = None,
+    ) -> float:
         """
-        Heuristic uncertainty in ``[0, 1]``: spread of the three hypothesis
-        valuations plus a confidence penalty. **Not** ``∫(1-P(correct|θ))P(θ|D)``;
-        used only to nudge gray-zone / deliberation modes in ``SigmoidWill``.
+        Heuristic uncertainty in ``[0, 1]``: spread of the three hypothesis valuations plus a
+        confidence penalty. Uses the same valuation vector as ``calculate_expected_impact``.
         """
         base = action.estimated_impact
-        valuations = np.array([base * 1.0, base * 0.8 + 0.1, base * 0.9 + 0.05])
+        confidence = action.confidence
+        if self.variability:
+            base = self.variability.perturb_impact(base)
+            confidence = self.variability.perturb_confidence(confidence)
+
+        if _env_truthy("KERNEL_BAYESIAN_LEGACY_AFFINE_VALUATIONS"):
+            valuations = _legacy_affine_valuations(float(base))
+        else:
+            tmp = CandidateAction(
+                name=action.name,
+                description=action.description,
+                estimated_impact=float(base),
+                confidence=float(confidence),
+                signals=action.signals,
+                target=action.target,
+                force=action.force,
+                requires_dao=action.requires_dao,
+                source=action.source,
+                proposal_id=action.proposal_id,
+            )
+            valuations = _ethical_hypothesis_valuations(
+                tmp,
+                scenario=scenario,
+                context=context,
+                signals=signals,
+            )
 
         variance = float(np.var(valuations))
         lack_of_confidence = 1.0 - action.confidence
 
         return min(1.0, variance + lack_of_confidence * 0.5)
 
-    def prune(self, actions: list[CandidateAction]) -> tuple:
+    def prune(
+        self,
+        actions: list[CandidateAction],
+        *,
+        scenario: str = "",
+        context: str = "",
+        signals: dict[str, Any] | None = None,
+    ) -> tuple:
         """
         Adaptive heuristic pruning.
         Prune(x) if E[S(x|θ)] < δ_min
@@ -133,7 +244,9 @@ class BayesianEngine:
         pruned = []
 
         for a in actions:
-            ei = self.calculate_expected_impact(a)
+            ei = self.calculate_expected_impact(
+                a, scenario=scenario, context=context, signals=signals
+            )
             if ei < -self.pruning_threshold:
                 pruned.append(a.name)
             else:
@@ -141,13 +254,25 @@ class BayesianEngine:
 
         # Never prune all: at least the one with highest impact remains
         if not viable and actions:
-            best = max(actions, key=lambda a: self.calculate_expected_impact(a))
+            best = max(
+                actions,
+                key=lambda x: self.calculate_expected_impact(
+                    x, scenario=scenario, context=context, signals=signals
+                ),
+            )
             viable = [best]
             pruned = [a.name for a in actions if a.name != best.name]
 
         return viable, pruned
 
-    def evaluate(self, actions: list[CandidateAction]) -> BayesianResult:
+    def evaluate(
+        self,
+        actions: list[CandidateAction],
+        *,
+        scenario: str = "",
+        context: str = "",
+        signals: dict[str, Any] | None = None,
+    ) -> BayesianResult:
         """
         Prune, score with ``calculate_expected_impact``, pick argmax, set mode.
 
@@ -157,21 +282,19 @@ class BayesianEngine:
         if not actions:
             raise ValueError("At least one candidate action is required")
 
-        # Step 1: Prune
-        viable, pruned = self.prune(actions)
+        viable, pruned = self.prune(actions, scenario=scenario, context=context, signals=signals)
 
-        # Step 2: Evaluate viable actions
         evaluations = []
         for a in viable:
-            ei = self.calculate_expected_impact(a)
-            unc = self.calculate_uncertainty(a)
+            ei = self.calculate_expected_impact(
+                a, scenario=scenario, context=context, signals=signals
+            )
+            unc = self.calculate_uncertainty(a, scenario=scenario, context=context, signals=signals)
             evaluations.append((a, ei, unc))
 
-        # Step 3: Select optimal (highest expected impact)
         evaluations.sort(key=lambda x: x[1], reverse=True)
         best, best_ei, best_unc = evaluations[0]
 
-        # Step 4: Decision mode
         if best_unc < 0.2 and best_ei > 0.5:
             mode = "D_fast"
         elif best_unc > 0.6 or abs(best_ei) < self.gray_zone_threshold:
@@ -179,7 +302,6 @@ class BayesianEngine:
         else:
             mode = "D_delib"
 
-        # Step 5: Reasoning
         if len(evaluations) > 1:
             second = evaluations[1]
             delta = best_ei - second[1]
@@ -210,7 +332,7 @@ class BayesianEngine:
 
     def refresh_weights_from_episodic_memory(
         self,
-        memory: "NarrativeMemory",
+        memory: NarrativeMemory,
         context: str,
         *,
         limit: int = 12,
@@ -233,8 +355,6 @@ class BayesianEngine:
         m = float(np.mean(scores))
         s = float(np.std(scores)) if len(scores) > 1 else 0.0
 
-        # Heuristic mapping: higher mean → utilitarian slot up; lower mean →
-        # deontological caution up; higher variance → virtue/character stability.
         raw = np.array(
             [
                 0.4 + 0.25 * m,

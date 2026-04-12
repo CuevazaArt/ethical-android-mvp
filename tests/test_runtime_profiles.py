@@ -1,6 +1,7 @@
 """Smoke tests for named runtime env profiles (see src/runtime_profiles.py, docs/proposals/ESTRATEGIA_Y_RUTA.md)."""
 
 import os
+import subprocess
 import sys
 
 import pytest
@@ -120,3 +121,67 @@ def test_nomad_profile_simulation_payload(monkeypatch: pytest.MonkeyPatch):
         data = ws.receive_json()
         assert "nomad" in data
         assert data["nomad"].get("hardware_context", {}).get("compute_tier") == "edge_mobile"
+
+
+def _reset_applied_profile() -> None:
+    import src.runtime_profiles as rp
+
+    rp._APPLIED_RUNTIME_PROFILE = None
+
+
+def test_apply_named_runtime_profile_fills_missing_env(monkeypatch: pytest.MonkeyPatch):
+    import src.runtime_profiles as rp
+
+    monkeypatch.delenv("CHAT_HOST", raising=False)
+    monkeypatch.setenv("ETHOS_RUNTIME_PROFILE", "lan_mobile_thin_client")
+    _reset_applied_profile()
+    try:
+        assert rp.apply_named_runtime_profile_to_environ() == "lan_mobile_thin_client"
+        assert os.environ.get("CHAT_HOST") == "0.0.0.0"
+        assert rp.applied_runtime_profile() == "lan_mobile_thin_client"
+    finally:
+        monkeypatch.delenv("ETHOS_RUNTIME_PROFILE", raising=False)
+        _reset_applied_profile()
+
+
+def test_apply_named_runtime_profile_explicit_env_wins(monkeypatch: pytest.MonkeyPatch):
+    import src.runtime_profiles as rp
+
+    monkeypatch.setenv("CHAT_HOST", "10.0.0.2")
+    monkeypatch.setenv("ETHOS_RUNTIME_PROFILE", "lan_operational")
+    _reset_applied_profile()
+    try:
+        rp.apply_named_runtime_profile_to_environ()
+        assert os.environ.get("CHAT_HOST") == "10.0.0.2"
+    finally:
+        monkeypatch.delenv("ETHOS_RUNTIME_PROFILE", raising=False)
+        _reset_applied_profile()
+
+
+def test_apply_named_runtime_profile_unknown_raises(monkeypatch: pytest.MonkeyPatch):
+    import src.runtime_profiles as rp
+
+    monkeypatch.setenv("ETHOS_RUNTIME_PROFILE", "not_a_valid_profile_xyz")
+    _reset_applied_profile()
+    try:
+        with pytest.raises(ValueError, match="unknown ETHOS_RUNTIME_PROFILE"):
+            rp.apply_named_runtime_profile_to_environ()
+    finally:
+        monkeypatch.delenv("ETHOS_RUNTIME_PROFILE", raising=False)
+        _reset_applied_profile()
+
+
+def test_health_json_includes_runtime_profile_subprocess():
+    root = os.path.join(os.path.dirname(__file__), "..")
+    code = """
+import os, sys
+sys.path.insert(0, ".")
+os.environ["ETHOS_RUNTIME_PROFILE"] = "operational_trust"
+from fastapi.testclient import TestClient
+from src.chat_server import app
+c = TestClient(app)
+h = c.get("/health").json()
+assert h.get("status") == "ok"
+assert h.get("runtime_profile") == "operational_trust"
+"""
+    subprocess.run([sys.executable, "-c", code], cwd=root, check=True)

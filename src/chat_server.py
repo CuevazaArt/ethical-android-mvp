@@ -7,6 +7,8 @@ Run from repo root:
 Or: python -m src.chat_server
 Or: python -m src.runtime  (same server; see docs/proposals/RUNTIME_CONTRACT.md)
 
+**Profiles:** set ``ETHOS_RUNTIME_PROFILE`` to a name in ``src/runtime_profiles.py`` to merge that bundle at import time (explicit env vars win per key). ``GET /health`` and ``GET /`` include ``runtime_profile`` when set.
+
 OpenAPI/Swagger: **off** by default; set KERNEL_API_DOCS=1 to expose ``/docs``, ``/redoc``, ``/openapi.json`` (see README).
 
 Checkpoint (optional): ``KERNEL_CHECKPOINT_PATH`` attaches ``JsonFileCheckpointAdapter`` via
@@ -146,8 +148,12 @@ from .persistence.checkpoint import (
 )
 from .real_time_bridge import RealTimeBridge
 from .runtime.telemetry import advisory_interval_seconds_from_env, advisory_loop
+from .runtime_profiles import apply_named_runtime_profile_to_environ
 
 logger = logging.getLogger(__name__)
+
+# ``ETHOS_RUNTIME_PROFILE`` bundles (see ``src/runtime_profiles.py``) — must run before FastAPI/env-dependent routes.
+apply_named_runtime_profile_to_environ()
 
 
 @asynccontextmanager
@@ -441,7 +447,13 @@ def prometheus_metrics() -> Response:
 
 @app.get("/health")
 def health() -> dict[str, str]:
-    return {"status": "ok"}
+    from .runtime_profiles import applied_runtime_profile
+
+    out: dict[str, str] = {"status": "ok"}
+    prof = applied_runtime_profile()
+    if prof:
+        out["runtime_profile"] = prof
+    return out
 
 
 @app.get("/dao/governance")
@@ -504,25 +516,30 @@ def constitution_public() -> JSONResponse:
 
 @app.get("/")
 def root() -> JSONResponse:
-    return JSONResponse(
-        {
-            "service": "ethos-kernel-chat",
-            "websocket": "/ws/chat",
-            "constitution": "/constitution (requires KERNEL_MORAL_HUB_PUBLIC=1)",
-            "dao_governance": "/dao/governance (V12.3 vote protocol; KERNEL_MORAL_HUB_DAO_VOTE for WebSocket actions)",
-            "nomad_migration": "/nomad/migration (KERNEL_NOMAD_SIMULATION + optional KERNEL_NOMAD_MIGRATION_AUDIT)",
-            "metrics": "/metrics when KERNEL_METRICS=1 (Prometheus scrape)",
-            "protocol": (
-                'Send JSON: {"text": str, "agent_id"?: str, "include_narrative"?: bool, '
-                '"sensor"?: {battery_level?, audio_emergency?, vision_emergency?, scene_coherence?, …}}. '
-                "Responses include identity, drive_intents, monologue (when decision present), optional "
-                "affective_homeostasis, experience_digest, user_model, chronobiology, premise_advisory, "
-                "teleology_branches, multimodal_trust, vitality (see README KERNEL_CHAT_* / KERNEL_MULTIMODAL_* / "
-                "KERNEL_VITALITY_*), guardian_mode (KERNEL_GUARDIAN_MODE), epistemic_dissonance (v9.1), "
-                "decision (chosen_action_source / proposal_id v9.2), …"
-            ),
-        }
-    )
+    from .runtime_profiles import applied_runtime_profile
+
+    body: dict[str, Any] = {
+        "service": "ethos-kernel-chat",
+        "websocket": "/ws/chat",
+        "constitution": "/constitution (requires KERNEL_MORAL_HUB_PUBLIC=1)",
+        "dao_governance": "/dao/governance (V12.3 vote protocol; KERNEL_MORAL_HUB_DAO_VOTE for WebSocket actions)",
+        "nomad_migration": "/nomad/migration (KERNEL_NOMAD_SIMULATION + optional KERNEL_NOMAD_MIGRATION_AUDIT)",
+        "metrics": "/metrics when KERNEL_METRICS=1 (Prometheus scrape)",
+        "protocol": (
+            'Send JSON: {"text": str, "agent_id"?: str, "include_narrative"?: bool, '
+            '"sensor"?: {battery_level?, audio_emergency?, vision_emergency?, scene_coherence?, …}}. '
+            "Responses include identity, drive_intents, monologue (when decision present), optional "
+            "affective_homeostasis, experience_digest, user_model, chronobiology, premise_advisory, "
+            "teleology_branches, multimodal_trust, vitality (see README KERNEL_CHAT_* / KERNEL_MULTIMODAL_* / "
+            "KERNEL_VITALITY_*), guardian_mode (KERNEL_GUARDIAN_MODE), epistemic_dissonance (v9.1), "
+            "decision (chosen_action_source / proposal_id v9.2), …"
+        ),
+    }
+    prof = applied_runtime_profile()
+    if prof:
+        body["runtime_profile"] = prof
+        body["runtime_profile_hint"] = "Set ETHOS_RUNTIME_PROFILE to a name from src/runtime_profiles.py"
+    return JSONResponse(body)
 
 
 def _collect_dao_ws_actions(kernel: EthicalKernel, data: dict[str, Any]) -> dict[str, Any] | None:

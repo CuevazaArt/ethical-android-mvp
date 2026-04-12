@@ -76,7 +76,8 @@ def test_record_operator_feedback_requires_flag(monkeypatch: pytest.MonkeyPatch)
     assert not k.record_operator_feedback("approve")
 
 
-def test_genome_cap_skips_apply(monkeypatch: pytest.MonkeyPatch):
+def test_genome_cap_reduces_blend_instead_of_failing(monkeypatch: pytest.MonkeyPatch):
+    """Aggressive requested blend is backed off until ``hypothesis_weights_allowed`` passes."""
     monkeypatch.setenv("KERNEL_PSI_SLEEP_UPDATE_MIXTURE", "1")
     monkeypatch.setenv("KERNEL_FEEDBACK_CALIBRATION_MIN_SAMPLES", "1")
     monkeypatch.setenv("KERNEL_PSI_SLEEP_FEEDBACK_BLEND", "1.0")
@@ -87,6 +88,25 @@ def test_genome_cap_skips_apply(monkeypatch: pytest.MonkeyPatch):
         k.feedback_ledger,
         genome_weights=(0.4, 0.35, 0.25),
         max_drift=0.01,
+    )
+    low = line.lower()
+    assert "applied" in low
+    assert "blend reduced" in low
+    assert k.feedback_ledger.total() == 0
+
+
+def test_genome_cap_skips_when_no_feasible_blend(monkeypatch: pytest.MonkeyPatch):
+    """max_drift=0 requires exact genome weights; any nudge should fail to find a blend."""
+    monkeypatch.setenv("KERNEL_PSI_SLEEP_UPDATE_MIXTURE", "1")
+    monkeypatch.setenv("KERNEL_FEEDBACK_CALIBRATION_MIN_SAMPLES", "1")
+    monkeypatch.setenv("KERNEL_PSI_SLEEP_FEEDBACK_BLEND", "0.5")
+    k = EthicalKernel(variability=False)
+    k.feedback_ledger.record("D_fast", "approve")
+    line = apply_psi_sleep_feedback_to_engine(
+        k.bayesian,
+        k.feedback_ledger,
+        genome_weights=(0.4, 0.35, 0.25),
+        max_drift=0.0,
     )
     assert "skipped" in line.lower()
     assert k.feedback_ledger.total() == 1

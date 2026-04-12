@@ -14,6 +14,7 @@ services:
     environment:
       CHAT_HOST: "0.0.0.0"
       CHAT_PORT: "8765"
+      # Optional: ETHOS_RUNTIME_PROFILE=lan_operational  # or situated_v8_lan_demo — see src/runtime_profiles.py
       KERNEL_METRICS: "1"
       KERNEL_LOG_JSON: "1"
       KERNEL_LOG_LEVEL: "INFO"

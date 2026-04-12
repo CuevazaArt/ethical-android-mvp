@@ -7,8 +7,12 @@ See docs/proposals/ESTRATEGIA_Y_RUTA.md.
 
 from __future__ import annotations
 
+import os
 from collections.abc import Mapping
 from typing import Final
+
+# Set by :func:`apply_named_runtime_profile_to_environ` when ``ETHOS_RUNTIME_PROFILE`` is used.
+_APPLIED_RUNTIME_PROFILE: str | None = None
 
 # env key -> value (only non-default toggles for that demo)
 RUNTIME_PROFILES: Final[dict[str, dict[str, str]]] = {
@@ -120,6 +124,43 @@ def profile_names() -> tuple[str, ...]:
 
 def describe_profiles() -> Mapping[str, str]:
     return PROFILE_DESCRIPTIONS
+
+
+def applied_runtime_profile() -> str | None:
+    """Profile name applied at process startup via ``ETHOS_RUNTIME_PROFILE``, if any."""
+    return _APPLIED_RUNTIME_PROFILE
+
+
+def apply_named_runtime_profile_to_environ() -> str | None:
+    """
+    Merge ``RUNTIME_PROFILES[name]`` into ``os.environ`` when ``ETHOS_RUNTIME_PROFILE`` is set.
+
+    **Precedence:** explicit environment variables win. Only keys that are unset or empty-string
+    are filled from the profile bundle.
+
+    Call once at chat server import time (before ``FastAPI`` reads settings).
+
+    Raises:
+        ValueError: if the profile name is unknown.
+    """
+    global _APPLIED_RUNTIME_PROFILE
+    raw = os.environ.get("ETHOS_RUNTIME_PROFILE", "").strip()
+    if not raw:
+        _APPLIED_RUNTIME_PROFILE = None
+        return None
+    try:
+        overrides = RUNTIME_PROFILES[raw]
+    except KeyError as e:
+        choices = ", ".join(sorted(RUNTIME_PROFILES.keys()))
+        raise ValueError(
+            f"unknown ETHOS_RUNTIME_PROFILE={raw!r}; choose one of: {choices}"
+        ) from e
+    for key, val in overrides.items():
+        cur = os.environ.get(key)
+        if cur is None or not str(cur).strip():
+            os.environ[key] = val
+    _APPLIED_RUNTIME_PROFILE = raw
+    return raw
 
 
 def apply_runtime_profile(monkeypatch, name: str) -> None:
