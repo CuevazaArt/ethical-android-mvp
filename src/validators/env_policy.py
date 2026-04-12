@@ -96,9 +96,10 @@ def collect_env_violations() -> list[str]:
             "mock court runs only when escalation is enabled (see judicial_escalation.py)."
         )
 
-    if _truthy("KERNEL_CHAT_INCLUDE_REALITY_VERIFICATION") and not os.environ.get(
-        "KERNEL_LIGHTHOUSE_KB_PATH", ""
-    ).strip():
+    if (
+        _truthy("KERNEL_CHAT_INCLUDE_REALITY_VERIFICATION")
+        and not os.environ.get("KERNEL_LIGHTHOUSE_KB_PATH", "").strip()
+    ):
         violations.append(
             "KERNEL_CHAT_INCLUDE_REALITY_VERIFICATION=1 without KERNEL_LIGHTHOUSE_KB_PATH; "
             "reality verification may no-op (set a fixture path for demos)."
@@ -136,7 +137,9 @@ def validate_kernel_env(*, mode: str | None = None) -> None:
 
     ``mode`` overrides the env when set (for tests).
     """
-    raw = (mode if mode is not None else os.environ.get("KERNEL_ENV_VALIDATION", "")).strip().lower()
+    raw = (
+        (mode if mode is not None else os.environ.get("KERNEL_ENV_VALIDATION", "")).strip().lower()
+    )
     if raw in ("", "warn", "warning"):
         eff = "warn"
     elif raw in ("0", "false", "no", "off"):

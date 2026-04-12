@@ -4,7 +4,7 @@ Persistent first-person self-model (lightweight) over the episode stream.
 Updates only when new episodes are registered — not on light chat turns without
 episodes. Does not modify pole weights or MalAbs.
 
-See docs/proposals/PROPUESTA_INTEGRACION_APORTES_V6.md (Fase 4).
+See docs/proposals/PROPOSAL_CONTRIBUTION_INTEGRATION_V6.md (Fase 4).
 """
 
 from __future__ import annotations

@@ -6,7 +6,7 @@ Does **not** replace ``PreloadedBuffer`` or MalAbs. Provides:
 - Optional DAO audit lines for R&D transparency protocol and mock community proposals
 - Stubs for EthosPayroll narrative (audit-only)
 
-See docs/proposals/PROPUESTA_ESTADO_ETOSOCIAL_V12.md and UNIVERSAL_ETHOS_AND_HUB.md.
+See docs/proposals/PROPOSAL_ETOSOCIAL_STATE_V12.md and UNIVERSAL_ETHOS_AND_HUB.md.
 """
 
 from __future__ import annotations

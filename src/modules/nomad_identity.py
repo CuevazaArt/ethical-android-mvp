@@ -3,7 +3,7 @@ NomadIdentity — continuity bridge: checkpoint + immortality (no second identit
 
 The kernel already implements **narrative persistence** and **ImmortalityProtocol**;
 this module exposes a small **public summary** for APIs and docs alignment with
-UNIVERSAL_ETHOS_AND_HUB.md and PROPUESTA_CONCIENCIA_NOMADA_HAL.md.
+UNIVERSAL_ETHOS_AND_HUB.md and PROPOSAL_NOMAD_CONSCIOUSNESS_HAL.md.
 """
 
 from __future__ import annotations

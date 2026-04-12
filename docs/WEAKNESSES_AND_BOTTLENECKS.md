@@ -66,3 +66,4 @@ This note is an **honest inventory** for operators and reviewers: known limits o
 
 - [CORE_DECISION_CHAIN.md](proposals/CORE_DECISION_CHAIN.md) — who sets `final_action`.
 - [TRANSPARENCY_AND_LIMITS.md](TRANSPARENCY_AND_LIMITS.md) — user-facing guarantees and limits.
+- **Operator visibility:** Prometheus metrics (`KERNEL_METRICS=1`), structured logs (`KERNEL_LOG_JSON`), and `GET /health` — [OPERATOR_QUICK_REF.md](proposals/OPERATOR_QUICK_REF.md#observability-metrics-and-logs); starter Grafana JSON in [`deploy/grafana/`](../deploy/grafana/README.md).

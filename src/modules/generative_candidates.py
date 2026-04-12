@@ -9,7 +9,7 @@ When ``KERNEL_GENERATIVE_LLM=1``, optional ``generative_candidates`` in percepti
 (local/API LLM) is parsed here; if that yields at least one valid action, it is used
 instead of template candidates (still capped by ``KERNEL_GENERATIVE_ACTIONS_MAX``).
 
-See docs/proposals/PROPUESTA_CAPACIDAD_AMPLIADA_V9.md (pillar 2).
+See docs/proposals/PROPOSAL_EXPANDED_CAPABILITY_V9.md (pillar 2).
 """
 
 from __future__ import annotations

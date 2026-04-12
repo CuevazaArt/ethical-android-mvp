@@ -4,7 +4,7 @@ GWT-lite salience: read-only attention weights over existing signal axes.
 Does not reorder the kernel pipeline (phase 1). Produces a normalized vector
 for telemetry, UI, and optional LLM nuance — not a policy change.
 
-See docs/proposals/PROPUESTA_INTEGRACION_APORTES_V6.md (Fase 2).
+See docs/proposals/PROPOSAL_CONTRIBUTION_INTEGRATION_V6.md (Fase 2).
 """
 
 from __future__ import annotations

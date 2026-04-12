@@ -94,7 +94,21 @@ def init_metrics() -> None:
     _kernel_process_seconds = Histogram(
         "ethos_kernel_kernel_process_seconds",
         "Wall time for EthicalKernel.process (full ethical cycle).",
-        buckets=(0.0005, 0.001, 0.005, 0.01, 0.025, 0.05, 0.1, 0.25, 0.5, 1.0, 2.5, 5.0, float("inf")),
+        buckets=(
+            0.0005,
+            0.001,
+            0.005,
+            0.01,
+            0.025,
+            0.05,
+            0.1,
+            0.25,
+            0.5,
+            1.0,
+            2.5,
+            5.0,
+            float("inf"),
+        ),
     )
 
 

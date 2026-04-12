@@ -19,7 +19,7 @@ Conduct guide export (optional): KERNEL_CONDUCT_GUIDE_EXPORT_PATH — JSON on We
 (after checkpoint); KERNEL_CONDUCT_GUIDE_EXPORT_ON_DISCONNECT — see src/modules/conduct_guide_export.py
 
 Situated v8 (optional): KERNEL_SENSOR_FIXTURE (path to JSON), KERNEL_SENSOR_PRESET (name from
-perceptual_abstraction.SENSOR_PRESETS) — merged before client ``sensor`` JSON; see PROPUESTA_ORGANISMO_SITUADO_V8.md.
+perceptual_abstraction.SENSOR_PRESETS) — merged before client ``sensor`` JSON; see PROPOSAL_SITUATED_ORGANISM_V8.md.
 
 Multimodal thresholds (optional): KERNEL_MULTIMODAL_AUDIO_STRONG, KERNEL_MULTIMODAL_VISION_SUPPORT,
 KERNEL_MULTIMODAL_SCENE_SUPPORT, KERNEL_MULTIMODAL_VISION_CONTRADICT, KERNEL_MULTIMODAL_SCENE_CONTRADICT
@@ -31,11 +31,11 @@ Guardian Angel (optional, opt-in): KERNEL_GUARDIAN_MODE=1 enables protective ton
 KERNEL_CHAT_INCLUDE_GUARDIAN — omit ``guardian_mode`` key from JSON if 0. KERNEL_GUARDIAN_ROUTINES,
 KERNEL_GUARDIAN_ROUTINES_PATH — optional JSON care routines (tone hints only; see guardian_routines.py).
 KERNEL_CHAT_INCLUDE_GUARDIAN_ROUTINES — include ``guardian_routines`` [{id, title}] in JSON (default off).
-See guardian_mode.py, PROPUESTA_ANGEL_DE_LA_GUARDIA.md, landing/public/guardian.html.
+See guardian_mode.py, PROPOSAL_GUARDIAN_ANGEL.md, landing/public/guardian.html.
 
 Epistemic dissonance (v9.1): KERNEL_CHAT_INCLUDE_EPISTEMIC — omit ``epistemic_dissonance`` from JSON if 0.
 Optional thresholds KERNEL_EPISTEMIC_AUDIO_MIN, KERNEL_EPISTEMIC_MOTION_MAX, KERNEL_EPISTEMIC_VISION_LOW.
-See epistemic_dissonance.py, PROPUESTA_CAPACIDAD_AMPLIADA_V9.md.
+See epistemic_dissonance.py, PROPOSAL_EXPANDED_CAPABILITY_V9.md.
 
 Generative candidates (v9.2): KERNEL_GENERATIVE_ACTIONS, KERNEL_GENERATIVE_ACTIONS_MAX,
 KERNEL_GENERATIVE_TRIGGER_CONTEXTS, KERNEL_GENERATIVE_LLM (parse ``generative_candidates`` from
@@ -46,7 +46,7 @@ Judicial escalation (V11 Phases 1–3): KERNEL_JUDICIAL_ESCALATION enables advis
 ``escalate_to_dao: true`` registers an ethical dossier when session strikes ≥ KERNEL_JUDICIAL_STRIKES_FOR_DOSSIER
 (default 2). KERNEL_JUDICIAL_RESET_IDLE_TURNS resets strikes after non-qualifying turns. KERNEL_JUDICIAL_MOCK_COURT
 runs a simulated DAO vote + verdict A/B/C after registration. KERNEL_CHAT_INCLUDE_JUDICIAL
-exposes ``judicial_escalation`` in responses. See judicial_escalation.py, PROPUESTA_JUSTICIA_DISTRIBUIDA_V11.md.
+exposes ``judicial_escalation`` in responses. See judicial_escalation.py, PROPOSAL_DISTRIBUTED_JUSTICE_V11.md.
 
 Moral Infrastructure Hub (V12 Phase 1): KERNEL_MORAL_HUB_PUBLIC enables ``GET /constitution`` (L0 JSON).
 KERNEL_TRANSPARENCY_AUDIT logs R&D transparency events on WebSocket connect. KERNEL_DEMOCRATIC_BUFFER_MOCK
@@ -55,20 +55,20 @@ appends EthosPayroll mock ledger lines on connect. V12.2: constitution drafts + 
 ``KERNEL_MORAL_HUB_DAO_VOTE`` — WebSocket ``dao_vote``, ``dao_resolve``, ``dao_submit_draft``, ``dao_list``
 (off-chain quadratic voting; persisted in snapshot schema v3). Optional: ``KERNEL_DEONTIC_GATE``,
 ``KERNEL_ML_ETHICS_TUNER_LOG``, ``KERNEL_REPARATION_VAULT_MOCK``, ``KERNEL_CHAT_INCLUDE_NOMAD_IDENTITY``.
-See UNIVERSAL_ETHOS_AND_HUB.md, moral_hub.py, PROPUESTA_ESTADO_ETOSOCIAL_V12.md.
+See UNIVERSAL_ETHOS_AND_HUB.md, moral_hub.py, PROPOSAL_ETOSOCIAL_STATE_V12.md.
 
 Nomadic HAL (design v11): ``GET /nomad/migration`` describes WebSocket ``nomad_simulate_migration``.
 ``KERNEL_NOMAD_SIMULATION=1`` enables it; ``KERNEL_NOMAD_MIGRATION_AUDIT=1`` appends a DAO calibration
-line (JSON payload, no GPS unless opt-in). See PROPUESTA_CONCIENCIA_NOMADA_HAL.md.
+line (JSON payload, no GPS unless opt-in). See PROPOSAL_NOMAD_CONSCIOUSNESS_HAL.md.
 
 Reality verification (V11+ cross-model): ``KERNEL_LIGHTHOUSE_KB_PATH`` — JSON lighthouse KB for
 contradiction checks vs rival/user premises; ``KERNEL_CHAT_INCLUDE_REALITY_VERIFICATION=1`` exposes
 ``reality_verification`` in WebSocket JSON. Does not bypass MalAbs. See ``reality_verification.py``,
-PROPUESTA_VERIFICACION_REALIDAD_V11.md.
+PROPOSAL_REALITY_VERIFICATION_V11.md.
 
 DAO integrity (design → local audit): ``KERNEL_DAO_INTEGRITY_AUDIT_WS=1`` enables WebSocket
 ``integrity_alert`` → ``HubAudit:dao_integrity`` on MockDAO (no network broadcast). See
-PROPUESTA_DAO_ALERTAS_Y_TRANSPARENCIA.md.
+PROPOSAL_DAO_ALERTS_AND_TRANSPARENCY.md.
 
 Advisory telemetry (optional, Fase 1.3–1.4): KERNEL_ADVISORY_INTERVAL_S — positive seconds
 spawns a read-only :func:`src.runtime.telemetry.advisory_loop` per WebSocket session (DriveArbiter only).
@@ -538,7 +538,7 @@ def constitution_public() -> JSONResponse:
     Read-only Level-0 ethical principles (current PreloadedBuffer) as JSON.
 
     Enabled when KERNEL_MORAL_HUB_PUBLIC=1. Does not expose L1/L2 drafts until governance exists.
-    See docs/proposals/PROPUESTA_ESTADO_ETOSOCIAL_V12.md (DemocraticBuffer vision).
+    See docs/proposals/PROPOSAL_ETOSOCIAL_STATE_V12.md (DemocraticBuffer vision).
     """
     if not moral_hub_public_enabled():
         return JSONResponse(
@@ -628,7 +628,7 @@ def _collect_dao_ws_actions(kernel: EthicalKernel, data: dict[str, Any]) -> dict
 def _collect_integrity_ws_action(
     kernel: EthicalKernel, data: dict[str, Any]
 ) -> dict[str, Any] | None:
-    """Optional ``integrity_alert`` JSON — local DAO ledger row (PROPUESTA_DAO_ALERTAS_Y_TRANSPARENCIA)."""
+    """Optional ``integrity_alert`` JSON — local DAO ledger row (PROPOSAL_DAO_ALERTS_AND_TRANSPARENCY)."""
     if not dao_integrity_audit_ws_enabled():
         return None
     raw = data.get("integrity_alert")

@@ -279,9 +279,7 @@ class EthicalKernel:
         self.drive_arbiter = (
             co.drive_arbiter if co and co.drive_arbiter is not None else DriveArbiter()
         )
-        self.user_model = (
-            co.user_model if co and co.user_model is not None else UserModelTracker()
-        )
+        self.user_model = co.user_model if co and co.user_model is not None else UserModelTracker()
         self.subjective_clock = (
             co.subjective_clock if co and co.subjective_clock is not None else SubjectiveClock()
         )

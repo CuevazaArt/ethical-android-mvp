@@ -5,7 +5,7 @@ When audio strongly suggests an emergency but motion is near rest and vision
 does not support the claim, we flag **epistemic dissonance** for tone and JSON.
 This does **not** bypass MalAbs or the decision stack; it refines transparency.
 
-See docs/proposals/PROPUESTA_CAPACIDAD_AMPLIADA_V9.md (pillar 1).
+See docs/proposals/PROPOSAL_EXPANDED_CAPABILITY_V9.md (pillar 1).
 """
 
 from __future__ import annotations
