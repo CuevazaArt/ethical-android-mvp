@@ -49,7 +49,7 @@
 | `KERNEL_CHAT_INCLUDE_REALITY_VERIFICATION=1` with **no** `KERNEL_LIGHTHOUSE_KB_PATH` | Reality verification may no-op; set a KB path for meaningful demos. |
 | `KERNEL_SEMANTIC_CHAT_GATE` explicitly **off** while judicial escalation, mock court, or **`KERNEL_MORAL_HUB_DAO_VOTE`** is **on** | Lexical-only MalAbs with governance demos is an airgap trade-off; strict mode flags it for externally reachable stacks. |
 
-With default **warn**, violations are logged only.
+With **`KERNEL_ENV_VALIDATION=warn`**, violations are **logged** only (no raise). When unset, the process default is **`strict`** (see opening paragraph); **`lab`** profiles merged via `ETHOS_RUNTIME_PROFILE` also receive **`warn`** from profile application when validation was unset.
 
 ---
 

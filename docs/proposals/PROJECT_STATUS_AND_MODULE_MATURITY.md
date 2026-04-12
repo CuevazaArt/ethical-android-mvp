@@ -1,6 +1,6 @@
 # Estado del proyecto y madurez por módulo
 
-**Actualización:** abril 2026 · **Tests:** `pytest` recoge **612** pruebas en el árbol `tests/` (número orientativo; ejecutar `pytest tests/ --collect-only -q`).
+**Actualización:** abril 2026 · **Tests:** `pytest` recoge **643** pruebas en el árbol `tests/` (número orientativo; ejecutar `pytest tests/ --collect-only -q` para el valor actual).
 
 Este documento resume **dónde está** el Ethos Kernel MVP hoy y una lectura honesta de **madurez** por área (no sustituye ADRs ni `RUNTIME_CONTRACT.md`).
 

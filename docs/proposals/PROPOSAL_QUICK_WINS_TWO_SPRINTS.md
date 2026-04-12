@@ -11,7 +11,7 @@ The codebase has reached **solid technical maturity** on the core decision chain
 
 ## 1. Strict env validation by default (non-lab profiles)
 
-**Delivered:** Unset `KERNEL_ENV_VALIDATION` now resolves to **`strict`** in [`kernel_public_env.py`](../../src/validators/kernel_public_env.py). **Lab** bundles (`perception_hardening_lab`, `perception_adv_consensus_lab`, `phase2_event_bus_lab`, `untrusted_chat_input`) inject **`KERNEL_ENV_VALIDATION=warn`**. **Pytest** sets `KERNEL_ENV_VALIDATION=warn` via [`tests/conftest.py`](../../tests/conftest.py) before imports so `chat_server` load does not require a perfect host shell.
+**Delivered:** Unset `KERNEL_ENV_VALIDATION` resolves to **`strict`** in [`kernel_public_env.py`](../../src/validators/kernel_public_env.py). [`apply_named_runtime_profile_to_environ`](../../src/runtime_profiles.py) sets **`warn`** for **lab** tier profile names and **`strict`** for demo/production when validation is still unset after merging the profile dict ([`default_env_validation_for_profile`](../../src/validators/env_policy.py)). **Pytest** uses [`tests/conftest.py`](../../tests/conftest.py) `setdefault("warn")` before imports.
 
 **Acceptance:** `validate_kernel_env()` raises on violation when strict; `collect_env_violations()` unchanged; docs in [`KERNEL_ENV_POLICY.md`](KERNEL_ENV_POLICY.md).
 

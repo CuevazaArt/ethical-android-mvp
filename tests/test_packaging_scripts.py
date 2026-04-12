@@ -1,8 +1,7 @@
 """pyproject.toml console_scripts entry points (ADR 0001, PROPOSAL_QUICK_WINS)."""
 
-from pathlib import Path
-
 import tomllib
+from pathlib import Path
 
 
 def test_pyproject_declares_ethos_and_ethos_runtime_scripts():

@@ -136,8 +136,12 @@ def validate_kernel_env(*, mode: str | None = None) -> None:
     Validate environment according to ``KERNEL_ENV_VALIDATION``:
 
     - ``off`` — no-op
-    - ``warn`` (default) — log warnings for ``collect_env_violations()``
+    - ``warn`` — log warnings for ``collect_env_violations()`` (no raise)
     - ``strict`` — raise ``ValueError`` if any violation
+
+    **Default when unset:** ``strict`` (see ``KernelPublicEnv.from_environ`` / ``_parse_env_validation_mode``).
+    After ``apply_named_runtime_profile_to_environ()``, lab tier names get ``warn`` if validation
+    is still unset (see ``default_env_validation_for_profile`` in this module).
 
     ``mode`` overrides the env when set (for tests). Parsed mode is aligned with
     :class:`KernelPublicEnv` (typed layer).

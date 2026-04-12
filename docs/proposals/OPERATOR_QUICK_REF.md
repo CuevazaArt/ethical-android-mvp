@@ -28,7 +28,7 @@ Use the **`ethos config`** command (after `pip install -e .` or `python -m src.e
 
 ### Observability (metrics and logs)
 
-Enable with `KERNEL_METRICS=1` (scrapes `http://<host>:<port>/metrics`). If `prometheus_client` is missing, the server returns HTTP 503 JSON for `/metrics` instead of crashing. Structured JSON logs: `KERNEL_LOG_JSON=1`; severity: `KERNEL_LOG_LEVEL` (e.g. `INFO`, `DEBUG`). Per-decision machine-readable lines (one JSON object per `EthicalKernel.process`): default **on** when JSON logging is on — disable with `KERNEL_LOG_DECISION_EVENTS=0`. **`GET /health`** returns `version`, `uptime_seconds`, an `observability` object (metrics/log flags, `prometheus_client` import status), and **`chat_bridge`** (`kernel_chat_turn_timeout_seconds`, `kernel_chat_threadpool_workers` from env) for dashboards and probes.
+Enable with `KERNEL_METRICS=1` (scrapes `http://<host>:<port>/metrics`). If `prometheus_client` is missing, the server returns HTTP 503 JSON for `/metrics` instead of crashing. Structured JSON logs: `KERNEL_LOG_JSON=1`; severity: `KERNEL_LOG_LEVEL` (e.g. `INFO`, `DEBUG`). Per-decision machine-readable lines (one JSON object per `EthicalKernel.process`): default **on** when JSON logging is on — disable with `KERNEL_LOG_DECISION_EVENTS=0`. **`GET /health`** returns `version`, `uptime_seconds`, an `observability` object (metrics/log flags, `prometheus_client` import status), and **`chat_bridge`** (`kernel_chat_turn_timeout_seconds`, `kernel_chat_threadpool_workers`, `kernel_chat_json_offload` — see [`chat_settings.py`](../../src/chat_settings.py)) for dashboards and probes.
 
 | Metric name | Type | Labels | Notes |
 |--------------|------|--------|--------|
@@ -41,6 +41,7 @@ Enable with `KERNEL_METRICS=1` (scrapes `http://<host>:<port>/metrics`). If `pro
 | `ethos_kernel_semantic_malabs_outcomes_total` | Counter | `outcome` | Semantic tier path: `allow_low_similarity`, `block_high_similarity`, `embed_unavailable_defer`, `ambiguous_fail_safe_block`, `ambiguous_arbiter_*`, etc. ([`semantic_chat_gate.py`](../../src/modules/semantic_chat_gate.py)). |
 | `ethos_kernel_kernel_decisions_total` | Counter | `action`, `certainty`, `blocked` | One increment per completed `EthicalKernel.process`. `action` is a coarse slug (bounded cardinality); `certainty` is `high` / `med` / `low` / `n_a` (inverse of uncertainty bands); `blocked` is `true` / `false`. |
 | `ethos_kernel_kernel_process_seconds` | Histogram | (none) | Wall time for the full ethical cycle inside `process()`. |
+| `ethos_kernel_perception_circuit_trips_total` | Counter | (none) | Increments once when **metacognitive doubt** activates (perception validation streak exceeds two stressed turns; see `perception_circuit.py`). |
 
 Implementation: [`src/observability/metrics.py`](../src/observability/metrics.py). Decision JSON lines: [`src/observability/decision_log.py`](../src/observability/decision_log.py). Log field `request_id` is set when a correlation id exists ([`src/observability/logging_setup.py`](../src/observability/logging_setup.py)).
 

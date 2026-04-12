@@ -11,7 +11,7 @@
 | Mechanism | Role |
 |-----------|------|
 | [`KernelPublicEnv`](../../src/validators/kernel_public_env.py) | Typed snapshot: judicial + reality/lighthouse flags, `KERNEL_ENV_VALIDATION`, optional `ETHOS_RUNTIME_PROFILE`. |
-| [`validate_kernel_env()`](../../src/validators/env_policy.py) | Called from [`chat_server`](../../src/chat_server.py) at import: **warn** (default) or **strict** (`ValueError` on violations). |
+| [`validate_kernel_env()`](../../src/validators/env_policy.py) | Called from [`chat_server`](../../src/chat_server.py) at import: **strict** when `KERNEL_ENV_VALIDATION` is unset; **`warn`** after lab profile merge or explicit env; **`off`** disables checks. |
 | [`ChatServerSettings`](../../src/chat_settings.py) | Pydantic model for **WebSocket server** bind, timeouts, MalAbs trace flags — separate from policy rules. |
 | [`SUPPORTED_COMBOS`](../../src/validators/env_policy.py) | Partitions nominal profile names; `validate_supported_combo_partition()` in CI ensures buckets match `runtime_profiles`. |
 | [`tests/conftest.py`](../../tests/conftest.py) | Pytest sets MalAbs semantic gates off for speed — **intentional** drift vs production; see table below. |
@@ -30,8 +30,8 @@
 
 | Context | Typical difference |
 |---------|-------------------|
-| **pytest** | `conftest.py` may set `KERNEL_SEMANTIC_CHAT_GATE=0` etc. — documented in conftest and [`MALABS_SEMANTIC_LAYERS.md`](MALABS_SEMANTIC_LAYERS.md). |
-| **Chat server** | `validate_kernel_env()` runs on startup; use `KERNEL_ENV_VALIDATION=strict` in staging to fail fast on inconsistent flags. |
+| **pytest** | `conftest.py` sets `KERNEL_SEMANTIC_CHAT_GATE=0` etc. and defaults `KERNEL_ENV_VALIDATION=warn` so imports stay ergonomic — documented in conftest and [`MALABS_SEMANTIC_LAYERS.md`](MALABS_SEMANTIC_LAYERS.md). |
+| **Chat server** | `validate_kernel_env()` runs on startup; unset validation is **strict** in production shells (fail fast). Use `KERNEL_ENV_VALIDATION=warn` only when you want violations as logs. |
 
 ---
 

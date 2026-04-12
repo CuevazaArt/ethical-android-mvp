@@ -2,14 +2,24 @@
 
 All notable changes to this project are summarized here. For narrative context and design rationale, see [`HISTORY.md`](HISTORY.md).
 
+## Docs and deploy artifacts — coherence pass — April 2026
+
+- **[`README.md`](README.md)** / [`PROJECT_STATUS_AND_MODULE_MATURITY.md`](docs/proposals/PROJECT_STATUS_AND_MODULE_MATURITY.md): test suite size aligned with `pytest tests/ --collect-only` (643); README uses a rounded **640+** with the collect-only hint.
+- **[`OPERATOR_QUICK_REF.md`](docs/proposals/OPERATOR_QUICK_REF.md):** `GET /health` **`chat_bridge`** includes `kernel_chat_json_offload`.
+- **[ADR 0008](docs/adr/0008-runtime-observability-prometheus-and-logs.md):** links to [`deploy/prometheus/ethos_kernel_alerts.yml`](deploy/prometheus/ethos_kernel_alerts.yml) and Grafana README.
+- **[`.env.example`](.env.example):** commented `KERNEL_ENV_VALIDATION` modes vs strict default (see [`KERNEL_ENV_POLICY.md`](docs/proposals/KERNEL_ENV_POLICY.md)).
+- **Tests:** [`tests/test_deploy_artifacts.py`](tests/test_deploy_artifacts.py) — Prometheus starter rules reference MalAbs and perception-circuit metrics.
+
 ## Quick wins (two sprints) — infrastructure digest — April 2026
 
-- **[`default_env_validation_for_profile()`](src/validators/env_policy.py):** lab nominal profiles merge `KERNEL_ENV_VALIDATION=warn`; demo/production merge `strict` when unset (with [`apply_named_runtime_profile_to_environ`](src/runtime_profiles.py) / pytest [`apply_runtime_profile`](src/runtime_profiles.py)).
+- **[`default_env_validation_for_profile()`](src/validators/env_policy.py):** after profile dict merge, lab tier names get `KERNEL_ENV_VALIDATION=warn` and demo/production get `strict` when validation is still unset ([`apply_named_runtime_profile_to_environ`](src/runtime_profiles.py) / pytest [`apply_runtime_profile`](src/runtime_profiles.py)).
 - **[`kernel_public_env._parse_env_validation_mode()`](src/validators/kernel_public_env.py):** unset `KERNEL_ENV_VALIDATION` → **strict** (fail fast); unknown tokens default strict.
 - **Perception circuit:** documented link to Pydantic path (`pydantic_emergency_fallback`); behavior unchanged in [`perception_circuit.py`](src/modules/perception_circuit.py) (metacognitive doubt, gray_zone tone, DAO calibration, metrics).
 - **`ethos-runtime`:** [`pyproject.toml`](pyproject.toml) console script → `src.chat_server:main` (requires `pip install -e ".[runtime]"`).
 - **Prometheus:** [`deploy/prometheus/ethos_kernel_alerts.yml`](deploy/prometheus/ethos_kernel_alerts.yml) — MalAbs burst, elevated `safety_block` rate, perception circuit trip.
-- **Proposal / narrative:** [`docs/proposals/PROPOSAL_QUICK_WINS_TWO_SPRINTS.md`](docs/proposals/PROPOSAL_QUICK_WINS_TWO_SPRINTS.md); **Tests:** [`tests/test_env_policy.py`](tests/test_env_policy.py) (`test_default_env_validation_lab_vs_demo`).
+- **[`runtime_profiles.py`](src/runtime_profiles.py):** fix `apply_named_runtime_profile_to_environ` / `apply_runtime_profile` imports (`from src.validators.env_policy import default_env_validation_for_profile`) so `ETHOS_RUNTIME_PROFILE` works when merging default validation.
+- **Docs / ops:** [`README.md`](README.md) console scripts line; [`OPERATOR_QUICK_REF.md`](docs/proposals/OPERATOR_QUICK_REF.md) Prometheus alert file path; [ADR 0001](docs/adr/0001-packaging-core-boundary.md) `[project.scripts]`.
+- **Proposal / narrative:** [`docs/proposals/PROPOSAL_QUICK_WINS_TWO_SPRINTS.md`](docs/proposals/PROPOSAL_QUICK_WINS_TWO_SPRINTS.md); **Tests:** [`tests/test_env_policy.py`](tests/test_env_policy.py); [`tests/test_packaging_scripts.py`](tests/test_packaging_scripts.py); [`tests/test_runtime_profiles.py`](tests/test_runtime_profiles.py) (`test_runtime_profile_merges_kernel_env_validation_strict_or_warn_subprocess`).
 
 ## Sync kernel vs async ASGI — JSON + advisory offload — April 2026
 

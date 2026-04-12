@@ -23,4 +23,6 @@
 
 - [`OPERATOR_QUICK_REF.md`](../proposals/OPERATOR_QUICK_REF.md#observability-metrics-and-logs) — env flags + metric names  
 - [`README.md`](../../README.md) — Docker / observability paragraph  
+- [`deploy/prometheus/ethos_kernel_alerts.yml`](../../deploy/prometheus/ethos_kernel_alerts.yml) — starter **Prometheus alert rules** (MalAbs block rate, `safety_block`, perception circuit trips); tune `rule_files` thresholds per deployment  
+- [`deploy/grafana/README.md`](../../deploy/grafana/README.md) — Grafana dashboard import + pointer to the same alert file  
 - [`scripts/loadtest/ws_stress.py`](../../scripts/loadtest/ws_stress.py) — optional WebSocket load smoke
