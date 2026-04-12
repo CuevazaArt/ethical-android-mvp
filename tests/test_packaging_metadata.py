@@ -1,8 +1,7 @@
 """pyproject.toml core dependencies stay aligned with runtime imports."""
 
-from pathlib import Path
-
 import tomllib
+from pathlib import Path
 
 
 def test_pyproject_lists_numpy_and_pydantic():

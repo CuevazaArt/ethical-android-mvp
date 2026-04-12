@@ -18,7 +18,7 @@ import os
 import re
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 _MAX_ROUTINES = 16
 _ID_RE = re.compile(r"^[a-z][a-z0-9_]{0,47}$")
@@ -36,7 +36,7 @@ def guardian_routines_feature_enabled() -> bool:
     return v in ("1", "true", "yes", "on")
 
 
-def _parse_one(raw: Any) -> Optional[GuardianRoutine]:
+def _parse_one(raw: Any) -> GuardianRoutine | None:
     if not isinstance(raw, dict):
         return None
     rid = raw.get("id")
@@ -56,7 +56,7 @@ def _parse_one(raw: Any) -> Optional[GuardianRoutine]:
     return GuardianRoutine(id=rid, title=title, hint=hint)
 
 
-def load_guardian_routines_from_path(path: Path | str) -> List[GuardianRoutine]:
+def load_guardian_routines_from_path(path: Path | str) -> list[GuardianRoutine]:
     p = Path(path)
     if not p.is_file():
         return []
@@ -77,7 +77,7 @@ def load_guardian_routines_from_path(path: Path | str) -> List[GuardianRoutine]:
     if not isinstance(items, list):
         return []
 
-    out: List[GuardianRoutine] = []
+    out: list[GuardianRoutine] = []
     for x in items:
         gr = _parse_one(x)
         if gr:
@@ -88,10 +88,10 @@ def load_guardian_routines_from_path(path: Path | str) -> List[GuardianRoutine]:
 
 
 _cached_path: str = ""
-_cached: List[GuardianRoutine] = []
+_cached: list[GuardianRoutine] = []
 
 
-def get_guardian_routines() -> List[GuardianRoutine]:
+def get_guardian_routines() -> list[GuardianRoutine]:
     """Load from ``KERNEL_GUARDIAN_ROUTINES_PATH`` with trivial path-level cache."""
     global _cached_path, _cached
     if not guardian_routines_feature_enabled():
@@ -126,7 +126,7 @@ def guardian_routines_llm_suffix() -> str:
     return "\n".join(lines)
 
 
-def public_routines_snapshot() -> List[Dict[str, str]]:
+def public_routines_snapshot() -> list[dict[str, str]]:
     """Minimal JSON for WebSocket (`id` + `title` only)."""
     if not guardian_routines_feature_enabled():
         return []

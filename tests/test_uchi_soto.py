@@ -16,7 +16,6 @@ from src.modules.uchi_soto import (
 
 
 def test_tone_brief_non_empty_per_circle():
-    m = UchiSotoModule()
     for circle in TrustCircle:
         tb = UchiSotoModule._tone_brief_for_circle(circle)
         assert tb

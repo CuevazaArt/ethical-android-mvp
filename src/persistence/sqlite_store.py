@@ -4,13 +4,13 @@ from __future__ import annotations
 
 import json
 import sqlite3
-from dataclasses import asdict
 from pathlib import Path
-from typing import Optional
 
-from .kernel_io import apply_snapshot
 from .json_store import snapshot_from_dict
+from .kernel_io import apply_snapshot
 from .schema import KernelSnapshotV1
+from .snapshot_serde import kernel_snapshot_to_json_dict
+from .snapshot_validate import validate_snapshot_for_apply
 
 
 def _connect(path: Path) -> sqlite3.Connection:
@@ -44,10 +44,12 @@ class SqlitePersistence:
         self.path = Path(path)
 
     def save(self, snapshot: KernelSnapshotV1) -> None:
+        validate_snapshot_for_apply(snapshot)
         self.path.parent.mkdir(parents=True, exist_ok=True)
-        raw = json.dumps(asdict(snapshot), ensure_ascii=False)
+        raw = json.dumps(kernel_snapshot_to_json_dict(snapshot), ensure_ascii=False)
         with _connect(self.path) as conn:
             _ensure_schema(conn)
+            conn.execute("BEGIN IMMEDIATE")
             conn.execute(
                 """
                 INSERT INTO kernel_snapshot (id, json_blob) VALUES (1, ?)
@@ -57,14 +59,12 @@ class SqlitePersistence:
             )
             conn.commit()
 
-    def load(self) -> Optional[KernelSnapshotV1]:
+    def load(self) -> KernelSnapshotV1 | None:
         if not self.path.is_file():
             return None
         with _connect(self.path) as conn:
             _ensure_schema(conn)
-            row = conn.execute(
-                "SELECT json_blob FROM kernel_snapshot WHERE id = 1"
-            ).fetchone()
+            row = conn.execute("SELECT json_blob FROM kernel_snapshot WHERE id = 1").fetchone()
         if row is None:
             return None
         return snapshot_from_dict(json.loads(row[0]))

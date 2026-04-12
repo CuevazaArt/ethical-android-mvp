@@ -19,8 +19,17 @@ logs/
 # Testing
 .pytest_cache/
 .mypy_cache/
+.ruff_cache/
 .coverage
+coverage.xml
 htmlcov/
+junit.xml
+
+# Local env (never commit secrets)
+.env
+.env.local
+# Stale/empty file from failed baseline copy (canonical baseline is detect-secrets.baseline)
+.secrets.baseline
 
 # IDE
 .vscode/

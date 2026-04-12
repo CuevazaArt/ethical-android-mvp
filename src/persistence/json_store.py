@@ -4,15 +4,18 @@ from __future__ import annotations
 
 import json
 import os
-from dataclasses import asdict
 from pathlib import Path
-from typing import Optional
 
+from .atomic_io import atomic_write_bytes
+from .file_lock import advisory_file_lock
 from .kernel_io import apply_snapshot
-from .schema import SCHEMA_VERSION, KernelSnapshotV1
+from .migrations import migrate_raw_to_current
+from .schema import KernelSnapshotV1
+from .snapshot_serde import kernel_snapshot_to_json_dict
+from .snapshot_validate import validate_snapshot_for_apply
 
 
-def fernet_key_from_env() -> Optional[bytes]:
+def fernet_key_from_env() -> bytes | None:
     """
     URL-safe base-64 key from ``KERNEL_CHECKPOINT_FERNET_KEY`` (same format as
     ``cryptography.fernet.Fernet.generate_key().decode()``). If unset, checkpoints are plain UTF-8 JSON.
@@ -24,44 +27,10 @@ def fernet_key_from_env() -> Optional[bytes]:
 
 
 def snapshot_from_dict(raw: dict) -> KernelSnapshotV1:
-    ver = raw.get("schema_version", 0)
-    merged = dict(raw)
-    if ver == 1:
-        merged["schema_version"] = SCHEMA_VERSION
-        merged.setdefault("constitution_l1_drafts", [])
-        merged.setdefault("constitution_l2_drafts", [])
-    elif ver == 2:
-        merged["schema_version"] = SCHEMA_VERSION
-        merged.setdefault("constitution_l1_drafts", [])
-        merged.setdefault("constitution_l2_drafts", [])
-    elif ver == SCHEMA_VERSION:
-        merged.setdefault("constitution_l1_drafts", [])
-        merged.setdefault("constitution_l2_drafts", [])
-    else:
-        raise ValueError(
-            f"Unsupported schema_version {ver!r}; expected 1, 2, or {SCHEMA_VERSION}"
-        )
-    merged.setdefault("dao_proposals", [])
-    merged.setdefault("dao_participants", [])
-    merged.setdefault("dao_proposal_counter", 0)
-    if "experience_digest" not in merged:
-        merged["experience_digest"] = ""
-    merged.setdefault("metaplan_goals", [])
-    merged.setdefault("somatic_marker_weights", {})
-    merged.setdefault("skill_learning_tickets", [])
-    merged.setdefault("user_model_frustration_streak", 0)
-    merged.setdefault("user_model_premise_concern_streak", 0)
-    merged.setdefault("user_model_last_circle", "neutral_soto")
-    merged.setdefault("user_model_turns_observed", 0)
-    merged.setdefault("user_model_cognitive_pattern", "none")
-    merged.setdefault("user_model_risk_band", "low")
-    merged.setdefault("user_model_judicial_phase", "")
-    merged.setdefault("subjective_turn_index", 0)
-    merged.setdefault("subjective_stimulus_ema", 0.55)
-    merged.setdefault("escalation_session_strikes", 0)
-    merged.setdefault("escalation_session_idle_turns", 0)
-    merged.setdefault("uchi_soto_profiles", [])
-    return KernelSnapshotV1(**merged)
+    merged = migrate_raw_to_current(raw)
+    snap = KernelSnapshotV1(**merged)
+    validate_snapshot_for_apply(snap)
+    return snap
 
 
 class JsonFilePersistence:
@@ -77,18 +46,23 @@ class JsonFilePersistence:
         self.path = Path(path)
 
     def save(self, snapshot: KernelSnapshotV1) -> None:
-        self.path.parent.mkdir(parents=True, exist_ok=True)
-        text = json.dumps(asdict(snapshot), indent=2, ensure_ascii=False)
+        validate_snapshot_for_apply(snapshot)
+        lock = self.path.with_suffix(self.path.suffix + ".lock")
+        text = json.dumps(
+            kernel_snapshot_to_json_dict(snapshot),
+            indent=2,
+            ensure_ascii=False,
+        )
+        payload = text.encode("utf-8")
         key = fernet_key_from_env()
         if key:
             from cryptography.fernet import Fernet
 
-            self.path.write_bytes(Fernet(key).encrypt(text.encode("utf-8")))
-        else:
-            with open(self.path, "w", encoding="utf-8") as f:
-                f.write(text)
+            payload = Fernet(key).encrypt(payload)
+        with advisory_file_lock(lock):
+            atomic_write_bytes(self.path, payload)
 
-    def load(self) -> Optional[KernelSnapshotV1]:
+    def load(self) -> KernelSnapshotV1 | None:
         if not self.path.is_file():
             return None
         blob = self.path.read_bytes()

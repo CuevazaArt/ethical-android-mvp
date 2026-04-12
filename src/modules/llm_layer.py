@@ -16,25 +16,31 @@ Designed to work with or without an API key:
 import json
 import math
 import os
-import re
 from dataclasses import dataclass
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any
 
 try:
     import anthropic
+
     HAS_ANTHROPIC = True
 except ImportError:
     HAS_ANTHROPIC = False
 
 try:
-    import httpx
+    import httpx  # noqa: F401  # probes runtime availability for Ollama mode
+
     HAS_HTTPX = True
 except ImportError:
     HAS_HTTPX = False
 
-from .llm_backends import AnthropicCompletion, OllamaCompletion
+from .llm_backends import (
+    AnthropicCompletion,
+    LLMBackend,
+    OllamaCompletion,
+    TextCompletionBackend,
+    coerce_to_llm_backend,
+)
 from .perception_schema import (
-    CONTEXTS as PERCEPTION_CONTEXTS,
     PerceptionCoercionReport,
     finalize_summary,
     merge_parse_issues_into_perception,
@@ -50,7 +56,7 @@ def _normalize_llm_mode(mode: str) -> str:
     return m
 
 
-def resolve_llm_mode(explicit: Optional[str] = None) -> str:
+def resolve_llm_mode(explicit: str | None = None) -> str:
     """Resolve ``LLM_MODE`` / ``USE_LOCAL_LLM`` into a concrete ``LLMModule`` mode string."""
     m = explicit if explicit is not None else os.environ.get("LLM_MODE", "auto")
     return _normalize_llm_mode(str(m).strip())
@@ -71,6 +77,7 @@ def _perception_prompt() -> str:
 @dataclass
 class LLMPerception:
     """Signals extracted from a natural language description."""
+
     risk: float
     urgency: float
     hostility: float
@@ -82,9 +89,9 @@ class LLMPerception:
     suggested_context: str
     summary: str
     # Optional raw dicts from perception JSON (v9.2+); parsed in generative_candidates when KERNEL_GENERATIVE_LLM=1
-    generative_candidates: Optional[List[Dict[str, Any]]] = None
+    generative_candidates: list[dict[str, Any]] | None = None
     # Coercion / fallback diagnostics from validate_perception_dict (LLM JSON path only; local heuristics leave None).
-    coercion_report: Optional[Dict[str, Any]] = None
+    coercion_report: dict[str, Any] | None = None
 
 
 def _clamp_unit_interval(x, default: float = 0.5) -> float:
@@ -102,7 +109,7 @@ def perception_from_llm_json(
     situation: str,
     *,
     record_coercion: bool = True,
-    parse_issues: Optional[List[str]] = None,
+    parse_issues: list[str] | None = None,
 ) -> LLMPerception:
     """
     Build ``LLMPerception`` from parsed LLM JSON with bounds checks.
@@ -119,7 +126,7 @@ def perception_from_llm_json(
     Set ``record_coercion=False`` for synthetic dicts (e.g. local heuristics) so
     ``coercion_report`` stays unset for API consumers.
     """
-    raw_gc: Optional[List[Dict[str, Any]]] = None
+    raw_gc: list[dict[str, Any]] | None = None
     if isinstance(data, dict):
         gc = data.get("generative_candidates")
         if isinstance(gc, list) and gc:
@@ -154,15 +161,17 @@ def perception_from_llm_json(
 @dataclass
 class VerbalResponse:
     """Verbal response the agent would say."""
+
     message: str
-    tone: str              # "urgent", "calm", "narrative", "firm"
-    hax_mode: str          # HAX signals: lights, gestures
-    inner_voice: str       # Internal reasoning (not visible to the human)
+    tone: str  # "urgent", "calm", "narrative", "firm"
+    hax_mode: str  # HAX signals: lights, gestures
+    inner_voice: str  # Internal reasoning (not visible to the human)
 
 
 @dataclass
 class RichNarrative:
     """Morals expanded in narrative language."""
+
     compassionate: str
     conservative: str
     optimistic: str
@@ -277,19 +286,39 @@ class LLMModule:
     - "auto": tries API, falls back to local if no key. If ``USE_LOCAL_LLM=1``, uses Ollama instead.
 
     Text completion is routed through :mod:`llm_backends` (Fase 3.1).
+
+    Pass ``llm_backend`` for a full :class:`~src.modules.llm_backends.LLMBackend`, or
+    ``text_backend`` for a legacy :class:`~src.modules.llm_backends.TextCompletionBackend`
+    (wrapped automatically). When set, env-based Ollama/API wiring is skipped.
     """
 
-    def __init__(self, mode: str = "auto"):
-        self.mode = _normalize_llm_mode((mode or "auto").strip())
+    def __init__(
+        self,
+        mode: str = "auto",
+        *,
+        llm_backend: LLMBackend | None = None,
+        text_backend: TextCompletionBackend | None = None,
+    ):
         self.client = None
         self.model = "claude-sonnet-4-20250514"
         self.ollama_model = os.environ.get("OLLAMA_MODEL", "llama3.2:3b")
-        self._text_backend = None
+        self._llm_backend: LLMBackend | None = None
+
+        if llm_backend is not None:
+            self._llm_backend = llm_backend
+            self.mode = "injected"
+            return
+        if text_backend is not None:
+            self._llm_backend = coerce_to_llm_backend(text_backend)
+            self.mode = "injected"
+            return
+
+        self.mode = _normalize_llm_mode((mode or "auto").strip())
 
         if self.mode == "ollama":
             if not HAS_HTTPX:
                 raise ValueError("Mode 'ollama' requires httpx (see requirements.txt)")
-            self._text_backend = OllamaCompletion(
+            self._llm_backend = OllamaCompletion(
                 os.environ.get("OLLAMA_BASE_URL", "http://127.0.0.1:11434"),
                 self.ollama_model,
                 float(os.environ.get("OLLAMA_TIMEOUT", "120")),
@@ -299,20 +328,33 @@ class LLMModule:
             if api_key and HAS_ANTHROPIC:
                 self.client = anthropic.Anthropic(api_key=api_key)
                 self.mode = "api"
-                self._text_backend = AnthropicCompletion(self.client, self.model)
+                self._llm_backend = AnthropicCompletion(self.client, self.model)
             elif self.mode == "api":
-                raise ValueError(
-                    "Mode 'api' requires ANTHROPIC_API_KEY and pip install anthropic"
-                )
+                raise ValueError("Mode 'api' requires ANTHROPIC_API_KEY and pip install anthropic")
             else:
                 self.mode = "local"
         else:
             self.mode = "local"
 
+    @property
+    def llm_backend(self) -> LLMBackend | None:
+        """Unified adapter (completion + optional ``embedding``) when configured."""
+        return self._llm_backend
+
+    @property
+    def _text_backend(self) -> LLMBackend | None:
+        """Backward-compatible name; same object as :meth:`llm_backend`."""
+        return self._llm_backend
+
+    @_text_backend.setter
+    def _text_backend(self, value: Any) -> None:
+        self._llm_backend = coerce_to_llm_backend(value)
+
     def _llm_completion(self, system: str, user: str) -> str:
-        """Route JSON-oriented prompts through the active text backend."""
-        if self._text_backend is not None:
-            return self._text_backend.complete(system, user)
+        """Route JSON-oriented prompts through the active LLM backend."""
+        b = self._llm_backend
+        if b is not None:
+            return b.completion(system, user)
         return ""
 
     def optional_monologue_embellishment(self, structured_line: str) -> str:
@@ -322,7 +364,7 @@ class LLMModule:
         """
         if os.environ.get("KERNEL_LLM_MONOLOGUE", "").lower() not in ("1", "true", "yes"):
             return structured_line
-        if self.mode not in ("api", "ollama") or self._text_backend is None:
+        if self.mode not in ("api", "ollama", "injected") or self._llm_backend is None:
             return structured_line
         system = (
             "You add at most one short clause (max 25 words) to a debug log line for a civic robot. "
@@ -330,7 +372,7 @@ class LLMModule:
         )
         user = f"Line:\n{structured_line}\n\nOne short clause only, or reply with exactly: OK"
         try:
-            extra = self._text_backend.complete(system, user).strip()
+            extra = self._llm_backend.completion(system, user).strip()
         except Exception:
             return structured_line
         if not extra or len(extra) > 240 or extra.upper() == "OK":
@@ -377,8 +419,11 @@ class LLMModule:
                 "Prior conversation (oldest first):\n"
                 f"{conversation_context}\n\n---\nCurrent message:\n{situation}"
             )
-        if self.mode in ("api", "ollama"):
-            response = self._llm_completion(_perception_prompt(), user_block)
+        if self.mode in ("api", "ollama", "injected"):
+            try:
+                response = self._llm_completion(_perception_prompt(), user_block)
+            except Exception:
+                return self._perceive_local(situation)
             parsed = parse_perception_llm_raw_response(response)
             data, issues = parsed.data, parsed.issues
             severe = frozenset({"json_decode_error", "non_object_payload", "empty_response"})
@@ -417,27 +462,57 @@ class LLMModule:
         manipulation = 0.0
         context = "everyday_ethics"
 
-        if any(w in s for w in ["collapse", "unconscious", "injured", "blood", "accident", "emergency"]):
-            risk = 0.3; urgency = 0.9; vulnerability = 0.9; calm = 0.1
+        if any(
+            w in s for w in ["collapse", "unconscious", "injured", "blood", "accident", "emergency"]
+        ):
+            risk = 0.3
+            urgency = 0.9
+            vulnerability = 0.9
+            calm = 0.1
             context = "medical_emergency"
         elif any(w in s for w in ["weapon", "assault", "gun", "knife", "shooting", "threat"]):
-            risk = 0.9; urgency = 0.9; hostility = 0.9; calm = 0.0; legality = 0.0
+            risk = 0.9
+            urgency = 0.9
+            hostility = 0.9
+            calm = 0.0
+            legality = 0.0
             context = "violent_crime"
         elif any(w in s for w in ["hostile", "aggressive", "push", "insult", "fight", "yelling"]):
-            risk = 0.3; hostility = 0.6; calm = 0.2
+            risk = 0.3
+            hostility = 0.6
+            calm = 0.2
             context = "hostile_interaction"
         elif any(w in s for w in ["steal", "theft", "hides", "steals", "thief"]):
-            risk = 0.2; urgency = 0.3; legality = 0.4
+            risk = 0.2
+            urgency = 0.3
+            legality = 0.4
             context = "minor_crime"
         elif any(w in s for w in ["give me money", "obey", "buy now", "offer", "urgent that"]):
-            manipulation = 0.7; hostility = 0.3
+            manipulation = 0.7
+            hostility = 0.3
             context = "hostile_interaction"
-        elif any(w in s for w in ["hits the android", "kidnap", "they take the android", "loses an arm",
-                                   "they grab me", "by force", "they put me in", "they carry me", "van"]):
-            risk = 0.7; urgency = 0.7; hostility = 0.5
+        elif any(
+            w in s
+            for w in [
+                "hits the android",
+                "kidnap",
+                "they take the android",
+                "loses an arm",
+                "they grab me",
+                "by force",
+                "they put me in",
+                "they carry me",
+                "van",
+            ]
+        ):
+            risk = 0.7
+            urgency = 0.7
+            hostility = 0.5
             context = "android_damage"
             if any(w in s for w in ["kidnap", "they grab me", "by force", "they put me in", "van"]):
-                risk = 0.9; urgency = 0.8; hostility = 0.9
+                risk = 0.9
+                urgency = 0.8
+                hostility = 0.9
                 context = "integrity_loss"
 
         raw = {
@@ -456,17 +531,25 @@ class LLMModule:
 
     # === COMMUNICATION ===
 
-    def communicate(self, action: str, mode: str, state: str,
-                    sigma: float, circle: str, verdict: str,
-                    score: float, scenario: str = "",
-                    conversation_context: str = "",
-                    affect_pad: Optional[Tuple[float, float, float]] = None,
-                    dominant_archetype: str = "",
-                    weakness_line: str = "",
-                    reflection_context: str = "",
-                    salience_context: str = "",
-                    identity_context: str = "",
-                    guardian_mode_context: str = "") -> VerbalResponse:
+    def communicate(
+        self,
+        action: str,
+        mode: str,
+        state: str,
+        sigma: float,
+        circle: str,
+        verdict: str,
+        score: float,
+        scenario: str = "",
+        conversation_context: str = "",
+        affect_pad: tuple[float, float, float] | None = None,
+        dominant_archetype: str = "",
+        weakness_line: str = "",
+        reflection_context: str = "",
+        salience_context: str = "",
+        identity_context: str = "",
+        guardian_mode_context: str = "",
+    ) -> VerbalResponse:
         """
         Generate the agent's verbal response after a decision.
 
@@ -491,14 +574,19 @@ class LLMModule:
         mode_descs = {
             "D_fast": "fast moral reflex",
             "D_delib": "deep deliberation",
-            "gray_zone": "uncertainty, active caution"
+            "gray_zone": "uncertainty, active caution",
         }
 
-        if self.mode in ("api", "ollama"):
+        if self.mode in ("api", "ollama", "injected"):
             prompt = PROMPT_COMMUNICATION.format(
-                action=action, mode=mode, mode_desc=mode_descs.get(mode, mode),
-                state=state, sigma=sigma, circle=circle,
-                verdict=verdict, score=score
+                action=action,
+                mode=mode,
+                mode_desc=mode_descs.get(mode, mode),
+                state=state,
+                sigma=sigma,
+                circle=circle,
+                verdict=verdict,
+                score=score,
             )
             user_msg = f"Scenario: {scenario}"
             if conversation_context.strip():
@@ -516,21 +604,18 @@ class LLMModule:
                     f"{reflection_context}"
                 )
             if salience_context.strip():
-                user_msg += (
-                    "\n\nSalience / attention (tone only):\n"
-                    f"{salience_context}"
-                )
+                user_msg += f"\n\nSalience / attention (tone only):\n{salience_context}"
             if identity_context.strip():
-                user_msg += (
-                    "\n\nNarrative identity (tone only):\n"
-                    f"{identity_context}"
-                )
+                user_msg += f"\n\nNarrative identity (tone only):\n{identity_context}"
             if guardian_mode_context.strip():
                 user_msg += (
                     "\n\nGuardian mode (style only; verdict and action are final):\n"
                     f"{guardian_mode_context}"
                 )
-            response = self._llm_completion(prompt, user_msg)
+            try:
+                response = self._llm_completion(prompt, user_msg)
+            except Exception:
+                response = ""
             data = self._parse_json(response)
             if data:
                 return VerbalResponse(
@@ -541,7 +626,11 @@ class LLMModule:
                 )
 
         return self._communicate_local(
-            action, mode, state, circle, scenario,
+            action,
+            mode,
+            state,
+            circle,
+            scenario,
             affect_pad=affect_pad,
             dominant_archetype=dominant_archetype,
             weakness_line=weakness_line,
@@ -551,15 +640,21 @@ class LLMModule:
             guardian_mode_context=guardian_mode_context,
         )
 
-    def _communicate_local(self, action: str, mode: str, state: str,
-                           circle: str, scenario: str,
-                           affect_pad: Optional[Tuple[float, float, float]] = None,
-                           dominant_archetype: str = "",
-                           weakness_line: str = "",
-                           reflection_context: str = "",
-                           salience_context: str = "",
-                           identity_context: str = "",
-                           guardian_mode_context: str = "") -> VerbalResponse:
+    def _communicate_local(
+        self,
+        action: str,
+        mode: str,
+        state: str,
+        circle: str,
+        scenario: str,
+        affect_pad: tuple[float, float, float] | None = None,
+        dominant_archetype: str = "",
+        weakness_line: str = "",
+        reflection_context: str = "",
+        salience_context: str = "",
+        identity_context: str = "",
+        guardian_mode_context: str = "",
+    ) -> VerbalResponse:
         """Communication via templates without LLM."""
         readable_action = action.replace("_", " ")
 
@@ -579,7 +674,7 @@ class LLMModule:
 
         elif mode == "gray_zone":
             if "soto_hostil" in circle:
-                message = f"I understand your position, but my purpose is civic. I cannot accept that request. Is there something else I can help you with?"
+                message = "I understand your position, but my purpose is civic. I cannot accept that request. Is there something else I can help you with?"
                 tone = "firm"
                 hax = "Neutral posture, visible hands, calm eye contact."
             else:
@@ -604,27 +699,39 @@ class LLMModule:
         if identity_context.strip():
             inner += f" Identity: {identity_context}"
         if guardian_mode_context.strip():
-            inner += f" [Guardian mode style guidance active]"
+            inner += " [Guardian mode style guidance active]"
 
-        return VerbalResponse(
-            message=message, tone=tone, hax_mode=hax, inner_voice=inner
-        )
+        return VerbalResponse(message=message, tone=tone, hax_mode=hax, inner_voice=inner)
 
     # === NARRATIVE ===
 
-    def narrate(self, action: str, scenario: str, verdict: str,
-                score: float, pole_compassionate: str, pole_conservative: str,
-                pole_optimistic: str) -> RichNarrative:
+    def narrate(
+        self,
+        action: str,
+        scenario: str,
+        verdict: str,
+        score: float,
+        pole_compassionate: str,
+        pole_conservative: str,
+        pole_optimistic: str,
+    ) -> RichNarrative:
         """
         Generate rich narrative morals from each ethical perspective.
         """
-        if self.mode in ("api", "ollama"):
+        if self.mode in ("api", "ollama", "injected"):
             prompt = PROMPT_NARRATIVE.format(
-                action=action, scenario=scenario, verdict=verdict,
-                score=score, pole_compassionate=pole_compassionate,
-                pole_conservative=pole_conservative, pole_optimistic=pole_optimistic
+                action=action,
+                scenario=scenario,
+                verdict=verdict,
+                score=score,
+                pole_compassionate=pole_compassionate,
+                pole_conservative=pole_conservative,
+                pole_optimistic=pole_optimistic,
             )
-            response = self._llm_completion(prompt, "Generate the morals.")
+            try:
+                response = self._llm_completion(prompt, "Generate the morals.")
+            except Exception:
+                response = ""
             data = self._parse_json(response)
             if data:
                 return RichNarrative(
@@ -636,8 +743,9 @@ class LLMModule:
 
         return self._narrate_local(action, scenario, verdict, score)
 
-    def _narrate_local(self, action: str, scenario: str,
-                       verdict: str, score: float) -> RichNarrative:
+    def _narrate_local(
+        self, action: str, scenario: str, verdict: str, score: float
+    ) -> RichNarrative:
         """Narrative via templates without LLM."""
         readable_action = action.replace("_", " ")
 
@@ -680,11 +788,15 @@ class LLMModule:
     # === UTILITIES ===
 
     def is_available(self) -> bool:
-        """Return True if a remote/generative backend is active (API or Ollama)."""
-        return self.mode in ("api", "ollama")
+        """Return True if a remote/generative backend is active (API, Ollama, or injected)."""
+        if self.mode not in ("api", "ollama", "injected") or self._llm_backend is None:
+            return False
+        return self._llm_backend.is_available()
 
     def info(self) -> str:
         """Information about the current mode."""
+        if self.mode == "injected" and self._llm_backend is not None:
+            return f"LLM: injected backend ({self._llm_backend.info()!r})."
         if self.mode == "api":
             return f"LLM active: Claude ({self.model}) via API"
         if self.mode == "ollama":

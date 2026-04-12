@@ -5,13 +5,13 @@ import sys
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
 
-from src.modules.salience_map import SalienceMap, salience_to_llm_context
-from src.modules.uchi_soto import SocialEvaluation, TrustCircle
-from src.modules.sympathetic import InternalState
-from src.modules.ethical_reflection import EthicalReflection
-from src.modules.ethical_poles import EthicalPoles
-from src.modules.bayesian_engine import BayesianResult, CandidateAction
 from src.kernel import EthicalKernel
+from src.modules.bayesian_engine import BayesianResult, CandidateAction
+from src.modules.ethical_poles import EthicalPoles
+from src.modules.ethical_reflection import EthicalReflection
+from src.modules.salience_map import SalienceMap, salience_to_llm_context
+from src.modules.sympathetic import InternalState
+from src.modules.uchi_soto import SocialEvaluation, TrustCircle
 
 
 def _social() -> SocialEvaluation:
@@ -31,7 +31,11 @@ def test_salience_weights_sum_to_one():
     state = InternalState(sigma=0.5, mode="neutral", energy=1.0)
     signals = {"risk": 0.2, "hostility": 0.1}
     ref = EthicalReflection().reflect(
-        EthicalPoles().evaluate("act", "everyday", {"risk": 0.2, "benefit": 0.3, "third_party_vulnerability": 0.0, "legality": 1.0}),
+        EthicalPoles().evaluate(
+            "act",
+            "everyday",
+            {"risk": 0.2, "benefit": 0.3, "third_party_vulnerability": 0.0, "legality": 1.0},
+        ),
         BayesianResult(
             chosen_action=CandidateAction("a", "d", 0.5, 0.8),
             expected_impact=0.5,

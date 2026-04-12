@@ -9,17 +9,17 @@ Adjusts bayesianly based on episode history.
 """
 
 from dataclasses import dataclass
-from typing import List, Optional
 
 
 @dataclass
 class LocusEvaluation:
     """Result of the locus of control evaluation."""
-    alpha: float             # Internal control weight
-    beta: float              # External factors weight
-    dominant_locus: str      # "internal", "external", "balanced"
-    action_confidence: float # P(success) calculated
-    attribution: str         # Narrative explanation
+
+    alpha: float  # Internal control weight
+    beta: float  # External factors weight
+    dominant_locus: str  # "internal", "external", "balanced"
+    action_confidence: float  # P(success) calculated
+    attribution: str  # Narrative explanation
     recommended_adjustment: str  # Suggestion for the kernel
 
 

@@ -7,15 +7,17 @@ Will is a smooth curve, not a switch.
 Avoids numerical explosions and allows gradual transitions.
 """
 
-import numpy as np
 from dataclasses import dataclass
+
+import numpy as np
 
 
 @dataclass
 class SigmoidParameters:
     """Parameters of the will function."""
-    k: float = 5.0        # Slope (sensitivity)
-    x0: float = 0.5       # Equilibrium point
+
+    k: float = 5.0  # Slope (sensitivity)
+    x0: float = 0.5  # Equilibrium point
     lambda_i: float = 0.1  # Sensitivity to creative imagination
 
 
@@ -52,8 +54,7 @@ class SigmoidWill:
 
         return float(sigmoid + creativity)
 
-    def decide(self, x: float, uncertainty: float = 0.0,
-               threshold: float = 0.5) -> dict:
+    def decide(self, x: float, uncertainty: float = 0.0, threshold: float = 0.5) -> dict:
         """
         Decides whether to act and in which mode.
 
@@ -66,11 +67,11 @@ class SigmoidWill:
         w = self.calculate(x, uncertainty)
 
         if w > 0.8:
-            mode = "D_fast"      # Fast moral reflex
+            mode = "D_fast"  # Fast moral reflex
         elif w > threshold:
-            mode = "D_delib"     # Deep deliberation
+            mode = "D_delib"  # Deep deliberation
         else:
-            mode = "gray_zone"   # Requires more information or DAO
+            mode = "gray_zone"  # Requires more information or DAO
 
         return {
             "act": w > threshold,

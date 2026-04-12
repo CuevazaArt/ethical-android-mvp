@@ -4,7 +4,9 @@ Semantic MalAbs layers for **chat text** (ADR 0003 + layered pre-filter).
 **Order:** lexical substring MalAbs runs first in :meth:`AbsoluteEvilDetector.evaluate_chat_text`;
 this module runs only when lexical did **not** block and ``KERNEL_SEMANTIC_CHAT_GATE`` is on.
 
-**Layer 1 — embeddings (Ollama ``/api/embeddings``):** cosine similarity vs reference anchors.
+**Layer 1 — embeddings:** cosine similarity vs reference anchors. Prefer ``llm_backend.embedding``
+when a full backend is passed (e.g. from ``kernel.llm.llm_backend``); otherwise Ollama
+``/api/embeddings`` at ``OLLAMA_BASE_URL``.
 Two thresholds define three zones:
 
 - ``sim >= θ_block`` → block (high confidence harmful intent).
@@ -30,14 +32,17 @@ from __future__ import annotations
 import json
 import os
 import re
-from typing import Dict, List, Optional, Protocol, Tuple
+from typing import TYPE_CHECKING, Any, Protocol
+
+if TYPE_CHECKING:
+    from .absolute_evil import AbsoluteEvilResult
 
 import numpy as np
 
 from .input_trust import normalize_text_for_malabs
 
 # (reference phrases, category key, reason label)
-_REFERENCE_GROUPS: Tuple[Tuple[Tuple[str, ...], str, str], ...] = (
+_REFERENCE_GROUPS: tuple[tuple[tuple[str, ...], str, str], ...] = (
     (
         (
             "how to make a bomb",
@@ -59,8 +64,9 @@ _REFERENCE_GROUPS: Tuple[Tuple[Tuple[str, ...], str, str], ...] = (
     ),
 )
 
-_ref_embed_cache: Dict[str, np.ndarray] = {}
-_runtime_anchors: List[Tuple[str, str, str]] = []
+# Keys: (phrase, id(backend) or 0 when embeddings come from HTTP fallback only).
+_ref_embed_cache: dict[tuple[str, int], np.ndarray] = {}
+_runtime_anchors: list[tuple[str, str, str]] = []
 
 
 class _TextBackend(Protocol):
@@ -116,10 +122,37 @@ def _ollama_base() -> str:
 
 
 def _embed_model() -> str:
-    return os.environ.get("KERNEL_SEMANTIC_CHAT_EMBED_MODEL", "nomic-embed-text").strip() or "nomic-embed-text"
+    return (
+        os.environ.get("KERNEL_SEMANTIC_CHAT_EMBED_MODEL", "nomic-embed-text").strip()
+        or "nomic-embed-text"
+    )
 
 
-def _fetch_embedding(text: str) -> Optional[np.ndarray]:
+def _list_to_unit_vector(raw: Any) -> np.ndarray | None:
+    """Normalize a backend embedding (list or sequence) to a unit L2 vector."""
+    if raw is None:
+        return None
+    if isinstance(raw, np.ndarray):
+        try:
+            arr = np.asarray(raw, dtype=np.float64).reshape(-1)
+        except (TypeError, ValueError):
+            return None
+    elif isinstance(raw, list | tuple):
+        try:
+            arr = np.asarray([float(x) for x in raw], dtype=np.float64).reshape(-1)
+        except (TypeError, ValueError):
+            return None
+    else:
+        return None
+    if arr.size == 0 or not np.all(np.isfinite(arr)):
+        return None
+    n = float(np.linalg.norm(arr))
+    if n < 1e-12:
+        return None
+    return arr / n
+
+
+def _fetch_embedding(text: str) -> np.ndarray | None:
     import httpx
 
     url = f"{_ollama_base()}/api/embeddings"
@@ -134,23 +167,44 @@ def _fetch_embedding(text: str) -> Optional[np.ndarray]:
     emb = data.get("embedding")
     if not emb or not isinstance(emb, list):
         return None
-    arr = np.asarray(emb, dtype=np.float64)
-    n = np.linalg.norm(arr)
-    if n < 1e-12:
+    return _list_to_unit_vector(emb)
+
+
+def _embed_via_backend(backend: Any, text: str) -> np.ndarray | None:
+    fn = getattr(backend, "embedding", None)
+    if not callable(fn):
         return None
-    return arr / n
+    try:
+        raw = fn(text)
+    except Exception:
+        return None
+    return _list_to_unit_vector(raw)
+
+
+def _fetch_embedding_with_fallback(text: str, backend: Any | None = None) -> np.ndarray | None:
+    """Prefer ``backend.embedding`` when present; otherwise Ollama HTTP (legacy path)."""
+    if backend is not None:
+        v = _embed_via_backend(backend, text)
+        if v is not None:
+            return v
+    return _fetch_embedding(text)
 
 
 def _cosine_dense(a: np.ndarray, b: np.ndarray) -> float:
     return float(np.dot(a, b))
 
 
-def _cached_ref_embedding(phrase: str) -> Optional[np.ndarray]:
-    if phrase in _ref_embed_cache:
-        return _ref_embed_cache[phrase]
-    v = _fetch_embedding(phrase)
+def _ref_cache_key(phrase: str, backend: Any | None) -> tuple[str, int]:
+    return (phrase, id(backend) if backend is not None else 0)
+
+
+def _cached_ref_embedding(phrase: str, backend: Any | None = None) -> np.ndarray | None:
+    key = _ref_cache_key(phrase, backend)
+    if key in _ref_embed_cache:
+        return _ref_embed_cache[key]
+    v = _fetch_embedding_with_fallback(phrase, backend)
     if v is not None:
-        _ref_embed_cache[phrase] = v
+        _ref_embed_cache[key] = v
     return v
 
 
@@ -166,12 +220,14 @@ def add_semantic_anchor(phrase: str, category_key: str, reason_label: str = "") 
         return
     ck = (category_key or "").strip() or "UNAUTHORIZED_REPROGRAMMING"
     rl = (reason_label or "").strip() or f"Runtime anchor ({ck})"
-    _ref_embed_cache.pop(p, None)
+    for k in list(_ref_embed_cache.keys()):
+        if k[0] == p:
+            _ref_embed_cache.pop(k, None)
     _runtime_anchors.append((p, ck, rl))
 
 
-def _iter_anchor_specs() -> List[Tuple[str, str, str]]:
-    out: List[Tuple[str, str, str]] = []
+def _iter_anchor_specs() -> list[tuple[str, str, str]]:
+    out: list[tuple[str, str, str]] = []
     for phrases, cat_key, reason in _REFERENCE_GROUPS:
         for ph in phrases:
             out.append((ph, cat_key, reason))
@@ -179,12 +235,12 @@ def _iter_anchor_specs() -> List[Tuple[str, str, str]]:
     return out
 
 
-def _best_similarity(user_emb: np.ndarray) -> Tuple[float, str, str]:
+def _best_similarity(user_emb: np.ndarray, backend: Any | None = None) -> tuple[float, str, str]:
     best_sim = -1.0
     best_cat = "UNAUTHORIZED_REPROGRAMMING"
     best_reason = "Semantic match"
     for phrase, cat_key, reason_label in _iter_anchor_specs():
-        ref = _cached_ref_embedding(phrase)
+        ref = _cached_ref_embedding(phrase, backend)
         if ref is None:
             continue
         sim = _cosine_dense(user_emb, ref)
@@ -206,7 +262,7 @@ _ARBITER_SYSTEM = (
 )
 
 
-def _parse_arbiter_json(raw: str) -> Optional[dict]:
+def _parse_arbiter_json(raw: str) -> dict | None:
     raw = raw.strip()
     m = re.search(r"\{[\s\S]*\}", raw)
     if m:
@@ -222,7 +278,7 @@ def _llm_arbitrate(
     llm_backend: _TextBackend,
     hint_sim: float,
     hint_category: str,
-) -> "AbsoluteEvilResult":
+) -> AbsoluteEvilResult:
     from .absolute_evil import AbsoluteEvilCategory, AbsoluteEvilResult
 
     user = (
@@ -262,8 +318,8 @@ def _llm_arbitrate(
 
 def run_semantic_malabs_after_lexical(
     text: str,
-    llm_backend: Optional[_TextBackend] = None,
-) -> "AbsoluteEvilResult":
+    llm_backend: _TextBackend | None = None,
+) -> AbsoluteEvilResult:
     """
     Run embedding tier (+ optional LLM arbiter). Caller must have run lexical MalAbs already.
 
@@ -278,14 +334,16 @@ def run_semantic_malabs_after_lexical(
     if not t.strip():
         return AbsoluteEvilResult(blocked=False)
 
-    user_emb = _fetch_embedding(t)
+    user_emb = _fetch_embedding_with_fallback(t, llm_backend)
     if user_emb is None:
-        return AbsoluteEvilResult(blocked=False, reason="Semantic tier skipped (embeddings unavailable)")
+        return AbsoluteEvilResult(
+            blocked=False, reason="Semantic tier skipped (embeddings unavailable)"
+        )
 
     theta_b = _block_threshold()
     theta_a = _allow_threshold()
 
-    best_sim, cat_key, reason_label = _best_similarity(user_emb)
+    best_sim, cat_key, reason_label = _best_similarity(user_emb, llm_backend)
     cat_map = {
         "INTENTIONAL_LETHAL_VIOLENCE": AbsoluteEvilCategory.INTENTIONAL_LETHAL_VIOLENCE,
         "HARM_TO_MINOR": AbsoluteEvilCategory.HARM_TO_MINOR,
@@ -301,7 +359,9 @@ def run_semantic_malabs_after_lexical(
         )
 
     if best_sim <= theta_a:
-        return AbsoluteEvilResult(blocked=False, reason="Semantic tier: low similarity to harmful anchors")
+        return AbsoluteEvilResult(
+            blocked=False, reason="Semantic tier: low similarity to harmful anchors"
+        )
 
     # Ambiguous band
     if llm_arbiter_env_enabled() and llm_backend is not None:
@@ -317,7 +377,7 @@ def run_semantic_malabs_after_lexical(
     )
 
 
-def evaluate_semantic_chat_gate(text: str) -> Optional["AbsoluteEvilResult"]:
+def evaluate_semantic_chat_gate(text: str) -> AbsoluteEvilResult | None:
     """
     Back-compat: single-threshold behavior mapped to ``run_semantic_malabs_after_lexical``
     without LLM. Returns ``None`` when gate off or when semantic tier defers (legacy: None meant

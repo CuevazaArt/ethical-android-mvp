@@ -10,14 +10,12 @@ These strings remain advisory / UX and LLM tone only.
 
 from __future__ import annotations
 
-from typing import Dict
-
 
 def qualitative_temporal_branches(
     action: str,
     verdict: str,
     context_label: str,
-) -> Dict[str, str]:
+) -> dict[str, str]:
     a = action.replace("_", " ")
     ctx = context_label or "general"
     return {

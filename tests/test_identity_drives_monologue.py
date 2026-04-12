@@ -60,7 +60,13 @@ def test_drive_arbiter_after_sleep_emits_when_thresholds_met():
         k.process(
             scenario=f"e{i}",
             place="p",
-            signals={"risk": 0.1, "hostility": 0.0, "calm": 0.7, "vulnerability": 0.0, "legality": 1.0},
+            signals={
+                "risk": 0.1,
+                "hostility": 0.0,
+                "calm": 0.7,
+                "vulnerability": 0.0,
+                "legality": 1.0,
+            },
             context="everyday_ethics",
             actions=[CandidateAction("act_civically", "civic", 0.5, 0.8)],
             register_episode=True,

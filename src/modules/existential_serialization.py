@@ -12,7 +12,7 @@ import hashlib
 import os
 from dataclasses import dataclass
 from enum import Enum
-from typing import Any, Dict, Optional
+from typing import Any
 
 from .hub_audit import register_hub_calibration
 
@@ -34,7 +34,7 @@ class ContinuityToken:
     identity_fingerprint: str
     phase: TransmutationPhase = TransmutationPhase.ENCAPSULATE
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         return {
             "thought_summary": self.thought_summary,
             "identity_fingerprint": self.identity_fingerprint,
@@ -49,7 +49,9 @@ def _episode_chain_fingerprint(kernel: Any, max_episodes: int = 64) -> str:
         return "0" * 64
     ids = [ep.id for ep in mem.episodes[-max_episodes:]]
     id_part = str(getattr(mem.identity.state, "episode_count", 0))
-    raw = "|".join(ids) + "::" + id_part + "::" + (getattr(mem, "experience_digest", "") or "")[:400]
+    raw = (
+        "|".join(ids) + "::" + id_part + "::" + (getattr(mem, "experience_digest", "") or "")[:400]
+    )
     return hashlib.sha256(raw.encode("utf-8")).hexdigest()
 
 
@@ -68,7 +70,7 @@ def build_continuity_token_stub(kernel: Any, thought_line: str = "") -> Continui
     )
 
 
-def narrative_integrity_self_check_stub(kernel: Any) -> Dict[str, Any]:
+def narrative_integrity_self_check_stub(kernel: Any) -> dict[str, Any]:
     """
     Phase D — integrity smoke: last episode id + chain hash over recent episodes.
     """
@@ -107,11 +109,11 @@ def migration_audit_payload(
     destination_hardware_id: str = "",
     include_location: bool = False,
     thought_line: str = "",
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     """
     DAO event payload: **no GPS** unless include_location True (owner opt-in design).
     """
-    out: Dict[str, Any] = {
+    out: dict[str, Any] = {
         "kind": "nomadic_migration",
         "destination_hardware_id": (destination_hardware_id or "unspecified")[:128],
         "continuity": build_continuity_token_stub(kernel, thought_line).to_dict(),
@@ -150,7 +152,7 @@ def simulate_nomadic_migration(
     destination_hardware_id: str = "",
     thought_line: str = "",
     include_location: bool = False,
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     """
     Demo **Phase C**: apply HAL profile, optional DAO audit, narrative delta + integrity stub.
 
@@ -165,7 +167,11 @@ def simulate_nomadic_migration(
 
     before = getattr(kernel, "_hal_context", None)
     before_ctx = before if before is not None else default_server_context()
-    after = default_mobile_context() if profile.strip().lower() == "mobile" else default_server_context()
+    after = (
+        default_mobile_context()
+        if profile.strip().lower() == "mobile"
+        else default_server_context()
+    )
     apply_hardware_context(kernel, after)
     narrative_en = sensor_delta_narrative(before_ctx, after)
     audit_recorded = record_nomadic_migration_audit(

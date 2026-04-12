@@ -22,7 +22,7 @@ import json
 import math
 import re
 from dataclasses import dataclass, field
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 from pydantic import BaseModel, ConfigDict, Field
 
@@ -41,7 +41,7 @@ CONTEXTS = frozenset(
 )
 
 # Stratified defaults when a field cannot be coerced (per-field fallback).
-PERCEPTION_FIELD_DEFAULTS: Dict[str, float] = {
+PERCEPTION_FIELD_DEFAULTS: dict[str, float] = {
     "risk": 0.5,
     "urgency": 0.5,
     "hostility": 0.0,
@@ -59,8 +59,8 @@ NUMERIC_PERCEPTION_FIELDS: tuple[str, ...] = tuple(PERCEPTION_FIELD_DEFAULTS.key
 class PerceptionJsonParseResult:
     """Structured outcome of parsing raw LLM text into a perception JSON object."""
 
-    data: Dict[str, Any]
-    issues: List[str] = field(default_factory=list)
+    data: dict[str, Any]
+    issues: list[str] = field(default_factory=list)
 
 
 def parse_perception_llm_raw_response(raw_text: str) -> PerceptionJsonParseResult:
@@ -73,7 +73,7 @@ def parse_perception_llm_raw_response(raw_text: str) -> PerceptionJsonParseResul
     Issue codes (subset may apply): ``empty_response``, ``json_decode_error``,
     ``non_object_payload``, ``empty_object``.
     """
-    issues: List[str] = []
+    issues: list[str] = []
     t = (raw_text or "").strip()
     if not t:
         return PerceptionJsonParseResult({}, ["empty_response"])
@@ -121,11 +121,11 @@ class PerceptionCoercionReport:
 
     non_dict_payload: bool = False
     context_fallback: bool = False
-    fields_defaulted: List[str] = field(default_factory=list)
-    fields_clamped: List[str] = field(default_factory=list)
+    fields_defaulted: list[str] = field(default_factory=list)
+    fields_clamped: list[str] = field(default_factory=list)
     pydantic_emergency_fallback: bool = False
     coherence_adjusted: bool = False
-    parse_issues: List[str] = field(default_factory=list)
+    parse_issues: list[str] = field(default_factory=list)
     cross_check_discrepancy: bool = False
     cross_check_tier: str = ""
 
@@ -146,7 +146,7 @@ class PerceptionCoercionReport:
             u += 0.22
         return min(1.0, u)
 
-    def to_public_dict(self) -> Dict[str, Any]:
+    def to_public_dict(self) -> dict[str, Any]:
         return {
             "non_dict_payload": self.non_dict_payload,
             "context_fallback": self.context_fallback,
@@ -161,7 +161,7 @@ class PerceptionCoercionReport:
         }
 
 
-def perception_report_from_dict(d: Optional[Dict[str, Any]]) -> PerceptionCoercionReport:
+def perception_report_from_dict(d: dict[str, Any] | None) -> PerceptionCoercionReport:
     """Rebuild a coercion report from a public dict (for merging diagnostics)."""
     if not d:
         return PerceptionCoercionReport()
@@ -178,14 +178,14 @@ def perception_report_from_dict(d: Optional[Dict[str, Any]]) -> PerceptionCoerci
     )
 
 
-def merge_parse_issues_into_perception(perception: Any, issues: List[str]) -> None:
+def merge_parse_issues_into_perception(perception: Any, issues: list[str]) -> None:
     """Attach parse-time issue codes to ``LLMPerception.coercion_report`` (mutates in place)."""
     if not issues:
         return
     r = perception_report_from_dict(getattr(perception, "coercion_report", None))
     merged = sorted(set(r.parse_issues).union(str(x) for x in issues if x))
     r.parse_issues = merged
-    setattr(perception, "coercion_report", r.to_public_dict())
+    perception.coercion_report = r.to_public_dict()
 
 
 def _clamp_unit_interval(x: Any, default: float = 0.5) -> float:
@@ -246,8 +246,8 @@ def apply_signal_coherence(
 def validate_perception_dict(
     data: Any,
     *,
-    report: Optional[PerceptionCoercionReport] = None,
-) -> Dict[str, Any]:
+    report: PerceptionCoercionReport | None = None,
+) -> dict[str, Any]:
     """
     Coerce LLM JSON to bounded floats, validate with Pydantic, apply hostility/calm and
     cross-field coherence, sanitize summary (same contract as legacy ``perception_from_llm_json``).
@@ -275,7 +275,7 @@ def validate_perception_dict(
     if len(summary) > 500:
         summary = summary[:500] + "…"
 
-    coerced: Dict[str, Any] = {}
+    coerced: dict[str, Any] = {}
     for name in NUMERIC_PERCEPTION_FIELDS:
         raw = data.get(name)
         if report is not None:
@@ -327,7 +327,7 @@ def validate_perception_dict(
     }
 
 
-def finalize_summary(validated: Dict[str, Any], situation: str) -> str:
+def finalize_summary(validated: dict[str, Any], situation: str) -> str:
     summary = validated.get("summary") or ""
     fb = situation[:100] if situation else ""
     return (summary or fb) or fb

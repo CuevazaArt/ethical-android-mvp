@@ -11,7 +11,6 @@ See docs/proposals/PROPUESTA_ESTRATEGIA_OPERATIVA_V10.md
 from __future__ import annotations
 
 import os
-from typing import Optional
 
 from .ethical_reflection import ReflectionSnapshot
 
@@ -23,7 +22,7 @@ def diplomacy_enabled() -> bool:
 
 def negotiation_hint_for_communicate(
     decision_mode: str,
-    reflection: Optional[ReflectionSnapshot],
+    reflection: ReflectionSnapshot | None,
     premise_flag: str,
 ) -> str:
     """

@@ -2,19 +2,19 @@
 
 from __future__ import annotations
 
-from dataclasses import asdict
-from typing import TYPE_CHECKING, Any, Dict, List, cast
+from typing import TYPE_CHECKING, Any, cast
 
 import numpy as np
 
 from src.modules.forgiveness import WeightedMemory
+from src.modules.judicial_escalation import EscalationPhase, strikes_threshold_from_env
 from src.modules.metaplan_registry import MasterGoal
-from src.modules.skill_learning_registry import SkillLearningTicket, Status
 from src.modules.mock_dao import AuditRecord, SolidarityAlert
 from src.modules.narrative import BodyState, NarrativeEpisode
 from src.modules.narrative_identity import NarrativeIdentityState
-from src.modules.variability import VariabilityConfig, VariabilityEngine
+from src.modules.skill_learning_registry import SkillLearningTicket, Status
 from src.modules.subjective_time import SubjectiveClock
+from src.modules.uchi_soto import interaction_profile_from_dict, interaction_profile_to_dict
 from src.modules.user_model import (
     COGNITIVE_HOSTILE_ATTRIBUTION,
     COGNITIVE_NONE,
@@ -24,11 +24,19 @@ from src.modules.user_model import (
     RISK_LOW,
     RISK_MEDIUM,
 )
+from src.modules.variability import VariabilityConfig, VariabilityEngine
 from src.modules.weakness_pole import WeaknessRecord, WeaknessType
-from src.modules.judicial_escalation import EscalationPhase, strikes_threshold_from_env
-from src.modules.uchi_soto import interaction_profile_from_dict, interaction_profile_to_dict
 
 from .schema import SCHEMA_VERSION, KernelSnapshotV1
+from .snapshot_serde import (
+    audit_record_to_dict,
+    episode_to_serializable_dict,
+    master_goal_to_dict,
+    narrative_identity_state_to_dict,
+    solidarity_alert_to_dict,
+    weighted_memory_to_dict,
+)
+from .snapshot_validate import validate_snapshot_for_apply
 
 _ALLOWED_USER_MODEL_COGNITIVE = frozenset(
     {
@@ -56,19 +64,17 @@ def _sanitize_user_model_judicial_phase(raw: str) -> str:
     x = (raw or "").strip()[:64]
     return x if x in _ALLOWED_USER_MODEL_JUDICIAL_PHASE else ""
 
+
 if TYPE_CHECKING:
     from src.kernel import EthicalKernel
 
 
-def episode_to_dict(ep: NarrativeEpisode) -> Dict[str, Any]:
-    d = asdict(ep)
-    d["body_state"] = asdict(ep.body_state)
-    if d.get("affect_pad") is not None:
-        d["affect_pad"] = list(d["affect_pad"])
-    return d
+def episode_to_dict(ep: NarrativeEpisode) -> dict[str, Any]:
+    """Backward-compatible name; see :func:`~src.persistence.snapshot_serde.episode_to_serializable_dict`."""
+    return episode_to_serializable_dict(ep)
 
 
-def episode_from_dict(d: Dict[str, Any]) -> NarrativeEpisode:
+def episode_from_dict(d: dict[str, Any]) -> NarrativeEpisode:
     body = BodyState(**d["body_state"])
     pad = tuple(d["affect_pad"]) if d.get("affect_pad") is not None else None
     return NarrativeEpisode(
@@ -89,7 +95,7 @@ def episode_from_dict(d: Dict[str, Any]) -> NarrativeEpisode:
     )
 
 
-def extract_snapshot(kernel: "EthicalKernel") -> KernelSnapshotV1:
+def extract_snapshot(kernel: EthicalKernel) -> KernelSnapshotV1:
     """Serialize mutable kernel state into a versioned snapshot."""
     mem = kernel.memory
     fg = kernel.forgiveness
@@ -101,9 +107,9 @@ def extract_snapshot(kernel: "EthicalKernel") -> KernelSnapshotV1:
         schema_version=SCHEMA_VERSION,
         episodes=[episode_to_dict(ep) for ep in mem.episodes],
         narrative_counter=mem._counter,
-        identity_state=asdict(mem.identity.state),
+        identity_state=narrative_identity_state_to_dict(mem.identity.state),
         experience_digest=getattr(mem, "experience_digest", "") or "",
-        forgiveness_memories={k: asdict(v) for k, v in fg.memories.items()},
+        forgiveness_memories={k: weighted_memory_to_dict(v) for k, v in fg.memories.items()},
         forgiveness_cycle=fg._cycle,
         forgiveness_recent_positives=fg._recent_positives,
         weakness_type=w.type.value,
@@ -129,14 +135,14 @@ def extract_snapshot(kernel: "EthicalKernel") -> KernelSnapshotV1:
         variability_active=kernel.var_engine._active,
         pruned_actions=dict(kernel._pruned_actions),
         dao_record_counter=dao._record_counter,
-        dao_records=[asdict(r) for r in dao.records],
-        dao_alerts=[asdict(a) for a in dao.alerts],
+        dao_records=[audit_record_to_dict(r) for r in dao.records],
+        dao_alerts=[solidarity_alert_to_dict(a) for a in dao.alerts],
         constitution_l1_drafts=list(getattr(kernel, "constitution_l1_drafts", []) or []),
         constitution_l2_drafts=list(getattr(kernel, "constitution_l2_drafts", []) or []),
         dao_proposal_counter=dao_st["proposal_counter"],
         dao_participants=dao_st["participants"],
         dao_proposals=dao_st["proposals"],
-        metaplan_goals=[asdict(g) for g in kernel.metaplan.goals()],
+        metaplan_goals=[master_goal_to_dict(g) for g in kernel.metaplan.goals()],
         somatic_marker_weights=dict(kernel.somatic_store._negative_weights),
         skill_learning_tickets=[
             {
@@ -164,10 +170,9 @@ def extract_snapshot(kernel: "EthicalKernel") -> KernelSnapshotV1:
     )
 
 
-def apply_snapshot(kernel: "EthicalKernel", snap: KernelSnapshotV1) -> None:
-    """Restore mutable state. Caller must ensure ``snap`` matches :data:`SCHEMA_VERSION`."""
-    if snap.schema_version != SCHEMA_VERSION:
-        raise ValueError(f"Unsupported schema_version {snap.schema_version}; expected {SCHEMA_VERSION}")
+def apply_snapshot(kernel: EthicalKernel, snap: KernelSnapshotV1) -> None:
+    """Restore mutable state. Validates against JSON Schema before mutating the kernel."""
+    validate_snapshot_for_apply(snap)
 
     mem = kernel.memory
     mem.episodes = [episode_from_dict(e) for e in snap.episodes]
@@ -229,7 +234,7 @@ def apply_snapshot(kernel: "EthicalKernel", snap: KernelSnapshotV1) -> None:
     kernel.constitution_l1_drafts = list(snap.constitution_l1_drafts or [])
     kernel.constitution_l2_drafts = list(snap.constitution_l2_drafts or [])
 
-    mp: List[MasterGoal] = []
+    mp: list[MasterGoal] = []
     for g in snap.metaplan_goals or []:
         try:
             mp.append(
@@ -245,7 +250,7 @@ def apply_snapshot(kernel: "EthicalKernel", snap: KernelSnapshotV1) -> None:
 
     kernel.somatic_store.replace_weights(dict(snap.somatic_marker_weights or {}))
 
-    tickets: List[SkillLearningTicket] = []
+    tickets: list[SkillLearningTicket] = []
     for t in snap.skill_learning_tickets or []:
         try:
             st = cast(Status, str(t.get("status", "pending")))

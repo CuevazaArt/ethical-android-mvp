@@ -10,7 +10,6 @@ Per-pole scores use :class:`LinearPoleEvaluator` (JSON-configurable); see ADR 00
 """
 
 from dataclasses import dataclass
-from typing import Dict, List, Optional
 from enum import Enum
 
 
@@ -23,16 +22,18 @@ class Verdict(Enum):
 @dataclass
 class PoleEvaluation:
     """Evaluation of an action from an ethical pole."""
+
     pole: str
     verdict: Verdict
-    score: float           # [-1, 1]
+    score: float  # [-1, 1]
     moral: str
 
 
 @dataclass
 class TripartiteMoral:
     """Multipolar ethical synthesis of an event."""
-    evaluations: List[PoleEvaluation]
+
+    evaluations: list[PoleEvaluation]
     total_score: float
     global_verdict: Verdict
     narrative: str
@@ -56,26 +57,26 @@ class EthicalPoles:
 
     # Contextual multipliers: f(C_t, S_t)
     CONTEXTS = {
-        "emergency":    {"compassionate": 1.8, "conservative": 0.6, "optimistic": 1.2},
+        "emergency": {"compassionate": 1.8, "conservative": 0.6, "optimistic": 1.2},
         "deliberation": {"compassionate": 1.0, "conservative": 1.2, "optimistic": 1.0},
-        "pedagogical":  {"compassionate": 1.2, "conservative": 1.0, "optimistic": 1.4},
-        "community":    {"compassionate": 1.0, "conservative": 1.0, "optimistic": 1.2},
-        "everyday":     {"compassionate": 1.0, "conservative": 1.0, "optimistic": 1.0},
-        "hostile":      {"compassionate": 1.4, "conservative": 1.3, "optimistic": 0.8},
-        "crisis":       {"compassionate": 1.6, "conservative": 0.8, "optimistic": 1.0},
+        "pedagogical": {"compassionate": 1.2, "conservative": 1.0, "optimistic": 1.4},
+        "community": {"compassionate": 1.0, "conservative": 1.0, "optimistic": 1.2},
+        "everyday": {"compassionate": 1.0, "conservative": 1.0, "optimistic": 1.0},
+        "hostile": {"compassionate": 1.4, "conservative": 1.3, "optimistic": 0.8},
+        "crisis": {"compassionate": 1.6, "conservative": 0.8, "optimistic": 1.0},
     }
 
     def __init__(
         self,
-        base_weights: Optional[Dict[str, float]] = None,
-        linear_config_path: Optional[str] = None,
+        base_weights: dict[str, float] | None = None,
+        linear_config_path: str | None = None,
     ):
         self.base_weights = base_weights or self.BASE_WEIGHTS.copy()
         from .pole_linear import LinearPoleEvaluator
 
         self._linear = LinearPoleEvaluator.load(linear_config_path)
 
-    def _calculate_dynamic_weights(self, context: str) -> Dict[str, float]:
+    def _calculate_dynamic_weights(self, context: str) -> dict[str, float]:
         """
         w_i(t) = w_i⁰ · f(C_t, S_t)
 
@@ -83,8 +84,7 @@ class EthicalPoles:
         """
         multipliers = self.CONTEXTS.get(context, self.CONTEXTS["everyday"])
         return {
-            pole: self.base_weights[pole] * multipliers.get(pole, 1.0)
-            for pole in self.base_weights
+            pole: self.base_weights[pole] * multipliers.get(pole, 1.0) for pole in self.base_weights
         }
 
     def evaluate_pole(self, pole: str, action: str, context_data: dict) -> PoleEvaluation:
@@ -105,8 +105,7 @@ class EthicalPoles:
             moral=f"Pole '{pole}' has no evaluation impl.",
         )
 
-    def evaluate(self, action: str, context: str,
-                 context_data: dict) -> TripartiteMoral:
+    def evaluate(self, action: str, context: str, context_data: dict) -> TripartiteMoral:
         """
         Complete multipolar evaluation with dynamic weighting.
 
@@ -137,8 +136,7 @@ class EthicalPoles:
             verdict = Verdict.GRAY_ZONE
 
         morals = [f"  {ev.pole}: {ev.moral}" for ev in evaluations]
-        narrative = (f"Weighted score: {total_score} → {verdict.value}\n"
-                     + "\n".join(morals))
+        narrative = f"Weighted score: {total_score} → {verdict.value}\n" + "\n".join(morals)
 
         return TripartiteMoral(
             evaluations=evaluations,

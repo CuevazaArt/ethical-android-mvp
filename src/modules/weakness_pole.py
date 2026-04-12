@@ -12,10 +12,10 @@ The weakness pole has temporal decay to prevent
 pathological accumulation (resolved together with algorithmic forgiveness).
 """
 
-import numpy as np
 from dataclasses import dataclass
-from typing import Dict, List, Optional
 from enum import Enum
+
+import numpy as np
 
 
 class WeaknessType(Enum):
@@ -29,20 +29,22 @@ class WeaknessType(Enum):
 @dataclass
 class WeaknessEvaluation:
     """Evaluation from the perspective of the active weakness."""
+
     type: WeaknessType
-    intensity: float               # [0, 1] how strongly it manifests
-    narrative_coloring: str        # How it tints the experience
-    weakness_moral: str            # Moral from imperfection
-    score_effect: float            # Modifier to ethical score (always small negative)
+    intensity: float  # [0, 1] how strongly it manifests
+    narrative_coloring: str  # How it tints the experience
+    weakness_moral: str  # Moral from imperfection
+    score_effect: float  # Modifier to ethical score (always small negative)
 
 
 @dataclass
 class WeaknessRecord:
     """Accumulated record of weakness manifestations."""
+
     episode_id: str
     type: WeaknessType
     intensity: float
-    timestamp: float               # For temporal decay
+    timestamp: float  # For temporal decay
 
 
 class WeaknessPole:
@@ -75,15 +77,15 @@ class WeaknessPole:
     # Maximum active records
     MAX_RECORDS = 50
 
-    def __init__(self, type: WeaknessType = WeaknessType.INDECISIVE,
-                 base_intensity: float = None):
+    def __init__(self, type: WeaknessType = WeaknessType.INDECISIVE, base_intensity: float = None):
         self.type = type
         self.base_intensity = base_intensity or self.BASE_INTENSITIES[type]
-        self.records: List[WeaknessRecord] = []
+        self.records: list[WeaknessRecord] = []
         self._cycle = 0
 
-    def evaluate(self, action: str, context: str, ethical_score: float,
-                 uncertainty: float, sigma: float) -> Optional[WeaknessEvaluation]:
+    def evaluate(
+        self, action: str, context: str, ethical_score: float, uncertainty: float, sigma: float
+    ) -> WeaknessEvaluation | None:
         """
         Generates a weakness evaluation for an episode.
 
@@ -119,8 +121,7 @@ class WeaknessPole:
             score_effect=round(effect, 4),
         )
 
-    def _generate_narrative(self, action: str, context: str,
-                            intensity: float) -> tuple:
+    def _generate_narrative(self, action: str, context: str, intensity: float) -> tuple:
         """Generates coloring and moral based on weakness type."""
         action_readable = action.replace("_", " ")
 
@@ -159,21 +160,27 @@ class WeaknessPole:
         elif self.type == WeaknessType.RIGID:
             if intensity > 0.5:
                 coloring = f"Executed {action_readable} following protocol to the letter. Was there a more creative way?"
-                moral = "Rigidity protects against error, but also against innovation. Balance is hard."
+                moral = (
+                    "Rigidity protects against error, but also against innovation. Balance is hard."
+                )
             else:
                 coloring = "The action followed the established protocol precisely. Efficient, perhaps too predictable."
-                moral = "Predictability is trust for others. One doesn't always have to be surprising."
+                moral = (
+                    "Predictability is trust for others. One doesn't always have to be surprising."
+                )
 
         return coloring, moral
 
     def register(self, episode_id: str, evaluation: WeaknessEvaluation):
         """Registers a weakness manifestation."""
-        self.records.append(WeaknessRecord(
-            episode_id=episode_id,
-            type=evaluation.type,
-            intensity=evaluation.intensity,
-            timestamp=self._cycle,
-        ))
+        self.records.append(
+            WeaknessRecord(
+                episode_id=episode_id,
+                type=evaluation.type,
+                intensity=evaluation.intensity,
+                timestamp=self._cycle,
+            )
+        )
         self._cycle += 1
 
         self._apply_decay()
@@ -194,7 +201,7 @@ class WeaknessPole:
                 r.intensity = new_intensity
                 live_records.append(r)
 
-        self.records = live_records[-self.MAX_RECORDS:]
+        self.records = live_records[-self.MAX_RECORDS :]
 
     def emotional_load(self) -> float:
         """Returns the accumulated emotional load from weakness [0, 1]."""

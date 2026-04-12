@@ -14,7 +14,7 @@ from __future__ import annotations
 
 import os
 from dataclasses import dataclass
-from typing import TYPE_CHECKING, Any, Dict, Optional
+from typing import TYPE_CHECKING, Any
 
 if TYPE_CHECKING:
     from .buffer import PreloadedBuffer
@@ -33,10 +33,10 @@ def local_sovereignty_scan_enabled() -> bool:
 
 
 def evaluate_calibration_update(
-    proposed: Optional[Dict[str, Any]] = None,
+    proposed: dict[str, Any] | None = None,
     *,
     narrative_episode_count: int = 0,
-    buffer: Optional["PreloadedBuffer"] = None,
+    buffer: PreloadedBuffer | None = None,
 ) -> SovereigntyEvaluation:
     """
     Reject payloads that fail L0 heuristic scan (override / repeal language).

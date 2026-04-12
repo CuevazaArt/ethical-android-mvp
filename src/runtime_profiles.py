@@ -7,10 +7,11 @@ See docs/proposals/ESTRATEGIA_Y_RUTA.md.
 
 from __future__ import annotations
 
-from typing import Dict, Final, Mapping
+from collections.abc import Mapping
+from typing import Final
 
 # env key -> value (only non-default toggles for that demo)
-RUNTIME_PROFILES: Final[Dict[str, Dict[str, str]]] = {
+RUNTIME_PROFILES: Final[dict[str, dict[str, str]]] = {
     "baseline": {},
     "judicial_demo": {
         "KERNEL_JUDICIAL_ESCALATION": "1",
@@ -78,7 +79,7 @@ RUNTIME_PROFILES: Final[Dict[str, Dict[str, str]]] = {
     },
 }
 
-PROFILE_DESCRIPTIONS: Final[Dict[str, str]] = {
+PROFILE_DESCRIPTIONS: Final[dict[str, str]] = {
     "baseline": "Default server flags; minimal regression surface.",
     "judicial_demo": "V11 judicial escalation + mock court + judicial JSON in chat.",
     "hub_dao_demo": "V12 public constitution HTTP + WebSocket dao_list / vote / resolve.",

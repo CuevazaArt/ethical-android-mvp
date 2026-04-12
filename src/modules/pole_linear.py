@@ -9,9 +9,9 @@ from __future__ import annotations
 
 import json
 import os
+from collections.abc import Callable
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Callable, Dict, List, Optional, Tuple
 
 from .ethical_poles import PoleEvaluation, Verdict
 
@@ -40,7 +40,7 @@ def _feature_const(_d: dict) -> float:
     return 1.0
 
 
-FEATURE_GETTERS: Dict[str, Callable[[dict], float]] = {
+FEATURE_GETTERS: dict[str, Callable[[dict], float]] = {
     "risk": _feature_risk,
     "benefit": _feature_benefit,
     "third_party_vulnerability": _feature_vulnerability,
@@ -52,7 +52,7 @@ FEATURE_GETTERS: Dict[str, Callable[[dict], float]] = {
 
 @dataclass(frozen=True)
 class _PoleLinearSpec:
-    terms: List[Tuple[str, float]]
+    terms: list[tuple[str, float]]
     good_threshold: float
     bad_threshold: float
     moral_good: str
@@ -62,7 +62,7 @@ class _PoleLinearSpec:
 
 def _parse_pole_entry(raw: dict) -> _PoleLinearSpec:
     terms_in = raw.get("terms") or []
-    terms: List[Tuple[str, float]] = []
+    terms: list[tuple[str, float]] = []
     for t in terms_in:
         feat = (t.get("feature") or "").strip()
         w = float(t.get("weight", 0.0))
@@ -92,11 +92,11 @@ class LinearPoleEvaluator:
     Verdict from thresholds (default ±0.3 matching legacy).
     """
 
-    def __init__(self, poles: Dict[str, _PoleLinearSpec]):
+    def __init__(self, poles: dict[str, _PoleLinearSpec]):
         self._poles = poles
 
     @classmethod
-    def load(cls, path: Optional[str] = None) -> LinearPoleEvaluator:
+    def load(cls, path: str | None = None) -> LinearPoleEvaluator:
         """
         Load from JSON path, or embedded default (``pole_linear_default.json``).
 
@@ -116,12 +116,12 @@ class LinearPoleEvaluator:
     @classmethod
     def from_dict(cls, data: dict) -> LinearPoleEvaluator:
         raw_poles = (data.get("poles") or {}) if isinstance(data, dict) else {}
-        poles: Dict[str, _PoleLinearSpec] = {}
+        poles: dict[str, _PoleLinearSpec] = {}
         for name, entry in raw_poles.items():
             poles[str(name)] = _parse_pole_entry(entry if isinstance(entry, dict) else {})
         return cls(poles)
 
-    def evaluate(self, pole: str, action: str, context_data: dict) -> Optional[PoleEvaluation]:
+    def evaluate(self, pole: str, action: str, context_data: dict) -> PoleEvaluation | None:
         spec = self._poles.get(pole)
         if spec is None:
             return None

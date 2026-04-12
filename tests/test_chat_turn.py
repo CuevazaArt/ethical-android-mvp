@@ -4,14 +4,12 @@ import asyncio
 import os
 import sys
 
-import pytest
-
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
 
 from src.kernel import EthicalKernel
-from src.real_time_bridge import RealTimeBridge
 from src.modules.absolute_evil import AbsoluteEvilDetector
 from src.modules.sensor_contracts import SensorSnapshot
+from src.real_time_bridge import RealTimeBridge
 
 
 def test_evaluate_chat_text_blocks_weapon_instruction():

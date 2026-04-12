@@ -5,9 +5,9 @@ import sys
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
 
+from src.modules.drive_arbiter import DriveIntent
 from src.modules.ethical_reflection import ReflectionSnapshot
 from src.modules.gray_zone_diplomacy import negotiation_hint_for_communicate
-from src.modules.drive_arbiter import DriveIntent
 from src.modules.metaplan_registry import (
     MasterGoal,
     MetaplanRegistry,

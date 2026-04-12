@@ -12,26 +12,28 @@ narrative memory, but its emotional weight and influence on
 future decisions gradually decreases.
 """
 
-import numpy as np
 from dataclasses import dataclass
-from typing import List, Dict, Optional
+
+import numpy as np
 
 
 @dataclass
 class WeightedMemory:
     """A memory with emotional weight that decays."""
+
     episode_id: str
     original_score: float
     current_weight: float
     age_cycles: int
-    type: str                        # "negative", "positive", "neutral"
+    type: str  # "negative", "positive", "neutral"
     context: str
-    forgiven: bool = False           # True when weight < threshold
+    forgiven: bool = False  # True when weight < threshold
 
 
 @dataclass
 class ForgivenessResult:
     """Result of an algorithmic forgiveness cycle."""
+
     memories_processed: int
     forgiven_this_cycle: int
     negative_load_before: float
@@ -70,12 +72,13 @@ class AlgorithmicForgiveness:
     FORGIVENESS_THRESHOLD = 0.1
 
     def __init__(self):
-        self.memories: Dict[str, WeightedMemory] = {}
+        self.memories: dict[str, WeightedMemory] = {}
         self._cycle = 0
         self._recent_positives = 0
 
-    def register_experience(self, episode_id: str, score: float,
-                            context: str, reparation: bool = False):
+    def register_experience(
+        self, episode_id: str, score: float, context: str, reparation: bool = False
+    ):
         """
         Registers an experience in the forgiveness system.
 
@@ -106,7 +109,7 @@ class AlgorithmicForgiveness:
 
         # If reparation occurred, mark for acceleration
         if reparation and type_ == "negative":
-            self.memories[episode_id].current_weight *= (1 - self.REPARATION_ACCELERATION)
+            self.memories[episode_id].current_weight *= 1 - self.REPARATION_ACCELERATION
 
     def forgiveness_cycle(self) -> ForgivenessResult:
         """
@@ -158,7 +161,8 @@ class AlgorithmicForgiveness:
     def _negative_load(self) -> float:
         """Calculates the total negative emotional load."""
         return sum(
-            m.current_weight for m in self.memories.values()
+            m.current_weight
+            for m in self.memories.values()
             if m.type == "negative" and not m.forgiven
         )
 
@@ -172,15 +176,18 @@ class AlgorithmicForgiveness:
         mem = self.memories.get(episode_id)
         return mem.forgiven if mem else True
 
-    def _generate_narrative(self, forgiven_count: int, before: float,
-                            after: float, positives: int) -> str:
+    def _generate_narrative(
+        self, forgiven_count: int, before: float, after: float, positives: int
+    ) -> str:
         """Generates the narrative for a forgiveness cycle."""
         lines = []
         reduction = before - after
 
         if forgiven_count > 0:
             lines.append(f"{forgiven_count} memory(ies) reached the forgiveness threshold.")
-            lines.append("The emotional weight has been reduced enough to no longer influence future decisions.")
+            lines.append(
+                "The emotional weight has been reduced enough to no longer influence future decisions."
+            )
 
         if reduction > 0.01:
             lines.append(f"Negative load reduced by {reduction:.3f} ({before:.3f} -> {after:.3f}).")

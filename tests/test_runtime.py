@@ -7,7 +7,6 @@ import sys
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
 
 import pytest
-
 from src.chat_server import get_uvicorn_bind, run_chat_server
 from src.kernel import EthicalKernel
 from src.modules.drive_arbiter import DriveIntent

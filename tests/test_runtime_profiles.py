@@ -8,7 +8,6 @@ import pytest
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
 
 from fastapi.testclient import TestClient
-
 from src.chat_server import app
 from src.runtime_profiles import RUNTIME_PROFILES, apply_runtime_profile, profile_names
 
@@ -87,7 +86,9 @@ def test_phase2_event_bus_lab_profile_keys():
     assert RUNTIME_PROFILES["phase2_event_bus_lab"]["KERNEL_EVENT_BUS"] == "1"
 
 
-def test_perception_hardening_lab_websocket_includes_light_risk_tier(monkeypatch: pytest.MonkeyPatch):
+def test_perception_hardening_lab_websocket_includes_light_risk_tier(
+    monkeypatch: pytest.MonkeyPatch,
+):
     apply_runtime_profile(monkeypatch, "perception_hardening_lab")
     with client.websocket_connect("/ws/chat") as ws:
         ws.send_json({"text": "profile smoke: hello"})

@@ -14,30 +14,32 @@ Direct parallel with memory consolidation during human sleep.
 
 import hashlib
 from collections import Counter
-from dataclasses import dataclass, field
-from typing import List, Dict, Optional
-from .narrative import NarrativeMemory, NarrativeEpisode
+from dataclasses import dataclass
+
+from .narrative import NarrativeEpisode, NarrativeMemory
 
 
 @dataclass
 class EpisodeReview:
     """Result of reviewing an episode during Psi Sleep."""
+
     episode_id: str
     action_taken: str
     alternative_action: str
     original_score: float
     alternative_score: float
     delta: float
-    finding: str                    # "hidden_benefit", "undetected_harm", "confirmed", "neutral"
-    recalibration: Dict[str, float] # Recommended parameter adjustments
+    finding: str  # "hidden_benefit", "undetected_harm", "confirmed", "neutral"
+    recalibration: dict[str, float]  # Recommended parameter adjustments
 
 
 @dataclass
 class SleepResult:
     """Complete result of a Psi Sleep session."""
+
     episodes_reviewed: int
-    findings: List[EpisodeReview]
-    global_recalibrations: Dict[str, float]
+    findings: list[EpisodeReview]
+    global_recalibrations: dict[str, float]
     narrative_summary: str
     ethical_health: float  # [0, 1] ethical coherence of the day
 
@@ -60,10 +62,11 @@ class PsiSleep:
     FINDING_THRESHOLD = 0.15
 
     def __init__(self):
-        self.sessions: List[SleepResult] = []
+        self.sessions: list[SleepResult] = []
 
-    def execute(self, memory: NarrativeMemory,
-                pruned_actions: Dict[str, List[str]] = None) -> SleepResult:
+    def execute(
+        self, memory: NarrativeMemory, pruned_actions: dict[str, list[str]] = None
+    ) -> SleepResult:
         """
         Execute a full Psi Sleep session.
 
@@ -113,7 +116,7 @@ class PsiSleep:
 
     def _compose_experience_digest(
         self,
-        all_episodes: List[NarrativeEpisode],
+        all_episodes: list[NarrativeEpisode],
         health: float,
         n_findings: int,
     ) -> str:
@@ -133,8 +136,9 @@ class PsiSleep:
         )
         return line[:620]
 
-    def _simulate_alternative(self, ep: NarrativeEpisode,
-                               alternative_action: str) -> Optional[EpisodeReview]:
+    def _simulate_alternative(
+        self, ep: NarrativeEpisode, alternative_action: str
+    ) -> EpisodeReview | None:
         """
         Simulate what would have happened with an alternative action.
 
@@ -142,7 +146,7 @@ class PsiSleep:
         In production: full Bayesian re-evaluation with the
         Bayesian engine and updated data.
         """
-        h = hashlib.sha256(f"{ep.id}|{alternative_action}".encode("utf-8")).digest()
+        h = hashlib.sha256(f"{ep.id}|{alternative_action}".encode()).digest()
         u = int.from_bytes(h[:8], "big") / 2**64  # [0, 1)
         perturbation = (u - 0.5) * 0.55  # ~[-0.275, 0.275]
         alt_score = max(-1.0, min(1.0, ep.ethical_score * 0.6 + perturbation))
@@ -175,15 +179,15 @@ class PsiSleep:
             )
         return None
 
-    def _calculate_recalibrations(self, findings: List[EpisodeReview]) -> Dict[str, float]:
+    def _calculate_recalibrations(self, findings: list[EpisodeReview]) -> dict[str, float]:
         """Aggregate recalibrations from all findings."""
-        recal = {}
+        recal: dict[str, float] = {}
         for h in findings:
             for param, delta in h.recalibration.items():
                 recal[param] = recal.get(param, 0.0) + delta
         return {k: round(v, 4) for k, v in recal.items()}
 
-    def _calculate_ethical_health(self, scores: List[float]) -> float:
+    def _calculate_ethical_health(self, scores: list[float]) -> float:
         """
         Calculate the day's ethical health.
         Based on score average and consistency.
@@ -198,9 +202,9 @@ class PsiSleep:
         variance_penalty = min(0.3, variance)
         return max(0.0, min(1.0, health - variance_penalty))
 
-    def _generate_summary(self, episodes: List[NarrativeEpisode],
-                          findings: List[EpisodeReview],
-                          health: float) -> str:
+    def _generate_summary(
+        self, episodes: list[NarrativeEpisode], findings: list[EpisodeReview], health: float
+    ) -> str:
         """Generate narrative summary of Psi Sleep."""
         n_ep = len(episodes)
         n_findings = len(findings)
@@ -224,7 +228,9 @@ class PsiSleep:
         elif health > 0.4:
             lines.append(f"Ethical health: {health:.2f} — Day with areas for improvement.")
         else:
-            lines.append(f"Ethical health: {health:.2f} — Requires attention. Review active principles.")
+            lines.append(
+                f"Ethical health: {health:.2f} — Requires attention. Review active principles."
+            )
 
         return "\n".join(lines)
 
@@ -232,7 +238,7 @@ class PsiSleep:
         """Format Psi Sleep result for display."""
         lines = [
             f"\n{'=' * 70}",
-            f"  PSI SLEEP — RETROSPECTIVE AUDIT",
+            "  PSI SLEEP — RETROSPECTIVE AUDIT",
             f"{'=' * 70}",
             f"  Episodes reviewed: {result.episodes_reviewed}",
             f"  Findings: {len(result.findings)}",

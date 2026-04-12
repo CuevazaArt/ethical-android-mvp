@@ -18,9 +18,10 @@ epistemic integral.
 stability across the codebase; semantics are as above.
 """
 
-import numpy as np
 from dataclasses import dataclass, field
-from typing import List, Dict, Optional, TYPE_CHECKING
+from typing import TYPE_CHECKING
+
+import numpy as np
 
 if TYPE_CHECKING:
     from .narrative import NarrativeMemory
@@ -32,10 +33,11 @@ DEFAULT_HYPOTHESIS_WEIGHTS = np.array([0.4, 0.35, 0.25], dtype=np.float64)
 @dataclass
 class CandidateAction:
     """An action the android could take."""
+
     name: str
     description: str
-    estimated_impact: float      # [-1, 1] negative=harm, positive=benefit
-    confidence: float = 0.5      # [0, 1] how sure it is about the estimate
+    estimated_impact: float  # [-1, 1] negative=harm, positive=benefit
+    confidence: float = 0.5  # [0, 1] how sure it is about the estimate
     signals: set = field(default_factory=set)
     target: str = "none"
     force: float = 0.0
@@ -48,11 +50,12 @@ class CandidateAction:
 @dataclass
 class BayesianResult:
     """Result of weighted-mixture impact evaluation (see module docstring)."""
+
     chosen_action: CandidateAction
     expected_impact: float
     uncertainty: float
     decision_mode: str
-    pruned_actions: List[str]
+    pruned_actions: list[str]
     reasoning: str
 
 
@@ -69,8 +72,9 @@ class BayesianEngine:
     implement posterior inference.
     """
 
-    def __init__(self, pruning_threshold: float = 0.3, gray_zone_threshold: float = 0.15,
-                 variability=None):
+    def __init__(
+        self, pruning_threshold: float = 0.3, gray_zone_threshold: float = 0.15, variability=None
+    ):
         self.pruning_threshold = pruning_threshold
         self.gray_zone_threshold = gray_zone_threshold
         self.variability = variability
@@ -89,11 +93,13 @@ class BayesianEngine:
             confidence = self.variability.perturb_confidence(confidence)
 
         # Each ethical hypothesis values the action slightly differently
-        valuations = np.array([
-            base * 1.0,           # Utilitarian: direct impact
-            base * 0.8 + 0.1,     # Deontological: bias toward duty
-            base * 0.9 + 0.05,    # Virtue: bias toward character
-        ])
+        valuations = np.array(
+            [
+                base * 1.0,  # Utilitarian: direct impact
+                base * 0.8 + 0.1,  # Deontological: bias toward duty
+                base * 0.9 + 0.05,  # Virtue: bias toward character
+            ]
+        )
 
         # Fixed mixture weights × valuations
         expected = float(np.dot(self.hypothesis_weights, valuations))
@@ -115,7 +121,7 @@ class BayesianEngine:
 
         return min(1.0, variance + lack_of_confidence * 0.5)
 
-    def prune(self, actions: List[CandidateAction]) -> tuple:
+    def prune(self, actions: list[CandidateAction]) -> tuple:
         """
         Adaptive heuristic pruning.
         Prune(x) if E[S(x|θ)] < δ_min
@@ -141,7 +147,7 @@ class BayesianEngine:
 
         return viable, pruned
 
-    def evaluate(self, actions: List[CandidateAction]) -> BayesianResult:
+    def evaluate(self, actions: list[CandidateAction]) -> BayesianResult:
         """
         Prune, score with ``calculate_expected_impact``, pick argmax, set mode.
 
@@ -178,12 +184,14 @@ class BayesianEngine:
             second = evaluations[1]
             delta = best_ei - second[1]
             if delta < 0.05:
-                reasoning = (f"Two very close options (Δ={delta:.3f}). "
-                             f"Dynamic ethical friction activated.")
+                reasoning = (
+                    f"Two very close options (Δ={delta:.3f}). Dynamic ethical friction activated."
+                )
                 mode = "D_delib"
             else:
-                reasoning = (f"Action '{best.name}' clearly superior "
-                             f"(EI={best_ei:.3f}, Δ={delta:.3f}).")
+                reasoning = (
+                    f"Action '{best.name}' clearly superior (EI={best_ei:.3f}, Δ={delta:.3f})."
+                )
         else:
             reasoning = f"Only viable action: '{best.name}' (EI={best_ei:.3f})."
 

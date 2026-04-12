@@ -5,7 +5,7 @@ Holds recent turns for coherence; does not replace NarrativeMemory (long-term ep
 """
 
 from dataclasses import dataclass, field
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 
 @dataclass
@@ -18,27 +18,29 @@ class WorkingMemory:
     """
 
     max_turns: int = 10
-    turns: List[Dict[str, Any]] = field(default_factory=list)
-    active_topic: Optional[str] = None
+    turns: list[dict[str, Any]] = field(default_factory=list)
+    active_topic: str | None = None
     user_emotional_trend: float = 0.5
 
     def add_turn(
         self,
         user_text: str,
         android_response: str,
-        perception_signals: Optional[Dict[str, float]],
+        perception_signals: dict[str, float] | None,
         *,
         heavy_kernel: bool = False,
         blocked: bool = False,
     ) -> None:
         sig = perception_signals or {}
-        self.turns.append({
-            "u": user_text,
-            "a": android_response,
-            "s": sig,
-            "heavy": heavy_kernel,
-            "blocked": blocked,
-        })
+        self.turns.append(
+            {
+                "u": user_text,
+                "a": android_response,
+                "s": sig,
+                "heavy": heavy_kernel,
+                "blocked": blocked,
+            }
+        )
         while len(self.turns) > self.max_turns:
             self.turns.pop(0)
 
@@ -52,7 +54,7 @@ class WorkingMemory:
         """Compact transcript for LLM perception (oldest first)."""
         if not self.turns:
             return ""
-        lines: List[str] = []
+        lines: list[str] = []
         for t in self.turns:
             u = str(t.get("u", "")).replace("\n", " ").strip()
             a = str(t.get("a", "")).replace("\n", " ").strip()

@@ -12,8 +12,6 @@ See docs/proposals/RUNTIME_CONTRACT.md and docs/proposals/RUNTIME_PHASES.md.
 
 from __future__ import annotations
 
-from typing import Tuple
-
 from .telemetry import (
     advisory_interval_seconds_from_env,
     advisory_loop,
@@ -29,7 +27,7 @@ __all__ = [
 ]
 
 
-def get_uvicorn_bind() -> Tuple[str, int]:
+def get_uvicorn_bind() -> tuple[str, int]:
     from ..chat_server import get_uvicorn_bind as _impl
 
     return _impl()

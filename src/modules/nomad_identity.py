@@ -8,19 +8,19 @@ UNIVERSAL_ETHOS_AND_HUB.md and PROPUESTA_CONCIENCIA_NOMADA_HAL.md.
 
 from __future__ import annotations
 
-from typing import Any, Dict
+from typing import Any
 
 
-def nomad_identity_public(kernel: Any) -> Dict[str, Any]:
+def nomad_identity_public(kernel: Any) -> dict[str, Any]:
     """Read-only snapshot for transparency payloads (best-effort)."""
     imm = getattr(kernel, "immortality", None)
-    layers_info: Dict[str, int] = {}
+    layers_info: dict[str, int] = {}
     if imm is not None and hasattr(imm, "layers"):
         try:
             layers_info = {k: len(v) for k, v in imm.layers.items()}
         except (TypeError, AttributeError):
             layers_info = {}
-    out: Dict[str, Any] = {
+    out: dict[str, Any] = {
         "label": "NomadIdentity",
         "immortality_protocol_present": imm is not None,
         "immortality_layer_snapshots": layers_info,

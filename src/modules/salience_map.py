@@ -10,7 +10,6 @@ See docs/proposals/PROPUESTA_INTEGRACION_APORTES_V6.md (Fase 2).
 from __future__ import annotations
 
 from dataclasses import dataclass
-from typing import Dict, Optional
 
 from .ethical_reflection import ReflectionSnapshot
 from .sympathetic import InternalState
@@ -24,13 +23,13 @@ class SalienceSnapshot:
     `dominant_focus` is the axis with largest weight (ties: lexicographic).
     """
 
-    weights: Dict[str, float]
+    weights: dict[str, float]
     """Keys: risk, social, body, ethical_conflict."""
 
     dominant_focus: str
     """Which axis 'wins' the competition for salience this tick."""
 
-    raw_scores: Dict[str, float]
+    raw_scores: dict[str, float]
     """Pre-normalization [0,1] scores for audit."""
 
 
@@ -43,10 +42,10 @@ class SalienceMap:
 
     def compute(
         self,
-        signals: Dict,
+        signals: dict,
         state: InternalState,
         social_eval: SocialEvaluation,
-        reflection: Optional[ReflectionSnapshot],
+        reflection: ReflectionSnapshot | None,
     ) -> SalienceSnapshot:
         risk = float(signals.get("risk", 0.0))
         risk = max(0.0, min(1.0, risk))
@@ -94,7 +93,7 @@ class SalienceMap:
         )
 
 
-def salience_to_llm_context(snapshot: Optional[SalienceSnapshot]) -> str:
+def salience_to_llm_context(snapshot: SalienceSnapshot | None) -> str:
     """One line for communicate() — tone only."""
     if snapshot is None:
         return ""

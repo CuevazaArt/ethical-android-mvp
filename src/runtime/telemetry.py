@@ -8,7 +8,7 @@ from __future__ import annotations
 
 import asyncio
 import os
-from typing import TYPE_CHECKING, List
+from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
     from src.kernel import EthicalKernel
@@ -30,13 +30,13 @@ def advisory_interval_seconds_from_env() -> float:
     return v if v > 0 else 0.0
 
 
-def advisory_snapshot(kernel: "EthicalKernel") -> List["DriveIntent"]:
+def advisory_snapshot(kernel: EthicalKernel) -> list[DriveIntent]:
     """One-shot advisory intents (deterministic given kernel state)."""
     return list(kernel.drive_arbiter.evaluate(kernel))
 
 
 async def advisory_loop(
-    kernel: "EthicalKernel",
+    kernel: EthicalKernel,
     *,
     interval_s: float,
     stop: asyncio.Event,
@@ -53,6 +53,6 @@ async def advisory_loop(
         kernel.drive_arbiter.evaluate(kernel)
         try:
             await asyncio.wait_for(stop.wait(), timeout=interval_s)
-        except asyncio.TimeoutError:
+        except TimeoutError:
             continue
         break

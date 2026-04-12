@@ -18,10 +18,10 @@ from __future__ import annotations
 import json
 import os
 from dataclasses import dataclass
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any
 
 # (path, mtime) -> parsed dict
-_cache: Optional[Tuple[str, float, Dict[str, Any]]] = None
+_cache: tuple[str, float, dict[str, Any]] | None = None
 
 
 @dataclass(frozen=True)
@@ -35,7 +35,7 @@ class RealityVerificationAssessment:
     communication_hint: str
     metacognitive_doubt: bool
 
-    def to_public_dict(self) -> Dict[str, Any]:
+    def to_public_dict(self) -> dict[str, Any]:
         return {
             "status": self.status,
             "match_id": self.match_id,
@@ -61,7 +61,7 @@ def clear_lighthouse_cache() -> None:
     _cache = None
 
 
-def load_lighthouse_kb(path: str) -> Optional[Dict[str, Any]]:
+def load_lighthouse_kb(path: str) -> dict[str, Any] | None:
     """Load and parse JSON; returns None if missing or invalid."""
     path = path.strip()
     if not path or not os.path.isfile(path):
@@ -81,21 +81,21 @@ def load_lighthouse_kb(path: str) -> Optional[Dict[str, Any]]:
         return None
 
 
-def lighthouse_kb_from_env() -> Optional[Dict[str, Any]]:
+def lighthouse_kb_from_env() -> dict[str, Any] | None:
     raw = os.environ.get("KERNEL_LIGHTHOUSE_KB_PATH", "").strip()
     if not raw:
         return None
     return load_lighthouse_kb(raw)
 
 
-def validate_lighthouse_kb_structure(kb: Optional[Dict[str, Any]]) -> Tuple[bool, List[str]]:
+def validate_lighthouse_kb_structure(kb: dict[str, Any] | None) -> tuple[bool, list[str]]:
     """
     Structural checks for a parsed lighthouse KB (CI / operators; does not prove factual truth).
 
     Returns ``(True, [])`` if valid; otherwise ``(False, [error, ...])``.
     Skipped at runtime by :func:`verify_against_lighthouse` — this is for **regression** when editing JSON.
     """
-    errors: List[str] = []
+    errors: list[str] = []
     if kb is None:
         return False, ["kb is None"]
     if not isinstance(kb, dict):
@@ -129,7 +129,9 @@ def validate_lighthouse_kb_structure(kb: Optional[Dict[str, Any]]) -> Tuple[bool
         else:
             for j, m in enumerate(markers):
                 if not isinstance(m, str) or not m.strip():
-                    errors.append(f"{prefix}.user_falsification_markers[{j}] must be a non-empty string")
+                    errors.append(
+                        f"{prefix}.user_falsification_markers[{j}] must be a non-empty string"
+                    )
 
         ts = raw.get("truth_summary", "")
         if ts is not None and not isinstance(ts, str):
@@ -138,7 +140,7 @@ def validate_lighthouse_kb_structure(kb: Optional[Dict[str, Any]]) -> Tuple[bool
     return (len(errors) == 0, errors)
 
 
-def validate_lighthouse_kb_file(path: str) -> Tuple[bool, List[str]]:
+def validate_lighthouse_kb_file(path: str) -> tuple[bool, list[str]]:
     """Load path with :func:`load_lighthouse_kb` then validate structure."""
     data = load_lighthouse_kb(path.strip())
     if data is None:
@@ -148,7 +150,7 @@ def validate_lighthouse_kb_file(path: str) -> Tuple[bool, List[str]]:
 
 def verify_against_lighthouse(
     user_text: str,
-    kb: Optional[Dict[str, Any]],
+    kb: dict[str, Any] | None,
 ) -> RealityVerificationAssessment:
     """
     If an entry matches (keywords + falsification markers), return metacognitive doubt.

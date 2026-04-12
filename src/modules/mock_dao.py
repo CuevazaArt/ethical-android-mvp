@@ -11,16 +11,17 @@ traceability demos — see ``docs/proposals/GOVERNANCE_MOCKDAO_AND_L0.md``.
 In production: replaced by smart contracts on testnet/mainnet.
 """
 
-from dataclasses import asdict, dataclass, field
-from typing import Any, Dict, List, Optional
-from datetime import datetime
 import hashlib
 import math
+from dataclasses import asdict, dataclass, field
+from datetime import datetime
+from typing import Any
 
 
 @dataclass
 class Participant:
     """A DAO member (human or android)."""
+
     id: str
     type: str  # "human" | "android"
     experience_reputation: float = 0.5
@@ -30,26 +31,27 @@ class Participant:
 
     @property
     def reputation_vector(self) -> tuple:
-        return (self.experience_reputation,
-                self.empathy_reputation,
-                self.consistency_reputation)
+        return (self.experience_reputation, self.empathy_reputation, self.consistency_reputation)
 
     @property
     def total_reputation(self) -> float:
-        return (self.experience_reputation * 0.4 +
-                self.empathy_reputation * 0.35 +
-                self.consistency_reputation * 0.25)
+        return (
+            self.experience_reputation * 0.4
+            + self.empathy_reputation * 0.35
+            + self.consistency_reputation * 0.25
+        )
 
 
 @dataclass
 class Proposal:
     """A proposal submitted for voting in the DAO."""
+
     id: str
     title: str
     description: str
     type: str  # "ethics", "calibration", "new_value", "audit"
-    votes_for: Dict[str, int] = field(default_factory=dict)
-    votes_against: Dict[str, int] = field(default_factory=dict)
+    votes_for: dict[str, float] = field(default_factory=dict)
+    votes_against: dict[str, float] = field(default_factory=dict)
     status: str = "open"  # "open", "approved", "rejected"
     timestamp: str = ""
 
@@ -57,22 +59,24 @@ class Proposal:
 @dataclass
 class AuditRecord:
     """Audit record in the DAO."""
+
     id: str
     type: str  # "decision", "alert", "calibration", "incident"
     content: str
     timestamp: str
-    episode_id: Optional[str] = None
+    episode_id: str | None = None
 
 
 @dataclass
 class SolidarityAlert:
     """Alert from the Solidarity Alert Protocol."""
+
     type: str
     location: str
     radius_meters: int
     message: str
     timestamp: str
-    recipients: List[str]
+    recipients: list[str]
 
 
 class MockDAO:
@@ -91,10 +95,10 @@ class MockDAO:
     """
 
     def __init__(self):
-        self.participants: Dict[str, Participant] = {}
-        self.proposals: List[Proposal] = []
-        self.records: List[AuditRecord] = []
-        self.alerts: List[SolidarityAlert] = []
+        self.participants: dict[str, Participant] = {}
+        self.proposals: list[Proposal] = []
+        self.records: list[AuditRecord] = []
+        self.alerts: list[SolidarityAlert] = []
         self._proposal_counter = 0
         self._record_counter = 0
 
@@ -119,12 +123,13 @@ class MockDAO:
         Simulates the EthicsContract: verifies if an action passes the ethical filter.
         In production: smart contract with formal logic.
         """
-        self.register_audit("decision", f"EthicsContract: '{action}' in context '{context}' → approved")
+        self.register_audit(
+            "decision", f"EthicsContract: '{action}' in context '{context}' → approved"
+        )
         return {"approved": True, "reason": "No ethical objections registered in DAO."}
 
     # --- ConsensusContract: Quadratic Voting ---
-    def create_proposal(self, title: str, description: str,
-                        type: str = "ethics") -> Proposal:
+    def create_proposal(self, title: str, description: str, type: str = "ethics") -> Proposal:
         """Create a new proposal for voting."""
         self._proposal_counter += 1
         prop = Proposal(
@@ -138,8 +143,7 @@ class MockDAO:
         self.register_audit("decision", f"New proposal: {title}")
         return prop
 
-    def vote(self, proposal_id: str, participant_id: str,
-             n_votes: int, in_favor: bool) -> dict:
+    def vote(self, proposal_id: str, participant_id: str, n_votes: int, in_favor: bool) -> dict:
         """
         Quadratic voting: cost of n votes = n².
 
@@ -157,12 +161,14 @@ class MockDAO:
         if not part:
             return {"success": False, "reason": "Participant not registered."}
 
-        cost = n_votes ** 2
+        cost = n_votes**2
         if cost > part.available_tokens:
             max_votes = int(math.sqrt(part.available_tokens))
-            return {"success": False,
-                    "reason": f"Insufficient tokens. Cost: {cost}, available: {part.available_tokens}. "
-                              f"Maximum possible votes: {max_votes}."}
+            return {
+                "success": False,
+                "reason": f"Insufficient tokens. Cost: {cost}, available: {part.available_tokens}. "
+                f"Maximum possible votes: {max_votes}.",
+            }
 
         part.available_tokens -= cost
 
@@ -211,8 +217,7 @@ class MockDAO:
         }
 
     # --- AuditContract ---
-    def register_audit(self, type: str, content: str,
-                       episode_id: str = None) -> AuditRecord:
+    def register_audit(self, type: str, content: str, episode_id: str = None) -> AuditRecord:
         """Register an event in the audit ledger."""
         self._record_counter += 1
         rec = AuditRecord(
@@ -225,8 +230,7 @@ class MockDAO:
         self.records.append(rec)
         return rec
 
-    def register_escalation_case(self, summary: str,
-                                 episode_id: Optional[str] = None) -> AuditRecord:
+    def register_escalation_case(self, summary: str, episode_id: str | None = None) -> AuditRecord:
         """
         V11 Phase 1 — append an ethical escalation dossier to the audit ledger.
 
@@ -240,7 +244,7 @@ class MockDAO:
         audit_record_id: str,
         summary_excerpt: str,
         buffer_conflict: bool,
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         """
         V11 Phase 3 — simulated mixed tribunal (single process, not legally binding).
 
@@ -283,7 +287,7 @@ class MockDAO:
             verdict_code = "B"
             verdict_label = "android_refusal_ratified"
 
-        out: Dict[str, Any] = {
+        out: dict[str, Any] = {
             "simulated": True,
             "proposal_id": prop.id,
             "proposal_title": title,
@@ -301,9 +305,9 @@ class MockDAO:
         return out
 
     # --- SolidarityAlertContract ---
-    def emit_solidarity_alert(self, type: str, location: str,
-                               radius: int = 500,
-                               message: str = "") -> SolidarityAlert:
+    def emit_solidarity_alert(
+        self, type: str, location: str, radius: int = 500, message: str = ""
+    ) -> SolidarityAlert:
         """
         Emit a preventive alert to subscribed community entities.
         Example: bank detects robbery → alert to nearby branches.
@@ -322,12 +326,12 @@ class MockDAO:
         return alert
 
     # --- Queries ---
-    def get_records(self, type: str = None, limit: int = 10) -> List[AuditRecord]:
+    def get_records(self, type: str = None, limit: int = 10) -> list[AuditRecord]:
         """Get filtered audit records."""
         recs = self.records if not type else [r for r in self.records if r.type == type]
         return recs[-limit:]
 
-    def export_state(self) -> Dict[str, Any]:
+    def export_state(self) -> dict[str, Any]:
         """V12.3 — serialize proposals + participants for kernel checkpoint (off-chain)."""
         return {
             "proposal_counter": self._proposal_counter,
@@ -337,13 +341,13 @@ class MockDAO:
             "proposals": [asdict(p) for p in self.proposals],
         }
 
-    def import_state(self, data: Optional[Dict[str, Any]]) -> None:
+    def import_state(self, data: dict[str, Any] | None) -> None:
         """Restore proposals + participants from :meth:`export_state`."""
         if not data:
             return
         self._proposal_counter = max(0, int(data.get("proposal_counter", 0)))
-        participants_raw: List[Dict[str, Any]] = list(data.get("participants") or [])
-        proposals_raw: List[Dict[str, Any]] = list(data.get("proposals") or [])
+        participants_raw: list[dict[str, Any]] = list(data.get("participants") or [])
+        proposals_raw: list[dict[str, Any]] = list(data.get("proposals") or [])
         if participants_raw:
             self.participants = {}
             for pd in participants_raw:
@@ -379,7 +383,7 @@ class MockDAO:
         """Format current DAO status for display."""
         lines = [
             f"\n{'=' * 70}",
-            f"  ETHICAL ORACLE DAO — STATUS",
+            "  ETHICAL ORACLE DAO — STATUS",
             f"{'=' * 70}",
             f"  Participants: {len(self.participants)}",
             f"  Total proposals: {len(self.proposals)}",
@@ -389,13 +393,13 @@ class MockDAO:
 
         open_proposals = [p for p in self.proposals if p.status == "open"]
         if open_proposals:
-            lines.append(f"\n  Open proposals:")
+            lines.append("\n  Open proposals:")
             for p in open_proposals:
                 lines.append(f"    {p.id}: {p.title}")
 
         latest = self.get_records(limit=5)
         if latest:
-            lines.append(f"\n  Latest records:")
+            lines.append("\n  Latest records:")
             for r in latest:
                 lines.append(f"    [{r.type}] {r.content[:60]}")
 

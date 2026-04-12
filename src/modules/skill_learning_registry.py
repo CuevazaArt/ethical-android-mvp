@@ -11,8 +11,7 @@ from __future__ import annotations
 
 import uuid
 from dataclasses import dataclass
-from typing import List, Literal
-
+from typing import Literal
 
 Status = Literal["pending", "approved", "rejected"]
 
@@ -29,7 +28,7 @@ class SkillLearningRegistry:
     """Ticket queue; state round-trips via ``KernelSnapshotV1.skill_learning_tickets`` (Phase 2)."""
 
     def __init__(self, max_tickets: int = 64) -> None:
-        self._tickets: List[SkillLearningTicket] = []
+        self._tickets: list[SkillLearningTicket] = []
         self._max = max_tickets
 
     def request_ticket(self, scope_description: str, justification: str) -> SkillLearningTicket:
@@ -58,14 +57,14 @@ class SkillLearningRegistry:
                 return True
         return False
 
-    def pending(self) -> List[SkillLearningTicket]:
+    def pending(self) -> list[SkillLearningTicket]:
         return [t for t in self._tickets if t.status == "pending"]
 
-    def replace_tickets(self, tickets: List[SkillLearningTicket]) -> None:
+    def replace_tickets(self, tickets: list[SkillLearningTicket]) -> None:
         """Restore from snapshot; keeps last ``_max`` entries."""
         self._tickets = tickets[-self._max :]
 
-    def audit_lines_for_psi_sleep(self) -> List[str]:
+    def audit_lines_for_psi_sleep(self) -> list[str]:
         """One block for :meth:`EthicalKernel.execute_sleep` text output."""
         pending = self.pending()
         if not pending:

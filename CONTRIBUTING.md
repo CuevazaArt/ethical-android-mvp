@@ -43,7 +43,8 @@ The modules are in `src/modules/`. Each one is independent:
 2. Create a branch: `git checkout -b feature/module-name`
 3. Implement your change
 4. **Make sure the tests pass**: `pytest tests/ -v` (full suite; CI runs the same on Python 3.11 and 3.12)
-5. Open a Pull Request with a clear description
+5. **Lint and types (same as CI):** after `pip install -r requirements.txt -r requirements-dev.txt`, run `python -m ruff check src tests`, `python -m ruff format --check src tests`, and `python -m mypy src`. Optional: `pre-commit install` and `pre-commit run --all-files` (Ruff replaces separate Black + isort; formatting is Black-compatible). **detect-secrets** uses the committed baseline [`detect-secrets.baseline`](detect-secrets.baseline); update it only when adding new known-safe strings.
+6. Open a Pull Request with a clear description
 
 **Deprecated (historical only):** A multi-agent **Triad Handoff** experiment on branch `refactor/pipeline-trace-core` used extra Markdown buffers and keywords (**`juancheck`**, **`regroup`**). That protocol is **not** required on `main`; use normal Git + PR + tests above.
 
@@ -57,6 +58,11 @@ The suite under `tests/` includes `tests/test_ethical_properties.py` and integra
 - The **buffer** is immutable (8 principles, always active, weight 1.0)
 
 If your change breaks a test, fix the code, not the test.
+
+## Secrets and environment
+
+- **Never commit** API keys, Fernet keys, or `.env` files. Use [`.env.example`](.env.example) as a template only.
+- **CI** reads no private API keys from the repository. Optional [Codecov](https://codecov.io) uploads use the repository secret `CODECOV_TOKEN` if you configure it in GitHub (**Settings → Secrets and variables → Actions**). Forks do not inherit secrets; coverage upload may be skipped without failing CI.
 
 ## Code of conduct
 

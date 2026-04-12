@@ -6,8 +6,8 @@ import sys
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
 
 import pytest
-
 from src.kernel import EthicalKernel
+from src.modules.moral_hub import add_constitution_draft
 from src.persistence import (
     SCHEMA_VERSION,
     JsonFilePersistence,
@@ -15,7 +15,6 @@ from src.persistence import (
     apply_snapshot,
     extract_snapshot,
 )
-from src.modules.moral_hub import add_constitution_draft
 from src.persistence.json_store import snapshot_from_dict
 from src.simulations.runner import ALL_SIMULATIONS
 
@@ -230,7 +229,10 @@ def test_sqlite_metaplan_somatic_skills_roundtrip(tmp_path):
     assert store.load_into_kernel(k2) is True
     assert k2.metaplan.goals()[0].title == k1.metaplan.goals()[0].title
     assert k2.somatic_store._negative_weights == k1.somatic_store._negative_weights
-    assert k2.skill_learning._tickets[0].scope_description == k1.skill_learning._tickets[0].scope_description
+    assert (
+        k2.skill_learning._tickets[0].scope_description
+        == k1.skill_learning._tickets[0].scope_description
+    )
 
 
 def test_extract_apply_roundtrip_in_memory():

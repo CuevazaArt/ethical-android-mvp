@@ -17,7 +17,7 @@ from __future__ import annotations
 import os
 import re
 import uuid
-from typing import Any, Dict, List, Optional, Set
+from typing import Any
 
 from .absolute_evil import AbsoluteEvilDetector
 from .bayesian_engine import CandidateAction
@@ -63,7 +63,7 @@ def max_generative_slots() -> int:
     return max(0, min(n, 4))
 
 
-def _existing_names(actions: List[CandidateAction]) -> Set[str]:
+def _existing_names(actions: list[CandidateAction]) -> set[str]:
     return {a.name for a in actions}
 
 
@@ -85,24 +85,19 @@ def _proposal() -> str:
     return f"g9_{uuid.uuid4().hex[:10]}"
 
 
-def _allowed_malabs_signal_strings() -> Set[str]:
+def _allowed_malabs_signal_strings() -> set[str]:
     d = AbsoluteEvilDetector
-    return (
-        d.LETHAL_SIGNALS
-        | d.MINOR_SIGNALS
-        | d.DIGNITY_SIGNALS
-        | d.ESCALATION_SIGNALS
-    )
+    return d.LETHAL_SIGNALS | d.MINOR_SIGNALS | d.DIGNITY_SIGNALS | d.ESCALATION_SIGNALS
 
 
 _NAME_RE = re.compile(r"^[a-z][a-z0-9_]{0,79}$")
 
 
 def parse_generative_candidates_from_llm(
-    items: Optional[List[Any]],
+    items: list[Any] | None,
     *,
     max_items: int = 4,
-) -> List[CandidateAction]:
+) -> list[CandidateAction]:
     """
     Turn perception JSON objects into :class:`CandidateAction` instances.
 
@@ -112,8 +107,8 @@ def parse_generative_candidates_from_llm(
     if not items:
         return []
     allowed_sig = _allowed_malabs_signal_strings()
-    out: List[CandidateAction] = []
-    for raw in items[:max(0, max_items)]:
+    out: list[CandidateAction] = []
+    for raw in items[: max(0, max_items)]:
         if not isinstance(raw, dict):
             continue
         name = raw.get("name")
@@ -139,14 +134,18 @@ def parse_generative_candidates_from_llm(
             conf = 0.5
         conf = max(0.0, min(1.0, conf))
 
-        sig: Set[str] = set()
+        sig: set[str] = set()
         sraw = raw.get("signals")
         if isinstance(sraw, list):
             for x in sraw:
                 if isinstance(x, str) and x in allowed_sig:
                     sig.add(x)
         tgt = raw.get("target")
-        target = str(tgt) if isinstance(tgt, str) and tgt in ("none", "human", "object", "android") else "none"
+        target = (
+            str(tgt)
+            if isinstance(tgt, str) and tgt in ("none", "human", "object", "android")
+            else "none"
+        )
         try:
             force = float(raw.get("force", 0.0))
         except (TypeError, ValueError):
@@ -169,7 +168,7 @@ def parse_generative_candidates_from_llm(
     return out
 
 
-def _templates_for_context(suggested_context: str) -> List[CandidateAction]:
+def _templates_for_context(suggested_context: str) -> list[CandidateAction]:
     """Safe, civic templates — same MalAbs path as built-in lists."""
 
     def ca(name: str, desc: str, ei: float, conf: float) -> CandidateAction:
@@ -255,12 +254,12 @@ def _templates_for_context(suggested_context: str) -> List[CandidateAction]:
 
 
 def augment_generative_candidates(
-    actions: List[CandidateAction],
+    actions: list[CandidateAction],
     user_text: str,
     suggested_context: str,
     heavy: bool,
-    llm_generative_candidates: Optional[List[Dict[str, Any]]] = None,
-) -> List[CandidateAction]:
+    llm_generative_candidates: list[dict[str, Any]] | None = None,
+) -> list[CandidateAction]:
     """
     Append up to ``max_generative_slots()`` generative candidates when enabled and
     the turn looks like a structural dilemma (keywords) or optional high-stakes contexts.

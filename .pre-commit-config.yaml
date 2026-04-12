@@ -1,0 +1,15 @@
+# Install: pip install pre-commit && pre-commit install
+# Ruff replaces separate Black + isort (compatible formatting); see CONTRIBUTING.md.
+repos:
+  - repo: https://github.com/astral-sh/ruff-pre-commit
+    rev: v0.9.9
+    hooks:
+      - id: ruff
+        args: [--fix]
+      - id: ruff-format
+  - repo: https://github.com/Yelp/detect-secrets
+    rev: v1.5.0
+    hooks:
+      - id: detect-secrets
+        args: [--baseline, detect-secrets.baseline]
+        exclude: package-lock.json$

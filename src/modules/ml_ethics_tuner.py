@@ -11,7 +11,7 @@ from __future__ import annotations
 import hashlib
 import json
 import os
-from typing import TYPE_CHECKING, Any, Dict, Optional
+from typing import TYPE_CHECKING, Any
 
 if TYPE_CHECKING:
     from .mock_dao import MockDAO
@@ -30,7 +30,7 @@ def _fingerprint(
     final_action: str,
     episode_id: str,
 ) -> str:
-    raw = f"{decision_mode}|{verdict}|{final_action}|{episode_id}".encode("utf-8")
+    raw = f"{decision_mode}|{verdict}|{final_action}|{episode_id}".encode()
     return hashlib.sha256(raw).hexdigest()[:16]
 
 
@@ -38,7 +38,7 @@ def build_gray_zone_event_payload(
     chat_result: Any,
     *,
     kernel: Any = None,
-) -> Optional[Dict[str, Any]]:
+) -> dict[str, Any] | None:
     """Build structured dict if this turn qualifies for expert-loop logging."""
     d = getattr(chat_result, "decision", None)
     if d is None:
@@ -65,7 +65,7 @@ def build_gray_zone_event_payload(
 
 
 def maybe_log_gray_zone_tuning_opportunity(
-    dao: "MockDAO",
+    dao: MockDAO,
     chat_result: Any,
     *,
     kernel: Any = None,

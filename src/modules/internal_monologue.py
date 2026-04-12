@@ -9,13 +9,13 @@ See docs/proposals/PROPUESTA_INTEGRACION_APORTES_V6.md (Fase 5).
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Any, Optional
+from typing import TYPE_CHECKING, Any
 
 if TYPE_CHECKING:
-    from src.kernel import KernelDecision
+    pass
 
 
-def compose_monologue_line(d: Any, episode_id: Optional[str] = None) -> str:
+def compose_monologue_line(d: Any, episode_id: str | None = None) -> str:
     """
     Single-line summary for streaming logs. Does not replace format_decision.
     """

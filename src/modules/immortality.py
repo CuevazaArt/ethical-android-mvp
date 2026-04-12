@@ -11,16 +11,16 @@ survives total hardware destruction.
 4 backup layers for cross-verification of integrity.
 """
 
-import json
 import hashlib
-from dataclasses import dataclass, asdict
-from typing import Dict, List, Optional
+import json
+from dataclasses import dataclass
 from datetime import datetime
 
 
 @dataclass
 class Snapshot:
     """Complete capture of the soul's state."""
+
     id: str
     timestamp: str
     version: str
@@ -31,7 +31,7 @@ class Snapshot:
 
     # Bayesian parameters
     pruning_threshold: float
-    hypothesis_weights: List[float]
+    hypothesis_weights: list[float]
 
     # Locus state
     alpha_locus: float
@@ -47,7 +47,7 @@ class Snapshot:
     emotional_load: float
 
     # Ethical poles
-    pole_weights: Dict[str, float]
+    pole_weights: dict[str, float]
 
     # Integrity hash
     integrity_hash: str = ""
@@ -56,11 +56,12 @@ class Snapshot:
 @dataclass
 class RestoreResult:
     """Result of a restore operation."""
+
     success: bool
-    source: str                    # "local", "cloud", "dao", "blockchain"
+    source: str  # "local", "cloud", "dao", "blockchain"
     snapshot_id: str
     integrity_verified: bool
-    discrepancies: List[str]
+    discrepancies: list[str]
     narrative: str
 
 
@@ -82,7 +83,7 @@ class ImmortalityProtocol:
     """
 
     def __init__(self):
-        self.layers: Dict[str, List[Snapshot]] = {
+        self.layers: dict[str, list[Snapshot]] = {
             "local": [],
             "cloud": [],
             "dao": [],
@@ -124,7 +125,7 @@ class ImmortalityProtocol:
         # Algorithmic forgiveness
         neg_load = 0.0
         forgiven_count = 0
-        if hasattr(kernel, 'forgiveness'):
+        if hasattr(kernel, "forgiveness"):
             neg_load = kernel.forgiveness._negative_load()
             forgiven_count = sum(1 for m in kernel.forgiveness.memories.values() if m.forgiven)
 
@@ -132,7 +133,7 @@ class ImmortalityProtocol:
         weakness_t = "indecisive"
         weakness_int = 0.25
         emo_load = 0.0
-        if hasattr(kernel, 'weakness'):
+        if hasattr(kernel, "weakness"):
             weakness_t = kernel.weakness.type.value
             weakness_int = kernel.weakness.base_intensity
             emo_load = kernel.weakness.emotional_load()
@@ -184,19 +185,22 @@ class ImmortalityProtocol:
 
         if not latest:
             return RestoreResult(
-                success=False, source="none", snapshot_id="",
-                integrity_verified=False, discrepancies=["No snapshots available"],
-                narrative="No backups available for restoration."
+                success=False,
+                source="none",
+                snapshot_id="",
+                integrity_verified=False,
+                discrepancies=["No snapshots available"],
+                narrative="No backups available for restoration.",
             )
 
         # Cross-verify integrity
         hashes = {layer: snap.integrity_hash for layer, snap in latest.items()}
-        hash_counts = {}
+        hash_counts: dict[str, int] = {}
         for h in hashes.values():
             hash_counts[h] = hash_counts.get(h, 0) + 1
 
         # Choose majority hash
-        winning_hash = max(hash_counts, key=hash_counts.get)
+        winning_hash = max(hash_counts, key=lambda k: hash_counts[k])
         matches = hash_counts[winning_hash]
         total_layers = len(latest)
 
@@ -213,9 +217,7 @@ class ImmortalityProtocol:
         discrepancies = []
         for layer, h in hashes.items():
             if h != winning_hash:
-                discrepancies.append(
-                    f"Layer '{layer}' has a different hash: possible tampering"
-                )
+                discrepancies.append(f"Layer '{layer}' has a different hash: possible tampering")
 
         integrity_ok = matches >= 2  # At least 2 layers match
 
@@ -255,7 +257,7 @@ class ImmortalityProtocol:
         kernel.locus.beta = snapshot.beta_locus
         kernel.poles.base_weights = dict(snapshot.pole_weights)
 
-    def last_backup(self) -> Optional[Snapshot]:
+    def last_backup(self) -> Snapshot | None:
         """Returns the most recently created snapshot."""
         for layer in ["local", "cloud", "dao", "blockchain"]:
             if self.layers[layer]:
@@ -266,12 +268,12 @@ class ImmortalityProtocol:
         """Formats the immortality system status."""
         lines = ["  🔄 Immortality Protocol:"]
         for layer, snaps in self.layers.items():
-            last = snaps[-1].id if snaps else "empty"
-            lines.append(f"     {layer}: {len(snaps)} snapshots (last: {last})")
+            last_id = snaps[-1].id if snaps else "empty"
+            lines.append(f"     {layer}: {len(snaps)} snapshots (last: {last_id})")
 
-        last = self.last_backup()
-        if last:
-            lines.append(f"     Hash: {last.integrity_hash}")
-            lines.append(f"     Episodes backed up: {last.episodes_count}")
+        last_snap = self.last_backup()
+        if last_snap:
+            lines.append(f"     Hash: {last_snap.integrity_hash}")
+            lines.append(f"     Episodes backed up: {last_snap.episodes_count}")
 
         return "\n".join(lines)

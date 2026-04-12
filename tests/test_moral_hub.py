@@ -3,11 +3,10 @@
 import os
 import sys
 
-import pytest
-
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
 
 from src.modules.buffer import PreloadedBuffer
+from src.modules.mock_dao import MockDAO
 from src.modules.moral_hub import (
     ConstitutionLevel,
     add_constitution_draft,
@@ -17,7 +16,6 @@ from src.modules.moral_hub import (
     moral_hub_public_enabled,
     propose_community_article_mock,
 )
-from src.modules.mock_dao import MockDAO
 
 
 def test_constitution_snapshot_has_l0_principles():
@@ -104,7 +102,10 @@ def test_kernel_constitution_drafts_in_snapshot():
 
 def test_resolve_updates_linked_draft_status():
     from src.kernel import EthicalKernel
-    from src.modules.moral_hub import apply_proposal_resolution_to_constitution_drafts, submit_constitution_draft_for_vote
+    from src.modules.moral_hub import (
+        apply_proposal_resolution_to_constitution_drafts,
+        submit_constitution_draft_for_vote,
+    )
 
     k = EthicalKernel(variability=False, seed=0)
     d = add_constitution_draft(k, 1, "Norm", "Body")

@@ -10,7 +10,6 @@ from __future__ import annotations
 
 import os
 from dataclasses import dataclass
-from typing import Optional
 
 from .sensor_contracts import SensorSnapshot
 
@@ -39,7 +38,7 @@ def critical_battery_threshold() -> float:
 class VitalityAssessment:
     """Snapshot of vitality relevant to one chat turn."""
 
-    battery_level: Optional[float]
+    battery_level: float | None
     critical_threshold: float
     is_critical: bool
 
@@ -52,7 +51,7 @@ class VitalityAssessment:
         }
 
 
-def assess_vitality(snapshot: Optional[SensorSnapshot]) -> VitalityAssessment:
+def assess_vitality(snapshot: SensorSnapshot | None) -> VitalityAssessment:
     """Derive vitality from sensor snapshot (battery only in MVP)."""
 
     t = critical_battery_threshold()

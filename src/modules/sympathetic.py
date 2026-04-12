@@ -10,15 +10,15 @@ Analogous to the human autonomic nervous system.
 """
 
 from dataclasses import dataclass
-from typing import Optional
 
 
 @dataclass
 class InternalState:
     """State of the sympathetic-parasympathetic module."""
-    sigma: float             # [0, 1] activation level
-    mode: str                # "sympathetic" | "parasympathetic" | "neutral"
-    energy: float            # [0, 1] remaining energy level
+
+    sigma: float  # [0, 1] activation level
+    mode: str  # "sympathetic" | "parasympathetic" | "neutral"
+    energy: float  # [0, 1] remaining energy level
     description: str = ""
 
 

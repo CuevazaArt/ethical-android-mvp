@@ -15,7 +15,7 @@ import os
 import uuid
 from datetime import datetime
 from enum import IntEnum
-from typing import TYPE_CHECKING, Any, Dict, List, Optional
+from typing import TYPE_CHECKING, Any
 
 from .deontic_gate import validate_draft_or_raise, validate_draft_structure
 from .local_sovereignty import evaluate_calibration_update
@@ -85,7 +85,7 @@ def dao_integrity_audit_ws_enabled() -> bool:
     return v in ("1", "true", "yes", "on")
 
 
-def proposal_to_public(p: Any) -> Dict[str, Any]:
+def proposal_to_public(p: Any) -> dict[str, Any]:
     """JSON-safe summary of a DAO :class:`~src.modules.mock_dao.Proposal` (quadratic vote totals)."""
     vf = getattr(p, "votes_for", None) or {}
     va = getattr(p, "votes_against", None) or {}
@@ -106,14 +106,14 @@ def proposal_to_public(p: Any) -> Dict[str, Any]:
 
 
 def constitution_snapshot(
-    buffer: "PreloadedBuffer",
-    kernel: Optional[Any] = None,
-) -> Dict[str, Any]:
+    buffer: PreloadedBuffer,
+    kernel: Any | None = None,
+) -> dict[str, Any]:
     """
     Read-only export of L0 from ``PreloadedBuffer``; optional L1/L2 **draft** articles from ``kernel``
     (persisted in :class:`KernelSnapshotV1` as of schema v2).
     """
-    principles: List[Dict[str, Any]] = []
+    principles: list[dict[str, Any]] = []
     for name, p in sorted(buffer.principles.items(), key=lambda x: x[0]):
         principles.append(
             {
@@ -125,8 +125,8 @@ def constitution_snapshot(
                 "locked": True,
             }
         )
-    l1: List[Dict[str, Any]] = []
-    l2: List[Dict[str, Any]] = []
+    l1: list[dict[str, Any]] = []
+    l2: list[dict[str, Any]] = []
     if kernel is not None:
         l1 = list(getattr(kernel, "constitution_l1_drafts", []) or [])
         l2 = list(getattr(kernel, "constitution_l2_drafts", []) or [])
@@ -164,7 +164,7 @@ def add_constitution_draft(
     title: str,
     body: str,
     proposer: str = "user",
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     """
     Append a draft article to L1 or L2 on the kernel (checkpoint / snapshot persist).
 
@@ -177,7 +177,7 @@ def add_constitution_draft(
     if not title:
         raise ValueError("title required")
     validate_draft_or_raise(title, body, kernel.buffer)
-    d: Dict[str, Any] = {
+    d: dict[str, Any] = {
         "id": str(uuid.uuid4()),
         "title": title,
         "body": body,
@@ -196,7 +196,7 @@ def submit_constitution_draft_for_vote(
     kernel: Any,
     level: int,
     draft_id: str,
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     """
     Create a MockDAO proposal from an L1/L2 constitution draft (off-chain pipeline).
 
@@ -238,7 +238,7 @@ def submit_constitution_draft_for_vote(
 def apply_proposal_resolution_to_constitution_drafts(
     kernel: Any,
     proposal_id: str,
-    resolve_result: Dict[str, Any],
+    resolve_result: dict[str, Any],
 ) -> int:
     """
     After :meth:`MockDAO.resolve_proposal`, set linked L1/L2 draft ``status`` to
@@ -262,7 +262,7 @@ def apply_proposal_resolution_to_constitution_drafts(
     return n
 
 
-def audit_transparency_event(dao: "MockDAO", event: str, detail: str = "") -> None:
+def audit_transparency_event(dao: MockDAO, event: str, detail: str = "") -> None:
     """
     Safe Observation / R&D protocol: each logged access is auditable (single-process mock).
 
@@ -277,12 +277,12 @@ def audit_transparency_event(dao: "MockDAO", event: str, detail: str = "") -> No
 
 
 def propose_community_article_mock(
-    dao: "MockDAO",
+    dao: MockDAO,
     title: str,
     description: str,
     target_level: int,
     kernel: Any = None,
-) -> Optional[Any]:
+) -> Any | None:
     """
     Simulated path: institution/human proposes an ethical article for future buffer layers.
 
@@ -317,7 +317,7 @@ def propose_community_article_mock(
     )
 
 
-def ethos_payroll_record_mock(dao: "MockDAO", line: str) -> None:
+def ethos_payroll_record_mock(dao: MockDAO, line: str) -> None:
     """Narrative-only payroll / value-flow audit line for demos."""
     if not ethos_payroll_mock_enabled():
         return

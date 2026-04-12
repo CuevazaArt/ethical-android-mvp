@@ -7,10 +7,10 @@ Keeps a stable prefix so logs can be filtered without parsing free-form strings 
 from __future__ import annotations
 
 import json
-from typing import Any, Dict
+from typing import Any
 
 
-def register_hub_calibration(dao: Any, kind: str, payload: Dict[str, Any]) -> None:
+def register_hub_calibration(dao: Any, kind: str, payload: dict[str, Any]) -> None:
     """Append one MockDAO calibration row: ``HubAudit:<kind>:<json>``."""
     body = json.dumps(payload, ensure_ascii=False, sort_keys=True)[:1900]
     dao.register_audit("calibration", f"HubAudit:{kind}:{body}")

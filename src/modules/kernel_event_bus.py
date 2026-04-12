@@ -13,14 +13,15 @@ from __future__ import annotations
 import logging
 import os
 from collections import defaultdict
-from typing import Any, Callable, DefaultDict, Dict, List
+from collections.abc import Callable
+from typing import Any
 
 _log = logging.getLogger(__name__)
 
 EVENT_KERNEL_DECISION = "kernel.decision"
 EVENT_KERNEL_EPISODE_REGISTERED = "kernel.episode_registered"
 
-KernelEventHandler = Callable[[Dict[str, Any]], None]
+KernelEventHandler = Callable[[dict[str, Any]], None]
 
 __all__ = [
     "EVENT_KERNEL_DECISION",
@@ -40,14 +41,14 @@ class KernelEventBus:
     """Minimal pub/sub registry; handlers run synchronously in subscription order."""
 
     def __init__(self) -> None:
-        self._subs: DefaultDict[str, List[KernelEventHandler]] = defaultdict(list)
+        self._subs: defaultdict[str, list[KernelEventHandler]] = defaultdict(list)
 
     def subscribe(self, event: str, handler: KernelEventHandler) -> None:
         if not event or handler is None:
             return
         self._subs[event].append(handler)
 
-    def publish(self, event: str, payload: Dict[str, Any]) -> None:
+    def publish(self, event: str, payload: dict[str, Any]) -> None:
         if not event:
             return
         data = dict(payload)

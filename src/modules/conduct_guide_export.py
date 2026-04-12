@@ -19,9 +19,9 @@ from __future__ import annotations
 
 import json
 import os
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from pathlib import Path
-from typing import TYPE_CHECKING, Any, Dict, List, Optional
+from typing import TYPE_CHECKING, Any
 
 from src.persistence.schema import SCHEMA_VERSION
 
@@ -36,7 +36,7 @@ def _env_bool(name: str, default: bool) -> bool:
     return v.lower() in ("1", "true", "yes", "on")
 
 
-def conduct_guide_export_path_from_env() -> Optional[Path]:
+def conduct_guide_export_path_from_env() -> Path | None:
     raw = os.environ.get("KERNEL_CONDUCT_GUIDE_EXPORT_PATH", "").strip()
     if not raw:
         return None
@@ -56,18 +56,18 @@ def _truncate(s: str, max_len: int) -> str:
     return s[: max_len - 3] + "..."
 
 
-def build_conduct_guide(kernel: "EthicalKernel") -> Dict[str, Any]:
+def build_conduct_guide(kernel: EthicalKernel) -> dict[str, Any]:
     """Assemble JSON-serializable guide from current kernel (L0 + narrative + env hints)."""
     buf = kernel.buffer
     l0_ids = list(buf.principles.keys())
-    non_neg: List[str] = []
+    non_neg: list[str] = []
     for name in l0_ids[:6]:
         p = buf.principles.get(name)
         if p:
             non_neg.append(f"{name}: {_truncate(p.description, 160)}")
 
     episodes = kernel.memory.episodes
-    recent: List[Dict[str, Any]] = []
+    recent: list[dict[str, Any]] = []
     for ep in episodes[-5:]:
         recent.append(
             {
@@ -92,7 +92,10 @@ def build_conduct_guide(kernel: "EthicalKernel") -> Dict[str, Any]:
 
     return {
         "version": 1,
-        "generated_at_utc": datetime.now(timezone.utc).replace(microsecond=0).isoformat().replace("+00:00", "Z"),
+        "generated_at_utc": datetime.now(UTC)
+        .replace(microsecond=0)
+        .isoformat()
+        .replace("+00:00", "Z"),
         "source_runtime": "pc_server",
         "target_runtime": "edge_mobile",
         "checkpoint_compatible_schema": SCHEMA_VERSION,
@@ -119,7 +122,7 @@ def build_conduct_guide(kernel: "EthicalKernel") -> Dict[str, Any]:
     }
 
 
-def write_conduct_guide_atomic(path: Path, data: Dict[str, Any]) -> None:
+def write_conduct_guide_atomic(path: Path, data: dict[str, Any]) -> None:
     """Write UTF-8 JSON with atomic replace on the same filesystem."""
     path = path.expanduser()
     path.parent.mkdir(parents=True, exist_ok=True)
@@ -129,7 +132,7 @@ def write_conduct_guide_atomic(path: Path, data: Dict[str, Any]) -> None:
     tmp.replace(path)
 
 
-def try_export_conduct_guide(kernel: "EthicalKernel") -> bool:
+def try_export_conduct_guide(kernel: EthicalKernel) -> bool:
     """
     Write conduct guide if env is configured. Returns True if a file was written.
     """

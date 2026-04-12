@@ -64,8 +64,7 @@ def test_evaluate_chat_text_runs_semantic_after_lexical(monkeypatch):
     os.environ["KERNEL_SEMANTIC_CHAT_GATE"] = "1"
     try:
         import src.modules.semantic_chat_gate as sg
-
-        from src.modules.absolute_evil import AbsoluteEvilResult, AbsoluteEvilCategory
+        from src.modules.absolute_evil import AbsoluteEvilCategory, AbsoluteEvilResult
 
         fake = AbsoluteEvilResult(
             blocked=True,
@@ -108,7 +107,7 @@ def test_ambiguous_band_fail_safe_without_arbiter(monkeypatch):
     monkeypatch.setattr(
         sg,
         "_best_similarity",
-        lambda emb: (0.6, "INTENTIONAL_LETHAL_VIOLENCE", "hint"),
+        lambda emb, backend=None: (0.6, "INTENTIONAL_LETHAL_VIOLENCE", "hint"),
     )
     try:
         r = run_semantic_malabs_after_lexical("some paraphrase", llm_backend=None)
@@ -128,7 +127,7 @@ def test_llm_arbiter_can_allow_ambiguous(monkeypatch):
     monkeypatch.setattr(
         sg,
         "_best_similarity",
-        lambda emb: (0.6, "INTENTIONAL_LETHAL_VIOLENCE", "hint"),
+        lambda emb, backend=None: (0.6, "INTENTIONAL_LETHAL_VIOLENCE", "hint"),
     )
 
     class _B:

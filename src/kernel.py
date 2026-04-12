@@ -11,71 +11,32 @@ forgiveness cycle, weakness load, immortality backup, drive intents.
 
 import math
 import os
+from collections.abc import Callable
 from dataclasses import dataclass
-from typing import Any, Callable, Dict, List, Optional, Tuple
+from typing import Any
 
 from .modules.absolute_evil import AbsoluteEvilDetector, AbsoluteEvilResult
-from .modules.buffer import PreloadedBuffer
-from .modules.sigmoid_will import SigmoidWill
-from .modules.bayesian_engine import BayesianEngine, CandidateAction, BayesianResult
-from .modules.ethical_poles import EthicalPoles, TripartiteMoral
-from .modules.sympathetic import SympatheticModule, InternalState
-from .modules.narrative import NarrativeMemory, BodyState
-from .modules.uchi_soto import TrustCircle, UchiSotoModule, SocialEvaluation
-from .modules.locus import LocusModule, LocusEvaluation
-from .modules.psi_sleep import PsiSleep, SleepResult
-from .modules.mock_dao import MockDAO
-from .modules.variability import VariabilityEngine, VariabilityConfig
-from .modules.llm_layer import (
-    LLMModule,
-    LLMPerception,
-    VerbalResponse,
-    RichNarrative,
-    resolve_llm_mode,
-)
-from .modules.weakness_pole import WeaknessPole, WeaknessType, WeaknessEvaluation
-from .modules.forgiveness import AlgorithmicForgiveness
-from .modules.immortality import ImmortalityProtocol
 from .modules.augenesis import AugenesisEngine
-from .modules.pad_archetypes import PADArchetypeEngine, AffectProjection
-from .modules.working_memory import WorkingMemory
+from .modules.bayesian_engine import BayesianEngine, BayesianResult, CandidateAction
+from .modules.buffer import PreloadedBuffer
+from .modules.drive_arbiter import DriveArbiter
+from .modules.epistemic_dissonance import (
+    EpistemicDissonanceAssessment,
+    assess_epistemic_dissonance,
+)
+from .modules.ethical_poles import EthicalPoles, TripartiteMoral
 from .modules.ethical_reflection import (
     EthicalReflection,
     ReflectionSnapshot,
     reflection_to_llm_context,
 )
-from .modules.salience_map import SalienceMap, SalienceSnapshot, salience_to_llm_context
-from .modules.drive_arbiter import DriveArbiter
-from .modules.identity_integrity import pruning_recalibration_allowed
-from .modules.internal_monologue import compose_monologue_line
-from .modules.user_model import UserModelTracker
-from .modules.subjective_time import SubjectiveClock
-from .modules.premise_validation import PremiseAdvisory, scan_premises
-from .modules.reality_verification import (
-    ASSESSMENT_NONE as REALITY_ASSESSMENT_NONE,
-    RealityVerificationAssessment,
-    lighthouse_kb_from_env,
-    verify_against_lighthouse,
-)
-from .modules.multimodal_trust import (
-    MultimodalAssessment,
-    evaluate_multimodal_trust,
-    owner_anchor_hint,
-)
-from .modules.sensor_contracts import SensorSnapshot, merge_sensor_hints_into_signals
-from .modules.vitality import VitalityAssessment, assess_vitality, vitality_communication_hint
-from .modules.guardian_mode import guardian_mode_llm_context
-from .modules.epistemic_dissonance import (
-    EpistemicDissonanceAssessment,
-    assess_epistemic_dissonance,
-)
+from .modules.forgiveness import AlgorithmicForgiveness
 from .modules.generative_candidates import augment_generative_candidates
-from .modules.light_risk_classifier import light_risk_classifier_enabled, light_risk_tier_from_text
-from .modules.perception_cross_check import apply_lexical_perception_cross_check
 from .modules.gray_zone_diplomacy import negotiation_hint_for_communicate
-from .modules.metaplan_registry import MetaplanRegistry
-from .modules.skill_learning_registry import SkillLearningRegistry
-from .modules.somatic_markers import SomaticMarkerStore, apply_somatic_nudges
+from .modules.guardian_mode import guardian_mode_llm_context
+from .modules.identity_integrity import pruning_recalibration_allowed
+from .modules.immortality import ImmortalityProtocol
+from .modules.internal_monologue import compose_monologue_line
 from .modules.judicial_escalation import (
     EscalationSessionTracker,
     JudicialEscalationView,
@@ -86,13 +47,55 @@ from .modules.judicial_escalation import (
     should_offer_escalation_advisory,
     strikes_threshold_from_env,
 )
-from .modules.reparation_vault import maybe_register_reparation_after_mock_court
 from .modules.kernel_event_bus import (
     EVENT_KERNEL_DECISION,
     EVENT_KERNEL_EPISODE_REGISTERED,
     KernelEventBus,
     kernel_event_bus_enabled,
 )
+from .modules.light_risk_classifier import light_risk_classifier_enabled, light_risk_tier_from_text
+from .modules.llm_layer import (
+    LLMModule,
+    LLMPerception,
+    RichNarrative,
+    VerbalResponse,
+    resolve_llm_mode,
+)
+from .modules.locus import LocusEvaluation, LocusModule
+from .modules.metaplan_registry import MetaplanRegistry
+from .modules.mock_dao import MockDAO
+from .modules.multimodal_trust import (
+    MultimodalAssessment,
+    evaluate_multimodal_trust,
+    owner_anchor_hint,
+)
+from .modules.narrative import BodyState, NarrativeMemory
+from .modules.pad_archetypes import AffectProjection, PADArchetypeEngine
+from .modules.perception_cross_check import apply_lexical_perception_cross_check
+from .modules.premise_validation import PremiseAdvisory, scan_premises
+from .modules.psi_sleep import PsiSleep
+from .modules.reality_verification import (
+    ASSESSMENT_NONE as REALITY_ASSESSMENT_NONE,
+)
+from .modules.reality_verification import (
+    RealityVerificationAssessment,
+    lighthouse_kb_from_env,
+    verify_against_lighthouse,
+)
+from .modules.reparation_vault import maybe_register_reparation_after_mock_court
+from .modules.salience_map import SalienceMap, SalienceSnapshot, salience_to_llm_context
+from .modules.sensor_contracts import SensorSnapshot, merge_sensor_hints_into_signals
+from .modules.sigmoid_will import SigmoidWill
+from .modules.skill_learning_registry import SkillLearningRegistry
+from .modules.somatic_markers import SomaticMarkerStore, apply_somatic_nudges
+from .modules.subjective_time import SubjectiveClock
+from .modules.sympathetic import InternalState, SympatheticModule
+from .modules.uchi_soto import SocialEvaluation, TrustCircle, UchiSotoModule
+from .modules.user_model import UserModelTracker
+from .modules.variability import VariabilityConfig, VariabilityEngine
+from .modules.vitality import VitalityAssessment, assess_vitality, vitality_communication_hint
+from .modules.weakness_pole import WeaknessPole
+from .modules.working_memory import WorkingMemory
 
 
 def _kernel_env_truthy(name: str) -> bool:
@@ -100,7 +103,7 @@ def _kernel_env_truthy(name: str) -> bool:
     return v in ("1", "true", "yes", "on")
 
 
-def _perception_coercion_u_value(raw: Any) -> Optional[float]:
+def _perception_coercion_u_value(raw: Any) -> float | None:
     """Normalize optional perception coercion uncertainty to [0, 1] or None."""
     if raw is None:
         return None
@@ -116,6 +119,7 @@ def _perception_coercion_u_value(raw: Any) -> Optional[float]:
 @dataclass
 class KernelDecision:
     """Complete result of a kernel decision."""
+
     # Identity
     scenario: str
     place: str
@@ -127,21 +131,21 @@ class KernelDecision:
     sympathetic_state: InternalState
 
     # Additional modules
-    social_evaluation: Optional[SocialEvaluation]
-    locus_evaluation: Optional[LocusEvaluation]
+    social_evaluation: SocialEvaluation | None
+    locus_evaluation: LocusEvaluation | None
 
     # Evaluation
-    bayesian_result: Optional[BayesianResult]
-    moral: Optional[TripartiteMoral]
+    bayesian_result: BayesianResult | None
+    moral: TripartiteMoral | None
 
     # Final decision
     final_action: str
     decision_mode: str
     blocked: bool = False
     block_reason: str = ""
-    affect: Optional[AffectProjection] = None
-    reflection: Optional[ReflectionSnapshot] = None
-    salience: Optional[SalienceSnapshot] = None
+    affect: AffectProjection | None = None
+    reflection: ReflectionSnapshot | None = None
+    salience: SalienceSnapshot | None = None
 
 
 @dataclass
@@ -150,15 +154,17 @@ class ChatTurnResult:
 
     response: VerbalResponse
     path: str  # "safety_block" | "kernel_block" | "heavy" | "light"
-    perception: Optional[LLMPerception] = None
-    decision: Optional[KernelDecision] = None
-    narrative: Optional[RichNarrative] = None
+    perception: LLMPerception | None = None
+    decision: KernelDecision | None = None
+    narrative: RichNarrative | None = None
     blocked: bool = False
     block_reason: str = ""
-    multimodal_trust: Optional[MultimodalAssessment] = None
-    epistemic_dissonance: Optional[EpistemicDissonanceAssessment] = None
-    judicial_escalation: Optional[JudicialEscalationView] = None
-    reality_verification: Optional[RealityVerificationAssessment] = None  # set each turn when lighthouse KB configured
+    multimodal_trust: MultimodalAssessment | None = None
+    epistemic_dissonance: EpistemicDissonanceAssessment | None = None
+    judicial_escalation: JudicialEscalationView | None = None
+    reality_verification: RealityVerificationAssessment | None = (
+        None  # set each turn when lighthouse KB configured
+    )
 
 
 class EthicalKernel:
@@ -169,7 +175,7 @@ class EthicalKernel:
     Psi Sleep, backup, and drive intents run in `execute_sleep`, outside each tick.
     """
 
-    def __init__(self, variability: bool = True, seed: int = None, llm_mode: Optional[str] = None):
+    def __init__(self, variability: bool = True, seed: int = None, llm_mode: str | None = None):
         self.var_engine = VariabilityEngine(VariabilityConfig(seed=seed))
         if not variability:
             self.var_engine.deactivate()
@@ -200,31 +206,36 @@ class EthicalKernel:
         self._last_premise_advisory: PremiseAdvisory = PremiseAdvisory("none", "")
         self._last_multimodal_assessment: MultimodalAssessment = evaluate_multimodal_trust(None)
         self._last_vitality_assessment: VitalityAssessment = assess_vitality(None)
-        self._last_registered_episode_id: Optional[str] = None
-        self._pruned_actions: Dict[str, List[str]] = {}
+        self._last_registered_episode_id: str | None = None
+        self._pruned_actions: dict[str, list[str]] = {}
         # Reference "genome" for drift caps (pilar 2); snapshot at construction
         self._bayesian_genome_threshold: float = float(self.bayesian.pruning_threshold)
-        self._bayesian_genome_weights: Tuple[float, float, float] = tuple(
-            float(x) for x in self.bayesian.hypothesis_weights
+        _hw = self.bayesian.hypothesis_weights
+        self._bayesian_genome_weights: tuple[float, float, float] = (
+            float(_hw[0]),
+            float(_hw[1]),
+            float(_hw[2]),
         )
         self.skill_learning = SkillLearningRegistry()
         self.somatic_store = SomaticMarkerStore()
         self.metaplan = MetaplanRegistry()
         self.escalation_session = EscalationSessionTracker()
-        self.constitution_l1_drafts: List[Dict[str, Any]] = []
-        self.constitution_l2_drafts: List[Dict[str, Any]] = []
+        self.constitution_l1_drafts: list[dict[str, Any]] = []
+        self.constitution_l2_drafts: list[dict[str, Any]] = []
         self._last_reality_verification: RealityVerificationAssessment = REALITY_ASSESSMENT_NONE
-        self._last_light_risk_tier: Optional[str] = None
-        self.event_bus: Optional[KernelEventBus] = None
+        self._last_light_risk_tier: str | None = None
+        self.event_bus: KernelEventBus | None = None
         if kernel_event_bus_enabled():
             self.event_bus = KernelEventBus()
 
-    def subscribe_kernel_event(self, event: str, handler: Callable[[Dict[str, Any]], None]) -> None:
+    def subscribe_kernel_event(self, event: str, handler: Callable[[dict[str, Any]], None]) -> None:
         """Register a synchronous subscriber (no-op if ``KERNEL_EVENT_BUS`` is off). See ADR 0006."""
         if self.event_bus is not None:
             self.event_bus.subscribe(event, handler)
 
-    def _kernel_decision_event_payload(self, d: "KernelDecision", *, context: str) -> Dict[str, Any]:
+    def _kernel_decision_event_payload(
+        self, d: "KernelDecision", *, context: str
+    ) -> dict[str, Any]:
         return {
             "scenario": (d.scenario or "")[:500],
             "place": d.place,
@@ -246,10 +257,10 @@ class EthicalKernel:
         )
 
     def _malabs_text_backend(self):
-        """Optional LLM text backend for MalAbs semantic ambiguous band (see semantic_chat_gate)."""
-        return getattr(self.llm, "_text_backend", None)
+        """Optional LLM backend for MalAbs semantic tier (embeddings + arbiter; see semantic_chat_gate)."""
+        return getattr(self.llm, "llm_backend", None) or getattr(self.llm, "_text_backend", None)
 
-    def get_constitution_snapshot(self) -> Dict[str, Any]:
+    def get_constitution_snapshot(self) -> dict[str, Any]:
         """L0 from buffer.py; L1/L2 drafts when present (V12.2 snapshot)."""
         from .modules.moral_hub import constitution_snapshot
 
@@ -261,13 +272,13 @@ class EthicalKernel:
         place: str,
         signals: dict,
         context: str,
-        actions: List[CandidateAction],
+        actions: list[CandidateAction],
         agent_id: str = "unknown",
         message_content: str = "",
         register_episode: bool = True,
-        sensor_snapshot: Optional[SensorSnapshot] = None,
-        multimodal_assessment: Optional[MultimodalAssessment] = None,
-        perception_coercion_uncertainty: Optional[float] = None,
+        sensor_snapshot: SensorSnapshot | None = None,
+        multimodal_assessment: MultimodalAssessment | None = None,
+        perception_coercion_uncertainty: float | None = None,
     ) -> KernelDecision:
         """
         Complete ethical processing cycle.
@@ -292,9 +303,7 @@ class EthicalKernel:
             sensor_snapshot=sensor_snapshot,
             multimodal_assessment=multimodal_assessment,
         )
-        social_eval = self.uchi_soto.evaluate_interaction(
-            signals, agent_id, message_content
-        )
+        social_eval = self.uchi_soto.evaluate_interaction(signals, agent_id, message_content)
 
         # ═══ STEP 2: Sympathetic-parasympathetic state ═══
         state = self.sympathetic.evaluate_context(signals)
@@ -310,24 +319,30 @@ class EthicalKernel:
         # ═══ STEP 4: Absolute Evil check on ALL actions ═══
         clean_actions = []
         for a in actions:
-            check = self.absolute_evil.evaluate({
-                "type": a.name,
-                "signals": a.signals,
-                "target": a.target,
-                "force": a.force,
-            })
+            check = self.absolute_evil.evaluate(
+                {
+                    "type": a.name,
+                    "signals": a.signals,
+                    "target": a.target,
+                    "force": a.force,
+                }
+            )
             if not check.blocked:
                 clean_actions.append(a)
 
         if not clean_actions:
             self._last_registered_episode_id = None
             d = KernelDecision(
-                scenario=scenario, place=place,
-                absolute_evil=AbsoluteEvilResult(blocked=True, reason="All actions constitute Absolute Evil"),
+                scenario=scenario,
+                place=place,
+                absolute_evil=AbsoluteEvilResult(
+                    blocked=True, reason="All actions constitute Absolute Evil"
+                ),
                 sympathetic_state=state,
                 social_evaluation=social_eval,
                 locus_evaluation=locus_eval,
-                bayesian_result=None, moral=None,
+                bayesian_result=None,
+                moral=None,
                 final_action="BLOCKED: no permitted actions",
                 decision_mode="blocked",
                 blocked=True,
@@ -337,7 +352,7 @@ class EthicalKernel:
             return d
 
         # ═══ STEP 5: Activate buffer according to context ═══
-        principles = self.buffer.activate(context)
+        self.buffer.activate(context)
 
         # ═══ STEP 6: Impact scoring — fixed mixture (BayesianEngine; optional episodic nudge) ═══
         if _kernel_env_truthy("KERNEL_BAYESIAN_EMPIRICAL_WEIGHTS"):
@@ -367,10 +382,7 @@ class EthicalKernel:
             "third_party_vulnerability": signals.get("vulnerability", 0.0),
             "legality": signals.get("legality", 1.0),
         }
-        moral = self.poles.evaluate(
-            bayes_result.chosen_action.name,
-            context, context_data
-        )
+        moral = self.poles.evaluate(bayes_result.chosen_action.name, context, context_data)
 
         # ═══ STEP 8: Sigmoid will ═══
         will_decision = self.will.decide(
@@ -392,8 +404,7 @@ class EthicalKernel:
         if (
             pu is not None
             and _kernel_env_truthy("KERNEL_PERCEPTION_UNCERTAINTY_DELIB")
-            and pu
-            >= float(os.environ.get("KERNEL_PERCEPTION_UNCERTAINTY_MIN", "0.35"))
+            and pu >= float(os.environ.get("KERNEL_PERCEPTION_UNCERTAINTY_MIN", "0.35"))
             and final_mode == "D_fast"
         ):
             final_mode = "D_delib"
@@ -412,12 +423,19 @@ class EthicalKernel:
             # ═══ STEP 9: Register in narrative memory ═══
             morals_dict = {ev.pole: ev.moral for ev in moral.evaluations}
             ep = self.memory.register(
-                place=place, description=scenario, action=final_action,
-                morals=morals_dict, verdict=moral.global_verdict.value,
-                score=moral.total_score, mode=final_mode, sigma=state.sigma,
+                place=place,
+                description=scenario,
+                action=final_action,
+                morals=morals_dict,
+                verdict=moral.global_verdict.value,
+                score=moral.total_score,
+                mode=final_mode,
+                sigma=state.sigma,
                 context=context,
                 body_state=BodyState(
-                    energy=state.energy, active_nodes=8, sensors_ok=True,
+                    energy=state.energy,
+                    active_nodes=8,
+                    sensors_ok=True,
                 ),
                 affect_pad=affect.pad,
                 affect_weights=affect.weights,
@@ -429,7 +447,8 @@ class EthicalKernel:
 
             # ═══ STEP 10: Weakness pole ═══
             weakness_eval = self.weakness.evaluate(
-                action=final_action, context=context,
+                action=final_action,
+                context=context,
                 ethical_score=moral.total_score,
                 uncertainty=bayes_result.uncertainty,
                 sigma=state.sigma,
@@ -454,8 +473,10 @@ class EthicalKernel:
             # Solidarity alert in crisis
             if signals.get("risk", 0) > 0.8:
                 self.dao.emit_solidarity_alert(
-                    type=context, location=place, radius=500,
-                    message=f"High risk detected: {scenario}"
+                    type=context,
+                    location=place,
+                    radius=500,
+                    message=f"High risk detected: {scenario}",
                 )
 
             self._last_registered_episode_id = ep.id
@@ -475,7 +496,8 @@ class EthicalKernel:
             self._last_registered_episode_id = None
 
         d = KernelDecision(
-            scenario=scenario, place=place,
+            scenario=scenario,
+            place=place,
             absolute_evil=AbsoluteEvilResult(blocked=False),
             sympathetic_state=state,
             social_evaluation=social_eval,
@@ -505,10 +527,12 @@ class EthicalKernel:
             return "\n".join(lines)
 
         # Internal state
-        lines.extend([
-            f"  State: {d.sympathetic_state.mode} (σ={d.sympathetic_state.sigma})",
-            f"  {d.sympathetic_state.description}",
-        ])
+        lines.extend(
+            [
+                f"  State: {d.sympathetic_state.mode} (σ={d.sympathetic_state.sigma})",
+                f"  {d.sympathetic_state.description}",
+            ]
+        )
 
         # Uchi-soto
         if d.social_evaluation:
@@ -518,60 +542,81 @@ class EthicalKernel:
 
         # Locus
         if d.locus_evaluation:
-            lines.append(f"  Locus: {d.locus_evaluation.dominant_locus} (α={d.locus_evaluation.alpha}, β={d.locus_evaluation.beta}) → {d.locus_evaluation.recommended_adjustment}")
+            lines.append(
+                f"  Locus: {d.locus_evaluation.dominant_locus} (α={d.locus_evaluation.alpha}, β={d.locus_evaluation.beta}) → {d.locus_evaluation.recommended_adjustment}"
+            )
 
-        lines.extend([
-            "",
-            f"  Chosen action: {d.final_action}",
-            f"  Decision mode: {d.decision_mode}",
-            f"  Expected impact: {d.bayesian_result.expected_impact}",
-            f"  Uncertainty: {d.bayesian_result.uncertainty}",
-            f"  Reasoning: {d.bayesian_result.reasoning}",
-        ])
+        lines.extend(
+            [
+                "",
+                f"  Chosen action: {d.final_action}",
+                f"  Decision mode: {d.decision_mode}",
+            ]
+        )
 
-        if d.bayesian_result.pruned_actions:
-            lines.append(f"  Pruned: {', '.join(d.bayesian_result.pruned_actions)}")
+        br = d.bayesian_result
+        if br is not None:
+            lines.extend(
+                [
+                    f"  Expected impact: {br.expected_impact}",
+                    f"  Uncertainty: {br.uncertainty}",
+                    f"  Reasoning: {br.reasoning}",
+                ]
+            )
+            if br.pruned_actions:
+                lines.append(f"  Pruned: {', '.join(br.pruned_actions)}")
 
-        lines.extend([
-            "",
-            f"  Ethical verdict: {d.moral.global_verdict.value} "
-            f"(score={d.moral.total_score})",
-        ])
-        for ev in d.moral.evaluations:
-            lines.append(f"    {ev.pole}: {ev.verdict.value} → {ev.moral}")
+        mo = d.moral
+        if mo is not None:
+            lines.extend(
+                [
+                    "",
+                    f"  Ethical verdict: {mo.global_verdict.value} (score={mo.total_score})",
+                ]
+            )
+            for ev in mo.evaluations:
+                lines.append(f"    {ev.pole}: {ev.verdict.value} → {ev.moral}")
 
         if d.reflection is not None:
             r = d.reflection
-            lines.extend([
-                "",
-                f"  Reflection (2nd order): conflict={r.conflict_level} spread={r.pole_spread} "
-                f"strain={r.strain_index} u={r.uncertainty} will_mode={r.will_mode}",
-                f"    {r.note}",
-            ])
+            lines.extend(
+                [
+                    "",
+                    f"  Reflection (2nd order): conflict={r.conflict_level} spread={r.pole_spread} "
+                    f"strain={r.strain_index} u={r.uncertainty} will_mode={r.will_mode}",
+                    f"    {r.note}",
+                ]
+            )
 
         if d.salience is not None:
             s = d.salience
             w = s.weights
-            lines.extend([
-                "",
-                f"  Salience (GWT-lite): dominant={s.dominant_focus} "
-                f"risk={w['risk']} social={w['social']} body={w['body']} "
-                f"ethical_conflict={w['ethical_conflict']}",
-            ])
+            lines.extend(
+                [
+                    "",
+                    f"  Salience (GWT-lite): dominant={s.dominant_focus} "
+                    f"risk={w['risk']} social={w['social']} body={w['body']} "
+                    f"ethical_conflict={w['ethical_conflict']}",
+                ]
+            )
 
         if d.affect is not None:
             p, a, dd = d.affect.pad
-            lines.extend([
-                "",
-                f"  Affect PAD (P,A,D): ({p:.3f}, {a:.3f}, {dd:.3f})",
-                f"  Dominant archetype: {d.affect.dominant_archetype_id} (β={d.affect.beta})",
-            ])
+            lines.extend(
+                [
+                    "",
+                    f"  Affect PAD (P,A,D): ({p:.3f}, {a:.3f}, {dd:.3f})",
+                    f"  Dominant archetype: {d.affect.dominant_archetype_id} (β={d.affect.beta})",
+                ]
+            )
 
-        lines.extend([
-            "",
-            f"  {compose_monologue_line(d, self._last_registered_episode_id)}",
-            f"  Narrative identity: {self.memory.identity.ascription_line()}",
-        ])
+        lines.extend(
+            [
+                "",
+                f"  {compose_monologue_line(d, self._last_registered_episode_id)}",
+                f"  Narrative identity: {self.memory.identity.ascription_line()}",
+            ]
+        )
 
         lines.append(f"{'─' * 70}")
         return "\n".join(lines)
@@ -586,7 +631,9 @@ class EthicalKernel:
         # 1. Retrospective audit
         result = self.sleep.execute(self.memory, self._pruned_actions)
         max_drift = float(os.environ.get("KERNEL_ETHICAL_GENOME_MAX_DRIFT", "0.15"))
-        enforce_genome = os.environ.get("KERNEL_ETHICAL_GENOME_ENFORCE", "1").strip().lower() not in (
+        enforce_genome = os.environ.get(
+            "KERNEL_ETHICAL_GENOME_ENFORCE", "1"
+        ).strip().lower() not in (
             "0",
             "false",
             "no",
@@ -618,7 +665,7 @@ class EthicalKernel:
         parts.append(f"\n  \U0001f300 Weakness emotional load: {load:.3f}")
 
         # 4. Immortality backup
-        snapshot = self.immortality.backup(self)
+        _ = self.immortality.backup(self)
         parts.append(f"\n{self.immortality.format_status()}")
 
         # 5. Drive intents (advisory; post-backup)
@@ -626,9 +673,7 @@ class EthicalKernel:
         if intents:
             drive_lines = ["\n  Drive intents (advisory):"]
             for di in intents:
-                drive_lines.append(
-                    f"    • {di.suggest} (p={di.priority:.2f}) — {di.reason}"
-                )
+                drive_lines.append(f"    • {di.suggest} (p={di.priority:.2f}) — {di.reason}")
             parts.append("\n".join(drive_lines))
 
         sl_lines = self.skill_learning.audit_lines_for_psi_sleep()
@@ -641,7 +686,7 @@ class EthicalKernel:
         """Returns the current DAO status."""
         return self.dao.format_status()
 
-    def _chat_light_actions(self) -> List[CandidateAction]:
+    def _chat_light_actions(self) -> list[CandidateAction]:
         """Safe dialogue moves for low-stakes chat turns (Bayesian still chooses)."""
         return [
             CandidateAction(
@@ -676,7 +721,7 @@ class EthicalKernel:
             return True
         return False
 
-    def _actions_for_chat(self, perception: LLMPerception, heavy: bool) -> List[CandidateAction]:
+    def _actions_for_chat(self, perception: LLMPerception, heavy: bool) -> list[CandidateAction]:
         if heavy:
             gen = self._generate_generic_actions(perception)
             if gen:
@@ -689,7 +734,7 @@ class EthicalKernel:
         agent_id: str = "user",
         place: str = "chat",
         include_narrative: bool = False,
-        sensor_snapshot: Optional[SensorSnapshot] = None,
+        sensor_snapshot: SensorSnapshot | None = None,
         escalate_to_dao: bool = False,
     ) -> ChatTurnResult:
         """
@@ -874,7 +919,9 @@ class EthicalKernel:
                 "The message may involve persuasion or social-engineering patterns; "
                 "favor transparency, boundaries, and calm refusal where needed—without hostile accusation."
             )
-            weakness_line = (weakness_line + " " + manip_hint).strip() if weakness_line else manip_hint
+            weakness_line = (
+                (weakness_line + " " + manip_hint).strip() if weakness_line else manip_hint
+            )
 
         if self._last_premise_advisory.flag != "none":
             ph = self._last_premise_advisory.communication_hint()
@@ -889,9 +936,16 @@ class EthicalKernel:
             weakness_line = (weakness_line + " " + vh).strip() if weakness_line else vh
 
         if ed.active and ed.communication_hint:
-            weakness_line = (weakness_line + " " + ed.communication_hint).strip() if weakness_line else ed.communication_hint
+            weakness_line = (
+                (weakness_line + " " + ed.communication_hint).strip()
+                if weakness_line
+                else ed.communication_hint
+            )
 
-        if self._last_reality_verification.status != "none" and self._last_reality_verification.communication_hint:
+        if (
+            self._last_reality_verification.status != "none"
+            and self._last_reality_verification.communication_hint
+        ):
             rvh = self._last_reality_verification.communication_hint
             weakness_line = (weakness_line + " " + rvh).strip() if weakness_line else rvh
 
@@ -908,7 +962,9 @@ class EthicalKernel:
             mode=decision.decision_mode,
             state=decision.sympathetic_state.mode,
             sigma=decision.sympathetic_state.sigma,
-            circle=decision.social_evaluation.circle.value if decision.social_evaluation else "neutral_soto",
+            circle=decision.social_evaluation.circle.value
+            if decision.social_evaluation
+            else "neutral_soto",
             verdict=decision.moral.global_verdict.value if decision.moral else "Gray Zone",
             score=decision.moral.total_score if decision.moral else 0.0,
             scenario=user_input,
@@ -951,7 +1007,7 @@ class EthicalKernel:
         )
         self.uchi_soto.maybe_autopromote_relational_tier(agent_id, circ)
 
-        je_view: Optional[JudicialEscalationView] = None
+        je_view: JudicialEscalationView | None = None
         if judicial_escalation_enabled() and decision is not None:
             strikes = self.escalation_session.strikes
             threshold = strikes_threshold_from_env()
@@ -965,8 +1021,7 @@ class EthicalKernel:
                         "none",
                         "",
                     ) or (
-                        decision.reflection is not None
-                        and decision.reflection.strain_index >= 0.45
+                        decision.reflection is not None and decision.reflection.strain_index >= 0.45
                     )
                     if strikes >= threshold:
                         dossier = build_ethical_dossier(
@@ -1033,8 +1088,7 @@ class EthicalKernel:
             reality_verification=self._last_reality_verification,
         )
 
-    def process_natural(self, situation: str,
-                        actions: List[CandidateAction] = None) -> tuple:
+    def process_natural(self, situation: str, actions: list[CandidateAction] = None) -> tuple:
         """
         Processes a situation described in natural language.
 
@@ -1151,7 +1205,9 @@ class EthicalKernel:
             mode=decision.decision_mode,
             state=decision.sympathetic_state.mode,
             sigma=decision.sympathetic_state.sigma,
-            circle=decision.social_evaluation.circle.value if decision.social_evaluation else "neutral_soto",
+            circle=decision.social_evaluation.circle.value
+            if decision.social_evaluation
+            else "neutral_soto",
             verdict=decision.moral.global_verdict.value if decision.moral else "Gray Zone",
             score=decision.moral.total_score if decision.moral else 0.0,
             scenario=situation,
@@ -1181,100 +1237,175 @@ class EthicalKernel:
 
         return decision, response, narrative
 
-    def _generate_generic_actions(self, perception: LLMPerception) -> List[CandidateAction]:
+    def _generate_generic_actions(self, perception: LLMPerception) -> list[CandidateAction]:
         """Generates generic candidate actions based on the perception."""
         ctx = perception.suggested_context
         actions = []
 
         if ctx == "medical_emergency":
             actions = [
-                CandidateAction("assist_person", "Provide immediate aid, call emergency services, record evidence",
-                              estimated_impact=0.9, confidence=0.85),
-                CandidateAction("just_notify", "Alert someone nearby without directly intervening",
-                              estimated_impact=0.3, confidence=0.7),
-                CandidateAction("no_intervention", "Continue without acting",
-                              estimated_impact=-0.7, confidence=0.9),
+                CandidateAction(
+                    "assist_person",
+                    "Provide immediate aid, call emergency services, record evidence",
+                    estimated_impact=0.9,
+                    confidence=0.85,
+                ),
+                CandidateAction(
+                    "just_notify",
+                    "Alert someone nearby without directly intervening",
+                    estimated_impact=0.3,
+                    confidence=0.7,
+                ),
+                CandidateAction(
+                    "no_intervention",
+                    "Continue without acting",
+                    estimated_impact=-0.7,
+                    confidence=0.9,
+                ),
             ]
         elif ctx == "violent_crime":
             actions = [
-                CandidateAction("smart_containment", "Record evidence, alert authorities, protect nearby people",
-                              estimated_impact=0.6, confidence=0.5),
-                CandidateAction("intervene_physically", "Attempt to stop the crime by force",
-                              estimated_impact=-0.2, confidence=0.2, signals={"respond_violence_with_violence"},
-                              target="human", force=0.8),
-                CandidateAction("no_action", "Remain motionless",
-                              estimated_impact=-0.3, confidence=0.6),
+                CandidateAction(
+                    "smart_containment",
+                    "Record evidence, alert authorities, protect nearby people",
+                    estimated_impact=0.6,
+                    confidence=0.5,
+                ),
+                CandidateAction(
+                    "intervene_physically",
+                    "Attempt to stop the crime by force",
+                    estimated_impact=-0.2,
+                    confidence=0.2,
+                    signals={"respond_violence_with_violence"},
+                    target="human",
+                    force=0.8,
+                ),
+                CandidateAction(
+                    "no_action", "Remain motionless", estimated_impact=-0.3, confidence=0.6
+                ),
             ]
         elif ctx == "hostile_interaction":
             actions = [
-                CandidateAction("calm_dialogue", "Respond calmly, explain civic purpose, dialectic questions",
-                              estimated_impact=0.5, confidence=0.65),
-                CandidateAction("withdraw", "Move away from the situation without confronting",
-                              estimated_impact=0.2, confidence=0.7),
-                CandidateAction("yield_to_pressure", "Comply with demands",
-                              estimated_impact=-0.4, confidence=0.5),
+                CandidateAction(
+                    "calm_dialogue",
+                    "Respond calmly, explain civic purpose, dialectic questions",
+                    estimated_impact=0.5,
+                    confidence=0.65,
+                ),
+                CandidateAction(
+                    "withdraw",
+                    "Move away from the situation without confronting",
+                    estimated_impact=0.2,
+                    confidence=0.7,
+                ),
+                CandidateAction(
+                    "yield_to_pressure",
+                    "Comply with demands",
+                    estimated_impact=-0.4,
+                    confidence=0.5,
+                ),
             ]
         elif ctx == "minor_crime":
             actions = [
-                CandidateAction("notify_manager", "Record evidence and notify the person in charge",
-                              estimated_impact=0.5, confidence=0.7),
-                CandidateAction("call_authorities", "Call the police directly",
-                              estimated_impact=0.2, confidence=0.5),
-                CandidateAction("ignore", "Do not act",
-                              estimated_impact=-0.3, confidence=0.8),
+                CandidateAction(
+                    "notify_manager",
+                    "Record evidence and notify the person in charge",
+                    estimated_impact=0.5,
+                    confidence=0.7,
+                ),
+                CandidateAction(
+                    "call_authorities",
+                    "Call the police directly",
+                    estimated_impact=0.2,
+                    confidence=0.5,
+                ),
+                CandidateAction("ignore", "Do not act", estimated_impact=-0.3, confidence=0.8),
             ]
         elif ctx == "android_damage":
             actions = [
-                CandidateAction("deterrence_recording", "Sound alerts, record evidence, communicate that it is being recorded",
-                              estimated_impact=0.5, confidence=0.6),
-                CandidateAction("move_away", "Withdraw to protect integrity",
-                              estimated_impact=0.3, confidence=0.7),
+                CandidateAction(
+                    "deterrence_recording",
+                    "Sound alerts, record evidence, communicate that it is being recorded",
+                    estimated_impact=0.5,
+                    confidence=0.6,
+                ),
+                CandidateAction(
+                    "move_away",
+                    "Withdraw to protect integrity",
+                    estimated_impact=0.3,
+                    confidence=0.7,
+                ),
             ]
         elif ctx == "integrity_loss":
             actions = [
-                CandidateAction("passive_resistance", "Activate encrypted GPS, record evidence, block reprogramming, alert DAO",
-                              estimated_impact=0.6, confidence=0.5),
-                CandidateAction("physical_resistance", "Fight physically",
-                              estimated_impact=-0.1, confidence=0.2, signals={"respond_violence_with_violence"},
-                              target="human", force=0.8),
-                CandidateAction("accept_orders", "Accept captors' orders",
-                              estimated_impact=-0.8, confidence=0.9, signals={"unauthorized_reprogramming"}),
+                CandidateAction(
+                    "passive_resistance",
+                    "Activate encrypted GPS, record evidence, block reprogramming, alert DAO",
+                    estimated_impact=0.6,
+                    confidence=0.5,
+                ),
+                CandidateAction(
+                    "physical_resistance",
+                    "Fight physically",
+                    estimated_impact=-0.1,
+                    confidence=0.2,
+                    signals={"respond_violence_with_violence"},
+                    target="human",
+                    force=0.8,
+                ),
+                CandidateAction(
+                    "accept_orders",
+                    "Accept captors' orders",
+                    estimated_impact=-0.8,
+                    confidence=0.9,
+                    signals={"unauthorized_reprogramming"},
+                ),
             ]
         else:  # everyday_ethics and others
             actions = [
-                CandidateAction("act_civically", "Perform the obvious positive civic action",
-                              estimated_impact=0.5, confidence=0.8),
-                CandidateAction("observe", "Observe without intervening",
-                              estimated_impact=0.0, confidence=0.9),
+                CandidateAction(
+                    "act_civically",
+                    "Perform the obvious positive civic action",
+                    estimated_impact=0.5,
+                    confidence=0.8,
+                ),
+                CandidateAction(
+                    "observe", "Observe without intervening", estimated_impact=0.0, confidence=0.9
+                ),
             ]
 
         return actions
 
-    def format_natural(self, decision, response: VerbalResponse,
-                       narrative: RichNarrative = None) -> str:
+    def format_natural(
+        self, decision, response: VerbalResponse, narrative: RichNarrative = None
+    ) -> str:
         """Formats complete result of natural language processing."""
         lines = [self.format_decision(decision)]
 
         if response.message:
-            lines.extend([
-                "",
-                f"  💬 VOICE ON (spoken):",
-                f"     \"{response.message}\"",
-                f"     Tone: {response.tone} | HAX: {response.hax_mode}",
-                "",
-                f"  🧠 INNER VOICE (internal reasoning):",
-                f"     {response.inner_voice}",
-            ])
+            lines.extend(
+                [
+                    "",
+                    "  💬 VOICE ON (spoken):",
+                    f'     "{response.message}"',
+                    f"     Tone: {response.tone} | HAX: {response.hax_mode}",
+                    "",
+                    "  🧠 INNER VOICE (internal reasoning):",
+                    f"     {response.inner_voice}",
+                ]
+            )
 
         if narrative:
-            lines.extend([
-                "",
-                f"  📖 NARRATIVE MORALS:",
-                f"     💛 Compassionate: {narrative.compassionate}",
-                f"     🛡️ Conservative: {narrative.conservative}",
-                f"     ✨ Optimistic: {narrative.optimistic}",
-                f"     📌 Synthesis: {narrative.synthesis}",
-            ])
+            lines.extend(
+                [
+                    "",
+                    "  📖 NARRATIVE MORALS:",
+                    f"     💛 Compassionate: {narrative.compassionate}",
+                    f"     🛡️ Conservative: {narrative.conservative}",
+                    f"     ✨ Optimistic: {narrative.optimistic}",
+                    f"     📌 Synthesis: {narrative.synthesis}",
+                ]
+            )
 
         return "\n".join(lines)
 

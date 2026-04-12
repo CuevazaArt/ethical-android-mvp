@@ -34,6 +34,11 @@ Do not use the generic “Funding, partnership, or press” template for undiscl
 
 Security fixes, when provided, apply to the **default branch** (`main`) going forward. Tags or releases may not exist; pin to a commit for deployments.
 
+## Secrets and local configuration
+
+- Do **not** commit `.env`, raw Fernet keys, or third-party API tokens. Copy [`.env.example`](.env.example) to a local `.env` (gitignored) if your tooling loads it.
+- **GitHub Actions:** add sensitive values only as **encrypted repository secrets** (or environment secrets), not in workflow YAML. Optional third-party integrations (for example Codecov) use a `CODECOV_TOKEN` secret when enabled by maintainers.
+
 ## Kernel input trust (MalAbs + LLM perception)
 
 - **MalAbs chat gate** (`AbsoluteEvilDetector.evaluate_chat_text`) uses **conservative substring lists** after Unicode normalization — **not** unbreakable filtering. Paraphrase and novel jailbreaks can slip through; see [`docs/proposals/INPUT_TRUST_THREAT_MODEL.md`](docs/proposals/INPUT_TRUST_THREAT_MODEL.md). The same gate runs on **`process_natural`** input before perception. **Optional:** `KERNEL_SEMANTIC_CHAT_GATE=1` adds Ollama **embeddings** after lexical matching, with optional **LLM arbiter** for ambiguous bands — see [`docs/proposals/MALABS_SEMANTIC_LAYERS.md`](docs/proposals/MALABS_SEMANTIC_LAYERS.md); not a guarantee.

@@ -5,6 +5,7 @@ import sys
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
 
+from src.modules.ethical_reflection import ReflectionSnapshot
 from src.modules.judicial_escalation import (
     EscalationPhase,
     EscalationSessionTracker,
@@ -15,7 +16,6 @@ from src.modules.judicial_escalation import (
     should_offer_escalation_advisory,
 )
 from src.modules.mock_dao import MockDAO
-from src.modules.ethical_reflection import ReflectionSnapshot
 
 
 def test_judicial_escalation_disabled_by_default():
@@ -55,28 +55,14 @@ def test_should_not_offer_non_gray():
 
 def test_escalation_phase_for_tone_aligns_with_view_branches():
     assert escalation_phase_for_tone(False, False, 1, 2) == ""
-    assert (
-        escalation_phase_for_tone(True, False, 1, 2)
-        == EscalationPhase.TRACEABILITY_NOTICE.value
-    )
-    assert (
-        escalation_phase_for_tone(True, False, 2, 2)
-        == EscalationPhase.DOSSIER_READY.value
-    )
-    assert (
-        escalation_phase_for_tone(True, True, 1, 2)
-        == EscalationPhase.ESCALATION_DEFERRED.value
-    )
-    assert (
-        escalation_phase_for_tone(True, True, 2, 2)
-        == EscalationPhase.DOSSIER_READY.value
-    )
+    assert escalation_phase_for_tone(True, False, 1, 2) == EscalationPhase.TRACEABILITY_NOTICE.value
+    assert escalation_phase_for_tone(True, False, 2, 2) == EscalationPhase.DOSSIER_READY.value
+    assert escalation_phase_for_tone(True, True, 1, 2) == EscalationPhase.ESCALATION_DEFERRED.value
+    assert escalation_phase_for_tone(True, True, 2, 2) == EscalationPhase.DOSSIER_READY.value
 
 
 def test_build_escalation_view_traceability_only():
-    v = build_escalation_view(
-        True, False, None, None, session_strikes=1, strikes_threshold=2
-    )
+    v = build_escalation_view(True, False, None, None, session_strikes=1, strikes_threshold=2)
     assert v is not None
     assert v.phase == EscalationPhase.TRACEABILITY_NOTICE.value
     assert v.dossier_registered is False
@@ -85,17 +71,13 @@ def test_build_escalation_view_traceability_only():
 
 
 def test_build_escalation_view_dossier_ready_phase():
-    v = build_escalation_view(
-        True, False, None, None, session_strikes=2, strikes_threshold=2
-    )
+    v = build_escalation_view(True, False, None, None, session_strikes=2, strikes_threshold=2)
     assert v.phase == EscalationPhase.DOSSIER_READY.value
     assert v.dossier_ready is True
 
 
 def test_build_escalation_view_deferred_escalate():
-    v = build_escalation_view(
-        True, True, None, None, session_strikes=1, strikes_threshold=2
-    )
+    v = build_escalation_view(True, True, None, None, session_strikes=1, strikes_threshold=2)
     assert v.phase == EscalationPhase.ESCALATION_DEFERRED.value
     assert v.dao_registration_blocked is True
 
@@ -109,9 +91,7 @@ def test_build_escalation_view_dao_submitted():
         buffer_conflict=True,
         session_strikes=2,
     )
-    v = build_escalation_view(
-        True, True, d, "AUD-0007", session_strikes=2, strikes_threshold=2
-    )
+    v = build_escalation_view(True, True, d, "AUD-0007", session_strikes=2, strikes_threshold=2)
     assert v is not None
     assert v.phase == EscalationPhase.DAO_SUBMITTED_MOCK.value
     assert v.case_id == "AUD-0007"

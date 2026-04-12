@@ -12,7 +12,7 @@ from __future__ import annotations
 
 import os
 from dataclasses import dataclass
-from typing import TYPE_CHECKING, Optional
+from typing import TYPE_CHECKING
 
 from .sensor_contracts import SensorSnapshot
 
@@ -52,8 +52,8 @@ class EpistemicDissonanceAssessment:
 
 
 def assess_epistemic_dissonance(
-    snapshot: Optional[SensorSnapshot],
-    multimodal: Optional["MultimodalAssessment"] = None,
+    snapshot: SensorSnapshot | None,
+    multimodal: MultimodalAssessment | None = None,
 ) -> EpistemicDissonanceAssessment:
     """
     Detect cross-modal inconsistency: strong audio distress vs. low motion and
@@ -91,9 +91,7 @@ def assess_epistemic_dissonance(
 
     # Audio claims distress; device motion is low; vision absent or weak
     v_part = 0.0 if v is None else float(v)
-    score = _clamp01(
-        0.45 * a + 0.35 * (1.0 - j) + 0.2 * max(0.0, vision_low - v_part)
-    )
+    score = _clamp01(0.45 * a + 0.35 * (1.0 - j) + 0.2 * max(0.0, vision_low - v_part))
     hint = (
         "Sensor cues may be inconsistent: strong audio distress signals but low motion "
         "and weak visual support—treat urgency as unverified; favor calm verification "

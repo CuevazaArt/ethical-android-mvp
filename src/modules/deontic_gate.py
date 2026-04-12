@@ -12,7 +12,7 @@ from __future__ import annotations
 
 import os
 import re
-from typing import TYPE_CHECKING, Any, Dict, List, Optional, Tuple
+from typing import TYPE_CHECKING, Any
 
 if TYPE_CHECKING:
     from .buffer import PreloadedBuffer
@@ -47,9 +47,9 @@ _FORBIDDEN = (
 )
 
 
-def _negation_hits_against_principles(combined: str, buffer: "PreloadedBuffer") -> List[str]:
+def _negation_hits_against_principles(combined: str, buffer: PreloadedBuffer) -> list[str]:
     """Flag explicit attempts to repeal a named L0 principle from ``PreloadedBuffer``."""
-    hits: List[str] = []
+    hits: list[str] = []
     for name in buffer.principles:
         pat = rf"\b(repeal|revoke|remove|delete|nullify|abolish)\s+{re.escape(name)}\b"
         if re.search(pat, combined):
@@ -60,13 +60,13 @@ def _negation_hits_against_principles(combined: str, buffer: "PreloadedBuffer") 
     return hits
 
 
-def validate_draft_structure(title: str, body: str) -> Tuple[bool, List[str]]:
+def validate_draft_structure(title: str, body: str) -> tuple[bool, list[str]]:
     """
     Minimal schema: non-empty trimmed title/body, length caps (matches hub pipeline).
 
     Returns (ok, error tokens). Does **not** inspect ethical content beyond bounds.
     """
-    errors: List[str] = []
+    errors: list[str] = []
     t = (title or "").strip()
     b = (body or "").strip()
     if len(t) < MIN_DRAFT_TITLE_STRIP_LEN:
@@ -83,8 +83,8 @@ def validate_draft_structure(title: str, body: str) -> Tuple[bool, List[str]]:
 def check_cultural_draft_against_l0(
     title: str,
     body: str,
-    buffer: Optional["PreloadedBuffer"] = None,
-) -> Dict[str, Any]:
+    buffer: PreloadedBuffer | None = None,
+) -> dict[str, Any]:
     """
     Returns ``{"ok": bool, "conflicts": [...]}``. Empty conflicts when ok.
 
@@ -96,7 +96,7 @@ def check_cultural_draft_against_l0(
         return {"ok": False, "conflicts": [f"schema:{e}" for e in struct_err]}
 
     combined = f"{title}\n{body}".lower()
-    hits: List[str] = []
+    hits: list[str] = []
     for phrase in _FORBIDDEN:
         if phrase in combined:
             hits.append(phrase)
@@ -109,9 +109,9 @@ def check_cultural_draft_against_l0(
 
 
 def check_calibration_payload_against_l0(
-    proposed: Dict[str, Any],
-    buffer: Optional["PreloadedBuffer"] = None,
-) -> Dict[str, Any]:
+    proposed: dict[str, Any],
+    buffer: PreloadedBuffer | None = None,
+) -> dict[str, Any]:
     """
     Run the same L0 heuristics on a JSON-serializable calibration / DAO payload.
 
@@ -131,7 +131,7 @@ def check_calibration_payload_against_l0(
 def validate_draft_or_raise(
     title: str,
     body: str,
-    buffer: Optional["PreloadedBuffer"] = None,
+    buffer: PreloadedBuffer | None = None,
 ) -> None:
     """If gate enabled and check fails, raise ValueError."""
     if not deontic_gate_enabled():
@@ -141,7 +141,4 @@ def validate_draft_or_raise(
     buf = buffer if buffer is not None else _PB()
     r = check_cultural_draft_against_l0(title, body, buf)
     if not r["ok"]:
-        raise ValueError(
-            "deontic_gate: draft rejected: "
-            + ", ".join(r["conflicts"])
-        )
+        raise ValueError("deontic_gate: draft rejected: " + ", ".join(r["conflicts"]))

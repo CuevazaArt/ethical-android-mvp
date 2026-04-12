@@ -36,7 +36,7 @@ from __future__ import annotations
 
 import os
 from pathlib import Path
-from typing import Any, Dict, Optional, TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
 
 from .json_store import JsonFilePersistence
 from .kernel_io import extract_snapshot
@@ -45,7 +45,7 @@ if TYPE_CHECKING:
     from src.kernel import EthicalKernel
 
 
-def checkpoint_path_from_env() -> Optional[Path]:
+def checkpoint_path_from_env() -> Path | None:
     raw = os.environ.get("KERNEL_CHECKPOINT_PATH", "").strip()
     if not raw:
         return None
@@ -80,7 +80,7 @@ def autosave_interval_episodes() -> int:
     return max(0, n)
 
 
-def try_load_checkpoint(kernel: "EthicalKernel") -> bool:
+def try_load_checkpoint(kernel: EthicalKernel) -> bool:
     """Load JSON checkpoint into ``kernel`` if configured and file exists. Returns True if loaded."""
     if not should_load_checkpoint():
         return False
@@ -90,7 +90,7 @@ def try_load_checkpoint(kernel: "EthicalKernel") -> bool:
     return store.load_into_kernel(kernel)
 
 
-def try_save_checkpoint(kernel: "EthicalKernel") -> bool:
+def try_save_checkpoint(kernel: EthicalKernel) -> bool:
     """Persist current kernel state to ``KERNEL_CHECKPOINT_PATH``. Returns False if path unset."""
     path = checkpoint_path_from_env()
     if path is None:
@@ -100,8 +100,8 @@ def try_save_checkpoint(kernel: "EthicalKernel") -> bool:
 
 
 def maybe_autosave_episodes(
-    kernel: "EthicalKernel",
-    session_state: Dict[str, Any],
+    kernel: EthicalKernel,
+    session_state: dict[str, Any],
 ) -> None:
     """
     Save if episode count increased by ``KERNEL_CHECKPOINT_EVERY_N_EPISODES`` since last save.
@@ -119,12 +119,12 @@ def maybe_autosave_episodes(
             session_state["last_checkpoint_episode_count"] = cur
 
 
-def init_session_checkpoint_state(kernel: "EthicalKernel") -> Dict[str, Any]:
+def init_session_checkpoint_state(kernel: EthicalKernel) -> dict[str, Any]:
     """Call after optional load so autosave baseline matches restored memory."""
     return {"last_checkpoint_episode_count": len(kernel.memory.episodes)}
 
 
-def on_websocket_session_end(kernel: "EthicalKernel") -> None:
+def on_websocket_session_end(kernel: EthicalKernel) -> None:
     """Save on disconnect when enabled; optional conduct guide export for nomadic handoff."""
     if should_save_on_disconnect():
         try_save_checkpoint(kernel)

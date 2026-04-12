@@ -14,7 +14,6 @@ from __future__ import annotations
 
 import os
 from dataclasses import dataclass
-from typing import Optional
 
 from .sensor_contracts import SensorSnapshot
 
@@ -78,8 +77,8 @@ class MultimodalAssessment:
 
 
 def evaluate_multimodal_trust(
-    snapshot: Optional[SensorSnapshot],
-    thresholds: Optional[MultimodalThresholds] = None,
+    snapshot: SensorSnapshot | None,
+    thresholds: MultimodalThresholds | None = None,
 ) -> MultimodalAssessment:
     """
     Decide whether single-channel audio-like distress is trustworthy.

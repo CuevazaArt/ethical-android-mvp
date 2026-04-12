@@ -10,8 +10,9 @@ Usage:
 """
 
 import sys
+
 from .kernel import EthicalKernel
-from .simulations.runner import run_simulation, run_all, ALL_SIMULATIONS
+from .simulations.runner import ALL_SIMULATIONS, run_simulation
 
 
 def banner():
@@ -47,12 +48,12 @@ def banner():
 
 def final_summary(kernel: EthicalKernel):
     """Displays day summary, Psi Sleep, and DAO status."""
-    summary = kernel.memory.day_summary()
+    summary = kernel.memory.daily_summary()
     print(f"\n{'═' * 70}")
     print("  DAY SUMMARY")
     print(f"{'═' * 70}")
     print(f"  Registered episodes: {summary['episodes']}")
-    if summary['episodes'] > 0:
+    if summary["episodes"] > 0:
         print(f"  Average ethical score: {summary['average_score']}")
         print(f"  Minimum score:         {summary['min_score']}")
         print(f"  Maximum score:         {summary['max_score']}")

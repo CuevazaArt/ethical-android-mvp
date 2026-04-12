@@ -11,14 +11,13 @@ records tone for narrative / downstream presentation (see docs §7).
 from __future__ import annotations
 
 import math
+from collections.abc import Sequence
 from dataclasses import dataclass
-from typing import Dict, List, Sequence, Tuple
 
-from .sympathetic import SympatheticModule
 from .locus import LocusEvaluation
+from .sympathetic import SympatheticModule
 
-
-Vec3 = Tuple[float, float, float]
+Vec3 = tuple[float, float, float]
 
 
 @dataclass(frozen=True)
@@ -35,7 +34,7 @@ class AffectProjection:
     """Result of PAD vector + archetype mixture (auditable side channel)."""
 
     pad: Vec3
-    weights: Dict[str, float]
+    weights: dict[str, float]
     dominant_archetype_id: str
     beta: float
 
@@ -74,7 +73,7 @@ def euclidean(a: Vec3, b: Vec3) -> float:
 
 def softmax_weights_over_prototypes(
     v: Vec3, archetypes: Sequence[AffectArchetype], beta: float
-) -> Dict[str, float]:
+) -> dict[str, float]:
     """
     w_k = exp(-β · d_k) / Σ_j exp(-β · d_j), d_k = ||v - c_k||₂ (spec §7.3).
     """
@@ -92,7 +91,7 @@ def softmax_weights_over_prototypes(
 
 
 # Default library: six separated points in the unit cube (spec §7.2, N≈6–8).
-DEFAULT_ARCHETYPES: List[AffectArchetype] = [
+DEFAULT_ARCHETYPES: list[AffectArchetype] = [
     AffectArchetype("calma_deliberativa", (0.62, 0.22, 0.55), "calm deliberation"),
     AffectArchetype("alerta_compasiva", (0.72, 0.82, 0.42), "alert compassion"),
     AffectArchetype("tension_externa", (0.38, 0.78, 0.18), "external tension"),
@@ -113,7 +112,7 @@ class PADArchetypeEngine:
         beta: float = 4.0,
         score_lambda: float = 1.0,
     ):
-        self.archetypes: List[AffectArchetype] = (
+        self.archetypes: list[AffectArchetype] = (
             list(archetypes) if archetypes is not None else list(DEFAULT_ARCHETYPES)
         )
         self.beta = beta
@@ -130,7 +129,7 @@ class PADArchetypeEngine:
         d = dominance_from_locus(locus_eval)
         v: Vec3 = (p, a, d)
         weights = softmax_weights_over_prototypes(v, self.archetypes, self.beta)
-        dominant = max(weights, key=weights.get) if weights else ""
+        dominant = max(weights, key=lambda k: weights[k]) if weights else ""
         return AffectProjection(
             pad=v,
             weights=weights,

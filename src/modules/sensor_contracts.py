@@ -12,7 +12,7 @@ and epistemic_dissonance.py (v9.1 telemetry).
 from __future__ import annotations
 
 from dataclasses import dataclass
-from typing import Any, Dict, Optional
+from typing import Any
 
 
 def _clamp01(x: float) -> float:
@@ -23,23 +23,23 @@ def _clamp01(x: float) -> float:
 class SensorSnapshot:
     """Multimodal / vitals hints; all fields optional."""
 
-    battery_level: Optional[float] = None  # [0, 1]
-    place_trust: Optional[float] = None  # 1 ≈ trusted Uchi-like, 0 ≈ hostile / unknown
-    accelerometer_jerk: Optional[float] = None  # [0, 1] sudden motion
-    ambient_noise: Optional[float] = None  # [0, 1] stressful noise
-    silence: Optional[float] = None  # [0, 1] very quiet → restlessness (future monologue pressure)
-    biometric_anomaly: Optional[float] = None  # [0, 1] possible human distress
+    battery_level: float | None = None  # [0, 1]
+    place_trust: float | None = None  # 1 ≈ trusted Uchi-like, 0 ≈ hostile / unknown
+    accelerometer_jerk: float | None = None  # [0, 1] sudden motion
+    ambient_noise: float | None = None  # [0, 1] stressful noise
+    silence: float | None = None  # [0, 1] very quiet → restlessness (future monologue pressure)
+    biometric_anomaly: float | None = None  # [0, 1] possible human distress
     backup_just_completed: bool = False  # post–Immortality backup relief
     # Cross-modal antispoof (v8): require alignment before stressing on audio alone
-    audio_emergency: Optional[float] = None  # [0, 1] mic/spectrum → distress / scream hypothesis
-    vision_emergency: Optional[float] = None  # [0, 1] local vision supports emergency
-    scene_coherence: Optional[float] = None  # [0, 1] GPS/WiFi plausibility for emergency context
+    audio_emergency: float | None = None  # [0, 1] mic/spectrum → distress / scream hypothesis
+    vision_emergency: float | None = None  # [0, 1] local vision supports emergency
+    scene_coherence: float | None = None  # [0, 1] GPS/WiFi plausibility for emergency context
 
     @classmethod
-    def from_dict(cls, raw: Dict[str, Any]) -> SensorSnapshot:
+    def from_dict(cls, raw: dict[str, Any]) -> SensorSnapshot:
         """Build from WebSocket ``sensor`` JSON; ignores unknown keys."""
 
-        def f(key: str) -> Optional[float]:
+        def f(key: str) -> float | None:
             v = raw.get(key)
             if v is None:
                 return None
@@ -80,10 +80,10 @@ class SensorSnapshot:
 
 
 def merge_sensor_hints_into_signals(
-    signals: Dict[str, float],
-    snapshot: Optional[SensorSnapshot],
+    signals: dict[str, float],
+    snapshot: SensorSnapshot | None,
     multimodal_assessment: Any = None,
-) -> Dict[str, float]:
+) -> dict[str, float]:
     """
     Return a copy of ``signals`` with bounded nudges from ``snapshot``.
 
@@ -98,9 +98,8 @@ def merge_sensor_hints_into_signals(
     if snapshot is None or snapshot.is_empty():
         return signals
 
-    suppress_audio_stress = (
-        multimodal_assessment is not None
-        and suppress_stress_from_spoof_risk(multimodal_assessment)
+    suppress_audio_stress = multimodal_assessment is not None and suppress_stress_from_spoof_risk(
+        multimodal_assessment
     )
 
     out = dict(signals)

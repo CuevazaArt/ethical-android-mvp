@@ -12,7 +12,7 @@ from src.modules.perceptual_abstraction import (
     merge_sensor_payload_layers,
     snapshot_from_layers,
 )
-from src.modules.sensor_contracts import SensorSnapshot, merge_sensor_hints_into_signals
+from src.modules.sensor_contracts import merge_sensor_hints_into_signals
 
 
 def _fixture(name: str) -> str:

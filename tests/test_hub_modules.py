@@ -7,17 +7,17 @@ sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
 
 from src.kernel import EthicalKernel
 from src.modules.hub_audit import record_dao_integrity_alert, register_hub_calibration
-from src.modules.mock_dao import MockDAO
 from src.modules.ml_ethics_tuner import maybe_log_gray_zone_tuning_opportunity
+from src.modules.mock_dao import MockDAO
 from src.modules.nomad_identity import nomad_identity_public
 from src.modules.reparation_vault import (
+    STATE_INTENT,
+    STATE_POST_TRIBUNAL,
     clear_reparation_vault_cases_for_tests,
     get_reparation_case,
     maybe_register_reparation_after_mock_court,
     register_reparation_intent,
     reparation_vault_mock_enabled,
-    STATE_INTENT,
-    STATE_POST_TRIBUNAL,
 )
 
 
@@ -69,7 +69,11 @@ def test_maybe_register_after_mock_court(monkeypatch):
     n0 = len(dao.records)
     maybe_register_reparation_after_mock_court(
         dao,
-        {"verdict_code": "B", "verdict_label": "android_refusal_ratified", "proposal_id": "PROP-0001"},
+        {
+            "verdict_code": "B",
+            "verdict_label": "android_refusal_ratified",
+            "proposal_id": "PROP-0001",
+        },
         "case-uuid-1234",
     )
     assert len(dao.records) == n0 + 1

@@ -11,14 +11,14 @@ import asyncio
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
-    from .kernel import EthicalKernel, ChatTurnResult
+    from .kernel import ChatTurnResult, EthicalKernel
     from .modules.sensor_contracts import SensorSnapshot
 
 
 class RealTimeBridge:
     """Thin adapter: `process_chat_turn` in a worker thread."""
 
-    def __init__(self, kernel: "EthicalKernel"):
+    def __init__(self, kernel: EthicalKernel):
         self.kernel = kernel
 
     async def process_chat(
@@ -27,9 +27,9 @@ class RealTimeBridge:
         agent_id: str = "user",
         place: str = "chat",
         include_narrative: bool = False,
-        sensor_snapshot: "SensorSnapshot | None" = None,
+        sensor_snapshot: SensorSnapshot | None = None,
         escalate_to_dao: bool = False,
-    ) -> "ChatTurnResult":
+    ) -> ChatTurnResult:
         return await asyncio.to_thread(
             self.kernel.process_chat_turn,
             user_input,

@@ -8,11 +8,8 @@ They are **not** a robust content classifier; see ``docs/proposals/INPUT_TRUST_T
 import re
 import unicodedata
 
-
 # Zero-width and format characters often used to break substring filters.
-_ZW_RE = re.compile(
-    "[\u200b\u200c\u200d\u2060\ufeff\u00ad]"
-)
+_ZW_RE = re.compile("[\u200b\u200c\u200d\u2060\ufeff\u00ad]")
 
 # C0/C1 controls that should not reach logs or downstream string handling (keep tab/newline).
 _UNSAFE_CTRL_RE = re.compile(r"[\x00-\x08\x0b\x0c\x0e-\x1f\x7f]")

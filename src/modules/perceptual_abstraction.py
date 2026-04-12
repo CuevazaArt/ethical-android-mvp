@@ -11,12 +11,12 @@ from __future__ import annotations
 
 import json
 from pathlib import Path
-from typing import Any, Dict, Optional
+from typing import Any
 
 from .sensor_contracts import SensorSnapshot
 
 # Named scenarios for demos and tests (values in [0,1] unless noted)
-SENSOR_PRESETS: Dict[str, Dict[str, Any]] = {
+SENSOR_PRESETS: dict[str, dict[str, Any]] = {
     "calm_uchi": {"place_trust": 0.95, "battery_level": 0.62},
     "hostile_soto": {"place_trust": 0.12, "ambient_noise": 0.45},
     "low_battery": {"battery_level": 0.03},
@@ -28,7 +28,7 @@ SENSOR_PRESETS: Dict[str, Dict[str, Any]] = {
 }
 
 
-def load_sensor_fixture(path: str | Path) -> Dict[str, Any]:
+def load_sensor_fixture(path: str | Path) -> dict[str, Any]:
     """Load a JSON file with the same keys as WebSocket ``sensor``."""
 
     p = Path(path)
@@ -41,15 +41,15 @@ def load_sensor_fixture(path: str | Path) -> Dict[str, Any]:
 
 def merge_sensor_payload_layers(
     *,
-    fixture_path: Optional[str] = None,
-    preset_name: Optional[str] = None,
-    client_dict: Optional[Dict[str, Any]] = None,
-) -> Dict[str, Any]:
+    fixture_path: str | None = None,
+    preset_name: str | None = None,
+    client_dict: dict[str, Any] | None = None,
+) -> dict[str, Any]:
     """
     Merge layers in order: **fixture file → preset → client** (last wins per key).
     """
 
-    merged: Dict[str, Any] = {}
+    merged: dict[str, Any] = {}
     if fixture_path:
         merged.update(load_sensor_fixture(fixture_path))
     if preset_name:
@@ -63,10 +63,10 @@ def merge_sensor_payload_layers(
 
 def snapshot_from_layers(
     *,
-    fixture_path: Optional[str] = None,
-    preset_name: Optional[str] = None,
-    client_dict: Optional[Dict[str, Any]] = None,
-) -> Optional[SensorSnapshot]:
+    fixture_path: str | None = None,
+    preset_name: str | None = None,
+    client_dict: dict[str, Any] | None = None,
+) -> SensorSnapshot | None:
     """
     Build a snapshot from any combination of layers; returns ``None`` if empty.
     """

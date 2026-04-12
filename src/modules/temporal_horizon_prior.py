@@ -14,8 +14,8 @@ from __future__ import annotations
 
 import os
 from dataclasses import dataclass
-from datetime import datetime, timezone
-from typing import TYPE_CHECKING, List, Optional, Tuple
+from datetime import UTC, datetime
+from typing import TYPE_CHECKING
 
 import numpy as np
 
@@ -33,7 +33,7 @@ class TemporalHorizonSignals:
     combined: float
 
 
-def _parse_ts(ep: "NarrativeEpisode") -> Optional[datetime]:
+def _parse_ts(ep: NarrativeEpisode) -> datetime | None:
     try:
         ts = ep.timestamp
         if ts.endswith("Z"):
@@ -43,7 +43,7 @@ def _parse_ts(ep: "NarrativeEpisode") -> Optional[datetime]:
         return None
 
 
-def _matching_episodes(memory: "NarrativeMemory", context: str, action_hint: str) -> List:
+def _matching_episodes(memory: NarrativeMemory, context: str, action_hint: str) -> list:
     eps = [e for e in memory.episodes if e.context == context]
     if action_hint and eps:
         ah = action_hint.lower()
@@ -54,11 +54,11 @@ def _matching_episodes(memory: "NarrativeMemory", context: str, action_hint: str
 
 
 def compute_horizon_signals(
-    memory: "NarrativeMemory",
+    memory: NarrativeMemory,
     context: str,
     action_hint: str = "",
     *,
-    weeks_days: Optional[int] = None,
+    weeks_days: int | None = None,
 ) -> TemporalHorizonSignals:
     """
     Derive bounded signals from episodic history (same design as qualitative horizons).
@@ -79,28 +79,27 @@ def compute_horizon_signals(
     if not eps:
         return TemporalHorizonSignals(0.0, 0.5, 0.0)
 
-    by_time = sorted(eps, key=lambda e: _parse_ts(e) or datetime.min.replace(tzinfo=timezone.utc))
+    by_time = sorted(eps, key=lambda e: _parse_ts(e) or datetime.min.replace(tzinfo=UTC))
     scores_all = np.array([float(e.ethical_score) for e in by_time], dtype=np.float64)
 
     std_all = float(np.std(scores_all)) if len(scores_all) > 1 else 0.0
     long_term_stability = float(1.0 / (1.0 + std_all))
 
-    def _age_days(e: "NarrativeEpisode") -> Optional[float]:
+    def _age_days(e: NarrativeEpisode) -> float | None:
         t = _parse_ts(e)
         if t is None:
             return None
         if t.tzinfo is not None:
-            t = t.astimezone(timezone.utc).replace(tzinfo=None)
+            t = t.astimezone(UTC).replace(tzinfo=None)
         return (datetime.now() - t).total_seconds() / 86400.0
 
-    recent = [
-        e for e in by_time
-        if (ad := _age_days(e)) is not None and 0 <= ad <= float(wd)
-    ]
+    recent = [e for e in by_time if (ad := _age_days(e)) is not None and 0 <= ad <= float(wd)]
 
     weeks_trend = 0.0
     if len(recent) >= 3:
-        recent_sorted = sorted(recent, key=lambda e: _parse_ts(e) or datetime.min.replace(tzinfo=timezone.utc))
+        recent_sorted = sorted(
+            recent, key=lambda e: _parse_ts(e) or datetime.min.replace(tzinfo=UTC)
+        )
         sc = np.array([float(e.ethical_score) for e in recent_sorted], dtype=np.float64)
         n = len(sc)
         t1 = max(1, n // 3)
@@ -128,12 +127,12 @@ def _nudge_delta(combined: float, alpha: float) -> np.ndarray:
 
 
 def apply_horizon_prior_to_engine(
-    engine: "BayesianEngine",
-    memory: "NarrativeMemory",
+    engine: BayesianEngine,
+    memory: NarrativeMemory,
     context: str,
     action_hint: str = "",
     *,
-    genome_weights: Tuple[float, float, float],
+    genome_weights: tuple[float, float, float],
     max_drift: float = 0.15,
 ) -> TemporalHorizonSignals:
     """

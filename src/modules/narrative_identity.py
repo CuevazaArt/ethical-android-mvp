@@ -10,7 +10,7 @@ See docs/proposals/PROPUESTA_INTEGRACION_APORTES_V6.md (Fase 4).
 from __future__ import annotations
 
 from dataclasses import dataclass
-from typing import TYPE_CHECKING, List
+from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
     from .narrative import NarrativeEpisode
@@ -37,7 +37,7 @@ class NarrativeIdentityTracker:
     def __init__(self):
         self.state = NarrativeIdentityState()
 
-    def update_from_episode(self, ep: "NarrativeEpisode") -> None:
+    def update_from_episode(self, ep: NarrativeEpisode) -> None:
         a = self.EMA_ALPHA
         self.state.episode_count += 1
         sc = float(ep.ethical_score)
@@ -61,7 +61,7 @@ class NarrativeIdentityTracker:
         if s.episode_count == 0:
             return "I am at the beginning of my ethical path; each episode will shape who I become."
 
-        tags: List[str] = []
+        tags: list[str] = []
         if s.civic_lean > 0.56:
             tags.append("civic")
         if s.care_lean > 0.56:

@@ -10,7 +10,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass, field
 from enum import Enum
-from typing import Any, Dict, List, Optional, Set
+from typing import Any
 
 
 class ComputeTier(str, Enum):
@@ -30,12 +30,12 @@ class HardwareContext:
 
     device_label: str = "unknown"
     compute_tier: ComputeTier = ComputeTier.SERVER_MID
-    available_sensors: Set[str] = field(default_factory=set)
-    battery_fraction: Optional[float] = None  # 0..1 if known
+    available_sensors: set[str] = field(default_factory=set)
+    battery_fraction: float | None = None  # 0..1 if known
     has_large_storage: bool = True
-    clock_hz_nominal: Optional[float] = None  # for ActionClock sync narrative
+    clock_hz_nominal: float | None = None  # for ActionClock sync narrative
 
-    def to_public_dict(self) -> Dict[str, Any]:
+    def to_public_dict(self) -> dict[str, Any]:
         return {
             "device_label": self.device_label,
             "compute_tier": self.compute_tier.value,
@@ -68,7 +68,7 @@ def sensor_delta_narrative(before: HardwareContext, after: HardwareContext) -> s
     """Short English line for logs / owner message (Phase C adaptation)."""
     lost = before.available_sensors - after.available_sensors
     gained = after.available_sensors - before.available_sensors
-    parts: List[str] = []
+    parts: list[str] = []
     if lost:
         parts.append(f"No longer sense: {', '.join(sorted(lost))}")
     if gained:

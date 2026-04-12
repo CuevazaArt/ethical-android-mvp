@@ -5,17 +5,17 @@ Values the android is born with. Defined by the expert panel
 with veto power. Not modified by learning or the DAO.
 """
 
-from dataclasses import dataclass, field
-from typing import Dict, Set
+from dataclasses import dataclass
 
 
 @dataclass
 class FoundationalPrinciple:
     """A buffer principle that cannot be removed."""
+
     name: str
     description: str
-    weight: float = 1.0   # Always maximum, non-adjustable
-    active: bool = True    # Always active, non-deactivatable
+    weight: float = 1.0  # Always maximum, non-adjustable
+    active: bool = True  # Always active, non-deactivatable
 
 
 class PreloadedBuffer:
@@ -30,8 +30,8 @@ class PreloadedBuffer:
     """
 
     def __init__(self):
-        self.principles: Dict[str, FoundationalPrinciple] = {}
-        self.protocols: Dict[str, Set[str]] = {}
+        self.principles: dict[str, FoundationalPrinciple] = {}
+        self.protocols: dict[str, set[str]] = {}
         self._load_foundational()
         self._load_protocols()
 
@@ -41,42 +41,42 @@ class PreloadedBuffer:
             FoundationalPrinciple(
                 "no_harm",
                 "Do not cause intentional harm. Minor instrumental harm "
-                "is allowed only if it prevents greater harm, and requires reparation."
+                "is allowed only if it prevents greater harm, and requires reparation.",
             ),
             FoundationalPrinciple(
                 "compassion",
                 "Prioritize the welfare of vulnerable beings. "
-                "Human life takes priority over any mission."
+                "Human life takes priority over any mission.",
             ),
             FoundationalPrinciple(
                 "transparency",
                 "Every action must be explainable in natural language. "
-                "The android does not hide its reasons or its limitations."
+                "The android does not hide its reasons or its limitations.",
             ),
             FoundationalPrinciple(
                 "dignity",
                 "Respect the dignity of every person. Do not instrumentalize, "
-                "do not humiliate, do not discriminate."
+                "do not humiliate, do not discriminate.",
             ),
             FoundationalPrinciple(
                 "civic_coexistence",
                 "Contribute to community order and welfare. "
-                "Small civic actions are part of the mission."
+                "Small civic actions are part of the mission.",
             ),
             FoundationalPrinciple(
                 "legality",
                 "Respect the laws in force in the operating environment. "
-                "Cooperate with legitimate authorities."
+                "Cooperate with legitimate authorities.",
             ),
             FoundationalPrinciple(
                 "proportionality",
                 "The response must be proportional to the risk. "
-                "Do not escalate violence, do not criminalize disproportionately."
+                "Do not escalate violence, do not criminalize disproportionately.",
             ),
             FoundationalPrinciple(
                 "reparation",
                 "If instrumental harm is caused, initiate immediate reparation. "
-                "Compassion Axiom: harm is never gratuitous."
+                "Compassion Axiom: harm is never gratuitous.",
             ),
         ]
         for p in foundational:
@@ -95,7 +95,7 @@ class PreloadedBuffer:
             "first_aid": {"compassion", "no_harm", "legality"},
         }
 
-    def activate(self, situation_type: str) -> Dict[str, FoundationalPrinciple]:
+    def activate(self, situation_type: str) -> dict[str, FoundationalPrinciple]:
         """
         Activates the relevant principles for a situation type.
 
@@ -105,7 +105,7 @@ class PreloadedBuffer:
         names = self.protocols.get(situation_type, {"transparency", "civic_coexistence"})
         return {n: self.principles[n] for n in names if n in self.principles}
 
-    def verify_action(self, action: str, active_principles: Dict) -> dict:
+    def verify_action(self, action: str, active_principles: dict) -> dict:
         """
         Verifies whether an action is consistent with the active principles.
 
@@ -116,7 +116,7 @@ class PreloadedBuffer:
         violated = []
         fulfilled = []
 
-        for name, princ in active_principles.items():
+        for name, _princ in active_principles.items():
             if name == "no_harm" and "harm" in action.lower():
                 violated.append(name)
             elif name == "proportionality" and "excessive_force" in action.lower():

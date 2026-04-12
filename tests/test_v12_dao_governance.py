@@ -12,7 +12,7 @@ from src.modules.moral_hub import (
     proposal_to_public,
     submit_constitution_draft_for_vote,
 )
-from src.persistence import extract_snapshot, apply_snapshot
+from src.persistence import apply_snapshot, extract_snapshot
 
 
 def test_submit_fails_on_invalid_schema_empty_title():

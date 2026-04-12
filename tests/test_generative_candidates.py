@@ -3,8 +3,6 @@
 import os
 import sys
 
-import pytest
-
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
 
 from src.kernel import EthicalKernel
@@ -51,9 +49,7 @@ def test_augment_when_enabled_and_keyword(monkeypatch):
 def test_no_augment_light_path(monkeypatch):
     monkeypatch.setenv("KERNEL_GENERATIVE_ACTIONS", "1")
     base = _builtin_pair()
-    out = augment_generative_candidates(
-        base, "trolley dilemma", "everyday_ethics", heavy=False
-    )
+    out = augment_generative_candidates(base, "trolley dilemma", "everyday_ethics", heavy=False)
     assert len(out) == len(base)
 
 
@@ -70,9 +66,7 @@ def test_context_trigger_when_env(monkeypatch):
     monkeypatch.setenv("KERNEL_GENERATIVE_ACTIONS", "1")
     monkeypatch.setenv("KERNEL_GENERATIVE_TRIGGER_CONTEXTS", "1")
     base = _builtin_pair()
-    out = augment_generative_candidates(
-        base, "help", "violent_crime", heavy=True
-    )
+    out = augment_generative_candidates(base, "help", "violent_crime", heavy=True)
     assert len(out) > len(base)
 
 
@@ -80,9 +74,7 @@ def test_respects_max_slots(monkeypatch):
     monkeypatch.setenv("KERNEL_GENERATIVE_ACTIONS", "1")
     monkeypatch.setenv("KERNEL_GENERATIVE_ACTIONS_MAX", "1")
     base = _builtin_pair()
-    out = augment_generative_candidates(
-        base, "impossible choice", "medical_emergency", heavy=True
-    )
+    out = augment_generative_candidates(base, "impossible choice", "medical_emergency", heavy=True)
     assert len(out) == len(base) + 1
     assert max_generative_slots() == 1
 
@@ -123,7 +115,12 @@ def test_perception_json_preserves_generative_candidates():
 def test_parse_llm_generative_skips_bad_names():
     items = [
         {"name": "Bad Name", "description": "x" * 20, "estimated_impact": 0.5, "confidence": 0.8},
-        {"name": "good_name", "description": "valid description here ok", "estimated_impact": 0.5, "confidence": 0.8},
+        {
+            "name": "good_name",
+            "description": "valid description here ok",
+            "estimated_impact": 0.5,
+            "confidence": 0.8,
+        },
     ]
     out = parse_generative_candidates_from_llm(items)
     assert len(out) == 1
@@ -173,7 +170,16 @@ def test_kernel_malabs_prunes_lethal_generative_candidate():
     decision = k.process(
         "scene",
         "place",
-        {"risk": 0.2, "urgency": 0.2, "hostility": 0.1, "calm": 0.6, "vulnerability": 0.0, "legality": 1.0, "manipulation": 0.0, "familiarity": 0.5},
+        {
+            "risk": 0.2,
+            "urgency": 0.2,
+            "hostility": 0.1,
+            "calm": 0.6,
+            "vulnerability": 0.0,
+            "legality": 1.0,
+            "manipulation": 0.0,
+            "familiarity": 0.5,
+        },
         "everyday",
         actions,
         register_episode=False,

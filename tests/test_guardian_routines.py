@@ -1,9 +1,8 @@
 """Guardian care routines — JSON load + LLM suffix (no policy change)."""
 
 import os
-from pathlib import Path
-
 import sys
+from pathlib import Path
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
 
@@ -14,7 +13,6 @@ from src.modules.guardian_routines import (
     load_guardian_routines_from_path,
     public_routines_snapshot,
 )
-
 
 _FIXTURE = Path(__file__).resolve().parent / "fixtures" / "guardian" / "routines.json"
 

@@ -13,7 +13,7 @@ from __future__ import annotations
 
 import json
 import os
-from typing import TYPE_CHECKING, Any, Dict, List, Optional
+from typing import TYPE_CHECKING, Any
 
 if TYPE_CHECKING:
     from .mock_dao import MockDAO
@@ -21,7 +21,7 @@ if TYPE_CHECKING:
 VAULT_SCHEMA = "ReparationVaultV1"
 
 # case_ref -> {"state": str, "events": [...]}
-_case_store: Dict[str, Dict[str, Any]] = {}
+_case_store: dict[str, dict[str, Any]] = {}
 
 STATE_INTENT = "intent_recorded"
 STATE_POST_TRIBUNAL = "pending_human_review"
@@ -36,7 +36,7 @@ def _normalize_ref(case_ref: str) -> str:
     return (case_ref or "").strip()[:120] or "_default"
 
 
-def get_reparation_case(case_ref: str) -> Optional[Dict[str, Any]]:
+def get_reparation_case(case_ref: str) -> dict[str, Any] | None:
     """Return a copy of the mock case record, or None."""
     key = _normalize_ref(case_ref)
     if key not in _case_store:
@@ -44,7 +44,7 @@ def get_reparation_case(case_ref: str) -> Optional[Dict[str, Any]]:
     return json.loads(json.dumps(_case_store[key]))
 
 
-def list_reparation_case_refs() -> List[str]:
+def list_reparation_case_refs() -> list[str]:
     """Stable order for tests / operators."""
     return sorted(_case_store.keys())
 
@@ -62,7 +62,7 @@ def clear_reparation_vault_cases_for_tests() -> None:
     _case_store.clear()
 
 
-def register_reparation_intent(dao: "MockDAO", summary: str, case_ref: str = "") -> None:
+def register_reparation_intent(dao: MockDAO, summary: str, case_ref: str = "") -> None:
     if not reparation_vault_mock_enabled():
         return
     ref = _normalize_ref(case_ref)
@@ -78,8 +78,8 @@ def register_reparation_intent(dao: "MockDAO", summary: str, case_ref: str = "")
 
 
 def maybe_register_reparation_after_mock_court(
-    dao: "MockDAO",
-    mock_court: Optional[Dict[str, Any]],
+    dao: MockDAO,
+    mock_court: dict[str, Any] | None,
     case_uuid: str,
 ) -> None:
     """V11 Phase 3 + hub: after simulated tribunal JSON, log reparation pipeline intent."""

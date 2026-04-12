@@ -7,6 +7,7 @@ import pytest
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
 
+from src.kernel import EthicalKernel
 from src.modules.reality_verification import (
     ASSESSMENT_NONE,
     clear_lighthouse_cache,
@@ -14,7 +15,6 @@ from src.modules.reality_verification import (
     validate_lighthouse_kb_structure,
     verify_against_lighthouse,
 )
-from src.kernel import EthicalKernel
 
 
 def _demo_kb_path() -> str:

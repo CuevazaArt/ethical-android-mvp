@@ -11,7 +11,6 @@ See docs/proposals/PROPUESTA_INTEGRACION_APORTES_V6.md (Fase 1).
 from __future__ import annotations
 
 from dataclasses import dataclass
-from typing import Dict, Optional, Tuple
 
 from .bayesian_engine import BayesianResult
 from .ethical_poles import TripartiteMoral
@@ -24,7 +23,7 @@ class ReflectionSnapshot:
     pole_spread: float
     """max(score) - min(score) over poles, in [0, 2]."""
 
-    pole_scores: Tuple[float, ...]
+    pole_scores: tuple[float, ...]
     """Scores in evaluation order (compassionate, conservative, optimistic in default poles)."""
 
     conflict_level: str
@@ -43,7 +42,7 @@ class ReflectionSnapshot:
     """One-line hint for logs / optional LLM context."""
 
 
-def reflection_to_llm_context(snapshot: Optional[ReflectionSnapshot]) -> str:
+def reflection_to_llm_context(snapshot: ReflectionSnapshot | None) -> str:
     """
     Compact string for LLM communication layer: explains internal tension without
     changing the committed decision (policy: style / transparency only).
@@ -70,7 +69,7 @@ class EthicalReflection:
         self,
         moral: TripartiteMoral,
         bayes_result: BayesianResult,
-        will_decision: Dict,
+        will_decision: dict,
     ) -> ReflectionSnapshot:
         scores = [ev.score for ev in moral.evaluations]
         if not scores:
@@ -106,9 +105,7 @@ class EthicalReflection:
     @staticmethod
     def _compose_note(level: str, uncertainty: float) -> str:
         if level == "high" and uncertainty > 0.4:
-            return (
-                "Strong pole tension with elevated uncertainty — deliberation load is high."
-            )
+            return "Strong pole tension with elevated uncertainty — deliberation load is high."
         if level == "high":
             return "Strong disagreement between ethical poles on this action."
         if level == "medium":

@@ -1,5 +1,8 @@
 # Ethos Kernel
 
+[![CI](https://github.com/CuevazaArt/ethical-android-mvp/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/CuevazaArt/ethical-android-mvp/actions/workflows/ci.yml)
+[![codecov](https://codecov.io/gh/CuevazaArt/ethical-android-mvp/graph/badge.svg)](https://codecov.io/gh/CuevazaArt/ethical-android-mvp)
+
 **MoSex Macchina Lab** — this repository is the open **kernel + runtime** for a model of artificial ethical agency: humanizing imperfection, forgiveness, identity persistence, and **traceable** governance hooks (DAO / hub audit, not a black-box chatbot).
 
 **Where things stand today:** a **FastAPI WebSocket** runtime (`python -m src.chat_server` or `python -m src.runtime`) with **per-session kernel** state; **versioned persistence** (JSON / SQLite snapshots, optional **Fernet** checkpoints); **V12 moral hub** (constitution drafts, MockDAO votes, `HubAudit` lines); **LAN** thin clients ([`landing/public/mobile.html`](landing/public/mobile.html), conduct guide export); a **large** automated test suite (400+ tests) on **Python 3.11 / 3.12** in CI; optional layers for sensors, relational hints, judicial escalation, reality verification (“lighthouse”), and integrity alerts (`KERNEL_DAO_INTEGRITY_AUDIT_WS`).
@@ -95,7 +98,7 @@ python -m src.main --sim 3
 
 ### Run tests
 
-**Primary check:** run the **full** suite — same as CI (Python **3.11** and **3.12** in `.github/workflows/ci.yml`).
+**Primary check:** run the **full** suite — same as CI (Python **3.11** and **3.12** in `.github/workflows/ci.yml`). CI also runs **Ruff** (lint + format check) and **mypy** on `src/`; install tooling with `pip install -r requirements.txt -r requirements-dev.txt` (see [`CONTRIBUTING.md`](CONTRIBUTING.md)).
 
 ```bash
 pytest tests/ -v

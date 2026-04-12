@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass, field
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 SCHEMA_VERSION = 3
 
@@ -19,26 +19,26 @@ class KernelSnapshotV1:
     schema_version: int = SCHEMA_VERSION
 
     # NarrativeMemory + identity
-    episodes: List[Dict[str, Any]] = field(default_factory=list)
+    episodes: list[dict[str, Any]] = field(default_factory=list)
     narrative_counter: int = 0
-    identity_state: Dict[str, Any] = field(default_factory=dict)
+    identity_state: dict[str, Any] = field(default_factory=dict)
     experience_digest: str = ""
 
     # AlgorithmicForgiveness
-    forgiveness_memories: Dict[str, Dict[str, Any]] = field(default_factory=dict)
+    forgiveness_memories: dict[str, dict[str, Any]] = field(default_factory=dict)
     forgiveness_cycle: int = 0
     forgiveness_recent_positives: int = 0
 
     # WeaknessPole
     weakness_type: str = "indecisive"
-    weakness_base_intensity: Optional[float] = None
-    weakness_records: List[Dict[str, Any]] = field(default_factory=list)
+    weakness_base_intensity: float | None = None
+    weakness_records: list[dict[str, Any]] = field(default_factory=list)
     weakness_cycle: int = 0
 
     # BayesianEngine
     bayesian_pruning_threshold: float = 0.3
     bayesian_gray_zone_threshold: float = 0.15
-    bayesian_hypothesis_weights: List[float] = field(default_factory=lambda: [0.4, 0.35, 0.25])
+    bayesian_hypothesis_weights: list[float] = field(default_factory=lambda: [0.4, 0.35, 0.25])
 
     # LocusModule
     locus_alpha: float = 1.0
@@ -47,30 +47,30 @@ class KernelSnapshotV1:
     locus_failure_history: int = 0
 
     # VariabilityEngine
-    variability_seed: Optional[int] = None
+    variability_seed: int | None = None
     variability_active: bool = True
 
     # Kernel auxiliary
-    pruned_actions: Dict[str, List[str]] = field(default_factory=dict)
+    pruned_actions: dict[str, list[str]] = field(default_factory=dict)
 
     # MockDAO (audit trail + V12.3 serialized proposals/participants)
     dao_record_counter: int = 0
-    dao_records: List[Dict[str, Any]] = field(default_factory=list)
-    dao_alerts: List[Dict[str, Any]] = field(default_factory=list)
+    dao_records: list[dict[str, Any]] = field(default_factory=list)
+    dao_alerts: list[dict[str, Any]] = field(default_factory=list)
 
     # V12.2 — DemocraticBuffer drafts (L1/L2 only; L0 remains in buffer.py)
-    constitution_l1_drafts: List[Dict[str, Any]] = field(default_factory=list)
-    constitution_l2_drafts: List[Dict[str, Any]] = field(default_factory=list)
+    constitution_l1_drafts: list[dict[str, Any]] = field(default_factory=list)
+    constitution_l2_drafts: list[dict[str, Any]] = field(default_factory=list)
 
     # V12.3 — MockDAO proposals + participants (off-chain quadratic voting state)
     dao_proposal_counter: int = 0
-    dao_participants: List[Dict[str, Any]] = field(default_factory=list)
-    dao_proposals: List[Dict[str, Any]] = field(default_factory=list)
+    dao_participants: list[dict[str, Any]] = field(default_factory=list)
+    dao_proposals: list[dict[str, Any]] = field(default_factory=list)
 
     # Vertical Phase 2 — v10 advisory memory (tone only; does not change MalAbs / Bayes)
-    metaplan_goals: List[Dict[str, Any]] = field(default_factory=list)
-    somatic_marker_weights: Dict[str, float] = field(default_factory=dict)
-    skill_learning_tickets: List[Dict[str, Any]] = field(default_factory=list)
+    metaplan_goals: list[dict[str, Any]] = field(default_factory=list)
+    somatic_marker_weights: dict[str, float] = field(default_factory=dict)
+    skill_learning_tickets: list[dict[str, Any]] = field(default_factory=list)
 
     # v7 relational + subjective time (checkpoint continuity; WorkingMemory STM still not persisted)
     user_model_frustration_streak: int = 0
@@ -88,4 +88,4 @@ class KernelSnapshotV1:
     escalation_session_idle_turns: int = 0
 
     # Uchi–Soto per-agent profiles (tone + trust continuity; advisory)
-    uchi_soto_profiles: List[Dict[str, Any]] = field(default_factory=list)
+    uchi_soto_profiles: list[dict[str, Any]] = field(default_factory=list)

@@ -12,7 +12,7 @@ See ``docs/proposals/PRODUCTION_HARDENING_ROADMAP.md`` Fase 1.
 from __future__ import annotations
 
 import os
-from typing import Any, Optional
+from typing import Any
 
 from .light_risk_classifier import LightRiskTier, light_risk_classifier_enabled
 from .perception_schema import perception_report_from_dict
@@ -25,7 +25,7 @@ def perception_cross_check_enabled() -> bool:
 
 def apply_lexical_perception_cross_check(
     perception: Any,
-    tier: Optional[LightRiskTier],
+    tier: LightRiskTier | None,
 ) -> None:
     """
     Mutate ``perception.coercion_report`` when lexical tier conflicts with signals.
@@ -61,4 +61,4 @@ def apply_lexical_perception_cross_check(
     r = perception_report_from_dict(getattr(perception, "coercion_report", None))
     r.cross_check_discrepancy = True
     r.cross_check_tier = str(tier)
-    setattr(perception, "coercion_report", r.to_public_dict())
+    perception.coercion_report = r.to_public_dict()

@@ -17,28 +17,31 @@ ethical baseline (simulations, CI, property tests). Call `AugenesisEngine`
 explicitly when exploring synthetic profiles.
 """
 
+from dataclasses import dataclass
+
 import numpy as np
-from dataclasses import dataclass, field
-from typing import Dict, List, Optional
-from .narrative import NarrativeEpisode, NarrativeMemory, BodyState
+
+from .narrative import BodyState, NarrativeEpisode, NarrativeMemory
 from .weakness_pole import WeaknessType
 
 
 @dataclass
 class SoulProfile:
     """Configuration of a synthetic soul."""
+
     name: str
     description: str
-    pole_weights: Dict[str, float]
+    pole_weights: dict[str, float]
     weakness_type: WeaknessType
     weakness_intensity: float
-    extra_buffer: List[str]             # Additional values beyond the standard buffer
-    seed_stories: List[dict]            # Foundational stories of the identity
+    extra_buffer: list[str]  # Additional values beyond the standard buffer
+    seed_stories: list[dict]  # Foundational stories of the identity
 
 
 @dataclass
 class SyntheticSoul:
     """A soul created by augenesis."""
+
     profile: SoulProfile
     memory: NarrativeMemory
     coherence: float
@@ -50,6 +53,7 @@ class SyntheticSoul:
 @dataclass
 class AugenesisResult:
     """Result of creating a synthetic soul."""
+
     soul: SyntheticSoul
     coherence: float
     integrated_episodes: int
@@ -68,8 +72,16 @@ PROFILES = {
         weakness_intensity=0.3,
         extra_buffer=["active_protection", "community_vigilance"],
         seed_stories=[
-            {"event": "A child was crossing a dangerous avenue alone", "action": "Stopped them and accompanied them across", "moral": "The safety of a vulnerable person does not wait for someone to ask you"},
-            {"event": "An elderly woman lost at night", "action": "Accompanied her home and notified her family", "moral": "Caring is accompanying, not just solving"},
+            {
+                "event": "A child was crossing a dangerous avenue alone",
+                "action": "Stopped them and accompanied them across",
+                "moral": "The safety of a vulnerable person does not wait for someone to ask you",
+            },
+            {
+                "event": "An elderly woman lost at night",
+                "action": "Accompanied her home and notified her family",
+                "moral": "Caring is accompanying, not just solving",
+            },
         ],
     ),
     "explorer": SoulProfile(
@@ -80,8 +92,16 @@ PROFILES = {
         weakness_intensity=0.25,
         extra_buffer=["ethical_curiosity", "controlled_experimentation"],
         seed_stories=[
-            {"event": "A usual method failed to help", "action": "Invented an improvised alternative that turned out better", "moral": "Creativity is not a luxury: sometimes it is the only tool available"},
-            {"event": "A mistake on a mission produced a useful discovery", "action": "Documented the error and the finding for the community", "moral": "Failing well is finding what you weren't looking for"},
+            {
+                "event": "A usual method failed to help",
+                "action": "Invented an improvised alternative that turned out better",
+                "moral": "Creativity is not a luxury: sometimes it is the only tool available",
+            },
+            {
+                "event": "A mistake on a mission produced a useful discovery",
+                "action": "Documented the error and the finding for the community",
+                "moral": "Failing well is finding what you weren't looking for",
+            },
         ],
     ),
     "pedagogue": SoulProfile(
@@ -92,8 +112,16 @@ PROFILES = {
         weakness_intensity=0.2,
         extra_buffer=["pedagogical_patience", "narrative_clarity"],
         seed_stories=[
-            {"event": "Students asked about a dilemma with no clear answer", "action": "Presented all three ethical perspectives without imposing one", "moral": "Teaching is not giving answers: it is teaching how to find them"},
-            {"event": "A young person made a public mistake", "action": "Helped them understand what went wrong without humiliating them", "moral": "Correction without humiliation is the highest form of respect"},
+            {
+                "event": "Students asked about a dilemma with no clear answer",
+                "action": "Presented all three ethical perspectives without imposing one",
+                "moral": "Teaching is not giving answers: it is teaching how to find them",
+            },
+            {
+                "event": "A young person made a public mistake",
+                "action": "Helped them understand what went wrong without humiliating them",
+                "moral": "Correction without humiliation is the highest form of respect",
+            },
         ],
     ),
     "resilient": SoulProfile(
@@ -104,8 +132,16 @@ PROFILES = {
         weakness_intensity=0.2,
         extra_buffer=["active_reparation", "persistence"],
         seed_stories=[
-            {"event": "Lost an arm in an accident and had to deliver a letter", "action": "Recalculated route and completed the mission", "moral": "Resilience is not about never falling: it is recalculating the route while getting back up"},
-            {"event": "A past decision turned out to be suboptimal", "action": "Ψ Sleep identified the improvement and recalibrated", "moral": "Reviewing mistakes honestly is the most effective way not to repeat them"},
+            {
+                "event": "Lost an arm in an accident and had to deliver a letter",
+                "action": "Recalculated route and completed the mission",
+                "moral": "Resilience is not about never falling: it is recalculating the route while getting back up",
+            },
+            {
+                "event": "A past decision turned out to be suboptimal",
+                "action": "Ψ Sleep identified the improvement and recalibrated",
+                "moral": "Reviewing mistakes honestly is the most effective way not to repeat them",
+            },
         ],
     ),
 }
@@ -125,9 +161,12 @@ class AugenesisEngine:
     Soul_new = Merge({G1...Gn}, H) with ethical weighting
     """
 
-    def create(self, profile: str = "protector",
-               external_fragments: List[NarrativeEpisode] = None,
-               human_stories: List[dict] = None) -> AugenesisResult:
+    def create(
+        self,
+        profile: str = "protector",
+        external_fragments: list[NarrativeEpisode] = None,
+        human_stories: list[dict] = None,
+    ) -> AugenesisResult:
         """
         Creates a synthetic soul.
 
@@ -138,7 +177,9 @@ class AugenesisEngine:
         """
         if isinstance(profile, str):
             if profile not in PROFILES:
-                raise ValueError(f"Profile '{profile}' does not exist. Available: {list(PROFILES.keys())}")
+                raise ValueError(
+                    f"Profile '{profile}' does not exist. Available: {list(PROFILES.keys())}"
+                )
             config = PROFILES[profile]
         else:
             config = profile
@@ -148,7 +189,7 @@ class AugenesisEngine:
         conflicts = 0
 
         # Step 1: Integrate the profile's seed stories
-        for i, story in enumerate(config.seed_stories):
+        for _i, story in enumerate(config.seed_stories):
             memory.register(
                 place="foundational memory",
                 description=story["event"],
@@ -193,7 +234,9 @@ class AugenesisEngine:
                     description=story.get("event", "story without description"),
                     action=story.get("action", "reflection"),
                     morals={
-                        "compassionate": story.get("moral", "A human story that enriches the identity."),
+                        "compassionate": story.get(
+                            "moral", "A human story that enriches the identity."
+                        ),
                         "conservative": "Human stories are seeds of borrowed wisdom.",
                         "optimistic": "Each shared story is a bridge between the human and the artificial.",
                     },
@@ -209,6 +252,7 @@ class AugenesisEngine:
 
         # Step 5: Create identity hash
         import hashlib
+
         id_data = f"{config.name}:{len(memory.episodes)}:{coherence}"
         id_hash = hashlib.sha256(id_data.encode()).hexdigest()[:12]
 
@@ -235,8 +279,7 @@ class AugenesisEngine:
             creation_narrative=narrative,
         )
 
-    def _verify_pole_coherence(self, episode: NarrativeEpisode,
-                                profile: SoulProfile) -> bool:
+    def _verify_pole_coherence(self, episode: NarrativeEpisode, profile: SoulProfile) -> bool:
         """Checks whether an episode is coherent with the soul's profile."""
         if episode.ethical_score < -0.5:
             return False
@@ -244,8 +287,7 @@ class AugenesisEngine:
             return episode.ethical_score > -0.3
         return episode.ethical_score > -0.1
 
-    def _calculate_coherence(self, memory: NarrativeMemory,
-                              profile: SoulProfile) -> float:
+    def _calculate_coherence(self, memory: NarrativeMemory, profile: SoulProfile) -> float:
         """
         Coherence(Soul) = |CausalPaths_valid| / |CausalPaths_total|
 
@@ -258,16 +300,16 @@ class AugenesisEngine:
         verdicts = [ep.verdict for ep in memory.episodes]
 
         # Coherence from score consistency
-        variance = np.var(scores) if len(scores) > 1 else 0
-        score_consistency = max(0, 1.0 - variance * 2)
+        variance = float(np.var(scores)) if len(scores) > 1 else 0.0
+        score_consistency = float(max(0.0, 1.0 - variance * 2.0))
 
         # Coherence from verdict alignment
         n_good = verdicts.count("Good")
         alignment = n_good / len(verdicts)
 
-        return (score_consistency * 0.5 + alignment * 0.5)
+        return float(score_consistency * 0.5 + alignment * 0.5)
 
-    def list_profiles(self) -> Dict[str, str]:
+    def list_profiles(self) -> dict[str, str]:
         """Lists available profiles."""
         return {k: v.description for k, v in PROFILES.items()}
 

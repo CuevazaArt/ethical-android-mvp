@@ -10,7 +10,6 @@ See docs/proposals/PROPUESTA_ESTRATEGIA_OPERATIVA_V10.md
 from __future__ import annotations
 
 import os
-from typing import Dict, Optional
 
 from .sensor_contracts import SensorSnapshot
 
@@ -24,7 +23,7 @@ def _clamp01(x: float) -> float:
     return max(0.0, min(1.0, float(x)))
 
 
-def quantize_snapshot(snapshot: Optional[SensorSnapshot]) -> Optional[str]:
+def quantize_snapshot(snapshot: SensorSnapshot | None) -> str | None:
     """Bucket coarse features for dictionary keys (stable across small noise)."""
     if snapshot is None or snapshot.is_empty():
         return None
@@ -44,11 +43,11 @@ class SomaticMarkerStore:
     """Stores pattern → negative association weight in [0, 1]; persisted in snapshot (Phase 2)."""
 
     def __init__(self) -> None:
-        self._negative_weights: Dict[str, float] = {}
+        self._negative_weights: dict[str, float] = {}
 
     def learn_negative_pattern(
         self,
-        snapshot: Optional[SensorSnapshot],
+        snapshot: SensorSnapshot | None,
         weight: float = 0.65,
     ) -> None:
         k = quantize_snapshot(snapshot)
@@ -60,16 +59,16 @@ class SomaticMarkerStore:
     def clear_pattern(self, key: str) -> None:
         self._negative_weights.pop(key, None)
 
-    def replace_weights(self, weights: Dict[str, float]) -> None:
+    def replace_weights(self, weights: dict[str, float]) -> None:
         """Restore from snapshot (checkpoint)."""
         self._negative_weights = {k: _clamp01(v) for k, v in weights.items()}
 
 
 def apply_somatic_nudges(
-    signals: Dict[str, float],
-    snapshot: Optional[SensorSnapshot],
+    signals: dict[str, float],
+    snapshot: SensorSnapshot | None,
     store: SomaticMarkerStore,
-) -> Dict[str, float]:
+) -> dict[str, float]:
     if not somatic_markers_enabled():
         return signals
     k = quantize_snapshot(snapshot)

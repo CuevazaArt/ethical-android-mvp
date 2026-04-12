@@ -18,7 +18,7 @@ import os
 import re
 import uuid
 from dataclasses import dataclass
-from typing import TYPE_CHECKING, List, Set
+from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
     from .drive_arbiter import DriveIntent
@@ -66,7 +66,7 @@ _STOP = frozenset(
 )
 
 
-def _tokens(s: str) -> Set[str]:
+def _tokens(s: str) -> set[str]:
     return set(re.findall(r"[a-z0-9_]+", s.lower())) - _STOP
 
 
@@ -77,19 +77,19 @@ class MasterGoal:
     priority: float  # [0, 1]
 
 
-def goal_token_union(goals: List[MasterGoal]) -> Set[str]:
-    u: Set[str] = set()
+def goal_token_union(goals: list[MasterGoal]) -> set[str]:
+    u: set[str] = set()
     for g in goals:
         u |= _tokens(g.title)
     return u
 
 
 def apply_drive_intent_metaplan_filter(
-    intents: List["DriveIntent"],
-    goals: List[MasterGoal],
+    intents: list[DriveIntent],
+    goals: list[MasterGoal],
     *,
     max_intents: int = 4,
-) -> List["DriveIntent"]:
+) -> list[DriveIntent]:
     """
     Drop drive intents with **no** token overlap with any ``MasterGoal.title`` when at least one
     intent has overlap; if no intent overlaps, return the original list (fallback).
@@ -100,7 +100,7 @@ def apply_drive_intent_metaplan_filter(
     if not gl:
         return intents[:max_intents]
 
-    scored: List[tuple] = []
+    scored: list[tuple] = []
     for di in intents:
         it = _tokens(di.suggest.replace("_", " ") + " " + di.reason)
         rel = (len(it & gl) / max(1, len(it))) if it else 0.0
@@ -115,11 +115,11 @@ def apply_drive_intent_metaplan_filter(
 
 
 def maybe_append_metaplan_drive_extra(
-    intents: List["DriveIntent"],
-    goals: List[MasterGoal],
+    intents: list[DriveIntent],
+    goals: list[MasterGoal],
     *,
     max_intents: int = 4,
-) -> List["DriveIntent"]:
+) -> list[DriveIntent]:
     """Append a low-priority coherence intent when opted in and there is room."""
     if not metaplan_drive_extra_intent_enabled() or not goals:
         return intents[:max_intents]
@@ -143,7 +143,7 @@ class MetaplanRegistry:
     """Lightweight goal list; no execution — tone alignment only."""
 
     def __init__(self, max_goals: int = 16) -> None:
-        self._goals: List[MasterGoal] = []
+        self._goals: list[MasterGoal] = []
         self._max = max_goals
 
     def add_goal(self, title: str, priority: float = 0.6) -> MasterGoal:
@@ -160,11 +160,11 @@ class MetaplanRegistry:
     def clear(self) -> None:
         self._goals.clear()
 
-    def replace_goals(self, goals: List[MasterGoal]) -> None:
+    def replace_goals(self, goals: list[MasterGoal]) -> None:
         """Restore from snapshot (checkpoint); caps at ``_max``."""
         self._goals = goals[: self._max]
 
-    def goals(self) -> List[MasterGoal]:
+    def goals(self) -> list[MasterGoal]:
         return list(self._goals)
 
     def hint_for_communicate(self) -> str:

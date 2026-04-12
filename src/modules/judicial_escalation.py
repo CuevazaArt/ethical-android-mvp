@@ -16,7 +16,7 @@ import uuid
 from dataclasses import dataclass, field
 from datetime import datetime
 from enum import Enum
-from typing import Any, Dict, Optional
+from typing import Any
 
 from .ethical_reflection import ReflectionSnapshot
 
@@ -94,7 +94,7 @@ class EscalationSessionTracker:
 
 def should_offer_escalation_advisory(
     decision_mode: str,
-    reflection: Optional[ReflectionSnapshot],
+    reflection: ReflectionSnapshot | None,
     premise_flag: str,
 ) -> bool:
     """
@@ -168,9 +168,7 @@ class EthicalDossierV1:
     monologue_digest_hex: str
     session_strikes: int = 0
     created_iso: str = field(default_factory=lambda: datetime.now().isoformat())
-    evidence_note: str = (
-        "Phase 1–2: no encrypted media; sensor summary and monologue digest only."
-    )
+    evidence_note: str = "Phase 1–2: no encrypted media; sensor summary and monologue digest only."
 
     def to_audit_paragraph(self) -> str:
         return (
@@ -188,7 +186,7 @@ def _digest_hex(text: str) -> str:
 def build_ethical_dossier(
     user_order: str,
     decision_mode: str,
-    signals: Dict[str, float],
+    signals: dict[str, float],
     monologue_line: str,
     buffer_conflict: bool,
     session_strikes: int = 0,
@@ -213,16 +211,16 @@ class JudicialEscalationView:
     active: bool
     phase: str
     notice_en: str
-    case_id: Optional[str] = None
+    case_id: str | None = None
     dossier_registered: bool = False
     session_strikes: int = 0
     strikes_threshold: int = 2
     dossier_ready: bool = False
     dao_registration_blocked: bool = False
-    mock_court: Optional[Dict[str, Any]] = None
+    mock_court: dict[str, Any] | None = None
 
-    def to_public_dict(self) -> Dict[str, Any]:
-        out: Dict[str, Any] = {
+    def to_public_dict(self) -> dict[str, Any]:
+        out: dict[str, Any] = {
             "active": self.active,
             "phase": self.phase,
             "notice_en": self.notice_en,
@@ -242,13 +240,13 @@ class JudicialEscalationView:
 def build_escalation_view(
     advisory_active: bool,
     escalate_to_dao: bool,
-    dossier: Optional[EthicalDossierV1],
-    audit_record_id: Optional[str],
+    dossier: EthicalDossierV1 | None,
+    audit_record_id: str | None,
     *,
     session_strikes: int = 0,
     strikes_threshold: int = 2,
-    mock_court: Optional[Dict[str, Any]] = None,
-) -> Optional[JudicialEscalationView]:
+    mock_court: dict[str, Any] | None = None,
+) -> JudicialEscalationView | None:
     """
     Build the public view. Phase 2: if ``escalate_to_dao`` but strikes < threshold,
     returns ``ESCALATION_DEFERRED`` without registering.
@@ -289,11 +287,7 @@ def build_escalation_view(
             dao_registration_blocked=True,
         )
 
-    notice = (
-        phase2_dossier_ready_notice()
-        if dossier_ready
-        else phase1_traceability_notice()
-    )
+    notice = phase2_dossier_ready_notice() if dossier_ready else phase1_traceability_notice()
     phase_val = (
         EscalationPhase.DOSSIER_READY.value
         if dossier_ready

@@ -9,19 +9,20 @@ Principle: a human who would always help the elderly person but with
 different levels of urgency depending on how they feel that day.
 """
 
-import numpy as np
 from dataclasses import dataclass
-from typing import Optional
+
+import numpy as np
 
 
 @dataclass
 class VariabilityConfig:
     """Bayesian noise configuration."""
-    impact_noise: float = 0.05      # sigma for estimated impact noise
+
+    impact_noise: float = 0.05  # sigma for estimated impact noise
     confidence_noise: float = 0.03  # sigma for confidence noise
-    sigma_noise: float = 0.02       # sigma for sympathetic-parasympathetic noise
-    poles_noise: float = 0.04       # sigma for ethical pole weight noise
-    seed: Optional[int] = None      # None = real random, int = reproducible
+    sigma_noise: float = 0.02  # sigma for sympathetic-parasympathetic noise
+    poles_noise: float = 0.04  # sigma for ethical pole weight noise
+    seed: int | None = None  # None = real random, int = reproducible
 
 
 class VariabilityEngine:

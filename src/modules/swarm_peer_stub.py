@@ -15,7 +15,7 @@ from __future__ import annotations
 import hashlib
 import json
 import os
-from typing import Any, Dict, List
+from typing import Any
 
 
 def swarm_stub_enabled() -> bool:
@@ -28,7 +28,7 @@ def verdict_digest_v1(
     verdict: str,
     ethical_score: float,
     context: str,
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     """
     Build a canonical JSON-serializable blob and a short SHA-256 prefix fingerprint.
 
@@ -51,7 +51,7 @@ def verdict_digest_v1(
     }
 
 
-def peer_agreement_stats(digests: List[Dict[str, Any]]) -> Dict[str, Any]:
+def peer_agreement_stats(digests: list[dict[str, Any]]) -> dict[str, Any]:
     """
     Descriptive stats over ``sha256_short`` values from :func:`verdict_digest_v1`.
 
@@ -60,7 +60,7 @@ def peer_agreement_stats(digests: List[Dict[str, Any]]) -> Dict[str, Any]:
     if not digests:
         return {"n": 0, "unique_fingerprints": 0, "agreement_ratio": 0.0}
 
-    fps: List[str] = []
+    fps: list[str] = []
     for d in digests:
         if not isinstance(d, dict):
             continue

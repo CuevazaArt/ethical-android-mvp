@@ -7,7 +7,7 @@ for clients to adapt presentation (robustez pilar 4).
 
 from __future__ import annotations
 
-from typing import Any, Dict, Optional
+from typing import Any
 
 # Read-only band thresholds (sympathetic activation σ in [0, 1])
 SIGMA_ELEVATED = 0.72
@@ -16,7 +16,7 @@ STRAIN_ELEVATED = 0.55
 PAD_COMPONENT_ELEVATED = 0.82
 
 
-def homeostasis_telemetry(decision: Any) -> Dict[str, Any]:
+def homeostasis_telemetry(decision: Any) -> dict[str, Any]:
     """
     Build a JSON-serializable snapshot for WebSocket clients.
 
@@ -30,13 +30,13 @@ def homeostasis_telemetry(decision: Any) -> Dict[str, Any]:
     else:
         band = "within_range"
 
-    strain: Optional[float] = None
+    strain: float | None = None
     if decision.reflection is not None:
         strain = float(decision.reflection.strain_index)
         if strain >= STRAIN_ELEVATED and band == "within_range":
             band = "elevated_activation"
 
-    pad_max: Optional[float] = None
+    pad_max: float | None = None
     if decision.affect is not None:
         pad_max = max(float(x) for x in decision.affect.pad)
         if pad_max >= PAD_COMPONENT_ELEVATED and band == "within_range":

@@ -88,27 +88,25 @@ import asyncio
 import json
 import os
 from dataclasses import asdict
-from typing import Any, Dict
+from typing import Any
 
 from fastapi import FastAPI, WebSocket, WebSocketDisconnect
 from fastapi.responses import JSONResponse
 
 from .kernel import ChatTurnResult, EthicalKernel
-from .modules.internal_monologue import compose_monologue_line
-from .persistence.checkpoint import (
-    init_session_checkpoint_state,
-    maybe_autosave_episodes,
-    on_websocket_session_end,
-    try_load_checkpoint,
-)
 from .modules.affective_homeostasis import homeostasis_telemetry
+from .modules.buffer import PreloadedBuffer
 from .modules.consequence_projection import qualitative_temporal_branches
+from .modules.existential_serialization import (
+    nomad_simulation_ws_enabled,
+    simulate_nomadic_migration,
+)
 from .modules.guardian_mode import is_guardian_mode_active
 from .modules.guardian_routines import public_routines_snapshot
-from .modules.perceptual_abstraction import snapshot_from_layers
+from .modules.hub_audit import record_dao_integrity_alert
+from .modules.internal_monologue import compose_monologue_line
 from .modules.judicial_escalation import chat_include_judicial
 from .modules.ml_ethics_tuner import maybe_log_gray_zone_tuning_opportunity
-from .modules.hub_audit import record_dao_integrity_alert
 from .modules.moral_hub import (
     add_constitution_draft,
     apply_proposal_resolution_to_constitution_drafts,
@@ -124,13 +122,16 @@ from .modules.moral_hub import (
     submit_constitution_draft_for_vote,
 )
 from .modules.nomad_identity import nomad_identity_public
-from .modules.existential_serialization import (
-    nomad_simulation_ws_enabled,
-    simulate_nomadic_migration,
+from .modules.perceptual_abstraction import snapshot_from_layers
+from .persistence.checkpoint import (
+    init_session_checkpoint_state,
+    maybe_autosave_episodes,
+    on_websocket_session_end,
+    try_load_checkpoint,
 )
-from .modules.buffer import PreloadedBuffer
 from .real_time_bridge import RealTimeBridge
 from .runtime.telemetry import advisory_interval_seconds_from_env, advisory_loop
+
 
 def _api_docs_enabled() -> bool:
     """OpenAPI/Swagger UI — off by default (LAN deployments); set KERNEL_API_DOCS=1 to expose."""
@@ -238,10 +239,10 @@ def _chat_include_light_risk() -> bool:
     return v in ("1", "true", "yes", "on")
 
 
-def _chat_turn_to_jsonable(r: ChatTurnResult, kernel: EthicalKernel) -> Dict[str, Any]:
+def _chat_turn_to_jsonable(r: ChatTurnResult, kernel: EthicalKernel) -> dict[str, Any]:
     """Compact JSON-safe view (no full internal objects)."""
     idn = kernel.memory.identity
-    out: Dict[str, Any] = {
+    out: dict[str, Any] = {
         "blocked": r.blocked,
         "path": r.path,
         "block_reason": r.block_reason,
@@ -252,7 +253,10 @@ def _chat_turn_to_jsonable(r: ChatTurnResult, kernel: EthicalKernel) -> Dict[str
             "inner_voice": r.response.inner_voice,
         },
         "identity": {
-            **{k: float(v) if k != "episode_count" else int(v) for k, v in asdict(idn.state).items()},
+            **{
+                k: float(v) if k != "episode_count" else int(v)
+                for k, v in asdict(idn.state).items()
+            },
             "ascription": idn.ascription_line(),
         },
         "drive_intents": [
@@ -355,16 +359,8 @@ def _chat_turn_to_jsonable(r: ChatTurnResult, kernel: EthicalKernel) -> Dict[str
         out["epistemic_dissonance"] = r.epistemic_dissonance.to_public_dict()
     if _chat_include_reality_verification() and r.reality_verification is not None:
         out["reality_verification"] = r.reality_verification.to_public_dict()
-    if (
-        _chat_include_teleology()
-        and r.decision is not None
-        and r.perception is not None
-    ):
-        v = (
-            r.decision.moral.global_verdict.value
-            if r.decision.moral
-            else "Gray Zone"
-        )
+    if _chat_include_teleology() and r.decision is not None and r.perception is not None:
+        v = r.decision.moral.global_verdict.value if r.decision.moral else "Gray Zone"
         out["teleology_branches"] = qualitative_temporal_branches(
             r.decision.final_action,
             v,
@@ -383,12 +379,12 @@ def _chat_turn_to_jsonable(r: ChatTurnResult, kernel: EthicalKernel) -> Dict[str
 
 
 @app.get("/health")
-def health() -> Dict[str, str]:
+def health() -> dict[str, str]:
     return {"status": "ok"}
 
 
 @app.get("/dao/governance")
-def dao_governance_meta() -> Dict[str, Any]:
+def dao_governance_meta() -> dict[str, Any]:
     """V12.3 — whether DAO vote pipeline is enabled and which WebSocket JSON keys to use."""
     return {
         "enabled": dao_governance_api_enabled(),
@@ -411,7 +407,7 @@ def dao_governance_meta() -> Dict[str, Any]:
 
 
 @app.get("/nomad/migration")
-def nomad_migration_meta() -> Dict[str, Any]:
+def nomad_migration_meta() -> dict[str, Any]:
     """Nomadic HAL simulation — WebSocket ``nomad_simulate_migration`` when KERNEL_NOMAD_SIMULATION=1."""
     return {
         "simulation_enabled": nomad_simulation_ws_enabled(),
@@ -455,8 +451,8 @@ def root() -> JSONResponse:
             "dao_governance": "/dao/governance (V12.3 vote protocol; KERNEL_MORAL_HUB_DAO_VOTE for WebSocket actions)",
             "nomad_migration": "/nomad/migration (KERNEL_NOMAD_SIMULATION + optional KERNEL_NOMAD_MIGRATION_AUDIT)",
             "protocol": (
-                "Send JSON: {\"text\": str, \"agent_id\"?: str, \"include_narrative\"?: bool, "
-                "\"sensor\"?: {battery_level?, audio_emergency?, vision_emergency?, scene_coherence?, …}}. "
+                'Send JSON: {"text": str, "agent_id"?: str, "include_narrative"?: bool, '
+                '"sensor"?: {battery_level?, audio_emergency?, vision_emergency?, scene_coherence?, …}}. '
                 "Responses include identity, drive_intents, monologue (when decision present), optional "
                 "affective_homeostasis, experience_digest, user_model, chronobiology, premise_advisory, "
                 "teleology_branches, multimodal_trust, vitality (see README KERNEL_CHAT_* / KERNEL_MULTIMODAL_* / "
@@ -467,11 +463,11 @@ def root() -> JSONResponse:
     )
 
 
-def _collect_dao_ws_actions(kernel: EthicalKernel, data: Dict[str, Any]) -> Dict[str, Any] | None:
+def _collect_dao_ws_actions(kernel: EthicalKernel, data: dict[str, Any]) -> dict[str, Any] | None:
     """V12.3 — optional quadratic vote / resolve / submit-draft / list on session kernel."""
     if not dao_governance_api_enabled():
         return None
-    out: Dict[str, Any] = {}
+    out: dict[str, Any] = {}
     if data.get("dao_list"):
         out["proposals"] = [proposal_to_public(p) for p in kernel.dao.proposals]
     if isinstance(data.get("dao_submit_draft"), dict):
@@ -510,7 +506,9 @@ def _collect_dao_ws_actions(kernel: EthicalKernel, data: Dict[str, Any]) -> Dict
     return out if out else None
 
 
-def _collect_integrity_ws_action(kernel: EthicalKernel, data: Dict[str, Any]) -> Dict[str, Any] | None:
+def _collect_integrity_ws_action(
+    kernel: EthicalKernel, data: dict[str, Any]
+) -> dict[str, Any] | None:
     """Optional ``integrity_alert`` JSON — local DAO ledger row (PROPUESTA_DAO_ALERTAS_Y_TRANSPARENCIA)."""
     if not dao_integrity_audit_ws_enabled():
         return None
@@ -525,7 +523,7 @@ def _collect_integrity_ws_action(kernel: EthicalKernel, data: Dict[str, Any]) ->
     return {"integrity_alert": {"ok": True, "scope": scope}}
 
 
-def _collect_nomad_ws_actions(kernel: EthicalKernel, data: Dict[str, Any]) -> Dict[str, Any] | None:
+def _collect_nomad_ws_actions(kernel: EthicalKernel, data: dict[str, Any]) -> dict[str, Any] | None:
     """KERNEL_NOMAD_SIMULATION — apply HAL + optional DAO migration audit (lab)."""
     if not nomad_simulation_ws_enabled():
         return None
@@ -590,7 +588,9 @@ async def ws_chat(ws: WebSocket) -> None:
             try:
                 data = json.loads(raw)
             except json.JSONDecodeError:
-                await ws.send_json({"error": "invalid_json", "hint": "send JSON with a \"text\" field"})
+                await ws.send_json(
+                    {"error": "invalid_json", "hint": 'send JSON with a "text" field'}
+                )
                 continue
 
             text_preview = (data.get("text") or "").strip()
@@ -611,7 +611,7 @@ async def ws_chat(ws: WebSocket) -> None:
             nomad_payload = _collect_nomad_ws_actions(kernel, data)
             integrity_payload = _collect_integrity_ws_action(kernel, data)
             if dao_payload or nomad_payload or integrity_payload:
-                out_ws: Dict[str, Any] = {}
+                out_ws: dict[str, Any] = {}
                 if dao_payload:
                     out_ws["dao"] = dao_payload
                 if nomad_payload:
@@ -672,7 +672,7 @@ async def ws_chat(ws: WebSocket) -> None:
             advisory_stop.set()
             try:
                 await asyncio.wait_for(advisory_task, timeout=5.0)
-            except (asyncio.TimeoutError, asyncio.CancelledError):
+            except (TimeoutError, asyncio.CancelledError):
                 advisory_task.cancel()
                 try:
                     await advisory_task

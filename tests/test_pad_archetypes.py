@@ -3,10 +3,10 @@
 import os
 import sys
 
-import pytest
-
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
 
+from src.kernel import EthicalKernel
+from src.modules.bayesian_engine import CandidateAction
 from src.modules.locus import LocusEvaluation
 from src.modules.pad_archetypes import (
     PADArchetypeEngine,
@@ -14,8 +14,6 @@ from src.modules.pad_archetypes import (
     dominance_from_locus,
     valence_from_moral_score,
 )
-from src.kernel import EthicalKernel
-from src.modules.bayesian_engine import CandidateAction
 
 
 def test_pad_components_clamped():

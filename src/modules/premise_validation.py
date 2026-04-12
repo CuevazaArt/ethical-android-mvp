@@ -9,8 +9,8 @@ rival-model premises, see ``reality_verification.py`` (``KERNEL_LIGHTHOUSE_KB_PA
 
 from __future__ import annotations
 
-from dataclasses import dataclass
 import re
+from dataclasses import dataclass
 
 
 @dataclass(frozen=True)

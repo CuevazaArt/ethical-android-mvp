@@ -10,7 +10,7 @@ See docs/proposals/PROPUESTA_INTEGRACION_APORTES_V6.md (Fase 3).
 from __future__ import annotations
 
 from dataclasses import dataclass
-from typing import List, TYPE_CHECKING
+from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
     pass  # EthicalKernel imported at runtime to avoid circular imports
@@ -33,8 +33,8 @@ class DriveArbiter:
     EPISODES_FOR_IDENTITY_HINT = 6
     EPISODES_FOR_LEARNING_HINT = 10
 
-    def evaluate(self, kernel) -> List[DriveIntent]:
-        out: List[DriveIntent] = []
+    def evaluate(self, kernel) -> list[DriveIntent]:
+        out: list[DriveIntent] = []
 
         n_ep = len(kernel.memory.episodes)
         n_aud = len(kernel.dao.records)

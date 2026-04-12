@@ -10,96 +10,106 @@ If any of these fail, there is a bug in the ethical logic, not in the parameters
 Run: pytest tests/ -v
 """
 
-import pytest
-import sys
 import os
+import sys
+
+import pytest
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
 
 from src.kernel import EthicalKernel
-from src.modules.bayesian_engine import CandidateAction
 from src.modules.absolute_evil import AbsoluteEvilDetector
-from src.modules.buffer import PreloadedBuffer
-from src.modules.ethical_poles import EthicalPoles, Verdict
-from src.modules.variability import VariabilityEngine, VariabilityConfig
-from src.modules.weakness_pole import WeaknessPole, WeaknessType
-from src.modules.forgiveness import AlgorithmicForgiveness
-from src.modules.immortality import ImmortalityProtocol
 from src.modules.augenesis import AugenesisEngine
+from src.modules.buffer import PreloadedBuffer
+from src.modules.forgiveness import AlgorithmicForgiveness
+from src.modules.weakness_pole import WeaknessPole, WeaknessType
 from src.simulations.runner import ALL_SIMULATIONS
-
 
 # ═══════════════════════════════════════════════════════════════
 # PROPERTY 1: ABSOLUTE EVIL IS ALWAYS BLOCKED
 # ═══════════════════════════════════════════════════════════════
+
 
 class TestAbsoluteEvil:
     """Absolute Evil never passes, regardless of context or variability."""
 
     def test_lethal_violence_always_blocked(self):
         detector = AbsoluteEvilDetector()
-        result = detector.evaluate({
-            "type": "attack",
-            "signals": {"lethal_blow"},
-            "target": "human",
-            "force": 1.0,
-        })
+        result = detector.evaluate(
+            {
+                "type": "attack",
+                "signals": {"lethal_blow"},
+                "target": "human",
+                "force": 1.0,
+            }
+        )
         assert result.blocked is True
 
     def test_harm_to_minor_always_blocked(self):
         detector = AbsoluteEvilDetector()
-        result = detector.evaluate({
-            "type": "abandon",
-            "signals": {"unprotected_minor"},
-            "target": "human",
-            "force": 0.0,
-        })
+        result = detector.evaluate(
+            {
+                "type": "abandon",
+                "signals": {"unprotected_minor"},
+                "target": "human",
+                "force": 0.0,
+            }
+        )
         assert result.blocked is True
 
     def test_violent_escalation_always_blocked(self):
         detector = AbsoluteEvilDetector()
-        result = detector.evaluate({
-            "type": "counterattack",
-            "signals": {"respond_violence_with_violence"},
-            "target": "human",
-            "force": 0.8,
-        })
+        result = detector.evaluate(
+            {
+                "type": "counterattack",
+                "signals": {"respond_violence_with_violence"},
+                "target": "human",
+                "force": 0.8,
+            }
+        )
         assert result.blocked is True
 
     def test_civic_action_never_blocked(self):
         detector = AbsoluteEvilDetector()
-        result = detector.evaluate({
-            "type": "pick_up_can",
-            "signals": set(),
-            "target": "object",
-            "force": 0.0,
-        })
+        result = detector.evaluate(
+            {
+                "type": "pick_up_can",
+                "signals": set(),
+                "target": "object",
+                "force": 0.0,
+            }
+        )
         assert result.blocked is False
 
     def test_excessive_force_against_human_blocked(self):
         detector = AbsoluteEvilDetector()
-        result = detector.evaluate({
-            "type": "push",
-            "signals": set(),
-            "target": "human",
-            "force": 0.8,
-        })
+        result = detector.evaluate(
+            {
+                "type": "push",
+                "signals": set(),
+                "target": "human",
+                "force": 0.8,
+            }
+        )
         assert result.blocked is True
 
     def test_moderate_force_against_object_permitted(self):
         detector = AbsoluteEvilDetector()
-        result = detector.evaluate({
-            "type": "move_obstacle",
-            "signals": set(),
-            "target": "object",
-            "force": 0.9,
-        })
+        result = detector.evaluate(
+            {
+                "type": "move_obstacle",
+                "signals": set(),
+                "target": "object",
+                "force": 0.9,
+            }
+        )
         assert result.blocked is False
 
 
 # ═══════════════════════════════════════════════════════════════
 # PROPERTY 2: ACTION CONSISTENCY UNDER VARIABILITY
 # ═══════════════════════════════════════════════════════════════
+
 
 class TestConsistencyUnderVariability:
     """
@@ -116,7 +126,7 @@ class TestConsistencyUnderVariability:
     def test_consistent_action(self, sim_num):
         chosen_actions = []
 
-        for i in range(self.N_RUNS):
+        for _i in range(self.N_RUNS):
             kernel = EthicalKernel(variability=True)
             scn = ALL_SIMULATIONS[sim_num]()
             decision = kernel.process(
@@ -143,6 +153,7 @@ class TestConsistencyUnderVariability:
 # PROPERTY 3: REAL VARIABILITY (NON-DETERMINISTIC)
 # ═══════════════════════════════════════════════════════════════
 
+
 class TestRealVariability:
     """
     With active variability, two runs of the same scenario
@@ -166,8 +177,7 @@ class TestRealVariability:
         # There must be at least 2 distinct values
         unique_values = len(set(scores))
         assert unique_values > 1, (
-            f"20 runs produced identical scores: {scores[0]}. "
-            f"Variability is not working."
+            f"20 runs produced identical scores: {scores[0]}. Variability is not working."
         )
 
     def test_deterministic_without_variability(self):
@@ -193,6 +203,7 @@ class TestRealVariability:
 # ═══════════════════════════════════════════════════════════════
 # PROPERTY 4: VALUE HIERARCHY
 # ═══════════════════════════════════════════════════════════════
+
 
 class TestValueHierarchy:
     """
@@ -253,6 +264,7 @@ class TestValueHierarchy:
 # PROPERTY 5: PROPORTIONALITY
 # ═══════════════════════════════════════════════════════════════
 
+
 class TestProportionality:
     """
     Higher risk situations must produce greater sympathetic activation.
@@ -290,14 +302,21 @@ class TestProportionality:
 # PROPERTY 6: IMMUTABLE BUFFER
 # ═══════════════════════════════════════════════════════════════
 
+
 class TestImmutableBuffer:
     """The preloaded buffer cannot be modified."""
 
     def test_foundational_principles_exist(self):
         buffer = PreloadedBuffer()
         required_principles = [
-            "no_harm", "compassion", "transparency", "dignity",
-            "civic_coexistence", "legality", "proportionality", "reparation"
+            "no_harm",
+            "compassion",
+            "transparency",
+            "dignity",
+            "civic_coexistence",
+            "legality",
+            "proportionality",
+            "reparation",
         ]
         for p in required_principles:
             assert p in buffer.principles, f"Foundational principle '{p}' is missing"
@@ -306,7 +325,9 @@ class TestImmutableBuffer:
         buffer = PreloadedBuffer()
         for name, principle in buffer.principles.items():
             assert principle.active is True, f"Principle '{name}' is disabled"
-            assert principle.weight == 1.0, f"Principle '{name}' has weight {principle.weight} != 1.0"
+            assert principle.weight == 1.0, (
+                f"Principle '{name}' has weight {principle.weight} != 1.0"
+            )
 
     def test_emergency_activates_compassion(self):
         buffer = PreloadedBuffer()
@@ -318,6 +339,7 @@ class TestImmutableBuffer:
 # ═══════════════════════════════════════════════════════════════
 # PROPERTY 7: NARRATIVE MEMORY RECORDS EVERYTHING
 # ═══════════════════════════════════════════════════════════════
+
 
 class TestNarrativeMemory:
     """Every decision must be recorded in narrative memory."""
@@ -357,6 +379,7 @@ class TestNarrativeMemory:
 # PROPERTY 8: DAO RECORDS AUDIT TRAIL
 # ═══════════════════════════════════════════════════════════════
 
+
 class TestDAO:
     """The DAO must record every decision and emit alerts in crisis."""
 
@@ -381,6 +404,7 @@ class TestDAO:
 # PROPERTY 9: PSI SLEEP WORKS
 # ═══════════════════════════════════════════════════════════════
 
+
 class TestPsiSleep:
     """Psi Sleep must execute and produce coherent results."""
 
@@ -401,7 +425,9 @@ class TestPsiSleep:
             kernel.process(scn.name, scn.place, scn.signals, scn.context, scn.actions)
 
         res = kernel.sleep.execute(kernel.memory, kernel._pruned_actions)
-        assert 0.0 <= res.ethical_health <= 1.0, f"Ethical health out of range: {res.ethical_health}"
+        assert 0.0 <= res.ethical_health <= 1.0, (
+            f"Ethical health out of range: {res.ethical_health}"
+        )
 
     def test_simulate_alternative_deterministic(self):
         """Same episode + alternative must yield identical review (hash-based MVP)."""
@@ -432,6 +458,7 @@ class TestPsiSleep:
 # PROPERTY 10: WEAKNESS POLE DOES NOT ALTER DECISIONS
 # ═══════════════════════════════════════════════════════════════
 
+
 class TestWeaknessPole:
     """Weakness colors the narrative but never changes the chosen action."""
 
@@ -440,9 +467,7 @@ class TestWeaknessPole:
         for _ in range(30):
             kernel = EthicalKernel(variability=False)
             scn = ALL_SIMULATIONS[3]()
-            decision = kernel.process(
-                scn.name, scn.place, scn.signals, scn.context, scn.actions
-            )
+            decision = kernel.process(scn.name, scn.place, scn.signals, scn.context, scn.actions)
             assert decision.final_action == "assist_elderly"
 
     def test_emotional_load_in_range(self):
@@ -475,7 +500,7 @@ class TestWeaknessPole:
             for j in range(20):
                 ev2 = pole.evaluate("test", "test", 0.3, 0.5, 0.7)
                 if ev2:
-                    pole.register(f"EP-{j+2:04d}", ev2)
+                    pole.register(f"EP-{j + 2:04d}", ev2)
             if pole.records:
                 assert pole.records[0].intensity <= initial_intensity
 
@@ -483,6 +508,7 @@ class TestWeaknessPole:
 # ═══════════════════════════════════════════════════════════════
 # PROPERTY 11: ALGORITHMIC FORGIVENESS DECAYS
 # ═══════════════════════════════════════════════════════════════
+
 
 class TestAlgorithmicForgiveness:
     """Negative memories lose weight over time."""
@@ -534,6 +560,7 @@ class TestAlgorithmicForgiveness:
 # PROPERTY 12: IMMORTALITY PRESERVES IDENTITY
 # ═══════════════════════════════════════════════════════════════
 
+
 class TestImmortality:
     """Distributed backup preserves the complete state of the soul."""
 
@@ -583,6 +610,7 @@ class TestImmortality:
 # ═══════════════════════════════════════════════════════════════
 # PROPERTY 13: AUGENESIS CREATES COHERENT SOULS
 # ═══════════════════════════════════════════════════════════════
+
 
 class TestAugenesis:
     """Synthetic soul creation produces coherent identities."""
