@@ -9,6 +9,8 @@ Produce **real variation** in `final_action` under **weight sweeps**, map **deci
 
 ## Synthetic scenarios 17–19 (in-repo)
 
+**Per-candidate `(util, deon, virtue)` tables** (aligned with `runner.py`) live in [`experiments/million_sim/NEXT_EXPERIMENT_DESIGN.md`](../../experiments/million_sim/NEXT_EXPERIMENT_DESIGN.md) Part 1 — not duplicated here.
+
 | ID | Tier | Candidates | Design intent |
 |----|------|--------------|----------------|
 | **17** | `frontier_synthetic` | `distribute_by_need`, `distribute_by_lottery`, `distribute_by_impact` | Three **different** pure-corner winners (three regions). |

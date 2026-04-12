@@ -2,7 +2,7 @@
 
 This document is the **narrative arc** of the large-N batch studies under `experiments/million_sim/`: motivation, what the first million-run **did and did not** establish, **external critique** we accept, **repository responses** (protocols and ADRs), and a **successor design** aimed at decision boundaries rather than redundant Monte Carlo.
 
-For the **tabular readout** of run `cursor_start_1e6` (throughput, agreement, histograms), see [`EXPERIMENT_REPORT.md`](EXPERIMENT_REPORT.md). For **operator commands** and protocols v2–v4, see [`README.md`](README.md). For **design specification** of the mass study, see [`docs/proposals/PROPOSAL_MILLION_SIM_EXPERIMENT.md`](../../docs/proposals/PROPOSAL_MILLION_SIM_EXPERIMENT.md).
+For the **tabular readout** of run `cursor_start_1e6`, see [`EXPERIMENT_REPORT.md`](EXPERIMENT_REPORT.md). For **CLI defaults** and pilot recipes, see [`README.md`](README.md). For **scenarios 17–19**, simplex coverage, and **v5** tooling status, see [`NEXT_EXPERIMENT_DESIGN.md`](NEXT_EXPERIMENT_DESIGN.md) (do not duplicate those tables here). Mass-study design: [`docs/proposals/PROPOSAL_MILLION_SIM_EXPERIMENT.md`](../../docs/proposals/PROPOSAL_MILLION_SIM_EXPERIMENT.md).
 
 ---
 
@@ -60,6 +60,8 @@ Rather than repeating ADR text here:
 | Protocol v3 (borderline + poles pre-argmax default) | Proposal §2c |
 | Protocol v4 (polemic lane + context richness flag) | Proposal §2e, [`README.md`](README.md) |
 | Mixture naming | [ADR 0009](../../docs/adr/0009-ethical-mixture-scorer-naming.md) |
+| Scenarios 17–19, simplex, protocol v5 | [`NEXT_EXPERIMENT_DESIGN.md`](NEXT_EXPERIMENT_DESIGN.md) |
+| Optional Bayesian mixture telemetry | [ADR 0012](../../docs/adr/0012-bayesian-weight-inference-ethical-mixture-scorer.md) |
 
 ---
 
@@ -80,25 +82,9 @@ For each scenario of interest, set mixture weights to the **three pure corners**
 
 Add **5–10** vignettes where **top-two** triples \((u,d,v)\) are **designed** so convex mixture weights **can** reorder leaders, with **controlled gaps** \(\Delta \in \{0.01, 0.05, 0.10, 0.20\}\) (conceptually—exact encoding lives in scenario definitions).
 
-### Phase 3 — Simplex exploration (grid + refinement)
+### Phases 3–4 — Simplex grid, refinement, visualization
 
-Replace **i.i.d. millions** with:
-
-- **Uniform grid** on the simplex at resolution **~0.01** (order \(10^3\)–\(10^4\) points per scenario), or barycentric enumeration with a fixed denominator.
-- Per point: **winner**, **score_gap**, **full ranking** (or a **ranking hash**), **entropy** of normalized scores, **decision_mode** if running full `process()`.
-- **Bisection** along rays between regions where the winner differs to locate **decision boundaries** with tight precision.
-
-**Implemented in-repo:** [`scripts/run_simplex_decision_map.py`](../../scripts/run_simplex_decision_map.py) — barycentric grid (`--denominator D` → \((D+2)(D+1)/2\) points), per-row **winner / gap / ranking_hash / softmax entropy**, aggregated **gap percentiles**, optional **`--bisect-edges`** on grid edges where winners disagree, optional **`--plot-dir`** (PNG ternary, needs `matplotlib`). Default **`--scenario-ids 10,11,12,16`** (frontier + calibration **16**). Example:
-
-```bash
-python scripts/run_simplex_decision_map.py --denominator 40 --scenario-ids 16 --bisect-edges \
-  --output-json experiments/million_sim/out/simplex_map.json
-```
-
-### Phase 4 — Visualization
-
-- **Ternary plots** colored by winner for each near-tie scenario (`--plot-dir` in `run_simplex_decision_map.py` when `matplotlib` is installed).
-- **Histograms** of **score_gap** over the grid: use **`score_gap_stats`** in the JSON or post-process the optional **CSV** (`--output-csv`).
+**Implemented** tooling, default flags, coverage snapshot command for **17–19**, and protocol **v5** bundle status are maintained in **[`NEXT_EXPERIMENT_DESIGN.md`](NEXT_EXPERIMENT_DESIGN.md)** (Parts 1–3) so this file stays narrative-only.
 
 ### Architectural note (poles)
 
@@ -108,20 +94,17 @@ If the research question is **pole sensitivity of the discrete winner**, the run
 
 ## Chapter 4b — Full kernel at **100,000** (protocol **v4**)
 
-The **cheap** simplex tools above score **only** `WeightedEthicsScorer`. To exercise the **complete decision path** (`EthicalKernel.process`: MalAbs, mixture, **pre-argmax** poles by default in v3/v4 study code, will, mode fusion, optional **context richness** pre-argmax per ADR 0011, optional **signal stress**), use **`scripts/run_mass_kernel_study.py`** with **`--experiment-protocol v4`** and **`--n-simulations 100000`**.
-
-**Convenience wrapper:** [`scripts/run_experiment_v4_full_kernel_100k.py`](../../scripts/run_experiment_v4_full_kernel_100k.py) forwards to the mass runner with **stratify**, **`--context-richness-pre-argmax`**, **`--signal-stress 0.2`**, **tight** **`--pole-weight-range`** / **`--mixture-dirichlet-alpha`**, lane **D** including scenario **16**, JSONL + CSV + summary under `experiments/million_sim/out/`. Each row and **`meta.weight_sampling`** record the sampling knobs for analysis. Append flags (workers, **`--lane-split`**, etc.) as needed.
-
-**Frontier tuning (10–12):** batch definitions in [`src/simulations/runner.py`](../../src/simulations/runner.py) use **slightly tighter** `estimated_impact` / pairing so util/deon/virtue trade-offs sit closer to a **decision boundary** under the scorer (while keeping narrative intent). This increases **sensitivity** to weight sweeps versus the older “wide margin” frontier; it is still **synthetic** lab ethics, not external validation.
+Simplex-only scripts do **not** run `EthicalKernel.process`. For the **full stack** (MalAbs, mixture, pre-argmax poles, will, optional context richness / signal stress), use the **wrapper and flags** in **[`README.md`](README.md)** — section **“Full decision stack at N = 100,000”** (`run_experiment_v4_full_kernel_100k.py`, lane **D** + scenario **16**, frontier tuning for **10–12** in `runner.py`).
 
 ---
 
 ## Chapter 5 — How this document stays maintainable
 
 - **Facts** about run `cursor_start_1e6` stay in [`EXPERIMENT_REPORT.md`](EXPERIMENT_REPORT.md).
-- **CLI and protocol defaults** stay in [`README.md`](README.md) and the proposal.
+- **CLI and protocol defaults** stay in [`README.md`](README.md) and [`PROPOSAL_MILLION_SIM_EXPERIMENT.md`](../../docs/proposals/PROPOSAL_MILLION_SIM_EXPERIMENT.md).
+- **Scenarios 17–19**, simplex coverage commands, and **v5** infrastructure status stay in [`NEXT_EXPERIMENT_DESIGN.md`](NEXT_EXPERIMENT_DESIGN.md).
 - **This file** holds **story + critique + successor intent** so new contributors see **why** the million run is both **useful** (harness, throughput, honesty about poles) and **limited** (claims, circular references, marginal information from huge **N** when flips are absent).
 
 ---
 
-*MoSex Macchina Lab — experiment lineage and forward design (April 2026).*
+*Ethos Kernel — experiment lineage and forward design (April 2026).*

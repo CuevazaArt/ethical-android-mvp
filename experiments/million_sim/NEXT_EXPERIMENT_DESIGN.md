@@ -81,13 +81,16 @@ Empirical region fractions and flip rates depend on the discrete grid; recompute
 
 ---
 
-## Part 2 — Protocol v5 (“sensitivity mapping”) — planned
+## Part 2 — Protocol v5 (“sensitivity mapping”) — partial
 
-- **Adaptive sampling:** screening barycentric grid → refinement band around detected edges → optional full-kernel JSONL on boundary-heavy points.
-- **Rich JSONL rows:** full ranking, `score_gap_12` / `score_gap_13`, `ranking_order` (human-readable order string; **note:** `ranking_hash` in code is a short SHA-256 prefix of that order), softmax entropy, `sampling_phase`, optional `distance_to_nearest_boundary`.
-- **Lanes F–H** (sensitivity map, borderline re-eval, pole ablation, signal_stress sweep): to be wired in `mass_kernel_study` / a dedicated wrapper script.
+**In-repo:** mixture-only screening + refinement + `boundaries.json` via `run_experiment_v5_sensitivity.py` (see Part 3). **Not yet:** full-kernel JSONL on boundary-heavy points; **lanes F–H** in `mass_kernel_study` (roadmap).
 
-See [`docs/proposals/PROPOSAL_EXPERIMENT_V5_SENSITIVITY.md`](../../docs/proposals/PROPOSAL_EXPERIMENT_V5_SENSITIVITY.md).
+- **Adaptive sampling:** screening → refinement band → *(optional full kernel: use mass study separately; see `full_kernel_note.json` in v5 output).*
+- **Rich rows / summaries:** full ranking, gaps, `ranking_order`, entropy, `sampling_phase`, `distance_to_nearest_boundary` where implemented — details in [`docs/proposals/PROPOSAL_EXPERIMENT_V5_SENSITIVITY.md`](../../docs/proposals/PROPOSAL_EXPERIMENT_V5_SENSITIVITY.md).
+
+**One-shot (16–19):**
+
+`python scripts/run_experiment_v5_sensitivity.py --scenario-ids 16,17,18,19 --screening-denominator 30 --refinement-samples 500 --output-dir experiments/million_sim/out/v5_sensitivity/`
 
 ---
 
@@ -106,6 +109,7 @@ See [`docs/proposals/PROPOSAL_EXPERIMENT_V5_SENSITIVITY.md`](../../docs/proposal
 - **Geometry:** where the default mixture point falls in each scenario region; distance to boundaries (fragility).
 - **Multi-objective:** maximize minimum margin across reference scenarios (grid data or LP if scores are linear in `w`).
 - **Pole ablation:** compare pre-argmax poles ON vs OFF on the same `(scenario, mixture)` sample.
+- **Optional Bayesian layer:** Dirichlet BMA win probabilities and approximate feedback updates over mixture weights ([ADR 0012](../../docs/adr/0012-bayesian-weight-inference-ethical-mixture-scorer.md)) — same geometry, extra telemetry; does not replace grid/LP for default-weight choice unless you adopt feedback as policy.
 
 ---
 

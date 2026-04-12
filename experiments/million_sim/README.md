@@ -1,17 +1,19 @@
 # Million-simulation experiment (optional batch machine)
 
-This directory holds **operator instructions** for large-N runs described in
-[`docs/proposals/PROPOSAL_MILLION_SIM_EXPERIMENT.md`](../../docs/proposals/PROPOSAL_MILLION_SIM_EXPERIMENT.md).
+**Design spec (mass study):** [`docs/proposals/PROPOSAL_MILLION_SIM_EXPERIMENT.md`](../../docs/proposals/PROPOSAL_MILLION_SIM_EXPERIMENT.md).
 
-**Narrative report** (origin, method, expected vs observed, conclusions — run `cursor_start_1e6`): [`EXPERIMENT_REPORT.md`](EXPERIMENT_REPORT.md).
+| Doc | Role |
+|-----|------|
+| [`EXPERIMENT_REPORT.md`](EXPERIMENT_REPORT.md) | Narrative readout of run `cursor_start_1e6` (throughput, agreement, interpretation). |
+| [`EXPERIMENT_HISTORY.md`](EXPERIMENT_HISTORY.md) | Lineage: critique of the million run, ADR links, **why** simplex / near-tie work replaced brute-force N. |
+| [`NEXT_EXPERIMENT_DESIGN.md`](NEXT_EXPERIMENT_DESIGN.md) | **Canonical** scenarios **17–19** triples (mirrors `runner.py`), simplex coverage command, protocol **v5** status + infrastructure table. |
+| [`docs/proposals/PROPOSAL_EXPERIMENT_V5_SENSITIVITY.md`](../../docs/proposals/PROPOSAL_EXPERIMENT_V5_SENSITIVITY.md) | v5 proposal: goals, lane F–H roadmap, `run_experiment_v5_sensitivity.py` vs mass study. |
 
-**Experiment history** (story arc, accepted critique, protocol evolution, successor **simplex / near-tie** design): [`EXPERIMENT_HISTORY.md`](EXPERIMENT_HISTORY.md).
+**Quick probes (mixture-only, cheap):**
 
-**Next experiment design** (protocol v5 roadmap, scenarios **17–19** triples — canonical values in `src/simulations/runner.py`): [`NEXT_EXPERIMENT_DESIGN.md`](NEXT_EXPERIMENT_DESIGN.md).
-
-- **Phase 1 — corner audit** (mixture-only, fast): `python scripts/audit_mixture_simplex_corners.py --scenario-ids all`
-- **Phases 3–4 — simplex grid + edge bisection + optional ternary PNG** (cheap vs large-N Monte Carlo): `python scripts/run_simplex_decision_map.py --denominator 40 --scenario-ids 10,11,12,16 --bisect-edges --output-json experiments/million_sim/out/simplex_map.json` (add `--plot-dir …` and optionally **`--plot-extended`** for gap/entropy heatmaps + boundary overlay if `matplotlib` is installed). Scenario **16** is a **two-candidate calibration** vignette tuned for mixture flips on part of the simplex.
-- **Protocol v5 (mixture-only bundle)** — screening CSV + refinement CSV + `boundaries.json`: `python scripts/run_experiment_v5_sensitivity.py --scenario-ids 16,17,18,19 --screening-denominator 30 --refinement-samples 500 --output-dir experiments/million_sim/out/v5_sensitivity/` (full `EthicalKernel.process` sweeps stay on `run_mass_kernel_study.py` / `run_experiment_v4_full_kernel_100k.py`; see `full_kernel_note.json` in the output dir).
+- Corner audit: `python scripts/audit_mixture_simplex_corners.py --scenario-ids all`
+- Simplex grid / bisection / plots: see **Part 3** in [`NEXT_EXPERIMENT_DESIGN.md`](NEXT_EXPERIMENT_DESIGN.md) (default example still uses **10–12 + 16**; **17–19** tables live in **Part 1** there).
+- v5 sensitivity bundle (screening + refinement + `boundaries.json`): **Part 2** in [`NEXT_EXPERIMENT_DESIGN.md`](NEXT_EXPERIMENT_DESIGN.md) — one command + output notes (full `EthicalKernel.process` sweeps: `run_mass_kernel_study.py` / `run_experiment_v4_full_kernel_100k.py`).
 
 ### Full decision stack at **N = 100,000** (protocol **v4**, recommended)
 

@@ -115,4 +115,4 @@ Reference the **summary JSON** path, **`run_label`**, **`git_commit_short`**, an
 
 ---
 
-*MoSex Macchina Lab — honest readout of the first million-scale batch study (April 2026).*
+*Ethos Kernel — honest readout of the first million-scale batch study (April 2026).*

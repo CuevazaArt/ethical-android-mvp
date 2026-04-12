@@ -27,6 +27,11 @@ from ..sandbox.simplex_mixture_probe import mixture_ranking
 from ..simulations.runner import ALL_SIMULATIONS
 
 from .bayesian_mixture_averaging import parse_bma_alpha_from_env
+from .feedback_mixture_updater import (
+    FeedbackUpdater,
+    build_scenario_candidates_map,
+    feedback_items_from_records,
+)
 from .weighted_ethics_scorer import WeightedEthicsScorer
 
 
@@ -160,6 +165,51 @@ def sequential_alpha_update(
     return alpha, "compatible", meta
 
 
+def _load_and_apply_feedback_explicit_triples(
+    records: list[FeedbackRecord],
+    *,
+    rng: np.random.Generator,
+) -> tuple[np.ndarray, str, dict[str, Any]]:
+    """ADR 0012 path: pure-Python :class:`FeedbackUpdater` with explicit util/deon/virtue triples."""
+    sids = sorted({r.scenario_id for r in records})
+    cmap = build_scenario_candidates_map(sids)
+    if cmap is None:
+        raise RuntimeError("explicit triples path requires hypothesis_override on all candidates")
+
+    alpha_list = parse_bma_alpha_from_env().tolist()
+    strength = feedback_update_strength()
+    n_inner = feedback_mc_samples()
+    seed = int(os.environ.get("KERNEL_FEEDBACK_SEED", "42"))
+    max_drift = float(os.environ.get("KERNEL_FEEDBACK_MAX_DRIFT", "0.30"))
+    updater = FeedbackUpdater(
+        initial_alpha=alpha_list,
+        max_drift=max_drift,
+        update_strength=strength,
+        n_samples=n_inner,
+        seed=seed,
+    )
+    items = feedback_items_from_records(records)
+    fr = updater.ingest_feedback(items, cmap, stop_on_infeasible=True)
+    alpha_new = np.asarray(updater.alpha, dtype=np.float64)
+    meta: dict[str, Any] = {
+        "updater": "explicit_triples",
+        "feedback_log": fr.log,
+        "n_feedback_items": len(records),
+    }
+
+    if fr.consistency == "contradictory":
+        meta["joint_satisfaction_rate"] = 0.0
+        return alpha_new, "contradictory", meta
+
+    j_rate, _ = joint_satisfaction_monte_carlo(
+        alpha_new, records, n_samples=min(50000, n_inner * 2), rng=rng
+    )
+    meta["joint_satisfaction_rate"] = round(float(j_rate), 6)
+    if j_rate < 0.01:
+        meta["note"] = "Low joint satisfaction under posterior; preferences may be jointly tight."
+    return alpha_new, fr.consistency if fr.consistency != "insufficient" else "compatible", meta
+
+
 def load_and_apply_feedback(
     path: Path,
     *,
@@ -169,6 +219,10 @@ def load_and_apply_feedback(
     Load feedback JSON, start from ``parse_bma_alpha_from_env()`` as prior, run sequential
     update, and compute joint satisfaction rate under final alpha.
 
+    If every referenced scenario has ``hypothesis_override`` on all candidates (e.g. 17–19),
+    uses :class:`FeedbackUpdater` (pure Python, explicit triples). Otherwise uses numpy +
+    ``mixture_ranking`` (full scorer path).
+
     Returns:
         ``(posterior_alpha, consistency, details)`` where consistency is
         ``compatible`` | ``contradictory`` | ``insufficient`` (empty file).
@@ -177,6 +231,10 @@ def load_and_apply_feedback(
     if not records:
         a = parse_bma_alpha_from_env()
         return a, "insufficient", {"reason": "empty_feedback"}
+
+    sids = sorted({r.scenario_id for r in records})
+    if build_scenario_candidates_map(sids) is not None:
+        return _load_and_apply_feedback_explicit_triples(records, rng=rng)
 
     alpha0 = parse_bma_alpha_from_env()
     n_inner = feedback_mc_samples()
@@ -195,6 +253,7 @@ def load_and_apply_feedback(
     )
     meta["joint_satisfaction_rate"] = round(float(j_rate), 6)
     meta["n_feedback_items"] = len(records)
+    meta["updater"] = "mixture_ranking"
 
     if status == "contradictory":
         return alpha_new, "contradictory", meta
