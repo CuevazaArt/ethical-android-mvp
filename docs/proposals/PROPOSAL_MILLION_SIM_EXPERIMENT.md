@@ -145,13 +145,13 @@ Optional **`--output-csv`**: same columns for **pandas / R / Excel** quick plots
 
 ## 5b. Successor: marginal simplex sensitivity (design, not a second million)
 
-The legacy **10⁶** run is documented honestly in [`experiments/million_sim/EXPERIMENT_REPORT.md`](../../experiments/million_sim/EXPERIMENT_REPORT.md). When the goal is **decision boundaries** (where the mixture changes the winner) rather than **throughput demos**, prefer:
+The legacy **10⁶** run is documented honestly in [`experiments/million_sim/docs/EXPERIMENT_REPORT.md`](../../experiments/million_sim/docs/EXPERIMENT_REPORT.md). When the goal is **decision boundaries** (where the mixture changes the winner) rather than **throughput demos**, prefer:
 
 1. **Corner audit** on the util/deon/virtue simplex (pure corners + uniform center), full rankings and **top-2 margin** — script: [`scripts/audit_mixture_simplex_corners.py`](../../scripts/audit_mixture_simplex_corners.py).
 2. **Near-tie** batch scenarios and **grid or bisection** on the simplex instead of **i.i.d. millions** when flips are absent under the same distribution.
 3. **Ternary plots** and **margin histograms** as primary artifacts.
 
-Narrative context, critique integration, and phased outline: [`experiments/million_sim/EXPERIMENT_HISTORY.md`](../../experiments/million_sim/EXPERIMENT_HISTORY.md). **Executable grid + bisection:** [`scripts/run_simplex_decision_map.py`](../../scripts/run_simplex_decision_map.py) (batch scenario **16** = two-candidate calibration near-tie). **Full kernel at 100k (v4):** [`scripts/run_experiment_v4_full_kernel_100k.py`](../../scripts/run_experiment_v4_full_kernel_100k.py); frontier **10–12** valuations periodically **retuned** for sensitivity (see `src/simulations/runner.py`). **Pre-argmax poles** ([ADR 0010](../adr/0010-poles-pre-argmax-modulation.md)) apply when the question is pole sensitivity **of the argmax**, not post-hoc narrative alone.
+Narrative context, critique integration, and phased outline: [`experiments/million_sim/docs/EXPERIMENT_HISTORY.md`](../../experiments/million_sim/docs/EXPERIMENT_HISTORY.md). **Executable grid + bisection:** [`scripts/run_simplex_decision_map.py`](../../scripts/run_simplex_decision_map.py) (batch scenario **16** = two-candidate calibration near-tie). **Full kernel at 100k (v4):** [`scripts/run_experiment_v4_full_kernel_100k.py`](../../scripts/run_experiment_v4_full_kernel_100k.py); frontier **10–12** valuations periodically **retuned** for sensitivity (see `src/simulations/runner.py`). **Pre-argmax poles** ([ADR 0010](../adr/0010-poles-pre-argmax-modulation.md)) apply when the question is pole sensitivity **of the argmax**, not post-hoc narrative alone.
 
 ---
 
@@ -159,7 +159,7 @@ Narrative context, critique integration, and phased outline: [`experiments/milli
 
 - **Library:** [`src/sandbox/mass_kernel_study.py`](../../src/sandbox/mass_kernel_study.py) — `run_single_simulation`, `load_reference_labels`, `stratified_scenario_ids`.
 - **CLI:** [`scripts/run_mass_kernel_study.py`](../../scripts/run_mass_kernel_study.py) — `--n-simulations`, `--workers`, `--stratify-scenarios`, `--run-label`, `--output-jsonl`, `--output-csv`, `--summary-json`, `--progress`, safety `--i-accept-large-run`; **`--experiment-protocol`**, **`--lane-split`** (3 / 4 / 5 fractions), **`--stress-scenario-ids`**, **`--borderline-scenario-ids`**, **`--polemic-extreme-ids`**, **`--classic-economy-ids`**, **`--legacy-economy-classics`**, **`--poles-pre-argmax`**, **`--no-poles-pre-argmax`** (v3/v4), **`--context-richness-pre-argmax`**, **`--signal-stress`**.
-- **Phase-1 simplex corner audit (mixture-only):** [`scripts/audit_mixture_simplex_corners.py`](../../scripts/audit_mixture_simplex_corners.py) — see [`experiments/million_sim/EXPERIMENT_HISTORY.md`](../../experiments/million_sim/EXPERIMENT_HISTORY.md).
+- **Phase-1 simplex corner audit (mixture-only):** [`scripts/audit_mixture_simplex_corners.py`](../../scripts/audit_mixture_simplex_corners.py) — see [`experiments/million_sim/docs/EXPERIMENT_HISTORY.md`](../../experiments/million_sim/docs/EXPERIMENT_HISTORY.md).
 - **Simplex grid + edge bisection (mixture-only):** [`scripts/run_simplex_decision_map.py`](../../scripts/run_simplex_decision_map.py); library [`src/sandbox/simplex_mixture_probe.py`](../../src/sandbox/simplex_mixture_probe.py).
 - **Environment:** [`experiments/million_sim/README.md`](../../experiments/million_sim/README.md) + optional [`requirements-experiment.txt`](../../experiments/million_sim/requirements-experiment.txt).
 

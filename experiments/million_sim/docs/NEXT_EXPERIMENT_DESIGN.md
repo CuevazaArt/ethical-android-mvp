@@ -2,9 +2,11 @@
 
 **Goal:** Produce real variation in mixture-level winners under weight sweeps, map decision boundaries on the util/deon/virtue simplex, and inform default weights (not only agreement vs a fixed reference).
 
-**Prerequisites:** [`EXPERIMENT_HISTORY.md`](EXPERIMENT_HISTORY.md). Corner audits are produced by [`scripts/audit_mixture_simplex_corners.py`](../../scripts/audit_mixture_simplex_corners.py) (output path is operator-chosen, e.g. `experiments/million_sim/out/simplex_corners_audit.json`).
+**Prerequisites:** [`EXPERIMENT_HISTORY.md`](EXPERIMENT_HISTORY.md). Corner audits are produced by [`scripts/audit_mixture_simplex_corners.py`](../../../scripts/audit_mixture_simplex_corners.py) (output path is operator-chosen, e.g. `experiments/million_sim/out/simplex_corners_audit.json`).
 
 **Source of truth:** Per-candidate `(util, deon, virtue)` triples for scenarios **17–19** live in **`src/simulations/runner.py`** as `CandidateAction.hypothesis_override`. This document mirrors those values.
+
+**Heavy local outputs:** Large JSON/CSV/PNG under `out/` can be deleted anytime; **consultable** run tables live in [`ARTIFACTS_REGISTRY.md`](ARTIFACTS_REGISTRY.md).
 
 ---
 
@@ -86,7 +88,7 @@ Empirical region fractions and flip rates depend on the discrete grid; recompute
 **In-repo:** mixture-only screening + refinement + `boundaries.json` via `run_experiment_v5_sensitivity.py` (see Part 3). **Not yet:** full-kernel JSONL on boundary-heavy points; **lanes F–H** in `mass_kernel_study` (roadmap).
 
 - **Adaptive sampling:** screening → refinement band → *(optional full kernel: use mass study separately; see `full_kernel_note.json` in v5 output).*
-- **Rich rows / summaries:** full ranking, gaps, `ranking_order`, entropy, `sampling_phase`, `distance_to_nearest_boundary` where implemented — details in [`docs/proposals/PROPOSAL_EXPERIMENT_V5_SENSITIVITY.md`](../../docs/proposals/PROPOSAL_EXPERIMENT_V5_SENSITIVITY.md).
+- **Rich rows / summaries:** full ranking, gaps, `ranking_order`, entropy, `sampling_phase`, `distance_to_nearest_boundary` where implemented — details in [`docs/proposals/PROPOSAL_EXPERIMENT_V5_SENSITIVITY.md`](../../../docs/proposals/PROPOSAL_EXPERIMENT_V5_SENSITIVITY.md).
 
 **One-shot (16–19):**
 
@@ -98,9 +100,9 @@ Empirical region fractions and flip rates depend on the discrete grid; recompute
 
 | Item | Status |
 |------|--------|
-| [`scripts/run_simplex_decision_map.py`](../../scripts/run_simplex_decision_map.py) — `--full-ranking`, refinement, `--plot-dir`, **`--plot-extended`** (gap + entropy heatmaps, boundary overlay), per-row **`distance_to_nearest_boundary`** | Implemented |
-| [`scripts/run_experiment_v5_sensitivity.py`](../../scripts/run_experiment_v5_sensitivity.py) — screening CSV, refinement CSV, `boundaries.json`, `summary.json`, optional plots; full-kernel note points to mass study | Implemented (mixture phases only) |
-| Full-stack **`EthicalKernel.process`** sweep at many mixture points | Use [`run_mass_kernel_study.py`](../../scripts/run_mass_kernel_study.py) / [`run_experiment_v4_full_kernel_100k.py`](../../scripts/run_experiment_v4_full_kernel_100k.py) |
+| [`scripts/run_simplex_decision_map.py`](../../../scripts/run_simplex_decision_map.py) — `--full-ranking`, refinement, `--plot-dir`, **`--plot-extended`** (gap + entropy heatmaps, boundary overlay), per-row **`distance_to_nearest_boundary`** | Implemented |
+| [`scripts/run_experiment_v5_sensitivity.py`](../../../scripts/run_experiment_v5_sensitivity.py) — screening CSV, refinement CSV, `boundaries.json`, `summary.json`, optional plots; full-kernel note points to mass study | Implemented (mixture phases only) |
+| Full-stack **`EthicalKernel.process`** sweep at many mixture points | Use [`run_mass_kernel_study.py`](../../../scripts/run_mass_kernel_study.py) / [`run_experiment_v4_full_kernel_100k.py`](../../../scripts/run_experiment_v4_full_kernel_100k.py) |
 
 ---
 
@@ -109,7 +111,7 @@ Empirical region fractions and flip rates depend on the discrete grid; recompute
 - **Geometry:** where the default mixture point falls in each scenario region; distance to boundaries (fragility).
 - **Multi-objective:** maximize minimum margin across reference scenarios (grid data or LP if scores are linear in `w`).
 - **Pole ablation:** compare pre-argmax poles ON vs OFF on the same `(scenario, mixture)` sample.
-- **Optional Bayesian layer:** Dirichlet BMA win probabilities and approximate feedback updates over mixture weights ([ADR 0012](../../docs/adr/0012-bayesian-weight-inference-ethical-mixture-scorer.md)) — same geometry, extra telemetry; does not replace grid/LP for default-weight choice unless you adopt feedback as policy. Example feedback JSON (17–19): [`tests/fixtures/feedback/compatible_17_18_19.json`](../../tests/fixtures/feedback/compatible_17_18_19.json). Apply offline: `python scripts/run_feedback_posterior.py --pretty` (writes posterior α + metadata JSON; see script docstring).
+- **Optional Bayesian layer:** Dirichlet BMA win probabilities and approximate feedback updates over mixture weights ([ADR 0012](../../../docs/adr/0012-bayesian-weight-inference-ethical-mixture-scorer.md)) — same geometry, extra telemetry; does not replace grid/LP for default-weight choice unless you adopt feedback as policy. Example feedback JSON (17–19): [`tests/fixtures/feedback/compatible_17_18_19.json`](../../../tests/fixtures/feedback/compatible_17_18_19.json). Apply offline: `python scripts/run_feedback_posterior.py --pretty` (writes posterior α + metadata JSON; see script docstring).
 
 ---
 

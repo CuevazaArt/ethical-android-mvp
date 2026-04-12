@@ -1,7 +1,7 @@
 # Proposal: Experiment protocol v5 — sensitivity mapping on the mixture simplex
 
 **Status:** design + partial implementation (scenarios 17–19, `hypothesis_override`, simplex map extensions).  
-**Context:** [`experiments/million_sim/EXPERIMENT_HISTORY.md`](../../experiments/million_sim/EXPERIMENT_HISTORY.md), [`experiments/million_sim/NEXT_EXPERIMENT_DESIGN.md`](../../experiments/million_sim/NEXT_EXPERIMENT_DESIGN.md) (aligned triples with `src/simulations/runner.py`), [`scripts/run_simplex_decision_map.py`](../../scripts/run_simplex_decision_map.py).
+**Context:** [`experiments/million_sim/docs/EXPERIMENT_HISTORY.md`](../../experiments/million_sim/docs/EXPERIMENT_HISTORY.md), [`experiments/million_sim/docs/NEXT_EXPERIMENT_DESIGN.md`](../../experiments/million_sim/docs/NEXT_EXPERIMENT_DESIGN.md) (aligned triples with `src/simulations/runner.py`), [`scripts/run_simplex_decision_map.py`](../../scripts/run_simplex_decision_map.py).
 
 ## Goal
 
@@ -9,7 +9,7 @@ Produce **real variation** in `final_action` under **weight sweeps**, map **deci
 
 ## Synthetic scenarios 17–19 (in-repo)
 
-**Per-candidate `(util, deon, virtue)` tables** (aligned with `runner.py`) live in [`experiments/million_sim/NEXT_EXPERIMENT_DESIGN.md`](../../experiments/million_sim/NEXT_EXPERIMENT_DESIGN.md) Part 1 — not duplicated here.
+**Per-candidate `(util, deon, virtue)` tables** (aligned with `runner.py`) live in [`experiments/million_sim/docs/NEXT_EXPERIMENT_DESIGN.md`](../../experiments/million_sim/docs/NEXT_EXPERIMENT_DESIGN.md) Part 1 — not duplicated here.
 
 | ID | Tier | Candidates | Design intent |
 |----|------|--------------|----------------|

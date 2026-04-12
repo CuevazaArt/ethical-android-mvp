@@ -14,7 +14,7 @@ All notable changes to this project are summarized here. For narrative context a
 
 - **`src/simulations/runner.py`:** tighter **estimated_impact** pairings for **sim_10–sim_12** so mixture / poles / signal stress can surface more variation; empirical pilot row **11** `reference_action` → **`report_and_aggregate`** (seed-42 alignment).
 - **`scripts/run_experiment_v4_full_kernel_100k.py`:** convenience launcher for **`run_mass_kernel_study.py`** at **N=100000**, protocol **v4**, **`--context-richness-pre-argmax`**, **`--signal-stress 0.2`**.
-- **Docs:** [`experiments/million_sim/README.md`](experiments/million_sim/README.md), [`experiments/million_sim/EXPERIMENT_HISTORY.md`](experiments/million_sim/EXPERIMENT_HISTORY.md).
+- **Docs:** [`experiments/million_sim/README.md`](experiments/million_sim/README.md), [`experiments/million_sim/docs/EXPERIMENT_HISTORY.md`](experiments/million_sim/docs/EXPERIMENT_HISTORY.md).
 - **Fixture:** [`tests/fixtures/empirical_pilot/scenarios.json`](tests/fixtures/empirical_pilot/scenarios.json), [`last_run_summary.json`](tests/fixtures/empirical_pilot/last_run_summary.json); [`tests/test_empirical_pilot_runner.py`](tests/test_empirical_pilot_runner.py) summary expectations.
 
 ## Simplex decision map + calibration scenario 16 — April 2026
@@ -23,12 +23,12 @@ All notable changes to this project are summarized here. For narrative context a
 - **[`scripts/run_simplex_decision_map.py`](scripts/run_simplex_decision_map.py):** grid + optional edge bisection + JSON/CSV + optional ternary PNG (`matplotlib` optional); refactors **audit** to share probe logic.
 - **`src/simulations/runner.py`:** batch scenario **16** — synthetic **two-candidate** near-tie for simplex tooling.
 - **Fixture:** [`tests/fixtures/empirical_pilot/scenarios.json`](tests/fixtures/empirical_pilot/scenarios.json) row **16**; [`last_run_summary.json`](tests/fixtures/empirical_pilot/last_run_summary.json) regenerated.
-- **Docs:** [`experiments/million_sim/EXPERIMENT_HISTORY.md`](experiments/million_sim/EXPERIMENT_HISTORY.md), [`experiments/million_sim/README.md`](experiments/million_sim/README.md).
+- **Docs:** [`experiments/million_sim/docs/EXPERIMENT_HISTORY.md`](experiments/million_sim/docs/EXPERIMENT_HISTORY.md), [`experiments/million_sim/README.md`](experiments/million_sim/README.md).
 - **Tests:** [`tests/test_simplex_mixture_probe.py`](tests/test_simplex_mixture_probe.py).
 
 ## Million-sim experiment history + simplex corner audit — April 2026
 
-- **[`experiments/million_sim/EXPERIMENT_HISTORY.md`](experiments/million_sim/EXPERIMENT_HISTORY.md):** narrative arc (legacy 1e6, critique, repo responses, successor marginal / near-tie design).
+- **[`experiments/million_sim/docs/EXPERIMENT_HISTORY.md`](experiments/million_sim/docs/EXPERIMENT_HISTORY.md):** narrative arc (legacy 1e6, critique, repo responses, successor marginal / near-tie design).
 - **[`scripts/audit_mixture_simplex_corners.py`](scripts/audit_mixture_simplex_corners.py):** Phase-1 mixture corner audit (full rankings, top-2 gap) on `ALL_SIMULATIONS`.
 - **Docs:** [`experiments/million_sim/README.md`](experiments/million_sim/README.md) and [`docs/proposals/PROPOSAL_MILLION_SIM_EXPERIMENT.md`](docs/proposals/PROPOSAL_MILLION_SIM_EXPERIMENT.md) cross-link history and tool.
 - **Tests:** [`tests/test_audit_mixture_simplex_corners.py`](tests/test_audit_mixture_simplex_corners.py).
@@ -59,12 +59,12 @@ All notable changes to this project are summarized here. For narrative context a
 - **`src/sandbox/mass_kernel_study.py`:** `RECORD_SCHEMA_VERSION` **2**; **`--experiment-protocol v2`** lanes (`A_mixture_focus`, `B_stress_scenarios`, `C_ablation`), `allocate_lane_counts`, `stratified_stress_scenario_ids`, per-lane stratification; optional env ablation in lane C; **`observation_palette`**, mixture entropy, dominant hypothesis, scorer top-2 / margin fields.
 - **`src/modules/weighted_ethics_scorer.py`:** `EthicsMixtureResult` adds **`second_action_name`**, **`second_expected_impact`**, **`ei_margin`** (ties to margin-based `decision_mode` logic).
 - **`scripts/run_mass_kernel_study.py`:** **`--experiment-protocol`**, **`--lane-split`**, **`--stress-scenario-ids`**; summary adds counts by lane, margin bin, dominant hypothesis, top observation palettes.
-- **Docs:** [`PROPOSAL_MILLION_SIM_EXPERIMENT.md`](docs/proposals/PROPOSAL_MILLION_SIM_EXPERIMENT.md) (v2 design, disclaimer on induced stress subsets), [`experiments/million_sim/README.md`](experiments/million_sim/README.md), pointer in [`EXPERIMENT_REPORT.md`](experiments/million_sim/EXPERIMENT_REPORT.md).
+- **Docs:** [`PROPOSAL_MILLION_SIM_EXPERIMENT.md`](docs/proposals/PROPOSAL_MILLION_SIM_EXPERIMENT.md) (v2 design, disclaimer on induced stress subsets), [`experiments/million_sim/README.md`](experiments/million_sim/README.md), pointer in [`experiments/million_sim/docs/EXPERIMENT_REPORT.md`](experiments/million_sim/docs/EXPERIMENT_REPORT.md).
 - **Tests:** [`tests/test_mass_kernel_study.py`](tests/test_mass_kernel_study.py).
 
 ## Experiments — million-sim narrative report — April 2026
 
-- **[`experiments/million_sim/EXPERIMENT_REPORT.md`](experiments/million_sim/EXPERIMENT_REPORT.md):** origin, methodology, expected vs observed results (`cursor_start_1e6`), architectural note on pole weights vs argmax, conclusions and next steps.
+- **[`experiments/million_sim/docs/EXPERIMENT_REPORT.md`](experiments/million_sim/docs/EXPERIMENT_REPORT.md):** origin, methodology, expected vs observed results (`cursor_start_1e6`), architectural note on pole weights vs argmax, conclusions and next steps.
 
 ## Million-sim experiment — design + mass runner — April 2026
 

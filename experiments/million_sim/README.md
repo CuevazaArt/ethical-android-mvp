@@ -4,19 +4,23 @@
 
 | Doc | Role |
 |-----|------|
-| [`EXPERIMENT_REPORT.md`](EXPERIMENT_REPORT.md) | Narrative readout of run `cursor_start_1e6` (throughput, agreement, interpretation). |
-| [`EXPERIMENT_HISTORY.md`](EXPERIMENT_HISTORY.md) | Lineage: critique of the million run, ADR links, **why** simplex / near-tie work replaced brute-force N. |
-| [`NEXT_EXPERIMENT_DESIGN.md`](NEXT_EXPERIMENT_DESIGN.md) | **Canonical** scenarios **17–19** triples (mirrors `runner.py`), simplex coverage command, protocol **v5** status + infrastructure table. |
+| [`docs/README.md`](docs/README.md) | Index of all markdown under this folder (report, history, design, registry). |
+| [`docs/EXPERIMENT_REPORT.md`](docs/EXPERIMENT_REPORT.md) | Narrative readout of run `cursor_start_1e6` (throughput, agreement, interpretation). |
+| [`docs/EXPERIMENT_HISTORY.md`](docs/EXPERIMENT_HISTORY.md) | Lineage: critique of the million run, ADR links, **why** simplex / near-tie work replaced brute-force N. |
+| [`docs/NEXT_EXPERIMENT_DESIGN.md`](docs/NEXT_EXPERIMENT_DESIGN.md) | **Canonical** scenarios **17–19** triples (mirrors `runner.py`), simplex coverage command, protocol **v5** status + infrastructure table. |
 | [`docs/proposals/PROPOSAL_EXPERIMENT_V5_SENSITIVITY.md`](../../docs/proposals/PROPOSAL_EXPERIMENT_V5_SENSITIVITY.md) | v5 proposal: goals, lane F–H roadmap, `run_experiment_v5_sensitivity.py` vs mass study. |
 | [`tests/fixtures/feedback/compatible_17_18_19.json`](../../tests/fixtures/feedback/compatible_17_18_19.json) | Sample **ADR 0012** feedback (17–19) for `KERNEL_FEEDBACK_PATH`. |
+| [`docs/ARTIFACTS_REGISTRY.md`](docs/ARTIFACTS_REGISTRY.md) | **Summaries** of local runs (no heavy artifacts in repo). |
+
+**Layout:** `docs/` = long-form documentation · `out/` = generated artifacts (gitignored) · `requirements-experiment.txt` = optional pip deps.
 
 **Tree:** [`experiments/README.md`](../README.md) (how `million_sim/` and `out/` relate).
 
 **Quick probes (mixture-only, cheap):**
 
 - Corner audit: `python scripts/audit_mixture_simplex_corners.py --scenario-ids all`
-- Simplex grid / bisection / plots: see **Part 3** in [`NEXT_EXPERIMENT_DESIGN.md`](NEXT_EXPERIMENT_DESIGN.md) (default example still uses **10–12 + 16**; **17–19** tables live in **Part 1** there).
-- v5 sensitivity bundle (screening + refinement + `boundaries.json`): **Part 2** in [`NEXT_EXPERIMENT_DESIGN.md`](NEXT_EXPERIMENT_DESIGN.md) — one command + output notes (full `EthicalKernel.process` sweeps: `run_mass_kernel_study.py` / `run_experiment_v4_full_kernel_100k.py`).
+- Simplex grid / bisection / plots: see **Part 3** in [`docs/NEXT_EXPERIMENT_DESIGN.md`](docs/NEXT_EXPERIMENT_DESIGN.md) (default example still uses **10–12 + 16**; **17–19** tables live in **Part 1** there).
+- v5 sensitivity bundle (screening + refinement + `boundaries.json`): **Part 2** in [`docs/NEXT_EXPERIMENT_DESIGN.md`](docs/NEXT_EXPERIMENT_DESIGN.md) — one command + output notes (full `EthicalKernel.process` sweeps: `run_mass_kernel_study.py` / `run_experiment_v4_full_kernel_100k.py`).
 - **ADR 0012 feedback posterior (offline):** `python scripts/run_feedback_posterior.py --pretty` — same update as `KERNEL_BAYESIAN_FEEDBACK` + `KERNEL_FEEDBACK_PATH`, JSON to stdout (default feedback file: [`compatible_17_18_19.json`](../../tests/fixtures/feedback/compatible_17_18_19.json)).
 
 ### Full decision stack at **N = 100,000** (protocol **v4**, recommended)

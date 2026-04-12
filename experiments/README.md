@@ -5,7 +5,8 @@
 | Path | Purpose |
 |------|---------|
 | [`million_sim/`](million_sim/README.md) | Operator docs (report, history, **NEXT** design), v5 / simplex commands, env setup for batch runs. |
-| [`million_sim/out/`](million_sim/out/) | **Generated** JSON/CSV/PNG (gitignored). Recreate with `scripts/run_simplex_decision_map.py`, `run_experiment_v5_sensitivity.py`, mass study wrappers, etc. |
+| [`million_sim/docs/ARTIFACTS_REGISTRY.md`](million_sim/docs/ARTIFACTS_REGISTRY.md) | **Lightweight** tables of last captured runs (no large JSONL/PNG in git). |
+| [`million_sim/out/`](million_sim/out/) | **Generated only** (gitignored). Safe to delete; regenerate with scripts. Summaries: registry. |
 
 ## ADR 0012 feedback sample
 

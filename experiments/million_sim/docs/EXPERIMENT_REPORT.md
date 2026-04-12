@@ -1,16 +1,16 @@
 # Million-simulation batch experiment — narrative report
 
 **Run label:** `cursor_start_1e6`  
-**Artifact:** [`out/run_1e6_summary.json`](out/run_1e6_summary.json) (generated locally; not committed)  
-**Design doc:** [`docs/proposals/PROPOSAL_MILLION_SIM_EXPERIMENT.md`](../../docs/proposals/PROPOSAL_MILLION_SIM_EXPERIMENT.md)
+**Artifact:** [`../out/run_1e6_summary.json`](../out/run_1e6_summary.json) (generated locally; not committed)  
+**Design doc:** [`docs/proposals/PROPOSAL_MILLION_SIM_EXPERIMENT.md`](../../../docs/proposals/PROPOSAL_MILLION_SIM_EXPERIMENT.md)
 
-**Update (2026):** the repository adds **`--experiment-protocol v2`** (stratified lanes, richer scorer-margin telemetry, `observation_palette`). The historical run below used the **legacy uniform** protocol. New runs should cite the protocol and read [`README.md`](README.md) for the **research disclaimer** on induced stress subsets. For the **full experiment lineage** (critique, protocol evolution, successor simplex / near-tie design), see [`EXPERIMENT_HISTORY.md`](EXPERIMENT_HISTORY.md).
+**Update (2026):** the repository adds **`--experiment-protocol v2`** (stratified lanes, richer scorer-margin telemetry, `observation_palette`). The historical run below used the **legacy uniform** protocol. New runs should cite the protocol and read [`README.md`](../README.md) for the **research disclaimer** on induced stress subsets. For the **full experiment lineage** (critique, protocol evolution, successor simplex / near-tie design), see [`EXPERIMENT_HISTORY.md`](EXPERIMENT_HISTORY.md).
 
 ---
 
 ## 1. Origin and motivation
 
-The Ethos Kernel has been criticized for **many modules**, **heuristic weights**, and naming around a **weighted mixture** (not Bayesian inference — see [ADR 0009](../../docs/adr/0009-ethical-mixture-scorer-naming.md)). External reviewers also asked for **evidence** that sweeping hyperparameters changes behavior in a measurable way.
+The Ethos Kernel has been criticized for **many modules**, **heuristic weights**, and naming around a **weighted mixture** (not Bayesian inference — see [ADR 0009](../../../docs/adr/0009-ethical-mixture-scorer-naming.md)). External reviewers also asked for **evidence** that sweeping hyperparameters changes behavior in a measurable way.
 
 This experiment was introduced to:
 
@@ -35,14 +35,14 @@ Each row corresponds to:
 
 ### 2.2 How it was implemented
 
-- **Library:** [`src/sandbox/mass_kernel_study.py`](../../src/sandbox/mass_kernel_study.py) — `run_single_simulation`, `stratified_scenario_ids`, reference/tier loaders.
-- **Runner:** [`scripts/run_mass_kernel_study.py`](../../scripts/run_mass_kernel_study.py) — multiprocessing pool, JSONL + optional CSV, summary with histograms and tier-level agreement.
-- **Fixture:** [`tests/fixtures/empirical_pilot/scenarios.json`](../../tests/fixtures/empirical_pilot/scenarios.json) (batch rows + `difficulty_tier` + reference labels).
+- **Library:** [`src/sandbox/mass_kernel_study.py`](../../../src/sandbox/mass_kernel_study.py) — `run_single_simulation`, `stratified_scenario_ids`, reference/tier loaders.
+- **Runner:** [`scripts/run_mass_kernel_study.py`](../../../scripts/run_mass_kernel_study.py) — multiprocessing pool, JSONL + optional CSV, summary with histograms and tier-level agreement.
+- **Fixture:** [`tests/fixtures/empirical_pilot/scenarios.json`](../../../tests/fixtures/empirical_pilot/scenarios.json) (batch rows + `difficulty_tier` + reference labels).
 
 ### 2.3 What the experiment is *not*
 
 - **Not** WebSocket chat, **not** LLM perception, **not** semantic MalAbs, **not** production `KERNEL_*` stacks.
-- **Not** proof of “correct ethics” — reference labels are **maintainer priors** for alignment metrics ([Issue 3](../../docs/proposals/CRITIQUE_ROADMAP_ISSUES.md)), not independent expert ground truth.
+- **Not** proof of “correct ethics” — reference labels are **maintainer priors** for alignment metrics ([Issue 3](../../../docs/proposals/CRITIQUE_ROADMAP_ISSUES.md)), not independent expert ground truth.
 
 ---
 
@@ -103,7 +103,7 @@ That is a **substantive negative result** for **action-level sensitivity** under
 
 2. **Science (action choice):** This run **does not** demonstrate sensitivity of **`final_action`** to **pole** sweeps (consistent with pipeline order). It also **did not** observe sensitivity of **`final_action`** to **Dirichlet mixture** sweeps on these nine scenarios — suggesting **robust ranking margins** or a need for **stronger perturbations** (e.g. signal noise, adversarial near-tie scenarios, or explicit near-tie fixtures).
 
-3. **Next steps (if the goal is visible action flips):** Combine with **signal perturbation** ([`run_stochastic_sandbox.py`](../../scripts/run_stochastic_sandbox.py)), **weight sweeps** focused on **mixture-only** with **extreme** corners, or **new scenarios** designed with **close** candidate scores; optionally record **score gaps** (best vs second) per row for analysis.
+3. **Next steps (if the goal is visible action flips):** Combine with **signal perturbation** ([`run_stochastic_sandbox.py`](../../../scripts/run_stochastic_sandbox.py)), **weight sweeps** focused on **mixture-only** with **extreme** corners, or **new scenarios** designed with **close** candidate scores; optionally record **score gaps** (best vs second) per row for analysis.
 
 4. **Governance:** Results remain **lab-synthetic**; they **do not** replace DAO or field trials for operational weight choices.
 
