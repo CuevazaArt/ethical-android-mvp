@@ -70,6 +70,8 @@ python scripts/run_stochastic_sandbox.py --rolls 40 --stress 0.45 --base-seed 42
 
 Interpretation: agreement vs maintainer reference labels **drops** under noise — that is expected and is material for discussion, not a CI failure. For strict regression, keep using **`run_empirical_pilot.py`** only.
 
+For **hyperparameter / pole / mixture** sweeps (centered static weights, axes–grid–random, JSON + CSV), see [PROPOSAL_WEIGHT_SENSITIVITY_SWEEP.md](PROPOSAL_WEIGHT_SENSITIVITY_SWEEP.md) and `scripts/run_weight_sweep_batch.py`.
+
 **Chat / real users:** for pilot operators, follow [EMPIRICAL_PILOT_PROTOCOL.md](EMPIRICAL_PILOT_PROTOCOL.md) and keep batch sandbox separate from live WebSocket experiments until explicit harness exists.
 
 ---

@@ -2,6 +2,13 @@
 
 All notable changes to this project are summarized here. For narrative context and design rationale, see [`HISTORY.md`](HISTORY.md).
 
+## Weight sensitivity sweep — poles + mixture — April 2026
+
+- **`src/sandbox/weight_sweep.py`:** centered pole weights (default **0.5**), mixture center **(1/3, 1/3, 1/3)**; `SweepMode` axes / grid / random.
+- **`scripts/run_weight_sweep_batch.py`:** `--target poles|mixture|both`, JSON artifact and optional `--csv` for plotting; `--max-total-runs` safety cap.
+- **Docs:** [PROPOSAL_WEIGHT_SENSITIVITY_SWEEP.md](docs/proposals/PROPOSAL_WEIGHT_SENSITIVITY_SWEEP.md).
+- **Tests:** [`tests/test_weight_sweep.py`](tests/test_weight_sweep.py).
+
 ## Stochastic sandbox — synthetic stress engine — April 2026
 
 - **`src/sandbox/synthetic_stochastic.py`:** reproducible `perturb_scenario_signals` (Gaussian noise + optional aleatory spike on ethics scalars).

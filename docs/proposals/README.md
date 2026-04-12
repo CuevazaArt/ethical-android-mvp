@@ -31,6 +31,7 @@ High-level summary aligned with the code and docs; full chronology is in [`CHANG
 | **Module count vs observable ethics (ablation gap, tiers A–E)** | [MODULE_IMPACT_AND_EMPIRICAL_GAP.md](MODULE_IMPACT_AND_EMPIRICAL_GAP.md) |
 | **Closing core weaknesses (async, naming, evidence, governance, LLM) — execution plan** | [PROPOSAL_ADDRESSING_CORE_WEAKNESSES.md](PROPOSAL_ADDRESSING_CORE_WEAKNESSES.md) |
 | **Tiered sandbox + deterministic `by_tier`; stochastic Monte Carlo (`run_stochastic_sandbox.py`)** | [PROPOSAL_EXPERIMENTAL_SANDBOX_SCENARIOS.md](PROPOSAL_EXPERIMENTAL_SANDBOX_SCENARIOS.md) |
+| **Static weight sweeps (poles @ 0.5 center, mixture @ 1/3 simplex) — mass batch + CSV** | [PROPOSAL_WEIGHT_SENSITIVITY_SWEEP.md](PROPOSAL_WEIGHT_SENSITIVITY_SWEEP.md) |
 | **Mock DAO — no chain, QV assumptions, not policy core** | [MOCK_DAO_SIMULATION_LIMITS.md](MOCK_DAO_SIMULATION_LIMITS.md) |
 | **KERNEL_* typed public API (Pydantic, phased)** | [KERNEL_ENV_TYPED_PUBLIC_API.md](KERNEL_ENV_TYPED_PUBLIC_API.md) |
 | Theory ↔ implementation map and tests | [THEORY_AND_IMPLEMENTATION.md](THEORY_AND_IMPLEMENTATION.md) |
