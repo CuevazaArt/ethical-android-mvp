@@ -11,6 +11,7 @@ The previous long-form proposal set was removed from this branch to keep the tre
 | Document | Summary |
 |----------|---------|
 | [`PROPOSAL_BAYESIAN_MIXTURE_FEEDBACK.md`](PROPOSAL_BAYESIAN_MIXTURE_FEEDBACK.md) | ADR 0012 stack: BMA (L1), feedback posteriors (L2), context buckets (L3), softmax / importance-sampling likelihood, env vars, tests, link to ADR 0012. |
+| [`PROPOSAL_OFFLINE_MODE_TAXONOMY_AND_KNOWLEDGE_CORPUS.md`](PROPOSAL_OFFLINE_MODE_TAXONOMY_AND_KNOWLEDGE_CORPUS.md) | Offline taxonomy (voluntary, transient, structural, systemic); L0 vs curated knowledge pack; resource/energy priority; entry planning and sync; maps to `PreloadedBuffer` and MalAbs. |
 
 ## Architecture decisions (ADR)
 
