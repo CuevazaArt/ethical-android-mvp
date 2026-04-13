@@ -34,90 +34,81 @@ scope; the heuristic gives qualitatively correct behaviour for the scenarios tes
 
 ## OOS-002 — HierarchicalUpdater only supports explicit-triples path at kernel-tick time
 
-**Status:** open  
+**Status:** mitigated  
 **Severity:** medium  
 **ADR:** [0013](adr/0013-hierarchical-context-weight-inference.md)  
-**Detected:** 2026-04-13  
+**Detected:** 2026-04-13 · **Mitigated:** 2026-04-13  
 
 **Description:** The `KERNEL_HIERARCHICAL_FEEDBACK` kernel integration uses
 `build_scenario_candidates_map`, which returns `None` when any referenced scenario lacks
-`hypothesis_override` on all candidates.  In that case the hierarchical block silently
-does nothing (falls through to the pre-existing weight).  This means hierarchical
-context-dependent learning is **unavailable for mixture-ranking scenarios** (those without
-explicit triples, e.g. scenarios 1–16).
+`hypothesis_override` on all candidates.
 
-**Workaround:** Use `KERNEL_BAYESIAN_FEEDBACK` + `KERNEL_BAYESIAN_CONTEXT_LEVEL3` for
-mixture-ranking scenarios (ADR 0012 Level 3 path).
+**Mitigation (2026-04-13):** When `build_scenario_candidates_map` returns `None`, the
+kernel now falls back to `load_and_apply_feedback` (mixture_ranking path, same as ADR 0012
+Level 3) with the current tick context.  This gives context-dependent semantics for
+non-explicit-triples scenarios, albeit via the global Level-3 mechanism rather than the
+full hierarchical global+local structure.  A sentinel `"mixture_ranking_fallback"` is
+stored in the cache to avoid rebuilding each tick.
 
-**Resolution path:** Implement a `HierarchicalUpdater` variant that wraps
-`feedback_mixture_posterior.sequential_alpha_update` (the numpy + mixture_ranking path)
-for scenarios without `hypothesis_override`.  Track as future ADR 0014 or extension of
-ADR 0013.
+**Remaining gap:** The per-context local updater (`HierarchicalUpdater._contexts`) is
+not populated for mixture-ranking fallback scenarios; only the global posterior is used
+with Level-3 context selection.  Full per-context local posteriors for mixture-ranking
+require a deeper refactor (see ADR 0013 extension plan).
 
 ---
 
 ## OOS-003 — HierarchicalUpdater reloads feedback from scratch on every kernel tick
 
-**Status:** open  
+**Status:** resolved  
 **Severity:** medium  
 **ADR:** [0013](adr/0013-hierarchical-context-weight-inference.md)  
-**Detected:** 2026-04-13  
+**Detected:** 2026-04-13 · **Resolved:** 2026-04-13  
 
-**Description:** The current kernel integration builds a fresh `HierarchicalUpdater` and
-calls `ingest_feedback` on every `EthicalKernel.process()` call.  This means the
-hierarchical posterior is **recomputed from scratch on every tick**, which is correct for
-reproducibility but wasteful for production.
+**Description:** The original kernel integration built a fresh `HierarchicalUpdater` on
+every `EthicalKernel.process()` call.
 
-**Resolution path:** Cache the `HierarchicalUpdater` instance on `EthicalKernel` and
-invalidate when the feedback file changes (mtime or content hash).  This requires a
-lightweight file-change watcher or explicit `reload_feedback()` API.
+**Resolution:** `EthicalKernel` now maintains three cache fields:
+`_hier_updater_cache`, `_hier_cache_fb_path`, `_hier_cache_mtime`.  The updater is
+rebuilt only when the feedback file path changes or its `st_mtime` differs from the
+cached value.  Verified by `test_offline_hierarchical_cache_reuse` (ADR 0014 invariant 5).
 
 ---
 
 ## OOS-004 — ADR 0012 Level 3 (feedback_mixture_posterior) and ADR 0013 are not unified
 
-**Status:** open  
+**Status:** mitigated  
 **Severity:** low  
 **ADR:** [0012](adr/0012-bayesian-weight-inference-ethical-mixture-scorer.md), [0013](adr/0013-hierarchical-context-weight-inference.md)  
-**Detected:** 2026-04-13  
+**Detected:** 2026-04-13 · **Mitigated:** 2026-04-13  
 
-**Description:** Two independent per-context mechanisms exist:
-1. ADR 0012 Level 3 (`KERNEL_BAYESIAN_CONTEXT_LEVEL3`) — numpy + mixture_ranking path,
-   per-context sequential α updates, bucket classifier.
-2. ADR 0013 (`KERNEL_HIERARCHICAL_FEEDBACK`) — explicit-triples path, τ-blended
-   global+local posteriors, canonical context taxonomy.
+**Description:** Two independent per-context mechanisms existed with no defined priority
+when both were enabled simultaneously.
 
-They can be enabled simultaneously (neither blocks the other) but may interfere —
-the last one to run overwrites `self.bayesian.hypothesis_weights`.  There is no
-defined priority rule.
+**Mitigation (2026-04-13):** A precedence warning is now emitted at `WARNING` level in
+`kernel.py` when `KERNEL_HIERARCHICAL_FEEDBACK` is active alongside
+`KERNEL_BAYESIAN_FEEDBACK` or `KERNEL_BAYESIAN_CONTEXT_LEVEL3`.  The canonical precedence
+is documented as: **HIERARCHICAL > CONTEXT_LEVEL3 > BAYESIAN_FEEDBACK**.  The warning
+message includes `(OOS-004)` for traceability.  Verified by
+`test_precedence_warning_logged`.
 
-**Resolution path:** Define a clear precedence order in `kernel.py` and document it in a
-single ADR that supersedes both per-context mechanisms.  Proposed priority:
-`KERNEL_HIERARCHICAL_FEEDBACK` > `KERNEL_BAYESIAN_CONTEXT_LEVEL3` > `KERNEL_BAYESIAN_FEEDBACK`.
-Add a warning when both are enabled simultaneously.
+**Remaining gap:** The two mechanisms are still separate code paths; unification into a
+single ADR is deferred (no blocking issue in current usage).
 
 ---
 
 ## OOS-005 — Offline mode has no formal ADR
 
-**Status:** open  
+**Status:** resolved  
 **Severity:** low  
-**ADR:** none  
-**Detected:** 2026-04-13  
+**ADR:** [0014](adr/0014-offline-first-kernel-profile.md)  
+**Detected:** 2026-04-13 · **Resolved:** 2026-04-13  
 
-**Description:** The `LLMModule` has a `"local"` mode that uses heuristic string templates
-when no API key or Ollama endpoint is available.  This mode is the de-facto offline path
-for the ethical inference stack.  However:
-- There is no ADR documenting the decision and its constraints.
-- `LLM_MODE=local` is not systematically tested for all perception/narrative paths.
-- The interaction between offline mode and Bayesian weight inference (which is fully
-  offline / numpy-only) is not documented.
+**Description:** No formal ADR documented the offline capability boundary.
 
-**Resolution path:** Create ADR 0014 — "Offline-first kernel profile: local LLM mode and
-pure-Python inference stack".  Document which kernel features are available in offline
-mode, which degrade gracefully, and which require an LLM backend.  Add at least one
-integration test that verifies the Bayesian + ethical scoring stack works end-to-end
-with `LLM_MODE=local`.
+**Resolution:** ADR 0014 — "Offline-first kernel profile" — formalises the capability
+taxonomy, defines the five contractual invariants, and is backed by
+`tests/test_kernel_offline_bayesian_integration.py` (6 tests covering ADR 0014 invariants
+1–5, BMA offline, and the OOS-004 precedence warning).
 
 ---
 
@@ -156,5 +147,19 @@ the `mixture_ranking` path (numpy + full scorer) when explicit triples are unava
 with a warning about the performance cost.
 
 ---
+
+---
+
+## Changelog
+
+| Date | ID | Change |
+|------|----|--------|
+| 2026-04-13 | OOS-001 | Registered (accepted — heuristic τ is deliberate) |
+| 2026-04-13 | OOS-002 | Registered open; mitigated same day via mixture_ranking fallback |
+| 2026-04-13 | OOS-003 | Registered open; resolved same day via mtime cache |
+| 2026-04-13 | OOS-004 | Registered open; mitigated same day via precedence warning |
+| 2026-04-13 | OOS-005 | Registered open; resolved same day via ADR 0014 |
+| 2026-04-13 | OOS-006 | Registered (accepted — schema migration, not a defect) |
+| 2026-04-13 | OOS-007 | Registered open (LOO calibration explicit-triples limitation) |
 
 *Last updated: 2026-04-13 — Ethos Kernel contributors.*

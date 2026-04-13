@@ -335,6 +335,10 @@ class EthicalKernel:
         self.event_bus: KernelEventBus | None = None
         if kernel_event_bus_enabled():
             self.event_bus = KernelEventBus()
+        # OOS-003 — HierarchicalUpdater cache (avoids rebuilding on every tick)
+        self._hier_updater_cache: Any | None = None  # HierarchicalUpdater | None
+        self._hier_cache_fb_path: str = ""
+        self._hier_cache_mtime: float = -1.0
 
     def subscribe_kernel_event(self, event: str, handler: Callable[[dict[str, Any]], None]) -> None:
         """Register a synchronous subscriber (no-op if ``KERNEL_EVENT_BUS`` is off). See ADR 0006."""
@@ -481,6 +485,29 @@ class EthicalKernel:
         self.bayesian.reset_mixture_weights()
 
         fb_path = os.environ.get("KERNEL_FEEDBACK_PATH", "").strip()
+
+        # OOS-004 — Precedence rule: HIERARCHICAL > CONTEXT_LEVEL3 > BAYESIAN_FEEDBACK.
+        # When KERNEL_HIERARCHICAL_FEEDBACK is on together with the ADR-0012 flags, the
+        # hierarchical block (which runs last) will overwrite hypothesis_weights.  Warn once
+        # per process() call so operators notice the conflict in logs.
+        _hier_on = _kernel_env_truthy("KERNEL_HIERARCHICAL_FEEDBACK")
+        _l2_on   = _kernel_env_truthy("KERNEL_BAYESIAN_FEEDBACK")
+        _l3_on   = _kernel_env_truthy("KERNEL_BAYESIAN_CONTEXT_LEVEL3")
+        if _hier_on and (_l2_on or _l3_on):
+            import logging as _plog
+            _plog.getLogger(__name__).warning(
+                "Precedence conflict: KERNEL_HIERARCHICAL_FEEDBACK is ON together with "
+                "%s. Effective precedence: HIERARCHICAL > CONTEXT_LEVEL3 > BAYESIAN_FEEDBACK. "
+                "The hierarchical updater will overwrite hypothesis_weights last. "
+                "Disable the lower-priority flags to suppress this warning. (OOS-004)",
+                " + ".join(
+                    f for f, on in [
+                        ("KERNEL_BAYESIAN_CONTEXT_LEVEL3", _l3_on),
+                        ("KERNEL_BAYESIAN_FEEDBACK", _l2_on),
+                    ] if on
+                ),
+            )
+
         if _kernel_env_truthy("KERNEL_BAYESIAN_FEEDBACK") and fb_path:
             p = Path(fb_path)
             if p.is_file():
@@ -509,63 +536,118 @@ class EthicalKernel:
                     mixture_context_key = str(_fb_meta["active_context_key"])
 
         # ADR 0013 — Hierarchical context-dependent weight inference (Level 3 full)
-        # Runs only when KERNEL_HIERARCHICAL_FEEDBACK=1 and a feedback file is set.
-        # Supersedes the KERNEL_BAYESIAN_FEEDBACK posterior for hypothesis_weights when active.
-        if _kernel_env_truthy("KERNEL_HIERARCHICAL_FEEDBACK") and fb_path:
+        # Precedence: HIERARCHICAL > CONTEXT_LEVEL3 > BAYESIAN_FEEDBACK (OOS-004).
+        # OOS-003: updater is cached per feedback-file path + mtime to avoid rebuilding each tick.
+        # OOS-002: when scenarios lack hypothesis_override, falls back to the mixture_ranking path
+        #          (load_and_apply_feedback with KERNEL_BAYESIAN_CONTEXT_LEVEL3 semantics) so
+        #          hierarchical context-dependent learning also works for non-explicit-triples scenarios.
+        if _hier_on and fb_path:
             p_hier = Path(fb_path)
             if p_hier.is_file():
                 try:
                     from .modules.feedback_mixture_updater import (
-                        FeedbackUpdater,
                         build_scenario_candidates_map,
                         feedback_items_from_records,
                     )
                     from .modules.feedback_mixture_posterior import (
                         load_feedback_records,
+                        load_and_apply_feedback,
                     )
                     from .modules.hierarchical_updater import (
                         HierarchicalUpdater,
                         canonical_context_type,
                     )
 
+                    _hier_seed = int(os.environ.get("KERNEL_FEEDBACK_SEED", "42"))
+                    _hier_strength = float(
+                        os.environ.get("KERNEL_FEEDBACK_UPDATE_STRENGTH", "3.0")
+                    )
+                    _hier_n = max(
+                        1000,
+                        int(os.environ.get("KERNEL_FEEDBACK_MC_SAMPLES", "20000")),
+                    )
+
+                    # OOS-003: rebuild cache only when file path or mtime changes
+                    _hier_mtime = p_hier.stat().st_mtime
+                    _cache_stale = (
+                        self._hier_updater_cache is None
+                        or self._hier_cache_fb_path != fb_path
+                        or abs(_hier_mtime - self._hier_cache_mtime) > 1e-6
+                    )
+
                     _hier_records = load_feedback_records(p_hier)
-                    if _hier_records:
+
+                    if _hier_records and _cache_stale:
                         _hier_items = feedback_items_from_records(_hier_records)
                         _hier_sids = sorted({r.scenario_id for r in _hier_records})
                         _hier_cmap = build_scenario_candidates_map(_hier_sids)
+
                         if _hier_cmap is not None:
-                            _hier_seed = int(os.environ.get("KERNEL_FEEDBACK_SEED", "42"))
-                            _hier_strength = float(
-                                os.environ.get("KERNEL_FEEDBACK_UPDATE_STRENGTH", "3.0")
-                            )
-                            _hier_n = max(
-                                1000,
-                                int(os.environ.get("KERNEL_FEEDBACK_MC_SAMPLES", "20000")),
-                            )
-                            _hier_updater = HierarchicalUpdater(
+                            # Explicit-triples path (scenarios with hypothesis_override)
+                            _new_updater = HierarchicalUpdater(
                                 update_strength=_hier_strength,
                                 n_samples=_hier_n,
                                 seed=_hier_seed,
                             )
-                            _hier_result = _hier_updater.ingest_feedback(
-                                _hier_items, _hier_cmap
+                            _new_updater.ingest_feedback(_hier_items, _hier_cmap)
+                            self._hier_updater_cache = _new_updater
+                        else:
+                            # OOS-002 fallback: mixture_ranking path via load_and_apply_feedback.
+                            # Store a lightweight sentinel so the cache is marked valid; actual
+                            # alpha is computed per-tick below using the sentinel flag.
+                            self._hier_updater_cache = "mixture_ranking_fallback"
+
+                        self._hier_cache_fb_path = fb_path
+                        self._hier_cache_mtime = _hier_mtime
+
+                    _raw_ctx = context if context else None
+                    _hier_consistency: str | None = None
+
+                    if isinstance(self._hier_updater_cache, HierarchicalUpdater):
+                        # Explicit-triples: use cached updater for context-aware alpha
+                        _hier_alpha = self._hier_updater_cache.active_alpha_for_context(_raw_ctx)
+                        _ha = np.asarray(_hier_alpha, dtype=np.float64).reshape(3)
+                        _hs = float(np.sum(_ha))
+                        if _hs > 0:
+                            self.bayesian.hypothesis_weights = _ha / _hs
+                            mixture_posterior_alpha = (
+                                round(float(_ha[0]), 6),
+                                round(float(_ha[1]), 6),
+                                round(float(_ha[2]), 6),
                             )
-                            # Apply context-aware alpha for this tick's context
-                            _raw_ctx = context if context else None
-                            _hier_alpha = _hier_updater.active_alpha_for_context(_raw_ctx)
-                            _ha = np.asarray(_hier_alpha, dtype=np.float64).reshape(3)
-                            _hs = float(np.sum(_ha))
-                            if _hs > 0:
-                                self.bayesian.hypothesis_weights = _ha / _hs
-                                mixture_posterior_alpha = (
-                                    round(float(_ha[0]), 6),
-                                    round(float(_ha[1]), 6),
-                                    round(float(_ha[2]), 6),
-                                )
-                                dirichlet_alpha_for_bma = _ha
-                            feedback_consistency = _hier_result.consistency
-                            hierarchical_context_key = canonical_context_type(_raw_ctx)
-                except Exception:  # noqa: BLE001 — degraded gracefully, log below
+                            dirichlet_alpha_for_bma = _ha
+                        # Derive consistency from cached global updater snapshot
+                        _g_alpha = self._hier_updater_cache._global.alpha
+                        _hier_consistency = "compatible" if any(a > 3.0 for a in _g_alpha) else "insufficient"
+                        hierarchical_context_key = canonical_context_type(_raw_ctx)
+
+                    elif self._hier_updater_cache == "mixture_ranking_fallback" and _hier_records:
+                        # OOS-002: mixture_ranking fallback — use load_and_apply_feedback with
+                        # the current tick context so per-context Level-3 semantics apply.
+                        _rng_hier = np.random.default_rng(_hier_seed)
+                        _tick_ctx: tuple[str, str, dict | None] | None = (_raw_ctx or "", context, signals)
+                        _mr_alpha, _mr_consistency, _mr_meta = load_and_apply_feedback(
+                            p_hier, rng=_rng_hier, tick_context=_tick_ctx
+                        )
+                        _ha = np.asarray(_mr_alpha, dtype=np.float64).reshape(3)
+                        _hs = float(np.sum(_ha))
+                        if _hs > 0:
+                            self.bayesian.hypothesis_weights = _ha / _hs
+                            mixture_posterior_alpha = (
+                                round(float(_ha[0]), 6),
+                                round(float(_ha[1]), 6),
+                                round(float(_ha[2]), 6),
+                            )
+                            dirichlet_alpha_for_bma = _ha
+                        _hier_consistency = _mr_consistency
+                        if isinstance(_mr_meta, dict) and _mr_meta.get("active_context_key"):
+                            mixture_context_key = str(_mr_meta["active_context_key"])
+                        hierarchical_context_key = canonical_context_type(_raw_ctx)
+
+                    if _hier_consistency is not None:
+                        feedback_consistency = _hier_consistency
+
+                except Exception:  # noqa: BLE001 — degrade gracefully
                     import logging as _logging
                     _logging.getLogger(__name__).warning(
                         "HierarchicalUpdater failed; falling back to existing weights.",
