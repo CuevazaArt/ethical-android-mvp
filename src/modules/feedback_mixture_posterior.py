@@ -14,12 +14,20 @@ Env:
 - ``KERNEL_FEEDBACK_PATH`` — JSON file (list of records).
 - ``KERNEL_FEEDBACK_UPDATE_STRENGTH`` — default ``3.0``.
 - ``KERNEL_FEEDBACK_MC_SAMPLES`` — inner MC size per feedback item (default 20000).
+
+**Level 3 (context-dependent posteriors, mixture_ranking path only):**
+
+- ``KERNEL_BAYESIAN_CONTEXT_LEVEL3`` — enable when feedback JSON rows include ``context_type``.
+- ``KERNEL_ACTIVE_CONTEXT_TYPE`` — optional override for the current tick’s bucket key.
+- ``KERNEL_CONTEXT_SCENARIO_MAP_JSON`` — optional ``{"1":"type_a","2":"type_b"}`` for ``[SIM n]`` in scenario text.
+- ``KERNEL_CONTEXT_KEYWORDS_JSON`` — optional ``{"type_a":["word"],...}`` substring match on scenario+context.
 """
 
 from __future__ import annotations
 
 import json
 import os
+import re
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
@@ -28,7 +36,6 @@ import numpy as np
 
 from ..sandbox.simplex_mixture_probe import mixture_ranking
 from ..simulations.runner import ALL_SIMULATIONS
-
 from .bayesian_mixture_averaging import parse_bma_alpha_from_env
 from .feedback_mixture_updater import (
     FeedbackUpdater,
@@ -62,6 +69,145 @@ def feedback_update_strength() -> float:
 
 def feedback_mc_samples() -> int:
     return max(1000, int(os.environ.get("KERNEL_FEEDBACK_MC_SAMPLES", "20000")))
+
+
+def context_level3_enabled() -> bool:
+    """ADR 0012 Level 3 — per-``context_type`` Dirichlet posteriors (mixture_ranking path)."""
+    return os.environ.get("KERNEL_BAYESIAN_CONTEXT_LEVEL3", "").strip().lower() in (
+        "1",
+        "true",
+        "yes",
+        "on",
+    )
+
+
+def _feedback_has_context_types(records: list[FeedbackRecord]) -> bool:
+    return any((r.context_type or "").strip() for r in records)
+
+
+def classify_mixture_context(
+    scenario: str,
+    context: str,
+    signals: dict[str, Any] | None,
+) -> str:
+    """
+    Map the current tick to a string key aligned with ``FeedbackRecord.context_type``.
+
+    Priority: ``KERNEL_ACTIVE_CONTEXT_TYPE`` → ``KERNEL_CONTEXT_SCENARIO_MAP_JSON`` (``[SIM n]`` in
+    ``scenario``) → ``KERNEL_CONTEXT_KEYWORDS_JSON`` substring match on ``scenario`` + ``context``
+    → ``default``.
+    """
+    override = os.environ.get("KERNEL_ACTIVE_CONTEXT_TYPE", "").strip()
+    if override:
+        return override
+    m = re.search(r"\[SIM\s+(\d+)\]", scenario, re.IGNORECASE)
+    if m:
+        sid = m.group(1)
+        raw = os.environ.get("KERNEL_CONTEXT_SCENARIO_MAP_JSON", "").strip()
+        if raw:
+            try:
+                mp = json.loads(raw)
+            except json.JSONDecodeError:
+                mp = {}
+            if isinstance(mp, dict) and sid in mp:
+                return str(mp[sid])
+    raw_kw = os.environ.get("KERNEL_CONTEXT_KEYWORDS_JSON", "").strip()
+    if raw_kw:
+        try:
+            kw_map = json.loads(raw_kw)
+        except json.JSONDecodeError:
+            kw_map = {}
+        blob = f"{scenario} {context}".lower()
+        if isinstance(kw_map, dict):
+            for ctype in sorted(kw_map.keys()):
+                words = kw_map[ctype]
+                if not isinstance(words, list):
+                    continue
+                for w in words:
+                    if isinstance(w, str) and w.lower() in blob:
+                        return str(ctype)
+    return "default"
+
+
+def pick_active_alpha_for_context(
+    posteriors: dict[str, np.ndarray],
+    active_key: str,
+) -> np.ndarray:
+    """Choose Dirichlet α for this tick; fall back to ``_global``, then mean of buckets."""
+    if active_key in posteriors:
+        return np.asarray(posteriors[active_key], dtype=np.float64).copy()
+    if "_global" in posteriors:
+        return np.asarray(posteriors["_global"], dtype=np.float64).copy()
+    if not posteriors:
+        return parse_bma_alpha_from_env()
+    return np.mean(np.stack([np.asarray(v, dtype=np.float64) for v in posteriors.values()], axis=0), axis=0)
+
+
+def _load_and_apply_feedback_level3_mixture(
+    records: list[FeedbackRecord],
+    *,
+    rng: np.random.Generator,
+    tick_context: tuple[str, str, dict[str, Any] | None] | None,
+) -> tuple[np.ndarray, str, dict[str, Any]]:
+    """
+    Independent sequential α update per ``context_type`` bucket (from ``_global`` when missing).
+
+    When ``tick_context`` is None (e.g. CLI), the active α is the **elementwise mean** of bucket
+    posteriors (``active_context_key`` = ``blended_mean``).
+    """
+    alpha0 = parse_bma_alpha_from_env()
+    n_inner = feedback_mc_samples()
+    strength = feedback_update_strength()
+
+    buckets: dict[str, list[FeedbackRecord]] = {}
+    for r in records:
+        key = (r.context_type or "").strip() or "_global"
+        buckets.setdefault(key, []).append(r)
+
+    posteriors: dict[str, np.ndarray] = {}
+    combined: dict[str, Any] = {
+        "updater": "mixture_ranking_context_level3",
+        "n_feedback_items": len(records),
+        "per_bucket": [],
+    }
+
+    for bkey in sorted(buckets.keys()):
+        recs = buckets[bkey]
+        alpha_new, status, meta = sequential_alpha_update(
+            alpha0.copy(),
+            recs,
+            n_inner=n_inner,
+            strength=strength,
+            rng=rng,
+        )
+        posteriors[bkey] = alpha_new
+        combined["per_bucket"].append({"bucket": bkey, "status": status, "detail": meta})
+        if status == "contradictory":
+            combined["context_posteriors"] = {k: v.tolist() for k, v in posteriors.items()}
+            combined["active_context_key"] = bkey
+            return alpha_new, "contradictory", combined
+
+    if tick_context is None:
+        alpha_use = np.mean(
+            np.stack([np.asarray(v, dtype=np.float64) for v in posteriors.values()], axis=0),
+            axis=0,
+        )
+        active_key = "blended_mean"
+    else:
+        scenario, ctx, sig = tick_context
+        active_key = classify_mixture_context(scenario, ctx, sig)
+        alpha_use = pick_active_alpha_for_context(posteriors, active_key)
+
+    combined["context_posteriors"] = {k: v.tolist() for k, v in posteriors.items()}
+    combined["active_context_key"] = active_key
+
+    j_rate, _ = joint_satisfaction_monte_carlo(
+        alpha_use, records, n_samples=min(50000, n_inner * 2), rng=rng
+    )
+    combined["joint_satisfaction_rate"] = round(float(j_rate), 6)
+    if j_rate < 0.01:
+        combined["note"] = "Low joint satisfaction under posterior; preferences may be jointly tight."
+    return alpha_use, "compatible", combined
 
 
 def load_feedback_records(path: Path) -> list[FeedbackRecord]:
@@ -217,6 +363,7 @@ def load_and_apply_feedback(
     path: Path,
     *,
     rng: np.random.Generator,
+    tick_context: tuple[str, str, dict[str, Any] | None] | None = None,
 ) -> tuple[np.ndarray, str, dict[str, Any]]:
     """
     Load feedback JSON, start from ``parse_bma_alpha_from_env()`` as prior, run sequential
@@ -225,6 +372,12 @@ def load_and_apply_feedback(
     If every referenced scenario has ``hypothesis_override`` on all candidates (e.g. 17–19),
     uses :class:`FeedbackUpdater` (pure Python, explicit triples). Otherwise uses numpy +
     ``mixture_ranking`` (full scorer path).
+
+    **Level 3 (ADR 0012):** When ``KERNEL_BAYESIAN_CONTEXT_LEVEL3`` is on and at least one
+    feedback row has ``context_type``, the mixture_ranking path uses **independent** sequential
+    updates per bucket and selects α for this tick via :func:`classify_mixture_context` when
+    ``tick_context`` is ``(scenario, context, signals)``. Explicit-triples feedback still uses a
+    **single** global posterior (see ``meta["level3_note"]``).
 
     Returns:
         ``(posterior_alpha, consistency, details)`` where consistency is
@@ -237,7 +390,17 @@ def load_and_apply_feedback(
 
     sids = sorted({r.scenario_id for r in records})
     if build_scenario_candidates_map(sids) is not None:
-        return _load_and_apply_feedback_explicit_triples(records, rng=rng)
+        a, c, m = _load_and_apply_feedback_explicit_triples(records, rng=rng)
+        if context_level3_enabled() and _feedback_has_context_types(records):
+            m["level3"] = "explicit_triples_global_only"
+            m["level3_note"] = (
+                "KERNEL_BAYESIAN_CONTEXT_LEVEL3 is not applied per context when explicit "
+                "hypothesis_override triples are used; posterior is global."
+            )
+        return a, c, m
+
+    if context_level3_enabled() and _feedback_has_context_types(records):
+        return _load_and_apply_feedback_level3_mixture(records, rng=rng, tick_context=tick_context)
 
     alpha0 = parse_bma_alpha_from_env()
     n_inner = feedback_mc_samples()

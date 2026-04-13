@@ -145,19 +145,21 @@ This is not an exact conjugate update (the likelihood is an indicator over a con
 
 **What does NOT change:** The scorer internals. The posterior `α` feeds back into Level 1's BMA prior when feedback runs first — the two levels compose naturally. The scorer itself remains a linear mixture.
 
-### Level 3 — Context-dependent weight inference (future, not specified here)
+### Level 3 — Context-dependent weight inference (implemented, mixture_ranking path)
 
-**Direction only — not a current decision.**
+Level 2 learns a **global** posterior over weights from pooled feedback. Level 3 learns **separate** Dirichlet posteriors per `context_type` bucket (from feedback JSON), then **selects** which α to use on each tick via a lightweight classifier.
 
-Level 2 learns a **global** posterior over weights. Level 3 would learn **context-dependent** posteriors: different scenario types (resource allocation, promise-keeping, confrontation) may warrant different ethical weight profiles.
+**Implemented behavior (``src/modules/feedback_mixture_posterior.py``):**
 
-This requires:
+- Feedback rows may include optional string ``context_type``. Rows without it go to bucket ``_global``.
+- For each bucket, the same **sequential α update** as Level 2 runs from the same prior ``parse_bma_alpha_from_env()``, **independently** (no cross-bucket coupling in the update).
+- **Classifier** (priority): ``KERNEL_ACTIVE_CONTEXT_TYPE`` → ``KERNEL_CONTEXT_SCENARIO_MAP_JSON`` keyed by ``[SIM n]`` in the scenario string → ``KERNEL_CONTEXT_KEYWORDS_JSON`` substring map on scenario+context → default key ``default``.
+- **Selection**: if the active key matches a bucket, use that posterior α; else ``_global`` if present; else elementwise **mean** of bucket posteriors. When no tick context is passed (e.g. CLI), the code uses the **mean** of bucket posteriors (`active_context_key` = ``blended_mean``).
+- **Explicit-triples feedback** (scenarios with full ``hypothesis_override`` on all candidates): still uses the **global** ``FeedbackUpdater`` path; Level 3 is **not** applied per context (see ``meta["level3_note"]``).
 
-- A **context classifier** mapping scenarios to types
-- A **hierarchical Dirichlet** model: global α shared across types, per-type α_k deviations
-- **More feedback data** than Level 2 (at least 5–10 items per scenario type)
+**Env:** ``KERNEL_BAYESIAN_CONTEXT_LEVEL3`` plus the classifier vars above. **Kernel:** ``KernelDecision.mixture_context_key`` records which bucket was used when feedback ran.
 
-This is architecturally significant and should be a separate ADR when the time comes. The current ADR only establishes the interface (`context_type` field in feedback records) to avoid foreclosing the option.
+**Data:** Richer per-type learning benefits from **several** feedback items per ``context_type``; sparse data still runs but posteriors may be noisy.
 
 ---
 
@@ -169,7 +171,7 @@ This is architecturally significant and should be a separate ADR when the time c
 | **Phase B** | Level 2 (feedback) | Done | Phase A + feedback JSON + `feedback_mixture_posterior.py` / `feedback_mixture_updater.py` |
 | **Phase C** | Contradiction detection | Done | Phase B (`feedback_consistency`, joint MC metadata) |
 | **Phase D** | Integration with batch study drivers (e.g. `--bma` in `run_mass_kernel_study.py`) | Optional / future | Phase A |
-| **Phase E** | Level 3 design | Separate ADR | Phase B deployed + sufficient feedback data |
+| **Phase E** | Level 3 (context posteriors + classifier) | Done (mixture_ranking) | Phase B + ``context_type`` in feedback JSON |
 
 ---
 
@@ -217,7 +219,8 @@ This is architecturally significant and should be a separate ADR when the time c
 | Explicit-triples updater | `src/modules/feedback_mixture_updater.py` (`FeedbackUpdater`) |
 | Kernel integration | `src/kernel.py` (`KernelDecision`, `EthicalKernel.process`) |
 | Offline posterior (no full kernel tick) | `scripts/run_feedback_posterior.py` |
-| Tests | `tests/test_bma_mixture_adr0012.py`, `tests/test_feedback_mixture_updater.py` |
+| Level 3 (context buckets + classifier) | `feedback_mixture_posterior.py` (`classify_mixture_context`, `load_and_apply_feedback` + `tick_context`) |
+| Tests | `tests/test_bma_mixture_adr0012.py`, `tests/test_feedback_mixture_updater.py`, `tests/test_context_mixture_level3.py` |
 
 ---
 

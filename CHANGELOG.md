@@ -4,6 +4,12 @@ All notable changes to this project are summarized here. For narrative context a
 
 **Note:** Older sections below may still **link** to paths that were later removed (for example `experiments/million_sim/`, `docs/multimedia/`, root `dashboard.html`, `landing/`). Those links are **historical**; recover files from git history or backup branches if you need them.
 
+## ADR 0012 Level 3 — context-dependent mixture posteriors — April 2026
+
+- **`src/modules/feedback_mixture_posterior.py`:** when ``KERNEL_BAYESIAN_CONTEXT_LEVEL3`` is on and feedback JSON includes ``context_type``, independent sequential Dirichlet updates per bucket; ``load_and_apply_feedback(..., tick_context=(scenario, context, signals))`` selects α via override / scenario-id map / keyword map. Explicit-triples feedback stays global-only (meta note).
+- **`src/kernel.py`:** passes tick context when Level 3 is enabled; **`KernelDecision.mixture_context_key`** records the active bucket.
+- **Docs / tests:** [ADR 0012](docs/adr/0012-bayesian-weight-inference-ethical-mixture-scorer.md); [`tests/test_context_mixture_level3.py`](tests/test_context_mixture_level3.py).
+
 ## Trim non-kernel root artifacts — April 2026
 
 - **Removed** from the repository root: **`dashboard.html`** (static browser UI, not imported by Python), **`robots.txt`**, and **`ai.txt`** (web/SEO conventions, not runtime). Recover from git history if needed.

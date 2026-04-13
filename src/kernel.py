@@ -172,6 +172,7 @@ class KernelDecision:
     bma_n_samples: int | None = None
     mixture_posterior_alpha: tuple[float, float, float] | None = None
     feedback_consistency: str | None = None
+    mixture_context_key: str | None = None  # ADR 0012 Level 3 — which context bucket α came from
 
 
 @dataclass
@@ -459,6 +460,7 @@ class EthicalKernel:
                 bma_n_samples=None,
                 mixture_posterior_alpha=None,
                 feedback_consistency=None,
+                mixture_context_key=None,
             )
             self._emit_kernel_decision(d, context=context)
             _emit_process_observability(d, t0)
@@ -470,6 +472,7 @@ class EthicalKernel:
         # ═══ STEP 6: Impact scoring — fixed mixture (BayesianEngine; optional episodic nudge) ═══
         mixture_posterior_alpha: tuple[float, float, float] | None = None
         feedback_consistency: str | None = None
+        mixture_context_key: str | None = None
         dirichlet_alpha_for_bma: np.ndarray | None = None
 
         self.bayesian.reset_mixture_weights()
@@ -478,14 +481,29 @@ class EthicalKernel:
         if _kernel_env_truthy("KERNEL_BAYESIAN_FEEDBACK") and fb_path:
             p = Path(fb_path)
             if p.is_file():
-                from .modules.feedback_mixture_posterior import load_and_apply_feedback
+                from .modules.feedback_mixture_posterior import (
+                    context_level3_enabled,
+                    load_and_apply_feedback,
+                )
 
                 rng_fb = np.random.default_rng(int(os.environ.get("KERNEL_FEEDBACK_SEED", "42")))
-                alpha_vec, feedback_consistency, _fb_meta = load_and_apply_feedback(p, rng=rng_fb)
-                mixture_posterior_alpha = tuple(round(float(x), 6) for x in alpha_vec)
+                tick_context: tuple[str, str, dict | None] | None = None
+                if context_level3_enabled():
+                    tick_context = (scenario, context, signals)
+                alpha_vec, feedback_consistency, _fb_meta = load_and_apply_feedback(
+                    p, rng=rng_fb, tick_context=tick_context
+                )
+                _av = np.asarray(alpha_vec, dtype=np.float64).reshape(3)
+                mixture_posterior_alpha = (
+                    round(float(_av[0]), 6),
+                    round(float(_av[1]), 6),
+                    round(float(_av[2]), 6),
+                )
                 sw = float(np.sum(alpha_vec))
                 self.bayesian.hypothesis_weights = alpha_vec / sw
                 dirichlet_alpha_for_bma = alpha_vec
+                if isinstance(_fb_meta, dict) and _fb_meta.get("active_context_key") is not None:
+                    mixture_context_key = str(_fb_meta["active_context_key"])
 
         if _kernel_env_truthy("KERNEL_BAYESIAN_EMPIRICAL_WEIGHTS"):
             self.bayesian.refresh_weights_from_episodic_memory(self.memory, context)
@@ -700,6 +718,7 @@ class EthicalKernel:
             bma_n_samples=bma_n_s,
             mixture_posterior_alpha=mixture_posterior_alpha,
             feedback_consistency=feedback_consistency,
+            mixture_context_key=mixture_context_key,
         )
         self._emit_kernel_decision(d, context=context)
         _emit_process_observability(d, t0)
@@ -761,6 +780,8 @@ class EthicalKernel:
                 lines.append(f"  Mixture feedback consistency: {d.feedback_consistency}")
             if d.mixture_posterior_alpha is not None:
                 lines.append(f"  Posterior Dirichlet α (mixture): {d.mixture_posterior_alpha}")
+            if d.mixture_context_key:
+                lines.append(f"  Mixture context bucket (ADR 0012 L3): {d.mixture_context_key}")
             if d.bma_win_probabilities:
                 lines.append(
                     f"  BMA win probabilities (α={d.bma_dirichlet_alpha}, N={d.bma_n_samples}): "
@@ -1420,6 +1441,7 @@ class EthicalKernel:
                 bma_n_samples=None,
                 mixture_posterior_alpha=None,
                 feedback_consistency=None,
+                mixture_context_key=None,
             )
             msg = (
                 "I can't continue this line of conversation: it conflicts with non-negotiable "
