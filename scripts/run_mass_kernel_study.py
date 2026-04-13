@@ -76,6 +76,9 @@ def _worker(i: int) -> dict[str, Any]:
         pole_weight_low=_G["pole_weight_low"],
         pole_weight_high=_G["pole_weight_high"],
         mixture_dirichlet_alpha=_G["mixture_dirichlet_alpha"],
+        bma_enabled=_G["bma_enabled"],
+        bma_dirichlet_alpha=_G["bma_dirichlet_alpha"],
+        bma_n_samples=_G["bma_n_samples"],
     )
     row["schema_version"] = RECORD_SCHEMA_VERSION
     row["run_label"] = _G.get("run_label") or ""
@@ -195,6 +198,11 @@ def _csv_fieldnames() -> list[str]:
         "decision_mode",
         "reference_action",
         "agree_reference",
+        # ADR 0012 Phase D — BMA win probabilities
+        "bma_enabled",
+        "bma_win_prob_winner",
+        "bma_win_prob_max",
+        "bma_winner_prob_at_final_action",
     ]
 
 
@@ -302,6 +310,26 @@ def main() -> int:
         help="Symmetric Dirichlet concentration for mixture weights; 1=historical uniform on simplex, "
         "larger values concentrate near (1/3,1/3,1/3).",
     )
+    # ADR 0012 Phase D — BMA win-probability recording
+    p.add_argument(
+        "--bma-enabled",
+        action="store_true",
+        help="Record BMA win probabilities per row (ADR 0012 Level 1). Adds bma_win_prob_* fields.",
+    )
+    p.add_argument(
+        "--bma-alpha",
+        type=float,
+        default=3.0,
+        metavar="ALPHA",
+        help="Symmetric Dirichlet alpha for BMA prior (default 3.0; symmetric → center of simplex).",
+    )
+    p.add_argument(
+        "--bma-samples",
+        type=int,
+        default=5000,
+        metavar="N",
+        help="Monte Carlo draws for BMA win probabilities per simulation (default 5000).",
+    )
     p.add_argument(
         "--i-accept-large-run",
         action="store_true",
@@ -394,6 +422,9 @@ def main() -> int:
         "pole_weight_low": pole_lo,
         "pole_weight_high": pole_hi,
         "mixture_dirichlet_alpha": mix_alpha,
+        "bma_enabled": bool(args.bma_enabled),
+        "bma_dirichlet_alpha": float(args.bma_alpha),
+        "bma_n_samples": max(100, int(args.bma_samples)),
     }
 
     t0 = time.perf_counter()

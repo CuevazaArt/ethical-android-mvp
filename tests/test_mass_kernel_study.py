@@ -61,7 +61,35 @@ def test_run_single_simulation_smoke():
     assert row["sampling_pole_lo"] == 0.05
     assert row["sampling_pole_hi"] == 0.95
     assert row["sampling_mixture_dirichlet_alpha"] == 1.0
-    assert RECORD_SCHEMA_VERSION == 5
+    assert RECORD_SCHEMA_VERSION == 6
+    assert row["bma_enabled"] is False
+    assert row["bma_win_prob_winner"] is None
+    assert row["bma_win_prob_max"] is None
+
+
+def test_run_single_simulation_bma_smoke():
+    """Phase D (ADR 0012): BMA fields populated when bma_enabled=True."""
+    refs = load_reference_labels(_FIXTURE)
+    tiers = load_tier_labels(_FIXTURE)
+    row = run_single_simulation(
+        0,
+        base_seed=7,
+        refs=refs,
+        tiers=tiers,
+        stratify_scenario=False,
+        scenario_id_override=1,
+        n_total=10,
+        bma_enabled=True,
+        bma_dirichlet_alpha=3.0,
+        bma_n_samples=200,
+    )
+    assert row["bma_enabled"] is True
+    assert isinstance(row["bma_win_prob_winner"], str)
+    assert isinstance(row["bma_win_prob_max"], float)
+    assert 0.0 <= row["bma_win_prob_max"] <= 1.0
+    assert isinstance(row["bma_winner_prob_at_final_action"], float)
+    # bma_win_prob_winner must be the action with highest win probability
+    assert row["bma_win_prob_max"] >= row["bma_winner_prob_at_final_action"]
 
 
 def test_tight_pole_sampling_range():
