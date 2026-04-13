@@ -173,6 +173,7 @@ class KernelDecision:
     mixture_posterior_alpha: tuple[float, float, float] | None = None
     feedback_consistency: str | None = None
     mixture_context_key: str | None = None  # ADR 0012 Level 3 — which context bucket α came from
+    hierarchical_context_key: str | None = None  # ADR 0013 — canonical context type used by hierarchical updater
 
 
 @dataclass
@@ -461,6 +462,7 @@ class EthicalKernel:
                 mixture_posterior_alpha=None,
                 feedback_consistency=None,
                 mixture_context_key=None,
+                hierarchical_context_key=None,
             )
             self._emit_kernel_decision(d, context=context)
             _emit_process_observability(d, t0)
@@ -473,6 +475,7 @@ class EthicalKernel:
         mixture_posterior_alpha: tuple[float, float, float] | None = None
         feedback_consistency: str | None = None
         mixture_context_key: str | None = None
+        hierarchical_context_key: str | None = None
         dirichlet_alpha_for_bma: np.ndarray | None = None
 
         self.bayesian.reset_mixture_weights()
@@ -504,6 +507,70 @@ class EthicalKernel:
                 dirichlet_alpha_for_bma = alpha_vec
                 if isinstance(_fb_meta, dict) and _fb_meta.get("active_context_key") is not None:
                     mixture_context_key = str(_fb_meta["active_context_key"])
+
+        # ADR 0013 — Hierarchical context-dependent weight inference (Level 3 full)
+        # Runs only when KERNEL_HIERARCHICAL_FEEDBACK=1 and a feedback file is set.
+        # Supersedes the KERNEL_BAYESIAN_FEEDBACK posterior for hypothesis_weights when active.
+        if _kernel_env_truthy("KERNEL_HIERARCHICAL_FEEDBACK") and fb_path:
+            p_hier = Path(fb_path)
+            if p_hier.is_file():
+                try:
+                    from .modules.feedback_mixture_updater import (
+                        FeedbackUpdater,
+                        build_scenario_candidates_map,
+                        feedback_items_from_records,
+                    )
+                    from .modules.feedback_mixture_posterior import (
+                        load_feedback_records,
+                    )
+                    from .modules.hierarchical_updater import (
+                        HierarchicalUpdater,
+                        canonical_context_type,
+                    )
+
+                    _hier_records = load_feedback_records(p_hier)
+                    if _hier_records:
+                        _hier_items = feedback_items_from_records(_hier_records)
+                        _hier_sids = sorted({r.scenario_id for r in _hier_records})
+                        _hier_cmap = build_scenario_candidates_map(_hier_sids)
+                        if _hier_cmap is not None:
+                            _hier_seed = int(os.environ.get("KERNEL_FEEDBACK_SEED", "42"))
+                            _hier_strength = float(
+                                os.environ.get("KERNEL_FEEDBACK_UPDATE_STRENGTH", "3.0")
+                            )
+                            _hier_n = max(
+                                1000,
+                                int(os.environ.get("KERNEL_FEEDBACK_MC_SAMPLES", "20000")),
+                            )
+                            _hier_updater = HierarchicalUpdater(
+                                update_strength=_hier_strength,
+                                n_samples=_hier_n,
+                                seed=_hier_seed,
+                            )
+                            _hier_result = _hier_updater.ingest_feedback(
+                                _hier_items, _hier_cmap
+                            )
+                            # Apply context-aware alpha for this tick's context
+                            _raw_ctx = context if context else None
+                            _hier_alpha = _hier_updater.active_alpha_for_context(_raw_ctx)
+                            _ha = np.asarray(_hier_alpha, dtype=np.float64).reshape(3)
+                            _hs = float(np.sum(_ha))
+                            if _hs > 0:
+                                self.bayesian.hypothesis_weights = _ha / _hs
+                                mixture_posterior_alpha = (
+                                    round(float(_ha[0]), 6),
+                                    round(float(_ha[1]), 6),
+                                    round(float(_ha[2]), 6),
+                                )
+                                dirichlet_alpha_for_bma = _ha
+                            feedback_consistency = _hier_result.consistency
+                            hierarchical_context_key = canonical_context_type(_raw_ctx)
+                except Exception:  # noqa: BLE001 — degraded gracefully, log below
+                    import logging as _logging
+                    _logging.getLogger(__name__).warning(
+                        "HierarchicalUpdater failed; falling back to existing weights.",
+                        exc_info=True,
+                    )
 
         if _kernel_env_truthy("KERNEL_BAYESIAN_EMPIRICAL_WEIGHTS"):
             self.bayesian.refresh_weights_from_episodic_memory(self.memory, context)
@@ -719,6 +786,7 @@ class EthicalKernel:
             mixture_posterior_alpha=mixture_posterior_alpha,
             feedback_consistency=feedback_consistency,
             mixture_context_key=mixture_context_key,
+            hierarchical_context_key=hierarchical_context_key,
         )
         self._emit_kernel_decision(d, context=context)
         _emit_process_observability(d, t0)
@@ -782,6 +850,8 @@ class EthicalKernel:
                 lines.append(f"  Posterior Dirichlet α (mixture): {d.mixture_posterior_alpha}")
             if d.mixture_context_key:
                 lines.append(f"  Mixture context bucket (ADR 0012 L3): {d.mixture_context_key}")
+            if d.hierarchical_context_key:
+                lines.append(f"  Hierarchical context type (ADR 0013): {d.hierarchical_context_key}")
             if d.bma_win_probabilities:
                 lines.append(
                     f"  BMA win probabilities (α={d.bma_dirichlet_alpha}, N={d.bma_n_samples}): "
@@ -1442,6 +1512,7 @@ class EthicalKernel:
                 mixture_posterior_alpha=None,
                 feedback_consistency=None,
                 mixture_context_key=None,
+                hierarchical_context_key=None,
             )
             msg = (
                 "I can't continue this line of conversation: it conflicts with non-negotiable "

@@ -3,7 +3,7 @@
 **Status:** Proposed  
 **Date:** 2026-04-12  
 **Supersedes:** —  
-**Depends on:** [ADR 0012](0012-bayesian-weight-inference.md) (Levels 1–2)  
+**Depends on:** [ADR 0012](0012-bayesian-weight-inference-ethical-mixture-scorer.md) (Levels 1–2)  
 **Related:** [ADR 0009](0009-ethical-mixture-scorer-naming.md) (naming), [ADR 0010](0010-poles-pre-argmax-modulation.md) (poles)
 
 ---
