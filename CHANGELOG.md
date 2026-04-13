@@ -4,6 +4,12 @@ All notable changes to this project are summarized here. For narrative context a
 
 **Note:** Older sections below may still **link** to paths that were later removed (for example `experiments/million_sim/`, `docs/multimedia/`, root `dashboard.html`, `landing/`). Those links are **historical**; recover files from git history or backup branches if you need them.
 
+## Ethical mixture softmax likelihood (Plackett-Luce + IS) — April 2026
+
+- **New** [`src/modules/ethical_mixture_likelihood.py`](src/modules/ethical_mixture_likelihood.py): softmax choice log-likelihood, joint likelihood, importance-sampling posterior, sequential iterated IS with moment-matched Dirichlet projection, posterior predictive check, empirical-``beta`` grid search.
+- **`FeedbackUpdater`:** optional path when ``KERNEL_FEEDBACK_LIKELIHOOD=softmax_is`` (and related env); default remains heuristic agreeing-sample update.
+- **Docs / tests:** [ADR 0012](docs/adr/0012-bayesian-weight-inference-ethical-mixture-scorer.md); [`tests/test_ethical_mixture_likelihood.py`](tests/test_ethical_mixture_likelihood.py).
+
 ## ADR 0012 Level 3 — context-dependent mixture posteriors — April 2026
 
 - **`src/modules/feedback_mixture_posterior.py`:** when ``KERNEL_BAYESIAN_CONTEXT_LEVEL3`` is on and feedback JSON includes ``context_type``, independent sequential Dirichlet updates per bucket; ``load_and_apply_feedback(..., tick_context=(scenario, context, signals))`` selects α via override / scenario-id map / keyword map. Explicit-triples feedback stays global-only (meta note).

@@ -217,6 +217,7 @@ Level 2 learns a **global** posterior over weights from pooled feedback. Level 3
 | BMA (Level 1) | `src/modules/bayesian_mixture_averaging.py` |
 | Feedback posterior (Level 2) | `src/modules/feedback_mixture_posterior.py` |
 | Explicit-triples updater | `src/modules/feedback_mixture_updater.py` (`FeedbackUpdater`) |
+| Plackett-Luce / IS likelihood (optional) | `src/modules/ethical_mixture_likelihood.py`; enable with `KERNEL_FEEDBACK_LIKELIHOOD=softmax_is` |
 | Kernel integration | `src/kernel.py` (`KernelDecision`, `EthicalKernel.process`) |
 | Offline posterior (no full kernel tick) | `scripts/run_feedback_posterior.py` |
 | Level 3 (context buckets + classifier) | `feedback_mixture_posterior.py` (`classify_mixture_context`, `load_and_apply_feedback` + `tick_context`) |

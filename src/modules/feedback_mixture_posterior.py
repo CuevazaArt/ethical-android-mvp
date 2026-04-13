@@ -342,6 +342,7 @@ def _load_and_apply_feedback_explicit_triples(
     alpha_new = np.asarray(updater.alpha, dtype=np.float64)
     meta: dict[str, Any] = {
         "updater": "explicit_triples",
+        "likelihood": (os.environ.get("KERNEL_FEEDBACK_LIKELIHOOD", "").strip() or "heuristic"),
         "feedback_log": fr.log,
         "n_feedback_items": len(records),
     }
