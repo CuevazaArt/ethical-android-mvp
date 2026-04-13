@@ -5,7 +5,7 @@
 
 **MoSex Macchina Lab** — open **kernel + runtime** for a model of artificial ethical agency: traceable governance hooks (DAO / hub audit), persistence, WebSocket chat, and a large **pytest** suite (CI on Python **3.11 / 3.12**).
 
-**Documentation:** add design notes under [`docs/proposals/README.md`](docs/proposals/README.md). Architecture decisions live in [`docs/adr/`](docs/adr/README.md). Narrative history: [`HISTORY.md`](HISTORY.md) · changes: [`CHANGELOG.md`](CHANGELOG.md). Layout: [`docs/REPOSITORY_LAYOUT.md`](docs/REPOSITORY_LAYOUT.md). Older long-form proposal text may be recovered from **git history** or backup branches (e.g. `backup/main-2026-04-10`).
+**Documentation:** design notes and proposal index: [`docs/proposals/README.md`](docs/proposals/README.md) (e.g. [`PROPOSAL_BAYESIAN_MIXTURE_FEEDBACK.md`](docs/proposals/PROPOSAL_BAYESIAN_MIXTURE_FEEDBACK.md)). Architecture decisions live in [`docs/adr/`](docs/adr/README.md). Narrative history: [`HISTORY.md`](HISTORY.md) · changes: [`CHANGELOG.md`](CHANGELOG.md). Layout: [`docs/REPOSITORY_LAYOUT.md`](docs/REPOSITORY_LAYOUT.md). Older long-form proposal text may be recovered from **git history** or backup branches (e.g. `backup/main-2026-04-10`).
 
 **Kernel / runtime line:** ethical core **v5** through **v12** hub / persistence / advisory features — see `HISTORY.md` for the version story.
 
@@ -83,7 +83,7 @@ Psi Sleep, moral hub, judicial escalation, and other subsystems are documented i
 .
 ├── .github/           # CI, issue templates
 ├── docs/
-│   ├── proposals/     # Design proposals (skeleton — add PROPOSAL_*.md here)
+│   ├── proposals/     # PROPOSAL_*.md + README index
 │   └── adr/           # Architecture decision records
 ├── experiments/       # Optional research harnesses
 ├── src/

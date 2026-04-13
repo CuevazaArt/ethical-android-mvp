@@ -4,6 +4,11 @@ All notable changes to this project are summarized here. For narrative context a
 
 **Note:** Older sections below may still **link** to paths that were later removed (for example `experiments/million_sim/`, `docs/multimedia/`, root `dashboard.html`, `landing/`). Those links are **historical**; recover files from git history or backup branches if you need them.
 
+## Proposals — Bayesian mixture index — April 2026
+
+- **[`docs/proposals/PROPOSAL_BAYESIAN_MIXTURE_FEEDBACK.md`](docs/proposals/PROPOSAL_BAYESIAN_MIXTURE_FEEDBACK.md):** indexes ADR 0012 stack (L1–L3, softmax IS), modules, env vars, tests.
+- **[`docs/proposals/README.md`](docs/proposals/README.md):** table of indexed `PROPOSAL_*.md` files; root [`README.md`](README.md) links to the proposal.
+
 ## Ethical mixture softmax likelihood (Plackett-Luce + IS) — April 2026
 
 - **New** [`src/modules/ethical_mixture_likelihood.py`](src/modules/ethical_mixture_likelihood.py): softmax choice log-likelihood, joint likelihood, importance-sampling posterior, sequential iterated IS with moment-matched Dirichlet projection, posterior predictive check, empirical-``beta`` grid search.
