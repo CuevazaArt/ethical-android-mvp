@@ -145,16 +145,16 @@ The table below is the active starter queue for `cursor-team`.
   - [`test_perception_uncertainty_delib.py`](../../tests/test_perception_uncertainty_delib.py)
   - [`OPERATOR_QUICK_REF.md`](OPERATOR_QUICK_REF.md)
 
-#### SP-P0-03 — Regression suite for valid-but-wrong perception payloads
+#### SP-P0-03 — Regression suite for valid-but-wrong perception payloads *(landed baseline)*
 
 - **Source:** input trust threat model.
+- **Delivered (baseline):** [`tests/test_perception_valid_wrong_payloads.py`](../../tests/test_perception_valid_wrong_payloads.py) locks coherence nudges, context fallback uncertainty, and fail-safe triggers for type-garbage payloads (alongside existing fuzz and cross-check tests).
 - **Track label:** `perception`
 - **Risk class:** `high`
 - **Owner office:** Cursor (shared)
 - **Target branch:** `cursor/perception-valid-wrong-regressions`
 - **Implementation target:**
-  - Expand test fixtures for payloads that are JSON-valid and range-valid but semantically misleading.
-  - Lock expected coherence adjustments and uncertainty behavior.
+  - Expand fixtures as new coherence or distrust rules land; keep parity with `validate_perception_dict` / `perception_from_llm_json`.
 - **Evidence links (start):**
   - [`test_perception_schema_fuzz.py`](../../tests/test_perception_schema_fuzz.py)
   - [`test_perception_cross_check.py`](../../tests/test_perception_cross_check.py)
@@ -192,7 +192,11 @@ The table below is the active starter queue for `cursor-team`.
   - [`PERCEPTION_VALIDATION.md`](PERCEPTION_VALIDATION.md)
   - [`KERNEL_ENV_POLICY.md`](KERNEL_ENV_POLICY.md)
 
-## 9) Ready-to-use task card examples
+## 9) Model-critical backlog (beyond sensors/perception)
+
+When perception P0 items are stable, **prioritize cross-cutting kernel/model risk** in this order (rationale and pointers): [`MODEL_CRITICAL_BACKLOG.md`](MODEL_CRITICAL_BACKLOG.md). It aligns [`CRITIQUE_ROADMAP_ISSUES.md`](CRITIQUE_ROADMAP_ISSUES.md) P0 rows with [`WEAKNESSES_AND_BOTTLENECKS.md`](../WEAKNESSES_AND_BOTTLENECKS.md) §3 (unified LLM degradation) and packaging/governance blockers.
+
+## 10) Ready-to-use task card examples
 
 Use this exact shape in issues/PR descriptions:
 

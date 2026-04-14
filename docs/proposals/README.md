@@ -28,6 +28,7 @@ High-level summary aligned with the code and docs; full chronology is in [`CHANG
 |--------------|------|
 | **Claude team — real Bayesian inference scope** | [CLAUDE_TEAM_PLAYBOOK_REAL_BAYESIAN_INFERENCE.md](CLAUDE_TEAM_PLAYBOOK_REAL_BAYESIAN_INFERENCE.md) |
 | **Cursor team — sensors & perception (mission charter)** | [CURSOR_TEAM_MISSION_SENSORS_PERCEPTION.md](CURSOR_TEAM_MISSION_SENSORS_PERCEPTION.md) |
+| **Model-critical backlog (post–perception P0 sequencing)** | [MODEL_CRITICAL_BACKLOG.md](MODEL_CRITICAL_BACKLOG.md) |
 | **Next ~2 weeks — triage, P0/P1/P2, reproduction checklists** | [PLAN_IMMEDIATE_TWO_WEEKS.md](PLAN_IMMEDIATE_TWO_WEEKS.md) |
 | **Quick wins (two sprints) — strict env, perception breaker, entry points, MalAbs alerts** | [PROPOSAL_QUICK_WINS_TWO_SPRINTS.md](PROPOSAL_QUICK_WINS_TWO_SPRINTS.md) |
 | **Module count vs observable ethics (ablation gap, tiers A–E)** | [MODULE_IMPACT_AND_EMPIRICAL_GAP.md](MODULE_IMPACT_AND_EMPIRICAL_GAP.md) |

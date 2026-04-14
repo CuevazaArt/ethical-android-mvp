@@ -4,6 +4,12 @@ All notable changes to this project are summarized here. For narrative context a
 
 **Note:** Older sections below may still **link** to paths that were later removed (for example `experiments/million_sim/`, `docs/multimedia/`, root `dashboard.html`, `landing/`). Those links are **historical**; recover files from git history or backup branches if you need them.
 
+## Perception — valid-but-wrong payload regressions — April 2026
+
+- **Tests:** [`tests/test_perception_valid_wrong_payloads.py`](tests/test_perception_valid_wrong_payloads.py) locks JSON-valid, in-range payloads that are semantically inconsistent (coherence nudges, context fallback uncertainty, fail-safe prior when many fields default).
+- **Playbook:** [`docs/proposals/CURSOR_TEAM_MISSION_SENSORS_PERCEPTION.md`](docs/proposals/CURSOR_TEAM_MISSION_SENSORS_PERCEPTION.md) marks SP-P0-03 as a landed baseline; adds §9 pointer to cross-cutting model backlog.
+- **Docs:** [`docs/proposals/MODEL_CRITICAL_BACKLOG.md`](docs/proposals/MODEL_CRITICAL_BACKLOG.md) — prioritized model/runtime gaps after perception P0 (input trust, unified LLM degradation, packaging, governance honesty).
+
 ## Collaboration methodology — consolidated guide — April 2026
 
 - **New:** [`docs/collaboration/COLLABORATIVE_METHOD_GENERALIZATION_GUIDE.md`](docs/collaboration/COLLABORATIVE_METHOD_GENERALIZATION_GUIDE.md) — reusable multi-origin onboarding pack (required reading order, non-negotiable principles, shared task-card template, DoD, and quality gate references).
