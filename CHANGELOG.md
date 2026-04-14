@@ -31,11 +31,90 @@ All notable changes to this project are summarized here. For narrative context a
 - **Docs:** Updated [`docs/proposals/PROPOSAL_002_NARRATIVE_ARCHITECTURE_PLAN.md`](docs/proposals/PROPOSAL_002_NARRATIVE_ARCHITECTURE_PLAN.md) (Tier 2 marked delivered).
 - **Consolidation:** Integrated `BiographicPruner` and `MetacognitiveEvaluator` into the kernel processing loop.
 - **Swarm Consensus:** Implemented Trust Nudges (I7) and Solidarity Alerts in `MockDAO`.
+## Perception pipeline — optional parallel enrichment split — April 2026
+
+- **`EthicalKernel`:** shared perception-stage helpers now serve both `process_chat_turn` and `process_natural`: text pre-enrichment (`_preprocess_text_observability`), post-perception safeguards (`_postprocess_perception`), and chat sensor stack (`_chat_assess_sensor_stack`).
+- **DTO stage boundary:** new `PerceptionStageResult` consolidates perception-stage outputs (tier/premise/reality/perception/signals/sensor overlays), reducing orchestration coupling across entrypoints.
+- **Hardware-aware scaling (opt-in):** when `KERNEL_PERCEPTION_PARALLEL=1`, independent tasks run concurrently via bounded thread pools; `KERNEL_PERCEPTION_PARALLEL_WORKERS` controls worker count (or uses a conservative CPU-based default when unset).
+- **Behavioral parity:** default remains inline/sequential when the env flag is off; entrypoints now share the same text pre-enrichment and circuit post-processing pattern.
+- **Support buffer always available (offline):** perception stage now builds a local support snapshot from `PreloadedBuffer` + metaplan strategy hints (`source=local_preloaded_buffer`, `offline_ready=true`) and exposes it in chat JSON as `support_buffer`.
+- **Hardened support policy:** support snapshots now include `priority_profile` and `priority_principles` (`safety_first` / `balanced` / `planning_first`) derived from a limbic-aware risk posture, not only static context activation.
+- **Limbic architecture extension:** shared perception stage now emits `limbic_profile` (arousal band, threat load, regulation gap, planning bias, multimodal mismatch, vitality-critical flag) and chat JSON exposes it as `limbic_perception` for downstream strategy/planning UX.
+- **Temporal directive integrated in perception stage:** new module [`src/modules/temporal_planning.py`](src/modules/temporal_planning.py) emits `TemporalContext` (processor elapsed/delta time, human wall-clock, battery horizon heuristics, ETA hints for known tasks including transport, and sync readiness for DAO/LAN).
+- **Runtime JSON sync contract:** chat responses now include `temporal_context` and `temporal_sync` (`temporal_sync_v1`) so local network and DAO-facing consumers can align clocks/turn timing without external dependencies.
+- **Temporal sync hardening:** `temporal_sync` now carries `turn_index`, `processor_elapsed_ms`, and `turn_delta_ms` for safer ordering/reconciliation across local-network and DAO consumers.
+- **Perception confidence envelope:** new [`src/modules/perception_confidence.py`](src/modules/perception_confidence.py) builds a unified confidence band/score from coercion diagnostics + multimodal/epistemic/vitality signals; exposed in chat JSON as `perception_confidence` and mirrored in `perception_observability`.
+- **Config/tests:** [`.env.example`](.env.example) adds `KERNEL_TEMPORAL_*` knobs; [`tests/test_temporal_planning.py`](tests/test_temporal_planning.py) validates ETA/sync behavior.
+- **Tests/docs:** [`tests/test_chat_turn.py`](tests/test_chat_turn.py) adds parallel-vs-inline regression checks; [`.env.example`](.env.example) documents the new knobs.
+- **Cross-team integration gate:** new runbook [`docs/collaboration/CURSOR_CROSS_TEAM_INTEGRATION_GATE.md`](docs/collaboration/CURSOR_CROSS_TEAM_INTEGRATION_GATE.md) plus executable checker [`scripts/eval/run_cursor_integration_gate.py`](scripts/eval/run_cursor_integration_gate.py) to validate interlace readiness before merging team lines.
+- **DAO/blockchain/distributed justice staged plan:** new proposal [`docs/proposals/PROPOSAL_DAO_BLOCKCHAIN_DISTRIBUTED_JUSTICE_STAGED_EXECUTION.md`](docs/proposals/PROPOSAL_DAO_BLOCKCHAIN_DISTRIBUTED_JUSTICE_STAGED_EXECUTION.md) with phased execution, justification, concrete scenarios, and interim gaps to close while other team branches finalize.
+- **Stabilization pass from honest critique:** runtime docs now reflect implemented JSON checkpoint encryption (`KERNEL_CHECKPOINT_FERNET_KEY`) in [`docs/proposals/RUNTIME_PHASES.md`](docs/proposals/RUNTIME_PHASES.md) and [`docs/proposals/RUNTIME_CONTRACT.md`](docs/proposals/RUNTIME_CONTRACT.md); contract now documents `/ws/chat` stateful control-plane actions (`dao_*`, `integrity_alert`, `nomad_simulate_migration`, `operator_feedback`, optional `constitution_draft`).
+- **CI hardening:** [`.github/workflows/ci.yml`](.github/workflows/ci.yml) now enforces coverage floor (`--cov-fail-under=65`), adds a semantic-default contract job (`tests/test_malabs_semantic_integration.py`, `tests/test_semantic_chat_gate.py`), and adds Windows smoke validation (`ruff` + env/profile tests).
+- **Doc coherence and onboarding fixes:** [`CONTRIBUTING.md`](CONTRIBUTING.md) now points to canonical model sources in `docs/proposals`; key operator/env docs fixed link targets from `docs/proposals` to repo paths in [`docs/proposals/KERNEL_ENV_POLICY.md`](docs/proposals/KERNEL_ENV_POLICY.md) and [`docs/proposals/OPERATOR_QUICK_REF.md`](docs/proposals/OPERATOR_QUICK_REF.md).
+- **Critical status memo:** added [`docs/proposals/PROJECT_STATE_HONEST_CRITIQUE_APRIL_2026.md`](docs/proposals/PROJECT_STATE_HONEST_CRITIQUE_APRIL_2026.md) and indexed it in [`docs/proposals/README.md`](docs/proposals/README.md) for deliberation-grade project assessment.
+
+## LLM touchpoint policy matrix (flexible operator precedence) — April 2026
+
+- **New:** [`src/modules/llm_touchpoint_policies.py`](src/modules/llm_touchpoint_policies.py) — `KERNEL_LLM_TP_<TOUCHPOINT>_POLICY` for `perception`, `communicate`, `narrate`, `monologue`; `KERNEL_LLM_VERBAL_FAMILY_POLICY` for shared communicate+narrate default; `KERNEL_LLM_MONOLOGUE_BACKEND_POLICY` monologue fallback; monologue policies `passthrough` | `annotate_degraded` with degradation events + optional `| monologue_llm_*` suffix.
+- **Precedence:** per-touchpoint override → verbal family (communicate/narrate) → legacy `KERNEL_PERCEPTION_BACKEND_POLICY` / `KERNEL_VERBAL_LLM_BACKEND_POLICY` — see [`docs/proposals/PROPOSAL_LLM_TOUCHPOINT_DEGRADATION_MATRIX.md`](docs/proposals/PROPOSAL_LLM_TOUCHPOINT_DEGRADATION_MATRIX.md).
+- **Docs:** [`CONTRIBUTING.md`](CONTRIBUTING.md), [`AGENTS.md`](AGENTS.md), [`docs/proposals/KERNEL_ENV_POLICY.md`](docs/proposals/KERNEL_ENV_POLICY.md), [`docs/proposals/OPERATOR_QUICK_REF.md`](docs/proposals/OPERATOR_QUICK_REF.md), [`docs/proposals/README.md`](docs/proposals/README.md), [`docs/proposals/CURSOR_TEAM_MISSION_SENSORS_PERCEPTION.md`](docs/proposals/CURSOR_TEAM_MISSION_SENSORS_PERCEPTION.md); [`.env.example`](.env.example); [`src/validators/kernel_env_operator.py`](src/validators/kernel_env_operator.py).
+- **Tests:** [`tests/test_llm_touchpoint_policies.py`](tests/test_llm_touchpoint_policies.py); [`tests/test_llm_verbal_backend_policy.py`](tests/test_llm_verbal_backend_policy.py) (monologue annotate path).
+
+## Verbal / narrative LLM degradation policy — April 2026
+
+- **New:** [`src/modules/llm_verbal_backend_policy.py`](src/modules/llm_verbal_backend_policy.py) — ``KERNEL_VERBAL_LLM_BACKEND_POLICY`` (`template_local` default, `canned_safe` optional) for :meth:`LLMModule.communicate` and :meth:`LLMModule.narrate` when the generative path fails or returns unusable JSON.
+- **`LLMModule`:** per-turn degradation event log; stricter communicate JSON (non-empty `message`); narrate requires at least one non-empty moral field for LLM output to be accepted.
+- **Chat:** [`src/chat_server.py`](src/chat_server.py) emits `verbal_llm_observability` when events exist; [`src/kernel.py`](src/kernel.py) clears the log at chat / `process_natural` entry and passes `verbal_llm_degradation_events` on [`ChatTurnResult`](src/kernel.py).
+- **Docs:** [`docs/proposals/PROPOSAL_LLM_VERBAL_DEGRADATION_POLICY.md`](docs/proposals/PROPOSAL_LLM_VERBAL_DEGRADATION_POLICY.md), [`docs/proposals/OPERATOR_QUICK_REF.md`](docs/proposals/OPERATOR_QUICK_REF.md); [`.env.example`](.env.example); [`MODEL_CRITICAL_BACKLOG.md`](docs/proposals/MODEL_CRITICAL_BACKLOG.md) updated (partial unified degradation).
+- **Tests:** [`tests/test_llm_verbal_backend_policy.py`](tests/test_llm_verbal_backend_policy.py); [`tests/test_llm_injection.py`](tests/test_llm_injection.py) asserts degradation events.
+
+## Perception — valid-but-wrong payload regressions — April 2026
+
+- **Tests:** [`tests/test_perception_valid_wrong_payloads.py`](tests/test_perception_valid_wrong_payloads.py) locks JSON-valid, in-range payloads that are semantically inconsistent (coherence nudges, context fallback uncertainty, fail-safe prior when many fields default).
+- **Playbook:** [`docs/proposals/CURSOR_TEAM_MISSION_SENSORS_PERCEPTION.md`](docs/proposals/CURSOR_TEAM_MISSION_SENSORS_PERCEPTION.md) marks SP-P0-03 as a landed baseline; adds §9 pointer to cross-cutting model backlog.
+- **Docs:** [`docs/proposals/MODEL_CRITICAL_BACKLOG.md`](docs/proposals/MODEL_CRITICAL_BACKLOG.md) — prioritized model/runtime gaps after perception P0 (input trust, unified LLM degradation, packaging, governance honesty).
+
+## Collaboration methodology — consolidated guide — April 2026
+
+- **New:** [`docs/collaboration/COLLABORATIVE_METHOD_GENERALIZATION_GUIDE.md`](docs/collaboration/COLLABORATIVE_METHOD_GENERALIZATION_GUIDE.md) — reusable multi-origin onboarding pack (required reading order, non-negotiable principles, shared task-card template, DoD, and quality gate references).
+- **Cross-links:** [`docs/collaboration/MULTI_OFFICE_GIT_WORKFLOW.md`](docs/collaboration/MULTI_OFFICE_GIT_WORKFLOW.md) and [`CONTRIBUTING.md`](CONTRIBUTING.md) now point to the generalized guide for broader adoption across local offices.
+
+## Perception — observability contract baseline — April 2026
+
+- **WebSocket contract:** [`src/chat_server.py`](src/chat_server.py) now always emits canonical `perception.coercion_report` keys and a compact `perception_observability` object (`uncertainty`, `dual_high_discrepancy`, `backend_degraded`, `metacognitive_doubt`) when perception is present.
+- **Proposal/docs:** [`docs/proposals/PROPOSAL_PERCEPTION_OBSERVABILITY_CONTRACT.md`](docs/proposals/PROPOSAL_PERCEPTION_OBSERVABILITY_CONTRACT.md) and [`docs/proposals/OPERATOR_QUICK_REF.md`](docs/proposals/OPERATOR_QUICK_REF.md).
+- **Tests:** [`tests/test_perception_observability_contract.py`](tests/test_perception_observability_contract.py).
+
+## Perception — unified backend degradation policy — April 2026
+
+- **New** [`src/modules/perception_backend_policy.py`](src/modules/perception_backend_policy.py): ``KERNEL_PERCEPTION_BACKEND_POLICY`` — ``template_local`` (default), ``fast_fail`` (cautious priors, no keyword heuristics), ``session_banner`` (WebSocket ``perception_backend_banner``).
+- **`PerceptionCoercionReport`:** ``backend_degraded``, ``backend_failure_*``, ``session_banner_recommended``; uncertainty includes backend degradation.
+- **`LLMModule.perceive`:** applies policy on transport errors and unusable payloads (severe parse / validate / empty).
+- **WebSocket:** [`src/chat_server.py`](src/chat_server.py) sets ``perception_backend_banner`` when recommended.
+- **Docs:** [`docs/proposals/PROPOSAL_PERCEPTION_BACKEND_DEGRADATION_POLICY.md`](docs/proposals/PROPOSAL_PERCEPTION_BACKEND_DEGRADATION_POLICY.md); [`docs/WEAKNESSES_AND_BOTTLENECKS.md`](docs/WEAKNESSES_AND_BOTTLENECKS.md) §3 partial mitigation; [`.env.example`](.env.example).
+- **Tests:** [`tests/test_perception_backend_policy.py`](tests/test_perception_backend_policy.py).
+
+## Collaboration scope — real Bayesian inference playbook — April 2026
+
+- **New:** [`docs/proposals/CLAUDE_TEAM_PLAYBOOK_REAL_BAYESIAN_INFERENCE.md`](docs/proposals/CLAUDE_TEAM_PLAYBOOK_REAL_BAYESIAN_INFERENCE.md) — multi-origin collaboration charter for closing Bayesian inference gaps, architecture improvements, and adjacent evidence/observability needs.
+- **Index update:** [`docs/proposals/README.md`](docs/proposals/README.md) now links the Bayesian team scope under “Start here”.
+
+## Documentation — restore `docs/proposals/` + bibliography — April 2026
+
+- **Restored** the full **`docs/proposals/`** tree from **`origin/backup/main-2026-04-10`** so cross-links in [`docs/WEAKNESSES_AND_BOTTLENECKS.md`](docs/WEAKNESSES_AND_BOTTLENECKS.md), [`docs/ROADMAP_PRACTICAL_PHASES.md`](docs/ROADMAP_PRACTICAL_PHASES.md), ADRs, and [`SECURITY.md`](SECURITY.md) resolve to versioned English design notes again.
+- **Restored** root **[`BIBLIOGRAPHY.md`](BIBLIOGRAPHY.md)** (referenced from the proposal index).
+- **New:** [`docs/proposals/CURSOR_TEAM_MISSION_SENSORS_PERCEPTION.md`](docs/proposals/CURSOR_TEAM_MISSION_SENSORS_PERCEPTION.md) — collaborative playbook for Cursor-line **sensors/perception** work under the multi-origin workflow (intake gate, branch flow `cursor-team` -> `master-Cursor`, DoD template), linked from [`docs/proposals/README.md`](docs/proposals/README.md).
+- **Planning update:** the same playbook now includes an initial **P0/P1 execution backlog** (`SP-P0-*`, `SP-P1-*`) with track labels, risk classes, target branches, and evidence links to perception/sensor modules and tests.
+- **Link hygiene:** fixed mistaken “README” anchors in [`docs/WEAKNESSES_AND_BOTTLENECKS.md`](docs/WEAKNESSES_AND_BOTTLENECKS.md), [`docs/ROADMAP_PRACTICAL_PHASES.md`](docs/ROADMAP_PRACTICAL_PHASES.md), [ADR 0009](docs/adr/0009-ethical-mixture-scorer-naming.md), [ADR 0010](docs/adr/0010-poles-pre-argmax-modulation.md), [`SECURITY.md`](SECURITY.md), and [`deploy/grafana/README.md`](deploy/grafana/README.md); root [`README.md`](README.md) now states the proposal tree is versioned under `docs/proposals/`.
 
 ## Multi-office Git workflow (method + diagram) — April 2026
 
 - **Docs:** **[`docs/collaboration/MULTI_OFFICE_GIT_WORKFLOW.md`](docs/collaboration/MULTI_OFFICE_GIT_WORKFLOW.md)** — institutionalized *Time worth flow / cycle develop* pattern for distributed teams (`main` production, `master-<TeamSlug>` integration, shared `<team-slug>-team` work line); canonical PNG diagram under **`docs/collaboration/`**.
 - **Contributing:** [`CONTRIBUTING.md`](CONTRIBUTING.md) links the workflow doc and [`.cursor/rules/collaboration-prioritization.mdc`](.cursor/rules/collaboration-prioritization.mdc) (agent-facing redundancy + branch rules, including **`master-Cursor`** / **`cursor-team`** for this repo).
+
+## Proposals — offline mode taxonomy and knowledge corpus — April 2026
+
+- **[`docs/proposals/PROPOSAL_OFFLINE_MODE_TAXONOMY_AND_KNOWLEDGE_CORPUS.md`](docs/proposals/PROPOSAL_OFFLINE_MODE_TAXONOMY_AND_KNOWLEDGE_CORPUS.md):** offline class taxonomy, separation of L0 `PreloadedBuffer` from a versioned offline knowledge pack (RAG grounding without MalAbs bypass), resource/energy hierarchy, entry planning with recharge objectives, reconnection sync; indexed in [`docs/proposals/README.md`](docs/proposals/README.md).
 
 ## Proposals — Bayesian mixture index — April 2026
 

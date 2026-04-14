@@ -73,6 +73,7 @@ def test_injected_backend_malformed_json_falls_back_to_local():
 
 def test_injected_backend_communicate_exception_uses_templates():
     llm = LLMModule(text_backend=RaisingCompletion())
+    llm.reset_verbal_degradation_log()
     vr = llm.communicate(
         "assist_emergency",
         "D_fast",
@@ -85,10 +86,13 @@ def test_injected_backend_communicate_exception_uses_templates():
     )
     assert vr.message
     assert vr.tone == "urgent"
+    ev = llm.verbal_degradation_events_snapshot()
+    assert len(ev) == 1 and ev[0]["touchpoint"] == "communicate"
 
 
 def test_injected_backend_narrate_exception_uses_templates():
     llm = LLMModule(text_backend=RaisingCompletion())
+    llm.reset_verbal_degradation_log()
     rn = llm.narrate(
         "assist_emergency",
         "collapse",
@@ -99,3 +103,5 @@ def test_injected_backend_narrate_exception_uses_templates():
         "o",
     )
     assert rn.synthesis
+    ev = llm.verbal_degradation_events_snapshot()
+    assert len(ev) == 1 and ev[0]["touchpoint"] == "narrate"

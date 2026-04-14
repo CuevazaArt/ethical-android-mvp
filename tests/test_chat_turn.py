@@ -3,11 +3,14 @@
 import asyncio
 import os
 import sys
+import threading
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
 
 from src.kernel import EthicalKernel
 from src.modules.absolute_evil import AbsoluteEvilDetector
+from src.modules.premise_validation import PremiseAdvisory
+from src.modules.reality_verification import ASSESSMENT_NONE as REALITY_ASSESSMENT_NONE
 from src.modules.sensor_contracts import SensorSnapshot
 from src.real_time_bridge import RealTimeBridge
 
@@ -49,6 +52,16 @@ def test_process_chat_light_turn():
     assert len(k.working_memory.turns) == 1
     assert out.epistemic_dissonance is not None
     assert out.epistemic_dissonance.active is False
+    assert out.support_buffer is not None
+    assert out.support_buffer.get("offline_ready") is True
+    assert out.support_buffer.get("priority_profile") in ("safety_first", "balanced", "planning_first")
+    assert out.limbic_profile is not None
+    assert out.limbic_profile.get("arousal_band") in ("low", "medium", "high")
+    assert out.temporal_context is not None
+    assert out.temporal_context.sync_schema == "temporal_sync_v1"
+    assert out.temporal_context.turn_index >= 1
+    assert out.perception_confidence is not None
+    assert out.perception_confidence.band in ("high", "medium", "low", "very_low")
 
 
 def test_process_chat_epistemic_dissonance_active():
@@ -91,3 +104,123 @@ def test_real_time_bridge_runs():
     out = asyncio.run(bridge.process_chat("Good morning.", agent_id="u1"))
     assert out.blocked is False
     assert out.response.message
+
+
+def test_chat_preprocess_text_observability_parallel_enabled_uses_multiple_threads(monkeypatch):
+    k = EthicalKernel(variability=False, seed=10)
+    monkeypatch.setenv("KERNEL_PERCEPTION_PARALLEL", "1")
+    monkeypatch.setenv("KERNEL_PERCEPTION_PARALLEL_WORKERS", "2")
+    monkeypatch.setattr("src.kernel.light_risk_classifier_enabled", lambda: False)
+    monkeypatch.setattr("src.kernel.lighthouse_kb_from_env", lambda: None)
+
+    seen_thread_ids: list[int] = []
+    lock = threading.Lock()
+    barrier = threading.Barrier(2)
+
+    def _record_thread() -> None:
+        with lock:
+            seen_thread_ids.append(threading.get_ident())
+        barrier.wait(timeout=1.0)
+
+    def _fake_scan_premises(_: str) -> PremiseAdvisory:
+        _record_thread()
+        return PremiseAdvisory("none", "")
+
+    def _fake_verify(_: str, __) -> object:
+        _record_thread()
+        return REALITY_ASSESSMENT_NONE
+
+    monkeypatch.setattr("src.kernel.scan_premises", _fake_scan_premises)
+    monkeypatch.setattr("src.kernel.verify_against_lighthouse", _fake_verify)
+
+    _, premise, reality = k._chat_preprocess_text_observability("parallel probe")
+    assert premise.flag == "none"
+    assert reality.status == REALITY_ASSESSMENT_NONE.status
+    assert len(set(seen_thread_ids)) >= 2
+
+
+def test_chat_preprocess_text_observability_parallel_disabled_runs_inline(monkeypatch):
+    k = EthicalKernel(variability=False, seed=11)
+    monkeypatch.delenv("KERNEL_PERCEPTION_PARALLEL", raising=False)
+    monkeypatch.delenv("KERNEL_PERCEPTION_PARALLEL_WORKERS", raising=False)
+    monkeypatch.setattr("src.kernel.light_risk_classifier_enabled", lambda: False)
+    monkeypatch.setattr("src.kernel.lighthouse_kb_from_env", lambda: None)
+
+    seen_thread_ids: list[int] = []
+
+    def _fake_scan_premises(_: str) -> PremiseAdvisory:
+        seen_thread_ids.append(threading.get_ident())
+        return PremiseAdvisory("none", "")
+
+    def _fake_verify(_: str, __) -> object:
+        seen_thread_ids.append(threading.get_ident())
+        return REALITY_ASSESSMENT_NONE
+
+    monkeypatch.setattr("src.kernel.scan_premises", _fake_scan_premises)
+    monkeypatch.setattr("src.kernel.verify_against_lighthouse", _fake_verify)
+
+    _, premise, reality = k._chat_preprocess_text_observability("inline probe")
+    assert premise.flag == "none"
+    assert reality.status == REALITY_ASSESSMENT_NONE.status
+    assert len(set(seen_thread_ids)) == 1
+
+
+def test_process_natural_uses_shared_text_preprocess_parallel_path(monkeypatch):
+    k = EthicalKernel(variability=False, seed=12)
+    monkeypatch.setenv("KERNEL_PERCEPTION_PARALLEL", "1")
+    monkeypatch.setenv("KERNEL_PERCEPTION_PARALLEL_WORKERS", "2")
+    monkeypatch.setattr("src.kernel.light_risk_classifier_enabled", lambda: False)
+    monkeypatch.setattr("src.kernel.lighthouse_kb_from_env", lambda: None)
+
+    seen_thread_ids: list[int] = []
+    lock = threading.Lock()
+    barrier = threading.Barrier(2)
+
+    def _record_thread() -> None:
+        with lock:
+            seen_thread_ids.append(threading.get_ident())
+        barrier.wait(timeout=1.0)
+
+    def _fake_scan_premises(_: str) -> PremiseAdvisory:
+        _record_thread()
+        return PremiseAdvisory("none", "")
+
+    def _fake_verify(_: str, __) -> object:
+        _record_thread()
+        return REALITY_ASSESSMENT_NONE
+
+    monkeypatch.setattr("src.kernel.scan_premises", _fake_scan_premises)
+    monkeypatch.setattr("src.kernel.verify_against_lighthouse", _fake_verify)
+
+    decision, response, _ = k.process_natural("Friendly greeting in a safe context.")
+    assert decision.blocked is False
+    assert response.message
+    assert len(set(seen_thread_ids)) >= 2
+
+
+def test_run_perception_stage_includes_local_support_buffer():
+    k = EthicalKernel(variability=False, seed=13)
+    stage = k._run_perception_stage("Hello and thanks for your help.", conversation_context="")
+    assert stage.support_buffer.get("source") == "local_preloaded_buffer"
+    assert stage.support_buffer.get("offline_ready") is True
+    assert isinstance(stage.support_buffer.get("active_principles"), list)
+    assert isinstance(stage.support_buffer.get("priority_principles"), list)
+    assert stage.limbic_profile.get("arousal_band") in ("low", "medium", "high")
+
+
+def test_support_buffer_prioritizes_safety_first_for_high_threat():
+    k = EthicalKernel(variability=False, seed=14)
+    limbic = k._build_limbic_perception_profile(
+        perception=None,
+        signals={"risk": 0.95, "urgency": 0.9, "hostility": 0.8, "calm": 0.05},
+        vitality=None,
+        multimodal=None,
+        epistemic=None,
+    )
+    snap = k._build_support_buffer_snapshot(
+        "violent_crime",
+        signals={"risk": 0.95, "urgency": 0.9, "hostility": 0.8, "calm": 0.05},
+        limbic_profile=limbic,
+    )
+    assert snap.get("priority_profile") == "safety_first"
+    assert "no_harm" in (snap.get("priority_principles") or [])

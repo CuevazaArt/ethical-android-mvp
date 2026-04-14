@@ -1,6 +1,6 @@
 # Weaknesses and bottlenecks
 
-This note is an **honest inventory** for operators and reviewers: known limits of the current architecture and naming. It complements the consolidated backlog in [`docs/proposals/README.md`](proposals/CRITIQUE_ROADMAP_ISSUES.md) and the forward-looking [`docs/proposals/README.md`](proposals/PRODUCTION_HARDENING_ROADMAP.md). It is **not** a commitment order for fixes.
+This note is an **honest inventory** for operators and reviewers: known limits of the current architecture and naming. It complements the consolidated backlog in [CRITIQUE_ROADMAP_ISSUES.md](proposals/CRITIQUE_ROADMAP_ISSUES.md) and the forward-looking [PRODUCTION_HARDENING_ROADMAP.md](proposals/PRODUCTION_HARDENING_ROADMAP.md). It is **not** a commitment order for fixes.
 
 ---
 
@@ -37,7 +37,7 @@ This note is an **honest inventory** for operators and reviewers: known limits o
 
 **What exists today.** Configurable timeouts (e.g. `OLLAMA_TIMEOUT`), Pydantic validation and coercion in [`perception_schema`](../src/modules/perception_schema.py), lexical cross-checks in [`perception_cross_check`](../src/modules/perception_cross_check.py), and heuristic fallbacks for some bad LLM outputs **reduce** but do not **eliminate** bad states. Optional **dual LLM perception** ([`perception_dual_vote`](../src/modules/perception_dual_vote.py), profile `perception_adv_consensus_lab`) runs a second structured sample (different temperature and/or `KERNEL_PERCEPTION_DUAL_OLLAMA_MODEL`); large hostility/risk disagreement inflates coercion uncertainty so `KERNEL_PERCEPTION_UNCERTAINTY_DELIB` can force `D_delib`. That mitigates **some** lone-model hallucinations but is **not** an independent ground-truth check — two samples can still agree on a false high-threat parse. Semantic **embedding** transport has its own retry/circuit patterns in [`semantic_embedding_client`](../src/modules/semantic_embedding_client.py); the **main chat perception** path is not uniformly covered to the same degree.
 
-**Gap.** A single operator-visible policy for “backend unhealthy → fast-fail / template mode / session banner” across **all** LLM touchpoints is still aspirational.
+**Gap (partial mitigation).** Perception now exposes ``KERNEL_PERCEPTION_BACKEND_POLICY`` (``template_local`` / ``fast_fail`` / ``session_banner``) with structured ``coercion_report`` diagnostics — see [`PROPOSAL_PERCEPTION_BACKEND_DEGRADATION_POLICY.md`](proposals/PROPOSAL_PERCEPTION_BACKEND_DEGRADATION_POLICY.md). **Communicate / narrate** now have ``KERNEL_VERBAL_LLM_BACKEND_POLICY`` and chat ``verbal_llm_observability`` — [`PROPOSAL_LLM_VERBAL_DEGRADATION_POLICY.md`](proposals/PROPOSAL_LLM_VERBAL_DEGRADATION_POLICY.md). A **single** env surface across **every** LLM touchpoint (embeddings, monologue, optional session banners for verbal) remains aspirational.
 
 **Pointers:** [INPUT_TRUST_THREAT_MODEL.md](proposals/INPUT_TRUST_THREAT_MODEL.md); [MALABS_SEMANTIC_LAYERS.md](proposals/MALABS_SEMANTIC_LAYERS.md); [PROPOSAL_MALABS_SEMANTIC_THRESHOLD_EVIDENCE.md](proposals/PROPOSAL_MALABS_SEMANTIC_THRESHOLD_EVIDENCE.md) (cosine defaults: not empirically calibrated in-repo); [PERCEPTION_VALIDATION.md](proposals/PERCEPTION_VALIDATION.md).
 
