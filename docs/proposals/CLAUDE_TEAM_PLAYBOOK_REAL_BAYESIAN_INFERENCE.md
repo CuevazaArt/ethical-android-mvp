@@ -48,6 +48,16 @@ Open technical tension to resolve:
 
 ## 4) Multi-origin collaboration operating mode
 
+### Mandatory style and rules pass
+
+All offices should review and share, before implementation:
+
+- [`docs/collaboration/COLLABORATIVE_METHOD_GENERALIZATION_GUIDE.md`](../collaboration/COLLABORATIVE_METHOD_GENERALIZATION_GUIDE.md)
+- [`docs/collaboration/MULTI_OFFICE_GIT_WORKFLOW.md`](../collaboration/MULTI_OFFICE_GIT_WORKFLOW.md)
+- [`CONTRIBUTING.md`](../../CONTRIBUTING.md)
+- [`AGENTS.md`](../../AGENTS.md)
+- [`.cursor/rules/`](../../.cursor/rules/)
+
 ### Intake gate (mandatory)
 
 Every candidate task must include:

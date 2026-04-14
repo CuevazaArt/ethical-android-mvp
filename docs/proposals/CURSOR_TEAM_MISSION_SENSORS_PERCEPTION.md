@@ -97,6 +97,15 @@ An item is done only when all apply:
 - Repository-facing artifacts merged to git must be English (except explicit fixture/security exceptions).
 - Safety-critical defaults require the full pattern: named constants, tests, honest docs, and changelog traceability.
 
+### Mandatory resource check (all offices)
+
+Before starting any new item, review and circulate:
+
+- [`docs/collaboration/COLLABORATIVE_METHOD_GENERALIZATION_GUIDE.md`](../collaboration/COLLABORATIVE_METHOD_GENERALIZATION_GUIDE.md)
+- [`docs/collaboration/MULTI_OFFICE_GIT_WORKFLOW.md`](../collaboration/MULTI_OFFICE_GIT_WORKFLOW.md)
+- [`CONTRIBUTING.md`](../../CONTRIBUTING.md)
+- [`AGENTS.md`](../../AGENTS.md)
+
 ## 8) Initial execution backlog (P0/P1)
 
 The table below is the active starter queue for `cursor-team`.
@@ -120,9 +129,10 @@ The table below is the active starter queue for `cursor-team`.
   - [`PERCEPTION_VALIDATION.md`](PERCEPTION_VALIDATION.md)
   - [`WEAKNESSES_AND_BOTTLENECKS.md`](../WEAKNESSES_AND_BOTTLENECKS.md)
 
-#### SP-P0-02 — Perception coercion and uncertainty observability contract
+#### SP-P0-02 — Perception coercion and uncertainty observability contract *(landed baseline)*
 
 - **Source:** chat/operator visibility requirement.
+- **Delivered (baseline):** stable chat JSON contract for `perception.coercion_report` + `perception_observability` in [`src/chat_server.py`](../../src/chat_server.py), with tests in [`tests/test_perception_observability_contract.py`](../../tests/test_perception_observability_contract.py). Extend as needed for future dashboard schemas.
 - **Track label:** `perception`
 - **Risk class:** `high`
 - **Owner office:** Cursor (shared)

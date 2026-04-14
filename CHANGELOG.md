@@ -4,6 +4,17 @@ All notable changes to this project are summarized here. For narrative context a
 
 **Note:** Older sections below may still **link** to paths that were later removed (for example `experiments/million_sim/`, `docs/multimedia/`, root `dashboard.html`, `landing/`). Those links are **historical**; recover files from git history or backup branches if you need them.
 
+## Collaboration methodology — consolidated guide — April 2026
+
+- **New:** [`docs/collaboration/COLLABORATIVE_METHOD_GENERALIZATION_GUIDE.md`](docs/collaboration/COLLABORATIVE_METHOD_GENERALIZATION_GUIDE.md) — reusable multi-origin onboarding pack (required reading order, non-negotiable principles, shared task-card template, DoD, and quality gate references).
+- **Cross-links:** [`docs/collaboration/MULTI_OFFICE_GIT_WORKFLOW.md`](docs/collaboration/MULTI_OFFICE_GIT_WORKFLOW.md) and [`CONTRIBUTING.md`](CONTRIBUTING.md) now point to the generalized guide for broader adoption across local offices.
+
+## Perception — observability contract baseline — April 2026
+
+- **WebSocket contract:** [`src/chat_server.py`](src/chat_server.py) now always emits canonical `perception.coercion_report` keys and a compact `perception_observability` object (`uncertainty`, `dual_high_discrepancy`, `backend_degraded`, `metacognitive_doubt`) when perception is present.
+- **Proposal/docs:** [`docs/proposals/PROPOSAL_PERCEPTION_OBSERVABILITY_CONTRACT.md`](docs/proposals/PROPOSAL_PERCEPTION_OBSERVABILITY_CONTRACT.md) and [`docs/proposals/OPERATOR_QUICK_REF.md`](docs/proposals/OPERATOR_QUICK_REF.md).
+- **Tests:** [`tests/test_perception_observability_contract.py`](tests/test_perception_observability_contract.py).
+
 ## Perception — unified backend degradation policy — April 2026
 
 - **New** [`src/modules/perception_backend_policy.py`](src/modules/perception_backend_policy.py): ``KERNEL_PERCEPTION_BACKEND_POLICY`` — ``template_local`` (default), ``fast_fail`` (cautious priors, no keyword heuristics), ``session_banner`` (WebSocket ``perception_backend_banner``).

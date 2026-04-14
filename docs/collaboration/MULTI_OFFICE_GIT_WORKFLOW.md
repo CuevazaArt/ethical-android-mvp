@@ -32,6 +32,7 @@ Exact commands depend on branch protection and remote layout; prefer the same pa
 For **Cursor** and other agents, the durable rule text (redundancy checks, safety expectations, and this workflow) lives in:
 
 - [`.cursor/rules/collaboration-prioritization.mdc`](../../.cursor/rules/collaboration-prioritization.mdc)
+- **Generalized onboarding pack:** [`COLLABORATIVE_METHOD_GENERALIZATION_GUIDE.md`](COLLABORATIVE_METHOD_GENERALIZATION_GUIDE.md) (required reading order, task card, DoD, and quality gate references).
 
 ## Language policy reminder
 

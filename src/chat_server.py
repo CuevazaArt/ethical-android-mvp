@@ -130,6 +130,7 @@ from .modules.moral_hub import (
     submit_constitution_draft_for_vote,
 )
 from .modules.nomad_identity import nomad_identity_public
+from .modules.perception_schema import perception_report_from_dict
 from .modules.perceptual_abstraction import snapshot_from_layers
 from .observability.context import clear_request_context, set_request_id
 from .observability.logging_setup import configure_logging
@@ -342,11 +343,17 @@ def _chat_turn_to_jsonable(r: ChatTurnResult, kernel: EthicalKernel) -> dict[str
             "suggested_context": p.suggested_context,
             "summary": p.summary,
         }
-        cr = getattr(p, "coercion_report", None)
-        if cr:
-            out["perception"]["coercion_report"] = cr
-        if isinstance(cr, dict) and cr.get("session_banner_recommended"):
+        # Stable observability contract: always emit canonical coercion-report keys.
+        cr = perception_report_from_dict(getattr(p, "coercion_report", None)).to_public_dict()
+        out["perception"]["coercion_report"] = cr
+        if cr.get("session_banner_recommended"):
             out["perception_backend_banner"] = True
+        out["perception_observability"] = {
+            "uncertainty": float(cr.get("uncertainty") or 0.0),
+            "dual_high_discrepancy": bool(cr.get("perception_dual_high_discrepancy")),
+            "backend_degraded": bool(cr.get("backend_degraded")),
+            "metacognitive_doubt": bool(r.metacognitive_doubt),
+        }
     if r.decision is not None:
         d = r.decision
         if _chat_expose_monologue():
