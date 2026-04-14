@@ -1,6 +1,6 @@
 # ADR 0013 — Hierarchical context-dependent weight inference (Level 3)
 
-**Status:** Proposed  
+**Status:** Accepted  
 **Date:** 2026-04-12  
 **Supersedes:** —  
 **Depends on:** [ADR 0012](0012-bayesian-weight-inference.md) (Levels 1–2)  
@@ -134,4 +134,49 @@ Config: `KERNEL_HIERARCHICAL_FEEDBACK` (default `False`), `KERNEL_HIERARCHICAL_M
 
 ---
 
-*MoSex Macchina Lab — ADR 0013, April 2026.*
+## Implementation Notes
+
+**Status (April 2026):** Fully implemented and tested.
+
+**Files:**
+- `src/modules/hierarchical_updater.py` (~400 lines) — `HierarchicalUpdater` class, τ schedule, context canonical mapping
+- `src/kernel.py` (lines 481–541) — Integration in `process()` with OOS-004 precedence
+- `tests/test_hierarchical_updater.py` (~250 lines) — 21 unit tests including context-divergent feedback
+
+**Environment Variables:**
+
+| Variable | Default | Meaning |
+|----------|---------|---------|
+| `KERNEL_HIERARCHICAL_FEEDBACK` | `False` | Enable Level 3 (OOS-004: highest precedence) |
+| `KERNEL_HIERARCHICAL_MIN_LOCAL` | `3` | Min feedback items per context before blending |
+| `KERNEL_HIERARCHICAL_TAU_MAX` | `0.8` | Maximum blend fraction τ (never fully ignores global) |
+| `KERNEL_FEEDBACK_SEED` | `42` | RNG seed (shared with Level 2) |
+| `KERNEL_FEEDBACK_PATH` | (required) | Feedback JSON file path (shared with Levels 2–3) |
+
+**Precedence (OOS-004):**
+When multiple Bayesian feedback systems are enabled, evaluation order is:
+```
+KERNEL_HIERARCHICAL_FEEDBACK (ADR 0013)
+    > KERNEL_BAYESIAN_CONTEXT_LEVEL3 (ADR 0012 Level 3)
+    > KERNEL_BAYESIAN_FEEDBACK (ADR 0012 Level 2)
+```
+Last-write-wins: hierarchical updater overwrites `hypothesis_weights` if enabled and scenarios available.
+
+**Test Coverage:**
+- τ schedule: monotonicity, asymptotic limits, specific points (n=0, 3, ∞)
+- Posterior blending: preservation of concentration, boundary cases (τ=0, τ=1)
+- Context mapping: canonical conversions, legacy → modern type routing
+- Context fallback: insufficient local data reverts to global
+- Hierarchical fixture: divergent feedbacks with scenarios 17–18–19, per-context α divergence verified
+- Kernel integration: full `EthicalKernel.process()` with `KERNEL_HIERARCHICAL_FEEDBACK=1` populated `KernelDecision` fields
+- Serialization: snapshot/restore round-trip with full state preservation
+
+**Caching (OOS-003):**
+Implemented in caller (kernel.py) to avoid repeated scenario candidate map building:
+- Check feedback file mtime before instantiating `HierarchicalUpdater`
+- Cache per (file_path, mtime) tuple
+- Rebuild only on file change
+
+---
+
+*MoSex Macchina Lab — ADR 0013, April 2026. Implemented and Accepted.*

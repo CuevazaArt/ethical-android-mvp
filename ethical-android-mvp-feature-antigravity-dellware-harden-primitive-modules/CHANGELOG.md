@@ -21,6 +21,14 @@ All notable changes to this project are summarized here. For narrative context a
 - **`src/kernel.py`:** passes tick context when Level 3 is enabled; **`KernelDecision.mixture_context_key`** records the active bucket.
 - **Docs / tests:** [ADR 0012](docs/adr/0012-bayesian-weight-inference-ethical-mixture-scorer.md); [`tests/test_context_mixture_level3.py`](tests/test_context_mixture_level3.py).
 
+## ADR 0013 Level 3 — hierarchical context-dependent weight inference — April 2026
+
+- **`src/modules/hierarchical_updater.py`:** (~400 lines) implements `HierarchicalUpdater` class with per-context `FeedbackUpdater` instances, τ-weighted blending schedule, context fallback (< min_local_items reverts to global), and canonical context-type mapping (resource_allocation, promise_conflict, confrontation, emergency, integrity, relational, general). Resolves context-divergent feedback where a global posterior fails.
+- **`src/kernel.py`:** integration in `process()` with OOS-004 precedence: `KERNEL_HIERARCHICAL_FEEDBACK` > `KERNEL_BAYESIAN_CONTEXT_LEVEL3` > `KERNEL_BAYESIAN_FEEDBACK`. Last-write-wins: hierarchical updater overwrites `hypothesis_weights` if enabled. **`KernelDecision.hierarchical_context_key`** records the active canonical context type.
+- **Env vars:** `KERNEL_HIERARCHICAL_FEEDBACK` (default off), `KERNEL_HIERARCHICAL_MIN_LOCAL` (default 3), `KERNEL_HIERARCHICAL_TAU_MAX` (default 0.8).
+- **Docs / tests:** [ADR 0013](docs/adr/0013-hierarchical-context-weight-inference.md); [`tests/test_hierarchical_updater.py`](tests/test_hierarchical_updater.py) (21 unit tests including τ schedule, blending mechanics, context mapping, divergent feedback).
+- **Status:** Accepted. Context-divergent feedback now achieves per-context satisfaction without code changes; operators define new context types simply by including `context_type` in feedback JSON.
+
 ## Trim non-kernel root artifacts — April 2026
 
 - **Removed** from the repository root: **`dashboard.html`** (static browser UI, not imported by Python), **`robots.txt`**, and **`ai.txt`** (web/SEO conventions, not runtime). Recover from git history if needed.

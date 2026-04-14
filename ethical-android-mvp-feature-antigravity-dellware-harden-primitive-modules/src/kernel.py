@@ -173,6 +173,7 @@ class KernelDecision:
     mixture_posterior_alpha: tuple[float, float, float] | None = None
     feedback_consistency: str | None = None
     mixture_context_key: str | None = None  # ADR 0012 Level 3 — which context bucket α came from
+    hierarchical_context_key: str | None = None  # ADR 0013 — which canonical context type α came from (HierarchicalUpdater)
 
 
 @dataclass
@@ -478,7 +479,62 @@ class EthicalKernel:
         self.bayesian.reset_mixture_weights()
 
         fb_path = os.environ.get("KERNEL_FEEDBACK_PATH", "").strip()
-        if _kernel_env_truthy("KERNEL_BAYESIAN_FEEDBACK") and fb_path:
+        hierarchical_context_key: str | None = None
+
+        # ADR 0013 Level 3: Hierarchical updater (highest precedence)
+        if _kernel_env_truthy("KERNEL_HIERARCHICAL_FEEDBACK") and fb_path:
+            p = Path(fb_path)
+            if p.is_file():
+                from .modules.feedback_mixture_updater import FeedbackUpdater
+                from .modules.hierarchical_updater import HierarchicalUpdater, canonical_context_type
+
+                try:
+                    feedbacks = FeedbackUpdater.load_feedback_file(p)
+                    scenario_candidates = FeedbackUpdater.build_scenario_candidates_map(
+                        [fb.scenario_id for fb in feedbacks]
+                    )
+                    if scenario_candidates is not None:
+                        seed = int(os.environ.get("KERNEL_FEEDBACK_SEED", "42"))
+                        min_local = int(os.environ.get("KERNEL_HIERARCHICAL_MIN_LOCAL", "3"))
+                        tau_max = float(os.environ.get("KERNEL_HIERARCHICAL_TAU_MAX", "0.8"))
+
+                        hier_updater = HierarchicalUpdater(
+                            initial_alpha=[3.0, 3.0, 3.0],
+                            min_local_items=min_local,
+                            tau_max=tau_max,
+                            seed=seed,
+                        )
+                        hier_result = hier_updater.ingest_feedback(feedbacks, scenario_candidates)
+
+                        # Use active context α for current tick
+                        active_ctx = canonical_context_type(context)
+                        alpha_vec = hier_updater.active_alpha_for_context(active_ctx)
+                        _av = np.asarray(alpha_vec, dtype=np.float64).reshape(3)
+                        mixture_posterior_alpha = (
+                            round(float(_av[0]), 6),
+                            round(float(_av[1]), 6),
+                            round(float(_av[2]), 6),
+                        )
+                        sw = float(np.sum(alpha_vec))
+                        self.bayesian.hypothesis_weights = alpha_vec / sw
+                        dirichlet_alpha_for_bma = alpha_vec
+                        feedback_consistency = hier_result.global_consistency
+                        hierarchical_context_key = active_ctx
+                        logger.info(
+                            "ADR 0013 Level 3: Hierarchical feedback applied. Context=%s, α=%s, p_satisfied=%s",
+                            active_ctx,
+                            [round(float(a), 3) for a in alpha_vec],
+                            hier_result.per_context_satisfaction.get(active_ctx, "N/A"),
+                        )
+                    else:
+                        logger.warning("Hierarchical feedback: scenario candidates unavailable, using Level 2")
+                        # Fall through to Level 2
+                except Exception as e:
+                    logger.exception("Error in hierarchical feedback: %s", e)
+                    # Fall through to Level 2
+
+        # ADR 0012 Level 2+3: Bayesian feedback (if hierarchical not enabled or failed)
+        if _kernel_env_truthy("KERNEL_BAYESIAN_FEEDBACK") and fb_path and mixture_posterior_alpha is None:
             p = Path(fb_path)
             if p.is_file():
                 from .modules.feedback_mixture_posterior import (
@@ -719,6 +775,7 @@ class EthicalKernel:
             mixture_posterior_alpha=mixture_posterior_alpha,
             feedback_consistency=feedback_consistency,
             mixture_context_key=mixture_context_key,
+            hierarchical_context_key=hierarchical_context_key,
         )
         self._emit_kernel_decision(d, context=context)
         _emit_process_observability(d, t0)
