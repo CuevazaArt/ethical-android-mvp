@@ -39,6 +39,7 @@ class NarrativeEpisode:
     context: str  # Type: emergency, everyday, etc.
     affect_pad: tuple[float, float, float] | None = None
     affect_weights: dict[str, float] | None = None
+    weights_snapshot: tuple[float, float, float] | None = None  # I1 — applied mixture weights at decision time
 
 
 class NarrativeMemory:
@@ -75,6 +76,7 @@ class NarrativeMemory:
         body_state: BodyState | None = None,
         affect_pad: tuple[float, float, float] | None = None,
         affect_weights: dict[str, float] | None = None,
+        weights_snapshot: tuple[float, float, float] | None = None,
     ) -> NarrativeEpisode:
         """Registers a new narrative episode."""
         self._counter += 1
@@ -93,6 +95,7 @@ class NarrativeMemory:
             context=context,
             affect_pad=affect_pad,
             affect_weights=affect_weights,
+            weights_snapshot=weights_snapshot,
         )
         self.episodes.append(ep)
         self.identity.update_from_episode(ep)

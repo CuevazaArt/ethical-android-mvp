@@ -692,6 +692,35 @@ class EthicalKernel:
         else:
             self.bayesian.pre_argmax_pole_weights = None
 
+        # I4 — KERNEL_NARRATIVE_IDENTITY_POLICY: identity leans → pole pre-argmax weights
+        _identity_policy = os.environ.get("KERNEL_NARRATIVE_IDENTITY_POLICY", "off").strip().lower()
+        if _identity_policy == "pole_pre_argmax":
+            try:
+                _id_state = getattr(getattr(self.memory, "identity", None), "state", None)
+                if _id_state is not None:
+                    _civic = float(getattr(_id_state, "civic_lean", 0.0))
+                    _care = float(getattr(_id_state, "care_lean", 0.0))
+                    _careful = float(getattr(_id_state, "careful_lean", 0.0))
+                    _delib = float(getattr(_id_state, "deliberation_lean", 0.0))
+                    _id_weights = {
+                        "compassionate": max((_civic + _care) / 2.0, 0.0),
+                        "conservative": max(_careful, 0.0),
+                        "optimistic": max(_delib, 0.0),
+                    }
+                    _id_sum = sum(_id_weights.values())
+                    if _id_sum > 0.0:
+                        _id_weights = {k: v / _id_sum for k, v in _id_weights.items()}
+                        # Blend with existing pre_argmax weights if already set
+                        if self.bayesian.pre_argmax_pole_weights is not None:
+                            _existing = self.bayesian.pre_argmax_pole_weights
+                            _id_weights = {
+                                k: 0.5 * _id_weights.get(k, 0.0) + 0.5 * _existing.get(k, 0.0)
+                                for k in ("compassionate", "conservative", "optimistic")
+                            }
+                        self.bayesian.pre_argmax_pole_weights = _id_weights
+            except Exception:
+                pass
+
         if _kernel_env_truthy("KERNEL_CONTEXT_RICHNESS_PRE_ARGMAX"):
             from .modules.weighted_ethics_scorer import PreArgmaxContextChannels
 
@@ -710,6 +739,15 @@ class EthicalKernel:
             round(float(_hw[1]), 6),
             round(float(_hw[2]), 6),
         )
+
+        # I3 — perception_uncertainty from coercion report into Bayesian signals
+        _pu_val = _perception_coercion_u_value(perception_coercion_uncertainty)
+        if _pu_val is not None and _pu_val > 0.0:
+            _pu_cur = float(signals.get("perception_uncertainty", 0.0))
+            if _pu_val > _pu_cur:
+                signals = dict(signals)
+                signals["perception_uncertainty"] = _pu_val
+
         bayes_result = self.bayesian.evaluate(
             clean_actions,
             scenario=scenario,
@@ -1271,6 +1309,37 @@ class EthicalKernel:
         cr = getattr(perception, "coercion_report", None)
         if isinstance(cr, dict):
             pu = cr.get("uncertainty")
+        elif cr is not None and callable(getattr(cr, "uncertainty", None)):
+            try:
+                pu = float(cr.uncertainty())
+            except Exception:
+                pu = None
+
+        # I3 — inject perception_uncertainty into signals before Bayesian scoring
+        if pu is not None and pu > 0.0:
+            signals = dict(signals)
+            signals["perception_uncertainty"] = max(
+                float(signals.get("perception_uncertainty", 0.0)), pu
+            )
+
+        # I5 — KERNEL_TEMPORAL_ETA_MODULATION: boost urgency from TemporalContext
+        if _kernel_env_truthy("KERNEL_TEMPORAL_ETA_MODULATION"):
+            tc = getattr(perception, "temporal_context", None)
+            if tc is not None:
+                try:
+                    eta_s = float(getattr(tc, "eta_seconds", 300) or 300)
+                    bhs = str(getattr(tc, "battery_horizon_state", "nominal") or "nominal")
+                    ref_eta = float(os.environ.get("KERNEL_TEMPORAL_REFERENCE_ETA_S", "300"))
+                    urgency_boost = min(max(ref_eta / max(eta_s, 1.0), 0.0), 1.0)
+                    if bhs == "critical":
+                        urgency_boost = min(urgency_boost + 0.3, 1.0)
+                    if urgency_boost > 0.0:
+                        signals = dict(signals)
+                        cur_urgency = float(signals.get("urgency", 0.0))
+                        signals["urgency"] = min(max(cur_urgency + urgency_boost * 0.4, 0.0), 1.0)
+                except Exception:
+                    pass
+
         decision = self.process(
             scenario=perception.summary or user_input[:240],
             place=place,
