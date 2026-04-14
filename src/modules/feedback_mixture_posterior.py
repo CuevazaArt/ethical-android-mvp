@@ -52,6 +52,9 @@ class FeedbackRecord:
     confidence: float = 1.0
     timestamp: str | None = None
     context_type: str | None = None
+    # Optional explicit action list — when present, _winner_at_mixture() uses these instead of
+    # resolving via ALL_SIMULATIONS, enabling operation with dynamic or unknown scenario IDs.
+    action_candidates: list[str] | None = None
 
 
 def feedback_enabled() -> bool:
@@ -223,6 +226,12 @@ def load_feedback_records(path: Path) -> list[FeedbackRecord]:
         conf = float(row.get("confidence", 1.0))
         ts = row.get("timestamp")
         ct = row.get("context_type")
+        raw_cands = row.get("action_candidates")
+        cands: list[str] | None = (
+            [str(a) for a in raw_cands]
+            if isinstance(raw_cands, list) and raw_cands
+            else None
+        )
         out.append(
             FeedbackRecord(
                 scenario_id=sid,
@@ -230,14 +239,42 @@ def load_feedback_records(path: Path) -> list[FeedbackRecord]:
                 confidence=conf,
                 timestamp=ts if isinstance(ts, str) else None,
                 context_type=ct if isinstance(ct, str) else None,
+                action_candidates=cands,
             )
         )
     return out
 
 
-def _winner_at_mixture(scenario_id: int, w: np.ndarray) -> str | None:
+def _winner_at_mixture(
+    scenario_id: int,
+    w: np.ndarray,
+    *,
+    action_candidates: list[str] | None = None,
+) -> str | None:
+    """Evaluate which action wins under mixture weights *w*.
+
+    When *action_candidates* is provided, those are used directly and the call
+    does **not** touch ``ALL_SIMULATIONS``, enabling dynamic or production
+    scenarios beyond the fixed simulation registry.  Falls back to
+    ``ALL_SIMULATIONS`` when *action_candidates* is ``None``.
+    """
+    if action_candidates is not None:
+        r = mixture_ranking(
+            WeightedEthicsScorer(),
+            mixture=w,
+            scenario=f"[dynamic] scenario_id={scenario_id}",
+            context="",
+            signals={},
+            actions=action_candidates,
+        )
+        return r.get("winner")
+
+    # Fallback: resolve via fixed simulation registry (backward compat)
     if scenario_id not in ALL_SIMULATIONS:
-        raise ValueError(f"Unknown scenario_id {scenario_id}")
+        raise ValueError(
+            f"Unknown scenario_id {scenario_id} and no action_candidates provided. "
+            "Supply 'action_candidates' in the feedback record for dynamic scenarios."
+        )
     scn = ALL_SIMULATIONS[scenario_id]()
     text = f"[SIM {scenario_id}] {scn.name}"
     r = mixture_ranking(
@@ -266,7 +303,11 @@ def joint_satisfaction_monte_carlo(
     ok = 0
     for _ in range(n_samples):
         w = rng.dirichlet(alpha)
-        if all(_winner_at_mixture(r.scenario_id, w) == r.preferred_action for r in records):
+        if all(
+            _winner_at_mixture(r.scenario_id, w, action_candidates=r.action_candidates)
+            == r.preferred_action
+            for r in records
+        ):
             ok += 1
     rate = ok / float(n_samples)
     return rate, rate < (1.0 / max(n_samples, 2))
@@ -293,7 +334,7 @@ def sequential_alpha_update(
         agreeing: list[np.ndarray] = []
         for _ in range(n_inner):
             w = rng.dirichlet(alpha)
-            win = _winner_at_mixture(rec.scenario_id, w)
+            win = _winner_at_mixture(rec.scenario_id, w, action_candidates=rec.action_candidates)
             if win == rec.preferred_action:
                 agreeing.append(w)
         if not agreeing:

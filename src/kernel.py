@@ -174,6 +174,7 @@ class KernelDecision:
     feedback_consistency: str | None = None
     mixture_context_key: str | None = None  # ADR 0012 Level 3 — which context bucket α came from
     hierarchical_context_key: str | None = None  # ADR 0013 — canonical context type used by hierarchical updater
+    applied_mixture_weights: tuple[float, float, float] | None = None  # weights actually used in evaluate()
 
 
 @dataclass
@@ -690,6 +691,12 @@ class EthicalKernel:
         else:
             self.bayesian.pre_argmax_context_modulators = None
 
+        _hw = self.bayesian.hypothesis_weights
+        applied_mixture_weights: tuple[float, float, float] = (
+            round(float(_hw[0]), 6),
+            round(float(_hw[1]), 6),
+            round(float(_hw[2]), 6),
+        )
         bayes_result = self.bayesian.evaluate(
             clean_actions,
             scenario=scenario,
@@ -869,6 +876,7 @@ class EthicalKernel:
             feedback_consistency=feedback_consistency,
             mixture_context_key=mixture_context_key,
             hierarchical_context_key=hierarchical_context_key,
+            applied_mixture_weights=applied_mixture_weights,
         )
         self._emit_kernel_decision(d, context=context)
         _emit_process_observability(d, t0)
@@ -928,6 +936,8 @@ class EthicalKernel:
                 lines.append(f"  Pruned: {', '.join(br.pruned_actions)}")
             if d.feedback_consistency:
                 lines.append(f"  Mixture feedback consistency: {d.feedback_consistency}")
+            if d.applied_mixture_weights is not None:
+                lines.append(f"  Applied weights [util, deon, virt]: {d.applied_mixture_weights}")
             if d.mixture_posterior_alpha is not None:
                 lines.append(f"  Posterior Dirichlet α (mixture): {d.mixture_posterior_alpha}")
             if d.mixture_context_key:
