@@ -70,12 +70,14 @@ class PreArgmaxContextChannels:
     caution: float
     sigma: float
     dominant_locus: str
+    relational_tension: float = 0.0
+    historical_trauma: float = 0.0
 
 
 def context_hypothesis_multipliers(ch: PreArgmaxContextChannels) -> np.ndarray:
     """
-    Map trust, caution, sympathetic ``sigma``, and locus into util/deon/virtue multipliers.
-
+    Map trust, caution, sympathetic ``sigma``, locus, relational tension, and historical trauma
+    into util/deon/virtue multipliers.
     Geometric mean 1.0; typical per-slot deviation well under ±3% so ethics remains mixture-led.
     """
     t = float(np.clip(ch.trust, 0.0, 1.0))
@@ -84,11 +86,18 @@ def context_hypothesis_multipliers(ch: PreArgmaxContextChannels) -> np.ndarray:
     loc = (ch.dominant_locus or "balanced").lower()
     ext = 1.0 if loc == "external" else (0.45 if loc == "balanced" else 0.0)
     calm_term = 1.0 - abs(sig - 0.5) * 2.0
+    
+    # Phase 7 Math Fusion: Psychological Variables
+    rt = float(np.clip(ch.relational_tension, 0.0, 1.0))
+    htrauma = float(np.clip(ch.historical_trauma, 0.0, 1.0))
+
+    # Trauma increases rigid duty (deon) and reduces utilitarian risk-taking.
+    # Relational tension reduces virtue (less trust in interaction) and increases deon caution.
     m = np.array(
         [
-            0.988 + 0.022 * t - 0.010 * cau,
-            0.988 + 0.018 * cau + 0.014 * ext,
-            0.988 + 0.016 * calm_term + 0.008 * (1.0 - t),
+            0.988 + 0.022 * t - 0.010 * cau - 0.010 * htrauma,
+            0.988 + 0.018 * cau + 0.014 * ext + 0.012 * htrauma + 0.010 * rt,
+            0.988 + 0.016 * calm_term + 0.008 * (1.0 - t) - 0.012 * rt - 0.005 * htrauma,
         ],
         dtype=np.float64,
     )

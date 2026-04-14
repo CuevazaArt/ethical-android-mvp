@@ -664,6 +664,8 @@ class EthicalKernel:
                 caution=float(social_eval.caution_level),
                 sigma=float(state.sigma),
                 dominant_locus=str(locus_eval.dominant_locus),
+                relational_tension=float(getattr(social_eval, 'relational_tension', 0.0)),
+                historical_trauma=float(self.weakness.emotional_load() if self.weakness else 0.0),
             )
         else:
             self.bayesian.pre_argmax_context_modulators = None
