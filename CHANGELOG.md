@@ -4,6 +4,14 @@ All notable changes to this project are summarized here. For narrative context a
 
 **Note:** Older sections below may still **link** to paths that were later removed (for example `experiments/million_sim/`, `docs/multimedia/`, root `dashboard.html`, `landing/`). Those links are **historical**; recover files from git history or backup branches if you need them.
 
+## Verbal / narrative LLM degradation policy — April 2026
+
+- **New:** [`src/modules/llm_verbal_backend_policy.py`](src/modules/llm_verbal_backend_policy.py) — ``KERNEL_VERBAL_LLM_BACKEND_POLICY`` (`template_local` default, `canned_safe` optional) for :meth:`LLMModule.communicate` and :meth:`LLMModule.narrate` when the generative path fails or returns unusable JSON.
+- **`LLMModule`:** per-turn degradation event log; stricter communicate JSON (non-empty `message`); narrate requires at least one non-empty moral field for LLM output to be accepted.
+- **Chat:** [`src/chat_server.py`](src/chat_server.py) emits `verbal_llm_observability` when events exist; [`src/kernel.py`](src/kernel.py) clears the log at chat / `process_natural` entry and passes `verbal_llm_degradation_events` on [`ChatTurnResult`](src/kernel.py).
+- **Docs:** [`docs/proposals/PROPOSAL_LLM_VERBAL_DEGRADATION_POLICY.md`](docs/proposals/PROPOSAL_LLM_VERBAL_DEGRADATION_POLICY.md), [`docs/proposals/OPERATOR_QUICK_REF.md`](docs/proposals/OPERATOR_QUICK_REF.md); [`.env.example`](.env.example); [`MODEL_CRITICAL_BACKLOG.md`](docs/proposals/MODEL_CRITICAL_BACKLOG.md) updated (partial unified degradation).
+- **Tests:** [`tests/test_llm_verbal_backend_policy.py`](tests/test_llm_verbal_backend_policy.py); [`tests/test_llm_injection.py`](tests/test_llm_injection.py) asserts degradation events.
+
 ## Perception — valid-but-wrong payload regressions — April 2026
 
 - **Tests:** [`tests/test_perception_valid_wrong_payloads.py`](tests/test_perception_valid_wrong_payloads.py) locks JSON-valid, in-range payloads that are semantically inconsistent (coherence nudges, context fallback uncertainty, fail-safe prior when many fields default).

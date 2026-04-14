@@ -193,6 +193,8 @@ class ChatTurnResult:
         None  # set each turn when lighthouse KB configured
     )
     metacognitive_doubt: bool = False
+    # Generative LLM degradation (communicate / narrate); see llm_verbal_backend_policy.
+    verbal_llm_degradation_events: list[dict[str, str]] | None = None
 
 
 def _emit_process_observability(d: KernelDecision, t0: float) -> None:
@@ -1006,6 +1008,7 @@ class EthicalKernel:
         """
         wm = self.working_memory
         conv = wm.format_context_for_perception()
+        self.llm.reset_verbal_degradation_log()
 
         tier = None
         if light_risk_classifier_enabled():
@@ -1363,6 +1366,7 @@ class EthicalKernel:
                     )
 
         self._snapshot_feedback_anchor(decision.decision_mode)
+        _vdeg = self.llm.verbal_degradation_events_snapshot()
         return ChatTurnResult(
             response=response,
             path="heavy" if heavy else "light",
@@ -1375,6 +1379,7 @@ class EthicalKernel:
             judicial_escalation=je_view,
             reality_verification=self._last_reality_verification,
             metacognitive_doubt=self._perception_metacognitive_doubt,
+            verbal_llm_degradation_events=_vdeg if _vdeg else None,
         )
 
     def process_natural(self, situation: str, actions: list[CandidateAction] = None) -> tuple:
@@ -1455,6 +1460,8 @@ class EthicalKernel:
                 inner_voice=f"MalAbs natural-language gate: {mal.reason or 'blocked'}",
             )
             return decision, response, None
+
+        self.llm.reset_verbal_degradation_log()
 
         # Step 1: LLM perceives the situation
         perception = self.llm.perceive(situation)

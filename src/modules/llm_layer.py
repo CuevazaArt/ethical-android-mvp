@@ -42,6 +42,11 @@ from .llm_backends import (
     TextCompletionBackend,
     coerce_to_llm_backend,
 )
+from .llm_verbal_backend_policy import (
+    canned_rich_narrative_fields,
+    canned_verbal_communication_fields,
+    resolve_verbal_llm_backend_policy,
+)
 from .perception_backend_policy import (
     apply_backend_degradation_meta,
     build_fast_fail_perception,
@@ -78,6 +83,15 @@ def resolve_llm_mode(explicit: str | None = None) -> str:
 def _perception_parse_fail_local() -> bool:
     v = os.environ.get("KERNEL_PERCEPTION_PARSE_FAIL_LOCAL", "").strip().lower()
     return v in ("1", "true", "yes", "on")
+
+
+def _narrate_json_usable(data: dict) -> bool:
+    if not data:
+        return False
+    for k in ("compassionate", "conservative", "optimistic", "synthesis"):
+        if str(data.get(k, "")).strip():
+            return True
+    return False
 
 
 def _perception_prompt() -> str:
@@ -316,6 +330,7 @@ class LLMModule:
         self.model = "claude-sonnet-4-20250514"
         self.ollama_model = os.environ.get("OLLAMA_MODEL", "llama3.2:3b")
         self._llm_backend: LLMBackend | None = None
+        self._verbal_degradation_events: list[dict[str, str]] = []
 
         if llm_backend is not None:
             self._llm_backend = llm_backend
@@ -348,6 +363,25 @@ class LLMModule:
                 self.mode = "local"
         else:
             self.mode = "local"
+
+    def reset_verbal_degradation_log(self) -> None:
+        """Clear verbal/narrative LLM degradation events (call once per user turn)."""
+        self._verbal_degradation_events.clear()
+
+    def verbal_degradation_events_snapshot(self) -> list[dict[str, str]]:
+        """Copy of recorded generative degradation events for this turn."""
+        return list(self._verbal_degradation_events)
+
+    def _record_verbal_degradation(
+        self, touchpoint: str, failure_reason: str, recovery_policy: str
+    ) -> None:
+        self._verbal_degradation_events.append(
+            {
+                "touchpoint": touchpoint,
+                "failure_reason": failure_reason,
+                "recovery_policy": recovery_policy,
+            }
+        )
 
     @property
     def llm_backend(self) -> LLMBackend | None:
@@ -726,18 +760,53 @@ class LLMModule:
                     "\n\nGuardian mode (style only; verdict and action are final):\n"
                     f"{guardian_mode_context}"
                 )
+            vpol = resolve_verbal_llm_backend_policy()
             try:
                 response = self._llm_completion(prompt, user_msg, metrics_op="communicate")
             except Exception:
-                response = ""
+                self._record_verbal_degradation("communicate", "llm_completion_exception", vpol)
+                if vpol == "canned_safe":
+                    return VerbalResponse(
+                        **canned_verbal_communication_fields(
+                            mode=mode,
+                            action=action,
+                            failure_reason="llm_completion_exception",
+                        )
+                    )
+                return self._communicate_local(
+                    action,
+                    mode,
+                    state,
+                    circle,
+                    scenario,
+                    affect_pad=affect_pad,
+                    dominant_archetype=dominant_archetype,
+                    weakness_line=weakness_line,
+                    reflection_context=reflection_context,
+                    salience_context=salience_context,
+                    identity_context=identity_context,
+                    guardian_mode_context=guardian_mode_context,
+                )
             data = self._parse_json(response)
-            if data:
+            if data and str(data.get("message", "")).strip():
                 return VerbalResponse(
                     message=data.get("message", ""),
                     tone=data.get("tone", "calm"),
                     hax_mode=data.get("hax_mode", ""),
                     inner_voice=data.get("inner_voice", ""),
                 )
+            if self.mode in ("api", "ollama", "injected") and self._llm_backend is not None:
+                self._record_verbal_degradation(
+                    "communicate", "verbal_json_missing_or_empty", vpol
+                )
+                if vpol == "canned_safe":
+                    return VerbalResponse(
+                        **canned_verbal_communication_fields(
+                            mode=mode,
+                            action=action,
+                            failure_reason="verbal_json_missing_or_empty",
+                        )
+                    )
 
         return self._communicate_local(
             action,
@@ -842,20 +911,40 @@ class LLMModule:
                 pole_conservative=pole_conservative,
                 pole_optimistic=pole_optimistic,
             )
+            vpol = resolve_verbal_llm_backend_policy()
             try:
                 response = self._llm_completion(
                     prompt, "Generate the morals.", metrics_op="narrate"
                 )
             except Exception:
-                response = ""
+                self._record_verbal_degradation("narrate", "llm_completion_exception", vpol)
+                if vpol == "canned_safe":
+                    return RichNarrative(
+                        **canned_rich_narrative_fields(
+                            action=action,
+                            failure_reason="llm_completion_exception",
+                        )
+                    )
+                return self._narrate_local(action, scenario, verdict, score)
             data = self._parse_json(response)
-            if data:
+            if _narrate_json_usable(data):
                 return RichNarrative(
                     compassionate=data.get("compassionate", ""),
                     conservative=data.get("conservative", ""),
                     optimistic=data.get("optimistic", ""),
                     synthesis=data.get("synthesis", ""),
                 )
+            if self.mode in ("api", "ollama", "injected") and self._llm_backend is not None:
+                self._record_verbal_degradation(
+                    "narrate", "verbal_json_missing_or_empty", vpol
+                )
+                if vpol == "canned_safe":
+                    return RichNarrative(
+                        **canned_rich_narrative_fields(
+                            action=action,
+                            failure_reason="verbal_json_missing_or_empty",
+                        )
+                    )
 
         return self._narrate_local(action, scenario, verdict, score)
 

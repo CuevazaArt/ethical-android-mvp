@@ -36,6 +36,14 @@ When a chat turn includes `perception`, the server emits:
 
 This contract is intended for operator dashboards and alerting stability across perception fallback modes.
 
+### Verbal LLM observability (chat JSON)
+
+When generative **communicate** or **narrate** falls back (transport error or unusable JSON), the server may emit:
+
+- `verbal_llm_observability`: `{ "degraded": true, "events": [ { "touchpoint", "failure_reason", "recovery_policy" } ] }`.
+
+Recovery policy is `KERNEL_VERBAL_LLM_BACKEND_POLICY` (`template_local` default, or `canned_safe`). See [`PROPOSAL_LLM_VERBAL_DEGRADATION_POLICY.md`](PROPOSAL_LLM_VERBAL_DEGRADATION_POLICY.md).
+
 ### Observability (metrics and logs)
 
 Enable with `KERNEL_METRICS=1` (scrapes `http://<host>:<port>/metrics`). If `prometheus_client` is missing, the server returns HTTP 503 JSON for `/metrics` instead of crashing. Structured JSON logs: `KERNEL_LOG_JSON=1`; severity: `KERNEL_LOG_LEVEL` (e.g. `INFO`, `DEBUG`). Per-decision machine-readable lines (one JSON object per `EthicalKernel.process`): default **on** when JSON logging is on — disable with `KERNEL_LOG_DECISION_EVENTS=0`. **`GET /health`** returns `version`, `uptime_seconds`, an `observability` object (metrics/log flags, `prometheus_client` import status), and **`chat_bridge`** (`kernel_chat_turn_timeout_seconds`, `kernel_chat_threadpool_workers`, `kernel_chat_json_offload` — see [`chat_settings.py`](../../src/chat_settings.py)) for dashboards and probes.

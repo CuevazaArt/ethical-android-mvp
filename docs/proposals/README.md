@@ -111,6 +111,7 @@ Legacy Spanish filenames (`PROPUESTA_*.md`, `ESTRATEGIA_Y_RUTA.md`, `PAPER_AFECT
 | [PERCEPTION_VALIDATION.md](PERCEPTION_VALIDATION.md) | Perception validation (Pydantic, coherence) |
 | [PROPOSAL_PERCEPTION_BACKEND_DEGRADATION_POLICY.md](PROPOSAL_PERCEPTION_BACKEND_DEGRADATION_POLICY.md) | Unified ``KERNEL_PERCEPTION_BACKEND_POLICY`` (template_local / fast_fail / session_banner) |
 | [PROPOSAL_PERCEPTION_OBSERVABILITY_CONTRACT.md](PROPOSAL_PERCEPTION_OBSERVABILITY_CONTRACT.md) | Stable chat JSON perception diagnostics contract for operators and dashboards |
+| [PROPOSAL_LLM_VERBAL_DEGRADATION_POLICY.md](PROPOSAL_LLM_VERBAL_DEGRADATION_POLICY.md) | ``KERNEL_VERBAL_LLM_BACKEND_POLICY`` for communicate/narrate failure + ``verbal_llm_observability`` |
 | [POLES_WEAKNESS_PAD_AND_PROFILES.md](POLES_WEAKNESS_PAD_AND_PROFILES.md) | Poles, weakness, PAD, and profiles |
 | [POLE_WEIGHT_CALIBRATION_AND_EVIDENCE.md](POLE_WEIGHT_CALIBRATION_AND_EVIDENCE.md) | Pole weights: heuristics vs empirical calibration roadmap |
 | [TEMPORAL_PRIOR_HORIZONS.md](TEMPORAL_PRIOR_HORIZONS.md) | Temporal horizon prior (ADR 0005) |

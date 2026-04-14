@@ -332,6 +332,11 @@ def _chat_turn_to_jsonable(r: ChatTurnResult, kernel: EthicalKernel) -> dict[str
             out["malabs_trace"] = list(m.decision_trace)
     if r.metacognitive_doubt:
         out["metacognitive_doubt"] = True
+    if r.verbal_llm_degradation_events:
+        out["verbal_llm_observability"] = {
+            "degraded": True,
+            "events": r.verbal_llm_degradation_events,
+        }
     if r.perception:
         p = r.perception
         out["perception"] = {
