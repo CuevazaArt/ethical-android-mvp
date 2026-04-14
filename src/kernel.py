@@ -108,6 +108,7 @@ from .modules.skill_learning_registry import SkillLearningRegistry
 from .modules.somatic_markers import SomaticMarkerStore, apply_somatic_nudges
 from .modules.subjective_time import SubjectiveClock
 from .modules.swarm_negotiator import SwarmMessage, SwarmNegotiator
+from .modules.strategy_engine import ExecutiveStrategist, MissionOrigin, MissionStatus
 from .modules.sympathetic import InternalState, SympatheticModule
 from .modules.uchi_soto import SocialEvaluation, TrustCircle, UchiSotoModule
 from .modules.user_model import UserModelTracker
@@ -332,12 +333,18 @@ class EthicalKernel:
             if co and hasattr(co, "swarm_negotiator") and co.swarm_negotiator is not None 
             else SwarmNegotiator(node_id=os.environ.get("KERNEL_NODE_ID", "default_node"))
         )
+        self.strategist = (
+            co.strategist 
+            if co and hasattr(co, "strategist") and co.strategist is not None 
+            else ExecutiveStrategist()
+        )
         self.constitution_l1_drafts: list[dict[str, Any]] = []
         self.constitution_l2_drafts: list[dict[str, Any]] = []
         self._last_reality_verification: RealityVerificationAssessment = REALITY_ASSESSMENT_NONE
         self._last_light_risk_tier: str | None = None
         self._perception_validation_streak: int = 0
         self._perception_metacognitive_doubt: bool = False
+        self.event_bus = None
         if kernel_event_bus_enabled():
             self.event_bus = KernelEventBus()
         self.metacognition = co.metacognition if co and hasattr(co, "metacognition") and co.metacognition is not None else MetacognitiveEvaluator()
@@ -409,6 +416,16 @@ class EthicalKernel:
         ``D_delib`` (production-hardening spike; default env off).
         """
         t0 = time.perf_counter()
+        
+        # ═══ STRATEGIC MISSION INGESTION (Phase 4.1) ═══
+        if sensor_snapshot and sensor_snapshot.external_mission_title:
+            from .modules.strategy_engine import MissionOrigin
+            self.strategist.create_mission(
+                title=sensor_snapshot.external_mission_title,
+                origin=MissionOrigin.OWNER,
+                steps=sensor_snapshot.external_mission_steps or [],
+                priority=sensor_snapshot.external_mission_priority or 0.6
+            )
 
         # ═══ STEP 1: Uchi-soto social evaluation ═══
         self.uchi_soto.ingest_turn_context(

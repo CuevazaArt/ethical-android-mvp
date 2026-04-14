@@ -34,6 +34,10 @@ class SensorSnapshot:
     audio_emergency: float | None = None  # [0, 1] mic/spectrum → distress / scream hypothesis
     vision_emergency: float | None = None  # [0, 1] local vision supports emergency
     scene_coherence: float | None = None  # [0, 1] GPS/WiFi plausibility for emergency context
+    # Phase 4.1 expansion: Strategic Missions
+    external_mission_title: str | None = None # e.g. "Recover the lost bag"
+    external_mission_priority: float | None = None # [0, 1]
+    external_mission_steps: list[str] | None = None # ["Go to cafe", "Look under table"]
 
     @classmethod
     def from_dict(cls, raw: dict[str, Any]) -> SensorSnapshot:
@@ -62,6 +66,9 @@ class SensorSnapshot:
             audio_emergency=f("audio_emergency"),
             vision_emergency=f("vision_emergency"),
             scene_coherence=f("scene_coherence"),
+            external_mission_title=raw.get("external_mission_title"),
+            external_mission_priority=f("external_mission_priority"),
+            external_mission_steps=raw.get("external_mission_steps"),
         )
 
     def is_empty(self) -> bool:
