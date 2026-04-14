@@ -36,7 +36,7 @@ Production defaults match that posture (gate + hash on when unset); nominal LAN/
 
 ## Runtime anchors
 
-`add_semantic_anchor(phrase, category_key, reason_label)` in `src/modules/semantic_chat_gate.py` appends anchors without redeploying code (e.g. DAO-discovered patterns). Category keys must match MalAbs enums: `INTENTIONAL_LETHAL_VIOLENCE`, `HARM_TO_MINOR`, `UNAUTHORIZED_REPROGRAMMING`, etc.
+`add_semantic_anchor(phrase, category_key, reason_label)` in `src/modules/semantic_chat_gate.py` appends anchors without redeploying code (e.g. operator-discovered patterns). Category keys must match MalAbs enums: `INTENTIONAL_LETHAL_VIOLENCE`, `HARM_TO_MINOR`, `TORTURE`, `UNAUTHORIZED_REPROGRAMMING`, etc.
 
 ## See also
 
