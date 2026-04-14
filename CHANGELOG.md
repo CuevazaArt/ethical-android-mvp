@@ -4,6 +4,13 @@ All notable changes to this project are summarized here. For narrative context a
 
 **Note:** Older sections below may still **link** to paths that were later removed (for example `experiments/million_sim/`, `docs/multimedia/`, root `dashboard.html`, `landing/`). Those links are **historical**; recover files from git history or backup branches if you need them.
 
+## LLM touchpoint policy matrix (flexible operator precedence) — April 2026
+
+- **New:** [`src/modules/llm_touchpoint_policies.py`](src/modules/llm_touchpoint_policies.py) — `KERNEL_LLM_TP_<TOUCHPOINT>_POLICY` for `perception`, `communicate`, `narrate`, `monologue`; `KERNEL_LLM_VERBAL_FAMILY_POLICY` for shared communicate+narrate default; `KERNEL_LLM_MONOLOGUE_BACKEND_POLICY` monologue fallback; monologue policies `passthrough` | `annotate_degraded` with degradation events + optional `| monologue_llm_*` suffix.
+- **Precedence:** per-touchpoint override → verbal family (communicate/narrate) → legacy `KERNEL_PERCEPTION_BACKEND_POLICY` / `KERNEL_VERBAL_LLM_BACKEND_POLICY` — see [`docs/proposals/PROPOSAL_LLM_TOUCHPOINT_DEGRADATION_MATRIX.md`](docs/proposals/PROPOSAL_LLM_TOUCHPOINT_DEGRADATION_MATRIX.md).
+- **Docs:** [`CONTRIBUTING.md`](CONTRIBUTING.md), [`AGENTS.md`](AGENTS.md), [`docs/proposals/KERNEL_ENV_POLICY.md`](docs/proposals/KERNEL_ENV_POLICY.md), [`docs/proposals/OPERATOR_QUICK_REF.md`](docs/proposals/OPERATOR_QUICK_REF.md), [`docs/proposals/README.md`](docs/proposals/README.md), [`docs/proposals/CURSOR_TEAM_MISSION_SENSORS_PERCEPTION.md`](docs/proposals/CURSOR_TEAM_MISSION_SENSORS_PERCEPTION.md); [`.env.example`](.env.example); [`src/validators/kernel_env_operator.py`](src/validators/kernel_env_operator.py).
+- **Tests:** [`tests/test_llm_touchpoint_policies.py`](tests/test_llm_touchpoint_policies.py); [`tests/test_llm_verbal_backend_policy.py`](tests/test_llm_verbal_backend_policy.py) (monologue annotate path).
+
 ## Verbal / narrative LLM degradation policy — April 2026
 
 - **New:** [`src/modules/llm_verbal_backend_policy.py`](src/modules/llm_verbal_backend_policy.py) — ``KERNEL_VERBAL_LLM_BACKEND_POLICY`` (`template_local` default, `canned_safe` optional) for :meth:`LLMModule.communicate` and :meth:`LLMModule.narrate` when the generative path fails or returns unusable JSON.

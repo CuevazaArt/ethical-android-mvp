@@ -4,7 +4,15 @@ Recovery when generative LLM calls for **communication** or **narrative** fail o
 Parallels :mod:`perception_backend_policy` (perception uses structured priors + ``coercion_report``).
 Here, recovery is template text only (no ethics impact on ``final_action``).
 
-``KERNEL_VERBAL_LLM_BACKEND_POLICY``:
+Precedence for **communicate** and **narrate** is documented in
+``docs/proposals/PROPOSAL_LLM_TOUCHPOINT_DEGRADATION_MATRIX.md``:
+
+1. ``KERNEL_LLM_TP_COMMUNICATE_POLICY`` / ``KERNEL_LLM_TP_NARRATE_POLICY``
+2. ``KERNEL_LLM_VERBAL_FAMILY_POLICY`` (applies when a per-touchpoint key is unset)
+3. ``KERNEL_VERBAL_LLM_BACKEND_POLICY`` (legacy)
+4. default ``template_local``
+
+**Policy values**
 
 - ``template_local`` (default): existing rich templates via :meth:`LLMModule._communicate_local`
   / :meth:`LLMModule._narrate_local`.
@@ -20,13 +28,30 @@ from __future__ import annotations
 
 import os
 
+from .llm_touchpoint_policies import (
+    ENV_VERBAL_FAMILY_POLICY,
+    TOUCHPOINT_COMMUNICATE,
+    TOUCHPOINT_NARRATE,
+    raw_touchpoint_policy,
+)
+
 # Default matches historical behavior: full local templates on generative failure.
 DEFAULT_KERNEL_VERBAL_LLM_BACKEND_POLICY = "template_local"
 
 _VALID_POLICIES = frozenset({"template_local", "canned_safe"})
 
 
-def resolve_verbal_llm_backend_policy() -> str:
+def resolve_verbal_llm_backend_policy(*, touchpoint: str = "communicate") -> str:
+    """Resolve verbal JSON policy for ``communicate`` or ``narrate``."""
+    slug = touchpoint.strip().lower()
+    if slug not in (TOUCHPOINT_COMMUNICATE, TOUCHPOINT_NARRATE):
+        slug = TOUCHPOINT_COMMUNICATE
+    tp = raw_touchpoint_policy(slug)
+    if tp and tp in _VALID_POLICIES:
+        return tp
+    fam = os.environ.get(ENV_VERBAL_FAMILY_POLICY, "").strip().lower()
+    if fam and fam in _VALID_POLICIES:
+        return fam
     raw = os.environ.get("KERNEL_VERBAL_LLM_BACKEND_POLICY", "").strip().lower()
     if raw in ("", "auto"):
         return DEFAULT_KERNEL_VERBAL_LLM_BACKEND_POLICY

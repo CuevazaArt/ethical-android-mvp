@@ -88,6 +88,7 @@ An item is done only when all apply:
 | Perception pipeline | [`PERCEPTION_VALIDATION.md`](PERCEPTION_VALIDATION.md), [`src/modules/llm_layer.py`](../../src/modules/llm_layer.py) |
 | Input trust + MalAbs | [`INPUT_TRUST_THREAT_MODEL.md`](INPUT_TRUST_THREAT_MODEL.md), [`MALABS_SEMANTIC_LAYERS.md`](MALABS_SEMANTIC_LAYERS.md), [`PROPOSAL_MALABS_SEMANTIC_THRESHOLD_EVIDENCE.md`](PROPOSAL_MALABS_SEMANTIC_THRESHOLD_EVIDENCE.md) |
 | Known perception gap | [`docs/WEAKNESSES_AND_BOTTLENECKS.md`](../WEAKNESSES_AND_BOTTLENECKS.md) (Section 3: unified degradation policy gap) |
+| LLM touchpoint env precedence | [`PROPOSAL_LLM_TOUCHPOINT_DEGRADATION_MATRIX.md`](PROPOSAL_LLM_TOUCHPOINT_DEGRADATION_MATRIX.md), [`src/modules/llm_touchpoint_policies.py`](../../src/modules/llm_touchpoint_policies.py) |
 | Situated model theory | [`PROPOSAL_SITUATED_ORGANISM_V8.md`](PROPOSAL_SITUATED_ORGANISM_V8.md) |
 | Contribution guardrails | [`CONTRIBUTING.md`](../../CONTRIBUTING.md), [`AGENTS.md`](../../AGENTS.md) |
 

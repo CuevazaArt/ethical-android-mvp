@@ -11,6 +11,7 @@ Every contributor (human or agent) should review, in this order:
 3. [`AGENTS.md`](../../AGENTS.md) — durable expectations for integrated fixes.
 4. [`.cursor/rules/`](../../.cursor/rules/) — always-on rules (prioritization, documentation discipline, language policy).
 5. Team playbooks under `docs/proposals/` for active scopes.
+6. [`docs/proposals/PROPOSAL_LLM_TOUCHPOINT_DEGRADATION_MATRIX.md`](../proposals/PROPOSAL_LLM_TOUCHPOINT_DEGRADATION_MATRIX.md) — when changing or tuning **LLM recovery** env vars (`KERNEL_LLM_TP_*`, verbal family, perception/verbal legacy keys), use this matrix so staging and production stay aligned.
 
 ## 2) Non-negotiable working principles
 

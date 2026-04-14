@@ -1,5 +1,7 @@
 # Proposal — unified perception backend degradation policy
 
+**Cross-touchpoint precedence:** [`PROPOSAL_LLM_TOUCHPOINT_DEGRADATION_MATRIX.md`](PROPOSAL_LLM_TOUCHPOINT_DEGRADATION_MATRIX.md) — `KERNEL_LLM_TP_PERCEPTION_POLICY` overrides `KERNEL_PERCEPTION_BACKEND_POLICY` when set and valid.
+
 ## Problem
 
 Local inference (Ollama and similar) can fail or return unusable structured output. Operators need a **single, documented recovery posture** instead of ad-hoc silent fallbacks.

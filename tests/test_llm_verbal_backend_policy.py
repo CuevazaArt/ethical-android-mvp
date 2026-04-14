@@ -92,6 +92,18 @@ def test_narrate_empty_json_canned_safe(monkeypatch):
     assert ev[0]["touchpoint"] == "narrate"
 
 
+def test_monologue_annotate_degraded_on_failure(monkeypatch):
+    monkeypatch.setenv("KERNEL_LLM_MONOLOGUE", "1")
+    monkeypatch.setenv("KERNEL_LLM_TP_MONOLOGUE_POLICY", "annotate_degraded")
+
+    llm = LLMModule(text_backend=RaisingCompletion())
+    llm.reset_verbal_degradation_log()
+    out = llm.optional_monologue_embellishment("base mono line")
+    assert "monologue_llm_degraded" in out
+    ev = llm.verbal_degradation_events_snapshot()
+    assert len(ev) == 1 and ev[0]["touchpoint"] == "monologue"
+
+
 def test_chat_json_includes_verbal_llm_observability():
     kernel = EthicalKernel(llm_mode="local")
     r = ChatTurnResult(

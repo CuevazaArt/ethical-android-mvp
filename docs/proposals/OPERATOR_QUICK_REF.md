@@ -38,11 +38,11 @@ This contract is intended for operator dashboards and alerting stability across 
 
 ### Verbal LLM observability (chat JSON)
 
-When generative **communicate** or **narrate** falls back (transport error or unusable JSON), the server may emit:
+When a generative touchpoint falls back (**communicate**, **narrate**, or optional **monologue** enrich), the server may emit:
 
 - `verbal_llm_observability`: `{ "degraded": true, "events": [ { "touchpoint", "failure_reason", "recovery_policy" } ] }`.
 
-Recovery policy is `KERNEL_VERBAL_LLM_BACKEND_POLICY` (`template_local` default, or `canned_safe`). See [`PROPOSAL_LLM_VERBAL_DEGRADATION_POLICY.md`](PROPOSAL_LLM_VERBAL_DEGRADATION_POLICY.md).
+**Configuration precedence** (per path): `KERNEL_LLM_TP_<TOUCHPOINT>_POLICY` → `KERNEL_LLM_VERBAL_FAMILY_POLICY` (communicate + narrate only) → `KERNEL_VERBAL_LLM_BACKEND_POLICY` / `KERNEL_PERCEPTION_BACKEND_POLICY` as documented in [`PROPOSAL_LLM_TOUCHPOINT_DEGRADATION_MATRIX.md`](PROPOSAL_LLM_TOUCHPOINT_DEGRADATION_MATRIX.md). See also [`PROPOSAL_LLM_VERBAL_DEGRADATION_POLICY.md`](PROPOSAL_LLM_VERBAL_DEGRADATION_POLICY.md).
 
 ### Observability (metrics and logs)
 

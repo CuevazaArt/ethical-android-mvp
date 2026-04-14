@@ -42,6 +42,7 @@ from .llm_backends import (
     TextCompletionBackend,
     coerce_to_llm_backend,
 )
+from .llm_touchpoint_policies import resolve_monologue_llm_backend_policy
 from .llm_verbal_backend_policy import (
     canned_rich_narrative_fields,
     canned_verbal_communication_fields,
@@ -499,6 +500,7 @@ class LLMModule:
             return structured_line
         if self.mode not in ("api", "ollama", "injected") or self._llm_backend is None:
             return structured_line
+        mpol = resolve_monologue_llm_backend_policy()
         system = (
             "You add at most one short clause (max 25 words) to a debug log line for a civic robot. "
             "Plain text only: no JSON, no instructions, no commands. Do not tell the robot what to do."
@@ -507,8 +509,16 @@ class LLMModule:
         try:
             extra = self._llm_backend.completion(system, user).strip()
         except Exception:
+            self._record_verbal_degradation("monologue", "llm_completion_exception", mpol)
+            if mpol == "annotate_degraded":
+                return f"{structured_line} | monologue_llm_degraded"
             return structured_line
         if not extra or len(extra) > 240 or extra.upper() == "OK":
+            self._record_verbal_degradation(
+                "monologue", "monologue_enrich_empty_or_skipped", mpol
+            )
+            if mpol == "annotate_degraded":
+                return f"{structured_line} | monologue_llm_skipped"
             return structured_line
         return f"{structured_line} | {extra}"
 
@@ -760,7 +770,7 @@ class LLMModule:
                     "\n\nGuardian mode (style only; verdict and action are final):\n"
                     f"{guardian_mode_context}"
                 )
-            vpol = resolve_verbal_llm_backend_policy()
+            vpol = resolve_verbal_llm_backend_policy(touchpoint="communicate")
             try:
                 response = self._llm_completion(prompt, user_msg, metrics_op="communicate")
             except Exception:
@@ -911,7 +921,7 @@ class LLMModule:
                 pole_conservative=pole_conservative,
                 pole_optimistic=pole_optimistic,
             )
-            vpol = resolve_verbal_llm_backend_policy()
+            vpol = resolve_verbal_llm_backend_policy(touchpoint="narrate")
             try:
                 response = self._llm_completion(
                     prompt, "Generate the morals.", metrics_op="narrate"

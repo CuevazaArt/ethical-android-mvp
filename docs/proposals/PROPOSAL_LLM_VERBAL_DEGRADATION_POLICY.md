@@ -2,6 +2,8 @@
 
 **Status:** Implemented baseline — `KERNEL_VERBAL_LLM_BACKEND_POLICY`, `llm_verbal_backend_policy.py`, `LLMModule` event log, WebSocket `verbal_llm_observability`.
 
+**Team reference (precedence + all touchpoints):** [`PROPOSAL_LLM_TOUCHPOINT_DEGRADATION_MATRIX.md`](PROPOSAL_LLM_TOUCHPOINT_DEGRADATION_MATRIX.md).
+
 ## Problem
 
 [`PROPOSAL_PERCEPTION_BACKEND_DEGRADATION_POLICY.md`](PROPOSAL_PERCEPTION_BACKEND_DEGRADATION_POLICY.md) unifies **perception** recovery. **Communication** and **narrative** still used silent `except` + template fallback without a stable operator contract or an optional “narrow verbal surface” mode when the model path fails.

@@ -15,7 +15,8 @@ Modes:
 - ``session_banner``: same recovery as ``template_local``, but sets
   ``session_banner_recommended`` in ``coercion_report`` for WebSocket clients.
 
-See ``docs/proposals/PROPOSAL_PERCEPTION_BACKEND_DEGRADATION_POLICY.md``.
+See ``docs/proposals/PROPOSAL_PERCEPTION_BACKEND_DEGRADATION_POLICY.md`` and the operator matrix
+``docs/proposals/PROPOSAL_LLM_TOUCHPOINT_DEGRADATION_MATRIX.md`` (``KERNEL_LLM_TP_*`` precedence).
 """
 
 from __future__ import annotations
@@ -23,6 +24,7 @@ from __future__ import annotations
 import os
 from typing import TYPE_CHECKING, Any
 
+from .llm_touchpoint_policies import TOUCHPOINT_PERCEPTION, raw_touchpoint_policy
 from .perception_schema import PERCEPTION_FAILSAFE_NUMERIC, merge_parse_issues_into_perception
 
 if TYPE_CHECKING:
@@ -35,6 +37,9 @@ _VALID_POLICIES = frozenset({"template_local", "fast_fail", "session_banner"})
 
 
 def resolve_perception_backend_policy() -> str:
+    tp = raw_touchpoint_policy(TOUCHPOINT_PERCEPTION)
+    if tp and tp in _VALID_POLICIES:
+        return tp
     raw = os.environ.get("KERNEL_PERCEPTION_BACKEND_POLICY", "").strip().lower()
     if raw in ("", "auto"):
         return DEFAULT_KERNEL_PERCEPTION_BACKEND_POLICY

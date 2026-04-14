@@ -126,6 +126,7 @@ If your change breaks a test, fix the code, not the test.
 ## Secrets and environment
 
 - **Never commit** API keys, Fernet keys, or `.env` files. Use [`.env.example`](.env.example) as a template only.
+- **LLM degradation / recovery:** multiple `KERNEL_*` keys can apply to the same process. Precedence (per-touchpoint overrides, verbal family, legacy keys) is documented for operators and implementers in [`docs/proposals/PROPOSAL_LLM_TOUCHPOINT_DEGRADATION_MATRIX.md`](docs/proposals/PROPOSAL_LLM_TOUCHPOINT_DEGRADATION_MATRIX.md); see also [`docs/proposals/KERNEL_ENV_POLICY.md`](docs/proposals/KERNEL_ENV_POLICY.md) and [`docs/proposals/OPERATOR_QUICK_REF.md`](docs/proposals/OPERATOR_QUICK_REF.md).
 - **CI** reads no private API keys from the repository. Optional [Codecov](https://codecov.io) uploads use the repository secret `CODECOV_TOKEN` if you configure it in GitHub (**Settings → Secrets and variables → Actions**). Forks do not inherit secrets; coverage upload may be skipped without failing CI.
 
 ## Code of conduct
