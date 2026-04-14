@@ -33,6 +33,13 @@ def test_health():
     assert isinstance(obs, dict)
     assert "metrics_enabled" in obs
     assert obs.get("request_id_header") == "X-Request-ID"
+    sd = body.get("safety_defaults")
+    assert isinstance(sd, dict)
+    assert "kernel_env_validation_mode" in sd
+    assert "semantic_chat_gate_enabled" in sd
+    assert "semantic_embed_hash_fallback_enabled" in sd
+    assert "perception_failsafe_enabled" in sd
+    assert "perception_parallel_enabled" in sd
 
 
 def test_lifespan_runs_with_test_client_context_manager():
@@ -41,6 +48,33 @@ def test_lifespan_runs_with_test_client_context_manager():
         r = c.get("/health")
         assert r.status_code == 200
         assert r.json().get("status") == "ok"
+
+
+def test_health_safety_defaults_unset_env_subprocess():
+    """Fresh process without explicit env should report documented defaults."""
+    root = os.path.join(os.path.dirname(__file__), "..")
+    code = """
+import os, sys
+sys.path.insert(0, ".")
+for key in (
+    "KERNEL_ENV_VALIDATION",
+    "KERNEL_SEMANTIC_CHAT_GATE",
+    "KERNEL_SEMANTIC_EMBED_HASH_FALLBACK",
+    "KERNEL_PERCEPTION_FAILSAFE",
+    "KERNEL_PERCEPTION_PARALLEL",
+):
+    os.environ.pop(key, None)
+from fastapi.testclient import TestClient
+from src.chat_server import app
+c = TestClient(app)
+sd = c.get("/health").json()["safety_defaults"]
+assert sd["kernel_env_validation_mode"] == "strict"
+assert sd["semantic_chat_gate_enabled"] is True
+assert sd["semantic_embed_hash_fallback_enabled"] is True
+assert sd["perception_failsafe_enabled"] is True
+assert sd["perception_parallel_enabled"] is False
+"""
+    subprocess.run([sys.executable, "-c", code], cwd=root, check=True)
 
 
 def test_openapi_schema_not_exposed_by_default_subprocess():

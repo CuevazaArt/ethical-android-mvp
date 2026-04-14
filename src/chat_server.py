@@ -301,6 +301,13 @@ def _chat_include_malabs_trace() -> bool:
     return chat_server_settings().kernel_chat_include_malabs_trace
 
 
+def _env_truthy(name: str, default: bool = False) -> bool:
+    raw = os.environ.get(name, "").strip().lower()
+    if not raw:
+        return default
+    return raw in ("1", "true", "yes", "on")
+
+
 def _chat_turn_to_jsonable(r: ChatTurnResult, kernel: EthicalKernel) -> dict[str, Any]:
     """Compact JSON-safe view (no full internal objects)."""
     idn = kernel.memory.identity
@@ -544,6 +551,7 @@ def health() -> dict[str, Any]:
     from .chat_settings import chat_server_settings
 
     st = chat_server_settings()
+    env_validation = os.environ.get("KERNEL_ENV_VALIDATION", "").strip().lower() or "strict"
     out: dict[str, Any] = {
         "status": "ok",
         "service": "ethos-kernel-chat",
@@ -560,6 +568,15 @@ def health() -> dict[str, Any]:
             "kernel_chat_turn_timeout_seconds": st.kernel_chat_turn_timeout_seconds,
             "kernel_chat_threadpool_workers": st.kernel_chat_threadpool_workers,
             "kernel_chat_json_offload": st.kernel_chat_json_offload,
+        },
+        "safety_defaults": {
+            "kernel_env_validation_mode": env_validation,
+            "semantic_chat_gate_enabled": _env_truthy("KERNEL_SEMANTIC_CHAT_GATE", True),
+            "semantic_embed_hash_fallback_enabled": _env_truthy(
+                "KERNEL_SEMANTIC_EMBED_HASH_FALLBACK", True
+            ),
+            "perception_failsafe_enabled": _env_truthy("KERNEL_PERCEPTION_FAILSAFE", True),
+            "perception_parallel_enabled": _env_truthy("KERNEL_PERCEPTION_PARALLEL", False),
         },
     }
     prof = applied_runtime_profile()
