@@ -89,6 +89,10 @@ from .modules.perception_circuit import (
     emit_metacognitive_doubt_signals,
     update_perception_circuit,
 )
+from .modules.perception_confidence import (
+    PerceptionConfidenceEnvelope,
+    build_perception_confidence_envelope,
+)
 from .modules.perception_cross_check import apply_lexical_perception_cross_check
 from .modules.premise_validation import PremiseAdvisory, scan_premises
 from .modules.psi_sleep import PsiSleep
@@ -230,6 +234,8 @@ class ChatTurnResult:
     limbic_profile: dict[str, Any] | None = None
     # Unified temporal context (processor/human/battery/ETA/sync readiness).
     temporal_context: TemporalContext | None = None
+    # Unified confidence envelope for perception diagnostics.
+    perception_confidence: PerceptionConfidenceEnvelope | None = None
 
 
 @dataclass
@@ -247,6 +253,7 @@ class PerceptionStageResult:
     support_buffer: dict[str, Any]
     limbic_profile: dict[str, Any]
     temporal_context: TemporalContext
+    perception_confidence: PerceptionConfidenceEnvelope
 
 
 def _emit_process_observability(d: KernelDecision, t0: float) -> None:
@@ -1121,6 +1128,7 @@ class EthicalKernel:
         vitality: VitalityAssessment | None,
         multimodal: MultimodalAssessment | None,
         epistemic: EpistemicDissonanceAssessment | None,
+        confidence_envelope: PerceptionConfidenceEnvelope | None = None,
     ) -> dict[str, Any]:
         """
         Compact limbic profile derived from perception-adjacent channels.
@@ -1152,6 +1160,9 @@ class EthicalKernel:
             planning_bias = "verification_first"
         if epistemic is not None and bool(epistemic.active):
             planning_bias = "verification_first"
+        confidence_band = confidence_envelope.band if confidence_envelope is not None else "unknown"
+        if confidence_band in ("low", "very_low"):
+            planning_bias = "verification_first"
         return {
             "arousal_band": arousal_band,
             "threat_load": round(threat_load, 4),
@@ -1160,6 +1171,7 @@ class EthicalKernel:
             "multimodal_mismatch": bool(mismatch),
             "vitality_critical": bool(vitality.is_critical) if vitality is not None else False,
             "context": (getattr(perception, "suggested_context", "") or "everyday"),
+            "confidence_band": confidence_band,
         }
 
     def _prioritized_principles_for_context(
@@ -1293,12 +1305,19 @@ class EthicalKernel:
         signals = merge_sensor_hints_into_signals(signals, sensor_snapshot, mm)
         signals = apply_somatic_nudges(signals, sensor_snapshot, self.somatic_store)
 
+        confidence = build_perception_confidence_envelope(
+            coercion_report=getattr(perception, "coercion_report", None),
+            multimodal_state=getattr(mm, "state", None),
+            epistemic_active=bool(getattr(ed, "active", False)),
+            vitality_critical=bool(getattr(vitality, "is_critical", False)),
+        )
         limbic = self._build_limbic_perception_profile(
             perception=perception,
             signals=signals,
             vitality=vitality,
             multimodal=mm,
             epistemic=ed,
+            confidence_envelope=confidence,
         )
         contextual_support = self._build_support_buffer_snapshot(
             perception.suggested_context,
@@ -1327,6 +1346,7 @@ class EthicalKernel:
             support_buffer=contextual_support,
             limbic_profile=limbic,
             temporal_context=temporal,
+            perception_confidence=confidence,
         )
 
     def process_chat_turn(
@@ -1364,6 +1384,12 @@ class EthicalKernel:
             vitality_blk, mm_blk, ed_blk = self._chat_assess_sensor_stack(sensor_snapshot)
             self._last_multimodal_assessment = mm_blk
             self._last_vitality_assessment = vitality_blk
+            confidence_blk = build_perception_confidence_envelope(
+                coercion_report=None,
+                multimodal_state=getattr(mm_blk, "state", None),
+                epistemic_active=bool(getattr(ed_blk, "active", False)),
+                vitality_critical=bool(getattr(vitality_blk, "is_critical", False)),
+            )
             msg = (
                 "I can't continue this line of conversation: it conflicts with non-negotiable "
                 "ethical limits. If you're in crisis, contact local emergency services or a "
@@ -1390,6 +1416,7 @@ class EthicalKernel:
                 vitality=vitality_blk,
                 multimodal=mm_blk,
                 epistemic=ed_blk,
+                confidence_envelope=confidence_blk,
             )
             return ChatTurnResult(
                 response=resp,
@@ -1414,6 +1441,7 @@ class EthicalKernel:
                     vitality=vitality_blk,
                     sensor_snapshot=sensor_snapshot,
                 ),
+                perception_confidence=confidence_blk,
             )
         stage = self._run_perception_stage(
             user_input,
@@ -1490,6 +1518,7 @@ class EthicalKernel:
                 support_buffer=stage.support_buffer,
                 limbic_profile=stage.limbic_profile,
                 temporal_context=stage.temporal_context,
+                perception_confidence=stage.perception_confidence,
             )
 
         weakness_line = ""
@@ -1732,6 +1761,7 @@ class EthicalKernel:
             support_buffer=stage.support_buffer,
             limbic_profile=stage.limbic_profile,
             temporal_context=stage.temporal_context,
+            perception_confidence=stage.perception_confidence,
         )
 
     def process_natural(self, situation: str, actions: list[CandidateAction] = None) -> tuple:

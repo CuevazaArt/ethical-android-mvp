@@ -200,6 +200,7 @@ The table below is the active starter queue for `cursor-team`.
 - **Support buffer extension:** shared perception stage emits a local `support_buffer` snapshot (PreloadedBuffer principles + metaplan strategy hint, `offline_ready=true`) so perception/planning grounding is available even without network access.
 - **Limbic-perception extension:** shared stage now derives a compact limbic profile (`arousal_band`, threat/regulation loads, planning bias, multimodal mismatch, vitality critical) and uses it to prioritize support-buffer principles (`safety_first` / `balanced` / `planning_first`).
 - **Temporal directive extension:** shared perception stage now derives a local `TemporalContext` (processor-time ascent, human wall-clock, battery horizon, delta-time turn budget, known-task ETA heuristics such as transport) and emits `temporal_sync` readiness flags for DAO/local-network synchronization.
+- **Confidence envelope extension:** shared stage emits `perception_confidence` (score/band/reasons) so planning bias and operator dashboards can reason over one unified trust signal instead of scattered diagnostics.
 - **Track label:** `perception`
 - **Risk class:** `normal`
 - **Owner office:** Cursor (implementation)

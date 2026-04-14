@@ -33,6 +33,7 @@ When a chat turn includes `perception`, the server emits:
 
 - `perception.coercion_report` with canonical keys (even if local heuristics were used).
 - `perception_observability` summary: `uncertainty`, `dual_high_discrepancy`, `backend_degraded`, `metacognitive_doubt`.
+- `perception_confidence`: unified confidence envelope (`score`, `band`, `reasons`) aggregated from coercion diagnostics, multimodal mismatch, epistemic dissonance, and vitality pressure.
 - Optional `perception_backend_banner=true` when `session_banner_recommended` is active.
 
 This contract is intended for operator dashboards and alerting stability across perception fallback modes.

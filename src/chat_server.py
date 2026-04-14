@@ -365,6 +365,13 @@ def _chat_turn_to_jsonable(r: ChatTurnResult, kernel: EthicalKernel) -> dict[str
             "local_network_sync_ready": bool(tc.get("local_network_sync_ready", False)),
             "dao_sync_ready": bool(tc.get("dao_sync_ready", False)),
         }
+    if r.perception_confidence is not None:
+        pc = r.perception_confidence.to_public_dict()
+        out["perception_confidence"] = pc
+        po = out.get("perception_observability")
+        if isinstance(po, dict):
+            po["confidence_band"] = pc.get("band", "unknown")
+            po["confidence_score"] = float(pc.get("score", 0.0))
     if r.verbal_llm_degradation_events:
         out["verbal_llm_observability"] = {
             "degraded": True,
@@ -392,6 +399,13 @@ def _chat_turn_to_jsonable(r: ChatTurnResult, kernel: EthicalKernel) -> dict[str
             "backend_degraded": bool(cr.get("backend_degraded")),
             "metacognitive_doubt": bool(r.metacognitive_doubt),
         }
+        if r.perception_confidence is not None:
+            out["perception_observability"]["confidence_band"] = out["perception_confidence"].get(
+                "band", "unknown"
+            )
+            out["perception_observability"]["confidence_score"] = float(
+                out["perception_confidence"].get("score", 0.0)
+            )
     if r.decision is not None:
         d = r.decision
         if _chat_expose_monologue():

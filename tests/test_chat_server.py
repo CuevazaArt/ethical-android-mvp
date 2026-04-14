@@ -216,6 +216,9 @@ def test_websocket_chat_roundtrip():
         assert int(data["temporal_sync"].get("turn_index") or 0) >= 1
         assert int(data["temporal_sync"].get("processor_elapsed_ms") or 0) >= 0
         assert int(data["temporal_sync"].get("turn_delta_ms") or 0) >= 0
+        assert "perception_confidence" in data
+        assert data["perception_confidence"].get("band") in ("high", "medium", "low", "very_low")
+        assert "confidence_band" in data.get("perception_observability", {})
 
 
 def test_websocket_temporal_sync_respects_env_toggles(monkeypatch):
