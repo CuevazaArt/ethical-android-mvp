@@ -4,6 +4,11 @@ All notable changes to this project are summarized here. For narrative context a
 
 **Note:** Older sections below may still **link** to paths that were later removed (for example `experiments/million_sim/`, `docs/multimedia/`, root `dashboard.html`, `landing/`). Those links are **historical**; recover files from git history or backup branches if you need them.
 
+## Multi-office Git workflow (method + diagram) — April 2026
+
+- **Docs:** **[`docs/collaboration/MULTI_OFFICE_GIT_WORKFLOW.md`](docs/collaboration/MULTI_OFFICE_GIT_WORKFLOW.md)** — institutionalized *Time worth flow / cycle develop* pattern for distributed teams (`main` production, `master-<TeamSlug>` integration, shared `<team-slug>-team` work line); canonical PNG diagram under **`docs/collaboration/`**.
+- **Contributing:** [`CONTRIBUTING.md`](CONTRIBUTING.md) links the workflow doc and [`.cursor/rules/collaboration-prioritization.mdc`](.cursor/rules/collaboration-prioritization.mdc) (agent-facing redundancy + branch rules, including **`master-Cursor`** / **`cursor-team`** for this repo).
+
 ## Proposals — Bayesian mixture index — April 2026
 
 - **[`docs/proposals/PROPOSAL_BAYESIAN_MIXTURE_FEEDBACK.md`](docs/proposals/PROPOSAL_BAYESIAN_MIXTURE_FEEDBACK.md):** indexes ADR 0012 stack (L1–L3, softmax IS), modules, env vars, tests.

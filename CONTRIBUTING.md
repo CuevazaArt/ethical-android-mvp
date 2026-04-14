@@ -16,6 +16,8 @@ Contributions may arrive through multiple channels (issues, pull requests, chat,
 
 These expectations **apply to all contributors** and are part of how we keep the project coherent.
 
+**Multi-office Git workflow (optional convention for distributed teams):** See **[`docs/collaboration/MULTI_OFFICE_GIT_WORKFLOW.md`](docs/collaboration/MULTI_OFFICE_GIT_WORKFLOW.md)** — diagram, branch pattern (`main` → `master-<TeamSlug>` → local offices), and production (`main`) language expectations. Cursor agents also load the always-on rule **[`.cursor/rules/collaboration-prioritization.mdc`](.cursor/rules/collaboration-prioritization.mdc)**.
+
 ### Language policy (collaboration vs repository)
 
 - **Collaboration:** We work day to day in **Latin American Spanish** (issues, chat, planning, and coordination with humans). Use clear, respectful Spanish; regional variants are fine as long as everyone understands.
