@@ -44,6 +44,7 @@ from .modules.weakness_pole import WeaknessPole
 from .modules.working_memory import WorkingMemory
 from .modules.swarm_negotiator import SwarmNegotiator
 from .modules.strategy_engine import ExecutiveStrategist
+from .modules.biographic_pruning import BiographicPruner
 from .persistence.checkpoint_port import CheckpointPersistencePort
 
 
@@ -85,4 +86,5 @@ class KernelComponentOverrides:
     llm: LLMModule | None = None
     swarm_negotiator: SwarmNegotiator | None = None
     strategist: ExecutiveStrategist | None = None
+    biographic_pruner: BiographicPruner | None = None
     checkpoint_persistence: CheckpointPersistencePort | None = None

@@ -106,3 +106,27 @@ class SwarmNegotiator:
         Conflict resolution between kernels.
         """
         return "compromise_alpha"
+
+    def get_swarm_trust_nudge(self) -> float:
+        """
+        I7: Returns a confidence boost [0, 0.15] if recently synchronized with peers.
+        """
+        if not self.state.known_peers:
+            return 0.0
+        
+        # Simple heuristic: more peers = more confidence in collective reality
+        peer_count = len(self.state.known_peers)
+        nudge = min(0.15, peer_count * 0.04)
+        return nudge
+
+    def promote_consensus_to_dao(self, dao):
+        """
+        Registers major consensus items as Solidarity Alerts in the DAO.
+        """
+        if len(self.state.known_peers) >= 3 and self.state.consensus_log:
+            last_item = self.state.consensus_log[-1]
+            dao.emit_solidarity_alert(
+                type="swarm_consensus",
+                location="swarm_network",
+                message=f"Collective agreement reaching DAO: {last_item}"
+            )

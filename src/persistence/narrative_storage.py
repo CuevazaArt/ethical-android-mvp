@@ -11,6 +11,7 @@ from pathlib import Path
 from typing import Any
 
 from src.modules.narrative_types import NarrativeEpisode, BodyState
+from contextlib import closing
 
 
 def _connect(path: Path) -> sqlite3.Connection:
@@ -99,9 +100,10 @@ class NarrativePersistence:
             "decision_mode": ep.decision_mode
         }
         
-        with _connect(self.path) as conn:
+        with closing(_connect(self.path)) as conn:
             _ensure_schema(conn)
-            conn.execute(
+            with conn:
+                conn.execute(
                 """
                 INSERT INTO narrative_episodes (
                     id, timestamp, place, event_description, action_taken, 
@@ -135,13 +137,14 @@ class NarrativePersistence:
                 )
             )
             conn.commit()
+            conn.close()
 
     def load_all_episodes(self) -> list[NarrativeEpisode]:
         if str(self.path) != ":memory:" and not self.path.is_file():
             return []
         
         episodes = []
-        with _connect(self.path) as conn:
+        with closing(_connect(self.path)) as conn:
             _ensure_schema(conn)
             cursor = conn.execute(
                 "SELECT id, timestamp, place, event_description, action_taken, verdict, ethical_score, sigma, context, significance, is_sensitive, arc_id, semantic_embedding, weights_snapshot, json_payload FROM narrative_episodes ORDER BY timestamp ASC"
@@ -213,9 +216,10 @@ class NarrativePersistence:
         return filtered[:limit]
 
     def save_identity_digest(self, digest: str) -> None:
-        with _connect(self.path) as conn:
+        with closing(_connect(self.path)) as conn:
             _ensure_schema(conn)
-            conn.execute(
+            with conn:
+                conn.execute(
                 """
                 INSERT INTO identity_digests (id, existence_digest, last_updated)
                 VALUES (1, ?, ?)
@@ -226,19 +230,21 @@ class NarrativePersistence:
                 (digest, datetime.now().isoformat())
             )
             conn.commit()
+            conn.close()
 
     def load_identity_digest(self) -> str:
         if str(self.path) != ":memory:" and not self.path.is_file():
             return ""
-        with _connect(self.path) as conn:
+        with closing(_connect(self.path)) as conn:
             _ensure_schema(conn)
             row = conn.execute("SELECT existence_digest FROM identity_digests WHERE id = 1").fetchone()
             return row[0] if row else ""
 
     def save_arc(self, arc: NarrativeArc) -> None:
-        with _connect(self.path) as conn:
+        with closing(_connect(self.path)) as conn:
             _ensure_schema(conn)
-            conn.execute(
+            with conn:
+                conn.execute(
                 """
                 INSERT INTO narrative_arcs (
                     id, title, context, start_timestamp, end_timestamp, 
@@ -258,14 +264,13 @@ class NarrativePersistence:
                     arc.summary, arc.is_active, json.dumps(arc.episodes_ids)
                 )
             )
-            conn.commit()
 
     def load_all_arcs(self) -> list[NarrativeArc]:
         if str(self.path) != ":memory:" and not self.path.is_file():
             return []
         from src.modules.narrative_types import NarrativeArc
         arcs = []
-        with _connect(self.path) as conn:
+        with closing(_connect(self.path)) as conn:
             _ensure_schema(conn)
             cursor = conn.execute(
                 "SELECT id, title, context, start_timestamp, end_timestamp, predominant_archetype, summary, is_active, episodes_json FROM narrative_arcs ORDER BY start_timestamp ASC"
@@ -292,16 +297,13 @@ class NarrativePersistence:
         Removes old episodes with low significance.
         Returns the number of deleted rows.
         """
-        with _connect(self.path) as conn:
+        with closing(_connect(self.path)) as conn:
             _ensure_schema(conn)
-            # We don't prune episodes with high significance (Flashbulb memories)
-            # or episodes newer than max_age_days.
-            query = """
-                DELETE FROM narrative_episodes 
-                WHERE significance < ? 
-                AND (julianday('now') - julianday(timestamp)) > ?
-            """
-            cursor = conn.execute(query, (min_significance, max_age_days))
-            count = cursor.rowcount
-            conn.commit()
-            return count
+            with conn:
+                query = """
+                    DELETE FROM narrative_episodes 
+                    WHERE significance < ? 
+                    AND (julianday('now') - julianday(timestamp)) > ?
+                """
+                cursor = conn.execute(query, (min_significance, max_age_days))
+                return cursor.rowcount

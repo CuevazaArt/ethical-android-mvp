@@ -27,6 +27,7 @@ from .modules.audit_chain_log import (
 )
 from .modules.augenesis import AugenesisEngine
 from .modules.buffer import PreloadedBuffer
+from .modules.biographic_pruning import BiographicPruner
 from .modules.drive_arbiter import DriveArbiter
 from .modules.epistemic_dissonance import (
     EpistemicDissonanceAssessment,
@@ -338,6 +339,11 @@ class EthicalKernel:
             if co and hasattr(co, "strategist") and co.strategist is not None 
             else ExecutiveStrategist()
         )
+        self.biographic_pruner = (
+            co.biographic_pruner 
+            if co and hasattr(co, "biographic_pruner") and co.biographic_pruner is not None 
+            else BiographicPruner()
+        )
         self.constitution_l1_drafts: list[dict[str, Any]] = []
         self.constitution_l2_drafts: list[dict[str, Any]] = []
         self._last_reality_verification: RealityVerificationAssessment = REALITY_ASSESSMENT_NONE
@@ -435,6 +441,13 @@ class EthicalKernel:
             sensor_snapshot=sensor_snapshot,
             multimodal_assessment=multimodal_assessment,
         )
+        
+        # Swarm Trust Nudge (I7)
+        if hasattr(self, "swarm"):
+            swarm_nudge = self.swarm.get_swarm_trust_nudge()
+            if swarm_nudge > 0:
+                signals["trust"] = max(0.0, min(1.0, signals.get("trust", 0.5) + swarm_nudge))
+
         social_eval = self.uchi_soto.evaluate_interaction(signals, agent_id, message_content)
 
         # ═══ STEP 2: Sympathetic-parasympathetic state ═══
