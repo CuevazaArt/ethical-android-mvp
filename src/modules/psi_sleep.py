@@ -116,6 +116,10 @@ class PsiSleep:
             memory.episodes, health, len(findings)
         )
 
+        # Tier 3: Existential Consolidation
+        # Distill the updated history and health into the persistent identity digest.
+        memory.consolidate()
+
         result = SleepResult(
             episodes_reviewed=len(episodes),
             findings=findings,

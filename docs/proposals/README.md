@@ -13,7 +13,8 @@ The previous long-form proposal set was removed from this branch to keep the tre
 | [`PROPOSAL_001_HARDENIDO_DE_MODULOS_PRIMITIVOS.md`](PROPOSAL_001_HARDENIDO_DE_MODULOS_PRIMITIVOS.md) | Antigravity: Plan para el endurecimiento de módulos primitivos. |
 | [`PROPOSAL_002_NARRATIVE_ARCHITECTURE_PLAN.md`](PROPOSAL_002_NARRATIVE_ARCHITECTURE_PLAN.md) | Antigravity: Pilar de la Mente (Arquitectura Cognitiva y Narrativa). Tiers 1-3. |
 | [`PROPOSAL_003_NARRATIVE_HARDENING_ANALYSIS.md`](PROPOSAL_003_NARRATIVE_HARDENING_ANALYSIS.md) | Antigravity: Hardening analysis (Encryption, Integrity, Uchi-Soto). |
-| [`PROPOSAL_BAYESIAN_MIXTURE_FEEDBACK.md`](PROPOSAL_BAYESIAN_MIXTURE_FEEDBACK.md) | ADR 0012 stack: BMA (L1), feedback posteriors (L2), context buckets (L3), softmax / importance-sampling likelihood, env vars, tests, link to ADR 0012. |
+| [`ANTIGRAVITY_COLLABORATION_GUIDE.md`](ANTIGRAVITY_COLLABORATION_GUIDE.md) | Antigravity: Collaboration guide and operational workflows. |
+| [`PROPOSAL_BAYESIAN_MIXTURE_FEEDBACK.md`](PROPOSAL_BAYESIAN_FEEDBACK.md) | ADR 0012 stack: BMA (L1), feedback posteriors (L2), context buckets (L3), softmax / importance-sampling likelihood, env vars, tests, link to ADR 0012. |
 
 ## Architecture decisions (ADR)
 

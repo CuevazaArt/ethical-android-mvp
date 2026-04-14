@@ -25,7 +25,7 @@ class Snapshot:
     timestamp: str
     version: str
 
-    # Narrative memory
+    # Narrative metadata
     episodes_count: int
     last_episode_id: str
 
@@ -49,7 +49,9 @@ class Snapshot:
     # Ethical poles
     pole_weights: dict[str, float]
 
-    # Integrity hash
+    # Tier 3/4 Rich Narrative (with defaults)
+    experience_digest: str = ""
+    active_arc_id: str = ""
     integrity_hash: str = ""
 
 
@@ -96,6 +98,8 @@ class ImmortalityProtocol:
         data = {
             "episodes": snapshot.episodes_count,
             "last_ep": snapshot.last_episode_id,
+            "digest": snapshot.experience_digest,
+            "arc": snapshot.active_arc_id,
             "pruning_threshold": snapshot.pruning_threshold,
             "alpha": snapshot.alpha_locus,
             "beta": snapshot.beta_locus,
@@ -121,6 +125,8 @@ class ImmortalityProtocol:
         # Extract kernel state
         n_episodes = len(kernel.memory.episodes)
         last_ep = kernel.memory.episodes[-1].id if n_episodes > 0 else "none"
+        digest = kernel.memory.experience_digest
+        arc_id = kernel.memory.active_arc.id if kernel.memory.active_arc else "none"
 
         # Algorithmic forgiveness
         neg_load = 0.0
@@ -141,9 +147,11 @@ class ImmortalityProtocol:
         snapshot = Snapshot(
             id=f"SNAP-{self._snapshot_counter:04d}",
             timestamp=datetime.now().isoformat(),
-            version="3.0",
+            version="3.1",
             episodes_count=n_episodes,
             last_episode_id=last_ep,
+            experience_digest=digest,
+            active_arc_id=arc_id,
             pruning_threshold=kernel.bayesian.pruning_threshold,
             hypothesis_weights=kernel.bayesian.hypothesis_weights.tolist(),
             alpha_locus=kernel.locus.alpha,
@@ -256,6 +264,13 @@ class ImmortalityProtocol:
         kernel.locus.alpha = snapshot.alpha_locus
         kernel.locus.beta = snapshot.beta_locus
         kernel.poles.base_weights = dict(snapshot.pole_weights)
+        
+        # Restore Narrative & Identity state
+        kernel.memory.experience_digest = snapshot.experience_digest
+        if snapshot.active_arc_id != "none":
+            active = next((a for a in kernel.memory.arcs if a.id == snapshot.active_arc_id), None)
+            if active:
+                kernel.memory.active_arc = active
 
     def last_backup(self) -> Snapshot | None:
         """Returns the most recently created snapshot."""

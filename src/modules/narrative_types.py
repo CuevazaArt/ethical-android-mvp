@@ -32,3 +32,18 @@ class NarrativeEpisode:
     context: str  # Type: emergency, everyday, etc.
     affect_pad: tuple[float, float, float] | None = None
     affect_weights: dict[str, float] | None = None
+
+
+@dataclass
+class NarrativeArc:
+    """A thematic group of linked episodes (Pilar de la Mente)."""
+
+    id: str
+    title: str
+    context: str
+    episodes_ids: list[str]
+    start_timestamp: str
+    end_timestamp: str | None = None
+    predominant_archetype: str | None = None
+    summary: str = ""
+    is_active: bool = True

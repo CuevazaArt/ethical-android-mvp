@@ -15,7 +15,7 @@ from src.persistence.narrative_storage import NarrativePersistence
 from .uchi_soto import RelationalTier
 
 
-from .narrative_types import BodyState, NarrativeEpisode
+from .narrative_types import BodyState, NarrativeEpisode, NarrativeArc
 
 
 class NarrativeMemory:
@@ -45,6 +45,7 @@ class NarrativeMemory:
         
         # Load existing episodes from disk
         self.episodes = self.persistence.load_all_episodes()
+        self._counter = 0
         if self.episodes:
             # Sync counter with last episode ID
             last_id = self.episodes[-1].id
@@ -60,8 +61,30 @@ class NarrativeMemory:
             for ep in self.episodes:
                 self.identity.update_from_episode(ep)
         
-        # Load identity digest (Tier 3)
+        # Load Tier 3 Identity Digest
         self.experience_digest = self.persistence.load_identity_digest()
+        
+        # Load Narrative Arcs (Pilar de la Mente)
+        self.arcs = self.persistence.load_all_arcs()
+        self.active_arc = next((a for a in self.arcs if a.is_active), None)
+        
+    def consolidate(self) -> str:
+        """
+        Tier 3: Existential Consolidation.
+        Distills historical episodes into a persistent identity digest.
+        Integrates with existing technical experience_digest metrics.
+        """
+        identity_part = self.identity.generate_existence_digest(self.episodes)
+        
+        # Preserve technical metrics if they exist (e.g. from PsiSleep)
+        if self.experience_digest and "psi_health=" in self.experience_digest:
+            # Append tech metrics after the identity part
+            self.experience_digest = f"{identity_part} | METRICS: {self.experience_digest}"
+        else:
+            self.experience_digest = identity_part
+            
+        self.persistence.save_identity_digest(self.experience_digest)
+        return self.experience_digest
 
     def register(
         self,
@@ -101,6 +124,9 @@ class NarrativeMemory:
 
         # Tier 2 persistence: Save to DB
         self.persistence.save_episode(ep)
+
+        # Arc Management (Rich Narrative)
+        self._update_arcs(ep)
 
         # Basic compression: if exceeds max, remove oldest from memory
         # (Disk retains all episodes unless explicit cleanup implemented)
@@ -182,3 +208,35 @@ class NarrativeMemory:
             f"  Verdict: {ep.verdict}\n"
             f"  Morals:\n{morals_txt}{pad_line}"
         )
+
+    def _update_arcs(self, ep: NarrativeEpisode) -> None:
+        """Internal: Manages arc transitions and archetypal resonance."""
+        # 1. Check if we need to close current arc
+        if self.active_arc and self.active_arc.context != ep.context:
+            self.active_arc.is_active = False
+            self.active_arc.end_timestamp = ep.timestamp
+            self.persistence.save_arc(self.active_arc)
+            self.active_arc = None
+
+        # 2. Create new arc if none active
+        if not self.active_arc:
+            arc_id = f"ARC-{len(self.arcs) + 1:03d}"
+            self.active_arc = NarrativeArc(
+                id=arc_id,
+                title=f"The {ep.context.capitalize()} Period",
+                context=ep.context,
+                episodes_ids=[],
+                start_timestamp=ep.timestamp
+            )
+            self.arcs.append(self.active_arc)
+
+        # 3. Add episode to active arc
+        self.active_arc.episodes_ids.append(ep.id)
+        
+        # 4. Update archetype (Richness)
+        if ep.affect_weights:
+            dominant = max(ep.affect_weights, key=lambda k: ep.affect_weights[k])
+            self.active_arc.predominant_archetype = dominant
+
+        # 5. Persist arc state
+        self.persistence.save_arc(self.active_arc)

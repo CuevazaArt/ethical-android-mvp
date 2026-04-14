@@ -46,6 +46,22 @@ def _ensure_schema(conn: sqlite3.Connection) -> None:
         )
         """
     )
+    # Tier 3+: Narrative Arcs (Historias)
+    conn.execute(
+        """
+        CREATE TABLE IF NOT EXISTS narrative_arcs (
+            id TEXT PRIMARY KEY,
+            title TEXT,
+            context TEXT,
+            start_timestamp TEXT,
+            end_timestamp TEXT,
+            predominant_archetype TEXT,
+            summary TEXT,
+            is_active BOOLEAN,
+            episodes_json TEXT NOT NULL
+        )
+        """
+    )
 
 
 class NarrativePersistence:
@@ -193,3 +209,55 @@ class NarrativePersistence:
             _ensure_schema(conn)
             row = conn.execute("SELECT existence_digest FROM identity_digests WHERE id = 1").fetchone()
             return row[0] if row else ""
+
+    def save_arc(self, arc: NarrativeArc) -> None:
+        with _connect(self.path) as conn:
+            _ensure_schema(conn)
+            conn.execute(
+                """
+                INSERT INTO narrative_arcs (
+                    id, title, context, start_timestamp, end_timestamp, 
+                    predominant_archetype, summary, is_active, episodes_json
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+                ON CONFLICT(id) DO UPDATE SET
+                    title=excluded.title,
+                    end_timestamp=excluded.end_timestamp,
+                    predominant_archetype=excluded.predominant_archetype,
+                    summary=excluded.summary,
+                    is_active=excluded.is_active,
+                    episodes_json=excluded.episodes_json
+                """,
+                (
+                    arc.id, arc.title, arc.context, arc.start_timestamp, 
+                    arc.end_timestamp, arc.predominant_archetype, 
+                    arc.summary, arc.is_active, json.dumps(arc.episodes_ids)
+                )
+            )
+            conn.commit()
+
+    def load_all_arcs(self) -> list[NarrativeArc]:
+        if str(self.path) != ":memory:" and not self.path.is_file():
+            return []
+        from src.modules.narrative_types import NarrativeArc
+        arcs = []
+        with _connect(self.path) as conn:
+            _ensure_schema(conn)
+            cursor = conn.execute(
+                "SELECT id, title, context, start_timestamp, end_timestamp, predominant_archetype, summary, is_active, episodes_json FROM narrative_arcs ORDER BY start_timestamp ASC"
+            )
+            for row in cursor:
+                id, title, context, start, end, arch, summary, active, episodes_str = row
+                arcs.append(
+                    NarrativeArc(
+                        id=id,
+                        title=title,
+                        context=context,
+                        start_timestamp=start,
+                        end_timestamp=end,
+                        predominant_archetype=arch,
+                        summary=summary,
+                        is_active=bool(active),
+                        episodes_ids=json.loads(episodes_str)
+                    )
+                )
+        return arcs

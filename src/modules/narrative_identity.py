@@ -81,6 +81,34 @@ class NarrativeIdentityTracker:
             f"{' and '.join(tags)} — not as a label fixed forever, but as a direction I am living."
         )
 
+    def generate_existence_digest(self, recent_episodes: list[NarrativeEpisode]) -> str:
+        """
+        Tier 3: Distill recent history and leans into a coherent existential digest.
+        In production, this would be an LLM-summarized 'lesson of who I am'.
+        """
+        s = self.state
+        ascription = self.ascription_line()
+        
+        # Extract unique high-level morals from recent episodes
+        all_morals = set()
+        for ep in recent_episodes[-10:]:
+            all_morals.update(ep.morals.keys())
+        
+        morals_str = ", ".join(sorted(list(all_morals))) if all_morals else "none yet"
+        
+        digest = (
+            f"Identity Digest [Epoch {s.episode_count // 50}]: {ascription} "
+            f"Core recurring patterns: {morals_str}. "
+            f"Consistency profile: Civic={s.civic_lean:.2f}, Care={s.care_lean:.2f}, Deliberation={s.deliberation_lean:.2f}."
+        )
+        return digest
+
+    def export_state(self) -> NarrativeIdentityState:
+        return self.state
+
+    def import_state(self, state: NarrativeIdentityState) -> None:
+        self.state = state
+
     def to_llm_context(self) -> str:
         """Alias for communicate()."""
         return self.ascription_line()
