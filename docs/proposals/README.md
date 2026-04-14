@@ -26,6 +26,7 @@ High-level summary aligned with the code and docs; full chronology is in [`CHANG
 
 | If you need… | Open |
 |--------------|------|
+| **Claude team — real Bayesian inference scope** | [CLAUDE_TEAM_PLAYBOOK_REAL_BAYESIAN_INFERENCE.md](CLAUDE_TEAM_PLAYBOOK_REAL_BAYESIAN_INFERENCE.md) |
 | **Cursor team — sensors & perception (mission charter)** | [CURSOR_TEAM_MISSION_SENSORS_PERCEPTION.md](CURSOR_TEAM_MISSION_SENSORS_PERCEPTION.md) |
 | **Next ~2 weeks — triage, P0/P1/P2, reproduction checklists** | [PLAN_IMMEDIATE_TWO_WEEKS.md](PLAN_IMMEDIATE_TWO_WEEKS.md) |
 | **Quick wins (two sprints) — strict env, perception breaker, entry points, MalAbs alerts** | [PROPOSAL_QUICK_WINS_TWO_SPRINTS.md](PROPOSAL_QUICK_WINS_TWO_SPRINTS.md) |
