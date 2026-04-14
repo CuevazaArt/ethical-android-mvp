@@ -23,6 +23,10 @@ import pytest
 
 
 @pytest.fixture(autouse=True)
-def _malabs_test_env_isolation(monkeypatch: pytest.MonkeyPatch) -> None:
+def _malabs_test_env_isolation(monkeypatch: pytest.MonkeyPatch, tmp_path_factory: pytest.TempPathFactory) -> None:
+    # Use a temporary file for SQLite during tests to support multi-connection persistence
+    # while maintaining isolation between test session runs.
+    db_file = tmp_path_factory.mktemp("data") / "test_narrative.db"
+    monkeypatch.setenv("KERNEL_NARRATIVE_DB_PATH", str(db_file))
     monkeypatch.setenv("KERNEL_SEMANTIC_CHAT_GATE", "0")
     monkeypatch.setenv("KERNEL_SEMANTIC_EMBED_HASH_FALLBACK", "0")

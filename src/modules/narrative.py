@@ -12,6 +12,7 @@ import os
 from .narrative_identity import NarrativeIdentityTracker
 from pathlib import Path
 from src.persistence.narrative_storage import NarrativePersistence
+from .uchi_soto import RelationalTier
 
 
 from .narrative_types import BodyState, NarrativeEpisode
@@ -117,9 +118,23 @@ class NarrativeMemory:
         context: str | None = None, 
         min_sigma: float | None = None,
         target_pad: tuple[float, float, float] | None = None,
-        limit: int = 5
+        limit: int = 5,
+        requester_tier: RelationalTier = RelationalTier.EPHEMERAL
     ) -> list[NarrativeEpisode]:
-        """Tier 2: Search all historical episodes by resonance/context from disk."""
+        """
+        Tier 2: Search all historical episodes by resonance/context from disk.
+        CRITICAL: Sensitive memory retrieval is gated by relational trust.
+        """
+        # Minimum tier required to access 'deep' episodic memory
+        MIN_ACCESS_TIER = RelationalTier.TRUSTED_UCHI # (STRANGER_STABLE < ACQUAINTANCE < TRUSTED_UCHI)
+        
+        # We use a custom comparison or just _tier_rank from uchi_soto
+        from .uchi_soto import _tier_rank
+        
+        if _tier_rank(requester_tier) < _tier_rank(MIN_ACCESS_TIER):
+            # Silence retrieval for untrusted observers to prevent narrative leaks
+            return []
+            
         return self.persistence.search_by_resonance(context, min_sigma, target_pad, limit)
 
     def save_identity_digest(self, digest: str) -> None:

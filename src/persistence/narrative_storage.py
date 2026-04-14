@@ -101,7 +101,7 @@ class NarrativePersistence:
             conn.commit()
 
     def load_all_episodes(self) -> list[NarrativeEpisode]:
-        if not self.path.is_file():
+        if str(self.path) != ":memory:" and not self.path.is_file():
             return []
         
         episodes = []
@@ -187,7 +187,7 @@ class NarrativePersistence:
             conn.commit()
 
     def load_identity_digest(self) -> str:
-        if not self.path.is_file():
+        if str(self.path) != ":memory:" and not self.path.is_file():
             return ""
         with _connect(self.path) as conn:
             _ensure_schema(conn)

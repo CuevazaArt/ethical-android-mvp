@@ -485,7 +485,9 @@ class WeightedEthicsScorer:
         toward empirical outcomes. If there are no matching episodes, resets to
         ``DEFAULT_HYPOTHESIS_WEIGHTS``.
         """
-        eps = memory.find_similar(context, limit=limit)
+        from .uchi_soto import RelationalTier
+        # For internal ethical deliberations, the kernel (as 'self') has OWNER_PRIMARY access to Tier 2 memory.
+        eps = memory.find_by_resonance(context=context, limit=limit, requester_tier=RelationalTier.OWNER_PRIMARY)
         if not eps:
             self.reset_mixture_weights()
             return
