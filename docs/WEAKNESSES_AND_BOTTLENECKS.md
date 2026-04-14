@@ -1,6 +1,6 @@
 # Weaknesses and bottlenecks
 
-This note is an **honest inventory** for operators and reviewers: known limits of the current architecture and naming. It complements the consolidated backlog in [`docs/proposals/README.md`](proposals/CRITIQUE_ROADMAP_ISSUES.md) and the forward-looking [`docs/proposals/README.md`](proposals/PRODUCTION_HARDENING_ROADMAP.md). It is **not** a commitment order for fixes.
+This note is an **honest inventory** for operators and reviewers: known limits of the current architecture and naming. It complements the consolidated backlog in [CRITIQUE_ROADMAP_ISSUES.md](proposals/CRITIQUE_ROADMAP_ISSUES.md) and the forward-looking [PRODUCTION_HARDENING_ROADMAP.md](proposals/PRODUCTION_HARDENING_ROADMAP.md). It is **not** a commitment order for fixes.
 
 ---
 

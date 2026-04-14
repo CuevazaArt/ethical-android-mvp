@@ -2,7 +2,7 @@
 
 Example sequencing for teams shipping Ethos Kernel–based runtimes. Adjust timelines to your capacity.
 
-**Tight 30-day operator slice:** [`docs/proposals/README.md`](proposals/ROADMAP_MINIMAL_EXECUTABLE_MODEL_30_DAY.md) (compose, ethical telemetry, persistence policy, operator manual).
+**Tight 30-day operator slice:** [ROADMAP_MINIMAL_EXECUTABLE_MODEL_30_DAY.md](proposals/ROADMAP_MINIMAL_EXECUTABLE_MODEL_30_DAY.md) (compose, ethical telemetry, persistence policy, operator manual).
 
 ## Phase 0 — Immediate (foundation)
 

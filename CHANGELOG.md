@@ -4,6 +4,13 @@ All notable changes to this project are summarized here. For narrative context a
 
 **Note:** Older sections below may still **link** to paths that were later removed (for example `experiments/million_sim/`, `docs/multimedia/`, root `dashboard.html`, `landing/`). Those links are **historical**; recover files from git history or backup branches if you need them.
 
+## Documentation — restore `docs/proposals/` + bibliography — April 2026
+
+- **Restored** the full **`docs/proposals/`** tree from **`origin/backup/main-2026-04-10`** so cross-links in [`docs/WEAKNESSES_AND_BOTTLENECKS.md`](docs/WEAKNESSES_AND_BOTTLENECKS.md), [`docs/ROADMAP_PRACTICAL_PHASES.md`](docs/ROADMAP_PRACTICAL_PHASES.md), ADRs, and [`SECURITY.md`](SECURITY.md) resolve to versioned English design notes again.
+- **Restored** root **[`BIBLIOGRAPHY.md`](BIBLIOGRAPHY.md)** (referenced from the proposal index).
+- **New:** [`docs/proposals/CURSOR_TEAM_MISSION_SENSORS_PERCEPTION.md`](docs/proposals/CURSOR_TEAM_MISSION_SENSORS_PERCEPTION.md) — charter for Cursor-line work on **sensors and perception** (analysis through implementation), linked from [`docs/proposals/README.md`](docs/proposals/README.md).
+- **Link hygiene:** fixed mistaken “README” anchors in [`docs/WEAKNESSES_AND_BOTTLENECKS.md`](docs/WEAKNESSES_AND_BOTTLENECKS.md), [`docs/ROADMAP_PRACTICAL_PHASES.md`](docs/ROADMAP_PRACTICAL_PHASES.md), [ADR 0009](docs/adr/0009-ethical-mixture-scorer-naming.md), [ADR 0010](docs/adr/0010-poles-pre-argmax-modulation.md), [`SECURITY.md`](SECURITY.md), and [`deploy/grafana/README.md`](deploy/grafana/README.md); root [`README.md`](README.md) now states the proposal tree is versioned under `docs/proposals/`.
+
 ## Multi-office Git workflow (method + diagram) — April 2026
 
 - **Docs:** **[`docs/collaboration/MULTI_OFFICE_GIT_WORKFLOW.md`](docs/collaboration/MULTI_OFFICE_GIT_WORKFLOW.md)** — institutionalized *Time worth flow / cycle develop* pattern for distributed teams (`main` production, `master-<TeamSlug>` integration, shared `<team-slug>-team` work line); canonical PNG diagram under **`docs/collaboration/`**.
