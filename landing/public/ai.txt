@@ -1,5 +1,0 @@
-# /ai.txt preference (non-contractual). SEO allowed; signal for AI crawlers.
-
-contact: https://github.com/CuevazaArt/ethical-android-mvp
-
-preference_no_ai_corpus: true

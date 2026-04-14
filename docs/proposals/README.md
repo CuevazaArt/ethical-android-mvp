@@ -1,4 +1,4 @@
-# `docs/proposals/` — design, theory, and operations
+﻿# `docs/proposals/` — design, theory, and operations
 
 **Reference** and **exploratory** material: versioned proposals, runtime contracts, theory ↔ code maps, operator guides, and design threads. This is **not** a substitute for the issue backlog or the root product README.
 
@@ -191,5 +191,5 @@ Legacy Spanish filenames (`PROPUESTA_*.md`, `ESTRATEGIA_Y_RUTA.md`, `PAPER_AFECT
 - **Architecture decisions:** [`docs/adr/`](../adr/README.md)  
 - **Versioned changes:** [`CHANGELOG.md`](../../CHANGELOG.md)  
 - **Narrative history:** [`HISTORY.md`](../../HISTORY.md)  
-- **Bibliography:** [`BIBLIOGRAPHY.md`](../../BIBLIOGRAPHY.md)  
+- **Bibliography:** maintained in `main-whit-landing` for landing/research publication scope  
 - **Product and development:** [root README](../../README.md)

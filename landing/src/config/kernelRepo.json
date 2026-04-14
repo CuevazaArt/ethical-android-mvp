@@ -1,7 +1,0 @@
-{
-  "pyprojectVersion": "0.0.0",
-  "landingPackageVersion": "0.1.0",
-  "sourcePyproject": "pyproject.toml",
-  "sourceLandingPackage": "landing/package.json",
-  "note": "Regenerate: npm run sync-kernel-meta (from landing/). CI fails on drift vs committed file."
-}
