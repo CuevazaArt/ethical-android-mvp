@@ -11,6 +11,14 @@ The previous long-form proposal set was removed from this branch to keep the tre
 | Document | Summary |
 |----------|---------|
 | [`PROPOSAL_BAYESIAN_MIXTURE_FEEDBACK.md`](PROPOSAL_BAYESIAN_MIXTURE_FEEDBACK.md) | ADR 0012 stack: BMA (L1), feedback posteriors (L2), context buckets (L3), softmax / importance-sampling likelihood, env vars, tests, link to ADR 0012. |
+| [`PROPOSAL_INTEGRATION_SPRINT_I1_I5.md`](PROPOSAL_INTEGRATION_SPRINT_I1_I5.md) | Integration sprint I1–I5: closes the gaps between Cursor (perception), Claude (Bayesian kernel), and Antigravity (narrative). Contracts, env vars, team coordination matrix. ADR 0015. |
+| [`PROPOSAL_CONSOLIDATION_PRE_DAO.md`](PROPOSAL_CONSOLIDATION_PRE_DAO.md) | Vertical consolidation cycle before field tests and DAO: validate the decision core against ETHICS dataset, shrink env-var surface, separate decision/narrative tiers, deepen tests, contract the DAO-governable surface. ADR 0016. |
+
+## Self-critique
+
+| Document | Summary |
+|----------|---------|
+| [`../critique/SELF_CRITIQUE_2026-04-14.md`](../critique/SELF_CRITIQUE_2026-04-14.md) | Honest diagnosis of the project after P1–P7 + I1–I5: what is genuinely solid, what is unjustified (heuristic valuations, config sprawl, narrative tier without causal influence, shallow cross-tier tests). Motivates ADR 0016. |
 
 ## Architecture decisions (ADR)
 
