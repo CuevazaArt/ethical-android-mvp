@@ -42,6 +42,7 @@ from .modules.user_model import UserModelTracker
 from .modules.variability import VariabilityEngine
 from .modules.weakness_pole import WeaknessPole
 from .modules.working_memory import WorkingMemory
+from .modules.swarm_negotiator import SwarmNegotiator
 from .persistence.checkpoint_port import CheckpointPersistencePort
 
 
@@ -81,4 +82,5 @@ class KernelComponentOverrides:
     metaplan: MetaplanRegistry | None = None
     escalation_session: EscalationSessionTracker | None = None
     llm: LLMModule | None = None
+    swarm_negotiator: SwarmNegotiator | None = None
     checkpoint_persistence: CheckpointPersistencePort | None = None

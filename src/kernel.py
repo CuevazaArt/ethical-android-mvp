@@ -107,6 +107,7 @@ from .modules.sigmoid_will import SigmoidWill
 from .modules.skill_learning_registry import SkillLearningRegistry
 from .modules.somatic_markers import SomaticMarkerStore, apply_somatic_nudges
 from .modules.subjective_time import SubjectiveClock
+from .modules.swarm_negotiator import SwarmMessage, SwarmNegotiator
 from .modules.sympathetic import InternalState, SympatheticModule
 from .modules.uchi_soto import SocialEvaluation, TrustCircle, UchiSotoModule
 from .modules.user_model import UserModelTracker
@@ -325,6 +326,11 @@ class EthicalKernel:
             co.escalation_session
             if co and co.escalation_session is not None
             else EscalationSessionTracker()
+        )
+        self.swarm = (
+            co.swarm_negotiator 
+            if co and hasattr(co, "swarm_negotiator") and co.swarm_negotiator is not None 
+            else SwarmNegotiator(node_id=os.environ.get("KERNEL_NODE_ID", "default_node"))
         )
         self.constitution_l1_drafts: list[dict[str, Any]] = []
         self.constitution_l2_drafts: list[dict[str, Any]] = []
