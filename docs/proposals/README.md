@@ -10,9 +10,24 @@ This directory is the **single** unified location for what used to live in `docs
 
 High-level summary aligned with the code and docs; full chronology is in [`CHANGELOG.md`](../../CHANGELOG.md).
 
+| Document | Summary |
+|----------|---------|
+| [`PROPOSAL_001_HARDENIDO_DE_MODULOS_PRIMITIVOS.md`](PROPOSAL_001_HARDENIDO_DE_MODULOS_PRIMITIVOS.md) | Antigravity: hardening plan for primitive modules (filename legacy; content English). |
+| [`PROPOSAL_002_NARRATIVE_ARCHITECTURE_PLAN.md`](PROPOSAL_002_NARRATIVE_ARCHITECTURE_PLAN.md) | Antigravity: narrative / cognitive architecture pillar; tiers 1–3. |
+| [`PROPOSAL_003_NARRATIVE_HARDENING_ANALYSIS.md`](PROPOSAL_003_NARRATIVE_HARDENING_ANALYSIS.md) | Antigravity: narrative hardening (encryption, integrity, Uchi–Soto). |
+| [`PROPOSAL_004_NARRATIVE_IDENTITY_REFLECTION.md`](PROPOSAL_004_NARRATIVE_IDENTITY_REFLECTION.md) | Antigravity: narrative identity reflection layer. |
+| [`PROPOSAL_005_NARRATIVE_RESILIENCE_AND_HIERARCHY.md`](PROPOSAL_005_NARRATIVE_RESILIENCE_AND_HIERARCHY.md) | Antigravity: narrative resilience and memory hierarchy. |
+| [`PROPOSAL_008_METACOGNITIVE_CURIOSITY.md`](PROPOSAL_008_METACOGNITIVE_CURIOSITY.md) | Cursor: metacognitive curiosity and epistemic alignment. |
+| [`PROPOSAL_009_DISTRIBUTED_JUSTICE_AND_BLOCKCHAIN_DAO.md`](PROPOSAL_009_DISTRIBUTED_JUSTICE_AND_BLOCKCHAIN_DAO.md) | Antigravity: distributed justice and blockchain-style DAO (design scope). |
+| [`PROPOSAL_010_CRITIQUE_SYNTESIS_AND_ALIGNMENT.md`](PROPOSAL_010_CRITIQUE_SYNTESIS_AND_ALIGNMENT.md) | Antigravity: architectural critique synthesis and alignment plan (phase 7). |
+| [`PROPOSAL_011_DAO_CALIBRATION_PIPELINE.md`](PROPOSAL_011_DAO_CALIBRATION_PIPELINE.md) | Antigravity: DAO calibration pipeline and boundary-safety caps (phase 7). |
+| [`ANTIGRAVITY_COLLABORATION_GUIDE.md`](ANTIGRAVITY_COLLABORATION_GUIDE.md) | Antigravity: collaboration guide and operational workflows. |
+| [`PROPOSAL_BAYESIAN_MIXTURE_FEEDBACK.md`](PROPOSAL_BAYESIAN_MIXTURE_FEEDBACK.md) | ADR 0012 stack: BMA (L1), feedback posteriors (L2), context buckets (L3), softmax / importance-sampling likelihood, env vars, tests, link to ADR 0012. |
+| [`PROPOSAL_OFFLINE_MODE_TAXONOMY_AND_KNOWLEDGE_CORPUS.md`](PROPOSAL_OFFLINE_MODE_TAXONOMY_AND_KNOWLEDGE_CORPUS.md) | Offline taxonomy (voluntary, transient, structural, systemic); L0 vs curated knowledge pack; resource/energy priority; entry planning and sync; maps to `PreloadedBuffer` and MalAbs. |
+
 | Area | What changed |
 |------|----------------|
-| **Docs** | Single **`docs/proposals/`** tree; repo links point here. ADRs and templates were not moved. |
+| **Docs** | Single **`docs/proposals/`** tree; repo links point here. ADRs and templates were not moved. Root [`BIBLIOGRAPHY.md`](../../BIBLIOGRAPHY.md) and `landing/` live on this branch. **Cursor team charter (sensors + perception):** [`CURSOR_TEAM_MISSION_SENSORS_PERCEPTION.md`](CURSOR_TEAM_MISSION_SENSORS_PERCEPTION.md). |
 | **Uchi–Soto (roster)** | **Phase 3** in the kernel: `RelationalTier`, sensor-trust EMA, forget buffer, `linked_peer_ids`, wired into `process` / chat. See [PROPOSAL_SOCIAL_ROSTER_HIERARCHICAL_RELATIONS.md](PROPOSAL_SOCIAL_ROSTER_HIERARCHICAL_RELATIONS.md). |
 | **User model** | Enrichment phases A–C: cognitive pattern, risk band, judicial phase and checkpoint; snapshot persistence. See [USER_MODEL_ENRICHMENT.md](USER_MODEL_ENRICHMENT.md). |
 | **Time / Bayes** | Temporal horizon prior (Bayesian mixture, ADR 0005). See [TEMPORAL_PRIOR_HORIZONS.md](TEMPORAL_PRIOR_HORIZONS.md). |
@@ -164,5 +179,5 @@ Legacy Spanish filenames (`PROPUESTA_*.md`, `ESTRATEGIA_Y_RUTA.md`, `PAPER_AFECT
 - **Architecture decisions:** [`docs/adr/`](../adr/README.md)  
 - **Versioned changes:** [`CHANGELOG.md`](../../CHANGELOG.md)  
 - **Narrative history:** [`HISTORY.md`](../../HISTORY.md)  
-- **Bibliography:** [`BIBLIOGRAPHY.md`](../../BIBLIOGRAPHY.md)  
+- **Bibliography:** [`BIBLIOGRAPHY.md`](../../BIBLIOGRAPHY.md) — full numbered table on this branch; lightweight `main` omits it (open this branch on GitHub for the same file).  
 - **Product and development:** [root README](../../README.md)

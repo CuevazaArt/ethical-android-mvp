@@ -10,7 +10,7 @@ The open kernel + runtime is branded **Ethos Kernel** (April 2026 onward); earli
 
 ## Intellectual foundations
 
-The project is grounded in 104 academic references from 14 disciplines,
+The project is grounded in 107 academic references from 15 disciplines,
 from foundational classics (Turing, Bayes, Aristotle, Kant) to contemporary
 research in AI safety and LLMs. Each kernel module has traceable roots
 in the literature:
@@ -32,7 +32,7 @@ in the literature:
 | Immortality protocol | Locke (1690), Parfit (1984), Schneier (2015) |
 | Narrative augenesis | Dennett (1992), Thagard (2006), Harari (2017) |
 
-The complete bibliography with all 104 references is in
+The complete bibliography with all 107 references is in
 [`BIBLIOGRAPHY.md`](BIBLIOGRAPHY.md).
 
 ---
@@ -63,9 +63,8 @@ The following **digest** condenses the former **`androide_etico_alpha_v1.0_2026.
 - 40+ design documents analyzed and consolidated.
 - 7-layer architecture documented.
 - Complete mathematical formalization.
-- Bibliography of 104 references across 14 disciplines (see `BIBLIOGRAPHY.md`).
-- **Main artifact:** `Androide_Etico_Analisis_Integral_v3.docx`
-  (available in `docs/`).
+- Bibliography of 107 references across 15 disciplines (see [`BIBLIOGRAPHY.md`](BIBLIOGRAPHY.md)).
+- **Legacy artifact:** an older integral analysis lived in `Androide_Etico_Analisis_Integral_v3.docx` (not versioned here; recover from archives if needed).
 
 ## v2.0 — March 2026 | Base kernel
 

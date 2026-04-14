@@ -7,6 +7,8 @@
 
 **Where things stand today:** a **FastAPI WebSocket** runtime (`python -m src.chat_server` or `python -m src.runtime`) with **per-session kernel** state; **versioned persistence** (JSON / SQLite snapshots, optional **Fernet** checkpoints); **V12 moral hub** (constitution drafts, MockDAO votes, `HubAudit` lines); **LAN** thin clients ([`landing/public/mobile.html`](landing/public/mobile.html), conduct guide export); a **large** automated test suite (**640+** tests; run `pytest tests/ --collect-only` for the exact count) on **Python 3.11 / 3.12** in CI; optional layers for sensors, relational hints, judicial escalation, reality verification (“lighthouse”), and integrity alerts (`KERNEL_DAO_INTEGRITY_AUDIT_WS`).
 
+**Documentation:** design notes and proposal index: [`docs/proposals/README.md`](docs/proposals/README.md) (e.g. [`PROPOSAL_BAYESIAN_MIXTURE_FEEDBACK.md`](docs/proposals/PROPOSAL_BAYESIAN_MIXTURE_FEEDBACK.md)). Architecture decisions live in [`docs/adr/`](docs/adr/README.md). Narrative history: [`HISTORY.md`](HISTORY.md) · changes: [`CHANGELOG.md`](CHANGELOG.md). Layout: [`docs/REPOSITORY_LAYOUT.md`](docs/REPOSITORY_LAYOUT.md). On this branch, root [`BIBLIOGRAPHY.md`](BIBLIOGRAPHY.md) and the **Next.js** app under `landing/` ship together; lightweight **`main`** omits those payloads and links here for the full reference table.
+
 **Kernel version line:** ethical core **v5**; **v6–v10** runtime, persistence, advisory stack; **v11** judicial escalation + cross-model premise checks; **v12** etosocial / hybrid-hub infrastructure and documented civilization vision — see [`HISTORY.md`](HISTORY.md) and [`CHANGELOG.md`](CHANGELOG.md).
 
 **Collaboration note:** The branch **`refactor/pipeline-trace-core`** preserved a multi-agent coordination experiment (internal buffers and keywords). That workflow is **not** part of routine development on `main`; useful kernel/docs/test changes from that line were merged selectively. The branch remains as **historical context** only.
@@ -413,7 +415,7 @@ In GoDaddy DNS for the domain:
 ├── src/                  # Ethos Kernel source code
 ├── tests/                # Formal test suite
 ├── dashboard.html        # Interactive dashboard (open in browser)
-├── BIBLIOGRAPHY.md       # 104 academic references across 14 disciplines
+├── BIBLIOGRAPHY.md       # 107 academic references across 15 disciplines
 ├── CHANGELOG.md          # Version change history
 ├── CONTRIBUTING.md       # Contributor guide
 ├── HISTORY.md            # Full project evolution (v1→v12)

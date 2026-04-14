@@ -3,7 +3,7 @@
 **Android with Artificial Consciousness and Collaborative Ethical Ecosystem**
 
 *From foundational classic works to contemporary theories.*
-104 references | 14 disciplines | From the 18th century to the present.
+107 references | 15 disciplines | From the 18th century to the present.
 
 ---
 
@@ -455,6 +455,21 @@ synthetic soul creation, and identity persistence.
 
 ---
 
+## XV. Bayesian mixture modeling, model averaging, and discrete choice
+
+Formal background for Dirichlet priors over mixture weights, Bayesian model averaging (BMA), and Plackett–Luce / softmax choice models used in optional kernel feedback paths (ADR 0012).
+
+105. **Gelman, A., Carlin, J. B., Stern, H. S., Dunson, D. B., Vehtari, A., & Rubin, D. B. (2013).** *Bayesian Data Analysis (3rd ed.).* Chapman and Hall/CRC.
+     — Hierarchical models, Dirichlet–multinomial structure, and simulation-based inference. Reference posture for interpreting mixture priors and posterior concentration updates.
+
+106. **Hoeting, J. A., Madigan, D., Raftery, A. E., & Volinsky, C. T. (1999).** *Bayesian Model Averaging: A Tutorial.* Statistical Science, 14(4), 382–417.
+     — Averages predictions over competing models weighted by posterior mass. Maps to Level-1 BMA-style reporting over mixture draws in `bayesian_mixture_averaging.py`.
+
+107. **Luce, R. D. (1959).** *Individual Choice Behavior: A Theoretical Analysis.* Wiley.
+     — Axiomatic discrete choice and random-utility foundations for ranking / softmax choice probabilities. Supports the Plackett–Luce–style likelihood used in mixture feedback (see `ethical_mixture_likelihood.py`).
+
+---
+
 ## Index by project component
 
 | Component | References |
@@ -462,7 +477,7 @@ synthetic soul creation, and identity persistence.
 | Predicate logic and axioms | [1], [2], [3], [28], [31] |
 | Sigmoid / will function | [22], [23], [46] |
 | Constrained ethical optimization | [10], [11], [12], [14], [15] |
-| Bayesian ethical inference | [19], [24], [25], [50], [51] |
+| Bayesian ethical inference | [19], [24], [25], [50], [51], [105], [106], [107] |
 | STM / LTM memory | [29], [36], [37], [39], [48] |
 | Narrative memory and identity | [7], [38], [40], [42], [43] |
 | Moral compass / ethical attractor | [10], [11], [16], [17], [90] |
@@ -491,11 +506,12 @@ synthetic soul creation, and identity persistence.
 | Skill learning registry / scope tickets (v10) | [15], [74], [90] |
 | Somatic markers → signal nudge (v10) | [59], [60], [91] |
 | Metaplan registry / session goals (v10) | [31], [33] |
+| Mixture BMA + Dirichlet feedback (ADR 0012) | [105], [106], [107] |
 
-See also [docs/proposals/TRACE_IMPLEMENTATION_RECENT.md](docs/proposals/TRACE_IMPLEMENTATION_RECENT.md) (Spanish trace table).
+See also [docs/proposals/TRACE_IMPLEMENTATION_RECENT.md](docs/proposals/TRACE_IMPLEMENTATION_RECENT.md) (implementation trace table).
 
 ---
 
-*104 references | 14 disciplines | From 18th-century classics to the present*
+*107 references | 15 disciplines | From 18th-century classics to the present*
 
 Ex Machina Foundation — 2026

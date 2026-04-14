@@ -2,6 +2,11 @@
 
 All notable changes to this project are summarized here. For narrative context and design rationale, see [`HISTORY.md`](HISTORY.md).
 
+## Documentation hygiene — April 2026
+
+- **Parity with lightweight `main`:** `.gitignore` now excludes local `data/` trees and `scratch/` so narrative SQLite paths and experiment databases are not committed accidentally; proposal index and trace docs remain English-first with consistent pointers to root [`BIBLIOGRAPHY.md`](BIBLIOGRAPHY.md) on this branch.
+- **Bibliography:** added refs **[105]–[107]** (Gelman et al. *BDA*; Hoeting et al. BMA tutorial; Luce discrete choice) under new § **XV** for ADR 0012 mixture / feedback; index + `README` / `HISTORY` counts updated to **107 / 15**.
+
 ## Mass study schema 5 — tunable pole/mixture sampling — April 2026
 
 - **`src/sandbox/mass_kernel_study.py`:** **`RECORD_SCHEMA_VERSION` 5**; **`--pole-weight-range LO,HI`**, **`--mixture-dirichlet-alpha`**; row fields **`sampling_pole_lo`**, **`sampling_pole_hi`**, **`sampling_mixture_dirichlet_alpha`**; summary **`meta.weight_sampling`**.
@@ -830,4 +835,4 @@ Pause on **new surface modules**; strengthen existing paths (critique-aligned).
 - 40+ design documents analyzed and consolidated
 - 7-layer architecture documented
 - Complete mathematical formalization
-- Bibliography expanded over time; see current [`BIBLIOGRAPHY.md`](BIBLIOGRAPHY.md) (104 references across 14 disciplines as of v5+)
+- Bibliography expanded over time; see current [`BIBLIOGRAPHY.md`](BIBLIOGRAPHY.md) (107 references across 15 disciplines as of April 2026)

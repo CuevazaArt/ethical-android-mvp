@@ -1,8 +1,8 @@
 # Traceability: recent implementations (Guardian, v9, v10, V11 Phase 1)
 
-This document **consolidates** components and concepts added in the recent work cycle, with **bibliographic support** in the repository format: numbered references per **[BIBLIOGRAPHY.md](../BIBLIOGRAPHY.md)** (index at the end of that file).
+This document **consolidates** components and concepts added in the recent work cycle, with **bibliographic support** in the repository format: numbered references per **[`BIBLIOGRAPHY.md`](../../BIBLIOGRAPHY.md)** (index at the end of that file).
 
-**Coherence:** None of these layers alter the normative pipeline **MalAbs → … → will**; they are telemetry, LLM tone, explicit candidates, or bounded signals, as documented in [THEORY_AND_IMPLEMENTATION.md](THEORY_AND_IMPLEMENTATION.md) and the linked PROPUESTA notes.
+**Coherence:** None of these layers alter the normative pipeline **MalAbs → … → will**; they are telemetry, LLM tone, explicit candidates, or bounded signals, as documented in [THEORY_AND_IMPLEMENTATION.md](THEORY_AND_IMPLEMENTATION.md) and the linked `PROPOSAL_*` notes.
 
 ---
 
@@ -14,7 +14,7 @@ This document **consolidates** components and concepts added in the recent work 
 | **Epistemic dissonance / sensory consensus** (v9.1) | `src/modules/epistemic_dissonance.py`; after `multimodal_trust`; JSON `epistemic_dissonance` | Uncertainty and information [21]; causal reasoning / coherence across sources [24], [25]; sensors and estimation [61]; interpretability limits under contradictory signals [71]. |
 | **Generative candidates** (“third way”, v9.2) | `src/modules/generative_candidates.py`; `CandidateAction.source` / `proposal_id`; `KERNEL_GENERATIVE_ACTIONS` | Empirical moral dilemmas and trade-offs [18]; rational agents and plan space [31]; fast vs deliberative modes [41]. |
 | **Swarm P2P stub** (v9.3 lab) | `src/modules/swarm_peer_stub.py`; `KERNEL_SWARM_STUB` | Distributed coordination [52], [57], [58] — **stub only**; see `docs/proposals/SWARM_P2P_THREAT_MODEL.md`. |
-| **Guardian Angel routines** (product slice) | `src/modules/guardian_routines.py`; `KERNEL_GUARDIAN_ROUTINES*`; `landing/public/guardian.html` | Human–agent trust [67]–[70]; alignment framing [15]. |
+| **Guardian Angel routines** (product slice) | `src/modules/guardian_routines.py`; `KERNEL_GUARDIAN_ROUTINES*`; static notes [`landing/public/guardian.html`](../../landing/public/guardian.html) | Human–agent trust [67]–[70]; alignment framing [15]. |
 | **Gray-zone diplomacy** (v10) | `src/modules/gray_zone_diplomacy.py`; hints in `weakness_line`; `KERNEL_GRAY_ZONE_DIPLOMACY` | Deliberation under cognitive tension [41]; discourse ethics and rational agreement [73]; explainability and transparency [15]. |
 | **Skill-learning registry** (v10) | `src/modules/skill_learning_registry.py`; audit in `execute_sleep` | Governance and capability scope [74]; principle-based AI frameworks [15]; “constitutional” alignment and behavior bounds [90]. |
 | **Somatic markers** (v10) | `src/modules/somatic_markers.py`; `apply_somatic_nudges` on `signals` | Somatic markers and emotion in decision [91]; cybernetics and sensor–attitude loop [59]; simple sensor vehicles [60]. |
@@ -37,7 +37,7 @@ This document **consolidates** components and concepts added in the recent work 
 | [PROPOSAL_ETOSOCIAL_STATE_V12.md](PROPOSAL_ETOSOCIAL_STATE_V12.md) | V12 **registry** + env; `moral_hub`, drafts, DAO vote, deontic/ml_ethics/reparation/nomad stubs |
 | [STRATEGY_AND_ROADMAP.md](STRATEGY_AND_ROADMAP.md) | Review conclusions, readapted P0–P3 route, **runtime profiles** (`runtime_profiles.py`, `test_runtime_profiles.py`) |
 | [LOCAL_PC_AND_MOBILE_LAN.md](LOCAL_PC_AND_MOBILE_LAN.md) | PC + smartphone same WiFi (thin client); scripts `start_lan_server`; `chat-test.html?host=`; **`conduct_guide_export`** on WS disconnect |
-| [NOMAD_PC_SMARTPHONE_BRIDGE.md](NOMAD_PC_SMARTPHONE_BRIDGE.md) | Primer puente nomada: capas por hardware, sensor smartphone, red segura para campo (bajo indicación) |
+| [NOMAD_PC_SMARTPHONE_BRIDGE.md](NOMAD_PC_SMARTPHONE_BRIDGE.md) | First nomadic bridge: per-hardware layers, smartphone sensor path, field-safe networking (operator-directed) |
 | [PROPOSAL_REALITY_VERIFICATION_V11.md](PROPOSAL_REALITY_VERIFICATION_V11.md) | Lighthouse KB / metacognitive doubt (implemented); distillation + DAO sovereignty (stubs) |
 | [PROPOSAL_DAO_ALERTS_AND_TRANSPARENCY.md](PROPOSAL_DAO_ALERTS_AND_TRANSPARENCY.md) | DAO corruption: loud traceable alerts (no covert “guerrilla”); forensic memorial vs L0 buffer; **v0 code:** `integrity_alert` WS → `HubAudit:dao_integrity` |
 
@@ -45,9 +45,9 @@ This document **consolidates** components and concepts added in the recent work 
 
 ## Next development session (proposed plan)
 
-**Ruta y riesgos (abril 2026):** prioridades y expectativas realistas están consolidadas en **[STRATEGY_AND_ROADMAP.md](STRATEGY_AND_ROADMAP.md)**. El hueco principal cerrado en esa iteración es **perfiles nominales de runtime** (`src/runtime_profiles.py`) + humo en CI (`tests/test_runtime_profiles.py`).
+**Route and risks (April 2026):** priorities and realistic expectations are consolidated in **[STRATEGY_AND_ROADMAP.md](STRATEGY_AND_ROADMAP.md)**. The main gap closed in that iteration is **nominal runtime profiles** (`src/runtime_profiles.py`) + CI smoke (`tests/test_runtime_profiles.py`).
 
-Siguientes líneas (alineadas con PROPUESTA, después de P0 perfiles):
+Next lines (aligned with proposals, after P0 profiles):
 
 1. **Persist goals and markers** — **Done (schema v3):** `KernelSnapshotV1.metaplan_goals`, `somatic_marker_weights`, `skill_learning_tickets` with `extract_snapshot` / `apply_snapshot`; in-memory round-trip `tests/test_persistence.py::test_metaplan_somatic_skills_roundtrip`; **disk** round-trips `test_json_file_metaplan_somatic_skills_roundtrip`, `test_sqlite_metaplan_somatic_skills_roundtrip`. *Support:* narrative continuity [40], [97], [98]; persistence [104].
 
@@ -57,8 +57,8 @@ Siguientes líneas (alineadas con PROPUESTA, después de P0 perfiles):
 
 4. **v9.3 swarm** — **Done (stub):** [`docs/proposals/SWARM_P2P_THREAT_MODEL.md`](SWARM_P2P_THREAT_MODEL.md) + `src/modules/swarm_peer_stub.py` (`verdict_digest_v1`, `peer_agreement_stats`); `KERNEL_SWARM_STUB` gates optional use; `tests/test_swarm_peer_stub.py`. *Support:* [52], [57], [58].
 
-5. **Guardian Angel (product)** — **Done (MVP slice):** `guardian_routines.py` (JSON care routines → LLM suffix); env `KERNEL_GUARDIAN_ROUTINES`, `KERNEL_GUARDIAN_ROUTINES_PATH`, `KERNEL_CHAT_INCLUDE_GUARDIAN_ROUTINES`; `landing/public/guardian.html`; tests `tests/test_guardian_routines.py`, `tests/test_guardian_mode.py`, `tests/test_chat_server.py`. No ethical veto change. *Support:* [67]–[70], [15].
+5. **Guardian Angel (product)** — **Done (MVP slice):** `guardian_routines.py` (JSON care routines → LLM suffix); env `KERNEL_GUARDIAN_ROUTINES`, `KERNEL_GUARDIAN_ROUTINES_PATH`, `KERNEL_CHAT_INCLUDE_GUARDIAN_ROUTINES`; static notes [`landing/public/guardian.html`](../../landing/public/guardian.html); tests `tests/test_guardian_routines.py`, `tests/test_guardian_mode.py`, `tests/test_chat_server.py`. No ethical veto change. *Support:* [67]–[70], [15].
 
 ---
 
-*Ex Machina Foundation — implementation traceability; align with [BIBLIOGRAPHY.md](../BIBLIOGRAPHY.md) for full academic citations.*
+*Ex Machina Foundation — implementation traceability; align with [`BIBLIOGRAPHY.md`](../../BIBLIOGRAPHY.md) for full academic citations.*
