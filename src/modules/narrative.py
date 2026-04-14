@@ -8,37 +8,13 @@ The android does not store data: it builds history.
 from dataclasses import dataclass
 from datetime import datetime
 
+import os
 from .narrative_identity import NarrativeIdentityTracker
+from pathlib import Path
+from src.persistence.narrative_storage import NarrativePersistence
 
 
-@dataclass
-class BodyState:
-    """Physical state of the android at the time of the episode."""
-
-    energy: float = 1.0
-    active_nodes: int = 8
-    sensors_ok: bool = True
-    description: str = ""
-
-
-@dataclass
-class NarrativeEpisode:
-    """A narrative cycle with beginning, development, conclusion, and morals."""
-
-    id: str
-    timestamp: str
-    place: str
-    event_description: str
-    body_state: BodyState
-    action_taken: str
-    morals: dict  # pole -> moral
-    verdict: str  # "Good", "Bad", "Gray Zone"
-    ethical_score: float
-    decision_mode: str  # "D_fast", "D_delib", "gray_zone"
-    sigma: float  # Sympathetic state at the moment
-    context: str  # Type: emergency, everyday, etc.
-    affect_pad: tuple[float, float, float] | None = None
-    affect_weights: dict[str, float] | None = None
+from .narrative_types import BodyState, NarrativeEpisode
 
 
 class NarrativeMemory:
@@ -54,12 +30,37 @@ class NarrativeMemory:
     ethics, narrative, and body.
     """
 
-    def __init__(self, max_episodes: int = 1000):
+    def __init__(self, max_episodes: int = 1000, db_path: str | Path | None = None):
         self.episodes: list[NarrativeEpisode] = []
         self.max_episodes = max_episodes
         self._counter = 0
         self.identity = NarrativeIdentityTracker()
         self.experience_digest: str = ""
+        
+        # Persistence setup (Tier 2)
+        if db_path is None:
+            db_path = os.environ.get("KERNEL_NARRATIVE_DB_PATH", "data/narrative.db")
+        self.persistence = NarrativePersistence(db_path)
+        
+        # Load existing episodes from disk
+        self.episodes = self.persistence.load_all_episodes()
+        if self.episodes:
+            # Sync counter with last episode ID
+            last_id = self.episodes[-1].id
+            if last_id.startswith("EP-"):
+                try:
+                    self._counter = int(last_id.split("-")[1])
+                except (ValueError, IndexError):
+                    self._counter = len(self.episodes)
+            else:
+                self._counter = len(self.episodes)
+            
+            # Sync identity from existing history
+            for ep in self.episodes:
+                self.identity.update_from_episode(ep)
+        
+        # Load identity digest (Tier 3)
+        self.experience_digest = self.persistence.load_identity_digest()
 
     def register(
         self,
@@ -97,15 +98,28 @@ class NarrativeMemory:
         self.episodes.append(ep)
         self.identity.update_from_episode(ep)
 
-        # Basic compression: if exceeds max, remove oldest
+        # Tier 2 persistence: Save to DB
+        self.persistence.save_episode(ep)
+
+        # Basic compression: if exceeds max, remove oldest from memory
+        # (Disk retains all episodes unless explicit cleanup implemented)
         if len(self.episodes) > self.max_episodes:
             self.episodes = self.episodes[-self.max_episodes :]
 
         return ep
 
     def find_similar(self, context: str, limit: int = 5) -> list[NarrativeEpisode]:
-        """Finds previous episodes of the same context type."""
+        """Finds previous episodes of the same context type from memory."""
         return [ep for ep in self.episodes if ep.context == context][-limit:]
+
+    def find_by_resonance(self, context: str | None = None, min_sigma: float | None = None) -> list[NarrativeEpisode]:
+        """Tier 2: Search all historical episodes by resonance/context from disk."""
+        return self.persistence.search_by_resonance(context, min_sigma)
+
+    def save_identity_digest(self, digest: str) -> None:
+        """Tier 3: Persist a new existential digest/lesson."""
+        self.experience_digest = digest
+        self.persistence.save_identity_digest(digest)
 
     def daily_summary(self) -> dict:
         """Generates a daily summary for Ψ Sleep."""

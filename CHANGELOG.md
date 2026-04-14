@@ -4,6 +4,13 @@ All notable changes to this project are summarized here. For narrative context a
 
 **Note:** Older sections below may still **link** to paths that were later removed (for example `experiments/million_sim/`, `docs/multimedia/`, root `dashboard.html`, `landing/`). Those links are **historical**; recover files from git history or backup branches if you need them.
 
+## Persistent Narrative Architecture (Tier 2/3) — April 2026
+
+- **New** [`src/persistence/narrative_storage.py`](src/persistence/narrative_storage.py): SQLite-based storage for narrative episodes (Tier 2). Supports granular episode persistence, Tier 3 identity digest storage, and resonance-based retrieval.
+- **`src/modules/narrative.py`**: Integrated `NarrativePersistence`. Episodes are now automatically saved to `data/narrative.db` (or `KERNEL_NARRATIVE_DB_PATH`) and reloaded on initialization. Added `find_by_resonance` for historical retrieval from disk.
+- **Refactor:** Created **[`src/modules/narrative_types.py`](src/modules/narrative_types.py)** to house `NarrativeEpisode` and `BodyState` dataclasses, resolving circular dependencies between narrative logic and persistence layers. Updated `src/persistence/kernel_io.py`.
+- **Docs:** Updated [`docs/proposals/PROPOSAL_002_NARRATIVE_ARCHITECTURE_PLAN.md`](docs/proposals/PROPOSAL_002_NARRATIVE_ARCHITECTURE_PLAN.md) (Tier 2 marked delivered).
+
 ## Multi-office Git workflow (method + diagram) — April 2026
 
 - **Docs:** **[`docs/collaboration/MULTI_OFFICE_GIT_WORKFLOW.md`](docs/collaboration/MULTI_OFFICE_GIT_WORKFLOW.md)** — institutionalized *Time worth flow / cycle develop* pattern for distributed teams (`main` production, `master-<TeamSlug>` integration, shared `<team-slug>-team` work line); canonical PNG diagram under **`docs/collaboration/`**.

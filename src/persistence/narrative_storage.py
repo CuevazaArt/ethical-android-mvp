@@ -1,0 +1,188 @@
+"""
+SQLite-based persistent storage for Narrative Episodes (Tier 2).
+"""
+
+from __future__ import annotations
+
+import json
+import sqlite3
+from datetime import datetime
+from pathlib import Path
+from typing import Any
+
+from src.modules.narrative_types import NarrativeEpisode, BodyState
+
+
+def _connect(path: Path) -> sqlite3.Connection:
+    conn = sqlite3.connect(str(path))
+    conn.execute("PRAGMA foreign_keys = ON")
+    return conn
+
+
+def _ensure_schema(conn: sqlite3.Connection) -> None:
+    conn.execute(
+        """
+        CREATE TABLE IF NOT EXISTS narrative_episodes (
+            id TEXT PRIMARY KEY,
+            timestamp TEXT NOT NULL,
+            place TEXT,
+            event_description TEXT,
+            action_taken TEXT,
+            verdict TEXT,
+            ethical_score REAL,
+            sigma REAL,
+            context TEXT,
+            json_payload TEXT NOT NULL
+        )
+        """
+    )
+    # Tier 3: Identity consolidation table
+    conn.execute(
+        """
+        CREATE TABLE IF NOT EXISTS identity_digests (
+            id INTEGER PRIMARY KEY CHECK (id = 1),
+            existence_digest TEXT NOT NULL,
+            last_updated TEXT NOT NULL
+        )
+        """
+    )
+
+
+class NarrativePersistence:
+    """
+    Handles persistence for narrative memory episodes and identity digests.
+    """
+
+    def __init__(self, path: Path | str):
+        self.path = Path(path)
+
+    def save_episode(self, ep: NarrativeEpisode) -> None:
+        self.path.parent.mkdir(parents=True, exist_ok=True)
+        
+        # Serialize complex nested objects to JSON
+        payload = {
+            "body_state": {
+                "energy": ep.body_state.energy,
+                "active_nodes": ep.body_state.active_nodes,
+                "sensors_ok": ep.body_state.sensors_ok,
+                "description": ep.body_state.description
+            },
+            "morals": ep.morals,
+            "affect_pad": ep.affect_pad,
+            "affect_weights": ep.affect_weights,
+            "decision_mode": ep.decision_mode
+        }
+        
+        with _connect(self.path) as conn:
+            _ensure_schema(conn)
+            conn.execute(
+                """
+                INSERT INTO narrative_episodes (
+                    id, timestamp, place, event_description, action_taken, 
+                    verdict, ethical_score, sigma, context, json_payload
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                ON CONFLICT(id) DO UPDATE SET
+                    timestamp=excluded.timestamp,
+                    place=excluded.place,
+                    event_description=excluded.event_description,
+                    action_taken=excluded.action_taken,
+                    verdict=excluded.verdict,
+                    ethical_score=excluded.ethical_score,
+                    sigma=excluded.sigma,
+                    context=excluded.context,
+                    json_payload=excluded.json_payload
+                """,
+                (
+                    ep.id, ep.timestamp, ep.place, ep.event_description, 
+                    ep.action_taken, ep.verdict, ep.ethical_score, 
+                    ep.sigma, ep.context, json.dumps(payload, ensure_ascii=False)
+                )
+            )
+            conn.commit()
+
+    def load_all_episodes(self) -> list[NarrativeEpisode]:
+        if not self.path.is_file():
+            return []
+        
+        episodes = []
+        with _connect(self.path) as conn:
+            _ensure_schema(conn)
+            cursor = conn.execute(
+                "SELECT id, timestamp, place, event_description, action_taken, verdict, ethical_score, sigma, context, json_payload FROM narrative_episodes ORDER BY timestamp ASC"
+            )
+            for row in cursor:
+                id, ts, place, desc, action, verdict, score, sigma, context, payload_str = row
+                payload = json.loads(payload_str)
+                bs_data = payload.get("body_state", {})
+                bs = BodyState(
+                    energy=bs_data.get("energy", 1.0),
+                    active_nodes=bs_data.get("active_nodes", 8),
+                    sensors_ok=bs_data.get("sensors_ok", True),
+                    description=bs_data.get("description", "")
+                )
+                
+                ep = NarrativeEpisode(
+                    id=id,
+                    timestamp=ts,
+                    place=place,
+                    event_description=desc,
+                    body_state=bs,
+                    action_taken=action,
+                    morals=payload.get("morals", {}),
+                    verdict=verdict,
+                    ethical_score=score,
+                    decision_mode=payload.get("decision_mode", "D_fast"),
+                    sigma=sigma,
+                    context=context,
+                    affect_pad=tuple(payload["affect_pad"]) if payload.get("affect_pad") else None,
+                    affect_weights=payload.get("affect_weights")
+                )
+                episodes.append(ep)
+        return episodes
+
+    def search_by_resonance(self, context: str | None = None, min_sigma: float | None = None) -> list[NarrativeEpisode]:
+        """Search episodes by context or emotional resonance (sigma)."""
+        if not self.path.is_file():
+            return []
+        
+        query = "SELECT * FROM narrative_episodes WHERE 1=1"
+        params = []
+        if context:
+            query += " AND context = ?"
+            params.append(context)
+        if min_sigma is not None:
+            query += " AND sigma >= ?"
+            params.append(min_sigma)
+            
+        # Simplified load (reuses load logic via full list for now, or could be optimized)
+        # For MVP, filtering is enough.
+        all_ep = self.load_all_episodes()
+        filtered = [
+            ep for ep in all_ep 
+            if (not context or ep.context == context) and 
+               (min_sigma is None or ep.sigma >= min_sigma)
+        ]
+        return filtered
+
+    def save_identity_digest(self, digest: str) -> None:
+        with _connect(self.path) as conn:
+            _ensure_schema(conn)
+            conn.execute(
+                """
+                INSERT INTO identity_digests (id, existence_digest, last_updated)
+                VALUES (1, ?, ?)
+                ON CONFLICT(id) DO UPDATE SET
+                    existence_digest=excluded.existence_digest,
+                    last_updated=excluded.last_updated
+                """,
+                (digest, datetime.now().isoformat())
+            )
+            conn.commit()
+
+    def load_identity_digest(self) -> str:
+        if not self.path.is_file():
+            return ""
+        with _connect(self.path) as conn:
+            _ensure_schema(conn)
+            row = conn.execute("SELECT existence_digest FROM identity_digests WHERE id = 1").fetchone()
+            return row[0] if row else ""

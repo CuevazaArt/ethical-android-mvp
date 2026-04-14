@@ -5,7 +5,7 @@ El modelo actual de memoria del Androide Ético está fragmentado entre ciclos l
 
 ## 1. Topología de la Memoria (Registro y Almacenaje)
 - **Tier 1 (Memoria de Trabajo / Corto Plazo)**: Buffer efímero en memoria RAM gestionando transcripciones y métricas a cortísimo plazo (`working_memory.py`). Transmite estado táctico.
-- **Tier 2 (Memoria Episódica Sensorial / Medio Plazo)**: Una vez una interacción concluye el ciclo narrativo, se asienta en disco a través de una base de datos vectorial (SQLite o ligera). Se guarda el ciclo semántico y el `Affect_PAD`.
+- **Tier 2 (Memoria Episódica Sensorial / Medio Plazo)**: ✅ **ENTREGADO** (SQLite persistence in `narrative_storage.py`). Se guarda el ciclo semántico y el `Affect_PAD`. Soporta búsqueda por resonancia (`find_by_resonance`).
 - **Tier 3 (Consolidación de Identidad / Filosofía)**: El LLM compacta episodios vectoriales viejos destilando "lecciones existenciales" en `existence_digest` (`narrative_identity.py` y `existential_serialization.py`).
 
 ## 2. Mecánica del Recuerdo (Retrieve & Access)
