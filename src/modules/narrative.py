@@ -112,9 +112,15 @@ class NarrativeMemory:
         """Finds previous episodes of the same context type from memory."""
         return [ep for ep in self.episodes if ep.context == context][-limit:]
 
-    def find_by_resonance(self, context: str | None = None, min_sigma: float | None = None) -> list[NarrativeEpisode]:
+    def find_by_resonance(
+        self, 
+        context: str | None = None, 
+        min_sigma: float | None = None,
+        target_pad: tuple[float, float, float] | None = None,
+        limit: int = 5
+    ) -> list[NarrativeEpisode]:
         """Tier 2: Search all historical episodes by resonance/context from disk."""
-        return self.persistence.search_by_resonance(context, min_sigma)
+        return self.persistence.search_by_resonance(context, min_sigma, target_pad, limit)
 
     def save_identity_digest(self, digest: str) -> None:
         """Tier 3: Persist a new existential digest/lesson."""

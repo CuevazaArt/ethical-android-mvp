@@ -140,29 +140,36 @@ class NarrativePersistence:
                 episodes.append(ep)
         return episodes
 
-    def search_by_resonance(self, context: str | None = None, min_sigma: float | None = None) -> list[NarrativeEpisode]:
-        """Search episodes by context or emotional resonance (sigma)."""
-        if not self.path.is_file():
-            return []
-        
-        query = "SELECT * FROM narrative_episodes WHERE 1=1"
-        params = []
-        if context:
-            query += " AND context = ?"
-            params.append(context)
-        if min_sigma is not None:
-            query += " AND sigma >= ?"
-            params.append(min_sigma)
-            
-        # Simplified load (reuses load logic via full list for now, or could be optimized)
-        # For MVP, filtering is enough.
+    def search_by_resonance(
+        self, 
+        context: str | None = None, 
+        min_sigma: float | None = None,
+        target_pad: tuple[float, float, float] | None = None,
+        limit: int = 5
+    ) -> list[NarrativeEpisode]:
+        """
+        Search episodes by context or emotional resonance.
+        If target_pad is provided, it returns the closest episodes using Euclidean distance.
+        """
         all_ep = self.load_all_episodes()
+        
+        # Initial filtering
         filtered = [
             ep for ep in all_ep 
             if (not context or ep.context == context) and 
                (min_sigma is None or ep.sigma >= min_sigma)
         ]
-        return filtered
+        
+        if target_pad and filtered:
+            # Sort by Euclidean distance to target_pad
+            def distance(ep: NarrativeEpisode) -> float:
+                if ep.affect_pad is None:
+                    return 999.9
+                return sum((a - b)**2 for a, b in zip(ep.affect_pad, target_pad))**0.5
+            
+            filtered.sort(key=distance)
+            
+        return filtered[:limit]
 
     def save_identity_digest(self, digest: str) -> None:
         with _connect(self.path) as conn:
