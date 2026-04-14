@@ -10,6 +10,11 @@ This directory is the **single** unified location for what used to live in `docs
 
 High-level summary aligned with the code and docs; full chronology is in [`CHANGELOG.md`](../../CHANGELOG.md).
 
+| Document | Summary |
+|----------|---------|
+| [`PROPOSAL_BAYESIAN_MIXTURE_FEEDBACK.md`](PROPOSAL_BAYESIAN_MIXTURE_FEEDBACK.md) | ADR 0012 stack: BMA (L1), feedback posteriors (L2), context buckets (L3), softmax / importance-sampling likelihood, env vars, tests, link to ADR 0012. |
+| [`PROPOSAL_OFFLINE_MODE_TAXONOMY_AND_KNOWLEDGE_CORPUS.md`](PROPOSAL_OFFLINE_MODE_TAXONOMY_AND_KNOWLEDGE_CORPUS.md) | Offline taxonomy (voluntary, transient, structural, systemic); L0 vs curated knowledge pack; resource/energy priority; entry planning and sync; maps to `PreloadedBuffer` and MalAbs. |
+
 | Area | What changed |
 |------|----------------|
 | **Docs** | Single **`docs/proposals/`** tree; repo links point here. ADRs and templates were not moved. **April 2026:** full proposal set restored from **`origin/backup/main-2026-04-10`**; root **[`BIBLIOGRAPHY.md`](../../BIBLIOGRAPHY.md)** restored. **Cursor team charter (sensors + perception):** [`CURSOR_TEAM_MISSION_SENSORS_PERCEPTION.md`](CURSOR_TEAM_MISSION_SENSORS_PERCEPTION.md). |
