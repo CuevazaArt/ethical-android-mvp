@@ -77,3 +77,6 @@ experiments/test_*_updater.py
 
 # Local data and backups
 data/
+
+# Local scratch databases (never commit)
+scratch/

@@ -103,7 +103,7 @@ They are stated in **falsifiable** form relative to **system** behavior, not hum
 
 - [EXPERIMENTAL_CONSCIOUSNESS_AND_AFFECT_ARCHETYPES.md](EXPERIMENTAL_CONSCIOUSNESS_AND_AFFECT_ARCHETYPES.md) — framework, limits, minimal PAD + prototype specification.  
 - [THEORY_AND_IMPLEMENTATION.md](THEORY_AND_IMPLEMENTATION.md) — kernel theory–code contract.  
-- [BIBLIOGRAPHY.md](../../BIBLIOGRAPHY.md) — academic literature (add PAD / circumplex when cited in formal work).
+- [BIBLIOGRAPHY.md on `main-whit-landing`](https://github.com/CuevazaArt/ethical-android-mvp/blob/main-whit-landing/BIBLIOGRAPHY.md) — academic literature (add PAD / circumplex when cited in formal work).
 
 ---
 

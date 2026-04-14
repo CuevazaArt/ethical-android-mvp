@@ -6,6 +6,7 @@ All notable changes to this project are summarized here. For narrative context a
 
 ## Antigravity Hardening Phase 1 — Ethical & Narrative Resilience — April 2026
 
+- **Main lightweight audit (April 2026):** removed tracked SQLite artifacts (`data/narrative.db`, `scratch/test_narrative.db`); ignore `scratch/`; fixed broken relative links to root `BIBLIOGRAPHY.md` by pointing readers to [`main-whit-landing`](https://github.com/CuevazaArt/ethical-android-mvp/tree/main-whit-landing); translated remaining Spanish fragments in key proposal index and trace docs.
 - **Main + landing lineage control merge:** `main` is linked with former `backup/main-2026-04-10` history through a controlled merge baseline.
 - **Branch rename for landing scope:** remote `backup/main-2026-04-10` was renamed to `main-whit-landing`.
 - **Integrity split by branch:** `main` is now lightweight for development teams (landing payload and bibliography removed), while `main-whit-landing` keeps the complete website/publication payload.
