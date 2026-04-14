@@ -120,6 +120,10 @@ class PsiSleep:
         # Distill the updated history and health into the persistent identity digest.
         memory.consolidate()
 
+        # Phase 5: Hierarchy & Pruning
+        # Remove low-significance, old episodes to maintain DB health.
+        memory.prune(max_age_days=60, min_significance=0.7)
+
         result = SleepResult(
             episodes_reviewed=len(episodes),
             findings=findings,

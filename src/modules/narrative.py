@@ -16,6 +16,7 @@ from .uchi_soto import RelationalTier
 
 
 from .narrative_types import BodyState, NarrativeEpisode, NarrativeArc
+from .identity_reflection import IdentityReflector
 
 
 class NarrativeMemory:
@@ -24,8 +25,8 @@ class NarrativeMemory:
 
     Three strata:
     1. Episodic core: cycles with morals
-    2. Preloaded buffer: immutable values (external to this class)
-    3. Complementary indices: skills, logs, traceability
+    2. Persistent storage: SQLite search by resonance
+    3. Existential Identity: Distilled digests and thematic arcs (Pilar de la Mente).
 
     Each episode includes body state, integrating
     ethics, narrative, and body.
@@ -36,6 +37,7 @@ class NarrativeMemory:
         self.max_episodes = max_episodes
         self._counter = 0
         self.identity = NarrativeIdentityTracker()
+        self.reflector = IdentityReflector(self)
         self.experience_digest: str = ""
         
         # Persistence setup (Tier 2)
@@ -86,29 +88,57 @@ class NarrativeMemory:
         self.persistence.save_identity_digest(self.experience_digest)
         return self.experience_digest
 
+    def get_reflection(self) -> str:
+        """Returns the first-person reflexive self-model (Pilar de la Mente)."""
+        return self.reflector.generate_first_person_mirror()
+
+    def get_subjective_tone(self) -> dict[str, float]:
+        """Returns archetypal weights for affective downstream processing."""
+        return self.reflector.get_subjective_tone()
+
     def register(
         self,
         place: str,
         description: str,
         action: str,
-        morals: dict,
+        morals: dict[str, str],
         verdict: str,
         score: float,
         mode: str,
         sigma: float,
-        context: str,
-        body_state: BodyState | None = None,
+        context: str = "everyday",
         affect_pad: tuple[float, float, float] | None = None,
         affect_weights: dict[str, float] | None = None,
     ) -> NarrativeEpisode:
-        """Registers a new narrative episode."""
+        """
+        Registers a new episode, calculating significance and handling arc shocks.
+        """
         self._counter += 1
+        
+        # 1. Calculate Significance (Phase 5)
+        # High score variance, high emotional arousal, or deliberation increases significance.
+        score_intensity = abs(score)
+        arousal_intensity = abs(sigma - 0.5) * 2.0
+        mode_boost = 0.3 if mode == "D_delib" else 0.0
+        significance = min(1.0, max(score_intensity, arousal_intensity) + mode_boost)
+        
+        # 2. Detect Trauma / Arc Shock (Phase 5)
+        is_sensitive = False
+        if score < -0.7 and significance > 0.8:
+            is_sensitive = True
+            # Close current arc immediately if it exists (Trauma triggers shock)
+            if self.active_arc:
+                self.active_arc.is_active = False
+                self.active_arc.predominant_archetype = "trauma_dissonance"
+                self.persistence.save_arc(self.active_arc)
+                self.active_arc = None
+
         ep = NarrativeEpisode(
             id=f"EP-{self._counter:04d}",
             timestamp=datetime.now().isoformat(),
             place=place,
             event_description=description,
-            body_state=body_state or BodyState(),
+            body_state=BodyState(),
             action_taken=action,
             morals=morals,
             verdict=verdict,
@@ -118,6 +148,8 @@ class NarrativeMemory:
             context=context,
             affect_pad=affect_pad,
             affect_weights=affect_weights,
+            significance=round(significance, 4),
+            is_sensitive=is_sensitive,
         )
         self.episodes.append(ep)
         self.identity.update_from_episode(ep)
@@ -209,6 +241,10 @@ class NarrativeMemory:
             f"  Morals:\n{morals_txt}{pad_line}"
         )
 
+    def prune(self, max_age_days: int = 60, min_significance: float = 0.70) -> int:
+        """Triggers the pruning of mundane episodes from persistence."""
+        return self.persistence.prune_mundane(max_age_days, min_significance)
+
     def _update_arcs(self, ep: NarrativeEpisode) -> None:
         """Internal: Manages arc transitions and archetypal resonance."""
         # 1. Check if we need to close current arc
@@ -221,9 +257,14 @@ class NarrativeMemory:
         # 2. Create new arc if none active
         if not self.active_arc:
             arc_id = f"ARC-{len(self.arcs) + 1:03d}"
+            # If the episode that triggered the arc is traumatic, initialize accordingly
+            title = f"The {ep.context.capitalize()} Period"
+            if ep.is_sensitive:
+                title = f"Post-Traumatic {ep.context.capitalize()} Reconstruction"
+            
             self.active_arc = NarrativeArc(
                 id=arc_id,
-                title=f"The {ep.context.capitalize()} Period",
+                title=title,
                 context=ep.context,
                 episodes_ids=[],
                 start_timestamp=ep.timestamp
@@ -234,7 +275,8 @@ class NarrativeMemory:
         self.active_arc.episodes_ids.append(ep.id)
         
         # 4. Update archetype (Richness)
-        if ep.affect_weights:
+        # If the arc is already marked as trauma, we don't overwrite it with minor archetypes
+        if self.active_arc.predominant_archetype != "trauma_dissonance" and ep.affect_weights:
             dominant = max(ep.affect_weights, key=lambda k: ep.affect_weights[k])
             self.active_arc.predominant_archetype = dominant
 

@@ -32,6 +32,8 @@ class NarrativeEpisode:
     context: str  # Type: emergency, everyday, etc.
     affect_pad: tuple[float, float, float] | None = None
     affect_weights: dict[str, float] | None = None
+    significance: float = 0.0  # [0, 1] how impactful this is for identity
+    is_sensitive: bool = False  # True for traumatic/private events
 
 
 @dataclass

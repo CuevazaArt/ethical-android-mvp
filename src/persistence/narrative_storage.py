@@ -32,6 +32,8 @@ def _ensure_schema(conn: sqlite3.Connection) -> None:
             ethical_score REAL,
             sigma REAL,
             context TEXT,
+            significance REAL,
+            is_sensitive BOOLEAN,
             json_payload TEXT NOT NULL
         )
         """
@@ -95,8 +97,9 @@ class NarrativePersistence:
                 """
                 INSERT INTO narrative_episodes (
                     id, timestamp, place, event_description, action_taken, 
-                    verdict, ethical_score, sigma, context, json_payload
-                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                    verdict, ethical_score, sigma, context, significance,
+                    is_sensitive, json_payload
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
                 ON CONFLICT(id) DO UPDATE SET
                     timestamp=excluded.timestamp,
                     place=excluded.place,
@@ -106,12 +109,15 @@ class NarrativePersistence:
                     ethical_score=excluded.ethical_score,
                     sigma=excluded.sigma,
                     context=excluded.context,
+                    significance=excluded.significance,
+                    is_sensitive=excluded.is_sensitive,
                     json_payload=excluded.json_payload
                 """,
                 (
                     ep.id, ep.timestamp, ep.place, ep.event_description, 
                     ep.action_taken, ep.verdict, ep.ethical_score, 
-                    ep.sigma, ep.context, json.dumps(payload, ensure_ascii=False)
+                    ep.sigma, ep.context, ep.significance, ep.is_sensitive,
+                    json.dumps(payload, ensure_ascii=False)
                 )
             )
             conn.commit()
@@ -124,10 +130,10 @@ class NarrativePersistence:
         with _connect(self.path) as conn:
             _ensure_schema(conn)
             cursor = conn.execute(
-                "SELECT id, timestamp, place, event_description, action_taken, verdict, ethical_score, sigma, context, json_payload FROM narrative_episodes ORDER BY timestamp ASC"
+                "SELECT id, timestamp, place, event_description, action_taken, verdict, ethical_score, sigma, context, significance, is_sensitive, json_payload FROM narrative_episodes ORDER BY timestamp ASC"
             )
             for row in cursor:
-                id, ts, place, desc, action, verdict, score, sigma, context, payload_str = row
+                id, ts, place, desc, action, verdict, score, sigma, context, sig, sens, payload_str = row
                 payload = json.loads(payload_str)
                 bs_data = payload.get("body_state", {})
                 bs = BodyState(
@@ -151,7 +157,9 @@ class NarrativePersistence:
                     sigma=sigma,
                     context=context,
                     affect_pad=tuple(payload["affect_pad"]) if payload.get("affect_pad") else None,
-                    affect_weights=payload.get("affect_weights")
+                    affect_weights=payload.get("affect_weights"),
+                    significance=sig,
+                    is_sensitive=bool(sens)
                 )
                 episodes.append(ep)
         return episodes
@@ -261,3 +269,22 @@ class NarrativePersistence:
                     )
                 )
         return arcs
+
+    def prune_mundane(self, max_age_days: int = 60, min_significance: float = 0.70) -> int:
+        """
+        Removes old episodes with low significance.
+        Returns the number of deleted rows.
+        """
+        with _connect(self.path) as conn:
+            _ensure_schema(conn)
+            # We don't prune episodes with high significance (Flashbulb memories)
+            # or episodes newer than max_age_days.
+            query = """
+                DELETE FROM narrative_episodes 
+                WHERE significance < ? 
+                AND (julianday('now') - julianday(timestamp)) > ?
+            """
+            cursor = conn.execute(query, (min_significance, max_age_days))
+            count = cursor.rowcount
+            conn.commit()
+            return count
