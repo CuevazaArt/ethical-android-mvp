@@ -179,7 +179,7 @@ class NarrativeMemory:
             is_sensitive=is_sensitive,
             arc_id=self.active_arc.id if self.active_arc else None,
             semantic_embedding=embedding,
-            weights_snapshot=weights_snapshot
+            weights_snapshot=weights_snapshot,
         )
         self.episodes.append(ep)
         self.identity.update_from_episode(ep)
