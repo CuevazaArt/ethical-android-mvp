@@ -20,6 +20,8 @@ All notable changes to this project are summarized here. For narrative context a
 - **Cross-team Transparency**: Updated `AGENTS.md` and `.cursor/rules/` to mandate documentation availability for all teams to prevent contradictions.
 - **New Proposal [`PROPOSAL_006`](docs/proposals/PROPOSAL_006_VECTOR_RESONANCE_RETRIEVAL.md)**: Proposed semantic Vector memory integration via Ollama embeddings for more efficient and accurate narrative resonance.
 - **New Proposal [`PROPOSAL_007`](docs/proposals/PROPOSAL_007_IMMORTALITY_PROTOCOL.md)**: Proposed Tier 4 Immortality Protocol for distributed snapshotting and restoration integrity.
+- **New Proposal [`PROPOSAL_008`](docs/proposals/PROPOSAL_008_METACOGNITIVE_CURIOSITY.md)**: Proposed Metacognitive Curiosity and Epistemic Alignment for Phase 5 (Cognitive Expansion). 
+- **New Proposal [`PROPOSAL_009`](docs/proposals/PROPOSAL_009_DISTRIBUTED_JUSTICE_AND_BLOCKCHAIN_DAO.md)**: Strategic plan for Distributed Justice and Blockchain DAO integration (Phase 6).
 
 ## Persistent Narrative Architecture (Tier 2/3) — April 2026
 
@@ -27,6 +29,8 @@ All notable changes to this project are summarized here. For narrative context a
 - **`src/modules/narrative.py`**: Integrated `NarrativePersistence`. Episodes are now automatically saved to `data/narrative.db` (or `KERNEL_NARRATIVE_DB_PATH`) and reloaded on initialization. Added `find_by_resonance` for historical retrieval from disk.
 - **Refactor:** Created **[`src/modules/narrative_types.py`](src/modules/narrative_types.py)** to house `NarrativeEpisode` and `BodyState` dataclasses, resolving circular dependencies between narrative logic and persistence layers. Updated `src/persistence/kernel_io.py`.
 - **Docs:** Updated [`docs/proposals/PROPOSAL_002_NARRATIVE_ARCHITECTURE_PLAN.md`](docs/proposals/PROPOSAL_002_NARRATIVE_ARCHITECTURE_PLAN.md) (Tier 2 marked delivered).
+- **Consolidation:** Integrated `BiographicPruner` and `MetacognitiveEvaluator` into the kernel processing loop.
+- **Swarm Consensus:** Implemented Trust Nudges (I7) and Solidarity Alerts in `MockDAO`.
 
 ## Multi-office Git workflow (method + diagram) — April 2026
 

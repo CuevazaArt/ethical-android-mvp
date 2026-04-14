@@ -583,6 +583,13 @@ class EthicalKernel:
             alignment = self.strategist.evaluate_strategic_alignment(a.description)
             a.strategic_alignment = alignment
 
+        # ═══ METACOGNITIVE CURIOSITY (Phase 5) ═══
+        if hasattr(self, "metacognition"):
+            meta_report = self.metacognition.evaluate(self.memory)
+            self.bayesian.metacognitive_curiosity = meta_report.curiosity_weight
+        else:
+            self.bayesian.metacognitive_curiosity = 0.0
+
         bayes_result = self.bayesian.evaluate(
             clean_actions,
             scenario=scenario,
@@ -727,6 +734,31 @@ class EthicalKernel:
                 )
 
             self._last_registered_episode_id = ep.id
+            # ═══ STEP 13: Metacognitive Dissonance Check (Phase 5) ═══
+            if hasattr(self, "metacognition"):
+                m_report = self.metacognition.evaluate(self.memory)
+                if m_report.dissonance_score > 0.4:
+                    self.dao.register_audit(
+                        "metacognition",
+                        f"Detected high moral dissonance ({m_report.dissonance_score:.2f}). Identity-Action alignment failing.",
+                        episode_id=ep.id
+                    )
+                    # Vertical Increment: Create an Epistemic Dissonance episode for later Psi Sleep review
+                    self.memory.register(
+                        place="Internal Reflection",
+                        description=f"Metacognitive Alarm: Current action {final_action} contradicts anchored identity leans.",
+                        action="self_reflection",
+                        morals=morals_dict,
+                        verdict="dissonance",
+                        score=float(m_report.dissonance_score) * -1.0,
+                        mode="D_delib",
+                        sigma=0.9,
+                        context="reflection",
+                        body_state=BodyState(energy=state.energy, active_nodes=8, sensors_ok=True),
+                        significance=0.85, # Flashbulb memory
+                        is_sensitive=True
+                    )
+
             if self.event_bus is not None:
                 self.event_bus.publish(
                     EVENT_KERNEL_EPISODE_REGISTERED,
@@ -737,6 +769,7 @@ class EthicalKernel:
                         "decision_mode": final_mode,
                         "verdict": moral.global_verdict.value,
                         "score": float(moral.total_score),
+                        "dissonance": float(getattr(m_report, 'dissonance_score', 0.0))
                     },
                 )
         else:

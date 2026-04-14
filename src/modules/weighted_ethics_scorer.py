@@ -191,7 +191,8 @@ class CandidateAction:
     # (still scaled by pre-argmax poles / context when enabled). ``estimated_impact`` is ignored for scoring.
     hypothesis_override: tuple[float, float, float] | None = None
     # Mapping for I6: Strategic Mind expansion (Phase 4.1)
-    strategic_alignment: float = 0.0  # [0, 1] set by ExecutiveStrategist before scoring
+    strategic_alignment: float = 0.0  # [0, 1] Boost based on collective missions
+    epistemic_curiosity: float = 0.0  # [0, 1] Internal drive to explore unknown context
 
 
 @dataclass
@@ -231,6 +232,7 @@ class WeightedEthicsScorer:
         self.pre_argmax_pole_weights: dict[str, float] | None = None
         # Optional bounded social/sympathetic/locus texture (see PreArgmaxContextChannels).
         self.pre_argmax_context_modulators: PreArgmaxContextChannels | None = None
+        self.metacognitive_curiosity: float = 0.0  # [0, 1] Global curiosity weight from evaluator
 
     def calculate_expected_impact(
         self,
@@ -283,8 +285,15 @@ class WeightedEthicsScorer:
         
         # Phase 4.1: Strategic Mind expansion (I6)
         if hasattr(action, "strategic_alignment") and action.strategic_alignment > 0:
-            boost_factor = float(os.environ.get("KERNEL_STRATEGIC_BOOST_FACTOR", "0.15"))
-            expected += action.strategic_alignment * boost_factor
+            # ═══ STRATEGIC BOOST (I6) ═══
+            strat_boost = 1.0 + (action.strategic_alignment * float(os.environ.get("KERNEL_STRATEGIC_BOOST_FACTOR", "0.25")))
+            
+            # ═══ EPISTEMIC MODULATION (Phase 5) ═══
+            # If curiosity is high, we penalize expected impact to force D_delib
+            # and signal that the current "fast" heuristic is unreliable.
+            epistemic_penalty = 1.0 - (self.metacognitive_curiosity * 0.15)
+            
+            expected = expected * strat_boost * epistemic_penalty
             
         return expected * confidence
 

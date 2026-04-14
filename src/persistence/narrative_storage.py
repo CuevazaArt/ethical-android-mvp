@@ -307,3 +307,57 @@ class NarrativePersistence:
                 """
                 cursor = conn.execute(query, (min_significance, max_age_days))
                 return cursor.rowcount
+
+    def get_prunable_episodes(self, max_age_days: int = 60, min_significance: float = 0.70) -> list[NarrativeEpisode]:
+        """
+        Returns episodes that would be deleted by prune_mundane.
+        """
+        if str(self.path) != ":memory:" and not self.path.is_file():
+            return []
+        
+        episodes = []
+        with closing(_connect(self.path)) as conn:
+            _ensure_schema(conn)
+            query = """
+                SELECT id, timestamp, place, event_description, action_taken, verdict, ethical_score, sigma, context, significance, is_sensitive, arc_id, semantic_embedding, weights_snapshot, json_payload 
+                FROM narrative_episodes 
+                WHERE significance < ? 
+                AND (julianday('now') - julianday(timestamp)) > ?
+            """
+            cursor = conn.execute(query, (min_significance, max_age_days))
+            for row in cursor:
+                # Reuse the load logic
+                id, ts, place, desc, action, verdict, score, sigma, context, sig, sens, arc_id, embed_str, weights_str, payload_str = row
+                payload = json.loads(payload_str)
+                bs_data = payload.get("body_state", {})
+                from src.modules.narrative_types import BodyState
+                bs = BodyState(
+                    energy=bs_data.get("energy", 1.0),
+                    active_nodes=bs_data.get("active_nodes", 8),
+                    sensors_ok=bs_data.get("sensors_ok", True),
+                    description=bs_data.get("description", "")
+                )
+                
+                ep = NarrativeEpisode(
+                    id=id,
+                    timestamp=ts,
+                    place=place,
+                    event_description=desc,
+                    body_state=bs,
+                    action_taken=action,
+                    morals=payload.get("morals", {}),
+                    verdict=verdict,
+                    ethical_score=score,
+                    decision_mode=payload.get("decision_mode", "D_fast"),
+                    sigma=sigma,
+                    context=context,
+                    affect_pad=tuple(payload["affect_pad"]) if payload.get("affect_pad") else None,
+                    affect_weights=payload.get("affect_weights"),
+                    significance=sig,
+                    is_sensitive=bool(sens),
+                    arc_id=arc_id,
+                    semantic_embedding=json.loads(embed_str) if embed_str else None,
+                    weights_snapshot=tuple(json.loads(weights_str)) if weights_str else None
+                )
+                episodes.append(ep)
+        return episodes

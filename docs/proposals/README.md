@@ -15,6 +15,8 @@ The previous long-form proposal set was removed from this branch to keep the tre
 | [`PROPOSAL_003_NARRATIVE_HARDENING_ANALYSIS.md`](PROPOSAL_003_NARRATIVE_HARDENING_ANALYSIS.md) | Antigravity: Hardening analysis (Encryption, Integrity, Uchi-Soto). |
 | [`PROPOSAL_004_NARRATIVE_IDENTITY_REFLECTION.md`](PROPOSAL_004_NARRATIVE_IDENTITY_REFLECTION.md) | Antigravity: Espejo Narrativo (Identity Reflection layer). |
 | [`PROPOSAL_005_NARRATIVE_RESILIENCE_AND_HIERARCHY.md`](PROPOSAL_005_NARRATIVE_RESILIENCE_AND_HIERARCHY.md) | Antigravity: Resiliencia Narrativa y Jerarquía de Memoria. |
+| [`PROPOSAL_008_METACOGNITIVE_CURIOSITY.md`](PROPOSAL_008_METACOGNITIVE_CURIOSITY.md) | Cursor: Curiosidad Metacognitiva y Alineación Epistémica. |
+| [`PROPOSAL_009_DISTRIBUTED_JUSTICE_AND_BLOCKCHAIN_DAO.md`](PROPOSAL_009_DISTRIBUTED_JUSTICE_AND_BLOCKCHAIN_DAO.md) | Antigravity: Justicia Distribuida y Gobernanza Blockchain (Sovereign Ethics). |
 | [`ANTIGRAVITY_COLLABORATION_GUIDE.md`](ANTIGRAVITY_COLLABORATION_GUIDE.md) | Antigravity: Collaboration guide and operational workflows. |
 | [`PROPOSAL_BAYESIAN_MIXTURE_FEEDBACK.md`](PROPOSAL_BAYESIAN_FEEDBACK.md) | ADR 0012 stack: BMA (L1), feedback posteriors (L2), context buckets (L3), softmax / importance-sampling likelihood, env vars, tests, link to ADR 0012. |
 
