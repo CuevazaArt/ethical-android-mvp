@@ -19,6 +19,7 @@ All notable changes to this project are summarized here. For narrative context a
 - **Perception confidence envelope:** new [`src/modules/perception_confidence.py`](src/modules/perception_confidence.py) builds a unified confidence band/score from coercion diagnostics + multimodal/epistemic/vitality signals; exposed in chat JSON as `perception_confidence` and mirrored in `perception_observability`.
 - **Config/tests:** [`.env.example`](.env.example) adds `KERNEL_TEMPORAL_*` knobs; [`tests/test_temporal_planning.py`](tests/test_temporal_planning.py) validates ETA/sync behavior.
 - **Tests/docs:** [`tests/test_chat_turn.py`](tests/test_chat_turn.py) adds parallel-vs-inline regression checks; [`.env.example`](.env.example) documents the new knobs.
+- **Cross-team integration gate:** new runbook [`docs/collaboration/CURSOR_CROSS_TEAM_INTEGRATION_GATE.md`](docs/collaboration/CURSOR_CROSS_TEAM_INTEGRATION_GATE.md) plus executable checker [`scripts/eval/run_cursor_integration_gate.py`](scripts/eval/run_cursor_integration_gate.py) to validate interlace readiness before merging team lines.
 
 ## LLM touchpoint policy matrix (flexible operator precedence) — April 2026
 

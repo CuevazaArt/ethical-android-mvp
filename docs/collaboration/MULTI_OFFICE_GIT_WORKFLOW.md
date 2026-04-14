@@ -33,6 +33,7 @@ For **Cursor** and other agents, the durable rule text (redundancy checks, safet
 
 - [`.cursor/rules/collaboration-prioritization.mdc`](../../.cursor/rules/collaboration-prioritization.mdc)
 - **Generalized onboarding pack:** [`COLLABORATIVE_METHOD_GENERALIZATION_GUIDE.md`](COLLABORATIVE_METHOD_GENERALIZATION_GUIDE.md) (required reading order, task card, DoD, and quality gate references).
+- **Cursor integration gate:** [`CURSOR_CROSS_TEAM_INTEGRATION_GATE.md`](CURSOR_CROSS_TEAM_INTEGRATION_GATE.md) (cross-team interlace readiness and reproducible checks).
 
 ## Language policy reminder
 
