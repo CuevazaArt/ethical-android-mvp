@@ -107,9 +107,14 @@ When you merge meaningful behavior or operator-facing changes:
 
 **Deprecated (historical only):** A multi-agent **Triad Handoff** experiment on branch `refactor/pipeline-trace-core` used extra Markdown buffers and keywords (**`juancheck`**, **`regroup`**). That protocol is **not** required on `main`; use normal Git + PR + tests above.
 
-### Git tags (named checkpoints)
+### Git tags (named checkpoints and events)
 
-Maintainers may push **annotated tags** (for example `checkpoint-2026-04-11`) to mark a commit for releases or reviews. A tag references a **commit only**; **uncommitted** changes in your working tree are **not** part of that snapshot. To keep local work safe, **commit** or **stash** before treating a tag as your only backup.
+Maintainers and team leads use **annotated tags** to mark and preserve context for significant milestones:
+
+1. **Checkpoints:** Localized snapshots (e.g., `checkpoint-2026-04-11`) to mark a commit for releases or peer reviews.
+2. **Project Events:** Tags used to signal and explain **significant project events** (e.g., core architectural shifts, team milestones, or major version completions). These tags must include an annotation explaining the event, facilitating historical traceability and easier auditing of the project's evolution.
+
+**Note:** A tag references a **commit only**; **uncommitted** changes in your working tree are **not** part of that snapshot. To keep local work safe, **commit** or **stash** before treating a tag as your only backup.
 
 ### 6. Test rules
 The suite under `tests/` includes `tests/test_ethical_properties.py` and integration tests for chat, persistence, and runtime. Invariant ethical **properties** must hold. No change should break them:
