@@ -34,6 +34,7 @@ High-level summary aligned with the code and docs; full chronology is in [`CHANG
 | **Claude team — real Bayesian inference scope** | [CLAUDE_TEAM_PLAYBOOK_REAL_BAYESIAN_INFERENCE.md](CLAUDE_TEAM_PLAYBOOK_REAL_BAYESIAN_INFERENCE.md) |
 | **Cursor team — sensors & perception (mission charter)** | [CURSOR_TEAM_MISSION_SENSORS_PERCEPTION.md](CURSOR_TEAM_MISSION_SENSORS_PERCEPTION.md) |
 | **Model-critical backlog (post–perception P0 sequencing)** | [MODEL_CRITICAL_BACKLOG.md](MODEL_CRITICAL_BACKLOG.md) |
+| **Honest April 2026 project critique** | [PROJECT_STATE_HONEST_CRITIQUE_APRIL_2026.md](PROJECT_STATE_HONEST_CRITIQUE_APRIL_2026.md) |
 | **LLM touchpoint env precedence (team matrix)** | [PROPOSAL_LLM_TOUCHPOINT_DEGRADATION_MATRIX.md](PROPOSAL_LLM_TOUCHPOINT_DEGRADATION_MATRIX.md) |
 | **Next ~2 weeks — triage, P0/P1/P2, reproduction checklists** | [PLAN_IMMEDIATE_TWO_WEEKS.md](PLAN_IMMEDIATE_TWO_WEEKS.md) |
 | **Quick wins (two sprints) — strict env, perception breaker, entry points, MalAbs alerts** | [PROPOSAL_QUICK_WINS_TWO_SPRINTS.md](PROPOSAL_QUICK_WINS_TWO_SPRINTS.md) |
@@ -149,6 +150,7 @@ Legacy Spanish filenames (`PROPUESTA_*.md`, `ESTRATEGIA_Y_RUTA.md`, `PAPER_AFECT
 | [CRITIQUE_ROADMAP_ISSUES.md](CRITIQUE_ROADMAP_ISSUES.md) | Critique, roadmap, and issues |
 | [PROPOSAL_CORE_IMPLEMENTATION_GAP_PHASED_REMEDIATION.md](PROPOSAL_CORE_IMPLEMENTATION_GAP_PHASED_REMEDIATION.md) | Phased remediation — core integrity vs. governance (backlog structure) |
 | [PROJECT_STATUS_AND_MODULE_MATURITY.md](PROJECT_STATUS_AND_MODULE_MATURITY.md) | Project status and per-module maturity |
+| [PROJECT_STATE_HONEST_CRITIQUE_APRIL_2026.md](PROJECT_STATE_HONEST_CRITIQUE_APRIL_2026.md) | Repository-wide critical assessment: maturity, over-claim risks, and stabilization priorities |
 | [TRACE_IMPLEMENTATION_RECENT.md](TRACE_IMPLEMENTATION_RECENT.md) | Recent implementation trace (Guardian, v9–v10) ↔ bibliography |
 | [OPERATOR_QUICK_REF.md](OPERATOR_QUICK_REF.md) | Operator quick reference |
 

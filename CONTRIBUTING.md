@@ -29,7 +29,11 @@ The same rules apply to AI assistants working on this repo (see `.cursor/rules/r
 
 ### 2. Understand the model
 Read the README.md and run the simulations before proposing changes.
-The complete model document is in `/docs/Androide_Etico_Analisis_Integral_v3.docx`.
+Canonical model and architecture references:
+
+- [`docs/proposals/THEORY_AND_IMPLEMENTATION.md`](docs/proposals/THEORY_AND_IMPLEMENTATION.md)
+- [`docs/proposals/README.md`](docs/proposals/README.md)
+- [`AGENTS.md`](AGENTS.md) for contributor/assistant orientation and integration guardrails
 **AI assistants and agents:** see **[`AGENTS.md`](AGENTS.md)** for repository orientation, `.cursor/rules/`, and how to persist safety-related fixes in the repo (not only in chat).
 
 **Layout note:** kernel work is **Python under `src/`**. See [`docs/REPOSITORY_LAYOUT.md`](docs/REPOSITORY_LAYOUT.md). Add design notes under [`docs/proposals/README.md`](docs/proposals/README.md) (`PROPOSAL_*.md`).

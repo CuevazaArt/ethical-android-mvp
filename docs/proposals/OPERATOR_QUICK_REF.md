@@ -1,10 +1,10 @@
 # Operator quick reference — `KERNEL_*` families
 
-**Canonical detail:** [`KERNEL_ENV_POLICY.md`](KERNEL_ENV_POLICY.md) · **profiles:** [`src/runtime_profiles.py`](../src/runtime_profiles.py) · **one-shot bundle:** `ETHOS_RUNTIME_PROFILE=<name>` at chat server startup (fills unset/empty keys only) · **chat keys:** [`src/chat_server.py`](../src/chat_server.py) docstring / README WebSocket section · **observability:** [Observability (metrics and logs)](#observability-metrics-and-logs) · **ADR:** [`0008`](../adr/0008-runtime-observability-prometheus-and-logs.md).
+**Canonical detail:** [`KERNEL_ENV_POLICY.md`](KERNEL_ENV_POLICY.md) · **profiles:** [`src/runtime_profiles.py`](../../src/runtime_profiles.py) · **one-shot bundle:** `ETHOS_RUNTIME_PROFILE=<name>` at chat server startup (fills unset/empty keys only) · **chat keys:** [`src/chat_server.py`](../../src/chat_server.py) docstring / README WebSocket section · **observability:** [Observability (metrics and logs)](#observability-metrics-and-logs) · **ADR:** [`0008`](../adr/0008-runtime-observability-prometheus-and-logs.md).
 
 ### Configuration cockpit CLI (KERNEL_* fatigue)
 
-Use the **`ethos config`** command (after `pip install -e .` or `python -m src.ethos_cli config`) to **group** current `KERNEL_*` / related keys by **family**, see **policy violations**, **experimental-risk** heuristics (many flags set without `ETHOS_RUNTIME_PROFILE`), and **alignment scores** against nominal bundles (explicit env values only). **`ethos config --profiles`** lists `ETHOS_RUNTIME_PROFILE` names with one-line descriptions. **`ethos config --strict`** runs `validate_kernel_env(strict)` and exits non-zero on violations. Implementation: [`src/validators/kernel_env_operator.py`](../src/validators/kernel_env_operator.py).
+Use the **`ethos config`** command (after `pip install -e .` or `python -m src.ethos_cli config`) to **group** current `KERNEL_*` / related keys by **family**, see **policy violations**, **experimental-risk** heuristics (many flags set without `ETHOS_RUNTIME_PROFILE`), and **alignment scores** against nominal bundles (explicit env values only). **`ethos config --profiles`** lists `ETHOS_RUNTIME_PROFILE` names with one-line descriptions. **`ethos config --strict`** runs `validate_kernel_env(strict)` and exits non-zero on violations. Implementation: [`src/validators/kernel_env_operator.py`](../../src/validators/kernel_env_operator.py).
 
 | Family | Prefix / examples | Typical role |
 |--------|---------------------|--------------|
@@ -12,7 +12,7 @@ Use the **`ethos config`** command (after `pip install -e .` or `python -m src.e
 | Chat concurrency | `KERNEL_CHAT_TURN_TIMEOUT`, `KERNEL_CHAT_THREADPOOL_WORKERS` | Async deadline per turn; optional dedicated thread pool ([ADR 0002](../adr/0002-async-orchestration-future.md)). |
 | Persistence / handoff | `KERNEL_CHECKPOINT_*`, `KERNEL_CHECKPOINT_FERNET_KEY`, `KERNEL_CONDUCT_GUIDE_*` | Disk snapshots, encryption, conduct export. |
 | Input / epistemics | `KERNEL_LIGHTHOUSE_KB_PATH`, `KERNEL_CHAT_INCLUDE_REALITY_VERIFICATION` | Lighthouse KB path; reality JSON in chat. |
-| Guardian Angel | `KERNEL_GUARDIAN_MODE`, `KERNEL_GUARDIAN_ROUTINES*`, `KERNEL_CHAT_INCLUDE_GUARDIAN*` | Tone + optional routines JSON; static UI [`guardian.html`](../landing/public/guardian.html). |
+| Guardian Angel | `KERNEL_GUARDIAN_MODE`, `KERNEL_GUARDIAN_ROUTINES*`, `KERNEL_CHAT_INCLUDE_GUARDIAN*` | Tone + optional routines JSON; static UI [`guardian.html`](../../landing/public/guardian.html). |
 | Perception / sensors | `KERNEL_SENSOR_FIXTURE`, `KERNEL_SENSOR_PRESET`, `KERNEL_MULTIMODAL_*`, `KERNEL_PERCEPTION_BACKEND_POLICY` | Situated v8 snapshot merge; multimodal thresholds; degraded LLM perception policy (`template_local` / `fast_fail` / `session_banner`). |
 | Governance / hub | `KERNEL_MORAL_HUB_*`, `KERNEL_DEONTIC_GATE`, `KERNEL_JUDICIAL_*`, `KERNEL_DAO_INTEGRITY_AUDIT_WS` | Hub, drafts, judicial, integrity audit. |
 | Metaplan / drives | `KERNEL_METAPLAN_HINT`, `KERNEL_METAPLAN_DRIVE_FILTER`, `KERNEL_METAPLAN_DRIVE_EXTRA` | Owner goals hint; filter advisory `drive_intents` vs goals; extra coherence intent. |
@@ -72,6 +72,6 @@ Enable with `KERNEL_METRICS=1` (scrapes `http://<host>:<port>/metrics`). If `pro
 | `ethos_kernel_kernel_process_seconds` | Histogram | (none) | Wall time for the full ethical cycle inside `process()`. |
 | `ethos_kernel_perception_circuit_trips_total` | Counter | (none) | Increments once when **metacognitive doubt** activates (perception validation streak exceeds two stressed turns; see `perception_circuit.py`). |
 
-Implementation: [`src/observability/metrics.py`](../src/observability/metrics.py). Decision JSON lines: [`src/observability/decision_log.py`](../src/observability/decision_log.py). Log field `request_id` is set when a correlation id exists ([`src/observability/logging_setup.py`](../src/observability/logging_setup.py)).
+Implementation: [`src/observability/metrics.py`](../../src/observability/metrics.py). Decision JSON lines: [`src/observability/decision_log.py`](../../src/observability/decision_log.py). Log field `request_id` is set when a correlation id exists ([`src/observability/logging_setup.py`](../../src/observability/logging_setup.py)).
 
 **Prometheus alert rules (starter):** [`deploy/prometheus/ethos_kernel_alerts.yml`](../../deploy/prometheus/ethos_kernel_alerts.yml) — MalAbs block rate, `safety_block` rate, perception circuit trips. Tune thresholds and `for` duration per deployment; benign traffic spikes can false-positive. Load as `rule_files` in Prometheus; not the same as Grafana dashboard import.
