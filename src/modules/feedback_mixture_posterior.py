@@ -26,9 +26,11 @@ Env:
 from __future__ import annotations
 
 import json
+import math
 import os
 import re
 from dataclasses import dataclass
+from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
 
@@ -213,6 +215,58 @@ def _load_and_apply_feedback_level3_mixture(
     return alpha_use, "compatible", combined
 
 
+def _parse_iso_timestamp(ts: str) -> datetime | None:
+    """Parse an ISO-8601 timestamp string to an aware UTC datetime, or return None."""
+    if not ts:
+        return None
+    try:
+        # Python 3.11+ handles Z; for 3.9/3.10 replace Z manually
+        dt = datetime.fromisoformat(ts.replace("Z", "+00:00"))
+        if dt.tzinfo is None:
+            dt = dt.replace(tzinfo=timezone.utc)
+        return dt
+    except (ValueError, AttributeError):
+        return None
+
+
+def _apply_time_decay(
+    records: list[FeedbackRecord],
+    halflife_days: float,
+    reference_date: datetime | None = None,
+) -> list[FeedbackRecord]:
+    """
+    Attenuate each record's ``confidence`` by exponential decay based on age.
+
+    ``confidence *= 2 ** (-age_days / halflife_days)``
+
+    Records without a parseable ``timestamp`` are left unchanged (no penalty for
+    missing metadata).  Records already at ``confidence <= 0`` are dropped.
+
+    Parameters
+    ----------
+    halflife_days : float
+        Confidence halves every this many days.  Set via
+        ``KERNEL_FEEDBACK_DECAY_HALFLIFE`` (e.g. ``90``).
+    reference_date : datetime or None
+        "Today" for age computation.  Defaults to ``datetime.now(UTC)``.
+    """
+    if halflife_days <= 0:
+        return records
+    ref = reference_date or datetime.now(timezone.utc)
+    out: list[FeedbackRecord] = []
+    for rec in records:
+        dt = _parse_iso_timestamp(rec.timestamp or "")
+        if dt is not None:
+            age_days = max(0.0, (ref - dt).total_seconds() / 86400.0)
+            new_conf = rec.confidence * math.pow(2.0, -age_days / halflife_days)
+        else:
+            new_conf = rec.confidence  # no timestamp — no penalty
+        if new_conf > 1e-9:
+            import dataclasses as _dc
+            out.append(_dc.replace(rec, confidence=new_conf))
+    return out
+
+
 def load_feedback_records(path: Path) -> list[FeedbackRecord]:
     data = json.loads(path.read_text(encoding="utf-8"))
     if isinstance(data, dict) and "items" in data:
@@ -355,6 +409,58 @@ def sequential_alpha_update(
     return alpha, "compatible", meta
 
 
+def _posterior_predictive_check(
+    alpha_posterior: np.ndarray,
+    holdout_records: list[FeedbackRecord],
+    cmap: dict[int, dict[str, dict[str, float]]],
+    *,
+    beta: float = 10.0,
+    n_samples: int = 5_000,
+    rng: np.random.Generator,
+) -> dict[str, Any]:
+    """
+    P7 — Diagnostic: compute posterior predictive accuracy on held-out records.
+
+    For each held-out item, evaluate ``P(preferred | alpha_posterior, beta)`` via
+    Monte Carlo.  Returns mean predictive probability and per-item breakdown.
+
+    Only runs when ``KERNEL_FEEDBACK_POSTERIOR_CHECK=1`` and at least one
+    held-out record has resolvable candidates in *cmap*.
+    """
+    from .ethical_mixture_likelihood import FeedbackObservation, posterior_predictive_probability
+
+    per_item: list[dict[str, Any]] = []
+    probs: list[float] = []
+
+    for rec in holdout_records:
+        cands = cmap.get(rec.scenario_id)
+        if cands is None:
+            per_item.append({"scenario_id": rec.scenario_id, "status": "no_candidates"})
+            continue
+        obs = FeedbackObservation(
+            scenario_id=rec.scenario_id,
+            preferred_action=rec.preferred_action,
+            candidates=cands,
+            confidence=rec.confidence,
+        )
+        p = posterior_predictive_probability(
+            obs, alpha_posterior, beta=beta, n_samples=n_samples, rng=rng
+        )
+        probs.append(p)
+        per_item.append({
+            "scenario_id": rec.scenario_id,
+            "preferred_action": rec.preferred_action,
+            "p_predictive": round(p, 4),
+        })
+
+    return {
+        "n_holdout": len(holdout_records),
+        "n_evaluated": len(probs),
+        "mean_predictive_probability": round(float(sum(probs) / len(probs)), 4) if probs else None,
+        "per_item": per_item,
+    }
+
+
 def _load_and_apply_feedback_explicit_triples(
     records: list[FeedbackRecord],
     *,
@@ -365,6 +471,17 @@ def _load_and_apply_feedback_explicit_triples(
     cmap = build_scenario_candidates_map(sids)
     if cmap is None:
         raise RuntimeError("explicit triples path requires hypothesis_override on all candidates")
+
+    # P7 — hold out last 20% when posterior predictive check is enabled
+    _ppc_on = os.environ.get("KERNEL_FEEDBACK_POSTERIOR_CHECK", "").strip().lower() in (
+        "1", "true", "yes", "on"
+    )
+    holdout: list[FeedbackRecord] = []
+    train_records = records
+    if _ppc_on and len(records) >= 5:
+        split = max(1, len(records) * 4 // 5)
+        train_records = records[:split]
+        holdout = records[split:]
 
     alpha_list = parse_bma_alpha_from_env().tolist()
     strength = feedback_update_strength()
@@ -378,14 +495,14 @@ def _load_and_apply_feedback_explicit_triples(
         n_samples=n_inner,
         seed=seed,
     )
-    items = feedback_items_from_records(records)
+    items = feedback_items_from_records(train_records)
     fr = updater.ingest_feedback(items, cmap, stop_on_infeasible=True)
     alpha_new = np.asarray(updater.alpha, dtype=np.float64)
     meta: dict[str, Any] = {
         "updater": "explicit_triples",
         "likelihood": (os.environ.get("KERNEL_FEEDBACK_LIKELIHOOD", "").strip() or "heuristic"),
         "feedback_log": fr.log,
-        "n_feedback_items": len(records),
+        "n_feedback_items": len(train_records),
     }
 
     if fr.consistency == "contradictory":
@@ -393,11 +510,22 @@ def _load_and_apply_feedback_explicit_triples(
         return alpha_new, "contradictory", meta
 
     j_rate, _ = joint_satisfaction_monte_carlo(
-        alpha_new, records, n_samples=min(50000, n_inner * 2), rng=rng
+        alpha_new, train_records, n_samples=min(50000, n_inner * 2), rng=rng
     )
     meta["joint_satisfaction_rate"] = round(float(j_rate), 6)
     if j_rate < 0.01:
         meta["note"] = "Low joint satisfaction under posterior; preferences may be jointly tight."
+
+    # P7 — posterior predictive check on holdout
+    if _ppc_on and holdout:
+        _ppc_beta = float(os.environ.get("KERNEL_FEEDBACK_SOFTMAX_BETA", "10.0")
+                          .strip() if os.environ.get("KERNEL_FEEDBACK_SOFTMAX_BETA", "").strip().lower() != "auto"
+                          else "10.0")
+        meta["posterior_predictive_check"] = _posterior_predictive_check(
+            alpha_new, holdout, cmap,
+            beta=_ppc_beta, n_samples=3_000, rng=rng,
+        )
+
     return alpha_new, fr.consistency if fr.consistency != "insufficient" else "compatible", meta
 
 
@@ -430,6 +558,23 @@ def load_and_apply_feedback(
         a = parse_bma_alpha_from_env()
         return a, "insufficient", {"reason": "empty_feedback"}
 
+    # P5 — Temporal decay: attenuate confidence of old feedback
+    _decay_str = os.environ.get("KERNEL_FEEDBACK_DECAY_HALFLIFE", "").strip()
+    if _decay_str:
+        try:
+            _halflife = float(_decay_str)
+            _n_before = len(records)
+            records = _apply_time_decay(records, _halflife)
+            if not records:
+                a = parse_bma_alpha_from_env()
+                return a, "insufficient", {
+                    "reason": "all_records_decayed",
+                    "halflife_days": _halflife,
+                    "n_before_decay": _n_before,
+                }
+        except ValueError:
+            pass  # malformed env var — proceed without decay
+
     sids = sorted({r.scenario_id for r in records})
     if build_scenario_candidates_map(sids) is not None:
         a, c, m = _load_and_apply_feedback_explicit_triples(records, rng=rng)
@@ -444,23 +589,34 @@ def load_and_apply_feedback(
     if context_level3_enabled() and _feedback_has_context_types(records):
         return _load_and_apply_feedback_level3_mixture(records, rng=rng, tick_context=tick_context)
 
+    # P7 holdout split for mixture_ranking path
+    _ppc_on = os.environ.get("KERNEL_FEEDBACK_POSTERIOR_CHECK", "").strip().lower() in (
+        "1", "true", "yes", "on"
+    )
+    holdout_mr: list[FeedbackRecord] = []
+    train_records_mr = records
+    if _ppc_on and len(records) >= 5:
+        split = max(1, len(records) * 4 // 5)
+        train_records_mr = records[:split]
+        holdout_mr = records[split:]
+
     alpha0 = parse_bma_alpha_from_env()
     n_inner = feedback_mc_samples()
     strength = feedback_update_strength()
 
     alpha_new, status, meta = sequential_alpha_update(
         alpha0,
-        records,
+        train_records_mr,
         n_inner=n_inner,
         strength=strength,
         rng=rng,
     )
 
     j_rate, _ = joint_satisfaction_monte_carlo(
-        alpha_new, records, n_samples=min(50000, n_inner * 2), rng=rng
+        alpha_new, train_records_mr, n_samples=min(50000, n_inner * 2), rng=rng
     )
     meta["joint_satisfaction_rate"] = round(float(j_rate), 6)
-    meta["n_feedback_items"] = len(records)
+    meta["n_feedback_items"] = len(train_records_mr)
     meta["updater"] = "mixture_ranking"
 
     if status == "contradictory":
@@ -468,4 +624,20 @@ def load_and_apply_feedback(
 
     if j_rate < 0.01:
         meta["note"] = "Low joint satisfaction under posterior; preferences may be jointly tight."
+
+    # P7 — posterior predictive check: only for holdout records resolvable via ALL_SIMULATIONS
+    if _ppc_on and holdout_mr:
+        holdout_sids = sorted({r.scenario_id for r in holdout_mr})
+        _ho_cmap = build_scenario_candidates_map(holdout_sids)
+        if _ho_cmap:
+            _ppc_beta = float(
+                os.environ.get("KERNEL_FEEDBACK_SOFTMAX_BETA", "10.0")
+                if os.environ.get("KERNEL_FEEDBACK_SOFTMAX_BETA", "").strip().lower() != "auto"
+                else "10.0"
+            )
+            meta["posterior_predictive_check"] = _posterior_predictive_check(
+                alpha_new, holdout_mr, _ho_cmap,
+                beta=_ppc_beta, n_samples=3_000, rng=rng,
+            )
+
     return alpha_new, "compatible", meta
