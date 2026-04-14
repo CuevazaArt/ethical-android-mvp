@@ -531,7 +531,12 @@ class EthicalKernel:
                     round(float(_av[2]), 6),
                 )
                 sw = float(np.sum(alpha_vec))
-                self.bayesian.hypothesis_weights = alpha_vec / sw
+                _posterior_weights = alpha_vec / sw
+                from .modules.weight_authority import compose_mixture_weights
+                self.bayesian.hypothesis_weights = compose_mixture_weights(
+                    nudge_weights=self.bayesian.hypothesis_weights,
+                    feedback_posterior=_posterior_weights,
+                )
                 dirichlet_alpha_for_bma = alpha_vec
                 if isinstance(_fb_meta, dict) and _fb_meta.get("active_context_key") is not None:
                     mixture_context_key = str(_fb_meta["active_context_key"])
@@ -610,7 +615,11 @@ class EthicalKernel:
                         _ha = np.asarray(_hier_alpha, dtype=np.float64).reshape(3)
                         _hs = float(np.sum(_ha))
                         if _hs > 0:
-                            self.bayesian.hypothesis_weights = _ha / _hs
+                            from .modules.weight_authority import compose_mixture_weights as _cmw
+                            self.bayesian.hypothesis_weights = _cmw(
+                                nudge_weights=self.bayesian.hypothesis_weights,
+                                feedback_posterior=_ha / _hs,
+                            )
                             mixture_posterior_alpha = (
                                 round(float(_ha[0]), 6),
                                 round(float(_ha[1]), 6),
@@ -633,7 +642,11 @@ class EthicalKernel:
                         _ha = np.asarray(_mr_alpha, dtype=np.float64).reshape(3)
                         _hs = float(np.sum(_ha))
                         if _hs > 0:
-                            self.bayesian.hypothesis_weights = _ha / _hs
+                            from .modules.weight_authority import compose_mixture_weights as _cmw
+                            self.bayesian.hypothesis_weights = _cmw(
+                                nudge_weights=self.bayesian.hypothesis_weights,
+                                feedback_posterior=_ha / _hs,
+                            )
                             mixture_posterior_alpha = (
                                 round(float(_ha[0]), 6),
                                 round(float(_ha[1]), 6),
