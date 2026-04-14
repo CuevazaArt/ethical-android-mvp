@@ -20,11 +20,13 @@ Based on direct stakeholder feedback, the following guardrails must govern all f
 3.  **Strict Anti-Radicalism (Safety First)**: The android must **never** become so "heroic" or "passionate" that it becomes a physical or social risk. It is strictly forbidden to attack a human or object out of frustration, anger, or moral radicalism. 
 4.  **The "Average User Expectation" Standard**: The model must be oriented to behave as a highly reliable, emotionally intelligent, but ultimately predictable and safe *tool*. It should reflect what an average person expects from a high-end commercial assistant, not a rogue philosopher.
 
-## 4. Actionable Alignment (Waiting for Claude Team)
-We are pausing major vertical development in the Scorer until the **Claude Team** delivers the new Bayesian Mixture Refactor. Our interlock goals are:
-1.  **True Feedback Loop**: Transition from fixed weights to online Dirichlet updates.
-2.  **Psychological Feedback**: Allow PAD (affect) and Dissonance (metacognition) to feed back into the Bayesian priors, not just the LLM tone.
-3.  **Ablation Study**: Plan a "Kernel-L0-Minimal" run vs "Full-Module" run to measure Δ decision quality.
+## 4. Actionable Alignment (Post-Claude BMA Update)
+With the latest merge from the **Claude Team** (`PROPOSAL_BAYESIAN_MIXTURE_FEEDBACK`), the "Bayesian Illusion" has been resolved. The kernel now utilizes genuine Bayesian Mixture Averaging (BMA), Plackett-Luce likelihood, and Dirichlet distribution posterior updates. The engine formally Learns.
+
+Our new strategic interlock goals (Phase 7 - Inter-Team Fusion) are:
+1.  **Bridging Theater and Math**: Connect our psychological axes (e.g., Relational Tension from Uchi-Soto, Epistemic Curiosity, Dissonance) directly into the mathematical parameters of Claude's engine. For example, high relational tension should dynamically increase the system's "temperature" (Softmax Beta) or flatten Dirichlet priors natively.
+2.  **DAO Calibration**: Implement the feedback extraction pipeline that allows distributed validators (DAO) to provide empirical scenarios to adjust the `KERNEL_FEEDBACK_UPDATE_STRENGTH`.
+3.  **Boundary Safety Integration**: Enforce the non-radical alignment guidelines (Section 3) mathematically by constraining the absolute maximum weight drift during Bayesian posterior updates.
 
 ## 4. Next Steps for Antigravity (Phase 7)
 *   **Async Scorer Port**: Preparing the `WeightedEthicsScorer` for the transition to asynchronicity required by the DAO/Blockchain layer (Proposal 009).
