@@ -96,3 +96,111 @@ An item is done only when all apply:
 - Day-to-day human collaboration can be in Spanish.
 - Repository-facing artifacts merged to git must be English (except explicit fixture/security exceptions).
 - Safety-critical defaults require the full pattern: named constants, tests, honest docs, and changelog traceability.
+
+## 8) Initial execution backlog (P0/P1)
+
+The table below is the active starter queue for `cursor-team`.
+
+### P0 (immediate, operator-facing risk)
+
+#### SP-P0-01 — Unified degradation policy for perception health *(landed — extend to all LLM touchpoints)*
+
+- **Source:** `WEAKNESSES_AND_BOTTLENECKS.md` Section 3 (explicit gap).
+- **Delivered (perception path):** [`PROPOSAL_PERCEPTION_BACKEND_DEGRADATION_POLICY.md`](PROPOSAL_PERCEPTION_BACKEND_DEGRADATION_POLICY.md), ``KERNEL_PERCEPTION_BACKEND_POLICY``, [`tests/test_perception_backend_policy.py`](../../tests/test_perception_backend_policy.py). **Remaining:** same operator-visible pattern for communicate / narrative / optional monologue when maintainers scope it.
+- **Track label:** `runtime-policy`
+- **Risk class:** `critical`
+- **Owner office:** Cursor (shared)
+- **Target branch:** `cursor/perception-backend-degradation-policy`
+- **Implementation target:**
+  - Define a single operator-visible policy for perception backend failures (slow host, repeated LLM errors, semantically invalid but schema-valid outputs).
+  - Include explicit modes: `fast_fail`, `template_mode`, and `session_banner` semantics.
+  - Wire policy docs to runtime behavior references.
+- **Evidence links (start):**
+  - [`perception_circuit.py`](../../src/modules/perception_circuit.py)
+  - [`PERCEPTION_VALIDATION.md`](PERCEPTION_VALIDATION.md)
+  - [`WEAKNESSES_AND_BOTTLENECKS.md`](../WEAKNESSES_AND_BOTTLENECKS.md)
+
+#### SP-P0-02 — Perception coercion and uncertainty observability contract
+
+- **Source:** chat/operator visibility requirement.
+- **Track label:** `perception`
+- **Risk class:** `high`
+- **Owner office:** Cursor (shared)
+- **Target branch:** `cursor/perception-observability-contract`
+- **Implementation target:**
+  - Standardize what operators can reliably inspect per turn (`coercion_report`, uncertainty, dual-vote disagreement markers, circuit state).
+  - Ensure docs and tests define the contract as stable (or explicitly experimental).
+- **Evidence links (start):**
+  - [`test_perception_coercion_report.py`](../../tests/test_perception_coercion_report.py)
+  - [`test_perception_uncertainty_delib.py`](../../tests/test_perception_uncertainty_delib.py)
+  - [`OPERATOR_QUICK_REF.md`](OPERATOR_QUICK_REF.md)
+
+#### SP-P0-03 — Regression suite for valid-but-wrong perception payloads
+
+- **Source:** input trust threat model.
+- **Track label:** `perception`
+- **Risk class:** `high`
+- **Owner office:** Cursor (shared)
+- **Target branch:** `cursor/perception-valid-wrong-regressions`
+- **Implementation target:**
+  - Expand test fixtures for payloads that are JSON-valid and range-valid but semantically misleading.
+  - Lock expected coherence adjustments and uncertainty behavior.
+- **Evidence links (start):**
+  - [`test_perception_schema_fuzz.py`](../../tests/test_perception_schema_fuzz.py)
+  - [`test_perception_cross_check.py`](../../tests/test_perception_cross_check.py)
+  - [`INPUT_TRUST_THREAT_MODEL.md`](INPUT_TRUST_THREAT_MODEL.md)
+
+### P1 (next increment, architecture readiness)
+
+#### SP-P1-01 — Sensor adapter contract (pre-hardware integration seam)
+
+- **Source:** pending module “Hardware integration” in `CONTRIBUTING.md`.
+- **Track label:** `sensor-fusion`
+- **Risk class:** `normal`
+- **Owner office:** Cursor (design + implementation)
+- **Target branch:** `cursor/sensors-adapter-contract`
+- **Implementation target:**
+  - Define the minimal sensor adapter interface needed by perception without coupling to one transport/vendor.
+  - Add deterministic test doubles for local CI usage.
+- **Evidence links (start):**
+  - [`PROPOSAL_SITUATED_ORGANISM_V8.md`](PROPOSAL_SITUATED_ORGANISM_V8.md)
+  - [`src/modules/llm_layer.py`](../../src/modules/llm_layer.py)
+  - [`tests/`](../../tests/)
+
+#### SP-P1-02 — Sensor fusion input normalization profile
+
+- **Source:** situated model + perception consistency requirements.
+- **Track label:** `sensor-fusion`
+- **Risk class:** `normal`
+- **Owner office:** Cursor (design first)
+- **Target branch:** `cursor/sensors-fusion-normalization`
+- **Implementation target:**
+  - Specify canonical normalization for incoming sensor signals before they influence perception/risk signals.
+  - Document failure handling and fallback posture for missing/noisy sensors.
+- **Evidence links (start):**
+  - [`PROPOSAL_SITUATED_ORGANISM_V8.md`](PROPOSAL_SITUATED_ORGANISM_V8.md)
+  - [`PERCEPTION_VALIDATION.md`](PERCEPTION_VALIDATION.md)
+  - [`KERNEL_ENV_POLICY.md`](KERNEL_ENV_POLICY.md)
+
+## 9) Ready-to-use task card examples
+
+Use this exact shape in issues/PR descriptions:
+
+```text
+ID: SP-P0-01
+Source: docs/WEAKNESSES_AND_BOTTLENECKS.md §3
+Track label: runtime-policy
+Risk class: critical
+Redundancy check: open issue/PR scan + docs/proposals scan
+Owner office: cursor-team (shared)
+Target branch: cursor/perception-backend-degradation-policy
+Definition of done:
+- Named defaults documented
+- Tests lock behavior and env overrides
+- Proposal/ops docs updated
+- CHANGELOG updated if operator behavior changed
+Evidence links:
+- src/modules/perception_circuit.py
+- tests/test_perception_circuit.py
+- docs/proposals/PERCEPTION_VALIDATION.md
+```

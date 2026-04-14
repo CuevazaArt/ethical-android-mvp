@@ -345,6 +345,8 @@ def _chat_turn_to_jsonable(r: ChatTurnResult, kernel: EthicalKernel) -> dict[str
         cr = getattr(p, "coercion_report", None)
         if cr:
             out["perception"]["coercion_report"] = cr
+        if isinstance(cr, dict) and cr.get("session_banner_recommended"):
+            out["perception_backend_banner"] = True
     if r.decision is not None:
         d = r.decision
         if _chat_expose_monologue():

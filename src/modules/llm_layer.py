@@ -42,6 +42,11 @@ from .llm_backends import (
     TextCompletionBackend,
     coerce_to_llm_backend,
 )
+from .perception_backend_policy import (
+    apply_backend_degradation_meta,
+    build_fast_fail_perception,
+    resolve_perception_backend_policy,
+)
 from .perception_dual_vote import (
     apply_perception_dual_vote_metadata,
     perception_dual_ollama_model,
@@ -398,9 +403,7 @@ class LLMModule:
                     float(os.environ.get("OLLAMA_TIMEOUT", "120")),
                     embed_model=str(inf.get("embed_model") or "nomic-embed-text"),
                 )
-                response_b = b2.completion(
-                    _perception_prompt(), user_block, temperature=t2
-                )
+                response_b = b2.completion(_perception_prompt(), user_block, temperature=t2)
             else:
                 response_b = self._llm_completion(
                     _perception_prompt(),
@@ -415,12 +418,43 @@ class LLMModule:
         if not isinstance(data_b, dict) or not data_b:
             return
         try:
-            secondary = perception_from_llm_json(
-                data_b, situation, parse_issues=issues_b
-            )
+            secondary = perception_from_llm_json(data_b, situation, parse_issues=issues_b)
         except Exception:
             return
         apply_perception_dual_vote_metadata(primary, secondary)
+
+    def _perception_degraded_fallback(
+        self,
+        situation: str,
+        *,
+        parse_issues: list[str] | None,
+        failure_reason: str,
+        failure_detail: str | None,
+    ) -> LLMPerception:
+        """
+        Recover when the LLM path cannot yield trusted perception JSON.
+
+        Policy is ``KERNEL_PERCEPTION_BACKEND_POLICY`` (see perception_backend_policy.py).
+        """
+        policy = resolve_perception_backend_policy()
+        issue_list = list(parse_issues or [])
+        if policy == "fast_fail":
+            return build_fast_fail_perception(
+                situation,
+                failure_reason=failure_reason,
+                failure_detail=failure_detail,
+                extra_parse_issues=issue_list or None,
+            )
+        p = self._perceive_local(situation)
+        if issue_list:
+            merge_parse_issues_into_perception(p, issue_list)
+        apply_backend_degradation_meta(
+            p,
+            policy_mode=policy,
+            failure_reason=failure_reason,
+            failure_detail=failure_detail,
+        )
+        return p
 
     def optional_monologue_embellishment(self, structured_line: str) -> str:
         """
@@ -489,30 +523,41 @@ class LLMModule:
                 response = self._llm_completion(
                     _perception_prompt(), user_block, metrics_op="perceive"
                 )
-            except Exception:
-                return self._perceive_local(situation)
+            except Exception as exc:
+                return self._perception_degraded_fallback(
+                    situation,
+                    parse_issues=["llm_completion_exception"],
+                    failure_reason="llm_completion_exception",
+                    failure_detail=type(exc).__name__,
+                )
             parsed = parse_perception_llm_raw_response(response)
             data, issues = parsed.data, parsed.issues
             severe = frozenset({"json_decode_error", "non_object_payload", "empty_response"})
-            if _perception_parse_fail_local() and severe.intersection(issues):
-                p = self._perceive_local(situation)
-                merge_parse_issues_into_perception(p, list(issues))
-                return p
+            if _perception_parse_fail_local() and severe.intersection(frozenset(issues)):
+                return self._perception_degraded_fallback(
+                    situation,
+                    parse_issues=list(issues),
+                    failure_reason="llm_payload_severe_parse",
+                    failure_detail=None,
+                )
             if isinstance(data, dict) and data:
                 try:
                     p = perception_from_llm_json(data, situation, parse_issues=issues)
                     self._maybe_apply_perception_dual_vote(p, situation, user_block)
                     return p
-                except Exception:
-                    p = self._perceive_local(situation)
-                    merge_parse_issues_into_perception(
-                        p, list(issues) + ["perception_validate_exception"]
+                except Exception as exc:
+                    return self._perception_degraded_fallback(
+                        situation,
+                        parse_issues=list(issues) + ["perception_validate_exception"],
+                        failure_reason="llm_payload_validate_exception",
+                        failure_detail=type(exc).__name__,
                     )
-                    return p
-            p = self._perceive_local(situation)
-            if issues:
-                merge_parse_issues_into_perception(p, list(issues))
-            return p
+            return self._perception_degraded_fallback(
+                situation,
+                parse_issues=list(issues),
+                failure_reason="llm_payload_empty_or_invalid",
+                failure_detail=None,
+            )
 
         # Local mode, or LLM unavailable / empty JSON: heuristics must use ``situation`` alone so
         # keywords in "Prior conversation..." do not skew signals for the current turn.

@@ -4,11 +4,21 @@ All notable changes to this project are summarized here. For narrative context a
 
 **Note:** Older sections below may still **link** to paths that were later removed (for example `experiments/million_sim/`, `docs/multimedia/`, root `dashboard.html`, `landing/`). Those links are **historical**; recover files from git history or backup branches if you need them.
 
+## Perception — unified backend degradation policy — April 2026
+
+- **New** [`src/modules/perception_backend_policy.py`](src/modules/perception_backend_policy.py): ``KERNEL_PERCEPTION_BACKEND_POLICY`` — ``template_local`` (default), ``fast_fail`` (cautious priors, no keyword heuristics), ``session_banner`` (WebSocket ``perception_backend_banner``).
+- **`PerceptionCoercionReport`:** ``backend_degraded``, ``backend_failure_*``, ``session_banner_recommended``; uncertainty includes backend degradation.
+- **`LLMModule.perceive`:** applies policy on transport errors and unusable payloads (severe parse / validate / empty).
+- **WebSocket:** [`src/chat_server.py`](src/chat_server.py) sets ``perception_backend_banner`` when recommended.
+- **Docs:** [`docs/proposals/PROPOSAL_PERCEPTION_BACKEND_DEGRADATION_POLICY.md`](docs/proposals/PROPOSAL_PERCEPTION_BACKEND_DEGRADATION_POLICY.md); [`docs/WEAKNESSES_AND_BOTTLENECKS.md`](docs/WEAKNESSES_AND_BOTTLENECKS.md) §3 partial mitigation; [`.env.example`](.env.example).
+- **Tests:** [`tests/test_perception_backend_policy.py`](tests/test_perception_backend_policy.py).
+
 ## Documentation — restore `docs/proposals/` + bibliography — April 2026
 
 - **Restored** the full **`docs/proposals/`** tree from **`origin/backup/main-2026-04-10`** so cross-links in [`docs/WEAKNESSES_AND_BOTTLENECKS.md`](docs/WEAKNESSES_AND_BOTTLENECKS.md), [`docs/ROADMAP_PRACTICAL_PHASES.md`](docs/ROADMAP_PRACTICAL_PHASES.md), ADRs, and [`SECURITY.md`](SECURITY.md) resolve to versioned English design notes again.
 - **Restored** root **[`BIBLIOGRAPHY.md`](BIBLIOGRAPHY.md)** (referenced from the proposal index).
 - **New:** [`docs/proposals/CURSOR_TEAM_MISSION_SENSORS_PERCEPTION.md`](docs/proposals/CURSOR_TEAM_MISSION_SENSORS_PERCEPTION.md) — collaborative playbook for Cursor-line **sensors/perception** work under the multi-origin workflow (intake gate, branch flow `cursor-team` -> `master-Cursor`, DoD template), linked from [`docs/proposals/README.md`](docs/proposals/README.md).
+- **Planning update:** the same playbook now includes an initial **P0/P1 execution backlog** (`SP-P0-*`, `SP-P1-*`) with track labels, risk classes, target branches, and evidence links to perception/sensor modules and tests.
 - **Link hygiene:** fixed mistaken “README” anchors in [`docs/WEAKNESSES_AND_BOTTLENECKS.md`](docs/WEAKNESSES_AND_BOTTLENECKS.md), [`docs/ROADMAP_PRACTICAL_PHASES.md`](docs/ROADMAP_PRACTICAL_PHASES.md), [ADR 0009](docs/adr/0009-ethical-mixture-scorer-naming.md), [ADR 0010](docs/adr/0010-poles-pre-argmax-modulation.md), [`SECURITY.md`](SECURITY.md), and [`deploy/grafana/README.md`](deploy/grafana/README.md); root [`README.md`](README.md) now states the proposal tree is versioned under `docs/proposals/`.
 
 ## Multi-office Git workflow (method + diagram) — April 2026
