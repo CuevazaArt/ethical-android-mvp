@@ -12,6 +12,7 @@ See docs/proposals/README.md §5
 
 from __future__ import annotations
 
+import math
 import os
 from dataclasses import dataclass
 
@@ -27,7 +28,10 @@ def _env_float(name: str, default: float) -> float:
     if not raw:
         return default
     try:
-        return _clamp01(float(raw))
+        val = float(raw)
+        if math.isnan(val) or math.isinf(val):
+            return default
+        return _clamp01(val)
     except (TypeError, ValueError):
         return default
 

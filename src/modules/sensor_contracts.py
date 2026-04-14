@@ -12,6 +12,7 @@ and epistemic_dissonance.py (v9.1 telemetry).
 from __future__ import annotations
 
 from dataclasses import dataclass
+import math
 from typing import Any
 
 
@@ -48,7 +49,10 @@ class SensorSnapshot:
             if v is None:
                 return None
             try:
-                return _clamp01(float(v))
+                val = float(v)
+                if math.isnan(val) or math.isinf(val):
+                    return None
+                return _clamp01(val)
             except (TypeError, ValueError):
                 return None
 
