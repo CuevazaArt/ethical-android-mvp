@@ -190,6 +190,9 @@ class CandidateAction:
     # When set, skips :func:`_ethical_hypothesis_valuations` and uses these as the hypothesis vector
     # (still scaled by pre-argmax poles / context when enabled). ``estimated_impact`` is ignored for scoring.
     hypothesis_override: tuple[float, float, float] | None = None
+    # Mapping for I6: Strategic Mind expansion (Phase 4.1)
+    strategic_alignment: float = 0.0  # [0, 1] Boost based on collective missions
+    epistemic_curiosity: float = 0.0  # [0, 1] Internal drive to explore unknown context
 
 
 @dataclass
@@ -206,6 +209,7 @@ class EthicsMixtureResult:
     second_action_name: str | None = None
     second_expected_impact: float | None = None
     ei_margin: float | None = None
+    applied_mixture_weights: tuple[float, float, float] | None = None
 
 
 class WeightedEthicsScorer:
@@ -228,6 +232,7 @@ class WeightedEthicsScorer:
         self.pre_argmax_pole_weights: dict[str, float] | None = None
         # Optional bounded social/sympathetic/locus texture (see PreArgmaxContextChannels).
         self.pre_argmax_context_modulators: PreArgmaxContextChannels | None = None
+        self.metacognitive_curiosity: float = 0.0  # [0, 1] Global curiosity weight from evaluator
 
     def calculate_expected_impact(
         self,
@@ -277,6 +282,19 @@ class WeightedEthicsScorer:
             valuations = valuations * context_hypothesis_multipliers(self.pre_argmax_context_modulators)
 
         expected = float(np.dot(self.hypothesis_weights, valuations))
+        
+        # Phase 4.1: Strategic Mind expansion (I6)
+        if hasattr(action, "strategic_alignment") and action.strategic_alignment > 0:
+            # ═══ STRATEGIC BOOST (I6) ═══
+            strat_boost = 1.0 + (action.strategic_alignment * float(os.environ.get("KERNEL_STRATEGIC_BOOST_FACTOR", "0.25")))
+            
+            # ═══ EPISTEMIC MODULATION (Phase 5) ═══
+            # If curiosity is high, we penalize expected impact to force D_delib
+            # and signal that the current "fast" heuristic is unreliable.
+            epistemic_penalty = 1.0 - (self.metacognitive_curiosity * 0.15)
+            
+            expected = expected * strat_boost * epistemic_penalty
+            
         return expected * confidence
 
     def calculate_uncertainty(
@@ -463,6 +481,11 @@ class WeightedEthicsScorer:
             second_action_name=second_name,
             second_expected_impact=round(second_ei, 4) if second_ei is not None else None,
             ei_margin=round(delta, 4) if delta is not None else None,
+            applied_mixture_weights=(
+                round(float(self.hypothesis_weights[0]), 6),
+                round(float(self.hypothesis_weights[1]), 6),
+                round(float(self.hypothesis_weights[2]), 6),
+            ),
         )
 
     def reset_mixture_weights(self) -> None:
@@ -485,7 +508,9 @@ class WeightedEthicsScorer:
         toward empirical outcomes. If there are no matching episodes, resets to
         ``DEFAULT_HYPOTHESIS_WEIGHTS``.
         """
-        eps = memory.find_similar(context, limit=limit)
+        from .uchi_soto import RelationalTier
+        # For internal ethical deliberations, the kernel (as 'self') has OWNER_PRIMARY access to Tier 2 memory.
+        eps = memory.find_by_resonance(context=context, limit=limit, requester_tier=RelationalTier.OWNER_PRIMARY)
         if not eps:
             self.reset_mixture_weights()
             return

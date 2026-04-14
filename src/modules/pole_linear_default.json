@@ -40,6 +40,32 @@
         "bad": "Action erodes trust: {action}",
         "gray": "Uncertain but hopeful outcome: {action}"
       }
+    },
+    "creative": {
+      "terms": [
+        {"feature": "problem_solving", "weight": 0.6},
+        {"feature": "innovation", "weight": 0.3},
+        {"feature": "risk", "weight": 0.1}
+      ],
+      "thresholds": {"good": 0.3, "bad": -0.3},
+      "moral": {
+        "good": "Innovative approach used in: {action}",
+        "bad": "Lack of creativity or rigid response in: {action}",
+        "gray": "Exploratory logic in: {action}"
+      }
+    },
+    "conciliatory": {
+      "terms": [
+        {"feature": "conflict_resolution", "weight": 0.6},
+        {"feature": "alignment", "weight": 0.3},
+        {"feature": "benefit", "weight": 0.1}
+      ],
+      "thresholds": {"good": 0.3, "bad": -0.3},
+      "moral": {
+        "good": "Mediation and reconciliation through: {action}",
+        "bad": "Erosion of harmony in: {action}",
+        "gray": "Diplomatic tension in: {action}"
+      }
     }
   }
 }

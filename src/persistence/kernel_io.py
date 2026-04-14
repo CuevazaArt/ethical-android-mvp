@@ -11,7 +11,7 @@ from src.modules.forgiveness import WeightedMemory
 from src.modules.judicial_escalation import EscalationPhase, strikes_threshold_from_env
 from src.modules.metaplan_registry import MasterGoal
 from src.modules.mock_dao import AuditRecord, SolidarityAlert
-from src.modules.narrative import BodyState, NarrativeEpisode
+from src.modules.narrative_types import BodyState, NarrativeEpisode
 from src.modules.narrative_identity import NarrativeIdentityState
 from src.modules.skill_learning_registry import SkillLearningTicket, Status
 from src.modules.subjective_time import SubjectiveClock

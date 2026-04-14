@@ -24,7 +24,7 @@ class SalienceSnapshot:
     """
 
     weights: dict[str, float]
-    """Keys: risk, social, body, ethical_conflict."""
+    """Keys: risk, social, body, ethical_conflict, epistemic_curiosity."""
 
     dominant_focus: str
     """Which axis 'wins' the competition for salience this tick."""
@@ -38,7 +38,7 @@ class SalienceMap:
     Maps environment + reflection into a salience distribution. Pure; no side effects.
     """
 
-    AXIS_ORDER = ("risk", "social", "body", "ethical_conflict")
+    AXIS_ORDER = ("risk", "social", "body", "ethical_conflict", "epistemic_curiosity")
 
     def compute(
         self,
@@ -46,6 +46,7 @@ class SalienceMap:
         state: InternalState,
         social_eval: SocialEvaluation,
         reflection: ReflectionSnapshot | None,
+        curiosity: float = 0.0,
     ) -> SalienceSnapshot:
         risk = float(signals.get("risk", 0.0))
         risk = max(0.0, min(1.0, risk))
@@ -75,6 +76,7 @@ class SalienceMap:
             "social": social_raw,
             "body": body_raw,
             "ethical_conflict": eth_raw,
+            "epistemic_curiosity": max(0.0, min(1.0, curiosity)),
         }
 
         ssum = sum(raw.values())
@@ -101,5 +103,5 @@ def salience_to_llm_context(snapshot: SalienceSnapshot | None) -> str:
     return (
         f"Attention focus (read-only): dominant={snapshot.dominant_focus} "
         f"(risk={w['risk']}, social={w['social']}, body={w['body']}, "
-        f"ethical_tension={w['ethical_conflict']})."
+        f"ethical_tension={w['ethical_conflict']}, curiosity={w['epistemic_curiosity']})."
     )

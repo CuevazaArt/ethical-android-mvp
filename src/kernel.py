@@ -27,11 +27,13 @@ from .modules.audit_chain_log import (
 )
 from .modules.augenesis import AugenesisEngine
 from .modules.buffer import PreloadedBuffer
+from .modules.biographic_pruning import BiographicPruner
 from .modules.drive_arbiter import DriveArbiter
 from .modules.epistemic_dissonance import (
     EpistemicDissonanceAssessment,
     assess_epistemic_dissonance,
 )
+from .modules.metacognition import MetacognitiveEvaluator, MetacognitiveReport
 from .modules.ethical_poles import EthicalPoles, TripartiteMoral
 from .modules.ethical_reflection import (
     EthicalReflection,
@@ -106,6 +108,8 @@ from .modules.sigmoid_will import SigmoidWill
 from .modules.skill_learning_registry import SkillLearningRegistry
 from .modules.somatic_markers import SomaticMarkerStore, apply_somatic_nudges
 from .modules.subjective_time import SubjectiveClock
+from .modules.swarm_negotiator import SwarmMessage, SwarmNegotiator
+from .modules.strategy_engine import ExecutiveStrategist, MissionOrigin, MissionStatus
 from .modules.sympathetic import InternalState, SympatheticModule
 from .modules.uchi_soto import SocialEvaluation, TrustCircle, UchiSotoModule
 from .modules.user_model import UserModelTracker
@@ -325,15 +329,31 @@ class EthicalKernel:
             if co and co.escalation_session is not None
             else EscalationSessionTracker()
         )
+        self.swarm = (
+            co.swarm_negotiator 
+            if co and hasattr(co, "swarm_negotiator") and co.swarm_negotiator is not None 
+            else SwarmNegotiator(node_id=os.environ.get("KERNEL_NODE_ID", "default_node"))
+        )
+        self.strategist = (
+            co.strategist 
+            if co and hasattr(co, "strategist") and co.strategist is not None 
+            else ExecutiveStrategist()
+        )
+        self.biographic_pruner = (
+            co.biographic_pruner 
+            if co and hasattr(co, "biographic_pruner") and co.biographic_pruner is not None 
+            else BiographicPruner()
+        )
         self.constitution_l1_drafts: list[dict[str, Any]] = []
         self.constitution_l2_drafts: list[dict[str, Any]] = []
         self._last_reality_verification: RealityVerificationAssessment = REALITY_ASSESSMENT_NONE
         self._last_light_risk_tier: str | None = None
         self._perception_validation_streak: int = 0
         self._perception_metacognitive_doubt: bool = False
-        self.event_bus: KernelEventBus | None = None
+        self.event_bus = None
         if kernel_event_bus_enabled():
             self.event_bus = KernelEventBus()
+        self.metacognition = co.metacognition if co and hasattr(co, "metacognition") and co.metacognition is not None else MetacognitiveEvaluator()
 
     def subscribe_kernel_event(self, event: str, handler: Callable[[dict[str, Any]], None]) -> None:
         """Register a synchronous subscriber (no-op if ``KERNEL_EVENT_BUS`` is off). See ADR 0006."""
@@ -402,6 +422,16 @@ class EthicalKernel:
         ``D_delib`` (production-hardening spike; default env off).
         """
         t0 = time.perf_counter()
+        
+        # ═══ STRATEGIC MISSION INGESTION (Phase 4.1) ═══
+        if sensor_snapshot and sensor_snapshot.external_mission_title:
+            from .modules.strategy_engine import MissionOrigin
+            self.strategist.create_mission(
+                title=sensor_snapshot.external_mission_title,
+                origin=MissionOrigin.OWNER,
+                steps=sensor_snapshot.external_mission_steps or [],
+                priority=sensor_snapshot.external_mission_priority or 0.6
+            )
 
         # ═══ STEP 1: Uchi-soto social evaluation ═══
         self.uchi_soto.ingest_turn_context(
@@ -411,6 +441,13 @@ class EthicalKernel:
             sensor_snapshot=sensor_snapshot,
             multimodal_assessment=multimodal_assessment,
         )
+        
+        # Swarm Trust Nudge (I7)
+        if hasattr(self, "swarm"):
+            swarm_nudge = self.swarm.get_swarm_trust_nudge()
+            if swarm_nudge > 0:
+                signals["trust"] = max(0.0, min(1.0, signals.get("trust", 0.5) + swarm_nudge))
+
         social_eval = self.uchi_soto.evaluate_interaction(signals, agent_id, message_content)
 
         # ═══ STEP 2: Sympathetic-parasympathetic state ═══
@@ -540,6 +577,19 @@ class EthicalKernel:
             )
         else:
             self.bayesian.pre_argmax_context_modulators = None
+            
+        # ═══ STRATEGIC ALIGNMENT (Phase 4.1 / I6) ═══
+        for a in clean_actions:
+            alignment = self.strategist.evaluate_strategic_alignment(a.description)
+            a.strategic_alignment = alignment
+
+        # ═══ METACOGNITIVE CURIOSITY (Phase 5) ═══
+        self._last_meta_report = None
+        if hasattr(self, "metacognition"):
+            self._last_meta_report = self.metacognition.evaluate(self.memory)
+            self.bayesian.metacognitive_curiosity = self._last_meta_report.curiosity_weight
+        else:
+            self.bayesian.metacognitive_curiosity = 0.0
 
         bayes_result = self.bayesian.evaluate(
             clean_actions,
@@ -618,7 +668,9 @@ class EthicalKernel:
         # ═══ Second-order reflection (Fase 1; read-only, no effect on action) ═══
         reflection = self.ethical_reflection.reflect(moral, bayes_result, will_decision)
 
-        salience = self.salience_map.compute(signals, state, social_eval, reflection)
+        # ═══ METACOGNITIVE ALIGNMENT (Phase 5) ═══
+        curiosity_val = self._last_meta_report.curiosity_weight if self._last_meta_report else 0.0
+        salience = self.salience_map.compute(signals, state, social_eval, reflection, curiosity=curiosity_val)
 
         # ═══ PAD + archetypes (post-decision; does not alter ethics) ═══
         affect = self.pad_archetypes.project(state.sigma, moral.total_score, locus_eval)
@@ -643,6 +695,7 @@ class EthicalKernel:
                 ),
                 affect_pad=affect.pad,
                 affect_weights=affect.weights,
+                weights_snapshot=bayes_result.applied_mixture_weights
             )
 
             # Save pruned actions for Psi Sleep
@@ -665,6 +718,7 @@ class EthicalKernel:
                 episode_id=ep.id,
                 score=moral.total_score,
                 context=context,
+                significance=ep.significance,
             )
 
             # ═══ STEP 12: Register in DAO ═══
@@ -684,6 +738,30 @@ class EthicalKernel:
                 )
 
             self._last_registered_episode_id = ep.id
+            # ═══ STEP 13: Metacognitive Dissonance Check (Phase 5) ═══
+            if self._last_meta_report:
+                if self._last_meta_report.dissonance_score > 0.4:
+                    self.dao.register_audit(
+                        "metacognition",
+                        f"Detected high moral dissonance ({self._last_meta_report.dissonance_score:.2f}). Identity-Action alignment failing.",
+                        episode_id=ep.id
+                    )
+                    # Vertical Increment: Create an Epistemic Dissonance episode for later Psi Sleep review
+                    self.memory.register(
+                        place="Internal Reflection",
+                        description=f"Metacognitive Alarm: Current action {final_action} contradicts anchored identity leans.",
+                        action="self_reflection",
+                        morals=morals_dict,
+                        verdict="dissonance",
+                        score=float(self._last_meta_report.dissonance_score) * -1.0,
+                        mode="D_delib",
+                        sigma=0.9,
+                        context="reflection",
+                        body_state=BodyState(energy=state.energy, active_nodes=8, sensors_ok=True),
+                        significance=0.85, # Flashbulb memory
+                        is_sensitive=True
+                    )
+
             if self.event_bus is not None:
                 self.event_bus.publish(
                     EVENT_KERNEL_EPISODE_REGISTERED,
@@ -694,6 +772,7 @@ class EthicalKernel:
                         "decision_mode": final_mode,
                         "verdict": moral.global_verdict.value,
                         "score": float(moral.total_score),
+                        "dissonance": float(getattr(self._last_meta_report, 'dissonance_score', 0.0))
                     },
                 )
         else:

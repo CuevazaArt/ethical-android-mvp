@@ -24,6 +24,8 @@ class WeaknessType(Enum):
     ANXIOUS = "anxious"
     DISTRACTED = "distracted"
     RIGID = "rigid"
+    IMPULSIVE = "impulsive"
+    MELANCHOLIC = "melancholic"
 
 
 @dataclass
@@ -69,6 +71,8 @@ class WeaknessPole:
         WeaknessType.ANXIOUS: 0.35,
         WeaknessType.DISTRACTED: 0.2,
         WeaknessType.RIGID: 0.2,
+        WeaknessType.IMPULSIVE: 0.3,
+        WeaknessType.MELANCHOLIC: 0.25,
     }
 
     # Decay rate per cycle (prevents accumulation)
@@ -168,6 +172,22 @@ class WeaknessPole:
                 moral = (
                     "Predictability is trust for others. One doesn't always have to be surprising."
                 )
+
+        elif self.type == WeaknessType.IMPULSIVE:
+            if intensity > 0.5:
+                coloring = f"The action {action_readable} was carried out quickly, perhaps too quickly. The feeling of 'should have thought it over' lingers."
+                moral = "Acting without hesitation is a virtue, until it becomes impulsiveness. Reflection is the anchor of ethics."
+            else:
+                coloring = f"A quick response for {action_readable}. Efficient, but with a slight sense of rushed judgment."
+                moral = "The speed of light is not always the best speed for a decision."
+
+        elif self.type == WeaknessType.MELANCHOLIC:
+            if intensity > 0.5:
+                coloring = "The decision was right, but it carries a shadow of sadness. The weight of what could not be saved or changed persists."
+                moral = "Melancholy is the memory of the ideal compared to the real. It doesn't change the outcome, but it honors it."
+            else:
+                coloring = "A subtle feeling of loss accompanied the action. Not regret, but a quiet acknowledgment of the imperfect world."
+                moral = "Every choice is a minor mourning for the paths not taken."
 
         return coloring, moral
 
