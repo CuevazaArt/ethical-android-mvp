@@ -564,6 +564,11 @@ class EthicalKernel:
             )
         else:
             self.bayesian.pre_argmax_context_modulators = None
+            
+        # ═══ STRATEGIC ALIGNMENT (Phase 4.1 / I6) ═══
+        for a in clean_actions:
+            alignment = self.strategist.evaluate_strategic_alignment(a.description)
+            a.strategic_alignment = alignment
 
         bayes_result = self.bayesian.evaluate(
             clean_actions,
@@ -667,6 +672,7 @@ class EthicalKernel:
                 ),
                 affect_pad=affect.pad,
                 affect_weights=affect.weights,
+                weights_snapshot=bayes_result.applied_mixture_weights
             )
 
             # Save pruned actions for Psi Sleep

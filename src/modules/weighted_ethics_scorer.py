@@ -190,6 +190,8 @@ class CandidateAction:
     # When set, skips :func:`_ethical_hypothesis_valuations` and uses these as the hypothesis vector
     # (still scaled by pre-argmax poles / context when enabled). ``estimated_impact`` is ignored for scoring.
     hypothesis_override: tuple[float, float, float] | None = None
+    # Mapping for I6: Strategic Mind expansion (Phase 4.1)
+    strategic_alignment: float = 0.0  # [0, 1] set by ExecutiveStrategist before scoring
 
 
 @dataclass
@@ -206,6 +208,7 @@ class EthicsMixtureResult:
     second_action_name: str | None = None
     second_expected_impact: float | None = None
     ei_margin: float | None = None
+    applied_mixture_weights: tuple[float, float, float] | None = None
 
 
 class WeightedEthicsScorer:
@@ -277,6 +280,12 @@ class WeightedEthicsScorer:
             valuations = valuations * context_hypothesis_multipliers(self.pre_argmax_context_modulators)
 
         expected = float(np.dot(self.hypothesis_weights, valuations))
+        
+        # Phase 4.1: Strategic Mind expansion (I6)
+        if hasattr(action, "strategic_alignment") and action.strategic_alignment > 0:
+            boost_factor = float(os.environ.get("KERNEL_STRATEGIC_BOOST_FACTOR", "0.15"))
+            expected += action.strategic_alignment * boost_factor
+            
         return expected * confidence
 
     def calculate_uncertainty(
@@ -463,6 +472,11 @@ class WeightedEthicsScorer:
             second_action_name=second_name,
             second_expected_impact=round(second_ei, 4) if second_ei is not None else None,
             ei_margin=round(delta, 4) if delta is not None else None,
+            applied_mixture_weights=(
+                round(float(self.hypothesis_weights[0]), 6),
+                round(float(self.hypothesis_weights[1]), 6),
+                round(float(self.hypothesis_weights[2]), 6),
+            ),
         )
 
     def reset_mixture_weights(self) -> None:

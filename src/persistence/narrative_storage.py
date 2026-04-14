@@ -36,6 +36,7 @@ def _ensure_schema(conn: sqlite3.Connection) -> None:
             is_sensitive BOOLEAN,
             arc_id TEXT,
             semantic_embedding BLOB,
+            weights_snapshot TEXT,
             json_payload TEXT NOT NULL
         )
         """
@@ -66,6 +67,11 @@ def _ensure_schema(conn: sqlite3.Connection) -> None:
         )
         """
     )
+    # Migration for I1 Integration: Add weights_snapshot if missing
+    try:
+        conn.execute("ALTER TABLE narrative_episodes ADD COLUMN weights_snapshot TEXT")
+    except sqlite3.OperationalError:
+        pass # Already exists
 
 
 class NarrativePersistence:
@@ -100,8 +106,9 @@ class NarrativePersistence:
                 INSERT INTO narrative_episodes (
                     id, timestamp, place, event_description, action_taken, 
                     verdict, ethical_score, sigma, context, significance,
-                    is_sensitive, arc_id, semantic_embedding, json_payload
-                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                    is_sensitive, arc_id, semantic_embedding, weights_snapshot,
+                    json_payload
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
                 ON CONFLICT(id) DO UPDATE SET
                     timestamp=excluded.timestamp,
                     place=excluded.place,
@@ -114,6 +121,7 @@ class NarrativePersistence:
                     significance=excluded.significance,
                     is_sensitive=excluded.is_sensitive,
                     arc_id=excluded.arc_id,
+                    weights_snapshot=excluded.weights_snapshot,
                     json_payload=excluded.json_payload
                 """,
                 (
@@ -122,6 +130,7 @@ class NarrativePersistence:
                     ep.sigma, ep.context, ep.significance, ep.is_sensitive,
                     ep.arc_id,
                     json.dumps(ep.semantic_embedding) if ep.semantic_embedding else None,
+                    json.dumps(ep.weights_snapshot) if ep.weights_snapshot else None,
                     json.dumps(payload, ensure_ascii=False)
                 )
             )
@@ -135,10 +144,10 @@ class NarrativePersistence:
         with _connect(self.path) as conn:
             _ensure_schema(conn)
             cursor = conn.execute(
-                "SELECT id, timestamp, place, event_description, action_taken, verdict, ethical_score, sigma, context, significance, is_sensitive, arc_id, semantic_embedding, json_payload FROM narrative_episodes ORDER BY timestamp ASC"
+                "SELECT id, timestamp, place, event_description, action_taken, verdict, ethical_score, sigma, context, significance, is_sensitive, arc_id, semantic_embedding, weights_snapshot, json_payload FROM narrative_episodes ORDER BY timestamp ASC"
             )
             for row in cursor:
-                id, ts, place, desc, action, verdict, score, sigma, context, sig, sens, arc_id, embed_str, payload_str = row
+                id, ts, place, desc, action, verdict, score, sigma, context, sig, sens, arc_id, embed_str, weights_str, payload_str = row
                 payload = json.loads(payload_str)
                 bs_data = payload.get("body_state", {})
                 bs = BodyState(
@@ -166,7 +175,8 @@ class NarrativePersistence:
                     significance=sig,
                     is_sensitive=bool(sens),
                     arc_id=arc_id,
-                    semantic_embedding=json.loads(embed_str) if embed_str else None
+                    semantic_embedding=json.loads(embed_str) if embed_str else None,
+                    weights_snapshot=tuple(json.loads(weights_str)) if weights_str else None
                 )
                 episodes.append(ep)
         return episodes

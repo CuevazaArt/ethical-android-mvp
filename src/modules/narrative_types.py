@@ -36,6 +36,7 @@ class NarrativeEpisode:
     is_sensitive: bool = False  # True for traumatic/private events
     arc_id: str | None = None
     semantic_embedding: list[float] | None = None
+    weights_snapshot: tuple[float, float, float] | None = None
 
 
 @dataclass

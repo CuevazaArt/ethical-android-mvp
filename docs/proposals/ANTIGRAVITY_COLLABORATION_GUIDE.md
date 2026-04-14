@@ -24,8 +24,9 @@ Para asegurar la integridad del kernel y la sincronización entre oficinas (Loca
 | :--- | :--- | :--- |
 | **Tier 1 (Ephemeral)** | ✅ Consolidado | Memoria a corto plazo funcional. |
 | **Tier 2 (Persistent)**| ✅ Consolidado | Almacenamiento SQLite con búsqueda por Resonancia PAD. |
-| **Tier 3 (Identity)**   | 🏗️ En curso | Consolidación de episodios en lecciones existenciales (Identidad). |
-| **Tier 4 (Immortal)**   | 📅 Planeado | Snapshotting distribuido y verificación DAO. |
+| **Tier 3 (Identity)**   | ✅ Consolidado | Consolidación de episodios en lecciones existenciales e Identidad Narrativa. |
+| **Tier 4 (Executive)**  | ✅ Consolidado | Estratega Ejecutivo y Gestión de Misiones (Internas/Externas). |
+| **Integración I1-I7**  | 🏗️ En curso   | Sincronización con equipos Claude (Bayesian) y Cursor (Sensors). |
 
 ## 🛠️ Herramientas de Calidad
 *   **Tests:** Ejecutar `python -m pytest tests/` antes de cada push. El suite debe estar 100% verde.
