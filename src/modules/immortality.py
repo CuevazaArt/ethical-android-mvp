@@ -15,6 +15,7 @@ import hashlib
 import json
 from dataclasses import dataclass
 from datetime import datetime
+from pathlib import Path
 
 
 @dataclass
@@ -84,7 +85,8 @@ class ImmortalityProtocol:
     would be a real external service.
     """
 
-    def __init__(self):
+    def __init__(self, persistence_path: str = "data/backups/immortality.json"):
+        self.path = Path(persistence_path)
         self.layers: dict[str, list[Snapshot]] = {
             "local": [],
             "cloud": [],
@@ -92,6 +94,37 @@ class ImmortalityProtocol:
             "blockchain": [],
         }
         self._snapshot_counter = 0
+        self._load_local_backups()
+
+    def _load_local_backups(self):
+        """Loads snapshots from disk if they exist."""
+        if not self.path.exists():
+            return
+        try:
+            with open(self.path, "r", encoding="utf-8") as f:
+                data = json.load(f)
+                for layer, snaps in data.items():
+                    if layer in self.layers:
+                        self.layers[layer] = [Snapshot(**s) for s in snaps]
+                # Sync counter
+                all_ids = []
+                for snaps in self.layers.values():
+                    for s in snaps:
+                        try:
+                            all_ids.append(int(s.id.split("-")[1]))
+                        except (IndexError, ValueError):
+                            pass
+                if all_ids:
+                    self._snapshot_counter = max(all_ids)
+        except Exception:
+            pass
+
+    def _persist_local_backups(self):
+        """Saves snapshots to disk."""
+        self.path.parent.mkdir(parents=True, exist_ok=True)
+        data = {layer: [snap.__dict__ for snap in snaps] for layer, snaps in self.layers.items()}
+        with open(self.path, "w", encoding="utf-8") as f:
+            json.dump(data, f, indent=2, ensure_ascii=False)
 
     def _calculate_hash(self, snapshot: Snapshot) -> str:
         """Calculates the integrity hash of the snapshot."""
@@ -168,7 +201,12 @@ class ImmortalityProtocol:
 
         # Distribute to all layers
         for layer in self.layers:
+            # In production, these would be separate services.
+            # Here we simulate the distribution.
             self.layers[layer].append(snapshot)
+            
+        # Physical persistence for the 'local' and simulated state
+        self._persist_local_backups()
 
         return snapshot
 

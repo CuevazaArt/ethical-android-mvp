@@ -32,6 +32,7 @@ from .modules.epistemic_dissonance import (
     EpistemicDissonanceAssessment,
     assess_epistemic_dissonance,
 )
+from .modules.metacognition import MetacognitiveEvaluator, MetacognitiveReport
 from .modules.ethical_poles import EthicalPoles, TripartiteMoral
 from .modules.ethical_reflection import (
     EthicalReflection,
@@ -331,9 +332,9 @@ class EthicalKernel:
         self._last_light_risk_tier: str | None = None
         self._perception_validation_streak: int = 0
         self._perception_metacognitive_doubt: bool = False
-        self.event_bus: KernelEventBus | None = None
         if kernel_event_bus_enabled():
             self.event_bus = KernelEventBus()
+        self.metacognition = co.metacognition if co and hasattr(co, "metacognition") and co.metacognition is not None else MetacognitiveEvaluator()
 
     def subscribe_kernel_event(self, event: str, handler: Callable[[dict[str, Any]], None]) -> None:
         """Register a synchronous subscriber (no-op if ``KERNEL_EVENT_BUS`` is off). See ADR 0006."""

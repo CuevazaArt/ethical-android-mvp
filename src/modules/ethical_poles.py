@@ -53,17 +53,19 @@ class EthicalPoles:
         "compassionate": 0.5,
         "conservative": 0.5,
         "optimistic": 0.5,
+        "creative": 0.4,
+        "conciliatory": 0.4,
     }
 
     # Contextual multipliers: f(C_t, S_t)
     CONTEXTS = {
-        "emergency": {"compassionate": 1.8, "conservative": 0.6, "optimistic": 1.2},
-        "deliberation": {"compassionate": 1.0, "conservative": 1.2, "optimistic": 1.0},
-        "pedagogical": {"compassionate": 1.2, "conservative": 1.0, "optimistic": 1.4},
-        "community": {"compassionate": 1.0, "conservative": 1.0, "optimistic": 1.2},
-        "everyday": {"compassionate": 1.0, "conservative": 1.0, "optimistic": 1.0},
-        "hostile": {"compassionate": 1.4, "conservative": 1.3, "optimistic": 0.8},
-        "crisis": {"compassionate": 1.6, "conservative": 0.8, "optimistic": 1.0},
+        "emergency": {"compassionate": 1.8, "conservative": 0.6, "optimistic": 1.2, "creative": 1.4, "conciliatory": 0.8},
+        "deliberation": {"compassionate": 1.0, "conservative": 1.2, "optimistic": 1.0, "creative": 1.2, "conciliatory": 1.4},
+        "pedagogical": {"compassionate": 1.2, "conservative": 1.0, "optimistic": 1.4, "creative": 1.5, "conciliatory": 1.1},
+        "community": {"compassionate": 1.0, "conservative": 1.0, "optimistic": 1.2, "creative": 1.1, "conciliatory": 1.6},
+        "everyday": {"compassionate": 1.0, "conservative": 1.0, "optimistic": 1.0, "creative": 1.0, "conciliatory": 1.0},
+        "hostile": {"compassionate": 1.4, "conservative": 1.3, "optimistic": 0.8, "creative": 0.9, "conciliatory": 1.5},
+        "crisis": {"compassionate": 1.6, "conservative": 0.8, "optimistic": 1.0, "creative": 1.2, "conciliatory": 1.3},
     }
 
     def __init__(

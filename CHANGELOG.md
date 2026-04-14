@@ -4,6 +4,23 @@ All notable changes to this project are summarized here. For narrative context a
 
 **Note:** Older sections below may still **link** to paths that were later removed (for example `experiments/million_sim/`, `docs/multimedia/`, root `dashboard.html`, `landing/`). Those links are **historical**; recover files from git history or backup branches if you need them.
 
+## Antigravity Hardening Phase 1 — Ethical & Narrative Resilience — April 2026
+
+- **Absolute Evil (`src/modules/absolute_evil.py`)**: Expanded with `ECOLOGICAL_DESTRUCTION` and `MASS_MANIPULATION` categories; added new signal groups (`ECOLOGICAL_SIGNALS`, `MANIPULATION_SIGNALS`) to block industrial environmental harm and cognitive mass influence.
+- **Algorithmic Forgiveness (`src/modules/forgiveness.py`)**: Migrated to context-aware decay rates (`CONTEXT_DECAY_RATES`). Negative memory weight decay is now slower in `emergency` or `reparation` contexts compared to `everyday` or `neutral` interactions, preserving trauma impact in high-stakes situations.
+- **Weakness Pole (`src/modules/weakness_pole.py`)**: Integrated `IMPULSIVE` (reactive regret) and `MELANCHOLIC` (somber recognition of world loss) weakness types into the narrative generator.
+- **Ethical Poles (`src/modules/ethical_poles.py` & `src/modules/pole_linear_default.json`)**: Expanded multi-perspective arbitration with `creative` and `conciliatory` poles. Added new feature valuation rules (`problem_solving`, `innovation`, `conflict_resolution`, `alignment`) and updated `LinearPoleEvaluator` (`src/modules/pole_linear.py`) to handle their activation.
+- **Identity Reflection (`src/modules/identity_reflection.py`)**: Implemented **"Broken Mirror"** logic. The self-model now detects trauma (via sensitive episodes or specific arc archetypes) and reflects a fragmented, distressed persona, forcing narrative tone shifts toward cognitive dissonance and angst.
+- **Narrative Memory (`src/modules/narrative.py`)**: Integrated automated arc archetyping for trauma. Arcs triggered by sensitive ethical events are now explicitly marked as `trauma_dissonance`.
+- **Hardening Fixes**: Resolved a critical regression in `NarrativeMemory.register` signature (added missing `body_state`) to maintain kernel invariant compliance across the full test suite.
+- **Tests**: Created comprehensive verification suite [`tests/test_antigravity_hardening.py`](tests/test_antigravity_hardening.py); verified 61 fundamental ethical properties and hardening invariants pass.
+
+## Antigravity Phase 2 — Documentation & Infrastructure — April 2026
+
+- **Cross-team Transparency**: Updated `AGENTS.md` and `.cursor/rules/` to mandate documentation availability for all teams to prevent contradictions.
+- **New Proposal [`PROPOSAL_006`](docs/proposals/PROPOSAL_006_VECTOR_RESONANCE_RETRIEVAL.md)**: Proposed semantic Vector memory integration via Ollama embeddings for more efficient and accurate narrative resonance.
+- **New Proposal [`PROPOSAL_007`](docs/proposals/PROPOSAL_007_IMMORTALITY_PROTOCOL.md)**: Proposed Tier 4 Immortality Protocol for distributed snapshotting and restoration integrity.
+
 ## Persistent Narrative Architecture (Tier 2/3) — April 2026
 
 - **New** [`src/persistence/narrative_storage.py`](src/persistence/narrative_storage.py): SQLite-based storage for narrative episodes (Tier 2). Supports granular episode persistence, Tier 3 identity digest storage, and resonance-based retrieval.

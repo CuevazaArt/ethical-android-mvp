@@ -61,9 +61,22 @@ class IdentityReflector:
                 top_morals = ", ".join(all_morals[:3])
                 morals_focus = f"My most recent ethical trials have focused on: {top_morals}."
 
-        # 5. Composite Persona
+        # 5. Trauma Check (Broken Mirror)
+        is_traumatized = False
+        if active_arc and active_arc.predominant_archetype == "trauma_dissonance":
+            is_traumatized = True
+        elif not active_arc and mem.episodes and mem.episodes[-1].is_sensitive:
+            is_traumatized = True
+
+        # 6. Composite Persona
+        header = "REFLEXIVE SELF-MODEL"
+        if is_traumatized:
+            header = "REFLEXIVE SELF-MODEL [BROKEN MIRROR: TRAUMA DETECTED]"
+            digest = "FRAGMENTED / INCOHERENT. My sense of self is reeling from an ethical violation."
+            morals_focus = "SHATTERED. Previous ethical momentum has been discarded."
+
         reflection = (
-            f"REFLEXIVE SELF-MODEL:\n"
+            f"{header}:\n"
             f"────────────────────────────\n"
             f"WHO I AM: {ascription}\n"
             f"CORE BELIEFS: {beliefs_text}\n"
@@ -72,6 +85,11 @@ class IdentityReflector:
             f"EXISTENTIAL DIGEST: {digest}\n"
             f"────────────────────────────\n"
         )
+        if is_traumatized:
+            reflection += (
+                "SYSTEM NOTE: The 'Mirror' is broken. Tone should be distressed, fragmentary, "
+                "and questioning of core programming.\n"
+            )
         return reflection
 
     def get_subjective_tone(self) -> dict[str, float]:
@@ -86,5 +104,8 @@ class IdentityReflector:
         arch = self.memory.active_arc.predominant_archetype
         if not arch:
             return {"neutral": 1.0}
+            
+        if arch == "trauma_dissonance":
+            return {"distressed": 0.7, "analytical": 0.3}
             
         return {arch: 0.8, "base_identity": 0.2}

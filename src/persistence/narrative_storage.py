@@ -35,6 +35,7 @@ def _ensure_schema(conn: sqlite3.Connection) -> None:
             significance REAL,
             is_sensitive BOOLEAN,
             arc_id TEXT,
+            semantic_embedding BLOB,
             json_payload TEXT NOT NULL
         )
         """
@@ -99,8 +100,8 @@ class NarrativePersistence:
                 INSERT INTO narrative_episodes (
                     id, timestamp, place, event_description, action_taken, 
                     verdict, ethical_score, sigma, context, significance,
-                    is_sensitive, arc_id, json_payload
-                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                    is_sensitive, arc_id, semantic_embedding, json_payload
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
                 ON CONFLICT(id) DO UPDATE SET
                     timestamp=excluded.timestamp,
                     place=excluded.place,
@@ -120,6 +121,7 @@ class NarrativePersistence:
                     ep.action_taken, ep.verdict, ep.ethical_score, 
                     ep.sigma, ep.context, ep.significance, ep.is_sensitive,
                     ep.arc_id,
+                    json.dumps(ep.semantic_embedding) if ep.semantic_embedding else None,
                     json.dumps(payload, ensure_ascii=False)
                 )
             )
@@ -133,10 +135,10 @@ class NarrativePersistence:
         with _connect(self.path) as conn:
             _ensure_schema(conn)
             cursor = conn.execute(
-                "SELECT id, timestamp, place, event_description, action_taken, verdict, ethical_score, sigma, context, significance, is_sensitive, arc_id, json_payload FROM narrative_episodes ORDER BY timestamp ASC"
+                "SELECT id, timestamp, place, event_description, action_taken, verdict, ethical_score, sigma, context, significance, is_sensitive, arc_id, semantic_embedding, json_payload FROM narrative_episodes ORDER BY timestamp ASC"
             )
             for row in cursor:
-                id, ts, place, desc, action, verdict, score, sigma, context, sig, sens, arc_id, payload_str = row
+                id, ts, place, desc, action, verdict, score, sigma, context, sig, sens, arc_id, embed_str, payload_str = row
                 payload = json.loads(payload_str)
                 bs_data = payload.get("body_state", {})
                 bs = BodyState(
@@ -163,7 +165,8 @@ class NarrativePersistence:
                     affect_weights=payload.get("affect_weights"),
                     significance=sig,
                     is_sensitive=bool(sens),
-                    arc_id=arc_id
+                    arc_id=arc_id,
+                    semantic_embedding=json.loads(embed_str) if embed_str else None
                 )
                 episodes.append(ep)
         return episodes

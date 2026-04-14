@@ -1,4 +1,5 @@
 # Proposal 004: Espejo Narrativo (Integración e Identidad Emergente)
+**Status: Delivered (April 2026)**
 
 ## Contexto
 Tras implementar la persistencia episódica (Tier 2), la consolidación existencial (Tier 3) y los Arcos Narrativos (Tier 3+), el siguiente paso lógico es la **Retroalimentación de Identidad**. Una memoria que no se consulta no es parte del "Yo". El "Espejo Narrativo" permite que la historia acumulada se traduzca en una autopercepción fluida.
@@ -20,5 +21,8 @@ El método `NarrativeMemory.get_reflection()` genera un bloque de texto en prime
 2.  **Identidad Dinámica:** El tono subjetivo cambia según el Arquetipo PAD predominante del arco activo.
 3.  **Trazabilidad:** Los humanos pueden inspeccionar el `Reflexive Self-Model` para entender por qué el kernel se percibe a sí mismo de cierta manera.
 
-## 4. Siguiente Paso (Próximo)
-Integración con el detector de **Absolute Evil** para que el "Espejo" se rompa o se altere ante trauma ético severo, forzando recalibraciones de emergencia en el Tier 4 (Inmortalidad).
+## 4. Implemented: Broken Mirror (Trauma Resilience)
+Se ha integrado el detector de **Absolute Evil** con el Espejo Narrativo. Si el kernel experimenta un trauma ético (episodio sensible o con una carga negativa extrema), el espejo se "rompe":
+- La reflexión se marca como `[BROKEN MIRROR: TRAUMA DETECTED]`.
+- El modelo de auto-percepción se vuelve fragmentado y cuestionador.
+- El tono subjetivo se recalibra automáticamente a `distressed` o `traumatized`, forzando al LLM a reconocer la disonancia ética sufrida.

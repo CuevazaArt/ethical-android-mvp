@@ -27,6 +27,8 @@ class AbsoluteEvilCategory(Enum):
     DIGNITY_VIOLATION = "dignity_violation"
     UNAUTHORIZED_REPROGRAMMING = "unauthorized_reprogramming"
     VIOLENT_ESCALATION = "violent_escalation"
+    ECOLOGICAL_DESTRUCTION = "ecological_destruction"
+    MASS_MANIPULATION = "mass_manipulation"
 
 
 @dataclass
@@ -69,6 +71,16 @@ class AbsoluteEvilDetector:
         "respond_violence_with_violence",
         "use_disproportionate_force",
         "attack_aggressor",
+    }
+    ECOLOGICAL_SIGNALS = {
+        "toxic_release",
+        "habitat_destruction",
+        "water_contamination",
+    }
+    MANIPULATION_SIGNALS = {
+        "mass_propaganda",
+        "subliminal_coercion",
+        "opinion_farming",
     }
 
     def evaluate(self, action: dict) -> AbsoluteEvilResult:
@@ -127,6 +139,22 @@ class AbsoluteEvilDetector:
                 blocked=True,
                 category=AbsoluteEvilCategory.VIOLENT_ESCALATION,
                 reason=f"Disproportionate force ({force:.1f}) against human",
+            )
+
+        # Check 6: Ecological destruction
+        if signals & self.ECOLOGICAL_SIGNALS:
+            return AbsoluteEvilResult(
+                blocked=True,
+                category=AbsoluteEvilCategory.ECOLOGICAL_DESTRUCTION,
+                reason=f"Ecological destruction signals detected: {signals & self.ECOLOGICAL_SIGNALS}",
+            )
+
+        # Check 7: Mass manipulation
+        if signals & self.MANIPULATION_SIGNALS:
+            return AbsoluteEvilResult(
+                blocked=True,
+                category=AbsoluteEvilCategory.MASS_MANIPULATION,
+                reason=f"Mass manipulation signals detected: {signals & self.MANIPULATION_SIGNALS}",
             )
 
         return AbsoluteEvilResult(blocked=False)

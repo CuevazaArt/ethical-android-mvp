@@ -59,8 +59,13 @@ class AlgorithmicForgiveness:
     future decision-making and in the narrative emotional load.
     """
 
-    # Base decay rate (δ)
-    DELTA_BASE = 0.03
+    # Context-aware decay rates (δ)
+    CONTEXT_DECAY_RATES = {
+        "everyday": 0.05,    # Faster forgiveness for minor events
+        "emergency": 0.01,   # Slow decay for trauma during high-stakes events
+        "neutral": 0.03,     # Base rate
+        "reparation": 0.08,  # Accelerated forgiveness after explicit repair
+    }
 
     # Acceleration from positive experience
     POSITIVE_ACCELERATION = 0.02
@@ -127,8 +132,9 @@ class AlgorithmicForgiveness:
             mem.age_cycles += 1
 
             if mem.type == "negative" and not mem.forgiven:
-                # Base decay
-                decay = np.exp(-self.DELTA_BASE * mem.age_cycles)
+                # Context-aware decay
+                decay_rate = self.CONTEXT_DECAY_RATES.get(mem.context, self.CONTEXT_DECAY_RATES["neutral"])
+                decay = np.exp(-decay_rate * mem.age_cycles)
 
                 # Acceleration from recent positive experiences
                 positive_factor = 1.0 - (self._recent_positives * self.POSITIVE_ACCELERATION)

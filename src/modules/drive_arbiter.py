@@ -77,6 +77,11 @@ class DriveArbiter:
                         priority=0.27,
                     )
                 )
+        
+        # Phase 5 expansion: Metacognitive Curiosity & Dissonance
+        if hasattr(kernel, "metacognition"):
+            report = kernel.metacognition.evaluate(kernel.memory)
+            out.extend(kernel.metacognition.suggest_intents(report))
 
         out.sort(key=lambda x: -x.priority)
         out = out[: self.MAX_INTENTS]

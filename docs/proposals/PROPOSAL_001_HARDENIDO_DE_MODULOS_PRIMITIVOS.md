@@ -1,4 +1,5 @@
 # Proposal: Harden Primitive Modules
+**Status: Delivered (April 2026)**
 
 ## Proposer
 Antigravity
