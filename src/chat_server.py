@@ -332,6 +332,36 @@ def _chat_turn_to_jsonable(r: ChatTurnResult, kernel: EthicalKernel) -> dict[str
             out["malabs_trace"] = list(m.decision_trace)
     if r.metacognitive_doubt:
         out["metacognitive_doubt"] = True
+    if r.support_buffer:
+        out["support_buffer"] = {
+            "source": r.support_buffer.get("source", "local_preloaded_buffer"),
+            "context": r.support_buffer.get("context", "everyday"),
+            "active_principles": list(r.support_buffer.get("active_principles") or []),
+            "priority_profile": r.support_buffer.get("priority_profile", "balanced"),
+            "priority_principles": list(r.support_buffer.get("priority_principles") or []),
+            "planning_bias": r.support_buffer.get("planning_bias", "balanced"),
+            "strategy_hint": r.support_buffer.get("strategy_hint") or "",
+            "offline_ready": bool(r.support_buffer.get("offline_ready", True)),
+        }
+    if r.limbic_profile:
+        out["limbic_perception"] = {
+            "arousal_band": r.limbic_profile.get("arousal_band", "medium"),
+            "threat_load": float(r.limbic_profile.get("threat_load", 0.0)),
+            "regulation_gap": float(r.limbic_profile.get("regulation_gap", 0.0)),
+            "planning_bias": r.limbic_profile.get("planning_bias", "balanced"),
+            "multimodal_mismatch": bool(r.limbic_profile.get("multimodal_mismatch", False)),
+            "vitality_critical": bool(r.limbic_profile.get("vitality_critical", False)),
+            "context": r.limbic_profile.get("context", "everyday"),
+        }
+    if r.temporal_context is not None:
+        tc = r.temporal_context.to_public_dict()
+        out["temporal_context"] = tc
+        out["temporal_sync"] = {
+            "sync_schema": tc.get("sync_schema", "temporal_sync_v1"),
+            "wall_clock_unix_ms": tc.get("wall_clock_unix_ms"),
+            "local_network_sync_ready": bool(tc.get("local_network_sync_ready", False)),
+            "dao_sync_ready": bool(tc.get("dao_sync_ready", False)),
+        }
     if r.verbal_llm_degradation_events:
         out["verbal_llm_observability"] = {
             "degraded": True,
@@ -595,7 +625,10 @@ def root() -> JSONResponse:
             '"sensor"?: {battery_level?, audio_emergency?, vision_emergency?, scene_coherence?, …}}. '
             "Responses include identity, drive_intents, monologue (when decision present), optional "
             "affective_homeostasis, experience_digest, user_model, chronobiology, premise_advisory, "
-            "teleology_branches, multimodal_trust, vitality (see README KERNEL_CHAT_* / KERNEL_MULTIMODAL_* / "
+            "teleology_branches, multimodal_trust, vitality, support_buffer (offline-ready local principles/strategy hints), "
+            "limbic_perception (arousal/planning bias derived from perception+sensor overlays), "
+            "temporal_context + temporal_sync (processor/wall/battery/ETA timing and DAO/LAN sync readiness; "
+            "see README KERNEL_CHAT_* / KERNEL_MULTIMODAL_* / "
             "KERNEL_VITALITY_*), guardian_mode (KERNEL_GUARDIAN_MODE), epistemic_dissonance (v9.1), "
             "decision (chosen_action_source / proposal_id v9.2), …"
         ),

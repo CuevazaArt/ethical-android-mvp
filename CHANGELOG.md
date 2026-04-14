@@ -4,6 +4,20 @@ All notable changes to this project are summarized here. For narrative context a
 
 **Note:** Older sections below may still **link** to paths that were later removed (for example `experiments/million_sim/`, `docs/multimedia/`, root `dashboard.html`, `landing/`). Those links are **historical**; recover files from git history or backup branches if you need them.
 
+## Perception pipeline — optional parallel enrichment split — April 2026
+
+- **`EthicalKernel`:** shared perception-stage helpers now serve both `process_chat_turn` and `process_natural`: text pre-enrichment (`_preprocess_text_observability`), post-perception safeguards (`_postprocess_perception`), and chat sensor stack (`_chat_assess_sensor_stack`).
+- **DTO stage boundary:** new `PerceptionStageResult` consolidates perception-stage outputs (tier/premise/reality/perception/signals/sensor overlays), reducing orchestration coupling across entrypoints.
+- **Hardware-aware scaling (opt-in):** when `KERNEL_PERCEPTION_PARALLEL=1`, independent tasks run concurrently via bounded thread pools; `KERNEL_PERCEPTION_PARALLEL_WORKERS` controls worker count (or uses a conservative CPU-based default when unset).
+- **Behavioral parity:** default remains inline/sequential when the env flag is off; entrypoints now share the same text pre-enrichment and circuit post-processing pattern.
+- **Support buffer always available (offline):** perception stage now builds a local support snapshot from `PreloadedBuffer` + metaplan strategy hints (`source=local_preloaded_buffer`, `offline_ready=true`) and exposes it in chat JSON as `support_buffer`.
+- **Hardened support policy:** support snapshots now include `priority_profile` and `priority_principles` (`safety_first` / `balanced` / `planning_first`) derived from a limbic-aware risk posture, not only static context activation.
+- **Limbic architecture extension:** shared perception stage now emits `limbic_profile` (arousal band, threat load, regulation gap, planning bias, multimodal mismatch, vitality-critical flag) and chat JSON exposes it as `limbic_perception` for downstream strategy/planning UX.
+- **Temporal directive integrated in perception stage:** new module [`src/modules/temporal_planning.py`](src/modules/temporal_planning.py) emits `TemporalContext` (processor elapsed/delta time, human wall-clock, battery horizon heuristics, ETA hints for known tasks including transport, and sync readiness for DAO/LAN).
+- **Runtime JSON sync contract:** chat responses now include `temporal_context` and `temporal_sync` (`temporal_sync_v1`) so local network and DAO-facing consumers can align clocks/turn timing without external dependencies.
+- **Config/tests:** [`.env.example`](.env.example) adds `KERNEL_TEMPORAL_*` knobs; [`tests/test_temporal_planning.py`](tests/test_temporal_planning.py) validates ETA/sync behavior.
+- **Tests/docs:** [`tests/test_chat_turn.py`](tests/test_chat_turn.py) adds parallel-vs-inline regression checks; [`.env.example`](.env.example) documents the new knobs.
+
 ## LLM touchpoint policy matrix (flexible operator precedence) — April 2026
 
 - **New:** [`src/modules/llm_touchpoint_policies.py`](src/modules/llm_touchpoint_policies.py) — `KERNEL_LLM_TP_<TOUCHPOINT>_POLICY` for `perception`, `communicate`, `narrate`, `monologue`; `KERNEL_LLM_VERBAL_FAMILY_POLICY` for shared communicate+narrate default; `KERNEL_LLM_MONOLOGUE_BACKEND_POLICY` monologue fallback; monologue policies `passthrough` | `annotate_degraded` with degradation events + optional `| monologue_llm_*` suffix.

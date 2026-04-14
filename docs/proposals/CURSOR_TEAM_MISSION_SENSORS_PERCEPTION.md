@@ -193,6 +193,26 @@ The table below is the active starter queue for `cursor-team`.
   - [`PERCEPTION_VALIDATION.md`](PERCEPTION_VALIDATION.md)
   - [`KERNEL_ENV_POLICY.md`](KERNEL_ENV_POLICY.md)
 
+#### SP-P1-03 — Perception-stage responsibility split + optional multicore parallelism *(landed baseline)*
+
+- **Source:** Cursor architecture review (latency/coupling in `process_chat_turn`).
+- **Delivered (baseline):** `EthicalKernel` now isolates independent text pre-enrichment and sensor-side assessments into dedicated helpers shared across text entrypoints (`process_chat_turn`, `process_natural`), with opt-in parallel execution via `KERNEL_PERCEPTION_PARALLEL` and `KERNEL_PERCEPTION_PARALLEL_WORKERS`.
+- **Support buffer extension:** shared perception stage emits a local `support_buffer` snapshot (PreloadedBuffer principles + metaplan strategy hint, `offline_ready=true`) so perception/planning grounding is available even without network access.
+- **Limbic-perception extension:** shared stage now derives a compact limbic profile (`arousal_band`, threat/regulation loads, planning bias, multimodal mismatch, vitality critical) and uses it to prioritize support-buffer principles (`safety_first` / `balanced` / `planning_first`).
+- **Temporal directive extension:** shared perception stage now derives a local `TemporalContext` (processor-time ascent, human wall-clock, battery horizon, delta-time turn budget, known-task ETA heuristics such as transport) and emits `temporal_sync` readiness flags for DAO/local-network synchronization.
+- **Track label:** `perception`
+- **Risk class:** `normal`
+- **Owner office:** Cursor (implementation)
+- **Target branch:** `master-Cursor`
+- **Implementation target:**
+  - Keep default behavior inline/sequential unless the env flag is explicitly enabled.
+  - Use bounded worker pools and preserve deterministic outputs.
+  - Keep tests that assert parallel path is active only when configured.
+- **Evidence links (start):**
+  - [`src/kernel.py`](../../src/kernel.py)
+  - [`tests/test_chat_turn.py`](../../tests/test_chat_turn.py)
+  - [`.env.example`](../../.env.example)
+
 ## 9) Model-critical backlog (beyond sensors/perception)
 
 When perception P0 items are stable, **prioritize cross-cutting kernel/model risk** in this order (rationale and pointers): [`MODEL_CRITICAL_BACKLOG.md`](MODEL_CRITICAL_BACKLOG.md). It aligns [`CRITIQUE_ROADMAP_ISSUES.md`](CRITIQUE_ROADMAP_ISSUES.md) P0 rows with [`WEAKNESSES_AND_BOTTLENECKS.md`](../WEAKNESSES_AND_BOTTLENECKS.md) §3 (unified LLM degradation) and packaging/governance blockers.

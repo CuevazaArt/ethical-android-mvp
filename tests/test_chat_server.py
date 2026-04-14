@@ -198,6 +198,20 @@ def test_websocket_chat_roundtrip():
         assert data["epistemic_dissonance"]["active"] is False
         assert "decision" in data
         assert data["decision"].get("chosen_action_source") == "builtin"
+        assert "support_buffer" in data
+        assert data["support_buffer"].get("source") == "local_preloaded_buffer"
+        assert isinstance(data["support_buffer"].get("active_principles"), list)
+        assert data["support_buffer"].get("priority_profile") in (
+            "safety_first",
+            "balanced",
+            "planning_first",
+        )
+        assert "limbic_perception" in data
+        assert data["limbic_perception"].get("arousal_band") in ("low", "medium", "high")
+        assert "temporal_context" in data
+        assert data["temporal_context"].get("sync_schema") == "temporal_sync_v1"
+        assert "temporal_sync" in data
+        assert data["temporal_sync"].get("sync_schema") == "temporal_sync_v1"
 
 
 def test_websocket_homeostasis_omitted(monkeypatch):
