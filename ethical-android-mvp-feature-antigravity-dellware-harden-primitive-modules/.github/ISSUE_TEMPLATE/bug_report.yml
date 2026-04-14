@@ -1,0 +1,41 @@
+name: Bug report
+description: Something broken in code, tests, or documentation
+labels: ["bug"]
+body:
+  - type: dropdown
+    id: area
+    attributes:
+      label: Area
+      options:
+        - Python kernel / simulations
+        - Tests
+        - Documentation
+        - Other
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to reproduce
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected behavior
+    validations:
+      required: true
+  - type: textarea
+    id: actual
+    attributes:
+      label: Actual behavior
+    validations:
+      required: true
+  - type: input
+    id: environment
+    attributes:
+      label: Environment (OS, Python or Node version, browser if UI)
+  - type: textarea
+    id: logs
+    attributes:
+      label: Logs / screenshots (optional)

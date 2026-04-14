@@ -1,0 +1,11 @@
+# Optional metrics overlay — merge after prodish (or base) to expose Prometheus /metrics on the app.
+#
+#   docker compose -f docker-compose.yml -f docker-compose.prodish.yml -f docker-compose.metrics.yml up --build
+#
+# Or on the dev stack only:
+#   docker compose -f docker-compose.yml -f docker-compose.metrics.yml up --build
+
+services:
+  app:
+    environment:
+      KERNEL_METRICS: "1"

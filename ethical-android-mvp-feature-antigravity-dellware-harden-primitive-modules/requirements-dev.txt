@@ -1,0 +1,9 @@
+# Development / CI — install after requirements.txt:
+#   pip install -r requirements.txt -r requirements-dev.txt
+# Pins keep CI and local pre-commit aligned (see pyproject.toml [tool.*]).
+ruff==0.9.9
+mypy==1.15.0
+pytest-cov==6.0.0
+pre-commit==4.0.1
+detect-secrets==1.5.0
+websockets==14.2
