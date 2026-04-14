@@ -45,7 +45,12 @@ class IdentityReflector:
             if active_arc.summary:
                 arc_context += f" Summary: {active_arc.summary}"
         
-        # 3. Recent Moral Focus
+        # 3. Core Beliefs (Phase 6 - Mature)
+        beliefs_text = ""
+        if identity.state.core_beliefs:
+            beliefs_text = "My fundamental beliefs include: " + "; ".join(b["text"] for b in identity.state.core_beliefs)
+        
+        # 4. Recent Moral Focus
         recent_episodes = mem.episodes[-5:]
         morals_focus = ""
         if recent_episodes:
@@ -56,11 +61,12 @@ class IdentityReflector:
                 top_morals = ", ".join(all_morals[:3])
                 morals_focus = f"My most recent ethical trials have focused on: {top_morals}."
 
-        # 4. Composite Persona
+        # 5. Composite Persona
         reflection = (
             f"REFLEXIVE SELF-MODEL:\n"
             f"────────────────────────────\n"
             f"WHO I AM: {ascription}\n"
+            f"CORE BELIEFS: {beliefs_text}\n"
             f"STORY ARC: {arc_context}\n"
             f"ETHICAL MOMENTUM: {morals_focus}\n"
             f"EXISTENTIAL DIGEST: {digest}\n"

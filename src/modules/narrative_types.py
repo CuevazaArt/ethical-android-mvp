@@ -34,6 +34,7 @@ class NarrativeEpisode:
     affect_weights: dict[str, float] | None = None
     significance: float = 0.0  # [0, 1] how impactful this is for identity
     is_sensitive: bool = False  # True for traumatic/private events
+    arc_id: str | None = None
 
 
 @dataclass

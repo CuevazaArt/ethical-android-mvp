@@ -154,11 +154,11 @@ class NarrativeMemory:
         self.episodes.append(ep)
         self.identity.update_from_episode(ep)
 
-        # Tier 2 persistence: Save to DB
-        self.persistence.save_episode(ep)
-
-        # Arc Management (Rich Narrative)
+        # Arc Management (Rich Narrative) - must happen before save to set arc_id
         self._update_arcs(ep)
+
+        # Tier 2 persistence: Save to DB (now with arc_id)
+        self.persistence.save_episode(ep)
 
         # Basic compression: if exceeds max, remove oldest from memory
         # (Disk retains all episodes unless explicit cleanup implemented)
@@ -180,20 +180,48 @@ class NarrativeMemory:
         requester_tier: RelationalTier = RelationalTier.EPHEMERAL
     ) -> list[NarrativeEpisode]:
         """
-        Tier 2: Search all historical episodes by resonance/context from disk.
-        CRITICAL: Sensitive memory retrieval is gated by relational trust.
+        Advanced Resonance Retrieval (Tier 2/3).
+        Calculates similarity across multiple dimensions with Thematic Boost.
         """
-        # Minimum tier required to access 'deep' episodic memory
-        MIN_ACCESS_TIER = RelationalTier.TRUSTED_UCHI # (STRANGER_STABLE < ACQUAINTANCE < TRUSTED_UCHI)
-        
-        # We use a custom comparison or just _tier_rank from uchi_soto
         from .uchi_soto import _tier_rank
         
-        if _tier_rank(requester_tier) < _tier_rank(MIN_ACCESS_TIER):
-            # Silence retrieval for untrusted observers to prevent narrative leaks
+        # Identity protection: only Uchi can access deep historical memory
+        if _tier_rank(requester_tier) < _tier_rank(RelationalTier.UCHI_TRUSTED):
             return []
+
+        all_episodes = self.persistence.load_all_episodes()
+        candidates = []
+        current_arc_archetype = self.active_arc.predominant_archetype if self.active_arc else None
+
+        for ep in all_episodes:
+            resonance = 0.0
             
-        return self.persistence.search_by_resonance(context, min_sigma, target_pad, limit)
+            # 1. Context Match
+            if context and ep.context == context:
+                resonance += 0.4
+                
+            # 2. Emotional Arousal Match (Sigma)
+            if min_sigma and ep.sigma >= min_sigma:
+                resonance += 0.2
+                
+            # 3. Affective Distance (PAD)
+            if target_pad and ep.affect_pad:
+                from .pad_archetypes import euclidean
+                dist = euclidean(target_pad, ep.affect_pad)
+                resonance += max(0, 0.4 * (1.0 - dist))
+            
+            # 4. Thematic Boost (Maturing Step)
+            if current_arc_archetype and ep.arc_id:
+                # Find arc for this episode
+                arc = next((a for a in self.arcs if a.id == ep.arc_id), None)
+                if arc and arc.predominant_archetype == current_arc_archetype:
+                    resonance += 0.2 
+            
+            candidates.append((ep, resonance))
+            
+        # Sort by resonance descending
+        candidates.sort(key=lambda x: x[1], reverse=True)
+        return [c[0] for c in candidates[:limit]]
 
     def save_identity_digest(self, digest: str) -> None:
         """Tier 3: Persist a new existential digest/lesson."""
