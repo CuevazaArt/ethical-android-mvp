@@ -4,8 +4,8 @@ import { SITE_URL } from "@/config/site";
 
 export default function robots(): MetadataRoute.Robots {
   const base = SITE_URL.replace(/\/$/, "");
-  // SEO: permitir buscadores (campaña / descubrimiento). Bloquear user-agents orientados
-  // a entrenamiento / corpus de IA (señal cortés; no es seguridad fuerte).
+  // SEO: allow search engines (campaign/discovery). Block user agents oriented
+  // to training/corpus crawling (courtesy signal; not strong security).
   const d = "/";
   return {
     rules: [

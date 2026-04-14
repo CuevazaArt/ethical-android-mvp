@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="es">
+<html lang="en">
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
@@ -103,53 +103,53 @@
 <body>
   <header>
     <h1>Ethos Kernel</h1>
-    <p class="sub">Cliente ligero · kernel en tu PC (misma WiFi)</p>
+    <p class="sub">Light client · kernel running on your PC (same WiFi)</p>
   </header>
 
   <div class="panel">
-    <label for="host">IP del PC en la LAN</label>
+    <label for="host">PC LAN IP</label>
     <div class="row">
       <input type="text" id="host" placeholder="192.168.1.10" autocomplete="off" inputmode="decimal" />
       <input type="number" id="port" class="port" placeholder="8765" min="1" max="65535" />
     </div>
     <div class="row" style="margin-top:0.6rem">
-      <button type="button" id="btnPing">Probar /health</button>
-      <button type="button" id="btnSave" class="secondary">Guardar</button>
+      <button type="button" id="btnPing">Test /health</button>
+      <button type="button" id="btnSave" class="secondary">Save</button>
     </div>
     <div class="status" style="margin-top:0.5rem">
       <span class="dot" id="dot"></span>
-      <span id="statusText">Desconectado</span>
+      <span id="statusText">Disconnected</span>
     </div>
     <div class="row" style="margin-top:0.6rem">
-      <button type="button" id="btnConnect">Conectar</button>
-      <button type="button" id="btnDisconnect" class="secondary" disabled>Desconectar</button>
+      <button type="button" id="btnConnect">Connect</button>
+      <button type="button" id="btnDisconnect" class="secondary" disabled>Disconnect</button>
     </div>
   </div>
 
   <div id="thread" aria-live="polite"></div>
 
   <div class="panel" style="margin-bottom:0.5rem">
-    <label for="integritySummary">Alerta de integridad DAO (ledger local)</label>
-    <input type="text" id="integritySummary" placeholder="Resumen auditable (ej. sospecha de calibración corrupta)" autocomplete="off" disabled />
+    <label for="integritySummary">DAO integrity alert (local ledger)</label>
+    <input type="text" id="integritySummary" placeholder="Auditable summary (e.g. suspected corrupted calibration)" autocomplete="off" disabled />
     <div class="row" style="margin-top:0.5rem">
-      <button type="button" id="btnIntegrity" class="secondary" disabled>Registrar en ledger</button>
+      <button type="button" id="btnIntegrity" class="secondary" disabled>Record in ledger</button>
     </div>
     <p class="hint" style="margin-top:0.45rem;margin-bottom:0">
-      En el PC: <code>KERNEL_DAO_INTEGRITY_AUDIT_WS=1</code>. Sin eso el servidor ignora el mensaje. Ver
-      <code>PROPUESTA_DAO_ALERTAS_Y_TRANSPARENCIA.md</code>.
+      On the PC: <code>KERNEL_DAO_INTEGRITY_AUDIT_WS=1</code>. Without it, the server ignores the message. See
+      <code>PROPOSAL_DAO_ALERTS_AND_TRANSPARENCY.md</code>.
     </p>
   </div>
 
   <div class="composer">
-    <label for="msg">Mensaje</label>
-    <textarea id="msg" placeholder="Escribe aquí…" rows="2"></textarea>
+    <label for="msg">Message</label>
+    <textarea id="msg" placeholder="Write here..." rows="2"></textarea>
     <div class="actions">
-      <button type="button" id="btnSend" disabled>Enviar</button>
-      <label class="inline"><input type="checkbox" id="rawJson" /> JSON técnico</label>
+      <button type="button" id="btnSend" disabled>Send</button>
+      <label class="inline"><input type="checkbox" id="rawJson" /> Technical JSON</label>
     </div>
     <p class="hint">
-      El servidor debe usar <code>CHAT_HOST=0.0.0.0</code>. Documentación en el repo:
-      <code>docs/proposals/LOCAL_PC_AND_MOBILE_LAN.md</code>. Página de prueba técnica:
+      The server should use <code>CHAT_HOST=0.0.0.0</code>. Documentation in the repo:
+      <code>docs/proposals/LOCAL_PC_AND_MOBILE_LAN.md</code>. Technical test page:
       <a href="chat-test.html">chat-test.html</a>
     </p>
   </div>
@@ -176,7 +176,7 @@
       function save() {
         localStorage.setItem(STORAGE.host, hostEl.value.trim());
         localStorage.setItem(STORAGE.port, portEl.value.trim() || "8765");
-        addSys("Configuración guardada en este dispositivo.");
+        addSys("Configuration saved on this device.");
       }
       function baseHttp() {
         var h = hostEl.value.trim();
@@ -214,22 +214,22 @@
 
       document.getElementById("btnPing").onclick = function () {
         var b = baseHttp();
-        if (!b) { addSys("Indica la IP del PC."); return; }
-        setStatus("wait", "Comprobando…");
+        if (!b) { addSys("Enter the PC IP."); return; }
+        setStatus("wait", "Checking...");
         fetch(b + "/health", { method: "GET" })
           .then(function (r) { return r.json().then(function (j) { return { ok: r.ok, j: j }; }); })
           .then(function (x) {
             if (x.ok && x.j && x.j.status === "ok") {
-              setStatus("", "Servidor OK (LAN)");
+              setStatus("", "Server OK (LAN)");
               addSys("Health: " + JSON.stringify(x.j));
             } else {
-              setStatus("err", "Respuesta inesperada");
-              addSys("Health falló: " + JSON.stringify(x.j));
+              setStatus("err", "Unexpected response");
+              addSys("Health failed: " + JSON.stringify(x.j));
             }
           })
           .catch(function (e) {
-            setStatus("err", "Sin conexión HTTP");
-            addSys("No se alcanzó " + b + "/health — misma WiFi y firewall en el PC?");
+            setStatus("err", "No HTTP connection");
+            addSys("Could not reach " + b + "/health — same WiFi and firewall on the PC?");
           });
       };
 
@@ -243,16 +243,16 @@
         document.getElementById("btnSend").disabled = true;
         document.getElementById("btnIntegrity").disabled = true;
         document.getElementById("integritySummary").disabled = true;
-        setStatus("", "Desconectado");
+        setStatus("", "Disconnected");
       }
 
       document.getElementById("btnDisconnect").onclick = disconnect;
 
       document.getElementById("btnConnect").onclick = function () {
         var u = wsUrl();
-        if (!u) { addSys("Indica la IP del PC."); return; }
+        if (!u) { addSys("Enter the PC IP."); return; }
         disconnect();
-        setStatus("wait", "Conectando…");
+        setStatus("wait", "Connecting...");
         document.getElementById("btnConnect").disabled = true;
         try {
           ws = new WebSocket(u);
@@ -263,20 +263,20 @@
           return;
         }
         ws.onopen = function () {
-          setStatus("ok", "Conectado");
+          setStatus("ok", "Connected");
           document.getElementById("btnDisconnect").disabled = false;
           document.getElementById("btnSend").disabled = false;
           document.getElementById("btnIntegrity").disabled = false;
           document.getElementById("integritySummary").disabled = false;
-          addSys("WebSocket abierto: " + u);
+          addSys("WebSocket opened: " + u);
         };
         ws.onclose = function () {
           disconnect();
-          addSys("Sesión cerrada (desconectado).");
+          addSys("Session closed (disconnected).");
         };
         ws.onerror = function () {
-          setStatus("err", "Error WS");
-          addSys("Error de WebSocket (¿IP/puerto o servidor no LAN?).");
+          setStatus("err", "WebSocket error");
+          addSys("WebSocket error (IP/port or server not reachable over LAN).");
           document.getElementById("btnConnect").disabled = false;
         };
         ws.onmessage = function (ev) {
@@ -289,7 +289,7 @@
             if (data.error === "integrity_audit_disabled") {
               addBubble(
                 "sys",
-                "Integridad desactivada en el servidor. " +
+                "Integrity audit disabled on server. " +
                   escapeHtml(data.hint || "KERNEL_DAO_INTEGRITY_AUDIT_WS=1")
               );
               return;
@@ -299,23 +299,23 @@
               if (ia.ok) {
                 addBubble(
                   "integ",
-                  "<strong>Ledger DAO</strong><br/>" +
-                    "Línea <code>HubAudit:dao_integrity</code> registrada · alcance: " +
+                  "<strong>DAO Ledger</strong><br/>" +
+                    "Recorded <code>HubAudit:dao_integrity</code> line · scope: " +
                     escapeHtml(ia.scope || "local_audit")
                 );
               } else {
                 addBubble(
                   "sys",
-                  "Integridad: no registrado — " +
+                  "Integrity: not recorded — " +
                     escapeHtml(ia.error || "error") +
-                    ". ¿Activaste <code>KERNEL_DAO_INTEGRITY_AUDIT_WS=1</code> en el servidor?"
+                    ". Did you enable <code>KERNEL_DAO_INTEGRITY_AUDIT_WS=1</code> on the server?"
                 );
               }
               return;
             }
             var parts = [];
             if (data.blocked) {
-              parts.push("<strong>Bloqueado</strong> · " + escapeHtml(data.block_reason || ""));
+              parts.push("<strong>Blocked</strong> · " + escapeHtml(data.block_reason || ""));
             }
             if (data.response && data.response.message) {
               parts.push(escapeHtml(data.response.message));
@@ -349,7 +349,7 @@
         if (!ws || ws.readyState !== WebSocket.OPEN) return;
         var s = document.getElementById("integritySummary").value.trim();
         if (!s) {
-          addSys("Escribe un resumen para la alerta de integridad.");
+          addSys("Write a summary for the integrity alert.");
           return;
         }
         addBubble("user", "🔒 integrity_alert: " + escapeHtml(s));

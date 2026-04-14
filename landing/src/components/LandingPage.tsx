@@ -519,13 +519,43 @@ export default function LandingPage() {
             </a>
             <span className="text-zinc-600"> · </span>
             <a
-              href={repoFile("docs/proposals/ESTRATEGIA_Y_RUTA.md")}
+              href={repoFile("docs/proposals/STRATEGY_AND_ROADMAP.md")}
               className="text-violet-400/90 underline decoration-violet-400/30 underline-offset-4 transition hover:decoration-violet-400/60"
               target="_blank"
               rel="noopener noreferrer"
             >
-              Strategy &amp; route
+              Strategy &amp; roadmap
             </a>
+          </p>
+          <p className="mt-3 text-xs text-zinc-500">
+            New operator-facing references:{" "}
+            <a
+              href={repoFile("docs/proposals/RUNTIME_PROFILES_OPERATOR_TABLE.md")}
+              className="text-violet-400/90 underline decoration-violet-400/30 underline-offset-4 transition hover:decoration-violet-400/60"
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              runtime profiles
+            </a>
+            <span className="text-zinc-600"> · </span>
+            <a
+              href={repoFile("docs/proposals/PROPOSAL_MALABS_SEMANTIC_THRESHOLD_EVIDENCE.md")}
+              className="text-violet-400/90 underline decoration-violet-400/30 underline-offset-4 transition hover:decoration-violet-400/60"
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              semantic threshold evidence
+            </a>
+            <span className="text-zinc-600"> · </span>
+            <a
+              href={repoFile("docs/proposals/PRODUCTION_HARDENING_ROADMAP.md")}
+              className="text-violet-400/90 underline decoration-violet-400/30 underline-offset-4 transition hover:decoration-violet-400/60"
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              production hardening roadmap
+            </a>
+            .
           </p>
         </div>
       </section>

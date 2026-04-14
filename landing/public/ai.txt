@@ -1,4 +1,4 @@
-# Preferencia /ai.txt (no contractual). SEO permitido; señal a crawlers de IA.
+# /ai.txt preference (non-contractual). SEO allowed; signal for AI crawlers.
 
 contact: https://github.com/CuevazaArt/ethical-android-mvp
 
