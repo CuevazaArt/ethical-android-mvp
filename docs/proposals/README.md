@@ -20,6 +20,7 @@ High-level summary aligned with the code and docs; full chronology is in [`CHANG
 | [`PROPOSAL_008_METACOGNITIVE_CURIOSITY.md`](PROPOSAL_008_METACOGNITIVE_CURIOSITY.md) | Cursor: Curiosidad Metacognitiva y Alineación Epistémica. |
 | [`PROPOSAL_009_DISTRIBUTED_JUSTICE_AND_BLOCKCHAIN_DAO.md`](PROPOSAL_009_DISTRIBUTED_JUSTICE_AND_BLOCKCHAIN_DAO.md) | Antigravity: Justicia Distribuida y Gobernanza Blockchain (Sovereign Ethics). |
 | [`PROPOSAL_010_CRITIQUE_SYNTESIS_AND_ALIGNMENT.md`](PROPOSAL_010_CRITIQUE_SYNTESIS_AND_ALIGNMENT.md) | Antigravity: Síntesis de Crítica Arquitectónica y Plan de Alineación (Fase 7). |
+| [`PROPOSAL_011_DAO_CALIBRATION_PIPELINE.md`](PROPOSAL_011_DAO_CALIBRATION_PIPELINE.md) | Antigravity: DAO Calibration Pipeline & Boundary Safety Math (Phase 7 Finalization). |
 | [`ANTIGRAVITY_COLLABORATION_GUIDE.md`](ANTIGRAVITY_COLLABORATION_GUIDE.md) | Antigravity: Collaboration guide and operational workflows. |
 | [`PROPOSAL_BAYESIAN_MIXTURE_FEEDBACK.md`](PROPOSAL_BAYESIAN_MIXTURE_FEEDBACK.md) | ADR 0012 stack: BMA (L1), feedback posteriors (L2), context buckets (L3), softmax / importance-sampling likelihood, env vars, tests, link to ADR 0012. |
 | [`PROPOSAL_OFFLINE_MODE_TAXONOMY_AND_KNOWLEDGE_CORPUS.md`](PROPOSAL_OFFLINE_MODE_TAXONOMY_AND_KNOWLEDGE_CORPUS.md) | Offline taxonomy (voluntary, transient, structural, systemic); L0 vs curated knowledge pack; resource/energy priority; entry planning and sync; maps to `PreloadedBuffer` and MalAbs. |

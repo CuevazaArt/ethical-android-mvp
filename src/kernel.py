@@ -1084,6 +1084,13 @@ class EthicalKernel:
                 self.locus.beta = min(self.locus.BETA_MAX, self.locus.beta + delta)
         parts.append(self.sleep.format(result))
 
+        # Phase 7 DAO Extraction: Interlock community votes with BMA updating
+        if hasattr(self, "dao") and self.dao is not None:
+            dao_feedback = self.dao.extract_community_feedback(recent_count=10)
+            for label, count in dao_feedback.items():
+                for _ in range(count):
+                    self.feedback_ledger.record("DAO_community_consensus", label)
+
         fb_line = apply_psi_sleep_feedback_to_engine(
             self.bayesian,
             self.feedback_ledger,

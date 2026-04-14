@@ -221,6 +221,35 @@ class EthicsMixtureResult:
     applied_mixture_weights: tuple[float, float, float] | None = None
 
 
+def clamp_mixture_weights(w: np.ndarray) -> np.ndarray:
+    """
+    Phase 7 Boundary Safety: Mathematically prevents radical derivation.
+    Deontology >= 0.15, Utility <= 0.80.
+    Modifies utility or virtue to offset deontology protection.
+    """
+    w_out = np.copy(w)
+    # Floor for Deontology
+    if w_out[1] < 0.15:
+        diff = 0.15 - w_out[1]
+        w_out[1] = 0.15
+        s = w_out[0] + w_out[2]
+        if s > 0:
+            w_out[0] -= diff * (w_out[0] / s)
+            w_out[2] -= diff * (w_out[2] / s)
+            
+    # Ceiling for Utility
+    if w_out[0] > 0.80:
+        diff = w_out[0] - 0.80
+        w_out[0] = 0.80
+        s = w_out[1] + w_out[2]
+        if s > 0:
+            w_out[1] += diff * (w_out[1] / s)
+            w_out[2] += diff * (w_out[2] / s)
+            
+    w_out = np.maximum(w_out, 1e-6)
+    return w_out / float(np.sum(w_out))
+
+
 class WeightedEthicsScorer:
     """
     Fixed **weighted mixture** scorer over three ethical hypotheses (constant
@@ -541,6 +570,10 @@ class WeightedEthicsScorer:
 
         b = max(0.0, min(1.0, blend))
         mixed = (1.0 - b) * DEFAULT_HYPOTHESIS_WEIGHTS + b * target
+        
+        # Apply Boundary Safety math caps
+        mixed = clamp_mixture_weights(mixed)
+        
         self.hypothesis_weights = mixed / float(np.sum(mixed))
 
 

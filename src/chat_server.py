@@ -316,7 +316,7 @@ def _chat_turn_to_jsonable(r: ChatTurnResult, kernel: EthicalKernel) -> dict[str
         },
         "identity": {
             **{
-                k: float(v) if k != "episode_count" else int(v)
+                k: int(v) if k == "episode_count" else (v if isinstance(v, (list, dict, tuple)) else float(v))
                 for k, v in asdict(idn.state).items()
             },
             "ascription": idn.ascription_line(),
