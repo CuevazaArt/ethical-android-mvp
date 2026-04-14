@@ -64,6 +64,7 @@ def _estimate_eta_seconds(context: str, text: str) -> tuple[float, str]:
 class TemporalContext:
     """Advisory temporal context exposed to chat/runtime consumers."""
 
+    turn_index: int
     processor_elapsed_ms: int
     turn_delta_ms: int
     wall_clock_unix_ms: int
@@ -79,6 +80,7 @@ class TemporalContext:
 
     def to_public_dict(self) -> dict[str, object]:
         return {
+            "turn_index": self.turn_index,
             "processor_elapsed_ms": self.processor_elapsed_ms,
             "turn_delta_ms": self.turn_delta_ms,
             "wall_clock_unix_ms": self.wall_clock_unix_ms,
@@ -99,6 +101,7 @@ class TemporalContext:
 
 def build_temporal_context(
     *,
+    turn_index: int,
     process_start_mono: float,
     turn_start_mono: float,
     subjective_elapsed_s: float,
@@ -134,6 +137,7 @@ def build_temporal_context(
         lan_ready = False
 
     return TemporalContext(
+        turn_index=max(0, int(turn_index)),
         processor_elapsed_ms=max(0, int((now_mono - process_start_mono) * 1000.0)),
         turn_delta_ms=max(0, int((now_mono - turn_start_mono) * 1000.0)),
         wall_clock_unix_ms=int(now_wall.timestamp() * 1000.0),

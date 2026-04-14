@@ -1306,6 +1306,7 @@ class EthicalKernel:
             limbic_profile=limbic,
         )
         temporal = build_temporal_context(
+            turn_index=self.subjective_clock.turn_index,
             process_start_mono=self.subjective_clock.session_start_mono,
             turn_start_mono=turn_start_mono if turn_start_mono is not None else time.monotonic(),
             subjective_elapsed_s=self.subjective_clock.elapsed_session_s(),
@@ -1404,6 +1405,7 @@ class EthicalKernel:
                 ),
                 limbic_profile=limbic_blk,
                 temporal_context=build_temporal_context(
+                    turn_index=self.subjective_clock.turn_index,
                     process_start_mono=self.subjective_clock.session_start_mono,
                     turn_start_mono=turn_start_mono,
                     subjective_elapsed_s=self.subjective_clock.elapsed_session_s(),

@@ -22,6 +22,7 @@ Use the **`ethos config`** command (after `pip install -e .` or `python -m src.e
 | Input (optional) | `KERNEL_SEMANTIC_CHAT_GATE`, `KERNEL_SEMANTIC_CHAT_EMBED_MODEL`, block/allow thresholds, `KERNEL_SEMANTIC_CHAT_LLM_ARBITER` | Lexical → embeddings → optional LLM; see [`MALABS_SEMANTIC_LAYERS.md`](MALABS_SEMANTIC_LAYERS.md). Default cosine thresholds: evidence posture and guardrails — [`PROPOSAL_MALABS_SEMANTIC_THRESHOLD_EVIDENCE.md`](PROPOSAL_MALABS_SEMANTIC_THRESHOLD_EVIDENCE.md). |
 | **Mixture weights (episodic)** | `KERNEL_BAYESIAN_EMPIRICAL_WEIGHTS` | When `1`, ethical mixture weights are nudged from recent episode scores (same context; not full Bayes). Default `0`. |
 | **Temporal horizon** | `KERNEL_TEMPORAL_HORIZON_PRIOR`, `KERNEL_TEMPORAL_HORIZON_ALPHA` | Weeks / long-arc nudge to mixture ([`TEMPORAL_PRIOR_HORIZONS.md`](TEMPORAL_PRIOR_HORIZONS.md)). Default off. |
+| **Temporal planning directive** | `KERNEL_TEMPORAL_BATTERY_MINUTES_AT_FULL`, `KERNEL_TEMPORAL_BATTERY_LOW_HORIZON_MIN`, `KERNEL_TEMPORAL_LAN_SYNC`, `KERNEL_TEMPORAL_DAO_SYNC` | Emits per-turn `temporal_context` + `temporal_sync` (processor delta, wall clock, ETA, battery horizon, sync readiness for LAN/DAO consumers). |
 | **Observability** | `KERNEL_METRICS`, `KERNEL_LOG_JSON`, `KERNEL_LOG_DECISION_EVENTS`, `KERNEL_LOG_LEVEL` | Prometheus `GET /metrics` (off by default); JSON logs; optional per-decision JSON lines; log level. HTTP/WebSocket correlation via `X-Request-ID`. `GET /health` exposes uptime + observability flags. See [below](#observability-metrics-and-logs). |
 
 **Rule:** if a combination is not a **named profile** and not covered by a **test**, treat it as experimental ([`STRATEGY_AND_ROADMAP.md`](STRATEGY_AND_ROADMAP.md)).
@@ -35,6 +36,15 @@ When a chat turn includes `perception`, the server emits:
 - Optional `perception_backend_banner=true` when `session_banner_recommended` is active.
 
 This contract is intended for operator dashboards and alerting stability across perception fallback modes.
+
+### Temporal planning / sync contract (chat JSON)
+
+When a chat turn returns, the server may emit:
+
+- `temporal_context`: advisory timing envelope (`turn_index`, processor elapsed, turn delta, wall clock, ETA heuristic source, battery horizon).
+- `temporal_sync`: compact synchronization fields for external coordinators (schema/version + turn/time + DAO/LAN readiness).
+
+`temporal_sync` is designed for local-network and DAO-adjacent coordination without requiring external time services; use `sync_schema` to version consumers.
 
 ### Verbal LLM observability (chat JSON)
 

@@ -15,6 +15,7 @@ def test_temporal_context_transport_keyword_eta_and_sync_fields():
     start = time.monotonic()
     turn = start
     tc = build_temporal_context(
+        turn_index=3,
         process_start_mono=start,
         turn_start_mono=turn,
         subjective_elapsed_s=12.3,
@@ -25,6 +26,7 @@ def test_temporal_context_transport_keyword_eta_and_sync_fields():
     )
     out = tc.to_public_dict()
     assert out["sync_schema"] == "temporal_sync_v1"
+    assert out["turn_index"] == 3
     assert out["eta_source"] == "keyword:transport"
     assert out["eta_seconds"] >= 1800.0
     assert out["local_network_sync_ready"] is True
@@ -34,6 +36,7 @@ def test_temporal_context_transport_keyword_eta_and_sync_fields():
 def test_temporal_context_low_place_trust_disables_lan_sync(monkeypatch):
     monkeypatch.setenv("KERNEL_TEMPORAL_LAN_SYNC", "1")
     tc = build_temporal_context(
+        turn_index=1,
         process_start_mono=time.monotonic(),
         turn_start_mono=time.monotonic(),
         subjective_elapsed_s=1.0,

@@ -59,6 +59,7 @@ def test_process_chat_light_turn():
     assert out.limbic_profile.get("arousal_band") in ("low", "medium", "high")
     assert out.temporal_context is not None
     assert out.temporal_context.sync_schema == "temporal_sync_v1"
+    assert out.temporal_context.turn_index >= 1
 
 
 def test_process_chat_epistemic_dissonance_active():

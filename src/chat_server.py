@@ -358,7 +358,10 @@ def _chat_turn_to_jsonable(r: ChatTurnResult, kernel: EthicalKernel) -> dict[str
         out["temporal_context"] = tc
         out["temporal_sync"] = {
             "sync_schema": tc.get("sync_schema", "temporal_sync_v1"),
+            "turn_index": int(tc.get("turn_index") or 0),
             "wall_clock_unix_ms": tc.get("wall_clock_unix_ms"),
+            "processor_elapsed_ms": int(tc.get("processor_elapsed_ms") or 0),
+            "turn_delta_ms": int(tc.get("turn_delta_ms") or 0),
             "local_network_sync_ready": bool(tc.get("local_network_sync_ready", False)),
             "dao_sync_ready": bool(tc.get("dao_sync_ready", False)),
         }
