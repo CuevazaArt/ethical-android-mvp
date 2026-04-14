@@ -584,9 +584,10 @@ class EthicalKernel:
             a.strategic_alignment = alignment
 
         # ═══ METACOGNITIVE CURIOSITY (Phase 5) ═══
+        self._last_meta_report = None
         if hasattr(self, "metacognition"):
-            meta_report = self.metacognition.evaluate(self.memory)
-            self.bayesian.metacognitive_curiosity = meta_report.curiosity_weight
+            self._last_meta_report = self.metacognition.evaluate(self.memory)
+            self.bayesian.metacognitive_curiosity = self._last_meta_report.curiosity_weight
         else:
             self.bayesian.metacognitive_curiosity = 0.0
 
@@ -667,7 +668,9 @@ class EthicalKernel:
         # ═══ Second-order reflection (Fase 1; read-only, no effect on action) ═══
         reflection = self.ethical_reflection.reflect(moral, bayes_result, will_decision)
 
-        salience = self.salience_map.compute(signals, state, social_eval, reflection)
+        # ═══ METACOGNITIVE ALIGNMENT (Phase 5) ═══
+        curiosity_val = self._last_meta_report.curiosity_weight if self._last_meta_report else 0.0
+        salience = self.salience_map.compute(signals, state, social_eval, reflection, curiosity=curiosity_val)
 
         # ═══ PAD + archetypes (post-decision; does not alter ethics) ═══
         affect = self.pad_archetypes.project(state.sigma, moral.total_score, locus_eval)
@@ -715,6 +718,7 @@ class EthicalKernel:
                 episode_id=ep.id,
                 score=moral.total_score,
                 context=context,
+                significance=ep.significance,
             )
 
             # ═══ STEP 12: Register in DAO ═══
@@ -735,12 +739,11 @@ class EthicalKernel:
 
             self._last_registered_episode_id = ep.id
             # ═══ STEP 13: Metacognitive Dissonance Check (Phase 5) ═══
-            if hasattr(self, "metacognition"):
-                m_report = self.metacognition.evaluate(self.memory)
-                if m_report.dissonance_score > 0.4:
+            if self._last_meta_report:
+                if self._last_meta_report.dissonance_score > 0.4:
                     self.dao.register_audit(
                         "metacognition",
-                        f"Detected high moral dissonance ({m_report.dissonance_score:.2f}). Identity-Action alignment failing.",
+                        f"Detected high moral dissonance ({self._last_meta_report.dissonance_score:.2f}). Identity-Action alignment failing.",
                         episode_id=ep.id
                     )
                     # Vertical Increment: Create an Epistemic Dissonance episode for later Psi Sleep review
@@ -750,7 +753,7 @@ class EthicalKernel:
                         action="self_reflection",
                         morals=morals_dict,
                         verdict="dissonance",
-                        score=float(m_report.dissonance_score) * -1.0,
+                        score=float(self._last_meta_report.dissonance_score) * -1.0,
                         mode="D_delib",
                         sigma=0.9,
                         context="reflection",
@@ -769,7 +772,7 @@ class EthicalKernel:
                         "decision_mode": final_mode,
                         "verdict": moral.global_verdict.value,
                         "score": float(moral.total_score),
-                        "dissonance": float(getattr(m_report, 'dissonance_score', 0.0))
+                        "dissonance": float(getattr(self._last_meta_report, 'dissonance_score', 0.0))
                     },
                 )
         else:

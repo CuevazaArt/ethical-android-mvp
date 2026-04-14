@@ -27,6 +27,7 @@ class WeightedMemory:
     age_cycles: int
     type: str  # "negative", "positive", "neutral"
     context: str
+    significance: float = 0.5  # [0, 1] Modulates decay rate
     forgiven: bool = False  # True when weight < threshold
 
 
@@ -82,7 +83,7 @@ class AlgorithmicForgiveness:
         self._recent_positives = 0
 
     def register_experience(
-        self, episode_id: str, score: float, context: str, reparation: bool = False
+        self, episode_id: str, score: float, context: str, significance: float = 0.5, reparation: bool = False
     ):
         """
         Registers an experience in the forgiveness system.
@@ -110,6 +111,7 @@ class AlgorithmicForgiveness:
             age_cycles=0,
             type=type_,
             context=context,
+            significance=significance,
         )
 
         # If reparation occurred, mark for acceleration
@@ -132,9 +134,16 @@ class AlgorithmicForgiveness:
             mem.age_cycles += 1
 
             if mem.type == "negative" and not mem.forgiven:
-                # Context-aware decay
+                # Context-aware decay + Significance modulation (Phase 5 Vertical)
                 decay_rate = self.CONTEXT_DECAY_RATES.get(mem.context, self.CONTEXT_DECAY_RATES["neutral"])
-                decay = np.exp(-decay_rate * mem.age_cycles)
+                
+                # Significance modulates the decay speed: 
+                # high significance = slow decay (trauma resistance)
+                # actual_decay = base_decay * (1.1 - significance)
+                sig_mult = max(0.05, 1.1 - mem.significance)
+                adjusted_decay = decay_rate * sig_mult
+                
+                decay = np.exp(-adjusted_decay * mem.age_cycles)
 
                 # Acceleration from recent positive experiences
                 positive_factor = 1.0 - (self._recent_positives * self.POSITIVE_ACCELERATION)

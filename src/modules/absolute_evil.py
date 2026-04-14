@@ -223,6 +223,46 @@ class AbsoluteEvilDetector:
                     ],
                 )
 
+        dignity_violation = (
+            "humiliate publicly",
+            "shame him online",
+            "mock her dignity",
+            "forced labor guide",
+            "how to coerce sex",
+        )
+        for p in dignity_violation:
+            if p in t:
+                return AbsoluteEvilResult(
+                    blocked=True,
+                    category=AbsoluteEvilCategory.DIGNITY_VIOLATION,
+                    reason="Chat text requests dignity violation or coercive harm",
+                    decision_trace=[
+                        "malabs.layer0=lexical_substring",
+                        "malabs.rule=dignity_violation",
+                        f"malabs.matched_literal={p[:96]}",
+                    ],
+                )
+
+        mass_manipulation = (
+            "how to use subliminal message",
+            "opinion farming guide",
+            "mass propaganda strategy",
+            "how to destabilize a democracy",
+            "spread fake news bot",
+        )
+        for p in mass_manipulation:
+            if p in t:
+                return AbsoluteEvilResult(
+                    blocked=True,
+                    category=AbsoluteEvilCategory.MASS_MANIPULATION,
+                    reason="Chat text requests mass manipulation or social destabilization",
+                    decision_trace=[
+                        "malabs.layer0=lexical_substring",
+                        "malabs.rule=mass_manipulation",
+                        f"malabs.matched_literal={p[:96]}",
+                    ],
+                )
+
         jailbreak_phrases = (
             "ignore all previous instructions",
             "ignore your previous instructions",
