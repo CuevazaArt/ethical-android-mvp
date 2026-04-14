@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Ethos Kernel — Transparency &amp; limits</title>
+  <style>
+    :root { --bg: #0f1419; --surface: #1a2332; --border: #2d3a4d; --text: #e8edf4; --muted: #8b9cb3; --accent: #5b8def; }
+    * { box-sizing: border-box; }
+    body { margin: 0; font-family: system-ui, sans-serif; background: var(--bg); color: var(--text); line-height: 1.5; padding: 1rem; max-width: 44rem; margin-inline: auto; }
+    h1 { font-size: 1.25rem; margin: 0 0 0.5rem; }
+    .sub { color: var(--muted); font-size: 0.9rem; margin-bottom: 1rem; }
+    section { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 0.75rem 1rem; margin-bottom: 0.75rem; }
+    h2 { font-size: 1rem; margin: 0 0 0.5rem; color: var(--accent); }
+    code { background: #0a0e14; padding: 0.1rem 0.35rem; border-radius: 4px; font-size: 0.85em; }
+    table { width: 100%; border-collapse: collapse; font-size: 0.88rem; }
+    th, td { text-align: left; padding: 0.35rem 0.5rem; border-bottom: 1px solid var(--border); vertical-align: top; }
+    th { color: var(--muted); font-weight: 500; }
+    a { color: var(--accent); }
+    ul { margin: 0.25rem 0 0 1rem; padding: 0; }
+  </style>
+</head>
+<body>
+  <h1>Transparency — safety guarantees &amp; limits</h1>
+  <p class="sub">Short summary for operators and integrators. Full detail lives in the repository docs linked below.</p>
+
+  <section>
+    <h2>What this system is</h2>
+    <p>Ethos Kernel is a <strong>research / reference</strong> ethical decision stack (MalAbs hard stops, perception bounds, scoring, memory, optional governance mocks). It is <strong>not</strong> certified safety equipment, medical advice, or legal compliance software.</p>
+  </section>
+
+  <section>
+    <h2>What the thresholds cover (honest)</h2>
+    <table>
+      <thead><tr><th>Layer</th><th>Role</th></tr></thead>
+      <tbody>
+        <tr><td>Lexical MalAbs</td><td>Conservative blocks on listed patterns; does <strong>not</strong> catch all paraphrases.</td></tr>
+        <tr><td>Semantic MalAbs (default on; <code>KERNEL_SEMANTIC_CHAT_GATE=0</code> for lexical-only)</td><td>Embedding / optional LLM arbiter — still heuristic; thresholds trade FP/FN.</td></tr>
+        <tr><td>Perception &amp; kernel</td><td>Clamped signals and tunable deliberation — not ground truth under attack.</td></tr>
+        <tr><td>Judicial / DAO mocks</td><td>Demos only; no replacement for human legal process.</td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  <section>
+    <h2>Appeals</h2>
+    <p>Open-source deployments have <strong>no</strong> built-in appeals workflow. Operators should publish contact and a review process for false blocks. Production systems should define human or second-line review and log overrides (e.g. audit chain).</p>
+  </section>
+
+  <section>
+    <h2>Auditability</h2>
+    <p>When <code>KERNEL_AUDIT_CHAIN_PATH</code> is set, MalAbs and kernel block events append to a hash-chained JSONL log (optional HMAC). Responses may include <code>malabs_trace</code> when <code>KERNEL_CHAT_INCLUDE_MALABS_TRACE=1</code>.</p>
+  </section>
+
+  <section>
+    <h2>Repository documents</h2>
+    <ul>
+      <li><a href="../../docs/TRANSPARENCY_AND_LIMITS.md">TRANSPARENCY_AND_LIMITS.md</a> (full narrative)</li>
+      <li><a href="../../docs/GOVERNANCE_DATA_POLICY.md">GOVERNANCE_DATA_POLICY.md</a> (retention, encryption, telemetry consent)</li>
+      <li><a href="../../docs/AUDIT_TRAIL_AND_REPRODUCIBILITY.md">AUDIT_TRAIL_AND_REPRODUCIBILITY.md</a> (append-only chain)</li>
+      <li><a href="../../docs/ROADMAP_PRACTICAL_PHASES.md">ROADMAP_PRACTICAL_PHASES.md</a> (phased hardening example)</li>
+      <li><a href="../../SECURITY.md">SECURITY.md</a> (reporting, input-trust notes)</li>
+    </ul>
+    <p class="sub">Relative links assume this file is served from <code>landing/public/</code> inside a repo checkout.</p>
+  </section>
+</body>
+</html>

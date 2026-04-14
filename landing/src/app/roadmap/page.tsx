@@ -1,0 +1,324 @@
+import type { Metadata } from "next";
+import Link from "next/link";
+
+import { LanguageSwitcherPlaceholder } from "@/components/LanguageSwitcherPlaceholder";
+import { RoadmapTimelineAccent } from "@/components/page-accents/RoadmapTimelineAccent";
+import { SiteBrand } from "@/components/SiteBrand";
+
+const REPO = "https://github.com/CuevazaArt/ethical-android-mvp";
+const COLLAB = `${REPO}/issues/new?template=collaboration.yml`;
+const CRITIQUE_DOC = `${REPO}/blob/main/docs/proposals/CRITIQUE_ROADMAP_ISSUES.md`;
+const ISSUES = `${REPO}/issues`;
+
+const CRITIQUE_TRACK = [
+  "P0 — Honest naming: `weighted_ethics_scorer` canonical; THEORY + ADR 0009 aligned (`bayesian_engine` shim).",
+  "P0 — Input trust (merged): MalAbs on chat **and** LLM perception JSON (GIGO); hardening + optional local classifier; one threat-model doc.",
+  "P1 — Empirical pilot: labeled scenarios / agreement methodology (not certification).",
+  "P1 — Core path map + pip-installable **core** spike (MalAbs→will vs narrative theater).",
+  "P2 — Heuristic ethics & HCI: poles honesty; weakness/PAD vs operational trust in critical profiles.",
+  "P2 — Governance: MockDAO exit criteria + **L0 immutable buffer** vs community drafts (honest politics).",
+  "P3 — `KERNEL_*` consolidation via profiles + deprecation policy.",
+  "P3 — Async LLM: cooperative cancel / `httpx` async (ADR 0002 remainder) after thread offload + turn timeout.",
+] as const;
+
+export const metadata: Metadata = {
+  title: "Roadmap & collaboration",
+  description:
+    "What exists today, planned implementations, and how to fund or collaborate on the Ethos Kernel research prototype.",
+  robots: { index: true, follow: true },
+};
+
+const CURRENT = [
+  "Python ethical kernel with multipolar poles, Bayesian-style scoring, MalAbs vetoes, narrative memory, forgiveness, Ψ-sleep (simulation), and optional LLM interface layer.",
+  "FastAPI WebSocket runtime (`python -m src.runtime`): chat, optional sensors (v8), multimodal/vitality/epistemic telemetry, V11 judicial escalation + V12 moral hub / mock DAO in snapshots (schema v3).",
+  "Persistence: JSON checkpoints, optional Fernet encryption; conduct-guide JSON on disconnect; reality verification (lighthouse KB); named runtime profiles for CI.",
+  "LAN + smartphone thin client (`mobile.html`, scripts), nomad bridge docs; extensive `pytest` suite on GitHub Actions.",
+  "Public Next.js site: landing (updated for runtime/nomad), theory math showcase, investors, interactive dashboard, one-pager — Apache-2.0.",
+  "Documentation: README, THEORY_AND_IMPLEMENTATION, RUNTIME_*, LOCAL_PC_AND_MOBILE_LAN, NOMAD_PC_SMARTPHONE_BRIDGE, SECURITY, bibliography.",
+] as const;
+
+const NEAR_TERM = [
+  "Maturation track (P0–P3): see “Maturation & critique track” above and docs/proposals/CRITIQUE_ROADMAP_ISSUES.md — consolidated backlog (perception + chat input trust, pip core spike, HCI/weakness, L0 vs DAO).",
+  "Richer test matrix: edge cases, adversarial prompts against the LLM boundary, regression suite for domain additions.",
+  "Reference “sensor → signals” adapters (documented stubs or one hardware-agnostic demo path) without claiming product certification.",
+  "Conversation/session state design: multi-turn loops that keep the kernel authoritative over policy.",
+  "Dashboard build pipeline: pre-bundle JSX to reduce in-browser Babel reliance (security & performance).",
+  "Identity & voice guardrails: structured profile the kernel owns; LLM restricted to phrasing.",
+] as const;
+
+const MID_TERM = [
+  "Governance beyond mock DAO: requirements, threat model, and optional testnet-style experiments — only with legal and partner clarity.",
+  "Pilot integrations with robotics or vehicle stacks in **staged, supervised** environments — never as a substitute for regulation.",
+  "External ethics or safety review cycles documented in the open.",
+  "**Architecture:** incremental hexagonal-style boundaries (ports & adapters) where it pays off — e.g. LLM backends, governance/DAO, and episode persistence — so the ethical core can swap implementations without rewriting the pipeline. Applied gradually, not as a big-bang refactor.",
+] as const;
+
+const NEEDS = [
+  {
+    title: "Sponsored engineering",
+    body: "Time to implement the near-term roadmap, maintain CI, and respond to security reports — ideally scoped grants or part-time contracts.",
+  },
+  {
+    title: "Research & ethics partners",
+    body: "Universities, labs, or civil-society groups for co-authored scenarios, red-teaming, and policy-facing briefs.",
+  },
+  {
+    title: "Hardware / integration partners",
+    body: "Short spikes to map real sensors and actuators to the kernel’s signal model — no implied warranty on deployments.",
+  },
+  {
+    title: "Operations",
+    body: "Sustainable hosting, domain/DNS hygiene, and occasional legal review for disclosures and contributor agreements.",
+  },
+  {
+    title: "Community",
+    body: "Contributors for docs, translations, simulation scenarios, and reproducible bug reports.",
+  },
+] as const;
+
+export default function RoadmapPage() {
+  return (
+    <div className="relative flex min-h-full flex-col bg-[#050508] text-zinc-100">
+      <header className="shrink-0 border-b border-white/[0.08] px-4 py-3 md:px-6">
+        <div className="mx-auto flex max-w-3xl flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+          <SiteBrand />
+          <div className="flex flex-wrap items-center gap-3 sm:justify-end">
+            <nav className="flex flex-wrap gap-4 text-sm text-zinc-400">
+              <Link href="/" className="transition-colors hover:text-white">
+                Home
+              </Link>
+              <Link href="/investors" className="transition-colors hover:text-white">
+                Investors
+              </Link>
+              <Link href="/blockchain-dao" className="transition-colors hover:text-white">
+                BlockChainDAO
+              </Link>
+              <Link href="/donate" className="transition-colors hover:text-white">
+                Donate
+              </Link>
+              <Link href="/demo" className="transition-colors hover:text-white">
+                Live demo
+              </Link>
+            </nav>
+            <LanguageSwitcherPlaceholder />
+          </div>
+        </div>
+      </header>
+
+      <RoadmapTimelineAccent />
+
+      <main
+        id="main-content"
+        tabIndex={-1}
+        className="mx-auto w-full max-w-3xl flex-1 px-6 py-12 outline-none focus-visible:ring-2 focus-visible:ring-violet-400/50 focus-visible:ring-offset-2 focus-visible:ring-offset-[#050508] md:py-16"
+      >
+        <p className="text-xs font-medium uppercase tracking-[0.2em] text-violet-400/90">
+          Transparency
+        </p>
+        <h1 className="mt-2 text-3xl font-semibold tracking-tight text-white md:text-4xl">
+          Roadmap &amp; collaboration
+        </h1>
+        <p className="mt-4 text-sm leading-relaxed text-zinc-400 md:text-[15px]">
+          This page lives on its own so funders, partners, and contributors can
+          bookmark it and see{" "}
+          <strong className="font-medium text-zinc-300">what already exists</strong>,{" "}
+          <strong className="font-medium text-zinc-300">what we plan to build next</strong>, and{" "}
+          <strong className="font-medium text-zinc-300">what we need from others</strong> — in
+          one place. It complements the{" "}
+          <Link href="/investors" className="text-violet-400/90 underline decoration-violet-400/30 underline-offset-4 hover:decoration-violet-400/60">
+            investors
+          </Link>{" "}
+          scope narrative without overloading that page.
+        </p>
+
+        <section className="mt-10 rounded-xl border border-amber-500/25 bg-amber-500/[0.06] p-5">
+          <h2 className="text-sm font-semibold text-amber-200/95">
+            Maturation disclaimer
+          </h2>
+          <p className="mt-2 text-sm leading-relaxed text-zinc-300">
+            Ethos Kernel is <strong className="font-medium text-zinc-200">actively maturing</strong>: runtime,
+            audit trails, hub/DAO scaffolding, and tests land first so we can grow toward{" "}
+            <strong className="font-medium text-zinc-200">honest labeling</strong>,{" "}
+            <strong className="font-medium text-zinc-200">calibrated weights</strong>, and{" "}
+            <strong className="font-medium text-zinc-200">governance experiments</strong> without rewriting the stack
+            every month. Some names and mocks still run ahead of the numeric core — that gap is tracked openly.
+          </p>
+        </section>
+
+        <section className="mt-10 border-t border-white/[0.08] pt-10">
+          <h2 className="text-lg font-semibold text-white">Maturation &amp; critique track</h2>
+          <p className="mt-2 text-sm text-zinc-500">
+            Seven consolidated items (two independent reviews; duplicates merged). Full issue bodies to paste into{" "}
+            <a
+              href={CRITIQUE_DOC}
+              className="text-violet-400/90 underline decoration-violet-400/30 underline-offset-4 hover:decoration-violet-400/60"
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              CRITIQUE_ROADMAP_ISSUES.md
+            </a>
+            ; create tickets on{" "}
+            <a
+              href={ISSUES}
+              className="text-violet-400/90 underline decoration-violet-400/30 underline-offset-4 hover:decoration-violet-400/60"
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              GitHub Issues
+            </a>
+            .
+          </p>
+          <ul className="mt-5 list-disc space-y-2 pl-5 text-sm leading-relaxed text-zinc-400">
+            {CRITIQUE_TRACK.map((item) => (
+              <li key={item}>{item}</li>
+            ))}
+          </ul>
+        </section>
+
+        <section className="mt-12 border-t border-white/[0.08] pt-10">
+          <h2 className="text-lg font-semibold text-white">Current foundation (in the repo)</h2>
+          <p className="mt-2 text-sm text-zinc-500">
+            Shipped and inspectable today — not a future promise.
+          </p>
+          <ul className="mt-5 list-disc space-y-2 pl-5 text-sm leading-relaxed text-zinc-400">
+            {CURRENT.map((item) => (
+              <li key={item}>{item}</li>
+            ))}
+          </ul>
+        </section>
+
+        <section className="mt-10 border-t border-white/[0.08] pt-10">
+          <h2 className="text-lg font-semibold text-white">Near-term implementation roadmap</h2>
+          <p className="mt-2 text-sm text-zinc-500">
+            Concrete technical directions — priorities may shift with funding and partners.
+          </p>
+          <ul className="mt-5 list-disc space-y-2 pl-5 text-sm leading-relaxed text-zinc-400">
+            {NEAR_TERM.map((item) => (
+              <li key={item}>{item}</li>
+            ))}
+          </ul>
+        </section>
+
+        <section className="mt-10 border-t border-white/[0.08] pt-10">
+          <h2 className="text-lg font-semibold text-white">Mid-term (aspirational)</h2>
+          <p className="mt-2 text-sm text-zinc-500">
+            Depends on governance, capital, and institutional alignment — listed for honesty, not
+            as commitments with dates.
+          </p>
+          <ul className="mt-5 list-disc space-y-2 pl-5 text-sm leading-relaxed text-zinc-400">
+            {MID_TERM.map((item) => (
+              <li key={item}>{item}</li>
+            ))}
+          </ul>
+          <p className="mt-4 text-sm text-zinc-500">
+            For mock vs on-chain governance narrative, see{" "}
+            <Link
+              href="/blockchain-dao"
+              className="text-violet-400/90 underline decoration-violet-400/30 underline-offset-4 hover:decoration-violet-400/60"
+            >
+              BlockChainDAO
+            </Link>
+            .
+          </p>
+        </section>
+
+        <section className="mt-10 border-t border-white/[0.08] pt-10">
+          <h2 className="text-lg font-semibold text-white">
+            Funding &amp; collaboration needs
+          </h2>
+          <p className="mt-2 text-sm text-zinc-500">
+            Where outside help directly accelerates the roadmap.
+          </p>
+          <ul className="mt-6 space-y-5">
+            {NEEDS.map((n) => (
+              <li
+                key={n.title}
+                className="border-l-2 border-orange-500/35 pl-4"
+              >
+                <h3 className="text-sm font-semibold text-emerald-200/90">{n.title}</h3>
+                <p className="mt-1 text-sm leading-relaxed text-zinc-400">{n.body}</p>
+              </li>
+            ))}
+          </ul>
+        </section>
+
+        <section className="mt-10 border-t border-white/[0.08] pt-10">
+          <h2 className="text-lg font-semibold text-white">Discussion forum (planned)</h2>
+          <p className="mt-2 text-sm text-zinc-500">
+            Coming later — not a commitment with a launch date.
+          </p>
+          <p className="mt-4 text-sm leading-relaxed text-zinc-400">
+            We plan to add a <strong className="font-medium text-zinc-300">hosted discussion forum</strong> for
+            open threads on <strong className="font-medium text-zinc-300">pending implementation areas</strong>,
+            roadmap trade-offs, and community proposals — complementary to the code repo. Until that exists,
+            use the{" "}
+            <a
+              href={COLLAB}
+              className="text-violet-400/90 underline decoration-violet-400/30 underline-offset-4 hover:decoration-violet-400/60"
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              collaboration GitHub template
+            </a>{" "}
+            and public{" "}
+            <a
+              href={`${REPO}/issues`}
+              className="text-violet-400/90 underline decoration-violet-400/30 underline-offset-4 hover:decoration-violet-400/60"
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              GitHub Issues
+            </a>
+            ; enable{" "}
+            <a
+              href={`${REPO}/discussions`}
+              className="text-violet-400/90 underline decoration-violet-400/30 underline-offset-4 hover:decoration-violet-400/60"
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              Discussions
+            </a>{" "}
+            on the repository if the maintainers turn that on for broader Q&amp;A.
+          </p>
+        </section>
+
+        <section className="mt-12 rounded-xl border border-white/[0.08] bg-white/[0.02] p-6">
+          <h2 className="text-sm font-semibold text-white">Engage</h2>
+          <p className="mt-3 text-sm leading-relaxed text-zinc-400">
+            Use the{" "}
+            <a
+              href={COLLAB}
+              className="text-violet-400/90 underline decoration-violet-400/30 underline-offset-4 hover:decoration-violet-400/60"
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              partnership / funding GitHub template
+            </a>{" "}
+            for scoped proposals. For security-sensitive reports, see{" "}
+            <a
+              href={`${REPO}/blob/main/SECURITY.md`}
+              className="text-violet-400/90 underline decoration-violet-400/30 underline-offset-4 hover:decoration-violet-400/60"
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              SECURITY.md
+            </a>
+            . Donation channels:{" "}
+            <Link
+              href="/donate"
+              className="text-violet-400/90 underline decoration-violet-400/30 underline-offset-4 hover:decoration-violet-400/60"
+            >
+              Donate
+            </Link>
+            .
+          </p>
+        </section>
+
+        <p className="mt-10 text-center text-xs text-zinc-600 md:text-left">
+          Last updated with the repository; substantive roadmap edits should land via PR or tracked
+          issue.
+        </p>
+      </main>
+    </div>
+  );
+}

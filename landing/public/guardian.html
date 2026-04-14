@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Ethos Kernel — Guardian Angel (product notes)</title>
+  <style>
+    :root { --bg: #0f1419; --surface: #1a2332; --border: #2d3a4d; --text: #e8edf4; --muted: #8b9cb3; --accent: #5b8def; }
+    * { box-sizing: border-box; }
+    body { margin: 0; font-family: system-ui, sans-serif; background: var(--bg); color: var(--text); line-height: 1.5; padding: 1rem; max-width: 40rem; margin-inline: auto; }
+    h1 { font-size: 1.25rem; margin: 0 0 0.5rem; }
+    .sub { color: var(--muted); font-size: 0.9rem; margin-bottom: 1rem; }
+    section { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 0.75rem 1rem; margin-bottom: 0.75rem; }
+    h2 { font-size: 1rem; margin: 0 0 0.5rem; color: var(--accent); }
+    code { background: #0a0e14; padding: 0.1rem 0.35rem; border-radius: 4px; font-size: 0.85em; }
+    table { width: 100%; border-collapse: collapse; font-size: 0.88rem; }
+    th, td { text-align: left; padding: 0.35rem 0.5rem; border-bottom: 1px solid var(--border); vertical-align: top; }
+    th { color: var(--muted); font-weight: 500; }
+    a { color: var(--accent); }
+    ul { margin: 0.25rem 0 0 1rem; padding: 0; }
+  </style>
+</head>
+<body>
+  <h1>Guardian Angel — operator notes</h1>
+  <p class="sub">Tone and routine <strong>hints</strong> only. The ethical kernel (MalAbs → … → will) is unchanged. Not a medical or legal authority.</p>
+
+  <section>
+    <h2>What ships in the repo</h2>
+    <ul>
+      <li><code>KERNEL_GUARDIAN_MODE</code> — protective phrasing in <code>LLMModule.communicate</code>.</li>
+      <li><code>KERNEL_GUARDIAN_ROUTINES</code> + <code>KERNEL_GUARDIAN_ROUTINES_PATH</code> — optional JSON list of care routines (see <code>tests/fixtures/guardian/routines.json</code>).</li>
+      <li><code>KERNEL_CHAT_INCLUDE_GUARDIAN_ROUTINES</code> — expose <code>guardian_routines</code> in WebSocket JSON (id + title only).</li>
+    </ul>
+  </section>
+
+  <section>
+    <h2>Environment summary</h2>
+    <table>
+      <thead><tr><th>Variable</th><th>Role</th></tr></thead>
+      <tbody>
+        <tr><td><code>KERNEL_GUARDIAN_MODE</code></td><td>Enable Guardian tone block (default off).</td></tr>
+        <tr><td><code>KERNEL_GUARDIAN_ROUTINES</code></td><td>Append routine hints to Guardian LLM context.</td></tr>
+        <tr><td><code>KERNEL_GUARDIAN_ROUTINES_PATH</code></td><td>UTF-8 JSON path (<code>routines</code> array).</td></tr>
+        <tr><td><code>KERNEL_CHAT_INCLUDE_GUARDIAN</code></td><td>Omit <code>guardian_mode</code> boolean from chat JSON if <code>0</code>.</td></tr>
+        <tr><td><code>KERNEL_CHAT_INCLUDE_GUARDIAN_ROUTINES</code></td><td>Include routine titles in chat JSON (default off).</td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  <section>
+    <h2>Design document</h2>
+    <p><a href="../../docs/proposals/PROPOSAL_GUARDIAN_ANGEL.md">PROPOSAL_GUARDIAN_ANGEL.md</a> (repository root relative to this file may differ when served — use the copy in <code>docs/proposals/</code> in the repo).</p>
+  </section>
+</body>
+</html>

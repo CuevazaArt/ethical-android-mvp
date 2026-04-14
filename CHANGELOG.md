@@ -6,6 +6,11 @@ All notable changes to this project are summarized here. For narrative context a
 
 ## Antigravity Hardening Phase 1 — Ethical & Narrative Resilience — April 2026
 
+- **Main + landing lineage control merge:** `main` is now linked with former `backup/main-2026-04-10` history through a controlled merge baseline, enabling landing synchronization without rewriting current kernel lines.
+- **Branch rename for landing scope:** remote `backup/main-2026-04-10` was renamed to `main-whit-landing`.
+- **Landing restored and refreshed on `main`:** `landing/` Next.js app and static public assets were reintroduced from the landing lineage, then normalized to English copy and English proposal references (`guardian.html`, `mobile.html`, `ai.txt`, `robots.ts`, `LandingPage.tsx`).
+- **Landing support docs updated:** [`docs/proposals/LANDING_DECOUPLING_AND_SUPPORT.md`](docs/proposals/LANDING_DECOUPLING_AND_SUPPORT.md) now documents the renamed landing branch and English-language hygiene expectation for landing assets.
+
 - **Absolute Evil (`src/modules/absolute_evil.py`)**: Expanded with `ECOLOGICAL_DESTRUCTION` and `MASS_MANIPULATION` categories; added new signal groups (`ECOLOGICAL_SIGNALS`, `MANIPULATION_SIGNALS`) to block industrial environmental harm and cognitive mass influence.
 - **Algorithmic Forgiveness (`src/modules/forgiveness.py`)**: Migrated to context-aware decay rates (`CONTEXT_DECAY_RATES`). Negative memory weight decay is now slower in `emergency` or `reparation` contexts compared to `everyday` or `neutral` interactions, preserving trauma impact in high-stakes situations.
 - **Weakness Pole (`src/modules/weakness_pole.py`)**: Integrated `IMPULSIVE` (reactive regret) and `MELANCHOLIC` (somber recognition of world loss) weakness types into the narrative generator.

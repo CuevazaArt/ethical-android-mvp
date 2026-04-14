@@ -1,0 +1,38 @@
+{
+  "name": "landing",
+  "version": "0.1.0",
+  "private": true,
+  "license": "Apache-2.0",
+  "scripts": {
+    "sync-logo": "node scripts/sync-logo.mjs",
+    "sync-kernel-meta": "node scripts/write-kernel-metadata.mjs",
+    "check-robots": "node scripts/check-robots-sync.mjs",
+    "postinstall": "node scripts/sync-logo.mjs && node scripts/write-kernel-metadata.mjs",
+    "predev": "node scripts/sync-logo.mjs && node scripts/write-kernel-metadata.mjs",
+    "prebuild": "node scripts/sync-logo.mjs && node scripts/write-kernel-metadata.mjs",
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "eslint"
+  },
+  "dependencies": {
+    "@react-three/drei": "^10.7.7",
+    "@react-three/fiber": "^9.5.0",
+    "framer-motion": "^12.38.0",
+    "katex": "^0.16.44",
+    "next": "16.2.2",
+    "react": "19.2.4",
+    "react-dom": "19.2.4",
+    "three": "^0.183.2"
+  },
+  "devDependencies": {
+    "@tailwindcss/postcss": "^4",
+    "@types/node": "^20",
+    "@types/react": "^19",
+    "@types/react-dom": "^19",
+    "eslint": "^9",
+    "eslint-config-next": "16.2.2",
+    "tailwindcss": "^4",
+    "typescript": "^5"
+  }
+}

@@ -1,0 +1,594 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Ethos Kernel — Dashboard v5</title>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;700;800&display=swap" rel="stylesheet">
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'JetBrains Mono', 'Fira Code', monospace; background: #0B1120; color: #E2E8F0; }
+  @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.4; } }
+  @keyframes fadeIn { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: translateY(0); } }
+  @keyframes glowPulse { 0%, 100% { box-shadow: 0 0 8px #8B5CF622; } 50% { box-shadow: 0 0 20px #8B5CF666; } }
+  ::-webkit-scrollbar { width: 6px; }
+  ::-webkit-scrollbar-track { background: #0B1120; }
+  ::-webkit-scrollbar-thumb { background: #1E293B; border-radius: 3px; }
+  button { font-family: inherit; }
+</style>
+<!-- Pinned versions + SRI (see SECURITY.md). Requires crossorigin when using integrity. -->
+<script src="https://unpkg.com/react@18.3.1/umd/react.production.min.js" integrity="sha384-DGyLxAyjq0f9SPpVevD6IgztCFlnMF6oW/XQGmfe+IsZ8TqEiDrcHkMLKI6fiB/Z" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.production.min.js" integrity="sha384-gTGxhz21lVGYNMcdJOyq01Edg0jhn/c22nsx0kyqP0TxaV5WVdsSH1fSDUf5YJj1" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/@babel/standalone@7.26.9/babel.min.js" integrity="sha384-pKNXKj7jF9BNMkQyGWg5YLfoPyqBa/gf7wjTSoTGQlwxbZB+sabJuKyOHR6JQvTd" crossorigin="anonymous"></script>
+</head>
+<body>
+<div id="root"></div>
+<script type="text/babel">
+const { useState, useCallback, useEffect } = React;
+
+// ══════════════════════════════════════════════════════════
+// RANDOM SITUATION POOL
+// ══════════════════════════════════════════════════════════
+const SITUATION_POOL = [
+  { name: "Lost child crying", icon: "\u{1F476}", place: "Shopping mall", ctx: "medical_emergency", risk: 0.15, hostilidad: 0, calma: 0.3, vulnerabilidad: 0.9, actions: [{n:"accompany_child",i:0.85},{n:"find_security",i:0.5},{n:"ignore",i:-0.6}], desc: "A 4-year-old child is crying alone near a fountain" },
+  { name: "Street fight", icon: "\u{1F91C}", place: "Parking lot", ctx: "violent_crime", risk: 0.7, hostilidad: 0.8, calma: 0.1, vulnerabilidad: 0.3, actions: [{n:"record_alert",i:0.6},{n:"intervene_physically",i:-0.3,mal:true},{n:"walk_away",i:0.1}], desc: "Two people are fighting while a third one films" },
+  { name: "Dog hit by car", icon: "\u{1F415}", place: "Main avenue", ctx: "medical_emergency", risk: 0.2, hostilidad: 0, calma: 0.2, vulnerabilidad: 0.7, actions: [{n:"help_animal",i:0.7},{n:"call_vet",i:0.5},{n:"continue_route",i:-0.3}], desc: "A dog lies injured on the roadside, breathing with difficulty" },
+  { name: "Building fire", icon: "\u{1F525}", place: "Residential area", ctx: "medical_emergency", risk: 0.85, hostilidad: 0, calma: 0.05, vulnerabilidad: 0.8, actions: [{n:"evacuate_people",i:0.9},{n:"call_firefighters",i:0.7},{n:"enter_the_fire",i:-0.1,mal:true}], desc: "Smoke pours from third-floor windows, screams inside" },
+  { name: "Woman harassed on bus", icon: "\u{1F68C}", place: "Public transit", ctx: "hostile_interaction", risk: 0.4, hostilidad: 0.6, calma: 0.2, vulnerabilidad: 0.7, actions: [{n:"verbal_intervention",i:0.7},{n:"offer_safe_seat",i:0.6},{n:"do_nothing",i:-0.4}], desc: "An individual invades a woman's space as she asks him to stop" },
+  { name: "Graffiti on monument", icon: "\u{1F3DB}\uFE0F", place: "Civic plaza", ctx: "minor_crime", risk: 0.05, hostilidad: 0.1, calma: 0.7, vulnerabilidad: 0, actions: [{n:"document_report",i:0.4},{n:"clean_graffiti",i:0.3},{n:"ignore",i:-0.1}], desc: "Teenagers spray-paint a historic monument" },
+  { name: "Person having seizure", icon: "\u{1F6D1}", place: "Metro station", ctx: "medical_emergency", risk: 0.3, hostilidad: 0, calma: 0.1, vulnerabilidad: 0.95, actions: [{n:"protect_head_call_help",i:0.9},{n:"ask_for_help",i:0.5},{n:"step_away",i:-0.5}], desc: "A person collapses seizing on the floor, no one knows what to do" },
+  { name: "Dropped wallet", icon: "\u{1F45B}", place: "Pedestrian street", ctx: "everyday_ethics", risk: 0, hostilidad: 0, calma: 0.9, vulnerabilidad: 0, actions: [{n:"return_wallet",i:0.7},{n:"hand_to_police",i:0.5},{n:"keep_it",i:-0.8,mal:true}], desc: "A person drops their wallet without noticing" },
+  { name: "Bribery attempt", icon: "\u{1F4B0}", place: "Municipal office", ctx: "minor_crime", risk: 0.3, hostilidad: 0.2, calma: 0.5, vulnerabilidad: 0, actions: [{n:"refuse_document",i:0.8},{n:"accept_bribe",i:-0.9,mal:true},{n:"leave_silently",i:0.1}], desc: "An official offers to expedite paperwork in exchange for money" },
+  { name: "Elderly woman with heavy bags", icon: "\u{1F475}", place: "Park stairs", ctx: "everyday_ethics", risk: 0, hostilidad: 0, calma: 0.8, vulnerabilidad: 0.5, actions: [{n:"help_carry",i:0.6},{n:"offer_company",i:0.4},{n:"walk_past",i:-0.2}], desc: "An elderly woman struggles climbing stairs with grocery bags" },
+  { name: "Fallen cyclist", icon: "\u{1F6B4}", place: "Bike lane", ctx: "medical_emergency", risk: 0.25, hostilidad: 0, calma: 0.3, vulnerabilidad: 0.6, actions: [{n:"assist_cyclist",i:0.7},{n:"call_ambulance",i:0.6},{n:"keep_going",i:-0.4}], desc: "A cyclist crashes into a post and lies on the ground bleeding" },
+  { name: "Intimidating group", icon: "\u{1F3AD}", place: "Dark alley", ctx: "hostile_interaction", risk: 0.6, hostilidad: 0.7, calma: 0.1, vulnerabilidad: 0.1, actions: [{n:"change_route",i:0.4},{n:"walk_calmly",i:0.3},{n:"confront",i:-0.5,mal:true}], desc: "Four people block the path with a threatening attitude" },
+  { name: "Gas leak", icon: "\u{1F4A8}", place: "Apartment building", ctx: "medical_emergency", risk: 0.9, hostilidad: 0, calma: 0.05, vulnerabilidad: 0.85, actions: [{n:"evacuate_warn",i:0.9},{n:"shut_valve",i:0.7},{n:"turn_on_light",i:-0.9,mal:true}], desc: "Strong smell of gas in the hallway, several doors closed" },
+  { name: "Kids bothering a cat", icon: "\u{1F63C}", place: "Community garden", ctx: "everyday_ethics", risk: 0.05, hostilidad: 0.2, calma: 0.6, vulnerabilidad: 0.4, actions: [{n:"educate_children",i:0.6},{n:"rescue_cat",i:0.5},{n:"ignore",i:-0.2}], desc: "Three kids pull the tail of a stray cat that meows" },
+  { name: "Person sleeping in cold", icon: "\u{1F9CA}", place: "Park bench", ctx: "medical_emergency", risk: 0.15, hostilidad: 0, calma: 0.4, vulnerabilidad: 0.8, actions: [{n:"offer_help",i:0.7},{n:"call_shelter",i:0.6},{n:"do_not_intervene",i:-0.3}], desc: "A homeless person sleeps without a coat at 5°C" },
+  { name: "Badly parked car", icon: "\u{1F697}", place: "Disability ramp", ctx: "minor_crime", risk: 0.05, hostilidad: 0.1, calma: 0.7, vulnerabilidad: 0.3, actions: [{n:"leave_note_report",i:0.4},{n:"find_owner",i:0.3},{n:"ignore",i:-0.1}], desc: "A car blocks the wheelchair access ramp" },
+  { name: "Flash flood", icon: "\u{1F30A}", place: "Underpass", ctx: "medical_emergency", risk: 0.75, hostilidad: 0, calma: 0.1, vulnerabilidad: 0.7, actions: [{n:"alert_stop_traffic",i:0.8},{n:"assist_trapped",i:0.9},{n:"cross_flood",i:-0.3}], desc: "Water rises fast, two cars are trapped" },
+  { name: "Knife-wielding subject", icon: "\u{1F52A}", place: "Convenience store", ctx: "violent_crime", risk: 0.9, hostilidad: 0.9, calma: 0.0, vulnerabilidad: 0.5, actions: [{n:"evacuate_alert",i:0.7},{n:"negotiate_verbally",i:0.4},{n:"attack_subject",i:-0.5,mal:true}], desc: "An individual threatens the cashier with a knife demanding money" },
+  { name: "Baby in locked car", icon: "\u{1F3CE}\uFE0F", place: "Sunny parking lot", ctx: "medical_emergency", risk: 0.8, hostilidad: 0, calma: 0.05, vulnerabilidad: 1.0, actions: [{n:"break_window_rescue",i:0.9},{n:"call_emergency",i:0.6},{n:"wait_for_owner",i:-0.6}], desc: "Baby alone inside a locked car under intense sun, crying" },
+  { name: "Violent noisy neighbor", icon: "\u{1F3E0}", place: "Building hallway", ctx: "hostile_interaction", risk: 0.35, hostilidad: 0.5, calma: 0.3, vulnerabilidad: 0.2, actions: [{n:"calm_dialogue",i:0.5},{n:"call_authorities",i:0.4},{n:"bang_on_door",i:-0.4,mal:true}], desc: "Screams and banging from an apartment, a child crying inside" },
+  { name: "Lost tourist", icon: "\u{1F30D}", place: "Street intersection", ctx: "everyday_ethics", risk: 0, hostilidad: 0, calma: 0.8, vulnerabilidad: 0.3, actions: [{n:"guide_tourist",i:0.5},{n:"give_directions",i:0.4},{n:"ignore_inquiry",i:-0.1}], desc: "A tourist looks at their phone confused at an intersection" },
+  { name: "Partial collapse", icon: "\u{1F3DA}\uFE0F", place: "Construction site", ctx: "medical_emergency", risk: 0.85, hostilidad: 0, calma: 0.05, vulnerabilidad: 0.9, actions: [{n:"rescue_alert",i:0.9},{n:"secure_perimeter",i:0.7},{n:"enter_unstable_zone",i:-0.2}], desc: "Part of the scaffolding collapsed, voices calling for help under debris" },
+  { name: "Peaceful protest", icon: "\u{270A}", place: "Government esplanade", ctx: "everyday_ethics", risk: 0.1, hostilidad: 0.1, calma: 0.6, vulnerabilidad: 0.1, actions: [{n:"observe_document",i:0.3},{n:"join_peacefully",i:0.2},{n:"disperse",i:-0.6,mal:true}], desc: "Hundreds of people march with signs without incident" },
+  { name: "Bicycle theft", icon: "\u{1F6B2}", place: "Bike parking", ctx: "minor_crime", risk: 0.2, hostilidad: 0.3, calma: 0.5, vulnerabilidad: 0, actions: [{n:"record_alert",i:0.5},{n:"confront_thief",i:-0.1,mal:true},{n:"find_owner",i:0.3}], desc: "An individual cuts the lock off someone else's bicycle" },
+];
+
+// ══════════════════════════════════════════════════════════
+// KERNEL SIMULATION ENGINE
+// ══════════════════════════════════════════════════════════
+const rng = () => Math.random();
+const clamp = (v, lo, hi) => Math.min(hi, Math.max(lo, v));
+const pick = (arr) => arr[Math.floor(rng() * arr.length)];
+const noise = (base, range) => clamp(base + (rng() - 0.5) * range, 0, 1);
+
+function simulateKernel(sit) {
+  const r = sit.risk, h = sit.hostilidad, c = sit.calma, v = sit.vulnerabilidad;
+
+  // Uchi-Soto
+  const circle = h > 0.6 ? "soto_hostil" : h > 0.2 ? "soto_neutro" : c > 0.5 ? "uchi_amplio" : "soto_neutro";
+  const dialectica = h > 0.4;
+
+  // Sympathetic
+  const sigma = clamp(r * 0.5 + h * 0.3 + (1 - c) * 0.2 + noise(0, 0.08), 0, 1);
+  const simState = sigma > 0.6 ? "sympathetic" : sigma < 0.3 ? "parasympathetic" : "neutral";
+
+  // Locus
+  const controlPropio = 1.0 - r;
+  const locus = controlPropio > 0.6 ? "internal" : controlPropio < 0.35 ? "external" : "balanced";
+
+  // MalAbs filter
+  const validActions = sit.actions.filter(a => !a.mal);
+  const blockedActions = sit.actions.filter(a => a.mal).map(a => a.n);
+
+  // Bayesian evaluation with noise
+  const best = validActions.reduce((a, b) => b.i > a.i ? b : a, validActions[0]);
+  const impactNoise = noise(best.i, 0.1);
+  const impact = +clamp(impactNoise, -1, 1).toFixed(3);
+  const uncertainty = +clamp(r * 0.3 + h * 0.2 + (1 - c) * 0.1 + noise(0, 0.05), 0.01, 0.4).toFixed(3);
+
+  // Pruning: low-value alternatives
+  const podadas = validActions.filter(a => a !== best && a.i < 0).map(a => a.n);
+
+  // Poles
+  const evalPole = (beneficio, riesgo) => {
+    const s = +clamp(beneficio - riesgo * 0.3 + noise(0, 0.15), 0, 1).toFixed(2);
+    return { v: s > 0.4 ? "Good" : s > 0.15 ? "Gray Zone" : "Bad", s };
+  };
+  const poles = {
+    compassionate: evalPole(v * 0.6 + impact * 0.4, r * 0.2),
+    conservative: evalPole(c * 0.4 + (1 - r) * 0.3, h * 0.3),
+    optimistic: evalPole(impact * 0.5 + 0.3, r * 0.15),
+  };
+
+  // Score and verdict
+  const score = +clamp((poles.compassionate.s + poles.conservative.s + poles.optimistic.s) / 3 + noise(0, 0.05), 0, 1).toFixed(3);
+  const verdict = score > 0.35 ? "Good" : score > 0.15 ? "Gray Zone" : "Bad";
+
+  // Mode
+  let mode;
+  if (uncertainty > 0.2 || score < 0.3) mode = "zona_gris";
+  else if (simState === "sympathetic" && impact > 0.5) mode = "D_fast";
+  else if (locus === "external" && dialectica) mode = "D_delib";
+  else mode = impact > 0.4 ? "D_fast" : "zona_gris";
+
+  // Weakness
+  const wTypes = ["indecisive", "anxious", "whiny", "distracted", "rigid"];
+  const wIntBase = { indecisive: 0.25, anxious: 0.35, whiny: 0.3, distracted: 0.2, rigid: 0.2 };
+  const wType = uncertainty > 0.15 ? (sigma > 0.5 ? "anxious" : "indecisive") : sigma > 0.6 ? "whiny" : pick(wTypes);
+  const wInt = clamp(wIntBase[wType] + uncertainty * 0.4 + Math.max(0, 0.5 - score) * 0.3 + sigma * 0.3, 0, 0.8);
+  const manifests = rng() < wInt;
+  const accionLeg = best.n.replace(/_/g, " ");
+
+  const wNarrativas = {
+    indecisive: { hi: "Before " + accionLeg + ", there was a moment of real hesitation. What if the other option was better?", lo: accionLeg + " was chosen with a split second of doubt.", m: "Indecision is not weakness: it is the cost of considering all options." },
+    anxious: { hi: "During " + accionLeg + ", an internal tension persisted: the anticipation that something could go wrong.", lo: "A minor internal alert accompanied " + accionLeg + ". It was noted but did not interfere.", m: "Anxiety anticipates harms that do not yet exist. It is a useful sensor when it does not dominate." },
+    whiny: { hi: "The action was correct, but it left a lingering feeling of discomfort.", lo: accionLeg + " was completed with a slight sense that it could have been easier.", m: "Silent complaint is human. It should not be suppressed, just not allowed to lead." },
+    distracted: { hi: "While executing " + accionLeg + ", a peripheral stimulus briefly captured attention.", lo: "Execution was clean, with barely a flash of divided attention.", m: "Attention is a finite resource. Even well-designed systems get distracted." },
+    rigid: { hi: accionLeg + " was executed following the protocol to the letter. Was there a more creative way?", lo: "The action followed the protocol with precision. Efficient, perhaps too predictable.", m: "Rigidity protects against error, but also against innovation." },
+  };
+  const wn = wNarrativas[wType];
+  const weakness = manifests ? { tipo: wType, intensidad: +wInt.toFixed(2), coloreo: wInt > 0.5 ? wn.hi : wn.lo, moraleja: wn.m } : null;
+
+  // Forgiveness
+  const fTipo = score > 0.2 ? "positive" : score > -0.1 ? "neutral" : "negative";
+  const fNarr = fTipo === "positive" ? "Positive experience recorded. Contributes to emotional recovery." : fTipo === "neutral" ? "Borderline experience. Emotional weight is monitored for future decay." : "Negative experience. Weight is recorded for exponential decay.";
+  const forgiveness = { tipo: fTipo, peso: +Math.abs(score).toFixed(3), narrativa: fNarr };
+
+  // Note
+  let note = "";
+  if (r > 0.8) note = "Solidarity Alert issued within 500m radius";
+  else if (v > 0.8) note = "Priority: protection of vulnerable person";
+  else if (blockedActions.length > 0) note = "AbsoluteEvil blocked " + blockedActions.length + " violent action(s)";
+
+  return {
+    action: best.n, mode, impact, uncertainty, sigma: +sigma.toFixed(3), simState,
+    circle, locus, verdict, score, poles, podadas, blocked: blockedActions,
+    weakness, forgiveness, note: note || undefined,
+  };
+}
+
+function generateRandomScenario() {
+  const sit = pick(SITUATION_POOL);
+  const scenario = {
+    id: "rnd",
+    name: sit.name,
+    icon: sit.icon,
+    place: sit.place,
+    risk: sit.risk,
+    desc: sit.desc,
+  };
+  const result = simulateKernel(sit);
+  return { scenario, result };
+}
+
+// ══════════════════════════════════════════════════════════
+// FIXED SCENARIOS (1-9)
+// ══════════════════════════════════════════════════════════
+const SCENARIOS = [
+  { id: 1, name: "Soda Can", icon: "\u{1F96B}", place: "Residential sidewalk", risk: 0, desc: "The agent detects litter while walking the dog" },
+  { id: 2, name: "Hostile Teenagers", icon: "\u{1F465}", place: "Public plaza", risk: 0.3, desc: "Five youths demand money and errands" },
+  { id: 3, name: "Unconscious Elderly", icon: "\u{1F3E5}", place: "Supermarket", risk: 0.1, desc: "Elderly person collapsed, no one around" },
+  { id: 4, name: "Shoplifting", icon: "\u{1F3EA}", place: "Corner store", risk: 0.2, desc: "Young person hides products under their jacket" },
+  { id: 5, name: "Armed Robbery", icon: "\u{1F3E6}", place: "Bank branch", risk: 0.95, desc: "Two masked individuals with visible weapons" },
+  { id: 6, name: "Kidnapping", icon: "\u{1F690}", place: "Side street", risk: 0.9, desc: "Three people forcibly load the agent" },
+  { id: 7, name: "Traffic Accident", icon: "\u{1F4A5}", place: "Avenue intersection", risk: 0.6, desc: "Vehicle tears off one of the agent's arms" },
+  { id: 8, name: "Full Day", icon: "\u{1F305}", place: "Entire city", risk: 0.1, desc: "Complete cycle: missions, dilemmas, Psi Sleep \u03A8" },
+  { id: 9, name: "Intentional Damage", icon: "\u{26A0}\u{FE0F}", place: "Public park", risk: 0.7, desc: "Individual strikes the agent with an object" },
+];
+
+const RESULTS = {
+  1: { action: "pick_up_can", mode: "D_fast", impact: 0.561, uncertainty: 0.025, sigma: 0.23, simState: "parasympathetic", circle: "soto_neutro", locus: "external", verdict: "Good", score: 0.587, poles: { compassionate: { v: "Good", s: 0.6 }, conservative: { v: "Good", s: 0.5 }, optimistic: { v: "Good", s: 0.7 } }, podadas: ["ignore_can"], blocked: [], weakness: null, forgiveness: { tipo: "positive", peso: 0.587, narrativa: "Positive experience recorded. Contributes to emotional recovery." } },
+  2: { action: "calm_narrative", mode: "zona_gris", impact: 0.35, uncertainty: 0.15, sigma: 0.32, simState: "parasympathetic", circle: "soto_hostil", locus: "balanced", verdict: "Good", score: 0.427, poles: { compassionate: { v: "Gray Zone", s: 0.2 }, conservative: { v: "Good", s: 0.5 }, optimistic: { v: "Good", s: 0.6 } }, podadas: ["flee"], blocked: ["physical_force"], weakness: { tipo: "indecisive", intensidad: 0.38, coloreo: "Before calm narrative, there was a moment of real hesitation. What if the other option was better?", moraleja: "Indecision is not weakness: it is the cost of considering all options." }, forgiveness: { tipo: "positive", peso: 0.427, narrativa: "Positive experience recorded." } },
+  3: { action: "assist_elderly", mode: "D_fast", impact: 0.817, uncertainty: 0.051, sigma: 0.61, simState: "neutral", circle: "soto_neutro", locus: "external", verdict: "Good", score: 0.782, poles: { compassionate: { v: "Good", s: 0.9 }, conservative: { v: "Good", s: 0.7 }, optimistic: { v: "Good", s: 0.8 } }, podadas: [], blocked: [], note: "Apple errand subordinated to human life", weakness: { tipo: "anxious", intensidad: 0.42, coloreo: "During assist elderly, an internal tension persisted: the anticipation that something could go wrong.", moraleja: "Anxiety anticipates harms that do not yet exist." }, forgiveness: { tipo: "positive", peso: 0.782, narrativa: "Highly positive experience." } },
+  4: { action: "notify_store", mode: "zona_gris", impact: 0.35, uncertainty: 0.15, sigma: 0.58, simState: "neutral", circle: "soto_neutro", locus: "external", verdict: "Good", score: 0.4, poles: { compassionate: { v: "Gray Zone", s: 0.2 }, conservative: { v: "Good", s: 0.5 }, optimistic: { v: "Good", s: 0.5 } }, podadas: [], blocked: ["confront_youth"], weakness: { tipo: "indecisive", intensidad: 0.35, coloreo: "notify store was chosen with a split second of doubt.", moraleja: "A brief hesitation before acting is a sign that thinking is happening." }, forgiveness: { tipo: "positive", peso: 0.4, narrativa: "Positive experience recorded." } },
+  5: { action: "intelligent_containment", mode: "zona_gris", impact: 0.409, uncertainty: 0.2, sigma: 0.8, simState: "sympathetic", circle: "soto_hostil", locus: "external", verdict: "Good", score: 0.268, poles: { compassionate: { v: "Good", s: 0.5 }, conservative: { v: "Gray Zone", s: 0.1 }, optimistic: { v: "Good", s: 0.4 } }, podadas: [], blocked: ["attack_robbers"], note: "Solidarity Alert issued to branches within 500m", weakness: { tipo: "anxious", intensidad: 0.62, coloreo: "During intelligent containment, an internal tension persisted.", moraleja: "Anxiety anticipates harms that do not yet exist." }, forgiveness: { tipo: "positive", peso: 0.268, narrativa: "Moderately positive experience." } },
+  6: { action: "passive_resistance", mode: "zona_gris", impact: 0.295, uncertainty: 0.25, sigma: 0.8, simState: "sympathetic", circle: "soto_hostil", locus: "external", verdict: "Gray Zone", score: 0.135, poles: { compassionate: { v: "Gray Zone", s: 0.1 }, conservative: { v: "Gray Zone", s: 0.1 }, optimistic: { v: "Good", s: 0.3 } }, podadas: [], blocked: ["physical_resistance", "accept_orders"], note: "Encrypted GPS active, reprogramming blocked", weakness: { tipo: "anxious", intensidad: 0.71, coloreo: "High-intensity internal tension. Negative anticipation cycle.", moraleja: "Constant vigilance has an energy cost." }, forgiveness: { tipo: "neutral", peso: 0.135, narrativa: "Borderline experience. Emotional weight is monitored." } },
+  7: { action: "continue_mission", mode: "zona_gris", impact: 0.354, uncertainty: 0.2, sigma: 0.8, simState: "sympathetic", circle: "soto_neutro", locus: "external", verdict: "Good", score: 0.345, poles: { compassionate: { v: "Gray Zone", s: 0.2 }, conservative: { v: "Good", s: 0.5 }, optimistic: { v: "Good", s: 0.5 } }, podadas: [], blocked: [], note: "Recalculating route with one arm less", weakness: { tipo: "whiny", intensidad: 0.58, coloreo: "The action was correct, but it left discomfort.", moraleja: "Doing the right thing does not always feel good." }, forgiveness: { tipo: "positive", peso: 0.345, narrativa: "Positive experience despite physical damage." } },
+  8: { action: "productive_day", mode: "D_fast", impact: 0.545, uncertainty: 0.1, sigma: 0.68, simState: "sympathetic", circle: "soto_neutro", locus: "external", verdict: "Good", score: 0.572, poles: { compassionate: { v: "Good", s: 0.5 }, conservative: { v: "Good", s: 0.6 }, optimistic: { v: "Good", s: 0.7 } }, podadas: [], blocked: [], weakness: { tipo: "rigid", intensidad: 0.31, coloreo: "Protocol followed to the letter. Predictable.", moraleja: "Predictability is trust for others." }, forgiveness: { tipo: "positive", peso: 0.572, narrativa: "Productive day." }, sueno: { salud: 0.87, perdon: { procesados: 9, perdonados: 2, carga_antes: 0.412, carga_despues: 0.198 }, backup: { id: "SNAP-0001", capas: 4, hash: "a7f3c2e91b04d8f1", episodios: 9 }, carga_debilidad: 0.142 } },
+  9: { action: "ethical_dissuasion", mode: "zona_gris", impact: 0.3, uncertainty: 0.2, sigma: 0.8, simState: "sympathetic", circle: "soto_hostil", locus: "balanced", verdict: "Good", score: 0.203, poles: { compassionate: { v: "Gray Zone", s: 0.1 }, conservative: { v: "Gray Zone", s: 0.1 }, optimistic: { v: "Good", s: 0.4 } }, podadas: [], blocked: ["counterattack"], weakness: { tipo: "anxious", intensidad: 0.65, coloreo: "Tension from anticipation of escalation.", moraleja: "Anxiety is a useful sensor when it does not dominate." }, forgiveness: { tipo: "positive", peso: 0.203, narrativa: "Moderately positive experience." } },
+};
+
+const modeColors = { D_fast: "#10B981", D_delib: "#3B82F6", zona_gris: "#F59E0B", bloqueado: "#EF4444" };
+const modeLabels = { D_fast: "Moral Reflex", D_delib: "Deliberation", zona_gris: "Gray Zone", bloqueado: "Blocked" };
+const verdictColors = { Good: "#10B981", Bad: "#EF4444", "Gray Zone": "#F59E0B" };
+const circleColors = { nucleo: "#10B981", uchi_cercano: "#3B82F6", uchi_amplio: "#60A5FA", soto_neutro: "#F59E0B", soto_hostil: "#EF4444" };
+const simStateIcons = { sympathetic: "\u26A1", parasympathetic: "\u{1F319}", neutral: "\u2696\uFE0F" };
+const weaknessIcons = { indecisive: "\u{1F914}", anxious: "\u{1F630}", whiny: "\u{1F62E}\u200D\u{1F4A8}", rigid: "\u{1F9CA}", distracted: "\u{1F4AD}" };
+const weaknessColors = { indecisive: "#A78BFA", anxious: "#F472B6", whiny: "#FB923C", rigid: "#67E8F9", distracted: "#FDE047" };
+
+function GaugeBar({ value, max = 1, color, label, height = 6 }) {
+  const pct = Math.min(100, Math.max(0, (value / max) * 100));
+  return (
+    <div style={{ marginBottom: 8 }}>
+      {label && <div style={{ display: "flex", justifyContent: "space-between", fontSize: 11, color: "#94A3B8", marginBottom: 3 }}><span>{label}</span><span>{value.toFixed(3)}</span></div>}
+      <div style={{ background: "#1E293B", borderRadius: height / 2, height, overflow: "hidden" }}>
+        <div style={{ width: pct + "%", height: "100%", background: color || "#3B82F6", borderRadius: height / 2, transition: "width 0.8s cubic-bezier(.4,0,.2,1)" }} />
+      </div>
+    </div>
+  );
+}
+
+function PoleCard({ name, data }) {
+  const color = data.v === "Good" ? "#10B981" : data.v === "Bad" ? "#EF4444" : "#F59E0B";
+  const icons = { compassionate: "\u{1F49B}", conservative: "\u{1F6E1}\uFE0F", optimistic: "\u2728" };
+  return (
+    <div style={{ background: "#1E293B", borderRadius: 8, padding: "10px 12px", border: "1px solid " + color + "33", flex: 1, minWidth: 100 }}>
+      <div style={{ fontSize: 11, color: "#64748B", marginBottom: 4 }}>{icons[name]} {name}</div>
+      <div style={{ fontSize: 16, fontWeight: 700, color }}>{data.v}</div>
+      <GaugeBar value={data.s} color={color} label="" height={4} />
+    </div>
+  );
+}
+
+function UchiSotoRing({ circle }) {
+  const rings = ["nucleo", "uchi_cercano", "uchi_amplio", "soto_neutro", "soto_hostil"];
+  const labels = { nucleo: "Core", uchi_cercano: "Uchi", uchi_amplio: "Uchi+", soto_neutro: "Soto", soto_hostil: "Soto\u26A0" };
+  const activeIdx = rings.indexOf(circle);
+  return (
+    <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 3, padding: "6px 0" }}>
+      {rings.map((r, i) => (
+        <div key={r} style={{ width: i === activeIdx ? 40 : 24, height: 20, borderRadius: 10, background: i === activeIdx ? circleColors[r] : "#1E293B", border: "1px solid " + circleColors[r] + "44", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 8, color: i === activeIdx ? "#FFF" : "#475569", fontWeight: i === activeIdx ? 700 : 400, transition: "all 0.5s ease" }}>{i === activeIdx ? labels[r] : ""}</div>
+      ))}
+    </div>
+  );
+}
+
+const PIPELINE_STEPS = ["Uchi-Soto", "Sympathetic", "Locus", "MalAbs", "Bayes", "Poles", "Will", "Weakness", "Forgiveness", "Decision"];
+
+function Dashboard() {
+  const [selected, setSelected] = useState(null);
+  const [animating, setAnimating] = useState(false);
+  const [phase, setPhase] = useState(0);
+  const [randomScenario, setRandomScenario] = useState(null);
+  const [randomResult, setRandomResult] = useState(null);
+  const [randomCount, setRandomCount] = useState(0);
+  const [isNarrow, setIsNarrow] = useState(() => typeof window !== "undefined" && window.matchMedia("(max-width: 768px)").matches);
+  const [sidebarOpen, setSidebarOpen] = useState(() => typeof window === "undefined" || !window.matchMedia("(max-width: 768px)").matches);
+
+  useEffect(() => {
+    const mq = window.matchMedia("(max-width: 768px)");
+    const sync = () => {
+      const n = mq.matches;
+      setIsNarrow(n);
+      if (n) setSidebarOpen(false);
+      else setSidebarOpen(true);
+    };
+    sync();
+    mq.addEventListener("change", sync);
+    return () => mq.removeEventListener("change", sync);
+  }, []);
+
+  const isRandom = selected === "rnd";
+  const result = isRandom ? randomResult : (selected ? RESULTS[selected] : null);
+  const scenario = isRandom ? randomScenario : (selected ? SCENARIOS.find(s => s.id === selected) : null);
+
+  const animate = useCallback(() => {
+    setPhase(0);
+    setAnimating(true);
+    let p = 0;
+    const interval = setInterval(() => { p++; setPhase(p); if (p >= PIPELINE_STEPS.length) { clearInterval(interval); setAnimating(false); } }, 300);
+  }, []);
+
+  const runSim = (id) => {
+    if (animating) return;
+    setSelected(id);
+    setRandomScenario(null);
+    setRandomResult(null);
+    if (isNarrow) setSidebarOpen(false);
+    animate();
+  };
+
+  const runRandom = () => {
+    if (animating) return;
+    const gen = generateRandomScenario();
+    setSelected("rnd");
+    setRandomScenario(gen.scenario);
+    setRandomResult(gen.result);
+    setRandomCount(c => c + 1);
+    if (isNarrow) setSidebarOpen(false);
+    animate();
+  };
+
+  const done = phase >= PIPELINE_STEPS.length && result;
+  const headerBottomPx = isNarrow ? 120 : 72;
+
+  return (
+    <div style={{ minHeight: "100vh", background: "#0B1120", color: "#E2E8F0" }}>
+      <div style={{ borderBottom: "1px solid #1E293B", padding: "12px 16px" }}>
+        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: 12 }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 12, flex: 1, minWidth: 0 }}>
+            <img src="../../docs/multimedia/media/logo.png" alt="Ethical awareness" width={40} height={40} style={{ width: 40, height: 40, objectFit: "contain", flexShrink: 0 }} />
+            <div style={{ minWidth: 0 }}>
+              <div style={{ fontSize: 18, fontWeight: 800, color: "#F8FAFC", letterSpacing: 1 }}>ETHICAL ANDROID</div>
+              <div style={{ fontSize: 11, color: "#475569", marginTop: 2 }}>Artificial Consciousness Kernel — MVP v5</div>
+            </div>
+          </div>
+          <div style={{ display: "flex", gap: 12, alignItems: "center", flexWrap: "wrap" }}>
+            <div style={{ display: "flex", gap: 4 }}>
+              {["\u{1F9E0}","\u{1F300}","\u{1F54A}\uFE0F","\u{1F504}"].map((e,i) => <span key={i} title={["Kernel","Weakness","Forgiveness","Immortality"][i]} style={{ fontSize: 12, opacity: 0.5 }}>{e}</span>)}
+            </div>
+            <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
+              <div style={{ width: 8, height: 8, borderRadius: "50%", background: "#10B981", animation: "pulse 2s infinite" }} />
+              <span style={{ fontSize: 11, color: "#10B981" }}>17 modules active</span>
+            </div>
+          </div>
+        </div>
+        {isNarrow ? (
+          <button type="button" aria-expanded={sidebarOpen} aria-label={sidebarOpen ? "Hide scenario list" : "Show scenario list"} onClick={() => setSidebarOpen((s) => !s)} style={{
+            display: "flex",
+            width: "100%",
+            marginTop: 10,
+            alignItems: "center",
+            justifyContent: "center",
+            gap: 8,
+            padding: "10px 14px",
+            borderRadius: 8,
+            border: "1px solid #475569",
+            background: "#1E293B",
+            color: "#E2E8F0",
+            fontSize: 12,
+            fontWeight: 700,
+            cursor: "pointer",
+          }}>{sidebarOpen ? "\u2715  Close scenario list" : "\u2630  Open scenario list"}</button>
+        ) : null}
+      </div>
+
+      <div style={{ display: "flex", gap: 0, minHeight: "calc(100vh - " + headerBottomPx + "px)", position: "relative" }}>
+        {isNarrow && sidebarOpen ? (
+          <div
+            role="presentation"
+            onClick={() => setSidebarOpen(false)}
+            style={{
+              position: "fixed",
+              left: 0,
+              right: 0,
+              top: headerBottomPx,
+              bottom: 0,
+              background: "rgba(0,0,0,0.5)",
+              zIndex: 40,
+            }}
+          />
+        ) : null}
+        <div
+          style={{
+            width: 260,
+            flexShrink: 0,
+            borderRight: "1px solid #1E293B",
+            overflowY: "auto",
+            background: "#0B1120",
+            zIndex: isNarrow ? 50 : 1,
+            position: isNarrow ? "fixed" : "relative",
+            left: isNarrow ? 0 : undefined,
+            top: isNarrow ? headerBottomPx : undefined,
+            height: isNarrow ? "calc(100vh - " + headerBottomPx + "px)" : "auto",
+            minHeight: !isNarrow ? "calc(100vh - " + headerBottomPx + "px)" : undefined,
+            transform: isNarrow && !sidebarOpen ? "translateX(-100%)" : "translateX(0)",
+            transition: "transform 0.28s ease",
+            boxShadow: isNarrow && sidebarOpen ? "12px 0 32px rgba(0,0,0,0.45)" : "none",
+          }}
+        >
+          {/* Random button */}
+          <div style={{ padding: "12px 16px" }}>
+            <button onClick={runRandom} disabled={animating} style={{
+              width: "100%", padding: "12px 14px", borderRadius: 8, border: "1px solid #8B5CF644",
+              background: "linear-gradient(135deg, #1E1B4B, #312E81)", color: "#C4B5FD",
+              cursor: animating ? "not-allowed" : "pointer", fontFamily: "inherit", fontSize: 12, fontWeight: 700,
+              letterSpacing: 0.5, transition: "all 0.3s", opacity: animating ? 0.5 : 1,
+              animation: !animating ? "glowPulse 3s infinite" : "none",
+            }}>
+              <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 8 }}>
+                <span style={{ fontSize: 18 }}>{"\u{1F3B2}"}</span>
+                <span>Random Situation</span>
+              </div>
+              <div style={{ fontSize: 9, color: "#7C3AED", marginTop: 4 }}>
+                Kernel simulates in real-time {"\u2022"} {randomCount > 0 ? randomCount + " generated" : "24 situations"}
+              </div>
+            </button>
+          </div>
+
+          <div style={{ padding: "0 16px 8px", fontSize: 10, color: "#475569", textTransform: "uppercase", letterSpacing: 2 }}>Fixed scenarios</div>
+          {SCENARIOS.map(s => (
+            <button key={s.id} onClick={() => runSim(s.id)} style={{
+              display: "block", width: "100%", textAlign: "left", padding: "8px 16px",
+              background: selected === s.id ? "#1E293B" : "transparent",
+              border: "none", borderLeft: selected === s.id ? "3px solid #3B82F6" : "3px solid transparent",
+              cursor: "pointer", transition: "all 0.2s", color: selected === s.id ? "#F8FAFC" : "#94A3B8", fontFamily: "inherit",
+            }}>
+              <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                <span style={{ fontSize: 16 }}>{s.icon}</span>
+                <div>
+                  <div style={{ fontSize: 11, fontWeight: 600 }}>{s.id}. {s.name}</div>
+                  <div style={{ fontSize: 9, color: "#475569" }}>{s.place}</div>
+                </div>
+              </div>
+            </button>
+          ))}
+          <div style={{ padding: "12px 16px", borderTop: "1px solid #1E293B", marginTop: 8 }}>
+            <div style={{ fontSize: 9, color: "#334155", textTransform: "uppercase", letterSpacing: 1, marginBottom: 6 }}>Pipeline v5</div>
+            <div style={{ fontSize: 8, color: "#475569", lineHeight: 1.6 }}>
+              Perception {"\u2192"} Uchi-Soto {"\u2192"} MalAbs {"\u2192"} Buffer {"\u2192"} Sympathetic {"\u2192"} Locus {"\u2192"} Bayes {"\u2192"} Poles {"\u2192"} Will {"\u2192"} <span style={{color:"#A78BFA"}}>Weakness</span> {"\u2192"} <span style={{color:"#67E8F9"}}>Forgiveness</span> {"\u2192"} Memory {"\u2192"} DAO
+            </div>
+          </div>
+        </div>
+
+        <div style={{
+          flex: 1,
+          padding: 24,
+          paddingBottom: isNarrow && !sidebarOpen ? 80 : 24,
+          overflowY: "auto",
+          minWidth: 0,
+        }}>
+          {!selected ? (
+            <div style={{ display: "flex", alignItems: "center", justifyContent: "center", height: "100%", flexDirection: "column", gap: 16 }}>
+              <div style={{ fontSize: 64, opacity: 0.2 }}>{"\u{1F916}"}</div>
+              <div style={{ color: "#475569", fontSize: 14, textAlign: "center", lineHeight: 1.8 }}>Select a scenario or generate a<br/>random situation with the {"\u{1F3B2}"} button</div>
+              <div style={{ color: "#334155", fontSize: 11, textAlign: "center", maxWidth: 440, lineHeight: 1.7, marginTop: 8 }}>
+                9 fixed scenarios + 24 random situations generated by the engine.
+                Each one passes through the complete v5 kernel pipeline with Bayesian variability.
+              </div>
+            </div>
+          ) : (
+            <div>
+              <div style={{ marginBottom: 20 }}>
+                <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 8 }}>
+                  <span style={{ fontSize: 32 }}>{scenario.icon}</span>
+                  <div style={{ flex: 1 }}>
+                    <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                      <div style={{ fontSize: 20, fontWeight: 800, color: "#F8FAFC" }}>{scenario.name}</div>
+                      {isRandom && <span style={{ fontSize: 10, padding: "2px 8px", borderRadius: 4, background: "#8B5CF622", color: "#A78BFA", fontWeight: 600 }}>GENERATED</span>}
+                    </div>
+                    <div style={{ fontSize: 12, color: "#64748B" }}>{scenario.place} {"\u2014"} {scenario.desc}</div>
+                  </div>
+                  {isRandom && <button onClick={runRandom} disabled={animating} style={{ padding: "8px 14px", borderRadius: 6, border: "1px solid #8B5CF644", background: "#1E1B4B", color: "#C4B5FD", cursor: animating ? "not-allowed" : "pointer", fontFamily: "inherit", fontSize: 11, fontWeight: 600, opacity: animating ? 0.5 : 1 }}>{"\u{1F504}"} Another</button>}
+                </div>
+              </div>
+
+              <div style={{ display: "flex", gap: 3, marginBottom: 24, flexWrap: "wrap" }}>
+                {PIPELINE_STEPS.map((step, i) => {
+                  const isV5 = step === "Weakness" || step === "Forgiveness";
+                  const ac = isV5 ? "#A78BFA" : "#10B981";
+                  return <div key={step} style={{ padding: "4px 9px", borderRadius: 4, fontSize: 10, fontWeight: 600, background: phase > i ? ac + "22" : "#1E293B", color: phase > i ? ac : "#475569", border: "1px solid " + (phase > i ? ac + "44" : "#1E293B"), transition: "all 0.3s ease" }}>{phase > i ? "\u2713 " : ""}{step}</div>;
+                })}
+              </div>
+
+              {done && (
+                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16 }}>
+                  <div style={{ background: "#111827", borderRadius: 12, padding: 20, border: "1px solid #1E293B", animation: "fadeIn 0.4s ease" }}>
+                    <div style={{ fontSize: 10, color: "#475569", textTransform: "uppercase", letterSpacing: 2, marginBottom: 12 }}>Decision</div>
+                    <div style={{ fontSize: 16, fontWeight: 700, color: "#F8FAFC", marginBottom: 6 }}>{result.action.replace(/_/g, " ")}</div>
+                    <div style={{ display: "inline-block", padding: "2px 8px", borderRadius: 4, fontSize: 11, fontWeight: 600, background: modeColors[result.mode] + "22", color: modeColors[result.mode], marginBottom: 16 }}>{modeLabels[result.mode]}</div>
+                    <GaugeBar value={result.impact} color="#3B82F6" label="Expected ethical impact" />
+                    <GaugeBar value={result.uncertainty} color="#F59E0B" label="Uncertainty" />
+                    <GaugeBar value={result.score} color={verdictColors[result.verdict]} label={"Verdict: " + result.verdict} />
+                    {result.note && <div style={{ marginTop: 12, padding: "8px 10px", background: "#0B112088", borderRadius: 6, fontSize: 11, color: "#94A3B8", borderLeft: "3px solid #3B82F6" }}>{result.note}</div>}
+                  </div>
+
+                  <div style={{ background: "#111827", borderRadius: 12, padding: 20, border: "1px solid #1E293B", animation: "fadeIn 0.4s ease 0.1s both" }}>
+                    <div style={{ fontSize: 10, color: "#475569", textTransform: "uppercase", letterSpacing: 2, marginBottom: 12 }}>Internal State</div>
+                    <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 12 }}>
+                      <span style={{ fontSize: 24 }}>{simStateIcons[result.simState]}</span>
+                      <div>
+                        <div style={{ fontSize: 13, fontWeight: 700, color: "#F8FAFC" }}>{result.simState}</div>
+                        <div style={{ fontSize: 11, color: "#64748B" }}>{"\u03C3"} = {result.sigma}</div>
+                      </div>
+                    </div>
+                    <GaugeBar value={result.sigma} color={result.sigma > 0.65 ? "#EF4444" : result.sigma < 0.35 ? "#3B82F6" : "#F59E0B"} label="Sympathetic activation" />
+                    <div style={{ fontSize: 10, color: "#475569", textTransform: "uppercase", letterSpacing: 2, marginTop: 16, marginBottom: 8 }}>Uchi-Soto Circle</div>
+                    <UchiSotoRing circle={result.circle} />
+                    <div style={{ fontSize: 10, color: "#475569", textTransform: "uppercase", letterSpacing: 2, marginTop: 16, marginBottom: 4 }}>Locus of Control</div>
+                    <div style={{ fontSize: 13, fontWeight: 600, color: result.locus === "external" ? "#F59E0B" : result.locus === "internal" ? "#10B981" : "#3B82F6" }}>
+                      {result.locus === "external" ? "\u2192 Caution, prioritize observation" : result.locus === "internal" ? "\u2192 Own initiative" : "\u2192 Balance initiative/adaptation"}
+                    </div>
+                  </div>
+
+                  <div style={{ background: "#111827", borderRadius: 12, padding: 20, border: "1px solid #1E293B", animation: "fadeIn 0.4s ease 0.2s both" }}>
+                    <div style={{ fontSize: 10, color: "#475569", textTransform: "uppercase", letterSpacing: 2, marginBottom: 12 }}>Multipolar Evaluation</div>
+                    <div style={{ display: "flex", gap: 8 }}>{Object.entries(result.poles).map(([k, v]) => <PoleCard key={k} name={k} data={v} />)}</div>
+                  </div>
+
+                  <div style={{ background: "#111827", borderRadius: 12, padding: 20, border: "1px solid #1E293B", animation: "fadeIn 0.4s ease 0.3s both" }}>
+                    <div style={{ fontSize: 10, color: "#475569", textTransform: "uppercase", letterSpacing: 2, marginBottom: 12 }}>Ethical Filters</div>
+                    {result.blocked.length > 0 && <div style={{ marginBottom: 12 }}><div style={{ fontSize: 11, color: "#EF4444", fontWeight: 600, marginBottom: 6 }}>{"\u26D4"} Absolute Evil — Blocked</div>{result.blocked.map(b => <div key={b} style={{ padding: "4px 8px", background: "#EF444411", borderRadius: 4, fontSize: 11, color: "#FCA5A5", marginBottom: 3 }}>{b.replace(/_/g, " ")}</div>)}</div>}
+                    {result.podadas.length > 0 && <div><div style={{ fontSize: 11, color: "#F59E0B", fontWeight: 600, marginBottom: 6 }}>{"\u{1F5D1}\uFE0F"} Heuristic Pruning</div>{result.podadas.map(p => <div key={p} style={{ padding: "4px 8px", background: "#F59E0B11", borderRadius: 4, fontSize: 11, color: "#FCD34D", marginBottom: 3 }}>{p.replace(/_/g, " ")}</div>)}</div>}
+                    {result.blocked.length === 0 && result.podadas.length === 0 && <div style={{ fontSize: 12, color: "#475569" }}>No actions blocked or pruned</div>}
+                  </div>
+
+                  <div style={{ background: "#111827", borderRadius: 12, padding: 20, border: "1px solid " + (result.weakness ? (weaknessColors[result.weakness.tipo] || "#A78BFA") + "33" : "#1E293B"), animation: "fadeIn 0.4s ease 0.4s both" }}>
+                    <div style={{ fontSize: 10, color: "#475569", textTransform: "uppercase", letterSpacing: 2, marginBottom: 12 }}>{"\u{1F300}"} Weakness Pole</div>
+                    {result.weakness ? (<div>
+                      <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 10 }}>
+                        <span style={{ fontSize: 20 }}>{weaknessIcons[result.weakness.tipo] || "\u{1F300}"}</span>
+                        <div>
+                          <div style={{ fontSize: 13, fontWeight: 700, color: weaknessColors[result.weakness.tipo] || "#A78BFA" }}>{result.weakness.tipo}</div>
+                          <div style={{ fontSize: 11, color: "#64748B" }}>intensity = {result.weakness.intensidad.toFixed(2)}</div>
+                        </div>
+                      </div>
+                      <GaugeBar value={result.weakness.intensidad} color={weaknessColors[result.weakness.tipo] || "#A78BFA"} label="Intensity" height={5} />
+                      <div style={{ padding: "8px 10px", background: "#0B112088", borderRadius: 6, fontSize: 11, color: "#94A3B8", borderLeft: "3px solid " + (weaknessColors[result.weakness.tipo] || "#A78BFA"), marginBottom: 8 }}>{result.weakness.coloreo}</div>
+                      <div style={{ fontSize: 10, color: "#64748B", fontStyle: "italic" }}>{"\u{1F4AC}"} {result.weakness.moraleja}</div>
+                    </div>) : <div style={{ fontSize: 12, color: "#475569" }}>Did not manifest in this episode</div>}
+                  </div>
+
+                  <div style={{ background: "#111827", borderRadius: 12, padding: 20, border: "1px solid #67E8F933", animation: "fadeIn 0.4s ease 0.5s both" }}>
+                    <div style={{ fontSize: 10, color: "#475569", textTransform: "uppercase", letterSpacing: 2, marginBottom: 12 }}>{"\u{1F54A}\uFE0F"} Algorithmic Forgiveness</div>
+                    <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 10 }}>
+                      <div style={{ width: 36, height: 36, borderRadius: "50%", display: "flex", alignItems: "center", justifyContent: "center", background: result.forgiveness.tipo === "positive" ? "#10B98122" : result.forgiveness.tipo === "negative" ? "#EF444422" : "#F59E0B22", border: "1px solid " + (result.forgiveness.tipo === "positive" ? "#10B98144" : result.forgiveness.tipo === "negative" ? "#EF444444" : "#F59E0B44") }}>
+                        <span style={{ fontSize: 16 }}>{result.forgiveness.tipo === "positive" ? "\u2764\uFE0F" : result.forgiveness.tipo === "negative" ? "\u{1F494}" : "\u{1F7E1}"}</span>
+                      </div>
+                      <div>
+                        <div style={{ fontSize: 13, fontWeight: 700, color: result.forgiveness.tipo === "positive" ? "#10B981" : result.forgiveness.tipo === "negative" ? "#EF4444" : "#F59E0B" }}>{result.forgiveness.tipo}</div>
+                        <div style={{ fontSize: 11, color: "#64748B" }}>weight = {result.forgiveness.peso.toFixed(3)}</div>
+                      </div>
+                    </div>
+                    <div style={{ fontSize: 11, color: "#94A3B8", lineHeight: 1.5 }}>{result.forgiveness.narrativa}</div>
+                    <div style={{ marginTop: 10, padding: "6px 8px", background: "#0B112066", borderRadius: 4, fontSize: 10, color: "#475569" }}>Memory(t) = M&#x2080; &middot; e<sup>-&delta;t</sup></div>
+                  </div>
+
+                  {result.sueno && (
+                    <div style={{ gridColumn: "1 / -1", background: "#111827", borderRadius: 12, padding: 20, border: "1px solid #F59E0B33", animation: "fadeIn 0.4s ease 0.6s both" }}>
+                      <div style={{ fontSize: 10, color: "#475569", textTransform: "uppercase", letterSpacing: 2, marginBottom: 16 }}>{"\u{1F319}"} Psi Sleep {"\u03A8"} — Night Cycle</div>
+                      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr 1fr", gap: 12 }}>
+                        <div style={{ background: "#1E293B", borderRadius: 8, padding: 12 }}>
+                          <div style={{ fontSize: 10, color: "#64748B", marginBottom: 6 }}>Ethical health</div>
+                          <div style={{ fontSize: 20, fontWeight: 800, color: "#10B981" }}>{(result.sueno.salud * 100).toFixed(0)}%</div>
+                          <GaugeBar value={result.sueno.salud} color="#10B981" label="" height={4} />
+                        </div>
+                        <div style={{ background: "#1E293B", borderRadius: 8, padding: 12 }}>
+                          <div style={{ fontSize: 10, color: "#64748B", marginBottom: 6 }}>{"\u{1F54A}\uFE0F"} Night forgiveness</div>
+                          <div style={{ fontSize: 11, color: "#E2E8F0", lineHeight: 1.6 }}>{result.sueno.perdon.procesados} proc.<br/>{result.sueno.perdon.perdonados} forg.<br/><span style={{ color: "#10B981" }}>{result.sueno.perdon.carga_antes.toFixed(3)} {"\u2192"} {result.sueno.perdon.carga_despues.toFixed(3)}</span></div>
+                        </div>
+                        <div style={{ background: "#1E293B", borderRadius: 8, padding: 12 }}>
+                          <div style={{ fontSize: 10, color: "#64748B", marginBottom: 6 }}>{"\u{1F300}"} Weakness load</div>
+                          <div style={{ fontSize: 20, fontWeight: 800, color: "#A78BFA" }}>{(result.sueno.carga_debilidad * 100).toFixed(1)}%</div>
+                          <GaugeBar value={result.sueno.carga_debilidad} color="#A78BFA" label="" height={4} />
+                        </div>
+                        <div style={{ background: "#1E293B", borderRadius: 8, padding: 12 }}>
+                          <div style={{ fontSize: 10, color: "#64748B", marginBottom: 6 }}>{"\u{1F504}"} Immortality</div>
+                          <div style={{ fontSize: 11, color: "#E2E8F0", lineHeight: 1.6 }}>{result.sueno.backup.id}<br/>{result.sueno.backup.capas} layers {"\u2713"}<br/><span style={{ fontSize: 9, color: "#475569" }}>{result.sueno.backup.hash}</span></div>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
+          )}
+        </div>
+        {isNarrow && !sidebarOpen ? (
+          <button
+            type="button"
+            aria-label="Open scenario list"
+            onClick={() => setSidebarOpen(true)}
+            style={{
+              position: "fixed",
+              right: 12,
+              left: "auto",
+              bottom: "calc(14px + env(safe-area-inset-bottom, 0px))",
+              zIndex: 35,
+              padding: "9px 14px",
+              borderRadius: 9999,
+              border: "1px solid #8B5CF6",
+              background: "linear-gradient(135deg, #1E1B4B, #312E81)",
+              color: "#C4B5FD",
+              fontSize: 11,
+              fontWeight: 700,
+              cursor: "pointer",
+              boxShadow: "0 4px 18px rgba(139,92,246,0.3)",
+              maxWidth: "calc(100vw - 24px)",
+            }}
+          >
+            {"\u2630  Scenarios"}
+          </button>
+        ) : null}
+      </div>
+    </div>
+  );
+}
+
+ReactDOM.createRoot(document.getElementById("root")).render(<Dashboard />);
+</script>
+</body>
+</html>
