@@ -70,6 +70,8 @@ When a chat turn returns, the server may emit:
 
 **Coercion:** `turn_index`, `processor_elapsed_ms`, and `turn_delta_ms` are emitted as non-negative integers; malformed or missing values in the internal public dict are coerced to `0` for stable WebSocket JSON (not an ethics policy change; see [`src/chat_server.py`](../../src/chat_server.py) `_coerce_public_int`).
 
+**Sync degraded — local-safe mode (DJ-BL-03):** `temporal_sync.local_network_sync_ready` and `temporal_sync.dao_sync_ready` reflect **`KERNEL_TEMPORAL_LAN_SYNC`** and **`KERNEL_TEMPORAL_DAO_SYNC`** (default `1` = ready when unset; set `0` to mark not ready). These flags are **advisory** for coordinators — they do **not** disable MalAbs, the ethical cycle, or in-process **MockDAO** / **judicial** JSON when enabled via `KERNEL_JUDICIAL_*` / hub env. Treat as “no cross-node guarantee implied,” not “governance offline.” See [`PROPOSAL_DAO_BLOCKCHAIN_DISTRIBUTED_JUSTICE_STAGED_EXECUTION.md`](PROPOSAL_DAO_BLOCKCHAIN_DISTRIBUTED_JUSTICE_STAGED_EXECUTION.md) (Example B — DAO audit continues locally). WebSocket probe: [`tests/test_chat_server.py`](../../tests/test_chat_server.py) `test_websocket_temporal_sync_respects_env_toggles`.
+
 ### Verbal LLM observability (chat JSON)
 
 When a generative touchpoint falls back (**communicate**, **narrate**, or optional **monologue** enrich), the server may emit:

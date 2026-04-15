@@ -4,6 +4,11 @@ All notable changes to this project are summarized here. For narrative context a
 
 **Note:** Older sections below may still **link** to paths that were later removed (for example `experiments/million_sim/`, `docs/multimedia/`, root `dashboard.html`, `landing/`). Those links are **historical**; recover files from git history or backup branches if you need them.
 
+## Distributed justice — DJ-BL-03 operator runbook (sync degraded) — April 2026
+
+- **Docs:** [`docs/proposals/OPERATOR_QUICK_REF.md`](docs/proposals/OPERATOR_QUICK_REF.md) — *Sync degraded — local-safe mode (DJ-BL-03)* under temporal sync; clarifies `KERNEL_TEMPORAL_LAN_SYNC` / `KERNEL_TEMPORAL_DAO_SYNC` vs in-process ethics, MockDAO, and judicial JSON.
+- **Backlog:** [`docs/proposals/PROPOSAL_DISTRIBUTED_JUSTICE_BACKLOG_SYSTEM.md`](docs/proposals/PROPOSAL_DISTRIBUTED_JUSTICE_BACKLOG_SYSTEM.md) — DJ-BL-03 **Done**; [`docs/proposals/PROPOSAL_DISTRIBUTED_JUSTICE_CONTRIBUTIONS.md`](docs/proposals/PROPOSAL_DISTRIBUTED_JUSTICE_CONTRIBUTIONS.md) table updated.
+
 ## Distributed justice — LAN merge + backlog IDs (DJ-BL) — April 2026
 
 - **Code:** [`src/modules/lan_governance_event_merge.py`](src/modules/lan_governance_event_merge.py) — `merge_lan_governance_events` (sort by `turn_index` / `processor_elapsed_ms`, dedupe by `event_id`; Phase 2 stub, no I/O).

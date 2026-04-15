@@ -28,7 +28,7 @@ Current registry (aligned with contribution guide §3):
 |----|--------|--------|
 | **DJ-BL-01** | Replay / ledger checker (Phase 1) | Open |
 | **DJ-BL-02** | LAN reorder / duplicate handling | **Partial** — pure merge helper [`lan_governance_event_merge.py`](../../src/modules/lan_governance_event_merge.py) + [`tests/test_lan_governance_event_merge.py`](../../tests/test_lan_governance_event_merge.py); WebSocket ingestion still future work. |
-| **DJ-BL-03** | Operator runbook: sync degraded, local-safe mode | Open |
+| **DJ-BL-03** | Operator runbook: sync degraded, local-safe mode | **Done** — [`OPERATOR_QUICK_REF.md`](OPERATOR_QUICK_REF.md) §Temporal planning / sync contract (*Sync degraded — local-safe mode*). |
 | **DJ-BL-04** | Contract matrix (`master-*` × JSON keys) | Open |
 
 Update this table when an ID changes state or when new IDs are added.
@@ -60,3 +60,4 @@ Use in PR descriptions and proposal edits (not a database):
 ## 5) Changelog
 
 - **2026-04-15:** Initial backlog ID system; DJ-BL-02 marked partial after `lan_governance_event_merge` + tests.
+- **2026-04-15:** DJ-BL-03 done — operator runbook slice in `OPERATOR_QUICK_REF.md` (sync flags vs local ethics/MockDAO).

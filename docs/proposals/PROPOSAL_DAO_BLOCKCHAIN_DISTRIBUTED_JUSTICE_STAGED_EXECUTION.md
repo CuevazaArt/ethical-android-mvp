@@ -160,7 +160,7 @@ Expected behavior:
 
 1. Add replay-state checker script for governance events.
 2. Add LAN duplicate/reorder simulation tests for DAO+judicial payloads. **Partial (2026-04-15):** deterministic merge helper [`lan_governance_event_merge.py`](../../src/modules/lan_governance_event_merge.py) + tests — see **DJ-BL-02** in [`PROPOSAL_DISTRIBUTED_JUSTICE_BACKLOG_SYSTEM.md`](PROPOSAL_DISTRIBUTED_JUSTICE_BACKLOG_SYSTEM.md); WebSocket ingestion still open.
-3. Add one operator runbook page for "sync degraded but safe-local mode."
+3. Add one operator runbook page for "sync degraded but safe-local mode." **Addressed (2026-04-15):** subsection *Sync degraded — local-safe mode (DJ-BL-03)* in [`OPERATOR_QUICK_REF.md`](OPERATOR_QUICK_REF.md) (not a standalone page; cross-linked from backlog system).
 4. Add contract compatibility matrix between `master-Cursor`, `master-claude`, and `master-antigravity`.
 
 ## Traceability

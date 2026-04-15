@@ -41,7 +41,7 @@ These items extend the **“Pending gaps”** list in [`PROPOSAL_DAO_BLOCKCHAIN_
 |----|------|--------|
 | **DJ-BL-01** | **Replay / ledger checker (Phase 1)** — Script or test module that replays append-only governance events (or MockDAO audit rows) and asserts deterministic reconstruction; emit a clear diff on mismatch. | Open |
 | **DJ-BL-02** | **LAN reorder / duplicate (Phase 2)** — Idempotent merge of out-of-order or duplicated governance events. | **Partial:** [`lan_governance_event_merge.py`](../../src/modules/lan_governance_event_merge.py) (`merge_lan_governance_events`) + [`tests/test_lan_governance_event_merge.py`](../../tests/test_lan_governance_event_merge.py). Full WebSocket / multi-node ingestion not wired yet. |
-| **DJ-BL-03** | **Operator runbook slice** — Short subsection in [`OPERATOR_QUICK_REF.md`](OPERATOR_QUICK_REF.md): “sync degraded, local-safe mode” (`KERNEL_TEMPORAL_*`, judicial JSON still present). | Open |
+| **DJ-BL-03** | **Operator runbook slice** — Short subsection in [`OPERATOR_QUICK_REF.md`](OPERATOR_QUICK_REF.md): “sync degraded, local-safe mode” (`KERNEL_TEMPORAL_*`, judicial JSON still present). | **Done** |
 | **DJ-BL-04** | **Contract matrix** — Which `master-*` branches own which JSON keys (`judicial_escalation`, `mock_court`, `temporal_sync`). | Open |
 
 Contributors should pick **one** item per PR when possible; link **`CHANGELOG.md`** when operator-visible behavior or JSON contracts change.
@@ -70,3 +70,4 @@ Contributors should pick **one** item per PR when possible; link **`CHANGELOG.md
 
 - **2026-04-15:** Initial contribution guide and backlog alignment with staged execution pending gaps.
 - **2026-04-15:** DJ-BL-* table; link to [`PROPOSAL_DISTRIBUTED_JUSTICE_BACKLOG_SYSTEM.md`](PROPOSAL_DISTRIBUTED_JUSTICE_BACKLOG_SYSTEM.md); DJ-BL-02 partial (`lan_governance_event_merge`).
+- **2026-04-15:** DJ-BL-03 done — `OPERATOR_QUICK_REF.md` sync degraded / local-safe mode paragraph.
