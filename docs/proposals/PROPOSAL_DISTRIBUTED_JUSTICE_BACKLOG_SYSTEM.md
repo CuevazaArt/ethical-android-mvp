@@ -26,10 +26,10 @@ Current registry (aligned with contribution guide §3):
 
 | ID | Topic | Status |
 |----|--------|--------|
-| **DJ-BL-01** | Replay / ledger checker (Phase 1) | Open |
+| **DJ-BL-01** | Replay / ledger checker (Phase 1) | **Done** — [`mock_dao_audit_replay.py`](../../src/modules/mock_dao_audit_replay.py), [`verify_mock_dao_audit_replay.py`](../../scripts/eval/verify_mock_dao_audit_replay.py), [`tests/test_mock_dao_audit_replay.py`](../../tests/test_mock_dao_audit_replay.py). Fingerprint equality only; full state replay of proposals not in scope. |
 | **DJ-BL-02** | LAN reorder / duplicate handling | **Partial** — pure merge helper [`lan_governance_event_merge.py`](../../src/modules/lan_governance_event_merge.py) + [`tests/test_lan_governance_event_merge.py`](../../tests/test_lan_governance_event_merge.py); WebSocket ingestion still future work. |
 | **DJ-BL-03** | Operator runbook: sync degraded, local-safe mode | **Done** — [`OPERATOR_QUICK_REF.md`](OPERATOR_QUICK_REF.md) §Temporal planning / sync contract (*Sync degraded — local-safe mode*). |
-| **DJ-BL-04** | Contract matrix (`master-*` × JSON keys) | Open |
+| **DJ-BL-04** | Contract matrix (`master-*` × JSON keys) | **Done** — [`PROPOSAL_DISTRIBUTED_JUSTICE_CONTRACT_MATRIX.md`](PROPOSAL_DISTRIBUTED_JUSTICE_CONTRACT_MATRIX.md) |
 
 Update this table when an ID changes state or when new IDs are added.
 
@@ -61,3 +61,4 @@ Use in PR descriptions and proposal edits (not a database):
 
 - **2026-04-15:** Initial backlog ID system; DJ-BL-02 marked partial after `lan_governance_event_merge` + tests.
 - **2026-04-15:** DJ-BL-03 done — operator runbook slice in `OPERATOR_QUICK_REF.md` (sync flags vs local ethics/MockDAO).
+- **2026-04-15:** DJ-BL-01 done (audit fingerprint + script); DJ-BL-04 done (contract matrix + HTTP API surface doc).

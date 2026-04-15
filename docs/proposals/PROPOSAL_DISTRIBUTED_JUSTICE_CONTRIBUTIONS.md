@@ -39,10 +39,10 @@ These items extend the **“Pending gaps”** list in [`PROPOSAL_DAO_BLOCKCHAIN_
 
 | ID | Item | Notes |
 |----|------|--------|
-| **DJ-BL-01** | **Replay / ledger checker (Phase 1)** — Script or test module that replays append-only governance events (or MockDAO audit rows) and asserts deterministic reconstruction; emit a clear diff on mismatch. | Open |
+| **DJ-BL-01** | **Replay / ledger checker (Phase 1)** — Fingerprint of canonical audit-export JSON; CLI compare. | **Done** — [`mock_dao_audit_replay.py`](../../src/modules/mock_dao_audit_replay.py), [`scripts/eval/verify_mock_dao_audit_replay.py`](../../scripts/eval/verify_mock_dao_audit_replay.py). |
 | **DJ-BL-02** | **LAN reorder / duplicate (Phase 2)** — Idempotent merge of out-of-order or duplicated governance events. | **Partial:** [`lan_governance_event_merge.py`](../../src/modules/lan_governance_event_merge.py) (`merge_lan_governance_events`) + [`tests/test_lan_governance_event_merge.py`](../../tests/test_lan_governance_event_merge.py). Full WebSocket / multi-node ingestion not wired yet. |
 | **DJ-BL-03** | **Operator runbook slice** — Short subsection in [`OPERATOR_QUICK_REF.md`](OPERATOR_QUICK_REF.md): “sync degraded, local-safe mode” (`KERNEL_TEMPORAL_*`, judicial JSON still present). | **Done** |
-| **DJ-BL-04** | **Contract matrix** — Which `master-*` branches own which JSON keys (`judicial_escalation`, `mock_court`, `temporal_sync`). | Open |
+| **DJ-BL-04** | **Contract matrix** — Which `master-*` branches own which JSON keys (`judicial_escalation`, `mock_court`, `temporal_sync`). | **Done** — [`PROPOSAL_DISTRIBUTED_JUSTICE_CONTRACT_MATRIX.md`](PROPOSAL_DISTRIBUTED_JUSTICE_CONTRACT_MATRIX.md) |
 
 Contributors should pick **one** item per PR when possible; link **`CHANGELOG.md`** when operator-visible behavior or JSON contracts change.
 
@@ -59,6 +59,8 @@ Contributors should pick **one** item per PR when possible; link **`CHANGELOG.md
 ## 5) Related documents
 
 - [`PROPOSAL_DISTRIBUTED_JUSTICE_BACKLOG_SYSTEM.md`](PROPOSAL_DISTRIBUTED_JUSTICE_BACKLOG_SYSTEM.md) — `DJ-BL-*` IDs and states  
+- [`PROPOSAL_DISTRIBUTED_JUSTICE_CONTRACT_MATRIX.md`](PROPOSAL_DISTRIBUTED_JUSTICE_CONTRACT_MATRIX.md) — governance JSON keys vs `master-*`  
+- [`PROPOSAL_CHAT_SERVER_HTTP_API_SURFACE.md`](PROPOSAL_CHAT_SERVER_HTTP_API_SURFACE.md) — HTTP GET JSON routes  
 - [`PROPOSAL_DISTRIBUTED_JUSTICE_V11.md`](PROPOSAL_DISTRIBUTED_JUSTICE_V11.md)  
 - [`PROPOSAL_DAO_BLOCKCHAIN_DISTRIBUTED_JUSTICE_STAGED_EXECUTION.md`](PROPOSAL_DAO_BLOCKCHAIN_DISTRIBUTED_JUSTICE_STAGED_EXECUTION.md)  
 - [`PROPOSAL_DAO_ALERTS_AND_TRANSPARENCY.md`](PROPOSAL_DAO_ALERTS_AND_TRANSPARENCY.md)  
@@ -71,3 +73,4 @@ Contributors should pick **one** item per PR when possible; link **`CHANGELOG.md
 - **2026-04-15:** Initial contribution guide and backlog alignment with staged execution pending gaps.
 - **2026-04-15:** DJ-BL-* table; link to [`PROPOSAL_DISTRIBUTED_JUSTICE_BACKLOG_SYSTEM.md`](PROPOSAL_DISTRIBUTED_JUSTICE_BACKLOG_SYSTEM.md); DJ-BL-02 partial (`lan_governance_event_merge`).
 - **2026-04-15:** DJ-BL-03 done — `OPERATOR_QUICK_REF.md` sync degraded / local-safe mode paragraph.
+- **2026-04-15:** DJ-BL-01 (audit fingerprint + `verify_mock_dao_audit_replay.py`); DJ-BL-04 (contract matrix + [`PROPOSAL_CHAT_SERVER_HTTP_API_SURFACE.md`](PROPOSAL_CHAT_SERVER_HTTP_API_SURFACE.md)).

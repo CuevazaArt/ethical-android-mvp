@@ -4,6 +4,13 @@ All notable changes to this project are summarized here. For narrative context a
 
 **Note:** Older sections below may still **link** to paths that were later removed (for example `experiments/million_sim/`, `docs/multimedia/`, root `dashboard.html`, `landing/`). Those links are **historical**; recover files from git history or backup branches if you need them.
 
+## Distributed justice — DJ-BL-01 / DJ-BL-04 + HTTP API doc — April 2026
+
+- **DJ-BL-01:** [`src/modules/mock_dao_audit_replay.py`](src/modules/mock_dao_audit_replay.py) (`fingerprint_audit_ledger`), [`scripts/eval/verify_mock_dao_audit_replay.py`](scripts/eval/verify_mock_dao_audit_replay.py), [`tests/test_mock_dao_audit_replay.py`](tests/test_mock_dao_audit_replay.py).
+- **DJ-BL-04:** [`docs/proposals/PROPOSAL_DISTRIBUTED_JUSTICE_CONTRACT_MATRIX.md`](docs/proposals/PROPOSAL_DISTRIBUTED_JUSTICE_CONTRACT_MATRIX.md).
+- **HTTP:** [`docs/proposals/PROPOSAL_CHAT_SERVER_HTTP_API_SURFACE.md`](docs/proposals/PROPOSAL_CHAT_SERVER_HTTP_API_SURFACE.md) — inventory of GET JSON routes; OpenAPI off by default (`KERNEL_API_DOCS=1`).
+- **Backlog:** [`docs/proposals/PROPOSAL_DISTRIBUTED_JUSTICE_BACKLOG_SYSTEM.md`](docs/proposals/PROPOSAL_DISTRIBUTED_JUSTICE_BACKLOG_SYSTEM.md) — DJ-BL-01 and DJ-BL-04 marked **Done**.
+
 ## Distributed justice — DJ-BL-03 operator runbook (sync degraded) — April 2026
 
 - **Docs:** [`docs/proposals/OPERATOR_QUICK_REF.md`](docs/proposals/OPERATOR_QUICK_REF.md) — *Sync degraded — local-safe mode (DJ-BL-03)* under temporal sync; clarifies `KERNEL_TEMPORAL_LAN_SYNC` / `KERNEL_TEMPORAL_DAO_SYNC` vs in-process ethics, MockDAO, and judicial JSON.
