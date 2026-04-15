@@ -6,7 +6,6 @@ import sys
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
 
 from src.kernel import EthicalKernel
-from src.modules.weighted_ethics_scorer import CandidateAction
 from src.modules.generative_candidates import (
     GENERATIVE_ORIGIN,
     augment_generative_candidates,
@@ -16,6 +15,7 @@ from src.modules.generative_candidates import (
     parse_generative_candidates_from_llm,
 )
 from src.modules.llm_layer import perception_from_llm_json
+from src.modules.weighted_ethics_scorer import CandidateAction
 
 
 def _builtin_pair():
@@ -110,6 +110,22 @@ def test_perception_json_preserves_generative_candidates():
     assert p.generative_candidates is not None
     assert len(p.generative_candidates) == 1
     assert p.generative_candidates[0]["name"] == "foo_bar"
+
+
+def test_parse_llm_generative_skips_non_dict_and_malformed_numbers():
+    items: list = [
+        "not_a_dict",
+        {"name": "Bad Name", "description": "y" * 30, "estimated_impact": 0.5, "confidence": 0.8},
+        {
+            "name": "valid_item",
+            "description": "Enough chars for valid row here ok.",
+            "estimated_impact": 0.4,
+            "confidence": 0.6,
+        },
+    ]
+    out = parse_generative_candidates_from_llm(items)
+    assert len(out) == 1
+    assert out[0].name == "valid_item"
 
 
 def test_parse_llm_generative_skips_bad_names():

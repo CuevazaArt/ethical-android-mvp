@@ -26,20 +26,18 @@
 
 ## 2) Gap register (close or explicitly defer)
 
-Items are **ordered by integration leverage** (unblocks operators and tests first). IDs are stable for issues/PRs.
-
-| ID | Gap | Evidence / risk | Suggested closure |
-|----|-----|-----------------|-------------------|
-| **G-01** | **Unified degradation story for embedding transport** vs main chat completion path | [`WEAKNESSES_AND_BOTTLENECKS.md`](../WEAKNESSES_AND_BOTTLENECKS.md) §3 — embedding path has retries/circuit; perception/verbal have `KERNEL_LLM_TP_*` matrix | Document operator mapping in [`PROPOSAL_LLM_TOUCHPOINT_DEGRADATION_MATRIX.md`](PROPOSAL_LLM_TOUCHPOINT_DEGRADATION_MATRIX.md) § Related; optional: single `KERNEL_LLM_EMBEDDING_POLICY` alias + tests (no behavior change until agreed) |
-| **G-02** | **Semantic MalAbs** (embed + optional LLM arbiter) failure semantics not aligned with verbal `verbal_llm_observability` | Same §3; operators see MalAbs trace but not the same JSON shape as verbal events | Add small **audit subsection** in [`MALABS_SEMANTIC_LAYERS.md`](MALABS_SEMANTIC_LAYERS.md): what is logged/metrics on embed vs arbiter failure; optional chat field behind flag |
-| **G-03** | **`process_natural`** returns `(decision, response, narrative)` without `verbal_llm_degradation_events` | [`kernel.py`](../../src/kernel.py) resets degradation log and runs `communicate`/`narrate`, but tuple API does not expose events | Extend return type or add `kernel._last_verbal_llm_degradation_events` documented accessor for harnesses; or document “chat-only observability” as limitation |
-| **G-04** | **Single env surface** across all LLM touchpoints | Still aspirational per [`WEAKNESSES_AND_BOTTLENECKS.md`](../WEAKNESSES_AND_BOTTLENECKS.md) §3 | Keep matrix as source of truth; defer mega-unification until G-01–G-02 resolved |
-| **G-05** | **Cooperative LLM cancel** under async chat | [`WEAKNESSES_AND_BOTTLENECKS.md`](../WEAKNESSES_AND_BOTTLENECKS.md) §1; [`ADR 0002`](../adr/0002-async-orchestration-future.md) | Research spike: bound in-flight httpx; document interaction with `KERNEL_CHAT_TURN_TIMEOUT` / `OLLAMA_TIMEOUT` |
-| **G-06** | **Generative candidates** trust: LLM-suggested actions share MalAbs path but perception JSON can still be GIGO | [`generative_candidates.py`](../../src/modules/generative_candidates.py), [`INPUT_TRUST_THREAT_MODEL.md`](INPUT_TRUST_THREAT_MODEL.md) | Fuzz + regression tests for malformed `generative_candidates`; document caps in [`PERCEPTION_VALIDATION.md`](PERCEPTION_VALIDATION.md) |
-| **G-07** | **Dual perception vote** second backend: separate `OllamaCompletion` — policy when primary host is degraded | [`perception_dual_vote.py`](../../src/modules/perception_dual_vote.py) | Align failure_reason metadata with `apply_backend_degradation_meta` when second sample fails; test subprocess |
-| **G-08** | **Input trust end-to-end** (Issue #2): lexical + semantic + perception cross-check + uncertainty | [`CRITIQUE_ROADMAP_ISSUES.md`](CRITIQUE_ROADMAP_ISSUES.md), [`MODEL_CRITICAL_BACKLOG.md`](MODEL_CRITICAL_BACKLOG.md) | Scenario tests spanning MalAbs + perception coercion_report; link from [`SECURITY.md`](../../SECURITY.md) |
-| **G-09** | **Profile bundles** for LLM-heavy demos | [`runtime_profiles.py`](../../src/runtime_profiles.py) | Ensure named profiles document LLM + semantic + perception flags together; CI smoke already covers some paths |
-| **G-10** | **Cross-team integration gate** for LLM-affecting merges | [`CURSOR_CROSS_TEAM_INTEGRATION_GATE.md`](../collaboration/CURSOR_CROSS_TEAM_INTEGRATION_GATE.md) | Run `scripts/eval/run_cursor_integration_gate.py` when touching `llm_layer`, `semantic_chat_gate`, or chat JSON contracts |
+| ID | Gap | Status | Notes / evidence |
+|----|-----|--------|-------------------|
+| **G-01** | Embedding transport vs chat completion operator mapping | **Closed (docs)** | [`PROPOSAL_LLM_TOUCHPOINT_DEGRADATION_MATRIX.md`](PROPOSAL_LLM_TOUCHPOINT_DEGRADATION_MATRIX.md) — section *Embedding transport vs chat completion*. |
+| **G-02** | MalAbs semantic observability vs `verbal_llm_observability` | **Closed (docs)** | [`MALABS_SEMANTIC_LAYERS.md`](MALABS_SEMANTIC_LAYERS.md) — subsection *Observability: MalAbs semantic vs chat verbal_llm_observability*. |
+| **G-03** | `process_natural` verbal degradation not exposed | **Closed (code)** | [`EthicalKernel.last_natural_verbal_llm_degradation_events`](../../src/kernel.py) property; snapshot after communicate/narrate; `None` if MalAbs blocks before LLM. Tests: [`tests/test_process_natural_verbal_observability.py`](../../tests/test_process_natural_verbal_observability.py). |
+| **G-04** | Single env surface for all LLM touchpoints | **Deferred** | Matrix remains source of truth; unification would need product decision ([`WEAKNESSES_AND_BOTTLENECKS.md`](../WEAKNESSES_AND_BOTTLENECKS.md) §3). |
+| **G-05** | Cooperative LLM cancel under async chat | **Deferred (documented)** | [`OPERATOR_QUICK_REF.md`](OPERATOR_QUICK_REF.md) — *LLM HTTP vs chat async deadline*; [`ADR 0002`](../adr/0002-async-orchestration-future.md). |
+| **G-06** | Generative candidates GIGO | **Closed (tests + docs)** | [`tests/test_generative_candidates.py`](../../tests/test_generative_candidates.py); [`PERCEPTION_VALIDATION.md`](PERCEPTION_VALIDATION.md) §3a. |
+| **G-07** | Dual perception second sample failure metadata | **Closed (code)** | [`LLMModule._maybe_apply_perception_dual_vote`](../../src/modules/llm_layer.py) merges `perception_dual_second_*` parse issues on failure. Tests: [`tests/test_perception_dual_vote_failure.py`](../../tests/test_perception_dual_vote_failure.py). |
+| **G-08** | Input trust chain smoke | **Closed (test)** | [`tests/test_input_trust.py`](../../tests/test_input_trust.py) `test_chat_safe_turn_coercion_report_chain`; [`SECURITY.md`](../../SECURITY.md) link to this track. |
+| **G-09** | Profile bundles for LLM-heavy demos | **Partial** | [`runtime_profiles.py`](../../src/runtime_profiles.py) bundles (e.g. `perception_hardening_lab`, `untrusted_chat_input`); extend when new LLM flags stabilize. |
+| **G-10** | Cross-team integration gate | **Partial (process)** | Run [`scripts/eval/run_cursor_integration_gate.py`](../../scripts/eval/run_cursor_integration_gate.py) per [`CURSOR_CROSS_TEAM_INTEGRATION_GATE.md`](../collaboration/CURSOR_CROSS_TEAM_INTEGRATION_GATE.md). |
 
 ---
 
@@ -63,3 +61,4 @@ Items are **ordered by integration leverage** (unblocks operators and tests firs
 ## 5) Changelog
 
 - **2026-04-14:** Initial gap register and track ownership for Cursor LLM integration scope.
+- **2026-04-14:** Closed G-01, G-02 (documentation); G-03 (`last_natural_verbal_llm_degradation_events`); G-06 (tests + perception doc); G-07 (dual-sample parse issues); G-05 (operator note); G-08 (smoke test + security link).

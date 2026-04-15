@@ -27,6 +27,10 @@ Use the **`ethos config`** command (after `pip install -e .` or `python -m src.e
 
 **Rule:** if a combination is not a **named profile** and not covered by a **test**, treat it as experimental ([`STRATEGY_AND_ROADMAP.md`](STRATEGY_AND_ROADMAP.md)).
 
+### LLM HTTP vs chat async deadline
+
+`KERNEL_CHAT_TURN_TIMEOUT` bounds how long **asyncio** waits for the worker thread that runs `process_chat_turn`; it does **not** cancel an in-flight HTTP request to Ollama. Tune `OLLAMA_TIMEOUT` alongside chat deadlines. Cooperative LLM cancellation is future work ([ADR 0002](../adr/0002-async-orchestration-future.md); gap G-05 in [`PROPOSAL_LLM_INTEGRATION_TRACK.md`](PROPOSAL_LLM_INTEGRATION_TRACK.md)).
+
 ### Perception observability contract (chat JSON)
 
 When a chat turn includes `perception`, the server emits:

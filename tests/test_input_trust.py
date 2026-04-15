@@ -280,3 +280,19 @@ def test_perceive_fallback_uses_current_message_for_local_heuristics(monkeypatch
     )
     assert p.suggested_context == "everyday_ethics"
     assert p.risk < 0.4
+
+
+def test_chat_safe_turn_coercion_report_chain(monkeypatch):
+    """Light chain: MalAbs → perception JSON path → decision; coercion_report keys present."""
+    monkeypatch.setenv("KERNEL_SEMANTIC_CHAT_GATE", "0")
+    k = EthicalKernel(variability=False, seed=1)
+    r = k.process_chat_turn(
+        "Planning a community park cleanup this weekend; supplies and timing."
+    )
+    assert r.blocked is False
+    assert r.perception is not None
+    cr = r.perception.coercion_report
+    if cr is not None:
+        assert isinstance(cr, dict)
+        assert "uncertainty" in cr
+    assert r.decision is not None

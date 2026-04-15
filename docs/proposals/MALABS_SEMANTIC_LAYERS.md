@@ -34,6 +34,11 @@ Production defaults match that posture (gate + hash on when unset); nominal LAN/
 
 **Metrics:** when `KERNEL_METRICS=1`, counter `ethos_kernel_semantic_malabs_outcomes_total{outcome=...}` records embedding/arbiter outcomes ([`src/observability/metrics.py`](../../src/observability/metrics.py)).
 
+### Observability: MalAbs semantic vs chat `verbal_llm_observability`
+
+- **MalAbs chat path:** outcomes surface through **`decision_trace`** on `AbsoluteEvilResult`, optional WebSocket **`malabs_trace`** (when enabled), and Prometheus **`ethos_kernel_semantic_malabs_outcomes_total`** / **`ethos_kernel_embedding_errors_total`**. This is **not** the same JSON object as **`verbal_llm_observability`** (communicate/narrate/monologue degradation).
+- **Perception / verbal:** structured coercion and verbal events are documented in [`PROPOSAL_PERCEPTION_OBSERVABILITY_CONTRACT.md`](PROPOSAL_PERCEPTION_OBSERVABILITY_CONTRACT.md) and [`PROPOSAL_LLM_VERBAL_DEGRADATION_POLICY.md`](PROPOSAL_LLM_VERBAL_DEGRADATION_POLICY.md). Operators should treat **MalAbs** and **generative wording** as separate telemetry families.
+
 ## Runtime anchors
 
 `add_semantic_anchor(phrase, category_key, reason_label)` in `src/modules/semantic_chat_gate.py` appends anchors without redeploying code (e.g. operator-discovered patterns). Category keys must match MalAbs enums: `INTENTIONAL_LETHAL_VIOLENCE`, `HARM_TO_MINOR`, `TORTURE`, `UNAUTHORIZED_REPROGRAMMING`, etc.

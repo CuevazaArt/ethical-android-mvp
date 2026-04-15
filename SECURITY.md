@@ -46,6 +46,7 @@ Security fixes, when provided, apply to the **default branch** (`main`) going fo
 
 - **MalAbs chat gate** (`AbsoluteEvilDetector.evaluate_chat_text`) uses **conservative substring lists** after Unicode normalization — **not** unbreakable filtering. Paraphrase, homoglyphs, leetspeak, and novel jailbreaks can slip through; see [`MALABS_SEMANTIC_LAYERS.md`](docs/proposals/MALABS_SEMANTIC_LAYERS.md). The same gate runs on **`process_natural`** input before perception. **Optional:** `KERNEL_SEMANTIC_CHAT_GATE=1` adds Ollama **embeddings** after lexical matching, with optional **LLM arbiter** for ambiguous bands — see [`PROPOSAL_MALABS_SEMANTIC_THRESHOLD_EVIDENCE.md`](docs/proposals/PROPOSAL_MALABS_SEMANTIC_THRESHOLD_EVIDENCE.md); not a guarantee.
 - **LLM perception JSON** is **clamped and validated** (`perception_from_llm_json` in `src/modules/llm_layer.py`); non-object JSON is ignored. Prompt-injection or compromised models can still push hostility/risk/calm within \([0,1]\) coherently enough to bias downstream heuristics; the kernel does not treat numeric outputs as ground truth.
+- **Integration backlog (LLM touchpoints, embeddings, degradation):** [`docs/proposals/PROPOSAL_LLM_INTEGRATION_TRACK.md`](docs/proposals/PROPOSAL_LLM_INTEGRATION_TRACK.md) (gap register G-01…G-10).
 
 ## Audit chain (optional)
 

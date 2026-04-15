@@ -447,14 +447,17 @@ class LLMModule:
                     temperature=t2,
                 )
         except Exception:
+            merge_parse_issues_into_perception(primary, ["perception_dual_second_llm_exception"])
             return
         parsed_b = parse_perception_llm_raw_response(response_b)
         data_b, issues_b = parsed_b.data, parsed_b.issues
         if not isinstance(data_b, dict) or not data_b:
+            merge_parse_issues_into_perception(primary, ["perception_dual_second_payload_empty"])
             return
         try:
             secondary = perception_from_llm_json(data_b, situation, parse_issues=issues_b)
         except Exception:
+            merge_parse_issues_into_perception(primary, ["perception_dual_second_validate_exception"])
             return
         apply_perception_dual_vote_metadata(primary, secondary)
 

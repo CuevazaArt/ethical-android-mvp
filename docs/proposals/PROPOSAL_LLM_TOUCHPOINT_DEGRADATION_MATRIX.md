@@ -74,6 +74,20 @@ If set and valid, it overrides `KERNEL_PERCEPTION_BACKEND_POLICY` for the same p
 
 ---
 
+## Embedding transport vs chat completion (operator mapping)
+
+**Different surfaces:** MalAbs semantic embeddings use [`semantic_embedding_client.py`](../../src/modules/semantic_embedding_client.py) (HTTP to Ollama `/api/embeddings`, retries, circuit-style counters). Chat **perception** and **communicate/narrate** use [`llm_backends.py`](../../src/modules/llm_backends.py) `completion()` with [`PROPOSAL_LLM_TOUCHPOINT_DEGRADATION_MATRIX.md`](PROPOSAL_LLM_TOUCHPOINT_DEGRADATION_MATRIX.md) policies and chat JSON diagnostics.
+
+| Concern | Embeddings (MalAbs L1) | Completion JSON (perception / verbal) |
+|---------|-------------------------|----------------------------------------|
+| Failure visibility | `decision_trace` / `malabs.*` strings; Prometheus `ethos_kernel_embedding_errors_total` | `perception.coercion_report`, `verbal_llm_observability` |
+| Policy env | `KERNEL_SEMANTIC_*`, hash fallback | `KERNEL_LLM_TP_*`, verbal family, legacy keys (this matrix) |
+| Degradation | Hash fallback or lexical-only deferral (see [`MALABS_SEMANTIC_LAYERS.md`](MALABS_SEMANTIC_LAYERS.md)) | `template_local` / `fast_fail` / `canned_safe` paths |
+
+A single unified env knob for **all** HTTP inference remains out of scope until operators ask for it (see [`WEAKNESSES_AND_BOTTLENECKS.md`](../WEAKNESSES_AND_BOTTLENECKS.md) §3).
+
+---
+
 ## Related proposals
 
 - [`PROPOSAL_LLM_INTEGRATION_TRACK.md`](PROPOSAL_LLM_INTEGRATION_TRACK.md) — gap register (embeddings vs completion, MalAbs, `process_natural`, generative candidates)

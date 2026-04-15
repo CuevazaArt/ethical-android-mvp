@@ -4,6 +4,13 @@ All notable changes to this project are summarized here. For narrative context a
 
 **Note:** Older sections below may still **link** to paths that were later removed (for example `experiments/million_sim/`, `docs/multimedia/`, root `dashboard.html`, `landing/`). Those links are **historical**; recover files from git history or backup branches if you need them.
 
+## LLM integration track — gap closure (G-01, G-02, G-03, G-05, G-06, G-07, G-08) — April 2026
+
+- **Kernel:** [`EthicalKernel.last_natural_verbal_llm_degradation_events`](src/kernel.py) exposes generative degradation from the last [`process_natural`](src/kernel.py) call (G-03).
+- **Dual perception vote:** second-sample failures merge `perception_dual_second_*` parse issues into primary [`coercion_report`](src/modules/llm_layer.py) (G-07).
+- **Docs:** [`PROPOSAL_LLM_TOUCHPOINT_DEGRADATION_MATRIX.md`](docs/proposals/PROPOSAL_LLM_TOUCHPOINT_DEGRADATION_MATRIX.md) (embedding vs completion mapping); [`MALABS_SEMANTIC_LAYERS.md`](docs/proposals/MALABS_SEMANTIC_LAYERS.md) (semantic vs verbal observability); [`PERCEPTION_VALIDATION.md`](docs/proposals/PERCEPTION_VALIDATION.md) (`generative_candidates`); [`OPERATOR_QUICK_REF.md`](docs/proposals/OPERATOR_QUICK_REF.md) (async deadline vs Ollama HTTP, G-05); [`SECURITY.md`](SECURITY.md) (link to integration track); [`PROPOSAL_LLM_INTEGRATION_TRACK.md`](docs/proposals/PROPOSAL_LLM_INTEGRATION_TRACK.md) (status table).
+- **Tests:** [`tests/test_process_natural_verbal_observability.py`](tests/test_process_natural_verbal_observability.py), [`tests/test_perception_dual_vote_failure.py`](tests/test_perception_dual_vote_failure.py), [`tests/test_generative_candidates.py`](tests/test_generative_candidates.py), [`tests/test_input_trust.py`](tests/test_input_trust.py) (`test_chat_safe_turn_coercion_report_chain`).
+
 ## Documentation — LLM integration track (gap register) — April 2026
 
 - **New:** [`docs/proposals/PROPOSAL_LLM_INTEGRATION_TRACK.md`](docs/proposals/PROPOSAL_LLM_INTEGRATION_TRACK.md) — Cursor-team scope for LLM wiring, MalAbs semantic/embeddings, perception/verbal policies, and integration gaps (G-01…G-10); cross-links from [`docs/proposals/MODEL_CRITICAL_BACKLOG.md`](docs/proposals/MODEL_CRITICAL_BACKLOG.md), [`docs/proposals/CURSOR_TEAM_MISSION_SENSORS_PERCEPTION.md`](docs/proposals/CURSOR_TEAM_MISSION_SENSORS_PERCEPTION.md), [`AGENTS.md`](AGENTS.md), and [`docs/proposals/README.md`](docs/proposals/README.md).
