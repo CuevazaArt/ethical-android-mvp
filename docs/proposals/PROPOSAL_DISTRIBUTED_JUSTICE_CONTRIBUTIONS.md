@@ -40,7 +40,7 @@ These items extend the **“Pending gaps”** list in [`PROPOSAL_DAO_BLOCKCHAIN_
 | ID | Item | Notes |
 |----|------|--------|
 | **DJ-BL-01** | **Replay / ledger checker (Phase 1)** — Fingerprint of canonical audit-export JSON; CLI compare. | **Done** — [`mock_dao_audit_replay.py`](../../src/modules/mock_dao_audit_replay.py), [`scripts/eval/verify_mock_dao_audit_replay.py`](../../scripts/eval/verify_mock_dao_audit_replay.py). |
-| **DJ-BL-02** | **LAN reorder / duplicate (Phase 2)** — Idempotent merge of out-of-order or duplicated governance events. | **Partial:** [`lan_governance_event_merge.py`](../../src/modules/lan_governance_event_merge.py) (`merge_lan_governance_events`) + [`tests/test_lan_governance_event_merge.py`](../../tests/test_lan_governance_event_merge.py). Full WebSocket / multi-node ingestion not wired yet. |
+| **DJ-BL-02** | **LAN reorder / duplicate (Phase 2)** — Idempotent merge of out-of-order or duplicated governance events. | **Done:** merge helper + WebSocket ``lan_governance_integrity_batch`` ([`chat_server.py`](../../src/chat_server.py); ``KERNEL_LAN_GOVERNANCE_MERGE_WS`` + ``KERNEL_DAO_INTEGRITY_AUDIT_WS``). DAO/judicial batch kinds still future work. |
 | **DJ-BL-03** | **Operator runbook slice** — Short subsection in [`OPERATOR_QUICK_REF.md`](OPERATOR_QUICK_REF.md): “sync degraded, local-safe mode” (`KERNEL_TEMPORAL_*`, judicial JSON still present). | **Done** |
 | **DJ-BL-04** | **Contract matrix** — Which `master-*` branches own which JSON keys (`judicial_escalation`, `mock_court`, `temporal_sync`). | **Done** — [`PROPOSAL_DISTRIBUTED_JUSTICE_CONTRACT_MATRIX.md`](PROPOSAL_DISTRIBUTED_JUSTICE_CONTRACT_MATRIX.md) |
 
@@ -74,3 +74,4 @@ Contributors should pick **one** item per PR when possible; link **`CHANGELOG.md
 - **2026-04-15:** DJ-BL-* table; link to [`PROPOSAL_DISTRIBUTED_JUSTICE_BACKLOG_SYSTEM.md`](PROPOSAL_DISTRIBUTED_JUSTICE_BACKLOG_SYSTEM.md); DJ-BL-02 partial (`lan_governance_event_merge`).
 - **2026-04-15:** DJ-BL-03 done — `OPERATOR_QUICK_REF.md` sync degraded / local-safe mode paragraph.
 - **2026-04-15:** DJ-BL-01 (audit fingerprint + `verify_mock_dao_audit_replay.py`); DJ-BL-04 (contract matrix + [`PROPOSAL_CHAT_SERVER_HTTP_API_SURFACE.md`](PROPOSAL_CHAT_SERVER_HTTP_API_SURFACE.md)).
+- **2026-04-15:** DJ-BL-02 done — `lan_governance_integrity_batch` WebSocket path.

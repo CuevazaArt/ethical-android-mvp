@@ -85,6 +85,19 @@ def dao_integrity_audit_ws_enabled() -> bool:
     return v in ("1", "true", "yes", "on")
 
 
+def lan_governance_integrity_batch_ws_enabled() -> bool:
+    """
+    WebSocket ``lan_governance_integrity_batch`` — reorder/dedupe then apply integrity alerts (Phase 2 LAN stub).
+
+    Requires ``KERNEL_DAO_INTEGRITY_AUDIT_WS=1`` and ``KERNEL_LAN_GOVERNANCE_MERGE_WS=1``.
+    See :func:`src.modules.lan_governance_event_merge.merge_lan_governance_events`.
+    """
+    if not dao_integrity_audit_ws_enabled():
+        return False
+    v = os.environ.get("KERNEL_LAN_GOVERNANCE_MERGE_WS", "0").strip().lower()
+    return v in ("1", "true", "yes", "on")
+
+
 def proposal_to_public(p: Any) -> dict[str, Any]:
     """JSON-safe summary of a DAO :class:`~src.modules.mock_dao.Proposal` (quadratic vote totals)."""
     vf = getattr(p, "votes_for", None) or {}

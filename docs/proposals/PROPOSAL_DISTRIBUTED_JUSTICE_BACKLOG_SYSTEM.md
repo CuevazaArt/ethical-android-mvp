@@ -27,7 +27,7 @@ Current registry (aligned with contribution guide §3):
 | ID | Topic | Status |
 |----|--------|--------|
 | **DJ-BL-01** | Replay / ledger checker (Phase 1) | **Done** — [`mock_dao_audit_replay.py`](../../src/modules/mock_dao_audit_replay.py), [`verify_mock_dao_audit_replay.py`](../../scripts/eval/verify_mock_dao_audit_replay.py), [`tests/test_mock_dao_audit_replay.py`](../../tests/test_mock_dao_audit_replay.py). Fingerprint equality only; full state replay of proposals not in scope. |
-| **DJ-BL-02** | LAN reorder / duplicate handling | **Partial** — pure merge helper [`lan_governance_event_merge.py`](../../src/modules/lan_governance_event_merge.py) + [`tests/test_lan_governance_event_merge.py`](../../tests/test_lan_governance_event_merge.py); WebSocket ingestion still future work. |
+| **DJ-BL-02** | LAN reorder / duplicate handling | **Done** — merge helper + tests; WebSocket ``lan_governance_integrity_batch`` when ``KERNEL_LAN_GOVERNANCE_MERGE_WS=1`` and ``KERNEL_DAO_INTEGRITY_AUDIT_WS=1`` ([`chat_server.py`](../../src/chat_server.py)). Extending the same pattern to ``dao_vote`` / judicial batches is **not** in this ID. |
 | **DJ-BL-03** | Operator runbook: sync degraded, local-safe mode | **Done** — [`OPERATOR_QUICK_REF.md`](OPERATOR_QUICK_REF.md) §Temporal planning / sync contract (*Sync degraded — local-safe mode*). |
 | **DJ-BL-04** | Contract matrix (`master-*` × JSON keys) | **Done** — [`PROPOSAL_DISTRIBUTED_JUSTICE_CONTRACT_MATRIX.md`](PROPOSAL_DISTRIBUTED_JUSTICE_CONTRACT_MATRIX.md) |
 
@@ -62,3 +62,4 @@ Use in PR descriptions and proposal edits (not a database):
 - **2026-04-15:** Initial backlog ID system; DJ-BL-02 marked partial after `lan_governance_event_merge` + tests.
 - **2026-04-15:** DJ-BL-03 done — operator runbook slice in `OPERATOR_QUICK_REF.md` (sync flags vs local ethics/MockDAO).
 - **2026-04-15:** DJ-BL-01 done (audit fingerprint + script); DJ-BL-04 done (contract matrix + HTTP API surface doc).
+- **2026-04-15:** DJ-BL-02 done — WebSocket ``lan_governance_integrity_batch`` + env gate ``KERNEL_LAN_GOVERNANCE_MERGE_WS``.

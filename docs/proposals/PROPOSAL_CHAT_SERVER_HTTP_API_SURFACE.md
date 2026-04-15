@@ -34,6 +34,7 @@ The kernel chat server exposes **GET** endpoints returning JSON (or Prometheus t
 ## WebSocket (not HTTP REST)
 
 - **`/ws/chat`** — bidirectional JSON; see root `GET /` `protocol` field and README WebSocket section.
+- **LAN integrity batch (DJ-BL-02):** ``lan_governance_integrity_batch`` when ``KERNEL_LAN_GOVERNANCE_MERGE_WS=1`` and ``KERNEL_DAO_INTEGRITY_AUDIT_WS=1`` — see contract matrix.
 
 ---
 
@@ -47,3 +48,4 @@ The kernel chat server exposes **GET** endpoints returning JSON (or Prometheus t
 ## Changelog
 
 - **2026-04-15:** Initial surface inventory for operator and cross-team contract reviews.
+- **2026-04-15:** WebSocket note for ``lan_governance_integrity_batch``.

@@ -401,6 +401,84 @@ def test_websocket_integrity_alert_disabled_returns_clear_error(monkeypatch):
     assert "KERNEL_DAO_INTEGRITY_AUDIT_WS" in (data.get("hint") or "")
 
 
+def test_websocket_lan_governance_integrity_batch_merges_and_applies(monkeypatch):
+    monkeypatch.setenv("KERNEL_DAO_INTEGRITY_AUDIT_WS", "1")
+    monkeypatch.setenv("KERNEL_LAN_GOVERNANCE_MERGE_WS", "1")
+    payload = {
+        "lan_governance_integrity_batch": {
+            "events": [
+                {
+                    "event_id": "e2",
+                    "turn_index": 2,
+                    "processor_elapsed_ms": 0,
+                    "summary": "second turn alert",
+                    "scope": "lan_test",
+                },
+                {
+                    "event_id": "e1",
+                    "turn_index": 1,
+                    "processor_elapsed_ms": 50,
+                    "summary": "first turn alert",
+                    "scope": "lan_test",
+                },
+                {
+                    "event_id": "e1",
+                    "turn_index": 1,
+                    "processor_elapsed_ms": 99,
+                    "summary": "duplicate id ignored",
+                    "scope": "lan_test",
+                },
+            ],
+        },
+    }
+    with client.websocket_connect("/ws/chat") as ws:
+        ws.send_json(payload)
+        data = ws.receive_json()
+    batch = data.get("lan_governance", {}).get("integrity_batch", {})
+    assert batch.get("ok") is True
+    assert batch.get("input_count") == 3
+    assert batch.get("merged_count") == 2
+    assert batch.get("deduped_count") == 1
+    assert batch.get("applied_count") == 2
+    assert batch.get("event_ids") == ["e1", "e2"]
+
+
+def test_websocket_lan_governance_integrity_batch_disabled_returns_hint(monkeypatch):
+    monkeypatch.setenv("KERNEL_DAO_INTEGRITY_AUDIT_WS", "1")
+    monkeypatch.delenv("KERNEL_LAN_GOVERNANCE_MERGE_WS", raising=False)
+    with client.websocket_connect("/ws/chat") as ws:
+        ws.send_json(
+            {
+                "lan_governance_integrity_batch": {
+                    "events": [
+                        {
+                            "event_id": "a",
+                            "turn_index": 1,
+                            "processor_elapsed_ms": 0,
+                            "summary": "x",
+                        },
+                    ],
+                },
+            }
+        )
+        data = ws.receive_json()
+    batch = data.get("lan_governance", {}).get("integrity_batch", {})
+    assert batch.get("ok") is False
+    assert batch.get("error") == "disabled"
+    assert "KERNEL_LAN_GOVERNANCE_MERGE_WS" in (batch.get("hint") or "")
+
+
+def test_websocket_lan_governance_integrity_batch_invalid_events_type(monkeypatch):
+    monkeypatch.setenv("KERNEL_DAO_INTEGRITY_AUDIT_WS", "1")
+    monkeypatch.setenv("KERNEL_LAN_GOVERNANCE_MERGE_WS", "1")
+    with client.websocket_connect("/ws/chat") as ws:
+        ws.send_json({"lan_governance_integrity_batch": {"events": "not-a-list"}})
+        data = ws.receive_json()
+    batch = data.get("lan_governance", {}).get("integrity_batch", {})
+    assert batch.get("ok") is False
+    assert batch.get("error") == "events_must_be_list"
+
+
 def test_websocket_reality_verification_lighthouse(monkeypatch):
     from src.modules.reality_verification import clear_lighthouse_cache
 

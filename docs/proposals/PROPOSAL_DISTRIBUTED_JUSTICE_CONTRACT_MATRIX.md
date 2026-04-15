@@ -17,6 +17,7 @@
 | `temporal_context` / `temporal_sync` | Yes (per turn when temporal planning builds context) | `sync_schema` = `temporal_sync_v1` unless announced otherwise |
 | `verbal_llm_observability` | Yes (when generative verbal degrades) | LLM matrix |
 | `dao` (list / vote / resolve / submit_draft) | Yes (when `KERNEL_MORAL_HUB_DAO_VOTE=1`) | Meta: [`GET /dao/governance`](../../src/chat_server.py) |
+| `lan_governance_integrity_batch` | Yes (when `KERNEL_DAO_INTEGRITY_AUDIT_WS=1` **and** `KERNEL_LAN_GOVERNANCE_MERGE_WS=1`) | Merge + apply integrity alerts; [`lan_governance_event_merge.py`](../../src/modules/lan_governance_event_merge.py) |
 | `constitution` (in-message snapshot) | Optional (`KERNEL_CHAT_INCLUDE_*`) | Hub stack |
 
 ---
@@ -57,3 +58,4 @@ Update this section when a cross-team integration gate run documents verified pa
 ## 5) Changelog
 
 - **2026-04-15:** Initial matrix + pointer to HTTP API surface doc.
+- **2026-04-15:** WebSocket ``lan_governance_integrity_batch`` row (DJ-BL-02).

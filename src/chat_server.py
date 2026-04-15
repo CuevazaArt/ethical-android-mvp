@@ -72,6 +72,10 @@ DAO integrity (design → local audit): ``KERNEL_DAO_INTEGRITY_AUDIT_WS=1`` enab
 ``integrity_alert`` → ``HubAudit:dao_integrity`` on MockDAO (no network broadcast). See
 PROPOSAL_DAO_ALERTS_AND_TRANSPARENCY.md.
 
+LAN governance merge (Phase 2): ``KERNEL_LAN_GOVERNANCE_MERGE_WS=1`` (with integrity audit on)
+enables WebSocket ``lan_governance_integrity_batch`` — deterministic sort/dedupe via
+``lan_governance_event_merge``, then one ledger row per merged event. DJ-BL-02.
+
 Advisory telemetry (optional, Fase 1.3–1.4): KERNEL_ADVISORY_INTERVAL_S — positive seconds
 spawns a read-only :func:`src.runtime.telemetry.advisory_loop` per WebSocket session (DriveArbiter only).
 Metaplan vs drives (v9.4): KERNEL_METAPLAN_DRIVE_FILTER / KERNEL_METAPLAN_DRIVE_EXTRA — see metaplan_registry.py.
@@ -115,6 +119,7 @@ from .modules.guardian_routines import public_routines_snapshot
 from .modules.hub_audit import record_dao_integrity_alert
 from .modules.internal_monologue import compose_monologue_line
 from .modules.judicial_escalation import chat_include_judicial
+from .modules.lan_governance_event_merge import merge_lan_governance_events
 from .modules.ml_ethics_tuner import maybe_log_gray_zone_tuning_opportunity
 from .modules.moral_hub import (
     add_constitution_draft,
@@ -126,6 +131,7 @@ from .modules.moral_hub import (
     dao_governance_api_enabled,
     dao_integrity_audit_ws_enabled,
     ethos_payroll_record_mock,
+    lan_governance_integrity_batch_ws_enabled,
     moral_hub_public_enabled,
     proposal_to_public,
     submit_constitution_draft_for_vote,
@@ -775,6 +781,105 @@ def _collect_integrity_ws_action(
     return {"integrity_alert": {"ok": True, "scope": scope}}
 
 
+def _collect_lan_governance_integrity_batch(
+    kernel: EthicalKernel, data: dict[str, Any]
+) -> dict[str, Any] | None:
+    """
+    Optional batch of integrity alerts: merge (turn / processor time / id) then apply in order.
+
+    Client shape::
+        {"lan_governance_integrity_batch": {"events": [...], "id_key": "event_id"}}
+    Each event needs ``summary``; optional ``scope``, ``principled_transparency``; merge keys per
+    :func:`~src.modules.lan_governance_event_merge.merge_lan_governance_events`.
+    """
+    raw = data.get("lan_governance_integrity_batch")
+    if raw is None:
+        return None
+    if not isinstance(raw, dict):
+        return {
+            "lan_governance": {
+                "integrity_batch": {
+                    "ok": False,
+                    "error": "invalid_payload",
+                    "hint": "expected object",
+                },
+            }
+        }
+
+    if not lan_governance_integrity_batch_ws_enabled():
+        return {
+            "lan_governance": {
+                "integrity_batch": {
+                    "ok": False,
+                    "error": "disabled",
+                    "hint": (
+                        "Set KERNEL_LAN_GOVERNANCE_MERGE_WS=1 and KERNEL_DAO_INTEGRITY_AUDIT_WS=1."
+                    ),
+                },
+            }
+        }
+
+    events_in = raw.get("events")
+    if not isinstance(events_in, list):
+        return {
+            "lan_governance": {
+                "integrity_batch": {"ok": False, "error": "events_must_be_list"},
+            }
+        }
+
+    id_key = str(raw.get("id_key") or "event_id").strip() or "event_id"
+    dict_rows: list[dict[str, Any]] = [dict(x) for x in events_in if isinstance(x, dict)]
+    input_count = len(dict_rows)
+    missing_id_count = sum(1 for r in dict_rows if not str(r.get(id_key, "") or "").strip())
+
+    merged = merge_lan_governance_events(dict_rows, id_key=id_key)
+    merged_count = len(merged)
+    with_id_count = max(0, input_count - missing_id_count)
+    deduped_count = max(0, with_id_count - merged_count)
+
+    errors: list[dict[str, Any]] = []
+    applied_ids: list[str] = []
+    applied = 0
+    for row in merged:
+        eid = str(row.get(id_key, "") or "").strip()
+        summary = str(row.get("summary") or "").strip()
+        if not summary:
+            errors.append({"event_id": eid, "error": "missing_summary"})
+            continue
+        scope = str(row.get("scope") or "local_audit").strip()[:120]
+        pt = row.get("principled_transparency")
+        if isinstance(pt, bool):
+            record_dao_integrity_alert(
+                kernel.dao,
+                summary=summary,
+                scope=scope,
+                principled_transparency=pt,
+            )
+        else:
+            record_dao_integrity_alert(kernel.dao, summary=summary, scope=scope)
+        applied += 1
+        applied_ids.append(eid)
+
+    if applied:
+        record_dao_ws_operation("lan_governance_integrity_batch")
+
+    ok = merged_count == 0 or (not errors and applied == merged_count)
+    return {
+        "lan_governance": {
+            "integrity_batch": {
+                "ok": ok,
+                "input_count": input_count,
+                "missing_id_count": missing_id_count,
+                "merged_count": merged_count,
+                "deduped_count": deduped_count,
+                "applied_count": applied,
+                "event_ids": applied_ids,
+                "errors": errors,
+            },
+        },
+    }
+
+
 def _collect_nomad_ws_actions(kernel: EthicalKernel, data: dict[str, Any]) -> dict[str, Any] | None:
     """KERNEL_NOMAD_SIMULATION — apply HAL + optional DAO migration audit (lab)."""
     if not nomad_simulation_ws_enabled():
@@ -878,7 +983,8 @@ async def ws_chat(ws: WebSocket) -> None:
             dao_payload = _collect_dao_ws_actions(kernel, data)
             nomad_payload = _collect_nomad_ws_actions(kernel, data)
             integrity_payload = _collect_integrity_ws_action(kernel, data)
-            if dao_payload or nomad_payload or integrity_payload:
+            lan_batch_payload = _collect_lan_governance_integrity_batch(kernel, data)
+            if dao_payload or nomad_payload or integrity_payload or lan_batch_payload:
                 out_ws: dict[str, Any] = {}
                 if dao_payload:
                     out_ws["dao"] = dao_payload
@@ -886,11 +992,13 @@ async def ws_chat(ws: WebSocket) -> None:
                     out_ws["nomad"] = nomad_payload
                 if integrity_payload:
                     out_ws["integrity"] = integrity_payload
+                if lan_batch_payload:
+                    out_ws.update(lan_batch_payload)
                 await ws.send_json(out_ws)
 
             text = text_preview
             if not text:
-                if dao_payload or nomad_payload or integrity_payload:
+                if dao_payload or nomad_payload or integrity_payload or lan_batch_payload:
                     maybe_autosave_episodes(kernel, session_ckpt)
                     continue
                 await ws.send_json({"error": "empty_text"})
