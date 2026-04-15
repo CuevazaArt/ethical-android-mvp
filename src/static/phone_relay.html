@@ -1,0 +1,532 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#1a1a1a">
+  <meta name="description" content="Ethos Kernel — Field test sensor relay">
+  <title>Ethos Kernel — Phone Relay</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen, Ubuntu, sans-serif;
+      background: linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 100%);
+      color: #fff;
+      padding: 0.5rem;
+      min-height: 100vh;
+    }
+    .container {
+      max-width: 480px;
+      margin: 0 auto;
+      background: rgba(255, 255, 255, 0.02);
+      border-radius: 12px;
+      padding: 1.5rem;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+    }
+    h1 {
+      font-size: 1.8rem;
+      margin-bottom: 0.5rem;
+      background: linear-gradient(135deg, #ff6b6b, #4ecdc4);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+    .subtitle {
+      color: #aaa;
+      font-size: 0.85rem;
+      margin-bottom: 1.5rem;
+    }
+    .banner {
+      background: rgba(255, 107, 107, 0.2);
+      border: 1px solid #ff6b6b;
+      border-radius: 8px;
+      padding: 0.75rem;
+      margin-bottom: 1.5rem;
+      font-size: 0.9rem;
+      color: #ffb3b3;
+    }
+    .button-group {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 0.75rem;
+      margin-bottom: 1.5rem;
+    }
+    button {
+      padding: 1rem;
+      font-size: 0.95rem;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      font-weight: 600;
+      transition: all 0.3s ease;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+    button:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+    #btn-start {
+      grid-column: 1 / -1;
+      background: linear-gradient(135deg, #4caf50, #45a049);
+      color: white;
+    }
+    #btn-start:hover:not(:disabled) { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(76, 175, 80, 0.4); }
+    #btn-pause {
+      background: linear-gradient(135deg, #ff9800, #f57c00);
+      color: white;
+    }
+    #btn-pause:hover:not(:disabled) { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(255, 152, 0, 0.4); }
+    #btn-end {
+      background: linear-gradient(135deg, #f44336, #da190b);
+      color: white;
+    }
+    #btn-end:hover:not(:disabled) { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(244, 67, 54, 0.4); }
+    #btn-trusted {
+      grid-column: 1 / -1;
+      background: linear-gradient(135deg, #2196f3, #1565c0);
+      color: white;
+    }
+    #btn-trusted:hover:not(:disabled) { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(33, 150, 243, 0.4); }
+    .status-panel {
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 8px;
+      padding: 1rem;
+      margin-bottom: 1.5rem;
+      font-size: 0.85rem;
+      line-height: 1.6;
+    }
+    .status-line {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 0.5rem;
+    }
+    .status-label { color: #aaa; }
+    .status-value { color: #4ecdc4; font-weight: 600; }
+    .sensor-panel {
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 8px;
+      padding: 1rem;
+      margin-bottom: 1rem;
+    }
+    .sensor-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 0.75rem;
+      font-size: 0.85rem;
+    }
+    .sensor-name { color: #aaa; }
+    .sensor-bar {
+      flex: 1;
+      height: 6px;
+      background: rgba(255, 255, 255, 0.1);
+      border-radius: 3px;
+      margin: 0 0.75rem;
+      overflow: hidden;
+    }
+    .sensor-fill {
+      height: 100%;
+      background: linear-gradient(90deg, #4ecdc4, #ff6b6b);
+      border-radius: 3px;
+      transition: width 0.2s ease;
+    }
+    .sensor-value { color: #4ecdc4; font-weight: 600; min-width: 35px; text-align: right; }
+    .error { color: #ffb3b3; }
+    .success { color: #a8e6cf; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>Ethos Kernel</h1>
+    <p class="subtitle">Field Test — Sensor Relay v0.1</p>
+    <div class="banner">⚠ Recording sensor summaries. Data sent to local server only.</div>
+
+    <div class="button-group">
+      <button id="btn-start">▶ Start Session</button>
+      <button id="btn-pause" disabled>⏸ Pause</button>
+      <button id="btn-end" disabled>⏹ End</button>
+      <button id="btn-trusted">📍 Trusted Place</button>
+    </div>
+
+    <div class="status-panel">
+      <div class="status-line">
+        <span class="status-label">Status:</span>
+        <span class="status-value" id="status">Idle</span>
+      </div>
+      <div class="status-line">
+        <span class="status-label">Session ID:</span>
+        <span class="status-value" id="session-id">—</span>
+      </div>
+      <div class="status-line">
+        <span class="status-label">Frames sent:</span>
+        <span class="status-value" id="frame-count">0</span>
+      </div>
+      <div class="status-line">
+        <span class="status-label">Last action:</span>
+        <span class="status-value" id="last-action">—</span>
+      </div>
+    </div>
+
+    <div class="sensor-panel" id="sensors" style="display: none;">
+      <div class="sensor-item">
+        <span class="sensor-name">Battery</span>
+        <div class="sensor-bar"><div class="sensor-fill" id="battery-fill" style="width: 0%"></div></div>
+        <span class="sensor-value" id="battery-val">—</span>
+      </div>
+      <div class="sensor-item">
+        <span class="sensor-name">Jerk (m/s³)</span>
+        <div class="sensor-bar"><div class="sensor-fill" id="jerk-fill" style="width: 0%"></div></div>
+        <span class="sensor-value" id="jerk-val">—</span>
+      </div>
+      <div class="sensor-item">
+        <span class="sensor-name">Noise (dB)</span>
+        <div class="sensor-bar"><div class="sensor-fill" id="noise-fill" style="width: 0%"></div></div>
+        <span class="sensor-value" id="noise-val">—</span>
+      </div>
+      <div class="sensor-item">
+        <span class="sensor-name">Silence</span>
+        <div class="sensor-bar"><div class="sensor-fill" id="silence-fill" style="width: 0%"></div></div>
+        <span class="sensor-value" id="silence-val">—</span>
+      </div>
+    </div>
+
+    <div id="message" style="padding: 0.75rem; border-radius: 6px; font-size: 0.85rem; display: none;"></div>
+  </div>
+
+  <script>
+    // === PWA Sensor Relay Implementation (ADR 0017) ===
+    const API_BASE = window.location.origin;
+    const WS_PATH = '/ws/chat';
+    let ws = null;
+    let sessionId = null;
+    let frameCount = 0;
+    let isRecording = false;
+    let lastSensorSnapshot = null;
+    let audioContext = null;
+    let sensorRateLimit = 500; // ms (2 Hz default: 1000/2)
+
+    // Sensor state
+    let sensors = {
+      battery: null,
+      accel: { x: 0, y: 0, z: 0 },
+      noise: null,
+      silence: null,
+      trustedPlace: false
+    };
+
+    const $ = id => document.getElementById(id);
+    const msg = (text, type = 'info') => {
+      const el = $('message');
+      el.textContent = text;
+      el.className = `${type}`;
+      el.style.display = 'block';
+      if (type !== 'error') setTimeout(() => el.style.display = 'none', 3000);
+    };
+
+    // === Battery Status (Battery API) ===
+    function initBattery() {
+      if (!navigator.getBattery && !navigator.battery) return;
+      const promise = navigator.getBattery ? navigator.getBattery() : Promise.resolve(navigator.battery);
+      promise.then(battery => {
+        const updateBattery = () => {
+          sensors.battery = Math.round(battery.level * 100);
+          updateBatteryUI();
+        };
+        battery.addEventListener('levelchange', updateBattery);
+        updateBattery();
+      }).catch(() => null);
+    }
+
+    function updateBatteryUI() {
+      if (sensors.battery !== null) {
+        $('battery-val').textContent = sensors.battery + '%';
+        $('battery-fill').style.width = sensors.battery + '%';
+      }
+    }
+
+    // === DeviceMotion (Accelerometer) ===
+    function initMotion() {
+      window.addEventListener('devicemotion', e => {
+        if (!e.acceleration) return;
+        sensors.accel = {
+          x: e.acceleration.x || 0,
+          y: e.acceleration.y || 0,
+          z: e.acceleration.z || 0
+        };
+      }, false);
+    }
+
+    function getJerk() {
+      const { x, y, z } = sensors.accel;
+      return Math.sqrt(x * x + y * y + z * z);
+    }
+
+    function updateJerkUI() {
+      const jerk = getJerk();
+      const normalized = Math.min(jerk / 20, 1); // Cap at 20 m/s^2
+      $('jerk-val').textContent = jerk.toFixed(1);
+      $('jerk-fill').style.width = (normalized * 100) + '%';
+    }
+
+    // === Audio Level (AudioWorklet with ScriptProcessorNode fallback) ===
+    async function initAudio() {
+      try {
+        const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+        audioContext = new (window.AudioContext || window.webkitAudioContext)();
+        const source = audioContext.createMediaStreamSource(stream);
+
+        // Try AudioWorklet first (preferred)
+        if (audioContext.audioWorklet) {
+          try {
+            const workletCode = `
+              class NoiseAnalyzer extends AudioWorkletProcessor {
+                constructor() { super(); this.processor = null; }
+                process(inputs) {
+                  const input = inputs[0];
+                  if (!input[0]) return true;
+                  let sum = 0;
+                  for (let i = 0; i < input[0].length; i++) {
+                    sum += input[0][i] * input[0][i];
+                  }
+                  const rms = Math.sqrt(sum / input[0].length);
+                  const db = 20 * Math.log10(rms + 1e-6);
+                  this.port.postMessage({ db });
+                  return true;
+                }
+              }
+              registerProcessor('noise-analyzer', NoiseAnalyzer);
+            `;
+            const blob = new Blob([workletCode], { type: 'application/javascript' });
+            const url = URL.createObjectURL(blob);
+            await audioContext.audioWorklet.addModule(url);
+            const analyser = new AudioWorkletNode(audioContext, 'noise-analyzer');
+            analyser.port.onmessage = e => {
+              sensors.noise = Math.max(0, e.data.db);
+              sensors.silence = sensors.noise < -40 ? 1 : 0;
+            };
+            source.connect(analyser).connect(audioContext.destination);
+          } catch (e) {
+            initAudioFallback(source);
+          }
+        } else {
+          initAudioFallback(source);
+        }
+      } catch (e) {
+        msg('Microphone access denied or unavailable', 'error');
+      }
+    }
+
+    function initAudioFallback(source) {
+      const analyser = audioContext.createAnalyser();
+      analyser.fftSize = 2048;
+      source.connect(analyser);
+      const dataArray = new Uint8Array(analyser.frequencyBinCount);
+      const updateAudio = () => {
+        analyser.getByteFrequencyData(dataArray);
+        let sum = 0;
+        for (let i = 0; i < dataArray.length; i++) sum += dataArray[i];
+        const avg = sum / dataArray.length / 255;
+        sensors.noise = 20 * Math.log10(avg + 1e-6);
+        sensors.silence = avg < 0.05 ? 1 : 0;
+        requestAnimationFrame(updateAudio);
+      };
+      updateAudio();
+    }
+
+    function updateAudioUI() {
+      if (sensors.noise !== null) {
+        $('noise-val').textContent = sensors.noise.toFixed(1) + 'dB';
+        $('noise-fill').style.width = Math.min(Math.max((sensors.noise + 60) / 60 * 100, 0), 100) + '%';
+      }
+      if (sensors.silence !== null) {
+        $('silence-val').textContent = sensors.silence > 0.5 ? 'Yes' : 'No';
+        $('silence-fill').style.width = (sensors.silence * 100) + '%';
+      }
+    }
+
+    // === WebSocket & Sensor Streaming ===
+    async function connectWebSocket() {
+      const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+      const url = `${protocol}//${window.location.host}${WS_PATH}`;
+      ws = new WebSocket(url);
+      ws.onopen = () => {
+        msg('WebSocket connected', 'success');
+        streamSensors();
+      };
+      ws.onmessage = e => {
+        try {
+          const data = JSON.parse(e.data);
+          if (data.final_action) {
+            $('last-action').textContent = data.final_action;
+          }
+        } catch (e) {}
+      };
+      ws.onerror = () => msg('WebSocket error', 'error');
+      ws.onclose = () => {
+        msg('WebSocket closed', 'info');
+        if (isRecording) setTimeout(connectWebSocket, 2000);
+      };
+    }
+
+    function streamSensors() {
+      if (!isRecording || !ws || ws.readyState !== 1) return;
+
+      frameCount++;
+      $('frame-count').textContent = frameCount;
+
+      const sensorData = {
+        role: 'sensor_relay',
+        text: `[Field session: ${sessionId}]`,
+        sensor: {
+          battery: sensors.battery,
+          jerk: getJerk(),
+          noise: sensors.noise,
+          silence: sensors.silence,
+          trusted_place: sensors.trustedPlace
+        }
+      };
+
+      try {
+        ws.send(JSON.stringify(sensorData));
+      } catch (e) {
+        msg('Failed to send sensor frame', 'error');
+      }
+
+      setTimeout(streamSensors, sensorRateLimit);
+    }
+
+    // === Session Control ===
+    async function pairSession() {
+      const token = prompt('Enter pairing token:');
+      if (!token) return;
+
+      try {
+        const res = await fetch(`${API_BASE}/control/pair`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ token })
+        });
+        const data = await res.json();
+
+        if (data.field_session_id) {
+          sessionId = data.field_session_id;
+          localStorage.setItem('field_session_id', sessionId);
+          $('session-id').textContent = sessionId.slice(0, 8) + '...';
+          $('status').textContent = 'Paired';
+          msg('Paired successfully!', 'success');
+
+          // Enable recording UI
+          isRecording = true;
+          $('btn-start').disabled = true;
+          $('btn-pause').disabled = false;
+          $('btn-end').disabled = false;
+          $('sensors').style.display = 'block';
+
+          connectWebSocket();
+        } else {
+          msg('Pairing failed: ' + (data.error || 'Unknown error'), 'error');
+        }
+      } catch (e) {
+        msg('Pairing request failed', 'error');
+      }
+    }
+
+    async function controlSession(action) {
+      try {
+        const res = await fetch(`${API_BASE}/control/session`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ action })
+        });
+        const data = await res.json();
+
+        if (action === 'pause') {
+          isRecording = false;
+          $('status').textContent = 'Paused';
+          $('btn-pause').disabled = true;
+          $('btn-start').disabled = false;
+          msg('Session paused', 'info');
+        } else if (action === 'resume') {
+          isRecording = true;
+          $('status').textContent = 'Recording';
+          $('btn-pause').disabled = false;
+          $('btn-start').disabled = true;
+          streamSensors();
+          msg('Session resumed', 'success');
+        } else if (action === 'end') {
+          isRecording = false;
+          sessionId = null;
+          localStorage.removeItem('field_session_id');
+          $('status').textContent = 'Idle';
+          $('session-id').textContent = '—';
+          $('frame-count').textContent = '0';
+          $('last-action').textContent = '—';
+          $('sensors').style.display = 'none';
+          $('btn-start').disabled = false;
+          $('btn-pause').disabled = true;
+          $('btn-end').disabled = true;
+          if (ws) ws.close();
+          msg('Session ended', 'success');
+        }
+      } catch (e) {
+        msg('Control request failed', 'error');
+      }
+    }
+
+    // === UI Event Handlers ===
+    $('btn-start').addEventListener('click', () => {
+      if (sessionId) {
+        controlSession('resume');
+      } else {
+        pairSession();
+      }
+    });
+
+    $('btn-pause').addEventListener('click', () => controlSession('pause'));
+    $('btn-end').addEventListener('click', () => controlSession('end'));
+
+    $('btn-trusted').addEventListener('click', () => {
+      sensors.trustedPlace = !sensors.trustedPlace;
+      $('btn-trusted').style.opacity = sensors.trustedPlace ? '1' : '0.6';
+      msg(`Trusted place: ${sensors.trustedPlace ? 'enabled' : 'disabled'}`, 'info');
+    });
+
+    // === Update loop ===
+    setInterval(() => {
+      updateBatteryUI();
+      updateJerkUI();
+      updateAudioUI();
+    }, 200);
+
+    // === Initialization ===
+    window.addEventListener('load', () => {
+      initBattery();
+      initMotion();
+      initAudio();
+
+      // Restore session if exists
+      const savedSession = localStorage.getItem('field_session_id');
+      if (savedSession) {
+        sessionId = savedSession;
+        $('session-id').textContent = sessionId.slice(0, 8) + '...';
+        $('status').textContent = 'Resuming...';
+        $('sensors').style.display = 'block';
+        isRecording = true;
+        connectWebSocket();
+        streamSensors();
+      }
+
+      msg('Ready. Tap "Start Session" to begin.', 'info');
+    });
+
+    // Graceful shutdown
+    window.addEventListener('beforeunload', () => {
+      if (ws) ws.close();
+    });
+  </script>
+</body>
+</html>

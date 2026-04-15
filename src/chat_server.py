@@ -752,12 +752,16 @@ async def field_session_action(body: dict[str, Any] | None = None) -> JSONRespon
 @app.get("/phone")
 def phone_relay_ui() -> Response:
     """
-    ADR 0017 §1 — Serve the minimal phone relay PWA.
+    ADR 0017 §1 — Serve the phone relay PWA.
 
-    Enabled when KERNEL_FIELD_CONTROL=1. The HTML is a single-file PWA with
-    four buttons (Start/Pause/End/Trusted-place) and a live sensor readback tile.
-    Full implementation: see ADR 0017 implementation checklist
-    (src/static/phone_relay.html — not yet created; returns a stub for now).
+    Enabled when KERNEL_FIELD_CONTROL=1. The HTML is a single-file PWA with:
+    - Battery status (Battery API)
+    - Accelerometer jerk (DeviceMotion)
+    - Microphone level (AudioWorklet with ScriptProcessorNode fallback)
+    - Session control (pair/pause/resume/end)
+    - Live last_action readback from kernel
+
+    Full implementation: src/static/phone_relay.html (ADR 0017 checklist ✓)
     """
     if not _field_control_enabled():
         return Response(
@@ -765,61 +769,24 @@ def phone_relay_ui() -> Response:
             media_type="text/html",
             status_code=404,
         )
-    # TODO(ADR-0017): replace stub with full phone_relay.html PWA
-    stub_html = """<!DOCTYPE html>
+
+    from pathlib import Path
+    phone_html_path = Path(__file__).parent / "static" / "phone_relay.html"
+    if phone_html_path.exists():
+        content = phone_html_path.read_text(encoding="utf-8")
+        return Response(content=content, media_type="text/html")
+
+    # Fallback to minimal stub if file missing (should not happen in normal deployment)
+    fallback_html = """<!DOCTYPE html>
 <html lang="en">
 <head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Ethos Kernel — Phone Relay</title>
-<style>body{font-family:sans-serif;max-width:480px;margin:2rem auto;padding:1rem}
-button{display:block;width:100%;padding:.8rem;margin:.5rem 0;font-size:1.1rem;border-radius:8px;border:none;cursor:pointer}
-#start{background:#4caf50;color:#fff}#pause{background:#ff9800;color:#fff}
-#end{background:#f44336;color:#fff}#trusted{background:#2196f3;color:#fff}
-#status{background:#eee;border-radius:8px;padding:1rem;margin-top:1rem;font-size:.85rem}
-.banner{background:#f44336;color:#fff;padding:.5rem;border-radius:4px;margin-bottom:1rem;font-size:.8rem}
-</style></head>
+<title>Ethos Kernel — Phone Relay</title></head>
 <body>
-<div class="banner">⚠ Field test — recording sensor summaries</div>
-<h2>Ethos Kernel · Phone Relay</h2>
-<p style="color:#888;font-size:.85rem">Pairing token required. Open browser console for pairing flow.</p>
-<button id="start">▶ Start session</button>
-<button id="pause">⏸ Pause</button>
-<button id="end">⏹ End session</button>
-<button id="trusted" id="trusted_toggle">📍 Mark trusted place</button>
-<div id="status">Status: not paired<br>Last action: —</div>
-<script>
-// Minimal stub — full PWA implementation pending (ADR 0017 checklist)
-const $ = id => document.getElementById(id);
-const statusDiv = $('status');
-let pairing = localStorage.getItem('field_session_id');
-async function callControl(action) {
-  const r = await fetch('/control/session', {
-    method:'POST', headers:{'Content-Type':'application/json'},
-    body: JSON.stringify({action})
-  });
-  const d = await r.json();
-  statusDiv.innerHTML = 'State: ' + (d.state || '?') + '<br>Action: ' + action;
-}
-$('start').onclick = async () => {
-  const tok = prompt('Pairing token:');
-  if (!tok) return;
-  const r = await fetch('/control/pair', {
-    method:'POST', headers:{'Content-Type':'application/json'},
-    body: JSON.stringify({token: tok})
-  });
-  const d = await r.json();
-  if (d.field_session_id) {
-    localStorage.setItem('field_session_id', d.field_session_id);
-    statusDiv.innerHTML = 'Paired ✓ session=' + d.field_session_id + '<br>WS: ' + d.ws_path;
-  } else {
-    statusDiv.innerHTML = 'Pairing failed: ' + JSON.stringify(d);
-  }
-};
-$('pause').onclick = () => callControl('pause');
-$('end').onclick   = () => callControl('end');
-$('trusted').onclick = () => statusDiv.innerHTML = 'Trusted place toggled (stub)';
-</script>
+<h1>Phone Relay Service</h1>
+<p>Error: phone_relay.html not found. Please check installation.</p>
+<p><a href="/">Back to chat</a></p>
 </body></html>"""
-    return Response(content=stub_html, media_type="text/html")
+    return Response(content=fallback_html, media_type="text/html", status_code=200)
 
 
 def _field_emit_audit(event_type: str, content: str) -> None:
