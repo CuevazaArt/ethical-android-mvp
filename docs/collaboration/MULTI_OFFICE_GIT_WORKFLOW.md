@@ -27,6 +27,103 @@ This note **institutionalizes** a Git branching pattern for **distributed teams*
 
 Exact commands depend on branch protection and remote layout; prefer the same patterns as the rest of the project.
 
+---
+
+## Incremental-sync rule — keeping up with peer team branches (Rule C-1)
+
+> **Added:** 2026-04-15. Applies to all team members and agent pools working from
+> a `master-<TeamSlug>` hub.
+
+### Motivation
+
+Multiple parallel teams (currently `master-claude`, `master-Cursor`,
+`master-antigravity`, …) each push incremental improvements that the others
+need. Without a shared pull discipline, each hub drifts and the eventual
+merge-to-`main` becomes risky.
+
+### The rule
+
+Before starting a new work session **or** opening a PR that touches shared
+files, each team member must:
+
+1. **Fetch all remotes** (safe, never moves local branches):
+   ```bash
+   git fetch origin
+   ```
+
+2. **Identify incremental changes** in every peer `master-*` branch since your
+   last common ancestor:
+   ```bash
+   # List commits in a peer branch not yet in yours
+   git log origin/master-Cursor ^HEAD --oneline
+   git log origin/master-antigravity ^HEAD --oneline
+   # (repeat for each master-* present in origin)
+   ```
+
+3. **Merge only if no conflicts are expected** — do a dry-run check first:
+   ```bash
+   git merge --no-commit --no-ff origin/master-Cursor
+   git merge --abort          # ← always abort the dry run; inspect before real merge
+   ```
+   If the dry run shows conflicts in your working files, **do not merge**;
+   open a coordination issue instead.
+
+4. **Perform the merge** when the check is clean:
+   ```bash
+   git merge --no-ff origin/master-Cursor \
+       -m “merge(sync): pull incremental changes from master-Cursor (YYYY-MM-DD)”
+   ```
+   Use a conventional `merge(sync):` prefix so the log stays readable.
+
+5. **Push your hub** after the merge:
+   ```bash
+   git push origin master-<YourTeamSlug>
+   ```
+
+### Practical shortcuts (one-liner per session start)
+
+```bash
+# Fetch + show what each peer team has that you don't
+git fetch origin && \
+  for b in $(git branch -r | grep 'origin/master-' | grep -v HEAD); do \
+    echo “=== $b ===”; git log $b ^HEAD --oneline | head -5; \
+  done
+```
+
+```bash
+# Merge a specific peer incrementally (replace 'master-Cursor' as needed)
+git fetch origin master-Cursor && \
+  git merge --no-ff origin/master-Cursor \
+    -m “merge(sync): incremental pull from master-Cursor $(date +%Y-%m-%d)”
+```
+
+### When to skip
+
+- Your local branch is already **ahead** of the peer (no new commits in their
+  branch since your last sync) → `git log origin/master-Peer ^HEAD --oneline`
+  shows nothing; nothing to do.
+- The peer branch has **conflicting** changes in files you are actively editing
+  → defer to end-of-sprint or resolve through a shared coordination PR.
+- A peer branch is a **work-in-progress** tag (e.g. `master-Cursor-wip`) →
+  treat with extra caution; only merge `master-*` branches that have been
+  integrated, not raw feature spikes.
+
+### Agent-specific guidance
+
+Agents (Claude, Cursor, etc.) must apply this rule at session start. The
+recommended flow for an agent working on `master-claude`:
+
+```
+git fetch origin
+git log origin/master-Cursor ^HEAD --oneline   # inspect
+git log origin/master-antigravity ^HEAD --oneline
+# if either shows new commits and no conflicts → merge as above
+# then proceed with own work
+```
+
+This rule supplements (does not replace) the existing “Refresh from
+production” operation (step 1 above). Both apply.
+
 ## Agent and IDE guidance
 
 For **Cursor** and other agents, the durable rule text (redundancy checks, safety expectations, and this workflow) lives in:

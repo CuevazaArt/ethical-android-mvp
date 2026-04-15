@@ -13,6 +13,7 @@ The previous long-form proposal set was removed from this branch to keep the tre
 | [`PROPOSAL_BAYESIAN_MIXTURE_FEEDBACK.md`](PROPOSAL_BAYESIAN_MIXTURE_FEEDBACK.md) | ADR 0012 stack: BMA (L1), feedback posteriors (L2), context buckets (L3), softmax / importance-sampling likelihood, env vars, tests, link to ADR 0012. |
 | [`PROPOSAL_INTEGRATION_SPRINT_I1_I5.md`](PROPOSAL_INTEGRATION_SPRINT_I1_I5.md) | Integration sprint I1–I5: closes the gaps between Cursor (perception), Claude (Bayesian kernel), and Antigravity (narrative). Contracts, env vars, team coordination matrix. ADR 0015. |
 | [`PROPOSAL_CONSOLIDATION_PRE_DAO.md`](PROPOSAL_CONSOLIDATION_PRE_DAO.md) | Vertical consolidation cycle before field tests and DAO: validate the decision core against ETHICS dataset, shrink env-var surface, separate decision/narrative tiers, deepen tests, contract the DAO-governable surface. ADR 0016. |
+| [`PROPOSAL_FIELD_TEST_PLAN.md`](PROPOSAL_FIELD_TEST_PLAN.md) | Field test plan — phases F0–F4 for model (scorer + MalAbs), next MockDAO (audit UX), and **real physical sensors** via a smartphone relay; defines the PC ↔ phone minimal management interface; maps each test phase to a specific weakness in `WEAKNESSES_AND_BOTTLENECKS.md`. Companion: [ADR 0017](../adr/0017-smartphone-sensor-relay-bridge.md). |
 
 ## Self-critique
 

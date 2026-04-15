@@ -17,5 +17,6 @@
 | [0013 — hierarchical context weight inference](0013-hierarchical-context-weight-inference.md) | Level-3 context-dependent mixture posteriors |
 | [0015 — inter-team integration sprint (I1–I5)](0015-interteam-integration-sprint.md) | Closes gaps between Cursor / Claude / Antigravity: weights_snapshot, event bus, perception_uncertainty, identity leans, temporal ETA |
 | [0016 — consolidation before DAO and field tests](0016-consolidation-before-dao-and-field-tests.md) | Freeze-and-validate cycle: ETHICS benchmark, env var catalog, tier separation, integration tests, governable parameters contract |
+| [0017 — smartphone sensor relay bridge](0017-smartphone-sensor-relay-bridge.md) | Inline PWA + `/control/*` surface for PC ↔ phone field tests; token-bucket rate limiter; session manifest; LAN-only security (**Proposed**) |
 
 See also [`CORE_DECISION_CHAIN.md`](../proposals/CORE_DECISION_CHAIN.md), [`LLM_STACK_OLLAMA_VS_HF.md`](../proposals/LLM_STACK_OLLAMA_VS_HF.md), [`PERCEPTION_VALIDATION.md`](../proposals/PERCEPTION_VALIDATION.md), [`TEMPORAL_PRIOR_HORIZONS.md`](../proposals/TEMPORAL_PRIOR_HORIZONS.md), [`USER_MODEL_ENRICHMENT.md`](../proposals/USER_MODEL_ENRICHMENT.md) (design proposal), and [`CHANGELOG.md`](../../CHANGELOG.md).
