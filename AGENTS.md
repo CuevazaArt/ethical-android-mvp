@@ -32,7 +32,8 @@ To maintain repository order and production stability:
 1. **NO PUSH OR MERGE TO `main` WITHOUT USER AUTHORIZATION.** This is a strict safety gate.
 2. **Team Integration Hubs:** Every team must use its dedicated integration branch (e.g., `master-antigravity`, `master-Cursor`).
 3. **Internal Workflow:** Teams work on their shared line (e.g., `antigravity-team`) or feature branches, merge into their respective `master-<team>` hub, and only request a merge to `main` when authorized.
-4. **Syncing:** Integration hubs should pull from `main` regularly to stay aligned with collective progress.
+4. **Syncing:** Integration hubs (`master-<team>`) should pull from `main` regularly to stay aligned with collective progress.
+5. **Inter-Team Hub Alignment:** `master-<team>` branches MUST merge periodically from each other (approximately every 5 commits) to incorporate shared secure increments and avoid blocking parallel development.
 
 Detailed specifications are in [`.cursor/rules/collaboration-prioritization.mdc`](.cursor/rules/collaboration-prioritization.mdc).
 

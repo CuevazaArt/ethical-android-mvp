@@ -42,6 +42,7 @@ Canonical diagram (same model as the team workflow image):
 1. **Branch off the right base** — Create `master-<team>` from `main`. Create `<team>-team` from `master-<team>`. **Do not commit directly to `main`.**
 2. **Mandatory Team Hubs** — Every collaborative team (Antigravity, Cursor, etc.) MUST use a `master-<team>` branch as their integration hub. Local offices/offshoots work on `<team>-team` or feature branches and merge into their respective `master-<team>`.
 3. **User Authorization for `main`** — Promoting work from `master-<team>` → `main` is strictly **forbidden** without explicit USER authorization. Integrating into `main` is a maintainer/release step that requires human oversight.
-4. **Sync shorthand** — Refresh your team's integration line from `main` (e.g., `fetch` / `merge` / `pull` from `origin/main` into `master-<team>`) regularly to prevent drift from production intent.
+4. **Cross-Team Periodic Syncing (Inter-branch)** — `master-<team>` branches SHOULD merge from each other periodically (e.g., approximately every 5 commits or after significant milestones). This prevents teams from obstructing each other and ensures all developers build upon the latest shared secure increments.
+5. **Sync with `main`** — Refresh your team's integration line from `main` (e.g., `fetch` / `merge` / `pull` from `origin/main` into `master-<team>`) regularly to prevent drift from production intent.
 
 Exact Git commands depend on remote and branch protection; prefer patterns documented in **CONTRIBUTING.md** or operator runbooks.
