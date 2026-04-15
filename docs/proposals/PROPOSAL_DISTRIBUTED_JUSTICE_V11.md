@@ -54,6 +54,7 @@ Documented here to avoid scope creep in Phase 1:
 ## References
 
 - [PROPOSAL_DISTRIBUTED_JUSTICE_CONTRIBUTIONS.md](PROPOSAL_DISTRIBUTED_JUSTICE_CONTRIBUTIONS.md) — contribution guide, code map, and backlog (staged execution alignment)
+- [PROPOSAL_DISTRIBUTED_JUSTICE_BACKLOG_SYSTEM.md](PROPOSAL_DISTRIBUTED_JUSTICE_BACKLOG_SYSTEM.md) — `DJ-BL-*` backlog IDs and states
 - [PROPOSAL_DAO_ALERTS_AND_TRANSPARENCY.md](PROPOSAL_DAO_ALERTS_AND_TRANSPARENCY.md) — DAO corruption alerts: transparency vs. “guerrilla” resistance, forensic memorial vs. erasure (design)
 - [PROPOSAL_OPERATIONAL_STRATEGY_V10.md](PROPOSAL_OPERATIONAL_STRATEGY_V10.md) — gray-zone diplomacy precursor
 - [PROPOSAL_ETOSOCIAL_STATE_V12.md](PROPOSAL_ETOSOCIAL_STATE_V12.md) — etosocial hub / hybrid justice infrastructure (vision; V12)

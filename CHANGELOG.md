@@ -4,6 +4,12 @@ All notable changes to this project are summarized here. For narrative context a
 
 **Note:** Older sections below may still **link** to paths that were later removed (for example `experiments/million_sim/`, `docs/multimedia/`, root `dashboard.html`, `landing/`). Those links are **historical**; recover files from git history or backup branches if you need them.
 
+## Distributed justice — LAN merge + backlog IDs (DJ-BL) — April 2026
+
+- **Code:** [`src/modules/lan_governance_event_merge.py`](src/modules/lan_governance_event_merge.py) — `merge_lan_governance_events` (sort by `turn_index` / `processor_elapsed_ms`, dedupe by `event_id`; Phase 2 stub, no I/O).
+- **Tests:** [`tests/test_lan_governance_event_merge.py`](tests/test_lan_governance_event_merge.py).
+- **Docs:** [`docs/proposals/PROPOSAL_DISTRIBUTED_JUSTICE_BACKLOG_SYSTEM.md`](docs/proposals/PROPOSAL_DISTRIBUTED_JUSTICE_BACKLOG_SYSTEM.md) — `DJ-BL-*` registry; **DJ-BL-02** partial. Updated [`docs/proposals/PROPOSAL_DISTRIBUTED_JUSTICE_CONTRIBUTIONS.md`](docs/proposals/PROPOSAL_DISTRIBUTED_JUSTICE_CONTRIBUTIONS.md) and [`docs/proposals/PROPOSAL_DAO_BLOCKCHAIN_DISTRIBUTED_JUSTICE_STAGED_EXECUTION.md`](docs/proposals/PROPOSAL_DAO_BLOCKCHAIN_DISTRIBUTED_JUSTICE_STAGED_EXECUTION.md) pending gaps.
+
 ## Documentation — distributed justice contributions — April 2026
 
 - **New:** [`docs/proposals/PROPOSAL_DISTRIBUTED_JUSTICE_CONTRIBUTIONS.md`](docs/proposals/PROPOSAL_DISTRIBUTED_JUSTICE_CONTRIBUTIONS.md) — contributor guide (code map, backlog aligned with staged execution pending gaps, PR expectations). Linked from [`docs/proposals/PROPOSAL_DISTRIBUTED_JUSTICE_V11.md`](docs/proposals/PROPOSAL_DISTRIBUTED_JUSTICE_V11.md), [`docs/proposals/PROPOSAL_DAO_BLOCKCHAIN_DISTRIBUTED_JUSTICE_STAGED_EXECUTION.md`](docs/proposals/PROPOSAL_DAO_BLOCKCHAIN_DISTRIBUTED_JUSTICE_STAGED_EXECUTION.md), [`docs/proposals/README.md`](docs/proposals/README.md), [`AGENTS.md`](AGENTS.md).

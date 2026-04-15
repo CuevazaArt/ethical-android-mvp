@@ -48,6 +48,7 @@ High-level summary aligned with the code and docs; full chronology is in [`CHANG
 | **Mock DAO — no chain, QV assumptions, not policy core** | [MOCK_DAO_SIMULATION_LIMITS.md](MOCK_DAO_SIMULATION_LIMITS.md) |
 | **DAO/blockchain/distributed justice staged execution** | [PROPOSAL_DAO_BLOCKCHAIN_DISTRIBUTED_JUSTICE_STAGED_EXECUTION.md](PROPOSAL_DAO_BLOCKCHAIN_DISTRIBUTED_JUSTICE_STAGED_EXECUTION.md) |
 | **Distributed justice — contribution guide (V11 + backlog)** | [PROPOSAL_DISTRIBUTED_JUSTICE_CONTRIBUTIONS.md](PROPOSAL_DISTRIBUTED_JUSTICE_CONTRIBUTIONS.md) |
+| **Distributed justice — backlog IDs (DJ-BL-*)** | [PROPOSAL_DISTRIBUTED_JUSTICE_BACKLOG_SYSTEM.md](PROPOSAL_DISTRIBUTED_JUSTICE_BACKLOG_SYSTEM.md) |
 | **KERNEL_* typed public API (Pydantic, phased)** | [KERNEL_ENV_TYPED_PUBLIC_API.md](KERNEL_ENV_TYPED_PUBLIC_API.md) |
 | Theory ↔ implementation map and tests | [THEORY_AND_IMPLEMENTATION.md](THEORY_AND_IMPLEMENTATION.md) |
 | Runtime contract (English) | [RUNTIME_CONTRACT.md](RUNTIME_CONTRACT.md) |
