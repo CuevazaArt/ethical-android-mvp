@@ -78,3 +78,9 @@ experiments/001*.md
 experiments/feedback.json
 experiments/*_updater.py
 experiments/test_*_updater.py
+
+# Local data and backups
+data/
+
+# Local scratch databases (never commit)
+scratch/

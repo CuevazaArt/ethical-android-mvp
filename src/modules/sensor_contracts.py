@@ -12,6 +12,7 @@ and epistemic_dissonance.py (v9.1 telemetry).
 from __future__ import annotations
 
 from dataclasses import dataclass
+import math
 from typing import Any
 
 
@@ -34,6 +35,10 @@ class SensorSnapshot:
     audio_emergency: float | None = None  # [0, 1] mic/spectrum → distress / scream hypothesis
     vision_emergency: float | None = None  # [0, 1] local vision supports emergency
     scene_coherence: float | None = None  # [0, 1] GPS/WiFi plausibility for emergency context
+    # Phase 4.1 expansion: Strategic Missions
+    external_mission_title: str | None = None # e.g. "Recover the lost bag"
+    external_mission_priority: float | None = None # [0, 1]
+    external_mission_steps: list[str] | None = None # ["Go to cafe", "Look under table"]
 
     @classmethod
     def from_dict(cls, raw: dict[str, Any]) -> SensorSnapshot:
@@ -44,7 +49,10 @@ class SensorSnapshot:
             if v is None:
                 return None
             try:
-                return _clamp01(float(v))
+                val = float(v)
+                if math.isnan(val) or math.isinf(val):
+                    return None
+                return _clamp01(val)
             except (TypeError, ValueError):
                 return None
 
@@ -62,6 +70,9 @@ class SensorSnapshot:
             audio_emergency=f("audio_emergency"),
             vision_emergency=f("vision_emergency"),
             scene_coherence=f("scene_coherence"),
+            external_mission_title=raw.get("external_mission_title"),
+            external_mission_priority=f("external_mission_priority"),
+            external_mission_steps=raw.get("external_mission_steps"),
         )
 
     def is_empty(self) -> bool:

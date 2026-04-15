@@ -130,6 +130,7 @@ from .modules.moral_hub import (
     submit_constitution_draft_for_vote,
 )
 from .modules.nomad_identity import nomad_identity_public
+from .modules.perception_schema import perception_report_from_dict
 from .modules.perceptual_abstraction import snapshot_from_layers
 from .observability.context import clear_request_context, set_request_id
 from .observability.logging_setup import configure_logging
@@ -315,7 +316,7 @@ def _chat_turn_to_jsonable(r: ChatTurnResult, kernel: EthicalKernel) -> dict[str
         },
         "identity": {
             **{
-                k: float(v) if k != "episode_count" else int(v)
+                k: int(v) if k == "episode_count" else (v if isinstance(v, (list, dict, tuple)) else float(v))
                 for k, v in asdict(idn.state).items()
             },
             "ascription": idn.ascription_line(),
@@ -331,6 +332,51 @@ def _chat_turn_to_jsonable(r: ChatTurnResult, kernel: EthicalKernel) -> dict[str
             out["malabs_trace"] = list(m.decision_trace)
     if r.metacognitive_doubt:
         out["metacognitive_doubt"] = True
+    if r.support_buffer:
+        out["support_buffer"] = {
+            "source": r.support_buffer.get("source", "local_preloaded_buffer"),
+            "context": r.support_buffer.get("context", "everyday"),
+            "active_principles": list(r.support_buffer.get("active_principles") or []),
+            "priority_profile": r.support_buffer.get("priority_profile", "balanced"),
+            "priority_principles": list(r.support_buffer.get("priority_principles") or []),
+            "planning_bias": r.support_buffer.get("planning_bias", "balanced"),
+            "strategy_hint": r.support_buffer.get("strategy_hint") or "",
+            "offline_ready": bool(r.support_buffer.get("offline_ready", True)),
+        }
+    if r.limbic_profile:
+        out["limbic_perception"] = {
+            "arousal_band": r.limbic_profile.get("arousal_band", "medium"),
+            "threat_load": float(r.limbic_profile.get("threat_load", 0.0)),
+            "regulation_gap": float(r.limbic_profile.get("regulation_gap", 0.0)),
+            "planning_bias": r.limbic_profile.get("planning_bias", "balanced"),
+            "multimodal_mismatch": bool(r.limbic_profile.get("multimodal_mismatch", False)),
+            "vitality_critical": bool(r.limbic_profile.get("vitality_critical", False)),
+            "context": r.limbic_profile.get("context", "everyday"),
+        }
+    if r.temporal_context is not None:
+        tc = r.temporal_context.to_public_dict()
+        out["temporal_context"] = tc
+        out["temporal_sync"] = {
+            "sync_schema": tc.get("sync_schema", "temporal_sync_v1"),
+            "turn_index": int(tc.get("turn_index") or 0),
+            "wall_clock_unix_ms": tc.get("wall_clock_unix_ms"),
+            "processor_elapsed_ms": int(tc.get("processor_elapsed_ms") or 0),
+            "turn_delta_ms": int(tc.get("turn_delta_ms") or 0),
+            "local_network_sync_ready": bool(tc.get("local_network_sync_ready", False)),
+            "dao_sync_ready": bool(tc.get("dao_sync_ready", False)),
+        }
+    if r.perception_confidence is not None:
+        pc = r.perception_confidence.to_public_dict()
+        out["perception_confidence"] = pc
+        po = out.get("perception_observability")
+        if isinstance(po, dict):
+            po["confidence_band"] = pc.get("band", "unknown")
+            po["confidence_score"] = float(pc.get("score", 0.0))
+    if r.verbal_llm_degradation_events:
+        out["verbal_llm_observability"] = {
+            "degraded": True,
+            "events": r.verbal_llm_degradation_events,
+        }
     if r.perception:
         p = r.perception
         out["perception"] = {
@@ -342,9 +388,24 @@ def _chat_turn_to_jsonable(r: ChatTurnResult, kernel: EthicalKernel) -> dict[str
             "suggested_context": p.suggested_context,
             "summary": p.summary,
         }
-        cr = getattr(p, "coercion_report", None)
-        if cr:
-            out["perception"]["coercion_report"] = cr
+        # Stable observability contract: always emit canonical coercion-report keys.
+        cr = perception_report_from_dict(getattr(p, "coercion_report", None)).to_public_dict()
+        out["perception"]["coercion_report"] = cr
+        if cr.get("session_banner_recommended"):
+            out["perception_backend_banner"] = True
+        out["perception_observability"] = {
+            "uncertainty": float(cr.get("uncertainty") or 0.0),
+            "dual_high_discrepancy": bool(cr.get("perception_dual_high_discrepancy")),
+            "backend_degraded": bool(cr.get("backend_degraded")),
+            "metacognitive_doubt": bool(r.metacognitive_doubt),
+        }
+        if r.perception_confidence is not None:
+            out["perception_observability"]["confidence_band"] = out["perception_confidence"].get(
+                "band", "unknown"
+            )
+            out["perception_observability"]["confidence_score"] = float(
+                out["perception_confidence"].get("score", 0.0)
+            )
     if r.decision is not None:
         d = r.decision
         if _chat_expose_monologue():
@@ -824,7 +885,10 @@ def root() -> JSONResponse:
             '"sensor"?: {battery_level?, audio_emergency?, vision_emergency?, scene_coherence?, …}}. '
             "Responses include identity, drive_intents, monologue (when decision present), optional "
             "affective_homeostasis, experience_digest, user_model, chronobiology, premise_advisory, "
-            "teleology_branches, multimodal_trust, vitality (see README KERNEL_CHAT_* / KERNEL_MULTIMODAL_* / "
+            "teleology_branches, multimodal_trust, vitality, support_buffer (offline-ready local principles/strategy hints), "
+            "limbic_perception (arousal/planning bias derived from perception+sensor overlays), "
+            "temporal_context + temporal_sync (processor/wall/battery/ETA timing and DAO/LAN sync readiness; "
+            "see README KERNEL_CHAT_* / KERNEL_MULTIMODAL_* / "
             "KERNEL_VITALITY_*), guardian_mode (KERNEL_GUARDIAN_MODE), epistemic_dissonance (v9.1), "
             "decision (chosen_action_source / proposal_id v9.2), …"
         ),

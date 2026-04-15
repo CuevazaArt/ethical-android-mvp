@@ -98,6 +98,7 @@ class SocialEvaluation:
     recommended_response: str
     reasoning: str
     tone_brief: str = ""  # One line for LLM communicate() — social posture (advisory)
+    relational_tension: float = 0.0  # [0, 1] Friction between profile trust and turn perception
 
 
 class UchiSotoModule:
@@ -380,7 +381,11 @@ class UchiSotoModule:
             response = "Full openness. Accept validated instructions. Share internal state."
             reason = "Agent from nucleus (DAO/ethics panel). Maximum trust."
 
-        tone_brief = self._compose_tone_brief(circle, profile)
+        # Phase 5 Vertical: Relational Tension
+        # High distance between historical trust and current sensor-ema creates "Tension"
+        tension = abs(float(profile.trust_score) - float(profile.sensor_trust_ema))
+        
+        tone_brief = self._compose_tone_brief(circle, profile, tension)
 
         return SocialEvaluation(
             circle=circle,
@@ -391,12 +396,16 @@ class UchiSotoModule:
             recommended_response=response,
             reasoning=reason,
             tone_brief=tone_brief,
+            relational_tension=round(tension, 4),
         )
 
-    def _compose_tone_brief(self, circle: TrustCircle, profile: InteractionProfile) -> str:
-        """Base circle posture + Phase 2 structured hints for higher-trust tiers."""
+    def _compose_tone_brief(self, circle: TrustCircle, profile: InteractionProfile, tension: float = 0.0) -> str:
+        """Base circle posture + Phase 2 structured hints + Tension alerts."""
         base = self._tone_brief_for_circle(circle)
         extras: list[str] = []
+        
+        if tension > 0.4:
+            extras.append(f"Relational tension detected ({tension:.2f})—perception contrasts with historical trust; investigate moral context with caution.")
         tier_h = self._relational_tier_tone_hint(profile, circle)
         if tier_h:
             extras.append(tier_h)

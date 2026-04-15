@@ -40,6 +40,22 @@ def _feature_const(_d: dict) -> float:
     return 1.0
 
 
+def _feature_problem_solving(d: dict) -> float:
+    return float(d.get("problem_solving", 0.0))
+
+
+def _feature_innovation(d: dict) -> float:
+    return float(d.get("innovation", 0.0))
+
+
+def _feature_conflict_resolution(d: dict) -> float:
+    return float(d.get("conflict_resolution", 0.0))
+
+
+def _feature_alignment(d: dict) -> float:
+    return float(d.get("alignment", 0.0))
+
+
 FEATURE_GETTERS: dict[str, Callable[[dict], float]] = {
     "risk": _feature_risk,
     "benefit": _feature_benefit,
@@ -47,6 +63,10 @@ FEATURE_GETTERS: dict[str, Callable[[dict], float]] = {
     "legality": _feature_legality,
     "one_minus_risk": _feature_one_minus_risk,
     "const": _feature_const,
+    "problem_solving": _feature_problem_solving,
+    "innovation": _feature_innovation,
+    "conflict_resolution": _feature_conflict_resolution,
+    "alignment": _feature_alignment,
 }
 
 

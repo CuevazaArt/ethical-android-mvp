@@ -9,7 +9,7 @@ alwaysApply: true
 
 Merged work must stay **traceable** and **coherent** for humans and reviewers:
 
-- **Traceability:** `CHANGELOG.md` entries for user-visible or architecture-relevant changes; link issues/ADRs when applicable.
+- **Traceability:** `CHANGELOG.md` entries for user-visible or architecture-relevant changes; link issues/ADRs when applicable. Use **annotated tags** to mark and explain significant project events (milestones, architectural shifts) for historical auditability.
 - **Coherence:** Update the **right** doc slice (`docs/proposals/`, `RUNTIME_CONTRACT.md`, `OPERATOR_QUICK_REF.md`, `KERNEL_ENV_POLICY.md`) so operators and future contributors do not rely on chat history alone.
 - **Credibility:** Avoid over-claiming (certification, “validated ethics”); match language to `TRANSPARENCY_AND_LIMITS.md` and empirical methodology docs where relevant.
 - **Human consultation:** Docs are the durable record for people who were not in the session; prefer explicit limitations and pointers over implicit knowledge.

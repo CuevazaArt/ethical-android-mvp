@@ -198,6 +198,37 @@ def test_websocket_chat_roundtrip():
         assert data["epistemic_dissonance"]["active"] is False
         assert "decision" in data
         assert data["decision"].get("chosen_action_source") == "builtin"
+        assert "support_buffer" in data
+        assert data["support_buffer"].get("source") == "local_preloaded_buffer"
+        assert isinstance(data["support_buffer"].get("active_principles"), list)
+        assert data["support_buffer"].get("priority_profile") in (
+            "safety_first",
+            "balanced",
+            "planning_first",
+        )
+        assert "limbic_perception" in data
+        assert data["limbic_perception"].get("arousal_band") in ("low", "medium", "high")
+        assert "temporal_context" in data
+        assert data["temporal_context"].get("sync_schema") == "temporal_sync_v1"
+        assert int(data["temporal_context"].get("turn_index") or 0) >= 1
+        assert "temporal_sync" in data
+        assert data["temporal_sync"].get("sync_schema") == "temporal_sync_v1"
+        assert int(data["temporal_sync"].get("turn_index") or 0) >= 1
+        assert int(data["temporal_sync"].get("processor_elapsed_ms") or 0) >= 0
+        assert int(data["temporal_sync"].get("turn_delta_ms") or 0) >= 0
+        assert "perception_confidence" in data
+        assert data["perception_confidence"].get("band") in ("high", "medium", "low", "very_low")
+        assert "confidence_band" in data.get("perception_observability", {})
+
+
+def test_websocket_temporal_sync_respects_env_toggles(monkeypatch):
+    monkeypatch.setenv("KERNEL_TEMPORAL_DAO_SYNC", "0")
+    monkeypatch.setenv("KERNEL_TEMPORAL_LAN_SYNC", "0")
+    with client.websocket_connect("/ws/chat") as ws:
+        ws.send_json({"text": "Temporal toggle probe."})
+        data = ws.receive_json()
+    assert data.get("temporal_sync", {}).get("local_network_sync_ready") is False
+    assert data.get("temporal_sync", {}).get("dao_sync_ready") is False
 
 
 def test_websocket_homeostasis_omitted(monkeypatch):
