@@ -36,6 +36,7 @@ High-level summary aligned with the code and docs; full chronology is in [`CHANG
 | **Model-critical backlog (post–perception P0 sequencing)** | [MODEL_CRITICAL_BACKLOG.md](MODEL_CRITICAL_BACKLOG.md) |
 | **Honest April 2026 project critique** | [PROJECT_STATE_HONEST_CRITIQUE_APRIL_2026.md](PROJECT_STATE_HONEST_CRITIQUE_APRIL_2026.md) |
 | **LLM touchpoint env precedence (team matrix)** | [PROPOSAL_LLM_TOUCHPOINT_DEGRADATION_MATRIX.md](PROPOSAL_LLM_TOUCHPOINT_DEGRADATION_MATRIX.md) |
+| **LLM integration track (ownership + gap register G-01…)** | [PROPOSAL_LLM_INTEGRATION_TRACK.md](PROPOSAL_LLM_INTEGRATION_TRACK.md) |
 | **Next ~2 weeks — triage, P0/P1/P2, reproduction checklists** | [PLAN_IMMEDIATE_TWO_WEEKS.md](PLAN_IMMEDIATE_TWO_WEEKS.md) |
 | **Quick wins (two sprints) — strict env, perception breaker, entry points, MalAbs alerts** | [PROPOSAL_QUICK_WINS_TWO_SPRINTS.md](PROPOSAL_QUICK_WINS_TWO_SPRINTS.md) |
 | **Module count vs observable ethics (ablation gap, tiers A–E)** | [MODULE_IMPACT_AND_EMPIRICAL_GAP.md](MODULE_IMPACT_AND_EMPIRICAL_GAP.md) |
@@ -122,6 +123,7 @@ Legacy Spanish filenames (`PROPUESTA_*.md`, `ESTRATEGIA_Y_RUTA.md`, `PAPER_AFECT
 | [PROPOSAL_PERCEPTION_OBSERVABILITY_CONTRACT.md](PROPOSAL_PERCEPTION_OBSERVABILITY_CONTRACT.md) | Stable chat JSON perception diagnostics contract for operators and dashboards |
 | [PROPOSAL_LLM_VERBAL_DEGRADATION_POLICY.md](PROPOSAL_LLM_VERBAL_DEGRADATION_POLICY.md) | ``KERNEL_VERBAL_LLM_BACKEND_POLICY`` for communicate/narrate failure + ``verbal_llm_observability`` |
 | [PROPOSAL_LLM_TOUCHPOINT_DEGRADATION_MATRIX.md](PROPOSAL_LLM_TOUCHPOINT_DEGRADATION_MATRIX.md) | ``KERNEL_LLM_TP_*`` precedence, verbal family key, monologue policies — operator + contributor reference |
+| [PROPOSAL_LLM_INTEGRATION_TRACK.md](PROPOSAL_LLM_INTEGRATION_TRACK.md) | Cursor track: LLM wiring, adjacent layers, integration gaps (G-01…G-10) |
 | [POLES_WEAKNESS_PAD_AND_PROFILES.md](POLES_WEAKNESS_PAD_AND_PROFILES.md) | Poles, weakness, PAD, and profiles |
 | [POLE_WEIGHT_CALIBRATION_AND_EVIDENCE.md](POLE_WEIGHT_CALIBRATION_AND_EVIDENCE.md) | Pole weights: heuristics vs empirical calibration roadmap |
 | [TEMPORAL_PRIOR_HORIZONS.md](TEMPORAL_PRIOR_HORIZONS.md) | Temporal horizon prior (ADR 0005) |

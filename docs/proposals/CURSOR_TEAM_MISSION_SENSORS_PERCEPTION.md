@@ -218,6 +218,8 @@ The table below is the active starter queue for `cursor-team`.
 
 When perception P0 items are stable, **prioritize cross-cutting kernel/model risk** in this order (rationale and pointers): [`MODEL_CRITICAL_BACKLOG.md`](MODEL_CRITICAL_BACKLOG.md). It aligns [`CRITIQUE_ROADMAP_ISSUES.md`](CRITIQUE_ROADMAP_ISSUES.md) P0 rows with [`WEAKNESSES_AND_BOTTLENECKS.md`](../WEAKNESSES_AND_BOTTLENECKS.md) §3 (unified LLM degradation) and packaging/governance blockers.
 
+**LLM incorporation / adjacent layers / integration** (embedding vs completion, MalAbs semantic, `process_natural` observability, generative candidates): assigned gap register [`PROPOSAL_LLM_INTEGRATION_TRACK.md`](PROPOSAL_LLM_INTEGRATION_TRACK.md) (Cursor shared line).
+
 ## 10) Ready-to-use task card examples
 
 Use this exact shape in issues/PR descriptions:
