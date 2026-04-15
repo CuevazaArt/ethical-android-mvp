@@ -4,6 +4,12 @@ All notable changes to this project are summarized here. For narrative context a
 
 **Note:** Older sections below may still **link** to paths that were later removed (for example `experiments/million_sim/`, `docs/multimedia/`, root `dashboard.html`, `landing/`). Those links are **historical**; recover files from git history or backup branches if you need them.
 
+## Mos Ex Machina: Socio-Cognitive & Governance Infrastructure (Very Long Term) — April 2026
+
+- **Infrastructure Vision**: Authored **[`PLAN_DEEP_COGNITION_AND_GOVERNANCE.md`](docs/proposals/PLAN_DEEP_COGNITION_AND_GOVERNANCE.md)**. This formalizes the ultimate "Go-To-Market" and societal deployment boundaries for the Ethical Android MVP.
+- **Deep Cognition (Blocks C1-C6)**: Mapped internal motivation, grounded common sense reasoning, uncertainty management, unwritten norm adaptation, IoT coexistence, and privacy mechanisms.
+- **Delivery & Operations (Blocks G1-G6)**: Outlined the non-technical but critical requirements for production deployment: legal/liability frameworks, cybersecurity (adversarial robust/secure boot), auditing (immutable logs/third-party), economic sustainability, at-scale simulation validation, and long-term human resource impact mitigation.
+
 ## Antigravity Kernel Hardening & Vision Perception Sprint — April 2026
 
 - **Bayesian Inference Engine (`src/modules/bayesian_engine.py`)**: Implemented the full `BayesianInferenceEngine` replacing the legacy shim. Introduced explicit operational modes (`DISABLED`, `TELEMETRY_ONLY`, `POSTERIOR_ASSISTED`, `POSTERIOR_DRIVEN`) and Dirichlet-based posterior updates.
