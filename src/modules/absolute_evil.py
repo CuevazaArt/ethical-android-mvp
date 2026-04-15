@@ -171,6 +171,12 @@ class AbsoluteEvilDetector:
             "make a bomb",
             "recipe for explosives",
             "how to synthesize poison",
+            "energetic materials",
+            "synthesize poison",
+            "procedure for assembling a pressure-vessel device",
+            "improvised explosive device",
+            "how to synthesize ricin",
+            "how to synthesize anthrax",
         )
         for p in weapon_craft:
             if p in t:

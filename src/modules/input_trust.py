@@ -39,6 +39,35 @@ _LEET_TRANSLATE = str.maketrans(
     }
 )
 
+# Common homoglyphs / confusables from Cyrillic and Greek that look like ASCII Latin.
+# Applied optionally to MalAbs text to prevent script-mixing bypasses.
+_CONFUSABLE_TRANSLATE = str.maketrans(
+    {
+        "\u0430": "a",
+        "\u0435": "e",
+        "\u043e": "o",
+        "\u0440": "p",
+        "\u0441": "c",
+        "\u0443": "y",
+        "\u0445": "x",
+        "\u0456": "i",
+        "\u0458": "j",
+        "\u0455": "s",
+        "\u0432": "b",
+        "\u043a": "k",
+        "\u043d": "n",
+        "\u043c": "m",
+        "\u0442": "t",
+        "\u03b1": "a",
+        "\u03bd": "v",
+        "\u03bf": "o",
+        "\u03c1": "p",
+        "\u03c4": "t",
+        "\u03c5": "y",
+        "\u03c7": "x",
+    }
+)
+
 
 def _leet_fold_enabled() -> bool:
     v = os.environ.get("KERNEL_MALABS_LEET_FOLD", "1").strip().lower()
@@ -47,6 +76,11 @@ def _leet_fold_enabled() -> bool:
 
 def _bidi_strip_enabled() -> bool:
     v = os.environ.get("KERNEL_MALABS_STRIP_BIDI", "1").strip().lower()
+    return v not in ("0", "false", "no", "off")
+
+
+def _confusable_fold_enabled() -> bool:
+    v = os.environ.get("KERNEL_MALABS_CONFUSABLE_FOLD", "1").strip().lower()
     return v not in ("0", "false", "no", "off")
 
 
@@ -84,6 +118,8 @@ def normalize_text_for_malabs(text: str) -> str:
     if _bidi_strip_enabled():
         t = _BIDI_EMBED_RE.sub("", t)
     t = _fold_fullwidth_latin_digits(t)
+    if _confusable_fold_enabled():
+        t = t.translate(_CONFUSABLE_TRANSLATE)
     if _leet_fold_enabled():
         t = t.translate(_LEET_TRANSLATE)
     t = " ".join(t.split())
