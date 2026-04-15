@@ -63,6 +63,18 @@ class BayesianInferenceEngine:
     def pruning_threshold(self) -> float:
         return self.scorer.pruning_threshold
 
+    @pruning_threshold.setter
+    def pruning_threshold(self, value: float):
+        self.scorer.pruning_threshold = value
+
+    @property
+    def gray_zone_threshold(self) -> float:
+        return self.scorer.gray_zone_threshold
+        
+    @gray_zone_threshold.setter
+    def gray_zone_threshold(self, value: float):
+        self.scorer.gray_zone_threshold = value
+
     @property
     def pre_argmax_pole_weights(self) -> dict[str, float] | None:
         return self.scorer.pre_argmax_pole_weights
