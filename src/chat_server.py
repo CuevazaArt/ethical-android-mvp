@@ -142,6 +142,7 @@ from .modules.moral_hub import (
     lan_governance_dao_batch_ws_enabled,
     lan_governance_integrity_batch_ws_enabled,
     lan_governance_judicial_batch_ws_enabled,
+    lan_governance_mock_court_batch_ws_enabled,
     moral_hub_public_enabled,
     proposal_to_public,
     submit_constitution_draft_for_vote,
@@ -149,6 +150,7 @@ from .modules.moral_hub import (
 from .modules.nomad_identity import nomad_identity_public
 from .modules.perception_schema import perception_report_from_dict
 from .modules.perceptual_abstraction import snapshot_from_layers
+from .modules.reparation_vault import maybe_register_reparation_after_mock_court
 from .observability.context import clear_request_context, set_request_id
 from .observability.logging_setup import configure_logging
 from .observability.metrics import (
@@ -1108,6 +1110,120 @@ def _collect_lan_governance_judicial_batch(
     }
 
 
+def _collect_lan_governance_mock_court_batch(
+    kernel: EthicalKernel, data: dict[str, Any]
+) -> dict[str, Any] | None:
+    """
+    Optional batch of mock tribunal runs: merge (turn / processor time / id) then apply in order.
+
+    Client shape::
+        {"lan_governance_mock_court_batch": {"events": [...], "id_key": "event_id"}}
+
+    Each event requires:
+      - op: "judicial_run_mock_court"
+      - case_uuid: string
+      - audit_record_id: string (from dossier registration)
+      - summary_excerpt: string
+      - buffer_conflict: bool
+    """
+    raw = data.get("lan_governance_mock_court_batch")
+    if raw is None:
+        return None
+    if not isinstance(raw, dict):
+        return {
+            "lan_governance": {
+                "mock_court_batch": {
+                    "ok": False,
+                    "error": "invalid_payload",
+                    "hint": "expected object",
+                }
+            }
+        }
+
+    if not lan_governance_mock_court_batch_ws_enabled():
+        return {
+            "lan_governance": {
+                "mock_court_batch": {
+                    "ok": False,
+                    "error": "disabled",
+                    "hint": (
+                        "Set KERNEL_LAN_GOVERNANCE_MERGE_WS=1, KERNEL_JUDICIAL_ESCALATION=1, "
+                        "and KERNEL_JUDICIAL_MOCK_COURT=1."
+                    ),
+                }
+            }
+        }
+
+    events_in = raw.get("events")
+    if not isinstance(events_in, list):
+        return {
+            "lan_governance": {"mock_court_batch": {"ok": False, "error": "events_must_be_list"}}
+        }
+
+    id_key = str(raw.get("id_key") or "event_id").strip() or "event_id"
+    dict_rows: list[dict[str, Any]] = [dict(x) for x in events_in if isinstance(x, dict)]
+    input_count = len(dict_rows)
+    missing_id_count = sum(1 for r in dict_rows if not str(r.get(id_key, "") or "").strip())
+
+    merged = merge_lan_governance_events(dict_rows, id_key=id_key)
+    merged_count = len(merged)
+    with_id_count = max(0, input_count - missing_id_count)
+    deduped_count = max(0, with_id_count - merged_count)
+
+    applied_ids: list[str] = []
+    errors: list[dict[str, Any]] = []
+    results: list[dict[str, Any]] = []
+
+    for row in merged:
+        eid = str(row.get(id_key, "") or "").strip()
+        op = str(row.get("op") or "").strip()
+        if op != "judicial_run_mock_court":
+            errors.append({"event_id": eid, "error": "unsupported_op", "op": op})
+            continue
+        case_uuid = str(row.get("case_uuid") or "").strip()
+        audit_record_id = str(row.get("audit_record_id") or "").strip()
+        summary_excerpt = str(row.get("summary_excerpt") or "").strip()
+        buffer_conflict = row.get("buffer_conflict")
+        if not case_uuid or not audit_record_id or not summary_excerpt:
+            errors.append(
+                {
+                    "event_id": eid,
+                    "error": "missing_fields",
+                    "fields": ["case_uuid", "audit_record_id", "summary_excerpt"],
+                }
+            )
+            continue
+        if not isinstance(buffer_conflict, bool):
+            errors.append({"event_id": eid, "error": "buffer_conflict_must_be_bool"})
+            continue
+        mc = kernel.dao.run_mock_escalation_court(
+            case_uuid, audit_record_id, summary_excerpt, buffer_conflict
+        )
+        maybe_register_reparation_after_mock_court(kernel.dao, mc, case_uuid)
+        results.append({"event_id": eid, "case_uuid": case_uuid, "mock_court": mc})
+        applied_ids.append(eid)
+
+    if applied_ids:
+        record_dao_ws_operation("lan_governance_mock_court_batch")
+
+    ok = merged_count == 0 or (not errors and len(applied_ids) == merged_count)
+    return {
+        "lan_governance": {
+            "mock_court_batch": {
+                "ok": ok,
+                "input_count": input_count,
+                "missing_id_count": missing_id_count,
+                "merged_count": merged_count,
+                "deduped_count": deduped_count,
+                "applied_count": len(applied_ids),
+                "event_ids": applied_ids,
+                "results": results,
+                "errors": errors,
+            }
+        }
+    }
+
+
 def _collect_nomad_ws_actions(kernel: EthicalKernel, data: dict[str, Any]) -> dict[str, Any] | None:
     """KERNEL_NOMAD_SIMULATION — apply HAL + optional DAO migration audit (lab)."""
     if not nomad_simulation_ws_enabled():
@@ -1214,6 +1330,7 @@ async def ws_chat(ws: WebSocket) -> None:
             lan_batch_payload = _collect_lan_governance_integrity_batch(kernel, data)
             lan_dao_payload = _collect_lan_governance_dao_batch(kernel, data)
             lan_judicial_payload = _collect_lan_governance_judicial_batch(kernel, data)
+            lan_mock_court_payload = _collect_lan_governance_mock_court_batch(kernel, data)
             if (
                 dao_payload
                 or nomad_payload
@@ -1221,6 +1338,7 @@ async def ws_chat(ws: WebSocket) -> None:
                 or lan_batch_payload
                 or lan_dao_payload
                 or lan_judicial_payload
+                or lan_mock_court_payload
             ):
                 out_ws: dict[str, Any] = {}
                 if dao_payload:
@@ -1235,6 +1353,8 @@ async def ws_chat(ws: WebSocket) -> None:
                     out_ws.update(lan_dao_payload)
                 if lan_judicial_payload:
                     out_ws.update(lan_judicial_payload)
+                if lan_mock_court_payload:
+                    out_ws.update(lan_mock_court_payload)
                 await ws.send_json(out_ws)
 
             text = text_preview
@@ -1246,6 +1366,7 @@ async def ws_chat(ws: WebSocket) -> None:
                     or lan_batch_payload
                     or lan_dao_payload
                     or lan_judicial_payload
+                    or lan_mock_court_payload
                 ):
                     maybe_autosave_episodes(kernel, session_ckpt)
                     continue

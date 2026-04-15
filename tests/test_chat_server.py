@@ -705,6 +705,72 @@ def test_websocket_lan_governance_judicial_batch_stress_reorder_and_duplicates_c
     )
 
 
+def test_websocket_lan_governance_mock_court_batch_stress_reorder_and_duplicates_converge(
+    monkeypatch,
+):
+    """
+    Phase 2 slice: reorder/duplicate delivery should converge to deterministic mock court verdicts.
+    """
+    import random
+
+    from src.modules.lan_governance_event_merge import merge_lan_governance_events
+    from src.modules.mock_dao import MockDAO
+
+    monkeypatch.setenv("KERNEL_JUDICIAL_ESCALATION", "1")
+    monkeypatch.setenv("KERNEL_JUDICIAL_MOCK_COURT", "1")
+    monkeypatch.setenv("KERNEL_LAN_GOVERNANCE_MERGE_WS", "1")
+
+    rng = random.Random(9001)
+
+    base_events: list[dict] = []
+    for i in range(30):
+        case_uuid = f"00000000-0000-0000-0000-{i:012d}"
+        base_events.append(
+            {
+                "event_id": f"mc{i:03d}",
+                "turn_index": 1 + (i // 10),
+                "processor_elapsed_ms": rng.randint(0, 500),
+                "op": "judicial_run_mock_court",
+                "case_uuid": case_uuid,
+                "audit_record_id": f"AUD-{i + 1:04d}",
+                "summary_excerpt": f"excerpt {i}",
+                "buffer_conflict": (i % 2) == 0,
+            }
+        )
+
+    delivered = list(base_events)
+    for _ in range(15):
+        delivered.append(rng.choice(base_events))
+    rng.shuffle(delivered)
+
+    merged = merge_lan_governance_events(delivered, id_key="event_id")
+    ref = MockDAO()
+    expected: dict[str, str] = {}
+    for row in merged:
+        mc = ref.run_mock_escalation_court(
+            str(row.get("case_uuid") or ""),
+            str(row.get("audit_record_id") or ""),
+            str(row.get("summary_excerpt") or ""),
+            bool(row.get("buffer_conflict", False)),
+        )
+        expected[str(row.get("case_uuid") or "")] = str(mc.get("verdict_code") or "")
+
+    with client.websocket_connect("/ws/chat") as ws:
+        ws.send_json({"lan_governance_mock_court_batch": {"events": delivered}})
+        data = ws.receive_json()
+    batch = data.get("lan_governance", {}).get("mock_court_batch", {})
+    assert batch.get("ok") is True
+    assert batch.get("merged_count") == len(merged)
+    assert batch.get("applied_count") == len(merged)
+
+    results = batch.get("results") or []
+    assert len(results) == len(merged)
+    for r in results:
+        cu = r.get("case_uuid")
+        mc = r.get("mock_court") or {}
+        assert mc.get("verdict_code") == expected.get(cu)
+
+
 def test_websocket_reality_verification_lighthouse(monkeypatch):
     from src.modules.reality_verification import clear_lighthouse_cache
 

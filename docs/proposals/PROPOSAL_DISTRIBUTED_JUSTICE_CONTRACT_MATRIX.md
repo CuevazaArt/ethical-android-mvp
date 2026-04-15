@@ -20,6 +20,7 @@
 | `lan_governance_integrity_batch` | Yes (when `KERNEL_DAO_INTEGRITY_AUDIT_WS=1` **and** `KERNEL_LAN_GOVERNANCE_MERGE_WS=1`) | Merge + apply integrity alerts; [`lan_governance_event_merge.py`](../../src/modules/lan_governance_event_merge.py) |
 | `lan_governance_dao_batch` | Yes (when `KERNEL_MORAL_HUB_DAO_VOTE=1` **and** `KERNEL_LAN_GOVERNANCE_MERGE_WS=1`) | Merge + apply DAO vote/resolve; deterministic replay slice |
 | `lan_governance_judicial_batch` | Yes (when `KERNEL_JUDICIAL_ESCALATION=1` **and** `KERNEL_LAN_GOVERNANCE_MERGE_WS=1`) | Merge + register escalation dossiers on audit ledger |
+| `lan_governance_mock_court_batch` | Yes (when `KERNEL_JUDICIAL_ESCALATION=1`, `KERNEL_JUDICIAL_MOCK_COURT=1` **and** `KERNEL_LAN_GOVERNANCE_MERGE_WS=1`) | Merge + run mock court on dossiers; deterministic verdict |
 | `constitution` (in-message snapshot) | Optional (`KERNEL_CHAT_INCLUDE_*`) | Hub stack |
 
 ---
