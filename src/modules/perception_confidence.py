@@ -12,6 +12,9 @@ from typing import Any
 
 from .perception_schema import perception_report_from_dict
 
+# ADR 0016 C1 — Ethical tier classification
+__ethical_tier__ = "decision_support"
+
 
 @dataclass(frozen=True)
 class PerceptionConfidenceEnvelope:

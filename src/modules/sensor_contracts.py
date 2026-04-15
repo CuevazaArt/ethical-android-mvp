@@ -15,6 +15,9 @@ from dataclasses import dataclass
 import math
 from typing import Any
 
+# ADR 0016 C1 — Ethical tier classification
+__ethical_tier__ = "decision_support"
+
 
 def _clamp01(x: float) -> float:
     return max(0.0, min(1.0, float(x)))

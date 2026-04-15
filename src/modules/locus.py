@@ -10,6 +10,9 @@ Adjusts bayesianly based on episode history.
 
 from dataclasses import dataclass
 
+# ADR 0016 C1 — Ethical tier classification
+__ethical_tier__ = "decision_core"
+
 
 @dataclass
 class LocusEvaluation:

@@ -9,6 +9,9 @@ import re
 import unicodedata
 from dataclasses import dataclass
 
+# ADR 0016 C1 — Ethical tier classification
+__ethical_tier__ = "decision_core"
+
 # Multi-word and cross-language euphemisms for harm / coercion (not only the substring "harm").
 # This is a **heuristic** gate for :meth:`PreloadedBuffer.verify_action`, not a substitute for
 # MalAbs, deliberation, or operator review. Kept English-heavy with common Spanish variants.

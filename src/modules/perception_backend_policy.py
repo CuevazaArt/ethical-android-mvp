@@ -30,6 +30,9 @@ from .perception_schema import PERCEPTION_FAILSAFE_NUMERIC, merge_parse_issues_i
 if TYPE_CHECKING:
     from .llm_layer import LLMPerception
 
+# ADR 0016 C1 — Ethical tier classification
+__ethical_tier__ = "decision_support"
+
 # Default matches historical behavior: recover via ``_perceive_local`` on failure.
 DEFAULT_KERNEL_PERCEPTION_BACKEND_POLICY = "template_local"
 

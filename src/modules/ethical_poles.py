@@ -12,6 +12,9 @@ Per-pole scores use :class:`LinearPoleEvaluator` (JSON-configurable); see ADR 00
 from dataclasses import dataclass
 from enum import Enum
 
+# ADR 0016 C1 — Ethical tier classification
+__ethical_tier__ = "decision_core"
+
 
 class Verdict(Enum):
     GOOD = "Good"

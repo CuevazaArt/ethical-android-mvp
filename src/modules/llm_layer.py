@@ -67,6 +67,9 @@ from .perception_schema import (
     validate_perception_dict,
 )
 
+# ADR 0016 C1 — Ethical tier classification
+__ethical_tier__ = "decision_support"
+
 
 def _normalize_llm_mode(mode: str) -> str:
     m = (mode or "auto").strip()
