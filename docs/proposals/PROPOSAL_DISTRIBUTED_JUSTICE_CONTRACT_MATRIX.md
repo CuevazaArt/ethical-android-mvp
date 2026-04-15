@@ -18,6 +18,7 @@
 | `verbal_llm_observability` | Yes (when generative verbal degrades) | LLM matrix |
 | `dao` (list / vote / resolve / submit_draft) | Yes (when `KERNEL_MORAL_HUB_DAO_VOTE=1`) | Meta: [`GET /dao/governance`](../../src/chat_server.py) |
 | `lan_governance_integrity_batch` | Yes (when `KERNEL_DAO_INTEGRITY_AUDIT_WS=1` **and** `KERNEL_LAN_GOVERNANCE_MERGE_WS=1`) | Merge + apply integrity alerts; [`lan_governance_event_merge.py`](../../src/modules/lan_governance_event_merge.py) |
+| `lan_governance_dao_batch` | Yes (when `KERNEL_MORAL_HUB_DAO_VOTE=1` **and** `KERNEL_LAN_GOVERNANCE_MERGE_WS=1`) | Merge + apply DAO vote/resolve; deterministic replay slice |
 | `constitution` (in-message snapshot) | Optional (`KERNEL_CHAT_INCLUDE_*`) | Hub stack |
 
 ---

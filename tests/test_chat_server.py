@@ -552,6 +552,103 @@ def test_websocket_lan_governance_dao_batch_disabled_returns_hint(monkeypatch):
     assert "KERNEL_LAN_GOVERNANCE_MERGE_WS" in (batch.get("hint") or "")
 
 
+def test_websocket_lan_governance_dao_batch_stress_reorder_and_duplicates_converge(monkeypatch):
+    """
+    Phase 2 acceptance slice: for a seeded proposal, reorder/duplicate delivery should converge to
+    the same final MockDAO proposal state after merge+apply.
+    """
+    import random
+
+    from src.modules.lan_governance_event_merge import merge_lan_governance_events
+    from src.modules.mock_dao import MockDAO
+
+    monkeypatch.setenv("KERNEL_MORAL_HUB_DAO_VOTE", "1")
+    monkeypatch.setenv("KERNEL_LAN_GOVERNANCE_MERGE_WS", "1")
+
+    # Seed the per-connection kernel with a known proposal id (PROP-0001) before WebSocket loop.
+    orig_init = EthicalKernel.__init__
+
+    def _seeded_init(self, *args, **kwargs):
+        orig_init(self, *args, **kwargs)
+        self.dao.create_proposal("LAN stress", "seed", type="ethics")
+
+    monkeypatch.setattr(EthicalKernel, "__init__", _seeded_init)
+
+    rng = random.Random(1337)
+    participants = ["community_01", "community_02", "community_03", "android_01"]
+
+    base_events: list[dict] = []
+    t = 1
+    for i in range(60):
+        pid = "PROP-0001"
+        part = rng.choice(participants)
+        n_votes = rng.randint(1, 2)
+        in_favor = bool(rng.getrandbits(1))
+        base_events.append(
+            {
+                "event_id": f"v{i:03d}",
+                "turn_index": t,
+                "processor_elapsed_ms": rng.randint(0, 500),
+                "op": "dao_vote",
+                "proposal_id": pid,
+                "participant_id": part,
+                "n_votes": n_votes,
+                "in_favor": in_favor,
+            }
+        )
+        if (i + 1) % 10 == 0:
+            t += 1
+    # Resolve at the end (highest turn, highest elapsed).
+    base_events.append(
+        {
+            "event_id": "resolve",
+            "turn_index": 999,
+            "processor_elapsed_ms": 999,
+            "op": "dao_resolve",
+            "proposal_id": "PROP-0001",
+        }
+    )
+
+    # Create a noisy delivery: shuffle and insert duplicates.
+    delivered = list(base_events)
+    for _ in range(25):
+        delivered.append(rng.choice(base_events))
+    rng.shuffle(delivered)
+
+    merged = merge_lan_governance_events(delivered, id_key="event_id")
+    ref = MockDAO()
+    ref.create_proposal("LAN stress", "seed", type="ethics")
+    for row in merged:
+        if row.get("op") == "dao_vote":
+            ref.vote(
+                str(row.get("proposal_id") or ""),
+                str(row.get("participant_id") or ""),
+                int(row.get("n_votes") or 1),
+                bool(row.get("in_favor", True)),
+            )
+        elif row.get("op") == "dao_resolve":
+            ref.resolve_proposal(str(row.get("proposal_id") or ""))
+    ref_prop = ref.proposals[0]
+
+    with client.websocket_connect("/ws/chat") as ws:
+        ws.send_json({"lan_governance_dao_batch": {"events": delivered}})
+        data = ws.receive_json()
+
+    batch = data.get("lan_governance", {}).get("dao_batch", {})
+    assert batch.get("ok") is True
+    assert batch.get("merged_count") == len(merged)
+    assert batch.get("deduped_count") == (
+        len([e for e in delivered if e.get("event_id")]) - len(merged)
+    )
+
+    props = batch.get("proposals") or []
+    assert props and props[0].get("id") == "PROP-0001"
+    # Convergence: status and totals match a reference replay.
+    assert props[0].get("status") == ref_prop.status
+    assert props[0].get("weighted_votes_for") == round(sum(ref_prop.votes_for.values()), 4)
+    assert props[0].get("weighted_votes_against") == round(sum(ref_prop.votes_against.values()), 4)
+
+
 def test_websocket_reality_verification_lighthouse(monkeypatch):
     from src.modules.reality_verification import clear_lighthouse_cache
 

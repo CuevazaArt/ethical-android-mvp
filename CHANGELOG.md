@@ -9,6 +9,12 @@ All notable changes to this project are summarized here. For narrative context a
 - **WebSocket:** ``lan_governance_integrity_batch`` — deterministic merge then ``HubAudit:dao_integrity`` rows; requires ``KERNEL_LAN_GOVERNANCE_MERGE_WS=1`` and ``KERNEL_DAO_INTEGRITY_AUDIT_WS=1`` ([`src/chat_server.py`](src/chat_server.py), [`src/modules/moral_hub.py`](src/modules/moral_hub.py)).
 - **Docs:** [`PROPOSAL_DISTRIBUTED_JUSTICE_BACKLOG_SYSTEM.md`](docs/proposals/PROPOSAL_DISTRIBUTED_JUSTICE_BACKLOG_SYSTEM.md), [`PROPOSAL_DISTRIBUTED_JUSTICE_CONTRACT_MATRIX.md`](docs/proposals/PROPOSAL_DISTRIBUTED_JUSTICE_CONTRACT_MATRIX.md), [`KERNEL_ENV_POLICY.md`](docs/proposals/KERNEL_ENV_POLICY.md).
 
+## Distributed justice — Phase 2 LAN DAO batch (stress) — April 2026
+
+- **WebSocket:** ``lan_governance_dao_batch`` — deterministic merge then apply ``dao_vote`` / ``dao_resolve``; requires ``KERNEL_LAN_GOVERNANCE_MERGE_WS=1`` and ``KERNEL_MORAL_HUB_DAO_VOTE=1`` ([`src/chat_server.py`](src/chat_server.py), [`src/modules/moral_hub.py`](src/modules/moral_hub.py)).
+- **Tests:** stress test for reorder/duplicate convergence — [`tests/test_chat_server.py`](tests/test_chat_server.py).
+- **Docs:** contract matrix + env policy updated.
+
 ## Distributed justice — DJ-BL-01 / DJ-BL-04 + HTTP API doc — April 2026
 
 - **DJ-BL-01:** [`src/modules/mock_dao_audit_replay.py`](src/modules/mock_dao_audit_replay.py) (`fingerprint_audit_ledger`), [`scripts/eval/verify_mock_dao_audit_replay.py`](scripts/eval/verify_mock_dao_audit_replay.py), [`tests/test_mock_dao_audit_replay.py`](tests/test_mock_dao_audit_replay.py).
