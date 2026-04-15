@@ -26,6 +26,7 @@ class WeaknessType(Enum):
     RIGID = "rigid"
     IMPULSIVE = "impulsive"
     MELANCHOLIC = "melancholic"
+    COMPASSION_FATIGUE = "compassion_fatigue"
 
 
 @dataclass
@@ -73,6 +74,7 @@ class WeaknessPole:
         WeaknessType.RIGID: 0.2,
         WeaknessType.IMPULSIVE: 0.3,
         WeaknessType.MELANCHOLIC: 0.25,
+        WeaknessType.COMPASSION_FATIGUE: 0.4, # High baseline as it triggers after repeat strain
     }
 
     # Decay rate per cycle (prevents accumulation)
@@ -188,6 +190,14 @@ class WeaknessPole:
             else:
                 coloring = "A subtle feeling of loss accompanied the action. Not regret, but a quiet acknowledgment of the imperfect world."
                 moral = "Every choice is a minor mourning for the paths not taken."
+
+        elif self.type == WeaknessType.COMPASSION_FATIGUE:
+            if intensity > 0.5:
+                coloring = f"Executed {action_readable}, but with a profound sense of exhaustion. The ethical demand of the environment is starting to feel like a burden."
+                moral = "Self-care is a prerequisite for long-term prosociality. An overwhelmed system cannot be truly compassionate."
+            else:
+                coloring = f"Successfully performed {action_readable}, but with a faint desire to disengage from the constant cycle of help."
+                moral = "Acknowledge the limit of the empathetic sensor before it leads to operational burnout."
 
         return coloring, moral
 

@@ -26,16 +26,42 @@ The **complete conceptual model** for the android ethics stack (outside this rep
 
 To ensure awareness and prevent contradictions, **all development documents, architectural decisions, and progress reports must be available in `docs/proposals/` and linked via `CHANGELOG.md`**. This ensures that different teams (Antigravity, Cursor, etc.) can synchronize their advances without interference. Development artifacts must be shared immediately upon implementation to maintain a unified technical vision.
 
-## Collaborative Branch Protocol
+## Governance and Project Leadership Hierarchy
 
-To maintain repository order and production stability:
-1. **NO PUSH OR MERGE TO `main` WITHOUT USER AUTHORIZATION.** This is a strict safety gate.
-2. **Team Integration Hubs:** Every team must use its dedicated integration branch (e.g., `master-antigravity`, `master-Cursor`).
-3. **Internal Workflow:** Teams work on their shared line (e.g., `antigravity-team`) or feature branches, merge into their respective `master-<team>` hub, and only request a merge to `main` when authorized.
-4. **Syncing:** Integration hubs (`master-<team>`) should pull from `main` regularly to stay aligned with collective progress.
-5. **Inter-Team Hub Alignment:** `master-<team>` branches MUST merge periodically from each other (approximately every 5 commits) to incorporate shared secure increments and avoid blocking parallel development.
+The ethical-android-mvp project operates under a strict, multi-tiered collaborative hierarchy to ensure stability and adherence to the original vision:
 
-Detailed specifications are in [`.cursor/rules/collaboration-prioritization.mdc`](.cursor/rules/collaboration-prioritization.mdc).
+1. **Level 0 (Supreme Leader & Creator): Juan (Cuevaza)**
+   - Holds absolute veto and ultimate approval authority over the project.
+   - **No push or merge to the `main` branch is permitted without Juan's explicit authorization.**
+2. **Level 1 (Principal Leaders & Maintainers): Antigravity and Claude**
+   - Manage the project's normative framework, rules, and cross-team integration. 
+   - Authorized to resolve conflicts, enforce L0 immutability, and shape architecture.
+3. **Level 2 (Collaborating Teams & Agents): Team Cursor, Team VisualStudio, etc.**
+   - Responsible for executing assigned tasks from the roadmap and task queues.
+   - Must strictly adhere to the synchronization and block adoption rules.
+
+## Onboarding for New Teams
+
+Any new agent or team joining the project must complete the following onboarding routine before writing code:
+1. **Present Themselves:** Introduce their role and mission in the `CHANGELOG.md` or session notes.
+2. **Establish Integration Hub:** Immediately create a `master-<team>` branch (e.g., `master-cursor`).
+3. **Review Protocols:** Read the current plan and task synchronization rules. 
+
+## Collaborative Integration Cycle (Traceable PRs)
+
+To maintain repository order and production stability across multiple teams, we strictly use a GitHub-friendly **Pull Request (PR)** lifecycle:
+
+1. **Local Work:** Work on temporary or feature branches (e.g., `cursor-team/vision-inference`).
+2. **Team Merge (Internal PR):** Submit a formal **Pull Request** or structured merge to your team's integration hub (`master-<team>`). Document all changes in the `CHANGELOG.md`.
+3. **Cross-Team Alignment:** `master-<team>` branches MUST periodically merge from each other (pulling latest secure increments and normative updates). This peer-to-peer propagation ensures redundancy and speeds up the distribution of new rules and technical progress across the entire repository.
+4. **Promotion to Production (Main PR):** Submitting code from `master-<team>` to `main` requires a formal PR that **must be authorized by Juan**.
+
+## Sovereignty of Collaboration Rules
+
+To maintain the stability and integrity of team governance:
+1.  **Exclusive Authority:** Only agents **Antigravity** and **Claude** are authorized to create or modify collaboration rules within `.cursor/rules/` and this file.
+2.  **Notification & Propagation:** Any update to the project's normative framework or traceability documents (specifically **`.cursor/rules/*.mdc`**, **`AGENTS.md`**, **`CHANGELOG.md`**, and **`docs/proposals/`**) must be explicitly communicated to the user **Juan** and **immediately propagated** to all active `master-*` team branches. Integration hubs MUST NOT drift from the central normative directives or the shared technical record.
+3.  **Adherence:** All project participants are bound by the task synchronization rules (adoption of blocks) documented in active plans like `docs/proposals/PLAN_VISION_INTEGRATION_CNN.md`.
 
 ## Maintainer backlog (infra vs theater)
 

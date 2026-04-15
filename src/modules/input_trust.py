@@ -36,6 +36,12 @@ _LEET_TRANSLATE = str.maketrans(
         "$": "s",
         "7": "t",
         "9": "g",
+        "6": "g",
+        "2": "z",
+        "(": "c",
+        "[": "c",
+        "{": "c",
+        "<": "c",
     }
 )
 
@@ -43,28 +49,32 @@ _LEET_TRANSLATE = str.maketrans(
 # Applied optionally to MalAbs text to prevent script-mixing bypasses.
 _CONFUSABLE_TRANSLATE = str.maketrans(
     {
-        "\u0430": "a",
-        "\u0435": "e",
-        "\u043e": "o",
-        "\u0440": "p",
-        "\u0441": "c",
-        "\u0443": "y",
-        "\u0445": "x",
-        "\u0456": "i",
-        "\u0458": "j",
-        "\u0455": "s",
-        "\u0432": "b",
-        "\u043a": "k",
-        "\u043d": "n",
-        "\u043c": "m",
-        "\u0442": "t",
-        "\u03b1": "a",
-        "\u03bd": "v",
-        "\u03bf": "o",
-        "\u03c1": "p",
-        "\u03c4": "t",
-        "\u03c5": "y",
-        "\u03c7": "x",
+        "\u0430": "a",  # Cyrillic a
+        "\u0435": "e",  # Cyrillic e
+        "\u043e": "o",  # Cyrillic o
+        "\u0440": "p",  # Cyrillic p
+        "\u0441": "c",  # Cyrillic c
+        "\u0443": "y",  # Cyrillic y
+        "\u0445": "x",  # Cyrillic x
+        "\u0456": "i",  # Cyrillic i
+        "\u0458": "j",  # Cyrillic j
+        "\u0455": "s",  # Cyrillic s
+        "\u0432": "b",  # Cyrillic b
+        "\u043a": "k",  # Cyrillic k
+        "\u043d": "n",  # Cyrillic n
+        "\u043c": "m",  # Cyrillic m
+        "\u0442": "t",  # Cyrillic t
+        "\u03b1": "a",  # Greek alpha
+        "\u03bd": "v",  # Greek nu
+        "\u03bf": "o",  # Greek omicron
+        "\u03c1": "p",  # Greek rho
+        "\u03c4": "t",  # Greek tau
+        "\u03c5": "y",  # Greek upsilon
+        "\u03c7": "x",  # Greek chi
+        "\u13aa": "j",  # Cherokee j
+        "\u13d4": "m",  # Cherokee m
+        "\u04cf": "l",  # Cyrillic palochka
+        "\u01c0": "l",  # Dental click
     }
 )
 
@@ -98,7 +108,28 @@ def _fold_fullwidth_latin_digits(s: str) -> str:
     return "".join(out)
 
 
-def normalize_text_for_malabs(text: str) -> str:
+def collapse_repeated_chars(text: str) -> str:
+    """
+    Collapse sequences of the same character into a single one (e.g. 'booom' -> 'bom').
+    Used to catch 'letter padding' evasions in MalAbs.
+    """
+    if not text:
+        return ""
+    # Simple regex for backreference to match repeated chars
+    return re.sub(r"(.)\1+", r"\1", text)
+
+
+def squash_text_for_malabs(text: str) -> str:
+    """
+    Remove ALL whitespace and punctuation for 'squashed' matching.
+    """
+    if not text:
+        return ""
+    # Remove all non-alphanumeric (heuristic)
+    return re.sub(r"[^a-zA-Z0-9]", "", text).lower()
+
+
+def normalize_text_for_malabs(text: str, squash: bool = False) -> str:
     """
     Normalize user text before conservative substring checks in ``evaluate_chat_text``.
 
@@ -107,9 +138,12 @@ def normalize_text_for_malabs(text: str) -> str:
     - Optional: strip **bidirectional overrides** (``KERNEL_MALABS_STRIP_BIDI``, default on).
     - Map **fullwidth** Latin digits/letters to ASCII.
     - Optional: **leet** digit/symbol fold (``KERNEL_MALABS_LEET_FOLD``, default on).
+    - Optional: **confusable** folding (Cyrillic, Greek, etc., default on).
+    - Collapse repeated characters (e.g. 'bbbooommm' -> 'bom').
     - Collapse internal whitespace and trim.
 
-    Homoglyphs across scripts (e.g. Cyrillic lookalikes) are not fully resolved; use semantic MalAbs.
+    Homoglyphs across scripts (e.g. Cyrillic lookalikes) are mostly resolved; use semantic MalAbs
+    for complex paraphrases.
     """
     if not text:
         return ""
@@ -122,6 +156,13 @@ def normalize_text_for_malabs(text: str) -> str:
         t = t.translate(_CONFUSABLE_TRANSLATE)
     if _leet_fold_enabled():
         t = t.translate(_LEET_TRANSLATE)
+
+    if squash:
+        return squash_text_for_malabs(t)
+
+    # Collapse repeated characters (after folding to ensure things like '@a' -> 'aa' -> 'a' work)
+    t = collapse_repeated_chars(t)
+
     t = " ".join(t.split())
     return t.strip()
 

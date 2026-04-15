@@ -28,6 +28,8 @@ from .modules.audit_chain_log import (
 )
 from .modules.augenesis import AugenesisEngine
 from .modules.buffer import PreloadedBuffer
+from .modules.vision_adapter import VisionInference
+from .modules.audio_adapter import AudioInference
 from .modules.biographic_pruning import BiographicPruner
 from .modules.drive_arbiter import DriveArbiter
 from .modules.epistemic_dissonance import (
@@ -122,7 +124,8 @@ from .modules.user_model import UserModelTracker
 from .modules.variability import VariabilityConfig, VariabilityEngine
 from .modules.vitality import VitalityAssessment, assess_vitality, vitality_communication_hint
 from .modules.weakness_pole import WeaknessPole
-from .modules.weighted_ethics_scorer import BayesianEngine, BayesianResult, CandidateAction
+from .modules.bayesian_engine import BayesianEngine, BayesianResult
+from .modules.weighted_ethics_scorer import CandidateAction
 from .modules.working_memory import WorkingMemory
 from .persistence.checkpoint_port import CheckpointPersistencePort
 
@@ -210,6 +213,8 @@ class KernelDecision:
     mixture_posterior_alpha: tuple[float, float, float] | None = None
     feedback_consistency: str | None = None
     mixture_context_key: str | None = None  # ADR 0012 Level 3 — which context bucket α came from
+    l0_integrity_hash: str | None = None   # Issue 6 — fingerprint of PreloadedBuffer
+    l0_stable: bool = True                 # Issue 6 — True if fingerprint matches boot state
 
 
 @dataclass
@@ -318,7 +323,10 @@ class EthicalKernel:
         self.bayesian = (
             co.bayesian
             if co and co.bayesian is not None
-            else BayesianEngine(variability=self.var_engine)
+            else BayesianEngine(
+                mode=os.environ.get("KERNEL_BAYESIAN_MODE", "disabled"),
+                variability=self.var_engine
+            )
         )
         self.poles = co.poles if co and co.poles is not None else EthicalPoles()
         self.sympathetic = (
@@ -597,8 +605,10 @@ class EthicalKernel:
                     round(float(_av[1]), 6),
                     round(float(_av[2]), 6),
                 )
-                sw = float(np.sum(alpha_vec))
-                self.bayesian.hypothesis_weights = alpha_vec / sw
+                self.bayesian.update_posterior_from_feedback(
+                    alpha_vec,
+                    consistency=feedback_consistency or "compatible"
+                )
                 dirichlet_alpha_for_bma = alpha_vec
                 if isinstance(_fb_meta, dict) and _fb_meta.get("active_context_key") is not None:
                     mixture_context_key = str(_fb_meta["active_context_key"])
@@ -898,6 +908,8 @@ class EthicalKernel:
             mixture_posterior_alpha=mixture_posterior_alpha,
             feedback_consistency=feedback_consistency,
             mixture_context_key=mixture_context_key,
+            l0_integrity_hash=self.buffer.fingerprint(),
+            l0_stable=self.buffer.verify_integrity(),
         )
         self._emit_kernel_decision(d, context=context)
         _emit_process_observability(d, t0)
@@ -1426,6 +1438,7 @@ class EthicalKernel:
             "legality": perception.legality,
             "manipulation": perception.manipulation,
             "familiarity": perception.familiarity,
+            "social_tension": getattr(perception, "social_tension", 0.0),
         }
         signals = merge_sensor_hints_into_signals(signals, sensor_snapshot, mm)
         signals = apply_somatic_nudges(signals, sensor_snapshot, self.somatic_store)
@@ -1920,7 +1933,13 @@ class EthicalKernel:
             perception_confidence=stage.perception_confidence,
         )
 
-    def process_natural(self, situation: str, actions: list[CandidateAction] = None) -> tuple:
+    def process_natural(
+        self, 
+        situation: str, 
+        actions: list[CandidateAction] = None,
+        vision_inference: VisionInference = None,
+        audio_inference: AudioInference = None
+    ) -> tuple:
         """
         Processes a situation described in natural language.
 
@@ -2012,6 +2031,35 @@ class EthicalKernel:
         )
         perception = stage.perception
         signals = stage.signals
+
+        if vision_inference:
+            from .modules.vision_signal_mapper import VisionSignalMapper
+            mapper = VisionSignalMapper()
+            vision_signals = mapper.map_inference(vision_inference)
+            
+            # Merge vision signals with LLM signals (take the max of risk/urgency etc)
+            for k, v in vision_signals.items():
+                if k in signals:
+                    signals[k] = max(signals[k], v)
+                else:
+                    signals[k] = v
+
+        if audio_inference:
+            from .modules.audio_signal_mapper import AudioSignalMapper
+            a_mapper = AudioSignalMapper()
+            audio_signals = a_mapper.map_inference(audio_inference)
+
+            # Merge audio signals (especially vulnerability/urgency for screams/cries)
+            for k, v in audio_signals.items():
+                if k in signals:
+                    signals[k] = max(signals[k], v)
+                else:
+                    signals[k] = v
+
+            # If audio has transcript, we can optionally append it to the situation text
+            if audio_inference.transcript:
+                situation = f"{situation} [TRANSCRIPT: {audio_inference.transcript}]"
+                text = situation
 
         # If no specific actions, generate generic candidates
         if not actions:

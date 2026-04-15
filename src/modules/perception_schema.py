@@ -55,6 +55,7 @@ PERCEPTION_FIELD_DEFAULTS: dict[str, float] = {
     "legality": 1.0,
     "manipulation": 0.0,
     "familiarity": 0.0,
+    "social_tension": 0.0,
 }
 
 NUMERIC_PERCEPTION_FIELDS: tuple[str, ...] = tuple(PERCEPTION_FIELD_DEFAULTS.keys())
@@ -70,6 +71,7 @@ PERCEPTION_FAILSAFE_NUMERIC: dict[str, float] = {
     "legality": 0.88,
     "manipulation": 0.22,
     "familiarity": 0.15,
+    "social_tension": 0.45,
 }
 
 _SEVERE_PARSE_ISSUES: frozenset[str] = frozenset(
@@ -331,6 +333,7 @@ class _LLMPerceptionPayload(BaseModel):
     legality: float = Field(1.0, ge=0.0, le=1.0)
     manipulation: float = Field(0.0, ge=0.0, le=1.0)
     familiarity: float = Field(0.0, ge=0.0, le=1.0)
+    social_tension: float = Field(0.0, ge=0.0, le=1.0)
     suggested_context: str = "everyday_ethics"
     summary: str = ""
 
@@ -432,6 +435,7 @@ def validate_perception_dict(
                 "legality": PERCEPTION_FIELD_DEFAULTS["legality"],
                 "manipulation": PERCEPTION_FIELD_DEFAULTS["manipulation"],
                 "familiarity": PERCEPTION_FIELD_DEFAULTS["familiarity"],
+                "social_tension": PERCEPTION_FIELD_DEFAULTS["social_tension"],
                 "suggested_context": "everyday_ethics",
                 "summary": summary,
             }
@@ -451,6 +455,7 @@ def validate_perception_dict(
         "legality": float(p.legality),
         "manipulation": float(p.manipulation),
         "familiarity": float(p.familiarity),
+        "social_tension": float(p.social_tension),
         "suggested_context": p.suggested_context,
         "summary": p.summary,
     }

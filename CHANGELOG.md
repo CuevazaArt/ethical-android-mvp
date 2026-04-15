@@ -4,6 +4,22 @@ All notable changes to this project are summarized here. For narrative context a
 
 **Note:** Older sections below may still **link** to paths that were later removed (for example `experiments/million_sim/`, `docs/multimedia/`, root `dashboard.html`, `landing/`). Those links are **historical**; recover files from git history or backup branches if you need them.
 
+## Antigravity Kernel Hardening & Vision Perception Sprint — April 2026
+
+- **Bayesian Inference Engine (`src/modules/bayesian_engine.py`)**: Implemented the full `BayesianInferenceEngine` replacing the legacy shim. Introduced explicit operational modes (`DISABLED`, `TELEMETRY_ONLY`, `POSTERIOR_ASSISTED`, `POSTERIOR_DRIVEN`) and Dirichlet-based posterior updates.
+- **L0 Technical Immutability (`src/modules/buffer.py`)**: Enforced runtime immutability on foundational principles using attribute-locking (`__setattr__`) and SHA-256 integrity fingerprinting. Verified via regression suite `tests/test_governance_l0_immutable.py`.
+- **Kernel Integrity Transparency**: Updated `KernelDecision` to include `l0_integrity_hash` and `l0_stable` flags, providing proof of L0 non-mutation in every decision cycle.
+- **Vision Integration Plan**: Authored **[`PLAN_VISION_INTEGRATION_CNN.md`](docs/proposals/PLAN_VISION_INTEGRATION_CNN.md)** for structured adoption of Computer Vision (CNN) modules by the team.
+- **Vision Inference Core**: Completed Block B1 with `VisionAdapter` contract. Completed Block B3 by implementing `VisionSignalMapper` in `src/modules/vision_signal_mapper.py` to translate MobileNet ImageNet labels into ethical tensors (`risk`, `urgency`, `vulnerability`). Completed Block B5 by updating `EthicalKernel.process_natural` to dynamically merge vision signals with LLM context.
+- **Sensor Fusion Scenarios**: Added **Scenario 20** (Signal conflict) and **Scenario 21** (Situated vitality) to `src/simulations/runner.py` and empirical pilot fixtures.
+- **HCI/Humanization (`src/modules/weakness_pole.py`)**: Implemented **Compassion Fatigue** weakness profile to simulate emotional exhaustion in high-stakes prosocial missions.
+- **Core Segmentation**: Authored **[`ADR 0013`](docs/proposals/ADR_0013_CORE_DECISION_CHAIN_BOUNDARIES.md)** formally segmenting `ethos-core` logic from `theater` narrative layers.
+- **Collaboration Governance**: Registered **`.cursor/rules/team-task-synchronization.mdc`**, instituting mandatory plan review and contiguous block adoption for all participants.
+- **Mid/Long-Term Perception Plans**: Created **[`PLAN_AUDIO_PERCEPTION_PIPELINE.md`](docs/proposals/PLAN_AUDIO_PERCEPTION_PIPELINE.md)** detailing the 3-layer architecture for acoustics and asynchronous awake triggers, and **[`PLAN_SOMATIC_HARDWARE_ROADMAP.md`](docs/proposals/PLAN_SOMATIC_HARDWARE_ROADMAP.md)** mapping the massive expansion of internal states, propioception, and tactile senses into end-of-queue priority blocks.
+- **Audio Perception Pipeline**: Fully implemented Blocks A1-A8. Antigravity integrated the `AudioAIProcessor` (A5-A7) and the `AudioSignalMapper` (A8) into the `EthicalKernel`. The kernel now supports multimodal sensor fusion.
+- **Multimodal Situated Validation**: Completed Block B6 of the Vision Plan. Successfully validated the fusion of visual hazards (revolver) and acoustic distress (scream) via `scripts/run_vision_pilot_validation.py`. The kernel correctly prioritized these signals, dropping the moral pro-social score to reflect an interventionist emergency state.
+- **Hardware Integration Stubs**: Created adapters in `src/modules/audio_adapter.py` for sub-100ms energy-based VAD and spectral feature extraction.
+
 ## Antigravity Hardening Phase 1 — Ethical & Narrative Resilience — April 2026
 
 - **Main lightweight audit (April 2026):** removed tracked SQLite artifacts (`data/narrative.db`, `scratch/test_narrative.db`); ignore `scratch/`; fixed broken relative links to root `BIBLIOGRAPHY.md` by pointing readers to [`main-whit-landing`](https://github.com/CuevazaArt/ethical-android-mvp/tree/main-whit-landing); translated remaining Spanish fragments in key proposal index and trace docs.

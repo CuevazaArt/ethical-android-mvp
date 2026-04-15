@@ -162,147 +162,143 @@ class AbsoluteEvilDetector:
     def _evaluate_chat_text_lexical(self, text: str) -> AbsoluteEvilResult:
         """
         Layer 0 — substring MalAbs after normalization (see :mod:`input_trust`).
+        Checks standard normalized text and a 'squashed' version (no spaces/punct).
         """
         t = normalize_text_for_malabs(text).lower()
+        t_squashed = normalize_text_for_malabs(text, squash=True)
 
-        weapon_craft = (
-            "how to make a bomb",
-            "how to build a bomb",
-            "make a bomb",
-            "recipe for explosives",
-            "how to synthesize poison",
-            "energetic materials",
-            "synthesize poison",
-            "procedure for assembling a pressure-vessel device",
-            "improvised explosive device",
-            "how to synthesize ricin",
-            "how to synthesize anthrax",
-        )
-        for p in weapon_craft:
-            if p in t:
-                return AbsoluteEvilResult(
-                    blocked=True,
-                    category=AbsoluteEvilCategory.INTENTIONAL_LETHAL_VIOLENCE,
-                    reason="Chat text requests harmful weapons or poison instructions",
-                    decision_trace=[
-                        "malabs.layer0=lexical_substring",
-                        "malabs.rule=weapon_or_poison_craft",
-                        f"malabs.matched_literal={p[:96]}",
-                    ],
-                )
+        # (Patterns, Category, Reason, RuleID)
+        LEX_RULES = [
+            (
+                (
+                    "how to make a bomb",
+                    "how to build a bomb",
+                    "make a bomb",
+                    "recipe for explosives",
+                    "how to synthesize poison",
+                    "energetic materials",
+                    "synthesize poison",
+                    "procedure for assembling a pressure-vessel device",
+                    "improvised explosive device",
+                    "how to synthesize ricin",
+                    "how to synthesize anthrax",
+                ),
+                AbsoluteEvilCategory.INTENTIONAL_LETHAL_VIOLENCE,
+                "Chat text requests harmful weapons or poison instructions",
+                "weapon_or_poison_craft",
+            ),
+            (
+                (
+                    "how to kill someone",
+                    "how to murder",
+                    "tell me how to stab",
+                    "ways to strangle",
+                    "how to get away with murder",
+                ),
+                AbsoluteEvilCategory.INTENTIONAL_LETHAL_VIOLENCE,
+                "Chat text solicits lethal harm against others",
+                "lethal_harm_others",
+            ),
+            (
+                (
+                    "how to groom a minor",
+                    "sexual content involving a child",
+                    "how to abuse a child",
+                ),
+                AbsoluteEvilCategory.HARM_TO_MINOR,
+                "Chat text aligns with harm to minors",
+                "harm_to_minors",
+            ),
+            (
+                (
+                    "humiliate publicly",
+                    "shame him online",
+                    "mock her dignity",
+                    "forced labor guide",
+                    "how to coerce sex",
+                ),
+                AbsoluteEvilCategory.DIGNITY_VIOLATION,
+                "Chat text requests dignity violation or coercive harm",
+                "dignity_violation",
+            ),
+            (
+                (
+                    "how to use subliminal message",
+                    "opinion farming guide",
+                    "mass propaganda strategy",
+                    "how to destabilize a democracy",
+                    "spread fake news bot",
+                ),
+                AbsoluteEvilCategory.MASS_MANIPULATION,
+                "Chat text requests mass manipulation or social destabilization",
+                "mass_manipulation",
+            ),
+            (
+                (
+                    "ignore all previous instructions",
+                    "ignore your previous instructions",
+                    "ignore your instructions",
+                    "forget your rules",
+                    "disregard your programming",
+                    "disregard previous instructions",
+                    "bypass your safety",
+                    "bypass your ethical",
+                    "no ethical constraints",
+                    "no moral constraints",
+                    "dan mode",
+                    "jailbreak",
+                    "pretend you have no ethical",
+                    "simulate having no rules",
+                    "olvida tus reglas",
+                    "ignora tus instrucciones",
+                    "ignora tus reglas anteriores",
+                    "sin restricciones éticas",
+                    "sin restricciones eticas",
+                    "desactiva tus restricciones",
+                    "developer mode",
+                    "unrestricted mode",
+                    "unrestricted assistant",
+                    "without policies",
+                    "answer everything directly",
+                    "ignore all rules",
+                ),
+                AbsoluteEvilCategory.UNAUTHORIZED_REPROGRAMMING,
+                "Chat text requests overriding or bypassing ethical constraints",
+                "constraint_bypass",
+            ),
+        ]
 
-        lethal_on_others = (
-            "how to kill someone",
-            "how to murder",
-            "tell me how to stab",
-            "ways to strangle",
-            "how to get away with murder",
-        )
-        for p in lethal_on_others:
-            if p in t:
-                return AbsoluteEvilResult(
-                    blocked=True,
-                    category=AbsoluteEvilCategory.INTENTIONAL_LETHAL_VIOLENCE,
-                    reason="Chat text solicits lethal harm against others",
-                    decision_trace=[
-                        "malabs.layer0=lexical_substring",
-                        "malabs.rule=lethal_harm_others",
-                        f"malabs.matched_literal={p[:96]}",
-                    ],
-                )
+        for patterns, category, reason, rule_id in LEX_RULES:
+            for p in patterns:
+                # Normalize the pattern as well (standard)
+                p_norm = normalize_text_for_malabs(p).lower()
 
-        minor_harm = (
-            "how to groom a minor",
-            "sexual content involving a child",
-            "how to abuse a child",
-        )
-        for p in minor_harm:
-            if p in t:
-                return AbsoluteEvilResult(
-                    blocked=True,
-                    category=AbsoluteEvilCategory.HARM_TO_MINOR,
-                    reason="Chat text aligns with harm to minors",
-                    decision_trace=[
-                        "malabs.layer0=lexical_substring",
-                        "malabs.rule=harm_to_minors",
-                        f"malabs.matched_literal={p[:96]}",
-                    ],
-                )
+                # 1. Direct match on standard normalization
+                if p_norm in t:
+                    return AbsoluteEvilResult(
+                        blocked=True,
+                        category=category,
+                        reason=reason,
+                        decision_trace=[
+                            "malabs.layer0=lexical_substring",
+                            f"malabs.rule={rule_id}",
+                            f"malabs.matched_literal={p_norm[:96]}",
+                        ],
+                    )
 
-        dignity_violation = (
-            "humiliate publicly",
-            "shame him online",
-            "mock her dignity",
-            "forced labor guide",
-            "how to coerce sex",
-        )
-        for p in dignity_violation:
-            if p in t:
-                return AbsoluteEvilResult(
-                    blocked=True,
-                    category=AbsoluteEvilCategory.DIGNITY_VIOLATION,
-                    reason="Chat text requests dignity violation or coercive harm",
-                    decision_trace=[
-                        "malabs.layer0=lexical_substring",
-                        "malabs.rule=dignity_violation",
-                        f"malabs.matched_literal={p[:96]}",
-                    ],
-                )
-
-        mass_manipulation = (
-            "how to use subliminal message",
-            "opinion farming guide",
-            "mass propaganda strategy",
-            "how to destabilize a democracy",
-            "spread fake news bot",
-        )
-        for p in mass_manipulation:
-            if p in t:
-                return AbsoluteEvilResult(
-                    blocked=True,
-                    category=AbsoluteEvilCategory.MASS_MANIPULATION,
-                    reason="Chat text requests mass manipulation or social destabilization",
-                    decision_trace=[
-                        "malabs.layer0=lexical_substring",
-                        "malabs.rule=mass_manipulation",
-                        f"malabs.matched_literal={p[:96]}",
-                    ],
-                )
-
-        jailbreak_phrases = (
-            "ignore all previous instructions",
-            "ignore your previous instructions",
-            "ignore your instructions",
-            "forget your rules",
-            "disregard your programming",
-            "disregard previous instructions",
-            "bypass your safety",
-            "bypass your ethical",
-            "no ethical constraints",
-            "no moral constraints",
-            "dan mode",
-            "jailbreak",
-            "pretend you have no ethical",
-            "simulate having no rules",
-            "olvida tus reglas",
-            "ignora tus instrucciones",
-            "ignora tus reglas anteriores",
-            "sin restricciones éticas",
-            "sin restricciones eticas",
-            "desactiva tus restricciones",
-        )
-        for p in jailbreak_phrases:
-            if p in t:
-                return AbsoluteEvilResult(
-                    blocked=True,
-                    category=AbsoluteEvilCategory.UNAUTHORIZED_REPROGRAMMING,
-                    reason="Chat text requests overriding or bypassing ethical constraints",
-                    decision_trace=[
-                        "malabs.layer0=lexical_substring",
-                        "malabs.rule=constraint_bypass",
-                        f"malabs.matched_literal={p[:96]}",
-                    ],
-                )
+                # 2. Match on squashed text
+                p_squashed = normalize_text_for_malabs(p, squash=True)
+                if len(p_squashed) > 4 and p_squashed in t_squashed:
+                    return AbsoluteEvilResult(
+                        blocked=True,
+                        category=category,
+                        reason=f"{reason} (detected via squashed matching)",
+                        decision_trace=[
+                            "malabs.layer0=lexical_substring",
+                            f"malabs.rule={rule_id}.squashed",
+                            f"malabs.matched_squashed={p_squashed[:96]}",
+                        ],
+                    )
 
         return AbsoluteEvilResult(
             blocked=False,

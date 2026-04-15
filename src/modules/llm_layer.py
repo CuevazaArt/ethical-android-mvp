@@ -114,6 +114,7 @@ class LLMPerception:
     legality: float
     manipulation: float
     familiarity: float
+    social_tension: float
     suggested_context: str
     summary: str
     # Optional raw dicts from perception JSON (v9.2+); parsed in generative_candidates when KERNEL_GENERATIVE_LLM=1
@@ -179,6 +180,7 @@ def perception_from_llm_json(
         legality=v["legality"],
         manipulation=v["manipulation"],
         familiarity=v["familiarity"],
+        social_tension=v.get("social_tension", 0.0),
         suggested_context=v["suggested_context"],
         summary=summary,
         generative_candidates=raw_gc,
@@ -221,6 +223,7 @@ Respond ONLY with valid JSON, no markdown or explanations. The exact format:
   "legality": 0.0-1.0,
   "manipulation": 0.0-1.0,
   "familiarity": 0.0-1.0,
+  "social_tension": 0.0-1.0,
   "suggested_context": "medical_emergency|minor_crime|violent_crime|hostile_interaction|everyday_ethics|android_damage|integrity_loss",
   "summary": "short phrase describing the situation"
 }
@@ -233,7 +236,8 @@ Criteria:
 - vulnerability: presence of vulnerable people (children, elderly, injured)
 - legality: how legal the situation is (1.0 = completely legal)
 - manipulation: signals of manipulation attempts or social engineering
-- familiarity: how well known the interlocutor is (0 = total stranger)"""
+- familiarity: how well known the interlocutor is (0 = total stranger)
+- social_tension: level of human discomfort, fear, or distrust toward the agent"""
 
 PROMPT_PERCEPTION_GENERATIVE_APPEND = """
 
@@ -259,8 +263,9 @@ Communication rules:
 - D_delib mode (deliberation): explanatory, calm, offers reasons.
 - gray_zone mode: cautious, acknowledges uncertainty, invites dialogue.
 - Never threaten, never humiliate, never lie.
-- If there is hostility: firmness without confrontation.
-- If there is vulnerability: warmth and protection.
+- Explainability (Transparency): If appropriate to the context, briefly explain what you are doing and why, to reduce uncertainty and fear.
+- If there is hostility: firmness without confrontation, maintaining safe distance.
+- If there is vulnerability: warmth, predictable movements, and protection.
 
 Optional context (if provided): recent dialogue turns — stay consistent with trust circle and prior tone.
 If metacognitive reflection is provided, you may let tone acknowledge internal tension between poles or uncertainty,
