@@ -10,9 +10,9 @@ Este documento estructura el inmenso volumen de trabajo arquitectónico definido
 *Responsabilidad: Nivel 1 (Antigravity / Claude)*
 *Dependencias: Ninguna (Core Backend)*
 
-- **Bloque 1.1: KEL vs OGA (Kernel Ético Local vs Oráculo)**
-  - Tarea 1.1.1: Crear adaptadores REST/gRPC en el Orquestador local para comunicación con el Oráculo.
-  - Tarea 1.1.2: Implementar el sistema asíncrono de interbloqueos (*Hardware E-Stop* prioritario sobre DAO).
+- **Bloque 1.1: KEL vs OGA (Kernel Ético Local vs Oráculo) [DONE]**
+  - Tarea 1.1.1: Crear adaptadores REST/gRPC en el Orquestador local para comunicación con el Oráculo. (Implementado en `DAOOrchestrator`)
+  - Tarea 1.1.2: Implementar el sistema asíncrono de interbloqueos (*Hardware E-Stop* prioritario sobre DAO). (Implementado en `SafetyInterlock`)
 - **Bloque 1.2: Evidencia Cifrada y Anchoring (REO)**
   - Tarea 1.2.1: Implementar sistema de encriptación off-chain para grabar logs del Kernel de forma segura (video/audio simulado).
   - Tarea 1.2.2: Crear el publicador de Hashes (SHA-256) hacia el smart contract (`Anchoring Registry`).
@@ -45,8 +45,8 @@ Este documento estructura el inmenso volumen de trabajo arquitectónico definido
 *Responsabilidad: Nivel 1 (Antigravity)*
 *Dependencias: Core Kernel (Ethical priorities)*
 
-- **Bloque 4.1: Motor de Motivación Interna (C1)**
-  - Tarea 4.1.1: Desplegar modelo de "Sentido de Propósito" y curiosidad activa (que el androide decida investigar cosas sin prompt humano).
+- **Bloque 4.1: Motor de Motivación Interna (C1) [DONE]**
+  - Tarea 4.1.1: Desplegar modelo de "Sentido de Propósito" y curiosidad activa (que el androide decida investigar cosas sin prompt humano). (Implementado en `MotivationEngine`)
 - **Bloque 4.2: Humildad Epistémica (C3)**
   - Tarea 4.2.1: Implementar *fallback paths* donde el androide declara proactivamente "no tengo permiso para esto" en vez de derivar una solución dudosa.
 - **Bloque 4.3: Identidad Migratoria e Interoperabilidad (C5)**

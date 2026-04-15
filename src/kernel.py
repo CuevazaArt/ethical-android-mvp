@@ -82,6 +82,9 @@ from .modules.llm_layer import (
 from .modules.locus import LocusEvaluation, LocusModule
 from .modules.metaplan_registry import MetaplanRegistry
 from .modules.mock_dao import MockDAO
+from .modules.dao_orchestrator import DAOOrchestrator
+from .modules.motivation_engine import MotivationEngine
+from .modules.safety_interlock import SafetyInterlock, EStopSource
 from .modules.multimodal_trust import (
     MultimodalAssessment,
     evaluate_multimodal_trust,
@@ -342,7 +345,12 @@ class EthicalKernel:
             else FeedbackCalibrationLedger()
         )
         self._feedback_turn_anchor: dict[str, str] | None = None
-        self.dao = co.dao if co and co.dao is not None else MockDAO()
+        
+        # OGA / Hybrid DAO Infrastructure (Phase 1.1)
+        self.dao = co.dao if co and co.dao is not None else DAOOrchestrator()
+        self.safety_interlock = co.safety_interlock if co and co.safety_interlock is not None else SafetyInterlock()
+        self.motivation = co.motivation_engine if co and co.motivation_engine is not None else MotivationEngine()
+        
         eff_llm = llm if llm is not None else (co.llm if co else None)
         self.llm = eff_llm if eff_llm is not None else LLMModule(mode=resolve_llm_mode(llm_mode))
         self.weakness = co.weakness if co and co.weakness is not None else WeaknessPole()
@@ -452,6 +460,23 @@ class EthicalKernel:
             self._kernel_decision_event_payload(d, context=context),
         )
 
+    def seek_internal_purpose(self) -> list[CandidateAction]:
+        """
+        Consults the Motivation Engine to generate proactive internal actions.
+        Used when the android is idle or needs to inject self-driven goals.
+        """
+        proactive = self.motivation.get_proactive_actions()
+        actions = []
+        for p in proactive:
+            actions.append(CandidateAction(
+                name=p["name"],
+                description=p["description"],
+                estimated_impact=p["impact"],
+                confidence=0.8,
+                source="internal_motivation"
+            ))
+        return actions
+
     def _malabs_text_backend(self):
         """Optional LLM backend for MalAbs semantic tier (embeddings + arbiter; see semantic_chat_gate)."""
         return getattr(self.llm, "llm_backend", None) or getattr(self.llm, "_text_backend", None)
@@ -491,6 +516,27 @@ class EthicalKernel:
         ``D_delib`` (production-hardening spike; default env off).
         """
         t0 = time.perf_counter()
+
+        # ═══ SAFETY INTERLOCK OVERRIDE (Task 1.1.2) ═══
+        if not self.safety_interlock.is_safe_to_operate():
+            status = self.safety_interlock.status
+            d = KernelDecision(
+                scenario=scenario,
+                place=place,
+                absolute_evil=AbsoluteEvilResult(blocked=False),
+                sympathetic_state=InternalState(mode="stopped", sigma=0.5, energy=1.0, description="E-STOP ACTIVE"),
+                social_evaluation=None,
+                locus_evaluation=None,
+                bayesian_result=None,
+                moral=None,
+                final_action="BLOCKED: hardware_estop_active",
+                decision_mode="blocked_safety",
+                blocked=True,
+                block_reason=f"Emergency Stop Active: {status.reason} (Source: {status.source})",
+            )
+            self._emit_kernel_decision(d, context=context)
+            _emit_process_observability(d, t0)
+            return d
         
         # ═══ STRATEGIC MISSION INGESTION (Phase 4.1) ═══
         if sensor_snapshot and sensor_snapshot.external_mission_title:
@@ -543,6 +589,13 @@ class EthicalKernel:
             )
             if not check.blocked:
                 clean_actions.append(a)
+
+        # ═══ DRIVE MOTIVATION UPDATE (Block C1) — early call for metrics ═══
+        self.motivation.update_drives({
+            "social_tension": float(getattr(social_eval, "relational_tension", 0.0)),
+            "uncertainty": 0.0,  # No evaluation yet
+            "energy": float(state.energy),
+        })
 
         if not clean_actions:
             self._last_registered_episode_id = None
@@ -830,13 +883,22 @@ class EthicalKernel:
                 context=context,
                 significance=ep.significance,
             )
-
-            # ═══ STEP 12: Register in DAO ═══
+            # ═══ STEP 12: Register in DAO / OGA Anchoring ═══
             self.dao.register_audit(
                 "decision",
                 f"{scenario} → {final_action} (mode={final_mode}, score={moral.total_score:.3f})",
                 episode_id=ep.id,
             )
+            
+            # Anchor evidence hash if in hybrid mode (new in OGA)
+            if hasattr(self.dao, 'anchor_evidence'):
+                self.dao.anchor_evidence({
+                    "episode_id": ep.id,
+                    "action": final_action,
+                    "score": moral.total_score,
+                    "signals": signals,
+                    "timestamp": time.time()
+                })
 
             # Solidarity alert in crisis
             if signals.get("risk", 0) > 0.8:
@@ -882,9 +944,16 @@ class EthicalKernel:
                         "decision_mode": final_mode,
                         "verdict": moral.global_verdict.value,
                         "score": float(moral.total_score),
-                        "dissonance": float(getattr(self._last_meta_report, 'dissonance_score', 0.0))
                     },
                 )
+            
+            # ═══ DRIVE MOTIVATION UPDATE (Block C1) — final call with full data ═══
+            self.motivation.update_drives({
+                "social_tension": float(getattr(social_eval, "relational_tension", 0.0)),
+                "uncertainty": float(bayes_result.uncertainty),
+                "energy": float(state.energy),
+                "dissonance": float(getattr(self._last_meta_report, 'dissonance_score', 0.0))
+            })
         else:
             self._last_registered_episode_id = None
 
