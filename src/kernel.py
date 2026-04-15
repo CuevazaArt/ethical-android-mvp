@@ -21,6 +21,7 @@ from typing import Any
 import numpy as np
 
 from .kernel_components import KernelComponentOverrides
+from .validators.deprecation_warnings import check_deprecated_flags
 from .modules.absolute_evil import AbsoluteEvilDetector, AbsoluteEvilResult
 from .modules.audit_chain_log import (
     maybe_append_kernel_block_audit,
@@ -421,6 +422,9 @@ class EthicalKernel:
         self._hier_cache_fb_path: str = ""
         self._hier_cache_mtime: float = -1.0
         self.metacognition = co.metacognition if co and hasattr(co, "metacognition") and co.metacognition is not None else MetacognitiveEvaluator()
+
+        # ADR 0016 B2 — emit deprecation warnings for any scheduled-for-removal flags
+        check_deprecated_flags()
 
     def subscribe_kernel_event(self, event: str, handler: Callable[[dict[str, Any]], None]) -> None:
         """Register a synchronous subscriber (no-op if ``KERNEL_EVENT_BUS`` is off). See ADR 0006."""
