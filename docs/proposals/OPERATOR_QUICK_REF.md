@@ -27,6 +27,12 @@ Use the **`ethos config`** command (after `pip install -e .` or `python -m src.e
 
 **Rule:** if a combination is not a **named profile** and not covered by a **test**, treat it as experimental ([`STRATEGY_AND_ROADMAP.md`](STRATEGY_AND_ROADMAP.md)).
 
+### Distributed justice (V11 — advisory / mock DAO)
+
+- **Enable advisory path:** `KERNEL_JUDICIAL_ESCALATION=1`. **WebSocket JSON:** `KERNEL_CHAT_INCLUDE_JUDICIAL=1`. **Mock tribunal (simulation):** `KERNEL_JUDICIAL_MOCK_COURT=1`. Strikes / threshold: `KERNEL_JUDICIAL_STRIKES_FOR_DOSSIER`, `KERNEL_JUDICIAL_RESET_IDLE_TURNS` — see [`PROPOSAL_DISTRIBUTED_JUSTICE_V11.md`](PROPOSAL_DISTRIBUTED_JUSTICE_V11.md) and [`MOCK_DAO_SIMULATION_LIMITS.md`](MOCK_DAO_SIMULATION_LIMITS.md).
+- **Staged execution** (off-chain replay → LAN → optional anchors): [`PROPOSAL_DAO_BLOCKCHAIN_DISTRIBUTED_JUSTICE_STAGED_EXECUTION.md`](PROPOSAL_DAO_BLOCKCHAIN_DISTRIBUTED_JUSTICE_STAGED_EXECUTION.md).
+- **How to contribute** (tests, docs, backlog): [`PROPOSAL_DISTRIBUTED_JUSTICE_CONTRIBUTIONS.md`](PROPOSAL_DISTRIBUTED_JUSTICE_CONTRIBUTIONS.md).
+
 ### LLM HTTP vs chat async deadline
 
 `KERNEL_CHAT_TURN_TIMEOUT` bounds how long **asyncio** waits for the worker thread that runs `process_chat_turn`; it does **not** cancel an in-flight HTTP request to Ollama. Tune `OLLAMA_TIMEOUT` alongside chat deadlines. Cooperative LLM cancellation is future work ([ADR 0002](../adr/0002-async-orchestration-future.md); gap G-05 in [`PROPOSAL_LLM_INTEGRATION_TRACK.md`](PROPOSAL_LLM_INTEGRATION_TRACK.md)). When `KERNEL_METRICS=1`, see `ethos_kernel_chat_turn_async_timeouts_total` ([`PROPOSAL_LLM_VERTICAL_ROADMAP.md`](PROPOSAL_LLM_VERTICAL_ROADMAP.md) phase 3).

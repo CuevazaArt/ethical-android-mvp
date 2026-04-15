@@ -47,6 +47,7 @@ High-level summary aligned with the code and docs; full chronology is in [`CHANG
 | **Million-scale random weight + stratified scenarios — design + `run_mass_kernel_study`** | [PROPOSAL_MILLION_SIM_EXPERIMENT.md](PROPOSAL_MILLION_SIM_EXPERIMENT.md) · [`experiments/million_sim/README.md`](../experiments/million_sim/README.md) |
 | **Mock DAO — no chain, QV assumptions, not policy core** | [MOCK_DAO_SIMULATION_LIMITS.md](MOCK_DAO_SIMULATION_LIMITS.md) |
 | **DAO/blockchain/distributed justice staged execution** | [PROPOSAL_DAO_BLOCKCHAIN_DISTRIBUTED_JUSTICE_STAGED_EXECUTION.md](PROPOSAL_DAO_BLOCKCHAIN_DISTRIBUTED_JUSTICE_STAGED_EXECUTION.md) |
+| **Distributed justice — contribution guide (V11 + backlog)** | [PROPOSAL_DISTRIBUTED_JUSTICE_CONTRIBUTIONS.md](PROPOSAL_DISTRIBUTED_JUSTICE_CONTRIBUTIONS.md) |
 | **KERNEL_* typed public API (Pydantic, phased)** | [KERNEL_ENV_TYPED_PUBLIC_API.md](KERNEL_ENV_TYPED_PUBLIC_API.md) |
 | Theory ↔ implementation map and tests | [THEORY_AND_IMPLEMENTATION.md](THEORY_AND_IMPLEMENTATION.md) |
 | Runtime contract (English) | [RUNTIME_CONTRACT.md](RUNTIME_CONTRACT.md) |

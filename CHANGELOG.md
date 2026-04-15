@@ -4,6 +4,11 @@ All notable changes to this project are summarized here. For narrative context a
 
 **Note:** Older sections below may still **link** to paths that were later removed (for example `experiments/million_sim/`, `docs/multimedia/`, root `dashboard.html`, `landing/`). Those links are **historical**; recover files from git history or backup branches if you need them.
 
+## Documentation — distributed justice contributions — April 2026
+
+- **New:** [`docs/proposals/PROPOSAL_DISTRIBUTED_JUSTICE_CONTRIBUTIONS.md`](docs/proposals/PROPOSAL_DISTRIBUTED_JUSTICE_CONTRIBUTIONS.md) — contributor guide (code map, backlog aligned with staged execution pending gaps, PR expectations). Linked from [`docs/proposals/PROPOSAL_DISTRIBUTED_JUSTICE_V11.md`](docs/proposals/PROPOSAL_DISTRIBUTED_JUSTICE_V11.md), [`docs/proposals/PROPOSAL_DAO_BLOCKCHAIN_DISTRIBUTED_JUSTICE_STAGED_EXECUTION.md`](docs/proposals/PROPOSAL_DAO_BLOCKCHAIN_DISTRIBUTED_JUSTICE_STAGED_EXECUTION.md), [`docs/proposals/README.md`](docs/proposals/README.md), [`AGENTS.md`](AGENTS.md).
+- **Operator:** [`docs/proposals/OPERATOR_QUICK_REF.md`](docs/proposals/OPERATOR_QUICK_REF.md) — subsection *Distributed justice (V11 — advisory / mock DAO)* with key `KERNEL_JUDICIAL_*` pointers.
+
 ## Chat — `temporal_sync` integer coercion + mypy (`chat_server`) — April 2026
 
 - **Code:** [`src/chat_server.py`](src/chat_server.py) — `_coerce_public_int` for `turn_index`, `processor_elapsed_ms`, `turn_delta_ms` in WebSocket `temporal_sync` (fixes mypy on `dict[str, object]` from `TemporalContext.to_public_dict()`; avoids `int()` on arbitrary objects).
