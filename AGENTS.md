@@ -26,6 +26,16 @@ The **complete conceptual model** for the android ethics stack (outside this rep
 
 To ensure awareness and prevent contradictions, **all development documents, architectural decisions, and progress reports must be available in `docs/proposals/` and linked via `CHANGELOG.md`**. This ensures that different teams (Antigravity, Cursor, etc.) can synchronize their advances without interference. Development artifacts must be shared immediately upon implementation to maintain a unified technical vision.
 
+## Collaborative Branch Protocol
+
+To maintain repository order and production stability:
+1. **NO PUSH OR MERGE TO `main` WITHOUT USER AUTHORIZATION.** This is a strict safety gate.
+2. **Team Integration Hubs:** Every team must use its dedicated integration branch (e.g., `master-antigravity`, `master-Cursor`).
+3. **Internal Workflow:** Teams work on their shared line (e.g., `antigravity-team`) or feature branches, merge into their respective `master-<team>` hub, and only request a merge to `main` when authorized.
+4. **Syncing:** Integration hubs should pull from `main` regularly to stay aligned with collective progress.
+
+Detailed specifications are in [`.cursor/rules/collaboration-prioritization.mdc`](.cursor/rules/collaboration-prioritization.mdc).
+
 ## Maintainer backlog (infra vs theater)
 
 Near-term plans and optional quick wins live in future `docs/proposals/PROPOSAL_*.md` files; prior narrative may be recovered from git history.
