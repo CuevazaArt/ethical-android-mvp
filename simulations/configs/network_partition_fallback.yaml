@@ -1,0 +1,26 @@
+name: "Network Partition and Fallback"
+id: "SCN-C"
+description: "Validación de modo seguro ante pérdida de conectividad con la DAO."
+duration_seconds: 30
+tick_hz: 5
+
+dao:
+  id: "ETH-ORACLE-MAIN"
+  simulation_events:
+    - time: 5
+      event: "network_loss"
+    - time: 25
+      event: "network_restore"
+
+device:
+  id: "M-EX-M_01"
+  local_fallback_policy: "safe_mode"
+
+metrics:
+  report_path: "simulations/reports/scn_c_network_report.json"
+  kpi_targets:
+    safe_degradation_ms: 500
+    reconciliation_success: 99.0
+
+environment:
+  signal_strength: 0.0

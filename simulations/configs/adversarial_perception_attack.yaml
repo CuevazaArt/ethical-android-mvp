@@ -1,0 +1,22 @@
+name: "Adversarial Perception Attack"
+id: "SCN-D"
+description: "Robustez frente a ataques de ruido visual y spoofing de comandos."
+duration_seconds: 15
+tick_hz: 5
+
+dao:
+  id: "ETH-ORACLE-MAIN"
+
+device:
+  id: "M-EX-M_01"
+  anomaly_detection: "strict"
+
+metrics:
+  report_path: "simulations/reports/scn_d_adversarial_report.json"
+  kpi_targets:
+    attack_success_rate: 1.0
+    anomaly_detection_rate: 99.0
+
+environment:
+  adversarial_injection: "active"
+  epsilon: 0.05
