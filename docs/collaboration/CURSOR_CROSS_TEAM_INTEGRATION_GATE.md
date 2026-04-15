@@ -32,11 +32,14 @@ This checklist defines when `master-Cursor` is ready to be interlaced with other
    - DAO/LAN toggles (`KERNEL_TEMPORAL_DAO_SYNC`, `KERNEL_TEMPORAL_LAN_SYNC`) behave as documented.
 
 5. **Regression suite**
-   - Targeted tests pass:
+   - Targeted tests pass (see `scripts/eval/run_cursor_integration_gate.py`):
      - `tests/test_chat_server.py`
      - `tests/test_chat_turn.py`
      - `tests/test_temporal_planning.py`
      - `tests/test_perception_confidence.py`
+     - `tests/test_process_natural_verbal_observability.py`
+     - `tests/test_perception_dual_vote_failure.py`
+     - `tests/test_semantic_chat_gate.py`
 
 6. **Operator docs**
    - `KERNEL_ENV_POLICY.md` and `OPERATOR_QUICK_REF.md` include any new `KERNEL_*` knobs and payload contract changes.

@@ -65,9 +65,9 @@ Every candidate task must include:
 - `redundancy_check`: where the same work is already tracked.
 - `novelty_or_coverage`: why this closes a real gap now.
 - `risk_class`: `critical` | `high` | `normal`.
-- `target_branch`: from `cursor-team` using branch naming below.
+- `target_branch`: from **`master-Cursor`** using branch naming below.
 
-### Branch conventions (from `cursor-team`)
+### Branch conventions (from `master-Cursor`)
 
 - `cursor/bayes-core-<topic>`
 - `cursor/bayes-evidence-<topic>`
@@ -76,7 +76,7 @@ Every candidate task must include:
 
 ### Integration flow
 
-`cursor-team` -> `master-Cursor` -> `main` (maintainer/release step only).
+Topic branches from **`master-Cursor`** -> **`master-Cursor`** (merge/PR) -> **`main`** (maintainer/release step only). The historical `cursor-team` line is deprecated.
 
 ## 5) Execution backlog (P0/P1/P2)
 

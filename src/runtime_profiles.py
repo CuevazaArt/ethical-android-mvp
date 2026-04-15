@@ -106,6 +106,13 @@ RUNTIME_PROFILES: Final[dict[str, dict[str, str]]] = {
         "KERNEL_PERCEPTION_DUAL_DISCREPANCY_MIN": "0.3",
         "KERNEL_PERCEPTION_DUAL_TEMP_SECOND": "0.82",
     },
+    # LLM integration track: semantic MalAbs + generative_candidates from perception JSON (v9.2+).
+    "llm_integration_lab": {
+        "KERNEL_SEMANTIC_CHAT_GATE": "1",
+        "KERNEL_SEMANTIC_EMBED_HASH_FALLBACK": "1",
+        "KERNEL_GENERATIVE_ACTIONS": "1",
+        "KERNEL_GENERATIVE_LLM": "1",
+    },
 }
 
 PROFILE_DESCRIPTIONS: Final[dict[str, str]] = {
@@ -124,6 +131,7 @@ PROFILE_DESCRIPTIONS: Final[dict[str, str]] = {
     "untrusted_chat_input": "Semantic MalAbs on + KERNEL_SEMANTIC_EMBED_HASH_FALLBACK for CI/airgap without Ollama (PROPOSAL_ETHICAL_CORE_LOGIC_EVOLUTION B2).",
     "lexical_malabs_only": "Force KERNEL_SEMANTIC_CHAT_GATE=0 (lexical MalAbs only).",
     "perception_adv_consensus_lab": "Second LLM perception sample; large hostility/risk disagreement raises coercion uncertainty for D_delib (see perception_dual_vote.py).",
+    "llm_integration_lab": "Semantic MalAbs (hash fallback) + generative action sketches from perception JSON (PROPOSAL_LLM_INTEGRATION_TRACK G-09).",
 }
 
 

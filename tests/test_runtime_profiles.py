@@ -96,6 +96,14 @@ def test_phase2_event_bus_lab_profile_keys():
     assert RUNTIME_PROFILES["phase2_event_bus_lab"]["KERNEL_EVENT_BUS"] == "1"
 
 
+def test_llm_integration_lab_profile_keys():
+    o = RUNTIME_PROFILES["llm_integration_lab"]
+    assert o["KERNEL_SEMANTIC_CHAT_GATE"] == "1"
+    assert o["KERNEL_SEMANTIC_EMBED_HASH_FALLBACK"] == "1"
+    assert o["KERNEL_GENERATIVE_ACTIONS"] == "1"
+    assert o["KERNEL_GENERATIVE_LLM"] == "1"
+
+
 def test_perception_hardening_lab_websocket_includes_light_risk_tier(
     monkeypatch: pytest.MonkeyPatch,
 ):
@@ -193,6 +201,7 @@ def test_runtime_profile_merges_kernel_env_validation_strict_or_warn_subprocess(
     for profile, expected in (
         ("baseline", "strict"),
         ("perception_hardening_lab", "warn"),
+        ("llm_integration_lab", "warn"),
         ("lan_operational", "strict"),
     ):
         code = f"""

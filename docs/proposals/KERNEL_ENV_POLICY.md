@@ -2,7 +2,7 @@
 
 **Purpose:** Reduce **accidental combinatorics** of feature flags. The codebase is a **research lab**; this document defines **nominal profiles**, **groupings**, **combinations to avoid or treat as experimental**, and a **deprecation posture** without breaking existing env names.
 
-**Canonical profile bundles:** [`src/runtime_profiles.py`](../../src/runtime_profiles.py) — use these for demos, CI smoke, and operator docs. **`ETHOS_RUNTIME_PROFILE`** (e.g. `lan_operational`, `situated_v8_lan_demo`) applies a bundle at **chat server startup**; explicit env vars **win** over profile defaults for each key. **CI** runs the full `pytest tests/` suite, including **`tests/test_runtime_profiles.py`** (health + WebSocket roundtrip for **every** named profile) and **`tests/test_env_policy.py`** (partition check + zero rule violations per nominal profile). **Perception hardening (Fase 1):** nominal bundle **`perception_hardening_lab`** enables light risk tier, cross-check, uncertainty→delib, parse fail-local, and `light_risk_tier` in chat JSON. **Phase 2 bus spike:** **`phase2_event_bus_lab`** sets `KERNEL_EVENT_BUS=1` (ADR 0006).
+**Canonical profile bundles:** [`src/runtime_profiles.py`](../../src/runtime_profiles.py) — use these for demos, CI smoke, and operator docs. **`ETHOS_RUNTIME_PROFILE`** (e.g. `lan_operational`, `situated_v8_lan_demo`) applies a bundle at **chat server startup**; explicit env vars **win** over profile defaults for each key. **CI** runs the full `pytest tests/` suite, including **`tests/test_runtime_profiles.py`** (health + WebSocket roundtrip for **every** named profile) and **`tests/test_env_policy.py`** (partition check + zero rule violations per nominal profile). **Perception hardening (Fase 1):** nominal bundle **`perception_hardening_lab`** enables light risk tier, cross-check, uncertainty→delib, parse fail-local, and `light_risk_tier` in chat JSON. **LLM integration lab:** **`llm_integration_lab`** turns on semantic MalAbs (hash fallback) + generative candidates from perception JSON (`KERNEL_GENERATIVE_LLM`). **Phase 2 bus spike:** **`phase2_event_bus_lab`** sets `KERNEL_EVENT_BUS=1` (ADR 0006).
 
 **Rule validation (not full Cartesian enumeration):** [`src/validators/env_policy.py`](../../src/validators/env_policy.py) defines **`SUPPORTED_COMBOS`** (`production` / `demo` / `lab`) as a **partition** of named profiles, **`collect_env_violations()`** for inconsistent flag *pairs* (e.g. mock court without judicial escalation), and **`validate_kernel_env()`** at chat import time. **`python -m src.cli check-config`** (optionally **`--strict`**) runs the same partition + consistency checks from the shell. **Default:** when `KERNEL_ENV_VALIDATION` is **unset**, validation mode is **`strict`** (fail fast on violations). When `ETHOS_RUNTIME_PROFILE` is set, [`apply_named_runtime_profile_to_environ()`](../../src/runtime_profiles.py) may still set **`warn`** or **`strict`** via [`default_env_validation_for_profile()`](../../src/validators/env_policy.py) if validation remains unset after merging the profile dict (**lab** → `warn`, **demo/production** → `strict`). Set **`warn`** or **`off`** explicitly if you need a different mode. This does not prove every arbitrary `KERNEL_*` combination is safe — only **nominal profiles** are CI-guaranteed **viable** (no rule violations).
 
@@ -39,6 +39,18 @@
 | **Metaplan / drives (advisory)** | `KERNEL_METAPLAN_HINT`, `KERNEL_METAPLAN_DRIVE_FILTER`, `KERNEL_METAPLAN_DRIVE_EXTRA` | Owner goals in LLM tone; optional filter of `drive_intents` vs goal wording; optional coherence hint — **no** ethics veto. |
 | **Swarm stub (lab)** | `KERNEL_SWARM_STUB` | Enables optional use of `swarm_peer_stub` digest helpers in tooling — **no** P2P stack, **no** kernel change ([`SWARM_P2P_THREAT_MODEL.md`](SWARM_P2P_THREAT_MODEL.md)). |
 | **Extension seam (Phase 2)** | `KERNEL_EVENT_BUS` | When `1`, `EthicalKernel` builds `KernelEventBus` and publishes **`kernel.decision`** / **`kernel.episode_registered`** (sync, best-effort handlers). See [ADR 0006](../adr/0006-phase2-core-boundary-and-event-bus.md), [`PROPOSAL_PHASE2_CORE_EXTENSIONS_AND_EVENT_BUS.md`](PROPOSAL_PHASE2_CORE_EXTENSIONS_AND_EVENT_BUS.md), profile **`phase2_event_bus_lab`**. |
+
+### LLM touchpoint index (readability; single-prefix unification deferred)
+
+Renaming every LLM-related knob under one `KERNEL_LLM_*` prefix is **deferred** ([`WEAKNESSES_AND_BOTTLENECKS.md`](../WEAKNESSES_AND_BOTTLENECKS.md) §3; [`PROPOSAL_LLM_INTEGRATION_TRACK.md`](PROPOSAL_LLM_INTEGRATION_TRACK.md) G-04). Until then, map **concerns → §1 rows** above:
+
+| Concern | Where to look |
+|--------|----------------|
+| Chat **completion** JSON (perceive / communicate / narrate), touchpoint degradation | **LLM / variability** row; [`PROPOSAL_LLM_TOUCHPOINT_DEGRADATION_MATRIX.md`](PROPOSAL_LLM_TOUCHPOINT_DEGRADATION_MATRIX.md) |
+| **Semantic** MalAbs (embeddings) | **MalAbs semantic (chat)** + **Input trust (embedding transport)** rows; [`MALABS_SEMANTIC_LAYERS.md`](MALABS_SEMANTIC_LAYERS.md) |
+| Structured **perception** (parse, dual vote, cross-check) | **Perception / sensors** row; [`PERCEPTION_VALIDATION.md`](PERCEPTION_VALIDATION.md) |
+
+**Nominal lab bundle** combining semantic gate + generative parsing from perception JSON: **`llm_integration_lab`** in [`runtime_profiles.py`](../../src/runtime_profiles.py).
 
 ---
 

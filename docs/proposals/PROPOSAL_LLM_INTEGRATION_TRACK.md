@@ -1,7 +1,7 @@
 # LLM integration track — ownership, scope, and gap register
 
 **Status:** Active team scope (Cursor line).  
-**Owner:** Cursor shared development line (`cursor-team` → `master-Cursor`), per [`MULTI_OFFICE_GIT_WORKFLOW.md`](../collaboration/MULTI_OFFICE_GIT_WORKFLOW.md).  
+**Owner:** Cursor integration line **`master-Cursor`** (active); the historical branch name `cursor-team` is deprecated — per [`MULTI_OFFICE_GIT_WORKFLOW.md`](../collaboration/MULTI_OFFICE_GIT_WORKFLOW.md).  
 **Language:** This file is the **English** durable record; day-to-day coordination may use Spanish.
 
 **Purpose:** Assign and maintain focus on **LLM incorporation** (inference wiring), **adjacent layers** (MalAbs semantic, embeddings, perception/verbal policies), and **integration** (kernel ↔ chat ↔ observability). Complements [`MODEL_CRITICAL_BACKLOG.md`](MODEL_CRITICAL_BACKLOG.md) with **LLM-specific** closure items.
@@ -31,13 +31,13 @@
 | **G-01** | Embedding transport vs chat completion operator mapping | **Closed (docs)** | [`PROPOSAL_LLM_TOUCHPOINT_DEGRADATION_MATRIX.md`](PROPOSAL_LLM_TOUCHPOINT_DEGRADATION_MATRIX.md) — section *Embedding transport vs chat completion*. |
 | **G-02** | MalAbs semantic observability vs `verbal_llm_observability` | **Closed (docs)** | [`MALABS_SEMANTIC_LAYERS.md`](MALABS_SEMANTIC_LAYERS.md) — subsection *Observability: MalAbs semantic vs chat verbal_llm_observability*. |
 | **G-03** | `process_natural` verbal degradation not exposed | **Closed (code)** | [`EthicalKernel.last_natural_verbal_llm_degradation_events`](../../src/kernel.py) property; snapshot after communicate/narrate; `None` if MalAbs blocks before LLM. Tests: [`tests/test_process_natural_verbal_observability.py`](../../tests/test_process_natural_verbal_observability.py). |
-| **G-04** | Single env surface for all LLM touchpoints | **Deferred** | Matrix remains source of truth; unification would need product decision ([`WEAKNESSES_AND_BOTTLENECKS.md`](../WEAKNESSES_AND_BOTTLENECKS.md) §3). |
+| **G-04** | Single env surface for all LLM touchpoints | **Partial (docs)** | **Prefix unification** still deferred ([`WEAKNESSES_AND_BOTTLENECKS.md`](../WEAKNESSES_AND_BOTTLENECKS.md) §3). **Canonical index:** [`KERNEL_ENV_POLICY.md`](KERNEL_ENV_POLICY.md) subsection *LLM touchpoint index* maps concerns to §1 families + matrix. |
 | **G-05** | Cooperative LLM cancel under async chat | **Deferred (documented)** | [`OPERATOR_QUICK_REF.md`](OPERATOR_QUICK_REF.md) — *LLM HTTP vs chat async deadline*; [`ADR 0002`](../adr/0002-async-orchestration-future.md). |
 | **G-06** | Generative candidates GIGO | **Closed (tests + docs)** | [`tests/test_generative_candidates.py`](../../tests/test_generative_candidates.py); [`PERCEPTION_VALIDATION.md`](PERCEPTION_VALIDATION.md) §3a. |
 | **G-07** | Dual perception second sample failure metadata | **Closed (code)** | [`LLMModule._maybe_apply_perception_dual_vote`](../../src/modules/llm_layer.py) merges `perception_dual_second_*` parse issues on failure. Tests: [`tests/test_perception_dual_vote_failure.py`](../../tests/test_perception_dual_vote_failure.py). |
 | **G-08** | Input trust chain smoke | **Closed (test)** | [`tests/test_input_trust.py`](../../tests/test_input_trust.py) `test_chat_safe_turn_coercion_report_chain`; [`SECURITY.md`](../../SECURITY.md) link to this track. |
-| **G-09** | Profile bundles for LLM-heavy demos | **Partial** | [`runtime_profiles.py`](../../src/runtime_profiles.py) bundles (e.g. `perception_hardening_lab`, `untrusted_chat_input`); extend when new LLM flags stabilize. |
-| **G-10** | Cross-team integration gate | **Partial (process)** | Run [`scripts/eval/run_cursor_integration_gate.py`](../../scripts/eval/run_cursor_integration_gate.py) per [`CURSOR_CROSS_TEAM_INTEGRATION_GATE.md`](../collaboration/CURSOR_CROSS_TEAM_INTEGRATION_GATE.md). |
+| **G-09** | Profile bundles for LLM-heavy demos | **Closed (code)** | [`runtime_profiles.py`](../../src/runtime_profiles.py) includes **`llm_integration_lab`** (semantic MalAbs + `KERNEL_GENERATIVE_LLM` / generative actions) alongside existing bundles (`perception_hardening_lab`, `untrusted_chat_input`, `perception_adv_consensus_lab`, …). |
+| **G-10** | Cross-team integration gate | **Closed (script)** | [`scripts/eval/run_cursor_integration_gate.py`](../../scripts/eval/run_cursor_integration_gate.py) includes LLM-track regression tests (`process_natural` observability, dual-vote failure, `semantic_chat_gate`) per [`CURSOR_CROSS_TEAM_INTEGRATION_GATE.md`](../collaboration/CURSOR_CROSS_TEAM_INTEGRATION_GATE.md). |
 
 ---
 
@@ -62,3 +62,4 @@
 
 - **2026-04-14:** Initial gap register and track ownership for Cursor LLM integration scope.
 - **2026-04-14:** Closed G-01, G-02 (documentation); G-03 (`last_natural_verbal_llm_degradation_events`); G-06 (tests + perception doc); G-07 (dual-sample parse issues); G-05 (operator note); G-08 (smoke test + security link).
+- **2026-04-14:** Merged LLM track into **`master-Cursor`** (active line); deprecated **`cursor-team`** as default. G-04 index in `KERNEL_ENV_POLICY.md`; G-09 `llm_integration_lab` profile; G-10 gate extended with LLM-track tests.
