@@ -14,5 +14,7 @@
 | [0010 — poles pre-argmax modulation](0010-poles-pre-argmax-modulation.md) | Pole weights scale hypothesis valuations before mixture dot |
 | [0011 — context richness pre-argmax](0011-context-richness-pre-argmax.md) | Social/locus/sigma channels modulate valuations pre-argmax |
 | [0012 — Bayesian weight inference (mixture)](0012-bayesian-weight-inference-ethical-mixture-scorer.md) | Optional BMA win probabilities + feedback Dirichlet updates (ADR 0012) |
+| [0013 — Hierarchical context-dependent weight inference (Level 3)](0013-hierarchical-context-weight-inference.md) | Per-context Dirichlet posteriors (Level 3) — 67 % preference satisfaction vs 33 % for global Level 2 (**Proposed**) |
+| [0017 — Smartphone sensor relay bridge](0017-smartphone-sensor-relay-bridge.md) | Inline PWA + `/control/*` surface for PC ↔ phone field tests; token-bucket rate limiter; session manifest; LAN-only security (**Proposed**) |
 
 See also [`CORE_DECISION_CHAIN.md`](../proposals/CORE_DECISION_CHAIN.md), [`LLM_STACK_OLLAMA_VS_HF.md`](../proposals/LLM_STACK_OLLAMA_VS_HF.md), [`PERCEPTION_VALIDATION.md`](../proposals/PERCEPTION_VALIDATION.md), [`TEMPORAL_PRIOR_HORIZONS.md`](../proposals/TEMPORAL_PRIOR_HORIZONS.md), [`USER_MODEL_ENRICHMENT.md`](../proposals/USER_MODEL_ENRICHMENT.md) (design proposal), and [`CHANGELOG.md`](../../CHANGELOG.md).

@@ -11,6 +11,7 @@ The previous long-form proposal set was removed from this branch to keep the tre
 | Document | Summary |
 |----------|---------|
 | [`PROPOSAL_BAYESIAN_MIXTURE_FEEDBACK.md`](PROPOSAL_BAYESIAN_MIXTURE_FEEDBACK.md) | ADR 0012 stack: BMA (L1), feedback posteriors (L2), context buckets (L3), softmax / importance-sampling likelihood, env vars, tests, link to ADR 0012. |
+| [`PROPOSAL_FIELD_TEST_PLAN.md`](PROPOSAL_FIELD_TEST_PLAN.md) | Field test plan — phases F0–F4 for model (scorer + MalAbs), next MockDAO (audit UX), and **real physical sensors** via a smartphone relay; defines the PC ↔ phone minimal management interface; maps each test phase to a specific weakness in `WEAKNESSES_AND_BOTTLENECKS.md`. Companion: [ADR 0014](../adr/0014-smartphone-sensor-relay-bridge.md). |
 
 ## Architecture decisions (ADR)
 
