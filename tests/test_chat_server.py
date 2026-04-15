@@ -819,8 +819,21 @@ def test_websocket_lan_governance_envelope_routes_dao_batch(monkeypatch):
 
     env = data.get("lan_governance", {}).get("envelope", {})
     assert env.get("ok") is True
+    assert env.get("ack") == "accepted"
     assert env.get("schema") == "lan_governance_envelope_v1"
     assert env.get("kind") == "dao_batch"
+    assert isinstance(env.get("fingerprint"), str)
+    assert len(env.get("fingerprint", "")) == 64
+    assert isinstance(env.get("idempotency_token"), str)
+    assert env.get("idempotency_token", "").startswith("lan-envelope:")
+    assert isinstance(env.get("audit_ledger_fingerprint"), str)
+    assert len(env.get("audit_ledger_fingerprint", "")) == 64
+    assert env.get("merged_count") == 2
+    assert env.get("applied_count") == 2
+    cache = env.get("cache") or {}
+    assert cache.get("hit") is False
+    assert cache.get("misses_total", 0) >= 1
+    assert cache.get("size", 0) >= 1
     batch = data.get("lan_governance", {}).get("dao_batch", {})
     assert batch.get("applied_count") == 2
 
@@ -843,7 +856,188 @@ def test_websocket_lan_governance_envelope_invalid_schema(monkeypatch):
         data = ws.receive_json()
     env = data.get("lan_governance", {}).get("envelope", {})
     assert env.get("ok") is False
+    assert env.get("ack") == "rejected"
     assert env.get("error") == "unsupported_schema"
+    assert env.get("reject_reason") == "unsupported_contract"
+    cache = env.get("cache") or {}
+    assert cache.get("hit") is False
+
+
+def test_websocket_lan_governance_envelope_reject_reason_disabled_batch(monkeypatch):
+    monkeypatch.setenv("KERNEL_MORAL_HUB_DAO_VOTE", "0")
+    monkeypatch.setenv("KERNEL_LAN_GOVERNANCE_MERGE_WS", "1")
+
+    payload = {
+        "lan_governance_envelope": {
+            "schema": "lan_governance_envelope_v1",
+            "node_id": "node-a",
+            "sent_unix_ms": 1710000000123,
+            "kind": "dao_batch",
+            "batch": {"events": []},
+        }
+    }
+    with client.websocket_connect("/ws/chat") as ws:
+        ws.send_json(payload)
+        data = ws.receive_json()
+
+    env = data.get("lan_governance", {}).get("envelope", {})
+    assert env.get("ok") is False
+    assert env.get("ack") == "rejected"
+    assert env.get("error") == "disabled"
+    assert env.get("reject_reason") == "feature_disabled"
+    assert isinstance(env.get("fingerprint"), str)
+    assert len(env.get("fingerprint", "")) == 64
+    assert env.get("idempotency_token", "").startswith("lan-envelope:")
+    cache = env.get("cache") or {}
+    assert cache.get("hit") is False
+
+
+def test_websocket_lan_governance_envelope_replay_cache_already_seen(monkeypatch):
+    monkeypatch.setenv("KERNEL_DAO_INTEGRITY_AUDIT_WS", "1")
+    monkeypatch.setenv("KERNEL_LAN_GOVERNANCE_MERGE_WS", "1")
+
+    payload = {
+        "lan_governance_envelope": {
+            "schema": "lan_governance_envelope_v1",
+            "node_id": "node-a",
+            "sent_unix_ms": 1710000000222,
+            "kind": "integrity_batch",
+            "batch": {
+                "events": [
+                    {
+                        "event_id": "evt-1",
+                        "turn_index": 1,
+                        "processor_elapsed_ms": 1,
+                        "summary": "LAN integrity replay test",
+                    }
+                ]
+            },
+        }
+    }
+    with client.websocket_connect("/ws/chat") as ws:
+        ws.send_json(payload)
+        first = ws.receive_json()
+        ws.send_json(payload)
+        second = ws.receive_json()
+
+    env_first = first.get("lan_governance", {}).get("envelope", {})
+    batch_first = first.get("lan_governance", {}).get("integrity_batch", {})
+    assert env_first.get("ack") == "accepted"
+    assert env_first.get("replay_detected") in (None, False)
+    assert batch_first.get("applied_count") == 1
+
+    env_second = second.get("lan_governance", {}).get("envelope", {})
+    assert env_second.get("ok") is True
+    assert env_second.get("ack") == "already_seen"
+    assert env_second.get("replay_detected") is True
+    assert env_second.get("idempotency_token") == env_first.get("idempotency_token")
+    assert env_second.get("audit_ledger_fingerprint") == env_first.get("audit_ledger_fingerprint")
+    cache_first = env_first.get("cache") or {}
+    cache_second = env_second.get("cache") or {}
+    assert cache_first.get("hit") is False
+    assert cache_second.get("hit") is True
+    assert cache_second.get("hits_total", 0) >= 1
+    assert second.get("lan_governance", {}).get("integrity_batch") is None
+
+
+def test_websocket_lan_governance_envelope_replay_cache_ttl_zero_expires(monkeypatch):
+    monkeypatch.setenv("KERNEL_DAO_INTEGRITY_AUDIT_WS", "1")
+    monkeypatch.setenv("KERNEL_LAN_GOVERNANCE_MERGE_WS", "1")
+    monkeypatch.setenv("KERNEL_LAN_ENVELOPE_REPLAY_CACHE_TTL_MS", "0")
+
+    payload = {
+        "lan_governance_envelope": {
+            "schema": "lan_governance_envelope_v1",
+            "node_id": "node-ttl",
+            "sent_unix_ms": 1710000000333,
+            "kind": "integrity_batch",
+            "batch": {
+                "events": [
+                    {
+                        "event_id": "evt-ttl",
+                        "turn_index": 1,
+                        "processor_elapsed_ms": 1,
+                        "summary": "ttl test",
+                    }
+                ]
+            },
+        }
+    }
+    with client.websocket_connect("/ws/chat") as ws:
+        ws.send_json(payload)
+        first = ws.receive_json()
+        ws.send_json(payload)
+        second = ws.receive_json()
+
+    env_first = first.get("lan_governance", {}).get("envelope", {})
+    env_second = second.get("lan_governance", {}).get("envelope", {})
+    assert env_first.get("ack") == "accepted"
+    assert env_second.get("ack") == "accepted"
+    assert env_second.get("replay_detected") in (None, False)
+    cache_second = env_second.get("cache") or {}
+    assert cache_second.get("size") == 0
+    assert cache_second.get("misses_total", 0) >= 2
+
+
+def test_websocket_lan_governance_envelope_replay_cache_lru_eviction(monkeypatch):
+    monkeypatch.setenv("KERNEL_DAO_INTEGRITY_AUDIT_WS", "1")
+    monkeypatch.setenv("KERNEL_LAN_GOVERNANCE_MERGE_WS", "1")
+    monkeypatch.setenv("KERNEL_LAN_ENVELOPE_REPLAY_CACHE_MAX_ENTRIES", "1")
+    monkeypatch.setenv("KERNEL_LAN_ENVELOPE_REPLAY_CACHE_TTL_MS", "600000")
+
+    payload_a = {
+        "lan_governance_envelope": {
+            "schema": "lan_governance_envelope_v1",
+            "node_id": "node-lru",
+            "sent_unix_ms": 1710000000400,
+            "kind": "integrity_batch",
+            "batch": {
+                "events": [
+                    {
+                        "event_id": "evt-a",
+                        "turn_index": 1,
+                        "processor_elapsed_ms": 1,
+                        "summary": "lru-a",
+                    }
+                ]
+            },
+        }
+    }
+    payload_b = {
+        "lan_governance_envelope": {
+            "schema": "lan_governance_envelope_v1",
+            "node_id": "node-lru",
+            "sent_unix_ms": 1710000000401,
+            "kind": "integrity_batch",
+            "batch": {
+                "events": [
+                    {
+                        "event_id": "evt-b",
+                        "turn_index": 2,
+                        "processor_elapsed_ms": 2,
+                        "summary": "lru-b",
+                    }
+                ]
+            },
+        }
+    }
+    with client.websocket_connect("/ws/chat") as ws:
+        ws.send_json(payload_a)
+        first_a = ws.receive_json()
+        ws.send_json(payload_b)
+        first_b = ws.receive_json()
+        ws.send_json(payload_a)
+        second_a = ws.receive_json()
+
+    env_first_a = first_a.get("lan_governance", {}).get("envelope", {})
+    env_first_b = first_b.get("lan_governance", {}).get("envelope", {})
+    env_second_a = second_a.get("lan_governance", {}).get("envelope", {})
+    assert env_first_a.get("ack") == "accepted"
+    assert env_first_b.get("ack") == "accepted"
+    assert env_second_a.get("ack") == "accepted"
+    assert env_second_a.get("replay_detected") in (None, False)
+    cache_second_a = env_second_a.get("cache") or {}
+    assert cache_second_a.get("evicted_lru_total", 0) >= 1
 
 
 def test_websocket_reality_verification_lighthouse(monkeypatch):

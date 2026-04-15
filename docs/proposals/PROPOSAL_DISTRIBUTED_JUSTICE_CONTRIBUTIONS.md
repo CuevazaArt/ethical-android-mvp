@@ -46,6 +46,10 @@ These items extend the **“Pending gaps”** list in [`PROPOSAL_DAO_BLOCKCHAIN_
 | **DJ-BL-05** | **LAN DAO batch** — deterministic apply of `dao_vote` / `dao_resolve` under reorder/duplicate delivery. | **Done** — ``lan_governance_dao_batch`` + stress convergence (`tests/test_chat_server.py`). |
 | **DJ-BL-06** | **LAN judicial/mock-court batches** — deterministic dossier registration and simulated tribunal runs under reorder/duplicate delivery. | **Done** — ``lan_governance_judicial_batch`` + ``lan_governance_mock_court_batch`` + stress convergence (`tests/test_chat_server.py`). |
 | **DJ-BL-07** | **Coordinator envelope schema** — versioned wrapper for LAN batches. | **Done** — ``lan_governance_envelope_v1`` routing contract (`src/modules/lan_governance_envelope.py`, `src/chat_server.py`). |
+| **DJ-BL-08** | **Envelope ACK + replay fingerprint** — deterministic envelope hash and post-apply ledger fingerprint in WS response. | **Done** — ``lan_governance.envelope`` now includes `fingerprint`, `audit_ledger_fingerprint`, and merged/applied counters (`src/chat_server.py`, `tests/test_chat_server.py`). |
+| **DJ-BL-09** | **Envelope idempotency + reject taxonomy** — stable ACK token and machine-parseable reject reasons for envelope failures. | **Done** — ``lan_governance.envelope`` now includes `idempotency_token`, `ack`, and `reject_reason` (`src/chat_server.py`, `src/modules/lan_governance_envelope.py`, `tests/test_chat_server.py`). |
+| **DJ-BL-10** | **Envelope replay cache** — duplicate envelope detection per WebSocket session. | **Done** — duplicate `idempotency_token` returns `ack=already_seen` and skips batch reapply (`src/chat_server.py`, `tests/test_chat_server.py`). |
+| **DJ-BL-11** | **Replay cache bounds + ACK telemetry** — TTL/LRU bounded cache and cache hit/miss counters in envelope responses. | **Done** — envelope ACK now includes `cache` stats and replay cache is bounded by `KERNEL_LAN_ENVELOPE_REPLAY_CACHE_TTL_MS` / `KERNEL_LAN_ENVELOPE_REPLAY_CACHE_MAX_ENTRIES` (`src/chat_server.py`, `tests/test_chat_server.py`). |
 
 Contributors should pick **one** item per PR when possible; link **`CHANGELOG.md`** when operator-visible behavior or JSON contracts change.
 
@@ -80,3 +84,7 @@ Contributors should pick **one** item per PR when possible; link **`CHANGELOG.md
 - **2026-04-15:** DJ-BL-02 done — `lan_governance_integrity_batch` WebSocket path.
 - **2026-04-15:** DJ-BL-05/06 done — LAN DAO/judicial/mock-court batches + stress tests.
 - **2026-04-15:** DJ-BL-07 done — `lan_governance_envelope_v1` schema + routing.
+- **2026-04-15:** DJ-BL-08 done — envelope ACK/replay fingerprints for multi-node traceability.
+- **2026-04-15:** DJ-BL-09 done — envelope ACK token + reject taxonomy.
+- **2026-04-15:** DJ-BL-10 done — per-session replay cache (`ack=already_seen`).
+- **2026-04-15:** DJ-BL-11 done — replay cache TTL/LRU bounds + cache telemetry in ACK.

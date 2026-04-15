@@ -35,7 +35,7 @@ The kernel chat server exposes **GET** endpoints returning JSON (or Prometheus t
 
 - **`/ws/chat`** — bidirectional JSON; see root `GET /` `protocol` field and README WebSocket section.
 - **LAN integrity batch (DJ-BL-02):** ``lan_governance_integrity_batch`` when ``KERNEL_LAN_GOVERNANCE_MERGE_WS=1`` and ``KERNEL_DAO_INTEGRITY_AUDIT_WS=1`` — see contract matrix.
-- **LAN envelope (DJ-BL-07):** ``lan_governance_envelope`` (`schema=lan_governance_envelope_v1`) routes by `kind` to LAN batch handlers.
+- **LAN envelope (DJ-BL-07/08/09/10/11):** ``lan_governance_envelope`` (`schema=lan_governance_envelope_v1`) routes by `kind` to LAN batch handlers and returns ACK metadata (`fingerprint`, `audit_ledger_fingerprint`, `idempotency_token`, `ack`, optional `reject_reason`, and `cache` stats); duplicate envelopes in the same WebSocket session are short-circuited as `ack=already_seen` with TTL/LRU-bounded replay cache.
 
 ---
 
@@ -51,3 +51,6 @@ The kernel chat server exposes **GET** endpoints returning JSON (or Prometheus t
 - **2026-04-15:** Initial surface inventory for operator and cross-team contract reviews.
 - **2026-04-15:** WebSocket note for ``lan_governance_integrity_batch``.
 - **2026-04-15:** WebSocket note for ``lan_governance_envelope``.
+- **2026-04-15:** Envelope ACK fields note (`idempotency_token`, `ack`, `reject_reason`).
+- **2026-04-15:** Envelope replay cache note (`ack=already_seen`).
+- **2026-04-15:** Envelope replay cache bounds + ACK cache telemetry.

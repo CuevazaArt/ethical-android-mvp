@@ -135,9 +135,15 @@ from .modules.guardian_routines import public_routines_snapshot
 from .modules.hub_audit import record_dao_integrity_alert
 from .modules.internal_monologue import compose_monologue_line
 from .modules.judicial_escalation import chat_include_judicial
-from .modules.lan_governance_envelope import normalize_lan_governance_envelope
+from .modules.lan_governance_envelope import (
+    fingerprint_lan_governance_envelope,
+    idempotency_token_for_envelope,
+    normalize_lan_governance_envelope,
+    reject_reason_for_envelope_error,
+)
 from .modules.lan_governance_event_merge import merge_lan_governance_events
 from .modules.ml_ethics_tuner import maybe_log_gray_zone_tuning_opportunity
+from .modules.mock_dao_audit_replay import fingerprint_audit_ledger
 from .modules.moral_hub import (
     add_constitution_draft,
     apply_proposal_resolution_to_constitution_drafts,
@@ -363,6 +369,63 @@ def _coerce_public_int(value: object, *, default: int = 0, non_negative: bool = 
     if non_negative:
         out = max(0, out)
     return out
+
+
+DEFAULT_LAN_ENVELOPE_REPLAY_CACHE_TTL_MS = 300_000
+DEFAULT_LAN_ENVELOPE_REPLAY_CACHE_MAX_ENTRIES = 256
+
+
+def _prune_lan_envelope_replay_cache(
+    replay_cache: dict[str, dict[str, Any]],
+    *,
+    now_ms: int,
+    ttl_ms: int,
+    max_entries: int,
+) -> tuple[int, int]:
+    """Evict expired and oldest replay-cache rows (TTL then LRU)."""
+    evicted_ttl = 0
+    evicted_lru = 0
+
+    expired_tokens: list[str] = []
+    for token, entry in replay_cache.items():
+        cached_at_ms = (
+            _coerce_public_int(entry.get("cached_at_ms"), default=now_ms, non_negative=True)
+            if isinstance(entry, dict)
+            else now_ms
+        )
+        if now_ms - cached_at_ms >= ttl_ms:
+            expired_tokens.append(token)
+    for token in expired_tokens:
+        if replay_cache.pop(token, None) is not None:
+            evicted_ttl += 1
+
+    while len(replay_cache) > max_entries:
+        oldest = next(iter(replay_cache))
+        replay_cache.pop(oldest, None)
+        evicted_lru += 1
+    return evicted_ttl, evicted_lru
+
+
+def _lan_envelope_cache_stats(
+    replay_cache: dict[str, dict[str, Any]] | None,
+    replay_cache_stats: dict[str, int] | None,
+    *,
+    ttl_ms: int,
+    max_entries: int,
+    hit: bool,
+) -> dict[str, Any]:
+    """Compact replay-cache telemetry for envelope ACK."""
+    stats = replay_cache_stats or {}
+    return {
+        "hit": hit,
+        "size": len(replay_cache) if replay_cache is not None else 0,
+        "hits_total": int(stats.get("hits", 0)),
+        "misses_total": int(stats.get("misses", 0)),
+        "evicted_ttl_total": int(stats.get("evicted_ttl", 0)),
+        "evicted_lru_total": int(stats.get("evicted_lru", 0)),
+        "ttl_ms": ttl_ms,
+        "max_entries": max_entries,
+    }
 
 
 def _chat_turn_to_jsonable(r: ChatTurnResult, kernel: EthicalKernel) -> dict[str, Any]:
@@ -1234,7 +1297,12 @@ def _collect_lan_governance_mock_court_batch(
 
 
 def _collect_lan_governance_envelope(
-    kernel: EthicalKernel, data: dict[str, Any]
+    kernel: EthicalKernel,
+    data: dict[str, Any],
+    replay_cache: dict[str, dict[str, Any]] | None = None,
+    replay_cache_stats: dict[str, int] | None = None,
+    replay_cache_ttl_ms: int = DEFAULT_LAN_ENVELOPE_REPLAY_CACHE_TTL_MS,
+    replay_cache_max_entries: int = DEFAULT_LAN_ENVELOPE_REPLAY_CACHE_MAX_ENTRIES,
 ) -> dict[str, Any] | None:
     """
     Optional versioned wrapper that routes to one LAN batch handler by ``kind``.
@@ -1251,11 +1319,73 @@ def _collect_lan_governance_envelope(
     raw = data.get("lan_governance_envelope")
     if raw is None:
         return None
+    now_ms = int(time.monotonic() * 1000)
+    if replay_cache is not None:
+        ttl_evicted, lru_evicted = _prune_lan_envelope_replay_cache(
+            replay_cache,
+            now_ms=now_ms,
+            ttl_ms=max(0, replay_cache_ttl_ms),
+            max_entries=max(1, replay_cache_max_entries),
+        )
+        if replay_cache_stats is not None:
+            replay_cache_stats["evicted_ttl"] = int(replay_cache_stats.get("evicted_ttl", 0)) + ttl_evicted
+            replay_cache_stats["evicted_lru"] = int(replay_cache_stats.get("evicted_lru", 0)) + lru_evicted
+
     normalized, err = normalize_lan_governance_envelope(raw)
     if err is not None:
-        return {"lan_governance": {"envelope": {"ok": False, **err}}}
+        return {
+            "lan_governance": {
+                "envelope": {
+                    "ok": False,
+                    "ack": "rejected",
+                    "reject_reason": reject_reason_for_envelope_error(err.get("error")),
+                    "cache": _lan_envelope_cache_stats(
+                        replay_cache,
+                        replay_cache_stats,
+                        ttl_ms=max(0, replay_cache_ttl_ms),
+                        max_entries=max(1, replay_cache_max_entries),
+                        hit=False,
+                    ),
+                    **err,
+                }
+            }
+        }
     assert normalized is not None
     kind = str(normalized["kind"])
+    envelope_fingerprint = fingerprint_lan_governance_envelope(normalized)
+    idempotency_token = idempotency_token_for_envelope(normalized)
+    cached_entry = replay_cache.get(idempotency_token) if replay_cache is not None else None
+    cached_ack = (
+        cached_entry.get("envelope")
+        if isinstance(cached_entry, dict) and isinstance(cached_entry.get("envelope"), dict)
+        else None
+    )
+    if isinstance(cached_ack, dict):
+        if replay_cache_stats is not None:
+            replay_cache_stats["hits"] = int(replay_cache_stats.get("hits", 0)) + 1
+        # LRU touch: move the token to the tail.
+        if replay_cache is not None and isinstance(cached_entry, dict):
+            entry = replay_cache.pop(idempotency_token)
+            entry["last_seen_ms"] = now_ms
+            replay_cache[idempotency_token] = entry
+        envelope_out = dict(cached_ack)
+        envelope_out["ok"] = True
+        envelope_out["ack"] = "already_seen"
+        envelope_out["replay_detected"] = True
+        envelope_out["idempotency_token"] = idempotency_token
+        envelope_out["fingerprint"] = envelope_fingerprint
+        envelope_out["audit_ledger_fingerprint"] = fingerprint_audit_ledger(kernel.dao.records)
+        envelope_out["cache"] = _lan_envelope_cache_stats(
+            replay_cache,
+            replay_cache_stats,
+            ttl_ms=max(0, replay_cache_ttl_ms),
+            max_entries=max(1, replay_cache_max_entries),
+            hit=True,
+        )
+        return {"lan_governance": {"envelope": envelope_out}}
+    if replay_cache_stats is not None:
+        replay_cache_stats["misses"] = int(replay_cache_stats.get("misses", 0)) + 1
+
     routed = dict(data)
     batch = dict(normalized["batch"])
     if kind == "integrity_batch":
@@ -1278,13 +1408,85 @@ def _collect_lan_governance_envelope(
         out = {}
     lg = out.setdefault("lan_governance", {})
     if isinstance(lg, dict):
-        lg["envelope"] = {
-            "ok": True,
+        kind_to_section = {
+            "integrity_batch": "integrity_batch",
+            "dao_batch": "dao_batch",
+            "judicial_batch": "judicial_batch",
+            "mock_court_batch": "mock_court_batch",
+        }
+        section_name = kind_to_section.get(kind, "")
+        section = lg.get(section_name) if section_name else None
+        merged_count = (
+            int(section.get("merged_count"))
+            if isinstance(section, dict) and isinstance(section.get("merged_count"), int)
+            else None
+        )
+        applied_count = (
+            int(section.get("applied_count"))
+            if isinstance(section, dict) and isinstance(section.get("applied_count"), int)
+            else None
+        )
+        section_ok = (
+            bool(section.get("ok"))
+            if isinstance(section, dict) and isinstance(section.get("ok"), bool)
+            else True
+        )
+        envelope_out: dict[str, Any] = {
+            "ok": section_ok,
+            "ack": "accepted" if section_ok else "rejected",
             "schema": normalized["schema"],
             "kind": kind,
             "node_id": normalized["node_id"],
             "sent_unix_ms": normalized["sent_unix_ms"],
+            "fingerprint": envelope_fingerprint,
+            "idempotency_token": idempotency_token,
+            "merged_count": merged_count,
+            "applied_count": applied_count,
+            "audit_ledger_fingerprint": fingerprint_audit_ledger(kernel.dao.records),
+            "cache": _lan_envelope_cache_stats(
+                replay_cache,
+                replay_cache_stats,
+                ttl_ms=max(0, replay_cache_ttl_ms),
+                max_entries=max(1, replay_cache_max_entries),
+                hit=False,
+            ),
         }
+        if not section_ok and isinstance(section, dict):
+            section_error = str(section.get("error") or "").strip()
+            if section_error:
+                envelope_out["error"] = section_error
+            if section_error == "disabled":
+                envelope_out["reject_reason"] = "feature_disabled"
+            elif section_error in {"invalid_payload", "events_must_be_list"}:
+                envelope_out["reject_reason"] = "schema_validation_failed"
+            elif section_error == "unsupported_op":
+                envelope_out["reject_reason"] = "unsupported_operation"
+            else:
+                envelope_out["reject_reason"] = "batch_apply_failed"
+        if replay_cache is not None and envelope_out.get("ok") is True:
+            replay_cache[idempotency_token] = {
+                "envelope": dict(envelope_out),
+                "cached_at_ms": now_ms,
+                "last_seen_ms": now_ms,
+            }
+            _, lru_evicted_after_insert = _prune_lan_envelope_replay_cache(
+                replay_cache,
+                now_ms=now_ms,
+                ttl_ms=max(0, replay_cache_ttl_ms),
+                max_entries=max(1, replay_cache_max_entries),
+            )
+            if replay_cache_stats is not None and lru_evicted_after_insert:
+                replay_cache_stats["evicted_lru"] = (
+                    int(replay_cache_stats.get("evicted_lru", 0)) + lru_evicted_after_insert
+                )
+            envelope_out["cache"] = _lan_envelope_cache_stats(
+                replay_cache,
+                replay_cache_stats,
+                ttl_ms=max(0, replay_cache_ttl_ms),
+                max_entries=max(1, replay_cache_max_entries),
+                hit=False,
+            )
+        lg["envelope"] = envelope_out
     return out
 
 
@@ -1349,6 +1551,26 @@ async def ws_chat(ws: WebSocket) -> None:
     interval = advisory_interval_seconds_from_env()
     advisory_stop: asyncio.Event | None = None
     advisory_task: asyncio.Task[None] | None = None
+    lan_envelope_replay_cache: dict[str, dict[str, Any]] = {}
+    lan_envelope_replay_cache_stats: dict[str, int] = {
+        "hits": 0,
+        "misses": 0,
+        "evicted_ttl": 0,
+        "evicted_lru": 0,
+    }
+    lan_envelope_replay_cache_ttl_ms = _coerce_public_int(
+        os.environ.get("KERNEL_LAN_ENVELOPE_REPLAY_CACHE_TTL_MS"),
+        default=DEFAULT_LAN_ENVELOPE_REPLAY_CACHE_TTL_MS,
+        non_negative=True,
+    )
+    lan_envelope_replay_cache_max_entries = max(
+        1,
+        _coerce_public_int(
+            os.environ.get("KERNEL_LAN_ENVELOPE_REPLAY_CACHE_MAX_ENTRIES"),
+            default=DEFAULT_LAN_ENVELOPE_REPLAY_CACHE_MAX_ENTRIES,
+            non_negative=True,
+        ),
+    )
     if interval > 0:
         advisory_stop = asyncio.Event()
         advisory_task = asyncio.create_task(
@@ -1395,7 +1617,14 @@ async def ws_chat(ws: WebSocket) -> None:
             lan_dao_payload = _collect_lan_governance_dao_batch(kernel, data)
             lan_judicial_payload = _collect_lan_governance_judicial_batch(kernel, data)
             lan_mock_court_payload = _collect_lan_governance_mock_court_batch(kernel, data)
-            lan_envelope_payload = _collect_lan_governance_envelope(kernel, data)
+            lan_envelope_payload = _collect_lan_governance_envelope(
+                kernel,
+                data,
+                replay_cache=lan_envelope_replay_cache,
+                replay_cache_stats=lan_envelope_replay_cache_stats,
+                replay_cache_ttl_ms=lan_envelope_replay_cache_ttl_ms,
+                replay_cache_max_entries=lan_envelope_replay_cache_max_entries,
+            )
             if (
                 dao_payload
                 or nomad_payload

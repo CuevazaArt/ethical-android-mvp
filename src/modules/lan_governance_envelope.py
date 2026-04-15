@@ -7,16 +7,28 @@ stable metadata (node id, send time, kind). It does not perform networking.
 
 from __future__ import annotations
 
+import hashlib
+import json
 import math
 from collections.abc import Mapping
 from typing import Any
 
 LAN_GOVERNANCE_ENVELOPE_SCHEMA_V1 = "lan_governance_envelope_v1"
+LAN_GOVERNANCE_ENVELOPE_IDEMPOTENCY_PREFIX = "lan-envelope"
 SUPPORTED_LAN_GOVERNANCE_KINDS = {
     "integrity_batch",
     "dao_batch",
     "judicial_batch",
     "mock_court_batch",
+}
+LAN_GOVERNANCE_ENVELOPE_REJECT_REASON_BY_ERROR = {
+    "invalid_payload": "schema_validation_failed",
+    "unsupported_schema": "unsupported_contract",
+    "missing_node_id": "schema_validation_failed",
+    "invalid_sent_unix_ms": "schema_validation_failed",
+    "unsupported_kind": "unsupported_contract",
+    "invalid_batch": "schema_validation_failed",
+    "events_must_be_list": "schema_validation_failed",
 }
 
 
@@ -101,3 +113,32 @@ def normalize_lan_governance_envelope(
         "batch": dict(batch),
     }
     return out, None
+
+
+def fingerprint_lan_governance_envelope(normalized: Mapping[str, Any]) -> str:
+    """
+    Deterministic SHA-256 fingerprint for a normalized envelope.
+
+    Used as an ACK token for cross-node replay checks.
+    """
+    payload = {
+        "schema": normalized.get("schema"),
+        "node_id": normalized.get("node_id"),
+        "sent_unix_ms": normalized.get("sent_unix_ms"),
+        "kind": normalized.get("kind"),
+        "batch": normalized.get("batch"),
+    }
+    body = json.dumps(payload, ensure_ascii=False, sort_keys=True, separators=(",", ":"))
+    return hashlib.sha256(body.encode("utf-8")).hexdigest()
+
+
+def idempotency_token_for_envelope(normalized: Mapping[str, Any]) -> str:
+    """Stable idempotency token for envelope ACK/replay bookkeeping."""
+    fp = fingerprint_lan_governance_envelope(normalized)
+    return f"{LAN_GOVERNANCE_ENVELOPE_IDEMPOTENCY_PREFIX}:{fp}"
+
+
+def reject_reason_for_envelope_error(error_code: object) -> str:
+    """Map envelope validator errors to stable reject taxonomy."""
+    code = str(error_code or "").strip()
+    return LAN_GOVERNANCE_ENVELOPE_REJECT_REASON_BY_ERROR.get(code, "invalid_envelope")

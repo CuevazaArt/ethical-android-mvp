@@ -4,6 +4,33 @@ All notable changes to this project are summarized here. For narrative context a
 
 **Note:** Older sections below may still **link** to paths that were later removed (for example `experiments/million_sim/`, `docs/multimedia/`, root `dashboard.html`, `landing/`). Those links are **historical**; recover files from git history or backup branches if you need them.
 
+## Distributed justice — Phase 2 replay cache bounds + ACK telemetry (DJ-BL-11) — April 2026
+
+- **WebSocket:** envelope ACK now includes `cache` telemetry (`hit`, `size`, cumulative `hits_total`/`misses_total`, cumulative TTL/LRU evictions, and configured bounds).
+- **Runtime bounds:** per-session envelope replay cache now enforces TTL/LRU with `KERNEL_LAN_ENVELOPE_REPLAY_CACHE_TTL_MS` and `KERNEL_LAN_ENVELOPE_REPLAY_CACHE_MAX_ENTRIES` in [`src/chat_server.py`](src/chat_server.py).
+- **Tests:** TTL and LRU replay-cache behavior covered in [`tests/test_chat_server.py`](tests/test_chat_server.py).
+- **Docs:** env policy and distributed justice proposals updated for the new replay-cache controls.
+
+## Distributed justice — Phase 2 envelope replay cache (DJ-BL-10) — April 2026
+
+- **WebSocket:** duplicated ``lan_governance_envelope`` payloads are now detected per WebSocket session by `idempotency_token`; response returns `ack=already_seen` and skips batch reapply in [`src/chat_server.py`](src/chat_server.py).
+- **Safety intent:** avoids duplicate ledger mutations from replayed LAN messages within a session while preserving deterministic ACK fingerprints.
+- **Tests:** replay cache behavior covered in [`tests/test_chat_server.py`](tests/test_chat_server.py).
+
+## Distributed justice — Phase 2 envelope idempotency/reject taxonomy (DJ-BL-09) — April 2026
+
+- **WebSocket:** ``lan_governance_envelope`` ACK now includes `idempotency_token` and explicit `ack` status (`accepted`/`rejected`) in [`src/chat_server.py`](src/chat_server.py).
+- **Reject taxonomy:** envelope errors now map to stable `reject_reason` values (for example `unsupported_contract`, `schema_validation_failed`, `feature_disabled`) for machine-parsed replay/coordination flows.
+- **Code:** taxonomy + token helpers in [`src/modules/lan_governance_envelope.py`](src/modules/lan_governance_envelope.py).
+- **Tests:** ACK success/reject coverage in [`tests/test_chat_server.py`](tests/test_chat_server.py) and unit coverage in [`tests/test_lan_governance_envelope.py`](tests/test_lan_governance_envelope.py).
+
+## Distributed justice — Phase 2 envelope ACK + replay fingerprint (DJ-BL-08) — April 2026
+
+- **WebSocket:** ``lan_governance_envelope`` now emits deterministic ACK metadata under ``lan_governance.envelope``: `fingerprint`, `merged_count`, `applied_count`, and `audit_ledger_fingerprint` after batch routing/apply in [`src/chat_server.py`](src/chat_server.py).
+- **Code:** new deterministic hash helper `fingerprint_lan_governance_envelope` in [`src/modules/lan_governance_envelope.py`](src/modules/lan_governance_envelope.py).
+- **Tests:** deterministic fingerprint unit test in [`tests/test_lan_governance_envelope.py`](tests/test_lan_governance_envelope.py) and envelope WS ACK assertions in [`tests/test_chat_server.py`](tests/test_chat_server.py).
+- **Docs:** backlog/contribution/staged execution proposals updated for DJ-BL-08 traceability.
+
 ## Distributed justice — DJ-BL-02 WebSocket LAN integrity batch — April 2026
 
 - **WebSocket:** ``lan_governance_integrity_batch`` — deterministic merge then ``HubAudit:dao_integrity`` rows; requires ``KERNEL_LAN_GOVERNANCE_MERGE_WS=1`` and ``KERNEL_DAO_INTEGRITY_AUDIT_WS=1`` ([`src/chat_server.py`](src/chat_server.py), [`src/modules/moral_hub.py`](src/modules/moral_hub.py)).
