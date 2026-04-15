@@ -29,6 +29,7 @@ This checklist defines when `master-Cursor` is ready to be interlaced with other
 
 4. **Temporal sync readiness**
    - `turn_index`, `processor_elapsed_ms`, and `turn_delta_ms` are present.
+   - Those three integer fields are **coerced** to non-negative ints in the WebSocket builder when values are missing or non-numeric (JSON stability only; not a policy change).
    - DAO/LAN toggles (`KERNEL_TEMPORAL_DAO_SYNC`, `KERNEL_TEMPORAL_LAN_SYNC`) behave as documented.
 
 5. **Regression suite**

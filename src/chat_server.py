@@ -92,6 +92,7 @@ from __future__ import annotations
 import asyncio
 import json
 import logging
+import math
 import os
 import time
 from contextlib import asynccontextmanager
@@ -309,6 +310,34 @@ def _env_truthy(name: str, default: bool = False) -> bool:
     return raw in ("1", "true", "yes", "on")
 
 
+def _coerce_public_int(value: object, *, default: int = 0, non_negative: bool = False) -> int:
+    """
+    JSON-safe int for public WebSocket payloads (e.g. temporal_sync).
+
+    ``TemporalContext.to_public_dict()`` is typed as ``dict[str, object]``; this avoids
+    ``int(object)`` mypy errors and prevents rare runtime failures on bad values.
+    """
+    if value is None:
+        out = default
+    elif isinstance(value, bool):
+        out = default
+    elif isinstance(value, int):
+        out = value
+    elif isinstance(value, float):
+        out = int(value) if math.isfinite(value) else default
+    elif isinstance(value, str):
+        try:
+            s = value.strip()
+            out = int(s, 10) if s else default
+        except ValueError:
+            out = default
+    else:
+        out = default
+    if non_negative:
+        out = max(0, out)
+    return out
+
+
 def _chat_turn_to_jsonable(r: ChatTurnResult, kernel: EthicalKernel) -> dict[str, Any]:
     """Compact JSON-safe view (no full internal objects)."""
     idn = kernel.memory.identity
@@ -366,10 +395,14 @@ def _chat_turn_to_jsonable(r: ChatTurnResult, kernel: EthicalKernel) -> dict[str
         out["temporal_context"] = tc
         out["temporal_sync"] = {
             "sync_schema": tc.get("sync_schema", "temporal_sync_v1"),
-            "turn_index": int(tc.get("turn_index") or 0),
+            "turn_index": _coerce_public_int(tc.get("turn_index"), default=0, non_negative=True),
             "wall_clock_unix_ms": tc.get("wall_clock_unix_ms"),
-            "processor_elapsed_ms": int(tc.get("processor_elapsed_ms") or 0),
-            "turn_delta_ms": int(tc.get("turn_delta_ms") or 0),
+            "processor_elapsed_ms": _coerce_public_int(
+                tc.get("processor_elapsed_ms"), default=0, non_negative=True
+            ),
+            "turn_delta_ms": _coerce_public_int(
+                tc.get("turn_delta_ms"), default=0, non_negative=True
+            ),
             "local_network_sync_ready": bool(tc.get("local_network_sync_ready", False)),
             "dao_sync_ready": bool(tc.get("dao_sync_ready", False)),
         }

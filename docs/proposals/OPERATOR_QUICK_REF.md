@@ -62,6 +62,8 @@ When a chat turn returns, the server may emit:
 
 `temporal_sync` is designed for local-network and DAO-adjacent coordination without requiring external time services; use `sync_schema` to version consumers.
 
+**Coercion:** `turn_index`, `processor_elapsed_ms`, and `turn_delta_ms` are emitted as non-negative integers; malformed or missing values in the internal public dict are coerced to `0` for stable WebSocket JSON (not an ethics policy change; see [`src/chat_server.py`](../../src/chat_server.py) `_coerce_public_int`).
+
 ### Verbal LLM observability (chat JSON)
 
 When a generative touchpoint falls back (**communicate**, **narrate**, or optional **monologue** enrich), the server may emit:

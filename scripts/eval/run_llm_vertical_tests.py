@@ -20,6 +20,7 @@ TEST_TARGETS = [
     "tests/test_generative_candidates.py",
     "tests/test_kernel_env_operator.py",
     "tests/test_observability_metrics.py",
+    "tests/test_chat_server_temporal_coerce.py",
 ]
 
 

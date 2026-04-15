@@ -4,6 +4,12 @@ All notable changes to this project are summarized here. For narrative context a
 
 **Note:** Older sections below may still **link** to paths that were later removed (for example `experiments/million_sim/`, `docs/multimedia/`, root `dashboard.html`, `landing/`). Those links are **historical**; recover files from git history or backup branches if you need them.
 
+## Chat — `temporal_sync` integer coercion + mypy (`chat_server`) — April 2026
+
+- **Code:** [`src/chat_server.py`](src/chat_server.py) — `_coerce_public_int` for `turn_index`, `processor_elapsed_ms`, `turn_delta_ms` in WebSocket `temporal_sync` (fixes mypy on `dict[str, object]` from `TemporalContext.to_public_dict()`; avoids `int()` on arbitrary objects).
+- **Tests:** [`tests/test_chat_server_temporal_coerce.py`](tests/test_chat_server_temporal_coerce.py).
+- **Docs:** [`docs/proposals/OPERATOR_QUICK_REF.md`](docs/proposals/OPERATOR_QUICK_REF.md) (coercion note); [`docs/collaboration/CURSOR_CROSS_TEAM_INTEGRATION_GATE.md`](docs/collaboration/CURSOR_CROSS_TEAM_INTEGRATION_GATE.md).
+
 ## LLM integration track — gap closure (G-01, G-02, G-03, G-05, G-06, G-07, G-08) — April 2026
 
 - **Kernel:** [`EthicalKernel.last_natural_verbal_llm_degradation_events`](src/kernel.py) exposes generative degradation from the last [`process_natural`](src/kernel.py) call (G-03).
