@@ -5,10 +5,15 @@ Backup(G, θ) -> {DAO, Cloud, Local, Blockchain}
 Restore(G, θ) -> NewKernel
 
 Guarantees that the android's "soul" (narrative memory,
-Bayesian parameters, forgiveness state, pole configuration)
-survives total hardware destruction.
+Bayesian parameters, forgiveness state, pole configuration,
+and full NarrativeIdentityState) survives total hardware
+destruction.
 
 4 backup layers for cross-verification of integrity.
+
+Gap closed (April 2026 — Antigravity): _apply_snapshot now
+restores NarrativeIdentityTracker leans and core beliefs so
+the Reflexive Mirror and Broken-Mirror logic survive restores.
 """
 
 import hashlib
@@ -54,6 +59,10 @@ class Snapshot:
     experience_digest: str = ""
     active_arc_id: str = ""
     integrity_hash: str = ""
+
+    # NarrativeIdentityState — full self-model snapshot (April 2026)
+    # Serialised as JSON string to keep Snapshot a plain dataclass.
+    identity_state_json: str = "{}"
 
 
 @dataclass
@@ -138,14 +147,35 @@ class ImmortalityProtocol:
             "beta": snapshot.beta_locus,
             "weakness": snapshot.weakness_type,
             "poles": snapshot.pole_weights,
+            # Identity state is included in hash so tampering is detectable
+            "identity_state": snapshot.identity_state_json,
         }
         serialized = json.dumps(data, sort_keys=True)
         return hashlib.sha256(serialized.encode()).hexdigest()[:16]
+
+    def _serialize_identity_state(self, kernel) -> str:
+        """Serialises the NarrativeIdentityState to a JSON string."""
+        try:
+            state = kernel.memory.identity.state
+            payload = {
+                "civic_lean": state.civic_lean,
+                "care_lean": state.care_lean,
+                "deliberation_lean": state.deliberation_lean,
+                "careful_lean": state.careful_lean,
+                "episode_count": state.episode_count,
+                "core_beliefs": state.core_beliefs if state.core_beliefs else [],
+            }
+            return json.dumps(payload, ensure_ascii=False)
+        except Exception:
+            return "{}"
 
     def backup(self, kernel) -> Snapshot:
         """
         Creates a complete snapshot of the kernel's state.
         Distributes it to all 4 backup layers.
+
+        Includes full NarrativeIdentityState (leans + core beliefs)
+        so restores produce a fully coherent self-model.
 
         Args:
             kernel: EthicalKernel instance
@@ -177,10 +207,13 @@ class ImmortalityProtocol:
             weakness_int = kernel.weakness.base_intensity
             emo_load = kernel.weakness.emotional_load()
 
+        # Serialise the full NarrativeIdentityState (gap closed April 2026)
+        identity_json = self._serialize_identity_state(kernel)
+
         snapshot = Snapshot(
             id=f"SNAP-{self._snapshot_counter:04d}",
             timestamp=datetime.now().isoformat(),
-            version="3.1",
+            version="3.2",
             episodes_count=n_episodes,
             last_episode_id=last_ep,
             experience_digest=digest,
@@ -195,6 +228,7 @@ class ImmortalityProtocol:
             weakness_intensity=weakness_int,
             emotional_load=round(emo_load, 4),
             pole_weights=dict(kernel.poles.base_weights),
+            identity_state_json=identity_json,
         )
 
         snapshot.integrity_hash = self._calculate_hash(snapshot)
@@ -204,7 +238,7 @@ class ImmortalityProtocol:
             # In production, these would be separate services.
             # Here we simulate the distribution.
             self.layers[layer].append(snapshot)
-            
+
         # Physical persistence for the 'local' and simulated state
         self._persist_local_backups()
 
@@ -294,7 +328,18 @@ class ImmortalityProtocol:
         )
 
     def _apply_snapshot(self, kernel, snapshot: Snapshot):
-        """Applies a snapshot to the kernel."""
+        """
+        Applies a snapshot to the kernel.
+
+        Restores:
+        - Bayesian mixture weights and pruning threshold
+        - Locus of control (alpha/beta)
+        - Ethical pole base weights
+        - Narrative digest and active arc pointer
+        - Full NarrativeIdentityState: EMA leans + core beliefs
+          (gap closed April 2026 — without this the Broken Mirror and
+          Core Beliefs were lost after every hardware reset)
+        """
         import numpy as np
 
         kernel.bayesian.pruning_threshold = snapshot.pruning_threshold
@@ -302,13 +347,42 @@ class ImmortalityProtocol:
         kernel.locus.alpha = snapshot.alpha_locus
         kernel.locus.beta = snapshot.beta_locus
         kernel.poles.base_weights = dict(snapshot.pole_weights)
-        
-        # Restore Narrative & Identity state
+
+        # Restore Narrative digest and active arc pointer
         kernel.memory.experience_digest = snapshot.experience_digest
         if snapshot.active_arc_id != "none":
-            active = next((a for a in kernel.memory.arcs if a.id == snapshot.active_arc_id), None)
+            active = next(
+                (a for a in kernel.memory.arcs if a.id == snapshot.active_arc_id), None
+            )
             if active:
                 kernel.memory.active_arc = active
+
+        # Restore full NarrativeIdentityState (EMA leans + core beliefs)
+        self._restore_identity_state(kernel, snapshot.identity_state_json)
+
+    def _restore_identity_state(self, kernel, identity_json: str) -> None:
+        """
+        Deserialises and applies the NarrativeIdentityState from the snapshot.
+
+        Gracefully handles missing keys (forward/backward compatibility).
+        """
+        if not identity_json or identity_json == "{}":
+            return
+        try:
+            from .narrative_identity import NarrativeIdentityState
+            data = json.loads(identity_json)
+            state = NarrativeIdentityState(
+                civic_lean=data.get("civic_lean", 0.5),
+                care_lean=data.get("care_lean", 0.5),
+                deliberation_lean=data.get("deliberation_lean", 0.5),
+                careful_lean=data.get("careful_lean", 0.5),
+                episode_count=data.get("episode_count", 0),
+                core_beliefs=data.get("core_beliefs", []),
+            )
+            kernel.memory.identity.import_state(state)
+        except Exception:
+            # Silent fail: worst case the tracker starts neutral, not corrupted
+            pass
 
     def last_backup(self) -> Snapshot | None:
         """Returns the most recently created snapshot."""

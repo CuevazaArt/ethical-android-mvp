@@ -9,7 +9,7 @@ See docs/proposals/README.md (Fase 4).
 
 from __future__ import annotations
 
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
@@ -25,9 +25,11 @@ class NarrativeIdentityState:
     deliberation_lean: float = 0.5
     careful_lean: float = 0.5
     episode_count: int = 0
-    core_beliefs: list[dict] = None  # List of {"text": str, "significance": float, "id": str}
+    # field() avoids the mutable-default anti-pattern (fixed April 2026)
+    core_beliefs: list[dict] = field(default_factory=list)
 
     def __post_init__(self):
+        # Guard against None being passed explicitly (e.g. from legacy JSON)
         if self.core_beliefs is None:
             self.core_beliefs = []
 

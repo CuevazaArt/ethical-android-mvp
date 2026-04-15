@@ -98,6 +98,22 @@ class NarrativeMemory:
         """Returns archetypal weights for affective downstream processing."""
         return self.reflector.get_subjective_tone()
 
+    def get_theater_math_context(self) -> dict[str, float]:
+        """
+        Theater→Math bridge context for Phase 7.
+
+        Merges the normalised arc-tone blend with the identity EMA lean
+        deltas so a downstream BMA/Softmax caller receives a single dict
+        with everything needed to modulate ethical priors:
+
+          tone_*      — normalised archetype blend from active + history
+          civic_delta, care_delta, deliberation_delta, careful_delta
+                      — signed lean departures from neutral (0.5)
+        """
+        tone = self.reflector.get_subjective_tone()
+        deltas = self.reflector.threshold_context()
+        return {**{f"tone_{k}": v for k, v in tone.items()}, **deltas}
+
     def register(
         self,
         place: str,
