@@ -1157,6 +1157,49 @@ class EthicalKernel:
         """Returns the current DAO status."""
         return self.dao.format_status()
 
+    def export_audit_snapshot(
+        self,
+        decision: "KernelDecision",
+        *,
+        agent_id: str = "unknown",
+        session_turn: int = 0,
+        sensor_snapshot: Any = None,
+    ) -> "AuditSnapshot":
+        """
+        E2 — Build a serialisable :class:`~src.dao.audit_snapshot.AuditSnapshot`
+        from a completed decision (ADR 0016 Axis E2).
+
+        The snapshot captures the decision provenance, mixture weights, moral
+        score, sensor state, and the current values of all DAO-governable
+        parameters. It is the canonical audit record for DAO governance review.
+
+        Parameters
+        ----------
+        decision:
+            Completed :class:`KernelDecision` from :meth:`process` or
+            :meth:`process_chat_turn`.
+        agent_id:
+            Identifier for the agent / session.
+        session_turn:
+            Turn counter within the session (informational only).
+        sensor_snapshot:
+            Optional :class:`~src.modules.sensor_contracts.SensorSnapshot`
+            instance; populates battery/jerk/noise fields in the snapshot.
+
+        Returns
+        -------
+        AuditSnapshot
+            Fully populated, JSON-serialisable audit record.
+        """
+        from .dao.audit_snapshot import build_audit_snapshot
+
+        return build_audit_snapshot(
+            decision,
+            agent_id=agent_id,
+            session_turn=session_turn,
+            sensor_snapshot=sensor_snapshot,
+        )
+
     def _chat_light_actions(self) -> list[CandidateAction]:
         """Safe dialogue moves for low-stakes chat turns (mixture scorer still chooses)."""
         return [
