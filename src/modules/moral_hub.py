@@ -110,6 +110,19 @@ def lan_governance_dao_batch_ws_enabled() -> bool:
     return v in ("1", "true", "yes", "on")
 
 
+def lan_governance_judicial_batch_ws_enabled() -> bool:
+    """
+    WebSocket ``lan_governance_judicial_batch`` — reorder/dedupe then apply judicial dossier events (Phase 2 LAN stub).
+
+    Requires ``KERNEL_JUDICIAL_ESCALATION=1`` and ``KERNEL_LAN_GOVERNANCE_MERGE_WS=1``.
+    """
+    vj = os.environ.get("KERNEL_JUDICIAL_ESCALATION", "0").strip().lower()
+    if vj not in ("1", "true", "yes", "on"):
+        return False
+    v = os.environ.get("KERNEL_LAN_GOVERNANCE_MERGE_WS", "0").strip().lower()
+    return v in ("1", "true", "yes", "on")
+
+
 def proposal_to_public(p: Any) -> dict[str, Any]:
     """JSON-safe summary of a DAO :class:`~src.modules.mock_dao.Proposal` (quadratic vote totals)."""
     vf = getattr(p, "votes_for", None) or {}

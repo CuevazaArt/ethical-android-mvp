@@ -649,6 +649,62 @@ def test_websocket_lan_governance_dao_batch_stress_reorder_and_duplicates_conver
     assert props[0].get("weighted_votes_against") == round(sum(ref_prop.votes_against.values()), 4)
 
 
+def test_websocket_lan_governance_judicial_batch_stress_reorder_and_duplicates_converge(
+    monkeypatch,
+):
+    """
+    Phase 2 slice: reorder/duplicate delivery should converge to the same escalation audit ledger.
+    """
+    import random
+
+    from src.modules.lan_governance_event_merge import merge_lan_governance_events
+    from src.modules.mock_dao import MockDAO
+
+    monkeypatch.setenv("KERNEL_JUDICIAL_ESCALATION", "1")
+    monkeypatch.setenv("KERNEL_LAN_GOVERNANCE_MERGE_WS", "1")
+
+    rng = random.Random(4242)
+
+    base_events: list[dict] = []
+    for i in range(40):
+        base_events.append(
+            {
+                "event_id": f"j{i:03d}",
+                "turn_index": 1 + (i // 10),
+                "processor_elapsed_ms": rng.randint(0, 500),
+                "op": "judicial_register_dossier",
+                "audit_paragraph": f"EscalationCase case-{i:03d} | strikes=2 | order='x' | mode=gray_zone",
+                "episode_id": f"ep{i:03d}",
+            }
+        )
+
+    delivered = list(base_events)
+    for _ in range(20):
+        delivered.append(rng.choice(base_events))
+    rng.shuffle(delivered)
+
+    merged = merge_lan_governance_events(delivered, id_key="event_id")
+    ref = MockDAO()
+    for row in merged:
+        ref.register_escalation_case(
+            str(row.get("audit_paragraph") or ""),
+            episode_id=str(row.get("episode_id") or ""),
+        )
+    ref_escalations = [r for r in ref.records if r.type == "escalation"]
+    assert len(ref_escalations) == len(merged)
+
+    with client.websocket_connect("/ws/chat") as ws:
+        ws.send_json({"lan_governance_judicial_batch": {"events": delivered}})
+        data = ws.receive_json()
+    batch = data.get("lan_governance", {}).get("judicial_batch", {})
+    assert batch.get("ok") is True
+    assert batch.get("merged_count") == len(merged)
+    assert batch.get("applied_count") == len(merged)
+    assert batch.get("deduped_count") == (
+        len([e for e in delivered if e.get("event_id")]) - len(merged)
+    )
+
+
 def test_websocket_reality_verification_lighthouse(monkeypatch):
     from src.modules.reality_verification import clear_lighthouse_cache
 

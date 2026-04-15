@@ -15,6 +15,12 @@ All notable changes to this project are summarized here. For narrative context a
 - **Tests:** stress test for reorder/duplicate convergence — [`tests/test_chat_server.py`](tests/test_chat_server.py).
 - **Docs:** contract matrix + env policy updated.
 
+## Distributed justice — Phase 2 LAN judicial batch (stress) — April 2026
+
+- **WebSocket:** ``lan_governance_judicial_batch`` — deterministic merge then register escalation dossiers; requires ``KERNEL_LAN_GOVERNANCE_MERGE_WS=1`` and ``KERNEL_JUDICIAL_ESCALATION=1`` ([`src/chat_server.py`](src/chat_server.py), [`src/modules/moral_hub.py`](src/modules/moral_hub.py)).
+- **Tests:** stress test for reorder/duplicate convergence — [`tests/test_chat_server.py`](tests/test_chat_server.py).
+- **Docs:** contract matrix + env policy updated.
+
 ## Distributed justice — DJ-BL-01 / DJ-BL-04 + HTTP API doc — April 2026
 
 - **DJ-BL-01:** [`src/modules/mock_dao_audit_replay.py`](src/modules/mock_dao_audit_replay.py) (`fingerprint_audit_ledger`), [`scripts/eval/verify_mock_dao_audit_replay.py`](scripts/eval/verify_mock_dao_audit_replay.py), [`tests/test_mock_dao_audit_replay.py`](tests/test_mock_dao_audit_replay.py).

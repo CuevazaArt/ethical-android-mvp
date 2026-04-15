@@ -159,7 +159,7 @@ Expected behavior:
 ## Pending gaps to close while waiting for other teams
 
 1. Add replay-state checker script for governance events. **Addressed (2026-04-15):** audit ledger fingerprint + [`scripts/eval/verify_mock_dao_audit_replay.py`](../../scripts/eval/verify_mock_dao_audit_replay.py) (DJ-BL-01); full proposal/vote state replay is **not** in scope for this slice.
-2. Add LAN duplicate/reorder simulation tests for DAO+judicial payloads. **Partial (2026-04-15):** deterministic merge helper + WebSocket ``lan_governance_integrity_batch`` (integrity alerts) + ``lan_governance_dao_batch`` (DAO vote/resolve) with stress test coverage. Judicial dossier batches remain future work.
+2. Add LAN duplicate/reorder simulation tests for DAO+judicial payloads. **Partial (2026-04-15):** deterministic merge helper + WebSocket ``lan_governance_integrity_batch`` (integrity alerts) + ``lan_governance_dao_batch`` (DAO vote/resolve) + ``lan_governance_judicial_batch`` (dossier registrations) with stress test coverage. Full multi-node coordinator schema still future work.
 3. Add one operator runbook page for "sync degraded but safe-local mode." **Addressed (2026-04-15):** subsection *Sync degraded — local-safe mode (DJ-BL-03)* in [`OPERATOR_QUICK_REF.md`](OPERATOR_QUICK_REF.md) (not a standalone page; cross-linked from backlog system).
 4. Add contract compatibility matrix between `master-Cursor`, `master-claude`, and `master-antigravity`. **Addressed (2026-04-15):** [`PROPOSAL_DISTRIBUTED_JUSTICE_CONTRACT_MATRIX.md`](PROPOSAL_DISTRIBUTED_JUSTICE_CONTRACT_MATRIX.md) (honest “unknown” for other lines until verified at merge).
 

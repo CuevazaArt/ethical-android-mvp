@@ -80,6 +80,10 @@ LAN governance DAO batch (Phase 2): ``KERNEL_LAN_GOVERNANCE_MERGE_WS=1`` (with D
 enables WebSocket ``lan_governance_dao_batch`` — deterministic sort/dedupe via
 ``lan_governance_event_merge``, then applies ``dao_vote`` / ``dao_resolve`` on the session MockDAO. DJ-BL-05.
 
+LAN governance judicial batch (Phase 2): ``KERNEL_LAN_GOVERNANCE_MERGE_WS=1`` (with judicial escalation on)
+enables WebSocket ``lan_governance_judicial_batch`` — deterministic sort/dedupe via
+``lan_governance_event_merge``, then registers escalation dossiers on the session audit ledger. DJ-BL-06.
+
 Advisory telemetry (optional, Fase 1.3–1.4): KERNEL_ADVISORY_INTERVAL_S — positive seconds
 spawns a read-only :func:`src.runtime.telemetry.advisory_loop` per WebSocket session (DriveArbiter only).
 Metaplan vs drives (v9.4): KERNEL_METAPLAN_DRIVE_FILTER / KERNEL_METAPLAN_DRIVE_EXTRA — see metaplan_registry.py.
@@ -137,6 +141,7 @@ from .modules.moral_hub import (
     ethos_payroll_record_mock,
     lan_governance_dao_batch_ws_enabled,
     lan_governance_integrity_batch_ws_enabled,
+    lan_governance_judicial_batch_ws_enabled,
     moral_hub_public_enabled,
     proposal_to_public,
     submit_constitution_draft_for_vote,
@@ -1008,6 +1013,101 @@ def _collect_lan_governance_dao_batch(
     }
 
 
+def _collect_lan_governance_judicial_batch(
+    kernel: EthicalKernel, data: dict[str, Any]
+) -> dict[str, Any] | None:
+    """
+    Optional batch of judicial dossier registrations: merge (turn / processor time / id) then apply in order.
+
+    Client shape::
+        {"lan_governance_judicial_batch": {"events": [...], "id_key": "event_id"}}
+
+    Each event requires:
+      - op: "judicial_register_dossier"
+      - audit_paragraph: string (already formatted; see judicial_escalation.EthicalDossierV1.to_audit_paragraph)
+    Optional:
+      - episode_id: string
+    """
+    raw = data.get("lan_governance_judicial_batch")
+    if raw is None:
+        return None
+    if not isinstance(raw, dict):
+        return {
+            "lan_governance": {
+                "judicial_batch": {
+                    "ok": False,
+                    "error": "invalid_payload",
+                    "hint": "expected object",
+                }
+            }
+        }
+
+    if not lan_governance_judicial_batch_ws_enabled():
+        return {
+            "lan_governance": {
+                "judicial_batch": {
+                    "ok": False,
+                    "error": "disabled",
+                    "hint": "Set KERNEL_LAN_GOVERNANCE_MERGE_WS=1 and KERNEL_JUDICIAL_ESCALATION=1.",
+                }
+            }
+        }
+
+    events_in = raw.get("events")
+    if not isinstance(events_in, list):
+        return {"lan_governance": {"judicial_batch": {"ok": False, "error": "events_must_be_list"}}}
+
+    id_key = str(raw.get("id_key") or "event_id").strip() or "event_id"
+    dict_rows: list[dict[str, Any]] = [dict(x) for x in events_in if isinstance(x, dict)]
+    input_count = len(dict_rows)
+    missing_id_count = sum(1 for r in dict_rows if not str(r.get(id_key, "") or "").strip())
+
+    merged = merge_lan_governance_events(dict_rows, id_key=id_key)
+    merged_count = len(merged)
+    with_id_count = max(0, input_count - missing_id_count)
+    deduped_count = max(0, with_id_count - merged_count)
+
+    applied_ids: list[str] = []
+    errors: list[dict[str, Any]] = []
+    records: list[dict[str, Any]] = []
+
+    for row in merged:
+        eid = str(row.get(id_key, "") or "").strip()
+        op = str(row.get("op") or "").strip()
+        if op != "judicial_register_dossier":
+            errors.append({"event_id": eid, "error": "unsupported_op", "op": op})
+            continue
+        para = str(row.get("audit_paragraph") or "").strip()
+        if not para:
+            errors.append({"event_id": eid, "error": "missing_audit_paragraph"})
+            continue
+        episode_id = row.get("episode_id")
+        ep = str(episode_id).strip() if isinstance(episode_id, str) else None
+        rec = kernel.dao.register_escalation_case(para, episode_id=ep)
+        records.append({"event_id": eid, "audit_record_id": rec.id})
+        applied_ids.append(eid)
+
+    if applied_ids:
+        record_dao_ws_operation("lan_governance_judicial_batch")
+
+    ok = merged_count == 0 or (not errors and len(applied_ids) == merged_count)
+    return {
+        "lan_governance": {
+            "judicial_batch": {
+                "ok": ok,
+                "input_count": input_count,
+                "missing_id_count": missing_id_count,
+                "merged_count": merged_count,
+                "deduped_count": deduped_count,
+                "applied_count": len(applied_ids),
+                "event_ids": applied_ids,
+                "records": records,
+                "errors": errors,
+            }
+        }
+    }
+
+
 def _collect_nomad_ws_actions(kernel: EthicalKernel, data: dict[str, Any]) -> dict[str, Any] | None:
     """KERNEL_NOMAD_SIMULATION — apply HAL + optional DAO migration audit (lab)."""
     if not nomad_simulation_ws_enabled():
@@ -1113,12 +1213,14 @@ async def ws_chat(ws: WebSocket) -> None:
             integrity_payload = _collect_integrity_ws_action(kernel, data)
             lan_batch_payload = _collect_lan_governance_integrity_batch(kernel, data)
             lan_dao_payload = _collect_lan_governance_dao_batch(kernel, data)
+            lan_judicial_payload = _collect_lan_governance_judicial_batch(kernel, data)
             if (
                 dao_payload
                 or nomad_payload
                 or integrity_payload
                 or lan_batch_payload
                 or lan_dao_payload
+                or lan_judicial_payload
             ):
                 out_ws: dict[str, Any] = {}
                 if dao_payload:
@@ -1131,6 +1233,8 @@ async def ws_chat(ws: WebSocket) -> None:
                     out_ws.update(lan_batch_payload)
                 if lan_dao_payload:
                     out_ws.update(lan_dao_payload)
+                if lan_judicial_payload:
+                    out_ws.update(lan_judicial_payload)
                 await ws.send_json(out_ws)
 
             text = text_preview
@@ -1141,6 +1245,7 @@ async def ws_chat(ws: WebSocket) -> None:
                     or integrity_payload
                     or lan_batch_payload
                     or lan_dao_payload
+                    or lan_judicial_payload
                 ):
                     maybe_autosave_episodes(kernel, session_ckpt)
                     continue
