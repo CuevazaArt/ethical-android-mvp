@@ -27,6 +27,12 @@ All notable changes to this project are summarized here. For narrative context a
 - **Tests:** stress test for reorder/duplicate convergence — [`tests/test_chat_server.py`](tests/test_chat_server.py).
 - **Docs:** contract matrix + env policy updated.
 
+## Distributed justice — Phase 2 LAN envelope schema (v1) — April 2026
+
+- **WebSocket:** ``lan_governance_envelope`` (`schema=lan_governance_envelope_v1`) routes by `kind` to LAN batch handlers (`integrity_batch`, `dao_batch`, `judicial_batch`, `mock_court_batch`) in [`src/chat_server.py`](src/chat_server.py).
+- **Code:** validation/normalization contract in [`src/modules/lan_governance_envelope.py`](src/modules/lan_governance_envelope.py).
+- **Tests:** envelope contract tests in [`tests/test_lan_governance_envelope.py`](tests/test_lan_governance_envelope.py) + WebSocket routing tests in [`tests/test_chat_server.py`](tests/test_chat_server.py).
+
 ## Distributed justice — DJ-BL-01 / DJ-BL-04 + HTTP API doc — April 2026
 
 - **DJ-BL-01:** [`src/modules/mock_dao_audit_replay.py`](src/modules/mock_dao_audit_replay.py) (`fingerprint_audit_ledger`), [`scripts/eval/verify_mock_dao_audit_replay.py`](scripts/eval/verify_mock_dao_audit_replay.py), [`tests/test_mock_dao_audit_replay.py`](tests/test_mock_dao_audit_replay.py).

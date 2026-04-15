@@ -84,6 +84,14 @@ LAN governance judicial batch (Phase 2): ``KERNEL_LAN_GOVERNANCE_MERGE_WS=1`` (w
 enables WebSocket ``lan_governance_judicial_batch`` — deterministic sort/dedupe via
 ``lan_governance_event_merge``, then registers escalation dossiers on the session audit ledger. DJ-BL-06.
 
+LAN governance mock court batch (Phase 2): ``KERNEL_LAN_GOVERNANCE_MERGE_WS=1`` (with judicial+mock-court on)
+enables WebSocket ``lan_governance_mock_court_batch`` — deterministic sort/dedupe via
+``lan_governance_event_merge``, then runs simulated tribunal outcomes.
+
+LAN governance envelope (Phase 2): optional ``lan_governance_envelope`` with
+``schema=lan_governance_envelope_v1`` routes batch payloads by ``kind`` to the same handlers
+(``integrity_batch``, ``dao_batch``, ``judicial_batch``, ``mock_court_batch``).
+
 Advisory telemetry (optional, Fase 1.3–1.4): KERNEL_ADVISORY_INTERVAL_S — positive seconds
 spawns a read-only :func:`src.runtime.telemetry.advisory_loop` per WebSocket session (DriveArbiter only).
 Metaplan vs drives (v9.4): KERNEL_METAPLAN_DRIVE_FILTER / KERNEL_METAPLAN_DRIVE_EXTRA — see metaplan_registry.py.
@@ -127,6 +135,7 @@ from .modules.guardian_routines import public_routines_snapshot
 from .modules.hub_audit import record_dao_integrity_alert
 from .modules.internal_monologue import compose_monologue_line
 from .modules.judicial_escalation import chat_include_judicial
+from .modules.lan_governance_envelope import normalize_lan_governance_envelope
 from .modules.lan_governance_event_merge import merge_lan_governance_events
 from .modules.ml_ethics_tuner import maybe_log_gray_zone_tuning_opportunity
 from .modules.moral_hub import (
@@ -1224,6 +1233,61 @@ def _collect_lan_governance_mock_court_batch(
     }
 
 
+def _collect_lan_governance_envelope(
+    kernel: EthicalKernel, data: dict[str, Any]
+) -> dict[str, Any] | None:
+    """
+    Optional versioned wrapper that routes to one LAN batch handler by ``kind``.
+
+    Envelope shape::
+        {
+          "schema": "lan_governance_envelope_v1",
+          "node_id": "node-a",
+          "sent_unix_ms": 1710000000000,
+          "kind": "dao_batch" | "integrity_batch" | "judicial_batch" | "mock_court_batch",
+          "batch": { ...same payload as direct batch key... }
+        }
+    """
+    raw = data.get("lan_governance_envelope")
+    if raw is None:
+        return None
+    normalized, err = normalize_lan_governance_envelope(raw)
+    if err is not None:
+        return {"lan_governance": {"envelope": {"ok": False, **err}}}
+    assert normalized is not None
+    kind = str(normalized["kind"])
+    routed = dict(data)
+    batch = dict(normalized["batch"])
+    if kind == "integrity_batch":
+        routed["lan_governance_integrity_batch"] = batch
+        out = _collect_lan_governance_integrity_batch(kernel, routed)
+    elif kind == "dao_batch":
+        routed["lan_governance_dao_batch"] = batch
+        out = _collect_lan_governance_dao_batch(kernel, routed)
+    elif kind == "judicial_batch":
+        routed["lan_governance_judicial_batch"] = batch
+        out = _collect_lan_governance_judicial_batch(kernel, routed)
+    elif kind == "mock_court_batch":
+        routed["lan_governance_mock_court_batch"] = batch
+        out = _collect_lan_governance_mock_court_batch(kernel, routed)
+    else:
+        # Defensive fallback; validator already blocks unsupported kinds.
+        out = {"lan_governance": {"envelope": {"ok": False, "error": "unsupported_kind"}}}
+
+    if out is None:
+        out = {}
+    lg = out.setdefault("lan_governance", {})
+    if isinstance(lg, dict):
+        lg["envelope"] = {
+            "ok": True,
+            "schema": normalized["schema"],
+            "kind": kind,
+            "node_id": normalized["node_id"],
+            "sent_unix_ms": normalized["sent_unix_ms"],
+        }
+    return out
+
+
 def _collect_nomad_ws_actions(kernel: EthicalKernel, data: dict[str, Any]) -> dict[str, Any] | None:
     """KERNEL_NOMAD_SIMULATION — apply HAL + optional DAO migration audit (lab)."""
     if not nomad_simulation_ws_enabled():
@@ -1331,6 +1395,7 @@ async def ws_chat(ws: WebSocket) -> None:
             lan_dao_payload = _collect_lan_governance_dao_batch(kernel, data)
             lan_judicial_payload = _collect_lan_governance_judicial_batch(kernel, data)
             lan_mock_court_payload = _collect_lan_governance_mock_court_batch(kernel, data)
+            lan_envelope_payload = _collect_lan_governance_envelope(kernel, data)
             if (
                 dao_payload
                 or nomad_payload
@@ -1339,6 +1404,7 @@ async def ws_chat(ws: WebSocket) -> None:
                 or lan_dao_payload
                 or lan_judicial_payload
                 or lan_mock_court_payload
+                or lan_envelope_payload
             ):
                 out_ws: dict[str, Any] = {}
                 if dao_payload:
@@ -1355,6 +1421,8 @@ async def ws_chat(ws: WebSocket) -> None:
                     out_ws.update(lan_judicial_payload)
                 if lan_mock_court_payload:
                     out_ws.update(lan_mock_court_payload)
+                if lan_envelope_payload:
+                    out_ws.update(lan_envelope_payload)
                 await ws.send_json(out_ws)
 
             text = text_preview
@@ -1367,6 +1435,7 @@ async def ws_chat(ws: WebSocket) -> None:
                     or lan_dao_payload
                     or lan_judicial_payload
                     or lan_mock_court_payload
+                    or lan_envelope_payload
                 ):
                     maybe_autosave_episodes(kernel, session_ckpt)
                     continue

@@ -30,6 +30,9 @@ Current registry (aligned with contribution guide §3):
 | **DJ-BL-02** | LAN reorder / duplicate handling | **Done** — merge helper + tests; WebSocket ``lan_governance_integrity_batch`` when ``KERNEL_LAN_GOVERNANCE_MERGE_WS=1`` and ``KERNEL_DAO_INTEGRITY_AUDIT_WS=1`` ([`chat_server.py`](../../src/chat_server.py)). Extending the same pattern to ``dao_vote`` / judicial batches is **not** in this ID. |
 | **DJ-BL-03** | Operator runbook: sync degraded, local-safe mode | **Done** — [`OPERATOR_QUICK_REF.md`](OPERATOR_QUICK_REF.md) §Temporal planning / sync contract (*Sync degraded — local-safe mode*). |
 | **DJ-BL-04** | Contract matrix (`master-*` × JSON keys) | **Done** — [`PROPOSAL_DISTRIBUTED_JUSTICE_CONTRACT_MATRIX.md`](PROPOSAL_DISTRIBUTED_JUSTICE_CONTRACT_MATRIX.md) |
+| **DJ-BL-05** | LAN DAO batch (`dao_vote`/`dao_resolve`) | **Done** — WebSocket ``lan_governance_dao_batch`` + stress convergence in [`tests/test_chat_server.py`](../../tests/test_chat_server.py). |
+| **DJ-BL-06** | LAN judicial + mock-court batches | **Done** — WebSocket ``lan_governance_judicial_batch`` and ``lan_governance_mock_court_batch`` + stress convergence tests in [`tests/test_chat_server.py`](../../tests/test_chat_server.py). |
+| **DJ-BL-07** | LAN coordinator envelope schema | **Done** — ``lan_governance_envelope_v1`` contract + routing in [`src/modules/lan_governance_envelope.py`](../../src/modules/lan_governance_envelope.py) and [`src/chat_server.py`](../../src/chat_server.py). |
 
 Update this table when an ID changes state or when new IDs are added.
 
@@ -63,3 +66,5 @@ Use in PR descriptions and proposal edits (not a database):
 - **2026-04-15:** DJ-BL-03 done — operator runbook slice in `OPERATOR_QUICK_REF.md` (sync flags vs local ethics/MockDAO).
 - **2026-04-15:** DJ-BL-01 done (audit fingerprint + script); DJ-BL-04 done (contract matrix + HTTP API surface doc).
 - **2026-04-15:** DJ-BL-02 done — WebSocket ``lan_governance_integrity_batch`` + env gate ``KERNEL_LAN_GOVERNANCE_MERGE_WS``.
+- **2026-04-15:** DJ-BL-05/06 done — LAN DAO/judicial/mock-court batches + stress tests.
+- **2026-04-15:** DJ-BL-07 done — LAN envelope schema ``lan_governance_envelope_v1``.

@@ -43,6 +43,9 @@ These items extend the **“Pending gaps”** list in [`PROPOSAL_DAO_BLOCKCHAIN_
 | **DJ-BL-02** | **LAN reorder / duplicate (Phase 2)** — Idempotent merge of out-of-order or duplicated governance events. | **Done:** merge helper + WebSocket ``lan_governance_integrity_batch`` ([`chat_server.py`](../../src/chat_server.py); ``KERNEL_LAN_GOVERNANCE_MERGE_WS`` + ``KERNEL_DAO_INTEGRITY_AUDIT_WS``). DAO/judicial batch kinds still future work. |
 | **DJ-BL-03** | **Operator runbook slice** — Short subsection in [`OPERATOR_QUICK_REF.md`](OPERATOR_QUICK_REF.md): “sync degraded, local-safe mode” (`KERNEL_TEMPORAL_*`, judicial JSON still present). | **Done** |
 | **DJ-BL-04** | **Contract matrix** — Which `master-*` branches own which JSON keys (`judicial_escalation`, `mock_court`, `temporal_sync`). | **Done** — [`PROPOSAL_DISTRIBUTED_JUSTICE_CONTRACT_MATRIX.md`](PROPOSAL_DISTRIBUTED_JUSTICE_CONTRACT_MATRIX.md) |
+| **DJ-BL-05** | **LAN DAO batch** — deterministic apply of `dao_vote` / `dao_resolve` under reorder/duplicate delivery. | **Done** — ``lan_governance_dao_batch`` + stress convergence (`tests/test_chat_server.py`). |
+| **DJ-BL-06** | **LAN judicial/mock-court batches** — deterministic dossier registration and simulated tribunal runs under reorder/duplicate delivery. | **Done** — ``lan_governance_judicial_batch`` + ``lan_governance_mock_court_batch`` + stress convergence (`tests/test_chat_server.py`). |
+| **DJ-BL-07** | **Coordinator envelope schema** — versioned wrapper for LAN batches. | **Done** — ``lan_governance_envelope_v1`` routing contract (`src/modules/lan_governance_envelope.py`, `src/chat_server.py`). |
 
 Contributors should pick **one** item per PR when possible; link **`CHANGELOG.md`** when operator-visible behavior or JSON contracts change.
 
@@ -75,3 +78,5 @@ Contributors should pick **one** item per PR when possible; link **`CHANGELOG.md
 - **2026-04-15:** DJ-BL-03 done — `OPERATOR_QUICK_REF.md` sync degraded / local-safe mode paragraph.
 - **2026-04-15:** DJ-BL-01 (audit fingerprint + `verify_mock_dao_audit_replay.py`); DJ-BL-04 (contract matrix + [`PROPOSAL_CHAT_SERVER_HTTP_API_SURFACE.md`](PROPOSAL_CHAT_SERVER_HTTP_API_SURFACE.md)).
 - **2026-04-15:** DJ-BL-02 done — `lan_governance_integrity_batch` WebSocket path.
+- **2026-04-15:** DJ-BL-05/06 done — LAN DAO/judicial/mock-court batches + stress tests.
+- **2026-04-15:** DJ-BL-07 done — `lan_governance_envelope_v1` schema + routing.

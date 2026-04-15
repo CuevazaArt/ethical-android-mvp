@@ -771,6 +771,81 @@ def test_websocket_lan_governance_mock_court_batch_stress_reorder_and_duplicates
         assert mc.get("verdict_code") == expected.get(cu)
 
 
+def test_websocket_lan_governance_envelope_routes_dao_batch(monkeypatch):
+    monkeypatch.setenv("KERNEL_MORAL_HUB_DAO_VOTE", "1")
+    monkeypatch.setenv("KERNEL_LAN_GOVERNANCE_MERGE_WS", "1")
+
+    # Seed proposal id in per-connection kernel.
+    orig_init = EthicalKernel.__init__
+
+    def _seeded_init(self, *args, **kwargs):
+        orig_init(self, *args, **kwargs)
+        self.dao.create_proposal("Envelope DAO", "seed", type="ethics")
+
+    monkeypatch.setattr(EthicalKernel, "__init__", _seeded_init)
+
+    payload = {
+        "lan_governance_envelope": {
+            "schema": "lan_governance_envelope_v1",
+            "node_id": "node-a",
+            "sent_unix_ms": 1710000000000,
+            "kind": "dao_batch",
+            "batch": {
+                "events": [
+                    {
+                        "event_id": "v1",
+                        "turn_index": 1,
+                        "processor_elapsed_ms": 1,
+                        "op": "dao_vote",
+                        "proposal_id": "PROP-0001",
+                        "participant_id": "community_01",
+                        "n_votes": 1,
+                        "in_favor": True,
+                    },
+                    {
+                        "event_id": "r1",
+                        "turn_index": 2,
+                        "processor_elapsed_ms": 1,
+                        "op": "dao_resolve",
+                        "proposal_id": "PROP-0001",
+                    },
+                ]
+            },
+        }
+    }
+    with client.websocket_connect("/ws/chat") as ws:
+        ws.send_json(payload)
+        data = ws.receive_json()
+
+    env = data.get("lan_governance", {}).get("envelope", {})
+    assert env.get("ok") is True
+    assert env.get("schema") == "lan_governance_envelope_v1"
+    assert env.get("kind") == "dao_batch"
+    batch = data.get("lan_governance", {}).get("dao_batch", {})
+    assert batch.get("applied_count") == 2
+
+
+def test_websocket_lan_governance_envelope_invalid_schema(monkeypatch):
+    monkeypatch.setenv("KERNEL_MORAL_HUB_DAO_VOTE", "1")
+    monkeypatch.setenv("KERNEL_LAN_GOVERNANCE_MERGE_WS", "1")
+
+    payload = {
+        "lan_governance_envelope": {
+            "schema": "bad_schema",
+            "node_id": "node-a",
+            "sent_unix_ms": 1710000000000,
+            "kind": "dao_batch",
+            "batch": {"events": []},
+        }
+    }
+    with client.websocket_connect("/ws/chat") as ws:
+        ws.send_json(payload)
+        data = ws.receive_json()
+    env = data.get("lan_governance", {}).get("envelope", {})
+    assert env.get("ok") is False
+    assert env.get("error") == "unsupported_schema"
+
+
 def test_websocket_reality_verification_lighthouse(monkeypatch):
     from src.modules.reality_verification import clear_lighthouse_cache
 

@@ -21,6 +21,7 @@
 | `lan_governance_dao_batch` | Yes (when `KERNEL_MORAL_HUB_DAO_VOTE=1` **and** `KERNEL_LAN_GOVERNANCE_MERGE_WS=1`) | Merge + apply DAO vote/resolve; deterministic replay slice |
 | `lan_governance_judicial_batch` | Yes (when `KERNEL_JUDICIAL_ESCALATION=1` **and** `KERNEL_LAN_GOVERNANCE_MERGE_WS=1`) | Merge + register escalation dossiers on audit ledger |
 | `lan_governance_mock_court_batch` | Yes (when `KERNEL_JUDICIAL_ESCALATION=1`, `KERNEL_JUDICIAL_MOCK_COURT=1` **and** `KERNEL_LAN_GOVERNANCE_MERGE_WS=1`) | Merge + run mock court on dossiers; deterministic verdict |
+| `lan_governance_envelope` | Yes (schema `lan_governance_envelope_v1`) | Versioned coordinator envelope; routes `kind` → batch handler |
 | `constitution` (in-message snapshot) | Optional (`KERNEL_CHAT_INCLUDE_*`) | Hub stack |
 
 ---
