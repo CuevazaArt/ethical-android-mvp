@@ -8,6 +8,10 @@ When scenarios come from ``runner.ALL_SIMULATIONS`` with ``hypothesis_override``
 candidate, use :func:`scenario_candidate_triples_from_runner`. Otherwise keep using
 ``feedback_mixture_posterior`` (numpy + ``mixture_ranking``).
 
+Optional **softmax likelihood** (Plackett-Luce): set ``KERNEL_FEEDBACK_LIKELIHOOD=softmax_is``
+to use importance sampling + moment-matched Dirichlet projection from
+:mod:`ethical_mixture_likelihood` instead of the default agreeing-sample heuristic.
+
 Genome drift: clamps the **normalized** posterior mean to stay within ``max_drift`` of the
 initial normalized prior per axis, then rescales to preserve total Dirichlet concentration.
 """
@@ -16,7 +20,7 @@ from __future__ import annotations
 
 import json
 import logging
-import math
+import os
 import random
 from dataclasses import dataclass, field
 from pathlib import Path
@@ -136,6 +140,7 @@ class FeedbackUpdater:
         self.max_drift = max_drift
         self.update_strength = update_strength
         self.n_samples = n_samples
+        self._seed = int(seed)
         self._rng = random.Random(seed)
         self._feedback_log: list[dict[str, Any]] = []
 
@@ -237,6 +242,83 @@ class FeedbackUpdater:
             "n_feedback_items": len(feedbacks),
         }
 
+    def _use_softmax_likelihood_env(self) -> bool:
+        m = os.environ.get("KERNEL_FEEDBACK_LIKELIHOOD", "").strip().lower()
+        return m in ("softmax", "softmax_is", "plackett_luce", "1", "true", "yes", "on")
+
+    def _ingest_feedback_softmax_is(
+        self,
+        feedbacks: list[FeedbackItem],
+        scenario_candidates: dict[int, dict[str, dict[str, float]]],
+    ) -> FeedbackResult:
+        """ADR 0012 path: Plackett-Luce likelihood + iterated IS (see ``ethical_mixture_likelihood``)."""
+        import numpy as np
+
+        from .ethical_mixture_likelihood import FeedbackObservation, sequential_posterior_update
+
+        observations: list[FeedbackObservation] = []
+        log: list[dict[str, Any]] = []
+        for fb in feedbacks:
+            cands = scenario_candidates.get(fb.scenario_id)
+            if cands is None:
+                log.append({"scenario_id": fb.scenario_id, "status": "unknown_scenario"})
+                continue
+            observations.append(
+                FeedbackObservation(
+                    scenario_id=fb.scenario_id,
+                    preferred_action=fb.preferred_action,
+                    candidates=cands,
+                    confidence=fb.confidence,
+                )
+            )
+        if not observations:
+            total = sum(self.alpha)
+            return FeedbackResult(
+                posterior_alpha=[round(a, 3) for a in self.alpha],
+                posterior_mean=[round(a / total, 4) for a in self.alpha],
+                consistency="insufficient",
+                p_all_satisfied=0.0,
+                per_scenario={},
+                n_feedback_items=len(feedbacks),
+                log=log,
+            )
+
+        beta = float(os.environ.get("KERNEL_FEEDBACK_SOFTMAX_BETA", "10.0"))
+        rng_np = np.random.default_rng(self._seed)
+        alpha0 = np.asarray(self.alpha, dtype=np.float64)
+        final_alpha, seq_log = sequential_posterior_update(
+            observations,
+            alpha0,
+            beta=beta,
+            n_samples=self.n_samples,
+            rng=rng_np,
+            max_drift=self.max_drift,
+        )
+        self.alpha = [float(x) for x in final_alpha]
+        self._feedback_log.extend(seq_log)
+
+        known = [fb for fb in feedbacks if fb.scenario_id in scenario_candidates]
+        if len(known) >= 2:
+            consistency = self.check_consistency(known, scenario_candidates)
+        else:
+            consistency = {
+                "consistency": "insufficient",
+                "p_all_satisfied": 0.0,
+                "per_scenario": {},
+                "n_feedback_items": len(known),
+            }
+
+        total = sum(self.alpha)
+        return FeedbackResult(
+            posterior_alpha=[round(a, 3) for a in self.alpha],
+            posterior_mean=[round(a / total, 4) for a in self.alpha],
+            consistency=consistency["consistency"],
+            p_all_satisfied=float(consistency["p_all_satisfied"]),
+            per_scenario={int(k): float(v) for k, v in consistency.get("per_scenario", {}).items()},
+            n_feedback_items=len(feedbacks),
+            log=log + seq_log,
+        )
+
     def ingest_feedback(
         self,
         feedbacks: list[FeedbackItem],
@@ -244,6 +326,9 @@ class FeedbackUpdater:
         *,
         stop_on_infeasible: bool = True,
     ) -> FeedbackResult:
+        if self._use_softmax_likelihood_env():
+            return self._ingest_feedback_softmax_is(feedbacks, scenario_candidates)
+
         log: list[dict[str, Any]] = []
         for fb in feedbacks:
             cands = scenario_candidates.get(fb.scenario_id)
@@ -313,6 +398,7 @@ class FeedbackUpdater:
             seed=int(data.get("seed", 42)),
         )
         updater.alpha = list(data["alpha"])
+        updater._seed = int(data.get("seed", 42))
         updater._feedback_log = list(data.get("feedback_log", []))
         return updater
 

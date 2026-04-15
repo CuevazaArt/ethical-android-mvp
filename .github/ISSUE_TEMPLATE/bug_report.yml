@@ -1,5 +1,5 @@
 name: Bug report
-description: Something broken in code, tests, dashboard, or the Next.js landing
+description: Something broken in code, tests, or documentation
 labels: ["bug"]
 body:
   - type: dropdown
@@ -9,8 +9,6 @@ body:
       options:
         - Python kernel / simulations
         - Tests
-        - dashboard.html
-        - landing (Next.js site)
         - Documentation
         - Other
     validations:

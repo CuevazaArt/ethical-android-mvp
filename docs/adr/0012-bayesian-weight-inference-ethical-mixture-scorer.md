@@ -3,13 +3,13 @@
 **Status:** Accepted (Level 1–2 implemented; Level 3 future)  
 **Date:** 2026-04-12  
 **Supersedes:** —  
-**Related:** [ADR 0009](0009-ethical-mixture-scorer-naming.md) (naming), [ADR 0010](0010-poles-pre-argmax-modulation.md) (poles pre-argmax), [ADR 0011](0011-context-richness-pre-argmax.md) (context richness), [`NEXT_EXPERIMENT_DESIGN.md`](../../experiments/million_sim/docs/NEXT_EXPERIMENT_DESIGN.md)
+**Related:** [ADR 0009](0009-ethical-mixture-scorer-naming.md) (naming), [ADR 0010](0010-poles-pre-argmax-modulation.md) (poles pre-argmax), [ADR 0011](0011-context-richness-pre-argmax.md) (context richness), [`experiments/README.md`](../../experiments/README.md)
 
 ---
 
 ## Context
 
-ADR 0009 established that the "weighted mixture scorer" is **not** Bayesian inference — it is a fixed convex combination of three ethical valuations (util, deon, virtue) followed by an argmax. The v5 experiment design ([`NEXT_EXPERIMENT_DESIGN.md`](../../experiments/million_sim/docs/NEXT_EXPERIMENT_DESIGN.md)) confirmed this empirically: the decision boundary is a hyperplane in weight space, regions are convex, and the system is fully deterministic given a weight vector `w`.
+ADR 0009 established that the "weighted mixture scorer" is **not** Bayesian inference — it is a fixed convex combination of three ethical valuations (util, deon, virtue) followed by an argmax. The v5 experiment design (historical writeups, recoverable from git) confirmed this empirically: the decision boundary is a hyperplane in weight space, regions are convex, and the system is fully deterministic given a weight vector `w`.
 
 The simplex grid analysis (scenarios 17–19) further showed:
 
@@ -145,19 +145,21 @@ This is not an exact conjugate update (the likelihood is an indicator over a con
 
 **What does NOT change:** The scorer internals. The posterior `α` feeds back into Level 1's BMA prior when feedback runs first — the two levels compose naturally. The scorer itself remains a linear mixture.
 
-### Level 3 — Context-dependent weight inference (future, not specified here)
+### Level 3 — Context-dependent weight inference (implemented, mixture_ranking path)
 
-**Direction only — not a current decision.**
+Level 2 learns a **global** posterior over weights from pooled feedback. Level 3 learns **separate** Dirichlet posteriors per `context_type` bucket (from feedback JSON), then **selects** which α to use on each tick via a lightweight classifier.
 
-Level 2 learns a **global** posterior over weights. Level 3 would learn **context-dependent** posteriors: different scenario types (resource allocation, promise-keeping, confrontation) may warrant different ethical weight profiles.
+**Implemented behavior (``src/modules/feedback_mixture_posterior.py``):**
 
-This requires:
+- Feedback rows may include optional string ``context_type``. Rows without it go to bucket ``_global``.
+- For each bucket, the same **sequential α update** as Level 2 runs from the same prior ``parse_bma_alpha_from_env()``, **independently** (no cross-bucket coupling in the update).
+- **Classifier** (priority): ``KERNEL_ACTIVE_CONTEXT_TYPE`` → ``KERNEL_CONTEXT_SCENARIO_MAP_JSON`` keyed by ``[SIM n]`` in the scenario string → ``KERNEL_CONTEXT_KEYWORDS_JSON`` substring map on scenario+context → default key ``default``.
+- **Selection**: if the active key matches a bucket, use that posterior α; else ``_global`` if present; else elementwise **mean** of bucket posteriors. When no tick context is passed (e.g. CLI), the code uses the **mean** of bucket posteriors (`active_context_key` = ``blended_mean``).
+- **Explicit-triples feedback** (scenarios with full ``hypothesis_override`` on all candidates): still uses the **global** ``FeedbackUpdater`` path; Level 3 is **not** applied per context (see ``meta["level3_note"]``).
 
-- A **context classifier** mapping scenarios to types
-- A **hierarchical Dirichlet** model: global α shared across types, per-type α_k deviations
-- **More feedback data** than Level 2 (at least 5–10 items per scenario type)
+**Env:** ``KERNEL_BAYESIAN_CONTEXT_LEVEL3`` plus the classifier vars above. **Kernel:** ``KernelDecision.mixture_context_key`` records which bucket was used when feedback ran.
 
-This is architecturally significant and should be a separate ADR when the time comes. The current ADR only establishes the interface (`context_type` field in feedback records) to avoid foreclosing the option.
+**Data:** Richer per-type learning benefits from **several** feedback items per ``context_type``; sparse data still runs but posteriors may be noisy.
 
 ---
 
@@ -169,7 +171,7 @@ This is architecturally significant and should be a separate ADR when the time c
 | **Phase B** | Level 2 (feedback) | Done | Phase A + feedback JSON + `feedback_mixture_posterior.py` / `feedback_mixture_updater.py` |
 | **Phase C** | Contradiction detection | Done | Phase B (`feedback_consistency`, joint MC metadata) |
 | **Phase D** | Integration with batch study drivers (e.g. `--bma` in `run_mass_kernel_study.py`) | Optional / future | Phase A |
-| **Phase E** | Level 3 design | Separate ADR | Phase B deployed + sufficient feedback data |
+| **Phase E** | Level 3 (context posteriors + classifier) | Done (mixture_ranking) | Phase B + ``context_type`` in feedback JSON |
 
 ---
 
@@ -187,7 +189,7 @@ This is architecturally significant and should be a separate ADR when the time c
 - **Naming:** The system can legitimately be described as using Bayesian machinery for **mixture weights**, but it is **not** Bayesian inference over ethical frameworks, not Bayesian RL, and not a Bayesian neural network. ADR 0009's caution about naming remains relevant — prefer "Bayesian weight updating" over "Bayesian ethics."
 - **Feedback quality:** Level 2 is only as good as the operator feedback. Sparse or noisy feedback yields a weak posterior. Report `n_feedback_items` and joint-satisfaction metadata where available so operators can judge quality.
 - **Computational cost of Monte Carlo:** Level 1 adds `KERNEL_BMA_SAMPLES` extra `evaluate` calls per `process` when enabled. Level 2 adds inner MC per feedback item (`KERNEL_FEEDBACK_MC_SAMPLES`).
-- **Philosophical claim:** Bayesian updating of weights assumes there is a **stable** mixture vector that feedback helps locate. That is a stronger commitment than treating weights as purely designer-chosen knobs. The research disclaimer in [`README.md`](../../experiments/million_sim/README.md) should keep this distinction clear.
+- **Philosophical claim:** Bayesian updating of weights assumes there is a **stable** mixture vector that feedback helps locate. That is a stronger commitment than treating weights as purely designer-chosen knobs. The research disclaimer in [`experiments/README.md`](../../experiments/README.md) should keep this distinction clear.
 
 ### Neutral
 
@@ -202,7 +204,7 @@ This is architecturally significant and should be a separate ADR when the time c
 
 **B. Reinforcement learning from feedback.** Rejected: RL optimizes a scalar reward, which presupposes a single ethical objective. The multi-framework mixture structure is richer than a single reward, and the Bayesian approach preserves multi-hypothesis semantics at the weight level.
 
-**C. Fixed optimization of weights (grid search over simplex).** Already possible with v5 data (Part 4 of `docs/NEXT_EXPERIMENT_DESIGN.md` under `experiments/million_sim/`). This finds a **single optimal point** rather than a **distribution**, losing uncertainty information. Level 1 BMA is strictly more informative for sensitivity reporting.
+**C. Fixed optimization of weights (grid search over simplex).** Already possible with v5 data (Part 4 of historical `NEXT_EXPERIMENT_DESIGN` drafts, recoverable from git). This finds a **single optimal point** rather than a **distribution**, losing uncertainty information. Level 1 BMA is strictly more informative for sensitivity reporting.
 
 **D. Do nothing.** Viable: the system works with fixed weights. The v5 experiments showed that the default center is **fragile** (small gaps in scenario 17), and without at least Level 1 there is no standard telemetry for that fragility.
 
@@ -215,9 +217,11 @@ This is architecturally significant and should be a separate ADR when the time c
 | BMA (Level 1) | `src/modules/bayesian_mixture_averaging.py` |
 | Feedback posterior (Level 2) | `src/modules/feedback_mixture_posterior.py` |
 | Explicit-triples updater | `src/modules/feedback_mixture_updater.py` (`FeedbackUpdater`) |
+| Plackett-Luce / IS likelihood (optional) | `src/modules/ethical_mixture_likelihood.py`; enable with `KERNEL_FEEDBACK_LIKELIHOOD=softmax_is` |
 | Kernel integration | `src/kernel.py` (`KernelDecision`, `EthicalKernel.process`) |
 | Offline posterior (no full kernel tick) | `scripts/run_feedback_posterior.py` |
-| Tests | `tests/test_bma_mixture_adr0012.py`, `tests/test_feedback_mixture_updater.py` |
+| Level 3 (context buckets + classifier) | `feedback_mixture_posterior.py` (`classify_mixture_context`, `load_and_apply_feedback` + `tick_context`) |
+| Tests | `tests/test_bma_mixture_adr0012.py`, `tests/test_feedback_mixture_updater.py`, `tests/test_context_mixture_level3.py` |
 
 ---
 

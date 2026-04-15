@@ -3,7 +3,7 @@ Input trust helpers — normalization and light sanitization for MalAbs text mat
 
 These are **heuristic** defenses against trivial evasions (Unicode tricks, spacing, leet speak,
 bidirectional overrides). They are **not** a robust content classifier; see
-``docs/proposals/INPUT_TRUST_THREAT_MODEL.md``.
+``docs/proposals/README.md``.
 """
 
 from __future__ import annotations

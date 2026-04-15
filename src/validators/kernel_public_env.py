@@ -5,7 +5,7 @@ This is **not** a full migration of every ``os.environ`` read in the codebase â€
 incremental. It **does** centralize the variables that participate in **consistency rules**
 and startup validation so invalid combinations are **data**, not ad-hoc ``if`` chains.
 
-See ``docs/proposals/KERNEL_ENV_TYPED_PUBLIC_API.md`` and ``KERNEL_ENV_POLICY.md``.
+See ``docs/proposals/README.md`` and ``KERNEL_ENV_POLICY.md``.
 """
 
 from __future__ import annotations

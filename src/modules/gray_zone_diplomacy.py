@@ -5,7 +5,7 @@ When decision mode is ``gray_zone``, or reflection shows medium/high pole tensio
 or premise advisory is active, add a **communication hint** so the model prefers
 transparent negotiation over blunt refusal. Does **not** weaken MalAbs or buffer.
 
-See docs/proposals/PROPOSAL_OPERATIONAL_STRATEGY_V10.md
+See docs/proposals/README.md
 """
 
 from __future__ import annotations

@@ -6,7 +6,7 @@ Does **not** replace ``PreloadedBuffer`` or MalAbs. Provides:
 - Optional DAO audit lines for R&D transparency protocol and mock community proposals
 - Stubs for EthosPayroll narrative (audit-only)
 
-See docs/proposals/PROPOSAL_ETOSOCIAL_STATE_V12.md and UNIVERSAL_ETHOS_AND_HUB.md.
+See docs/proposals/README.md and UNIVERSAL_ETHOS_AND_HUB.md.
 """
 
 from __future__ import annotations
@@ -82,6 +82,60 @@ def dao_governance_api_enabled() -> bool:
 def dao_integrity_audit_ws_enabled() -> bool:
     """WebSocket ``integrity_alert`` — record ``HubAudit:dao_integrity`` on MockDAO (local transparency)."""
     v = os.environ.get("KERNEL_DAO_INTEGRITY_AUDIT_WS", "0").strip().lower()
+    return v in ("1", "true", "yes", "on")
+
+
+def lan_governance_integrity_batch_ws_enabled() -> bool:
+    """
+    WebSocket ``lan_governance_integrity_batch`` — reorder/dedupe then apply integrity alerts (Phase 2 LAN stub).
+
+    Requires ``KERNEL_DAO_INTEGRITY_AUDIT_WS=1`` and ``KERNEL_LAN_GOVERNANCE_MERGE_WS=1``.
+    See :func:`src.modules.lan_governance_event_merge.merge_lan_governance_events`.
+    """
+    if not dao_integrity_audit_ws_enabled():
+        return False
+    v = os.environ.get("KERNEL_LAN_GOVERNANCE_MERGE_WS", "0").strip().lower()
+    return v in ("1", "true", "yes", "on")
+
+
+def lan_governance_dao_batch_ws_enabled() -> bool:
+    """
+    WebSocket ``lan_governance_dao_batch`` — reorder/dedupe then apply DAO vote/resolve events (Phase 2 LAN stub).
+
+    Requires ``KERNEL_MORAL_HUB_DAO_VOTE=1`` and ``KERNEL_LAN_GOVERNANCE_MERGE_WS=1``.
+    """
+    if not dao_governance_api_enabled():
+        return False
+    v = os.environ.get("KERNEL_LAN_GOVERNANCE_MERGE_WS", "0").strip().lower()
+    return v in ("1", "true", "yes", "on")
+
+
+def lan_governance_judicial_batch_ws_enabled() -> bool:
+    """
+    WebSocket ``lan_governance_judicial_batch`` — reorder/dedupe then apply judicial dossier events (Phase 2 LAN stub).
+
+    Requires ``KERNEL_JUDICIAL_ESCALATION=1`` and ``KERNEL_LAN_GOVERNANCE_MERGE_WS=1``.
+    """
+    vj = os.environ.get("KERNEL_JUDICIAL_ESCALATION", "0").strip().lower()
+    if vj not in ("1", "true", "yes", "on"):
+        return False
+    v = os.environ.get("KERNEL_LAN_GOVERNANCE_MERGE_WS", "0").strip().lower()
+    return v in ("1", "true", "yes", "on")
+
+
+def lan_governance_mock_court_batch_ws_enabled() -> bool:
+    """
+    WebSocket ``lan_governance_mock_court_batch`` — reorder/dedupe then run mock tribunal events (Phase 2 LAN stub).
+
+    Requires ``KERNEL_JUDICIAL_ESCALATION=1``, ``KERNEL_JUDICIAL_MOCK_COURT=1``, and ``KERNEL_LAN_GOVERNANCE_MERGE_WS=1``.
+    """
+    vj = os.environ.get("KERNEL_JUDICIAL_ESCALATION", "0").strip().lower()
+    if vj not in ("1", "true", "yes", "on"):
+        return False
+    vm = os.environ.get("KERNEL_JUDICIAL_MOCK_COURT", "0").strip().lower()
+    if vm not in ("1", "true", "yes", "on"):
+        return False
+    v = os.environ.get("KERNEL_LAN_GOVERNANCE_MERGE_WS", "0").strip().lower()
     return v in ("1", "true", "yes", "on")
 
 

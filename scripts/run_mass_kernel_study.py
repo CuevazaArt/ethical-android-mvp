@@ -2,11 +2,11 @@
 """
 Mass kernel batch study — up to millions of ``process()`` calls with random pole + Dirichlet mixture weights.
 
-**Not CI.** Use a dedicated venv and disk space; see ``experiments/million_sim/README.md`` and
-``docs/proposals/PROPOSAL_MILLION_SIM_EXPERIMENT.md``.
+**Not CI.** Use a dedicated venv and disk space; see ``experiments/README.md`` and
+``docs/proposals/README.md``.
 
 Rich output: JSONL + optional CSV, reproducibility meta, weight histograms, agreement by difficulty tier.
-Optional ``tqdm`` progress: ``pip install tqdm`` (see ``experiments/million_sim/requirements-experiment.txt``).
+Optional ``tqdm`` progress: ``pip install tqdm`` (see ``experiments/requirements-experiment.txt``).
 """
 
 from __future__ import annotations
@@ -328,7 +328,7 @@ def main() -> int:
     if n > 100_000 and not args.i_accept_large_run:
         print(
             "Refusing n>100000 without --i-accept-large-run (disk/time). "
-            "See docs/proposals/PROPOSAL_MILLION_SIM_EXPERIMENT.md",
+            "See docs/proposals/README.md",
             file=sys.stderr,
         )
         return 2
@@ -528,7 +528,7 @@ def main() -> int:
             "python": sys.version.split()[0],
             "git_commit_short": _git_head_short(ROOT),
             "argv": sys.argv,
-            "doc": "docs/proposals/PROPOSAL_MILLION_SIM_EXPERIMENT.md",
+            "doc": "docs/proposals/README.md",
         },
         "findings": {
             "agreement_rate_vs_reference": agree_n / agree_denom if agree_denom else None,

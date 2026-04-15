@@ -19,6 +19,7 @@ _embedding_errors: Any = None
 _kernel_decisions: Any = None
 _kernel_process_seconds: Any = None
 _perception_circuit_trips: Any = None
+_chat_async_timeouts: Any = None
 _initialized = False
 
 
@@ -36,6 +37,7 @@ def init_metrics() -> None:
     global _initialized, _llm_histogram, _chat_histogram, _chat_paths
     global _malabs_blocks, _semantic_malabs_outcomes, _dao_ops, _embedding_errors
     global _kernel_decisions, _kernel_process_seconds, _perception_circuit_trips
+    global _chat_async_timeouts
 
     if _initialized:
         return
@@ -65,6 +67,10 @@ def init_metrics() -> None:
         "ethos_kernel_chat_turns_total",
         "Chat turns completed by result path.",
         ["path"],
+    )
+    _chat_async_timeouts = Counter(
+        "ethos_kernel_chat_turn_async_timeouts_total",
+        "Async wait for chat turn exceeded KERNEL_CHAT_TURN_TIMEOUT (sync LLM may still run).",
     )
     _malabs_blocks = Counter(
         "ethos_kernel_malabs_blocks_total",
@@ -129,6 +135,13 @@ def observe_chat_turn(path: str, duration_s: float) -> None:
     p = path if path else "unknown"
     _chat_histogram.labels(path=p).observe(max(0.0, duration_s))
     _chat_paths.labels(path=p).inc()
+
+
+def record_chat_turn_async_timeout() -> None:
+    """Count one WebSocket turn where ``asyncio.wait_for`` hit ``KERNEL_CHAT_TURN_TIMEOUT``."""
+    if _chat_async_timeouts is None:
+        return
+    _chat_async_timeouts.inc()
 
 
 def record_perception_circuit_trip() -> None:

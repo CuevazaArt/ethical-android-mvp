@@ -5,7 +5,7 @@ Offline lexical risk tier for chat text (production-hardening spike).
 deterministic second layer when ``KERNEL_LIGHT_RISK_CLASSIFIER=1``. Uses the same
 normalization as MalAbs substring checks for consistent token boundaries.
 
-See ``docs/proposals/PRODUCTION_HARDENING_ROADMAP.md`` Fase 1.
+See ``docs/proposals/README.md`` Fase 1.
 """
 
 from __future__ import annotations

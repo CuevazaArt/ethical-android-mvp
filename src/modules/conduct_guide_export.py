@@ -12,7 +12,7 @@ Env:
 - ``KERNEL_CONDUCT_GUIDE_EXPORT_ON_DISCONNECT`` — default ``1`` when export path is set;
   set ``0`` to disable write on session end (checkpoint may still save).
 
-See ``docs/templates/conduct_guide.template.json`` and ``docs/proposals/LOCAL_PC_AND_MOBILE_LAN.md``.
+See ``context_distillation.validate_conduct_guide_dict`` and ``docs/proposals/README.md``.
 """
 
 from __future__ import annotations

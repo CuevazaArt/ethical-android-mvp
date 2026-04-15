@@ -4,7 +4,7 @@ Somatic ethical markers — learned sensor-pattern → cautious signal nudge (v1
 Quantizes :class:`SensorSnapshot` into a key; optional **negative** weight bumps
 ``risk`` / ``urgency`` slightly before ``process``. Does **not** bypass MalAbs.
 
-See docs/proposals/PROPOSAL_OPERATIONAL_STRATEGY_V10.md
+See docs/proposals/README.md
 """
 
 from __future__ import annotations

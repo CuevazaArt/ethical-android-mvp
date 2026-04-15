@@ -2,7 +2,7 @@
 Deontic gate (MVP) — block L1/L2 drafts that obviously contradict the universal L0 stance.
 
 Full deontic logic is not implemented; this is a **heuristic** guardrail for the
-DemocraticBuffer cultural-overlay path. See docs/proposals/UNIVERSAL_ETHOS_AND_HUB.md
+DemocraticBuffer cultural-overlay path. See docs/proposals/README.md
 
 **Vertical depth (Phase 1):** minimal **structural** validation (length / non-empty)
 plus phrase-level conflicts; not a theorem prover for ethics.

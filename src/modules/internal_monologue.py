@@ -4,7 +4,7 @@ Structured one-line monologue for logs / debug — not a duplicate of KernelDeci
 Compresses salience focus, reflection tension, PAD archetype, and mode into a
 single grep-friendly line.
 
-See docs/proposals/PROPOSAL_CONTRIBUTION_INTEGRATION_V6.md (Fase 5).
+See docs/proposals/README.md (Fase 5).
 """
 
 from __future__ import annotations

@@ -11,6 +11,36 @@ Contributions may come from multiple channels (issues, PRs, chat, external partn
 
 1. **Check for redundancy** — See whether the change is already proposed, in progress, or recently merged. Search open issues/PRs, the codebase, and `docs/`. **Coordinate with or extend existing work** instead of duplicating it.
 2. **Prioritize novelty and coverage** — Prefer work on **newer** topics relative to the current model and **areas less covered** in code or docs, unless a critical fix, security issue, or regression requires otherwise.
-3. **Persist completed learnings** — When a task closes a gap (especially **safety guardrails**, thresholds, or operator-facing policy), **merge the full solution into the repository**: named constants, tests, smallest relevant `docs/proposals/` update, `CHANGELOG.md` when it matters — not only a chat summary. Canonical pattern: [`.cursor/rules/dev-efficiency-and-docs.mdc`](dev-efficiency-and-docs.mdc) (*Safety guardrails*). Example: semantic MalAbs θ — [`docs/proposals/PROPOSAL_MALABS_SEMANTIC_THRESHOLD_EVIDENCE.md`](docs/proposals/PROPOSAL_MALABS_SEMANTIC_THRESHOLD_EVIDENCE.md).
+3. **Persist completed learnings** — When a task closes a gap (especially **safety guardrails**, thresholds, or operator-facing policy), **merge the full solution into the repository**: named constants, tests, smallest relevant `docs/proposals/` update (`PROPOSAL_*.md`), `CHANGELOG.md` when it matters — not only a chat summary. Canonical pattern: [`.cursor/rules/dev-efficiency-and-docs.mdc`](dev-efficiency-and-docs.mdc) (*Safety guardrails*).
 
 These expectations match **CONTRIBUTING.md** (How to contribute, sections 1 and *Documentation, traceability*) and apply to all contributors.
+
+## Git branch workflow (Cursor team — *Time worth flow / cycle develop*)
+
+**Human-readable spec (for analogous teams):** [`docs/collaboration/MULTI_OFFICE_GIT_WORKFLOW.md`](docs/collaboration/MULTI_OFFICE_GIT_WORKFLOW.md).
+
+Canonical diagram (same model as the team workflow image):
+
+![Time worth flow — cycle develop: main → master-Cursor → local offices; merges upward; production on main](docs/collaboration/git-workflow-time-worth-flow-cycle-develop.png)
+
+### Branch roles
+
+| Role | Branch | Purpose |
+|------|--------|---------|
+| **Production** | **`main`** | Protected integration line on GitHub. Treat as **production**: user-facing site content (e.g. landing page), bibliography, and **all merged repository-facing text** stays **English** per **CONTRIBUTING.md** / language policy. |
+| **Cursor integration** | **`master-Cursor`** | Team integration hub for the **Cursor** org: cut from **`main`**, receives work from Cursor **local offices**. Keep aligned with `main` regularly (diagram: sync / “clone” from `main` into this line). **This is the default target** for day-to-day commits and merges in this workspace (topic branches from `master-Cursor`, then PR/merge to `master-Cursor`). |
+| **Deprecated: `cursor-team`** | *(historical)* | The branch name **`cursor-team`** was used as an optional shared line; it is **deprecated**. Do not treat it as the canonical integration branch — use **`master-Cursor`** instead ([`MULTI_OFFICE_GIT_WORKFLOW.md`](docs/collaboration/MULTI_OFFICE_GIT_WORKFLOW.md)). |
+
+### `main` (production) content expectations
+
+- **`main`** carries **production-ready** material: public-facing pages (e.g. landing), reference/bibliography sections, and other shipped docs — **entirely in English** in the repo, consistent with the language policy for merged work.
+- Do **not** land non-English user-facing copy on `main` unless it is **deliberate fixture or security data** with a clear justification (see **CONTRIBUTING.md**).
+
+### Operational rules (Cursor team)
+
+1. **Branch off the right base** — Create `master-Cursor` from `main`. Create **topic branches** from `master-Cursor` for feature work. Do not commit directly to `main` unless maintainers explicitly allow it.
+2. **Two (or more) local offices** — Each office uses its **local clone**; they work on topic branches, then **merge into `master-Cursor`** when work is ready for the shared integration line (diagram: local → integration hub).
+3. **Promotion to production** — Integrating **`master-Cursor` → `main`** is a **maintainer / release** step (diagram: upward move, e.g. **rebase** or merge policy your team chooses). Do not rewrite `main` without following **CONTRIBUTING.md** and review conventions.
+4. **Sync shorthand** — “Clone” in the diagram means **refresh the integration line from `main`** (e.g. `fetch` / `merge` / `pull` from `origin/main` into `master-Cursor`) before large merges, so `master-Cursor` does not drift from production intent.
+
+Exact Git commands depend on remote and branch protection; prefer patterns documented in **CONTRIBUTING.md** or operator runbooks.

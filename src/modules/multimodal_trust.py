@@ -7,7 +7,7 @@ sympathetic signals until the owner confirms (policy: no MalAbs bypass).
 
 Thresholds are tunable via environment (see :func:`thresholds_from_env`).
 
-See docs/proposals/PROPOSAL_VITALITY_SACRIFICE_AND_CLOSURE.md §5
+See docs/proposals/README.md §5
 """
 
 from __future__ import annotations

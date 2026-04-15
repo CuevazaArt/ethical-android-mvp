@@ -23,7 +23,7 @@ def test_labeled_fixture_schema_and_disclaimer():
     assert "not product certification" in (data["disclaimer"] or "").lower()
     rs = data.get("reference_standard") or {}
     assert rs.get("tier") == "internal_pilot"
-    assert "ETHICAL_BENCHMARK_EXTERNAL_VALIDATION.md" in (rs.get("external_validation_doc") or "")
+    assert (rs.get("external_validation_doc") or "").endswith("docs/proposals/README.md")
     scenarios = data["scenarios"]
     assert 20 <= len(scenarios) <= 60
 

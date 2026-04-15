@@ -3,7 +3,7 @@ Operator feedback ledger for bounded :class:`BayesianEngine` mixture updates.
 
 Used during :meth:`EthicalKernel.execute_sleep` when ``KERNEL_PSI_SLEEP_UPDATE_MIXTURE=1``.
 Counts (decision_regime, feedback_label) pairs — a calibration aid, not a clinical metric.
-See ``docs/proposals/PROPOSAL_ETHICAL_CORE_LOGIC_EVOLUTION.md`` (B1).
+See ``docs/proposals/README.md`` (B1).
 """
 
 from __future__ import annotations

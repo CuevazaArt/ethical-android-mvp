@@ -10,17 +10,14 @@ The open kernel + runtime is branded **Ethos Kernel** (April 2026 onward); earli
 
 ## Intellectual foundations
 
-The project is grounded in 107 academic references from 15 disciplines,
-from foundational classics (Turing, Bayes, Aristotle, Kant) to contemporary
-research in AI safety and LLMs. Each kernel module has traceable roots
-in the literature:
+The project is grounded in a broad academic literature, from foundational classics (Turing, Bayes, Aristotle, Kant) to contemporary research in AI safety and LLMs. Each kernel module has traceable roots in that literature. A consolidated **104-reference** table previously lived in **`BIBLIOGRAPHY.md`** at the repository root; that file was **removed** from the default tree in April 2026 to reduce weight — recover it from git history or from branch **`backup/main-2026-04-10`** if needed.
 
 | Kernel component | Main roots |
 |---|---|
 | Bayesian inference | Bayes (1763), Pearl (1988, 2018) |
 | Sigmoid will | Rosenblatt (1958), Kahneman (2011) |
 | Narrative memory | Dennett (1991), Ricoeur (1984), Tulving (1972) |
-| Absolute Evil / Buffer | Kant (1785); Constitutional AI line — see [BIBLIOGRAPHY.md](BIBLIOGRAPHY.md) ref. 90 |
+| Absolute Evil / Buffer | Kant (1785); Constitutional AI / RLHF safety line (Bai et al.; contemporary AI safety literature) |
 | Ethical poles | Aristotle, Mill (1863), Floridi & Cowls (2019) |
 | D_fast / D_delib modes | Kahneman (2011), Brooks (1991), Bratman (1987) |
 | Uchi-Soto | Nakane (1970), Lebra (1976), Dautenhahn (2007) |
@@ -32,14 +29,11 @@ in the literature:
 | Immortality protocol | Locke (1690), Parfit (1984), Schneier (2015) |
 | Narrative augenesis | Dennett (1992), Thagard (2006), Harari (2017) |
 
-The complete bibliography with all 107 references is in
-[`BIBLIOGRAPHY.md`](BIBLIOGRAPHY.md).
-
 ---
 
 ## Pre-alpha Spanish corpus (2026) — integrated archive
 
-Before the **`docs/proposals/`** layout, the project circulated a **pre-alpha documentation bundle** (working folder `prealphaDocs/`): Spanish registration draft **v1.0 (2026)**, diagram PNGs, a **Spanish bibliography draft**, and generated JPG/MP4. That narrative is **not** the live specification of the current Python kernel; the canonical theory ↔ code map is **[`docs/proposals/THEORY_AND_IMPLEMENTATION.md`](docs/proposals/THEORY_AND_IMPLEMENTATION.md)** and the maintained reference table is **[`BIBLIOGRAPHY.md`](BIBLIOGRAPHY.md)**.
+Before the **`docs/proposals/`** layout, the project circulated a **pre-alpha documentation bundle** (working folder `prealphaDocs/`): Spanish registration draft **v1.0 (2026)**, diagram PNGs, a **Spanish bibliography draft**, and generated JPG/MP4. That narrative is **not** the live specification of the current Python kernel; the canonical theory ↔ code map is **[`docs/proposals/README.md`](docs/proposals/README.md)**. The former consolidated reference table was removed with **`BIBLIOGRAPHY.md`** (April 2026); use git history or **`backup/main-2026-04-10`** to retrieve it.
 
 The following **digest** condenses the former **`androide_etico_alpha_v1.0_2026.md`** (full prose removed from the tree in favor of this section):
 
@@ -50,11 +44,11 @@ The following **digest** condenses the former **`androide_etico_alpha_v1.0_2026.
 - **Formal core (sketch):** sigmoid **will**, constrained optimization, Bayesian inference, predicate logic over ethical categories (e.g. Good / Evil / Gray / Absolute Evil), neural activation functions — aimed at **auditable** decisions.
 - **Long-horizon narrative memory, DAO-oracle, humanization, HAX trust UX, simulation catalog, ML strategy, licensing / business framing, phased rollout, and investor-oriented value proposition** were developed in the same document at varying depth; they **foreshadow** modules that later became `uchi_soto`, `weighted_ethics_scorer` (historical path `bayesian_engine`), `mock_dao`, `narrative`, `llm_layer`, etc., but **do not** match file-level APIs today.
 
-**Spanish bibliography draft:** an archival table by discipline (classic vs modern sources) was merged conceptually into the project’s citation practice; **all maintained citations** live in **[`BIBLIOGRAPHY.md`](BIBLIOGRAPHY.md)**.
+**Spanish bibliography draft:** an archival table by discipline (classic vs modern sources) was merged conceptually into the project’s citation practice; the detailed numbered table that replaced it was versioned as **`BIBLIOGRAPHY.md`** until April 2026 (removed from the default tree).
 
 **PDF / Word companions (not in git):** `.gitignore` excludes `*.pdf` / `*.docx`. Local bundles from the same era sometimes included exports such as `androide_etico_alpha.docx`, thematic PDFs on DAO-oracle, narrative memory, and consciousness sketches; keep those only in **foundation archives** outside the repo if you still have them.
 
-**Multimedia retained:** pre-alpha diagrams, a still, a short clip, and the branding logo are under **`docs/multimedia/media/`** (logo as **`logo.png`**). Index: **[`docs/multimedia/README.md`](docs/multimedia/README.md)**.
+**Multimedia:** not versioned in this repository (recover prior `docs/multimedia/` from git history or backup branches if needed).
 
 ---
 
@@ -63,8 +57,9 @@ The following **digest** condenses the former **`androide_etico_alpha_v1.0_2026.
 - 40+ design documents analyzed and consolidated.
 - 7-layer architecture documented.
 - Complete mathematical formalization.
-- Bibliography of 107 references across 15 disciplines (see [`BIBLIOGRAPHY.md`](BIBLIOGRAPHY.md)).
-- **Legacy artifact:** an older integral analysis lived in `Androide_Etico_Analisis_Integral_v3.docx` (not versioned here; recover from archives if needed).
+- Bibliography work (104 references across 14 disciplines) was tracked in a dedicated file until April 2026 (removed from the default tree; see [`CHANGELOG.md`](CHANGELOG.md)).
+- **Main artifact:** `Androide_Etico_Analisis_Integral_v3.docx`
+  (available in `docs/`).
 
 ## v2.0 — March 2026 | Base kernel
 
@@ -165,7 +160,7 @@ The night cycle now includes: retrospective audit → algorithmic forgiveness
 → weakness emotional load → immortality backup.
 
 - **51 tests** verifying 13 invariant ethical properties.
-- Interactive dashboard (`dashboard.html`) for browser visualization.
+- Root static dashboard HTML (historical `dashboard.html`) was removed from the tree in 2026; recover from git if needed for browser visualization demos.
 
 ## v6.0 — April 2026 | Runtime, chat server, and persistence (MVP)
 
@@ -179,7 +174,7 @@ Moves the kernel from batch simulations and ad-hoc scripts toward a **long-lived
 | Snapshot port | `src/persistence/kernel_io.py` | `KernelSnapshotV1`, `extract_snapshot` / `apply_snapshot` |
 | Adapters | `json_store.py`, `sqlite_store.py` | JSON file and SQLite row storage for the same DTO |
 | Checkpoints | `src/persistence/checkpoint.py` | Load on connect, save on disconnect, autosave (`KERNEL_CHECKPOINT_*`) |
-| Contract docs | `docs/proposals/RUNTIME_CONTRACT.md`, `docs/proposals/RUNTIME_PERSISTENT.md`, `docs/proposals/RUNTIME_PHASES.md` | Ethical boundaries for async work; phased plan (runtime → DB → local LLM) |
+| Contract docs | `docs/proposals/README.md`, `docs/proposals/README.md`, `docs/proposals/README.md` | Ethical boundaries for async work; phased plan (runtime → DB → local LLM) |
 | CI | `.github/workflows/ci.yml` | Tests on Python 3.11 and 3.12 |
 
 Formal test count grows with integration tests for chat, persistence, and runtime (see `README.md` and `pytest tests/`).
@@ -203,7 +198,7 @@ Optional `sensor` JSON merged into sympathetic **signals** before the decision s
 
 ## v11.0 — April 2026 | Distributed justice — Phase 1 (traceability)
 
-Governance track: **artificial social contract** metaphor — owner insistence in sustained gray-zone tension can be **documented** and optionally **logged** to the `MockDAO` audit as an escalation dossier (`judicial_escalation.py`). **Phase 1** does not implement P2P courts, ZK evidence, sanctions, or reputation at augenesis; those remain design-only (see `docs/proposals/PROPOSAL_DISTRIBUTED_JUSTICE_V11.md`).
+Governance track: **artificial social contract** metaphor — owner insistence in sustained gray-zone tension can be **documented** and optionally **logged** to the `MockDAO` audit as an escalation dossier (`judicial_escalation.py`). **Phase 1** does not implement P2P courts, ZK evidence, sanctions, or reputation at augenesis; those remain design-only (see `docs/proposals/README.md`).
 
 | Piece | Role |
 |-------|------|
@@ -215,7 +210,7 @@ Governance track: **artificial social contract** metaphor — owner insistence i
 
 ## v12.0 — April 2026 | Moral Infrastructure Hub (vision + Phase 1 hooks)
 
-**Vision** in `docs/proposals/PROPOSAL_ETOSOCIAL_STATE_V12.md`: DemocraticBuffer (L0/L1/L2), services cooperative, EthosPayroll, R&D transparency vs. privacy veil, hybrid immortality — **full product** trajectory.
+**Vision** in `docs/proposals/README.md`: DemocraticBuffer (L0/L1/L2), services cooperative, EthosPayroll, R&D transparency vs. privacy veil, hybrid immortality — **full product** trajectory.
 
 **V12.1 (code):** `src/modules/moral_hub.py` — read-only **L0 constitution** JSON (`GET /constitution` when `KERNEL_MORAL_HUB_PUBLIC=1`); optional **transparency audit** on WebSocket connect (`KERNEL_TRANSPARENCY_AUDIT`); mock **community buffer proposals** (`KERNEL_DEMOCRATIC_BUFFER_MOCK`); **EthosPayroll** mock audit line (`KERNEL_ETHOS_PAYROLL_MOCK`). Does **not** mutate `PreloadedBuffer` or MalAbs.
 
@@ -225,23 +220,23 @@ Governance track: **artificial social contract** metaphor — owner insistence i
 
 **Nomadic checkpoints + hub audit:** optional **Fernet** at-rest encryption for `JsonFilePersistence` (`KERNEL_CHECKPOINT_FERNET_KEY`); **HubAudit** calibration lines for hub events; **WebSocket** test for `nomad_simulate_migration`.
 
-**Strategy + runtime profiles (April 2026):** [docs/proposals/STRATEGY_AND_ROADMAP.md](docs/proposals/STRATEGY_AND_ROADMAP.md) records a constructive review (strengths, expectation gaps, risks) and a **readapted route** prioritizing **named demo profiles** (`src/runtime_profiles.py`) and CI smoke tests over unconstrained `KERNEL_*` combinatorics. See [TRACE_IMPLEMENTATION_RECENT.md](docs/proposals/TRACE_IMPLEMENTATION_RECENT.md) for the next feature backlog after P0.
+**Strategy + runtime profiles (April 2026):** [docs/proposals/README.md](docs/proposals/README.md) records a constructive review (strengths, expectation gaps, risks) and a **readapted route** prioritizing **named demo profiles** (`src/runtime_profiles.py`) and CI smoke tests over unconstrained `KERNEL_*` combinatorics. See [TRACE_IMPLEMENTATION_RECENT.md](docs/proposals/README.md) for the next feature backlog after P0.
 
-**Reality verification (V11+ cross-model):** [docs/proposals/PROPOSAL_REALITY_VERIFICATION_V11.md](docs/proposals/PROPOSAL_REALITY_VERIFICATION_V11.md) — optional **lighthouse** JSON (`KERNEL_LIGHTHOUSE_KB_PATH`) flags contradictions between rival/user assertions and local anchors → **metacognitive doubt** in the LLM layer only; stubs for **conduct distillation** (small-body guide) and **local sovereignty** (DAO calibration veto).
+**Reality verification (V11+ cross-model):** [docs/proposals/README.md](docs/proposals/README.md) — optional **lighthouse** JSON (`KERNEL_LIGHTHOUSE_KB_PATH`) flags contradictions between rival/user assertions and local anchors → **metacognitive doubt** in the LLM layer only; stubs for **conduct distillation** (small-body guide) and **local sovereignty** (DAO calibration veto).
 
-**Local PC + smartphone (LAN):** [docs/proposals/LOCAL_PC_AND_MOBILE_LAN.md](docs/proposals/LOCAL_PC_AND_MOBILE_LAN.md) — runtime bound to `0.0.0.0`, scripts `start_lan_server`, **`landing/public/mobile.html`** minimal phone UI + `chat-test.html`, template `conduct_guide` for future nomadic jump.
+**Local PC + smartphone (LAN):** [docs/proposals/README.md](docs/proposals/README.md) — runtime bound to `0.0.0.0`, scripts `start_lan_server`, WebSocket thin-client patterns, template `conduct_guide` for future nomadic jump.
 
 **Conduct guide export:** `src/modules/conduct_guide_export.py` — JSON written on WebSocket session end (`KERNEL_CONDUCT_GUIDE_EXPORT_PATH`) after checkpoint save; distills L0, recent episodes, identity leans, DAO summary for edge / audit.
 
-**Nomad bridge (documentation):** [docs/proposals/NOMAD_PC_SMARTPHONE_BRIDGE.md](docs/proposals/NOMAD_PC_SMARTPHONE_BRIDGE.md) — per–hardware-class compatibility layers; first PC–smartphone bridge; smartphone hardware for early coordinated sensory perception; secure-network field tests deferred to operator discretion.
+**Nomad bridge (documentation):** [docs/proposals/README.md](docs/proposals/README.md) — per–hardware-class compatibility layers; first PC–smartphone bridge; smartphone hardware for early coordinated sensory perception; secure-network field tests deferred to operator discretion.
 
-**DAO robustness (design):** [docs/proposals/PROPOSAL_DAO_ALERTS_AND_TRANSPARENCY.md](docs/proposals/PROPOSAL_DAO_ALERTS_AND_TRANSPARENCY.md) — no covert resistance to corrupt governance; prioritized loud alerts; “failure lesson” as forensic/transparency artifact, not L0 buffer mutation.
+**DAO robustness (design):** [docs/proposals/README.md](docs/proposals/README.md) — no covert resistance to corrupt governance; prioritized loud alerts; “failure lesson” as forensic/transparency artifact, not L0 buffer mutation.
 
 **DAO integrity (code v0):** `record_dao_integrity_alert`, WebSocket `integrity_alert` when `KERNEL_DAO_INTEGRITY_AUDIT_WS=1` — local mock ledger only.
 
-**Nomadic instantiation (design v11):** [docs/proposals/PROPOSAL_NOMAD_CONSCIOUSNESS_HAL.md](docs/proposals/PROPOSAL_NOMAD_CONSCIOUSNESS_HAL.md) — HAL (`hardware_abstraction.py`), fases de transmutación y token de continuidad (`existential_serialization.py`); **`KERNEL_NOMAD_SIMULATION`** + **`KERNEL_NOMAD_MIGRATION_AUDIT`**, WebSocket `nomad_simulate_migration`, **`GET /nomad/migration`**; cifrado y P2P fuera del MVP.
+**Nomadic instantiation (design v11):** [docs/proposals/README.md](docs/proposals/README.md) — HAL (`hardware_abstraction.py`), fases de transmutación y token de continuidad (`existential_serialization.py`); **`KERNEL_NOMAD_SIMULATION`** + **`KERNEL_NOMAD_MIGRATION_AUDIT`**, WebSocket `nomad_simulate_migration`, **`GET /nomad/migration`**; cifrado y P2P fuera del MVP.
 
-**UniversalEthos hub (docs + stubs):** [docs/proposals/UNIVERSAL_ETHOS_AND_HUB.md](docs/proposals/UNIVERSAL_ETHOS_AND_HUB.md) unifies DemocraticBuffer / multicultural overlays, services hub, audit levels, and module map. Code stubs: **`deontic_gate`** (incl. repeal of named L0 principles), **`ml_ethics_tuner`** (gray-zone audit line), **`reparation_vault`** (mock intent + hook after V11 mock tribunal), **`nomad_identity`** (immortality bridge). **`apply_proposal_resolution_to_constitution_drafts`** keeps draft status aligned with DAO resolve.
+**UniversalEthos hub (docs + stubs):** [docs/proposals/README.md](docs/proposals/README.md) unifies DemocraticBuffer / multicultural overlays, services hub, audit levels, and module map. Code stubs: **`deontic_gate`** (incl. repeal of named L0 principles), **`ml_ethics_tuner`** (gray-zone audit line), **`reparation_vault`** (mock intent + hook after V11 mock tribunal), **`nomad_identity`** (immortality bridge). **`apply_proposal_resolution_to_constitution_drafts`** keeps draft status aligned with DAO resolve.
 
 ---
 
@@ -319,7 +314,7 @@ pytest tests/test_ethical_properties.py::TestConsistencyUnderVariability -v
 
 ## Roadmap (pending)
 
-Product and operations roadmap (expectations, P0–P3): **[docs/proposals/STRATEGY_AND_ROADMAP.md](docs/proposals/STRATEGY_AND_ROADMAP.md)**.
+Product and operations roadmap (expectations, P0–P3): **[docs/proposals/README.md](docs/proposals/README.md)**.
 
 - [x] ~~Weakness pole~~ (implemented v5)
 - [x] ~~Algorithmic forgiveness~~ (implemented v5)
@@ -336,5 +331,5 @@ Product and operations roadmap (expectations, P0–P3): **[docs/proposals/STRATE
 
 ---
 
-**MoSex Macchina Lab** — the public-facing name for this project and the landing site ([mosexmacchinalab.com](https://mosexmacchinalab.com)).  
+**MoSex Macchina Lab** — the public-facing name for this project ([mosexmacchinalab.com](https://mosexmacchinalab.com)).  
 *Ex Machina Foundation* — 2026 · research in computational ethics and civic robotics.

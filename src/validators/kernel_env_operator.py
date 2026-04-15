@@ -5,7 +5,7 @@ Groups keys by documented **families**, scores alignment with **nominal runtime 
 and flags **experimental** combinations when many flags are set without ``ETHOS_RUNTIME_PROFILE``.
 
 Does not replace ``validate_kernel_env()`` — use together: policy rules + this inventory.
-See ``docs/proposals/KERNEL_ENV_POLICY.md`` and ``docs/proposals/OPERATOR_QUICK_REF.md``.
+See ``docs/proposals/README.md`` and ``docs/proposals/README.md``.
 """
 
 from __future__ import annotations
@@ -36,7 +36,19 @@ _FAMILY_RULES: Final[tuple[tuple[str, tuple[str, ...]], ...]] = (
     ("Event bus (lab)", ("KERNEL_EVENT_BUS",)),
     ("Swarm (lab stub)", ("KERNEL_SWARM_STUB",)),
     ("Poles / mixture / temporal", ("KERNEL_POLE_", "KERNEL_BAYESIAN_EMPIRICAL_WEIGHTS", "KERNEL_TEMPORAL_HORIZON_", "KERNEL_FEEDBACK_CALIBRATION", "KERNEL_PSI_SLEEP_")),
-    ("LLM / variability / generative", ("KERNEL_VARIABILITY", "KERNEL_GENERATIVE_", "LLM_MODE")),
+    (
+        "LLM / variability / generative",
+        (
+            "KERNEL_VARIABILITY",
+            "KERNEL_GENERATIVE_",
+            "KERNEL_VERBAL_",
+            "KERNEL_LLM_TP_",
+            "KERNEL_LLM_VERBAL_FAMILY_",
+            "KERNEL_LLM_MONOLOGUE_BACKEND_",
+            "KERNEL_LLM_MONOLOGUE",
+            "LLM_MODE",
+        ),
+    ),
     ("Ethos runtime", ("ETHOS_",)),
 )
 

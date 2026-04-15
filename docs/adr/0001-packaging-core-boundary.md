@@ -10,7 +10,7 @@
 3. **Repository layout unchanged:** Python imports remain `from src.kernel import …` / `from src.modules…` until a dedicated refactor renames the installable package.
 4. **CI source of truth:** `requirements.txt` remains what CI and contributors use today; `pyproject.toml` `[project.optional-dependencies]` mirrors extras for `pip install -e ".[…]"` experiments.
 5. **Core vs theater:** **Not** split at import time in this iteration. Base `[project.dependencies]` match the policy path; narrative/DAO/PAD live in the same `src/` tree. The **`theater`** extra is an empty marker for integrators who want pip metadata to reflect that boundary (see README).
-6. **Follow-up (out of scope here):** optional extraction of a **`ethos_kernel`** package with explicit `py.typed`, slimmer `install_requires`, and re-exports; landing / chat server may stay as an extra or separate repo.
+6. **Follow-up (out of scope here):** optional extraction of a **`ethos_kernel`** package with explicit `py.typed`, slimmer `install_requires`, and re-exports; the chat server may stay as an extra or separate repo.
 
 ## Consequences
 

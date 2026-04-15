@@ -8,7 +8,7 @@ reproducible given a trial seed.
 
 This is **not** environmental sensor data from the real world — it is an
 **artificial** stress layer for research and discussion; see
-``docs/proposals/PROPOSAL_EXPERIMENTAL_SANDBOX_SCENARIOS.md``.
+``docs/proposals/README.md``.
 """
 
 from __future__ import annotations

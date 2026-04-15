@@ -35,7 +35,23 @@ Remains **optional** and off the default loop ([THEORY_AND_IMPLEMENTATION.md](TH
 
 ## Persistence (confidentiality, not ethics)
 
-Saving or restoring snapshots **does not** change the kernel’s decision rules. In the MVP, checkpoints are **unencrypted**; for sensitive deployments, at-rest encryption is **planned** (e.g. Python `cryptography`) and is described in [RUNTIME_PERSISTENT.md](RUNTIME_PERSISTENT.md), not in this contract.
+Saving or restoring snapshots **does not** change the kernel’s decision rules. JSON checkpoints support optional Fernet encryption today (`KERNEL_CHECKPOINT_FERNET_KEY`) via `src/persistence/json_store.py`; when the key is unset, payloads remain plain UTF-8 JSON. SQLite encryption is not provided by default in this repo and should be treated as a deployment-layer concern.
+
+This confidentiality layer does not replace OS permissions, access control, or audit discipline; it protects checkpoint bytes at rest only.
+
+## WebSocket control plane (stateful side effects)
+
+The `/ws/chat` channel can process side-effectful control messages in addition to standard `"text"` turns.
+
+Examples include:
+
+- DAO operations (`dao_submit_draft`, `dao_vote`, `dao_resolve`, `dao_list`)
+- integrity audit input (`integrity_alert`)
+- nomad migration simulation (`nomad_simulate_migration`)
+- operator calibration feedback (`operator_feedback`)
+- optional constitution draft submissions (`constitution_draft`)
+
+These operations are gated by dedicated env flags and module checks in `src/chat_server.py` and remain bounded by the same ethical/runtime contract (no bypass of MalAbs via hidden background loops).
 
 ## System integrity (future; not normative ethics)
 

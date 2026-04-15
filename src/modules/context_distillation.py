@@ -4,9 +4,8 @@ Critical context distillation (planned) — “70B → 8B” conduct guide befor
 When the large runtime produces a **conduct guide** (rules distilled from deliberation),
 the small model can follow the same ethical stance without full reasoning capacity.
 
-**Vertical Phase 3:** :func:`validate_conduct_guide_dict` checks minimal shape against the
-reference template (``docs/templates/conduct_guide.template.json``). Load path remains
-env-driven; integration with HAL is still incremental.
+**Vertical Phase 3:** :func:`validate_conduct_guide_dict` checks minimal shape (see field list
+in that function). Load path remains env-driven; integration with HAL is still incremental.
 
 Env: ``KERNEL_CONDUCT_GUIDE_PATH`` — optional JSON **to load** on an edge runtime.
 **Export** from the PC session uses ``KERNEL_CONDUCT_GUIDE_EXPORT_PATH`` (see ``conduct_guide_export.py``).

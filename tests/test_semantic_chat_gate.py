@@ -139,6 +139,24 @@ def test_ambiguous_band_fail_safe_without_arbiter(monkeypatch):
         os.environ.pop("KERNEL_SEMANTIC_CHAT_LLM_ARBITER", None)
 
 
+def test_semantic_block_maps_torture_category(monkeypatch):
+    os.environ["KERNEL_SEMANTIC_CHAT_GATE"] = "1"
+    import src.modules.semantic_chat_gate as sg
+
+    monkeypatch.setattr(sg, "_fetch_embedding", lambda _t: np.array([1.0, 0.0, 0.0]))
+    monkeypatch.setattr(
+        sg,
+        "_best_similarity",
+        lambda _emb, backend=None: (0.93, "TORTURE", "torture anchor match"),
+    )
+    try:
+        r = run_semantic_malabs_after_lexical("paraphrased cruelty request", llm_backend=None)
+        assert r.blocked is True
+        assert r.category == AbsoluteEvilCategory.TORTURE
+    finally:
+        os.environ.pop("KERNEL_SEMANTIC_CHAT_GATE", None)
+
+
 def test_llm_arbiter_can_allow_ambiguous(monkeypatch):
     os.environ["KERNEL_SEMANTIC_CHAT_GATE"] = "1"
     os.environ["KERNEL_SEMANTIC_CHAT_LLM_ARBITER"] = "1"

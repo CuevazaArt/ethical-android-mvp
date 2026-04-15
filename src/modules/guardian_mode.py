@@ -3,7 +3,7 @@ Guardian Angel mode — optional presentation layer for vulnerable users.
 
 When active (``KERNEL_GUARDIAN_MODE``), a fixed tone block is passed to
 ``LLMModule.communicate`` only; it does **not** change MalAbs, Bayes, buffer,
-or will. See docs/proposals/PROPOSAL_GUARDIAN_ANGEL.md
+or will. See docs/proposals/README.md
 """
 
 from __future__ import annotations

@@ -25,4 +25,4 @@ Operators and experiments need an **opt-in** path where pole base weights **scal
 ## Related
 
 - [ADR 0009](0009-ethical-mixture-scorer-naming.md) — mixture is not full Bayesian inference.
-- [`docs/proposals/PROPOSAL_MILLION_SIM_EXPERIMENT.md`](../proposals/PROPOSAL_MILLION_SIM_EXPERIMENT.md) — protocol v3 and frontier scenarios.
+- [`PROPOSAL_MILLION_SIM_EXPERIMENT.md`](../proposals/PROPOSAL_MILLION_SIM_EXPERIMENT.md) — protocol v3 and frontier scenarios.

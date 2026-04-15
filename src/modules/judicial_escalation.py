@@ -5,7 +5,7 @@ Advisory only: does **not** change MalAbs, buffer, or Bayesian outcomes.
 Phase 3: optional ``MockDAO.run_mock_escalation_court`` after dossier registration
 (``KERNEL_JUDICIAL_MOCK_COURT``).
 
-See docs/proposals/PROPOSAL_DISTRIBUTED_JUSTICE_V11.md
+See docs/proposals/README.md
 """
 
 from __future__ import annotations
