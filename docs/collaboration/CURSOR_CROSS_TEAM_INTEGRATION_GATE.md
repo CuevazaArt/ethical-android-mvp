@@ -52,6 +52,12 @@ From repository root:
 python scripts/eval/run_cursor_integration_gate.py
 ```
 
+Optional — focused LLM vertical regressions ([`PROPOSAL_LLM_VERTICAL_ROADMAP.md`](../proposals/PROPOSAL_LLM_VERTICAL_ROADMAP.md)):
+
+```bash
+python scripts/eval/run_llm_vertical_tests.py -q
+```
+
 Optional flags:
 
 - `--strict` (fails if git tree is dirty)

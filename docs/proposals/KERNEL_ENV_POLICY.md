@@ -52,6 +52,8 @@ Renaming every LLM-related knob under one `KERNEL_LLM_*` prefix is **deferred** 
 
 **Nominal lab bundle** combining semantic gate + generative parsing from perception JSON: **`llm_integration_lab`** in [`runtime_profiles.py`](../../src/runtime_profiles.py).
 
+**Phased expansion (operator recipes, async-timeout metric, chain tests):** [`PROPOSAL_LLM_VERTICAL_ROADMAP.md`](PROPOSAL_LLM_VERTICAL_ROADMAP.md).
+
 ---
 
 ## 2. Explicitly rejected combinations (when `KERNEL_ENV_VALIDATION=strict`)

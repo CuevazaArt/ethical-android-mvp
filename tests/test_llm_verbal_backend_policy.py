@@ -90,6 +90,8 @@ def test_narrate_empty_json_canned_safe(monkeypatch):
     ev = llm.verbal_degradation_events_snapshot()
     assert len(ev) == 1
     assert ev[0]["touchpoint"] == "narrate"
+    assert ev[0]["failure_reason"] == "verbal_json_missing_or_empty"
+    assert ev[0]["recovery_policy"] == "canned_safe"
 
 
 def test_monologue_annotate_degraded_on_failure(monkeypatch):
@@ -102,6 +104,8 @@ def test_monologue_annotate_degraded_on_failure(monkeypatch):
     assert "monologue_llm_degraded" in out
     ev = llm.verbal_degradation_events_snapshot()
     assert len(ev) == 1 and ev[0]["touchpoint"] == "monologue"
+    assert ev[0]["failure_reason"] == "llm_completion_exception"
+    assert ev[0]["recovery_policy"] == "annotate_degraded"
 
 
 def test_chat_json_includes_verbal_llm_observability():

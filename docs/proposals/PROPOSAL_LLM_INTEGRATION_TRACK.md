@@ -38,6 +38,7 @@
 | **G-08** | Input trust chain smoke | **Closed (test)** | [`tests/test_input_trust.py`](../../tests/test_input_trust.py) `test_chat_safe_turn_coercion_report_chain`; [`SECURITY.md`](../../SECURITY.md) link to this track. |
 | **G-09** | Profile bundles for LLM-heavy demos | **Closed (code)** | [`runtime_profiles.py`](../../src/runtime_profiles.py) includes **`llm_integration_lab`** (semantic MalAbs + `KERNEL_GENERATIVE_LLM` / generative actions) alongside existing bundles (`perception_hardening_lab`, `untrusted_chat_input`, `perception_adv_consensus_lab`, …). |
 | **G-10** | Cross-team integration gate | **Closed (script)** | [`scripts/eval/run_cursor_integration_gate.py`](../../scripts/eval/run_cursor_integration_gate.py) includes LLM-track regression tests (`process_natural` observability, dual-vote failure, `semantic_chat_gate`) per [`CURSOR_CROSS_TEAM_INTEGRATION_GATE.md`](../collaboration/CURSOR_CROSS_TEAM_INTEGRATION_GATE.md). |
+| **G-11** | LLM vertical roadmap (operator recipes, timeout metric, chain tests, focused script) | **Closed (docs + code)** | [`PROPOSAL_LLM_VERTICAL_ROADMAP.md`](PROPOSAL_LLM_VERTICAL_ROADMAP.md); [`scripts/eval/run_llm_vertical_tests.py`](../../scripts/eval/run_llm_vertical_tests.py). |
 
 ---
 
@@ -52,6 +53,7 @@
 ## 4) Related documents
 
 - [`PROPOSAL_LLM_TOUCHPOINT_DEGRADATION_MATRIX.md`](PROPOSAL_LLM_TOUCHPOINT_DEGRADATION_MATRIX.md)  
+- [`PROPOSAL_LLM_VERTICAL_ROADMAP.md`](PROPOSAL_LLM_VERTICAL_ROADMAP.md) (phased operator + observability + tests)  
 - [`CURSOR_TEAM_MISSION_SENSORS_PERCEPTION.md`](CURSOR_TEAM_MISSION_SENSORS_PERCEPTION.md) §9 (model backlog pointer)  
 - [`LLM_STACK_OLLAMA_VS_HF.md`](LLM_STACK_OLLAMA_VS_HF.md)  
 - [`CORE_DECISION_CHAIN.md`](CORE_DECISION_CHAIN.md) (ethics vs LLM boundary)
@@ -63,3 +65,4 @@
 - **2026-04-14:** Initial gap register and track ownership for Cursor LLM integration scope.
 - **2026-04-14:** Closed G-01, G-02 (documentation); G-03 (`last_natural_verbal_llm_degradation_events`); G-06 (tests + perception doc); G-07 (dual-sample parse issues); G-05 (operator note); G-08 (smoke test + security link).
 - **2026-04-14:** Merged LLM track into **`master-Cursor`** (active line); deprecated **`cursor-team`** as default. G-04 index in `KERNEL_ENV_POLICY.md`; G-09 `llm_integration_lab` profile; G-10 gate extended with LLM-track tests.
+- **2026-04-14:** G-11 — [`PROPOSAL_LLM_VERTICAL_ROADMAP.md`](PROPOSAL_LLM_VERTICAL_ROADMAP.md) and implementations for phases 1–5 (`kernel_env_operator` monologue key, operator recipes, async-timeout metric, MalAbs→chat perception subprocess test, `run_llm_vertical_tests.py`).

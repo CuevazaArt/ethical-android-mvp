@@ -138,6 +138,7 @@ from .observability.metrics import (
     init_metrics,
     metrics_enabled,
     observe_chat_turn,
+    record_chat_turn_async_timeout,
     record_dao_ws_operation,
     record_malabs_block,
 )
@@ -906,6 +907,7 @@ async def ws_chat(ws: WebSocket) -> None:
                     result = await coro
             except TimeoutError:
                 observe_chat_turn("turn_timeout", time.perf_counter() - t_turn)
+                record_chat_turn_async_timeout()
                 logger.warning(
                     "chat_turn_timeout seconds=%s (worker thread may still run)",
                     chat_to,
