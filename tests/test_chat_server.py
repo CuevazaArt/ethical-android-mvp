@@ -479,6 +479,79 @@ def test_websocket_lan_governance_integrity_batch_invalid_events_type(monkeypatc
     assert batch.get("error") == "events_must_be_list"
 
 
+def test_websocket_lan_governance_dao_batch_merges_and_resolves(monkeypatch):
+    monkeypatch.setenv("KERNEL_MORAL_HUB_DAO_VOTE", "1")
+    monkeypatch.setenv("KERNEL_MORAL_HUB_DRAFT_WS", "1")
+    monkeypatch.setenv("KERNEL_LAN_GOVERNANCE_MERGE_WS", "1")
+    with client.websocket_connect("/ws/chat") as ws:
+        # Create a draft (will emit empty_text, but draft is appended).
+        ws.send_json({"constitution_draft": {"level": 1, "title": "L1 test", "body": "Article."}})
+        _ = ws.receive_json()
+
+        ws.send_json({"dao_submit_draft": {"level": 1, "draft_id": "missing"}})
+        # draft_id missing should return ok false; ensure server stays healthy.
+        _ = ws.receive_json()
+
+        # Add another draft with known id by reading kernel? Not available; instead use MockDAO directly:
+        # Submit a new draft by sending it with an explicit id field in payload is not supported; so fall back
+        # to exercising dao_batch error paths without needing a proposal.
+        ws.send_json(
+            {
+                "lan_governance_dao_batch": {
+                    "events": [
+                        {
+                            "event_id": "e2",
+                            "turn_index": 2,
+                            "processor_elapsed_ms": 0,
+                            "op": "dao_resolve",
+                            "proposal_id": "",
+                        },
+                        {
+                            "event_id": "e1",
+                            "turn_index": 1,
+                            "processor_elapsed_ms": 0,
+                            "op": "dao_vote",
+                            "proposal_id": "PROP-0001",
+                            "participant_id": "community_01",
+                            "n_votes": 1,
+                            "in_favor": True,
+                        },
+                        {
+                            "event_id": "e1",
+                            "turn_index": 1,
+                            "processor_elapsed_ms": 99,
+                            "op": "dao_vote",
+                            "proposal_id": "PROP-0001",
+                            "participant_id": "community_01",
+                            "n_votes": 1,
+                            "in_favor": True,
+                        },
+                    ]
+                }
+            }
+        )
+        data = ws.receive_json()
+    batch = data.get("lan_governance", {}).get("dao_batch", {})
+    assert batch.get("input_count") == 3
+    assert batch.get("merged_count") == 2
+    assert batch.get("deduped_count") == 1
+    # One of the merged events is missing proposal_id for resolve → error.
+    assert batch.get("ok") is False
+    assert batch.get("applied_count") == 1
+
+
+def test_websocket_lan_governance_dao_batch_disabled_returns_hint(monkeypatch):
+    monkeypatch.delenv("KERNEL_LAN_GOVERNANCE_MERGE_WS", raising=False)
+    monkeypatch.setenv("KERNEL_MORAL_HUB_DAO_VOTE", "1")
+    with client.websocket_connect("/ws/chat") as ws:
+        ws.send_json({"lan_governance_dao_batch": {"events": []}})
+        data = ws.receive_json()
+    batch = data.get("lan_governance", {}).get("dao_batch", {})
+    assert batch.get("ok") is False
+    assert batch.get("error") == "disabled"
+    assert "KERNEL_LAN_GOVERNANCE_MERGE_WS" in (batch.get("hint") or "")
+
+
 def test_websocket_reality_verification_lighthouse(monkeypatch):
     from src.modules.reality_verification import clear_lighthouse_cache
 

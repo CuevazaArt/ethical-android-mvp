@@ -76,6 +76,10 @@ LAN governance merge (Phase 2): ``KERNEL_LAN_GOVERNANCE_MERGE_WS=1`` (with integ
 enables WebSocket ``lan_governance_integrity_batch`` — deterministic sort/dedupe via
 ``lan_governance_event_merge``, then one ledger row per merged event. DJ-BL-02.
 
+LAN governance DAO batch (Phase 2): ``KERNEL_LAN_GOVERNANCE_MERGE_WS=1`` (with DAO vote on)
+enables WebSocket ``lan_governance_dao_batch`` — deterministic sort/dedupe via
+``lan_governance_event_merge``, then applies ``dao_vote`` / ``dao_resolve`` on the session MockDAO. DJ-BL-05.
+
 Advisory telemetry (optional, Fase 1.3–1.4): KERNEL_ADVISORY_INTERVAL_S — positive seconds
 spawns a read-only :func:`src.runtime.telemetry.advisory_loop` per WebSocket session (DriveArbiter only).
 Metaplan vs drives (v9.4): KERNEL_METAPLAN_DRIVE_FILTER / KERNEL_METAPLAN_DRIVE_EXTRA — see metaplan_registry.py.
@@ -131,6 +135,7 @@ from .modules.moral_hub import (
     dao_governance_api_enabled,
     dao_integrity_audit_ws_enabled,
     ethos_payroll_record_mock,
+    lan_governance_dao_batch_ws_enabled,
     lan_governance_integrity_batch_ws_enabled,
     moral_hub_public_enabled,
     proposal_to_public,
@@ -880,6 +885,129 @@ def _collect_lan_governance_integrity_batch(
     }
 
 
+def _collect_lan_governance_dao_batch(
+    kernel: EthicalKernel, data: dict[str, Any]
+) -> dict[str, Any] | None:
+    """
+    Optional batch of DAO actions: merge (turn / processor time / id) then apply in order.
+
+    Client shape::
+        {"lan_governance_dao_batch": {"events": [...], "id_key": "event_id"}}
+    Each event requires ``op`` in {"dao_vote","dao_resolve"} and the corresponding fields:
+      - dao_vote: proposal_id, participant_id, n_votes, in_favor
+      - dao_resolve: proposal_id
+    """
+    raw = data.get("lan_governance_dao_batch")
+    if raw is None:
+        return None
+    if not isinstance(raw, dict):
+        return {
+            "lan_governance": {
+                "dao_batch": {"ok": False, "error": "invalid_payload", "hint": "expected object"}
+            }
+        }
+
+    if not lan_governance_dao_batch_ws_enabled():
+        return {
+            "lan_governance": {
+                "dao_batch": {
+                    "ok": False,
+                    "error": "disabled",
+                    "hint": "Set KERNEL_LAN_GOVERNANCE_MERGE_WS=1 and KERNEL_MORAL_HUB_DAO_VOTE=1.",
+                }
+            }
+        }
+
+    events_in = raw.get("events")
+    if not isinstance(events_in, list):
+        return {"lan_governance": {"dao_batch": {"ok": False, "error": "events_must_be_list"}}}
+
+    id_key = str(raw.get("id_key") or "event_id").strip() or "event_id"
+    dict_rows: list[dict[str, Any]] = [dict(x) for x in events_in if isinstance(x, dict)]
+    input_count = len(dict_rows)
+    missing_id_count = sum(1 for r in dict_rows if not str(r.get(id_key, "") or "").strip())
+
+    merged = merge_lan_governance_events(dict_rows, id_key=id_key)
+    merged_count = len(merged)
+    with_id_count = max(0, input_count - missing_id_count)
+    deduped_count = max(0, with_id_count - merged_count)
+
+    applied_ids: list[str] = []
+    errors: list[dict[str, Any]] = []
+    results: list[dict[str, Any]] = []
+    touched_pids: set[str] = set()
+
+    for row in merged:
+        eid = str(row.get(id_key, "") or "").strip()
+        op = str(row.get("op") or "").strip()
+        if op not in ("dao_vote", "dao_resolve"):
+            errors.append({"event_id": eid, "error": "unsupported_op", "op": op})
+            continue
+
+        if op == "dao_vote":
+            pid = str(row.get("proposal_id") or "").strip()
+            part = str(row.get("participant_id") or "").strip()
+            if not pid or not part:
+                errors.append(
+                    {
+                        "event_id": eid,
+                        "error": "missing_fields",
+                        "fields": ["proposal_id", "participant_id"],
+                    }
+                )
+                continue
+            try:
+                n_votes = int(row.get("n_votes") or 1)
+                in_favor = bool(row.get("in_favor", True))
+            except (TypeError, ValueError):
+                errors.append({"event_id": eid, "error": "invalid_vote_fields"})
+                continue
+            res = kernel.dao.vote(pid, part, n_votes, in_favor)
+            results.append({"event_id": eid, "op": op, "proposal_id": pid, "result": res})
+            touched_pids.add(pid)
+            applied_ids.append(eid)
+            continue
+
+        if op == "dao_resolve":
+            pid = str(row.get("proposal_id") or "").strip()
+            if not pid:
+                errors.append(
+                    {"event_id": eid, "error": "missing_fields", "fields": ["proposal_id"]}
+                )
+                continue
+            res = kernel.dao.resolve_proposal(pid)
+            if res.get("outcome") in ("approved", "rejected"):
+                n = apply_proposal_resolution_to_constitution_drafts(kernel, pid, res)
+                if n:
+                    res["constitution_drafts_updated"] = n
+            results.append({"event_id": eid, "op": op, "proposal_id": pid, "result": res})
+            touched_pids.add(pid)
+            applied_ids.append(eid)
+            continue
+
+    if applied_ids:
+        record_dao_ws_operation("lan_governance_dao_batch")
+
+    proposals = [proposal_to_public(p) for p in kernel.dao.proposals if p.id in touched_pids]
+    ok = merged_count == 0 or (not errors and len(applied_ids) == merged_count)
+    return {
+        "lan_governance": {
+            "dao_batch": {
+                "ok": ok,
+                "input_count": input_count,
+                "missing_id_count": missing_id_count,
+                "merged_count": merged_count,
+                "deduped_count": deduped_count,
+                "applied_count": len(applied_ids),
+                "event_ids": applied_ids,
+                "results": results,
+                "errors": errors,
+                "proposals": proposals,
+            }
+        }
+    }
+
+
 def _collect_nomad_ws_actions(kernel: EthicalKernel, data: dict[str, Any]) -> dict[str, Any] | None:
     """KERNEL_NOMAD_SIMULATION — apply HAL + optional DAO migration audit (lab)."""
     if not nomad_simulation_ws_enabled():
@@ -984,7 +1112,14 @@ async def ws_chat(ws: WebSocket) -> None:
             nomad_payload = _collect_nomad_ws_actions(kernel, data)
             integrity_payload = _collect_integrity_ws_action(kernel, data)
             lan_batch_payload = _collect_lan_governance_integrity_batch(kernel, data)
-            if dao_payload or nomad_payload or integrity_payload or lan_batch_payload:
+            lan_dao_payload = _collect_lan_governance_dao_batch(kernel, data)
+            if (
+                dao_payload
+                or nomad_payload
+                or integrity_payload
+                or lan_batch_payload
+                or lan_dao_payload
+            ):
                 out_ws: dict[str, Any] = {}
                 if dao_payload:
                     out_ws["dao"] = dao_payload
@@ -994,11 +1129,19 @@ async def ws_chat(ws: WebSocket) -> None:
                     out_ws["integrity"] = integrity_payload
                 if lan_batch_payload:
                     out_ws.update(lan_batch_payload)
+                if lan_dao_payload:
+                    out_ws.update(lan_dao_payload)
                 await ws.send_json(out_ws)
 
             text = text_preview
             if not text:
-                if dao_payload or nomad_payload or integrity_payload or lan_batch_payload:
+                if (
+                    dao_payload
+                    or nomad_payload
+                    or integrity_payload
+                    or lan_batch_payload
+                    or lan_dao_payload
+                ):
                     maybe_autosave_episodes(kernel, session_ckpt)
                     continue
                 await ws.send_json({"error": "empty_text"})
