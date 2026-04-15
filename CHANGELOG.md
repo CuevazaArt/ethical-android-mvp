@@ -9,6 +9,7 @@ All notable changes to this project are summarized here. For narrative context a
 - **Infrastructure Vision**: Authored **[`PLAN_DEEP_COGNITION_AND_GOVERNANCE.md`](docs/proposals/PLAN_DEEP_COGNITION_AND_GOVERNANCE.md)**. This formalizes the ultimate "Go-To-Market" and societal deployment boundaries for the Ethical Android MVP.
 - **Deep Cognition (Blocks C1-C6)**: Mapped internal motivation, grounded common sense reasoning, uncertainty management, unwritten norm adaptation, IoT coexistence, and privacy mechanisms.
 - **Delivery & Operations (Blocks G1-G6)**: Outlined the non-technical but critical requirements for production deployment: legal/liability frameworks, cybersecurity (adversarial robust/secure boot), auditing (immutable logs/third-party), economic sustainability, at-scale simulation validation, and long-term human resource impact mitigation.
+- **Hybrid DAO Governance playbook**: Authored **[`PLAN_DAO_HYBRID_INTEGRATION_AND_GOVERNANCE.md`](docs/proposals/PLAN_DAO_HYBRID_INTEGRATION_AND_GOVERNANCE.md)** structuring off-chain Kernel latency vs on-chain DAO auditing/appeals, incorporating multisig emergency execution, verifiable credentials, and legal liability bridging.
 
 ## Antigravity Kernel Hardening & Vision Perception Sprint — April 2026
 
