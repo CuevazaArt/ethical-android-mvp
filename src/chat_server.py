@@ -92,6 +92,10 @@ LAN governance envelope (Phase 2): optional ``lan_governance_envelope`` with
 ``schema=lan_governance_envelope_v1`` routes batch payloads by ``kind`` to the same handlers
 (``integrity_batch``, ``dao_batch``, ``judicial_batch``, ``mock_court_batch``).
 
+LAN governance coordinator (Phase 2): optional ``lan_governance_coordinator`` with
+``schema=lan_governance_coordinator_v1`` carries multiple envelope payloads; the server sorts by
+envelope fingerprint, dedupes identical envelopes, and applies each in order (hub / multi-node stub).
+
 Advisory telemetry (optional, Fase 1.3–1.4): KERNEL_ADVISORY_INTERVAL_S — positive seconds
 spawns a read-only :func:`src.runtime.telemetry.advisory_loop` per WebSocket session (DriveArbiter only).
 Metaplan vs drives (v9.4): KERNEL_METAPLAN_DRIVE_FILTER / KERNEL_METAPLAN_DRIVE_EXTRA — see metaplan_registry.py.
@@ -135,6 +139,10 @@ from .modules.guardian_routines import public_routines_snapshot
 from .modules.hub_audit import record_dao_integrity_alert
 from .modules.internal_monologue import compose_monologue_line
 from .modules.judicial_escalation import chat_include_judicial
+from .modules.lan_governance_coordinator import (
+    fingerprint_lan_governance_coordinator,
+    normalize_lan_governance_coordinator,
+)
 from .modules.lan_governance_envelope import (
     fingerprint_lan_governance_envelope,
     idempotency_token_for_envelope,
@@ -154,6 +162,7 @@ from .modules.moral_hub import (
     dao_governance_api_enabled,
     dao_integrity_audit_ws_enabled,
     ethos_payroll_record_mock,
+    lan_governance_coordinator_ws_enabled,
     lan_governance_dao_batch_ws_enabled,
     lan_governance_integrity_batch_ws_enabled,
     lan_governance_judicial_batch_ws_enabled,
@@ -427,6 +436,27 @@ def _lan_envelope_cache_stats(
         "ttl_ms": ttl_ms,
         "max_entries": max_entries,
     }
+
+
+def _merge_lan_governance_ws_payloads(*parts: dict[str, Any] | None) -> dict[str, Any]:
+    """Shallow-merge ``lan_governance`` sections so multiple LAN handlers can coexist in one response."""
+    merged: dict[str, Any] = {}
+    for p in parts:
+        if not p:
+            continue
+        lg = p.get("lan_governance")
+        if isinstance(lg, dict):
+            merged.update(lg)
+    return merged
+
+
+def _reject_reason_lan_coordinator(error_code: object) -> str:
+    code = str(error_code or "").strip()
+    if code == "unsupported_schema":
+        return "unsupported_contract"
+    if code == "items_too_many":
+        return "batch_apply_failed"
+    return "schema_validation_failed"
 
 
 def _chat_turn_to_jsonable(r: ChatTurnResult, kernel: EthicalKernel) -> dict[str, Any]:
@@ -1504,6 +1534,113 @@ def _collect_lan_governance_envelope(
     return out
 
 
+def _collect_lan_governance_coordinator(
+    kernel: EthicalKernel,
+    data: dict[str, Any],
+    replay_cache: dict[str, dict[str, Any]] | None = None,
+    replay_cache_stats: dict[str, int] | None = None,
+    replay_cache_ttl_ms: int = DEFAULT_LAN_ENVELOPE_REPLAY_CACHE_TTL_MS,
+    replay_cache_max_entries: int = DEFAULT_LAN_ENVELOPE_REPLAY_CACHE_MAX_ENTRIES,
+) -> dict[str, Any] | None:
+    """
+    Multi-node hub message: validate ``lan_governance_coordinator_v1`` then apply each inner envelope.
+
+    Inner envelopes share the same per-session replay cache as direct ``lan_governance_envelope``.
+    """
+    raw = data.get("lan_governance_coordinator")
+    if raw is None:
+        return None
+    if not lan_governance_coordinator_ws_enabled():
+        return {
+            "lan_governance": {
+                "coordinator": {
+                    "ok": False,
+                    "ack": "rejected",
+                    "error": "disabled",
+                    "reject_reason": "feature_disabled",
+                    "hint": "Set KERNEL_LAN_GOVERNANCE_MERGE_WS=1.",
+                }
+            }
+        }
+
+    normalized, err = normalize_lan_governance_coordinator(raw)
+    if err is not None:
+        return {
+            "lan_governance": {
+                "coordinator": {
+                    "ok": False,
+                    "ack": "rejected",
+                    "reject_reason": _reject_reason_lan_coordinator(err.get("error")),
+                    **err,
+                }
+            }
+        }
+    assert normalized is not None
+    items: list[dict[str, Any]] = list(normalized["items"])
+    coord_fp = fingerprint_lan_governance_coordinator(normalized)
+    item_results: list[dict[str, Any]] = []
+    all_ok = True
+    batch_sections = (
+        "integrity_batch",
+        "dao_batch",
+        "judicial_batch",
+        "mock_court_batch",
+    )
+    for env in items:
+        fp = fingerprint_lan_governance_envelope(env)
+        tok = idempotency_token_for_envelope(env)
+        sub = _collect_lan_governance_envelope(
+            kernel,
+            {"lan_governance_envelope": env},
+            replay_cache=replay_cache,
+            replay_cache_stats=replay_cache_stats,
+            replay_cache_ttl_ms=replay_cache_ttl_ms,
+            replay_cache_max_entries=replay_cache_max_entries,
+        )
+        lg = (sub or {}).get("lan_governance") if isinstance(sub, dict) else None
+        if not isinstance(lg, dict):
+            lg = {}
+        env_ack = lg.get("envelope")
+        if isinstance(env_ack, dict) and env_ack.get("ok") is not True:
+            all_ok = False
+        for sec in batch_sections:
+            block = lg.get(sec)
+            if (
+                isinstance(block, dict)
+                and isinstance(block.get("ok"), bool)
+                and block.get("ok") is False
+            ):
+                all_ok = False
+                break
+        item_results.append(
+            {
+                "fingerprint": fp,
+                "idempotency_token": tok,
+                "node_id": env.get("node_id"),
+                "kind": env.get("kind"),
+                "lan_governance": lg,
+            }
+        )
+    if items:
+        record_dao_ws_operation("lan_governance_coordinator")
+    return {
+        "lan_governance": {
+            "coordinator": {
+                "ok": all_ok,
+                "ack": "accepted" if all_ok else "rejected",
+                "schema": normalized["schema"],
+                "coordinator_id": normalized["coordinator_id"],
+                "coordination_run_id": normalized["coordination_run_id"],
+                "coordinator_fingerprint": coord_fp,
+                "input_count": normalized["input_count"],
+                "deduped_count": normalized["deduped_count"],
+                "applied_count": len(items),
+                "items": item_results,
+            }
+        }
+    }
+
+
 def _collect_nomad_ws_actions(kernel: EthicalKernel, data: dict[str, Any]) -> dict[str, Any] | None:
     """KERNEL_NOMAD_SIMULATION — apply HAL + optional DAO migration audit (lab)."""
     if not nomad_simulation_ws_enabled():
@@ -1639,6 +1776,22 @@ async def ws_chat(ws: WebSocket) -> None:
                 replay_cache_ttl_ms=lan_envelope_replay_cache_ttl_ms,
                 replay_cache_max_entries=lan_envelope_replay_cache_max_entries,
             )
+            lan_coordinator_payload = _collect_lan_governance_coordinator(
+                kernel,
+                data,
+                replay_cache=lan_envelope_replay_cache,
+                replay_cache_stats=lan_envelope_replay_cache_stats,
+                replay_cache_ttl_ms=lan_envelope_replay_cache_ttl_ms,
+                replay_cache_max_entries=lan_envelope_replay_cache_max_entries,
+            )
+            lan_governance_merged = _merge_lan_governance_ws_payloads(
+                lan_batch_payload,
+                lan_dao_payload,
+                lan_judicial_payload,
+                lan_mock_court_payload,
+                lan_envelope_payload,
+                lan_coordinator_payload,
+            )
             if (
                 dao_payload
                 or nomad_payload
@@ -1648,6 +1801,7 @@ async def ws_chat(ws: WebSocket) -> None:
                 or lan_judicial_payload
                 or lan_mock_court_payload
                 or lan_envelope_payload
+                or lan_coordinator_payload
             ):
                 out_ws: dict[str, Any] = {}
                 if dao_payload:
@@ -1656,16 +1810,8 @@ async def ws_chat(ws: WebSocket) -> None:
                     out_ws["nomad"] = nomad_payload
                 if integrity_payload:
                     out_ws["integrity"] = integrity_payload
-                if lan_batch_payload:
-                    out_ws.update(lan_batch_payload)
-                if lan_dao_payload:
-                    out_ws.update(lan_dao_payload)
-                if lan_judicial_payload:
-                    out_ws.update(lan_judicial_payload)
-                if lan_mock_court_payload:
-                    out_ws.update(lan_mock_court_payload)
-                if lan_envelope_payload:
-                    out_ws.update(lan_envelope_payload)
+                if lan_governance_merged:
+                    out_ws["lan_governance"] = lan_governance_merged
                 await ws.send_json(out_ws)
 
             text = text_preview
@@ -1679,6 +1825,7 @@ async def ws_chat(ws: WebSocket) -> None:
                     or lan_judicial_payload
                     or lan_mock_court_payload
                     or lan_envelope_payload
+                    or lan_coordinator_payload
                 ):
                     maybe_autosave_episodes(kernel, session_ckpt)
                     continue

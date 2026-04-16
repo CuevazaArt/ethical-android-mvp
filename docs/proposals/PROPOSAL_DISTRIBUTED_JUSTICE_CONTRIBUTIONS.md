@@ -51,6 +51,7 @@ These items extend the **“Pending gaps”** list in [`PROPOSAL_DAO_BLOCKCHAIN_
 | **DJ-BL-10** | **Envelope replay cache** — duplicate envelope detection per WebSocket session. | **Done** — duplicate `idempotency_token` returns `ack=already_seen` and skips batch reapply (`src/chat_server.py`, `tests/test_chat_server.py`). |
 | **DJ-BL-11** | **Replay cache bounds + ACK telemetry** — TTL/LRU bounded cache and cache hit/miss counters in envelope responses. | **Done** — envelope ACK now includes `cache` stats and replay cache is bounded by `KERNEL_LAN_ENVELOPE_REPLAY_CACHE_TTL_MS` / `KERNEL_LAN_ENVELOPE_REPLAY_CACHE_MAX_ENTRIES` (`src/chat_server.py`, `tests/test_chat_server.py`). |
 | **DJ-BL-12** | **Replay-cache Prometheus metrics** — process-level observability for envelope duplicate handling. | **Done** — `ethos_kernel_lan_envelope_replay_cache_events_total` when `KERNEL_METRICS=1` (`src/observability/metrics.py`, `src/chat_server.py`, `tests/test_observability_metrics.py`). |
+| **DJ-BL-13** | **Multi-node coordinator envelope** — one WebSocket frame carries N peer envelopes; deterministic apply order. | **Done** — `lan_governance_coordinator` + `lan_governance_coordinator_v1` (`src/modules/lan_governance_coordinator.py`, `src/chat_server.py`, `tests/test_lan_governance_coordinator.py`, `tests/test_chat_server.py`). |
 
 Contributors should pick **one** item per PR when possible; link **`CHANGELOG.md`** when operator-visible behavior or JSON contracts change.
 
@@ -90,3 +91,4 @@ Contributors should pick **one** item per PR when possible; link **`CHANGELOG.md
 - **2026-04-15:** DJ-BL-10 done — per-session replay cache (`ack=already_seen`).
 - **2026-04-15:** DJ-BL-11 done — replay cache TTL/LRU bounds + cache telemetry in ACK.
 - **2026-04-15:** DJ-BL-12 done — Prometheus metrics for envelope replay-cache events.
+- **2026-04-15:** DJ-BL-13 done — multi-envelope coordinator WebSocket contract.

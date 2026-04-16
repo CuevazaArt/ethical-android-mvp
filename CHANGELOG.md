@@ -4,6 +4,13 @@ All notable changes to this project are summarized here. For narrative context a
 
 **Note:** Older sections below may still **link** to paths that were later removed (for example `experiments/million_sim/`, `docs/multimedia/`, root `dashboard.html`, `landing/`). Those links are **historical**; recover files from git history or backup branches if you need them.
 
+## Distributed justice — Phase 2 multi-node coordinator message (DJ-BL-13) — April 2026
+
+- **WebSocket:** ``lan_governance_coordinator`` with `schema=lan_governance_coordinator_v1` aggregates multiple ``lan_governance_envelope_v1`` payloads; deterministic fingerprint sort + dedupe; applies each via the existing envelope path (shared per-session replay cache) in [`src/chat_server.py`](src/chat_server.py).
+- **Code:** contract + normalization in [`src/modules/lan_governance_coordinator.py`](src/modules/lan_governance_coordinator.py); gate [`lan_governance_coordinator_ws_enabled()`](src/modules/moral_hub.py) (same `KERNEL_LAN_GOVERNANCE_MERGE_WS=1` family).
+- **Responses:** multiple LAN actions in one frame shallow-merge under `lan_governance` (coordinator + direct batch keys can coexist).
+- **Tests:** [`tests/test_lan_governance_coordinator.py`](tests/test_lan_governance_coordinator.py), [`tests/test_chat_server.py`](tests/test_chat_server.py).
+
 ## Distributed justice — Phase 2 envelope replay-cache Prometheus metrics (DJ-BL-12) — April 2026
 
 - **Metrics:** when `KERNEL_METRICS=1`, `ethos_kernel_lan_envelope_replay_cache_events_total{event=...}` counts replay-cache hits, misses, and TTL/LRU evictions for `lan_governance_envelope` in [`src/observability/metrics.py`](src/observability/metrics.py); wired from [`src/chat_server.py`](src/chat_server.py).

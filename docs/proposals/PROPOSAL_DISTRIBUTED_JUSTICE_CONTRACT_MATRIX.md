@@ -22,6 +22,7 @@
 | `lan_governance_judicial_batch` | Yes (when `KERNEL_JUDICIAL_ESCALATION=1` **and** `KERNEL_LAN_GOVERNANCE_MERGE_WS=1`) | Merge + register escalation dossiers on audit ledger |
 | `lan_governance_mock_court_batch` | Yes (when `KERNEL_JUDICIAL_ESCALATION=1`, `KERNEL_JUDICIAL_MOCK_COURT=1` **and** `KERNEL_LAN_GOVERNANCE_MERGE_WS=1`) | Merge + run mock court on dossiers; deterministic verdict |
 | `lan_governance_envelope` | Yes (schema `lan_governance_envelope_v1`) | Versioned coordinator envelope; routes `kind` → batch handler |
+| `lan_governance_coordinator` | Yes (schema `lan_governance_coordinator_v1`, when `KERNEL_LAN_GOVERNANCE_MERGE_WS=1`) | Hub message: multiple inner envelopes; fingerprint sort + dedupe; applies each in order |
 | `constitution` (in-message snapshot) | Optional (`KERNEL_CHAT_INCLUDE_*`) | Hub stack |
 
 ---

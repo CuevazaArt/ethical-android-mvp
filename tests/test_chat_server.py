@@ -1040,6 +1040,115 @@ def test_websocket_lan_governance_envelope_replay_cache_lru_eviction(monkeypatch
     assert cache_second_a.get("evicted_lru_total", 0) >= 1
 
 
+def test_websocket_lan_governance_coordinator_two_nodes_integrity(monkeypatch):
+    monkeypatch.setenv("KERNEL_DAO_INTEGRITY_AUDIT_WS", "1")
+    monkeypatch.setenv("KERNEL_LAN_GOVERNANCE_MERGE_WS", "1")
+
+    payload = {
+        "lan_governance_coordinator": {
+            "schema": "lan_governance_coordinator_v1",
+            "coordinator_id": "hub-1",
+            "coordination_run_id": "coord-run-1",
+            "items": [
+                {
+                    "schema": "lan_governance_envelope_v1",
+                    "node_id": "node-a",
+                    "sent_unix_ms": 1710000000500,
+                    "kind": "integrity_batch",
+                    "batch": {
+                        "events": [
+                            {
+                                "event_id": "c-a1",
+                                "turn_index": 1,
+                                "processor_elapsed_ms": 1,
+                                "summary": "coordinator path A",
+                            }
+                        ]
+                    },
+                },
+                {
+                    "schema": "lan_governance_envelope_v1",
+                    "node_id": "node-b",
+                    "sent_unix_ms": 1710000000501,
+                    "kind": "integrity_batch",
+                    "batch": {
+                        "events": [
+                            {
+                                "event_id": "c-b1",
+                                "turn_index": 2,
+                                "processor_elapsed_ms": 2,
+                                "summary": "coordinator path B",
+                            }
+                        ]
+                    },
+                },
+            ],
+        }
+    }
+    with client.websocket_connect("/ws/chat") as ws:
+        ws.send_json(payload)
+        data = ws.receive_json()
+
+    coord = data.get("lan_governance", {}).get("coordinator", {})
+    assert coord.get("ok") is True
+    assert coord.get("ack") == "accepted"
+    assert coord.get("applied_count") == 2
+    assert coord.get("deduped_count") == 0
+    assert len(coord.get("items") or []) == 2
+    assert isinstance(coord.get("coordinator_fingerprint"), str)
+    assert len(coord.get("coordinator_fingerprint", "")) == 64
+
+
+def test_websocket_lan_governance_merges_coordinator_with_direct_batch(monkeypatch):
+    monkeypatch.setenv("KERNEL_DAO_INTEGRITY_AUDIT_WS", "1")
+    monkeypatch.setenv("KERNEL_LAN_GOVERNANCE_MERGE_WS", "1")
+
+    payload = {
+        "lan_governance_integrity_batch": {
+            "events": [
+                {
+                    "event_id": "direct-1",
+                    "turn_index": 0,
+                    "processor_elapsed_ms": 0,
+                    "summary": "direct batch",
+                }
+            ]
+        },
+        "lan_governance_coordinator": {
+            "schema": "lan_governance_coordinator_v1",
+            "coordinator_id": "hub-2",
+            "coordination_run_id": "coord-run-2",
+            "items": [
+                {
+                    "schema": "lan_governance_envelope_v1",
+                    "node_id": "node-c",
+                    "sent_unix_ms": 1710000000600,
+                    "kind": "integrity_batch",
+                    "batch": {
+                        "events": [
+                            {
+                                "event_id": "c-c1",
+                                "turn_index": 1,
+                                "processor_elapsed_ms": 1,
+                                "summary": "coordinator only",
+                            }
+                        ]
+                    },
+                }
+            ],
+        },
+    }
+    with client.websocket_connect("/ws/chat") as ws:
+        ws.send_json(payload)
+        data = ws.receive_json()
+
+    lg = data.get("lan_governance", {})
+    assert "integrity_batch" in lg
+    assert "coordinator" in lg
+    assert lg["integrity_batch"].get("ok") is True
+    assert lg["coordinator"].get("ok") is True
+
+
 def test_websocket_reality_verification_lighthouse(monkeypatch):
     from src.modules.reality_verification import clear_lighthouse_cache
 

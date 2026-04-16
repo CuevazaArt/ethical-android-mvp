@@ -123,6 +123,16 @@ def lan_governance_judicial_batch_ws_enabled() -> bool:
     return v in ("1", "true", "yes", "on")
 
 
+def lan_governance_coordinator_ws_enabled() -> bool:
+    """
+    WebSocket ``lan_governance_coordinator`` — aggregate multiple ``lan_governance_envelope_v1`` payloads (Phase 2).
+
+    Gated by ``KERNEL_LAN_GOVERNANCE_MERGE_WS=1`` (same family as other LAN batch handlers).
+    """
+    v = os.environ.get("KERNEL_LAN_GOVERNANCE_MERGE_WS", "0").strip().lower()
+    return v in ("1", "true", "yes", "on")
+
+
 def lan_governance_mock_court_batch_ws_enabled() -> bool:
     """
     WebSocket ``lan_governance_mock_court_batch`` — reorder/dedupe then run mock tribunal events (Phase 2 LAN stub).
