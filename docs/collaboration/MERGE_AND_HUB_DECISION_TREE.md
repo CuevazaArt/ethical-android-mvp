@@ -36,4 +36,40 @@
 
 ---
 
-*Derived from [`docs/critique/COLLABORATION_REGULATION_CRITIQUE_2026-04-16.md`](../critique/COLLABORATION_REGULATION_CRITIQUE_2026-04-16.md) recommendation R-1.*
+## Minimum Integration Pulse triggers (R-3)
+
+“Pulse often” becomes actionable if you **sync peer hubs when any** of the following is true (pick what applies; not a calendar mandate):
+
+| Trigger | Action |
+|---------|--------|
+| You are about to open a **PR** that edits the **top** of [`CHANGELOG.md`](../../CHANGELOG.md) (monthly / team section) | Run peer preview ([`sync_peer_masters_preview.*`](../../scripts/git/)), then merge peers into your hub **before** your PR, or coordinate to avoid `CHANGELOG` collisions. |
+| Your PR touches **[`src/kernel.py`](../../src/kernel.py)** (or another shared orchestrator many teams edit) | Same: preview + merge or align in chat **first**. |
+| Your hub has been **idle** while other `master-*` branches moved (you are unsure) | Run preview at **session start**; if `git log HEAD..origin/master-<peer>` is non-empty, plan a sync. |
+| **End of a logical block** (guardrails, ADR-sized change) | Integration Pulse per [`.cursor/rules/collaboration-prioritization.mdc`](../../.cursor/rules/collaboration-prioritization.mdc): land tests + `CHANGELOG` + proposal pointer on your **`master-<team>`** before starting unrelated work. |
+
+If **none** of these apply and you only touched an isolated module + docs, a full peer merge may still be optional—but do not let hubs diverge for **weeks**.
+
+---
+
+## Direct push to `master-<team>` vs PR (R-4)
+
+Fast pushes happen. **Maintainer-expected hygiene** (not enforced in CI):
+
+- Prefer a **PR** into `master-<team>` for anything non-trivial.
+- If you **pushed directly** to the team hub, add a **follow-up PR or linked issue within 24 hours** summarizing commits and rationale (or reference the task card / proposal ID). This preserves reviewability without blocking hotfixes.
+
+---
+
+## Merge commit message convention (R-5)
+
+Use a **prefix** so `git log --oneline` distinguishes sync noise from promotion work:
+
+| Prefix | When |
+|--------|------|
+| `merge(sync): …` | Catching up **peer** `master-*` (Rule C-1). |
+| `merge(integration): …` | Merging **from** `master-antigravity` (or L1 staging) **into** a team hub **after** L1 stabilization—*promotion prep*, not routine peer drift. |
+| `merge(main): …` | Refreshing your hub **from** `origin/main` to align with production. |
+
+---
+
+*Derived from [`docs/critique/COLLABORATION_REGULATION_CRITIQUE_2026-04-16.md`](../critique/COLLABORATION_REGULATION_CRITIQUE_2026-04-16.md) recommendations R-1, R-3, R-4, R-5.*
