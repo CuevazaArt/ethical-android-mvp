@@ -2,6 +2,7 @@
 
 For merge-conflict replay artifacts paired with a ``lan_governance`` export, see
 ``scripts/eval/verify_lan_governance_replay_sidecar.py`` (replay sidecar, DJ-BL-15).
+For a single expected anchor hex vs ledger file, see ``scripts/eval/compare_audit_ledger_anchor.py`` (DJ-BL-17).
 """
 
 from __future__ import annotations

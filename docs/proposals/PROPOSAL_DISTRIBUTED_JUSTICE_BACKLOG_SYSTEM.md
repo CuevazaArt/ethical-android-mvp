@@ -41,6 +41,8 @@ Current registry (aligned with contribution guide §3):
 | **DJ-BL-13** | Multi-node coordinator message (`lan_governance_coordinator_v1`) | **Done** — aggregates multiple `lan_governance_envelope_v1` payloads with fingerprint sort + dedupe; WebSocket key ``lan_governance_coordinator`` in [`src/chat_server.py`](../../src/chat_server.py); contract in [`src/modules/lan_governance_coordinator.py`](../../src/modules/lan_governance_coordinator.py). |
 | **DJ-BL-14** | LAN merge conflict taxonomy (`same_turn`, `different_clock`, `stale_event`) | **Done** — pure merge diagnostics in [`src/modules/lan_governance_conflict_taxonomy.py`](../../src/modules/lan_governance_conflict_taxonomy.py); wired into LAN batch handlers in [`src/chat_server.py`](../../src/chat_server.py); proposal [`PROPOSAL_LAN_GOVERNANCE_CONFLICT_TAXONOMY.md`](PROPOSAL_LAN_GOVERNANCE_CONFLICT_TAXONOMY.md). |
 | **DJ-BL-15** | Replay sidecar + cross-session hint (non-consensus) | **Done** — [`src/modules/lan_governance_replay_sidecar.py`](../../src/modules/lan_governance_replay_sidecar.py), [`src/modules/lan_governance_merge_context.py`](../../src/modules/lan_governance_merge_context.py), [`scripts/eval/verify_lan_governance_replay_sidecar.py`](../../scripts/eval/verify_lan_governance_replay_sidecar.py); proposals [`PROPOSAL_LAN_GOVERNANCE_REPLAY_SIDECAR.md`](PROPOSAL_LAN_GOVERNANCE_REPLAY_SIDECAR.md), [`PROPOSAL_LAN_GOVERNANCE_CROSS_SESSION_HINT.md`](PROPOSAL_LAN_GOVERNANCE_CROSS_SESSION_HINT.md). |
+| **DJ-BL-16** | Frontier witnesses (advisory aggregate) | **Done** — `merge_context.frontier_witnesses` in [`src/modules/lan_governance_merge_context.py`](../../src/modules/lan_governance_merge_context.py); proposal [`PROPOSAL_LAN_GOVERNANCE_FRONTIER_WITNESS.md`](PROPOSAL_LAN_GOVERNANCE_FRONTIER_WITNESS.md). |
+| **DJ-BL-17** | Audit ledger vs expected anchor hex (Phase 3 stub CLI) | **Done** — [`scripts/eval/compare_audit_ledger_anchor.py`](../../scripts/eval/compare_audit_ledger_anchor.py). |
 
 Update this table when an ID changes state or when new IDs are added.
 
@@ -84,3 +86,4 @@ Use in PR descriptions and proposal edits (not a database):
 - **2026-04-15:** DJ-BL-13 done — `lan_governance_coordinator_v1` multi-envelope hub message.
 - **2026-04-15:** DJ-BL-14 done — LAN batch `event_conflicts` taxonomy + optional `merge_context.frontier_turn`.
 - **2026-04-16:** DJ-BL-15 done — replay sidecar builder/CLI + `cross_session_hint` echo (non-consensus).
+- **2026-04-16:** DJ-BL-16 done — frontier witness aggregation; DJ-BL-17 — anchor compare CLI.

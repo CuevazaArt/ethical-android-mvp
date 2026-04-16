@@ -6,6 +6,11 @@ Optional ``merge_context`` on LAN batch payloads: local frontier + cross-session
 ``cross_session_hint`` is **validated for shape only** and echoed back for operator / hub logs.
 The kernel does **not** treat it as replicated consensus or quorum enforcement — see
 ``docs/proposals/PROPOSAL_LAN_GOVERNANCE_CROSS_SESSION_HINT.md``.
+
+``frontier_witnesses`` is a list of peer **claims** (observed max turn per session id). The kernel
+aggregates them deterministically (dedupe by claimant, max turn, sort) and echoes
+``frontier_witness_resolution`` with ``evidence_posture=advisory_aggregate_not_quorum`` — see
+``docs/proposals/PROPOSAL_LAN_GOVERNANCE_FRONTIER_WITNESS.md``.
 """
 
 from __future__ import annotations
@@ -16,8 +21,11 @@ from dataclasses import dataclass
 from typing import Any
 
 LAN_GOVERNANCE_CROSS_SESSION_HINT_SCHEMA_V1 = "lan_governance_cross_session_hint_v1"
+LAN_GOVERNANCE_FRONTIER_WITNESS_SCHEMA_V1 = "lan_governance_frontier_witness_v1"
 MAX_CROSS_SESSION_PARTICIPANTS = 32
 MAX_CROSS_SESSION_STRING = 200
+MAX_FRONTIER_WITNESSES = 16
+EVIDENCE_POSTURE_ADVISORY_AGGREGATE = "advisory_aggregate_not_quorum"
 
 
 def _coerce_non_negative_int(value: object) -> int:
@@ -86,10 +94,78 @@ def normalize_cross_session_hint(raw: object) -> tuple[dict[str, Any] | None, st
     return out, None
 
 
+def normalize_frontier_witness(raw: object) -> tuple[dict[str, Any] | None, str | None]:
+    """Validate one ``merge_context.frontier_witnesses[]`` entry."""
+    if not isinstance(raw, Mapping):
+        return None, "expected_object"
+
+    schema = str(raw.get("schema") or "").strip()
+    if schema != LAN_GOVERNANCE_FRONTIER_WITNESS_SCHEMA_V1:
+        return None, "unsupported_schema"
+
+    claimant = str(raw.get("claimant_session_id") or "").strip()
+    if not claimant:
+        return None, "missing_claimant_session_id"
+
+    omt = _coerce_non_negative_int(raw.get("observed_max_turn"))
+    return {
+        "schema": LAN_GOVERNANCE_FRONTIER_WITNESS_SCHEMA_V1,
+        "claimant_session_id": claimant[:MAX_CROSS_SESSION_STRING],
+        "observed_max_turn": omt,
+    }, None
+
+
+def aggregate_frontier_witnesses(
+    raw_list: object,
+    warnings: list[str],
+) -> tuple[tuple[dict[str, Any], ...], int | None]:
+    """
+    Dedupe by ``claimant_session_id`` (keep max ``observed_max_turn``), sort by id, compute advisory max.
+    """
+    if raw_list is None:
+        return (), None
+    if not isinstance(raw_list, list):
+        warnings.append("frontier_witnesses_not_list")
+        return (), None
+
+    items = raw_list
+    if len(items) > MAX_FRONTIER_WITNESSES:
+        warnings.append(f"frontier_witnesses_truncated:{len(items)}")
+        items = items[:MAX_FRONTIER_WITNESSES]
+
+    by_claimant: dict[str, int] = {}
+    for idx, item in enumerate(items):
+        norm_w, err = normalize_frontier_witness(item)
+        if err is not None:
+            warnings.append(f"frontier_witness_rejected:{idx}:{err}")
+            continue
+        assert norm_w is not None
+        cid = str(norm_w["claimant_session_id"])
+        turn = int(norm_w["observed_max_turn"])
+        prev = by_claimant.get(cid, -1)
+        if turn > prev:
+            by_claimant[cid] = turn
+
+    if not by_claimant:
+        return (), None
+
+    rows = tuple(
+        {
+            "schema": LAN_GOVERNANCE_FRONTIER_WITNESS_SCHEMA_V1,
+            "claimant_session_id": cid,
+            "observed_max_turn": turn,
+        }
+        for cid, turn in sorted(by_claimant.items(), key=lambda x: x[0])
+    )
+    return rows, max(by_claimant.values())
+
+
 @dataclass(frozen=True)
 class LanMergeContextParsed:
     frontier_turn: int | None
     cross_session_hint: dict[str, Any] | None
+    frontier_witnesses: tuple[dict[str, Any], ...]
+    witness_advisory_max_turn: int | None
     warnings: tuple[str, ...]
 
 
@@ -101,7 +177,7 @@ def parse_lan_merge_context(batch_obj: Mapping[str, Any]) -> LanMergeContextPars
     """
     mc = batch_obj.get("merge_context")
     if not isinstance(mc, dict):
-        return LanMergeContextParsed(None, None, ())
+        return LanMergeContextParsed(None, None, (), None, ())
 
     warnings: list[str] = []
     ft: int | None = None
@@ -116,4 +192,6 @@ def parse_lan_merge_context(batch_obj: Mapping[str, Any]) -> LanMergeContextPars
         else:
             hint = h
 
-    return LanMergeContextParsed(ft, hint, tuple(warnings))
+    witnesses, adv_max = aggregate_frontier_witnesses(mc.get("frontier_witnesses"), warnings)
+
+    return LanMergeContextParsed(ft, hint, witnesses, adv_max, tuple(warnings))

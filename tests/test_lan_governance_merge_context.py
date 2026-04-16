@@ -7,6 +7,7 @@ sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
 
 from src.modules.lan_governance_merge_context import (
     LAN_GOVERNANCE_CROSS_SESSION_HINT_SCHEMA_V1,
+    LAN_GOVERNANCE_FRONTIER_WITNESS_SCHEMA_V1,
     normalize_cross_session_hint,
     parse_lan_merge_context,
 )
@@ -64,4 +65,57 @@ def test_parse_merge_context_valid_hint() -> None:
         }
     )
     assert p.cross_session_hint is not None
+    assert p.frontier_witnesses == ()
     assert p.warnings == ()
+
+
+def test_frontier_witnesses_dedupe_by_claimant_max_turn() -> None:
+    p = parse_lan_merge_context(
+        {
+            "merge_context": {
+                "frontier_witnesses": [
+                    {
+                        "schema": LAN_GOVERNANCE_FRONTIER_WITNESS_SCHEMA_V1,
+                        "claimant_session_id": "b",
+                        "observed_max_turn": 3,
+                    },
+                    {
+                        "schema": LAN_GOVERNANCE_FRONTIER_WITNESS_SCHEMA_V1,
+                        "claimant_session_id": "b",
+                        "observed_max_turn": 7,
+                    },
+                    {
+                        "schema": LAN_GOVERNANCE_FRONTIER_WITNESS_SCHEMA_V1,
+                        "claimant_session_id": "a",
+                        "observed_max_turn": 5,
+                    },
+                ],
+            }
+        }
+    )
+    assert len(p.frontier_witnesses) == 2
+    assert p.frontier_witnesses[0]["claimant_session_id"] == "a"
+    assert p.frontier_witnesses[0]["observed_max_turn"] == 5
+    assert p.frontier_witnesses[1]["claimant_session_id"] == "b"
+    assert p.frontier_witnesses[1]["observed_max_turn"] == 7
+    assert p.witness_advisory_max_turn == 7
+
+
+def test_frontier_witnesses_invalid_entry_warns() -> None:
+    p = parse_lan_merge_context(
+        {
+            "merge_context": {
+                "frontier_witnesses": [
+                    {"schema": "bad", "claimant_session_id": "x", "observed_max_turn": 1},
+                    {
+                        "schema": LAN_GOVERNANCE_FRONTIER_WITNESS_SCHEMA_V1,
+                        "claimant_session_id": "ok",
+                        "observed_max_turn": 2,
+                    },
+                ],
+            }
+        }
+    )
+    assert len(p.frontier_witnesses) == 1
+    assert p.frontier_witnesses[0]["claimant_session_id"] == "ok"
+    assert any("frontier_witness_rejected" in w for w in p.warnings)

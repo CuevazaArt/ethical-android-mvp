@@ -40,7 +40,7 @@ These items extend the **“Pending gaps”** list in [`PROPOSAL_DAO_BLOCKCHAIN_
 | ID | Item | Notes |
 |----|------|--------|
 | **DJ-BL-01** | **Replay / ledger checker (Phase 1)** — Fingerprint of canonical audit-export JSON; CLI compare. | **Done** — [`mock_dao_audit_replay.py`](../../src/modules/mock_dao_audit_replay.py), [`scripts/eval/verify_mock_dao_audit_replay.py`](../../scripts/eval/verify_mock_dao_audit_replay.py). |
-| **DJ-BL-02** | **LAN reorder / duplicate (Phase 2)** — Idempotent merge of out-of-order or duplicated governance events. | **Done:** merge helper + WebSocket ``lan_governance_integrity_batch`` ([`chat_server.py`](../../src/chat_server.py); ``KERNEL_LAN_GOVERNANCE_MERGE_WS`` + ``KERNEL_DAO_INTEGRITY_AUDIT_WS``). DAO/judicial batch kinds still future work. |
+| **DJ-BL-02** | **LAN reorder / duplicate (Phase 2)** — Idempotent merge of out-of-order or duplicated governance events. | **Done:** merge helper + WebSocket LAN batches (integrity, DAO, judicial, mock court) + envelope/coordinator paths ([`chat_server.py`](../../src/chat_server.py); ``KERNEL_LAN_GOVERNANCE_MERGE_WS`` and per-feature gates). |
 | **DJ-BL-03** | **Operator runbook slice** — Short subsection in [`OPERATOR_QUICK_REF.md`](OPERATOR_QUICK_REF.md): “sync degraded, local-safe mode” (`KERNEL_TEMPORAL_*`, judicial JSON still present). | **Done** |
 | **DJ-BL-04** | **Contract matrix** — Which `master-*` branches own which JSON keys (`judicial_escalation`, `mock_court`, `temporal_sync`). | **Done** — [`PROPOSAL_DISTRIBUTED_JUSTICE_CONTRACT_MATRIX.md`](PROPOSAL_DISTRIBUTED_JUSTICE_CONTRACT_MATRIX.md) |
 | **DJ-BL-05** | **LAN DAO batch** — deterministic apply of `dao_vote` / `dao_resolve` under reorder/duplicate delivery. | **Done** — ``lan_governance_dao_batch`` + stress convergence (`tests/test_chat_server.py`). |
@@ -54,6 +54,8 @@ These items extend the **“Pending gaps”** list in [`PROPOSAL_DAO_BLOCKCHAIN_
 | **DJ-BL-13** | **Multi-node coordinator envelope** — one WebSocket frame carries N peer envelopes; deterministic apply order. | **Done** — `lan_governance_coordinator` + `lan_governance_coordinator_v1` (`src/modules/lan_governance_coordinator.py`, `src/chat_server.py`, `tests/test_lan_governance_coordinator.py`, `tests/test_chat_server.py`). |
 | **DJ-BL-14** | **LAN merge conflict taxonomy** — machine-parseable `event_conflicts` for multi-node merge (`same_turn`, `different_clock`, `stale_event`). | **Done** — `src/modules/lan_governance_conflict_taxonomy.py`, LAN batches in `src/chat_server.py`, `tests/test_lan_governance_conflict_taxonomy.py`, `tests/test_chat_server.py`; [`PROPOSAL_LAN_GOVERNANCE_CONFLICT_TAXONOMY.md`](PROPOSAL_LAN_GOVERNANCE_CONFLICT_TAXONOMY.md). |
 | **DJ-BL-15** | **Replay sidecar + cross-session hint** — fingerprint merge diagnostics JSON; optional `merge_context.cross_session_hint` (echo only, not quorum). | **Done** — `src/modules/lan_governance_replay_sidecar.py`, `src/modules/lan_governance_merge_context.py`, `scripts/eval/verify_lan_governance_replay_sidecar.py`, tests; [`PROPOSAL_LAN_GOVERNANCE_REPLAY_SIDECAR.md`](PROPOSAL_LAN_GOVERNANCE_REPLAY_SIDECAR.md), [`PROPOSAL_LAN_GOVERNANCE_CROSS_SESSION_HINT.md`](PROPOSAL_LAN_GOVERNANCE_CROSS_SESSION_HINT.md). |
+| **DJ-BL-16** | **Frontier witnesses** — advisory aggregate of peer `observed_max_turn` claims in one batch (not quorum). | **Done** — `merge_context.frontier_witnesses` + `frontier_witness_resolution` echo; [`PROPOSAL_LAN_GOVERNANCE_FRONTIER_WITNESS.md`](PROPOSAL_LAN_GOVERNANCE_FRONTIER_WITNESS.md). |
+| **DJ-BL-17** | **Anchor compare CLI (Phase 3 stub)** — exit code compares audit ledger JSON to expected fingerprint hex. | **Done** — [`scripts/eval/compare_audit_ledger_anchor.py`](../../scripts/eval/compare_audit_ledger_anchor.py), tests. |
 
 Contributors should pick **one** item per PR when possible; link **`CHANGELOG.md`** when operator-visible behavior or JSON contracts change.
 
@@ -96,3 +98,4 @@ Contributors should pick **one** item per PR when possible; link **`CHANGELOG.md
 - **2026-04-15:** DJ-BL-13 done — multi-envelope coordinator WebSocket contract.
 - **2026-04-15:** DJ-BL-14 done — LAN merge conflict taxonomy + optional merge frontier.
 - **2026-04-16:** DJ-BL-15 done — replay sidecar + cross-session hint channel.
+- **2026-04-16:** DJ-BL-16 done — frontier witness aggregation echo; DJ-BL-17 — `compare_audit_ledger_anchor.py`; DJ-BL-02 table text corrected.

@@ -554,6 +554,48 @@ def test_websocket_lan_governance_integrity_batch_cross_session_hint_echo(monkey
     assert hint.get("quorum_ref") == "opaque-run-id"
 
 
+def test_websocket_lan_governance_integrity_batch_frontier_witnesses_echo(monkeypatch):
+    monkeypatch.setenv("KERNEL_DAO_INTEGRITY_AUDIT_WS", "1")
+    monkeypatch.setenv("KERNEL_LAN_GOVERNANCE_MERGE_WS", "1")
+    payload = {
+        "lan_governance_integrity_batch": {
+            "merge_context": {
+                "frontier_witnesses": [
+                    {
+                        "schema": "lan_governance_frontier_witness_v1",
+                        "claimant_session_id": "peer-a",
+                        "observed_max_turn": 4,
+                    },
+                    {
+                        "schema": "lan_governance_frontier_witness_v1",
+                        "claimant_session_id": "peer-b",
+                        "observed_max_turn": 9,
+                    },
+                ],
+            },
+            "events": [
+                {
+                    "event_id": "fw1",
+                    "turn_index": 9,
+                    "processor_elapsed_ms": 0,
+                    "summary": "witness test",
+                    "scope": "s",
+                },
+            ],
+        },
+    }
+    with client.websocket_connect("/ws/chat") as ws:
+        ws.send_json(payload)
+        data = ws.receive_json()
+    batch = data.get("lan_governance", {}).get("integrity_batch", {})
+    assert batch.get("ok") is True
+    echo = batch.get("merge_context_echo") or {}
+    res = echo.get("frontier_witness_resolution") or {}
+    assert res.get("evidence_posture") == "advisory_aggregate_not_quorum"
+    assert res.get("advisory_max_observed_turn") == 9
+    assert len(res.get("witnesses") or []) == 2
+
+
 def test_websocket_lan_governance_integrity_batch_cross_session_invalid_hint_warns(monkeypatch):
     monkeypatch.setenv("KERNEL_DAO_INTEGRITY_AUDIT_WS", "1")
     monkeypatch.setenv("KERNEL_LAN_GOVERNANCE_MERGE_WS", "1")

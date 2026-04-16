@@ -152,6 +152,7 @@ from .modules.lan_governance_envelope import (
 )
 from .modules.lan_governance_event_merge import merge_lan_governance_events_detailed
 from .modules.lan_governance_merge_context import (
+    EVIDENCE_POSTURE_ADVISORY_AGGREGATE,
     LanMergeContextParsed,
     parse_lan_merge_context,
 )
@@ -398,6 +399,12 @@ def _attach_merge_context_telemetry(
         echo["frontier_turn"] = mctx.frontier_turn
     if mctx.cross_session_hint is not None:
         echo["cross_session_hint"] = dict(mctx.cross_session_hint)
+    if mctx.frontier_witnesses:
+        echo["frontier_witness_resolution"] = {
+            "witnesses": [dict(w) for w in mctx.frontier_witnesses],
+            "advisory_max_observed_turn": mctx.witness_advisory_max_turn,
+            "evidence_posture": EVIDENCE_POSTURE_ADVISORY_AGGREGATE,
+        }
     if echo:
         batch_body["merge_context_echo"] = echo
 
@@ -961,6 +968,8 @@ def _collect_lan_governance_integrity_batch(
       - ``frontier_turn`` (non-negative int): rows with lower ``turn_index`` become ``stale_event``.
       - ``cross_session_hint`` (`lan_governance_cross_session_hint_v1`): echoed only; not consensus
         (see ``PROPOSAL_LAN_GOVERNANCE_CROSS_SESSION_HINT``).
+      - ``frontier_witnesses`` (array): peer claims aggregated into ``frontier_witness_resolution``;
+        not quorum (see ``PROPOSAL_LAN_GOVERNANCE_FRONTIER_WITNESS``).
     Each event needs ``summary``; optional ``scope``, ``principled_transparency``; merge keys per
     :func:`~src.modules.lan_governance_event_merge.merge_lan_governance_events_detailed`.
     """

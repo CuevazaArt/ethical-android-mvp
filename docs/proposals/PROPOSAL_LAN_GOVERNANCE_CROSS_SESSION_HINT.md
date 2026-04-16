@@ -29,10 +29,13 @@ The runtime:
 
 True **cross-session quorum** (replicated frontier, membership proofs, split-brain policy) is **out of scope** for this hint. Future work must add explicit contracts and tests; this field is a **carrying channel** for operator-visible claims only.
 
+For **advisory** multi-claim aggregation of `observed_max_turn` (still not quorum), see [`PROPOSAL_LAN_GOVERNANCE_FRONTIER_WITNESS.md`](PROPOSAL_LAN_GOVERNANCE_FRONTIER_WITNESS.md).
+
 ## Related
 
 - [`PROPOSAL_LAN_GOVERNANCE_CONFLICT_TAXONOMY.md`](PROPOSAL_LAN_GOVERNANCE_CONFLICT_TAXONOMY.md)  
 - [`PROPOSAL_LAN_GOVERNANCE_REPLAY_SIDECAR.md`](PROPOSAL_LAN_GOVERNANCE_REPLAY_SIDECAR.md)  
+- [`PROPOSAL_LAN_GOVERNANCE_FRONTIER_WITNESS.md`](PROPOSAL_LAN_GOVERNANCE_FRONTIER_WITNESS.md)  
 - [`PROPOSAL_DAO_BLOCKCHAIN_DISTRIBUTED_JUSTICE_STAGED_EXECUTION.md`](PROPOSAL_DAO_BLOCKCHAIN_DISTRIBUTED_JUSTICE_STAGED_EXECUTION.md)
 
 ## Changelog

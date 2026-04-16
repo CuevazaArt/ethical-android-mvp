@@ -39,6 +39,8 @@ The kernel chat server exposes **GET** endpoints returning JSON (or Prometheus t
 - **LAN coordinator (DJ-BL-13):** ``lan_governance_coordinator`` (`schema=lan_governance_coordinator_v1`) carries an `items` array of inner ``lan_governance_envelope_v1`` objects; responses include `lan_governance.coordinator` with per-item apply results. When inner batches report merge conflicts (DJ-BL-14), the coordinator may add `aggregated_event_conflicts`. Multiple LAN keys in one message shallow-merge under `lan_governance`.
 - **LAN merge conflict taxonomy (DJ-BL-14):** integrity/DAO/judicial/mock-court LAN batches accept optional `merge_context` (`frontier_turn`, `cross_session_hint`) and may return `event_conflicts` with `kind` in {`same_turn`, `different_clock`, `stale_event`}, plus optional `merge_context_echo` / `merge_context_warnings` — [`PROPOSAL_LAN_GOVERNANCE_CONFLICT_TAXONOMY.md`](PROPOSAL_LAN_GOVERNANCE_CONFLICT_TAXONOMY.md), [`PROPOSAL_LAN_GOVERNANCE_CROSS_SESSION_HINT.md`](PROPOSAL_LAN_GOVERNANCE_CROSS_SESSION_HINT.md).
 - **Replay sidecar (DJ-BL-15):** operators can build `lan_governance_replay_sidecar_v1` JSON from saved `lan_governance` fragments and fingerprint/compare via [`scripts/eval/verify_lan_governance_replay_sidecar.py`](../../scripts/eval/verify_lan_governance_replay_sidecar.py) — [`PROPOSAL_LAN_GOVERNANCE_REPLAY_SIDECAR.md`](PROPOSAL_LAN_GOVERNANCE_REPLAY_SIDECAR.md).
+- **Frontier witnesses (DJ-BL-16):** optional `merge_context.frontier_witnesses` produces `merge_context_echo.frontier_witness_resolution` (`advisory_aggregate_not_quorum`) — [`PROPOSAL_LAN_GOVERNANCE_FRONTIER_WITNESS.md`](PROPOSAL_LAN_GOVERNANCE_FRONTIER_WITNESS.md).
+- **Anchor compare (DJ-BL-17):** [`scripts/eval/compare_audit_ledger_anchor.py`](../../scripts/eval/compare_audit_ledger_anchor.py) for checkpoint-style ledger vs expected fingerprint.
 
 ---
 
@@ -62,3 +64,4 @@ The kernel chat server exposes **GET** endpoints returning JSON (or Prometheus t
 - **2026-04-15:** LAN batch `event_conflicts` + `merge_context` note (DJ-BL-14).
 - **2026-04-15:** Coordinator `aggregated_event_conflicts` note (DJ-BL-14 follow-up).
 - **2026-04-16:** `merge_context` cross-session hint + replay sidecar CLI (DJ-BL-15).
+- **2026-04-16:** Frontier witnesses + `compare_audit_ledger_anchor.py` (DJ-BL-16 / DJ-BL-17).
