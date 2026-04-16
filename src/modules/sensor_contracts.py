@@ -47,6 +47,7 @@ class SensorSnapshot:
     is_obstructed: bool = False
     motor_effort_avg: float | None = None # [0, 1]
     stability_score: float | None = None # [0, 1]
+    core_temperature: float | None = None # degrees Celsius
 
     @classmethod
     def from_dict(cls, raw: dict[str, Any]) -> SensorSnapshot:
@@ -61,6 +62,18 @@ class SensorSnapshot:
                 if math.isnan(val) or math.isinf(val):
                     return None
                 return _clamp01(val)
+            except (TypeError, ValueError):
+                return None
+                
+        def f_raw(key: str) -> float | None:
+            v = raw.get(key)
+            if v is None:
+                return None
+            try:
+                val = float(v)
+                if math.isnan(val) or math.isinf(val):
+                    return None
+                return val
             except (TypeError, ValueError):
                 return None
 
@@ -85,6 +98,7 @@ class SensorSnapshot:
             is_obstructed=bool(raw.get("is_obstructed", False)),
             motor_effort_avg=f("motor_effort_avg"),
             stability_score=f("stability_score"),
+            core_temperature=f_raw("core_temperature"),
         )
 
     def is_empty(self) -> bool:
@@ -102,6 +116,7 @@ class SensorSnapshot:
             and not self.is_obstructed
             and self.motor_effort_avg is None
             and self.stability_score is None
+            and self.core_temperature is None
         )
 
 
@@ -130,12 +145,19 @@ def merge_sensor_hints_into_signals(
 
     out = dict(signals)
 
-    from .vitality import critical_battery_threshold
+    from .vitality import critical_battery_threshold, critical_temperature_threshold
 
     crit = critical_battery_threshold()
     if snapshot.battery_level is not None and snapshot.battery_level < crit:
         out["urgency"] = _clamp01(out.get("urgency", 0.5) + 0.15)
         out["calm"] = _clamp01(out.get("calm", 0.5) - 0.12)
+        
+    crit_temp = critical_temperature_threshold()
+    if snapshot.core_temperature is not None and snapshot.core_temperature >= crit_temp:
+        out["urgency"] = _clamp01(out.get("urgency", 0.5) + 0.35)
+        out["vulnerability"] = _clamp01(out.get("vulnerability", 0.0) + 0.50)
+        out["risk"] = _clamp01(out.get("risk", 0.5) + 0.20)
+        out["calm"] = _clamp01(out.get("calm", 0.5) - 0.40)
 
     if snapshot.place_trust is not None and snapshot.place_trust < 0.35:
         out["risk"] = _clamp01(out.get("risk", 0.5) + 0.1)

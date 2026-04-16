@@ -22,7 +22,7 @@
 | `lan_governance_judicial_batch` | Yes (when `KERNEL_JUDICIAL_ESCALATION=1` **and** `KERNEL_LAN_GOVERNANCE_MERGE_WS=1`) | Merge + register escalation dossiers on audit ledger; same merge diagnostics |
 | `lan_governance_mock_court_batch` | Yes (when `KERNEL_JUDICIAL_ESCALATION=1`, `KERNEL_JUDICIAL_MOCK_COURT=1` **and** `KERNEL_LAN_GOVERNANCE_MERGE_WS=1`) | Merge + run mock court on dossiers; same merge diagnostics |
 | `lan_governance_envelope` | Yes (schema `lan_governance_envelope_v1`) | Versioned coordinator envelope; routes `kind` → batch handler |
-| `lan_governance_coordinator` | Yes (schema `lan_governance_coordinator_v1`, when `KERNEL_LAN_GOVERNANCE_MERGE_WS=1`) | Hub message: multiple inner envelopes; fingerprint sort + dedupe; applies each in order; optional `aggregated_event_conflicts` when inner batches emit merge conflicts |
+| `lan_governance_coordinator` | Yes (schema `lan_governance_coordinator_v1`, when `KERNEL_LAN_GOVERNANCE_MERGE_WS=1`) | Hub message: multiple inner envelopes; fingerprint sort + dedupe; applies each in order; optional `aggregated_event_conflicts` and `aggregated_frontier_witness_resolutions` when inner batches emit those diagnostics |
 | `constitution` (in-message snapshot) | Optional (`KERNEL_CHAT_INCLUDE_*`) | Hub stack |
 
 ---
@@ -68,3 +68,4 @@ Update this section when a cross-team integration gate run documents verified pa
 - **2026-04-15:** Coordinator row — optional `aggregated_event_conflicts` when inner batches report merge conflicts.
 - **2026-04-16:** LAN batch rows — `merge_context_echo` / `merge_context_warnings` / cross-session hint; replay sidecar module + CLI (DJ-BL-15).
 - **2026-04-16:** `merge_context.frontier_witnesses` + anchor compare CLI (DJ-BL-16 / DJ-BL-17).
+- **2026-04-16:** Coordinator row — `aggregated_frontier_witness_resolutions` (hub flatten of inner witness echoes).

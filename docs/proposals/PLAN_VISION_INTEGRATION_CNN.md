@@ -22,9 +22,9 @@ Cualquier participante (Antigravity, Cursor, Humanos) que ingrese a este sprint 
 | Bloque | Descripción | Estado | Responsable | Notas |
 | :--- | :--- | :--- | :--- | :--- |
 | **B1: Contrato de Adaptador** | Definir `VisionAdapter` (base) en `src/modules/` | **COMPLETADO** | Antigravity | Definiendo interfaz de entrada/salida. |
-| **B2: Inferencia CNN** | Implementación de `MobileNetV2` con `torchvision`. | **PENDIENTE** | HUÉRFANO | Implementar lógica de inferencia y pesos preentrenados. |
+| **B2: Inferencia CNN** | Implementación de `MobileNetV2` con `torchvision`. | **COMPLETADO** | Antigravity | Implementado con fallback para entornos sin torch. |
 | **B3: Mapeo de Señales** | Traducir etiquetas de ImageNet a señales (`risk`, `vulnerability`). | **COMPLETADO** | Antigravity | Construir traductor ético para pipeline visual. |
-| **B4: Captura de Video** | Interface OpenCV con la cámara física del robot (loop de frames). | **PENDIENTE** | HUÉRFANO | Manejar desconexión de cámara. |
+| **B4: Captura de Video** | Interface OpenCV con la cámara física del robot (loop de frames). | **COMPLETADO** | Antigravity | Interfaz no bloqueante con hilos. |
 | **B5: Integración Kernel** | Inyectar señales de visión en `EthicalKernel.process_natural`. | **COMPLETADO** | Antigravity | Sincronización de hilos necesaria. |
 | **B6: Pilot Validation** | Test experimental en el entorno del robot. | **COMPLETADO** | Antigravity | Validar contra `scenarios.json` 20/21. |
 
@@ -45,4 +45,5 @@ Cualquier participante (Antigravity, Cursor, Humanos) que ingrese a este sprint 
 - **2026-04-15:** El equipo **master-pycharm** adopta el bloque **B4** para construir el pipeline de captura de video con OpenCV.
 - **2026-04-15:** Antigravity adopta y completa el bloque **B5**. El `EthicalKernel` ahora inyecta inferencias visuales (`VisionInference`) combinadas con el procesamiento natural.
 - **2026-04-15:** Antigravity completa el bloque **B6**. Validación situada exitosa con fusión multimodal (Visión + Audio) confirmada vía `scripts/run_vision_pilot_validation.py`.
-- **2026-04-15:** El equipo **master-pycharm** se retira indefinidamente sin pusher cambios. Los bloques **B2** y **B4** quedan **HUÉRFANOS**.
+- **2026-04-15:** El equipo **master-pycharm** se retira. Antigravity retoma los bloques **B2** y **B4**, completando la implementación de `MobileNetV2` y el pipeline de captura con OpenCV.
+

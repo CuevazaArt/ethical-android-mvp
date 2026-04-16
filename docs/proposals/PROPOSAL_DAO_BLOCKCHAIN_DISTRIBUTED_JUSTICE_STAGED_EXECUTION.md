@@ -95,6 +95,8 @@ Deliverables:
 - verification utility: local ledger -> hash -> on-chain anchor comparison
 - explicit docs: chain anchor is integrity witness, not policy executor
 
+**Note:** Full **proposal/vote state replay** and proof-grade BFT / replicated frontier work remain under *Pending gaps* below; Phase 3 is checkpoint anchoring and comparison utilities, not end-to-end governance state reconstruction.
+
 Acceptance:
 
 - successful anchor verification on test network
@@ -111,6 +113,15 @@ Deliverables:
   - replay verification report
   - security/threat review summary
 - minimum reviewer policy: at least one reviewer from another `master-*` team line
+
+**Release checklist template (DJ-BL-18):** copy for RC notes or CI attachments.
+
+- [ ] **Contract compatibility** — link or summarize verification against [`PROPOSAL_DISTRIBUTED_JUSTICE_CONTRACT_MATRIX.md`](PROPOSAL_DISTRIBUTED_JUSTICE_CONTRACT_MATRIX.md) for consuming `master-*` lines.
+- [ ] **Replay verification** — artifacts or logs from [`scripts/eval/verify_mock_dao_audit_replay.py`](../../scripts/eval/verify_mock_dao_audit_replay.py); optional [`scripts/eval/compare_audit_ledger_anchor.py`](../../scripts/eval/compare_audit_ledger_anchor.py) and [`scripts/eval/verify_lan_governance_replay_sidecar.py`](../../scripts/eval/verify_lan_governance_replay_sidecar.py) when LAN governance paths ship.
+- [ ] **Security / threat review** — short summary; no credibility claims beyond [`TRANSPARENCY_AND_LIMITS.md`](../TRANSPARENCY_AND_LIMITS.md).
+- [ ] **Cross-team review** — at least one reviewer outside the authoring `master-*` line when changing governance JSON contracts.
+
+Operator pointers: [`OPERATOR_QUICK_REF.md`](OPERATOR_QUICK_REF.md) (*LAN governance batch merge* / *Anchor checkpoint CLI*).
 
 Acceptance:
 
@@ -158,12 +169,8 @@ Expected behavior:
 
 ## Pending gaps to close while waiting for other teams
 
-1. Add replay-state checker script for governance events. **Addressed (2026-04-15):** audit ledger fingerprint + [`scripts/eval/verify_mock_dao_audit_replay.py`](../../scripts/eval/verify_mock_dao_audit_replay.py) (DJ-BL-01); full proposal/vote state replay is **not** in scope for this slice.
-2. Add LAN duplicate/reorder simulation tests for DAO+judicial payloads. **Partial (2026-04-15):** deterministic merge helper + WebSocket ``lan_governance_integrity_batch`` (integrity alerts) + ``lan_governance_dao_batch`` (DAO vote/resolve) + ``lan_governance_judicial_batch`` (dossier registrations) + ``lan_governance_mock_court_batch`` (tribunal runs) with stress test coverage; versioned envelope ``lan_governance_envelope_v1`` routes by batch kind and now emits deterministic ACK/replay fingerprints (`fingerprint`, `audit_ledger_fingerprint`), stable idempotency token (`idempotency_token`), reject taxonomy (`ack`, `reject_reason`), per-session duplicate replay detection (`ack=already_seen`), bounded replay-cache telemetry (`cache.hit`, totals, TTL/LRU settings), Prometheus counters for replay-cache events when `KERNEL_METRICS=1` (`ethos_kernel_lan_envelope_replay_cache_events_total`), and a **hub coordinator** message ``lan_governance_coordinator`` (`schema=lan_governance_coordinator_v1`) that carries multiple envelopes with fingerprint sort/dedupe before apply. **Merge conflict taxonomy (2026-04-15, DJ-BL-14):** per-session batch merge emits optional `event_conflicts` for `same_turn`, `different_clock`, and `stale_event` (see [`PROPOSAL_LAN_GOVERNANCE_CONFLICT_TAXONOMY.md`](PROPOSAL_LAN_GOVERNANCE_CONFLICT_TAXONOMY.md)); optional `merge_context.frontier_turn` marks below-frontier rows as stale. **Replay sidecar + cross-session hint (2026-04-16, DJ-BL-15):** operators can fingerprint saved `lan_governance` merge diagnostics (`lan_governance_replay_sidecar_v1`, CLI `scripts/eval/verify_lan_governance_replay_sidecar.py`); optional `merge_context.cross_session_hint` is echoed for hubs but **does not** implement quorum (see [`PROPOSAL_LAN_GOVERNANCE_REPLAY_SIDECAR.md`](PROPOSAL_LAN_GOVERNANCE_REPLAY_SIDECAR.md), [`PROPOSAL_LAN_GOVERNANCE_CROSS_SESSION_HINT.md`](PROPOSAL_LAN_GOVERNANCE_CROSS_SESSION_HINT.md)).
-
-**Frontier witnesses (2026-04-16, DJ-BL-16):** optional `merge_context.frontier_witnesses` yields an **advisory** `frontier_witness_resolution` (`advisory_aggregate_not_quorum`) — [`PROPOSAL_LAN_GOVERNANCE_FRONTIER_WITNESS.md`](PROPOSAL_LAN_GOVERNANCE_FRONTIER_WITNESS.md). This is **not** BFT quorum or a replicated frontier contract.
-
-**Phase 3 anchor stub (2026-04-16, DJ-BL-17):** [`scripts/eval/compare_audit_ledger_anchor.py`](../../scripts/eval/compare_audit_ledger_anchor.py) compares a ledger export fingerprint to an expected hex (no chain RPC). On-chain anchoring and **proof-grade** cross-session consensus remain future work.
+1. Add replay-state checker script for governance events. **Addressed (2026-04-15):** audit ledger fingerprint + [`scripts/eval/verify_mock_dao_audit_replay.py`](../../scripts/eval/verify_mock_dao_audit_replay.py) (DJ-BL-01); optional checkpoint compare: [`scripts/eval/compare_audit_ledger_anchor.py`](../../scripts/eval/compare_audit_ledger_anchor.py) (DJ-BL-17). **Remaining:** full proposal/vote **state** replay (beyond audit row fingerprint) is **not** in this slice.
+2. Add LAN duplicate/reorder simulation tests for DAO+judicial payloads. **Addressed (2026-04-15 — 2026-04-16):** deterministic merge + WebSocket LAN batches (integrity, DAO, judicial, mock court) + stress tests; ``lan_governance_envelope_v1`` + replay cache + metrics; ``lan_governance_coordinator`` with ``aggregated_event_conflicts`` and ``aggregated_frontier_witness_resolutions``; merge conflict taxonomy (DJ-BL-14); replay sidecar CLI (DJ-BL-15); cross-session hint + frontier witnesses (DJ-BL-16); see contract matrix and [`PROPOSAL_DISTRIBUTED_JUSTICE_CONTRIBUTIONS.md`](PROPOSAL_DISTRIBUTED_JUSTICE_CONTRIBUTIONS.md). **Remaining:** on-chain anchoring, chain RPC verification, and **proof-grade** BFT / replicated frontier — explicit future work.
 3. Add one operator runbook page for "sync degraded but safe-local mode." **Addressed (2026-04-15):** subsection *Sync degraded — local-safe mode (DJ-BL-03)* in [`OPERATOR_QUICK_REF.md`](OPERATOR_QUICK_REF.md) (not a standalone page; cross-linked from backlog system).
 4. Add contract compatibility matrix between `master-Cursor`, `master-claude`, and `master-antigravity`. **Addressed (2026-04-15):** [`PROPOSAL_DISTRIBUTED_JUSTICE_CONTRACT_MATRIX.md`](PROPOSAL_DISTRIBUTED_JUSTICE_CONTRACT_MATRIX.md) (honest “unknown” for other lines until verified at merge).
 

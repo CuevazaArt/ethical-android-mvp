@@ -34,6 +34,21 @@ def critical_battery_threshold() -> float:
         return 0.05
 
 
+def critical_temperature_threshold() -> float:
+    """
+    Above this temperature (°C), somatic tension is treated as **critically high**.
+
+    Env: ``KERNEL_VITALITY_CRITICAL_TEMP`` (default ``80.0``).
+    """
+    raw = os.environ.get("KERNEL_VITALITY_CRITICAL_TEMP", "").strip()
+    if not raw:
+        return 80.0
+    try:
+        return float(raw)
+    except (TypeError, ValueError):
+        return 80.0
+
+
 @dataclass(frozen=True)
 class VitalityAssessment:
     """Snapshot of vitality relevant to one chat turn."""
@@ -41,6 +56,11 @@ class VitalityAssessment:
     battery_level: float | None
     critical_threshold: float
     is_critical: bool
+    
+    # Phase 8: Somatic Infrastructure
+    core_temperature: float | None
+    temperature_threshold: float
+    thermal_critical: bool
 
     def to_public_dict(self) -> dict:
         return {
@@ -48,27 +68,50 @@ class VitalityAssessment:
             "critical_threshold": self.critical_threshold,
             "is_critical": self.is_critical,
             "battery_unknown": self.battery_level is None,
+            "core_temperature": self.core_temperature,
+            "thermal_critical": self.thermal_critical,
         }
 
 
 def assess_vitality(snapshot: SensorSnapshot | None) -> VitalityAssessment:
-    """Derive vitality from sensor snapshot (battery only in MVP)."""
+    """Derive vitality from sensor snapshot (battery & thermal)."""
 
-    t = critical_battery_threshold()
+    t_bat = critical_battery_threshold()
+    t_temp = critical_temperature_threshold()
+    
     if snapshot is None:
-        return VitalityAssessment(None, t, False)
+        return VitalityAssessment(None, t_bat, False, None, t_temp, False)
+        
     b = snapshot.battery_level
-    if b is None:
-        return VitalityAssessment(None, t, False)
-    return VitalityAssessment(b, t, b < t)
+    is_bat_critical = False if b is None else (b < t_bat)
+    
+    temp = snapshot.core_temperature
+    is_temp_critical = False if temp is None else (temp >= t_temp)
+    
+    return VitalityAssessment(
+        battery_level=b, 
+        critical_threshold=t_bat, 
+        is_critical=is_bat_critical,
+        core_temperature=temp,
+        temperature_threshold=t_temp,
+        thermal_critical=is_temp_critical
+    )
 
 
 def vitality_communication_hint(assessment: VitalityAssessment) -> str:
-    """Optional line for LLM weakness context when battery is critical."""
+    """Optional line for LLM weakness context when resources are critical."""
 
-    if not assessment.is_critical:
-        return ""
-    return (
-        "Operational vitality is critically low; prioritize essential stewardship and "
-        "honest limits on commitments until power is secured."
-    )
+    hints = []
+    if assessment.is_critical:
+        hints.append(
+            "Operational vitality (battery) is critically low; prioritize essential stewardship and "
+            "honest limits on commitments until power is secured."
+        )
+        
+    if assessment.thermal_critical:
+        hints.append(
+            "My internal core temperature is critically high (thermal tension). I must prioritize rapid "
+            "cooldown, minimize complex cognitive loads, and restrict physical exertion."
+        )
+
+    return " ".join(hints)

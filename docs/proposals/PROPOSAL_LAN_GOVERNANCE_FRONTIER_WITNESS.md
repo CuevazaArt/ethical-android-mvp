@@ -17,6 +17,8 @@
 
 This is **not** a quorum proof, BFT vote, or replicated consensus. It does **not** change merge behavior unless the operator also sets `merge_context.frontier_turn` (local stale detection). Hubs may use the advisory field for logging, dashboards, or **manual** policy only.
 
+The **hub coordinator** (``lan_governance_coordinator``) may flatten inner-batch ``frontier_witness_resolution`` values into ``aggregated_frontier_witness_resolutions`` with ``source_batch``, ``envelope_fingerprint``, and ``envelope_idempotency_token`` (same correlation pattern as ``aggregated_event_conflicts``).
+
 ## Schema (`lan_governance_frontier_witness_v1`)
 
 | Field | Required | Notes |

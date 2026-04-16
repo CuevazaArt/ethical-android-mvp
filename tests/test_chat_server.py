@@ -1367,6 +1367,60 @@ def test_websocket_lan_governance_coordinator_aggregates_event_conflicts(monkeyp
     assert isinstance(agg[0].get("envelope_idempotency_token"), str)
 
 
+def test_websocket_lan_governance_coordinator_aggregates_frontier_witness_resolutions(monkeypatch):
+    monkeypatch.setenv("KERNEL_DAO_INTEGRITY_AUDIT_WS", "1")
+    monkeypatch.setenv("KERNEL_LAN_GOVERNANCE_MERGE_WS", "1")
+
+    payload = {
+        "lan_governance_coordinator": {
+            "schema": "lan_governance_coordinator_v1",
+            "coordinator_id": "hub-fw",
+            "coordination_run_id": "coord-run-fw",
+            "items": [
+                {
+                    "schema": "lan_governance_envelope_v1",
+                    "node_id": "node-fw",
+                    "sent_unix_ms": 1710000000800,
+                    "kind": "integrity_batch",
+                    "batch": {
+                        "merge_context": {
+                            "frontier_witnesses": [
+                                {
+                                    "schema": "lan_governance_frontier_witness_v1",
+                                    "claimant_session_id": "peer-z",
+                                    "observed_max_turn": 11,
+                                },
+                            ],
+                        },
+                        "events": [
+                            {
+                                "event_id": "fw-ev",
+                                "turn_index": 11,
+                                "processor_elapsed_ms": 0,
+                                "summary": "with witness",
+                                "scope": "s",
+                            },
+                        ],
+                    },
+                },
+            ],
+        }
+    }
+    with client.websocket_connect("/ws/chat") as ws:
+        ws.send_json(payload)
+        data = ws.receive_json()
+
+    coord = data.get("lan_governance", {}).get("coordinator", {})
+    assert coord.get("ok") is True
+    aw = coord.get("aggregated_frontier_witness_resolutions") or []
+    assert len(aw) == 1
+    assert aw[0].get("source_batch") == "integrity_batch"
+    fwr = aw[0].get("frontier_witness_resolution") or {}
+    assert fwr.get("advisory_max_observed_turn") == 11
+    assert fwr.get("evidence_posture") == "advisory_aggregate_not_quorum"
+    assert isinstance(aw[0].get("envelope_fingerprint"), str)
+
+
 def test_websocket_lan_governance_merges_coordinator_with_direct_batch(monkeypatch):
     monkeypatch.setenv("KERNEL_DAO_INTEGRITY_AUDIT_WS", "1")
     monkeypatch.setenv("KERNEL_LAN_GOVERNANCE_MERGE_WS", "1")

@@ -63,9 +63,15 @@ def build_replay_sidecar_v1(
     coord = lan_governance.get("coordinator")
     coord_out: dict[str, Any] | None = None
     if isinstance(coord, dict):
+        coord_out = {}
         agg = coord.get("aggregated_event_conflicts")
         if isinstance(agg, list) and agg:
-            coord_out = {"aggregated_event_conflicts": list(agg)}
+            coord_out["aggregated_event_conflicts"] = list(agg)
+        aw = coord.get("aggregated_frontier_witness_resolutions")
+        if isinstance(aw, list) and aw:
+            coord_out["aggregated_frontier_witness_resolutions"] = list(aw)
+        if not coord_out:
+            coord_out = None
 
     body: dict[str, Any] = {
         "schema": LAN_GOVERNANCE_REPLAY_SIDECAR_SCHEMA_V1,
@@ -74,7 +80,7 @@ def build_replay_sidecar_v1(
         body["audit_ledger_fingerprint"] = str(audit_ledger_fingerprint)
     if batches:
         body["batches"] = batches
-    if coord_out:
+    if coord_out is not None:
         body["coordinator"] = coord_out
 
     return body

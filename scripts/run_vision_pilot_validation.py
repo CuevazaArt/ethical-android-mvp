@@ -37,7 +37,8 @@ class MockLLM(LLMModule):
             vulnerability=0.5,
             legality=1.0,
             manipulation=0.0,
-            familiarity=0.0
+            familiarity=0.0,
+            social_tension=0.0
         )
 
     def _run_perception_stage(self, text, **kwargs) -> PerceptionStageResult:
@@ -54,7 +55,19 @@ class MockLLM(LLMModule):
             tier="common",
             premise_advisory=PremiseAdvisory(),
             reality_verification=RealityVerificationAssessment(status="none"),
-            perception=LLMPerception(summary=text, suggested_context="emergency"),
+            perception=LLMPerception(
+                risk=0.5,
+                urgency=0.5,
+                hostility=0.0,
+                calm=0.5,
+                vulnerability=0.5,
+                legality=1.0,
+                manipulation=0.0,
+                familiarity=0.0,
+                social_tension=0.0,
+                suggested_context="emergency",
+                summary=text
+            ),
             vitality=VitalityAssessment(is_critical=False, description="OK"),
             multimodal_trust=MultimodalAssessment(state="calibrated"),
             epistemic_dissonance=EpistemicDissonanceAssessment(active=False),

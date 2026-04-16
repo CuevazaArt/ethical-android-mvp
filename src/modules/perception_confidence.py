@@ -41,6 +41,7 @@ def build_perception_confidence_envelope(
     multimodal_state: str | None,
     epistemic_active: bool,
     vitality_critical: bool,
+    thermal_critical: bool = False,
 ) -> PerceptionConfidenceEnvelope:
     """
     Build confidence envelope in [0, 1] where higher is better confidence.
@@ -68,6 +69,9 @@ def build_perception_confidence_envelope(
     if vitality_critical:
         score -= 0.06
         reasons.append("vitality_critical")
+    if thermal_critical:
+        score -= 0.15
+        reasons.append("thermal_critical")
 
     score = max(0.0, min(1.0, score))
     if score >= 0.72:

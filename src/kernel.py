@@ -1780,6 +1780,7 @@ class EthicalKernel:
             multimodal_state=getattr(mm, "state", None),
             epistemic_active=bool(getattr(ed, "active", False)),
             vitality_critical=bool(getattr(vitality, "is_critical", False)),
+            thermal_critical=bool(getattr(vitality, "thermal_critical", False)),
         )
         limbic = self._build_limbic_perception_profile(
             perception=perception,
@@ -1859,6 +1860,7 @@ class EthicalKernel:
                 multimodal_state=getattr(mm_blk, "state", None),
                 epistemic_active=bool(getattr(ed_blk, "active", False)),
                 vitality_critical=bool(getattr(vitality_blk, "is_critical", False)),
+                thermal_critical=bool(getattr(vitality_blk, "thermal_critical", False)),
             )
             msg = (
                 "I can't continue this line of conversation: it conflicts with non-negotiable "

@@ -24,6 +24,12 @@ def test_build_sidecar_and_fingerprint_stable() -> None:
         },
         "coordinator": {
             "aggregated_event_conflicts": [{"kind": "stale_event", "event_id": "y"}],
+            "aggregated_frontier_witness_resolutions": [
+                {
+                    "source_batch": "integrity_batch",
+                    "frontier_witness_resolution": {"advisory_max_observed_turn": 3},
+                }
+            ],
         },
     }
     s = build_replay_sidecar_v1(audit_ledger_fingerprint="abc", lan_governance=lg)

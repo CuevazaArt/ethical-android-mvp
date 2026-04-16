@@ -4,6 +4,25 @@ All notable changes to this project are summarized here. For narrative context a
 
 **Note:** Older sections below may still **link** to paths that were later removed (for example `experiments/million_sim/`, `docs/multimedia/`, root `dashboard.html`, `landing/`). Those links are **historical**; recover files from git history or backup branches if you need them.
 
+## Antigravity — Validation Pulse & Somatic-Vision Integration — April 2026
+
+### Antigravity Team Updates
+- **Integration Hub:** Successfully executed the **Integration Pulse** between `master-antigravity`, `master-Cursor`, and `master-claude`. Consolidated **LAN Governance** (frontier witness, replay sidecar) with **Situated Vision** and **Somatic Infrastructure**.
+- **Somatic Infrastructure (Module S5):** Fully implemented the Somatic Profile integration. The kernel is now aware of its hardware vitals, specifically `core_temperature`.
+  - Added `VitalityAssessment` logic for thermal thresholding (`KERNEL_VITALITY_CRITICAL_TEMP`).
+  - Implemented automatic precision-degraded perception confidence (-0.15) and ethical nudges (urgency +0.35, vulnerability +0.50) when thermal critical state is detected.
+- **Situated Computational Vision (Module B2 & B4):**
+  - **B2 (CNN Inference):** Completed the implementation of `MobileNetV2` using `torchvision`. Supports ImageNet label extraction with a fallback mock mode for low-resource environments.
+  - **B4 (Video Capture):** Implemented a non-blocking `VideoCaptureInterface` in `src/modules/vision_capture.py` that handles real-time camera frames in a background thread using OpenCV.
+- **LAN Governance & Audit:**
+  - Verified stability of the decentralized governance replay sidecar and coordinator. All 31 tests passed.
+  - Hardened the `DAOOrchestrator` bridge by proxying the `emit_solidarity_alert` contract.
+- **Tests & Validation:**
+  - Created `tests/test_somatic_profile.py` for thermal regression testing.
+  - Fixed outdated `LLMPerception` schema in `scripts/run_vision_pilot_validation.py`.
+  - Verified end-to-end multimodal fusion (Vision + Audio) in situated scenarios.
+- **Stabilization Window:** Decreed a **Feature Freeze** on `master-antigravity` prior to the `main` promotion rito.
+
 ## Antigravity — Cybersecurity Consolidation & Integration Pulse — April 2026
 
 ### Antigravity Team Updates
@@ -116,7 +135,10 @@ All notable changes to this project are summarized here. For narrative context a
 - **Swarm Consensus:** Implemented Trust Nudges (I7) and Solidarity Alerts in `MockDAO`.
 ## Distributed justice — Frontier witnesses + anchor compare CLI (DJ-BL-16 / DJ-BL-17) — April 2026
 
+- **Phase 4 / safe path (DJ-BL-18):** release checklist template under Phase 4 in [`docs/proposals/PROPOSAL_DAO_BLOCKCHAIN_DISTRIBUTED_JUSTICE_STAGED_EXECUTION.md`](docs/proposals/PROPOSAL_DAO_BLOCKCHAIN_DISTRIBUTED_JUSTICE_STAGED_EXECUTION.md); expanded **Anchor checkpoint CLI** operator notes (exit codes, no chain RPC, mismatch handling) and coordinator `aggregated_frontier_witness_resolutions` pointer in [`docs/proposals/OPERATOR_QUICK_REF.md`](docs/proposals/OPERATOR_QUICK_REF.md).
+
 - **Frontier witnesses:** optional `merge_context.frontier_witnesses` (`lan_governance_frontier_witness_v1`) aggregated deterministically; batch responses echo `merge_context_echo.frontier_witness_resolution` with `evidence_posture=advisory_aggregate_not_quorum` — [`src/modules/lan_governance_merge_context.py`](src/modules/lan_governance_merge_context.py), [`docs/proposals/PROPOSAL_LAN_GOVERNANCE_FRONTIER_WITNESS.md`](docs/proposals/PROPOSAL_LAN_GOVERNANCE_FRONTIER_WITNESS.md).
+- **Coordinator:** `lan_governance.coordinator` now also aggregates `aggregated_frontier_witness_resolutions` from inner-batch `merge_context_echo.frontier_witness_resolution` (alongside `aggregated_event_conflicts`); the LAN governance replay sidecar includes the coordinator slice when present — [`src/chat_server.py`](src/chat_server.py), [`src/modules/lan_governance_replay_sidecar.py`](src/modules/lan_governance_replay_sidecar.py).
 - **Phase 3 stub:** [`scripts/eval/compare_audit_ledger_anchor.py`](scripts/eval/compare_audit_ledger_anchor.py) exits 0 when audit ledger JSON fingerprint matches expected 64-char hex ([`tests/test_compare_audit_ledger_anchor.py`](tests/test_compare_audit_ledger_anchor.py)).
 - **Docs:** operator quick ref, contract matrix, HTTP surface, staged execution proposal, contributions/backlog (DJ-BL-02 row corrected).
 
