@@ -1,12 +1,30 @@
 # Árbol de Distribución de Trabajo: Escalado a Infraestructura Pública (DAO, Cognición y Sociabilidad)
 
-Este documento estructura el inmenso volumen de trabajo arquitectónico definido en las fases de **DAO Híbrida**, **Cognición Profunda** y **Sociabilidad Encarnada**. El trabajo se divide en módulos secuenciales y se asigna a los diferentes equipos (Tiers) según las reglas de gobernanza del repositorio (`AGENTS.md`).
+Este documento estructura el inmenso volumen de trabajo arquitectónico definido. El trabajo se divide en módulos secuenciales y se asigna a los diferentes equipos (Tiers) según las reglas de gobernanza del repositorio (`AGENTS.md`).
+
+> [!IMPORTANT]
+> **Nueva Directiva Estratégica (Abril 2026 - Aprobación L0)**:
+> 1. **Balance de Esfuerzo:** Reducir la creación y mantenimiento exhaustivo de tests al **25%** del esfuerzo total. Concentrar el **75%** del tiempo en la **resolución práctica de problemas, eliminación de vulnerabilidades y funcionalidades concretas**.
+> 2. **Erradicación de Deuda Técnica Monolítica:** Prioridad absoluta a la desmonolitización de `kernel.py` para resolver cuellos de botella asíncronos y agotamiento de worker pools, migrando las tareas de red a flujos cooperativos nativos.
 
 ---
 
 ## 🌳 Árbol de Distribución de Módulos (Blocks Tree)
 
-### 🔴 Módulo 1: Infraestructura DAO Híbrida y Gobernanza On-Chain
+### ⚪ Módulo 0: Estabilización Pragmática y Reducción de Deuda (Nuevo P0/P1)
+*Responsabilidad: Nivel 1 (Antigravity)*
+*Objetivo: Mitigar vulnerabilidades operacionales, desmonolitizar componentes críticos y lograr paridad de operaciones/tests enfocado en funcionalidad práctica.*
+
+- **Bloque 0.1: Desmonolitización y Abstracción de `kernel.py` (Prioridad Absoluta)**
+  - Tarea 0.1.1: **Solución Práctica a E/S Sincrónica:** Migrar el pipeline de inferencia HTTP de LLMs (`httpx` sincrónico dentro del hilo worker) hacia clientes cooperativos asíncronos (`httpx.AsyncClient`).
+  - Tarea 0.1.2: **Cancelación Cooperativa (Task Cancellation):** Implementar la cancelación transparente de tareas de red pendientes cuando el loop asíncrono se venza (`KERNEL_CHAT_TURN_TIMEOUT`), liberando inmediatamente memoria y slots en el Worker Pool.
+  - Tarea 0.1.3: Extraer la `Perception` y la lógica de ruteo ético del objeto `EthicalKernel` gigante hacia handlers aislados que aprovechen el Async I/O en lugar de abusar de `run_in_threadpool`.
+- **Bloque 0.2: Fiabilidad Funcional (El 25% de Pruebas)**
+  - Tarea 0.2.1: Orientar CI no solo a correr tests rápidos (con semántica apagada) sino a correr escenarios que verifiquen las mitigaciones aplicadas en *producción* (ej. `KERNEL_SEMANTIC_CHAT_GATE=1` y Fallbacks globales funcionales).
+- **Bloque 0.3: Integridad Documental**
+  - Tarea 0.3.1: Detener la especulación y establecer la verdad. Sincronizar discrepancias (Aceptar que encriptaciones pasadas ya ocurren como se afirma en `json_store.py`).
+
+### 🔴 Módulo 1: Infraestructura DAO Híbrida (Simulación Local Mock)
 *Responsabilidad: Nivel 1 (Antigravity / Claude)*
 *Dependencias: Ninguna (Core Backend)*
 
@@ -20,9 +38,9 @@ Este documento estructura el inmenso volumen de trabajo arquitectónico definido
 - **Bloque 1.3: Smart Contracts (Solidity Mocks) [DONE]**
   - Tarea 1.3.1: Configurar contratos de Treasury, Appeal y Governance Tokens (Solo stubs iniciales en la carpeta `contracts/`). (Implementados `Treasury.sol`, `EthicalAppeal.sol`, `EthosToken.sol`)
 
-### 🟡 Módulo 2: Simulador, Red-Teaming y Validación (Entregable C)
+### 🟡 Módulo 2: Simulador, Red-Teaming y Validación Funcional (Entregable C)
 *Responsabilidad: Nivel 2 (Team Cursor / Team VisualStudio)*
-*Dependencias: Dependiente de que la arquitectura Mock DAO esté estable.*
+*Dependencias: Dependiente de que la arquitectura Mock DAO (Simulada) esté estable.*
 
 - **Bloque 2.1: Expansión de YAML Scenarios [DONE]**
   - Tarea 2.1.1: Escribir las configuraciones YAML para los escenarios B, C, D y E. (Implementado `somatic_distress_and_learning.yaml`).
@@ -76,9 +94,10 @@ Este documento estructura el inmenso volumen de trabajo arquitectónico definido
 - **Bloque 6.4: Higiene y Mantenimiento (Misión Copilot) [DONE]**
   - Tarea 6.4.1: Auditoría continua de coherencia de mergeos, limpieza de .gitignore y optimización de CI/CD mocks. (Realizado por Antigravity).
 
-### 🟠 Módulo 7: Justicia Restaurativa y Compensación Swarm (R-Blocks)
+### 🟠 Módulo 7: Justicia Restaurativa y Compensación Swarm (Arquitectura Base Simulada)
 *Responsabilidad: Nivel 1 (Antigravity)*
 *Dependencias: Módulo 6 (Swarm Consensus) y Módulo 1 (DAO Token stubs).*
+*Nota:* Este módulo establece la estandarización local; la descentralización P2P criptográfica requerirá una futura fase o boundary remote, no prevista para este pull request atómico.
 
 - **Bloque 7.1: Moneda de Reparación (EthosToken Integration)**
   - Tarea 7.1.1: Vincular los resultados del voto Swarm (M6.2) con transferencias de `EthosToken` (simuladas) para compensar a los usuarios afectados por negligencia sensorial.

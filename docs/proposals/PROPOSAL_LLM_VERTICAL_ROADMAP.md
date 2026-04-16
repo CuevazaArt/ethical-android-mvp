@@ -41,11 +41,14 @@ This proposal **justifies** a phased roadmap and records **evidence posture**: i
 
 **Done when:** Tests assert the contract for each verbal path used in CI ([`tests/test_llm_verbal_backend_policy.py`](../../tests/test_llm_verbal_backend_policy.py)).
 
-### Phase 3 — Async deadline observability (G-05 partial)
+### Phase 3 — Cancellation Cooperativa y Desmonolitización de I/S (G-05 P0)
 
-**Goal:** When `KERNEL_CHAT_TURN_TIMEOUT` elapses, increment a **Prometheus counter** (opt-in `KERNEL_METRICS=1`) so operators can alert on “async waiter gave up / worker may still run” separately from end-to-end turn histograms.
+**Goal:** Resolver el cuello de botella sincrónico en `kernel.py`. Cuando `KERNEL_CHAT_TURN_TIMEOUT` expire, no solo incrementar la métrica, sino ejecutar una **cancelación cooperativa HTTP real**. Esto implica migrar el I/O de inferencia desde `httpx` sincrónico dentro del hilo worker a `httpx.AsyncClient` gestionado de forma nativa por el event loop, interrumpiendo proactivamente la sobrecarga de inferencia local/remota.
 
-**Done when:** Metric documented in [`OPERATOR_QUICK_REF.md`](OPERATOR_QUICK_REF.md); no claim of cooperative HTTP cancel.
+**Done when:**
+- El Worker Pool no se satura por conexiones inferencia zombis después del timeout.
+- Abstracción de Handlers de red asíncronos fuera del objeto `EthicalKernel` monolítico.
+- Documentado en [`OPERATOR_QUICK_REF.md`](OPERATOR_QUICK_REF.md).
 
 ### Phase 4 — Lexical → semantic → perception chain
 
