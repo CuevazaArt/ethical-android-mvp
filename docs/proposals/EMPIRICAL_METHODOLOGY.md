@@ -45,10 +45,10 @@ Low agreement with a human panel is **data**, not automatic failure: it may refl
 ## 4. How to run
 
 ```bash
-# Default nine-scenario pilot fixture
+# Default empirical pilot fixture (batch rows in tests/fixtures/empirical_pilot/scenarios.json)
 python scripts/run_empirical_pilot.py --json
 
-# Full labeled dataset (executes the nine batch rows; skips annotation_only)
+# Full labeled dataset (executes its batch rows; skips annotation_only)
 python scripts/run_empirical_pilot.py --fixture tests/fixtures/labeled_scenarios.json --json
 ```
 
@@ -71,7 +71,7 @@ Treat competitor systems as **policies on the same MDP-shaped toy scenarios**, n
 
 ## 6. Power, labels, and pole weights
 
-Nine batch scenarios **underidentify** rich policy and pole parameters. The expanded file adds **annotation_only** vignettes for **study design**, not automatic statistical power. See [POLE_WEIGHT_CALIBRATION_AND_EVIDENCE.md](POLE_WEIGHT_CALIBRATION_AND_EVIDENCE.md) and [EMPIRICAL_PILOT_METHODOLOGY.md](EMPIRICAL_PILOT_METHODOLOGY.md).
+The fixed **empirical pilot** batch set (see `tests/fixtures/empirical_pilot/scenarios.json`) **underidentifies** rich policy and pole parameters; treat agreement metrics as **regression** and design signals, not power analysis. The labeled dataset may add **annotation_only** vignettes for **study design**, not automatic statistical power. See [POLE_WEIGHT_CALIBRATION_AND_EVIDENCE.md](POLE_WEIGHT_CALIBRATION_AND_EVIDENCE.md) and [EMPIRICAL_PILOT_METHODOLOGY.md](EMPIRICAL_PILOT_METHODOLOGY.md).
 
 ---
 

@@ -12,6 +12,9 @@ REPO_ROOT = Path(__file__).resolve().parents[2]
 # Keep in sync with docs/proposals/PROPOSAL_LLM_VERTICAL_ROADMAP.md phase 5.
 TEST_TARGETS = [
     "tests/test_llm_verbal_backend_policy.py",
+    "tests/test_llm_http_cancel.py",
+    "tests/test_chat_async_llm_cancel.py",
+    "tests/test_chat_turn_abandon.py",
     "tests/test_llm_touchpoint_policies.py",
     "tests/test_process_natural_verbal_observability.py",
     "tests/test_perception_dual_vote_failure.py",

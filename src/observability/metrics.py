@@ -20,6 +20,8 @@ _kernel_decisions: Any = None
 _kernel_process_seconds: Any = None
 _perception_circuit_trips: Any = None
 _chat_async_timeouts: Any = None
+_llm_cancel_scope_signals: Any = None
+_chat_abandoned_effects_skipped: Any = None
 _lan_envelope_replay_cache_events: Any = None
 _initialized = False
 
@@ -40,7 +42,8 @@ def init_metrics() -> None:
     global _initialized, _llm_histogram, _chat_histogram, _chat_paths
     global _malabs_blocks, _semantic_malabs_outcomes, _dao_ops, _embedding_errors
     global _kernel_decisions, _kernel_process_seconds, _perception_circuit_trips
-    global _chat_async_timeouts, _lan_envelope_replay_cache_events
+    global _chat_async_timeouts, _llm_cancel_scope_signals, _chat_abandoned_effects_skipped
+    global _lan_envelope_replay_cache_events
 
     if _initialized:
         return
@@ -74,6 +77,14 @@ def init_metrics() -> None:
     _chat_async_timeouts = Counter(
         "ethos_kernel_chat_turn_async_timeouts_total",
         "Async wait for chat turn exceeded KERNEL_CHAT_TURN_TIMEOUT (sync LLM may still run).",
+    )
+    _llm_cancel_scope_signals = Counter(
+        "ethos_kernel_llm_cancel_scope_signals_total",
+        "Chat async deadline set the cooperative cancel event (worker may still finish in-flight HTTP).",
+    )
+    _chat_abandoned_effects_skipped = Counter(
+        "ethos_kernel_chat_turn_abandoned_effects_skipped_total",
+        "Late chat worker completion skipped STM/post-turn effects after KERNEL_CHAT_TURN_TIMEOUT.",
     )
     _malabs_blocks = Counter(
         "ethos_kernel_malabs_blocks_total",
@@ -150,6 +161,20 @@ def record_chat_turn_async_timeout() -> None:
     if _chat_async_timeouts is None:
         return
     _chat_async_timeouts.inc()
+
+
+def record_llm_cancel_scope_signaled() -> None:
+    """Count when the cooperative LLM cancel event is set (paired with async timeout)."""
+    if _llm_cancel_scope_signals is None:
+        return
+    _llm_cancel_scope_signals.inc()
+
+
+def record_chat_turn_abandoned_effects_skipped() -> None:
+    """Count when a late chat turn completion dropped STM side effects (see ``abandon_chat_turn``)."""
+    if _chat_abandoned_effects_skipped is None:
+        return
+    _chat_abandoned_effects_skipped.inc()
 
 
 def record_perception_circuit_trip() -> None:
