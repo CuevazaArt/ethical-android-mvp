@@ -1,0 +1,15 @@
+{
+  "version": 1,
+  "routines": [
+    {
+      "id": "hydration",
+      "title": "Hydration breaks",
+      "hint": "Gently encourage short water breaks during long sessions; not medical advice."
+    },
+    {
+      "id": "screen_break",
+      "title": "Screen / posture pause",
+      "hint": "Suggest brief eyes-away moments; keep language light and non-judgmental."
+    }
+  ]
+}

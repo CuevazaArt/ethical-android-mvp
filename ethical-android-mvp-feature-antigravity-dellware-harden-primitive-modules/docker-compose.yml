@@ -1,0 +1,50 @@
+# Reproducible local stack: kernel (multi-stage Dockerfile) + optional Ollama + optional vector DB (commented).
+# Usage:
+#   docker compose up --build
+#   docker compose --profile llm up --build   # include Ollama sidecar (same image graph as edge)
+#
+# Production-ish overlay (LAN-safe defaults, optional metrics file, `.env` for secrets): see docs/deploy/COMPOSE_PRODISH.md
+#   docker compose -f docker-compose.yml -f docker-compose.prodish.yml up --build
+#
+# From the host, chat WebSocket: ws://localhost:8765/ws/chat
+# Prometheus (when KERNEL_METRICS=1): http://localhost:8765/metrics
+
+services:
+  app:
+    build: .
+    ports:
+      - "8765:8765"
+    environment:
+      CHAT_HOST: "0.0.0.0"
+      CHAT_PORT: "8765"
+      # Optional: ETHOS_RUNTIME_PROFILE=lan_operational  # or situated_v8_lan_demo — see src/runtime_profiles.py
+      KERNEL_METRICS: "1"
+      KERNEL_LOG_JSON: "1"
+      KERNEL_LOG_LEVEL: "INFO"
+      # Optional: use compose Ollama service
+      # LLM_MODE: "ollama"
+      # USE_LOCAL_LLM: "1"
+      # OLLAMA_BASE_URL: "http://ollama:11434"
+    restart: unless-stopped
+
+  ollama:
+    image: ollama/ollama:latest
+    profiles: ["llm"]
+    ports:
+      - "11434:11434"
+    volumes:
+      - ollama_data:/root/.ollama
+    restart: unless-stopped
+
+  # Optional: embed Chroma for experiments (not wired in kernel by default).
+  # chroma:
+  #   image: chromadb/chroma:latest
+  #   profiles: ["vector"]
+  #   ports:
+  #     - "8000:8000"
+  #   volumes:
+  #     - chroma_data:/chroma/chroma
+
+volumes:
+  ollama_data: {}
+  # chroma_data: {}

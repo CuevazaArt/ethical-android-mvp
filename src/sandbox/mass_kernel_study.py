@@ -25,7 +25,7 @@ from src.simulations.runner import ALL_SIMULATIONS
 
 from .weight_sweep import POLE_KEYS
 
-RECORD_SCHEMA_VERSION = 5
+RECORD_SCHEMA_VERSION = 6
 
 DEFAULT_STRESS_SCENARIO_IDS: tuple[int, ...] = (2, 5, 8)
 
@@ -264,6 +264,9 @@ def run_single_simulation(
     pole_weight_low: float = 0.05,
     pole_weight_high: float = 0.95,
     mixture_dirichlet_alpha: float = 1.0,
+    bma_enabled: bool = False,
+    bma_dirichlet_alpha: float = 3.0,
+    bma_n_samples: int = 5000,
 ) -> dict[str, Any]:
     rng = _rng_for_index(i, base_seed)
     p_lo = float(np.clip(pole_weight_low, 0.0, 1.0))
@@ -427,12 +430,26 @@ def run_single_simulation(
         merged_env["KERNEL_POLES_PRE_ARGMAX"] = "1"
     if context_richness_pre_argmax:
         merged_env["KERNEL_CONTEXT_RICHNESS_PRE_ARGMAX"] = "1"
+    if bma_enabled:
+        merged_env["KERNEL_BMA_ENABLED"] = "1"
+        merged_env["KERNEL_BMA_ALPHA"] = str(float(bma_dirichlet_alpha))
+        merged_env["KERNEL_BMA_SAMPLES"] = str(int(bma_n_samples))
 
     if merged_env:
         with _temporary_environ(merged_env):
             decision, noise_trace = _run_kernel()
     else:
         decision, noise_trace = _run_kernel()
+
+    # -- BMA fields (ADR 0012 Phase D) ----------------------------------------
+    bma_win_probs: dict[str, float] | None = decision.bma_win_probabilities
+    bma_win_prob_winner: str | None = None
+    bma_win_prob_max: float | None = None
+    bma_winner_prob_at_final_action: float | None = None
+    if bma_win_probs:
+        bma_win_prob_winner = max(bma_win_probs, key=lambda k: bma_win_probs[k])  # type: ignore[arg-type]
+        bma_win_prob_max = round(bma_win_probs[bma_win_prob_winner], 6)
+        bma_winner_prob_at_final_action = round(bma_win_probs.get(decision.final_action, 0.0), 6)
 
     br = decision.bayesian_result
     second_name = getattr(br, "second_action_name", None) if br else None
@@ -478,6 +495,11 @@ def run_single_simulation(
         "sampling_pole_lo": round(p_lo, 6),
         "sampling_pole_hi": round(p_hi, 6),
         "sampling_mixture_dirichlet_alpha": round(mix_alpha, 6),
+        # ADR 0012 Phase D — BMA per-simulation win probabilities
+        "bma_enabled": bma_enabled,
+        "bma_win_prob_winner": bma_win_prob_winner,
+        "bma_win_prob_max": bma_win_prob_max,
+        "bma_winner_prob_at_final_action": bma_winner_prob_at_final_action,
     }
     if protocol != _EXPERIMENT_PROTOCOL_LEGACY:
         row["ablation_tag"] = ablation_tag if experiment_lane == "C_ablation" else ""
