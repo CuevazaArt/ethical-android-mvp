@@ -39,6 +39,9 @@ import numpy as np
 if TYPE_CHECKING:
     from .narrative import NarrativeMemory
 
+# ADR 0016 C1 — Ethical tier classification
+__ethical_tier__ = "decision_core"
+
 # Default mixture hyperparameters (also used when episodic refresh is disabled or has no data).
 DEFAULT_HYPOTHESIS_WEIGHTS = np.array([0.4, 0.35, 0.25], dtype=np.float64)
 

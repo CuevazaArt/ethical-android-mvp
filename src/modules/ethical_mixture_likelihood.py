@@ -458,6 +458,8 @@ def calibrate_beta(
     beta_candidates: list[float] | None = None,
     n_samples: int = 10_000,
     rng: np.random.Generator | None = None,
+    sensitivity_bias: float = 0.0,
+    beta_ref: float = 10.0,
 ) -> tuple[float, dict[str, float]]:
     """
     Select the inverse temperature ``beta`` that maximizes the marginal
@@ -466,12 +468,29 @@ def calibrate_beta(
     This is **empirical Bayes** for the temperature parameter: beta is
     not given a prior but selected by evidence maximization.
 
+    Parameters
+    ----------
+    sensitivity_bias : float
+        Additive bonus applied to each candidate's score before selection::
+
+            adjusted = score + sensitivity_bias * log(beta / beta_ref)
+
+        A positive value biases the selector toward **higher beta** (more
+        decisive / sensitive softmax).  At ``sensitivity_bias=1.0`` a
+        candidate must be 1 nat worse in marginal-likelihood to be
+        preferred over a beta that is ``e`` times larger.  Use
+        ``sensitivity_bias=0.0`` for unbiased maximum-likelihood selection.
+    beta_ref : float
+        Reference point for the log penalty (default ``10.0``).  Betas
+        above the reference receive a positive bonus; betas below receive
+        a penalty.
+
     Returns
     -------
     best_beta : float
-        The beta with highest log-marginal-likelihood.
+        The beta with highest adjusted score.
     scores : dict
-        ``{beta: log P(D | beta)}`` for all candidates.
+        ``{beta: raw_log_marginal_likelihood}`` (before bias) for all candidates.
     """
     if rng is None:
         rng = np.random.default_rng(42)
@@ -487,7 +506,14 @@ def calibrate_beta(
         )
         scores[str(b)] = round(result.log_marginal_likelihood, 4)
 
-    best_key = max(scores, key=lambda k: scores[k])
+    if sensitivity_bias == 0.0:
+        best_key = max(scores, key=lambda k: scores[k])
+    else:
+        # Apply log-proportional bonus favoring higher beta
+        best_key = max(
+            scores,
+            key=lambda k: scores[k] + sensitivity_bias * math.log(float(k) / beta_ref),
+        )
     return float(best_key), scores
 
 

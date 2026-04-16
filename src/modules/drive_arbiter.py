@@ -13,6 +13,9 @@ from dataclasses import dataclass
 from typing import TYPE_CHECKING
 from .strategy_engine import MissionStatus
 
+# ADR 0016 C1 — Ethical tier classification
+__ethical_tier__ = "decision_core"
+
 if TYPE_CHECKING:
     pass  # EthicalKernel imported at runtime to avoid circular imports
 

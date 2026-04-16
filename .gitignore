@@ -55,6 +55,10 @@ Thumbs.db
 # Experiment outputs (large JSON/CSV/PNG; regenerate with scripts under experiments/)
 experiments/out/*
 !experiments/out/.gitignore
+!experiments/out/field/
+experiments/out/field/*
+!experiments/out/field/.gitignore
+!experiments/out/field/README.md
 
 # Misc
 get-pip.py

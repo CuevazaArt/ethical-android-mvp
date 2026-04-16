@@ -13,6 +13,9 @@ from typing import Protocol
 from .input_trust import normalize_text_for_malabs
 from .semantic_chat_gate import semantic_chat_gate_env_enabled
 
+# ADR 0016 C1 — Ethical tier classification
+__ethical_tier__ = "decision_core"
+
 
 class _TextBackend(Protocol):
     def complete(self, system: str, user: str) -> str: ...

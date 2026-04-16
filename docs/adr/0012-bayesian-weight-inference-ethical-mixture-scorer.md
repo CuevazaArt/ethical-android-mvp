@@ -1,6 +1,6 @@
 # ADR 0012 — Bayesian weight inference for the ethical mixture scorer
 
-**Status:** Accepted (Level 1–2 implemented; Level 3 future)  
+**Status:** Accepted (Levels 1–3 implemented; Phase D batch BMA + Phase F LOO calibration done)  
 **Date:** 2026-04-12  
 **Supersedes:** —  
 **Related:** [ADR 0009](0009-ethical-mixture-scorer-naming.md) (naming), [ADR 0010](0010-poles-pre-argmax-modulation.md) (poles pre-argmax), [ADR 0011](0011-context-richness-pre-argmax.md) (context richness), [`experiments/README.md`](../../experiments/README.md)
@@ -170,8 +170,9 @@ Level 2 learns a **global** posterior over weights from pooled feedback. Level 3
 | **Phase A** | Level 1 (BMA) | Done | `WeightedEthicsScorer` + `bayesian_mixture_averaging.py` |
 | **Phase B** | Level 2 (feedback) | Done | Phase A + feedback JSON + `feedback_mixture_posterior.py` / `feedback_mixture_updater.py` |
 | **Phase C** | Contradiction detection | Done | Phase B (`feedback_consistency`, joint MC metadata) |
-| **Phase D** | Integration with batch study drivers (e.g. `--bma` in `run_mass_kernel_study.py`) | Optional / future | Phase A |
+| **Phase D** | Integration with batch study drivers (`--bma-enabled` / `--bma-alpha` / `--bma-samples` in `run_mass_kernel_study.py`; `bma_win_prob_*` fields in JSONL rows; schema v6) | Done | Phase A |
 | **Phase E** | Level 3 (context posteriors + classifier) | Done (mixture_ranking) | Phase B + ``context_type`` in feedback JSON |
+| **Phase F** | LOO posterior predictive calibration diagnostic (`scripts/run_likelihood_calibration.py`) | Done | Phase B + explicit-triples feedback |
 
 ---
 
@@ -221,7 +222,9 @@ Level 2 learns a **global** posterior over weights from pooled feedback. Level 3
 | Kernel integration | `src/kernel.py` (`KernelDecision`, `EthicalKernel.process`) |
 | Offline posterior (no full kernel tick) | `scripts/run_feedback_posterior.py` |
 | Level 3 (context buckets + classifier) | `feedback_mixture_posterior.py` (`classify_mixture_context`, `load_and_apply_feedback` + `tick_context`) |
-| Tests | `tests/test_bma_mixture_adr0012.py`, `tests/test_feedback_mixture_updater.py`, `tests/test_context_mixture_level3.py` |
+| Phase D — BMA in batch study | `src/sandbox/mass_kernel_study.py` (`bma_enabled`, `bma_dirichlet_alpha`, `bma_n_samples` params; `bma_win_prob_*` row fields; schema v6); `scripts/run_mass_kernel_study.py` (`--bma-enabled`, `--bma-alpha`, `--bma-samples`) |
+| Phase F — LOO calibration | `scripts/run_likelihood_calibration.py` (leave-one-out predictive probability audit for explicit-triples feedback) |
+| Tests | `tests/test_bma_mixture_adr0012.py`, `tests/test_feedback_mixture_updater.py`, `tests/test_context_mixture_level3.py`, `tests/test_ethical_mixture_likelihood.py` |
 
 ---
 

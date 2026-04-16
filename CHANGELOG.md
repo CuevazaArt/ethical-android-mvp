@@ -62,6 +62,37 @@ All notable changes to this project are summarized here. For narrative context a
 - **Hardening Fixes**: Resolved a critical regression in `NarrativeMemory.register` signature (added missing `body_state`) to maintain kernel invariant compliance across the full test suite.
 - **Tests**: Created comprehensive verification suite [`tests/test_antigravity_hardening.py`](tests/test_antigravity_hardening.py); verified 61 fundamental ethical properties and hardening invariants pass.
 
+## Phase 2 — Semantic Vector Store Implementation & Integration — April 2026
+
+### Phase 2a: Vector Store Core
+- **Semantic Anchor Store (`src/modules/semantic_anchor_store.py`)**: Implemented persistent, pluggable storage for MalAbs semantic reference anchors. Supports in-memory (fast, ephemeral) and Chroma (persistent, scalable) backends via `KERNEL_SEMANTIC_VECTOR_BACKEND` environment variable. Enables operators to manage anchor phrases without redeploying code.
+- **Vector DB Backends**:
+  - **InMemorySemanticAnchorStore**: Fast O(1) upsert, O(n) similarity search; ideal for testing and stateless deployments.
+  - **ChromaSemanticAnchorStore**: Persistent Chroma collection with HNSW index; O(log n) search; scales to thousands of anchors.
+- **TTL & Expiry**: Both backends support anchor time-to-live (`KERNEL_SEMANTIC_ANCHOR_TTL_S`); automatic cleanup via `delete_expired()`.
+- **Tests**: Comprehensive test suite (`tests/test_semantic_anchor_store.py`) covers in-memory operations, TTL expiry, Chroma integration, and factory patterns.
+- **Documentation**: [`docs/SEMANTIC_ANCHOR_STORE_IMPLEMENTATION.md`](docs/SEMANTIC_ANCHOR_STORE_IMPLEMENTATION.md) details architecture, configuration, usage, and deployment patterns.
+- **Dependencies**: Added optional `chromadb>=0.4.0` to `requirements.txt` for persistent backend activation.
+
+### Phase 2b: SemanticChatGate Integration
+- **Integration (`src/modules/semantic_chat_gate.py`)**: Integrated `SemanticAnchorStore` into semantic MalAbs layer. Replaced hardcoded cache iteration with persistent store queries.
+  - Lazy initialization of store on first use (`_get_anchor_store()`)
+  - Preload hardcoded reference anchors on first store initialization
+  - `_best_similarity()` now queries persistent store; falls back to legacy in-process cache if store fails
+  - `add_semantic_anchor()` now stores anchors persistently; maintains legacy cache for backwards compatibility
+- **Tests**: Comprehensive integration suite (`tests/test_semantic_anchor_store_integration.py`) validates store initialization, anchor addition, gate behavior, and fallback logic.
+- **Backwards Compatibility**: Legacy in-process cache and `_runtime_anchors` list maintained during Phase 2b→Phase 3 transition. Can disable store via env or let it degrade gracefully on errors.
+
+## Phase 3 — Evaluation Pipelines & Threshold Meta-Optimization — April 2026
+
+- **Threshold Meta-Optimizer (`scripts/eval/optimize_malabs_thresholds.py`)**: Automated Bayesian hyperparameter search (Optuna) for tuning semantic gate thresholds (θ_block, θ_allow). Minimizes weighted loss (2× false_allow + 1× false_block) with constraint enforcement (θ_allow < θ_block) and regression gates. Stores Optuna study DB + results under configurable artifacts path.
+- **Feature Flags**: `KERNEL_MALABS_THRESHOLD_OPTIMIZATION_ENABLED` master switch; configurable search bounds (`KERNEL_MALABS_ALLOW/BLOCK_THRESHOLD_MIN/MAX`); artifacts path (`KERNEL_MALABS_TUNING_ARTIFACTS_PATH`).
+- **Evaluation Metrics**: Tracks true_block, false_allow, false_block, true_allow; computes precision, recall, FP rate. Baseline metrics (defaults) compared vs tuned thresholds for regression detection.
+- **Sampler Support**: Random, TPE, and Bayesian samplers; configurable via `--sampler` CLI flag for flexibility in exploration/exploitation trade-offs.
+- **Tests**: Unit tests for metrics (precision, recall, FP rate, weighted loss); integration tests with real MalAbs evaluator; skips gracefully if optuna not installed.
+- **Documentation**: [`docs/PHASE_3_EVALUATION_PIPELINES.md`](docs/PHASE_3_EVALUATION_PIPELINES.md) — usage, CI/CD integration, safety constraints, audit trail.
+- **Dependencies**: Added optional `optuna>=3.0.0` to `requirements.txt` for hyperparameter optimization.
+
 ## Antigravity Phase 2 — Documentation & Infrastructure — April 2026
 
 - **Sensor Payload Contingencies:** Added safety NaN/Infinity limits to `sensor_contracts.py` and hardened `.env` thresholding in `multimodal_trust.py` to prevent IoT stream anomalies from crashing the backend.

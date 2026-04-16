@@ -19,6 +19,9 @@ from .sensor_contracts import SensorSnapshot
 if TYPE_CHECKING:
     from .multimodal_trust import MultimodalAssessment
 
+# ADR 0016 C1 — Ethical tier classification
+__ethical_tier__ = "decision_core"
+
 
 def _clamp01(x: float) -> float:
     return max(0.0, min(1.0, float(x)))

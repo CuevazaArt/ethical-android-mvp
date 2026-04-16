@@ -1,0 +1,76 @@
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.egg-info/
+.eggs/
+dist/
+build/
+*.egg
+
+# Virtual environments
+.venv/
+venv/
+env/
+
+# Local trace / pilot outputs (not versioned)
+logs/
+
+# Testing
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+coverage.xml
+htmlcov/
+junit.xml
+
+# Local env (never commit secrets)
+.env
+.env.local
+# Stale/empty file from failed baseline copy (canonical baseline is detect-secrets.baseline)
+.secrets.baseline
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Claude Code / local tool worktrees and session data
+.claude/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Archives (kept locally, not in repo)
+*.tar.gz
+*.zip
+
+# Binary documents (kept locally, not in repo)
+*.pdf
+*.docx
+
+# Experiment outputs (large JSON/CSV/PNG; regenerate with scripts under experiments/)
+experiments/out/*
+!experiments/out/.gitignore
+
+# Misc
+get-pip.py
+
+# Legacy/snapshot directories (kept locally for reference, not in repo)
+androide-etico-mvp-v2/
+androide-etico-mvp-v3/
+androide-etico-mvp-v4-llm/
+androide-etico-mvp-v5-complete/
+androide-etico-mvp/
+EthosMVP/
+# Optional local scratch under experiments (do not commit drafts here)
+experiments/files/
+# Duplicate drafts at experiments/ root (canonical under docs/, src/)
+experiments/NEXT_EXPERIMENT_DESIGN.md
+experiments/001*.md
+experiments/feedback.json
+experiments/*_updater.py
+experiments/test_*_updater.py

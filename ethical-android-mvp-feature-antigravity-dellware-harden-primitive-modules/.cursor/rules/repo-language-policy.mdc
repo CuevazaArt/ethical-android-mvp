@@ -1,0 +1,15 @@
+---
+description: Collaboration language (Latin American Spanish) vs English-only repository artifacts
+alwaysApply: true
+---
+
+# Repository language (Ethos Kernel)
+
+## Human collaboration
+
+- **Day-to-day collaboration** with the team (issues, chat, planning, calls, informal coordination) is in **Latin American Spanish** (`es-419` style: clear, inclusive, plain language unless the group agrees otherwise).
+- **Repository integration** is **always in English**: anything merged into this repo must be English — `docs/`, ADRs, README/CHANGELOG you touch, code comments, docstrings, user-facing strings (CLI, UI, static HTML, documented JSON/WebSocket), test fixtures that encode product or regression expectations, and new files under `docs/proposals/` (English `PROPOSAL_*` naming).
+
+**Exception:** Non-English literals are allowed when they are **deliberate test or security data** (e.g. multilingual jailbreak strings in `absolute_evil.py`). Add a brief code comment if the reason is not obvious.
+
+Canonical wording for contributors: [`CONTRIBUTING.md`](CONTRIBUTING.md) (Language policy).
