@@ -13,6 +13,21 @@ try:
 except ImportError:
     HAS_CV2 = False
 
+import os
+
+def from_env_vision_capture() -> "VideoCaptureInterface":
+    """
+    Factory method to create a VideoCaptureInterface using 
+    KERNEL_VISION_CAMERA_ID environment variable.
+    """
+    cam_id_str = os.environ.get("KERNEL_VISION_CAMERA_ID", "0").strip()
+    try:
+        cam_id = int(cam_id_str)
+    except ValueError:
+        cam_id = 0
+    return VideoCaptureInterface(camera_id=cam_id)
+
+
 class VideoCaptureInterface:
     """
     Interface for local camera hardware. 
