@@ -36,6 +36,7 @@ from .modules.epistemic_dissonance import (
     EpistemicDissonanceAssessment,
     assess_epistemic_dissonance,
 )
+from .modules.epistemic_humility import assess_humility_block, get_humility_refusal_action
 from .modules.metacognition import MetacognitiveEvaluator, MetacognitiveReport
 from .modules.ethical_poles import EthicalPoles, TripartiteMoral
 from .modules.ethical_reflection import (
@@ -323,6 +324,13 @@ class EthicalKernel:
         )
         self.buffer = co.buffer if co and co.buffer is not None else PreloadedBuffer()
         self.will = co.will if co and co.will is not None else SigmoidWill()
+        # ═══ CYBERSECURITY: Secure Boot (Block 5.2) ═══
+        from .modules.secure_boot import SecureBoot, IntegrityError
+        self.boot_validator = SecureBoot()
+        if not self.boot_validator.verify_integrity():
+            if not _kernel_env_truthy("KERNEL_IGNORE_BOOT_FAILURE"):
+                raise IntegrityError("Secure Boot verification failed. Chain of trust broken.")
+
         self.bayesian = (
             co.bayesian
             if co and co.bayesian is not None
@@ -350,6 +358,10 @@ class EthicalKernel:
         self.dao = co.dao if co and co.dao is not None else DAOOrchestrator()
         self.safety_interlock = co.safety_interlock if co and co.safety_interlock is not None else SafetyInterlock()
         self.motivation = co.motivation_engine if co and co.motivation_engine is not None else MotivationEngine()
+
+        # Migratory Identity (Block 4.3)
+        from .modules.migratory_identity import MigrationHub
+        self.migration = MigrationHub()
         
         eff_llm = llm if llm is not None else (co.llm if co else None)
         self.llm = eff_llm if eff_llm is not None else LLMModule(mode=resolve_llm_mode(llm_mode))
@@ -421,6 +433,10 @@ class EthicalKernel:
             if co and hasattr(co, "biographic_pruner") and co.biographic_pruner is not None 
             else BiographicPruner()
         )
+
+        # Selective Amnesia (Block 5.1)
+        from .modules.selective_amnesia import SelectiveAmnesia
+        self.amnesia = SelectiveAmnesia(self)
         self.constitution_l1_drafts: list[dict[str, Any]] = []
         self.constitution_l2_drafts: list[dict[str, Any]] = []
         self._last_reality_verification: RealityVerificationAssessment = REALITY_ASSESSMENT_NONE
@@ -792,6 +808,32 @@ class EthicalKernel:
             _ab = np.asarray(alpha_bma, dtype=np.float64).reshape(3)
             bma_dirichlet_alpha = (round(float(_ab[0]), 6), round(float(_ab[1]), 6), round(float(_ab[2]), 6))
 
+        # ═══ EPISTEMIC HUMILITY CHECK (Block 4.2: C3) ═══
+        humility_reason = assess_humility_block(
+            uncertainty=float(signals.get("perception_uncertainty", 0.0)),
+            winning_confidence=float(bayes_result.chosen_action.confidence),
+            social_tension=float(getattr(social_eval, "relational_tension", 0.0)),
+        )
+
+        if humility_reason:
+            d = KernelDecision(
+                scenario=scenario,
+                place=place,
+                absolute_evil=AbsoluteEvilResult(blocked=False),
+                sympathetic_state=state,
+                social_evaluation=social_eval,
+                locus_evaluation=locus_eval,
+                bayesian_result=bayes_result,
+                moral=None,
+                final_action=get_humility_refusal_action(),
+                decision_mode="blocked_humility",
+                blocked=True,
+                block_reason=humility_reason,
+            )
+            self._emit_kernel_decision(d, context=context)
+            _emit_process_observability(d, t0)
+            return d
+
         # ═══ STEP 7: Multipolar evaluation ═══
         context_data = {
             "risk": signals.get("risk", 0.0),
@@ -841,6 +883,11 @@ class EthicalKernel:
         if register_episode:
             # ═══ STEP 9: Register in narrative memory ═══
             morals_dict = {ev.pole: ev.moral for ev in moral.evaluations}
+            
+            # Sync persistent body state with current turn telemetry
+            self.migration.current_body.energy = float(state.energy)
+            self.migration.current_body.sensors_ok = True # Placeholder for actual sensor health
+            
             ep = self.memory.register(
                 place=place,
                 description=scenario,
@@ -851,11 +898,7 @@ class EthicalKernel:
                 mode=final_mode,
                 sigma=state.sigma,
                 context=context,
-                body_state=BodyState(
-                    energy=state.energy,
-                    active_nodes=8,
-                    sensors_ok=True,
-                ),
+                body_state=self.migration.current_body,
                 affect_pad=affect.pad,
                 affect_weights=affect.weights,
                 weights_snapshot=bayes_result.applied_mixture_weights

@@ -308,6 +308,14 @@ class NarrativePersistence:
                 cursor = conn.execute(query, (min_significance, max_age_days))
                 return cursor.rowcount
 
+    def delete_episode(self, episode_id: str) -> bool:
+        """Permanently deletes an episode by ID (Right to be Forgotten)."""
+        with closing(_connect(self.path)) as conn:
+            _ensure_schema(conn)
+            with conn:
+                cursor = conn.execute("DELETE FROM narrative_episodes WHERE id = ?", (episode_id,))
+                return cursor.rowcount > 0
+
     def get_prunable_episodes(self, max_age_days: int = 60, min_significance: float = 0.70) -> list[NarrativeEpisode]:
         """
         Returns episodes that would be deleted by prune_mundane.

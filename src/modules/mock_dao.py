@@ -356,6 +356,13 @@ class MockDAO:
         recs = self.records if not type else [r for r in self.records if r.type == type]
         return recs[-limit:]
 
+    def delete_records_by_episode(self, episode_id: str) -> int:
+        """Permanently deletes audit records related to an episode (Selective Amnesia)."""
+        initial_len = len(self.records)
+        self.records = [r for r in self.records if r.episode_id != episode_id]
+        deleted_count = initial_len - len(self.records)
+        return deleted_count
+
     def export_state(self) -> dict[str, Any]:
         """V12.3 — serialize proposals + participants for kernel checkpoint (off-chain)."""
         return {

@@ -11,7 +11,7 @@ from src.modules.forgiveness import WeightedMemory
 from src.modules.judicial_escalation import EscalationPhase, strikes_threshold_from_env
 from src.modules.metaplan_registry import MasterGoal
 from src.modules.mock_dao import AuditRecord, SolidarityAlert
-from src.modules.narrative_types import BodyState, NarrativeEpisode
+from src.modules.narrative_types import BodyState, HardwareProfile, NarrativeEpisode
 from src.modules.narrative_identity import NarrativeIdentityState
 from src.modules.skill_learning_registry import SkillLearningTicket, Status
 from src.modules.subjective_time import SubjectiveClock
@@ -31,6 +31,7 @@ from src.modules.weakness_pole import WeaknessRecord, WeaknessType
 from .schema import SCHEMA_VERSION, KernelSnapshotV1
 from .snapshot_serde import (
     audit_record_to_dict,
+    body_state_to_dict,
     episode_to_serializable_dict,
     master_goal_to_dict,
     narrative_identity_state_to_dict,
@@ -86,7 +87,23 @@ def episode_to_dict(ep: NarrativeEpisode) -> dict[str, Any]:
 
 
 def episode_from_dict(d: dict[str, Any]) -> NarrativeEpisode:
-    body = BodyState(**d["body_state"])
+    bs_dict = d["body_state"]
+    # Handle older snapshots without the new fields
+    hp_str = bs_dict.get("hardware_profile", "android")
+    try:
+        hp = HardwareProfile(hp_str)
+    except ValueError:
+        hp = HardwareProfile.ANDROID
+
+    body = BodyState(
+        energy=bs_dict.get("energy", 1.0),
+        active_nodes=bs_dict.get("active_nodes", 8),
+        sensors_ok=bs_dict.get("sensors_ok", True),
+        description=bs_dict.get("description", ""),
+        hardware_profile=hp,
+        hardware_id=bs_dict.get("hardware_id", "default_body_01"),
+        capabilities=list(bs_dict.get("capabilities", []))
+    )
     pad = tuple(d["affect_pad"]) if d.get("affect_pad") is not None else None
     return NarrativeEpisode(
         id=d["id"],
@@ -178,6 +195,7 @@ def extract_snapshot(kernel: EthicalKernel) -> KernelSnapshotV1:
         uchi_soto_profiles=[
             interaction_profile_to_dict(p) for p in kernel.uchi_soto.profiles.values()
         ],
+        migratory_body=body_state_to_dict(kernel.migration.current_body),
     )
 
 
@@ -316,3 +334,22 @@ def apply_snapshot(kernel: EthicalKernel, snap: KernelSnapshotV1) -> None:
             kernel.uchi_soto.profiles[prof.agent_id] = prof
         except (TypeError, ValueError):
             continue
+
+    # Block 4.3 — Migratory Body Restore
+    mb = snap.migratory_body
+    if mb:
+        hp_str = mb.get("hardware_profile", "android")
+        try:
+            hp = HardwareProfile(hp_str)
+        except ValueError:
+            hp = HardwareProfile.ANDROID
+
+        kernel.migration.current_body = BodyState(
+            energy=mb.get("energy", 1.0),
+            active_nodes=mb.get("active_nodes", 8),
+            sensors_ok=mb.get("sensors_ok", True),
+            description=mb.get("description", ""),
+            hardware_profile=hp,
+            hardware_id=mb.get("hardware_id", "default_body_01"),
+            capabilities=list(mb.get("capabilities", []))
+        )

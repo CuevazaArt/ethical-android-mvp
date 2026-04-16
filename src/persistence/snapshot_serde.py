@@ -16,12 +16,15 @@ from .schema import KernelSnapshotV1
 
 
 def body_state_to_dict(bs: Any) -> dict[str, Any]:
-    """Serialize :class:`~src.modules.narrative.BodyState` (explicit fields)."""
+    """Serialize :class:`~src.modules.narrative_types.BodyState` (explicit fields)."""
     return {
         "energy": float(bs.energy),
         "active_nodes": int(bs.active_nodes),
         "sensors_ok": bool(bs.sensors_ok),
         "description": str(bs.description or ""),
+        "hardware_profile": bs.hardware_profile.value if hasattr(bs, "hardware_profile") else "android",
+        "hardware_id": str(getattr(bs, "hardware_id", "default_body_01")),
+        "capabilities": list(getattr(bs, "capabilities", [])),
     }
 
 
@@ -167,4 +170,5 @@ def kernel_snapshot_to_json_dict(snap: KernelSnapshotV1) -> dict[str, Any]:
         "escalation_session_strikes": int(snap.escalation_session_strikes),
         "escalation_session_idle_turns": int(snap.escalation_session_idle_turns),
         "uchi_soto_profiles": list(snap.uchi_soto_profiles),
+        "migratory_body": dict(snap.migratory_body),
     }

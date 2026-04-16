@@ -31,3 +31,10 @@ Upon completion of a block:
 
 ### 6. Communication Channel
 All technical comments, blockers, or coordination notes must be recorded in the specific **Plan document** to maintain a single source of truth for that feature's lifecycle.
+
+### 7. Promotion to Main (Linearization Ritual)
+Promotion from any `master-*` branch to `main` must follow this linear path:
+1.  **Peer-to-Peer Pulse:** `master-*` branches merge from each other upon block completion (if tests pass).
+2.  **Linear Funnel:** `master-<team>` merges into `master-antigravity`.
+3.  **Stabilization:** Feature freeze in `master-antigravity`; only stability patches allowed.
+4.  **L0 Approval:** Juan must authorize the final promotion to production.

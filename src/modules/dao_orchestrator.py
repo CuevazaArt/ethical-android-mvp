@@ -12,6 +12,9 @@ from typing import Any, Dict, Optional
 from .mock_dao import MockDAO
 
 
+from .evidence_safe import EvidenceSafe
+
+
 class DAOOrchestrator:
     """
     Oráculo de Gobernanza y Anchoring (OGA).
@@ -21,25 +24,26 @@ class DAOOrchestrator:
     def __init__(self, dao_endpoint: Optional[str] = None):
         self.endpoint = dao_endpoint
         self.local_dao = MockDAO()  # Fallback to internal mock
+        self.safe = EvidenceSafe()  # Handles hashing and encryption for Block 1.2
         self._policy_version = "v1.0-hybrid"
 
     def anchor_evidence(self, payload: Dict[str, Any]) -> str:
         """
-        Calculates hash of evidence and anchors it to the (simulated) blockchain.
+        Calculates hash of evidence, encrypts it, and anchors it to the (simulated) blockchain.
         Returns the anchoring hash.
         """
-        evidence_json = json.dumps(payload, sort_keys=True)
-        evidence_hash = hashlib.sha256(evidence_json.encode()).hexdigest()
+        packet = self.safe.prepare_anchoring_packet(payload)
+        evidence_hash = packet["evidence_hash"]
         
         # In a real OGA, this would be a POST to the anchoring registry
-        timestamp = time.time()
+        # We store the encrypted blob and the hash in the audit trail
         self.local_dao.register_audit(
             type="anchoring",
-            content=f"Anchored hash {evidence_hash[:16]}... (simulated blockchain)",
+            content=f"Anchored Hash {evidence_hash} | Blob size: {len(packet['evidence_blob_b64'])} bytes",
             episode_id=payload.get("episode_id")
         )
         
-        print(f"[OGA] Evidence anchored. Hash: {evidence_hash}")
+        print(f"[OGA] Evidence anchored securely. Hash: {evidence_hash}")
         return evidence_hash
 
     def submit_appeal(self, context: Dict[str, Any]) -> Dict[str, Any]:

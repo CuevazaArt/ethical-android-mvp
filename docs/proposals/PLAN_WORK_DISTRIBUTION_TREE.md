@@ -13,11 +13,11 @@ Este documento estructura el inmenso volumen de trabajo arquitectónico definido
 - **Bloque 1.1: KEL vs OGA (Kernel Ético Local vs Oráculo) [DONE]**
   - Tarea 1.1.1: Crear adaptadores REST/gRPC en el Orquestador local para comunicación con el Oráculo. (Implementado en `DAOOrchestrator`)
   - Tarea 1.1.2: Implementar el sistema asíncrono de interbloqueos (*Hardware E-Stop* prioritario sobre DAO). (Implementado en `SafetyInterlock`)
-- **Bloque 1.2: Evidencia Cifrada y Anchoring (REO)**
-  - Tarea 1.2.1: Implementar sistema de encriptación off-chain para grabar logs del Kernel de forma segura (video/audio simulado).
-  - Tarea 1.2.2: Crear el publicador de Hashes (SHA-256) hacia el smart contract (`Anchoring Registry`).
-- **Bloque 1.3: Smart Contracts (Solidity Mocks)**
-  - Tarea 1.3.1: Configurar contratos de Treasury, Appeal y Governance Tokens (Solo stubs iniciales en la carpeta `contracts/`).
+- **Bloque 1.2: Evidencia Cifrada y Anchoring (REO) [DONE]**
+  - Tarea 1.2.1: Implementar sistema de encriptación off-chain para grabar logs del Kernel de forma segura (video/audio simulado). (Implementado en `EvidenceSafe`)
+  - Tarea 1.2.2: Crear el publicador de Hashes (SHA-256) hacia el smart contract (`Anchoring Registry`). (Integrado en `DAOOrchestrator`)
+- **Bloque 1.3: Smart Contracts (Solidity Mocks) [DONE]**
+  - Tarea 1.3.1: Configurar contratos de Treasury, Appeal y Governance Tokens (Solo stubs iniciales en la carpeta `contracts/`). (Implementados `Treasury.sol`, `EthicalAppeal.sol`, `EthosToken.sol`)
 
 ### 🟡 Módulo 2: Simulador, Red-Teaming y Validación (Entregable C)
 *Responsabilidad: Nivel 2 (Team Cursor / Team VisualStudio)*
@@ -47,19 +47,19 @@ Este documento estructura el inmenso volumen de trabajo arquitectónico definido
 
 - **Bloque 4.1: Motor de Motivación Interna (C1) [DONE]**
   - Tarea 4.1.1: Desplegar modelo de "Sentido de Propósito" y curiosidad activa (que el androide decida investigar cosas sin prompt humano). (Implementado en `MotivationEngine`)
-- **Bloque 4.2: Humildad Epistémica (C3)**
-  - Tarea 4.2.1: Implementar *fallback paths* donde el androide declara proactivamente "no tengo permiso para esto" en vez de derivar una solución dudosa.
-- **Bloque 4.3: Identidad Migratoria e Interoperabilidad (C5)**
-  - Tarea 4.3.1: Abstracción del `BodyState`. Preparar el código para que el Kernel pueda migrar entre hardware (Dron <-> Androide <-> Móvil) sin perder memoria narrativa.
+- **Bloque 4.2: Humildad Epistémica (C3) [DONE]**
+  - Tarea 4.2.1: Implementar fallback paths donde el androide declara proactivamente "no tengo permiso para esto" en vez de derivar una solución dudosa. (Implementado en `EpistemicHumility`)
+- **Bloque 4.3: Identidad Migratoria e Interoperabilidad (C5) [DONE]**
+  - Tarea 4.3.1: Abstracción del `BodyState`. Preparar el código para que el Kernel pueda migrar entre hardware (Dron <-> Androide <-> Móvil) sin perder memoria narrativa. (Implementado en `MigrationHub`)
 
 ### 🟣 Módulo 5: Marco Legal, Auditoría y Transparencia a Escala (G-Blocks)
 *Responsabilidad: Nivel 0 (Juan) / Nivel 1 (Claude)*
 *Dependencias: Definición corporativa y legal.*
 
-- **Bloque 5.1: Exportador Inmutable de Evidencia (G3)**
-  - Tarea 5.1.1: Reforzar `AuditLog` para que encripte reportes automatizados listos para auditorías externas trimestrales.
-- **Bloque 5.2: Privacidad de Borde y Credenciales (G4)**
-  - Tarea 5.2.1: Flujo de VC (Verifiable Credentials) para restringir acceso a logs sensibles (como la cámara en el hogar del escenario médico).
+- **Bloque 5.1: Privacidad y Amnesia Selectiva (G4/G6) [DONE]**
+  - Tarea 5.1.1: Mecanismo para borrar permanentemente fragmentos del historial de auditoría/narrativa por "derecho al olvido" (simulado). (Implementado en `SelectiveAmnesia`)
+- **Bloque 5.2: Ciberseguridad y Secure Boot (G2) [DONE]**
+  - Tarea 5.2.1: Implementar sistema de "Secure Boot" simulado para asegurar que el Kernel no ha sido modificado en el arranque. (Implementado en `SecureBoot`)
 
 ---
 

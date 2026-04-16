@@ -47,14 +47,30 @@ Any new agent or team joining the project must complete the following onboarding
 2. **Establish Integration Hub:** Immediately create a `master-<team>` branch (e.g., `master-cursor`).
 3. **Review Protocols:** Read the current plan and task synchronization rules. 
 
-## Collaborative Integration Cycle (Traceable PRs)
+## Collaborative Integration Cycle (The "Integration Pulse")
 
-To maintain repository order and production stability across multiple teams, we strictly use a GitHub-friendly **Pull Request (PR)** lifecycle:
+To maintain repository order and production stability across multiple teams, we strictly use a structured **Pull Request (PR)** and synchronization lifecycle:
 
-1. **Local Work:** Work on temporary or feature branches (e.g., `cursor-team/vision-inference`).
-2. **Team Merge (Internal PR):** Submit a formal **Pull Request** or structured merge to your team's integration hub (`master-<team>`). Document all changes in the `CHANGELOG.md`.
-3. **Cross-Team Alignment:** `master-<team>` branches MUST periodically merge from each other (pulling latest secure increments and normative updates). This peer-to-peer propagation ensures redundancy and speeds up the distribution of new rules and technical progress across the entire repository.
-4. **Promotion to Production (Main PR):** Submitting code from `master-<team>` to `main` requires a formal PR that **must be authorized by Juan**.
+1. **Local Work:** Work on temporary feature branches (e.g., `cursor-team/nav-inference`).
+2. **Team Consolidation (Internal PR):** Submit a formal PR to your team's integration hub (`master-<team>`). **Requirement:** All unit tests must pass. Document changes in `CHANGELOG.md`.
+3. **Cross-Team Peer Synchronization (Integration Pulse):** `master-*` branches MUST pull latest updates from each other **immediately after closing a logical block** in the `PLAN_WORK_DISTRIBUTION_TREE.md`. 
+   - *Goal:* Prevent architectural drift and ensure all agents are working on the same "Cognitive Baseline".
+   - *Rule:* Only pull from a peer branch if its last build is verified as stable (passing tests).
+4. **Integration Funnel:** For production promotion, the flow is **linear**:
+   - `master-<team_secondary>` → `master-antigravity` → `main`.
+   - The `master-antigravity` branch serves as the **Standard Integration Hub** for the entire project.
+
+## Protocolo de Promoción a Main (Estabilización y Fusión)
+
+Para minimizar conflictos y asegurar la integridad de la rama `main`, se establece el siguiente rito de fusión:
+
+1.  **Cierre del Bloque Atómico**: Solo se promoverán avances que cierren bloques lógicos completos (ej. Bloque 1.x o 4.x). No se permiten "trabajos en progreso" en `main`.
+2.  **Sello de Calidad Antigravity**: El equipo Antigravity (L1) supervisa la fusión de las ramas `master-*` hacia `master-antigravity`. Su rol es:
+    - Resolver conflictos de dependencias cruzadas.
+    - Asegurar que no se violen las reglas de **Inmutabilidad L0**.
+    - Validar la sincronía de la documentación (`ADRs`, `PROPOSALS`).
+3.  **Ventana de Estabilización**: Una vez unificada en `master-antigravity`, la rama entrará en un periodo de **Feature Freeze**. Se prohíbe añadir código nuevo; solo se permiten parches de estabilidad y corrección de lints.
+4.  **Aprobación Soberana (L0)**: Tras validar la estabilidad total en el simulador, se solicita formalmente a **Juan** la aprobación del PR definitivo desde `master-antigravity` a `main`.
 
 ## Sovereignty of Collaboration Rules
 
