@@ -1,7 +1,7 @@
-import pytest
 from src.kernel import EthicalKernel
 from src.modules.sensor_contracts import SensorSnapshot
 from src.modules.strategy_engine import MissionStatus
+
 
 def test_external_mission_ingestion_via_sensors():
     """

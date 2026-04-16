@@ -1,6 +1,5 @@
-import pytest
 from src.modules.narrative import NarrativeMemory
-from src.modules.narrative_types import BodyState
+
 
 def test_narrative_arcs_creation_on_context_shift(tmp_path):
     db_path = tmp_path / "test_arcs.db"

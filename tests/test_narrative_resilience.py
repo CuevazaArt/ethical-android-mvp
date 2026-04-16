@@ -1,7 +1,7 @@
-import pytest
 from datetime import datetime, timedelta
+
 from src.modules.narrative import NarrativeMemory
-from src.modules.narrative_types import BodyState
+
 
 def test_significance_calculation(tmp_path):
     db_path = tmp_path / "test_significancia.db"

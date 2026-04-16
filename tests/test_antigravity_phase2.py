@@ -1,11 +1,9 @@
-import pytest
 import os
-import json
 from pathlib import Path
-import numpy as np
+
 from src.kernel import EthicalKernel
-from src.modules.narrative_types import BodyState
 from src.modules.uchi_soto import RelationalTier
+
 
 def test_vector_resonance_retrieval():
     """Verifies that episodes can be retrieved using semantic resonance."""
@@ -72,7 +70,7 @@ def test_immortality_persistence():
     assert os.path.exists(backup_path)
     
     # Verification of persistence
-    with open(backup_path, "r", encoding="utf-8") as f:
+    with open(backup_path, encoding="utf-8") as f:
         json_data = f.read()
         assert snap.id in json_data
         assert snap.integrity_hash in json_data

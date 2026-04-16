@@ -1,6 +1,5 @@
-import pytest
 from src.kernel import EthicalKernel
-from src.modules.drive_arbiter import DriveArbiter
+
 
 def test_metacognitive_curiosity_trigger():
     """

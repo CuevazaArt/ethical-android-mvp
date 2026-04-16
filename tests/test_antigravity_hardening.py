@@ -1,11 +1,9 @@
-import pytest
-import numpy as np
-from src.modules.absolute_evil import AbsoluteEvilDetector, AbsoluteEvilCategory
+from src.modules.absolute_evil import AbsoluteEvilCategory, AbsoluteEvilDetector
+from src.modules.ethical_poles import EthicalPoles
 from src.modules.forgiveness import AlgorithmicForgiveness
-from src.modules.identity_reflection import IdentityReflector
 from src.modules.narrative import NarrativeMemory
 from src.modules.weakness_pole import WeaknessPole, WeaknessType
-from src.modules.ethical_poles import EthicalPoles
+
 
 def test_new_absolute_evil_categories():
     detector = AbsoluteEvilDetector()

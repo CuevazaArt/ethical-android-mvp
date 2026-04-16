@@ -12,7 +12,7 @@ from __future__ import annotations
 
 import os
 import types
-from unittest.mock import MagicMock, patch
+from unittest.mock import MagicMock
 
 
 # ──────────────────────────────────────────────────────────────────────

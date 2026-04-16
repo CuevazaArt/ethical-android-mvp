@@ -1,8 +1,8 @@
-import pytest
-import sqlite3
 import os
+
 from src.kernel import EthicalKernel
-from src.modules.narrative_types import NarrativeEpisode, BodyState
+from src.modules.narrative_types import BodyState, NarrativeEpisode
+
 
 def test_biographic_pruning_mundane():
     """
