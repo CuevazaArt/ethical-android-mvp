@@ -43,6 +43,7 @@ Current registry (aligned with contribution guide §3):
 | **DJ-BL-15** | Replay sidecar + cross-session hint (non-consensus) | **Done** — [`src/modules/lan_governance_replay_sidecar.py`](../../src/modules/lan_governance_replay_sidecar.py), [`src/modules/lan_governance_merge_context.py`](../../src/modules/lan_governance_merge_context.py), [`scripts/eval/verify_lan_governance_replay_sidecar.py`](../../scripts/eval/verify_lan_governance_replay_sidecar.py); proposals [`PROPOSAL_LAN_GOVERNANCE_REPLAY_SIDECAR.md`](PROPOSAL_LAN_GOVERNANCE_REPLAY_SIDECAR.md), [`PROPOSAL_LAN_GOVERNANCE_CROSS_SESSION_HINT.md`](PROPOSAL_LAN_GOVERNANCE_CROSS_SESSION_HINT.md). |
 | **DJ-BL-16** | Frontier witnesses (advisory aggregate) | **Done** — `merge_context.frontier_witnesses` in [`src/modules/lan_governance_merge_context.py`](../../src/modules/lan_governance_merge_context.py); proposal [`PROPOSAL_LAN_GOVERNANCE_FRONTIER_WITNESS.md`](PROPOSAL_LAN_GOVERNANCE_FRONTIER_WITNESS.md). |
 | **DJ-BL-17** | Audit ledger vs expected anchor hex (Phase 3 stub CLI) | **Done** — [`scripts/eval/compare_audit_ledger_anchor.py`](../../scripts/eval/compare_audit_ledger_anchor.py). |
+| **DJ-BL-18** | Phase 4 release checklist template (documentation) | **Done** — checklist block under Phase 4 in [`PROPOSAL_DAO_BLOCKCHAIN_DISTRIBUTED_JUSTICE_STAGED_EXECUTION.md`](PROPOSAL_DAO_BLOCKCHAIN_DISTRIBUTED_JUSTICE_STAGED_EXECUTION.md); anchor CLI runbook slice in [`OPERATOR_QUICK_REF.md`](OPERATOR_QUICK_REF.md). |
 
 Update this table when an ID changes state or when new IDs are added.
 
@@ -87,3 +88,4 @@ Use in PR descriptions and proposal edits (not a database):
 - **2026-04-15:** DJ-BL-14 done — LAN batch `event_conflicts` taxonomy + optional `merge_context.frontier_turn`.
 - **2026-04-16:** DJ-BL-15 done — replay sidecar builder/CLI + `cross_session_hint` echo (non-consensus).
 - **2026-04-16:** DJ-BL-16 done — frontier witness aggregation; DJ-BL-17 — anchor compare CLI.
+- **2026-04-16:** DJ-BL-18 done — Phase 4 release checklist template + expanded anchor checkpoint operator notes (safe path; no chain RPC).
