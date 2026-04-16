@@ -1191,13 +1191,10 @@ class EthicalKernel:
             mixture_posterior_alpha=mixture_posterior_alpha,
             feedback_consistency=feedback_consistency,
             mixture_context_key=mixture_context_key,
-<<<<<<< HEAD
             l0_integrity_hash=self.buffer.fingerprint(),
             l0_stable=self.buffer.verify_integrity(),
-=======
             hierarchical_context_key=hierarchical_context_key,
             applied_mixture_weights=applied_mixture_weights,
->>>>>>> origin/master-claude
         )
         self._emit_kernel_decision(d, context=context)
         _emit_process_observability(d, t0)

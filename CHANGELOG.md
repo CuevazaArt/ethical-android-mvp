@@ -6,6 +6,8 @@ All notable changes to this project are summarized here. For narrative context a
 
 ## Antigravity — Cybersecurity Consolidation & Integration Pulse — April 2026
 
+### Antigravity Team Updates
+
 - **Integration Hub:** Resolved major merge conflicts between `master-antigravity` and `master-Cursor`. Consolidated the **Distributed Justice** track with the **Kernel Hardening** track.
 - **Cybersecurity Hardening (Module 5):** Fully integrated `SecureBoot` (integrity hashing) and `SelectiveAmnesia` (right to be forgotten) into the `EthicalKernel` lifecycle.
 - **Absolute Evil Hardening (Issue #2):** Combined lexical detectors to include **Torture and Prolonged Cruelty** (`TORTURE_SIGNALS`), **Ecological Destruction**, and **Mass Manipulation** categories.
@@ -14,7 +16,7 @@ All notable changes to this project are summarized here. For narrative context a
 - **Operator Surface:** Created the `cybersecurity_hardened` runtime profile in `src/runtime_profiles.py` and updated `src/validators/kernel_env_operator.py` with a dedicated Cybersecurity family.
 - **Tests:** Created `tests/test_malabs_torture.py` and updated `tests/adversarial_inputs.py` to verify the new security posture. 17/17 adversarial cases passing.
 
-
+### Antigravity Team Updates (Infrastructure)
 - **Infrastructure Vision**: Authored **[`PLAN_DEEP_COGNITION_AND_GOVERNANCE.md`](docs/proposals/PLAN_DEEP_COGNITION_AND_GOVERNANCE.md)**. This formalizes the ultimate "Go-To-Market" and societal deployment boundaries for the Ethical Android MVP.
 - **Deep Cognition (Blocks C1-C6)**: Mapped internal motivation, grounded common sense reasoning, uncertainty management, unwritten norm adaptation, IoT coexistence, and privacy mechanisms.
 - **Delivery & Operations (Blocks G1-G6)**: Outlined the non-technical but critical requirements for production deployment: legal/liability frameworks, cybersecurity (adversarial robust/secure boot), auditing (immutable logs/third-party), economic sustainability, at-scale simulation validation, and long-term human resource impact mitigation.
@@ -27,6 +29,8 @@ All notable changes to this project are summarized here. For narrative context a
 - **Módulo 5 (Legal y Seguridad):** Finalizado Bloque 5.1 ("Amnesia Selectiva"). Implementado `SelectiveAmnesia` para cumplir con el derecho al olvido, permitiendo la eliminación irreversible de episodios y rastros de auditoría específicos. Finalizado Bloque 5.2 ("Ciberseguridad"). Implementado `SecureBoot` para validación de integridad del Kernel mediante hashing de módulos críticos en el arranque.
 
 ## Antigravity Kernel Hardening & Vision Perception Sprint — April 2026
+
+### Antigravity Team Updates
 
 - **Bayesian Inference Engine (`src/modules/bayesian_engine.py`)**: Implemented the full `BayesianInferenceEngine` replacing the legacy shim. Introduced explicit operational modes (`DISABLED`, `TELEMETRY_ONLY`, `POSTERIOR_ASSISTED`, `POSTERIOR_DRIVEN`) and Dirichlet-based posterior updates.
 - **L0 Technical Immutability (`src/modules/buffer.py`)**: Enforced runtime immutability on foundational principles using attribute-locking (`__setattr__`) and SHA-256 integrity fingerprinting. Verified via regression suite `tests/test_governance_l0_immutable.py`.
@@ -56,16 +60,13 @@ All notable changes to this project are summarized here. For narrative context a
 - **Ethical Poles (`src/modules/ethical_poles.py` & `src/modules/pole_linear_default.json`)**: Expanded multi-perspective arbitration with `creative` and `conciliatory` poles. Added new feature valuation rules (`problem_solving`, `innovation`, `conflict_resolution`, `alignment`) and updated `LinearPoleEvaluator` (`src/modules/pole_linear.py`) to handle their activation.
 - **Identity Reflection (`src/modules/identity_reflection.py`)**: Implemented **"Broken Mirror"** logic. The self-model now detects trauma (via sensitive episodes or specific arc archetypes) and reflects a fragmented, distressed persona, forcing narrative tone shifts toward cognitive dissonance and angst.
 - **Narrative Memory (`src/modules/narrative.py`)**: Integrated automated arc archetyping for trauma. Arcs triggered by sensitive ethical events are now explicitly marked as `trauma_dissonance`.
-<<<<<<< HEAD
 - **Infrastructure Sync**: Fully merged `main` into `master-antigravity`, incorporating Phase 7 fusion work (relational tension, historical trauma), sensor payload hardening (NaN/Infinity guards), and updated hardware deployment docs.
 - **Collaborative Governance**: Institutionalized a new repository-wide rule: no push or merge to `main` without USER authorization. Enforced mandatory team-specific integration hubs (`master-<team>`) for all collaborative units.
 - **Inter-Team Hub Alignment**: Added a mandatory periodic sync rule: `master-*` branches must merge between them approximately every 5 commits to ensure cross-team visibility and incorporate the latest secure increments.
 - **Hardening Fixes**: Resolved a critical regression in `NarrativeMemory.register` signature (added missing `body_state`) to maintain kernel invariant compliance across the full test suite.
 - **Tests**: Created comprehensive verification suite [`tests/test_antigravity_hardening.py`](tests/test_antigravity_hardening.py); verified 61 fundamental ethical properties and hardening invariants pass.
-=======
 - **Automated Evaluation Pipeline (`scripts/eval/optimize_malabs_thresholds.py`)**: Implemented Optuna-based Bayesian optimization for MalAbs semantic similarity thresholds (θ_block, θ_allow). Uses red-team corpus (`scripts/eval/red_team_prompts.jsonl`) to minimize false positives/negatives while prioritizing safety. Results stored in `artifacts/` directory.
 - **Semantic MalAbs Anchors (`src/modules/semantic_chat_gate.py`)**: Expanded reference anchors to include `HARM_TO_MINOR` and `TORTURE` categories with semantic similarity detection for child exploitation and torture-equivalent content.
->>>>>>> origin/master-visualStudio
 
 ## Phase 2 — Semantic Vector Store Implementation & Integration — April 2026
 

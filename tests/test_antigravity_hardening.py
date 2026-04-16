@@ -103,3 +103,32 @@ def test_new_ethical_poles():
     # Community context should favor conciliatory
     weights_com = poles._calculate_dynamic_weights("community")
     assert weights_com["conciliatory"] > poles.base_weights["conciliatory"]
+
+def test_collaboration_invariants():
+    """
+    Automated Governance Guardrail: Enforces MERGE-PREVENT-01.
+    This test ensures no L2 agent has pushed code containing unresolved merge markers,
+    and that the CHANGELOG namespace strictly obeys isolation boundaries.
+    """
+    import sys
+    import os
+    from pathlib import Path
+    
+    # Path manipulation to import script
+    root_dir = Path(__file__).parent.parent
+    scripts_dir = root_dir / "scripts" / "eval"
+    sys.path.insert(0, str(scripts_dir))
+    
+    try:
+        from verify_collaboration_invariants import check_no_merge_markers, check_changelog_namespace
+        
+        # 1. No Merge Hell allowed
+        marker_violations = check_no_merge_markers(root_dir)
+        assert len(marker_violations) == 0, f"Unresolved merge markers found: {marker_violations}"
+        
+        # 2. Namespace segregation in CHANGELOG
+        changelog_path = root_dir / "CHANGELOG.md"
+        changelog_violations = check_changelog_namespace(changelog_path)
+        assert len(changelog_violations) == 0, f"CHANGELOG topology broken: {changelog_violations}"
+    finally:
+        sys.path.pop(0)

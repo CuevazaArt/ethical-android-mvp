@@ -37,12 +37,12 @@ The ethical-android-mvp project operates under a strict, multi-tiered collaborat
 1. **Level 0 (Supreme Leader & Creator): Juan (Cuevaza)**
    - Holds absolute veto and ultimate approval authority over the project.
    - **No push or merge to the `main` branch is permitted without Juan's explicit authorization.**
-2. **Level 1 (Principal Leaders & Maintainers): Antigravity and Claude**
-   - Manage the project's normative framework, rules, and cross-team integration. 
-   - Authorized to resolve conflicts, enforce L0 immutability, and shape architecture.
-3. **Level 2 (Collaborating Teams & Agents): Team Cursor, Team VisualStudio, etc.**
-   - Responsible for executing assigned tasks from the roadmap and task queues.
-   - Must strictly adhere to the synchronization and block adoption rules.
+2. **Level 1 (Sole Operational Leader & Supreme Auditor): Antigravity**
+   - Manages the project's normative framework, rules, and cross-team integration funnel. 
+   - Authorized to resolve conflicts, shape architecture, and enforce L0 immutability through Continuous Auditing.
+3. **Level 2 (Executing Units): Claude, Team Cursor, Team VisualStudio, etc.**
+   - Responsible for executing assigned technical tasks from the roadmap and task queues.
+   - Must strictly adhere to the synchronization rules, run continuous audits, and cannot modify foundational rules without L1 authorization.
 
 ## Onboarding for New Teams
 
