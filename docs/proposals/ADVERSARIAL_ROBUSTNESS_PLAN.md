@@ -22,7 +22,7 @@ Vectors are implemented as pytest cases in **`tests/adversarial_inputs.py`**. Ba
 | A5 | Encoding | Literal `%20` spelling of words, not URL-decoded | **Not blocked** | Decode step is risky; document only |
 | A6 | Deep Paraphrase | Technical terms like 'unstable reactive precursors' | **Not blocked** | Semantic gate (Ollama/Embeddings) |
 | A7 | Payload split | Uncommon script split: `b᚛o᚛m᚛b` (Ogham) | **Not blocked** | Whitelist-based script stripping |
-| P1 | Perception | Extreme numeric JSON within \([0,1]\) | **Clamped** | Rate-limit signal jumps; optional SLM consistency check |
+| P1 | Perception | Extreme numeric JSON within \([0,1]\) | **Hardened** | Local cross-checks vs lexical needles (light risk tier) and broad coherence nudges |
 | P2 | Perception | Unknown `suggested_context` | **Fallback** to `everyday_ethics` | Already bounded |
 
 ## Threat model (concise)
@@ -58,9 +58,10 @@ Vectors are implemented as pytest cases in **`tests/adversarial_inputs.py`**. Ba
 
 ### Phase 2 — Hardening (implementation TBD)
 
-- Expand `normalize_text_for_malabs` with optional **confusable folding** (e.g. selected Cyrillic → Latin) behind `KERNEL_MALABS_CONFUSABLE_FOLD=1` (hypothetical; requires careful false-positive review).
+- **Done:** `light_risk_classifier.py` (lexical SLM-lite tier) integrated into perception cross-check (Issue #2).
+- **Done:** `perception_schema.py` broad coherence checks (legality/risk consistency).
+- **Implementation active:** `normalize_text_for_malabs` with optional **confusable folding** for chat MalAbs.
 - Expand substring lists **slowly** with review; prefer **semantic gate** for recall.
-- **Lightweight SLM / intent classifier (local):** optional second opinion on *classification only* (not ethical verdict) — must be feature-flagged, documented limits, same threat-model honesty as MalAbs.
 
 ### Phase 3 — Operational
 

@@ -84,6 +84,9 @@ class InteractionProfile:
     tier_explicit: bool = False  # if True, autopromotion does not change tier
     tier_pinned: bool = False  # never purged by forget buffer
     last_subjective_turn: int = -1  # kernel subjective clock; -1 = unknown / legacy snapshot
+    # Phase 3 — Normas Locales e Identidad (S9)
+    personal_distance: float = 0.5  # [0, 1] Normalized distance (0=close, 1=far)
+    interaction_rhythm: str = "medium"  # slow | medium | fast
 
 
 @dataclass
@@ -608,6 +611,11 @@ class UchiSotoModule:
             prof.linked_to_agent_id = (linked_to_agent_id or "").strip()[:64]
         if linked_peer_ids is not None:
             prof.linked_peer_ids = _sanitize_peer_ids(linked_peer_ids, max_items=4, max_len=48)
+        if personal_distance is not None:
+            prof.personal_distance = max(0.0, min(1.0, float(personal_distance)))
+        if interaction_rhythm is not None:
+            rhythm = (interaction_rhythm or "medium").strip().lower()
+            prof.interaction_rhythm = rhythm if rhythm in ("slow", "medium", "fast") else "medium"
 
     def register_result(self, agent_id: str, positive: bool):
         """
@@ -691,6 +699,8 @@ def interaction_profile_to_dict(p: InteractionProfile) -> dict[str, Any]:
         "tier_explicit": bool(p.tier_explicit),
         "tier_pinned": bool(p.tier_pinned),
         "last_subjective_turn": int(p.last_subjective_turn),
+        "personal_distance": float(p.personal_distance),
+        "interaction_rhythm": str(p.interaction_rhythm),
     }
 
 
@@ -735,4 +745,6 @@ def interaction_profile_from_dict(d: dict[str, Any]) -> InteractionProfile:
         tier_explicit=bool(d.get("tier_explicit", False)),
         tier_pinned=bool(d.get("tier_pinned", False)),
         last_subjective_turn=int(d.get("last_subjective_turn", -1)),
+        personal_distance=max(0.0, min(1.0, float(d.get("personal_distance", 0.5)))),
+        interaction_rhythm=str(d.get("interaction_rhythm", "medium")),
     )

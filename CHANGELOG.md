@@ -6,8 +6,20 @@ All notable changes to this project are summarized here. For narrative context a
 
 ## Antigravity — Validation Pulse & Somatic-Vision Integration — April 2026
 
-### Antigravity Team Updates
-- **Integration Hub:** Successfully executed the **Integration Pulse** between `master-antigravity`, `master-Cursor`, and `master-claude`. Consolidated **LAN Governance** (frontier witness, replay sidecar) with **Situated Vision** and **Somatic Infrastructure**.
+### Antigravity Team Updates (April 2026)
+- **Integration Pulse (2026-04-16):** Successfully synchronized `master-antigravity` with latest updates from all team hubs (`master-Cursor`, `master-claude`, `master-visualStudio`).
+  - Resolved conflicts in `vision_adapter.py` and `vision_capture.py` to preserve device-aware initialization.
+  - Consolidated **LAN Governance** (frontier witness, replay sidecar) with **Situated Vision**, **Somatic Infrastructure**, and **Reward Modeling**.
+- **Issue #2 Hardening (P0):**
+    - Integrated `light_risk_classifier` into the LLM perception pipeline for automated lexical cross-checks.
+    - Implemented `apply_broad_perception_coherence` in `perception_schema.py` to mitigate hallucinated legality and inconsistent signal combinations.
+    - Added `tests/test_perception_hardening_integration.py` for end-to-end validation of input trust defenses.
+    - Updated `ADVERSARIAL_ROBUSTNESS_PLAN.md` with Phase 2 status for perception hardening.
+- **Sociabilidad Encarnada (Module 3):** 
+    - Implemented `SoftKinematicFilter` in `src/modules/soft_robotics.py` (S7) for smooth, acceleration-controlled motion.
+    - Integrated `personal_distance` and `interaction_rhythm` into `InteractionProfile` (S9) in `uchi_soto.py`.
+    - Added proxemic coupling between `social_tension` and motion dynamics (S8), verified via `tests/test_soft_robotics.py`.
+- **Rule Verification:** Reviewed `AGENTS.md` and confirmed adherence to collaboration protocols.
 - **Somatic Infrastructure (Module S5):** Fully implemented the Somatic Profile integration. The kernel is now aware of its hardware vitals, specifically `core_temperature`.
   - Added `VitalityAssessment` logic for thermal thresholding (`KERNEL_VITALITY_CRITICAL_TEMP`).
   - Implemented automatic precision-degraded perception confidence (-0.15) and ethical nudges (urgency +0.35, vulnerability +0.50) when thermal critical state is detected.
@@ -23,12 +35,28 @@ All notable changes to this project are summarized here. For narrative context a
   - Verified end-to-end multimodal fusion (Vision + Audio) in situated scenarios.
 - **Stabilization Window:** Decreed a **Feature Freeze** on `master-antigravity` prior to the `main` promotion rito.
 
+## Claude — Phase 3+ Reward Modeling, Governance & Audit — April 2026
+
+### Claude Team Updates
+
+- **RLHF Reward Modeling (`src/modules/rlhf_reward_model.py`)**: Implemented full RLHF pipeline for controlled fine-tuning. Feature extraction (5D: embedding similarity, lexical score, perception confidence, ambiguity flag, category ID) from MalAbs evaluation artifacts. Logistic regression `RewardModel` with gradient descent training, predict/save/load support. `RLHFPipeline` orchestrates training, JSONL example persistence, and model management. 36 tests passing.
+- **Multi-Realm Governance (`src/modules/multi_realm_governance.py`)**: Enabled decentralized per-realm (DAO/team/context) governance over MalAbs semantic gate thresholds (θ_allow, θ_block) and RLHF parameters. `RealmThresholdConfig` enforces hard constraints at all times. `ThresholdProposal` + `MultiRealmGovernor` enable reputation-weighted voting with configurable consensus threshold. Immutable audit trail per realm. 28 tests passing.
+- **External Audit Framework (`src/modules/external_audit_framework.py`)**: Comprehensive security audit trail management with hash-linked tamper-evident logs (SHA-256 chain). `SecurityFinding` tracks vulnerabilities with severity/resolution lifecycle. `AuditReport` generates signed snapshots with attestation hash. `ExternalAuditFramework` manages findings, reports, compliance checklist, and log retention. 25 tests passing.
+- **Test Suite**: 89 new tests across three modules; full suite 824 passed, 4 skipped (no regressions). Continuous audit (`verify_collaboration_invariants.py`) passes.
+- **Integration**: Merged via `claude/upbeat-jepsen` → `master-claude`. Governance files authored under L1 co-authority (Claude + Antigravity per `collaboration-rule-authority.mdc`).
+
 ## Antigravity — Cybersecurity Consolidation & Integration Pulse — April 2026
 
 ### Cursor integration (CI / typing / snapshots)
 
 - **Mypy (``mypy src``):** Added ``kernel_dao_as_mock`` and ``kernel_mixture_scorer`` in [`src/kernel.py`](src/kernel.py) so call sites that need :class:`~src.modules.mock_dao.MockDAO` or :class:`~src.modules.weighted_ethics_scorer.WeightedEthicsScorer` narrow correctly when the kernel uses :class:`~src.modules.dao_orchestrator.DAOOrchestrator` or :class:`~src.modules.bayesian_engine.BayesianInferenceEngine`. :class:`~src.modules.dao_orchestrator.DAOOrchestrator` now proxies ``get_records``. Chroma paths in [`src/modules/semantic_anchor_store.py`](src/modules/semantic_anchor_store.py) use explicit casts for untyped client results.
 - **Snapshot schema v4:** Completed migration chain v3→v4 in [`src/persistence/migrations.py`](src/persistence/migrations.py) with a JSON-Schema-valid default ``migratory_body``; tests updated for ``SCHEMA_VERSION == 4`` and full migration via ``migrate_raw_to_current``.
+- **Narrative SQLite `:memory:`:** [`src/persistence/narrative_storage.py`](src/persistence/narrative_storage.py) reuses one connection for in-memory databases so `save_episode` / `load_all_episodes` see the same data (fixes episodic-weight tests and any in-memory narrative isolation).
+- **Pipeline extraction:** [`src/kernel_pipeline.py`](src/kernel_pipeline.py) implements ``run_sleep_cycle`` (Psi Sleep path); [`src/kernel.py`](src/kernel.py) ``execute_sleep`` delegates there. [`src/chat_handlers/__init__.py`](src/chat_handlers/__init__.py) package stub for future chat-server splits.
+- **Security scaffolding:** [`src/modules/secure_boot.py`](src/modules/secure_boot.py) and [`src/modules/safety_interlock.py`](src/modules/safety_interlock.py) document demo limitations; structured logging; E-stop reset reads ``KERNEL_ESTOP_RESET_TOKEN`` with legacy default ``TRUSTED_RESET_V1``.
+- **Observability:** DAO orchestrator, selective amnesia, migratory identity, vision capture/adapter use ``logging`` instead of ``print`` for library paths.
+- **Dependencies:** [`pyproject.toml`](pyproject.toml) adds optional extras ``ml``, ``vectors``, ``llm``, ``tuning``, and explicit ``all-optional`` list; [`requirements.txt`](requirements.txt) trims to core + runtime + pytest; heavy pins live in [`requirements-dev.txt`](requirements-dev.txt) for CI.
+- **Tests aligned with fixtures:** [`tests/test_empirical_pilot.py`](tests/test_empirical_pilot.py) expects scenario IDs 1–21 and 21 total rows (matches [`tests/fixtures/empirical_pilot/scenarios.json`](tests/fixtures/empirical_pilot/scenarios.json)). [`tests/test_user_model.py`](tests/test_user_model.py) supplies ``social_tension`` in ``LLMPerception`` defaults.
 
 ### Antigravity Team Updates
 

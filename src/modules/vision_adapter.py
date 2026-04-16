@@ -5,9 +5,12 @@ This module defines the abstract base class and data structures for
 converting visual streams into ethical signals for the kernel.
 """
 
+import logging
 from abc import ABC, abstractmethod
 from dataclasses import dataclass, field
 from typing import Any
+
+_log = logging.getLogger(__name__)
 
 
 @dataclass
@@ -48,6 +51,17 @@ class VisionAdapter(ABC):
         pass
 
 
+import os
+
+def from_env_vision_adapter() -> "MobileNetV2Adapter":
+    """
+    Factory method to create a MobileNetV2Adapter using 
+    KERNEL_VISION_DEVICE environment variable (cpu/cuda).
+    """
+    device = os.environ.get("KERNEL_VISION_DEVICE", "cpu").lower()
+    return MobileNetV2Adapter(device=device)
+
+
 class MobileNetV2Adapter(VisionAdapter):
     """
     MobileNetV2 implementation using torchvision.
@@ -55,34 +69,46 @@ class MobileNetV2Adapter(VisionAdapter):
     This adapter handles image preprocessing, model execution, and
     label mapping for ethical signal extraction.
     """
-
-    def __init__(self):
+    def __init__(self, device: str = "cpu"):
         self.model = None
         self.transform = None
         self.categories = []
+        self.device = device
         self._is_ready = False
+        self._torch_device = None
 
     def load_model(self, path: str = None) -> None:
         """
         Loads the pre-trained MobileNetV2 model and prepares the transform pipeline.
         """
         try:
+            import torch
             from torchvision import models
             from torchvision.models import MobileNet_V2_Weights
 
             # Use recommended weights and categories from torchvision
             weights = MobileNet_V2_Weights.DEFAULT
             self.model = models.mobilenet_v2(weights=weights)
+            
+            # Map device strings to torch devices
+            if self.device == "cuda" and torch.cuda.is_available():
+                actual_device = torch.device("cuda")
+            elif self.device == "mps" and hasattr(torch.backends, "mps") and torch.backends.mps.is_available():
+                actual_device = torch.device("mps")
+            else:
+                actual_device = torch.device("cpu")
+                
+            self.model = self.model.to(actual_device)
             self.model.eval()
-
+            
+            self._torch_device = actual_device
             self.categories = weights.meta["categories"]
             self.transform = weights.transforms()
             self._is_ready = True
-            print("[Vision] MobileNetV2 loaded successfully (CPU mode).")
+            _log.info("MobileNetV2 loaded successfully on %s.", actual_device)
+
         except ImportError:
-            print(
-                "[Vision] Warning: torch/torchvision not found. MobileNetV2Adapter will run in MOCK mode."
-            )
+            _log.warning("torch/torchvision not found. MobileNetV2Adapter will run in MOCK mode.")
             self._is_ready = False
 
     def infer(self, frame: Any) -> VisionInference:
@@ -108,7 +134,7 @@ class MobileNetV2Adapter(VisionAdapter):
                 img = frame
 
             # Preprocess and add batch dimension
-            img_t = self.transform(img).unsqueeze(0)
+            img_t = self.transform(img).unsqueeze(0).to(self._torch_device)
 
             with torch.no_grad():
                 output = self.model(img_t)
@@ -135,5 +161,5 @@ class MobileNetV2Adapter(VisionAdapter):
             )
 
         except Exception as e:
-            print(f"[Vision] Inference error: {e}")
+            _log.error("Inference error: %s", e)
             return VisionInference(primary_label="error", confidence=0.0)

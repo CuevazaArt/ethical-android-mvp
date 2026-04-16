@@ -59,6 +59,8 @@ from .perception_dual_vote import (
     perception_dual_second_temperature,
     perception_dual_vote_enabled,
 )
+from .light_risk_classifier import light_risk_classifier_enabled, light_risk_tier_from_text
+from .perception_cross_check import apply_lexical_perception_cross_check
 from .perception_schema import (
     PerceptionCoercionReport,
     finalize_summary,
@@ -600,6 +602,13 @@ class LLMModule:
                 try:
                     p = perception_from_llm_json(data, situation, parse_issues=issues)
                     self._maybe_apply_perception_dual_vote(p, situation, user_block)
+
+                    # --- PHASE 2 INTEGRATION: Cross-check vs Lexical Tier ---
+                    # Uses the same normalization as MalAbs to catch obvious risk keywords.
+                    if light_risk_classifier_enabled():
+                        tier = light_risk_tier_from_text(situation)
+                        apply_lexical_perception_cross_check(p, tier)
+
                     return p
                 except Exception as exc:
                     return self._perception_degraded_fallback(

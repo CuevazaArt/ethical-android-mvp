@@ -6,7 +6,6 @@ from __future__ import annotations
 
 import json
 import sqlite3
-from contextlib import closing
 from datetime import datetime
 from pathlib import Path
 
@@ -81,11 +80,21 @@ class NarrativePersistence:
 
     def __init__(self, path: Path | str):
         self.path = Path(path)
+        self._memory_conn: sqlite3.Connection | None = None
+        if str(self.path) == ":memory:":
+            self._memory_conn = _connect(self.path)
+            _ensure_schema(self._memory_conn)
+
+    def _conn(self) -> sqlite3.Connection:
+        """Return the shared in-memory connection or open a new file-based one."""
+        if self._memory_conn is not None:
+            return self._memory_conn
+        return _connect(self.path)
 
     def save_episode(self, ep: NarrativeEpisode) -> None:
-        self.path.parent.mkdir(parents=True, exist_ok=True)
+        if self._memory_conn is None:
+            self.path.parent.mkdir(parents=True, exist_ok=True)
 
-        # Serialize complex nested objects to JSON
         payload = {
             "body_state": {
                 "energy": ep.body_state.energy,
@@ -99,7 +108,9 @@ class NarrativePersistence:
             "decision_mode": ep.decision_mode,
         }
 
-        with closing(_connect(self.path)) as conn:
+        own_conn = self._memory_conn is None
+        conn = self._conn()
+        try:
             _ensure_schema(conn)
             with conn:
                 conn.execute(
@@ -144,14 +155,18 @@ class NarrativePersistence:
                     ),
                 )
             conn.commit()
-            conn.close()
+        finally:
+            if own_conn:
+                conn.close()
 
     def load_all_episodes(self) -> list[NarrativeEpisode]:
-        if str(self.path) != ":memory:" and not self.path.is_file():
+        if self._memory_conn is None and not self.path.is_file():
             return []
 
         episodes = []
-        with closing(_connect(self.path)) as conn:
+        own_conn = self._memory_conn is None
+        conn = self._conn()
+        try:
             _ensure_schema(conn)
             cursor = conn.execute(
                 "SELECT id, timestamp, place, event_description, action_taken, verdict, ethical_score, sigma, context, significance, is_sensitive, arc_id, semantic_embedding, weights_snapshot, json_payload FROM narrative_episodes ORDER BY timestamp ASC"
@@ -205,6 +220,9 @@ class NarrativePersistence:
                     weights_snapshot=tuple(json.loads(weights_str)) if weights_str else None,
                 )
                 episodes.append(ep)
+        finally:
+            if own_conn:
+                conn.close()
         return episodes
 
     def search_by_resonance(
@@ -240,7 +258,9 @@ class NarrativePersistence:
         return filtered[:limit]
 
     def save_identity_digest(self, digest: str) -> None:
-        with closing(_connect(self.path)) as conn:
+        own_conn = self._memory_conn is None
+        conn = self._conn()
+        try:
             _ensure_schema(conn)
             with conn:
                 conn.execute(
@@ -254,20 +274,29 @@ class NarrativePersistence:
                     (digest, datetime.now().isoformat()),
                 )
             conn.commit()
-            conn.close()
+        finally:
+            if own_conn:
+                conn.close()
 
     def load_identity_digest(self) -> str:
-        if str(self.path) != ":memory:" and not self.path.is_file():
+        if self._memory_conn is None and not self.path.is_file():
             return ""
-        with closing(_connect(self.path)) as conn:
+        own_conn = self._memory_conn is None
+        conn = self._conn()
+        try:
             _ensure_schema(conn)
             row = conn.execute(
                 "SELECT existence_digest FROM identity_digests WHERE id = 1"
             ).fetchone()
             return row[0] if row else ""
+        finally:
+            if own_conn:
+                conn.close()
 
     def save_arc(self, arc: NarrativeArc) -> None:
-        with closing(_connect(self.path)) as conn:
+        own_conn = self._memory_conn is None
+        conn = self._conn()
+        try:
             _ensure_schema(conn)
             with conn:
                 conn.execute(
@@ -296,12 +325,17 @@ class NarrativePersistence:
                         json.dumps(arc.episodes_ids),
                     ),
                 )
+        finally:
+            if own_conn:
+                conn.close()
 
     def load_all_arcs(self) -> list[NarrativeArc]:
-        if str(self.path) != ":memory:" and not self.path.is_file():
+        if self._memory_conn is None and not self.path.is_file():
             return []
         arcs = []
-        with closing(_connect(self.path)) as conn:
+        own_conn = self._memory_conn is None
+        conn = self._conn()
+        try:
             _ensure_schema(conn)
             cursor = conn.execute(
                 "SELECT id, title, context, start_timestamp, end_timestamp, predominant_archetype, summary, is_active, episodes_json FROM narrative_arcs ORDER BY start_timestamp ASC"
@@ -321,6 +355,9 @@ class NarrativePersistence:
                         episodes_ids=json.loads(episodes_str),
                     )
                 )
+        finally:
+            if own_conn:
+                conn.close()
         return arcs
 
     def prune_mundane(self, max_age_days: int = 60, min_significance: float = 0.70) -> int:
@@ -328,7 +365,9 @@ class NarrativePersistence:
         Removes old episodes with low significance.
         Returns the number of deleted rows.
         """
-        with closing(_connect(self.path)) as conn:
+        own_conn = self._memory_conn is None
+        conn = self._conn()
+        try:
             _ensure_schema(conn)
             with conn:
                 query = """
@@ -338,14 +377,22 @@ class NarrativePersistence:
                 """
                 cursor = conn.execute(query, (min_significance, max_age_days))
                 return cursor.rowcount
+        finally:
+            if own_conn:
+                conn.close()
 
     def delete_episode(self, episode_id: str) -> bool:
         """Permanently deletes an episode by ID (Right to be Forgotten)."""
-        with closing(_connect(self.path)) as conn:
+        own_conn = self._memory_conn is None
+        conn = self._conn()
+        try:
             _ensure_schema(conn)
             with conn:
                 cursor = conn.execute("DELETE FROM narrative_episodes WHERE id = ?", (episode_id,))
                 return cursor.rowcount > 0
+        finally:
+            if own_conn:
+                conn.close()
 
     def get_prunable_episodes(
         self, max_age_days: int = 60, min_significance: float = 0.70
@@ -353,11 +400,13 @@ class NarrativePersistence:
         """
         Returns episodes that would be deleted by prune_mundane.
         """
-        if str(self.path) != ":memory:" and not self.path.is_file():
+        if self._memory_conn is None and not self.path.is_file():
             return []
 
         episodes = []
-        with closing(_connect(self.path)) as conn:
+        own_conn = self._memory_conn is None
+        conn = self._conn()
+        try:
             _ensure_schema(conn)
             query = """
                 SELECT id, timestamp, place, event_description, action_taken, verdict, ethical_score, sigma, context, significance, is_sensitive, arc_id, semantic_embedding, weights_snapshot, json_payload 
@@ -418,4 +467,7 @@ class NarrativePersistence:
                     weights_snapshot=tuple(json.loads(weights_str)) if weights_str else None,
                 )
                 episodes.append(ep)
+        finally:
+            if own_conn:
+                conn.close()
         return episodes

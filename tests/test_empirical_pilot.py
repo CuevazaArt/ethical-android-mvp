@@ -28,7 +28,7 @@ def test_fixture_schema():
     assert "scenarios" in data
     for s in data["scenarios"]:
         assert isinstance(s["id"], int)
-        assert 1 <= s["id"] <= 19
+        assert 1 <= s["id"] <= 21
         assert "reference_action" in s
 
 
@@ -76,4 +76,4 @@ def test_run_pilot_script_writes_output_file(tmp_path):
     assert "rows" in data and "summary" in data and "meta" in data
     assert data["meta"]["kernel"]["seed"] == 42
     assert "reference_standard" in data["meta"]
-    assert data["summary"]["scenarios"] == 19
+    assert data["summary"]["scenarios"] == 21

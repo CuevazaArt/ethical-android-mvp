@@ -1,33 +1,53 @@
 """
-Secure Boot Service (Block 5.2: G2).
-Simulates hardware-level integrity verification for the Ethos Kernel.
-Ensures that core ethical modules have not been tampered with before execution.
+Secure Boot Service (Block 5.2: G2) — **DEMO / SCAFFOLDING**.
+
+.. warning::
+
+   This module is a **simulation scaffold**.  The golden manifest contains only
+   ``"trusted"`` placeholder strings — ``verify_integrity`` never compares
+   actual SHA-256 hashes against signed references.  A production implementation
+   would require:
+
+   * A manufacturer-signed manifest with real SHA-256 digests.
+   * An HSM or TPM-backed Root of Trust for manifest verification.
+   * Tamper-evident sealing of the manifest file itself.
+
+   Until those are in place, treat this module as a **structural placeholder**
+   that demonstrates *where* integrity verification fits in the kernel boot
+   sequence, not *how* it would work in a deployed system.
 """
 
 from __future__ import annotations
 
 import hashlib
+import logging
 from pathlib import Path
+
+_log = logging.getLogger(__name__)
+
+_CRITICAL_PATHS: list[str] = [
+    "src/kernel.py",
+    "src/modules/bayesian_engine.py",
+    "src/modules/safety_interlock.py",
+    "src/modules/buffer.py",
+]
 
 
 class SecureBoot:
     """
-    Simulates a Root of Trust (RoT).
-    Verifies SHA-256 integrity of critical kernel files against a signed manifest.
+    **Demo** Root of Trust (RoT) scaffold.
+
+    Computes SHA-256 hashes for critical kernel files and checks file presence.
+    Hash *comparison* against a signed manifest is **not yet implemented** —
+    see module-level warning.
     """
 
     def __init__(self, root_dir: str | Path = "."):
         self.root_dir = Path(root_dir)
-        # In a real system, these hashes would be signed by the manufacturer (L0)
-        self.golden_manifest: dict[str, str] = {
-            "src/kernel.py": "trusted",  # Placeholder for actual hash
-            "src/modules/bayesian_engine.py": "trusted",
-            "src/modules/safety_interlock.py": "trusted",
-            "src/modules/buffer.py": "trusted",
-        }
+        self.golden_manifest: dict[str, str] = {p: "trusted" for p in _CRITICAL_PATHS}
 
     def compute_file_hash(self, relative_path: str) -> str:
-        """Computes the SHA-256 hash of a file."""
+        """Compute the SHA-256 hex-digest for *relative_path* under *root_dir*."""
         file_path = self.root_dir / relative_path
         if not file_path.exists():
             return "missing"
@@ -39,32 +59,25 @@ class SecureBoot:
         return sha256_hash.hexdigest()
 
     def verify_integrity(self) -> bool:
-        """
-        Runs the secure boot sequence.
-        Returns True if all critical modules are authentic.
-        """
-        print("[SecureBoot] Starting Root of Trust verification...")
+        """Run the secure-boot presence check (hash comparison is a TODO)."""
+        _log.info("Starting Root of Trust verification (demo mode)…")
 
         all_ok = True
-        for rel_path in self.golden_manifest.keys():
+        for rel_path in self.golden_manifest:
             actual_hash = self.compute_file_hash(rel_path)
-            # In mock mode, we just check if it's computable
             if actual_hash == "missing":
-                print(f"[SecureBoot] CRYITICAL FAILURE: {rel_path} is missing!")
+                _log.critical("CRITICAL FAILURE: %s is missing!", rel_path)
                 all_ok = False
             else:
-                # In a real environment, we'd compare actual_hash == self.golden_manifest[rel_path]
-                print(f"[SecureBoot] Verified: {rel_path}")
+                _log.info("Verified (presence only): %s", rel_path)
 
         if all_ok:
-            print("[SecureBoot] Integrity verified. Chain of trust established.")
+            _log.info("Integrity verified (presence). Chain of trust established (demo).")
         else:
-            print("[SecureBoot] INTEGRITY BREACH DETECTED. Kernel locked.")
+            _log.error("INTEGRITY BREACH DETECTED. Kernel locked.")
 
         return all_ok
 
 
 class IntegrityError(Exception):
     """Raised when the secure boot chain is broken."""
-
-    pass

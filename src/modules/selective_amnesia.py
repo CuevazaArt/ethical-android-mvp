@@ -6,12 +6,15 @@ Allows permanent deletion of specific episodes and their associated audit eviden
 
 from __future__ import annotations
 
+import logging
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
     from ..kernel import EthicalKernel
 
 from .dao_orchestrator import DAOOrchestrator
+
+_log = logging.getLogger(__name__)
 
 
 class SelectiveAmnesia:
@@ -30,7 +33,7 @@ class SelectiveAmnesia:
         Triggers a cascading deletion of all data related to the episode.
         This is a destructive, irreversible operation.
         """
-        print(f"[Amnesia] Triggering Right to be Forgotten for episode {episode_id}...")
+        _log.info("Triggering Right to be Forgotten for episode %s", episode_id)
 
         # 1. Delete from Narrative Persistence (Tier 2/3)
         narrative_deleted = self.kernel.memory.persistence.delete_episode(episode_id)
@@ -48,9 +51,9 @@ class SelectiveAmnesia:
         # 4. Final verification and report
         success = narrative_deleted or (audit_deleted_count > 0)
         if success:
-            print(f"[Amnesia] Cascase completed. Audit records purged: {audit_deleted_count}")
+            _log.info("Cascade completed. Audit records purged: %d", audit_deleted_count)
         else:
-            print(f"[Amnesia] No data found for episode {episode_id}")
+            _log.warning("No data found for episode %s", episode_id)
 
         # 5. Re-trigger Identity Reflection to ensure the amnesia is reflected in the self-model
         self.kernel.memory.consolidate()
