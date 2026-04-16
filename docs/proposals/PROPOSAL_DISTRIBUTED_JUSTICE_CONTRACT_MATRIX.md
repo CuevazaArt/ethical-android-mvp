@@ -17,10 +17,10 @@
 | `temporal_context` / `temporal_sync` | Yes (per turn when temporal planning builds context) | `sync_schema` = `temporal_sync_v1` unless announced otherwise |
 | `verbal_llm_observability` | Yes (when generative verbal degrades) | LLM matrix |
 | `dao` (list / vote / resolve / submit_draft) | Yes (when `KERNEL_MORAL_HUB_DAO_VOTE=1`) | Meta: [`GET /dao/governance`](../../src/chat_server.py) |
-| `lan_governance_integrity_batch` | Yes (when `KERNEL_DAO_INTEGRITY_AUDIT_WS=1` **and** `KERNEL_LAN_GOVERNANCE_MERGE_WS=1`) | Merge + apply integrity alerts; [`lan_governance_event_merge.py`](../../src/modules/lan_governance_event_merge.py) |
-| `lan_governance_dao_batch` | Yes (when `KERNEL_MORAL_HUB_DAO_VOTE=1` **and** `KERNEL_LAN_GOVERNANCE_MERGE_WS=1`) | Merge + apply DAO vote/resolve; deterministic replay slice |
-| `lan_governance_judicial_batch` | Yes (when `KERNEL_JUDICIAL_ESCALATION=1` **and** `KERNEL_LAN_GOVERNANCE_MERGE_WS=1`) | Merge + register escalation dossiers on audit ledger |
-| `lan_governance_mock_court_batch` | Yes (when `KERNEL_JUDICIAL_ESCALATION=1`, `KERNEL_JUDICIAL_MOCK_COURT=1` **and** `KERNEL_LAN_GOVERNANCE_MERGE_WS=1`) | Merge + run mock court on dossiers; deterministic verdict |
+| `lan_governance_integrity_batch` | Yes (when `KERNEL_DAO_INTEGRITY_AUDIT_WS=1` **and** `KERNEL_LAN_GOVERNANCE_MERGE_WS=1`) | Merge + apply integrity alerts; optional `merge_context.frontier_turn`; optional `event_conflicts` (`same_turn` / `different_clock` / `stale_event`) — [`lan_governance_conflict_taxonomy.py`](../../src/modules/lan_governance_conflict_taxonomy.py) |
+| `lan_governance_dao_batch` | Yes (when `KERNEL_MORAL_HUB_DAO_VOTE=1` **and** `KERNEL_LAN_GOVERNANCE_MERGE_WS=1`) | Merge + apply DAO vote/resolve; same merge diagnostics as integrity batch |
+| `lan_governance_judicial_batch` | Yes (when `KERNEL_JUDICIAL_ESCALATION=1` **and** `KERNEL_LAN_GOVERNANCE_MERGE_WS=1`) | Merge + register escalation dossiers on audit ledger; same merge diagnostics |
+| `lan_governance_mock_court_batch` | Yes (when `KERNEL_JUDICIAL_ESCALATION=1`, `KERNEL_JUDICIAL_MOCK_COURT=1` **and** `KERNEL_LAN_GOVERNANCE_MERGE_WS=1`) | Merge + run mock court on dossiers; same merge diagnostics |
 | `lan_governance_envelope` | Yes (schema `lan_governance_envelope_v1`) | Versioned coordinator envelope; routes `kind` → batch handler |
 | `lan_governance_coordinator` | Yes (schema `lan_governance_coordinator_v1`, when `KERNEL_LAN_GOVERNANCE_MERGE_WS=1`) | Hub message: multiple inner envelopes; fingerprint sort + dedupe; applies each in order |
 | `constitution` (in-message snapshot) | Optional (`KERNEL_CHAT_INCLUDE_*`) | Hub stack |
@@ -64,3 +64,4 @@ Update this section when a cross-team integration gate run documents verified pa
 
 - **2026-04-15:** Initial matrix + pointer to HTTP API surface doc.
 - **2026-04-15:** WebSocket ``lan_governance_integrity_batch`` row (DJ-BL-02).
+- **2026-04-15:** LAN batch rows — `merge_context.frontier_turn` + `event_conflicts` taxonomy (DJ-BL-14); see [`PROPOSAL_LAN_GOVERNANCE_CONFLICT_TAXONOMY.md`](PROPOSAL_LAN_GOVERNANCE_CONFLICT_TAXONOMY.md).

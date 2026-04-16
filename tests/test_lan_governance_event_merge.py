@@ -87,3 +87,12 @@ def test_merge_custom_id_key() -> None:
     ]
     out = merge_lan_governance_events(events, id_key="audit_record_id")
     assert len(out) == 1
+
+
+def test_merge_frontier_turn_drops_stale_rows() -> None:
+    events = [
+        {"event_id": "old", "turn_index": 1, "processor_elapsed_ms": 0},
+        {"event_id": "new", "turn_index": 2, "processor_elapsed_ms": 0},
+    ]
+    out = merge_lan_governance_events(events, frontier_turn=2)
+    assert [r["event_id"] for r in out] == ["new"]

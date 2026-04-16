@@ -39,6 +39,7 @@ Current registry (aligned with contribution guide §3):
 | **DJ-BL-11** | Envelope replay cache bounds + telemetry | **Done** — replay cache now enforces TTL/LRU bounds and returns cache stats (`hit`, totals, size) in envelope ACKs in [`src/chat_server.py`](../../src/chat_server.py). |
 | **DJ-BL-12** | Envelope replay-cache Prometheus metrics | **Done** — `ethos_kernel_lan_envelope_replay_cache_events_total` when `KERNEL_METRICS=1` in [`src/observability/metrics.py`](../../src/observability/metrics.py), emitted from envelope handling in [`src/chat_server.py`](../../src/chat_server.py). |
 | **DJ-BL-13** | Multi-node coordinator message (`lan_governance_coordinator_v1`) | **Done** — aggregates multiple `lan_governance_envelope_v1` payloads with fingerprint sort + dedupe; WebSocket key ``lan_governance_coordinator`` in [`src/chat_server.py`](../../src/chat_server.py); contract in [`src/modules/lan_governance_coordinator.py`](../../src/modules/lan_governance_coordinator.py). |
+| **DJ-BL-14** | LAN merge conflict taxonomy (`same_turn`, `different_clock`, `stale_event`) | **Done** — pure merge diagnostics in [`src/modules/lan_governance_conflict_taxonomy.py`](../../src/modules/lan_governance_conflict_taxonomy.py); wired into LAN batch handlers in [`src/chat_server.py`](../../src/chat_server.py); proposal [`PROPOSAL_LAN_GOVERNANCE_CONFLICT_TAXONOMY.md`](PROPOSAL_LAN_GOVERNANCE_CONFLICT_TAXONOMY.md). |
 
 Update this table when an ID changes state or when new IDs are added.
 
@@ -80,3 +81,4 @@ Use in PR descriptions and proposal edits (not a database):
 - **2026-04-15:** DJ-BL-11 done — replay cache TTL/LRU bounds + ACK cache telemetry.
 - **2026-04-15:** DJ-BL-12 done — Prometheus counters for envelope replay-cache events.
 - **2026-04-15:** DJ-BL-13 done — `lan_governance_coordinator_v1` multi-envelope hub message.
+- **2026-04-15:** DJ-BL-14 done — LAN batch `event_conflicts` taxonomy + optional `merge_context.frontier_turn`.

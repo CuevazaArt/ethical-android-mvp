@@ -4,6 +4,13 @@ All notable changes to this project are summarized here. For narrative context a
 
 **Note:** Older sections below may still **link** to paths that were later removed (for example `experiments/million_sim/`, `docs/multimedia/`, root `dashboard.html`, `landing/`). Those links are **historical**; recover files from git history or backup branches if you need them.
 
+## Distributed justice — Phase 2 LAN merge conflict taxonomy (DJ-BL-14) — April 2026
+
+- **Merge:** deterministic conflict classification for LAN batch `events` — `same_turn`, `different_clock`, `stale_event` — in [`src/modules/lan_governance_conflict_taxonomy.py`](src/modules/lan_governance_conflict_taxonomy.py); [`merge_lan_governance_events`](src/modules/lan_governance_event_merge.py) delegates to `merge_lan_governance_events_detailed` and accepts optional `frontier_turn`.
+- **WebSocket:** `lan_governance_*_batch` responses may include `event_conflicts` when non-empty; optional batch `merge_context.frontier_turn` marks below-frontier rows as `stale_event` in [`src/chat_server.py`](src/chat_server.py).
+- **Docs:** [`docs/proposals/PROPOSAL_LAN_GOVERNANCE_CONFLICT_TAXONOMY.md`](docs/proposals/PROPOSAL_LAN_GOVERNANCE_CONFLICT_TAXONOMY.md); contract matrix / HTTP surface / staged execution proposals updated.
+- **Tests:** [`tests/test_lan_governance_conflict_taxonomy.py`](tests/test_lan_governance_conflict_taxonomy.py), [`tests/test_chat_server.py`](tests/test_chat_server.py).
+
 ## Distributed justice — Phase 2 multi-node coordinator message (DJ-BL-13) — April 2026
 
 - **WebSocket:** ``lan_governance_coordinator`` with `schema=lan_governance_coordinator_v1` aggregates multiple ``lan_governance_envelope_v1`` payloads; deterministic fingerprint sort + dedupe; applies each via the existing envelope path (shared per-session replay cache) in [`src/chat_server.py`](src/chat_server.py).

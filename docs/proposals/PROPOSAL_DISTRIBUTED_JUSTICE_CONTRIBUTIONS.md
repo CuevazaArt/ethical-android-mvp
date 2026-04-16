@@ -52,6 +52,7 @@ These items extend the **“Pending gaps”** list in [`PROPOSAL_DAO_BLOCKCHAIN_
 | **DJ-BL-11** | **Replay cache bounds + ACK telemetry** — TTL/LRU bounded cache and cache hit/miss counters in envelope responses. | **Done** — envelope ACK now includes `cache` stats and replay cache is bounded by `KERNEL_LAN_ENVELOPE_REPLAY_CACHE_TTL_MS` / `KERNEL_LAN_ENVELOPE_REPLAY_CACHE_MAX_ENTRIES` (`src/chat_server.py`, `tests/test_chat_server.py`). |
 | **DJ-BL-12** | **Replay-cache Prometheus metrics** — process-level observability for envelope duplicate handling. | **Done** — `ethos_kernel_lan_envelope_replay_cache_events_total` when `KERNEL_METRICS=1` (`src/observability/metrics.py`, `src/chat_server.py`, `tests/test_observability_metrics.py`). |
 | **DJ-BL-13** | **Multi-node coordinator envelope** — one WebSocket frame carries N peer envelopes; deterministic apply order. | **Done** — `lan_governance_coordinator` + `lan_governance_coordinator_v1` (`src/modules/lan_governance_coordinator.py`, `src/chat_server.py`, `tests/test_lan_governance_coordinator.py`, `tests/test_chat_server.py`). |
+| **DJ-BL-14** | **LAN merge conflict taxonomy** — machine-parseable `event_conflicts` for multi-node merge (`same_turn`, `different_clock`, `stale_event`). | **Done** — `src/modules/lan_governance_conflict_taxonomy.py`, LAN batches in `src/chat_server.py`, `tests/test_lan_governance_conflict_taxonomy.py`, `tests/test_chat_server.py`; [`PROPOSAL_LAN_GOVERNANCE_CONFLICT_TAXONOMY.md`](PROPOSAL_LAN_GOVERNANCE_CONFLICT_TAXONOMY.md). |
 
 Contributors should pick **one** item per PR when possible; link **`CHANGELOG.md`** when operator-visible behavior or JSON contracts change.
 
@@ -92,3 +93,4 @@ Contributors should pick **one** item per PR when possible; link **`CHANGELOG.md
 - **2026-04-15:** DJ-BL-11 done — replay cache TTL/LRU bounds + cache telemetry in ACK.
 - **2026-04-15:** DJ-BL-12 done — Prometheus metrics for envelope replay-cache events.
 - **2026-04-15:** DJ-BL-13 done — multi-envelope coordinator WebSocket contract.
+- **2026-04-15:** DJ-BL-14 done — LAN merge conflict taxonomy + optional merge frontier.

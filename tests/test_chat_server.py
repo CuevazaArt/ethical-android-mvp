@@ -425,7 +425,7 @@ def test_websocket_lan_governance_integrity_batch_merges_and_applies(monkeypatch
                     "event_id": "e1",
                     "turn_index": 1,
                     "processor_elapsed_ms": 99,
-                    "summary": "duplicate id ignored",
+                    "summary": "first turn alert",
                     "scope": "lan_test",
                 },
             ],
@@ -441,6 +441,81 @@ def test_websocket_lan_governance_integrity_batch_merges_and_applies(monkeypatch
     assert batch.get("deduped_count") == 1
     assert batch.get("applied_count") == 2
     assert batch.get("event_ids") == ["e1", "e2"]
+    assert batch.get("event_conflicts") in (None, [])
+
+
+def test_websocket_lan_governance_integrity_batch_same_turn_conflict_in_event_conflicts(
+    monkeypatch,
+):
+    monkeypatch.setenv("KERNEL_DAO_INTEGRITY_AUDIT_WS", "1")
+    monkeypatch.setenv("KERNEL_LAN_GOVERNANCE_MERGE_WS", "1")
+    payload = {
+        "lan_governance_integrity_batch": {
+            "events": [
+                {
+                    "event_id": "e1",
+                    "turn_index": 1,
+                    "processor_elapsed_ms": 10,
+                    "summary": "first version",
+                    "scope": "lan_test",
+                },
+                {
+                    "event_id": "e1",
+                    "turn_index": 1,
+                    "processor_elapsed_ms": 20,
+                    "summary": "forked version",
+                    "scope": "lan_test",
+                },
+            ],
+        },
+    }
+    with client.websocket_connect("/ws/chat") as ws:
+        ws.send_json(payload)
+        data = ws.receive_json()
+    batch = data.get("lan_governance", {}).get("integrity_batch", {})
+    assert batch.get("ok") is True
+    assert batch.get("merged_count") == 1
+    assert batch.get("applied_count") == 1
+    conflicts = batch.get("event_conflicts") or []
+    assert len(conflicts) == 1
+    assert conflicts[0].get("kind") == "same_turn"
+    assert conflicts[0].get("event_id") == "e1"
+
+
+def test_websocket_lan_governance_integrity_batch_merge_context_frontier_stale_event(monkeypatch):
+    monkeypatch.setenv("KERNEL_DAO_INTEGRITY_AUDIT_WS", "1")
+    monkeypatch.setenv("KERNEL_LAN_GOVERNANCE_MERGE_WS", "1")
+    payload = {
+        "lan_governance_integrity_batch": {
+            "merge_context": {"frontier_turn": 2},
+            "events": [
+                {
+                    "event_id": "old",
+                    "turn_index": 1,
+                    "processor_elapsed_ms": 0,
+                    "summary": "stale",
+                    "scope": "lan_test",
+                },
+                {
+                    "event_id": "new",
+                    "turn_index": 2,
+                    "processor_elapsed_ms": 0,
+                    "summary": "ok",
+                    "scope": "lan_test",
+                },
+            ],
+        },
+    }
+    with client.websocket_connect("/ws/chat") as ws:
+        ws.send_json(payload)
+        data = ws.receive_json()
+    batch = data.get("lan_governance", {}).get("integrity_batch", {})
+    assert batch.get("merged_count") == 1
+    assert batch.get("event_ids") == ["new"]
+    conflicts = batch.get("event_conflicts") or []
+    assert len(conflicts) == 1
+    assert conflicts[0].get("kind") == "stale_event"
+    assert conflicts[0].get("reason") == "below_frontier_turn"
 
 
 def test_websocket_lan_governance_integrity_batch_disabled_returns_hint(monkeypatch):

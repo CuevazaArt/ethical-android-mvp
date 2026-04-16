@@ -12,61 +12,40 @@ with ``temporal_sync_v1``). Events without ``id_key`` are **skipped** (caller mu
 
 from __future__ import annotations
 
-import math
 from collections.abc import Mapping, Sequence
 from typing import Any
 
+from .lan_governance_conflict_taxonomy import (
+    CONFLICT_DIFFERENT_CLOCK,
+    CONFLICT_SAME_TURN,
+    CONFLICT_STALE_EVENT,
+    merge_lan_governance_events_detailed,
+)
 
-def _as_int(value: object, default: int = 0) -> int:
-    if value is None:
-        return default
-    if isinstance(value, bool):
-        return default
-    if isinstance(value, int):
-        return value
-    if isinstance(value, float):
-        return int(value) if math.isfinite(value) else default
-    if isinstance(value, str):
-        try:
-            s = value.strip()
-            return int(s, 10) if s else default
-        except ValueError:
-            return default
-    return default
+__all__ = (
+    "CONFLICT_DIFFERENT_CLOCK",
+    "CONFLICT_SAME_TURN",
+    "CONFLICT_STALE_EVENT",
+    "merge_lan_governance_events",
+    "merge_lan_governance_events_detailed",
+)
 
 
 def merge_lan_governance_events(
     events: Sequence[Mapping[str, Any]],
     *,
     id_key: str = "event_id",
+    frontier_turn: int | None = None,
 ) -> list[dict[str, Any]]:
     """
     Sort by ``(turn_index, processor_elapsed_ms, id)``, then dedupe by ``id_key`` (first wins).
 
     Skips rows where ``id_key`` is missing or empty after strip — callers must assign stable ids
     for cross-node correlation (e.g. dossier / audit reference).
+
+    When ``frontier_turn`` is set, rows with ``turn_index < frontier_turn`` are dropped as
+    ``stale_event`` (see ``merge_lan_governance_events_detailed``).
     """
-    if not events:
-        return []
-
-    keyed: list[tuple[tuple[int, int, str], dict[str, Any]]] = []
-    for raw in events:
-        row = dict(raw)
-        eid = str(row.get(id_key, "") or "").strip()
-        if not eid:
-            continue
-        tid = _as_int(row.get("turn_index"), 0)
-        pe = _as_int(row.get("processor_elapsed_ms"), 0)
-        keyed.append(((tid, pe, eid), row))
-
-    keyed.sort(key=lambda item: item[0])
-
-    seen: set[str] = set()
-    out: list[dict[str, Any]] = []
-    for _sort_key, row in keyed:
-        eid = str(row.get(id_key, "") or "").strip()
-        if eid in seen:
-            continue
-        seen.add(eid)
-        out.append(row)
-    return out
+    return merge_lan_governance_events_detailed(events, id_key=id_key, frontier_turn=frontier_turn)[
+        "merged"
+    ]

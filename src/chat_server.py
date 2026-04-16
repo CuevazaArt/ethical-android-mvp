@@ -119,6 +119,7 @@ import logging
 import math
 import os
 import time
+from collections.abc import Mapping
 from contextlib import asynccontextmanager
 from dataclasses import asdict
 from typing import Any
@@ -149,7 +150,7 @@ from .modules.lan_governance_envelope import (
     normalize_lan_governance_envelope,
     reject_reason_for_envelope_error,
 )
-from .modules.lan_governance_event_merge import merge_lan_governance_events
+from .modules.lan_governance_event_merge import merge_lan_governance_events_detailed
 from .modules.ml_ethics_tuner import maybe_log_gray_zone_tuning_opportunity
 from .modules.mock_dao_audit_replay import fingerprint_audit_ledger
 from .modules.moral_hub import (
@@ -379,6 +380,14 @@ def _coerce_public_int(value: object, *, default: int = 0, non_negative: bool = 
     if non_negative:
         out = max(0, out)
     return out
+
+
+def _merge_context_frontier_turn(batch_obj: Mapping[str, Any]) -> int | None:
+    """Optional ``merge_context.frontier_turn`` on LAN batch payloads (non-negative int)."""
+    mc = batch_obj.get("merge_context")
+    if not isinstance(mc, dict) or "frontier_turn" not in mc:
+        return None
+    return _coerce_public_int(mc.get("frontier_turn"), default=0, non_negative=True)
 
 
 DEFAULT_LAN_ENVELOPE_REPLAY_CACHE_TTL_MS = 300_000
@@ -904,8 +913,11 @@ def _collect_lan_governance_integrity_batch(
 
     Client shape::
         {"lan_governance_integrity_batch": {"events": [...], "id_key": "event_id"}}
+
+    Optional ``merge_context``: ``{"frontier_turn": <non-negative int>}`` marks rows with a lower
+    ``turn_index`` as ``stale_event`` during merge (see ``PROPOSAL_LAN_GOVERNANCE_CONFLICT_TAXONOMY``).
     Each event needs ``summary``; optional ``scope``, ``principled_transparency``; merge keys per
-    :func:`~src.modules.lan_governance_event_merge.merge_lan_governance_events`.
+    :func:`~src.modules.lan_governance_event_merge.merge_lan_governance_events_detailed`.
     """
     raw = data.get("lan_governance_integrity_batch")
     if raw is None:
@@ -947,7 +959,12 @@ def _collect_lan_governance_integrity_batch(
     input_count = len(dict_rows)
     missing_id_count = sum(1 for r in dict_rows if not str(r.get(id_key, "") or "").strip())
 
-    merged = merge_lan_governance_events(dict_rows, id_key=id_key)
+    frontier_turn = _merge_context_frontier_turn(raw)
+    merge_detail = merge_lan_governance_events_detailed(
+        dict_rows, id_key=id_key, frontier_turn=frontier_turn
+    )
+    merged = merge_detail["merged"]
+    event_conflicts: list[dict[str, Any]] = list(merge_detail["conflicts"])
     merged_count = len(merged)
     with_id_count = max(0, input_count - missing_id_count)
     deduped_count = max(0, with_id_count - merged_count)
@@ -979,20 +996,19 @@ def _collect_lan_governance_integrity_batch(
         record_dao_ws_operation("lan_governance_integrity_batch")
 
     ok = merged_count == 0 or (not errors and applied == merged_count)
-    return {
-        "lan_governance": {
-            "integrity_batch": {
-                "ok": ok,
-                "input_count": input_count,
-                "missing_id_count": missing_id_count,
-                "merged_count": merged_count,
-                "deduped_count": deduped_count,
-                "applied_count": applied,
-                "event_ids": applied_ids,
-                "errors": errors,
-            },
-        },
+    batch_body: dict[str, Any] = {
+        "ok": ok,
+        "input_count": input_count,
+        "missing_id_count": missing_id_count,
+        "merged_count": merged_count,
+        "deduped_count": deduped_count,
+        "applied_count": applied,
+        "event_ids": applied_ids,
+        "errors": errors,
     }
+    if event_conflicts:
+        batch_body["event_conflicts"] = event_conflicts
+    return {"lan_governance": {"integrity_batch": batch_body}}
 
 
 def _collect_lan_governance_dao_batch(
@@ -1003,6 +1019,9 @@ def _collect_lan_governance_dao_batch(
 
     Client shape::
         {"lan_governance_dao_batch": {"events": [...], "id_key": "event_id"}}
+
+    Optional ``merge_context.frontier_turn`` on the batch object (same semantics as integrity batch).
+
     Each event requires ``op`` in {"dao_vote","dao_resolve"} and the corresponding fields:
       - dao_vote: proposal_id, participant_id, n_votes, in_favor
       - dao_resolve: proposal_id
@@ -1037,7 +1056,12 @@ def _collect_lan_governance_dao_batch(
     input_count = len(dict_rows)
     missing_id_count = sum(1 for r in dict_rows if not str(r.get(id_key, "") or "").strip())
 
-    merged = merge_lan_governance_events(dict_rows, id_key=id_key)
+    frontier_turn = _merge_context_frontier_turn(raw)
+    merge_detail = merge_lan_governance_events_detailed(
+        dict_rows, id_key=id_key, frontier_turn=frontier_turn
+    )
+    merged = merge_detail["merged"]
+    event_conflicts: list[dict[str, Any]] = list(merge_detail["conflicts"])
     merged_count = len(merged)
     with_id_count = max(0, input_count - missing_id_count)
     deduped_count = max(0, with_id_count - merged_count)
@@ -1100,22 +1124,21 @@ def _collect_lan_governance_dao_batch(
 
     proposals = [proposal_to_public(p) for p in kernel.dao.proposals if p.id in touched_pids]
     ok = merged_count == 0 or (not errors and len(applied_ids) == merged_count)
-    return {
-        "lan_governance": {
-            "dao_batch": {
-                "ok": ok,
-                "input_count": input_count,
-                "missing_id_count": missing_id_count,
-                "merged_count": merged_count,
-                "deduped_count": deduped_count,
-                "applied_count": len(applied_ids),
-                "event_ids": applied_ids,
-                "results": results,
-                "errors": errors,
-                "proposals": proposals,
-            }
-        }
+    batch_body: dict[str, Any] = {
+        "ok": ok,
+        "input_count": input_count,
+        "missing_id_count": missing_id_count,
+        "merged_count": merged_count,
+        "deduped_count": deduped_count,
+        "applied_count": len(applied_ids),
+        "event_ids": applied_ids,
+        "results": results,
+        "errors": errors,
+        "proposals": proposals,
     }
+    if event_conflicts:
+        batch_body["event_conflicts"] = event_conflicts
+    return {"lan_governance": {"dao_batch": batch_body}}
 
 
 def _collect_lan_governance_judicial_batch(
@@ -1126,6 +1149,8 @@ def _collect_lan_governance_judicial_batch(
 
     Client shape::
         {"lan_governance_judicial_batch": {"events": [...], "id_key": "event_id"}}
+
+    Optional ``merge_context.frontier_turn`` on the batch object (same semantics as integrity batch).
 
     Each event requires:
       - op: "judicial_register_dossier"
@@ -1167,7 +1192,12 @@ def _collect_lan_governance_judicial_batch(
     input_count = len(dict_rows)
     missing_id_count = sum(1 for r in dict_rows if not str(r.get(id_key, "") or "").strip())
 
-    merged = merge_lan_governance_events(dict_rows, id_key=id_key)
+    frontier_turn = _merge_context_frontier_turn(raw)
+    merge_detail = merge_lan_governance_events_detailed(
+        dict_rows, id_key=id_key, frontier_turn=frontier_turn
+    )
+    merged = merge_detail["merged"]
+    event_conflicts: list[dict[str, Any]] = list(merge_detail["conflicts"])
     merged_count = len(merged)
     with_id_count = max(0, input_count - missing_id_count)
     deduped_count = max(0, with_id_count - merged_count)
@@ -1196,21 +1226,20 @@ def _collect_lan_governance_judicial_batch(
         record_dao_ws_operation("lan_governance_judicial_batch")
 
     ok = merged_count == 0 or (not errors and len(applied_ids) == merged_count)
-    return {
-        "lan_governance": {
-            "judicial_batch": {
-                "ok": ok,
-                "input_count": input_count,
-                "missing_id_count": missing_id_count,
-                "merged_count": merged_count,
-                "deduped_count": deduped_count,
-                "applied_count": len(applied_ids),
-                "event_ids": applied_ids,
-                "records": records,
-                "errors": errors,
-            }
-        }
+    batch_body: dict[str, Any] = {
+        "ok": ok,
+        "input_count": input_count,
+        "missing_id_count": missing_id_count,
+        "merged_count": merged_count,
+        "deduped_count": deduped_count,
+        "applied_count": len(applied_ids),
+        "event_ids": applied_ids,
+        "records": records,
+        "errors": errors,
     }
+    if event_conflicts:
+        batch_body["event_conflicts"] = event_conflicts
+    return {"lan_governance": {"judicial_batch": batch_body}}
 
 
 def _collect_lan_governance_mock_court_batch(
@@ -1221,6 +1250,8 @@ def _collect_lan_governance_mock_court_batch(
 
     Client shape::
         {"lan_governance_mock_court_batch": {"events": [...], "id_key": "event_id"}}
+
+    Optional ``merge_context.frontier_turn`` on the batch object (same semantics as integrity batch).
 
     Each event requires:
       - op: "judicial_run_mock_court"
@@ -1268,7 +1299,12 @@ def _collect_lan_governance_mock_court_batch(
     input_count = len(dict_rows)
     missing_id_count = sum(1 for r in dict_rows if not str(r.get(id_key, "") or "").strip())
 
-    merged = merge_lan_governance_events(dict_rows, id_key=id_key)
+    frontier_turn = _merge_context_frontier_turn(raw)
+    merge_detail = merge_lan_governance_events_detailed(
+        dict_rows, id_key=id_key, frontier_turn=frontier_turn
+    )
+    merged = merge_detail["merged"]
+    event_conflicts: list[dict[str, Any]] = list(merge_detail["conflicts"])
     merged_count = len(merged)
     with_id_count = max(0, input_count - missing_id_count)
     deduped_count = max(0, with_id_count - merged_count)
@@ -1310,21 +1346,20 @@ def _collect_lan_governance_mock_court_batch(
         record_dao_ws_operation("lan_governance_mock_court_batch")
 
     ok = merged_count == 0 or (not errors and len(applied_ids) == merged_count)
-    return {
-        "lan_governance": {
-            "mock_court_batch": {
-                "ok": ok,
-                "input_count": input_count,
-                "missing_id_count": missing_id_count,
-                "merged_count": merged_count,
-                "deduped_count": deduped_count,
-                "applied_count": len(applied_ids),
-                "event_ids": applied_ids,
-                "results": results,
-                "errors": errors,
-            }
-        }
+    batch_body: dict[str, Any] = {
+        "ok": ok,
+        "input_count": input_count,
+        "missing_id_count": missing_id_count,
+        "merged_count": merged_count,
+        "deduped_count": deduped_count,
+        "applied_count": len(applied_ids),
+        "event_ids": applied_ids,
+        "results": results,
+        "errors": errors,
     }
+    if event_conflicts:
+        batch_body["event_conflicts"] = event_conflicts
+    return {"lan_governance": {"mock_court_batch": batch_body}}
 
 
 def _collect_lan_governance_envelope(
