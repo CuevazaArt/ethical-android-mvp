@@ -64,6 +64,14 @@ To maintain repository order and production stability across multiple teams, we 
    - `master-<team_secondary>` → `master-antigravity` → `main`.
    - The `master-antigravity` branch serves as the **Standard Integration Hub** for the entire project.
 
+## Cross-Team Conflict Prevention (MERGE-PREVENT-01)
+
+To prevent "Merge Hell" (e.g., duplicated architecture, massive `CHANGELOG.md` conflicts, "God Object" topology clashes), all teams MUST strictly adhere to:
+1. **Architectural Scouting (Anti-Duplication):** DO NOT build a new persistent store or infrastructure module without checking `docs/proposals/` AND inspecting peer `master-*` branches. If a stub exists, adopt and extend it instead of duplicating it (`add/add` conflict prevention).
+2. **CHANGELOG.md Namespace Isolation:** Teams MUST append their updates under a specific nested sub-header for their team (e.g., `### Cursor-Team Updates`) inside the current month's section. Never edit the raw top line simultaneously.
+3. **Core File Micro-Edits:** Modifications to global files (`kernel.py`, `requirements.txt`, core dataclasses) must be minimal. Append new elements to the absolute end of the target scope.
+4. **Staggered Integration:** Antigravity (L1) MUST serialize cross-team merges. Do not merge all remote `master-*` branches simultaneously. Merge ONE team, stabilize the hub, and instruct the next team to pull before their turn. See `.cursor/rules/cross-team-conflict-prevention.mdc`.
+
 ## Protocolo de Promoción a Main (Estabilización y Fusión)
 
 Para minimizar conflictos y asegurar la integridad de la rama `main`, se establece el siguiente rito de fusión:
