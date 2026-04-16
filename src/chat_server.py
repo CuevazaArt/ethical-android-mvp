@@ -440,6 +440,40 @@ def _aggregated_event_conflicts_from_lan_governance(
     return out
 
 
+def _aggregated_frontier_witness_resolutions_from_lan_governance(
+    lg: Mapping[str, Any],
+    *,
+    envelope_fingerprint: str,
+    envelope_idempotency_token: str,
+) -> list[dict[str, Any]]:
+    """Collect ``merge_context_echo.frontier_witness_resolution`` from LAN batch sections."""
+    out: list[dict[str, Any]] = []
+    for sec in (
+        "integrity_batch",
+        "dao_batch",
+        "judicial_batch",
+        "mock_court_batch",
+    ):
+        block = lg.get(sec)
+        if not isinstance(block, dict):
+            continue
+        echo = block.get("merge_context_echo")
+        if not isinstance(echo, dict):
+            continue
+        fwr = echo.get("frontier_witness_resolution")
+        if not isinstance(fwr, dict) or not fwr:
+            continue
+        out.append(
+            {
+                "source_batch": sec,
+                "envelope_fingerprint": envelope_fingerprint,
+                "envelope_idempotency_token": envelope_idempotency_token,
+                "frontier_witness_resolution": dict(fwr),
+            }
+        )
+    return out
+
+
 DEFAULT_LAN_ENVELOPE_REPLAY_CACHE_TTL_MS = 300_000
 DEFAULT_LAN_ENVELOPE_REPLAY_CACHE_MAX_ENTRIES = 256
 
@@ -1641,6 +1675,8 @@ def _collect_lan_governance_coordinator(
     Inner envelopes share the same per-session replay cache as direct ``lan_governance_envelope``.
     When inner batches emit ``event_conflicts``, the coordinator response may include
     ``aggregated_event_conflicts`` with ``source_batch``, ``envelope_fingerprint``, and token hints.
+    When inner batches echo ``frontier_witness_resolution``, the coordinator may include
+    ``aggregated_frontier_witness_resolutions`` with the same correlation fields.
     """
     raw = data.get("lan_governance_coordinator")
     if raw is None:
@@ -1675,6 +1711,7 @@ def _collect_lan_governance_coordinator(
     coord_fp = fingerprint_lan_governance_coordinator(normalized)
     item_results: list[dict[str, Any]] = []
     aggregated_event_conflicts: list[dict[str, Any]] = []
+    aggregated_frontier_witness_resolutions: list[dict[str, Any]] = []
     all_ok = True
     batch_sections = (
         "integrity_batch",
@@ -1715,6 +1752,13 @@ def _collect_lan_governance_coordinator(
                 envelope_idempotency_token=tok,
             )
         )
+        aggregated_frontier_witness_resolutions.extend(
+            _aggregated_frontier_witness_resolutions_from_lan_governance(
+                lg,
+                envelope_fingerprint=fp,
+                envelope_idempotency_token=tok,
+            )
+        )
         item_results.append(
             {
                 "fingerprint": fp,
@@ -1740,6 +1784,10 @@ def _collect_lan_governance_coordinator(
     }
     if aggregated_event_conflicts:
         coord_body["aggregated_event_conflicts"] = aggregated_event_conflicts
+    if aggregated_frontier_witness_resolutions:
+        coord_body["aggregated_frontier_witness_resolutions"] = (
+            aggregated_frontier_witness_resolutions
+        )
     return {"lan_governance": {"coordinator": coord_body}}
 
 

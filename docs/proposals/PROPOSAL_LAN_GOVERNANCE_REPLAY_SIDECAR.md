@@ -18,7 +18,7 @@ This does **not** replace cross-session quorum or chain anchoring; it is a **loc
 - **`schema`:** `lan_governance_replay_sidecar_v1`
 - **`audit_ledger_fingerprint`:** optional hex string (same algorithm as `fingerprint_audit_ledger`)
 - **`batches`:** optional object with keys among `integrity_batch`, `dao_batch`, `judicial_batch`, `mock_court_batch`; each value may include `event_conflicts`, `merge_context_echo`, `merge_context_warnings` when non-empty in the source response
-- **`coordinator`:** optional object with `aggregated_event_conflicts` when present
+- **`coordinator`:** optional object with `aggregated_event_conflicts` and/or `aggregated_frontier_witness_resolutions` when present
 
 Empty sections are omitted. Use `build_replay_sidecar_v1(lan_governance=..., audit_ledger_fingerprint=optional)` to construct from public JSON.
 

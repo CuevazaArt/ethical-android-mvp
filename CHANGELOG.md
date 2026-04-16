@@ -7,6 +7,7 @@ All notable changes to this project are summarized here. For narrative context a
 ## Distributed justice — Frontier witnesses + anchor compare CLI (DJ-BL-16 / DJ-BL-17) — April 2026
 
 - **Frontier witnesses:** optional `merge_context.frontier_witnesses` (`lan_governance_frontier_witness_v1`) aggregated deterministically; batch responses echo `merge_context_echo.frontier_witness_resolution` with `evidence_posture=advisory_aggregate_not_quorum` — [`src/modules/lan_governance_merge_context.py`](src/modules/lan_governance_merge_context.py), [`docs/proposals/PROPOSAL_LAN_GOVERNANCE_FRONTIER_WITNESS.md`](docs/proposals/PROPOSAL_LAN_GOVERNANCE_FRONTIER_WITNESS.md).
+- **Coordinator:** `lan_governance.coordinator` now also aggregates `aggregated_frontier_witness_resolutions` from inner-batch `merge_context_echo.frontier_witness_resolution` (alongside `aggregated_event_conflicts`); the LAN governance replay sidecar includes the coordinator slice when present — [`src/chat_server.py`](src/chat_server.py), [`src/modules/lan_governance_replay_sidecar.py`](src/modules/lan_governance_replay_sidecar.py).
 - **Phase 3 stub:** [`scripts/eval/compare_audit_ledger_anchor.py`](scripts/eval/compare_audit_ledger_anchor.py) exits 0 when audit ledger JSON fingerprint matches expected 64-char hex ([`tests/test_compare_audit_ledger_anchor.py`](tests/test_compare_audit_ledger_anchor.py)).
 - **Docs:** operator quick ref, contract matrix, HTTP surface, staged execution proposal, contributions/backlog (DJ-BL-02 row corrected).
 
