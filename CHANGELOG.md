@@ -4,6 +4,25 @@ All notable changes to this project are summarized here. For narrative context a
 
 **Note:** Older sections below may still **link** to paths that were later removed (for example `experiments/million_sim/`, `docs/multimedia/`, root `dashboard.html`, `landing/`). Those links are **historical**; recover files from git history or backup branches if you need them.
 
+## Antigravity — Validation Pulse & Somatic-Vision Integration — April 2026
+
+### Antigravity Team Updates
+- **Integration Hub:** Successfully executed the **Integration Pulse** between `master-antigravity`, `master-Cursor`, and `master-claude`. Consolidated **LAN Governance** (frontier witness, replay sidecar) with **Situated Vision** and **Somatic Infrastructure**.
+- **Somatic Infrastructure (Module S5):** Fully implemented the Somatic Profile integration. The kernel is now aware of its hardware vitals, specifically `core_temperature`.
+  - Added `VitalityAssessment` logic for thermal thresholding (`KERNEL_VITALITY_CRITICAL_TEMP`).
+  - Implemented automatic precision-degraded perception confidence (-0.15) and ethical nudges (urgency +0.35, vulnerability +0.50) when thermal critical state is detected.
+- **Situated Computational Vision (Module B2 & B4):**
+  - **B2 (CNN Inference):** Completed the implementation of `MobileNetV2` using `torchvision`. Supports ImageNet label extraction with a fallback mock mode for low-resource environments.
+  - **B4 (Video Capture):** Implemented a non-blocking `VideoCaptureInterface` in `src/modules/vision_capture.py` that handles real-time camera frames in a background thread using OpenCV.
+- **LAN Governance & Audit:**
+  - Verified stability of the decentralized governance replay sidecar and coordinator. All 31 tests passed.
+  - Hardened the `DAOOrchestrator` bridge by proxying the `emit_solidarity_alert` contract.
+- **Tests & Validation:**
+  - Created `tests/test_somatic_profile.py` for thermal regression testing.
+  - Fixed outdated `LLMPerception` schema in `scripts/run_vision_pilot_validation.py`.
+  - Verified end-to-end multimodal fusion (Vision + Audio) in situated scenarios.
+- **Stabilization Window:** Decreed a **Feature Freeze** on `master-antigravity` prior to the `main` promotion rito.
+
 ## Antigravity — Cybersecurity Consolidation & Integration Pulse — April 2026
 
 ### Antigravity Team Updates
