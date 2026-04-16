@@ -72,6 +72,13 @@ When a chat turn returns, the server may emit:
 
 **Sync degraded — local-safe mode (DJ-BL-03):** `temporal_sync.local_network_sync_ready` and `temporal_sync.dao_sync_ready` reflect **`KERNEL_TEMPORAL_LAN_SYNC`** and **`KERNEL_TEMPORAL_DAO_SYNC`** (default `1` = ready when unset; set `0` to mark not ready). These flags are **advisory** for coordinators — they do **not** disable MalAbs, the ethical cycle, or in-process **MockDAO** / **judicial** JSON when enabled via `KERNEL_JUDICIAL_*` / hub env. Treat as “no cross-node guarantee implied,” not “governance offline.” See [`PROPOSAL_DAO_BLOCKCHAIN_DISTRIBUTED_JUSTICE_STAGED_EXECUTION.md`](PROPOSAL_DAO_BLOCKCHAIN_DISTRIBUTED_JUSTICE_STAGED_EXECUTION.md) (Example B — DAO audit continues locally). WebSocket probe: [`tests/test_chat_server.py`](../../tests/test_chat_server.py) `test_websocket_temporal_sync_respects_env_toggles`.
 
+### LAN governance batch merge — frontier hint and conflicts (DJ-BL-14)
+
+- **Gate:** enable LAN merge with **`KERNEL_LAN_GOVERNANCE_MERGE_WS=1`**, plus the batch-specific flags (integrity / DAO vote / judicial / mock court) documented under *Governance / hub* and distributed-justice proposals.
+- **Optional `merge_context.frontier_turn`:** on `lan_governance_integrity_batch`, `lan_governance_dao_batch`, `lan_governance_judicial_batch`, and `lan_governance_mock_court_batch` payloads (including the same object when embedded in `lan_governance_envelope.batch`). Events with `turn_index` **strictly less** than `frontier_turn` are dropped and listed under `event_conflicts` as `stale_event` (`reason: below_frontier_turn`). This value is an **operator-supplied session hint** — it is **not** a replicated consensus clock and does not imply cross-session agreement.
+- **`event_conflicts`:** batch responses may include a non-empty array whose entries use stable `kind` values (`same_turn`, `different_clock`, `stale_event`). Semantics and evidence posture: [`PROPOSAL_LAN_GOVERNANCE_CONFLICT_TAXONOMY.md`](PROPOSAL_LAN_GOVERNANCE_CONFLICT_TAXONOMY.md).
+- **Hub coordinator:** `lan_governance_coordinator` responses may include **`aggregated_event_conflicts`**, flattening inner-batch conflicts and adding `source_batch`, `envelope_fingerprint`, and `envelope_idempotency_token` for correlation.
+
 ### Verbal LLM observability (chat JSON)
 
 When a generative touchpoint falls back (**communicate**, **narrate**, or optional **monologue** enrich), the server may emit:

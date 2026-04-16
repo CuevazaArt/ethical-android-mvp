@@ -390,6 +390,37 @@ def _merge_context_frontier_turn(batch_obj: Mapping[str, Any]) -> int | None:
     return _coerce_public_int(mc.get("frontier_turn"), default=0, non_negative=True)
 
 
+def _aggregated_event_conflicts_from_lan_governance(
+    lg: Mapping[str, Any],
+    *,
+    envelope_fingerprint: str,
+    envelope_idempotency_token: str,
+) -> list[dict[str, Any]]:
+    """Collect ``event_conflicts`` from LAN batch sections with hub correlation fields."""
+    out: list[dict[str, Any]] = []
+    for sec in (
+        "integrity_batch",
+        "dao_batch",
+        "judicial_batch",
+        "mock_court_batch",
+    ):
+        block = lg.get(sec)
+        if not isinstance(block, dict):
+            continue
+        ecs = block.get("event_conflicts")
+        if not isinstance(ecs, list) or not ecs:
+            continue
+        for c in ecs:
+            if not isinstance(c, dict):
+                continue
+            row = dict(c)
+            row["source_batch"] = sec
+            row["envelope_fingerprint"] = envelope_fingerprint
+            row["envelope_idempotency_token"] = envelope_idempotency_token
+            out.append(row)
+    return out
+
+
 DEFAULT_LAN_ENVELOPE_REPLAY_CACHE_TTL_MS = 300_000
 DEFAULT_LAN_ENVELOPE_REPLAY_CACHE_MAX_ENTRIES = 256
 
@@ -1581,6 +1612,8 @@ def _collect_lan_governance_coordinator(
     Multi-node hub message: validate ``lan_governance_coordinator_v1`` then apply each inner envelope.
 
     Inner envelopes share the same per-session replay cache as direct ``lan_governance_envelope``.
+    When inner batches emit ``event_conflicts``, the coordinator response may include
+    ``aggregated_event_conflicts`` with ``source_batch``, ``envelope_fingerprint``, and token hints.
     """
     raw = data.get("lan_governance_coordinator")
     if raw is None:
@@ -1614,6 +1647,7 @@ def _collect_lan_governance_coordinator(
     items: list[dict[str, Any]] = list(normalized["items"])
     coord_fp = fingerprint_lan_governance_coordinator(normalized)
     item_results: list[dict[str, Any]] = []
+    aggregated_event_conflicts: list[dict[str, Any]] = []
     all_ok = True
     batch_sections = (
         "integrity_batch",
@@ -1647,6 +1681,13 @@ def _collect_lan_governance_coordinator(
             ):
                 all_ok = False
                 break
+        aggregated_event_conflicts.extend(
+            _aggregated_event_conflicts_from_lan_governance(
+                lg,
+                envelope_fingerprint=fp,
+                envelope_idempotency_token=tok,
+            )
+        )
         item_results.append(
             {
                 "fingerprint": fp,
@@ -1658,22 +1699,21 @@ def _collect_lan_governance_coordinator(
         )
     if items:
         record_dao_ws_operation("lan_governance_coordinator")
-    return {
-        "lan_governance": {
-            "coordinator": {
-                "ok": all_ok,
-                "ack": "accepted" if all_ok else "rejected",
-                "schema": normalized["schema"],
-                "coordinator_id": normalized["coordinator_id"],
-                "coordination_run_id": normalized["coordination_run_id"],
-                "coordinator_fingerprint": coord_fp,
-                "input_count": normalized["input_count"],
-                "deduped_count": normalized["deduped_count"],
-                "applied_count": len(items),
-                "items": item_results,
-            }
-        }
+    coord_body: dict[str, Any] = {
+        "ok": all_ok,
+        "ack": "accepted" if all_ok else "rejected",
+        "schema": normalized["schema"],
+        "coordinator_id": normalized["coordinator_id"],
+        "coordination_run_id": normalized["coordination_run_id"],
+        "coordinator_fingerprint": coord_fp,
+        "input_count": normalized["input_count"],
+        "deduped_count": normalized["deduped_count"],
+        "applied_count": len(items),
+        "items": item_results,
     }
+    if aggregated_event_conflicts:
+        coord_body["aggregated_event_conflicts"] = aggregated_event_conflicts
+    return {"lan_governance": {"coordinator": coord_body}}
 
 
 def _collect_nomad_ws_actions(kernel: EthicalKernel, data: dict[str, Any]) -> dict[str, Any] | None:

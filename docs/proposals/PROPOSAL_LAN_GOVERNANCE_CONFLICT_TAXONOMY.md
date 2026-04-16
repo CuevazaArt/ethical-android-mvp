@@ -24,6 +24,8 @@ LAN batch sections (`integrity_batch`, `dao_batch`, `judicial_batch`, `mock_cour
 
 The key is omitted when the array would be empty.
 
+**Hub coordinator:** `lan_governance.coordinator` may include **`aggregated_event_conflicts`**: the same conflict objects as above, each augmented with `source_batch` (which LAN section produced it), `envelope_fingerprint`, and `envelope_idempotency_token` so operators can map conflicts back to a specific inner envelope in `items`.
+
 ## Related
 
 - [`PROPOSAL_DAO_BLOCKCHAIN_DISTRIBUTED_JUSTICE_STAGED_EXECUTION.md`](PROPOSAL_DAO_BLOCKCHAIN_DISTRIBUTED_JUSTICE_STAGED_EXECUTION.md) — Phase 2 deliverable list.  
@@ -32,3 +34,4 @@ The key is omitted when the array would be empty.
 ## Changelog
 
 - **2026-04-15:** Initial proposal + implementation (DJ-BL-14).
+- **2026-04-15:** Coordinator responses add optional `aggregated_event_conflicts`; operator quick ref documents `merge_context` and hub aggregation.

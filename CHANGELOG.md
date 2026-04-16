@@ -10,6 +10,7 @@ All notable changes to this project are summarized here. For narrative context a
 - **WebSocket:** `lan_governance_*_batch` responses may include `event_conflicts` when non-empty; optional batch `merge_context.frontier_turn` marks below-frontier rows as `stale_event` in [`src/chat_server.py`](src/chat_server.py).
 - **Docs:** [`docs/proposals/PROPOSAL_LAN_GOVERNANCE_CONFLICT_TAXONOMY.md`](docs/proposals/PROPOSAL_LAN_GOVERNANCE_CONFLICT_TAXONOMY.md); contract matrix / HTTP surface / staged execution proposals updated.
 - **Tests:** [`tests/test_lan_governance_conflict_taxonomy.py`](tests/test_lan_governance_conflict_taxonomy.py), [`tests/test_chat_server.py`](tests/test_chat_server.py).
+- **Follow-up:** `lan_governance.coordinator` may include `aggregated_event_conflicts` (inner batch merge conflicts with envelope correlation fields); operator notes in [`docs/proposals/OPERATOR_QUICK_REF.md`](docs/proposals/OPERATOR_QUICK_REF.md).
 
 ## Distributed justice — Phase 2 multi-node coordinator message (DJ-BL-13) — April 2026
 

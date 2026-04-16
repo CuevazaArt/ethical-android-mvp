@@ -1174,6 +1174,57 @@ def test_websocket_lan_governance_coordinator_two_nodes_integrity(monkeypatch):
     assert len(coord.get("coordinator_fingerprint", "")) == 64
 
 
+def test_websocket_lan_governance_coordinator_aggregates_event_conflicts(monkeypatch):
+    monkeypatch.setenv("KERNEL_DAO_INTEGRITY_AUDIT_WS", "1")
+    monkeypatch.setenv("KERNEL_LAN_GOVERNANCE_MERGE_WS", "1")
+
+    payload = {
+        "lan_governance_coordinator": {
+            "schema": "lan_governance_coordinator_v1",
+            "coordinator_id": "hub-conflicts",
+            "coordination_run_id": "coord-run-conf",
+            "items": [
+                {
+                    "schema": "lan_governance_envelope_v1",
+                    "node_id": "node-x",
+                    "sent_unix_ms": 1710000000700,
+                    "kind": "integrity_batch",
+                    "batch": {
+                        "events": [
+                            {
+                                "event_id": "cx",
+                                "turn_index": 1,
+                                "processor_elapsed_ms": 1,
+                                "summary": "first",
+                                "scope": "s",
+                            },
+                            {
+                                "event_id": "cx",
+                                "turn_index": 1,
+                                "processor_elapsed_ms": 2,
+                                "summary": "fork",
+                                "scope": "s",
+                            },
+                        ]
+                    },
+                },
+            ],
+        }
+    }
+    with client.websocket_connect("/ws/chat") as ws:
+        ws.send_json(payload)
+        data = ws.receive_json()
+
+    coord = data.get("lan_governance", {}).get("coordinator", {})
+    assert coord.get("ok") is True
+    agg = coord.get("aggregated_event_conflicts") or []
+    assert len(agg) == 1
+    assert agg[0].get("kind") == "same_turn"
+    assert agg[0].get("source_batch") == "integrity_batch"
+    assert isinstance(agg[0].get("envelope_fingerprint"), str)
+    assert isinstance(agg[0].get("envelope_idempotency_token"), str)
+
+
 def test_websocket_lan_governance_merges_coordinator_with_direct_batch(monkeypatch):
     monkeypatch.setenv("KERNEL_DAO_INTEGRITY_AUDIT_WS", "1")
     monkeypatch.setenv("KERNEL_LAN_GOVERNANCE_MERGE_WS", "1")
