@@ -56,6 +56,7 @@ These items extend the **“Pending gaps”** list in [`PROPOSAL_DAO_BLOCKCHAIN_
 | **DJ-BL-15** | **Replay sidecar + cross-session hint** — fingerprint merge diagnostics JSON; optional `merge_context.cross_session_hint` (echo only, not quorum). | **Done** — `src/modules/lan_governance_replay_sidecar.py`, `src/modules/lan_governance_merge_context.py`, `scripts/eval/verify_lan_governance_replay_sidecar.py`, tests; [`PROPOSAL_LAN_GOVERNANCE_REPLAY_SIDECAR.md`](PROPOSAL_LAN_GOVERNANCE_REPLAY_SIDECAR.md), [`PROPOSAL_LAN_GOVERNANCE_CROSS_SESSION_HINT.md`](PROPOSAL_LAN_GOVERNANCE_CROSS_SESSION_HINT.md). |
 | **DJ-BL-16** | **Frontier witnesses** — advisory aggregate of peer `observed_max_turn` claims in one batch (not quorum). | **Done** — `merge_context.frontier_witnesses` + `frontier_witness_resolution` echo; [`PROPOSAL_LAN_GOVERNANCE_FRONTIER_WITNESS.md`](PROPOSAL_LAN_GOVERNANCE_FRONTIER_WITNESS.md). |
 | **DJ-BL-17** | **Anchor compare CLI (Phase 3 stub)** — exit code compares audit ledger JSON to expected fingerprint hex. | **Done** — [`scripts/eval/compare_audit_ledger_anchor.py`](../../scripts/eval/compare_audit_ledger_anchor.py), tests. |
+| **DJ-BL-18** | **Phase 4 release checklist (doc)** — template RC checklist + operator anchor runbook (offline stub only). | **Done** — Phase 4 block in [`PROPOSAL_DAO_BLOCKCHAIN_DISTRIBUTED_JUSTICE_STAGED_EXECUTION.md`](PROPOSAL_DAO_BLOCKCHAIN_DISTRIBUTED_JUSTICE_STAGED_EXECUTION.md); [`OPERATOR_QUICK_REF.md`](OPERATOR_QUICK_REF.md) (*Anchor checkpoint CLI*). |
 
 Contributors should pick **one** item per PR when possible; link **`CHANGELOG.md`** when operator-visible behavior or JSON contracts change.
 
@@ -99,3 +100,4 @@ Contributors should pick **one** item per PR when possible; link **`CHANGELOG.md
 - **2026-04-15:** DJ-BL-14 done — LAN merge conflict taxonomy + optional merge frontier.
 - **2026-04-16:** DJ-BL-15 done — replay sidecar + cross-session hint channel.
 - **2026-04-16:** DJ-BL-16 done — frontier witness aggregation echo; DJ-BL-17 — `compare_audit_ledger_anchor.py`; DJ-BL-02 table text corrected.
+- **2026-04-16:** DJ-BL-18 done — Phase 4 release checklist template + operator anchor CLI runbook (safe / no chain RPC).

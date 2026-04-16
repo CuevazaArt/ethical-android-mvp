@@ -114,6 +114,15 @@ Deliverables:
   - security/threat review summary
 - minimum reviewer policy: at least one reviewer from another `master-*` team line
 
+**Release checklist template (DJ-BL-18):** copy for RC notes or CI attachments.
+
+- [ ] **Contract compatibility** — link or summarize verification against [`PROPOSAL_DISTRIBUTED_JUSTICE_CONTRACT_MATRIX.md`](PROPOSAL_DISTRIBUTED_JUSTICE_CONTRACT_MATRIX.md) for consuming `master-*` lines.
+- [ ] **Replay verification** — artifacts or logs from [`scripts/eval/verify_mock_dao_audit_replay.py`](../../scripts/eval/verify_mock_dao_audit_replay.py); optional [`scripts/eval/compare_audit_ledger_anchor.py`](../../scripts/eval/compare_audit_ledger_anchor.py) and [`scripts/eval/verify_lan_governance_replay_sidecar.py`](../../scripts/eval/verify_lan_governance_replay_sidecar.py) when LAN governance paths ship.
+- [ ] **Security / threat review** — short summary; no credibility claims beyond [`TRANSPARENCY_AND_LIMITS.md`](../TRANSPARENCY_AND_LIMITS.md).
+- [ ] **Cross-team review** — at least one reviewer outside the authoring `master-*` line when changing governance JSON contracts.
+
+Operator pointers: [`OPERATOR_QUICK_REF.md`](OPERATOR_QUICK_REF.md) (*LAN governance batch merge* / *Anchor checkpoint CLI*).
+
 Acceptance:
 
 - release candidate passes full integration gate and review checklist
