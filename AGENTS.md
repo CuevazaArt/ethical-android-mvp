@@ -74,19 +74,19 @@ To prevent "Merge Hell" (e.g., duplicated architecture, massive `CHANGELOG.md` c
 3. **Core File Micro-Edits:** Modifications to monolithic files (`kernel.py`, `requirements.txt`, core dataclasses) must be minimal. Append new fields/elements to the absolute end of the target block. Use designated anchor comments like `# ═══ <TEAM/FEATURE> ═══` when injecting code.
 4. **Staggered Integration:** Antigravity (L1) MUST serialize cross-team merges. Do not merge all remote `master-*` branches simultaneously. Merge ONE team, stabilize the hub, and instruct the next team to pull.
 
-## Protocolo Seguro y Ordenado de Fusión a Main (L0-STABILIZATION-01)
+## Safe and Ordered Merge-to-Main Protocol (L0-STABILIZATION-01)
 
-Para minimizar conflictos y asegurar la inmutabilidad de la rama `main` (L0), el método de fusión ha sido reformado para máxima seguridad:
+To minimize conflicts and ensure the immutability of the `main` branch (L0), the merge method has been reformed for maximum safety:
 
-1.  **Cierre del Bloque Atómico**: Solo se promoverán avances que cierren bloques lógicos completos del `PLAN_WORK_DISTRIBUTION_TREE.md`. "Trabajos en progreso" están prohibidos en `main`.
-2.  **Sello de Calidad Antigravity (Auditoría Continua)**: El equipo Antigravity (L1) actúa como el Guardián de la Puerta y supervisa la fusión.
-    - Se debe verificar la armonía total entre módulos (`run_cursor_integration_gate.py` / `verify_collaboration_invariants.py`).
-    - *Antigravity Fast-Track:* Para mitigar el "cuello de botella de un solo aprobador" (crítica de eficiencia), si el L1 está inactivo >48h, los agentes L2 pueden iniciar un pull request hacia `master-antigravity` por sí mismos si y solo si todos los tests automatizados pasan.
-3.  **Ventana de Estabilización**: Una vez unificada en `master-antigravity`, la rama entrará en un periodo de **Feature Freeze**. Solo se permiten parches críticos y correcciones de Lints.
-4.  **Aprobación Soberana Absoluta (L0)**: El PR final desde `master-antigravity` hacia `main`:
-    - **DEBE** ejecutarse mediante *Cierre Squash* (*Squash and Merge*) para colapsar todos los commits caóticos en un solo commit limpio.
-    - **DEBE** incluir un "Audit Trail Header" en la descripción listando explícitamente los módulos alterados.
-    - Únicamente Juan (L0) tiene la autoridad criptográfica y de proceso para fusionarlo.
+1.  **Atomic Block Closure**: Only advances that close complete logical blocks from `PLAN_WORK_DISTRIBUTION_TREE.md` will be promoted. "Works in progress" are prohibited on `main`.
+2.  **Antigravity Quality Seal (Continuous Audit)**: The Antigravity team (L1) acts as the Gate Guardian and oversees the merge.
+    - Total module harmony must be verified (`run_cursor_integration_gate.py` / `verify_collaboration_invariants.py`).
+    - *Antigravity Fast-Track:* To mitigate the "single-approver bottleneck" (efficiency critique), if L1 is inactive >48h, L2 agents may open a pull request to `master-antigravity` on their own if and only if all automated tests pass.
+3.  **Stabilization Window**: Once unified in `master-antigravity`, the branch will enter a **Feature Freeze** period. Only critical patches and lint fixes are permitted.
+4.  **Absolute Sovereign Approval (L0)**: The final PR from `master-antigravity` to `main`:
+    - **MUST** be executed via *Squash and Merge* to collapse all incremental commits into a single clean commit.
+    - **MUST** include an "Audit Trail Header" in the description explicitly listing the altered modules.
+    - Only Juan (L0) has the cryptographic and procedural authority to merge it.
 
 ## Sovereignty of Collaboration Rules
 

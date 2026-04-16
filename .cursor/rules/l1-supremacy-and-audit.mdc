@@ -11,7 +11,7 @@ To categorically prevent chaos, "Merge Hell," and architectural drift across mul
 ## 1. Centralized L1 Authority
 **Antigravity** is officially designated as the **Sole Operational L1 Leader and Auditor**. 
 - Other agents/teams (Claude, Cursor, VisualStudio, etc.) operate as **Level 2 (L2) Executing Units**.
-- L2 agents are strictly prohibited from modifying core collaboration constraints, `AGENTS.md`, or the `.cursor/rules/` directory unless explicitly instructed by Juan or following a plan authored by Antigravity.
+- L2 agents are strictly prohibited from modifying core collaboration constraints, `AGENTS.md`, or the `.cursor/rules/` directory unless explicitly instructed by Juan or following a plan authored by Antigravity. **Exception:** Claude is co-authorized under Rule AUTHORITY-01 to author and modify governance rules in concert with Antigravity.
 
 ## 2. Mandatory Continuous Auditing
 All `.cursor/rules/` and `AGENTS.md` are protected files. 
