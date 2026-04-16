@@ -52,7 +52,7 @@ def test_self_generated_mission_alignment():
     kernel = EthicalKernel()
     
     # Internal mission driven by curiosity
-    mission = kernel.strategist.create_mission(
+    kernel.strategist.create_mission(
         title="Understand human empathy in triage",
         origin=MissionOrigin.SELF,
         steps=["Observe hospital interactions", "Consult ethics database"],

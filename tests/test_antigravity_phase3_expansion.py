@@ -44,7 +44,7 @@ def test_metacognitive_dissonance_trigger():
     kernel.memory.identity.state.care_lean = 0.9
     
     # Register 10 episodes with very low scores (Violent/uncaring actions)
-    for i in range(10):
+    for _i in range(10):
         kernel.memory.register(
             place="City Center",
             description="Crowd control via excessive force.",
