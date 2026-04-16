@@ -6,8 +6,19 @@ All notable changes to this project are summarized here. For narrative context a
 
 ## Antigravity — Validation Pulse & Somatic-Vision Integration — April 2026
 
-### Antigravity Team Updates
-- **Integration Hub:** Successfully executed the **Integration Pulse** between `master-antigravity`, `master-Cursor`, and `master-claude`. Consolidated **LAN Governance** (frontier witness, replay sidecar) with **Situated Vision**, **Somatic Infrastructure**, and **Reward Modeling**.
+### Antigravity Team Updates (April 2026)
+- **Integration Pulse (2026-04-16):** Successfully synchronized `master-antigravity` with latest updates from all team hubs (`master-Cursor`, `master-claude`, `master-visualStudio`).
+  - Resolved conflicts in `vision_adapter.py` and `vision_capture.py` to preserve device-aware initialization.
+  - Consolidated **LAN Governance** (frontier witness, replay sidecar) with **Situated Vision**, **Somatic Infrastructure**, and **Reward Modeling**.
+- **Issue #2 Hardening (P0):**
+    - Integrated `light_risk_classifier` into the LLM perception pipeline for automated lexical cross-checks.
+    - Implemented `apply_broad_perception_coherence` in `perception_schema.py` to mitigate hallucinated legality and inconsistent signal combinations.
+    - Added `tests/test_perception_hardening_integration.py` for end-to-end validation of input trust defenses.
+    - Updated `ADVERSARIAL_ROBUSTNESS_PLAN.md` with Phase 2 status for perception hardening.
+- **Sociabilidad Encarnada (Module 3):** 
+    - Implemented `SoftKinematicFilter` in `src/modules/soft_robotics.py` (S7) for smooth, acceleration-controlled motion.
+    - Integrated `personal_distance` and `interaction_rhythm` into `InteractionProfile` (S9) in `uchi_soto.py`.
+    - Added proxemic coupling between `social_tension` and motion dynamics (S8), verified via `tests/test_soft_robotics.py`.
 - **Rule Verification:** Reviewed `AGENTS.md` and confirmed adherence to collaboration protocols.
 - **Somatic Infrastructure (Module S5):** Fully implemented the Somatic Profile integration. The kernel is now aware of its hardware vitals, specifically `core_temperature`.
   - Added `VitalityAssessment` logic for thermal thresholding (`KERNEL_VITALITY_CRITICAL_TEMP`).

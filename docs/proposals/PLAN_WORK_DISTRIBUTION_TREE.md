@@ -34,12 +34,12 @@ Este documento estructura el inmenso volumen de trabajo arquitectónico definido
 *Responsabilidad: Nivel 2 (Team Cursor)*
 *Dependencias: Dependiente de los módulos de Percepción Visual/Audio.*
 
-- **Bloque 3.1: Filtros de Cinemática Suave (S7)**
-  - Tarea 3.1.1: Generar filtros de aceleración en Python para emular suavidad de movimientos robóticos (Soft Robotics).
-- **Bloque 3.2: Empatía Funcional y Proxémica (S8)**
-  - Tarea 3.2.1: Enganchar la métrica de `social_tension` a reguladores de velocidad de aproximación del androide.
-- **Bloque 3.3: Normas Locales e Identidad UchiSoto (S9)**
-  - Tarea 3.3.1: Expandir base de datos relacional para incluir preferencias de "distancia personal" y "ritmo de interacción".
+- **Bloque 3.1: Filtros de Cinemática Suave (S7) [DONE]**
+  - Tarea 3.1.1: Generar filtros de aceleración en Python para emular suavidad de movimientos robóticos (Soft Robotics). (Implementado en `soft_robotics.py`)
+- **Bloque 3.2: Empatía Funcional y Proxémica (S8) [DONE]**
+  - Tarea 3.2.1: Enganchar la métrica de `social_tension` a reguladores de velocidad de aproximación del androide. (Integrado en `SoftKinematicFilter`)
+- **Bloque 3.3: Normas Locales e Identidad UchiSoto (S9) [DONE]**
+  - Tarea 3.3.1: Expandir base de datos relacional para incluir preferencias de "distancia personal" y "ritmo de interacción". (Implementado en `InteractionProfile` en `uchi_soto.py`)
 
 ### 🔵 Módulo 4: Cognición Profunda (C-Blocks)
 *Responsabilidad: Nivel 1 (Antigravity)*
