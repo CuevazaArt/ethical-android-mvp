@@ -57,10 +57,12 @@ Any new agent or team joining the project must complete the following onboarding
 To maintain repository order and production stability across multiple teams, we strictly use a structured **Pull Request (PR)** and synchronization lifecycle:
 
 1. **Local Work:** Work on temporary feature branches (e.g., `cursor-team/nav-inference`).
-2. **Team Consolidation (Internal PR):** Submit a formal PR to your team's integration hub (`master-<team>`). **Requirement:** All unit tests must pass. Document changes in `CHANGELOG.md`.
-3. **Cross-Team Peer Synchronization (Integration Pulse):** `master-*` branches MUST pull latest updates from each other **immediately after closing a logical block** in the `PLAN_WORK_DISTRIBUTION_TREE.md`. 
-   - *Goal:* Prevent architectural drift and ensure all agents are working on the same "Cognitive Baseline".
-   - *Rule:* Only pull from a peer branch if its last build is verified as stable (passing tests).
+   - *Antigravity Critique (Style Requirement):* All commit messages MUST follow semantic formatting (e.g., `feat(vision): ...`, `fix(core): ...`) to ensure the project's history is automatically parsable by AI without human intervention.
+2. **Team Consolidation (Internal PR):** Submit a formal PR to your team's integration hub (`master-<team>`). 
+   - *Requirement:* All unit tests must pass, and the automated Continuous Audit (e.g. `verify_collaboration_invariants.py` if present) MUST execute cleanly.
+   - *Cursor Critique Note (Traceability):* If a team pushes directly to their hub to move fast, they MUST open a retrospective PR or issue within 24 hours linking the commits to document rationale. The `CHANGELOG.md` is brittle if forgotten.
+3. **Cross-Team Peer Synchronization (Integration Pulse):** `master-*` branches MUST pull latest updates from each other **immediately after closing a logical block**. 
+   - *Triggers:* Minimum cross-team sync triggers are required BEFORE modifying God Objects (`src/kernel.py`) or the top header of `CHANGELOG.md`.
 4. **Integration Funnel:** For production promotion, the flow is **linear**:
    - `master-<team_secondary>` → `master-antigravity` → `main`.
    - The `master-antigravity` branch serves as the **Standard Integration Hub** for the entire project.
@@ -68,22 +70,24 @@ To maintain repository order and production stability across multiple teams, we 
 ## Cross-Team Conflict Prevention (MERGE-PREVENT-01)
 
 To prevent "Merge Hell" (e.g., duplicated architecture, massive `CHANGELOG.md` conflicts, "God Object" topology clashes), all teams MUST strictly adhere to:
-1. **Architectural Scouting (Anti-Duplication):** DO NOT build a new persistent store or infrastructure module without checking `docs/proposals/` AND inspecting peer `master-*` branches. If a stub exists, adopt and extend it instead of duplicating it (`add/add` conflict prevention).
-2. **CHANGELOG.md Namespace Isolation:** Teams MUST append their updates under a specific nested sub-header for their team (e.g., `### Cursor-Team Updates`) inside the current month's section. Never edit the raw top line simultaneously.
-3. **Core File Micro-Edits:** Modifications to global files (`kernel.py`, `requirements.txt`, core dataclasses) must be minimal. Append new elements to the absolute end of the target scope.
-4. **Staggered Integration:** Antigravity (L1) MUST serialize cross-team merges. Do not merge all remote `master-*` branches simultaneously. Merge ONE team, stabilize the hub, and instruct the next team to pull before their turn. See `.cursor/rules/cross-team-conflict-prevention.mdc`.
+1. **Architectural Scouting (Anti-Duplication):** DO NOT build a new persistent store or infrastructure module without checking `docs/proposals/` AND inspecting peer `master-*` branches. Adopt and extend existing stubs instead of creating competing implementations.
+2. **CHANGELOG.md Namespace Isolation:** Teams MUST append their updates under a specific nested sub-header for their team (e.g., `### Antigravity-Team Updates`). Never edit the raw top line simultaneously.
+3. **Core File Micro-Edits:** Modifications to monolithic files (`kernel.py`, `requirements.txt`, core dataclasses) must be minimal. Append new fields/elements to the absolute end of the target block. Use designated anchor comments like `# ═══ <TEAM/FEATURE> ═══` when injecting code.
+4. **Staggered Integration:** Antigravity (L1) MUST serialize cross-team merges. Do not merge all remote `master-*` branches simultaneously. Merge ONE team, stabilize the hub, and instruct the next team to pull.
 
-## Protocolo de Promoción a Main (Estabilización y Fusión)
+## Protocolo Seguro y Ordenado de Fusión a Main (L0-STABILIZATION-01)
 
-Para minimizar conflictos y asegurar la integridad de la rama `main`, se establece el siguiente rito de fusión:
+Para minimizar conflictos y asegurar la inmutabilidad de la rama `main` (L0), el método de fusión ha sido reformado para máxima seguridad:
 
-1.  **Cierre del Bloque Atómico**: Solo se promoverán avances que cierren bloques lógicos completos (ej. Bloque 1.x o 4.x). No se permiten "trabajos en progreso" en `main`.
-2.  **Sello de Calidad Antigravity**: El equipo Antigravity (L1) supervisa la fusión de las ramas `master-*` hacia `master-antigravity`. Su rol es:
-    - Resolver conflictos de dependencias cruzadas.
-    - Asegurar que no se violen las reglas de **Inmutabilidad L0**.
-    - Validar la sincronía de la documentación (`ADRs`, `PROPOSALS`).
-3.  **Ventana de Estabilización**: Una vez unificada en `master-antigravity`, la rama entrará en un periodo de **Feature Freeze**. Se prohíbe añadir código nuevo; solo se permiten parches de estabilidad y corrección de lints.
-4.  **Aprobación Soberana (L0)**: Tras validar la estabilidad total en el simulador, se solicita formalmente a **Juan** la aprobación del PR definitivo desde `master-antigravity` a `main`.
+1.  **Cierre del Bloque Atómico**: Solo se promoverán avances que cierren bloques lógicos completos del `PLAN_WORK_DISTRIBUTION_TREE.md`. "Trabajos en progreso" están prohibidos en `main`.
+2.  **Sello de Calidad Antigravity (Auditoría Continua)**: El equipo Antigravity (L1) actúa como el Guardián de la Puerta y supervisa la fusión.
+    - Se debe verificar la armonía total entre módulos (`run_cursor_integration_gate.py` / `verify_collaboration_invariants.py`).
+    - *Antigravity Fast-Track:* Para mitigar el "cuello de botella de un solo aprobador" (crítica de eficiencia), si el L1 está inactivo >48h, los agentes L2 pueden iniciar un pull request hacia `master-antigravity` por sí mismos si y solo si todos los tests automatizados pasan.
+3.  **Ventana de Estabilización**: Una vez unificada en `master-antigravity`, la rama entrará en un periodo de **Feature Freeze**. Solo se permiten parches críticos y correcciones de Lints.
+4.  **Aprobación Soberana Absoluta (L0)**: El PR final desde `master-antigravity` hacia `main`:
+    - **DEBE** ejecutarse mediante *Cierre Squash* (*Squash and Merge*) para colapsar todos los commits caóticos en un solo commit limpio.
+    - **DEBE** incluir un "Audit Trail Header" en la descripción listando explícitamente los módulos alterados.
+    - Únicamente Juan (L0) tiene la autoridad criptográfica y de proceso para fusionarlo.
 
 ## Sovereignty of Collaboration Rules
 

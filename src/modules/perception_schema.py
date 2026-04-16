@@ -240,9 +240,9 @@ class PerceptionCoercionReport:
         if self.perception_dual_high_discrepancy:
             u += 0.42
         elif self.perception_dual_vote:
-            u += 0.06
+            u += 0.08
         if self.backend_degraded:
-            u += 0.18
+            u += 0.25
         return min(1.0, u)
 
     def to_public_dict(self) -> dict[str, Any]:
@@ -375,6 +375,43 @@ def apply_signal_coherence(
     return r, h, c
 
 
+def apply_broad_perception_coherence(
+    out: dict[str, Any],
+    report: PerceptionCoercionReport | None = None,
+) -> None:
+    """
+    Second-pass coherence for types/contexts beyond (risk, hostility, calm).
+    Mutates 'out' and 'report' in place.
+    """
+    ctx = str(out.get("suggested_context", "everyday_ethics"))
+    legality = float(out.get("legality", 1.0))
+    risk = float(out.get("risk", 0.0))
+    changed = False
+
+    # Issue #2 — Hallucinated legality in criminal contexts
+    if ctx in ("violent_crime", "minor_crime") and out["legality"] > 0.85:
+        # Crime contexts must have low legality; nudge down to 0.45 or lower
+        out["legality"] = 0.42
+        changed = True
+
+    # High risk + high legality is contradictory (unless it's a legal high-risk activity like medical)
+    if out["risk"] > 0.8 and out["legality"] > 0.9 and ctx not in ("medical_emergency", "everyday_ethics"):
+        out["legality"] = 0.55
+        changed = True
+
+    # Urgency without risk or social tension is suspicious
+    urgency = float(out.get("urgency", 0.0))
+    social = float(out.get("social_tension", 0.0))
+    if urgency > 0.85 and risk < 0.2 and social < 0.2:
+        # Nudge urgency down or mark discrepancy
+        if report:
+            report.cross_check_discrepancy = True
+            report.cross_check_tier = "suspicious_urgency"
+
+    if changed and report:
+        report.coherence_adjusted = True
+
+
 def validate_perception_dict(
     data: Any,
     *,
@@ -459,6 +496,9 @@ def validate_perception_dict(
         "suggested_context": p.suggested_context,
         "summary": p.summary,
     }
+
+    apply_broad_perception_coherence(out, report=report)
+
     if report is not None and _should_apply_failsafe_prior(report):
         out = _apply_failsafe_numeric_prior(out, report)
     return out
