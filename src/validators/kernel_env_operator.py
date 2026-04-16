@@ -19,6 +19,7 @@ from .env_policy import collect_env_violations
 # First matching rule wins (keep more specific prefixes before general ones).
 _FAMILY_RULES: Final[tuple[tuple[str, tuple[str, ...]], ...]] = (
     ("Validation & policy", ("KERNEL_ENV_VALIDATION",)),
+    ("Cybersecurity", ("KERNEL_CYBERSECURITY_", "KERNEL_SECURE_BOOT", "KERNEL_SELECTIVE_AMNESIA")),
     ("Chat JSON / UX", ("KERNEL_CHAT_INCLUDE_", "KERNEL_CHAT_EXPOSE_", "KERNEL_CHAT_EXPERIENCE_DIGEST")),
     ("Chat async / pool", ("KERNEL_CHAT_TURN_TIMEOUT", "KERNEL_CHAT_THREADPOOL_WORKERS")),
     ("Chat server bind", ("CHAT_HOST", "CHAT_PORT")),

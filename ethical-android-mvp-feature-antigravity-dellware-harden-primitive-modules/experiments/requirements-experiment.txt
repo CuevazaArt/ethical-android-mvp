@@ -1,0 +1,4 @@
+# Optional experiment stack (install after requirements.txt). Not used in CI.
+# scipy: quasi-Monte Carlo / analysis helpers for future extensions
+scipy>=1.11.0,<2.0.0
+tqdm>=4.66.0,<5.0.0

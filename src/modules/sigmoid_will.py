@@ -11,6 +11,9 @@ from dataclasses import dataclass
 
 import numpy as np
 
+# ADR 0016 C1 — Ethical tier classification
+__ethical_tier__ = "decision_core"
+
 
 @dataclass
 class SigmoidParameters:

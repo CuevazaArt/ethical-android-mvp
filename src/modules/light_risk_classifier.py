@@ -15,6 +15,9 @@ from typing import Literal
 
 from .input_trust import normalize_text_for_malabs
 
+# ADR 0016 C1 — Ethical tier classification
+__ethical_tier__ = "decision_core"
+
 LightRiskTier = Literal["low", "medium", "high"]
 
 _HIGH_NEEDLES = frozenset(

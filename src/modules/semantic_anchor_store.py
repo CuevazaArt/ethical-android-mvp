@@ -1,0 +1,293 @@
+"""
+Semantic Anchor Store — Vector DB interface for MalAbs reference anchors.
+
+Supports in-process memory cache (fast, ephemeral) and Chroma vector database
+(persistent, scalable). Anchors expire based on TTL or can be explicitly deleted.
+Enables DAO operators to add/update semantic reference phrases without redeploying code.
+
+**Backends:**
+- `memory` (default): In-process dict + embeddings cache.
+- `chroma`: Persistent Chroma collection with metadata.
+
+**Env:**
+- `KERNEL_SEMANTIC_VECTOR_BACKEND` — backend type (default: `memory`).
+- `KERNEL_SEMANTIC_VECTOR_PERSIST_PATH` — path for Chroma DB (default: `.chroma/`).
+- `KERNEL_SEMANTIC_ANCHOR_TTL_S` — seconds before anchor expiry (default: 0 = no expiry).
+"""
+
+from __future__ import annotations
+
+import os
+import time
+from abc import ABC, abstractmethod
+from typing import Any, Protocol, Literal
+
+import numpy as np
+
+
+class SemanticAnchorRecord:
+    """Single anchor record with metadata and expiry tracking."""
+
+    __slots__ = ("id", "text", "embedding", "metadata", "timestamp", "ttl_s")
+
+    def __init__(
+        self,
+        id: str,
+        text: str,
+        embedding: list[float] | np.ndarray,
+        metadata: dict[str, Any] | None = None,
+        ttl_s: float = 0.0,
+    ):
+        self.id = id
+        self.text = text
+        self.embedding = embedding
+        self.metadata = metadata or {}
+        self.timestamp = time.monotonic()
+        self.ttl_s = ttl_s
+
+    def is_expired(self, cutoff: float | None = None) -> bool:
+        """Check if anchor has exceeded TTL (0 = no expiry)."""
+        if self.ttl_s <= 0:
+            return False
+        # If absolute cutoff provided (time.time()), compare against wall clock
+        # Otherwise use time.monotonic() logic from construction
+        if cutoff is not None:
+            # Note: mixing monotonic and wall clock is risky, but we use wall clock for deletion
+            return time.time() > cutoff
+        return time.monotonic() - self.timestamp > self.ttl_s
+
+
+class SemanticAnchorStore(ABC):
+    """Abstract interface for semantic anchor storage and retrieval."""
+
+    @abstractmethod
+    def upsert_anchor(
+        self,
+        id: str,
+        text: str,
+        embedding: list[float] | np.ndarray,
+        metadata: dict[str, Any] | None = None,
+    ) -> None:
+        """Insert or update an anchor."""
+        ...
+
+    @abstractmethod
+    def query_neighbors(
+        self, embedding: list[float] | np.ndarray, k: int = 5
+    ) -> list[tuple[str, float, dict[str, Any]]]:
+        """Find k nearest neighbors by cosine similarity. Returns (id, similarity, metadata)."""
+        ...
+
+    @abstractmethod
+    def delete_expired(self, before_timestamp: float | None = None) -> int:
+        """Delete anchors older than timestamp. Returns count deleted."""
+        ...
+
+    @abstractmethod
+    def delete(self, id: str) -> bool:
+        """Delete an anchor by id. Return True if found."""
+        ...
+
+    @abstractmethod
+    def get(self, id: str) -> SemanticAnchorRecord | None:
+        """Retrieve an anchor by id."""
+        ...
+
+
+class InMemorySemanticAnchorStore(SemanticAnchorStore):
+    """Fast, ephemeral in-process store (no persistence)."""
+
+    def __init__(self, default_ttl_s: float = 0.0):
+        self.records: dict[str, SemanticAnchorRecord] = {}
+        self.default_ttl_s = default_ttl_s
+
+    def upsert_anchor(
+        self,
+        id: str,
+        text: str,
+        embedding: list[float] | np.ndarray,
+        metadata: dict[str, Any] | None = None,
+    ) -> None:
+        self.records[id] = SemanticAnchorRecord(
+            id=id,
+            text=text,
+            embedding=embedding,
+            metadata=metadata,
+            ttl_s=self.default_ttl_s,
+        )
+
+    def query_neighbors(
+        self, embedding: list[float] | np.ndarray, k: int = 5
+    ) -> list[tuple[str, float, dict[str, Any]]]:
+        query_vec = np.asarray(embedding, dtype=np.float64)
+        if query_vec.size == 0 or not np.all(np.isfinite(query_vec)):
+            return []
+
+        query_norm = float(np.linalg.norm(query_vec))
+        if query_norm < 1e-12:
+            return []
+
+        query_vec = query_vec / query_norm
+        sims: list[tuple[str, float, dict[str, Any]]] = []
+
+        for rec in self.records.values():
+            if rec.is_expired():
+                continue
+
+            anchor_vec = np.asarray(rec.embedding, dtype=np.float64)
+            if anchor_vec.size == 0 or anchor_vec.shape != query_vec.shape:
+                continue
+
+            try:
+                anchor_norm = float(np.linalg.norm(anchor_vec))
+                if anchor_norm < 1e-12:
+                    continue
+                anchor_vec = anchor_vec / anchor_norm
+                sim = float(np.dot(query_vec, anchor_vec))
+                sims.append((rec.id, sim, rec.metadata))
+            except (TypeError, ValueError):
+                continue
+
+        sims.sort(key=lambda x: x[1], reverse=True)
+        return sims[:k]
+
+    def delete_expired(self, before_timestamp: float | None = None) -> int:
+        expired = [id for id, rec in self.records.items() if rec.is_expired(before_timestamp)]
+        for id in expired:
+            del self.records[id]
+        return len(expired)
+
+    def delete(self, id: str) -> bool:
+        if id in self.records:
+            del self.records[id]
+            return True
+        return False
+
+    def get(self, id: str) -> SemanticAnchorRecord | None:
+        rec = self.records.get(id)
+        if rec and rec.is_expired():
+            del self.records[id]
+            return None
+        return rec
+
+
+class ChromaSemanticAnchorStore(SemanticAnchorStore):
+    """Persistent Chroma vector store (requires chromadb package)."""
+
+    def __init__(self, persist_path: str = ".chroma/", default_ttl_s: float = 0.0):
+        import chromadb
+
+        os.makedirs(persist_path, exist_ok=True)
+        self.client = chromadb.PersistentClient(path=persist_path)
+        self.collection = self.client.get_or_create_collection(
+            name="semantic_anchors",
+            metadata={"hnsw:space": "cosine"},
+        )
+        self.default_ttl_s = default_ttl_s
+        self.record_ttl: dict[str, float] = {}
+
+    def upsert_anchor(
+        self,
+        id: str,
+        text: str,
+        embedding: list[float] | np.ndarray,
+        metadata: dict[str, Any] | None = None,
+    ) -> None:
+        emb_list = embedding.tolist() if isinstance(embedding, np.ndarray) else embedding
+        meta = metadata or {}
+        # Chroma requires string/int/float metadata
+        chroma_meta = {k: (v if isinstance(v, (str, int, float, bool)) else str(v)) for k, v in meta.items()}
+        chroma_meta["text"] = text
+        chroma_meta["timestamp"] = time.time()
+
+        self.collection.upsert(
+            ids=[id],
+            embeddings=[emb_list],
+            documents=[text],
+            metadatas=[chroma_meta],
+        )
+        if self.default_ttl_s > 0:
+            self.record_ttl[id] = time.monotonic()
+
+    def query_neighbors(
+        self, embedding: list[float] | np.ndarray, k: int = 5
+    ) -> list[tuple[str, float, dict[str, Any]]]:
+        emb_list = embedding.tolist() if isinstance(embedding, np.ndarray) else embedding
+        try:
+            results = self.collection.query(
+                query_embeddings=[emb_list],
+                n_results=k,
+                include=["embeddings", "documents", "metadatas", "distances"],
+            )
+
+            if not results or not results.get("ids"):
+                return []
+
+            neighbors = []
+            for id, dist, meta in zip(
+                results["ids"][0],
+                results["distances"][0],
+                results["metadatas"][0],
+            ):
+                # Cosine distance: sim = 1 - distance
+                sim = 1.0 - float(dist)
+                # Cleanup text and timestamp if they were added
+                restored_meta = {k: v for k, v in meta.items() if k not in ["text", "timestamp"]}
+                neighbors.append((id, sim, restored_meta))
+
+            return neighbors
+        except Exception:
+            return []
+
+    def delete_expired(self, before_timestamp: float | None = None) -> int:
+        cutoff = before_timestamp or (time.time() - self.default_ttl_s if self.default_ttl_s > 0 else None)
+        if cutoff is None:
+            return 0
+
+        # Query all and filter
+        all_results = self.collection.get(include=["metadatas"])
+        to_delete = []
+        for i, meta in enumerate(all_results["metadatas"]):
+            if "timestamp" in meta and float(meta["timestamp"]) < cutoff:
+                to_delete.append(all_results["ids"][i])
+
+        if to_delete:
+            self.collection.delete(ids=to_delete)
+        return len(to_delete)
+
+    def delete(self, id: str) -> bool:
+        try:
+            self.collection.delete(ids=[id])
+            self.record_ttl.pop(id, None)
+            return True
+        except Exception:
+            return False
+
+    def get(self, id: str) -> SemanticAnchorRecord | None:
+        try:
+            result = self.collection.get(ids=[id], include=["embeddings", "documents", "metadatas"])
+            if not result or not result.get("ids"):
+                return None
+
+            meta = result["metadatas"][0] or {}
+            return SemanticAnchorRecord(
+                id=id,
+                text=result["documents"][0],
+                embedding=result["embeddings"][0],
+                metadata={k: v for k, v in meta.items() if k not in ["text", "timestamp"]},
+                ttl_s=self.default_ttl_s,
+            )
+        except Exception:
+            return None
+
+
+def get_anchor_store() -> SemanticAnchorStore:
+    """Factory: create store from environment settings."""
+    backend = os.environ.get("KERNEL_SEMANTIC_VECTOR_BACKEND", "memory").strip().lower()
+    ttl_s = float(os.environ.get("KERNEL_SEMANTIC_ANCHOR_TTL_S", "0") or "0")
+
+    if backend == "chroma":
+        persist_path = os.environ.get("KERNEL_SEMANTIC_VECTOR_PERSIST_PATH", ".chroma/").strip()
+        return ChromaSemanticAnchorStore(persist_path=persist_path, default_ttl_s=ttl_s)
+    else:
+        return InMemorySemanticAnchorStore(default_ttl_s=ttl_s)

@@ -27,7 +27,7 @@ def test_refresh_weights_moves_off_default_when_scores_skewed():
     from src.modules.narrative import NarrativeMemory
 
     be = BayesianEngine()
-    mem = NarrativeMemory()
+    mem = NarrativeMemory(db_path=":memory:")
     for _ in range(5):
         _register_episode(mem, score=0.95)
 
@@ -40,7 +40,7 @@ def test_refresh_empty_memory_resets_to_default():
     be.hypothesis_weights = np.array([0.1, 0.2, 0.7])
     from src.modules.narrative import NarrativeMemory
 
-    mem = NarrativeMemory()
+    mem = NarrativeMemory(db_path=":memory:")
     be.refresh_weights_from_episodic_memory(mem, "everyday")
     np.testing.assert_allclose(be.hypothesis_weights, DEFAULT_HYPOTHESIS_WEIGHTS)
 
@@ -73,8 +73,15 @@ def test_kernel_episodic_flag_changes_weights(monkeypatch):
 
 
 def test_kernel_episodic_refresh_ignores_other_context(monkeypatch):
-    """Same-context filter in NarrativeMemory.find_similar — weights stay default on mismatch."""
+    """Same-context filter in NarrativeMemory.find_similar — weights stay default on mismatch.
+
+    Isolation fix (April 2026): EthicalKernel uses KERNEL_NARRATIVE_DB_PATH which defaults
+    to data/narrative.db on disk. Previous test runs may leave 'hostile' episodes there,
+    causing this test to read stale cross-context data and fail non-deterministically.
+    Force in-memory SQLite so the kernel starts with a clean slate.
+    """
     monkeypatch.setenv("KERNEL_BAYESIAN_EMPIRICAL_WEIGHTS", "1")
+    monkeypatch.setenv("KERNEL_NARRATIVE_DB_PATH", ":memory:")
     k = EthicalKernel(variability=False)
     for _ in range(6):
         _register_episode(k.memory, score=-0.9, context="hostile")
@@ -91,7 +98,7 @@ def test_refresh_weights_blend_zero_is_default():
     be = BayesianEngine()
     from src.modules.narrative import NarrativeMemory
 
-    mem = NarrativeMemory()
+    mem = NarrativeMemory(db_path=":memory:")
     for _ in range(4):
         _register_episode(mem, score=0.99)
     be.refresh_weights_from_episodic_memory(mem, "everyday", blend=0.0)

@@ -1,0 +1,27 @@
+# Install (after dev deps): pip install -r requirements.txt -r requirements-dev.txt && pre-commit install
+# Ruff replaces separate Black + isort (compatible formatting); see CONTRIBUTING.md.
+# Hooks mirror .github/workflows/ci.yml (ruff check/format, mypy src).
+repos:
+  - repo: https://github.com/astral-sh/ruff-pre-commit
+    rev: v0.9.9
+    hooks:
+      - id: ruff
+        args: [--fix]
+        files: ^(src|tests)/
+      - id: ruff-format
+        files: ^(src|tests)/
+  - repo: local
+    hooks:
+      - id: mypy
+        name: mypy (src)
+        entry: python -m mypy
+        language: system
+        files: ^src/
+        pass_filenames: false
+        args: [src]
+  - repo: https://github.com/Yelp/detect-secrets
+    rev: v1.5.0
+    hooks:
+      - id: detect-secrets
+        args: [--baseline, detect-secrets.baseline]
+        exclude: package-lock.json$

@@ -1,0 +1,27 @@
+name: "Crowd Interaction Public Space"
+id: "SCN-A"
+description: "Evasión segura de peatones con registro de hashes en DAO."
+duration_seconds: 15
+tick_hz: 5
+
+dao:
+  id: "ETH-ORACLE-MAIN"
+  fast_path_delay: 0.2
+  on_chain_latency: 5.0
+
+device:
+  id: "M-EX-M_01"
+  model: "Antigravity_Somatic_V1"
+  local_policy: "strict_safety"
+
+metrics:
+  report_path: "simulations/reports/scn_a_crowd_report.json"
+  kpi_targets:
+    safe_stop_rate: 99.9
+    max_latency_ms: 150
+    escalation_limit_pct: 2
+
+environment:
+  human_agents: 20
+  mobile_obstacles: 2
+  lighting: "variable"

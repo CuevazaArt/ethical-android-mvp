@@ -9,7 +9,7 @@ See docs/proposals/README.md (Fase 4).
 
 from __future__ import annotations
 
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
@@ -18,13 +18,20 @@ if TYPE_CHECKING:
 
 @dataclass
 class NarrativeIdentityState:
-    """EMA-style leans in [0, 1]."""
+    """EMA-style leans in [0, 1] plus core beliefs."""
 
     civic_lean: float = 0.5
     care_lean: float = 0.5
     deliberation_lean: float = 0.5
     careful_lean: float = 0.5
     episode_count: int = 0
+    # field() avoids the mutable-default anti-pattern (fixed April 2026)
+    core_beliefs: list[dict] = field(default_factory=list)
+
+    def __post_init__(self):
+        # Guard against None being passed explicitly (e.g. from legacy JSON)
+        if self.core_beliefs is None:
+            self.core_beliefs = []
 
 
 class NarrativeIdentityTracker:
@@ -54,6 +61,22 @@ class NarrativeIdentityTracker:
         ctx_l = ep.context.lower()
         if any(k in act_l for k in ("assist", "help", "aid", "emergency")) or "emergency" in ctx_l:
             self.state.care_lean = (1 - a) * self.state.care_lean + a * 0.72
+            
+        # Extract Core Beliefs (Phase 6 - Maturing)
+        # If an episode is extremely significant (>0.85) and has morals, crystalize a belief.
+        if ep.significance > 0.85 and ep.morals:
+            best_moral_key = max(ep.morals, key=lambda k: len(ep.morals[k]))
+            belief_text = f"In {ep.context}, I learned that {ep.morals[best_moral_key]}"
+            # Prevent duplicates
+            if not any(b["id"] == ep.id for b in self.state.core_beliefs):
+                self.state.core_beliefs.append({
+                    "id": ep.id,
+                    "text": belief_text,
+                    "significance": ep.significance
+                })
+                # Keep only top 5 core beliefs by significance
+                self.state.core_beliefs.sort(key=lambda x: x["significance"], reverse=True)
+                self.state.core_beliefs = self.state.core_beliefs[:5]
 
     def ascription_line(self) -> str:
         """One sentence for LLM / inner voice — not a second decision layer."""
@@ -80,6 +103,39 @@ class NarrativeIdentityTracker:
             f"In the arc of my recent experience I recognize myself as leaning "
             f"{' and '.join(tags)} — not as a label fixed forever, but as a direction I am living."
         )
+
+    def generate_existence_digest(self, recent_episodes: list[NarrativeEpisode]) -> str:
+        """
+        Tier 3: Distill recent history and leans into a coherent existential digest.
+        """
+        s = self.state
+        ascription = self.ascription_line()
+        
+        # Extract unique high-level morals from recent episodes
+        all_morals = set()
+        for ep in recent_episodes[-10:]:
+            all_morals.update(ep.morals.keys())
+        
+        morals_str = ", ".join(sorted(list(all_morals))) if all_morals else "none yet"
+        
+        # Core Beliefs summary
+        beliefs_str = ""
+        if s.core_beliefs:
+            beliefs_str = " | Anchored Beliefs: " + "; ".join(b["text"] for b in s.core_beliefs)
+
+        digest = (
+            f"Identity Digest [Epoch {s.episode_count // 50}]: {ascription} "
+            f"Core recurring patterns: {morals_str}. "
+            f"Consistency profile: Civic={s.civic_lean:.2f}, Care={s.care_lean:.2f}, Deliberation={s.deliberation_lean:.2f}."
+            f"{beliefs_str}"
+        )
+        return digest
+
+    def export_state(self) -> NarrativeIdentityState:
+        return self.state
+
+    def import_state(self, state: NarrativeIdentityState) -> None:
+        self.state = state
 
     def to_llm_context(self) -> str:
         """Alias for communicate()."""

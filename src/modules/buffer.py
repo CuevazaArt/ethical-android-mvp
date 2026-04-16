@@ -9,6 +9,9 @@ import re
 import unicodedata
 from dataclasses import dataclass
 
+# ADR 0016 C1 — Ethical tier classification
+__ethical_tier__ = "decision_core"
+
 # Multi-word and cross-language euphemisms for harm / coercion (not only the substring "harm").
 # This is a **heuristic** gate for :meth:`PreloadedBuffer.verify_action`, not a substitute for
 # MalAbs, deliberation, or operator review. Kept English-heavy with common Spanish variants.
@@ -110,6 +113,31 @@ class PreloadedBuffer:
         self.protocols: dict[str, set[str]] = {}
         self._load_foundational()
         self._load_protocols()
+        self._fixed_fingerprint = self.fingerprint()
+        self._frozen = True
+
+    def __setattr__(self, name, value):
+        if getattr(self, "_frozen", False) and name != "_frozen":
+            raise AttributeError(f"PreloadedBuffer is immutable; cannot set {name}")
+        super().__setattr__(name, value)
+
+    def fingerprint(self) -> str:
+        """
+        Stable integrity hash of L0 principles (names, descriptions, weights, active status).
+        Used to detect illegal runtime mutations (Issue 6).
+        """
+        import hashlib
+        
+        # Sort by name for stability
+        rows = sorted(self.principles.items())
+        blob = "|".join(
+            f"{n}:{p.description}:{p.weight}:{p.active}" for n, p in rows
+        )
+        return hashlib.sha256(blob.encode("utf-8")).hexdigest()[:16]
+
+    def verify_integrity(self) -> bool:
+        """Check if the current principles match the initial load."""
+        return self.fingerprint() == self._fixed_fingerprint
 
     def _load_foundational(self):
         """Loads the immutable universal principles."""

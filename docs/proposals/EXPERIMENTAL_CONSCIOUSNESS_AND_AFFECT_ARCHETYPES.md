@@ -100,7 +100,7 @@ Sin compromiso de implementación:
 ## 6. Trabajo futuro (checklist sugerida)
 
 - [ ] Fijar **definición operativa** de “tono experiencial” o “afecto modelico” en una frase.
-- [ ] Revisar literatura (PAD, circumplex, emociones básicas vs construccionismo) y anclar referencias en `BIBLIOGRAPHY.md` si el experimento continúa.
+- [ ] Review literature (PAD, circumplex, basic emotions vs constructionism) and anchor references in [`BIBLIOGRAPHY.md` on `main-whit-landing`](https://github.com/CuevazaArt/ethical-android-mvp/blob/main-whit-landing/BIBLIOGRAPHY.md) if the experiment continues.
 - [ ] Prototipo mínimo: espacio 2D–3D + reglas de interpolación + tests de no regresión ética.
 - [ ] Revisión con perspectiva **intercultural** antes de presentar un catálogo como “universal”.
 

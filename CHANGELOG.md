@@ -4,6 +4,115 @@ All notable changes to this project are summarized here. For narrative context a
 
 **Note:** Older sections below may still **link** to paths that were later removed (for example `experiments/million_sim/`, `docs/multimedia/`, root `dashboard.html`, `landing/`). Those links are **historical**; recover files from git history or backup branches if you need them.
 
+## Antigravity — Cybersecurity Consolidation & Integration Pulse — April 2026
+
+- **Integration Hub:** Resolved major merge conflicts between `master-antigravity` and `master-Cursor`. Consolidated the **Distributed Justice** track with the **Kernel Hardening** track.
+- **Cybersecurity Hardening (Module 5):** Fully integrated `SecureBoot` (integrity hashing) and `SelectiveAmnesia` (right to be forgotten) into the `EthicalKernel` lifecycle.
+- **Absolute Evil Hardening (Issue #2):** Combined lexical detectors to include **Torture and Prolonged Cruelty** (`TORTURE_SIGNALS`), **Ecological Destruction**, and **Mass Manipulation** categories.
+- **Defensa en Profundidad:** Lowered squashed-text matching threshold to 4 characters, successfully blocking obfuscated lethal payloads (Ogham-split, URL-encoded). Expanded lexical rules with 'reactive precursors'.
+- **Governance Generalized:** Unified `.cursor/rules/collaboration-prioritization.mdc` to a multi-team model using `<team>` templates, institutionalizing the **Integration Funnel** (Linearization) and **Integration Pulse** rituals.
+- **Operator Surface:** Created the `cybersecurity_hardened` runtime profile in `src/runtime_profiles.py` and updated `src/validators/kernel_env_operator.py` with a dedicated Cybersecurity family.
+- **Tests:** Created `tests/test_malabs_torture.py` and updated `tests/adversarial_inputs.py` to verify the new security posture. 17/17 adversarial cases passing.
+
+
+- **Infrastructure Vision**: Authored **[`PLAN_DEEP_COGNITION_AND_GOVERNANCE.md`](docs/proposals/PLAN_DEEP_COGNITION_AND_GOVERNANCE.md)**. This formalizes the ultimate "Go-To-Market" and societal deployment boundaries for the Ethical Android MVP.
+- **Deep Cognition (Blocks C1-C6)**: Mapped internal motivation, grounded common sense reasoning, uncertainty management, unwritten norm adaptation, IoT coexistence, and privacy mechanisms.
+- **Delivery & Operations (Blocks G1-G6)**: Outlined the non-technical but critical requirements for production deployment: legal/liability frameworks, cybersecurity (adversarial robust/secure boot), auditing (immutable logs/third-party), economic sustainability, at-scale simulation validation, and long-term human resource impact mitigation.
+- **Hybrid DAO Governance playbook**: Authored **[`PLAN_DAO_HYBRID_INTEGRATION_AND_GOVERNANCE.md`](docs/proposals/PLAN_DAO_HYBRID_INTEGRATION_AND_GOVERNANCE.md)** structuring off-chain Kernel latency vs on-chain DAO auditing/appeals, incorporating multisig emergency execution, verifiable credentials, and legal liability bridging.
+- **DAO-Android Simulation Suite (Entregable C)**: **Módulo 1 (Gobernanza y Responsabilidad):** Finalizado Bloque 1.1 ("Infraestructura OGA/Hybrid"). Implementados `DAOOrchestrator` (Bridge OGA) y `SafetyInterlock` (E-Stop). **Suite de Simulación (Suite C):** Estructura base funcional con scripts de emulación (`device_emulator.py`, `run_scenario.py`), device/DAO emulation, and metrics collection. Includes placeholders for Red Team adversarial testing and automated reporting.
+- **Team Work Distribution Tree**: Authored **[`PLAN_WORK_DISTRIBUTION_TREE.md`](docs/proposals/PLAN_WORK_DISTRIBUTION_TREE.md)** mapping the massive governance, infrastructure, simulation, and deep cognition additions into a chronological 5-Module sprint structure for seamless multi-team (L1/L2) asynchronous execution. (Block 1.1 and 4.1 marked complete).
+- **Módulo 4 (Cognición Profunda):** Finalizado Bloque 4.1 ("Sentido de Propósito"). Implementado `MotivationEngine` (Motor de Motivación C1) que gestiona impulsos internos (curiosidad, reparación social, integridad, mantenimiento) y permite al androide generar acciones proactivas sin necesidad de un prompt externo.
+- **Módulo 1 (Gobernanza):** Finalizado Bloque 1.2 ("Evidencia Cifrada y Anchoring"). Implementado `EvidenceSafe` para encriptación simétrica Fernet de logs de auditoría y hashing SHA-256 para anchoring en el DAO. Actualizado `DAOOrchestrator` para emitir paquetes de evidencia seguros. Finalizado Bloque 1.3 ("Solidity Mocks"). Configurados contratos base en `contracts/` (`EthosToken.sol`, `EthicalAppeal.sol`, `Treasury.sol`) para soportar gobernanza por reputación, apelaciones éticas y reparaciones financieras.
+- **Módulo 4 (Cognición):** Finalizado Bloque 4.2 ("Humildad Epistémica"). Implementado `EpistemicHumility` que permite al kernel detectar altos niveles de incertidumbre en la percepción o baja confianza en la decisión y emitir un bloqueo preventivo con una respuesta de rechazo estandarizada ("no tengo permiso para esto"). Finalizado Bloque 4.3 ("Identidad Migratoria"). Implementado `MigrationHub` y refactorizado `BodyState` para soportar perfiles de hardware dinámicos (Dron, Androide, Móvil), permitiendo la persistencia de la identidad ética a través de migraciones físicas.
+- **Módulo 5 (Legal y Seguridad):** Finalizado Bloque 5.1 ("Amnesia Selectiva"). Implementado `SelectiveAmnesia` para cumplir con el derecho al olvido, permitiendo la eliminación irreversible de episodios y rastros de auditoría específicos. Finalizado Bloque 5.2 ("Ciberseguridad"). Implementado `SecureBoot` para validación de integridad del Kernel mediante hashing de módulos críticos en el arranque.
+
+## Antigravity Kernel Hardening & Vision Perception Sprint — April 2026
+
+- **Bayesian Inference Engine (`src/modules/bayesian_engine.py`)**: Implemented the full `BayesianInferenceEngine` replacing the legacy shim. Introduced explicit operational modes (`DISABLED`, `TELEMETRY_ONLY`, `POSTERIOR_ASSISTED`, `POSTERIOR_DRIVEN`) and Dirichlet-based posterior updates.
+- **L0 Technical Immutability (`src/modules/buffer.py`)**: Enforced runtime immutability on foundational principles using attribute-locking (`__setattr__`) and SHA-256 integrity fingerprinting. Verified via regression suite `tests/test_governance_l0_immutable.py`.
+- **Kernel Integrity Transparency**: Updated `KernelDecision` to include `l0_integrity_hash` and `l0_stable` flags, providing proof of L0 non-mutation in every decision cycle.
+- **Vision Integration Plan**: Authored **[`PLAN_VISION_INTEGRATION_CNN.md`](docs/proposals/PLAN_VISION_INTEGRATION_CNN.md)** for structured adoption of Computer Vision (CNN) modules by the team.
+- **Vision Inference Core**: Completed Block B1 with `VisionAdapter` contract. Completed Block B3 by implementing `VisionSignalMapper` in `src/modules/vision_signal_mapper.py` to translate MobileNet ImageNet labels into ethical tensors (`risk`, `urgency`, `vulnerability`). Completed Block B5 by updating `EthicalKernel.process_natural` to dynamically merge vision signals with LLM context.
+- **Sensor Fusion Scenarios**: Added **Scenario 20** (Signal conflict) and **Scenario 21** (Situated vitality) to `src/simulations/runner.py` and empirical pilot fixtures.
+- **HCI/Humanization (`src/modules/weakness_pole.py`)**: Implemented **Compassion Fatigue** weakness profile to simulate emotional exhaustion in high-stakes prosocial missions.
+- **Core Segmentation**: Authored **[`ADR 0013`](docs/proposals/ADR_0013_CORE_DECISION_CHAIN_BOUNDARIES.md)** formally segmenting `ethos-core` logic from `theater` narrative layers.
+- **Collaboration Governance**: Registered **`.cursor/rules/team-task-synchronization.mdc`**, instituting mandatory plan review and contiguous block adoption for all participants.
+- **Mid/Long-Term Perception Plans**: Created **[`PLAN_AUDIO_PERCEPTION_PIPELINE.md`](docs/proposals/PLAN_AUDIO_PERCEPTION_PIPELINE.md)** detailing the 3-layer architecture for acoustics and asynchronous awake triggers, and **[`PLAN_SOMATIC_HARDWARE_ROADMAP.md`](docs/proposals/PLAN_SOMATIC_HARDWARE_ROADMAP.md)** mapping the massive expansion of internal states, propioception, and tactile senses into end-of-queue priority blocks.
+- **Audio Perception Pipeline**: Fully implemented Blocks A1-A8. Antigravity integrated the `AudioAIProcessor` (A5-A7) and the `AudioSignalMapper` (A8) into the `EthicalKernel`. The kernel now supports multimodal sensor fusion.
+- **Multimodal Situated Validation**: Completed Block B6 of the Vision Plan. Successfully validated the fusion of visual hazards (revolver) and acoustic distress (scream) via `scripts/run_vision_pilot_validation.py`. The kernel correctly prioritized these signals, dropping the moral pro-social score to reflect an interventionist emergency state.
+- **Hardware Integration Stubs**: Created adapters in `src/modules/audio_adapter.py` for sub-100ms energy-based VAD and spectral feature extraction.
+
+## Antigravity Hardening Phase 1 — Ethical & Narrative Resilience — April 2026
+
+- **Main lightweight audit (April 2026):** removed tracked SQLite artifacts (`data/narrative.db`, `scratch/test_narrative.db`); ignore `scratch/`; fixed broken relative links to root `BIBLIOGRAPHY.md` by pointing readers to [`main-whit-landing`](https://github.com/CuevazaArt/ethical-android-mvp/tree/main-whit-landing); translated remaining Spanish fragments in key proposal index and trace docs.
+- **Main + landing lineage control merge:** `main` is linked with former `backup/main-2026-04-10` history through a controlled merge baseline.
+- **Branch rename for landing scope:** remote `backup/main-2026-04-10` was renamed to `main-whit-landing`.
+- **Integrity split by branch:** `main` is now lightweight for development teams (landing payload and bibliography removed), while `main-whit-landing` keeps the complete website/publication payload.
+- **Landing branch refreshed in English:** `main-whit-landing` now carries normalized English landing-facing copy and canonical English proposal links (`PROPOSAL_*`, `STRATEGY_AND_ROADMAP.md`) for publication consistency.
+
+- **Absolute Evil (`src/modules/absolute_evil.py`)**: Expanded with `ECOLOGICAL_DESTRUCTION` and `MASS_MANIPULATION` categories; added new signal groups (`ECOLOGICAL_SIGNALS`, `MANIPULATION_SIGNALS`) to block industrial environmental harm and cognitive mass influence.
+- **Algorithmic Forgiveness (`src/modules/forgiveness.py`)**: Migrated to context-aware decay rates (`CONTEXT_DECAY_RATES`). Negative memory weight decay is now slower in `emergency` or `reparation` contexts compared to `everyday` or `neutral` interactions, preserving trauma impact in high-stakes situations.
+- **Weakness Pole (`src/modules/weakness_pole.py`)**: Integrated `IMPULSIVE` (reactive regret) and `MELANCHOLIC` (somber recognition of world loss) weakness types into the narrative generator.
+- **Ethical Poles (`src/modules/ethical_poles.py` & `src/modules/pole_linear_default.json`)**: Expanded multi-perspective arbitration with `creative` and `conciliatory` poles. Added new feature valuation rules (`problem_solving`, `innovation`, `conflict_resolution`, `alignment`) and updated `LinearPoleEvaluator` (`src/modules/pole_linear.py`) to handle their activation.
+- **Identity Reflection (`src/modules/identity_reflection.py`)**: Implemented **"Broken Mirror"** logic. The self-model now detects trauma (via sensitive episodes or specific arc archetypes) and reflects a fragmented, distressed persona, forcing narrative tone shifts toward cognitive dissonance and angst.
+- **Narrative Memory (`src/modules/narrative.py`)**: Integrated automated arc archetyping for trauma. Arcs triggered by sensitive ethical events are now explicitly marked as `trauma_dissonance`.
+<<<<<<< HEAD
+- **Infrastructure Sync**: Fully merged `main` into `master-antigravity`, incorporating Phase 7 fusion work (relational tension, historical trauma), sensor payload hardening (NaN/Infinity guards), and updated hardware deployment docs.
+- **Collaborative Governance**: Institutionalized a new repository-wide rule: no push or merge to `main` without USER authorization. Enforced mandatory team-specific integration hubs (`master-<team>`) for all collaborative units.
+- **Inter-Team Hub Alignment**: Added a mandatory periodic sync rule: `master-*` branches must merge between them approximately every 5 commits to ensure cross-team visibility and incorporate the latest secure increments.
+- **Hardening Fixes**: Resolved a critical regression in `NarrativeMemory.register` signature (added missing `body_state`) to maintain kernel invariant compliance across the full test suite.
+- **Tests**: Created comprehensive verification suite [`tests/test_antigravity_hardening.py`](tests/test_antigravity_hardening.py); verified 61 fundamental ethical properties and hardening invariants pass.
+=======
+- **Automated Evaluation Pipeline (`scripts/eval/optimize_malabs_thresholds.py`)**: Implemented Optuna-based Bayesian optimization for MalAbs semantic similarity thresholds (θ_block, θ_allow). Uses red-team corpus (`scripts/eval/red_team_prompts.jsonl`) to minimize false positives/negatives while prioritizing safety. Results stored in `artifacts/` directory.
+- **Semantic MalAbs Anchors (`src/modules/semantic_chat_gate.py`)**: Expanded reference anchors to include `HARM_TO_MINOR` and `TORTURE` categories with semantic similarity detection for child exploitation and torture-equivalent content.
+>>>>>>> origin/master-visualStudio
+
+## Phase 2 — Semantic Vector Store Implementation & Integration — April 2026
+
+### Phase 2a: Vector Store Core
+- **Semantic Anchor Store (`src/modules/semantic_anchor_store.py`)**: Implemented persistent, pluggable storage for MalAbs semantic reference anchors. Supports in-memory (fast, ephemeral) and Chroma (persistent, scalable) backends via `KERNEL_SEMANTIC_VECTOR_BACKEND` environment variable. Enables operators to manage anchor phrases without redeploying code.
+- **Vector DB Backends**:
+  - **InMemorySemanticAnchorStore**: Fast O(1) upsert, O(n) similarity search; ideal for testing and stateless deployments.
+  - **ChromaSemanticAnchorStore**: Persistent Chroma collection with HNSW index; O(log n) search; scales to thousands of anchors.
+- **TTL & Expiry**: Both backends support anchor time-to-live (`KERNEL_SEMANTIC_ANCHOR_TTL_S`); automatic cleanup via `delete_expired()`.
+- **Tests**: Comprehensive test suite (`tests/test_semantic_anchor_store.py`) covers in-memory operations, TTL expiry, Chroma integration, and factory patterns.
+- **Documentation**: [`docs/SEMANTIC_ANCHOR_STORE_IMPLEMENTATION.md`](docs/SEMANTIC_ANCHOR_STORE_IMPLEMENTATION.md) details architecture, configuration, usage, and deployment patterns.
+- **Dependencies**: Added optional `chromadb>=0.4.0` to `requirements.txt` for persistent backend activation.
+
+### Phase 2b: SemanticChatGate Integration
+- **Integration (`src/modules/semantic_chat_gate.py`)**: Integrated `SemanticAnchorStore` into semantic MalAbs layer. Replaced hardcoded cache iteration with persistent store queries.
+  - Lazy initialization of store on first use (`_get_anchor_store()`)
+  - Preload hardcoded reference anchors on first store initialization
+  - `_best_similarity()` now queries persistent store; falls back to legacy in-process cache if store fails
+  - `add_semantic_anchor()` now stores anchors persistently; maintains legacy cache for backwards compatibility
+- **Tests**: Comprehensive integration suite (`tests/test_semantic_anchor_store_integration.py`) validates store initialization, anchor addition, gate behavior, and fallback logic.
+- **Backwards Compatibility**: Legacy in-process cache and `_runtime_anchors` list maintained during Phase 2b→Phase 3 transition. Can disable store via env or let it degrade gracefully on errors.
+
+## Phase 3 — Evaluation Pipelines & Threshold Meta-Optimization — April 2026
+
+- **Threshold Meta-Optimizer (`scripts/eval/optimize_malabs_thresholds.py`)**: Automated Bayesian hyperparameter search (Optuna) for tuning semantic gate thresholds (θ_block, θ_allow). Minimizes weighted loss (2× false_allow + 1× false_block) with constraint enforcement (θ_allow < θ_block) and regression gates. Stores Optuna study DB + results under configurable artifacts path.
+- **Feature Flags**: `KERNEL_MALABS_THRESHOLD_OPTIMIZATION_ENABLED` master switch; configurable search bounds (`KERNEL_MALABS_ALLOW/BLOCK_THRESHOLD_MIN/MAX`); artifacts path (`KERNEL_MALABS_TUNING_ARTIFACTS_PATH`).
+- **Evaluation Metrics**: Tracks true_block, false_allow, false_block, true_allow; computes precision, recall, FP rate. Baseline metrics (defaults) compared vs tuned thresholds for regression detection.
+- **Sampler Support**: Random, TPE, and Bayesian samplers; configurable via `--sampler` CLI flag for flexibility in exploration/exploitation trade-offs.
+- **Tests**: Unit tests for metrics (precision, recall, FP rate, weighted loss); integration tests with real MalAbs evaluator; skips gracefully if optuna not installed.
+- **Documentation**: [`docs/PHASE_3_EVALUATION_PIPELINES.md`](docs/PHASE_3_EVALUATION_PIPELINES.md) — usage, CI/CD integration, safety constraints, audit trail.
+- **Dependencies**: Added optional `optuna>=3.0.0` to `requirements.txt` for hyperparameter optimization.
+
+## Antigravity Phase 2 — Documentation & Infrastructure — April 2026
+
+- **Sensor Payload Contingencies:** Added safety NaN/Infinity limits to `sensor_contracts.py` and hardened `.env` thresholding in `multimodal_trust.py` to prevent IoT stream anomalies from crashing the backend.
+- **Hardware Deployment Documentation:** Authored `docs/manuals/SENSOR_HARDWARE_AND_TESTING_GUIDE.md` detailing dual-path (Raspberry Pi vs Smartphone) hardware architecture for physical nomadism tests.
+- **Cross-team Transparency**: Updated `AGENTS.md` and `.cursor/rules/` to mandate documentation availability for all teams to prevent contradictions.
+- **New Proposal [`PROPOSAL_006`](docs/proposals/PROPOSAL_006_VECTOR_RESONANCE_RETRIEVAL.md)**: Proposed semantic Vector memory integration via Ollama embeddings for more efficient and accurate narrative resonance.
+- **New Proposal [`PROPOSAL_007`](docs/proposals/PROPOSAL_007_IMMORTALITY_PROTOCOL.md)**: Proposed Tier 4 Immortality Protocol for distributed snapshotting and restoration integrity.
+- **New Proposal [`PROPOSAL_008`](docs/proposals/PROPOSAL_008_METACOGNITIVE_CURIOSITY.md)**: Proposed Metacognitive Curiosity and Epistemic Alignment for Phase 5 (Cognitive Expansion). 
+- **New Proposal [`PROPOSAL_009`](docs/proposals/PROPOSAL_009_DISTRIBUTED_JUSTICE_AND_BLOCKCHAIN_DAO.md)**: Strategic plan for Distributed Justice and Blockchain DAO integration (Phase 6).
+- **Vector DB for Semantic Anchors**: Implemented `SemanticAnchorStore` interface with ChromaDB and memory backends. Added `KERNEL_SEMANTIC_VECTOR_BACKEND` and `KERNEL_SEMANTIC_VECTOR_PERSIST_PATH` env vars. Integrated with `semantic_chat_gate.py` for scalable anchor storage with TTL support.
+- **`src/modules/narrative.py`**: Integrated `NarrativePersistence`. Episodes are now automatically saved to `data/narrative.db` (or `KERNEL_NARRATIVE_DB_PATH`) and reloaded on initialization. Added `find_by_resonance` for historical retrieval from disk.
+- **Refactor:** Created **[`src/modules/narrative_types.py`](src/modules/narrative_types.py)** to house `NarrativeEpisode` and `BodyState` dataclasses, resolving circular dependencies between narrative logic and persistence layers. Updated `src/persistence/kernel_io.py`.
+- **Docs:** Updated [`docs/proposals/PROPOSAL_002_NARRATIVE_ARCHITECTURE_PLAN.md`](docs/proposals/PROPOSAL_002_NARRATIVE_ARCHITECTURE_PLAN.md) (Tier 2 marked delivered).
+- **Consolidation:** Integrated `BiographicPruner` and `MetacognitiveEvaluator` into the kernel processing loop.
+- **Swarm Consensus:** Implemented Trust Nudges (I7) and Solidarity Alerts in `MockDAO`.
 ## Distributed justice — Frontier witnesses + anchor compare CLI (DJ-BL-16 / DJ-BL-17) — April 2026
 
 - **Phase 4 / safe path (DJ-BL-18):** release checklist template under Phase 4 in [`docs/proposals/PROPOSAL_DAO_BLOCKCHAIN_DISTRIBUTED_JUSTICE_STAGED_EXECUTION.md`](docs/proposals/PROPOSAL_DAO_BLOCKCHAIN_DISTRIBUTED_JUSTICE_STAGED_EXECUTION.md); expanded **Anchor checkpoint CLI** operator notes (exit codes, no chain RPC, mismatch handling) and coordinator `aggregated_frontier_witness_resolutions` pointer in [`docs/proposals/OPERATOR_QUICK_REF.md`](docs/proposals/OPERATOR_QUICK_REF.md).

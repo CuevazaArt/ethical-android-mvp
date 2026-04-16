@@ -13,7 +13,7 @@ from jsonschema.exceptions import ValidationError
 from .schema import SCHEMA_VERSION, KernelSnapshotV1
 from .snapshot_serde import kernel_snapshot_to_json_dict
 
-_SCHEMA_PATH = Path(__file__).resolve().parent / "schemas" / "kernel_snapshot_v3.schema.json"
+_SCHEMA_PATH = Path(__file__).resolve().parent / "schemas" / "kernel_snapshot_v4.schema.json"
 
 
 @lru_cache(maxsize=1)

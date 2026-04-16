@@ -113,6 +113,13 @@ RUNTIME_PROFILES: Final[dict[str, dict[str, str]]] = {
         "KERNEL_GENERATIVE_ACTIONS": "1",
         "KERNEL_GENERATIVE_LLM": "1",
     },
+    # Issue 2 + Module 5 — Cybersecurity: SecureBoot + SelectiveAmnesia + Semantic MalAbs.
+    "cybersecurity_hardened": {
+        "KERNEL_SECURE_BOOT": "1",
+        "KERNEL_SELECTIVE_AMNESIA": "1",
+        "KERNEL_SEMANTIC_CHAT_GATE": "1",
+        "KERNEL_SEMANTIC_EMBED_HASH_FALLBACK": "1",
+    },
 }
 
 PROFILE_DESCRIPTIONS: Final[dict[str, str]] = {
@@ -132,6 +139,7 @@ PROFILE_DESCRIPTIONS: Final[dict[str, str]] = {
     "lexical_malabs_only": "Force KERNEL_SEMANTIC_CHAT_GATE=0 (lexical MalAbs only).",
     "perception_adv_consensus_lab": "Second LLM perception sample; large hostility/risk disagreement raises coercion uncertainty for D_delib (see perception_dual_vote.py).",
     "llm_integration_lab": "Semantic MalAbs (hash fallback) + generative action sketches from perception JSON (PROPOSAL_LLM_INTEGRATION_TRACK G-09).",
+    "cybersecurity_hardened": "Hardened security stack: SecureBoot integrity verification + SelectiveAmnesia data erasure + Semantic MalAbs (Fase 1 + Module 5).",
 }
 
 

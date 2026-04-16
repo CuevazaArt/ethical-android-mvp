@@ -1,0 +1,25 @@
+# Repository layout and language split
+
+GitHub **language statistics** reflect **file counts and sizes across the whole repo**, not the runtime dependency graph of the kernel.
+
+## What is core (mandatory for kernel work)
+
+| Area | Role |
+|------|------|
+| **`src/`** | Ethos Kernel and runtime: **Python only**. This is the supported core for ethics logic, WebSocket server, persistence, CLI, and CI. |
+| **`tests/`** | Python test suite; **required** for any change that affects behavior. |
+| **`requirements.txt`** / **`requirements-dev.txt`** | Primary install path for the kernel and CI. |
+| **`pyproject.toml`** | Packaging metadata; `pip install -e .` for editable install. |
+
+Contributors who only ship kernel features **do not** need Node.js, npm, or TypeScript.
+
+## What is adjacent (optional)
+
+| Area | Role |
+|------|------|
+| **`contracts/`** | **Optional transparency only:** README + non-functional Solidity **stub** — kernel governance demos are **Python** (`mock_dao.py`). No `forge`/Hardhat in default CI. See [`contracts/README.md`](../contracts/README.md). |
+| **`experiments/`** | Optional research harnesses (not required for kernel or CI). See [`experiments/README.md`](../experiments/README.md). |
+
+## End-to-end (browser) testing
+
+Full **browser E2E** (e.g. Playwright against a live `chat_server`) is **not** part of the default CI matrix today. Adding true E2E is a follow-up (separate job, optional secrets, longer runtime).

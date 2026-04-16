@@ -1,0 +1,12 @@
+# Benchmark and validation outputs (not versioned)
+*.json
+*.csv
+*.html
+*.log
+__pycache__/
+*.pyc
+
+# Keep the scripts and docs
+!run_ethics_benchmark.py
+!README.md
+!.gitignore

@@ -12,18 +12,37 @@ High-level summary aligned with the code and docs; full chronology is in [`CHANG
 
 | Document | Summary |
 |----------|---------|
+| [`PROPOSAL_001_HARDENIDO_DE_MODULOS_PRIMITIVOS.md`](PROPOSAL_001_HARDENIDO_DE_MODULOS_PRIMITIVOS.md) | Antigravity: hardening plan for primitive modules (filename legacy; content English). |
+| [`PROPOSAL_002_NARRATIVE_ARCHITECTURE_PLAN.md`](PROPOSAL_002_NARRATIVE_ARCHITECTURE_PLAN.md) | Antigravity: narrative / cognitive architecture pillar; tiers 1–3. |
+| [`PROPOSAL_003_NARRATIVE_HARDENING_ANALYSIS.md`](PROPOSAL_003_NARRATIVE_HARDENING_ANALYSIS.md) | Antigravity: narrative hardening (encryption, integrity, Uchi–Soto). |
+| [`PROPOSAL_004_NARRATIVE_IDENTITY_REFLECTION.md`](PROPOSAL_004_NARRATIVE_IDENTITY_REFLECTION.md) | Antigravity: narrative identity reflection layer. |
+| [`PROPOSAL_005_NARRATIVE_RESILIENCE_AND_HIERARCHY.md`](PROPOSAL_005_NARRATIVE_RESILIENCE_AND_HIERARCHY.md) | Antigravity: narrative resilience and memory hierarchy. |
+| [`PROPOSAL_008_METACOGNITIVE_CURIOSITY.md`](PROPOSAL_008_METACOGNITIVE_CURIOSITY.md) | Cursor: metacognitive curiosity and epistemic alignment. |
+| [`PROPOSAL_009_DISTRIBUTED_JUSTICE_AND_BLOCKCHAIN_DAO.md`](PROPOSAL_009_DISTRIBUTED_JUSTICE_AND_BLOCKCHAIN_DAO.md) | Antigravity: distributed justice and blockchain-style DAO (design scope). |
+| [`PROPOSAL_010_CRITIQUE_SYNTESIS_AND_ALIGNMENT.md`](PROPOSAL_010_CRITIQUE_SYNTESIS_AND_ALIGNMENT.md) | Antigravity: architectural critique synthesis and alignment plan (phase 7). |
+| [`PROPOSAL_011_DAO_CALIBRATION_PIPELINE.md`](PROPOSAL_011_DAO_CALIBRATION_PIPELINE.md) | Antigravity: DAO calibration pipeline and boundary-safety caps (phase 7). |
+| [`ANTIGRAVITY_COLLABORATION_GUIDE.md`](ANTIGRAVITY_COLLABORATION_GUIDE.md) | Antigravity: collaboration guide and operational workflows. |
 | [`PROPOSAL_BAYESIAN_MIXTURE_FEEDBACK.md`](PROPOSAL_BAYESIAN_MIXTURE_FEEDBACK.md) | ADR 0012 stack: BMA (L1), feedback posteriors (L2), context buckets (L3), softmax / importance-sampling likelihood, env vars, tests, link to ADR 0012. |
+| [`PROPOSAL_INTEGRATION_SPRINT_I1_I5.md`](PROPOSAL_INTEGRATION_SPRINT_I1_I5.md) | Integration sprint I1–I5: closes the gaps between Cursor (perception), Claude (Bayesian kernel), and Antigravity (narrative). Contracts, env vars, team coordination matrix. ADR 0015. |
+| [`PROPOSAL_CONSOLIDATION_PRE_DAO.md`](PROPOSAL_CONSOLIDATION_PRE_DAO.md) | Vertical consolidation cycle before field tests and DAO: validate the decision core against ETHICS dataset, shrink env-var surface, separate decision/narrative tiers, deepen tests, contract the DAO-governable surface. ADR 0016. |
+| [`PROPOSAL_FIELD_TEST_PLAN.md`](PROPOSAL_FIELD_TEST_PLAN.md) | Field test plan — phases F0–F4 for model (scorer + MalAbs), next MockDAO (audit UX), and **real physical sensors** via a smartphone relay; defines the PC ↔ phone minimal management interface; maps each test phase to a specific weakness in `WEAKNESSES_AND_BOTTLENECKS.md`. Companion: [ADR 0017](../adr/0017-smartphone-sensor-relay-bridge.md). |
 | [`PROPOSAL_OFFLINE_MODE_TAXONOMY_AND_KNOWLEDGE_CORPUS.md`](PROPOSAL_OFFLINE_MODE_TAXONOMY_AND_KNOWLEDGE_CORPUS.md) | Offline taxonomy (voluntary, transient, structural, systemic); L0 vs curated knowledge pack; resource/energy priority; entry planning and sync; maps to `PreloadedBuffer` and MalAbs. |
 
 | Area | What changed |
 |------|----------------|
-| **Docs** | Single **`docs/proposals/`** tree; repo links point here. ADRs and templates were not moved. **April 2026:** full proposal set restored from **`origin/backup/main-2026-04-10`**; root **[`BIBLIOGRAPHY.md`](../../BIBLIOGRAPHY.md)** restored. **Cursor team charter (sensors + perception):** [`CURSOR_TEAM_MISSION_SENSORS_PERCEPTION.md`](CURSOR_TEAM_MISSION_SENSORS_PERCEPTION.md). |
+| **Docs** | Single **`docs/proposals/`** tree; repo links point here. ADRs and templates were not moved. **April 2026:** proposal snapshots reconcile against **`main-whit-landing`** for bibliography + landing. **Cursor team charter (sensors + perception):** [`CURSOR_TEAM_MISSION_SENSORS_PERCEPTION.md`](CURSOR_TEAM_MISSION_SENSORS_PERCEPTION.md). |
 | **Uchi–Soto (roster)** | **Phase 3** in the kernel: `RelationalTier`, sensor-trust EMA, forget buffer, `linked_peer_ids`, wired into `process` / chat. See [PROPOSAL_SOCIAL_ROSTER_HIERARCHICAL_RELATIONS.md](PROPOSAL_SOCIAL_ROSTER_HIERARCHICAL_RELATIONS.md). |
 | **User model** | Enrichment phases A–C: cognitive pattern, risk band, judicial phase and checkpoint; snapshot persistence. See [USER_MODEL_ENRICHMENT.md](USER_MODEL_ENRICHMENT.md). |
 | **Time / Bayes** | Temporal horizon prior (Bayesian mixture, ADR 0005). See [TEMPORAL_PRIOR_HORIZONS.md](TEMPORAL_PRIOR_HORIZONS.md). |
 | **Perception** | Pydantic validation, coherence checks, local fallback. See [PERCEPTION_VALIDATION.md](PERCEPTION_VALIDATION.md). |
 | **MVP status** | Per-module maturity table and gaps. See [PROJECT_STATUS_AND_MODULE_MATURITY.md](PROJECT_STATUS_AND_MODULE_MATURITY.md). |
 | **Brand / media** | Canonical logo [`docs/multimedia/media/logo.png`](../multimedia/media/logo.png); index in [multimedia README](../multimedia/README.md). |
+
+## Self-critique
+
+| Document | Summary |
+|----------|---------|
+| [`../critique/SELF_CRITIQUE_2026-04-14.md`](../critique/SELF_CRITIQUE_2026-04-14.md) | Honest diagnosis of the project after P1–P7 + I1–I5: what is genuinely solid, what is unjustified (heuristic valuations, config sprawl, narrative tier without causal influence, shallow cross-tier tests). Motivates ADR 0016. |
 
 ---
 
@@ -190,5 +209,5 @@ Legacy Spanish filenames (`PROPUESTA_*.md`, `ESTRATEGIA_Y_RUTA.md`, `PAPER_AFECT
 - **Architecture decisions:** [`docs/adr/`](../adr/README.md)  
 - **Versioned changes:** [`CHANGELOG.md`](../../CHANGELOG.md)  
 - **Narrative history:** [`HISTORY.md`](../../HISTORY.md)  
-- **Bibliography:** [`BIBLIOGRAPHY.md`](../../BIBLIOGRAPHY.md)  
+- **Bibliography:** [`BIBLIOGRAPHY.md` on `main-whit-landing`](https://github.com/CuevazaArt/ethical-android-mvp/blob/main-whit-landing/BIBLIOGRAPHY.md) (not shipped on lightweight `main`)  
 - **Product and development:** [root README](../../README.md)

@@ -1,0 +1,11 @@
+{
+  "schema_version": 2,
+  "constitution_l1_drafts": [
+    {
+      "id": "golden_v2_draft",
+      "title": "Golden fixture",
+      "body": "Migration test body"
+    }
+  ],
+  "constitution_l2_drafts": []
+}

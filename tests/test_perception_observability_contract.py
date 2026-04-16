@@ -15,6 +15,7 @@ def _mk_perception(*, coercion_report):
         legality=1.0,
         manipulation=0.0,
         familiarity=0.0,
+        social_tension=0.0,
         suggested_context="everyday_ethics",
         summary="ok",
         coercion_report=coercion_report,

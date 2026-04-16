@@ -91,4 +91,13 @@ They are **the same asset**; the iframe is not a different implementation. CSP /
 
 ---
 
+## 8. Landing branch and language hygiene (April 2026 checkpoint)
+
+- Historical backup branch `backup/main-2026-04-10` was renamed to `main-whit-landing` for explicit landing scope.
+- `main` now keeps landing content synchronized from that lineage while preserving current kernel history.
+- Landing-facing content is normalized to English, including public copy and referenced proposal filenames.
+- New landing assets must keep English filenames and English UI text by default.
+
+---
+
 *MoSex Macchina Lab — monorepo policy; align with README and CHANGELOG when changing deploy defaults.*
