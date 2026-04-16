@@ -40,6 +40,15 @@ def test_health():
     assert "semantic_embed_hash_fallback_enabled" in sd
     assert "perception_failsafe_enabled" in sd
     assert "perception_parallel_enabled" in sd
+    ld = body.get("llm_degradation")
+    assert isinstance(ld, dict)
+    assert "resolved" in ld
+    res = ld["resolved"]
+    assert res.get("perception") == "template_local"
+    assert res.get("communicate") == "template_local"
+    assert res.get("narrate") == "template_local"
+    assert res.get("monologue") == "passthrough"
+    assert ld.get("global_default_effective") is None
 
 
 def test_lifespan_runs_with_test_client_context_manager():
@@ -199,7 +208,9 @@ def test_websocket_malabs_safety_block():
     assert data.get("response", {}).get("message")
 
 
-def test_websocket_chat_roundtrip():
+def test_websocket_chat_roundtrip(monkeypatch: pytest.MonkeyPatch):
+    """Default JSON shape; force homeostasis on so host env cannot strip the field."""
+    monkeypatch.setenv("KERNEL_CHAT_INCLUDE_HOMEOSTASIS", "1")
     with client.websocket_connect("/ws/chat") as ws:
         ws.send_json({"text": "Hello, I am testing the bridge."})
         data = ws.receive_json()

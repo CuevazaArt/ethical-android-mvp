@@ -17,7 +17,7 @@ Use the **`ethos config`** command (after `pip install -e .` or `python -m src.e
 | Governance / hub | `KERNEL_MORAL_HUB_*`, `KERNEL_DEONTIC_GATE`, `KERNEL_JUDICIAL_*`, `KERNEL_DAO_INTEGRITY_AUDIT_WS` | Hub, drafts, judicial, integrity audit. |
 | Metaplan / drives | `KERNEL_METAPLAN_HINT`, `KERNEL_METAPLAN_DRIVE_FILTER`, `KERNEL_METAPLAN_DRIVE_EXTRA` | Owner goals hint; filter advisory `drive_intents` vs goals; extra coherence intent. |
 | Swarm (lab stub) | `KERNEL_SWARM_STUB` | Offline verdict-digest helpers only; see [`SWARM_P2P_THREAT_MODEL.md`](SWARM_P2P_THREAT_MODEL.md). |
-| LLM / variability | `LLM_MODE`, `KERNEL_VARIABILITY`, `KERNEL_GENERATIVE_*` (`KERNEL_GENERATIVE_LLM` = JSON candidates in perception) | Backends and generative candidates. |
+| LLM / variability | `LLM_MODE`, `KERNEL_VARIABILITY`, `KERNEL_GENERATIVE_*` (`KERNEL_GENERATIVE_LLM` = JSON candidates in perception); degradation: `KERNEL_LLM_TP_*`, `KERNEL_LLM_VERBAL_FAMILY_POLICY`, `KERNEL_LLM_GLOBAL_DEFAULT_POLICY`, legacy `KERNEL_PERCEPTION_BACKEND_POLICY` / `KERNEL_VERBAL_LLM_BACKEND_POLICY` | Backends, generative candidates, and **resolved** fallback policies on `GET /health` → `llm_degradation` ([`PROPOSAL_LLM_TOUCHPOINT_DEGRADATION_MATRIX.md`](PROPOSAL_LLM_TOUCHPOINT_DEGRADATION_MATRIX.md)). |
 | Poles (linear) | `KERNEL_POLE_LINEAR_CONFIG` | JSON path for `LinearPoleEvaluator` (ADR 0004); default bundled. |
 | Input (optional) | `KERNEL_SEMANTIC_CHAT_GATE`, `KERNEL_SEMANTIC_CHAT_EMBED_MODEL`, block/allow thresholds, `KERNEL_SEMANTIC_CHAT_LLM_ARBITER` | Lexical → embeddings → optional LLM; see [`MALABS_SEMANTIC_LAYERS.md`](MALABS_SEMANTIC_LAYERS.md). Default cosine thresholds: evidence posture and guardrails — [`PROPOSAL_MALABS_SEMANTIC_THRESHOLD_EVIDENCE.md`](PROPOSAL_MALABS_SEMANTIC_THRESHOLD_EVIDENCE.md). |
 | **Mixture weights (episodic)** | `KERNEL_BAYESIAN_EMPIRICAL_WEIGHTS` | When `1`, ethical mixture weights are nudged from recent episode scores (same context; not full Bayes). Default `0`. |
@@ -46,6 +46,7 @@ Phased roadmap and evidence posture: [`PROPOSAL_LLM_VERTICAL_ROADMAP.md`](PROPOS
 | LAN / phone staging | `lan_operational` or `lan_mobile_thin_client` | Bind + stoic JSON; tune `OLLAMA_TIMEOUT` with `KERNEL_CHAT_TURN_TIMEOUT`. |
 | Airgap semantic (hash embeddings, no Ollama) | `untrusted_chat_input` | Pair with unreachable `OLLAMA_BASE_URL` + short `KERNEL_SEMANTIC_EMBED_*` timeouts for fast fail (see [`test_malabs_semantic_integration.py`](../../tests/test_malabs_semantic_integration.py)). |
 | Generative candidates + semantic gate | `llm_integration_lab` | `KERNEL_GENERATIVE_LLM` + MalAbs hash fallback per [`runtime_profiles.py`](../../src/runtime_profiles.py). |
+| Conservative LLM fallbacks (staging) | `llm_staging_conservative` | Perception `fast_fail`, verbal/narrate via `KERNEL_LLM_GLOBAL_DEFAULT_POLICY=canned_safe`, monologue `annotate_degraded`; pairs with semantic hash fallback. See matrix § operator bundle. |
 | Perception hardening lab | `perception_hardening_lab` | Light risk + cross-check + uncertainty→delib; compose with `untrusted_chat_input` if you need semantic MalAbs too. |
 
 ### Perception observability contract (chat JSON)
@@ -94,7 +95,9 @@ When a generative touchpoint falls back (**communicate**, **narrate**, or option
 
 - `verbal_llm_observability`: `{ "degraded": true, "events": [ { "touchpoint", "failure_reason", "recovery_policy" } ] }`.
 
-**Configuration precedence** (per path): `KERNEL_LLM_TP_<TOUCHPOINT>_POLICY` → `KERNEL_LLM_VERBAL_FAMILY_POLICY` (communicate + narrate only) → `KERNEL_VERBAL_LLM_BACKEND_POLICY` / `KERNEL_PERCEPTION_BACKEND_POLICY` as documented in [`PROPOSAL_LLM_TOUCHPOINT_DEGRADATION_MATRIX.md`](PROPOSAL_LLM_TOUCHPOINT_DEGRADATION_MATRIX.md). See also [`PROPOSAL_LLM_VERBAL_DEGRADATION_POLICY.md`](PROPOSAL_LLM_VERBAL_DEGRADATION_POLICY.md).
+**Configuration precedence** (per path): `KERNEL_LLM_TP_<TOUCHPOINT>_POLICY` → `KERNEL_LLM_VERBAL_FAMILY_POLICY` (communicate + narrate only) → legacy `KERNEL_VERBAL_LLM_BACKEND_POLICY` or `KERNEL_PERCEPTION_BACKEND_POLICY` → optional `KERNEL_LLM_GLOBAL_DEFAULT_POLICY` (only where valid for that resolver) → built-in defaults — [`PROPOSAL_LLM_TOUCHPOINT_DEGRADATION_MATRIX.md`](PROPOSAL_LLM_TOUCHPOINT_DEGRADATION_MATRIX.md). See also [`PROPOSAL_LLM_VERBAL_DEGRADATION_POLICY.md`](PROPOSAL_LLM_VERBAL_DEGRADATION_POLICY.md).
+
+**Resolved policies on `/health`:** `GET /health` includes `llm_degradation` with `global_default_raw`, `global_default_effective`, and `resolved` `{ perception, communicate, narrate, monologue }` so dashboards match the same precedence as runtime (no secrets).
 
 ### Observability (metrics and logs)
 

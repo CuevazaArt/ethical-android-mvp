@@ -19,6 +19,7 @@ TEST_TARGETS = [
     "tests/test_process_natural_verbal_observability.py",
     "tests/test_perception_dual_vote_failure.py",
     "tests/test_semantic_chat_gate.py",
+    "tests/test_llm_touchpoint_policies.py",
 ]
 
 

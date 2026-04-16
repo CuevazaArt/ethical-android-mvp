@@ -137,6 +137,10 @@ For **Cursor** and other agents, the durable rule text (redundancy checks, safet
 - **Generalized onboarding pack:** [`COLLABORATIVE_METHOD_GENERALIZATION_GUIDE.md`](COLLABORATIVE_METHOD_GENERALIZATION_GUIDE.md) (required reading order, task card, DoD, and quality gate references).
 - **Cursor integration gate:** [`CURSOR_CROSS_TEAM_INTEGRATION_GATE.md`](CURSOR_CROSS_TEAM_INTEGRATION_GATE.md) (cross-team interlace readiness and reproducible checks).
 
+## Registered critique — collaboration regulation (one-time)
+
+A **single-shot** process critique of the Antigravity-shaped multi-team rules (hubs, Rule C-1, merges, PR vs push discipline, and tooling gaps) is recorded in **[`docs/critique/COLLABORATION_REGULATION_CRITIQUE_2026-04-16.md`](../critique/COLLABORATION_REGULATION_CRITIQUE_2026-04-16.md)**. It is **not** repeated unless **Juan (L0)** explicitly requests a refresh. Use it to prioritize improvements to coordination flow without reopening authority over `main`.
+
 ## Language policy reminder
 
 - **Human collaboration** may use **Latin American Spanish** (and other languages) off-repo.

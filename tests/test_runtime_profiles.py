@@ -104,6 +104,25 @@ def test_llm_integration_lab_profile_keys():
     assert o["KERNEL_GENERATIVE_LLM"] == "1"
 
 
+def test_llm_staging_conservative_profile_keys():
+    o = RUNTIME_PROFILES["llm_staging_conservative"]
+    assert o["KERNEL_LLM_TP_PERCEPTION_POLICY"] == "fast_fail"
+    assert o["KERNEL_LLM_GLOBAL_DEFAULT_POLICY"] == "canned_safe"
+    assert o["KERNEL_LLM_TP_MONOLOGUE_POLICY"] == "annotate_degraded"
+
+
+def test_health_llm_degradation_reflects_staging_profile(monkeypatch: pytest.MonkeyPatch):
+    apply_runtime_profile(monkeypatch, "llm_staging_conservative")
+    r = client.get("/health")
+    assert r.status_code == 200
+    ld = r.json()["llm_degradation"]
+    assert ld["resolved"]["perception"] == "fast_fail"
+    assert ld["resolved"]["communicate"] == "canned_safe"
+    assert ld["resolved"]["narrate"] == "canned_safe"
+    assert ld["resolved"]["monologue"] == "annotate_degraded"
+    assert ld.get("global_default_raw") == "canned_safe"
+
+
 def test_perception_hardening_lab_websocket_includes_light_risk_tier(
     monkeypatch: pytest.MonkeyPatch,
 ):
