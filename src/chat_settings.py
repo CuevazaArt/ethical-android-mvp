@@ -87,7 +87,15 @@ class ChatServerSettings(BaseModel):
     kernel_chat_turn_timeout_seconds: float | None = Field(
         description=(
             "KERNEL_CHAT_TURN_TIMEOUT — max seconds for one WebSocket chat turn (async wait); "
-            "unset = unlimited. Does not stop in-flight sync LLM HTTP in the worker thread."
+            "unset = unlimited. With sync worker offload, in-flight httpx may continue until read "
+            "timeout unless KERNEL_CHAT_ASYNC_LLM_HTTP is enabled."
+        ),
+    )
+    kernel_chat_async_llm_http: bool = Field(
+        description=(
+            "KERNEL_CHAT_ASYNC_LLM_HTTP — when true, chat turns use async LLM HTTP on the "
+            "event loop (process_chat_turn_async) so asyncio can cancel in-flight requests "
+            "(Ollama/HTTP JSON). Default off; see ADR 0002."
         ),
     )
     kernel_chat_threadpool_workers: int = Field(
@@ -121,6 +129,9 @@ class ChatServerSettings(BaseModel):
             ),
             kernel_chat_threadpool_workers=max(0, _env_int("KERNEL_CHAT_THREADPOOL_WORKERS", 0)),
             kernel_chat_json_offload=_env_truthy("KERNEL_CHAT_JSON_OFFLOAD", default_true=True),
+            kernel_chat_async_llm_http=_env_truthy(
+                "KERNEL_CHAT_ASYNC_LLM_HTTP", default_true=False
+            ),
         )
 
     def model_dump_public(self) -> dict[str, Any]:
@@ -135,6 +146,7 @@ class ChatServerSettings(BaseModel):
             "kernel_chat_turn_timeout_seconds": self.kernel_chat_turn_timeout_seconds,
             "kernel_chat_threadpool_workers": self.kernel_chat_threadpool_workers,
             "kernel_chat_json_offload": self.kernel_chat_json_offload,
+            "kernel_chat_async_llm_http": self.kernel_chat_async_llm_http,
         }
 
 

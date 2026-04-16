@@ -17,7 +17,7 @@ This proposal **justifies** a phased roadmap and records **evidence posture**: i
 ## 2) Problem statement
 
 1. **Configuration surface:** Many `KERNEL_*` families touch LLM behavior (completion JSON, MalAbs semantic, embeddings, generative candidates). A single-prefix env namespace remains **deferred** ([`WEAKNESSES_AND_BOTTLENECKS.md`](../WEAKNESSES_AND_BOTTLENECKS.md) §3); operators need a **stable mental model** and cockpit grouping, not only a flat env list.
-2. **Async bridge vs HTTP:** Chat turns use `asyncio.wait_for` around synchronous kernel work; **cooperative cancellation** of in-flight LLM HTTP is not implemented ([ADR 0002](../adr/0002-async-orchestration-future.md); track G-05). Operators still need **measurable** signals when the async deadline fires while worker threads may continue.
+2. **Async bridge vs HTTP:** Chat turns use `asyncio.wait_for` around synchronous kernel work; **cooperative cancellation** skips further sync LLM HTTP after the async deadline (G-05 partial; [`llm_http_cancel.py`](../../src/modules/llm_http_cancel.py)); in-flight HTTP is still bounded by read timeout ([ADR 0002](../adr/0002-async-orchestration-future.md)). Operators still need **measurable** signals when the async deadline fires while worker threads may continue.
 3. **Trust chain:** Lexical MalAbs, semantic tier, and structured perception are **separate modules**; end-to-end regressions must prove benign paths still produce perception after the semantic tier runs under production-like defaults ([`test_malabs_semantic_integration.py`](../../tests/test_malabs_semantic_integration.py) pattern).
 
 ---
@@ -43,9 +43,9 @@ This proposal **justifies** a phased roadmap and records **evidence posture**: i
 
 ### Phase 3 — Async deadline observability (G-05 partial)
 
-**Goal:** When `KERNEL_CHAT_TURN_TIMEOUT` elapses, increment a **Prometheus counter** (opt-in `KERNEL_METRICS=1`) so operators can alert on “async waiter gave up / worker may still run” separately from end-to-end turn histograms.
+**Goal:** When `KERNEL_CHAT_TURN_TIMEOUT` elapses, increment **Prometheus counters** (opt-in `KERNEL_METRICS=1`) so operators can alert on “async waiter gave up / worker may still run” (`ethos_kernel_chat_turn_async_timeouts_total`) and cooperative cancel signaling (`ethos_kernel_llm_cancel_scope_signals_total`) separately from end-to-end turn histograms.
 
-**Done when:** Metric documented in [`OPERATOR_QUICK_REF.md`](OPERATOR_QUICK_REF.md); no claim of cooperative HTTP cancel.
+**Done when:** Metrics documented in [`OPERATOR_QUICK_REF.md`](OPERATOR_QUICK_REF.md); docs state **partial** cooperative cancel (skip further sync LLM HTTP; optional async path + `abandon_chat_turn`); [`ethos_kernel_chat_turn_abandoned_effects_skipped_total`](../../src/observability/metrics.py) when late completions skip STM. In-flight sync `httpx` abort remains bounded by read timeout unless async LLM HTTP is enabled ([ADR 0002](../adr/0002-async-orchestration-future.md)).
 
 ### Phase 4 — Lexical → semantic → perception chain
 
@@ -58,6 +58,8 @@ This proposal **justifies** a phased roadmap and records **evidence posture**: i
 **Goal:** Script listing LLM-vertical tests for fast local/CI optional runs ([`scripts/eval/run_llm_vertical_tests.py`](../../scripts/eval/run_llm_vertical_tests.py)).
 
 **Done when:** Script exits non-zero on failure; documented in this file and cross-team gate doc.
+
+**Targets include:** G-05 cooperative cancel ([`tests/test_llm_http_cancel.py`](../../tests/test_llm_http_cancel.py), [`tests/test_chat_async_llm_cancel.py`](../../tests/test_chat_async_llm_cancel.py), [`tests/test_chat_turn_abandon.py`](../../tests/test_chat_turn_abandon.py)) alongside verbal/touchpoint/MalAbs/operator metrics tests. Empirical pilot regression ([`tests/test_empirical_pilot_runner.py`](../../tests/test_empirical_pilot_runner.py)) lives in [`run_cursor_integration_gate.py`](../../scripts/eval/run_cursor_integration_gate.py) only — too slow for this focused vertical by default ([Issue #3](PLAN_IMMEDIATE_TWO_WEEKS.md) / [`EMPIRICAL_METHODOLOGY.md`](EMPIRICAL_METHODOLOGY.md)).
 
 ---
 
@@ -84,3 +86,4 @@ This proposal **justifies** a phased roadmap and records **evidence posture**: i
 ## 6) Changelog
 
 - **2026-04-14:** Initial roadmap (phases 1–5) aligned with integration track and weaknesses §1/§3.
+- **2026-04-16:** Phase 5 — [`run_llm_vertical_tests.py`](../../scripts/eval/run_llm_vertical_tests.py) includes cooperative-cancel tests through `test_chat_turn_abandon`; [`run_cursor_integration_gate.py`](../../scripts/eval/run_cursor_integration_gate.py) extends the gate with `test_empirical_pilot_runner` (Issue 3); [`CURSOR_CROSS_TEAM_INTEGRATION_GATE.md`](../collaboration/CURSOR_CROSS_TEAM_INTEGRATION_GATE.md) list aligned. Phase 3 — abandoned-turn metric + ADR 0002 alignment in [`OPERATOR_QUICK_REF.md`](OPERATOR_QUICK_REF.md).
