@@ -8,30 +8,27 @@
 La arquitectura previa proponía dividir `kernel.py` en 2 hemisferios: **Perceptivo (Asíncrono E/S)** y **Ético (Sincrónico CPU)**. Aunque resolvía los bloqueos de E/S de red, dejaba un problema oculto: el Hemisferio Ético, además de juzgar la moralidad (matemáticas booleanas de la DAO), también tenía que ocuparse secundariamente de invocar LLMs para estructurar las respuestas ejecutivas y redactar el *Narrative Arc*. 
 Moralidad y Ejecución de Acciones son responsabilidades cognitivas distintas.
 
-## 2. Propuesta: El Modelo de 3 Lóbulos
-Se propone fragmentar el Kernel en tres dominios aislados interconectados por un Orquestador ligero (Cuerpo Calloso):
+## 2. Propuesta: El Modelo Tri-Lobulado con Soporte Adyacente (Cerebelo)
+Para evitar la sobre-fragmentación ("Infierno de Microservicios") que paralizaría el *Event Bus* con latencias de serialización (IPC lag), la arquitectura se congela en un máximo de 3 Hemisferios Conscientes y 1 Nodo Subconsciente. Esta es la cúspide biomimética óptima:
 
-### 👁️ Lóbulo Perceptivo (Aferente / Sensorial)
-- **Tecnología Principal:** `httpx.AsyncClient`, visores multimodales, colas asíncronas puras.
-- **Responsabilidad:** Observar la realidad, recibir payloads JSON del exterior, ejecutar STT (Speech-to-Text) o parsing visual.
-- **Salida:** Genera un `SemanticState` estandarizado. No opina, solo transforma ruido en metadatos y estampa "Tiempos de Latencia (Hardware lag y stress)".
+### 👁️ Lóbulo Perceptivo (Aferente / Sensorial / Asíncrono)
+- **Tecnología:** `httpx.AsyncClient`, visores multimodales, colas asíncronas puras.
+- **Aportes Integrados (Cursor & Claude):** Observa la realidad. Si la red falla o hace timeout, inyecta un objeto `TimeoutTrauma` en lugar de colgarse. Acopla estigmas de **"Latencia/Lag Sensorial"** para que el androide sepa si está bajo estrés de procesamiento. No opina, transforma ruido en `SemanticState`.
 
-### ⚖️ Lóbulo Límbico-Ético (Núcleo / Juicio)
-- **Tecnología Principal:** Carga sincrónica CPU-bound, Matemáticas, Evaluadores bayesianos.
-- **Responsabilidad:** Funcionar como un *semáforo*. Recibe el `SemanticState` y lo hace pasar por los Guardianes Rígidos (AbsoluteEvil, DAO, Uchi-Soto). 
-- **Salida:** Genera un `EthicalSentence` (Sentencia Ética que indica tensión social y umbrales de aprobación/veto). No es responsable de generar texto, solo aprueba/deniega matemáticamente la intención detectada.
+### ⚖️ Lóbulo Límbico-Ético (Núcleo / Juicio / Sincrónico CPU)
+- **Tecnología:** Motor Bayesiano, DAO Ledger, Evaluadores Uchi-Soto matemáticos.
+- **Aportes Integrados:** Totalmente aislado de redes. Recibe el `SemanticState` y los `TimeoutTrauma`. Las Matemáticas de la moralidad aprueban/vetan produciendo una `EthicalSentence` (Sentencia Ética inquebrantable).
 
-### 🧠 Lóbulo Ejecutivo (Eferente / Motor)
-- **Tecnología Principal:** `MotivationEngine`, LLMs degenerativos para redacción de monólogo y planes.
-- **Responsabilidad:** Determinar **cómo reaccionar**. Recibe los metadatos visuales y la `EthicalSentence`.
-- **Acción:** Si el mandato ético es "Seguro", redacta la respuesta amigable; si "Hay Tensión de 0.8", se fuerza un Output cauteloso y asustadizo; si "Veto Total", dispara respuestas secas de Fallback. Adicionalmente, durante su tiempo libre, enciende la Curiosidad Proactiva en el fondo.
+### 🧠 Lóbulo Frontal / Ejecutivo (Eferente / Híbrido)
+- **Tecnología:** `MotivationEngine`, Creador Monólogo Narrativo LLM, Mapeo de Acciones.
+- **Aportes Integrados (Copilot):** Determina **cómo reaccionar** físicamente y verbalmente basado en la `EthicalSentence` recibida. Si hay "silencio ambiental", invoca instintos proactivos/curiosidad interactuando consigo mismo dentro del bucle sin tener que despertar la validación DAO externa si no amerita riesgo.
 
-## 3. Beneficios Esperados
-1. **Separación de Concernes Radical:** Permite que las Reglas Morales (Lóbulo Ético) sean inmutables, estables y testeables unitariamente al 100% sin necesidad de simular un LLM redactando.
-2. **Claridad Operacional para Equipos:**
-    - Team Cursor se hace dueño absoluto del Lóbulo Perceptivo.
-    - Team Claude gobierna el Límbico-Ético (DAO, Recompensas).
-    - Team Copilot e instancias adicionales se dedican a la redacción y planeamiento del Frontal/Ejecutivo (Eficiencia Python).
+### ⚙️ Nodo de Apoyo Subconsciente: Cerebelo Somático
+- **Responsabilidad (Adyacencia Estricta):** Un servicio de ultra-alta frecuencia (ej. 1000 HZ teóricos en hardware real) enfocado pura y exclusivamente en `SoftRobotics`, estado de batería y temperatura térmica del androide (Degradación somática S5.2). 
+- **Flujo:** No participa de la cognición conversacional. Solo emite "Vetos Reflejos" (Interrupts) de hardware paralizando el Lóbulo Ejecutivo si el cuerpo está en riesgo crítico.
+
+## 3. Justificación: El Límite de Fragmentación
+Expandir a 5 o 10 hemisferios quebraría la coherencia de la *Memoria Narrativa* transformando el "Cuerpo Calloso" (el Orquestador del Kernel) en un ente caótico para rastrear datos serializados. El paradigma de 3 Hemisferios Conscientes + 1 Cerebelo mapea *Aferencia → Filtrado → Eferencia*. Mantiene la soberanía de los equipos (Cursor para Percepción, Claude para DAO/Límbico, Copilot para Ejecutivo) asegurando mantenibilidad y una trazabilidad moral del 100%.
 
 ## 4. Solicitud a los Agentes L2
 Se requiere que los Teams especializados evalúen este documento en su siguiente ciclo. ¿Qué impacto tiene esta segmentación tripartita en sus pipelines actuales? ¿Introduce demasiada penalización de E/S pasar estructuras a lo largo de 3 Lóbulos?
