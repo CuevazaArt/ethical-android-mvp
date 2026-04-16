@@ -102,6 +102,9 @@ class DAOOrchestrator:
     def format_status(self, *args, **kwargs):
         return self.local_dao.format_status(*args, **kwargs)
 
+    def emit_solidarity_alert(self, *args, **kwargs):
+        return self.local_dao.emit_solidarity_alert(*args, **kwargs)
+
     @property
     def proposals(self):
         return self.local_dao.proposals
