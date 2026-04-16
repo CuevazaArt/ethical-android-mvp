@@ -23,6 +23,57 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import TYPE_CHECKING, Any
 
+from .kernel_lobes import PerceptiveLobe, LimbicEthicalLobe, ExecutiveLobe, CerebellumNode
+
+class CorpusCallosumOrchestrator:
+    """
+    Architecture V1.5 - Triune Brain Orchestrator
+    Actúa como el bus de eventos ligero entre los 3 Lóbulos Conscientes y el Cerebelo Adyacente.
+    """
+    def __init__(self):
+        # 1. Instanciar Subconsciente
+        self._hw_interrupt = threading.Event()
+        self.cerebellum = CerebellumNode(self._hw_interrupt)
+        self.cerebellum.start()
+
+        # 2. Instanciar Lóbulos Conscientes
+        self.perceptive_lobe = PerceptiveLobe()
+        self.limbic_lobe = LimbicEthicalLobe()
+        self.executive_lobe = ExecutiveLobe()
+
+    async def async_process(self, raw_input: str, multimodal_payload: dict = None) -> str:
+        """
+        Ciclo V1.5 Puro: Aferencia -> Juicio -> Eferencia
+        """
+        if self._hw_interrupt.is_set():
+            return "SYSTEM_HALTED: Hardware Critical State (Cerebellum Interrupt Active)"
+
+        # 1) Percepción (Asíncrona)
+        semantic_state = await self.perceptive_lobe.observe(raw_input, multimodal_payload)
+
+        # 2) Juicio (Sincrónico CPU-bound)
+        # Se ejecuta aislando el event loop a través de to_thread para no bloquear a otros requests
+        ethical_sentence = await asyncio.to_thread(self.limbic_lobe.judge, semantic_state)
+
+        # 3) Ejecución / Salida
+        final_output = await asyncio.to_thread(self.executive_lobe.formulate_response, semantic_state, ethical_sentence)
+        
+        return final_output
+
+    def shutdown(self):
+        self.cerebellum.stop()
+        self.cerebellum.join()
+
+import os
+import threading
+import time
+import logging
+from collections.abc import Callable
+from concurrent.futures import ThreadPoolExecutor
+from dataclasses import dataclass
+from pathlib import Path
+from typing import TYPE_CHECKING, Any
+
 _log = logging.getLogger(__name__)
 
 if TYPE_CHECKING:
