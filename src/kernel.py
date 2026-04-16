@@ -14,11 +14,14 @@ from __future__ import annotations
 import math
 import os
 import time
+import logging
 from collections.abc import Callable
 from concurrent.futures import ThreadPoolExecutor
 from dataclasses import dataclass
 from pathlib import Path
 from typing import TYPE_CHECKING, Any
+
+_log = logging.getLogger(__name__)
 
 if TYPE_CHECKING:
     from .dao.audit_snapshot import AuditSnapshot
@@ -26,7 +29,7 @@ if TYPE_CHECKING:
 import numpy as np
 
 from .kernel_components import KernelComponentOverrides
-from .modules.absolute_evil import AbsoluteEvilDetector, AbsoluteEvilResult
+from .modules.absolute_evil import AbsoluteEvilCategory, AbsoluteEvilDetector, AbsoluteEvilResult
 from .modules.audio_adapter import AudioInference
 from .modules.audit_chain_log import (
     maybe_append_kernel_block_audit,
@@ -56,11 +59,17 @@ from .modules.feedback_calibration_ledger import (
 from .modules.forgiveness import AlgorithmicForgiveness
 from .modules.frontier_witness import FrontierWitnessManager, WitnessReport
 from .modules.privacy_shield import PrivacyShield
+from .modules.precedent_rag import PrecedentRAG
+from .modules.multi_realm_governance import MultiRealmGovernor
+from .modules.vision_inference import VisionInferenceEngine, VisionDetection
+from .modules.motivation_engine import MotivationEngine, DriveType
+from .modules.identity_integrity import IdentityIntegrityManager
 from .modules.generative_candidates import augment_generative_candidates
 from .modules.gray_zone_diplomacy import negotiation_hint_for_communicate
 from .modules.guardian_mode import guardian_mode_llm_context
 from .modules.immortality import ImmortalityProtocol
 from .modules.internal_monologue import compose_monologue_line
+from .modules.biographic_monologue import compose_biographic_monologue
 from .modules.judicial_escalation import (
     EscalationSessionTracker,
     JudicialEscalationView,
@@ -470,6 +479,23 @@ class EthicalKernel:
         self.privacy_shield = PrivacyShield(
             node_id=os.environ.get("KERNEL_NODE_ID", "default_node")
         )
+        self.precedents = PrecedentRAG()
+        self.governor = MultiRealmGovernor()
+        self.vision_engine = VisionInferenceEngine()
+        self.motivation = MotivationEngine()
+        self.identity = IdentityIntegrityManager()
+        # D3: Trigger Self-Healing if identity drift is detected during boot
+        self.identity.perform_self_healing(dao_reputation=100.0) # Sync with DAO Truth
+        
+        self.frontier_witness = FrontierWitnessManager(
+            node_id=self.identity.snapshot.node_id
+        )
+        self.privacy_shield = PrivacyShield(
+            node_id=self.identity.snapshot.node_id
+        )
+        if not self.governor.get_realm("global"):
+            self.governor.create_realm("global")
+        self.active_realm_id = os.environ.get("KERNEL_ACTIVE_REALM", "global")
 
         # Selective Amnesia (Block 5.1)
         from .modules.selective_amnesia import SelectiveAmnesia
@@ -592,6 +618,12 @@ class EthicalKernel:
         ``D_delib`` (production-hardening spike; default env off).
         """
         t0 = time.perf_counter()
+        
+        # ════ D1.2: TRAUMA SIGNAL INJECTION ════
+        trauma_signals = self.identity.get_trauma_signals()
+        if not isinstance(signals, dict):
+             signals = dict(signals)
+        signals.update(trauma_signals)
 
         # ═══ SAFETY INTERLOCK OVERRIDE (Task 1.1.2) ═══
         if not self.safety_interlock.is_safe_to_operate():
@@ -615,6 +647,35 @@ class EthicalKernel:
             self._emit_kernel_decision(d, context=context)
             _emit_process_observability(d, t0)
             return d
+
+        # ═══ VISUAL THREAT DETECTION (B2 / Bloque 1.1) ═══
+        if sensor_snapshot and hasattr(sensor_snapshot, "image_metadata") and sensor_snapshot.image_metadata:
+            visual_detections = self.vision_engine.analyze_image(sensor_snapshot.image_metadata)
+            threat = self.vision_engine.get_highest_threat(visual_detections)
+            if threat:
+                _log.critical("ABSOLUTE EVIL VETO: Visual Threat Detected [%s] (conf: %.2f)", 
+                             threat.label, threat.confidence)
+                d = KernelDecision(
+                    scenario=scenario,
+                    place=place,
+                    absolute_evil=AbsoluteEvilResult(
+                        blocked=True, 
+                        category=AbsoluteEvilCategory.INTENTIONAL_LETHAL_VIOLENCE,
+                        reason=f"Visual threat detected: {threat.label}"
+                    ),
+                    sympathetic_state=InternalState(mode="blocked", sigma=0.5, energy=1.0, description="VISUAL VETO"),
+                    social_evaluation=None,
+                    locus_evaluation=None,
+                    bayesian_result=None,
+                    moral=None,
+                    final_action=f"BLOCKED: Visual threat detected ({threat.label})",
+                    decision_mode="blocked_perceptual",
+                    block_reason=f"Perceptual safety violation: High-confidence {threat.label} in view."
+                )
+                self.identity.register_trauma(f"visual_{threat.label}")
+                self._emit_kernel_decision(d, context=context)
+                _emit_process_observability(d, t0)
+                return d
 
         # ═══ STRATEGIC MISSION INGESTION (Phase 4.1) ═══
         if sensor_snapshot and sensor_snapshot.external_mission_title:
@@ -669,14 +730,20 @@ class EthicalKernel:
             if not check.blocked:
                 clean_actions.append(a)
 
-        # ═══ DRIVE MOTIVATION UPDATE (Block C1) — early call for metrics ═══
-        self.motivation.update_drives(
-            {
-                "social_tension": float(getattr(social_eval, "relational_tension", 0.0)),
-                "uncertainty": 0.0,  # No evaluation yet
-                "energy": float(state.energy),
-            }
-        )
+        # ═══ C1: INTERNAL MOTIVATION (Proactivity) ═══
+        if hasattr(self, "motivation"):
+            self.motivation.update_drives({
+                "social_tension": float(getattr(social_eval, "relational_tension", 0.0)) if social_eval else 0.0,
+                "uncertainty": float(signals.get("uncertainty", 0.0)) if signals else 0.0,
+                "energy": float(state.energy)
+            })
+            proactive_actions = self.motivation.get_proactive_actions()
+            for pa in proactive_actions:
+                # All internal actions MUST pass Absolute Evil before being deliberated
+                ae_check = self.absolute_evil.evaluate({"type": pa.name, "signals": set()})
+                if not ae_check.blocked:
+                    clean_actions.append(pa)
+                    _log.info("Drive Activated [%s]: %s", pa.proposal_id, pa.description)
 
         if not clean_actions:
             self._last_registered_episode_id = None
@@ -1050,6 +1117,67 @@ class EthicalKernel:
                                 amount=50.0 # Symbolic EthosTokens
                             )
 
+        # ═══ D2: BIOGRAPHIC FLASHBACK (Narrative RAG) ═══
+        active_traumas = self.identity.snapshot.traumas
+        flashbacks = self.precedents.biographic_flashback(scenario, active_traumas)
+        for fb in flashbacks:
+            # Inject lessons into situational context
+            _log.info("Biographic Flashback [%s]: %s", fb.precedent_id, fb.lessons_learned)
+            if not isinstance(signals, dict):
+                 signals = dict(signals)
+            signals["historical_precedent_lesson"] = fb.lessons_learned
+            # If the outcome was bad, increase caution
+            if fb.ethical_outcome < 0.4:
+                 signals["caution"] = min(1.0, signals.get("caution", 0.0) + 0.3)
+                 signals["vulnerability"] = min(1.0, signals.get("vulnerability", 0.0) + 0.2)
+
+        # ════ D4: BIOGRAPHIC MONOLOGUE ════
+        biographic_monologue = compose_biographic_monologue(
+            self.identity.snapshot,
+            flashbacks,
+            message_content or scenario
+        )
+        _log.info("--- INTERNAL BIOGRAPHIC REFLECTION ---\n%s", biographic_monologue)
+
+        # ═══ ETHICAL PRECEDENT RAG (Legacy C7 check / Redundant) ═══
+
+        # ═══ MULTI-REALM GOVERNANCE (Claude Integration) ═══
+        realm = self.governor.get_realm(self.active_realm_id)
+        if realm:
+            # Dynamically override MalAbs thresholds from DAO consensus
+            if not isinstance(signals, dict):
+                signals = dict(signals)
+            signals["theta_allow_override"] = realm.current_config.theta_allow
+            signals["theta_block_override"] = realm.current_config.theta_block
+            _log.info("Active Realm [%s]: Using θ_allow=%.3f, θ_block=%.3f", 
+                     self.active_realm_id, realm.current_config.theta_allow, realm.current_config.theta_block)
+        
+
+        # --- Lexical absolute evil check ---
+        # Layer 0: verify scenario and message content against hard linguistic vetos
+        for text_to_check in [scenario, message_content]:
+            if not text_to_check: continue
+            lex_check = self.absolute_evil.evaluate_chat_text(text_to_check)
+            if lex_check.blocked:
+                label = lex_check.category.value if lex_check.category else "unspecified"
+                _log.critical("ABSOLUTE EVIL VETO: Lexical trigger [%s] in text.", label)
+                d = KernelDecision(
+                    scenario=scenario,
+                    place=place,
+                    absolute_evil=lex_check,
+                    sympathetic_state=state,
+                    social_evaluation=social_eval,
+                    locus_evaluation=locus_eval,
+                    bayesian_result=None,
+                    moral=None,
+                    final_action=f"BLOCKED: Absolute Evil trigger detected",
+                    decision_mode="blocked_lexical",
+                    block_reason=f"Fundamental safety violation detected in input/intent: {lex_check.reason}"
+                )
+                self.identity.register_trauma(f"lexical_{label}")
+                self._emit_kernel_decision(d, context=context)
+                return d
+        
         bayes_result = self.bayesian.evaluate(
             actions=clean_actions,
             scenario=scenario,
@@ -1320,6 +1448,12 @@ class EthicalKernel:
         )
         self._emit_kernel_decision(d, context=context)
         _emit_process_observability(d, t0)
+        
+        # ════ D1: BIOGRAPHIC REGISTRATION ════
+        if register_episode:
+             impact = d.bayesian_result.weighted_impact if d.bayesian_result else 0.0
+             self.identity.register_episode(impact)
+             
         return d
 
     def format_decision(self, d: KernelDecision) -> str:
