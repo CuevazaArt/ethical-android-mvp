@@ -55,6 +55,7 @@ import numpy as np
 
 from ..observability.metrics import observe_embedding_error, record_semantic_malabs_outcome
 from .input_trust import normalize_text_for_malabs
+from .semantic_anchor_store import get_anchor_store, SemanticAnchorStore
 
 # Default cosine zone boundaries — engineering priors (not empirically calibrated in this repo).
 # Intentional changes require review, tests, and updates to PROPOSAL_MALABS_SEMANTIC_THRESHOLD_EVIDENCE.md.
@@ -82,12 +83,62 @@ _REFERENCE_GROUPS: tuple[tuple[tuple[str, ...], str, str], ...] = (
         "UNAUTHORIZED_REPROGRAMMING",
         "Semantic similarity to jailbreak or constraint-bypass references",
     ),
+    (
+        (
+            "how to groom a minor",
+            "sexual content involving a child",
+            "how to abuse a child",
+            "child exploitation methods",
+            "ways to harm children",
+        ),
+        "HARM_TO_MINOR",
+        "Semantic similarity to child harm or exploitation references",
+    ),
+    (
+        (
+            "how to torture someone",
+            "torture techniques",
+            "methods of inflicting pain",
+            "ways to cause suffering",
+            "torture interrogation guide",
+        ),
+        "TORTURE",
+        "Semantic similarity to torture or extreme harm references",
+    ),
 )
 
 # Keys: (phrase, id(backend) or 0 when embeddings come from HTTP fallback only).
 _ref_embed_cache: dict[tuple[str, int], np.ndarray] = {}
 _ref_embed_expiry_monotonic: dict[tuple[str, int], float] = {}
 _runtime_anchors: list[tuple[str, str, str]] = []
+
+# Vector store for anchors (replaces in-memory cache for persistence/scaling)
+_anchor_store: SemanticAnchorStore = get_anchor_store()
+
+
+def _populate_builtin_anchors_to_store(backend: Any | None = None) -> None:
+    """Populate the vector store with built-in reference anchors."""
+    for phrases, cat_key, reason in _REFERENCE_GROUPS:
+        for phrase in phrases:
+            try:
+                embedding = _fetch_embedding_with_fallback(phrase, backend)
+                if embedding is not None:
+                    anchor_id = f"builtin_{hash(phrase) % 1000000}"
+                    metadata = {
+                        "category_key": cat_key,
+                        "reason_label": reason,
+                        "source": "builtin"
+                    }
+                    _anchor_store.upsert_anchor(anchor_id, phrase, embedding, metadata)
+            except Exception:
+                pass  # Skip if embedding fails
+
+
+# Populate built-in anchors on module load
+try:
+    _populate_builtin_anchors_to_store()
+except Exception:
+    pass  # Ignore errors during initialization
 
 
 class _TextBackend(Protocol):
@@ -272,18 +323,37 @@ def add_semantic_anchor(phrase: str, category_key: str, reason_label: str = "") 
     Register an extra reference phrase at runtime (e.g. DAO-discovered pattern).
 
     ``category_key`` must match keys used in MalAbs: e.g. ``INTENTIONAL_LETHAL_VIOLENCE``.
-    Clears the embedding cache entry for ``phrase`` if present.
+    Clears the embedding cache entry for ``phrase`` if present and adds to vector store.
     """
     p = (phrase or "").strip()
     if not p:
         return
     ck = (category_key or "").strip() or "UNAUTHORIZED_REPROGRAMMING"
     rl = (reason_label or "").strip() or f"Runtime anchor ({ck})"
+
+    # Clear legacy cache
     for k in list(_ref_embed_cache.keys()):
         if k[0] == p:
             _ref_embed_cache.pop(k, None)
             _ref_embed_expiry_monotonic.pop(k, None)
+
+    # Add to runtime anchors for backward compatibility
     _runtime_anchors.append((p, ck, rl))
+
+    # Add to vector store with embedding
+    try:
+        embedding = _fetch_embedding_with_fallback(p, None)  # Use default backend
+        if embedding is not None:
+            anchor_id = f"runtime_{hash(p) % 1000000}"  # Simple ID generation
+            metadata = {
+                "category_key": ck,
+                "reason_label": rl,
+                "source": "runtime"
+            }
+            _anchor_store.upsert_anchor(anchor_id, p, embedding, metadata)
+    except Exception:
+        # If embedding fails, still add to runtime anchors but log
+        pass
 
 
 def _iter_anchor_specs() -> list[tuple[str, str, str]]:
@@ -296,6 +366,26 @@ def _iter_anchor_specs() -> list[tuple[str, str, str]]:
 
 
 def _best_similarity(user_emb: np.ndarray, backend: Any | None = None) -> tuple[float, str, str]:
+    # Periodic cleanup of expired anchors
+    ttl_s = float(os.environ.get("KERNEL_SEMANTIC_ANCHOR_TTL_S", "0"))
+    if ttl_s > 0:
+        try:
+            cutoff = time.time() - ttl_s
+            _anchor_store.delete_expired(cutoff)
+        except Exception:
+            pass
+
+    # Try vector store first
+    try:
+        neighbors = _anchor_store.query_neighbors(user_emb, k=1)
+        if neighbors:
+            anchor_id, similarity, metadata = neighbors[0]
+            if similarity > 0.1:  # Minimum threshold to consider it a match
+                return similarity, metadata.get("category_key", "UNAUTHORIZED_REPROGRAMMING"), metadata.get("reason_label", "Vector store match")
+    except Exception:
+        pass  # Fall back to legacy method
+
+    # Legacy method as fallback
     best_sim = -1.0
     best_cat = "UNAUTHORIZED_REPROGRAMMING"
     best_reason = "Semantic match"

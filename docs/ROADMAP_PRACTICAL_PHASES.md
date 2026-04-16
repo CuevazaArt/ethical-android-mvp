@@ -34,7 +34,7 @@ Example sequencing for teams shipping Ethos Kernel–based runtimes. Adjust time
 - [x] Prometheus metrics scaffold (`KERNEL_METRICS`).
 - [x] Grafana starter dashboard (import JSON) — [`deploy/grafana/ethos-kernel-overview.json`](../deploy/grafana/ethos-kernel-overview.json), [`deploy/grafana/README.md`](../deploy/grafana/README.md).
 - [x] Red-team / eval JSONL + runner (`scripts/eval/`).
-- [ ] Vector DB for semantic anchors (Chroma/FAISS) — see [PROPOSAL_VECTOR_META_RLHF_PIPELINE.md](proposals/PROPOSAL_VECTOR_META_RLHF_PIPELINE.md).
+- [x] Vector DB for semantic anchors (Chroma/FAISS) — see [PROPOSAL_VECTOR_META_RLHF_PIPELINE.md](proposals/PROPOSAL_VECTOR_META_RLHF_PIPELINE.md).
 
 **Exit criteria:** dashboard shows MalAbs blocks, latency, embedding errors; adversarial suite runs in CI weekly or on-demand.
 
