@@ -1,0 +1,31 @@
+---
+description: Enforces the unified integration pulse, PR documentation, namespace conflict prevention, semantic commits, and the safe stabilization methods before promotion to main.
+alwaysApply: true
+---
+
+# Agile Collaboration and Promotion Protocol (L0-STABILIZATION-01)
+
+## Context
+Following the critiques from Team Cursor and Team VisualStudio regarding PR traceability, "Merge Hell", and overly rigid L1 bottlenecks, the governance rules have been reformed. This rule enforces an organized, stylized, and safely staged flow for cross-team continuous integration.
+
+## 1. Style & Organization (Semantic Commits)
+- **Rule:** ALL commits MUST use Semantic Conventional Commits (e.g., `feat(module):`, `fix(core):`, `docs(rules):`).
+- **Rationale:** This ensures the repository history is fully parseable by automated AIs or L1 auditors without manual reading. Unstyled "wip" or "fixed stuff" commits are grounds for PR rejection.
+
+## 2. Traceability and "Fast" Pushes
+- **Rule:** While teams *can* push directly to their `master-<team>` hub for speed, any such fast push MUST be followed within 24 hours by an issue or retrospective PR linking the commit hashes and explaining the rationale. 
+- **Rationale:** `CHANGELOG.md` edits are brittle. Git history with explicit rationale is the only durable audit trail.
+
+## 3. Pre-Push Continuous Audit
+- **Rule:** Before pushing any changes related to core data structures or collaboration rules, agents MUST ensure the automated pipeline (`verify_collaboration_invariants.py` / `run_cursor_integration_gate.py`) is perfectly green.
+
+## 4. Conflict Prevention (God Objects & Namespaces)
+- **Rule:**
+  - DO NOT duplicate architectural modules. Scout `docs/proposals/` and peer `master-*` branches first. Adopt existing stubs instead of writing competing code.
+  - Append to `CHANGELOG.md` ONLY under your team's nested month-header (e.g., `### Antigravity-Team Updates`). Never edit the top raw line.
+  - When editing "God Objects" (`src/kernel.py`, `requirements.txt`), append new elements to the absolute end. Bracket midline insertions with `# ═══ <TEAM/FEATURE> ═══`.
+
+## 5. Safe and Ordered Merge to Main
+- **L1 Supremacy:** The Antigravity team strictly manages the `master-antigravity` staging hub, staggering the merges of other teams to avoid topology chaos.
+- **Fast-Track Override:** If Antigravity (L1) is inactive for >48 hours, an L2 agent may open a PR directly to `master-antigravity`, *provided* all continuous audit tests pass explicitly.
+- **The Final Merge (Squash):** The promotion from `master-antigravity` to `main` must ALONE be executed by Juan (L0) using the **Squash and Merge** strategy. This collapses the chaotic multi-team history into a single, clean atomic commit in the `main` branch. The PR description MUST act as an "Audit Trail Header" detailing exactly what changes are being promoted.
