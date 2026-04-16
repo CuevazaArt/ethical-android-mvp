@@ -42,6 +42,16 @@ All notable changes to this project are summarized here. For narrative context a
 - **Tests**: Comprehensive integration suite (`tests/test_semantic_anchor_store_integration.py`) validates store initialization, anchor addition, gate behavior, and fallback logic.
 - **Backwards Compatibility**: Legacy in-process cache and `_runtime_anchors` list maintained during Phase 2b→Phase 3 transition. Can disable store via env or let it degrade gracefully on errors.
 
+## Phase 3 — Evaluation Pipelines & Threshold Meta-Optimization — April 2026
+
+- **Threshold Meta-Optimizer (`scripts/eval/optimize_malabs_thresholds.py`)**: Automated Bayesian hyperparameter search (Optuna) for tuning semantic gate thresholds (θ_block, θ_allow). Minimizes weighted loss (2× false_allow + 1× false_block) with constraint enforcement (θ_allow < θ_block) and regression gates. Stores Optuna study DB + results under configurable artifacts path.
+- **Feature Flags**: `KERNEL_MALABS_THRESHOLD_OPTIMIZATION_ENABLED` master switch; configurable search bounds (`KERNEL_MALABS_ALLOW/BLOCK_THRESHOLD_MIN/MAX`); artifacts path (`KERNEL_MALABS_TUNING_ARTIFACTS_PATH`).
+- **Evaluation Metrics**: Tracks true_block, false_allow, false_block, true_allow; computes precision, recall, FP rate. Baseline metrics (defaults) compared vs tuned thresholds for regression detection.
+- **Sampler Support**: Random, TPE, and Bayesian samplers; configurable via `--sampler` CLI flag for flexibility in exploration/exploitation trade-offs.
+- **Tests**: Unit tests for metrics (precision, recall, FP rate, weighted loss); integration tests with real MalAbs evaluator; skips gracefully if optuna not installed.
+- **Documentation**: [`docs/PHASE_3_EVALUATION_PIPELINES.md`](docs/PHASE_3_EVALUATION_PIPELINES.md) — usage, CI/CD integration, safety constraints, audit trail.
+- **Dependencies**: Added optional `optuna>=3.0.0` to `requirements.txt` for hyperparameter optimization.
+
 ## Antigravity Phase 2 — Documentation & Infrastructure — April 2026
 
 - **Sensor Payload Contingencies:** Added safety NaN/Infinity limits to `sensor_contracts.py` and hardened `.env` thresholding in `multimodal_trust.py` to prevent IoT stream anomalies from crashing the backend.
