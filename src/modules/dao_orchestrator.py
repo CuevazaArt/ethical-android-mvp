@@ -99,6 +99,9 @@ class DAOOrchestrator:
     def format_status(self, *args, **kwargs):
         return self.local_dao.format_status(*args, **kwargs)
 
+    def get_records(self, *args, **kwargs):
+        return self.local_dao.get_records(*args, **kwargs)
+
     @property
     def proposals(self):
         return self.local_dao.proposals

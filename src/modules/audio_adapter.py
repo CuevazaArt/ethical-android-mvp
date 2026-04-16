@@ -19,7 +19,7 @@ class AudioRingBuffer:
 
     def __init__(self, capacity_chunks: int = 100):
         self.capacity = capacity_chunks
-        self.buffer = queue.Queue(maxsize=capacity_chunks)
+        self.buffer: queue.Queue[np.ndarray] = queue.Queue(maxsize=capacity_chunks)
         self.lock = threading.Lock()
 
     def append(self, chunk: np.ndarray) -> None:

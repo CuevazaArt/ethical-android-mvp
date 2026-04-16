@@ -11,6 +11,8 @@ from typing import TYPE_CHECKING
 if TYPE_CHECKING:
     from ..kernel import EthicalKernel
 
+from .dao_orchestrator import DAOOrchestrator
+
 
 class SelectiveAmnesia:
     """
@@ -39,7 +41,9 @@ class SelectiveAmnesia:
         ]
 
         # 3. Delete from Audit Ledger (DAO)
-        audit_deleted_count = self.kernel.dao.local_dao.delete_records_by_episode(episode_id)
+        dao = self.kernel.dao
+        mock_face = dao.local_dao if isinstance(dao, DAOOrchestrator) else dao
+        audit_deleted_count = mock_face.delete_records_by_episode(episode_id)
 
         # 4. Final verification and report
         success = narrative_deleted or (audit_deleted_count > 0)

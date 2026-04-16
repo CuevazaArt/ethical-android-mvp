@@ -75,7 +75,7 @@ def test_l0_attribute_lock_enforcement():
         buf.principles = {}
 
 
-def test_kernel_decision_includes_l0_transparency(malabs):
+def test_kernel_decision_includes_l0_transparency():
     """Verify kernel decision contains L0 integrity fields."""
     k = EthicalKernel(variability=False)
     # Using a simple scenario

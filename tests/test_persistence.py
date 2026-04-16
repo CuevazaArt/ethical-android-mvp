@@ -20,7 +20,7 @@ from src.simulations.runner import ALL_SIMULATIONS
 
 
 def test_schema_version_constant():
-    assert SCHEMA_VERSION == 3
+    assert SCHEMA_VERSION == 4
 
 
 def test_snapshot_from_dict_rejects_bad_version():

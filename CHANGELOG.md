@@ -6,6 +6,11 @@ All notable changes to this project are summarized here. For narrative context a
 
 ## Antigravity — Cybersecurity Consolidation & Integration Pulse — April 2026
 
+### Cursor integration (CI / typing / snapshots)
+
+- **Mypy (``mypy src``):** Added ``kernel_dao_as_mock`` and ``kernel_mixture_scorer`` in [`src/kernel.py`](src/kernel.py) so call sites that need :class:`~src.modules.mock_dao.MockDAO` or :class:`~src.modules.weighted_ethics_scorer.WeightedEthicsScorer` narrow correctly when the kernel uses :class:`~src.modules.dao_orchestrator.DAOOrchestrator` or :class:`~src.modules.bayesian_engine.BayesianInferenceEngine`. :class:`~src.modules.dao_orchestrator.DAOOrchestrator` now proxies ``get_records``. Chroma paths in [`src/modules/semantic_anchor_store.py`](src/modules/semantic_anchor_store.py) use explicit casts for untyped client results.
+- **Snapshot schema v4:** Completed migration chain v3→v4 in [`src/persistence/migrations.py`](src/persistence/migrations.py) with a JSON-Schema-valid default ``migratory_body``; tests updated for ``SCHEMA_VERSION == 4`` and full migration via ``migrate_raw_to_current``.
+
 ### Antigravity Team Updates
 
 - **Integration Hub:** Resolved major merge conflicts between `master-antigravity` and `master-Cursor`. Consolidated the **Distributed Justice** track with the **Kernel Hardening** track.

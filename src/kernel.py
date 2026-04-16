@@ -88,6 +88,7 @@ from .modules.llm_layer import (
 from .modules.locus import LocusEvaluation, LocusModule
 from .modules.metacognition import MetacognitiveEvaluator
 from .modules.metaplan_registry import MetaplanRegistry
+from .modules.mock_dao import MockDAO
 from .modules.motivation_engine import MotivationEngine
 from .modules.multimodal_trust import (
     MultimodalAssessment,
@@ -133,7 +134,7 @@ from .modules.variability import VariabilityConfig, VariabilityEngine
 from .modules.vision_adapter import VisionInference
 from .modules.vitality import VitalityAssessment, assess_vitality, vitality_communication_hint
 from .modules.weakness_pole import WeaknessPole
-from .modules.weighted_ethics_scorer import CandidateAction
+from .modules.weighted_ethics_scorer import CandidateAction, WeightedEthicsScorer
 from .modules.working_memory import WorkingMemory
 from .persistence.checkpoint_port import CheckpointPersistencePort
 from .validators.deprecation_warnings import check_deprecated_flags
@@ -182,6 +183,20 @@ def _perception_coercion_u_value(raw: Any) -> float | None:
     if not math.isfinite(u):
         return None
     return max(0.0, min(1.0, u))
+
+
+def kernel_dao_as_mock(dao: MockDAO | DAOOrchestrator) -> MockDAO:
+    """Return the in-process :class:`MockDAO` for APIs not wrapped by :class:`DAOOrchestrator`."""
+    if isinstance(dao, DAOOrchestrator):
+        return dao.local_dao
+    return dao
+
+
+def kernel_mixture_scorer(bayesian: BayesianEngine | WeightedEthicsScorer) -> WeightedEthicsScorer:
+    """Return the :class:`WeightedEthicsScorer` used for mixture / BMA operations."""
+    if isinstance(bayesian, BayesianEngine):
+        return bayesian.scorer
+    return bayesian
 
 
 @dataclass
@@ -737,9 +752,10 @@ class EthicalKernel:
                     round(float(_av[1]), 6),
                     round(float(_av[2]), 6),
                 )
-                self.bayesian.update_posterior_from_feedback(
-                    alpha_vec, consistency=feedback_consistency or "compatible"
-                )
+                if isinstance(self.bayesian, BayesianEngine):
+                    self.bayesian.update_posterior_from_feedback(
+                        alpha_vec, consistency=feedback_consistency or "compatible"
+                    )
                 dirichlet_alpha_for_bma = alpha_vec
                 if isinstance(_fb_meta, dict) and _fb_meta.get("active_context_key") is not None:
                     mixture_context_key = str(_fb_meta["active_context_key"])
@@ -886,7 +902,7 @@ class EthicalKernel:
 
             hint = clean_actions[0].name if clean_actions else ""
             apply_horizon_prior_to_engine(
-                self.bayesian,
+                kernel_mixture_scorer(self.bayesian),
                 self.memory,
                 context,
                 hint,
@@ -999,7 +1015,7 @@ class EthicalKernel:
             bma_n_s = bma_n_samples()
             rng_bma = np.random.default_rng(int(os.environ.get("KERNEL_BMA_SEED", "42")))
             bma_win_probabilities = monte_carlo_win_probabilities(
-                self.bayesian,
+                kernel_mixture_scorer(self.bayesian),
                 clean_actions,
                 alpha=np.asarray(alpha_bma, dtype=np.float64),
                 n_samples=bma_n_s,
@@ -1156,7 +1172,7 @@ class EthicalKernel:
 
             # Solidarity alert in crisis
             if signals.get("risk", 0) > 0.8:
-                self.dao.emit_solidarity_alert(
+                kernel_dao_as_mock(self.dao).emit_solidarity_alert(
                     type=context,
                     location=place,
                     radius=500,
@@ -1434,13 +1450,13 @@ class EthicalKernel:
 
         # Phase 7 DAO Extraction: Interlock community votes with BMA updating
         if hasattr(self, "dao") and self.dao is not None:
-            dao_feedback = self.dao.extract_community_feedback(recent_count=10)
+            dao_feedback = kernel_dao_as_mock(self.dao).extract_community_feedback(recent_count=10)
             for label, count in dao_feedback.items():
                 for _ in range(count):
                     self.feedback_ledger.record("DAO_community_consensus", label)
 
         fb_line = apply_psi_sleep_feedback_to_engine(
-            self.bayesian,
+            kernel_mixture_scorer(self.bayesian),
             self.feedback_ledger,
             genome_weights=self._bayesian_genome_weights,
             max_drift=max_drift,
@@ -2252,20 +2268,21 @@ class EthicalKernel:
                             buffer_c,
                             session_strikes=strikes,
                         )
-                        rec = self.dao.register_escalation_case(
+                        _dao = kernel_dao_as_mock(self.dao)
+                        rec = _dao.register_escalation_case(
                             dossier.to_audit_paragraph(),
                             episode_id=self._last_registered_episode_id,
                         )
                         mock_court = None
                         if mock_court_enabled():
-                            mock_court = self.dao.run_mock_escalation_court(
+                            mock_court = _dao.run_mock_escalation_court(
                                 dossier.case_uuid,
                                 rec.id,
                                 dossier.to_audit_paragraph(),
                                 dossier.buffer_conflict,
                             )
                             maybe_register_reparation_after_mock_court(
-                                self.dao, mock_court, dossier.case_uuid
+                                _dao, mock_court, dossier.case_uuid
                             )
                         je_view = build_escalation_view(
                             True,

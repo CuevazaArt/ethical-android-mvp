@@ -15,6 +15,7 @@ from dataclasses import dataclass
 
 from .modules.absolute_evil import AbsoluteEvilDetector
 from .modules.augenesis import AugenesisEngine
+from .modules.bayesian_engine import BayesianInferenceEngine
 from .modules.biographic_pruning import BiographicPruner
 from .modules.buffer import PreloadedBuffer
 from .modules.dao_orchestrator import DAOOrchestrator
@@ -46,7 +47,7 @@ from .modules.uchi_soto import UchiSotoModule
 from .modules.user_model import UserModelTracker
 from .modules.variability import VariabilityEngine
 from .modules.weakness_pole import WeaknessPole
-from .modules.weighted_ethics_scorer import BayesianEngine
+from .modules.weighted_ethics_scorer import WeightedEthicsScorer
 from .modules.working_memory import WorkingMemory
 from .persistence.checkpoint_port import CheckpointPersistencePort
 
@@ -62,7 +63,7 @@ class KernelComponentOverrides:
     absolute_evil: AbsoluteEvilDetector | None = None
     buffer: PreloadedBuffer | None = None
     will: SigmoidWill | None = None
-    bayesian: BayesianEngine | None = None
+    bayesian: BayesianInferenceEngine | WeightedEthicsScorer | None = None
     poles: EthicalPoles | None = None
     sympathetic: SympatheticModule | None = None
     memory: NarrativeMemory | None = None

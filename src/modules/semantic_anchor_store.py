@@ -20,7 +20,7 @@ from __future__ import annotations
 import os
 import time
 from abc import ABC, abstractmethod
-from typing import Any
+from typing import Any, cast
 
 import numpy as np
 
@@ -239,26 +239,35 @@ class ChromaSemanticAnchorStore(SemanticAnchorStore):
     ) -> list[tuple[str, float, dict[str, Any]]]:
         emb_list = embedding.tolist() if isinstance(embedding, np.ndarray) else embedding
         try:
-            results = self.collection.query(
+            raw_q = self.collection.query(
                 query_embeddings=[emb_list],
                 n_results=k,
-                include=["embeddings", "documents", "metadatas", "distances"],
+                include=cast(Any, ["embeddings", "documents", "metadatas", "distances"]),
             )
-
-            if not results or not results.get("ids"):
+            results: dict[str, Any] = cast(dict[str, Any], raw_q)
+            ids_outer = results.get("ids")
+            if not isinstance(ids_outer, list) or not ids_outer:
                 return []
+            row_ids = ids_outer[0]
+            if not isinstance(row_ids, list) or not row_ids:
+                return []
+            dists_outer = results.get("distances")
+            metas_outer = results.get("metadatas")
+            dist_row: list[Any] = []
+            if isinstance(dists_outer, list) and dists_outer and isinstance(dists_outer[0], list):
+                dist_row = dists_outer[0]
+            meta_row: list[Any] = []
+            if isinstance(metas_outer, list) and metas_outer and isinstance(metas_outer[0], list):
+                meta_row = metas_outer[0]
 
-            neighbors = []
-            for id, dist, meta in zip(
-                results["ids"][0],
-                results["distances"][0],
-                results["metadatas"][0],
-            ):
-                # Cosine distance: sim = 1 - distance
+            neighbors: list[tuple[str, float, dict[str, Any]]] = []
+            for i, row_id in enumerate(row_ids):
+                dist = dist_row[i] if i < len(dist_row) else 1.0
+                meta_raw = meta_row[i] if i < len(meta_row) else {}
+                meta = meta_raw if isinstance(meta_raw, dict) else {}
                 sim = 1.0 - float(dist)
-                # Cleanup text and timestamp if they were added
                 restored_meta = {k: v for k, v in meta.items() if k not in ["text", "timestamp"]}
-                neighbors.append((id, sim, restored_meta))
+                neighbors.append((str(row_id), sim, restored_meta))
 
             return neighbors
         except Exception:
@@ -272,11 +281,19 @@ class ChromaSemanticAnchorStore(SemanticAnchorStore):
             return 0
 
         # Query all and filter
-        all_results = self.collection.get(include=["metadatas"])
-        to_delete = []
-        for i, meta in enumerate(all_results["metadatas"]):
+        raw_g = self.collection.get(include=cast(Any, ["metadatas"]))
+        all_results: dict[str, Any] = cast(dict[str, Any], raw_g)
+        ids_list = all_results.get("ids")
+        metas_list = all_results.get("metadatas")
+        if not isinstance(ids_list, list) or not isinstance(metas_list, list):
+            return 0
+        to_delete: list[Any] = []
+        for i, meta in enumerate(metas_list):
+            if not isinstance(meta, dict):
+                continue
             if "timestamp" in meta and float(meta["timestamp"]) < cutoff:
-                to_delete.append(all_results["ids"][i])
+                if i < len(ids_list):
+                    to_delete.append(ids_list[i])
 
         if to_delete:
             self.collection.delete(ids=to_delete)
@@ -284,8 +301,9 @@ class ChromaSemanticAnchorStore(SemanticAnchorStore):
 
     def delete(self, id: str) -> bool:
         try:
-            existing = self.collection.get(ids=[id], include=[])
-            if not existing or not existing.get("ids"):
+            raw_e = self.collection.get(ids=[id], include=cast(Any, []))
+            existing = cast(dict[str, Any], raw_e)
+            if not existing.get("ids"):
                 return False
             self.collection.delete(ids=[id])
             self.record_ttl.pop(id, None)
@@ -295,15 +313,30 @@ class ChromaSemanticAnchorStore(SemanticAnchorStore):
 
     def get(self, id: str) -> SemanticAnchorRecord | None:
         try:
-            result = self.collection.get(ids=[id], include=["embeddings", "documents", "metadatas"])
-            if not result or not result.get("ids"):
+            raw_r = self.collection.get(
+                ids=[id], include=cast(Any, ["embeddings", "documents", "metadatas"])
+            )
+            result = cast(dict[str, Any], raw_r)
+            if not result.get("ids"):
                 return None
-
-            meta = result["metadatas"][0] or {}
+            docs = result.get("documents")
+            metas = result.get("metadatas")
+            embs = result.get("embeddings")
+            meta: dict[str, Any] = {}
+            if isinstance(metas, list) and metas and isinstance(metas[0], dict):
+                meta = metas[0] or {}
+            doc = ""
+            if isinstance(docs, list) and docs:
+                doc = str(docs[0] or "")
+            emb_val: list[float] | np.ndarray
+            if isinstance(embs, list) and embs:
+                emb_val = cast(Any, embs[0])
+            else:
+                emb_val = np.array([], dtype=np.float64)
             return SemanticAnchorRecord(
                 id=id,
-                text=result["documents"][0],
-                embedding=result["embeddings"][0],
+                text=doc,
+                embedding=emb_val,
                 metadata={k: v for k, v in meta.items() if k not in ["text", "timestamp"]},
                 ttl_s=self.default_ttl_s,
             )
@@ -312,11 +345,13 @@ class ChromaSemanticAnchorStore(SemanticAnchorStore):
 
     def get_all_anchors(self) -> list[tuple[str, str, dict[str, Any]]]:
         try:
-            all_results = self.collection.get(include=["documents", "metadatas"])
-            if not all_results or not all_results.get("ids"):
+            raw_a = self.collection.get(include=cast(Any, ["documents", "metadatas"]))
+            all_results = cast(dict[str, Any], raw_a)
+            ids_a = all_results.get("ids")
+            if not isinstance(ids_a, list) or not ids_a:
                 return []
             out: list[tuple[str, str, dict[str, Any]]] = []
-            for i, aid in enumerate(all_results["ids"]):
+            for i, aid in enumerate(ids_a):
                 docs = all_results.get("documents") or []
                 metas = all_results.get("metadatas") or []
                 doc = docs[i] if i < len(docs) else ""

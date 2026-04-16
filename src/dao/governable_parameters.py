@@ -340,6 +340,7 @@ def validate_proposed_value(name: str, value: Any) -> tuple[bool, str]:
     if spec is None:
         return False, f"Parameter '{name}' is not in the governable surface."
 
+    v: float | int | bool | str
     try:
         if spec.dtype == "float":
             v = float(value)

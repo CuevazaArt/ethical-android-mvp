@@ -61,7 +61,7 @@ class VisionSignalMapper:
 
         return signals
 
-    def _lookup_label(self, raw_label: str) -> dict[str, float]:
+    def _lookup_label(self, raw_label: str) -> dict[str, float] | None:
         """
         Attempts to match the raw CNN label string to our mapped vocabulary.
         Because ImageNet labels can be complex (e.g. 'revolver, six-gun, six-shooter'),

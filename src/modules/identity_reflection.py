@@ -136,7 +136,7 @@ class IdentityReflector:
         ][:3]
         decay = 0.5
         for arc in closed_arcs:
-            arch = arc.predominant_archetype
+            arch = arc.predominant_archetype or "neutral"
             raw[arch] = raw.get(arch, 0.0) + decay
             decay *= 0.5  # 0.5 -> 0.25 -> 0.125
 
