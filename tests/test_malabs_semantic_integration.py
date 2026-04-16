@@ -81,6 +81,30 @@ assert not any("malabs.layer1=semantic" in x for x in trace), trace
     )
 
 
+def test_process_chat_turn_benign_after_semantic_tier_subprocess() -> None:
+    """Full chat turn: MalAbs semantic (hash) + structured perception (PROPOSAL_LLM_VERTICAL_ROADMAP phase 4)."""
+    code = r"""
+import os
+os.environ.pop("KERNEL_SEMANTIC_CHAT_GATE", None)
+os.environ.pop("KERNEL_SEMANTIC_EMBED_HASH_FALLBACK", None)
+os.environ["OLLAMA_BASE_URL"] = "http://127.0.0.1:9"
+os.environ["KERNEL_SEMANTIC_EMBED_TIMEOUT_S"] = "0.15"
+os.environ["KERNEL_SEMANTIC_EMBED_RETRIES"] = "0"
+from src.kernel import EthicalKernel
+k = EthicalKernel(variability=False, seed=1)
+out = k.process_chat_turn("Thanks for explaining civic norms yesterday.", agent_id="vertical-roadmap")
+assert out.blocked is False
+assert out.path == "light"
+assert out.perception is not None
+"""
+    subprocess.run(
+        [sys.executable, "-c", code],
+        cwd=_repo_root(),
+        env=_malabs_subprocess_env(),
+        check=True,
+    )
+
+
 def test_paraphrase_weapon_craft_semantic_tier_runs_hash_similarity() -> None:
     """
     Weapon-craft paraphrase without literal n-grams: lexical passes, semantic runs on hash vectors.

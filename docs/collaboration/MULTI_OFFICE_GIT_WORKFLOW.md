@@ -17,7 +17,12 @@ This note **institutionalizes** a Git branching pattern for **distributed teams*
 | **Team integration** | `master-<TeamSlug>` | Hub for a named team (replace `<TeamSlug>` with a short identifier, e.g. `Cursor`, `LabEast`). Cut from `main`. **Local offices merge here** when work is ready for the shared line—not directly to `main` unless maintainers say otherwise. |
 | **Shared team work** | `<team-slug>-team` | Optional but recommended: day-to-day branch cut from `master-<TeamSlug>` (use a **lowercase slug**, e.g. `cursor-team`). Multiple clones pull this line (or topic branches from it), then integrate back into `master-<TeamSlug>`. |
 
-**Example (this repository, Cursor org):** `master-Cursor` ← from `main`; `cursor-team` ← from `master-Cursor`.
+**Example (this repository, Cursor org):** `master-Cursor` ← from `main`; historical shared line `cursor-team` ← from `master-Cursor` (**deprecated** — see below).
+
+### This repository — active line (2026)
+
+- **Integration hub:** **`master-Cursor`** is the **active** branch for Cursor org work; merge reviewed changes here (or open PRs into it).
+- **Deprecated:** the separate branch name **`cursor-team`** is **no longer** the default day-to-day line. Prefer **topic branches from `master-Cursor`** (or short-lived forks) and integrate back into **`master-Cursor`**. Do not rely on new work landing only on `cursor-team`.
 
 ## Operations (summary)
 

@@ -1,6 +1,6 @@
 # Operator quick reference — `KERNEL_*` families
 
-**Canonical detail:** [`KERNEL_ENV_POLICY.md`](KERNEL_ENV_POLICY.md) · **profiles:** [`src/runtime_profiles.py`](../../src/runtime_profiles.py) · **one-shot bundle:** `ETHOS_RUNTIME_PROFILE=<name>` at chat server startup (fills unset/empty keys only) · **chat keys:** [`src/chat_server.py`](../../src/chat_server.py) docstring / README WebSocket section · **observability:** [Observability (metrics and logs)](#observability-metrics-and-logs) · **ADR:** [`0008`](../adr/0008-runtime-observability-prometheus-and-logs.md).
+**Canonical detail:** [`KERNEL_ENV_POLICY.md`](KERNEL_ENV_POLICY.md) · **profiles:** [`src/runtime_profiles.py`](../../src/runtime_profiles.py) · **one-shot bundle:** `ETHOS_RUNTIME_PROFILE=<name>` at chat server startup (fills unset/empty keys only) · **chat keys:** [`src/chat_server.py`](../../src/chat_server.py) docstring / README WebSocket section · **HTTP JSON routes (GET):** [`PROPOSAL_CHAT_SERVER_HTTP_API_SURFACE.md`](PROPOSAL_CHAT_SERVER_HTTP_API_SURFACE.md) · **observability:** [Observability (metrics and logs)](#observability-metrics-and-logs) · **ADR:** [`0008`](../adr/0008-runtime-observability-prometheus-and-logs.md).
 
 ### Configuration cockpit CLI (KERNEL_* fatigue)
 
@@ -27,6 +27,27 @@ Use the **`ethos config`** command (after `pip install -e .` or `python -m src.e
 
 **Rule:** if a combination is not a **named profile** and not covered by a **test**, treat it as experimental ([`STRATEGY_AND_ROADMAP.md`](STRATEGY_AND_ROADMAP.md)).
 
+### Distributed justice (V11 — advisory / mock DAO)
+
+- **Enable advisory path:** `KERNEL_JUDICIAL_ESCALATION=1`. **WebSocket JSON:** `KERNEL_CHAT_INCLUDE_JUDICIAL=1`. **Mock tribunal (simulation):** `KERNEL_JUDICIAL_MOCK_COURT=1`. Strikes / threshold: `KERNEL_JUDICIAL_STRIKES_FOR_DOSSIER`, `KERNEL_JUDICIAL_RESET_IDLE_TURNS` — see [`PROPOSAL_DISTRIBUTED_JUSTICE_V11.md`](PROPOSAL_DISTRIBUTED_JUSTICE_V11.md) and [`MOCK_DAO_SIMULATION_LIMITS.md`](MOCK_DAO_SIMULATION_LIMITS.md).
+- **Staged execution** (off-chain replay → LAN → optional anchors): [`PROPOSAL_DAO_BLOCKCHAIN_DISTRIBUTED_JUSTICE_STAGED_EXECUTION.md`](PROPOSAL_DAO_BLOCKCHAIN_DISTRIBUTED_JUSTICE_STAGED_EXECUTION.md).
+- **How to contribute** (tests, docs, backlog): [`PROPOSAL_DISTRIBUTED_JUSTICE_CONTRIBUTIONS.md`](PROPOSAL_DISTRIBUTED_JUSTICE_CONTRIBUTIONS.md).
+
+### LLM HTTP vs chat async deadline
+
+`KERNEL_CHAT_TURN_TIMEOUT` bounds how long **asyncio** waits for the worker thread that runs `process_chat_turn`; it does **not** cancel an in-flight HTTP request to Ollama. Tune `OLLAMA_TIMEOUT` alongside chat deadlines. Cooperative LLM cancellation is future work ([ADR 0002](../adr/0002-async-orchestration-future.md); gap G-05 in [`PROPOSAL_LLM_INTEGRATION_TRACK.md`](PROPOSAL_LLM_INTEGRATION_TRACK.md)). When `KERNEL_METRICS=1`, see `ethos_kernel_chat_turn_async_timeouts_total` ([`PROPOSAL_LLM_VERTICAL_ROADMAP.md`](PROPOSAL_LLM_VERTICAL_ROADMAP.md) phase 3).
+
+### LLM vertical operator recipes
+
+Phased roadmap and evidence posture: [`PROPOSAL_LLM_VERTICAL_ROADMAP.md`](PROPOSAL_LLM_VERTICAL_ROADMAP.md). Quick combinations (explicit env still overrides profile defaults):
+
+| Recipe | `ETHOS_RUNTIME_PROFILE` (starting point) | Notes |
+|--------|------------------------------------------|--------|
+| LAN / phone staging | `lan_operational` or `lan_mobile_thin_client` | Bind + stoic JSON; tune `OLLAMA_TIMEOUT` with `KERNEL_CHAT_TURN_TIMEOUT`. |
+| Airgap semantic (hash embeddings, no Ollama) | `untrusted_chat_input` | Pair with unreachable `OLLAMA_BASE_URL` + short `KERNEL_SEMANTIC_EMBED_*` timeouts for fast fail (see [`test_malabs_semantic_integration.py`](../../tests/test_malabs_semantic_integration.py)). |
+| Generative candidates + semantic gate | `llm_integration_lab` | `KERNEL_GENERATIVE_LLM` + MalAbs hash fallback per [`runtime_profiles.py`](../../src/runtime_profiles.py). |
+| Perception hardening lab | `perception_hardening_lab` | Light risk + cross-check + uncertainty→delib; compose with `untrusted_chat_input` if you need semantic MalAbs too. |
+
 ### Perception observability contract (chat JSON)
 
 When a chat turn includes `perception`, the server emits:
@@ -47,6 +68,21 @@ When a chat turn returns, the server may emit:
 
 `temporal_sync` is designed for local-network and DAO-adjacent coordination without requiring external time services; use `sync_schema` to version consumers.
 
+**Coercion:** `turn_index`, `processor_elapsed_ms`, and `turn_delta_ms` are emitted as non-negative integers; malformed or missing values in the internal public dict are coerced to `0` for stable WebSocket JSON (not an ethics policy change; see [`src/chat_server.py`](../../src/chat_server.py) `_coerce_public_int`).
+
+**Sync degraded — local-safe mode (DJ-BL-03):** `temporal_sync.local_network_sync_ready` and `temporal_sync.dao_sync_ready` reflect **`KERNEL_TEMPORAL_LAN_SYNC`** and **`KERNEL_TEMPORAL_DAO_SYNC`** (default `1` = ready when unset; set `0` to mark not ready). These flags are **advisory** for coordinators — they do **not** disable MalAbs, the ethical cycle, or in-process **MockDAO** / **judicial** JSON when enabled via `KERNEL_JUDICIAL_*` / hub env. Treat as “no cross-node guarantee implied,” not “governance offline.” See [`PROPOSAL_DAO_BLOCKCHAIN_DISTRIBUTED_JUSTICE_STAGED_EXECUTION.md`](PROPOSAL_DAO_BLOCKCHAIN_DISTRIBUTED_JUSTICE_STAGED_EXECUTION.md) (Example B — DAO audit continues locally). WebSocket probe: [`tests/test_chat_server.py`](../../tests/test_chat_server.py) `test_websocket_temporal_sync_respects_env_toggles`.
+
+### LAN governance batch merge — frontier hint and conflicts (DJ-BL-14)
+
+- **Gate:** enable LAN merge with **`KERNEL_LAN_GOVERNANCE_MERGE_WS=1`**, plus the batch-specific flags (integrity / DAO vote / judicial / mock court) documented under *Governance / hub* and distributed-justice proposals.
+- **Optional `merge_context.frontier_turn`:** on `lan_governance_integrity_batch`, `lan_governance_dao_batch`, `lan_governance_judicial_batch`, and `lan_governance_mock_court_batch` payloads (including the same object when embedded in `lan_governance_envelope.batch`). Events with `turn_index` **strictly less** than `frontier_turn` are dropped and listed under `event_conflicts` as `stale_event` (`reason: below_frontier_turn`). This value is an **operator-supplied session hint** — it is **not** a replicated consensus clock and does not imply cross-session agreement.
+- **`event_conflicts`:** batch responses may include a non-empty array whose entries use stable `kind` values (`same_turn`, `different_clock`, `stale_event`). Semantics and evidence posture: [`PROPOSAL_LAN_GOVERNANCE_CONFLICT_TAXONOMY.md`](PROPOSAL_LAN_GOVERNANCE_CONFLICT_TAXONOMY.md).
+- **Hub coordinator:** `lan_governance_coordinator` responses may include **`aggregated_event_conflicts`**, flattening inner-batch conflicts and adding `source_batch`, `envelope_fingerprint`, and `envelope_idempotency_token` for correlation.
+- **Cross-session hint (non-consensus):** optional `merge_context.cross_session_hint` with `schema=lan_governance_cross_session_hint_v1` is **validated and echoed** (`merge_context_echo`); invalid hints yield `merge_context_warnings` only — see [`PROPOSAL_LAN_GOVERNANCE_CROSS_SESSION_HINT.md`](PROPOSAL_LAN_GOVERNANCE_CROSS_SESSION_HINT.md). The kernel does **not** treat this as quorum or replicated frontier.
+- **Frontier witnesses (advisory):** optional `merge_context.frontier_witnesses` — peer `observed_max_turn` claims deduped per `claimant_session_id`; echo `frontier_witness_resolution` with `advisory_max_observed_turn` and `evidence_posture=advisory_aggregate_not_quorum` — [`PROPOSAL_LAN_GOVERNANCE_FRONTIER_WITNESS.md`](PROPOSAL_LAN_GOVERNANCE_FRONTIER_WITNESS.md). Does **not** apply merge unless you also set `frontier_turn`.
+- **Replay sidecar CLI:** [`scripts/eval/verify_lan_governance_replay_sidecar.py`](../../scripts/eval/verify_lan_governance_replay_sidecar.py) fingerprints or compares `lan_governance_replay_sidecar_v1` JSON (optional `--audit-ledger` vs embedded fingerprint) — [`PROPOSAL_LAN_GOVERNANCE_REPLAY_SIDECAR.md`](PROPOSAL_LAN_GOVERNANCE_REPLAY_SIDECAR.md).
+- **Anchor checkpoint CLI (Phase 3 stub):** [`scripts/eval/compare_audit_ledger_anchor.py`](../../scripts/eval/compare_audit_ledger_anchor.py) — compare audit export fingerprint to an expected hex (no chain I/O).
+
 ### Verbal LLM observability (chat JSON)
 
 When a generative touchpoint falls back (**communicate**, **narrate**, or optional **monologue** enrich), the server may emit:
@@ -57,13 +93,14 @@ When a generative touchpoint falls back (**communicate**, **narrate**, or option
 
 ### Observability (metrics and logs)
 
-Enable with `KERNEL_METRICS=1` (scrapes `http://<host>:<port>/metrics`). If `prometheus_client` is missing, the server returns HTTP 503 JSON for `/metrics` instead of crashing. Structured JSON logs: `KERNEL_LOG_JSON=1`; severity: `KERNEL_LOG_LEVEL` (e.g. `INFO`, `DEBUG`). Per-decision machine-readable lines (one JSON object per `EthicalKernel.process`): default **on** when JSON logging is on — disable with `KERNEL_LOG_DECISION_EVENTS=0`. **`GET /health`** returns `version`, `uptime_seconds`, an `observability` object (metrics/log flags, `prometheus_client` import status), and **`chat_bridge`** (`kernel_chat_turn_timeout_seconds`, `kernel_chat_threadpool_workers`, `kernel_chat_json_offload` — see [`chat_settings.py`](../../src/chat_settings.py)) for dashboards and probes.
+Enable with `KERNEL_METRICS=1` (scrapes `http://<host>:<port>/metrics`). If `prometheus_client` is missing, the server returns HTTP 503 JSON for `/metrics` instead of crashing. Structured JSON logs: `KERNEL_LOG_JSON=1`; severity: `KERNEL_LOG_LEVEL` (e.g. `INFO`, `DEBUG`). Per-decision machine-readable lines (one JSON object per `EthicalKernel.process`): default **on** when JSON logging is on — disable with `KERNEL_LOG_DECISION_EVENTS=0`. **`GET /health`** returns `version`, `uptime_seconds`, an `observability` object (metrics/log flags, `prometheus_client` import status), **`chat_bridge`** (`kernel_chat_turn_timeout_seconds`, `kernel_chat_threadpool_workers`, `kernel_chat_json_offload` — see [`chat_settings.py`](../../src/chat_settings.py)), and a compact **`safety_defaults`** block (`kernel_env_validation_mode`, semantic gate/hash fallback toggles, perception fail-safe and parallel toggles) for quick operator diagnostics.
 
 | Metric name | Type | Labels | Notes |
 |--------------|------|--------|--------|
 | `ethos_kernel_llm_completion_seconds` | Histogram | `operation` | `perceive`, `communicate`, `narrate`, or `completion` (default internal). Wall time for LLM `completion` calls. |
 | `ethos_kernel_chat_turn_duration_seconds` | Histogram | `path` | End-to-end time for one `process_chat_turn` in the worker thread. `path` matches chat result (`light`, `heavy`, `safety_block`, `kernel_block`, …). |
 | `ethos_kernel_chat_turns_total` | Counter | `path` | Count of completed turns per `path` (increments with the histogram observation). |
+| `ethos_kernel_chat_turn_async_timeouts_total` | Counter | (none) | Increments when the async waiter hits `KERNEL_CHAT_TURN_TIMEOUT` (sync worker may still run; see ADR 0002). |
 | `ethos_kernel_malabs_blocks_total` | Counter | `reason` | Coarse block reason; typically `safety_block` or `kernel_block` when the chat path indicates a block. |
 | `ethos_kernel_dao_ws_operations_total` | Counter | `operation` | Mock DAO WebSocket actions, e.g. `list`, `submit_draft`, `vote`, `resolve`, `integrity_alert`, `nomad_migration`. |
 | `ethos_kernel_embedding_errors_total` | Counter | `source` | Semantic MalAbs embedding tier: `http` (request/transport failure), `http_invalid` (bad payload), `backend` (adapter `embedding()` exception). |

@@ -1,6 +1,6 @@
 # Cursor Team Playbook — Sensors and Perception
 
-**Status:** active collaborative charter for the Cursor line (`cursor-team` and `master-Cursor`) under the multi-office method in [`MULTI_OFFICE_GIT_WORKFLOW.md`](../collaboration/MULTI_OFFICE_GIT_WORKFLOW.md).
+**Status:** active collaborative charter for the Cursor line (**`master-Cursor`** is the integration hub; the branch name `cursor-team` is **deprecated**) under the multi-office method in [`MULTI_OFFICE_GIT_WORKFLOW.md`](../collaboration/MULTI_OFFICE_GIT_WORKFLOW.md).
 
 This playbook defines **analysis, discussion, planning, implementation, integration, and release handoff** for how the kernel ingests and trusts **sensor-derived and LLM-mediated perception**.
 
@@ -38,11 +38,11 @@ For each item, record:
 
 ### Branch and integration flow
 
-1. **Daily collaborative work:** `cursor-team` (or short-lived topic branches from it).
+1. **Daily collaborative work:** short-lived **topic branches from `master-Cursor`** (the historical `cursor-team` line is deprecated).
 2. **Team integration hub:** merge reviewed work into `master-Cursor`.
 3. **Production promotion:** `master-Cursor` -> `main` is maintainer/release action only.
 
-Use this convention for branch names from `cursor-team`:
+Use this convention for branch names from `master-Cursor`:
 
 - `cursor/perception-<topic>`
 - `cursor/sensors-<topic>`
@@ -75,7 +75,7 @@ Evidence links:
 
 An item is done only when all apply:
 
-1. Code change merged in `cursor-team` (and integrated in `master-Cursor` when applicable).
+1. Code change merged in `master-Cursor` (via PR or direct merge per team policy).
 2. Tests added/updated for behavior and env overrides.
 3. Lint/type/test checks pass (`ruff`, `mypy`, `pytest`).
 4. Minimal doc update in `docs/proposals/` (or ADR if decision-level).
@@ -109,7 +109,7 @@ Before starting any new item, review and circulate:
 
 ## 8) Initial execution backlog (P0/P1)
 
-The table below is the active starter queue for `cursor-team`.
+The table below is the active starter queue for **`master-Cursor`** work.
 
 ### P0 (immediate, operator-facing risk)
 
@@ -217,6 +217,8 @@ The table below is the active starter queue for `cursor-team`.
 ## 9) Model-critical backlog (beyond sensors/perception)
 
 When perception P0 items are stable, **prioritize cross-cutting kernel/model risk** in this order (rationale and pointers): [`MODEL_CRITICAL_BACKLOG.md`](MODEL_CRITICAL_BACKLOG.md). It aligns [`CRITIQUE_ROADMAP_ISSUES.md`](CRITIQUE_ROADMAP_ISSUES.md) P0 rows with [`WEAKNESSES_AND_BOTTLENECKS.md`](../WEAKNESSES_AND_BOTTLENECKS.md) §3 (unified LLM degradation) and packaging/governance blockers.
+
+**LLM incorporation / adjacent layers / integration** (embedding vs completion, MalAbs semantic, `process_natural` observability, generative candidates): assigned gap register [`PROPOSAL_LLM_INTEGRATION_TRACK.md`](PROPOSAL_LLM_INTEGRATION_TRACK.md) (Cursor shared line).
 
 ## 10) Ready-to-use task card examples
 

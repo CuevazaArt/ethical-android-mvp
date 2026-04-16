@@ -44,6 +44,24 @@ with TestClient(app) as c:
     subprocess.run([sys.executable, "-c", code], cwd=root, check=True)
 
 
+def test_chat_turn_async_timeout_counter_in_prometheus_subprocess():
+    """Fresh interpreter: async-timeout counter increments (G-05 observability partial)."""
+    pytest.importorskip("prometheus_client")
+    root = os.path.join(os.path.dirname(__file__), "..")
+    code = """
+import os, sys
+sys.path.insert(0, ".")
+os.environ["KERNEL_METRICS"] = "1"
+from src.observability.metrics import init_metrics, record_chat_turn_async_timeout
+init_metrics()
+record_chat_turn_async_timeout()
+from prometheus_client import generate_latest
+b = generate_latest().decode()
+assert "ethos_kernel_chat_turn_async_timeouts_total" in b
+"""
+    subprocess.run([sys.executable, "-c", code], cwd=root, check=True)
+
+
 def test_health_includes_request_id_header():
     r = _client.get("/health", headers={"X-Request-ID": "test-req-1"})
     assert r.status_code == 200
@@ -72,5 +90,28 @@ from prometheus_client import generate_latest
 b = generate_latest().decode()
 assert "ethos_kernel_kernel_decisions_total" in b
 assert "ethos_kernel_kernel_process_seconds" in b
+"""
+    subprocess.run([sys.executable, "-c", code], cwd=root, check=True)
+
+
+def test_lan_envelope_replay_cache_metrics_in_prometheus_subprocess():
+    """Fresh interpreter: LAN envelope replay-cache counter registers and increments."""
+    pytest.importorskip("prometheus_client")
+    root = os.path.join(os.path.dirname(__file__), "..")
+    code = """
+import os, sys
+sys.path.insert(0, ".")
+os.environ["KERNEL_METRICS"] = "1"
+from src.observability.metrics import init_metrics, record_lan_envelope_replay_cache_event
+init_metrics()
+record_lan_envelope_replay_cache_event("hit")
+record_lan_envelope_replay_cache_event("miss")
+record_lan_envelope_replay_cache_event("evict_ttl", amount=2)
+from prometheus_client import generate_latest
+b = generate_latest().decode()
+assert "ethos_kernel_lan_envelope_replay_cache_events_total" in b
+assert 'event="hit"' in b
+assert 'event="miss"' in b
+assert 'event="evict_ttl"' in b
 """
     subprocess.run([sys.executable, "-c", code], cwd=root, check=True)

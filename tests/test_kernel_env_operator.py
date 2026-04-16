@@ -22,6 +22,8 @@ def test_classify_known_prefixes():
     assert classify_env_key("KERNEL_SEMANTIC_CHAT_GATE") == "MalAbs semantic / embed"
     assert classify_env_key("KERNEL_ENV_VALIDATION") == "Validation & policy"
     assert classify_env_key("CHAT_HOST") == "Chat server bind"
+    assert classify_env_key("KERNEL_LLM_MONOLOGUE") == "LLM / variability / generative"
+    assert classify_env_key("KERNEL_LLM_MONOLOGUE_BACKEND_POLICY") == "LLM / variability / generative"
     assert classify_env_key("KERNEL_UNKNOWN_FOO") == "Other KERNEL_*"
 
 

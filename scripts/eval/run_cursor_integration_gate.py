@@ -15,6 +15,10 @@ TEST_TARGETS = [
     "tests/test_chat_turn.py",
     "tests/test_temporal_planning.py",
     "tests/test_perception_confidence.py",
+    # LLM integration track (PROPOSAL_LLM_INTEGRATION_TRACK.md G-10)
+    "tests/test_process_natural_verbal_observability.py",
+    "tests/test_perception_dual_vote_failure.py",
+    "tests/test_semantic_chat_gate.py",
 ]
 
 

@@ -443,7 +443,9 @@ class EthicalKernel:
         self._last_light_risk_tier: str | None = None
         self._perception_validation_streak: int = 0
         self._perception_metacognitive_doubt: bool = False
-        self.event_bus = None
+        # Last ``process_natural`` verbal/narrative LLM degradation events (harness / batch API).
+        self._last_natural_verbal_llm_degradation_events: list[dict[str, str]] | None = None
+        self.event_bus: KernelEventBus | None = None
         if kernel_event_bus_enabled():
             self.event_bus = KernelEventBus()
         self.metacognition = co.metacognition if co and hasattr(co, "metacognition") and co.metacognition is not None else MetacognitiveEvaluator()
@@ -2131,6 +2133,7 @@ class EthicalKernel:
                 hax_mode="Neutral posture, steady blue light.",
                 inner_voice=f"MalAbs natural-language gate: {mal.reason or 'blocked'}",
             )
+            self._last_natural_verbal_llm_degradation_events = None
             return decision, response, None
 
         self.llm.reset_verbal_degradation_log()
@@ -2240,7 +2243,18 @@ class EthicalKernel:
                 pole_optimistic=poles_txt.get("optimistic", ""),
             )
 
+        _snap = self.llm.verbal_degradation_events_snapshot()
+        self._last_natural_verbal_llm_degradation_events = _snap if _snap else None
         return decision, response, narrative
+
+    @property
+    def last_natural_verbal_llm_degradation_events(self) -> list[dict[str, str]] | None:
+        """
+        Snapshot of generative communicate/narrate/monologue degradation from the last
+        :meth:`process_natural` call. ``None`` if the turn blocked at MalAbs before LLM verbal paths.
+        Chat turns use :class:`ChatTurnResult` instead.
+        """
+        return self._last_natural_verbal_llm_degradation_events
 
     def _generate_generic_actions(self, perception: LLMPerception) -> list[CandidateAction]:
         """Generates generic candidate actions based on the perception."""

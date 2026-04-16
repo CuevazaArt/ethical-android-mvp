@@ -29,14 +29,18 @@ This checklist defines when `master-Cursor` is ready to be interlaced with other
 
 4. **Temporal sync readiness**
    - `turn_index`, `processor_elapsed_ms`, and `turn_delta_ms` are present.
+   - Those three integer fields are **coerced** to non-negative ints in the WebSocket builder when values are missing or non-numeric (JSON stability only; not a policy change).
    - DAO/LAN toggles (`KERNEL_TEMPORAL_DAO_SYNC`, `KERNEL_TEMPORAL_LAN_SYNC`) behave as documented.
 
 5. **Regression suite**
-   - Targeted tests pass:
+   - Targeted tests pass (see `scripts/eval/run_cursor_integration_gate.py`):
      - `tests/test_chat_server.py`
      - `tests/test_chat_turn.py`
      - `tests/test_temporal_planning.py`
      - `tests/test_perception_confidence.py`
+     - `tests/test_process_natural_verbal_observability.py`
+     - `tests/test_perception_dual_vote_failure.py`
+     - `tests/test_semantic_chat_gate.py`
 
 6. **Operator docs**
    - `KERNEL_ENV_POLICY.md` and `OPERATOR_QUICK_REF.md` include any new `KERNEL_*` knobs and payload contract changes.
@@ -47,6 +51,12 @@ From repository root:
 
 ```bash
 python scripts/eval/run_cursor_integration_gate.py
+```
+
+Optional — focused LLM vertical regressions ([`PROPOSAL_LLM_VERTICAL_ROADMAP.md`](../proposals/PROPOSAL_LLM_VERTICAL_ROADMAP.md)):
+
+```bash
+python scripts/eval/run_llm_vertical_tests.py -q
 ```
 
 Optional flags:

@@ -16,6 +16,10 @@ After Pydantic:
 - **High hostility + high calm** — calm is nudged down (GIGO guard).
 - **Very high risk + high calm** — calm is capped (physically inconsistent in this kernel’s model).
 
+## 3a. Optional `generative_candidates` (perception JSON)
+
+When ``KERNEL_GENERATIVE_LLM=1``, the LLM may attach ``generative_candidates`` (list of objects) to perception JSON. Parsed by [`generative_candidates.parse_generative_candidates_from_llm`](../../src/modules/generative_candidates.py): non-dict entries skipped; **names** must match ``^[a-z][a-z0-9_]{0,79}$``; **description** non-empty (≤500 chars); numeric fields clamped. Invalid rows are dropped silently — MalAbs still applies to any accepted ``CandidateAction``.
+
 ## 3. Fallback routing (`perceive`)
 
 - The **LLM user** prompt may include `Prior conversation…` + `Current message` for model coherence.

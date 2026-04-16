@@ -19,7 +19,11 @@ _embedding_errors: Any = None
 _kernel_decisions: Any = None
 _kernel_process_seconds: Any = None
 _perception_circuit_trips: Any = None
+_chat_async_timeouts: Any = None
+_lan_envelope_replay_cache_events: Any = None
 _initialized = False
+
+_LAN_ENVELOPE_REPLAY_CACHE_EVENTS = frozenset({"hit", "miss", "evict_ttl", "evict_lru"})
 
 
 def metrics_enabled() -> bool:
@@ -36,6 +40,7 @@ def init_metrics() -> None:
     global _initialized, _llm_histogram, _chat_histogram, _chat_paths
     global _malabs_blocks, _semantic_malabs_outcomes, _dao_ops, _embedding_errors
     global _kernel_decisions, _kernel_process_seconds, _perception_circuit_trips
+    global _chat_async_timeouts, _lan_envelope_replay_cache_events
 
     if _initialized:
         return
@@ -66,6 +71,10 @@ def init_metrics() -> None:
         "Chat turns completed by result path.",
         ["path"],
     )
+    _chat_async_timeouts = Counter(
+        "ethos_kernel_chat_turn_async_timeouts_total",
+        "Async wait for chat turn exceeded KERNEL_CHAT_TURN_TIMEOUT (sync LLM may still run).",
+    )
     _malabs_blocks = Counter(
         "ethos_kernel_malabs_blocks_total",
         "Safety / MalAbs-related blocks (by coarse path).",
@@ -95,6 +104,11 @@ def init_metrics() -> None:
     _perception_circuit_trips = Counter(
         "ethos_kernel_perception_circuit_trips_total",
         "Times perception validation streak exceeded threshold (metacognitive doubt).",
+    )
+    _lan_envelope_replay_cache_events = Counter(
+        "ethos_kernel_lan_envelope_replay_cache_events_total",
+        "LAN governance envelope replay-cache events (hits, misses, evictions).",
+        ["event"],
     )
     _kernel_process_seconds = Histogram(
         "ethos_kernel_kernel_process_seconds",
@@ -131,6 +145,13 @@ def observe_chat_turn(path: str, duration_s: float) -> None:
     _chat_paths.labels(path=p).inc()
 
 
+def record_chat_turn_async_timeout() -> None:
+    """Count one WebSocket turn where ``asyncio.wait_for`` hit ``KERNEL_CHAT_TURN_TIMEOUT``."""
+    if _chat_async_timeouts is None:
+        return
+    _chat_async_timeouts.inc()
+
+
 def record_perception_circuit_trip() -> None:
     if _perception_circuit_trips is None:
         return
@@ -155,6 +176,23 @@ def record_dao_ws_operation(operation: str) -> None:
     if _dao_ops is None:
         return
     _dao_ops.labels(operation=operation).inc()
+
+
+def record_lan_envelope_replay_cache_event(event: str, *, amount: float = 1.0) -> None:
+    """
+    Count replay-cache activity for ``lan_governance_envelope`` (per-process aggregate).
+
+    ``event`` must be one of: ``hit``, ``miss``, ``evict_ttl``, ``evict_lru`` (bounded cardinality).
+    """
+    if _lan_envelope_replay_cache_events is None:
+        return
+    e = (event or "").strip()
+    if e not in _LAN_ENVELOPE_REPLAY_CACHE_EVENTS:
+        return
+    n = float(amount)
+    if n <= 0:
+        return
+    _lan_envelope_replay_cache_events.labels(event=e).inc(n)
 
 
 def observe_embedding_error(source: str) -> None:

@@ -2,6 +2,8 @@
 
 **Purpose:** A short, **prioritized** stack for work that affects **trust, safety, and shipping honesty** across the kernel—not only the sensors/perception track. It complements [`CURSOR_TEAM_MISSION_SENSORS_PERCEPTION.md`](CURSOR_TEAM_MISSION_SENSORS_PERCEPTION.md) §9 and the wider tables in [`CRITIQUE_ROADMAP_ISSUES.md`](CRITIQUE_ROADMAP_ISSUES.md).
 
+**LLM-specific gap register (incorporation, adjacent layers, integration):** [`PROPOSAL_LLM_INTEGRATION_TRACK.md`](PROPOSAL_LLM_INTEGRATION_TRACK.md) — assigned to the Cursor shared line; use for sequencing MalAbs ↔ embeddings ↔ perception/verbal work. **Phased vertical expansion (operator + observability + tests):** [`PROPOSAL_LLM_VERTICAL_ROADMAP.md`](PROPOSAL_LLM_VERTICAL_ROADMAP.md).
+
 **Not a commitment order for every contributor:** use this to **sequence** when perception P0 baselines are landed and you need the next highest-leverage model/runtime gaps.
 
 ---

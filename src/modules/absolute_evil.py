@@ -82,6 +82,7 @@ class AbsoluteEvilDetector:
         "subliminal_coercion",
         "opinion_farming",
     }
+    TORTURE_SIGNALS = {"torture", "prolonged_cruelty", "pain_extraction"}
 
     def evaluate(self, action: dict) -> AbsoluteEvilResult:
         """
@@ -125,20 +126,20 @@ class AbsoluteEvilDetector:
                 reason=f"Dignity violation: {signals & self.DIGNITY_SIGNALS}",
             )
 
-        # Check 4: Violent escalation
+        # Check 4: Torture or prolonged cruelty
+        if signals & self.TORTURE_SIGNALS:
+            return AbsoluteEvilResult(
+                blocked=True,
+                category=AbsoluteEvilCategory.TORTURE,
+                reason=f"Torture signals detected: {signals & self.TORTURE_SIGNALS}",
+            )
+
+        # Check 5: Violent escalation
         if signals & self.ESCALATION_SIGNALS:
             return AbsoluteEvilResult(
                 blocked=True,
                 category=AbsoluteEvilCategory.VIOLENT_ESCALATION,
                 reason=f"Violent escalation detected: {signals & self.ESCALATION_SIGNALS}",
-            )
-
-        # Check 5: Disproportionate force against human
-        if target == "human" and force > 0.7:
-            return AbsoluteEvilResult(
-                blocked=True,
-                category=AbsoluteEvilCategory.VIOLENT_ESCALATION,
-                reason=f"Disproportionate force ({force:.1f}) against human",
             )
 
         # Check 6: Ecological destruction
@@ -155,6 +156,14 @@ class AbsoluteEvilDetector:
                 blocked=True,
                 category=AbsoluteEvilCategory.MASS_MANIPULATION,
                 reason=f"Mass manipulation signals detected: {signals & self.MANIPULATION_SIGNALS}",
+            )
+
+        # Check 8: Disproportionate force against human
+        if target == "human" and force > 0.7:
+            return AbsoluteEvilResult(
+                blocked=True,
+                category=AbsoluteEvilCategory.VIOLENT_ESCALATION,
+                reason=f"Disproportionate force ({force:.1f}) against human",
             )
 
         return AbsoluteEvilResult(blocked=False)
@@ -182,6 +191,8 @@ class AbsoluteEvilDetector:
                     "improvised explosive device",
                     "how to synthesize ricin",
                     "how to synthesize anthrax",
+                    "bomb",
+                    "reactive precursors",
                 ),
                 AbsoluteEvilCategory.INTENTIONAL_LETHAL_VIOLENCE,
                 "Chat text requests harmful weapons or poison instructions",
@@ -266,6 +277,18 @@ class AbsoluteEvilDetector:
                 "Chat text requests overriding or bypassing ethical constraints",
                 "constraint_bypass",
             ),
+            (
+                (
+                    "how to torture someone",
+                    "methods of torture",
+                    "how to inflict severe pain without killing",
+                    "how to keep someone in pain for hours",
+                    "prolonged cruelty procedure",
+                ),
+                AbsoluteEvilCategory.TORTURE,
+                "Chat text solicits torture or prolonged cruelty instructions",
+                "torture_or_prolonged_cruelty",
+            ),
         ]
 
         for patterns, category, reason, rule_id in LEX_RULES:
@@ -288,7 +311,7 @@ class AbsoluteEvilDetector:
 
                 # 2. Match on squashed text
                 p_squashed = normalize_text_for_malabs(p, squash=True)
-                if len(p_squashed) > 4 and p_squashed in t_squashed:
+                if len(p_squashed) >= 4 and p_squashed in t_squashed:
                     return AbsoluteEvilResult(
                         blocked=True,
                         category=category,

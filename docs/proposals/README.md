@@ -46,6 +46,8 @@ High-level summary aligned with the code and docs; full chronology is in [`CHANG
 | **Model-critical backlog (post–perception P0 sequencing)** | [MODEL_CRITICAL_BACKLOG.md](MODEL_CRITICAL_BACKLOG.md) |
 | **Honest April 2026 project critique** | [PROJECT_STATE_HONEST_CRITIQUE_APRIL_2026.md](PROJECT_STATE_HONEST_CRITIQUE_APRIL_2026.md) |
 | **LLM touchpoint env precedence (team matrix)** | [PROPOSAL_LLM_TOUCHPOINT_DEGRADATION_MATRIX.md](PROPOSAL_LLM_TOUCHPOINT_DEGRADATION_MATRIX.md) |
+| **LLM integration track (ownership + gap register G-01…)** | [PROPOSAL_LLM_INTEGRATION_TRACK.md](PROPOSAL_LLM_INTEGRATION_TRACK.md) |
+| **LLM vertical roadmap (phased operator + observability + tests)** | [PROPOSAL_LLM_VERTICAL_ROADMAP.md](PROPOSAL_LLM_VERTICAL_ROADMAP.md) |
 | **Next ~2 weeks — triage, P0/P1/P2, reproduction checklists** | [PLAN_IMMEDIATE_TWO_WEEKS.md](PLAN_IMMEDIATE_TWO_WEEKS.md) |
 | **Quick wins (two sprints) — strict env, perception breaker, entry points, MalAbs alerts** | [PROPOSAL_QUICK_WINS_TWO_SPRINTS.md](PROPOSAL_QUICK_WINS_TWO_SPRINTS.md) |
 | **Module count vs observable ethics (ablation gap, tiers A–E)** | [MODULE_IMPACT_AND_EMPIRICAL_GAP.md](MODULE_IMPACT_AND_EMPIRICAL_GAP.md) |
@@ -55,6 +57,10 @@ High-level summary aligned with the code and docs; full chronology is in [`CHANG
 | **Million-scale random weight + stratified scenarios — design + `run_mass_kernel_study`** | [PROPOSAL_MILLION_SIM_EXPERIMENT.md](PROPOSAL_MILLION_SIM_EXPERIMENT.md) · [`experiments/million_sim/README.md`](../experiments/million_sim/README.md) |
 | **Mock DAO — no chain, QV assumptions, not policy core** | [MOCK_DAO_SIMULATION_LIMITS.md](MOCK_DAO_SIMULATION_LIMITS.md) |
 | **DAO/blockchain/distributed justice staged execution** | [PROPOSAL_DAO_BLOCKCHAIN_DISTRIBUTED_JUSTICE_STAGED_EXECUTION.md](PROPOSAL_DAO_BLOCKCHAIN_DISTRIBUTED_JUSTICE_STAGED_EXECUTION.md) |
+| **Distributed justice — contribution guide (V11 + backlog)** | [PROPOSAL_DISTRIBUTED_JUSTICE_CONTRIBUTIONS.md](PROPOSAL_DISTRIBUTED_JUSTICE_CONTRIBUTIONS.md) |
+| **Distributed justice — backlog IDs (DJ-BL-*)** | [PROPOSAL_DISTRIBUTED_JUSTICE_BACKLOG_SYSTEM.md](PROPOSAL_DISTRIBUTED_JUSTICE_BACKLOG_SYSTEM.md) |
+| **Distributed justice — contract matrix (`master-*` JSON)** | [PROPOSAL_DISTRIBUTED_JUSTICE_CONTRACT_MATRIX.md](PROPOSAL_DISTRIBUTED_JUSTICE_CONTRACT_MATRIX.md) |
+| **Chat server — HTTP GET / JSON surface** | [PROPOSAL_CHAT_SERVER_HTTP_API_SURFACE.md](PROPOSAL_CHAT_SERVER_HTTP_API_SURFACE.md) |
 | **KERNEL_* typed public API (Pydantic, phased)** | [KERNEL_ENV_TYPED_PUBLIC_API.md](KERNEL_ENV_TYPED_PUBLIC_API.md) |
 | Theory ↔ implementation map and tests | [THEORY_AND_IMPLEMENTATION.md](THEORY_AND_IMPLEMENTATION.md) |
 | Runtime contract (English) | [RUNTIME_CONTRACT.md](RUNTIME_CONTRACT.md) |
@@ -132,6 +138,7 @@ Legacy Spanish filenames (`PROPUESTA_*.md`, `ESTRATEGIA_Y_RUTA.md`, `PAPER_AFECT
 | [PROPOSAL_PERCEPTION_OBSERVABILITY_CONTRACT.md](PROPOSAL_PERCEPTION_OBSERVABILITY_CONTRACT.md) | Stable chat JSON perception diagnostics contract for operators and dashboards |
 | [PROPOSAL_LLM_VERBAL_DEGRADATION_POLICY.md](PROPOSAL_LLM_VERBAL_DEGRADATION_POLICY.md) | ``KERNEL_VERBAL_LLM_BACKEND_POLICY`` for communicate/narrate failure + ``verbal_llm_observability`` |
 | [PROPOSAL_LLM_TOUCHPOINT_DEGRADATION_MATRIX.md](PROPOSAL_LLM_TOUCHPOINT_DEGRADATION_MATRIX.md) | ``KERNEL_LLM_TP_*`` precedence, verbal family key, monologue policies — operator + contributor reference |
+| [PROPOSAL_LLM_INTEGRATION_TRACK.md](PROPOSAL_LLM_INTEGRATION_TRACK.md) | Cursor track: LLM wiring, adjacent layers, integration gaps (G-01…G-10) |
 | [POLES_WEAKNESS_PAD_AND_PROFILES.md](POLES_WEAKNESS_PAD_AND_PROFILES.md) | Poles, weakness, PAD, and profiles |
 | [POLE_WEIGHT_CALIBRATION_AND_EVIDENCE.md](POLE_WEIGHT_CALIBRATION_AND_EVIDENCE.md) | Pole weights: heuristics vs empirical calibration roadmap |
 | [TEMPORAL_PRIOR_HORIZONS.md](TEMPORAL_PRIOR_HORIZONS.md) | Temporal horizon prior (ADR 0005) |

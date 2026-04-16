@@ -4,7 +4,16 @@ All notable changes to this project are summarized here. For narrative context a
 
 **Note:** Older sections below may still **link** to paths that were later removed (for example `experiments/million_sim/`, `docs/multimedia/`, root `dashboard.html`, `landing/`). Those links are **historical**; recover files from git history or backup branches if you need them.
 
-## Mos Ex Machina: Socio-Cognitive & Governance Infrastructure (Very Long Term) — April 2026
+## Antigravity — Cybersecurity Consolidation & Integration Pulse — April 2026
+
+- **Integration Hub:** Resolved major merge conflicts between `master-antigravity` and `master-Cursor`. Consolidated the **Distributed Justice** track with the **Kernel Hardening** track.
+- **Cybersecurity Hardening (Module 5):** Fully integrated `SecureBoot` (integrity hashing) and `SelectiveAmnesia` (right to be forgotten) into the `EthicalKernel` lifecycle.
+- **Absolute Evil Hardening (Issue #2):** Combined lexical detectors to include **Torture and Prolonged Cruelty** (`TORTURE_SIGNALS`), **Ecological Destruction**, and **Mass Manipulation** categories.
+- **Defensa en Profundidad:** Lowered squashed-text matching threshold to 4 characters, successfully blocking obfuscated lethal payloads (Ogham-split, URL-encoded). Expanded lexical rules with 'reactive precursors'.
+- **Governance Generalized:** Unified `.cursor/rules/collaboration-prioritization.mdc` to a multi-team model using `<team>` templates, institutionalizing the **Integration Funnel** (Linearization) and **Integration Pulse** rituals.
+- **Operator Surface:** Created the `cybersecurity_hardened` runtime profile in `src/runtime_profiles.py` and updated `src/validators/kernel_env_operator.py` with a dedicated Cybersecurity family.
+- **Tests:** Created `tests/test_malabs_torture.py` and updated `tests/adversarial_inputs.py` to verify the new security posture. 17/17 adversarial cases passing.
+
 
 - **Infrastructure Vision**: Authored **[`PLAN_DEEP_COGNITION_AND_GOVERNANCE.md`](docs/proposals/PLAN_DEEP_COGNITION_AND_GOVERNANCE.md)**. This formalizes the ultimate "Go-To-Market" and societal deployment boundaries for the Ethical Android MVP.
 - **Deep Cognition (Blocks C1-C6)**: Mapped internal motivation, grounded common sense reasoning, uncertainty management, unwritten norm adaptation, IoT coexistence, and privacy mechanisms.
@@ -71,6 +80,150 @@ All notable changes to this project are summarized here. For narrative context a
 - **Docs:** Updated [`docs/proposals/PROPOSAL_002_NARRATIVE_ARCHITECTURE_PLAN.md`](docs/proposals/PROPOSAL_002_NARRATIVE_ARCHITECTURE_PLAN.md) (Tier 2 marked delivered).
 - **Consolidation:** Integrated `BiographicPruner` and `MetacognitiveEvaluator` into the kernel processing loop.
 - **Swarm Consensus:** Implemented Trust Nudges (I7) and Solidarity Alerts in `MockDAO`.
+## Distributed justice — Frontier witnesses + anchor compare CLI (DJ-BL-16 / DJ-BL-17) — April 2026
+
+- **Frontier witnesses:** optional `merge_context.frontier_witnesses` (`lan_governance_frontier_witness_v1`) aggregated deterministically; batch responses echo `merge_context_echo.frontier_witness_resolution` with `evidence_posture=advisory_aggregate_not_quorum` — [`src/modules/lan_governance_merge_context.py`](src/modules/lan_governance_merge_context.py), [`docs/proposals/PROPOSAL_LAN_GOVERNANCE_FRONTIER_WITNESS.md`](docs/proposals/PROPOSAL_LAN_GOVERNANCE_FRONTIER_WITNESS.md).
+- **Phase 3 stub:** [`scripts/eval/compare_audit_ledger_anchor.py`](scripts/eval/compare_audit_ledger_anchor.py) exits 0 when audit ledger JSON fingerprint matches expected 64-char hex ([`tests/test_compare_audit_ledger_anchor.py`](tests/test_compare_audit_ledger_anchor.py)).
+- **Docs:** operator quick ref, contract matrix, HTTP surface, staged execution proposal, contributions/backlog (DJ-BL-02 row corrected).
+
+## Distributed justice — Phase 2 replay sidecar + cross-session hint (DJ-BL-15) — April 2026
+
+- **Replay evidence:** `lan_governance_replay_sidecar_v1` builder + `fingerprint_replay_sidecar` in [`src/modules/lan_governance_replay_sidecar.py`](src/modules/lan_governance_replay_sidecar.py); CLI [`scripts/eval/verify_lan_governance_replay_sidecar.py`](scripts/eval/verify_lan_governance_replay_sidecar.py) (compare sidecars; optional `--audit-ledger` check).
+- **Cross-session (non-consensus):** optional `merge_context.cross_session_hint` (`lan_governance_cross_session_hint_v1`) validated and echoed via `merge_context_echo` / `merge_context_warnings` in [`src/modules/lan_governance_merge_context.py`](src/modules/lan_governance_merge_context.py) and LAN batch handlers in [`src/chat_server.py`](src/chat_server.py).
+- **Docs:** [`docs/proposals/PROPOSAL_LAN_GOVERNANCE_REPLAY_SIDECAR.md`](docs/proposals/PROPOSAL_LAN_GOVERNANCE_REPLAY_SIDECAR.md), [`docs/proposals/PROPOSAL_LAN_GOVERNANCE_CROSS_SESSION_HINT.md`](docs/proposals/PROPOSAL_LAN_GOVERNANCE_CROSS_SESSION_HINT.md); operator quick ref + contract matrix + HTTP surface updated.
+- **Tests:** [`tests/test_lan_governance_merge_context.py`](tests/test_lan_governance_merge_context.py), [`tests/test_lan_governance_replay_sidecar.py`](tests/test_lan_governance_replay_sidecar.py), [`tests/test_chat_server.py`](tests/test_chat_server.py).
+
+## Distributed justice — Phase 2 LAN merge conflict taxonomy (DJ-BL-14) — April 2026
+
+- **Merge:** deterministic conflict classification for LAN batch `events` — `same_turn`, `different_clock`, `stale_event` — in [`src/modules/lan_governance_conflict_taxonomy.py`](src/modules/lan_governance_conflict_taxonomy.py); [`merge_lan_governance_events`](src/modules/lan_governance_event_merge.py) delegates to `merge_lan_governance_events_detailed` and accepts optional `frontier_turn`.
+- **WebSocket:** `lan_governance_*_batch` responses may include `event_conflicts` when non-empty; optional batch `merge_context.frontier_turn` marks below-frontier rows as `stale_event` in [`src/chat_server.py`](src/chat_server.py).
+- **Docs:** [`docs/proposals/PROPOSAL_LAN_GOVERNANCE_CONFLICT_TAXONOMY.md`](docs/proposals/PROPOSAL_LAN_GOVERNANCE_CONFLICT_TAXONOMY.md); contract matrix / HTTP surface / staged execution proposals updated.
+- **Tests:** [`tests/test_lan_governance_conflict_taxonomy.py`](tests/test_lan_governance_conflict_taxonomy.py), [`tests/test_chat_server.py`](tests/test_chat_server.py).
+- **Follow-up:** `lan_governance.coordinator` may include `aggregated_event_conflicts` (inner batch merge conflicts with envelope correlation fields); operator notes in [`docs/proposals/OPERATOR_QUICK_REF.md`](docs/proposals/OPERATOR_QUICK_REF.md).
+
+## Distributed justice — Phase 2 multi-node coordinator message (DJ-BL-13) — April 2026
+
+- **WebSocket:** ``lan_governance_coordinator`` with `schema=lan_governance_coordinator_v1` aggregates multiple ``lan_governance_envelope_v1`` payloads; deterministic fingerprint sort + dedupe; applies each via the existing envelope path (shared per-session replay cache) in [`src/chat_server.py`](src/chat_server.py).
+- **Code:** contract + normalization in [`src/modules/lan_governance_coordinator.py`](src/modules/lan_governance_coordinator.py); gate [`lan_governance_coordinator_ws_enabled()`](src/modules/moral_hub.py) (same `KERNEL_LAN_GOVERNANCE_MERGE_WS=1` family).
+- **Responses:** multiple LAN actions in one frame shallow-merge under `lan_governance` (coordinator + direct batch keys can coexist).
+- **Tests:** [`tests/test_lan_governance_coordinator.py`](tests/test_lan_governance_coordinator.py), [`tests/test_chat_server.py`](tests/test_chat_server.py).
+
+## Distributed justice — Phase 2 envelope replay-cache Prometheus metrics (DJ-BL-12) — April 2026
+
+- **Metrics:** when `KERNEL_METRICS=1`, `ethos_kernel_lan_envelope_replay_cache_events_total{event=...}` counts replay-cache hits, misses, and TTL/LRU evictions for `lan_governance_envelope` in [`src/observability/metrics.py`](src/observability/metrics.py); wired from [`src/chat_server.py`](src/chat_server.py).
+- **Typing:** `merge_lan_governance_events` now accepts `Sequence[Mapping[...]]` so `list[dict]` call sites type-check under mypy ([`src/modules/lan_governance_event_merge.py`](src/modules/lan_governance_event_merge.py)).
+- **Tests:** subprocess registration check in [`tests/test_observability_metrics.py`](tests/test_observability_metrics.py).
+
+## Distributed justice — Phase 2 replay cache bounds + ACK telemetry (DJ-BL-11) — April 2026
+
+- **WebSocket:** envelope ACK now includes `cache` telemetry (`hit`, `size`, cumulative `hits_total`/`misses_total`, cumulative TTL/LRU evictions, and configured bounds).
+- **Runtime bounds:** per-session envelope replay cache now enforces TTL/LRU with `KERNEL_LAN_ENVELOPE_REPLAY_CACHE_TTL_MS` and `KERNEL_LAN_ENVELOPE_REPLAY_CACHE_MAX_ENTRIES` in [`src/chat_server.py`](src/chat_server.py).
+- **Tests:** TTL and LRU replay-cache behavior covered in [`tests/test_chat_server.py`](tests/test_chat_server.py).
+- **Docs:** env policy and distributed justice proposals updated for the new replay-cache controls.
+
+## Distributed justice — Phase 2 envelope replay cache (DJ-BL-10) — April 2026
+
+- **WebSocket:** duplicated ``lan_governance_envelope`` payloads are now detected per WebSocket session by `idempotency_token`; response returns `ack=already_seen` and skips batch reapply in [`src/chat_server.py`](src/chat_server.py).
+- **Safety intent:** avoids duplicate ledger mutations from replayed LAN messages within a session while preserving deterministic ACK fingerprints.
+- **Tests:** replay cache behavior covered in [`tests/test_chat_server.py`](tests/test_chat_server.py).
+
+## Distributed justice — Phase 2 envelope idempotency/reject taxonomy (DJ-BL-09) — April 2026
+
+- **WebSocket:** ``lan_governance_envelope`` ACK now includes `idempotency_token` and explicit `ack` status (`accepted`/`rejected`) in [`src/chat_server.py`](src/chat_server.py).
+- **Reject taxonomy:** envelope errors now map to stable `reject_reason` values (for example `unsupported_contract`, `schema_validation_failed`, `feature_disabled`) for machine-parsed replay/coordination flows.
+- **Code:** taxonomy + token helpers in [`src/modules/lan_governance_envelope.py`](src/modules/lan_governance_envelope.py).
+- **Tests:** ACK success/reject coverage in [`tests/test_chat_server.py`](tests/test_chat_server.py) and unit coverage in [`tests/test_lan_governance_envelope.py`](tests/test_lan_governance_envelope.py).
+
+## Distributed justice — Phase 2 envelope ACK + replay fingerprint (DJ-BL-08) — April 2026
+
+- **WebSocket:** ``lan_governance_envelope`` now emits deterministic ACK metadata under ``lan_governance.envelope``: `fingerprint`, `merged_count`, `applied_count`, and `audit_ledger_fingerprint` after batch routing/apply in [`src/chat_server.py`](src/chat_server.py).
+- **Code:** new deterministic hash helper `fingerprint_lan_governance_envelope` in [`src/modules/lan_governance_envelope.py`](src/modules/lan_governance_envelope.py).
+- **Tests:** deterministic fingerprint unit test in [`tests/test_lan_governance_envelope.py`](tests/test_lan_governance_envelope.py) and envelope WS ACK assertions in [`tests/test_chat_server.py`](tests/test_chat_server.py).
+- **Docs:** backlog/contribution/staged execution proposals updated for DJ-BL-08 traceability.
+
+## Distributed justice — DJ-BL-02 WebSocket LAN integrity batch — April 2026
+
+- **WebSocket:** ``lan_governance_integrity_batch`` — deterministic merge then ``HubAudit:dao_integrity`` rows; requires ``KERNEL_LAN_GOVERNANCE_MERGE_WS=1`` and ``KERNEL_DAO_INTEGRITY_AUDIT_WS=1`` ([`src/chat_server.py`](src/chat_server.py), [`src/modules/moral_hub.py`](src/modules/moral_hub.py)).
+- **Docs:** [`PROPOSAL_DISTRIBUTED_JUSTICE_BACKLOG_SYSTEM.md`](docs/proposals/PROPOSAL_DISTRIBUTED_JUSTICE_BACKLOG_SYSTEM.md), [`PROPOSAL_DISTRIBUTED_JUSTICE_CONTRACT_MATRIX.md`](docs/proposals/PROPOSAL_DISTRIBUTED_JUSTICE_CONTRACT_MATRIX.md), [`KERNEL_ENV_POLICY.md`](docs/proposals/KERNEL_ENV_POLICY.md).
+
+## Distributed justice — Phase 2 LAN DAO batch (stress) — April 2026
+
+- **WebSocket:** ``lan_governance_dao_batch`` — deterministic merge then apply ``dao_vote`` / ``dao_resolve``; requires ``KERNEL_LAN_GOVERNANCE_MERGE_WS=1`` and ``KERNEL_MORAL_HUB_DAO_VOTE=1`` ([`src/chat_server.py`](src/chat_server.py), [`src/modules/moral_hub.py`](src/modules/moral_hub.py)).
+- **Tests:** stress test for reorder/duplicate convergence — [`tests/test_chat_server.py`](tests/test_chat_server.py).
+- **Docs:** contract matrix + env policy updated.
+
+## Distributed justice — Phase 2 LAN judicial batch (stress) — April 2026
+
+- **WebSocket:** ``lan_governance_judicial_batch`` — deterministic merge then register escalation dossiers; requires ``KERNEL_LAN_GOVERNANCE_MERGE_WS=1`` and ``KERNEL_JUDICIAL_ESCALATION=1`` ([`src/chat_server.py`](src/chat_server.py), [`src/modules/moral_hub.py`](src/modules/moral_hub.py)).
+- **Tests:** stress test for reorder/duplicate convergence — [`tests/test_chat_server.py`](tests/test_chat_server.py).
+- **Docs:** contract matrix + env policy updated.
+
+## Distributed justice — Phase 2 LAN mock court batch (stress) — April 2026
+
+- **WebSocket:** ``lan_governance_mock_court_batch`` — deterministic merge then run simulated tribunal; requires ``KERNEL_LAN_GOVERNANCE_MERGE_WS=1``, ``KERNEL_JUDICIAL_ESCALATION=1``, and ``KERNEL_JUDICIAL_MOCK_COURT=1`` ([`src/chat_server.py`](src/chat_server.py), [`src/modules/moral_hub.py`](src/modules/moral_hub.py)).
+- **Tests:** stress test for reorder/duplicate convergence — [`tests/test_chat_server.py`](tests/test_chat_server.py).
+- **Docs:** contract matrix + env policy updated.
+
+## Distributed justice — Phase 2 LAN envelope schema (v1) — April 2026
+
+- **WebSocket:** ``lan_governance_envelope`` (`schema=lan_governance_envelope_v1`) routes by `kind` to LAN batch handlers (`integrity_batch`, `dao_batch`, `judicial_batch`, `mock_court_batch`) in [`src/chat_server.py`](src/chat_server.py).
+- **Code:** validation/normalization contract in [`src/modules/lan_governance_envelope.py`](src/modules/lan_governance_envelope.py).
+- **Tests:** envelope contract tests in [`tests/test_lan_governance_envelope.py`](tests/test_lan_governance_envelope.py) + WebSocket routing tests in [`tests/test_chat_server.py`](tests/test_chat_server.py).
+
+## Distributed justice — DJ-BL-01 / DJ-BL-04 + HTTP API doc — April 2026
+
+- **DJ-BL-01:** [`src/modules/mock_dao_audit_replay.py`](src/modules/mock_dao_audit_replay.py) (`fingerprint_audit_ledger`), [`scripts/eval/verify_mock_dao_audit_replay.py`](scripts/eval/verify_mock_dao_audit_replay.py), [`tests/test_mock_dao_audit_replay.py`](tests/test_mock_dao_audit_replay.py).
+- **DJ-BL-04:** [`docs/proposals/PROPOSAL_DISTRIBUTED_JUSTICE_CONTRACT_MATRIX.md`](docs/proposals/PROPOSAL_DISTRIBUTED_JUSTICE_CONTRACT_MATRIX.md).
+- **HTTP:** [`docs/proposals/PROPOSAL_CHAT_SERVER_HTTP_API_SURFACE.md`](docs/proposals/PROPOSAL_CHAT_SERVER_HTTP_API_SURFACE.md) — inventory of GET JSON routes; OpenAPI off by default (`KERNEL_API_DOCS=1`).
+- **Backlog:** [`docs/proposals/PROPOSAL_DISTRIBUTED_JUSTICE_BACKLOG_SYSTEM.md`](docs/proposals/PROPOSAL_DISTRIBUTED_JUSTICE_BACKLOG_SYSTEM.md) — DJ-BL-01 and DJ-BL-04 marked **Done**.
+
+## Distributed justice — DJ-BL-03 operator runbook (sync degraded) — April 2026
+
+- **Docs:** [`docs/proposals/OPERATOR_QUICK_REF.md`](docs/proposals/OPERATOR_QUICK_REF.md) — *Sync degraded — local-safe mode (DJ-BL-03)* under temporal sync; clarifies `KERNEL_TEMPORAL_LAN_SYNC` / `KERNEL_TEMPORAL_DAO_SYNC` vs in-process ethics, MockDAO, and judicial JSON.
+- **Backlog:** [`docs/proposals/PROPOSAL_DISTRIBUTED_JUSTICE_BACKLOG_SYSTEM.md`](docs/proposals/PROPOSAL_DISTRIBUTED_JUSTICE_BACKLOG_SYSTEM.md) — DJ-BL-03 **Done**; [`docs/proposals/PROPOSAL_DISTRIBUTED_JUSTICE_CONTRIBUTIONS.md`](docs/proposals/PROPOSAL_DISTRIBUTED_JUSTICE_CONTRIBUTIONS.md) table updated.
+
+## Distributed justice — LAN merge + backlog IDs (DJ-BL) — April 2026
+
+- **Code:** [`src/modules/lan_governance_event_merge.py`](src/modules/lan_governance_event_merge.py) — `merge_lan_governance_events` (sort by `turn_index` / `processor_elapsed_ms`, dedupe by `event_id`; Phase 2 stub, no I/O).
+- **Tests:** [`tests/test_lan_governance_event_merge.py`](tests/test_lan_governance_event_merge.py).
+- **Docs:** [`docs/proposals/PROPOSAL_DISTRIBUTED_JUSTICE_BACKLOG_SYSTEM.md`](docs/proposals/PROPOSAL_DISTRIBUTED_JUSTICE_BACKLOG_SYSTEM.md) — `DJ-BL-*` registry; **DJ-BL-02** partial. Updated [`docs/proposals/PROPOSAL_DISTRIBUTED_JUSTICE_CONTRIBUTIONS.md`](docs/proposals/PROPOSAL_DISTRIBUTED_JUSTICE_CONTRIBUTIONS.md) and [`docs/proposals/PROPOSAL_DAO_BLOCKCHAIN_DISTRIBUTED_JUSTICE_STAGED_EXECUTION.md`](docs/proposals/PROPOSAL_DAO_BLOCKCHAIN_DISTRIBUTED_JUSTICE_STAGED_EXECUTION.md) pending gaps.
+
+## Documentation — distributed justice contributions — April 2026
+
+- **New:** [`docs/proposals/PROPOSAL_DISTRIBUTED_JUSTICE_CONTRIBUTIONS.md`](docs/proposals/PROPOSAL_DISTRIBUTED_JUSTICE_CONTRIBUTIONS.md) — contributor guide (code map, backlog aligned with staged execution pending gaps, PR expectations). Linked from [`docs/proposals/PROPOSAL_DISTRIBUTED_JUSTICE_V11.md`](docs/proposals/PROPOSAL_DISTRIBUTED_JUSTICE_V11.md), [`docs/proposals/PROPOSAL_DAO_BLOCKCHAIN_DISTRIBUTED_JUSTICE_STAGED_EXECUTION.md`](docs/proposals/PROPOSAL_DAO_BLOCKCHAIN_DISTRIBUTED_JUSTICE_STAGED_EXECUTION.md), [`docs/proposals/README.md`](docs/proposals/README.md), [`AGENTS.md`](AGENTS.md).
+- **Operator:** [`docs/proposals/OPERATOR_QUICK_REF.md`](docs/proposals/OPERATOR_QUICK_REF.md) — subsection *Distributed justice (V11 — advisory / mock DAO)* with key `KERNEL_JUDICIAL_*` pointers.
+
+## Chat — `temporal_sync` integer coercion + mypy (`chat_server`) — April 2026
+
+- **Code:** [`src/chat_server.py`](src/chat_server.py) — `_coerce_public_int` for `turn_index`, `processor_elapsed_ms`, `turn_delta_ms` in WebSocket `temporal_sync` (fixes mypy on `dict[str, object]` from `TemporalContext.to_public_dict()`; avoids `int()` on arbitrary objects).
+- **Tests:** [`tests/test_chat_server_temporal_coerce.py`](tests/test_chat_server_temporal_coerce.py).
+- **Docs:** [`docs/proposals/OPERATOR_QUICK_REF.md`](docs/proposals/OPERATOR_QUICK_REF.md) (coercion note); [`docs/collaboration/CURSOR_CROSS_TEAM_INTEGRATION_GATE.md`](docs/collaboration/CURSOR_CROSS_TEAM_INTEGRATION_GATE.md).
+
+## LLM integration track — gap closure (G-01, G-02, G-03, G-05, G-06, G-07, G-08) — April 2026
+
+- **Kernel:** [`EthicalKernel.last_natural_verbal_llm_degradation_events`](src/kernel.py) exposes generative degradation from the last [`process_natural`](src/kernel.py) call (G-03).
+- **Dual perception vote:** second-sample failures merge `perception_dual_second_*` parse issues into primary [`coercion_report`](src/modules/llm_layer.py) (G-07).
+- **Docs:** [`PROPOSAL_LLM_TOUCHPOINT_DEGRADATION_MATRIX.md`](docs/proposals/PROPOSAL_LLM_TOUCHPOINT_DEGRADATION_MATRIX.md) (embedding vs completion mapping); [`MALABS_SEMANTIC_LAYERS.md`](docs/proposals/MALABS_SEMANTIC_LAYERS.md) (semantic vs verbal observability); [`PERCEPTION_VALIDATION.md`](docs/proposals/PERCEPTION_VALIDATION.md) (`generative_candidates`); [`OPERATOR_QUICK_REF.md`](docs/proposals/OPERATOR_QUICK_REF.md) (async deadline vs Ollama HTTP, G-05); [`SECURITY.md`](SECURITY.md) (link to integration track); [`PROPOSAL_LLM_INTEGRATION_TRACK.md`](docs/proposals/PROPOSAL_LLM_INTEGRATION_TRACK.md) (status table).
+- **Tests:** [`tests/test_process_natural_verbal_observability.py`](tests/test_process_natural_verbal_observability.py), [`tests/test_perception_dual_vote_failure.py`](tests/test_perception_dual_vote_failure.py), [`tests/test_generative_candidates.py`](tests/test_generative_candidates.py), [`tests/test_input_trust.py`](tests/test_input_trust.py) (`test_chat_safe_turn_coercion_report_chain`).
+
+## LLM vertical roadmap (G-11) — April 2026
+
+- **New:** [`docs/proposals/PROPOSAL_LLM_VERTICAL_ROADMAP.md`](docs/proposals/PROPOSAL_LLM_VERTICAL_ROADMAP.md) — phased justification (operator surface, verbal degradation contract, async-timeout Prometheus counter, MalAbs→`process_chat_turn` subprocess test, `scripts/eval/run_llm_vertical_tests.py`).
+- **Metrics:** `ethos_kernel_chat_turn_async_timeouts_total` when `KERNEL_CHAT_TURN_TIMEOUT` elapses (async waiter only; worker may still run — ADR 0002).
+- **Operator:** [`docs/proposals/OPERATOR_QUICK_REF.md`](docs/proposals/OPERATOR_QUICK_REF.md) — LLM vertical recipes table; [`src/validators/kernel_env_operator.py`](src/validators/kernel_env_operator.py) classifies `KERNEL_LLM_MONOLOGUE` under the LLM family.
+- **Tests:** [`tests/test_llm_verbal_backend_policy.py`](tests/test_llm_verbal_backend_policy.py) (narrate/monologue event keys); [`tests/test_malabs_semantic_integration.py`](tests/test_malabs_semantic_integration.py) (`test_process_chat_turn_benign_after_semantic_tier_subprocess`); [`tests/test_observability_metrics.py`](tests/test_observability_metrics.py) (async-timeout counter).
+
+## Git workflow + LLM track follow-up (master-Cursor, G-04 / G-09 / G-10) — April 2026
+
+- **Branches:** LLM integration work is merged on **`master-Cursor`** (active). The historical **`cursor-team`** branch name is **deprecated** as the default shared line; docs updated in [`docs/collaboration/MULTI_OFFICE_GIT_WORKFLOW.md`](docs/collaboration/MULTI_OFFICE_GIT_WORKFLOW.md), [`.cursor/rules/collaboration-prioritization.mdc`](.cursor/rules/collaboration-prioritization.mdc), and [`docs/proposals/CURSOR_TEAM_MISSION_SENSORS_PERCEPTION.md`](docs/proposals/CURSOR_TEAM_MISSION_SENSORS_PERCEPTION.md).
+- **G-04 (partial):** [`docs/proposals/KERNEL_ENV_POLICY.md`](docs/proposals/KERNEL_ENV_POLICY.md) adds an **LLM touchpoint index** (families + matrix pointers); single-prefix env unification remains deferred per [`docs/WEAKNESSES_AND_BOTTLENECKS.md`](docs/WEAKNESSES_AND_BOTTLENECKS.md) §3.
+- **G-09:** New nominal profile **`llm_integration_lab`** in [`src/runtime_profiles.py`](src/runtime_profiles.py) (semantic MalAbs + generative LLM candidates).
+- **G-10:** [`scripts/eval/run_cursor_integration_gate.py`](scripts/eval/run_cursor_integration_gate.py) now includes LLM-track tests; [`docs/collaboration/CURSOR_CROSS_TEAM_INTEGRATION_GATE.md`](docs/collaboration/CURSOR_CROSS_TEAM_INTEGRATION_GATE.md) updated.
+
+## Documentation — LLM integration track (gap register) — April 2026
+
+- **New:** [`docs/proposals/PROPOSAL_LLM_INTEGRATION_TRACK.md`](docs/proposals/PROPOSAL_LLM_INTEGRATION_TRACK.md) — Cursor-line scope for LLM wiring, MalAbs semantic/embeddings, perception/verbal policies, and integration gaps (G-01…G-10); cross-links from [`docs/proposals/MODEL_CRITICAL_BACKLOG.md`](docs/proposals/MODEL_CRITICAL_BACKLOG.md), [`docs/proposals/CURSOR_TEAM_MISSION_SENSORS_PERCEPTION.md`](docs/proposals/CURSOR_TEAM_MISSION_SENSORS_PERCEPTION.md), [`AGENTS.md`](AGENTS.md), and [`docs/proposals/README.md`](docs/proposals/README.md).
+
 ## Perception pipeline — optional parallel enrichment split — April 2026
 
 - **`EthicalKernel`:** shared perception-stage helpers now serve both `process_chat_turn` and `process_natural`: text pre-enrichment (`_preprocess_text_observability`), post-perception safeguards (`_postprocess_perception`), and chat sensor stack (`_chat_assess_sensor_stack`).
@@ -92,6 +245,8 @@ All notable changes to this project are summarized here. For narrative context a
 - **CI hardening:** [`.github/workflows/ci.yml`](.github/workflows/ci.yml) now enforces coverage floor (`--cov-fail-under=65`), adds a semantic-default contract job (`tests/test_malabs_semantic_integration.py`, `tests/test_semantic_chat_gate.py`), and adds Windows smoke validation (`ruff` + env/profile tests).
 - **Doc coherence and onboarding fixes:** [`CONTRIBUTING.md`](CONTRIBUTING.md) now points to canonical model sources in `docs/proposals`; key operator/env docs fixed link targets from `docs/proposals` to repo paths in [`docs/proposals/KERNEL_ENV_POLICY.md`](docs/proposals/KERNEL_ENV_POLICY.md) and [`docs/proposals/OPERATOR_QUICK_REF.md`](docs/proposals/OPERATOR_QUICK_REF.md).
 - **Critical status memo:** added [`docs/proposals/PROJECT_STATE_HONEST_CRITIQUE_APRIL_2026.md`](docs/proposals/PROJECT_STATE_HONEST_CRITIQUE_APRIL_2026.md) and indexed it in [`docs/proposals/README.md`](docs/proposals/README.md) for deliberation-grade project assessment.
+- **Low-critical runtime polish (non-DAO):** `/health` now includes `safety_defaults` (`kernel_env_validation_mode`, semantic gate/hash fallback toggles, perception fail-safe, perception parallel toggle) to speed up operator diagnosis of default-safety posture; tests updated in [`tests/test_chat_server.py`](tests/test_chat_server.py) and quick reference updated in [`docs/proposals/OPERATOR_QUICK_REF.md`](docs/proposals/OPERATOR_QUICK_REF.md).
+- **Medium-critical MalAbs coverage gap closed:** `AbsoluteEvilDetector` now blocks explicit torture signals and lexical torture instruction patterns (`AbsoluteEvilCategory.TORTURE`), and semantic anchors now include child-harm and torture reference groups. Semantic category mapping/arbiter contract now recognizes `TORTURE`; tests added in [`tests/test_input_trust.py`](tests/test_input_trust.py) and [`tests/test_semantic_chat_gate.py`](tests/test_semantic_chat_gate.py); docs updated in [`docs/proposals/MALABS_SEMANTIC_LAYERS.md`](docs/proposals/MALABS_SEMANTIC_LAYERS.md).
 
 ## LLM touchpoint policy matrix (flexible operator precedence) — April 2026
 

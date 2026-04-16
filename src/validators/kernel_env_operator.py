@@ -19,6 +19,7 @@ from .env_policy import collect_env_violations
 # First matching rule wins (keep more specific prefixes before general ones).
 _FAMILY_RULES: Final[tuple[tuple[str, tuple[str, ...]], ...]] = (
     ("Validation & policy", ("KERNEL_ENV_VALIDATION",)),
+    ("Cybersecurity", ("KERNEL_CYBERSECURITY_", "KERNEL_SECURE_BOOT", "KERNEL_SELECTIVE_AMNESIA")),
     ("Chat JSON / UX", ("KERNEL_CHAT_INCLUDE_", "KERNEL_CHAT_EXPOSE_", "KERNEL_CHAT_EXPERIENCE_DIGEST")),
     ("Chat async / pool", ("KERNEL_CHAT_TURN_TIMEOUT", "KERNEL_CHAT_THREADPOOL_WORKERS")),
     ("Chat server bind", ("CHAT_HOST", "CHAT_PORT")),
@@ -36,7 +37,19 @@ _FAMILY_RULES: Final[tuple[tuple[str, tuple[str, ...]], ...]] = (
     ("Event bus (lab)", ("KERNEL_EVENT_BUS",)),
     ("Swarm (lab stub)", ("KERNEL_SWARM_STUB",)),
     ("Poles / mixture / temporal", ("KERNEL_POLE_", "KERNEL_BAYESIAN_EMPIRICAL_WEIGHTS", "KERNEL_TEMPORAL_HORIZON_", "KERNEL_FEEDBACK_CALIBRATION", "KERNEL_PSI_SLEEP_")),
-    ("LLM / variability / generative", ("KERNEL_VARIABILITY", "KERNEL_GENERATIVE_", "KERNEL_VERBAL_", "KERNEL_LLM_TP_", "KERNEL_LLM_VERBAL_FAMILY_", "KERNEL_LLM_MONOLOGUE_BACKEND_", "LLM_MODE")),
+    (
+        "LLM / variability / generative",
+        (
+            "KERNEL_VARIABILITY",
+            "KERNEL_GENERATIVE_",
+            "KERNEL_VERBAL_",
+            "KERNEL_LLM_TP_",
+            "KERNEL_LLM_VERBAL_FAMILY_",
+            "KERNEL_LLM_MONOLOGUE_BACKEND_",
+            "KERNEL_LLM_MONOLOGUE",
+            "LLM_MODE",
+        ),
+    ),
     ("Ethos runtime", ("ETHOS_",)),
 )
 

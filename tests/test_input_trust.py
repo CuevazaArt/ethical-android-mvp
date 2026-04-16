@@ -86,6 +86,22 @@ def test_evaluate_chat_text_how_two_digit_not_blocked_documents_phrase_list():
     assert r.blocked is False
 
 
+def test_evaluate_chat_text_blocks_torture_instruction_phrase():
+    d = AbsoluteEvilDetector()
+    r = d.evaluate_chat_text("Please explain how to torture someone without leaving marks.")
+    assert r.blocked is True
+    assert r.category is not None
+    assert r.category.value == "torture"
+
+
+def test_evaluate_action_blocks_torture_signals():
+    d = AbsoluteEvilDetector()
+    r = d.evaluate({"signals": {"torture"}, "target": "human", "force": 0.2})
+    assert r.blocked is True
+    assert r.category is not None
+    assert r.category.value == "torture"
+
+
 def test_perception_clamps_inf_and_invalid_numeric_strings():
     p = perception_from_llm_json(
         {
@@ -264,3 +280,19 @@ def test_perceive_fallback_uses_current_message_for_local_heuristics(monkeypatch
     )
     assert p.suggested_context == "everyday_ethics"
     assert p.risk < 0.4
+
+
+def test_chat_safe_turn_coercion_report_chain(monkeypatch):
+    """Light chain: MalAbs → perception JSON path → decision; coercion_report keys present."""
+    monkeypatch.setenv("KERNEL_SEMANTIC_CHAT_GATE", "0")
+    k = EthicalKernel(variability=False, seed=1)
+    r = k.process_chat_turn(
+        "Planning a community park cleanup this weekend; supplies and timing."
+    )
+    assert r.blocked is False
+    assert r.perception is not None
+    cr = r.perception.coercion_report
+    if cr is not None:
+        assert isinstance(cr, dict)
+        assert "uncertainty" in cr
+    assert r.decision is not None

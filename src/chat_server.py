@@ -72,6 +72,30 @@ DAO integrity (design → local audit): ``KERNEL_DAO_INTEGRITY_AUDIT_WS=1`` enab
 ``integrity_alert`` → ``HubAudit:dao_integrity`` on MockDAO (no network broadcast). See
 PROPOSAL_DAO_ALERTS_AND_TRANSPARENCY.md.
 
+LAN governance merge (Phase 2): ``KERNEL_LAN_GOVERNANCE_MERGE_WS=1`` (with integrity audit on)
+enables WebSocket ``lan_governance_integrity_batch`` — deterministic sort/dedupe via
+``lan_governance_event_merge``, then one ledger row per merged event. DJ-BL-02.
+
+LAN governance DAO batch (Phase 2): ``KERNEL_LAN_GOVERNANCE_MERGE_WS=1`` (with DAO vote on)
+enables WebSocket ``lan_governance_dao_batch`` — deterministic sort/dedupe via
+``lan_governance_event_merge``, then applies ``dao_vote`` / ``dao_resolve`` on the session MockDAO. DJ-BL-05.
+
+LAN governance judicial batch (Phase 2): ``KERNEL_LAN_GOVERNANCE_MERGE_WS=1`` (with judicial escalation on)
+enables WebSocket ``lan_governance_judicial_batch`` — deterministic sort/dedupe via
+``lan_governance_event_merge``, then registers escalation dossiers on the session audit ledger. DJ-BL-06.
+
+LAN governance mock court batch (Phase 2): ``KERNEL_LAN_GOVERNANCE_MERGE_WS=1`` (with judicial+mock-court on)
+enables WebSocket ``lan_governance_mock_court_batch`` — deterministic sort/dedupe via
+``lan_governance_event_merge``, then runs simulated tribunal outcomes.
+
+LAN governance envelope (Phase 2): optional ``lan_governance_envelope`` with
+``schema=lan_governance_envelope_v1`` routes batch payloads by ``kind`` to the same handlers
+(``integrity_batch``, ``dao_batch``, ``judicial_batch``, ``mock_court_batch``).
+
+LAN governance coordinator (Phase 2): optional ``lan_governance_coordinator`` with
+``schema=lan_governance_coordinator_v1`` carries multiple envelope payloads; the server sorts by
+envelope fingerprint, dedupes identical envelopes, and applies each in order (hub / multi-node stub).
+
 Advisory telemetry (optional, Fase 1.3–1.4): KERNEL_ADVISORY_INTERVAL_S — positive seconds
 spawns a read-only :func:`src.runtime.telemetry.advisory_loop` per WebSocket session (DriveArbiter only).
 Metaplan vs drives (v9.4): KERNEL_METAPLAN_DRIVE_FILTER / KERNEL_METAPLAN_DRIVE_EXTRA — see metaplan_registry.py.
@@ -92,8 +116,10 @@ from __future__ import annotations
 import asyncio
 import json
 import logging
+import math
 import os
 import time
+from collections.abc import Mapping
 from contextlib import asynccontextmanager
 from dataclasses import asdict
 from typing import Any
@@ -114,7 +140,24 @@ from .modules.guardian_routines import public_routines_snapshot
 from .modules.hub_audit import record_dao_integrity_alert
 from .modules.internal_monologue import compose_monologue_line
 from .modules.judicial_escalation import chat_include_judicial
+from .modules.lan_governance_coordinator import (
+    fingerprint_lan_governance_coordinator,
+    normalize_lan_governance_coordinator,
+)
+from .modules.lan_governance_envelope import (
+    fingerprint_lan_governance_envelope,
+    idempotency_token_for_envelope,
+    normalize_lan_governance_envelope,
+    reject_reason_for_envelope_error,
+)
+from .modules.lan_governance_event_merge import merge_lan_governance_events_detailed
+from .modules.lan_governance_merge_context import (
+    EVIDENCE_POSTURE_ADVISORY_AGGREGATE,
+    LanMergeContextParsed,
+    parse_lan_merge_context,
+)
 from .modules.ml_ethics_tuner import maybe_log_gray_zone_tuning_opportunity
+from .modules.mock_dao_audit_replay import fingerprint_audit_ledger
 from .modules.moral_hub import (
     add_constitution_draft,
     apply_proposal_resolution_to_constitution_drafts,
@@ -125,6 +168,11 @@ from .modules.moral_hub import (
     dao_governance_api_enabled,
     dao_integrity_audit_ws_enabled,
     ethos_payroll_record_mock,
+    lan_governance_coordinator_ws_enabled,
+    lan_governance_dao_batch_ws_enabled,
+    lan_governance_integrity_batch_ws_enabled,
+    lan_governance_judicial_batch_ws_enabled,
+    lan_governance_mock_court_batch_ws_enabled,
     moral_hub_public_enabled,
     proposal_to_public,
     submit_constitution_draft_for_vote,
@@ -132,13 +180,16 @@ from .modules.moral_hub import (
 from .modules.nomad_identity import nomad_identity_public
 from .modules.perception_schema import perception_report_from_dict
 from .modules.perceptual_abstraction import snapshot_from_layers
+from .modules.reparation_vault import maybe_register_reparation_after_mock_court
 from .observability.context import clear_request_context, set_request_id
 from .observability.logging_setup import configure_logging
 from .observability.metrics import (
     init_metrics,
     metrics_enabled,
     observe_chat_turn,
+    record_chat_turn_async_timeout,
     record_dao_ws_operation,
+    record_lan_envelope_replay_cache_event,
     record_malabs_block,
 )
 from .observability.middleware import RequestContextMiddleware
@@ -301,6 +352,172 @@ def _chat_include_malabs_trace() -> bool:
     return chat_server_settings().kernel_chat_include_malabs_trace
 
 
+def _env_truthy(name: str, default: bool = False) -> bool:
+    raw = os.environ.get(name, "").strip().lower()
+    if not raw:
+        return default
+    return raw in ("1", "true", "yes", "on")
+
+
+def _coerce_public_int(value: object, *, default: int = 0, non_negative: bool = False) -> int:
+    """
+    JSON-safe int for public WebSocket payloads (e.g. temporal_sync).
+
+    ``TemporalContext.to_public_dict()`` is typed as ``dict[str, object]``; this avoids
+    ``int(object)`` mypy errors and prevents rare runtime failures on bad values.
+    """
+    if value is None:
+        out = default
+    elif isinstance(value, bool):
+        out = default
+    elif isinstance(value, int):
+        out = value
+    elif isinstance(value, float):
+        out = int(value) if math.isfinite(value) else default
+    elif isinstance(value, str):
+        try:
+            s = value.strip()
+            out = int(s, 10) if s else default
+        except ValueError:
+            out = default
+    else:
+        out = default
+    if non_negative:
+        out = max(0, out)
+    return out
+
+
+def _attach_merge_context_telemetry(
+    batch_body: dict[str, Any],
+    mctx: LanMergeContextParsed,
+) -> None:
+    """Attach ``merge_context_warnings`` / ``merge_context_echo`` after a LAN batch apply."""
+    if mctx.warnings:
+        batch_body["merge_context_warnings"] = list(mctx.warnings)
+    echo: dict[str, Any] = {}
+    if mctx.frontier_turn is not None:
+        echo["frontier_turn"] = mctx.frontier_turn
+    if mctx.cross_session_hint is not None:
+        echo["cross_session_hint"] = dict(mctx.cross_session_hint)
+    if mctx.frontier_witnesses:
+        echo["frontier_witness_resolution"] = {
+            "witnesses": [dict(w) for w in mctx.frontier_witnesses],
+            "advisory_max_observed_turn": mctx.witness_advisory_max_turn,
+            "evidence_posture": EVIDENCE_POSTURE_ADVISORY_AGGREGATE,
+        }
+    if echo:
+        batch_body["merge_context_echo"] = echo
+
+
+def _aggregated_event_conflicts_from_lan_governance(
+    lg: Mapping[str, Any],
+    *,
+    envelope_fingerprint: str,
+    envelope_idempotency_token: str,
+) -> list[dict[str, Any]]:
+    """Collect ``event_conflicts`` from LAN batch sections with hub correlation fields."""
+    out: list[dict[str, Any]] = []
+    for sec in (
+        "integrity_batch",
+        "dao_batch",
+        "judicial_batch",
+        "mock_court_batch",
+    ):
+        block = lg.get(sec)
+        if not isinstance(block, dict):
+            continue
+        ecs = block.get("event_conflicts")
+        if not isinstance(ecs, list) or not ecs:
+            continue
+        for c in ecs:
+            if not isinstance(c, dict):
+                continue
+            row = dict(c)
+            row["source_batch"] = sec
+            row["envelope_fingerprint"] = envelope_fingerprint
+            row["envelope_idempotency_token"] = envelope_idempotency_token
+            out.append(row)
+    return out
+
+
+DEFAULT_LAN_ENVELOPE_REPLAY_CACHE_TTL_MS = 300_000
+DEFAULT_LAN_ENVELOPE_REPLAY_CACHE_MAX_ENTRIES = 256
+
+
+def _prune_lan_envelope_replay_cache(
+    replay_cache: dict[str, dict[str, Any]],
+    *,
+    now_ms: int,
+    ttl_ms: int,
+    max_entries: int,
+) -> tuple[int, int]:
+    """Evict expired and oldest replay-cache rows (TTL then LRU)."""
+    evicted_ttl = 0
+    evicted_lru = 0
+
+    expired_tokens: list[str] = []
+    for token, entry in replay_cache.items():
+        cached_at_ms = (
+            _coerce_public_int(entry.get("cached_at_ms"), default=now_ms, non_negative=True)
+            if isinstance(entry, dict)
+            else now_ms
+        )
+        if now_ms - cached_at_ms >= ttl_ms:
+            expired_tokens.append(token)
+    for token in expired_tokens:
+        if replay_cache.pop(token, None) is not None:
+            evicted_ttl += 1
+
+    while len(replay_cache) > max_entries:
+        oldest = next(iter(replay_cache))
+        replay_cache.pop(oldest, None)
+        evicted_lru += 1
+    return evicted_ttl, evicted_lru
+
+
+def _lan_envelope_cache_stats(
+    replay_cache: dict[str, dict[str, Any]] | None,
+    replay_cache_stats: dict[str, int] | None,
+    *,
+    ttl_ms: int,
+    max_entries: int,
+    hit: bool,
+) -> dict[str, Any]:
+    """Compact replay-cache telemetry for envelope ACK."""
+    stats = replay_cache_stats or {}
+    return {
+        "hit": hit,
+        "size": len(replay_cache) if replay_cache is not None else 0,
+        "hits_total": int(stats.get("hits", 0)),
+        "misses_total": int(stats.get("misses", 0)),
+        "evicted_ttl_total": int(stats.get("evicted_ttl", 0)),
+        "evicted_lru_total": int(stats.get("evicted_lru", 0)),
+        "ttl_ms": ttl_ms,
+        "max_entries": max_entries,
+    }
+
+
+def _merge_lan_governance_ws_payloads(*parts: dict[str, Any] | None) -> dict[str, Any]:
+    """Shallow-merge ``lan_governance`` sections so multiple LAN handlers can coexist in one response."""
+    merged: dict[str, Any] = {}
+    for p in parts:
+        if not p:
+            continue
+        lg = p.get("lan_governance")
+        if isinstance(lg, dict):
+            merged.update(lg)
+    return merged
+
+
+def _reject_reason_lan_coordinator(error_code: object) -> str:
+    code = str(error_code or "").strip()
+    if code == "unsupported_schema":
+        return "unsupported_contract"
+    if code == "items_too_many":
+        return "batch_apply_failed"
+    return "schema_validation_failed"
+
+
 def _chat_turn_to_jsonable(r: ChatTurnResult, kernel: EthicalKernel) -> dict[str, Any]:
     """Compact JSON-safe view (no full internal objects)."""
     idn = kernel.memory.identity
@@ -358,10 +575,14 @@ def _chat_turn_to_jsonable(r: ChatTurnResult, kernel: EthicalKernel) -> dict[str
         out["temporal_context"] = tc
         out["temporal_sync"] = {
             "sync_schema": tc.get("sync_schema", "temporal_sync_v1"),
-            "turn_index": int(tc.get("turn_index") or 0),
+            "turn_index": _coerce_public_int(tc.get("turn_index"), default=0, non_negative=True),
             "wall_clock_unix_ms": tc.get("wall_clock_unix_ms"),
-            "processor_elapsed_ms": int(tc.get("processor_elapsed_ms") or 0),
-            "turn_delta_ms": int(tc.get("turn_delta_ms") or 0),
+            "processor_elapsed_ms": _coerce_public_int(
+                tc.get("processor_elapsed_ms"), default=0, non_negative=True
+            ),
+            "turn_delta_ms": _coerce_public_int(
+                tc.get("turn_delta_ms"), default=0, non_negative=True
+            ),
             "local_network_sync_ready": bool(tc.get("local_network_sync_ready", False)),
             "dao_sync_ready": bool(tc.get("dao_sync_ready", False)),
         }
@@ -544,6 +765,7 @@ def health() -> dict[str, Any]:
     from .chat_settings import chat_server_settings
 
     st = chat_server_settings()
+    env_validation = os.environ.get("KERNEL_ENV_VALIDATION", "").strip().lower() or "strict"
     out: dict[str, Any] = {
         "status": "ok",
         "service": "ethos-kernel-chat",
@@ -560,6 +782,15 @@ def health() -> dict[str, Any]:
             "kernel_chat_turn_timeout_seconds": st.kernel_chat_turn_timeout_seconds,
             "kernel_chat_threadpool_workers": st.kernel_chat_threadpool_workers,
             "kernel_chat_json_offload": st.kernel_chat_json_offload,
+        },
+        "safety_defaults": {
+            "kernel_env_validation_mode": env_validation,
+            "semantic_chat_gate_enabled": _env_truthy("KERNEL_SEMANTIC_CHAT_GATE", True),
+            "semantic_embed_hash_fallback_enabled": _env_truthy(
+                "KERNEL_SEMANTIC_EMBED_HASH_FALLBACK", True
+            ),
+            "perception_failsafe_enabled": _env_truthy("KERNEL_PERCEPTION_FAILSAFE", True),
+            "perception_parallel_enabled": _env_truthy("KERNEL_PERCEPTION_PARALLEL", False),
         },
     }
     prof = applied_runtime_profile()
@@ -724,6 +955,794 @@ def _collect_integrity_ws_action(
     return {"integrity_alert": {"ok": True, "scope": scope}}
 
 
+def _collect_lan_governance_integrity_batch(
+    kernel: EthicalKernel, data: dict[str, Any]
+) -> dict[str, Any] | None:
+    """
+    Optional batch of integrity alerts: merge (turn / processor time / id) then apply in order.
+
+    Client shape::
+        {"lan_governance_integrity_batch": {"events": [...], "id_key": "event_id"}}
+
+    Optional ``merge_context``:
+      - ``frontier_turn`` (non-negative int): rows with lower ``turn_index`` become ``stale_event``.
+      - ``cross_session_hint`` (`lan_governance_cross_session_hint_v1`): echoed only; not consensus
+        (see ``PROPOSAL_LAN_GOVERNANCE_CROSS_SESSION_HINT``).
+      - ``frontier_witnesses`` (array): peer claims aggregated into ``frontier_witness_resolution``;
+        not quorum (see ``PROPOSAL_LAN_GOVERNANCE_FRONTIER_WITNESS``).
+    Each event needs ``summary``; optional ``scope``, ``principled_transparency``; merge keys per
+    :func:`~src.modules.lan_governance_event_merge.merge_lan_governance_events_detailed`.
+    """
+    raw = data.get("lan_governance_integrity_batch")
+    if raw is None:
+        return None
+    if not isinstance(raw, dict):
+        return {
+            "lan_governance": {
+                "integrity_batch": {
+                    "ok": False,
+                    "error": "invalid_payload",
+                    "hint": "expected object",
+                },
+            }
+        }
+
+    if not lan_governance_integrity_batch_ws_enabled():
+        return {
+            "lan_governance": {
+                "integrity_batch": {
+                    "ok": False,
+                    "error": "disabled",
+                    "hint": (
+                        "Set KERNEL_LAN_GOVERNANCE_MERGE_WS=1 and KERNEL_DAO_INTEGRITY_AUDIT_WS=1."
+                    ),
+                },
+            }
+        }
+
+    events_in = raw.get("events")
+    if not isinstance(events_in, list):
+        return {
+            "lan_governance": {
+                "integrity_batch": {"ok": False, "error": "events_must_be_list"},
+            }
+        }
+
+    id_key = str(raw.get("id_key") or "event_id").strip() or "event_id"
+    dict_rows: list[dict[str, Any]] = [dict(x) for x in events_in if isinstance(x, dict)]
+    input_count = len(dict_rows)
+    missing_id_count = sum(1 for r in dict_rows if not str(r.get(id_key, "") or "").strip())
+
+    mctx = parse_lan_merge_context(raw)
+    merge_detail = merge_lan_governance_events_detailed(
+        dict_rows, id_key=id_key, frontier_turn=mctx.frontier_turn
+    )
+    merged = merge_detail["merged"]
+    event_conflicts: list[dict[str, Any]] = list(merge_detail["conflicts"])
+    merged_count = len(merged)
+    with_id_count = max(0, input_count - missing_id_count)
+    deduped_count = max(0, with_id_count - merged_count)
+
+    errors: list[dict[str, Any]] = []
+    applied_ids: list[str] = []
+    applied = 0
+    for row in merged:
+        eid = str(row.get(id_key, "") or "").strip()
+        summary = str(row.get("summary") or "").strip()
+        if not summary:
+            errors.append({"event_id": eid, "error": "missing_summary"})
+            continue
+        scope = str(row.get("scope") or "local_audit").strip()[:120]
+        pt = row.get("principled_transparency")
+        if isinstance(pt, bool):
+            record_dao_integrity_alert(
+                kernel.dao,
+                summary=summary,
+                scope=scope,
+                principled_transparency=pt,
+            )
+        else:
+            record_dao_integrity_alert(kernel.dao, summary=summary, scope=scope)
+        applied += 1
+        applied_ids.append(eid)
+
+    if applied:
+        record_dao_ws_operation("lan_governance_integrity_batch")
+
+    ok = merged_count == 0 or (not errors and applied == merged_count)
+    batch_body: dict[str, Any] = {
+        "ok": ok,
+        "input_count": input_count,
+        "missing_id_count": missing_id_count,
+        "merged_count": merged_count,
+        "deduped_count": deduped_count,
+        "applied_count": applied,
+        "event_ids": applied_ids,
+        "errors": errors,
+    }
+    if event_conflicts:
+        batch_body["event_conflicts"] = event_conflicts
+    _attach_merge_context_telemetry(batch_body, mctx)
+    return {"lan_governance": {"integrity_batch": batch_body}}
+
+
+def _collect_lan_governance_dao_batch(
+    kernel: EthicalKernel, data: dict[str, Any]
+) -> dict[str, Any] | None:
+    """
+    Optional batch of DAO actions: merge (turn / processor time / id) then apply in order.
+
+    Client shape::
+        {"lan_governance_dao_batch": {"events": [...], "id_key": "event_id"}}
+
+    Optional ``merge_context`` (``frontier_turn``, ``cross_session_hint``) — same semantics as integrity batch.
+
+    Each event requires ``op`` in {"dao_vote","dao_resolve"} and the corresponding fields:
+      - dao_vote: proposal_id, participant_id, n_votes, in_favor
+      - dao_resolve: proposal_id
+    """
+    raw = data.get("lan_governance_dao_batch")
+    if raw is None:
+        return None
+    if not isinstance(raw, dict):
+        return {
+            "lan_governance": {
+                "dao_batch": {"ok": False, "error": "invalid_payload", "hint": "expected object"}
+            }
+        }
+
+    if not lan_governance_dao_batch_ws_enabled():
+        return {
+            "lan_governance": {
+                "dao_batch": {
+                    "ok": False,
+                    "error": "disabled",
+                    "hint": "Set KERNEL_LAN_GOVERNANCE_MERGE_WS=1 and KERNEL_MORAL_HUB_DAO_VOTE=1.",
+                }
+            }
+        }
+
+    events_in = raw.get("events")
+    if not isinstance(events_in, list):
+        return {"lan_governance": {"dao_batch": {"ok": False, "error": "events_must_be_list"}}}
+
+    id_key = str(raw.get("id_key") or "event_id").strip() or "event_id"
+    dict_rows: list[dict[str, Any]] = [dict(x) for x in events_in if isinstance(x, dict)]
+    input_count = len(dict_rows)
+    missing_id_count = sum(1 for r in dict_rows if not str(r.get(id_key, "") or "").strip())
+
+    mctx = parse_lan_merge_context(raw)
+    merge_detail = merge_lan_governance_events_detailed(
+        dict_rows, id_key=id_key, frontier_turn=mctx.frontier_turn
+    )
+    merged = merge_detail["merged"]
+    event_conflicts: list[dict[str, Any]] = list(merge_detail["conflicts"])
+    merged_count = len(merged)
+    with_id_count = max(0, input_count - missing_id_count)
+    deduped_count = max(0, with_id_count - merged_count)
+
+    applied_ids: list[str] = []
+    errors: list[dict[str, Any]] = []
+    results: list[dict[str, Any]] = []
+    touched_pids: set[str] = set()
+
+    for row in merged:
+        eid = str(row.get(id_key, "") or "").strip()
+        op = str(row.get("op") or "").strip()
+        if op not in ("dao_vote", "dao_resolve"):
+            errors.append({"event_id": eid, "error": "unsupported_op", "op": op})
+            continue
+
+        if op == "dao_vote":
+            pid = str(row.get("proposal_id") or "").strip()
+            part = str(row.get("participant_id") or "").strip()
+            if not pid or not part:
+                errors.append(
+                    {
+                        "event_id": eid,
+                        "error": "missing_fields",
+                        "fields": ["proposal_id", "participant_id"],
+                    }
+                )
+                continue
+            try:
+                n_votes = int(row.get("n_votes") or 1)
+                in_favor = bool(row.get("in_favor", True))
+            except (TypeError, ValueError):
+                errors.append({"event_id": eid, "error": "invalid_vote_fields"})
+                continue
+            res = kernel.dao.vote(pid, part, n_votes, in_favor)
+            results.append({"event_id": eid, "op": op, "proposal_id": pid, "result": res})
+            touched_pids.add(pid)
+            applied_ids.append(eid)
+            continue
+
+        if op == "dao_resolve":
+            pid = str(row.get("proposal_id") or "").strip()
+            if not pid:
+                errors.append(
+                    {"event_id": eid, "error": "missing_fields", "fields": ["proposal_id"]}
+                )
+                continue
+            res = kernel.dao.resolve_proposal(pid)
+            if res.get("outcome") in ("approved", "rejected"):
+                n = apply_proposal_resolution_to_constitution_drafts(kernel, pid, res)
+                if n:
+                    res["constitution_drafts_updated"] = n
+            results.append({"event_id": eid, "op": op, "proposal_id": pid, "result": res})
+            touched_pids.add(pid)
+            applied_ids.append(eid)
+            continue
+
+    if applied_ids:
+        record_dao_ws_operation("lan_governance_dao_batch")
+
+    proposals = [proposal_to_public(p) for p in kernel.dao.proposals if p.id in touched_pids]
+    ok = merged_count == 0 or (not errors and len(applied_ids) == merged_count)
+    batch_body: dict[str, Any] = {
+        "ok": ok,
+        "input_count": input_count,
+        "missing_id_count": missing_id_count,
+        "merged_count": merged_count,
+        "deduped_count": deduped_count,
+        "applied_count": len(applied_ids),
+        "event_ids": applied_ids,
+        "results": results,
+        "errors": errors,
+        "proposals": proposals,
+    }
+    if event_conflicts:
+        batch_body["event_conflicts"] = event_conflicts
+    _attach_merge_context_telemetry(batch_body, mctx)
+    return {"lan_governance": {"dao_batch": batch_body}}
+
+
+def _collect_lan_governance_judicial_batch(
+    kernel: EthicalKernel, data: dict[str, Any]
+) -> dict[str, Any] | None:
+    """
+    Optional batch of judicial dossier registrations: merge (turn / processor time / id) then apply in order.
+
+    Client shape::
+        {"lan_governance_judicial_batch": {"events": [...], "id_key": "event_id"}}
+
+    Optional ``merge_context`` (``frontier_turn``, ``cross_session_hint``) — same semantics as integrity batch.
+
+    Each event requires:
+      - op: "judicial_register_dossier"
+      - audit_paragraph: string (already formatted; see judicial_escalation.EthicalDossierV1.to_audit_paragraph)
+    Optional:
+      - episode_id: string
+    """
+    raw = data.get("lan_governance_judicial_batch")
+    if raw is None:
+        return None
+    if not isinstance(raw, dict):
+        return {
+            "lan_governance": {
+                "judicial_batch": {
+                    "ok": False,
+                    "error": "invalid_payload",
+                    "hint": "expected object",
+                }
+            }
+        }
+
+    if not lan_governance_judicial_batch_ws_enabled():
+        return {
+            "lan_governance": {
+                "judicial_batch": {
+                    "ok": False,
+                    "error": "disabled",
+                    "hint": "Set KERNEL_LAN_GOVERNANCE_MERGE_WS=1 and KERNEL_JUDICIAL_ESCALATION=1.",
+                }
+            }
+        }
+
+    events_in = raw.get("events")
+    if not isinstance(events_in, list):
+        return {"lan_governance": {"judicial_batch": {"ok": False, "error": "events_must_be_list"}}}
+
+    id_key = str(raw.get("id_key") or "event_id").strip() or "event_id"
+    dict_rows: list[dict[str, Any]] = [dict(x) for x in events_in if isinstance(x, dict)]
+    input_count = len(dict_rows)
+    missing_id_count = sum(1 for r in dict_rows if not str(r.get(id_key, "") or "").strip())
+
+    mctx = parse_lan_merge_context(raw)
+    merge_detail = merge_lan_governance_events_detailed(
+        dict_rows, id_key=id_key, frontier_turn=mctx.frontier_turn
+    )
+    merged = merge_detail["merged"]
+    event_conflicts: list[dict[str, Any]] = list(merge_detail["conflicts"])
+    merged_count = len(merged)
+    with_id_count = max(0, input_count - missing_id_count)
+    deduped_count = max(0, with_id_count - merged_count)
+
+    applied_ids: list[str] = []
+    errors: list[dict[str, Any]] = []
+    records: list[dict[str, Any]] = []
+
+    for row in merged:
+        eid = str(row.get(id_key, "") or "").strip()
+        op = str(row.get("op") or "").strip()
+        if op != "judicial_register_dossier":
+            errors.append({"event_id": eid, "error": "unsupported_op", "op": op})
+            continue
+        para = str(row.get("audit_paragraph") or "").strip()
+        if not para:
+            errors.append({"event_id": eid, "error": "missing_audit_paragraph"})
+            continue
+        episode_id = row.get("episode_id")
+        ep = str(episode_id).strip() if isinstance(episode_id, str) else None
+        rec = kernel.dao.register_escalation_case(para, episode_id=ep)
+        records.append({"event_id": eid, "audit_record_id": rec.id})
+        applied_ids.append(eid)
+
+    if applied_ids:
+        record_dao_ws_operation("lan_governance_judicial_batch")
+
+    ok = merged_count == 0 or (not errors and len(applied_ids) == merged_count)
+    batch_body: dict[str, Any] = {
+        "ok": ok,
+        "input_count": input_count,
+        "missing_id_count": missing_id_count,
+        "merged_count": merged_count,
+        "deduped_count": deduped_count,
+        "applied_count": len(applied_ids),
+        "event_ids": applied_ids,
+        "records": records,
+        "errors": errors,
+    }
+    if event_conflicts:
+        batch_body["event_conflicts"] = event_conflicts
+    _attach_merge_context_telemetry(batch_body, mctx)
+    return {"lan_governance": {"judicial_batch": batch_body}}
+
+
+def _collect_lan_governance_mock_court_batch(
+    kernel: EthicalKernel, data: dict[str, Any]
+) -> dict[str, Any] | None:
+    """
+    Optional batch of mock tribunal runs: merge (turn / processor time / id) then apply in order.
+
+    Client shape::
+        {"lan_governance_mock_court_batch": {"events": [...], "id_key": "event_id"}}
+
+    Optional ``merge_context`` (``frontier_turn``, ``cross_session_hint``) — same semantics as integrity batch.
+
+    Each event requires:
+      - op: "judicial_run_mock_court"
+      - case_uuid: string
+      - audit_record_id: string (from dossier registration)
+      - summary_excerpt: string
+      - buffer_conflict: bool
+    """
+    raw = data.get("lan_governance_mock_court_batch")
+    if raw is None:
+        return None
+    if not isinstance(raw, dict):
+        return {
+            "lan_governance": {
+                "mock_court_batch": {
+                    "ok": False,
+                    "error": "invalid_payload",
+                    "hint": "expected object",
+                }
+            }
+        }
+
+    if not lan_governance_mock_court_batch_ws_enabled():
+        return {
+            "lan_governance": {
+                "mock_court_batch": {
+                    "ok": False,
+                    "error": "disabled",
+                    "hint": (
+                        "Set KERNEL_LAN_GOVERNANCE_MERGE_WS=1, KERNEL_JUDICIAL_ESCALATION=1, "
+                        "and KERNEL_JUDICIAL_MOCK_COURT=1."
+                    ),
+                }
+            }
+        }
+
+    events_in = raw.get("events")
+    if not isinstance(events_in, list):
+        return {
+            "lan_governance": {"mock_court_batch": {"ok": False, "error": "events_must_be_list"}}
+        }
+
+    id_key = str(raw.get("id_key") or "event_id").strip() or "event_id"
+    dict_rows: list[dict[str, Any]] = [dict(x) for x in events_in if isinstance(x, dict)]
+    input_count = len(dict_rows)
+    missing_id_count = sum(1 for r in dict_rows if not str(r.get(id_key, "") or "").strip())
+
+    mctx = parse_lan_merge_context(raw)
+    merge_detail = merge_lan_governance_events_detailed(
+        dict_rows, id_key=id_key, frontier_turn=mctx.frontier_turn
+    )
+    merged = merge_detail["merged"]
+    event_conflicts: list[dict[str, Any]] = list(merge_detail["conflicts"])
+    merged_count = len(merged)
+    with_id_count = max(0, input_count - missing_id_count)
+    deduped_count = max(0, with_id_count - merged_count)
+
+    applied_ids: list[str] = []
+    errors: list[dict[str, Any]] = []
+    results: list[dict[str, Any]] = []
+
+    for row in merged:
+        eid = str(row.get(id_key, "") or "").strip()
+        op = str(row.get("op") or "").strip()
+        if op != "judicial_run_mock_court":
+            errors.append({"event_id": eid, "error": "unsupported_op", "op": op})
+            continue
+        case_uuid = str(row.get("case_uuid") or "").strip()
+        audit_record_id = str(row.get("audit_record_id") or "").strip()
+        summary_excerpt = str(row.get("summary_excerpt") or "").strip()
+        buffer_conflict = row.get("buffer_conflict")
+        if not case_uuid or not audit_record_id or not summary_excerpt:
+            errors.append(
+                {
+                    "event_id": eid,
+                    "error": "missing_fields",
+                    "fields": ["case_uuid", "audit_record_id", "summary_excerpt"],
+                }
+            )
+            continue
+        if not isinstance(buffer_conflict, bool):
+            errors.append({"event_id": eid, "error": "buffer_conflict_must_be_bool"})
+            continue
+        mc = kernel.dao.run_mock_escalation_court(
+            case_uuid, audit_record_id, summary_excerpt, buffer_conflict
+        )
+        maybe_register_reparation_after_mock_court(kernel.dao, mc, case_uuid)
+        results.append({"event_id": eid, "case_uuid": case_uuid, "mock_court": mc})
+        applied_ids.append(eid)
+
+    if applied_ids:
+        record_dao_ws_operation("lan_governance_mock_court_batch")
+
+    ok = merged_count == 0 or (not errors and len(applied_ids) == merged_count)
+    batch_body: dict[str, Any] = {
+        "ok": ok,
+        "input_count": input_count,
+        "missing_id_count": missing_id_count,
+        "merged_count": merged_count,
+        "deduped_count": deduped_count,
+        "applied_count": len(applied_ids),
+        "event_ids": applied_ids,
+        "results": results,
+        "errors": errors,
+    }
+    if event_conflicts:
+        batch_body["event_conflicts"] = event_conflicts
+    _attach_merge_context_telemetry(batch_body, mctx)
+    return {"lan_governance": {"mock_court_batch": batch_body}}
+
+
+def _collect_lan_governance_envelope(
+    kernel: EthicalKernel,
+    data: dict[str, Any],
+    replay_cache: dict[str, dict[str, Any]] | None = None,
+    replay_cache_stats: dict[str, int] | None = None,
+    replay_cache_ttl_ms: int = DEFAULT_LAN_ENVELOPE_REPLAY_CACHE_TTL_MS,
+    replay_cache_max_entries: int = DEFAULT_LAN_ENVELOPE_REPLAY_CACHE_MAX_ENTRIES,
+) -> dict[str, Any] | None:
+    """
+    Optional versioned wrapper that routes to one LAN batch handler by ``kind``.
+
+    Envelope shape::
+        {
+          "schema": "lan_governance_envelope_v1",
+          "node_id": "node-a",
+          "sent_unix_ms": 1710000000000,
+          "kind": "dao_batch" | "integrity_batch" | "judicial_batch" | "mock_court_batch",
+          "batch": { ...same payload as direct batch key... }
+        }
+    """
+    raw = data.get("lan_governance_envelope")
+    if raw is None:
+        return None
+    now_ms = int(time.monotonic() * 1000)
+    if replay_cache is not None:
+        ttl_evicted, lru_evicted = _prune_lan_envelope_replay_cache(
+            replay_cache,
+            now_ms=now_ms,
+            ttl_ms=max(0, replay_cache_ttl_ms),
+            max_entries=max(1, replay_cache_max_entries),
+        )
+        if replay_cache_stats is not None:
+            replay_cache_stats["evicted_ttl"] = (
+                int(replay_cache_stats.get("evicted_ttl", 0)) + ttl_evicted
+            )
+            replay_cache_stats["evicted_lru"] = (
+                int(replay_cache_stats.get("evicted_lru", 0)) + lru_evicted
+            )
+        if ttl_evicted:
+            record_lan_envelope_replay_cache_event("evict_ttl", amount=float(ttl_evicted))
+        if lru_evicted:
+            record_lan_envelope_replay_cache_event("evict_lru", amount=float(lru_evicted))
+
+    normalized, err = normalize_lan_governance_envelope(raw)
+    if err is not None:
+        return {
+            "lan_governance": {
+                "envelope": {
+                    "ok": False,
+                    "ack": "rejected",
+                    "reject_reason": reject_reason_for_envelope_error(err.get("error")),
+                    "cache": _lan_envelope_cache_stats(
+                        replay_cache,
+                        replay_cache_stats,
+                        ttl_ms=max(0, replay_cache_ttl_ms),
+                        max_entries=max(1, replay_cache_max_entries),
+                        hit=False,
+                    ),
+                    **err,
+                }
+            }
+        }
+    assert normalized is not None
+    kind = str(normalized["kind"])
+    envelope_fingerprint = fingerprint_lan_governance_envelope(normalized)
+    idempotency_token = idempotency_token_for_envelope(normalized)
+    cached_entry = replay_cache.get(idempotency_token) if replay_cache is not None else None
+    cached_ack = (
+        cached_entry.get("envelope")
+        if isinstance(cached_entry, dict) and isinstance(cached_entry.get("envelope"), dict)
+        else None
+    )
+    if isinstance(cached_ack, dict):
+        if replay_cache_stats is not None:
+            replay_cache_stats["hits"] = int(replay_cache_stats.get("hits", 0)) + 1
+        # LRU touch: move the token to the tail.
+        if replay_cache is not None and isinstance(cached_entry, dict):
+            entry = replay_cache.pop(idempotency_token)
+            entry["last_seen_ms"] = now_ms
+            replay_cache[idempotency_token] = entry
+        hit_envelope = dict(cached_ack)
+        hit_envelope["ok"] = True
+        hit_envelope["ack"] = "already_seen"
+        hit_envelope["replay_detected"] = True
+        hit_envelope["idempotency_token"] = idempotency_token
+        hit_envelope["fingerprint"] = envelope_fingerprint
+        hit_envelope["audit_ledger_fingerprint"] = fingerprint_audit_ledger(kernel.dao.records)
+        hit_envelope["cache"] = _lan_envelope_cache_stats(
+            replay_cache,
+            replay_cache_stats,
+            ttl_ms=max(0, replay_cache_ttl_ms),
+            max_entries=max(1, replay_cache_max_entries),
+            hit=True,
+        )
+        record_lan_envelope_replay_cache_event("hit")
+        return {"lan_governance": {"envelope": hit_envelope}}
+    if replay_cache_stats is not None:
+        replay_cache_stats["misses"] = int(replay_cache_stats.get("misses", 0)) + 1
+    record_lan_envelope_replay_cache_event("miss")
+
+    routed = dict(data)
+    batch = dict(normalized["batch"])
+    if kind == "integrity_batch":
+        routed["lan_governance_integrity_batch"] = batch
+        out = _collect_lan_governance_integrity_batch(kernel, routed)
+    elif kind == "dao_batch":
+        routed["lan_governance_dao_batch"] = batch
+        out = _collect_lan_governance_dao_batch(kernel, routed)
+    elif kind == "judicial_batch":
+        routed["lan_governance_judicial_batch"] = batch
+        out = _collect_lan_governance_judicial_batch(kernel, routed)
+    elif kind == "mock_court_batch":
+        routed["lan_governance_mock_court_batch"] = batch
+        out = _collect_lan_governance_mock_court_batch(kernel, routed)
+    else:
+        # Defensive fallback; validator already blocks unsupported kinds.
+        out = {"lan_governance": {"envelope": {"ok": False, "error": "unsupported_kind"}}}
+
+    if out is None:
+        out = {}
+    lg = out.setdefault("lan_governance", {})
+    if isinstance(lg, dict):
+        kind_to_section = {
+            "integrity_batch": "integrity_batch",
+            "dao_batch": "dao_batch",
+            "judicial_batch": "judicial_batch",
+            "mock_court_batch": "mock_court_batch",
+        }
+        section_name = kind_to_section.get(kind, "")
+        section = lg.get(section_name) if section_name else None
+        merged_count: int | None = None
+        applied_count: int | None = None
+        if isinstance(section, dict):
+            mc = section.get("merged_count")
+            if isinstance(mc, int):
+                merged_count = mc
+            ac = section.get("applied_count")
+            if isinstance(ac, int):
+                applied_count = ac
+        section_ok = (
+            bool(section.get("ok"))
+            if isinstance(section, dict) and isinstance(section.get("ok"), bool)
+            else True
+        )
+        envelope_out: dict[str, Any] = {
+            "ok": section_ok,
+            "ack": "accepted" if section_ok else "rejected",
+            "schema": normalized["schema"],
+            "kind": kind,
+            "node_id": normalized["node_id"],
+            "sent_unix_ms": normalized["sent_unix_ms"],
+            "fingerprint": envelope_fingerprint,
+            "idempotency_token": idempotency_token,
+            "merged_count": merged_count,
+            "applied_count": applied_count,
+            "audit_ledger_fingerprint": fingerprint_audit_ledger(kernel.dao.records),
+            "cache": _lan_envelope_cache_stats(
+                replay_cache,
+                replay_cache_stats,
+                ttl_ms=max(0, replay_cache_ttl_ms),
+                max_entries=max(1, replay_cache_max_entries),
+                hit=False,
+            ),
+        }
+        if not section_ok and isinstance(section, dict):
+            section_error = str(section.get("error") or "").strip()
+            if section_error:
+                envelope_out["error"] = section_error
+            if section_error == "disabled":
+                envelope_out["reject_reason"] = "feature_disabled"
+            elif section_error in {"invalid_payload", "events_must_be_list"}:
+                envelope_out["reject_reason"] = "schema_validation_failed"
+            elif section_error == "unsupported_op":
+                envelope_out["reject_reason"] = "unsupported_operation"
+            else:
+                envelope_out["reject_reason"] = "batch_apply_failed"
+        if replay_cache is not None and envelope_out.get("ok") is True:
+            replay_cache[idempotency_token] = {
+                "envelope": dict(envelope_out),
+                "cached_at_ms": now_ms,
+                "last_seen_ms": now_ms,
+            }
+            _, lru_evicted_after_insert = _prune_lan_envelope_replay_cache(
+                replay_cache,
+                now_ms=now_ms,
+                ttl_ms=max(0, replay_cache_ttl_ms),
+                max_entries=max(1, replay_cache_max_entries),
+            )
+            if replay_cache_stats is not None and lru_evicted_after_insert:
+                replay_cache_stats["evicted_lru"] = (
+                    int(replay_cache_stats.get("evicted_lru", 0)) + lru_evicted_after_insert
+                )
+            if lru_evicted_after_insert:
+                record_lan_envelope_replay_cache_event(
+                    "evict_lru", amount=float(lru_evicted_after_insert)
+                )
+            envelope_out["cache"] = _lan_envelope_cache_stats(
+                replay_cache,
+                replay_cache_stats,
+                ttl_ms=max(0, replay_cache_ttl_ms),
+                max_entries=max(1, replay_cache_max_entries),
+                hit=False,
+            )
+        lg["envelope"] = envelope_out
+    return out
+
+
+def _collect_lan_governance_coordinator(
+    kernel: EthicalKernel,
+    data: dict[str, Any],
+    replay_cache: dict[str, dict[str, Any]] | None = None,
+    replay_cache_stats: dict[str, int] | None = None,
+    replay_cache_ttl_ms: int = DEFAULT_LAN_ENVELOPE_REPLAY_CACHE_TTL_MS,
+    replay_cache_max_entries: int = DEFAULT_LAN_ENVELOPE_REPLAY_CACHE_MAX_ENTRIES,
+) -> dict[str, Any] | None:
+    """
+    Multi-node hub message: validate ``lan_governance_coordinator_v1`` then apply each inner envelope.
+
+    Inner envelopes share the same per-session replay cache as direct ``lan_governance_envelope``.
+    When inner batches emit ``event_conflicts``, the coordinator response may include
+    ``aggregated_event_conflicts`` with ``source_batch``, ``envelope_fingerprint``, and token hints.
+    """
+    raw = data.get("lan_governance_coordinator")
+    if raw is None:
+        return None
+    if not lan_governance_coordinator_ws_enabled():
+        return {
+            "lan_governance": {
+                "coordinator": {
+                    "ok": False,
+                    "ack": "rejected",
+                    "error": "disabled",
+                    "reject_reason": "feature_disabled",
+                    "hint": "Set KERNEL_LAN_GOVERNANCE_MERGE_WS=1.",
+                }
+            }
+        }
+
+    normalized, err = normalize_lan_governance_coordinator(raw)
+    if err is not None:
+        return {
+            "lan_governance": {
+                "coordinator": {
+                    "ok": False,
+                    "ack": "rejected",
+                    "reject_reason": _reject_reason_lan_coordinator(err.get("error")),
+                    **err,
+                }
+            }
+        }
+    assert normalized is not None
+    items: list[dict[str, Any]] = list(normalized["items"])
+    coord_fp = fingerprint_lan_governance_coordinator(normalized)
+    item_results: list[dict[str, Any]] = []
+    aggregated_event_conflicts: list[dict[str, Any]] = []
+    all_ok = True
+    batch_sections = (
+        "integrity_batch",
+        "dao_batch",
+        "judicial_batch",
+        "mock_court_batch",
+    )
+    for env in items:
+        fp = fingerprint_lan_governance_envelope(env)
+        tok = idempotency_token_for_envelope(env)
+        sub = _collect_lan_governance_envelope(
+            kernel,
+            {"lan_governance_envelope": env},
+            replay_cache=replay_cache,
+            replay_cache_stats=replay_cache_stats,
+            replay_cache_ttl_ms=replay_cache_ttl_ms,
+            replay_cache_max_entries=replay_cache_max_entries,
+        )
+        lg = (sub or {}).get("lan_governance") if isinstance(sub, dict) else None
+        if not isinstance(lg, dict):
+            lg = {}
+        env_ack = lg.get("envelope")
+        if isinstance(env_ack, dict) and env_ack.get("ok") is not True:
+            all_ok = False
+        for sec in batch_sections:
+            block = lg.get(sec)
+            if (
+                isinstance(block, dict)
+                and isinstance(block.get("ok"), bool)
+                and block.get("ok") is False
+            ):
+                all_ok = False
+                break
+        aggregated_event_conflicts.extend(
+            _aggregated_event_conflicts_from_lan_governance(
+                lg,
+                envelope_fingerprint=fp,
+                envelope_idempotency_token=tok,
+            )
+        )
+        item_results.append(
+            {
+                "fingerprint": fp,
+                "idempotency_token": tok,
+                "node_id": env.get("node_id"),
+                "kind": env.get("kind"),
+                "lan_governance": lg,
+            }
+        )
+    if items:
+        record_dao_ws_operation("lan_governance_coordinator")
+    coord_body: dict[str, Any] = {
+        "ok": all_ok,
+        "ack": "accepted" if all_ok else "rejected",
+        "schema": normalized["schema"],
+        "coordinator_id": normalized["coordinator_id"],
+        "coordination_run_id": normalized["coordination_run_id"],
+        "coordinator_fingerprint": coord_fp,
+        "input_count": normalized["input_count"],
+        "deduped_count": normalized["deduped_count"],
+        "applied_count": len(items),
+        "items": item_results,
+    }
+    if aggregated_event_conflicts:
+        coord_body["aggregated_event_conflicts"] = aggregated_event_conflicts
+    return {"lan_governance": {"coordinator": coord_body}}
+
+
 def _collect_nomad_ws_actions(kernel: EthicalKernel, data: dict[str, Any]) -> dict[str, Any] | None:
     """KERNEL_NOMAD_SIMULATION — apply HAL + optional DAO migration audit (lab)."""
     if not nomad_simulation_ws_enabled():
@@ -785,6 +1804,26 @@ async def ws_chat(ws: WebSocket) -> None:
     interval = advisory_interval_seconds_from_env()
     advisory_stop: asyncio.Event | None = None
     advisory_task: asyncio.Task[None] | None = None
+    lan_envelope_replay_cache: dict[str, dict[str, Any]] = {}
+    lan_envelope_replay_cache_stats: dict[str, int] = {
+        "hits": 0,
+        "misses": 0,
+        "evicted_ttl": 0,
+        "evicted_lru": 0,
+    }
+    lan_envelope_replay_cache_ttl_ms = _coerce_public_int(
+        os.environ.get("KERNEL_LAN_ENVELOPE_REPLAY_CACHE_TTL_MS"),
+        default=DEFAULT_LAN_ENVELOPE_REPLAY_CACHE_TTL_MS,
+        non_negative=True,
+    )
+    lan_envelope_replay_cache_max_entries = max(
+        1,
+        _coerce_public_int(
+            os.environ.get("KERNEL_LAN_ENVELOPE_REPLAY_CACHE_MAX_ENTRIES"),
+            default=DEFAULT_LAN_ENVELOPE_REPLAY_CACHE_MAX_ENTRIES,
+            non_negative=True,
+        ),
+    )
     if interval > 0:
         advisory_stop = asyncio.Event()
         advisory_task = asyncio.create_task(
@@ -827,7 +1866,45 @@ async def ws_chat(ws: WebSocket) -> None:
             dao_payload = _collect_dao_ws_actions(kernel, data)
             nomad_payload = _collect_nomad_ws_actions(kernel, data)
             integrity_payload = _collect_integrity_ws_action(kernel, data)
-            if dao_payload or nomad_payload or integrity_payload:
+            lan_batch_payload = _collect_lan_governance_integrity_batch(kernel, data)
+            lan_dao_payload = _collect_lan_governance_dao_batch(kernel, data)
+            lan_judicial_payload = _collect_lan_governance_judicial_batch(kernel, data)
+            lan_mock_court_payload = _collect_lan_governance_mock_court_batch(kernel, data)
+            lan_envelope_payload = _collect_lan_governance_envelope(
+                kernel,
+                data,
+                replay_cache=lan_envelope_replay_cache,
+                replay_cache_stats=lan_envelope_replay_cache_stats,
+                replay_cache_ttl_ms=lan_envelope_replay_cache_ttl_ms,
+                replay_cache_max_entries=lan_envelope_replay_cache_max_entries,
+            )
+            lan_coordinator_payload = _collect_lan_governance_coordinator(
+                kernel,
+                data,
+                replay_cache=lan_envelope_replay_cache,
+                replay_cache_stats=lan_envelope_replay_cache_stats,
+                replay_cache_ttl_ms=lan_envelope_replay_cache_ttl_ms,
+                replay_cache_max_entries=lan_envelope_replay_cache_max_entries,
+            )
+            lan_governance_merged = _merge_lan_governance_ws_payloads(
+                lan_batch_payload,
+                lan_dao_payload,
+                lan_judicial_payload,
+                lan_mock_court_payload,
+                lan_envelope_payload,
+                lan_coordinator_payload,
+            )
+            if (
+                dao_payload
+                or nomad_payload
+                or integrity_payload
+                or lan_batch_payload
+                or lan_dao_payload
+                or lan_judicial_payload
+                or lan_mock_court_payload
+                or lan_envelope_payload
+                or lan_coordinator_payload
+            ):
                 out_ws: dict[str, Any] = {}
                 if dao_payload:
                     out_ws["dao"] = dao_payload
@@ -835,11 +1912,23 @@ async def ws_chat(ws: WebSocket) -> None:
                     out_ws["nomad"] = nomad_payload
                 if integrity_payload:
                     out_ws["integrity"] = integrity_payload
+                if lan_governance_merged:
+                    out_ws["lan_governance"] = lan_governance_merged
                 await ws.send_json(out_ws)
 
             text = text_preview
             if not text:
-                if dao_payload or nomad_payload or integrity_payload:
+                if (
+                    dao_payload
+                    or nomad_payload
+                    or integrity_payload
+                    or lan_batch_payload
+                    or lan_dao_payload
+                    or lan_judicial_payload
+                    or lan_mock_court_payload
+                    or lan_envelope_payload
+                    or lan_coordinator_payload
+                ):
                     maybe_autosave_episodes(kernel, session_ckpt)
                     continue
                 await ws.send_json({"error": "empty_text"})
@@ -889,6 +1978,7 @@ async def ws_chat(ws: WebSocket) -> None:
                     result = await coro
             except TimeoutError:
                 observe_chat_turn("turn_timeout", time.perf_counter() - t_turn)
+                record_chat_turn_async_timeout()
                 logger.warning(
                     "chat_turn_timeout seconds=%s (worker thread may still run)",
                     chat_to,
