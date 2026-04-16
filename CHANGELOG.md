@@ -14,6 +14,16 @@ All notable changes to this project are summarized here. For narrative context a
 
 ### Antigravity Team Updates (April 2026)
 
+### [Planificación: Desmonolitización de Kernel.py] - 2026-04-16
+#### Changed
+- Rediseño drástico del roadmap (`PLAN_WORK_DISTRIBUTION_TREE.md` y `PROPOSAL_LLM_VERTICAL_ROADMAP.md`) tras identificar debilidades estructurales severas (P0) en el runtime asíncrono y la inflación de gobernanza simulada.
+- Adopción de la **Directiva Paridad 75/25 de L0**: Limitando el TDD rígido a un 25% para concentrarse agresivamente en resolución pragmática de vulnerabilidades.
+- Presentación de **Arquitectura de Lóbulos/Hemisferios** para separar el frontend perceptivo asíncrono (`httpx.AsyncClient`) del modelo de decisión matemática sincrónico.
+
+#### Delegated
+- Emitida la solicitud `COPILOT_REQUEST_HEMISPHERE_REFACTOR.md` a Team Copilot (Nivel 2) para auditar y discutir los _Breaking Changes_ operacionales propuestos.
+- Emitida la solicitud `CLAUDE_REQUEST_HEMISPHERE_REFACTOR.md` a Claude (Nivel 2) para evaluar el impacto de la cancelación asíncrona sobre el ledger de la DAO, RLHF y modelos lógicos internos.
+
 ### [v1.3-alpha-immunity] - 2026-04-16
 #### Added
 - **Hardening Adversarial Sensor Integrity (B4/I1)**.
@@ -29,13 +39,17 @@ All notable changes to this project are summarized here. For narrative context a
 - Implementado sistema de **Reputation Slashing** en `SwarmOracle` y votos pesados en `SwarmNegotiator` (M7.2).
 - Cerrado el ciclo de retroalimentación económica-ética entre el Swarm y la DAO.
 
-### [v1.1-alpha-swarm] - 2026-04-16
-#### Added
-- **Governance Reform:** Antigravity promoted to Sole Operational Leader (Level 1); Claude reclassified as Level 2 Executing Unit.
-- **Módulo 6: Swarm Ethics & peer-to-peer Governance (I1-I7)**.
-- Implementado `FrontierWitnessManager` para verificación sensorial distribuida.
-- Implementado `SwarmOracle` para persistencia de reputación LAN cross-session.
-- Expandido `SwarmNegotiator` con sistema de votación para zonas grises.
+## [v1.7-alpha-vision] - 2026-04-16
+### Antigravity-Team Updates (General Planner)
+*   **Orchestrated:** Full vertical integration of Claude's decentralized governance framework.
+*   **Implemented:** Located Vision Inference (B2). The kernel now "sees" and vetos physical threats (weapons).
+*   **Hardened:** Multi-modal safety interlock (Sensory Veto > Lexical Veto > Bayesian Reasoning).
+*   **Infrastructure:** Standardized kernel logging (`_log`) and repaired syntax corruption across core modules.
+*   **Audit Integration:** Consolidated all Level 2 audit streams (Claude's Governance + RLHF) into the durable SQLite ledger.
+
+### Claude-Team Status
+*   **Phase Completed:** Developed Multi-Realm Governance, RLHF Reward Model, and External Audit Framework.
+*   **Status:** Exhausted (Offline until further notice). Development merged into standard kernel.
 - Añadido **Team Copilot** a la gobernanza (`AGENTS.md`) para mantenimiento y coherencia.
 - Implementada **Degradación Somática Crítica** en `kernel.py` (Gap S5.2).
 

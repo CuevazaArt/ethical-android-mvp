@@ -41,11 +41,14 @@ This proposal **justifies** a phased roadmap and records **evidence posture**: i
 
 **Done when:** Tests assert the contract for each verbal path used in CI ([`tests/test_llm_verbal_backend_policy.py`](../../tests/test_llm_verbal_backend_policy.py)).
 
-### Phase 3 — Async deadline observability (G-05 partial)
+### Phase 3 — Cancellation Cooperativa y Desmonolitización de I/S (G-05 P0)
 
-**Goal:** When `KERNEL_CHAT_TURN_TIMEOUT` elapses, increment **Prometheus counters** (opt-in `KERNEL_METRICS=1`) so operators can alert on “async waiter gave up / worker may still run” (`ethos_kernel_chat_turn_async_timeouts_total`) and cooperative cancel signaling (`ethos_kernel_llm_cancel_scope_signals_total`) separately from end-to-end turn histograms.
+**Goal:** Resolver el cuello de botella sincrónico en `kernel.py`. Cuando `KERNEL_CHAT_TURN_TIMEOUT` expire, no solo incrementar la métrica, sino ejecutar una **cancelación cooperativa HTTP real**. Esto implica migrar el I/O de inferencia desde `httpx` sincrónico dentro del hilo worker a `httpx.AsyncClient` gestionado de forma nativa por el event loop, interrumpiendo proactivamente la sobrecarga de inferencia local/remota.
 
-**Done when:** Metrics documented in [`OPERATOR_QUICK_REF.md`](OPERATOR_QUICK_REF.md); docs state **partial** cooperative cancel (skip further sync LLM HTTP; optional async path + `abandon_chat_turn`); [`ethos_kernel_chat_turn_abandoned_effects_skipped_total`](../../src/observability/metrics.py) when late completions skip STM. In-flight sync `httpx` abort remains bounded by read timeout unless async LLM HTTP is enabled ([ADR 0002](../adr/0002-async-orchestration-future.md)).
+**Done when:**
+- El Worker Pool no se satura por conexiones inferencia zombis después del timeout.
+- Abstracción de Handlers de red asíncronos fuera del objeto `EthicalKernel` monolítico.
+- Documentado en [`OPERATOR_QUICK_REF.md`](OPERATOR_QUICK_REF.md).
 
 ### Phase 4 — Lexical → semantic → perception chain
 
