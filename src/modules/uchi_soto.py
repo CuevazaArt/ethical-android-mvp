@@ -384,7 +384,7 @@ class UchiSotoModule:
         # Phase 5 Vertical: Relational Tension
         # High distance between historical trust and current sensor-ema creates "Tension"
         tension = abs(float(profile.trust_score) - float(profile.sensor_trust_ema))
-        
+
         tone_brief = self._compose_tone_brief(circle, profile, tension)
 
         return SocialEvaluation(
@@ -399,13 +399,17 @@ class UchiSotoModule:
             relational_tension=round(tension, 4),
         )
 
-    def _compose_tone_brief(self, circle: TrustCircle, profile: InteractionProfile, tension: float = 0.0) -> str:
+    def _compose_tone_brief(
+        self, circle: TrustCircle, profile: InteractionProfile, tension: float = 0.0
+    ) -> str:
         """Base circle posture + Phase 2 structured hints + Tension alerts."""
         base = self._tone_brief_for_circle(circle)
         extras: list[str] = []
-        
+
         if tension > 0.4:
-            extras.append(f"Relational tension detected ({tension:.2f})—perception contrasts with historical trust; investigate moral context with caution.")
+            extras.append(
+                f"Relational tension detected ({tension:.2f})—perception contrasts with historical trust; investigate moral context with caution."
+            )
         tier_h = self._relational_tier_tone_hint(profile, circle)
         if tier_h:
             extras.append(tier_h)

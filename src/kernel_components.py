@@ -15,8 +15,9 @@ from dataclasses import dataclass
 
 from .modules.absolute_evil import AbsoluteEvilDetector
 from .modules.augenesis import AugenesisEngine
-from .modules.weighted_ethics_scorer import BayesianEngine
+from .modules.biographic_pruning import BiographicPruner
 from .modules.buffer import PreloadedBuffer
+from .modules.dao_orchestrator import DAOOrchestrator
 from .modules.drive_arbiter import DriveArbiter
 from .modules.ethical_poles import EthicalPoles
 from .modules.ethical_reflection import EthicalReflection
@@ -28,26 +29,25 @@ from .modules.llm_layer import LLMModule
 from .modules.locus import LocusModule
 from .modules.metaplan_registry import MetaplanRegistry
 from .modules.mock_dao import MockDAO
+from .modules.motivation_engine import MotivationEngine
 from .modules.narrative import NarrativeMemory
 from .modules.pad_archetypes import PADArchetypeEngine
 from .modules.psi_sleep import PsiSleep
+from .modules.safety_interlock import SafetyInterlock
 from .modules.salience_map import SalienceMap
 from .modules.sigmoid_will import SigmoidWill
 from .modules.skill_learning_registry import SkillLearningRegistry
 from .modules.somatic_markers import SomaticMarkerStore
+from .modules.strategy_engine import ExecutiveStrategist
 from .modules.subjective_time import SubjectiveClock
+from .modules.swarm_negotiator import SwarmNegotiator
 from .modules.sympathetic import SympatheticModule
 from .modules.uchi_soto import UchiSotoModule
 from .modules.user_model import UserModelTracker
 from .modules.variability import VariabilityEngine
 from .modules.weakness_pole import WeaknessPole
+from .modules.weighted_ethics_scorer import BayesianEngine
 from .modules.working_memory import WorkingMemory
-from .modules.swarm_negotiator import SwarmNegotiator
-from .modules.strategy_engine import ExecutiveStrategist
-from .modules.biographic_pruning import BiographicPruner
-from .modules.safety_interlock import SafetyInterlock
-from .modules.dao_orchestrator import DAOOrchestrator
-from .modules.motivation_engine import MotivationEngine
 from .persistence.checkpoint_port import CheckpointPersistencePort
 
 

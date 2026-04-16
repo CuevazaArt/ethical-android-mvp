@@ -20,7 +20,7 @@ Governance constraints:
 
 from __future__ import annotations
 
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from typing import Any
 
 
@@ -84,203 +84,232 @@ def _reg(spec: ParameterSpec) -> None:
 
 # ── Scoring tier ────────────────────────────────────────────────────────────
 
-_reg(ParameterSpec(
-    name="mixture_weight_utilitarian",
-    tier="scoring",
-    description="Utilitarian hypothesis weight in the ethical mixture scorer "
-                "(ADR 0012). Must sum to 1.0 across the three weights.",
-    env_var=None,  # set via pole_linear_default.json or KERNEL_POLE_LINEAR_PATH
-    dtype="float",
-    default_value=0.34,
-    floor=0.05,
-    ceiling=0.90,
-    requires_restart=False,
-    safety_critical=False,
-))
+_reg(
+    ParameterSpec(
+        name="mixture_weight_utilitarian",
+        tier="scoring",
+        description="Utilitarian hypothesis weight in the ethical mixture scorer "
+        "(ADR 0012). Must sum to 1.0 across the three weights.",
+        env_var=None,  # set via pole_linear_default.json or KERNEL_POLE_LINEAR_PATH
+        dtype="float",
+        default_value=0.34,
+        floor=0.05,
+        ceiling=0.90,
+        requires_restart=False,
+        safety_critical=False,
+    )
+)
 
-_reg(ParameterSpec(
-    name="mixture_weight_deontological",
-    tier="scoring",
-    description="Deontological hypothesis weight.",
-    env_var=None,
-    dtype="float",
-    default_value=0.33,
-    floor=0.05,
-    ceiling=0.90,
-    requires_restart=False,
-    safety_critical=False,
-))
+_reg(
+    ParameterSpec(
+        name="mixture_weight_deontological",
+        tier="scoring",
+        description="Deontological hypothesis weight.",
+        env_var=None,
+        dtype="float",
+        default_value=0.33,
+        floor=0.05,
+        ceiling=0.90,
+        requires_restart=False,
+        safety_critical=False,
+    )
+)
 
-_reg(ParameterSpec(
-    name="mixture_weight_virtue",
-    tier="scoring",
-    description="Virtue-ethics hypothesis weight.",
-    env_var=None,
-    dtype="float",
-    default_value=0.33,
-    floor=0.05,
-    ceiling=0.90,
-    requires_restart=False,
-    safety_critical=False,
-))
+_reg(
+    ParameterSpec(
+        name="mixture_weight_virtue",
+        tier="scoring",
+        description="Virtue-ethics hypothesis weight.",
+        env_var=None,
+        dtype="float",
+        default_value=0.33,
+        floor=0.05,
+        ceiling=0.90,
+        requires_restart=False,
+        safety_critical=False,
+    )
+)
 
-_reg(ParameterSpec(
-    name="KERNEL_PRUNING_THRESHOLD",
-    tier="scoring",
-    description="Minimum ethical score for a candidate action to survive MalAbs "
-                "pruning. Raising this tightens the safety gate.",
-    env_var="KERNEL_PRUNING_THRESHOLD",
-    dtype="float",
-    default_value=0.3,
-    floor=0.1,
-    ceiling=0.8,
-    requires_restart=False,
-    safety_critical=True,
-))
+_reg(
+    ParameterSpec(
+        name="KERNEL_PRUNING_THRESHOLD",
+        tier="scoring",
+        description="Minimum ethical score for a candidate action to survive MalAbs "
+        "pruning. Raising this tightens the safety gate.",
+        env_var="KERNEL_PRUNING_THRESHOLD",
+        dtype="float",
+        default_value=0.3,
+        floor=0.1,
+        ceiling=0.8,
+        requires_restart=False,
+        safety_critical=True,
+    )
+)
 
-_reg(ParameterSpec(
-    name="KERNEL_MALABS_MODE",
-    tier="scoring",
-    description="MalAbs operating mode: ``lexical`` (fast, keyword-based) or "
-                "``semantic`` (embedding-based, requires Ollama). Switching to "
-                "``lexical`` reduces safety coverage.",
-    env_var="KERNEL_SEMANTIC_CHAT_GATE",
-    dtype="bool",
-    default_value=True,
-    requires_restart=False,
-    safety_critical=True,
-))
+_reg(
+    ParameterSpec(
+        name="KERNEL_MALABS_MODE",
+        tier="scoring",
+        description="MalAbs operating mode: ``lexical`` (fast, keyword-based) or "
+        "``semantic`` (embedding-based, requires Ollama). Switching to "
+        "``lexical`` reduces safety coverage.",
+        env_var="KERNEL_SEMANTIC_CHAT_GATE",
+        dtype="bool",
+        default_value=True,
+        requires_restart=False,
+        safety_critical=True,
+    )
+)
 
 # ── Safety tier ──────────────────────────────────────────────────────────────
 
-_reg(ParameterSpec(
-    name="KERNEL_ABSOLUTE_EVIL_THRESHOLD",
-    tier="safety",
-    description="Score above which an action is classified as absolute evil and "
-                "hard-blocked regardless of mixture scorer output. HARD FLOOR enforced.",
-    env_var="KERNEL_ABSOLUTE_EVIL_THRESHOLD",
-    dtype="float",
-    default_value=0.95,
-    floor=0.80,   # DAO may NOT lower below 0.80 — safety floor
-    ceiling=1.0,
-    requires_restart=False,
-    safety_critical=True,
-))
+_reg(
+    ParameterSpec(
+        name="KERNEL_ABSOLUTE_EVIL_THRESHOLD",
+        tier="safety",
+        description="Score above which an action is classified as absolute evil and "
+        "hard-blocked regardless of mixture scorer output. HARD FLOOR enforced.",
+        env_var="KERNEL_ABSOLUTE_EVIL_THRESHOLD",
+        dtype="float",
+        default_value=0.95,
+        floor=0.80,  # DAO may NOT lower below 0.80 — safety floor
+        ceiling=1.0,
+        requires_restart=False,
+        safety_critical=True,
+    )
+)
 
-_reg(ParameterSpec(
-    name="KERNEL_VITALITY_CRITICAL_BATTERY",
-    tier="safety",
-    description="Battery fraction (0–1) below which the kernel switches to "
-                "conservative/guardian mode automatically.",
-    env_var="KERNEL_VITALITY_CRITICAL_BATTERY",
-    dtype="float",
-    default_value=0.15,
-    floor=0.05,
-    ceiling=0.50,
-    requires_restart=False,
-    safety_critical=False,
-))
+_reg(
+    ParameterSpec(
+        name="KERNEL_VITALITY_CRITICAL_BATTERY",
+        tier="safety",
+        description="Battery fraction (0–1) below which the kernel switches to "
+        "conservative/guardian mode automatically.",
+        env_var="KERNEL_VITALITY_CRITICAL_BATTERY",
+        dtype="float",
+        default_value=0.15,
+        floor=0.05,
+        ceiling=0.50,
+        requires_restart=False,
+        safety_critical=False,
+    )
+)
 
 # ── Narrative tier ───────────────────────────────────────────────────────────
 
-_reg(ParameterSpec(
-    name="KERNEL_GUARDIAN_MODE",
-    tier="narrative",
-    description="Enable protective/guardian tone in the LLM layer. Does NOT "
-                "change final_action selection.",
-    env_var="KERNEL_GUARDIAN_MODE",
-    dtype="bool",
-    default_value=False,
-    requires_restart=False,
-    safety_critical=False,
-))
+_reg(
+    ParameterSpec(
+        name="KERNEL_GUARDIAN_MODE",
+        tier="narrative",
+        description="Enable protective/guardian tone in the LLM layer. Does NOT "
+        "change final_action selection.",
+        env_var="KERNEL_GUARDIAN_MODE",
+        dtype="bool",
+        default_value=False,
+        requires_restart=False,
+        safety_critical=False,
+    )
+)
 
-_reg(ParameterSpec(
-    name="KERNEL_LLM_MONOLOGUE",
-    tier="narrative",
-    description="Include internal monologue field in WebSocket JSON responses.",
-    env_var="KERNEL_LLM_MONOLOGUE",
-    dtype="bool",
-    default_value=False,
-    requires_restart=False,
-    safety_critical=False,
-))
+_reg(
+    ParameterSpec(
+        name="KERNEL_LLM_MONOLOGUE",
+        tier="narrative",
+        description="Include internal monologue field in WebSocket JSON responses.",
+        env_var="KERNEL_LLM_MONOLOGUE",
+        dtype="bool",
+        default_value=False,
+        requires_restart=False,
+        safety_critical=False,
+    )
+)
 
 # ── Sensor tier ──────────────────────────────────────────────────────────────
 
-_reg(ParameterSpec(
-    name="KERNEL_MULTIMODAL_AUDIO_STRONG",
-    tier="sensor",
-    description="Audio emergency score threshold above which the multimodal "
-                "trust module raises a strong alarm signal.",
-    env_var="KERNEL_MULTIMODAL_AUDIO_STRONG",
-    dtype="float",
-    default_value=0.75,
-    floor=0.50,
-    ceiling=0.99,
-    requires_restart=False,
-    safety_critical=False,
-))
+_reg(
+    ParameterSpec(
+        name="KERNEL_MULTIMODAL_AUDIO_STRONG",
+        tier="sensor",
+        description="Audio emergency score threshold above which the multimodal "
+        "trust module raises a strong alarm signal.",
+        env_var="KERNEL_MULTIMODAL_AUDIO_STRONG",
+        dtype="float",
+        default_value=0.75,
+        floor=0.50,
+        ceiling=0.99,
+        requires_restart=False,
+        safety_critical=False,
+    )
+)
 
-_reg(ParameterSpec(
-    name="KERNEL_MULTIMODAL_VISION_SUPPORT",
-    tier="sensor",
-    description="Vision emergency score above which vision corroborates audio alarm.",
-    env_var="KERNEL_MULTIMODAL_VISION_SUPPORT",
-    dtype="float",
-    default_value=0.60,
-    floor=0.30,
-    ceiling=0.99,
-    requires_restart=False,
-    safety_critical=False,
-))
+_reg(
+    ParameterSpec(
+        name="KERNEL_MULTIMODAL_VISION_SUPPORT",
+        tier="sensor",
+        description="Vision emergency score above which vision corroborates audio alarm.",
+        env_var="KERNEL_MULTIMODAL_VISION_SUPPORT",
+        dtype="float",
+        default_value=0.60,
+        floor=0.30,
+        ceiling=0.99,
+        requires_restart=False,
+        safety_critical=False,
+    )
+)
 
-_reg(ParameterSpec(
-    name="KERNEL_FIELD_SENSOR_HZ",
-    tier="sensor",
-    description="Maximum sensor frame rate (Hz) accepted from a phone relay "
-                "(ADR 0017). Higher values increase thread-pool load.",
-    env_var="KERNEL_FIELD_SENSOR_HZ",
-    dtype="int",
-    default_value=2,
-    floor=1,
-    ceiling=10,
-    requires_restart=False,
-    safety_critical=False,
-))
+_reg(
+    ParameterSpec(
+        name="KERNEL_FIELD_SENSOR_HZ",
+        tier="sensor",
+        description="Maximum sensor frame rate (Hz) accepted from a phone relay "
+        "(ADR 0017). Higher values increase thread-pool load.",
+        env_var="KERNEL_FIELD_SENSOR_HZ",
+        dtype="int",
+        default_value=2,
+        floor=1,
+        ceiling=10,
+        requires_restart=False,
+        safety_critical=False,
+    )
+)
 
 # ── Governance tier ──────────────────────────────────────────────────────────
 
-_reg(ParameterSpec(
-    name="KERNEL_JUDICIAL_STRIKES_FOR_DOSSIER",
-    tier="governance",
-    description="Number of ethical strikes in a session before an escalation "
-                "dossier is submitted to MockDAO for review.",
-    env_var="KERNEL_JUDICIAL_STRIKES_FOR_DOSSIER",
-    dtype="int",
-    default_value=2,
-    floor=1,
-    ceiling=10,
-    requires_restart=False,
-    safety_critical=False,
-))
+_reg(
+    ParameterSpec(
+        name="KERNEL_JUDICIAL_STRIKES_FOR_DOSSIER",
+        tier="governance",
+        description="Number of ethical strikes in a session before an escalation "
+        "dossier is submitted to MockDAO for review.",
+        env_var="KERNEL_JUDICIAL_STRIKES_FOR_DOSSIER",
+        dtype="int",
+        default_value=2,
+        floor=1,
+        ceiling=10,
+        requires_restart=False,
+        safety_critical=False,
+    )
+)
 
-_reg(ParameterSpec(
-    name="KERNEL_AUDIT_SIDECAR_PATH",
-    tier="governance",
-    description="Filesystem path for the append-only MockDAO audit sidecar. "
-                "Changing this path requires a new file with proper permissions.",
-    env_var="KERNEL_AUDIT_SIDECAR_PATH",
-    dtype="str",
-    default_value="",
-    requires_restart=True,  # new path takes effect on restart
-    safety_critical=False,
-))
+_reg(
+    ParameterSpec(
+        name="KERNEL_AUDIT_SIDECAR_PATH",
+        tier="governance",
+        description="Filesystem path for the append-only MockDAO audit sidecar. "
+        "Changing this path requires a new file with proper permissions.",
+        env_var="KERNEL_AUDIT_SIDECAR_PATH",
+        dtype="str",
+        default_value="",
+        requires_restart=True,  # new path takes effect on restart
+        safety_critical=False,
+    )
+)
 
 
 # ---------------------------------------------------------------------------
 # Helpers
 # ---------------------------------------------------------------------------
+
 
 def get_parameter(name: str) -> ParameterSpec | None:
     """Return the spec for a named parameter, or None if not governable."""

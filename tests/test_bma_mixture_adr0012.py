@@ -10,7 +10,6 @@ from pathlib import Path
 
 import numpy as np
 import pytest
-
 from src.kernel import EthicalKernel
 from src.modules.bayesian_mixture_averaging import (
     analytic_expected_weights,
@@ -131,9 +130,7 @@ def test_kernel_feedback_compatible_versioned_fixture(monkeypatch: pytest.Monkey
     assert len(d.mixture_posterior_alpha) == 3
 
 
-def test_feedback_kernel_updates_weights(
-    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
-) -> None:
+def test_feedback_kernel_updates_weights(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:
     p = tmp_path / "fb.json"
     p.write_text(
         json.dumps([{"scenario_id": 17, "preferred_action": "distribute_by_need"}]),

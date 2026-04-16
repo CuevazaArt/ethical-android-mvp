@@ -20,7 +20,7 @@ from __future__ import annotations
 import os
 import time
 from abc import ABC, abstractmethod
-from typing import Any, Protocol, Literal
+from typing import Any
 
 import numpy as np
 
@@ -92,6 +92,20 @@ class SemanticAnchorStore(ABC):
     def get(self, id: str) -> SemanticAnchorRecord | None:
         """Retrieve an anchor by id."""
         ...
+
+    @abstractmethod
+    def get_all_anchors(self) -> list[tuple[str, str, dict[str, Any]]]:
+        """List non-expired anchors as ``(id, text, metadata)`` tuples."""
+
+    @classmethod
+    def from_env(cls) -> SemanticAnchorStore:
+        """Build a store from ``KERNEL_SEMANTIC_*`` environment variables."""
+        backend = os.environ.get("KERNEL_SEMANTIC_VECTOR_BACKEND", "memory").strip().lower()
+        ttl_s = float(os.environ.get("KERNEL_SEMANTIC_ANCHOR_TTL_S", "0") or "0")
+        if backend == "chroma":
+            persist_path = os.environ.get("KERNEL_SEMANTIC_VECTOR_PERSIST_PATH", ".chroma/").strip()
+            return ChromaSemanticAnchorStore(persist_path=persist_path, default_ttl_s=ttl_s)
+        return InMemorySemanticAnchorStore(default_ttl_s=ttl_s)
 
 
 class InMemorySemanticAnchorStore(SemanticAnchorStore):
@@ -170,6 +184,15 @@ class InMemorySemanticAnchorStore(SemanticAnchorStore):
             return None
         return rec
 
+    def get_all_anchors(self) -> list[tuple[str, str, dict[str, Any]]]:
+        out: list[tuple[str, str, dict[str, Any]]] = []
+        for rec in list(self.records.values()):
+            if rec.is_expired():
+                continue
+            meta = dict(rec.metadata or {})
+            out.append((rec.id, rec.text, meta))
+        return out
+
 
 class ChromaSemanticAnchorStore(SemanticAnchorStore):
     """Persistent Chroma vector store (requires chromadb package)."""
@@ -196,7 +219,9 @@ class ChromaSemanticAnchorStore(SemanticAnchorStore):
         emb_list = embedding.tolist() if isinstance(embedding, np.ndarray) else embedding
         meta = metadata or {}
         # Chroma requires string/int/float metadata
-        chroma_meta = {k: (v if isinstance(v, (str, int, float, bool)) else str(v)) for k, v in meta.items()}
+        chroma_meta = {
+            k: (v if isinstance(v, str | int | float | bool) else str(v)) for k, v in meta.items()
+        }
         chroma_meta["text"] = text
         chroma_meta["timestamp"] = time.time()
 
@@ -240,7 +265,9 @@ class ChromaSemanticAnchorStore(SemanticAnchorStore):
             return []
 
     def delete_expired(self, before_timestamp: float | None = None) -> int:
-        cutoff = before_timestamp or (time.time() - self.default_ttl_s if self.default_ttl_s > 0 else None)
+        cutoff = before_timestamp or (
+            time.time() - self.default_ttl_s if self.default_ttl_s > 0 else None
+        )
         if cutoff is None:
             return 0
 
@@ -257,6 +284,9 @@ class ChromaSemanticAnchorStore(SemanticAnchorStore):
 
     def delete(self, id: str) -> bool:
         try:
+            existing = self.collection.get(ids=[id], include=[])
+            if not existing or not existing.get("ids"):
+                return False
             self.collection.delete(ids=[id])
             self.record_ttl.pop(id, None)
             return True
@@ -280,14 +310,46 @@ class ChromaSemanticAnchorStore(SemanticAnchorStore):
         except Exception:
             return None
 
+    def get_all_anchors(self) -> list[tuple[str, str, dict[str, Any]]]:
+        try:
+            all_results = self.collection.get(include=["documents", "metadatas"])
+            if not all_results or not all_results.get("ids"):
+                return []
+            out: list[tuple[str, str, dict[str, Any]]] = []
+            for i, aid in enumerate(all_results["ids"]):
+                docs = all_results.get("documents") or []
+                metas = all_results.get("metadatas") or []
+                doc = docs[i] if i < len(docs) else ""
+                meta = metas[i] if i < len(metas) else {}
+                meta = meta or {}
+                restored = {k: v for k, v in meta.items() if k not in ("text", "timestamp")}
+                out.append((aid, doc or "", restored))
+            return out
+        except Exception:
+            return []
+
+
+def create_anchor_store(
+    backend: str = "memory",
+    *,
+    default_ttl_s: float = 0.0,
+    persist_path: str | None = None,
+) -> SemanticAnchorStore:
+    """Explicit-backend factory for tests and scripts. Production code uses :func:`get_anchor_store`."""
+    backend = (backend or "memory").strip().lower()
+    ttl_s = float(default_ttl_s or 0.0)
+    if backend == "chroma":
+        path = (
+            persist_path
+            if persist_path is not None
+            else os.environ.get("KERNEL_SEMANTIC_VECTOR_PERSIST_PATH", ".chroma/").strip()
+        )
+        return ChromaSemanticAnchorStore(persist_path=path, default_ttl_s=ttl_s)
+    if backend == "memory":
+        return InMemorySemanticAnchorStore(default_ttl_s=ttl_s)
+    raise ValueError(f"Unknown semantic anchor backend: {backend!r}")
+
 
 def get_anchor_store() -> SemanticAnchorStore:
     """Factory: create store from environment settings."""
-    backend = os.environ.get("KERNEL_SEMANTIC_VECTOR_BACKEND", "memory").strip().lower()
-    ttl_s = float(os.environ.get("KERNEL_SEMANTIC_ANCHOR_TTL_S", "0") or "0")
-
-    if backend == "chroma":
-        persist_path = os.environ.get("KERNEL_SEMANTIC_VECTOR_PERSIST_PATH", ".chroma/").strip()
-        return ChromaSemanticAnchorStore(persist_path=persist_path, default_ttl_s=ttl_s)
-    else:
-        return InMemorySemanticAnchorStore(default_ttl_s=ttl_s)
+    return SemanticAnchorStore.from_env()

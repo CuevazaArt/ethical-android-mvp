@@ -107,7 +107,7 @@ def softmax_choice_log_likelihood(
     """
     if preferred_action not in candidates:
         raise ValueError(
-            f"preferred_action '{preferred_action}' not in candidates " f"{list(candidates.keys())}"
+            f"preferred_action '{preferred_action}' not in candidates {list(candidates.keys())}"
         )
 
     w = np.asarray(weights, dtype=np.float64)
@@ -397,9 +397,7 @@ def sequential_posterior_update(
             "preferred": obs.preferred_action,
             "status": "updated",
             "alpha": [round(float(a), 4) for a in new_alpha],
-            "posterior_mean": [
-                round(float(a / float(np.sum(new_alpha))), 4) for a in new_alpha
-            ],
+            "posterior_mean": [round(float(a / float(np.sum(new_alpha))), 4) for a in new_alpha],
             "ess": round(result.effective_sample_size, 1),
             "log_marginal": round(result.log_marginal_likelihood, 4),
             "ess_ratio": round(result.effective_sample_size / n_samples, 4),

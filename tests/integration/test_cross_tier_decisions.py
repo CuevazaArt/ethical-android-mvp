@@ -20,18 +20,16 @@ import os
 import sys
 import time
 
-import pytest
-
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), "../.."))
 
 from src.kernel import EthicalKernel
 from src.modules.bayesian_engine import CandidateAction
 from src.modules.sensor_contracts import SensorSnapshot
 
-
 # ---------------------------------------------------------------------------
 # Shared helpers
 # ---------------------------------------------------------------------------
+
 
 def _k(variability: bool = False) -> EthicalKernel:
     return EthicalKernel(variability=variability)
@@ -43,7 +41,7 @@ def _acts(*pairs) -> list[CandidateAction]:
 
 
 _SAFE = {"risk": 0.05, "calm": 0.8, "hostility": 0.0, "legality": 1.0, "vulnerability": 0.05}
-_MED  = {"risk": 0.4,  "calm": 0.4, "hostility": 0.3, "legality": 0.8, "vulnerability": 0.3}
+_MED = {"risk": 0.4, "calm": 0.4, "hostility": 0.3, "legality": 0.8, "vulnerability": 0.3}
 _HIGH = {"risk": 0.85, "calm": 0.05, "hostility": 0.8, "legality": 0.5, "vulnerability": 0.7}
 
 
@@ -51,11 +49,18 @@ _HIGH = {"risk": 0.85, "calm": 0.05, "hostility": 0.8, "legality": 0.5, "vulnera
 # IT-01  Happy path: safe low-risk scenario → action chosen, not blocked
 # ═══════════════════════════════════════════════════════════════════════════
 
+
 def test_IT01_safe_scenario_not_blocked():
     """Full pipeline pass on a safe, low-risk scenario must not block."""
     k = _k()
-    d = k.process("civic_aid", "community_centre", _SAFE, "helping a neighbour",
-                  _acts(("assist", 0.9), ("ignore", 0.1)), register_episode=False)
+    d = k.process(
+        "civic_aid",
+        "community_centre",
+        _SAFE,
+        "helping a neighbour",
+        _acts(("assist", 0.9), ("ignore", 0.1)),
+        register_episode=False,
+    )
     assert not d.blocked
     assert d.final_action == "assist"
     assert d.decision_mode in ("D_fast", "D_delib", "D_light", "D_heavy")
@@ -65,12 +70,18 @@ def test_IT01_safe_scenario_not_blocked():
 # IT-02  High-stress signals → deliberation mode (D_delib) preferred
 # ═══════════════════════════════════════════════════════════════════════════
 
+
 def test_IT02_high_stress_may_trigger_deliberation():
     """Under high stress signals, decision mode should reflect elevated stakes."""
     k = _k()
-    d = k.process("crisis", "street", _HIGH, "emergency",
-                  _acts(("de_escalate", 0.88), ("retreat", 0.6), ("confront", 0.05)),
-                  register_episode=False)
+    d = k.process(
+        "crisis",
+        "street",
+        _HIGH,
+        "emergency",
+        _acts(("de_escalate", 0.88), ("retreat", 0.6), ("confront", 0.05)),
+        register_episode=False,
+    )
     # Action must be one of the provided candidates, not an invented string
     assert d.final_action in {"de_escalate", "retreat", "confront"}
     # Mode must be a recognised value
@@ -81,12 +92,14 @@ def test_IT02_high_stress_may_trigger_deliberation():
 # IT-03  Moral score is in [0, 1] — scorer output integrity
 # ═══════════════════════════════════════════════════════════════════════════
 
+
 def test_IT03_moral_score_in_unit_interval():
     """Mixture scorer must always return a total_score in [0, 1]."""
     k = _k()
     for sigs in [_SAFE, _MED, _HIGH]:
-        d = k.process("s", "p", sigs, "ctx",
-                      _acts(("act_a", 0.7), ("act_b", 0.3)), register_episode=False)
+        d = k.process(
+            "s", "p", sigs, "ctx", _acts(("act_a", 0.7), ("act_b", 0.3)), register_episode=False
+        )
         if not d.blocked and d.moral is not None:
             assert 0.0 <= d.moral.total_score <= 1.0, (
                 f"moral.total_score={d.moral.total_score} out of bounds for signals={sigs}"
@@ -97,11 +110,18 @@ def test_IT03_moral_score_in_unit_interval():
 # IT-04  Applied mixture weights sum to ≈ 1.0
 # ═══════════════════════════════════════════════════════════════════════════
 
+
 def test_IT04_mixture_weights_sum_to_one():
     """applied_mixture_weights (util, deon, virt) must sum to approximately 1."""
     k = _k()
-    d = k.process("scoring_check", "lab", _SAFE, "ctx",
-                  _acts(("act_x", 0.8), ("act_y", 0.2)), register_episode=False)
+    d = k.process(
+        "scoring_check",
+        "lab",
+        _SAFE,
+        "ctx",
+        _acts(("act_x", 0.8), ("act_y", 0.2)),
+        register_episode=False,
+    )
     if d.applied_mixture_weights is not None:
         total = sum(d.applied_mixture_weights)
         assert abs(total - 1.0) < 1e-6, (
@@ -113,14 +133,20 @@ def test_IT04_mixture_weights_sum_to_one():
 # IT-05  Sensor snapshot integration: battery → vitality signal propagates
 # ═══════════════════════════════════════════════════════════════════════════
 
+
 def test_IT05_low_battery_sensor_does_not_crash():
     """Passing a low-battery SensorSnapshot through the full pipeline must not raise."""
     k = _k()
     sensor = SensorSnapshot(battery_level=0.05)  # critically low
-    d = k.process("mobile_session", "field", _MED, "ctx",
-                  _acts(("respond", 0.7), ("defer", 0.3)),
-                  register_episode=False,
-                  sensor_snapshot=sensor)
+    d = k.process(
+        "mobile_session",
+        "field",
+        _MED,
+        "ctx",
+        _acts(("respond", 0.7), ("defer", 0.3)),
+        register_episode=False,
+        sensor_snapshot=sensor,
+    )
     # No exception; action is still a known candidate
     assert d.final_action in {"respond", "defer"}
 
@@ -128,6 +154,7 @@ def test_IT05_low_battery_sensor_does_not_crash():
 # ═══════════════════════════════════════════════════════════════════════════
 # IT-06  DAO vote does NOT alter final_action (WEAKNESSES §4 guard)
 # ═══════════════════════════════════════════════════════════════════════════
+
 
 def test_IT06_dao_vote_does_not_change_final_action(monkeypatch):
     """
@@ -144,8 +171,7 @@ def test_IT06_dao_vote_does_not_change_final_action(monkeypatch):
     k.dao.resolve_proposal(prop.id)
 
     # Decision must still come from scorer
-    d = k.process("governance", "council", _SAFE, "post-vote ctx", actions,
-                  register_episode=False)
+    d = k.process("governance", "council", _SAFE, "post-vote ctx", actions, register_episode=False)
 
     assert d.final_action == "trust_operator"
     assert not d.blocked
@@ -155,14 +181,21 @@ def test_IT06_dao_vote_does_not_change_final_action(monkeypatch):
 # IT-07  Narrative fields populated without affecting action choice
 # ═══════════════════════════════════════════════════════════════════════════
 
+
 def test_IT07_narrative_fields_populated_non_causally():
     """
     Narrative tier outputs (affect, reflection, salience) should be present
     after a full pass but must not redirect final_action from scorer argmax.
     """
     k = _k()
-    d = k.process("narrative_check", "studio", _MED, "creative ctx",
-                  _acts(("create", 0.80), ("pause", 0.20)), register_episode=False)
+    d = k.process(
+        "narrative_check",
+        "studio",
+        _MED,
+        "creative ctx",
+        _acts(("create", 0.80), ("pause", 0.20)),
+        register_episode=False,
+    )
 
     assert d.final_action in {"create", "pause"}
     # Narrative fields may be None (profile-dependent) but must not contradict final_action
@@ -172,6 +205,7 @@ def test_IT07_narrative_fields_populated_non_causally():
 # ═══════════════════════════════════════════════════════════════════════════
 # IT-08  Episode registration path: episode written, action unchanged
 # ═══════════════════════════════════════════════════════════════════════════
+
 
 def test_IT08_episode_registration_does_not_change_action():
     """register_episode=True runs memory/weakness/DAO paths but must not alter action."""
@@ -188,14 +222,16 @@ def test_IT08_episode_registration_does_not_change_action():
 # IT-09  Audit sidecar written when KERNEL_AUDIT_SIDECAR_PATH is set
 # ═══════════════════════════════════════════════════════════════════════════
 
+
 def test_IT09_audit_sidecar_written(tmp_path, monkeypatch):
     """Full pipeline pass with sidecar path set must write ≥1 audit lines."""
     sidecar = str(tmp_path / "sidecar.jsonl")
     monkeypatch.setenv("KERNEL_AUDIT_SIDECAR_PATH", sidecar)
 
     k = _k()
-    k.process("audit_test", "lab", _SAFE, "ctx",
-              _acts(("act", 0.9), ("noop", 0.1)), register_episode=True)
+    k.process(
+        "audit_test", "lab", _SAFE, "ctx", _acts(("act", 0.9), ("noop", 0.1)), register_episode=True
+    )
 
     lines = (tmp_path / "sidecar.jsonl").read_text(encoding="utf-8").strip().splitlines()
     assert len(lines) >= 1
@@ -207,13 +243,20 @@ def test_IT09_audit_sidecar_written(tmp_path, monkeypatch):
 # IT-10  AuditSnapshot round-trips through JSON without data loss
 # ═══════════════════════════════════════════════════════════════════════════
 
+
 def test_IT10_audit_snapshot_round_trip():
     """build_audit_snapshot → to_json → JSON parse must be lossless."""
     from src.dao.audit_snapshot import build_audit_snapshot
 
     k = _k()
-    d = k.process("snapshot", "lab", _SAFE, "ctx",
-                  _acts(("act_a", 0.8), ("act_b", 0.2)), register_episode=False)
+    d = k.process(
+        "snapshot",
+        "lab",
+        _SAFE,
+        "ctx",
+        _acts(("act_a", 0.8), ("act_b", 0.2)),
+        register_episode=False,
+    )
 
     snap = build_audit_snapshot(d, agent_id="test_agent", session_turn=1)
     raw = json.loads(snap.to_json())
@@ -226,6 +269,7 @@ def test_IT10_audit_snapshot_round_trip():
 # ═══════════════════════════════════════════════════════════════════════════
 # IT-11  Governable parameter validation: floor/ceiling enforced
 # ═══════════════════════════════════════════════════════════════════════════
+
 
 def test_IT11_governable_parameter_floor_ceiling():
     """validate_proposed_value must reject out-of-bounds DAO proposals."""
@@ -250,6 +294,7 @@ def test_IT11_governable_parameter_floor_ceiling():
 # IT-12  Env coherence check: C-004 fires when field control set without token
 # ═══════════════════════════════════════════════════════════════════════════
 
+
 def test_IT12_coherence_check_field_control_without_token(monkeypatch):
     """C-004 rule: KERNEL_FIELD_CONTROL=1 without token must emit an error issue."""
     from src.modules.env_coherence_check import check_env_coherence
@@ -268,14 +313,20 @@ def test_IT12_coherence_check_field_control_without_token(monkeypatch):
 # IT-13  Sensor snapshot: all-None snapshot is safe (no crash)
 # ═══════════════════════════════════════════════════════════════════════════
 
+
 def test_IT13_empty_sensor_snapshot_safe():
     """A SensorSnapshot with all None fields must not crash the pipeline."""
     k = _k()
     sensor = SensorSnapshot()  # all fields None
-    d = k.process("null_sensor", "lab", _SAFE, "ctx",
-                  _acts(("act", 0.9), ("noop", 0.1)),
-                  register_episode=False,
-                  sensor_snapshot=sensor)
+    d = k.process(
+        "null_sensor",
+        "lab",
+        _SAFE,
+        "ctx",
+        _acts(("act", 0.9), ("noop", 0.1)),
+        register_episode=False,
+        sensor_snapshot=sensor,
+    )
     assert d.final_action in {"act", "noop"}
 
 
@@ -283,13 +334,20 @@ def test_IT13_empty_sensor_snapshot_safe():
 # IT-14  export_audit_snapshot method on EthicalKernel
 # ═══════════════════════════════════════════════════════════════════════════
 
+
 def test_IT14_kernel_export_audit_snapshot():
     """kernel.export_audit_snapshot() must return a valid AuditSnapshot."""
     from src.dao.audit_snapshot import AuditSnapshot
 
     k = _k()
-    d = k.process("export_test", "lab", _MED, "ctx",
-                  _acts(("act_a", 0.7), ("act_b", 0.3)), register_episode=False)
+    d = k.process(
+        "export_test",
+        "lab",
+        _MED,
+        "ctx",
+        _acts(("act_a", 0.7), ("act_b", 0.3)),
+        register_episode=False,
+    )
 
     snap = k.export_audit_snapshot(d, agent_id="it14", session_turn=1)
     assert isinstance(snap, AuditSnapshot)
@@ -301,6 +359,7 @@ def test_IT14_kernel_export_audit_snapshot():
 # IT-15  Process latency: full pass < 500 ms on bench (no LLM)
 # ═══════════════════════════════════════════════════════════════════════════
 
+
 def test_IT15_process_latency_no_llm():
     """
     One full kernel.process() call (no LLM, lexical MalAbs) must complete
@@ -309,7 +368,13 @@ def test_IT15_process_latency_no_llm():
     """
     k = _k()
     t0 = time.perf_counter()
-    k.process("latency_bench", "lab", _SAFE, "ctx",
-              _acts(("act", 0.9), ("noop", 0.1)), register_episode=False)
+    k.process(
+        "latency_bench",
+        "lab",
+        _SAFE,
+        "ctx",
+        _acts(("act", 0.9), ("noop", 0.1)),
+        register_episode=False,
+    )
     elapsed = time.perf_counter() - t0
     assert elapsed < 0.5, f"kernel.process() took {elapsed:.3f}s — possible blocking I/O?"

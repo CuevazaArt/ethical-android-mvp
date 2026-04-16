@@ -1,15 +1,15 @@
 """
 Identity Reflection (Espejo Narrativo).
 
-Translates the Tier 3 Existence Digest and Tier 3+ Narrative Arcs into 
-a coherent first-person 'Persona' for the LLM. 
+Translates the Tier 3 Existence Digest and Tier 3+ Narrative Arcs into
+a coherent first-person 'Persona' for the LLM.
 
 This is where the 'Narrativa Rica' becomes 'Identidad Emergente'.
 """
 
 from __future__ import annotations
+
 from typing import TYPE_CHECKING
-from .narrative_types import NarrativeArc, NarrativeEpisode
 
 if TYPE_CHECKING:
     from .narrative import NarrativeMemory
@@ -24,6 +24,7 @@ _ARCHETYPE_TO_TONE: dict[str, str] = {
     "warrior": "resolute",
     "trickster": "playful",
 }
+
 
 class IdentityReflector:
     """
@@ -41,11 +42,11 @@ class IdentityReflector:
         mem = self.memory
         identity = mem.identity
         active_arc = mem.active_arc
-        
+
         # 1. Base Identity (Tier 3)
         ascription = identity.ascription_line()
         digest = mem.experience_digest
-        
+
         # 2. Historical Context (Tier 3+)
         arc_context = ""
         if active_arc:
@@ -55,12 +56,14 @@ class IdentityReflector:
             )
             if active_arc.summary:
                 arc_context += f" Summary: {active_arc.summary}"
-        
+
         # 3. Core Beliefs (Phase 6 - Mature)
         beliefs_text = ""
         if identity.state.core_beliefs:
-            beliefs_text = "My fundamental beliefs include: " + "; ".join(b["text"] for b in identity.state.core_beliefs)
-        
+            beliefs_text = "My fundamental beliefs include: " + "; ".join(
+                b["text"] for b in identity.state.core_beliefs
+            )
+
         # 4. Recent Moral Focus
         recent_episodes = mem.episodes[-5:]
         morals_focus = ""
@@ -83,7 +86,9 @@ class IdentityReflector:
         header = "REFLEXIVE SELF-MODEL"
         if is_traumatized:
             header = "REFLEXIVE SELF-MODEL [BROKEN MIRROR: TRAUMA DETECTED]"
-            digest = "FRAGMENTED / INCOHERENT. My sense of self is reeling from an ethical violation."
+            digest = (
+                "FRAGMENTED / INCOHERENT. My sense of self is reeling from an ethical violation."
+            )
             morals_focus = "SHATTERED. Previous ethical momentum has been discarded."
 
         reflection = (
@@ -127,8 +132,7 @@ class IdentityReflector:
 
         # 2. Historical arc blend (exponential decay over last 3 closed arcs)
         closed_arcs = [
-            a for a in reversed(self.memory.arcs)
-            if not a.is_active and a.predominant_archetype
+            a for a in reversed(self.memory.arcs) if not a.is_active and a.predominant_archetype
         ][:3]
         decay = 0.5
         for arc in closed_arcs:

@@ -13,8 +13,6 @@ import os
 import warnings
 from contextlib import contextmanager
 
-import pytest
-
 from src.validators.deprecation_warnings import (
     DEPRECATED_FLAGS,
     check_deprecated_flags,
@@ -96,9 +94,7 @@ class TestDeprecationWarnings:
             warnings.simplefilter("always")
             check_deprecated_flags()
             # Should have no warnings for unset flags (or at least none about this one)
-            deprec_warnings = [
-                x for x in w if issubclass(x.category, DeprecationWarning)
-            ]
+            deprec_warnings = [x for x in w if issubclass(x.category, DeprecationWarning)]
             # It's okay if there are no warnings; the check ran without error
             assert isinstance(deprec_warnings, list)  # sanity check
 
@@ -128,7 +124,9 @@ class TestDeprecationCoverage:
             "KERNEL_BAYESIAN_EMPIRICAL_WEIGHTS",
         ]
         for flag in bayesian_flags:
-            assert is_deprecated(flag), f"{flag} should be deprecated (replaced by KERNEL_FEEDBACK_*)"
+            assert is_deprecated(flag), (
+                f"{flag} should be deprecated (replaced by KERNEL_FEEDBACK_*)"
+            )
 
     def test_narrative_only_deprecated(self):
         """Narrative-tier only flags should be marked deprecated (no causal effect)."""

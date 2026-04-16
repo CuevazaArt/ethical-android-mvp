@@ -29,7 +29,6 @@ import os
 from dataclasses import dataclass
 from typing import Literal
 
-
 Severity = Literal["error", "warning", "info"]
 
 
@@ -38,8 +37,8 @@ class CoherenceIssue:
     """A single cross-flag coherence finding."""
 
     severity: Severity
-    rule_id: str        # short identifier, e.g. "C-001"
-    flags: tuple[str, ...]   # env vars involved
+    rule_id: str  # short identifier, e.g. "C-001"
+    flags: tuple[str, ...]  # env vars involved
     message: str
     hint: str = ""
 
@@ -62,23 +61,29 @@ def _is_off(name: str) -> bool:
 # Individual coherence rules
 # ---------------------------------------------------------------------------
 
+
 def _rule_semantic_gate_needs_embed(issues: list[CoherenceIssue]) -> None:
     """C-001: semantic chat gate enabled but hash fallback off and no embed URL."""
     if _is_on("KERNEL_SEMANTIC_CHAT_GATE") and _is_off("KERNEL_SEMANTIC_EMBED_HASH_FALLBACK"):
         embed_url = _flag("KERNEL_SEMANTIC_EMBED_URL")
         if not embed_url:
-            issues.append(CoherenceIssue(
-                severity="warning",
-                rule_id="C-001",
-                flags=("KERNEL_SEMANTIC_CHAT_GATE", "KERNEL_SEMANTIC_EMBED_HASH_FALLBACK",
-                       "KERNEL_SEMANTIC_EMBED_URL"),
-                message=(
-                    "KERNEL_SEMANTIC_CHAT_GATE=1 but no KERNEL_SEMANTIC_EMBED_URL and "
-                    "KERNEL_SEMANTIC_EMBED_HASH_FALLBACK=0. Semantic MalAbs will fail on "
-                    "every embedding request."
-                ),
-                hint="Set KERNEL_SEMANTIC_EMBED_URL or enable KERNEL_SEMANTIC_EMBED_HASH_FALLBACK=1.",
-            ))
+            issues.append(
+                CoherenceIssue(
+                    severity="warning",
+                    rule_id="C-001",
+                    flags=(
+                        "KERNEL_SEMANTIC_CHAT_GATE",
+                        "KERNEL_SEMANTIC_EMBED_HASH_FALLBACK",
+                        "KERNEL_SEMANTIC_EMBED_URL",
+                    ),
+                    message=(
+                        "KERNEL_SEMANTIC_CHAT_GATE=1 but no KERNEL_SEMANTIC_EMBED_URL and "
+                        "KERNEL_SEMANTIC_EMBED_HASH_FALLBACK=0. Semantic MalAbs will fail on "
+                        "every embedding request."
+                    ),
+                    hint="Set KERNEL_SEMANTIC_EMBED_URL or enable KERNEL_SEMANTIC_EMBED_HASH_FALLBACK=1.",
+                )
+            )
 
 
 def _rule_dual_vote_needs_model(issues: list[CoherenceIssue]) -> None:
@@ -87,33 +92,37 @@ def _rule_dual_vote_needs_model(issues: list[CoherenceIssue]) -> None:
         dual_model = _flag("KERNEL_PERCEPTION_DUAL_OLLAMA_MODEL")
         primary_model = _flag("OLLAMA_MODEL")
         if not dual_model and not primary_model:
-            issues.append(CoherenceIssue(
-                severity="warning",
-                rule_id="C-002",
-                flags=("KERNEL_PERCEPTION_DUAL_VOTE", "KERNEL_PERCEPTION_DUAL_OLLAMA_MODEL"),
-                message=(
-                    "KERNEL_PERCEPTION_DUAL_VOTE=1 but KERNEL_PERCEPTION_DUAL_OLLAMA_MODEL "
-                    "and OLLAMA_MODEL are both unset. Dual vote will use the same default "
-                    "model for both samples — no independent check."
-                ),
-                hint="Set KERNEL_PERCEPTION_DUAL_OLLAMA_MODEL to a different model.",
-            ))
+            issues.append(
+                CoherenceIssue(
+                    severity="warning",
+                    rule_id="C-002",
+                    flags=("KERNEL_PERCEPTION_DUAL_VOTE", "KERNEL_PERCEPTION_DUAL_OLLAMA_MODEL"),
+                    message=(
+                        "KERNEL_PERCEPTION_DUAL_VOTE=1 but KERNEL_PERCEPTION_DUAL_OLLAMA_MODEL "
+                        "and OLLAMA_MODEL are both unset. Dual vote will use the same default "
+                        "model for both samples — no independent check."
+                    ),
+                    hint="Set KERNEL_PERCEPTION_DUAL_OLLAMA_MODEL to a different model.",
+                )
+            )
 
 
 def _rule_checkpoint_fernet_key_needed(issues: list[CoherenceIssue]) -> None:
     """C-003: encrypted checkpoint path set but no Fernet key."""
     checkpoint_path = _flag("KERNEL_CHECKPOINT_PATH")
     if checkpoint_path and not _flag("KERNEL_CHECKPOINT_FERNET_KEY"):
-        issues.append(CoherenceIssue(
-            severity="info",
-            rule_id="C-003",
-            flags=("KERNEL_CHECKPOINT_PATH", "KERNEL_CHECKPOINT_FERNET_KEY"),
-            message=(
-                "KERNEL_CHECKPOINT_PATH is set but KERNEL_CHECKPOINT_FERNET_KEY is absent. "
-                "Checkpoint will be stored unencrypted."
-            ),
-            hint="Set KERNEL_CHECKPOINT_FERNET_KEY for encrypted persistence.",
-        ))
+        issues.append(
+            CoherenceIssue(
+                severity="info",
+                rule_id="C-003",
+                flags=("KERNEL_CHECKPOINT_PATH", "KERNEL_CHECKPOINT_FERNET_KEY"),
+                message=(
+                    "KERNEL_CHECKPOINT_PATH is set but KERNEL_CHECKPOINT_FERNET_KEY is absent. "
+                    "Checkpoint will be stored unencrypted."
+                ),
+                hint="Set KERNEL_CHECKPOINT_FERNET_KEY for encrypted persistence.",
+            )
+        )
 
 
 def _rule_field_control_needs_token(issues: list[CoherenceIssue]) -> None:
@@ -121,32 +130,36 @@ def _rule_field_control_needs_token(issues: list[CoherenceIssue]) -> None:
     if _is_on("KERNEL_FIELD_CONTROL"):
         token = _flag("KERNEL_FIELD_PAIRING_TOKEN")
         if not token:
-            issues.append(CoherenceIssue(
-                severity="error",
-                rule_id="C-004",
-                flags=("KERNEL_FIELD_CONTROL", "KERNEL_FIELD_PAIRING_TOKEN"),
-                message=(
-                    "KERNEL_FIELD_CONTROL=1 but KERNEL_FIELD_PAIRING_TOKEN is empty. "
-                    "The phone pairing endpoint will be open to unauthenticated connections."
-                ),
-                hint="Set KERNEL_FIELD_PAIRING_TOKEN to a random secret before enabling field control.",
-            ))
+            issues.append(
+                CoherenceIssue(
+                    severity="error",
+                    rule_id="C-004",
+                    flags=("KERNEL_FIELD_CONTROL", "KERNEL_FIELD_PAIRING_TOKEN"),
+                    message=(
+                        "KERNEL_FIELD_CONTROL=1 but KERNEL_FIELD_PAIRING_TOKEN is empty. "
+                        "The phone pairing endpoint will be open to unauthenticated connections."
+                    ),
+                    hint="Set KERNEL_FIELD_PAIRING_TOKEN to a random secret before enabling field control.",
+                )
+            )
 
 
 def _rule_field_control_wan_warning(issues: list[CoherenceIssue]) -> None:
     """C-005: field control WAN allowed — security warning."""
     if _is_on("KERNEL_FIELD_CONTROL") and _is_on("KERNEL_FIELD_ALLOW_WAN"):
-        issues.append(CoherenceIssue(
-            severity="warning",
-            rule_id="C-005",
-            flags=("KERNEL_FIELD_CONTROL", "KERNEL_FIELD_ALLOW_WAN"),
-            message=(
-                "KERNEL_FIELD_CONTROL=1 and KERNEL_FIELD_ALLOW_WAN=1. The phone relay "
-                "endpoint is accessible from non-LAN addresses. Only enable for controlled "
-                "environments with TLS and network firewall."
-            ),
-            hint="Set KERNEL_FIELD_ALLOW_WAN=0 unless you have TLS + firewall in place.",
-        ))
+        issues.append(
+            CoherenceIssue(
+                severity="warning",
+                rule_id="C-005",
+                flags=("KERNEL_FIELD_CONTROL", "KERNEL_FIELD_ALLOW_WAN"),
+                message=(
+                    "KERNEL_FIELD_CONTROL=1 and KERNEL_FIELD_ALLOW_WAN=1. The phone relay "
+                    "endpoint is accessible from non-LAN addresses. Only enable for controlled "
+                    "environments with TLS and network firewall."
+                ),
+                hint="Set KERNEL_FIELD_ALLOW_WAN=0 unless you have TLS + firewall in place.",
+            )
+        )
 
 
 def _rule_metrics_without_prometheus(issues: list[CoherenceIssue]) -> None:
@@ -155,33 +168,37 @@ def _rule_metrics_without_prometheus(issues: list[CoherenceIssue]) -> None:
         try:
             import prometheus_client  # noqa: F401
         except ImportError:
-            issues.append(CoherenceIssue(
-                severity="warning",
-                rule_id="C-006",
-                flags=("KERNEL_METRICS",),
-                message=(
-                    "KERNEL_METRICS=1 but 'prometheus_client' is not installed. "
-                    "The /metrics endpoint will not be available."
-                ),
-                hint="pip install prometheus_client  or set KERNEL_METRICS=0.",
-            ))
+            issues.append(
+                CoherenceIssue(
+                    severity="warning",
+                    rule_id="C-006",
+                    flags=("KERNEL_METRICS",),
+                    message=(
+                        "KERNEL_METRICS=1 but 'prometheus_client' is not installed. "
+                        "The /metrics endpoint will not be available."
+                    ),
+                    hint="pip install prometheus_client  or set KERNEL_METRICS=0.",
+                )
+            )
 
 
 def _rule_judicial_mock_court_needs_dao(issues: list[CoherenceIssue]) -> None:
     """C-007: mock court needs DAO_VOTE enabled to function."""
     if _is_on("KERNEL_JUDICIAL_MOCK_COURT") and not _is_on("KERNEL_MORAL_HUB_DAO_VOTE"):
-        issues.append(CoherenceIssue(
-            severity="warning",
-            rule_id="C-007",
-            flags=("KERNEL_JUDICIAL_MOCK_COURT", "KERNEL_MORAL_HUB_DAO_VOTE"),
-            message=(
-                "KERNEL_JUDICIAL_MOCK_COURT=1 but KERNEL_MORAL_HUB_DAO_VOTE=0. "
-                "The mock court simulates a DAO vote but the DAO WebSocket channel "
-                "is disabled — court verdicts will still run but cannot be queried "
-                "via WebSocket."
-            ),
-            hint="Set KERNEL_MORAL_HUB_DAO_VOTE=1 to expose DAO messages over WebSocket.",
-        ))
+        issues.append(
+            CoherenceIssue(
+                severity="warning",
+                rule_id="C-007",
+                flags=("KERNEL_JUDICIAL_MOCK_COURT", "KERNEL_MORAL_HUB_DAO_VOTE"),
+                message=(
+                    "KERNEL_JUDICIAL_MOCK_COURT=1 but KERNEL_MORAL_HUB_DAO_VOTE=0. "
+                    "The mock court simulates a DAO vote but the DAO WebSocket channel "
+                    "is disabled — court verdicts will still run but cannot be queried "
+                    "via WebSocket."
+                ),
+                hint="Set KERNEL_MORAL_HUB_DAO_VOTE=1 to expose DAO messages over WebSocket.",
+            )
+        )
 
 
 def _rule_turn_timeout_vs_ollama_timeout(issues: list[CoherenceIssue]) -> None:
@@ -195,18 +212,20 @@ def _rule_turn_timeout_vs_ollama_timeout(issues: list[CoherenceIssue]) -> None:
         return
 
     if chat_to is not None and ollama_to is not None and chat_to < ollama_to:
-        issues.append(CoherenceIssue(
-            severity="info",
-            rule_id="C-008",
-            flags=("KERNEL_CHAT_TURN_TIMEOUT", "OLLAMA_TIMEOUT"),
-            message=(
-                f"KERNEL_CHAT_TURN_TIMEOUT={chat_to}s < OLLAMA_TIMEOUT={ollama_to}s. "
-                "The async wait will expire before the Ollama HTTP call does; "
-                "the worker thread continues running after the WebSocket timeout."
-            ),
-            hint="Set OLLAMA_TIMEOUT <= KERNEL_CHAT_TURN_TIMEOUT for clean cancellation "
-                 "(true async cancellation is future work — see ADR 0002).",
-        ))
+        issues.append(
+            CoherenceIssue(
+                severity="info",
+                rule_id="C-008",
+                flags=("KERNEL_CHAT_TURN_TIMEOUT", "OLLAMA_TIMEOUT"),
+                message=(
+                    f"KERNEL_CHAT_TURN_TIMEOUT={chat_to}s < OLLAMA_TIMEOUT={ollama_to}s. "
+                    "The async wait will expire before the Ollama HTTP call does; "
+                    "the worker thread continues running after the WebSocket timeout."
+                ),
+                hint="Set OLLAMA_TIMEOUT <= KERNEL_CHAT_TURN_TIMEOUT for clean cancellation "
+                "(true async cancellation is future work — see ADR 0002).",
+            )
+        )
 
 
 # ---------------------------------------------------------------------------
@@ -258,18 +277,22 @@ def check_env_coherence_or_raise() -> None:
         if issue.severity == "error":
             logger.error(
                 "env coherence %s [%s]: %s  Hint: %s",
-                issue.rule_id, ", ".join(issue.flags), issue.message, issue.hint,
+                issue.rule_id,
+                ", ".join(issue.flags),
+                issue.message,
+                issue.hint,
             )
             errors.append(issue)
         elif issue.severity == "warning":
             logger.warning(
                 "env coherence %s [%s]: %s  Hint: %s",
-                issue.rule_id, ", ".join(issue.flags), issue.message, issue.hint,
+                issue.rule_id,
+                ", ".join(issue.flags),
+                issue.message,
+                issue.hint,
             )
         else:
-            logger.info(
-                "env coherence %s: %s", issue.rule_id, issue.message
-            )
+            logger.info("env coherence %s: %s", issue.rule_id, issue.message)
 
     if errors:
         msgs = "; ".join(f"[{e.rule_id}] {e.message}" for e in errors)

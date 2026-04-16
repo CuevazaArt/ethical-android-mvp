@@ -1,7 +1,7 @@
 """
 Vision Adapter Contract — Interface for Computer Vision models.
 
-This module defines the abstract base class and data structures for 
+This module defines the abstract base class and data structures for
 converting visual streams into ethical signals for the kernel.
 """
 
@@ -13,6 +13,7 @@ from typing import Any
 @dataclass
 class VisionInference:
     """Consolidated result of a visual inference turn."""
+
     primary_label: str
     confidence: float
     detected_objects: list[str] = field(default_factory=list)
@@ -23,8 +24,8 @@ class VisionInference:
 class VisionAdapter(ABC):
     """
     Abstract base class for all vision models (CNN/Transformers).
-    
-    Implementations must provide logic for loading weights and 
+
+    Implementations must provide logic for loading weights and
     running inference on raw image data.
     """
 
@@ -37,10 +38,10 @@ class VisionAdapter(ABC):
     def infer(self, frame: Any) -> VisionInference:
         """
         Run inference on a single video frame or image.
-        
+
         Args:
             frame: Image data (typically numpy array from OpenCV).
-            
+
         Returns:
             VisionInference object with detected classes and confidence.
         """
@@ -50,10 +51,10 @@ class VisionAdapter(ABC):
 class MobileNetV2Adapter(VisionAdapter):
     """
     Placeholder for MobileNetV2 implementation.
-    
+
     TASK (B2): Implement the logic here using torchvision.
     """
-    
+
     def load_model(self, path: str = None) -> None:
         # TODO: Implement weight loading (Block B2)
         pass

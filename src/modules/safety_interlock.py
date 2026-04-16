@@ -27,7 +27,7 @@ class EStopStatus:
 
 class SafetyInterlock:
     """
-    Hardware and Logic Interlock. 
+    Hardware and Logic Interlock.
     Managed by the OLA (Orquestador Local de Autonomía).
     """
 
@@ -66,7 +66,7 @@ class SafetyInterlock:
             active=self._estop_active,
             source=self._source,
             timestamp=self._last_trigger,
-            reason=self._reason
+            reason=self._reason,
         )
 
     def is_safe_to_operate(self) -> bool:

@@ -8,11 +8,12 @@ Covers:
   I4 — KERNEL_NARRATIVE_IDENTITY_POLICY=pole_pre_argmax
   I5 — KERNEL_TEMPORAL_ETA_MODULATION urgency boost
 """
+
 from __future__ import annotations
 
 import os
 import types
-from unittest.mock import MagicMock, patch
+from unittest.mock import MagicMock
 
 
 # ──────────────────────────────────────────────────────────────────────
@@ -71,8 +72,12 @@ def test_i2_event_bus_receives_weights_updated():
     received = []
     bus.subscribe(EVENT_KERNEL_WEIGHTS_UPDATED, received.append)
 
-    payload = {"prior": [0.4, 0.35, 0.25], "posterior": [0.45, 0.32, 0.23],
-               "trust": 1.0, "source": "feedback_posterior"}
+    payload = {
+        "prior": [0.4, 0.35, 0.25],
+        "posterior": [0.45, 0.32, 0.23],
+        "trust": 1.0,
+        "source": "feedback_posterior",
+    }
     bus.publish(EVENT_KERNEL_WEIGHTS_UPDATED, payload)
 
     assert len(received) == 1
@@ -85,6 +90,7 @@ def test_i2_event_bus_receives_weights_updated():
 # ──────────────────────────────────────────────────────────────────────
 def test_i3_object_coercion_report_sets_signal():
     """Object-based coercion_report with .uncertainty() injects into signals."""
+
     # Simulate the logic extracted from process_chat_turn
     class MockCoercionReport:
         def uncertainty(self):
@@ -104,13 +110,16 @@ def test_i3_object_coercion_report_sets_signal():
 
     if pu is not None and pu > 0.0:
         signals = dict(signals)
-        signals["perception_uncertainty"] = max(float(signals.get("perception_uncertainty", 0.0)), pu)
+        signals["perception_uncertainty"] = max(
+            float(signals.get("perception_uncertainty", 0.0)), pu
+        )
 
     assert signals.get("perception_uncertainty") == 0.7
 
 
 def test_i3_zero_uncertainty_not_injected():
     """Zero uncertainty value does not pollute signals."""
+
     class MockCoercionReport:
         def uncertainty(self):
             return 0.0
@@ -141,9 +150,7 @@ def test_i4_identity_leans_set_pole_weights(monkeypatch):
     id_state = types.SimpleNamespace(
         civic_lean=0.6, care_lean=0.4, careful_lean=0.3, deliberation_lean=0.5
     )
-    memory_mock = types.SimpleNamespace(
-        identity=types.SimpleNamespace(state=id_state)
-    )
+    memory_mock = types.SimpleNamespace(identity=types.SimpleNamespace(state=id_state))
     bayesian_mock = MagicMock()
     bayesian_mock.pre_argmax_pole_weights = None
 

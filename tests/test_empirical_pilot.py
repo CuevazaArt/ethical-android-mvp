@@ -36,9 +36,7 @@ def test_run_pilot_importable():
     run_pilot = _load_run_pilot()
     rows, summary, _ref = run_pilot(FIXTURE)
     assert len(rows) == summary["scenarios"]
-    assert summary["with_reference"] == sum(
-        1 for r in rows if r["reference_action"] is not None
-    )
+    assert summary["with_reference"] == sum(1 for r in rows if r["reference_action"] is not None)
     for r in rows:
         assert r["kernel"]
         assert r["baseline_first"]

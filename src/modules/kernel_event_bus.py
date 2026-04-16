@@ -20,7 +20,9 @@ _log = logging.getLogger(__name__)
 
 EVENT_KERNEL_DECISION = "kernel.decision"
 EVENT_KERNEL_EPISODE_REGISTERED = "kernel.episode_registered"
-EVENT_KERNEL_WEIGHTS_UPDATED = "kernel.weights_updated"  # I2 — emitted when hypothesis_weights change
+EVENT_KERNEL_WEIGHTS_UPDATED = (
+    "kernel.weights_updated"  # I2 — emitted when hypothesis_weights change
+)
 
 KernelEventHandler = Callable[[dict[str, Any]], None]
 

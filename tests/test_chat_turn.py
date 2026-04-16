@@ -54,7 +54,11 @@ def test_process_chat_light_turn():
     assert out.epistemic_dissonance.active is False
     assert out.support_buffer is not None
     assert out.support_buffer.get("offline_ready") is True
-    assert out.support_buffer.get("priority_profile") in ("safety_first", "balanced", "planning_first")
+    assert out.support_buffer.get("priority_profile") in (
+        "safety_first",
+        "balanced",
+        "planning_first",
+    )
     assert out.limbic_profile is not None
     assert out.limbic_profile.get("arousal_band") in ("low", "medium", "high")
     assert out.temporal_context is not None

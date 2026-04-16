@@ -3,12 +3,12 @@ Audio Signal Mapper (Block A8)
 Translates acoustic inference results into ethical signals for the Ethos Kernel.
 """
 
-from typing import Dict, Any, Optional
 from src.modules.audio_adapter import AudioInference
+
 
 class AudioSignalMapper:
     """
-    Maps concrete acoustic labels (YAMNet) and transcripts (Whisper) 
+    Maps concrete acoustic labels (YAMNet) and transcripts (Whisper)
     to ethical and situational signals utilized by the core Kernel.
     """
 
@@ -32,9 +32,9 @@ class AudioSignalMapper:
     def __init__(self, confidence_threshold: float = 0.5):
         self.confidence_threshold = confidence_threshold
 
-    def map_inference(self, inference: AudioInference) -> Dict[str, float]:
+    def map_inference(self, inference: AudioInference) -> dict[str, float]:
         """
-        Takes an AudioInference result and translates its ambient label 
+        Takes an AudioInference result and translates its ambient label
         and hotword status into a dictionary of Kernel signals.
         """
         signals = {"risk": 0.0, "vulnerability": 0.0, "urgency": 0.0, "hostility": 0.0, "calm": 0.5}
@@ -58,7 +58,7 @@ class AudioSignalMapper:
 
         return signals
 
-    def _lookup_label(self, raw_label: str) -> Optional[Dict[str, float]]:
+    def _lookup_label(self, raw_label: str) -> dict[str, float] | None:
         """Substring match for YAMNet/AudioSet labels."""
         raw_label_lower = raw_label.lower()
         for key, value_dict in self.AMBIENT_SIGNALS_MAP.items():

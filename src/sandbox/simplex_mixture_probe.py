@@ -80,9 +80,7 @@ def mixture_ranking(
     scorer.pre_argmax_pole_weights = None
     scorer.pre_argmax_context_modulators = None
 
-    viable, pruned = scorer.prune(
-        actions, scenario=scenario, context=context, signals=signals
-    )
+    viable, pruned = scorer.prune(actions, scenario=scenario, context=context, signals=signals)
     rows: list[dict[str, Any]] = []
     for a in viable:
         ei = scorer.calculate_expected_impact(

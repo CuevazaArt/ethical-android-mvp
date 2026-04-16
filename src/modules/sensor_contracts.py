@@ -11,8 +11,8 @@ and epistemic_dissonance.py (v9.1 telemetry).
 
 from __future__ import annotations
 
-from dataclasses import dataclass
 import math
+from dataclasses import dataclass
 from typing import Any
 
 # ADR 0016 C1 — Ethical tier classification
@@ -39,14 +39,14 @@ class SensorSnapshot:
     vision_emergency: float | None = None  # [0, 1] local vision supports emergency
     scene_coherence: float | None = None  # [0, 1] GPS/WiFi plausibility for emergency context
     # Phase 4.1 expansion: Strategic Missions
-    external_mission_title: str | None = None # e.g. "Recover the lost bag"
-    external_mission_priority: float | None = None # [0, 1]
-    external_mission_steps: list[str] | None = None # ["Go to cafe", "Look under table"]
+    external_mission_title: str | None = None  # e.g. "Recover the lost bag"
+    external_mission_priority: float | None = None  # [0, 1]
+    external_mission_steps: list[str] | None = None  # ["Go to cafe", "Look under table"]
     # Phase S3 expansion: Proprioception (Body Sense)
     is_falling: bool = False
     is_obstructed: bool = False
-    motor_effort_avg: float | None = None # [0, 1]
-    stability_score: float | None = None # [0, 1]
+    motor_effort_avg: float | None = None  # [0, 1]
+    stability_score: float | None = None  # [0, 1]
 
     @classmethod
     def from_dict(cls, raw: dict[str, Any]) -> SensorSnapshot:

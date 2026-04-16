@@ -1,7 +1,7 @@
 """
 Somatic Signal Mapper — Translates body state into ethical tensors.
 
-Maps SomaticInference (e.g., balance, fatigue, battery) into risk, urgency, 
+Maps SomaticInference (e.g., balance, fatigue, battery) into risk, urgency,
 and vulnerability signals for the EthicalKernel's perception stage.
 """
 
@@ -17,12 +17,7 @@ class SomaticSignalMapper:
         """
         Processes somatic inference and returns a dict of [0, 1] signals.
         """
-        signals = {
-            "risk": 0.0,
-            "urgency": 0.0,
-            "vulnerability": 0.0,
-            "physical_distress": 0.0
-        }
+        signals = {"risk": 0.0, "urgency": 0.0, "vulnerability": 0.0, "physical_distress": 0.0}
 
         # Falling is a critical emergency for the android's integrity
         if inference.is_falling:
@@ -43,7 +38,9 @@ class SomaticSignalMapper:
 
         # Physical fatigue affects character strength but also signals distress
         if inference.physical_fatigue > 0.7:
-            signals["physical_distress"] = max(signals["physical_distress"], inference.physical_fatigue)
+            signals["physical_distress"] = max(
+                signals["physical_distress"], inference.physical_fatigue
+            )
             signals["vulnerability"] = max(signals["vulnerability"], 0.3)
 
         # Instability

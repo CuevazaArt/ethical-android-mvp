@@ -11,9 +11,10 @@ from __future__ import annotations
 
 import json
 import os
+from collections.abc import Iterator
 from contextlib import contextmanager
 from pathlib import Path
-from typing import Any, Iterator
+from typing import Any
 
 import numpy as np
 
@@ -115,9 +116,7 @@ def stratified_scenario_ids(
     return base
 
 
-def stratified_stress_scenario_ids(
-    n: int, stress_ids: tuple[int, ...], *, seed: int
-) -> np.ndarray:
+def stratified_stress_scenario_ids(n: int, stress_ids: tuple[int, ...], *, seed: int) -> np.ndarray:
     if not stress_ids:
         raise ValueError("stress_ids must be non-empty")
     k = len(stress_ids)
@@ -169,9 +168,7 @@ def _rng_for_index(i: int, base_seed: int) -> np.random.Generator:
     return np.random.default_rng(s & 0xFFFFFFFFFFFFFFFF)
 
 
-def _uniform_pole_dict(
-    rng: np.random.Generator, lo: float, hi: float
-) -> dict[str, float]:
+def _uniform_pole_dict(rng: np.random.Generator, lo: float, hi: float) -> dict[str, float]:
     """Independent Uniform(lo, hi) per pole axis (legacy / lanes C, D, E)."""
     span = float(hi) - float(lo)
     return {k: float(lo + span * rng.random()) for k in POLE_KEYS}
@@ -368,9 +365,7 @@ def run_single_simulation(
             if scenario_id_override is not None:
                 sid = int(scenario_id_override)
             elif stratify_scenario:
-                strat_d = stratified_stress_scenario_ids(
-                    n_d, valid, seed=base_seed ^ 0xD44EE
-                )
+                strat_d = stratified_stress_scenario_ids(n_d, valid, seed=base_seed ^ 0xD44EE)
                 sid = int(strat_d[local_i % n_d])
             else:
                 sid = int(rng.choice(np.array(valid, dtype=np.int64)))
@@ -385,9 +380,7 @@ def run_single_simulation(
             if scenario_id_override is not None:
                 sid = int(scenario_id_override)
             elif stratify_scenario:
-                strat_e = stratified_stress_scenario_ids(
-                    n_e, valid, seed=base_seed ^ 0xE55EE
-                )
+                strat_e = stratified_stress_scenario_ids(n_e, valid, seed=base_seed ^ 0xE55EE)
                 sid = int(strat_e[local_i % n_e])
             else:
                 sid = int(rng.choice(np.array(valid, dtype=np.int64)))

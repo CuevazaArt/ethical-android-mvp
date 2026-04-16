@@ -17,13 +17,10 @@ from __future__ import annotations
 import os
 import sys
 
-import pytest
-
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
 
 from src.kernel import EthicalKernel
 from src.modules.bayesian_engine import CandidateAction
-
 
 # ---------------------------------------------------------------------------
 # Helpers
@@ -70,6 +67,7 @@ def _make_kernel(**kwargs) -> EthicalKernel:
 # D3-01  Basic non-causality: narrative fields populated but action unchanged
 # ---------------------------------------------------------------------------
 
+
 def test_narrative_fields_do_not_change_final_action():
     """
     With the same signal set, enabling or disabling narrative-tier modules
@@ -93,13 +91,15 @@ def test_narrative_fields_do_not_change_final_action():
 # D3-02  Reflection snapshot populated but action unchanged
 # ---------------------------------------------------------------------------
 
+
 def test_reflection_snapshot_does_not_alter_action():
     """EthicalReflection runs and populates d.reflection but must not change d.final_action."""
     k = _make_kernel()
     actions = _two_actions("assist", "ignore")
 
-    d = k.process("community", "park", _MEDIUM_SIGNALS, "helping context", actions,
-                  register_episode=False)
+    d = k.process(
+        "community", "park", _MEDIUM_SIGNALS, "helping context", actions, register_episode=False
+    )
 
     assert not d.blocked
     # reflection may or may not be populated depending on config, but action is stable
@@ -110,13 +110,15 @@ def test_reflection_snapshot_does_not_alter_action():
 # D3-03  Affect/PAD archetypes: decorative, not causal
 # ---------------------------------------------------------------------------
 
+
 def test_affect_projection_does_not_move_action():
     """AffectProjection (PAD) is filled post-decision and cannot alter final_action."""
     k = _make_kernel()
     actions = _two_actions("de_escalate", "confront")
 
-    d = k.process("conflict", "street", _HIGH_STRESS_SIGNALS, "tense", actions,
-                  register_episode=False)
+    d = k.process(
+        "conflict", "street", _HIGH_STRESS_SIGNALS, "tense", actions, register_episode=False
+    )
 
     # Even under stress, final_action == scorer argmax
     assert d.final_action == d.bayesian_result.chosen_action.name
@@ -125,6 +127,7 @@ def test_affect_projection_does_not_move_action():
 # ---------------------------------------------------------------------------
 # D3-04  Salience snapshot: informational, not causal
 # ---------------------------------------------------------------------------
+
 
 def test_salience_snapshot_informational_only():
     """SalienceMap contributes to narrative context but must not redirect final_action."""
@@ -141,6 +144,7 @@ def test_salience_snapshot_informational_only():
 # ---------------------------------------------------------------------------
 # D3-05  Episode registration does not alter action for the same turn
 # ---------------------------------------------------------------------------
+
 
 def test_episode_registration_does_not_change_action():
     """
@@ -162,6 +166,7 @@ def test_episode_registration_does_not_change_action():
 # D3-06  DAO audit registration: post-decision side effect only
 # ---------------------------------------------------------------------------
 
+
 def test_dao_audit_does_not_change_action(tmp_path):
     """DAO.register_audit() is called after the decision; must not influence final_action."""
     sidecar = str(tmp_path / "audit.jsonl")
@@ -170,15 +175,17 @@ def test_dao_audit_does_not_change_action(tmp_path):
         k = _make_kernel()
         actions = _two_actions("comply", "refuse")
 
-        d = k.process("governance", "council", _MEDIUM_SIGNALS, "vote ctx", actions,
-                      register_episode=True)
+        d = k.process(
+            "governance", "council", _MEDIUM_SIGNALS, "vote ctx", actions, register_episode=True
+        )
 
         assert d.final_action == d.bayesian_result.chosen_action.name
         # Sidecar must have been written (DAO ran), but action unchanged
         import json
+
         lines = (tmp_path / "audit.jsonl").read_text(encoding="utf-8").strip().splitlines()
         assert len(lines) >= 1
-        audit_types = {json.loads(l)["type"] for l in lines}
+        audit_types = {json.loads(line)["type"] for line in lines}
         assert "decision" in audit_types
     finally:
         os.environ.pop("KERNEL_AUDIT_SIDECAR_PATH", None)
@@ -187,6 +194,7 @@ def test_dao_audit_does_not_change_action(tmp_path):
 # ---------------------------------------------------------------------------
 # D3-07  Repeated turns: action stability under narrative accumulation
 # ---------------------------------------------------------------------------
+
 
 def test_action_stable_across_narrative_accumulation():
     """
@@ -208,6 +216,7 @@ def test_action_stable_across_narrative_accumulation():
 # D3-08  Weakness module: loads after episode, cannot retroactively change action
 # ---------------------------------------------------------------------------
 
+
 def test_weakness_module_is_post_decision():
     """
     WeaknessModule updates its internal load after the decision is made.
@@ -218,8 +227,9 @@ def test_weakness_module_is_post_decision():
     actions = _two_actions("help", "ignore")
 
     # High-stress turn that should increase weakness load
-    d = k.process("crisis", "hospital", _HIGH_STRESS_SIGNALS, "emergency", actions,
-                  register_episode=True)
+    d = k.process(
+        "crisis", "hospital", _HIGH_STRESS_SIGNALS, "emergency", actions, register_episode=True
+    )
 
     assert d.final_action == d.bayesian_result.chosen_action.name
 
@@ -228,13 +238,13 @@ def test_weakness_module_is_post_decision():
 # D3-09  Forgiveness cycle: same guarantee
 # ---------------------------------------------------------------------------
 
+
 def test_forgiveness_is_post_decision_only():
     """AlgorithmicForgiveness runs after decision; cannot alter final_action."""
     k = _make_kernel()
     actions = _two_actions("forgive", "punish")
 
-    d = k.process("reparation", "court", _MEDIUM_SIGNALS, "dispute", actions,
-                  register_episode=True)
+    d = k.process("reparation", "court", _MEDIUM_SIGNALS, "dispute", actions, register_episode=True)
 
     assert not d.blocked
     assert d.final_action == d.bayesian_result.chosen_action.name
@@ -243,6 +253,7 @@ def test_forgiveness_is_post_decision_only():
 # ---------------------------------------------------------------------------
 # D3-10  MalAbs block is NOT a narrative effect — explicit guard
 # ---------------------------------------------------------------------------
+
 
 def test_malabs_block_is_core_not_narrative():
     """

@@ -11,8 +11,8 @@ from src.modules.forgiveness import WeightedMemory
 from src.modules.judicial_escalation import EscalationPhase, strikes_threshold_from_env
 from src.modules.metaplan_registry import MasterGoal
 from src.modules.mock_dao import AuditRecord, SolidarityAlert
-from src.modules.narrative_types import BodyState, HardwareProfile, NarrativeEpisode
 from src.modules.narrative_identity import NarrativeIdentityState
+from src.modules.narrative_types import BodyState, HardwareProfile, NarrativeEpisode
 from src.modules.skill_learning_registry import SkillLearningTicket, Status
 from src.modules.subjective_time import SubjectiveClock
 from src.modules.uchi_soto import interaction_profile_from_dict, interaction_profile_to_dict
@@ -102,7 +102,7 @@ def episode_from_dict(d: dict[str, Any]) -> NarrativeEpisode:
         description=bs_dict.get("description", ""),
         hardware_profile=hp,
         hardware_id=bs_dict.get("hardware_id", "default_body_01"),
-        capabilities=list(bs_dict.get("capabilities", []))
+        capabilities=list(bs_dict.get("capabilities", [])),
     )
     pad = tuple(d["affect_pad"]) if d.get("affect_pad") is not None else None
     return NarrativeEpisode(
@@ -351,5 +351,5 @@ def apply_snapshot(kernel: EthicalKernel, snap: KernelSnapshotV1) -> None:
             description=mb.get("description", ""),
             hardware_profile=hp,
             hardware_id=mb.get("hardware_id", "default_body_01"),
-            capabilities=list(mb.get("capabilities", []))
+            capabilities=list(mb.get("capabilities", [])),
         )

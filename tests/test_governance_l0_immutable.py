@@ -53,11 +53,13 @@ def test_l0_principles_match_fresh_buffer_after_multiple_proposals():
     assert len(k.dao.proposals) >= 2
     assert _l0_fingerprint(k.buffer) == fp0
     assert _l0_fingerprint(PreloadedBuffer()) == fp0
+
+
 def test_l0_integrity_fingerprint_enforcement():
     """Modifying a principle (if bypass lock) changes the fingerprint."""
     buf = PreloadedBuffer()
     f0 = buf.fingerprint()
-    
+
     # Force mutation by bypassing __setattr__ via __dict__
     buf.__dict__["principles"]["no_harm"].description = "Modified"
     assert buf.fingerprint() != f0
@@ -67,6 +69,7 @@ def test_l0_integrity_fingerprint_enforcement():
 def test_l0_attribute_lock_enforcement():
     """Test that __setattr__ correctly blocks principle replacement."""
     import pytest
+
     buf = PreloadedBuffer()
     with pytest.raises(AttributeError):
         buf.principles = {}

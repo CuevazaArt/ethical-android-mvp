@@ -3,12 +3,10 @@ Audio Perception Pipeline — Blocks A1 & A2 (Capture & RingBuffer)
 This module provides the low-level acoustic stream ingestion framework.
 """
 
-import math
 import queue
 import threading
 import time
 from dataclasses import dataclass
-from typing import Optional, Any
 
 import numpy as np
 
@@ -18,6 +16,7 @@ class AudioRingBuffer:
     Block A2: Maintains a continuous, thread-safe queue of incoming audio chunks.
     Overwrites the oldest data if the buffer overflows to keep the feed real-time.
     """
+
     def __init__(self, capacity_chunks: int = 100):
         self.capacity = capacity_chunks
         self.buffer = queue.Queue(maxsize=capacity_chunks)
@@ -33,13 +32,13 @@ class AudioRingBuffer:
                     pass
             self.buffer.put_nowait(chunk)
 
-    def get_next(self) -> Optional[np.ndarray]:
+    def get_next(self) -> np.ndarray | None:
         """Pulls the oldest unread chunk from the buffer."""
         try:
             return self.buffer.get_nowait()
         except queue.Empty:
             return None
-            
+
     def flush(self) -> list[np.ndarray]:
         """Returns all currently buffered chunks and empties the queue."""
         frames = []
@@ -54,13 +53,14 @@ class AudioCaptureInterface:
     Block A1: Interface for the microphone/ADC.
     Continuously samples audio and pushes it to the RingBuffer.
     """
+
     def __init__(self, sample_rate: int = 16000, chunk_size: int = 1024):
         self.sample_rate = sample_rate
         self.chunk_size = chunk_size
         self.ring_buffer = AudioRingBuffer()
-        
+
         self._running = False
-        self._thread: Optional[threading.Thread] = None
+        self._thread: threading.Thread | None = None
 
     def start(self) -> None:
         """Starts the asynchronous capture thread."""
@@ -78,19 +78,19 @@ class AudioCaptureInterface:
 
     def _capture_loop(self) -> None:
         """
-        Hardware acquisition loop. 
+        Hardware acquisition loop.
         Currently implemented as a mock generator to fulfill the contract framework.
         TODO (Hardware Integration): Replace `np.zeros` with `sounddevice` or `pyaudio` read calls.
         """
         # Duration of one chunk in seconds
         chunk_duration = self.chunk_size / self.sample_rate
-        
+
         while self._running:
             # Simulate picking up a block of audio data (silence for now)
             # Future edge implementations will bind directly to the ADC stream here.
             simulated_pcm = np.zeros(self.chunk_size, dtype=np.float32)
             self.ring_buffer.append(simulated_pcm)
-            
+
             # Wait precisely the time it takes to "record" the chunk to avoid flooding
             time.sleep(chunk_duration)
 
@@ -100,6 +100,7 @@ class AudioPreprocessor:
     Block A3 & A4: Signal processing and feature extraction.
     Handles Voice Activity Detection (VAD) and feature transformations (Spectrograms).
     """
+
     def __init__(self, sample_rate: int = 16000, energy_threshold: float = 0.01):
         self.sample_rate = sample_rate
         self.energy_threshold = energy_threshold
@@ -132,8 +133,9 @@ class AudioPreprocessor:
 @dataclass
 class AudioInference:
     """Consolidated result of an acoustic inference turn."""
-    transcript: Optional[str] = None
-    ambient_label: Optional[str] = None
+
+    transcript: str | None = None
+    ambient_label: str | None = None
     confidence: float = 0.0
     is_hotword_detected: bool = False
     timestamp: float = 0.0
@@ -144,6 +146,7 @@ class AudioAIProcessor:
     Blocks A5, A6 & A7: AI-driven acoustic understanding.
     Wraps models like Whisper, YAMNet, and KWS (Keyword Spotting).
     """
+
     def __init__(self):
         # Placeholders for model instances (e.g. whisper, yamnet)
         pass
@@ -153,9 +156,9 @@ class AudioAIProcessor:
         # TODO (Production): Bind to OpenAI-Whisper, TensorFlow-YAMNet, or TinyML-KWS
         # For now, simulate a clean background to maintain architecture flow.
         return AudioInference(
-            transcript=None, 
-            ambient_label="calm", 
-            confidence=0.9, 
+            transcript=None,
+            ambient_label="calm",
+            confidence=0.9,
             is_hotword_detected=False,
-            timestamp=time.time()
+            timestamp=time.time(),
         )
