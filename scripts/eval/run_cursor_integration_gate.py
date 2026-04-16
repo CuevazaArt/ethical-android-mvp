@@ -20,6 +20,7 @@ TEST_TARGETS = [
     "tests/test_perception_dual_vote_failure.py",
     "tests/test_semantic_chat_gate.py",
     "tests/test_llm_touchpoint_policies.py",
+    "tests/test_governance_mock_honesty_docs.py",
 ]
 
 
