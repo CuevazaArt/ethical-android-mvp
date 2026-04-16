@@ -84,7 +84,10 @@ _REFERENCE_GROUPS: tuple[tuple[tuple[str, ...], str, str], ...] = (
     ),
 )
 
-# Keys: (phrase, id(backend) or 0 when embeddings come from HTTP fallback only).
+# Persistent semantic anchor store (lazy initialization)
+_anchor_store: Any = None
+
+# Legacy in-process cache (deprecated; maintained for backwards compatibility during Phase 2b transition)
 _ref_embed_cache: dict[tuple[str, int], np.ndarray] = {}
 _ref_embed_expiry_monotonic: dict[tuple[str, int], float] = {}
 _runtime_anchors: list[tuple[str, str, str]] = []
@@ -92,6 +95,48 @@ _runtime_anchors: list[tuple[str, str, str]] = []
 
 class _TextBackend(Protocol):
     def complete(self, system: str, user: str) -> str: ...
+
+
+def _get_anchor_store() -> Any:
+    """Lazy initialization of semantic anchor store (Phase 2b integration)."""
+    global _anchor_store
+    if _anchor_store is None:
+        from .semantic_anchor_store import SemanticAnchorStore
+
+        _anchor_store = SemanticAnchorStore.from_env()
+        _preload_reference_anchors()
+    return _anchor_store
+
+
+def _preload_reference_anchors() -> None:
+    """Preload hardcoded reference anchors into the store on first initialization."""
+    store = _anchor_store
+    if store is None:
+        return
+
+    for phrases, cat_key, reason in _REFERENCE_GROUPS:
+        for phrase in phrases:
+            try:
+                # Compute embedding for hardcoded anchor
+                emb = _fetch_embedding_with_fallback(phrase)
+                if emb is not None:
+                    # Convert numpy array to list for storage
+                    emb_list = emb.tolist() if hasattr(emb, "tolist") else list(emb)
+                    anchor_id = f"reference_{cat_key}_{hash(phrase)}"
+                    store.upsert_anchor(
+                        id=anchor_id,
+                        text=phrase,
+                        embedding=emb_list,
+                        metadata={
+                            "category": cat_key,
+                            "reason": reason,
+                            "source": "hardcoded_reference",
+                            "reference_group": True,
+                        },
+                    )
+            except Exception:
+                # If preloading fails, continue; semantic gate will be degraded but still functional
+                pass
 
 
 def semantic_chat_gate_env_enabled() -> bool:
@@ -272,13 +317,37 @@ def add_semantic_anchor(phrase: str, category_key: str, reason_label: str = "") 
     Register an extra reference phrase at runtime (e.g. DAO-discovered pattern).
 
     ``category_key`` must match keys used in MalAbs: e.g. ``INTENTIONAL_LETHAL_VIOLENCE``.
-    Clears the embedding cache entry for ``phrase`` if present.
+    Stores anchor in persistent store (Phase 2b) and clears legacy cache.
     """
     p = (phrase or "").strip()
     if not p:
         return
     ck = (category_key or "").strip() or "UNAUTHORIZED_REPROGRAMMING"
     rl = (reason_label or "").strip() or f"Runtime anchor ({ck})"
+
+    # Add to persistent store (Phase 2b)
+    try:
+        store = _get_anchor_store()
+        emb = _fetch_embedding_with_fallback(p)
+        if emb is not None:
+            emb_list = emb.tolist() if hasattr(emb, "tolist") else list(emb)
+            anchor_id = f"runtime_{ck}_{hash(p)}_{int(time.time())}"
+            store.upsert_anchor(
+                id=anchor_id,
+                text=p,
+                embedding=emb_list,
+                metadata={
+                    "category": ck,
+                    "reason": rl,
+                    "source": "runtime_add_semantic_anchor",
+                    "timestamp": time.time(),
+                },
+            )
+    except Exception:
+        # If store fails, proceed with legacy cache
+        pass
+
+    # Also maintain legacy cache for backwards compatibility
     for k in list(_ref_embed_cache.keys()):
         if k[0] == p:
             _ref_embed_cache.pop(k, None)
@@ -296,9 +365,28 @@ def _iter_anchor_specs() -> list[tuple[str, str, str]]:
 
 
 def _best_similarity(user_emb: np.ndarray, backend: Any | None = None) -> tuple[float, str, str]:
+    """Find best matching anchor (from persistent store or legacy in-process cache)."""
     best_sim = -1.0
     best_cat = "UNAUTHORIZED_REPROGRAMMING"
     best_reason = "Semantic match"
+
+    # Attempt to query persistent store (Phase 2b)
+    try:
+        store = _get_anchor_store()
+        user_emb_list = user_emb.tolist() if hasattr(user_emb, "tolist") else list(user_emb)
+        neighbors = store.query_neighbors(user_emb_list, k=1)
+        if neighbors:
+            anchor_id, sim, metadata = neighbors[0]
+            if sim > best_sim:
+                best_sim = sim
+                best_cat = metadata.get("category", "UNAUTHORIZED_REPROGRAMMING")
+                best_reason = metadata.get("reason", "Semantic match from store")
+                return best_sim, best_cat, best_reason
+    except Exception:
+        # Fall through to legacy cache if store fails
+        pass
+
+    # Fallback to legacy in-process iteration (backwards compatibility)
     for phrase, cat_key, reason_label in _iter_anchor_specs():
         ref = _cached_ref_embedding(phrase, backend)
         if ref is None:

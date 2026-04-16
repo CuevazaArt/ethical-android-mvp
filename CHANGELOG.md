@@ -21,8 +21,9 @@ All notable changes to this project are summarized here. For narrative context a
 - **Hardening Fixes**: Resolved a critical regression in `NarrativeMemory.register` signature (added missing `body_state`) to maintain kernel invariant compliance across the full test suite.
 - **Tests**: Created comprehensive verification suite [`tests/test_antigravity_hardening.py`](tests/test_antigravity_hardening.py); verified 61 fundamental ethical properties and hardening invariants pass.
 
-## Phase 2 — Semantic Vector Store Implementation — April 2026
+## Phase 2 — Semantic Vector Store Implementation & Integration — April 2026
 
+### Phase 2a: Vector Store Core
 - **Semantic Anchor Store (`src/modules/semantic_anchor_store.py`)**: Implemented persistent, pluggable storage for MalAbs semantic reference anchors. Supports in-memory (fast, ephemeral) and Chroma (persistent, scalable) backends via `KERNEL_SEMANTIC_VECTOR_BACKEND` environment variable. Enables operators to manage anchor phrases without redeploying code.
 - **Vector DB Backends**:
   - **InMemorySemanticAnchorStore**: Fast O(1) upsert, O(n) similarity search; ideal for testing and stateless deployments.
@@ -31,6 +32,15 @@ All notable changes to this project are summarized here. For narrative context a
 - **Tests**: Comprehensive test suite (`tests/test_semantic_anchor_store.py`) covers in-memory operations, TTL expiry, Chroma integration, and factory patterns.
 - **Documentation**: [`docs/SEMANTIC_ANCHOR_STORE_IMPLEMENTATION.md`](docs/SEMANTIC_ANCHOR_STORE_IMPLEMENTATION.md) details architecture, configuration, usage, and deployment patterns.
 - **Dependencies**: Added optional `chromadb>=0.4.0` to `requirements.txt` for persistent backend activation.
+
+### Phase 2b: SemanticChatGate Integration
+- **Integration (`src/modules/semantic_chat_gate.py`)**: Integrated `SemanticAnchorStore` into semantic MalAbs layer. Replaced hardcoded cache iteration with persistent store queries.
+  - Lazy initialization of store on first use (`_get_anchor_store()`)
+  - Preload hardcoded reference anchors on first store initialization
+  - `_best_similarity()` now queries persistent store; falls back to legacy in-process cache if store fails
+  - `add_semantic_anchor()` now stores anchors persistently; maintains legacy cache for backwards compatibility
+- **Tests**: Comprehensive integration suite (`tests/test_semantic_anchor_store_integration.py`) validates store initialization, anchor addition, gate behavior, and fallback logic.
+- **Backwards Compatibility**: Legacy in-process cache and `_runtime_anchors` list maintained during Phase 2b→Phase 3 transition. Can disable store via env or let it degrade gracefully on errors.
 
 ## Antigravity Phase 2 — Documentation & Infrastructure — April 2026
 
