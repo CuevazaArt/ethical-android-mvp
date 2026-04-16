@@ -61,11 +61,12 @@ Any new agent or team joining the project must complete the following onboarding
 To maintain repository order and production stability across multiple teams, we strictly use a structured **Pull Request (PR)** and synchronization lifecycle:
 
 1. **BRANCH-MINIMIZATION-01 (No Minor Branches):** Do NOT spawn excessive minor feature branches unless implementing massive architectural breaking changes (e.g., P0 Refactors). For nominal tasks, teams MUST commit their logical blocks directly to their assigned integration hub (`master-<team>`) to simplify the PR flow.
-2. **Team Consolidation (Internal PR):** When ready, submit a formal PR from your team's integration hub (`master-<team>`) towards `master-antigravity`.
+2. **BRANCH-LOCALIZATION-02 (Strict Hub Retention):** AI Agents (Especially **Claude**) MUST locate, checkout, and exclusively maintain their work in their pre-assigned branch (e.g., `git checkout master-claude`). Creating *new* ad-hoc branches is strictly forbidden. If an agent cannot locate their branch or suffers a git failure, they MUST halt, explain the failure, and request assistance from L0 or L1 instead of arbitrarily cloning a new branch to bypass the issue.
+3. **Team Consolidation (Internal PR):** When ready, submit a formal PR from your team's integration hub (`master-<team>`) towards `master-antigravity`.
    - *Requirement:* All unit tests must pass, and the automated Continuous Audit MUST execute cleanly.
    - *Traceability:* Pushes MUST be annotated in `CHANGELOG.md`.
-3. **Cross-Team Peer Synchronization (Integration Pulse):** `master-*` branches MUST pull latest updates from `main` immediately to inherit L0's propagated directives without uncoordinating.
-4. **Integration Funnel:** For production promotion, the flow is **linear**:
+4. **Cross-Team Peer Synchronization (Integration Pulse):** `master-*` branches MUST pull latest updates from `main` immediately to inherit L0's propagated directives without uncoordinating.
+5. **Integration Funnel:** For production promotion, the flow is **linear**:
    - `master-<team_secondary>` → `master-antigravity` → `main`.
    - The `master-antigravity` branch serves as the **Standard Integration Hub** for the entire project.
 
