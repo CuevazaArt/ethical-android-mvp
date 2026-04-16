@@ -200,6 +200,128 @@ The metaphor is useful but has limits that should not be oversold:
 
 ---
 
+## 9. Three-hemisphere variant — preferred architecture
+
+> *L0 question (2026-04-16): "¿Podrían 3 hemisferios ser incluso mejores?"*
+
+**Answer: yes.** The kernel already contains three implicit functional clusters
+that map poorly to a bipartite split. Forcing the third cluster into either of
+the other two is technical debt from day one.
+
+### 9.1 The three implicit clusters in `EthicalKernel.__init__`
+
+| Hemisphere | Role | Modules (from actual `__init__`) | Key property |
+|-----------|------|----------------------------------|-------------|
+| **Ethical** (analytical / decisory) | Evaluates, vetoes, decides | `absolute_evil`, `buffer`, `bayesian`, `poles`, `will`, `ethical_reflection` | **Has veto power.** Its `KernelDecision` is final and non-negotiable. |
+| **Experiential** (contextual / affective) | Feels, contextualises, informs | `sympathetic`, `uchi_soto`, `pad_archetypes`, `salience_map`, `somatic_store`, `memory`, `weakness`, `forgiveness` | **Only informs.** Produces context the ethical hemisphere may consult but never overrides. |
+| **Metacognitive** (self-observation / calibration) | Observes itself, models the other, plans | `metacognition`, `user_model`, `motivation`, `skill_learning`, `metaplan`, `strategist`, `subjective_clock`, `feedback_ledger`, `biographic_pruner` | **Neither vetoes nor feels: calibrates.** Adjusts internal parameters without producing decisions or emotions. |
+
+### 9.2 Why 3 > 2 for this specific codebase
+
+1. **Resolves the orphan problem.** With 2 hemispheres, metacognitive modules
+   (`MetacognitiveEvaluator`, `UserModelTracker`, `MotivationEngine`,
+   `ExecutiveStrategist`, `SubjectiveClock`, `SkillLearningRegistry`,
+   `MetaplanRegistry`, `BiographicPruner`, `FeedbackCalibrationLedger`) are homeless.
+   They are not ethical (they don't veto), not experiential (they don't feel).
+   They are *observers of the system that adjust the system*. Forcing them into
+   either hemisphere breaks the contract coherence.
+
+2. **Maps to an established cognitive distinction.** In cognitive science the
+   tripartite model is well-known:
+   - **System 1** (fast, emotional) → Experiential hemisphere
+   - **System 2** (deliberative, normative) → Ethical hemisphere
+   - **Metacognition** (monitoring + control over the other two) → Third hemisphere
+
+   The kernel already has this implicitly — `MetacognitiveEvaluator` is literally
+   named after the concept.
+
+3. **Cleaner contracts.** With 3 hemispheres, the tick flow gains precision:
+
+```
+1. ExperientialHemisphere.pre_tick(signals, sensors)
+       → HemisphericContext(affect, social_eval, somatic, salience, narrative)
+
+2. MetacognitiveHemisphere.calibrate(hemi_ctx, history)
+       → CalibrationContext(user_model_update, motivation_vector,
+                            epistemic_confidence, time_pressure,
+                            strategy_hint, skill_priors)
+
+3. EthicalHemisphere.decide(actions, context, hemi_ctx, cal_ctx)
+       → KernelDecision   ← SOLE PLACE WITH VETO POWER
+
+4. MetacognitiveHemisphere.post_tick(decision, episode)
+       → updates: user_model, skill_learning, metaplan,
+         subjective_clock, bayesian feedback ledger
+
+5. ExperientialHemisphere.post_tick(decision, episode)
+       → updates: episodic memory, somatic markers,
+         algorithmic forgiveness, DAO hooks
+```
+
+   Note: the metacognitive hemisphere intervenes **twice** (before and after the
+   decision), reflecting exactly what a real metacognitive system does: prepares
+   parameters *before* and learns *after*.
+
+### 9.3 Architecture diagram (3 hemispheres)
+
+```
+          ┌──────────────────────────────────────────────────────┐
+          │            EthicalKernel  (public façade)             │
+          │         Public API preserved unchanged                │
+          └──────────┬──────────────┬──────────────┬─────────────┘
+                     │              │              │
+          ┌──────────▼──┐   ┌──────▼──────┐  ┌───▼──────────────────┐
+          │  Experiential │   │ Metacognitive│  │   Ethical            │
+          │  Hemisphere   │   │ Hemisphere   │  │   Hemisphere         │
+          │               │   │              │  │                      │
+          │ - UchiSoto    │   │ - Metacogn.  │  │ - AbsoluteEvil       │
+          │ - Sympathetic │   │ - UserModel  │  │ - Buffer             │
+          │ - Somatic     │   │ - Motivation │  │ - BayesianEngine     │
+          │ - PAD         │   │ - SkillLearn │  │ - EthicalPoles       │
+          │ - Salience    │   │ - Metaplan   │  │ - SigmoidWill        │
+          │ - Memory      │   │ - Strategist │  │ - EthicalReflection  │
+          │ - Weakness    │   │ - SubjClock  │  │                      │
+          │ - Forgiveness │   │ - FeedbackLe │  │  ← SOLE VETO HOLDER │
+          │               │   │ - BiogrPrune │  │                      │
+          └───────┬───────┘   └──────┬───────┘  └──────────────────────┘
+                  │                  │                     ▲
+                  ▼                  ▼                     │
+          HemisphericContext   CalibrationContext     KernelDecision
+            (frozen)             (frozen)              (output)
+```
+
+### 9.4 Transfer objects
+
+| Object | Source | Consumer | Mutability |
+|--------|--------|----------|-----------|
+| `HemisphericContext` | Experiential `.pre_tick()` | Ethical `.decide()` + Metacognitive `.calibrate()` | `@dataclass(frozen=True)` — load-bearing |
+| `CalibrationContext` | Metacognitive `.calibrate()` | Ethical `.decide()` | `@dataclass(frozen=True)` — load-bearing |
+| `KernelDecision` | Ethical `.decide()` | Metacognitive `.post_tick()` + Experiential `.post_tick()` | Existing immutable contract |
+
+### 9.5 Comparative analysis: 2 vs 3 hemispheres
+
+| Aspect | 2 hemispheres | 3 hemispheres |
+|--------|--------------|---------------|
+| Migration simplicity | Easier (fewer interfaces) | More complex (3 contracts) |
+| Module placement ambiguity | Medium (~9 orphan modules) | Low (nearly all modules have a natural home) |
+| Conceptual overhead | Low | Medium |
+| Fidelity to actual kernel code | ~75% — forces classifications | ~95% — each module has a home |
+| Number of transfer objects | 1 (`HemisphericContext`) | 2 (`HemisphericContext` + `CalibrationContext`) |
+| Cognitive science alignment | Partial (System 1/2 only) | Full (System 1 + System 2 + Metacognition) |
+
+### 9.6 Updated phased migration (3-hemisphere variant)
+
+- **Phase 0** — 3 contracts (`HemisphericContext`, `CalibrationContext`,
+  `KernelDecision` already exists) + this document. Zero logic change.
+- **Phase 1** — Extract `ExperientialHemisphere` (affective modules).
+- **Phase 1.5** — Extract `MetacognitiveHemisphere` (self-observation modules).
+- **Phase 2** — Extract `EthicalHemisphere` (veto pipeline); kernel becomes
+  ~200-line façade.
+- **Phase 3** — Extract `ChatAdapter` from `process_chat_turn` /
+  `process_chat_turn_async`.
+
+---
+
 ## 9. Recommendation
 
 **Immediate (Phase 0, Team Copilot):**  
