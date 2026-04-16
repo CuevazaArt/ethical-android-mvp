@@ -1,4 +1,8 @@
-"""Verify MockDAO audit ledger fingerprints (DJ-BL-01). Compare two JSON exports or print one hash."""
+"""Verify MockDAO audit ledger fingerprints (DJ-BL-01). Compare two JSON exports or print one hash.
+
+For merge-conflict replay artifacts paired with a ``lan_governance`` export, see
+``scripts/eval/verify_lan_governance_replay_sidecar.py`` (replay sidecar, DJ-BL-15).
+"""
 
 from __future__ import annotations
 

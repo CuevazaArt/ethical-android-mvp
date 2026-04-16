@@ -151,6 +151,10 @@ from .modules.lan_governance_envelope import (
     reject_reason_for_envelope_error,
 )
 from .modules.lan_governance_event_merge import merge_lan_governance_events_detailed
+from .modules.lan_governance_merge_context import (
+    LanMergeContextParsed,
+    parse_lan_merge_context,
+)
 from .modules.ml_ethics_tuner import maybe_log_gray_zone_tuning_opportunity
 from .modules.mock_dao_audit_replay import fingerprint_audit_ledger
 from .modules.moral_hub import (
@@ -382,12 +386,20 @@ def _coerce_public_int(value: object, *, default: int = 0, non_negative: bool = 
     return out
 
 
-def _merge_context_frontier_turn(batch_obj: Mapping[str, Any]) -> int | None:
-    """Optional ``merge_context.frontier_turn`` on LAN batch payloads (non-negative int)."""
-    mc = batch_obj.get("merge_context")
-    if not isinstance(mc, dict) or "frontier_turn" not in mc:
-        return None
-    return _coerce_public_int(mc.get("frontier_turn"), default=0, non_negative=True)
+def _attach_merge_context_telemetry(
+    batch_body: dict[str, Any],
+    mctx: LanMergeContextParsed,
+) -> None:
+    """Attach ``merge_context_warnings`` / ``merge_context_echo`` after a LAN batch apply."""
+    if mctx.warnings:
+        batch_body["merge_context_warnings"] = list(mctx.warnings)
+    echo: dict[str, Any] = {}
+    if mctx.frontier_turn is not None:
+        echo["frontier_turn"] = mctx.frontier_turn
+    if mctx.cross_session_hint is not None:
+        echo["cross_session_hint"] = dict(mctx.cross_session_hint)
+    if echo:
+        batch_body["merge_context_echo"] = echo
 
 
 def _aggregated_event_conflicts_from_lan_governance(
@@ -945,8 +957,10 @@ def _collect_lan_governance_integrity_batch(
     Client shape::
         {"lan_governance_integrity_batch": {"events": [...], "id_key": "event_id"}}
 
-    Optional ``merge_context``: ``{"frontier_turn": <non-negative int>}`` marks rows with a lower
-    ``turn_index`` as ``stale_event`` during merge (see ``PROPOSAL_LAN_GOVERNANCE_CONFLICT_TAXONOMY``).
+    Optional ``merge_context``:
+      - ``frontier_turn`` (non-negative int): rows with lower ``turn_index`` become ``stale_event``.
+      - ``cross_session_hint`` (`lan_governance_cross_session_hint_v1`): echoed only; not consensus
+        (see ``PROPOSAL_LAN_GOVERNANCE_CROSS_SESSION_HINT``).
     Each event needs ``summary``; optional ``scope``, ``principled_transparency``; merge keys per
     :func:`~src.modules.lan_governance_event_merge.merge_lan_governance_events_detailed`.
     """
@@ -990,9 +1004,9 @@ def _collect_lan_governance_integrity_batch(
     input_count = len(dict_rows)
     missing_id_count = sum(1 for r in dict_rows if not str(r.get(id_key, "") or "").strip())
 
-    frontier_turn = _merge_context_frontier_turn(raw)
+    mctx = parse_lan_merge_context(raw)
     merge_detail = merge_lan_governance_events_detailed(
-        dict_rows, id_key=id_key, frontier_turn=frontier_turn
+        dict_rows, id_key=id_key, frontier_turn=mctx.frontier_turn
     )
     merged = merge_detail["merged"]
     event_conflicts: list[dict[str, Any]] = list(merge_detail["conflicts"])
@@ -1039,6 +1053,7 @@ def _collect_lan_governance_integrity_batch(
     }
     if event_conflicts:
         batch_body["event_conflicts"] = event_conflicts
+    _attach_merge_context_telemetry(batch_body, mctx)
     return {"lan_governance": {"integrity_batch": batch_body}}
 
 
@@ -1051,7 +1066,7 @@ def _collect_lan_governance_dao_batch(
     Client shape::
         {"lan_governance_dao_batch": {"events": [...], "id_key": "event_id"}}
 
-    Optional ``merge_context.frontier_turn`` on the batch object (same semantics as integrity batch).
+    Optional ``merge_context`` (``frontier_turn``, ``cross_session_hint``) — same semantics as integrity batch.
 
     Each event requires ``op`` in {"dao_vote","dao_resolve"} and the corresponding fields:
       - dao_vote: proposal_id, participant_id, n_votes, in_favor
@@ -1087,9 +1102,9 @@ def _collect_lan_governance_dao_batch(
     input_count = len(dict_rows)
     missing_id_count = sum(1 for r in dict_rows if not str(r.get(id_key, "") or "").strip())
 
-    frontier_turn = _merge_context_frontier_turn(raw)
+    mctx = parse_lan_merge_context(raw)
     merge_detail = merge_lan_governance_events_detailed(
-        dict_rows, id_key=id_key, frontier_turn=frontier_turn
+        dict_rows, id_key=id_key, frontier_turn=mctx.frontier_turn
     )
     merged = merge_detail["merged"]
     event_conflicts: list[dict[str, Any]] = list(merge_detail["conflicts"])
@@ -1169,6 +1184,7 @@ def _collect_lan_governance_dao_batch(
     }
     if event_conflicts:
         batch_body["event_conflicts"] = event_conflicts
+    _attach_merge_context_telemetry(batch_body, mctx)
     return {"lan_governance": {"dao_batch": batch_body}}
 
 
@@ -1181,7 +1197,7 @@ def _collect_lan_governance_judicial_batch(
     Client shape::
         {"lan_governance_judicial_batch": {"events": [...], "id_key": "event_id"}}
 
-    Optional ``merge_context.frontier_turn`` on the batch object (same semantics as integrity batch).
+    Optional ``merge_context`` (``frontier_turn``, ``cross_session_hint``) — same semantics as integrity batch.
 
     Each event requires:
       - op: "judicial_register_dossier"
@@ -1223,9 +1239,9 @@ def _collect_lan_governance_judicial_batch(
     input_count = len(dict_rows)
     missing_id_count = sum(1 for r in dict_rows if not str(r.get(id_key, "") or "").strip())
 
-    frontier_turn = _merge_context_frontier_turn(raw)
+    mctx = parse_lan_merge_context(raw)
     merge_detail = merge_lan_governance_events_detailed(
-        dict_rows, id_key=id_key, frontier_turn=frontier_turn
+        dict_rows, id_key=id_key, frontier_turn=mctx.frontier_turn
     )
     merged = merge_detail["merged"]
     event_conflicts: list[dict[str, Any]] = list(merge_detail["conflicts"])
@@ -1270,6 +1286,7 @@ def _collect_lan_governance_judicial_batch(
     }
     if event_conflicts:
         batch_body["event_conflicts"] = event_conflicts
+    _attach_merge_context_telemetry(batch_body, mctx)
     return {"lan_governance": {"judicial_batch": batch_body}}
 
 
@@ -1282,7 +1299,7 @@ def _collect_lan_governance_mock_court_batch(
     Client shape::
         {"lan_governance_mock_court_batch": {"events": [...], "id_key": "event_id"}}
 
-    Optional ``merge_context.frontier_turn`` on the batch object (same semantics as integrity batch).
+    Optional ``merge_context`` (``frontier_turn``, ``cross_session_hint``) — same semantics as integrity batch.
 
     Each event requires:
       - op: "judicial_run_mock_court"
@@ -1330,9 +1347,9 @@ def _collect_lan_governance_mock_court_batch(
     input_count = len(dict_rows)
     missing_id_count = sum(1 for r in dict_rows if not str(r.get(id_key, "") or "").strip())
 
-    frontier_turn = _merge_context_frontier_turn(raw)
+    mctx = parse_lan_merge_context(raw)
     merge_detail = merge_lan_governance_events_detailed(
-        dict_rows, id_key=id_key, frontier_turn=frontier_turn
+        dict_rows, id_key=id_key, frontier_turn=mctx.frontier_turn
     )
     merged = merge_detail["merged"]
     event_conflicts: list[dict[str, Any]] = list(merge_detail["conflicts"])
@@ -1390,6 +1407,7 @@ def _collect_lan_governance_mock_court_batch(
     }
     if event_conflicts:
         batch_body["event_conflicts"] = event_conflicts
+    _attach_merge_context_telemetry(batch_body, mctx)
     return {"lan_governance": {"mock_court_batch": batch_body}}
 
 

@@ -37,7 +37,8 @@ The kernel chat server exposes **GET** endpoints returning JSON (or Prometheus t
 - **LAN integrity batch (DJ-BL-02):** ``lan_governance_integrity_batch`` when ``KERNEL_LAN_GOVERNANCE_MERGE_WS=1`` and ``KERNEL_DAO_INTEGRITY_AUDIT_WS=1`` — see contract matrix.
 - **LAN envelope (DJ-BL-07/08/09/10/11/12):** ``lan_governance_envelope`` (`schema=lan_governance_envelope_v1`) routes by `kind` to LAN batch handlers and returns ACK metadata (`fingerprint`, `audit_ledger_fingerprint`, `idempotency_token`, `ack`, optional `reject_reason`, and `cache` stats); duplicate envelopes in the same WebSocket session are short-circuited as `ack=already_seen` with TTL/LRU-bounded replay cache; when `KERNEL_METRICS=1`, replay-cache hits/misses/evictions also increment Prometheus counters (see `/metrics`).
 - **LAN coordinator (DJ-BL-13):** ``lan_governance_coordinator`` (`schema=lan_governance_coordinator_v1`) carries an `items` array of inner ``lan_governance_envelope_v1`` objects; responses include `lan_governance.coordinator` with per-item apply results. When inner batches report merge conflicts (DJ-BL-14), the coordinator may add `aggregated_event_conflicts`. Multiple LAN keys in one message shallow-merge under `lan_governance`.
-- **LAN merge conflict taxonomy (DJ-BL-14):** integrity/DAO/judicial/mock-court LAN batches accept optional `merge_context.frontier_turn` and may return `event_conflicts` with `kind` in {`same_turn`, `different_clock`, `stale_event`} — [`PROPOSAL_LAN_GOVERNANCE_CONFLICT_TAXONOMY.md`](PROPOSAL_LAN_GOVERNANCE_CONFLICT_TAXONOMY.md).
+- **LAN merge conflict taxonomy (DJ-BL-14):** integrity/DAO/judicial/mock-court LAN batches accept optional `merge_context` (`frontier_turn`, `cross_session_hint`) and may return `event_conflicts` with `kind` in {`same_turn`, `different_clock`, `stale_event`}, plus optional `merge_context_echo` / `merge_context_warnings` — [`PROPOSAL_LAN_GOVERNANCE_CONFLICT_TAXONOMY.md`](PROPOSAL_LAN_GOVERNANCE_CONFLICT_TAXONOMY.md), [`PROPOSAL_LAN_GOVERNANCE_CROSS_SESSION_HINT.md`](PROPOSAL_LAN_GOVERNANCE_CROSS_SESSION_HINT.md).
+- **Replay sidecar (DJ-BL-15):** operators can build `lan_governance_replay_sidecar_v1` JSON from saved `lan_governance` fragments and fingerprint/compare via [`scripts/eval/verify_lan_governance_replay_sidecar.py`](../../scripts/eval/verify_lan_governance_replay_sidecar.py) — [`PROPOSAL_LAN_GOVERNANCE_REPLAY_SIDECAR.md`](PROPOSAL_LAN_GOVERNANCE_REPLAY_SIDECAR.md).
 
 ---
 
@@ -60,3 +61,4 @@ The kernel chat server exposes **GET** endpoints returning JSON (or Prometheus t
 - **2026-04-15:** WebSocket note for ``lan_governance_coordinator`` (DJ-BL-13).
 - **2026-04-15:** LAN batch `event_conflicts` + `merge_context` note (DJ-BL-14).
 - **2026-04-15:** Coordinator `aggregated_event_conflicts` note (DJ-BL-14 follow-up).
+- **2026-04-16:** `merge_context` cross-session hint + replay sidecar CLI (DJ-BL-15).

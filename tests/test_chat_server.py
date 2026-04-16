@@ -518,6 +518,106 @@ def test_websocket_lan_governance_integrity_batch_merge_context_frontier_stale_e
     assert conflicts[0].get("reason") == "below_frontier_turn"
 
 
+def test_websocket_lan_governance_integrity_batch_cross_session_hint_echo(monkeypatch):
+    monkeypatch.setenv("KERNEL_DAO_INTEGRITY_AUDIT_WS", "1")
+    monkeypatch.setenv("KERNEL_LAN_GOVERNANCE_MERGE_WS", "1")
+    payload = {
+        "lan_governance_integrity_batch": {
+            "merge_context": {
+                "frontier_turn": 1,
+                "cross_session_hint": {
+                    "schema": "lan_governance_cross_session_hint_v1",
+                    "claimant_session_id": "hub-session-7",
+                    "quorum_ref": "opaque-run-id",
+                },
+            },
+            "events": [
+                {
+                    "event_id": "z1",
+                    "turn_index": 1,
+                    "processor_elapsed_ms": 0,
+                    "summary": "with hint",
+                    "scope": "lan_test",
+                },
+            ],
+        },
+    }
+    with client.websocket_connect("/ws/chat") as ws:
+        ws.send_json(payload)
+        data = ws.receive_json()
+    batch = data.get("lan_governance", {}).get("integrity_batch", {})
+    assert batch.get("ok") is True
+    echo = batch.get("merge_context_echo") or {}
+    assert echo.get("frontier_turn") == 1
+    hint = echo.get("cross_session_hint") or {}
+    assert hint.get("claimant_session_id") == "hub-session-7"
+    assert hint.get("quorum_ref") == "opaque-run-id"
+
+
+def test_websocket_lan_governance_integrity_batch_cross_session_invalid_hint_warns(monkeypatch):
+    monkeypatch.setenv("KERNEL_DAO_INTEGRITY_AUDIT_WS", "1")
+    monkeypatch.setenv("KERNEL_LAN_GOVERNANCE_MERGE_WS", "1")
+    payload = {
+        "lan_governance_integrity_batch": {
+            "merge_context": {
+                "cross_session_hint": {
+                    "schema": "not_a_real_schema",
+                    "claimant_session_id": "x",
+                },
+            },
+            "events": [
+                {
+                    "event_id": "w1",
+                    "turn_index": 1,
+                    "processor_elapsed_ms": 0,
+                    "summary": "warn only",
+                    "scope": "lan_test",
+                },
+            ],
+        },
+    }
+    with client.websocket_connect("/ws/chat") as ws:
+        ws.send_json(payload)
+        data = ws.receive_json()
+    batch = data.get("lan_governance", {}).get("integrity_batch", {})
+    assert batch.get("ok") is True
+    assert batch.get("merge_context_echo") in (None, {})
+    warns = batch.get("merge_context_warnings") or []
+    assert any(str(w).startswith("cross_session_hint_rejected:") for w in warns)
+
+
+def test_websocket_lan_governance_integrity_replay_sidecar_roundtrip(monkeypatch):
+    from src.modules.lan_governance_replay_sidecar import (
+        build_replay_sidecar_v1,
+        fingerprint_replay_sidecar,
+    )
+
+    monkeypatch.setenv("KERNEL_DAO_INTEGRITY_AUDIT_WS", "1")
+    monkeypatch.setenv("KERNEL_LAN_GOVERNANCE_MERGE_WS", "1")
+    payload = {
+        "lan_governance_integrity_batch": {
+            "merge_context": {"frontier_turn": 2},
+            "events": [
+                {
+                    "event_id": "r1",
+                    "turn_index": 2,
+                    "processor_elapsed_ms": 0,
+                    "summary": "replay slice",
+                    "scope": "s",
+                },
+            ],
+        },
+    }
+    with client.websocket_connect("/ws/chat") as ws:
+        ws.send_json(payload)
+        data = ws.receive_json()
+    lg = data.get("lan_governance") or {}
+    sidecar = build_replay_sidecar_v1(lan_governance=lg)
+    assert "integrity_batch" in (sidecar.get("batches") or {})
+    fp = fingerprint_replay_sidecar(sidecar)
+    assert len(fp) == 64
+
+
 def test_websocket_lan_governance_integrity_batch_disabled_returns_hint(monkeypatch):
     monkeypatch.setenv("KERNEL_DAO_INTEGRITY_AUDIT_WS", "1")
     monkeypatch.delenv("KERNEL_LAN_GOVERNANCE_MERGE_WS", raising=False)

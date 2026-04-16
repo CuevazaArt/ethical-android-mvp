@@ -4,6 +4,13 @@ All notable changes to this project are summarized here. For narrative context a
 
 **Note:** Older sections below may still **link** to paths that were later removed (for example `experiments/million_sim/`, `docs/multimedia/`, root `dashboard.html`, `landing/`). Those links are **historical**; recover files from git history or backup branches if you need them.
 
+## Distributed justice — Phase 2 replay sidecar + cross-session hint (DJ-BL-15) — April 2026
+
+- **Replay evidence:** `lan_governance_replay_sidecar_v1` builder + `fingerprint_replay_sidecar` in [`src/modules/lan_governance_replay_sidecar.py`](src/modules/lan_governance_replay_sidecar.py); CLI [`scripts/eval/verify_lan_governance_replay_sidecar.py`](scripts/eval/verify_lan_governance_replay_sidecar.py) (compare sidecars; optional `--audit-ledger` check).
+- **Cross-session (non-consensus):** optional `merge_context.cross_session_hint` (`lan_governance_cross_session_hint_v1`) validated and echoed via `merge_context_echo` / `merge_context_warnings` in [`src/modules/lan_governance_merge_context.py`](src/modules/lan_governance_merge_context.py) and LAN batch handlers in [`src/chat_server.py`](src/chat_server.py).
+- **Docs:** [`docs/proposals/PROPOSAL_LAN_GOVERNANCE_REPLAY_SIDECAR.md`](docs/proposals/PROPOSAL_LAN_GOVERNANCE_REPLAY_SIDECAR.md), [`docs/proposals/PROPOSAL_LAN_GOVERNANCE_CROSS_SESSION_HINT.md`](docs/proposals/PROPOSAL_LAN_GOVERNANCE_CROSS_SESSION_HINT.md); operator quick ref + contract matrix + HTTP surface updated.
+- **Tests:** [`tests/test_lan_governance_merge_context.py`](tests/test_lan_governance_merge_context.py), [`tests/test_lan_governance_replay_sidecar.py`](tests/test_lan_governance_replay_sidecar.py), [`tests/test_chat_server.py`](tests/test_chat_server.py).
+
 ## Distributed justice — Phase 2 LAN merge conflict taxonomy (DJ-BL-14) — April 2026
 
 - **Merge:** deterministic conflict classification for LAN batch `events` — `same_turn`, `different_clock`, `stale_event` — in [`src/modules/lan_governance_conflict_taxonomy.py`](src/modules/lan_governance_conflict_taxonomy.py); [`merge_lan_governance_events`](src/modules/lan_governance_event_merge.py) delegates to `merge_lan_governance_events_detailed` and accepts optional `frontier_turn`.
