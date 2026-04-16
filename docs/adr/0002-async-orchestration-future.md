@@ -24,6 +24,19 @@
 - **Positive:** Multiple WebSocket sessions remain **responsive** at the transport layer; operators can cap **perceived** turn latency and size a **known** thread pool.
 - **Negative:** Under heavy load, **thread** exhaustion still queues work; ``KERNEL_CHAT_TURN_TIMEOUT`` does not kill Ollama server-side; document honestly in operator docs.
 
+## Cooperative HTTP cancellation (future work — not implemented)
+
+**Gap:** ``KERNEL_CHAT_TURN_TIMEOUT`` ends the **async** wait; the worker thread’s synchronous ``httpx`` call may continue until ``OLLAMA_TIMEOUT`` ([`WEAKNESSES_AND_BOTTLENECKS.md`](../proposals/WEAKNESSES_AND_BOTTLENECKS.md) §1; G-05 in [`PROPOSAL_LLM_INTEGRATION_TRACK.md`](../proposals/PROPOSAL_LLM_INTEGRATION_TRACK.md)).
+
+**Target checklist for a future PR** (kernel may remain synchronous; cancellation lives in the bridge / HTTP client layer):
+
+1. **Per-session or pooled** ``httpx.AsyncClient`` for LLM completion calls used on the chat path (or a dedicated async sub-process boundary), with **structured cancellation** when ``asyncio.wait_for`` fires.
+2. **Document** that cancelled turns do not mutate kernel episode state inconsistently (define idempotency or “late response dropped” semantics).
+3. **Metrics:** increment a counter when a request is cancelled vs completed (operators already have ``ethos_kernel_chat_turn_async_timeouts_total`` for timeout events — extend semantics if cancel differs from timeout).
+4. **Tests:** subprocess or async test proving that after timeout/cancel, no further WebSocket payload is sent for that turn, and the thread pool does not grow without bound under burst cancel.
+
+Until then, **honest operator posture:** tune ``OLLAMA_TIMEOUT`` ≤ ``KERNEL_CHAT_TURN_TIMEOUT`` when you need tighter alignment, knowing this is **not** true cooperative cancel.
+
 ## Links
 
 - [`src/real_time_bridge.py`](../../src/real_time_bridge.py)  

@@ -22,6 +22,11 @@ Precedence is documented in
 - Perception: ``KERNEL_PERCEPTION_BACKEND_POLICY``
 - Verbal: ``KERNEL_VERBAL_LLM_BACKEND_POLICY``
 
+**Optional unified fallback (after legacy, before built-in defaults):**
+
+- ``KERNEL_LLM_GLOBAL_DEFAULT_POLICY`` — single string; **each** resolver keeps only values valid for
+  that touchpoint (invalid or inapplicable values are ignored). See the degradation matrix.
+
 Concrete validation and canned templates live in
 :mod:`perception_backend_policy`, :mod:`llm_verbal_backend_policy`, and :meth:`LLMModule` methods.
 """
@@ -38,9 +43,16 @@ TOUCHPOINT_MONOLOGUE = "monologue"
 
 ENV_VERBAL_FAMILY_POLICY = "KERNEL_LLM_VERBAL_FAMILY_POLICY"
 ENV_MONOLOGUE_BACKEND_POLICY = "KERNEL_LLM_MONOLOGUE_BACKEND_POLICY"
+ENV_LLM_GLOBAL_DEFAULT_POLICY = "KERNEL_LLM_GLOBAL_DEFAULT_POLICY"
 
 MONOLOGUE_POLICIES = frozenset({"passthrough", "annotate_degraded"})
 DEFAULT_MONOLOGUE_BACKEND_POLICY = "passthrough"
+
+
+def raw_global_default_policy() -> str | None:
+    """Raw ``KERNEL_LLM_GLOBAL_DEFAULT_POLICY`` (lowercased), or ``None`` if unset."""
+    v = os.environ.get(ENV_LLM_GLOBAL_DEFAULT_POLICY, "").strip().lower()
+    return v if v else None
 
 
 def touchpoint_policy_env_key(slug: str) -> str:
@@ -72,4 +84,7 @@ def resolve_monologue_llm_backend_policy() -> str:
     leg = os.environ.get(ENV_MONOLOGUE_BACKEND_POLICY, "").strip().lower()
     if leg and leg in MONOLOGUE_POLICIES:
         return leg
+    g = raw_global_default_policy()
+    if g and g in MONOLOGUE_POLICIES:
+        return g
     return DEFAULT_MONOLOGUE_BACKEND_POLICY

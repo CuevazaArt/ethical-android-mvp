@@ -7,7 +7,7 @@ Run from repo root:
 Or: python -m src.chat_server
 Or: python -m src.runtime  (same server; see docs/proposals/README.md)
 
-**Profiles:** set ``ETHOS_RUNTIME_PROFILE`` to a name in ``src/runtime_profiles.py`` to merge that bundle at import time (explicit env vars win per key). ``GET /health`` and ``GET /`` include ``runtime_profile`` when set.
+**Profiles:** set ``ETHOS_RUNTIME_PROFILE`` to a name in ``src/runtime_profiles.py`` to merge that bundle at import time (explicit env vars win per key). ``GET /health`` and ``GET /`` include ``runtime_profile`` when set; ``GET /health`` also returns ``llm_degradation`` (resolved perception / verbal / monologue policies — see ``PROPOSAL_LLM_TOUCHPOINT_DEGRADATION_MATRIX.md``).
 
 **Chat async bridge:** Each turn runs ``EthicalKernel.process_chat_turn`` in a worker thread (``RealTimeBridge``) so the asyncio loop can accept other WebSocket connections. Optional ``KERNEL_CHAT_THREADPOOL_WORKERS`` (positive int) uses a dedicated ``ThreadPoolExecutor`` for chat; optional ``KERNEL_CHAT_TURN_TIMEOUT`` (seconds) bounds the **async** wait and returns JSON ``error=chat_turn_timeout`` when exceeded (in-flight sync LLM may still run until ``OLLAMA_TIMEOUT``). By default ``KERNEL_CHAT_JSON_OFFLOAD`` is on: WebSocket JSON (including optional ``KERNEL_LLM_MONOLOGUE``) is built in the same offload path so the loop is not blocked after the turn. See ``src/real_time_bridge.py``, ADR 0002, and ``docs/proposals/README.md``.
 
@@ -832,6 +832,28 @@ def health() -> dict[str, Any]:
     prof = applied_runtime_profile()
     if prof:
         out["runtime_profile"] = prof
+
+    # Effective LLM degradation policies (resolved precedence — see PROPOSAL_LLM_TOUCHPOINT_DEGRADATION_MATRIX.md).
+    from .modules.llm_touchpoint_policies import (
+        ENV_LLM_GLOBAL_DEFAULT_POLICY,
+        raw_global_default_policy,
+        resolve_monologue_llm_backend_policy,
+    )
+    from .modules.llm_verbal_backend_policy import resolve_verbal_llm_backend_policy
+    from .modules.perception_backend_policy import resolve_perception_backend_policy
+
+    g_raw = os.environ.get(ENV_LLM_GLOBAL_DEFAULT_POLICY, "").strip()
+    out["llm_degradation"] = {
+        "global_default_env_set": bool(g_raw),
+        "global_default_raw": g_raw or None,
+        "global_default_effective": raw_global_default_policy(),
+        "resolved": {
+            "perception": resolve_perception_backend_policy(),
+            "communicate": resolve_verbal_llm_backend_policy(touchpoint="communicate"),
+            "narrate": resolve_verbal_llm_backend_policy(touchpoint="narrate"),
+            "monologue": resolve_monologue_llm_backend_policy(),
+        },
+    }
     return out
 
 

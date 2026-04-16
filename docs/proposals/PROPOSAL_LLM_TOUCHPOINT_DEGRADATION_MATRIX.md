@@ -15,7 +15,8 @@ For each **touchpoint**, configuration is resolved in this order; **first valid 
 | 1 | Per-touchpoint override | `KERNEL_LLM_TP_NARRATE_POLICY=canned_safe` |
 | 2 | Family default (verbal JSON only) | `KERNEL_LLM_VERBAL_FAMILY_POLICY` applies to **communicate** and **narrate** when their `KERNEL_LLM_TP_*` key is unset |
 | 3 | Legacy single key (backward compatible) | `KERNEL_PERCEPTION_BACKEND_POLICY`, `KERNEL_VERBAL_LLM_BACKEND_POLICY` |
-| 4 | Built-in default | See table below |
+| 4 | Optional unified fallback | `KERNEL_LLM_GLOBAL_DEFAULT_POLICY` — **ignored** unless the value is valid for that touchpoint (e.g. `fast_fail` applies to perception, not to verbal JSON; `canned_safe` applies to verbal, not perception). Monologue accepts only `passthrough` / `annotate_degraded`. |
+| 5 | Built-in default | See table below |
 
 **Invalid** values for a given touchpoint are **ignored** (treated as unset), so the next precedence level applies.
 
@@ -85,6 +86,29 @@ If set and valid, it overrides `KERNEL_PERCEPTION_BACKEND_POLICY` for the same p
 | Degradation | Hash fallback or lexical-only deferral (see [`MALABS_SEMANTIC_LAYERS.md`](MALABS_SEMANTIC_LAYERS.md)) | `template_local` / `fast_fail` / `canned_safe` paths |
 
 A single unified env knob for **all** HTTP inference remains out of scope until operators ask for it (see [`WEAKNESSES_AND_BOTTLENECKS.md`](../WEAKNESSES_AND_BOTTLENECKS.md) §3).
+
+---
+
+## Nominal bundle: conservative staging
+
+**Profile:** `ETHOS_RUNTIME_PROFILE=llm_staging_conservative` ([`src/runtime_profiles.py`](../../src/runtime_profiles.py)) merges:
+
+- `KERNEL_LLM_TP_PERCEPTION_POLICY=fast_fail`
+- `KERNEL_LLM_GLOBAL_DEFAULT_POLICY=canned_safe` (communicate + narrate when their per-touchpoint keys are unset)
+- `KERNEL_LLM_TP_MONOLOGUE_POLICY=annotate_degraded`
+- Semantic MalAbs on + hash embedding fallback (CI/airgap friendly)
+
+**Verify without reading env by hand:** `GET /health` → `llm_degradation` includes `global_default_raw`, `global_default_effective`, and `resolved` `{ perception, communicate, narrate, monologue }` after the same precedence as runtime.
+
+**Copy-paste (equivalent keys if you do not use `ETHOS_RUNTIME_PROFILE`):**
+
+```text
+KERNEL_SEMANTIC_CHAT_GATE=1
+KERNEL_SEMANTIC_EMBED_HASH_FALLBACK=1
+KERNEL_LLM_TP_PERCEPTION_POLICY=fast_fail
+KERNEL_LLM_GLOBAL_DEFAULT_POLICY=canned_safe
+KERNEL_LLM_TP_MONOLOGUE_POLICY=annotate_degraded
+```
 
 ---
 

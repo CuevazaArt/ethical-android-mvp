@@ -31,6 +31,7 @@ Until that exists, defaults remain **engineering priors**: conservative block at
 ## In-repo tools
 
 - **Tests** assert the default constants so accidental edits fail CI (`tests/test_semantic_chat_gate.py`).
+- **Doc–code alignment:** `tests/test_semantic_threshold_proposal_doc_alignment.py` checks this proposal still names the same default numerals (`0.82` / `0.45`) as the shipped constants.
 - **`classify_semantic_zone`** is the single pure mapping from `(best_sim, θ_block, θ_allow)` to zones; production and tests use the same logic.
 - **`scripts/report_semantic_zone_table.py`** prints how zones change for synthetic `best_sim` values and optional θ sweeps (geometry only — not labeled FP/FN).
 

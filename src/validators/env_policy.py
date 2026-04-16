@@ -56,6 +56,8 @@ SUPPORTED_COMBOS: Final[dict[str, frozenset[str]]] = {
             "phase2_event_bus_lab",
             "untrusted_chat_input",
             "llm_integration_lab",
+            "cybersecurity_hardened",
+            "llm_staging_conservative",
         }
     ),
 }
