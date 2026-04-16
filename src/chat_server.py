@@ -2233,10 +2233,15 @@ async def ws_chat(ws: WebSocket) -> None:
                 nb = get_nomad_bridge()
                 if client is None: client = {}
                 
-                # Merge orientation and battery if available in Nomad Bridge
-                if not nb.telemetry_queue.empty():
-                    # Peek latest without waiting
-                    live_t = nb.telemetry_queue._queue[0] if nb.telemetry_queue.qsize() > 0 else {}
+                # Drain telemetry_queue to get the LATEST entry (S.2.1 Calibration)
+                live_t = {}
+                while not nb.telemetry_queue.empty():
+                    try:
+                        live_t = nb.telemetry_queue.get_nowait()
+                    except asyncio.QueueEmpty:
+                        break
+                
+                if live_t:
                     client.update(live_t)
                 
                 client["rms_audio"] = nb.last_rms

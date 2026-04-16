@@ -48,6 +48,10 @@ async def run_perception_pipeline(
         _thal = None
 
     # 2. Parallel Perception & Layer 2 MalAbs (Semantic)
+    # ACL: Adaptive Cognitive Load - Skip semantic gate if thermal stress is high
+    temp = sensor_snapshot.core_temperature if sensor_snapshot else 0.0
+    is_thermal_crisis = (temp > 85.0)
+
     perception_task = kernel.perceptive_lobe.run_perception_stage_async(
         user_input, 
         conversation_context=conversation_context, 
@@ -56,11 +60,18 @@ async def run_perception_pipeline(
         precomputed=precomputed,
     )
     
-    mal_semantic_task = arun_semantic_malabs_after_lexical(
-        user_input,
-        llm_backend=kernel._malabs_text_backend(),
-        aclient=kernel.aclient,
-    )
+    if is_thermal_crisis:
+        _log.warning("ACL: Thermal Crisis detected (%.1f°C). Bypassing Semantic Gate for load reduction.", temp)
+        from ..modules.absolute_evil import AbsoluteEvilResult
+        async def dummy_malabs():
+            return AbsoluteEvilResult(blocked=False, metadata={"acl_degraded": True})
+        mal_semantic_task = dummy_malabs()
+    else:
+        mal_semantic_task = arun_semantic_malabs_after_lexical(
+            user_input,
+            llm_backend=kernel._malabs_text_backend(),
+            aclient=kernel.aclient,
+        )
     
     stage, mal_semantic = await asyncio.gather(perception_task, mal_semantic_task)
     

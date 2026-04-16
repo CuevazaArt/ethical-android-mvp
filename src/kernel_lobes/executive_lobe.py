@@ -49,6 +49,9 @@ class ExecutiveLobe:
         self.salience_map = salience_map
         self.pad_archetypes = pad_archetypes
         self.llm = llm
+        
+        from src.modules.basal_ganglia import BasalGanglia
+        self.ganglia = BasalGanglia() # Smoothing layer
 
     def execute_absolute_evil_stage(
         self,
@@ -130,9 +133,23 @@ class ExecutiveLobe:
         curiosity = getattr(meta_report, "curiosity_weight", 0.0) if meta_report else 0.0
         salience = self.salience_map.compute(signals, state, social_eval, reflection, curiosity=curiosity)
 
-        # 6. Affective Projection
+        # 6. Affective Projection (with Basal Ganglia smoothing)
         affect = self.pad_archetypes.project(state.sigma, moral.total_score, locus_eval)
         
+        # Smooth the PAD vectors to prevent sociopathic snaps
+        affect.pad = (
+            self.ganglia.smooth("pleasure", affect.pad[0]),
+            self.ganglia.smooth("arousal", affect.pad[1]),
+            self.ganglia.smooth("dominance", affect.pad[2])
+        )
+        
+        # 7. Real-Time Hardware Projection (Phase 10.5)
+        try:
+            from src.modules.affect_projection_relay import get_affect_relay
+            get_affect_relay().transmit(affect)
+        except Exception as e:
+            _log.error("ExecutiveLobe: Affective relay failed: %s", e)
+            
         return moral, bayes_result.chosen_action.name, final_mode, affect, reflection, salience
 
     def judge_action_lethality(self, action_data: dict[str, Any]) -> bool:

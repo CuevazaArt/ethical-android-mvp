@@ -132,14 +132,15 @@ class VisionContinuousDaemon:
                     pass
 
                 if frame_data:
-                    # 2. Realizar Inferencia (En producción: CNN model)
-                    # Por ahora el analyze_image es un stub que procesa metadatos 
-                    # o detecta 'prohibited' si se inyectan en el frame_data (mock)
-                    # Simulamos detección si el frame es válido
-                    mock_analysis = {"detected_objects": [{"label": "human", "confidence": 0.9}]}
-                    detections = self.engine.analyze_image(mock_analysis)
+                    # 2. Extract signals (Phase 14: Real data from Nomad Bridge)
+                    # frame_data is now a dict {raw_bytes, meta, detections}
+                    meta = frame_data.get("meta", {})
+                    detections_raw = frame_data.get("detections", [])
                     
-                    # 3. Convertir a SensoryEpisode
+                    # Convert raw detections to model objects
+                    detections = self.engine.analyze_image({"detected_objects": detections_raw})
+                    
+                    # 3. Convert to SensoryEpisode with real signals
                     episode = SensoryEpisode(
                         timestamp=time.time(),
                         origin="vision_daemon",
@@ -147,7 +148,10 @@ class VisionContinuousDaemon:
                         signals={
                             "confidence": max([d.confidence for d in detections]) if detections else 1.0,
                             "is_urgent": 1.0 if any(d.is_prohibited for d in detections) else 0.0,
-                            "threat_level": self.engine.get_highest_threat(detections).confidence if self.engine.get_highest_threat(detections) else 0.0
+                            "threat_level": self.engine.get_highest_threat(detections).confidence if self.engine.get_highest_threat(detections) else 0.0,
+                            "human_presence": meta.get("human_presence", 0.0),
+                            "lip_movement": meta.get("lip_movement", 0.0),
+                            "user_focus": meta.get("user_focus", 0.5)
                         }
                     )
                     

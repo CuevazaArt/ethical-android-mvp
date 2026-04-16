@@ -87,6 +87,31 @@ class SensorSnapshot:
             except (TypeError, ValueError):
                 return None
 
+        # Aliases for Nomad/PWA calibration (S.2.1)
+        # battery (0-100) -> battery_level (0-1)
+        if "battery" in raw and raw.get("battery_level") is None:
+            raw["battery_level"] = f_raw("battery") / 100.0 if f_raw("battery") is not None else None
+        
+        # jerk (0-20 m/s^2) -> accelerometer_jerk (0-1)
+        if "jerk" in raw and raw.get("accelerometer_jerk") is None:
+            jerk_val = f_raw("jerk")
+            raw["accelerometer_jerk"] = min(1.0, jerk_val / 20.0) if jerk_val is not None else None
+            
+        # noise (dB) -> ambient_noise (0-1)
+        if "noise" in raw and raw.get("ambient_noise") is None:
+            noise_db = f_raw("noise")
+            # Map -60dB..0dB to 0..1
+            if noise_db is not None:
+                raw["ambient_noise"] = _clamp01((noise_db + 60) / 60.0)
+
+        # core_temp alias
+        if "temp" in raw and raw.get("core_temperature") is None:
+            raw["core_temperature"] = f_raw("temp")
+
+        # trusted_place -> place_trust
+        if "trusted_place" in raw and raw.get("place_trust") is None:
+            raw["place_trust"] = 1.0 if raw.get("trusted_place") else 0.0
+
         b = raw.get("backup_just_completed")
         backup = bool(b) if b is not None else False
 

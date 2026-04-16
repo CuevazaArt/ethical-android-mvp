@@ -166,6 +166,27 @@ class MobileNetV2Adapter(VisionAdapter):
 
 import asyncio
 
+
+def jpeg_bytes_from_vision_queue_item(item: Any) -> bytes | None:
+    """
+    Normalize items from :attr:`NomadBridge.vision_queue`.
+
+    The bridge may enqueue raw JPEG ``bytes`` (tests, legacy) or a dict with
+    ``raw_bytes`` plus optional ``meta`` / ``detections`` (LAN smartphone path).
+    """
+    if item is None:
+        return None
+    if isinstance(item, (bytes, bytearray)):
+        return bytes(item)
+    if isinstance(item, dict):
+        rb = item.get("raw_bytes")
+        if rb is None:
+            return None
+        if isinstance(rb, (bytes, bytearray)):
+            return bytes(rb)
+    return None
+
+
 class NomadVisionConsumer:
     """
     Consumes frames from NomadBridge asynchronously and dispatches them 
@@ -195,7 +216,11 @@ class NomadVisionConsumer:
         bridge = get_nomad_bridge()
         while True:
             try:
-                frame_bytes = await bridge.vision_queue.get()
+                raw = await bridge.vision_queue.get()
+                frame_bytes = jpeg_bytes_from_vision_queue_item(raw)
+                if not frame_bytes:
+                    _log.debug("Nomad vision: skipped queue item (no raw JPEG bytes)")
+                    continue
                 np_arr = np.frombuffer(frame_bytes, np.uint8)
                 img = cv2.imdecode(np_arr, cv2.IMREAD_COLOR)
                 if img is not None:

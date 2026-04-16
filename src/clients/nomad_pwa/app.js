@@ -173,6 +173,21 @@ function connectKernel() {
                     }
                 }
 
+                // Phase 10.5: Real-time Affective Orb Update
+                if (msg.type === 'orb_update') {
+                    console.log("Nomad: Affective shift", msg.archetype);
+                    const v = msg.visuals;
+                    
+                    // Update Orb Appearance
+                    UI.orb.style.backgroundColor = v.color;
+                    UI.orb.style.boxShadow = `0 0 ${20 * v.scale}px ${10 * v.scale}px ${v.color}`;
+                    UI.orb.style.transform = `scale(${v.scale})`;
+                    UI.orb.style.animationDuration = `${v.pulse_s}s`;
+                    
+                    // Update Text for feedback
+                    UI.transcript.innerText = `Limbic State: ${msg.archetype.replace(/_/g, ' ')}`;
+                }
+
                 // Phase 10.2: Haptic Feedback Loop
                 if (msg.type === 'haptic_feedback') {
                     console.log("Nomad: Haptic Pulse received", msg.payload);

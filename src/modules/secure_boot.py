@@ -20,6 +20,7 @@ Secure Boot Service (Block 5.2: G2) — **DEMO / SCAFFOLDING**.
 from __future__ import annotations
 
 import hashlib
+import json
 import logging
 from pathlib import Path
 
@@ -27,9 +28,15 @@ _log = logging.getLogger(__name__)
 
 _CRITICAL_PATHS: list[str] = [
     "src/kernel.py",
-    "src/modules/bayesian_engine.py",
-    "src/modules/safety_interlock.py",
-    "src/modules/buffer.py",
+    "src/kernel_lobes/models.py",
+    "src/kernel_lobes/executive_lobe.py",
+    "src/kernel_lobes/memory_lobe.py",
+    "src/kernel_lobes/perception_lobe.py",
+    "src/kernel_lobes/thalamus_node.py",
+    "src/modules/absolute_evil.py",
+    "src/modules/nomad_bridge.py",
+    "src/modules/secure_boot.py",
+    "src/modules/immortality.py",
 ]
 
 
@@ -44,7 +51,25 @@ class SecureBoot:
 
     def __init__(self, root_dir: str | Path = "."):
         self.root_dir = Path(root_dir)
-        self.golden_manifest: dict[str, str] = {p: "trusted" for p in _CRITICAL_PATHS}
+        self.manifest_path = self.root_dir / "src" / "MANIFEST.json"
+        self.golden_manifest: dict[str, str] = {}
+        self._load_manifest()
+
+    def _load_manifest(self) -> None:
+        """Carga el manifiesto sellado desde el disco."""
+        if not self.manifest_path.exists():
+            _log.warning("SecureBoot: MANIFEST.json not found at %s. Running in UNSAFE mode.", self.manifest_path)
+            # Fallback to presence only for first boot
+            self.golden_manifest = {p: "presence_only" for p in _CRITICAL_PATHS}
+            return
+
+        try:
+            with open(self.manifest_path, "r", encoding="utf-8") as f:
+                self.golden_manifest = json.load(f)
+            _log.info("SecureBoot: Manifest loaded with %d critical entries.", len(self.golden_manifest))
+        except Exception as e:
+            _log.error("SecureBoot: Failed to parse manifest: %s", e)
+            self.golden_manifest = {p: "presence_only" for p in _CRITICAL_PATHS}
 
     def compute_file_hash(self, relative_path: str) -> str:
         """Compute the SHA-256 hex-digest for *relative_path* under *root_dir*."""
@@ -59,22 +84,36 @@ class SecureBoot:
         return sha256_hash.hexdigest()
 
     def verify_integrity(self) -> bool:
-        """Run the secure-boot presence check (hash comparison is a TODO)."""
-        _log.info("Starting Root of Trust verification (demo mode)…")
+        """
+        Ejecuta la validación de integridad (Bloque 5.2.G2).
+        Compara los hashes SHA-256 actuales contra los del manifiesto sellado.
+        """
+        _log.info("SecureBoot: Initiating Root of Trust verification...")
 
         all_ok = True
-        for rel_path in self.golden_manifest:
+        violations = []
+
+        for rel_path, expected_hash in self.golden_manifest.items():
             actual_hash = self.compute_file_hash(rel_path)
+            
             if actual_hash == "missing":
-                _log.critical("CRITICAL FAILURE: %s is missing!", rel_path)
+                _log.critical("SECURE BOOT FAILURE: %s is missing!", rel_path)
+                violations.append(f"{rel_path}: MISSING")
+                all_ok = False
+            elif expected_hash == "presence_only":
+                 _log.warning("SecureBoot: %s verified by presence (HASH PENDING).", rel_path)
+            elif actual_hash != expected_hash:
+                _log.critical("SECURE BOOT FAILURE: %s hash mismatch!", rel_path)
+                _log.debug("Expected: %s | Actual: %s", expected_hash, actual_hash)
+                violations.append(f"{rel_path}: TAMPERED")
                 all_ok = False
             else:
-                _log.info("Verified (presence only): %s", rel_path)
+                _log.info("SecureBoot: %s verified (HASH MATCH).", rel_path)
 
         if all_ok:
-            _log.info("Integrity verified (presence). Chain of trust established (demo).")
+            _log.info("SecureBoot: Chain of trust established. Integrity verified.")
         else:
-            _log.error("INTEGRITY BREACH DETECTED. Kernel locked.")
+            _log.error("INTEGRITY BREACH DETECTED: %d violations.", len(violations))
 
         return all_ok
 

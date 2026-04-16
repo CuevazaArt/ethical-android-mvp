@@ -8,6 +8,7 @@ The android does not store data: it builds history.
 import os
 from datetime import datetime
 from pathlib import Path
+from typing import Optional, List, Any
 
 import numpy as np
 

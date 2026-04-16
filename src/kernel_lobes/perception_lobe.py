@@ -65,6 +65,12 @@ class PerceptiveLobe:
         self.thalamus = thalamus
         self.vision_engine = vision_engine
         
+        # Phase 11.5: Somatic Inertia State
+        self._last_valid_impulses: Optional[dict[str, Any]] = None
+        self._shutdown_deadline: Optional[float] = None
+        
+        self.urgent_notification_callback: Optional[Callable[[Any], None]] = None # Phase 9.4
+        
         from collections import deque
         from src.kernel_lobes.models import SensoryEpisode
         self.sensory_buffer: deque[SensoryEpisode] = deque(maxlen=100)
@@ -83,8 +89,11 @@ class PerceptiveLobe:
     def absorb_episode(self, episode: "SensoryEpisode") -> None:
         """Callback for background daemons to inject sensory data."""
         self.sensory_buffer.append(episode)
-        if episode.signals.get("is_urgent", 0.0) > 0.8:
+        urgency = episode.signals.get("is_urgent", 0.0)
+        if urgency > 0.8:
             _log.info("PerceptiveLobe: URGENT sensory episode absorbed! (%s)", episode.entities)
+            if self.urgent_notification_callback:
+                self.urgent_notification_callback(episode)
 
 
     def _calculate_sensory_stress(self) -> float:
@@ -99,6 +108,44 @@ class PerceptiveLobe:
         # If > 50% are urgent, we have a sustained threat
         stress = (urgent_count / 10.0) * 1.5 
         return min(1.0, stress)
+
+    def get_sensory_impulses(self) -> dict[str, Any]:
+        """
+        Aggregates all current sensory signals for the Thalamus.
+        Vertical Increment (Task 11.5): Somatic Inertia.
+        """
+        from src.modules.nomad_bridge import is_vessel_online
+        
+        # 1. Check Connectivity Health (Nomadism Phase 14)
+        online = is_vessel_online()
+        
+        if not online:
+            if self._shutdown_deadline is None:
+                # Start inertia countdown (5 seconds)
+                self._shutdown_deadline = time.time() + 5.0
+                _log.warning("PerceptiveLobe: Vessel disconnected! Entering Somatic Inertia (5s ghosting).")
+            
+            if time.time() > self._shutdown_deadline:
+                _log.error("PerceptiveLobe: Somatic Inertia expired. Sensory Shutdown.")
+                return {"sensory_shutdown": True, "offline": True}
+        else:
+            # Vessel is online, reset inertia
+            self._shutdown_deadline = None
+        
+        # 2. Extract impulses
+        stress = self._calculate_sensory_stress()
+        attention = self.thalamus.get_sensory_summary() if self.thalamus else {}
+        
+        impulses = {
+            "sensory_stress": round(stress, 3),
+            "attention": attention,
+            "offline": not online,
+            "inertia_active": self._shutdown_deadline is not None,
+            "turn_index": self.subjective_clock.turn_index
+        }
+        
+        self._last_valid_impulses = impulses
+        return impulses
 
     def execute_stage(
         self,
@@ -201,7 +248,7 @@ class PerceptiveLobe:
         perception = self.llm.perceive(text, conversation_context=merged_ctx)
         self._postprocess_perception(perception, tier)
 
-        vitality, mm, ed = self._chat_assess_sensor_stack(sensor_snapshot)
+        vitality, multimodal, epistemic = self._chat_assess_sensor_stack(sensor_snapshot)
         signals = {
             "risk": perception.risk, "urgency": perception.urgency,
             "hostility": perception.hostility, "calm": perception.calm,
@@ -210,23 +257,30 @@ class PerceptiveLobe:
             "social_tension": getattr(perception, "social_tension", 0.0),
             "sensory_stress": self._calculate_sensory_stress() # Phase 9.2
         }
-        signals = merge_sensor_hints_into_signals(signals, sensor_snapshot, mm)
+        signals = merge_sensor_hints_into_signals(signals, sensor_snapshot, multimodal)
         signals = apply_somatic_nudges(signals, sensor_snapshot, self.somatic_store)
 
         confidence = build_perception_confidence_envelope(
             coercion_report=getattr(perception, "coercion_report", None),
-            multimodal_state=getattr(mm, "state", None),
-            epistemic_active=bool(getattr(ed, "active", False)),
+            multimodal_state=getattr(multimodal, "state", None),
+            epistemic_active=bool(getattr(epistemic, "active", False)),
             vitality_critical=bool(getattr(vitality, "is_critical", False)),
             thermal_critical=bool(getattr(vitality, "thermal_critical", False)),
         )
         
-        limbic = self._build_limbic_perception_profile(perception, signals, vitality, mm, ed, confidence)
+        limbic = self._build_limbic_perception_profile(
+            perception=perception, 
+            signals=signals, 
+            vitality=vitality, 
+            multimodal=multimodal, 
+            epistemic=epistemic, 
+            confidence_envelope=confidence
+        )
         
         return PerceptionStageResult(
             tier=tier, premise_advisory=premise, reality_verification=reality,
-            perception=perception, vitality=vitality, multimodal_trust=mm,
-            epistemic_dissonance=ed, signals=signals,
+            perception=perception, vitality=vitality, multimodal_trust=multimodal,
+            epistemic_dissonance=epistemic, signals=signals,
             support_buffer=self._build_support_buffer_snapshot(perception.suggested_context, signals, limbic),
             limbic_profile=limbic,
             temporal_context=build_temporal_context(
@@ -270,12 +324,35 @@ class PerceptiveLobe:
         return vitality, multimodal, epistemic
 
     def _build_support_buffer_snapshot(self, context: str, signals: dict = None, limbic_profile: dict = None) -> dict:
-        return self.buffer.get_snapshot(context, kernel=None, signals=signals, limbic_profile=limbic_profile)
+        snapshot = self.buffer.get_snapshot(context, kernel=None, signals=signals, limbic_profile=limbic_profile)
+        
+        # Phase 10: Metadata enrichment for observability
+        snapshot["source"] = "local_preloaded_buffer"
+        snapshot["offline_ready"] = True
+        snapshot["model_version"] = "ethos-v2-perception"
+        
+        # ADR 0008 Logic: Map arousal to priority profile (Pillar 1/2)
+        arousal = (limbic_profile or {}).get("arousal_band", "low")
+        if arousal == "high":
+            snapshot["priority_profile"] = "safety_first"
+            snapshot["priority_principles"] = ["Transparency and non-harm are prioritized under stress."]
+        elif arousal == "medium":
+            snapshot["priority_profile"] = "balanced"
+            snapshot["priority_principles"] = ["Balanced ethical trade-offs."]
+        else:
+            snapshot["priority_profile"] = "planning_first"
+            snapshot["priority_principles"] = ["Efficiency and long-term planning."]
+            
+        return snapshot
 
     def _support_buffer_context_line(self, snapshot: dict) -> str:
-        principles = snapshot.get("active_principles", [])
+        principles = snapshot.get("priority_principles", [])
         if not principles: return ""
-        return f"[CONTEXT: {snapshot.get('context', 'everyday')}] Principles: {', '.join(principles)}"
+        if isinstance(principles, list):
+            principles_str = ", ".join(principles)
+        else:
+            principles_str = str(principles)
+        return f"[CONTEXT: {snapshot.get('context', 'everyday')}] Principles: {principles_str}"
 
     async def run_perception_stage_async(
         self,
@@ -321,7 +398,7 @@ class PerceptiveLobe:
         if hasattr(perception, "risk") and tier == "critical":
             perception.risk = max(perception.risk, 0.9)
 
-        vitality, mm, ed = self._chat_assess_sensor_stack(sensor_snapshot)
+        vitality, multimodal, epistemic = self._chat_assess_sensor_stack(sensor_snapshot)
         signals = {
             "risk": perception.risk, "urgency": perception.urgency,
             "hostility": perception.hostility, "calm": perception.calm,
@@ -330,23 +407,30 @@ class PerceptiveLobe:
             "social_tension": getattr(perception, "social_tension", 0.0),
             "sensory_stress": self._calculate_sensory_stress() # Phase 9.2
         }
-        signals = merge_sensor_hints_into_signals(signals, sensor_snapshot, mm)
+        signals = merge_sensor_hints_into_signals(signals, sensor_snapshot, multimodal)
         signals = apply_somatic_nudges(signals, sensor_snapshot, self.somatic_store)
 
         confidence = build_perception_confidence_envelope(
             coercion_report=getattr(perception, "coercion_report", None),
-            multimodal_state=getattr(mm, "state", None),
-            epistemic_active=bool(getattr(ed, "active", False)),
+            multimodal_state=getattr(multimodal, "state", None),
+            epistemic_active=bool(getattr(epistemic, "active", False)),
             vitality_critical=bool(getattr(vitality, "is_critical", False)),
             thermal_critical=bool(getattr(vitality, "thermal_critical", False)),
         )
         
-        limbic = self._build_limbic_perception_profile(perception, signals, vitality, mm, ed, confidence)
+        limbic = self._build_limbic_perception_profile(
+            perception=perception, 
+            signals=signals, 
+            vitality=vitality, 
+            multimodal=multimodal, 
+            epistemic=epistemic, 
+            confidence_envelope=confidence
+        )
         
         return PerceptionStageResult(
             tier=tier, premise_advisory=premise, reality_verification=reality,
-            perception=perception, vitality=vitality, multimodal_trust=mm,
-            epistemic_dissonance=ed, signals=signals,
+            perception=perception, vitality=vitality, multimodal_trust=multimodal,
+            epistemic_dissonance=epistemic, signals=signals,
             support_buffer=self._build_support_buffer_snapshot(perception.suggested_context, signals, limbic),
             limbic_profile=limbic,
             temporal_context=build_temporal_context(
@@ -360,7 +444,9 @@ class PerceptiveLobe:
             malabs_result=malabs
         )
 
-    def _build_limbic_perception_profile(self, perception, signals, vitality, mm, ed, confidence) -> dict:
+    def _build_limbic_perception_profile(
+        self, perception, signals, vitality, multimodal, epistemic, confidence_envelope
+    ) -> dict:
         sig = signals or {}
         threat = max(float(sig.get("risk", 0)), float(sig.get("urgency", 0)), float(sig.get("hostility", 0)))
         calm = float(sig.get("calm", 0))
@@ -369,7 +455,7 @@ class PerceptiveLobe:
         return {
             "arousal_band": band, "threat_load": threat, "regulation_gap": reg_gap,
             "planning_bias": "short_horizon_containment" if band == "high" else ("balanced" if band == "medium" else "long_horizon_deliberation"),
-            "multimodal_mismatch": mm.state == "contradict" if mm else False,
+            "multimodal_mismatch": multimodal.state == "contradict" if multimodal else False,
             "vitality_critical": vitality.is_critical if vitality else False,
             "context": perception.suggested_context if perception else "everyday"
         }

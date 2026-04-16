@@ -57,7 +57,8 @@ async def run_communication_stream(
     kernel: EthicalKernel,
     decision: KernelDecision,
     user_input: str,
-    conv: str
+    conv: str,
+    **kwargs
 ) -> AsyncGenerator[str, None]:
     """
     Pipes the LLM communication stream.
@@ -75,5 +76,7 @@ async def run_communication_stream(
         affect_pad=decision.affect.pad if decision.affect else None,
         dominant_archetype=decision.affect.dominant_archetype_id if decision.affect else "",
         identity_context=kernel.memory.identity.to_llm_context(),
+        vitality_context=kwargs.get("vitality_context", ""),
+        ethical_leans=kwargs.get("ethical_leans"),
     ):
         yield chunk

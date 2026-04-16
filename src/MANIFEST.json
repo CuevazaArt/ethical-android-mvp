@@ -1,0 +1,12 @@
+{
+    "src/kernel.py": "01888b7d16744cc6bd2fcddfa8be50f50e29b2daa71b7daa9511716876889b41",
+    "src/kernel_lobes/models.py": "059432124c5bf62e8b75a5ff6d789adcab73517860696449cc50398929f45e32",
+    "src/kernel_lobes/executive_lobe.py": "dd8a01983e781ef4d78c722bbc70e6a18e474f2b1b883c74532f30e91ea67909",
+    "src/kernel_lobes/memory_lobe.py": "587cd02dd4cf5dca7f3a9c9951d33dabdccb6d18fa196a3bce6e59eef1308263",
+    "src/kernel_lobes/perception_lobe.py": "4a43021a12b6cdaecdc570fa686ad96650fe556a750a8c769a802ac8bba959e4",
+    "src/kernel_lobes/thalamus_node.py": "76836b4675c6413aacce4337618b4eb87f05257ea2d0fba8996c4642bcd6ba6e",
+    "src/modules/absolute_evil.py": "075a0250f8ee7fce0357894fb5e2d1f0afbcd5bf7967ec8cd69bfa013298246f",
+    "src/modules/nomad_bridge.py": "0d21d5f12beae66e81f7b76d5f186da673d94eecea6883c81ca34ddb785ef781",
+    "src/modules/secure_boot.py": "c2209cd9a09287725db36724c0d81112021786082a7469eb56c3e80993a703f4",
+    "src/modules/immortality.py": "24a00a87716af58e197ed9c823a1587d0a2f1cf3f5a115daeaaaf77268c39f02"
+}
