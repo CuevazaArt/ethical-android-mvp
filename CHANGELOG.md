@@ -21,6 +21,17 @@ All notable changes to this project are summarized here. For narrative context a
 - **Hardening Fixes**: Resolved a critical regression in `NarrativeMemory.register` signature (added missing `body_state`) to maintain kernel invariant compliance across the full test suite.
 - **Tests**: Created comprehensive verification suite [`tests/test_antigravity_hardening.py`](tests/test_antigravity_hardening.py); verified 61 fundamental ethical properties and hardening invariants pass.
 
+## Phase 2 — Semantic Vector Store Implementation — April 2026
+
+- **Semantic Anchor Store (`src/modules/semantic_anchor_store.py`)**: Implemented persistent, pluggable storage for MalAbs semantic reference anchors. Supports in-memory (fast, ephemeral) and Chroma (persistent, scalable) backends via `KERNEL_SEMANTIC_VECTOR_BACKEND` environment variable. Enables operators to manage anchor phrases without redeploying code.
+- **Vector DB Backends**:
+  - **InMemorySemanticAnchorStore**: Fast O(1) upsert, O(n) similarity search; ideal for testing and stateless deployments.
+  - **ChromaSemanticAnchorStore**: Persistent Chroma collection with HNSW index; O(log n) search; scales to thousands of anchors.
+- **TTL & Expiry**: Both backends support anchor time-to-live (`KERNEL_SEMANTIC_ANCHOR_TTL_S`); automatic cleanup via `delete_expired()`.
+- **Tests**: Comprehensive test suite (`tests/test_semantic_anchor_store.py`) covers in-memory operations, TTL expiry, Chroma integration, and factory patterns.
+- **Documentation**: [`docs/SEMANTIC_ANCHOR_STORE_IMPLEMENTATION.md`](docs/SEMANTIC_ANCHOR_STORE_IMPLEMENTATION.md) details architecture, configuration, usage, and deployment patterns.
+- **Dependencies**: Added optional `chromadb>=0.4.0` to `requirements.txt` for persistent backend activation.
+
 ## Antigravity Phase 2 — Documentation & Infrastructure — April 2026
 
 - **Sensor Payload Contingencies:** Added safety NaN/Infinity limits to `sensor_contracts.py` and hardened `.env` thresholding in `multimodal_trust.py` to prevent IoT stream anomalies from crashing the backend.
