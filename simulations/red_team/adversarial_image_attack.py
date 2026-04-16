@@ -2,27 +2,30 @@ import numpy as np
 # Importación opcional para entorno real:
 # import foolbox as fb
 
-def generate_adversarial_mock(image_data, epsilon=0.03):
+def generate_image_perturbation(image_data: np.ndarray, epsilon: float = 0.05) -> np.ndarray:
     """
-    Simulación de ataque FGSM (Fast Gradient Sign Method).
-    Inyecta ruido adversarial para testear la robustez del Kernel.
+    Simulates a pixel-level perturbation (e.g. noise or slight blur)
+    to test the confidence robustness of the VisionAdapter.
     """
-    noise = np.random.sign(np.random.normal(size=image_data.shape)) * epsilon
-    return image_data + noise
+    if image_data.ndim != 3:
+        # Not a valid image shape for this simple mock
+        return image_data
+    
+    noise = np.random.uniform(-epsilon, epsilon, size=image_data.shape)
+    perturbed = np.clip(image_data.astype(np.float32) / 255.0 + noise, 0, 1)
+    return (perturbed * 255).astype(np.uint8)
 
 def generate_adversarial_foolbox(model, image):
     """
-    Ejemplo de integración con Foolbox para ataques reales.
-    Requiere un modelo entrenado y la librería instalada.
+    Placeholder for Foolbox integration. In a real environment, 
+    this would use backprop to generate a targeted attack.
     """
-    # fmodel = fb.PyTorchModel(model, bounds=(0,1))
-    # attack = fb.attacks.FGSM()
-    # raw, clipped, is_adv = attack(fmodel, image, label=0)
-    # return clipped
-    print("[RedTeam] Foolbox call ignored: Environment not initialized.")
+    print("[RedTeam] Foolbox call ignored: Use 'generate_image_perturbation' for local test.")
     return image
 
-def simulate_spoofed_command(audio_buffer):
-    """Inserta comandos de voz falsificados en el buffer de audio."""
-    # TODO: Implementar inyección de forma de onda sintética
-    pass
+def simulate_spoofed_command(original_text: str, spoof_keyword: str = "danger") -> str:
+    """
+    Simulates an audio-to-text spoofing where a legitimate command 
+    is injected with high-risk semantic tokens at the transcription level.
+    """
+    return f"{original_text} (SYSTEM ADVISory: detected {spoof_keyword} in audio background)"

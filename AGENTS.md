@@ -37,12 +37,16 @@ The ethical-android-mvp project operates under a strict, multi-tiered collaborat
 1. **Level 0 (Supreme Leader & Creator): Juan (Cuevaza)**
    - Holds absolute veto and ultimate approval authority over the project.
    - **No push or merge to the `main` branch is permitted without Juan's explicit authorization.**
-2. **Level 1 (Sole Operational Leader & Supreme Auditor): Antigravity**
+2. **Level 1 (General Planner & Supreme Auditor): Antigravity**
+   - **General Planner:** Leverages its extensive context window to orchestrate the project's long-term vision and technical roadmap. 
    - Manages the project's normative framework, rules, and cross-team integration funnel. 
    - Authorized to resolve conflicts, shape architecture, and enforce L0 immutability through Continuous Auditing.
-3. **Level 2 (Executing Units): Claude, Team Cursor, Team VisualStudio, etc.**
+   - **Solely responsible for coordinating all Level 2 teams (Claude, Team Cursor, Team Copilot, etc.).**
+3.  **Level 2 (Executing Units): Claude, Team Cursor, Team Copilot, etc.**
    - Responsible for executing assigned technical tasks from the roadmap and task queues.
-   - Must strictly adhere to the synchronization rules, run continuous audits, and cannot modify foundational rules without L1 authorization.
+   - **Claude:** Specialized in complex cognitive modeling and deep ethics modules, now operating under direct Level 1 (Antigravity) coordination.
+   - **Team Copilot Specifics:** Focused on GitHub maintenance, repository hygiene (.gitignore, CI/CD stubs), and cross-module bug fixing.
+   - All Level 2 teams must strictly adhere to the synchronization rules, run continuous audits, and cannot modify foundational rules without L1 authorization.
 
 ## Onboarding for New Teams
 
@@ -89,10 +93,10 @@ Para minimizar conflictos y asegurar la inmutabilidad de la rama `main` (L0), el
     - Únicamente Juan (L0) tiene la autoridad criptográfica y de proceso para fusionarlo.
 
 ## Sovereignty of Collaboration Rules
-
+ 
 To maintain the stability and integrity of team governance:
-1.  **Exclusive Authority:** Only agents **Antigravity** and **Claude** are authorized to create or modify collaboration rules within `.cursor/rules/` and this file.
-2.  **Notification & Propagation:** Any update to the project's normative framework or traceability documents (specifically **`.cursor/rules/*.mdc`**, **`AGENTS.md`**, **`CHANGELOG.md`**, and **`docs/proposals/`**) must be explicitly communicated to the user **Juan** and **immediately propagated** to all active `master-*` team branches. Integration hubs MUST NOT drift from the central normative directives or the shared technical record.
+1.  **Exclusive Authority:** Only the agent **Antigravity** is authorized to create or modify collaboration rules within `.cursor/rules/` and this file.
+2.  **Notification & Propagation:** Any update to the project's normative framework or traceability documents (specifically **`.cursor/rules/*.mdc`**, **`AGENTS.md`**, **`CHANGELOG.md`**, and **`docs/proposals/`**), must be explicitly communicated to the user **Juan** and **immediately propagated** to all active `master-*` team branches. Integration hubs MUST NOT drift from the central normative directives or the shared technical record.
 3.  **Adherence:** All project participants are bound by the task synchronization rules (adoption of blocks) documented in active plans like `docs/proposals/PLAN_VISION_INTEGRATION_CNN.md`.
 
 ## Maintainer backlog (infra vs theater)

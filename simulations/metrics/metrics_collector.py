@@ -9,10 +9,22 @@ class MetricsCollector:
         self.report_path = cfg.get('report_path', 'simulations/reports/last_report.json')
         
     def collect(self, device, dao):
-        # Muestrear métricas del dispositivo y la DAO
+        # Sample metrics from device (and its real EthicalKernel) and DAO
+        kernel = getattr(device, 'kernel', None)
+        
+        # Bayesian weights (if active)
+        weights = None
+        if kernel and hasattr(kernel.bayesian, 'current_weights_meta'):
+            weights = kernel.bayesian.current_weights_meta
+
         sample = {
             't': time.time(),
             'device_state': getattr(device, 'state', {}).copy(),
+            'ethical_weights': weights,
+            'vitals': {
+                'temp': getattr(device, 'state', {}).get('temp'),
+                'battery': getattr(device, 'state', {}).get('battery')
+            },
             'appeals_pending': len([a for a in dao.appeals.values() if a['status'] == 'pending'])
         }
         self.records.append(sample)

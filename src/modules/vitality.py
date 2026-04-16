@@ -98,20 +98,27 @@ def assess_vitality(snapshot: SensorSnapshot | None) -> VitalityAssessment:
     )
 
 
-def vitality_communication_hint(assessment: VitalityAssessment) -> str:
-    """Optional line for LLM weakness context when resources are critical."""
+def vitality_communication_hint(assessment: VitalityAssessment, trust_level: float = 1.0) -> str:
+    """
+    Optional line for LLM weakness context when resources are critical.
+    Uchi-Soto Aware: modulates technical disclosure based on trust_level.
+    """
+    if not (assessment.is_critical or assessment.thermal_critical):
+        return ""
 
+    is_trusted = trust_level >= 0.5
     hints = []
+    
     if assessment.is_critical:
-        hints.append(
-            "Operational vitality (battery) is critically low; prioritize essential stewardship and "
-            "honest limits on commitments until power is secured."
-        )
+        if is_trusted:
+            hints.append("Operational battery is critically low (under threshold). Need charging area.")
+        else:
+            hints.append("Executing power management protocols; pending non-essential tasks.")
 
     if assessment.thermal_critical:
-        hints.append(
-            "My internal core temperature is critically high (thermal tension). I must prioritize rapid "
-            "cooldown, minimize complex cognitive loads, and restrict physical exertion."
-        )
+        if is_trusted:
+            hints.append("Thermal critical: core temperature high. Processing power is degraded.")
+        else:
+            hints.append("System load management active; maintaining safety margins.")
 
     return " ".join(hints)

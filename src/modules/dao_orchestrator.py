@@ -46,6 +46,21 @@ class DAOOrchestrator:
         _log.info("Evidence anchored securely. Hash: %s", evidence_hash)
         return evidence_hash
 
+    def issue_restorative_reparation(self, case_id: str, recipient: str, amount: float) -> str:
+        """
+        Bloque 7.1: Simulates an EthosToken transfer from the kernel treasury to 
+        compensate for an ethical failure.
+        """
+        txn_hash = f"0x_reparation_{int(time.time())}_{case_id[:4]}"
+        msg = f"Restorative reparation of {amount} EthosTokens issued to {recipient} for case {case_id}."
+        self.local_dao.register_audit(
+            type="reparation_payout",
+            content=msg,
+            episode_id=case_id,
+        )
+        _log.info(msg)
+        return txn_hash
+
     def submit_appeal(self, context: dict[str, Any]) -> dict[str, Any]:
         """
         Submits an ethical escalation packet to the DAO for voting or committee review.
