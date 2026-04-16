@@ -42,6 +42,15 @@ All notable changes to this project are summarized here. For narrative context a
 - **Tests**: Comprehensive integration suite (`tests/test_semantic_anchor_store_integration.py`) validates store initialization, anchor addition, gate behavior, and fallback logic.
 - **Backwards Compatibility**: Legacy in-process cache and `_runtime_anchors` list maintained during Phase 2b→Phase 3 transition. Can disable store via env or let it degrade gracefully on errors.
 
+## Phase 3+ — Continual Learning with Ethical Constraints — April 2026
+
+- **Continual Learning Gate (`src/modules/continual_learning_gate.py`)**: Online threshold updates with immutable hard constraint preservation. Maintains stratified replay buffers of labeled examples (benign, blocked, ambiguous) with TTL-based aging and recency weighting. Hard constraints enforce: lexical MalAbs (never relax), constitution L0 (human life priority), advisory threshold bounds (θ_allow ∈ [0.0, 0.8), θ_block ∈ [0.5, 0.95], θ_allow < θ_block).
+- **Replay Buffer**: Stratified storage (40% benign, 40% blocked, 20% ambiguous); FIFO eviction when full; TTL cleanup (default 30 days); weighted sampling favors recent examples via exponential decay.
+- **Constraint Validation**: `can_apply_threshold_update()` validates before applying Phase 3 optimizer results; hard constraints can never be relaxed; advisory thresholds tunable within bounded bands.
+- **Persistence**: Buffer saves/loads from JSONL for continuity across sessions; metadata tracks source (operator, evaluation, DAO), confidence level, timestamp.
+- **Tests**: 19 comprehensive tests covering replay buffer management, constraint validation, persistence, stratified sampling, feature flag control; all passing.
+- **Documentation**: [`docs/CONTINUAL_LEARNING_WITH_CONSTRAINTS.md`](docs/CONTINUAL_LEARNING_WITH_CONSTRAINTS.md) — architecture, constraint hierarchy, integration with Phase 3 optimizer, audit trail design.
+
 ## Phase 3 — Evaluation Pipelines & Threshold Meta-Optimization — April 2026
 
 - **Threshold Meta-Optimizer (`scripts/eval/optimize_malabs_thresholds.py`)**: Automated Bayesian hyperparameter search (Optuna) for tuning semantic gate thresholds (θ_block, θ_allow). Minimizes weighted loss (2× false_allow + 1× false_block) with constraint enforcement (θ_allow < θ_block) and regression gates. Stores Optuna study DB + results under configurable artifacts path.
