@@ -18,7 +18,7 @@ All notable changes to this project are summarized here. For narrative context a
 #### Changed
 - Rediseño drástico del roadmap (`PLAN_WORK_DISTRIBUTION_TREE.md` y `PROPOSAL_LLM_VERTICAL_ROADMAP.md`) tras identificar debilidades estructurales severas (P0) en el runtime asíncrono y la inflación de gobernanza simulada.
 - Adopción de la **Directiva Paridad 75/25 de L0**: Limitando el TDD rígido a un 25% para concentrarse agresivamente en resolución pragmática de vulnerabilidades.
-- Presentación de **Arquitectura de Lóbulos/Hemisferios** para separar el frontend perceptivo asíncrono (`httpx.AsyncClient`) del modelo de decisión matemática sincrónico.
+- Presentación de la **Arquitectura Tri-Lobulada** (Perceptivo, Ético, Frontal/Motor) para separar E/S asíncrono, Matemáticas de Gobernanza y Redacción de Respuestas Generativas (`docs/proposals/PROPOSAL_TRI_LOBE_ARCHITECTURE.md`).
 
 #### Delegated
 - Emitida la solicitud `COPILOT_REQUEST_HEMISPHERE_REFACTOR.md` a Team Copilot (Nivel 2) para auditar y discutir los _Breaking Changes_ operacionales propuestos.
