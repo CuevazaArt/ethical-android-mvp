@@ -51,14 +51,12 @@ from .modules.ethical_reflection import (
 )
 from .modules.feedback_calibration_ledger import (
     FeedbackCalibrationLedger,
-    apply_psi_sleep_feedback_to_engine,
     normalize_feedback_label,
 )
 from .modules.forgiveness import AlgorithmicForgiveness
 from .modules.generative_candidates import augment_generative_candidates
 from .modules.gray_zone_diplomacy import negotiation_hint_for_communicate
 from .modules.guardian_mode import guardian_mode_llm_context
-from .modules.identity_integrity import pruning_recalibration_allowed
 from .modules.immortality import ImmortalityProtocol
 from .modules.internal_monologue import compose_monologue_line
 from .modules.judicial_escalation import (
@@ -1417,78 +1415,12 @@ class EthicalKernel:
         Psi Sleep counterfactuals use a **hash perturbation** of stored episode scores
         (see :mod:`src.modules.psi_sleep`); they do **not** re-run the mixture scorer
         and are **not** an independent quality evaluator.
+
+        Implementation delegated to :func:`src.kernel_pipeline.run_sleep_cycle`.
         """
-        parts = []
+        from .kernel_pipeline import run_sleep_cycle
 
-        # 1. Retrospective audit
-        result = self.sleep.execute(self.memory, self._pruned_actions)
-        max_drift = float(os.environ.get("KERNEL_ETHICAL_GENOME_MAX_DRIFT", "0.15"))
-        enforce_genome = os.environ.get(
-            "KERNEL_ETHICAL_GENOME_ENFORCE", "1"
-        ).strip().lower() not in (
-            "0",
-            "false",
-            "no",
-            "off",
-        )
-        for param, delta in result.global_recalibrations.items():
-            if param == "pruning_threshold":
-                if enforce_genome and not pruning_recalibration_allowed(
-                    self._bayesian_genome_threshold,
-                    self.bayesian.pruning_threshold,
-                    float(delta),
-                    max_drift,
-                ):
-                    parts.append(
-                        "\n  Identity integrity: pruning recalibration skipped (genome drift cap)."
-                    )
-                    continue
-                self.bayesian.pruning_threshold = max(0.1, self.bayesian.pruning_threshold + delta)
-            elif param == "caution":
-                self.locus.beta = min(self.locus.BETA_MAX, self.locus.beta + delta)
-        parts.append(self.sleep.format(result))
-
-        # Phase 7 DAO Extraction: Interlock community votes with BMA updating
-        if hasattr(self, "dao") and self.dao is not None:
-            dao_feedback = kernel_dao_as_mock(self.dao).extract_community_feedback(recent_count=10)
-            for label, count in dao_feedback.items():
-                for _ in range(count):
-                    self.feedback_ledger.record("DAO_community_consensus", label)
-
-        fb_line = apply_psi_sleep_feedback_to_engine(
-            kernel_mixture_scorer(self.bayesian),
-            self.feedback_ledger,
-            genome_weights=self._bayesian_genome_weights,
-            max_drift=max_drift,
-        )
-        if fb_line:
-            parts.append(fb_line)
-
-        # 2. Algorithmic forgiveness
-        forgiveness_result = self.forgiveness.forgiveness_cycle()
-        parts.append(f"\n{self.forgiveness.format(forgiveness_result)}")
-
-        # 3. Weakness pole - emotional load
-        load = self.weakness.emotional_load()
-        parts.append(f"\n  \U0001f300 Weakness emotional load: {load:.3f}")
-
-        # 4. Immortality backup
-        _ = self.immortality.backup(self)
-        parts.append(f"\n{self.immortality.format_status()}")
-
-        # 5. Drive intents (advisory; post-backup)
-        intents = self.drive_arbiter.evaluate(self)
-        if intents:
-            drive_lines = ["\n  Drive intents (advisory):"]
-            for di in intents:
-                drive_lines.append(f"    • {di.suggest} (p={di.priority:.2f}) — {di.reason}")
-            parts.append("\n".join(drive_lines))
-
-        sl_lines = self.skill_learning.audit_lines_for_psi_sleep()
-        if sl_lines:
-            parts.append("\n" + "\n".join(sl_lines))
-
-        return "\n".join(parts)
+        return run_sleep_cycle(self)
 
     def dao_status(self) -> str:
         """Returns the current DAO status."""

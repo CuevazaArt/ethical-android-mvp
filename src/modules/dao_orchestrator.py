@@ -5,11 +5,14 @@ Decouples the Ethical Kernel from the specific DAO implementation (on-chain or m
 Handles evidence anchoring and ethical appeals.
 """
 
+import logging
 import time
 from typing import Any
 
 from .evidence_safe import EvidenceSafe
 from .mock_dao import MockDAO
+
+_log = logging.getLogger(__name__)
 
 
 class DAOOrchestrator:
@@ -40,14 +43,14 @@ class DAOOrchestrator:
             episode_id=payload.get("episode_id"),
         )
 
-        print(f"[OGA] Evidence anchored securely. Hash: {evidence_hash}")
+        _log.info("Evidence anchored securely. Hash: %s", evidence_hash)
         return evidence_hash
 
     def submit_appeal(self, context: dict[str, Any]) -> dict[str, Any]:
         """
         Submits an ethical escalation packet to the DAO for voting or committee review.
         """
-        print("[OGA] Submitting appeal packet to DAO...")
+        _log.info("Submitting appeal packet to DAO…")
 
         # Simulate local queuing and escalaton
         audit_rec = self.local_dao.register_escalation_case(

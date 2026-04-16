@@ -5,7 +5,11 @@ Handles the transition between different hardware bodies while preserving narrat
 
 from __future__ import annotations
 
+import logging
+
 from .narrative_types import BodyState, HardwareProfile
+
+_log = logging.getLogger(__name__)
 
 
 class BodyRegistry:
@@ -59,7 +63,5 @@ class MigrationHub:
             energy=prev_energy,
             description=f"Migrated from {self.current_body.hardware_profile.value} ({self.current_body.hardware_id})",
         )
-        print(
-            f"[MigrationHub] Kernel successfully bound to {new_profile.value} body (ID: {new_id})"
-        )
+        _log.info("Kernel successfully bound to %s body (ID: %s)", new_profile.value, new_id)
         return self.current_body

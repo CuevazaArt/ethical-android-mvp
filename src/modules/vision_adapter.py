@@ -5,9 +5,12 @@ This module defines the abstract base class and data structures for
 converting visual streams into ethical signals for the kernel.
 """
 
+import logging
 from abc import ABC, abstractmethod
 from dataclasses import dataclass, field
 from typing import Any
+
+_log = logging.getLogger(__name__)
 
 
 @dataclass
@@ -78,11 +81,9 @@ class MobileNetV2Adapter(VisionAdapter):
             self.categories = weights.meta["categories"]
             self.transform = weights.transforms()
             self._is_ready = True
-            print("[Vision] MobileNetV2 loaded successfully (CPU mode).")
+            _log.info("MobileNetV2 loaded successfully (CPU mode).")
         except ImportError:
-            print(
-                "[Vision] Warning: torch/torchvision not found. MobileNetV2Adapter will run in MOCK mode."
-            )
+            _log.warning("torch/torchvision not found. MobileNetV2Adapter will run in MOCK mode.")
             self._is_ready = False
 
     def infer(self, frame: Any) -> VisionInference:
@@ -135,5 +136,5 @@ class MobileNetV2Adapter(VisionAdapter):
             )
 
         except Exception as e:
-            print(f"[Vision] Inference error: {e}")
+            _log.error("Inference error: %s", e)
             return VisionInference(primary_label="error", confidence=0.0)

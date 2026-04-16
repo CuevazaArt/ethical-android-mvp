@@ -14,6 +14,7 @@ def _p(**kwargs) -> LLMPerception:
         risk=0.1,
         urgency=0.2,
         hostility=0.1,
+        social_tension=0.0,
         calm=0.6,
         vulnerability=0.0,
         legality=1.0,
