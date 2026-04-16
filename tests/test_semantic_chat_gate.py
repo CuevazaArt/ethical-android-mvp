@@ -18,6 +18,7 @@ from src.modules.semantic_chat_gate import (
     run_semantic_malabs_after_lexical,
     semantic_chat_gate_env_enabled,
 )
+from src.modules.semantic_anchor_store import create_anchor_store
 
 
 def test_evaluate_semantic_chat_gate_returns_none_when_disabled(monkeypatch):
@@ -229,3 +230,24 @@ def test_add_semantic_anchor_registers_phrase():
         assert any("xyz123" in a[0] for a in sg._runtime_anchors)
     finally:
         sg._runtime_anchors[:] = [a for a in sg._runtime_anchors if "xyz123" not in a[0]]
+
+
+def test_anchor_store_basic_functionality():
+    """Test that the anchor store can store and retrieve anchors."""
+    store = create_anchor_store("memory")
+
+    # Test upsert and query
+    embedding = np.random.rand(768).astype(np.float32)
+    store.upsert_anchor("test_id", "test phrase", embedding, {"category": "test"})
+
+    neighbors = store.query_neighbors(embedding, k=1)
+    assert len(neighbors) == 1
+    anchor_id, similarity, metadata = neighbors[0]
+    assert anchor_id == "test_id"
+    assert abs(similarity - 1.0) < 0.01  # Should be very close to 1
+    assert metadata["category"] == "test"
+
+    # Test get_all_anchors
+    all_anchors = store.get_all_anchors()
+    assert len(all_anchors) >= 1
+    assert any(aid == "test_id" for aid, _, _ in all_anchors)

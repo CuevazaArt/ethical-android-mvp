@@ -48,6 +48,9 @@ Thumbs.db
 *.tar.gz
 *.zip
 
+# Optimization artifacts (Optuna DBs, results)
+artifacts/
+
 # Binary documents (kept locally, not in repo)
 *.pdf
 *.docx

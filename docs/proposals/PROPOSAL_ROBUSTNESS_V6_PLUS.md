@@ -91,7 +91,7 @@ In strict psychological terms, **metacognition** is the set of processes that **
 
 **Idea:** Internal monologue is a leak surface if hardware is compromised. Do not persist thought in clear; process in RAM; if something must be archived in narrative, use **non-reversible** representations for an attacker without key (e.g. salted-hash-style derivations), aligned with total secrecy as product goal.
 
-**Mapping to repo today:** monologue exposed via WebSocket can combine with `KERNEL_LLM_MONOLOGUE`; JSON/SQLite checkpoints **do not** yet encrypt full state ([RUNTIME_PERSISTENT.md](RUNTIME_PERSISTENT.md): encryption at rest **planned**, `cryptography` **not** in MVP). Narrative episodes still store legible text in the current model.
+**Mapping to repo today:** monologue exposed via WebSocket can combine with `KERNEL_LLM_MONOLOGUE`; JSON/SQLite checkpoints support optional Fernet encryption for JSON payloads (`KERNEL_CHECKPOINT_FERNET_KEY` in `src/persistence/json_store.py`); narrative episodes store legible text unless encrypted at deployment layer. `cryptography` is included for optional JSON checkpoint encryption.
 
 **Design conditions:**
 
