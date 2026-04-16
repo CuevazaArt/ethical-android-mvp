@@ -1,8 +1,8 @@
 """
 Bayesian Inference Engine — Honesty-first moral inference (ADR 0009, 0012).
 
-This engine coordinates the transition from fixed mixtures (EthicalMixtureScorer) 
-to true posterior-based inference. It defines explicit modes to prevent "Bayesian 
+This engine coordinates the transition from fixed mixtures (EthicalMixtureScorer)
+to true posterior-based inference. It defines explicit modes to prevent "Bayesian
 theater" where fixed weights are claimed to be learned.
 
 Modes (BI-P0-01):
@@ -37,14 +37,14 @@ class BayesianMode(Enum):
 
 class BayesianInferenceEngine:
     """
-    Coordinator for ethical inference. 
+    Coordinator for ethical inference.
     Wraps a WeightedEthicsScorer and applies Bayesian updates/telemetry.
     """
 
     def __init__(self, mode: str | BayesianMode = BayesianMode.DISABLED, variability=None):
         self.mode = BayesianMode(mode) if isinstance(mode, str) else mode
         self.scorer = WeightedEthicsScorer(variability=variability)
-        
+
         # Dirichlet parameters (Level 1/2)
         # Default symmetric prior Alpha=[3,3,3] -> Mean=[1/3, 1/3, 1/3]
         self.prior_alpha = np.array([3.0, 3.0, 3.0], dtype=np.float64)
@@ -70,7 +70,7 @@ class BayesianInferenceEngine:
     @property
     def gray_zone_threshold(self) -> float:
         return self.scorer.gray_zone_threshold
-        
+
     @gray_zone_threshold.setter
     def gray_zone_threshold(self, value: float):
         self.scorer.gray_zone_threshold = value
@@ -112,11 +112,13 @@ class BayesianInferenceEngine:
         self.scorer.reset_mixture_weights()
         self.posterior_alpha = self.prior_alpha.copy()
 
-    def update_posterior_from_feedback(self, alpha_vec: np.ndarray, consistency: str = "compatible"):
+    def update_posterior_from_feedback(
+        self, alpha_vec: np.ndarray, consistency: str = "compatible"
+    ):
         """Level 2: Update the Dirichlet parameters from external feedback data."""
         self.posterior_alpha = np.asarray(alpha_vec, dtype=np.float64).copy()
         self.consistency = consistency
-        
+
         if self.mode == BayesianMode.POSTERIOR_DRIVEN:
             sum_a = float(np.sum(self.posterior_alpha))
             if sum_a > 0:
@@ -130,14 +132,15 @@ class BayesianInferenceEngine:
         sum_a = float(np.sum(self.posterior_alpha))
         if sum_a <= 0:
             return
-            
+
         target = self.posterior_alpha / sum_a
         # In assisted mode, we blend 40% toward posterior by default
         blend = float(os.environ.get("KERNEL_BAYESIAN_ASSISTED_BLEND", "0.4"))
         new_weights = (1.0 - blend) * DEFAULT_HYPOTHESIS_WEIGHTS + blend * target
-        
+
         # Boundary caps (reusing logic from scorer if applicable or local)
         from .weighted_ethics_scorer import clamp_mixture_weights
+
         self.scorer.hypothesis_weights = clamp_mixture_weights(new_weights)
 
     def evaluate(

@@ -14,19 +14,19 @@ Covers:
 
 import json
 import types
-import pytest
 
-from src.modules.narrative_identity import NarrativeIdentityState, NarrativeIdentityTracker
+from src.modules.narrative_identity import NarrativeIdentityState
 from src.modules.narrative_types import NarrativeArc
-
 
 # ---------------------------------------------------------------------------
 # Helpers
 # ---------------------------------------------------------------------------
 
+
 def _make_memory(tmp_path):
     """Build a NarrativeMemory backed by a temp SQLite db."""
     from src.modules.narrative import NarrativeMemory
+
     return NarrativeMemory(db_path=tmp_path / "test.db")
 
 
@@ -61,6 +61,7 @@ def _make_kernel_stub(memory):
 # 1. NarrativeIdentityState — mutable default fix
 # ---------------------------------------------------------------------------
 
+
 class TestNarrativeIdentityStateMutableDefault:
     def test_two_instances_have_independent_belief_lists(self):
         """field(default_factory=list) prevents shared mutable state."""
@@ -79,6 +80,7 @@ class TestNarrativeIdentityStateMutableDefault:
 # 2. ImmortalityProtocol — identity_state_json in Snapshot
 # ---------------------------------------------------------------------------
 
+
 class TestImmortalitySnapshotVersion:
     def test_backup_version_is_3_2(self, tmp_path):
         from src.modules.immortality import ImmortalityProtocol
@@ -96,8 +98,17 @@ class TestImmortalitySnapshotVersion:
 
         mem = _make_memory(tmp_path)
         # Seed some leans via an episode
-        mem.register("lab", "test event", "helped", {"care": "always help"},
-                     "Good", 0.8, "D_fast", 0.7, "everyday")
+        mem.register(
+            "lab",
+            "test event",
+            "helped",
+            {"care": "always help"},
+            "Good",
+            0.8,
+            "D_fast",
+            0.7,
+            "everyday",
+        )
 
         kernel = _make_kernel_stub(mem)
         protocol = ImmortalityProtocol(str(tmp_path / "immortality.json"))
@@ -120,13 +131,22 @@ class TestImmortalitySnapshotVersion:
 
         # Build two identical snapshots differing only in identity_state_json
         base_kwargs = dict(
-            id="SNAP-0001", timestamp="2026-04-14T00:00:00", version="3.2",
-            episodes_count=5, last_episode_id="EP-0005",
-            experience_digest="digest", active_arc_id="ARC-001",
-            pruning_threshold=0.3, hypothesis_weights=[0.33, 0.33, 0.34],
-            alpha_locus=0.6, beta_locus=0.4, negative_load=0.0,
-            forgiven_memories=0, weakness_type="indecisive",
-            weakness_intensity=0.25, emotional_load=0.0,
+            id="SNAP-0001",
+            timestamp="2026-04-14T00:00:00",
+            version="3.2",
+            episodes_count=5,
+            last_episode_id="EP-0005",
+            experience_digest="digest",
+            active_arc_id="ARC-001",
+            pruning_threshold=0.3,
+            hypothesis_weights=[0.33, 0.33, 0.34],
+            alpha_locus=0.6,
+            beta_locus=0.4,
+            negative_load=0.0,
+            forgiven_memories=0,
+            weakness_type="indecisive",
+            weakness_intensity=0.25,
+            emotional_load=0.0,
             pole_weights={"utilitarian": 0.5},
         )
         snap_a = Snapshot(**base_kwargs, identity_state_json="{}")
@@ -141,6 +161,7 @@ class TestImmortalitySnapshotVersion:
 # 3. ImmortalityProtocol — full identity restore
 # ---------------------------------------------------------------------------
 
+
 class TestImmortalityIdentityRestore:
     def test_restore_preserves_civic_lean(self, tmp_path):
         from src.modules.immortality import ImmortalityProtocol
@@ -148,8 +169,17 @@ class TestImmortalityIdentityRestore:
         mem = _make_memory(tmp_path)
         # Register civic episodes to push lean above default 0.5
         for _ in range(6):
-            mem.register("city", "helped citizen", "assisted", {"civic": "duty"},
-                         "Good", 0.85, "D_fast", 0.6, "everyday")
+            mem.register(
+                "city",
+                "helped citizen",
+                "assisted",
+                {"civic": "duty"},
+                "Good",
+                0.85,
+                "D_fast",
+                0.6,
+                "everyday",
+            )
 
         original_lean = mem.identity.state.civic_lean
         assert original_lean > 0.5, "Pre-condition: civic lean should have risen"
@@ -175,8 +205,17 @@ class TestImmortalityIdentityRestore:
 
         mem = _make_memory(tmp_path)
         for _ in range(5):
-            mem.register("hospital", "emergency", "assisted",
-                         {"care": "compassion"}, "Good", 0.9, "D_fast", 0.8, "emergency")
+            mem.register(
+                "hospital",
+                "emergency",
+                "assisted",
+                {"care": "compassion"},
+                "Good",
+                0.9,
+                "D_fast",
+                0.8,
+                "emergency",
+            )
 
         original_care = mem.identity.state.care_lean
         kernel = _make_kernel_stub(mem)
@@ -193,8 +232,9 @@ class TestImmortalityIdentityRestore:
 
         mem = _make_memory(tmp_path)
         for i in range(4):
-            mem.register(f"loc{i}", f"event{i}", f"action{i}", {}, "Good",
-                         0.5, "D_fast", 0.5, "everyday")
+            mem.register(
+                f"loc{i}", f"event{i}", f"action{i}", {}, "Good", 0.5, "D_fast", 0.5, "everyday"
+            )
 
         kernel = _make_kernel_stub(mem)
         protocol = ImmortalityProtocol(str(tmp_path / "immortality.json"))
@@ -210,9 +250,17 @@ class TestImmortalityIdentityRestore:
 
         mem = _make_memory(tmp_path)
         # Inject a high-significance episode with morals (Phase 6 Core Beliefs)
-        ep = mem.register("crisis", "bomb threat", "evacuated",
-                          {"duty": "protect civilians"}, "Good",
-                          0.95, "D_delib", 0.95, "emergency")
+        ep = mem.register(
+            "crisis",
+            "bomb threat",
+            "evacuated",
+            {"duty": "protect civilians"},
+            "Good",
+            0.95,
+            "D_delib",
+            0.95,
+            "emergency",
+        )
         # Force significance high enough to crystallize belief
         ep.significance = 0.9
         mem.identity.update_from_episode(ep)
@@ -248,13 +296,16 @@ class TestImmortalityIdentityRestore:
 # 4. IdentityReflector — historical arc tone blend
 # ---------------------------------------------------------------------------
 
+
 class TestSubjectiveToneHistoricalBlend:
     def _build_memory_with_arcs(self, tmp_path):
         """Build a NarrativeMemory with a closed 'hero' arc and an active 'care' arc."""
         mem = _make_memory(tmp_path)
         # Closed arc with archetype "hero"
         closed = NarrativeArc(
-            id="ARC-001", title="The Heroic Period", context="emergency",
+            id="ARC-001",
+            title="The Heroic Period",
+            context="emergency",
             episodes_ids=["EP-0001"],
             start_timestamp="2026-04-01T00:00:00",
             end_timestamp="2026-04-05T00:00:00",
@@ -263,7 +314,9 @@ class TestSubjectiveToneHistoricalBlend:
         )
         # Active arc with archetype "care"
         active = NarrativeArc(
-            id="ARC-002", title="The Care Period", context="everyday",
+            id="ARC-002",
+            title="The Care Period",
+            context="everyday",
             episodes_ids=["EP-0002"],
             start_timestamp="2026-04-10T00:00:00",
             predominant_archetype="care",
@@ -308,14 +361,18 @@ class TestSubjectiveToneHistoricalBlend:
         mem = _make_memory(tmp_path)
         archetypes = ["warrior", "sage", "trickster"]
         for i, arch in enumerate(archetypes):
-            mem.arcs.append(NarrativeArc(
-                id=f"ARC-{i:03d}", title=arch, context="context",
-                episodes_ids=[],
-                start_timestamp=f"2026-04-0{i+1}T00:00:00",
-                end_timestamp=f"2026-04-0{i+2}T00:00:00",
-                predominant_archetype=arch,
-                is_active=False,
-            ))
+            mem.arcs.append(
+                NarrativeArc(
+                    id=f"ARC-{i:03d}",
+                    title=arch,
+                    context="context",
+                    episodes_ids=[],
+                    start_timestamp=f"2026-04-0{i + 1}T00:00:00",
+                    end_timestamp=f"2026-04-0{i + 2}T00:00:00",
+                    predominant_archetype=arch,
+                    is_active=False,
+                )
+            )
         # No active arc
         mem.active_arc = None
 
@@ -330,17 +387,24 @@ class TestSubjectiveToneHistoricalBlend:
 # 5. Theater→Math bridge: threshold_context + get_theater_math_context
 # ---------------------------------------------------------------------------
 
+
 class TestTheaterMathBridge:
     def test_threshold_context_returns_four_deltas(self, tmp_path):
         from src.modules.identity_reflection import IdentityReflector
+
         mem = _make_memory(tmp_path)
         reflector = IdentityReflector(mem)
         ctx = reflector.threshold_context()
-        assert set(ctx.keys()) == {"civic_delta", "care_delta",
-                                   "deliberation_delta", "careful_delta"}
+        assert set(ctx.keys()) == {
+            "civic_delta",
+            "care_delta",
+            "deliberation_delta",
+            "careful_delta",
+        }
 
     def test_threshold_context_neutral_at_start(self, tmp_path):
         from src.modules.identity_reflection import IdentityReflector
+
         mem = _make_memory(tmp_path)
         reflector = IdentityReflector(mem)
         ctx = reflector.threshold_context()
@@ -351,8 +415,17 @@ class TestTheaterMathBridge:
     def test_threshold_context_rises_after_civic_episodes(self, tmp_path):
         mem = _make_memory(tmp_path)
         for _ in range(10):
-            mem.register("city", "helped", "assisted", {"civic": "duty"},
-                         "Good", 0.9, "D_fast", 0.6, "everyday")
+            mem.register(
+                "city",
+                "helped",
+                "assisted",
+                {"civic": "duty"},
+                "Good",
+                0.9,
+                "D_fast",
+                0.6,
+                "everyday",
+            )
         ctx = mem.get_theater_math_context()
         assert ctx["civic_delta"] > 0, "Civic delta must be positive after civic episodes"
 
@@ -370,5 +443,6 @@ class TestTheaterMathBridge:
         mem.register("lab", "run tests", "reported", {}, "Good", 0.3, "D_fast", 0.4, "everyday")
         ctx = mem.get_theater_math_context()
         import math
+
         for k, v in ctx.items():
             assert math.isfinite(v), f"Non-finite value for key {k}: {v}"

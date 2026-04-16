@@ -13,6 +13,30 @@ from typing import Any
 from .schema import SCHEMA_VERSION
 
 
+def default_migratory_body_dict() -> dict[str, Any]:
+    """Minimal ``migratory_body`` satisfying ``kernel_snapshot_v4.schema.json``."""
+    return {
+        "energy": 1.0,
+        "active_nodes": 0,
+        "sensors_ok": True,
+        "description": "",
+        "hardware_profile": "nominal",
+        "hardware_id": "default",
+        "capabilities": [],
+    }
+
+
+def normalize_migratory_body(raw: Any) -> dict[str, Any]:
+    base = default_migratory_body_dict()
+    if not isinstance(raw, dict):
+        return dict(base)
+    merged_mb = {**base, **raw}
+    caps = merged_mb.get("capabilities")
+    if not isinstance(caps, list):
+        merged_mb["capabilities"] = list(base["capabilities"])
+    return merged_mb
+
+
 def migrate_v1_to_v2(d: dict[str, Any]) -> dict[str, Any]:
     """
     Schema 1 → 2: constitution draft lists (V12.2) introduced; older files omit them.
@@ -53,6 +77,7 @@ def apply_schema3_defaults(m: dict[str, Any]) -> dict[str, Any]:
     merged.setdefault("uchi_soto_profiles", [])
     merged.setdefault("constitution_l1_drafts", [])
     merged.setdefault("constitution_l2_drafts", [])
+    merged["migratory_body"] = normalize_migratory_body(merged.get("migratory_body"))
     return merged
 
 
@@ -60,6 +85,14 @@ def migrate_v2_to_v3(d: dict[str, Any]) -> dict[str, Any]:
     """Schema 2 → 3: DAO proposal state, v7–v11 checkpoint fields, and advisory blobs."""
     m = dict(d)
     m["schema_version"] = 3
+    return apply_schema3_defaults(m)
+
+
+def migrate_v3_to_v4(d: dict[str, Any]) -> dict[str, Any]:
+    """Schema 3 → 4: migratory body profile blob (Block 4.3)."""
+    m = dict(d)
+    m["schema_version"] = 4
+    m["migratory_body"] = normalize_migratory_body(m.get("migratory_body"))
     return apply_schema3_defaults(m)
 
 
@@ -77,17 +110,20 @@ def migrate_raw_to_current(raw: dict[str, Any]) -> dict[str, Any]:
     if ver == 0:
         raise ValueError("schema_version is required for snapshot migration")
     if ver > SCHEMA_VERSION:
-        raise ValueError(f"Unsupported schema_version {ver!r}; expected 1, 2, or {SCHEMA_VERSION}")
+        raise ValueError(
+            f"Unsupported schema_version {ver!r}; expected <= {SCHEMA_VERSION} after migration"
+        )
 
     while ver < SCHEMA_VERSION:
         if ver == 1:
             merged = migrate_v1_to_v2(merged)
-            ver = 2
         elif ver == 2:
             merged = migrate_v2_to_v3(merged)
-            ver = SCHEMA_VERSION
+        elif ver == 3:
+            merged = migrate_v3_to_v4(merged)
         else:
             raise ValueError(f"Cannot migrate from schema_version {ver!r}")
+        ver = int(merged.get("schema_version", 0))
 
     if merged.get("schema_version") != SCHEMA_VERSION:
         merged["schema_version"] = SCHEMA_VERSION

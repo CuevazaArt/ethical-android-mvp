@@ -46,4 +46,3 @@ def test_temporal_context_low_place_trust_disables_lan_sync(monkeypatch):
         sensor_snapshot=SensorSnapshot(place_trust=0.1),
     )
     assert tc.local_network_sync_ready is False
-

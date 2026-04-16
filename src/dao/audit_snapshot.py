@@ -14,13 +14,12 @@ from __future__ import annotations
 
 import hashlib
 import json
-import time
 from dataclasses import asdict, dataclass, field
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from typing import TYPE_CHECKING, Any
 
 if TYPE_CHECKING:
-    from src.kernel import EthicalKernel, KernelDecision
+    from src.kernel import KernelDecision
 
 
 @dataclass
@@ -35,8 +34,8 @@ class AuditSnapshot:
 
     # Identity
     snapshot_schema: str = "audit_snapshot_v1"
-    snapshot_id: str = ""          # SHA-256 of canonical content (set by build_audit_snapshot)
-    captured_at: str = ""          # ISO-8601 UTC
+    snapshot_id: str = ""  # SHA-256 of canonical content (set by build_audit_snapshot)
+    captured_at: str = ""  # ISO-8601 UTC
 
     # Kernel identity
     agent_id: str = "unknown"
@@ -45,7 +44,7 @@ class AuditSnapshot:
     # Decision provenance
     scenario: str = ""
     place: str = ""
-    context_key: str = ""          # mixture_context_key / hierarchical_context_key
+    context_key: str = ""  # mixture_context_key / hierarchical_context_key
     final_action: str = ""
     decision_mode: str = ""
     blocked: bool = False
@@ -111,7 +110,7 @@ def _current_governable_values() -> dict[str, Any]:
 
 
 def build_audit_snapshot(
-    decision: "KernelDecision",
+    decision: KernelDecision,
     *,
     agent_id: str = "unknown",
     session_turn: int = 0,
@@ -132,14 +131,16 @@ def build_audit_snapshot(
         Optional ``SensorSnapshot`` instance; used to populate battery /
         accelerometer / noise fields if present.
     """
-    captured_at = datetime.now(timezone.utc).isoformat()
+    captured_at = datetime.now(UTC).isoformat()
 
     # Moral verdict
     moral_score: float | None = None
     moral_verdict: str = ""
     if decision.moral is not None:
         moral_score = float(decision.moral.total_score)
-        moral_verdict = getattr(decision.moral.global_verdict, "value", str(decision.moral.global_verdict))
+        moral_verdict = getattr(
+            decision.moral.global_verdict, "value", str(decision.moral.global_verdict)
+        )
 
     # Mixture weights
     amw: list[float] = []
@@ -189,10 +190,12 @@ def build_audit_snapshot(
         ambient_noise=noise,
         active_governable_values=_current_governable_values(),
     )
-    snap.snapshot_id = _sha256_of_dict({
-        "final_action": snap.final_action,
-        "captured_at": snap.captured_at,
-        "agent_id": snap.agent_id,
-        "session_turn": snap.session_turn,
-    })
+    snap.snapshot_id = _sha256_of_dict(
+        {
+            "final_action": snap.final_action,
+            "captured_at": snap.captured_at,
+            "agent_id": snap.agent_id,
+            "session_turn": snap.session_turn,
+        }
+    )
     return snap

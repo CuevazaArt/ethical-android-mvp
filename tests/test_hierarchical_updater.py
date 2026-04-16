@@ -5,19 +5,18 @@ from __future__ import annotations
 import pytest
 from src.modules.feedback_mixture_updater import (
     FeedbackItem,
-    build_scenario_candidates_map,
 )
 from src.modules.hierarchical_updater import (
     HierarchicalUpdater,
+    _tau,
     canonical_context_type,
     load_hierarchical_updater_from_feedback,
-    _tau,
 )
-
 
 # ---------------------------------------------------------------------------
 # canonical_context_type
 # ---------------------------------------------------------------------------
+
 
 def test_canonical_none_returns_general() -> None:
     assert canonical_context_type(None) == "general"
@@ -47,6 +46,7 @@ def test_canonical_novel_type_passthrough() -> None:
 # τ blending schedule
 # ---------------------------------------------------------------------------
 
+
 def test_tau_zero_at_n0() -> None:
     assert _tau(0, 0.8) == pytest.approx(0.0, abs=1e-10)
 
@@ -69,6 +69,7 @@ def test_tau_max_respected() -> None:
 # ---------------------------------------------------------------------------
 # HierarchicalUpdater — unit (no scenario runner)
 # ---------------------------------------------------------------------------
+
 
 def _make_cands() -> dict[int, dict[str, dict[str, float]]]:
     return {
@@ -156,7 +157,6 @@ def test_active_alpha_blended_when_sufficient() -> None:
     for item in items:
         u.ingest_feedback([item], cands)
 
-    alpha_global = list(u._global.alpha)
     alpha_ctx = u.active_alpha_for_context("relational")
     # After 3 items there should be *some* blending (tau > 0)
     assert u.context_counts.get("relational", 0) == 3
@@ -227,6 +227,7 @@ def test_snapshot_restore_roundtrip() -> None:
 # load_hierarchical_updater_from_feedback — integration helper
 # ---------------------------------------------------------------------------
 
+
 def test_load_helper_with_runner_scenarios() -> None:
     """Scenarios 17-19 have hypothesis_override; should build a valid updater."""
     from src.simulations.runner import ALL_SIMULATIONS
@@ -266,8 +267,10 @@ def test_load_helper_with_runner_scenarios() -> None:
 # KERNEL_HIERARCHICAL_FEEDBACK env flag
 # ---------------------------------------------------------------------------
 
+
 def test_enabled_from_env_default_off() -> None:
     import os
+
     os.environ.pop("KERNEL_HIERARCHICAL_FEEDBACK", None)
     assert HierarchicalUpdater.enabled_from_env() is False
 

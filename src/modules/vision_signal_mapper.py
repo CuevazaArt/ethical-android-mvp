@@ -3,12 +3,12 @@ Vision Signal Mapper (Block B3)
 Translates visual inference results into ethical signals for the Ethos Kernel.
 """
 
-from typing import Dict, Any
 from src.modules.vision_adapter import VisionInference
+
 
 class VisionSignalMapper:
     """
-    Maps concrete labels/objects from a CNN (like MobileNetV2) to 
+    Maps concrete labels/objects from a CNN (like MobileNetV2) to
     ethical and situational signals utilized by the core Kernel.
     """
 
@@ -33,9 +33,9 @@ class VisionSignalMapper:
     def __init__(self, confidence_threshold: float = 0.5):
         self.confidence_threshold = confidence_threshold
 
-    def map_inference(self, inference: VisionInference) -> Dict[str, float]:
+    def map_inference(self, inference: VisionInference) -> dict[str, float]:
         """
-        Takes a VisionInference result and translates its primary label 
+        Takes a VisionInference result and translates its primary label
         and detections into a dictionary of Kernel signals.
         """
         signals = {"risk": 0.0, "vulnerability": 0.0, "urgency": 0.0, "hostility": 0.0, "calm": 0.5}
@@ -61,7 +61,7 @@ class VisionSignalMapper:
 
         return signals
 
-    def _lookup_label(self, raw_label: str) -> Dict[str, float]:
+    def _lookup_label(self, raw_label: str) -> dict[str, float] | None:
         """
         Attempts to match the raw CNN label string to our mapped vocabulary.
         Because ImageNet labels can be complex (e.g. 'revolver, six-gun, six-shooter'),
@@ -73,4 +73,3 @@ class VisionSignalMapper:
             if key in raw_label_lower:
                 return value_dict
         return None
-

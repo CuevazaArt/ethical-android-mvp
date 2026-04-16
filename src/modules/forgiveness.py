@@ -62,9 +62,9 @@ class AlgorithmicForgiveness:
 
     # Context-aware decay rates (δ)
     CONTEXT_DECAY_RATES = {
-        "everyday": 0.05,    # Faster forgiveness for minor events
-        "emergency": 0.01,   # Slow decay for trauma during high-stakes events
-        "neutral": 0.03,     # Base rate
+        "everyday": 0.05,  # Faster forgiveness for minor events
+        "emergency": 0.01,  # Slow decay for trauma during high-stakes events
+        "neutral": 0.03,  # Base rate
         "reparation": 0.08,  # Accelerated forgiveness after explicit repair
     }
 
@@ -83,7 +83,12 @@ class AlgorithmicForgiveness:
         self._recent_positives = 0
 
     def register_experience(
-        self, episode_id: str, score: float, context: str, significance: float = 0.5, reparation: bool = False
+        self,
+        episode_id: str,
+        score: float,
+        context: str,
+        significance: float = 0.5,
+        reparation: bool = False,
     ):
         """
         Registers an experience in the forgiveness system.
@@ -135,14 +140,16 @@ class AlgorithmicForgiveness:
 
             if mem.type == "negative" and not mem.forgiven:
                 # Context-aware decay + Significance modulation (Phase 5 Vertical)
-                decay_rate = self.CONTEXT_DECAY_RATES.get(mem.context, self.CONTEXT_DECAY_RATES["neutral"])
-                
-                # Significance modulates the decay speed: 
+                decay_rate = self.CONTEXT_DECAY_RATES.get(
+                    mem.context, self.CONTEXT_DECAY_RATES["neutral"]
+                )
+
+                # Significance modulates the decay speed:
                 # high significance = slow decay (trauma resistance)
                 # actual_decay = base_decay * (1.1 - significance)
                 sig_mult = max(0.05, 1.1 - mem.significance)
                 adjusted_decay = decay_rate * sig_mult
-                
+
                 decay = np.exp(-adjusted_decay * mem.age_cycles)
 
                 # Acceleration from recent positive experiences

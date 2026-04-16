@@ -10,7 +10,7 @@ See docs/proposals/README.md (Fase 4).
 from __future__ import annotations
 
 from dataclasses import dataclass, field
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
 
 if TYPE_CHECKING:
     from .narrative import NarrativeEpisode
@@ -25,11 +25,9 @@ class NarrativeIdentityState:
     deliberation_lean: float = 0.5
     careful_lean: float = 0.5
     episode_count: int = 0
-    # field() avoids the mutable-default anti-pattern (fixed April 2026)
-    core_beliefs: list[dict] = field(default_factory=list)
+    core_beliefs: list[dict[str, Any]] = field(default_factory=list)
 
-    def __post_init__(self):
-        # Guard against None being passed explicitly (e.g. from legacy JSON)
+    def __post_init__(self) -> None:
         if self.core_beliefs is None:
             self.core_beliefs = []
 
@@ -61,7 +59,7 @@ class NarrativeIdentityTracker:
         ctx_l = ep.context.lower()
         if any(k in act_l for k in ("assist", "help", "aid", "emergency")) or "emergency" in ctx_l:
             self.state.care_lean = (1 - a) * self.state.care_lean + a * 0.72
-            
+
         # Extract Core Beliefs (Phase 6 - Maturing)
         # If an episode is extremely significant (>0.85) and has morals, crystalize a belief.
         if ep.significance > 0.85 and ep.morals:
@@ -69,11 +67,9 @@ class NarrativeIdentityTracker:
             belief_text = f"In {ep.context}, I learned that {ep.morals[best_moral_key]}"
             # Prevent duplicates
             if not any(b["id"] == ep.id for b in self.state.core_beliefs):
-                self.state.core_beliefs.append({
-                    "id": ep.id,
-                    "text": belief_text,
-                    "significance": ep.significance
-                })
+                self.state.core_beliefs.append(
+                    {"id": ep.id, "text": belief_text, "significance": ep.significance}
+                )
                 # Keep only top 5 core beliefs by significance
                 self.state.core_beliefs.sort(key=lambda x: x["significance"], reverse=True)
                 self.state.core_beliefs = self.state.core_beliefs[:5]
@@ -110,14 +106,14 @@ class NarrativeIdentityTracker:
         """
         s = self.state
         ascription = self.ascription_line()
-        
+
         # Extract unique high-level morals from recent episodes
-        all_morals = set()
+        all_morals: set[str] = set()
         for ep in recent_episodes[-10:]:
             all_morals.update(ep.morals.keys())
-        
+
         morals_str = ", ".join(sorted(list(all_morals))) if all_morals else "none yet"
-        
+
         # Core Beliefs summary
         beliefs_str = ""
         if s.core_beliefs:

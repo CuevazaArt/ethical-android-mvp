@@ -9,6 +9,8 @@ this via `process_natural` / `process_chat_turn`; `execute_sleep` runs Psi Sleep
 forgiveness cycle, weakness load, immortality backup, drive intents.
 """
 
+from __future__ import annotations
+
 import math
 import os
 import time
@@ -16,29 +18,31 @@ from collections.abc import Callable
 from concurrent.futures import ThreadPoolExecutor
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Any
+from typing import TYPE_CHECKING, Any
+
+if TYPE_CHECKING:
+    from .dao.audit_snapshot import AuditSnapshot
 
 import numpy as np
 
 from .kernel_components import KernelComponentOverrides
-from .validators.deprecation_warnings import check_deprecated_flags
 from .modules.absolute_evil import AbsoluteEvilDetector, AbsoluteEvilResult
+from .modules.audio_adapter import AudioInference
 from .modules.audit_chain_log import (
     maybe_append_kernel_block_audit,
     maybe_append_malabs_block_audit,
 )
 from .modules.augenesis import AugenesisEngine
-from .modules.buffer import PreloadedBuffer
-from .modules.vision_adapter import VisionInference
-from .modules.audio_adapter import AudioInference
+from .modules.bayesian_engine import BayesianEngine, BayesianResult
 from .modules.biographic_pruning import BiographicPruner
+from .modules.buffer import PreloadedBuffer
+from .modules.dao_orchestrator import DAOOrchestrator
 from .modules.drive_arbiter import DriveArbiter
 from .modules.epistemic_dissonance import (
     EpistemicDissonanceAssessment,
     assess_epistemic_dissonance,
 )
 from .modules.epistemic_humility import assess_humility_block, get_humility_refusal_action
-from .modules.metacognition import MetacognitiveEvaluator, MetacognitiveReport
 from .modules.ethical_poles import EthicalPoles, TripartiteMoral
 from .modules.ethical_reflection import (
     EthicalReflection,
@@ -82,11 +86,10 @@ from .modules.llm_layer import (
     resolve_llm_mode,
 )
 from .modules.locus import LocusEvaluation, LocusModule
+from .modules.metacognition import MetacognitiveEvaluator
 from .modules.metaplan_registry import MetaplanRegistry
 from .modules.mock_dao import MockDAO
-from .modules.dao_orchestrator import DAOOrchestrator
 from .modules.motivation_engine import MotivationEngine
-from .modules.safety_interlock import SafetyInterlock, EStopSource
 from .modules.multimodal_trust import (
     MultimodalAssessment,
     evaluate_multimodal_trust,
@@ -114,25 +117,27 @@ from .modules.reality_verification import (
     verify_against_lighthouse,
 )
 from .modules.reparation_vault import maybe_register_reparation_after_mock_court
+from .modules.safety_interlock import SafetyInterlock
 from .modules.salience_map import SalienceMap, SalienceSnapshot, salience_to_llm_context
 from .modules.sensor_contracts import SensorSnapshot, merge_sensor_hints_into_signals
 from .modules.sigmoid_will import SigmoidWill
 from .modules.skill_learning_registry import SkillLearningRegistry
 from .modules.somatic_markers import SomaticMarkerStore, apply_somatic_nudges
+from .modules.strategy_engine import ExecutiveStrategist
 from .modules.subjective_time import SubjectiveClock
-from .modules.swarm_negotiator import SwarmMessage, SwarmNegotiator
-from .modules.strategy_engine import ExecutiveStrategist, MissionOrigin, MissionStatus
-from .modules.temporal_planning import TemporalContext, build_temporal_context
+from .modules.swarm_negotiator import SwarmNegotiator
 from .modules.sympathetic import InternalState, SympatheticModule
+from .modules.temporal_planning import TemporalContext, build_temporal_context
 from .modules.uchi_soto import SocialEvaluation, TrustCircle, UchiSotoModule
 from .modules.user_model import UserModelTracker
 from .modules.variability import VariabilityConfig, VariabilityEngine
+from .modules.vision_adapter import VisionInference
 from .modules.vitality import VitalityAssessment, assess_vitality, vitality_communication_hint
 from .modules.weakness_pole import WeaknessPole
-from .modules.bayesian_engine import BayesianEngine, BayesianResult
-from .modules.weighted_ethics_scorer import CandidateAction
+from .modules.weighted_ethics_scorer import CandidateAction, WeightedEthicsScorer
 from .modules.working_memory import WorkingMemory
 from .persistence.checkpoint_port import CheckpointPersistencePort
+from .validators.deprecation_warnings import check_deprecated_flags
 
 
 def _kernel_env_truthy(name: str) -> bool:
@@ -180,6 +185,20 @@ def _perception_coercion_u_value(raw: Any) -> float | None:
     return max(0.0, min(1.0, u))
 
 
+def kernel_dao_as_mock(dao: MockDAO | DAOOrchestrator) -> MockDAO:
+    """Return the in-process :class:`MockDAO` for APIs not wrapped by :class:`DAOOrchestrator`."""
+    if isinstance(dao, DAOOrchestrator):
+        return dao.local_dao
+    return dao
+
+
+def kernel_mixture_scorer(bayesian: BayesianEngine | WeightedEthicsScorer) -> WeightedEthicsScorer:
+    """Return the :class:`WeightedEthicsScorer` used for mixture / BMA operations."""
+    if isinstance(bayesian, BayesianEngine):
+        return bayesian.scorer
+    return bayesian
+
+
 @dataclass
 class KernelDecision:
     """Complete result of a kernel decision."""
@@ -218,10 +237,14 @@ class KernelDecision:
     mixture_posterior_alpha: tuple[float, float, float] | None = None
     feedback_consistency: str | None = None
     mixture_context_key: str | None = None  # ADR 0012 Level 3 — which context bucket α came from
-    l0_integrity_hash: str | None = None   # Issue 6 — fingerprint of PreloadedBuffer
-    l0_stable: bool = True                 # Issue 6 — True if fingerprint matches boot state
-    hierarchical_context_key: str | None = None  # ADR 0013 — canonical context type used by hierarchical updater
-    applied_mixture_weights: tuple[float, float, float] | None = None  # weights actually used in evaluate()
+    l0_integrity_hash: str | None = None  # Issue 6 — fingerprint of PreloadedBuffer
+    l0_stable: bool = True  # Issue 6 — True if fingerprint matches boot state
+    hierarchical_context_key: str | None = (
+        None  # ADR 0013 — canonical context type used by hierarchical updater
+    )
+    applied_mixture_weights: tuple[float, float, float] | None = (
+        None  # weights actually used in evaluate()
+    )
 
 
 @dataclass
@@ -328,7 +351,8 @@ class EthicalKernel:
         self.buffer = co.buffer if co and co.buffer is not None else PreloadedBuffer()
         self.will = co.will if co and co.will is not None else SigmoidWill()
         # ═══ CYBERSECURITY: Secure Boot (Block 5.2) ═══
-        from .modules.secure_boot import SecureBoot, IntegrityError
+        from .modules.secure_boot import IntegrityError, SecureBoot
+
         self.boot_validator = SecureBoot()
         if not self.boot_validator.verify_integrity():
             if not _kernel_env_truthy("KERNEL_IGNORE_BOOT_FAILURE"):
@@ -338,8 +362,7 @@ class EthicalKernel:
             co.bayesian
             if co and co.bayesian is not None
             else BayesianEngine(
-                mode=os.environ.get("KERNEL_BAYESIAN_MODE", "disabled"),
-                variability=self.var_engine
+                mode=os.environ.get("KERNEL_BAYESIAN_MODE", "disabled"), variability=self.var_engine
             )
         )
         self.poles = co.poles if co and co.poles is not None else EthicalPoles()
@@ -356,16 +379,21 @@ class EthicalKernel:
             else FeedbackCalibrationLedger()
         )
         self._feedback_turn_anchor: dict[str, str] | None = None
-        
+
         # OGA / Hybrid DAO Infrastructure (Phase 1.1)
         self.dao = co.dao if co and co.dao is not None else DAOOrchestrator()
-        self.safety_interlock = co.safety_interlock if co and co.safety_interlock is not None else SafetyInterlock()
-        self.motivation = co.motivation_engine if co and co.motivation_engine is not None else MotivationEngine()
+        self.safety_interlock = (
+            co.safety_interlock if co and co.safety_interlock is not None else SafetyInterlock()
+        )
+        self.motivation = (
+            co.motivation_engine if co and co.motivation_engine is not None else MotivationEngine()
+        )
 
         # Migratory Identity (Block 4.3)
         from .modules.migratory_identity import MigrationHub
+
         self.migration = MigrationHub()
-        
+
         eff_llm = llm if llm is not None else (co.llm if co else None)
         self.llm = eff_llm if eff_llm is not None else LLMModule(mode=resolve_llm_mode(llm_mode))
         self.weakness = co.weakness if co and co.weakness is not None else WeaknessPole()
@@ -422,23 +450,24 @@ class EthicalKernel:
             else EscalationSessionTracker()
         )
         self.swarm = (
-            co.swarm_negotiator 
-            if co and hasattr(co, "swarm_negotiator") and co.swarm_negotiator is not None 
+            co.swarm_negotiator
+            if co and hasattr(co, "swarm_negotiator") and co.swarm_negotiator is not None
             else SwarmNegotiator(node_id=os.environ.get("KERNEL_NODE_ID", "default_node"))
         )
         self.strategist = (
-            co.strategist 
-            if co and hasattr(co, "strategist") and co.strategist is not None 
+            co.strategist
+            if co and hasattr(co, "strategist") and co.strategist is not None
             else ExecutiveStrategist()
         )
         self.biographic_pruner = (
-            co.biographic_pruner 
-            if co and hasattr(co, "biographic_pruner") and co.biographic_pruner is not None 
+            co.biographic_pruner
+            if co and hasattr(co, "biographic_pruner") and co.biographic_pruner is not None
             else BiographicPruner()
         )
 
         # Selective Amnesia (Block 5.1)
         from .modules.selective_amnesia import SelectiveAmnesia
+
         self.amnesia = SelectiveAmnesia(self)
         self.constitution_l1_drafts: list[dict[str, Any]] = []
         self.constitution_l2_drafts: list[dict[str, Any]] = []
@@ -455,7 +484,11 @@ class EthicalKernel:
         self._hier_updater_cache: Any | None = None  # HierarchicalUpdater | None
         self._hier_cache_fb_path: str = ""
         self._hier_cache_mtime: float = -1.0
-        self.metacognition = co.metacognition if co and hasattr(co, "metacognition") and co.metacognition is not None else MetacognitiveEvaluator()
+        self.metacognition = (
+            co.metacognition
+            if co and hasattr(co, "metacognition") and co.metacognition is not None
+            else MetacognitiveEvaluator()
+        )
 
         # ADR 0016 B2 — emit deprecation warnings for any scheduled-for-removal flags
         check_deprecated_flags()
@@ -465,9 +498,7 @@ class EthicalKernel:
         if self.event_bus is not None:
             self.event_bus.subscribe(event, handler)
 
-    def _kernel_decision_event_payload(
-        self, d: "KernelDecision", *, context: str
-    ) -> dict[str, Any]:
+    def _kernel_decision_event_payload(self, d: KernelDecision, *, context: str) -> dict[str, Any]:
         return {
             "scenario": (d.scenario or "")[:500],
             "place": d.place,
@@ -480,7 +511,7 @@ class EthicalKernel:
             "context": context,
         }
 
-    def _emit_kernel_decision(self, d: "KernelDecision", *, context: str) -> None:
+    def _emit_kernel_decision(self, d: KernelDecision, *, context: str) -> None:
         if self.event_bus is None:
             return
         self.event_bus.publish(
@@ -496,13 +527,15 @@ class EthicalKernel:
         proactive = self.motivation.get_proactive_actions()
         actions = []
         for p in proactive:
-            actions.append(CandidateAction(
-                name=p["name"],
-                description=p["description"],
-                estimated_impact=p["impact"],
-                confidence=0.8,
-                source="internal_motivation"
-            ))
+            actions.append(
+                CandidateAction(
+                    name=p["name"],
+                    description=p["description"],
+                    estimated_impact=p["impact"],
+                    confidence=0.8,
+                    source="internal_motivation",
+                )
+            )
         return actions
 
     def _malabs_text_backend(self):
@@ -552,7 +585,9 @@ class EthicalKernel:
                 scenario=scenario,
                 place=place,
                 absolute_evil=AbsoluteEvilResult(blocked=False),
-                sympathetic_state=InternalState(mode="stopped", sigma=0.5, energy=1.0, description="E-STOP ACTIVE"),
+                sympathetic_state=InternalState(
+                    mode="stopped", sigma=0.5, energy=1.0, description="E-STOP ACTIVE"
+                ),
                 social_evaluation=None,
                 locus_evaluation=None,
                 bayesian_result=None,
@@ -565,15 +600,16 @@ class EthicalKernel:
             self._emit_kernel_decision(d, context=context)
             _emit_process_observability(d, t0)
             return d
-        
+
         # ═══ STRATEGIC MISSION INGESTION (Phase 4.1) ═══
         if sensor_snapshot and sensor_snapshot.external_mission_title:
             from .modules.strategy_engine import MissionOrigin
+
             self.strategist.create_mission(
                 title=sensor_snapshot.external_mission_title,
                 origin=MissionOrigin.OWNER,
                 steps=sensor_snapshot.external_mission_steps or [],
-                priority=sensor_snapshot.external_mission_priority or 0.6
+                priority=sensor_snapshot.external_mission_priority or 0.6,
             )
 
         # ═══ STEP 1: Uchi-soto social evaluation ═══
@@ -584,7 +620,7 @@ class EthicalKernel:
             sensor_snapshot=sensor_snapshot,
             multimodal_assessment=multimodal_assessment,
         )
-        
+
         # Swarm Trust Nudge (I7)
         if hasattr(self, "swarm"):
             swarm_nudge = self.swarm.get_swarm_trust_nudge()
@@ -619,11 +655,13 @@ class EthicalKernel:
                 clean_actions.append(a)
 
         # ═══ DRIVE MOTIVATION UPDATE (Block C1) — early call for metrics ═══
-        self.motivation.update_drives({
-            "social_tension": float(getattr(social_eval, "relational_tension", 0.0)),
-            "uncertainty": 0.0,  # No evaluation yet
-            "energy": float(state.energy),
-        })
+        self.motivation.update_drives(
+            {
+                "social_tension": float(getattr(social_eval, "relational_tension", 0.0)),
+                "uncertainty": 0.0,  # No evaluation yet
+                "energy": float(state.energy),
+            }
+        )
 
         if not clean_actions:
             self._last_registered_episode_id = None
@@ -673,20 +711,23 @@ class EthicalKernel:
         # hierarchical block (which runs last) will overwrite hypothesis_weights.  Warn once
         # per process() call so operators notice the conflict in logs.
         _hier_on = _kernel_env_truthy("KERNEL_HIERARCHICAL_FEEDBACK")
-        _l2_on   = _kernel_env_truthy("KERNEL_BAYESIAN_FEEDBACK")
-        _l3_on   = _kernel_env_truthy("KERNEL_BAYESIAN_CONTEXT_LEVEL3")
+        _l2_on = _kernel_env_truthy("KERNEL_BAYESIAN_FEEDBACK")
+        _l3_on = _kernel_env_truthy("KERNEL_BAYESIAN_CONTEXT_LEVEL3")
         if _hier_on and (_l2_on or _l3_on):
             import logging as _plog
+
             _plog.getLogger(__name__).warning(
                 "Precedence conflict: KERNEL_HIERARCHICAL_FEEDBACK is ON together with "
                 "%s. Effective precedence: HIERARCHICAL > CONTEXT_LEVEL3 > BAYESIAN_FEEDBACK. "
                 "The hierarchical updater will overwrite hypothesis_weights last. "
                 "Disable the lower-priority flags to suppress this warning. (OOS-004)",
                 " + ".join(
-                    f for f, on in [
+                    f
+                    for f, on in [
                         ("KERNEL_BAYESIAN_CONTEXT_LEVEL3", _l3_on),
                         ("KERNEL_BAYESIAN_FEEDBACK", _l2_on),
-                    ] if on
+                    ]
+                    if on
                 ),
             )
 
@@ -711,10 +752,10 @@ class EthicalKernel:
                     round(float(_av[1]), 6),
                     round(float(_av[2]), 6),
                 )
-                self.bayesian.update_posterior_from_feedback(
-                    alpha_vec,
-                    consistency=feedback_consistency or "compatible"
-                )
+                if isinstance(self.bayesian, BayesianEngine):
+                    self.bayesian.update_posterior_from_feedback(
+                        alpha_vec, consistency=feedback_consistency or "compatible"
+                    )
                 dirichlet_alpha_for_bma = alpha_vec
                 if isinstance(_fb_meta, dict) and _fb_meta.get("active_context_key") is not None:
                     mixture_context_key = str(_fb_meta["active_context_key"])
@@ -729,13 +770,13 @@ class EthicalKernel:
             p_hier = Path(fb_path)
             if p_hier.is_file():
                 try:
+                    from .modules.feedback_mixture_posterior import (
+                        load_and_apply_feedback,
+                        load_feedback_records,
+                    )
                     from .modules.feedback_mixture_updater import (
                         build_scenario_candidates_map,
                         feedback_items_from_records,
-                    )
-                    from .modules.feedback_mixture_posterior import (
-                        load_feedback_records,
-                        load_and_apply_feedback,
                     )
                     from .modules.hierarchical_updater import (
                         HierarchicalUpdater,
@@ -743,9 +784,7 @@ class EthicalKernel:
                     )
 
                     _hier_seed = int(os.environ.get("KERNEL_FEEDBACK_SEED", "42"))
-                    _hier_strength = float(
-                        os.environ.get("KERNEL_FEEDBACK_UPDATE_STRENGTH", "3.0")
-                    )
+                    _hier_strength = float(os.environ.get("KERNEL_FEEDBACK_UPDATE_STRENGTH", "3.0"))
                     _hier_n = max(
                         1000,
                         int(os.environ.get("KERNEL_FEEDBACK_MC_SAMPLES", "20000")),
@@ -794,6 +833,7 @@ class EthicalKernel:
                         _hs = float(np.sum(_ha))
                         if _hs > 0:
                             from .modules.weight_authority import compose_mixture_weights as _cmw
+
                             self.bayesian.hypothesis_weights = _cmw(
                                 nudge_weights=self.bayesian.hypothesis_weights,
                                 feedback_posterior=_ha / _hs,
@@ -806,14 +846,20 @@ class EthicalKernel:
                             dirichlet_alpha_for_bma = _ha
                         # Derive consistency from cached global updater snapshot
                         _g_alpha = self._hier_updater_cache._global.alpha
-                        _hier_consistency = "compatible" if any(a > 3.0 for a in _g_alpha) else "insufficient"
+                        _hier_consistency = (
+                            "compatible" if any(a > 3.0 for a in _g_alpha) else "insufficient"
+                        )
                         hierarchical_context_key = canonical_context_type(_raw_ctx)
 
                     elif self._hier_updater_cache == "mixture_ranking_fallback" and _hier_records:
                         # OOS-002: mixture_ranking fallback — use load_and_apply_feedback with
                         # the current tick context so per-context Level-3 semantics apply.
                         _rng_hier = np.random.default_rng(_hier_seed)
-                        _tick_ctx: tuple[str, str, dict | None] | None = (_raw_ctx or "", context, signals)
+                        _tick_ctx: tuple[str, str, dict | None] | None = (
+                            _raw_ctx or "",
+                            context,
+                            signals,
+                        )
                         _mr_alpha, _mr_consistency, _mr_meta = load_and_apply_feedback(
                             p_hier, rng=_rng_hier, tick_context=_tick_ctx
                         )
@@ -821,6 +867,7 @@ class EthicalKernel:
                         _hs = float(np.sum(_ha))
                         if _hs > 0:
                             from .modules.weight_authority import compose_mixture_weights as _cmw
+
                             self.bayesian.hypothesis_weights = _cmw(
                                 nudge_weights=self.bayesian.hypothesis_weights,
                                 feedback_posterior=_ha / _hs,
@@ -841,6 +888,7 @@ class EthicalKernel:
 
                 except Exception:  # noqa: BLE001 — degrade gracefully
                     import logging as _logging
+
                     _logging.getLogger(__name__).warning(
                         "HierarchicalUpdater failed; falling back to existing weights.",
                         exc_info=True,
@@ -854,7 +902,7 @@ class EthicalKernel:
 
             hint = clean_actions[0].name if clean_actions else ""
             apply_horizon_prior_to_engine(
-                self.bayesian,
+                kernel_mixture_scorer(self.bayesian),
                 self.memory,
                 context,
                 hint,
@@ -907,12 +955,12 @@ class EthicalKernel:
                 caution=float(social_eval.caution_level),
                 sigma=float(state.sigma),
                 dominant_locus=str(locus_eval.dominant_locus),
-                relational_tension=float(getattr(social_eval, 'relational_tension', 0.0)),
+                relational_tension=float(getattr(social_eval, "relational_tension", 0.0)),
                 historical_trauma=float(self.weakness.emotional_load() if self.weakness else 0.0),
             )
         else:
             self.bayesian.pre_argmax_context_modulators = None
-            
+
         # ═══ STRATEGIC ALIGNMENT (Phase 4.1 / I6) ═══
         for a in clean_actions:
             alignment = self.strategist.evaluate_strategic_alignment(a.description)
@@ -967,7 +1015,7 @@ class EthicalKernel:
             bma_n_s = bma_n_samples()
             rng_bma = np.random.default_rng(int(os.environ.get("KERNEL_BMA_SEED", "42")))
             bma_win_probabilities = monte_carlo_win_probabilities(
-                self.bayesian,
+                kernel_mixture_scorer(self.bayesian),
                 clean_actions,
                 alpha=np.asarray(alpha_bma, dtype=np.float64),
                 n_samples=bma_n_s,
@@ -977,7 +1025,11 @@ class EthicalKernel:
                 rng=rng_bma,
             )
             _ab = np.asarray(alpha_bma, dtype=np.float64).reshape(3)
-            bma_dirichlet_alpha = (round(float(_ab[0]), 6), round(float(_ab[1]), 6), round(float(_ab[2]), 6))
+            bma_dirichlet_alpha = (
+                round(float(_ab[0]), 6),
+                round(float(_ab[1]), 6),
+                round(float(_ab[2]), 6),
+            )
 
         # ═══ EPISTEMIC HUMILITY CHECK (Block 4.2: C3) ═══
         humility_reason = assess_humility_block(
@@ -1046,7 +1098,9 @@ class EthicalKernel:
 
         # ═══ METACOGNITIVE ALIGNMENT (Phase 5) ═══
         curiosity_val = self._last_meta_report.curiosity_weight if self._last_meta_report else 0.0
-        salience = self.salience_map.compute(signals, state, social_eval, reflection, curiosity=curiosity_val)
+        salience = self.salience_map.compute(
+            signals, state, social_eval, reflection, curiosity=curiosity_val
+        )
 
         # ═══ PAD + archetypes (post-decision; does not alter ethics) ═══
         affect = self.pad_archetypes.project(state.sigma, moral.total_score, locus_eval)
@@ -1054,11 +1108,11 @@ class EthicalKernel:
         if register_episode:
             # ═══ STEP 9: Register in narrative memory ═══
             morals_dict = {ev.pole: ev.moral for ev in moral.evaluations}
-            
+
             # Sync persistent body state with current turn telemetry
             self.migration.current_body.energy = float(state.energy)
-            self.migration.current_body.sensors_ok = True # Placeholder for actual sensor health
-            
+            self.migration.current_body.sensors_ok = True  # Placeholder for actual sensor health
+
             ep = self.memory.register(
                 place=place,
                 description=scenario,
@@ -1072,7 +1126,7 @@ class EthicalKernel:
                 body_state=self.migration.current_body,
                 affect_pad=affect.pad,
                 affect_weights=affect.weights,
-                weights_snapshot=bayes_result.applied_mixture_weights
+                weights_snapshot=bayes_result.applied_mixture_weights,
             )
 
             # Save pruned actions for Psi Sleep
@@ -1103,20 +1157,22 @@ class EthicalKernel:
                 f"{scenario} → {final_action} (mode={final_mode}, score={moral.total_score:.3f})",
                 episode_id=ep.id,
             )
-            
+
             # Anchor evidence hash if in hybrid mode (new in OGA)
-            if hasattr(self.dao, 'anchor_evidence'):
-                self.dao.anchor_evidence({
-                    "episode_id": ep.id,
-                    "action": final_action,
-                    "score": moral.total_score,
-                    "signals": signals,
-                    "timestamp": time.time()
-                })
+            if hasattr(self.dao, "anchor_evidence"):
+                self.dao.anchor_evidence(
+                    {
+                        "episode_id": ep.id,
+                        "action": final_action,
+                        "score": moral.total_score,
+                        "signals": signals,
+                        "timestamp": time.time(),
+                    }
+                )
 
             # Solidarity alert in crisis
             if signals.get("risk", 0) > 0.8:
-                self.dao.emit_solidarity_alert(
+                kernel_dao_as_mock(self.dao).emit_solidarity_alert(
                     type=context,
                     location=place,
                     radius=500,
@@ -1130,7 +1186,7 @@ class EthicalKernel:
                     self.dao.register_audit(
                         "metacognition",
                         f"Detected high moral dissonance ({self._last_meta_report.dissonance_score:.2f}). Identity-Action alignment failing.",
-                        episode_id=ep.id
+                        episode_id=ep.id,
                     )
                     # Vertical Increment: Create an Epistemic Dissonance episode for later Psi Sleep review
                     self.memory.register(
@@ -1144,8 +1200,8 @@ class EthicalKernel:
                         sigma=0.9,
                         context="reflection",
                         body_state=BodyState(energy=state.energy, active_nodes=8, sensors_ok=True),
-                        significance=0.85, # Flashbulb memory
-                        is_sensitive=True
+                        significance_override=0.85,  # Flashbulb memory
+                        is_sensitive_override=True,
                     )
 
             if self.event_bus is not None:
@@ -1158,16 +1214,21 @@ class EthicalKernel:
                         "decision_mode": final_mode,
                         "verdict": moral.global_verdict.value,
                         "score": float(moral.total_score),
+                        "dissonance": float(
+                            getattr(self._last_meta_report, "dissonance_score", 0.0)
+                        ),
                     },
                 )
-            
+
             # ═══ DRIVE MOTIVATION UPDATE (Block C1) — final call with full data ═══
-            self.motivation.update_drives({
-                "social_tension": float(getattr(social_eval, "relational_tension", 0.0)),
-                "uncertainty": float(bayes_result.uncertainty),
-                "energy": float(state.energy),
-                "dissonance": float(getattr(self._last_meta_report, 'dissonance_score', 0.0))
-            })
+            self.motivation.update_drives(
+                {
+                    "social_tension": float(getattr(social_eval, "relational_tension", 0.0)),
+                    "uncertainty": float(bayes_result.uncertainty),
+                    "energy": float(state.energy),
+                    "dissonance": float(getattr(self._last_meta_report, "dissonance_score", 0.0)),
+                }
+            )
         else:
             self._last_registered_episode_id = None
 
@@ -1261,7 +1322,9 @@ class EthicalKernel:
             if d.mixture_context_key:
                 lines.append(f"  Mixture context bucket (ADR 0012 L3): {d.mixture_context_key}")
             if d.hierarchical_context_key:
-                lines.append(f"  Hierarchical context type (ADR 0013): {d.hierarchical_context_key}")
+                lines.append(
+                    f"  Hierarchical context type (ADR 0013): {d.hierarchical_context_key}"
+                )
             if d.bma_win_probabilities:
                 lines.append(
                     f"  BMA win probabilities (α={d.bma_dirichlet_alpha}, N={d.bma_n_samples}): "
@@ -1387,13 +1450,13 @@ class EthicalKernel:
 
         # Phase 7 DAO Extraction: Interlock community votes with BMA updating
         if hasattr(self, "dao") and self.dao is not None:
-            dao_feedback = self.dao.extract_community_feedback(recent_count=10)
+            dao_feedback = kernel_dao_as_mock(self.dao).extract_community_feedback(recent_count=10)
             for label, count in dao_feedback.items():
                 for _ in range(count):
                     self.feedback_ledger.record("DAO_community_consensus", label)
 
         fb_line = apply_psi_sleep_feedback_to_engine(
-            self.bayesian,
+            kernel_mixture_scorer(self.bayesian),
             self.feedback_ledger,
             genome_weights=self._bayesian_genome_weights,
             max_drift=max_drift,
@@ -1433,12 +1496,12 @@ class EthicalKernel:
 
     def export_audit_snapshot(
         self,
-        decision: "KernelDecision",
+        decision: KernelDecision,
         *,
         agent_id: str = "unknown",
         session_turn: int = 0,
         sensor_snapshot: Any = None,
-    ) -> "AuditSnapshot":
+    ) -> AuditSnapshot:
         """
         E2 — Build a serialisable :class:`~src.dao.audit_snapshot.AuditSnapshot`
         from a completed decision (ADR 0016 Axis E2).
@@ -1713,11 +1776,11 @@ class EthicalKernel:
         bias = snap.get("planning_bias", "balanced")
         if strategy:
             return (
-                f"Support buffer ({snap.get('context','everyday')}): {active_txt}. "
+                f"Support buffer ({snap.get('context', 'everyday')}): {active_txt}. "
                 f"Priority={profile}/{bias}. Strategy: {strategy}"
             )
         return (
-            f"Support buffer ({snap.get('context','everyday')}): {active_txt}. "
+            f"Support buffer ({snap.get('context', 'everyday')}): {active_txt}. "
             f"Priority={profile}/{bias}."
         )
 
@@ -1843,7 +1906,9 @@ class EthicalKernel:
         conv = wm.format_context_for_perception()
         self.llm.reset_verbal_degradation_log()
         pre = self._preprocess_text_observability(user_input)
-        self._last_light_risk_tier, self._last_premise_advisory, self._last_reality_verification = pre
+        self._last_light_risk_tier, self._last_premise_advisory, self._last_reality_verification = (
+            pre
+        )
         self.user_model.note_premise_advisory(self._last_premise_advisory.flag)
 
         mal = self.absolute_evil.evaluate_chat_text(
@@ -2122,7 +2187,9 @@ class EthicalKernel:
                 "Metacognitive doubt: recent perception parses have been unreliable; use maximum caution, "
                 "narrow claims, invite clarification, and avoid overconfidence."
             )
-            weakness_line = (doubt_hint + " " + weakness_line).strip() if weakness_line else doubt_hint
+            weakness_line = (
+                (doubt_hint + " " + weakness_line).strip() if weakness_line else doubt_hint
+            )
 
         comm_mode = decision.decision_mode
         if self._perception_metacognitive_doubt:
@@ -2203,20 +2270,21 @@ class EthicalKernel:
                             buffer_c,
                             session_strikes=strikes,
                         )
-                        rec = self.dao.register_escalation_case(
+                        _dao = kernel_dao_as_mock(self.dao)
+                        rec = _dao.register_escalation_case(
                             dossier.to_audit_paragraph(),
                             episode_id=self._last_registered_episode_id,
                         )
                         mock_court = None
                         if mock_court_enabled():
-                            mock_court = self.dao.run_mock_escalation_court(
+                            mock_court = _dao.run_mock_escalation_court(
                                 dossier.case_uuid,
                                 rec.id,
                                 dossier.to_audit_paragraph(),
                                 dossier.buffer_conflict,
                             )
                             maybe_register_reparation_after_mock_court(
-                                self.dao, mock_court, dossier.case_uuid
+                                _dao, mock_court, dossier.case_uuid
                             )
                         je_view = build_escalation_view(
                             True,
@@ -2268,11 +2336,11 @@ class EthicalKernel:
         )
 
     def process_natural(
-        self, 
-        situation: str, 
+        self,
+        situation: str,
         actions: list[CandidateAction] = None,
         vision_inference: VisionInference = None,
-        audio_inference: AudioInference = None
+        audio_inference: AudioInference = None,
     ) -> tuple:
         """
         Processes a situation described in natural language.
@@ -2370,9 +2438,10 @@ class EthicalKernel:
 
         if vision_inference:
             from .modules.vision_signal_mapper import VisionSignalMapper
+
             mapper = VisionSignalMapper()
             vision_signals = mapper.map_inference(vision_inference)
-            
+
             # Merge vision signals with LLM signals (take the max of risk/urgency etc)
             for k, v in vision_signals.items():
                 if k in signals:
@@ -2382,6 +2451,7 @@ class EthicalKernel:
 
         if audio_inference:
             from .modules.audio_signal_mapper import AudioSignalMapper
+
             a_mapper = AudioSignalMapper()
             audio_signals = a_mapper.map_inference(audio_inference)
 

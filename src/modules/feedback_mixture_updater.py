@@ -438,7 +438,7 @@ class FeedbackUpdater:
         if isinstance(raw_data, dict) and "items" in raw_data:
             raw_data = raw_data["items"]
         if not isinstance(raw_data, list):
-            raise ValueError("feedback file must be a JSON list or {\"items\": [...]}")
+            raise ValueError('feedback file must be a JSON list or {"items": [...]}')
         return [
             FeedbackItem(
                 scenario_id=int(item["scenario_id"]),

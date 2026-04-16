@@ -46,12 +46,18 @@ def test_joint_log_likelihood_two_obs() -> None:
     o1 = FeedbackObservation(
         1,
         "a",
-        {"a": {"util": 1.0, "deon": 0.0, "virtue": 0.0}, "b": {"util": 0.0, "deon": 1.0, "virtue": 0.0}},
+        {
+            "a": {"util": 1.0, "deon": 0.0, "virtue": 0.0},
+            "b": {"util": 0.0, "deon": 1.0, "virtue": 0.0},
+        },
     )
     o2 = FeedbackObservation(
         2,
         "b",
-        {"a": {"util": 0.5, "deon": 0.5, "virtue": 0.0}, "b": {"util": 0.4, "deon": 0.6, "virtue": 0.0}},
+        {
+            "a": {"util": 0.5, "deon": 0.5, "virtue": 0.0},
+            "b": {"util": 0.4, "deon": 0.6, "virtue": 0.0},
+        },
     )
     w = np.array([1.0 / 3.0] * 3, dtype=np.float64)
     j = joint_log_likelihood([o1, o2], w, beta=10.0)
@@ -109,7 +115,10 @@ def test_posterior_predictive() -> None:
     held = FeedbackObservation(
         1,
         "a",
-        {"a": {"util": 1.0, "deon": 0.0, "virtue": 0.0}, "b": {"util": 0.0, "deon": 1.0, "virtue": 0.0}},
+        {
+            "a": {"util": 1.0, "deon": 0.0, "virtue": 0.0},
+            "b": {"util": 0.0, "deon": 1.0, "virtue": 0.0},
+        },
     )
     alpha = np.array([6.0, 6.0, 6.0], dtype=np.float64)
     rng = np.random.default_rng(2)
@@ -137,9 +146,7 @@ def test_calibrate_beta_grid() -> None:
     assert len(scores) == 3
 
 
-def test_feedback_updater_softmax_is_path(
-    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
-) -> None:
+def test_feedback_updater_softmax_is_path(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:
     monkeypatch.setenv("KERNEL_FEEDBACK_LIKELIHOOD", "softmax_is")
     monkeypatch.setenv("KERNEL_FEEDBACK_SOFTMAX_BETA", "12.0")
     cmap = build_scenario_candidates_map([17])

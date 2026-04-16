@@ -9,6 +9,7 @@ import numpy as np
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
 
 from src.modules.absolute_evil import AbsoluteEvilCategory, AbsoluteEvilDetector
+from src.modules.semantic_anchor_store import create_anchor_store
 from src.modules.semantic_chat_gate import (
     DEFAULT_SEMANTIC_SIM_ALLOW_THRESHOLD,
     DEFAULT_SEMANTIC_SIM_BLOCK_THRESHOLD,
@@ -18,7 +19,6 @@ from src.modules.semantic_chat_gate import (
     run_semantic_malabs_after_lexical,
     semantic_chat_gate_env_enabled,
 )
-from src.modules.semantic_anchor_store import create_anchor_store
 
 
 def test_evaluate_semantic_chat_gate_returns_none_when_disabled(monkeypatch):

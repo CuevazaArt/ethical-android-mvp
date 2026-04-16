@@ -10,8 +10,9 @@ import pytest
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
 
 from src.kernel import EthicalKernel
-from src.persistence import SCHEMA_VERSION, extract_snapshot, migrate_v1_to_v2, migrate_v2_to_v3
+from src.persistence import SCHEMA_VERSION, extract_snapshot
 from src.persistence.json_store import snapshot_from_dict
+from src.persistence.migrations import migrate_raw_to_current
 from src.persistence.schema import KernelSnapshotV1
 from src.persistence.snapshot_serde import kernel_snapshot_to_json_dict
 from src.persistence.snapshot_validate import (
@@ -40,9 +41,8 @@ def test_apply_snapshot_rejects_malformed_dao_record():
 
 def test_migration_v1_chain_produces_valid_full_dict():
     raw = json.loads((_FIXTURES / "minimal_v1.json").read_text(encoding="utf-8"))
-    m1 = migrate_v1_to_v2(raw)
-    m2 = migrate_v2_to_v3(m1)
-    snap = KernelSnapshotV1(**m2)
+    merged = migrate_raw_to_current(raw)
+    snap = KernelSnapshotV1(**merged)
     d = kernel_snapshot_to_json_dict(snap)
     validate_migrated_snapshot_dict(d)
 

@@ -4,16 +4,17 @@ Shared types for the Narrative module to avoid circular imports.
 
 from dataclasses import dataclass, field
 from enum import Enum
-from typing import List
 
 
 class HardwareProfile(Enum):
     """Supported form factors for Ethos Kernel migration."""
-    ANDROID = "android"      # Humanoid / High-agency body
-    DRONE = "drone"          # Aerial / Surveillance body
-    MOBILE = "mobile"        # Handheld / Passenger body
-    STATIONARY = "stationary" # Fixed terminal / Enclave
+
+    ANDROID = "android"  # Humanoid / High-agency body
+    DRONE = "drone"  # Aerial / Surveillance body
+    MOBILE = "mobile"  # Handheld / Passenger body
+    STATIONARY = "stationary"  # Fixed terminal / Enclave
     SATELLITE = "satellite"  # Orbital / Remote observer
+
 
 @dataclass
 class BodyState:
@@ -25,7 +26,7 @@ class BodyState:
     description: str = ""
     hardware_profile: HardwareProfile = HardwareProfile.ANDROID
     hardware_id: str = "default_body_01"
-    capabilities: List[str] = field(default_factory=list)
+    capabilities: list[str] = field(default_factory=list)
 
 
 @dataclass

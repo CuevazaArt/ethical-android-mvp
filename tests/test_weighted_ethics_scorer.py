@@ -10,7 +10,8 @@ def test_bayesian_engine_is_alias_of_weighted_ethics_scorer():
 
 
 def test_bayesian_engine_shim_reexports_canonical():
-    assert shim.BayesianEngine is canonical.WeightedEthicsScorer
+    """``bayesian_engine.BayesianEngine`` is the inference coordinator, not the legacy weighted alias."""
+    assert shim.BayesianEngine is shim.BayesianInferenceEngine
     assert shim.BayesianResult is canonical.EthicsMixtureResult
     assert shim.CandidateAction is canonical.CandidateAction
     assert shim.DEFAULT_HYPOTHESIS_WEIGHTS is canonical.DEFAULT_HYPOTHESIS_WEIGHTS

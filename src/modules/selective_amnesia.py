@@ -5,10 +5,14 @@ Allows permanent deletion of specific episodes and their associated audit eviden
 """
 
 from __future__ import annotations
-from typing import TYPE_CHECKING, List
+
+from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
     from ..kernel import EthicalKernel
+
+from .dao_orchestrator import DAOOrchestrator
+
 
 class SelectiveAmnesia:
     """
@@ -30,12 +34,16 @@ class SelectiveAmnesia:
 
         # 1. Delete from Narrative Persistence (Tier 2/3)
         narrative_deleted = self.kernel.memory.persistence.delete_episode(episode_id)
-        
+
         # 2. Sync in-memory list
-        self.kernel.memory.episodes = [ep for ep in self.kernel.memory.episodes if ep.id != episode_id]
+        self.kernel.memory.episodes = [
+            ep for ep in self.kernel.memory.episodes if ep.id != episode_id
+        ]
 
         # 3. Delete from Audit Ledger (DAO)
-        audit_deleted_count = self.kernel.dao.local_dao.delete_records_by_episode(episode_id)
+        dao = self.kernel.dao
+        mock_face = dao.local_dao if isinstance(dao, DAOOrchestrator) else dao
+        audit_deleted_count = mock_face.delete_records_by_episode(episode_id)
 
         # 4. Final verification and report
         success = narrative_deleted or (audit_deleted_count > 0)
@@ -46,7 +54,7 @@ class SelectiveAmnesia:
 
         # 5. Re-trigger Identity Reflection to ensure the amnesia is reflected in the self-model
         self.kernel.memory.consolidate()
-        
+
         return success
 
     def forget_context(self, context_type: str) -> int:

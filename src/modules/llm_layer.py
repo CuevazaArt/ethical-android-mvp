@@ -466,7 +466,9 @@ class LLMModule:
         try:
             secondary = perception_from_llm_json(data_b, situation, parse_issues=issues_b)
         except Exception:
-            merge_parse_issues_into_perception(primary, ["perception_dual_second_validate_exception"])
+            merge_parse_issues_into_perception(
+                primary, ["perception_dual_second_validate_exception"]
+            )
             return
         apply_perception_dual_vote_metadata(primary, secondary)
 
@@ -526,9 +528,7 @@ class LLMModule:
                 return f"{structured_line} | monologue_llm_degraded"
             return structured_line
         if not extra or len(extra) > 240 or extra.upper() == "OK":
-            self._record_verbal_degradation(
-                "monologue", "monologue_enrich_empty_or_skipped", mpol
-            )
+            self._record_verbal_degradation("monologue", "monologue_enrich_empty_or_skipped", mpol)
             if mpol == "annotate_degraded":
                 return f"{structured_line} | monologue_llm_skipped"
             return structured_line
@@ -818,9 +818,7 @@ class LLMModule:
                     inner_voice=data.get("inner_voice", ""),
                 )
             if self.mode in ("api", "ollama", "injected") and self._llm_backend is not None:
-                self._record_verbal_degradation(
-                    "communicate", "verbal_json_missing_or_empty", vpol
-                )
+                self._record_verbal_degradation("communicate", "verbal_json_missing_or_empty", vpol)
                 if vpol == "canned_safe":
                     return VerbalResponse(
                         **canned_verbal_communication_fields(
@@ -957,9 +955,7 @@ class LLMModule:
                     synthesis=data.get("synthesis", ""),
                 )
             if self.mode in ("api", "ollama", "injected") and self._llm_backend is not None:
-                self._record_verbal_degradation(
-                    "narrate", "verbal_json_missing_or_empty", vpol
-                )
+                self._record_verbal_degradation("narrate", "verbal_json_missing_or_empty", vpol)
                 if vpol == "canned_safe":
                     return RichNarrative(
                         **canned_rich_narrative_fields(
