@@ -79,6 +79,7 @@ _FAMILY_RULES: Final[tuple[tuple[str, tuple[str, ...]], ...]] = (
             "KERNEL_GENERATIVE_",
             "KERNEL_VERBAL_",
             "KERNEL_LLM_TP_",
+            "KERNEL_LLM_GLOBAL_",
             "KERNEL_LLM_VERBAL_FAMILY_",
             "KERNEL_LLM_MONOLOGUE_BACKEND_",
             "KERNEL_LLM_MONOLOGUE",

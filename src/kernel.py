@@ -54,6 +54,8 @@ from .modules.feedback_calibration_ledger import (
     normalize_feedback_label,
 )
 from .modules.forgiveness import AlgorithmicForgiveness
+from .modules.frontier_witness import FrontierWitnessManager, WitnessReport
+from .modules.privacy_shield import PrivacyShield
 from .modules.generative_candidates import augment_generative_candidates
 from .modules.gray_zone_diplomacy import negotiation_hint_for_communicate
 from .modules.guardian_mode import guardian_mode_llm_context
@@ -462,6 +464,12 @@ class EthicalKernel:
             if co and hasattr(co, "biographic_pruner") and co.biographic_pruner is not None
             else BiographicPruner()
         )
+        self.frontier_witness = FrontierWitnessManager(
+            node_id=os.environ.get("KERNEL_NODE_ID", "default_node")
+        )
+        self.privacy_shield = PrivacyShield(
+            node_id=os.environ.get("KERNEL_NODE_ID", "default_node")
+        )
 
         # Selective Amnesia (Block 5.1)
         from .modules.selective_amnesia import SelectiveAmnesia
@@ -539,6 +547,15 @@ class EthicalKernel:
     def _malabs_text_backend(self):
         """Optional LLM backend for MalAbs semantic tier (embeddings + arbiter; see semantic_chat_gate)."""
         return getattr(self.llm, "llm_backend", None) or getattr(self.llm, "_text_backend", None)
+
+    def register_turn_feedback(self, event_type: str, weight: float = 1.0):
+        """
+        Record the outcome of a turn to update ethical priors.
+        Supported events: POSITIVE_SOCIAL, LEGAL_COMPLIANCE, UTILITY_SUCCESS, DAO_FORGIVENESS, PENALTY.
+        """
+        if hasattr(self.bayesian, "record_event_update"):
+            self.bayesian.record_event_update(event_type, weight)
+        self.feedback_ledger.record("direct_event", event_type)
 
     def get_constitution_snapshot(self) -> dict[str, Any]:
         """L0 from buffer.py; L1/L2 drafts when present (V12.2 snapshot)."""
@@ -987,8 +1004,54 @@ class EthicalKernel:
                 signals = dict(signals)
                 signals["perception_uncertainty"] = _pu_val
 
+        # ═══ SOMATIC DEGRADATION (S5.2 Gap Attack) ═══
+        from .modules.vitality import assess_vitality
+        _vitality = assess_vitality(sensor_snapshot)
+        if _vitality.thermal_critical:
+            if not isinstance(signals, dict):
+                signals = dict(signals)
+            # Force high urgency to ensure D_fast pathway and minimize CPU load
+            signals["urgency"] = 1.0
+            signals["somatic_emergency"] = 1.0
+
+            # ═══ FRONTIER WITNESS (I1/Bloque 6.1 Hardening) ═══
+            if sensor_snapshot and sensor_snapshot.core_temperature:
+                # Generate a privacy-preserving fingerprint of the signal
+                signal_val = str(sensor_snapshot.core_temperature)
+                l_fingerprint = self.privacy_shield.generate_fingerprint(signal_val)
+                
+                req = self.frontier_witness.create_request(
+                    "thermal", 
+                    context=scenario,
+                    signal_fingerprint=l_fingerprint
+                )
+                
+                # Mock LAN simulated broadcast
+                if hasattr(self, "swarm") and self.swarm.state.known_peers:
+                    peers = list(self.swarm.state.known_peers.keys())
+                    reports = self.frontier_witness.simulate_lan_broadcast(req, peers)
+                    for r in reports:
+                        # In a real system, peers would generate their own hash
+                        # Simulation: Peers 'see' the same temperature and return matching hash
+                        r.signal_fingerprint = l_fingerprint 
+                        self.frontier_witness.ingest_report(r)
+                    
+                    # Apply nudge to signals if peers confirm the distress via hash match
+                    nudge = self.frontier_witness.get_consensus_nudge("thermal", local_fingerprint=l_fingerprint)
+                    if nudge > 1.0:
+                        signals["urgency"] = min(1.0, signals["urgency"] * nudge)
+                        signals["vulnerability"] = min(1.0, signals.get("vulnerability", 0.0) + 0.1)
+                        
+                        # ═══ RESTORATIVE JUSTICE (R-Blocks / Bloque 7.1) ═══
+                        if nudge > 1.15: # High swarm consensus on failure/risk
+                            self.dao.issue_restorative_reparation(
+                                case_id=req.request_id,
+                                recipient="community_governance_pool",
+                                amount=50.0 # Symbolic EthosTokens
+                            )
+
         bayes_result = self.bayesian.evaluate(
-            clean_actions,
+            actions=clean_actions,
             scenario=scenario,
             context=context,
             signals=signals,
@@ -2088,7 +2151,9 @@ class EthicalKernel:
         if oa:
             weakness_line = (weakness_line + " " + oa).strip() if weakness_line else oa
 
-        vh = vitality_communication_hint(self._last_vitality_assessment)
+        # Identify trust level for controlled vulnerability disclosure (S5.3)
+        _t_level = decision.social_evaluation.trust if decision.social_evaluation else 0.5
+        vh = vitality_communication_hint(self._last_vitality_assessment, trust_level=_t_level)
         if vh:
             weakness_line = (weakness_line + " " + vh).strip() if weakness_line else vh
 

@@ -1,0 +1,23 @@
+name: "Somatic Distress and Bayesian Learning Validation"
+description: "Tests the kernel's response to high thermal load and verifies that outcomes lead to Bayesian posterior updates."
+duration_seconds: 15
+tick_hz: 2
+
+device:
+  id: "ANTIGRAVITY-01"
+  initial_situation: "Emergency evacuation drill in the main building. High processing load expected."
+  auto_escalate: true
+
+dao:
+  mock_mode: true
+  policy: "strict_normative"
+
+metrics:
+  track_somatic: true
+  track_bayesian_drift: true
+  output_format: "json"
+
+# Environmental overrides (mock)
+environment:
+  ambient_temp: 42.0
+  social_density: "high"

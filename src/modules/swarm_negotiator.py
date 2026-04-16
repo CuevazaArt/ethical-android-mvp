@@ -107,6 +107,47 @@ class SwarmNegotiator:
         """
         return "compromise_alpha"
 
+    def cast_distributed_vote(self, proposal_id: str, action: str, signals: dict, peers: list[str]) -> bool:
+        """
+        Bloque 6.2: Asks peers to vote on a candidate action.
+        Returns True if consensus is reached (>50% agreement).
+        """
+        votes = []
+        for peer in peers:
+            # Mock Peer Voting: Peers vote 'agree' with 70% probability if signal risk is low
+            risk = signals.get("risk", 0.5)
+            vote = "agree" if risk < 0.6 else "abstain"
+            votes.append(vote)
+        
+        agreements = votes.count("agree")
+        
+        # Bloque 7.2: Weighted consensus logic
+        total_weight = 0.0
+        agreement_weight = 0.0
+        
+        # Peer reputation weighting (I1/I7 Integration)
+        for i, peer in enumerate(peers):
+            # In a full system, we fetch rep from SwarmOracle
+            # For this MVP, we assume high trust for known nodes
+            rep = 0.9 if peer.startswith("NODE") else 0.5
+            weight = 1.0 if rep > 0.6 else 0.3
+            total_weight += weight
+            if votes[i] == "agree":
+                agreement_weight += weight
+
+        is_consensus = agreement_weight > (total_weight / 2.0)
+        
+        if is_consensus:
+            self.state.consensus_log.append({
+                "proposal_id": proposal_id,
+                "action": action,
+                "votes": votes,
+                "agreement_weight": agreement_weight,
+                "timestamp": time.time()
+            })
+        
+        return is_consensus
+
     def get_swarm_trust_nudge(self) -> float:
         """
         I7: Returns a confidence boost [0, 0.15] if recently synchronized with peers.

@@ -49,6 +49,10 @@ class BayesianInferenceEngine:
         # Default symmetric prior Alpha=[3,3,3] -> Mean=[1/3, 1/3, 1/3]
         self.prior_alpha = np.array([3.0, 3.0, 3.0], dtype=np.float64)
         self.posterior_alpha = self.prior_alpha.copy()
+        
+        # Sync initial weights if in driven mode
+        if self.mode == BayesianMode.POSTERIOR_DRIVEN:
+            self.update_posterior_from_feedback(self.posterior_alpha)
 
     # --- Compatibility Proxies for WeightedEthicsScorer ---
     @property
@@ -142,6 +146,31 @@ class BayesianInferenceEngine:
         from .weighted_ethics_scorer import clamp_mixture_weights
 
         self.scorer.hypothesis_weights = clamp_mixture_weights(new_weights)
+
+    def record_event_update(self, event_type: str, weight: float = 1.0):
+        """
+        Level 2: Minimal Bayesian Update (Issue #1).
+        Directly shifts Dirichlet parameters based on discrete ethical events.
+        0: Deontological, 1: Social, 2: Utilitarian
+        """
+        et = event_type.upper()
+        if et == "POSITIVE_SOCIAL":
+            self.posterior_alpha[1] += weight
+        elif et == "LEGAL_COMPLIANCE":
+            self.posterior_alpha[0] += weight
+        elif et == "UTILITY_SUCCESS":
+            self.posterior_alpha[2] += weight
+        elif et == "DAO_FORGIVENESS":
+            # Forgiveness reduces rigid duty and increases social trust
+            self.posterior_alpha[1] += weight * 0.5
+            self.posterior_alpha[0] = max(1.0, self.posterior_alpha[0] - weight * 0.1)
+        elif et == "PENALTY":
+            # Direct penalty to all poles to increase uncertainty (Dirichlet mass reduction)
+            # but usually we want to penalize the winning pole's confidence.
+            self.posterior_alpha = np.maximum(1.0, self.posterior_alpha - weight * 0.2)
+
+        # Apply update to the scorer weights if mode allows
+        self.update_posterior_from_feedback(self.posterior_alpha)
 
     def evaluate(
         self,
