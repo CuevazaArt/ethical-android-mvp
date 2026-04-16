@@ -356,6 +356,13 @@ class MockDAO:
         recs = self.records if not type else [r for r in self.records if r.type == type]
         return recs[-limit:]
 
+    def delete_records_by_episode(self, episode_id: str) -> int:
+        """Permanently deletes audit records related to an episode (Selective Amnesia)."""
+        initial_len = len(self.records)
+        self.records = [r for r in self.records if r.episode_id != episode_id]
+        deleted_count = initial_len - len(self.records)
+        return deleted_count
+
     def export_state(self) -> dict[str, Any]:
         """V12.3 — serialize proposals + participants for kernel checkpoint (off-chain)."""
         return {
@@ -430,3 +437,30 @@ class MockDAO:
 
         lines.append(f"{'─' * 70}")
         return "\n".join(lines)
+
+    def extract_community_feedback(self, recent_count: int = 10) -> dict[str, int]:
+        """
+        Phase 7 DAO Calibration: Maps recent community outcomes (proposals/audits)
+        to FeedbackCalibrationLedger labels ('approve', 'dispute', 'harm_report').
+        Allows the decentralized community to mathematically calibrate the BMA priors.
+        """
+        counts = {"approve": 0, "dispute": 0, "harm_report": 0}
+        
+        # Analyze recent proposals
+        for prop in self.proposals[-recent_count:]:
+            if prop.status == "approved":
+                counts["approve"] += 1
+            elif prop.status == "rejected":
+                counts["dispute"] += 1
+                
+        # Analyze recent alerts (proxy for harm_report)
+        for alert in self.alerts[-recent_count:]:
+            if "harm" in alert.type.lower() or "alert" in alert.type.lower():
+                counts["harm_report"] += 1
+                
+        # Analyze escalation court traces if any (proxy for dispute)
+        for rec in self.records[-recent_count:]:
+            if rec.type == "escalation":
+                counts["dispute"] += 1
+                
+        return counts

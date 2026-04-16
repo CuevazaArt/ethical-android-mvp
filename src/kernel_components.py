@@ -42,6 +42,12 @@ from .modules.user_model import UserModelTracker
 from .modules.variability import VariabilityEngine
 from .modules.weakness_pole import WeaknessPole
 from .modules.working_memory import WorkingMemory
+from .modules.swarm_negotiator import SwarmNegotiator
+from .modules.strategy_engine import ExecutiveStrategist
+from .modules.biographic_pruning import BiographicPruner
+from .modules.safety_interlock import SafetyInterlock
+from .modules.dao_orchestrator import DAOOrchestrator
+from .modules.motivation_engine import MotivationEngine
 from .persistence.checkpoint_port import CheckpointPersistencePort
 
 
@@ -64,7 +70,9 @@ class KernelComponentOverrides:
     locus: LocusModule | None = None
     sleep: PsiSleep | None = None
     feedback_ledger: FeedbackCalibrationLedger | None = None
-    dao: MockDAO | None = None
+    dao: MockDAO | DAOOrchestrator | None = None
+    safety_interlock: SafetyInterlock | None = None
+    motivation_engine: MotivationEngine | None = None
     weakness: WeaknessPole | None = None
     forgiveness: AlgorithmicForgiveness | None = None
     immortality: ImmortalityProtocol | None = None
@@ -81,4 +89,7 @@ class KernelComponentOverrides:
     metaplan: MetaplanRegistry | None = None
     escalation_session: EscalationSessionTracker | None = None
     llm: LLMModule | None = None
+    swarm_negotiator: SwarmNegotiator | None = None
+    strategist: ExecutiveStrategist | None = None
+    biographic_pruner: BiographicPruner | None = None
     checkpoint_persistence: CheckpointPersistencePort | None = None

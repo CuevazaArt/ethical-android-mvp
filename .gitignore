@@ -48,6 +48,9 @@ Thumbs.db
 *.tar.gz
 *.zip
 
+# Optimization artifacts (Optuna DBs, results)
+artifacts/
+
 # Binary documents (kept locally, not in repo)
 *.pdf
 *.docx
@@ -55,6 +58,10 @@ Thumbs.db
 # Experiment outputs (large JSON/CSV/PNG; regenerate with scripts under experiments/)
 experiments/out/*
 !experiments/out/.gitignore
+!experiments/out/field/
+experiments/out/field/*
+!experiments/out/field/.gitignore
+!experiments/out/field/README.md
 
 # Misc
 get-pip.py
@@ -74,3 +81,9 @@ experiments/001*.md
 experiments/feedback.json
 experiments/*_updater.py
 experiments/test_*_updater.py
+
+# Local data and backups
+data/
+
+# Local scratch databases (never commit)
+scratch/

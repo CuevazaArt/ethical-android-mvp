@@ -10,7 +10,7 @@ The open kernel + runtime is branded **Ethos Kernel** (April 2026 onward); earli
 
 ## Intellectual foundations
 
-The project is grounded in a broad academic literature, from foundational classics (Turing, Bayes, Aristotle, Kant) to contemporary research in AI safety and LLMs. Each kernel module has traceable roots in that literature. A consolidated **104-reference** table previously lived in **`BIBLIOGRAPHY.md`** at the repository root; that file was **removed** from the default tree in April 2026 to reduce weight — recover it from git history or from branch **`backup/main-2026-04-10`** if needed.
+The project is grounded in a broad academic literature, from foundational classics (Turing, Bayes, Aristotle, Kant) to contemporary research in AI safety and LLMs. Each kernel module has traceable roots in that literature. The consolidated reference table lives in **`BIBLIOGRAPHY.md`** on branch **`main-whit-landing`** (this **`main`** branch omits it to stay lightweight). Canonical link: [BIBLIOGRAPHY.md on `main-whit-landing`](https://github.com/CuevazaArt/ethical-android-mvp/blob/main-whit-landing/BIBLIOGRAPHY.md).
 
 | Kernel component | Main roots |
 |---|---|
@@ -33,7 +33,7 @@ The project is grounded in a broad academic literature, from foundational classi
 
 ## Pre-alpha Spanish corpus (2026) — integrated archive
 
-Before the **`docs/proposals/`** layout, the project circulated a **pre-alpha documentation bundle** (working folder `prealphaDocs/`): Spanish registration draft **v1.0 (2026)**, diagram PNGs, a **Spanish bibliography draft**, and generated JPG/MP4. That narrative is **not** the live specification of the current Python kernel; the canonical theory ↔ code map is **[`docs/proposals/README.md`](docs/proposals/README.md)**. The former consolidated reference table was removed with **`BIBLIOGRAPHY.md`** (April 2026); use git history or **`backup/main-2026-04-10`** to retrieve it.
+Before the **`docs/proposals/`** layout, the project circulated a **pre-alpha documentation bundle** (working folder `prealphaDocs/`): Spanish registration draft **v1.0 (2026)**, diagram PNGs, a **Spanish bibliography draft**, and generated JPG/MP4. That narrative is **not** the live specification of the current Python kernel; the canonical theory ↔ code map is **[`docs/proposals/README.md`](docs/proposals/README.md)**. The consolidated English bibliography is maintained on **`main-whit-landing`** (see link above).
 
 The following **digest** condenses the former **`androide_etico_alpha_v1.0_2026.md`** (full prose removed from the tree in favor of this section):
 
@@ -44,7 +44,7 @@ The following **digest** condenses the former **`androide_etico_alpha_v1.0_2026.
 - **Formal core (sketch):** sigmoid **will**, constrained optimization, Bayesian inference, predicate logic over ethical categories (e.g. Good / Evil / Gray / Absolute Evil), neural activation functions — aimed at **auditable** decisions.
 - **Long-horizon narrative memory, DAO-oracle, humanization, HAX trust UX, simulation catalog, ML strategy, licensing / business framing, phased rollout, and investor-oriented value proposition** were developed in the same document at varying depth; they **foreshadow** modules that later became `uchi_soto`, `weighted_ethics_scorer` (historical path `bayesian_engine`), `mock_dao`, `narrative`, `llm_layer`, etc., but **do not** match file-level APIs today.
 
-**Spanish bibliography draft:** an archival table by discipline (classic vs modern sources) was merged conceptually into the project’s citation practice; the detailed numbered table that replaced it was versioned as **`BIBLIOGRAPHY.md`** until April 2026 (removed from the default tree).
+**Spanish bibliography draft:** an archival table by discipline (classic vs modern sources) was merged conceptually into the project’s citation practice; the detailed numbered English table is **`BIBLIOGRAPHY.md`** on **`main-whit-landing`**.
 
 **PDF / Word companions (not in git):** `.gitignore` excludes `*.pdf` / `*.docx`. Local bundles from the same era sometimes included exports such as `androide_etico_alpha.docx`, thematic PDFs on DAO-oracle, narrative memory, and consciousness sketches; keep those only in **foundation archives** outside the repo if you still have them.
 
@@ -57,9 +57,8 @@ The following **digest** condenses the former **`androide_etico_alpha_v1.0_2026.
 - 40+ design documents analyzed and consolidated.
 - 7-layer architecture documented.
 - Complete mathematical formalization.
-- Bibliography work (104 references across 14 disciplines) was tracked in a dedicated file until April 2026 (removed from the default tree; see [`CHANGELOG.md`](CHANGELOG.md)).
-- **Main artifact:** `Androide_Etico_Analisis_Integral_v3.docx`
-  (available in `docs/`).
+- Bibliography work (104+ references across 14 disciplines) is tracked in [`BIBLIOGRAPHY.md` on `main-whit-landing`](https://github.com/CuevazaArt/ethical-android-mvp/blob/main-whit-landing/BIBLIOGRAPHY.md); this **`main`** branch stays documentation + kernel without that file in-tree.
+- **Legacy artifact:** an older integral analysis lived in `Androide_Etico_Analisis_Integral_v3.docx` (not versioned here; recover from archives if needed).
 
 ## v2.0 — March 2026 | Base kernel
 

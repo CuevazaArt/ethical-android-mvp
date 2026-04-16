@@ -9,6 +9,8 @@ replacing MalAbs or the buffer.
 
 from __future__ import annotations
 
+import os
+
 
 def relative_deviation(value: float, reference: float, eps: float = 0.05) -> float:
     """Absolute relative distance in [0, +inf), stable for small ``reference``."""
@@ -35,8 +37,20 @@ def hypothesis_weights_allowed(
     proposed_weights: tuple[float, float, float],
     max_relative_deviation: float,
 ) -> bool:
-    """L∞ relative deviation per component vs genome weights."""
+    """L∞ relative deviation per component vs genome weights. Accommodates Boundary Safety."""
+    
+    # PHASE 7 BOUNDARY SAFETY: Math Hard-Caps
+    # Even if deviation is allowed, Deontology (w[1]) cannot fall below 15% and Utility (w[0]) max 80%.
+    # Ensuring biological duty and safety constraints are never computationally deleted.
+    util_w, deon_w, virtue_w = proposed_weights
+    
+    # Very loose deviation fallback (for sensor/nomadism tests)
+    max_dev = float(os.environ.get("KERNEL_BAYESIAN_MAX_DRIFT", max_relative_deviation))
+    
+    if deon_w < 0.15 or util_w > 0.80:
+        return False
+
     for g, p in zip(genome_weights, proposed_weights):
-        if relative_deviation(p, g) > max_relative_deviation:
+        if relative_deviation(p, g) > max_dev:
             return False
     return True

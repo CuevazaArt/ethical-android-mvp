@@ -5,7 +5,7 @@ from __future__ import annotations
 from dataclasses import dataclass, field
 from typing import Any
 
-SCHEMA_VERSION = 3
+SCHEMA_VERSION = 4
 
 
 @dataclass
@@ -89,3 +89,6 @@ class KernelSnapshotV1:
 
     # Uchi–Soto per-agent profiles (tone + trust continuity; advisory)
     uchi_soto_profiles: list[dict[str, Any]] = field(default_factory=list)
+
+    # Block 4.3 — Migratory Body
+    migratory_body: dict[str, Any] = field(default_factory=dict)

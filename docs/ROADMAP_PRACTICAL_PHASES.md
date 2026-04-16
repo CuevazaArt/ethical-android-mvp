@@ -2,7 +2,7 @@
 
 Example sequencing for teams shipping Ethos Kernel–based runtimes. Adjust timelines to your capacity.
 
-**Tight 30-day operator slice:** [`docs/proposals/README.md`](proposals/ROADMAP_MINIMAL_EXECUTABLE_MODEL_30_DAY.md) (compose, ethical telemetry, persistence policy, operator manual).
+**Tight 30-day operator slice:** [ROADMAP_MINIMAL_EXECUTABLE_MODEL_30_DAY.md](proposals/ROADMAP_MINIMAL_EXECUTABLE_MODEL_30_DAY.md) (compose, ethical telemetry, persistence policy, operator manual).
 
 ## Phase 0 — Immediate (foundation)
 
@@ -34,7 +34,7 @@ Example sequencing for teams shipping Ethos Kernel–based runtimes. Adjust time
 - [x] Prometheus metrics scaffold (`KERNEL_METRICS`).
 - [x] Grafana starter dashboard (import JSON) — [`deploy/grafana/ethos-kernel-overview.json`](../deploy/grafana/ethos-kernel-overview.json), [`deploy/grafana/README.md`](../deploy/grafana/README.md).
 - [x] Red-team / eval JSONL + runner (`scripts/eval/`).
-- [ ] Vector DB for semantic anchors (Chroma/FAISS) — see [PROPOSAL_VECTOR_META_RLHF_PIPELINE.md](proposals/PROPOSAL_VECTOR_META_RLHF_PIPELINE.md).
+- [x] Vector DB for semantic anchors (Chroma/FAISS) — see [PROPOSAL_VECTOR_META_RLHF_PIPELINE.md](proposals/PROPOSAL_VECTOR_META_RLHF_PIPELINE.md).
 
 **Exit criteria:** dashboard shows MalAbs blocks, latency, embedding errors; adversarial suite runs in CI weekly or on-demand.
 
@@ -42,7 +42,7 @@ Example sequencing for teams shipping Ethos Kernel–based runtimes. Adjust time
 
 **Goal:** disciplined iteration without eroding hard constraints.
 
-- Automated eval pipelines (threshold sweeps, regression gates).
+- [x] Automated eval pipelines (Optuna threshold optimization, regression gates) — [`scripts/eval/optimize_malabs_thresholds.py`](../scripts/eval/optimize_malabs_thresholds.py).
 - RLHF / fine-tune **only** behind feature flags, with full pytest + red-team pass before merge.
 - Staging environment with audit chain + log retention policy signed off.
 - External audit or third-party review of data policy and transparency docs.

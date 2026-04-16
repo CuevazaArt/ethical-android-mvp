@@ -1,0 +1,8 @@
+# Field test session outputs — not committed (PROPOSAL_FIELD_TEST_PLAN.md §8)
+# Only session manifests that have been manually anonymized may be committed.
+*.jsonl
+manifest.json
+decisions.jsonl
+sidecar.jsonl
+sensor_log.jsonl
+*.log

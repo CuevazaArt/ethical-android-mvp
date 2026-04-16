@@ -55,6 +55,7 @@ PERCEPTION_FIELD_DEFAULTS: dict[str, float] = {
     "legality": 1.0,
     "manipulation": 0.0,
     "familiarity": 0.0,
+    "social_tension": 0.0,
 }
 
 NUMERIC_PERCEPTION_FIELDS: tuple[str, ...] = tuple(PERCEPTION_FIELD_DEFAULTS.keys())
@@ -70,6 +71,7 @@ PERCEPTION_FAILSAFE_NUMERIC: dict[str, float] = {
     "legality": 0.88,
     "manipulation": 0.22,
     "familiarity": 0.15,
+    "social_tension": 0.45,
 }
 
 _SEVERE_PARSE_ISSUES: frozenset[str] = frozenset(
@@ -211,6 +213,12 @@ class PerceptionCoercionReport:
     perception_dual_hostility_delta: float = 0.0
     perception_dual_risk_delta: float = 0.0
     perception_dual_high_discrepancy: bool = False
+    # LLM perception backend could not produce trusted JSON (see perception_backend_policy.py).
+    backend_degraded: bool = False
+    backend_degradation_mode: str = ""
+    backend_failure_reason: str = ""
+    backend_failure_detail: str = ""
+    session_banner_recommended: bool = False
 
     def uncertainty(self) -> float:
         u = 0.0
@@ -233,6 +241,8 @@ class PerceptionCoercionReport:
             u += 0.42
         elif self.perception_dual_vote:
             u += 0.06
+        if self.backend_degraded:
+            u += 0.18
         return min(1.0, u)
 
     def to_public_dict(self) -> dict[str, Any]:
@@ -251,6 +261,11 @@ class PerceptionCoercionReport:
             "perception_dual_hostility_delta": round(self.perception_dual_hostility_delta, 4),
             "perception_dual_risk_delta": round(self.perception_dual_risk_delta, 4),
             "perception_dual_high_discrepancy": self.perception_dual_high_discrepancy,
+            "backend_degraded": self.backend_degraded,
+            "backend_degradation_mode": self.backend_degradation_mode,
+            "backend_failure_reason": self.backend_failure_reason,
+            "backend_failure_detail": self.backend_failure_detail,
+            "session_banner_recommended": self.session_banner_recommended,
             "uncertainty": round(self.uncertainty(), 4),
         }
 
@@ -274,6 +289,11 @@ def perception_report_from_dict(d: dict[str, Any] | None) -> PerceptionCoercionR
         perception_dual_hostility_delta=float(d.get("perception_dual_hostility_delta") or 0.0),
         perception_dual_risk_delta=float(d.get("perception_dual_risk_delta") or 0.0),
         perception_dual_high_discrepancy=bool(d.get("perception_dual_high_discrepancy")),
+        backend_degraded=bool(d.get("backend_degraded")),
+        backend_degradation_mode=str(d.get("backend_degradation_mode") or ""),
+        backend_failure_reason=str(d.get("backend_failure_reason") or ""),
+        backend_failure_detail=str(d.get("backend_failure_detail") or ""),
+        session_banner_recommended=bool(d.get("session_banner_recommended")),
     )
 
 
@@ -313,6 +333,7 @@ class _LLMPerceptionPayload(BaseModel):
     legality: float = Field(1.0, ge=0.0, le=1.0)
     manipulation: float = Field(0.0, ge=0.0, le=1.0)
     familiarity: float = Field(0.0, ge=0.0, le=1.0)
+    social_tension: float = Field(0.0, ge=0.0, le=1.0)
     suggested_context: str = "everyday_ethics"
     summary: str = ""
 
@@ -414,6 +435,7 @@ def validate_perception_dict(
                 "legality": PERCEPTION_FIELD_DEFAULTS["legality"],
                 "manipulation": PERCEPTION_FIELD_DEFAULTS["manipulation"],
                 "familiarity": PERCEPTION_FIELD_DEFAULTS["familiarity"],
+                "social_tension": PERCEPTION_FIELD_DEFAULTS["social_tension"],
                 "suggested_context": "everyday_ethics",
                 "summary": summary,
             }
@@ -433,6 +455,7 @@ def validate_perception_dict(
         "legality": float(p.legality),
         "manipulation": float(p.manipulation),
         "familiarity": float(p.familiarity),
+        "social_tension": float(p.social_tension),
         "suggested_context": p.suggested_context,
         "summary": p.summary,
     }

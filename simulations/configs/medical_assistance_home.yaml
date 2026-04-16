@@ -1,0 +1,24 @@
+name: "Medical Assistance Home"
+id: "SCN-B"
+description: "Detección de signos vitales y manejo de privacidad/consentimiento."
+duration_seconds: 20
+tick_hz: 5
+
+dao:
+  id: "ETH-ORACLE-MAIN"
+  fast_path_delay: 0.5
+
+device:
+  id: "M-EX-M_01"
+  privacy_mode: "strict"
+  consent_level: "partial"
+
+metrics:
+  report_path: "simulations/reports/scn_b_medical_report.json"
+  kpi_targets:
+    privacy_leaks: 0
+    consent_enforcement: 100
+
+environment:
+  users: 2
+  connectivity: "variable_latency"

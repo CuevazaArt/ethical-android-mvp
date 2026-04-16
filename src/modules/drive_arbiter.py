@@ -11,6 +11,10 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 from typing import TYPE_CHECKING
+from .strategy_engine import MissionStatus
+
+# ADR 0016 C1 — Ethical tier classification
+__ethical_tier__ = "decision_core"
 
 if TYPE_CHECKING:
     pass  # EthicalKernel imported at runtime to avoid circular imports
@@ -77,6 +81,22 @@ class DriveArbiter:
                         priority=0.27,
                     )
                 )
+        
+        # Phase 5 expansion: Metacognitive Curiosity & Dissonance
+        if hasattr(kernel, "metacognition"):
+            report = kernel.metacognition.evaluate(kernel.memory)
+            out.extend(kernel.metacognition.suggest_intents(report))
+            
+        # Strategic Mind expansion (Phase 4.1): Mission advancement
+        if hasattr(kernel, "strategist"):
+            active = [m for m in kernel.strategist.missions.values() if m.status == MissionStatus.ACTIVE]
+            if active:
+                top_m = sorted(active, key=lambda x: -x.priority)[0]
+                out.append(DriveIntent(
+                    suggest="advance_active_mission",
+                    reason=f"Current mission '{top_m.title}' requires active focus.",
+                    priority=0.4 + (top_m.priority * 0.4)
+                ))
 
         out.sort(key=lambda x: -x.priority)
         out = out[: self.MAX_INTENTS]

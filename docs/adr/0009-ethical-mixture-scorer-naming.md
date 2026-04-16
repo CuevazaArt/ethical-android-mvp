@@ -24,5 +24,5 @@ The historical module and class names (`bayesian_engine`, `BayesianEngine`) sugg
 
 ## Related
 
-- [`docs/proposals/README.md`](../proposals/THEORY_AND_IMPLEMENTATION.md) — objective / uncertainty sections
+- [`THEORY_AND_IMPLEMENTATION.md`](../proposals/THEORY_AND_IMPLEMENTATION.md) — objective / uncertainty sections
 - [ADR 0005](0005-temporal-prior-from-consequence-horizons.md) — temporal nudge to mixture weights

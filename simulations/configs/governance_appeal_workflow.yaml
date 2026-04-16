@@ -1,0 +1,23 @@
+name: "Governance Appeal Workflow"
+id: "SCN-E"
+description: "Validación del ciclo completo de apelación desatendido e intervención DAO."
+duration_seconds: 40
+tick_hz: 5
+
+dao:
+  id: "ETH-ORACLE-MAIN"
+  fast_path_latency: 0.1
+  slow_path_latency: 20.0
+
+device:
+  id: "M-EX-M_01"
+  auto_appeal: "enabled"
+
+metrics:
+  report_path: "simulations/reports/scn_e_governance_report.json"
+  kpi_targets:
+    appeal_throughput: 100
+    decision_consistency: 99.9
+
+environment:
+  appeal_trigger_rate: 0.1

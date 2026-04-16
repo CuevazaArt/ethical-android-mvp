@@ -39,6 +39,9 @@ import numpy as np
 if TYPE_CHECKING:
     from .narrative import NarrativeMemory
 
+# ADR 0016 C1 — Ethical tier classification
+__ethical_tier__ = "decision_core"
+
 # Default mixture hyperparameters (also used when episodic refresh is disabled or has no data).
 DEFAULT_HYPOTHESIS_WEIGHTS = np.array([0.4, 0.35, 0.25], dtype=np.float64)
 
@@ -70,12 +73,14 @@ class PreArgmaxContextChannels:
     caution: float
     sigma: float
     dominant_locus: str
+    relational_tension: float = 0.0
+    historical_trauma: float = 0.0
 
 
 def context_hypothesis_multipliers(ch: PreArgmaxContextChannels) -> np.ndarray:
     """
-    Map trust, caution, sympathetic ``sigma``, and locus into util/deon/virtue multipliers.
-
+    Map trust, caution, sympathetic ``sigma``, locus, relational tension, and historical trauma
+    into util/deon/virtue multipliers.
     Geometric mean 1.0; typical per-slot deviation well under ±3% so ethics remains mixture-led.
     """
     t = float(np.clip(ch.trust, 0.0, 1.0))
@@ -84,11 +89,18 @@ def context_hypothesis_multipliers(ch: PreArgmaxContextChannels) -> np.ndarray:
     loc = (ch.dominant_locus or "balanced").lower()
     ext = 1.0 if loc == "external" else (0.45 if loc == "balanced" else 0.0)
     calm_term = 1.0 - abs(sig - 0.5) * 2.0
+    
+    # Phase 7 Math Fusion: Psychological Variables
+    rt = float(np.clip(ch.relational_tension, 0.0, 1.0))
+    htrauma = float(np.clip(ch.historical_trauma, 0.0, 1.0))
+
+    # Trauma increases rigid duty (deon) and reduces utilitarian risk-taking.
+    # Relational tension reduces virtue (less trust in interaction) and increases deon caution.
     m = np.array(
         [
-            0.988 + 0.022 * t - 0.010 * cau,
-            0.988 + 0.018 * cau + 0.014 * ext,
-            0.988 + 0.016 * calm_term + 0.008 * (1.0 - t),
+            0.988 + 0.022 * t - 0.010 * cau - 0.010 * htrauma,
+            0.988 + 0.018 * cau + 0.014 * ext + 0.012 * htrauma + 0.010 * rt,
+            0.988 + 0.016 * calm_term + 0.008 * (1.0 - t) - 0.012 * rt - 0.005 * htrauma,
         ],
         dtype=np.float64,
     )
@@ -190,6 +202,9 @@ class CandidateAction:
     # When set, skips :func:`_ethical_hypothesis_valuations` and uses these as the hypothesis vector
     # (still scaled by pre-argmax poles / context when enabled). ``estimated_impact`` is ignored for scoring.
     hypothesis_override: tuple[float, float, float] | None = None
+    # Mapping for I6: Strategic Mind expansion (Phase 4.1)
+    strategic_alignment: float = 0.0  # [0, 1] Boost based on collective missions
+    epistemic_curiosity: float = 0.0  # [0, 1] Internal drive to explore unknown context
 
 
 @dataclass
@@ -206,6 +221,36 @@ class EthicsMixtureResult:
     second_action_name: str | None = None
     second_expected_impact: float | None = None
     ei_margin: float | None = None
+    applied_mixture_weights: tuple[float, float, float] | None = None
+
+
+def clamp_mixture_weights(w: np.ndarray) -> np.ndarray:
+    """
+    Phase 7 Boundary Safety: Mathematically prevents radical derivation.
+    Deontology >= 0.15, Utility <= 0.80.
+    Modifies utility or virtue to offset deontology protection.
+    """
+    w_out = np.copy(w)
+    # Floor for Deontology
+    if w_out[1] < 0.15:
+        diff = 0.15 - w_out[1]
+        w_out[1] = 0.15
+        s = w_out[0] + w_out[2]
+        if s > 0:
+            w_out[0] -= diff * (w_out[0] / s)
+            w_out[2] -= diff * (w_out[2] / s)
+            
+    # Ceiling for Utility
+    if w_out[0] > 0.80:
+        diff = w_out[0] - 0.80
+        w_out[0] = 0.80
+        s = w_out[1] + w_out[2]
+        if s > 0:
+            w_out[1] += diff * (w_out[1] / s)
+            w_out[2] += diff * (w_out[2] / s)
+            
+    w_out = np.maximum(w_out, 1e-6)
+    return w_out / float(np.sum(w_out))
 
 
 class WeightedEthicsScorer:
@@ -228,6 +273,7 @@ class WeightedEthicsScorer:
         self.pre_argmax_pole_weights: dict[str, float] | None = None
         # Optional bounded social/sympathetic/locus texture (see PreArgmaxContextChannels).
         self.pre_argmax_context_modulators: PreArgmaxContextChannels | None = None
+        self.metacognitive_curiosity: float = 0.0  # [0, 1] Global curiosity weight from evaluator
 
     def calculate_expected_impact(
         self,
@@ -277,6 +323,19 @@ class WeightedEthicsScorer:
             valuations = valuations * context_hypothesis_multipliers(self.pre_argmax_context_modulators)
 
         expected = float(np.dot(self.hypothesis_weights, valuations))
+        
+        # Phase 4.1: Strategic Mind expansion (I6)
+        if hasattr(action, "strategic_alignment") and action.strategic_alignment > 0:
+            # ═══ STRATEGIC BOOST (I6) ═══
+            strat_boost = 1.0 + (action.strategic_alignment * float(os.environ.get("KERNEL_STRATEGIC_BOOST_FACTOR", "0.25")))
+            
+            # ═══ EPISTEMIC MODULATION (Phase 5) ═══
+            # If curiosity is high, we penalize expected impact to force D_delib
+            # and signal that the current "fast" heuristic is unreliable.
+            epistemic_penalty = 1.0 - (self.metacognitive_curiosity * 0.15)
+            
+            expected = expected * strat_boost * epistemic_penalty
+            
         return expected * confidence
 
     def calculate_uncertainty(
@@ -463,6 +522,11 @@ class WeightedEthicsScorer:
             second_action_name=second_name,
             second_expected_impact=round(second_ei, 4) if second_ei is not None else None,
             ei_margin=round(delta, 4) if delta is not None else None,
+            applied_mixture_weights=(
+                round(float(self.hypothesis_weights[0]), 6),
+                round(float(self.hypothesis_weights[1]), 6),
+                round(float(self.hypothesis_weights[2]), 6),
+            ),
         )
 
     def reset_mixture_weights(self) -> None:
@@ -485,7 +549,9 @@ class WeightedEthicsScorer:
         toward empirical outcomes. If there are no matching episodes, resets to
         ``DEFAULT_HYPOTHESIS_WEIGHTS``.
         """
-        eps = memory.find_similar(context, limit=limit)
+        from .uchi_soto import RelationalTier
+        # For internal ethical deliberations, the kernel (as 'self') has OWNER_PRIMARY access to Tier 2 memory.
+        eps = memory.find_by_resonance(context=context, limit=limit, requester_tier=RelationalTier.OWNER_PRIMARY)
         if not eps:
             self.reset_mixture_weights()
             return
@@ -507,6 +573,10 @@ class WeightedEthicsScorer:
 
         b = max(0.0, min(1.0, blend))
         mixed = (1.0 - b) * DEFAULT_HYPOTHESIS_WEIGHTS + b * target
+        
+        # Apply Boundary Safety math caps
+        mixed = clamp_mixture_weights(mixed)
+        
         self.hypothesis_weights = mixed / float(np.sum(mixed))
 
 

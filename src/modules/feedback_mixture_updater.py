@@ -283,9 +283,39 @@ class FeedbackUpdater:
                 log=log,
             )
 
-        beta = float(os.environ.get("KERNEL_FEEDBACK_SOFTMAX_BETA", "10.0"))
+        _beta_env = os.environ.get("KERNEL_FEEDBACK_SOFTMAX_BETA", "10.0").strip().lower()
         rng_np = np.random.default_rng(self._seed)
         alpha0 = np.asarray(self.alpha, dtype=np.float64)
+
+        if _beta_env == "auto":
+            from .ethical_mixture_likelihood import calibrate_beta
+
+            _raw_grid = os.environ.get("KERNEL_FEEDBACK_BETA_GRID", "").strip()
+            _grid: list[float] | None = (
+                [float(x) for x in _raw_grid.replace(",", " ").split() if x]
+                if _raw_grid
+                else None  # use calibrate_beta default: [1,3,5,10,20,50]
+            )
+            _bias = float(os.environ.get("KERNEL_FEEDBACK_BETA_BIAS", "1.0"))
+            beta, _cal_scores = calibrate_beta(
+                observations,
+                alpha0,
+                beta_candidates=_grid,
+                n_samples=min(self.n_samples, 5_000),  # lighter pass for calibration
+                rng=np.random.default_rng(self._seed + 1),
+                sensitivity_bias=_bias,
+            )
+            self._feedback_log.append(
+                {
+                    "event": "beta_calibration",
+                    "selected_beta": beta,
+                    "sensitivity_bias": _bias,
+                    "grid_scores": _cal_scores,
+                }
+            )
+        else:
+            beta = float(_beta_env)
+
         final_alpha, seq_log = sequential_posterior_update(
             observations,
             alpha0,

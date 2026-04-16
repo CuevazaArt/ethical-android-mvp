@@ -55,13 +55,54 @@ SUPPORTED_COMBOS: Final[dict[str, frozenset[str]]] = {
             "perception_adv_consensus_lab",
             "phase2_event_bus_lab",
             "untrusted_chat_input",
+            "llm_integration_lab",
         }
     ),
 }
 
 # Flags scheduled for removal or rename — keep in sync with CHANGELOG / KERNEL_ENV_POLICY.
+# See src/validators/deprecation_warnings.py for full descriptions and migration paths.
 DEPRECATION_ROADMAP: Final[dict[str, str]] = {
-    # Example: "KERNEL_LEGACY_FLAG": "Remove in v0.2.0; use ETHOS_RUNTIME_PROFILE + documented bundle."
+    # Bayesian naming / replaced by feedback mixture tier (v0.2.0)
+    "KERNEL_BAYESIAN_FEEDBACK": "Use KERNEL_FEEDBACK_* suite instead (ADR 0012/0013)",
+    "KERNEL_BAYESIAN_LEGACY_AFFINE_VALUATIONS": "Legacy affine valuations replaced by feedback mixture posterior",
+    "KERNEL_BAYESIAN_MAX_DRIFT": "Replaced by KERNEL_FEEDBACK_MAX_DRIFT",
+    "KERNEL_BAYESIAN_CONTEXT_LEVEL": "Use KERNEL_BAYESIAN_CONTEXT_LEVEL3 (ADR 0013)",
+    "KERNEL_BAYESIAN_EMPIRICAL_WEIGHTS": "Use KERNEL_FEEDBACK_UPDATE_STRENGTH",
+    # Narrative-tier only (don't affect final_action) — v0.3.0
+    "KERNEL_SOMATIC_MARKERS": "Narrative-tier only; consider moving to narrative-only profile",
+    "KERNEL_GRAY_ZONE_DIPLOMACY": "Narrative-tier tone hint only",
+    "KERNEL_POLES_PRE_ARGMAX": "Experimental narrative modulation; conflicts with mixture scorer",
+    "KERNEL_CONTEXT_RICHNESS_PRE_ARGMAX": "Narrative-only; merge into KERNEL_NARRATIVE_IDENTITY_POLICY",
+    # Mock/lab-only (not production) — v0.2.0–0.3.0
+    "KERNEL_DEMOCRATIC_BUFFER_MOCK": "Mock governance (lab only); use KERNEL_MORAL_HUB_* for real DAO",
+    "KERNEL_ETHOS_PAYROLL_MOCK": "Mock ledger (lab only); not production governance",
+    "KERNEL_REPARATION_VAULT_MOCK": "Mock vault (lab only); not production justice",
+    "KERNEL_JUDICIAL_MOCK_COURT": "Mock court (lab only); use KERNEL_MORAL_HUB_DAO_VOTE",
+    # Redundant/overlapping — v0.2.0–0.3.0
+    "KERNEL_PERCEPTION_PARALLEL": "Overlaps with KERNEL_PERCEPTION_PARALLEL_WORKERS",
+    "KERNEL_TEMPORAL_DAO_SYNC": "Overlaps with KERNEL_TEMPORAL_LAN_SYNC",
+    "KERNEL_SWARM_STUB": "Peer-stub digest (lab only); not for production multi-agent",
+    "KERNEL_NOMAD_SIMULATION": "Simulation mode; use real KERNEL_NOMADIC_ED25519_PRIVATE_KEY",
+    # Advanced Bayesian / low coverage — v0.2.0
+    "KERNEL_HIERARCHICAL_FEEDBACK": "Experimental hierarchical updater; use simpler KERNEL_FEEDBACK_* instead",
+    "KERNEL_HIERARCHICAL_MIN_LOCAL": "Accompanies deprecated KERNEL_HIERARCHICAL_FEEDBACK",
+    "KERNEL_HIERARCHICAL_TAU_MAX": "Hierarchical timing parameter; remove with *_FEEDBACK",
+    # Unused/undocumented — v0.2.0
+    "KERNEL_ETHICAL_GENOME_ENFORCE": "Genetic algorithm mode (unused); not implemented",
+    "KERNEL_ETHICAL_GENOME_MAX_DRIFT": "Unused; companion to KERNEL_ETHICAL_GENOME_ENFORCE",
+    "KERNEL_STRATEGIC_BOOST_FACTOR": "Undocumented strategic factor; remove or document",
+    "KERNEL_PSI_SLEEP_UPDATE_MIXTURE": "Experimental Psi Sleep mixture update; use KERNEL_FEEDBACK_*",
+    # Old perception flags — v0.2.0
+    "KERNEL_PERCEPTION_CIRCUIT": "Replaced by KERNEL_PERCEPTION_BACKEND_POLICY",
+    "KERNEL_PERCEPTION_PARSE_FAIL_LOCAL": "Merged into KERNEL_PERCEPTION_BACKEND_POLICY",
+    "KERNEL_CROSS_CHECK_HIGH_MAX_CALM": "Lab-only cross-check threshold; consolidate or remove",
+    "KERNEL_CROSS_CHECK_HIGH_MIN_RISK": "Lab-only cross-check threshold; consolidate or remove",
+    "KERNEL_CROSS_CHECK_MED_MAX_CALM": "Lab-only cross-check threshold; consolidate or remove",
+    "KERNEL_CROSS_CHECK_MED_MIN_RISK": "Lab-only cross-check threshold; consolidate or remove",
+    # Old LLM naming — v0.2.0
+    "KERNEL_LLM_MONOLOGUE": "Replaced by KERNEL_LLM_TP_MONOLOGUE_POLICY",
+    "KERNEL_LLM_MONOLOGUE_BACKEND_POLICY": "Merged into KERNEL_VERBAL_LLM_BACKEND_POLICY",
 }
 
 
