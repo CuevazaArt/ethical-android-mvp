@@ -8,6 +8,7 @@ This note **institutionalizes** a Git branching pattern for **distributed teams*
 
 - Give **analogous teams** a **single, copyable convention**: where to integrate day to day, how locals relate to production, and how promotion to `main` is supposed to happen.
 - Keep **production** (`main`) **stable and reviewable**, while allowing **parallel work** on a team integration line.
+- **Hub vs funnel (one page):** [`MERGE_AND_HUB_DECISION_TREE.md`](MERGE_AND_HUB_DECISION_TREE.md) — which branch to use for daily work, peer sync, and L0-gated `main`.
 
 ## Branch model (generic)
 
