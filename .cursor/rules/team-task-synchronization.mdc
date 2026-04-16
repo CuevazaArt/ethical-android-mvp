@@ -1,0 +1,33 @@
+# Task Synchronization and Block Adoption (Rule: SYNC-TASKS-01)
+
+## Context
+In a multi-agent or multi-human collaboration, prevents fragmentation and ensures contiguous development of critical features.
+
+## Rules
+
+### 1. Team Onboarding (Prerequisite)
+If you are a new team or agent (e.g., `pycharm`, `visualstudio`), you MUST NOT adopt a task until you have:
+1. Introduced yourself in the project logs/chat.
+2. Created your `master-<team>` branch from `main`.
+3. Reviewed the current roadmap or plan documents.
+
+### 2. Shift Registration and Availability
+Whenever an agent/team begins a session or returns from being away, they MUST register their status as `AVAILABLE` or `WORKING` in the session log or `CHANGELOG.md` notes. 
+If a team goes offline, it must be reported (either by the agent/team itself, or explicitly notified by **Juan** if a team is suspended "until further notice").
+
+### 3. Mandatory Plan Review
+Every participant MUST review the current active plan (e.g., `docs/proposals/PLAN_*.md`) and the project `CHANGELOG.md` upon starting a session or switching tasks.
+
+### 4. Contiguous Block Adoption
+- Select a task marked as **PENDING** from the project's task blocks.
+- Register ownership by updating the plan with "Adoptado por: [Nombre]" and the current date.
+- **Commitment:** You must NOT abandon an adopted block until it is marked as **COMPLETADO** or a blocking issue is formally documented.
+
+### 5. Progressive Handover
+Upon completion of a block:
+1.  Document relevant implementation details in the plan's "Registro de Progreso".
+2.  Update `CHANGELOG.md` with a summary of the change.
+3.  Immediately adopt the next logical pending block if availability allows.
+
+### 6. Communication Channel
+All technical comments, blockers, or coordination notes must be recorded in the specific **Plan document** to maintain a single source of truth for that feature's lifecycle.

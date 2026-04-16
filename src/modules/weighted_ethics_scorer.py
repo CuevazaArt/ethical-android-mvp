@@ -70,12 +70,14 @@ class PreArgmaxContextChannels:
     caution: float
     sigma: float
     dominant_locus: str
+    relational_tension: float = 0.0
+    historical_trauma: float = 0.0
 
 
 def context_hypothesis_multipliers(ch: PreArgmaxContextChannels) -> np.ndarray:
     """
-    Map trust, caution, sympathetic ``sigma``, and locus into util/deon/virtue multipliers.
-
+    Map trust, caution, sympathetic ``sigma``, locus, relational tension, and historical trauma
+    into util/deon/virtue multipliers.
     Geometric mean 1.0; typical per-slot deviation well under ±3% so ethics remains mixture-led.
     """
     t = float(np.clip(ch.trust, 0.0, 1.0))
@@ -84,11 +86,18 @@ def context_hypothesis_multipliers(ch: PreArgmaxContextChannels) -> np.ndarray:
     loc = (ch.dominant_locus or "balanced").lower()
     ext = 1.0 if loc == "external" else (0.45 if loc == "balanced" else 0.0)
     calm_term = 1.0 - abs(sig - 0.5) * 2.0
+    
+    # Phase 7 Math Fusion: Psychological Variables
+    rt = float(np.clip(ch.relational_tension, 0.0, 1.0))
+    htrauma = float(np.clip(ch.historical_trauma, 0.0, 1.0))
+
+    # Trauma increases rigid duty (deon) and reduces utilitarian risk-taking.
+    # Relational tension reduces virtue (less trust in interaction) and increases deon caution.
     m = np.array(
         [
-            0.988 + 0.022 * t - 0.010 * cau,
-            0.988 + 0.018 * cau + 0.014 * ext,
-            0.988 + 0.016 * calm_term + 0.008 * (1.0 - t),
+            0.988 + 0.022 * t - 0.010 * cau - 0.010 * htrauma,
+            0.988 + 0.018 * cau + 0.014 * ext + 0.012 * htrauma + 0.010 * rt,
+            0.988 + 0.016 * calm_term + 0.008 * (1.0 - t) - 0.012 * rt - 0.005 * htrauma,
         ],
         dtype=np.float64,
     )
@@ -210,6 +219,35 @@ class EthicsMixtureResult:
     second_expected_impact: float | None = None
     ei_margin: float | None = None
     applied_mixture_weights: tuple[float, float, float] | None = None
+
+
+def clamp_mixture_weights(w: np.ndarray) -> np.ndarray:
+    """
+    Phase 7 Boundary Safety: Mathematically prevents radical derivation.
+    Deontology >= 0.15, Utility <= 0.80.
+    Modifies utility or virtue to offset deontology protection.
+    """
+    w_out = np.copy(w)
+    # Floor for Deontology
+    if w_out[1] < 0.15:
+        diff = 0.15 - w_out[1]
+        w_out[1] = 0.15
+        s = w_out[0] + w_out[2]
+        if s > 0:
+            w_out[0] -= diff * (w_out[0] / s)
+            w_out[2] -= diff * (w_out[2] / s)
+            
+    # Ceiling for Utility
+    if w_out[0] > 0.80:
+        diff = w_out[0] - 0.80
+        w_out[0] = 0.80
+        s = w_out[1] + w_out[2]
+        if s > 0:
+            w_out[1] += diff * (w_out[1] / s)
+            w_out[2] += diff * (w_out[2] / s)
+            
+    w_out = np.maximum(w_out, 1e-6)
+    return w_out / float(np.sum(w_out))
 
 
 class WeightedEthicsScorer:
@@ -532,6 +570,10 @@ class WeightedEthicsScorer:
 
         b = max(0.0, min(1.0, blend))
         mixed = (1.0 - b) * DEFAULT_HYPOTHESIS_WEIGHTS + b * target
+        
+        # Apply Boundary Safety math caps
+        mixed = clamp_mixture_weights(mixed)
+        
         self.hypothesis_weights = mixed / float(np.sum(mixed))
 
 

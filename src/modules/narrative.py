@@ -195,7 +195,7 @@ class NarrativeMemory:
             is_sensitive=is_sensitive,
             arc_id=self.active_arc.id if self.active_arc else None,
             semantic_embedding=embedding,
-            weights_snapshot=weights_snapshot
+            weights_snapshot=weights_snapshot,
         )
         self.episodes.append(ep)
         self.identity.update_from_episode(ep)
@@ -249,8 +249,14 @@ class NarrativeMemory:
                 q_vec = http_fetch_ollama_embedding(ollama_url, ollama_model, query_text)
                 if q_vec is not None:
                     query_embed = q_vec
+                else:
+                    fb = maybe_hash_fallback_embedding(query_text)
+                    if fb is not None:
+                        query_embed = fb.tolist()
             except Exception:
-                pass
+                fb = maybe_hash_fallback_embedding(query_text)
+                if fb is not None:
+                    query_embed = fb.tolist()
 
         for ep in all_episodes:
             resonance = 0.0
@@ -288,7 +294,7 @@ class NarrativeMemory:
             
         # Sort by resonance descending
         candidates.sort(key=lambda x: x[1], reverse=True)
-        return [c[0] for c in candidates[:limit]]
+        return [c[0] for c in candidates[:limit] if c[1] > 0.0]
 
     def save_identity_digest(self, digest: str) -> None:
         """Tier 3: Persist a new existential digest/lesson."""

@@ -13,6 +13,7 @@ import math
 import os
 import time
 from collections.abc import Callable
+from concurrent.futures import ThreadPoolExecutor
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
@@ -27,6 +28,8 @@ from .modules.audit_chain_log import (
 )
 from .modules.augenesis import AugenesisEngine
 from .modules.buffer import PreloadedBuffer
+from .modules.vision_adapter import VisionInference
+from .modules.audio_adapter import AudioInference
 from .modules.biographic_pruning import BiographicPruner
 from .modules.drive_arbiter import DriveArbiter
 from .modules.epistemic_dissonance import (
@@ -79,6 +82,9 @@ from .modules.llm_layer import (
 from .modules.locus import LocusEvaluation, LocusModule
 from .modules.metaplan_registry import MetaplanRegistry
 from .modules.mock_dao import MockDAO
+from .modules.dao_orchestrator import DAOOrchestrator
+from .modules.motivation_engine import MotivationEngine
+from .modules.safety_interlock import SafetyInterlock, EStopSource
 from .modules.multimodal_trust import (
     MultimodalAssessment,
     evaluate_multimodal_trust,
@@ -89,6 +95,10 @@ from .modules.pad_archetypes import AffectProjection, PADArchetypeEngine
 from .modules.perception_circuit import (
     emit_metacognitive_doubt_signals,
     update_perception_circuit,
+)
+from .modules.perception_confidence import (
+    PerceptionConfidenceEnvelope,
+    build_perception_confidence_envelope,
 )
 from .modules.perception_cross_check import apply_lexical_perception_cross_check
 from .modules.premise_validation import PremiseAdvisory, scan_premises
@@ -110,13 +120,15 @@ from .modules.somatic_markers import SomaticMarkerStore, apply_somatic_nudges
 from .modules.subjective_time import SubjectiveClock
 from .modules.swarm_negotiator import SwarmMessage, SwarmNegotiator
 from .modules.strategy_engine import ExecutiveStrategist, MissionOrigin, MissionStatus
+from .modules.temporal_planning import TemporalContext, build_temporal_context
 from .modules.sympathetic import InternalState, SympatheticModule
 from .modules.uchi_soto import SocialEvaluation, TrustCircle, UchiSotoModule
 from .modules.user_model import UserModelTracker
 from .modules.variability import VariabilityConfig, VariabilityEngine
 from .modules.vitality import VitalityAssessment, assess_vitality, vitality_communication_hint
 from .modules.weakness_pole import WeaknessPole
-from .modules.weighted_ethics_scorer import BayesianEngine, BayesianResult, CandidateAction
+from .modules.bayesian_engine import BayesianEngine, BayesianResult
+from .modules.weighted_ethics_scorer import CandidateAction
 from .modules.working_memory import WorkingMemory
 from .persistence.checkpoint_port import CheckpointPersistencePort
 
@@ -124,6 +136,33 @@ from .persistence.checkpoint_port import CheckpointPersistencePort
 def _kernel_env_truthy(name: str) -> bool:
     v = os.environ.get(name, "").strip().lower()
     return v in ("1", "true", "yes", "on")
+
+
+def _kernel_env_int(name: str, default: int) -> int:
+    raw = os.environ.get(name, "").strip()
+    if not raw:
+        return default
+    try:
+        return int(raw)
+    except ValueError:
+        return default
+
+
+def _perception_parallel_workers() -> int:
+    """
+    Worker count for optional perception-side parallel enrichment.
+
+    Enabled only when ``KERNEL_PERCEPTION_PARALLEL`` is truthy. If enabled and
+    ``KERNEL_PERCEPTION_PARALLEL_WORKERS`` is unset/invalid, use a conservative
+    hardware-aware default.
+    """
+    if not _kernel_env_truthy("KERNEL_PERCEPTION_PARALLEL"):
+        return 0
+    configured = _kernel_env_int("KERNEL_PERCEPTION_PARALLEL_WORKERS", 0)
+    if configured > 0:
+        return configured
+    cpu_n = os.cpu_count() or 2
+    return max(2, min(cpu_n, 8))
 
 
 def _perception_coercion_u_value(raw: Any) -> float | None:
@@ -177,6 +216,8 @@ class KernelDecision:
     mixture_posterior_alpha: tuple[float, float, float] | None = None
     feedback_consistency: str | None = None
     mixture_context_key: str | None = None  # ADR 0012 Level 3 — which context bucket α came from
+    l0_integrity_hash: str | None = None   # Issue 6 — fingerprint of PreloadedBuffer
+    l0_stable: bool = True                 # Issue 6 — True if fingerprint matches boot state
 
 
 @dataclass
@@ -197,6 +238,34 @@ class ChatTurnResult:
         None  # set each turn when lighthouse KB configured
     )
     metacognitive_doubt: bool = False
+    # Generative LLM degradation (communicate / narrate); see llm_verbal_backend_policy.
+    verbal_llm_degradation_events: list[dict[str, str]] | None = None
+    # Local-only support buffer snapshot (PreloadedBuffer + strategy hints).
+    support_buffer: dict[str, Any] | None = None
+    # Limbic-perception profile (arousal/planning advisory from perception+sensor overlays).
+    limbic_profile: dict[str, Any] | None = None
+    # Unified temporal context (processor/human/battery/ETA/sync readiness).
+    temporal_context: TemporalContext | None = None
+    # Unified confidence envelope for perception diagnostics.
+    perception_confidence: PerceptionConfidenceEnvelope | None = None
+
+
+@dataclass
+class PerceptionStageResult:
+    """Shared perception stage output for chat/natural entrypoints."""
+
+    tier: Any
+    premise_advisory: PremiseAdvisory
+    reality_verification: RealityVerificationAssessment
+    perception: LLMPerception
+    vitality: VitalityAssessment
+    multimodal_trust: MultimodalAssessment
+    epistemic_dissonance: EpistemicDissonanceAssessment
+    signals: dict[str, float]
+    support_buffer: dict[str, Any]
+    limbic_profile: dict[str, Any]
+    temporal_context: TemporalContext
+    perception_confidence: PerceptionConfidenceEnvelope
 
 
 def _emit_process_observability(d: KernelDecision, t0: float) -> None:
@@ -257,7 +326,10 @@ class EthicalKernel:
         self.bayesian = (
             co.bayesian
             if co and co.bayesian is not None
-            else BayesianEngine(variability=self.var_engine)
+            else BayesianEngine(
+                mode=os.environ.get("KERNEL_BAYESIAN_MODE", "disabled"),
+                variability=self.var_engine
+            )
         )
         self.poles = co.poles if co and co.poles is not None else EthicalPoles()
         self.sympathetic = (
@@ -273,7 +345,12 @@ class EthicalKernel:
             else FeedbackCalibrationLedger()
         )
         self._feedback_turn_anchor: dict[str, str] | None = None
-        self.dao = co.dao if co and co.dao is not None else MockDAO()
+        
+        # OGA / Hybrid DAO Infrastructure (Phase 1.1)
+        self.dao = co.dao if co and co.dao is not None else DAOOrchestrator()
+        self.safety_interlock = co.safety_interlock if co and co.safety_interlock is not None else SafetyInterlock()
+        self.motivation = co.motivation_engine if co and co.motivation_engine is not None else MotivationEngine()
+        
         eff_llm = llm if llm is not None else (co.llm if co else None)
         self.llm = eff_llm if eff_llm is not None else LLMModule(mode=resolve_llm_mode(llm_mode))
         self.weakness = co.weakness if co and co.weakness is not None else WeaknessPole()
@@ -383,6 +460,23 @@ class EthicalKernel:
             self._kernel_decision_event_payload(d, context=context),
         )
 
+    def seek_internal_purpose(self) -> list[CandidateAction]:
+        """
+        Consults the Motivation Engine to generate proactive internal actions.
+        Used when the android is idle or needs to inject self-driven goals.
+        """
+        proactive = self.motivation.get_proactive_actions()
+        actions = []
+        for p in proactive:
+            actions.append(CandidateAction(
+                name=p["name"],
+                description=p["description"],
+                estimated_impact=p["impact"],
+                confidence=0.8,
+                source="internal_motivation"
+            ))
+        return actions
+
     def _malabs_text_backend(self):
         """Optional LLM backend for MalAbs semantic tier (embeddings + arbiter; see semantic_chat_gate)."""
         return getattr(self.llm, "llm_backend", None) or getattr(self.llm, "_text_backend", None)
@@ -422,6 +516,27 @@ class EthicalKernel:
         ``D_delib`` (production-hardening spike; default env off).
         """
         t0 = time.perf_counter()
+
+        # ═══ SAFETY INTERLOCK OVERRIDE (Task 1.1.2) ═══
+        if not self.safety_interlock.is_safe_to_operate():
+            status = self.safety_interlock.status
+            d = KernelDecision(
+                scenario=scenario,
+                place=place,
+                absolute_evil=AbsoluteEvilResult(blocked=False),
+                sympathetic_state=InternalState(mode="stopped", sigma=0.5, energy=1.0, description="E-STOP ACTIVE"),
+                social_evaluation=None,
+                locus_evaluation=None,
+                bayesian_result=None,
+                moral=None,
+                final_action="BLOCKED: hardware_estop_active",
+                decision_mode="blocked_safety",
+                blocked=True,
+                block_reason=f"Emergency Stop Active: {status.reason} (Source: {status.source})",
+            )
+            self._emit_kernel_decision(d, context=context)
+            _emit_process_observability(d, t0)
+            return d
         
         # ═══ STRATEGIC MISSION INGESTION (Phase 4.1) ═══
         if sensor_snapshot and sensor_snapshot.external_mission_title:
@@ -474,6 +589,13 @@ class EthicalKernel:
             )
             if not check.blocked:
                 clean_actions.append(a)
+
+        # ═══ DRIVE MOTIVATION UPDATE (Block C1) — early call for metrics ═══
+        self.motivation.update_drives({
+            "social_tension": float(getattr(social_eval, "relational_tension", 0.0)),
+            "uncertainty": 0.0,  # No evaluation yet
+            "energy": float(state.energy),
+        })
 
         if not clean_actions:
             self._last_registered_episode_id = None
@@ -536,8 +658,10 @@ class EthicalKernel:
                     round(float(_av[1]), 6),
                     round(float(_av[2]), 6),
                 )
-                sw = float(np.sum(alpha_vec))
-                self.bayesian.hypothesis_weights = alpha_vec / sw
+                self.bayesian.update_posterior_from_feedback(
+                    alpha_vec,
+                    consistency=feedback_consistency or "compatible"
+                )
                 dirichlet_alpha_for_bma = alpha_vec
                 if isinstance(_fb_meta, dict) and _fb_meta.get("active_context_key") is not None:
                     mixture_context_key = str(_fb_meta["active_context_key"])
@@ -566,6 +690,35 @@ class EthicalKernel:
         else:
             self.bayesian.pre_argmax_pole_weights = None
 
+        # I4 — KERNEL_NARRATIVE_IDENTITY_POLICY: identity leans → pole pre-argmax weights
+        _identity_policy = os.environ.get("KERNEL_NARRATIVE_IDENTITY_POLICY", "off").strip().lower()
+        if _identity_policy == "pole_pre_argmax":
+            try:
+                _id_state = getattr(getattr(self.memory, "identity", None), "state", None)
+                if _id_state is not None:
+                    _civic = float(getattr(_id_state, "civic_lean", 0.0))
+                    _care = float(getattr(_id_state, "care_lean", 0.0))
+                    _careful = float(getattr(_id_state, "careful_lean", 0.0))
+                    _delib = float(getattr(_id_state, "deliberation_lean", 0.0))
+                    _id_weights = {
+                        "compassionate": max((_civic + _care) / 2.0, 0.0),
+                        "conservative": max(_careful, 0.0),
+                        "optimistic": max(_delib, 0.0),
+                    }
+                    _id_sum = sum(_id_weights.values())
+                    if _id_sum > 0.0:
+                        _id_weights = {k: v / _id_sum for k, v in _id_weights.items()}
+                        # Blend with existing pre_argmax weights if already set
+                        if self.bayesian.pre_argmax_pole_weights is not None:
+                            _existing = self.bayesian.pre_argmax_pole_weights
+                            _id_weights = {
+                                k: 0.5 * _id_weights.get(k, 0.0) + 0.5 * _existing.get(k, 0.0)
+                                for k in ("compassionate", "conservative", "optimistic")
+                            }
+                        self.bayesian.pre_argmax_pole_weights = _id_weights
+            except Exception:
+                pass
+
         if _kernel_env_truthy("KERNEL_CONTEXT_RICHNESS_PRE_ARGMAX"):
             from .modules.weighted_ethics_scorer import PreArgmaxContextChannels
 
@@ -574,6 +727,8 @@ class EthicalKernel:
                 caution=float(social_eval.caution_level),
                 sigma=float(state.sigma),
                 dominant_locus=str(locus_eval.dominant_locus),
+                relational_tension=float(getattr(social_eval, 'relational_tension', 0.0)),
+                historical_trauma=float(self.weakness.emotional_load() if self.weakness else 0.0),
             )
         else:
             self.bayesian.pre_argmax_context_modulators = None
@@ -590,6 +745,14 @@ class EthicalKernel:
             self.bayesian.metacognitive_curiosity = self._last_meta_report.curiosity_weight
         else:
             self.bayesian.metacognitive_curiosity = 0.0
+
+        # I3 — perception_uncertainty from coercion report into Bayesian signals
+        _pu_val = _perception_coercion_u_value(perception_coercion_uncertainty)
+        if _pu_val is not None and _pu_val > 0.0:
+            _pu_cur = float(signals.get("perception_uncertainty", 0.0))
+            if _pu_val > _pu_cur:
+                signals = dict(signals)
+                signals["perception_uncertainty"] = _pu_val
 
         bayes_result = self.bayesian.evaluate(
             clean_actions,
@@ -720,13 +883,22 @@ class EthicalKernel:
                 context=context,
                 significance=ep.significance,
             )
-
-            # ═══ STEP 12: Register in DAO ═══
+            # ═══ STEP 12: Register in DAO / OGA Anchoring ═══
             self.dao.register_audit(
                 "decision",
                 f"{scenario} → {final_action} (mode={final_mode}, score={moral.total_score:.3f})",
                 episode_id=ep.id,
             )
+            
+            # Anchor evidence hash if in hybrid mode (new in OGA)
+            if hasattr(self.dao, 'anchor_evidence'):
+                self.dao.anchor_evidence({
+                    "episode_id": ep.id,
+                    "action": final_action,
+                    "score": moral.total_score,
+                    "signals": signals,
+                    "timestamp": time.time()
+                })
 
             # Solidarity alert in crisis
             if signals.get("risk", 0) > 0.8:
@@ -772,9 +944,16 @@ class EthicalKernel:
                         "decision_mode": final_mode,
                         "verdict": moral.global_verdict.value,
                         "score": float(moral.total_score),
-                        "dissonance": float(getattr(self._last_meta_report, 'dissonance_score', 0.0))
                     },
                 )
+            
+            # ═══ DRIVE MOTIVATION UPDATE (Block C1) — final call with full data ═══
+            self.motivation.update_drives({
+                "social_tension": float(getattr(social_eval, "relational_tension", 0.0)),
+                "uncertainty": float(bayes_result.uncertainty),
+                "energy": float(state.energy),
+                "dissonance": float(getattr(self._last_meta_report, 'dissonance_score', 0.0))
+            })
         else:
             self._last_registered_episode_id = None
 
@@ -798,6 +977,8 @@ class EthicalKernel:
             mixture_posterior_alpha=mixture_posterior_alpha,
             feedback_consistency=feedback_consistency,
             mixture_context_key=mixture_context_key,
+            l0_integrity_hash=self.buffer.fingerprint(),
+            l0_stable=self.buffer.verify_integrity(),
         )
         self._emit_kernel_decision(d, context=context)
         _emit_process_observability(d, t0)
@@ -984,6 +1165,13 @@ class EthicalKernel:
                 self.locus.beta = min(self.locus.BETA_MAX, self.locus.beta + delta)
         parts.append(self.sleep.format(result))
 
+        # Phase 7 DAO Extraction: Interlock community votes with BMA updating
+        if hasattr(self, "dao") and self.dao is not None:
+            dao_feedback = self.dao.extract_community_feedback(recent_count=10)
+            for label, count in dao_feedback.items():
+                for _ in range(count):
+                    self.feedback_ledger.record("DAO_community_consensus", label)
+
         fb_line = apply_psi_sleep_feedback_to_engine(
             self.bayesian,
             self.feedback_ledger,
@@ -1065,6 +1253,309 @@ class EthicalKernel:
                 return gen
         return self._chat_light_actions()
 
+    def _preprocess_text_observability(
+        self, user_input: str
+    ) -> tuple[Any, PremiseAdvisory, RealityVerificationAssessment]:
+        """
+        Build text-side perception context before LLM perceive.
+
+        Tasks are independent (light risk, premise scan, lighthouse verification) and can
+        be parallelized when ``KERNEL_PERCEPTION_PARALLEL=1`` to reduce turn latency on
+        multi-core hardware.
+        """
+        workers = _perception_parallel_workers()
+        if workers <= 1:
+            tier = (
+                light_risk_tier_from_text(user_input) if light_risk_classifier_enabled() else None
+            )
+            premise = scan_premises(user_input)
+            reality = verify_against_lighthouse(user_input, lighthouse_kb_from_env())
+            return tier, premise, reality
+
+        kb = lighthouse_kb_from_env()
+        max_workers = min(workers, 3)
+        with ThreadPoolExecutor(
+            max_workers=max_workers,
+            thread_name_prefix="ethos_perception_text",
+        ) as ex:
+            fut_tier = (
+                ex.submit(light_risk_tier_from_text, user_input)
+                if light_risk_classifier_enabled()
+                else None
+            )
+            fut_premise = ex.submit(scan_premises, user_input)
+            fut_reality = ex.submit(verify_against_lighthouse, user_input, kb)
+            tier = fut_tier.result() if fut_tier is not None else None
+            premise = fut_premise.result()
+            reality = fut_reality.result()
+            return tier, premise, reality
+
+    def _chat_preprocess_text_observability(
+        self, user_input: str
+    ) -> tuple[Any, PremiseAdvisory, RealityVerificationAssessment]:
+        """
+        Backward-compatible alias for chat path helpers/tests.
+
+        Use :meth:`_preprocess_text_observability` for shared entrypoint logic.
+        """
+        return self._preprocess_text_observability(user_input)
+
+    def _chat_assess_sensor_stack(
+        self, sensor_snapshot: SensorSnapshot | None
+    ) -> tuple[VitalityAssessment, MultimodalAssessment, EpistemicDissonanceAssessment]:
+        """
+        Evaluate sensor-driven overlays for chat output and safeguards.
+
+        ``assess_vitality`` and ``evaluate_multimodal_trust`` are independent and can run in
+        parallel when ``KERNEL_PERCEPTION_PARALLEL=1``. Epistemic dissonance then derives from
+        the multimodal result.
+        """
+        workers = _perception_parallel_workers()
+        if workers <= 1:
+            vitality = assess_vitality(sensor_snapshot)
+            multimodal = evaluate_multimodal_trust(sensor_snapshot)
+        else:
+            with ThreadPoolExecutor(
+                max_workers=min(workers, 2),
+                thread_name_prefix="ethos_perception_sensor",
+            ) as ex:
+                fut_vitality = ex.submit(assess_vitality, sensor_snapshot)
+                fut_multimodal = ex.submit(evaluate_multimodal_trust, sensor_snapshot)
+                vitality = fut_vitality.result()
+                multimodal = fut_multimodal.result()
+        epistemic = assess_epistemic_dissonance(sensor_snapshot, multimodal)
+        return vitality, multimodal, epistemic
+
+    def _build_limbic_perception_profile(
+        self,
+        *,
+        perception: LLMPerception | None,
+        signals: dict[str, float] | None,
+        vitality: VitalityAssessment | None,
+        multimodal: MultimodalAssessment | None,
+        epistemic: EpistemicDissonanceAssessment | None,
+        confidence_envelope: PerceptionConfidenceEnvelope | None = None,
+    ) -> dict[str, Any]:
+        """
+        Compact limbic profile derived from perception-adjacent channels.
+
+        This profile is advisory and local-only; it does not bypass policy gates.
+        """
+        sig = signals or {}
+        risk = float(sig.get("risk", 0.0))
+        urgency = float(sig.get("urgency", 0.0))
+        hostility = float(sig.get("hostility", 0.0))
+        calm = float(sig.get("calm", 0.0))
+        threat_load = max(risk, urgency, hostility)
+        regulation_gap = max(0.0, threat_load - calm)
+        if threat_load >= 0.75:
+            arousal_band = "high"
+        elif threat_load >= 0.45:
+            arousal_band = "medium"
+        else:
+            arousal_band = "low"
+        planning_bias = (
+            "short_horizon_containment"
+            if arousal_band == "high"
+            else ("balanced" if arousal_band == "medium" else "long_horizon_deliberation")
+        )
+        if vitality is not None and bool(vitality.is_critical):
+            planning_bias = "resource_preservation"
+        mismatch = multimodal is not None and getattr(multimodal, "state", "") == "doubt"
+        if mismatch:
+            planning_bias = "verification_first"
+        if epistemic is not None and bool(epistemic.active):
+            planning_bias = "verification_first"
+        confidence_band = confidence_envelope.band if confidence_envelope is not None else "unknown"
+        if confidence_band in ("low", "very_low"):
+            planning_bias = "verification_first"
+        return {
+            "arousal_band": arousal_band,
+            "threat_load": round(threat_load, 4),
+            "regulation_gap": round(regulation_gap, 4),
+            "planning_bias": planning_bias,
+            "multimodal_mismatch": bool(mismatch),
+            "vitality_critical": bool(vitality.is_critical) if vitality is not None else False,
+            "context": (getattr(perception, "suggested_context", "") or "everyday"),
+            "confidence_band": confidence_band,
+        }
+
+    def _prioritized_principles_for_context(
+        self,
+        *,
+        active_principles: list[str],
+        limbic_profile: dict[str, Any],
+    ) -> tuple[str, list[str]]:
+        """Rank active support principles by limbic/planning posture."""
+        band = limbic_profile.get("arousal_band", "medium")
+        planning_bias = limbic_profile.get("planning_bias", "balanced")
+        if planning_bias in ("verification_first", "resource_preservation") or band == "high":
+            priority_profile = "safety_first"
+            order = ["no_harm", "proportionality", "legality", "transparency", "compassion"]
+        elif band == "low":
+            priority_profile = "planning_first"
+            order = ["transparency", "civic_coexistence", "compassion", "legality", "no_harm"]
+        else:
+            priority_profile = "balanced"
+            order = ["compassion", "legality", "transparency", "proportionality", "no_harm"]
+        rank = {name: i for i, name in enumerate(order)}
+        sorted_active = sorted(active_principles, key=lambda n: rank.get(n, 100))
+        return priority_profile, sorted_active
+
+    def _build_support_buffer_snapshot(
+        self,
+        context: str | None,
+        *,
+        signals: dict[str, float] | None = None,
+        limbic_profile: dict[str, Any] | None = None,
+    ) -> dict[str, Any]:
+        """
+        Local support buffer for perception/planning guidance.
+
+        This is always available offline because it is sourced from in-process
+        kernel state (PreloadedBuffer + metaplan hints), not network services.
+        """
+        ctx = (context or "").strip() or "everyday"
+        active = self.buffer.activate(ctx)
+        active_names = list(active.keys())
+        lp = limbic_profile or self._build_limbic_perception_profile(
+            perception=None,
+            signals=signals,
+            vitality=None,
+            multimodal=None,
+            epistemic=None,
+        )
+        priority_profile, priority_principles = self._prioritized_principles_for_context(
+            active_principles=active_names,
+            limbic_profile=lp,
+        )
+        strategy_hint = self.metaplan.hint_for_communicate()
+        return {
+            "source": "local_preloaded_buffer",
+            "context": ctx,
+            "active_principles": active_names,
+            "priority_profile": priority_profile,
+            "priority_principles": priority_principles,
+            "strategy_hint": strategy_hint or "",
+            "planning_bias": lp.get("planning_bias", "balanced"),
+            "offline_ready": True,
+        }
+
+    def _support_buffer_context_line(self, snap: dict[str, Any]) -> str:
+        """Compact line appended to perception context for planning-aware grounding."""
+        active = snap.get("priority_principles") or snap.get("active_principles") or []
+        active_txt = ", ".join(str(x) for x in active[:5]) if active else "no_active_principles"
+        strategy = (snap.get("strategy_hint") or "").strip()
+        profile = snap.get("priority_profile", "balanced")
+        bias = snap.get("planning_bias", "balanced")
+        if strategy:
+            return (
+                f"Support buffer ({snap.get('context','everyday')}): {active_txt}. "
+                f"Priority={profile}/{bias}. Strategy: {strategy}"
+            )
+        return (
+            f"Support buffer ({snap.get('context','everyday')}): {active_txt}. "
+            f"Priority={profile}/{bias}."
+        )
+
+    def _postprocess_perception(self, perception: LLMPerception, tier: Any) -> None:
+        """
+        Shared post-perception safeguards for all text entrypoints.
+
+        Applies lexical cross-check, updates the perception circuit state, emits doubt-side
+        signals when tripped, and advances subjective time.
+        """
+        apply_lexical_perception_cross_check(perception, tier)
+        _, doubt_trip = update_perception_circuit(self, perception)
+        if doubt_trip:
+            emit_metacognitive_doubt_signals(self, streak=self._perception_validation_streak)
+        self.subjective_clock.tick(perception)
+
+    def _run_perception_stage(
+        self,
+        text: str,
+        *,
+        conversation_context: str = "",
+        sensor_snapshot: SensorSnapshot | None = None,
+        turn_start_mono: float | None = None,
+        precomputed: tuple[Any, PremiseAdvisory, RealityVerificationAssessment] | None = None,
+    ) -> PerceptionStageResult:
+        """
+        Execute the shared perception stage for text entrypoints.
+
+        Includes pre-enrichment, local support-buffer grounding, perception parsing,
+        post-perception safeguards, and sensor overlays.
+        """
+        if precomputed is None:
+            tier, premise_advisory, reality_assessment = self._preprocess_text_observability(text)
+        else:
+            tier, premise_advisory, reality_assessment = precomputed
+
+        bootstrap_support = self._build_support_buffer_snapshot("everyday")
+        support_line = self._support_buffer_context_line(bootstrap_support)
+        merged_context = ((conversation_context or "").strip() + "\n" + support_line).strip()
+        perception = self.llm.perceive(text, conversation_context=merged_context)
+        self._postprocess_perception(perception, tier)
+
+        vitality, mm, ed = self._chat_assess_sensor_stack(sensor_snapshot)
+        signals = {
+            "risk": perception.risk,
+            "urgency": perception.urgency,
+            "hostility": perception.hostility,
+            "calm": perception.calm,
+            "vulnerability": perception.vulnerability,
+            "legality": perception.legality,
+            "manipulation": perception.manipulation,
+            "familiarity": perception.familiarity,
+            "social_tension": getattr(perception, "social_tension", 0.0),
+        }
+        signals = merge_sensor_hints_into_signals(signals, sensor_snapshot, mm)
+        signals = apply_somatic_nudges(signals, sensor_snapshot, self.somatic_store)
+
+        confidence = build_perception_confidence_envelope(
+            coercion_report=getattr(perception, "coercion_report", None),
+            multimodal_state=getattr(mm, "state", None),
+            epistemic_active=bool(getattr(ed, "active", False)),
+            vitality_critical=bool(getattr(vitality, "is_critical", False)),
+        )
+        limbic = self._build_limbic_perception_profile(
+            perception=perception,
+            signals=signals,
+            vitality=vitality,
+            multimodal=mm,
+            epistemic=ed,
+            confidence_envelope=confidence,
+        )
+        contextual_support = self._build_support_buffer_snapshot(
+            perception.suggested_context,
+            signals=signals,
+            limbic_profile=limbic,
+        )
+        temporal = build_temporal_context(
+            turn_index=self.subjective_clock.turn_index,
+            process_start_mono=self.subjective_clock.session_start_mono,
+            turn_start_mono=turn_start_mono if turn_start_mono is not None else time.monotonic(),
+            subjective_elapsed_s=self.subjective_clock.elapsed_session_s(),
+            context=perception.suggested_context,
+            text=text,
+            vitality=vitality,
+            sensor_snapshot=sensor_snapshot,
+        )
+        return PerceptionStageResult(
+            tier=tier,
+            premise_advisory=premise_advisory,
+            reality_verification=reality_assessment,
+            perception=perception,
+            vitality=vitality,
+            multimodal_trust=mm,
+            epistemic_dissonance=ed,
+            signals=signals,
+            support_buffer=contextual_support,
+            limbic_profile=limbic,
+            temporal_context=temporal,
+            perception_confidence=confidence,
+        )
+
     def process_chat_turn(
         self,
         user_input: str,
@@ -1084,29 +1575,28 @@ class EthicalKernel:
         before ``process``; does not bypass MalAbs or policy.
         """
         wm = self.working_memory
+        turn_start_mono = time.monotonic()
         conv = wm.format_context_for_perception()
-
-        tier = None
-        if light_risk_classifier_enabled():
-            tier = light_risk_tier_from_text(user_input)
-        self._last_light_risk_tier = tier
+        self.llm.reset_verbal_degradation_log()
+        pre = self._preprocess_text_observability(user_input)
+        self._last_light_risk_tier, self._last_premise_advisory, self._last_reality_verification = pre
+        self.user_model.note_premise_advisory(self._last_premise_advisory.flag)
 
         mal = self.absolute_evil.evaluate_chat_text(
             user_input,
             llm_backend=self._malabs_text_backend(),
         )
         self._last_chat_malabs = mal
-        self._last_premise_advisory = scan_premises(user_input)
-        self.user_model.note_premise_advisory(self._last_premise_advisory.flag)
-        self._last_reality_verification = verify_against_lighthouse(
-            user_input,
-            lighthouse_kb_from_env(),
-        )
         if mal.blocked:
-            mm_blk = evaluate_multimodal_trust(sensor_snapshot)
+            vitality_blk, mm_blk, ed_blk = self._chat_assess_sensor_stack(sensor_snapshot)
             self._last_multimodal_assessment = mm_blk
-            self._last_vitality_assessment = assess_vitality(sensor_snapshot)
-            ed_blk = assess_epistemic_dissonance(sensor_snapshot, mm_blk)
+            self._last_vitality_assessment = vitality_blk
+            confidence_blk = build_perception_confidence_envelope(
+                coercion_report=None,
+                multimodal_state=getattr(mm_blk, "state", None),
+                epistemic_active=bool(getattr(ed_blk, "active", False)),
+                vitality_critical=bool(getattr(vitality_blk, "is_critical", False)),
+            )
             msg = (
                 "I can't continue this line of conversation: it conflicts with non-negotiable "
                 "ethical limits. If you're in crisis, contact local emergency services or a "
@@ -1127,6 +1617,14 @@ class EthicalKernel:
                 reason=mal.reason or "",
             )
             self._snapshot_feedback_anchor("safety_block")
+            limbic_blk = self._build_limbic_perception_profile(
+                perception=None,
+                signals=None,
+                vitality=vitality_blk,
+                multimodal=mm_blk,
+                epistemic=ed_blk,
+                confidence_envelope=confidence_blk,
+            )
             return ChatTurnResult(
                 response=resp,
                 path="safety_block",
@@ -1135,32 +1633,39 @@ class EthicalKernel:
                 multimodal_trust=mm_blk,
                 epistemic_dissonance=ed_blk,
                 reality_verification=self._last_reality_verification,
+                support_buffer=self._build_support_buffer_snapshot(
+                    "safety_block",
+                    limbic_profile=limbic_blk,
+                ),
+                limbic_profile=limbic_blk,
+                temporal_context=build_temporal_context(
+                    turn_index=self.subjective_clock.turn_index,
+                    process_start_mono=self.subjective_clock.session_start_mono,
+                    turn_start_mono=turn_start_mono,
+                    subjective_elapsed_s=self.subjective_clock.elapsed_session_s(),
+                    context="safety_block",
+                    text=user_input,
+                    vitality=vitality_blk,
+                    sensor_snapshot=sensor_snapshot,
+                ),
+                perception_confidence=confidence_blk,
             )
-        perception = self.llm.perceive(user_input, conversation_context=conv)
-        apply_lexical_perception_cross_check(perception, tier)
-        _, doubt_trip = update_perception_circuit(self, perception)
-        if doubt_trip:
-            emit_metacognitive_doubt_signals(self, streak=self._perception_validation_streak)
-        self.subjective_clock.tick(perception)
+        stage = self._run_perception_stage(
+            user_input,
+            conversation_context=conv,
+            sensor_snapshot=sensor_snapshot,
+            turn_start_mono=turn_start_mono,
+            precomputed=pre,
+        )
+        self._last_vitality_assessment = stage.vitality
+        self._last_multimodal_assessment = stage.multimodal_trust
+
+        perception = stage.perception
+        mm = stage.multimodal_trust
+        ed = stage.epistemic_dissonance
+        signals = stage.signals
         heavy = self._chat_is_heavy(perception)
         eth_context = perception.suggested_context if heavy else "everyday"
-
-        signals = {
-            "risk": perception.risk,
-            "urgency": perception.urgency,
-            "hostility": perception.hostility,
-            "calm": perception.calm,
-            "vulnerability": perception.vulnerability,
-            "legality": perception.legality,
-            "manipulation": perception.manipulation,
-            "familiarity": perception.familiarity,
-        }
-        self._last_vitality_assessment = assess_vitality(sensor_snapshot)
-        mm = evaluate_multimodal_trust(sensor_snapshot)
-        self._last_multimodal_assessment = mm
-        ed = assess_epistemic_dissonance(sensor_snapshot, mm)
-        signals = merge_sensor_hints_into_signals(signals, sensor_snapshot, mm)
-        signals = apply_somatic_nudges(signals, sensor_snapshot, self.somatic_store)
 
         actions = self._actions_for_chat(perception, heavy)
         ctx = perception.suggested_context or ""
@@ -1175,6 +1680,37 @@ class EthicalKernel:
         cr = getattr(perception, "coercion_report", None)
         if isinstance(cr, dict):
             pu = cr.get("uncertainty")
+        elif cr is not None and callable(getattr(cr, "uncertainty", None)):
+            try:
+                pu = float(cr.uncertainty())
+            except Exception:
+                pu = None
+
+        # I3 — inject perception_uncertainty into signals before Bayesian scoring
+        if pu is not None and pu > 0.0:
+            signals = dict(signals)
+            signals["perception_uncertainty"] = max(
+                float(signals.get("perception_uncertainty", 0.0)), pu
+            )
+
+        # I5 — KERNEL_TEMPORAL_ETA_MODULATION: boost urgency from TemporalContext
+        if _kernel_env_truthy("KERNEL_TEMPORAL_ETA_MODULATION"):
+            tc = getattr(perception, "temporal_context", None)
+            if tc is not None:
+                try:
+                    eta_s = float(getattr(tc, "eta_seconds", 300) or 300)
+                    bhs = str(getattr(tc, "battery_horizon_state", "nominal") or "nominal")
+                    ref_eta = float(os.environ.get("KERNEL_TEMPORAL_REFERENCE_ETA_S", "300"))
+                    urgency_boost = min(max(ref_eta / max(eta_s, 1.0), 0.0), 1.0)
+                    if bhs == "critical":
+                        urgency_boost = min(urgency_boost + 0.3, 1.0)
+                    if urgency_boost > 0.0:
+                        signals = dict(signals)
+                        cur_urgency = float(signals.get("urgency", 0.0))
+                        signals["urgency"] = min(max(cur_urgency + urgency_boost * 0.4, 0.0), 1.0)
+                except Exception:
+                    pass
+
         decision = self.process(
             scenario=perception.summary or user_input[:240],
             place=place,
@@ -1217,6 +1753,10 @@ class EthicalKernel:
                 epistemic_dissonance=ed,
                 reality_verification=self._last_reality_verification,
                 metacognitive_doubt=self._perception_metacognitive_doubt,
+                support_buffer=stage.support_buffer,
+                limbic_profile=stage.limbic_profile,
+                temporal_context=stage.temporal_context,
+                perception_confidence=stage.perception_confidence,
             )
 
         weakness_line = ""
@@ -1442,6 +1982,7 @@ class EthicalKernel:
                     )
 
         self._snapshot_feedback_anchor(decision.decision_mode)
+        _vdeg = self.llm.verbal_degradation_events_snapshot()
         return ChatTurnResult(
             response=response,
             path="heavy" if heavy else "light",
@@ -1454,9 +1995,20 @@ class EthicalKernel:
             judicial_escalation=je_view,
             reality_verification=self._last_reality_verification,
             metacognitive_doubt=self._perception_metacognitive_doubt,
+            verbal_llm_degradation_events=_vdeg if _vdeg else None,
+            support_buffer=stage.support_buffer,
+            limbic_profile=stage.limbic_profile,
+            temporal_context=stage.temporal_context,
+            perception_confidence=stage.perception_confidence,
         )
 
-    def process_natural(self, situation: str, actions: list[CandidateAction] = None) -> tuple:
+    def process_natural(
+        self, 
+        situation: str, 
+        actions: list[CandidateAction] = None,
+        vision_inference: VisionInference = None,
+        audio_inference: AudioInference = None
+    ) -> tuple:
         """
         Processes a situation described in natural language.
 
@@ -1472,13 +2024,16 @@ class EthicalKernel:
         Returns:
             (KernelDecision, VerbalResponse, RichNarrative)
         """
-        tier = None
-        if light_risk_classifier_enabled():
-            tier = light_risk_tier_from_text(situation or "")
+        turn_start_mono = time.monotonic()
+        text = situation or ""
+        tier, premise_advisory, reality_assessment = self._preprocess_text_observability(text)
         self._last_light_risk_tier = tier
+        self._last_premise_advisory = premise_advisory
+        self.user_model.note_premise_advisory(self._last_premise_advisory.flag)
+        self._last_reality_verification = reality_assessment
 
         mal = self.absolute_evil.evaluate_chat_text(
-            situation or "",
+            text,
             llm_backend=self._malabs_text_backend(),
         )
         if mal.blocked:
@@ -1503,7 +2058,7 @@ class EthicalKernel:
             }
             locus_eval = self.locus.evaluate(locus_signals, social_eval.circle.value)
             decision = KernelDecision(
-                scenario=(situation or "")[:240],
+                scenario=text[:240],
                 place="detected by sensors",
                 absolute_evil=mal,
                 sympathetic_state=state,
@@ -1535,20 +2090,45 @@ class EthicalKernel:
             )
             return decision, response, None
 
-        # Step 1: LLM perceives the situation
-        perception = self.llm.perceive(situation)
-        apply_lexical_perception_cross_check(perception, tier)
+        self.llm.reset_verbal_degradation_log()
 
-        signals = {
-            "risk": perception.risk,
-            "urgency": perception.urgency,
-            "hostility": perception.hostility,
-            "calm": perception.calm,
-            "vulnerability": perception.vulnerability,
-            "legality": perception.legality,
-            "manipulation": perception.manipulation,
-            "familiarity": perception.familiarity,
-        }
+        stage = self._run_perception_stage(
+            text,
+            sensor_snapshot=None,
+            turn_start_mono=turn_start_mono,
+            precomputed=(tier, premise_advisory, reality_assessment),
+        )
+        perception = stage.perception
+        signals = stage.signals
+
+        if vision_inference:
+            from .modules.vision_signal_mapper import VisionSignalMapper
+            mapper = VisionSignalMapper()
+            vision_signals = mapper.map_inference(vision_inference)
+            
+            # Merge vision signals with LLM signals (take the max of risk/urgency etc)
+            for k, v in vision_signals.items():
+                if k in signals:
+                    signals[k] = max(signals[k], v)
+                else:
+                    signals[k] = v
+
+        if audio_inference:
+            from .modules.audio_signal_mapper import AudioSignalMapper
+            a_mapper = AudioSignalMapper()
+            audio_signals = a_mapper.map_inference(audio_inference)
+
+            # Merge audio signals (especially vulnerability/urgency for screams/cries)
+            for k, v in audio_signals.items():
+                if k in signals:
+                    signals[k] = max(signals[k], v)
+                else:
+                    signals[k] = v
+
+            # If audio has transcript, we can optionally append it to the situation text
+            if audio_inference.transcript:
+                situation = f"{situation} [TRANSCRIPT: {audio_inference.transcript}]"
+                text = situation
 
         # If no specific actions, generate generic candidates
         if not actions:
@@ -1574,6 +2154,14 @@ class EthicalKernel:
             if decision.social_evaluation and decision.social_evaluation.tone_brief
             else ""
         )
+        sb_strategy = (stage.support_buffer.get("strategy_hint") or "").strip()
+        if sb_strategy:
+            uchi_line = (uchi_line + " " + sb_strategy).strip() if uchi_line else sb_strategy
+        temporal_hint = (
+            f"Temporal planning bias={stage.temporal_context.eta_source}, "
+            f"eta_s={round(stage.temporal_context.eta_seconds, 1)}."
+        )
+        uchi_line = (uchi_line + " " + temporal_hint).strip() if uchi_line else temporal_hint
         response = self.llm.communicate(
             action=decision.final_action,
             mode=decision.decision_mode,

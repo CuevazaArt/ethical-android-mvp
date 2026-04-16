@@ -17,6 +17,7 @@ Contributions may arrive through multiple channels (issues, pull requests, chat,
 These expectations **apply to all contributors** and are part of how we keep the project coherent.
 
 **Multi-office Git workflow (optional convention for distributed teams):** See **[`docs/collaboration/MULTI_OFFICE_GIT_WORKFLOW.md`](docs/collaboration/MULTI_OFFICE_GIT_WORKFLOW.md)** — diagram, branch pattern (`main` → `master-<TeamSlug>` → local offices), and production (`main`) language expectations. Cursor agents also load the always-on rule **[`.cursor/rules/collaboration-prioritization.mdc`](.cursor/rules/collaboration-prioritization.mdc)**.
+**Generalized collaboration guide:** [`docs/collaboration/COLLABORATIVE_METHOD_GENERALIZATION_GUIDE.md`](docs/collaboration/COLLABORATIVE_METHOD_GENERALIZATION_GUIDE.md) — reading pack, reusable task-card format, and shared quality gates for multi-origin teams.
 
 ### Language policy (collaboration vs repository)
 
@@ -28,7 +29,11 @@ The same rules apply to AI assistants working on this repo (see `.cursor/rules/r
 
 ### 2. Understand the model
 Read the README.md and run the simulations before proposing changes.
-The complete model document is in `/docs/Androide_Etico_Analisis_Integral_v3.docx`.
+Canonical model and architecture references:
+
+- [`docs/proposals/THEORY_AND_IMPLEMENTATION.md`](docs/proposals/THEORY_AND_IMPLEMENTATION.md)
+- [`docs/proposals/README.md`](docs/proposals/README.md)
+- [`AGENTS.md`](AGENTS.md) for contributor/assistant orientation and integration guardrails
 **AI assistants and agents:** see **[`AGENTS.md`](AGENTS.md)** for repository orientation, `.cursor/rules/`, and how to persist safety-related fixes in the repo (not only in chat).
 
 **Layout note:** kernel work is **Python under `src/`**. See [`docs/REPOSITORY_LAYOUT.md`](docs/REPOSITORY_LAYOUT.md). Add design notes under [`docs/proposals/README.md`](docs/proposals/README.md) (`PROPOSAL_*.md`).
@@ -130,6 +135,7 @@ If your change breaks a test, fix the code, not the test.
 ## Secrets and environment
 
 - **Never commit** API keys, Fernet keys, or `.env` files. Use [`.env.example`](.env.example) as a template only.
+- **LLM degradation / recovery:** multiple `KERNEL_*` keys can apply to the same process. Precedence (per-touchpoint overrides, verbal family, legacy keys) is documented for operators and implementers in [`docs/proposals/PROPOSAL_LLM_TOUCHPOINT_DEGRADATION_MATRIX.md`](docs/proposals/PROPOSAL_LLM_TOUCHPOINT_DEGRADATION_MATRIX.md); see also [`docs/proposals/KERNEL_ENV_POLICY.md`](docs/proposals/KERNEL_ENV_POLICY.md) and [`docs/proposals/OPERATOR_QUICK_REF.md`](docs/proposals/OPERATOR_QUICK_REF.md).
 - **CI** reads no private API keys from the repository. Optional [Codecov](https://codecov.io) uploads use the repository secret `CODECOV_TOKEN` if you configure it in GitHub (**Settings → Secrets and variables → Actions**). Forks do not inherit secrets; coverage upload may be skipped without failing CI.
 
 ## Code of conduct

@@ -28,20 +28,22 @@ Canonical diagram (same model as the team workflow image):
 
 | Role | Branch | Purpose |
 |------|--------|---------|
-| **Production** | **`main`** | Protected integration line on GitHub. Treat as **production**: user-facing site content (e.g. landing page), bibliography, and **all merged repository-facing text** stays **English** per **CONTRIBUTING.md** / language policy. |
-| **Cursor integration** | **`master-Cursor`** | Team integration hub for the **Cursor** org: cut from **`main`**, receives work from Cursor **local offices**. Keep aligned with `main` regularly (diagram: sync / “clone” from `main` into this line). |
-| **Cursor shared work** | **`cursor-team`** | Default branch for day-to-day commits in this workspace: cut from **`master-Cursor`**. Maps to “repo local” lines in the diagram; multiple machines clone/pull this line (or children of it) and integrate back into **`master-Cursor`**. |
+| **Production** | **`main`** | **Protected integration line.** Treat as production. **NO PUSH OR MERGE TO `main` WITHOUT EXPLICIT USER AUTHORIZATION.** All repository-facing text must stay English per CONTRIBUTING.md. |
+| **Team integration** | **`master-<team>`** | Team-specific integration hub (e.g., `master-antigravity`, `master-Cursor`). Cut from `main`, receives work from team local branches. **All teams MUST integrate here first.** |
+| **Team shared work** | **`<team>-team`** | Default branch for day-to-day commits within a team (e.g., `antigravity-team`, `cursor-team`). Cut from `master-<team>`. Integrate back into `master-<team>`. |
 
 ### `main` (production) content expectations
 
 - **`main`** carries **production-ready** material: public-facing pages (e.g. landing), reference/bibliography sections, and other shipped docs — **entirely in English** in the repo, consistent with the language policy for merged work.
 - Do **not** land non-English user-facing copy on `main` unless it is **deliberate fixture or security data** with a clear justification (see **CONTRIBUTING.md**).
 
-### Operational rules (Cursor team)
+### Operational rules (Multi-Team Workflow)
 
-1. **Branch off the right base** — Create `master-Cursor` from `main`. Create `cursor-team` from `master-Cursor`. Do not commit directly to `main` unless maintainers explicitly allow it.
-2. **Two (or more) local offices** — Each office uses its **local clone**; they work on branches or on `cursor-team` per team agreement, then **merge into `master-Cursor`** when work is ready for the shared integration line (diagram: local → integration hub).
-3. **Promotion to production** — Integrating **`master-Cursor` → `main`** is a **maintainer / release** step (diagram: upward move, e.g. **rebase** or merge policy your team chooses). Do not rewrite `main` without following **CONTRIBUTING.md** and review conventions.
-4. **Sync shorthand** — “Clone” in the diagram means **refresh the integration line from `main`** (e.g. `fetch` / `merge` / `pull` from `origin/main` into `master-Cursor`) before large merges, so `master-Cursor` does not drift from production intent.
+1. **Branch off the right base** — Create `master-<team>` (Integration Hub) from `main`. Create feature branches like `<team>-team/feature-name` from your team's integration hub. **Do not commit directly to `main`.**
+2. **Mandatory GitHub PR Cycle** — All code must follow a traceable lifecycle:
+   - *Internal:* Submit a **Pull Request (PR)** or structured merge review to merge your feature branch into `master-<team>`. 
+   - *Documentation:* Every internal PR must update the `CHANGELOG.md` reflecting the new capabilities or fixes added. This guarantees traceability.
+   - *Production:* Submitting code from `master-<team>` to `main` strictly requires a formal PR. **This final PR MUST be authorized by Juan.**
+3. **Cross-Team Periodic Syncing** — `master-<team>` branches SHOULD frequently pull (merge) from each other (e.g., every 5 commits). This allows teams like PyCharm, Cursor, and Antigravity to share secure increments and avoid drift without prematurely pushing to `main`.
+4. **Sync with `main`** — Refresh your team's integration line from `main` regularly to stay aligned with the latest production releases.
 
-Exact Git commands depend on remote and branch protection; prefer patterns documented in **CONTRIBUTING.md** or operator runbooks.

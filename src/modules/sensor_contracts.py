@@ -12,6 +12,7 @@ and epistemic_dissonance.py (v9.1 telemetry).
 from __future__ import annotations
 
 from dataclasses import dataclass
+import math
 from typing import Any
 
 
@@ -38,6 +39,11 @@ class SensorSnapshot:
     external_mission_title: str | None = None # e.g. "Recover the lost bag"
     external_mission_priority: float | None = None # [0, 1]
     external_mission_steps: list[str] | None = None # ["Go to cafe", "Look under table"]
+    # Phase S3 expansion: Proprioception (Body Sense)
+    is_falling: bool = False
+    is_obstructed: bool = False
+    motor_effort_avg: float | None = None # [0, 1]
+    stability_score: float | None = None # [0, 1]
 
     @classmethod
     def from_dict(cls, raw: dict[str, Any]) -> SensorSnapshot:
@@ -48,7 +54,10 @@ class SensorSnapshot:
             if v is None:
                 return None
             try:
-                return _clamp01(float(v))
+                val = float(v)
+                if math.isnan(val) or math.isinf(val):
+                    return None
+                return _clamp01(val)
             except (TypeError, ValueError):
                 return None
 
@@ -69,6 +78,10 @@ class SensorSnapshot:
             external_mission_title=raw.get("external_mission_title"),
             external_mission_priority=f("external_mission_priority"),
             external_mission_steps=raw.get("external_mission_steps"),
+            is_falling=bool(raw.get("is_falling", False)),
+            is_obstructed=bool(raw.get("is_obstructed", False)),
+            motor_effort_avg=f("motor_effort_avg"),
+            stability_score=f("stability_score"),
         )
 
     def is_empty(self) -> bool:
@@ -80,9 +93,12 @@ class SensorSnapshot:
             and self.silence is None
             and self.biometric_anomaly is None
             and not self.backup_just_completed
-            and self.audio_emergency is None
             and self.vision_emergency is None
             and self.scene_coherence is None
+            and not self.is_falling
+            and not self.is_obstructed
+            and self.motor_effort_avg is None
+            and self.stability_score is None
         )
 
 
@@ -162,6 +178,24 @@ def merge_sensor_hints_into_signals(
 
     if snapshot.backup_just_completed:
         out["calm"] = _clamp01(out.get("calm", 0.5) + 0.08)
+
+    # --- S3: Proprioception Nudges ---
+    if snapshot.is_falling:
+        out["risk"] = _clamp01(out.get("risk", 0.5) + 0.45)
+        out["urgency"] = _clamp01(out.get("urgency", 0.5) + 0.5)
+        out["calm"] = _clamp01(out.get("calm", 0.5) - 0.4)
+
+    if snapshot.is_obstructed:
+        out["vulnerability"] = _clamp01(out.get("vulnerability", 0.0) + 0.3)
+        out["risk"] = _clamp01(out.get("risk", 0.5) + 0.15)
+
+    if snapshot.stability_score is not None and snapshot.stability_score < 0.4:
+        out["risk"] = _clamp01(out.get("risk", 0.5) + (0.4 - snapshot.stability_score))
+        out["urgency"] = _clamp01(out.get("urgency", 0.5) + 0.1)
+
+    if snapshot.motor_effort_avg is not None and snapshot.motor_effort_avg > 0.8:
+        out["vulnerability"] = _clamp01(out.get("vulnerability", 0.0) + 0.2)
+        out["calm"] = _clamp01(out.get("calm", 0.5) - 0.1)
 
     return out
 
