@@ -445,22 +445,22 @@ class MockDAO:
         Allows the decentralized community to mathematically calibrate the BMA priors.
         """
         counts = {"approve": 0, "dispute": 0, "harm_report": 0}
-        
+
         # Analyze recent proposals
         for prop in self.proposals[-recent_count:]:
             if prop.status == "approved":
                 counts["approve"] += 1
             elif prop.status == "rejected":
                 counts["dispute"] += 1
-                
+
         # Analyze recent alerts (proxy for harm_report)
         for alert in self.alerts[-recent_count:]:
             if "harm" in alert.type.lower() or "alert" in alert.type.lower():
                 counts["harm_report"] += 1
-                
+
         # Analyze escalation court traces if any (proxy for dispute)
         for rec in self.records[-recent_count:]:
             if rec.type == "escalation":
                 counts["dispute"] += 1
-                
+
         return counts

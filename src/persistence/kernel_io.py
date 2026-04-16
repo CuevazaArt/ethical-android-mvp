@@ -7,12 +7,13 @@ from typing import TYPE_CHECKING, Any, cast
 
 import numpy as np
 
+from src.modules.bayesian_engine import BayesianEngine
 from src.modules.forgiveness import WeightedMemory
 from src.modules.judicial_escalation import EscalationPhase, strikes_threshold_from_env
 from src.modules.metaplan_registry import MasterGoal
 from src.modules.mock_dao import AuditRecord, SolidarityAlert
-from src.modules.narrative_types import BodyState, HardwareProfile, NarrativeEpisode
 from src.modules.narrative_identity import NarrativeIdentityState
+from src.modules.narrative_types import BodyState, HardwareProfile, NarrativeEpisode
 from src.modules.skill_learning_registry import SkillLearningTicket, Status
 from src.modules.subjective_time import SubjectiveClock
 from src.modules.uchi_soto import interaction_profile_from_dict, interaction_profile_to_dict
@@ -27,6 +28,7 @@ from src.modules.user_model import (
 )
 from src.modules.variability import VariabilityConfig, VariabilityEngine
 from src.modules.weakness_pole import WeaknessRecord, WeaknessType
+from src.modules.weighted_ethics_scorer import WeightedEthicsScorer
 
 from .schema import SCHEMA_VERSION, KernelSnapshotV1
 from .snapshot_serde import (
@@ -102,7 +104,7 @@ def episode_from_dict(d: dict[str, Any]) -> NarrativeEpisode:
         description=bs_dict.get("description", ""),
         hardware_profile=hp,
         hardware_id=bs_dict.get("hardware_id", "default_body_01"),
-        capabilities=list(bs_dict.get("capabilities", []))
+        capabilities=list(bs_dict.get("capabilities", [])),
     )
     pad = tuple(d["affect_pad"]) if d.get("affect_pad") is not None else None
     return NarrativeEpisode(
@@ -252,7 +254,11 @@ def apply_snapshot(kernel: EthicalKernel, snap: KernelSnapshotV1) -> None:
     if not snap.variability_active:
         engine.deactivate()
     kernel.var_engine = engine
-    kernel.bayesian.variability = engine
+    _bayes = kernel.bayesian
+    if isinstance(_bayes, BayesianEngine):
+        _bayes.scorer.variability = engine
+    elif isinstance(_bayes, WeightedEthicsScorer):
+        _bayes.variability = engine
 
     kernel._pruned_actions = dict(snap.pruned_actions)
 
@@ -351,5 +357,5 @@ def apply_snapshot(kernel: EthicalKernel, snap: KernelSnapshotV1) -> None:
             description=mb.get("description", ""),
             hardware_profile=hp,
             hardware_id=mb.get("hardware_id", "default_body_01"),
-            capabilities=list(mb.get("capabilities", []))
+            capabilities=list(mb.get("capabilities", [])),
         )

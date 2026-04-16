@@ -18,18 +18,14 @@ from src.modules.weighted_ethics_scorer import (
 
 def test_context_hypothesis_multipliers_tight_and_normalized():
     m = context_hypothesis_multipliers(
-        PreArgmaxContextChannels(
-            trust=0.7, caution=0.4, sigma=0.55, dominant_locus="external"
-        )
+        PreArgmaxContextChannels(trust=0.7, caution=0.4, sigma=0.55, dominant_locus="external")
     )
     assert abs(float(m.prod() ** (1.0 / 3.0)) - 1.0) < 1e-9
     assert float(np.max(np.abs(m - 1.0))) < 0.05
 
 
 def test_pole_hypothesis_multipliers_geometric_mean_one():
-    m = pole_hypothesis_multipliers(
-        {"compassionate": 0.5, "conservative": 0.5, "optimistic": 0.5}
-    )
+    m = pole_hypothesis_multipliers({"compassionate": 0.5, "conservative": 0.5, "optimistic": 0.5})
     assert abs(float(m.prod() ** (1.0 / 3.0)) - 1.0) < 1e-9
 
 

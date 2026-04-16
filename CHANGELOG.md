@@ -25,6 +25,17 @@ All notable changes to this project are summarized here. For narrative context a
 
 ## Antigravity — Cybersecurity Consolidation & Integration Pulse — April 2026
 
+### Cursor integration (CI / typing / snapshots)
+
+- **Mypy (``mypy src``):** Added ``kernel_dao_as_mock`` and ``kernel_mixture_scorer`` in [`src/kernel.py`](src/kernel.py) so call sites that need :class:`~src.modules.mock_dao.MockDAO` or :class:`~src.modules.weighted_ethics_scorer.WeightedEthicsScorer` narrow correctly when the kernel uses :class:`~src.modules.dao_orchestrator.DAOOrchestrator` or :class:`~src.modules.bayesian_engine.BayesianInferenceEngine`. :class:`~src.modules.dao_orchestrator.DAOOrchestrator` now proxies ``get_records``. Chroma paths in [`src/modules/semantic_anchor_store.py`](src/modules/semantic_anchor_store.py) use explicit casts for untyped client results.
+- **Snapshot schema v4:** Completed migration chain v3→v4 in [`src/persistence/migrations.py`](src/persistence/migrations.py) with a JSON-Schema-valid default ``migratory_body``; tests updated for ``SCHEMA_VERSION == 4`` and full migration via ``migrate_raw_to_current``.
+- **Narrative SQLite `:memory:`:** [`src/persistence/narrative_storage.py`](src/persistence/narrative_storage.py) reuses one connection for in-memory databases so `save_episode` / `load_all_episodes` see the same data (fixes episodic-weight tests and any in-memory narrative isolation).
+- **Pipeline extraction:** [`src/kernel_pipeline.py`](src/kernel_pipeline.py) implements ``run_sleep_cycle`` (Psi Sleep path); [`src/kernel.py`](src/kernel.py) ``execute_sleep`` delegates there. [`src/chat_handlers/__init__.py`](src/chat_handlers/__init__.py) package stub for future chat-server splits.
+- **Security scaffolding:** [`src/modules/secure_boot.py`](src/modules/secure_boot.py) and [`src/modules/safety_interlock.py`](src/modules/safety_interlock.py) document demo limitations; structured logging; E-stop reset reads ``KERNEL_ESTOP_RESET_TOKEN`` with legacy default ``TRUSTED_RESET_V1``.
+- **Observability:** DAO orchestrator, selective amnesia, migratory identity, vision capture/adapter use ``logging`` instead of ``print`` for library paths.
+- **Dependencies:** [`pyproject.toml`](pyproject.toml) adds optional extras ``ml``, ``vectors``, ``llm``, ``tuning``, and explicit ``all-optional`` list; [`requirements.txt`](requirements.txt) trims to core + runtime + pytest; heavy pins live in [`requirements-dev.txt`](requirements-dev.txt) for CI.
+- **Tests aligned with fixtures:** [`tests/test_empirical_pilot.py`](tests/test_empirical_pilot.py) expects scenario IDs 1–21 and 21 total rows (matches [`tests/fixtures/empirical_pilot/scenarios.json`](tests/fixtures/empirical_pilot/scenarios.json)). [`tests/test_user_model.py`](tests/test_user_model.py) supplies ``social_tension`` in ``LLMPerception`` defaults.
+
 ### Antigravity Team Updates
 
 - **Integration Hub:** Resolved major merge conflicts between `master-antigravity` and `master-Cursor`. Consolidated the **Distributed Justice** track with the **Kernel Hardening** track.
@@ -84,8 +95,8 @@ All notable changes to this project are summarized here. For narrative context a
 - **Inter-Team Hub Alignment**: Added a mandatory periodic sync rule: `master-*` branches must merge between them approximately every 5 commits to ensure cross-team visibility and incorporate the latest secure increments.
 - **Hardening Fixes**: Resolved a critical regression in `NarrativeMemory.register` signature (added missing `body_state`) to maintain kernel invariant compliance across the full test suite.
 - **Tests**: Created comprehensive verification suite [`tests/test_antigravity_hardening.py`](tests/test_antigravity_hardening.py); verified 61 fundamental ethical properties and hardening invariants pass.
-- **Automated Evaluation Pipeline (`scripts/eval/optimize_malabs_thresholds.py`)**: Implemented Optuna-based Bayesian optimization for MalAbs semantic similarity thresholds (θ_block, θ_allow). Uses red-team corpus (`scripts/eval/red_team_prompts.jsonl`) to minimize false positives/negatives while prioritizing safety. Results stored in `artifacts/` directory.
-- **Semantic MalAbs Anchors (`src/modules/semantic_chat_gate.py`)**: Expanded reference anchors to include `HARM_TO_MINOR` and `TORTURE` categories with semantic similarity detection for child exploitation and torture-equivalent content.
+- **Automated Evaluation Pipeline ([`scripts/eval/optimize_malabs_thresholds.py`](scripts/eval/optimize_malabs_thresholds.py))**: Optuna-based search (TPE / “bayesian” sampler) for MalAbs semantic thresholds (θ_block, θ_allow), using the red-team corpus ([`scripts/eval/red_team_prompts.jsonl`](scripts/eval/red_team_prompts.jsonl)) with a regression guard vs baseline; artifacts under `artifacts/` when configured.
+- **Semantic MalAbs anchors ([`src/modules/semantic_chat_gate.py`](src/modules/semantic_chat_gate.py))**: Expanded reference anchors for `HARM_TO_MINOR` and `TORTURE` (child exploitation and torture-equivalent content); see Phase 2–3 sections below.
 
 ## Phase 2 — Semantic Vector Store Implementation & Integration — April 2026
 
@@ -133,6 +144,13 @@ All notable changes to this project are summarized here. For narrative context a
 - **Docs:** Updated [`docs/proposals/PROPOSAL_002_NARRATIVE_ARCHITECTURE_PLAN.md`](docs/proposals/PROPOSAL_002_NARRATIVE_ARCHITECTURE_PLAN.md) (Tier 2 marked delivered).
 - **Consolidation:** Integrated `BiographicPruner` and `MetacognitiveEvaluator` into the kernel processing loop.
 - **Swarm Consensus:** Implemented Trust Nudges (I7) and Solidarity Alerts in `MockDAO`.
+
+## Integration — `main` → `master-Cursor` merge hygiene — April 2026
+
+- **Merge:** `origin/main` merged into **`master-Cursor`** (production line + Cursor LAN/distributed-justice work).
+- **Narrative:** `NarrativeMemory.register` accepts keyword-only **`significance_override`** / **`is_sensitive_override`** for flashbulb paths ([`src/modules/narrative.py`](src/modules/narrative.py)); aligns metacognitive and biographic-pruning call sites.
+- **Immortality:** snapshot JSON path overridable with **`KERNEL_IMMORTALITY_BACKUP_PATH`** ([`src/modules/immortality.py`](src/modules/immortality.py)); tests isolate via [`tests/conftest.py`](tests/conftest.py).
+
 ## Distributed justice — Frontier witnesses + anchor compare CLI (DJ-BL-16 / DJ-BL-17) — April 2026
 
 - **Phase 4 / safe path (DJ-BL-18):** release checklist template under Phase 4 in [`docs/proposals/PROPOSAL_DAO_BLOCKCHAIN_DISTRIBUTED_JUSTICE_STAGED_EXECUTION.md`](docs/proposals/PROPOSAL_DAO_BLOCKCHAIN_DISTRIBUTED_JUSTICE_STAGED_EXECUTION.md); expanded **Anchor checkpoint CLI** operator notes (exit codes, no chain RPC, mismatch handling) and coordinator `aggregated_frontier_witness_resolutions` pointer in [`docs/proposals/OPERATOR_QUICK_REF.md`](docs/proposals/OPERATOR_QUICK_REF.md).

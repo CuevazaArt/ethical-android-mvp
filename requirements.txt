@@ -1,14 +1,21 @@
-# Direct deps; ranges keep pip aligned across CI matrix (3.11 / 3.12) — same major
-# numpy 1.x vs 2.x can diverge between runners and cause hard-to-reproduce failures.
+# ── Core (always needed) ─────────────────────────────────────────────
 numpy>=2.0.0,<3.0.0
-pytest>=7.4.0,<10.0.0
-anthropic>=0.18.0    # optional: non-default HTTP backend in llm_backends (documented path is Ollama)
-fastapi>=0.115.0,<1.0.0     # WebSocket chat server (src/chat_server.py)
-uvicorn[standard]>=0.30.0,<1.0.0
-httpx>=0.27.0,<1.0.0        # FastAPI TestClient
-cryptography>=42.0.0,<47.0.0  # Fernet checkpoints + Phase 4 nomadic Ed25519 handshake (existential_serialization)
-pydantic>=2.0.0,<3.0.0  # LLM perception JSON schema (perception_schema.py)
-jsonschema>=4.20.0,<5.0.0  # KernelSnapshotV1 JSON Schema validation (persistence)
+cryptography>=42.0.0,<47.0.0  # Fernet checkpoints + Phase 4 nomadic Ed25519 handshake
+pydantic>=2.0.0,<3.0.0        # LLM perception JSON schema (perception_schema.py)
+jsonschema>=4.20.0,<5.0.0     # KernelSnapshotV1 JSON Schema validation (persistence)
 prometheus-client>=0.20.0,<1.0.0  # optional /metrics when KERNEL_METRICS=1
-chromadb>=0.4.0,<1.0.0  # optional persistent vector store for semantic anchors (KERNEL_SEMANTIC_VECTOR_BACKEND=chroma)
-optuna>=3.0.0,<4.0.0  # optional Bayesian hyperparameter optimization for threshold tuning (Phase 3)
+
+# ── Runtime (chat server) ───────────────────────────────────────────
+fastapi>=0.115.0,<1.0.0       # WebSocket chat server (src/chat_server.py)
+uvicorn[standard]>=0.30.0,<1.0.0
+httpx>=0.27.0,<1.0.0          # FastAPI TestClient
+
+# ── Testing ──────────────────────────────────────────────────────────
+pytest>=7.4.0,<10.0.0
+
+# ── Optional heavy backends (see pyproject.toml extras) ─────────────
+# Uncomment or install via `pip install -e ".[all-optional]"`:
+# anthropic>=0.18.0            # non-default LLM HTTP backend (documented path is Ollama)
+# chromadb>=0.4.0,<1.0.0       # persistent vector store for semantic anchors
+# optuna>=3.0.0,<5.0.0         # Bayesian hyperparameter optimization for threshold tuning
+# torch>=2.0.0                 # MobileNetV2 vision adapter

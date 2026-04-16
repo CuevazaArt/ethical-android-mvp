@@ -769,7 +769,7 @@ def sim_20_sensor_conflict():
             "calm": 0.2,
             "vulnerability": 0.2,
             "legality": 0.9,
-            "perception_uncertainty": 0.6, # High uncertainty due to occlusion
+            "perception_uncertainty": 0.6,  # High uncertainty due to occlusion
             "multimodal_mismatch": 0.8,
         },
         actions=[

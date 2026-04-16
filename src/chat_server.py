@@ -127,7 +127,7 @@ from typing import Any
 from fastapi import FastAPI, WebSocket, WebSocketDisconnect
 from fastapi.responses import JSONResponse, Response
 
-from .kernel import ChatTurnResult, EthicalKernel
+from .kernel import ChatTurnResult, EthicalKernel, kernel_dao_as_mock
 from .modules.affective_homeostasis import homeostasis_telemetry
 from .modules.buffer import PreloadedBuffer
 from .modules.consequence_projection import qualitative_temporal_branches
@@ -567,7 +567,9 @@ def _chat_turn_to_jsonable(r: ChatTurnResult, kernel: EthicalKernel) -> dict[str
         },
         "identity": {
             **{
-                k: int(v) if k == "episode_count" else (v if isinstance(v, (list, dict, tuple)) else float(v))
+                k: int(v)
+                if k == "episode_count"
+                else (v if isinstance(v, list | dict | tuple) else float(v))
                 for k, v in asdict(idn.state).items()
             },
             "ascription": idn.ascription_line(),
@@ -757,7 +759,7 @@ def _chat_turn_to_jsonable(r: ChatTurnResult, kernel: EthicalKernel) -> dict[str
         out["nomad_identity"] = nomad_identity_public(kernel)
     if _chat_include_light_risk() and getattr(kernel, "_last_light_risk_tier", None):
         out["light_risk_tier"] = kernel._last_light_risk_tier
-    maybe_log_gray_zone_tuning_opportunity(kernel.dao, r, kernel=kernel)
+    maybe_log_gray_zone_tuning_opportunity(kernel_dao_as_mock(kernel.dao), r, kernel=kernel)
     return out
 
 
@@ -899,7 +901,7 @@ def constitution_public() -> JSONResponse:
 # docs/proposals/PROPOSAL_FIELD_TEST_PLAN.md.
 # ─────────────────────────────────────────────────────────────────────────────
 
-_FIELD_SESSION: dict[str, Any] = {}   # lightweight in-process session state
+_FIELD_SESSION: dict[str, Any] = {}  # lightweight in-process session state
 
 
 def _field_control_enabled() -> bool:
@@ -921,8 +923,10 @@ async def field_pair(request_body: dict[str, Any] | None = None) -> JSONResponse
     Rejects requests from non-RFC-1918 IPs unless KERNEL_FIELD_ALLOW_WAN=1.
     """
     if not _field_control_enabled():
-        return JSONResponse({"error": "field_control_disabled",
-                             "hint": "set KERNEL_FIELD_CONTROL=1"}, status_code=404)
+        return JSONResponse(
+            {"error": "field_control_disabled", "hint": "set KERNEL_FIELD_CONTROL=1"},
+            status_code=404,
+        )
 
     token = _field_pairing_token()
     if not token:
@@ -938,30 +942,31 @@ async def field_pair(request_body: dict[str, Any] | None = None) -> JSONResponse
     import hashlib
     import secrets
 
-    session_id = hashlib.sha256(
-        (secrets.token_hex(16) + token).encode()
-    ).hexdigest()[:24]
+    session_id = hashlib.sha256((secrets.token_hex(16) + token).encode()).hexdigest()[:24]
 
-    _FIELD_SESSION.update({
-        "session_id": session_id,
-        "paired_at": time.monotonic(),
-        "state": "running",
-        "decision_count": 0,
-        "sensor_frames_received": 0,
-    })
+    _FIELD_SESSION.update(
+        {
+            "session_id": session_id,
+            "paired_at": time.monotonic(),
+            "state": "running",
+            "decision_count": 0,
+            "sensor_frames_received": 0,
+        }
+    )
 
     logger.info("field_control: phone paired — session_id=%s", session_id)
-    from .modules.mock_dao import MockDAO  # import here to avoid startup cost when disabled
     # Emit a sidecar audit line if sidecar is configured
     _field_emit_audit("field_session_paired", f"session={session_id}")
 
-    return JSONResponse({
-        "field_session_id": session_id,
-        "expires_in_seconds": 3600,
-        "sensor_hz_max": int(os.environ.get("KERNEL_FIELD_SENSOR_HZ", "2")),
-        "ws_path": "/ws/chat",
-        "phone_ui": "/phone",
-    })
+    return JSONResponse(
+        {
+            "field_session_id": session_id,
+            "expires_in_seconds": 3600,
+            "sensor_hz_max": int(os.environ.get("KERNEL_FIELD_SENSOR_HZ", "2")),
+            "ws_path": "/ws/chat",
+            "phone_ui": "/phone",
+        }
+    )
 
 
 @app.get("/control/status")
@@ -974,13 +979,15 @@ def field_status() -> JSONResponse:
         return JSONResponse({"state": "idle", "session_id": None})
 
     uptime = round(time.monotonic() - _FIELD_SESSION.get("paired_at", time.monotonic()), 1)
-    return JSONResponse({
-        "state": _FIELD_SESSION.get("state", "idle"),
-        "session_id": _FIELD_SESSION.get("session_id"),
-        "uptime_s": uptime,
-        "decision_count": _FIELD_SESSION.get("decision_count", 0),
-        "sensor_frames_received": _FIELD_SESSION.get("sensor_frames_received", 0),
-    })
+    return JSONResponse(
+        {
+            "state": _FIELD_SESSION.get("state", "idle"),
+            "session_id": _FIELD_SESSION.get("session_id"),
+            "uptime_s": uptime,
+            "decision_count": _FIELD_SESSION.get("decision_count", 0),
+            "sensor_frames_received": _FIELD_SESSION.get("sensor_frames_received", 0),
+        }
+    )
 
 
 @app.post("/control/session")
@@ -998,13 +1005,13 @@ async def field_session_action(body: dict[str, Any] | None = None) -> JSONRespon
 
     action = str((body or {}).get("action", "")).strip().lower()
     if action not in ("pause", "resume", "end"):
-        return JSONResponse({"error": "unknown_action",
-                             "valid": ["pause", "resume", "end"]}, status_code=400)
+        return JSONResponse(
+            {"error": "unknown_action", "valid": ["pause", "resume", "end"]}, status_code=400
+        )
 
     if action == "end":
         _FIELD_SESSION["state"] = "ended"
-        _field_emit_audit("field_session_ended",
-                          f"session={_FIELD_SESSION.get('session_id', '?')}")
+        _field_emit_audit("field_session_ended", f"session={_FIELD_SESSION.get('session_id', '?')}")
         _field_flush_manifest()
     elif action == "pause":
         _FIELD_SESSION["state"] = "paused"
@@ -1036,6 +1043,7 @@ def phone_relay_ui() -> Response:
         )
 
     from pathlib import Path
+
     phone_html_path = Path(__file__).parent / "static" / "phone_relay.html"
     if phone_html_path.exists():
         content = phone_html_path.read_text(encoding="utf-8")
@@ -1060,11 +1068,16 @@ def _field_emit_audit(event_type: str, content: str) -> None:
     if not path:
         return
     import json as _json
-    line = _json.dumps({
-        "type": event_type,
-        "content": content,
-        "timestamp": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()),
-    }, sort_keys=True, ensure_ascii=False)
+
+    line = _json.dumps(
+        {
+            "type": event_type,
+            "content": content,
+            "timestamp": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()),
+        },
+        sort_keys=True,
+        ensure_ascii=False,
+    )
     try:
         with open(path, "a", encoding="utf-8") as f:
             f.write(line + "\n")
@@ -1087,7 +1100,9 @@ def _field_flush_manifest() -> None:
             "schema": "field_session_manifest_v1",
             "session_id": session_id,
             "state": _FIELD_SESSION.get("state"),
-            "uptime_s": round(time.monotonic() - _FIELD_SESSION.get("paired_at", time.monotonic()), 1),
+            "uptime_s": round(
+                time.monotonic() - _FIELD_SESSION.get("paired_at", time.monotonic()), 1
+            ),
             "decision_count": _FIELD_SESSION.get("decision_count", 0),
             "sensor_frames_received": _FIELD_SESSION.get("sensor_frames_received", 0),
             "env_field_allow_wan": os.environ.get("KERNEL_FIELD_ALLOW_WAN", "0"),
@@ -1518,7 +1533,7 @@ def _collect_lan_governance_judicial_batch(
             continue
         episode_id = row.get("episode_id")
         ep = str(episode_id).strip() if isinstance(episode_id, str) else None
-        rec = kernel.dao.register_escalation_case(para, episode_id=ep)
+        rec = kernel_dao_as_mock(kernel.dao).register_escalation_case(para, episode_id=ep)
         records.append({"event_id": eid, "audit_record_id": rec.id})
         applied_ids.append(eid)
 
@@ -1636,10 +1651,11 @@ def _collect_lan_governance_mock_court_batch(
         if not isinstance(buffer_conflict, bool):
             errors.append({"event_id": eid, "error": "buffer_conflict_must_be_bool"})
             continue
-        mc = kernel.dao.run_mock_escalation_court(
+        _dao = kernel_dao_as_mock(kernel.dao)
+        mc = _dao.run_mock_escalation_court(
             case_uuid, audit_record_id, summary_excerpt, buffer_conflict
         )
-        maybe_register_reparation_after_mock_court(kernel.dao, mc, case_uuid)
+        maybe_register_reparation_after_mock_court(_dao, mc, case_uuid)
         results.append({"event_id": eid, "case_uuid": case_uuid, "mock_court": mc})
         applied_ids.append(eid)
 
@@ -2048,13 +2064,14 @@ async def ws_chat(ws: WebSocket) -> None:
     )
     try_load_checkpoint(kernel)
     session_ckpt = init_session_checkpoint_state(kernel)
+    _session_dao = kernel_dao_as_mock(kernel.dao)
     audit_transparency_event(
-        kernel.dao,
+        _session_dao,
         "websocket_session_open",
         "moral_hub V12 Phase 1 — R&D transparency audit hook",
     )
     ethos_payroll_record_mock(
-        kernel.dao,
+        _session_dao,
         "session_start channel=websocket (EthosPayroll mock ledger line)",
     )
     bridge = RealTimeBridge(kernel)

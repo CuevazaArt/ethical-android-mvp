@@ -18,6 +18,7 @@ the Reflexive Mirror and Broken-Mirror logic survive restores.
 
 import hashlib
 import json
+import os
 from dataclasses import dataclass
 from datetime import datetime
 from pathlib import Path
@@ -94,8 +95,12 @@ class ImmortalityProtocol:
     would be a real external service.
     """
 
-    def __init__(self, persistence_path: str = "data/backups/immortality.json"):
-        self.path = Path(persistence_path)
+    def __init__(self, persistence_path: str | None = None) -> None:
+        default_path = os.environ.get(
+            "KERNEL_IMMORTALITY_BACKUP_PATH",
+            "data/backups/immortality.json",
+        )
+        self.path = Path(persistence_path or default_path)
         self.layers: dict[str, list[Snapshot]] = {
             "local": [],
             "cloud": [],
@@ -110,7 +115,7 @@ class ImmortalityProtocol:
         if not self.path.exists():
             return
         try:
-            with open(self.path, "r", encoding="utf-8") as f:
+            with open(self.path, encoding="utf-8") as f:
                 data = json.load(f)
                 for layer, snaps in data.items():
                     if layer in self.layers:
@@ -348,12 +353,10 @@ class ImmortalityProtocol:
         kernel.locus.beta = snapshot.beta_locus
         kernel.poles.base_weights = dict(snapshot.pole_weights)
 
-        # Restore Narrative digest and active arc pointer
+        # Restore narrative digest, active arc pointer, and identity state
         kernel.memory.experience_digest = snapshot.experience_digest
         if snapshot.active_arc_id != "none":
-            active = next(
-                (a for a in kernel.memory.arcs if a.id == snapshot.active_arc_id), None
-            )
+            active = next((a for a in kernel.memory.arcs if a.id == snapshot.active_arc_id), None)
             if active:
                 kernel.memory.active_arc = active
 
@@ -370,6 +373,7 @@ class ImmortalityProtocol:
             return
         try:
             from .narrative_identity import NarrativeIdentityState
+
             data = json.loads(identity_json)
             state = NarrativeIdentityState(
                 civic_lean=data.get("civic_lean", 0.5),

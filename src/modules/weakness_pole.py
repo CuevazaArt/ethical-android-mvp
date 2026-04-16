@@ -74,7 +74,7 @@ class WeaknessPole:
         WeaknessType.RIGID: 0.2,
         WeaknessType.IMPULSIVE: 0.3,
         WeaknessType.MELANCHOLIC: 0.25,
-        WeaknessType.COMPASSION_FATIGUE: 0.4, # High baseline as it triggers after repeat strain
+        WeaknessType.COMPASSION_FATIGUE: 0.4,  # High baseline as it triggers after repeat strain
     }
 
     # Decay rate per cycle (prevents accumulation)

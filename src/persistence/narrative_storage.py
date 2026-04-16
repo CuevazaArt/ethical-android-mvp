@@ -8,10 +8,8 @@ import json
 import sqlite3
 from datetime import datetime
 from pathlib import Path
-from typing import Any
 
-from src.modules.narrative_types import NarrativeEpisode, BodyState
-from contextlib import closing
+from src.modules.narrative_types import BodyState, NarrativeArc, NarrativeEpisode
 
 
 def _connect(path: Path) -> sqlite3.Connection:
@@ -72,7 +70,7 @@ def _ensure_schema(conn: sqlite3.Connection) -> None:
     try:
         conn.execute("ALTER TABLE narrative_episodes ADD COLUMN weights_snapshot TEXT")
     except sqlite3.OperationalError:
-        pass # Already exists
+        pass  # Already exists
 
 
 class NarrativePersistence:
@@ -82,29 +80,41 @@ class NarrativePersistence:
 
     def __init__(self, path: Path | str):
         self.path = Path(path)
+        self._memory_conn: sqlite3.Connection | None = None
+        if str(self.path) == ":memory:":
+            self._memory_conn = _connect(self.path)
+            _ensure_schema(self._memory_conn)
+
+    def _conn(self) -> sqlite3.Connection:
+        """Return the shared in-memory connection or open a new file-based one."""
+        if self._memory_conn is not None:
+            return self._memory_conn
+        return _connect(self.path)
 
     def save_episode(self, ep: NarrativeEpisode) -> None:
-        self.path.parent.mkdir(parents=True, exist_ok=True)
-        
-        # Serialize complex nested objects to JSON
+        if self._memory_conn is None:
+            self.path.parent.mkdir(parents=True, exist_ok=True)
+
         payload = {
             "body_state": {
                 "energy": ep.body_state.energy,
                 "active_nodes": ep.body_state.active_nodes,
                 "sensors_ok": ep.body_state.sensors_ok,
-                "description": ep.body_state.description
+                "description": ep.body_state.description,
             },
             "morals": ep.morals,
             "affect_pad": ep.affect_pad,
             "affect_weights": ep.affect_weights,
-            "decision_mode": ep.decision_mode
+            "decision_mode": ep.decision_mode,
         }
-        
-        with closing(_connect(self.path)) as conn:
+
+        own_conn = self._memory_conn is None
+        conn = self._conn()
+        try:
             _ensure_schema(conn)
             with conn:
                 conn.execute(
-                """
+                    """
                 INSERT INTO narrative_episodes (
                     id, timestamp, place, event_description, action_taken, 
                     verdict, ethical_score, sigma, context, significance,
@@ -126,40 +136,68 @@ class NarrativePersistence:
                     weights_snapshot=excluded.weights_snapshot,
                     json_payload=excluded.json_payload
                 """,
-                (
-                    ep.id, ep.timestamp, ep.place, ep.event_description, 
-                    ep.action_taken, ep.verdict, ep.ethical_score, 
-                    ep.sigma, ep.context, ep.significance, ep.is_sensitive,
-                    ep.arc_id,
-                    json.dumps(ep.semantic_embedding) if ep.semantic_embedding else None,
-                    json.dumps(ep.weights_snapshot) if ep.weights_snapshot else None,
-                    json.dumps(payload, ensure_ascii=False)
+                    (
+                        ep.id,
+                        ep.timestamp,
+                        ep.place,
+                        ep.event_description,
+                        ep.action_taken,
+                        ep.verdict,
+                        ep.ethical_score,
+                        ep.sigma,
+                        ep.context,
+                        ep.significance,
+                        ep.is_sensitive,
+                        ep.arc_id,
+                        json.dumps(ep.semantic_embedding) if ep.semantic_embedding else None,
+                        json.dumps(ep.weights_snapshot) if ep.weights_snapshot else None,
+                        json.dumps(payload, ensure_ascii=False),
+                    ),
                 )
-            )
             conn.commit()
-            conn.close()
+        finally:
+            if own_conn:
+                conn.close()
 
     def load_all_episodes(self) -> list[NarrativeEpisode]:
-        if str(self.path) != ":memory:" and not self.path.is_file():
+        if self._memory_conn is None and not self.path.is_file():
             return []
-        
+
         episodes = []
-        with closing(_connect(self.path)) as conn:
+        own_conn = self._memory_conn is None
+        conn = self._conn()
+        try:
             _ensure_schema(conn)
             cursor = conn.execute(
                 "SELECT id, timestamp, place, event_description, action_taken, verdict, ethical_score, sigma, context, significance, is_sensitive, arc_id, semantic_embedding, weights_snapshot, json_payload FROM narrative_episodes ORDER BY timestamp ASC"
             )
             for row in cursor:
-                id, ts, place, desc, action, verdict, score, sigma, context, sig, sens, arc_id, embed_str, weights_str, payload_str = row
+                (
+                    id,
+                    ts,
+                    place,
+                    desc,
+                    action,
+                    verdict,
+                    score,
+                    sigma,
+                    context,
+                    sig,
+                    sens,
+                    arc_id,
+                    embed_str,
+                    weights_str,
+                    payload_str,
+                ) = row
                 payload = json.loads(payload_str)
                 bs_data = payload.get("body_state", {})
                 bs = BodyState(
                     energy=bs_data.get("energy", 1.0),
                     active_nodes=bs_data.get("active_nodes", 8),
                     sensors_ok=bs_data.get("sensors_ok", True),
-                    description=bs_data.get("description", "")
+                    description=bs_data.get("description", ""),
                 )
-                
+
                 ep = NarrativeEpisode(
                     id=id,
                     timestamp=ts,
@@ -179,73 +217,90 @@ class NarrativePersistence:
                     is_sensitive=bool(sens),
                     arc_id=arc_id,
                     semantic_embedding=json.loads(embed_str) if embed_str else None,
-                    weights_snapshot=tuple(json.loads(weights_str)) if weights_str else None
+                    weights_snapshot=tuple(json.loads(weights_str)) if weights_str else None,
                 )
                 episodes.append(ep)
+        finally:
+            if own_conn:
+                conn.close()
         return episodes
 
     def search_by_resonance(
-        self, 
-        context: str | None = None, 
+        self,
+        context: str | None = None,
         min_sigma: float | None = None,
         target_pad: tuple[float, float, float] | None = None,
-        limit: int = 5
+        limit: int = 5,
     ) -> list[NarrativeEpisode]:
         """
         Search episodes by context or emotional resonance.
         If target_pad is provided, it returns the closest episodes using Euclidean distance.
         """
         all_ep = self.load_all_episodes()
-        
+
         # Initial filtering
         filtered = [
-            ep for ep in all_ep 
-            if (not context or ep.context == context) and 
-               (min_sigma is None or ep.sigma >= min_sigma)
+            ep
+            for ep in all_ep
+            if (not context or ep.context == context)
+            and (min_sigma is None or ep.sigma >= min_sigma)
         ]
-        
+
         if target_pad and filtered:
             # Sort by Euclidean distance to target_pad
             def distance(ep: NarrativeEpisode) -> float:
                 if ep.affect_pad is None:
                     return 999.9
-                return sum((a - b)**2 for a, b in zip(ep.affect_pad, target_pad))**0.5
-            
+                return sum((a - b) ** 2 for a, b in zip(ep.affect_pad, target_pad)) ** 0.5
+
             filtered.sort(key=distance)
-            
+
         return filtered[:limit]
 
     def save_identity_digest(self, digest: str) -> None:
-        with closing(_connect(self.path)) as conn:
+        own_conn = self._memory_conn is None
+        conn = self._conn()
+        try:
             _ensure_schema(conn)
             with conn:
                 conn.execute(
-                """
+                    """
                 INSERT INTO identity_digests (id, existence_digest, last_updated)
                 VALUES (1, ?, ?)
                 ON CONFLICT(id) DO UPDATE SET
                     existence_digest=excluded.existence_digest,
                     last_updated=excluded.last_updated
                 """,
-                (digest, datetime.now().isoformat())
-            )
+                    (digest, datetime.now().isoformat()),
+                )
             conn.commit()
-            conn.close()
+        finally:
+            if own_conn:
+                conn.close()
 
     def load_identity_digest(self) -> str:
-        if str(self.path) != ":memory:" and not self.path.is_file():
+        if self._memory_conn is None and not self.path.is_file():
             return ""
-        with closing(_connect(self.path)) as conn:
+        own_conn = self._memory_conn is None
+        conn = self._conn()
+        try:
             _ensure_schema(conn)
-            row = conn.execute("SELECT existence_digest FROM identity_digests WHERE id = 1").fetchone()
+            row = conn.execute(
+                "SELECT existence_digest FROM identity_digests WHERE id = 1"
+            ).fetchone()
             return row[0] if row else ""
+        finally:
+            if own_conn:
+                conn.close()
 
     def save_arc(self, arc: NarrativeArc) -> None:
-        with closing(_connect(self.path)) as conn:
+        own_conn = self._memory_conn is None
+        conn = self._conn()
+        try:
             _ensure_schema(conn)
             with conn:
                 conn.execute(
-                """
+                    """
                 INSERT INTO narrative_arcs (
                     id, title, context, start_timestamp, end_timestamp, 
                     predominant_archetype, summary, is_active, episodes_json
@@ -258,19 +313,29 @@ class NarrativePersistence:
                     is_active=excluded.is_active,
                     episodes_json=excluded.episodes_json
                 """,
-                (
-                    arc.id, arc.title, arc.context, arc.start_timestamp, 
-                    arc.end_timestamp, arc.predominant_archetype, 
-                    arc.summary, arc.is_active, json.dumps(arc.episodes_ids)
+                    (
+                        arc.id,
+                        arc.title,
+                        arc.context,
+                        arc.start_timestamp,
+                        arc.end_timestamp,
+                        arc.predominant_archetype,
+                        arc.summary,
+                        arc.is_active,
+                        json.dumps(arc.episodes_ids),
+                    ),
                 )
-            )
+        finally:
+            if own_conn:
+                conn.close()
 
     def load_all_arcs(self) -> list[NarrativeArc]:
-        if str(self.path) != ":memory:" and not self.path.is_file():
+        if self._memory_conn is None and not self.path.is_file():
             return []
-        from src.modules.narrative_types import NarrativeArc
         arcs = []
-        with closing(_connect(self.path)) as conn:
+        own_conn = self._memory_conn is None
+        conn = self._conn()
+        try:
             _ensure_schema(conn)
             cursor = conn.execute(
                 "SELECT id, title, context, start_timestamp, end_timestamp, predominant_archetype, summary, is_active, episodes_json FROM narrative_arcs ORDER BY start_timestamp ASC"
@@ -287,9 +352,12 @@ class NarrativePersistence:
                         predominant_archetype=arch,
                         summary=summary,
                         is_active=bool(active),
-                        episodes_ids=json.loads(episodes_str)
+                        episodes_ids=json.loads(episodes_str),
                     )
                 )
+        finally:
+            if own_conn:
+                conn.close()
         return arcs
 
     def prune_mundane(self, max_age_days: int = 60, min_significance: float = 0.70) -> int:
@@ -297,7 +365,9 @@ class NarrativePersistence:
         Removes old episodes with low significance.
         Returns the number of deleted rows.
         """
-        with closing(_connect(self.path)) as conn:
+        own_conn = self._memory_conn is None
+        conn = self._conn()
+        try:
             _ensure_schema(conn)
             with conn:
                 query = """
@@ -307,24 +377,36 @@ class NarrativePersistence:
                 """
                 cursor = conn.execute(query, (min_significance, max_age_days))
                 return cursor.rowcount
+        finally:
+            if own_conn:
+                conn.close()
 
     def delete_episode(self, episode_id: str) -> bool:
         """Permanently deletes an episode by ID (Right to be Forgotten)."""
-        with closing(_connect(self.path)) as conn:
+        own_conn = self._memory_conn is None
+        conn = self._conn()
+        try:
             _ensure_schema(conn)
             with conn:
                 cursor = conn.execute("DELETE FROM narrative_episodes WHERE id = ?", (episode_id,))
                 return cursor.rowcount > 0
+        finally:
+            if own_conn:
+                conn.close()
 
-    def get_prunable_episodes(self, max_age_days: int = 60, min_significance: float = 0.70) -> list[NarrativeEpisode]:
+    def get_prunable_episodes(
+        self, max_age_days: int = 60, min_significance: float = 0.70
+    ) -> list[NarrativeEpisode]:
         """
         Returns episodes that would be deleted by prune_mundane.
         """
-        if str(self.path) != ":memory:" and not self.path.is_file():
+        if self._memory_conn is None and not self.path.is_file():
             return []
-        
+
         episodes = []
-        with closing(_connect(self.path)) as conn:
+        own_conn = self._memory_conn is None
+        conn = self._conn()
+        try:
             _ensure_schema(conn)
             query = """
                 SELECT id, timestamp, place, event_description, action_taken, verdict, ethical_score, sigma, context, significance, is_sensitive, arc_id, semantic_embedding, weights_snapshot, json_payload 
@@ -335,17 +417,34 @@ class NarrativePersistence:
             cursor = conn.execute(query, (min_significance, max_age_days))
             for row in cursor:
                 # Reuse the load logic
-                id, ts, place, desc, action, verdict, score, sigma, context, sig, sens, arc_id, embed_str, weights_str, payload_str = row
+                (
+                    id,
+                    ts,
+                    place,
+                    desc,
+                    action,
+                    verdict,
+                    score,
+                    sigma,
+                    context,
+                    sig,
+                    sens,
+                    arc_id,
+                    embed_str,
+                    weights_str,
+                    payload_str,
+                ) = row
                 payload = json.loads(payload_str)
                 bs_data = payload.get("body_state", {})
                 from src.modules.narrative_types import BodyState
+
                 bs = BodyState(
                     energy=bs_data.get("energy", 1.0),
                     active_nodes=bs_data.get("active_nodes", 8),
                     sensors_ok=bs_data.get("sensors_ok", True),
-                    description=bs_data.get("description", "")
+                    description=bs_data.get("description", ""),
                 )
-                
+
                 ep = NarrativeEpisode(
                     id=id,
                     timestamp=ts,
@@ -365,7 +464,10 @@ class NarrativePersistence:
                     is_sensitive=bool(sens),
                     arc_id=arc_id,
                     semantic_embedding=json.loads(embed_str) if embed_str else None,
-                    weights_snapshot=tuple(json.loads(weights_str)) if weights_str else None
+                    weights_snapshot=tuple(json.loads(weights_str)) if weights_str else None,
                 )
                 episodes.append(ep)
+        finally:
+            if own_conn:
+                conn.close()
         return episodes

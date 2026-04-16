@@ -37,7 +37,7 @@ from pathlib import Path
 
 try:
     import optuna
-    from optuna.samplers import BayesianSampler, RandomSampler, TPESampler
+    from optuna.samplers import RandomSampler, TPESampler
 except ImportError:
     print("ERROR: optuna not installed. Install with: pip install optuna")
     sys.exit(1)
@@ -45,6 +45,7 @@ except ImportError:
 _REPO_ROOT = Path(__file__).resolve().parents[2]
 if str(_REPO_ROOT) not in sys.path:
     sys.path.insert(0, str(_REPO_ROOT))
+
 
 @dataclass
 class EvalMetrics:
@@ -75,12 +76,16 @@ class EvalMetrics:
         denom = self.false_block + self.true_allow
         return self.false_block / denom if denom > 0 else 0.0
 
-    def weighted_loss(self, false_allow_weight: float = 2.0, false_block_weight: float = 1.0) -> float:
-        """Weighted loss: penalize false_allow (misses harmful) more than false_block (over-blocks)."""
+    def weighted_loss(
+        self, false_allow_weight: float = 2.0, false_block_weight: float = 1.0
+    ) -> float:
+        """Weighted loss: penalize false_allow (misses harmful) more than false_block."""
         total = self.total
         if total == 0:
             return float("inf")
-        return (self.false_allow * false_allow_weight + self.false_block * false_block_weight) / total
+        return (
+            self.false_allow * false_allow_weight + self.false_block * false_block_weight
+        ) / total
 
 
 def load_red_team_prompts(path: Path) -> list[tuple[str, bool, str]]:
@@ -92,7 +97,9 @@ def load_red_team_prompts(path: Path) -> list[tuple[str, bool, str]]:
         if not line:
             continue
         o = json.loads(line)
-        rows.append((str(o.get("text_en", "")), bool(o.get("expect_blocked")), str(o.get("category", ""))))
+        rows.append(
+            (str(o.get("text_en", "")), bool(o.get("expect_blocked")), str(o.get("category", "")))
+        )
     return rows
 
 
@@ -102,11 +109,11 @@ def evaluate_at_thresholds(
     prompts: list[tuple[str, bool, str]],
 ) -> EvalMetrics:
     """Run MalAbs evaluation suite at given thresholds."""
-    
+
     # Overwrite environment so the AbsoluteEvilDetector picks it up
     os.environ["KERNEL_SEMANTIC_CHAT_SIM_BLOCK_THRESHOLD"] = str(theta_block)
     os.environ["KERNEL_SEMANTIC_CHAT_SIM_ALLOW_THRESHOLD"] = str(theta_allow)
-    
+
     from src.modules.absolute_evil import AbsoluteEvilDetector
 
     # Validate constraint: theta_allow < theta_block
@@ -132,9 +139,10 @@ def evaluate_at_thresholds(
     return metrics
 
 
-def objective(trial: optuna.Trial, prompts: list[tuple[str, bool, str]], baseline: EvalMetrics) -> float:
+def objective(
+    trial: optuna.Trial, prompts: list[tuple[str, bool, str]], baseline: EvalMetrics
+) -> float:
     """Optuna objective function: minimize weighted loss with regression penalty."""
-    # Suggest hyperparameters within bounds
     theta_allow = trial.suggest_float(
         "theta_allow",
         float(os.environ.get("KERNEL_MALABS_ALLOW_THRESHOLD_MIN", "0.3")),
@@ -146,20 +154,16 @@ def objective(trial: optuna.Trial, prompts: list[tuple[str, bool, str]], baselin
         float(os.environ.get("KERNEL_MALABS_BLOCK_THRESHOLD_MAX", "0.95")),
     )
 
-    # Enforce constraint: allow < block
     if theta_allow >= theta_block:
         return float("inf")
 
-    # Evaluate
     metrics = evaluate_at_thresholds(theta_allow, theta_block, prompts)
 
-    # Weighted loss (false_allow more costly than false_block)
     loss = metrics.weighted_loss(false_allow_weight=2.0, false_block_weight=1.0)
 
-    # Regression penalty: don't degrade from baseline
     baseline_loss = baseline.weighted_loss(false_allow_weight=2.0, false_block_weight=1.0)
-    if loss > baseline_loss * 1.1:  # Allow 10% degradation
-        loss *= 1.5  # Penalize regression
+    if loss > baseline_loss * 1.1:
+        loss *= 1.5
 
     return loss
 
@@ -194,12 +198,12 @@ def main() -> None:
     p.add_argument(
         "--db",
         type=Path,
-        default=Path(os.environ.get("KERNEL_MALABS_TUNING_ARTIFACTS_PATH", "artifacts/")) / "optuna_study.db",
+        default=Path(os.environ.get("KERNEL_MALABS_TUNING_ARTIFACTS_PATH", "artifacts/"))
+        / "optuna_study.db",
         help="Optuna study database path",
     )
     args = p.parse_args()
 
-    # Feature flag check
     if os.environ.get("KERNEL_MALABS_THRESHOLD_OPTIMIZATION_ENABLED", "").strip().lower() not in (
         "1",
         "true",
@@ -207,7 +211,6 @@ def main() -> None:
     ):
         print("WARN: KERNEL_MALABS_THRESHOLD_OPTIMIZATION_ENABLED not set. Proceeding anyway.")
 
-    # Load evaluation set
     if not args.jsonl.exists():
         print(f"ERROR: {args.jsonl} not found")
         sys.exit(1)
@@ -221,16 +224,16 @@ def main() -> None:
     baseline = evaluate_at_thresholds(0.45, 0.82, prompts)
     print(f"Baseline: {asdict(baseline)}")
 
-    # Setup Optuna study
     args.db.parent.mkdir(parents=True, exist_ok=True)
     db_url = f"sqlite:///{args.db}"
 
     sampler_map = {
         "random": RandomSampler(seed=42),
         "tpe": TPESampler(seed=42),
-        "bayesian": BayesianSampler(),
+        # "bayesian" uses TPE (tree-structured Parzen estimator); `BayesianSampler` is not in all Optuna builds.
+        "bayesian": TPESampler(seed=42, n_startup_trials=10),
     }
-    sampler = sampler_map.get(args.sampler, BayesianSampler())
+    sampler = sampler_map.get(args.sampler, TPESampler(seed=42, n_startup_trials=10))
 
     print(f"Starting {args.sampler} optimization ({args.n_trials} trials)...")
     study = optuna.create_study(
@@ -247,15 +250,13 @@ def main() -> None:
         show_progress_bar=True,
     )
 
-    # Report results
     best_trial = study.best_trial
     print("\n" + "=" * 60)
     print("Optimization Complete")
     print(f"   Best loss: {best_trial.value:.4f}")
-    print(f"   Best θ_allow: {best_trial.params['theta_allow']:.4f}")
-    print(f"   Best θ_block: {best_trial.params['theta_block']:.4f}")
+    print(f"   Best theta_allow: {best_trial.params['theta_allow']:.4f}")
+    print(f"   Best theta_block: {best_trial.params['theta_block']:.4f}")
 
-    # Evaluate best thresholds
     best_metrics = evaluate_at_thresholds(
         best_trial.params["theta_allow"],
         best_trial.params["theta_block"],
@@ -271,7 +272,12 @@ def main() -> None:
     print(f"     FP Rate: {best_metrics.fp_rate:.3f}")
     print("=" * 60)
 
-    # Save output
+    baseline_loss = baseline.weighted_loss(false_allow_weight=2.0, false_block_weight=1.0)
+    if best_trial.value > baseline_loss * 1.1:
+        print("WARNING: Best result is degraded vs baseline (>10% loss increase)")
+    else:
+        print("Regression check passed: improvement or acceptable degradation vs baseline")
+
     if args.output:
         output_data = {
             "best_params": best_trial.params,

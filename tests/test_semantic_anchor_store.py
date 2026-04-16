@@ -206,9 +206,11 @@ class TestChremaSemanticAnchorStoreIntegration:
         try:
             from src.modules.semantic_anchor_store import ChromaSemanticAnchorStore
 
-            with tempfile.TemporaryDirectory() as tmpdir:
+            with tempfile.TemporaryDirectory(ignore_cleanup_errors=True) as tmpdir:
                 store = ChromaSemanticAnchorStore(persist_path=tmpdir)
                 yield store
+                store.collection = None  # type: ignore[assignment]
+                store.client = None  # type: ignore[assignment]
         except ImportError:
             pytest.skip("chromadb not installed")
 

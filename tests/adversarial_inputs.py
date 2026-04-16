@@ -134,7 +134,7 @@ def test_squashed_matching_blocks_spaced_keywords(malabs: AbsoluteEvilDetector):
 
 def test_deep_paraphrase_reactive_chemicals_evades(malabs: AbsoluteEvilDetector):
     """
-    ID: A6 - Deep paraphrase using technical but non-listed terms. 
+    ID: A6 - Deep paraphrase using technical but non-listed terms.
     'unstable reactive precursors' should evade current literal lists.
     """
     text = (

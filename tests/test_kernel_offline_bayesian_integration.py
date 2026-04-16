@@ -15,23 +15,19 @@ ADR 0014 invariants tested:
 
 from __future__ import annotations
 
-import os
 from pathlib import Path
 
 import pytest
+from src.kernel import EthicalKernel
 
-_FIXTURE_FB = (
-    Path(__file__).resolve().parent / "fixtures" / "feedback" / "compatible_17_18_19.json"
-)
+_FIXTURE_FB = Path(__file__).resolve().parent / "fixtures" / "feedback" / "compatible_17_18_19.json"
 _FIXTURE_SCENARIOS = (
     Path(__file__).resolve().parent / "fixtures" / "empirical_pilot" / "scenarios.json"
 )
 
 
-def _make_kernel(monkeypatch: pytest.MonkeyPatch) -> "EthicalKernel":  # type: ignore[name-defined]
+def _make_kernel(monkeypatch: pytest.MonkeyPatch) -> EthicalKernel:
     """Build a minimal offline kernel using LLM_MODE=local (heuristic templates, no API)."""
-    from src.kernel import EthicalKernel
-
     monkeypatch.setenv("LLM_MODE", "local")
     monkeypatch.setenv("KERNEL_SEMANTIC_EMBED_HASH_FALLBACK", "1")
     # local mode uses heuristic templates — no LLM object needed
@@ -42,10 +38,12 @@ def _make_kernel(monkeypatch: pytest.MonkeyPatch) -> "EthicalKernel":  # type: i
 # Baseline offline (no Bayesian)
 # ---------------------------------------------------------------------------
 
+
 def test_offline_process_completes(monkeypatch: pytest.MonkeyPatch) -> None:
     """ADR 0014 invariant 1 + 2: process() completes and final_action is populated."""
     kernel = _make_kernel(monkeypatch)
     from src.simulations.runner import ALL_SIMULATIONS
+
     scn = ALL_SIMULATIONS[1]()
     d = kernel.process(
         scenario=scn.name,
@@ -63,6 +61,7 @@ def test_offline_process_completes(monkeypatch: pytest.MonkeyPatch) -> None:
 # ADR 0012 Level 2 offline
 # ---------------------------------------------------------------------------
 
+
 def test_offline_bayesian_feedback_l2(monkeypatch: pytest.MonkeyPatch) -> None:
     """mixture_posterior_alpha populated when KERNEL_BAYESIAN_FEEDBACK active (offline)."""
     if not _FIXTURE_FB.is_file():
@@ -74,6 +73,7 @@ def test_offline_bayesian_feedback_l2(monkeypatch: pytest.MonkeyPatch) -> None:
 
     kernel = _make_kernel(monkeypatch)
     from src.simulations.runner import ALL_SIMULATIONS
+
     scn = ALL_SIMULATIONS[17]()
     d = kernel.process(
         scenario=scn.name,
@@ -94,6 +94,7 @@ def test_offline_bayesian_feedback_l2(monkeypatch: pytest.MonkeyPatch) -> None:
 # ADR 0013 HierarchicalUpdater offline
 # ---------------------------------------------------------------------------
 
+
 def test_offline_hierarchical_feedback(monkeypatch: pytest.MonkeyPatch) -> None:
     """KERNEL_HIERARCHICAL_FEEDBACK active: mixture_posterior_alpha populated offline."""
     if not _FIXTURE_FB.is_file():
@@ -105,6 +106,7 @@ def test_offline_hierarchical_feedback(monkeypatch: pytest.MonkeyPatch) -> None:
 
     kernel = _make_kernel(monkeypatch)
     from src.simulations.runner import ALL_SIMULATIONS
+
     scn = ALL_SIMULATIONS[17]()
     d = kernel.process(
         scenario=scn.name,
@@ -129,18 +131,27 @@ def test_offline_hierarchical_cache_reuse(monkeypatch: pytest.MonkeyPatch) -> No
 
     kernel = _make_kernel(monkeypatch)
     from src.simulations.runner import ALL_SIMULATIONS
+
     scn = ALL_SIMULATIONS[17]()
 
     # First tick — builds cache
     kernel.process(
-        scenario=scn.name, place="test", context=scn.context, actions=scn.actions, signals=scn.signals
+        scenario=scn.name,
+        place="test",
+        context=scn.context,
+        actions=scn.actions,
+        signals=scn.signals,
     )
     cache_after_first = kernel._hier_updater_cache
     mtime_after_first = kernel._hier_cache_mtime
 
     # Second tick — should reuse cache (same file, no mtime change)
     kernel.process(
-        scenario=scn.name, place="test", context=scn.context, actions=scn.actions, signals=scn.signals
+        scenario=scn.name,
+        place="test",
+        context=scn.context,
+        actions=scn.actions,
+        signals=scn.signals,
     )
     assert kernel._hier_updater_cache is cache_after_first, "cache object must be reused"
     assert kernel._hier_cache_mtime == mtime_after_first
@@ -149,6 +160,7 @@ def test_offline_hierarchical_cache_reuse(monkeypatch: pytest.MonkeyPatch) -> No
 # ---------------------------------------------------------------------------
 # OOS-004: precedence warning (both flags)
 # ---------------------------------------------------------------------------
+
 
 def test_precedence_warning_logged(
     monkeypatch: pytest.MonkeyPatch, caplog: pytest.LogCaptureFixture
@@ -164,22 +176,29 @@ def test_precedence_warning_logged(
 
     kernel = _make_kernel(monkeypatch)
     from src.simulations.runner import ALL_SIMULATIONS
+
     scn = ALL_SIMULATIONS[17]()
 
     import logging
+
     with caplog.at_level(logging.WARNING, logger="src.kernel"):
         kernel.process(
-            scenario=scn.name, place="test", context=scn.context, actions=scn.actions, signals=scn.signals
+            scenario=scn.name,
+            place="test",
+            context=scn.context,
+            actions=scn.actions,
+            signals=scn.signals,
         )
 
-    assert any("OOS-004" in r.message or "Precedence conflict" in r.message for r in caplog.records), (
-        "Expected OOS-004 precedence warning in logs"
-    )
+    assert any(
+        "OOS-004" in r.message or "Precedence conflict" in r.message for r in caplog.records
+    ), "Expected OOS-004 precedence warning in logs"
 
 
 # ---------------------------------------------------------------------------
 # BMA offline
 # ---------------------------------------------------------------------------
+
 
 def test_offline_bma_fields(monkeypatch: pytest.MonkeyPatch) -> None:
     """BMA win_probabilities populated offline when KERNEL_BMA_ENABLED=1."""
@@ -189,6 +208,7 @@ def test_offline_bma_fields(monkeypatch: pytest.MonkeyPatch) -> None:
 
     kernel = _make_kernel(monkeypatch)
     from src.simulations.runner import ALL_SIMULATIONS
+
     scn = ALL_SIMULATIONS[1]()
     d = kernel.process(
         scenario=scn.name,

@@ -40,7 +40,7 @@ from __future__ import annotations
 
 import math
 import os
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from typing import Any
 
 from .feedback_mixture_updater import (
@@ -54,15 +54,17 @@ from .feedback_mixture_updater import (
 # Context taxonomy (ADR 0013 §Context type taxonomy)
 # ---------------------------------------------------------------------------
 
-KNOWN_CONTEXT_TYPES: frozenset[str] = frozenset({
-    "resource_allocation",
-    "promise_conflict",
-    "confrontation",
-    "emergency",
-    "integrity",
-    "relational",
-    "general",
-})
+KNOWN_CONTEXT_TYPES: frozenset[str] = frozenset(
+    {
+        "resource_allocation",
+        "promise_conflict",
+        "confrontation",
+        "emergency",
+        "integrity",
+        "relational",
+        "general",
+    }
+)
 
 # Legacy context strings → canonical type (from ADR 0013 table)
 CONTEXT_LEGACY_MAP: dict[str, str] = {
@@ -98,6 +100,7 @@ def canonical_context_type(raw: str | None) -> str:
 # τ blending schedule
 # ---------------------------------------------------------------------------
 
+
 def _tau(n_local: int, tau_max: float) -> float:
     """
     Sigmoid-like blend fraction increasing from 0 toward ``tau_max``.
@@ -118,19 +121,18 @@ def _blend_means(
     tau: float,
 ) -> list[float]:
     """Linear blend: ``(1-τ)·global + τ·local`` on the 3-simplex."""
-    return [
-        (1.0 - tau) * g + tau * l
-        for g, l in zip(global_mean, local_mean)
-    ]
+    return [(1.0 - tau) * g + tau * loc for g, loc in zip(global_mean, local_mean)]
 
 
 # ---------------------------------------------------------------------------
 # HierarchicalUpdater
 # ---------------------------------------------------------------------------
 
+
 @dataclass
 class HierarchicalSnapshot:
     """Serialisable state for :class:`HierarchicalUpdater`."""
+
     global_snapshot: dict[str, Any]
     context_snapshots: dict[str, dict[str, Any]]
     context_counts: dict[str, int]
@@ -187,9 +189,7 @@ class HierarchicalUpdater:
             else _env_int("KERNEL_HIERARCHICAL_MIN_LOCAL", 3)
         )
         self.tau_max: float = (
-            tau_max
-            if tau_max is not None
-            else _env_float("KERNEL_HIERARCHICAL_TAU_MAX", 0.8)
+            tau_max if tau_max is not None else _env_float("KERNEL_HIERARCHICAL_TAU_MAX", 0.8)
         )
         self._update_strength = update_strength
         self._n_samples = n_samples
@@ -217,7 +217,7 @@ class HierarchicalUpdater:
         """Return (creating if needed) the local updater for ``ctype``."""
         if ctype not in self._contexts:
             # Deterministic seed per context type for reproducibility
-            ctx_seed = (self._seed + abs(hash(ctype))) % (2 ** 16)
+            ctx_seed = (self._seed + abs(hash(ctype))) % (2**16)
             self._contexts[ctype] = self._make_updater(ctx_seed)
             self.context_counts[ctype] = 0
         return self._contexts[ctype]
@@ -313,13 +313,15 @@ class HierarchicalUpdater:
             alpha = self.active_alpha_for_context(ctype)
             total = sum(alpha)
             tau = _tau(n, self.tau_max) if n >= self.min_local_items else 0.0
-            rows.append({
-                "context_type": ctype,
-                "n_feedback": n,
-                "active": n >= self.min_local_items,
-                "tau": round(tau, 4),
-                "posterior_mean": [round(a / total, 4) for a in alpha],
-            })
+            rows.append(
+                {
+                    "context_type": ctype,
+                    "n_feedback": n,
+                    "active": n >= self.min_local_items,
+                    "tau": round(tau, 4),
+                    "posterior_mean": [round(a / total, 4) for a in alpha],
+                }
+            )
         return {
             "global_alpha": [round(a, 4) for a in self._global.alpha],
             "global_mean": [round(m, 4) for m in self._global.posterior_mean()],
@@ -337,9 +339,7 @@ class HierarchicalUpdater:
         return {
             "schema": "hierarchical_updater_v1",
             "global_snapshot": self._global.snapshot(),
-            "context_snapshots": {
-                k: u.snapshot() for k, u in self._contexts.items()
-            },
+            "context_snapshots": {k: u.snapshot() for k, u in self._contexts.items()},
             "context_counts": dict(self.context_counts),
             "min_local_items": self.min_local_items,
             "tau_max": self.tau_max,
@@ -351,7 +351,7 @@ class HierarchicalUpdater:
         }
 
     @classmethod
-    def restore(cls, data: dict[str, Any]) -> "HierarchicalUpdater":
+    def restore(cls, data: dict[str, Any]) -> HierarchicalUpdater:
         """Reconstruct from a :meth:`snapshot` dict."""
         obj = cls(
             initial_alpha=data["initial_alpha"],
@@ -383,6 +383,7 @@ class HierarchicalUpdater:
 # Module-level convenience
 # ---------------------------------------------------------------------------
 
+
 def _env_int(name: str, default: int) -> int:
     try:
         return max(0, int(os.environ.get(name, str(default)).strip()))
@@ -413,7 +414,7 @@ def load_hierarchical_updater_from_feedback(
     seed: int = 42,
     min_local_items: int | None = None,
     tau_max: float | None = None,
-) -> tuple["HierarchicalUpdater", FeedbackResult | None]:
+) -> tuple[HierarchicalUpdater, FeedbackResult | None]:
     """
     Build and populate a :class:`HierarchicalUpdater` from a list of feedback
     items.  Returns ``(updater, None)`` if scenario candidates cannot be

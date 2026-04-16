@@ -5,14 +5,14 @@ Decouples the Ethical Kernel from the specific DAO implementation (on-chain or m
 Handles evidence anchoring and ethical appeals.
 """
 
-import hashlib
-import json
+import logging
 import time
-from typing import Any, Dict, Optional
-from .mock_dao import MockDAO
-
+from typing import Any
 
 from .evidence_safe import EvidenceSafe
+from .mock_dao import MockDAO
+
+_log = logging.getLogger(__name__)
 
 
 class DAOOrchestrator:
@@ -21,54 +21,54 @@ class DAOOrchestrator:
     Provides a standardized interface for the Kernel to interact with the DAO layer.
     """
 
-    def __init__(self, dao_endpoint: Optional[str] = None):
+    def __init__(self, dao_endpoint: str | None = None):
         self.endpoint = dao_endpoint
         self.local_dao = MockDAO()  # Fallback to internal mock
         self.safe = EvidenceSafe()  # Handles hashing and encryption for Block 1.2
         self._policy_version = "v1.0-hybrid"
 
-    def anchor_evidence(self, payload: Dict[str, Any]) -> str:
+    def anchor_evidence(self, payload: dict[str, Any]) -> str:
         """
         Calculates hash of evidence, encrypts it, and anchors it to the (simulated) blockchain.
         Returns the anchoring hash.
         """
         packet = self.safe.prepare_anchoring_packet(payload)
         evidence_hash = packet["evidence_hash"]
-        
+
         # In a real OGA, this would be a POST to the anchoring registry
         # We store the encrypted blob and the hash in the audit trail
         self.local_dao.register_audit(
             type="anchoring",
             content=f"Anchored Hash {evidence_hash} | Blob size: {len(packet['evidence_blob_b64'])} bytes",
-            episode_id=payload.get("episode_id")
+            episode_id=payload.get("episode_id"),
         )
-        
-        print(f"[OGA] Evidence anchored securely. Hash: {evidence_hash}")
+
+        _log.info("Evidence anchored securely. Hash: %s", evidence_hash)
         return evidence_hash
 
-    def submit_appeal(self, context: Dict[str, Any]) -> Dict[str, Any]:
+    def submit_appeal(self, context: dict[str, Any]) -> dict[str, Any]:
         """
         Submits an ethical escalation packet to the DAO for voting or committee review.
         """
-        print("[OGA] Submitting appeal packet to DAO...")
-        
+        _log.info("Submitting appeal packet to DAO…")
+
         # Simulate local queuing and escalaton
         audit_rec = self.local_dao.register_escalation_case(
             summary=f"Appeal for context: {context.get('trigger_reason', 'unknown')}",
-            episode_id=context.get("episode_id")
+            episode_id=context.get("episode_id"),
         )
-        
+
         # Simulate a mock trial outcome
         trial_result = self.local_dao.run_mock_escalation_court(
             case_uuid=context.get("episode_id", "0000"),
             audit_record_id=audit_rec.id,
             summary_excerpt=str(context),
-            buffer_conflict=context.get("social_tension", 0.0) > 0.7
+            buffer_conflict=context.get("social_tension", 0.0) > 0.7,
         )
-        
+
         return trial_result
 
-    def get_latest_policy(self) -> Dict[str, Any]:
+    def get_latest_policy(self) -> dict[str, Any]:
         """
         Fetches the latest signed policy from the DAO/Oracle.
         """
@@ -77,7 +77,7 @@ class DAOOrchestrator:
             "version": self._policy_version,
             "whitelist": ["bypass_courtesy_in_emergency", "safe_stop"],
             "grey_zone_threshold": 0.8,
-            "timestamp": time.time()
+            "timestamp": time.time(),
         }
 
     # --- Proxy methods for MockDAO compatibility (L0/L1 legacy) ---
@@ -104,6 +104,9 @@ class DAOOrchestrator:
 
     def emit_solidarity_alert(self, *args, **kwargs):
         return self.local_dao.emit_solidarity_alert(*args, **kwargs)
+
+    def get_records(self, *args, **kwargs):
+        return self.local_dao.get_records(*args, **kwargs)
 
     @property
     def proposals(self):

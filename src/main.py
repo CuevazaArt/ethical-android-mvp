@@ -97,7 +97,9 @@ def main():
 
     if specific_sim:
         if specific_sim not in ALL_SIMULATIONS:
-            print(f"Simulation {specific_sim} does not exist. Available: {sorted(ALL_SIMULATIONS)}.")
+            print(
+                f"Simulation {specific_sim} does not exist. Available: {sorted(ALL_SIMULATIONS)}."
+            )
             sys.exit(1)
         result = run_simulation(kernel, specific_sim)
         print(result)

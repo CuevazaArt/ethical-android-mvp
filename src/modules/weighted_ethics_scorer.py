@@ -89,7 +89,7 @@ def context_hypothesis_multipliers(ch: PreArgmaxContextChannels) -> np.ndarray:
     loc = (ch.dominant_locus or "balanced").lower()
     ext = 1.0 if loc == "external" else (0.45 if loc == "balanced" else 0.0)
     calm_term = 1.0 - abs(sig - 0.5) * 2.0
-    
+
     # Phase 7 Math Fusion: Psychological Variables
     rt = float(np.clip(ch.relational_tension, 0.0, 1.0))
     htrauma = float(np.clip(ch.historical_trauma, 0.0, 1.0))
@@ -239,7 +239,7 @@ def clamp_mixture_weights(w: np.ndarray) -> np.ndarray:
         if s > 0:
             w_out[0] -= diff * (w_out[0] / s)
             w_out[2] -= diff * (w_out[2] / s)
-            
+
     # Ceiling for Utility
     if w_out[0] > 0.80:
         diff = w_out[0] - 0.80
@@ -248,7 +248,7 @@ def clamp_mixture_weights(w: np.ndarray) -> np.ndarray:
         if s > 0:
             w_out[1] += diff * (w_out[1] / s)
             w_out[2] += diff * (w_out[2] / s)
-            
+
     w_out = np.maximum(w_out, 1e-6)
     return w_out / float(np.sum(w_out))
 
@@ -320,22 +320,27 @@ class WeightedEthicsScorer:
         if self.pre_argmax_pole_weights:
             valuations = valuations * pole_hypothesis_multipliers(self.pre_argmax_pole_weights)
         if self.pre_argmax_context_modulators is not None:
-            valuations = valuations * context_hypothesis_multipliers(self.pre_argmax_context_modulators)
+            valuations = valuations * context_hypothesis_multipliers(
+                self.pre_argmax_context_modulators
+            )
 
         expected = float(np.dot(self.hypothesis_weights, valuations))
-        
+
         # Phase 4.1: Strategic Mind expansion (I6)
         if hasattr(action, "strategic_alignment") and action.strategic_alignment > 0:
             # ═══ STRATEGIC BOOST (I6) ═══
-            strat_boost = 1.0 + (action.strategic_alignment * float(os.environ.get("KERNEL_STRATEGIC_BOOST_FACTOR", "0.25")))
-            
+            strat_boost = 1.0 + (
+                action.strategic_alignment
+                * float(os.environ.get("KERNEL_STRATEGIC_BOOST_FACTOR", "0.25"))
+            )
+
             # ═══ EPISTEMIC MODULATION (Phase 5) ═══
             # If curiosity is high, we penalize expected impact to force D_delib
             # and signal that the current "fast" heuristic is unreliable.
             epistemic_penalty = 1.0 - (self.metacognitive_curiosity * 0.15)
-            
+
             expected = expected * strat_boost * epistemic_penalty
-            
+
         return expected * confidence
 
     def calculate_uncertainty(
@@ -408,7 +413,9 @@ class WeightedEthicsScorer:
         if self.pre_argmax_pole_weights:
             valuations = valuations * pole_hypothesis_multipliers(self.pre_argmax_pole_weights)
         if self.pre_argmax_context_modulators is not None:
-            valuations = valuations * context_hypothesis_multipliers(self.pre_argmax_context_modulators)
+            valuations = valuations * context_hypothesis_multipliers(
+                self.pre_argmax_context_modulators
+            )
 
         variance = float(np.var(valuations))
         lack_of_confidence = 1.0 - action.confidence
@@ -550,8 +557,11 @@ class WeightedEthicsScorer:
         ``DEFAULT_HYPOTHESIS_WEIGHTS``.
         """
         from .uchi_soto import RelationalTier
+
         # For internal ethical deliberations, the kernel (as 'self') has OWNER_PRIMARY access to Tier 2 memory.
-        eps = memory.find_by_resonance(context=context, limit=limit, requester_tier=RelationalTier.OWNER_PRIMARY)
+        eps = memory.find_by_resonance(
+            context=context, limit=limit, requester_tier=RelationalTier.OWNER_PRIMARY
+        )
         if not eps:
             self.reset_mixture_weights()
             return
@@ -573,10 +583,10 @@ class WeightedEthicsScorer:
 
         b = max(0.0, min(1.0, blend))
         mixed = (1.0 - b) * DEFAULT_HYPOTHESIS_WEIGHTS + b * target
-        
+
         # Apply Boundary Safety math caps
         mixed = clamp_mixture_weights(mixed)
-        
+
         self.hypothesis_weights = mixed / float(np.sum(mixed))
 
 

@@ -79,9 +79,7 @@ def test_level3_blended_mean_without_tick_context(
     assert np.sum(alpha) > 0
 
 
-def test_kernel_sets_mixture_context_key(
-    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
-) -> None:
+def test_kernel_sets_mixture_context_key(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:
     monkeypatch.setenv("KERNEL_BAYESIAN_FEEDBACK", "1")
     monkeypatch.setenv("KERNEL_BAYESIAN_CONTEXT_LEVEL3", "1")
     monkeypatch.setenv("KERNEL_FEEDBACK_MC_SAMPLES", "500")

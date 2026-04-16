@@ -11,8 +11,8 @@ and epistemic_dissonance.py (v9.1 telemetry).
 
 from __future__ import annotations
 
-from dataclasses import dataclass
 import math
+from dataclasses import dataclass
 from typing import Any
 
 # ADR 0016 C1 — Ethical tier classification
@@ -39,15 +39,15 @@ class SensorSnapshot:
     vision_emergency: float | None = None  # [0, 1] local vision supports emergency
     scene_coherence: float | None = None  # [0, 1] GPS/WiFi plausibility for emergency context
     # Phase 4.1 expansion: Strategic Missions
-    external_mission_title: str | None = None # e.g. "Recover the lost bag"
-    external_mission_priority: float | None = None # [0, 1]
-    external_mission_steps: list[str] | None = None # ["Go to cafe", "Look under table"]
+    external_mission_title: str | None = None  # e.g. "Recover the lost bag"
+    external_mission_priority: float | None = None  # [0, 1]
+    external_mission_steps: list[str] | None = None  # ["Go to cafe", "Look under table"]
     # Phase S3 expansion: Proprioception (Body Sense)
     is_falling: bool = False
     is_obstructed: bool = False
-    motor_effort_avg: float | None = None # [0, 1]
-    stability_score: float | None = None # [0, 1]
-    core_temperature: float | None = None # degrees Celsius
+    motor_effort_avg: float | None = None  # [0, 1]
+    stability_score: float | None = None  # [0, 1]
+    core_temperature: float | None = None  # degrees Celsius
 
     @classmethod
     def from_dict(cls, raw: dict[str, Any]) -> SensorSnapshot:
@@ -64,7 +64,7 @@ class SensorSnapshot:
                 return _clamp01(val)
             except (TypeError, ValueError):
                 return None
-                
+
         def f_raw(key: str) -> float | None:
             v = raw.get(key)
             if v is None:
@@ -151,7 +151,7 @@ def merge_sensor_hints_into_signals(
     if snapshot.battery_level is not None and snapshot.battery_level < crit:
         out["urgency"] = _clamp01(out.get("urgency", 0.5) + 0.15)
         out["calm"] = _clamp01(out.get("calm", 0.5) - 0.12)
-        
+
     crit_temp = critical_temperature_threshold()
     if snapshot.core_temperature is not None and snapshot.core_temperature >= crit_temp:
         out["urgency"] = _clamp01(out.get("urgency", 0.5) + 0.35)

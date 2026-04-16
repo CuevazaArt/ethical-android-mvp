@@ -22,7 +22,9 @@ def body_state_to_dict(bs: Any) -> dict[str, Any]:
         "active_nodes": int(bs.active_nodes),
         "sensors_ok": bool(bs.sensors_ok),
         "description": str(bs.description or ""),
-        "hardware_profile": bs.hardware_profile.value if hasattr(bs, "hardware_profile") else "android",
+        "hardware_profile": bs.hardware_profile.value
+        if hasattr(bs, "hardware_profile")
+        else "android",
         "hardware_id": str(getattr(bs, "hardware_id", "default_body_01")),
         "capabilities": list(getattr(bs, "capabilities", [])),
     }

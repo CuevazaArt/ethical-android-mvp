@@ -12,8 +12,8 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 
-from .weighted_ethics_scorer import BayesianResult
 from .ethical_poles import TripartiteMoral
+from .weighted_ethics_scorer import BayesianResult
 
 
 @dataclass(frozen=True)

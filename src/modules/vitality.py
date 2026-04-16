@@ -56,7 +56,7 @@ class VitalityAssessment:
     battery_level: float | None
     critical_threshold: float
     is_critical: bool
-    
+
     # Phase 8: Somatic Infrastructure
     core_temperature: float | None
     temperature_threshold: float
@@ -78,23 +78,23 @@ def assess_vitality(snapshot: SensorSnapshot | None) -> VitalityAssessment:
 
     t_bat = critical_battery_threshold()
     t_temp = critical_temperature_threshold()
-    
+
     if snapshot is None:
         return VitalityAssessment(None, t_bat, False, None, t_temp, False)
-        
+
     b = snapshot.battery_level
     is_bat_critical = False if b is None else (b < t_bat)
-    
+
     temp = snapshot.core_temperature
     is_temp_critical = False if temp is None else (temp >= t_temp)
-    
+
     return VitalityAssessment(
-        battery_level=b, 
-        critical_threshold=t_bat, 
+        battery_level=b,
+        critical_threshold=t_bat,
         is_critical=is_bat_critical,
         core_temperature=temp,
         temperature_threshold=t_temp,
-        thermal_critical=is_temp_critical
+        thermal_critical=is_temp_critical,
     )
 
 
@@ -107,7 +107,7 @@ def vitality_communication_hint(assessment: VitalityAssessment) -> str:
             "Operational vitality (battery) is critically low; prioritize essential stewardship and "
             "honest limits on commitments until power is secured."
         )
-        
+
     if assessment.thermal_critical:
         hints.append(
             "My internal core temperature is critically high (thermal tension). I must prioritize rapid "
