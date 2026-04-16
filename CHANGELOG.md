@@ -15,7 +15,8 @@ All notable changes to this project are summarized here. For narrative context a
 - Presentación de **Arquitectura de Lóbulos/Hemisferios** para separar el frontend perceptivo asíncrono (`httpx.AsyncClient`) del modelo de decisión matemática sincrónico.
 
 #### Delegated
-- Emitida la solicitud `COPILOT_REQUEST_HEMISPHERE_REFACTOR.md` a Team Copilot (Nivel 2) para auditar y discutir los _Breaking Changes_ propuestos para la división asíncrona de `kernel.py`.
+- Emitida la solicitud `COPILOT_REQUEST_HEMISPHERE_REFACTOR.md` a Team Copilot (Nivel 2) para auditar y discutir los _Breaking Changes_ operacionales propuestos.
+- Emitida la solicitud `CLAUDE_REQUEST_HEMISPHERE_REFACTOR.md` a Claude (Nivel 2) para evaluar el impacto de la cancelación asíncrona sobre el ledger de la DAO, RLHF y modelos lógicos internos.
 
 ### [v1.3-alpha-immunity] - 2026-04-16
 #### Added
