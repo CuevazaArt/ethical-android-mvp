@@ -42,7 +42,7 @@ Example sequencing for teams shipping Ethos Kernel–based runtimes. Adjust time
 
 **Goal:** disciplined iteration without eroding hard constraints.
 
-- Automated eval pipelines (threshold sweeps, regression gates).
+- [x] Automated eval pipelines (Optuna threshold optimization, regression gates) — [`scripts/eval/optimize_malabs_thresholds.py`](../scripts/eval/optimize_malabs_thresholds.py).
 - RLHF / fine-tune **only** behind feature flags, with full pytest + red-team pass before merge.
 - Staging environment with audit chain + log retention policy signed off.
 - External audit or third-party review of data policy and transparency docs.
