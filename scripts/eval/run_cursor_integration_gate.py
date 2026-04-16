@@ -21,6 +21,7 @@ TEST_TARGETS = [
     "tests/test_semantic_chat_gate.py",
     "tests/test_llm_touchpoint_policies.py",
     "tests/test_governance_mock_honesty_docs.py",
+    "tests/test_semantic_threshold_proposal_doc_alignment.py",
 ]
 
 

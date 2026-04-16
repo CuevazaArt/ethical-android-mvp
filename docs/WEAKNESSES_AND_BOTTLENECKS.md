@@ -17,7 +17,7 @@ This note is an **honest inventory** for operators and reviewers: known limits o
 - **True LLM cancellation:** Requires async HTTP and cooperative teardown (not implemented).
 - **Other entry points:** Batch harnesses, tests, or future HTTP handlers must **not** call the kernel directly on the event loop if latency isolation matters — mirror the bridge pattern (including ``run_execute_sleep`` for Psi Sleep) or document the trade-off.
 
-**Pointers:** [ADR 0002 — async orchestration (partial)](adr/0002-async-orchestration-future.md); [PROPOSAL_SYNC_KERNEL_ASYNC_ASGI_BRIDGE.md](proposals/PROPOSAL_SYNC_KERNEL_ASYNC_ASGI_BRIDGE.md) (thread offload for chat turns, WebSocket JSON, advisory telemetry); [PROPOSAL_PHASE2_CORE_EXTENSIONS_AND_EVENT_BUS.md](proposals/PROPOSAL_PHASE2_CORE_EXTENSIONS_AND_EVENT_BUS.md) (runtime must not block the kernel on network I/O without a future async design).
+**Pointers:** [ADR 0002 — async orchestration (partial)](adr/0002-async-orchestration-future.md) — includes a **future checklist** for cooperative HTTP cancellation (not implemented; honest posture: align ``OLLAMA_TIMEOUT`` with ``KERNEL_CHAT_TURN_TIMEOUT`` until then); [PROPOSAL_SYNC_KERNEL_ASYNC_ASGI_BRIDGE.md](proposals/PROPOSAL_SYNC_KERNEL_ASYNC_ASGI_BRIDGE.md) (thread offload for chat turns, WebSocket JSON, advisory telemetry); [PROPOSAL_PHASE2_CORE_EXTENSIONS_AND_EVENT_BUS.md](proposals/PROPOSAL_PHASE2_CORE_EXTENSIONS_AND_EVENT_BUS.md) (runtime must not block the kernel on network I/O without a future async design).
 
 ---
 
