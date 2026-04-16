@@ -37,6 +37,7 @@ Current registry (aligned with contribution guide §3):
 | **DJ-BL-09** | Envelope idempotency token + reject taxonomy | **Done** — ACK now includes ``idempotency_token`` and stable reject taxonomy (`reject_reason`, `ack`) for schema/routing failures in [`src/chat_server.py`](../../src/chat_server.py) and [`src/modules/lan_governance_envelope.py`](../../src/modules/lan_governance_envelope.py). |
 | **DJ-BL-10** | Envelope replay cache (`already_seen`) | **Done** — per-session replay cache drops duplicated envelopes by ``idempotency_token`` and returns ``ack=already_seen`` without reapplying events in [`src/chat_server.py`](../../src/chat_server.py). |
 | **DJ-BL-11** | Envelope replay cache bounds + telemetry | **Done** — replay cache now enforces TTL/LRU bounds and returns cache stats (`hit`, totals, size) in envelope ACKs in [`src/chat_server.py`](../../src/chat_server.py). |
+| **DJ-BL-12** | Envelope replay-cache Prometheus metrics | **Done** — `ethos_kernel_lan_envelope_replay_cache_events_total` when `KERNEL_METRICS=1` in [`src/observability/metrics.py`](../../src/observability/metrics.py), emitted from envelope handling in [`src/chat_server.py`](../../src/chat_server.py). |
 
 Update this table when an ID changes state or when new IDs are added.
 
@@ -76,3 +77,4 @@ Use in PR descriptions and proposal edits (not a database):
 - **2026-04-15:** DJ-BL-09 done — envelope ACK adds idempotency token + reject reason taxonomy.
 - **2026-04-15:** DJ-BL-10 done — envelope replay cache returns `already_seen` on duplicates.
 - **2026-04-15:** DJ-BL-11 done — replay cache TTL/LRU bounds + ACK cache telemetry.
+- **2026-04-15:** DJ-BL-12 done — Prometheus counters for envelope replay-cache events.

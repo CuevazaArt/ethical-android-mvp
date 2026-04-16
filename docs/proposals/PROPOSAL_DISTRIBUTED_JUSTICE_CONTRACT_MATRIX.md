@@ -32,7 +32,7 @@
 |-------|--------|---------|
 | `/` | GET | Service index + WebSocket hint + protocol summary |
 | `/health` | GET | Liveness, observability flags, `chat_bridge`, `safety_defaults`, optional `runtime_profile` |
-| `/metrics` | GET | Prometheus (when `KERNEL_METRICS=1`) |
+| `/metrics` | GET | Prometheus (when `KERNEL_METRICS=1`; includes `ethos_kernel_lan_envelope_replay_cache_events_total` for envelope replay-cache hits/misses/evictions) |
 | `/constitution` | GET | L0 principles (when `KERNEL_MORAL_HUB_PUBLIC=1`) |
 | `/dao/governance` | GET | DAO WebSocket protocol meta (V12.3) |
 | `/nomad/migration` | GET | Nomad HAL simulation meta |

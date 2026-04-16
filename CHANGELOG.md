@@ -4,6 +4,12 @@ All notable changes to this project are summarized here. For narrative context a
 
 **Note:** Older sections below may still **link** to paths that were later removed (for example `experiments/million_sim/`, `docs/multimedia/`, root `dashboard.html`, `landing/`). Those links are **historical**; recover files from git history or backup branches if you need them.
 
+## Distributed justice — Phase 2 envelope replay-cache Prometheus metrics (DJ-BL-12) — April 2026
+
+- **Metrics:** when `KERNEL_METRICS=1`, `ethos_kernel_lan_envelope_replay_cache_events_total{event=...}` counts replay-cache hits, misses, and TTL/LRU evictions for `lan_governance_envelope` in [`src/observability/metrics.py`](src/observability/metrics.py); wired from [`src/chat_server.py`](src/chat_server.py).
+- **Typing:** `merge_lan_governance_events` now accepts `Sequence[Mapping[...]]` so `list[dict]` call sites type-check under mypy ([`src/modules/lan_governance_event_merge.py`](src/modules/lan_governance_event_merge.py)).
+- **Tests:** subprocess registration check in [`tests/test_observability_metrics.py`](tests/test_observability_metrics.py).
+
 ## Distributed justice — Phase 2 replay cache bounds + ACK telemetry (DJ-BL-11) — April 2026
 
 - **WebSocket:** envelope ACK now includes `cache` telemetry (`hit`, `size`, cumulative `hits_total`/`misses_total`, cumulative TTL/LRU evictions, and configured bounds).

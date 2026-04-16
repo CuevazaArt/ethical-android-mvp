@@ -18,7 +18,7 @@ The kernel chat server exposes **GET** endpoints returning JSON (or Prometheus t
 |------|--------|------|----------|
 | `/` | GET | None | JSON: `service`, `websocket`, pointers to other routes, optional `runtime_profile` |
 | `/health` | GET | None | JSON: `status`, `version`, `uptime_seconds`, `observability`, `chat_bridge`, `safety_defaults`, optional `runtime_profile` |
-| `/metrics` | GET | None | Prometheus text if `KERNEL_METRICS=1`; else 404 JSON; 503 if `prometheus_client` missing |
+| `/metrics` | GET | None | Prometheus text if `KERNEL_METRICS=1` (includes `ethos_kernel_lan_envelope_replay_cache_events_total` for LAN envelope replay-cache activity); else 404 JSON; 503 if `prometheus_client` missing |
 | `/constitution` | GET | None | L0 constitution JSON if `KERNEL_MORAL_HUB_PUBLIC=1`; else 404 JSON |
 | `/dao/governance` | GET | None | JSON meta for DAO WebSocket messages (`dao_list`, `dao_vote`, …) |
 | `/nomad/migration` | GET | None | JSON meta for nomad simulation WebSocket message shape |
@@ -35,7 +35,7 @@ The kernel chat server exposes **GET** endpoints returning JSON (or Prometheus t
 
 - **`/ws/chat`** — bidirectional JSON; see root `GET /` `protocol` field and README WebSocket section.
 - **LAN integrity batch (DJ-BL-02):** ``lan_governance_integrity_batch`` when ``KERNEL_LAN_GOVERNANCE_MERGE_WS=1`` and ``KERNEL_DAO_INTEGRITY_AUDIT_WS=1`` — see contract matrix.
-- **LAN envelope (DJ-BL-07/08/09/10/11):** ``lan_governance_envelope`` (`schema=lan_governance_envelope_v1`) routes by `kind` to LAN batch handlers and returns ACK metadata (`fingerprint`, `audit_ledger_fingerprint`, `idempotency_token`, `ack`, optional `reject_reason`, and `cache` stats); duplicate envelopes in the same WebSocket session are short-circuited as `ack=already_seen` with TTL/LRU-bounded replay cache.
+- **LAN envelope (DJ-BL-07/08/09/10/11/12):** ``lan_governance_envelope`` (`schema=lan_governance_envelope_v1`) routes by `kind` to LAN batch handlers and returns ACK metadata (`fingerprint`, `audit_ledger_fingerprint`, `idempotency_token`, `ack`, optional `reject_reason`, and `cache` stats); duplicate envelopes in the same WebSocket session are short-circuited as `ack=already_seen` with TTL/LRU-bounded replay cache; when `KERNEL_METRICS=1`, replay-cache hits/misses/evictions also increment Prometheus counters (see `/metrics`).
 
 ---
 
@@ -54,3 +54,4 @@ The kernel chat server exposes **GET** endpoints returning JSON (or Prometheus t
 - **2026-04-15:** Envelope ACK fields note (`idempotency_token`, `ack`, `reject_reason`).
 - **2026-04-15:** Envelope replay cache note (`ack=already_seen`).
 - **2026-04-15:** Envelope replay cache bounds + ACK cache telemetry.
+- **2026-04-15:** `/metrics` note for `ethos_kernel_lan_envelope_replay_cache_events_total` (DJ-BL-12).

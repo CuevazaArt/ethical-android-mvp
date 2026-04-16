@@ -174,6 +174,7 @@ from .observability.metrics import (
     observe_chat_turn,
     record_chat_turn_async_timeout,
     record_dao_ws_operation,
+    record_lan_envelope_replay_cache_event,
     record_malabs_block,
 )
 from .observability.middleware import RequestContextMiddleware
@@ -1328,8 +1329,16 @@ def _collect_lan_governance_envelope(
             max_entries=max(1, replay_cache_max_entries),
         )
         if replay_cache_stats is not None:
-            replay_cache_stats["evicted_ttl"] = int(replay_cache_stats.get("evicted_ttl", 0)) + ttl_evicted
-            replay_cache_stats["evicted_lru"] = int(replay_cache_stats.get("evicted_lru", 0)) + lru_evicted
+            replay_cache_stats["evicted_ttl"] = (
+                int(replay_cache_stats.get("evicted_ttl", 0)) + ttl_evicted
+            )
+            replay_cache_stats["evicted_lru"] = (
+                int(replay_cache_stats.get("evicted_lru", 0)) + lru_evicted
+            )
+        if ttl_evicted:
+            record_lan_envelope_replay_cache_event("evict_ttl", amount=float(ttl_evicted))
+        if lru_evicted:
+            record_lan_envelope_replay_cache_event("evict_lru", amount=float(lru_evicted))
 
     normalized, err = normalize_lan_governance_envelope(raw)
     if err is not None:
@@ -1368,23 +1377,25 @@ def _collect_lan_governance_envelope(
             entry = replay_cache.pop(idempotency_token)
             entry["last_seen_ms"] = now_ms
             replay_cache[idempotency_token] = entry
-        envelope_out = dict(cached_ack)
-        envelope_out["ok"] = True
-        envelope_out["ack"] = "already_seen"
-        envelope_out["replay_detected"] = True
-        envelope_out["idempotency_token"] = idempotency_token
-        envelope_out["fingerprint"] = envelope_fingerprint
-        envelope_out["audit_ledger_fingerprint"] = fingerprint_audit_ledger(kernel.dao.records)
-        envelope_out["cache"] = _lan_envelope_cache_stats(
+        hit_envelope = dict(cached_ack)
+        hit_envelope["ok"] = True
+        hit_envelope["ack"] = "already_seen"
+        hit_envelope["replay_detected"] = True
+        hit_envelope["idempotency_token"] = idempotency_token
+        hit_envelope["fingerprint"] = envelope_fingerprint
+        hit_envelope["audit_ledger_fingerprint"] = fingerprint_audit_ledger(kernel.dao.records)
+        hit_envelope["cache"] = _lan_envelope_cache_stats(
             replay_cache,
             replay_cache_stats,
             ttl_ms=max(0, replay_cache_ttl_ms),
             max_entries=max(1, replay_cache_max_entries),
             hit=True,
         )
-        return {"lan_governance": {"envelope": envelope_out}}
+        record_lan_envelope_replay_cache_event("hit")
+        return {"lan_governance": {"envelope": hit_envelope}}
     if replay_cache_stats is not None:
         replay_cache_stats["misses"] = int(replay_cache_stats.get("misses", 0)) + 1
+    record_lan_envelope_replay_cache_event("miss")
 
     routed = dict(data)
     batch = dict(normalized["batch"])
@@ -1416,16 +1427,15 @@ def _collect_lan_governance_envelope(
         }
         section_name = kind_to_section.get(kind, "")
         section = lg.get(section_name) if section_name else None
-        merged_count = (
-            int(section.get("merged_count"))
-            if isinstance(section, dict) and isinstance(section.get("merged_count"), int)
-            else None
-        )
-        applied_count = (
-            int(section.get("applied_count"))
-            if isinstance(section, dict) and isinstance(section.get("applied_count"), int)
-            else None
-        )
+        merged_count: int | None = None
+        applied_count: int | None = None
+        if isinstance(section, dict):
+            mc = section.get("merged_count")
+            if isinstance(mc, int):
+                merged_count = mc
+            ac = section.get("applied_count")
+            if isinstance(ac, int):
+                applied_count = ac
         section_ok = (
             bool(section.get("ok"))
             if isinstance(section, dict) and isinstance(section.get("ok"), bool)
@@ -1478,6 +1488,10 @@ def _collect_lan_governance_envelope(
             if replay_cache_stats is not None and lru_evicted_after_insert:
                 replay_cache_stats["evicted_lru"] = (
                     int(replay_cache_stats.get("evicted_lru", 0)) + lru_evicted_after_insert
+                )
+            if lru_evicted_after_insert:
+                record_lan_envelope_replay_cache_event(
+                    "evict_lru", amount=float(lru_evicted_after_insert)
                 )
             envelope_out["cache"] = _lan_envelope_cache_stats(
                 replay_cache,

@@ -13,7 +13,7 @@ with ``temporal_sync_v1``). Events without ``id_key`` are **skipped** (caller mu
 from __future__ import annotations
 
 import math
-from collections.abc import Mapping
+from collections.abc import Mapping, Sequence
 from typing import Any
 
 
@@ -36,7 +36,7 @@ def _as_int(value: object, default: int = 0) -> int:
 
 
 def merge_lan_governance_events(
-    events: list[Mapping[str, Any]],
+    events: Sequence[Mapping[str, Any]],
     *,
     id_key: str = "event_id",
 ) -> list[dict[str, Any]]:
