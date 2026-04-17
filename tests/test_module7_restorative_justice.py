@@ -9,14 +9,12 @@ from __future__ import annotations
 from unittest.mock import MagicMock
 
 import pytest
-
 from src.modules.frontier_witness import (
     FrontierWitnessManager,
     WitnessReport,
 )
 from src.modules.swarm_negotiator import SwarmNegotiator
 from src.modules.swarm_oracle import SwarmOracle
-
 
 # ─────────────────────────────────────────────────────────────
 # Bloque 7.2 — Slashing

@@ -69,7 +69,7 @@ class PerceptiveLobe:
                 raw_prompt=raw_input,
                 sensory_latency_lag=latency,
             )
-        except asyncio.TimeoutError:
+        except TimeoutError:
             latency = int((time.time() - start_time) * 1000)
             return SemanticState(
                 perception_confidence=0.0,

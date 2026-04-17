@@ -24,7 +24,11 @@ from __future__ import annotations
 import os
 from typing import TYPE_CHECKING, Any
 
-from .llm_touchpoint_policies import TOUCHPOINT_PERCEPTION, global_safe_policy_enabled, raw_touchpoint_policy
+from .llm_touchpoint_policies import (
+    TOUCHPOINT_PERCEPTION,
+    global_safe_policy_enabled,
+    raw_touchpoint_policy,
+)
 from .perception_schema import PERCEPTION_FAILSAFE_NUMERIC, merge_parse_issues_into_perception
 
 if TYPE_CHECKING:

@@ -10,12 +10,10 @@ import time
 from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
-
 from src.kernel_lobes.cerebellum_node import CerebellumNode
 from src.kernel_lobes.limbic_lobe import LimbicEthicalLobe
 from src.kernel_lobes.models import SemanticState, TimeoutTrauma
 from src.kernel_lobes.perception_lobe import PerceptiveLobe
-
 
 # ─────────────────────────────────────────────────────────────
 # PerceptiveLobe

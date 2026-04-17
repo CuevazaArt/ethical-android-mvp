@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import threading
 import time
-from typing import Callable
+from collections.abc import Callable
 
 from src.modules.vitality import critical_battery_threshold, critical_temperature_threshold
 
