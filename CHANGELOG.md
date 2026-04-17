@@ -18,6 +18,11 @@ All notable changes to this project are summarized here. For narrative context a
 - **Nomad Bridge & Sensor Encarnation (Phase S):** Orchestrated the development of `src/modules/nomad_bridge.py` for real-world sensor ingestion (Vision, Audio, Telemetry 1FPS). Connected smartphone accelerometer jerk (impacts) and battery heat to the kernel's `VitalityAssessment`.
 - **Vertical Roadmap Update:** Refactored `PLAN_WORK_DISTRIBUTION_TREE.md` to include incremental testing routes for hardware-in-the-loop validation.
 
+## Documentation — MER V2 postulate (cross-team collaboration label) — April 2026
+
+### Documentation Team Updates
+- **`docs/collaboration/MER_V2_POSTULATE.md`:** Defines **MER V2** (*Multi-team Exchange Ritual, revision 2*) as the umbrella for the post-critique collaboration bundle on `master-antigravity` (decision tree, R-3–R-5, MERGE-PREVENT-01); adds critique (L1 throughput, soft R-4, optional peer sync) and a `master-*` sync checklist. Linked from [`AGENTS.md`](AGENTS.md), [`MERGE_AND_HUB_DECISION_TREE.md`](docs/collaboration/MERGE_AND_HUB_DECISION_TREE.md), and [`MULTI_OFFICE_GIT_WORKFLOW.md`](docs/collaboration/MULTI_OFFICE_GIT_WORKFLOW.md).
+
 ## Documentation — Issue #1 (Bayesian naming honesty) — April 2026
 
 

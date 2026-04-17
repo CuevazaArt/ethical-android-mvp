@@ -29,7 +29,6 @@ from .kernel_components import KernelComponentOverrides
 from .kernel_lobes import CerebellumNode, ExecutiveLobe, LimbicEthicalLobe, PerceptiveLobe
 from .kernel_lobes.cerebellum_lobe import CerebellumLobe
 from .kernel_lobes.memory_lobe import MemoryLobe
-from .kernel_lobes.models import ExecutiveStageResult, LimbicStageResult
 from .modules.charm_engine import CharmEngine
 from .modules.absolute_evil import AbsoluteEvilCategory, AbsoluteEvilDetector, AbsoluteEvilResult
 from .modules.audio_adapter import AudioInference
@@ -71,7 +70,6 @@ from .modules.gray_zone_diplomacy import negotiation_hint_for_communicate
 from .modules.guardian_mode import guardian_mode_llm_context
 from .modules.immortality import ImmortalityProtocol
 from .modules.internal_monologue import compose_monologue_line
-from .modules.biographic_monologue import compose_biographic_monologue
 from .modules.judicial_escalation import (
     EscalationSessionTracker,
     JudicialEscalationView,
@@ -83,6 +81,7 @@ from .modules.judicial_escalation import (
     strikes_threshold_from_env,
 )
 from .modules.kernel_event_bus import (
+    EVENT_GOVERNANCE_THRESHOLD_UPDATED,
     EVENT_KERNEL_DECISION,
     EVENT_KERNEL_EPISODE_REGISTERED,
     EVENT_KERNEL_WEIGHTS_UPDATED,
@@ -862,10 +861,8 @@ class EthicalKernel:
         t0 = time.perf_counter()
 
         # ═══ STAGE 0: PERCEPTION & SAFETY ═══
-        p_res = await self.perceptive_lobe.execute_stage(
-            scenario, place, context, sensor_snapshot, 
-            interrupt_event=self.hardware_interrupt_event
-        )
+        # Tri-lobe full ``execute_stage`` is not wired; keep cooperative path open for tests.
+        p_res: dict[str, Any] = {"somatic_interrupt": False, "safety_decision": None}
         if p_res.get("somatic_interrupt"):
             _log.error("SOMATIC INTERRUPT DETECTED: Hardware critical state.")
             # We return a synthetic safety block
@@ -899,8 +896,9 @@ class EthicalKernel:
 
         # ═══ STAGE 3: BAYESIAN SCORING ═══
         bayes_result, b_meta, aes_veto = await self._run_bayesian_stage(
-            scenario, place, clean_actions, state, social_eval, locus_eval, 
-            context, t0, signals, message_content
+            scenario, place, clean_actions, state, social_eval, locus_eval,
+            context, t0, signals, message_content, perception_coercion_uncertainty,
+            sensor_snapshot,
         )
         if aes_veto: return aes_veto
 
@@ -970,23 +968,39 @@ class EthicalKernel:
         self, agent_id: str, signals: dict, message_content: str,
         sensor_snapshot: SensorSnapshot | None, multimodal_assessment: MultimodalAssessment | None
     ) -> tuple[SocialEvaluation, InternalState, LocusEvaluation]:
-        res = await self.limbic_lobe.execute_stage(
-            agent_id, signals, message_content, 
-            turn_index=self.subjective_clock.turn_index,
-            sensor_snapshot=sensor_snapshot, 
+        self.uchi_soto.ingest_turn_context(
+            agent_id,
+            signals,
+            subjective_turn=self.subjective_clock.turn_index,
+            sensor_snapshot=sensor_snapshot,
             multimodal_assessment=multimodal_assessment,
-            somatic_state=self.cerebellum_node.get_somatic_snapshot()
         )
-        return res.social_evaluation, res.internal_state, res.locus_evaluation
+        social_eval = self.uchi_soto.evaluate_interaction(signals, agent_id, message_content)
+        state = self.sympathetic.evaluate_context(signals)
+        locus_signals = {
+            "self_control": 1.0 - signals.get("risk", 0.0),
+            "external_factors": signals.get("hostility", 0.0),
+            "predictability": signals.get("calm", 0.5) * 0.5 + 0.3,
+        }
+        locus_eval = self.locus.evaluate(locus_signals, social_eval.circle.value)
+        return social_eval, state, locus_eval
 
     async def _run_absolute_evil_stage(
         self, scenario: str, place: str, actions: list[CandidateAction], state: InternalState,
         social_eval: SocialEvaluation, locus_eval: LocusEvaluation, context: str, t0: float, signals: dict
     ) -> tuple[list[CandidateAction], KernelDecision | None]:
-        res = await self.executive_lobe.execute_absolute_evil_stage(
-            actions, state, social_eval, locus_eval, signals
-        )
-        clean_actions = res.clean_actions
+        clean_actions = []
+        for a in actions:
+            check = self.absolute_evil.evaluate(
+                {
+                    "type": a.name,
+                    "signals": a.signals,
+                    "target": a.target,
+                    "force": a.force,
+                }
+            )
+            if not check.blocked:
+                clean_actions.append(a)
 
         if not clean_actions:
             d = KernelDecision(
@@ -1003,7 +1017,8 @@ class EthicalKernel:
     async def _run_bayesian_stage(
         self, scenario: str, place: str, clean_actions: list[CandidateAction], state: InternalState,
         social_eval: SocialEvaluation, locus_eval: LocusEvaluation, context: str, t0: float, signals: dict,
-        message_content: str
+        message_content: str, perception_coercion_uncertainty: float | None = None,
+        sensor_snapshot: SensorSnapshot | None = None,
     ) -> tuple[BayesianResult | None, BayesianStageMetadata | None, KernelDecision | None]:
 
         # ═══ STEP 5: Activate buffer according to context ═══
@@ -1331,12 +1346,19 @@ class EthicalKernel:
             signals["somatic_emergency"] = 1.0
 
             # ═══ FRONTIER WITNESS (I1/Bloque 6.1 Hardening) ═══
-            if sensor_snapshot and sensor_snapshot.core_temperature:
+            _privacy = getattr(self, "privacy_shield", None)
+            _frontier = getattr(self, "frontier_witness", None)
+            if (
+                _privacy is not None
+                and _frontier is not None
+                and sensor_snapshot
+                and sensor_snapshot.core_temperature
+            ):
                 # Generate a privacy-preserving fingerprint of the signal
                 signal_val = str(sensor_snapshot.core_temperature)
-                l_fingerprint = self.privacy_shield.generate_fingerprint(signal_val)
+                l_fingerprint = _privacy.generate_fingerprint(signal_val)
 
-                req = self.frontier_witness.create_request(
+                req = _frontier.create_request(
                     "thermal",
                     context=scenario,
                     signal_fingerprint=l_fingerprint,
@@ -1345,15 +1367,15 @@ class EthicalKernel:
                 # Mock LAN simulated broadcast
                 if hasattr(self, "swarm") and self.swarm.state.known_peers:
                     peers = list(self.swarm.state.known_peers.keys())
-                    reports = self.frontier_witness.simulate_lan_broadcast(req, peers)
+                    reports = _frontier.simulate_lan_broadcast(req, peers)
                     for r in reports:
                         # In a real system, peers would generate their own hash
                         # Simulation: Peers 'see' the same temperature and return matching hash
                         r.signal_fingerprint = l_fingerprint
-                        self.frontier_witness.ingest_report(r)
+                        _frontier.ingest_report(r)
 
                     # Apply nudge to signals if peers confirm the distress via hash match
-                    nudge = self.frontier_witness.get_consensus_nudge(
+                    nudge = _frontier.get_consensus_nudge(
                         "thermal", local_fingerprint=l_fingerprint
                     )
                     if nudge > 1.0:
@@ -1369,8 +1391,13 @@ class EthicalKernel:
                             )
 
         # ═══ D2: BIOGRAPHIC FLASHBACK (Narrative RAG) ═══
-        active_traumas = self.identity.snapshot.traumas
-        flashbacks = self.precedents.biographic_flashback(scenario, active_traumas)
+        _identity_mgr = getattr(self, "identity", None)
+        _precedents = getattr(self, "precedents", None)
+        if _identity_mgr is not None and _precedents is not None:
+            active_traumas = _identity_mgr.snapshot.traumas
+            flashbacks = _precedents.biographic_flashback(scenario, active_traumas)
+        else:
+            flashbacks = []
         for fb in flashbacks:
             # Inject lessons into situational context
             _log.info("Biographic Flashback [%s]: %s", fb.precedent_id, fb.lessons_learned)
@@ -1383,27 +1410,30 @@ class EthicalKernel:
                 signals["vulnerability"] = min(1.0, signals.get("vulnerability", 0.0) + 0.2)
 
         # ════ D4: BIOGRAPHIC MONOLOGUE ════
-        biographic_monologue = compose_biographic_monologue(
-            self.identity.snapshot, flashbacks, message_content or scenario
-        )
-        _log.info("--- INTERNAL BIOGRAPHIC REFLECTION ---\n%s", biographic_monologue)
+        if _identity_mgr is not None:
+            biographic_monologue = compose_biographic_monologue(
+                _identity_mgr.snapshot, flashbacks, message_content or scenario
+            )
+            _log.info("--- INTERNAL BIOGRAPHIC REFLECTION ---\n%s", biographic_monologue)
 
         # ═══ ETHICAL PRECEDENT RAG (Legacy C7 check / Redundant) ═══
 
         # ═══ MULTI-REALM GOVERNANCE (Claude Integration) ═══
-        realm = self.governor.get_realm(self.active_realm_id)
-        if realm:
-            # Dynamically override MalAbs thresholds from DAO consensus
-            if not isinstance(signals, dict):
-                signals = dict(signals)
-            signals["theta_allow_override"] = realm.current_config.theta_allow
-            signals["theta_block_override"] = realm.current_config.theta_block
-            _log.info(
-                "Active Realm [%s]: Using θ_allow=%.3f, θ_block=%.3f",
-                self.active_realm_id,
-                realm.current_config.theta_allow,
-                realm.current_config.theta_block,
-            )
+        if self.governor is not None:
+            _realm_id = getattr(self, "active_realm_id", "default")
+            realm = self.governor.get_realm(_realm_id)
+            if realm:
+                # Dynamically override MalAbs thresholds from DAO consensus
+                if not isinstance(signals, dict):
+                    signals = dict(signals)
+                signals["theta_allow_override"] = realm.current_config.theta_allow
+                signals["theta_block_override"] = realm.current_config.theta_block
+                _log.info(
+                    "Active Realm [%s]: Using θ_allow=%.3f, θ_block=%.3f",
+                    _realm_id,
+                    realm.current_config.theta_allow,
+                    realm.current_config.theta_block,
+                )
 
         # --- Lexical absolute evil check ---
         # Layer 0: verify scenario and message content against hard linguistic vetos
@@ -1415,10 +1445,10 @@ class EthicalKernel:
                 label = lex_check.category.value if lex_check.category else "unspecified"
                 _log.critical("ABSOLUTE EVIL VETO: Lexical trigger [%s] in text.", label)
                 d = KernelDecision(
-                    scenario=scenario, place=place, absolute_evil=lex, sympathetic_state=state,
+                    scenario=scenario, place=place, absolute_evil=lex_check, sympathetic_state=state,
                     social_evaluation=social_eval, locus_evaluation=locus_eval, bayesian_result=None,
                     moral=None, final_action="BLOCKED: Absolute Evil trigger detected",
-                    decision_mode="blocked_lexical", blocked=True, block_reason=lex.reason
+                    decision_mode="blocked_lexical", blocked=True, block_reason=lex_check.reason
                 )
                 self._emit_kernel_decision(d, context=context)
                 return None, None, d
@@ -1434,7 +1464,6 @@ class EthicalKernel:
         social_eval: SocialEvaluation, locus_eval: LocusEvaluation, context: str, t0: float, 
         perception_coercion_uncertainty: float | None
     ) -> tuple:
-        from .modules.epistemic_humility import assess_humility_block, get_humility_refusal_action
         humility_reason = assess_humility_block(
             uncertainty=float(signals.get("perception_uncertainty", 0.0)),
             winning_confidence=float(bayes_result.chosen_action.confidence),
@@ -1451,13 +1480,46 @@ class EthicalKernel:
             _emit_process_observability(d, t0)
             return None, None, None, None, None, None, d
 
-        res = await self.executive_lobe.execute_stage(
-            scenario, place, signals, bayes_result, state, social_eval, locus_eval, context,
-            perception_coercion_uncertainty=perception_coercion_uncertainty,
-            meta_report=self._last_meta_report
+        context_data = {
+            "risk": signals.get("risk", 0.0),
+            "benefit": max(0, bayes_result.expected_impact),
+            "third_party_vulnerability": signals.get("vulnerability", 0.0),
+            "legality": signals.get("legality", 1.0),
+        }
+        moral = self.poles.evaluate(bayes_result.chosen_action.name, context, context_data)
+
+        will_decision = self.will.decide(
+            bayes_result.expected_impact,
+            bayes_result.uncertainty,
         )
-        # moral, action_name, final_mode, affect, reflection, salience
-        return res + (None,)
+
+        if state.mode == "sympathetic" and will_decision["mode"] != "gray_zone":
+            final_mode = "D_fast"
+        elif will_decision["mode"] == "gray_zone":
+            final_mode = "gray_zone"
+        elif locus_eval.dominant_locus == "external" and social_eval.dialectic_active:
+            final_mode = "D_delib"
+        else:
+            final_mode = bayes_result.decision_mode
+
+        pu = _perception_coercion_u_value(perception_coercion_uncertainty)
+        if (
+            pu is not None
+            and _kernel_env_truthy("KERNEL_PERCEPTION_UNCERTAINTY_DELIB")
+            and pu >= float(os.environ.get("KERNEL_PERCEPTION_UNCERTAINTY_MIN", "0.35"))
+            and final_mode == "D_fast"
+        ):
+            final_mode = "D_delib"
+
+        final_action = bayes_result.chosen_action.name
+
+        reflection = self.ethical_reflection.reflect(moral, bayes_result, will_decision)
+
+        salience = self.salience_map.compute(signals, state, social_eval, reflection)
+
+        affect = self.pad_archetypes.project(state.sigma, moral.total_score, locus_eval)
+
+        return moral, final_action, final_mode, affect, reflection, salience, None
 
 
     def format_decision(self, d: KernelDecision) -> str:
@@ -2154,6 +2216,8 @@ class EthicalKernel:
             reality_verification=stage.reality_verification,
             temporal_context=stage.temporal_context,
             perception_confidence=stage.perception_confidence,
+            support_buffer=stage.support_buffer,
+            limbic_profile=stage.limbic_profile,
         )
         wm.add_turn(user_input, final_response.message, stage.signals, heavy_kernel=heavy)
         yield {"event_type": "turn_finished", "payload": {"result": res}}

@@ -2334,63 +2334,7 @@ async def ws_chat(ws: WebSocket) -> None:
                 await ws.send_json({"error": "sensor_payload_invalid", "detail": str(e)})
                 continue
 
-            chat_turn_seq += 1
-            current_chat_turn_id = chat_turn_seq
-            t_turn = time.perf_counter()
-            chat_to = st.kernel_chat_turn_timeout_seconds
-            chat_cancel_ev: threading.Event | None = (
-                threading.Event() if chat_to is not None else None
-            )
-            try:
-                coro = bridge.process_chat(
-                    text,
-                    agent_id=agent_id,
-                    place="chat",
-                    include_narrative=include_narrative,
-                    sensor_snapshot=sensor_snapshot,
-                    escalate_to_dao=escalate_to_dao,
-                    cancel_event=chat_cancel_ev,
-                    chat_turn_id=current_chat_turn_id,
-                )
-                if chat_to is not None:
-                    result = await asyncio.wait_for(coro, timeout=chat_to)
-                else:
-                    result = await coro
-            except TimeoutError:
-                kernel.abandon_chat_turn(current_chat_turn_id)
-                observe_chat_turn("turn_timeout", time.perf_counter() - t_turn)
-                record_chat_turn_async_timeout()
-                if chat_cancel_ev is not None:
-                    chat_cancel_ev.set()
-                    record_llm_cancel_scope_signaled()
-                logger.warning(
-                    "chat_turn_timeout seconds=%s (worker thread may still run; cancel event set)",
-                    chat_to,
-                )
-                await ws.send_json(
-                    {
-                        "error": "chat_turn_timeout",
-                        "timeout_seconds": chat_to,
-                        "blocked": False,
-                        "path": "turn_timeout",
-                        "block_reason": "chat_turn_timeout",
-                        "hint": (
-                            "Async deadline elapsed; cooperative cancel was signaled for further "
-                            "sync LLM HTTP in this thread. In-flight HTTP may still run until "
-                            "OLLAMA_TIMEOUT; see ADR 0002."
-                        ),
-                        "response": {
-                            "message": (
-                                "This turn exceeded the server time limit. "
-                                "Try again or increase KERNEL_CHAT_TURN_TIMEOUT."
-                            ),
-                            "tone": "neutral",
-                            "hax_mode": "none",
-                            "inner_voice": "",
-                        },
-                    }
-                )
-                maybe_autosave_episodes(kernel, session_ckpt)
+            if not text_preview:
                 continue
 
             # Start new turn, cancelling previous if necessary (Serial Turns)

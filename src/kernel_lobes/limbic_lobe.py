@@ -37,3 +37,7 @@ class LimbicEthicalLobe:
             social_tension_locus=tension,
             applied_trauma_weight=applied,
         )
+
+    async def execute_swarm_consensus_stage(self, **kwargs: object) -> None:
+        """Stub until LAN swarm consensus is wired to the limbic stack."""
+        return None
