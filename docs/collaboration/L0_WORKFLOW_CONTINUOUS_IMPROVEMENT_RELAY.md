@@ -1,4 +1,4 @@
-﻿# L0 relay — continuous workflow improvement (for Antigravity / L1)
+# L0 relay — continuous workflow improvement (for Antigravity / L1)
 
 **Audience:** Antigravity (sole operational L1 integrator and auditor).
 **Origin:** Relay from **Cursor (`master-Cursor`)** per direction from **Juan (L0)**.
