@@ -12,6 +12,7 @@ For each **touchpoint**, configuration is resolved in this order; **first valid 
 
 | Order | Mechanism | Example |
 |-------|-----------|---------|
+| 0 | Global safe override | `KERNEL_LLM_GLOBAL_POLICY=safe` forces all touchpoints to safe fallbacks |
 | 1 | Per-touchpoint override | `KERNEL_LLM_TP_NARRATE_POLICY=canned_safe` |
 | 2 | Family default (verbal JSON only) | `KERNEL_LLM_VERBAL_FAMILY_POLICY` applies to **communicate** and **narrate** when their `KERNEL_LLM_TP_*` key is unset |
 | 3 | Legacy single key (backward compatible) | `KERNEL_PERCEPTION_BACKEND_POLICY`, `KERNEL_VERBAL_LLM_BACKEND_POLICY` |
@@ -34,6 +35,8 @@ For each **touchpoint**, configuration is resolved in this order; **first valid 
 | Monologue embellish (plain text, optional) | `KERNEL_LLM_TP_MONOLOGUE_POLICY` | `passthrough`, `annotate_degraded` | `KERNEL_LLM_MONOLOGUE_BACKEND_POLICY` | `passthrough` | same `events[]` (`touchpoint=monologue`) |
 
 **Feature gate:** monologue LLM calls still require `KERNEL_LLM_MONOLOGUE=1` (existing). Policy only applies when that path runs with a generative backend.
+
+**Global safe mode:** `KERNEL_LLM_GLOBAL_POLICY=safe` overrides all touchpoints to their safe fallbacks (perception: `fast_fail`, verbal: `canned_safe`, monologue: `annotate_degraded`). Useful for airgap or high-caution deployments.
 
 ---
 

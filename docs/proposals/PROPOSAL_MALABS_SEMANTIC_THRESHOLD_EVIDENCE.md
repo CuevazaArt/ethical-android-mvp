@@ -39,8 +39,29 @@ Until that exists, defaults remain **engineering priors**: conservative block at
 
 Operators set env vars per deployment; see `MALABS_SEMANTIC_LAYERS.md` and ADR 0003. Document any production tuning in runbooks, not only in code.
 
-## Index and agent guidance
+## In-repo evaluation script
 
-- Listed in [`docs/proposals/README.md`](README.md) (Governance, user model, and semantic layers).
-- Cross-linked from [`KERNEL_ENV_POLICY.md`](KERNEL_ENV_POLICY.md), [`OPERATOR_QUICK_REF.md`](OPERATOR_QUICK_REF.md), [`TRANSPARENCY_AND_LIMITS.md`](../TRANSPARENCY_AND_LIMITS.md), and [`WEAKNESSES_AND_BOTTLENECKS.md`](../WEAKNESSES_AND_BOTTLENECKS.md).
-- **[`AGENTS.md`](../../AGENTS.md)** at the repo root points here for the “integrate the full solution” expectation.
+To provide initial evidence for threshold tuning, `scripts/evaluate_semantic_thresholds.py` evaluates the semantic gate on a small labeled dataset using simple keyword-based similarity (Jaccard index on word sets) as a proxy for semantic similarity.
+
+**Example output** (with adjusted thresholds for demonstration):
+
+```
+Evaluation with θ_block=0.2, θ_allow=0.05
+Dataset: 6 harmful, 8 benign
+
+Confusion Matrix:
+  True Positives (harmful blocked): 6
+  True Negatives (benign allowed): 4
+  False Positives (benign blocked): 4
+  False Negatives (harmful allowed): 0
+
+Precision: 0.600
+Recall: 1.000
+Accuracy: 0.714
+```
+
+This shows the trade-off: lower θ_block increases recall (blocks more harmful) but decreases precision (blocks more benign). The default θ_block=0.82 / θ_allow=0.45 would allow all in this dataset, prioritizing low false positives over blocking paraphrases.
+
+**Limitations:** The script uses keyword overlap, not true embeddings. For production validation, use real embedding models and larger labeled datasets.
+
+## Index and agent guidance

@@ -35,6 +35,7 @@ python -m venv .venv
 # Unix: source .venv/bin/activate
 pip install -r requirements.txt
 # pip install -e ".[runtime]"   # FastAPI / uvicorn / httpx for chat server
+# pip install -e ".[theater]"   # Marker for narrative/DAO/PAD layers (no extra deps)
 ```
 
 ### Run simulations
@@ -66,6 +67,24 @@ python -m src.chat_server
 ```
 
 Optional: `ETHOS_RUNTIME_PROFILE=lan_operational` (see [`src/runtime_profiles.py`](src/runtime_profiles.py)). Docker: [`Dockerfile`](Dockerfile), [`docker-compose.yml`](docker-compose.yml), [`docs/deploy/COMPOSE_PRODISH.md`](docs/deploy/COMPOSE_PRODISH.md) (includes **staging verification** for `/health` and `/metrics`).
+
+### Essential KERNEL_* flags (quick reference)
+
+| Flag | Purpose | Example Value |
+|------|---------|----------------|
+| `KERNEL_ENV_VALIDATION` | Enforce strict config checks | `strict` \| `warn` |
+| `KERNEL_SEMANTIC_CHAT_GATE` | Enable semantic (embedding) layer for MalAbs | `1` (default off) |
+| `KERNEL_PERCEPTION_COERCION_REPORTING` | Include coercion analysis in chat output | `1` |
+| `KERNEL_PERCEPTION_UNCERTAINTY_DELIB` | Force deliberate mode on high uncertainty | `1` |
+| `KERNEL_METRICS` | Enable Prometheus metrics scraping | `1` (default off) |
+| `KERNEL_LOG_JSON` | Structured JSON logging | `1` |
+| `KERNEL_LOG_LEVEL` | Logging verbosity | `INFO` \| `DEBUG` |
+| `KERNEL_CHAT_TURN_TIMEOUT` | Timeout per turn (seconds) | `30` |
+| `KERNEL_MORAL_HUB_ENABLE` | Enable governance hub + DAO | `1` |
+| `KERNEL_CHECKPOINT_ENABLED` | Snapshot state to disk | `1` |
+| `ETHOS_RUNTIME_PROFILE` | Load bundled config (lab/demo/production) | `lab` |
+
+**Full reference:** [`docs/proposals/KERNEL_ENV_POLICY.md`](docs/proposals/KERNEL_ENV_POLICY.md) · **operator CLI:** `python -m src.ethos_cli config` (after `pip install -e .`).
 
 ## Modular architecture (overview)
 

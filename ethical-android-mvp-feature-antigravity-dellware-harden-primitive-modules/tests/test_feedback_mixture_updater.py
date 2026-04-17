@@ -6,7 +6,6 @@ import json
 from pathlib import Path
 
 import numpy as np
-
 from src.modules.feedback_mixture_updater import (
     FeedbackItem,
     FeedbackUpdater,
