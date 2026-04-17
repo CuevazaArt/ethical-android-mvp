@@ -136,6 +136,9 @@ class DAOOrchestrator:
         }
 
     # --- Proxy methods for MockDAO compatibility (L0/L1 legacy) ---
+    def transfer_tokens(self, *args, **kwargs):
+        return self.local_dao.transfer_tokens(*args, **kwargs)
+
     def register_audit(self, *args, **kwargs):
         return self.local_dao.register_audit(*args, **kwargs)
 

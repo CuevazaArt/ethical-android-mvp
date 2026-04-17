@@ -2131,17 +2131,134 @@ async def ws_chat(ws: WebSocket) -> None:
         )
 
     try:
+        current_turn_task: asyncio.Task | None = None
+        current_cancel_ev: threading.Event | None = None
+
+        async def run_turn(data_in: dict[str, Any], turn_id: int):
+            nonlocal current_cancel_ev
+            t_turn_start = time.perf_counter()
+            set_request_id()
+            
+            try:
+                text = (data_in.get("text") or "").strip()
+                agent_id = data_in.get("agent_id") or "user"
+                include_narrative = bool(data_in.get("include_narrative", False))
+                escalate_to_dao = bool(data_in.get("escalate_to_dao", False))
+
+                # Situated v8 sensors
+                sensor_raw = data_in.get("sensor")
+                client = sensor_raw if isinstance(sensor_raw, dict) else None
+                fixture = os.environ.get("KERNEL_SENSOR_FIXTURE", "").strip() or None
+                preset = os.environ.get("KERNEL_SENSOR_PRESET", "").strip() or None
+                sensor_snapshot = snapshot_from_layers(
+                    fixture_path=fixture,
+                    preset_name=preset,
+                    client_dict=client,
+                )
+
+                chat_to = st.kernel_chat_turn_timeout_seconds
+                
+                result: ChatTurnResult | None = None
+                gen = bridge.process_chat_stream(
+                    text,
+                    agent_id=agent_id,
+                    place="chat",
+                    include_narrative=include_narrative,
+                    sensor_snapshot=sensor_snapshot,
+                    escalate_to_dao=escalate_to_dao,
+                    cancel_event=current_cancel_ev,
+                    chat_turn_id=turn_id,
+                )
+                
+                if chat_to is not None:
+                    # Timeout-aware stream consumption
+                    it = gen.__aiter__()
+                    while True:
+                        try:
+                            event = await asyncio.wait_for(it.__anext__(), timeout=chat_to)
+                            if event["event_type"] == "turn_finished":
+                                result = event["payload"]["result"]
+                                break
+                            else:
+                                await ws.send_json(event)
+                        except StopAsyncIteration:
+                            break
+                else:
+                    async for event in gen:
+                        if event["event_type"] == "turn_finished":
+                            result = event["payload"]["result"]
+                        else:
+                            await ws.send_json(event)
+                
+                if result:
+                    observe_chat_turn(result.path, time.perf_counter() - t_turn_start)
+                    if result.path in ("safety_block", "kernel_block"):
+                        record_malabs_block(result.path)
+                    
+                    logger.info("chat_turn_finished id=%s path=%s", turn_id, result.path)
+                    
+                    if st.kernel_chat_json_offload:
+                        payload = await bridge.run_sync_in_chat_thread(
+                            _chat_turn_to_jsonable, result, kernel
+                        )
+                    else:
+                        payload = _chat_turn_to_jsonable(result, kernel)
+                    
+                    # Wrap in event for consistency with stream
+                    await ws.send_json({
+                        "event_type": "turn_finished",
+                        "payload": payload
+                    })
+                    maybe_autosave_episodes(kernel, session_ckpt)
+
+            except asyncio.TimeoutError:
+                kernel.abandon_chat_turn(turn_id)
+                observe_chat_turn("turn_timeout", time.perf_counter() - t_turn_start)
+                record_chat_turn_async_timeout()
+                if current_cancel_ev is not None:
+                    current_cancel_ev.set()
+                    record_llm_cancel_scope_signaled()
+                
+                await ws.send_json({
+                    "error": "chat_turn_timeout",
+                    "timeout_seconds": chat_to,
+                    "path": "turn_timeout",
+                    "response": {"message": "Turn exceeded server time limit.", "tone": "neutral"}
+                })
+            except asyncio.CancelledError:
+                logger.info("chat_turn_cancelled id=%s", turn_id)
+                kernel.abandon_chat_turn(turn_id)
+                if current_cancel_ev:
+                    current_cancel_ev.set()
+            except Exception as e:
+                logger.exception("chat_turn_error id=%s: %s", turn_id, e)
+                try:
+                    await ws.send_json({"error": "internal_error", "message": str(e)})
+                except: pass
+
         while True:
             set_request_id()
             raw = await ws.receive_text()
             try:
                 data = json.loads(raw)
             except json.JSONDecodeError:
-                await ws.send_json(
-                    {"error": "invalid_json", "hint": 'send JSON with a "text" field'}
-                )
+                await ws.send_json({"error": "invalid_json"})
                 continue
 
+            # ══ Control Messages ══
+            if "control" in data:
+                ctrl = data["control"]
+                if ctrl == "abort":
+                    if current_turn_task and not current_turn_task.done():
+                        current_turn_task.cancel()
+                        if current_cancel_ev:
+                            current_cancel_ev.set()
+                        await ws.send_json({"control_ack": "aborted", "turn_id": chat_turn_seq})
+                    else:
+                        await ws.send_json({"control_ack": "no_active_turn"})
+                continue
+
+            # ══ Operator Feedback ══
             ofb = data.get("operator_feedback")
             if ofb is not None and str(ofb).strip():
                 recorded = kernel.record_operator_feedback(str(ofb).strip())
@@ -2149,20 +2266,10 @@ async def ws_chat(ws: WebSocket) -> None:
                 maybe_autosave_episodes(kernel, session_ckpt)
                 continue
 
+            # ══ Integrity & Governance Payloads (Non-text) ══
             text_preview = (data.get("text") or "").strip()
-            if (
-                isinstance(data.get("integrity_alert"), dict)
-                and not dao_integrity_audit_ws_enabled()
-                and not text_preview
-            ):
-                await ws.send_json(
-                    {
-                        "error": "integrity_audit_disabled",
-                        "hint": "Set KERNEL_DAO_INTEGRITY_AUDIT_WS=1 on the server.",
-                    }
-                )
-                continue
-
+            
+            # Check for non-text payloads
             dao_payload = _collect_dao_ws_actions(kernel, data)
             nomad_payload = _collect_nomad_ws_actions(kernel, data)
             integrity_payload = _collect_integrity_ws_action(kernel, data)
@@ -2171,173 +2278,68 @@ async def ws_chat(ws: WebSocket) -> None:
             lan_judicial_payload = _collect_lan_governance_judicial_batch(kernel, data)
             lan_mock_court_payload = _collect_lan_governance_mock_court_batch(kernel, data)
             lan_envelope_payload = _collect_lan_governance_envelope(
-                kernel,
-                data,
+                kernel, data,
                 replay_cache=lan_envelope_replay_cache,
                 replay_cache_stats=lan_envelope_replay_cache_stats,
                 replay_cache_ttl_ms=lan_envelope_replay_cache_ttl_ms,
                 replay_cache_max_entries=lan_envelope_replay_cache_max_entries,
             )
             lan_coordinator_payload = _collect_lan_governance_coordinator(
-                kernel,
-                data,
+                kernel, data,
                 replay_cache=lan_envelope_replay_cache,
                 replay_cache_stats=lan_envelope_replay_cache_stats,
                 replay_cache_ttl_ms=lan_envelope_replay_cache_ttl_ms,
                 replay_cache_max_entries=lan_envelope_replay_cache_max_entries,
             )
             lan_governance_merged = _merge_lan_governance_ws_payloads(
-                lan_batch_payload,
-                lan_dao_payload,
-                lan_judicial_payload,
-                lan_mock_court_payload,
-                lan_envelope_payload,
-                lan_coordinator_payload,
+                lan_batch_payload, lan_dao_payload, lan_judicial_payload,
+                lan_mock_court_payload, lan_envelope_payload, lan_coordinator_payload,
             )
-            if (
-                dao_payload
-                or nomad_payload
-                or integrity_payload
-                or lan_batch_payload
-                or lan_dao_payload
-                or lan_judicial_payload
-                or lan_mock_court_payload
-                or lan_envelope_payload
-                or lan_coordinator_payload
-            ):
-                out_ws: dict[str, Any] = {}
-                if dao_payload:
-                    out_ws["dao"] = dao_payload
-                if nomad_payload:
-                    out_ws["nomad"] = nomad_payload
-                if integrity_payload:
-                    out_ws["integrity"] = integrity_payload
-                if lan_governance_merged:
-                    out_ws["lan_governance"] = lan_governance_merged
-                await ws.send_json(out_ws)
 
-            text = text_preview
-            if not text:
-                if (
-                    dao_payload
-                    or nomad_payload
-                    or integrity_payload
-                    or lan_batch_payload
-                    or lan_dao_payload
-                    or lan_judicial_payload
-                    or lan_mock_court_payload
-                    or lan_envelope_payload
-                    or lan_coordinator_payload
-                ):
+            if (dao_payload or nomad_payload or integrity_payload or lan_governance_merged):
+                out_ws: dict[str, Any] = {}
+                if dao_payload: out_ws["dao"] = dao_payload
+                if nomad_payload: out_ws["nomad"] = nomad_payload
+                if integrity_payload: out_ws["integrity"] = integrity_payload
+                if lan_governance_merged: out_ws["lan_governance"] = lan_governance_merged
+                await ws.send_json(out_ws)
+                if not text_preview:
                     maybe_autosave_episodes(kernel, session_ckpt)
                     continue
-                await ws.send_json({"error": "empty_text"})
-                continue
 
-            agent_id = data.get("agent_id") or "user"
-            include_narrative = bool(data.get("include_narrative", False))
-            escalate_to_dao = bool(data.get("escalate_to_dao", False))
-
+            # ══ Constitution Drafts etc ══
             cd = data.get("constitution_draft")
             if isinstance(cd, dict) and constitution_draft_ws_enabled():
                 try:
                     add_constitution_draft(
-                        kernel,
-                        int(cd.get("level", 1)),
-                        str(cd.get("title") or ""),
-                        str(cd.get("body") or ""),
-                        str(cd.get("proposer") or agent_id),
+                        kernel, int(cd.get("level", 1)), str(cd.get("title") or ""),
+                        str(cd.get("body") or ""), str(cd.get("proposer") or data.get("agent_id") or "user")
                     )
-                except (ValueError, TypeError):
-                    pass
+                except: pass
 
-            sensor_raw = data.get("sensor")
-            client = sensor_raw if isinstance(sensor_raw, dict) else None
-            fixture = os.environ.get("KERNEL_SENSOR_FIXTURE", "").strip() or None
-            preset = os.environ.get("KERNEL_SENSOR_PRESET", "").strip() or None
-            sensor_snapshot = snapshot_from_layers(
-                fixture_path=fixture,
-                preset_name=preset,
-                client_dict=client,
-            )
-
-            chat_turn_seq += 1
-            current_chat_turn_id = chat_turn_seq
-            t_turn = time.perf_counter()
-            chat_to = st.kernel_chat_turn_timeout_seconds
-            chat_cancel_ev: threading.Event | None = (
-                threading.Event() if chat_to is not None else None
-            )
-            try:
-                coro = bridge.process_chat(
-                    text,
-                    agent_id=agent_id,
-                    place="chat",
-                    include_narrative=include_narrative,
-                    sensor_snapshot=sensor_snapshot,
-                    escalate_to_dao=escalate_to_dao,
-                    cancel_event=chat_cancel_ev,
-                    chat_turn_id=current_chat_turn_id,
-                )
-                if chat_to is not None:
-                    result = await asyncio.wait_for(coro, timeout=chat_to)
-                else:
-                    result = await coro
-            except TimeoutError:
-                kernel.abandon_chat_turn(current_chat_turn_id)
-                observe_chat_turn("turn_timeout", time.perf_counter() - t_turn)
-                record_chat_turn_async_timeout()
-                if chat_cancel_ev is not None:
-                    chat_cancel_ev.set()
-                    record_llm_cancel_scope_signaled()
-                logger.warning(
-                    "chat_turn_timeout seconds=%s (worker thread may still run; cancel event set)",
-                    chat_to,
-                )
-                await ws.send_json(
-                    {
-                        "error": "chat_turn_timeout",
-                        "timeout_seconds": chat_to,
-                        "blocked": False,
-                        "path": "turn_timeout",
-                        "block_reason": "chat_turn_timeout",
-                        "hint": (
-                            "Async deadline elapsed; cooperative cancel was signaled for further "
-                            "sync LLM HTTP in this thread. In-flight HTTP may still run until "
-                            "OLLAMA_TIMEOUT; see ADR 0002."
-                        ),
-                        "response": {
-                            "message": (
-                                "This turn exceeded the server time limit. "
-                                "Try again or increase KERNEL_CHAT_TURN_TIMEOUT."
-                            ),
-                            "tone": "neutral",
-                            "hax_mode": "none",
-                            "inner_voice": "",
-                        },
-                    }
-                )
-                maybe_autosave_episodes(kernel, session_ckpt)
+            # ══ Standard Chat Turn ══
+            if not text_preview:
+                await ws.send_json({"error": "empty_text"})
                 continue
-            observe_chat_turn(result.path, time.perf_counter() - t_turn)
-            if result.path in ("safety_block", "kernel_block"):
-                record_malabs_block(result.path)
-            logger.info(
-                "chat_turn_finished path=%s blocked=%s",
-                result.path,
-                result.blocked,
-            )
-            if st.kernel_chat_json_offload:
-                payload = await bridge.run_sync_in_chat_thread(
-                    _chat_turn_to_jsonable, result, kernel
-                )
-            else:
-                payload = _chat_turn_to_jsonable(result, kernel)
-            await ws.send_json(payload)
-            maybe_autosave_episodes(kernel, session_ckpt)
+
+            # Start new turn, cancelling previous if necessary (Serial Turns)
+            if current_turn_task and not current_turn_task.done():
+                logger.warning("auto_cancelling_previous_turn_due_to_new_text id=%s", chat_turn_seq)
+                current_turn_task.cancel()
+                if current_cancel_ev:
+                    current_cancel_ev.set()
+            
+            chat_turn_seq += 1
+            current_cancel_ev = threading.Event()
+            current_turn_task = asyncio.create_task(run_turn(data, chat_turn_seq))
+
     except WebSocketDisconnect:
         pass
     finally:
+        if current_turn_task and not current_turn_task.done():
+            current_turn_task.cancel()
+            if current_cancel_ev:
+                current_cancel_ev.set()
         clear_request_context()
         if advisory_stop is not None and advisory_task is not None:
             advisory_stop.set()

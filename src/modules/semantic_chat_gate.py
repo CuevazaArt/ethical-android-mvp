@@ -273,7 +273,18 @@ def _build_rlhf_features(sim: float, cat_str: str, zone: str) -> dict[str, Any]:
     }
 
 
+_hot_theta_allow: float | None = None
+_hot_theta_block: float | None = None
+
+def apply_hot_reloaded_thresholds(theta_allow: float, theta_block: float) -> None:
+    """Hot reload absolute evil thresholds dynamically from governance."""
+    global _hot_theta_allow, _hot_theta_block
+    _hot_theta_allow = theta_allow
+    _hot_theta_block = theta_block
+
 def _block_threshold() -> float:
+    if _hot_theta_block is not None:
+        return _hot_theta_block
     raw = os.environ.get("KERNEL_SEMANTIC_CHAT_SIM_BLOCK_THRESHOLD", "").strip()
     if raw:
         try:
@@ -290,6 +301,8 @@ def _block_threshold() -> float:
 
 
 def _allow_threshold() -> float:
+    if _hot_theta_allow is not None:
+        return _hot_theta_allow
     raw = os.environ.get(
         "KERNEL_SEMANTIC_CHAT_SIM_ALLOW_THRESHOLD",
         str(DEFAULT_SEMANTIC_SIM_ALLOW_THRESHOLD),

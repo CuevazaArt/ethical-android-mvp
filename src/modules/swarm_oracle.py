@@ -61,7 +61,7 @@ class SwarmOracle:
     def get_reputation_hint(self, node_id: str) -> float:
         return self.peers.get(node_id, PeerEntry(node_id, 0, 0.5)).reputation
 
-    def apply_slashing(self, node_id: str, severity: float = 0.2):
+    def apply_slashing(self, node_id: str, penalty: float = 0.2):
         """
         Bloque 7.2: Forceful reputation penalty for nodes that provide false verification.
         """
@@ -71,7 +71,7 @@ class SwarmOracle:
             self.peers[node_id] = PeerEntry(node_id=node_id, last_seen=now, reputation=0.5)
             
         peer = self.peers[node_id]
-        peer.reputation = max(0.0, peer.reputation - severity)
+        peer.reputation = max(0.0, peer.reputation - penalty)
         self.save()
 
     def process_forgiveness_pulse(self, forgiveness_rate: float = 0.02):

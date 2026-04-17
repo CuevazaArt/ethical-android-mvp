@@ -114,9 +114,13 @@ class SwarmNegotiator:
         """
         votes = []
         for peer in peers:
-            # Mock Peer Voting: Peers vote 'agree' with 70% probability if signal risk is low
+            # Mock Peer Voting: some nodes agree, some abstain/dissent based on ID and risk
             risk = signals.get("risk", 0.5)
-            vote = "agree" if risk < 0.6 else "abstain"
+            # PEER_LAN_03 is always a bit 'rebellious' or 'faulty' in this mock
+            if peer == "PEER_LAN_03":
+                vote = "abstain" if risk < 0.7 else "disagree"
+            else:
+                vote = "agree" if risk < 0.8 else "abstain"
             votes.append(vote)
         
         agreements = votes.count("agree")
@@ -217,7 +221,7 @@ class SwarmNegotiator:
                     penalty = 0.05 # Reduced penalty for stable nodes
 
                 # Bloque 7.2: Slashing
-                oracle.apply_slashing(node_id, severity=penalty)
+                oracle.apply_slashing(node_id, penalty=penalty)
                 register_slashing_intent(
                     dao, 
                     node_id, 

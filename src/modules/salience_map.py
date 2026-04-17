@@ -42,12 +42,25 @@ class SalienceMap:
 
     def compute(
         self,
-        signals: dict,
+        signals: dict[str, float],
         state: InternalState,
         social_eval: SocialEvaluation,
         reflection: ReflectionSnapshot | None,
         curiosity: float = 0.0,
     ) -> SalienceSnapshot:
+        """
+        Calculates the current salience distribution across ethical and somatic axes.
+
+        Args:
+            signals: The environmental signals (risk, urgency, etc.).
+            state: The current internal autonomic state (sympathetic/parasympathetic).
+            social_eval: The social context and trust evaluation.
+            reflection: The results of the internal ethical reflection Lobe.
+            curiosity: The current epistemic drive/curiosity coefficient.
+
+        Returns:
+            A SalienceSnapshot containing normalized attention weights.
+        """
         risk = float(signals.get("risk", 0.0))
         risk = max(0.0, min(1.0, risk))
 

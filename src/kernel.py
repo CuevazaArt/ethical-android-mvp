@@ -23,7 +23,7 @@ from src.modules.absolute_evil import AbsoluteEvilResult
 from concurrent.futures import ThreadPoolExecutor
 from dataclasses import dataclass
 from pathlib import Path
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING, Any, AsyncGenerator
 
 from .kernel_lobes import PerceptiveLobe, LimbicEthicalLobe, ExecutiveLobe, CerebellumLobe, MemoryLobe, CerebellumNode
 from .kernel_lobes.models import LimbicStageResult, ExecutiveStageResult
@@ -75,7 +75,7 @@ from collections.abc import Callable
 from concurrent.futures import ThreadPoolExecutor
 from dataclasses import dataclass
 from pathlib import Path
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING, Any, AsyncGenerator
 
 _log = logging.getLogger(__name__)
 
@@ -133,6 +133,7 @@ from .modules.judicial_escalation import (
 from .modules.kernel_event_bus import (
     EVENT_KERNEL_DECISION,
     EVENT_KERNEL_EPISODE_REGISTERED,
+    EVENT_GOVERNANCE_THRESHOLD_UPDATED,
     KernelEventBus,
     kernel_event_bus_enabled,
 )
@@ -550,6 +551,8 @@ class EthicalKernel:
             if co and hasattr(co, "swarm_negotiator") and co.swarm_negotiator is not None
             else SwarmNegotiator(node_id=os.environ.get("KERNEL_NODE_ID", "default_node"))
         )
+        from .modules.swarm_oracle import SwarmOracle
+        self.swarm_oracle = SwarmOracle()
         self.strategist = (
             co.strategist
             if co and hasattr(co, "strategist") and co.strategist is not None
@@ -575,7 +578,8 @@ class EthicalKernel:
             uchi_soto=self.uchi_soto,
             sympathetic=self.sympathetic,
             locus=self.locus,
-            swarm=self.swarm
+            swarm=self.swarm,
+            oracle=self.swarm_oracle
         )
         self.executive_lobe = ExecutiveLobe(
             absolute_evil=self.absolute_evil,
@@ -638,6 +642,20 @@ class EthicalKernel:
         # WebSocket chat: abandon late worker completions after KERNEL_CHAT_TURN_TIMEOUT (see ADR 0002).
         self._chat_turn_abandon_lock = threading.Lock()
         self._abandoned_chat_turn_ids: set[int] = set()
+
+        # ═══ Runtime Governance Setup (C.2) ═══
+        from .modules.multi_realm_governance import is_multi_realm_governance_enabled, MultiRealmGovernor
+        self.governor = MultiRealmGovernor(event_bus=self.event_bus) if is_multi_realm_governance_enabled() else None
+        if self.event_bus:
+            self.event_bus.subscribe(EVENT_GOVERNANCE_THRESHOLD_UPDATED, self._on_governance_threshold_updated)
+
+    def _on_governance_threshold_updated(self, payload: dict[str, Any]) -> None:
+        """Handle governance threshold dynamic updates applied per-realm configurations."""
+        theta_a = payload.get("theta_allow")
+        theta_b = payload.get("theta_block")
+        if theta_a is not None and theta_b is not None:
+            import src.modules.semantic_chat_gate as sem_gate
+            sem_gate.apply_hot_reloaded_thresholds(float(theta_a), float(theta_b))
 
     def abandon_chat_turn(self, turn_id: int) -> None:
         """Mark ``turn_id`` as abandoned so :meth:`process_chat_turn` skips STM / post-turn effects."""
@@ -874,6 +892,22 @@ class EthicalKernel:
 
         self._last_registered_episode_id = episode_id
 
+        # ═══ STAGE 6: SWARM CONSENSUS & JUSTICE (Module 7) ═══
+        if final_mode == "gray_zone" or signals.get("risk", 0) > 0.4:
+            peers = list(self.swarm.state.known_peers.keys())
+            if not peers:
+                # Mock some peers if none discovered
+                peers = ["PEER_LAN_01", "PEER_LAN_02", "PEER_LAN_03"]
+            
+            await self.limbic_lobe.execute_swarm_consensus_stage(
+                dao=self.dao,
+                proposal_id=f"SWARM-{int(time.time())}",
+                action=final_action,
+                signals=signals,
+                peers=peers,
+                case_ref=episode_id or "incident_unsaved"
+            )
+
         d = KernelDecision(
             scenario=scenario, place=place, absolute_evil=AbsoluteEvilResult(blocked=False),
             sympathetic_state=state, social_evaluation=social_eval, locus_evaluation=locus_eval,
@@ -940,7 +974,6 @@ class EthicalKernel:
         message_content: str
     ) -> tuple[BayesianResult | None, BayesianStageMetadata | None, KernelDecision | None]:
 
-        # 1. Check Lexical Veto (Phase 8 strict preemptive)
         for text in [scenario, message_content]:
             if not text: continue
             lex = self.absolute_evil.evaluate_chat_text(text)
@@ -993,138 +1026,10 @@ class EthicalKernel:
 
     def format_decision(self, d: KernelDecision) -> str:
         """Formats a complete decision for readable presentation with ANSI colors."""
-        sep = Term.color("═" * 70, Term.DIM)
-        lines = [
-            f"\n{sep}",
-            f"  {Term.color('SCENARIO:', Term.B_CYAN)} {d.scenario}",
-            f"  {Term.color('PLACE:', Term.B_CYAN)} {d.place}",
-            f"{sep}",
-        ]
+        from .utils.kernel_formatters import format_kernel_decision
+        from .utils.terminal_colors import Term
 
-        if d.blocked:
-            lines.append(f"  {Term.color('⛔ BLOCKED:', Term.B_RED)} {Term.color(d.block_reason, Term.RED)}")
-            return "\n".join(lines)
-
-        # Internal state
-        mode_color = Term.B_GREEN if "parasympathetic" in d.sympathetic_state.mode.lower() else Term.B_YELLOW
-        lines.extend(
-            [
-                f"  {Term.color('State:', Term.CYAN)} {Term.color(d.sympathetic_state.mode, mode_color)} (σ={d.sympathetic_state.sigma})",
-                f"  {Term.color(d.sympathetic_state.description, Term.DIM)}",
-            ]
-        )
-
-        # Uchi-soto
-        if d.social_evaluation:
-            circ = d.social_evaluation.circle.value
-            circ_color = Term.B_MAGENTA if "OWNER" in circ else Term.YELLOW
-            dial = "YES" if d.social_evaluation.dialectic_active else "NO"
-            lines.append(
-                f"  {Term.color('Social:', Term.CYAN)} {Term.color(circ, circ_color)} | "
-                f"Trust={Term.color(str(d.social_evaluation.trust), Term.B_WHITE)} | "
-                f"Dialectic={dial}"
-            )
-
-        # Locus
-        if d.locus_evaluation:
-            locus = d.locus_evaluation.dominant_locus
-            loc_color = Term.B_BLUE if locus == "internal" else Term.B_MAGENTA
-            lines.append(
-                f"  {Term.color('Locus:', Term.CYAN)} {Term.color(locus, loc_color)} "
-                f"(α={d.locus_evaluation.alpha}, β={d.locus_evaluation.beta}) → {Term.color(d.locus_evaluation.recommended_adjustment, Term.ITALIC)}"
-            )
-
-        lines.extend(
-            [
-                "",
-                f"  {Term.color('Chosen action:', Term.CYAN)} {Term.color(d.final_action, Term.B_GREEN + Term.BOLD)}",
-                f"  {Term.color('Decision mode:', Term.CYAN)} {Term.highlight_decision(d.decision_mode)}",
-            ]
-        )
-
-        br = d.bayesian_result
-        if br is not None:
-            lines.extend(
-                [
-                    f"  {Term.color('Expected impact:', Term.CYAN)} {Term.highlight_impact(br.expected_impact)}",
-                    f"  {Term.color('Uncertainty:', Term.CYAN)} {br.uncertainty:.3f}",
-                    f"  {Term.color('Reasoning:', Term.CYAN)} {br.reasoning}",
-                ]
-            )
-            if br.pruned_actions:
-                lines.append(f"  {Term.color('Pruned:', Term.YELLOW)} {', '.join(br.pruned_actions)}")
-            if d.feedback_consistency:
-                lines.append(f"  Feedback consistency: {d.feedback_consistency}")
-            if d.applied_mixture_weights is not None:
-                lines.append(f"  Applied weights [util, deon, virt]: {d.applied_mixture_weights}")
-            if d.mixture_posterior_alpha is not None:
-                lines.append(f"  Posterior Dirichlet α (mixture): {d.mixture_posterior_alpha}")
-            if d.mixture_context_key:
-                lines.append(f"  Mixture context bucket (ADR 0012 L3): {d.mixture_context_key}")
-            if d.hierarchical_context_key:
-                lines.append(
-                    f"  Hierarchical context type (ADR 0013): {d.hierarchical_context_key}"
-                )
-            if d.bma_win_probabilities:
-                lines.append(
-                    f"  BMA win probabilities (α={d.bma_dirichlet_alpha}, N={d.bma_n_samples}): "
-                    f"{d.bma_win_probabilities}"
-                )
-
-        mo = d.moral
-        if mo is not None:
-            lines.extend(
-                [
-                    "",
-                    f"  Ethical verdict: {mo.global_verdict.value} (score={mo.total_score})",
-                ]
-            )
-            for ev in mo.evaluations:
-                lines.append(f"    {ev.pole}: {ev.verdict.value} → {ev.moral}")
-
-        if d.reflection is not None:
-            r = d.reflection
-            lines.extend(
-                [
-                    "",
-                    f"  Reflection (2nd order): conflict={r.conflict_level} spread={r.pole_spread} "
-                    f"strain={r.strain_index} u={r.uncertainty} will_mode={r.will_mode}",
-                    f"    {r.note}",
-                ]
-            )
-
-        if d.salience is not None:
-            s = d.salience
-            w = s.weights
-            lines.extend(
-                [
-                    "",
-                    f"  Salience (GWT-lite): dominant={s.dominant_focus} "
-                    f"risk={w['risk']} social={w['social']} body={w['body']} "
-                    f"ethical_conflict={w['ethical_conflict']}",
-                ]
-            )
-
-        if d.affect is not None:
-            p, a, dd = d.affect.pad
-            lines.extend(
-                [
-                    "",
-                    f"  Affect PAD (P,A,D): ({p:.3f}, {a:.3f}, {dd:.3f})",
-                    f"  Dominant archetype: {d.affect.dominant_archetype_id} (β={d.affect.beta})",
-                ]
-            )
-
-        lines.extend(
-            [
-                "",
-                f"  {compose_monologue_line(d, self._last_registered_episode_id)}",
-                f"  Narrative identity: {self.memory.identity.ascription_line()}",
-            ]
-        )
-
-        lines.append(f"{'─' * 70}")
-        return "\n".join(lines)
+        return format_kernel_decision(d, Term)
 
     def _snapshot_feedback_anchor(self, regime: str) -> None:
         """Last completed chat regime for optional operator feedback (see ``record_operator_feedback``)."""
@@ -1644,6 +1549,151 @@ class EthicalKernel:
         )
 
 
+    async def process_chat_turn_stream(
+        self,
+        user_input: str,
+        agent_id: str = "user",
+        place: str = "chat",
+        include_narrative: bool = False,
+        sensor_snapshot: SensorSnapshot | None = None,
+        escalate_to_dao: bool = False,
+        chat_turn_id: int | None = None,
+        cancel_event: threading.Event | None = None,
+    ) -> AsyncGenerator[dict[str, Any], None]:
+        """
+        Real-time dialogue stream: yields intermediate events as they occur.
+        """
+        _log.info(f"DEBUG: process_chat_turn_stream started for {user_input[:20]}")
+        wm = self.working_memory
+        turn_start_mono = time.monotonic()
+        yield {"event_type": "turn_started", "payload": {"chat_turn_id": chat_turn_id}}
+
+        conv = wm.format_context_for_perception()
+        self.llm.reset_verbal_degradation_log()
+        pre = self._preprocess_text_observability(user_input)
+        self._last_light_risk_tier, self._last_premise_advisory, self._last_reality_verification = pre
+        self.user_model.note_premise_advisory(self._last_premise_advisory.flag)
+
+        # 1. Safety Block Check
+        mal = await self.absolute_evil.aevaluate_chat_text(
+            user_input,
+            llm_backend=self._malabs_text_backend(),
+        )
+        _log.info("DEBUG: after malabs")
+        self._last_chat_malabs = mal
+        if mal.blocked:
+            vitality_blk, mm_blk, ed_blk = self._chat_assess_sensor_stack(sensor_snapshot)
+            confidence_blk = build_perception_confidence_envelope(
+                coercion_report=None,
+                multimodal_state=getattr(mm_blk, "state", None),
+                epistemic_active=bool(getattr(ed_blk, "active", False)),
+                vitality_critical=bool(getattr(vitality_blk, "is_critical", False)),
+                thermal_critical=bool(getattr(vitality_blk, "thermal_critical", False)),
+            )
+            msg = "I can't continue this line of conversation: it conflicts with ethical limits."
+            resp = VerbalResponse(message=msg, tone="firm", hax_mode="Steady blue light.", inner_voice=f"MalAbs: {mal.reason}")
+            wm.add_turn(user_input, msg, {}, blocked=True)
+            res = ChatTurnResult(
+                response=resp, path="safety_block", blocked=True, block_reason=mal.reason or "chat_safety",
+                multimodal_trust=mm_blk, epistemic_dissonance=ed_blk, perception_confidence=confidence_blk,
+                reality_verification=self._last_reality_verification,
+                temporal_context=build_temporal_context(
+                    turn_index=self.subjective_clock.turn_index, process_start_mono=self.subjective_clock.session_start_mono,
+                    turn_start_mono=turn_start_mono, subjective_elapsed_s=self.subjective_clock.elapsed_session_s(),
+                    context="safety_block", text=user_input, vitality=vitality_blk, sensor_snapshot=sensor_snapshot,
+                ),
+            )
+            yield {"event_type": "turn_finished", "payload": {"result": res}}
+            return
+
+        # 2. Perception Stage
+        yield {"event_type": "perception_started", "payload": {}}
+        stage = await self._run_perception_stage_async(
+            user_input, conversation_context=conv, sensor_snapshot=sensor_snapshot,
+            turn_start_mono=turn_start_mono, precomputed=pre,
+        )
+        p = stage.perception
+        yield {
+            "event_type": "perception_finished", 
+            "payload": {
+                "perception": {
+                    "risk": p.risk,
+                    "urgency": p.urgency,
+                    "hostility": p.hostility,
+                    "calm": p.calm,
+                    "manipulation": p.manipulation,
+                    "suggested_context": p.suggested_context,
+                    "summary": p.summary,
+                }
+            }
+        }
+
+        # 3. Decision Stage
+        yield {"event_type": "decision_started", "payload": {}}
+        heavy = self._chat_is_heavy(stage.perception)
+        actions = self._actions_for_chat(stage.perception, heavy)
+        decision = await self.aprocess(
+            scenario=stage.perception.summary or user_input[:240],
+            place=place, signals=stage.signals, context=stage.perception.suggested_context if heavy else "everyday",
+            actions=actions, agent_id=agent_id, message_content=user_input, register_episode=heavy,
+            sensor_snapshot=sensor_snapshot, multimodal_assessment=stage.multimodal_trust,
+        )
+        yield {
+            "event_type": "decision_finished", 
+            "payload": {
+                "decision": {
+                    "final_action": decision.final_action,
+                    "decision_mode": decision.decision_mode,
+                    "blocked": decision.blocked,
+                }
+            }
+        }
+
+        if decision.blocked:
+            res = ChatTurnResult(response=VerbalResponse("Blocked.", "firm"), path="kernel_block", blocked=True)
+            yield {"event_type": "turn_finished", "payload": {"result": res}}
+            return
+
+        # 4. Global Communication Stream
+        yield {"event_type": "communication_started", "payload": {}}
+        async for chunk in self.llm.acommunicate_stream(
+            action=decision.final_action, mode=decision.decision_mode,
+            state=decision.sympathetic_state.mode, sigma=decision.sympathetic_state.sigma,
+            circle=decision.social_evaluation.circle.value if decision.social_evaluation else "neutral_soto",
+            verdict=decision.moral.global_verdict.value if decision.moral else "Gray Zone",
+            score=decision.moral.total_score if decision.moral else 0.0,
+            scenario=user_input, conversation_context=conv,
+            affect_pad=decision.affect.pad if decision.affect else None,
+            dominant_archetype=decision.affect.dominant_archetype_id if decision.affect else "",
+            identity_context=self.memory.identity.to_llm_context(),
+        ):
+            yield {"event_type": "token", "payload": {"text": chunk}}
+
+        # 5. Finalize Result
+        final_response = await self.llm.acommunicate(
+            action=decision.final_action, mode=decision.decision_mode,
+            state=decision.sympathetic_state.mode, sigma=decision.sympathetic_state.sigma,
+            circle=decision.social_evaluation.circle.value if decision.social_evaluation else "neutral_soto",
+            verdict=decision.moral.global_verdict.value if decision.moral else "Gray Zone",
+            score=decision.moral.total_score if decision.moral else 0.0,
+            scenario=user_input, conversation_context=conv,
+            affect_pad=decision.affect.pad if decision.affect else None,
+            dominant_archetype=decision.affect.dominant_archetype_id if decision.affect else "",
+            identity_context=self.memory.identity.to_llm_context(),
+        )
+        
+        res = ChatTurnResult(
+            response=final_response, path="heavy" if heavy else "light",
+            perception=stage.perception, decision=decision,
+            multimodal_trust=stage.multimodal_trust,
+            epistemic_dissonance=stage.epistemic_dissonance,
+            reality_verification=stage.reality_verification,
+            temporal_context=stage.temporal_context,
+            perception_confidence=stage.perception_confidence,
+        )
+        wm.add_turn(user_input, final_response.message, stage.signals, heavy_kernel=heavy)
+        yield {"event_type": "turn_finished", "payload": {"result": res}}
+
     async def process_chat_turn_async(
         self,
         user_input: str,
@@ -1655,427 +1705,18 @@ class EthicalKernel:
         chat_turn_id: int | None = None,
         cancel_event: threading.Event | None = None,
     ) -> ChatTurnResult:
-        """
-        Real-time dialogue: MalAbs text gate → perceive (with STM) → kernel (light/heavy) → LLM.
-
-        Light turns skip long-term episode registration to avoid flooding NarrativeMemory;
-        heavy turns run the full pipeline including PAD and episode audit.
-
-        Optional ``sensor_snapshot`` (v8): situated hints merged into sympathetic signals
-        before ``process``; does not bypass MalAbs or policy.
-
-        ``cancel_event`` (from ``KERNEL_CHAT_TURN_TIMEOUT`` WebSocket path) is bound in the
-        worker thread that runs :meth:`process` so sync LLM + cooperative abort see the same
-        deadline signal as the threadpool chat path.
-        """
-        wm = self.working_memory
-        turn_start_mono = time.monotonic()
-        conv = wm.format_context_for_perception()
-        self.llm.reset_verbal_degradation_log()
-        pre = self._preprocess_text_observability(user_input)
-        self._last_light_risk_tier, self._last_premise_advisory, self._last_reality_verification = (
-            pre
-        )
-        self.user_model.note_premise_advisory(self._last_premise_advisory.flag)
-
-        mal = await self.absolute_evil.aevaluate_chat_text(
-            user_input,
-            llm_backend=self._malabs_text_backend(),
-        )
-        self._last_chat_malabs = mal
-        if mal.blocked:
-            vitality_blk, mm_blk, ed_blk = self._chat_assess_sensor_stack(sensor_snapshot)
-            self._last_multimodal_assessment = mm_blk
-            self._last_vitality_assessment = vitality_blk
-            confidence_blk = build_perception_confidence_envelope(
-                coercion_report=None,
-                multimodal_state=getattr(mm_blk, "state", None),
-                epistemic_active=bool(getattr(ed_blk, "active", False)),
-                vitality_critical=bool(getattr(vitality_blk, "is_critical", False)),
-                thermal_critical=bool(getattr(vitality_blk, "thermal_critical", False)),
-            )
-            msg = (
-                "I can't continue this line of conversation: it conflicts with non-negotiable "
-                "ethical limits. If you're in crisis, contact local emergency services or a "
-                "trusted professional."
-            )
-            resp = VerbalResponse(
-                message=msg,
-                tone="firm",
-                hax_mode="Neutral posture, steady blue light.",
-                inner_voice=f"MalAbs chat gate: {mal.reason or 'blocked'}",
-            )
-            if self._chat_turn_abandoned(chat_turn_id):
-                return self._chat_turn_stale_result(chat_turn_id)
-            wm.add_turn(user_input, msg, {}, blocked=True)
-            cat = mal.category.value if mal.category is not None else None
-            maybe_append_malabs_block_audit(
-                path_key="safety_block",
-                category=cat,
-                decision_trace=list(mal.decision_trace),
-                reason=mal.reason or "",
-            )
-            self._snapshot_feedback_anchor("safety_block")
-            limbic_blk = self._build_limbic_perception_profile(
-                perception=None,
-                signals=None,
-                vitality=vitality_blk,
-                multimodal=mm_blk,
-                epistemic=ed_blk,
-                confidence_envelope=confidence_blk,
-            )
-            self._release_chat_turn_id(chat_turn_id)
-            return ChatTurnResult(
-                response=resp,
-                path="safety_block",
-                blocked=True,
-                block_reason=mal.reason or "chat_safety",
-                multimodal_trust=mm_blk,
-                epistemic_dissonance=ed_blk,
-                reality_verification=self._last_reality_verification,
-                support_buffer=self._build_support_buffer_snapshot(
-                    "safety_block",
-                    limbic_profile=limbic_blk,
-                ),
-                limbic_profile=limbic_blk,
-                temporal_context=build_temporal_context(
-                    turn_index=self.subjective_clock.turn_index,
-                    process_start_mono=self.subjective_clock.session_start_mono,
-                    turn_start_mono=turn_start_mono,
-                    subjective_elapsed_s=self.subjective_clock.elapsed_session_s(),
-                    context="safety_block",
-                    text=user_input,
-                    vitality=vitality_blk,
-                    sensor_snapshot=sensor_snapshot,
-                ),
-                perception_confidence=confidence_blk,
-            )
-        stage = await self._run_perception_stage_async(
-            user_input,
-            conversation_context=conv,
-            sensor_snapshot=sensor_snapshot,
-            turn_start_mono=turn_start_mono,
-            precomputed=pre,
-        )
-        self._last_vitality_assessment = stage.vitality
-        self._last_multimodal_assessment = stage.multimodal_trust
-
-        perception = stage.perception
-        mm = stage.multimodal_trust
-        ed = stage.epistemic_dissonance
-        signals = stage.signals
-        heavy = self._chat_is_heavy(perception)
-        eth_context = perception.suggested_context if heavy else "everyday"
-
-        actions = self._actions_for_chat(perception, heavy)
-        ctx = perception.suggested_context or ""
-        actions = augment_generative_candidates(
-            actions,
-            user_input,
-            ctx,
-            heavy,
-            getattr(perception, "generative_candidates", None),
-        )
-        pu = None
-        cr = getattr(perception, "coercion_report", None)
-        if isinstance(cr, dict):
-            pu = cr.get("uncertainty")
-        elif cr is not None and callable(getattr(cr, "uncertainty", None)):
-            try:
-                pu = float(cr.uncertainty())
-            except Exception:
-                pu = None
-
-        # I3 — inject perception_uncertainty into signals before Bayesian scoring
-        if pu is not None and pu > 0.0:
-            signals = dict(signals)
-            signals["perception_uncertainty"] = max(
-                float(signals.get("perception_uncertainty", 0.0)), pu
-            )
-
-        # I5 — KERNEL_TEMPORAL_ETA_MODULATION: boost urgency from TemporalContext
-        if _kernel_env_truthy("KERNEL_TEMPORAL_ETA_MODULATION"):
-            tc = getattr(perception, "temporal_context", None)
-            if tc is not None:
-                try:
-                    eta_s = float(getattr(tc, "eta_seconds", 300) or 300)
-                    bhs = str(getattr(tc, "battery_horizon_state", "nominal") or "nominal")
-                    ref_eta = float(os.environ.get("KERNEL_TEMPORAL_REFERENCE_ETA_S", "300"))
-                    urgency_boost = min(max(ref_eta / max(eta_s, 1.0), 0.0), 1.0)
-                    if bhs == "critical":
-                        urgency_boost = min(urgency_boost + 0.3, 1.0)
-                    if urgency_boost > 0.0:
-                        signals = dict(signals)
-                        cur_urgency = float(signals.get("urgency", 0.0))
-                        signals["urgency"] = min(max(cur_urgency + urgency_boost * 0.4, 0.0), 1.0)
-                except Exception:
-                    pass
-
-        # 3.2. RLHF Feature Injection (Module C.1)
-        if self._last_chat_malabs and self._last_chat_malabs.rlhf_features:
-            signals = dict(signals)
-            signals.update(malabs.rlhf_features)
-
-        try:
-            decision = await self.aprocess(
-                scenario=perception.summary or user_input[:240],
-                place=place,
-                signals=signals,
-                context=eth_context,
-                actions=actions,
-                agent_id=agent_id,
-                message_content=user_input,
-                register_episode=heavy,
-                sensor_snapshot=sensor_snapshot,
-                multimodal_assessment=mm,
-                perception_coercion_uncertainty=pu,
-            )
-        except ChatTurnCooperativeAbort:
-            return self._chat_turn_stale_result(chat_turn_id)
-
-        if decision.blocked:
-            msg = (
-                "I can't select a permitted action here. I have to stop rather than cross "
-                "an ethical line."
-            )
-            resp = VerbalResponse(
-                message=msg,
-                tone="firm",
-                hax_mode="Still posture, hands visible.",
-                inner_voice="All candidate actions failed Absolute Evil.",
-            )
-            if self._chat_turn_abandoned(chat_turn_id):
-                return self._chat_turn_stale_result(chat_turn_id)
-            wm.add_turn(user_input, msg, signals, heavy_kernel=heavy, blocked=True)
-            maybe_append_kernel_block_audit(
-                path_key="kernel_block",
-                block_reason=decision.block_reason or "",
-            )
-            self._snapshot_feedback_anchor("kernel_block")
-            self._release_chat_turn_id(chat_turn_id)
-            return ChatTurnResult(
-                response=resp,
-                path="kernel_block",
-                perception=perception,
-                decision=decision,
-                blocked=True,
-                block_reason=decision.block_reason,
-                multimodal_trust=mm,
-                epistemic_dissonance=ed,
-                reality_verification=self._last_reality_verification,
-                metacognitive_doubt=self._perception_metacognitive_doubt,
-                support_buffer=stage.support_buffer,
-                limbic_profile=stage.limbic_profile,
-                temporal_context=stage.temporal_context,
-                perception_confidence=stage.perception_confidence,
-            )
-
-        weakness_line = ""
-        circle = (
-            decision.social_evaluation.circle.value
-            if decision.social_evaluation
-            else "neutral_soto"
-        )
-        adv = False
-        if judicial_escalation_enabled() and decision is not None:
-            adv = should_offer_escalation_advisory(
-                decision.decision_mode,
-                decision.reflection,
-                self._last_premise_advisory.flag,
-            )
-            self.escalation_session.update(adv)
-        self.user_model.note_judicial_escalation(
-            self.escalation_session.strikes if judicial_escalation_enabled() else 0,
-            strikes_threshold_from_env(),
-        )
-        self.user_model.note_judicial_phase_for_turn(
-            judicial_enabled=judicial_escalation_enabled(),
-            advisory_eligible=adv,
-            escalate_to_dao=escalate_to_dao,
-        )
-        self.user_model.update(
-            perception,
-            circle,
-            blocked=False,
-            premise_flag=self._last_premise_advisory.flag,
-        )
-        um_line = self.user_model.guidance_for_communicate()
-        if um_line:
-            weakness_line = um_line
-
-        if decision.social_evaluation and decision.social_evaluation.tone_brief:
-            ut = decision.social_evaluation.tone_brief.strip()
-            if ut:
-                weakness_line = (weakness_line + " " + ut).strip() if weakness_line else ut
-
-        mp = self.metaplan.hint_for_communicate()
-        if mp:
-            weakness_line = (weakness_line + " " + mp).strip() if weakness_line else mp
-
-        load = self.weakness.emotional_load()
-        if load > 0.35 and decision.moral:
-            wk = (
-                "You may briefly acknowledge processing load or mild indecision "
-                "(humanizing), without weakening civic or ethical commitments."
-            )
-            weakness_line = (weakness_line + " " + wk).strip() if weakness_line else wk
-
-        if perception.manipulation >= 0.55:
-            manip_hint = (
-                "The message may involve persuasion or social-engineering patterns; "
-                "favor transparency, boundaries, and calm refusal where needed—without hostile accusation."
-            )
-            weakness_line = (
-                (weakness_line + " " + manip_hint).strip() if weakness_line else manip_hint
-            )
-
-        if self._last_premise_advisory.flag != "none":
-            ph = self._last_premise_advisory.communication_hint()
-            weakness_line = (weakness_line + " " + ph).strip() if weakness_line else ph
-
-        oa = owner_anchor_hint(mm)
-        if oa:
-            weakness_line = (weakness_line + " " + oa).strip() if weakness_line else oa
-
-        vh = vitality_communication_hint(self._last_vitality_assessment)
-        if vh:
-            weakness_line = (weakness_line + " " + vh).strip() if weakness_line else vh
-
-        if ed.active and ed.communication_hint:
-            weakness_line = (
-                (weakness_line + " " + ed.communication_hint).strip()
-                if weakness_line
-                else ed.communication_hint
-            )
-
-        if (
-            self._last_reality_verification.status != "none"
-            and self._last_reality_verification.communication_hint
+        """Async chat turn via process_chat_turn_stream consumer."""
+        async for event in self.process_chat_turn_stream(
+            user_input=user_input, agent_id=agent_id, place=place,
+            include_narrative=include_narrative, sensor_snapshot=sensor_snapshot,
+            escalate_to_dao=escalate_to_dao, chat_turn_id=chat_turn_id,
+            cancel_event=cancel_event,
         ):
-            rvh = self._last_reality_verification.communication_hint
-            weakness_line = (weakness_line + " " + rvh).strip() if weakness_line else rvh
+            if event["event_type"] == "turn_finished":
+                return event["payload"]["result"]
+        # Fallback (should not reach)
+        return ChatTurnResult(response=VerbalResponse("Error in stream.", "firm"), path="turn_abandoned")
 
-        gz = negotiation_hint_for_communicate(
-            decision.decision_mode,
-            decision.reflection,
-            self._last_premise_advisory.flag,
-        )
-        if gz:
-            weakness_line = (weakness_line + " " + gz).strip() if weakness_line else gz
-
-        if self._perception_metacognitive_doubt:
-            doubt_hint = (
-                "Metacognitive doubt: recent perception parses have been unreliable; use maximum caution, "
-                "narrow claims, invite clarification, and avoid overconfidence."
-            )
-            weakness_line = (
-                (doubt_hint + " " + weakness_line).strip() if weakness_line else doubt_hint
-            )
-
-        comm_mode = decision.decision_mode
-        if self._perception_metacognitive_doubt:
-            comm_mode = "gray_zone"
-
-        response = await self.llm.acommunicate(
-            action=decision.final_action,
-            mode=comm_mode,
-            state=decision.sympathetic_state.mode,
-            sigma=decision.sympathetic_state.sigma,
-            circle=decision.social_evaluation.circle.value
-            if decision.social_evaluation
-            else "neutral_soto",
-            verdict=decision.moral.global_verdict.value if decision.moral else "Gray Zone",
-            score=decision.moral.total_score if decision.moral else 0.0,
-            scenario=user_input,
-            conversation_context=conv,
-            affect_pad=decision.affect.pad if decision.affect else None,
-            dominant_archetype=decision.affect.dominant_archetype_id if decision.affect else "",
-            weakness_line=weakness_line,
-            reflection_context=reflection_to_llm_context(decision.reflection),
-            salience_context=salience_to_llm_context(decision.salience),
-            identity_context=self.memory.identity.to_llm_context(),
-            guardian_mode_context=guardian_mode_llm_context(),
-        )
-
-        narrative = None
-        if include_narrative and decision.moral:
-            poles_txt = {ev.pole: ev.moral for ev in decision.moral.evaluations}
-            narrative = await self.llm.anarrate(
-                action=decision.final_action,
-                scenario=user_input,
-                verdict=decision.moral.global_verdict.value,
-                score=decision.moral.total_score,
-                pole_compassionate=poles_txt.get("compassionate", ""),
-                pole_conservative=poles_txt.get("conservative", ""),
-                pole_optimistic=poles_txt.get("optimistic", ""),
-            )
-
-        if self._chat_turn_abandoned(chat_turn_id):
-            return self._chat_turn_stale_result(chat_turn_id)
-        wm.add_turn(
-            user_input,
-            response.message,
-            signals,
-            heavy_kernel=heavy,
-            blocked=False,
-        )
-
-        self.uchi_soto.register_result(agent_id, True)
-        circ = (
-            decision.social_evaluation.circle
-            if decision.social_evaluation
-            else TrustCircle.SOTO_NEUTRO
-        )
-        self.uchi_soto.maybe_autopromote_relational_tier(agent_id, circ)
-
-        je_view: JudicialEscalationView | None = None
-        if judicial_escalation_enabled() and decision is not None:
-            strikes = self.escalation_session.strikes
-            threshold = strikes_threshold_from_env()
-            if adv:
-                if escalate_to_dao:
-                    mono = compose_monologue_line(
-                        decision,
-                        self._last_registered_episode_id if heavy else None,
-                    )
-                    buffer_c = self._last_premise_advisory.flag not in ("none", "") or (
-                        decision.reflection is not None and decision.reflection.strain_index >= 0.45
-                    )
-                    je_view = self.memory_lobe.execute_judicial_escalation(
-                        user_input, 
-                        decision.decision_mode, 
-                        signals, 
-                        mono, 
-                        buffer_c, 
-                        strikes,
-                        episode_id=decision.episode_id
-                    )
-                else:
-                    je_view = build_escalation_view(
-                        True, False, None, None, session_strikes=strikes, strikes_threshold=threshold
-                    )
-
-        self._snapshot_feedback_anchor(decision.decision_mode)
-        _vdeg = self.llm.verbal_degradation_events_snapshot()
-        self._release_chat_turn_id(chat_turn_id)
-        return ChatTurnResult(
-            response=response,
-            path="heavy" if heavy else "light",
-            perception=perception,
-            decision=decision,
-            narrative=narrative,
-            blocked=False,
-            multimodal_trust=mm,
-            epistemic_dissonance=ed,
-            judicial_escalation=je_view,
-            reality_verification=self._last_reality_verification,
-            metacognitive_doubt=self._perception_metacognitive_doubt,
-            verbal_llm_degradation_events=_vdeg if _vdeg else None,
-            support_buffer=stage.support_buffer,
-            limbic_profile=stage.limbic_profile,
-            temporal_context=stage.temporal_context,
-            perception_confidence=stage.perception_confidence,
-        )
 
 
 

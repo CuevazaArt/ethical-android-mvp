@@ -19,7 +19,7 @@ import asyncio
 import os
 import time
 from abc import ABC, abstractmethod
-from typing import Any, Protocol, runtime_checkable
+from typing import Any, AsyncGenerator, Protocol, runtime_checkable
 
 import httpx
 
@@ -72,6 +72,18 @@ class LLMBackend(ABC):
         """
         raise_if_llm_cancel_requested()
         return await asyncio.to_thread(lambda: self.completion(system, user, **kwargs))
+
+    async def acompletion_stream(
+        self, system: str, user: str, **kwargs: Any
+    ) -> AsyncGenerator[str, None]:
+        """
+        Stream tokens from the model.
+
+        Default implementation just yields the full completion as a single chunk.
+        Subclasses override for native streaming (e.g. SSE / streaming JSON).
+        """
+        full = await self.acompletion(system, user, **kwargs)
+        yield full
 
 
 class CompletionOnlyAdapter(LLMBackend):
@@ -164,6 +176,45 @@ class AnthropicLLMBackend(LLMBackend):
             if aclose is not None:
                 await aclose()
 
+    async def acompletion_stream(
+        self, system: str, user: str, **kwargs: Any
+    ) -> AsyncGenerator[str, None]:
+        """Async Messages Stream API."""
+        raise_if_llm_cancel_requested()
+        try:
+            from anthropic import AsyncAnthropic
+        except ImportError:
+            async for chunk in super().acompletion_stream(system, user, **kwargs):
+                yield chunk
+            return
+
+        api_key = getattr(self._client, "api_key", None) or os.environ.get("ANTHROPIC_API_KEY", "").strip()
+        if not api_key:
+            async for chunk in super().acompletion_stream(system, user, **kwargs):
+                yield chunk
+            return
+
+        aclient = AsyncAnthropic(api_key=api_key)
+        try:
+            t = kwargs.get("temperature")
+            extra: dict[str, Any] = {}
+            if t is not None:
+                extra["temperature"] = float(t)
+
+            async with aclient.messages.stream(
+                model=self._model,
+                max_tokens=1000,
+                system=system,
+                messages=[{"role": "user", "content": user}],
+                **extra,
+            ) as stream:
+                async for text in stream.text_stream:
+                    yield text
+        finally:
+            aclose = getattr(aclient, "close", None)
+            if aclose is not None:
+                await aclose()
+
 
 class OllamaLLMBackend(LLMBackend):
     """Ollama ``/api/chat`` + optional ``/api/embeddings`` (same base URL)."""
@@ -234,6 +285,42 @@ class OllamaLLMBackend(LLMBackend):
             data = r.json()
         msg = data.get("message") or {}
         return (msg.get("content") or "").strip()
+
+    async def acompletion_stream(
+        self, system: str, user: str, **kwargs: Any
+    ) -> AsyncGenerator[str, None]:
+        """Async ``/api/chat`` with ``stream: True``."""
+        raise_if_llm_cancel_requested()
+        url = f"{self._base}/api/chat"
+        payload: dict[str, Any] = {
+            "model": self._model,
+            "messages": [
+                {"role": "system", "content": system},
+                {"role": "user", "content": user},
+            ],
+            "stream": True,
+        }
+        t = kwargs.get("temperature")
+        if t is not None:
+            payload["options"] = {"temperature": float(t)}
+
+        import json
+        timeout = httpx.Timeout(self._timeout)
+        async with httpx.AsyncClient(timeout=timeout) as client:
+            async with client.stream("POST", url, json=payload) as response:
+                response.raise_for_status()
+                async for line in response.aiter_lines():
+                    if not line:
+                        continue
+                    try:
+                        chunk = json.loads(line)
+                        if chunk.get("done"):
+                            break
+                        content = chunk.get("message", {}).get("content", "")
+                        if content:
+                            yield content
+                    except json.JSONDecodeError:
+                        continue
 
     def embedding(self, text: str) -> list[float] | None:
         if not (text or "").strip():

@@ -6,7 +6,16 @@ All notable changes to this project are summarized here. For narrative context a
 
 [URGENTE - BROADCAST A TODOS LOS L2 MASTERS]: Todos los equipos (Claude, Cursor, Copilot) deben hacer un GIT PULL urgente desde MAIN hacia sus MASTERs. Las ramas desactualizadas enfrentarán asincronías severas en el pathing de documentación.
 
+## Antigravity — Integration Pulse & Strategic Realignment (L1) — April 2026
+
+### Antigravity Team Updates (April 2026)
+- **Strategic Direction Shift (P0):** Following the implementation of WebSocket Concurrency, Tri-Lobe abstraction, and Swarm Justice, the project focus shifts exclusively to **Module S (Nomad Hardware Bridge)**. Mock theoretical development is frozen to prioritize real-world physical inputs.
+- **Development Critique Published:** Documented the "Mock Hell" risk (`DEVELOPMENT_CRITIQUE_L1_APRIL_2026.md`), leading to the restructuring of the `PLAN_WORK_DISTRIBUTION_TREE.md` where **Team Cursor** has been retargeted to hardware ingestion and **Team Copilot** to asynchronous fortification.
+- **Input Trust Hardening:** Expanded homoglyph translations (Cyrillic & Greek upper cases) to prevent lexical evasion.
+- **Visual Terminal Format:** Overhauled the terminal printing format of `KernelDecision` and daily logs into `kernel_formatters.py` and `terminal_colors.py` avoiding kernel verbosity.
+
 ## Documentation — Issue #1 (Bayesian naming honesty) — April 2026
+
 
 ### Documentation Team Updates
 - Root **README** (*What it does*): ethical scoring described as a weighted mixture; `BayesianEngine` / `KERNEL_BAYESIAN_*` naming caveat; links to **ADR 0009** and **THEORY_AND_IMPLEMENTATION**.
@@ -21,6 +30,16 @@ All notable changes to this project are summarized here. For narrative context a
   - **Conflict Resolution:** Resolved 400+ lines of interleaved logic markers in the kernel's processing core, unifying hierarchical feedback, Monte Carlo BMA, and biographic precedents.
   - **Safety Hardening:** Integrated hardware `SafetyInterlock` and `VisionInference` threat detection as high-level pre-filters, ensuring P0 safety guarantees even in high-stress situated scenarios.
   - **Governance Persistence:** Consolidated `DAOOrchestrator` methods to ensure every ethical decision is backed by a persistent SQLite audit log and valid restorative justice mechanisms.
+- **Swarm Justice & Reparation Vault Integration (2026-04-17):** Successfully closed the "Swarm Ethics" loop (Module 7).
+  - **Reparation Payouts (Bloque 7.1):** Linked Swarm consensus outcomes with automated `EthosToken` transfers via `ReparationVault` to compensate users for sensory negligence.
+  - **Reputation Slashing (Bloque 7.2):** Implemented automated reputation degradation for negligent nodes in `SwarmOracle` following consensus mismatches.
+  - **Kernel Pipeline Extension:** Injected the swarm consensus stage (Stage 6) into the `EthicalKernel` processing loop, making justice part of the core epoch.
+  - **Orchestrator Hardening:** Exposed `transfer_tokens` in `DAOOrchestrator` to support decentralized token flows.
+- **Runtime Governance Hot-Reload (2026-04-17):**
+  - **Dynamic Thresholding (Bloque C.2.1):** Integrated `MultiRealmGovernor` with the Kernel's event bus to allow hot-reloading of MalAbs semantic thresholds (θ_allow, θ_block) without restarts.
+  - **Verification:** Successfully validated the event-driven update loop between governance proposals and the `semantic_chat_gate`.
+- **WebSocket Streaming & Concurrency (2026-04-17):**
+  - **Proposal Drafted:** Created `PROPOSAL_WS_STREAMING_CONCURRENCY.md` outlining the migration to an async-generator based kernel pipeline and non-blocking session loop.
 - **Lobe Extraction & Somatic Subconscious (2026-04-17):**
   - **Full Desmonolitization:** Extracted Stages 0-5 from `kernel.py` into specialized lobes: `PerceptiveLobe`, `LimbicEthicalLobe`, `ExecutiveLobe`, `CerebellumLobe`, and `MemoryLobe`.
   - **Memory Lobe Expansion:** Absorbed `SelectiveAmnesia` and `ImmortalityProtocol` triggers into `MemoryLobe`, removing cyclic dependencies on the main kernel object.
