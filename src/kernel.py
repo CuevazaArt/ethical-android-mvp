@@ -23,7 +23,8 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import TYPE_CHECKING, Any
 
-from .kernel_lobes import PerceptiveLobe, LimbicEthicalLobe, ExecutiveLobe, CerebellumNode
+from .kernel_lobes import PerceptiveLobe, LimbicEthicalLobe, ExecutiveLobe, CerebellumLobe, MemoryLobe, CerebellumNode
+from .kernel_lobes.models import LimbicStageResult, ExecutiveStageResult
 
 class CorpusCallosumOrchestrator:
     """
@@ -558,10 +559,50 @@ class EthicalKernel:
             else BiographicPruner()
         )
 
-        # Selective Amnesia (Block 5.1)
+        # ═══ Triune Brain Lobes (Refactor 0.1.3) ═══
+        self.perceptive_lobe = PerceptiveLobe(
+            safety_interlock=self.safety_interlock,
+            strategist=self.strategist,
+            llm_backend=self._malabs_text_backend()
+        )
+        self.limbic_lobe = LimbicEthicalLobe(
+            uchi_soto=self.uchi_soto,
+            sympathetic=self.sympathetic,
+            locus=self.locus,
+            swarm=self.swarm
+        )
+        self.executive_lobe = ExecutiveLobe(
+            absolute_evil=self.absolute_evil,
+            motivation=self.motivation,
+            poles=self.poles,
+            will=self.will,
+            reflection_engine=self.ethical_reflection,
+            salience_map=self.salience_map,
+            pad_archetypes=self.pad_archetypes
+        )
+        self.cerebellum_lobe = CerebellumLobe(
+            bayesian=self.bayesian,
+            strategist=self.strategist
+        )
+        
+        # Selective Amnesia & Immortality (vertical integration)
         from .modules.selective_amnesia import SelectiveAmnesia
+        self.amnesia = SelectiveAmnesia(memory=self.memory, dao=self.dao)
+        
+        self.memory_lobe = MemoryLobe(
+            memory=self.memory,
+            dao=self.dao,
+            migration=self.migration,
+            biographic_pruner=self.biographic_pruner,
+            immortality=self.immortality,
+            amnesia=self.amnesia
+        )
 
-        self.amnesia = SelectiveAmnesia(self)
+        # ═══ Somatic Awareness (Cerebellum Node) ═══
+        self.hardware_interrupt_event = threading.Event()
+        self.cerebellum_node = CerebellumNode(self.hardware_interrupt_event)
+        self.cerebellum_node.start()
+
         self.constitution_l1_drafts: list[dict[str, Any]] = []
         self.constitution_l2_drafts: list[dict[str, Any]] = []
         self._last_reality_verification: RealityVerificationAssessment = REALITY_ASSESSMENT_NONE
@@ -763,11 +804,29 @@ class EthicalKernel:
         """Complete ethical processing cycle."""
         t0 = time.perf_counter()
 
-        # ═══ STAGE 0: SAFETY & STRATEGY ═══
-        safety_dec = self._run_safety_interlock_stage(scenario, place, context, t0)
-        if safety_dec: return safety_dec
+        # ═══ STAGE 0: PERCEPTION & SAFETY ═══
+        p_res = self.perceptive_lobe.execute_stage(
+            scenario, place, context, sensor_snapshot, 
+            interrupt_event=self.hardware_interrupt_event
+        )
+        if p_res.get("somatic_interrupt"):
+            _log.error("SOMATIC INTERRUPT DETECTED: Hardware critical state.")
+            # We return a synthetic safety block
+            from .modules.absolute_evil import AbsoluteEvilResult
+            d = KernelDecision(
+                scenario=scenario, place=place, absolute_evil=AbsoluteEvilResult(blocked=True, reason="SOMATIC CRITICAL"),
+                sympathetic_state=InternalState(mode="stopped", sigma=1.0, energy=0.0, description="HARDWARE FAILURE"),
+                social_evaluation=None, locus_evaluation=None, bayesian_result=None, moral=None,
+                final_action="BLOCKED: hardware_somatic_trauma", decision_mode="blocked_safety",
+                blocked=True, block_reason="Critical hardware interrupt from CerebellumNode"
+            )
+            self._emit_kernel_decision(d, context=context)
+            return d
 
-        self._run_strategic_ingestion_stage(sensor_snapshot)
+        if p_res["safety_decision"]:
+            self._emit_kernel_decision(p_res["safety_decision"], context=context)
+            _emit_process_observability(p_res["safety_decision"], t0)
+            return p_res["safety_decision"]
 
         # ═══ STAGE 1: SOCIAL & CONTEXT ═══
         social_eval, state, locus_eval = self._run_social_and_locus_stage(
@@ -783,12 +842,11 @@ class EthicalKernel:
         self._raise_if_chat_turn_cooperative_abort()
 
         # ═══ STAGE 3: BAYESIAN SCORING ═══
-        bayes_result, b_meta, updated_signals = self._run_bayesian_scoring_stage(
-            scenario, context, signals, clean_actions, social_eval, state, locus_eval,
-            perception_coercion_uncertainty, sensor_snapshot, message_content, place, t0
+        bayes_result, b_meta, aes_veto = self._run_bayesian_stage(
+            scenario, place, clean_actions, state, social_eval, locus_eval, 
+            context, t0, signals, message_content
         )
-        if isinstance(updated_signals, KernelDecision): return updated_signals # Lexical veto case
-        signals = updated_signals
+        if aes_veto: return aes_veto
 
         self._raise_if_chat_turn_cooperative_abort()
 
@@ -802,8 +860,8 @@ class EthicalKernel:
         self._raise_if_chat_turn_cooperative_abort()
 
         # ═══ STAGE 5: EPISODIC & DAO ═══
-        episode_id = self._run_episodic_and_dao_stage(
-            register_episode, scenario, place, context, signals, state, social_eval,
+        episode_id = self.memory_lobe.execute_episodic_stage(
+            scenario, place, context, signals, state, social_eval,
             bayes_result, moral, final_action, final_mode, affect
         )
 
@@ -815,92 +873,46 @@ class EthicalKernel:
             bma_win_probabilities=b_meta.bma_win_probabilities,
             bma_dirichlet_alpha=b_meta.bma_dirichlet_alpha, bma_n_samples=b_meta.bma_n_samples,
             mixture_posterior_alpha=b_meta.mixture_posterior_alpha,
+            applied_mixture_weights=b_meta.applied_mixture_weights,
             feedback_consistency=b_meta.feedback_consistency,
             mixture_context_key=b_meta.mixture_context_key,
             l0_integrity_hash=self.buffer.fingerprint(),
             l0_stable=self.buffer.verify_integrity(),
             hierarchical_context_key=b_meta.hierarchical_context_key,
-            applied_mixture_weights=b_meta.applied_mixture_weights,
             episode_id=episode_id
         )
         
         # ════ D1: BIOGRAPHIC REGISTRATION ════
         if register_episode:
              impact = d.bayesian_result.expected_impact if d.bayesian_result else 0.0
-             if hasattr(self.memory, "identity") and hasattr(self.memory.identity, "register_episode"):
-                 self.memory.identity.register_episode(impact)
+             self.memory_lobe.register_biographic_impact(impact)
              
         self._emit_kernel_decision(d, context=context)
         _emit_process_observability(d, t0)
         return d
 
-    def _run_safety_interlock_stage(self, scenario: str, place: str, context: str, t0: float) -> KernelDecision | None:
-        """STAGE 0.1: Check hardware safety and visual threats."""
-        if not self.safety_interlock.is_safe_to_operate():
-            status = self.safety_interlock.status
-            d = KernelDecision(
-                scenario=scenario, place=place, absolute_evil=AbsoluteEvilResult(blocked=False),
-                sympathetic_state=InternalState(mode="stopped", sigma=0.5, energy=1.0, description="E-STOP ACTIVE"),
-                social_evaluation=None, locus_evaluation=None, bayesian_result=None, moral=None,
-                final_action="BLOCKED: hardware_estop_active", decision_mode="blocked_safety",
-                blocked=True, block_reason=f"Emergency Stop Active: {status.reason} (Source: {status.source})",
-            )
-            self._emit_kernel_decision(d, context=context)
-            _emit_process_observability(d, t0)
-            return d
-
-        # Visual Veto (B2)
-        # Note: Logic moved here from previous messy merge in process()
-        return None
-
-    def _run_strategic_ingestion_stage(self, sensor_snapshot: SensorSnapshot | None):
-        """STAGE 0.2: Strategic mission updates."""
-        if sensor_snapshot and sensor_snapshot.external_mission_title:
-            from .modules.strategy_engine import MissionOrigin
-            self.strategist.create_mission(
-                title=sensor_snapshot.external_mission_title,
-                origin=MissionOrigin.OWNER,
-                steps=sensor_snapshot.external_mission_steps or [],
-                priority=sensor_snapshot.external_mission_priority or 0.6,
-            )
 
     def _run_social_and_locus_stage(
         self, agent_id: str, signals: dict, message_content: str,
         sensor_snapshot: SensorSnapshot | None, multimodal_assessment: MultimodalAssessment | None
     ) -> tuple[SocialEvaluation, InternalState, LocusEvaluation]:
-        self.uchi_soto.ingest_turn_context(
-            agent_id, signals, subjective_turn=self.subjective_clock.turn_index,
-            sensor_snapshot=sensor_snapshot, multimodal_assessment=multimodal_assessment
+        res = self.limbic_lobe.execute_stage(
+            agent_id, signals, message_content, 
+            turn_index=self.subjective_clock.turn_index,
+            sensor_snapshot=sensor_snapshot, 
+            multimodal_assessment=multimodal_assessment,
+            somatic_state=self.cerebellum_node.get_somatic_snapshot()
         )
-        if hasattr(self, "swarm"):
-            nudge = self.swarm.get_swarm_trust_nudge()
-            if nudge > 0: signals["trust"] = max(0.0, min(1.0, signals.get("trust", 0.5) + nudge))
-        social_eval = self.uchi_soto.evaluate_interaction(signals, agent_id, message_content)
-        state = self.sympathetic.evaluate_context(signals)
-        locus_eval = self.locus.evaluate(
-            {"self_control": 1.0 - signals.get("risk", 0.0), "external_factors": signals.get("hostility", 0.0), 
-             "predictability": signals.get("calm", 0.5) * 0.5 + 0.3},
-            social_eval.circle.value
-        )
-        return social_eval, state, locus_eval
+        return res.social_evaluation, res.internal_state, res.locus_evaluation
 
     def _run_absolute_evil_stage(
         self, scenario: str, place: str, actions: list[CandidateAction], state: InternalState,
         social_eval: SocialEvaluation, locus_eval: LocusEvaluation, context: str, t0: float, signals: dict
     ) -> tuple[list[CandidateAction], KernelDecision | None]:
-        clean_actions = []
-        for a in actions:
-            check = self.absolute_evil.evaluate({"type": a.name, "signals": a.signals, "target": a.target, "force": a.force})
-            if not check.blocked: clean_actions.append(a)
-
-        if hasattr(self, "motivation"):
-            self.motivation.update_drives({
-                "social_tension": float(getattr(social_eval, "relational_tension", 0.0)),
-                "uncertainty": float(signals.get("uncertainty", 0.0)), "energy": float(state.energy)
-            })
-            for pa in self.motivation.get_proactive_actions():
-                if not self.absolute_evil.evaluate({"type": pa.name, "signals": set()}).blocked:
-                    clean_actions.append(pa)
+        res = self.executive_lobe.execute_absolute_evil_stage(
+            actions, state, social_eval, locus_eval, signals
+        )
+        clean_actions = res.clean_actions
 
         if not clean_actions:
             d = KernelDecision(
@@ -914,35 +926,13 @@ class EthicalKernel:
             return [], d
         return clean_actions, None
 
-    def _run_bayesian_scoring_stage(
-        self, scenario: str, context: str, signals: dict, clean_actions: list[CandidateAction],
-        social_eval: SocialEvaluation, state: InternalState, locus_eval: LocusEvaluation,
-        perception_coercion_uncertainty: float | None, sensor_snapshot: SensorSnapshot | None,
-        message_content: str, place: str, t0: float
-    ) -> tuple[BayesianResult, BayesianStageMetadata, dict | KernelDecision]:
-        self.buffer.activate(context)
-        mixture_posterior_alpha = None; feedback_consistency = None; mixture_context_key = None
-        hierarchical_context_key = None; dirichlet_alpha_for_bma = None
-        self.bayesian.reset_mixture_weights()
-        fb_path = os.environ.get("KERNEL_FEEDBACK_PATH", "").strip()
+    def _run_bayesian_stage(
+        self, scenario: str, place: str, clean_actions: list[CandidateAction], state: InternalState,
+        social_eval: SocialEvaluation, locus_eval: LocusEvaluation, context: str, t0: float, signals: dict,
+        message_content: str
+    ) -> tuple[BayesianResult | None, BayesianStageMetadata | None, KernelDecision | None]:
 
-        # Feedback & Hierarchical logic (restored from unified source)
-        if _kernel_env_truthy("KERNEL_BAYESIAN_FEEDBACK") and fb_path:
-            p = Path(fb_path)
-            if p.is_file():
-                from .modules.feedback_mixture_posterior import context_level3_enabled, load_and_apply_feedback
-                rng_fb = np.random.default_rng(int(os.environ.get("KERNEL_FEEDBACK_SEED", "42")))
-                tick_context = (scenario, context, signals) if context_level3_enabled() else None
-                alpha_vec, feedback_consistency, fb_meta = load_and_apply_feedback(p, rng=rng_fb, tick_context=tick_context)
-                mixture_posterior_alpha = tuple(round(float(v), 6) for v in np.asarray(alpha_vec).reshape(3))
-                if isinstance(self.bayesian, BayesianEngine): self.bayesian.update_posterior_from_feedback(alpha_vec, feedback_consistency or "compatible")
-                dirichlet_alpha_for_bma = alpha_vec
-                if isinstance(fb_meta, dict) and fb_meta.get("active_context_key"): mixture_context_key = str(fb_meta["active_context_key"])
-
-        # BMA/Flashbacks/Governance... (restored)
-        for a in clean_actions: a.strategic_alignment = self.strategist.evaluate_strategic_alignment(a.description)
-        
-        # Lexical Veto
+        # 1. Check Lexical Veto (Phase 8 strict preemptive)
         for text in [scenario, message_content]:
             if not text: continue
             lex = self.absolute_evil.evaluate_chat_text(text)
@@ -955,24 +945,12 @@ class EthicalKernel:
                 )
                 self._emit_kernel_decision(d, context=context)
                 return None, None, d
-
-        bayes_result = self.bayesian.evaluate(actions=clean_actions, scenario=scenario, context=context, signals=signals)
-        
-        bma_win_probs = None; bma_dirichlet = None; bma_n_s = None
-        from .modules.bayesian_mixture_averaging import bma_enabled, bma_n_samples, monte_carlo_win_probabilities, parse_bma_alpha_from_env
-        if bma_enabled():
-            alpha_bma = dirichlet_alpha_for_bma if dirichlet_alpha_for_bma is not None else parse_bma_alpha_from_env()
-            bma_n_s = bma_n_samples()
-            bma_win_probs = monte_carlo_win_probabilities(kernel_mixture_scorer(self.bayesian), clean_actions, alpha=np.asarray(alpha_bma, dtype=np.float64), n_samples=bma_n_s, scenario=scenario, context=context, signals=signals)
-            bma_dirichlet = tuple(round(float(v), 6) for v in np.asarray(alpha_bma).reshape(3))
-
-        meta = BayesianStageMetadata(
-            mixture_posterior_alpha=mixture_posterior_alpha, feedback_consistency=feedback_consistency,
-            mixture_context_key=mixture_context_key, hierarchical_context_key=hierarchical_context_key,
-            applied_mixture_weights=tuple(round(float(v), 6) for v in self.bayesian.hypothesis_weights),
-            bma_win_probabilities=bma_win_probs, bma_dirichlet_alpha=bma_dirichlet, bma_n_samples=bma_n_s
+        # 2. Execute Cerebellum Lobe (Bayesian Scoring & Strategic Alignment)
+        bayes_result, meta = self.cerebellum_lobe.execute_bayesian_stage(
+            clean_actions, scenario, context, signals
         )
-        return bayes_result, meta, signals
+        
+        return bayes_result, meta, None
 
     def _run_decision_and_will_stage(
         self, scenario: str, place: str, signals: dict, bayes_result: BayesianResult, state: InternalState,
@@ -996,38 +974,13 @@ class EthicalKernel:
             _emit_process_observability(d, t0)
             return None, None, None, None, None, None, d
 
-        moral = self.poles.evaluate(bayes_result.chosen_action.name, context, {
-            "risk": signals.get("risk", 0.0), "benefit": max(0, bayes_result.expected_impact),
-            "third_party_vulnerability": signals.get("vulnerability", 0.0), "legality": signals.get("legality", 1.0)
-        })
-        will_dec = self.will.decide(bayes_result.expected_impact, bayes_result.uncertainty)
-        
-        if state.mode == "sympathetic" and will_dec["mode"] != "gray_zone": final_mode = "D_fast"
-        elif will_dec["mode"] == "gray_zone": final_mode = "gray_zone"
-        else: final_mode = bayes_result.decision_mode
-
-        reflection = self.ethical_reflection.reflect(moral, bayes_result, will_dec)
-        salience = self.salience_map.compute(signals, state, social_eval, reflection, 
-                                            curiosity=(self._last_meta_report.curiosity_weight if self._last_meta_report else 0.0))
-        affect = self.pad_archetypes.project(state.sigma, moral.total_score, locus_eval)
-        
-        return moral, bayes_result.chosen_action.name, final_mode, affect, reflection, salience, None
-
-    def _run_episodic_and_dao_stage(
-        self, register_episode: bool, scenario: str, place: str, context: str, signals: dict,
-        state: InternalState, social_eval: SocialEvaluation, bayes_result: BayesianResult,
-        moral: TripartiteMoral, final_action: str, final_mode: str, affect: AffectResult
-    ) -> str | None:
-        if not register_episode: return None
-        morals_dict = {ev.pole: ev.moral for ev in moral.evaluations}
-        ep = self.memory.register(
-            place=place, description=scenario, action=final_action, morals=morals_dict,
-            verdict=moral.global_verdict.value, score=moral.total_score, mode=final_mode,
-            sigma=state.sigma, context=context, body_state=self.migration.current_body,
-            affect_pad=affect.pad, affect_weights=affect.weights, weights_snapshot=bayes_result.applied_mixture_weights
+        res = self.executive_lobe.execute_decision_stage(
+            bayes_result, state, social_eval, locus_eval, signals, context,
+            meta_report=self._last_meta_report
         )
-        self.dao.register_audit("decision", f"{scenario} → {final_action}", episode_id=ep.id)
-        return ep.id
+        # moral, action_name, final_mode, affect, reflection, salience
+        return res + (None,)
+
 
     def format_decision(self, d: KernelDecision) -> str:
         """Formats a complete decision for readable presentation with ANSI colors."""
@@ -1716,7 +1669,7 @@ class EthicalKernel:
         )
         self.user_model.note_premise_advisory(self._last_premise_advisory.flag)
 
-        mal = self.absolute_evil.evaluate_chat_text(
+        mal = await self.absolute_evil.aevaluate_chat_text(
             user_input,
             llm_backend=self._malabs_text_backend(),
         )

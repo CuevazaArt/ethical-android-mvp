@@ -27,3 +27,27 @@ class EthicalSentence:
     veto_reason: Optional[str] = None
     dao_consensus_hash: Optional[str] = None
     applied_trauma_weight: float = 0.0
+@dataclass
+class LimbicStageResult:
+    """Consolidated result from the Limbic Lobe (Social, State, Locus)."""
+    social_evaluation: Any
+    internal_state: Any
+    locus_evaluation: Any
+
+@dataclass
+class ExecutiveStageResult:
+    """Consolidated result from the Executive Lobe."""
+    clean_actions: list[Any]
+    decision: Optional[Any] = None
+
+@dataclass
+class BayesianStageMetadata:
+    """Metadata output from STAGE 3: Bayesian Scoring."""
+    mixture_posterior_alpha: Optional[tuple[float, float, float]] = None
+    feedback_consistency: Optional[str] = None
+    mixture_context_key: Optional[str] = None
+    hierarchical_context_key: Optional[str] = None
+    applied_mixture_weights: Optional[tuple[float, float, float]] = None
+    bma_win_probabilities: Optional[dict[str, float]] = None
+    bma_dirichlet_alpha: Optional[tuple[float, float, float]] = None
+    bma_n_samples: Optional[int] = None
