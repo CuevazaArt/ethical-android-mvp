@@ -69,13 +69,17 @@ The modules are in `src/modules/`. Each one is independent:
 - [ ] Hardware integration (sensors, actuators, communication protocol)
 - [ ] Real DAO testnet (smart contracts on Ethereum testnet)
 
-### 5. Process
-1. Fork the repository
-2. Create a branch: `git checkout -b feature/module-name`
-3. Implement your change
-4. **Make sure the tests pass**: `pytest tests/ -v` (full suite; CI runs the same on Python 3.11 and 3.12)
-5. **Lint and types (same as CI):** after `pip install -r requirements.txt -r requirements-dev.txt`, run `python -m ruff check src tests`, `python -m ruff format --check src tests`, and `python -m mypy src`. Optional: `pre-commit install` and `pre-commit run --all-files` (Ruff replaces separate Black + isort; formatting is Black-compatible). **detect-secrets** uses the committed baseline [`detect-secrets.baseline`](detect-secrets.baseline); update it only when adding new known-safe strings.
-6. Open a Pull Request with a clear description
+### 5. Process (Rebase-Driven Workflow)
+To protect repository integrity from multi-agent collision, this project strictly prohibits direct feature pushes to `main`. `main` is immutable for everyone except L0.
+
+1. Fork the repository / Fetch latest `main`
+2. **Mandatory Synchronization:** `git fetch origin && git rebase origin/main` (Never skip this step)
+3. Create your isolated branch: `git checkout -b feature/module-name` (or use your pre-assigned `master-<team>` hub).
+4. Implement your change
+5. **Make sure the tests pass**: `pytest tests/ -v` (full suite; CI runs the same on Python 3.11 and 3.12)
+6. **Lint and types (same as CI):** run `python -m ruff check src tests`, `python -m ruff format --check src tests`, and `python -m mypy src`. Optional: `pre-commit install`.
+7. **Re-Sync:** Before PR, run `git fetch origin && git rebase origin/main` again to catch any new changes.
+8. Open a Pull Request targeting the integration hub (`master-antigravity`), **NEVER** `main`.
 
 #### Concrete commands (local dev)
 
