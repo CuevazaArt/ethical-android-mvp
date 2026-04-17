@@ -14,6 +14,7 @@ Modes (BI-P0-01):
 
 from __future__ import annotations
 
+import logging
 import os
 from enum import Enum
 from typing import Any
@@ -27,12 +28,48 @@ from .weighted_ethics_scorer import (
     WeightedEthicsScorer,
 )
 
+_logger = logging.getLogger(__name__)
+
+# Env name for BI-P0-01 — see `CLAUDE_TEAM_PLAYBOOK_REAL_BAYESIAN_INFERENCE.md`.
+ENV_KERNEL_BAYESIAN_MODE = "KERNEL_BAYESIAN_MODE"
+
 
 class BayesianMode(Enum):
     DISABLED = "disabled"
     TELEMETRY_ONLY = "telemetry_only"
     POSTERIOR_ASSISTED = "posterior_assisted"
     POSTERIOR_DRIVEN = "posterior_driven"
+
+
+def resolve_kernel_bayesian_mode(raw: str | None) -> BayesianMode:
+    """
+    Resolve ``KERNEL_BAYESIAN_MODE`` to a :class:`BayesianMode`.
+
+    - Empty / unset → :data:`BayesianMode.DISABLED`.
+    - Case-insensitive; hyphens map to underscores (``posterior-driven`` → ``posterior_driven``).
+    - A few aliases: ``off`` / ``none`` / ``0`` / ``false`` → ``disabled``.
+    - Unknown values → ``disabled`` and a **warning** log (no silent mis-parse).
+    """
+    if raw is None:
+        return BayesianMode.DISABLED
+    s = str(raw).strip()
+    if not s:
+        return BayesianMode.DISABLED
+    v = s.lower().replace("-", "_")
+    aliases = frozenset({"off", "none", "0", "false", "no"})
+    if v in aliases:
+        return BayesianMode.DISABLED
+    try:
+        return BayesianMode(v)
+    except ValueError:
+        _logger.warning(
+            "Invalid %s=%r; using %r. Valid: %s",
+            ENV_KERNEL_BAYESIAN_MODE,
+            raw,
+            BayesianMode.DISABLED.value,
+            ", ".join(m.value for m in BayesianMode),
+        )
+        return BayesianMode.DISABLED
 
 
 class BayesianInferenceEngine:
@@ -42,7 +79,10 @@ class BayesianInferenceEngine:
     """
 
     def __init__(self, mode: str | BayesianMode = BayesianMode.DISABLED, variability=None):
-        self.mode = BayesianMode(mode) if isinstance(mode, str) else mode
+        if isinstance(mode, BayesianMode):
+            self.mode = mode
+        else:
+            self.mode = resolve_kernel_bayesian_mode(str(mode))
         self.scorer = WeightedEthicsScorer(variability=variability)
 
         # Dirichlet parameters (Level 1/2)

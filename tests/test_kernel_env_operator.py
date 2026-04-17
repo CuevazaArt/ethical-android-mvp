@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import logging
 import os
 import sys
 
@@ -9,6 +10,13 @@ import pytest
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
 
+from src.kernel import EthicalKernel
+from src.modules.bayesian_engine import (
+    ENV_KERNEL_BAYESIAN_MODE,
+    BayesianInferenceEngine,
+    BayesianMode,
+    resolve_kernel_bayesian_mode,
+)
 from src.validators.kernel_env_operator import (
     build_operator_config_report,
     classify_env_key,
@@ -26,6 +34,7 @@ def test_classify_known_prefixes():
     assert (
         classify_env_key("KERNEL_LLM_MONOLOGUE_BACKEND_POLICY") == "LLM / variability / generative"
     )
+    assert classify_env_key("KERNEL_BAYESIAN_MODE") == "Poles / mixture / temporal"
     assert classify_env_key("KERNEL_UNKNOWN_FOO") == "Other KERNEL_*"
 
 
@@ -66,3 +75,43 @@ def test_build_operator_config_report_shape(monkeypatch: pytest.MonkeyPatch):
     assert "profile_alignment" in r
     assert "policy_violations" in r
     assert isinstance(r["profile_descriptions"], dict)
+
+
+# --- Claude playbook BI-P0-01: KERNEL_BAYESIAN_MODE contract (safe resolution) ---
+
+
+def test_bayesian_mode_resolve_default_unset():
+    assert resolve_kernel_bayesian_mode(None) is BayesianMode.DISABLED
+    assert resolve_kernel_bayesian_mode("") is BayesianMode.DISABLED
+    assert resolve_kernel_bayesian_mode("   ") is BayesianMode.DISABLED
+
+
+def test_bayesian_mode_resolve_aliases_disabled():
+    for raw in ("off", "OFF", "none", "0", "false", "no"):
+        assert resolve_kernel_bayesian_mode(raw) is BayesianMode.DISABLED
+
+
+def test_bayesian_mode_resolve_valid_case_insensitive():
+    assert resolve_kernel_bayesian_mode("POSTERIOR_DRIVEN") is BayesianMode.POSTERIOR_DRIVEN
+    assert resolve_kernel_bayesian_mode("posterior-driven") is BayesianMode.POSTERIOR_DRIVEN
+    assert resolve_kernel_bayesian_mode("Telemetry_Only") is BayesianMode.TELEMETRY_ONLY
+
+
+def test_bayesian_mode_resolve_invalid_warns(caplog: pytest.LogCaptureFixture):
+    caplog.set_level(logging.WARNING)
+    m = resolve_kernel_bayesian_mode("not_a_real_mode")
+    assert m is BayesianMode.DISABLED
+    assert ENV_KERNEL_BAYESIAN_MODE in caplog.text
+
+
+def test_bayesian_engine_invalid_mode_string():
+    eng = BayesianInferenceEngine(mode="garbage_mode")
+    assert eng.mode is BayesianMode.DISABLED
+
+
+def test_ethical_kernel_invalid_bayesian_mode_env(monkeypatch: pytest.MonkeyPatch, caplog: pytest.LogCaptureFixture):
+    caplog.set_level(logging.WARNING)
+    monkeypatch.setenv("KERNEL_BAYESIAN_MODE", "___invalid___")
+    k = EthicalKernel()
+    assert k.bayesian.mode is BayesianMode.DISABLED
+    assert ENV_KERNEL_BAYESIAN_MODE in caplog.text

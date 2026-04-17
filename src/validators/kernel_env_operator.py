@@ -67,7 +67,7 @@ _FAMILY_RULES: Final[tuple[tuple[str, tuple[str, ...]], ...]] = (
         "Poles / mixture / temporal",
         (
             "KERNEL_POLE_",
-            "KERNEL_BAYESIAN_EMPIRICAL_WEIGHTS",
+            "KERNEL_BAYESIAN_",
             "KERNEL_TEMPORAL_HORIZON_",
             "KERNEL_FEEDBACK_CALIBRATION",
             "KERNEL_PSI_SLEEP_",
