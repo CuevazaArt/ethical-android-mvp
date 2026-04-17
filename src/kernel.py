@@ -12,76 +12,21 @@ forgiveness cycle, weakness load, immortality backup, drive intents.
 from __future__ import annotations
 
 import asyncio
+import logging
 import math
 import os
 import threading
 import time
-import logging
 from collections.abc import Callable
 from concurrent.futures import ThreadPoolExecutor
 from dataclasses import dataclass
 from pathlib import Path
 from typing import TYPE_CHECKING, Any
-
-from .kernel_lobes import PerceptiveLobe, LimbicEthicalLobe, ExecutiveLobe, CerebellumNode
-
-class CorpusCallosumOrchestrator:
-    """
-    Architecture V1.5 - Triune Brain Orchestrator
-    Actúa como el bus de eventos ligero entre los 3 Lóbulos Conscientes y el Cerebelo Adyacente.
-    """
-    def __init__(self):
-        # 1. Instanciar Subconsciente
-        self._hw_interrupt = threading.Event()
-        self.cerebellum = CerebellumNode(self._hw_interrupt)
-        self.cerebellum.start()
-
-        # 2. Instanciar Lóbulos Conscientes
-        self.perceptive_lobe = PerceptiveLobe()
-        self.limbic_lobe = LimbicEthicalLobe()
-        self.executive_lobe = ExecutiveLobe()
-
-    async def async_process(self, raw_input: str, multimodal_payload: dict = None) -> str:
-        """
-        Ciclo V1.5 Puro: Aferencia -> Juicio -> Eferencia
-        """
-        if self._hw_interrupt.is_set():
-            return "SYSTEM_HALTED: Hardware Critical State (Cerebellum Interrupt Active)"
-
-        # 1) Percepción (Asíncrona)
-        semantic_state = await self.perceptive_lobe.observe(raw_input, multimodal_payload)
-
-        # 2) Juicio (Sincrónico CPU-bound)
-        # Se ejecuta aislando el event loop a través de to_thread para no bloquear a otros requests
-        ethical_sentence = await asyncio.to_thread(self.limbic_lobe.judge, semantic_state)
-
-        # 3) Ejecución / Salida
-        final_output = await asyncio.to_thread(self.executive_lobe.formulate_response, semantic_state, ethical_sentence)
-        
-        return final_output
-
-    def shutdown(self):
-        self.cerebellum.stop()
-        self.cerebellum.join()
-
-import os
-import threading
-import time
-import logging
-from collections.abc import Callable
-from concurrent.futures import ThreadPoolExecutor
-from dataclasses import dataclass
-from pathlib import Path
-from typing import TYPE_CHECKING, Any
-
-_log = logging.getLogger(__name__)
-
-if TYPE_CHECKING:
-    from .dao.audit_snapshot import AuditSnapshot
 
 import numpy as np
 
 from .kernel_components import KernelComponentOverrides
+from .kernel_lobes import CerebellumNode, ExecutiveLobe, LimbicEthicalLobe, PerceptiveLobe
 from .modules.absolute_evil import AbsoluteEvilCategory, AbsoluteEvilDetector, AbsoluteEvilResult
 from .modules.audio_adapter import AudioInference
 from .modules.audit_chain_log import (
@@ -90,6 +35,7 @@ from .modules.audit_chain_log import (
 )
 from .modules.augenesis import AugenesisEngine
 from .modules.bayesian_engine import BayesianEngine, BayesianResult
+from .modules.biographic_monologue import compose_biographic_monologue
 from .modules.biographic_pruning import BiographicPruner
 from .modules.buffer import PreloadedBuffer
 from .modules.dao_orchestrator import DAOOrchestrator
@@ -110,19 +56,13 @@ from .modules.feedback_calibration_ledger import (
     normalize_feedback_label,
 )
 from .modules.forgiveness import AlgorithmicForgiveness
-from .modules.frontier_witness import FrontierWitnessManager, WitnessReport
-from .modules.privacy_shield import PrivacyShield
-from .modules.precedent_rag import PrecedentRAG
-from .modules.multi_realm_governance import MultiRealmGovernor
-from .modules.vision_inference import VisionInferenceEngine, VisionDetection
-from .modules.motivation_engine import MotivationEngine, DriveType
-from .modules.identity_integrity import IdentityIntegrityManager
+from .modules.frontier_witness import FrontierWitnessManager
 from .modules.generative_candidates import augment_generative_candidates
 from .modules.gray_zone_diplomacy import negotiation_hint_for_communicate
 from .modules.guardian_mode import guardian_mode_llm_context
+from .modules.identity_integrity import IdentityIntegrityManager
 from .modules.immortality import ImmortalityProtocol
 from .modules.internal_monologue import compose_monologue_line
-from .modules.biographic_monologue import compose_biographic_monologue
 from .modules.judicial_escalation import (
     EscalationSessionTracker,
     JudicialEscalationView,
@@ -139,8 +79,8 @@ from .modules.kernel_event_bus import (
     KernelEventBus,
     kernel_event_bus_enabled,
 )
-from .modules.llm_http_cancel import clear_llm_cancel_scope, set_llm_cancel_scope
 from .modules.light_risk_classifier import light_risk_classifier_enabled, light_risk_tier_from_text
+from .modules.llm_http_cancel import clear_llm_cancel_scope, set_llm_cancel_scope
 from .modules.llm_layer import (
     LLMModule,
     LLMPerception,
@@ -153,6 +93,7 @@ from .modules.metacognition import MetacognitiveEvaluator
 from .modules.metaplan_registry import MetaplanRegistry
 from .modules.mock_dao import MockDAO
 from .modules.motivation_engine import MotivationEngine
+from .modules.multi_realm_governance import MultiRealmGovernor
 from .modules.multimodal_trust import (
     MultimodalAssessment,
     evaluate_multimodal_trust,
@@ -169,7 +110,9 @@ from .modules.perception_confidence import (
     build_perception_confidence_envelope,
 )
 from .modules.perception_cross_check import apply_lexical_perception_cross_check
+from .modules.precedent_rag import PrecedentRAG
 from .modules.premise_validation import PremiseAdvisory, scan_premises
+from .modules.privacy_shield import PrivacyShield
 from .modules.psi_sleep import PsiSleep
 from .modules.reality_verification import (
     ASSESSMENT_NONE as REALITY_ASSESSMENT_NONE,
@@ -195,12 +138,18 @@ from .modules.uchi_soto import SocialEvaluation, TrustCircle, UchiSotoModule
 from .modules.user_model import UserModelTracker
 from .modules.variability import VariabilityConfig, VariabilityEngine
 from .modules.vision_adapter import VisionInference
+from .modules.vision_inference import VisionInferenceEngine
 from .modules.vitality import VitalityAssessment, assess_vitality, vitality_communication_hint
 from .modules.weakness_pole import WeaknessPole
 from .modules.weighted_ethics_scorer import CandidateAction, WeightedEthicsScorer
 from .modules.working_memory import WorkingMemory
 from .persistence.checkpoint_port import CheckpointPersistencePort
 from .validators.deprecation_warnings import check_deprecated_flags
+
+if TYPE_CHECKING:
+    from .dao.audit_snapshot import AuditSnapshot
+
+_log = logging.getLogger(__name__)
 
 
 def _kernel_env_truthy(name: str) -> bool:
@@ -390,6 +339,55 @@ def _chat_coop_tls_clear() -> None:
     for name in ("cancel_event", "chat_turn_id"):
         if hasattr(_chat_coop_tls, name):
             delattr(_chat_coop_tls, name)
+
+
+class CorpusCallosumOrchestrator:
+    """Architecture V1.5 — Triune Brain Orchestrator.
+
+    Lightweight async bus between the 3 conscious lobes and the adjacent cerebellum node.
+    This class is the entry point for the tri-lobe processing cycle (Perceptive → Limbic →
+    Executive) and enforces the hardware interrupt veto from `CerebellumNode`.
+    """
+
+    def __init__(self) -> None:
+        # Subconscious node starts immediately as a daemon thread.
+        self._hw_interrupt = threading.Event()
+        self.cerebellum = CerebellumNode(self._hw_interrupt)
+        self.cerebellum.start()
+
+        # Conscious lobes are stateless collaborators.
+        self.perceptive_lobe = PerceptiveLobe()
+        self.limbic_lobe = LimbicEthicalLobe()
+        self.executive_lobe = ExecutiveLobe()
+
+    async def async_process(
+        self, raw_input: str, multimodal_payload: dict | None = None
+    ) -> str:
+        """Pure tri-lobe cycle: Afference → Judgment → Efference.
+
+        Returns immediately with a hardware-halt message if the cerebellum has raised
+        a critical interrupt, otherwise runs full perception-ethics-execution pipeline.
+        """
+        if self._hw_interrupt.is_set():
+            return "SYSTEM_HALTED: Hardware Critical State (Cerebellum Interrupt Active)"
+
+        # 1) Perception — async I/O; cooperative cancellation lives here.
+        semantic_state = await self.perceptive_lobe.observe(raw_input, multimodal_payload)
+
+        # 2) Ethical judgment — CPU-bound; offloaded to a thread to avoid blocking the loop.
+        ethical_sentence = await asyncio.to_thread(self.limbic_lobe.judge, semantic_state)
+
+        # 3) Executive response — safe-only narrative/action formulation.
+        final_output = await asyncio.to_thread(
+            self.executive_lobe.formulate_response, semantic_state, ethical_sentence
+        )
+
+        return final_output
+
+    def shutdown(self) -> None:
+        """Stop the cerebellum daemon and wait for it to join."""
+        self.cerebellum.stop()
+        self.cerebellum.join()
 
 
 class EthicalKernel:
@@ -1327,7 +1325,8 @@ class EthicalKernel:
         # --- Lexical absolute evil check ---
         # Layer 0: verify scenario and message content against hard linguistic vetos
         for text_to_check in [scenario, message_content]:
-            if not text_to_check: continue
+            if not text_to_check:
+                continue
             lex_check = self.absolute_evil.evaluate_chat_text(text_to_check)
             if lex_check.blocked:
                 label = lex_check.category.value if lex_check.category else "unspecified"
@@ -1341,7 +1340,7 @@ class EthicalKernel:
                     locus_evaluation=locus_eval,
                     bayesian_result=None,
                     moral=None,
-                    final_action=f"BLOCKED: Absolute Evil trigger detected",
+                    final_action="BLOCKED: Absolute Evil trigger detected",
                     decision_mode="blocked_lexical",
                     block_reason=f"Fundamental safety violation detected in input/intent: {lex_check.reason}"
                 )

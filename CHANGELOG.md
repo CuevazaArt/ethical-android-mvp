@@ -4,6 +4,34 @@ All notable changes to this project are summarized here. For narrative context a
 
 **Note:** Older sections below may still **link** to paths that were later removed (for example `experiments/million_sim/`, `docs/multimedia/`, root `dashboard.html`, `landing/`). Those links are **historical**; recover files from git history or backup branches if you need them.
 
+## Team Copilot Updates — April 2026
+
+### Bloque 6.4 / Idle Shift — 2026-04-17
+
+#### ExecutiveLobe (Tri-Lobe Architecture Phase 4)
+
+- **`src/kernel_lobes/executive_lobe.py`**: Replaced Phase-1 stub with full safe-path flow.
+  `MotivationEngine` is wired as injectable dependency; `compose_monologue_line` is emitted only
+  when `EthicalSentence.is_safe=True`; proactive-action fallback activates on ambient silence.
+- **`tests/test_executive_lobe.py`**: New unit tests — veto path (+ no-drive-update assertion),
+  safe prompt path, safe ambient-silence proactive fallback.
+
+#### `kernel.py` Import Hygiene (Bloque 0.3 — Integridad Documental)
+
+- Relocated `CorpusCallosumOrchestrator` class from mid-import position to after all module-level
+  imports (before `EthicalKernel`), eliminating ~20 Ruff E402/F811 errors caused by its
+  scaffolding insertion.
+- Moved `_log = logging.getLogger(__name__)` and `if TYPE_CHECKING` block to after all imports.
+- Removed duplicate `from .modules.motivation_engine import MotivationEngine` (F811) and unused
+  symbols `DriveType`, `VisionDetection`, `WitnessReport` (F401) exposed by the fix.
+- Net result: `kernel.py` lint errors drop from 32+ to 2 pre-existing, unrelated (E701, F541).
+
+#### `PROPOSAL_COPILOT_HEMISPHERE_CRITIQUE.md` (Response to `COPILOT_REQUEST_HEMISPHERE_REFACTOR.md`)
+
+- Answers the three requested questions (test-compat facade, shared-state injection pattern,
+  maintainability assessment) with concrete recommendations aligned with Claude's critique
+  and the `PROPOSAL_HEMISPHERE_LOBE_COUNT_DISCUSSION.md` ceiling.
+
 ## Documentation — Issue #1 (Bayesian naming honesty) — April 2026
 
 - Root **README** (*What it does*): ethical scoring described as a weighted mixture; `BayesianEngine` / `KERNEL_BAYESIAN_*` naming caveat; links to **ADR 0009** and **THEORY_AND_IMPLEMENTATION**.
