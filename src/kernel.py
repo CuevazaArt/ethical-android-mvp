@@ -34,7 +34,12 @@ from .modules.audit_chain_log import (
     maybe_append_malabs_block_audit,
 )
 from .modules.augenesis import AugenesisEngine
-from .modules.bayesian_engine import BayesianEngine, BayesianResult
+from .modules.bayesian_engine import (
+    ENV_KERNEL_BAYESIAN_MODE,
+    BayesianEngine,
+    BayesianResult,
+    resolve_kernel_bayesian_mode,
+)
 from .modules.biographic_monologue import compose_biographic_monologue
 from .modules.biographic_pruning import BiographicPruner
 from .modules.buffer import PreloadedBuffer
@@ -454,7 +459,8 @@ class EthicalKernel:
             co.bayesian
             if co and co.bayesian is not None
             else BayesianEngine(
-                mode=os.environ.get("KERNEL_BAYESIAN_MODE", "disabled"), variability=self.var_engine
+                mode=resolve_kernel_bayesian_mode(os.environ.get(ENV_KERNEL_BAYESIAN_MODE)),
+                variability=self.var_engine,
             )
         )
         self.poles = co.poles if co and co.poles is not None else EthicalPoles()
