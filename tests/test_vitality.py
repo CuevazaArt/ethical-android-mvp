@@ -63,6 +63,41 @@ def test_merge_prefers_existing_client_battery():
     assert merged.battery_level == 0.9
 
 
+def test_merge_nomad_battery_alias():
+    base = SensorSnapshot(battery_level=None)
+    merged = merge_nomad_telemetry_into_snapshot(base, {"battery": 0.61})
+    assert merged is not None
+    assert merged.battery_level == 0.61
+
+
+def test_merge_nomad_battery_percent_heuristic():
+    """LAN clients often send 0–100; must not clamp to 1.0 via :meth:`SensorSnapshot.from_dict`."""
+    base = SensorSnapshot(battery_level=None)
+    merged = merge_nomad_telemetry_into_snapshot(base, {"battery": 72})
+    assert merged is not None
+    assert abs(merged.battery_level - 0.72) < 1e-6
+
+
+def test_merge_nomad_temperature_and_jerk_aliases():
+    base = SensorSnapshot(
+        battery_level=None,
+        core_temperature=None,
+        accelerometer_jerk=None,
+    )
+    merged = merge_nomad_telemetry_into_snapshot(
+        base,
+        {"core_temperature_c": 38.2, "jerk": 0.05},
+    )
+    assert merged.core_temperature == 38.2
+    assert merged.accelerometer_jerk == 0.05
+
+
+def test_merge_nomad_input_dict_not_mutated():
+    nomad = {"battery": 0.44}
+    merge_nomad_telemetry_into_snapshot(None, nomad)
+    assert set(nomad.keys()) == {"battery"}
+
+
 def test_to_public_dict():
     d = VitalityAssessment(0.04, 0.05, True, None, 80.0, False, False).to_public_dict()
     assert d["is_critical"] is True

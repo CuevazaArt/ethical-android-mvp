@@ -13,6 +13,8 @@ Server → client: ``type: charm_feedback``, ``payload``: charm vector dict (fro
 
 Latest ``telemetry`` payloads are mirrored for synchronous readers (Module S.2.1 — vitality merge in
 ``vitality.merge_nomad_telemetry_into_snapshot`` / ``KERNEL_NOMAD_TELEMETRY_VITALITY``).
+That merge step normalizes common mobile key aliases (e.g. ``battery``, ``core_temperature_c``, ``jerk``)
+onto :class:`~src.modules.sensor_contracts.SensorSnapshot` field names before parsing.
 """
 
 import asyncio

@@ -8,6 +8,7 @@ See docs/proposals/README.md §1–2
 
 from __future__ import annotations
 
+import math
 import os
 from dataclasses import dataclass, fields, replace
 from typing import Any
@@ -78,6 +79,53 @@ class VitalityAssessment:
         }
 
 
+def _coerce_battery_fraction(v: Any) -> float | None:
+    """Interpret battery as a [0,1] fraction; values in (1, 100] are treated as legacy percent."""
+
+    if v is None:
+        return None
+    try:
+        x = float(v)
+    except (TypeError, ValueError):
+        return None
+    if math.isnan(x) or math.isinf(x):
+        return None
+    if 1.0 < x <= 100.0:
+        x = x / 100.0
+    return max(0.0, min(1.0, x))
+
+
+def normalize_nomad_telemetry_for_sensor_merge(raw: dict[str, Any]) -> dict[str, Any]:
+    """
+    Map common smartphone / Nomad LAN shorthand keys onto :class:`SensorSnapshot` field names
+    before :meth:`SensorSnapshot.from_dict` (Module S.2.1 — Bloque S.2.1 calibration path).
+    """
+
+    out = dict(raw)
+
+    if out.get("battery_level") is not None:
+        out["battery_level"] = _coerce_battery_fraction(out.get("battery_level"))
+    else:
+        for key in ("battery", "battery_pct", "batt"):
+            if key in out and out[key] is not None:
+                out["battery_level"] = _coerce_battery_fraction(out[key])
+                break
+
+    if out.get("core_temperature") is None:
+        for key in ("core_temperature_c", "temperature_c", "temp_c", "cpu_temp"):
+            if key in out and out[key] is not None:
+                out["core_temperature"] = out[key]
+                break
+
+    if out.get("accelerometer_jerk") is None:
+        for key in ("jerk", "accel_jerk", "impact_jerk"):
+            if key in out and out[key] is not None:
+                out["accelerometer_jerk"] = out[key]
+                break
+
+    return out
+
+
 def merge_nomad_telemetry_into_snapshot(
     snapshot: SensorSnapshot | None,
     nomad: dict[str, Any] | None,
@@ -91,6 +139,7 @@ def merge_nomad_telemetry_into_snapshot(
     """
     if not nomad:
         return snapshot
+    nomad = normalize_nomad_telemetry_for_sensor_merge(nomad)
     patch = SensorSnapshot.from_dict(nomad, strict=False)
     if snapshot is None:
         return patch
