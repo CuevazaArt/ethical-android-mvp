@@ -4,6 +4,20 @@ All notable changes to this project are summarized here. For narrative context a
 
 **Note:** Older sections below may still **link** to paths that were later removed (for example `experiments/million_sim/`, `docs/multimedia/`, root `dashboard.html`, `landing/`). Those links are **historical**; recover files from git history or backup branches if you need them.
 
+## Team Copilot — Charm Engine Proposal — April 2026 (Session 3)
+
+### Team Copilot Updates
+
+- **`PROPOSAL_CHARM_ENGINE_MULTIMODAL.md`** — Authored Team Copilot's full proposal for the Multimodal Charm Engine (*Motor de Encanto Conversacional Multimodal*). The document:
+  - Critiques the source design's technical gaps (missing interface contracts, opaque Cultural Adapter, overloaded ResponseSculptor, undefined gesture-sync protocol, no latency budgets).
+  - Critiques the ethical gaps (manipulation boundary undefined, implied consent ≠ consent, micro-revelation deception risk, vulnerability exploitation via latency heuristic).
+  - Proposes concrete Python dataclasses: `StyleVector`, `TurnContext`, `CharmProfile`, `ConsentState`.
+  - Replaces black-box cultural embedding vectors with an explicit `CULTURAL_MULTIPLIERS` table (latam / east_asia / western_europe) requiring native-reviewer sign-off before merge.
+  - Splits `ResponseSculptor` into `VariantRanker` + `HookInjector` with per-component latency budgets.
+  - Defines a two-phase provisional-intent + reconcile protocol for gesture synchronization under LLM latency.
+  - Anchors all ethical guardrails in existing code: `SemanticChatGate` `charm_mode` flag, `ConsentGate` (escalation blocked without `CHARM_ACKNOWLEDGED`), `VulnerabilityGuard` (pins intimacy when low-engagement signals coincide), and one-time disclosure protocol before any escalation intent activates.
+  - Maps all new work to `src/modules/charm_engine/` package with a 3-phase roadmap (software MVP → classifier + feedback → multimodal hardware).
+
 ## Team Copilot — Maintenance pulse: copilot/check-pending-tasks — April 2026 (Session 2)
 
 ### Team Copilot Updates
