@@ -87,6 +87,7 @@ Topic branches from **`master-Cursor`** -> **`master-Cursor`** (merge/PR) -> **`
 - **Goal:** define a single runtime contract for Bayesian operation modes (telemetry-only, posterior-assisted, posterior-driven).
 - **Deliverables:** named constants/env contract, tests for defaults and override behavior, docs update.
 - **Acceptance:** no silent behavior switch; operator can tell active Bayesian mode from decision artifacts.
+- **Status (April 2026):** **Landed (kernel)** — `ENV_KERNEL_BAYESIAN_MODE` + `resolve_kernel_bayesian_mode()` in [`bayesian_engine.py`](../../src/modules/bayesian_engine.py); `EthicalKernel` uses resolver at construction; invalid env → `disabled` + warning log; [`KERNEL_ENV_POLICY.md`](KERNEL_ENV_POLICY.md) family row; tests [`tests/test_bayesian_mode_contract.py`](../../tests/test_bayesian_mode_contract.py). Integration hub: `master-Cursor` (branch naming `cursor/bayes-*`).
 
 #### BI-P0-02 — Posterior consistency guardrails
 

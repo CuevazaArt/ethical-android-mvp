@@ -23,10 +23,11 @@ High-level summary aligned with the code and docs; full chronology is in [`CHANG
 | [`PROPOSAL_011_DAO_CALIBRATION_PIPELINE.md`](PROPOSAL_011_DAO_CALIBRATION_PIPELINE.md) | Antigravity: DAO calibration pipeline and boundary-safety caps (phase 7). |
 | [`ANTIGRAVITY_COLLABORATION_GUIDE.md`](ANTIGRAVITY_COLLABORATION_GUIDE.md) | Antigravity: collaboration guide and operational workflows. |
 | [`PROPOSAL_BAYESIAN_MIXTURE_FEEDBACK.md`](PROPOSAL_BAYESIAN_MIXTURE_FEEDBACK.md) | ADR 0012 stack: BMA (L1), feedback posteriors (L2), context buckets (L3), softmax / importance-sampling likelihood, env vars, tests, link to ADR 0012. |
-| [`PROPOSAL_INTEGRATION_SPRINT_I1_I5.md`](PROPOSAL_INTEGRATION_SPRINT_I1_I5.md) | Integration sprint I1–I5: closes the gaps between Cursor (perception), Claude (Bayesian kernel), and Antigravity (narrative). Contracts, env vars, team coordination matrix. ADR 0015. |
+| [`PROPOSAL_INTEGRATION_SPRINT_I1_I5.md`](PROPOSAL_INTEGRATION_SPRINT_I1_I5.md) | Integration sprint I1–I5 (**landed** April 2026): closes the gaps between Cursor (perception), Claude (Bayesian kernel), and Antigravity (narrative). Contracts, env vars, tests, ADR 0015. |
 | [`PROPOSAL_CONSOLIDATION_PRE_DAO.md`](PROPOSAL_CONSOLIDATION_PRE_DAO.md) | Vertical consolidation cycle before field tests and DAO: validate the decision core against ETHICS dataset, shrink env-var surface, separate decision/narrative tiers, deepen tests, contract the DAO-governable surface. ADR 0016. |
 | [`PROPOSAL_FIELD_TEST_PLAN.md`](PROPOSAL_FIELD_TEST_PLAN.md) | Field test plan — phases F0–F4 for model (scorer + MalAbs), next MockDAO (audit UX), and **real physical sensors** via a smartphone relay; defines the PC ↔ phone minimal management interface; maps each test phase to a specific weakness in `WEAKNESSES_AND_BOTTLENECKS.md`. Companion: [ADR 0017](../adr/0017-smartphone-sensor-relay-bridge.md). |
 | [`PROPOSAL_OFFLINE_MODE_TAXONOMY_AND_KNOWLEDGE_CORPUS.md`](PROPOSAL_OFFLINE_MODE_TAXONOMY_AND_KNOWLEDGE_CORPUS.md) | Offline taxonomy (voluntary, transient, structural, systemic); L0 vs curated knowledge pack; resource/energy priority; entry planning and sync; maps to `PreloadedBuffer` and MalAbs. |
+| [`PROPOSAL_MULTIMODAL_CHARM_ENGINE_DIGEST.md`](PROPOSAL_MULTIMODAL_CHARM_ENGINE_DIGEST.md) | **Digest (P0):** multimodal “charm” / conversational-UX stack mapped to kernel seams; critiques, guardrails, phased roadmap; presentation tier vs ethics core; source brief synthesized (not verbatim). |
 
 | Area | What changed |
 |------|----------------|
@@ -149,7 +150,7 @@ Legacy Spanish filenames (`PROPUESTA_*.md`, `ESTRATEGIA_Y_RUTA.md`, `PAPER_AFECT
 | [PROPOSAL_PERCEPTION_OBSERVABILITY_CONTRACT.md](PROPOSAL_PERCEPTION_OBSERVABILITY_CONTRACT.md) | Stable chat JSON perception diagnostics contract for operators and dashboards |
 | [PROPOSAL_LLM_VERBAL_DEGRADATION_POLICY.md](PROPOSAL_LLM_VERBAL_DEGRADATION_POLICY.md) | ``KERNEL_VERBAL_LLM_BACKEND_POLICY`` for communicate/narrate failure + ``verbal_llm_observability`` |
 | [PROPOSAL_LLM_TOUCHPOINT_DEGRADATION_MATRIX.md](PROPOSAL_LLM_TOUCHPOINT_DEGRADATION_MATRIX.md) | ``KERNEL_LLM_TP_*`` precedence, verbal family key, monologue policies — operator + contributor reference |
-| [PROPOSAL_LLM_INTEGRATION_TRACK.md](PROPOSAL_LLM_INTEGRATION_TRACK.md) | Cursor track: LLM wiring, adjacent layers, integration gaps (G-01…G-10) |
+| [PROPOSAL_LLM_INTEGRATION_TRACK.md](PROPOSAL_LLM_INTEGRATION_TRACK.md) | Cursor track: LLM wiring, adjacent layers, integration gap register (G-01…G-11; all closed or deferred follow-ups) |
 | [POLES_WEAKNESS_PAD_AND_PROFILES.md](POLES_WEAKNESS_PAD_AND_PROFILES.md) | Poles, weakness, PAD, and profiles |
 | [POLE_WEIGHT_CALIBRATION_AND_EVIDENCE.md](POLE_WEIGHT_CALIBRATION_AND_EVIDENCE.md) | Pole weights: heuristics vs empirical calibration roadmap |
 | [TEMPORAL_PRIOR_HORIZONS.md](TEMPORAL_PRIOR_HORIZONS.md) | Temporal horizon prior (ADR 0005) |

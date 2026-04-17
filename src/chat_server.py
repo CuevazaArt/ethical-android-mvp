@@ -22,6 +22,8 @@ Conduct guide export (optional): KERNEL_CONDUCT_GUIDE_EXPORT_PATH — JSON on We
 
 Situated v8 (optional): KERNEL_SENSOR_FIXTURE (path to JSON), KERNEL_SENSOR_PRESET (name from
 perceptual_abstraction.SENSOR_PRESETS) — merged before client ``sensor`` JSON; see PROPOSAL_SITUATED_ORGANISM_V8.md.
+Optional ``KERNEL_SENSOR_INPUT_STRICT=1`` rejects unknown keys / bad types in the merged sensor object
+(``error=sensor_payload_invalid`` on WebSocket); see PROPOSAL_SENSOR_FUSION_NORMALIZATION.md.
 
 Multimodal thresholds (optional): KERNEL_MULTIMODAL_AUDIO_STRONG, KERNEL_MULTIMODAL_VISION_SUPPORT,
 KERNEL_MULTIMODAL_SCENE_SUPPORT, KERNEL_MULTIMODAL_VISION_CONTRADICT, KERNEL_MULTIMODAL_SCENE_CONTRADICT
@@ -182,6 +184,7 @@ from .modules.nomad_identity import nomad_identity_public
 from .modules.perception_schema import perception_report_from_dict
 from .modules.perceptual_abstraction import snapshot_from_layers
 from .modules.reparation_vault import maybe_register_reparation_after_mock_court
+from .modules.sensor_contracts import SensorPayloadValidationError
 from .observability.context import clear_request_context, set_request_id
 from .observability.logging_setup import configure_logging
 from .observability.metrics import (
@@ -2317,9 +2320,77 @@ async def ws_chat(ws: WebSocket) -> None:
                     )
                 except: pass
 
-            # ══ Standard Chat Turn ══
-            if not text_preview:
-                await ws.send_json({"error": "empty_text"})
+            sensor_raw = data.get("sensor")
+            client = sensor_raw if isinstance(sensor_raw, dict) else None
+            fixture = os.environ.get("KERNEL_SENSOR_FIXTURE", "").strip() or None
+            preset = os.environ.get("KERNEL_SENSOR_PRESET", "").strip() or None
+            try:
+                sensor_snapshot = snapshot_from_layers(
+                    fixture_path=fixture,
+                    preset_name=preset,
+                    client_dict=client,
+                )
+            except SensorPayloadValidationError as e:
+                await ws.send_json({"error": "sensor_payload_invalid", "detail": str(e)})
+                continue
+
+            chat_turn_seq += 1
+            current_chat_turn_id = chat_turn_seq
+            t_turn = time.perf_counter()
+            chat_to = st.kernel_chat_turn_timeout_seconds
+            chat_cancel_ev: threading.Event | None = (
+                threading.Event() if chat_to is not None else None
+            )
+            try:
+                coro = bridge.process_chat(
+                    text,
+                    agent_id=agent_id,
+                    place="chat",
+                    include_narrative=include_narrative,
+                    sensor_snapshot=sensor_snapshot,
+                    escalate_to_dao=escalate_to_dao,
+                    cancel_event=chat_cancel_ev,
+                    chat_turn_id=current_chat_turn_id,
+                )
+                if chat_to is not None:
+                    result = await asyncio.wait_for(coro, timeout=chat_to)
+                else:
+                    result = await coro
+            except TimeoutError:
+                kernel.abandon_chat_turn(current_chat_turn_id)
+                observe_chat_turn("turn_timeout", time.perf_counter() - t_turn)
+                record_chat_turn_async_timeout()
+                if chat_cancel_ev is not None:
+                    chat_cancel_ev.set()
+                    record_llm_cancel_scope_signaled()
+                logger.warning(
+                    "chat_turn_timeout seconds=%s (worker thread may still run; cancel event set)",
+                    chat_to,
+                )
+                await ws.send_json(
+                    {
+                        "error": "chat_turn_timeout",
+                        "timeout_seconds": chat_to,
+                        "blocked": False,
+                        "path": "turn_timeout",
+                        "block_reason": "chat_turn_timeout",
+                        "hint": (
+                            "Async deadline elapsed; cooperative cancel was signaled for further "
+                            "sync LLM HTTP in this thread. In-flight HTTP may still run until "
+                            "OLLAMA_TIMEOUT; see ADR 0002."
+                        ),
+                        "response": {
+                            "message": (
+                                "This turn exceeded the server time limit. "
+                                "Try again or increase KERNEL_CHAT_TURN_TIMEOUT."
+                            ),
+                            "tone": "neutral",
+                            "hax_mode": "none",
+                            "inner_voice": "",
+                        },
+                    }
+                )
+                maybe_autosave_episodes(kernel, session_ckpt)
                 continue
 
             # Start new turn, cancelling previous if necessary (Serial Turns)

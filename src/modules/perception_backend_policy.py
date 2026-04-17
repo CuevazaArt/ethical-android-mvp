@@ -27,6 +27,7 @@ from typing import TYPE_CHECKING, Any
 
 from .llm_touchpoint_policies import (
     TOUCHPOINT_PERCEPTION,
+    global_safe_policy_enabled,
     raw_global_default_policy,
     raw_touchpoint_policy,
 )
@@ -49,8 +50,9 @@ def resolve_perception_backend_policy() -> str:
     if tp and tp in _VALID_POLICIES:
         return tp
     raw = os.environ.get("KERNEL_PERCEPTION_BACKEND_POLICY", "").strip().lower()
-    if raw and raw not in ("", "auto") and raw in _VALID_POLICIES:
+    if raw in _VALID_POLICIES:
         return raw
+    # Legacy unset, auto, or invalid → optional global default, then built-in default.
     g = raw_global_default_policy()
     if g and g in _VALID_POLICIES:
         return g

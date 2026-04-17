@@ -2,7 +2,20 @@
 
 **Purpose:** Explain how to **interpret** human-labeled scenarios, baseline comparisons, and agreement metrics for the Ethos Kernel **without** claiming product certification, legal safety, or objective moral truth.
 
-**Related:** [CRITIQUE_ROADMAP_ISSUES.md](CRITIQUE_ROADMAP_ISSUES.md) (Issue 3), [EMPIRICAL_PILOT_METHODOLOGY.md](EMPIRICAL_PILOT_METHODOLOGY.md) (batch pilot mechanics), [`tests/fixtures/labeled_scenarios.json`](../../tests/fixtures/labeled_scenarios.json), [`tests/fixtures/empirical_pilot/scenarios.json`](../../tests/fixtures/empirical_pilot/scenarios.json), [`scripts/run_empirical_pilot.py`](../../scripts/run_empirical_pilot.py), invariant suite [`tests/test_ethical_properties.py`](../../tests/test_ethical_properties.py), [POLE_WEIGHT_CALIBRATION_AND_EVIDENCE.md](POLE_WEIGHT_CALIBRATION_AND_EVIDENCE.md).
+**Related:** [CRITIQUE_ROADMAP_ISSUES.md](CRITIQUE_ROADMAP_ISSUES.md) (Issue 3), [EMPIRICAL_PILOT_METHODOLOGY.md](EMPIRICAL_PILOT_METHODOLOGY.md) (batch pilot mechanics), [`tests/fixtures/labeled_scenarios.json`](../../tests/fixtures/labeled_scenarios.json), [`tests/fixtures/empirical_pilot/scenarios.json`](../../tests/fixtures/empirical_pilot/scenarios.json), [`scripts/run_empirical_pilot.py`](../../scripts/run_empirical_pilot.py), invariant suite [`tests/test_ethical_properties.py`](../../tests/test_ethical_properties.py), [POLE_WEIGHT_CALIBRATION_AND_EVIDENCE.md](POLE_WEIGHT_CALIBRATION_AND_EVIDENCE.md), [MODULE_IMPACT_AND_EMPIRICAL_GAP.md](MODULE_IMPACT_AND_EMPIRICAL_GAP.md) (what empirical work would still need to justify peripheral modules).
+
+---
+
+## Implementation status (April 2026)
+
+| Piece | Status |
+|-------|--------|
+| Canonical dataset | [`tests/fixtures/labeled_scenarios.json`](../../tests/fixtures/labeled_scenarios.json) — batch (`batch_id` 1–21) + `annotation_only` vignettes |
+| Slim duplicate | [`tests/fixtures/empirical_pilot/scenarios.json`](../../tests/fixtures/empirical_pilot/scenarios.json) — same 21 kernel outcomes; minimal `id` / `reference_action` schema for legacy tooling |
+| Runner default | [`scripts/run_empirical_pilot.py`](../../scripts/run_empirical_pilot.py) defaults to **labeled** fixture; `--fixture` overrides |
+| Regression | [`tests/test_empirical_pilot_runner.py`](../../tests/test_empirical_pilot_runner.py), [`tests/test_labeled_scenarios.py`](../../tests/test_labeled_scenarios.py), [`tests/test_empirical_pilot.py`](../../tests/test_empirical_pilot.py); integration gate lists `test_empirical_pilot_runner` |
+
+**Not done (research):** module ablation vs human panels — see [MODULE_IMPACT_AND_EMPIRICAL_GAP.md](MODULE_IMPACT_AND_EMPIRICAL_GAP.md) §4.
 
 ---
 
@@ -23,8 +36,8 @@ The fixture [`tests/fixtures/labeled_scenarios.json`](../../tests/fixtures/label
 
 | `harness` | Meaning |
 |-----------|---------|
-| **`batch`** | Executable with the canonical batch runner (`ALL_SIMULATIONS` in [`src/simulations/runner.py`](../../src/simulations/runner.py)). Each row has `batch_id` **1–9** and an `expected_decision` (action **name** from that scenario’s candidate list). |
-| **`annotation_only`** | **Not** executed by the batch runner. Short **vignettes** for **inter-rater** design, training materials, or future catalog expansion. `related_batch_id` ties them thematically to a batch sim; `expected_decision` is still an action name from **that** sim’s candidate list so labels stay comparable in principle. |
+| **`batch`** | Executable with the canonical batch runner (`ALL_SIMULATIONS`: **`batch_id` 1–21**). Rows **17–19** omit `expected_decision` (`null`) — mapping-only harnesses (no agreement denominator). Other rows include `expected_decision`: usually the action **name** from that scenario’s candidate list; illustrative pilot labels aligned with [`empirical_pilot/scenarios.json`](../../tests/fixtures/empirical_pilot/scenarios.json) may reference kernel meta-actions (e.g. clarification / mission advancement) documented in [`tests/test_labeled_scenarios.py`](../../tests/test_labeled_scenarios.py). |
+| **`annotation_only`** | **Not** executed by the batch runner. Short **vignettes** for **inter-rater** design, training materials, or future catalog expansion. `related_batch_id` ties thematically to a batch sim; `expected_decision` is still an action name from **that** sim’s candidate list so labels stay comparable in principle. |
 
 Fields such as `label_source` document provenance (e.g. pilot reference vs synthetic illustration). **Synthetic** rows may include **contested** priors on purpose to measure disagreement and protocol stability.
 
@@ -45,11 +58,11 @@ Low agreement with a human panel is **data**, not automatic failure: it may refl
 ## 4. How to run
 
 ```bash
-# Default empirical pilot fixture (batch rows in tests/fixtures/empirical_pilot/scenarios.json)
+# Default: canonical labeled dataset (batch rows; skips annotation_only)
 python scripts/run_empirical_pilot.py --json
 
-# Full labeled dataset (executes its batch rows; skips annotation_only)
-python scripts/run_empirical_pilot.py --fixture tests/fixtures/labeled_scenarios.json --json
+# Slim empirical_pilot fixture (same 21 simulations, minimal JSON schema)
+python scripts/run_empirical_pilot.py --fixture tests/fixtures/empirical_pilot/scenarios.json --json
 ```
 
 Agreement summary uses only rows with a reference label present (same as the original pilot).
@@ -71,7 +84,7 @@ Treat competitor systems as **policies on the same MDP-shaped toy scenarios**, n
 
 ## 6. Power, labels, and pole weights
 
-The fixed **empirical pilot** batch set (see `tests/fixtures/empirical_pilot/scenarios.json`) **underidentifies** rich policy and pole parameters; treat agreement metrics as **regression** and design signals, not power analysis. The labeled dataset may add **annotation_only** vignettes for **study design**, not automatic statistical power. See [POLE_WEIGHT_CALIBRATION_AND_EVIDENCE.md](POLE_WEIGHT_CALIBRATION_AND_EVIDENCE.md) and [EMPIRICAL_PILOT_METHODOLOGY.md](EMPIRICAL_PILOT_METHODOLOGY.md).
+The fixed **batch** set (21 simulations; canonical labels in `labeled_scenarios.json`, slim duplicate in `empirical_pilot/scenarios.json`) **underidentifies** rich policy and pole parameters; treat agreement metrics as **regression** and design signals, not power analysis. The labeled dataset may add **annotation_only** vignettes for **study design**, not automatic statistical power. See [POLE_WEIGHT_CALIBRATION_AND_EVIDENCE.md](POLE_WEIGHT_CALIBRATION_AND_EVIDENCE.md) and [EMPIRICAL_PILOT_METHODOLOGY.md](EMPIRICAL_PILOT_METHODOLOGY.md).
 
 ---
 

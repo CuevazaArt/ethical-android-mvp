@@ -82,4 +82,10 @@ Use a **prefix** so `git log --oneline` distinguishes sync noise from promotion 
 
 ---
 
+## L0 relay — workflow cadence (Antigravity)
+
+**Juan (L0)** asks that collaboration **stay efficient and kept up to date** (docs + rituals), with **Antigravity (L1)** steering consolidation without weakening governance. Cursor relays that intent here: [**`L0_WORKFLOW_CONTINUOUS_IMPROVEMENT_RELAY.md`**](L0_WORKFLOW_CONTINUOUS_IMPROVEMENT_RELAY.md).
+
+---
+
 *Derived from [`docs/critique/COLLABORATION_REGULATION_CRITIQUE_2026-04-16.md`](../critique/COLLABORATION_REGULATION_CRITIQUE_2026-04-16.md) recommendations R-1, R-3, R-4, R-5.*

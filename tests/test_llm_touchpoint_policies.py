@@ -85,22 +85,54 @@ def test_global_default_verbal_when_family_and_legacy_unset(monkeypatch):
     assert resolve_verbal_llm_backend_policy(touchpoint="communicate") == "canned_safe"
 
 
-def test_global_ignored_when_not_valid_for_touchpoint(monkeypatch):
+def test_global_safe_overrides_monologue(monkeypatch):
+    monkeypatch.setenv("KERNEL_LLM_GLOBAL_POLICY", "safe")
+    monkeypatch.setenv("KERNEL_LLM_TP_MONOLOGUE_POLICY", "passthrough")
+    assert resolve_monologue_llm_backend_policy() == "annotate_degraded"
+
+
+def test_global_default_perception_when_legacy_unset(monkeypatch):
     monkeypatch.delenv("KERNEL_LLM_TP_PERCEPTION_POLICY", raising=False)
     monkeypatch.delenv("KERNEL_PERCEPTION_BACKEND_POLICY", raising=False)
-    monkeypatch.setenv(ENV_LLM_GLOBAL_DEFAULT_POLICY, "canned_safe")
-    assert resolve_perception_backend_policy() == "template_local"
-
-
-def test_legacy_still_wins_over_global(monkeypatch):
-    monkeypatch.delenv("KERNEL_LLM_TP_PERCEPTION_POLICY", raising=False)
-    monkeypatch.setenv("KERNEL_PERCEPTION_BACKEND_POLICY", "session_banner")
-    monkeypatch.setenv(ENV_LLM_GLOBAL_DEFAULT_POLICY, "fast_fail")
+    monkeypatch.setenv("KERNEL_LLM_GLOBAL_DEFAULT_POLICY", "session_banner")
     assert resolve_perception_backend_policy() == "session_banner"
 
 
-def test_monologue_global_passthrough(monkeypatch):
+def test_global_default_ignored_for_perception_when_verbal_only(monkeypatch):
+    monkeypatch.delenv("KERNEL_LLM_TP_PERCEPTION_POLICY", raising=False)
+    monkeypatch.delenv("KERNEL_PERCEPTION_BACKEND_POLICY", raising=False)
+    monkeypatch.setenv("KERNEL_LLM_GLOBAL_DEFAULT_POLICY", "canned_safe")
+    assert resolve_perception_backend_policy() == "template_local"
+
+
+def test_global_default_verbal_when_chain_unset(monkeypatch):
+    monkeypatch.delenv("KERNEL_LLM_TP_COMMUNICATE_POLICY", raising=False)
+    monkeypatch.delenv("KERNEL_LLM_TP_NARRATE_POLICY", raising=False)
+    monkeypatch.delenv("KERNEL_LLM_VERBAL_FAMILY_POLICY", raising=False)
+    monkeypatch.delenv("KERNEL_VERBAL_LLM_BACKEND_POLICY", raising=False)
+    monkeypatch.setenv("KERNEL_LLM_GLOBAL_DEFAULT_POLICY", "canned_safe")
+    assert resolve_verbal_llm_backend_policy(touchpoint="communicate") == "canned_safe"
+    assert resolve_verbal_llm_backend_policy(touchpoint="narrate") == "canned_safe"
+
+
+def test_global_default_ignored_for_verbal_when_perception_only(monkeypatch):
+    monkeypatch.delenv("KERNEL_LLM_TP_COMMUNICATE_POLICY", raising=False)
+    monkeypatch.delenv("KERNEL_LLM_TP_NARRATE_POLICY", raising=False)
+    monkeypatch.delenv("KERNEL_LLM_VERBAL_FAMILY_POLICY", raising=False)
+    monkeypatch.delenv("KERNEL_VERBAL_LLM_BACKEND_POLICY", raising=False)
+    monkeypatch.setenv("KERNEL_LLM_GLOBAL_DEFAULT_POLICY", "fast_fail")
+    assert resolve_verbal_llm_backend_policy(touchpoint="communicate") == "template_local"
+
+
+def test_global_default_monologue_when_tp_and_legacy_unset(monkeypatch):
     monkeypatch.delenv("KERNEL_LLM_TP_MONOLOGUE_POLICY", raising=False)
     monkeypatch.delenv("KERNEL_LLM_MONOLOGUE_BACKEND_POLICY", raising=False)
-    monkeypatch.setenv(ENV_LLM_GLOBAL_DEFAULT_POLICY, "passthrough")
-    assert resolve_monologue_llm_backend_policy() == "passthrough"
+    monkeypatch.setenv("KERNEL_LLM_GLOBAL_DEFAULT_POLICY", "annotate_degraded")
+    assert resolve_monologue_llm_backend_policy() == "annotate_degraded"
+
+
+def test_invalid_legacy_perception_falls_through_to_global_default(monkeypatch):
+    monkeypatch.delenv("KERNEL_LLM_TP_PERCEPTION_POLICY", raising=False)
+    monkeypatch.setenv("KERNEL_PERCEPTION_BACKEND_POLICY", "not_a_real_mode")
+    monkeypatch.setenv("KERNEL_LLM_GLOBAL_DEFAULT_POLICY", "fast_fail")
+    assert resolve_perception_backend_policy() == "fast_fail"

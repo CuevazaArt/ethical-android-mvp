@@ -23,6 +23,7 @@ def test_kernel_env_policy_indexes_legacy_llm_backend_policies() -> None:
     assert "KERNEL_PERCEPTION_BACKEND_POLICY" in text
     assert "KERNEL_VERBAL_LLM_BACKEND_POLICY" in text
     assert "KERNEL_LLM_GLOBAL_DEFAULT_POLICY" in text
+    assert "KERNEL_PERCEPTIVE_LOBE_PROBE_URL" in text
     assert "PROPOSAL_LLM_TOUCHPOINT_DEGRADATION_MATRIX.md" in text
 
 

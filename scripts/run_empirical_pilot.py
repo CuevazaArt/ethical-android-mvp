@@ -5,8 +5,12 @@ Empirical pilot runner (Issue 3) — batch simulations vs simple baselines + opt
 Usage (repo root):
   python scripts/run_empirical_pilot.py
   python scripts/run_empirical_pilot.py --json
-  python scripts/run_empirical_pilot.py --fixture tests/fixtures/labeled_scenarios.json --json
+  python scripts/run_empirical_pilot.py --fixture tests/fixtures/empirical_pilot/scenarios.json
   python scripts/run_empirical_pilot.py --output runs/pilot_last.json
+
+Default fixture is ``tests/fixtures/labeled_scenarios.json`` (Issue 3 canonical dataset).
+``tests/fixtures/empirical_pilot/scenarios.json`` is a slim batch-only sibling with identical
+kernel outcomes for the 21 simulations; use ``--fixture`` to select it.
 
 Batch rows only: scenarios with ``harness: batch`` (default if omitted). Skips ``annotation_only``.
 Labels: ``reference_action`` or ``expected_decision``; ``batch_id`` or ``id`` for simulation id.
@@ -141,8 +145,8 @@ def main() -> int:
     p.add_argument(
         "--fixture",
         type=Path,
-        default=ROOT / "tests" / "fixtures" / "empirical_pilot" / "scenarios.json",
-        help="Path to scenarios.json",
+        default=ROOT / "tests" / "fixtures" / "labeled_scenarios.json",
+        help="Path to labeled scenario fixture (default: labeled_scenarios.json).",
     )
     p.add_argument("--json", action="store_true", help="Emit JSON only (no table).")
     p.add_argument(

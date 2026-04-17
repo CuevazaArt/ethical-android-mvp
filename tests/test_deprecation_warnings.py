@@ -46,6 +46,13 @@ class TestDeprecationMetadata:
                 f"{flag_name} in DEPRECATED_FLAGS but not in DEPRECATION_ROADMAP"
             )
 
+    def test_deprecation_roadmap_has_no_extra_keys(self):
+        """Every roadmap entry must have runtime deprecation metadata (bidirectional sync)."""
+        for flag_name in DEPRECATION_ROADMAP:
+            assert flag_name in DEPRECATED_FLAGS, (
+                f"{flag_name} in DEPRECATION_ROADMAP but not in DEPRECATED_FLAGS"
+            )
+
     def test_minimum_count_of_deprecated_flags(self):
         """ADR 0016 B2 requires at least 20 deprecated flags."""
         assert len(DEPRECATED_FLAGS) >= 20, (

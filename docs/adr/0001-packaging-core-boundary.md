@@ -20,4 +20,5 @@
 ## Links
 
 - [`CORE_DECISION_CHAIN.md`](../proposals/CORE_DECISION_CHAIN.md)  
-- [`RUNTIME_CONTRACT.md`](../proposals/RUNTIME_CONTRACT.md)
+- [`RUNTIME_CONTRACT.md`](../proposals/RUNTIME_CONTRACT.md)  
+- Drift guard: [`tests/test_core_packaging_boundary_docs.py`](../../tests/test_core_packaging_boundary_docs.py) (Issue 4)

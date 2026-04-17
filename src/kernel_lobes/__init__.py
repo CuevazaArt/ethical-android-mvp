@@ -3,11 +3,7 @@
 
 from .models import SemanticState, EthicalSentence, TimeoutTrauma
 from .perception_lobe import PerceptiveLobe
-from .limbic_lobe import LimbicEthicalLobe
-from .executive_lobe import ExecutiveLobe
-from .cerebellum_lobe import CerebellumLobe
-from .memory_lobe import MemoryLobe
-from .cerebellum_node import CerebellumNode
+from .sensor_adapter import FixedSensorAdapter, SensorAdapter, StubSensorAdapter
 
 __all__ = [
     "SemanticState",
@@ -16,7 +12,8 @@ __all__ = [
     "PerceptiveLobe",
     "LimbicEthicalLobe",
     "ExecutiveLobe",
-    "CerebellumLobe",
-    "MemoryLobe",
-    "CerebellumNode"
+    "CerebellumNode",
+    "SensorAdapter",
+    "StubSensorAdapter",
+    "FixedSensorAdapter",
 ]
