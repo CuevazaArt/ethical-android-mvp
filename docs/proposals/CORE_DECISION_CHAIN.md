@@ -92,4 +92,4 @@ Rough split for packaging and mental model — not a hard import graph yet (see 
 
 ---
 
-*Issue 4 deliverable — MoSex Macchina Lab.*
+**Issue 4 (MoSex Macchina Lab):** [`tests/test_core_packaging_boundary_docs.py`](../../tests/test_core_packaging_boundary_docs.py) locks `pyproject.toml` entry points / optional extras and key phrases in this doc and [ADR 0001](../adr/0001-packaging-core-boundary.md).
