@@ -1,20 +1,36 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
+from typing import Protocol
 
 from src.kernel_lobes.models import EthicalSentence, SemanticState
 from src.modules.internal_monologue import compose_monologue_line
 from src.modules.motivation_engine import MotivationEngine
+from src.modules.weighted_ethics_scorer import CandidateAction
+
+
+class _SalienceLike(Protocol):
+    dominant_focus: str
+
+
+class _ReflectionLike(Protocol):
+    conflict_level: float
+
+
+class _AffectLike(Protocol):
+    dominant_archetype_id: str
 
 
 @dataclass(frozen=True)
 class _ExecutiveDecisionView:
+    """Minimal decision-shaped object expected by ``compose_monologue_line``."""
+
     blocked: bool
     final_action: str
     decision_mode: str = "executive_safe"
-    salience: object | None = None
-    reflection: object | None = None
-    affect: object | None = None
+    salience: _SalienceLike | None = None
+    reflection: _ReflectionLike | None = None
+    affect: _AffectLike | None = None
 
 
 class ExecutiveLobe:
@@ -41,7 +57,7 @@ class ExecutiveLobe:
                 "energy": 1.0,
             }
         )
-        proactive_actions = self.motivation_engine.get_proactive_actions()
+        proactive_actions: list[CandidateAction] = self.motivation_engine.get_proactive_actions()
 
         prompt = state.raw_prompt.strip() or "unspecified intent"
         response = f"Response generated for intent: {prompt}"
