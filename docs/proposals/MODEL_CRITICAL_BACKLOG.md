@@ -19,6 +19,7 @@
 
 ## Next tier (high value, not v1.0 blockers for every scope)
 
+- **Inter-team integration sprint (ADR 0015, I1–I5):** **Landed** — [`PROPOSAL_INTEGRATION_SPRINT_I1_I5.md`](PROPOSAL_INTEGRATION_SPRINT_I1_I5.md) land record; weights snapshot, perception uncertainty → signals, optional identity/temporal modulation, event bus weight updates when hierarchical feedback composes mixture weights.
 - **Semantic gate evidence:** [PROPOSAL_MALABS_SEMANTIC_THRESHOLD_EVIDENCE.md](PROPOSAL_MALABS_SEMANTIC_THRESHOLD_EVIDENCE.md); tests under `tests/test_semantic_chat_gate.py`.
 - **Async LLM / cooperative cancel:** [WEAKNESSES_AND_BOTTLENECKS.md](../WEAKNESSES_AND_BOTTLENECKS.md) §1; [ADR 0002](../adr/0002-async-orchestration-future.md).
 - **Peripheral module ablation:** [MODULE_IMPACT_AND_EMPIRICAL_GAP.md](MODULE_IMPACT_AND_EMPIRICAL_GAP.md); [WEAKNESSES_AND_BOTTLENECKS.md](../WEAKNESSES_AND_BOTTLENECKS.md) §7.

@@ -76,6 +76,7 @@ from .modules.judicial_escalation import (
 from .modules.kernel_event_bus import (
     EVENT_KERNEL_DECISION,
     EVENT_KERNEL_EPISODE_REGISTERED,
+    EVENT_KERNEL_WEIGHTS_UPDATED,
     KernelEventBus,
     kernel_event_bus_enabled,
 )
@@ -724,6 +725,37 @@ class EthicalKernel:
             self._kernel_decision_event_payload(d, context=context),
         )
 
+    def _emit_kernel_weights_updated(
+        self,
+        prior: np.ndarray | list[float],
+        posterior: np.ndarray | list[float],
+        *,
+        source: str,
+    ) -> None:
+        """ADR 0015 I2 — emit when mixture composition changes hypothesis weights."""
+        if self.event_bus is None:
+            return
+        p = np.asarray(prior, dtype=np.float64).reshape(-1)
+        q = np.asarray(posterior, dtype=np.float64).reshape(-1)
+        sp, sq = float(np.sum(p)), float(np.sum(q))
+        if sp <= 0 or sq <= 0 or p.size != q.size:
+            return
+        p = p / sp
+        q = q / sq
+        if np.max(np.abs(p - q)) < 1e-9:
+            return
+        from .modules.weight_authority import feedback_trust_weight
+
+        self.event_bus.publish(
+            EVENT_KERNEL_WEIGHTS_UPDATED,
+            {
+                "prior": p.tolist(),
+                "posterior": q.tolist(),
+                "trust": feedback_trust_weight(),
+                "source": source,
+            },
+        )
+
     def seek_internal_purpose(self) -> list[CandidateAction]:
         """
         Consults the Motivation Engine to generate proactive internal actions.
@@ -1110,9 +1142,17 @@ class EthicalKernel:
                         if _hs > 0:
                             from .modules.weight_authority import compose_mixture_weights as _cmw
 
+                            _hw_prior = np.asarray(
+                                self.bayesian.hypothesis_weights, dtype=np.float64
+                            )
                             self.bayesian.hypothesis_weights = _cmw(
                                 nudge_weights=self.bayesian.hypothesis_weights,
                                 feedback_posterior=_ha / _hs,
+                            )
+                            self._emit_kernel_weights_updated(
+                                _hw_prior,
+                                self.bayesian.hypothesis_weights,
+                                source="hierarchical_explicit_triples",
                             )
                             mixture_posterior_alpha = (
                                 round(float(_ha[0]), 6),
@@ -1144,9 +1184,17 @@ class EthicalKernel:
                         if _hs > 0:
                             from .modules.weight_authority import compose_mixture_weights as _cmw
 
+                            _hw_prior = np.asarray(
+                                self.bayesian.hypothesis_weights, dtype=np.float64
+                            )
                             self.bayesian.hypothesis_weights = _cmw(
                                 nudge_weights=self.bayesian.hypothesis_weights,
                                 feedback_posterior=_ha / _hs,
+                            )
+                            self._emit_kernel_weights_updated(
+                                _hw_prior,
+                                self.bayesian.hypothesis_weights,
+                                source="hierarchical_mixture_ranking_fallback",
                             )
                             mixture_posterior_alpha = (
                                 round(float(_ha[0]), 6),

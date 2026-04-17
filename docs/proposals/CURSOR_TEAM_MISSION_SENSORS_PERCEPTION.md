@@ -222,6 +222,14 @@ When perception P0 items are stable, **prioritize cross-cutting kernel/model ris
 
 **LLM incorporation / adjacent layers / integration** (embedding vs completion, MalAbs semantic, `process_natural` observability, generative candidates): assigned gap register [`PROPOSAL_LLM_INTEGRATION_TRACK.md`](PROPOSAL_LLM_INTEGRATION_TRACK.md) (Cursor shared line).
 
+**Cross-team integration sprint (ADR 0015, I1–I5):** Landed — see [`PROPOSAL_INTEGRATION_SPRINT_I1_I5.md`](PROPOSAL_INTEGRATION_SPRINT_I1_I5.md) (weights snapshot, event bus weights updates, perception uncertainty, identity policy, temporal ETA).
+
+### Next Cursor execution slice (queued after I1–I5 closure)
+
+1. **Issue #3 (P1)** — empirical pilot / labeled scenarios + baselines: [`PLAN_IMMEDIATE_TWO_WEEKS.md`](PLAN_IMMEDIATE_TWO_WEEKS.md) § P1; fixtures [`tests/fixtures/labeled_scenarios.json`](../../tests/fixtures/labeled_scenarios.json), runner [`scripts/run_empirical_pilot.py`](../../scripts/run_empirical_pilot.py).
+2. **Issue #4** — core packaging boundary: drift guard [`tests/test_core_packaging_boundary_docs.py`](../../tests/test_core_packaging_boundary_docs.py); [`CORE_DECISION_CHAIN.md`](CORE_DECISION_CHAIN.md).
+3. **Deferred (not next):** single-prefix env unification for all LLM touchpoints — [`WEAKNESSES_AND_BOTTLENECKS.md`](../WEAKNESSES_AND_BOTTLENECKS.md) §3; partial mitigation via `KERNEL_LLM_GLOBAL_DEFAULT_POLICY` ([`PROPOSAL_LLM_INTEGRATION_TRACK.md`](PROPOSAL_LLM_INTEGRATION_TRACK.md) G-04).
+
 ## 10) Ready-to-use task card examples
 
 Use this exact shape in issues/PR descriptions:
