@@ -13,7 +13,7 @@
 | CI | [`.github/workflows/ci.yml`](../../.github/workflows/ci.yml) **windows-smoke** — `tests/test_runtime_profiles.py` + `tests/test_env_policy.py` |
 | Shell | `python -m src.cli check-config` / `ethos config` (see [`OPERATOR_QUICK_REF.md`](OPERATOR_QUICK_REF.md)) |
 
-**Remaining (not this milestone):** single-prefix rename for all LLM-related `KERNEL_*` knobs — [WEAKNESSES_AND_BOTTLENECKS.md](../WEAKNESSES_AND_BOTTLENECKS.md) §3; partial mitigation `KERNEL_LLM_GLOBAL_DEFAULT_POLICY` ([PROPOSAL_LLM_INTEGRATION_TRACK.md](PROPOSAL_LLM_INTEGRATION_TRACK.md) G-04).
+**Remaining (not this milestone):** single-prefix rename for all LLM-related `KERNEL_*` knobs — [WEAKNESSES_AND_BOTTLENECKS.md](../WEAKNESSES_AND_BOTTLENECKS.md) §3. **G-04 (closed):** operator index + touchpoint precedence + optional `KERNEL_LLM_GLOBAL_DEFAULT_POLICY` — [PROPOSAL_LLM_INTEGRATION_TRACK.md](PROPOSAL_LLM_INTEGRATION_TRACK.md).
 
 ---
 
@@ -55,9 +55,9 @@
 | **Swarm stub (lab)** | `KERNEL_SWARM_STUB` | Enables optional use of `swarm_peer_stub` digest helpers in tooling — **no** P2P stack, **no** kernel change ([`SWARM_P2P_THREAT_MODEL.md`](SWARM_P2P_THREAT_MODEL.md)). |
 | **Extension seam (Phase 2)** | `KERNEL_EVENT_BUS` | When `1`, `EthicalKernel` builds `KernelEventBus` and publishes **`kernel.decision`** / **`kernel.episode_registered`** (sync, best-effort handlers). See [ADR 0006](../adr/0006-phase2-core-boundary-and-event-bus.md), [`PROPOSAL_PHASE2_CORE_EXTENSIONS_AND_EVENT_BUS.md`](PROPOSAL_PHASE2_CORE_EXTENSIONS_AND_EVENT_BUS.md), profile **`phase2_event_bus_lab`**. |
 
-### LLM touchpoint index (readability; single-prefix unification deferred)
+### LLM touchpoint index (readability; single-prefix rename still deferred)
 
-Renaming every LLM-related knob under one `KERNEL_LLM_*` prefix is **deferred** ([`WEAKNESSES_AND_BOTTLENECKS.md`](../WEAKNESSES_AND_BOTTLENECKS.md) §3; [`PROPOSAL_LLM_INTEGRATION_TRACK.md`](PROPOSAL_LLM_INTEGRATION_TRACK.md) G-04). Until then, map **concerns → §1 rows** above:
+**G-04 (closed)** documents the unified operator story: touchpoint keys, legacy keys, optional `KERNEL_LLM_GLOBAL_DEFAULT_POLICY`, and `GET /health` → `llm_degradation` ([`PROPOSAL_LLM_INTEGRATION_TRACK.md`](PROPOSAL_LLM_INTEGRATION_TRACK.md)). Renaming every historical knob under one `KERNEL_LLM_*` prefix remains **deferred** ([`WEAKNESSES_AND_BOTTLENECKS.md`](../WEAKNESSES_AND_BOTTLENECKS.md) §3). Until then, map **concerns → §1 rows** above:
 
 | Concern | Where to look |
 |--------|----------------|

@@ -149,7 +149,7 @@ Legacy Spanish filenames (`PROPUESTA_*.md`, `ESTRATEGIA_Y_RUTA.md`, `PAPER_AFECT
 | [PROPOSAL_PERCEPTION_OBSERVABILITY_CONTRACT.md](PROPOSAL_PERCEPTION_OBSERVABILITY_CONTRACT.md) | Stable chat JSON perception diagnostics contract for operators and dashboards |
 | [PROPOSAL_LLM_VERBAL_DEGRADATION_POLICY.md](PROPOSAL_LLM_VERBAL_DEGRADATION_POLICY.md) | ``KERNEL_VERBAL_LLM_BACKEND_POLICY`` for communicate/narrate failure + ``verbal_llm_observability`` |
 | [PROPOSAL_LLM_TOUCHPOINT_DEGRADATION_MATRIX.md](PROPOSAL_LLM_TOUCHPOINT_DEGRADATION_MATRIX.md) | ``KERNEL_LLM_TP_*`` precedence, verbal family key, monologue policies — operator + contributor reference |
-| [PROPOSAL_LLM_INTEGRATION_TRACK.md](PROPOSAL_LLM_INTEGRATION_TRACK.md) | Cursor track: LLM wiring, adjacent layers, integration gaps (G-01…G-10) |
+| [PROPOSAL_LLM_INTEGRATION_TRACK.md](PROPOSAL_LLM_INTEGRATION_TRACK.md) | Cursor track: LLM wiring, adjacent layers, integration gap register (G-01…G-11; all closed or deferred follow-ups) |
 | [POLES_WEAKNESS_PAD_AND_PROFILES.md](POLES_WEAKNESS_PAD_AND_PROFILES.md) | Poles, weakness, PAD, and profiles |
 | [POLE_WEIGHT_CALIBRATION_AND_EVIDENCE.md](POLE_WEIGHT_CALIBRATION_AND_EVIDENCE.md) | Pole weights: heuristics vs empirical calibration roadmap |
 | [TEMPORAL_PRIOR_HORIZONS.md](TEMPORAL_PRIOR_HORIZONS.md) | Temporal horizon prior (ADR 0005) |
