@@ -162,3 +162,39 @@ class AudioAIProcessor:
             is_hotword_detected=False,
             timestamp=time.time(),
         )
+
+import asyncio
+
+class NomadAudioConsumer:
+    """
+    Consumes raw PCM streams from the NomadBridge and injects them 
+    into the Ethos Kernel's AudioRingBuffer asynchronously.
+    """
+    def __init__(self, ring_buffer: AudioRingBuffer):
+        self.ring_buffer = ring_buffer
+        self._task: asyncio.Task | None = None
+
+    def start(self):
+        self._task = asyncio.create_task(self._consume_loop())
+
+    async def _consume_loop(self):
+        from .nomad_bridge import get_nomad_bridge
+        
+        bridge = get_nomad_bridge()
+        while True:
+            try:
+                pcm_bytes = await bridge.audio_queue.get()
+                
+                # We expect float32 PCM data from the smartphone 
+                # (matching the interface of simulated_pcm)
+                np_pcm = np.frombuffer(pcm_bytes, dtype=np.float32)
+                
+                # Offload append to not block the current loop
+                self.ring_buffer.append(np_pcm)
+                
+            except asyncio.CancelledError:
+                break
+            except Exception as e:
+                import logging
+                logging.getLogger(__name__).error("Error in NomadAudioConsumer: %s", e)
+

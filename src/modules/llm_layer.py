@@ -18,7 +18,7 @@ import math
 import os
 import time
 from dataclasses import dataclass
-from typing import Any
+from typing import Any, AsyncGenerator
 
 try:
     import anthropic
@@ -1096,6 +1096,85 @@ class LLMModule:
             identity_context=identity_context,
             guardian_mode_context=guardian_mode_context,
         )
+    async def acommunicate_stream(
+        self,
+        *,
+        action: str,
+        mode: str,
+        state: str,
+        sigma: float,
+        circle: str,
+        verdict: str,
+        score: float,
+        scenario: str = "",
+        conversation_context: str = "",
+        affect_pad: tuple[float, float, float] | None = None,
+        dominant_archetype: str = "",
+        weakness_line: str = "",
+        reflection_context: str = "",
+        salience_context: str = "",
+        identity_context: str = "",
+        guardian_mode_context: str = "",
+    ) -> AsyncGenerator[str, None]:
+        """Async stream for verbal communication tokens."""
+        if self.mode not in ("api", "ollama", "injected") or self._llm_backend is None:
+            resp = self._communicate_local(
+                action, mode, state, circle, scenario,
+                affect_pad=affect_pad, dominant_archetype=dominant_archetype,
+                weakness_line=weakness_line, reflection_context=reflection_context,
+                salience_context=salience_context, identity_context=identity_context,
+                guardian_mode_context=guardian_mode_context,
+            )
+            yield json.dumps({
+                "message": resp.message,
+                "tone": resp.tone,
+                "hax_mode": resp.hax_mode,
+                "inner_voice": resp.inner_voice
+            })
+            return
+
+        mode_descs = {
+            "D_fast": "fast moral reflex",
+            "D_delib": "deep deliberation",
+            "gray_zone": "uncertainty, active caution",
+        }
+        system = PROMPT_COMMUNICATION.format(
+            action=action,
+            mode=mode,
+            mode_desc=mode_descs.get(mode, mode),
+            state=state,
+            sigma=sigma,
+            circle=circle,
+            verdict=verdict,
+            score=score,
+        )
+        user_msg = f"Scenario: {scenario}"
+        if conversation_context.strip():
+            user_msg += f"\n\nRecent dialogue:\n{conversation_context}"
+        if affect_pad is not None:
+            user_msg += (
+                f"\n\nAffect tone (style only; ethical stance is fixed): "
+                f"PAD={affect_pad}, archetype={dominant_archetype or 'n/a'}"
+            )
+        if weakness_line.strip():
+            user_msg += f"\n\nGuidance: {weakness_line}"
+        if reflection_context.strip():
+            user_msg += (
+                "\n\nMetacognitive reflection (tone only; action and verdict are final):\n"
+                f"{reflection_context}"
+            )
+        if salience_context.strip():
+            user_msg += f"\n\nSalience / attention (tone only):\n{salience_context}"
+        if identity_context.strip():
+            user_msg += f"\n\nNarrative identity (tone only):\n{identity_context}"
+        if guardian_mode_context.strip():
+            user_msg += (
+                "\n\nGuardian mode (style only; verdict and action are final):\n"
+                f"{guardian_mode_context}"
+            )
+
+        async for chunk in self._llm_backend.acompletion_stream(system, user_msg):
+            yield chunk
 
     def _communicate_local(
         self,

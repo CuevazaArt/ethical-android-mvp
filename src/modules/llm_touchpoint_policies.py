@@ -40,13 +40,16 @@ TOUCHPOINT_PERCEPTION = "perception"
 TOUCHPOINT_COMMUNICATE = "communicate"
 TOUCHPOINT_NARRATE = "narrate"
 TOUCHPOINT_MONOLOGUE = "monologue"
+TOUCHPOINT_EMBEDDING = "embedding"
 
 ENV_VERBAL_FAMILY_POLICY = "KERNEL_LLM_VERBAL_FAMILY_POLICY"
 ENV_MONOLOGUE_BACKEND_POLICY = "KERNEL_LLM_MONOLOGUE_BACKEND_POLICY"
 ENV_LLM_GLOBAL_DEFAULT_POLICY = "KERNEL_LLM_GLOBAL_DEFAULT_POLICY"
 
-MONOLOGUE_POLICIES = frozenset({"passthrough", "annotate_degraded"})
 DEFAULT_MONOLOGUE_BACKEND_POLICY = "passthrough"
+
+EMBEDDING_POLICIES = frozenset({"passthrough", "hash_fallback"})
+DEFAULT_EMBEDDING_BACKEND_POLICY = "hash_fallback"
 
 
 def raw_global_default_policy() -> str | None:
@@ -70,6 +73,8 @@ def raw_touchpoint_policy(slug: str) -> str | None:
     return v if v else None
 
 
+MONOLOGUE_POLICIES = frozenset({"passthrough", "annotate_degraded"})
+
 def resolve_monologue_llm_backend_policy() -> str:
     """
     Policy for :meth:`LLMModule.optional_monologue_embellishment` when generative mode is on.
@@ -88,3 +93,19 @@ def resolve_monologue_llm_backend_policy() -> str:
     if g and g in MONOLOGUE_POLICIES:
         return g
     return DEFAULT_MONOLOGUE_BACKEND_POLICY
+
+
+def resolve_embedding_backend_policy() -> str:
+    """
+    Policy for :func:`semantic_embedding_client.http_fetch_ollama_embedding` (MalAbs L1).
+
+    - ``hash_fallback`` (default): if Ollama is unreachable, return a deterministic hash bypass.
+    - ``passthrough``: return None on failure; MalAbs layer will then skip embedding sim.
+    """
+    tp = raw_touchpoint_policy(TOUCHPOINT_EMBEDDING)
+    if tp and tp in EMBEDDING_POLICIES:
+        return tp
+    g = raw_global_default_policy()
+    if g and g in EMBEDDING_POLICIES:
+        return g
+    return DEFAULT_EMBEDDING_BACKEND_POLICY

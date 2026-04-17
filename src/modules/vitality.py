@@ -62,6 +62,9 @@ class VitalityAssessment:
     temperature_threshold: float
     thermal_critical: bool
 
+    # Fase S: Impactos
+    is_impacted: bool
+
     def to_public_dict(self) -> dict:
         return {
             "battery_level": self.battery_level,
@@ -70,6 +73,7 @@ class VitalityAssessment:
             "battery_unknown": self.battery_level is None,
             "core_temperature": self.core_temperature,
             "thermal_critical": self.thermal_critical,
+            "is_impacted": self.is_impacted,
         }
 
 
@@ -84,6 +88,9 @@ def assess_vitality(snapshot: SensorSnapshot | None) -> VitalityAssessment:
 
     b = snapshot.battery_level
     is_bat_critical = False if b is None else (b < t_bat)
+    
+    jerk = snapshot.accelerometer_jerk
+    is_impacted = False if jerk is None else (jerk > 0.8)
 
     temp = snapshot.core_temperature
     is_temp_critical = False if temp is None else (temp >= t_temp)
@@ -91,10 +98,11 @@ def assess_vitality(snapshot: SensorSnapshot | None) -> VitalityAssessment:
     return VitalityAssessment(
         battery_level=b,
         critical_threshold=t_bat,
-        is_critical=is_bat_critical,
+        is_critical=is_bat_critical or is_impacted,
         core_temperature=temp,
         temperature_threshold=t_temp,
         thermal_critical=is_temp_critical,
+        is_impacted=is_impacted,
     )
 
 
@@ -111,9 +119,9 @@ def vitality_communication_hint(assessment: VitalityAssessment, trust_level: flo
     
     if assessment.is_critical:
         if is_trusted:
-            hints.append("Operational battery is critically low (under threshold). Need charging area.")
+            hints.append("Operational battery or physical integrity is critically compromised. Need charging area or safe space.")
         else:
-            hints.append("Executing power management protocols; pending non-essential tasks.")
+            hints.append("Executing power management or emergency physical protocols; pending non-essential tasks.")
 
     if assessment.thermal_critical:
         if is_trusted:

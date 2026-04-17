@@ -143,7 +143,7 @@ class RealmGovernanceState:
 class MultiRealmGovernor:
     """Orchestrates governance and threshold updates across multiple realms."""
 
-    def __init__(self, artifacts_path: Path | None = None):
+    def __init__(self, artifacts_path: Path | None = None, event_bus: Any | None = None):
         """Initialize multi-realm governor."""
         self.artifacts_path = artifacts_path or Path(
             os.environ.get("KERNEL_MULTI_REALM_ARTIFACTS_PATH", "artifacts/realms/")
@@ -156,6 +156,7 @@ class MultiRealmGovernor:
         self.max_voting_rounds = int(
             os.environ.get("KERNEL_REALM_MAX_VOTING_ROUNDS", "3")
         )
+        self.event_bus = event_bus
 
     def create_realm(
         self,
@@ -311,6 +312,12 @@ class MultiRealmGovernor:
                     "new_config": realm.current_config.to_dict(),
                 },
             )
+            if self.event_bus is not None:
+                from .kernel_event_bus import EVENT_GOVERNANCE_THRESHOLD_UPDATED
+                self.event_bus.publish(
+                    EVENT_GOVERNANCE_THRESHOLD_UPDATED, 
+                    realm.current_config.to_dict()
+                )
         else:
             proposal.status = "rejected"
             self._audit_log(

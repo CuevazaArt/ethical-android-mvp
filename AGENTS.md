@@ -10,6 +10,7 @@ This file is the **durable entry point** for humans and AI assistants working in
 - **LLM recovery env precedence** (per-touchpoint `KERNEL_LLM_TP_*`, verbal family, legacy keys): [`docs/proposals/PROPOSAL_LLM_TOUCHPOINT_DEGRADATION_MATRIX.md`](docs/proposals/PROPOSAL_LLM_TOUCHPOINT_DEGRADATION_MATRIX.md).
 - **LLM integration track** (gaps MalAbs ↔ embeddings ↔ kernel/chat): [`docs/proposals/PROPOSAL_LLM_INTEGRATION_TRACK.md`](docs/proposals/PROPOSAL_LLM_INTEGRATION_TRACK.md).
 - **LLM vertical roadmap** (phased operator recipes, async-timeout metric, chain tests): [`docs/proposals/PROPOSAL_LLM_VERTICAL_ROADMAP.md`](docs/proposals/PROPOSAL_LLM_VERTICAL_ROADMAP.md); optional fast suite: `python scripts/eval/run_llm_vertical_tests.py`. **Burst cancel (mock concurrency smoke):** [`scripts/eval/run_burst_cancel_smoke.py`](scripts/eval/run_burst_cancel_smoke.py) (see [`docs/adr/0002-async-orchestration-future.md`](docs/adr/0002-async-orchestration-future.md) § Cooperative HTTP cancellation).
+- **Claude Team — Hemisphere Integration Synthesis (Phase 3+ + RLHF + Governance):** [`docs/proposals/CLAUDE_HEMISPHERE_INTEGRATION_SYNTHESIS.md`](docs/proposals/CLAUDE_HEMISPHERE_INTEGRATION_SYNTHESIS.md) — immutable governance snapshots, transactional integrity across async cancellation, and roadmap alignment (Issues 1–9).
 - **Distributed justice (V11 / mock DAO / staged execution):** [`docs/proposals/PROPOSAL_DISTRIBUTED_JUSTICE_V11.md`](docs/proposals/PROPOSAL_DISTRIBUTED_JUSTICE_V11.md), [`docs/proposals/PROPOSAL_DAO_BLOCKCHAIN_DISTRIBUTED_JUSTICE_STAGED_EXECUTION.md`](docs/proposals/PROPOSAL_DAO_BLOCKCHAIN_DISTRIBUTED_JUSTICE_STAGED_EXECUTION.md); **contributions:** [`docs/proposals/PROPOSAL_DISTRIBUTED_JUSTICE_CONTRIBUTIONS.md`](docs/proposals/PROPOSAL_DISTRIBUTED_JUSTICE_CONTRIBUTIONS.md); **backlog IDs:** [`docs/proposals/PROPOSAL_DISTRIBUTED_JUSTICE_BACKLOG_SYSTEM.md`](docs/proposals/PROPOSAL_DISTRIBUTED_JUSTICE_BACKLOG_SYSTEM.md); **contract matrix:** [`docs/proposals/PROPOSAL_DISTRIBUTED_JUSTICE_CONTRACT_MATRIX.md`](docs/proposals/PROPOSAL_DISTRIBUTED_JUSTICE_CONTRACT_MATRIX.md); **LAN replay / hints / witnesses (non-quorum):** [`docs/proposals/PROPOSAL_LAN_GOVERNANCE_REPLAY_SIDECAR.md`](docs/proposals/PROPOSAL_LAN_GOVERNANCE_REPLAY_SIDECAR.md), [`docs/proposals/PROPOSAL_LAN_GOVERNANCE_CROSS_SESSION_HINT.md`](docs/proposals/PROPOSAL_LAN_GOVERNANCE_CROSS_SESSION_HINT.md), [`docs/proposals/PROPOSAL_LAN_GOVERNANCE_FRONTIER_WITNESS.md`](docs/proposals/PROPOSAL_LAN_GOVERNANCE_FRONTIER_WITNESS.md).
 - **HTTP JSON (chat server):** [`docs/proposals/PROPOSAL_CHAT_SERVER_HTTP_API_SURFACE.md`](docs/proposals/PROPOSAL_CHAT_SERVER_HTTP_API_SURFACE.md) (GET endpoints; primary UX is WebSocket `/ws/chat`).
 
@@ -60,14 +61,13 @@ Any new agent or team joining the project must complete the following onboarding
 
 To maintain repository order and production stability across multiple teams, we strictly use a structured **Pull Request (PR)** and synchronization lifecycle:
 
-1. **Local Work:** Work on temporary feature branches (e.g., `cursor-team/nav-inference`).
-   - *Antigravity Critique (Style Requirement):* All commit messages MUST follow semantic formatting (e.g., `feat(vision): ...`, `fix(core): ...`) to ensure the project's history is automatically parsable by AI without human intervention.
-2. **Team Consolidation (Internal PR):** Submit a formal PR to your team's integration hub (`master-<team>`). 
-   - *Requirement:* All unit tests must pass, and the automated Continuous Audit (e.g. `verify_collaboration_invariants.py` if present) MUST execute cleanly.
-   - *Cursor Critique Note (Traceability):* If a team pushes directly to their hub to move fast, they MUST open a retrospective PR or issue within 24 hours linking the commits to document rationale. The `CHANGELOG.md` is brittle if forgotten.
-3. **Cross-Team Peer Synchronization (Integration Pulse):** `master-*` branches MUST pull latest updates from each other **immediately after closing a logical block**. 
-   - *Triggers:* Minimum cross-team sync triggers are required BEFORE modifying God Objects (`src/kernel.py`) or the top header of `CHANGELOG.md`.
-4. **Integration Funnel:** For production promotion, the flow is **linear**:
+1. **BRANCH-MINIMIZATION-01 (No Minor Branches):** Do NOT spawn excessive minor feature branches unless implementing massive architectural breaking changes (e.g., P0 Refactors). For nominal tasks, teams MUST commit their logical blocks directly to their assigned integration hub (`master-<team>`) to simplify the PR flow.
+2. **BRANCH-LOCALIZATION-02 (Strict Hub Retention):** AI Agents (Especially **Claude**) MUST locate, checkout, and exclusively maintain their work in their pre-assigned branch (e.g., `git checkout master-claude`). Creating *new* ad-hoc branches is strictly forbidden. If an agent cannot locate their branch or suffers a git failure, they MUST halt, explain the failure, and request assistance from L0 or L1 instead of arbitrarily cloning a new branch to bypass the issue.
+3. **Team Consolidation (Internal PR):** When ready, submit a formal PR from your team's integration hub (`master-<team>`) towards `master-antigravity`.
+   - *Requirement:* All unit tests must pass, and the automated Continuous Audit MUST execute cleanly.
+   - *Traceability:* Pushes MUST be annotated in `CHANGELOG.md`.
+4. **Cross-Team Peer Synchronization (Integration Pulse):** `master-*` branches MUST pull latest updates from `main` immediately to inherit L0's propagated directives without uncoordinating.
+5. **Integration Funnel:** For production promotion, the flow is **linear**:
    - `master-<team_secondary>` → `master-antigravity` → `main`.
    - The `master-antigravity` branch serves as the **Standard Integration Hub** for the entire project.
 

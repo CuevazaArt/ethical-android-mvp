@@ -38,7 +38,7 @@ import os
 import threading
 from collections.abc import Callable
 from concurrent.futures import ThreadPoolExecutor
-from typing import TYPE_CHECKING, Any, TypeVar
+from typing import TYPE_CHECKING, Any, AsyncGenerator, TypeVar
 
 from starlette.concurrency import run_in_threadpool
 
@@ -175,6 +175,30 @@ class RealTimeBridge:
             return await run_in_threadpool(bound)
         loop = asyncio.get_running_loop()
         return await loop.run_in_executor(ex, bound)
+
+    async def process_chat_stream(
+        self,
+        user_input: str,
+        agent_id: str = "user",
+        place: str = "chat",
+        include_narrative: bool = False,
+        sensor_snapshot: SensorSnapshot | None = None,
+        escalate_to_dao: bool = False,
+        cancel_event: threading.Event | None = None,
+        chat_turn_id: int | None = None,
+    ) -> AsyncGenerator[dict[str, Any], None]:
+        """Real-time stream via kernel.process_chat_turn_stream."""
+        async for event in self.kernel.process_chat_turn_stream(
+            user_input,
+            agent_id=agent_id,
+            place=place,
+            include_narrative=include_narrative,
+            sensor_snapshot=sensor_snapshot,
+            escalate_to_dao=escalate_to_dao,
+            chat_turn_id=chat_turn_id,
+            cancel_event=cancel_event,
+        ):
+            yield event
 
     async def run_execute_sleep(self) -> str:
         """

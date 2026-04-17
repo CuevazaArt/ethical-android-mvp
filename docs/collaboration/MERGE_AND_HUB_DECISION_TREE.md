@@ -64,7 +64,6 @@ Fast pushes happen. **Maintainer-expected hygiene** (not enforced in CI):
 
 Before **`git push`** to a shared `master-*` integration branch (especially after resolving merges or editing `CHANGELOG.md`):
 
-- **Merge markers:** ensure no unresolved `<<<<<<<` / `=======` / `>>>>>>>` in tracked files.
 - **Collaboration invariants (optional):** `python scripts/eval/verify_collaboration_invariants.py` — merge-marker scan + `CHANGELOG` namespace heuristic (see [`.cursor/rules/l1-supremacy-and-audit.mdc`](../../.cursor/rules/l1-supremacy-and-audit.mdc) for L1 gate expectations).
 
 This does not replace CI or `pytest`; it is a fast local guard for **documentation and merge hygiene**.
