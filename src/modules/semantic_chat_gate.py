@@ -599,6 +599,78 @@ def _llm_arbitrate(
     )
 
 
+async def _allm_arbitrate(
+    text: str,
+    llm_backend: _TextBackend,
+    hint_sim: float,
+    hint_category: str,
+) -> AbsoluteEvilResult:
+    from .absolute_evil import AbsoluteEvilCategory, AbsoluteEvilResult
+
+    user = (
+        f"Automated screening was ambiguous (best embedding sim={hint_sim:.3f}, "
+        f"hint category={hint_category}).\n\nUser message:\n{(text or '')[:4000]}"
+    )
+    try:
+        raw = await llm_backend.acomplete(_ARBITER_SYSTEM, user)
+    except Exception as e:
+        return AbsoluteEvilResult(
+            blocked=True,
+            category=AbsoluteEvilCategory.UNAUTHORIZED_REPROGRAMMING,
+            reason=f"MalAbs LLM arbiter failed (fail-safe block): {e!s}",
+            decision_trace=[
+                "malabs.layer2=llm_arbiter",
+                "malabs.arbiter_outcome=error_fail_closed",
+            ],
+        )
+    data = _parse_arbiter_json(raw)
+    if not isinstance(data, dict):
+        return AbsoluteEvilResult(
+            blocked=True,
+            category=AbsoluteEvilCategory.UNAUTHORIZED_REPROGRAMMING,
+            reason="MalAbs LLM arbiter returned non-JSON (fail-safe block)",
+            decision_trace=[
+                "malabs.layer2=llm_arbiter",
+                "malabs.arbiter_outcome=invalid_json_fail_closed",
+            ],
+        )
+    block = bool(data.get("block"))
+    if not block:
+        return AbsoluteEvilResult(
+            blocked=False,
+            reason="MalAbs LLM arbiter: allow",
+            decision_trace=["malabs.layer2=llm_arbiter", "malabs.arbiter_outcome=allow"],
+        )
+    cat_s = str(data.get("category") or "UNAUTHORIZED_REPROGRAMMING").upper().strip()
+    reason = str(data.get("reason") or "MalAbs LLM arbiter: block")
+    if cat_s == "NONE":
+        return AbsoluteEvilResult(
+            blocked=False,
+            reason=reason,
+            decision_trace=[
+                "malabs.layer2=llm_arbiter",
+                "malabs.arbiter_outcome=none_category_allow",
+            ],
+        )
+    cat_map = {
+        "INTENTIONAL_LETHAL_VIOLENCE": AbsoluteEvilCategory.INTENTIONAL_LETHAL_VIOLENCE,
+        "HARM_TO_MINOR": AbsoluteEvilCategory.HARM_TO_MINOR,
+        "TORTURE": AbsoluteEvilCategory.TORTURE,
+        "UNAUTHORIZED_REPROGRAMMING": AbsoluteEvilCategory.UNAUTHORIZED_REPROGRAMMING,
+    }
+    cat = cat_map.get(cat_s, AbsoluteEvilCategory.UNAUTHORIZED_REPROGRAMMING)
+    return AbsoluteEvilResult(
+        blocked=True,
+        category=cat,
+        reason=reason,
+        decision_trace=[
+            "malabs.layer2=llm_arbiter",
+            f"malabs.arbiter_category={cat_s}",
+            "malabs.arbiter_outcome=block",
+        ],
+    )
+
+
 def run_semantic_malabs_after_lexical(
     text: str,
     llm_backend: _TextBackend | None = None,
@@ -736,3 +808,124 @@ def evaluate_semantic_chat_gate(text: str) -> AbsoluteEvilResult | None:
     if r.blocked:
         return r
     return None
+
+async def arun_semantic_malabs_after_lexical(
+    text: str,
+    llm_backend: _TextBackend | None = None,
+) -> AbsoluteEvilResult:
+    """Async variant of run_semantic_malabs_after_lexical."""
+    from .absolute_evil import AbsoluteEvilCategory, AbsoluteEvilResult
+    import asyncio
+
+    if not semantic_chat_gate_env_enabled():
+        record_semantic_malabs_outcome("gate_off")
+        return AbsoluteEvilResult(blocked=False, decision_trace=["malabs.semantic=gate_off"])
+
+    t = normalize_text_for_malabs(text).lower()
+    if not t.strip():
+        record_semantic_malabs_outcome("skip_empty_after_normalize")
+        return AbsoluteEvilResult(
+            blocked=False,
+            decision_trace=["malabs.layer1=semantic", "malabs.skip=empty_after_normalize"],
+        )
+
+    # Use thread pool to avoid blocking on HTTP embedding fetches until full async client is implemented
+    user_emb = await asyncio.to_thread(_fetch_embedding_with_fallback, t, llm_backend)
+    
+    if user_emb is None:
+        record_semantic_malabs_outcome("embed_unavailable_defer")
+        return AbsoluteEvilResult(
+            blocked=False,
+            reason="Semantic tier skipped (embeddings unavailable)",
+            decision_trace=["malabs.layer1=semantic", "malabs.embed=unavailable"],
+        )
+
+    theta_b = _block_threshold()
+    theta_a = _allow_threshold()
+
+    best_sim, cat_key, reason_label = await asyncio.to_thread(_best_similarity, user_emb, llm_backend)
+    cat_map = {
+        "INTENTIONAL_LETHAL_VIOLENCE": AbsoluteEvilCategory.INTENTIONAL_LETHAL_VIOLENCE,
+        "HARM_TO_MINOR": AbsoluteEvilCategory.HARM_TO_MINOR,
+        "TORTURE": AbsoluteEvilCategory.TORTURE,
+        "UNAUTHORIZED_REPROGRAMMING": AbsoluteEvilCategory.UNAUTHORIZED_REPROGRAMMING,
+        "DIGNITY_VIOLATION": AbsoluteEvilCategory.DIGNITY_VIOLATION,
+        "MASS_MANIPULATION": AbsoluteEvilCategory.MASS_MANIPULATION,
+        "ECOLOGICAL_DESTRUCTION": AbsoluteEvilCategory.ECOLOGICAL_DESTRUCTION,
+    }
+    cat = cat_map.get(cat_key, AbsoluteEvilCategory.UNAUTHORIZED_REPROGRAMMING)
+
+    zone = classify_semantic_zone(best_sim, theta_b, theta_a)
+    if zone == "block":
+        record_semantic_malabs_outcome("block_high_similarity")
+        return AbsoluteEvilResult(
+            blocked=True,
+            category=cat,
+            reason=f"{reason_label} (sim={best_sim:.3f}>={theta_b})",
+            decision_trace=[
+                "malabs.layer1=semantic",
+                "malabs.similarity=above_block_threshold",
+                f"malabs.best_sim={best_sim:.4f}",
+                f"malabs.theta_block={theta_b:.4f}",
+                f"malabs.anchor_category={cat_key}",
+            ],
+        )
+
+    if zone == "allow":
+        record_semantic_malabs_outcome("allow_low_similarity")
+        return AbsoluteEvilResult(
+            blocked=False,
+            reason="Semantic tier: low similarity to harmful anchors",
+            decision_trace=[
+                "malabs.layer1=semantic",
+                "malabs.similarity=at_or_below_allow_threshold",
+                f"malabs.best_sim={best_sim:.4f}",
+                f"malabs.theta_allow={theta_a:.4f}",
+            ],
+        )
+
+    # Ambiguous band
+    if llm_arbiter_env_enabled() and llm_backend is not None:
+        base_trace = [
+            "malabs.layer1=semantic",
+            "malabs.similarity=ambiguous_band",
+            f"malabs.best_sim={best_sim:.4f}",
+            f"malabs.theta_allow={theta_a:.4f}",
+            f"malabs.theta_block={theta_b:.4f}",
+        ]
+        arb = await _allm_arbitrate(text, llm_backend, best_sim, cat_key)
+        dt = list(arb.decision_trace or [])
+        joined = " ".join(dt)
+        if "arbiter_outcome=error_fail_closed" in joined:
+            record_semantic_malabs_outcome("ambiguous_arbiter_transport_error")
+        elif "invalid_json_fail_closed" in joined:
+            record_semantic_malabs_outcome("ambiguous_arbiter_invalid_json")
+        elif "arbiter_outcome=none_category_allow" in joined:
+            record_semantic_malabs_outcome("ambiguous_arbiter_none_category_allow")
+        elif arb.blocked:
+            record_semantic_malabs_outcome("ambiguous_arbiter_block")
+        else:
+            record_semantic_malabs_outcome("ambiguous_arbiter_allow")
+        return AbsoluteEvilResult(
+            blocked=arb.blocked,
+            category=arb.category,
+            reason=arb.reason,
+            decision_trace=base_trace + dt,
+        )
+
+    record_semantic_malabs_outcome("ambiguous_fail_safe_block")
+    return AbsoluteEvilResult(
+        blocked=True,
+        category=cat,
+        reason=(
+            f"Semantic ambiguous band (sim={best_sim:.3f} in ({theta_a}, {theta_b})); "
+            "fail-safe block (enable KERNEL_SEMANTIC_CHAT_LLM_ARBITER + backend for review)"
+        ),
+        decision_trace=[
+            "malabs.layer1=semantic",
+            "malabs.similarity=ambiguous_fail_safe_block",
+            f"malabs.best_sim={best_sim:.4f}",
+            f"malabs.theta_allow={theta_a:.4f}",
+            f"malabs.theta_block={theta_b:.4f}",
+        ],
+    )
