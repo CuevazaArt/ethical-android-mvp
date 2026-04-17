@@ -6,6 +6,11 @@ All notable changes to this project are summarized here. For narrative context a
 
 [URGENTE - BROADCAST A TODOS LOS L2 MASTERS]: Todos los equipos (Claude, Cursor, Copilot) deben hacer un GIT PULL urgente desde MAIN hacia sus MASTERs. Las ramas desactualizadas enfrentarán asincronías severas en el pathing de documentación.
 
+## Cursor — Integration merge (April 2026)
+
+### Cursor Team Updates
+- **`merge(integration):`** Merged `origin/master-antigravity` into `master-Cursor` (conflict resolution favored L1 where needed). Restored **governance / MalAbs proposal** files under `docs/proposals/` that the L1 merge had removed: `CORE_DECISION_CHAIN.md`, `GOVERNANCE_MOCKDAO_AND_L0.md`, `MOCK_DAO_SIMULATION_LIMITS.md`, `PROPOSAL_MALABS_SEMANTIC_THRESHOLD_EVIDENCE.md` (tests reference these paths). **`MER_V2_POSTULATE.md`** and MER V2 links in `AGENTS.md` / `CONTRIBUTING.md` retained.
+
 ## Documentation — Issue #1 (Bayesian naming honesty) — April 2026
 
 
