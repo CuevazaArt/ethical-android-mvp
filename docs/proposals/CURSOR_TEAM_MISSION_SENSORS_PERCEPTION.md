@@ -226,7 +226,7 @@ When perception P0 items are stable, **prioritize cross-cutting kernel/model ris
 
 ### Next Cursor execution slice (queued after I1–I5 closure)
 
-1. **Issue #3 (P1)** — empirical pilot / labeled scenarios + baselines: [`PLAN_IMMEDIATE_TWO_WEEKS.md`](PLAN_IMMEDIATE_TWO_WEEKS.md) § P1; fixtures [`tests/fixtures/labeled_scenarios.json`](../../tests/fixtures/labeled_scenarios.json), runner [`scripts/run_empirical_pilot.py`](../../scripts/run_empirical_pilot.py).
+1. **Issue #3 (P1)** — **runner + docs aligned (April 2026):** [`scripts/run_empirical_pilot.py`](../../scripts/run_empirical_pilot.py) defaults to [`tests/fixtures/labeled_scenarios.json`](../../tests/fixtures/labeled_scenarios.json); [`EMPIRICAL_METHODOLOGY.md`](EMPIRICAL_METHODOLOGY.md) implementation status; slim [`empirical_pilot/scenarios.json`](../../tests/fixtures/empirical_pilot/scenarios.json) remains for identical outcomes. **Research backlog:** ablation / external panels — [`MODULE_IMPACT_AND_EMPIRICAL_GAP.md`](MODULE_IMPACT_AND_EMPIRICAL_GAP.md).
 2. **Issue #4** — core packaging boundary: drift guard [`tests/test_core_packaging_boundary_docs.py`](../../tests/test_core_packaging_boundary_docs.py); [`CORE_DECISION_CHAIN.md`](CORE_DECISION_CHAIN.md).
 3. **Deferred (not next):** single-prefix env unification for all LLM touchpoints — [`WEAKNESSES_AND_BOTTLENECKS.md`](../WEAKNESSES_AND_BOTTLENECKS.md) §3; partial mitigation via `KERNEL_LLM_GLOBAL_DEFAULT_POLICY` ([`PROPOSAL_LLM_INTEGRATION_TRACK.md`](PROPOSAL_LLM_INTEGRATION_TRACK.md) G-04).
 

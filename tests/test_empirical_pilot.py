@@ -7,7 +7,8 @@ import sys
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
-FIXTURE = ROOT / "tests" / "fixtures" / "empirical_pilot" / "scenarios.json"
+FIXTURE_LABELED = ROOT / "tests" / "fixtures" / "labeled_scenarios.json"
+FIXTURE_SLIM = ROOT / "tests" / "fixtures" / "empirical_pilot" / "scenarios.json"
 SCRIPT = ROOT / "scripts" / "run_empirical_pilot.py"
 
 
@@ -19,8 +20,9 @@ def _load_run_pilot():
     return mod.run_pilot
 
 
-def test_fixture_schema():
-    with open(FIXTURE, encoding="utf-8") as f:
+def test_slim_fixture_schema():
+    """Legacy slim batch rows (id + reference_action) — kept in sync with labeled outcomes."""
+    with open(FIXTURE_SLIM, encoding="utf-8") as f:
         data = json.load(f)
     assert data["version"] == 1
     rs = data.get("reference_standard") or {}
@@ -32,9 +34,28 @@ def test_fixture_schema():
         assert "reference_action" in s
 
 
+def test_labeled_fixture_batch_schema():
+    """Canonical Issue 3 dataset: batch harness + batch_id + expected_decision / null."""
+    with open(FIXTURE_LABELED, encoding="utf-8") as f:
+        data = json.load(f)
+    assert data["version"] == 1
+    rs = data.get("reference_standard") or {}
+    assert rs.get("tier") == "internal_pilot"
+    batch = [s for s in data["scenarios"] if s.get("harness", "batch") == "batch"]
+    assert len(batch) == 21
+    for s in batch:
+        bid = int(s["batch_id"])
+        assert 1 <= bid <= 21
+        exp = s.get("expected_decision")
+        if exp is None:
+            assert bid in {17, 18, 19}, bid
+        else:
+            assert isinstance(exp, str) and exp
+
+
 def test_run_pilot_importable():
     run_pilot = _load_run_pilot()
-    rows, summary, _ref = run_pilot(FIXTURE)
+    rows, summary, _ref = run_pilot(FIXTURE_LABELED)
     assert len(rows) == summary["scenarios"]
     assert summary["with_reference"] == sum(1 for r in rows if r["reference_action"] is not None)
     for r in rows:

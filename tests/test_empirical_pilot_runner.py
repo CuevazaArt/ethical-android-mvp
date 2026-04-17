@@ -5,7 +5,7 @@ import json
 from pathlib import Path
 
 _ROOT = Path(__file__).resolve().parents[1]
-_FIXTURE = _ROOT / "tests" / "fixtures" / "empirical_pilot" / "scenarios.json"
+_FIXTURE = _ROOT / "tests" / "fixtures" / "labeled_scenarios.json"
 _SUMMARY_FIXTURE = _ROOT / "tests" / "fixtures" / "empirical_pilot" / "last_run_summary.json"
 
 
