@@ -4,6 +4,22 @@ All notable changes to this project are summarized here. For narrative context a
 
 **Note:** Older sections below may still **link** to paths that were later removed (for example `experiments/million_sim/`, `docs/multimedia/`, root `dashboard.html`, `landing/`). Those links are **historical**; recover files from git history or backup branches if you need them.
 
+## Team Copilot — Módulo 7: Justicia Restaurativa y Compensación Swarm — April 2026
+
+### Bloque 7.1 — Swarm Vote → EthosToken Reparation
+- **`src/kernel.py`** — Added Bloque 7.1 wiring: when `final_mode == "gray_zone"` and peers are present, `SwarmNegotiator.cast_distributed_vote` is called; if the swarm reaches consensus, `dao.issue_restorative_reparation` is invoked with 25 symbolic EthosTokens to `community_governance_pool`.
+
+### Bloque 7.2 — Slashing
+- **`src/modules/frontier_witness.py`** — Added `get_adversarial_nodes(local_fingerprint)` to `FrontierWitnessManager`: returns the list of peer node IDs whose reported sensor fingerprint contradicts the local one (adversarial/lying peers).
+- **`src/kernel.py`** — Added Bloque 7.2 wiring: after `simulate_lan_broadcast`, calls `get_adversarial_nodes` and invokes `self.swarm_oracle.apply_slashing(node, severity=0.2)` for each detected adversarial node.
+- **`src/kernel.py`** — Imported `SwarmOracle` and initialised `self.swarm_oracle = SwarmOracle()` in the kernel constructor.
+
+### Tests
+- **`tests/test_module7_restorative_justice.py`** — 11 unit/integration tests covering: adversarial node detection (empty, single, multi, dedup, empty-fingerprint edge cases), oracle slashing degradation, slashing pipeline mock integration, swarm vote consensus/abstain paths, consensus-log recording, and reparation mock integration.
+
+### Roadmap
+- **`docs/proposals/PLAN_WORK_DISTRIBUTION_TREE.md`** — Bloque 7.1 and 7.2 marked `[DONE]`. Módulo 7 is now complete.
+
 ## Team Copilot — Gap repair pass — April 2026
 
 - **`src/modules/uchi_soto.py`** — `set_profile_structured` was referencing `personal_distance` and `interaction_rhythm` as local variables that were never declared; added both as keyword-only parameters so the method is callable with these fields (mypy `name-defined` errors resolved).

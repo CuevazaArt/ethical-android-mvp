@@ -189,6 +189,7 @@ from .modules.somatic_markers import SomaticMarkerStore, apply_somatic_nudges
 from .modules.strategy_engine import ExecutiveStrategist
 from .modules.subjective_time import SubjectiveClock
 from .modules.swarm_negotiator import SwarmNegotiator
+from .modules.swarm_oracle import SwarmOracle
 from .modules.sympathetic import InternalState, SympatheticModule
 from .modules.temporal_planning import TemporalContext, build_temporal_context
 from .modules.uchi_soto import SocialEvaluation, TrustCircle, UchiSotoModule
@@ -564,6 +565,7 @@ class EthicalKernel:
         self.frontier_witness = FrontierWitnessManager(
             node_id=self.identity.snapshot.node_id
         )
+        self.swarm_oracle = SwarmOracle()
         self.privacy_shield = PrivacyShield(
             node_id=self.identity.snapshot.node_id
         )
@@ -1262,6 +1264,15 @@ class EthicalKernel:
                         r.signal_fingerprint = l_fingerprint
                         self.frontier_witness.ingest_report(r)
 
+                    # ═══ BLOQUE 7.2: SLASHING — Penalise nodes with contradicting fingerprints ═══
+                    adversarial_nodes = self.frontier_witness.get_adversarial_nodes(l_fingerprint)
+                    for bad_node in adversarial_nodes:
+                        self.swarm_oracle.apply_slashing(bad_node, severity=0.2)
+                        _log.warning(
+                            "Bloque 7.2 Slashing: node %s provided contradicting sensor fingerprint.",
+                            bad_node,
+                        )
+
                     # Apply nudge to signals if peers confirm the distress via hash match
                     nudge = self.frontier_witness.get_consensus_nudge("thermal", local_fingerprint=l_fingerprint)
                     if nudge > 1.0:
@@ -1442,6 +1453,36 @@ class EthicalKernel:
             final_mode = "D_delib"
 
         final_action = bayes_result.chosen_action.name
+
+        # ═══ BLOQUE 7.1: SWARM VOTE → ETHOS TOKEN REPARATION ═══
+        # When a gray-zone decision is reached AND peers are known, ask the swarm
+        # to vote on the action.  Consensus = trigger EthosToken reparation to
+        # the affected party (simulated community_governance_pool).
+        if (
+            final_mode == "gray_zone"
+            and hasattr(self, "swarm")
+            and self.swarm.state.known_peers
+        ):
+            peers = list(self.swarm.state.known_peers.keys())
+            _vote_proposal_id = f"{agent_id}:{scenario[:48]}"
+            swarm_consensus = self.swarm.cast_distributed_vote(
+                proposal_id=_vote_proposal_id,
+                action=final_action,
+                signals=signals,
+                peers=peers,
+            )
+            if swarm_consensus:
+                self.dao.issue_restorative_reparation(
+                    case_id=_vote_proposal_id,
+                    recipient="community_governance_pool",
+                    amount=25.0,  # Symbolic EthosTokens for gray-zone consensus
+                )
+                _log.info(
+                    "Bloque 7.1: Swarm consensus on gray-zone action '%s' — "
+                    "EthosToken reparation issued (case %s).",
+                    final_action,
+                    _vote_proposal_id,
+                )
 
         self._raise_if_chat_turn_cooperative_abort()
 

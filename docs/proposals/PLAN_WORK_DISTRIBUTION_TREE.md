@@ -99,9 +99,9 @@ Este documento estructura el inmenso volumen de trabajo arquitectónico definido
 *Dependencias: Módulo 6 (Swarm Consensus) y Módulo 1 (DAO Token stubs).*
 *Nota:* Este módulo establece la estandarización local; la descentralización P2P criptográfica requerirá una futura fase o boundary remote, no prevista para este pull request atómico.
 
-- **Bloque 7.1: Moneda de Reparación (EthosToken Integration)**
+- **Bloque 7.1: Moneda de Reparación (EthosToken Integration) [DONE]**
   - Tarea 7.1.1: Vincular los resultados del voto Swarm (M6.2) con transferencias de `EthosToken` (simuladas) para compensar a los usuarios afectados por negligencia sensorial.
-- **Bloque 7.2: Difusión de Reputación Negativa (Slashing)**
+- **Bloque 7.2: Difusión de Reputación Negativa (Slashing) [DONE]**
   - Tarea 7.2.1: Implementar lógica para degradar la reputación de un nodo en el `SwarmOracle` central si sus testigos son desmentidos por la mayoría de la red.
 
 ---

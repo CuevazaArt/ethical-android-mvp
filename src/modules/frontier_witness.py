@@ -67,21 +67,40 @@ class FrontierWitnessManager:
         for r in self.report_history:
             if not r.verified or r.confidence < 0.5:
                 continue
-            
+
             # Anti-Spoofing: Fingerprint mismatch detection
             if local_fingerprint and r.signal_fingerprint:
                 if r.signal_fingerprint != local_fingerprint:
-                    # Potential adversarial detection
+                    # Potential adversarial detection — tracked by get_adversarial_nodes
                     continue
-            
+
             relevant.append(r)
 
         if not relevant:
             return 1.0
-        
+
         # Simple MVP logic: 10% boost per confirming peer, capped at 1.3
         count = len(relevant)
         return min(1.3, 1.0 + (count * 0.1))
+
+    def get_adversarial_nodes(self, local_fingerprint: str) -> list[str]:
+        """
+        Bloque 7.2: Returns node IDs that submitted reports whose fingerprint
+        contradicts the local one.  A node is only flagged if the local fingerprint
+        is non-empty, the peer's fingerprint is non-empty, AND they differ — i.e.
+        the peer is actively providing a conflicting sensor reading.
+        """
+        if not local_fingerprint:
+            return []
+        adversarial: list[str] = []
+        seen: set[str] = set()
+        for r in self.report_history:
+            if r.witness_node in seen:
+                continue
+            if r.signal_fingerprint and r.signal_fingerprint != local_fingerprint:
+                adversarial.append(r.witness_node)
+                seen.add(r.witness_node)
+        return adversarial
 
     def simulate_lan_broadcast(self, request: WitnessRequest, swarm_peers: list[str]) -> list[WitnessReport]:
         """
