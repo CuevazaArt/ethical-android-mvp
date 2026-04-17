@@ -24,6 +24,7 @@ from pathlib import Path
 from typing import TYPE_CHECKING, Any
 
 from .kernel_lobes import PerceptiveLobe, LimbicEthicalLobe, ExecutiveLobe, CerebellumNode
+from .settings.kernel_settings import KernelSettings
 
 class CorpusCallosumOrchestrator:
     """
@@ -406,14 +407,32 @@ class EthicalKernel:
 
     def __init__(
         self,
-        variability: bool = True,
-        seed: int = None,
+        variability: bool | None = None,
+        seed: int | None = None,
         llm_mode: str | None = None,
         *,
+        settings: KernelSettings | None = None,
         llm: LLMModule | None = None,
         checkpoint_persistence: CheckpointPersistencePort | None = None,
         components: KernelComponentOverrides | None = None,
     ):
+        # Phase 2 (KernelSettings consolidation): Load unified settings and apply defaults
+        if settings is None:
+            settings = KernelSettings.from_env()
+        self.settings = settings
+
+        # Apply settings defaults to parameters (backward compatible)
+        if variability is None:
+            variability = settings.kernel_variability
+        if seed is None and settings.kernel_seed is not None:
+            seed = settings.kernel_seed
+        if llm_mode is None:
+            llm_mode = settings.llm_mode
+
+        # Log startup configuration
+        logger = logging.getLogger(__name__)
+        logger.info("Kernel startup configuration:\n%s", settings.startup_report())
+
         co = components
 
         if co is not None and co.var_engine is not None:
