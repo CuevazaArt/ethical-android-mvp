@@ -28,6 +28,8 @@ TEST_TARGETS = [
     "tests/test_empirical_pilot_runner.py",
     "tests/test_governance_mock_honesty_docs.py",
     "tests/test_semantic_threshold_proposal_doc_alignment.py",
+    # Embodied sociability S10 (PROPOSAL_EMBODIED_SOCIABILITY.md Bloque S10)
+    "tests/test_transparency_s10.py",
 ]
 
 
