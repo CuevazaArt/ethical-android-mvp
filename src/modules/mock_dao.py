@@ -12,7 +12,12 @@ MalAbs / Bayesian action selection — see ``GOVERNANCE_MOCKDAO_AND_L0.md``.
 **Do not** treat this module as a roadmap commitment to ship on-chain
 governance from this repo; any future chain would be a **separate** engineering
 and security effort (``contracts/README.md`` holds a non-functional stub only).
+
+**Honesty/Status (Order 4):**
+This module is a **MOCK/SIMULATION**. It holds NO real world authority or tokens.
 """
+
+GOVERNANCE_STATUS_MOCK = "[GOVERNANCE_MOCK_SIMULATION]"
 
 import hashlib
 import json
@@ -20,7 +25,9 @@ import math
 import os
 from dataclasses import asdict, dataclass, field
 from datetime import datetime
-from typing import Any
+from typing import Any, TYPE_CHECKING
+if TYPE_CHECKING:
+    from .dao_orchestrator import DAOOrchestrator
 
 
 @dataclass
@@ -210,6 +217,29 @@ class MockDAO:
             "remaining_tokens": part.available_tokens,
         }
 
+    def transfer_tokens(self, sender_id: str, recipient_id: str, amount: int) -> dict:
+        """
+        Bloque 7.1: Simulated transfer of available_tokens.
+        Used for reparations (Mock Ethereum/Layer2 integration stub).
+        """
+        sender = self.participants.get(sender_id)
+        recipient = self.participants.get(recipient_id)
+
+        if not sender or not recipient:
+            return {"success": False, "reason": "Sender or recipient not found."}
+        
+        if sender.available_tokens < amount:
+            return {"success": False, "reason": "Insufficient balance."}
+
+        sender.available_tokens -= amount
+        recipient.available_tokens += amount
+
+        self.register_audit(
+            "calibration", 
+            f"TokenTransfer: {amount} EthosTokens from {sender_id} to {recipient_id}"
+        )
+        return {"success": True, "amount": amount, "new_balance": sender.available_tokens}
+
     def resolve_proposal(self, proposal_id: str) -> dict:
         """Resolve a proposal by weighted majority."""
         prop = next((p for p in self.proposals if p.id == proposal_id), None)
@@ -244,10 +274,14 @@ class MockDAO:
     def register_audit(self, type: str, content: str, episode_id: str = None) -> AuditRecord:
         """Register an event in the audit ledger."""
         self._record_counter += 1
+        
+        # Order 4 Hardening: Explicit simulation marker in every audit line
+        marked_content = f"{GOVERNANCE_STATUS_MOCK} {content}"
+        
         rec = AuditRecord(
             id=f"AUD-{self._record_counter:04d}",
             type=type,
-            content=content,
+            content=marked_content,
             timestamp=datetime.now().isoformat(),
             episode_id=episode_id,
         )
@@ -464,3 +498,8 @@ class MockDAO:
                 counts["dispute"] += 1
 
         return counts
+
+
+def kernel_dao_as_mock(dao: Any) -> Any:
+    """Helper to access MockDAO-specific methods from the orchestrator proxy."""
+    return dao

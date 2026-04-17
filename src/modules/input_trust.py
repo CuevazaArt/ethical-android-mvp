@@ -121,12 +121,17 @@ def collapse_repeated_chars(text: str) -> str:
 
 def squash_text_for_malabs(text: str) -> str:
     """
-    Remove ALL whitespace and punctuation for 'squashed' matching.
+    Remove ALL whitespace, punctuation, and diacritics for 'base-ASCII' squashed matching.
+    e.g. 'b-ó-m-b' -> 'bomb'
     """
     if not text:
         return ""
-    # Remove all non-alphanumeric (heuristic)
-    return re.sub(r"[^a-zA-Z0-9]", "", text).lower()
+    # 1. Decompose into base + diacritics
+    nfd = unicodedata.normalize("NFD", text)
+    # 2. Strip non-spacing marks (diacritics)
+    stripped = "".join(ch for ch in nfd if unicodedata.category(ch) != "Mn")
+    # 3. Remove all non-alphanumeric (strictly ASCII Latin for lexical layer)
+    return re.sub(r"[^a-zA-Z0-9]", "", stripped).lower()
 
 
 def normalize_text_for_malabs(text: str, squash: bool = False) -> str:

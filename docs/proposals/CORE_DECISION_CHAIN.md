@@ -2,7 +2,7 @@
 
 **Audience:** reviewers and integrators who need a **single map** from inputs to `KernelDecision.final_action`, without reading all of `src/kernel.py` first.
 
-**Cross-refs:** orchestration in [`src/kernel.py`](../src/kernel.py) (`EthicalKernel.process`), theory in [`THEORY_AND_IMPLEMENTATION.md`](THEORY_AND_IMPLEMENTATION.md), runtime boundaries in [`RUNTIME_CONTRACT.md`](RUNTIME_CONTRACT.md), packaging spike in [`adr/0001-packaging-core-boundary.md`](adr/0001-packaging-core-boundary.md). **Phase 2 extension seam (optional):** in-process event bus [`adr/0006-phase2-core-boundary-and-event-bus.md`](../adr/0006-phase2-core-boundary-and-event-bus.md) (`KERNEL_EVENT_BUS`). **Mixture-weight nudges** (optional, before `evaluate`): episodic refresh (`KERNEL_BAYESIAN_EMPIRICAL_WEIGHTS`, see [README](README.md)), temporal-horizon prior [`TEMPORAL_PRIOR_HORIZONS.md`](TEMPORAL_PRIOR_HORIZONS.md) (`KERNEL_TEMPORAL_HORIZON_PRIOR`) — see [`weighted_ethics_scorer.py`](../src/modules/weighted_ethics_scorer.py) ([ADR 0009](../adr/0009-ethical-mixture-scorer-naming.md); `bayesian_engine.py` is a compat shim). **Module count vs empirical ablation gap:** [`MODULE_IMPACT_AND_EMPIRICAL_GAP.md`](MODULE_IMPACT_AND_EMPIRICAL_GAP.md).
+**Cross-refs:** orchestration in [`src/kernel.py`](../../src/kernel.py) (`EthicalKernel.process`), theory in [`THEORY_AND_IMPLEMENTATION.md`](THEORY_AND_IMPLEMENTATION.md), runtime boundaries in [`RUNTIME_CONTRACT.md`](RUNTIME_CONTRACT.md), packaging spike in [`adr/0001-packaging-core-boundary.md`](adr/0001-packaging-core-boundary.md). **Phase 2 extension seam (optional):** in-process event bus [`adr/0006-phase2-core-boundary-and-event-bus.md`](../adr/0006-phase2-core-boundary-and-event-bus.md) (`KERNEL_EVENT_BUS`). **Mixture-weight nudges** (optional, before `evaluate`): episodic refresh (`KERNEL_BAYESIAN_EMPIRICAL_WEIGHTS`, see [README](README.md)), temporal-horizon prior [`TEMPORAL_PRIOR_HORIZONS.md`](TEMPORAL_PRIOR_HORIZONS.md) (`KERNEL_TEMPORAL_HORIZON_PRIOR`) — see [`weighted_ethics_scorer.py`](../../src/modules/weighted_ethics_scorer.py) ([ADR 0009](../adr/0009-ethical-mixture-scorer-naming.md); `bayesian_engine.py` is a compat shim). **Module count vs empirical ablation gap:** [`MODULE_IMPACT_AND_EMPIRICAL_GAP.md`](MODULE_IMPACT_AND_EMPIRICAL_GAP.md).
 
 ---
 
@@ -75,7 +75,7 @@ In `EthicalKernel.process`, **`final_action` is the string name of a surviving c
 
 ## Injecting subsystems (tests and experiments)
 
-`EthicalKernel` accepts optional `components=KernelComponentOverrides(...)` ([`src/kernel_components.py`](../src/kernel_components.py)) so callers can substitute concrete module instances (stubs, subclasses, or alternate implementations) **without** editing `kernel.py`. Top-level `llm` and `checkpoint_persistence` keyword arguments **override** the same-named fields inside `components` when provided. This is structural injection, not a stable cross-version plugin ABI: replacements should match the methods the orchestrator calls.
+`EthicalKernel` accepts optional `components=KernelComponentOverrides(...)` ([`src/kernel_components.py`](../../src/kernel_components.py)) so callers can substitute concrete module instances (stubs, subclasses, or alternate implementations) **without** editing `kernel.py`. Top-level `llm` and `checkpoint_persistence` keyword arguments **override** the same-named fields inside `components` when provided. This is structural injection, not a stable cross-version plugin ABI: replacements should match the methods the orchestrator calls.
 
 ---
 

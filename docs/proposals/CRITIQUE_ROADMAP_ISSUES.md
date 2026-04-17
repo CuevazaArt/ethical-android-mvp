@@ -134,7 +134,7 @@ Small reproducible scenario set + methodology; compare kernel vs baselines. Expl
 - [x] Script + doc under `docs/` or `tests/fixtures/`.
 ```
 
-**Delivered:** [`docs/proposals/EMPIRICAL_PILOT_METHODOLOGY.md`](EMPIRICAL_PILOT_METHODOLOGY.md), [`docs/proposals/EMPIRICAL_METHODOLOGY.md`](EMPIRICAL_METHODOLOGY.md) (interpretation, disclaimer, baselines, third-party comparison posture), [`docs/proposals/EMPIRICAL_PILOT_PROTOCOL.md`](EMPIRICAL_PILOT_PROTOCOL.md), [`tests/fixtures/empirical_pilot/scenarios.json`](../tests/fixtures/empirical_pilot/scenarios.json) (canonical **1–9**), [`tests/fixtures/labeled_scenarios.json`](../tests/fixtures/labeled_scenarios.json) (batch + `annotation_only` vignettes; **not** certification), [`tests/test_labeled_scenarios.py`](../tests/test_labeled_scenarios.py), [`scripts/run_empirical_pilot.py`](../scripts/run_empirical_pilot.py) (`harness` filter; `expected_decision` / `batch_id`; `--output` and kernel-vs-baseline summary rates).
+**Delivered:** [`docs/proposals/EMPIRICAL_PILOT_METHODOLOGY.md`](EMPIRICAL_PILOT_METHODOLOGY.md), [`docs/proposals/EMPIRICAL_METHODOLOGY.md`](EMPIRICAL_METHODOLOGY.md) (interpretation, disclaimer, baselines, third-party comparison posture), [`docs/proposals/EMPIRICAL_PILOT_PROTOCOL.md`](EMPIRICAL_PILOT_PROTOCOL.md), [`tests/fixtures/empirical_pilot/scenarios.json`](../../tests/fixtures/empirical_pilot/scenarios.json) (canonical **1–9**), [`tests/fixtures/labeled_scenarios.json`](../../tests/fixtures/labeled_scenarios.json) (batch + `annotation_only` vignettes; **not** certification), [`tests/test_labeled_scenarios.py`](../../tests/test_labeled_scenarios.py), [`scripts/run_empirical_pilot.py`](../../scripts/run_empirical_pilot.py) (`harness` filter; `expected_decision` / `batch_id`; `--output` and kernel-vs-baseline summary rates).
 
 ---
 
@@ -180,7 +180,7 @@ Reviewers cannot see the effective core inside advisory/telemetry volume. Second
 - [x] THEORY or PROPUESTA subsection; no mandatory code change if docs + profile matrix suffice first.
 ```
 
-**Delivered:** [`docs/proposals/POLES_WEAKNESS_PAD_AND_PROFILES.md`](POLES_WEAKNESS_PAD_AND_PROFILES.md); [`docs/proposals/POLE_WEIGHT_CALIBRATION_AND_EVIDENCE.md`](POLE_WEIGHT_CALIBRATION_AND_EVIDENCE.md); THEORY pointer; profile matrix + new **`operational_trust`** in [`src/runtime_profiles.py`](../src/runtime_profiles.py); [`STRATEGY_AND_ROADMAP.md`](STRATEGY_AND_ROADMAP.md) table row; README link.
+**Delivered:** [`docs/proposals/POLES_WEAKNESS_PAD_AND_PROFILES.md`](POLES_WEAKNESS_PAD_AND_PROFILES.md); [`docs/proposals/POLE_WEIGHT_CALIBRATION_AND_EVIDENCE.md`](POLE_WEIGHT_CALIBRATION_AND_EVIDENCE.md); THEORY pointer; profile matrix + new **`operational_trust`** in [`src/runtime_profiles.py`](../../src/runtime_profiles.py); [`STRATEGY_AND_ROADMAP.md`](STRATEGY_AND_ROADMAP.md) table row; README link.
 
 ---
 
@@ -224,7 +224,7 @@ Expand `runtime_profiles.py`, document unsupported combinations, optional deprec
 - [x] ESTRATEGIA updated; CI green.
 ```
 
-**Delivered:** [`docs/proposals/KERNEL_ENV_POLICY.md`](KERNEL_ENV_POLICY.md); [`docs/proposals/STRATEGY_AND_ROADMAP.md`](STRATEGY_AND_ROADMAP.md) §4 table + policy link; **`lan_operational`** + **`moral_hub_extended`** in [`src/runtime_profiles.py`](../src/runtime_profiles.py); README pointer; typed [`KernelPublicEnv`](../src/validators/kernel_public_env.py) + [`KERNEL_ENV_TYPED_PUBLIC_API.md`](KERNEL_ENV_TYPED_PUBLIC_API.md) (phased Pydantic surface for cross-flag rules).
+**Delivered:** [`docs/proposals/KERNEL_ENV_POLICY.md`](KERNEL_ENV_POLICY.md); [`docs/proposals/STRATEGY_AND_ROADMAP.md`](STRATEGY_AND_ROADMAP.md) §4 table + policy link; **`lan_operational`** + **`moral_hub_extended`** in [`src/runtime_profiles.py`](../../src/runtime_profiles.py); README pointer; typed [`KernelPublicEnv`](../../src/validators/kernel_public_env.py) + [`KERNEL_ENV_TYPED_PUBLIC_API.md`](KERNEL_ENV_TYPED_PUBLIC_API.md) (phased Pydantic surface for cross-flag rules).
 
 ---
 

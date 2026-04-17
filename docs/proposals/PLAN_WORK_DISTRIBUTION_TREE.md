@@ -80,10 +80,20 @@ Este documento estructura el inmenso volumen de trabajo arquitectónico definido
 *Responsabilidad: Nivel 1 (Antigravity)*
 *Dependencias: Módulo 6 (Swarm Consensus) y Módulo 1 (DAO Token stubs).*
 
-- **Bloque 7.1: Moneda de Reparación (EthosToken Integration)**
-  - Tarea 7.1.1: Vincular los resultados del voto Swarm (M6.2) con transferencias de `EthosToken` (simuladas) para compensar a los usuarios afectados por negligencia sensorial.
-- **Bloque 7.2: Difusión de Reputación Negativa (Slashing)**
-  - Tarea 7.2.1: Implementar lógica para degradar la reputación de un nodo en el `SwarmOracle` central si sus testigos son desmentidos por la mayoría de la red.
+- **Bloque 7.1: Moneda de Reparación (EthosToken Integration) [DONE]**
+  - Tarea 7.1.1: Vincular los resultados del voto Swarm (M6.2) con transferencias de `EthosToken` (simuladas) para compensar a los usuarios afectados por negligencia sensorial. (Implementado en `ReparationVault` y `SwarmNegotiator`).
+- **Bloque 7.2: Difusión de Reputación Negativa (Slashing) [DONE]**
+  - Tarea 7.2.1: Implementar lógica para degradar la reputación de un nodo en el `SwarmOracle` central si sus testigos son desmentidos por la mayoría de la red. (Implementado en `SwarmOracle.apply_slashing`).
+
+---
+
+## 🎐 Micro-Tareas y Deuda Técnica (Minor Contributors)
+*Responsabilidad: Contribuidores Libres / Team Copilot*
+*Referencia: [MINOR_CONTRIBUTIONS_BACKLOG.md](MINOR_CONTRIBUTIONS_BACKLOG.md)*
+
+- **Bloque 8.1: Calidad y DX (Developer Experience)**
+  - Tareas de bajo perfil: Auditoría de docstrings, enriquecimiento de terminal y limpieza de código.
+  - Tareas de mantenimiento: Expansión de escenarios mock y normalización de caracteres.
 
 ---
 

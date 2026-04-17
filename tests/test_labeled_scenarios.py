@@ -39,7 +39,7 @@ def test_batch_rows_reference_valid_actions():
         exp = s.get("expected_decision") or s.get("reference_action")
         assert exp is not None
         assert exp in _action_names_for_batch(bid), (bid, exp, sorted(_action_names_for_batch(bid)))
-    assert batch_count == 9
+    assert batch_count == 12
 
 
 def test_annotation_rows_have_vignette_and_related_sim():
@@ -65,6 +65,6 @@ def test_run_pilot_executes_only_batch_harness():
     assert spec.loader is not None
     spec.loader.exec_module(mod)
     rows, summary, ref_meta = mod.run_pilot(LABELED)
-    assert len(rows) == 9
-    assert summary["scenarios"] == 9
+    assert len(rows) == 12
+    assert summary["scenarios"] == 12
     assert ref_meta.get("tier") == "internal_pilot"

@@ -13,7 +13,7 @@ Este documento fija el **objetivo**, la **arquitectura** y los **pasos concretos
 | Plazo | Meta |
 |-------|------|
 | **Corto** | Mismo kernel y LLM en el PC; el smartphone **solo envía/recibe** JSON por WebSocket en LAN (sin instalar Python en el móvil). |
-| **Mediano** | Continuidad narrativa al “saltar” de sesión: **checkpoint** en disco en el PC + (futuro) **guía de conducta** exportable para un cuerpo pequeño ([`context_distillation.py`](../src/modules/context_distillation.py), [`conduct_guide.template.json`](templates/conduct_guide.template.json)). |
+| **Mediano** | Continuidad narrativa al “saltar” de sesión: **checkpoint** en disco en el PC + (futuro) **guía de conducta** exportable para un cuerpo pequeño ([`context_distillation.py`](../../src/modules/context_distillation.py), [`conduct_guide.template.json`](templates/conduct_guide.template.json)). |
 
 El **salto real** a un modelo 8B **dentro del teléfono** es un proyecto aparte (build Android, ONNX/TFLite, cuotas de batería). Aquí habilitamos el camino **thin client + red común**, que ya valida flujo, UX y persistencia.
 

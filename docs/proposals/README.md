@@ -1,4 +1,4 @@
-﻿# `docs/proposals/` — design, theory, and operations
+# `docs/proposals/` — design, theory, and operations
 
 **Reference** and **exploratory** material: versioned proposals, runtime contracts, theory ↔ code maps, operator guides, and design threads. This is **not** a substitute for the issue backlog or the root product README.
 
@@ -63,7 +63,7 @@ High-level summary aligned with the code and docs; full chronology is in [`CHANG
 | **Closing core weaknesses (async, naming, evidence, governance, LLM) — execution plan** | [PROPOSAL_ADDRESSING_CORE_WEAKNESSES.md](PROPOSAL_ADDRESSING_CORE_WEAKNESSES.md) |
 | **Tiered sandbox + deterministic `by_tier`; stochastic Monte Carlo (`run_stochastic_sandbox.py`)** | [PROPOSAL_EXPERIMENTAL_SANDBOX_SCENARIOS.md](PROPOSAL_EXPERIMENTAL_SANDBOX_SCENARIOS.md) |
 | **Static weight sweeps (poles @ 0.5 center, mixture @ 1/3 simplex) — mass batch + CSV** | [PROPOSAL_WEIGHT_SENSITIVITY_SWEEP.md](PROPOSAL_WEIGHT_SENSITIVITY_SWEEP.md) |
-| **Million-scale random weight + stratified scenarios — design + `run_mass_kernel_study`** | [PROPOSAL_MILLION_SIM_EXPERIMENT.md](PROPOSAL_MILLION_SIM_EXPERIMENT.md) · [`experiments/million_sim/README.md`](../experiments/million_sim/README.md) |
+| **Million-scale random weight + stratified scenarios — design + `run_mass_kernel_study`** | [PROPOSAL_MILLION_SIM_EXPERIMENT.md](PROPOSAL_MILLION_SIM_EXPERIMENT.md) · [`experiments/million_sim/README.md`](../../experiments/million_sim/README.md) |
 | **Mock DAO — no chain, QV assumptions, not policy core** | [MOCK_DAO_SIMULATION_LIMITS.md](MOCK_DAO_SIMULATION_LIMITS.md) |
 | **DAO/blockchain/distributed justice staged execution** | [PROPOSAL_DAO_BLOCKCHAIN_DISTRIBUTED_JUSTICE_STAGED_EXECUTION.md](PROPOSAL_DAO_BLOCKCHAIN_DISTRIBUTED_JUSTICE_STAGED_EXECUTION.md) |
 | **Distributed justice — contribution guide (V11 + backlog)** | [PROPOSAL_DISTRIBUTED_JUSTICE_CONTRIBUTIONS.md](PROPOSAL_DISTRIBUTED_JUSTICE_CONTRIBUTIONS.md) |
@@ -180,6 +180,7 @@ Legacy Spanish filenames (`PROPUESTA_*.md`, `ESTRATEGIA_Y_RUTA.md`, `PAPER_AFECT
 | [PROJECT_STATE_HONEST_CRITIQUE_APRIL_2026.md](PROJECT_STATE_HONEST_CRITIQUE_APRIL_2026.md) | Repository-wide critical assessment: maturity, over-claim risks, and stabilization priorities |
 | [TRACE_IMPLEMENTATION_RECENT.md](TRACE_IMPLEMENTATION_RECENT.md) | Recent implementation trace (Guardian, v9–v10) ↔ bibliography |
 | [OPERATOR_QUICK_REF.md](OPERATOR_QUICK_REF.md) | Operator quick reference |
+| [MINOR_CONTRIBUTIONS_BACKLOG.md](MINOR_CONTRIBUTIONS_BACKLOG.md) | Low-priority tasks and technical debt for minor contributors |
 
 ---
 

@@ -15,7 +15,7 @@
 | Percepción: informe de coerción + umbral **opt-in** → `D_delib` | `src/modules/perception_schema.py` (`PerceptionCoercionReport`), `src/kernel.py` (`KERNEL_PERCEPTION_UNCERTAINTY_*`), `tests/test_perception_coercion_report.py`, `tests/test_perception_uncertainty_delib.py` |
 | Parse LLM +riesgo léxico + cruce (Fase 1) | `parse_perception_llm_raw_response`, `light_risk_classifier.py`, `perception_cross_check.py`, `KERNEL_PERCEPTION_PARSE_FAIL_LOCAL`, tests `test_perception_parse_contract.py` / `test_light_risk_classifier.py` / `test_perception_cross_check.py` |
 | Lighthouse / duda epistémica (tono) | [`LIGHTHOUSE_KB.md`](LIGHTHOUSE_KB.md), `reality_verification.py` |
-| Perfiles runtime + CI | [`src/runtime_profiles.py`](../src/runtime_profiles.py), `tests/test_runtime_profiles.py` |
+| Perfiles runtime + CI | [`src/runtime_profiles.py`](../../src/runtime_profiles.py), `tests/test_runtime_profiles.py` |
 | Frontera núcleo / empaquetado | [`adr/0001-packaging-core-boundary.md`](adr/0001-packaging-core-boundary.md) |
 | L0 vs DAO / borradores | [`GOVERNANCE_MOCKDAO_AND_L0.md`](GOVERNANCE_MOCKDAO_AND_L0.md) |
 | HCI / weakness | [`POLES_WEAKNESS_PAD_AND_PROFILES.md`](POLES_WEAKNESS_PAD_AND_PROFILES.md) |

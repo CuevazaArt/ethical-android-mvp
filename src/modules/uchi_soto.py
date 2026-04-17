@@ -264,7 +264,9 @@ class UchiSotoModule:
         if t == RelationalTier.STRANGER_STABLE and ts >= 0.55 and pos >= 3:
             p.relational_tier = RelationalTier.ACQUAINTANCE
             t = p.relational_tier
-        if t == RelationalTier.ACQUAINTANCE and ts >= 0.72 and pos >= 8 and uchi_ok:
+        # Hardened: TRUSTED_UCHI requires sustained high trust (0.92) and more turns (20)
+        # to prevent rapid social engineering via trivial banter.
+        if t == RelationalTier.ACQUAINTANCE and ts >= 0.92 and pos >= 20 and uchi_ok:
             p.relational_tier = RelationalTier.TRUSTED_UCHI
 
     def set_relational_tier_explicit(

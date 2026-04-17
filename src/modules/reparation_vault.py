@@ -105,3 +105,64 @@ def maybe_register_reparation_after_mock_court(
     human = "Escalation mock tribunal complete " + detail
     blob = json.dumps(payload, ensure_ascii=False, sort_keys=True)
     dao.register_audit("incident", f"{human} | ReparationVaultV1:{blob}"[:8000])
+
+
+def execute_simulated_payout(
+    dao: MockDAO,
+    case_ref: str,
+    recipient_id: str,
+    amount: int,
+    treasury_id: str = "ethics_panel_01",
+) -> dict[str, Any]:
+    """
+    Bloque 7.1: Executes a token transfer from the treasury to the affected user.
+    """
+    if not reparation_vault_mock_enabled():
+        return {"success": False, "reason": "ReparationVault mock disabled."}
+
+    ref = _normalize_ref(case_ref)
+    
+    # Bloque 7.1 Hardening: Payout Velocity Limiting
+    # Prevent duplicate payouts for the same case within a short window (60s)
+    case_data = _case_store.get(ref, {})
+    last_payout_time = case_data.get("last_payout_ts", 0)
+    import time
+    if time.time() - last_payout_time < 60:
+        return {"success": False, "reason": "Payout velocity limit exceeded for this case."}
+
+    res = dao.transfer_tokens(treasury_id, recipient_id, amount)
+
+    if res.get("success"):
+        _append_event(ref, "payout_executed", f"Paid {amount} tokens to {recipient_id}")
+        _case_store[ref]["last_payout_ts"] = time.time()
+        payload = {
+            "schema": VAULT_SCHEMA,
+            "case_ref": ref,
+            "state": "payout_executed",
+            "recipient": recipient_id,
+            "amount": amount,
+        }
+        dao.register_audit(
+            "calibration", 
+            f"ReparationVaultV1 (PAYOUT): {json.dumps(payload)}"
+        )
+    return res
+
+
+def register_slashing_intent(dao: MockDAO, node_id: str, reason: str) -> None:
+    """
+    Bloque 7.2: Logs a intent to slash a node's reputation in the SwarmOracle.
+    """
+    if not reparation_vault_mock_enabled():
+        return
+    
+    payload = {
+        "schema": VAULT_SCHEMA,
+        "node_id": node_id,
+        "action": "slashing_intent",
+        "reason": reason[:400]
+    }
+    dao.register_audit(
+        "incident", 
+        f"ReparationVaultV1 (SLASHING): {json.dumps(payload)}"
+    )

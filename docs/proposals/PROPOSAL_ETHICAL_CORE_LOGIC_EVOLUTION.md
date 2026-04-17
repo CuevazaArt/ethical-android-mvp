@@ -9,12 +9,12 @@
 
 ### Problem
 
-Today, **Psi Sleep** ([`PsiSleep`](../src/modules/psi_sleep.py)) mainly:
+Today, **Psi Sleep** ([`PsiSleep`](../../src/modules/psi_sleep.py)) mainly:
 
-- Reviews recent [`NarrativeEpisode`](../src/modules/narrative.py) rows and **simulates** pruned alternatives using a **deterministic hash perturbation** (MVP audit, not a second forward pass through `WeightedEthicsScorer` / `BayesianEngine`). Documented evaluator id: `psi_sleep_hash_perturbation_v1` — **not** an independent ethical judge; see [WEAKNESSES_AND_BOTTLENECKS.md](../WEAKNESSES_AND_BOTTLENECKS.md) §8.
-- Emits **global recalibrations** that `execute_sleep` applies to **`pruning_threshold`** and **locus `caution`** ([`EthicalKernel.execute_sleep`](../src/kernel.py)), not to **`hypothesis_weights`**.
+- Reviews recent [`NarrativeEpisode`](../../src/modules/narrative.py) rows and **simulates** pruned alternatives using a **deterministic hash perturbation** (MVP audit, not a second forward pass through `WeightedEthicsScorer` / `BayesianEngine`). Documented evaluator id: `psi_sleep_hash_perturbation_v1` — **not** an independent ethical judge; see [WEAKNESSES_AND_BOTTLENECKS.md](../WEAKNESSES_AND_BOTTLENECKS.md) §8.
+- Emits **global recalibrations** that `execute_sleep` applies to **`pruning_threshold`** and **locus `caution`** ([`EthicalKernel.execute_sleep`](../../src/kernel.py)), not to **`hypothesis_weights`**.
 
-Separately, during **`process`**, optional **`KERNEL_BAYESIAN_EMPIRICAL_WEIGHTS`** calls [`WeightedEthicsScorer.refresh_weights_from_episodic_memory`](../src/modules/weighted_ethics_scorer.py) (alias: `BayesianEngine`): a **bounded blend** toward a heuristic target derived from **ethical_score** statistics of same-context episodes. That is **not** user-feedback-aware and **not** tied to the nightly Psi Sleep cycle.
+Separately, during **`process`**, optional **`KERNEL_BAYESIAN_EMPIRICAL_WEIGHTS`** calls [`WeightedEthicsScorer.refresh_weights_from_episodic_memory`](../../src/modules/weighted_ethics_scorer.py) (alias: `BayesianEngine`): a **bounded blend** toward a heuristic target derived from **ethical_score** statistics of same-context episodes. That is **not** user-feedback-aware and **not** tied to the nightly Psi Sleep cycle.
 
 ### Proposal
 
@@ -37,7 +37,7 @@ Separately, during **`process`**, optional **`KERNEL_BAYESIAN_EMPIRICAL_WEIGHTS`
 
 5. **Invariants**  
    - **MalAbs / buffer** never relaxed by this path.  
-   - Respect [`identity_integrity`](../src/modules/identity_integrity.py) / genome drift caps (`KERNEL_ETHICAL_GENOME_MAX_DRIFT` in [`kernel.py`](../src/kernel.py)) for any persisted weights.  
+   - Respect [`identity_integrity`](../../src/modules/identity_integrity.py) / genome drift caps (`KERNEL_ETHICAL_GENOME_MAX_DRIFT` in [`kernel.py`](../../src/kernel.py)) for any persisted weights.  
    - **Regression:** invariant ethical properties and golden scenarios must remain green; tuning is **opt-in** in CI until stabilized.
 
 ### Deliverables (when implemented)
@@ -54,14 +54,14 @@ Separately, during **`process`**, optional **`KERNEL_BAYESIAN_EMPIRICAL_WEIGHTS`
 
 **Lexical MalAbs** is fast and auditable but **easily evaded** by paraphrase, homoglyphs, and multilingual phrasing ([INPUT_TRUST_THREAT_MODEL.md](INPUT_TRUST_THREAT_MODEL.md)). If hostile **intent** reaches **`perceive` → `process`** unchanged, deliberation operates on **already poisoned** signals.
 
-**Current code (2026):** [`semantic_chat_gate`](../src/modules/semantic_chat_gate.py) runs when **`KERNEL_SEMANTIC_CHAT_GATE`** is enabled — **on by default** when the variable is unset (`semantic_chat_gate.py`, [MALABS_SEMANTIC_LAYERS.md](MALABS_SEMANTIC_LAYERS.md), ADR 0003 amendment). It sits **after** lexical MalAbs and **before** full chat deliberation. Operators who need lexical-only set `KERNEL_SEMANTIC_CHAT_GATE=0` or use the `lexical_malabs_only` runtime profile ([`runtime_profiles.py`](../src/runtime_profiles.py)). **`tests/conftest.py`** forces lexical-only for pytest speed unless a test opts into semantic.
+**Current code (2026):** [`semantic_chat_gate`](../../src/modules/semantic_chat_gate.py) runs when **`KERNEL_SEMANTIC_CHAT_GATE`** is enabled — **on by default** when the variable is unset (`semantic_chat_gate.py`, [MALABS_SEMANTIC_LAYERS.md](MALABS_SEMANTIC_LAYERS.md), ADR 0003 amendment). It sits **after** lexical MalAbs and **before** full chat deliberation. Operators who need lexical-only set `KERNEL_SEMANTIC_CHAT_GATE=0` or use the `lexical_malabs_only` runtime profile ([`runtime_profiles.py`](../../src/runtime_profiles.py)). **`tests/conftest.py`** forces lexical-only for pytest speed unless a test opts into semantic.
 
 ### Proposal
 
 **Goal:** Treat **embedding (and optional LLM arbiter) semantic gating** as part of the **standard perception / input-trust stack**, not an exotic add-on — while keeping **fail-safe** behavior when embeddings or Ollama are down.
 
 1. **Policy default**  
-   - **Largely implemented:** unset-env defaults and **`runtime_profiles`** entries use semantic gate **on** for open-internet-style surfaces; **`lexical_malabs_only`** remains explicit for lab / air-gapped / latency trade-offs ([`runtime_profiles.py`](../src/runtime_profiles.py), [KERNEL_ENV_POLICY.md](KERNEL_ENV_POLICY.md)).
+   - **Largely implemented:** unset-env defaults and **`runtime_profiles`** entries use semantic gate **on** for open-internet-style surfaces; **`lexical_malabs_only`** remains explicit for lab / air-gapped / latency trade-offs ([`runtime_profiles.py`](../../src/runtime_profiles.py), [KERNEL_ENV_POLICY.md](KERNEL_ENV_POLICY.md)).
 
 2. **Degradation ladder**  
    - If embed transport fails or circuit breaker opens: **block ambiguous** band, **fall back** to lexical-only, or **fail closed** — behavior must be **one documented ladder** (per [MALABS_SEMANTIC_LAYERS.md](MALABS_SEMANTIC_LAYERS.md)), not ad-hoc per call site.
@@ -87,11 +87,11 @@ Separately, during **`process`**, optional **`KERNEL_BAYESIAN_EMPIRICAL_WEIGHTS`
 
 | Piece | Location |
 |-------|----------|
-| Psi Sleep | [`src/modules/psi_sleep.py`](../src/modules/psi_sleep.py), `execute_sleep` in [`src/kernel.py`](../src/kernel.py) |
-| Mixture weights (episodic) | [`WeightedEthicsScorer.refresh_weights_from_episodic_memory`](../src/modules/weighted_ethics_scorer.py), `KERNEL_BAYESIAN_EMPIRICAL_WEIGHTS` |
-| Semantic gate | [`src/modules/semantic_chat_gate.py`](../src/modules/semantic_chat_gate.py), MalAbs chat path in [`absolute_evil.py`](../src/modules/absolute_evil.py) |
-| Snapshot persistence of weights | [`kernel_io.py`](../src/persistence/kernel_io.py), immortality backup |
-| Async / thread bridge | [`real_time_bridge.py`](../src/real_time_bridge.py) — extra embed latency still runs inside the same turn thread unless future ADR splits I/O |
+| Psi Sleep | [`src/modules/psi_sleep.py`](../../src/modules/psi_sleep.py), `execute_sleep` in [`src/kernel.py`](../../src/kernel.py) |
+| Mixture weights (episodic) | [`WeightedEthicsScorer.refresh_weights_from_episodic_memory`](../../src/modules/weighted_ethics_scorer.py), `KERNEL_BAYESIAN_EMPIRICAL_WEIGHTS` |
+| Semantic gate | [`src/modules/semantic_chat_gate.py`](../../src/modules/semantic_chat_gate.py), MalAbs chat path in [`absolute_evil.py`](../../src/modules/absolute_evil.py) |
+| Snapshot persistence of weights | [`kernel_io.py`](../../src/persistence/kernel_io.py), immortality backup |
+| Async / thread bridge | [`real_time_bridge.py`](../../src/real_time_bridge.py) — extra embed latency still runs inside the same turn thread unless future ADR splits I/O |
 
 ---
 

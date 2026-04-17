@@ -2,7 +2,7 @@
 
 **Purpose:** State honestly what **EthicalPoles**, **WeaknessPole**, and **PAD / homeostasis** do in the Ethos Kernel, and give **operators** a clear **profile** when narrative “humanizing” layers may **hurt trust** in safety-critical settings (medicine, autonomy, crisis ops).
 
-**Cross-refs:** [`THEORY_AND_IMPLEMENTATION.md`](THEORY_AND_IMPLEMENTATION.md) (pipeline order), [`src/runtime_profiles.py`](../src/runtime_profiles.py), [`RUNTIME_CONTRACT.md`](RUNTIME_CONTRACT.md) (LLM does not set policy).
+**Cross-refs:** [`THEORY_AND_IMPLEMENTATION.md`](THEORY_AND_IMPLEMENTATION.md) (pipeline order), [`src/runtime_profiles.py`](../../src/runtime_profiles.py), [`RUNTIME_CONTRACT.md`](RUNTIME_CONTRACT.md) (LLM does not set policy).
 
 ---
 
