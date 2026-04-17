@@ -4,6 +4,31 @@ All notable changes to this project are summarized here. For narrative context a
 
 **Note:** Older sections below may still **link** to paths that were later removed (for example `experiments/million_sim/`, `docs/multimedia/`, root `dashboard.html`, `landing/`). Those links are **historical**; recover files from git history or backup branches if you need them.
 
+## Team Copilot — Módulo 0 Bloque 0.1: Desmonolitización Kernel Lobes — April 2026
+
+### PerceptiveLobe (`src/kernel_lobes/perception_lobe.py`) [Tarea 0.1.1]
+- Implemented `observe()` with `LLMModule.aperceive` (`httpx.AsyncClient`) wrapped in `asyncio.wait_for` using timeout `KERNEL_LOBE_OBSERVE_TIMEOUT` (default 30 s).
+- Returns `SemanticState` with `TimeoutTrauma(severity=1.0)` on `asyncio.TimeoutError` and `TimeoutTrauma(severity=0.8)` on any other exception.
+- No-LLM degraded path returns `confidence=1.0` stub so the lobe is usable in unit tests without a running backend.
+
+### LimbicEthicalLobe (`src/kernel_lobes/limbic_lobe.py`) [Tareas 0.1.2 + 0.1.3]
+- `judge()` now performs two checks in priority order:
+  1. **Trauma gate** (0.1.2): if `state.timeout_trauma` is set, calls `bayesian.record_event_update("LEGAL_COMPLIANCE", weight=-0.5)` then returns a blocking `EthicalSentence` with `applied_trauma_weight` set.
+  2. **AbsoluteEvilDetector** (0.1.3): runs `evaluate()` against the raw prompt; blocks with veto reason if evil is detected.
+- Constructor accepts optional `AbsoluteEvilDetector` and `BayesianInferenceEngine` for injection (tests and kernel_components use cases).
+
+### CerebellumNode (`src/kernel_lobes/cerebellum_node.py`) [Tarea 0.1.3]
+- Replaced TODO-only body with a functional `SensorReadCallback` pattern: callers inject a `() → (battery, temperature)` callable.
+- Loop fires `hardware_interrupt_event` when battery drops below `KERNEL_VITALITY_CRITICAL_BATTERY` (default 5 %) or temperature exceeds `KERNEL_VITALITY_CRITICAL_TEMP` (default 80 °C).
+- Poll rate configurable via `KERNEL_CEREBELLUM_POLL_HZ` (default 100 Hz).
+- Hardware read exceptions swallowed silently to maintain continuous operation.
+
+### Tests
+- **`tests/test_module0_kernel_lobes.py`** — 13 tests covering: PerceptiveLobe no-LLM degraded path, normal LLM path, timeout trauma, exception trauma; LimbicEthicalLobe safe path, trauma veto, Bayesian penalty, AbsoluteEvil block; CerebellumNode battery interrupt, thermal interrupt, normal-readings no-fire, no-callback silent run, flaky-sensor recovery.
+
+### Roadmap
+- **`docs/proposals/PLAN_WORK_DISTRIBUTION_TREE.md`** — Bloque 0.1 marked `[DONE]`.
+
 ## Team Copilot — Módulo 7: Justicia Restaurativa y Compensación Swarm — April 2026
 
 ### Bloque 7.1 — Swarm Vote → EthosToken Reparation
