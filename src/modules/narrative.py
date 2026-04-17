@@ -17,9 +17,9 @@ from .identity_reflection import IdentityReflector
 from .narrative_identity import NarrativeIdentityTracker
 from .narrative_types import BodyState, NarrativeArc, NarrativeEpisode
 from .semantic_embedding_client import (
-    http_fetch_ollama_embedding, 
+    http_fetch_ollama_embedding,
     ahttp_fetch_ollama_embedding_with_policy,
-    maybe_hash_fallback_embedding
+    maybe_hash_fallback_embedding,
 )
 from .uchi_soto import RelationalTier
 
@@ -246,6 +246,7 @@ class NarrativeMemory:
         Async variant of register using non-blocking embedding infrastructure.
         """
         import asyncio
+
         self._counter += 1
 
         # 1. Calculate Significance
@@ -275,7 +276,9 @@ class NarrativeMemory:
         ollama_model = os.environ.get("OLLAMA_EMBED_MODEL", "mxbai-embed-large")
 
         try:
-            embedding_vec = await ahttp_fetch_ollama_embedding_with_policy(ollama_url, ollama_model, combined_text)
+            embedding_vec = await ahttp_fetch_ollama_embedding_with_policy(
+                ollama_url, ollama_model, combined_text
+            )
             if embedding_vec is not None:
                 embedding = embedding_vec.tolist()
             else:
@@ -308,7 +311,7 @@ class NarrativeMemory:
         )
         self.episodes.append(ep)
         self.identity.update_from_episode(ep)
-        self._update_arcs(ep) # Sync logic but saves via persistence
+        self._update_arcs(ep)  # Sync logic but saves via persistence
 
         # Persistence: Wrap sync save in thread
         await asyncio.to_thread(self.persistence.save_episode, ep)
@@ -317,7 +320,9 @@ class NarrativeMemory:
             self.episodes = self.episodes[-self.max_episodes :]
 
         return ep
-        """Finds previous episodes of the same context type from memory."""
+
+    def find_similar(self, context: str, limit: int = 5) -> list[NarrativeEpisode]:
+        """Finds previous episodes of the same context type."""
         return [ep for ep in self.episodes if ep.context == context][-limit:]
 
     def find_by_resonance(

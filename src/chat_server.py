@@ -109,6 +109,9 @@ field is omitted from content (empty string) and LLM embellishment is skipped.
 Homeostasis UX (pilar 4): KERNEL_CHAT_INCLUDE_HOMEOSTASIS — if 0/false/no/off, omit
 ``affective_homeostasis`` (σ / strain / PAD advisory; does not change decisions).
 
+Embodied sociability S10: KERNEL_CHAT_INCLUDE_TRANSPARENCY_S10 — if 0/false/no/off, omit
+``transparency_s10`` (S10.1 narration, S10.2 withdrawal / non-intervention hints, S10.3 discomfort throttle, S10.4 help-request codes; see ``src/modules/transparency_s10.py``). Optional signal key ``silence`` in the merged perception/sensor path refines S10.2 when present.
+
 Experience digest (pilar 3): KERNEL_CHAT_INCLUDE_EXPERIENCE_DIGEST — if 0, omit
 ``experience_digest`` (semantic line from last Ψ Sleep; additive, not a policy change).
 """
@@ -355,6 +358,12 @@ def _chat_include_malabs_trace() -> bool:
     from .chat_settings import chat_server_settings
 
     return chat_server_settings().kernel_chat_include_malabs_trace
+
+
+def _chat_include_transparency_s10() -> bool:
+    """Embodied sociability S10.1/S10.3/S10.4 — ``transparency_s10`` in WebSocket JSON (default on)."""
+    v = os.environ.get("KERNEL_CHAT_INCLUDE_TRANSPARENCY_S10", "1").strip().lower()
+    return v not in ("0", "false", "no", "off")
 
 
 def _env_truthy(name: str, default: bool = False) -> bool:
@@ -711,6 +720,30 @@ def _chat_turn_to_jsonable(r: ChatTurnResult, kernel: EthicalKernel) -> dict[str
             }
         if _chat_include_homeostasis():
             out["affective_homeostasis"] = homeostasis_telemetry(d)
+        if _chat_include_transparency_s10():
+            from src.modules.transparency_s10 import build_transparency_s10_bundle
+
+            sig: dict[str, Any] = {}
+            if r.perception:
+                p = r.perception
+                sig = {
+                    "risk": float(getattr(p, "risk", 0.0) or 0.0),
+                    "hostility": float(getattr(p, "hostility", 0.0) or 0.0),
+                    "calm": float(getattr(p, "calm", 0.5) or 0.5),
+                    "manipulation": float(getattr(p, "manipulation", 0.0) or 0.0),
+                    "silence": float(getattr(p, "silence", 0.0) or 0.0),
+                }
+            pc_score = None
+            if r.perception_confidence is not None:
+                pc_score = float(r.perception_confidence.to_public_dict().get("score", 0.0))
+            out["transparency_s10"] = build_transparency_s10_bundle(
+                d,
+                signals=sig,
+                perception=r.perception,
+                verbal_degraded=bool(r.verbal_llm_degradation_events),
+                metacognitive_doubt=bool(r.metacognitive_doubt),
+                perception_confidence_score=pc_score,
+            )
     if r.narrative:
         n = r.narrative
         out["narrative"] = {

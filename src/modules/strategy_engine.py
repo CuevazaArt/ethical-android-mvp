@@ -10,10 +10,8 @@ from __future__ import annotations
 import uuid
 from dataclasses import dataclass, field
 from enum import Enum
-from typing import TYPE_CHECKING
 
-if TYPE_CHECKING:
-    pass
+from .sensor_contracts import SensorSnapshot
 
 
 class MissionStatus(Enum):
@@ -122,6 +120,10 @@ class ExecutiveStrategist:
                     m.status = MissionStatus.SUCCESS
                 else:
                     m.status = MissionStatus.ACTIVE
+
+    def ingest_sensors(self, sensor_snapshot: SensorSnapshot) -> None:
+        """Hook for situated cues (battery, motion, missions); extend for tactical reprioritization."""
+        _ = sensor_snapshot
 
     def active_missions_summary(self) -> str:
         active = [m for m in self.missions.values() if m.status == MissionStatus.ACTIVE]

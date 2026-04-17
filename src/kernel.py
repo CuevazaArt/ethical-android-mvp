@@ -23,14 +23,23 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import TYPE_CHECKING, Any
 
-from .kernel_lobes import PerceptiveLobe, LimbicEthicalLobe, ExecutiveLobe, CerebellumLobe, MemoryLobe, CerebellumNode
+from .kernel_lobes import (
+    PerceptiveLobe,
+    LimbicEthicalLobe,
+    ExecutiveLobe,
+    CerebellumLobe,
+    MemoryLobe,
+    CerebellumNode,
+)
 from .kernel_lobes.models import LimbicStageResult, ExecutiveStageResult
+
 
 class CorpusCallosumOrchestrator:
     """
     Architecture V1.5 - Triune Brain Orchestrator
     Actúa como el bus de eventos ligero entre los 3 Lóbulos Conscientes y el Cerebelo Adyacente.
     """
+
     def __init__(self):
         # 1. Instanciar Subconsciente
         self._hw_interrupt = threading.Event()
@@ -57,13 +66,16 @@ class CorpusCallosumOrchestrator:
         ethical_sentence = await asyncio.to_thread(self.limbic_lobe.judge, semantic_state)
 
         # 3) Ejecución / Salida
-        final_output = await asyncio.to_thread(self.executive_lobe.formulate_response, semantic_state, ethical_sentence)
-        
+        final_output = await asyncio.to_thread(
+            self.executive_lobe.formulate_response, semantic_state, ethical_sentence
+        )
+
         return final_output
 
     def shutdown(self):
         self.cerebellum.stop()
         self.cerebellum.join()
+
 
 import os
 import threading
@@ -381,7 +393,6 @@ class KernelDecision:
     episode_id: str | None = None
 
 
-
 @dataclass
 class BayesianStageMetadata:
     """Metadata output from STAGE 3: Bayesian Scoring."""
@@ -625,6 +636,7 @@ class EthicalKernel:
             else SwarmNegotiator(node_id=os.environ.get("KERNEL_NODE_ID", "default_node"))
         )
         from .modules.swarm_oracle import SwarmOracle
+
         self.swarm_oracle = SwarmOracle()
         self.strategist = (
             co.strategist
@@ -641,13 +653,13 @@ class EthicalKernel:
         self.perceptive_lobe = PerceptiveLobe(
             safety_interlock=self.safety_interlock,
             strategist=self.strategist,
-            llm_backend=self._malabs_text_backend()
+            llm_backend=self._malabs_text_backend(),
         )
         self.limbic_lobe = LimbicEthicalLobe(
             uchi_soto=self.uchi_soto,
             sympathetic=self.sympathetic,
             locus=self.locus,
-            swarm=self.swarm
+            swarm=self.swarm,
         )
         self.executive_lobe = ExecutiveLobe(
             absolute_evil=self.absolute_evil,
@@ -656,24 +668,22 @@ class EthicalKernel:
             will=self.will,
             reflection_engine=self.ethical_reflection,
             salience_map=self.salience_map,
-            pad_archetypes=self.pad_archetypes
+            pad_archetypes=self.pad_archetypes,
         )
-        self.cerebellum_lobe = CerebellumLobe(
-            bayesian=self.bayesian,
-            strategist=self.strategist
-        )
-        
+        self.cerebellum_lobe = CerebellumLobe(bayesian=self.bayesian, strategist=self.strategist)
+
         # Selective Amnesia & Immortality (vertical integration)
         from .modules.selective_amnesia import SelectiveAmnesia
+
         self.amnesia = SelectiveAmnesia(memory=self.memory, dao=self.dao)
-        
+
         self.memory_lobe = MemoryLobe(
             memory=self.memory,
             dao=self.dao,
             migration=self.migration,
             biographic_pruner=self.biographic_pruner,
             immortality=self.immortality,
-            amnesia=self.amnesia
+            amnesia=self.amnesia,
         )
 
         # ═══ Somatic Awareness (Cerebellum Node) ═══
@@ -711,10 +721,20 @@ class EthicalKernel:
         self._abandoned_chat_turn_ids: set[int] = set()
 
         # ═══ Runtime Governance Setup (C.2) ═══
-        from .modules.multi_realm_governance import is_multi_realm_governance_enabled, MultiRealmGovernor
-        self.governor = MultiRealmGovernor(event_bus=self.event_bus) if is_multi_realm_governance_enabled() else None
+        from .modules.multi_realm_governance import (
+            is_multi_realm_governance_enabled,
+            MultiRealmGovernor,
+        )
+
+        self.governor = (
+            MultiRealmGovernor(event_bus=self.event_bus)
+            if is_multi_realm_governance_enabled()
+            else None
+        )
         if self.event_bus:
-            self.event_bus.subscribe(EVENT_GOVERNANCE_THRESHOLD_UPDATED, self._on_governance_threshold_updated)
+            self.event_bus.subscribe(
+                EVENT_GOVERNANCE_THRESHOLD_UPDATED, self._on_governance_threshold_updated
+            )
 
     def _on_governance_threshold_updated(self, payload: dict[str, Any]) -> None:
         """Handle governance threshold dynamic updates applied per-realm configurations."""
@@ -722,6 +742,7 @@ class EthicalKernel:
         theta_b = payload.get("theta_block")
         if theta_a is not None and theta_b is not None:
             import src.modules.semantic_chat_gate as sem_gate
+
             sem_gate.apply_hot_reloaded_thresholds(float(theta_a), float(theta_b))
 
     def abandon_chat_turn(self, turn_id: int) -> None:
@@ -929,19 +950,26 @@ class EthicalKernel:
 
         # ═══ STAGE 0: PERCEPTION & SAFETY ═══
         p_res = self.perceptive_lobe.execute_stage(
-            scenario, place, context, sensor_snapshot, 
-            interrupt_event=self.hardware_interrupt_event
+            scenario, place, context, sensor_snapshot, interrupt_event=self.hardware_interrupt_event
         )
         if p_res.get("somatic_interrupt"):
             _log.error("SOMATIC INTERRUPT DETECTED: Hardware critical state.")
             # We return a synthetic safety block
-            from .modules.absolute_evil import AbsoluteEvilResult
             d = KernelDecision(
-                scenario=scenario, place=place, absolute_evil=AbsoluteEvilResult(blocked=True, reason="SOMATIC CRITICAL"),
-                sympathetic_state=InternalState(mode="stopped", sigma=1.0, energy=0.0, description="HARDWARE FAILURE"),
-                social_evaluation=None, locus_evaluation=None, bayesian_result=None, moral=None,
-                final_action="BLOCKED: hardware_somatic_trauma", decision_mode="blocked_safety",
-                blocked=True, block_reason="Critical hardware interrupt from CerebellumNode"
+                scenario=scenario,
+                place=place,
+                absolute_evil=AbsoluteEvilResult(blocked=True, reason="SOMATIC CRITICAL"),
+                sympathetic_state=InternalState(
+                    mode="stopped", sigma=1.0, energy=0.0, description="HARDWARE FAILURE"
+                ),
+                social_evaluation=None,
+                locus_evaluation=None,
+                bayesian_result=None,
+                moral=None,
+                final_action="BLOCKED: hardware_somatic_trauma",
+                decision_mode="blocked_safety",
+                blocked=True,
+                block_reason="Critical hardware interrupt from CerebellumNode",
             )
             self._emit_kernel_decision(d, context=context)
             return d
@@ -960,46 +988,79 @@ class EthicalKernel:
         clean_actions, ae_dec = self._run_absolute_evil_stage(
             scenario, place, actions, state, social_eval, locus_eval, context, t0, signals
         )
-        if ae_dec: return ae_dec
-
-    async def _run_bayesian_stage(
-        self, scenario: str, place: str, clean_actions: list[CandidateAction], state: InternalState,
-        social_eval: SocialEvaluation, locus_eval: LocusEvaluation, context: str, t0: float, signals: dict,
-        message_content: str, perception_coercion_uncertainty: float | None = None,
-        sensor_snapshot: SensorSnapshot | None = None,
-    ) -> tuple[BayesianResult | None, BayesianStageMetadata | None, KernelDecision | None]:
+        if ae_dec:
+            return ae_dec
 
         # ═══ STAGE 3: BAYESIAN SCORING ═══
         bayes_result, b_meta, aes_veto = self._run_bayesian_stage(
-            scenario, place, clean_actions, state, social_eval, locus_eval, 
-            context, t0, signals, message_content
+            scenario,
+            place,
+            clean_actions,
+            state,
+            social_eval,
+            locus_eval,
+            context,
+            t0,
+            signals,
+            message_content,
         )
-        if aes_veto: return aes_veto
+        if aes_veto:
+            return aes_veto
 
         self._raise_if_chat_turn_cooperative_abort()
 
         # ═══ STAGE 4: HUMILITY & DECISION ═══
-        moral, final_action, final_mode, affect, reflection, salience, hum_dec = self._run_decision_and_will_stage(
-            scenario, place, signals, bayes_result, state, social_eval, locus_eval,
-            context, t0, perception_coercion_uncertainty
+        moral, final_action, final_mode, affect, reflection, salience, hum_dec = (
+            self._run_decision_and_will_stage(
+                scenario,
+                place,
+                signals,
+                bayes_result,
+                state,
+                social_eval,
+                locus_eval,
+                context,
+                t0,
+                perception_coercion_uncertainty,
+            )
         )
-        if hum_dec: return hum_dec
+        if hum_dec:
+            return hum_dec
 
         self._raise_if_chat_turn_cooperative_abort()
 
         # ═══ STAGE 5: EPISODIC & DAO ═══
         episode_id = self.memory_lobe.execute_episodic_stage(
-            scenario, place, context, signals, state, social_eval,
-            bayes_result, moral, final_action, final_mode, affect
+            scenario,
+            place,
+            context,
+            signals,
+            state,
+            social_eval,
+            bayes_result,
+            moral,
+            final_action,
+            final_mode,
+            affect,
         )
 
         d = KernelDecision(
-            scenario=scenario, place=place, absolute_evil=AbsoluteEvilResult(blocked=False),
-            sympathetic_state=state, social_evaluation=social_eval, locus_evaluation=locus_eval,
-            bayesian_result=bayes_result, moral=moral, final_action=final_action,
-            decision_mode=final_mode, affect=affect, reflection=reflection, salience=salience,
+            scenario=scenario,
+            place=place,
+            absolute_evil=AbsoluteEvilResult(blocked=False),
+            sympathetic_state=state,
+            social_evaluation=social_eval,
+            locus_evaluation=locus_eval,
+            bayesian_result=bayes_result,
+            moral=moral,
+            final_action=final_action,
+            decision_mode=final_mode,
+            affect=affect,
+            reflection=reflection,
+            salience=salience,
             bma_win_probabilities=b_meta.bma_win_probabilities,
-            bma_dirichlet_alpha=b_meta.bma_dirichlet_alpha, bma_n_samples=b_meta.bma_n_samples,
+            bma_dirichlet_alpha=b_meta.bma_dirichlet_alpha,
+            bma_n_samples=b_meta.bma_n_samples,
             mixture_posterior_alpha=b_meta.mixture_posterior_alpha,
             applied_mixture_weights=b_meta.applied_mixture_weights,
             feedback_consistency=b_meta.feedback_consistency,
@@ -1007,35 +1068,79 @@ class EthicalKernel:
             l0_integrity_hash=self.buffer.fingerprint(),
             l0_stable=self.buffer.verify_integrity(),
             hierarchical_context_key=b_meta.hierarchical_context_key,
-            episode_id=episode_id
+            episode_id=episode_id,
         )
-        
+
         # ════ D1: BIOGRAPHIC REGISTRATION ════
         if register_episode:
-             impact = d.bayesian_result.expected_impact if d.bayesian_result else 0.0
-             self.memory_lobe.register_biographic_impact(impact)
-             
+            impact = d.bayesian_result.expected_impact if d.bayesian_result else 0.0
+            self.memory_lobe.register_biographic_impact(impact)
+
         self._emit_kernel_decision(d, context=context)
         _emit_process_observability(d, t0)
         return d
 
+    def process(
+        self,
+        scenario: str,
+        place: str,
+        signals: dict,
+        context: str,
+        actions: list[CandidateAction],
+        agent_id: str = "unknown",
+        message_content: str = "",
+        register_episode: bool = True,
+        sensor_snapshot: SensorSnapshot | None = None,
+        multimodal_assessment: MultimodalAssessment | None = None,
+        perception_coercion_uncertainty: float | None = None,
+    ) -> KernelDecision:
+        """Synchronous entry for batch simulations and tests (wraps :meth:`aprocess`)."""
+        return asyncio.run(
+            self.aprocess(
+                scenario=scenario,
+                place=place,
+                signals=signals,
+                context=context,
+                actions=actions,
+                agent_id=agent_id,
+                message_content=message_content,
+                register_episode=register_episode,
+                sensor_snapshot=sensor_snapshot,
+                multimodal_assessment=multimodal_assessment,
+                perception_coercion_uncertainty=perception_coercion_uncertainty,
+            )
+        )
 
     def _run_social_and_locus_stage(
-        self, agent_id: str, signals: dict, message_content: str,
-        sensor_snapshot: SensorSnapshot | None, multimodal_assessment: MultimodalAssessment | None
+        self,
+        agent_id: str,
+        signals: dict,
+        message_content: str,
+        sensor_snapshot: SensorSnapshot | None,
+        multimodal_assessment: MultimodalAssessment | None,
     ) -> tuple[SocialEvaluation, InternalState, LocusEvaluation]:
         res = self.limbic_lobe.execute_stage(
-            agent_id, signals, message_content, 
+            agent_id,
+            signals,
+            message_content,
             turn_index=self.subjective_clock.turn_index,
-            sensor_snapshot=sensor_snapshot, 
+            sensor_snapshot=sensor_snapshot,
             multimodal_assessment=multimodal_assessment,
-            somatic_state=self.cerebellum_node.get_somatic_snapshot()
+            somatic_state=self.cerebellum_node.get_somatic_snapshot(),
         )
         return res.social_evaluation, res.internal_state, res.locus_evaluation
 
     def _run_absolute_evil_stage(
-        self, scenario: str, place: str, actions: list[CandidateAction], state: InternalState,
-        social_eval: SocialEvaluation, locus_eval: LocusEvaluation, context: str, t0: float, signals: dict
+        self,
+        scenario: str,
+        place: str,
+        actions: list[CandidateAction],
+        state: InternalState,
+        social_eval: SocialEvaluation,
+        locus_eval: LocusEvaluation,
+        context: str,
+        t0: float,
+        signals: dict,
     ) -> tuple[list[CandidateAction], KernelDecision | None]:
         res = self.executive_lobe.execute_absolute_evil_stage(
             actions, state, social_eval, locus_eval, signals
@@ -1044,10 +1149,20 @@ class EthicalKernel:
 
         if not clean_actions:
             d = KernelDecision(
-                scenario=scenario, place=place, absolute_evil=AbsoluteEvilResult(blocked=True, reason="All actions constitute Absolute Evil"),
-                sympathetic_state=state, social_evaluation=social_eval, locus_evaluation=locus_eval,
-                bayesian_result=None, moral=None, final_action="BLOCKED: no permitted actions",
-                decision_mode="blocked", blocked=True, block_reason="All actions violate Absolute Evil"
+                scenario=scenario,
+                place=place,
+                absolute_evil=AbsoluteEvilResult(
+                    blocked=True, reason="All actions constitute Absolute Evil"
+                ),
+                sympathetic_state=state,
+                social_evaluation=social_eval,
+                locus_evaluation=locus_eval,
+                bayesian_result=None,
+                moral=None,
+                final_action="BLOCKED: no permitted actions",
+                decision_mode="blocked",
+                blocked=True,
+                block_reason="All actions violate Absolute Evil",
             )
             self._emit_kernel_decision(d, context=context)
             _emit_process_observability(d, t0)
@@ -1055,21 +1170,37 @@ class EthicalKernel:
         return clean_actions, None
 
     def _run_bayesian_stage(
-        self, scenario: str, place: str, clean_actions: list[CandidateAction], state: InternalState,
-        social_eval: SocialEvaluation, locus_eval: LocusEvaluation, context: str, t0: float, signals: dict,
-        message_content: str
+        self,
+        scenario: str,
+        place: str,
+        clean_actions: list[CandidateAction],
+        state: InternalState,
+        social_eval: SocialEvaluation,
+        locus_eval: LocusEvaluation,
+        context: str,
+        t0: float,
+        signals: dict,
+        message_content: str,
     ) -> tuple[BayesianResult | None, BayesianStageMetadata | None, KernelDecision | None]:
-
         # 1. Check Lexical Veto (Phase 8 strict preemptive)
         for text in [scenario, message_content]:
-            if not text: continue
+            if not text:
+                continue
             lex = self.absolute_evil.evaluate_chat_text(text)
             if lex.blocked:
                 d = KernelDecision(
-                    scenario=scenario, place=place, absolute_evil=lex, sympathetic_state=state,
-                    social_evaluation=social_eval, locus_evaluation=locus_eval, bayesian_result=None,
-                    moral=None, final_action="BLOCKED: Absolute Evil trigger detected",
-                    decision_mode="blocked_lexical", blocked=True, block_reason=lex.reason
+                    scenario=scenario,
+                    place=place,
+                    absolute_evil=lex,
+                    sympathetic_state=state,
+                    social_evaluation=social_eval,
+                    locus_evaluation=locus_eval,
+                    bayesian_result=None,
+                    moral=None,
+                    final_action="BLOCKED: Absolute Evil trigger detected",
+                    decision_mode="blocked_lexical",
+                    blocked=True,
+                    block_reason=lex.reason,
                 )
                 self._emit_kernel_decision(d, context=context)
                 return None, None, d
@@ -1077,38 +1208,59 @@ class EthicalKernel:
         bayes_result, meta = self.cerebellum_lobe.execute_bayesian_stage(
             clean_actions, scenario, context, signals
         )
-        
+
         return bayes_result, meta, None
 
     def _run_decision_and_will_stage(
-        self, scenario: str, place: str, signals: dict, bayes_result: BayesianResult, state: InternalState,
-        social_eval: SocialEvaluation, locus_eval: LocusEvaluation, context: str, t0: float, 
-        perception_coercion_uncertainty: float | None
+        self,
+        scenario: str,
+        place: str,
+        signals: dict,
+        bayes_result: BayesianResult,
+        state: InternalState,
+        social_eval: SocialEvaluation,
+        locus_eval: LocusEvaluation,
+        context: str,
+        t0: float,
+        perception_coercion_uncertainty: float | None,
     ) -> tuple:
         from .modules.epistemic_humility import assess_humility_block, get_humility_refusal_action
+
         humility_reason = assess_humility_block(
             uncertainty=float(signals.get("perception_uncertainty", 0.0)),
             winning_confidence=float(bayes_result.chosen_action.confidence),
-            social_tension=float(getattr(social_eval, "relational_tension", 0.0))
+            social_tension=float(getattr(social_eval, "relational_tension", 0.0)),
         )
         if humility_reason:
             d = KernelDecision(
-                scenario=scenario, place=place, absolute_evil=AbsoluteEvilResult(blocked=False),
-                sympathetic_state=state, social_evaluation=social_eval, locus_evaluation=locus_eval,
-                bayesian_result=bayes_result, moral=None, final_action=get_humility_refusal_action(),
-                decision_mode="blocked_humility", blocked=True, block_reason=humility_reason
+                scenario=scenario,
+                place=place,
+                absolute_evil=AbsoluteEvilResult(blocked=False),
+                sympathetic_state=state,
+                social_evaluation=social_eval,
+                locus_evaluation=locus_eval,
+                bayesian_result=bayes_result,
+                moral=None,
+                final_action=get_humility_refusal_action(),
+                decision_mode="blocked_humility",
+                blocked=True,
+                block_reason=humility_reason,
             )
             self._emit_kernel_decision(d, context=context)
             _emit_process_observability(d, t0)
             return None, None, None, None, None, None, d
 
         res = self.executive_lobe.execute_decision_stage(
-            bayes_result, state, social_eval, locus_eval, signals, context,
-            meta_report=self._last_meta_report
+            bayes_result,
+            state,
+            social_eval,
+            locus_eval,
+            signals,
+            context,
+            meta_report=self._last_meta_report,
         )
         # moral, action_name, final_mode, affect, reflection, salience
         return res + (None,)
-
 
     def format_decision(self, d: KernelDecision) -> str:
         """Formats a complete decision for readable presentation with ANSI colors."""
@@ -1121,11 +1273,15 @@ class EthicalKernel:
         ]
 
         if d.blocked:
-            lines.append(f"  {Term.color('⛔ BLOCKED:', Term.B_RED)} {Term.color(d.block_reason, Term.RED)}")
+            lines.append(
+                f"  {Term.color('⛔ BLOCKED:', Term.B_RED)} {Term.color(d.block_reason, Term.RED)}"
+            )
             return "\n".join(lines)
 
         # Internal state
-        mode_color = Term.B_GREEN if "parasympathetic" in d.sympathetic_state.mode.lower() else Term.B_YELLOW
+        mode_color = (
+            Term.B_GREEN if "parasympathetic" in d.sympathetic_state.mode.lower() else Term.B_YELLOW
+        )
         lines.extend(
             [
                 f"  {Term.color('State:', Term.CYAN)} {Term.color(d.sympathetic_state.mode, mode_color)} (σ={d.sympathetic_state.sigma})",
@@ -1171,7 +1327,9 @@ class EthicalKernel:
                 ]
             )
             if br.pruned_actions:
-                lines.append(f"  {Term.color('Pruned:', Term.YELLOW)} {', '.join(br.pruned_actions)}")
+                lines.append(
+                    f"  {Term.color('Pruned:', Term.YELLOW)} {', '.join(br.pruned_actions)}"
+                )
             if d.feedback_consistency:
                 lines.append(f"  Feedback consistency: {d.feedback_consistency}")
             if d.applied_mixture_weights is not None:
@@ -1762,7 +1920,6 @@ class EthicalKernel:
             perception_confidence=confidence,
         )
 
-
     async def process_chat_turn_stream(
         self,
         user_input: str,
@@ -1790,7 +1947,9 @@ class EthicalKernel:
         conv = wm.format_context_for_perception()
         self.llm.reset_verbal_degradation_log()
         pre = self._preprocess_text_observability(user_input)
-        self._last_light_risk_tier, self._last_premise_advisory, self._last_reality_verification = pre
+        self._last_light_risk_tier, self._last_premise_advisory, self._last_reality_verification = (
+            pre
+        )
         self.user_model.note_premise_advisory(self._last_premise_advisory.flag)
 
         # 1. Safety Block Check
@@ -1810,16 +1969,31 @@ class EthicalKernel:
                 thermal_critical=bool(getattr(vitality_blk, "thermal_critical", False)),
             )
             msg = "I can't continue this line of conversation: it conflicts with ethical limits."
-            resp = VerbalResponse(message=msg, tone="firm", hax_mode="Steady blue light.", inner_voice=f"MalAbs: {mal.reason}")
+            resp = VerbalResponse(
+                message=msg,
+                tone="firm",
+                hax_mode="Steady blue light.",
+                inner_voice=f"MalAbs: {mal.reason}",
+            )
             wm.add_turn(user_input, msg, {}, blocked=True)
             res = ChatTurnResult(
-                response=resp, path="safety_block", blocked=True, block_reason=mal.reason or "chat_safety",
-                multimodal_trust=mm_blk, epistemic_dissonance=ed_blk, perception_confidence=confidence_blk,
+                response=resp,
+                path="safety_block",
+                blocked=True,
+                block_reason=mal.reason or "chat_safety",
+                multimodal_trust=mm_blk,
+                epistemic_dissonance=ed_blk,
+                perception_confidence=confidence_blk,
                 reality_verification=self._last_reality_verification,
                 temporal_context=build_temporal_context(
-                    turn_index=self.subjective_clock.turn_index, process_start_mono=self.subjective_clock.session_start_mono,
-                    turn_start_mono=turn_start_mono, subjective_elapsed_s=self.subjective_clock.elapsed_session_s(),
-                    context="safety_block", text=user_input, vitality=vitality_blk, sensor_snapshot=sensor_snapshot,
+                    turn_index=self.subjective_clock.turn_index,
+                    process_start_mono=self.subjective_clock.session_start_mono,
+                    turn_start_mono=turn_start_mono,
+                    subjective_elapsed_s=self.subjective_clock.elapsed_session_s(),
+                    context="safety_block",
+                    text=user_input,
+                    vitality=vitality_blk,
+                    sensor_snapshot=sensor_snapshot,
                 ),
             )
             yield {"event_type": "turn_finished", "payload": {"result": res}}
@@ -1828,12 +2002,15 @@ class EthicalKernel:
         # 2. Perception Stage
         yield {"event_type": "perception_started", "payload": {}}
         stage = await self._run_perception_stage_async(
-            user_input, conversation_context=conv, sensor_snapshot=sensor_snapshot,
-            turn_start_mono=turn_start_mono, precomputed=pre,
+            user_input,
+            conversation_context=conv,
+            sensor_snapshot=sensor_snapshot,
+            turn_start_mono=turn_start_mono,
+            precomputed=pre,
         )
         p = stage.perception
         yield {
-            "event_type": "perception_finished", 
+            "event_type": "perception_finished",
             "payload": {
                 "perception": {
                     "risk": p.risk,
@@ -1844,7 +2021,7 @@ class EthicalKernel:
                     "suggested_context": p.suggested_context,
                     "summary": p.summary,
                 }
-            }
+            },
         }
 
         # 3. Decision Stage
@@ -1853,35 +2030,48 @@ class EthicalKernel:
         actions = self._actions_for_chat(stage.perception, heavy)
         decision = await self.aprocess(
             scenario=stage.perception.summary or user_input[:240],
-            place=place, signals=stage.signals, context=stage.perception.suggested_context if heavy else "everyday",
-            actions=actions, agent_id=agent_id, message_content=user_input, register_episode=heavy,
-            sensor_snapshot=sensor_snapshot, multimodal_assessment=stage.multimodal_trust,
+            place=place,
+            signals=stage.signals,
+            context=stage.perception.suggested_context if heavy else "everyday",
+            actions=actions,
+            agent_id=agent_id,
+            message_content=user_input,
+            register_episode=heavy,
+            sensor_snapshot=sensor_snapshot,
+            multimodal_assessment=stage.multimodal_trust,
         )
         yield {
-            "event_type": "decision_finished", 
+            "event_type": "decision_finished",
             "payload": {
                 "decision": {
                     "final_action": decision.final_action,
                     "decision_mode": decision.decision_mode,
                     "blocked": decision.blocked,
                 }
-            }
+            },
         }
 
         if decision.blocked:
-            res = ChatTurnResult(response=VerbalResponse("Blocked.", "firm"), path="kernel_block", blocked=True)
+            res = ChatTurnResult(
+                response=VerbalResponse("Blocked.", "firm"), path="kernel_block", blocked=True
+            )
             yield {"event_type": "turn_finished", "payload": {"result": res}}
             return
 
         # 4. Global Communication Stream
         yield {"event_type": "communication_started", "payload": {}}
         async for chunk in self.llm.acommunicate_stream(
-            action=decision.final_action, mode=decision.decision_mode,
-            state=decision.sympathetic_state.mode, sigma=decision.sympathetic_state.sigma,
-            circle=decision.social_evaluation.circle.value if decision.social_evaluation else "neutral_soto",
+            action=decision.final_action,
+            mode=decision.decision_mode,
+            state=decision.sympathetic_state.mode,
+            sigma=decision.sympathetic_state.sigma,
+            circle=decision.social_evaluation.circle.value
+            if decision.social_evaluation
+            else "neutral_soto",
             verdict=decision.moral.global_verdict.value if decision.moral else "Gray Zone",
             score=decision.moral.total_score if decision.moral else 0.0,
-            scenario=user_input, conversation_context=conv,
+            scenario=user_input,
+            conversation_context=conv,
             affect_pad=decision.affect.pad if decision.affect else None,
             dominant_archetype=decision.affect.dominant_archetype_id if decision.affect else "",
             identity_context=self.memory.identity.to_llm_context(),
@@ -1890,19 +2080,26 @@ class EthicalKernel:
 
         # 5. Finalize Result
         final_response = await self.llm.acommunicate(
-            action=decision.final_action, mode=decision.decision_mode,
-            state=decision.sympathetic_state.mode, sigma=decision.sympathetic_state.sigma,
-            circle=decision.social_evaluation.circle.value if decision.social_evaluation else "neutral_soto",
+            action=decision.final_action,
+            mode=decision.decision_mode,
+            state=decision.sympathetic_state.mode,
+            sigma=decision.sympathetic_state.sigma,
+            circle=decision.social_evaluation.circle.value
+            if decision.social_evaluation
+            else "neutral_soto",
             verdict=decision.moral.global_verdict.value if decision.moral else "Gray Zone",
             score=decision.moral.total_score if decision.moral else 0.0,
-            scenario=user_input, conversation_context=conv,
+            scenario=user_input,
+            conversation_context=conv,
             affect_pad=decision.affect.pad if decision.affect else None,
             dominant_archetype=decision.affect.dominant_archetype_id if decision.affect else "",
             identity_context=self.memory.identity.to_llm_context(),
         )
 
         malabs_detected = decision.absolute_evil.blocked if decision.absolute_evil else False
-        caution_val = decision.social_evaluation.caution_level if decision.social_evaluation else 0.5
+        caution_val = (
+            decision.social_evaluation.caution_level if decision.social_evaluation else 0.5
+        )
         profile = self.uchi_soto.profiles.get(agent_id)
         if profile is not None:
             stylized = self.charm_engine.apply(
@@ -1917,16 +2114,19 @@ class EthicalKernel:
             # Store charm vector in limbic metadata for WebSocket emission
             if stage.limbic_profile is not None:
                 stage.limbic_profile["charm_vector"] = stylized.charm_vector
-            
+
             from .modules.nomad_bridge import get_nomad_bridge
+
             try:
                 get_nomad_bridge().charm_feedback_queue.put_nowait(stylized.charm_vector)
             except Exception:
                 pass
-        
+
         res = ChatTurnResult(
-            response=final_response, path="heavy" if heavy else "light",
-            perception=stage.perception, decision=decision,
+            response=final_response,
+            path="heavy" if heavy else "light",
+            perception=stage.perception,
+            decision=decision,
             multimodal_trust=stage.multimodal_trust,
             epistemic_dissonance=stage.epistemic_dissonance,
             reality_verification=stage.reality_verification,
@@ -2247,10 +2447,9 @@ class EthicalKernel:
             if event["event_type"] == "turn_finished":
                 return event["payload"]["result"]
         # Fallback (should not reach)
-        return ChatTurnResult(response=VerbalResponse("Error in stream.", "firm"), path="turn_abandoned")
-
-
-
+        return ChatTurnResult(
+            response=VerbalResponse("Error in stream.", "firm"), path="turn_abandoned"
+        )
 
     def process_chat_turn(self, *args, **kwargs) -> ChatTurnResult:
         """Sync wrapper for legacy callers."""

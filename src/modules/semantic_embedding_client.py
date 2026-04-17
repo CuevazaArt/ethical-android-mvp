@@ -235,9 +235,69 @@ def http_fetch_ollama_embedding_with_policy(
     return None
 
 
+async def ahttp_fetch_ollama_embedding_with_policy(
+    url: str,
+    model: str,
+    prompt: str,
+    *,
+    timeout_s: float | None = None,
+) -> np.ndarray | None:
+    """
+    Async POST to Ollama ``/api/embeddings`` with the same retry/circuit policy as
+    :func:`http_fetch_ollama_embedding_with_policy`.
+    """
+    import asyncio
+
+    import httpx
+
+    t = (
+        timeout_s
+        if timeout_s is not None
+        else max(1.0, _env_float("KERNEL_SEMANTIC_EMBED_TIMEOUT_S", 12.0))
+    )
+    retries = max(0, _env_int("KERNEL_SEMANTIC_EMBED_RETRIES", 2))
+    backoff = max(0.0, _env_float("KERNEL_SEMANTIC_EMBED_BACKOFF_S", 0.25))
+
+    if _circuit_blocks():
+        return None
+
+    payload = {"model": model, "prompt": prompt}
+    last_err = ""
+    for attempt in range(retries + 1):
+        if _circuit_blocks():
+            break
+        t0 = time.perf_counter()
+        try:
+            async with httpx.AsyncClient(timeout=t) as client:
+                r = await client.post(url, json=payload)
+                r.raise_for_status()
+                data = r.json()
+                emb = data.get("embedding")
+                if not emb or not isinstance(emb, list):
+                    raise ValueError("missing or invalid embedding array")
+                arr = np.asarray([float(x) for x in emb], dtype=np.float64).reshape(-1)
+                if arr.size == 0 or not np.all(np.isfinite(arr)):
+                    raise ValueError("invalid embedding values")
+                n = float(np.linalg.norm(arr))
+                if n < 1e-12:
+                    raise ValueError("zero embedding")
+                vec_list = (arr / n).tolist()
+            latency_ms = (time.perf_counter() - t0) * 1000.0
+            _record_success(latency_ms)
+            return np.asarray(vec_list, dtype=np.float64)
+        except Exception as e:
+            last_err = repr(e)
+            if attempt < retries and backoff > 0:
+                await asyncio.sleep(backoff * (attempt + 1))
+    if last_err:
+        _record_failure(last_err)
+    return None
+
+
 def maybe_hash_fallback_embedding(text: str) -> np.ndarray | None:
     """If policy allows (hash_fallback), return hash-scoped vector; else ``None``."""
     from .llm_touchpoint_policies import resolve_embedding_backend_policy
+
     policy = resolve_embedding_backend_policy()
     if policy == "hash_fallback":
         return hash_scoped_unit_embedding(text)
