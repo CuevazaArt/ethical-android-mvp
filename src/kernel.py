@@ -29,40 +29,79 @@ class CorpusCallosumOrchestrator:
     """
     Architecture V1.5 - Triune Brain Orchestrator
     Actúa como el bus de eventos ligero entre los 3 Lóbulos Conscientes y el Cerebelo Adyacente.
+    Gestiona la serialización del estado y la propagación de traumas asíncronos.
     """
-    def __init__(self):
-        # 1. Instanciar Subconsciente
+    def __init__(self, kernel_ref: Optional['EthicalKernel'] = None):
+        self.kernel_ref = kernel_ref
+        
+        # 1. Instanciar Subconsciente (Cerebelo)
         self._hw_interrupt = threading.Event()
         self.cerebellum = CerebellumNode(self._hw_interrupt)
-        self.cerebellum.start()
+        
+        # 2. Instanciar Lóbulos Conscientes con inyección de dependencias del kernel actual
+        # Gradualmente estos lóbulos absorberán los componentes de EthicalKernel
+        self.perceptive_lobe = PerceptiveLobe(
+            llm=kernel_ref.llm, 
+            vision=kernel_ref.vision_engine
+        )
+        self.limbic_lobe = LimbicEthicalLobe(
+            abs_evil=kernel_ref.absolute_evil, 
+            bayesian=kernel_ref.bayesian
+        )
+        self.executive_lobe = ExecutiveLobe(
+            llm=kernel_ref.llm, 
+            motivation=kernel_ref.motivation
+        )
+        
+        _log.info("CorpusCallosumOrchestrator V1.5 Initialized.")
 
-        # 2. Instanciar Lóbulos Conscientes
-        self.perceptive_lobe = PerceptiveLobe()
-        self.limbic_lobe = LimbicEthicalLobe()
-        self.executive_lobe = ExecutiveLobe()
+    def boot(self):
+        """Inicia los hilos daemon (Cerebelo)."""
+        if not self.cerebellum.is_alive():
+            self.cerebellum.start()
+            _log.info("Cerebellum Somatic Node started.")
 
-    async def async_process(self, raw_input: str, multimodal_payload: dict = None) -> str:
+    async def async_process(self, raw_input: str, multimodal_payload: dict = None) -> tuple[SemanticState, EthicalSentence, str]:
         """
-        Ciclo V1.5 Puro: Aferencia -> Juicio -> Eferencia
+        Ciclo V1.5 Puro: Aferencia -> Juicio -> Eferencia.
+        Este es el punto de entrada asíncrono que hereda la lógica de process_natural.
         """
         if self._hw_interrupt.is_set():
-            return "SYSTEM_HALTED: Hardware Critical State (Cerebellum Interrupt Active)"
+            _log.critical("CorpusCallosum: Blocking execution due to Cerebellum hardware interrupt.")
+            # Reconstruir estado de error
+            error_state = SemanticState(perception_confidence=0.0, raw_prompt=raw_input)
+            error_ethics = EthicalSentence(is_safe=False, social_tension_locus=1.0, veto_reason="Cerebellum Hardware Interrupt")
+            return error_state, error_ethics, "SYSTEM_HALTED: Hardware Critical State (Cerebellum Interrupt Active)"
 
-        # 1) Percepción (Asíncrona)
-        semantic_state = await self.perceptive_lobe.observe(raw_input, multimodal_payload)
+        t_start = time.perf_counter()
 
-        # 2) Juicio (Sincrónico CPU-bound)
-        # Se ejecuta aislando el event loop a través de to_thread para no bloquear a otros requests
-        ethical_sentence = await asyncio.to_thread(self.limbic_lobe.judge, semantic_state)
+        try:
+            # 1) Percepción (Asíncrona + I/O LLM)
+            semantic_state = await self.perceptive_lobe.observe(raw_input, multimodal_payload)
+            
+            # 2) Juicio (Sincrónico CPU-bound)
+            ethical_sentence = await asyncio.to_thread(self.limbic_lobe.judge, semantic_state)
+            
+            # 3) Ejecución / Salida (Eferencia)
+            final_output = await asyncio.to_thread(self.executive_lobe.formulate_response, semantic_state, ethical_sentence)
+            
+            latency = (time.perf_counter() - t_start) * 1000
+            _log.debug("CorpusCallosum: Cycle completed in %.2fms", latency)
+            
+            return semantic_state, ethical_sentence, final_output
 
-        # 3) Ejecución / Salida
-        final_output = await asyncio.to_thread(self.executive_lobe.formulate_response, semantic_state, ethical_sentence)
-        
-        return final_output
+        except Exception as e:
+            _log.error("CorpusCallosum: Critical failure in cognitive cycle: %s", e, exc_info=True)
+            err_state = SemanticState(perception_confidence=0.0, raw_prompt=raw_input)
+            err_ethics = EthicalSentence(is_safe=False, social_tension_locus=1.0, veto_reason=str(e))
+            return err_state, err_ethics, f"SYSTEM_ERROR: Cognitive collapse. Details: {str(e)}"
 
     def shutdown(self):
+        """Cierre seguro del bus de eventos."""
+        _log.info("CorpusCallosum: Shutting down...")
         self.cerebellum.stop()
-        self.cerebellum.join()
+        if self.cerebellum.is_alive():
+            self.cerebellum.join(timeout=2.0)
 
 import os
 import threading
@@ -547,28 +586,26 @@ class EthicalKernel:
             if co and hasattr(co, "biographic_pruner") and co.biographic_pruner is not None
             else BiographicPruner()
         )
-        self.frontier_witness = FrontierWitnessManager(
-            node_id=os.environ.get("KERNEL_NODE_ID", "default_node")
-        )
-        self.privacy_shield = PrivacyShield(
-            node_id=os.environ.get("KERNEL_NODE_ID", "default_node")
-        )
         self.precedents = PrecedentRAG()
         self.governor = MultiRealmGovernor()
+        if not self.governor.get_realm("global"):
+            self.governor.create_realm("global")
         self.vision_engine = VisionInferenceEngine()
-        self.motivation = MotivationEngine()
         self.identity = IdentityIntegrityManager()
         # D3: Trigger Self-Healing if identity drift is detected during boot
         self.identity.perform_self_healing(dao_reputation=100.0) # Sync with DAO Truth
-        
+
         self.frontier_witness = FrontierWitnessManager(
             node_id=self.identity.snapshot.node_id
         )
         self.privacy_shield = PrivacyShield(
             node_id=self.identity.snapshot.node_id
         )
-        if not self.governor.get_realm("global"):
-            self.governor.create_realm("global")
+        # V1.5 Triune Brain Orchestration (Corpus Callosum)
+        self.orchestrator = CorpusCallosumOrchestrator(kernel_ref=self)
+        if _kernel_env_truthy("KERNEL_TRI_LOBE_ENABLED"):
+            self.orchestrator.boot()
+
         self.active_realm_id = os.environ.get("KERNEL_ACTIVE_REALM", "global")
 
         # Selective Amnesia (Block 5.1)
@@ -2750,6 +2787,57 @@ class EthicalKernel:
         )
 
 
+
+    async def process_chat_turn_async(
+        self,
+        user_input: str,
+        agent_id: str = "user",
+        place: str = "chat",
+        include_narrative: bool = False,
+        sensor_snapshot: SensorSnapshot | None = None,
+        escalate_to_dao: bool = False,
+        chat_turn_id: int | None = None,
+        cancel_event: threading.Event | None = None,
+    ) -> ChatTurnResult:
+        """
+        Architecture V1.5 - High-level Async Entry Point.
+        Delegates the entire cognitive loop to the CorpusCallosumOrchestrator.
+        Registers the resulting episode in NarrativeMemory for existential continuity.
+        """
+        if not _kernel_env_truthy("KERNEL_TRI_LOBE_ENABLED"):
+            # Fallback to the monolithic synchronous version wrapped in a thread
+            return await asyncio.to_thread(self.process_chat_turn, user_input, chat_turn_id=chat_turn_id)
+
+        # 1. Execute via Orchestrator (Tri-Lobe V1.5)
+        # We get the full cognitive state back
+        state, ethics, response_msg = await self.orchestrator.async_process(user_input, multimodal_payload={})
+
+        # 2. Episodic Closure (Register memory in the background thread to avoid blocking)
+        # This ensures the android "remembers" what just happened.
+        if ethics.is_safe:
+            await asyncio.to_thread(
+                self.memory.register,
+                place=place,
+                description=state.scenario_summary,
+                action=state.candidate_actions[0].name if state.candidate_actions else "verbal_interaction",
+                morals=ethics.morals,
+                verdict="Safe",
+                score=1.0 - ethics.social_tension_locus,
+                mode="D_fast",
+                sigma=ethics.social_tension_locus,
+                context=state.suggested_context
+            )
+
+        # 3. Reconstruct a minimal ChatTurnResult for backward compatibility
+        from .modules.llm_layer import VerbalResponse
+        return ChatTurnResult(
+            response=VerbalResponse(message=response_msg, tone="calm", hax_mode="Steady", inner_voice="Tri-Lobe V1.5"),
+            path="tri-lobe-v1.5",
+            perception=None, 
+            decision=None,   
+            narrative=None,
+            blocked=not ethics.is_safe
+        )
 
     def process_chat_turn(
         self,

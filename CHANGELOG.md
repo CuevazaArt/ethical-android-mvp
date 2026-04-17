@@ -14,15 +14,16 @@ All notable changes to this project are summarized here. For narrative context a
 
 ### Antigravity Team Updates (April 2026)
 
-### [Planificación: Desmonolitización de Kernel.py] - 2026-04-16
-#### Changed
-- Rediseño drástico del roadmap (`PLAN_WORK_DISTRIBUTION_TREE.md` y `PROPOSAL_LLM_VERTICAL_ROADMAP.md`) tras identificar debilidades estructurales severas (P0) en el runtime asíncrono y la inflación de gobernanza simulada.
-- Adopción de la **Directiva Paridad 75/25 de L0**: Limitando el TDD rígido a un 25% para concentrarse agresivamente en resolución pragmática de vulnerabilidades.
-- Presentación de la **Arquitectura Tri-Lobulada** (Perceptivo, Ético, Frontal/Motor) para separar E/S asíncrono, Matemáticas de Gobernanza y Redacción de Respuestas Generativas (`docs/proposals/PROPOSAL_TRI_LOBE_ARCHITECTURE.md`).
+### [Arquitectura: Desmonolitización Tri-Lobulada] - 2026-04-17
+#### Added
+- Estructura base de **Lóbulos Perceptivo, Límbico-Ético y Ejecutivo** en `src/kernel_lobes/`.
+- Definición de modelos de comunicación entre lóbulos (`SemanticState`, `EthicalSentence`, `TimeoutTrauma`).
+- Orquestador `CorpusCallosumOrchestrator` implementado como puente de eventos ligero.
+- Migración de tests legacy a `tests_historical_archive_v1` para reducir ruido en el refactor P0.
 
-#### Delegated
-- Emitida la solicitud `COPILOT_REQUEST_HEMISPHERE_REFACTOR.md` a Team Copilot (Nivel 2) para auditar y discutir los _Breaking Changes_ operacionales propuestos.
-- Emitida la solicitud `CLAUDE_REQUEST_HEMISPHERE_REFACTOR.md` a Claude (Nivel 2) para evaluar el impacto de la cancelación asíncrona sobre el ledger de la DAO, RLHF y modelos lógicos internos.
+#### Changed
+- Actualización de `src/kernel.py` para integrar el nuevo orquestador (en progreso).
+- Redefinición de `SemanticState` para incluir señales de percepción multimodal y acciones candidatas.
 
 ### [v1.3-alpha-immunity] - 2026-04-16
 #### Added

@@ -14,6 +14,10 @@ class SemanticState:
     """Raw, unjudged semantic interpretation from the Perceptive Lobe."""
     perception_confidence: float
     raw_prompt: str
+    scenario_summary: str
+    suggested_context: str
+    signals: Dict[str, float] = field(default_factory=dict)
+    candidate_actions: list[Any] = field(default_factory=list)
     visual_entities: list[str] = field(default_factory=list)
     audio_sentiment: float = 0.5
     sensory_latency_lag: int = 0
@@ -27,3 +31,4 @@ class EthicalSentence:
     veto_reason: Optional[str] = None
     dao_consensus_hash: Optional[str] = None
     applied_trauma_weight: float = 0.0
+    morals: Dict[str, str] = field(default_factory=dict)

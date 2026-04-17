@@ -101,8 +101,28 @@ Este documento estructura el inmenso volumen de trabajo arquitectónico definido
 
 - **Bloque 7.1: Moneda de Reparación (EthosToken Integration)**
   - Tarea 7.1.1: Vincular los resultados del voto Swarm (M6.2) con transferencias de `EthosToken` (simuladas) para compensar a los usuarios afectados por negligencia sensorial.
-- **Bloque 7.2: Difusión de Reputación Negativa (Slashing)**
-  - Tarea 7.2.1: Implementar lógica para degradar la reputación de un nodo en el `SwarmOracle` central si sus testigos son desmentidos por la mayoría de la red.
+### ⚪ Módulo 8: Arquitectura Tri-Lobulada (V1.5) - Desmonolitización P0
+*Responsabilidad: Nivel 1 (Antigravity - Orquestación) / Nivel 2 (Ejecución)*
+*Objetivo: Separar físicamente la cognición en 3 lóbulos para maximizar la eficiencia asíncrona y la seguridad ética.*
+
+- **Bloque 8.1: Lóbulo Perceptivo (Aferente / Asíncrono)**
+  - *Responsabilidad:* **Team Cursor**
+  - *Estado:* 🟢 **En progreso**. Estructura asíncrona establecida. Migración de `aperceive` completada.
+- **Bloque 8.2: Lóbulo Límbico-Ético (Núcleo / Sincrónico CPU)**
+  - *Responsabilidad:* **Claude**
+  - *Estado:* 🟢 **En progreso**. Lógica de juicio integrada con `AbsoluteEvil`. Aislamiento de red verificado.
+- **Bloque 8.3: Lóbulo Ejecutivo (Eferente / Híbrido)**
+  - *Responsabilidad:* **Team Copilot**
+  - *Estado:* 🟢 **En progreso**. Motor de respuesta y motivación vinculados.
+- **Bloque 8.4: Cerebelo Somático (Apoyo Subconsciente)**
+  - *Responsabilidad:* **Team Copilot**
+  - *Estado:* 🟡 Pendiente integración de sensores de vitalidad a 100Hz.
+- **Bloque 8.5: Corpus Callosum (Orquestación L1)**
+  - *Responsabilidad:* **Antigravity**
+  - *Estado:* 🟢 **Fase 1 Completada**. Orquestador inyectado en `kernel.py` con delegación cognitiva funcional.
+- **Bloque 8.6: Validación de Aislamiento y Red-Teaming (V1.5)**
+  - *Responsabilidad:* **Team VisualStudio**
+  - *Estado:* 🟡 Pendiente creación de suite de auditoría de latencia.
 
 ---
 
