@@ -10,6 +10,7 @@ class CerebellumNode(threading.Thread):
     Monitors hardware sensors at ultra-high frequency.
     Interrumpe al Lóbulo Ejecutivo si los motores o batería están en estado crítico.
     """
+
     def __init__(self, hardware_interrupt_event: threading.Event) -> None:
         super().__init__(daemon=True, name="CerebellumSomaticNode")
         self.interrupt_event = hardware_interrupt_event
