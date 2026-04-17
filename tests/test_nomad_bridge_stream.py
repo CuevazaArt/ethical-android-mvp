@@ -143,3 +143,27 @@ def test_nomad_charm_feedback(nomad_client):
         response = websocket.receive_json()
         assert response["type"] == "charm_feedback"
         assert response["payload"]["warmth"] == 0.8
+
+
+@pytest.mark.asyncio
+async def test_nomad_vision_skipped_when_decoded_exceeds_limit(monkeypatch, nomad_client):
+    monkeypatch.setenv("KERNEL_NOMAD_MAX_VISION_FRAME_BYTES", "64")
+    bridge = get_nomad_bridge()
+    raw_big = b"z" * 200
+    b64 = base64.b64encode(raw_big).decode("ascii")
+    with nomad_client.websocket_connect("/ws/nomad") as websocket:
+        websocket.send_json({"type": "vision_frame", "payload": {"image_b64": b64}})
+        await asyncio.sleep(0.25)
+    assert bridge.vision_queue.empty()
+
+
+@pytest.mark.asyncio
+async def test_nomad_audio_skipped_when_decoded_exceeds_limit(monkeypatch, nomad_client):
+    monkeypatch.setenv("KERNEL_NOMAD_MAX_AUDIO_PCM_BYTES", "40")
+    bridge = get_nomad_bridge()
+    raw_big = np.zeros(500, dtype=np.float32)
+    b64 = base64.b64encode(raw_big.tobytes()).decode("utf-8")
+    with nomad_client.websocket_connect("/ws/nomad") as websocket:
+        websocket.send_json({"type": "audio_pcm", "payload": {"audio_b64": b64}})
+        await asyncio.sleep(0.25)
+    assert bridge.audio_queue.empty()

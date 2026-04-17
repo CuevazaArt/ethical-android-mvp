@@ -15,18 +15,59 @@ Latest ``telemetry`` payloads are mirrored for synchronous readers (Module S.2.1
 ``vitality.merge_nomad_telemetry_into_snapshot`` / ``KERNEL_NOMAD_TELEMETRY_VITALITY``).
 That merge step normalizes common mobile key aliases (e.g. ``battery``, ``core_temperature_c``, ``jerk``)
 onto :class:`~src.modules.sensor_contracts.SensorSnapshot` field names before parsing.
+
+**Decoded size caps (LAN hardening):** ``KERNEL_NOMAD_MAX_VISION_FRAME_BYTES`` (default 5 MiB) and
+``KERNEL_NOMAD_MAX_AUDIO_PCM_BYTES`` (default 1 MiB) bound base64 payloads before they enter bounded queues.
 """
 
 import asyncio
 import base64
 import binascii
 import logging
+import os
 import threading
 from typing import Any
 
 from fastapi import FastAPI, WebSocket, WebSocketDisconnect
 
 _log = logging.getLogger(__name__)
+
+
+def _parse_positive_int_env(name: str, default: int) -> int:
+    raw = os.environ.get(name, "").strip()
+    if not raw:
+        return default
+    try:
+        v = int(raw, 10)
+        return default if v <= 0 else v
+    except ValueError:
+        return default
+
+
+def max_vision_frame_bytes() -> int:
+    """Upper bound on decoded JPEG bytes accepted from ``vision_frame`` (env override)."""
+
+    return _parse_positive_int_env("KERNEL_NOMAD_MAX_VISION_FRAME_BYTES", 5_242_880)
+
+
+def max_audio_pcm_bytes() -> int:
+    """Upper bound on decoded PCM chunk bytes from ``audio_pcm`` (env override)."""
+
+    return _parse_positive_int_env("KERNEL_NOMAD_MAX_AUDIO_PCM_BYTES", 1_048_576)
+
+
+def _decoded_upper_bound_from_b64_len(n: int) -> int:
+    """RFC 4648 — maximum possible decoded length from a base64 string of character length ``n``."""
+
+    if n <= 0:
+        return 0
+    return (n * 3 + 3) // 4
+
+
+def _b64_fits_decoded_limit(b64_s: str, max_raw: int) -> bool:
+    if max_raw <= 0 or not isinstance(b64_s, str):
+        return False
+    return _decoded_upper_bound_from_b64_len(len(b64_s)) <= max_raw
 
 
 class NomadBridge:
@@ -109,22 +150,28 @@ class NomadBridge:
                     if self.vision_queue.full():
                         self.vision_queue.get_nowait()
                     b64_img = payload.get("image_b64", "")
+                    lim = max_vision_frame_bytes()
+                    if not _b64_fits_decoded_limit(b64_img, lim):
+                        continue
                     try:
                         raw = base64.b64decode(b64_img, validate=False)
                     except (binascii.Error, ValueError):
                         continue
-                    if raw:
+                    if raw and len(raw) <= lim:
                         self.vision_queue.put_nowait(raw)
 
                 elif event_type == "audio_pcm":
                     if self.audio_queue.full():
                         self.audio_queue.get_nowait()
                     b64_pcm = payload.get("audio_b64", "")
+                    lim_a = max_audio_pcm_bytes()
+                    if not _b64_fits_decoded_limit(b64_pcm, lim_a):
+                        continue
                     try:
                         raw_audio = base64.b64decode(b64_pcm, validate=False)
                     except (binascii.Error, ValueError):
                         continue
-                    if raw_audio:
+                    if raw_audio and len(raw_audio) <= lim_a:
                         self.audio_queue.put_nowait(raw_audio)
 
                 elif event_type == "telemetry":
