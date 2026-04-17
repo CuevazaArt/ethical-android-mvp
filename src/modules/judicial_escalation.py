@@ -15,13 +15,13 @@ import os
 import uuid
 from dataclasses import dataclass, field
 from datetime import datetime
-from enum import Enum
+from enum import StrEnum
 from typing import Any
 
 from .ethical_reflection import ReflectionSnapshot
 
 
-class EscalationPhase(str, Enum):
+class EscalationPhase(StrEnum):
     """Session lifecycle for V11."""
 
     IDLE = "idle"

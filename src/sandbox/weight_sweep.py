@@ -17,7 +17,7 @@ from __future__ import annotations
 import itertools
 from collections.abc import Iterator
 from dataclasses import dataclass
-from enum import Enum
+from enum import StrEnum
 
 import numpy as np
 
@@ -45,7 +45,7 @@ def _clip_pole_dict(w: dict[str, float]) -> dict[str, float]:
     return {k: float(np.clip(v, lo, hi)) for k, v in w.items()}
 
 
-class SweepMode(str, Enum):
+class SweepMode(StrEnum):
     axes = "axes"
     grid = "grid"
     random = "random"

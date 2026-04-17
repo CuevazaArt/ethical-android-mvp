@@ -9,11 +9,11 @@ No device drivers here — only typed profiles and apply hooks.
 from __future__ import annotations
 
 from dataclasses import dataclass, field
-from enum import Enum
+from enum import StrEnum
 from typing import Any
 
 
-class ComputeTier(str, Enum):
+class ComputeTier(StrEnum):
     """Rough lung capacity — inference budget."""
 
     SERVER_HIGH = "server_high"  # e.g. 70B class remote

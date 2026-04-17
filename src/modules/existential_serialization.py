@@ -18,7 +18,7 @@ import hashlib
 import json
 import os
 from dataclasses import dataclass
-from enum import Enum
+from enum import StrEnum
 from typing import Any
 
 from .hub_audit import register_hub_calibration
@@ -40,7 +40,7 @@ except ImportError:  # pragma: no cover - optional in exotic installs
 HANDSHAKE_ALGORITHM_V1 = "ed25519-sha256-commitment-v1"
 
 
-class TransmutationPhase(str, Enum):
+class TransmutationPhase(StrEnum):
     """Protocol of transmutation — Phases A–D (design doc)."""
 
     ENCAPSULATE = "A_encapsulate"
