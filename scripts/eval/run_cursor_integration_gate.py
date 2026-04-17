@@ -32,6 +32,8 @@ TEST_TARGETS = [
     "tests/test_transparency_s10.py",
     # Nomad LAN bridge Module S.1 (PLAN_WORK_DISTRIBUTION_TREE)
     "tests/test_nomad_bridge_stream.py",
+    # Nomad → Vitality merge Module S.2.1 (peek_latest_telemetry + merge_nomad_telemetry_into_snapshot)
+    "tests/test_vitality.py",
 ]
 
 
