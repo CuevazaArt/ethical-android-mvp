@@ -213,7 +213,12 @@ from .modules.uchi_soto import SocialEvaluation, TrustCircle, UchiSotoModule
 from .modules.user_model import UserModelTracker
 from .modules.variability import VariabilityConfig, VariabilityEngine
 from .modules.vision_adapter import VisionInference
-from .modules.vitality import VitalityAssessment, assess_vitality, vitality_communication_hint
+from .modules.vitality import (
+    VitalityAssessment,
+    assess_vitality,
+    merge_nomad_telemetry_into_snapshot,
+    vitality_communication_hint,
+)
 from .modules.weakness_pole import WeaknessPole
 from .modules.weighted_ethics_scorer import CandidateAction, WeightedEthicsScorer
 from .modules.working_memory import WorkingMemory
@@ -1577,6 +1582,21 @@ class EthicalKernel:
         """
         return self._preprocess_text_observability(user_input)
 
+    def _merge_nomad_telemetry_for_vitality(
+        self, sensor_snapshot: SensorSnapshot | None
+    ) -> SensorSnapshot | None:
+        """Optional Nomad LAN telemetry backfill before vitality (Module S.2.1)."""
+        raw = os.environ.get("KERNEL_NOMAD_TELEMETRY_VITALITY", "1").strip().lower()
+        if raw in ("0", "false", "no", "off"):
+            return sensor_snapshot
+        try:
+            from .modules.nomad_bridge import get_nomad_bridge
+
+            telem = get_nomad_bridge().peek_latest_telemetry()
+        except Exception:
+            return sensor_snapshot
+        return merge_nomad_telemetry_into_snapshot(sensor_snapshot, telem)
+
     def _chat_assess_sensor_stack(
         self, sensor_snapshot: SensorSnapshot | None
     ) -> tuple[VitalityAssessment, MultimodalAssessment, EpistemicDissonanceAssessment]:
@@ -1587,6 +1607,7 @@ class EthicalKernel:
         parallel when ``KERNEL_PERCEPTION_PARALLEL=1``. Epistemic dissonance then derives from
         the multimodal result.
         """
+        sensor_snapshot = self._merge_nomad_telemetry_for_vitality(sensor_snapshot)
         workers = _perception_parallel_workers()
         if workers <= 1:
             vitality = assess_vitality(sensor_snapshot)

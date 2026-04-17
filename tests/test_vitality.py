@@ -10,6 +10,7 @@ from src.modules.vitality import (
     VitalityAssessment,
     assess_vitality,
     critical_battery_threshold,
+    merge_nomad_telemetry_into_snapshot,
     vitality_communication_hint,
 )
 
@@ -34,12 +35,35 @@ def test_critical_threshold_env(monkeypatch):
 
 
 def test_vitality_hint_only_when_critical():
-    assert vitality_communication_hint(VitalityAssessment(0.5, 0.05, False)) == ""
-    h = vitality_communication_hint(VitalityAssessment(0.02, 0.05, True))
+    assert (
+        vitality_communication_hint(
+            VitalityAssessment(0.5, 0.05, False, None, 80.0, False, False)
+        )
+        == ""
+    )
+    h = vitality_communication_hint(
+        VitalityAssessment(0.02, 0.05, True, None, 80.0, False, False)
+    )
     assert "vitality" in h.lower() or "power" in h.lower() or "operational" in h.lower()
 
 
+def test_merge_nomad_fills_missing_battery():
+    base = SensorSnapshot(battery_level=None, core_temperature=None)
+    nomad = {"battery_level": 0.4, "core_temperature": 42.0}
+    merged = merge_nomad_telemetry_into_snapshot(base, nomad)
+    assert merged is not None
+    assert merged.battery_level == 0.4
+    assert merged.core_temperature == 42.0
+
+
+def test_merge_prefers_existing_client_battery():
+    base = SensorSnapshot(battery_level=0.9)
+    nomad = {"battery_level": 0.1}
+    merged = merge_nomad_telemetry_into_snapshot(base, nomad)
+    assert merged.battery_level == 0.9
+
+
 def test_to_public_dict():
-    d = VitalityAssessment(0.04, 0.05, True).to_public_dict()
+    d = VitalityAssessment(0.04, 0.05, True, None, 80.0, False, False).to_public_dict()
     assert d["is_critical"] is True
     assert d["battery_unknown"] is False

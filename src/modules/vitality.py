@@ -9,7 +9,8 @@ See docs/proposals/README.md §1–2
 from __future__ import annotations
 
 import os
-from dataclasses import dataclass
+from dataclasses import dataclass, fields, replace
+from typing import Any
 
 from .sensor_contracts import SensorSnapshot
 
@@ -75,6 +76,40 @@ class VitalityAssessment:
             "thermal_critical": self.thermal_critical,
             "is_impacted": self.is_impacted,
         }
+
+
+def merge_nomad_telemetry_into_snapshot(
+    snapshot: SensorSnapshot | None,
+    nomad: dict[str, Any] | None,
+) -> SensorSnapshot | None:
+    """
+    Module S.2.1 — Merge latest Nomad LAN ``telemetry`` payload into a sensor snapshot.
+
+    Fields already present on ``snapshot`` (e.g. chat ``sensor`` JSON from the operator client)
+    take precedence; Nomad only **fills gaps** so real device telemetry can backfill missing
+    battery / thermal / jerk hints without overriding an explicit session.
+    """
+    if not nomad:
+        return snapshot
+    patch = SensorSnapshot.from_dict(nomad, strict=False)
+    if snapshot is None:
+        return patch
+
+    overrides: dict[str, Any] = {}
+    for f in fields(SensorSnapshot):
+        name = f.name
+        cur = getattr(snapshot, name)
+        pat = getattr(patch, name)
+        if name == "backup_just_completed":
+            merged = bool(cur or pat)
+            if merged is not cur:
+                overrides[name] = merged
+            continue
+        if cur is None and pat is not None:
+            overrides[name] = pat
+    if not overrides:
+        return snapshot
+    return replace(snapshot, **overrides)
 
 
 def assess_vitality(snapshot: SensorSnapshot | None) -> VitalityAssessment:

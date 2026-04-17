@@ -26,6 +26,24 @@ def nomad_client(monkeypatch):
         yield client
         
 @pytest.mark.asyncio
+async def test_peek_latest_telemetry_s2_1(nomad_client):
+    """Module S.2.1 — mirror last telemetry for sync vitality merge."""
+    bridge = get_nomad_bridge()
+    with nomad_client.websocket_connect("/ws/nomad") as websocket:
+        websocket.send_json(
+            {
+                "type": "telemetry",
+                "payload": {"battery_level": 0.71, "core_temperature": 36.5},
+            }
+        )
+        await asyncio.sleep(0.15)
+    peek = bridge.peek_latest_telemetry()
+    assert peek is not None
+    assert abs(float(peek["battery_level"]) - 0.71) < 1e-6
+    assert float(peek["core_temperature"]) == 36.5
+
+
+@pytest.mark.asyncio
 async def test_nomad_bridge_websocket_handshake(nomad_client):
     with nomad_client.websocket_connect("/ws/nomad") as websocket:
         # Simulate smartphone sending telemetry

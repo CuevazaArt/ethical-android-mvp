@@ -30,6 +30,7 @@ KERNEL_MULTIMODAL_SCENE_SUPPORT, KERNEL_MULTIMODAL_VISION_CONTRADICT, KERNEL_MUL
 — see README / multimodal_trust.thresholds_from_env.
 
 Vitality (optional): KERNEL_VITALITY_CRITICAL_BATTERY, KERNEL_CHAT_INCLUDE_VITALITY — see vitality.py.
+Nomad S.2.1: ``KERNEL_NOMAD_TELEMETRY_VITALITY`` (default on) merges last Nomad ``telemetry`` into the sensor snapshot before vitality when fields are missing — see ``vitality.merge_nomad_telemetry_into_snapshot``.
 
 Guardian Angel (optional, opt-in): KERNEL_GUARDIAN_MODE=1 enables protective tone in LLM layer only;
 KERNEL_CHAT_INCLUDE_GUARDIAN — omit ``guardian_mode`` key from JSON if 0. KERNEL_GUARDIAN_ROUTINES,

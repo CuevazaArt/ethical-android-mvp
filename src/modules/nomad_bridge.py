@@ -10,12 +10,16 @@ WebSocket JSON events (client → server):
 Server → client: ``type: charm_feedback``, ``payload``: charm vector dict (from kernel).
 
 ``NomadVisionConsumer`` in ``vision_adapter.py`` drains ``vision_queue``; audio adapter drains ``audio_queue``.
+
+Latest ``telemetry`` payloads are mirrored for synchronous readers (Module S.2.1 — vitality merge in
+``vitality.merge_nomad_telemetry_into_snapshot`` / ``KERNEL_NOMAD_TELEMETRY_VITALITY``).
 """
 
 import asyncio
 import base64
 import binascii
 import logging
+import threading
 from typing import Any
 
 from fastapi import FastAPI, WebSocket, WebSocketDisconnect
@@ -36,6 +40,8 @@ class NomadBridge:
         self.audio_queue: asyncio.Queue[bytes] = asyncio.Queue(maxsize=30)
         self.telemetry_queue: asyncio.Queue[dict[str, Any]] = asyncio.Queue(maxsize=10)
         self.charm_feedback_queue: asyncio.Queue[dict[str, Any]] = asyncio.Queue(maxsize=10)
+        self._telemetry_lock = threading.Lock()
+        self._latest_telemetry: dict[str, Any] | None = None
         
         self.app = FastAPI(title="Ethos Nomad Bridge")
         
@@ -57,6 +63,13 @@ class NomadBridge:
                 task.cancel()
                 
             _log.info("Nomad Bridge: client disconnected.")
+
+    def peek_latest_telemetry(self) -> dict[str, Any] | None:
+        """Thread-safe copy of the last ``telemetry`` payload (for vitality / kernel sync path)."""
+        with self._telemetry_lock:
+            if not self._latest_telemetry:
+                return None
+            return dict(self._latest_telemetry)
 
     def public_queue_stats(self) -> dict[str, Any]:
         """JSON-safe queue depths for operators (GET /metrics hooks, health dashboards)."""
@@ -108,6 +121,9 @@ class NomadBridge:
                     if self.telemetry_queue.full():
                         self.telemetry_queue.get_nowait()
                     self.telemetry_queue.put_nowait(payload)
+                    if isinstance(payload, dict):
+                        with self._telemetry_lock:
+                            self._latest_telemetry = dict(payload)
                         
         except WebSocketDisconnect:
             pass
