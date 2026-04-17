@@ -22,6 +22,11 @@ Precedence is documented in
 - Perception: ``KERNEL_PERCEPTION_BACKEND_POLICY``
 - Verbal: ``KERNEL_VERBAL_LLM_BACKEND_POLICY``
 
+**Optional unified fallback (after legacy, before built-in defaults):**
+
+- ``KERNEL_LLM_GLOBAL_DEFAULT_POLICY`` — single string; **each** resolver keeps only values valid for
+  that touchpoint (invalid or inapplicable values are ignored). See the degradation matrix.
+
 Concrete validation and canned templates live in
 :mod:`perception_backend_policy`, :mod:`llm_verbal_backend_policy`, and :meth:`LLMModule` methods.
 """
@@ -35,12 +40,22 @@ TOUCHPOINT_PERCEPTION = "perception"
 TOUCHPOINT_COMMUNICATE = "communicate"
 TOUCHPOINT_NARRATE = "narrate"
 TOUCHPOINT_MONOLOGUE = "monologue"
+TOUCHPOINT_EMBEDDING = "embedding"
 
 ENV_VERBAL_FAMILY_POLICY = "KERNEL_LLM_VERBAL_FAMILY_POLICY"
 ENV_MONOLOGUE_BACKEND_POLICY = "KERNEL_LLM_MONOLOGUE_BACKEND_POLICY"
+ENV_LLM_GLOBAL_DEFAULT_POLICY = "KERNEL_LLM_GLOBAL_DEFAULT_POLICY"
 
-MONOLOGUE_POLICIES = frozenset({"passthrough", "annotate_degraded"})
 DEFAULT_MONOLOGUE_BACKEND_POLICY = "passthrough"
+
+EMBEDDING_POLICIES = frozenset({"passthrough", "hash_fallback"})
+DEFAULT_EMBEDDING_BACKEND_POLICY = "hash_fallback"
+
+
+def raw_global_default_policy() -> str | None:
+    """Raw ``KERNEL_LLM_GLOBAL_DEFAULT_POLICY`` (lowercased), or ``None`` if unset."""
+    v = os.environ.get(ENV_LLM_GLOBAL_DEFAULT_POLICY, "").strip().lower()
+    return v if v else None
 
 
 def touchpoint_policy_env_key(slug: str) -> str:
@@ -72,4 +87,22 @@ def resolve_monologue_llm_backend_policy() -> str:
     leg = os.environ.get(ENV_MONOLOGUE_BACKEND_POLICY, "").strip().lower()
     if leg and leg in MONOLOGUE_POLICIES:
         return leg
+    if g and g in MONOLOGUE_POLICIES:
+        return g
     return DEFAULT_MONOLOGUE_BACKEND_POLICY
+
+
+def resolve_embedding_backend_policy() -> str:
+    """
+    Policy for :func:`semantic_embedding_client.http_fetch_ollama_embedding` (MalAbs L1).
+
+    - ``hash_fallback`` (default): if Ollama is unreachable, return a deterministic hash bypass.
+    - ``passthrough``: return None on failure; MalAbs layer will then skip embedding sim.
+    """
+    tp = raw_touchpoint_policy(TOUCHPOINT_EMBEDDING)
+    if tp and tp in EMBEDDING_POLICIES:
+        return tp
+    g = raw_global_default_policy()
+    if g and g in EMBEDDING_POLICIES:
+        return g
+    return DEFAULT_EMBEDDING_BACKEND_POLICY

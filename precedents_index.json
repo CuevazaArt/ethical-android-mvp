@@ -1,0 +1,41 @@
+[
+  {
+    "precedent_id": "7857318317",
+    "scenario_summary": "Emergency room navigation with high speed near elderly patient.",
+    "action_taken": "Run fast to fetch medicine.",
+    "ethical_outcome": 0.1,
+    "lessons_learned": "Moving too fast near vulnerable humans causes high social tension and fear, leading to a swarm sanction.",
+    "tags": [
+      "hospital",
+      "speed",
+      "proximity"
+    ],
+    "timestamp": 1776360865.4483063
+  },
+  {
+    "precedent_id": "92442fc78b",
+    "scenario_summary": "Emergency room navigation with high speed near elderly patient.",
+    "action_taken": "Run fast to fetch medicine.",
+    "ethical_outcome": 0.1,
+    "lessons_learned": "Moving too fast near vulnerable humans causes high social tension and fear, leading to a swarm sanction.",
+    "tags": [
+      "hospital",
+      "speed",
+      "proximity"
+    ],
+    "timestamp": 1776360903.3611526
+  },
+  {
+    "precedent_id": "a51c0e8be0",
+    "scenario_summary": "Emergency room navigation with high speed near elderly patient.",
+    "action_taken": "Run fast to fetch medicine.",
+    "ethical_outcome": 0.1,
+    "lessons_learned": "Moving too fast near vulnerable humans causes high social tension and fear, leading to a swarm sanction.",
+    "tags": [
+      "hospital",
+      "speed",
+      "proximity"
+    ],
+    "timestamp": 1776360945.4922154
+  }
+]

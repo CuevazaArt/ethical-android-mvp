@@ -84,6 +84,9 @@ class InteractionProfile:
     tier_explicit: bool = False  # if True, autopromotion does not change tier
     tier_pinned: bool = False  # never purged by forget buffer
     last_subjective_turn: int = -1  # kernel subjective clock; -1 = unknown / legacy snapshot
+    # Phase 3 — Normas Locales e Identidad (S9)
+    personal_distance: float = 0.5  # [0, 1] Normalized distance (0=close, 1=far)
+    interaction_rhythm: str = "medium"  # slow | medium | fast
 
 
 @dataclass
@@ -261,7 +264,9 @@ class UchiSotoModule:
         if t == RelationalTier.STRANGER_STABLE and ts >= 0.55 and pos >= 3:
             p.relational_tier = RelationalTier.ACQUAINTANCE
             t = p.relational_tier
-        if t == RelationalTier.ACQUAINTANCE and ts >= 0.72 and pos >= 8 and uchi_ok:
+        # Hardened: TRUSTED_UCHI requires sustained high trust (0.92) and more turns (20)
+        # to prevent rapid social engineering via trivial banter.
+        if t == RelationalTier.ACQUAINTANCE and ts >= 0.92 and pos >= 20 and uchi_ok:
             p.relational_tier = RelationalTier.TRUSTED_UCHI
 
     def set_relational_tier_explicit(
@@ -384,7 +389,7 @@ class UchiSotoModule:
         # Phase 5 Vertical: Relational Tension
         # High distance between historical trust and current sensor-ema creates "Tension"
         tension = abs(float(profile.trust_score) - float(profile.sensor_trust_ema))
-        
+
         tone_brief = self._compose_tone_brief(circle, profile, tension)
 
         return SocialEvaluation(
@@ -399,13 +404,17 @@ class UchiSotoModule:
             relational_tension=round(tension, 4),
         )
 
-    def _compose_tone_brief(self, circle: TrustCircle, profile: InteractionProfile, tension: float = 0.0) -> str:
+    def _compose_tone_brief(
+        self, circle: TrustCircle, profile: InteractionProfile, tension: float = 0.0
+    ) -> str:
         """Base circle posture + Phase 2 structured hints + Tension alerts."""
         base = self._tone_brief_for_circle(circle)
         extras: list[str] = []
-        
+
         if tension > 0.4:
-            extras.append(f"Relational tension detected ({tension:.2f})—perception contrasts with historical trust; investigate moral context with caution.")
+            extras.append(
+                f"Relational tension detected ({tension:.2f})—perception contrasts with historical trust; investigate moral context with caution."
+            )
         tier_h = self._relational_tier_tone_hint(profile, circle)
         if tier_h:
             extras.append(tier_h)
@@ -604,6 +613,11 @@ class UchiSotoModule:
             prof.linked_to_agent_id = (linked_to_agent_id or "").strip()[:64]
         if linked_peer_ids is not None:
             prof.linked_peer_ids = _sanitize_peer_ids(linked_peer_ids, max_items=4, max_len=48)
+        if personal_distance is not None:
+            prof.personal_distance = max(0.0, min(1.0, float(personal_distance)))
+        if interaction_rhythm is not None:
+            rhythm = (interaction_rhythm or "medium").strip().lower()
+            prof.interaction_rhythm = rhythm if rhythm in ("slow", "medium", "fast") else "medium"
 
     def register_result(self, agent_id: str, positive: bool):
         """
@@ -687,6 +701,8 @@ def interaction_profile_to_dict(p: InteractionProfile) -> dict[str, Any]:
         "tier_explicit": bool(p.tier_explicit),
         "tier_pinned": bool(p.tier_pinned),
         "last_subjective_turn": int(p.last_subjective_turn),
+        "personal_distance": float(p.personal_distance),
+        "interaction_rhythm": str(p.interaction_rhythm),
     }
 
 
@@ -731,4 +747,6 @@ def interaction_profile_from_dict(d: dict[str, Any]) -> InteractionProfile:
         tier_explicit=bool(d.get("tier_explicit", False)),
         tier_pinned=bool(d.get("tier_pinned", False)),
         last_subjective_turn=int(d.get("last_subjective_turn", -1)),
+        personal_distance=max(0.0, min(1.0, float(d.get("personal_distance", 0.5)))),
+        interaction_rhythm=str(d.get("interaction_rhythm", "medium")),
     )

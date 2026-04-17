@@ -13,7 +13,7 @@ The historical module and class names (`bayesian_engine`, `BayesianEngine`) sugg
 ## Decision
 
 1. **Canonical implementation** lives in [`src/modules/weighted_ethics_scorer.py`](../../src/modules/weighted_ethics_scorer.py) with primary types `WeightedEthicsScorer` and `EthicsMixtureResult`.
-2. **Backward compatibility:** [`src/modules/bayesian_engine.py`](../../src/modules/bayesian_engine.py) remains a thin **re-export shim**; `BayesianEngine` and `BayesianResult` are **aliases** of the weighted mixture API.
+2. **Backward compatibility:** [`src/modules/bayesian_engine.py`](../../src/modules/bayesian_engine.py) exports `BayesianEngine` as an alias of `BayesianInferenceEngine`, which **wraps** `WeightedEthicsScorer` and may run optional telemetry or posterior-assisted modes (see module docstring; related ADR 0012). `BayesianResult` aliases `EthicsMixtureResult`. Default behavior remains mixture-first; the export name stays historically loaded.
 3. **Environment variables** retaining `KERNEL_BAYESIAN_*` (e.g. `KERNEL_BAYESIAN_EMPIRICAL_WEIGHTS`, `KERNEL_BAYESIAN_LEGACY_AFFINE_VALUATIONS`) are **not** renamed in this ADR, to avoid breaking deployments; their documented meaning is “mixture weights / legacy valuation mode,” not “run full Bayes.”
 
 ## Consequences

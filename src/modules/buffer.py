@@ -127,12 +127,10 @@ class PreloadedBuffer:
         Used to detect illegal runtime mutations (Issue 6).
         """
         import hashlib
-        
+
         # Sort by name for stability
         rows = sorted(self.principles.items())
-        blob = "|".join(
-            f"{n}:{p.description}:{p.weight}:{p.active}" for n, p in rows
-        )
+        blob = "|".join(f"{n}:{p.description}:{p.weight}:{p.active}" for n, p in rows)
         return hashlib.sha256(blob.encode("utf-8")).hexdigest()[:16]
 
     def verify_integrity(self) -> bool:

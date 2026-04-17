@@ -24,7 +24,7 @@ Cada **clase de hardware** (PC de escritorio, portátil, smartphone Android/iOS,
 | **PC / workstation** | Kernel completo, LLM pesado, checkpoints en disco | Python 3.9+, dependencias `requirements.txt`, opcional Ollama; firewall OS. |
 | **Smartphone (browser)** | Cliente ligero + **primer acceso a sensores vía web** (cuando el navegador exponga APIs) | Misma página `mobile.html` / extensión futura; objeto `sensor` en JSON del WebSocket ([README](README.md), v8). |
 | **Smartphone (app nativa futura)** | Sensores de bajo nivel, mejor latencia, offline parcial | Contrato de empaquetado (WebSocket/TLS), permisos OS, posible bridge nativo → JSON `sensor`. |
-| **Otro edge** | Sólo inferencia pequeña o relé | [conduct_guide_export](../src/modules/conduct_guide_export.py), destilación ([context_distillation](../src/modules/context_distillation.py)), schema de snapshot. |
+| **Otro edge** | Sólo inferencia pequeña o relé | [conduct_guide_export](../../src/modules/conduct_guide_export.py), destilación ([context_distillation](../../src/modules/context_distillation.py)), schema de snapshot. |
 
 **Principio:** la **lógica ética** permanece en los caminos documentados del kernel; las **capas de compatibilidad** son transporte, permisos, formato de sensores, seguridad de red y empaquetado — cada una evoluciona por clase de dispositivo.
 

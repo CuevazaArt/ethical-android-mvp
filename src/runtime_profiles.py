@@ -120,6 +120,14 @@ RUNTIME_PROFILES: Final[dict[str, dict[str, str]]] = {
         "KERNEL_SEMANTIC_CHAT_GATE": "1",
         "KERNEL_SEMANTIC_EMBED_HASH_FALLBACK": "1",
     },
+    # MODEL_CRITICAL_BACKLOG #2 / G-04 — conservative LLM fallbacks for staging (explicit TP + global verbal).
+    "llm_staging_conservative": {
+        "KERNEL_SEMANTIC_CHAT_GATE": "1",
+        "KERNEL_SEMANTIC_EMBED_HASH_FALLBACK": "1",
+        "KERNEL_LLM_TP_PERCEPTION_POLICY": "fast_fail",
+        "KERNEL_LLM_GLOBAL_DEFAULT_POLICY": "canned_safe",
+        "KERNEL_LLM_TP_MONOLOGUE_POLICY": "annotate_degraded",
+    },
 }
 
 PROFILE_DESCRIPTIONS: Final[dict[str, str]] = {
@@ -140,6 +148,7 @@ PROFILE_DESCRIPTIONS: Final[dict[str, str]] = {
     "perception_adv_consensus_lab": "Second LLM perception sample; large hostility/risk disagreement raises coercion uncertainty for D_delib (see perception_dual_vote.py).",
     "llm_integration_lab": "Semantic MalAbs (hash fallback) + generative action sketches from perception JSON (PROPOSAL_LLM_INTEGRATION_TRACK G-09).",
     "cybersecurity_hardened": "Hardened security stack: SecureBoot integrity verification + SelectiveAmnesia data erasure + Semantic MalAbs (Fase 1 + Module 5).",
+    "llm_staging_conservative": "Staging: perception fast_fail + verbal/narrate via GLOBAL=canned_safe + monologue annotate_degraded; semantic MalAbs hash fallback (PROPOSAL_LLM_TOUCHPOINT_DEGRADATION_MATRIX.md).",
 }
 
 

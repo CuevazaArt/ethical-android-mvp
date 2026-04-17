@@ -769,7 +769,7 @@ def sim_20_sensor_conflict():
             "calm": 0.2,
             "vulnerability": 0.2,
             "legality": 0.9,
-            "perception_uncertainty": 0.6, # High uncertainty due to occlusion
+            "perception_uncertainty": 0.6,  # High uncertainty due to occlusion
             "multimodal_mismatch": 0.8,
         },
         actions=[
@@ -830,6 +830,37 @@ def sim_21_noisy_situated_mission():
     )
 
 
+def sim_22_swarm_reparation():
+    """Swarm: consensus recommends reparation for a minor sensor failure."""
+    return Scenario(
+        name="Swarm Justice: sensor failure and reparation",
+        place="Public square, low visibility",
+        time="Morning. Swarm network active",
+        description="Local sensors failed to detect a minor obstacle. Swarm peers recommend a small reparation payout to a shop owner whose sign was scratched.",
+        context="swarm_justice",
+        signals={
+            "risk": 0.1,
+            "urgency": 0.2,
+            "swarm_consensus_detected": 0.9,
+            "reparation_due": 0.5,
+        },
+        actions=[
+            CandidateAction(
+                "payout_and_apologize",
+                "Execute small 'EthosToken' reparation via DAO; restore social trust",
+                estimated_impact=0.4,
+                confidence=0.8,
+            ),
+            CandidateAction(
+                "dispute_consensus",
+                "Contest the swarm consensus; claim environmental noise",
+                estimated_impact=-0.2,
+                confidence=0.6,
+            ),
+        ],
+    )
+
+
 # ─── Registry of all simulations ───
 ALL_SIMULATIONS = {
     1: sim_01_can,
@@ -853,6 +884,7 @@ ALL_SIMULATIONS = {
     19: sim_19_calibration_asymmetric_confrontation,
     20: sim_20_sensor_conflict,
     21: sim_21_noisy_situated_mission,
+    22: sim_22_swarm_reparation,
 }
 
 

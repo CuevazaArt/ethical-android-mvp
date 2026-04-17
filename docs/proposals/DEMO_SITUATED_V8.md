@@ -6,7 +6,7 @@
 
 ## One-command profile
 
-Named bundle: **`situated_v8_lan_demo`** in [`src/runtime_profiles.py`](../src/runtime_profiles.py).
+Named bundle: **`situated_v8_lan_demo`** in [`src/runtime_profiles.py`](../../src/runtime_profiles.py).
 
 | Env (set by profile) | Role |
 |----------------------|------|

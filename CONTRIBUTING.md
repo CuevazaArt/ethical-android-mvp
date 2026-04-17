@@ -16,8 +16,10 @@ Contributions may arrive through multiple channels (issues, pull requests, chat,
 
 These expectations **apply to all contributors** and are part of how we keep the project coherent.
 
-**Multi-office Git workflow (optional convention for distributed teams):** See **[`docs/collaboration/MULTI_OFFICE_GIT_WORKFLOW.md`](docs/collaboration/MULTI_OFFICE_GIT_WORKFLOW.md)** — diagram, branch pattern (`main` → `master-<TeamSlug>` → local offices), and production (`main`) language expectations. Cursor agents also load the always-on rule **[`.cursor/rules/collaboration-prioritization.mdc`](.cursor/rules/collaboration-prioritization.mdc)**.
+**Multi-office Git workflow (optional convention for distributed teams):** See **[`docs/collaboration/MULTI_OFFICE_GIT_WORKFLOW.md`](docs/collaboration/MULTI_OFFICE_GIT_WORKFLOW.md)** — diagram, branch pattern (`main` → `master-<TeamSlug>` → local offices), and production (`main`) language expectations. **Quick hub / merge decision tree:** [`docs/collaboration/MERGE_AND_HUB_DECISION_TREE.md`](docs/collaboration/MERGE_AND_HUB_DECISION_TREE.md). Cursor agents also load the always-on rule **[`.cursor/rules/collaboration-prioritization.mdc`](.cursor/rules/collaboration-prioritization.mdc)**.
 **Generalized collaboration guide:** [`docs/collaboration/COLLABORATIVE_METHOD_GENERALIZATION_GUIDE.md`](docs/collaboration/COLLABORATIVE_METHOD_GENERALIZATION_GUIDE.md) — reading pack, reusable task-card format, and shared quality gates for multi-origin teams.
+
+**Collaboration regulation critique (Antigravity multi-team design — registered once):** [`docs/critique/COLLABORATION_REGULATION_CRITIQUE_2026-04-16.md`](docs/critique/COLLABORATION_REGULATION_CRITIQUE_2026-04-16.md) — improvements to merge / push / pull coordination; **not** re-run unless **Juan (L0)** requests it.
 
 ### Language policy (collaboration vs repository)
 

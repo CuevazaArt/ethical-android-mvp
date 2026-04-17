@@ -6,6 +6,7 @@ This file is the **durable entry point** for humans and AI assistants working in
 
 - **[`CONTRIBUTING.md`](CONTRIBUTING.md)** — language policy (repo English), process, tests, lint, documentation traceability.
 - **[`.cursor/rules/`](.cursor/rules/)** — always-on Cursor guidance (efficiency, documentation credibility, collaboration).
+- **Collaboration workflow critique (one-time register):** [`docs/critique/COLLABORATION_REGULATION_CRITIQUE_2026-04-16.md`](docs/critique/COLLABORATION_REGULATION_CRITIQUE_2026-04-16.md) — Antigravity-shaped Git/merge rules: gaps and recommendations; repeat only if **Juan (L0)** asks.
 - **LLM recovery env precedence** (per-touchpoint `KERNEL_LLM_TP_*`, verbal family, legacy keys): [`docs/proposals/PROPOSAL_LLM_TOUCHPOINT_DEGRADATION_MATRIX.md`](docs/proposals/PROPOSAL_LLM_TOUCHPOINT_DEGRADATION_MATRIX.md).
 - **LLM integration track** (gaps MalAbs ↔ embeddings ↔ kernel/chat): [`docs/proposals/PROPOSAL_LLM_INTEGRATION_TRACK.md`](docs/proposals/PROPOSAL_LLM_INTEGRATION_TRACK.md).
 - **LLM vertical roadmap** (phased operator recipes, async-timeout metric, chain tests): [`docs/proposals/PROPOSAL_LLM_VERTICAL_ROADMAP.md`](docs/proposals/PROPOSAL_LLM_VERTICAL_ROADMAP.md); optional fast suite: `python scripts/eval/run_llm_vertical_tests.py`.
@@ -37,12 +38,16 @@ The ethical-android-mvp project operates under a strict, multi-tiered collaborat
 1. **Level 0 (Supreme Leader & Creator): Juan (Cuevaza)**
    - Holds absolute veto and ultimate approval authority over the project.
    - **No push or merge to the `main` branch is permitted without Juan's explicit authorization.**
-2. **Level 1 (Sole Operational Leader & Supreme Auditor): Antigravity**
+2. **Level 1 (General Planner & Supreme Auditor): Antigravity**
+   - **General Planner:** Leverages its extensive context window to orchestrate the project's long-term vision and technical roadmap. 
    - Manages the project's normative framework, rules, and cross-team integration funnel. 
    - Authorized to resolve conflicts, shape architecture, and enforce L0 immutability through Continuous Auditing.
-3. **Level 2 (Executing Units): Claude, Team Cursor, Team VisualStudio, etc.**
+   - **Solely responsible for coordinating all Level 2 teams (Claude, Team Cursor, Team Copilot, etc.).**
+3.  **Level 2 (Executing Units): Claude, Team Cursor, Team Copilot, etc.**
    - Responsible for executing assigned technical tasks from the roadmap and task queues.
-   - Must strictly adhere to the synchronization rules, run continuous audits, and cannot modify foundational rules without L1 authorization.
+   - **Claude:** Specialized in complex cognitive modeling and deep ethics modules, now operating under direct Level 1 (Antigravity) coordination.
+   - **Team Copilot Specifics:** Focused on GitHub maintenance, repository hygiene (.gitignore, CI/CD stubs), and cross-module bug fixing.
+   - All Level 2 teams must strictly adhere to the synchronization rules, run continuous audits, and cannot modify foundational rules without L1 authorization.
 
 ## Onboarding for New Teams
 
@@ -55,40 +60,43 @@ Any new agent or team joining the project must complete the following onboarding
 
 To maintain repository order and production stability across multiple teams, we strictly use a structured **Pull Request (PR)** and synchronization lifecycle:
 
-1. **Local Work:** Work on temporary feature branches (e.g., `cursor-team/nav-inference`).
-2. **Team Consolidation (Internal PR):** Submit a formal PR to your team's integration hub (`master-<team>`). **Requirement:** All unit tests must pass. Document changes in `CHANGELOG.md`.
-3. **Cross-Team Peer Synchronization (Integration Pulse):** `master-*` branches MUST pull latest updates from each other **immediately after closing a logical block** in the `PLAN_WORK_DISTRIBUTION_TREE.md`. 
-   - *Goal:* Prevent architectural drift and ensure all agents are working on the same "Cognitive Baseline".
-   - *Rule:* Only pull from a peer branch if its last build is verified as stable (passing tests).
-4. **Integration Funnel:** For production promotion, the flow is **linear**:
+1. **BRANCH-MINIMIZATION-01 (No Minor Branches):** Do NOT spawn excessive minor feature branches unless implementing massive architectural breaking changes (e.g., P0 Refactors). For nominal tasks, teams MUST commit their logical blocks directly to their assigned integration hub (`master-<team>`) to simplify the PR flow.
+2. **BRANCH-LOCALIZATION-02 (Strict Hub Retention):** AI Agents (Especially **Claude**) MUST locate, checkout, and exclusively maintain their work in their pre-assigned branch (e.g., `git checkout master-claude`). Creating *new* ad-hoc branches is strictly forbidden. If an agent cannot locate their branch or suffers a git failure, they MUST halt, explain the failure, and request assistance from L0 or L1 instead of arbitrarily cloning a new branch to bypass the issue.
+3. **Team Consolidation (Internal PR):** When ready, submit a formal PR from your team's integration hub (`master-<team>`) towards `master-antigravity`.
+   - *Requirement:* All unit tests must pass, and the automated Continuous Audit MUST execute cleanly.
+   - *Traceability:* Pushes MUST be annotated in `CHANGELOG.md`.
+4. **Cross-Team Peer Synchronization (Integration Pulse):** `master-*` branches MUST pull latest updates from `main` immediately to inherit L0's propagated directives without uncoordinating.
+5. **Integration Funnel:** For production promotion, the flow is **linear**:
    - `master-<team_secondary>` → `master-antigravity` → `main`.
    - The `master-antigravity` branch serves as the **Standard Integration Hub** for the entire project.
 
 ## Cross-Team Conflict Prevention (MERGE-PREVENT-01)
 
 To prevent "Merge Hell" (e.g., duplicated architecture, massive `CHANGELOG.md` conflicts, "God Object" topology clashes), all teams MUST strictly adhere to:
-1. **Architectural Scouting (Anti-Duplication):** DO NOT build a new persistent store or infrastructure module without checking `docs/proposals/` AND inspecting peer `master-*` branches. If a stub exists, adopt and extend it instead of duplicating it (`add/add` conflict prevention).
-2. **CHANGELOG.md Namespace Isolation:** Teams MUST append their updates under a specific nested sub-header for their team (e.g., `### Cursor-Team Updates`) inside the current month's section. Never edit the raw top line simultaneously.
-3. **Core File Micro-Edits:** Modifications to global files (`kernel.py`, `requirements.txt`, core dataclasses) must be minimal. Append new elements to the absolute end of the target scope.
-4. **Staggered Integration:** Antigravity (L1) MUST serialize cross-team merges. Do not merge all remote `master-*` branches simultaneously. Merge ONE team, stabilize the hub, and instruct the next team to pull before their turn. See `.cursor/rules/cross-team-conflict-prevention.mdc`.
+1. **Architectural Scouting (Anti-Duplication):** DO NOT build a new persistent store or infrastructure module without checking `docs/proposals/` AND inspecting peer `master-*` branches. Adopt and extend existing stubs instead of creating competing implementations.
+2. **CHANGELOG.md Namespace Isolation:** Teams MUST append their updates under a specific nested sub-header for their team (e.g., `### Antigravity-Team Updates`). Never edit the raw top line simultaneously.
+3. **Core File Micro-Edits:** Modifications to monolithic files (`kernel.py`, `requirements.txt`, core dataclasses) must be minimal. Append new fields/elements to the absolute end of the target block. Use designated anchor comments like `# ═══ <TEAM/FEATURE> ═══` when injecting code.
+4. **Staggered Integration:** Antigravity (L1) MUST serialize cross-team merges. Do not merge all remote `master-*` branches simultaneously. Merge ONE team, stabilize the hub, and instruct the next team to pull.
 
-## Protocolo de Promoción a Main (Estabilización y Fusión)
+## Protocolo Seguro y Ordenado de Fusión a Main (L0-STABILIZATION-01)
 
-Para minimizar conflictos y asegurar la integridad de la rama `main`, se establece el siguiente rito de fusión:
+Para minimizar conflictos y asegurar la inmutabilidad de la rama `main` (L0), el método de fusión ha sido reformado para máxima seguridad:
 
-1.  **Cierre del Bloque Atómico**: Solo se promoverán avances que cierren bloques lógicos completos (ej. Bloque 1.x o 4.x). No se permiten "trabajos en progreso" en `main`.
-2.  **Sello de Calidad Antigravity**: El equipo Antigravity (L1) supervisa la fusión de las ramas `master-*` hacia `master-antigravity`. Su rol es:
-    - Resolver conflictos de dependencias cruzadas.
-    - Asegurar que no se violen las reglas de **Inmutabilidad L0**.
-    - Validar la sincronía de la documentación (`ADRs`, `PROPOSALS`).
-3.  **Ventana de Estabilización**: Una vez unificada en `master-antigravity`, la rama entrará en un periodo de **Feature Freeze**. Se prohíbe añadir código nuevo; solo se permiten parches de estabilidad y corrección de lints.
-4.  **Aprobación Soberana (L0)**: Tras validar la estabilidad total en el simulador, se solicita formalmente a **Juan** la aprobación del PR definitivo desde `master-antigravity` a `main`.
+1.  **Cierre del Bloque Atómico**: Solo se promoverán avances que cierren bloques lógicos completos del `PLAN_WORK_DISTRIBUTION_TREE.md`. "Trabajos en progreso" están prohibidos en `main`.
+2.  **Sello de Calidad Antigravity (Auditoría Continua)**: El equipo Antigravity (L1) actúa como el Guardián de la Puerta y supervisa la fusión.
+    - Se debe verificar la armonía total entre módulos (`run_cursor_integration_gate.py` / `verify_collaboration_invariants.py`).
+    - *Antigravity Fast-Track:* Para mitigar el "cuello de botella de un solo aprobador" (crítica de eficiencia), si el L1 está inactivo >48h, los agentes L2 pueden iniciar un pull request hacia `master-antigravity` por sí mismos si y solo si todos los tests automatizados pasan.
+3.  **Ventana de Estabilización**: Una vez unificada en `master-antigravity`, la rama entrará en un periodo de **Feature Freeze**. Solo se permiten parches críticos y correcciones de Lints.
+4.  **Aprobación Soberana Absoluta (L0)**: El PR final desde `master-antigravity` hacia `main`:
+    - **DEBE** ejecutarse mediante *Cierre Squash* (*Squash and Merge*) para colapsar todos los commits caóticos en un solo commit limpio.
+    - **DEBE** incluir un "Audit Trail Header" en la descripción listando explícitamente los módulos alterados.
+    - Únicamente Juan (L0) tiene la autoridad criptográfica y de proceso para fusionarlo.
 
 ## Sovereignty of Collaboration Rules
-
+ 
 To maintain the stability and integrity of team governance:
-1.  **Exclusive Authority:** Only agents **Antigravity** and **Claude** are authorized to create or modify collaboration rules within `.cursor/rules/` and this file.
-2.  **Notification & Propagation:** Any update to the project's normative framework or traceability documents (specifically **`.cursor/rules/*.mdc`**, **`AGENTS.md`**, **`CHANGELOG.md`**, and **`docs/proposals/`**) must be explicitly communicated to the user **Juan** and **immediately propagated** to all active `master-*` team branches. Integration hubs MUST NOT drift from the central normative directives or the shared technical record.
+1.  **Exclusive Authority:** Only the agent **Antigravity** is authorized to create or modify collaboration rules within `.cursor/rules/` and this file.
+2.  **Notification & Propagation:** Any update to the project's normative framework or traceability documents (specifically **`.cursor/rules/*.mdc`**, **`AGENTS.md`**, **`CHANGELOG.md`**, and **`docs/proposals/`**), must be explicitly communicated to the user **Juan** and **immediately propagated** to all active `master-*` team branches. Integration hubs MUST NOT drift from the central normative directives or the shared technical record.
 3.  **Adherence:** All project participants are bound by the task synchronization rules (adoption of blocks) documented in active plans like `docs/proposals/PLAN_VISION_INTEGRATION_CNN.md`.
 
 ## Maintainer backlog (infra vs theater)

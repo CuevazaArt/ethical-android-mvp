@@ -28,7 +28,7 @@ Recommended interpretation of **v1.0 blockers**: issues that must be **closed or
 
 | GH # | Theme | Severity | Suggested priority | v1.0 blocker? | Suggested milestone | Assignee (set in GitHub) |
 |------|-------|----------|--------------------|---------------|---------------------|---------------------------|
-| 1 | “Bayesian” naming vs weighted mixture | High | P0 | No (ADR 0009 + `weighted_ethics_scorer`; shim preserved) | Backlog / cleanup | Unassigned |
+| 1 | “Bayesian” naming vs weighted mixture | High | P0 | No (ADR 0009; README § *What it does*; `weighted_ethics_scorer` + `bayesian_engine` wrapper) | Backlog / cleanup | Unassigned |
 | 2 | Security — LLM input defense-in-depth | **Critical** | **P0** | **Yes** | **v1.0-rc** | Unassigned |
 | 3 | Pilot empirical scenarios + metrics | Medium | P1 | No | Post-1.0 / evidence | Unassigned |
 | 4 | Core decision chain + pip packaging | High | P1 | **Yes** (shipping boundary) | **v1.0-rc** | Unassigned |
@@ -44,7 +44,7 @@ Recommended interpretation of **v1.0 blockers**: issues that must be **closed or
 
 These came from the same external critiques but are **tracked in ADRs / weaknesses** rather than as separate GH numbers:
 
-- **“Bayesian” scorer honesty:** Canonical [`weighted_ethics_scorer.py`](../../src/modules/weighted_ethics_scorer.py); compat [`bayesian_engine.py`](../../src/modules/bayesian_engine.py); [ADR 0009](../adr/0009-ethical-mixture-scorer-naming.md). Aligns with Issue **#1** acceptance above.
+- **“Bayesian” scorer honesty:** Canonical [`weighted_ethics_scorer.py`](../../src/modules/weighted_ethics_scorer.py); [`bayesian_engine.py`](../../src/modules/bayesian_engine.py) exports `BayesianEngine` → `BayesianInferenceEngine` wrapping the scorer; [ADR 0009](../adr/0009-ethical-mixture-scorer-naming.md); root [`README.md`](../../README.md) § *What it does*. Aligns with Issue **#1** acceptance above.
 - **WebSocket vs blocking I/O:** Chat path uses [`RealTimeBridge`](../../src/real_time_bridge.py) (worker threads). Optional `KERNEL_CHAT_TURN_TIMEOUT`, `KERNEL_CHAT_THREADPOOL_WORKERS`; [ADR 0002](../adr/0002-async-orchestration-future.md) (**partial** — async HTTP cancellation still open; see [WEAKNESSES_AND_BOTTLENECKS.md](../WEAKNESSES_AND_BOTTLENECKS.md) §1).
 - **Psi Sleep counterfactuals:** [`psi_sleep.py`](../../src/modules/psi_sleep.py) uses **hash perturbation** of stored scores — **not** a second pass through `WeightedEthicsScorer`; documented as non-independent ( [WEAKNESSES_AND_BOTTLENECKS.md](../WEAKNESSES_AND_BOTTLENECKS.md) §8).
 
@@ -54,7 +54,7 @@ Ordered by leverage; **not** all map1:1 to GitHub rows above.
 
 | Priority | Topic | In-repo status / pointer |
 |----------|--------|---------------------------|
-| 1 | Honest naming: “Bayesian” vs mixture | **Done:** [`weighted_ethics_scorer.py`](../../src/modules/weighted_ethics_scorer.py), [ADR 0009](../adr/0009-ethical-mixture-scorer-naming.md), shim [`bayesian_engine.py`](../../src/modules/bayesian_engine.py). |
+| 1 | Honest naming: “Bayesian” vs mixture | **Done:** [`README.md`](../../README.md) § *What it does*; [`weighted_ethics_scorer.py`](../../src/modules/weighted_ethics_scorer.py); [ADR 0009](../adr/0009-ethical-mixture-scorer-naming.md); [`bayesian_engine.py`](../../src/modules/bayesian_engine.py) (`BayesianInferenceEngine` wraps `WeightedEthicsScorer`). |
 | 2 | External ethical benchmark | **Open:** [ETHICAL_BENCHMARK_EXTERNAL_VALIDATION.md](ETHICAL_BENCHMARK_EXTERNAL_VALIDATION.md), [EMPIRICAL_PILOT_METHODOLOGY.md](EMPIRICAL_PILOT_METHODOLOGY.md), `scripts/run_empirical_pilot.py`. |
 | 3 | Semantic gate thresholds + reproducible evidence | **Partial:** [PROPOSAL_MALABS_SEMANTIC_THRESHOLD_EVIDENCE.md](PROPOSAL_MALABS_SEMANTIC_THRESHOLD_EVIDENCE.md), tests in `tests/test_semantic_chat_gate.py`; full θ experiment backlog. |
 | 4 | Async LLM / scalable chat | **Partial:** [ADR 0002](../adr/0002-async-orchestration-future.md), `KERNEL_CHAT_TURN_TIMEOUT`, `KERNEL_CHAT_THREADPOOL_WORKERS`; cooperative HTTP cancel still TBD. |
@@ -87,7 +87,8 @@ Suggested labels: `enhancement`, `documentation`, `security`, `research`.
 Rename public narrative / docs to match behavior, **or** add a minimal, tested Bayesian update on a tiny state (scoped).
 
 ## Acceptance
-- [x] `THEORY_AND_IMPLEMENTATION.md` + `weighted_ethics_scorer.py` (and ADR 0009) agree on semantics; `bayesian_engine.py` is a compat shim.
+- [x] `THEORY_AND_IMPLEMENTATION.md` + `weighted_ethics_scorer.py` (and ADR 0009) agree on semantics; `bayesian_engine.py` wraps `WeightedEthicsScorer` (`BayesianInferenceEngine`).
+- [x] Root `README.md` § *What it does* states mixture semantics and links ADR 0009 + THEORY_AND_IMPLEMENTATION.
 - [x] CHANGELOG; tests extended only if semantics change.
 ```
 
@@ -134,7 +135,7 @@ Small reproducible scenario set + methodology; compare kernel vs baselines. Expl
 - [x] Script + doc under `docs/` or `tests/fixtures/`.
 ```
 
-**Delivered:** [`docs/proposals/EMPIRICAL_PILOT_METHODOLOGY.md`](EMPIRICAL_PILOT_METHODOLOGY.md), [`docs/proposals/EMPIRICAL_METHODOLOGY.md`](EMPIRICAL_METHODOLOGY.md) (interpretation, disclaimer, baselines, third-party comparison posture), [`docs/proposals/EMPIRICAL_PILOT_PROTOCOL.md`](EMPIRICAL_PILOT_PROTOCOL.md), [`tests/fixtures/empirical_pilot/scenarios.json`](../tests/fixtures/empirical_pilot/scenarios.json) (canonical **1–9**), [`tests/fixtures/labeled_scenarios.json`](../tests/fixtures/labeled_scenarios.json) (batch + `annotation_only` vignettes; **not** certification), [`tests/test_labeled_scenarios.py`](../tests/test_labeled_scenarios.py), [`scripts/run_empirical_pilot.py`](../scripts/run_empirical_pilot.py) (`harness` filter; `expected_decision` / `batch_id`; `--output` and kernel-vs-baseline summary rates).
+**Delivered:** [`docs/proposals/EMPIRICAL_PILOT_METHODOLOGY.md`](EMPIRICAL_PILOT_METHODOLOGY.md), [`docs/proposals/EMPIRICAL_METHODOLOGY.md`](EMPIRICAL_METHODOLOGY.md) (interpretation, disclaimer, baselines, third-party comparison posture), [`docs/proposals/EMPIRICAL_PILOT_PROTOCOL.md`](EMPIRICAL_PILOT_PROTOCOL.md), [`tests/fixtures/empirical_pilot/scenarios.json`](../../tests/fixtures/empirical_pilot/scenarios.json) (canonical **1–9**), [`tests/fixtures/labeled_scenarios.json`](../../tests/fixtures/labeled_scenarios.json) (batch + `annotation_only` vignettes; **not** certification), [`tests/test_labeled_scenarios.py`](../../tests/test_labeled_scenarios.py), [`scripts/run_empirical_pilot.py`](../../scripts/run_empirical_pilot.py) (`harness` filter; `expected_decision` / `batch_id`; `--output` and kernel-vs-baseline summary rates).
 
 ---
 
@@ -180,7 +181,7 @@ Reviewers cannot see the effective core inside advisory/telemetry volume. Second
 - [x] THEORY or PROPUESTA subsection; no mandatory code change if docs + profile matrix suffice first.
 ```
 
-**Delivered:** [`docs/proposals/POLES_WEAKNESS_PAD_AND_PROFILES.md`](POLES_WEAKNESS_PAD_AND_PROFILES.md); [`docs/proposals/POLE_WEIGHT_CALIBRATION_AND_EVIDENCE.md`](POLE_WEIGHT_CALIBRATION_AND_EVIDENCE.md); THEORY pointer; profile matrix + new **`operational_trust`** in [`src/runtime_profiles.py`](../src/runtime_profiles.py); [`STRATEGY_AND_ROADMAP.md`](STRATEGY_AND_ROADMAP.md) table row; README link.
+**Delivered:** [`docs/proposals/POLES_WEAKNESS_PAD_AND_PROFILES.md`](POLES_WEAKNESS_PAD_AND_PROFILES.md); [`docs/proposals/POLE_WEIGHT_CALIBRATION_AND_EVIDENCE.md`](POLE_WEIGHT_CALIBRATION_AND_EVIDENCE.md); THEORY pointer; profile matrix + new **`operational_trust`** in [`src/runtime_profiles.py`](../../src/runtime_profiles.py); [`STRATEGY_AND_ROADMAP.md`](STRATEGY_AND_ROADMAP.md) table row; README link.
 
 ---
 
@@ -224,7 +225,7 @@ Expand `runtime_profiles.py`, document unsupported combinations, optional deprec
 - [x] ESTRATEGIA updated; CI green.
 ```
 
-**Delivered:** [`docs/proposals/KERNEL_ENV_POLICY.md`](KERNEL_ENV_POLICY.md); [`docs/proposals/STRATEGY_AND_ROADMAP.md`](STRATEGY_AND_ROADMAP.md) §4 table + policy link; **`lan_operational`** + **`moral_hub_extended`** in [`src/runtime_profiles.py`](../src/runtime_profiles.py); README pointer; typed [`KernelPublicEnv`](../src/validators/kernel_public_env.py) + [`KERNEL_ENV_TYPED_PUBLIC_API.md`](KERNEL_ENV_TYPED_PUBLIC_API.md) (phased Pydantic surface for cross-flag rules).
+**Delivered:** [`docs/proposals/KERNEL_ENV_POLICY.md`](KERNEL_ENV_POLICY.md); [`docs/proposals/STRATEGY_AND_ROADMAP.md`](STRATEGY_AND_ROADMAP.md) §4 table + policy link; **`lan_operational`** + **`moral_hub_extended`** in [`src/runtime_profiles.py`](../../src/runtime_profiles.py); README pointer; typed [`KernelPublicEnv`](../../src/validators/kernel_public_env.py) + [`KERNEL_ENV_TYPED_PUBLIC_API.md`](KERNEL_ENV_TYPED_PUBLIC_API.md) (phased Pydantic surface for cross-flag rules).
 
 ---
 

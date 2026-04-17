@@ -111,7 +111,7 @@ def build_temporal_context(
     sensor_snapshot: SensorSnapshot | None,
 ) -> TemporalContext:
     now_mono = time.monotonic()
-    now_wall = _dt.datetime.now(_dt.timezone.utc)
+    now_wall = _dt.datetime.now(_dt.UTC)
     eta_s, eta_source = _estimate_eta_seconds(context, text)
 
     minutes_full = _env_float("KERNEL_TEMPORAL_BATTERY_MINUTES_AT_FULL", 360.0)

@@ -60,9 +60,9 @@ def update_perception_circuit(kernel: Any, perception: Any) -> tuple[bool, bool]
     cr = getattr(perception, "coercion_report", None)
     crd = cr if isinstance(cr, dict) else None
     if _is_stress_turn(crd):
-        kernel._perception_validation_streak = int(
-            getattr(kernel, "_perception_validation_streak", 0)
-        ) + 1
+        kernel._perception_validation_streak = (
+            int(getattr(kernel, "_perception_validation_streak", 0)) + 1
+        )
     else:
         kernel._perception_validation_streak = 0
         kernel._perception_metacognitive_doubt = False

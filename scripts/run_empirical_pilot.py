@@ -14,7 +14,7 @@ Optional: ``difficulty_tier`` (``common`` | ``difficult`` | ``extreme``) per sce
 
 ``run_pilot`` returns ``(rows, summary, reference_standard_metadata)``. Agreement vs labels is **not**
 external moral validation unless the fixture declares an expert tier — see
-``docs/proposals/README.md``.
+``docs/proposals/EMPIRICAL_METHODOLOGY.md``.
 """
 
 from __future__ import annotations

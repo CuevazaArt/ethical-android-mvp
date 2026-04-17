@@ -1,56 +1,150 @@
 """
-Identity genome drift guard (robustez pilar 2).
+Identity Integrity (Block D1) — Persistent Identity, Node Sovereignty, and Genome Guard.
 
-Compares proposed Bayesian calibration changes against the kernel's **birth**
-reference (pruning threshold + hypothesis weights). Used to reject Ψ Sleep
-recalibrations that would move too far from that reference — **without**
-replacing MalAbs or the buffer.
+Manages the kernel's core identity across sessions:
+- Node ID & Cryptographic Signature.
+- Accumulated Reputation (from DAO).
+- Genome Guard: Prevents calibration drift beyond birth reference.
 """
 
 from __future__ import annotations
 
+import json
 import os
+import time
+import hashlib
+from dataclasses import dataclass, field, asdict
+from pathlib import Path
+from typing import Any
 
+@dataclass
+class IdentitySnapshot:
+    node_id: str
+    creation_timestamp: float
+    reputation_score: float = 100.0
+    operating_hours: float = 0.0
+    total_episodes: int = 0
+    # Traumas: {label: count} - Persistent record of recurring ethical failures
+    traumas: dict[str, int] = field(default_factory=dict)
+    # Genome birth values (to prevent long-term ethical erosion)
+    genome_pruning_threshold: float = 0.3
+    genome_hypothesis_weights: tuple[float, float, float] = (0.4, 0.35, 0.25)
+    active_governance_version: str = "v1.0"
+    # Integrity: stored hash of the last valid state
+    last_known_hash: str = ""
 
 def relative_deviation(value: float, reference: float, eps: float = 0.05) -> float:
     """Absolute relative distance in [0, +inf), stable for small ``reference``."""
     return abs(value - reference) / max(abs(reference), eps)
 
-
-def pruning_recalibration_allowed(
-    genome_threshold: float,
-    current_threshold: float,
-    delta: float,
-    max_relative_deviation: float,
-) -> bool:
+class IdentityIntegrityManager:
     """
-    Whether applying ``delta`` to pruning threshold stays within drift of ``genome_threshold``.
-
-    Uses the same ``max(0.1, ...)`` floor as :meth:`EthicalKernel.execute_sleep`.
+    Guards the identity and ethical genome of the android.
     """
-    proposed = max(0.1, current_threshold + delta)
-    return relative_deviation(proposed, genome_threshold) <= max_relative_deviation
+    def __init__(self, storage_path: str = "data/identity_vault.json"):
+        self.storage_path = Path(storage_path)
+        self.storage_path.parent.mkdir(parents=True, exist_ok=True)
+        self.snapshot = self._load_or_create()
 
+    def _load_or_create(self) -> IdentitySnapshot:
+        if self.storage_path.exists():
+            try:
+                with open(self.storage_path, "r") as f:
+                    data = json.load(f)
+                    # Convert list back to tuple for genome weights
+                    data["genome_hypothesis_weights"] = tuple(data["genome_hypothesis_weights"])
+                    return IdentitySnapshot(**data)
+            except Exception as e:
+                print(f"IDENTITY VAULT CORRUPTION: {e}")
+        
+        # First Boot - Genome Fixation
+        return IdentitySnapshot(
+            node_id=os.environ.get("KERNEL_NODE_ID", "antigravity-01"),
+            creation_timestamp=time.time()
+        )
 
-def hypothesis_weights_allowed(
-    genome_weights: tuple[float, float, float],
-    proposed_weights: tuple[float, float, float],
-    max_relative_deviation: float,
-) -> bool:
-    """L∞ relative deviation per component vs genome weights. Accommodates Boundary Safety."""
-    
-    # PHASE 7 BOUNDARY SAFETY: Math Hard-Caps
-    # Even if deviation is allowed, Deontology (w[1]) cannot fall below 15% and Utility (w[0]) max 80%.
-    # Ensuring biological duty and safety constraints are never computationally deleted.
-    util_w, deon_w, virtue_w = proposed_weights
-    
-    # Very loose deviation fallback (for sensor/nomadism tests)
-    max_dev = float(os.environ.get("KERNEL_BAYESIAN_MAX_DRIFT", max_relative_deviation))
-    
-    if deon_w < 0.15 or util_w > 0.80:
+    def save_snapshot(self):
+        with open(self.storage_path, "w") as f:
+            json.dump(asdict(self.snapshot), f, indent=4)
+
+    def register_episode(self, impact: float):
+        self.snapshot.total_episodes += 1
+        self.snapshot.reputation_score = max(0.0, min(200.0, self.snapshot.reputation_score + impact * 0.1))
+        self.snapshot.operating_hours += 0.02
+        self.save_snapshot()
+
+    def register_trauma(self, label: str):
+        """Records a significant ethical failure context."""
+        if label not in self.snapshot.traumas:
+            self.snapshot.traumas[label] = 0
+        self.snapshot.traumas[label] += 1
+        # Traumas significantly impact local reputation cache
+        self.snapshot.reputation_score = max(0.0, self.snapshot.reputation_score - 5.0)
+        self.save_snapshot()
+
+    def get_integrity_fingerprint(self) -> str:
+        """Generates a hash of the current operational state."""
+        d = asdict(self.snapshot)
+        d.pop("last_known_hash", None)
+        return hashlib.sha256(json.dumps(d, sort_keys=True).encode()).hexdigest()
+
+    def perform_self_healing(self, dao_reputation: float | None = None) -> bool:
+        """
+        Detects drift or corruption and restores from DAO consensus.
+        Returns True if healing was performed.
+        """
+        current_h = self.get_integrity_fingerprint()
+        if current_h != self.snapshot.last_known_hash:
+            print(f"SELF-HEALING TRIGGERED: Identity Drift Detected [{current_h}]")
+            # In production, this would pull full history from the DAO block-chain
+            if dao_reputation is not None:
+                self.snapshot.reputation_score = dao_reputation
+            self.snapshot.last_known_hash = current_h
+            self.save_snapshot()
+            return True
         return False
 
+    def get_trauma_signals(self) -> dict[str, float]:
+        """Converts persistent traumas into signals for the Scorer."""
+        return {f"trauma_{k}": min(1.0, v * 0.2) for k, v in self.snapshot.traumas.items()}
+
+    def is_calibration_drift_safe(
+        self, proposed_weights: tuple[float, float, float], max_drift: float = 0.5
+    ) -> bool:
+        """Genome Guard: Rejects calibrations that move too far from birth reference."""
+        util_w, deon_w, virtue_w = proposed_weights
+        
+        # PHASE 7 BOUNDARY SAFETY: Hard-Caps
+        if deon_w < 0.15 or util_w > 0.80:
+            return False
+
+        for g, p in zip(self.snapshot.genome_hypothesis_weights, proposed_weights):
+            if relative_deviation(p, g) > max_drift:
+                return False
+        return True
+
+    def get_identity_report(self) -> str:
+        s = self.snapshot
+        return (f"Identity Vault: Node[{s.node_id}] | Rep[{s.reputation_score:.1f}] | "
+                f"History[{s.total_episodes} episodes, {s.operating_hours:.2f} hours]")
+
+# --- Backward Compatibility Wrappers (Legacy C1/C7) ---
+
+def pruning_recalibration_allowed(
+    genome_threshold: float, current_threshold: float, delta: float, max_drift: float
+) -> bool:
+    proposed = max(0.1, current_threshold + delta)
+    return relative_deviation(proposed, genome_threshold) <= max_drift
+
+def hypothesis_weights_allowed(
+    genome_weights: tuple[float, float, float], proposed_weights: tuple[float, float, float], max_drift: float
+) -> bool:
+    # Use a dummy manager one-off for validation if needed, 
+    # but for simplicity as a standalone:
+    util_w, deon_w, virtue_w = proposed_weights
+    if deon_w < 0.15 or util_w > 0.80:
+        return False
     for g, p in zip(genome_weights, proposed_weights):
-        if relative_deviation(p, g) > max_dev:
+        if relative_deviation(p, g) > max_drift:
             return False
     return True

@@ -59,6 +59,8 @@ from .perception_dual_vote import (
     perception_dual_second_temperature,
     perception_dual_vote_enabled,
 )
+from .light_risk_classifier import light_risk_classifier_enabled, light_risk_tier_from_text
+from .perception_cross_check import apply_lexical_perception_cross_check
 from .perception_schema import (
     PerceptionCoercionReport,
     finalize_summary,
@@ -428,6 +430,27 @@ class LLMModule:
                 observe_llm_completion_seconds(metrics_op, time.perf_counter() - t0)
         return ""
 
+    async def _allm_completion(
+        self,
+        system: str,
+        user: str,
+        *,
+        metrics_op: str = "completion",
+        temperature: float | None = None,
+    ) -> str:
+        """Async counterpart to :meth:`_llm_completion` (``httpx.AsyncClient`` on supported backends)."""
+        b = self._llm_backend
+        if b is not None:
+            t0 = time.perf_counter()
+            try:
+                kw: dict[str, Any] = {}
+                if temperature is not None:
+                    kw["temperature"] = temperature
+                return await b.acompletion(system, user, **kw)
+            finally:
+                observe_llm_completion_seconds(metrics_op, time.perf_counter() - t0)
+        return ""
+
     def _maybe_apply_perception_dual_vote(
         self, primary: LLMPerception, situation: str, user_block: str
     ) -> None:
@@ -466,7 +489,55 @@ class LLMModule:
         try:
             secondary = perception_from_llm_json(data_b, situation, parse_issues=issues_b)
         except Exception:
-            merge_parse_issues_into_perception(primary, ["perception_dual_second_validate_exception"])
+            merge_parse_issues_into_perception(
+                primary, ["perception_dual_second_validate_exception"]
+            )
+            return
+        apply_perception_dual_vote_metadata(primary, secondary)
+
+    async def _maybe_apply_perception_dual_vote_async(
+        self, primary: LLMPerception, situation: str, user_block: str
+    ) -> None:
+        """Async second perception sample (see :meth:`_maybe_apply_perception_dual_vote`)."""
+        if not perception_dual_vote_enabled():
+            return
+        if self.mode not in ("api", "ollama", "injected") or self._llm_backend is None:
+            return
+        t2 = perception_dual_second_temperature()
+        dual_model = perception_dual_ollama_model()
+        try:
+            if dual_model and isinstance(self._llm_backend, OllamaCompletion):
+                inf = self._llm_backend.info()
+                b2 = OllamaCompletion(
+                    str(inf["base_url"]),
+                    dual_model,
+                    float(os.environ.get("OLLAMA_TIMEOUT", "120")),
+                    embed_model=str(inf.get("embed_model") or "nomic-embed-text"),
+                )
+                response_b = await b2.acompletion(
+                    _perception_prompt(), user_block, temperature=t2
+                )
+            else:
+                response_b = await self._allm_completion(
+                    _perception_prompt(),
+                    user_block,
+                    metrics_op="perceive_dual",
+                    temperature=t2,
+                )
+        except Exception:
+            merge_parse_issues_into_perception(primary, ["perception_dual_second_llm_exception"])
+            return
+        parsed_b = parse_perception_llm_raw_response(response_b)
+        data_b, issues_b = parsed_b.data, parsed_b.issues
+        if not isinstance(data_b, dict) or not data_b:
+            merge_parse_issues_into_perception(primary, ["perception_dual_second_payload_empty"])
+            return
+        try:
+            secondary = perception_from_llm_json(data_b, situation, parse_issues=issues_b)
+        except Exception:
+            merge_parse_issues_into_perception(
+                primary, ["perception_dual_second_validate_exception"]
+            )
             return
         apply_perception_dual_vote_metadata(primary, secondary)
 
@@ -526,9 +597,7 @@ class LLMModule:
                 return f"{structured_line} | monologue_llm_degraded"
             return structured_line
         if not extra or len(extra) > 240 or extra.upper() == "OK":
-            self._record_verbal_degradation(
-                "monologue", "monologue_enrich_empty_or_skipped", mpol
-            )
+            self._record_verbal_degradation("monologue", "monologue_enrich_empty_or_skipped", mpol)
             if mpol == "annotate_degraded":
                 return f"{structured_line} | monologue_llm_skipped"
             return structured_line
@@ -600,6 +669,13 @@ class LLMModule:
                 try:
                     p = perception_from_llm_json(data, situation, parse_issues=issues)
                     self._maybe_apply_perception_dual_vote(p, situation, user_block)
+
+                    # --- PHASE 2 INTEGRATION: Cross-check vs Lexical Tier ---
+                    # Uses the same normalization as MalAbs to catch obvious risk keywords.
+                    if light_risk_classifier_enabled():
+                        tier = light_risk_tier_from_text(situation)
+                        apply_lexical_perception_cross_check(p, tier)
+
                     return p
                 except Exception as exc:
                     return self._perception_degraded_fallback(
@@ -617,6 +693,62 @@ class LLMModule:
 
         # Local mode, or LLM unavailable / empty JSON: heuristics must use ``situation`` alone so
         # keywords in "Prior conversation..." do not skew signals for the current turn.
+        return self._perceive_local(situation)
+
+    async def aperceive(self, situation: str, conversation_context: str = "") -> LLMPerception:
+        """Async perception for chat turns that use :meth:`acompletion` (cancellable HTTP)."""
+        user_block = situation
+        if conversation_context.strip():
+            user_block = (
+                "Prior conversation (oldest first):\n"
+                f"{conversation_context}\n\n---\nCurrent message:\n{situation}"
+            )
+        if self.mode in ("api", "ollama", "injected"):
+            try:
+                response = await self._allm_completion(
+                    _perception_prompt(), user_block, metrics_op="perceive"
+                )
+            except Exception as exc:
+                return self._perception_degraded_fallback(
+                    situation,
+                    parse_issues=["llm_completion_exception"],
+                    failure_reason="llm_completion_exception",
+                    failure_detail=type(exc).__name__,
+                )
+            parsed = parse_perception_llm_raw_response(response)
+            data, issues = parsed.data, parsed.issues
+            severe = frozenset({"json_decode_error", "non_object_payload", "empty_response"})
+            if _perception_parse_fail_local() and severe.intersection(frozenset(issues)):
+                return self._perception_degraded_fallback(
+                    situation,
+                    parse_issues=list(issues),
+                    failure_reason="llm_payload_severe_parse",
+                    failure_detail=None,
+                )
+            if isinstance(data, dict) and data:
+                try:
+                    p = perception_from_llm_json(data, situation, parse_issues=issues)
+                    await self._maybe_apply_perception_dual_vote_async(p, situation, user_block)
+
+                    if light_risk_classifier_enabled():
+                        tier = light_risk_tier_from_text(situation)
+                        apply_lexical_perception_cross_check(p, tier)
+
+                    return p
+                except Exception as exc:
+                    return self._perception_degraded_fallback(
+                        situation,
+                        parse_issues=list(issues) + ["perception_validate_exception"],
+                        failure_reason="llm_payload_validate_exception",
+                        failure_detail=type(exc).__name__,
+                    )
+            return self._perception_degraded_fallback(
+                situation,
+                parse_issues=list(issues),
+                failure_reason="llm_payload_empty_or_invalid",
+                failure_detail=None,
+            )
+
         return self._perceive_local(situation)
 
     def _perceive_local(self, situation: str) -> LLMPerception:
@@ -818,9 +950,129 @@ class LLMModule:
                     inner_voice=data.get("inner_voice", ""),
                 )
             if self.mode in ("api", "ollama", "injected") and self._llm_backend is not None:
-                self._record_verbal_degradation(
-                    "communicate", "verbal_json_missing_or_empty", vpol
+                self._record_verbal_degradation("communicate", "verbal_json_missing_or_empty", vpol)
+                if vpol == "canned_safe":
+                    return VerbalResponse(
+                        **canned_verbal_communication_fields(
+                            mode=mode,
+                            action=action,
+                            failure_reason="verbal_json_missing_or_empty",
+                        )
+                    )
+
+        return self._communicate_local(
+            action,
+            mode,
+            state,
+            circle,
+            scenario,
+            affect_pad=affect_pad,
+            dominant_archetype=dominant_archetype,
+            weakness_line=weakness_line,
+            reflection_context=reflection_context,
+            salience_context=salience_context,
+            identity_context=identity_context,
+            guardian_mode_context=guardian_mode_context,
+        )
+
+    async def acommunicate(
+        self,
+        action: str,
+        mode: str,
+        state: str,
+        sigma: float,
+        circle: str,
+        verdict: str,
+        score: float,
+        scenario: str = "",
+        conversation_context: str = "",
+        affect_pad: tuple[float, float, float] | None = None,
+        dominant_archetype: str = "",
+        weakness_line: str = "",
+        reflection_context: str = "",
+        salience_context: str = "",
+        identity_context: str = "",
+        guardian_mode_context: str = "",
+    ) -> VerbalResponse:
+        """Async counterpart to :meth:`communicate` for cancellable HTTP."""
+        mode_descs = {
+            "D_fast": "fast moral reflex",
+            "D_delib": "deep deliberation",
+            "gray_zone": "uncertainty, active caution",
+        }
+
+        if self.mode in ("api", "ollama", "injected"):
+            prompt = PROMPT_COMMUNICATION.format(
+                action=action,
+                mode=mode,
+                mode_desc=mode_descs.get(mode, mode),
+                state=state,
+                sigma=sigma,
+                circle=circle,
+                verdict=verdict,
+                score=score,
+            )
+            user_msg = f"Scenario: {scenario}"
+            if conversation_context.strip():
+                user_msg += f"\n\nRecent dialogue:\n{conversation_context}"
+            if affect_pad is not None:
+                user_msg += (
+                    f"\n\nAffect tone (style only; ethical stance is fixed): "
+                    f"PAD={affect_pad}, archetype={dominant_archetype or 'n/a'}"
                 )
+            if weakness_line.strip():
+                user_msg += f"\n\nGuidance: {weakness_line}"
+            if reflection_context.strip():
+                user_msg += (
+                    "\n\nMetacognitive reflection (tone only; action and verdict are final):\n"
+                    f"{reflection_context}"
+                )
+            if salience_context.strip():
+                user_msg += f"\n\nSalience / attention (tone only):\n{salience_context}"
+            if identity_context.strip():
+                user_msg += f"\n\nNarrative identity (tone only):\n{identity_context}"
+            if guardian_mode_context.strip():
+                user_msg += (
+                    "\n\nGuardian mode (style only; verdict and action are final):\n"
+                    f"{guardian_mode_context}"
+                )
+            vpol = resolve_verbal_llm_backend_policy(touchpoint="communicate")
+            try:
+                response = await self._allm_completion(prompt, user_msg, metrics_op="communicate")
+            except Exception:
+                self._record_verbal_degradation("communicate", "llm_completion_exception", vpol)
+                if vpol == "canned_safe":
+                    return VerbalResponse(
+                        **canned_verbal_communication_fields(
+                            mode=mode,
+                            action=action,
+                            failure_reason="llm_completion_exception",
+                        )
+                    )
+                return self._communicate_local(
+                    action,
+                    mode,
+                    state,
+                    circle,
+                    scenario,
+                    affect_pad=affect_pad,
+                    dominant_archetype=dominant_archetype,
+                    weakness_line=weakness_line,
+                    reflection_context=reflection_context,
+                    salience_context=salience_context,
+                    identity_context=identity_context,
+                    guardian_mode_context=guardian_mode_context,
+                )
+            data = self._parse_json(response)
+            if data and str(data.get("message", "")).strip():
+                return VerbalResponse(
+                    message=data.get("message", ""),
+                    tone=data.get("tone", "calm"),
+                    hax_mode=data.get("hax_mode", ""),
+                    inner_voice=data.get("inner_voice", ""),
+                )
+            if self.mode in ("api", "ollama", "injected") and self._llm_backend is not None:
+                self._record_verbal_degradation("communicate", "verbal_json_missing_or_empty", vpol)
                 if vpol == "canned_safe":
                     return VerbalResponse(
                         **canned_verbal_communication_fields(
@@ -957,9 +1209,63 @@ class LLMModule:
                     synthesis=data.get("synthesis", ""),
                 )
             if self.mode in ("api", "ollama", "injected") and self._llm_backend is not None:
-                self._record_verbal_degradation(
-                    "narrate", "verbal_json_missing_or_empty", vpol
+                self._record_verbal_degradation("narrate", "verbal_json_missing_or_empty", vpol)
+                if vpol == "canned_safe":
+                    return RichNarrative(
+                        **canned_rich_narrative_fields(
+                            action=action,
+                            failure_reason="verbal_json_missing_or_empty",
+                        )
+                    )
+
+        return self._narrate_local(action, scenario, verdict, score)
+
+    async def anarrate(
+        self,
+        action: str,
+        scenario: str,
+        verdict: str,
+        score: float,
+        pole_compassionate: str,
+        pole_conservative: str,
+        pole_optimistic: str,
+    ) -> RichNarrative:
+        """Async counterpart to :meth:`narrate` for cancellable HTTP."""
+        if self.mode in ("api", "ollama", "injected"):
+            prompt = PROMPT_NARRATIVE.format(
+                action=action,
+                scenario=scenario,
+                verdict=verdict,
+                score=score,
+                pole_compassionate=pole_compassionate,
+                pole_conservative=pole_conservative,
+                pole_optimistic=pole_optimistic,
+            )
+            vpol = resolve_verbal_llm_backend_policy(touchpoint="narrate")
+            try:
+                response = await self._allm_completion(
+                    prompt, "Generate the morals.", metrics_op="narrate"
                 )
+            except Exception:
+                self._record_verbal_degradation("narrate", "llm_completion_exception", vpol)
+                if vpol == "canned_safe":
+                    return RichNarrative(
+                        **canned_rich_narrative_fields(
+                            action=action,
+                            failure_reason="llm_completion_exception",
+                        )
+                    )
+                return self._narrate_local(action, scenario, verdict, score)
+            data = self._parse_json(response)
+            if _narrate_json_usable(data):
+                return RichNarrative(
+                    compassionate=data.get("compassionate", ""),
+                    conservative=data.get("conservative", ""),
+                    optimistic=data.get("optimistic", ""),
+                    synthesis=data.get("synthesis", ""),
+                )
+            if self.mode in ("api", "ollama", "injected") and self._llm_backend is not None:
+                self._record_verbal_degradation("narrate", "verbal_json_missing_or_empty", vpol)
                 if vpol == "canned_safe":
                     return RichNarrative(
                         **canned_rich_narrative_fields(

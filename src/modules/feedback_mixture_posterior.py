@@ -30,7 +30,7 @@ import math
 import os
 import re
 from dataclasses import dataclass
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any
 
@@ -145,7 +145,9 @@ def pick_active_alpha_for_context(
         return np.asarray(posteriors["_global"], dtype=np.float64).copy()
     if not posteriors:
         return parse_bma_alpha_from_env()
-    return np.mean(np.stack([np.asarray(v, dtype=np.float64) for v in posteriors.values()], axis=0), axis=0)
+    return np.mean(
+        np.stack([np.asarray(v, dtype=np.float64) for v in posteriors.values()], axis=0), axis=0
+    )
 
 
 def _load_and_apply_feedback_level3_mixture(
@@ -211,7 +213,9 @@ def _load_and_apply_feedback_level3_mixture(
     )
     combined["joint_satisfaction_rate"] = round(float(j_rate), 6)
     if j_rate < 0.01:
-        combined["note"] = "Low joint satisfaction under posterior; preferences may be jointly tight."
+        combined["note"] = (
+            "Low joint satisfaction under posterior; preferences may be jointly tight."
+        )
     return alpha_use, "compatible", combined
 
 
@@ -223,7 +227,7 @@ def _parse_iso_timestamp(ts: str) -> datetime | None:
         # Python 3.11+ handles Z; for 3.9/3.10 replace Z manually
         dt = datetime.fromisoformat(ts.replace("Z", "+00:00"))
         if dt.tzinfo is None:
-            dt = dt.replace(tzinfo=timezone.utc)
+            dt = dt.replace(tzinfo=UTC)
         return dt
     except (ValueError, AttributeError):
         return None
@@ -252,7 +256,7 @@ def _apply_time_decay(
     """
     if halflife_days <= 0:
         return records
-    ref = reference_date or datetime.now(timezone.utc)
+    ref = reference_date or datetime.now(UTC)
     out: list[FeedbackRecord] = []
     for rec in records:
         dt = _parse_iso_timestamp(rec.timestamp or "")
@@ -263,6 +267,7 @@ def _apply_time_decay(
             new_conf = rec.confidence  # no timestamp — no penalty
         if new_conf > 1e-9:
             import dataclasses as _dc
+
             out.append(_dc.replace(rec, confidence=new_conf))
     return out
 
@@ -272,7 +277,7 @@ def load_feedback_records(path: Path) -> list[FeedbackRecord]:
     if isinstance(data, dict) and "items" in data:
         data = data["items"]
     if not isinstance(data, list):
-        raise ValueError("feedback file must be a JSON list or {\"items\": [...]}")
+        raise ValueError('feedback file must be a JSON list or {"items": [...]}')
     out: list[FeedbackRecord] = []
     for row in data:
         sid = int(row["scenario_id"])
@@ -282,9 +287,7 @@ def load_feedback_records(path: Path) -> list[FeedbackRecord]:
         ct = row.get("context_type")
         raw_cands = row.get("action_candidates")
         cands: list[str] | None = (
-            [str(a) for a in raw_cands]
-            if isinstance(raw_cands, list) and raw_cands
-            else None
+            [str(a) for a in raw_cands] if isinstance(raw_cands, list) and raw_cands else None
         )
         out.append(
             FeedbackRecord(
@@ -447,11 +450,13 @@ def _posterior_predictive_check(
             obs, alpha_posterior, beta=beta, n_samples=n_samples, rng=rng
         )
         probs.append(p)
-        per_item.append({
-            "scenario_id": rec.scenario_id,
-            "preferred_action": rec.preferred_action,
-            "p_predictive": round(p, 4),
-        })
+        per_item.append(
+            {
+                "scenario_id": rec.scenario_id,
+                "preferred_action": rec.preferred_action,
+                "p_predictive": round(p, 4),
+            }
+        )
 
     return {
         "n_holdout": len(holdout_records),
@@ -474,7 +479,10 @@ def _load_and_apply_feedback_explicit_triples(
 
     # P7 — hold out last 20% when posterior predictive check is enabled
     _ppc_on = os.environ.get("KERNEL_FEEDBACK_POSTERIOR_CHECK", "").strip().lower() in (
-        "1", "true", "yes", "on"
+        "1",
+        "true",
+        "yes",
+        "on",
     )
     holdout: list[FeedbackRecord] = []
     train_records = records
@@ -518,12 +526,18 @@ def _load_and_apply_feedback_explicit_triples(
 
     # P7 — posterior predictive check on holdout
     if _ppc_on and holdout:
-        _ppc_beta = float(os.environ.get("KERNEL_FEEDBACK_SOFTMAX_BETA", "10.0")
-                          .strip() if os.environ.get("KERNEL_FEEDBACK_SOFTMAX_BETA", "").strip().lower() != "auto"
-                          else "10.0")
+        _ppc_beta = float(
+            os.environ.get("KERNEL_FEEDBACK_SOFTMAX_BETA", "10.0").strip()
+            if os.environ.get("KERNEL_FEEDBACK_SOFTMAX_BETA", "").strip().lower() != "auto"
+            else "10.0"
+        )
         meta["posterior_predictive_check"] = _posterior_predictive_check(
-            alpha_new, holdout, cmap,
-            beta=_ppc_beta, n_samples=3_000, rng=rng,
+            alpha_new,
+            holdout,
+            cmap,
+            beta=_ppc_beta,
+            n_samples=3_000,
+            rng=rng,
         )
 
     return alpha_new, fr.consistency if fr.consistency != "insufficient" else "compatible", meta
@@ -567,11 +581,15 @@ def load_and_apply_feedback(
             records = _apply_time_decay(records, _halflife)
             if not records:
                 a = parse_bma_alpha_from_env()
-                return a, "insufficient", {
-                    "reason": "all_records_decayed",
-                    "halflife_days": _halflife,
-                    "n_before_decay": _n_before,
-                }
+                return (
+                    a,
+                    "insufficient",
+                    {
+                        "reason": "all_records_decayed",
+                        "halflife_days": _halflife,
+                        "n_before_decay": _n_before,
+                    },
+                )
         except ValueError:
             pass  # malformed env var — proceed without decay
 
@@ -591,7 +609,10 @@ def load_and_apply_feedback(
 
     # P7 holdout split for mixture_ranking path
     _ppc_on = os.environ.get("KERNEL_FEEDBACK_POSTERIOR_CHECK", "").strip().lower() in (
-        "1", "true", "yes", "on"
+        "1",
+        "true",
+        "yes",
+        "on",
     )
     holdout_mr: list[FeedbackRecord] = []
     train_records_mr = records
@@ -636,8 +657,12 @@ def load_and_apply_feedback(
                 else "10.0"
             )
             meta["posterior_predictive_check"] = _posterior_predictive_check(
-                alpha_new, holdout_mr, _ho_cmap,
-                beta=_ppc_beta, n_samples=3_000, rng=rng,
+                alpha_new,
+                holdout_mr,
+                _ho_cmap,
+                beta=_ppc_beta,
+                n_samples=3_000,
+                rng=rng,
             )
 
     return alpha_new, "compatible", meta

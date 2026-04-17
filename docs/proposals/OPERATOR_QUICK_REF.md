@@ -17,7 +17,7 @@ Use the **`ethos config`** command (after `pip install -e .` or `python -m src.e
 | Governance / hub | `KERNEL_MORAL_HUB_*`, `KERNEL_DEONTIC_GATE`, `KERNEL_JUDICIAL_*`, `KERNEL_DAO_INTEGRITY_AUDIT_WS` | Hub, drafts, judicial, integrity audit. |
 | Metaplan / drives | `KERNEL_METAPLAN_HINT`, `KERNEL_METAPLAN_DRIVE_FILTER`, `KERNEL_METAPLAN_DRIVE_EXTRA` | Owner goals hint; filter advisory `drive_intents` vs goals; extra coherence intent. |
 | Swarm (lab stub) | `KERNEL_SWARM_STUB` | Offline verdict-digest helpers only; see [`SWARM_P2P_THREAT_MODEL.md`](SWARM_P2P_THREAT_MODEL.md). |
-| LLM / variability | `LLM_MODE`, `KERNEL_VARIABILITY`, `KERNEL_GENERATIVE_*` (`KERNEL_GENERATIVE_LLM` = JSON candidates in perception) | Backends and generative candidates. |
+| LLM / variability | `LLM_MODE`, `KERNEL_VARIABILITY`, `KERNEL_GENERATIVE_*` (`KERNEL_GENERATIVE_LLM` = JSON candidates in perception); degradation: `KERNEL_LLM_TP_*`, `KERNEL_LLM_VERBAL_FAMILY_POLICY`, `KERNEL_LLM_GLOBAL_DEFAULT_POLICY`, legacy `KERNEL_PERCEPTION_BACKEND_POLICY` / `KERNEL_VERBAL_LLM_BACKEND_POLICY` | Backends, generative candidates, and **resolved** fallback policies on `GET /health` → `llm_degradation` ([`PROPOSAL_LLM_TOUCHPOINT_DEGRADATION_MATRIX.md`](PROPOSAL_LLM_TOUCHPOINT_DEGRADATION_MATRIX.md)). |
 | Poles (linear) | `KERNEL_POLE_LINEAR_CONFIG` | JSON path for `LinearPoleEvaluator` (ADR 0004); default bundled. |
 | Input (optional) | `KERNEL_SEMANTIC_CHAT_GATE`, `KERNEL_SEMANTIC_CHAT_EMBED_MODEL`, block/allow thresholds, `KERNEL_SEMANTIC_CHAT_LLM_ARBITER` | Lexical → embeddings → optional LLM; see [`MALABS_SEMANTIC_LAYERS.md`](MALABS_SEMANTIC_LAYERS.md). Default cosine thresholds: evidence posture and guardrails — [`PROPOSAL_MALABS_SEMANTIC_THRESHOLD_EVIDENCE.md`](PROPOSAL_MALABS_SEMANTIC_THRESHOLD_EVIDENCE.md). |
 | **Mixture weights (episodic)** | `KERNEL_BAYESIAN_EMPIRICAL_WEIGHTS` | When `1`, ethical mixture weights are nudged from recent episode scores (same context; not full Bayes). Default `0`. |
@@ -35,7 +35,7 @@ Use the **`ethos config`** command (after `pip install -e .` or `python -m src.e
 
 ### LLM HTTP vs chat async deadline
 
-`KERNEL_CHAT_TURN_TIMEOUT` bounds how long **asyncio** waits for the worker thread that runs `process_chat_turn`; it does **not** cancel an in-flight HTTP request to Ollama. Tune `OLLAMA_TIMEOUT` alongside chat deadlines. Cooperative LLM cancellation is future work ([ADR 0002](../adr/0002-async-orchestration-future.md); gap G-05 in [`PROPOSAL_LLM_INTEGRATION_TRACK.md`](PROPOSAL_LLM_INTEGRATION_TRACK.md)). When `KERNEL_METRICS=1`, see `ethos_kernel_chat_turn_async_timeouts_total` ([`PROPOSAL_LLM_VERTICAL_ROADMAP.md`](PROPOSAL_LLM_VERTICAL_ROADMAP.md) phase 3).
+`KERNEL_CHAT_TURN_TIMEOUT` bounds how long **asyncio** waits for each chat turn. **Default:** `process_chat_turn` runs in a worker thread; cooperative cancel skips **further** sync LLM HTTP after the deadline; the server also **abandons** the turn id so late workers skip STM / `wm.add_turn`; in-flight sync `httpx` still runs until read timeout — tune `OLLAMA_TIMEOUT` alongside chat deadlines. **Optional:** `KERNEL_CHAT_ASYNC_LLM_HTTP=1` runs `process_chat_turn_async` on the event loop with `httpx.AsyncClient` for Ollama/HTTP JSON so the async deadline can **cancel in-flight** LLM HTTP; the same cancel `Event` is passed into the thread that runs `EthicalKernel.process`, which can **exit cooperatively** at several checkpoints (still not preempted inside one long native call). Anthropic `api` mode: `AnthropicLLMBackend.acompletion` uses `AsyncAnthropic` when the SDK is present ([ADR 0002](../adr/0002-async-orchestration-future.md); G-05 in [`PROPOSAL_LLM_INTEGRATION_TRACK.md`](PROPOSAL_LLM_INTEGRATION_TRACK.md)). When `KERNEL_METRICS=1`, see `ethos_kernel_chat_turn_async_timeouts_total`, `ethos_kernel_llm_cancel_scope_signals_total`, and `ethos_kernel_chat_turn_abandoned_effects_skipped_total` ([`PROPOSAL_LLM_VERTICAL_ROADMAP.md`](PROPOSAL_LLM_VERTICAL_ROADMAP.md) phase 3).
 
 ### LLM vertical operator recipes
 
@@ -46,6 +46,7 @@ Phased roadmap and evidence posture: [`PROPOSAL_LLM_VERTICAL_ROADMAP.md`](PROPOS
 | LAN / phone staging | `lan_operational` or `lan_mobile_thin_client` | Bind + stoic JSON; tune `OLLAMA_TIMEOUT` with `KERNEL_CHAT_TURN_TIMEOUT`. |
 | Airgap semantic (hash embeddings, no Ollama) | `untrusted_chat_input` | Pair with unreachable `OLLAMA_BASE_URL` + short `KERNEL_SEMANTIC_EMBED_*` timeouts for fast fail (see [`test_malabs_semantic_integration.py`](../../tests/test_malabs_semantic_integration.py)). |
 | Generative candidates + semantic gate | `llm_integration_lab` | `KERNEL_GENERATIVE_LLM` + MalAbs hash fallback per [`runtime_profiles.py`](../../src/runtime_profiles.py). |
+| Conservative LLM fallbacks (staging) | `llm_staging_conservative` | Perception `fast_fail`, verbal/narrate via `KERNEL_LLM_GLOBAL_DEFAULT_POLICY=canned_safe`, monologue `annotate_degraded`; pairs with semantic hash fallback. See matrix § operator bundle. |
 | Perception hardening lab | `perception_hardening_lab` | Light risk + cross-check + uncertainty→delib; compose with `untrusted_chat_input` if you need semantic MalAbs too. |
 
 ### Perception observability contract (chat JSON)
@@ -94,7 +95,9 @@ When a generative touchpoint falls back (**communicate**, **narrate**, or option
 
 - `verbal_llm_observability`: `{ "degraded": true, "events": [ { "touchpoint", "failure_reason", "recovery_policy" } ] }`.
 
-**Configuration precedence** (per path): `KERNEL_LLM_TP_<TOUCHPOINT>_POLICY` → `KERNEL_LLM_VERBAL_FAMILY_POLICY` (communicate + narrate only) → `KERNEL_VERBAL_LLM_BACKEND_POLICY` / `KERNEL_PERCEPTION_BACKEND_POLICY` as documented in [`PROPOSAL_LLM_TOUCHPOINT_DEGRADATION_MATRIX.md`](PROPOSAL_LLM_TOUCHPOINT_DEGRADATION_MATRIX.md). See also [`PROPOSAL_LLM_VERBAL_DEGRADATION_POLICY.md`](PROPOSAL_LLM_VERBAL_DEGRADATION_POLICY.md).
+**Configuration precedence** (per path): `KERNEL_LLM_TP_<TOUCHPOINT>_POLICY` → `KERNEL_LLM_VERBAL_FAMILY_POLICY` (communicate + narrate only) → legacy `KERNEL_VERBAL_LLM_BACKEND_POLICY` or `KERNEL_PERCEPTION_BACKEND_POLICY` → optional `KERNEL_LLM_GLOBAL_DEFAULT_POLICY` (only where valid for that resolver) → built-in defaults — [`PROPOSAL_LLM_TOUCHPOINT_DEGRADATION_MATRIX.md`](PROPOSAL_LLM_TOUCHPOINT_DEGRADATION_MATRIX.md). See also [`PROPOSAL_LLM_VERBAL_DEGRADATION_POLICY.md`](PROPOSAL_LLM_VERBAL_DEGRADATION_POLICY.md).
+
+**Resolved policies on `/health`:** `GET /health` includes `llm_degradation` with `global_default_raw`, `global_default_effective`, and `resolved` `{ perception, communicate, narrate, monologue }` so dashboards match the same precedence as runtime (no secrets).
 
 ### Observability (metrics and logs)
 
@@ -105,7 +108,8 @@ Enable with `KERNEL_METRICS=1` (scrapes `http://<host>:<port>/metrics`). If `pro
 | `ethos_kernel_llm_completion_seconds` | Histogram | `operation` | `perceive`, `communicate`, `narrate`, or `completion` (default internal). Wall time for LLM `completion` calls. |
 | `ethos_kernel_chat_turn_duration_seconds` | Histogram | `path` | End-to-end time for one `process_chat_turn` in the worker thread. `path` matches chat result (`light`, `heavy`, `safety_block`, `kernel_block`, …). |
 | `ethos_kernel_chat_turns_total` | Counter | `path` | Count of completed turns per `path` (increments with the histogram observation). |
-| `ethos_kernel_chat_turn_async_timeouts_total` | Counter | (none) | Increments when the async waiter hits `KERNEL_CHAT_TURN_TIMEOUT` (sync worker may still run; see ADR 0002). |
+| `ethos_kernel_chat_turn_async_timeouts_total` | Counter | (none) | Increments when the async waiter hits `KERNEL_CHAT_TURN_TIMEOUT` (worker may still run until cooperative exit; see ADR 0002). |
+| `ethos_kernel_chat_turn_abandoned_effects_skipped_total` | Counter | (none) | Increments when a late completion skips STM / post-turn effects after `abandon_chat_turn` (`turn_abandoned`). |
 | `ethos_kernel_malabs_blocks_total` | Counter | `reason` | Coarse block reason; typically `safety_block` or `kernel_block` when the chat path indicates a block. |
 | `ethos_kernel_dao_ws_operations_total` | Counter | `operation` | Mock DAO WebSocket actions, e.g. `list`, `submit_draft`, `vote`, `resolve`, `integrity_alert`, `nomad_migration`. |
 | `ethos_kernel_embedding_errors_total` | Counter | `source` | Semantic MalAbs embedding tier: `http` (request/transport failure), `http_invalid` (bad payload), `backend` (adapter `embedding()` exception). |

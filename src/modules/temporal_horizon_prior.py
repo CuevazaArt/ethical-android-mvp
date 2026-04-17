@@ -20,8 +20,8 @@ from typing import TYPE_CHECKING
 import numpy as np
 
 if TYPE_CHECKING:
-    from .weighted_ethics_scorer import BayesianEngine
     from .narrative import NarrativeEpisode, NarrativeMemory
+    from .weighted_ethics_scorer import BayesianEngine
 
 
 @dataclass

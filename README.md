@@ -16,6 +16,7 @@ This project is also listed in [Spanish](https://github.com/CuevazaArt/androide-
 - **WebSocket chat:** `python -m src.chat_server` or `python -m src.runtime` — JSON over `/ws/chat`; optional `KERNEL_*` layers (see `src/chat_server.py` docstring and `src/chat_settings.py`).
 - **Batch simulations:** `python -m src.main` — legacy harness for regression scenarios.
 - **Experiments (optional):** [`experiments/README.md`](experiments/README.md).
+- **Ethical scoring:** Candidate actions are ranked using a **weighted mixture** over three stylized viewpoints (utilitarian / deontological / virtue). The names `BayesianEngine` and `KERNEL_BAYESIAN_*` refer to that mixture layer and optional bounded adjustments — **not** unconstrained “full Bayes” over a latent world model. See [ADR 0009](docs/adr/0009-ethical-mixture-scorer-naming.md) and [THEORY_AND_IMPLEMENTATION.md](docs/proposals/THEORY_AND_IMPLEMENTATION.md).
 
 ## Quick start
 
@@ -53,6 +54,10 @@ python -m ruff format --check src tests
 python -m mypy src
 ```
 
+### Environment validation (`KERNEL_*` combinations)
+
+After optional `ETHOS_RUNTIME_PROFILE` merge, the chat server applies **`KERNEL_ENV_VALIDATION`**: **`strict`** (default), **`warn`**, or **`off`**. In **strict** mode, incompatible flag combinations fail fast at startup (see [`docs/proposals/KERNEL_ENV_POLICY.md`](docs/proposals/KERNEL_ENV_POLICY.md)). From an editable install, run **`ethos config --strict`** to exit non-zero on the same rules without starting the server ([`CONTRIBUTING.md`](CONTRIBUTING.md)).
+
 ### Real-time chat (WebSocket)
 
 ```bash
@@ -60,7 +65,7 @@ python -m src.chat_server
 # http://127.0.0.1:8765/health  —  ws://127.0.0.1:8765/ws/chat
 ```
 
-Optional: `ETHOS_RUNTIME_PROFILE=lan_operational` (see [`src/runtime_profiles.py`](src/runtime_profiles.py)). Docker: [`Dockerfile`](Dockerfile), [`docker-compose.yml`](docker-compose.yml), [`docs/deploy/COMPOSE_PRODISH.md`](docs/deploy/COMPOSE_PRODISH.md).
+Optional: `ETHOS_RUNTIME_PROFILE=lan_operational` (see [`src/runtime_profiles.py`](src/runtime_profiles.py)). Docker: [`Dockerfile`](Dockerfile), [`docker-compose.yml`](docker-compose.yml), [`docs/deploy/COMPOSE_PRODISH.md`](docs/deploy/COMPOSE_PRODISH.md) (includes **staging verification** for `/health` and `/metrics`).
 
 ## Modular architecture (overview)
 

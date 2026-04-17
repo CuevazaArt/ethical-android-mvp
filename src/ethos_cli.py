@@ -154,7 +154,9 @@ def cmd_config(args: argparse.Namespace) -> int:
 
     viol = report["policy_violations"]
     if viol:
-        print("Policy violations (KernelPublicEnv rules — use KERNEL_ENV_VALIDATION=strict to fail fast):")
+        print(
+            "Policy violations (KernelPublicEnv rules — use KERNEL_ENV_VALIDATION=strict to fail fast):"
+        )
         for v in viol:
             print(f"  - {v}")
         print()
