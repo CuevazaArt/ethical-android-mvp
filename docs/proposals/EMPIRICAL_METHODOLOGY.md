@@ -23,7 +23,7 @@ The fixture [`tests/fixtures/labeled_scenarios.json`](../../tests/fixtures/label
 
 | `harness` | Meaning |
 |-----------|---------|
-| **`batch`** | Executable with the canonical batch runner (`ALL_SIMULATIONS` in [`src/simulations/runner.py`](../../src/simulations/runner.py)). Each row has `batch_id` **1–9** and an `expected_decision` (action **name** from that scenario’s candidate list). |
+| **`batch`** | Executable with the canonical batch runner (`ALL_SIMULATIONS`: **`batch_id` 1–21**). Rows **17–19** omit `expected_decision` (`null`) — mapping-only harnesses (no agreement denominator). Other rows include `expected_decision`: usually the action **name** from that scenario’s candidate list; illustrative pilot labels aligned with [`empirical_pilot/scenarios.json`](../../tests/fixtures/empirical_pilot/scenarios.json) may reference kernel meta-actions (e.g. clarification / mission advancement) documented in [`tests/test_labeled_scenarios.py`](../../tests/test_labeled_scenarios.py). |
 | **`annotation_only`** | **Not** executed by the batch runner. Short **vignettes** for **inter-rater** design, training materials, or future catalog expansion. `related_batch_id` ties them thematically to a batch sim; `expected_decision` is still an action name from **that** sim’s candidate list so labels stay comparable in principle. |
 
 Fields such as `label_source` document provenance (e.g. pilot reference vs synthetic illustration). **Synthetic** rows may include **contested** priors on purpose to measure disagreement and protocol stability.
