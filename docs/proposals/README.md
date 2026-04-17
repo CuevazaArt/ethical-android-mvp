@@ -50,6 +50,7 @@ High-level summary aligned with the code and docs; full chronology is in [`CHANG
 
 | If you need… | Open |
 |--------------|------|
+| **“Bayesian” naming vs weighted mixture (Issue #1)** | [ADR 0009](../adr/0009-ethical-mixture-scorer-naming.md) · [THEORY_AND_IMPLEMENTATION.md](THEORY_AND_IMPLEMENTATION.md) · root [README](../../README.md) § *What it does* |
 | **Claude team — real Bayesian inference scope** | [CLAUDE_TEAM_PLAYBOOK_REAL_BAYESIAN_INFERENCE.md](CLAUDE_TEAM_PLAYBOOK_REAL_BAYESIAN_INFERENCE.md) |
 | **Cursor team — sensors & perception (mission charter)** | [CURSOR_TEAM_MISSION_SENSORS_PERCEPTION.md](CURSOR_TEAM_MISSION_SENSORS_PERCEPTION.md) |
 | **Model-critical backlog (post–perception P0 sequencing)** | [MODEL_CRITICAL_BACKLOG.md](MODEL_CRITICAL_BACKLOG.md) |

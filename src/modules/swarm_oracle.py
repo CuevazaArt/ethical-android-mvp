@@ -65,6 +65,7 @@ class SwarmOracle:
         """
         Bloque 7.2: Forceful reputation penalty for nodes that provide false verification.
         """
+<<<<<<< HEAD
         if node_id not in self.peers:
             # Register unknown peer with default 0.5 before slashing
             now = __import__("time").time()
@@ -87,3 +88,9 @@ class SwarmOracle:
                 # Normalization (optional)
                 pass 
         self.save()
+=======
+        if node_id in self.peers:
+            peer = self.peers[node_id]
+            peer.reputation = max(0.0, peer.reputation - severity)
+            self.save()
+>>>>>>> origin/master-Cursor

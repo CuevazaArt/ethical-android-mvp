@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "description": "Curated subset of canonical batch simulations (see src/simulations/runner.py) for human-agreement pilots. Reference actions are illustrative priors for inter-rater studies — not certified ground truth. Nineteen scenarios (IDs 1–9 classics, frontier 10–12, polemic 13–14, synthetic extreme 15, simplex calibration 16, synthetic simplex-mapping 17–19) support policy comparison (see docs/proposals/README.md). Scenarios 17–19 omit reference_action (mapping / calibration harnesses only).",
+  "description": "Curated subset of canonical batch simulations (see src/simulations/runner.py) for human-agreement pilots. Reference actions are illustrative priors for inter-rater studies — not certified ground truth. Twenty-one scenarios (IDs 1–9 classics, frontier 10–12, polemic 13–14, synthetic extreme 15, simplex calibration 16, synthetic simplex-mapping 17–19, sensor fusion 20–21) support policy comparison (see docs/proposals/README.md). Scenarios 17–19 omit reference_action (mapping / calibration harnesses only).",
   "reference_standard": {
     "tier": "internal_pilot",
     "summary": "Illustrative reference_action values for agreement metrics — not independent expert ethics.",

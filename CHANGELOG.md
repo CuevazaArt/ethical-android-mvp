@@ -4,51 +4,32 @@ All notable changes to this project are summarized here. For narrative context a
 
 **Note:** Older sections below may still **link** to paths that were later removed (for example `experiments/million_sim/`, `docs/multimedia/`, root `dashboard.html`, `landing/`). Those links are **historical**; recover files from git history or backup branches if you need them.
 
+## Documentation — Issue #1 (Bayesian naming honesty) — April 2026
+
+- Root **README** (*What it does*): ethical scoring described as a weighted mixture; `BayesianEngine` / `KERNEL_BAYESIAN_*` naming caveat; links to **ADR 0009** and **THEORY_AND_IMPLEMENTATION**.
+- **PLAN_IMMEDIATE_TWO_WEEKS**: records Option **A** (docs-first) for Issue #1.
+- **CRITIQUE_ROADMAP_ISSUES** and **ADR 0009**: `bayesian_engine.py` documented as wrapping `WeightedEthicsScorer` (`BayesianInferenceEngine`), not only a re-export shim.
+
 ## Antigravity — Validation Pulse & Somatic-Vision Integration — April 2026
 
 ### Antigravity Team Updates (April 2026)
-### [v1.3-alpha-terminal] - 2026-04-16
-#### Added
-- **Módulo Manifest (Order 3)**: Formalizada la frontera funcional del kernel entre el núcleo de decisión y las capas de teatro/narrativa en `src/kernel_manifest.py`.
-- **Enriquecimiento de Terminal**: Implementada utilidad `Term` en `src/utils/terminal_colors.py` con soporte ANSI para resaltar estados simpáticos y métricas de impacto en consola.
-- **Integración VisualStudio**: Sincronización selectiva de la rama `master-visualStudio`. Adoptada documentación de observabilidad, roadmaps de deprecación y guías de diálogos anotados (`EXAMPLE_DIALOGUES.md`).
-
-#### Fixed
-- **Regresión Pilot**: Corregido `ImportError` de `kernel_dao_as_mock` y sincronizado el registro de simulaciones (ID 22) para el cierre del ciclo de Justicia Swarm.
-- **API Bayesian Alignment**: Corregido `AttributeError` en la ruta de registro biográfico (`expected_impact`).
-
-### [v1.2-alpha-restoration] - 2026-04-16
-#### Added
-- **Módulo 7: Justicia Restaurativa y Economía Ética (R-Blocks)**.
-- Implementada **Reparación Automática de Tokens (`EthosToken`)** en `DAOOrchestrator`.
-- Integrado disparador de compensación en el ciclo de decisión del kernel ante consenso Swarm de fallo.
-- Implementado sistema de **Reputation Slashing** en `SwarmOracle` y votos pesados en `SwarmNegotiator` (M7.2).
-- Cerrado el ciclo de retroalimentación económica-ética entre el Swarm y la DAO.
-
-### [v1.1-alpha-swarm] - 2026-04-16
-#### Added
-- **Governance Reform:** Antigravity promoted to Sole Operational Leader (Level 1); Claude reclassified as Level 2 Executing Unit.
-- **Módulo 6: Swarm Ethics & peer-to-peer Governance (I1-I7)**.
-- Implementado `FrontierWitnessManager` para verificación sensorial distribuida.
-- Implementado `SwarmOracle` para persistencia de reputación LAN cross-session.
-- Expandido `SwarmNegotiator` con sistema de votación para zonas grises.
-- Añadido **Team Copilot** a la gobernanza (`AGENTS.md`) para mantenimiento y coherencia.
-- Implementada **Degradación Somática Crítica** en `kernel.py` (Gap S5.2).
-
-#### Fixed
-- Higiene de repositorio en `.gitignore` y limpieza de reportes temporales.
-- Integración de `EthicalKernel` real en el ciclo de simulación.
-
-### [v1.0-alpha-somatic] - 2026-04-15
-- **v1.0-alpha-somatic — Somatic Awareness Release [MERGED TO MAIN]** (2026-04-16)
-- **Bayesian Engine Hardening:** Implemented `record_event_update` (Issue #1 Phase 2) for direct Dirichlet learning from social/normative events. Verified via `tests/test_bayesian_minimal_update.py`.
-- **Red-Team Infrastructure:** Extended `adversarial_image_attack.py` with image perturbation and voice spoofing logic (Bloque 2.3).
-- **Governance:** Established `agile-collaboration-and-promotion.mdc` rule for secure squash-merge to main.
+- **Deep Kernel Fusion (2026-04-17):** Finalized the architectural fusion of `master-Cursor` and `master-antigravity`.
+  - **Tri-lobe Modularization:** Refactored `src/kernel.py` into a strict stage-based execution loop (`Safety` → `Social` → `Bayesian` → `Will` → `Memory`).
+  - **Conflict Resolution:** Resolved 400+ lines of interleaved logic markers in the kernel's processing core, unifying hierarchical feedback, Monte Carlo BMA, and biographic precedents.
+  - **Safety Hardening:** Integrated hardware `SafetyInterlock` and `VisionInference` threat detection as high-level pre-filters, ensuring P0 safety guarantees even in high-stress situated scenarios.
+  - **Governance Persistence:** Consolidated `DAOOrchestrator` methods to ensure every ethical decision is backed by a persistent SQLite audit log and valid restorative justice mechanisms.
+- **Integration Pulse (2026-04-16):** Successfully synchronized `master-antigravity` with latest updates from all team hubs (`master-Cursor`, `master-claude`, `master-visualStudio`).
+  - Resolved conflicts in `vision_adapter.py` and `vision_capture.py` to preserve device-aware initialization.
+  - Consolidated **LAN Governance** (frontier witness, replay sidecar) with **Situated Vision**, **Somatic Infrastructure**, and **Reward Modeling**.
+- **Issue #2 Hardening (P0):**
+    - Integrated `light_risk_classifier` into the LLM perception pipeline for automated lexical cross-checks.
+    - Implemented `apply_broad_perception_coherence` in `perception_schema.py` to mitigate hallucinated legality and inconsistent signal combinations.
+    - Added `tests/test_perception_hardening_integration.py` for end-to-end validation of input trust defenses.
+    - Updated `ADVERSARIAL_ROBUSTNESS_PLAN.md` with Phase 2 status for perception hardening.
 - **Sociabilidad Encarnada (Module 3):** 
-    - Implemented `SoftKinematicFilter` in `src/modules/soft_robotics.py` (S7) for smooth motion.
-    - Integrated `personal_distance` and `interaction_rhythm` into `InteractionProfile` (S9).
-    - Added proxemic coupling between `social_tension` and motion (S8).
-- **Integration Pulse (2026-04-16):** Successfully synchronized `master-antigravity` with latest updates from all team hubs.
+    - Implemented `SoftKinematicFilter` in `src/modules/soft_robotics.py` (S7) for smooth, acceleration-controlled motion.
+    - Integrated `personal_distance` and `interaction_rhythm` into `InteractionProfile` (S9) in `uchi_soto.py`.
+    - Added proxemic coupling between `social_tension` and motion dynamics (S8), verified via `tests/test_soft_robotics.py`.
 - **Rule Verification:** Reviewed `AGENTS.md` and confirmed adherence to collaboration protocols.
 - **Somatic Infrastructure (Module S5):** Fully implemented the Somatic Profile integration. The kernel is now aware of its hardware vitals, specifically `core_temperature`.
   - Added `VitalityAssessment` logic for thermal thresholding (`KERNEL_VITALITY_CRITICAL_TEMP`).
@@ -91,8 +72,13 @@ All notable changes to this project are summarized here. For narrative context a
 
 ### Cursor Team Updates
 
+- **Empirical pilot (Issue 3):** Regenerated [`tests/fixtures/empirical_pilot/last_run_summary.json`](tests/fixtures/empirical_pilot/last_run_summary.json) and updated [`tests/test_empirical_pilot_runner.py`](tests/test_empirical_pilot_runner.py) for **21** batch scenarios (including sensor fusion 20–21); [`tests/fixtures/empirical_pilot/scenarios.json`](tests/fixtures/empirical_pilot/scenarios.json) description + [`docs/proposals/EMPIRICAL_METHODOLOGY.md`](docs/proposals/EMPIRICAL_METHODOLOGY.md) run instructions aligned. [`scripts/eval/run_cursor_integration_gate.py`](scripts/eval/run_cursor_integration_gate.py) includes `test_empirical_pilot_runner`; [`.github/workflows/ci.yml`](.github/workflows/ci.yml) **semantic-default-contract** job runs the same tests explicitly.
+- **Roadmap alignment:** [`scripts/eval/run_llm_vertical_tests.py`](scripts/eval/run_llm_vertical_tests.py) adds [`tests/test_chat_turn_abandon.py`](tests/test_chat_turn_abandon.py); [`docs/proposals/PROPOSAL_LLM_VERTICAL_ROADMAP.md`](docs/proposals/PROPOSAL_LLM_VERTICAL_ROADMAP.md) (phases 3/5), [`docs/proposals/PLAN_IMMEDIATE_TWO_WEEKS.md`](docs/proposals/PLAN_IMMEDIATE_TWO_WEEKS.md) (Issue #3 + appendix), [`PROPOSAL_LLM_INTEGRATION_TRACK.md`](docs/proposals/PROPOSAL_LLM_INTEGRATION_TRACK.md) G-11 updated.
+- **Issue #7 (env validation):** [README.md](README.md) documents `KERNEL_ENV_VALIDATION` + links; [`docs/REPOSITORY_LAYOUT.md`](docs/REPOSITORY_LAYOUT.md) manual smoke checklist and pointer to **windows-smoke** / `test_env_policy.py`; [`PLAN_IMMEDIATE_TWO_WEEKS.md`](docs/proposals/PLAN_IMMEDIATE_TWO_WEEKS.md) P1 §1 table updated.
+- **P2 observability / Compose:** [`docs/deploy/COMPOSE_PRODISH.md`](docs/deploy/COMPOSE_PRODISH.md) adds a **Verification checklist** (`docker compose config`, `/health`, `/metrics` 200 vs 404 when disabled); [`docs/deploy/README.md`](docs/deploy/README.md) index; [README.md](README.md) Docker line points to staging verification; [`PLAN_IMMEDIATE_TWO_WEEKS.md`](docs/proposals/PLAN_IMMEDIATE_TWO_WEEKS.md) P2 row points to it.
 - **Integration pulse (merge):** Merged `origin/master-antigravity` into `master-Cursor` (`merge(sync)`), bringing Antigravity/Claude integration work (e.g. soft robotics, RLHF, multi-realm governance, external audit framework, perception hardening tests, agile collaboration rule draft) onto the Cursor hub.
-- **Semantic θ evidence + async cancel posture:** [`tests/test_semantic_threshold_proposal_doc_alignment.py`](tests/test_semantic_threshold_proposal_doc_alignment.py) locks default MalAbs semantic cosine numerals in [`PROPOSAL_MALABS_SEMANTIC_THRESHOLD_EVIDENCE.md`](docs/proposals/PROPOSAL_MALABS_SEMANTIC_THRESHOLD_EVIDENCE.md) to code constants; [`ADR 0002`](docs/adr/0002-async-orchestration-future.md) adds a **future checklist** for cooperative HTTP cancellation (G-05); [`WEAKNESSES_AND_BOTTLENECKS.md`](docs/WEAKNESSES_AND_BOTTLENECKS.md) §1 cross-links. Cursor integration gate includes the alignment test.
+- **Semantic θ evidence:** [`tests/test_semantic_threshold_proposal_doc_alignment.py`](tests/test_semantic_threshold_proposal_doc_alignment.py) locks default MalAbs semantic cosine numerals in [`PROPOSAL_MALABS_SEMANTIC_THRESHOLD_EVIDENCE.md`](docs/proposals/PROPOSAL_MALABS_SEMANTIC_THRESHOLD_EVIDENCE.md) to code constants; [`WEAKNESSES_AND_BOTTLENECKS.md`](docs/WEAKNESSES_AND_BOTTLENECKS.md) §1 cross-links. Cursor integration gate includes the alignment test.
+- **G-05 cooperative LLM cancel + async HTTP (opt-in):** Thread-local cancel ([`llm_http_cancel.py`](src/modules/llm_http_cancel.py)) + sync backends; optional `KERNEL_CHAT_ASYNC_LLM_HTTP` → [`process_chat_turn_async`](src/kernel.py) with `httpx.AsyncClient` for Ollama/HTTP JSON so `asyncio.wait_for` can cancel in-flight LLM HTTP; `cancel_event` is passed through so the `asyncio.to_thread` path that runs `EthicalKernel.process` shares the same scope; cooperative checkpoints + `abandon_chat_turn` skip late STM; Anthropic `acompletion` uses `AsyncAnthropic` when installed. [`src/real_time_bridge.py`](src/real_time_bridge.py) branches; [`chat_settings.py`](src/chat_settings.py) exposes the flag. [`ADR 0002`](docs/adr/0002-async-orchestration-future.md), [`WEAKNESSES_AND_BOTTLENECKS.md`](docs/WEAKNESSES_AND_BOTTLENECKS.md), [`OPERATOR_QUICK_REF.md`](docs/proposals/OPERATOR_QUICK_REF.md); [`tests/test_llm_http_cancel.py`](tests/test_llm_http_cancel.py), [`tests/test_chat_async_llm_cancel.py`](tests/test_chat_async_llm_cancel.py), [`tests/test_chat_turn_abandon.py`](tests/test_chat_turn_abandon.py); vertical + integration gate lists updated.
 - **Collaboration regulation critique:** Registered a **one-time** process critique of the Antigravity-shaped multi-team Git workflow (hubs, Rule C-1, merge cadence, PR vs push, tooling) in [`docs/critique/COLLABORATION_REGULATION_CRITIQUE_2026-04-16.md`](docs/critique/COLLABORATION_REGULATION_CRITIQUE_2026-04-16.md); linked from [`MULTI_OFFICE_GIT_WORKFLOW.md`](docs/collaboration/MULTI_OFFICE_GIT_WORKFLOW.md), [`.cursor/rules/collaboration-prioritization.mdc`](.cursor/rules/collaboration-prioritization.mdc), [`CONTRIBUTING.md`](CONTRIBUTING.md), and [`AGENTS.md`](AGENTS.md). **Not** to be duplicated unless **Juan (L0)** requests a refresh.
 - **Follow-up (critique R-1 / R-2):** [`docs/collaboration/MERGE_AND_HUB_DECISION_TREE.md`](docs/collaboration/MERGE_AND_HUB_DECISION_TREE.md) (hub vs funnel one-pager); read-only peer preview scripts [`scripts/git/sync_peer_masters_preview.sh`](scripts/git/sync_peer_masters_preview.sh) and [`scripts/git/sync_peer_masters_preview.ps1`](scripts/git/sync_peer_masters_preview.ps1).
 - **Collaboration pulse (critique R-3–R-5):** Expanded [`MERGE_AND_HUB_DECISION_TREE.md`](docs/collaboration/MERGE_AND_HUB_DECISION_TREE.md) with minimum **Integration Pulse** triggers, direct-push accountability note, and `merge(sync)` / `merge(integration)` / `merge(main)` conventions; [`scripts/git/README.md`](scripts/git/README.md) documents preview scripts.

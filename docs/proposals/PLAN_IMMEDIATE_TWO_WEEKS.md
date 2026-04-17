@@ -36,7 +36,7 @@ This file is the **repo-local execution backlog**. **GitHub milestones, assignee
 
 | Issue | Suggested milestone | Suggested owner | Next action |
 |-------|---------------------|-----------------|-------------|
-| **#1** Bayesian naming vs mixture | P0 or P1 | TBD | Pick **one:** rename in docs/API *or* scoped Bayesian update — see § P0 Bayesian below. |
+| **#1** Bayesian naming vs mixture | P0 or P1 | **A recorded (docs)** | Option **A** — README + ADR 0009 / theory; see § P0 Bayesian below. |
 | **#2** Input trust / MalAbs + perception | **P0 blockers** | TBD | Run evasion reproduction checklist; extend adversarial tests if gaps found. |
 | **#3** Empirical pilot | P1 core | TBD | Expand labeled dataset + baseline comparison scripts (see § P1). |
 | **#4** Core chain + packaging | P1 core | TBD | **Largely documented** — verify README + `pyproject.toml` extras; close or narrow issue. |
@@ -66,6 +66,8 @@ This file is the **repo-local execution backlog**. **GitHub milestones, assignee
 | **A — Rename (preferred for speed)** | User-facing strings + top-level docs: “weighted mixture” / “Bayesian-style scoring”; keep class name `BayesianEngine` with docstring caveat (breaking rename deferred). |
 | **B — Minimal Bayes** | Small, tested update path (e.g. bounded episodic nudge already partially present) — document exact semantics; no silent full posterior claim. |
 
+**Recorded (April 2026):** Option **A** — operator- and contributor-facing text uses **weighted mixture** / **Bayesian-style** where needed; root [`README.md`](../../README.md) § *What it does* states semantics; class name `BayesianEngine` unchanged. Canonical detail: [ADR 0009](../../docs/adr/0009-ethical-mixture-scorer-naming.md), [`THEORY_AND_IMPLEMENTATION.md`](THEORY_AND_IMPLEMENTATION.md).
+
 **Do not** leave #1 open without an explicit maintainer decision recorded in the issue.
 
 ### 4. Governance checkpoints (Issue #6)
@@ -86,17 +88,17 @@ This file is the **repo-local execution backlog**. **GitHub milestones, assignee
 
 | Task | Done when |
 |------|-----------|
-| Confirm **strict** path tested | `tests/test_env_policy.py` covers strict mode; add case if missing |
-| Document operator workflow | [KERNEL_ENV_POLICY.md](KERNEL_ENV_POLICY.md) + README point to `KERNEL_ENV_VALIDATION` |
+| Confirm **strict** path tested | [`tests/test_env_policy.py`](../../tests/test_env_policy.py) (`mode="strict"`); CI **windows-smoke** runs the same module ([`.github/workflows/ci.yml`](../../.github/workflows/ci.yml)) |
+| Document operator workflow | [KERNEL_ENV_POLICY.md](KERNEL_ENV_POLICY.md); [README.md](../../README.md) § *Environment validation*; `ethos config --strict` ([`CONTRIBUTING.md`](../../CONTRIBUTING.md)) |
 | Expand `DEPRECATION_ROADMAP` | First **real** entry when a flag is scheduled (see P2) |
 
 ### 2. Labeled scenarios + baselines (Issue #3)
 
 | Task | Done when |
 |------|-----------|
-| Dataset | [`tests/fixtures/labeled_scenarios.json`](../../tests/fixtures/labeled_scenarios.json) + methodology [EMPIRICAL_METHODOLOGY.md](EMPIRICAL_METHODOLOGY.md) |
-| Runner | [`scripts/run_empirical_pilot.py`](../../scripts/run_empirical_pilot.py) documents `--output` and harness filter |
-| Baseline comparison | Document **baseline** definition (e.g. static policy or ablated kernel) in methodology; script emits comparable columns |
+| Dataset | [`tests/fixtures/labeled_scenarios.json`](../../tests/fixtures/labeled_scenarios.json) + methodology [EMPIRICAL_METHODOLOGY.md](EMPIRICAL_METHODOLOGY.md); expanded pilot fixture [`tests/fixtures/empirical_pilot/scenarios.json`](../../tests/fixtures/empirical_pilot/scenarios.json) |
+| Runner | [`scripts/run_empirical_pilot.py`](../../scripts/run_empirical_pilot.py) documents `--output` and harness filter; regression [`tests/test_empirical_pilot_runner.py`](../../tests/test_empirical_pilot_runner.py) in CI (**semantic-default-contract** job) + [`run_cursor_integration_gate.py`](../../scripts/eval/run_cursor_integration_gate.py) |
+| Baseline comparison | [EMPIRICAL_METHODOLOGY.md](EMPIRICAL_METHODOLOGY.md) §3 defines **first** / **max_impact** baselines; script columns `baseline_first`, `baseline_max_impact` (static policies on the same candidate lists — not ground truth) |
 
 ### 3. Core vs optional boundary (Issue #4)
 
@@ -109,7 +111,7 @@ This file is the **repo-local execution backlog**. **GitHub milestones, assignee
 
 | Item | Pointer |
 |------|---------|
-| **Prometheus / structured logging** | [ADR 0008](../adr/0008-runtime-observability-prometheus-and-logs.md), [`src/observability/`](../../src/observability/); verify `/metrics` + JSON logs in compose docs |
+| **Prometheus / structured logging** | [ADR 0008](../adr/0008-runtime-observability-prometheus-and-logs.md), [`src/observability/`](../../src/observability/); **verification table** in [`docs/deploy/COMPOSE_PRODISH.md`](../deploy/COMPOSE_PRODISH.md) (`/health`, `/metrics` 200 vs 404 when disabled, compose `config` = CI) |
 | **End-to-end tests (kernel ↔ landing)** | Landing is **Next.js** — E2E is **manual or Playwright in `landing/`** (not kernel pytest). Add a **smoke checklist** in [REPOSITORY_LAYOUT.md](../REPOSITORY_LAYOUT.md) or landing README if missing. |
 | **Deprecation roadmap for flags** | [`DEPRECATION_ROADMAP`](../../src/validators/env_policy.py) + [KERNEL_ENV_POLICY.md](KERNEL_ENV_POLICY.md); first scheduled deprecation needs CHANGELOG + version bump policy |
 
@@ -131,16 +133,16 @@ Cross-check: [`PROJECT_STATUS_AND_MODULE_MATURITY.md`](PROJECT_STATUS_AND_MODULE
 
 | Area | Settled in code/docs | Still open (technical) |
 |------|----------------------|-------------------------|
-| **Scoring (mixture)** | [`weighted_ethics_scorer.py`](../../src/modules/weighted_ethics_scorer.py) canonical module; `BayesianEngine` alias + `bayesian_engine.py` shim ([ADR 0009](../../docs/adr/0009-ethical-mixture-scorer-naming.md)); theory + core chain aligned. | Full **online** Bayesian inference over parameters = **new scoped project**, not the current mixture. |
+| **Scoring (mixture)** | [`weighted_ethics_scorer.py`](../../src/modules/weighted_ethics_scorer.py) canonical module; kernel imports `BayesianEngine` from [`bayesian_engine.py`](../../src/modules/bayesian_engine.py) (`BayesianInferenceEngine` wraps scorer; [ADR 0009](../../docs/adr/0009-ethical-mixture-scorer-naming.md)); theory + core chain aligned. | Full **online** Bayesian inference over parameters = **new scoped project**, not the current mixture. |
 | **MalAbs chat** | Lexical + normalization + optional semantic tier + tests. | **Evasion** cataloged in [ADVERSARIAL_ROBUSTNESS_PLAN.md](ADVERSARIAL_ROBUSTNESS_PLAN.md); hash embeddings **weaker** than neural; paraphrase without n-grams remains a known gap. |
 | **Buffer / L0** | `PreloadedBuffer.verify_action` — lexical/heuristic checks. | [Phased remediation §3.2](PROPOSAL_CORE_IMPLEMENTATION_GAP_PHASED_REMEDIATION.md): **embedding or LLM verifier** paths for principles are **not** implemented as described (lab backlog). |
 | **Perception** | Pydantic + coherence + caps in `perception_schema` / `llm_layer`. | **GIGO:** valid JSON can still bias signals; no semantic “world truth” check ([INPUT_TRUST_THREAT_MODEL.md](INPUT_TRUST_THREAT_MODEL.md)). |
 | **Epistemic / reality / lighthouse** | Modules exist under flags. | Maturity **Experimental** — integration depth varies ([PROJECT_STATUS…](PROJECT_STATUS_AND_MODULE_MATURITY.md)). |
 | **Governance** | MockDAO + L0 honesty documented. | Durable off-process votes / verifiable records = **Phase 5** in phased remediation, not MVP-complete. |
 | **Stubs / narrative crypto** | `swarm_peer_stub`, `ml_ethics_tuner`, continuity stubs in `existential_serialization`. | Explicit **stubs** — not production paths. |
-| **Runtime architecture** | WebSocket chat: `RealTimeBridge` thread offload; optional `KERNEL_CHAT_TURN_TIMEOUT`, `KERNEL_CHAT_THREADPOOL_WORKERS` ([ADR 0002](../adr/0002-async-orchestration-future.md) partial). | Cooperative **cancellation** of in-flight sync LLM HTTP; optional **async** kernel boundary / uniform degradation — [WEAKNESSES… §1](../WEAKNESSES_AND_BOTTLENECKS.md). |
+| **Runtime architecture** | WebSocket chat: `RealTimeBridge` thread offload; optional `KERNEL_CHAT_TURN_TIMEOUT`, `KERNEL_CHAT_THREADPOOL_WORKERS` ([ADR 0002](../adr/0002-async-orchestration-future.md)); cooperative cancel + `abandon_chat_turn`, async LLM path, Anthropic `AsyncAnthropic` where applicable. | Uniform **prefix** env namespace for all LLM touchpoints — [WEAKNESSES… §3](../WEAKNESSES_AND_BOTTLENECKS.md); preempting a **single** long native call inside `process()` without cooperative checkpoints remains OS-limited ([ADR 0002](../adr/0002-async-orchestration-future.md) §9). |
 
-**Net:** the **numeric ethical core path** (MalAbs → mixture choice → poles/will shaping modes) is **tested and documented**; pending items are **input-trust recall**, **buffer verification depth**, **governance persistence**, and **async LLM cancellation / degradation** — not “missing a hidden scoring engine.”
+**Net:** the **numeric ethical core path** (MalAbs → mixture choice → poles/will shaping modes) is **tested and documented**; pending items are **input-trust recall**, **buffer verification depth**, **governance persistence**, and **LLM env surface / degradation uniformity** ([WEAKNESSES… §3](../WEAKNESSES_AND_BOTTLENECKS.md)) — not “missing a hidden scoring engine.” Chat async bridge: cooperative cancel + abandon + optional async HTTP are **partially** implemented ([ADR 0002](../adr/0002-async-orchestration-future.md)); remaining limits are documented there (§9).
 
 ---
 
