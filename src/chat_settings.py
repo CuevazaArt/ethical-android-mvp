@@ -1,19 +1,36 @@
 """
 Central Pydantic model for **chat server** environment variables.
 
+⚠️  DEPRECATED: This module is replaced by src.settings.KernelSettings (Phase 3).
+Use `from src.settings import KernelSettings` instead.
+
+This module remains for backward compatibility through v1.1.
+Operators should migrate to KernelSettings for unified configuration.
+
 ``chat_server.py`` reads booleans and bind addresses here so operators have a single schema
 and field descriptions. Other modules may still read ``os.environ`` directly; migrating them
 is incremental.
 
 See also: ``README.md`` (Chat server environment), ``docs/proposals/README.md``.
+Migration guide: docs/PYDANTIC_SETTINGS_CONSOLIDATION_PLAN.md
 """
 
 from __future__ import annotations
 
 import os
+import warnings
 from typing import Any
 
 from pydantic import BaseModel, ConfigDict, Field
+
+# Emit deprecation warning on module import
+warnings.warn(
+    "chat_settings.ChatServerSettings is deprecated as of v1.0 and will be removed in v1.2. "
+    "Use src.settings.KernelSettings instead. "
+    "See docs/PYDANTIC_SETTINGS_CONSOLIDATION_PLAN.md for migration guide.",
+    DeprecationWarning,
+    stacklevel=2,
+)
 
 
 def _env_str(name: str, default: str) -> str:

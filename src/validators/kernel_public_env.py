@@ -1,17 +1,22 @@
 """
 Typed public surface for KERNEL_* variables used in env policy (Issue 7).
 
+⚠️  DEPRECATED: This module is replaced by src.settings.KernelSettings (Phase 3).
+Use `from src.settings import KernelSettings` instead.
+
 This is **not** a full migration of every ``os.environ`` read in the codebase — that remains
 incremental. It **does** centralize the variables that participate in **consistency rules**
 and startup validation so invalid combinations are **data**, not ad-hoc ``if`` chains.
 
 See ``docs/proposals/README.md`` and ``KERNEL_ENV_POLICY.md``.
+Migration guide: docs/PYDANTIC_SETTINGS_MIGRATION_GUIDE.md
 """
 
 from __future__ import annotations
 
 import logging
 import os
+import warnings
 from typing import Literal
 
 from pydantic import BaseModel, ConfigDict, Field
@@ -19,6 +24,15 @@ from pydantic import BaseModel, ConfigDict, Field
 from ..runtime_profiles import profile_names
 
 logger = logging.getLogger(__name__)
+
+# Emit deprecation warning on module import
+warnings.warn(
+    "src.validators.kernel_public_env.KernelPublicEnv is deprecated as of v1.0 and will be removed in v1.2. "
+    "Use src.settings.KernelSettings instead. "
+    "See docs/PYDANTIC_SETTINGS_MIGRATION_GUIDE.md for migration guide.",
+    DeprecationWarning,
+    stacklevel=2,
+)
 
 
 def _truthy(name: str) -> bool:
