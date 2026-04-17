@@ -1,7 +1,6 @@
 # Python
 __pycache__/
 *.pyc
-*.pyo
 *.egg-info/
 .eggs/
 dist/
@@ -62,9 +61,6 @@ experiments/out/*
 experiments/out/field/*
 !experiments/out/field/.gitignore
 !experiments/out/field/README.md
-
-# Misc
-get-pip.py
 
 # Legacy/snapshot directories (kept locally for reference, not in repo)
 androide-etico-mvp-v2/
