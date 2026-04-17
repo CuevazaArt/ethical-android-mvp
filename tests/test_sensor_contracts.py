@@ -5,6 +5,7 @@ import sys
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
 
+from src.modules.multimodal_trust import MultimodalAssessment
 from src.modules.sensor_contracts import (
     DigitalActionIntent,
     SensorSnapshot,
@@ -23,6 +24,26 @@ def test_merge_empty_snapshot_returns_same_dict():
     snap = SensorSnapshot()
     out = merge_sensor_hints_into_signals(base, snap)
     assert out is base
+
+
+def test_merge_suppresses_audio_stress_nudges_when_multimodal_doubt():
+    """SP-P1-02 — doubt skips audio-like stress paths in merge (antispoof)."""
+    base = {
+        "risk": 0.5,
+        "urgency": 0.5,
+        "hostility": 0.0,
+        "calm": 0.5,
+        "vulnerability": 0.0,
+    }
+    snap = SensorSnapshot(
+        audio_emergency=0.95,
+        vision_emergency=0.05,
+        scene_coherence=0.05,
+    )
+    without_mm = merge_sensor_hints_into_signals(base, snap, None)
+    doubt = MultimodalAssessment("doubt", "cross_modal_conflict", True)
+    with_doubt = merge_sensor_hints_into_signals(base, snap, doubt)
+    assert with_doubt["urgency"] <= without_mm["urgency"]
 
 
 def test_low_battery_nudges_urgency():

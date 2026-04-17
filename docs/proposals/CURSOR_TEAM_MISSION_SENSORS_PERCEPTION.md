@@ -179,13 +179,14 @@ The table below is the active starter queue for **`master-Cursor`** work.
   - [`src/modules/llm_layer.py`](../../src/modules/llm_layer.py)
   - [`tests/test_kernel_lobes_stack.py`](../../tests/test_kernel_lobes_stack.py)
 
-#### SP-P1-02 — Sensor fusion input normalization profile
+#### SP-P1-02 — Sensor fusion input normalization profile *[landed baseline — design + tests]*
 
 - **Source:** situated model + perception consistency requirements.
 - **Track label:** `sensor-fusion`
 - **Risk class:** `normal`
 - **Owner office:** Cursor (design first)
-- **Target branch:** `cursor/sensors-fusion-normalization`
+- **Target branch:** `cursor/sensors-fusion-normalization` (merged via `master-Cursor`)
+- **Delivered:** [`PROPOSAL_SENSOR_FUSION_NORMALIZATION.md`](PROPOSAL_SENSOR_FUSION_NORMALIZATION.md) (canonical `SensorSnapshot.from_dict` → `merge_sensor_hints_into_signals` + multimodal doubt); regression coverage in [`tests/test_sensor_contracts.py`](../../tests/test_sensor_contracts.py).
 - **Implementation target:**
   - Specify canonical normalization for incoming sensor signals before they influence perception/risk signals.
   - Document failure handling and fallback posture for missing/noisy sensors.

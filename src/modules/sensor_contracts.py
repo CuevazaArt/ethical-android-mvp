@@ -5,6 +5,8 @@ Hardware may be absent: callers pass :class:`SensorSnapshot` when available;
 :func:`merge_sensor_hints_into_signals` blends into the same ``signals`` dict
 used by ``SympatheticModule`` without bypassing MalAbs or the decision stack.
 
+Ingress normalization and fusion pipeline: ``docs/proposals/PROPOSAL_SENSOR_FUSION_NORMALIZATION.md``.
+
 See docs/proposals/README.md, multimodal_trust.py (cross-modal doubt),
 and epistemic_dissonance.py (v9.1 telemetry).
 """
