@@ -1,6 +1,6 @@
 # Sensor fusion input normalization (SP-P1-02)
 
-**Status:** Design baseline — canonical pipeline and failure posture documented; behavior locked by [`tests/test_sensor_contracts.py`](../../tests/test_sensor_contracts.py).  
+**Status:** Design baseline — canonical pipeline and failure posture documented; behavior locked by [	ests/test_sensor_contracts.py](../../tests/test_sensor_contracts.py), including 	est_merge_suppresses_audio_stress_nudges_when_multimodal_doubt.
 **Relates to:** [`PROPOSAL_SENSOR_ADAPTER_CONTRACT.md`](PROPOSAL_SENSOR_ADAPTER_CONTRACT.md) (SP-P1-01 seam), [`PERCEPTION_VALIDATION.md`](PERCEPTION_VALIDATION.md), [`KERNEL_ENV_POLICY.md`](KERNEL_ENV_POLICY.md).
 
 ## Purpose
