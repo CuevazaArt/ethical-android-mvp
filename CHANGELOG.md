@@ -7,6 +7,16 @@ All notable changes to this project are summarized here. For narrative context a
 ## Antigravity — Validation Pulse & Somatic-Vision Integration — April 2026
 
 ### Antigravity Team Updates (April 2026)
+### [v1.3-alpha-terminal] - 2026-04-16
+#### Added
+- **Módulo Manifest (Order 3)**: Formalizada la frontera funcional del kernel entre el núcleo de decisión y las capas de teatro/narrativa en `src/kernel_manifest.py`.
+- **Enriquecimiento de Terminal**: Implementada utilidad `Term` en `src/utils/terminal_colors.py` con soporte ANSI para resaltar estados simpáticos y métricas de impacto en consola.
+- **Integración VisualStudio**: Sincronización selectiva de la rama `master-visualStudio`. Adoptada documentación de observabilidad, roadmaps de deprecación y guías de diálogos anotados (`EXAMPLE_DIALOGUES.md`).
+
+#### Fixed
+- **Regresión Pilot**: Corregido `ImportError` de `kernel_dao_as_mock` y sincronizado el registro de simulaciones (ID 22) para el cierre del ciclo de Justicia Swarm.
+- **API Bayesian Alignment**: Corregido `AttributeError` en la ruta de registro biográfico (`expected_impact`).
+
 ### [v1.2-alpha-restoration] - 2026-04-16
 #### Added
 - **Módulo 7: Justicia Restaurativa y Economía Ética (R-Blocks)**.
