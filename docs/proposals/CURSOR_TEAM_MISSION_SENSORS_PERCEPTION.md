@@ -186,7 +186,7 @@ The table below is the active starter queue for **`master-Cursor`** work.
 - **Risk class:** `normal`
 - **Owner office:** Cursor (design first)
 - **Target branch:** `cursor/sensors-fusion-normalization` (merged via `master-Cursor`)
-- **Delivered:** [`PROPOSAL_SENSOR_FUSION_NORMALIZATION.md`](PROPOSAL_SENSOR_FUSION_NORMALIZATION.md) (canonical `SensorSnapshot.from_dict` → `merge_sensor_hints_into_signals` + multimodal doubt); regression coverage in [`tests/test_sensor_contracts.py`](../../tests/test_sensor_contracts.py).
+- **Delivered:** [`PROPOSAL_SENSOR_FUSION_NORMALIZATION.md`](PROPOSAL_SENSOR_FUSION_NORMALIZATION.md) (canonical `SensorSnapshot.from_dict` → `merge_sensor_hints_into_signals` + multimodal doubt); optional **`KERNEL_SENSOR_INPUT_STRICT`** rejects unknown keys / bad types in merged WebSocket `sensor` payloads (`error=sensor_payload_invalid` with `detail`); regression coverage in [`tests/test_sensor_contracts.py`](../../tests/test_sensor_contracts.py) and [`tests/test_chat_server.py`](../../tests/test_chat_server.py).
 - **Implementation target:**
   - Specify canonical normalization for incoming sensor signals before they influence perception/risk signals.
   - Document failure handling and fallback posture for missing/noisy sensors.
