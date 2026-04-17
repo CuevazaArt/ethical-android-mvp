@@ -60,6 +60,13 @@ When a chat turn includes `perception`, the server emits:
 
 This contract is intended for operator dashboards and alerting stability across perception fallback modes.
 
+### Nomad bridge, vitality merge, and embodied sociability (Modules S.1 / S.2.1 / S10)
+
+- **`KERNEL_NOMAD_TELEMETRY_VITALITY`** (default `1`): last Nomad WebSocket `telemetry` payload is merged into the sensor snapshot **only where fields are still unset** before `assess_vitality`. Set `0` to keep vitality purely client-side. Implementation: [`src/modules/nomad_bridge.py`](../../src/modules/nomad_bridge.py) (`peek_latest_telemetry`), [`src/modules/vitality.py`](../../src/modules/vitality.py) (`merge_nomad_telemetry_into_snapshot`), [`src/kernel.py`](../../src/kernel.py).
+- **`KERNEL_CHAT_INCLUDE_TRANSPARENCY_S10`** (default `1`): when enabled, chat JSON may include optional **`transparency_s10`** (action narration, withdrawal, discomfort index, operator help codes). Set `0` to omit. Implementation: [`src/modules/transparency_s10.py`](../../src/modules/transparency_s10.py), [`src/chat_server.py`](../../src/chat_server.py).
+
+Canonical env list: [`../ENV_VAR_CATALOG.md`](../ENV_VAR_CATALOG.md) §7 and §11.
+
 ### Temporal planning / sync contract (chat JSON)
 
 When a chat turn returns, the server may emit:

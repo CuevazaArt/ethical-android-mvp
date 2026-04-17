@@ -160,6 +160,7 @@ variable read by the codebase (`src/`). Variables are grouped by functional tier
 | `KERNEL_CHAT_INCLUDE_LIGHT_RISK` | `0` | bool | Include `light_risk_tier`. |
 | `KERNEL_CHAT_INCLUDE_JUDICIAL` | `0` | bool | Include `judicial_escalation`. |
 | `KERNEL_CHAT_INCLUDE_CONSTITUTION` | `0` | bool | Include `constitution` in JSON. |
+| `KERNEL_CHAT_INCLUDE_TRANSPARENCY_S10` | `1` | bool | Include optional `transparency_s10` (embodied sociability narration / withdrawal / discomfort / help codes). |
 
 ---
 
@@ -222,6 +223,7 @@ variable read by the codebase (`src/`). Variables are grouped by functional tier
 |----------|---------|------|-------------|
 | `KERNEL_NOMAD_SIMULATION` | `0` | bool | Enable nomadic HAL migration simulation. |
 | `KERNEL_NOMAD_MIGRATION_AUDIT` | `0` | bool | Append DAO calibration line on migration. |
+| `KERNEL_NOMAD_TELEMETRY_VITALITY` | `1` | bool | Merge latest Nomad `telemetry` into the sensor snapshot before `assess_vitality` when fields are missing (`0` disables). |
 | `KERNEL_NOMADIC_ED25519_PRIVATE_KEY` | `""` | str | Ed25519 private key for nomadic identity signing. **Secret.** |
 | `KERNEL_NOMADIC_ED25519_PUBLIC_KEY` | `""` | str | Ed25519 public key. |
 | `KERNEL_ETHICAL_GENOME_MAX_DRIFT` | `0.2` | float | Maximum allowed genome drift before identity alert. |
@@ -258,4 +260,4 @@ variable read by the codebase (`src/`). Variables are grouped by functional tier
 - ⛔ — Safety-critical; requires elevated DAO quorum
 - **Bold** — Used in `conftest.py` test isolation
 
-*Last updated: 2026-04-15 (Axis B1 — ADR 0016)*
+*Last updated: 2026-04-17 (Nomad S.2.1 vitality merge + S10 chat flag)*

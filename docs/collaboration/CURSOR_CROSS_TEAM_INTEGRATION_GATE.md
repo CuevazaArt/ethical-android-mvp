@@ -49,6 +49,9 @@ This checklist defines when `master-Cursor` is ready to be interlaced with other
      - `tests/test_empirical_pilot_runner.py` (Issue 3 — `run_empirical_pilot` / `last_run_summary` regression)
      - `tests/test_governance_mock_honesty_docs.py`
      - `tests/test_semantic_threshold_proposal_doc_alignment.py`
+     - `tests/test_transparency_s10.py` (embodied sociability S10 — optional `transparency_s10` in chat JSON)
+     - `tests/test_nomad_bridge_stream.py` (Nomad LAN bridge Module S.1)
+     - `tests/test_vitality.py` (Nomad → vitality merge Module S.2.1)
 
 6. **Operator docs**
    - `KERNEL_ENV_POLICY.md` and `OPERATOR_QUICK_REF.md` include any new `KERNEL_*` knobs and payload contract changes.
