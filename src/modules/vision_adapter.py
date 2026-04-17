@@ -72,7 +72,7 @@ class MobileNetV2Adapter(VisionAdapter):
     def __init__(self, device: str = "cpu"):
         self.model = None
         self.transform = None
-        self.categories = []
+        self.categories: list[str] = []
         self.device = device
         self._is_ready = False
         self._torch_device = None
@@ -88,7 +88,7 @@ class MobileNetV2Adapter(VisionAdapter):
 
             # Use recommended weights and categories from torchvision
             weights = MobileNet_V2_Weights.DEFAULT
-            self.model = models.mobilenet_v2(weights=weights)
+            net = models.mobilenet_v2(weights=weights)
 
             # Map device strings to torch devices
             if self.device == "cuda" and torch.cuda.is_available():
@@ -102,8 +102,9 @@ class MobileNetV2Adapter(VisionAdapter):
             else:
                 actual_device = torch.device("cpu")
 
-            self.model = self.model.to(actual_device)
-            self.model.eval()
+            net = net.to(actual_device)
+            net.eval()
+            self.model = net
 
             self._torch_device = actual_device
             self.categories = weights.meta["categories"]

@@ -464,3 +464,16 @@ class MockDAO:
                 counts["dispute"] += 1
 
         return counts
+
+    def issue_restorative_reparation(self, case_id: str, recipient: str, amount: float) -> str:
+        """
+        Bloque 7.1 stub: Simulates an EthosToken reparation transfer (mock, no persistence).
+        """
+        import time
+
+        txn_hash = f"0x_mock_reparation_{int(time.time())}_{case_id[:4]}"
+        self.register_audit(
+            "decision",
+            f"MockDAO: restorative reparation of {amount} EthosTokens to {recipient} for case {case_id}.",
+        )
+        return txn_hash
