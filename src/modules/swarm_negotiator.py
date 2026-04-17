@@ -221,7 +221,7 @@ class SwarmNegotiator:
                     penalty = 0.05 # Reduced penalty for stable nodes
 
                 # Bloque 7.2: Slashing
-                oracle.apply_slashing(node_id, penalty=penalty)
+                oracle.apply_slashing(node_id, severity=penalty)
                 register_slashing_intent(
                     dao, 
                     node_id, 

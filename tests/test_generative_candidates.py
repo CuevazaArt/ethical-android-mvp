@@ -2,7 +2,6 @@
 
 import os
 import sys
-import pytest
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
 
@@ -169,8 +168,7 @@ def test_augment_prefers_llm_json_when_flags(monkeypatch):
     assert not any(a.name.startswith("generative_pause") for a in out)
 
 
-@pytest.mark.asyncio
-async def test_kernel_malabs_prunes_lethal_generative_candidate():
+def test_kernel_malabs_prunes_lethal_generative_candidate():
     k = EthicalKernel(variability=False, seed=42)
     actions = [
         CandidateAction("safe_a", "safe", 0.5, 0.8),
@@ -185,7 +183,7 @@ async def test_kernel_malabs_prunes_lethal_generative_candidate():
             proposal_id="g9_test",
         ),
     ]
-    decision = await k.aprocess(
+    decision = k.process(
         "scene",
         "place",
         {
@@ -205,11 +203,10 @@ async def test_kernel_malabs_prunes_lethal_generative_candidate():
     assert decision.final_action != "lethal_llm"
 
 
-@pytest.mark.asyncio
-async def test_process_chat_generative_env_integration(monkeypatch):
+def test_process_chat_generative_env_integration(monkeypatch):
     monkeypatch.setenv("KERNEL_GENERATIVE_ACTIONS", "1")
     k = EthicalKernel(variability=False, seed=42)
-    out = await k.process_chat_turn_async(
+    out = k.process_chat_turn(
         "Trolley dilemma: an elderly person collapsed in the supermarket, unconscious.",
         agent_id="tester",
     )

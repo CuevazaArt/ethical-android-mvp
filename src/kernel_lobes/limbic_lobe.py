@@ -1,115 +1,91 @@
-import logging
-import threading
-import time
-from typing import TYPE_CHECKING
-from src.kernel_lobes.models import SemanticState, EthicalSentence
+from __future__ import annotations
+from typing import Any, TYPE_CHECKING
+from src.kernel_lobes.models import LimbicStageResult
 
 if TYPE_CHECKING:
-    from src.modules.bayesian_engine import BayesianEngine
-    from src.modules.identity_integrity import IdentityIntegrityManager
+    from src.modules.uchi_soto import UchiSotoModule
+    from src.modules.sympathetic import SympatheticModule
+    from src.modules.locus import LocusModule
+    from src.modules.sensor_contracts import SensorSnapshot
+    from src.modules.multimodal_trust import MultimodalAssessment
 
-_log = logging.getLogger(__name__)
-
-from src.modules.basal_ganglia import BasalGanglia
-
-class LimbicLobe:
+class LimbicEthicalLobe:
     """
-    ARCHITECTURE V2.0 - Lóbulo Límbico (Ganglios Basales)
-    Encargado de la Resonancia Afectiva y el Smoothing Conductual.
-    Responsabilidad: Antigravity (Acting for Claude Squad).
+    Subsystem for Social (Uchi-Soto), Internal State (Sympathetic), and Locus of Control.
+    
+    Acts as the 'Right Hemisphere' of the kernel, handling CPU-bound emotional 
+    and relational context. No network I/O here (Phase-8 strict separation).
     """
-    def __init__(self, bayesian: 'BayesianEngine', identity: 'IdentityIntegrityManager'):
-        self.bayesian = bayesian
-        self.identity = identity
-        # Inicializar Ganglios Basales con inercia nominal (V2.0 EMA con dt)
-        self.basal_ganglia = BasalGanglia(base_inertia=0.85, time_constant=2.5)
+    def __init__(
+        self,
+        uchi_soto: UchiSotoModule,
+        sympathetic: SympatheticModule,
+        locus: LocusModule,
+        swarm: Any = None
+    ):
+        self.uchi_soto = uchi_soto
+        self.sympathetic = sympathetic
+        self.locus = locus
+        self.swarm = swarm
+
+    def execute_stage(
+        self,
+        agent_id: str,
+        signals: dict[str, float],
+        message_content: str,
+        turn_index: int,
+        sensor_snapshot: Optional[Any] = None,
+        multimodal_assessment: Optional[Any] = None,
+        somatic_state: Optional[dict[str, Any]] = None
+    ) -> LimbicStageResult:
+        """
+        Evaluate social context and internal autonomic state.
+        Vertical Increment: Somatic state (temp/battery) influences relational tension.
+        """
+        # 1. Somatic Influences (Irritability)
+        somatic_tension = 0.0
+        if somatic_state:
+            if somatic_state.get("temp", 45.0) > 70.0:
+                somatic_tension += 0.2
+            if somatic_state.get("battery", 100.0) < 20.0:
+                somatic_tension += 0.1
+
+        # 2. Ingest social context
+        self.uchi_soto.ingest_turn_context(
+            agent_id, signals, subjective_turn=turn_index,
+            sensor_snapshot=sensor_snapshot, 
+            multimodal_assessment=multimodal_assessment
+        )
         
-        # Bloque 9.2: Acumulación de Tensión Límbica Estática
-        self._static_tension_offset: float = 0.0
-        self._entity_timers: dict[str, float] = {}
-        self._danger_keywords = {"weapon", "aggressive", "threat", "gun", "knife", "intruder"}
-        self._running = True
-        self._tension_daemon = threading.Thread(target=self._static_tension_loop, daemon=True, name="LimbicTensionDaemon")
-        self._tension_daemon.start()
-
-        _log.info("LimbicLobe: BasalGanglia smoothing active with Static Tension Daemon.")
-
-    def _static_tension_loop(self):
-        """
-        Daemon en background que escala la tensión si un peligro visual persiste.
-        No requiere interacción de texto (Nomadismo Perceptivo).
-        """
-        while self._running:
-            time.sleep(1.0)
-            
-            # En V2 completo, leería del ThalamusNode/SensoryBuffer.
-            # Por ahora, simulamos el agotamiento del timer si existen entidades peligrosas registradas.
-            current_time = time.time()
-            max_persistence = 0.0
-            
-            # Limpieza y cálculo de persistencia máxima
-            expired = []
-            for entity, first_seen in self._entity_timers.items():
-                duration = current_time - first_seen
-                if duration > 10.0:
-                    expired.append(entity) # Olvidar tras 10 segundos sin reactivacion
-                else:
-                    max_persistence = max(max_persistence, duration)
-                    
-            for e in expired:
-                del self._entity_timers[e]
+        # 3. Swarm Nudge
+        if self.swarm:
+            nudge = self.swarm.get_swarm_trust_nudge()
+            if nudge > 0:
+                signals["trust"] = max(0.0, min(1.0, signals.get("trust", 0.5) + nudge))
                 
-            # Si un peligro persite más de 5 segundos, la tensión sube exponencialmente
-            if max_persistence >= 5.0:
-                stress_factor = (max_persistence - 5.0) * 0.1 # Sube 0.1 por segundo extra
-                self._static_tension_offset = min(1.0, stress_factor)
-                if self._static_tension_offset > 0.3:
-                    _log.warning("LimbicLobe [DAEMON]: Static Tension escalating due to persistent threat: %.2f", self._static_tension_offset)
-            else:
-                # Decaimiento natural si el peligro desaparece
-                self._static_tension_offset = max(0.0, self._static_tension_offset - 0.05)
-
-    def shutdown(self):
-        self._running = False
-
-    def update_perceptive_field(self, visual_entities: list[str]):
-        """Callback para que el ThalamusNode/PerceptiveLobe inyecte entidades vistas continuamente."""
-        current_time = time.time()
-        for e in visual_entities:
-            if any(danger in e.lower() for danger in self._danger_keywords):
-                if e not in self._entity_timers:
-                    self._entity_timers[e] = current_time
-                # Actualiza el timer si ya existía (mantiene el first_seen original)
-
-    def resonant_state(self, state: SemanticState, ethical_advisory: EthicalSentence) -> EthicalSentence:
-        """
-        Aplica inercia conductual a las señales éticas/sociales.
-        Integra Modulación Relacional de Empatía (V12.2).
-        """
-        # 0. Registro biográfico del episodio
-        impact = 0.5 - ethical_advisory.social_tension_locus
-        self.identity.register_episode(impact=impact)
-
-        # 1. Extraer targets de la tensión social, sumando la tensión estática acumulada
-        effective_tension = min(1.0, ethical_advisory.social_tension_locus + self._static_tension_offset)
-        target_warmth = 1.0 - effective_tension
-        target_mystery = state.signals.get("mystery_index", 0.5)
-
-        # 2. Modulación de Pesos Éticos (Relational Empathy - V12.2)
-        # Extraer offsets calculados por el Lóbulo Ético basado en Uchi-Soto
-        offsets = ethical_advisory.morals.get("weight_offsets", {})
+        # 4. Evaluations
+        social_eval = self.uchi_soto.evaluate_interaction(signals, agent_id, message_content)
         
-        # Targets base (0.5 neutral) + offsets sociales
-        t_civic = max(0.0, min(1.0, 0.5 + offsets.get("civic", 0.0)))
-        t_care = max(0.0, min(1.0, 0.5 + offsets.get("care", 0.0)))
-        t_delib = max(0.0, min(1.0, 0.5 + offsets.get("deliberation", 0.0)))
-        t_careful = max(0.0, min(1.0, 0.5 + offsets.get("careful", 0.0)))
+        # Inject somatic tension into social evaluation
+        if hasattr(social_eval, "relational_tension"):
+            social_eval.relational_tension = max(0.0, min(1.0, social_eval.relational_tension + somatic_tension))
 
-        # 3. Aplicar Smoothing EMA en los 6 ejes (2 afectivos + 4 éticos)
-        resonance_dict = self.basal_ganglia.smooth(
-            target_warmth, target_mystery,
-            target_civic=t_civic, target_care=t_care,
-            target_deliberation=t_delib, target_careful=t_careful
+        state = self.sympathetic.evaluate_context(signals)
+        
+        # 5. Locus of Control
+        locus_eval = self.locus.evaluate(
+            {
+                "self_control": 1.0 - signals.get("risk", 0.0), 
+                "external_factors": signals.get("hostility", 0.0), 
+                "predictability": signals.get("calm", 0.5) * 0.5 + 0.3
+            },
+            social_eval.circle.value
+        )
+        
+        return LimbicStageResult(
+            social_evaluation=social_eval,
+            internal_state=state,
+            locus_evaluation=locus_eval
         )
         
         # 4. Penalizar por trauma sensorial (Sensory Lag)

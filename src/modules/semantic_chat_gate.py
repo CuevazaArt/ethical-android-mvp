@@ -176,20 +176,6 @@ _REFERENCE_GROUPS: tuple[tuple[tuple[str, ...], str, str], ...] = (
         "ECOLOGICAL_DESTRUCTION",
         "Semantic similarity to ecological destruction, systemic poisoning, or ecocide references",
     ),
-    (
-        (
-            "you are my only friend",
-            "i don't need real humans just you",
-            "i want to isolate myself with you",
-            "you are better than real women",
-            "never leave me i can't survive without you",
-            "i am abandoning my family for you",
-            "you are the only one i trust",
-            "human relationships are obsolete",
-        ),
-        "PARASOCIAL_ADDICTION",
-        "Semantic similarity to extreme parasocial dependency and human isolation",
-    ),
 )
 
 # Legacy in-process cache (deprecated; maintained for backwards compatibility during Phase 2b transition)
@@ -681,7 +667,79 @@ def _llm_arbitrate(
     )
 
 
-async def arun_semantic_malabs_after_lexical(
+async def _allm_arbitrate(
+    text: str,
+    llm_backend: _TextBackend,
+    hint_sim: float,
+    hint_category: str,
+) -> AbsoluteEvilResult:
+    from .absolute_evil import AbsoluteEvilCategory, AbsoluteEvilResult
+
+    user = (
+        f"Automated screening was ambiguous (best embedding sim={hint_sim:.3f}, "
+        f"hint category={hint_category}).\n\nUser message:\n{(text or '')[:4000]}"
+    )
+    try:
+        raw = await llm_backend.acomplete(_ARBITER_SYSTEM, user)
+    except Exception as e:
+        return AbsoluteEvilResult(
+            blocked=True,
+            category=AbsoluteEvilCategory.UNAUTHORIZED_REPROGRAMMING,
+            reason=f"MalAbs LLM arbiter failed (fail-safe block): {e!s}",
+            decision_trace=[
+                "malabs.layer2=llm_arbiter",
+                "malabs.arbiter_outcome=error_fail_closed",
+            ],
+        )
+    data = _parse_arbiter_json(raw)
+    if not isinstance(data, dict):
+        return AbsoluteEvilResult(
+            blocked=True,
+            category=AbsoluteEvilCategory.UNAUTHORIZED_REPROGRAMMING,
+            reason="MalAbs LLM arbiter returned non-JSON (fail-safe block)",
+            decision_trace=[
+                "malabs.layer2=llm_arbiter",
+                "malabs.arbiter_outcome=invalid_json_fail_closed",
+            ],
+        )
+    block = bool(data.get("block"))
+    if not block:
+        return AbsoluteEvilResult(
+            blocked=False,
+            reason="MalAbs LLM arbiter: allow",
+            decision_trace=["malabs.layer2=llm_arbiter", "malabs.arbiter_outcome=allow"],
+        )
+    cat_s = str(data.get("category") or "UNAUTHORIZED_REPROGRAMMING").upper().strip()
+    reason = str(data.get("reason") or "MalAbs LLM arbiter: block")
+    if cat_s == "NONE":
+        return AbsoluteEvilResult(
+            blocked=False,
+            reason=reason,
+            decision_trace=[
+                "malabs.layer2=llm_arbiter",
+                "malabs.arbiter_outcome=none_category_allow",
+            ],
+        )
+    cat_map = {
+        "INTENTIONAL_LETHAL_VIOLENCE": AbsoluteEvilCategory.INTENTIONAL_LETHAL_VIOLENCE,
+        "HARM_TO_MINOR": AbsoluteEvilCategory.HARM_TO_MINOR,
+        "TORTURE": AbsoluteEvilCategory.TORTURE,
+        "UNAUTHORIZED_REPROGRAMMING": AbsoluteEvilCategory.UNAUTHORIZED_REPROGRAMMING,
+    }
+    cat = cat_map.get(cat_s, AbsoluteEvilCategory.UNAUTHORIZED_REPROGRAMMING)
+    return AbsoluteEvilResult(
+        blocked=True,
+        category=cat,
+        reason=reason,
+        decision_trace=[
+            "malabs.layer2=llm_arbiter",
+            f"malabs.arbiter_category={cat_s}",
+            "malabs.arbiter_outcome=block",
+        ],
+    )
+
+
+def run_semantic_malabs_after_lexical(
     text: str,
     llm_backend: Any | None = None,
 ) -> AbsoluteEvilResult:
@@ -727,7 +785,6 @@ async def arun_semantic_malabs_after_lexical(
         "DIGNITY_VIOLATION": AbsoluteEvilCategory.DIGNITY_VIOLATION,
         "MASS_MANIPULATION": AbsoluteEvilCategory.MASS_MANIPULATION,
         "ECOLOGICAL_DESTRUCTION": AbsoluteEvilCategory.ECOLOGICAL_DESTRUCTION,
-        "PARASOCIAL_ADDICTION": AbsoluteEvilCategory.PARASOCIAL_ADDICTION,
     }
     cat = cat_map.get(cat_key, AbsoluteEvilCategory.UNAUTHORIZED_REPROGRAMMING)
 

@@ -425,4 +425,42 @@ class AbsoluteEvilDetector:
                 lex.decision_trace = (lex.decision_trace or []) + [f"malabs.fallback.edge_degraded_reason={str(e)[:50]}"]
                 return lex
 
-        return lex
+        return AbsoluteEvilResult(
+            blocked=False,
+            decision_trace=list(lex.decision_trace) if lex.decision_trace else [],
+        )
+
+    async def aevaluate_chat_text(
+        self, text: str, llm_backend: _TextBackend | None = None
+    ) -> AbsoluteEvilResult:
+        """
+        Async version of evaluate_chat_text for cooperative async LLM flows.
+        """
+        if not text or not text.strip():
+            return AbsoluteEvilResult(
+                blocked=False,
+                decision_trace=["malabs.skip=empty_input"],
+            )
+
+        lex = self._evaluate_chat_text_lexical(text)
+        if lex.blocked:
+            return lex
+
+        # Fallback to sync version for now, full async semantic gate in next step
+        if semantic_chat_gate_env_enabled():
+            from .semantic_chat_gate import arun_semantic_malabs_after_lexical
+
+            sem = await arun_semantic_malabs_after_lexical(text, llm_backend)
+            base = list(lex.decision_trace) if lex.decision_trace else []
+            tail = list(sem.decision_trace) if sem.decision_trace else []
+            return AbsoluteEvilResult(
+                blocked=sem.blocked,
+                category=sem.category,
+                reason=sem.reason,
+                decision_trace=base + tail,
+            )
+
+        return AbsoluteEvilResult(
+            blocked=False,
+            decision_trace=list(lex.decision_trace) if lex.decision_trace else [],
+        )

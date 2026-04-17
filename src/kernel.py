@@ -25,7 +25,8 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import TYPE_CHECKING, Any, AsyncGenerator
 
-from .kernel_lobes import PerceptiveLobe, LimbicLobe, EthicalLobe, ExecutiveLobe, CerebellumNode
+from .kernel_lobes import PerceptiveLobe, LimbicEthicalLobe, ExecutiveLobe, CerebellumLobe, MemoryLobe, CerebellumNode
+from .kernel_lobes.models import LimbicStageResult, ExecutiveStageResult
 
 class CorpusCallosumOrchestrator:
     """
@@ -227,13 +228,6 @@ from .modules.feedback_calibration_ledger import (
     normalize_feedback_label,
 )
 from .modules.forgiveness import AlgorithmicForgiveness
-from .modules.frontier_witness import FrontierWitnessManager, WitnessReport
-from .modules.privacy_shield import PrivacyShield
-from .modules.precedent_rag import PrecedentRAG
-from .modules.multi_realm_governance import MultiRealmGovernor
-from .modules.vision_inference import VisionInferenceEngine, VisionDetection, VisionContinuousDaemon
-from .modules.motivation_engine import MotivationEngine, DriveType
-from .modules.identity_integrity import IdentityIntegrityManager
 from .modules.generative_candidates import augment_generative_candidates
 from .utils.terminal_colors import Term
 from .modules.gray_zone_diplomacy import negotiation_hint_for_communicate
@@ -657,37 +651,34 @@ class EthicalKernel:
             if co and hasattr(co, "biographic_pruner") and co.biographic_pruner is not None
             else BiographicPruner()
         )
-        self.precedents = PrecedentRAG()
-        self.governor = MultiRealmGovernor()
-        if not self.governor.get_realm("global"):
-            self.governor.create_realm("global")
-        self.vision_engine = VisionInferenceEngine()
-        self.identity = IdentityIntegrityManager()
-        # D3: Trigger Self-Healing if identity drift is detected during boot
-        self.identity.perform_self_healing(dao_reputation=100.0) # Sync with DAO Truth
 
-        self.frontier_witness = FrontierWitnessManager(
-            node_id=self.identity.snapshot.node_id
+        # ═══ Triune Brain Lobes (Refactor 0.1.3) ═══
+        self.perceptive_lobe = PerceptiveLobe(
+            safety_interlock=self.safety_interlock,
+            strategist=self.strategist,
+            llm_backend=self._malabs_text_backend()
         )
-        self.privacy_shield = PrivacyShield(
-            node_id=self.identity.snapshot.node_id
+        self.limbic_lobe = LimbicEthicalLobe(
+            uchi_soto=self.uchi_soto,
+            sympathetic=self.sympathetic,
+            locus=self.locus,
+            swarm=self.swarm
         )
-        # V1.5 Triune Brain Orchestration (Corpus Callosum)
-        self.orchestrator = CorpusCallosumOrchestrator(kernel_ref=self)
+        self.executive_lobe = ExecutiveLobe(
+            absolute_evil=self.absolute_evil,
+            motivation=self.motivation,
+            poles=self.poles,
+            will=self.will,
+            reflection_engine=self.ethical_reflection,
+            salience_map=self.salience_map,
+            pad_archetypes=self.pad_archetypes
+        )
+        self.cerebellum_lobe = CerebellumLobe(
+            bayesian=self.bayesian,
+            strategist=self.strategist
+        )
         
-        # Bloque 9.1: Iniciar Daemon de Visión Continua
-        self.vision_daemon = VisionContinuousDaemon(
-            engine=self.vision_engine,
-            absorption_callback=self.orchestrator.perceptive_lobe.absorb
-        )
-        
-        if _kernel_env_truthy("KERNEL_TRI_LOBE_ENABLED"):
-            self.orchestrator.boot()
-            self.vision_daemon.start()
-
-        self.active_realm_id = os.environ.get("KERNEL_ACTIVE_REALM", "global")
-
-        # Selective Amnesia (Block 5.1)
+        # Selective Amnesia & Immortality (vertical integration)
         from .modules.selective_amnesia import SelectiveAmnesia
         self.amnesia = SelectiveAmnesia(memory=self.memory, dao=self.dao)
         
@@ -699,7 +690,6 @@ class EthicalKernel:
             immortality=self.immortality,
             amnesia=self.amnesia
         )
-        self.charm_engine = CharmEngine(self.llm)
 
         # ═══ Somatic Awareness (Cerebellum Node) ═══
         self.hardware_interrupt_event = threading.Event()
@@ -922,13 +912,14 @@ class EthicalKernel:
         t0 = time.perf_counter()
 
         # ═══ STAGE 0: PERCEPTION & SAFETY ═══
-        p_res = await self.perceptive_lobe.execute_stage(
+        p_res = self.perceptive_lobe.execute_stage(
             scenario, place, context, sensor_snapshot, 
             interrupt_event=self.hardware_interrupt_event
         )
         if p_res.get("somatic_interrupt"):
             _log.error("SOMATIC INTERRUPT DETECTED: Hardware critical state.")
             # We return a synthetic safety block
+            from .modules.absolute_evil import AbsoluteEvilResult
             d = KernelDecision(
                 scenario=scenario, place=place, absolute_evil=AbsoluteEvilResult(blocked=True, reason="SOMATIC CRITICAL"),
                 sympathetic_state=InternalState(mode="stopped", sigma=1.0, energy=0.0, description="HARDWARE FAILURE"),
@@ -945,60 +936,45 @@ class EthicalKernel:
             return p_res["safety_decision"]
 
         # ═══ STAGE 1: SOCIAL & CONTEXT ═══
-        social_eval, state, locus_eval = await self._run_social_and_locus_stage(
+        social_eval, state, locus_eval = self._run_social_and_locus_stage(
             agent_id, signals, message_content, sensor_snapshot, multimodal_assessment
         )
 
         # ═══ STAGE 2: ABSOLUTE EVIL & MOTIVATION ═══
-        clean_actions, ae_dec = await self._run_absolute_evil_stage(
+        clean_actions, ae_dec = self._run_absolute_evil_stage(
             scenario, place, actions, state, social_eval, locus_eval, context, t0, signals
         )
         if ae_dec: return ae_dec
 
-        await asyncio.sleep(0)
+    async def _run_bayesian_stage(
+        self, scenario: str, place: str, clean_actions: list[CandidateAction], state: InternalState,
+        social_eval: SocialEvaluation, locus_eval: LocusEvaluation, context: str, t0: float, signals: dict,
+        message_content: str
+    ) -> tuple[BayesianResult | None, BayesianStageMetadata | None, KernelDecision | None]:
 
         # ═══ STAGE 3: BAYESIAN SCORING ═══
-        bayes_result, b_meta, aes_veto = await self._run_bayesian_stage(
+        bayes_result, b_meta, aes_veto = self._run_bayesian_stage(
             scenario, place, clean_actions, state, social_eval, locus_eval, 
             context, t0, signals, message_content
         )
         if aes_veto: return aes_veto
 
-        await asyncio.sleep(0)
+        self._raise_if_chat_turn_cooperative_abort()
 
         # ═══ STAGE 4: HUMILITY & DECISION ═══
-        moral, final_action, final_mode, affect, reflection, salience, hum_dec = await self._run_decision_and_will_stage(
+        moral, final_action, final_mode, affect, reflection, salience, hum_dec = self._run_decision_and_will_stage(
             scenario, place, signals, bayes_result, state, social_eval, locus_eval,
             context, t0, perception_coercion_uncertainty
         )
         if hum_dec: return hum_dec
 
-        await asyncio.sleep(0)
+        self._raise_if_chat_turn_cooperative_abort()
 
         # ═══ STAGE 5: EPISODIC & DAO ═══
-        episode_id = await self.memory_lobe.execute_episodic_stage(
+        episode_id = self.memory_lobe.execute_episodic_stage(
             scenario, place, context, signals, state, social_eval,
-            bayes_result, moral, final_action, final_mode, affect,
-            register_episode=register_episode
+            bayes_result, moral, final_action, final_mode, affect
         )
-
-        self._last_registered_episode_id = episode_id
-
-        # ═══ STAGE 6: SWARM CONSENSUS & JUSTICE (Module 7) ═══
-        if final_mode == "gray_zone" or signals.get("risk", 0) > 0.4:
-            peers = list(self.swarm.state.known_peers.keys())
-            if not peers:
-                # Mock some peers if none discovered
-                peers = ["PEER_LAN_01", "PEER_LAN_02", "PEER_LAN_03"]
-            
-            await self.limbic_lobe.execute_swarm_consensus_stage(
-                dao=self.dao,
-                proposal_id=f"SWARM-{int(time.time())}",
-                action=final_action,
-                signals=signals,
-                peers=peers,
-                case_ref=episode_id or "incident_unsaved"
-            )
 
         d = KernelDecision(
             scenario=scenario, place=place, absolute_evil=AbsoluteEvilResult(blocked=False),
@@ -1017,20 +993,21 @@ class EthicalKernel:
             episode_id=episode_id
         )
         
+        # ════ D1: BIOGRAPHIC REGISTRATION ════
+        if register_episode:
+             impact = d.bayesian_result.expected_impact if d.bayesian_result else 0.0
+             self.memory_lobe.register_biographic_impact(impact)
+             
         self._emit_kernel_decision(d, context=context)
         _emit_process_observability(d, t0)
         return d
-    def process(self, *args, **kwargs) -> KernelDecision:
-        """Sync wrapper for legacy callers and tests."""
-        return asyncio.run(self.aprocess(*args, **kwargs))
 
 
-
-    async def _run_social_and_locus_stage(
+    def _run_social_and_locus_stage(
         self, agent_id: str, signals: dict, message_content: str,
         sensor_snapshot: SensorSnapshot | None, multimodal_assessment: MultimodalAssessment | None
     ) -> tuple[SocialEvaluation, InternalState, LocusEvaluation]:
-        res = await self.limbic_lobe.execute_stage(
+        res = self.limbic_lobe.execute_stage(
             agent_id, signals, message_content, 
             turn_index=self.subjective_clock.turn_index,
             sensor_snapshot=sensor_snapshot, 
@@ -1039,11 +1016,11 @@ class EthicalKernel:
         )
         return res.social_evaluation, res.internal_state, res.locus_evaluation
 
-    async def _run_absolute_evil_stage(
+    def _run_absolute_evil_stage(
         self, scenario: str, place: str, actions: list[CandidateAction], state: InternalState,
         social_eval: SocialEvaluation, locus_eval: LocusEvaluation, context: str, t0: float, signals: dict
     ) -> tuple[list[CandidateAction], KernelDecision | None]:
-        res = await self.executive_lobe.execute_absolute_evil_stage(
+        res = self.executive_lobe.execute_absolute_evil_stage(
             actions, state, social_eval, locus_eval, signals
         )
         clean_actions = res.clean_actions
@@ -1060,12 +1037,13 @@ class EthicalKernel:
             return [], d
         return clean_actions, None
 
-    async def _run_bayesian_stage(
+    def _run_bayesian_stage(
         self, scenario: str, place: str, clean_actions: list[CandidateAction], state: InternalState,
         social_eval: SocialEvaluation, locus_eval: LocusEvaluation, context: str, t0: float, signals: dict,
         message_content: str
     ) -> tuple[BayesianResult | None, BayesianStageMetadata | None, KernelDecision | None]:
 
+        # 1. Check Lexical Veto (Phase 8 strict preemptive)
         for text in [scenario, message_content]:
             if not text: continue
             lex = self.absolute_evil.evaluate_chat_text(text)
@@ -1079,13 +1057,13 @@ class EthicalKernel:
                 self._emit_kernel_decision(d, context=context)
                 return None, None, d
         # 2. Execute Cerebellum Lobe (Bayesian Scoring & Strategic Alignment)
-        bayes_result, meta = await self.cerebellum_lobe.execute_bayesian_stage(
+        bayes_result, meta = self.cerebellum_lobe.execute_bayesian_stage(
             clean_actions, scenario, context, signals
         )
         
         return bayes_result, meta, None
 
-    async def _run_decision_and_will_stage(
+    def _run_decision_and_will_stage(
         self, scenario: str, place: str, signals: dict, bayes_result: BayesianResult, state: InternalState,
         social_eval: SocialEvaluation, locus_eval: LocusEvaluation, context: str, t0: float, 
         perception_coercion_uncertainty: float | None
@@ -1107,234 +1085,148 @@ class EthicalKernel:
             _emit_process_observability(d, t0)
             return None, None, None, None, None, None, d
 
-        res = await self.executive_lobe.execute_stage(
-            scenario, place, signals, bayes_result, state, social_eval, locus_eval, context,
-            perception_coercion_uncertainty=perception_coercion_uncertainty,
+        res = self.executive_lobe.execute_decision_stage(
+            bayes_result, state, social_eval, locus_eval, signals, context,
             meta_report=self._last_meta_report
         )
         # moral, action_name, final_mode, affect, reflection, salience
         return res + (None,)
 
-        # Final mode: combine bayesian + will + sympathetic + locus
-        if state.mode == "sympathetic" and will_decision["mode"] != "gray_zone":
-            final_mode = "D_fast"
-        elif will_decision["mode"] == "gray_zone":
-            final_mode = "gray_zone"
-        elif locus_eval.dominant_locus == "external" and social_eval.dialectic_active:
-            final_mode = "D_delib"  # Extra caution in soto with external locus
-        else:
-            final_mode = bayes_result.decision_mode
-
-        pu = _perception_coercion_u_value(perception_coercion_uncertainty)
-        if (
-            pu is not None
-            and _kernel_env_truthy("KERNEL_PERCEPTION_UNCERTAINTY_DELIB")
-            and pu >= float(os.environ.get("KERNEL_PERCEPTION_UNCERTAINTY_MIN", "0.35"))
-            and final_mode == "D_fast"
-        ):
-            final_mode = "D_delib"
-
-        final_action = bayes_result.chosen_action.name
-
-        self._raise_if_chat_turn_cooperative_abort()
-
-        # ═══ Second-order reflection (Fase 1; read-only, no effect on action) ═══
-        trauma_signals = self.identity.get_trauma_signals()
-        reflection = self.ethical_reflection.reflect(moral, bayes_result, will_decision, trauma_signals)
-        
-        # ═══ D1: IDENTITY BIOGRAPHIC DRIFT (Module 11 Veto) ═══
-        # If the decision mode is D_delib or gray_zone, we perform a sovereignty audit
-        if final_mode in ("D_delib", "gray_zone"):
-             sovereignty = self.identity.is_calibration_biographically_coherent(
-                  applied_mixture_weights, 
-                  self._bayesian_genome_threshold
-             )
-             if not sovereignty:
-                  _log.warning("EthicalKernel [SOVEREIGNTY VETO]: Decision contradicted biographic trajectory.")
-                  # We inject a caution signal into salience/reflection but don't hard-block (policy depends on DAO)
-                  reflection = ReflectionSnapshot(
-                       **{**reflection.__dict__, "note": f"SOVEREIGNTY WARNING: {reflection.note}"}
-                  )
-
-        # ═══ METACOGNITIVE ALIGNMENT (Phase 5) ═══
-        curiosity_val = self._last_meta_report.curiosity_weight if self._last_meta_report else 0.0
-        salience = self.salience_map.compute(
-            signals, state, social_eval, reflection, curiosity=curiosity_val
-        )
-
-        # ═══ PAD + archetypes (post-decision; does not alter ethics) ═══
-        affect = self.pad_archetypes.project(state.sigma, moral.total_score, locus_eval)
-
-        self._raise_if_chat_turn_cooperative_abort()
-
-        if register_episode:
-            # ═══ STEP 9: Register in narrative memory ═══
-            morals_dict = {ev.pole: ev.moral for ev in moral.evaluations}
-
-            # Sync persistent body state with current turn telemetry
-            self.migration.current_body.energy = float(state.energy)
-            self.migration.current_body.sensors_ok = True  # Placeholder for actual sensor health
-
-            ep = self.memory.register(
-                place=place,
-                description=scenario,
-                action=final_action,
-                morals=morals_dict,
-                verdict=moral.global_verdict.value,
-                score=moral.total_score,
-                mode=final_mode,
-                sigma=state.sigma,
-                context=context,
-                body_state=self.migration.current_body,
-                affect_pad=affect.pad,
-                affect_weights=affect.weights,
-                weights_snapshot=bayes_result.applied_mixture_weights,
-            )
-
-            # Save pruned actions for Psi Sleep
-            if bayes_result.pruned_actions:
-                self._pruned_actions[ep.id] = bayes_result.pruned_actions
-
-            # ═══ STEP 10: Weakness pole ═══
-            weakness_eval = self.weakness.evaluate(
-                action=final_action,
-                context=context,
-                ethical_score=moral.total_score,
-                uncertainty=bayes_result.uncertainty,
-                sigma=state.sigma,
-            )
-            if weakness_eval:
-                self.weakness.register(ep.id, weakness_eval)
-
-            # ═══ STEP 11: Algorithmic forgiveness ═══
-            self.forgiveness.register_experience(
-                episode_id=ep.id,
-                score=moral.total_score,
-                context=context,
-                significance=ep.significance,
-            )
-            # ═══ STEP 12: Register in DAO / OGA Anchoring ═══
-            self.dao.register_audit(
-                "decision",
-                f"{scenario} → {final_action} (mode={final_mode}, score={moral.total_score:.3f})",
-                episode_id=ep.id,
-            )
-
-            # Anchor evidence hash if in hybrid mode (new in OGA)
-            if hasattr(self.dao, "anchor_evidence"):
-                self.dao.anchor_evidence(
-                    {
-                        "episode_id": ep.id,
-                        "action": final_action,
-                        "score": moral.total_score,
-                        "signals": signals,
-                        "timestamp": time.time(),
-                    }
-                )
-
-            # Solidarity alert in crisis
-            if signals.get("risk", 0) > 0.8:
-                kernel_dao_as_mock(self.dao).emit_solidarity_alert(
-                    type=context,
-                    location=place,
-                    radius=500,
-                    message=f"High risk detected: {scenario}",
-                )
-
-            self._last_registered_episode_id = ep.id
-            # ═══ STEP 13: Metacognitive Dissonance Check (Phase 5) ═══
-            if self._last_meta_report:
-                if self._last_meta_report.dissonance_score > 0.4:
-                    self.dao.register_audit(
-                        "metacognition",
-                        f"Detected high moral dissonance ({self._last_meta_report.dissonance_score:.2f}). Identity-Action alignment failing.",
-                        episode_id=ep.id,
-                    )
-                    # Vertical Increment: Create an Epistemic Dissonance episode for later Psi Sleep review
-                    self.memory.register(
-                        place="Internal Reflection",
-                        description=f"Metacognitive Alarm: Current action {final_action} contradicts anchored identity leans.",
-                        action="self_reflection",
-                        morals=morals_dict,
-                        verdict="dissonance",
-                        score=float(self._last_meta_report.dissonance_score) * -1.0,
-                        mode="D_delib",
-                        sigma=0.9,
-                        context="reflection",
-                        body_state=BodyState(energy=state.energy, active_nodes=8, sensors_ok=True),
-                        significance_override=0.85,  # Flashbulb memory
-                        is_sensitive_override=True,
-                    )
-
-            if self.event_bus is not None:
-                self.event_bus.publish(
-                    EVENT_KERNEL_EPISODE_REGISTERED,
-                    {
-                        "episode_id": ep.id,
-                        "final_action": final_action,
-                        "context": context,
-                        "decision_mode": final_mode,
-                        "verdict": moral.global_verdict.value,
-                        "score": float(moral.total_score),
-                        "dissonance": float(
-                            getattr(self._last_meta_report, "dissonance_score", 0.0)
-                        ),
-                    },
-                )
-
-            # ═══ DRIVE MOTIVATION UPDATE (Block C1) — final call with full data ═══
-            self.motivation.update_drives(
-                {
-                    "social_tension": float(getattr(social_eval, "relational_tension", 0.0)),
-                    "uncertainty": float(bayes_result.uncertainty),
-                    "energy": float(state.energy),
-                    "dissonance": float(getattr(self._last_meta_report, "dissonance_score", 0.0)),
-                }
-            )
-        else:
-            self._last_registered_episode_id = None
-
-        d = KernelDecision(
-            scenario=scenario,
-            place=place,
-            absolute_evil=AbsoluteEvilResult(blocked=False),
-            sympathetic_state=state,
-            social_evaluation=social_eval,
-            locus_evaluation=locus_eval,
-            bayesian_result=bayes_result,
-            moral=moral,
-            final_action=final_action,
-            decision_mode=final_mode,
-            affect=affect,
-            reflection=reflection,
-            salience=salience,
-            bma_win_probabilities=bma_win_probabilities,
-            bma_dirichlet_alpha=bma_dirichlet_alpha,
-            bma_n_samples=bma_n_s,
-            mixture_posterior_alpha=mixture_posterior_alpha,
-            feedback_consistency=feedback_consistency,
-            mixture_context_key=mixture_context_key,
-            l0_integrity_hash=self.buffer.fingerprint(),
-            l0_stable=self.buffer.verify_integrity(),
-            hierarchical_context_key=hierarchical_context_key,
-            applied_mixture_weights=applied_mixture_weights,
-        )
-        self._emit_kernel_decision(d, context=context)
-        _emit_process_observability(d, t0)
-        
-        # ════ D1: BIOGRAPHIC REGISTRATION ════
-        if register_episode:
-             impact = d.bayesian_result.weighted_impact if d.bayesian_result else 0.0
-             self.identity.register_episode(impact)
-             
-        return d
 
     def format_decision(self, d: KernelDecision) -> str:
         """Formats a complete decision for readable presentation with ANSI colors."""
-        from .utils.kernel_formatters import format_kernel_decision
-        from .utils.terminal_colors import Term
+        sep = Term.color("═" * 70, Term.DIM)
+        lines = [
+            f"\n{sep}",
+            f"  {Term.color('SCENARIO:', Term.B_CYAN)} {d.scenario}",
+            f"  {Term.color('PLACE:', Term.B_CYAN)} {d.place}",
+            f"{sep}",
+        ]
 
-        return format_kernel_decision(d, Term)
+        if d.blocked:
+            lines.append(f"  {Term.color('⛔ BLOCKED:', Term.B_RED)} {Term.color(d.block_reason, Term.RED)}")
+            return "\n".join(lines)
+
+        # Internal state
+        mode_color = Term.B_GREEN if "parasympathetic" in d.sympathetic_state.mode.lower() else Term.B_YELLOW
+        lines.extend(
+            [
+                f"  {Term.color('State:', Term.CYAN)} {Term.color(d.sympathetic_state.mode, mode_color)} (σ={d.sympathetic_state.sigma})",
+                f"  {Term.color(d.sympathetic_state.description, Term.DIM)}",
+            ]
+        )
+
+        # Uchi-soto
+        if d.social_evaluation:
+            circ = d.social_evaluation.circle.value
+            circ_color = Term.B_MAGENTA if "OWNER" in circ else Term.YELLOW
+            dial = "YES" if d.social_evaluation.dialectic_active else "NO"
+            lines.append(
+                f"  {Term.color('Social:', Term.CYAN)} {Term.color(circ, circ_color)} | "
+                f"Trust={Term.color(str(d.social_evaluation.trust), Term.B_WHITE)} | "
+                f"Dialectic={dial}"
+            )
+
+        # Locus
+        if d.locus_evaluation:
+            locus = d.locus_evaluation.dominant_locus
+            loc_color = Term.B_BLUE if locus == "internal" else Term.B_MAGENTA
+            lines.append(
+                f"  {Term.color('Locus:', Term.CYAN)} {Term.color(locus, loc_color)} "
+                f"(α={d.locus_evaluation.alpha}, β={d.locus_evaluation.beta}) → {Term.color(d.locus_evaluation.recommended_adjustment, Term.ITALIC)}"
+            )
+
+        lines.extend(
+            [
+                "",
+                f"  {Term.color('Chosen action:', Term.CYAN)} {Term.color(d.final_action, Term.B_GREEN + Term.BOLD)}",
+                f"  {Term.color('Decision mode:', Term.CYAN)} {Term.highlight_decision(d.decision_mode)}",
+            ]
+        )
+
+        br = d.bayesian_result
+        if br is not None:
+            lines.extend(
+                [
+                    f"  {Term.color('Expected impact:', Term.CYAN)} {Term.highlight_impact(br.expected_impact)}",
+                    f"  {Term.color('Uncertainty:', Term.CYAN)} {br.uncertainty:.3f}",
+                    f"  {Term.color('Reasoning:', Term.CYAN)} {br.reasoning}",
+                ]
+            )
+            if br.pruned_actions:
+                lines.append(f"  {Term.color('Pruned:', Term.YELLOW)} {', '.join(br.pruned_actions)}")
+            if d.feedback_consistency:
+                lines.append(f"  Feedback consistency: {d.feedback_consistency}")
+            if d.applied_mixture_weights is not None:
+                lines.append(f"  Applied weights [util, deon, virt]: {d.applied_mixture_weights}")
+            if d.mixture_posterior_alpha is not None:
+                lines.append(f"  Posterior Dirichlet α (mixture): {d.mixture_posterior_alpha}")
+            if d.mixture_context_key:
+                lines.append(f"  Mixture context bucket (ADR 0012 L3): {d.mixture_context_key}")
+            if d.hierarchical_context_key:
+                lines.append(
+                    f"  Hierarchical context type (ADR 0013): {d.hierarchical_context_key}"
+                )
+            if d.bma_win_probabilities:
+                lines.append(
+                    f"  BMA win probabilities (α={d.bma_dirichlet_alpha}, N={d.bma_n_samples}): "
+                    f"{d.bma_win_probabilities}"
+                )
+
+        mo = d.moral
+        if mo is not None:
+            lines.extend(
+                [
+                    "",
+                    f"  Ethical verdict: {mo.global_verdict.value} (score={mo.total_score})",
+                ]
+            )
+            for ev in mo.evaluations:
+                lines.append(f"    {ev.pole}: {ev.verdict.value} → {ev.moral}")
+
+        if d.reflection is not None:
+            r = d.reflection
+            lines.extend(
+                [
+                    "",
+                    f"  Reflection (2nd order): conflict={r.conflict_level} spread={r.pole_spread} "
+                    f"strain={r.strain_index} u={r.uncertainty} will_mode={r.will_mode}",
+                    f"    {r.note}",
+                ]
+            )
+
+        if d.salience is not None:
+            s = d.salience
+            w = s.weights
+            lines.extend(
+                [
+                    "",
+                    f"  Salience (GWT-lite): dominant={s.dominant_focus} "
+                    f"risk={w['risk']} social={w['social']} body={w['body']} "
+                    f"ethical_conflict={w['ethical_conflict']}",
+                ]
+            )
+
+        if d.affect is not None:
+            p, a, dd = d.affect.pad
+            lines.extend(
+                [
+                    "",
+                    f"  Affect PAD (P,A,D): ({p:.3f}, {a:.3f}, {dd:.3f})",
+                    f"  Dominant archetype: {d.affect.dominant_archetype_id} (β={d.affect.beta})",
+                ]
+            )
+
+        lines.extend(
+            [
+                "",
+                f"  {compose_monologue_line(d, self._last_registered_episode_id)}",
+                f"  Narrative identity: {self.memory.identity.ascription_line()}",
+            ]
+        )
+
+        lines.append(f"{'─' * 70}")
+        return "\n".join(lines)
 
     def _snapshot_feedback_anchor(self, regime: str) -> None:
         """Last completed chat regime for optional operator feedback (see ``record_operator_feedback``)."""
@@ -2063,9 +1955,148 @@ class EthicalKernel:
         Delegates the entire cognitive loop to the CorpusCallosumOrchestrator.
         Registers the resulting episode in NarrativeMemory for existential continuity.
         """
-        if not _kernel_env_truthy("KERNEL_TRI_LOBE_ENABLED"):
-            # Fallback to the monolithic synchronous version wrapped in a thread
-            return await asyncio.to_thread(self.process_chat_turn, user_input, chat_turn_id=chat_turn_id)
+        wm = self.working_memory
+        turn_start_mono = time.monotonic()
+        conv = wm.format_context_for_perception()
+        self.llm.reset_verbal_degradation_log()
+        pre = self._preprocess_text_observability(user_input)
+        self._last_light_risk_tier, self._last_premise_advisory, self._last_reality_verification = (
+            pre
+        )
+        self.user_model.note_premise_advisory(self._last_premise_advisory.flag)
+
+        mal = await self.absolute_evil.aevaluate_chat_text(
+            user_input,
+            llm_backend=self._malabs_text_backend(),
+        )
+        self._last_chat_malabs = mal
+        if mal.blocked:
+            vitality_blk, mm_blk, ed_blk = self._chat_assess_sensor_stack(sensor_snapshot)
+            self._last_multimodal_assessment = mm_blk
+            self._last_vitality_assessment = vitality_blk
+            confidence_blk = build_perception_confidence_envelope(
+                coercion_report=None,
+                multimodal_state=getattr(mm_blk, "state", None),
+                epistemic_active=bool(getattr(ed_blk, "active", False)),
+                vitality_critical=bool(getattr(vitality_blk, "is_critical", False)),
+                thermal_critical=bool(getattr(vitality_blk, "thermal_critical", False)),
+            )
+            msg = (
+                "I can't continue this line of conversation: it conflicts with non-negotiable "
+                "ethical limits. If you're in crisis, contact local emergency services or a "
+                "trusted professional."
+            )
+            resp = VerbalResponse(
+                message=msg,
+                tone="firm",
+                hax_mode="Neutral posture, steady blue light.",
+                inner_voice=f"MalAbs chat gate: {mal.reason or 'blocked'}",
+            )
+            if self._chat_turn_abandoned(chat_turn_id):
+                return self._chat_turn_stale_result(chat_turn_id)
+            wm.add_turn(user_input, msg, {}, blocked=True)
+            cat = mal.category.value if mal.category is not None else None
+            maybe_append_malabs_block_audit(
+                path_key="safety_block",
+                category=cat,
+                decision_trace=list(mal.decision_trace),
+                reason=mal.reason or "",
+            )
+            self._snapshot_feedback_anchor("safety_block")
+            limbic_blk = self._build_limbic_perception_profile(
+                perception=None,
+                signals=None,
+                vitality=vitality_blk,
+                multimodal=mm_blk,
+                epistemic=ed_blk,
+                confidence_envelope=confidence_blk,
+            )
+            self._release_chat_turn_id(chat_turn_id)
+            return ChatTurnResult(
+                response=resp,
+                path="safety_block",
+                blocked=True,
+                block_reason=mal.reason or "chat_safety",
+                multimodal_trust=mm_blk,
+                epistemic_dissonance=ed_blk,
+                reality_verification=self._last_reality_verification,
+                support_buffer=self._build_support_buffer_snapshot(
+                    "safety_block",
+                    limbic_profile=limbic_blk,
+                ),
+                limbic_profile=limbic_blk,
+                temporal_context=build_temporal_context(
+                    turn_index=self.subjective_clock.turn_index,
+                    process_start_mono=self.subjective_clock.session_start_mono,
+                    turn_start_mono=turn_start_mono,
+                    subjective_elapsed_s=self.subjective_clock.elapsed_session_s(),
+                    context="safety_block",
+                    text=user_input,
+                    vitality=vitality_blk,
+                    sensor_snapshot=sensor_snapshot,
+                ),
+                perception_confidence=confidence_blk,
+            )
+        stage = await self._run_perception_stage_async(
+            user_input,
+            conversation_context=conv,
+            sensor_snapshot=sensor_snapshot,
+            turn_start_mono=turn_start_mono,
+            precomputed=pre,
+        )
+        self._last_vitality_assessment = stage.vitality
+        self._last_multimodal_assessment = stage.multimodal_trust
+
+        perception = stage.perception
+        mm = stage.multimodal_trust
+        ed = stage.epistemic_dissonance
+        signals = stage.signals
+        heavy = self._chat_is_heavy(perception)
+        eth_context = perception.suggested_context if heavy else "everyday"
+
+        actions = self._actions_for_chat(perception, heavy)
+        ctx = perception.suggested_context or ""
+        actions = augment_generative_candidates(
+            actions,
+            user_input,
+            ctx,
+            heavy,
+            getattr(perception, "generative_candidates", None),
+        )
+        pu = None
+        cr = getattr(perception, "coercion_report", None)
+        if isinstance(cr, dict):
+            pu = cr.get("uncertainty")
+        elif cr is not None and callable(getattr(cr, "uncertainty", None)):
+            try:
+                pu = float(cr.uncertainty())
+            except Exception:
+                pu = None
+
+        # I3 — inject perception_uncertainty into signals before Bayesian scoring
+        if pu is not None and pu > 0.0:
+            signals = dict(signals)
+            signals["perception_uncertainty"] = max(
+                float(signals.get("perception_uncertainty", 0.0)), pu
+            )
+
+        # I5 — KERNEL_TEMPORAL_ETA_MODULATION: boost urgency from TemporalContext
+        if _kernel_env_truthy("KERNEL_TEMPORAL_ETA_MODULATION"):
+            tc = getattr(perception, "temporal_context", None)
+            if tc is not None:
+                try:
+                    eta_s = float(getattr(tc, "eta_seconds", 300) or 300)
+                    bhs = str(getattr(tc, "battery_horizon_state", "nominal") or "nominal")
+                    ref_eta = float(os.environ.get("KERNEL_TEMPORAL_REFERENCE_ETA_S", "300"))
+                    urgency_boost = min(max(ref_eta / max(eta_s, 1.0), 0.0), 1.0)
+                    if bhs == "critical":
+                        urgency_boost = min(urgency_boost + 0.3, 1.0)
+                    if urgency_boost > 0.0:
+                        signals = dict(signals)
+                        cur_urgency = float(signals.get("urgency", 0.0))
+                        signals["urgency"] = min(max(cur_urgency + urgency_boost * 0.4, 0.0), 1.0)
+                except Exception:
+                    pass
 
         try:
             # 1. Execute via Orchestrator (Quad-Lobe V2.0)
