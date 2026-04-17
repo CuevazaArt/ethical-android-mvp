@@ -18,5 +18,10 @@ class ExecutiveLobe:
         if not ethics.is_safe:
             return "Veto Triggered: " + (ethics.veto_reason or "Unsafe intent")
 
-        # If safe, write a proper response considering the social_tension_locus
+        # If safe, write a proper response considering limbic tension (tri-lobe stub)
+        if ethics.social_tension_locus > 0.05:
+            return (
+                f"Response generated for intent: {state.raw_prompt} "
+                f"(tension={ethics.social_tension_locus:.2f})"
+            )
         return f"Response generated for intent: {state.raw_prompt}"

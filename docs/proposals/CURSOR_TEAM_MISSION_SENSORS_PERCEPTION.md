@@ -163,20 +163,21 @@ The table below is the active starter queue for **`master-Cursor`** work.
 
 ### P1 (next increment, architecture readiness)
 
-#### SP-P1-01 — Sensor adapter contract (pre-hardware integration seam)
+#### SP-P1-01 — Sensor adapter contract (pre-hardware integration seam) *[landed baseline]*
 
 - **Source:** pending module “Hardware integration” in `CONTRIBUTING.md`.
 - **Track label:** `sensor-fusion`
 - **Risk class:** `normal`
 - **Owner office:** Cursor (design + implementation)
-- **Target branch:** `cursor/sensors-adapter-contract`
+- **Target branch:** `cursor/sensors-adapter-contract` (merged via `master-Cursor`)
+- **Delivered:** [`SensorAdapter`](../../src/kernel_lobes/sensor_adapter.py) ABC + [`StubSensorAdapter`](../../src/kernel_lobes/sensor_adapter.py) / [`FixedSensorAdapter`](../../src/kernel_lobes/sensor_adapter.py); proposal [`PROPOSAL_SENSOR_ADAPTER_CONTRACT.md`](PROPOSAL_SENSOR_ADAPTER_CONTRACT.md); tests [`tests/test_kernel_lobes_stack.py`](../../tests/test_kernel_lobes_stack.py).
 - **Implementation target:**
   - Define the minimal sensor adapter interface needed by perception without coupling to one transport/vendor.
   - Add deterministic test doubles for local CI usage.
 - **Evidence links (start):**
   - [`PROPOSAL_SITUATED_ORGANISM_V8.md`](PROPOSAL_SITUATED_ORGANISM_V8.md)
   - [`src/modules/llm_layer.py`](../../src/modules/llm_layer.py)
-  - [`tests/`](../../tests/)
+  - [`tests/test_kernel_lobes_stack.py`](../../tests/test_kernel_lobes_stack.py)
 
 #### SP-P1-02 — Sensor fusion input normalization profile
 
