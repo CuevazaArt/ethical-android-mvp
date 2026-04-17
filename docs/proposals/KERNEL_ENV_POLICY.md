@@ -79,6 +79,7 @@ These are **not** forbidden by code, but **not CI-guaranteed** unless a profile 
 | **`KERNEL_MORAL_HUB_PUBLIC=0`** but enabling **DAO WebSocket vote paths** that assume hub | Use `hub_dao_demo` or `moral_hub_extended` as baseline. |
 | **`KERNEL_API_DOCS=1`** on **LAN bind** (`0.0.0.0`) | Exposes OpenAPI — intentional only for trusted networks ([SECURITY.md](SECURITY.md)). |
 | **Arbitrary** `KERNEL_SENSOR_FIXTURE` + **`KERNEL_SENSOR_PRESET`** + client `sensor` | Merge order is documented; conflicting keys confuse debugging. |
+| **`KERNEL_SENSOR_INPUT_STRICT=1`** + messy client `sensor` | Strict validation rejects unknown keys / bad types before coercion; WebSocket returns `sensor_payload_invalid` ([`PROPOSAL_SENSOR_FUSION_NORMALIZATION.md`](PROPOSAL_SENSOR_FUSION_NORMALIZATION.md)). |
 
 **Rule of thumb:** if it is not a **named profile** in `runtime_profiles.py` and not covered by a **dedicated test**, treat it as **experimental**.
 

@@ -28,7 +28,7 @@ Operators and hardware integrators need a **single story** for how raw WebSocket
 
 ## Future work (not implemented)
 
-- Optional **`KERNEL_SENSOR_INPUT_STRICT`** to reject malformed payloads instead of silent ignore (needs chat-server contract + tests).
+- **KERNEL_SENSOR_INPUT_STRICT** (truthy env): validate merged sensor JSON before coercion -- unknown keys and ill-typed scalars raise `SensorPayloadValidationError`; chat WebSocket returns `error=sensor_payload_invalid` with `detail`. See `validate_sensor_dict_strict`, `SensorSnapshot.from_dict(..., strict=True)`, `snapshot_from_layers`.
 - Shared normalization helper for **non-WebSocket** transports (reuse `from_dict` only).
 
 ## Changelog

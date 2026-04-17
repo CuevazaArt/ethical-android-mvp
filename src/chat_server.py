@@ -22,6 +22,8 @@ Conduct guide export (optional): KERNEL_CONDUCT_GUIDE_EXPORT_PATH — JSON on We
 
 Situated v8 (optional): KERNEL_SENSOR_FIXTURE (path to JSON), KERNEL_SENSOR_PRESET (name from
 perceptual_abstraction.SENSOR_PRESETS) — merged before client ``sensor`` JSON; see PROPOSAL_SITUATED_ORGANISM_V8.md.
+Optional ``KERNEL_SENSOR_INPUT_STRICT=1`` rejects unknown keys / bad types in the merged sensor object
+(``error=sensor_payload_invalid`` on WebSocket); see PROPOSAL_SENSOR_FUSION_NORMALIZATION.md.
 
 Multimodal thresholds (optional): KERNEL_MULTIMODAL_AUDIO_STRONG, KERNEL_MULTIMODAL_VISION_SUPPORT,
 KERNEL_MULTIMODAL_SCENE_SUPPORT, KERNEL_MULTIMODAL_VISION_CONTRADICT, KERNEL_MULTIMODAL_SCENE_CONTRADICT
@@ -182,6 +184,7 @@ from .modules.nomad_identity import nomad_identity_public
 from .modules.perception_schema import perception_report_from_dict
 from .modules.perceptual_abstraction import snapshot_from_layers
 from .modules.reparation_vault import maybe_register_reparation_after_mock_court
+from .modules.sensor_contracts import SensorPayloadValidationError
 from .observability.context import clear_request_context, set_request_id
 from .observability.logging_setup import configure_logging
 from .observability.metrics import (
@@ -2255,11 +2258,15 @@ async def ws_chat(ws: WebSocket) -> None:
             client = sensor_raw if isinstance(sensor_raw, dict) else None
             fixture = os.environ.get("KERNEL_SENSOR_FIXTURE", "").strip() or None
             preset = os.environ.get("KERNEL_SENSOR_PRESET", "").strip() or None
-            sensor_snapshot = snapshot_from_layers(
-                fixture_path=fixture,
-                preset_name=preset,
-                client_dict=client,
-            )
+            try:
+                sensor_snapshot = snapshot_from_layers(
+                    fixture_path=fixture,
+                    preset_name=preset,
+                    client_dict=client,
+                )
+            except SensorPayloadValidationError as e:
+                await ws.send_json({"error": "sensor_payload_invalid", "detail": str(e)})
+                continue
 
             chat_turn_seq += 1
             current_chat_turn_id = chat_turn_seq

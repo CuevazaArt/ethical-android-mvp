@@ -3,13 +3,18 @@
 import os
 import sys
 
+import pytest
+
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
 
 from src.modules.multimodal_trust import MultimodalAssessment
+from src.modules.perceptual_abstraction import snapshot_from_layers
 from src.modules.sensor_contracts import (
     DigitalActionIntent,
+    SensorPayloadValidationError,
     SensorSnapshot,
     merge_sensor_hints_into_signals,
+    validate_sensor_dict_strict,
 )
 
 
@@ -82,3 +87,35 @@ def test_from_dict_ignores_unknown_and_clamps():
 def test_digital_action_intent_dataclass():
     d = DigitalActionIntent(action_id="pay", summary="transfer", requires_owner_approval=True)
     assert d.action_id == "pay"
+
+
+def test_strict_mode_rejects_unknown_sensor_key():
+    with pytest.raises(SensorPayloadValidationError, match="unknown sensor keys"):
+        SensorSnapshot.from_dict({"not_a_real_sensor_field": 1.0}, strict=True)
+
+
+def test_strict_mode_rejects_non_numeric_scalar():
+    with pytest.raises(SensorPayloadValidationError, match="battery_level"):
+        SensorSnapshot.from_dict({"battery_level": "high"}, strict=True)
+
+
+def test_strict_mode_rejects_bool_for_float_slot():
+    with pytest.raises(SensorPayloadValidationError, match="boolean"):
+        SensorSnapshot.from_dict({"battery_level": True}, strict=True)
+
+
+def test_validate_sensor_dict_strict_rejects_nan():
+    with pytest.raises(SensorPayloadValidationError, match="nan"):
+        validate_sensor_dict_strict({"battery_level": float("nan")})
+
+
+def test_snapshot_from_layers_respects_kernel_sensor_input_strict_env(monkeypatch: pytest.MonkeyPatch):
+    monkeypatch.setenv("KERNEL_SENSOR_INPUT_STRICT", "1")
+    with pytest.raises(SensorPayloadValidationError):
+        snapshot_from_layers(client_dict={"typo": 0.5})
+
+
+def test_strict_mode_accepts_known_keys():
+    s = SensorSnapshot.from_dict({"battery_level": 0.42, "place_trust": 0.9}, strict=True)
+    assert abs(s.battery_level - 0.42) < 1e-9
+    assert abs(s.place_trust - 0.9) < 1e-9
