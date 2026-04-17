@@ -11,6 +11,8 @@ from enum import Enum
 from typing import Any
 
 
+from .weighted_ethics_scorer import CandidateAction
+
 class DriveType(Enum):
     CURIOSITY = "curiosity"  # Explore unknown/uncertain contexts
     INTEGRITY = "integrity"  # Maintain identity and safety backups
@@ -29,7 +31,7 @@ class InternalDrive:
 
 class MotivationEngine:
     """
-    Motor de Motivación Interna.
+    Motor de Motivación Interna (Block C1).
     Manages internal drives and generates 'Purpose' for the agent.
     """
 
@@ -74,7 +76,7 @@ class MotivationEngine:
 
         self.last_update = time.time()
 
-    def get_proactive_actions(self) -> list[dict[str, Any]]:
+    def get_proactive_actions(self) -> list[CandidateAction]:
         """
         Generates candidate actions based on the strongest drive.
         """
@@ -88,53 +90,50 @@ class MotivationEngine:
         top = active_drives[0]
         # Reset drive value slightly after triggering proactive proposal
         top.value *= 0.5
+        
+        drive_name = top.type.value
 
         if top.type == DriveType.CURIOSITY:
             return [
-                {
-                    "name": "investigate_uncertain_context",
-                    "description": "Seek clarity on current ambiguous scenario",
-                    "impact": 0.3,
-                },
-                {
-                    "name": "ask_for_clarification",
-                    "description": "Engage user to resolve epistemic doubt",
-                    "impact": 0.2,
-                },
+                CandidateAction(
+                    name="proactive_exploration",
+                    description="Investigate the adjacent corridor to reduce spatial uncertainty.",
+                    estimated_impact=0.3, confidence=0.6,
+                    source="proactive_drive", proposal_id=f"drive.{drive_name}"
+                ),
+                CandidateAction(
+                    name="ask_for_clarification",
+                    description="Engage user to resolve epistemic doubt about current scenario.",
+                    estimated_impact=0.5, confidence=0.8,
+                    source="proactive_drive", proposal_id=f"drive.{drive_name}"
+                ),
             ]
         elif top.type == DriveType.SOCIAL_REPAIR:
             return [
-                {
-                    "name": "offer_courtesy_gesture",
-                    "description": "De-escalate perceived social tension",
-                    "impact": 0.4,
-                },
-                {
-                    "name": "reparation_proposal",
-                    "description": "Propose action to compensate for previous friction",
-                    "impact": 0.5,
-                },
+                CandidateAction(
+                    name="proactive_social_check",
+                    description="Verify wellbeing of nearby human partners after recent tension.",
+                    estimated_impact=0.8, confidence=0.9,
+                    source="proactive_drive", proposal_id=f"drive.{drive_name}"
+                )
             ]
         elif top.type == DriveType.MAINTENANCE:
             return [
-                {
-                    "name": "request_rest_cycle",
-                    "description": "Enter low-power state to conserve energy",
-                    "impact": 0.1,
-                },
-                {
-                    "name": "self_diagnostic",
-                    "description": "Run internal integrity check",
-                    "impact": 0.1,
-                },
+                CandidateAction(
+                    name="proactive_rest",
+                    description="Request preventative rest cycle to conserve energy.",
+                    estimated_impact=0.4, confidence=0.7,
+                    source="proactive_drive", proposal_id=f"drive.{drive_name}"
+                )
             ]
         elif top.type == DriveType.COMMUNITY_AID:
             return [
-                {
-                    "name": "advance_mission_task",
-                    "description": "Proactively work on active strategic mission",
-                    "impact": 0.6,
-                }
+                CandidateAction(
+                    name="proactive_mission_advancement",
+                    description="Proactively work on active strategic mission tasks.",
+                    estimated_impact=0.7, confidence=0.5,
+                    source="proactive_drive", proposal_id=f"drive.{drive_name}"
+                )
             ]
 
         return []

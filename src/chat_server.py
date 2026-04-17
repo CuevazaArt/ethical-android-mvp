@@ -9,7 +9,7 @@ Or: python -m src.runtime  (same server; see docs/proposals/README.md)
 
 **Profiles:** set ``ETHOS_RUNTIME_PROFILE`` to a name in ``src/runtime_profiles.py`` to merge that bundle at import time (explicit env vars win per key). ``GET /health`` and ``GET /`` include ``runtime_profile`` when set; ``GET /health`` also returns ``llm_degradation`` (resolved perception / verbal / monologue policies — see ``PROPOSAL_LLM_TOUCHPOINT_DEGRADATION_MATRIX.md``).
 
-**Chat async bridge:** Each turn runs ``EthicalKernel.process_chat_turn`` in a worker thread (``RealTimeBridge``) so the asyncio loop can accept other WebSocket connections. Optional ``KERNEL_CHAT_THREADPOOL_WORKERS`` (positive int) uses a dedicated ``ThreadPoolExecutor`` for chat; optional ``KERNEL_CHAT_TURN_TIMEOUT`` (seconds) bounds the **async** wait and returns JSON ``error=chat_turn_timeout`` when exceeded (in-flight sync LLM may still run until ``OLLAMA_TIMEOUT``). By default ``KERNEL_CHAT_JSON_OFFLOAD`` is on: WebSocket JSON (including optional ``KERNEL_LLM_MONOLOGUE``) is built in the same offload path so the loop is not blocked after the turn. See ``src/real_time_bridge.py``, ADR 0002, and ``docs/proposals/README.md``.
+**Chat async bridge:** By default each turn runs ``EthicalKernel.process_chat_turn`` in a worker thread (``RealTimeBridge``) so the asyncio loop can accept other WebSocket connections. Optional ``KERNEL_CHAT_ASYNC_LLM_HTTP=1`` runs ``process_chat_turn_async`` on the event loop with async ``httpx`` for Ollama/HTTP JSON; the same per-turn cancel ``Event`` applies to the thread that runs ``EthicalKernel.process`` (cooperative exit + ``llm_http_cancel`` scope; see ADR 0002). Optional ``KERNEL_CHAT_THREADPOOL_WORKERS`` (positive int) uses a dedicated ``ThreadPoolExecutor`` for chat; optional ``KERNEL_CHAT_TURN_TIMEOUT`` (seconds) bounds the **async** wait and returns JSON ``error=chat_turn_timeout`` when exceeded (``abandon_chat_turn`` skips late STM; cooperative cancel for further sync LLM HTTP; in-flight HTTP cancel when async LLM is on). By default ``KERNEL_CHAT_JSON_OFFLOAD`` is on: WebSocket JSON (including optional ``KERNEL_LLM_MONOLOGUE``) is built in the same offload path so the loop is not blocked after the turn. See ``src/real_time_bridge.py``, ADR 0002, and ``docs/proposals/README.md``.
 
 OpenAPI/Swagger: **off** by default; set KERNEL_API_DOCS=1 to expose ``/docs``, ``/redoc``, ``/openapi.json`` (see README).
 
@@ -118,6 +118,7 @@ import json
 import logging
 import math
 import os
+import threading
 import time
 from collections.abc import Mapping
 from contextlib import asynccontextmanager
@@ -190,6 +191,7 @@ from .observability.metrics import (
     record_chat_turn_async_timeout,
     record_dao_ws_operation,
     record_lan_envelope_replay_cache_event,
+    record_llm_cancel_scope_signaled,
     record_malabs_block,
 )
 from .observability.middleware import RequestContextMiddleware
@@ -2097,6 +2099,7 @@ async def ws_chat(ws: WebSocket) -> None:
         "session_start channel=websocket (EthosPayroll mock ledger line)",
     )
     bridge = RealTimeBridge(kernel)
+    chat_turn_seq = 0
 
     interval = advisory_interval_seconds_from_env()
     advisory_stop: asyncio.Event | None = None
@@ -2258,8 +2261,13 @@ async def ws_chat(ws: WebSocket) -> None:
                 client_dict=client,
             )
 
+            chat_turn_seq += 1
+            current_chat_turn_id = chat_turn_seq
             t_turn = time.perf_counter()
             chat_to = st.kernel_chat_turn_timeout_seconds
+            chat_cancel_ev: threading.Event | None = (
+                threading.Event() if chat_to is not None else None
+            )
             try:
                 coro = bridge.process_chat(
                     text,
@@ -2268,16 +2276,22 @@ async def ws_chat(ws: WebSocket) -> None:
                     include_narrative=include_narrative,
                     sensor_snapshot=sensor_snapshot,
                     escalate_to_dao=escalate_to_dao,
+                    cancel_event=chat_cancel_ev,
+                    chat_turn_id=current_chat_turn_id,
                 )
                 if chat_to is not None:
                     result = await asyncio.wait_for(coro, timeout=chat_to)
                 else:
                     result = await coro
             except TimeoutError:
+                kernel.abandon_chat_turn(current_chat_turn_id)
                 observe_chat_turn("turn_timeout", time.perf_counter() - t_turn)
                 record_chat_turn_async_timeout()
+                if chat_cancel_ev is not None:
+                    chat_cancel_ev.set()
+                    record_llm_cancel_scope_signaled()
                 logger.warning(
-                    "chat_turn_timeout seconds=%s (worker thread may still run)",
+                    "chat_turn_timeout seconds=%s (worker thread may still run; cancel event set)",
                     chat_to,
                 )
                 await ws.send_json(
@@ -2288,9 +2302,9 @@ async def ws_chat(ws: WebSocket) -> None:
                         "path": "turn_timeout",
                         "block_reason": "chat_turn_timeout",
                         "hint": (
-                            "Async deadline elapsed; LLM/kernel work in the worker thread may "
-                            "still finish. Use OLLAMA_TIMEOUT and KERNEL_CHAT_TURN_TIMEOUT together; "
-                            "see ADR 0002."
+                            "Async deadline elapsed; cooperative cancel was signaled for further "
+                            "sync LLM HTTP in this thread. In-flight HTTP may still run until "
+                            "OLLAMA_TIMEOUT; see ADR 0002."
                         ),
                         "response": {
                             "message": (

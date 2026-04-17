@@ -41,6 +41,13 @@ This checklist defines when `master-Cursor` is ready to be interlaced with other
      - `tests/test_process_natural_verbal_observability.py`
      - `tests/test_perception_dual_vote_failure.py`
      - `tests/test_semantic_chat_gate.py`
+     - `tests/test_llm_touchpoint_policies.py`
+     - `tests/test_llm_http_cancel.py` (G-05 cooperative cancel scope)
+     - `tests/test_chat_async_llm_cancel.py` (async LLM HTTP / `KERNEL_CHAT_ASYNC_LLM_HTTP`)
+     - `tests/test_chat_turn_abandon.py` (timeout abandon / `turn_abandoned` / cooperative `process` exit)
+     - `tests/test_empirical_pilot_runner.py` (Issue 3 — `run_empirical_pilot` / `last_run_summary` regression)
+     - `tests/test_governance_mock_honesty_docs.py`
+     - `tests/test_semantic_threshold_proposal_doc_alignment.py`
 
 6. **Operator docs**
    - `KERNEL_ENV_POLICY.md` and `OPERATOR_QUICK_REF.md` include any new `KERNEL_*` knobs and payload contract changes.
@@ -63,6 +70,8 @@ Optional flags:
 
 - `--strict` (fails if git tree is dirty)
 - `--json` (machine-readable summary)
+
+**CI:** On pull requests to `main`, the workflow job **semantic-default-contract** (`.github/workflows/ci.yml`) runs `tests/test_empirical_pilot_runner.py` together with MalAbs semantic integration tests; the full **quality** job still runs the entire `tests/` tree (including the same module).
 
 ## Interlace recommendation
 

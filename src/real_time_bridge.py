@@ -10,9 +10,15 @@ By default we use Starlette's ``run_in_threadpool`` (anyio thread limiter). Set
 thread offload in the process).
 
 **Cancellation / timeouts:** ``asyncio.wait_for`` around :meth:`process_chat` can
-drop the **async** waiter when time elapses, but the synchronous work in the thread
-(including ``httpx`` to Ollama) may continue until its own timeout. True cooperative
-cancellation needs an async HTTP client (future work; see ADR 0002).
+drop the **async** waiter when time elapses. The server sets a :class:`threading.Event`
+so the worker thread can skip **subsequent** sync LLM HTTP calls (see
+``llm_http_cancel``). Set ``KERNEL_CHAT_ASYNC_LLM_HTTP=1`` to run
+:meth:`~src.kernel.EthicalKernel.process_chat_turn_async` on the event loop instead of a
+worker thread so **in-flight** Ollama/HTTP JSON requests are cancelled when the async
+deadline fires (see ADR 0002). ``cancel_event`` is passed through to
+:meth:`~src.kernel.EthicalKernel.process_chat_turn_async` so the thread running
+:meth:`~src.kernel.EthicalKernel.process` shares the same cooperative cancel + TLS scope
+as the default worker-thread path.
 
 **JSON response build:** After a turn returns, :meth:`RealTimeBridge.run_sync_in_chat_thread`
 runs the WebSocket JSON builder (``chat_server`` module) in the **same** offload path so optional
@@ -29,6 +35,7 @@ from __future__ import annotations
 import asyncio
 import functools
 import os
+import threading
 from collections.abc import Callable
 from concurrent.futures import ThreadPoolExecutor
 from typing import TYPE_CHECKING, Any, TypeVar
@@ -39,7 +46,52 @@ if TYPE_CHECKING:
     from .kernel import ChatTurnResult, EthicalKernel
     from .modules.sensor_contracts import SensorSnapshot
 
+from .modules.llm_http_cancel import clear_llm_cancel_scope, set_llm_cancel_scope
+
+
+def _async_chat_llm_http_enabled() -> bool:
+    """
+    When true, :meth:`RealTimeBridge.process_chat` awaits :meth:`~src.kernel.EthicalKernel.process_chat_turn_async`
+    on the asyncio loop so ``asyncio.wait_for`` can cancel in-flight ``httpx`` (Ollama / HTTP JSON).
+
+    Set ``KERNEL_CHAT_ASYNC_LLM_HTTP=1``. Anthropic (``LLM_MODE=api``) uses async-wrapped sync calls;
+    cancellation is weaker than native async HTTP — see ADR 0002.
+    """
+    return os.environ.get("KERNEL_CHAT_ASYNC_LLM_HTTP", "").strip().lower() in (
+        "1",
+        "true",
+        "yes",
+        "on",
+    )
+
 _T = TypeVar("_T")
+
+
+def _run_process_chat_turn_in_worker(
+    kernel: EthicalKernel,
+    cancel_event: threading.Event | None,
+    user_input: str,
+    agent_id: str,
+    place: str,
+    include_narrative: bool,
+    sensor_snapshot: SensorSnapshot | None,
+    escalate_to_dao: bool,
+    chat_turn_id: int | None,
+) -> ChatTurnResult:
+    if cancel_event is not None:
+        set_llm_cancel_scope(cancel_event)
+    try:
+        return kernel.process_chat_turn(
+            user_input,
+            agent_id,
+            place,
+            include_narrative,
+            sensor_snapshot,
+            escalate_to_dao,
+            chat_turn_id=chat_turn_id,
+        )
+    finally:
+        clear_llm_cancel_scope()
 
 _executor: ThreadPoolExecutor | None = None
 
@@ -92,27 +144,35 @@ class RealTimeBridge:
         include_narrative: bool = False,
         sensor_snapshot: SensorSnapshot | None = None,
         escalate_to_dao: bool = False,
+        cancel_event: threading.Event | None = None,
+        chat_turn_id: int | None = None,
     ) -> ChatTurnResult:
-        bound = functools.partial(
-            self.kernel.process_chat_turn,
-            user_input,
-            agent_id,
-            place,
-            include_narrative,
-            sensor_snapshot,
-            escalate_to_dao,
-        )
-        ex = _get_dedicated_executor()
-        if ex is None:
-            return await run_in_threadpool(
-                self.kernel.process_chat_turn,
+        if _async_chat_llm_http_enabled():
+            return await self.kernel.process_chat_turn_async(
                 user_input,
                 agent_id,
                 place,
                 include_narrative,
                 sensor_snapshot,
                 escalate_to_dao,
+                chat_turn_id=chat_turn_id,
+                cancel_event=cancel_event,
             )
+        bound = functools.partial(
+            _run_process_chat_turn_in_worker,
+            self.kernel,
+            cancel_event,
+            user_input,
+            agent_id,
+            place,
+            include_narrative,
+            sensor_snapshot,
+            escalate_to_dao,
+            chat_turn_id,
+        )
+        ex = _get_dedicated_executor()
+        if ex is None:
+            return await run_in_threadpool(bound)
         loop = asyncio.get_running_loop()
         return await loop.run_in_executor(ex, bound)
 

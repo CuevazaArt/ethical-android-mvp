@@ -107,11 +107,11 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r requirements.txt -r requirements-dev.txt
 
-      - name: Semantic defaults contract tests
+      - name: Semantic defaults + empirical pilot (Issue 3) contract tests
         env:
           PYTHONHASHSEED: "0"
         run: |
-          python -m pytest tests/test_malabs_semantic_integration.py tests/test_semantic_chat_gate.py -q --tb=short
+          python -m pytest tests/test_malabs_semantic_integration.py tests/test_semantic_chat_gate.py tests/test_empirical_pilot_runner.py -q --tb=short
 
   windows-smoke:
     runs-on: windows-latest

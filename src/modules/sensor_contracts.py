@@ -48,6 +48,7 @@ class SensorSnapshot:
     motor_effort_avg: float | None = None  # [0, 1]
     stability_score: float | None = None  # [0, 1]
     core_temperature: float | None = None  # degrees Celsius
+    image_metadata: dict[str, Any] | None = None  # CNN inference results (B2)
 
     @classmethod
     def from_dict(cls, raw: dict[str, Any]) -> SensorSnapshot:
@@ -99,6 +100,7 @@ class SensorSnapshot:
             motor_effort_avg=f("motor_effort_avg"),
             stability_score=f("stability_score"),
             core_temperature=f_raw("core_temperature"),
+            image_metadata=raw.get("image_metadata"),
         )
 
     def is_empty(self) -> bool:
@@ -117,6 +119,7 @@ class SensorSnapshot:
             and self.motor_effort_avg is None
             and self.stability_score is None
             and self.core_temperature is None
+            and self.image_metadata is None
         )
 
 
