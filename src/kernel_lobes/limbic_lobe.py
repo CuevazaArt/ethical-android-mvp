@@ -1,4 +1,6 @@
-from src.kernel_lobes.models import SemanticState, EthicalSentence
+from __future__ import annotations
+
+from src.kernel_lobes.models import EthicalSentence, SemanticState
 
 class LimbicEthicalLobe:
     """
@@ -6,7 +8,7 @@ class LimbicEthicalLobe:
     DAO Enforcement, Uchi-Soto, AbsoluteEvilDetector, Bayesian Updates.
     Does NOT connect to the internet.
     """
-    def __init__(self):
+    def __init__(self) -> None:
         # TODO(Claude): Migrate AbsoluteEvilDetector, MultiRealmGovernance here
         pass
 
@@ -20,7 +22,4 @@ class LimbicEthicalLobe:
             pass
             
         # Stub logic
-        return EthicalSentence(
-            is_safe=True,
-            social_tension_locus=0.0
-        )
+        return EthicalSentence(is_safe=True, social_tension_locus=0.0)

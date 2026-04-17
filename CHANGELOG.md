@@ -4,6 +4,15 @@ All notable changes to this project are summarized here. For narrative context a
 
 **Note:** Older sections below may still **link** to paths that were later removed (for example `experiments/million_sim/`, `docs/multimedia/`, root `dashboard.html`, `landing/`). Those links are **historical**; recover files from git history or backup branches if you need them.
 
+## Team Copilot — Executive Lobe pending-task pass — April 2026
+
+- Implemented `src/kernel_lobes/executive_lobe.py` as an actual executable stub:
+  - Initializes `MotivationEngine` inside `ExecutiveLobe`.
+  - Enforces veto-first behavior (`is_safe=False` returns early with veto reason).
+  - Emits monologue only in safe path using `compose_monologue_line`.
+- Tightened typing/syntax in `src/kernel_lobes/` stubs (`perception_lobe.py`, `limbic_lobe.py`, `cerebellum_node.py`) to reduce local lint friction.
+- Added focused guard test: `tests/test_executive_lobe.py` (safe path includes monologue; veto path does not).
+
 ## Documentation — Issue #1 (Bayesian naming honesty) — April 2026
 
 - Root **README** (*What it does*): ethical scoring described as a weighted mixture; `BayesianEngine` / `KERNEL_BAYESIAN_*` naming caveat; links to **ADR 0009** and **THEORY_AND_IMPLEMENTATION**.
