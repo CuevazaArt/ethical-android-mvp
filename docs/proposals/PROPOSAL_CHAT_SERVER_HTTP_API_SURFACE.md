@@ -58,5 +58,4 @@ The **`nomad_bridge`** field on **`GET /health`** reflects the shared [`get_noma
 ## Changelog
 
 - **2026-04-15:** Initial surface inventory for operator and cross-team contract reviews (see archive for full early log).
-- **2026-04-17:** Canonical copy placed under `docs/proposals/`; **`GET /health`** documents **`nomad_bridge`** (`nomad_bridge_queue_stats_v2`) and Nomad singleton note in Summary.
-- **2026-04-17:** LAN / justice cross-links resolved via `docs/archive_v1-7/proposals/` (proposals not duplicated in `docs/proposals/`).
+- **2026-04-17:** Canonical copy under `docs/proposals/`; **`GET /health`** documents **`nomad_bridge`** (`nomad_bridge_queue_stats_v2`) + Nomad singleton note in Summary; LAN/justice cross-links via `docs/archive_v1-7/proposals/` (not duplicated under `docs/proposals/`).

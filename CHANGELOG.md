@@ -9,6 +9,7 @@ All notable changes to this project are summarized here. For narrative context a
 ## Cursor — Integration merge (April 2026)
 
 ### Cursor Team Updates
+- **L1-SUPREMACY-01 compliance:** `AGENTS.md` restored to match `origin/main` — Level 2 must not modify the governance entry file without L0/L1 authorization ([`.cursor/rules/l1-supremacy-and-audit.mdc`](.cursor/rules/l1-supremacy-and-audit.mdc)). Pointers such as **MER V2** remain available at [`docs/collaboration/MER_V2_POSTULATE.md`](docs/collaboration/MER_V2_POSTULATE.md); burst-cancel smoke script: [`scripts/eval/run_burst_cancel_smoke.py`](scripts/eval/run_burst_cancel_smoke.py).
 - **Collaboration audit DX:** [`scripts/eval/verify_collaboration_invariants.py`](scripts/eval/verify_collaboration_invariants.py) lists **git-tracked** files via `git ls-files` for merge-marker scans (fast; ignores `node_modules` and other untracked trees); optional `rglob` fallback skips virtualenvs, caches, and nested `ethical-android-mvp-feature-*` copies.
 - **Deploy verification:** [`docs/deploy/COMPOSE_PRODISH.md`](docs/deploy/COMPOSE_PRODISH.md) checklist step **3 (Health)** documents optional **`nomad_bridge`** on **`GET /health`** for prodish / LAN operators.
 - **HTTP API reference:** Added canonical [`docs/proposals/PROPOSAL_CHAT_SERVER_HTTP_API_SURFACE.md`](docs/proposals/PROPOSAL_CHAT_SERVER_HTTP_API_SURFACE.md) (fixes `AGENTS.md` / operator link target) with **`GET /health` → `nomad_bridge`** and archive cross-links; archive copy points to canonical.
