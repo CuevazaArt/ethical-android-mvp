@@ -113,13 +113,11 @@ class SwarmNegotiator:
         Returns True if consensus is reached (>50% agreement).
         """
         votes = []
-        for peer in peers:
+        for _peer in peers:
             # Mock Peer Voting: Peers vote 'agree' with 70% probability if signal risk is low
             risk = signals.get("risk", 0.5)
             vote = "agree" if risk < 0.6 else "abstain"
             votes.append(vote)
-        
-        agreements = votes.count("agree")
         
         # Bloque 7.2: Weighted consensus logic
         total_weight = 0.0

@@ -11,6 +11,7 @@ from __future__ import annotations
 import hashlib
 from typing import Any
 
+
 class PrivacyShield:
     """
     Enforces privacy boundaries on sensory and narrative data.

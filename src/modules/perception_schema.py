@@ -384,7 +384,6 @@ def apply_broad_perception_coherence(
     Mutates 'out' and 'report' in place.
     """
     ctx = str(out.get("suggested_context", "everyday_ethics"))
-    legality = float(out.get("legality", 1.0))
     risk = float(out.get("risk", 0.0))
     changed = False
 

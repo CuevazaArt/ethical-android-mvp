@@ -7,9 +7,9 @@ stream of consciousness to inform the final deliberative step.
 
 from __future__ import annotations
 
-from typing import Any
 from .identity_integrity import IdentitySnapshot
 from .precedent_rag import Precedent
+
 
 def compose_biographic_monologue(
     identity: IdentitySnapshot,

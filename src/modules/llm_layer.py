@@ -35,6 +35,7 @@ except ImportError:
     HAS_HTTPX = False
 
 from ..observability.metrics import observe_llm_completion_seconds
+from .light_risk_classifier import light_risk_classifier_enabled, light_risk_tier_from_text
 from .llm_backends import (
     AnthropicCompletion,
     LLMBackend,
@@ -53,14 +54,13 @@ from .perception_backend_policy import (
     build_fast_fail_perception,
     resolve_perception_backend_policy,
 )
+from .perception_cross_check import apply_lexical_perception_cross_check
 from .perception_dual_vote import (
     apply_perception_dual_vote_metadata,
     perception_dual_ollama_model,
     perception_dual_second_temperature,
     perception_dual_vote_enabled,
 )
-from .light_risk_classifier import light_risk_classifier_enabled, light_risk_tier_from_text
-from .perception_cross_check import apply_lexical_perception_cross_check
 from .perception_schema import (
     PerceptionCoercionReport,
     finalize_summary,

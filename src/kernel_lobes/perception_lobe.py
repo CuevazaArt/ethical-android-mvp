@@ -1,6 +1,7 @@
-import asyncio
-from src.kernel_lobes.models import SemanticState, TimeoutTrauma
 import time
+
+from src.kernel_lobes.models import SemanticState
+
 
 class PerceptiveLobe:
     """

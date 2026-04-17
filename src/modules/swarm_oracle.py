@@ -8,9 +8,9 @@ reputation scores to enable cross-session trust even in disconnected (offline) m
 from __future__ import annotations
 
 import json
-import os
+from dataclasses import asdict, dataclass
 from pathlib import Path
-from dataclasses import dataclass, asdict
+
 
 @dataclass
 class PeerEntry:
@@ -31,7 +31,7 @@ class SwarmOracle:
     def load(self):
         if self.cache_path.exists():
             try:
-                with open(self.cache_path, "r") as f:
+                with open(self.cache_path) as f:
                     data = json.load(f)
                     for k, v in data.items():
                         self.peers[k] = PeerEntry(**v)

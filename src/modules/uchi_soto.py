@@ -581,6 +581,8 @@ class UchiSotoModule:
         sensor_trust_ema: float | None = None,
         linked_to_agent_id: str | None = None,
         linked_peer_ids: list[str] | None = None,
+        personal_distance: float | None = None,
+        interaction_rhythm: str | None = None,
     ) -> None:
         """
         Set optional Phase 2–3 fields for an agent (operators, UI, or tests).

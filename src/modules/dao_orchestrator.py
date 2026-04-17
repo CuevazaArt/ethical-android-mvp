@@ -5,10 +5,10 @@ Decouples the Ethical Kernel from the specific DAO implementation (on-chain or m
 Handles evidence anchoring and ethical appeals.
 """
 
-import logging
-import time
-import sqlite3
 import json
+import logging
+import sqlite3
+import time
 from typing import Any
 
 from .evidence_safe import EvidenceSafe

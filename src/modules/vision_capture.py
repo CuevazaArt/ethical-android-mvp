@@ -4,6 +4,7 @@ Handles real-time video stream acquisition from local hardware.
 """
 
 import logging
+import os
 import threading
 import time
 from typing import Any
@@ -16,8 +17,6 @@ try:
     HAS_CV2 = True
 except ImportError:
     HAS_CV2 = False
-
-import os
 
 def from_env_vision_capture() -> "VideoCaptureInterface":
     """

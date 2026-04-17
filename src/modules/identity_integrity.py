@@ -9,13 +9,13 @@ Manages the kernel's core identity across sessions:
 
 from __future__ import annotations
 
+import hashlib
 import json
 import os
 import time
-import hashlib
-from dataclasses import dataclass, field, asdict
+from dataclasses import asdict, dataclass, field
 from pathlib import Path
-from typing import Any
+
 
 @dataclass
 class IdentitySnapshot:
@@ -49,7 +49,7 @@ class IdentityIntegrityManager:
     def _load_or_create(self) -> IdentitySnapshot:
         if self.storage_path.exists():
             try:
-                with open(self.storage_path, "r") as f:
+                with open(self.storage_path) as f:
                     data = json.load(f)
                     # Convert list back to tuple for genome weights
                     data["genome_hypothesis_weights"] = tuple(data["genome_hypothesis_weights"])

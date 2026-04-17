@@ -1,6 +1,7 @@
 import threading
 import time
 
+
 class CerebellumNode(threading.Thread):
     """
     Subconsciente Adyacente (Daemon Thread).

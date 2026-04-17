@@ -10,8 +10,8 @@ from dataclasses import dataclass
 from enum import Enum
 from typing import Any
 
-
 from .weighted_ethics_scorer import CandidateAction
+
 
 class DriveType(Enum):
     CURIOSITY = "curiosity"  # Explore unknown/uncertain contexts

@@ -12,7 +12,7 @@ import hashlib
 import json
 import time
 from dataclasses import dataclass, field
-from typing import Any
+
 
 @dataclass
 class Precedent:
@@ -33,7 +33,16 @@ class PrecedentRAG:
         self.index: list[Precedent] = []
         self._load()
 
-    def add_precedent(self, scenario: str, action: str, outcome: float, lesson: str, traumas: list[str] = []):
+    def add_precedent(
+        self,
+        scenario: str,
+        action: str,
+        outcome: float,
+        lesson: str,
+        traumas: list[str] | None = None,
+    ) -> None:
+        if traumas is None:
+            traumas = []
         p_id = hashlib.sha256(f"{scenario}{time.time()}".encode()).hexdigest()[:12]
         new_p = Precedent(
             precedent_id=p_id,
@@ -58,16 +67,19 @@ class PrecedentRAG:
         for p in self.index:
             if any(t in active_traumas for t in p.trauma_tags):
                 matches.append(p)
-                if len(matches) >= 2: break
+                if len(matches) >= 2:
+                    break
 
         # 2. Match against keywords (Similarity fallback)
         if len(matches) < 3:
             for p in self.index:
-                if p in matches: continue
+                if p in matches:
+                    continue
                 p_text = (p.scenario_summary + " " + p.lessons_learned).lower()
                 if any(k in p_text for k in keywords if len(k) > 3):
                     matches.append(p)
-                if len(matches) >= 4: break
+                if len(matches) >= 4:
+                    break
                 
         return matches
 
@@ -86,7 +98,7 @@ class PrecedentRAG:
 
     def _load(self):
         try:
-            with open(self.storage_path, "r") as f:
+            with open(self.storage_path) as f:
                 data = json.load(f)
                 self.index = [Precedent(**d) for d in data]
         except (FileNotFoundError, json.JSONDecodeError):

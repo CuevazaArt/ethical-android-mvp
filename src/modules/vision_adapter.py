@@ -4,8 +4,8 @@ Vision Adapter Contract — Interface for Computer Vision models.
 This module defines the abstract base class and data structures for
 converting visual streams into ethical signals for the kernel.
 """
-
 import logging
+import os
 from abc import ABC, abstractmethod
 from dataclasses import dataclass, field
 from typing import Any
@@ -50,8 +50,6 @@ class VisionAdapter(ABC):
         """
         pass
 
-
-import os
 
 def from_env_vision_adapter() -> "MobileNetV2Adapter":
     """

@@ -31,7 +31,7 @@ from __future__ import annotations
 import json
 import os
 import time
-from dataclasses import dataclass, asdict, field
+from dataclasses import asdict, dataclass, field
 from pathlib import Path
 from typing import Any, Literal
 
@@ -195,7 +195,7 @@ class RewardModel:
         """Load model weights from disk."""
         if not path.exists():
             return
-        with open(path, "r", encoding="utf-8") as f:
+        with open(path, encoding="utf-8") as f:
             data = json.load(f)
         self.model_type = data["model_type"]
         self.is_trained = data["is_trained"]
@@ -276,7 +276,7 @@ class RLHFPipeline:
         if not path.exists():
             return []
         examples = []
-        with open(path, "r", encoding="utf-8") as f:
+        with open(path, encoding="utf-8") as f:
             for line in f:
                 try:
                     examples.append(LabeledExample.from_dict(json.loads(line)))

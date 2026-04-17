@@ -10,10 +10,10 @@ from __future__ import annotations
 import time
 import uuid
 from dataclasses import dataclass, field
-from typing import Any, TYPE_CHECKING
+from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
-    from .sensor_contracts import SensorSnapshot
+    pass
 
 @dataclass
 class WitnessRequest:

@@ -1,4 +1,5 @@
-from src.kernel_lobes.models import SemanticState, EthicalSentence
+from src.kernel_lobes.models import EthicalSentence, SemanticState
+
 
 class LimbicEthicalLobe:
     """

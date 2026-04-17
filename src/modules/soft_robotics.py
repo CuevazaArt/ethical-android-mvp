@@ -10,6 +10,7 @@ import time
 from dataclasses import dataclass, field
 from typing import Any
 
+
 @dataclass
 class KinematicState:
     """Current state of a robotic joint or velocity vector."""

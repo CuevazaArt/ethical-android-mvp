@@ -7,7 +7,6 @@ and provides direct 'Absolute Evil' vetoes to the kernel.
 
 from __future__ import annotations
 
-import os
 import logging
 from dataclasses import dataclass, field
 from typing import Any
