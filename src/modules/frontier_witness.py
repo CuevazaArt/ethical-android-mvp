@@ -110,3 +110,23 @@ class FrontierWitnessManager:
                 )
             )
         return reports
+
+    def get_adversarial_nodes(self, local_fingerprint: str) -> list[str]:
+        """
+        Bloque 7.2: Return deduplicated list of witness node IDs whose reported
+        signal_fingerprint does not match *local_fingerprint*.
+
+        Nodes with an empty fingerprint are ignored (they may simply not support
+        fingerprinting). Returns an empty list when *local_fingerprint* itself is
+        empty.
+        """
+        if not local_fingerprint:
+            return []
+        adversarial: list[str] = []
+        seen: set[str] = set()
+        for r in self.report_history:
+            if r.signal_fingerprint and r.signal_fingerprint != local_fingerprint:
+                if r.witness_node not in seen:
+                    adversarial.append(r.witness_node)
+                    seen.add(r.witness_node)
+        return adversarial

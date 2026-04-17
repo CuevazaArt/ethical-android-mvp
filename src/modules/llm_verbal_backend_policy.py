@@ -33,6 +33,7 @@ from .llm_touchpoint_policies import (
     TOUCHPOINT_COMMUNICATE,
     TOUCHPOINT_NARRATE,
     global_safe_policy_enabled,
+    raw_global_default_policy,
     raw_touchpoint_policy,
 )
 
@@ -44,7 +45,7 @@ _VALID_POLICIES = frozenset({"template_local", "canned_safe"})
 
 def resolve_verbal_llm_backend_policy(*, touchpoint: str = "communicate") -> str:
     """Resolve verbal JSON policy for ``communicate`` or ``narrate``."""
-    # Global safe override
+    # Global safe override (legacy: KERNEL_LLM_GLOBAL_POLICY=safe)
     if global_safe_policy_enabled():
         return "canned_safe"
     slug = touchpoint.strip().lower()
@@ -56,6 +57,10 @@ def resolve_verbal_llm_backend_policy(*, touchpoint: str = "communicate") -> str
     fam = os.environ.get(ENV_VERBAL_FAMILY_POLICY, "").strip().lower()
     if fam and fam in _VALID_POLICIES:
         return fam
+    # New global-default override (KERNEL_LLM_GLOBAL_DEFAULT_POLICY)
+    gdp = raw_global_default_policy()
+    if gdp and gdp in _VALID_POLICIES:
+        return gdp
     raw = os.environ.get("KERNEL_VERBAL_LLM_BACKEND_POLICY", "").strip().lower()
     if raw in ("", "auto"):
         return DEFAULT_KERNEL_VERBAL_LLM_BACKEND_POLICY

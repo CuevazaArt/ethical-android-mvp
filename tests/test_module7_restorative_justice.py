@@ -69,8 +69,8 @@ def test_get_adversarial_nodes_returns_empty_when_local_fingerprint_empty() -> N
     assert mgr.get_adversarial_nodes("") == []
 
 
-def test_swarm_oracle_apply_slashing_degrades_reputation() -> None:
-    oracle = SwarmOracle(cache_path="/tmp/test_swarm_oracle_slash.json")
+def test_swarm_oracle_apply_slashing_degrades_reputation(tmp_path) -> None:
+    oracle = SwarmOracle(cache_path=str(tmp_path / "test_swarm_oracle_slash.json"))
     oracle.register_interaction("NODE_LIAR", success=True)
     initial_rep = oracle.get_reputation_hint("NODE_LIAR")
 

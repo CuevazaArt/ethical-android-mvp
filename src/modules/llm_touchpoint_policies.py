@@ -39,6 +39,9 @@ TOUCHPOINT_MONOLOGUE = "monologue"
 ENV_VERBAL_FAMILY_POLICY = "KERNEL_LLM_VERBAL_FAMILY_POLICY"
 ENV_MONOLOGUE_BACKEND_POLICY = "KERNEL_LLM_MONOLOGUE_BACKEND_POLICY"
 ENV_GLOBAL_POLICY = "KERNEL_LLM_GLOBAL_POLICY"
+# New global-default env var: sets the default policy for all verbal/narrate touchpoints.
+# Distinct from ENV_GLOBAL_POLICY (which only activates with value "safe").
+ENV_LLM_GLOBAL_DEFAULT_POLICY = "KERNEL_LLM_GLOBAL_DEFAULT_POLICY"
 
 MONOLOGUE_POLICIES = frozenset({"passthrough", "annotate_degraded"})
 DEFAULT_MONOLOGUE_BACKEND_POLICY = "passthrough"
@@ -52,6 +55,12 @@ def global_safe_policy_enabled() -> bool:
     """True if KERNEL_LLM_GLOBAL_POLICY=safe, forcing all touchpoints to safe fallbacks."""
     v = os.environ.get(ENV_GLOBAL_POLICY, "").strip().lower()
     return v == GLOBAL_POLICY_SAFE
+
+
+def raw_global_default_policy() -> str | None:
+    """Return the raw KERNEL_LLM_GLOBAL_DEFAULT_POLICY value (lowercased) or None if unset."""
+    v = os.environ.get(ENV_LLM_GLOBAL_DEFAULT_POLICY, "").strip().lower()
+    return v or None
 
 
 def touchpoint_policy_env_key(slug: str) -> str:
