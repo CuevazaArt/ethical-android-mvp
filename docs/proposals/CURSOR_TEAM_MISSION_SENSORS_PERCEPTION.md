@@ -228,8 +228,12 @@ When perception P0 items are stable, **prioritize cross-cutting kernel/model ris
 
 1. **Issue #3 (P1)** — **runner + docs aligned (April 2026):** [`scripts/run_empirical_pilot.py`](../../scripts/run_empirical_pilot.py) defaults to [`tests/fixtures/labeled_scenarios.json`](../../tests/fixtures/labeled_scenarios.json); [`EMPIRICAL_METHODOLOGY.md`](EMPIRICAL_METHODOLOGY.md) implementation status; slim [`empirical_pilot/scenarios.json`](../../tests/fixtures/empirical_pilot/scenarios.json) remains for identical outcomes. **Research backlog:** ablation / external panels — [`MODULE_IMPACT_AND_EMPIRICAL_GAP.md`](MODULE_IMPACT_AND_EMPIRICAL_GAP.md).
 2. **Issue #4 (P1)** — **core packaging boundary (April 2026):** [`tests/test_core_packaging_boundary_docs.py`](../../tests/test_core_packaging_boundary_docs.py) locks `pyproject.toml` entry points, empty `theater` marker, optional extras (`runtime`, `ml`, `vectors`, …), and `Documentation` URL → [`CORE_DECISION_CHAIN.md`](CORE_DECISION_CHAIN.md); [`docs/adr/0001-packaging-core-boundary.md`](../adr/0001-packaging-core-boundary.md). **Follow-up:** import-split / `ethos_kernel` package name — ADR 0001 §6, phased remediation.
-3. **Issue #7 (P1)** — **`KERNEL_*` combinatorics / env validation:** [`PLAN_IMMEDIATE_TWO_WEEKS.md`](PLAN_IMMEDIATE_TWO_WEEKS.md) § P1; [`KERNEL_ENV_POLICY.md`](KERNEL_ENV_POLICY.md); [`tests/test_env_policy.py`](../../tests/test_env_policy.py); CI **windows-smoke** — extend rules or operator docs when new flags land.
-4. **Deferred (not next):** single-prefix env unification for all LLM touchpoints — [`WEAKNESSES_AND_BOTTLENECKS.md`](../WEAKNESSES_AND_BOTTLENECKS.md) §3; partial mitigation via `KERNEL_LLM_GLOBAL_DEFAULT_POLICY` ([`PROPOSAL_LLM_INTEGRATION_TRACK.md`](PROPOSAL_LLM_INTEGRATION_TRACK.md) G-04).
+3. **Issue #7 (P1)** — **`KERNEL_*` policy / validation (April 2026):** [`KERNEL_ENV_POLICY.md`](KERNEL_ENV_POLICY.md) implementation status; [`src/validators/env_policy.py`](../../src/validators/env_policy.py); [`tests/test_env_policy.py`](../../tests/test_env_policy.py) (incl. `warn` path); CI **windows-smoke**. [`PLAN_IMMEDIATE_TWO_WEEKS.md`](PLAN_IMMEDIATE_TWO_WEEKS.md) § P1 Issue #7 marked closed for the checklist.
+
+### Next milestone (P2 polish + research backlog)
+
+- **P2 polish / ops:** [`PLAN_IMMEDIATE_TWO_WEEKS.md`](PLAN_IMMEDIATE_TWO_WEEKS.md) § P2 — Prometheus/deploy verification, deprecation roadmap when a flag is scheduled, E2E smoke notes for landing.
+- **Research / backlog (non-blocking):** LLM **single-prefix** surface (G-04) — [`WEAKNESSES_AND_BOTTLENECKS.md`](../WEAKNESSES_AND_BOTTLENECKS.md) §3; [`PROPOSAL_LLM_INTEGRATION_TRACK.md`](PROPOSAL_LLM_INTEGRATION_TRACK.md); peripheral **ablation** — [`MODULE_IMPACT_AND_EMPIRICAL_GAP.md`](MODULE_IMPACT_AND_EMPIRICAL_GAP.md). **Mitigation today:** `KERNEL_LLM_GLOBAL_DEFAULT_POLICY` where valid per resolver.
 
 ## 10) Ready-to-use task card examples
 

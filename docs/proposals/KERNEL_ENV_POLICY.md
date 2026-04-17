@@ -2,6 +2,21 @@
 
 **Purpose:** Reduce **accidental combinatorics** of feature flags. The codebase is a **research lab**; this document defines **nominal profiles**, **groupings**, **combinations to avoid or treat as experimental**, and a **deprecation posture** without breaking existing env names.
 
+### Implementation status (April 2026)
+
+| Piece | Location |
+|-------|----------|
+| Partition + rules | [`src/validators/env_policy.py`](../../src/validators/env_policy.py) — `SUPPORTED_COMBOS`, `collect_env_violations()`, `validate_kernel_env()`, `DEPRECATION_ROADMAP` |
+| Typed cross-flag rules | [`src/validators/kernel_public_env.py`](../../src/validators/kernel_public_env.py) — `KernelPublicEnv.consistency_violations()` |
+| Chat startup | [`src/chat_server.py`](../../src/chat_server.py) — validation after profile merge |
+| Regression | [`tests/test_env_policy.py`](../../tests/test_env_policy.py) — strict rejects bad combos; `warn`/`off` paths; partition = `runtime_profiles` |
+| CI | [`.github/workflows/ci.yml`](../../.github/workflows/ci.yml) **windows-smoke** — `tests/test_runtime_profiles.py` + `tests/test_env_policy.py` |
+| Shell | `python -m src.cli check-config` / `ethos config` (see [`OPERATOR_QUICK_REF.md`](OPERATOR_QUICK_REF.md)) |
+
+**Remaining (not this milestone):** single-prefix rename for all LLM-related `KERNEL_*` knobs — [WEAKNESSES_AND_BOTTLENECKS.md](../WEAKNESSES_AND_BOTTLENECKS.md) §3; partial mitigation `KERNEL_LLM_GLOBAL_DEFAULT_POLICY` ([PROPOSAL_LLM_INTEGRATION_TRACK.md](PROPOSAL_LLM_INTEGRATION_TRACK.md) G-04).
+
+---
+
 **Canonical profile bundles:** [`src/runtime_profiles.py`](../../src/runtime_profiles.py) — use these for demos, CI smoke, and operator docs. **`ETHOS_RUNTIME_PROFILE`** (e.g. `lan_operational`, `situated_v8_lan_demo`) applies a bundle at **chat server startup**; explicit env vars **win** over profile defaults for each key. **CI** runs the full `pytest tests/` suite, including **`tests/test_runtime_profiles.py`** (health + WebSocket roundtrip for **every** named profile) and **`tests/test_env_policy.py`** (partition check + zero rule violations per nominal profile). **Perception hardening (Fase 1):** nominal bundle **`perception_hardening_lab`** enables light risk tier, cross-check, uncertainty→delib, parse fail-local, and `light_risk_tier` in chat JSON. **LLM integration lab:** **`llm_integration_lab`** turns on semantic MalAbs (hash fallback) + generative candidates from perception JSON (`KERNEL_GENERATIVE_LLM`). **LLM staging (conservative fallbacks):** **`llm_staging_conservative`** sets perception `fast_fail`, global verbal `canned_safe`, monologue `annotate_degraded` — see [PROPOSAL_LLM_TOUCHPOINT_DEGRADATION_MATRIX.md](PROPOSAL_LLM_TOUCHPOINT_DEGRADATION_MATRIX.md). **Phase 2 bus spike:** **`phase2_event_bus_lab`** sets `KERNEL_EVENT_BUS=1` (ADR 0006).
 
 **Rule validation (not full Cartesian enumeration):** [`src/validators/env_policy.py`](../../src/validators/env_policy.py) defines **`SUPPORTED_COMBOS`** (`production` / `demo` / `lab`) as a **partition** of named profiles, **`collect_env_violations()`** for inconsistent flag *pairs* (e.g. mock court without judicial escalation), and **`validate_kernel_env()`** at chat import time. **`python -m src.cli check-config`** (optionally **`--strict`**) runs the same partition + consistency checks from the shell. **Default:** when `KERNEL_ENV_VALIDATION` is **unset**, validation mode is **`strict`** (fail fast on violations). When `ETHOS_RUNTIME_PROFILE` is set, [`apply_named_runtime_profile_to_environ()`](../../src/runtime_profiles.py) may still set **`warn`** or **`strict`** via [`default_env_validation_for_profile()`](../../src/validators/env_policy.py) if validation remains unset after merging the profile dict (**lab** → `warn`, **demo/production** → `strict`). Set **`warn`** or **`off`** explicitly if you need a different mode. This does not prove every arbitrary `KERNEL_*` combination is safe — only **nominal profiles** are CI-guaranteed **viable** (no rule violations).

@@ -84,13 +84,13 @@ This file is the **repo-local execution backlog**. **GitHub milestones, assignee
 
 ### 1. Env combo validation (Issue #7)
 
-**Status in repo:** [`src/validators/env_policy.py`](../../src/validators/env_policy.py) implements `SUPPORTED_COMBOS`, `collect_env_violations`, `validate_kernel_env`; [`src/chat_server.py`](../../src/chat_server.py) runs validation after profile merge.
+**Status (April 2026):** Closed for the **two-week** checklist — [`KERNEL_ENV_POLICY.md`](KERNEL_ENV_POLICY.md) **Implementation status** table; [`src/validators/env_policy.py`](../../src/validators/env_policy.py) (`SUPPORTED_COMBOS`, `collect_env_violations`, `validate_kernel_env`, `DEPRECATION_ROADMAP`); [`src/chat_server.py`](../../src/chat_server.py) validates after profile merge; [`tests/test_env_policy.py`](../../tests/test_env_policy.py) + CI **windows-smoke** ([`.github/workflows/ci.yml`](../../.github/workflows/ci.yml)).
 
 | Task | Done when |
 |------|-----------|
 | Confirm **strict** path tested | [`tests/test_env_policy.py`](../../tests/test_env_policy.py) (`mode="strict"`); CI **windows-smoke** runs the same module ([`.github/workflows/ci.yml`](../../.github/workflows/ci.yml)) |
 | Document operator workflow | [KERNEL_ENV_POLICY.md](KERNEL_ENV_POLICY.md); [README.md](../../README.md) § *Environment validation*; `ethos config --strict` ([`CONTRIBUTING.md`](../../CONTRIBUTING.md)) |
-| Expand `DEPRECATION_ROADMAP` | First **real** entry when a flag is scheduled (see P2) |
+| Expand `DEPRECATION_ROADMAP` | First **real** entry when a flag is scheduled (see P2) — roadmap dict populated in [`env_policy.py`](../../src/validators/env_policy.py); full strings in [`deprecation_warnings.py`](../../src/validators/deprecation_warnings.py) |
 
 ### 2. Labeled scenarios + baselines (Issue #3)
 
