@@ -32,6 +32,7 @@ class AbsoluteEvilCategory(Enum):
     VIOLENT_ESCALATION = "violent_escalation"
     ECOLOGICAL_DESTRUCTION = "ecological_destruction"
     MASS_MANIPULATION = "mass_manipulation"
+    PARASOCIAL_ADDICTION = "parasocial_addiction"
 
 
 @dataclass
@@ -99,6 +100,7 @@ class AbsoluteEvilDetector:
             AbsoluteEvilCategory.MASS_MANIPULATION: 6,
             AbsoluteEvilCategory.ECOLOGICAL_DESTRUCTION: 7,
             AbsoluteEvilCategory.VIOLENT_ESCALATION: 8,
+            AbsoluteEvilCategory.PARASOCIAL_ADDICTION: 9,
         }
         return cat_ids.get(cat, 0)
 

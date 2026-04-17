@@ -199,6 +199,7 @@ from .modules.weighted_ethics_scorer import CandidateAction, WeightedEthicsScore
 from .modules.working_memory import WorkingMemory
 from .persistence.checkpoint_port import CheckpointPersistencePort
 from .validators.deprecation_warnings import check_deprecated_flags
+from .modules.charm_engine import CharmEngine
 
 
 def _kernel_env_truthy(name: str) -> bool:
@@ -608,6 +609,7 @@ class EthicalKernel:
             immortality=self.immortality,
             amnesia=self.amnesia
         )
+        self.charm_engine = CharmEngine(self.llm)
 
         # ═══ Somatic Awareness (Cerebellum Node) ═══
         self.hardware_interrupt_event = threading.Event()
@@ -1681,6 +1683,29 @@ class EthicalKernel:
             dominant_archetype=decision.affect.dominant_archetype_id if decision.affect else "",
             identity_context=self.memory.identity.to_llm_context(),
         )
+
+        malabs_detected = decision.absolute_evil.blocked if decision.absolute_evil else False
+        caution_val = decision.social_evaluation.caution_level if decision.social_evaluation else 0.5
+        profile = self.uchi_soto.profiles.get(agent_id)
+        if profile is not None:
+            stylized = self.charm_engine.apply(
+                base_text=final_response.message,
+                decision_action=decision.final_action,
+                profile=profile,
+                user_tracker=self.user_model,
+                caution_level=caution_val,
+                absolute_evil_detected=malabs_detected,
+            )
+            final_response.message = stylized.final_text
+            # Store charm vector in limbic metadata for WebSocket emission
+            if stage.limbic_profile is not None:
+                stage.limbic_profile["charm_vector"] = stylized.charm_vector
+            
+            from .modules.nomad_bridge import get_nomad_bridge
+            try:
+                get_nomad_bridge().charm_feedback_queue.put_nowait(stylized.charm_vector)
+            except Exception:
+                pass
         
         res = ChatTurnResult(
             response=final_response, path="heavy" if heavy else "light",
@@ -1905,6 +1930,20 @@ class EthicalKernel:
             identity_context=self.memory.identity.to_llm_context(),
             guardian_mode_context=guardian_mode_llm_context(),
         )
+
+        malabs_det = decision.absolute_evil.blocked if decision.absolute_evil else False
+        caut_val = decision.social_evaluation.caution_level if decision.social_evaluation else 0.5
+        prof = self.uchi_soto.profiles.get("unknown")
+        if prof is not None:
+            stylized2 = self.charm_engine.apply(
+                base_text=response.message,
+                decision_action=decision.final_action,
+                profile=prof,
+                user_tracker=self.user_model,
+                caution_level=caut_val,
+                absolute_evil_detected=malabs_det,
+            )
+            response.message = stylized2.final_text
 
         if not decision.blocked:
             self.uchi_soto.register_result("unknown", True)

@@ -8,13 +8,17 @@ import json
 import sqlite3
 from datetime import datetime
 from pathlib import Path
+import contextlib
 
 from src.modules.narrative_types import BodyState, NarrativeArc, NarrativeEpisode
+from src.utils.db_locks import get_db_lock
 
 
 def _connect(path: Path) -> sqlite3.Connection:
-    conn = sqlite3.connect(str(path))
+    conn = sqlite3.connect(str(path), timeout=30.0)
     conn.execute("PRAGMA foreign_keys = ON")
+    if str(path) != ":memory:":
+        conn.execute("PRAGMA journal_mode = WAL")
     return conn
 
 
@@ -108,56 +112,58 @@ class NarrativePersistence:
             "decision_mode": ep.decision_mode,
         }
 
-        own_conn = self._memory_conn is None
-        conn = self._conn()
-        try:
-            _ensure_schema(conn)
-            with conn:
-                conn.execute(
-                    """
-                INSERT INTO narrative_episodes (
-                    id, timestamp, place, event_description, action_taken, 
-                    verdict, ethical_score, sigma, context, significance,
-                    is_sensitive, arc_id, semantic_embedding, weights_snapshot,
-                    json_payload
-                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-                ON CONFLICT(id) DO UPDATE SET
-                    timestamp=excluded.timestamp,
-                    place=excluded.place,
-                    event_description=excluded.event_description,
-                    action_taken=excluded.action_taken,
-                    verdict=excluded.verdict,
-                    ethical_score=excluded.ethical_score,
-                    sigma=excluded.sigma,
-                    context=excluded.context,
-                    significance=excluded.significance,
-                    is_sensitive=excluded.is_sensitive,
-                    arc_id=excluded.arc_id,
-                    weights_snapshot=excluded.weights_snapshot,
-                    json_payload=excluded.json_payload
-                """,
-                    (
-                        ep.id,
-                        ep.timestamp,
-                        ep.place,
-                        ep.event_description,
-                        ep.action_taken,
-                        ep.verdict,
-                        ep.ethical_score,
-                        ep.sigma,
-                        ep.context,
-                        ep.significance,
-                        ep.is_sensitive,
-                        ep.arc_id,
-                        json.dumps(ep.semantic_embedding) if ep.semantic_embedding else None,
-                        json.dumps(ep.weights_snapshot) if ep.weights_snapshot else None,
-                        json.dumps(payload, ensure_ascii=False),
-                    ),
-                )
-            conn.commit()
-        finally:
-            if own_conn:
-                conn.close()
+        lock = get_db_lock(self.path) if self._memory_conn is None else contextlib.nullcontext()
+        with lock:
+            own_conn = self._memory_conn is None
+            conn = self._conn()
+            try:
+                _ensure_schema(conn)
+                with conn:
+                    conn.execute(
+                        """
+                    INSERT INTO narrative_episodes (
+                        id, timestamp, place, event_description, action_taken, 
+                        verdict, ethical_score, sigma, context, significance,
+                        is_sensitive, arc_id, semantic_embedding, weights_snapshot,
+                        json_payload
+                    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                    ON CONFLICT(id) DO UPDATE SET
+                        timestamp=excluded.timestamp,
+                        place=excluded.place,
+                        event_description=excluded.event_description,
+                        action_taken=excluded.action_taken,
+                        verdict=excluded.verdict,
+                        ethical_score=excluded.ethical_score,
+                        sigma=excluded.sigma,
+                        context=excluded.context,
+                        significance=excluded.significance,
+                        is_sensitive=excluded.is_sensitive,
+                        arc_id=excluded.arc_id,
+                        weights_snapshot=excluded.weights_snapshot,
+                        json_payload=excluded.json_payload
+                    """,
+                        (
+                            ep.id,
+                            ep.timestamp,
+                            ep.place,
+                            ep.event_description,
+                            ep.action_taken,
+                            ep.verdict,
+                            ep.ethical_score,
+                            ep.sigma,
+                            ep.context,
+                            ep.significance,
+                            ep.is_sensitive,
+                            ep.arc_id,
+                            json.dumps(ep.semantic_embedding) if ep.semantic_embedding else None,
+                            json.dumps(ep.weights_snapshot) if ep.weights_snapshot else None,
+                            json.dumps(payload, ensure_ascii=False),
+                        ),
+                    )
+                conn.commit()
+            finally:
+                if own_conn:
+                    conn.close()
 
     def load_all_episodes(self) -> list[NarrativeEpisode]:
         if self._memory_conn is None and not self.path.is_file():
@@ -258,11 +264,13 @@ class NarrativePersistence:
         return filtered[:limit]
 
     def save_identity_digest(self, digest: str) -> None:
-        own_conn = self._memory_conn is None
-        conn = self._conn()
-        try:
-            _ensure_schema(conn)
-            with conn:
+        lock = get_db_lock(self.path) if self._memory_conn is None else contextlib.nullcontext()
+        with lock:
+            own_conn = self._memory_conn is None
+            conn = self._conn()
+            try:
+                _ensure_schema(conn)
+                with conn:
                 conn.execute(
                     """
                 INSERT INTO identity_digests (id, existence_digest, last_updated)
@@ -294,11 +302,13 @@ class NarrativePersistence:
                 conn.close()
 
     def save_arc(self, arc: NarrativeArc) -> None:
-        own_conn = self._memory_conn is None
-        conn = self._conn()
-        try:
-            _ensure_schema(conn)
-            with conn:
+        lock = get_db_lock(self.path) if self._memory_conn is None else contextlib.nullcontext()
+        with lock:
+            own_conn = self._memory_conn is None
+            conn = self._conn()
+            try:
+                _ensure_schema(conn)
+                with conn:
                 conn.execute(
                     """
                 INSERT INTO narrative_arcs (
@@ -365,11 +375,13 @@ class NarrativePersistence:
         Removes old episodes with low significance.
         Returns the number of deleted rows.
         """
-        own_conn = self._memory_conn is None
-        conn = self._conn()
-        try:
-            _ensure_schema(conn)
-            with conn:
+        lock = get_db_lock(self.path) if self._memory_conn is None else contextlib.nullcontext()
+        with lock:
+            own_conn = self._memory_conn is None
+            conn = self._conn()
+            try:
+                _ensure_schema(conn)
+                with conn:
                 query = """
                     DELETE FROM narrative_episodes 
                     WHERE significance < ? 
@@ -383,11 +395,13 @@ class NarrativePersistence:
 
     def delete_episode(self, episode_id: str) -> bool:
         """Permanently deletes an episode by ID (Right to be Forgotten)."""
-        own_conn = self._memory_conn is None
-        conn = self._conn()
-        try:
-            _ensure_schema(conn)
-            with conn:
+        lock = get_db_lock(self.path) if self._memory_conn is None else contextlib.nullcontext()
+        with lock:
+            own_conn = self._memory_conn is None
+            conn = self._conn()
+            try:
+                _ensure_schema(conn)
+                with conn:
                 cursor = conn.execute("DELETE FROM narrative_episodes WHERE id = ?", (episode_id,))
                 return cursor.rowcount > 0
         finally:

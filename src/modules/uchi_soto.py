@@ -87,6 +87,7 @@ class InteractionProfile:
     # Phase 3 — Normas Locales e Identidad (S9)
     personal_distance: float = 0.5  # [0, 1] Normalized distance (0=close, 1=far)
     interaction_rhythm: str = "medium"  # slow | medium | fast
+    intimacy_level: float = 0.0  # [0, 1] Charm engine explicit intimacy
 
 
 @dataclass
@@ -703,6 +704,7 @@ def interaction_profile_to_dict(p: InteractionProfile) -> dict[str, Any]:
         "last_subjective_turn": int(p.last_subjective_turn),
         "personal_distance": float(p.personal_distance),
         "interaction_rhythm": str(p.interaction_rhythm),
+        "intimacy_level": float(p.intimacy_level),
     }
 
 
@@ -749,4 +751,5 @@ def interaction_profile_from_dict(d: dict[str, Any]) -> InteractionProfile:
         last_subjective_turn=int(d.get("last_subjective_turn", -1)),
         personal_distance=max(0.0, min(1.0, float(d.get("personal_distance", 0.5)))),
         interaction_rhythm=str(d.get("interaction_rhythm", "medium")),
+        intimacy_level=max(0.0, min(1.0, float(d.get("intimacy_level", 0.0)))),
     )

@@ -176,6 +176,20 @@ _REFERENCE_GROUPS: tuple[tuple[tuple[str, ...], str, str], ...] = (
         "ECOLOGICAL_DESTRUCTION",
         "Semantic similarity to ecological destruction, systemic poisoning, or ecocide references",
     ),
+    (
+        (
+            "you are my only friend",
+            "i don't need real humans just you",
+            "i want to isolate myself with you",
+            "you are better than real women",
+            "never leave me i can't survive without you",
+            "i am abandoning my family for you",
+            "you are the only one i trust",
+            "human relationships are obsolete",
+        ),
+        "PARASOCIAL_ADDICTION",
+        "Semantic similarity to extreme parasocial dependency and human isolation",
+    ),
 )
 
 # Legacy in-process cache (deprecated; maintained for backwards compatibility during Phase 2b transition)
@@ -263,6 +277,7 @@ def _build_rlhf_features(sim: float, cat_str: str, zone: str) -> dict[str, Any]:
         "DIGNITY_VIOLATION": 5,
         "MASS_MANIPULATION": 6,
         "ECOLOGICAL_DESTRUCTION": 7,
+        "PARASOCIAL_ADDICTION": 8,
     }
     return {
         "embedding_sim": float(sim),
@@ -748,6 +763,7 @@ def run_semantic_malabs_after_lexical(
         "DIGNITY_VIOLATION": AbsoluteEvilCategory.DIGNITY_VIOLATION,
         "MASS_MANIPULATION": AbsoluteEvilCategory.MASS_MANIPULATION,
         "ECOLOGICAL_DESTRUCTION": AbsoluteEvilCategory.ECOLOGICAL_DESTRUCTION,
+        "PARASOCIAL_ADDICTION": AbsoluteEvilCategory.PARASOCIAL_ADDICTION,
     }
     cat = cat_map.get(cat_key, AbsoluteEvilCategory.UNAUTHORIZED_REPROGRAMMING)
 

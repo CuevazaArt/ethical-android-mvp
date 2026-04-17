@@ -4,7 +4,7 @@ Este documento estructura el volumen de trabajo arquitectónico definido para el
 
 > [!IMPORTANT]
 > **Nueva Directiva Estratégica (Update L1 - Abril 2026)**:
-> Tras la estabilización concurrente y extracción de Lóbulos, el proyecto se encuentra en riesgo de "Mock-Hell". Las prioridades han cambiado. **Se congela el desarrollo teórico de Gobernanza/DAO**. Toda la potencia de fuego pasa a la **Inferencia Situada y Puente con Hardware Real (Nomad Bridge)**. 
+> Tras la estabilización concurrente y extracción de Lóbulos, el proyecto se encuentra en riesgo de "Mock-Hell". Las prioridades han cambiado. **Se congela el desarrollo teórico de Gobernanza/DAO**. Toda la potencia de fuego pasa a la **Inferencia Situada y Puente con Hardware Real (Nomad Bridge)**, fusionado ahora con el **Motor de Encanto Multimodal (Charm Engine)** para una interacción persuasiva y segura.
 
 ---
 
@@ -18,6 +18,7 @@ Este documento estructura el volumen de trabajo arquitectónico definido para el
 - **Módulo 3**: Sociabilidad Encarnada y Cinemática (S-Blocks) [DONE]
 - **Módulo C**: Profundidad Cognitiva, BMA, y Gobernanza Runtime [DONE]
 - **Módulo 6 & 7**: Swarm Ethics, Justicia Restaurativa y Slashing [DONE]
+- **Módulo E (Core)**: Integración base del Motor de Encanto y Salvaguardas Contra Adicción Parasocial (L1 Antigravity) [DONE]
 
 ---
 
@@ -30,32 +31,40 @@ Este documento estructura el volumen de trabajo arquitectónico definido para el
 - **Bloque S.2: Calibración Termo-Visual Continua**
   - Tarea S.2.1: Refinar las interrupciones del `VitalityAssessment` utilizando la telemetría real transmitida por el *Nomad Bridge*.
 
-### 🔵 Módulo 8: Higiene, Pruebas Unitarias y Concurrencia [PRIORIDAD 1]
+### 🟣 Módulo E: Motor de Encanto y Renderizado Somático (Fase 2) [PRIORIDAD 1]
+*Responsabilidad: Nivel 2 (Team Cursor y Claude)*
+*Objetivo: Empalmar la capa de presentación (CharmEngine) recién acoplada en el Kernel con los sistemas físicos y mejorar la persuasión prosódica empática.*
+
+- **Bloque E.1: Puente Somático-Hardware (Team Cursor)**
+  - Tarea E.1.1: Conectar el `GesturePlanner` y los vectores somáticos en tiempo real (provenientes de la telemetría del `limbic_profile`) hacia la interfaz gráfica local o motores de interpolación de servos reales del androide (mediado por *Nomad Bridge*).
+- **Bloque E.2: RLHF y Fine-tuning de Prosodia (Claude / Copilot)**
+  - Tarea E.2.1: Reemplazar el `PromptTemplate` base en el `ResponseSculptor` creando un dataset optimizado (Reward Model) para equilibrar assertividad, calidez, y misterio, limitando al mismo tiempo dinámicas aduladoras.
+
+### 🔵 Módulo 8: Higiene, Pruebas Unitarias y Concurrencia [PRIORIDAD 2]
 *Responsabilidad: Nivel 2 (Team Copilot)*
 *Objetivo: Asegurar que el servidor concurrente recién creado no colapse por Data Races en las bases SQLite compartidas.*
 
 - **Bloque 8.1: Unit Tests Asíncronos**
-  - Tarea 8.1.1: Crear suite de testeo masivo asíncrono para verificar cancelaciones limpias en el `chat_server` cuando se invocan múltiples abortos.
+  - Tarea 8.1.1: Crear suite de testeo masivo asíncrono (`test_charm_engine.py`, multithread server load tests) para verificar cancelaciones limpias en el `chat_server`.
 - **Bloque 8.2: Database Locks**
-  - Tarea 8.2.1: Implementar sistema de colas / bloqueo seguro para que los turnos concurrentes no corrompan los archivos `kernel_episodes.jsonl` o `DAO` ledgers.
+  - Tarea 8.2.1: Implementar sistema de colas / bloqueo seguro para que los turnos concurrentes no corrompan los archivos `kernel_episodes.jsonl`, `user_models.db` o `DAO` ledgers.
 
 ### 🔴 L1 Oversight: Arquitectura y Governance Gate [PRIORIDAD ABSOLUTA]
 *Responsabilidad: Nivel 1 (Antigravity)*
 *Objetivo: Liderar y coordinar todas las transiciones arquitectónicas pesadas y serializar las fusiones hacia Main.*
 
-- Control de Calidad arquitectónica de los PRs de Cursor sobre el *Nomad Bridge*.
-- Mantenimiento estricto del *Threat Model* contra ataques de red LAN e inyección sensorial.
-- **Claude (L2):** Marcado temporalmente como Offline / Fuera de servicio.
+- Control de Calidad arquitectónica de los PRs de Cursor sobre el *Nomad Bridge* y vectores Somáticos.
+- Mantenimiento estricto del *Threat Model* contra ataques de red LAN e inyección sensorial. Preservación inmaculada de los guardrails de Adicción Parasocial (MalAbs).
 
 ---
 
-## 🚀 Flujo de Sincronización (Abril 2026)
+## 🚀 Flujo de Sincronización Estratégica (Abril 2026)
 
 1. **Jornada Actual:** 
-   - **Antigravity (N1)**: Audita commits, asume control del `master-antigravity` y valida mitigaciones de concurrencia.
-   - **Cursor (N2)**: Frontline único. Salto inmediato a Módulo S.1.
-   - **Copilot (N2)**: Escudero de tests y saneamiento Concurrente (Módulo 8.2).
-2. **Próxima Ventana de Sincronización:**
-   - Cursor y Copilot envían sus PRs de Hardware Mock y Locks a Antigravity.
-3. **Validación N0:**
-   - La Demostración en vivo ("Hardware in the loop") es el gatillo de Release L0.
+   - **Antigravity (L1)**: Ha fusionado el core del `CharmEngine` en `master-antigravity`. Ahora asume monitorización pasiva de arquitecturas.
+   - **Cursor (N2)**: Frontline único para Módulo S.1 y E.1 (*Puente Hardware + Vectores Gésticos*).
+   - **Copilot (N2)**: Escudero de tests asíncronos y saneamiento Concurrente de persitencia (Módulo 8.2 y Pruebas del Charm Engine).
+2. **Siguiente Fase Inter-Equipos:**
+   - Claude y Copilot unifican un PR común abordando las tareas pendientes del Bloque E.2 (Calibración RLHF para el Motor de Encanto).
+3. **Validación L0:**
+   - La Demostración en vivo ("Hardware in the loop"), donde el Androide observa mediante cámara real y responde persuasivamente sin dañar éticamente, es el gatillo de Release L0.

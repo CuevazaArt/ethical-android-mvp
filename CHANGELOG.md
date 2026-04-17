@@ -13,6 +13,10 @@ All notable changes to this project are summarized here. For narrative context a
 - **Development Critique Published:** Documented the "Mock Hell" risk (`DEVELOPMENT_CRITIQUE_L1_APRIL_2026.md`), leading to the restructuring of the `PLAN_WORK_DISTRIBUTION_TREE.md` where **Team Cursor** has been retargeted to hardware ingestion and **Team Copilot** to asynchronous fortification.
 - **Input Trust Hardening:** Expanded homoglyph translations (Cyrillic & Greek upper cases) to prevent lexical evasion.
 - **Visual Terminal Format:** Overhauled the terminal printing format of `KernelDecision` and daily logs into `kernel_formatters.py` and `terminal_colors.py` avoiding kernel verbosity.
+- **Multimodal Charm Engine Proposed & Evaluated:** Registered external integration proposal in `docs/proposals/PROPOSAL_MULTIMODAL_CHARM_ENGINE.md`.
+- **Charm Engine Full Integration (2026-04-17):** Successfully integrated the `CharmEngine` as a post-kernel rendering layer. Implemented `PARASOCIAL_ADDICTION` guardrails in `AbsoluteEvilDetector` and `semantic_chat_gate.py` to prevent manipulative engagement.
+- **Nomad Bridge & Sensor Encarnation (Phase S):** Orchestrated the development of `src/modules/nomad_bridge.py` for real-world sensor ingestion (Vision, Audio, Telemetry 1FPS). Connected smartphone accelerometer jerk (impacts) and battery heat to the kernel's `VitalityAssessment`.
+- **Vertical Roadmap Update:** Refactored `PLAN_WORK_DISTRIBUTION_TREE.md` to include incremental testing routes for hardware-in-the-loop validation.
 
 ## Documentation — Issue #1 (Bayesian naming honesty) — April 2026
 
