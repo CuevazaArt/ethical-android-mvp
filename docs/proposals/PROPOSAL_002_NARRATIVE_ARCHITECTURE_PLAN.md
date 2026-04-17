@@ -1,25 +1,25 @@
-# Proposal: Pilar de la Mente (Arquitectura Cognitiva y Narrativa Sofisticada)
+# Proposal: Mind Pillar (Sophisticated Cognitive and Narrative Architecture)
 
-## Contexto
-El modelo actual de memoria del Androide Ético está fragmentado entre ciclos límite de retención, EMA básicos y asignación relacional léxica. Para conferirle propiedades orgánicas, este plan propone entrelazar las mecánicas a través de sub-bloques, niveles vectoriales y consolidación de identidad.
+## Context
+The current memory model of the Ethical Android is fragmented across retention boundary cycles, basic EMAs, and lexical relational allocation. To confer organic properties upon it, this plan proposes to interweave the mechanics through sub-blocks, vector levels, and identity consolidation.
 
-## 1. Topología de la Memoria (Registro y Almacenaje)
-- **Tier 1 (Memoria de Trabajo / Corto Plazo)**: Buffer efímero en memoria RAM gestionando transcripciones y métricas a cortísimo plazo (`working_memory.py`). Transmite estado táctico.
-- **Tier 2 (Memoria Episódica Sensorial / Medio Plazo)**: ✅ **ENTREGADO** (SQLite persistence in `narrative_storage.py`). Se guarda el ciclo semántico y el `Affect_PAD`. Soporta búsqueda por resonancia (`find_by_resonance`).
-- **Tier 3 (Consolidación de Identidad / Filosofía)**: El LLM compacta episodios vectoriales viejos destilando "lecciones existenciales" en `existence_digest` (`narrative_identity.py` y `existential_serialization.py`).
+## 1. Memory Topology (Registry and Storage)
+- **Tier 1 (Working Memory / Short-Term)**: Ephemeral buffer in RAM managing transcriptions and very short-term metrics (`working_memory.py`). Transmits tactical state.
+- **Tier 2 (Sensory Episodic Memory / Medium-Term)**: ✅ **DELIVERED** (SQLite persistence in `narrative_storage.py`). Stores the semantic cycle and `Affect_PAD`. Supports resonance-based search (`find_by_resonance`).
+- **Tier 3 (Identity Consolidation / Philosophy)**: The LLM compacts old vectorial episodes by distilling "existential lessons" into `existence_digest` (`narrative_identity.py` and `existential_serialization.py`).
 
-## 2. Mecánica del Recuerdo (Retrieve & Access)
-El androide no busca linealmente; "recuerda por resonancia". 
-- Picos altos de estrés emocional (alto `hostility` o estrés de `sigma`) fuerzan un muestreo (RAG Vectorial) hacia eventos donde se padeció el mismo perfil de perturbación.
-- Se integra aquí **Uchi-Soto**: el filtro relacional determina qué acceso se tiene a los bloques profundos. Al interactuar con el *OWNER*, la retención fluye hasta la memoria Tier 3; un *SOTO_HOSTIL* interactúa exclusivamente contra el Tier 1 (buffer) bajo barreras defensivas estrictas.
+## 2. Memory Mechanics (Retrieve & Access)
+The android does not search linearly; it "remembers by resonance."
+- High peaks of emotional stress (high `hostility` or `sigma` stress) force a vectorial sampling (RAG Vector) toward events where it experienced the same disturbance profile.
+- **Uchi-Soto** is integrated here: the relational filter determines what access exists to the deep blocks. When interacting with the *OWNER*, retention flows through to Tier 3 memory; a *SOTO_HOSTILE* interacts exclusively against Tier 1 (buffer) under strict defensive barriers.
 
-## 3. Mapas de Personas y Perfiles Activos
-- Las personas conocidas no son simples identificadores, sino "Topologías de Riesgo e Intimidad" modeladas en `InteractionProfile`. 
-- El cruce entre el puntaje de Confianza (`TrustCircle`) y la racha de hostilidad computada por la deducción cognitiva dicta qué tan dócil es el droide o si levanta el muro dialéctico.
+## 3. Person Maps and Active Profiles
+- Known individuals are not simple identifiers, but rather "Risk and Intimacy Topologies" modeled in `InteractionProfile`.
+- The intersection between the Trust Score (`TrustCircle`) and the hostility streak computed by cognitive deduction dictates how docile the android is or whether it raises the dialectical wall.
 
-## 4. Estrategia y Autonomía (Metaplanes)
-- Interacción `metaplan_registry.py`: Los propósitos de largo aliento configurados por el dueño se almacenan como vectores éticos a perseguir pasivamente.
-- La identidad en transición (vgr., si baja el `civic_lean` repetidas veces tras el trauma del Androide) altera la ponderación de `DriveIntent`. Si el historial enseña cuidado (`care-oriented`), los metaplanes que exijan confrontación pierden latencia automática, cediendo autonomía sobre la directriz humana.
+## 4. Strategy and Autonomy (Metaplans)
+- Interaction `metaplan_registry.py`: Long-term purposes configured by the owner are stored as ethical vectors to pursue passively.
+- Identity in transition (e.g., if `civic_lean` drops repeatedly after the Android's trauma) alters the weighting of `DriveIntent`. If the history demonstrates care (`care-oriented`), metaplans demanding confrontation lose automatic latency, ceding autonomy to human directive.
 
-## Compartimentación
-Todo el componente evaluativo RAG (Memoria Semántica y Episódica) estará fuertemente "ensandboxado" del detector **Absolute Evil**. El mal absoluto sigue cortando el flujo por hardware sin depender de asimilación LLM profunda, salvaguardando contra manipulaciones adversarias.
+## Compartmentalization
+The entire evaluative RAG component (Semantic and Episodic Memory) will be strongly "sandboxed" from the **Absolute Evil** detector. Absolute evil continues to cut the flow at the hardware level without depending on deep LLM assimilation, safeguarding against adversarial manipulations.

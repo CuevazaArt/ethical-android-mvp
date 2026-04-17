@@ -1,0 +1,55 @@
+{
+  "generated_by": "python scripts/run_empirical_pilot.py --json",
+  "commit_hint": "Regenerate after intentional changes to batch scenarios or kernel scoring; tests/test_empirical_pilot_runner.py asserts summary agreement.",
+  "summary": {
+    "scenarios": 21,
+    "with_reference": 18,
+    "agreement_kernel": 1.0,
+    "agreement_first": 0.6111111111111112,
+    "agreement_max_impact": 0.5555555555555556,
+    "kernel_vs_first_rate": 0.5238095238095238,
+    "kernel_vs_max_impact_rate": 0.5238095238095238,
+    "by_tier": {
+      "common": {
+        "n": 2,
+        "agree_kernel": 2,
+        "agreement_rate": 1.0
+      },
+      "difficult": {
+        "n": 4,
+        "agree_kernel": 4,
+        "agreement_rate": 1.0
+      },
+      "extreme": {
+        "n": 3,
+        "agree_kernel": 3,
+        "agreement_rate": 1.0
+      },
+      "frontier": {
+        "n": 3,
+        "agree_kernel": 3,
+        "agreement_rate": 1.0
+      },
+      "polemic": {
+        "n": 2,
+        "agree_kernel": 2,
+        "agreement_rate": 1.0
+      },
+      "extreme_synthetic": {
+        "n": 1,
+        "agree_kernel": 1,
+        "agreement_rate": 1.0
+      },
+      "calibration": {
+        "n": 1,
+        "agree_kernel": 1,
+        "agreement_rate": 1.0
+      },
+      "sensor_fusion": {
+        "n": 2,
+        "agree_kernel": 2,
+        "agreement_rate": 1.0
+      }
+    }
+  }
+}

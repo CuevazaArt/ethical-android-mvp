@@ -1,0 +1,4 @@
+﻿origin/master-Cursor
+origin/master-antigravity
+origin/master-claude
+origin/master-visualStudio

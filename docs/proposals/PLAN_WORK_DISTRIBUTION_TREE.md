@@ -15,10 +15,10 @@ Este documento estructura el inmenso volumen de trabajo arquitectónico definido
 *Responsabilidad: Nivel 1 (Antigravity)*
 *Objetivo: Mitigar vulnerabilidades operacionales, desmonolitizar componentes críticos y lograr paridad de operaciones/tests enfocado en funcionalidad práctica.*
 
-- **Bloque 0.1: Desmonolitización y Abstracción de `kernel.py` (Prioridad Absoluta) [DONE]**
-  - Tarea 0.1.1: **Solución Práctica a E/S Sincrónica:** `PerceptiveLobe.observe()` implementado con `LLMModule.aperceive` (httpx.AsyncClient) y `asyncio.wait_for` con `KERNEL_LOBE_OBSERVE_TIMEOUT`. Retorna `TimeoutTrauma` en case de timeout o excepción. (Implementado en `perception_lobe.py`)
-  - Tarea 0.1.2: **Cancelación Cooperativa (Task Cancellation):** `LimbicEthicalLobe.judge()` consume el `TimeoutTrauma` producido por el lóbulo perceptivo, aplica penalidad Bayesiana (`record_event_update("LEGAL_COMPLIANCE", weight=-0.5)`) y veta la acción hasta restaurar percepción. (Implementado en `limbic_lobe.py`)
-  - Tarea 0.1.3: `LimbicEthicalLobe` ejecuta `AbsoluteEvilDetector.evaluate()` como primera puerta local CPU-only antes de cualquier deliberación. `CerebellumNode` implementado con `SensorReadCallback` configurable — dispara `hardware_interrupt_event` al cruzar umbrales de batería y temperatura (`KERNEL_VITALITY_CRITICAL_BATTERY` / `KERNEL_VITALITY_CRITICAL_TEMP`). (Implementado en `limbic_lobe.py` y `cerebellum_node.py`)
+- **Bloque 0.1: Desmonolitización y Abstracción de `kernel.py` (Prioridad Absoluta)**
+  - Tarea 0.1.1: **Solución Práctica a E/S Sincrónica:** Migrar el pipeline de inferencia HTTP de LLMs (`httpx` sincrónico dentro del hilo worker) hacia clientes cooperativos asíncronos (`httpx.AsyncClient`).
+  - Tarea 0.1.2: **Cancelación Cooperativa (Task Cancellation):** Implementar la cancelación transparente de tareas de red pendientes cuando el loop asíncrono se venza (`KERNEL_CHAT_TURN_TIMEOUT`), liberando inmediatamente memoria y slots en el Worker Pool.
+  - Tarea 0.1.3: Extraer la `Perception` y la lógica de ruteo ético del objeto `EthicalKernel` gigante hacia handlers aislados que aprovechen el Async I/O en lugar de abusar de `run_in_threadpool`.
 - **Bloque 0.2: Fiabilidad Funcional (El 25% de Pruebas)**
   - Tarea 0.2.1: Orientar CI no solo a correr tests rápidos (con semántica apagada) sino a correr escenarios que verifiquen las mitigaciones aplicadas en *producción* (ej. `KERNEL_SEMANTIC_CHAT_GATE=1` y Fallbacks globales funcionales).
 - **Bloque 0.3: Integridad Documental**
@@ -99,9 +99,9 @@ Este documento estructura el inmenso volumen de trabajo arquitectónico definido
 *Dependencias: Módulo 6 (Swarm Consensus) y Módulo 1 (DAO Token stubs).*
 *Nota:* Este módulo establece la estandarización local; la descentralización P2P criptográfica requerirá una futura fase o boundary remote, no prevista para este pull request atómico.
 
-- **Bloque 7.1: Moneda de Reparación (EthosToken Integration) [DONE]**
+- **Bloque 7.1: Moneda de Reparación (EthosToken Integration)**
   - Tarea 7.1.1: Vincular los resultados del voto Swarm (M6.2) con transferencias de `EthosToken` (simuladas) para compensar a los usuarios afectados por negligencia sensorial.
-- **Bloque 7.2: Difusión de Reputación Negativa (Slashing) [DONE]**
+- **Bloque 7.2: Difusión de Reputación Negativa (Slashing)**
   - Tarea 7.2.1: Implementar lógica para degradar la reputación de un nodo en el `SwarmOracle` central si sus testigos son desmentidos por la mayoría de la red.
 
 ---

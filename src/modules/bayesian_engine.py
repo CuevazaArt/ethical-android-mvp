@@ -49,7 +49,7 @@ class BayesianInferenceEngine:
         # Default symmetric prior Alpha=[3,3,3] -> Mean=[1/3, 1/3, 1/3]
         self.prior_alpha = np.array([3.0, 3.0, 3.0], dtype=np.float64)
         self.posterior_alpha = self.prior_alpha.copy()
-        
+
         # Sync initial weights if in driven mode
         if self.mode == BayesianMode.POSTERIOR_DRIVEN:
             self.update_posterior_from_feedback(self.posterior_alpha)

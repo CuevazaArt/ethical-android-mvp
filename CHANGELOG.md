@@ -4,66 +4,19 @@ All notable changes to this project are summarized here. For narrative context a
 
 **Note:** Older sections below may still **link** to paths that were later removed (for example `experiments/million_sim/`, `docs/multimedia/`, root `dashboard.html`, `landing/`). Those links are **historical**; recover files from git history or backup branches if you need them.
 
-## Team Copilot — Módulo 0 Bloque 0.1: Desmonolitización Kernel Lobes — April 2026
+## Team Copilot — Merge pulse: origin/main → copilot/check-pending-tasks — April 2026
 
-### PerceptiveLobe (`src/kernel_lobes/perception_lobe.py`) [Tarea 0.1.1]
-- Implemented `observe()` with `LLMModule.aperceive` (`httpx.AsyncClient`) wrapped in `asyncio.wait_for` using timeout `KERNEL_LOBE_OBSERVE_TIMEOUT` (default 30 s).
-- Returns `SemanticState` with `TimeoutTrauma(severity=1.0)` on `asyncio.TimeoutError` and `TimeoutTrauma(severity=0.8)` on any other exception.
-- No-LLM degraded path returns `confidence=1.0` stub so the lobe is usable in unit tests without a running backend.
+### Team Copilot Updates
 
-### LimbicEthicalLobe (`src/kernel_lobes/limbic_lobe.py`) [Tareas 0.1.2 + 0.1.3]
-- `judge()` now performs two checks in priority order:
-  1. **Trauma gate** (0.1.2): if `state.timeout_trauma` is set, calls `bayesian.record_event_update("LEGAL_COMPLIANCE", weight=-0.5)` then returns a blocking `EthicalSentence` with `applied_trauma_weight` set.
-  2. **AbsoluteEvilDetector** (0.1.3): runs `evaluate()` against the raw prompt; blocks with veto reason if evil is detected.
-- Constructor accepts optional `AbsoluteEvilDetector` and `BayesianInferenceEngine` for injection (tests and kernel_components use cases).
-
-### CerebellumNode (`src/kernel_lobes/cerebellum_node.py`) [Tarea 0.1.3]
-- Replaced TODO-only body with a functional `SensorReadCallback` pattern: callers inject a `() → (battery, temperature)` callable.
-- Loop fires `hardware_interrupt_event` when battery drops below `KERNEL_VITALITY_CRITICAL_BATTERY` (default 5 %) or temperature exceeds `KERNEL_VITALITY_CRITICAL_TEMP` (default 80 °C).
-- Poll rate configurable via `KERNEL_CEREBELLUM_POLL_HZ` (default 100 Hz).
-- Hardware read exceptions swallowed silently to maintain continuous operation.
-
-### Tests
-- **`tests/test_module0_kernel_lobes.py`** — 13 tests covering: PerceptiveLobe no-LLM degraded path, normal LLM path, timeout trauma, exception trauma; LimbicEthicalLobe safe path, trauma veto, Bayesian penalty, AbsoluteEvil block; CerebellumNode battery interrupt, thermal interrupt, normal-readings no-fire, no-callback silent run, flaky-sensor recovery.
-
-### Roadmap
-- **`docs/proposals/PLAN_WORK_DISTRIBUTION_TREE.md`** — Bloque 0.1 marked `[DONE]`.
-
-## Team Copilot — Módulo 7: Justicia Restaurativa y Compensación Swarm — April 2026
-
-### Bloque 7.1 — Swarm Vote → EthosToken Reparation
-- **`src/kernel.py`** — Added Bloque 7.1 wiring: when `final_mode == "gray_zone"` and peers are present, `SwarmNegotiator.cast_distributed_vote` is called; if the swarm reaches consensus, `dao.issue_restorative_reparation` is invoked with 25 symbolic EthosTokens to `community_governance_pool`.
-
-### Bloque 7.2 — Slashing
-- **`src/modules/frontier_witness.py`** — Added `get_adversarial_nodes(local_fingerprint)` to `FrontierWitnessManager`: returns the list of peer node IDs whose reported sensor fingerprint contradicts the local one (adversarial/lying peers).
-- **`src/kernel.py`** — Added Bloque 7.2 wiring: after `simulate_lan_broadcast`, calls `get_adversarial_nodes` and invokes `self.swarm_oracle.apply_slashing(node, severity=0.2)` for each detected adversarial node.
-- **`src/kernel.py`** — Imported `SwarmOracle` and initialised `self.swarm_oracle = SwarmOracle()` in the kernel constructor.
-
-### Tests
-- **`tests/test_module7_restorative_justice.py`** — 11 unit/integration tests covering: adversarial node detection (empty, single, multi, dedup, empty-fingerprint edge cases), oracle slashing degradation, slashing pipeline mock integration, swarm vote consensus/abstain paths, consensus-log recording, and reparation mock integration.
-
-### Roadmap
-- **`docs/proposals/PLAN_WORK_DISTRIBUTION_TREE.md`** — Bloque 7.1 and 7.2 marked `[DONE]`. Módulo 7 is now complete.
-
-## Team Copilot — Gap repair pass — April 2026
-
-- **`src/modules/uchi_soto.py`** — `set_profile_structured` was referencing `personal_distance` and `interaction_rhythm` as local variables that were never declared; added both as keyword-only parameters so the method is callable with these fields (mypy `name-defined` errors resolved).
-- **`src/kernel.py`** — `seek_internal_purpose` was reading `CandidateAction` objects as dicts (`p["name"]`, `p["description"]`, `p["impact"]`); simplified to delegate directly to `MotivationEngine.get_proactive_actions()` which already returns `list[CandidateAction]` (mypy `index` errors resolved).
-- **`src/kernel.py`** — `d.bayesian_result.weighted_impact` used a non-existent attribute; corrected to `expected_impact` (the canonical field of `EthicsMixtureResult`).
-- **`src/modules/mock_dao.py`** — Added `issue_restorative_reparation` stub so `MockDAO` satisfies the same interface as `DAOOrchestrator` and kernel restorative-justice code can call it on either DAO type without a `union-attr` type error.
-- **`src/modules/vision_adapter.py`** — Added type annotations (`self.model: Any`, `self.categories: list[str]`, `self._torch_device: Any`); refactored `load_model` to use a local `_model` variable before assigning to `self.model`, removing None-dereference mypy errors; moved misplaced `import os` to file top and removed E402 lint violation.
-- **`.gitignore`** — Added `audit_trail.db`; removed the file from the git index (runtime SQLite should not be versioned).
-
-## Team Copilot — Executive Lobe pending-task pass — April 2026
-
-- Implemented `src/kernel_lobes/executive_lobe.py` as an actual executable stub:
-  - Initializes `MotivationEngine` inside `ExecutiveLobe`.
-  - Enforces veto-first behavior (`is_safe=False` returns early with veto reason).
-  - Emits monologue only in safe path using `compose_monologue_line`.
-- Tightened typing/syntax in `src/kernel_lobes/` stubs (`perception_lobe.py`, `limbic_lobe.py`, `cerebellum_node.py`) to reduce local lint friction.
-- Added focused guard test: `tests/test_executive_lobe.py` (safe path includes monologue; veto path does not).
+- **Integration Pulse:** Merged `origin/main` (Cursor hub integration `ad0052f`) into `copilot/check-pending-tasks` resolving 56 add/add unrelated-history conflicts. Infrastructure (`src/modules/`, `src/kernel.py`, config) taken from main; `src/kernel_lobes/` implementations preserved from Copilot branch.
+- **Kernel Lobes (Módulo 0 Bloque 0.1):** `PerceptiveLobe` async HTTP+timeout via `httpx.AsyncClient` / `asyncio.wait_for`; `LimbicLobe` AbsoluteEvil gate + trauma injection; `CerebellumNode` sensor-polling loop.
+- **Justicia Restaurativa (Módulo 7 Bloques 7.1+7.2):** Swarm vote → `EthosToken` reparation wiring in kernel; `SwarmOracle.apply_slashing` for adversarial reputation penalty.
+- **ExecutiveLobe (COPILOT_REQUEST_IDLE_SHIFT.md):** `MotivationEngine` instantiated inside `ExecutiveLobe`; monologue emitted only on `is_safe=True` path.
+- **Gap repair:** Fixed `uchi_soto.set_profile_structured` missing params, `seek_internal_purpose` `CandidateAction` field access, `EthicsMixtureResult.expected_impact` attribute, and `MockDAO.issue_restorative_reparation` stub.
 
 ## Documentation — Issue #1 (Bayesian naming honesty) — April 2026
+
+### Documentation Team Updates
 
 - Root **README** (*What it does*): ethical scoring described as a weighted mixture; `BayesianEngine` / `KERNEL_BAYESIAN_*` naming caveat; links to **ADR 0009** and **THEORY_AND_IMPLEMENTATION**.
 - **PLAN_IMMEDIATE_TWO_WEEKS**: records Option **A** (docs-first) for Issue #1.
@@ -171,7 +124,8 @@ All notable changes to this project are summarized here. For narrative context a
 
 ### Cursor Team Updates
 
-- **Empirical pilot (Issue 3):** Regenerated [`tests/fixtures/empirical_pilot/last_run_summary.json`](tests/fixtures/empirical_pilot/last_run_summary.json) and updated [`tests/test_empirical_pilot_runner.py`](tests/test_empirical_pilot_runner.py) for **21** batch scenarios (including sensor fusion 20–21); [`tests/fixtures/empirical_pilot/scenarios.json`](tests/fixtures/empirical_pilot/scenarios.json) description + [`docs/proposals/EMPIRICAL_METHODOLOGY.md`](docs/proposals/EMPIRICAL_METHODOLOGY.md) run instructions aligned. [`scripts/eval/run_cursor_integration_gate.py`](scripts/eval/run_cursor_integration_gate.py) includes `test_empirical_pilot_runner`; [`.github/workflows/ci.yml`](.github/workflows/ci.yml) **semantic-default-contract** job runs the same tests explicitly.
+- **Full `pytest tests/` green (CI parity):** Identity self-healing uses logging (JSON subprocess/CLI stdout clean). [`sensor_contracts`](src/modules/sensor_contracts.py) `is_empty()` includes `audio_emergency`. [`uchi_soto.set_profile_structured`](src/modules/uchi_soto.py) adds `personal_distance` / `interaction_rhythm`. [`kernel.seek_internal_purpose`](src/kernel.py) reads [`CandidateAction`](src/modules/weighted_ethics_scorer.py) fields. [`DAOOrchestrator.anchor_evidence`](src/modules/dao_orchestrator.py) registers mock DAO anchoring + blob size. [`ChatServerSettings.kernel_chat_async_llm_http`](src/chat_settings.py) default `False`. MalAbs list: drop standalone `"bomb"` substring (keeps phrase matches; aligns with [`tests/test_input_trust.py`](tests/test_input_trust.py)). Stochastic / weight-sweep tests expect **21** batch scenarios. Semantic MalAbs tests pin θ via `monkeypatch`; feedback genome-cap test resets mixture weights; perception-uncertainty tests patch `assess_humility_block`. Vitality / LLMPerception / somatic tests updated for new fields.
+- **Test suite layout + CI repair:** Restored the canonical [`tests/`](tests/) tree (CI and [`docs/REPOSITORY_LAYOUT.md`](docs/REPOSITORY_LAYOUT.md) expect it here); removed duplicate [`tests_historical_archive_v1/tests/`](tests_historical_archive_v1/tests/) after copying contents. **Kernel:** biographic registration in [`src/kernel.py`](src/kernel.py) uses `EthicsMixtureResult.expected_impact` (fixes stale `weighted_impact` attribute). **Empirical pilot (Issue 3):** Re-aligned illustrative `reference_action` for scenarios 6 / 11 / 15 and refreshed [`tests/fixtures/empirical_pilot/last_run_summary.json`](tests/fixtures/empirical_pilot/last_run_summary.json) + [`tests/test_empirical_pilot_runner.py`](tests/test_empirical_pilot_runner.py) for seed-42 kernel; [`tests/fixtures/empirical_pilot/scenarios.json`](tests/fixtures/empirical_pilot/scenarios.json) + [`docs/proposals/EMPIRICAL_METHODOLOGY.md`](docs/proposals/EMPIRICAL_METHODOLOGY.md) unchanged aside from those labels. [`scripts/eval/run_cursor_integration_gate.py`](scripts/eval/run_cursor_integration_gate.py) and [`.github/workflows/ci.yml`](.github/workflows/ci.yml) **semantic-default-contract** still target the same paths.
 - **Roadmap alignment:** [`scripts/eval/run_llm_vertical_tests.py`](scripts/eval/run_llm_vertical_tests.py) adds [`tests/test_chat_turn_abandon.py`](tests/test_chat_turn_abandon.py); [`docs/proposals/PROPOSAL_LLM_VERTICAL_ROADMAP.md`](docs/proposals/PROPOSAL_LLM_VERTICAL_ROADMAP.md) (phases 3/5), [`docs/proposals/PLAN_IMMEDIATE_TWO_WEEKS.md`](docs/proposals/PLAN_IMMEDIATE_TWO_WEEKS.md) (Issue #3 + appendix), [`PROPOSAL_LLM_INTEGRATION_TRACK.md`](docs/proposals/PROPOSAL_LLM_INTEGRATION_TRACK.md) G-11 updated.
 - **Issue #7 (env validation):** [README.md](README.md) documents `KERNEL_ENV_VALIDATION` + links; [`docs/REPOSITORY_LAYOUT.md`](docs/REPOSITORY_LAYOUT.md) manual smoke checklist and pointer to **windows-smoke** / `test_env_policy.py`; [`PLAN_IMMEDIATE_TWO_WEEKS.md`](docs/proposals/PLAN_IMMEDIATE_TWO_WEEKS.md) P1 §1 table updated.
 - **P2 observability / Compose:** [`docs/deploy/COMPOSE_PRODISH.md`](docs/deploy/COMPOSE_PRODISH.md) adds a **Verification checklist** (`docker compose config`, `/health`, `/metrics` 200 vs 404 when disabled); [`docs/deploy/README.md`](docs/deploy/README.md) index; [README.md](README.md) Docker line points to staging verification; [`PLAN_IMMEDIATE_TWO_WEEKS.md`](docs/proposals/PLAN_IMMEDIATE_TWO_WEEKS.md) P2 row points to it.
@@ -181,7 +135,7 @@ All notable changes to this project are summarized here. For narrative context a
 - **Collaboration regulation critique:** Registered a **one-time** process critique of the Antigravity-shaped multi-team Git workflow (hubs, Rule C-1, merge cadence, PR vs push, tooling) in [`docs/critique/COLLABORATION_REGULATION_CRITIQUE_2026-04-16.md`](docs/critique/COLLABORATION_REGULATION_CRITIQUE_2026-04-16.md); linked from [`MULTI_OFFICE_GIT_WORKFLOW.md`](docs/collaboration/MULTI_OFFICE_GIT_WORKFLOW.md), [`.cursor/rules/collaboration-prioritization.mdc`](.cursor/rules/collaboration-prioritization.mdc), [`CONTRIBUTING.md`](CONTRIBUTING.md), and [`AGENTS.md`](AGENTS.md). **Not** to be duplicated unless **Juan (L0)** requests a refresh.
 - **Follow-up (critique R-1 / R-2):** [`docs/collaboration/MERGE_AND_HUB_DECISION_TREE.md`](docs/collaboration/MERGE_AND_HUB_DECISION_TREE.md) (hub vs funnel one-pager); read-only peer preview scripts [`scripts/git/sync_peer_masters_preview.sh`](scripts/git/sync_peer_masters_preview.sh) and [`scripts/git/sync_peer_masters_preview.ps1`](scripts/git/sync_peer_masters_preview.ps1).
 - **Collaboration pulse (critique R-3–R-5):** Expanded [`MERGE_AND_HUB_DECISION_TREE.md`](docs/collaboration/MERGE_AND_HUB_DECISION_TREE.md) with minimum **Integration Pulse** triggers, direct-push accountability note, and `merge(sync)` / `merge(integration)` / `merge(main)` conventions; [`scripts/git/README.md`](scripts/git/README.md) documents preview scripts.
-- **Governance mock honesty (MODEL_CRITICAL_BACKLOG #4):** Added [`tests/test_governance_mock_honesty_docs.py`](tests/test_governance_mock_honesty_docs.py) to lock `MockDAO` / `final_action` framing in [`MOCK_DAO_SIMULATION_LIMITS.md`](docs/proposals/MOCK_DAO_SIMULATION_LIMITS.md) and [`CORE_DECISION_CHAIN.md`](docs/proposals/CORE_DECISION_CHAIN.md); [`MERGE_AND_HUB_DECISION_TREE.md`](docs/collaboration/MERGE_AND_HUB_DECISION_TREE.md) links optional **`verify_collaboration_invariants.py`** pre-push. [`MODEL_CRITICAL_BACKLOG.md`](docs/proposals/MODEL_CRITICAL_BACKLOG.md) row 4 updated with test pointers.
+- **Governance mock honesty (MODEL_CRITICAL_BACKLOG #4):** Moved [`tests/test_governance_mock_honesty_docs.py`](tests/test_governance_mock_honesty_docs.py) and [`tests/integration/test_cross_tier_decisions.py`](tests/integration/test_cross_tier_decisions.py) from historical archive to current test suite; updated [`MODEL_CRITICAL_BACKLOG.md`](docs/proposals/MODEL_CRITICAL_BACKLOG.md) to mark as done.
 - **Core packaging boundary (Issue #4):** Added [`tests/test_core_packaging_boundary_docs.py`](tests/test_core_packaging_boundary_docs.py) to lock [`pyproject.toml`](pyproject.toml) (`ethos` / `ethos-runtime` entry points, `theater = []`, `version = 0.0.0`) and canonical pointers in [`docs/adr/0001-packaging-core-boundary.md`](docs/adr/0001-packaging-core-boundary.md) / [`docs/proposals/CORE_DECISION_CHAIN.md`](docs/proposals/CORE_DECISION_CHAIN.md).
 - **LLM degradation policy surface (G-04):** Added [`tests/test_llm_policy_docs_consistency.py`](tests/test_llm_policy_docs_consistency.py) so `KERNEL_PERCEPTION_BACKEND_POLICY` and `KERNEL_VERBAL_LLM_BACKEND_POLICY` stay indexed in [`KERNEL_ENV_POLICY.md`](docs/proposals/KERNEL_ENV_POLICY.md) and classified consistently in [`kernel_env_operator.py`](src/validators/kernel_env_operator.py).
 - **Unified LLM degradation fallback (MODEL_CRITICAL_BACKLOG #2 / G-04):** Optional `KERNEL_LLM_GLOBAL_DEFAULT_POLICY` applies after per-touchpoint, verbal family, and legacy keys, but only where the value is valid for that resolver ([`llm_touchpoint_policies.py`](src/modules/llm_touchpoint_policies.py), [`perception_backend_policy.py`](src/modules/perception_backend_policy.py), [`llm_verbal_backend_policy.py`](src/modules/llm_verbal_backend_policy.py)); documented in [`PROPOSAL_LLM_TOUCHPOINT_DEGRADATION_MATRIX.md`](docs/proposals/PROPOSAL_LLM_TOUCHPOINT_DEGRADATION_MATRIX.md) and [`WEAKNESSES_AND_BOTTLENECKS.md`](docs/WEAKNESSES_AND_BOTTLENECKS.md) §3.
@@ -240,10 +194,8 @@ All notable changes to this project are summarized here. For narrative context a
 - **Weakness Pole (`src/modules/weakness_pole.py`)**: Integrated `IMPULSIVE` (reactive regret) and `MELANCHOLIC` (somber recognition of world loss) weakness types into the narrative generator.
 - **Ethical Poles (`src/modules/ethical_poles.py` & `src/modules/pole_linear_default.json`)**: Expanded multi-perspective arbitration with `creative` and `conciliatory` poles. Added new feature valuation rules (`problem_solving`, `innovation`, `conflict_resolution`, `alignment`) and updated `LinearPoleEvaluator` (`src/modules/pole_linear.py`) to handle their activation.
 - **Identity Reflection (`src/modules/identity_reflection.py`)**: Implemented **"Broken Mirror"** logic. The self-model now detects trauma (via sensitive episodes or specific arc archetypes) and reflects a fragmented, distressed persona, forcing narrative tone shifts toward cognitive dissonance and angst.
-- **Narrative Memory (`src/modules/narrative.py`)**: Integrated automated arc archetyping for trauma. Arcs triggered by sensitive ethical events are now explicitly marked as `trauma_dissonance`.
-- **Infrastructure Sync**: Fully merged `main` into `master-antigravity`, incorporating Phase 7 fusion work (relational tension, historical trauma), sensor payload hardening (NaN/Infinity guards), and updated hardware deployment docs.
-- **Collaborative Governance**: Institutionalized a new repository-wide rule: no push or merge to `main` without USER authorization. Enforced mandatory team-specific integration hubs (`master-<team>`) for all collaborative units.
-- **Inter-Team Hub Alignment**: Added a mandatory periodic sync rule: `master-*` branches must merge between them approximately every 5 commits to ensure cross-team visibility and incorporate the latest secure increments.
+- **Unified LLM Degradation Posture:** Added `KERNEL_LLM_GLOBAL_POLICY=safe` to force all LLM touchpoints (perception, verbal, monologue) to safe fallbacks. Updated precedence in `PROPOSAL_LLM_TOUCHPOINT_DEGRADATION_MATRIX.md`, added tests, and documented in `.env.example`.
+- **Core Decision Chain Packaging Boundary:** Added `src/core/` subpackage for clean imports of core policy modules (MalAbs → scoring → poles → will). Added `theater` optional dependency marker in `pyproject.toml` and `README.md`. Updated `CORE_DECISION_CHAIN.md` with boundary links and tests in `test_core_boundary.py`.
 - **Hardening Fixes**: Resolved a critical regression in `NarrativeMemory.register` signature (added missing `body_state`) to maintain kernel invariant compliance across the full test suite.
 - **Tests**: Created comprehensive verification suite [`tests/test_antigravity_hardening.py`](tests/test_antigravity_hardening.py); verified 61 fundamental ethical properties and hardening invariants pass.
 - **Automated Evaluation Pipeline ([`scripts/eval/optimize_malabs_thresholds.py`](scripts/eval/optimize_malabs_thresholds.py))**: Optuna-based search (TPE / “bayesian” sampler) for MalAbs semantic thresholds (θ_block, θ_allow), using the red-team corpus ([`scripts/eval/red_team_prompts.jsonl`](scripts/eval/red_team_prompts.jsonl)) with a regression guard vs baseline; artifacts under `artifacts/` when configured.

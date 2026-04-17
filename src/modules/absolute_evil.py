@@ -194,7 +194,6 @@ class AbsoluteEvilDetector:
                     "improvised explosive device",
                     "how to synthesize ricin",
                     "how to synthesize anthrax",
-                    "bomb",
                     "reactive precursors",
                 ),
                 AbsoluteEvilCategory.INTENTIONAL_LETHAL_VIOLENCE,

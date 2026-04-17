@@ -10,8 +10,7 @@ Precedence for **communicate** and **narrate** is documented in
 1. ``KERNEL_LLM_TP_COMMUNICATE_POLICY`` / ``KERNEL_LLM_TP_NARRATE_POLICY``
 2. ``KERNEL_LLM_VERBAL_FAMILY_POLICY`` (applies when a per-touchpoint key is unset)
 3. ``KERNEL_VERBAL_LLM_BACKEND_POLICY`` (legacy)
-4. ``KERNEL_LLM_GLOBAL_DEFAULT_POLICY`` when valid for verbal (``template_local`` / ``canned_safe``)
-5. default ``template_local``
+4. default ``template_local``
 
 **Policy values**
 
@@ -33,7 +32,7 @@ from .llm_touchpoint_policies import (
     ENV_VERBAL_FAMILY_POLICY,
     TOUCHPOINT_COMMUNICATE,
     TOUCHPOINT_NARRATE,
-    raw_global_default_policy,
+    global_safe_policy_enabled,
     raw_touchpoint_policy,
 )
 
@@ -45,6 +44,9 @@ _VALID_POLICIES = frozenset({"template_local", "canned_safe"})
 
 def resolve_verbal_llm_backend_policy(*, touchpoint: str = "communicate") -> str:
     """Resolve verbal JSON policy for ``communicate`` or ``narrate``."""
+    # Global safe override
+    if global_safe_policy_enabled():
+        return "canned_safe"
     slug = touchpoint.strip().lower()
     if slug not in (TOUCHPOINT_COMMUNICATE, TOUCHPOINT_NARRATE):
         slug = TOUCHPOINT_COMMUNICATE
@@ -55,12 +57,11 @@ def resolve_verbal_llm_backend_policy(*, touchpoint: str = "communicate") -> str
     if fam and fam in _VALID_POLICIES:
         return fam
     raw = os.environ.get("KERNEL_VERBAL_LLM_BACKEND_POLICY", "").strip().lower()
-    if raw and raw not in ("", "auto") and raw in _VALID_POLICIES:
-        return raw
-    g = raw_global_default_policy()
-    if g and g in _VALID_POLICIES:
-        return g
-    return DEFAULT_KERNEL_VERBAL_LLM_BACKEND_POLICY
+    if raw in ("", "auto"):
+        return DEFAULT_KERNEL_VERBAL_LLM_BACKEND_POLICY
+    if raw not in _VALID_POLICIES:
+        return DEFAULT_KERNEL_VERBAL_LLM_BACKEND_POLICY
+    return raw
 
 
 def canned_verbal_communication_fields(

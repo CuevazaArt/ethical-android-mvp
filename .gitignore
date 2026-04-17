@@ -88,9 +88,6 @@ data/
 # Local scratch databases (never commit)
 scratch/
 
-# Runtime audit trail SQLite (generated at startup; do not commit)
-audit_trail.db
-
 # Local Chroma vector DB (tests / dev; default persist path)
 .chroma/
 
