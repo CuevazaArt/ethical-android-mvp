@@ -126,6 +126,26 @@ Este documento estructura el inmenso volumen de trabajo arquitectónico definido
 
 ---
 
+### ⚪ Módulo 9: Nomadismo Perceptivo (Streaming Aferente Continuo)
+*Responsabilidad: Nivel 1 (Antigravity - Planificación) / Nivel 2 (Ejecución)*
+*Objetivo: Migrar desde un modelo puramente conversacional ("Chat-Turn") hacia un stream sensorial continuo en background, permitiendo al androide percibir el entorno de forma pasiva y detonar la proactividad del MotivationEngine.*
+
+- **Bloque 9.1: Daemon de Visión Continua (CNN/Webcam)**
+  - *Responsabilidad:* **Team Cursor**
+  - Tarea: Modificar `VisionInferenceEngine` para crear un stream en background que clasifique "entidades" (humanos, armas, obstáculos) a 5Hz utilizando OpenCV/Ollama Vision ligero.
+  - Vínculo: Alimentará asíncronamente el nuevo `SensoryBuffer` del `PerceptiveLobe`.
+- **Bloque 9.2: Acumulación de Tensión Límbica Estática**
+  - *Responsabilidad:* **Claude**
+  - Tarea: Evolucionar el `BayesianEngine`. Si el Lóbulo Perceptivo dicta que un estímulo peligroso permanece en la vista durante +5 segundos, el Lóbulo Límbico debe escalar automáticamente la *Tensión Social* sin esperar una interacción de texto.
+- **Bloque 9.3: Refactorización Asíncrona Total de Eferencia**
+  - *Responsabilidad:* **Team Copilot**
+  - Tarea: Eliminar los cuellos de botella síncronos en `ExecutiveLobe` (`llm.communicate`) y `NarrativeMemory` (`requests` a Ollama). Migrar `http_fetch_ollama_embedding` a `httpx.AsyncClient`.
+- **Bloque 9.4: Monitor de Stream Inter-Lóbulos**
+  - *Responsabilidad:* **Team VisualStudio**
+  - Tarea: Desarrollar pruebas que inyecten un mock contínuo en el Lóbulo Perceptivo simulando estrés de entorno, midiendo si el Lóbulo Ejecutivo logra interrumpir el stream para alertar (E-Stop).
+
+---
+
 ## 🚀 Flujo de Sincronización Recomendado
 
 1. **Semana 1:** Antigravity (N1) trabaja el **Módulo 1** y **Módulo 4**. Cursor Team (N2) despliega **Módulo 2** y **Módulo 3**.
