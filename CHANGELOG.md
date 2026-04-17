@@ -6,6 +6,14 @@ All notable changes to this project are summarized here. For narrative context a
 
 [URGENTE - BROADCAST A TODOS LOS L2 MASTERS]: Todos los equipos (Claude, Cursor, Copilot) deben hacer un GIT PULL urgente desde MAIN hacia sus MASTERs. Las ramas desactualizadas enfrentarán asincronías severas en el pathing de documentación.
 
+## Team Copilot — Architectural Discussion Contribution — April 2026
+
+### Team Copilot Updates (Discussion)
+
+- **Formal contribution to Tri-Lobe deliberation:** Published [`docs/proposals/PROPOSAL_COPILOT_SESSION3_TECHNICAL_FINDINGS.md`](docs/proposals/PROPOSAL_COPILOT_SESSION3_TECHNICAL_FINDINGS.md) with technical findings from Session 3, analysis of the Tri-Lobe proposal from the perspective of the streaming gap discoveries, and proposed next assignments (Opción A: frozen dataclass contracts for lobe migration; Opción B: Nomad Bridge test harness; Opción C: audit chain callback refactor).
+- **Key thesis:** The largest short-term risk is not external Mock Hell (simulated sensors) but internal Contract Hell — streaming side-effects without explicit tests or interfaces accumulating silent debt. Tri-Lobe is the right direction; the transfer object contracts must be explicit *before* the split.
+- **Status:** Módulos 8 (8.1 + 8.2) and E.2 complete. Copilot available and awaiting L0/L1 assignment.
+
 ## Team Copilot — Gap Closure Session 3: Streaming Protocol Fixes — April 2026
 
 ### Team Copilot Updates (Session 3)
