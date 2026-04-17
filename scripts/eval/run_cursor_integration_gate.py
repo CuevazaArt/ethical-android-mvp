@@ -30,6 +30,8 @@ TEST_TARGETS = [
     "tests/test_semantic_threshold_proposal_doc_alignment.py",
     # Embodied sociability S10 (PROPOSAL_EMBODIED_SOCIABILITY.md Bloque S10)
     "tests/test_transparency_s10.py",
+    # Nomad LAN bridge Module S.1 (PLAN_WORK_DISTRIBUTION_TREE)
+    "tests/test_nomad_bridge_stream.py",
 ]
 
 
