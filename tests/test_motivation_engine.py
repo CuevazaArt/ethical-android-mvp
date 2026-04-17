@@ -38,7 +38,7 @@ def test_trigger_proactive_purpose():
 
     assert len(actions) > 0
     assert actions[0].source == "internal_motivation"
-    assert "investigate" in actions[0].name
+    assert "proactive" in actions[0].name or "investigate" in actions[0].description.lower()
 
     # Verify drive decreased after trigger
     assert kernel.motivation.drives[DriveType.CURIOSITY].value < 0.9

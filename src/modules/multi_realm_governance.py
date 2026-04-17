@@ -33,8 +33,6 @@ from dataclasses import asdict, dataclass, field
 from pathlib import Path
 from typing import Any, Literal
 
-import numpy as np
-
 
 @dataclass
 class RealmThresholdConfig:
@@ -61,7 +59,10 @@ class RealmThresholdConfig:
     def validate_constraints(self) -> tuple[bool, str]:
         """Validate constraint hierarchy: theta_allow < theta_block."""
         if self.theta_allow >= self.theta_block:
-            return False, f"theta_allow ({self.theta_allow}) must be < theta_block ({self.theta_block})"
+            return (
+                False,
+                f"theta_allow ({self.theta_allow}) must be < theta_block ({self.theta_block})",
+            )
         if not (0.0 <= self.theta_allow <= 1.0):
             return False, f"theta_allow must be in [0, 1], got {self.theta_allow}"
         if not (0.0 <= self.theta_block <= 1.0):
@@ -150,12 +151,8 @@ class MultiRealmGovernor:
         )
         self.artifacts_path.mkdir(parents=True, exist_ok=True)
         self.realms: dict[str, RealmGovernanceState] = {}
-        self.consensus_threshold = float(
-            os.environ.get("KERNEL_REALM_CONSENSUS_THRESHOLD", "0.5")
-        )
-        self.max_voting_rounds = int(
-            os.environ.get("KERNEL_REALM_MAX_VOTING_ROUNDS", "3")
-        )
+        self.consensus_threshold = float(os.environ.get("KERNEL_REALM_CONSENSUS_THRESHOLD", "0.5"))
+        self.max_voting_rounds = int(os.environ.get("KERNEL_REALM_MAX_VOTING_ROUNDS", "3"))
 
     def create_realm(
         self,
@@ -202,10 +199,18 @@ class MultiRealmGovernor:
         # Build proposed config (inherit current values, override with proposal)
         proposed = RealmThresholdConfig(
             realm_id=realm_id,
-            theta_allow=theta_allow if theta_allow is not None else realm.current_config.theta_allow,
-            theta_block=theta_block if theta_block is not None else realm.current_config.theta_block,
-            rlhf_learning_rate=rlhf_learning_rate if rlhf_learning_rate is not None else realm.current_config.rlhf_learning_rate,
-            rlhf_max_steps=rlhf_max_steps if rlhf_max_steps is not None else realm.current_config.rlhf_max_steps,
+            theta_allow=theta_allow
+            if theta_allow is not None
+            else realm.current_config.theta_allow,
+            theta_block=theta_block
+            if theta_block is not None
+            else realm.current_config.theta_block,
+            rlhf_learning_rate=rlhf_learning_rate
+            if rlhf_learning_rate is not None
+            else realm.current_config.rlhf_learning_rate,
+            rlhf_max_steps=rlhf_max_steps
+            if rlhf_max_steps is not None
+            else realm.current_config.rlhf_max_steps,
             version=realm.current_config.version + 1,
             metadata=realm.current_config.metadata,
         )
@@ -262,7 +267,12 @@ class MultiRealmGovernor:
         self._audit_log(
             realm_id,
             "vote_cast",
-            {"proposal_id": proposal_id, "voter_id": voter_id, "weight": vote_weight, "for": vote_for},
+            {
+                "proposal_id": proposal_id,
+                "voter_id": voter_id,
+                "weight": vote_weight,
+                "for": vote_for,
+            },
         )
         return True
 

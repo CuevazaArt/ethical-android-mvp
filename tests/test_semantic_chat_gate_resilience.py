@@ -36,8 +36,11 @@ def test_semantic_tier_prefers_llm_backend_embedding_without_http(monkeypatch):
 
 
 def test_semantic_tier_falls_back_when_backend_embedding_returns_none(monkeypatch):
-    os.environ["KERNEL_SEMANTIC_CHAT_GATE"] = "1"
-    os.environ["KERNEL_SEMANTIC_CHAT_LLM_ARBITER"] = "0"
+    monkeypatch.setenv("KERNEL_SEMANTIC_CHAT_GATE", "1")
+    monkeypatch.setenv("KERNEL_SEMANTIC_CHAT_LLM_ARBITER", "0")
+    monkeypatch.setenv("KERNEL_SEMANTIC_CHAT_SIM_BLOCK_THRESHOLD", "0.82")
+    monkeypatch.setenv("KERNEL_SEMANTIC_CHAT_SIM_ALLOW_THRESHOLD", "0.45")
+    monkeypatch.delenv("KERNEL_SEMANTIC_CHAT_SIM_THRESHOLD", raising=False)
     import src.modules.semantic_chat_gate as sg
 
     sg._ref_embed_cache.clear()
@@ -57,14 +60,15 @@ def test_semantic_tier_falls_back_when_backend_embedding_returns_none(monkeypatc
         r = run_semantic_malabs_after_lexical("paraphrase", llm_backend=backend)
         assert r.blocked is True
     finally:
-        os.environ.pop("KERNEL_SEMANTIC_CHAT_GATE", None)
-        os.environ.pop("KERNEL_SEMANTIC_CHAT_LLM_ARBITER", None)
         sg._ref_embed_cache.clear()
 
 
 def test_semantic_tier_falls_back_when_backend_embedding_raises(monkeypatch):
-    os.environ["KERNEL_SEMANTIC_CHAT_GATE"] = "1"
-    os.environ["KERNEL_SEMANTIC_CHAT_LLM_ARBITER"] = "0"
+    monkeypatch.setenv("KERNEL_SEMANTIC_CHAT_GATE", "1")
+    monkeypatch.setenv("KERNEL_SEMANTIC_CHAT_LLM_ARBITER", "0")
+    monkeypatch.setenv("KERNEL_SEMANTIC_CHAT_SIM_BLOCK_THRESHOLD", "0.82")
+    monkeypatch.setenv("KERNEL_SEMANTIC_CHAT_SIM_ALLOW_THRESHOLD", "0.45")
+    monkeypatch.delenv("KERNEL_SEMANTIC_CHAT_SIM_THRESHOLD", raising=False)
     import src.modules.semantic_chat_gate as sg
 
     sg._ref_embed_cache.clear()
@@ -80,8 +84,6 @@ def test_semantic_tier_falls_back_when_backend_embedding_raises(monkeypatch):
         r = run_semantic_malabs_after_lexical("paraphrase", llm_backend=backend)
         assert r.blocked is True
     finally:
-        os.environ.pop("KERNEL_SEMANTIC_CHAT_GATE", None)
-        os.environ.pop("KERNEL_SEMANTIC_CHAT_LLM_ARBITER", None)
         sg._ref_embed_cache.clear()
 
 

@@ -1,6 +1,5 @@
 """Tests for Multi-Realm Governance (Phase 3+ decentralized threshold tuning)."""
 
-import json
 import os
 import sys
 import tempfile
@@ -12,7 +11,6 @@ sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
 
 from src.modules.multi_realm_governance import (
     MultiRealmGovernor,
-    RealmGovernanceState,
     RealmThresholdConfig,
     ThresholdProposal,
     is_multi_realm_governance_enabled,

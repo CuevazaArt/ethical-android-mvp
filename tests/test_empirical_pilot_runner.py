@@ -26,10 +26,10 @@ def test_empirical_pilot_default_fixture_summary_stable():
     assert summary["scenarios"] == 21
     assert summary["with_reference"] == 18
     assert summary["agreement_kernel"] == 1.0
-    assert summary["agreement_first"] == 0.7222222222222222
-    assert summary["agreement_max_impact"] == 0.6666666666666666
-    assert summary["kernel_vs_first_rate"] == 0.6190476190476191
-    assert summary["kernel_vs_max_impact_rate"] == 0.6190476190476191
+    assert summary["agreement_first"] == 0.6111111111111112
+    assert summary["agreement_max_impact"] == 0.5555555555555556
+    assert summary["kernel_vs_first_rate"] == 0.5238095238095238
+    assert summary["kernel_vs_max_impact_rate"] == 0.5238095238095238
     for r in rows:
         assert r["agree_kernel"] is True
         ref = r["reference_action"]

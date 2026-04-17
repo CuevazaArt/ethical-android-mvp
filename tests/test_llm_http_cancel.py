@@ -6,7 +6,6 @@ import threading
 import time
 
 import pytest
-
 from src.modules.llm_backends import MockLLMBackend
 from src.modules.llm_http_cancel import (
     LLMHttpCancelledError,

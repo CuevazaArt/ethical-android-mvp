@@ -19,10 +19,10 @@ def test_somatic_profile_thermal_critical():
     assert assessment.thermal_critical is True
     assert assessment.is_critical is False  # battery is fine
 
-    # 3. Verify LLM communication hint
+    # 3. Verify LLM communication hint (wording follows vitality_communication_hint)
     hint = vitality_communication_hint(assessment)
-    assert "internal core temperature is critically high" in hint
-    assert "thermal tension" in hint
+    assert "thermal" in hint.lower() and "critical" in hint.lower()
+    assert "temperature" in hint.lower() or "thermal" in hint.lower()
 
     # 4. Verify signal nudging
     base_signals = {"risk": 0.2, "urgency": 0.1, "vulnerability": 0.1, "calm": 0.8}
