@@ -4,6 +4,14 @@ All notable changes to this project are summarized here. For narrative context a
 
 **Note:** Older sections below may still **link** to paths that were later removed (for example `experiments/million_sim/`, `docs/multimedia/`, root `dashboard.html`, `landing/`). Those links are **historical**; recover files from git history or backup branches if you need them.
 
+## Team Copilot — Maintenance pulse: copilot/check-pending-tasks — April 2026 (Session 2)
+
+### Team Copilot Updates
+
+- **Lint debt cleared:** Resolved 12 `ruff` violations accumulated from cross-team merges — import ordering (`I001` × 5), `typing.Callable` → `collections.abc.Callable` (`UP035`), `asyncio.TimeoutError` → builtin `TimeoutError` (`UP041`), and `(str, Enum)` → `StrEnum` (`UP042` × 4) in `existential_serialization.py`, `hardware_abstraction.py`, `judicial_escalation.py`, `sandbox/weight_sweep.py`. All checks pass (`ruff check src tests`).
+- **Async test infrastructure:** Added `pytest-asyncio==0.24.0` to `requirements-dev.txt` and `pytest-asyncio>=0.21.0` to `pyproject.toml [dev]`; set `asyncio_mode = "strict"` in `[tool.pytest.ini_options]`. This resolves 4 test failures in `test_module0_kernel_lobes.py` introduced when kernel-lobe async tests were written without the dependency being declared. CI now installs the correct plugin and all 1 167 tests pass.
+- **`secure_boot.py` docstring:** Updated `verify_integrity` docstring from "hash comparison is a TODO" to "not yet implemented (demo only)" — removing action-item language from an intentional simulation scaffold.
+
 ## Team Copilot — Merge pulse: origin/main → copilot/check-pending-tasks — April 2026
 
 ### Team Copilot Updates
