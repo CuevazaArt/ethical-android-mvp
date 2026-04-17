@@ -7,7 +7,7 @@ Run from repo root:
 Or: python -m src.chat_server
 Or: python -m src.runtime  (same server; see docs/proposals/README.md)
 
-**Profiles:** set ``ETHOS_RUNTIME_PROFILE`` to a name in ``src/runtime_profiles.py`` to merge that bundle at import time (explicit env vars win per key). ``GET /health`` and ``GET /`` include ``runtime_profile`` when set; ``GET /health`` also returns ``llm_degradation`` (resolved perception / verbal / monologue policies — see ``PROPOSAL_LLM_TOUCHPOINT_DEGRADATION_MATRIX.md``).
+**Profiles:** set ``ETHOS_RUNTIME_PROFILE`` to a name in ``src/runtime_profiles.py`` to merge that bundle at import time (explicit env vars win per key). ``GET /health`` and ``GET /`` include ``runtime_profile`` when set; ``GET /health`` also returns ``llm_degradation`` (resolved perception / verbal / monologue policies — see ``PROPOSAL_LLM_TOUCHPOINT_DEGRADATION_MATRIX.md``) and ``nomad_bridge`` (queue depths + telemetry **key names** from ``NomadBridge.public_queue_stats()`` — Module S.1 / S.2.1 observability).
 
 **Chat async bridge:** By default each turn runs ``EthicalKernel.process_chat_turn`` in a worker thread (``RealTimeBridge``) so the asyncio loop can accept other WebSocket connections. Optional ``KERNEL_CHAT_ASYNC_LLM_HTTP=1`` runs ``process_chat_turn_async`` on the event loop with async ``httpx`` for Ollama/HTTP JSON; the same per-turn cancel ``Event`` applies to the thread that runs ``EthicalKernel.process`` (cooperative exit + ``llm_http_cancel`` scope; see ADR 0002). Optional ``KERNEL_CHAT_THREADPOOL_WORKERS`` (positive int) uses a dedicated ``ThreadPoolExecutor`` for chat; optional ``KERNEL_CHAT_TURN_TIMEOUT`` (seconds) bounds the **async** wait and returns JSON ``error=chat_turn_timeout`` when exceeded (``abandon_chat_turn`` skips late STM; cooperative cancel for further sync LLM HTTP; in-flight HTTP cancel when async LLM is on). By default ``KERNEL_CHAT_JSON_OFFLOAD`` is on: WebSocket JSON (including optional ``KERNEL_LLM_MONOLOGUE``) is built in the same offload path so the loop is not blocked after the turn. See ``src/real_time_bridge.py``, ADR 0002, and ``docs/proposals/README.md``.
 
@@ -893,6 +893,10 @@ def health() -> dict[str, Any]:
             "monologue": resolve_monologue_llm_backend_policy(),
         },
     }
+
+    from .modules.nomad_bridge import get_nomad_bridge
+
+    out["nomad_bridge"] = get_nomad_bridge().public_queue_stats()
     return out
 
 

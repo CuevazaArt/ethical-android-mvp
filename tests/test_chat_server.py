@@ -50,6 +50,12 @@ def test_health():
     assert res.get("monologue") == "passthrough"
     assert ld.get("global_default_effective") is None
 
+    nb = body.get("nomad_bridge")
+    assert isinstance(nb, dict)
+    assert nb.get("schema") == "nomad_bridge_queue_stats_v2"
+    assert "latest_telemetry_present" in nb
+    assert "latest_telemetry_keys" in nb
+
 
 def test_lifespan_runs_with_test_client_context_manager():
     """FastAPI lifespan (logging + metrics init) must complete without error."""
