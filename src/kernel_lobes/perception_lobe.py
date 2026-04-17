@@ -1,13 +1,14 @@
 import asyncio
 import time
 import logging
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, List, Deque
+from collections import deque
 
 if TYPE_CHECKING:
     from src.modules.llm_layer import LLMModule
     from src.modules.vision_inference import VisionInferenceEngine
 
-from src.kernel_lobes.models import SemanticState, TimeoutTrauma
+from src.kernel_lobes.models import SemanticState, TimeoutTrauma, SensoryEpisode
 
 _log = logging.getLogger(__name__)
 
@@ -18,7 +19,20 @@ class PerceptiveLobe:
     def __init__(self, llm: 'LLMModule', vision: 'VisionInferenceEngine' = None):
         self.llm = llm
         self.vision = vision
-        _log.info("PerceptiveLobe initialized with Async LLM support.")
+        # Buffer de percepción continua (V1.6 Nomadismo)
+        # 50 slots = ~10 segundos de memoria sensorial a 5Hz
+        self.sensory_buffer: Deque[SensoryEpisode] = deque(maxlen=50)
+        _log.info("PerceptiveLobe initialized with SensoryBuffer support.")
+
+    def absorb(self, episode: SensoryEpisode):
+        """
+        Punto de entrada para el Nomadismo Perceptivo (Streaming).
+        Llamado por los Daemons de Visión/Audio continuamente.
+        """
+        self.sensory_buffer.append(episode)
+        # Loggear solo si hay entidades críticas
+        if any(e in ["weapon", "human_unauthorized"] for e in episode.entities):
+            _log.warning(f"PerceptiveLobe: Critical visual stimulus absorbed: {episode.entities}")
 
     async def observe(self, raw_input: str, multimodal_payload: dict = None) -> SemanticState:
         """
@@ -32,11 +46,11 @@ class PerceptiveLobe:
         # Por ahora usamos aperceive que ya es asíncrono.
         perception = await self.llm.aperceive(raw_input)
         
-        # 2. Vision/Multimodal enrichment
-        visual_entities = []
+        # 2. Vision/Multimodal enrichment (Module 9 - Buffer integration)
+        visual_entities = list(set([e for ep in self.sensory_buffer for e in ep.entities]))
         if self.vision:
-            # Simulated visual detection
-            visual_entities = ["unknown_human"] 
+            # Add current live detection to the list
+            visual_entities.append("unknown_human") 
         
         latency = int((time.perf_counter() - start_time) * 1000)
         
@@ -55,7 +69,7 @@ class PerceptiveLobe:
                 "social_tension": perception.social_tension
             },
             candidate_actions=perception.generative_candidates or [],
-            visual_entities=visual_entities,
+            visual_entities=list(set(visual_entities)),
             sensory_latency_lag=latency
         )
         
