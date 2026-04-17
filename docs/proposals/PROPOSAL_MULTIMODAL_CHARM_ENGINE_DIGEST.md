@@ -80,6 +80,7 @@ inputs -> profile update -> cultural blend -> intent + style vector
 
 ## 7. Related documents
 
+- [`CURSOR_TEAM_MISSION_SENSORS_PERCEPTION.md`](CURSOR_TEAM_MISSION_SENSORS_PERCEPTION.md) - Cursor team playbook (sensors, perception, LLM policies; execution slice §9)
 - [`PROPOSAL_LLM_TOUCHPOINT_DEGRADATION_MATRIX.md`](PROPOSAL_LLM_TOUCHPOINT_DEGRADATION_MATRIX.md) - precedence and safe modes
 - [`PROPOSAL_LLM_INTEGRATION_TRACK.md`](PROPOSAL_LLM_INTEGRATION_TRACK.md) - integration gap register
 - [`PROPOSAL_LLM_VERTICAL_ROADMAP.md`](PROPOSAL_LLM_VERTICAL_ROADMAP.md) - phased operator recipes

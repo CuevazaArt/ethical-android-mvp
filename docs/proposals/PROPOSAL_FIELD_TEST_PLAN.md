@@ -263,3 +263,18 @@ kernel), §2 (Bayesian naming), §5 (external moral benchmark).
 3. Do we need a **second** phone to rehearse multi-participant DAO in F3, or
    is the PC console sufficient as a second voice? Default: PC is enough for
    v1; second phone is a Phase-2 extension.
+
+## 12. Readiness gate — first smartphone integration (F1)
+
+**Purpose:** Align operators and developers on what is **ready now** vs what **waits** on the first physical handset session on a private LAN.
+
+| Layer | Status | Notes |
+|-------|--------|--------|
+| PC kernel + chat server | Ready | Run F0 baseline (`scripts/run_empirical_pilot.py`, golden traces per §4 F0). |
+| Phone relay PWA (`GET /phone`) | Ready behind flag | Set `KERNEL_FIELD_CONTROL=1` and a non-empty `KERNEL_FIELD_PAIRING_TOKEN` ([ADR 0017](../adr/0017-smartphone-sensor-relay-bridge.md), [`docs/ADR_0017_IMPLEMENTATION.md`](../ADR_0017_IMPLEMENTATION.md)). |
+| `/control/*` pairing | Ready | Same flag; LAN-only unless `KERNEL_FIELD_ALLOW_WAN=1` (lab only). |
+| Real-world F1 session | **Waiting** | Requires scheduling: phone + PC on same Wi-Fi, stable bind address, operator follows [`docs/REPOSITORY_PERMISSIONS_CHECKLIST.md`](../REPOSITORY_PERMISSIONS_CHECKLIST.md) field-test steps. |
+| Sensor APIs on handset | Variable | Browsers may withhold motion/mic on **non-HTTPS LAN IPs**; UI degrades to null fields (ADR 0017 consequences). Not a kernel bug. |
+| Thread-pool rate limit | Pending | Token-bucket in `RealTimeBridge` not yet landed (§11 Q2); `KERNEL_FIELD_SENSOR_HZ` documents intent. |
+
+**Cursor team posture:** Do **not** block on charm/presentation-layer work for F1; prioritize transport, pairing, and trace capture. First integration milestone is **F1 LAN smoke** with a real phone, then F2 live sensors.

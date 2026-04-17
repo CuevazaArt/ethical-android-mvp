@@ -55,6 +55,7 @@
 - [`PROPOSAL_LLM_TOUCHPOINT_DEGRADATION_MATRIX.md`](PROPOSAL_LLM_TOUCHPOINT_DEGRADATION_MATRIX.md)  
 - [`PROPOSAL_LLM_VERTICAL_ROADMAP.md`](PROPOSAL_LLM_VERTICAL_ROADMAP.md) (phased operator + observability + tests)  
 - [`CURSOR_TEAM_MISSION_SENSORS_PERCEPTION.md`](CURSOR_TEAM_MISSION_SENSORS_PERCEPTION.md) §9 (model backlog pointer)  
+- [`PROPOSAL_MULTIMODAL_CHARM_ENGINE_DIGEST.md`](PROPOSAL_MULTIMODAL_CHARM_ENGINE_DIGEST.md) (presentation-tier conversational UX vs ethics core; kernel seam map)  
 - [`LLM_STACK_OLLAMA_VS_HF.md`](LLM_STACK_OLLAMA_VS_HF.md)  
 - [`CORE_DECISION_CHAIN.md`](CORE_DECISION_CHAIN.md) (ethics vs LLM boundary)
 
@@ -78,3 +79,5 @@
 - **2026-04-17 (master-Cursor):** Issue **#4** — extended [`tests/test_core_packaging_boundary_docs.py`](../../tests/test_core_packaging_boundary_docs.py) (`pyproject.toml` extras + `Documentation` URL); ADR 0001 / [`CORE_DECISION_CHAIN.md`](CORE_DECISION_CHAIN.md) traceability.
 - **2026-04-17 (master-Cursor):** Issue **#7** — [`KERNEL_ENV_POLICY.md`](KERNEL_ENV_POLICY.md) implementation status; [`test_warn_logs_violations_without_raise`](../../tests/test_env_policy.py); P1 checklist in [`PLAN_IMMEDIATE_TWO_WEEKS.md`](PLAN_IMMEDIATE_TWO_WEEKS.md); next milestone **P2** polish in [`CURSOR_TEAM_MISSION_SENSORS_PERCEPTION.md`](CURSOR_TEAM_MISSION_SENSORS_PERCEPTION.md) §9 (G-04 closed).
 - **2026-04-17 (master-Cursor):** **P2** — [`COMPOSE_PRODISH.md`](../../docs/deploy/COMPOSE_PRODISH.md) health/metrics consistency row; [`REPOSITORY_LAYOUT.md`](../../docs/REPOSITORY_LAYOUT.md) landing caveat; [`KERNEL_ENV_POLICY.md`](KERNEL_ENV_POLICY.md) §4 deprecation; [`test_deprecation_roadmap_has_no_extra_keys`](../../tests/test_deprecation_warnings.py).
+- **2026-04-17 (master-Cursor):** Documentation — [`PROPOSAL_MULTIMODAL_CHARM_ENGINE_DIGEST.md`](PROPOSAL_MULTIMODAL_CHARM_ENGINE_DIGEST.md) cross-linked from [`CURSOR_TEAM_MISSION_SENSORS_PERCEPTION.md`](CURSOR_TEAM_MISSION_SENSORS_PERCEPTION.md) §6/§9 and this file §4 (presentation-tier planning; does not change gap register G-01…G-11).
+- **2026-04-17 (master-Cursor):** Field test — [`PROPOSAL_FIELD_TEST_PLAN.md`](PROPOSAL_FIELD_TEST_PLAN.md) §12 readiness gate (F1 smartphone LAN); [ADR 0017](../adr/0017-smartphone-sensor-relay-bridge.md) checklist reconciled; `.env.example` `KERNEL_FIELD_*` block.
