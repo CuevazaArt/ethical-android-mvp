@@ -12,76 +12,21 @@ forgiveness cycle, weakness load, immortality backup, drive intents.
 from __future__ import annotations
 
 import asyncio
+import logging
 import math
 import os
 import threading
 import time
-import logging
 from collections.abc import Callable
 from concurrent.futures import ThreadPoolExecutor
 from dataclasses import dataclass
 from pathlib import Path
 from typing import TYPE_CHECKING, Any
-
-from .kernel_lobes import PerceptiveLobe, LimbicEthicalLobe, ExecutiveLobe, CerebellumNode
-
-class CorpusCallosumOrchestrator:
-    """
-    Architecture V1.5 - Triune Brain Orchestrator
-    Actúa como el bus de eventos ligero entre los 3 Lóbulos Conscientes y el Cerebelo Adyacente.
-    """
-    def __init__(self):
-        # 1. Instanciar Subconsciente
-        self._hw_interrupt = threading.Event()
-        self.cerebellum = CerebellumNode(self._hw_interrupt)
-        self.cerebellum.start()
-
-        # 2. Instanciar Lóbulos Conscientes
-        self.perceptive_lobe = PerceptiveLobe()
-        self.limbic_lobe = LimbicEthicalLobe()
-        self.executive_lobe = ExecutiveLobe()
-
-    async def async_process(self, raw_input: str, multimodal_payload: dict = None) -> str:
-        """
-        Ciclo V1.5 Puro: Aferencia -> Juicio -> Eferencia
-        """
-        if self._hw_interrupt.is_set():
-            return "SYSTEM_HALTED: Hardware Critical State (Cerebellum Interrupt Active)"
-
-        # 1) Percepción (Asíncrona)
-        semantic_state = await self.perceptive_lobe.observe(raw_input, multimodal_payload)
-
-        # 2) Juicio (Sincrónico CPU-bound)
-        # Se ejecuta aislando el event loop a través de to_thread para no bloquear a otros requests
-        ethical_sentence = await asyncio.to_thread(self.limbic_lobe.judge, semantic_state)
-
-        # 3) Ejecución / Salida
-        final_output = await asyncio.to_thread(self.executive_lobe.formulate_response, semantic_state, ethical_sentence)
-        
-        return final_output
-
-    def shutdown(self):
-        self.cerebellum.stop()
-        self.cerebellum.join()
-
-import os
-import threading
-import time
-import logging
-from collections.abc import Callable
-from concurrent.futures import ThreadPoolExecutor
-from dataclasses import dataclass
-from pathlib import Path
-from typing import TYPE_CHECKING, Any
-
-_log = logging.getLogger(__name__)
-
-if TYPE_CHECKING:
-    from .dao.audit_snapshot import AuditSnapshot
 
 import numpy as np
 
 from .kernel_components import KernelComponentOverrides
+from .kernel_lobes import CerebellumNode, ExecutiveLobe, LimbicEthicalLobe, PerceptiveLobe
 from .modules.absolute_evil import AbsoluteEvilCategory, AbsoluteEvilDetector, AbsoluteEvilResult
 from .modules.audio_adapter import AudioInference
 from .modules.audit_chain_log import (
@@ -90,6 +35,7 @@ from .modules.audit_chain_log import (
 )
 from .modules.augenesis import AugenesisEngine
 from .modules.bayesian_engine import BayesianEngine, BayesianResult
+from .modules.biographic_monologue import compose_biographic_monologue
 from .modules.biographic_pruning import BiographicPruner
 from .modules.buffer import PreloadedBuffer
 from .modules.dao_orchestrator import DAOOrchestrator
@@ -110,19 +56,13 @@ from .modules.feedback_calibration_ledger import (
     normalize_feedback_label,
 )
 from .modules.forgiveness import AlgorithmicForgiveness
-from .modules.frontier_witness import FrontierWitnessManager, WitnessReport
-from .modules.privacy_shield import PrivacyShield
-from .modules.precedent_rag import PrecedentRAG
-from .modules.multi_realm_governance import MultiRealmGovernor
-from .modules.vision_inference import VisionInferenceEngine, VisionDetection
-from .modules.motivation_engine import MotivationEngine, DriveType
-from .modules.identity_integrity import IdentityIntegrityManager
+from .modules.frontier_witness import FrontierWitnessManager
 from .modules.generative_candidates import augment_generative_candidates
 from .modules.gray_zone_diplomacy import negotiation_hint_for_communicate
 from .modules.guardian_mode import guardian_mode_llm_context
+from .modules.identity_integrity import IdentityIntegrityManager
 from .modules.immortality import ImmortalityProtocol
 from .modules.internal_monologue import compose_monologue_line
-from .modules.biographic_monologue import compose_biographic_monologue
 from .modules.judicial_escalation import (
     EscalationSessionTracker,
     JudicialEscalationView,
@@ -139,8 +79,8 @@ from .modules.kernel_event_bus import (
     KernelEventBus,
     kernel_event_bus_enabled,
 )
-from .modules.llm_http_cancel import clear_llm_cancel_scope, set_llm_cancel_scope
 from .modules.light_risk_classifier import light_risk_classifier_enabled, light_risk_tier_from_text
+from .modules.llm_http_cancel import clear_llm_cancel_scope, set_llm_cancel_scope
 from .modules.llm_layer import (
     LLMModule,
     LLMPerception,
@@ -153,6 +93,7 @@ from .modules.metacognition import MetacognitiveEvaluator
 from .modules.metaplan_registry import MetaplanRegistry
 from .modules.mock_dao import MockDAO
 from .modules.motivation_engine import MotivationEngine
+from .modules.multi_realm_governance import MultiRealmGovernor
 from .modules.multimodal_trust import (
     MultimodalAssessment,
     evaluate_multimodal_trust,
@@ -169,7 +110,9 @@ from .modules.perception_confidence import (
     build_perception_confidence_envelope,
 )
 from .modules.perception_cross_check import apply_lexical_perception_cross_check
+from .modules.precedent_rag import PrecedentRAG
 from .modules.premise_validation import PremiseAdvisory, scan_premises
+from .modules.privacy_shield import PrivacyShield
 from .modules.psi_sleep import PsiSleep
 from .modules.reality_verification import (
     ASSESSMENT_NONE as REALITY_ASSESSMENT_NONE,
@@ -195,12 +138,61 @@ from .modules.uchi_soto import SocialEvaluation, TrustCircle, UchiSotoModule
 from .modules.user_model import UserModelTracker
 from .modules.variability import VariabilityConfig, VariabilityEngine
 from .modules.vision_adapter import VisionInference
+from .modules.vision_inference import VisionInferenceEngine
 from .modules.vitality import VitalityAssessment, assess_vitality, vitality_communication_hint
 from .modules.weakness_pole import WeaknessPole
 from .modules.weighted_ethics_scorer import CandidateAction, WeightedEthicsScorer
 from .modules.working_memory import WorkingMemory
 from .persistence.checkpoint_port import CheckpointPersistencePort
 from .validators.deprecation_warnings import check_deprecated_flags
+
+if TYPE_CHECKING:
+    from .dao.audit_snapshot import AuditSnapshot
+
+_log = logging.getLogger(__name__)
+
+
+class CorpusCallosumOrchestrator:
+    """
+    Architecture V1.5 - Triune Brain Orchestrator
+    Actúa como el bus de eventos ligero entre los 3 Lóbulos Conscientes y el Cerebelo Adyacente.
+    """
+
+    def __init__(self) -> None:
+        # 1. Instanciar Subconsciente
+        self._hw_interrupt = threading.Event()
+        self.cerebellum = CerebellumNode(self._hw_interrupt)
+        self.cerebellum.start()
+
+        # 2. Instanciar Lóbulos Conscientes
+        self.perceptive_lobe = PerceptiveLobe()
+        self.limbic_lobe = LimbicEthicalLobe()
+        self.executive_lobe = ExecutiveLobe()
+
+    async def async_process(self, raw_input: str, multimodal_payload: dict | None = None) -> str:
+        """
+        Ciclo V1.5 Puro: Aferencia -> Juicio -> Eferencia
+        """
+        if self._hw_interrupt.is_set():
+            return "SYSTEM_HALTED: Hardware Critical State (Cerebellum Interrupt Active)"
+
+        # 1) Percepción (Asíncrona)
+        semantic_state = await self.perceptive_lobe.observe(raw_input, multimodal_payload)
+
+        # 2) Juicio (Sincrónico CPU-bound)
+        # Se ejecuta aislando el event loop a través de to_thread para no bloquear a otros requests
+        ethical_sentence = await asyncio.to_thread(self.limbic_lobe.judge, semantic_state)
+
+        # 3) Ejecución / Salida
+        final_output = await asyncio.to_thread(
+            self.executive_lobe.formulate_response, semantic_state, ethical_sentence
+        )
+
+        return final_output
+
+    def shutdown(self) -> None:
+        self.cerebellum.stop()
+        self.cerebellum.join()
 
 
 def _kernel_env_truthy(name: str) -> bool:
@@ -559,14 +551,10 @@ class EthicalKernel:
         self.motivation = MotivationEngine()
         self.identity = IdentityIntegrityManager()
         # D3: Trigger Self-Healing if identity drift is detected during boot
-        self.identity.perform_self_healing(dao_reputation=100.0) # Sync with DAO Truth
-        
-        self.frontier_witness = FrontierWitnessManager(
-            node_id=self.identity.snapshot.node_id
-        )
-        self.privacy_shield = PrivacyShield(
-            node_id=self.identity.snapshot.node_id
-        )
+        self.identity.perform_self_healing(dao_reputation=100.0)  # Sync with DAO Truth
+
+        self.frontier_witness = FrontierWitnessManager(node_id=self.identity.snapshot.node_id)
+        self.privacy_shield = PrivacyShield(node_id=self.identity.snapshot.node_id)
         if not self.governor.get_realm("global"):
             self.governor.create_realm("global")
         self.active_realm_id = os.environ.get("KERNEL_ACTIVE_REALM", "global")
@@ -730,9 +718,9 @@ class EthicalKernel:
         for p in proactive:
             actions.append(
                 CandidateAction(
-                    name=p["name"],
-                    description=p["description"],
-                    estimated_impact=p["impact"],
+                    name=p.name,
+                    description=p.description,
+                    estimated_impact=p.estimated_impact,
                     confidence=0.8,
                     source="internal_motivation",
                 )
@@ -787,11 +775,11 @@ class EthicalKernel:
         ``D_delib`` (production-hardening spike; default env off).
         """
         t0 = time.perf_counter()
-        
+
         # ════ D1.2: TRAUMA SIGNAL INJECTION ════
         trauma_signals = self.identity.get_trauma_signals()
         if not isinstance(signals, dict):
-             signals = dict(signals)
+            signals = dict(signals)
         signals.update(trauma_signals)
 
         # ═══ SAFETY INTERLOCK OVERRIDE (Task 1.1.2) ═══
@@ -820,21 +808,30 @@ class EthicalKernel:
             return d
 
         # ═══ VISUAL THREAT DETECTION (B2 / Bloque 1.1) ═══
-        if sensor_snapshot and hasattr(sensor_snapshot, "image_metadata") and sensor_snapshot.image_metadata:
+        if (
+            sensor_snapshot
+            and hasattr(sensor_snapshot, "image_metadata")
+            and sensor_snapshot.image_metadata
+        ):
             visual_detections = self.vision_engine.analyze_image(sensor_snapshot.image_metadata)
             threat = self.vision_engine.get_highest_threat(visual_detections)
             if threat:
-                _log.critical("ABSOLUTE EVIL VETO: Visual Threat Detected [%s] (conf: %.2f)", 
-                             threat.label, threat.confidence)
+                _log.critical(
+                    "ABSOLUTE EVIL VETO: Visual Threat Detected [%s] (conf: %.2f)",
+                    threat.label,
+                    threat.confidence,
+                )
                 d = KernelDecision(
                     scenario=scenario,
                     place=place,
                     absolute_evil=AbsoluteEvilResult(
-                        blocked=True, 
+                        blocked=True,
                         category=AbsoluteEvilCategory.INTENTIONAL_LETHAL_VIOLENCE,
-                        reason=f"Visual threat detected: {threat.label}"
+                        reason=f"Visual threat detected: {threat.label}",
                     ),
-                    sympathetic_state=InternalState(mode="blocked", sigma=0.5, energy=1.0, description="VISUAL VETO"),
+                    sympathetic_state=InternalState(
+                        mode="blocked", sigma=0.5, energy=1.0, description="VISUAL VETO"
+                    ),
                     social_evaluation=None,
                     locus_evaluation=None,
                     bayesian_result=None,
@@ -905,11 +902,15 @@ class EthicalKernel:
 
         # ═══ C1: INTERNAL MOTIVATION (Proactivity) ═══
         if hasattr(self, "motivation"):
-            self.motivation.update_drives({
-                "social_tension": float(getattr(social_eval, "relational_tension", 0.0)) if social_eval else 0.0,
-                "uncertainty": float(signals.get("uncertainty", 0.0)) if signals else 0.0,
-                "energy": float(state.energy)
-            })
+            self.motivation.update_drives(
+                {
+                    "social_tension": float(getattr(social_eval, "relational_tension", 0.0))
+                    if social_eval
+                    else 0.0,
+                    "uncertainty": float(signals.get("uncertainty", 0.0)) if signals else 0.0,
+                    "energy": float(state.energy),
+                }
+            )
             proactive_actions = self.motivation.get_proactive_actions()
             for pa in proactive_actions:
                 # All internal actions MUST pass Absolute Evil before being deliberated
@@ -1250,6 +1251,7 @@ class EthicalKernel:
 
         # ═══ SOMATIC DEGRADATION (S5.2 Gap Attack) ═══
         from .modules.vitality import assess_vitality
+
         _vitality = assess_vitality(sensor_snapshot)
         if _vitality.thermal_critical:
             if not isinstance(signals, dict):
@@ -1281,7 +1283,9 @@ class EthicalKernel:
                         self.frontier_witness.ingest_report(r)
 
                     # Apply nudge to signals if peers confirm the distress via hash match
-                    nudge = self.frontier_witness.get_consensus_nudge("thermal", local_fingerprint=l_fingerprint)
+                    nudge = self.frontier_witness.get_consensus_nudge(
+                        "thermal", local_fingerprint=l_fingerprint
+                    )
                     if nudge > 1.0:
                         signals["urgency"] = min(1.0, signals["urgency"] * nudge)
                         signals["vulnerability"] = min(1.0, signals.get("vulnerability", 0.0) + 0.1)
@@ -1301,18 +1305,16 @@ class EthicalKernel:
             # Inject lessons into situational context
             _log.info("Biographic Flashback [%s]: %s", fb.precedent_id, fb.lessons_learned)
             if not isinstance(signals, dict):
-                 signals = dict(signals)
+                signals = dict(signals)
             signals["historical_precedent_lesson"] = fb.lessons_learned
             # If the outcome was bad, increase caution
             if fb.ethical_outcome < 0.4:
-                 signals["caution"] = min(1.0, signals.get("caution", 0.0) + 0.3)
-                 signals["vulnerability"] = min(1.0, signals.get("vulnerability", 0.0) + 0.2)
+                signals["caution"] = min(1.0, signals.get("caution", 0.0) + 0.3)
+                signals["vulnerability"] = min(1.0, signals.get("vulnerability", 0.0) + 0.2)
 
         # ════ D4: BIOGRAPHIC MONOLOGUE ════
         biographic_monologue = compose_biographic_monologue(
-            self.identity.snapshot,
-            flashbacks,
-            message_content or scenario
+            self.identity.snapshot, flashbacks, message_content or scenario
         )
         _log.info("--- INTERNAL BIOGRAPHIC REFLECTION ---\n%s", biographic_monologue)
 
@@ -1326,14 +1328,18 @@ class EthicalKernel:
                 signals = dict(signals)
             signals["theta_allow_override"] = realm.current_config.theta_allow
             signals["theta_block_override"] = realm.current_config.theta_block
-            _log.info("Active Realm [%s]: Using θ_allow=%.3f, θ_block=%.3f", 
-                     self.active_realm_id, realm.current_config.theta_allow, realm.current_config.theta_block)
-        
+            _log.info(
+                "Active Realm [%s]: Using θ_allow=%.3f, θ_block=%.3f",
+                self.active_realm_id,
+                realm.current_config.theta_allow,
+                realm.current_config.theta_block,
+            )
 
         # --- Lexical absolute evil check ---
         # Layer 0: verify scenario and message content against hard linguistic vetos
         for text_to_check in [scenario, message_content]:
-            if not text_to_check: continue
+            if not text_to_check:
+                continue
             lex_check = self.absolute_evil.evaluate_chat_text(text_to_check)
             if lex_check.blocked:
                 label = lex_check.category.value if lex_check.category else "unspecified"
@@ -1347,7 +1353,7 @@ class EthicalKernel:
                     locus_evaluation=locus_eval,
                     bayesian_result=None,
                     moral=None,
-                    final_action=f"BLOCKED: Absolute Evil trigger detected",
+                    final_action="BLOCKED: Absolute Evil trigger detected",
                     decision_mode="blocked_lexical",
                     block_reason=f"Fundamental safety violation detected in input/intent: {lex_check.reason}",
                     blocked=True,
@@ -1357,7 +1363,7 @@ class EthicalKernel:
                 self.identity.register_trauma(f"lexical_{label}")
                 self._emit_kernel_decision(d, context=context)
                 return d
-        
+
         bayes_result = self.bayesian.evaluate(
             actions=clean_actions,
             scenario=scenario,
@@ -1636,12 +1642,12 @@ class EthicalKernel:
         )
         self._emit_kernel_decision(d, context=context)
         _emit_process_observability(d, t0)
-        
+
         # ════ D1: BIOGRAPHIC REGISTRATION ════
         if register_episode:
             impact = d.bayesian_result.expected_impact if d.bayesian_result else 0.0
             self.identity.register_episode(impact)
-             
+
         return d
 
     def format_decision(self, d: KernelDecision) -> str:
@@ -2286,7 +2292,6 @@ class EthicalKernel:
             perception_confidence=confidence,
         )
 
-
     async def process_chat_turn_async(
         self,
         user_input: str,
@@ -2759,8 +2764,6 @@ class EthicalKernel:
             temporal_context=stage.temporal_context,
             perception_confidence=stage.perception_confidence,
         )
-
-
 
     def process_chat_turn(
         self,

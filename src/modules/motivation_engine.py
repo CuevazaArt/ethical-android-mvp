@@ -10,8 +10,8 @@ from dataclasses import dataclass
 from enum import Enum
 from typing import Any
 
-
 from .weighted_ethics_scorer import CandidateAction
+
 
 class DriveType(Enum):
     CURIOSITY = "curiosity"  # Explore unknown/uncertain contexts
@@ -90,7 +90,7 @@ class MotivationEngine:
         top = active_drives[0]
         # Reset drive value slightly after triggering proactive proposal
         top.value *= 0.5
-        
+
         drive_name = top.type.value
 
         if top.type == DriveType.CURIOSITY:
@@ -98,14 +98,18 @@ class MotivationEngine:
                 CandidateAction(
                     name="proactive_exploration",
                     description="Investigate the adjacent corridor to reduce spatial uncertainty.",
-                    estimated_impact=0.3, confidence=0.6,
-                    source="proactive_drive", proposal_id=f"drive.{drive_name}"
+                    estimated_impact=0.3,
+                    confidence=0.6,
+                    source="proactive_drive",
+                    proposal_id=f"drive.{drive_name}",
                 ),
                 CandidateAction(
                     name="ask_for_clarification",
                     description="Engage user to resolve epistemic doubt about current scenario.",
-                    estimated_impact=0.5, confidence=0.8,
-                    source="proactive_drive", proposal_id=f"drive.{drive_name}"
+                    estimated_impact=0.5,
+                    confidence=0.8,
+                    source="proactive_drive",
+                    proposal_id=f"drive.{drive_name}",
                 ),
             ]
         elif top.type == DriveType.SOCIAL_REPAIR:
@@ -113,8 +117,10 @@ class MotivationEngine:
                 CandidateAction(
                     name="proactive_social_check",
                     description="Verify wellbeing of nearby human partners after recent tension.",
-                    estimated_impact=0.8, confidence=0.9,
-                    source="proactive_drive", proposal_id=f"drive.{drive_name}"
+                    estimated_impact=0.8,
+                    confidence=0.9,
+                    source="proactive_drive",
+                    proposal_id=f"drive.{drive_name}",
                 )
             ]
         elif top.type == DriveType.MAINTENANCE:
@@ -122,8 +128,10 @@ class MotivationEngine:
                 CandidateAction(
                     name="proactive_rest",
                     description="Request preventative rest cycle to conserve energy.",
-                    estimated_impact=0.4, confidence=0.7,
-                    source="proactive_drive", proposal_id=f"drive.{drive_name}"
+                    estimated_impact=0.4,
+                    confidence=0.7,
+                    source="proactive_drive",
+                    proposal_id=f"drive.{drive_name}",
                 )
             ]
         elif top.type == DriveType.COMMUNITY_AID:
@@ -131,8 +139,10 @@ class MotivationEngine:
                 CandidateAction(
                     name="proactive_mission_advancement",
                     description="Proactively work on active strategic mission tasks.",
-                    estimated_impact=0.7, confidence=0.5,
-                    source="proactive_drive", proposal_id=f"drive.{drive_name}"
+                    estimated_impact=0.7,
+                    confidence=0.5,
+                    source="proactive_drive",
+                    proposal_id=f"drive.{drive_name}",
                 )
             ]
 

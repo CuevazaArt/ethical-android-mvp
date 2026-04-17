@@ -70,6 +70,6 @@ def test_run_weight_sweep_smoke():
         base_seed=7,
         max_total_runs=10_000,
     )
-    assert len(runs) == 19 * 9
+    assert len(runs) == 21 * 9
     assert meta["summary"]["weight_configs"] == 9
     assert "agreement_rate" in meta["summary"]

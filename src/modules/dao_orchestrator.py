@@ -5,10 +5,10 @@ Decouples the Ethical Kernel from the specific DAO implementation (on-chain or m
 Handles evidence anchoring and ethical appeals.
 """
 
-import logging
-import time
-import sqlite3
 import json
+import logging
+import sqlite3
+import time
 from typing import Any
 
 from .evidence_safe import EvidenceSafe
@@ -34,7 +34,7 @@ class DAOOrchestrator:
     def _init_db(self):
         """Initializes the persistent audit ledger."""
         with sqlite3.connect(self.db_path) as conn:
-            conn.execute('''
+            conn.execute("""
                 CREATE TABLE IF NOT EXISTS audit_logs (
                     id INTEGER PRIMARY KEY AUTOINCREMENT,
                     type TEXT,
@@ -42,7 +42,7 @@ class DAOOrchestrator:
                     episode_id TEXT,
                     timestamp REAL
                 )
-            ''')
+            """)
 
     def anchor_evidence(self, payload: dict[str, Any]) -> str:
         """
@@ -51,18 +51,24 @@ class DAOOrchestrator:
         """
         packet = self.safe.prepare_anchoring_packet(payload)
         evidence_hash = packet["evidence_hash"]
+        blob_b64 = packet.get("evidence_blob_b64") or ""
+        content = f"Anchored Hash {evidence_hash}; Blob size {len(blob_b64)} bytes"
+
+        self.local_dao.register_audit("anchoring", content, episode_id=payload.get("episode_id"))
 
         # Persistent recording
         with sqlite3.connect(self.db_path) as conn:
             conn.execute(
                 "INSERT INTO audit_logs (type, content, episode_id, timestamp) VALUES (?, ?, ?, ?)",
-                ("anchoring", f"Anchored Hash {evidence_hash}", payload.get("episode_id"), time.time())
+                ("anchoring", content, payload.get("episode_id"), time.time()),
             )
 
         _log.info("Evidence anchored securely. Hash: %s", evidence_hash)
         return evidence_hash
 
-    def register_complex_audit(self, event_type: str, details: dict[str, Any], episode_id: str | None = None):
+    def register_complex_audit(
+        self, event_type: str, details: dict[str, Any], episode_id: str | None = None
+    ):
         """
         Bloque 1.1: Persists structured audit events from high-level frameworks (Claude RLHF/Audit).
         """
@@ -70,24 +76,24 @@ class DAOOrchestrator:
         with sqlite3.connect(self.db_path) as conn:
             conn.execute(
                 "INSERT INTO audit_logs (type, content, episode_id, timestamp) VALUES (?, ?, ?, ?)",
-                (event_type, details_json, episode_id, time.time())
+                (event_type, details_json, episode_id, time.time()),
             )
         _log.debug("Complex audit registered: %s", event_type)
 
     def issue_restorative_reparation(self, case_id: str, recipient: str, amount: float) -> str:
         """
-        Bloque 7.1: Simulates an EthosToken transfer from the kernel treasury to 
+        Bloque 7.1: Simulates an EthosToken transfer from the kernel treasury to
         compensate for an ethical failure. Persistent version.
         """
         txn_hash = f"0x_reparation_{int(time.time())}_{case_id[:4]}"
         msg = f"Restorative reparation of {amount} EthosTokens issued to {recipient} for case {case_id}."
-        
+
         with sqlite3.connect(self.db_path) as conn:
             conn.execute(
                 "INSERT INTO audit_logs (type, content, episode_id, timestamp) VALUES (?, ?, ?, ?)",
-                ("reparation_payout", msg, case_id, time.time())
+                ("reparation_payout", msg, case_id, time.time()),
             )
-            
+
         _log.info(msg)
         return txn_hash
 
