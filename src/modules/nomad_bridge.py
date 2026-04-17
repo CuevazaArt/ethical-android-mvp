@@ -72,9 +72,15 @@ class NomadBridge:
             return dict(self._latest_telemetry)
 
     def public_queue_stats(self) -> dict[str, Any]:
-        """JSON-safe queue depths for operators (GET /metrics hooks, health dashboards)."""
+        """JSON-safe queue depths for operators (GET /metrics hooks, health dashboards).
+
+        Includes **key names only** from the last ``telemetry`` payload (no values), for S.2.1
+        vitality merge observability without leaking raw sensor readings in logs.
+        """
+        peek = self.peek_latest_telemetry()
+        tel_keys = sorted(peek.keys()) if peek else []
         return {
-            "schema": "nomad_bridge_queue_stats_v1",
+            "schema": "nomad_bridge_queue_stats_v2",
             "vision_queued": self.vision_queue.qsize(),
             "vision_max": self.vision_queue.maxsize,
             "audio_queued": self.audio_queue.qsize(),
@@ -83,6 +89,8 @@ class NomadBridge:
             "telemetry_max": self.telemetry_queue.maxsize,
             "charm_feedback_queued": self.charm_feedback_queue.qsize(),
             "charm_feedback_max": self.charm_feedback_queue.maxsize,
+            "latest_telemetry_present": bool(peek),
+            "latest_telemetry_keys": tel_keys,
         }
 
     async def _recv_loop(self, ws: WebSocket):

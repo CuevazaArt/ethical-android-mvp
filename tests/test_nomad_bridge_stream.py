@@ -108,9 +108,27 @@ async def test_nomad_vision_frame_routing(nomad_client):
 
 def test_nomad_public_queue_stats_shape(nomad_client):
     stats = get_nomad_bridge().public_queue_stats()
-    assert stats["schema"] == "nomad_bridge_queue_stats_v1"
+    assert stats["schema"] == "nomad_bridge_queue_stats_v2"
     assert stats["vision_max"] == 5
     assert "vision_queued" in stats
+    assert stats["latest_telemetry_present"] is False
+    assert stats["latest_telemetry_keys"] == []
+
+
+@pytest.mark.asyncio
+async def test_nomad_public_queue_stats_telemetry_keys(nomad_client):
+    bridge = get_nomad_bridge()
+    with nomad_client.websocket_connect("/ws/nomad") as websocket:
+        websocket.send_json(
+            {
+                "type": "telemetry",
+                "payload": {"battery": 0.42, "core_temperature_c": 41.0, "noise": "x"},
+            }
+        )
+        await asyncio.sleep(0.15)
+    st = bridge.public_queue_stats()
+    assert st["latest_telemetry_present"] is True
+    assert set(st["latest_telemetry_keys"]) == {"battery", "core_temperature_c", "noise"}
 
 def test_nomad_charm_feedback(nomad_client):
     bridge = get_nomad_bridge()
