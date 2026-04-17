@@ -1628,7 +1628,7 @@ class EthicalKernel:
         
         # ════ D1: BIOGRAPHIC REGISTRATION ════
         if register_episode:
-             impact = d.bayesian_result.weighted_impact if d.bayesian_result else 0.0
+             impact = d.bayesian_result.expected_impact if d.bayesian_result else 0.0
              self.identity.register_episode(impact)
              
         return d
