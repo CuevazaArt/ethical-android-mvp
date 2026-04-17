@@ -109,11 +109,13 @@ This file is the **repo-local execution backlog**. **GitHub milestones, assignee
 
 ## P2 — Polish (spillover acceptable)
 
+**Status (April 2026):** Baseline P2 docs/tests tightened — Compose verification includes `/health` `metrics_enabled` vs `/metrics` codes; [`REPOSITORY_LAYOUT.md`](../REPOSITORY_LAYOUT.md) states no in-repo `landing/` + static surfaces under `src/static/`; [KERNEL_ENV_POLICY.md](KERNEL_ENV_POLICY.md) §4 matches populated `DEPRECATION_ROADMAP` / `DEPRECATED_FLAGS` + bidirectional sync test.
+
 | Item | Pointer |
 |------|---------|
-| **Prometheus / structured logging** | [ADR 0008](../adr/0008-runtime-observability-prometheus-and-logs.md), [`src/observability/`](../../src/observability/); **verification table** in [`docs/deploy/COMPOSE_PRODISH.md`](../deploy/COMPOSE_PRODISH.md) (`/health`, `/metrics` 200 vs 404 when disabled, compose `config` = CI) |
-| **End-to-end tests (kernel ↔ landing)** | Landing is **Next.js** — E2E is **manual or Playwright in `landing/`** (not kernel pytest). Add a **smoke checklist** in [REPOSITORY_LAYOUT.md](../REPOSITORY_LAYOUT.md) or landing README if missing. |
-| **Deprecation roadmap for flags** | [`DEPRECATION_ROADMAP`](../../src/validators/env_policy.py) + [KERNEL_ENV_POLICY.md](KERNEL_ENV_POLICY.md); first scheduled deprecation needs CHANGELOG + version bump policy |
+| **Prometheus / structured logging** | [ADR 0008](../adr/0008-runtime-observability-prometheus-and-logs.md), [`src/observability/`](../../src/observability/); **verification table** in [`docs/deploy/COMPOSE_PRODISH.md`](../deploy/COMPOSE_PRODISH.md) (`/health`, `/health.observability.metrics_enabled` vs `/metrics` 200/404, compose `config` = CI) |
+| **End-to-end tests (kernel ↔ landing)** | No **`landing/`** subtree here — E2E Playwright stays in an external frontend repo if used; kernel manual smoke in [REPOSITORY_LAYOUT.md](../REPOSITORY_LAYOUT.md). |
+| **Deprecation roadmap for flags** | [`DEPRECATION_ROADMAP`](../../src/validators/env_policy.py) ↔ [`DEPRECATED_FLAGS`](../../src/validators/deprecation_warnings.py) — same keys; [KERNEL_ENV_POLICY.md](KERNEL_ENV_POLICY.md) §4; removal = CHANGELOG + version string on flag (semver release optional while `pyproject` is `0.0.0`). |
 
 ---
 

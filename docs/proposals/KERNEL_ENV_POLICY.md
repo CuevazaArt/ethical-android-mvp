@@ -102,8 +102,9 @@ These are **not** forbidden by code, but **not CI-guaranteed** unless a profile 
 
 ## 4. Deprecation posture (roadmap)
 
-- **Today:** no `KERNEL_*` names are removed; README remains the exhaustive list for edge flags.
-- **`DEPRECATION_ROADMAP`** in [`src/validators/env_policy.py`](../../src/validators/env_policy.py) lists **planned** removals/renames (empty until a release schedules them). When an entry appears, expect a **CHANGELOG** entry and a **transition window** (typically one minor version).
+- **Today:** deprecated `KERNEL_*` names remain **functional** during the transition window; [`check_deprecated_flags()`](../../src/validators/deprecation_warnings.py) emits `DeprecationWarning` at kernel startup when a deprecated flag is set (not a hard block).
+- **`DEPRECATION_ROADMAP`** in [`src/validators/env_policy.py`](../../src/validators/env_policy.py) — short **migration hint** per flag (human-readable). **`DEPRECATED_FLAGS`** in [`deprecation_warnings.py`](../../src/validators/deprecation_warnings.py) — **removal_version** + longer replacement text. **Keys must match** (regression: [`tests/test_deprecation_warnings.py`](../../tests/test_deprecation_warnings.py)).
+- **When removing a flag from code:** **CHANGELOG.md** entry + migration note; align with the **removal_version** string already on the flag (research track may stay at **`0.0.0`** in [`pyproject.toml`](../../pyproject.toml) until a semver release is cut — removals are still documented in CHANGELOG).
 - **v0.2+ (placeholder policy):** prefer **`ETHOS_RUNTIME_PROFILE`** + documented bundles over ad-hoc long `KERNEL_*` lists; redundant toggles may be **aliased** before removal.
 - **New features:** add **tests** + a **profile slice** if the feature is demo-critical.
 

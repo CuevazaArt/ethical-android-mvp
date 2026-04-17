@@ -24,6 +24,8 @@ Contributors who only ship kernel features **do not** need Node.js, npm, or Type
 
 Full **browser E2E** (e.g. Playwright against a live `chat_server`) is **not** part of the default CI matrix today. Adding true E2E is a follow-up (separate job, optional secrets, longer runtime).
 
+This repository snapshot does **not** include a separate **`landing/`** Next.js app; static operator surfaces under [`src/static/`](../src/static/) (e.g. phone relay) are served by the Python ASGI app when enabled. If your team keeps a **standalone** frontend elsewhere, run its Playwright suite against a **staging** `chat_server` URL; track that harness in the frontend repo, not in kernel `pytest`.
+
 **Manual smoke checklist (kernel + HTTP, no browser required):**
 
 1. Install dev deps and run the suite (or `python scripts/eval/run_cursor_integration_gate.py` for the cross-team subset).

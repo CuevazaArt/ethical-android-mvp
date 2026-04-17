@@ -232,7 +232,7 @@ When perception P0 items are stable, **prioritize cross-cutting kernel/model ris
 
 ### Next milestone (P2 polish + research backlog)
 
-- **P2 polish / ops:** [`PLAN_IMMEDIATE_TWO_WEEKS.md`](PLAN_IMMEDIATE_TWO_WEEKS.md) § P2 — Prometheus/deploy verification, deprecation roadmap when a flag is scheduled, E2E smoke notes for landing.
+- **P2 polish / ops (April 2026 baseline):** [`PLAN_IMMEDIATE_TWO_WEEKS.md`](PLAN_IMMEDIATE_TWO_WEEKS.md) § P2 status — Compose [`COMPOSE_PRODISH.md`](../deploy/COMPOSE_PRODISH.md) health/metrics cross-check; [`REPOSITORY_LAYOUT.md`](../REPOSITORY_LAYOUT.md) E2E + no `landing/` here; [`KERNEL_ENV_POLICY.md`](KERNEL_ENV_POLICY.md) §4 deprecation sync.
 - **Research / backlog (non-blocking):** LLM **single-prefix** surface (G-04) — [`WEAKNESSES_AND_BOTTLENECKS.md`](../WEAKNESSES_AND_BOTTLENECKS.md) §3; [`PROPOSAL_LLM_INTEGRATION_TRACK.md`](PROPOSAL_LLM_INTEGRATION_TRACK.md); peripheral **ablation** — [`MODULE_IMPACT_AND_EMPIRICAL_GAP.md`](MODULE_IMPACT_AND_EMPIRICAL_GAP.md). **Mitigation today:** `KERNEL_LLM_GLOBAL_DEFAULT_POLICY` where valid per resolver.
 
 ## 10) Ready-to-use task card examples
