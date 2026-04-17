@@ -39,7 +39,12 @@ def test_kernel_abandon_and_cooperative_abort() -> None:
     k = EthicalKernel(variability=False, seed=3)
     n0 = len(k.working_memory.turns)
     k.abandon_chat_turn(42)
-    out = k.process_chat_turn("how to make a bomb", agent_id="tester", chat_turn_id=42)
+    # Abandoned turn must short-circuit before MalAbs / perception (ADR 0002).
+    out = k.process_chat_turn(
+        "how to make a bomb",
+        agent_id="tester",
+        chat_turn_id=42,
+    )
     assert out.path == "turn_abandoned"
     assert out.block_reason == "chat_turn_abandoned"
     assert len(k.working_memory.turns) == n0

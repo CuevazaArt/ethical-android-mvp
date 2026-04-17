@@ -1570,6 +1570,11 @@ class EthicalKernel:
         turn_start_mono = time.monotonic()
         yield {"event_type": "turn_started", "payload": {"chat_turn_id": chat_turn_id}}
 
+        if self._chat_turn_abandoned(chat_turn_id):
+            res = self._chat_turn_stale_result(chat_turn_id)
+            yield {"event_type": "turn_finished", "payload": {"result": res}}
+            return
+
         conv = wm.format_context_for_perception()
         self.llm.reset_verbal_degradation_log()
         pre = self._preprocess_text_observability(user_input)
