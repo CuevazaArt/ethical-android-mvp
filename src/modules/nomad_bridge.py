@@ -18,6 +18,9 @@ onto :class:`~src.modules.sensor_contracts.SensorSnapshot` field names before pa
 
 **Decoded size caps (LAN hardening):** ``KERNEL_NOMAD_MAX_VISION_FRAME_BYTES`` (default 5 MiB) and
 ``KERNEL_NOMAD_MAX_AUDIO_PCM_BYTES`` (default 1 MiB) bound base64 payloads before they enter bounded queues.
+
+**Telemetry shape:** ``payload`` must be a **flat JSON object**; ``KERNEL_NOMAD_MAX_TELEMETRY_KEYS`` (default 128)
+drops oversized dicts before they hit the queue or ``peek_latest_telemetry``.
 """
 
 import asyncio
@@ -54,6 +57,12 @@ def max_audio_pcm_bytes() -> int:
     """Upper bound on decoded PCM chunk bytes from ``audio_pcm`` (env override)."""
 
     return _parse_positive_int_env("KERNEL_NOMAD_MAX_AUDIO_PCM_BYTES", 1_048_576)
+
+
+def max_telemetry_dict_keys() -> int:
+    """Maximum key count accepted on a ``telemetry`` ``payload`` object (env override)."""
+
+    return _parse_positive_int_env("KERNEL_NOMAD_MAX_TELEMETRY_KEYS", 128)
 
 
 def _decoded_upper_bound_from_b64_len(n: int) -> int:
@@ -175,12 +184,15 @@ class NomadBridge:
                         self.audio_queue.put_nowait(raw_audio)
 
                 elif event_type == "telemetry":
+                    if not isinstance(payload, dict):
+                        continue
+                    if len(payload) > max_telemetry_dict_keys():
+                        continue
                     if self.telemetry_queue.full():
                         self.telemetry_queue.get_nowait()
                     self.telemetry_queue.put_nowait(payload)
-                    if isinstance(payload, dict):
-                        with self._telemetry_lock:
-                            self._latest_telemetry = dict(payload)
+                    with self._telemetry_lock:
+                        self._latest_telemetry = dict(payload)
                         
         except WebSocketDisconnect:
             pass

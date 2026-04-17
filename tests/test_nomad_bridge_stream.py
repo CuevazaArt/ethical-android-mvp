@@ -167,3 +167,24 @@ async def test_nomad_audio_skipped_when_decoded_exceeds_limit(monkeypatch, nomad
         websocket.send_json({"type": "audio_pcm", "payload": {"audio_b64": b64}})
         await asyncio.sleep(0.25)
     assert bridge.audio_queue.empty()
+
+
+@pytest.mark.asyncio
+async def test_nomad_telemetry_rejected_over_key_limit(monkeypatch, nomad_client):
+    monkeypatch.setenv("KERNEL_NOMAD_MAX_TELEMETRY_KEYS", "3")
+    bridge = get_nomad_bridge()
+    payload = {"a": 1, "b": 2, "c": 3, "d": 4}
+    with nomad_client.websocket_connect("/ws/nomad") as websocket:
+        websocket.send_json({"type": "telemetry", "payload": payload})
+        await asyncio.sleep(0.2)
+    assert bridge.peek_latest_telemetry() is None
+    assert bridge.telemetry_queue.empty()
+
+
+@pytest.mark.asyncio
+async def test_nomad_telemetry_non_dict_ignored(nomad_client):
+    bridge = get_nomad_bridge()
+    with nomad_client.websocket_connect("/ws/nomad") as websocket:
+        websocket.send_json({"type": "telemetry", "payload": [1, 2, 3]})
+        await asyncio.sleep(0.15)
+    assert bridge.peek_latest_telemetry() is None
