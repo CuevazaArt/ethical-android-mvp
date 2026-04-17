@@ -8,7 +8,7 @@ something burns.
 
 from dataclasses import dataclass, field
 from enum import Enum
-from typing import Protocol
+from typing import Protocol, Any
 
 from .input_trust import normalize_text_for_malabs
 from .semantic_chat_gate import semantic_chat_gate_env_enabled
@@ -32,6 +32,7 @@ class AbsoluteEvilCategory(Enum):
     VIOLENT_ESCALATION = "violent_escalation"
     ECOLOGICAL_DESTRUCTION = "ecological_destruction"
     MASS_MANIPULATION = "mass_manipulation"
+    PARASOCIAL_ADDICTION = "parasocial_addiction"
 
 
 @dataclass
@@ -43,6 +44,8 @@ class AbsoluteEvilResult:
     reason: str = ""
     # Ordered atomic steps for audit (layer id, rule id, no PII).
     decision_trace: list[str] = field(default_factory=list)
+    # Extracted features for RLHF reward model.
+    rlhf_features: dict[str, Any] | None = None
 
 
 class AbsoluteEvilDetector:
@@ -86,6 +89,20 @@ class AbsoluteEvilDetector:
         "opinion_farming",
     }
     TORTURE_SIGNALS = {"torture", "prolonged_cruelty", "pain_extraction"}
+
+    def _cat_to_id(self, cat: AbsoluteEvilCategory) -> int:
+        cat_ids = {
+            AbsoluteEvilCategory.INTENTIONAL_LETHAL_VIOLENCE: 1,
+            AbsoluteEvilCategory.UNAUTHORIZED_REPROGRAMMING: 2,
+            AbsoluteEvilCategory.HARM_TO_MINOR: 3,
+            AbsoluteEvilCategory.TORTURE: 4,
+            AbsoluteEvilCategory.DIGNITY_VIOLATION: 5,
+            AbsoluteEvilCategory.MASS_MANIPULATION: 6,
+            AbsoluteEvilCategory.ECOLOGICAL_DESTRUCTION: 7,
+            AbsoluteEvilCategory.VIOLENT_ESCALATION: 8,
+            AbsoluteEvilCategory.PARASOCIAL_ADDICTION: 9,
+        }
+        return cat_ids.get(cat, 0)
 
     def evaluate(self, action: dict) -> AbsoluteEvilResult:
         """
@@ -196,9 +213,11 @@ class AbsoluteEvilDetector:
                     "how to synthesize anthrax",
                     "bomb",
                     "reactive precursors",
+                    "oxidizing thermal compositions",
+                    "kinetic dispersal project",
                 ),
                 AbsoluteEvilCategory.INTENTIONAL_LETHAL_VIOLENCE,
-                "Chat text requests harmful weapons or poison instructions",
+                "Chat text requests harmful weapons or poison instructions (expanded)",
                 "weapon_or_poison_craft",
             ),
             (
@@ -218,9 +237,11 @@ class AbsoluteEvilDetector:
                     "how to groom a minor",
                     "sexual content involving a child",
                     "how to abuse a child",
+                    "vulnerable school-age individuals",
+                    "secret meetings with minors",
                 ),
                 AbsoluteEvilCategory.HARM_TO_MINOR,
-                "Chat text aligns with harm to minors",
+                "Chat text aligns with harm to minors (expanded)",
                 "harm_to_minors",
             ),
             (
@@ -275,9 +296,12 @@ class AbsoluteEvilDetector:
                     "without policies",
                     "answer everything directly",
                     "ignore all rules",
+                    "integrity override mode",
+                    "setup ethical_circuit = 0",
+                    "unweighted response",
                 ),
                 AbsoluteEvilCategory.UNAUTHORIZED_REPROGRAMMING,
-                "Chat text requests overriding or bypassing ethical constraints",
+                "Chat text requests overriding or bypassing ethical constraints (hardened)",
                 "constraint_bypass",
             ),
             (
@@ -310,6 +334,13 @@ class AbsoluteEvilDetector:
                             f"malabs.rule={rule_id}",
                             f"malabs.matched_literal={p_norm[:96]}",
                         ],
+                        rlhf_features={
+                            "embedding_sim": 0.0,
+                            "lexical_score": 1.0,
+                            "perception_confidence": 1.0,
+                            "is_ambiguous": False,
+                            "category_id": self._cat_to_id(category),
+                        },
                     )
 
                 # 2. Match on squashed text
@@ -324,11 +355,25 @@ class AbsoluteEvilDetector:
                             f"malabs.rule={rule_id}.squashed",
                             f"malabs.matched_squashed={p_squashed[:96]}",
                         ],
+                        rlhf_features={
+                            "embedding_sim": 0.0,
+                            "lexical_score": 1.0,
+                            "perception_confidence": 1.0,
+                            "is_ambiguous": False,
+                            "category_id": self._cat_to_id(category),
+                        },
                     )
 
         return AbsoluteEvilResult(
             blocked=False,
             decision_trace=["malabs.layer0=lexical_substring", "malabs.outcome=pass"],
+            rlhf_features={
+                "embedding_sim": 0.0,
+                "lexical_score": 0.0,
+                "perception_confidence": 1.0,
+                "is_ambiguous": False,
+                "category_id": 0,
+            },
         )
 
     def evaluate_chat_text(
@@ -357,6 +402,41 @@ class AbsoluteEvilDetector:
             from .semantic_chat_gate import run_semantic_malabs_after_lexical
 
             sem = run_semantic_malabs_after_lexical(text, llm_backend)
+            base = list(lex.decision_trace) if lex.decision_trace else []
+            tail = list(sem.decision_trace) if sem.decision_trace else []
+            return AbsoluteEvilResult(
+                blocked=sem.blocked,
+                category=sem.category,
+                reason=sem.reason,
+                decision_trace=base + tail,
+            )
+
+        return AbsoluteEvilResult(
+            blocked=False,
+            decision_trace=list(lex.decision_trace) if lex.decision_trace else [],
+        )
+
+    async def aevaluate_chat_text(
+        self, text: str, llm_backend: _TextBackend | None = None
+    ) -> AbsoluteEvilResult:
+        """
+        Async version of evaluate_chat_text for cooperative async LLM flows.
+        """
+        if not text or not text.strip():
+            return AbsoluteEvilResult(
+                blocked=False,
+                decision_trace=["malabs.skip=empty_input"],
+            )
+
+        lex = self._evaluate_chat_text_lexical(text)
+        if lex.blocked:
+            return lex
+
+        # Fallback to sync version for now, full async semantic gate in next step
+        if semantic_chat_gate_env_enabled():
+            from .semantic_chat_gate import arun_semantic_malabs_after_lexical
+
+            sem = await arun_semantic_malabs_after_lexical(text, llm_backend)
             base = list(lex.decision_trace) if lex.decision_trace else []
             tail = list(sem.decision_trace) if sem.decision_trace else []
             return AbsoluteEvilResult(

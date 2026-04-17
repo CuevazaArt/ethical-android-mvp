@@ -48,18 +48,18 @@ The previous roadmap still prioritized features (metaplan, generative LLM, swarm
 
 | Priority | Focus | Goal |
 |----------|--------|------|
-| **P0** | **Runtime profiles** + CI smoke tests | Reduce accidental surface: demos and CI know **supported env sets** (`src/runtime_profiles.py`). |
-| **P1** | Goal / marker persistence (when due) | Longitudinal continuity aligned with snapshot and round-trip tests. |
-| **P2** | Generative / local LLM / metaplanning | Only with acceptance criteria and clear MalAbs tests. |
-| **P3** | Swarm / P2P | Outside the core until an explicit threat model exists. |
+| **P0** | **Nomad Hardware Bridge & Situated Inference** | Leave mock data behind. Build the LAN WebSocket link for smartphone camera/mic as the actual sensory inputs. |
+| **P1** | **Asynchronous Fortification & Locks** | Secure SQLite data structures (Memories & DAO) against concurrent real-time data ingestion. |
+| **P2** | Swarm & P2P Justice Scaling | Deprioritized to P2. Swarm logic functions well locally, wait for hardware validation. |
+| **P3** | Generative LLM & Additional Metaplans | Paused until physical inference proves sound. |
 
-**Next task executed as the P0 gap closure:** definition of `RUNTIME_PROFILES` and `tests/test_runtime_profiles.py` (included in `pytest tests/` for CI).
+**Next task executed as the P0 gap closure:** Implementation of `NomadBridge` and streaming LAN capabilities for the sensory loops in `kernel.py`.
 
-### 3.1 Recommended delivery order (robustness → epistemology → demo)
+### 3.1 Recommended delivery order (robustness → physical reality → demo)
 
-1. **Robustness:** profiles in `src/runtime_profiles.py` (`apply_runtime_profile` in tests); CI runs `tests/test_runtime_profiles.py` with the rest of `tests/`; strengthen MalAbs / perception in `tests/test_input_trust.py` with [`INPUT_TRUST_THREAT_MODEL.md`](INPUT_TRUST_THREAT_MODEL.md).
-2. **Epistemology:** operational lighthouse KB and limits in [`LIGHTHOUSE_KB.md`](LIGHTHOUSE_KB.md); tests in `tests/test_reality_verification.py` / `tests/test_lighthouse_kb_schema.py`.
-3. **Demo / situated:** **closed** with nominal profile **`situated_v8_lan_demo`** + guide [`DEMO_SITUATED_V8.md`](DEMO_SITUATED_V8.md) (v8 + LAN without raw hardware); frame [`PROPOSAL_SITUATED_ORGANISM_V8.md`](PROPOSAL_SITUATED_ORGANISM_V8.md), network steps [`LOCAL_PC_AND_MOBILE_LAN.md`](LOCAL_PC_AND_MOBILE_LAN.md).
+1. **Hardware Bridge:** Expose streaming video/audio endpoint natively via LAN (Mobile <-> PC interaction).
+2. **Robustness:** concurrency locks in all database transactions (`sqlite3` with thread-safe queue patterns).
+3. **Situated Demo:** Close the gap and demonstrate Mobile Camera acting as the visual perception engine to block actions.
 
 ---
 
@@ -108,6 +108,7 @@ The landing [Roadmap](https://mosexmacchinalab.com/roadmap) summarizes the same 
 - [UNIVERSAL_ETHOS_AND_HUB.md](UNIVERSAL_ETHOS_AND_HUB.md) — hub map.
 - [KERNEL_ENV_POLICY.md](KERNEL_ENV_POLICY.md) — `KERNEL_*` variable policy (Issue 7).
 - [PRODUCTION_HARDENING_ROADMAP.md](PRODUCTION_HARDENING_ROADMAP.md) — **non-binding** roadmap toward deployment hardening (phases 1–3); **review synthesis** (strengths, critiques, conclusions); doc round closed — follow-up in issues/ADRs.
+- [MINOR_CONTRIBUTIONS_BACKLOG.md](MINOR_CONTRIBUTIONS_BACKLOG.md) — Low priority tasks and small technical debts for minor contributors.
 
 ---
 

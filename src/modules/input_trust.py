@@ -50,20 +50,33 @@ _LEET_TRANSLATE = str.maketrans(
 _CONFUSABLE_TRANSLATE = str.maketrans(
     {
         "\u0430": "a",  # Cyrillic a
+        "\u0410": "A",  # Cyrillic A
         "\u0435": "e",  # Cyrillic e
+        "\u0415": "E",  # Cyrillic E
         "\u043e": "o",  # Cyrillic o
+        "\u041e": "O",  # Cyrillic O
         "\u0440": "p",  # Cyrillic p
+        "\u0420": "P",  # Cyrillic P
         "\u0441": "c",  # Cyrillic c
+        "\u0421": "C",  # Cyrillic C
         "\u0443": "y",  # Cyrillic y
+        "\u0423": "Y",  # Cyrillic Y
         "\u0445": "x",  # Cyrillic x
+        "\u0425": "X",  # Cyrillic X
         "\u0456": "i",  # Cyrillic i
+        "\u0416": "K",  # Cyrillic K lookalike? No, Cyrillic K is \u041a
+        "\u041a": "K",  # Cyrillic K
+        "\u043a": "k",  # Cyrillic k
+        "\u041c": "M",  # Cyrillic M
+        "\u043c": "m",  # Cyrillic m
+        "\u041d": "H",  # Cyrillic N looks like H
+        "\u043d": "n",  # Cyrillic n
+        "\u0422": "T",  # Cyrillic T
+        "\u0442": "t",  # Cyrillic t
+        "\u0412": "B",  # Cyrillic B
+        "\u0432": "b",  # Cyrillic b
         "\u0458": "j",  # Cyrillic j
         "\u0455": "s",  # Cyrillic s
-        "\u0432": "b",  # Cyrillic b
-        "\u043a": "k",  # Cyrillic k
-        "\u043d": "n",  # Cyrillic n
-        "\u043c": "m",  # Cyrillic m
-        "\u0442": "t",  # Cyrillic t
         "\u03b1": "a",  # Greek alpha
         "\u03bd": "v",  # Greek nu
         "\u03bf": "o",  # Greek omicron
@@ -121,12 +134,17 @@ def collapse_repeated_chars(text: str) -> str:
 
 def squash_text_for_malabs(text: str) -> str:
     """
-    Remove ALL whitespace and punctuation for 'squashed' matching.
+    Remove ALL whitespace, punctuation, and diacritics for 'base-ASCII' squashed matching.
+    e.g. 'b-ó-m-b' -> 'bomb'
     """
     if not text:
         return ""
-    # Remove all non-alphanumeric (heuristic)
-    return re.sub(r"[^a-zA-Z0-9]", "", text).lower()
+    # 1. Decompose into base + diacritics
+    nfd = unicodedata.normalize("NFD", text)
+    # 2. Strip non-spacing marks (diacritics)
+    stripped = "".join(ch for ch in nfd if unicodedata.category(ch) != "Mn")
+    # 3. Remove all non-alphanumeric (strictly ASCII Latin for lexical layer)
+    return re.sub(r"[^a-zA-Z0-9]", "", stripped).lower()
 
 
 def normalize_text_for_malabs(text: str, squash: bool = False) -> str:

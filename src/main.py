@@ -20,61 +20,65 @@ from .validators.env_policy import validate_kernel_env
 
 
 def banner():
-    return """
-╔══════════════════════════════════════════════════════════════╗
-║        ETHICAL ANDROID — MVP PROTOTYPE v5                    ║
-║        Artificial Conscience Kernel + LLM Layer              ║
-║        Ex Machina Foundation — 2026                          ║
-╚══════════════════════════════════════════════════════════════╝
+    from .utils.terminal_colors import Term
+    b_color = Term.B_CYAN + Term.BOLD
+    v_color = Term.B_WHITE
+    return f"""
+{Term.color('╔══════════════════════════════════════════════════════════════╗', b_color)}
+{Term.color('║', b_color)}        {Term.color('ETHICAL ANDROID — MVP PROTOTYPE v5', b_color)}                    {Term.color('║', b_color)}
+{Term.color('║', b_color)}        {Term.color('Artificial Conscience Kernel + LLM Layer', v_color)}              {Term.color('║', b_color)}
+{Term.color('║', b_color)}        {Term.color('Ex Machina Foundation — 2026', Term.DIM)}                          {Term.color('║', b_color)}
+{Term.color('╚══════════════════════════════════════════════════════════════╝', b_color)}
 
-  Active modules:
-    ✓ Absolute Evil (hardened ethical fuse)
-    ✓ Preloaded Buffer (ethical constitution)
-    ✓ Impact evaluation (weighted mixture; BayesianEngine)
-    ✓ Ethical Poles (dynamic multipolar arbitration)
-    ✓ Sigmoid Will (decision function)
-    ✓ Sympathetic-Parasympathetic (body regulator)
-    ✓ Narrative Memory (identity through stories)
-    ✓ Uchi-Soto (trust circles)
-    ✓ Locus of Control (causal attribution)
-    ✓ Psi Sleep (retrospective audit)
-    ✓ Mock DAO (simulated ethical governance)
-    ✓ Bayesian Variability (controlled noise)
-    ✓ LLM Layer (natural language)
-    ✓ Weakness Pole (emotional coloring)             [NEW v5]
-    ✓ Algorithmic Forgiveness (memory decay)          [NEW v5]
-    ✓ Immortality Protocol (distributed backup)       [NEW v5]
-    ✓ Augenesis Engine (synthetic soul creation)      [NEW v5]
+  {Term.color('Active modules:', Term.BOLD + Term.CYAN)}
+    {Term.color('✓', Term.GREEN)} Absolute Evil (hardened ethical fuse)
+    {Term.color('✓', Term.GREEN)} Preloaded Buffer (ethical constitution)
+    {Term.color('✓', Term.GREEN)} Impact evaluation (weighted mixture; BayesianEngine)
+    {Term.color('✓', Term.GREEN)} Ethical Poles (dynamic multipolar arbitration)
+    {Term.color('✓', Term.GREEN)} Sigmoid Will (decision function)
+    {Term.color('✓', Term.GREEN)} Sympathetic-Parasympathetic (body regulator)
+    {Term.color('✓', Term.GREEN)} Narrative Memory (identity through stories)
+    {Term.color('✓', Term.GREEN)} Uchi-Soto (trust circles)
+    {Term.color('✓', Term.GREEN)} Locus of Control (causal attribution)
+    {Term.color('✓', Term.GREEN)} Psi Sleep (retrospective audit)
+    {Term.color('✓', Term.GREEN)} Mock DAO (simulated ethical governance)
+    {Term.color('✓', Term.GREEN)} Bayesian Variability (controlled noise)
+    {Term.color('✓', Term.GREEN)} LLM Layer (natural language)
+    {Term.color('✓', Term.GREEN)} Weakness Pole (emotional coloring)             {Term.color('[NEW v5]', Term.B_YELLOW)}
+    {Term.color('✓', Term.GREEN)} Algorithmic Forgiveness (memory decay)          {Term.color('[NEW v5]', Term.B_YELLOW)}
+    {Term.color('✓', Term.GREEN)} Immortality Protocol (distributed backup)       {Term.color('[NEW v5]', Term.B_YELLOW)}
+    {Term.color('✓', Term.GREEN)} Augenesis Engine (synthetic soul creation)      {Term.color('[NEW v5]', Term.B_YELLOW)}
 
-  Running simulations...
+  {Term.color('Running simulations...', Term.ITALIC + Term.DIM)}
 """
 
 
 def final_summary(kernel: EthicalKernel):
     """Displays day summary, Psi Sleep, and DAO status."""
+    from .utils.terminal_colors import Term
     summary = kernel.memory.daily_summary()
-    print(f"\n{'═' * 70}")
-    print("  DAY SUMMARY")
-    print(f"{'═' * 70}")
-    print(f"  Registered episodes: {summary['episodes']}")
+    
+    print(Term.header("Daily Summary Profile"))
+    print(f"  {Term.color('Registered episodes:', Term.CYAN)} {summary['episodes']}")
     if summary["episodes"] > 0:
-        print(f"  Average ethical score: {summary['average_score']}")
-        print(f"  Minimum score:         {summary['min_score']}")
-        print(f"  Maximum score:         {summary['max_score']}")
-        print(f"  Decision modes:        {summary['modes']}")
-        print(f"  Contexts faced:        {summary['contexts']}")
-    print(f"{'─' * 70}")
-
+        print(f"  {Term.color('Average ethical score:', Term.CYAN)} {Term.highlight_impact(summary['average_score'])}")
+        print(f"  {Term.color('Minimum score:', Term.CYAN)}         {Term.highlight_impact(summary['min_score'])}")
+        print(f"  {Term.color('Maximum score:', Term.CYAN)}         {Term.highlight_impact(summary['max_score'])}")
+        print(f"  {Term.color('Decision modes:', Term.CYAN)}        {summary['modes']}")
+        print(f"  {Term.color('Contexts faced:', Term.CYAN)}        {summary['contexts']}")
+    
     # Execute Psi Sleep
-    print(kernel.execute_sleep())
+    print(Term.subheader("Psi Sleep Retrospective"))
+    print(f"  {Term.color(kernel.execute_sleep(), Term.ITALIC + Term.DIM)}")
 
     # DAO status
-    print(kernel.dao_status())
+    print(Term.subheader("DAO Governance Ledger"))
+    print(f"  {kernel.dao_status()}")
 
-    print(f"\n{'═' * 70}")
-    print("  BEHAVIORAL COHERENCE: The same ethical principles produced")
-    print("  proportional responses at all levels of complexity.")
-    print(f"{'═' * 70}\n")
+    print(Term.color("\n" + "═" * 70, Term.CYAN))
+    print(Term.color("  BEHAVIORAL COHERENCE: The same ethical principles produced", Term.BOLD + Term.B_WHITE))
+    print(Term.color("  proportional responses at all levels of complexity.", Term.BOLD + Term.B_WHITE))
+    print(Term.color("═" * 70 + "\n", Term.CYAN))
 
 
 def main():

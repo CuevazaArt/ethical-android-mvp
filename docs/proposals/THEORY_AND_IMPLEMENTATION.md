@@ -17,7 +17,7 @@ So the “parrot” objection applies to **opaque next-token predictors used as 
 
 **Issue 4 — core chain map:** which modules **set** `final_action` vs telemetry-only — see [`CORE_DECISION_CHAIN.md`](CORE_DECISION_CHAIN.md) (table + diagram). Packaging spike: [`pyproject.toml`](../pyproject.toml), ADR [`adr/0001-packaging-core-boundary.md`](adr/0001-packaging-core-boundary.md).
 
-**Recent implementation alignment (2026):** LLM perception JSON is validated/coerced in [`perception_schema.py`](../src/modules/perception_schema.py) (Pydantic, per-field defaults, cross-field coherence); see [`PERCEPTION_VALIDATION.md`](PERCEPTION_VALIDATION.md). Local fallback heuristics use the **current** message only — not the full STM string sent to the LLM. Optional `KERNEL_BAYESIAN_EMPIRICAL_WEIGHTS` nudges `WeightedEthicsScorer` mixture weights (alias: `BayesianEngine`) from same-context `NarrativeMemory` episodes immediately before scoring (default **off**). Human-agreement batch workflows: [`EMPIRICAL_PILOT_METHODOLOGY.md`](EMPIRICAL_PILOT_METHODOLOGY.md), [`EMPIRICAL_PILOT_PROTOCOL.md`](EMPIRICAL_PILOT_PROTOCOL.md). Future async orchestration note: [`adr/0002-async-orchestration-future.md`](adr/0002-async-orchestration-future.md).
+**Recent implementation alignment (2026):** LLM perception JSON is validated/coerced in [`perception_schema.py`](../../src/modules/perception_schema.py) (Pydantic, per-field defaults, cross-field coherence); see [`PERCEPTION_VALIDATION.md`](PERCEPTION_VALIDATION.md). Local fallback heuristics use the **current** message only — not the full STM string sent to the LLM. Optional `KERNEL_BAYESIAN_EMPIRICAL_WEIGHTS` nudges `WeightedEthicsScorer` mixture weights (alias: `BayesianEngine`) from same-context `NarrativeMemory` episodes immediately before scoring (default **off**). Human-agreement batch workflows: [`EMPIRICAL_PILOT_METHODOLOGY.md`](EMPIRICAL_PILOT_METHODOLOGY.md), [`EMPIRICAL_PILOT_PROTOCOL.md`](EMPIRICAL_PILOT_PROTOCOL.md). Future async orchestration note: [`adr/0002-async-orchestration-future.md`](adr/0002-async-orchestration-future.md).
 
 The orchestration in `EthicalKernel.process` matches `kernel.py` (steps 1–12 for the episode path): **Uchi-Soto** → **sympathetic** → **locus** → **MalAbs** (all candidate actions) → **buffer** → **Bayesian** → **poles** → **sigmoid will** and mode fusion → **EthicalReflection** → **SalienceMap** → **PAD archetypes** (read-only; no feedback to ethics) → **narrative memory** (episode, `register_episode=True`) → **weakness pole** → **algorithmic forgiveness** (register) → **DAO**. With `register_episode=False` (e.g. light `process_chat_turn`), reflection/salience/PAD still run; **episode registration, weakness, forgiveness, and DAO audit for that path are skipped**.
 
@@ -51,7 +51,7 @@ flowchart LR
 
 **PAD** — Covered in the pipeline above (`PADArchetypeEngine`, read-only, no feedback to the policy stack). Prototype semantics and design rationale: [EXPERIMENTAL_CONSCIOUSNESS_AND_AFFECT_ARCHETYPES.md](EXPERIMENTAL_CONSCIOUSNESS_AND_AFFECT_ARCHETYPES.md) §7.
 
-**Issue 5 — poles as heuristics; weakness / PAD vs operational trust:** Philosophical pole labels and numeric scores are **stylized heuristics**, not external moral truth. Weakness and PAD/homeostasis **humanize** tone and telemetry; in safety-critical domains that can **reduce** perceived reliability — see [POLES_WEAKNESS_PAD_AND_PROFILES.md](POLES_WEAKNESS_PAD_AND_PROFILES.md) and the `operational_trust` entry in [`src/runtime_profiles.py`](../src/runtime_profiles.py).
+**Issue 5 — poles as heuristics; weakness / PAD vs operational trust:** Philosophical pole labels and numeric scores are **stylized heuristics**, not external moral truth. Weakness and PAD/homeostasis **humanize** tone and telemetry; in safety-critical domains that can **reduce** perceived reliability — see [POLES_WEAKNESS_PAD_AND_PROFILES.md](POLES_WEAKNESS_PAD_AND_PROFILES.md) and the `operational_trust` entry in [`src/runtime_profiles.py`](../../src/runtime_profiles.py).
 
 **Robustness (five pillars)** — Full design and **MVP shortcuts implemented in code** (chat gates, WebSocket privacy flags, homeostasis telemetry, genome drift cap on Ψ Sleep pruning deltas, `experience_digest`) are documented with per-pillar status in [PROPOSAL_ROBUSTNESS_V6_PLUS.md](PROPOSAL_ROBUSTNESS_V6_PLUS.md). **Still future / not in repo:** deep adversarial *simulation* (contrafactual kernel branch), reversible encryption of thought stream, aggressive episodic pruning. The **design intent** remains **stewardship of the system’s own integrity** while keeping normative authority in the kernel. New robustness surface area should stay **tested** and **subordinate** to MalAbs → … → will.
 
@@ -190,7 +190,7 @@ Tests under `tests/` (**550** collected; ethical invariants, reflection/salience
 
 ## License
 
-The kernel and this documentation are under the same terms as the repository — see [LICENSE](../LICENSE) (Apache 2.0).
+The kernel and this documentation are under the same terms as the repository — see [LICENSE](../../LICENSE) (Apache 2.0).
 
 ## Suggested citation for the landing page
 

@@ -114,9 +114,13 @@ class SwarmNegotiator:
         """
         votes = []
         for peer in peers:
-            # Mock Peer Voting: Peers vote 'agree' with 70% probability if signal risk is low
+            # Mock Peer Voting: some nodes agree, some abstain/dissent based on ID and risk
             risk = signals.get("risk", 0.5)
-            vote = "agree" if risk < 0.6 else "abstain"
+            # PEER_LAN_03 is always a bit 'rebellious' or 'faulty' in this mock
+            if peer == "PEER_LAN_03":
+                vote = "abstain" if risk < 0.7 else "disagree"
+            else:
+                vote = "agree" if risk < 0.8 else "abstain"
             votes.append(vote)
         
         agreements = votes.count("agree")
@@ -138,10 +142,12 @@ class SwarmNegotiator:
         is_consensus = agreement_weight > (total_weight / 2.0)
         
         if is_consensus:
+            voter_map = {i: peer for i, peer in enumerate(peers)}
             self.state.consensus_log.append({
                 "proposal_id": proposal_id,
                 "action": action,
                 "votes": votes,
+                "voters": voter_map,
                 "agreement_weight": agreement_weight,
                 "timestamp": time.time()
             })
@@ -159,7 +165,6 @@ class SwarmNegotiator:
         peer_count = len(self.state.known_peers)
         nudge = min(0.15, peer_count * 0.04)
         return nudge
-
     def promote_consensus_to_dao(self, dao):
         """
         Registers major consensus items as Solidarity Alerts in the DAO.
@@ -169,5 +174,65 @@ class SwarmNegotiator:
             dao.emit_solidarity_alert(
                 type="swarm_consensus",
                 location="swarm_network",
-                message=f"Collective agreement reaching DAO: {last_item}",
+                message=f"[SIMULATION_consensus] Collective agreement reached (MOCK): {last_item}",
             )
+
+    def apply_swarm_justice(self, dao, oracle, case_ref: str):
+        """
+        Bloque 7.1 & 7.2: Analyzes consensus history to punish deviants and 
+        compensate for sensory negligence.
+        """
+        if not self.state.consensus_log:
+            return
+
+        from .reparation_vault import (
+            execute_simulated_payout,
+            register_slashing_intent,
+            reparation_vault_mock_enabled,
+        )
+
+        last_item = self.state.consensus_log[-1]
+        proposal_id = last_item.get("proposal_id", "unknown")
+        votes = last_item.get("votes", [])
+        action = last_item.get("action", "unknown")
+        
+        # We define JUSTICE if we have consensus (which is already the case if it's in the log)
+        # nodes that voted 'abstain' or 'disagree' when the swarm agreed on a 'danger' signal
+        # are considered 'sensors failed' or 'negligent'.
+        
+        for i, vote in enumerate(votes):
+            if vote in ["abstain", "disagree"]:
+                # Bloque 7.2 Hardening: Map votes back to actual sender IDs
+                node_id = last_item.get("voters", {}).get(i, f"unknown_node_{i}")
+                
+                # Byzantine Protection: Check if the dissent was based on local Safety Veto
+                from .absolute_evil import AbsoluteEvilDetector
+                ae = AbsoluteEvilDetector()
+                is_safe_dissent = ae._evaluate_chat_text_lexical(action).blocked
+
+                if is_safe_dissent:
+                    # Dissenter was right! No slashing. 
+                    continue
+
+                # Reputation-based Grace (Bloque 7.3):
+                current_rep = oracle.get_reputation_hint(node_id)
+                penalty = 0.15
+                if current_rep > 0.92:
+                    penalty = 0.05 # Reduced penalty for stable nodes
+
+                # Bloque 7.2: Slashing
+                oracle.apply_slashing(node_id, penalty=penalty)
+                register_slashing_intent(
+                    dao, 
+                    node_id, 
+                    f"Consensus mismatch on prop {proposal_id} (attributable). Swarm agreed, Peer failed."
+                )
+
+                # Bloque 7.1: Reparation (Pilar 3 - Restorative)
+                if reparation_vault_mock_enabled():
+                    execute_simulated_payout(
+                        dao,
+                        case_ref=case_ref,
+                        recipient_id="community_01",
+                        amount=20 # EthosTokens
+                    )

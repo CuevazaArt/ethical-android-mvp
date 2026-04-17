@@ -1,15 +1,19 @@
 """
-Bayesian Inference Engine — Honesty-first moral inference (ADR 0009, 0012).
+Bayesian Inference Engine — Directed moral inference via Dirichlet-Multinomial updates.
 
-This engine coordinates the transition from fixed mixtures (EthicalMixtureScorer)
-to true posterior-based inference. It defines explicit modes to prevent "Bayesian
-theater" where fixed weights are claimed to be learned.
+This engine provides a "weighted mixture" scoring path that can be dynamically
+updated using discrete ethical feedback events. While not a full-parameter neural
+learning system, it employs formal Bayesian updates (conjugate priors) on a 
+low-dimensional tripartite state (Deontic, Social, Utility).
+
+See ADR 0009 for naming policy: "Bayesian" refers to the update mechanism, 
+while the selection logic is a "Weighted Ethical Mixture".
 
 Modes (BI-P0-01):
-- DISABLED: Fixed defaultWeights mixture.
-- TELEMETRY_ONLY: Scoring is fixed; BMA coverage reported in telemetry.
-- POSTERIOR_ASSISTED: Mixture nudged by feedback/memory within boundary caps.
-- POSTERIOR_DRIVEN: Scoring uses the posterior mean from Dirichlet updates.
+- DISABLED: Fixed defaultWeights mixture (no updates).
+- TELEMETRY_ONLY: Scoring is fixed; updates are reported as counterfactuals.
+- POSTERIOR_ASSISTED: Mixture nudged by feedback weights within boundary caps.
+- POSTERIOR_DRIVEN: Scoring uses the exact posterior mean from Dirichlet updates.
 """
 
 from __future__ import annotations
@@ -170,6 +174,23 @@ class BayesianInferenceEngine:
             self.posterior_alpha = np.maximum(1.0, self.posterior_alpha - weight * 0.2)
 
         # Apply update to the scorer weights if mode allows
+        self.update_posterior_from_feedback(self.posterior_alpha)
+
+    def apply_rlhf_modulation(self, score: float, confidence: float):
+        """
+        Modulate priors based on RLHF reward score.
+        score: harm probability [0, 1]
+        confidence: model confidence [0, 1]
+        """
+        scale = float(os.environ.get("KERNEL_RLHF_MODULATION_SCALE", "1.5"))
+        
+        # Dirichlet count update:
+        # Harm score pushes mass toward Deontological/Duty (0)
+        # Safe score pushes mass toward Utility/Progress (2)
+        
+        self.posterior_alpha[0] += score * scale * confidence
+        self.posterior_alpha[2] += (1.0 - score) * scale * confidence
+        
         self.update_posterior_from_feedback(self.posterior_alpha)
 
     def evaluate(

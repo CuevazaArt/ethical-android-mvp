@@ -10,7 +10,7 @@ Enrichment (cognitive pattern, risk band, judicial snapshot for tone):
 
 from __future__ import annotations
 
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 
 from .llm_layer import LLMPerception
 
@@ -44,6 +44,8 @@ class UserModelTracker:
     escalation_strikes: int = 0
     escalation_threshold: int = 2
     judicial_phase: str = ""
+    reciprocity_index: float = 0.5
+    sensory_fandoms: list[str] = field(default_factory=list)
 
     def note_judicial_escalation(self, strikes: int, threshold: int) -> None:
         """Snapshot from ``EscalationSessionTracker`` before :meth:`update` each turn."""
@@ -213,4 +215,6 @@ class UserModelTracker:
                 if self.frustration_streak >= 3
                 else ""
             ),
+            "reciprocity_index": float(self.reciprocity_index),
+            "sensory_fandoms": list(self.sensory_fandoms),
         }

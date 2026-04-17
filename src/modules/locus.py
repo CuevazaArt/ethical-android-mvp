@@ -126,6 +126,12 @@ class LocusModule:
         else:
             self.failure_history += 1
             self.beta = min(self.BETA_MAX, self.beta + delta)
+            
+        # Bloque 4.2 Hardening: Self-Efficacy Recovery
+        # If alpha drops significantly below beta for too long, 
+        # nudge alpha back toward baseline to avoid terminal helplessness.
+        if self.beta > self.alpha + 0.4:
+            self.alpha = min(self.alpha + 0.005, 1.0)
 
     def format(self, ev: LocusEvaluation) -> str:
         """Format locus evaluation for display."""

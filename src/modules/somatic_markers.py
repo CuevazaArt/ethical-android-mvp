@@ -50,6 +50,15 @@ class SomaticMarkerStore:
         snapshot: SensorSnapshot | None,
         weight: float = 0.65,
     ) -> None:
+        """
+        Associates a quantized sensor pattern with a negative ethical bias.
+
+        If the pattern already exists, it keeps the maximum weight (conservative learning).
+
+        Args:
+            snapshot: The sensor pattern to learn.
+            weight: The negative intensity (0.0 to 1.0).
+        """
         k = quantize_snapshot(snapshot)
         if not k:
             return
@@ -57,6 +66,7 @@ class SomaticMarkerStore:
         self._negative_weights[k] = max(self._negative_weights.get(k, 0.0), w)
 
     def clear_pattern(self, key: str) -> None:
+        """Removes a learned pattern from the store."""
         self._negative_weights.pop(key, None)
 
     def replace_weights(self, weights: dict[str, float]) -> None:

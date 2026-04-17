@@ -178,6 +178,10 @@ class RewardModel:
 
         return float(score), confidence
 
+    async def apredict(self, features: FeatureVector) -> tuple[float, float]:
+        """Async wrapper for predict."""
+        return self.predict(features)
+
     def save(self, path: Path) -> None:
         """Save model weights to disk."""
         path.parent.mkdir(parents=True, exist_ok=True)

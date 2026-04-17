@@ -13,6 +13,7 @@ from typing import Any
 
 from .evidence_safe import EvidenceSafe
 from .mock_dao import MockDAO
+from ..utils.db_locks import sqlite_safe_write
 
 _log = logging.getLogger(__name__)
 
@@ -33,7 +34,7 @@ class DAOOrchestrator:
 
     def _init_db(self):
         """Initializes the persistent audit ledger."""
-        with sqlite3.connect(self.db_path) as conn:
+        with sqlite_safe_write(self.db_path) as conn:
             conn.execute('''
                 CREATE TABLE IF NOT EXISTS audit_logs (
                     id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -53,7 +54,7 @@ class DAOOrchestrator:
         evidence_hash = packet["evidence_hash"]
 
         # Persistent recording
-        with sqlite3.connect(self.db_path) as conn:
+        with sqlite_safe_write(self.db_path) as conn:
             conn.execute(
                 "INSERT INTO audit_logs (type, content, episode_id, timestamp) VALUES (?, ?, ?, ?)",
                 ("anchoring", f"Anchored Hash {evidence_hash}", payload.get("episode_id"), time.time())
@@ -67,7 +68,7 @@ class DAOOrchestrator:
         Bloque 1.1: Persists structured audit events from high-level frameworks (Claude RLHF/Audit).
         """
         details_json = json.dumps(details)
-        with sqlite3.connect(self.db_path) as conn:
+        with sqlite_safe_write(self.db_path) as conn:
             conn.execute(
                 "INSERT INTO audit_logs (type, content, episode_id, timestamp) VALUES (?, ?, ?, ?)",
                 (event_type, details_json, episode_id, time.time())
@@ -82,12 +83,22 @@ class DAOOrchestrator:
         txn_hash = f"0x_reparation_{int(time.time())}_{case_id[:4]}"
         msg = f"Restorative reparation of {amount} EthosTokens issued to {recipient} for case {case_id}."
         
-        with sqlite3.connect(self.db_path) as conn:
+        # Persistent recording (SQLite)
+        with sqlite_safe_write(self.db_path) as conn:
             conn.execute(
                 "INSERT INTO audit_logs (type, content, episode_id, timestamp) VALUES (?, ?, ?, ?)",
                 ("reparation_payout", msg, case_id, time.time())
             )
-            
+        
+        # Legacy/MockDAO internal recording
+        self.local_dao.register_audit(
+            type="reparation_payout",
+            content=msg,
+            episode_id=case_id,
+        )
+        
+        _log.info(msg)
+        return txn_hash
         _log.info(msg)
         return txn_hash
 
@@ -126,6 +137,9 @@ class DAOOrchestrator:
         }
 
     # --- Proxy methods for MockDAO compatibility (L0/L1 legacy) ---
+    def transfer_tokens(self, *args, **kwargs):
+        return self.local_dao.transfer_tokens(*args, **kwargs)
+
     def register_audit(self, *args, **kwargs):
         return self.local_dao.register_audit(*args, **kwargs)
 

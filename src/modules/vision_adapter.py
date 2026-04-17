@@ -163,3 +163,47 @@ class MobileNetV2Adapter(VisionAdapter):
         except Exception as e:
             _log.error("Inference error: %s", e)
             return VisionInference(primary_label="error", confidence=0.0)
+
+import asyncio
+
+class NomadVisionConsumer:
+    """
+    Consumes frames from NomadBridge asynchronously and dispatches them 
+    to the underlying VisionAdapter.
+    """
+    def __init__(self, adapter: VisionAdapter):
+        self.adapter = adapter
+        self._task: asyncio.Task | None = None
+        self.latest_inference: VisionInference | None = None
+
+    def start(self):
+        self._task = asyncio.create_task(self._consume_loop())
+
+    async def _consume_loop(self):
+        from .nomad_bridge import get_nomad_bridge
+        import numpy as np
+        
+        # We assume cv2 or PIL is used inside the adapter, we can decode using cv2 here 
+        # or pass bytes to the adapter if it handles it. 
+        # Since adapter expects numpy array (OpenCV BGR), we decode here.
+        try:
+            import cv2
+        except ImportError:
+            _log.error("cv2 is required for NomadVisionConsumer")
+            return
+
+        bridge = get_nomad_bridge()
+        while True:
+            try:
+                frame_bytes = await bridge.vision_queue.get()
+                np_arr = np.frombuffer(frame_bytes, np.uint8)
+                img = cv2.imdecode(np_arr, cv2.IMREAD_COLOR)
+                if img is not None:
+                    # Run inference in a thread to not block the event loop
+                    infer_result = await asyncio.to_thread(self.adapter.infer, img)
+                    self.latest_inference = infer_result
+                    _log.debug("Nomad vision infered: %s", infer_result.primary_label)
+            except asyncio.CancelledError:
+                break
+            except Exception as e:
+                _log.error("Error in NomadVisionConsumer: %s", e)
