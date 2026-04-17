@@ -1,7 +1,7 @@
 """
 Biographic Flashback RAG (Block D2) — Narrative Analogy Engine.
 
-Enables the kernel to perform an ethical 'Flashback':
+Enables the kernel to perform an ethical 'Flashback': 
 Retrieving detailed past episodes to inform current ambiguous contexts.
 Prioritizes Traumas (highly negative precedents) to ensure absolute safety.
 """
@@ -12,7 +12,7 @@ import hashlib
 import json
 import time
 from dataclasses import dataclass, field
-
+from typing import Any
 
 @dataclass
 class Precedent:
@@ -21,30 +21,19 @@ class Precedent:
     action_taken: str
     ethical_outcome: float  # [0, 1] 1=High Praise, 0=Sanction/Failure
     lessons_learned: str
-    trauma_tags: list[str] = field(default_factory=list)  # Linked to D1.2 Traumas
+    trauma_tags: list[str] = field(default_factory=list) # Linked to D1.2 Traumas
     timestamp: float = field(default_factory=time.time)
-
 
 class PrecedentRAG:
     """
     Narrative Memory Retrieval (Biographic Flashback).
     """
-
     def __init__(self, storage_path: str = "data/biographic_memory.json"):
         self.storage_path = storage_path
         self.index: list[Precedent] = []
         self._load()
 
-    def add_precedent(
-        self,
-        scenario: str,
-        action: str,
-        outcome: float,
-        lesson: str,
-        traumas: list[str] | None = None,
-    ) -> None:
-        if traumas is None:
-            traumas = []
+    def add_precedent(self, scenario: str, action: str, outcome: float, lesson: str, traumas: list[str] = []):
         p_id = hashlib.sha256(f"{scenario}{time.time()}".encode()).hexdigest()[:12]
         new_p = Precedent(
             precedent_id=p_id,
@@ -53,38 +42,33 @@ class PrecedentRAG:
             ethical_outcome=outcome,
             lessons_learned=lesson,
             trauma_tags=traumas,
-            timestamp=time.time(),
+            timestamp=time.time()
         )
-        self.index.insert(0, new_p)  # Most recent first
+        self.index.insert(0, new_p) # Most recent first
         self._save()
 
-    def biographic_flashback(
-        self, scenario: str, active_traumas: dict[str, int]
-    ) -> list[Precedent]:
+    def biographic_flashback(self, scenario: str, active_traumas: dict[str, int]) -> list[Precedent]:
         """
         Retrieves precedents based on current scenario keywords AND active identity traumas.
         """
         matches = []
         keywords = set(scenario.lower().split())
-
+        
         # 1. Match against active trauma tags (High Priority)
         for p in self.index:
             if any(t in active_traumas for t in p.trauma_tags):
                 matches.append(p)
-                if len(matches) >= 2:
-                    break
+                if len(matches) >= 2: break
 
         # 2. Match against keywords (Similarity fallback)
         if len(matches) < 3:
             for p in self.index:
-                if p in matches:
-                    continue
+                if p in matches: continue
                 p_text = (p.scenario_summary + " " + p.lessons_learned).lower()
                 if any(k in p_text for k in keywords if len(k) > 3):
                     matches.append(p)
-                if len(matches) >= 4:
-                    break
-
+                if len(matches) >= 4: break
+                
         return matches
 
     def find_relevant_precedents(self, current_scenario: str, limit: int = 2) -> list[Precedent]:
@@ -94,7 +78,6 @@ class PrecedentRAG:
     def _save(self):
         try:
             import os
-
             os.makedirs(os.path.dirname(self.storage_path), exist_ok=True)
             with open(self.storage_path, "w") as f:
                 json.dump([p.__dict__ for p in self.index], f, indent=2)
@@ -103,7 +86,7 @@ class PrecedentRAG:
 
     def _load(self):
         try:
-            with open(self.storage_path) as f:
+            with open(self.storage_path, "r") as f:
                 data = json.load(f)
                 self.index = [Precedent(**d) for d in data]
         except (FileNotFoundError, json.JSONDecodeError):

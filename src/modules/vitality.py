@@ -108,12 +108,10 @@ def vitality_communication_hint(assessment: VitalityAssessment, trust_level: flo
 
     is_trusted = trust_level >= 0.5
     hints = []
-
+    
     if assessment.is_critical:
         if is_trusted:
-            hints.append(
-                "Operational battery is critically low (under threshold). Need charging area."
-            )
+            hints.append("Operational battery is critically low (under threshold). Need charging area.")
         else:
             hints.append("Executing power management protocols; pending non-essential tasks.")
 

@@ -92,7 +92,6 @@ class ChatServerSettings(BaseModel):
         ),
     )
     kernel_chat_async_llm_http: bool = Field(
-        default=False,
         description=(
             "KERNEL_CHAT_ASYNC_LLM_HTTP — when true, chat turns use async LLM HTTP on the "
             "event loop (process_chat_turn_async) so asyncio can cancel in-flight requests "

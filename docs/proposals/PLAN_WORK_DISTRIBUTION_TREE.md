@@ -1,6 +1,6 @@
-# Árbol de Distribución de Trabajo: Escalado a Infraestructura Pública (DAO, Cognición y Sociabilidad)
+# Árbol de Distribución de Trabajo: Escalado a Infraestructura Pública (Fase 8+)
 
-Este documento estructura el inmenso volumen de trabajo arquitectónico definido. El trabajo se divide en módulos secuenciales y se asigna a los diferentes equipos (Tiers) según las reglas de gobernanza del repositorio (`AGENTS.md`).
+Este documento estructura el inmenso volumen de trabajo arquitectónico definido para el Ethos Kernel tras la exitosa integración del modelo Tri-lobulado y la evaluación visual-somática en `main`. El trabajo se asigna a los diferentes equipos (Tiers) según las reglas de gobernanza del repositorio (`AGENTS.md`).
 
 > [!IMPORTANT]
 > **Nueva Directiva Estratégica (Abril 2026 - Aprobación L0)**:
@@ -11,6 +11,7 @@ Este documento estructura el inmenso volumen de trabajo arquitectónico definido
 
 ## 🌳 Árbol de Distribución de Módulos (Blocks Tree)
 
+### ⚙️ Módulo 0: Estabilización Pragmática y Reducción de Deuda (Nuevo P0/P1)
 ### ⚪ Módulo 0: Estabilización Pragmática y Reducción de Deuda (Nuevo P0/P1)
 *Responsabilidad: Nivel 1 (Antigravity)*
 *Objetivo: Mitigar vulnerabilidades operacionales, desmonolitizar componentes críticos y lograr paridad de operaciones/tests enfocado en funcionalidad práctica.*
@@ -18,7 +19,7 @@ Este documento estructura el inmenso volumen de trabajo arquitectónico definido
 - **Bloque 0.1: Desmonolitización y Abstracción de `kernel.py` (Prioridad Absoluta)**
   - Tarea 0.1.1: **Solución Práctica a E/S Sincrónica:** Migrar el pipeline de inferencia HTTP de LLMs (`httpx` sincrónico dentro del hilo worker) hacia clientes cooperativos asíncronos (`httpx.AsyncClient`).
   - Tarea 0.1.2: **Cancelación Cooperativa (Task Cancellation):** Implementar la cancelación transparente de tareas de red pendientes cuando el loop asíncrono se venza (`KERNEL_CHAT_TURN_TIMEOUT`), liberando inmediatamente memoria y slots en el Worker Pool.
-  - Tarea 0.1.3: Extraer la `Perception` y la lógica de ruteo ético del objeto `EthicalKernel` gigante hacia handlers aislados que aprovechen el Async I/O en lugar de abusar de `run_in_threadpool`.
+  - Tarea 0.1.3: **Desmonolitización Total (Lóbulos):** Extraer Stages 0-5 (Percepción, Ética, Ejecutivo, Cerebelo, Memoria) del objeto gigante `EthicalKernel` hacia handlers aislados. [DONE]
 - **Bloque 0.2: Fiabilidad Funcional (El 25% de Pruebas)**
   - Tarea 0.2.1: Orientar CI no solo a correr tests rápidos (con semántica apagada) sino a correr escenarios que verifiquen las mitigaciones aplicadas en *producción* (ej. `KERNEL_SEMANTIC_CHAT_GATE=1` y Fallbacks globales funcionales).
 - **Bloque 0.3: Integridad Documental**
@@ -63,23 +64,44 @@ Este documento estructura el inmenso volumen de trabajo arquitectónico definido
 
 ### 🔵 Módulo 4: Cognición Profunda (C-Blocks)
 *Responsabilidad: Nivel 1 (Antigravity)*
-*Dependencias: Core Kernel (Ethical priorities)*
+*Objetivo: Mitigar vulnerabilidades operacionales, desmonolitizar componentes críticos y lograr paridad de operaciones/tests enfocado en funcionalidad práctica.*
 
-- **Bloque 4.1: Motor de Motivación Interna (C1) [DONE]**
-  - Tarea 4.1.1: Desplegar modelo de "Sentido de Propósito" y curiosidad activa (que el androide decida investigar cosas sin prompt humano). (Implementado en `MotivationEngine`)
-- **Bloque 4.2: Humildad Epistémica (C3) [DONE]**
-  - Tarea 4.2.1: Implementar fallback paths donde el androide declara proactivamente "no tengo permiso para esto" en vez de derivar una solución dudosa. (Implementado en `EpistemicHumility`)
-- **Bloque 4.3: Identidad Migratoria e Interoperabilidad (C5) [DONE]**
-  - Tarea 4.3.1: Abstracción del `BodyState`. Preparar el código para que el Kernel pueda migrar entre hardware (Dron <-> Androide <-> Móvil) sin perder memoria narrativa. (Implementado en `MigrationHub`)
+- **Bloque 0.1: Desmonolitización y Abstracción de `kernel.py` (Prioridad Absoluta)**
+  - Tarea 0.1.1: **Solución Práctica a E/S Sincrónica:** Migrar el pipeline de inferencia HTTP de LLMs (`httpx` sincrónico dentro del hilo worker) hacia clientes cooperativos asíncronos (`httpx.AsyncClient`).
+  - Tarea 0.1.2: **Cancelación Cooperativa (Task Cancellation):** Implementar la cancelación transparente de tareas de red pendientes cuando el loop asíncrono se venza (`KERNEL_CHAT_TURN_TIMEOUT`), liberando inmediatamente memoria y slots en el Worker Pool.
+  - Tarea 0.1.3: Extraer la `Perception` y la lógica de ruteo ético del objeto `EthicalKernel` gigante hacia handlers aislados que aprovechen el Async I/O en lugar de abusar de `run_in_threadpool`.
+- **Bloque 0.2: Escalabilidad del Chat Server**
+  - Tarea 0.2.1: Rediseñar la capa WebSocket del servidor (`chat_server.py`) para manejar concurrencia pura sin bloquear el event loop principal, permitiendo streaming asíncrono.
+- **Bloque 0.3: Mantenimiento Histórico (Legacy Modules) [DONE]**
+  - Tarea 0.3.1: Los módulos de la integración fundacional 1 al 6 (Mock DAO, Safety Interlock, UchiSoto, Swarm Logic) han sido consolidados y se consideran estables en producción local.
 
-### 🟣 Módulo 5: Marco Legal, Auditoría y Transparencia a Escala (G-Blocks)
-*Responsabilidad: Nivel 0 (Juan) / Nivel 1 (Claude)*
-*Dependencias: Definición corporativa y legal.*
+### 🧠 Módulo C: Profundidad Cognitiva y Recompensas RLHF
+*Responsabilidad: Nivel 2 (Team Claude)*
+*Dependencias: Modelo RLHF existente y Motor Bayesiano.*
 
-- **Bloque 5.1: Privacidad y Amnesia Selectiva (G4/G6) [DONE]**
-  - Tarea 5.1.1: Mecanismo para borrar permanentemente fragmentos del historial de auditoría/narrativa por "derecho al olvido" (simulado). (Implementado en `SelectiveAmnesia`)
-- **Bloque 5.2: Ciberseguridad y Secure Boot (G2) [DONE]**
-  - Tarea 5.2.1: Implementar sistema de "Secure Boot" simulado para asegurar que el Kernel no ha sido modificado en el arranque. (Implementado en `SecureBoot`)
+- **Bloque C.1: Fusión BMA (Bayesian Mixture Averaging) y Recompensas RLHF**
+  - Tarea C.1.1: Conectar los *outputs* asíncronos del `rlhf_reward_model.py` directamente como *Priors* moduladores dentro de `bayesian_engine.py` en tiempo real.
+  - Tarea C.1.2: Validar el arrastre de métricas RLHF sobre las decisiones de los polos multipolares en el estadio 3 del Kernel.
+- **Bloque C.2: Gobernanza Real en Runtime**
+  - Tarea C.2.1: Implementar handlers para que cualquier voto exitoso en el `MultiRealmGovernor` altere en vivo (hot-reload) los umbrales de Absoluto Mal (`semantic_chat_gate.py`) sin necesidad de reiniciar el proceso del kernel.
+
+### 🦾 Módulo S: Encarnación Activa y Hardware Bridge (Nomad PC/Mobile)
+*Responsabilidad: Nivel 2 (Team Cursor / Team VisualStudio)*
+*Dependencias: Arquitectura Somática e Inferencia de Visión estabilizada.*
+
+- **Bloque S.1: Nomad SmartPhone LAN Bridge**
+  - Tarea S.1.1: Desarrollar conectores WebSocket o WebRTC de baja latencia (`src/modules/nomad_bridge.py`) para consumir streams de video and audio desde un dispositivo móvil Android/iOS en red local, inyectando los fotogramas en el `VisionInference` de manera asíncrona.
+- **Bloque S.2: Calibración Termo-Visual Continua**
+  - Tarea S.2.1: Refinar las interrupciones del `VitalityAssessment` (ej. alertas de calor del dispositivo) utilizando la telemetría real transmitida por el *Nomad Bridge*.
+
+### 🧹 Módulo 8: Higiene, Mantenimiento y Deuda Menor
+*Responsabilidad: Nivel 2 (Team Copilot / Contribuidores Libres)*
+*Nota:* El registro exhaustivo de estas tareas debe consolidarse permanentemente en el `MINOR_CONTRIBUTIONS_BACKLOG.md`.
+
+- **Bloque 8.1: Calidad y DX (Developer Experience)**
+  - Tarea 8.1.1: Linter continuo y auditoría de `docstrings` / `type hints` a lo largo de las divisiones de `kernel.py`.
+  - Tarea 8.1.2: Refactorización y embellecimiento de las salidas ANSI de terminal para facilitar el modo de depuración de operadores locales.
+  - Tarea 8.1.3: Extender mocks para *input_trust* (ej. Caracteres homoglyphs cirílicos para evadir la puerta de Absoluto Mal).
 
 ### 🟣 Módulo 6: Swarm Ethics e Integración LAN (I-Blocks)
 *Responsabilidad: Nivel 1 (Antigravity) / Nivel 2 (Team Copilot)*
@@ -108,6 +130,9 @@ Este documento estructura el inmenso volumen de trabajo arquitectónico definido
 
 ## 🚀 Flujo de Sincronización Recomendado
 
+1. **Semana Actual:** Antigravity (N1) se encarga transversalmente de desmonolitizar `kernel.py` y actualizar las dependencias de concurrencia. Claude y Cursor toman sus ramas (`master-claude`, `master-Cursor`) and abordan C.1 y S.1 respectivamente.
+2. **Semana Siguiente:** Sincronización de progresos a `master-antigravity`. Antigravity evalúa el impacto del async I/O en la latencia global del kernel.
+3. **Validación N0:** Integración unificada a `main` tras validaciones somáticas. 
 1. **Semana 1:** Antigravity (N1) trabaja el **Módulo 1** y **Módulo 4**. Cursor Team (N2) despliega **Módulo 2** y **Módulo 3**.
 2. **Semana 2:** Antigravity (N1) despliega el **Módulo 6 (Swarm Ethics)** mientras Team Copilot (N2) realiza la **limpieza de repo y verificación de coherencia (Bloque 6.4)**.
 3. **Sincronización:** Todos los equipos hacen Pull Request hacia sus hubs (`master-*`). Antigravity evalúa y fusiona a `master-antigravity`.

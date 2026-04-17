@@ -64,7 +64,6 @@ def _async_chat_llm_http_enabled() -> bool:
         "on",
     )
 
-
 _T = TypeVar("_T")
 
 
@@ -93,7 +92,6 @@ def _run_process_chat_turn_in_worker(
         )
     finally:
         clear_llm_cancel_scope()
-
 
 _executor: ThreadPoolExecutor | None = None
 

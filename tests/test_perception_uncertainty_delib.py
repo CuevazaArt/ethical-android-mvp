@@ -2,7 +2,6 @@
 
 import os
 import sys
-from unittest.mock import patch
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
 
@@ -29,8 +28,7 @@ def _k() -> EthicalKernel:
     return EthicalKernel(variability=False, seed=_SEED)
 
 
-@patch("src.kernel.assess_humility_block", return_value=None)
-def test_perception_uncertainty_no_op_when_flag_off(mock_humility, monkeypatch):
+def test_perception_uncertainty_no_op_when_flag_off(monkeypatch):
     monkeypatch.delenv("KERNEL_PERCEPTION_UNCERTAINTY_DELIB", raising=False)
     d0 = _k().process(
         "test",
@@ -52,8 +50,7 @@ def test_perception_uncertainty_no_op_when_flag_off(mock_humility, monkeypatch):
     assert d1.decision_mode == "D_fast"
 
 
-@patch("src.kernel.assess_humility_block", return_value=None)
-def test_perception_uncertainty_upgrades_d_fast_to_delib_when_flag_on(mock_humility, monkeypatch):
+def test_perception_uncertainty_upgrades_d_fast_to_delib_when_flag_on(monkeypatch):
     monkeypatch.setenv("KERNEL_PERCEPTION_UNCERTAINTY_DELIB", "1")
     monkeypatch.setenv("KERNEL_PERCEPTION_UNCERTAINTY_MIN", "0.25")
     d0 = _k().process(
@@ -76,8 +73,7 @@ def test_perception_uncertainty_upgrades_d_fast_to_delib_when_flag_on(mock_humil
     assert d1.decision_mode == "D_delib"
 
 
-@patch("src.kernel.assess_humility_block", return_value=None)
-def test_perception_uncertainty_below_threshold_no_upgrade(mock_humility, monkeypatch):
+def test_perception_uncertainty_below_threshold_no_upgrade(monkeypatch):
     monkeypatch.setenv("KERNEL_PERCEPTION_UNCERTAINTY_DELIB", "1")
     monkeypatch.setenv("KERNEL_PERCEPTION_UNCERTAINTY_MIN", "0.9")
     d0 = _k().process(

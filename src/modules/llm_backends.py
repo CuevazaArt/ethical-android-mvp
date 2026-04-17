@@ -146,10 +146,7 @@ class AnthropicLLMBackend(LLMBackend):
         extra: dict[str, Any] = {}
         if t is not None:
             extra["temperature"] = float(t)
-        api_key = (
-            getattr(self._client, "api_key", None)
-            or os.environ.get("ANTHROPIC_API_KEY", "").strip()
-        )
+        api_key = getattr(self._client, "api_key", None) or os.environ.get("ANTHROPIC_API_KEY", "").strip()
         if not api_key:
             return await super().acompletion(system, user, **kwargs)
         aclient = AsyncAnthropic(api_key=api_key)

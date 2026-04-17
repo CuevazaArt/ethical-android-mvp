@@ -4,7 +4,6 @@ Handles real-time video stream acquisition from local hardware.
 """
 
 import logging
-import os
 import threading
 import time
 from typing import Any
@@ -18,10 +17,11 @@ try:
 except ImportError:
     HAS_CV2 = False
 
+import os
 
 def from_env_vision_capture() -> "VideoCaptureInterface":
     """
-    Factory method to create a VideoCaptureInterface using
+    Factory method to create a VideoCaptureInterface using 
     KERNEL_VISION_CAMERA_ID environment variable.
     """
     cam_id_str = os.environ.get("KERNEL_VISION_CAMERA_ID", "0").strip()
@@ -30,7 +30,6 @@ def from_env_vision_capture() -> "VideoCaptureInterface":
     except ValueError:
         cam_id = 0
     return VideoCaptureInterface(camera_id=cam_id)
-
 
 class VideoCaptureInterface:
     """

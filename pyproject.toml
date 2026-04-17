@@ -47,9 +47,6 @@ llm = [
 tuning = [
     "optuna>=3.0.0,<5.0.0",
 ]
-theater = [
-    # Empty marker for narrative/DAO/PAD layers — no additional dependencies required
-]
 # Convenience combo (explicit list — setuptools does not resolve self-referential extras reliably).
 all-optional = [
     "fastapi>=0.115.0,<1.0.0",
@@ -61,6 +58,7 @@ all-optional = [
     "optuna>=3.0.0,<5.0.0",
 ]
 # Document-only extra: same codebase; use when you want pip to record dependency on narrative/audit UX layers (PAD, weakness, MockDAO) explicitly.
+theater = []
 dev = [
     "pytest>=7.4.0,<10.0.0",
     "ruff>=0.9.0,<0.10.0",

@@ -16,7 +16,8 @@ Modes:
   ``session_banner_recommended`` in ``coercion_report`` for WebSocket clients.
 
 See ``docs/proposals/PROPOSAL_PERCEPTION_BACKEND_DEGRADATION_POLICY.md`` and the operator matrix
-``docs/proposals/PROPOSAL_LLM_TOUCHPOINT_DEGRADATION_MATRIX.md`` (``KERNEL_LLM_TP_*`` precedence).
+``docs/proposals/PROPOSAL_LLM_TOUCHPOINT_DEGRADATION_MATRIX.md`` (``KERNEL_LLM_TP_*`` precedence,
+optional ``KERNEL_LLM_GLOBAL_DEFAULT_POLICY`` after legacy).
 """
 
 from __future__ import annotations
@@ -24,11 +25,18 @@ from __future__ import annotations
 import os
 from typing import TYPE_CHECKING, Any
 
-from .llm_touchpoint_policies import TOUCHPOINT_PERCEPTION, global_safe_policy_enabled, raw_touchpoint_policy
+from .llm_touchpoint_policies import (
+    TOUCHPOINT_PERCEPTION,
+    raw_global_default_policy,
+    raw_touchpoint_policy,
+)
 from .perception_schema import PERCEPTION_FAILSAFE_NUMERIC, merge_parse_issues_into_perception
 
 if TYPE_CHECKING:
     from .llm_layer import LLMPerception
+
+# ADR 0016 C1 — Ethical tier classification
+__ethical_tier__ = "decision_support"
 
 # Default matches historical behavior: recover via ``_perceive_local`` on failure.
 DEFAULT_KERNEL_PERCEPTION_BACKEND_POLICY = "template_local"
@@ -37,18 +45,16 @@ _VALID_POLICIES = frozenset({"template_local", "fast_fail", "session_banner"})
 
 
 def resolve_perception_backend_policy() -> str:
-    # Global safe override
-    if global_safe_policy_enabled():
-        return "fast_fail"
     tp = raw_touchpoint_policy(TOUCHPOINT_PERCEPTION)
     if tp and tp in _VALID_POLICIES:
         return tp
     raw = os.environ.get("KERNEL_PERCEPTION_BACKEND_POLICY", "").strip().lower()
-    if raw in ("", "auto"):
-        return DEFAULT_KERNEL_PERCEPTION_BACKEND_POLICY
-    if raw not in _VALID_POLICIES:
-        return DEFAULT_KERNEL_PERCEPTION_BACKEND_POLICY
-    return raw
+    if raw and raw not in ("", "auto") and raw in _VALID_POLICIES:
+        return raw
+    g = raw_global_default_policy()
+    if g and g in _VALID_POLICIES:
+        return g
+    return DEFAULT_KERNEL_PERCEPTION_BACKEND_POLICY
 
 
 def apply_backend_degradation_meta(

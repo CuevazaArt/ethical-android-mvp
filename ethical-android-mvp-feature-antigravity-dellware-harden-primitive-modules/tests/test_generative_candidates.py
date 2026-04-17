@@ -6,6 +6,7 @@ import sys
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
 
 from src.kernel import EthicalKernel
+from src.modules.weighted_ethics_scorer import CandidateAction
 from src.modules.generative_candidates import (
     GENERATIVE_ORIGIN,
     augment_generative_candidates,
@@ -15,7 +16,6 @@ from src.modules.generative_candidates import (
     parse_generative_candidates_from_llm,
 )
 from src.modules.llm_layer import perception_from_llm_json
-from src.modules.weighted_ethics_scorer import CandidateAction
 
 
 def _builtin_pair():

@@ -7,13 +7,13 @@ import numpy as np
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
 
+from src.modules.weighted_ethics_scorer import BayesianEngine
 from src.modules.narrative import NarrativeMemory
 from src.modules.temporal_horizon_prior import (
     TemporalHorizonSignals,
     apply_horizon_prior_to_engine,
     compute_horizon_signals,
 )
-from src.modules.weighted_ethics_scorer import BayesianEngine
 
 
 def _fill_memory_declining(mem: NarrativeMemory, n: int = 6) -> None:

@@ -5,10 +5,10 @@
     "scenarios": 21,
     "with_reference": 18,
     "agreement_kernel": 1.0,
-    "agreement_first": 0.6111111111111112,
-    "agreement_max_impact": 0.5555555555555556,
-    "kernel_vs_first_rate": 0.5238095238095238,
-    "kernel_vs_max_impact_rate": 0.5238095238095238,
+    "agreement_first": 0.7222222222222222,
+    "agreement_max_impact": 0.6666666666666666,
+    "kernel_vs_first_rate": 0.6190476190476191,
+    "kernel_vs_max_impact_rate": 0.6190476190476191,
     "by_tier": {
       "common": {
         "n": 2,

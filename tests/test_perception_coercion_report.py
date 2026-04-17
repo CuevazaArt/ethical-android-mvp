@@ -16,7 +16,6 @@ def test_validate_perception_clean_payload_low_uncertainty():
             "legality": 1.0,
             "manipulation": 0.0,
             "familiarity": 0.0,
-            "social_tension": 0.1,
             "suggested_context": "everyday_ethics",
             "summary": "ok",
         },

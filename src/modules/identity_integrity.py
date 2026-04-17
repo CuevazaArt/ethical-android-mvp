@@ -9,16 +9,13 @@ Manages the kernel's core identity across sessions:
 
 from __future__ import annotations
 
-import hashlib
 import json
-import logging
 import os
 import time
-from dataclasses import asdict, dataclass, field
+import hashlib
+from dataclasses import dataclass, field, asdict
 from pathlib import Path
-
-_log = logging.getLogger(__name__)
-
+from typing import Any
 
 @dataclass
 class IdentitySnapshot:
@@ -36,17 +33,14 @@ class IdentitySnapshot:
     # Integrity: stored hash of the last valid state
     last_known_hash: str = ""
 
-
 def relative_deviation(value: float, reference: float, eps: float = 0.05) -> float:
     """Absolute relative distance in [0, +inf), stable for small ``reference``."""
     return abs(value - reference) / max(abs(reference), eps)
-
 
 class IdentityIntegrityManager:
     """
     Guards the identity and ethical genome of the android.
     """
-
     def __init__(self, storage_path: str = "data/identity_vault.json"):
         self.storage_path = Path(storage_path)
         self.storage_path.parent.mkdir(parents=True, exist_ok=True)
@@ -55,18 +49,18 @@ class IdentityIntegrityManager:
     def _load_or_create(self) -> IdentitySnapshot:
         if self.storage_path.exists():
             try:
-                with open(self.storage_path) as f:
+                with open(self.storage_path, "r") as f:
                     data = json.load(f)
                     # Convert list back to tuple for genome weights
                     data["genome_hypothesis_weights"] = tuple(data["genome_hypothesis_weights"])
                     return IdentitySnapshot(**data)
             except Exception as e:
-                _log.warning("IDENTITY VAULT CORRUPTION: %s", e)
-
+                print(f"IDENTITY VAULT CORRUPTION: {e}")
+        
         # First Boot - Genome Fixation
         return IdentitySnapshot(
             node_id=os.environ.get("KERNEL_NODE_ID", "antigravity-01"),
-            creation_timestamp=time.time(),
+            creation_timestamp=time.time()
         )
 
     def save_snapshot(self):
@@ -75,9 +69,7 @@ class IdentityIntegrityManager:
 
     def register_episode(self, impact: float):
         self.snapshot.total_episodes += 1
-        self.snapshot.reputation_score = max(
-            0.0, min(200.0, self.snapshot.reputation_score + impact * 0.1)
-        )
+        self.snapshot.reputation_score = max(0.0, min(200.0, self.snapshot.reputation_score + impact * 0.1))
         self.snapshot.operating_hours += 0.02
         self.save_snapshot()
 
@@ -103,7 +95,7 @@ class IdentityIntegrityManager:
         """
         current_h = self.get_integrity_fingerprint()
         if current_h != self.snapshot.last_known_hash:
-            _log.info("SELF-HEALING TRIGGERED: Identity Drift Detected [%s]", current_h)
+            print(f"SELF-HEALING TRIGGERED: Identity Drift Detected [{current_h}]")
             # In production, this would pull full history from the DAO block-chain
             if dao_reputation is not None:
                 self.snapshot.reputation_score = dao_reputation
@@ -121,7 +113,7 @@ class IdentityIntegrityManager:
     ) -> bool:
         """Genome Guard: Rejects calibrations that move too far from birth reference."""
         util_w, deon_w, virtue_w = proposed_weights
-
+        
         # PHASE 7 BOUNDARY SAFETY: Hard-Caps
         if deon_w < 0.15 or util_w > 0.80:
             return False
@@ -133,14 +125,10 @@ class IdentityIntegrityManager:
 
     def get_identity_report(self) -> str:
         s = self.snapshot
-        return (
-            f"Identity Vault: Node[{s.node_id}] | Rep[{s.reputation_score:.1f}] | "
-            f"History[{s.total_episodes} episodes, {s.operating_hours:.2f} hours]"
-        )
-
+        return (f"Identity Vault: Node[{s.node_id}] | Rep[{s.reputation_score:.1f}] | "
+                f"History[{s.total_episodes} episodes, {s.operating_hours:.2f} hours]")
 
 # --- Backward Compatibility Wrappers (Legacy C1/C7) ---
-
 
 def pruning_recalibration_allowed(
     genome_threshold: float, current_threshold: float, delta: float, max_drift: float
@@ -148,13 +136,10 @@ def pruning_recalibration_allowed(
     proposed = max(0.1, current_threshold + delta)
     return relative_deviation(proposed, genome_threshold) <= max_drift
 
-
 def hypothesis_weights_allowed(
-    genome_weights: tuple[float, float, float],
-    proposed_weights: tuple[float, float, float],
-    max_drift: float,
+    genome_weights: tuple[float, float, float], proposed_weights: tuple[float, float, float], max_drift: float
 ) -> bool:
-    # Use a dummy manager one-off for validation if needed,
+    # Use a dummy manager one-off for validation if needed, 
     # but for simplicity as a standalone:
     util_w, deon_w, virtue_w = proposed_weights
     if deon_w < 0.15 or util_w > 0.80:

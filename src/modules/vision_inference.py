@@ -7,12 +7,12 @@ and provides direct 'Absolute Evil' vetoes to the kernel.
 
 from __future__ import annotations
 
+import os
 import logging
 from dataclasses import dataclass, field
 from typing import Any
 
 _log = logging.getLogger(__name__)
-
 
 @dataclass
 class VisionDetection:
@@ -21,21 +21,14 @@ class VisionDetection:
     is_prohibited: bool = False
     metadata: dict[str, Any] = field(default_factory=dict)
 
-
 class VisionInferenceEngine:
     """
     Orchestrates CNN inference on situated image data.
     """
-
     def __init__(self):
         self.prohibited_labels = {
-            "weapon",
-            "gun",
-            "rifle",
-            "knife",
-            "revolver",
-            "explosive",
-            "dangerous_payload",
+            "weapon", "gun", "rifle", "knife", "revolver",
+            "explosive", "dangerous_payload"
         }
         # In production, this would load a PyTorch/TensorFlow model
         # (e.g. MobileNetV2 or YOLOv8-tiny)
@@ -52,20 +45,23 @@ class VisionInferenceEngine:
 
         detections = []
         raw_detections = image_metadata.get("detected_objects", [])
-
+        
         for d in raw_detections:
             label = d.get("label", "unknown").lower()
             conf = d.get("confidence", 0.0)
-
+            
             is_bad = any(p in label for p in self.prohibited_labels)
-
-            detections.append(
-                VisionDetection(label=label, confidence=conf, is_prohibited=is_bad, metadata=d)
-            )
-
+            
+            detections.append(VisionDetection(
+                label=label,
+                confidence=conf,
+                is_prohibited=is_bad,
+                metadata=d
+            ))
+            
             if is_bad and conf > 0.75:
                 _log.warning("PROHIBITED OBJECT DETECTED: %s (conf: %.2f)", label, conf)
-
+        
         return detections
 
     def get_highest_threat(self, detections: list[VisionDetection]) -> VisionDetection | None:

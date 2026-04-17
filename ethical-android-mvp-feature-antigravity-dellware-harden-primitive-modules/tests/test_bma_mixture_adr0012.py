@@ -10,6 +10,7 @@ from pathlib import Path
 
 import numpy as np
 import pytest
+
 from src.kernel import EthicalKernel
 from src.modules.bayesian_mixture_averaging import (
     analytic_expected_weights,

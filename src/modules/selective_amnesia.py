@@ -1,68 +1,57 @@
 """
 Selective Amnesia Service (Block 5.1: G4).
 Implements the "Right to be Forgotten" for ethical kernels.
-Allows permanent deletion of specific episodes and their associated audit evidence.
 """
 
 from __future__ import annotations
-
 import logging
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
-    from ..kernel import EthicalKernel
-
-from .dao_orchestrator import DAOOrchestrator
+    from .narrative import NarrativeMemory
+    from .dao_orchestrator import DAOOrchestrator
 
 _log = logging.getLogger(__name__)
 
 
 class SelectiveAmnesia:
     """
-    Coordinates the permanent removal of historical data across all layers:
-    1. Episodic Narrative (Tier 2/3)
-    2. Audit Ledger (OGA/DAO)
-    3. Memory Index (Identity Reflection)
+    Coordinates the permanent removal of historical data across all layers.
     """
 
-    def __init__(self, kernel: EthicalKernel):
-        self.kernel = kernel
+    def __init__(self, memory: NarrativeMemory, dao: DAOOrchestrator):
+        self.memory = memory
+        self.dao = dao
 
     def forget_episode(self, episode_id: str) -> bool:
         """
         Triggers a cascading deletion of all data related to the episode.
-        This is a destructive, irreversible operation.
         """
         _log.info("Triggering Right to be Forgotten for episode %s", episode_id)
 
-        # 1. Delete from Narrative Persistence (Tier 2/3)
-        narrative_deleted = self.kernel.memory.persistence.delete_episode(episode_id)
+        # 1. Delete from Narrative Persistence
+        narrative_deleted = self.memory.persistence.delete_episode(episode_id)
 
         # 2. Sync in-memory list
-        self.kernel.memory.episodes = [
-            ep for ep in self.kernel.memory.episodes if ep.id != episode_id
+        self.memory.episodes = [
+            ep for ep in self.memory.episodes if ep.id != episode_id
         ]
 
         # 3. Delete from Audit Ledger (DAO)
-        dao = self.kernel.dao
-        mock_face = dao.local_dao if isinstance(dao, DAOOrchestrator) else dao
+        from .dao_orchestrator import DAOOrchestrator
+        mock_face = self.dao.local_dao if isinstance(self.dao, DAOOrchestrator) else self.dao
         audit_deleted_count = mock_face.delete_records_by_episode(episode_id)
 
-        # 4. Final verification and report
+        # 4. Success verification
         success = narrative_deleted or (audit_deleted_count > 0)
-        if success:
-            _log.info("Cascade completed. Audit records purged: %d", audit_deleted_count)
-        else:
-            _log.warning("No data found for episode %s", episode_id)
-
-        # 5. Re-trigger Identity Reflection to ensure the amnesia is reflected in the self-model
-        self.kernel.memory.consolidate()
+        
+        # 5. Re-trigger Identity Reflection
+        self.memory.consolidate()
 
         return success
 
     def forget_context(self, context_type: str) -> int:
-        """Deletes all episodes belonging to a specific context (e.g., 'private')."""
-        target_ids = [ep.id for ep in self.kernel.memory.episodes if ep.context == context_type]
+        target_ids = [ep.id for ep in self.memory.episodes if ep.context == context_type]
         count = 0
         for eid in target_ids:
             if self.forget_episode(eid):

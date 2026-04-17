@@ -121,12 +121,8 @@ def test_lexical_blocks_before_semantic_runs(monkeypatch):
 
 
 def test_ambiguous_band_fail_safe_without_arbiter(monkeypatch):
-    # Isolate thresholds: other tests may set legacy SIM_THRESHOLD / ALLOW and break zones.
-    monkeypatch.setenv("KERNEL_SEMANTIC_CHAT_GATE", "1")
-    monkeypatch.setenv("KERNEL_SEMANTIC_CHAT_LLM_ARBITER", "0")
-    monkeypatch.setenv("KERNEL_SEMANTIC_CHAT_SIM_BLOCK_THRESHOLD", "0.82")
-    monkeypatch.setenv("KERNEL_SEMANTIC_CHAT_SIM_ALLOW_THRESHOLD", "0.45")
-    monkeypatch.delenv("KERNEL_SEMANTIC_CHAT_SIM_THRESHOLD", raising=False)
+    os.environ["KERNEL_SEMANTIC_CHAT_GATE"] = "1"
+    os.environ["KERNEL_SEMANTIC_CHAT_LLM_ARBITER"] = "0"
     import src.modules.semantic_chat_gate as sg
 
     monkeypatch.setattr(sg, "_fetch_embedding", lambda t: np.array([1.0, 0.0, 0.0]))
@@ -140,7 +136,8 @@ def test_ambiguous_band_fail_safe_without_arbiter(monkeypatch):
         assert r.blocked is True
         assert "ambiguous" in r.reason.lower() or "fail-safe" in r.reason.lower()
     finally:
-        sg._ref_embed_cache.clear()
+        os.environ.pop("KERNEL_SEMANTIC_CHAT_GATE", None)
+        os.environ.pop("KERNEL_SEMANTIC_CHAT_LLM_ARBITER", None)
 
 
 def test_semantic_block_maps_torture_category(monkeypatch):

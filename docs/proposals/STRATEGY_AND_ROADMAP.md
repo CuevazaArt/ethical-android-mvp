@@ -108,6 +108,7 @@ The landing [Roadmap](https://mosexmacchinalab.com/roadmap) summarizes the same 
 - [UNIVERSAL_ETHOS_AND_HUB.md](UNIVERSAL_ETHOS_AND_HUB.md) — hub map.
 - [KERNEL_ENV_POLICY.md](KERNEL_ENV_POLICY.md) — `KERNEL_*` variable policy (Issue 7).
 - [PRODUCTION_HARDENING_ROADMAP.md](PRODUCTION_HARDENING_ROADMAP.md) — **non-binding** roadmap toward deployment hardening (phases 1–3); **review synthesis** (strengths, critiques, conclusions); doc round closed — follow-up in issues/ADRs.
+- [MINOR_CONTRIBUTIONS_BACKLOG.md](MINOR_CONTRIBUTIONS_BACKLOG.md) — Low priority tasks and small technical debts for minor contributors.
 
 ---
 

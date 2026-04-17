@@ -107,24 +107,24 @@ class SwarmNegotiator:
         """
         return "compromise_alpha"
 
-    def cast_distributed_vote(
-        self, proposal_id: str, action: str, signals: dict, peers: list[str]
-    ) -> bool:
+    def cast_distributed_vote(self, proposal_id: str, action: str, signals: dict, peers: list[str]) -> bool:
         """
         Bloque 6.2: Asks peers to vote on a candidate action.
         Returns True if consensus is reached (>50% agreement).
         """
         votes = []
-        for _peer in peers:
+        for peer in peers:
             # Mock Peer Voting: Peers vote 'agree' with 70% probability if signal risk is low
             risk = signals.get("risk", 0.5)
             vote = "agree" if risk < 0.6 else "abstain"
             votes.append(vote)
-
+        
+        agreements = votes.count("agree")
+        
         # Bloque 7.2: Weighted consensus logic
         total_weight = 0.0
         agreement_weight = 0.0
-
+        
         # Peer reputation weighting (I1/I7 Integration)
         for i, peer in enumerate(peers):
             # In a full system, we fetch rep from SwarmOracle
@@ -136,18 +136,18 @@ class SwarmNegotiator:
                 agreement_weight += weight
 
         is_consensus = agreement_weight > (total_weight / 2.0)
-
+        
         if is_consensus:
-            self.state.consensus_log.append(
-                {
-                    "proposal_id": proposal_id,
-                    "action": action,
-                    "votes": votes,
-                    "agreement_weight": agreement_weight,
-                    "timestamp": time.time(),
-                }
-            )
-
+            voter_map = {i: peer for i, peer in enumerate(peers)}
+            self.state.consensus_log.append({
+                "proposal_id": proposal_id,
+                "action": action,
+                "votes": votes,
+                "voters": voter_map,
+                "agreement_weight": agreement_weight,
+                "timestamp": time.time()
+            })
+        
         return is_consensus
 
     def get_swarm_trust_nudge(self) -> float:
@@ -161,7 +161,6 @@ class SwarmNegotiator:
         peer_count = len(self.state.known_peers)
         nudge = min(0.15, peer_count * 0.04)
         return nudge
-
     def promote_consensus_to_dao(self, dao):
         """
         Registers major consensus items as Solidarity Alerts in the DAO.
@@ -171,5 +170,65 @@ class SwarmNegotiator:
             dao.emit_solidarity_alert(
                 type="swarm_consensus",
                 location="swarm_network",
-                message=f"Collective agreement reaching DAO: {last_item}",
+                message=f"[SIMULATION_consensus] Collective agreement reached (MOCK): {last_item}",
             )
+
+    def apply_swarm_justice(self, dao, oracle, case_ref: str):
+        """
+        Bloque 7.1 & 7.2: Analyzes consensus history to punish deviants and 
+        compensate for sensory negligence.
+        """
+        if not self.state.consensus_log:
+            return
+
+        from .reparation_vault import (
+            execute_simulated_payout,
+            register_slashing_intent,
+            reparation_vault_mock_enabled,
+        )
+
+        last_item = self.state.consensus_log[-1]
+        proposal_id = last_item.get("proposal_id", "unknown")
+        votes = last_item.get("votes", [])
+        action = last_item.get("action", "unknown")
+        
+        # We define JUSTICE if we have consensus (which is already the case if it's in the log)
+        # nodes that voted 'abstain' or 'disagree' when the swarm agreed on a 'danger' signal
+        # are considered 'sensors failed' or 'negligent'.
+        
+        for i, vote in enumerate(votes):
+            if vote in ["abstain", "disagree"]:
+                # Bloque 7.2 Hardening: Map votes back to actual sender IDs
+                node_id = last_item.get("voters", {}).get(i, f"unknown_node_{i}")
+                
+                # Byzantine Protection: Check if the dissent was based on local Safety Veto
+                from .absolute_evil import AbsoluteEvilDetector
+                ae = AbsoluteEvilDetector()
+                is_safe_dissent = ae._evaluate_chat_text_lexical(action).blocked
+
+                if is_safe_dissent:
+                    # Dissenter was right! No slashing. 
+                    continue
+
+                # Reputation-based Grace (Bloque 7.3):
+                current_rep = oracle.get_reputation_hint(node_id)
+                penalty = 0.15
+                if current_rep > 0.92:
+                    penalty = 0.05 # Reduced penalty for stable nodes
+
+                # Bloque 7.2: Slashing
+                oracle.apply_slashing(node_id, severity=penalty)
+                register_slashing_intent(
+                    dao, 
+                    node_id, 
+                    f"Consensus mismatch on prop {proposal_id} (attributable). Swarm agreed, Peer failed."
+                )
+
+                # Bloque 7.1: Reparation (Pilar 3 - Restorative)
+                if reparation_vault_mock_enabled():
+                    execute_simulated_payout(
+                        dao,
+                        case_ref=case_ref,
+                        recipient_id="community_01",
+                        amount=20 # EthosTokens
+                    )

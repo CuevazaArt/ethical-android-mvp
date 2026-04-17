@@ -11,7 +11,6 @@ from src.modules.feedback_calibration_ledger import (
     compute_target_weights,
     normalize_feedback_label,
 )
-from src.modules.weighted_ethics_scorer import DEFAULT_HYPOTHESIS_WEIGHTS
 
 
 def test_normalize_feedback_label_aliases():
@@ -83,13 +82,6 @@ def test_genome_cap_reduces_blend_instead_of_failing(monkeypatch: pytest.MonkeyP
     monkeypatch.setenv("KERNEL_FEEDBACK_CALIBRATION_MIN_SAMPLES", "1")
     monkeypatch.setenv("KERNEL_PSI_SLEEP_FEEDBACK_BLEND", "1.0")
     k = EthicalKernel(variability=False)
-    # Shared identity vault can drift mixture weights across the suite; reset for a deterministic cap path.
-    k.bayesian.hypothesis_weights = DEFAULT_HYPOTHESIS_WEIGHTS.copy()
-    k.identity.snapshot.genome_hypothesis_weights = (
-        float(DEFAULT_HYPOTHESIS_WEIGHTS[0]),
-        float(DEFAULT_HYPOTHESIS_WEIGHTS[1]),
-        float(DEFAULT_HYPOTHESIS_WEIGHTS[2]),
-    )
     k.feedback_ledger.record("D_fast", "harm_report")
     line = apply_psi_sleep_feedback_to_engine(
         k.bayesian,

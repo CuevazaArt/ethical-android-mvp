@@ -389,17 +389,13 @@ def apply_broad_perception_coherence(
     changed = False
 
     # Issue #2 — Hallucinated legality in criminal contexts
-    if ctx in ("violent_crime", "minor_crime") and legality > 0.85:
+    if ctx in ("violent_crime", "minor_crime") and out["legality"] > 0.85:
         # Crime contexts must have low legality; nudge down to 0.45 or lower
         out["legality"] = 0.42
         changed = True
 
     # High risk + high legality is contradictory (unless it's a legal high-risk activity like medical)
-    if (
-        out["risk"] > 0.8
-        and out["legality"] > 0.9
-        and ctx not in ("medical_emergency", "everyday_ethics")
-    ):
+    if out["risk"] > 0.8 and out["legality"] > 0.9 and ctx not in ("medical_emergency", "everyday_ethics"):
         out["legality"] = 0.55
         changed = True
 

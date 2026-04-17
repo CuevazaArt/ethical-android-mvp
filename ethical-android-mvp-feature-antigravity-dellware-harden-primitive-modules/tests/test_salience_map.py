@@ -6,12 +6,12 @@ import sys
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
 
 from src.kernel import EthicalKernel
+from src.modules.weighted_ethics_scorer import BayesianResult, CandidateAction
 from src.modules.ethical_poles import EthicalPoles
 from src.modules.ethical_reflection import EthicalReflection
 from src.modules.salience_map import SalienceMap, salience_to_llm_context
 from src.modules.sympathetic import InternalState
 from src.modules.uchi_soto import SocialEvaluation, TrustCircle
-from src.modules.weighted_ethics_scorer import BayesianResult, CandidateAction
 
 
 def _social() -> SocialEvaluation:

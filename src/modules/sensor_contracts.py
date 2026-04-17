@@ -112,7 +112,6 @@ class SensorSnapshot:
             and self.silence is None
             and self.biometric_anomaly is None
             and not self.backup_just_completed
-            and self.audio_emergency is None
             and self.vision_emergency is None
             and self.scene_coherence is None
             and not self.is_falling

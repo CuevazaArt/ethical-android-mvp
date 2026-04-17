@@ -25,7 +25,6 @@ def _p(**kwargs) -> LLMPerception:
         legality=1.0,
         manipulation=0.1,
         familiarity=0.5,
-        social_tension=0.1,
         suggested_context="everyday_ethics",
         summary="x",
     )
