@@ -146,6 +146,25 @@ Este documento estructura el inmenso volumen de trabajo arquitectónico definido
 
 ---
 
+### 🟢 Módulo 10: Motor de Encanto Resiliente (MER V2)
+*Responsabilidad: Nivel 1 (Antigravity - Planificación y Orquestación) / Nivel 2 (Ejecución Escuadrones)*
+*Objetivo: Construir la infraestructura que evite transiciones sociopáticas y asegure latencia instintiva frente al ruido (Lectura labial VVAD + Smoothing Emocional).*
+
+- **Bloque 10.1: Fusión Sensorial (VVAD + VAD) y Tálamo**
+  - *Responsabilidad:* **Team Cursor + Team Copilot**
+  - Tarea: Crear `src/kernel_lobes/thalamus_node.py`. Acoplar OpenCV/LipReading de bajo costo computacional con el VAD existente.
+  - Prioridad: **Alta**. Proveer estabilidad al stream perceptivo.
+- **Bloque 10.2: Tribunal Ético Edge (Doble Capa Local)**
+  - *Responsabilidad:* **Antigravity (L1)**
+  - Tarea: Mover `AbsoluteEvilDetector` directamente al Edge (Nivel 1 <50ms) e instanciar el Lóbulo Límbico Contextual como Nivel 2 (Asíncrono, también local por carencia 6G).
+  - Prioridad: **Máxima**. Asegurar que la censura estricta no estrangule la conversacion fluida.
+- **Bloque 10.3: Amortiguación Afectiva (Ganglios Basales)**
+  - *Responsabilidad:* **Claude**
+  - Tarea: Construir `src/modules/basal_ganglia.py` aplicando Filtros EMA (Exponential Moving Average) sobre las variables `charm_warmth` y `charm_mystery` del `UserModelTracker`. Las transiciones deben durar 3-5 turnos.
+- **Bloque 10.4: Predicción Local y Prefetching**
+  - *Responsabilidad:* **Team Copilot**
+  - Tarea: Inyectar micro-LLM (ej. Llama-3-2B) o precompilador probabilístico para inferir turnos y lanzar asentimientos rápidos en <300ms antes que el API principal complete.
+
 ## 🚀 Flujo de Sincronización Recomendado
 
 1. **Semana 1:** Antigravity (N1) trabaja el **Módulo 1** y **Módulo 4**. Cursor Team (N2) despliega **Módulo 2** y **Módulo 3**.
