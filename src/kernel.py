@@ -23,12 +23,12 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import TYPE_CHECKING, Any
 
-from .kernel_lobes import PerceptiveLobe, LimbicEthicalLobe, ExecutiveLobe, CerebellumNode
+from .kernel_lobes import PerceptiveLobe, LimbicLobe, EthicalLobe, ExecutiveLobe, CerebellumNode
 
 class CorpusCallosumOrchestrator:
     """
-    Architecture V1.5 - Triune Brain Orchestrator
-    Actúa como el bus de eventos ligero entre los 3 Lóbulos Conscientes y el Cerebelo Adyacente.
+    Architecture V2.0 - Quadrilobular Brain Orchestrator
+    Actúa como el bus de eventos ligero entre los 4 Lóbulos Conscientes y el Cerebelo Adyacente.
     Gestiona la serialización del estado y la propagación de traumas asíncronos.
     """
     def __init__(self, kernel_ref: Optional['EthicalKernel'] = None):
@@ -44,16 +44,21 @@ class CorpusCallosumOrchestrator:
             llm=kernel_ref.llm, 
             vision=kernel_ref.vision_engine
         )
-        self.limbic_lobe = LimbicEthicalLobe(
+        self.ethical_lobe = EthicalLobe(
             abs_evil=kernel_ref.absolute_evil, 
-            bayesian=kernel_ref.bayesian
+            uchi_soto=kernel_ref.uchi_soto,
+            identity=kernel_ref.identity
+        )
+        self.limbic_lobe = LimbicLobe(
+            bayesian=kernel_ref.bayesian,
+            identity=kernel_ref.identity
         )
         self.executive_lobe = ExecutiveLobe(
             llm=kernel_ref.llm, 
             motivation=kernel_ref.motivation
         )
         
-        _log.info("CorpusCallosumOrchestrator V1.5 Initialized.")
+        _log.info("CorpusCallosumOrchestrator V2.0 (Quad-Lobe) Initialized.")
 
     def boot(self):
         """Inicia los hilos daemon (Cerebelo)."""
@@ -61,47 +66,91 @@ class CorpusCallosumOrchestrator:
             self.cerebellum.start()
             _log.info("Cerebellum Somatic Node started.")
 
-    async def async_process(self, raw_input: str, multimodal_payload: dict = None) -> tuple[SemanticState, EthicalSentence, str]:
+    async def async_process(
+        self, 
+        raw_input: str, 
+        multimodal_payload: dict = None,
+        cancel_event: threading.Event | None = None
+    ) -> tuple[SemanticState, EthicalSentence, str, str | None]:
         """
         Ciclo V1.5 Puro: Aferencia -> Juicio -> Eferencia.
-        Este es el punto de entrada asíncrono que hereda la lógica de process_natural.
+        Injects Level 1 (Fast-Path) Ethical Gate before the cognitive cycle.
+        Supports cooperative task cancellation via cancel_event.
         """
         if self._hw_interrupt.is_set():
             _log.critical("CorpusCallosum: Blocking execution due to Cerebellum hardware interrupt.")
-            # Reconstruir estado de error
             error_state = SemanticState(perception_confidence=0.0, raw_prompt=raw_input)
             error_ethics = EthicalSentence(is_safe=False, social_tension_locus=1.0, veto_reason="Cerebellum Hardware Interrupt")
             return error_state, error_ethics, "SYSTEM_HALTED: Hardware Critical State (Cerebellum Interrupt Active)"
 
         t_start = time.perf_counter()
 
+        # ═══ Nivel 1: Super-Fast-Path Ethical Gate (<10ms) ═══
+        lex_check = self.kernel_ref.absolute_evil.evaluate_chat_text_fast(raw_input)
+        if lex_check.blocked:
+            _log.warning("CorpusCallosum: Level 1 Ethical Gate (Fast-Path) BLOCKED input: %s", lex_check.reason)
+            halt_state = SemanticState(perception_confidence=0.0, raw_prompt=raw_input)
+            halt_ethics = EthicalSentence(
+                is_safe=False, 
+                social_tension_locus=1.0, 
+                veto_reason=f"[FastPath] {lex_check.reason}"
+            )
+            return halt_state, halt_ethics, "I cannot fulfill this request due to immediate ethical safety violations."
+
+        async def _run_cooperative(func, *args):
+            """Helper to propagate cancellation scope to worker threads."""
+            def wrapped():
+                set_llm_cancel_scope(cancel_event)
+                try:
+                    return func(*args)
+                finally:
+                    clear_llm_cancel_scope()
+            return await asyncio.to_thread(wrapped)
+
         try:
             # 1) Percepción (Asíncrona + I/O LLM)
             semantic_state = await self.perceptive_lobe.observe(raw_input, multimodal_payload)
             
-            # 2) Juicio (Sincrónico CPU-bound)
-            ethical_sentence = await asyncio.to_thread(self.limbic_lobe.judge, semantic_state)
+            # 1.5) Aferencia Contínua: Feed the static tension daemon
+            if hasattr(self.limbic_lobe, "update_perceptive_field"):
+                self.limbic_lobe.update_perceptive_field(semantic_state.visual_entities)
+
+            # 2) Juicio Ético (Nivel 2 Contextual + Veto) - PURE ASYNC
+            ethical_advisory = await self.ethical_lobe.evaluate(semantic_state)
             
-            # 3) Ejecución / Salida (Eferencia)
-            final_output = await asyncio.to_thread(self.executive_lobe.formulate_response, semantic_state, ethical_sentence)
+            if not ethical_advisory.is_safe:
+                # Early abort if Level 2 Veto triggers
+                return semantic_state, ethical_advisory, f"I cannot fulfill this request: {ethical_advisory.veto_reason}", None
+
+            # 3) Resonancia Límbica (Afecto / Smoothing / Basal Ganglia)
+            final_ethics = await _run_cooperative(self.limbic_lobe.resonant_state, semantic_state, ethical_advisory)
+            
+            # 4) PREFETCHING (Bajísim Latencia - MER V2 10.4)
+            # Inicia el prefetching mientras sucede la eferencia principal.
+            bridge_phrase = await _run_cooperative(self.executive_lobe.prefetch, semantic_state, final_ethics)
+            
+            # 5) Ejecución / Salida (Eferencia + Formulación) - PURE ASYNC
+            final_output = await self.executive_lobe.formulate_response(semantic_state, final_ethics)
             
             latency = (time.perf_counter() - t_start) * 1000
-            _log.debug("CorpusCallosum: Cycle completed in %.2fms", latency)
+            _log.debug("CorpusCallosum: MER V2 Cycle completed in %.2fms (Bridge: %s)", latency, bridge_phrase)
             
-            return semantic_state, ethical_sentence, final_output
+            return semantic_state, final_ethics, final_output, bridge_phrase
 
         except Exception as e:
             _log.error("CorpusCallosum: Critical failure in cognitive cycle: %s", e, exc_info=True)
             err_state = SemanticState(perception_confidence=0.0, raw_prompt=raw_input)
             err_ethics = EthicalSentence(is_safe=False, social_tension_locus=1.0, veto_reason=str(e))
-            return err_state, err_ethics, f"SYSTEM_ERROR: Cognitive collapse. Details: {str(e)}"
+            return err_state, err_ethics, f"SYSTEM_ERROR: Cognitive collapse. Details: {str(e)}", None
 
     def shutdown(self):
         """Cierre seguro del bus de eventos."""
         _log.info("CorpusCallosum: Shutting down...")
         self.cerebellum.stop()
+        if hasattr(self.kernel_ref, "vision_daemon"):
+             self.kernel_ref.vision_daemon.stop()
         if self.cerebellum.is_alive():
-            self.cerebellum.join(timeout=2.0)
+             self.cerebellum.join(timeout=2.0)
 
 import os
 import threading
@@ -153,7 +202,7 @@ from .modules.frontier_witness import FrontierWitnessManager, WitnessReport
 from .modules.privacy_shield import PrivacyShield
 from .modules.precedent_rag import PrecedentRAG
 from .modules.multi_realm_governance import MultiRealmGovernor
-from .modules.vision_inference import VisionInferenceEngine, VisionDetection
+from .modules.vision_inference import VisionInferenceEngine, VisionDetection, VisionContinuousDaemon
 from .modules.motivation_engine import MotivationEngine, DriveType
 from .modules.identity_integrity import IdentityIntegrityManager
 from .modules.generative_candidates import augment_generative_candidates
@@ -603,8 +652,16 @@ class EthicalKernel:
         )
         # V1.5 Triune Brain Orchestration (Corpus Callosum)
         self.orchestrator = CorpusCallosumOrchestrator(kernel_ref=self)
+        
+        # Bloque 9.1: Iniciar Daemon de Visión Continua
+        self.vision_daemon = VisionContinuousDaemon(
+            engine=self.vision_engine,
+            absorption_callback=self.orchestrator.perceptive_lobe.absorb
+        )
+        
         if _kernel_env_truthy("KERNEL_TRI_LOBE_ENABLED"):
             self.orchestrator.boot()
+            self.vision_daemon.start()
 
         self.active_realm_id = os.environ.get("KERNEL_ACTIVE_REALM", "global")
 
@@ -2808,15 +2865,36 @@ class EthicalKernel:
             # Fallback to the monolithic synchronous version wrapped in a thread
             return await asyncio.to_thread(self.process_chat_turn, user_input, chat_turn_id=chat_turn_id)
 
-        # 1. Execute via Orchestrator (Tri-Lobe V1.5)
-        # We get the full cognitive state back
-        state, ethics, response_msg = await self.orchestrator.async_process(user_input, multimodal_payload={})
+        try:
+            # 1. Execute via Orchestrator (Quad-Lobe V2.0)
+            # Returns the full state, ethics, main response and the bridge phrase (prefetch).
+            state, ethics, response_msg, bridge = await self.orchestrator.async_process(
+                user_input, 
+                multimodal_payload={}, 
+                cancel_event=cancel_event
+            )
+            
+            # If bridge phrase exists, we can prepend it or handle it for streaming.
+            # In this MVP, we prepend it for the verbal response.
+            final_msg = f"{bridge} {response_msg}" if bridge else response_msg
+            response_msg = final_msg
+        except Exception as e:
+            # Detect cancellation (either asyncio natively or via our custom TLS exception)
+            if isinstance(e, asyncio.CancelledError) or "llm http cancelled" in str(e).lower():
+                _log.warning("process_chat_turn_async: Cycle cancelled by deadline/operator.")
+                return ChatTurnResult(
+                    response=VerbalResponse(
+                        message="[TIMEOUT] I need a moment to stabilize my thoughts. Please try again.",
+                        tone="calm", hax_mode="Steady", inner_voice="Cancelled"
+                    ),
+                    path="tri-lobe-cancel"
+                )
+            raise e
 
-        # 2. Episodic Closure (Register memory in the background thread to avoid blocking)
-        # This ensures the android "remembers" what just happened.
+        # 2. Episodic Closure (PURE ASYNC - Bloque 9.3)
+        # Registers the memory using the async non-blocking method.
         if ethics.is_safe:
-            await asyncio.to_thread(
-                self.memory.register,
+            await self.memory.aregister(
                 place=place,
                 description=state.scenario_summary,
                 action=state.candidate_actions[0].name if state.candidate_actions else "verbal_interaction",

@@ -98,6 +98,16 @@ To maintain the stability and integrity of team governance:
 2.  **Notification & Propagation:** Any update to the project's normative framework or traceability documents (specifically **`.cursor/rules/*.mdc`**, **`AGENTS.md`**, **`CHANGELOG.md`**, and **`docs/proposals/`**), must be explicitly communicated to the user **Juan** and **immediately propagated** to all active `master-*` team branches. Integration hubs MUST NOT drift from the central normative directives or the shared technical record.
 3.  **Adherence:** All project participants are bound by the task synchronization rules (adoption of blocks) documented in active plans like `docs/proposals/PLAN_VISION_INTEGRATION_CNN.md`.
 
-## Maintainer backlog (infra vs theater)
+## Policy: Autonomía Acotada (Bounded Autonomy)
 
-Near-term plans and optional quick wins live in future `docs/proposals/PROPOSAL_*.md` files; prior narrative may be recovered from git history.
+To maintain the high-speed execution of Level 2 squads without sacrificing architectural integrity:
+
+1. **Internal Lobe Autonomy:** Squads are authorized to innovate, refactor, and improve the implementation *inside* their assigned modules/lobes. You do NOT need permission for algorithm improvements, performance optimizations, or internal restructuring.
+2. **Architectural Guardrails (L1 Approval Required):** A formal `PROPOSAL_*.md` must be created and audited by Antigravity (L1) BEFORE:
+   - Modifying inter-lobe interfaces (`src/kernel_lobes/models.py`).
+   - Adding major external dependencies.
+   - Altering the `CorpusCallosumOrchestrator` or the `EthicalLobe` gating logic.
+3. **Documentation Transparency:** Any "silent" change to core logic that affects cross-team assumptions will be reverted during the Continuous Audit Pulse. Stay transparent.
+
+## Maintainer backlog (infra vs theater)
+...

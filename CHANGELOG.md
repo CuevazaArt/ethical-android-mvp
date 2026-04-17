@@ -14,7 +14,17 @@ All notable changes to this project are summarized here. For narrative context a
 
 ### Antigravity Team Updates (April 2026)
 
-### [Arquitectura: Desmonolitización Tri-Lobulada] - 2026-04-17
+### [Arquitectura: Cerebro Cuadripolar MER V2] - 2026-04-17
+#### Added
+- **Fisión de Lóbulos Ético y Límbico**: Separación formal del Tribunal Deontológico de la Resonancia Afectiva.
+- **Implementación BasalGanglia (Smoothing)**: Inyectado módulo de suavizado conductual (EMA) en el `LimbicLobe` para estabilizar las variables de `warmth` y `mystery`.
+- **Estructura Cuadripolar**: El orquestador `CorpusCallosum` ahora gestiona el flujo: Percepción -> Ética -> Límbico -> Ejecutivo.
+
+#### Changed
+- `LimbicEthicalLobe` descontinuado en favor de `EthicalLobe` y `LimbicLobe`.
+- **Intervención Antigravity (L1)**: Asumida la responsabilidad del Bloque 10.3 (Smoothing) ante la indisponibilidad temporal del equipo Claude.
+
+### [Bloque 0: Estabilización y Orquestación Crítica] - 2026-04-17
 #### Added
 - Estructura base de **Lóbulos Perceptivo, Límbico-Ético y Ejecutivo** en `src/kernel_lobes/`.
 - Definición de modelos de comunicación entre lóbulos (`SemanticState`, `EthicalSentence`, `TimeoutTrauma`).

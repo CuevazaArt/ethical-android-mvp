@@ -170,14 +170,39 @@ def http_fetch_ollama_embedding(
 ) -> np.ndarray | None:
     """
     POST Ollama embeddings JSON; return unit L2 vector or ``None``.
-
-    Applies retries, backoff, and circuit breaker via :func:`http_fetch_ollama_embedding_with_policy`.
     """
     return http_fetch_ollama_embedding_with_policy(url, model, prompt, timeout_s=timeout_s)
+
+async def ahttp_fetch_ollama_embedding(
+    url: str,
+    model: str,
+    prompt: str,
+    *,
+    timeout_s: float | None = None,
+) -> np.ndarray | None:
+    """
+    Async POST Ollama embeddings JSON; return unit L2 vector or ``None``.
+    """
+    return await ahttp_fetch_ollama_embedding_with_policy(url, model, prompt, timeout_s=timeout_s)
 
 
 def _post_once(client: Any, url: str, payload: dict[str, Any]) -> list[float] | None:
     r = client.post(url, json=payload)
+    r.raise_for_status()
+    data = r.json()
+    emb = data.get("embedding")
+    if not emb or not isinstance(emb, list):
+        return None
+    arr = np.asarray([float(x) for x in emb], dtype=np.float64).reshape(-1)
+    if arr.size == 0 or not np.all(np.isfinite(arr)):
+        return None
+    n = float(np.linalg.norm(arr))
+    if n < 1e-12:
+        return None
+    return (arr / n).tolist()
+
+async def _apost_once(client: httpx.AsyncClient, url: str, payload: dict[str, Any]) -> list[float] | None:
+    r = await client.post(url, json=payload)
     r.raise_for_status()
     data = r.json()
     emb = data.get("embedding")
@@ -230,6 +255,49 @@ def http_fetch_ollama_embedding_with_policy(
             last_err = repr(e)
             if attempt < retries and backoff > 0:
                 time.sleep(backoff * (attempt + 1))
+    if last_err:
+        _record_failure(last_err)
+    return None
+
+async def ahttp_fetch_ollama_embedding_with_policy(
+    url: str,
+    model: str,
+    prompt: str,
+    *,
+    timeout_s: float | None = None,
+) -> np.ndarray | None:
+    import httpx
+    import asyncio
+
+    t = (
+        timeout_s
+        if timeout_s is not None
+        else max(1.0, _env_float("KERNEL_SEMANTIC_EMBED_TIMEOUT_S", 12.0))
+    )
+    retries = max(0, _env_int("KERNEL_SEMANTIC_EMBED_RETRIES", 2))
+    backoff = max(0.0, _env_float("KERNEL_SEMANTIC_EMBED_BACKOFF_S", 0.25))
+
+    if _circuit_blocks():
+        return None
+
+    payload = {"model": model, "prompt": prompt}
+    last_err = ""
+    for attempt in range(retries + 1):
+        if _circuit_blocks():
+            break
+        t0 = time.perf_counter()
+        try:
+            async with httpx.AsyncClient(timeout=t) as client:
+                vec_list = await _apost_once(client, url, payload)
+            if vec_list is None:
+                raise ValueError("missing or invalid embedding array")
+            latency_ms = (time.perf_counter() - t0) * 1000.0
+            _record_success(latency_ms)
+            return np.asarray(vec_list, dtype=np.float64)
+        except Exception as e:
+            last_err = repr(e)
+            if attempt < retries and backoff > 0:
+                await asyncio.sleep(backoff * (attempt + 1))
     if last_err:
         _record_failure(last_err)
     return None

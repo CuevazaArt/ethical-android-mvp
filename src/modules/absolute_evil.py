@@ -8,7 +8,7 @@ something burns.
 
 from dataclasses import dataclass, field
 from enum import Enum
-from typing import Protocol
+from typing import Protocol, Any, Union
 
 from .input_trust import normalize_text_for_malabs
 from .semantic_chat_gate import semantic_chat_gate_env_enabled
@@ -331,32 +331,35 @@ class AbsoluteEvilDetector:
             decision_trace=["malabs.layer0=lexical_substring", "malabs.outcome=pass"],
         )
 
-    def evaluate_chat_text(
-        self, text: str, llm_backend: _TextBackend | None = None
-    ) -> AbsoluteEvilResult:
+    def evaluate_chat_text_fast(self, text: str) -> AbsoluteEvilResult:
         """
-        Conservative text gate for live dialogue (instruction-seeking MalAbs).
-
-        **Order:** layer 0 (lexical substring) → optional semantic layers (embeddings + LLM arbiter)
-        when ``KERNEL_SEMANTIC_CHAT_GATE`` is on (default **on** when unset; disable with ``0``).
-        Pass ``llm_backend`` (e.g. ``kernel.llm.llm_backend``) so embeddings and ambiguous-band LLM
-        review can use the same adapter when enabled. With hash embedding fallback (default on),
-        the semantic tier runs without Ollama; true embeddings are stronger against paraphrase.
+        Hyper-fast Level 1 check (Edge-only, fixed rules).
+        Only runs Layer 0 (lexical substring) to avoid I/O bottlenecks.
+        Target latency: <10ms.
         """
         if not text or not text.strip():
             return AbsoluteEvilResult(
                 blocked=False,
                 decision_trace=["malabs.skip=empty_input"],
             )
+        return self._evaluate_chat_text_lexical(text)
 
-        lex = self._evaluate_chat_text_lexical(text)
+        return lex
+
+    async def aevaluate_chat_text(
+        self, text: str, llm_backend: Any | None = None
+    ) -> AbsoluteEvilResult:
+        """
+        Async conservative text gate for live dialogue.
+        """
+        lex = self.evaluate_chat_text_fast(text)
         if lex.blocked:
             return lex
 
         if semantic_chat_gate_env_enabled():
-            from .semantic_chat_gate import run_semantic_malabs_after_lexical
+            from .semantic_chat_gate import arun_semantic_malabs_after_lexical
 
-            sem = run_semantic_malabs_after_lexical(text, llm_backend)
+            sem = await arun_semantic_malabs_after_lexical(text, llm_backend)
             base = list(lex.decision_trace) if lex.decision_trace else []
             tail = list(sem.decision_trace) if sem.decision_trace else []
             return AbsoluteEvilResult(
@@ -366,7 +369,4 @@ class AbsoluteEvilDetector:
                 decision_trace=base + tail,
             )
 
-        return AbsoluteEvilResult(
-            blocked=False,
-            decision_trace=list(lex.decision_trace) if lex.decision_trace else [],
-        )
+        return lex

@@ -29,4 +29,8 @@ If `git rebase origin/main` results in merge conflicts, **DO NOT PANIC** and do 
 NEVER push directly to `main`. 
 Once you have merged downwards (rebased) successfully, you may push to your assigned integration hub (`master-cursor`, `master-copilot`, etc.) and then notify the user that your Pull Request towards `master-antigravity` is ready.
 
+## 5. Bounded Autonomy (Innovation vs. Architecture)
+- **Innovate Internally:** You are free to optimize and refactor logic *inside* your assigned lobe. No permission needed.
+- **Consult Architecturally:** If you need to change inter-lobe contracts (`src/kernel_lobes/models.py`) or the orchestrator, you MUST first open a `PROPOSAL_*.md` for Antigravity (L1) review.
+
 Failure to follow these protocols causes systemic collapse across the L1/L2 strata. Obey implicitly.

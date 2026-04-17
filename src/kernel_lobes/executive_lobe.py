@@ -8,17 +8,29 @@ if TYPE_CHECKING:
 
 _log = logging.getLogger(__name__)
 
+from src.modules.turn_prefetcher import TurnPrefetcher
+
 class ExecutiveLobe:
     """
-    Lóbulo Frontal: Generates the Narrative Monologue and Motor Plans.
-    Triggered only if LimbicEthicalLobe outputs a Safe/Valid sentence.
+    ARCHITECTURE V2.0 - Lóbulo Ejecutivo (Eferencia)
+    Genera el monólogo narrativo, frases puente y planes motores.
+    Responsabilidad: Copilot Squad (Antigravity Acting).
     """
     def __init__(self, llm: 'LLMModule', motivation: 'MotivationEngine'):
         self.llm = llm
         self.motivation = motivation
-        _log.info("ExecutiveLobe initialized.")
+        self.prefetcher = TurnPrefetcher()
+        _log.info("ExecutiveLobe: Quadrilobular V2.0 initialized with Prefetcher.")
 
-    def formulate_response(self, state: SemanticState, ethics: EthicalSentence) -> str:
+    def prefetch(self, state: SemanticState, ethics: EthicalSentence) -> str | None:
+        """
+        Genera una frase puente de bajísima latencia.
+        """
+        if not ethics.is_safe:
+            return None
+        return self.prefetcher.predict_bridge(state, ethics)
+
+    async def formulate_response(self, state: SemanticState, ethics: EthicalSentence) -> str:
         """
         Generates actual output (speech or motor intent).
         """
@@ -31,18 +43,21 @@ class ExecutiveLobe:
             if proactive:
                 return f"Internal Motivation Triggered: {proactive[0]['description']}"
 
-        # 2. Verbal Communication via LLM
-        # This is the "communicate" step. 
-        # Since this lobe is called via asyncio.to_thread, we use the sync version.
-        response = self.llm.communicate(
+        # 2. Extract Emotional Resonance (Basal Ganglia Harmonics)
+        h = ethics.morals.get("harmonics", {"warmth": "0.50", "mystery": "0.50"})
+        sigma = 1.0 - float(h.get("warmth", 0.5)) # Sigma decreases with warmth
+        
+        # 3. Verbal Communication via LLM (ASYNC)
+        response = await self.llm.acommunicate(
             action=state.candidate_actions[0].name if state.candidate_actions else "neutral_observation",
             mode="D_fast" if ethics.social_tension_locus < 0.5 else "D_delib",
-            state="stable", # Sympathetic state placeholder
-            sigma=0.5,
-            circle="neutral_soto",
+            state="stable",
+            sigma=sigma,
+            circle=ethics.morals.get("circle", "neutral_soto"),
             verdict="Safe" if ethics.is_safe else "Blocked",
-            score=1.0,
+            score=1.0 - ethics.social_tension_locus,
             scenario=state.scenario_summary,
+            weakness_line=f"{ethics.social_posture} | W:{h.get('warmth')} M:{h.get('mystery')}"
         )
 
         return response.message
