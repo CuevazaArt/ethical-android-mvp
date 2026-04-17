@@ -33,74 +33,79 @@ class SalienceSnapshot:
     """Pre-normalization [0,1] scores for audit."""
 
 
+
 class SalienceMap:
     """
-    Maps environment + reflection into a salience distribution. Pure; no side effects.
+    Maps environment signals, internal state, social evaluation, and ethical reflection
+    into a normalized salience distribution over predefined axes. Pure; no side effects.
     """
 
-    AXIS_ORDER = ("risk", "social", "body", "ethical_conflict", "epistemic_curiosity")
+    AXIS_ORDER: tuple[str, ...] = (
+        "risk",
+        "social",
+        def compute(
+            self,
+            signals: dict[str, float],
+            state: InternalState,
+            social_eval: SocialEvaluation,
+            reflection: ReflectionSnapshot | None,
+            curiosity: float = 0.0,
+        ) -> SalienceSnapshot:
+            """
+            Compute the salience (attention) distribution over axes for the current tick.
 
-    def compute(
-        self,
-        signals: dict[str, float],
-        state: InternalState,
-        social_eval: SocialEvaluation,
-        reflection: ReflectionSnapshot | None,
-        curiosity: float = 0.0,
-    ) -> SalienceSnapshot:
-        """
-        Calculates the current salience distribution across ethical and somatic axes.
+            Args:
+                signals (dict[str, float]): Input signals, e.g., risk, hostility.
+                state (InternalState): Internal state snapshot (e.g., body load).
+                social_eval (SocialEvaluation): Social context and posture.
+                reflection (ReflectionSnapshot | None): Optional ethical reflection.
+                curiosity (float, optional): Epistemic curiosity signal. Defaults to 0.0.
 
-        Args:
-            signals: The environmental signals (risk, urgency, etc.).
-            state: The current internal autonomic state (sympathetic/parasympathetic).
-            social_eval: The social context and trust evaluation.
-            reflection: The results of the internal ethical reflection Lobe.
-            curiosity: The current epistemic drive/curiosity coefficient.
+            Returns:
+                SalienceSnapshot: Normalized weights and dominant axis.
+            """
+            risk: float = float(signals.get("risk", 0.0))
+            risk = max(0.0, min(1.0, risk))
 
-        Returns:
-            A SalienceSnapshot containing normalized attention weights.
-        """
-        risk = float(signals.get("risk", 0.0))
-        risk = max(0.0, min(1.0, risk))
+            # Social salience: hostility + defensive posture + dialectic tension
+            hostility: float = float(signals.get("hostility", 0.0))
+            caution: float = float(social_eval.caution_level)
+            dialectic: float = 1.0 if social_eval.dialectic_active else 0.0
+            social_raw: float = max(
+                0.0,
+                min(
+                    1.0,
+                    0.45 * hostility + 0.35 * caution + 0.2 * dialectic,
+                ),
+            )
 
-        # Social salience: hostility + defensive posture + dialectic tension
-        hostility = float(signals.get("hostility", 0.0))
-        caution = float(social_eval.caution_level)
-        dialectic = 1.0 if social_eval.dialectic_active else 0.0
-        social_raw = max(
-            0.0,
-            min(
-                1.0,
-                0.45 * hostility + 0.35 * caution + 0.2 * dialectic,
-            ),
-        )
+            # Body / autonomic: sympathetic load proxy
+            body_raw: float = max(0.0, min(1.0, float(state.sigma)))
 
-        # Body / autonomic: sympathetic load proxy
-        body_raw = max(0.0, min(1.0, float(state.sigma)))
+            eth_raw: float = float(reflection.strain_index) if reflection is not None else 0.0
 
-        if reflection is not None:
-            eth_raw = float(reflection.strain_index)
-        else:
-            eth_raw = 0.0
+            raw: dict[str, float] = {
+                "risk": risk,
+                "social": social_raw,
+                "body": body_raw,
+                "ethical_conflict": eth_raw,
+                "epistemic_curiosity": max(0.0, min(1.0, curiosity)),
+            }
 
-        raw = {
-            "risk": risk,
-            "social": social_raw,
-            "body": body_raw,
-            "ethical_conflict": eth_raw,
-            "epistemic_curiosity": max(0.0, min(1.0, curiosity)),
-        }
+            ssum: float = sum(raw.values())
+            if ssum <= 1e-9:
+                weights: dict[str, float] = {k: 0.25 for k in self.AXIS_ORDER}
+            else:
+                weights = {k: round(raw[k] / ssum, 4) for k in self.AXIS_ORDER}
 
-        ssum = sum(raw.values())
-        if ssum <= 1e-9:
-            weights = {k: 0.25 for k in self.AXIS_ORDER}
-        else:
-            weights = {k: round(raw[k] / ssum, 4) for k in self.AXIS_ORDER}
+            mx: float = max(weights[k] for k in self.AXIS_ORDER)
+            dominant: str = next(k for k in self.AXIS_ORDER if weights[k] == mx)
 
-        mx = max(weights[k] for k in self.AXIS_ORDER)
-        dominant = next(k for k in self.AXIS_ORDER if weights[k] == mx)
-
+            return SalienceSnapshot(
+                weights=weights,
+                dominant_focus=dominant,
+                raw_scores=raw,
+            )
         return SalienceSnapshot(
             weights=weights,
             dominant_focus=dominant,
@@ -108,8 +113,17 @@ class SalienceMap:
         )
 
 
+
 def salience_to_llm_context(snapshot: SalienceSnapshot | None) -> str:
-    """One line for communicate() — tone only."""
+    """
+    Format a one-line summary of the current salience snapshot for LLM context or logs.
+
+    Args:
+        snapshot (SalienceSnapshot | None): The current salience snapshot.
+
+    Returns:
+        str: Human-readable summary string, or empty if snapshot is None.
+    """
     if snapshot is None:
         return ""
     w = snapshot.weights
