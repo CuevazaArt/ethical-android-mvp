@@ -59,7 +59,7 @@ class SecureBoot:
         return sha256_hash.hexdigest()
 
     def verify_integrity(self) -> bool:
-        """Run the secure-boot presence check (hash comparison is a TODO)."""
+        """Run the secure-boot presence check (hash comparison not yet implemented — demo only)."""
         _log.info("Starting Root of Trust verification (demo mode)…")
 
         all_ok = True
