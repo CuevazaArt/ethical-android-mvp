@@ -34,6 +34,7 @@ python -m venv .venv
 # Unix: source .venv/bin/activate
 pip install -r requirements.txt
 # pip install -e ".[runtime]"   # FastAPI / uvicorn / httpx for chat server
+# pip install -e ".[theater]"   # Marker for narrative/DAO/PAD layers (no extra deps)
 ```
 
 ### Run simulations

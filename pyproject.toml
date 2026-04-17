@@ -33,8 +33,10 @@ runtime = [
     "uvicorn[standard]>=0.30.0,<1.0.0",
     "httpx>=0.27.0,<1.0.0",
 ]
+theater = [
+    # Empty marker for narrative/DAO/PAD layers — no additional dependencies required
+]
 # Document-only extra: same codebase; use when you want pip to record dependency on narrative/audit UX layers (PAD, weakness, MockDAO) explicitly.
-theater = []
 dev = [
     "pytest>=7.4.0,<10.0.0",
     "anthropic>=0.18.0",
