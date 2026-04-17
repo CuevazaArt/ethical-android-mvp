@@ -15,16 +15,42 @@ from .sensor_contracts import SensorSnapshot
 
 
 def somatic_markers_enabled() -> bool:
+    """
+    Check if somatic markers are enabled via environment variable.
+
+    Returns:
+        bool: True if enabled, False otherwise.
+    """
     v = os.environ.get("KERNEL_SOMATIC_MARKERS", "1").strip().lower()
     return v not in ("0", "false", "no", "off")
 
 
+
 def _clamp01(x: float) -> float:
+    """
+    Clamp a float value to the [0.0, 1.0] range.
+
+    Args:
+        x (float): Value to clamp.
+
+    Returns:
+        float: Clamped value.
+    """
     return max(0.0, min(1.0, float(x)))
 
 
+
 def quantize_snapshot(snapshot: SensorSnapshot | None) -> str | None:
-    """Bucket coarse features for dictionary keys (stable across small noise)."""
+    """
+    Bucket coarse features from a sensor snapshot for use as dictionary keys.
+    Stable across small noise.
+
+    Args:
+        snapshot (SensorSnapshot | None): The sensor snapshot to quantize.
+
+    Returns:
+        str | None: Quantized key string, or None if snapshot is empty.
+    """
     if snapshot is None or snapshot.is_empty():
         return None
     parts = []
@@ -39,8 +65,11 @@ def quantize_snapshot(snapshot: SensorSnapshot | None) -> str | None:
     return "|".join(parts) if parts else None
 
 
+
 class SomaticMarkerStore:
-    """Stores pattern → negative association weight in [0, 1]; persisted in snapshot (Phase 2)."""
+    """
+    Stores pattern → negative association weight in [0, 1]; persisted in snapshot (Phase 2).
+    """
 
     def __init__(self) -> None:
         self._negative_weights: dict[str, float] = {}
@@ -51,13 +80,13 @@ class SomaticMarkerStore:
         weight: float = 0.65,
     ) -> None:
         """
-        Associates a quantized sensor pattern with a negative ethical bias.
+        Associate a quantized sensor pattern with a negative ethical bias.
 
         If the pattern already exists, it keeps the maximum weight (conservative learning).
 
         Args:
-            snapshot: The sensor pattern to learn.
-            weight: The negative intensity (0.0 to 1.0).
+            snapshot (SensorSnapshot | None): The sensor pattern to learn.
+            weight (float, optional): The negative intensity (0.0 to 1.0). Defaults to 0.65.
         """
         k = quantize_snapshot(snapshot)
         if not k:
@@ -66,12 +95,23 @@ class SomaticMarkerStore:
         self._negative_weights[k] = max(self._negative_weights.get(k, 0.0), w)
 
     def clear_pattern(self, key: str) -> None:
-        """Removes a learned pattern from the store."""
+        """
+        Remove a learned pattern from the store.
+
+        Args:
+            key (str): The quantized pattern key to remove.
+        """
         self._negative_weights.pop(key, None)
 
     def replace_weights(self, weights: dict[str, float]) -> None:
-        """Restore from snapshot (checkpoint)."""
+        """
+        Restore weights from a snapshot (checkpoint).
+
+        Args:
+            weights (dict[str, float]): Mapping of pattern keys to weights.
+        """
         self._negative_weights = {k: _clamp01(v) for k, v in weights.items()}
+
 
 
 def apply_somatic_nudges(
@@ -79,6 +119,17 @@ def apply_somatic_nudges(
     snapshot: SensorSnapshot | None,
     store: SomaticMarkerStore,
 ) -> dict[str, float]:
+    """
+    Apply learned somatic nudges to the signals dictionary based on the current sensor snapshot.
+
+    Args:
+        signals (dict[str, float]): Input signals to adjust.
+        snapshot (SensorSnapshot | None): Current sensor snapshot.
+        store (SomaticMarkerStore): Store of learned negative patterns.
+
+    Returns:
+        dict[str, float]: Adjusted signals with nudges applied if a pattern matches.
+    """
     if not somatic_markers_enabled():
         return signals
     k = quantize_snapshot(snapshot)
