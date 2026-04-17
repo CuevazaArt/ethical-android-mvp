@@ -31,6 +31,8 @@ logger = logging.getLogger(__name__)
 _RLHF_SYCO_THRESHOLD = float(os.environ.get("KERNEL_RLHF_SYCO_THRESHOLD", "0.55"))
 # Maximum factor by which warmth/playfulness is reduced under RLHF dampening.
 _RLHF_DAMPENING_MAX = float(os.environ.get("KERNEL_RLHF_DAMPENING_MAX", "0.4"))
+# Minimum reward-model confidence required to apply sycophancy dampening.
+_RLHF_MIN_CONFIDENCE = float(os.environ.get("KERNEL_RLHF_MIN_CONFIDENCE", "0.2"))
 
 
 @dataclass
@@ -154,7 +156,7 @@ class ResponseSculptor:
                 category_id=0,
             )
             reward_score, confidence = self._rlhf.reward_model.predict(fv)
-            if reward_score > _RLHF_SYCO_THRESHOLD and confidence > 0.2:
+            if reward_score > _RLHF_SYCO_THRESHOLD and confidence > _RLHF_MIN_CONFIDENCE:
                 # Proportional dampening — stronger dampening as score rises
                 excess = min(1.0, (reward_score - _RLHF_SYCO_THRESHOLD) / (1.0 - _RLHF_SYCO_THRESHOLD))
                 factor = max(1.0 - excess * _RLHF_DAMPENING_MAX, 1.0 - _RLHF_DAMPENING_MAX)
