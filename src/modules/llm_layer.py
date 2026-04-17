@@ -127,6 +127,11 @@ class LLMPerception:
     # Coercion / fallback diagnostics from validate_perception_dict (LLM JSON path only; local heuristics leave None).
     coercion_report: dict[str, Any] | None = None
 
+    @property
+    def confidence(self) -> float:
+        """Perceptual confidence: inverse of perceived risk (0.0 = high-risk, 1.0 = safe)."""
+        return max(0.0, 1.0 - self.risk)
+
 
 def _clamp_unit_interval(x, default: float = 0.5) -> float:
     try:

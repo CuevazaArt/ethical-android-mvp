@@ -249,7 +249,7 @@ class ExternalAuditFramework:
 
         # Determine overall risk rating
         critical_findings = [f for f in recent_findings if f.severity == "critical"]
-        overall_risk = (
+        overall_risk: Literal["critical", "high", "medium", "low"] = (
             "critical"
             if critical_findings
             else "high"
