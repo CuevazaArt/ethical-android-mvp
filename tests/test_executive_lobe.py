@@ -18,7 +18,8 @@ class _StubMotivationEngine:
 
 
 def test_executive_lobe_blocks_unsafe_ethics_without_monologue() -> None:
-    lobe = ExecutiveLobe(motivation_engine=_StubMotivationEngine())
+    motivation_engine = _StubMotivationEngine()
+    lobe = ExecutiveLobe(motivation_engine=motivation_engine)
     state = SemanticState(perception_confidence=1.0, raw_prompt="open the door")
     ethics = EthicalSentence(is_safe=False, social_tension_locus=0.2, veto_reason="policy")
 
@@ -26,6 +27,7 @@ def test_executive_lobe_blocks_unsafe_ethics_without_monologue() -> None:
 
     assert response == "Veto Triggered: policy"
     assert "[MONO]" not in response
+    assert motivation_engine.updated_states == []
 
 
 def test_executive_lobe_safe_prompt_includes_monologue() -> None:

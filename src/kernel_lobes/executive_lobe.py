@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
-from typing import Any
 
 from src.kernel_lobes.models import EthicalSentence, SemanticState
 from src.modules.internal_monologue import compose_monologue_line
@@ -27,7 +26,8 @@ class ExecutiveLobe:
         self._motivation_engine.update_drives(
             {
                 "social_tension": ethics.social_tension_locus,
-                # Uncertainty is the inverse of confidence in this lobe-local heuristic.
+                # Uncertainty is modeled as the inverse of confidence in this lobe-local heuristic
+                # until a dedicated uncertainty signal is passed from upstream perception.
                 # `max` is kept as a defensive bound in case upstream confidence drifts > 1.0.
                 "uncertainty": max(0.0, 1.0 - state.perception_confidence),
             }
@@ -63,6 +63,6 @@ class _ExecutiveMonologueDecision:
     blocked: bool
     final_action: str
     decision_mode: str
-    salience: Any | None = None
-    reflection: Any | None = None
-    affect: Any | None = None
+    salience: object | None = None
+    reflection: object | None = None
+    affect: object | None = None
