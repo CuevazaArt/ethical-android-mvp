@@ -38,7 +38,13 @@ class SalienceMap:
     Maps environment + reflection into a salience distribution. Pure; no side effects.
     """
 
-    AXIS_ORDER = ("risk", "social", "body", "ethical_conflict", "epistemic_curiosity")
+    AXIS_ORDER: tuple[str, ...] = (
+        "risk",
+        "social",
+        "body",
+        "ethical_conflict",
+        "epistemic_curiosity",
+    )
 
     def compute(
         self,
@@ -94,7 +100,8 @@ class SalienceMap:
 
         ssum = sum(raw.values())
         if ssum <= 1e-9:
-            weights = {k: 0.25 for k in self.AXIS_ORDER}
+            u = round(1.0 / len(self.AXIS_ORDER), 4)
+            weights = {k: u for k in self.AXIS_ORDER}
         else:
             weights = {k: round(raw[k] / ssum, 4) for k in self.AXIS_ORDER}
 
