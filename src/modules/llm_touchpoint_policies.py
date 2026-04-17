@@ -38,9 +38,20 @@ TOUCHPOINT_MONOLOGUE = "monologue"
 
 ENV_VERBAL_FAMILY_POLICY = "KERNEL_LLM_VERBAL_FAMILY_POLICY"
 ENV_MONOLOGUE_BACKEND_POLICY = "KERNEL_LLM_MONOLOGUE_BACKEND_POLICY"
+ENV_GLOBAL_POLICY = "KERNEL_LLM_GLOBAL_POLICY"
 
 MONOLOGUE_POLICIES = frozenset({"passthrough", "annotate_degraded"})
 DEFAULT_MONOLOGUE_BACKEND_POLICY = "passthrough"
+
+# Global policy values: if set, overrides all touchpoints to safe fallbacks
+GLOBAL_POLICY_SAFE = "safe"
+GLOBAL_POLICIES = frozenset({GLOBAL_POLICY_SAFE})
+
+
+def global_safe_policy_enabled() -> bool:
+    """True if KERNEL_LLM_GLOBAL_POLICY=safe, forcing all touchpoints to safe fallbacks."""
+    v = os.environ.get(ENV_GLOBAL_POLICY, "").strip().lower()
+    return v == GLOBAL_POLICY_SAFE
 
 
 def touchpoint_policy_env_key(slug: str) -> str:
@@ -66,6 +77,9 @@ def resolve_monologue_llm_backend_policy() -> str:
     - ``annotate_degraded``: append a short ``| monologue_llm_*`` suffix and record a degradation
       event for observability.
     """
+    # Global safe override
+    if global_safe_policy_enabled():
+        return "annotate_degraded"
     tp = raw_touchpoint_policy(TOUCHPOINT_MONOLOGUE)
     if tp and tp in MONOLOGUE_POLICIES:
         return tp

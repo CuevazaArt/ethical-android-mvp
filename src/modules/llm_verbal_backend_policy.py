@@ -32,6 +32,7 @@ from .llm_touchpoint_policies import (
     ENV_VERBAL_FAMILY_POLICY,
     TOUCHPOINT_COMMUNICATE,
     TOUCHPOINT_NARRATE,
+    global_safe_policy_enabled,
     raw_touchpoint_policy,
 )
 
@@ -43,6 +44,9 @@ _VALID_POLICIES = frozenset({"template_local", "canned_safe"})
 
 def resolve_verbal_llm_backend_policy(*, touchpoint: str = "communicate") -> str:
     """Resolve verbal JSON policy for ``communicate`` or ``narrate``."""
+    # Global safe override
+    if global_safe_policy_enabled():
+        return "canned_safe"
     slug = touchpoint.strip().lower()
     if slug not in (TOUCHPOINT_COMMUNICATE, TOUCHPOINT_NARRATE):
         slug = TOUCHPOINT_COMMUNICATE

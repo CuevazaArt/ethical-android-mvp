@@ -7,6 +7,7 @@ sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
 
 from src.modules.llm_touchpoint_policies import (
     DEFAULT_MONOLOGUE_BACKEND_POLICY,
+    global_safe_policy_enabled,
     resolve_monologue_llm_backend_policy,
     touchpoint_policy_env_key,
 )
@@ -59,4 +60,33 @@ def test_monologue_default_and_legacy(monkeypatch):
 def test_monologue_tp_overrides_legacy(monkeypatch):
     monkeypatch.setenv("KERNEL_LLM_MONOLOGUE_BACKEND_POLICY", "passthrough")
     monkeypatch.setenv("KERNEL_LLM_TP_MONOLOGUE_POLICY", "annotate_degraded")
+    assert resolve_monologue_llm_backend_policy() == "annotate_degraded"
+
+
+def test_global_safe_policy_enabled(monkeypatch):
+    monkeypatch.setenv("KERNEL_LLM_GLOBAL_POLICY", "safe")
+    assert global_safe_policy_enabled() is True
+
+    monkeypatch.setenv("KERNEL_LLM_GLOBAL_POLICY", "other")
+    assert global_safe_policy_enabled() is False
+
+    monkeypatch.delenv("KERNEL_LLM_GLOBAL_POLICY", raising=False)
+    assert global_safe_policy_enabled() is False
+
+
+def test_global_safe_overrides_perception(monkeypatch):
+    monkeypatch.setenv("KERNEL_LLM_GLOBAL_POLICY", "safe")
+    monkeypatch.setenv("KERNEL_LLM_TP_PERCEPTION_POLICY", "template_local")
+    assert resolve_perception_backend_policy() == "fast_fail"
+
+
+def test_global_safe_overrides_verbal(monkeypatch):
+    monkeypatch.setenv("KERNEL_LLM_GLOBAL_POLICY", "safe")
+    monkeypatch.setenv("KERNEL_LLM_TP_COMMUNICATE_POLICY", "template_local")
+    assert resolve_verbal_llm_backend_policy(touchpoint="communicate") == "canned_safe"
+
+
+def test_global_safe_overrides_monologue(monkeypatch):
+    monkeypatch.setenv("KERNEL_LLM_GLOBAL_POLICY", "safe")
+    monkeypatch.setenv("KERNEL_LLM_TP_MONOLOGUE_POLICY", "passthrough")
     assert resolve_monologue_llm_backend_policy() == "annotate_degraded"
