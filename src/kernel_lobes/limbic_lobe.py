@@ -2,12 +2,6 @@ from __future__ import annotations
 
 from src.kernel_lobes.models import EthicalSentence, SemanticState
 
-if TYPE_CHECKING:
-    from src.modules.uchi_soto import UchiSotoModule
-    from src.modules.sympathetic import SympatheticModule
-    from src.modules.locus import LocusModule
-    from src.modules.sensor_contracts import SensorSnapshot
-    from src.modules.multimodal_trust import MultimodalAssessment
 
 def _clamp01(x: float) -> float:
     return max(0.0, min(1.0, float(x)))
@@ -15,38 +9,19 @@ def _clamp01(x: float) -> float:
 
 class LimbicEthicalLobe:
     """
-    Subsystem for Social (Uchi-Soto), Internal State (Sympathetic), and Locus of Control.
-    
-    Acts as the 'Right Hemisphere' of the kernel, handling CPU-bound emotional 
-    and relational context. No network I/O here (Phase-8 strict separation).
+    Hemisferio Derecho: Pure Sync CPU Engine.
+    DAO Enforcement, Uchi-Soto, AbsoluteEvilDetector, Bayesian Updates.
+    Does NOT connect to the internet.
     """
-    def __init__(
-        self,
-        uchi_soto: UchiSotoModule,
-        sympathetic: SympatheticModule,
-        locus: LocusModule,
-        swarm: Any = None,
-        oracle: Any = None
-    ):
-        self.uchi_soto = uchi_soto
-        self.sympathetic = sympathetic
-        self.locus = locus
-        self.swarm = swarm
-        self.oracle = oracle
 
-    async def execute_stage(
-        self,
-        agent_id: str,
-        signals: dict[str, float],
-        message_content: str,
-        turn_index: int,
-        sensor_snapshot: Optional[Any] = None,
-        multimodal_assessment: Optional[Any] = None,
-        somatic_state: Optional[dict[str, Any]] = None
-    ) -> LimbicStageResult:
+    def __init__(self):
+        # TODO(Claude): Migrate AbsoluteEvilDetector, MultiRealmGovernance here
+        pass
+
+    def judge(self, state: SemanticState) -> EthicalSentence:
         """
-        Evaluate social context and internal autonomic state.
-        Vertical Increment: Somatic state (temp/battery) influences relational tension.
+        Pure mathematical gating.
+        Takes the SemanticState, runs it through local validators.
         """
         applied = 0.0
         tension = 0.0

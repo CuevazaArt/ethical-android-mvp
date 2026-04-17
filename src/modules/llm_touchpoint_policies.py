@@ -47,16 +47,18 @@ ENV_GLOBAL_POLICY = "KERNEL_LLM_GLOBAL_POLICY"
 # Optional unified fallback after per-touchpoint / family / legacy keys (matrix step 4).
 ENV_LLM_GLOBAL_DEFAULT_POLICY = "KERNEL_LLM_GLOBAL_DEFAULT_POLICY"
 
+MONOLOGUE_POLICIES = frozenset({"passthrough", "annotate_degraded"})
 DEFAULT_MONOLOGUE_BACKEND_POLICY = "passthrough"
 
-EMBEDDING_POLICIES = frozenset({"passthrough", "hash_fallback"})
-DEFAULT_EMBEDDING_BACKEND_POLICY = "hash_fallback"
+# Global policy values: if set, overrides all touchpoints to safe fallbacks
+GLOBAL_POLICY_SAFE = "safe"
+GLOBAL_POLICIES = frozenset({GLOBAL_POLICY_SAFE})
 
 
-def raw_global_default_policy() -> str | None:
-    """Raw ``KERNEL_LLM_GLOBAL_DEFAULT_POLICY`` (lowercased), or ``None`` if unset."""
-    v = os.environ.get(ENV_LLM_GLOBAL_DEFAULT_POLICY, "").strip().lower()
-    return v if v else None
+def global_safe_policy_enabled() -> bool:
+    """True if KERNEL_LLM_GLOBAL_POLICY=safe, forcing all touchpoints to safe fallbacks."""
+    v = os.environ.get(ENV_GLOBAL_POLICY, "").strip().lower()
+    return v == GLOBAL_POLICY_SAFE
 
 
 def touchpoint_policy_env_key(slug: str) -> str:
@@ -85,8 +87,6 @@ def raw_touchpoint_policy(slug: str) -> str | None:
     return v if v else None
 
 
-MONOLOGUE_POLICIES = frozenset({"passthrough", "annotate_degraded"})
-
 def resolve_monologue_llm_backend_policy() -> str:
     """
     Policy for :meth:`LLMModule.optional_monologue_embellishment` when generative mode is on.
@@ -95,6 +95,9 @@ def resolve_monologue_llm_backend_policy() -> str:
     - ``annotate_degraded``: append a short ``| monologue_llm_*`` suffix and record a degradation
       event for observability.
     """
+    # Global safe override
+    if global_safe_policy_enabled():
+        return "annotate_degraded"
     tp = raw_touchpoint_policy(TOUCHPOINT_MONOLOGUE)
     if tp and tp in MONOLOGUE_POLICIES:
         return tp
@@ -107,6 +110,10 @@ def resolve_monologue_llm_backend_policy() -> str:
     return DEFAULT_MONOLOGUE_BACKEND_POLICY
 
 
+EMBEDDING_POLICIES = frozenset({"passthrough", "hash_fallback"})
+DEFAULT_EMBEDDING_BACKEND_POLICY = "hash_fallback"
+
+
 def resolve_embedding_backend_policy() -> str:
     """
     Policy for :func:`semantic_embedding_client.http_fetch_ollama_embedding` (MalAbs L1).
@@ -114,6 +121,8 @@ def resolve_embedding_backend_policy() -> str:
     - ``hash_fallback`` (default): if Ollama is unreachable, return a deterministic hash bypass.
     - ``passthrough``: return None on failure; MalAbs layer will then skip embedding sim.
     """
+    if global_safe_policy_enabled():
+        return "hash_fallback"
     tp = raw_touchpoint_policy(TOUCHPOINT_EMBEDDING)
     if tp and tp in EMBEDDING_POLICIES:
         return tp

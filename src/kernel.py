@@ -12,79 +12,25 @@ forgiveness cycle, weakness load, immortality backup, drive intents.
 from __future__ import annotations
 
 import asyncio
+import logging
 import math
 import os
 import threading
 import time
-import logging
-from collections.abc import Callable
-
-from src.modules.absolute_evil import AbsoluteEvilResult
-from concurrent.futures import ThreadPoolExecutor
-from dataclasses import dataclass
-from pathlib import Path
-from typing import TYPE_CHECKING, Any, AsyncGenerator
-
-from .kernel_lobes import PerceptiveLobe, LimbicEthicalLobe, ExecutiveLobe, CerebellumLobe, MemoryLobe, CerebellumNode
-from .kernel_lobes.models import LimbicStageResult, ExecutiveStageResult
-
-class CorpusCallosumOrchestrator:
-    """
-    Architecture V1.5 - Triune Brain Orchestrator
-    Actúa como el bus de eventos ligero entre los 3 Lóbulos Conscientes y el Cerebelo Adyacente.
-    """
-    def __init__(self):
-        # 1. Instanciar Subconsciente
-        self._hw_interrupt = threading.Event()
-        self.cerebellum = CerebellumNode(self._hw_interrupt)
-        self.cerebellum.start()
-
-        # 2. Instanciar Lóbulos Conscientes
-        self.perceptive_lobe = PerceptiveLobe()
-        self.limbic_lobe = LimbicEthicalLobe()
-        self.executive_lobe = ExecutiveLobe()
-
-    async def async_process(self, raw_input: str, multimodal_payload: dict = None) -> str:
-        """
-        Ciclo V1.5 Puro: Aferencia -> Juicio -> Eferencia
-        """
-        if self._hw_interrupt.is_set():
-            return "SYSTEM_HALTED: Hardware Critical State (Cerebellum Interrupt Active)"
-
-        # 1) Percepción (Asíncrona)
-        semantic_state = await self.perceptive_lobe.observe(raw_input, multimodal_payload)
-
-        # 2) Juicio (Sincrónico CPU-bound)
-        # Se ejecuta aislando el event loop a través de to_thread para no bloquear a otros requests
-        ethical_sentence = await asyncio.to_thread(self.limbic_lobe.judge, semantic_state)
-
-        # 3) Ejecución / Salida
-        final_output = await asyncio.to_thread(self.executive_lobe.formulate_response, semantic_state, ethical_sentence)
-        
-        return final_output
-
-    def shutdown(self):
-        self.cerebellum.stop()
-        self.cerebellum.join()
-
-import os
-import threading
-import time
-import logging
 from collections.abc import Callable
 from concurrent.futures import ThreadPoolExecutor
 from dataclasses import dataclass
 from pathlib import Path
 from typing import TYPE_CHECKING, Any, AsyncGenerator
-
-_log = logging.getLogger(__name__)
-
-if TYPE_CHECKING:
-    from .dao.audit_snapshot import AuditSnapshot
 
 import numpy as np
 
 from .kernel_components import KernelComponentOverrides
+from .kernel_lobes import CerebellumNode, ExecutiveLobe, LimbicEthicalLobe, PerceptiveLobe
+from .kernel_lobes.cerebellum_lobe import CerebellumLobe
+from .kernel_lobes.memory_lobe import MemoryLobe
+from .kernel_lobes.models import ExecutiveStageResult, LimbicStageResult
+from .modules.charm_engine import CharmEngine
 from .modules.absolute_evil import AbsoluteEvilCategory, AbsoluteEvilDetector, AbsoluteEvilResult
 from .modules.audio_adapter import AudioInference
 from .modules.audit_chain_log import (
@@ -640,27 +586,10 @@ class EthicalKernel:
         self.rlhf = RLHFPipeline() if is_rlhf_enabled() else None
 
         # ═══ Triune Brain Lobes (Refactor 0.1.3) ═══
-        self.perceptive_lobe = PerceptiveLobe(
-            safety_interlock=self.safety_interlock,
-            strategist=self.strategist,
-            llm_backend=self._malabs_text_backend()
-        )
-        self.limbic_lobe = LimbicEthicalLobe(
-            uchi_soto=self.uchi_soto,
-            sympathetic=self.sympathetic,
-            locus=self.locus,
-            swarm=self.swarm,
-            oracle=self.swarm_oracle
-        )
-        self.executive_lobe = ExecutiveLobe(
-            absolute_evil=self.absolute_evil,
-            motivation=self.motivation,
-            poles=self.poles,
-            will=self.will,
-            reflection_engine=self.ethical_reflection,
-            salience_map=self.salience_map,
-            pad_archetypes=self.pad_archetypes
-        )
+        # Stub stack (see kernel_lobes/*): no-arg constructors; full DI wiring deferred.
+        self.perceptive_lobe = PerceptiveLobe()
+        self.limbic_lobe = LimbicEthicalLobe()
+        self.executive_lobe = ExecutiveLobe()
         self.cerebellum_lobe = CerebellumLobe(
             bayesian=self.bayesian,
             strategist=self.strategist,

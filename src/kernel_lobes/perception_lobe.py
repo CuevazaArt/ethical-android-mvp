@@ -31,15 +31,6 @@ class PerceptiveLobe:
     When ``KERNEL_PERCEPTIVE_LOBE_PROBE_URL`` is unset, ``observe`` returns immediately
     with measured latency only (no outbound HTTP).
     """
-    def __init__(
-        self,
-        safety_interlock: SafetyInterlock,
-        strategist: ExecutiveStrategist,
-        llm_backend: Optional[Any] = None
-    ):
-        self.safety_interlock = safety_interlock
-        self.strategist = strategist
-        self.llm_backend = llm_backend # For semantic perception if needed
 
     def __init__(self) -> None:
         self._http: httpx.AsyncClient | None = None
