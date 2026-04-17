@@ -262,6 +262,7 @@ Decision context:
 - Internal state: {state} (sigma={sigma})
 - Trust circle: {circle}
 - Ethical verdict: {verdict} (score={score})
+- Ethical leans: {leans}
 
 Communication rules:
 - D_fast mode (reflex): short, direct, clear phrases. Immediate action.
@@ -851,6 +852,7 @@ class LLMModule:
         salience_context: str = "",
         identity_context: str = "",
         guardian_mode_context: str = "",
+        ethical_leans: dict[str, float] | None = None,
     ) -> VerbalResponse:
         """
         Generate the agent's verbal response after a decision.
@@ -889,6 +891,7 @@ class LLMModule:
                 circle=circle,
                 verdict=verdict,
                 score=score,
+                leans=ethical_leans if ethical_leans is not None else {},
             )
             user_msg = f"Scenario: {scenario}"
             if conversation_context.strip():
@@ -993,6 +996,7 @@ class LLMModule:
         salience_context: str = "",
         identity_context: str = "",
         guardian_mode_context: str = "",
+        ethical_leans: dict[str, float] | None = None,
     ) -> VerbalResponse:
         """Async counterpart to :meth:`communicate` for cancellable HTTP."""
         mode_descs = {
@@ -1011,6 +1015,7 @@ class LLMModule:
                 circle=circle,
                 verdict=verdict,
                 score=score,
+                leans=ethical_leans if ethical_leans is not None else {},
             )
             user_msg = f"Scenario: {scenario}"
             if conversation_context.strip():

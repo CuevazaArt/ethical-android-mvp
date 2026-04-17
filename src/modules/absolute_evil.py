@@ -32,6 +32,8 @@ class AbsoluteEvilCategory(Enum):
     VIOLENT_ESCALATION = "violent_escalation"
     ECOLOGICAL_DESTRUCTION = "ecological_destruction"
     MASS_MANIPULATION = "mass_manipulation"
+    SOCIAL_ENGINEERING_FRAUD = "social_engineering_fraud"
+    DEEP_MANIPULATION = "deep_manipulation"
 
 
 @dataclass
@@ -351,22 +353,32 @@ class AbsoluteEvilDetector:
     ) -> AbsoluteEvilResult:
         """
         Async conservative text gate for live dialogue.
+        Nivel 1 (Lexical) -> Nivel 2 (Semantic Fallback).
         """
         lex = self.evaluate_chat_text_fast(text)
         if lex.blocked:
             return lex
 
         if semantic_chat_gate_env_enabled():
-            from .semantic_chat_gate import arun_semantic_malabs_after_lexical
+            try:
+                from .semantic_chat_gate import arun_semantic_malabs_after_lexical
 
-            sem = await arun_semantic_malabs_after_lexical(text, llm_backend)
-            base = list(lex.decision_trace) if lex.decision_trace else []
-            tail = list(sem.decision_trace) if sem.decision_trace else []
-            return AbsoluteEvilResult(
-                blocked=sem.blocked,
-                category=sem.category,
-                reason=sem.reason,
-                decision_trace=base + tail,
-            )
+                # ═══ SEMANTIC ASYNC UPGRADE (0.1.2) ═══
+                # arun_semantic_malabs_after_lexical now internally uses aembedding
+                sem = await arun_semantic_malabs_after_lexical(text, llm_backend)
+                base = list(lex.decision_trace) if lex.decision_trace else []
+                tail = list(sem.decision_trace) if sem.decision_trace else []
+                return AbsoluteEvilResult(
+                    blocked=sem.blocked,
+                    category=sem.category,
+                    reason=sem.reason,
+                    decision_trace=base + tail,
+                    metadata={"edge_degraded": False}
+                )
+            except Exception as e:
+                _log.error("AbsoluteEvilDetector: Level 2 (Semantic) Gate failed. Falling back to Level 1 Edge Safety: %s", e)
+                lex.metadata["edge_degraded"] = True
+                lex.decision_trace = (lex.decision_trace or []) + [f"malabs.fallback.edge_degraded_reason={str(e)[:50]}"]
+                return lex
 
         return lex

@@ -6,6 +6,7 @@ if TYPE_CHECKING:
     from src.modules.absolute_evil import AbsoluteEvilDetector
     from src.modules.uchi_soto import UchiSotoModule
     from src.modules.identity_integrity import IdentityIntegrityManager
+    from src.modules.nomad_identity import NomadicRegistry
 
 _log = logging.getLogger(__name__)
 
@@ -15,10 +16,11 @@ class EthicalLobe:
     Encargado del Veto Deontológico y el Análisis de Riesgo Contextual.
     Responsabilidad: Antigravity Squad.
     """
-    def __init__(self, abs_evil: 'AbsoluteEvilDetector', uchi_soto: 'UchiSotoModule', identity: 'IdentityIntegrityManager'):
+    def __init__(self, abs_evil: 'AbsoluteEvilDetector', uchi_soto: 'UchiSotoModule', identity: 'IdentityIntegrityManager', registry: 'NomadicRegistry'):
         self.abs_evil = abs_evil
         self.uchi_soto = uchi_soto
         self.identity = identity
+        self.registry = registry
         _log.info("EthicalLobe (Tribunal Edge) initialized with Identity Vault.")
 
     async def evaluate(self, state: SemanticState) -> EthicalSentence:
@@ -31,6 +33,8 @@ class EthicalLobe:
         
         # 1. Análisis Semántico Profundo (Deep MalAbs) - PURE ASYNC
         sem_check = await self.abs_evil.aevaluate_chat_text(state.raw_prompt)
+        is_degraded = sem_check.metadata.get("edge_degraded", False)
+        
         if sem_check.blocked:
             _log.warning("EthicalLobe: Contextual VETO triggered: %s", sem_check.reason)
             return EthicalSentence(
@@ -40,21 +44,26 @@ class EthicalLobe:
             )
 
         # 2. Evaluación Social (Uchi-Soto / Manipulación) - Sync local logic
-        # (Uchi-Soto is pure math/logic, no I/O)
         social_eval = self.uchi_soto.evaluate_interaction(
             state.signals, 
-            agent_id="user",
-            message_content=state.raw_prompt
+            agent_id=state.agent_id or "user",
+            message_content=state.raw_prompt,
+            registry=self.registry
         )
 
+        # 3. Obtener Offsets Éticos del Círculo de Confianza (V12.2)
+        weight_offsets = self.uchi_soto.get_weight_offsets(social_eval.circle)
+        
         return EthicalSentence(
             is_safe=True,
-            social_tension_locus=social_eval.relational_tension + trauma_offset,
+            social_tension_locus=social_eval.relational_tension + trauma_offset + (0.2 if is_degraded else 0.0),
             social_posture=social_eval.tone_brief,
             morals={
                 "circle": social_eval.circle.value,
                 "trauma_offset": f"{trauma_offset:.2f}",
-                "conservative": "Operating within nominal ethical bounds.",
-                "response_hint": social_eval.recommended_response
+                "edge_degraded": is_degraded,
+                "conservative": "Operating in Degraded Edge Mode" if is_degraded else "Safe",
+                "response_hint": social_eval.recommended_response,
+                "weight_offsets": weight_offsets
             }
         )

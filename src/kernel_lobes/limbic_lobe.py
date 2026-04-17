@@ -84,7 +84,7 @@ class LimbicLobe:
     def resonant_state(self, state: SemanticState, ethical_advisory: EthicalSentence) -> EthicalSentence:
         """
         Aplica inercia conductual a las señales éticas/sociales.
-        Registra el episodio en la identidad persistente.
+        Integra Modulación Relacional de Empatía (V12.2).
         """
         # 0. Registro biográfico del episodio
         impact = 0.5 - ethical_advisory.social_tension_locus
@@ -93,13 +93,26 @@ class LimbicLobe:
         # 1. Extraer targets de la tensión social, sumando la tensión estática acumulada
         effective_tension = min(1.0, ethical_advisory.social_tension_locus + self._static_tension_offset)
         target_warmth = 1.0 - effective_tension
-        # El misterio aumenta si la tensión es baja o hay señales de 'misterio'
         target_mystery = state.signals.get("mystery_index", 0.5)
 
-        # 2. Aplicar Smoothing
-        smooth_w, smooth_m = self.basal_ganglia.smooth(target_warmth, target_mystery)
+        # 2. Modulación de Pesos Éticos (Relational Empathy - V12.2)
+        # Extraer offsets calculados por el Lóbulo Ético basado en Uchi-Soto
+        offsets = ethical_advisory.morals.get("weight_offsets", {})
         
-        # 3. Penalizar por trauma sensorial (Sensory Lag)
+        # Targets base (0.5 neutral) + offsets sociales
+        t_civic = max(0.0, min(1.0, 0.5 + offsets.get("civic", 0.0)))
+        t_care = max(0.0, min(1.0, 0.5 + offsets.get("care", 0.0)))
+        t_delib = max(0.0, min(1.0, 0.5 + offsets.get("deliberation", 0.0)))
+        t_careful = max(0.0, min(1.0, 0.5 + offsets.get("careful", 0.0)))
+
+        # 3. Aplicar Smoothing EMA en los 6 ejes (2 afectivos + 4 éticos)
+        resonance_dict = self.basal_ganglia.smooth(
+            target_warmth, target_mystery,
+            target_civic=t_civic, target_care=t_care,
+            target_deliberation=t_delib, target_careful=t_careful
+        )
+        
+        # 4. Penalizar por trauma sensorial (Sensory Lag)
         applied_trauma = 0.0
         if state.timeout_trauma:
             applied_trauma = state.timeout_trauma.severity * 0.2
@@ -111,10 +124,7 @@ class LimbicLobe:
         resonance.social_tension_locus = effective_tension
         
         # Inyectar el estado armónico en la sentencia para que el Ejecutivo lo use
-        resonance.morals["harmonics"] = {
-            "warmth": f"{smooth_w:.2f}",
-            "mystery": f"{smooth_m:.2f}",
-            "posture": ethical_advisory.social_posture
-        }
+        resonance.morals["harmonics"] = resonance_dict
+        resonance.morals["harmonics"]["posture"] = ethical_advisory.social_posture
         
         return resonance

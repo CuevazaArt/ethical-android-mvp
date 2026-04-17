@@ -18,38 +18,60 @@ class BasalGanglia:
         self.base_inertia = base_inertia
         self.tau = time_constant
         
-        # Estados internos suavizados (Baseline neutro)
+        # Affective States (Theater)
         self.smooth_warmth = 0.5
         self.smooth_mystery = 0.5
+        
+        # Ethical Leans (Math/Bayesian Weights)
+        # Neutral baseline is 0.5
+        self.smooth_civic = 0.5
+        self.smooth_care = 0.5
+        self.smooth_deliberation = 0.5
+        self.smooth_careful = 0.5
+        
         self.last_update = time.perf_counter()
 
-    def smooth(self, target_warmth: float, target_mystery: float) -> tuple[float, float]:
+    def smooth(
+        self, 
+        target_warmth: float, 
+        target_mystery: float,
+        target_civic: float = 0.5,
+        target_care: float = 0.5,
+        target_deliberation: float = 0.5,
+        target_careful: float = 0.5
+    ) -> dict[str, float]:
         """
-        Aplica un filtro de Media Móvil Exponencial (EMA) ponderado por tiempo (dt).
-        Previene saltos bruscos en el tono emocional del androide.
+        Aplica un filtro de Media Móvil Exponencial (EMA) a los estados afectivos y éticos.
+        Previene la 'Sociopatía Paramétrica' al suavizar las transiciones de pesos.
         """
         now = time.perf_counter()
         dt = now - self.last_update
         
-        # Calcular Alpha dinámico según el tiempo transcurrido
-        # Si dt es muy pequeño (ráfaga), la inercia es alta.
-        # Si dt es muy grande (pausa), la inercia baja para permitir cambios frescos.
         alpha = math.exp(-dt / self.tau) if dt > 0 else self.base_inertia
         
-        # Limitar la velocidad de cambio (Slew Rate Limit opcional)
+        # 1. Affective Smoothing
         self.smooth_warmth = (target_warmth * (1 - alpha)) + (self.smooth_warmth * alpha)
         self.smooth_mystery = (target_mystery * (1 - alpha)) + (self.smooth_mystery * alpha)
         
-        self.last_update = now
-        _log.debug("BasalGanglia: Resonance Update (dt=%.2fs) -> W:%.2f, M:%.2f", 
-                   dt, self.smooth_warmth, self.smooth_mystery)
+        # 2. Ethical Lean Smoothing (Thematic Inertia)
+        self.smooth_civic = (target_civic * (1 - alpha)) + (self.smooth_civic * alpha)
+        self.smooth_care = (target_care * (1 - alpha)) + (self.smooth_care * alpha)
+        self.smooth_deliberation = (target_deliberation * (1 - alpha)) + (self.smooth_deliberation * alpha)
+        self.smooth_careful = (target_careful * (1 - alpha)) + (self.smooth_careful * alpha)
         
-        return self.smooth_warmth, self.smooth_mystery
+        self.last_update = now
+        _log.debug("BasalGanglia: Integrated Resonance Update (dt=%.2fs)", dt)
+        
+        return self.get_current_resonance()
 
-    def get_current_resonance(self) -> dict:
-        """Retorna el estado afectivo actual listo para el prompt o modulación de voz."""
+    def get_current_resonance(self) -> dict[str, float]:
+        """Retorna el estado afectivo y dinámico actual."""
         return {
             "warmth": round(self.smooth_warmth, 3),
             "mystery": round(self.smooth_mystery, 3),
+            "civic": round(self.smooth_civic, 3),
+            "care": round(self.smooth_care, 3),
+            "deliberation": round(self.smooth_deliberation, 3),
+            "careful": round(self.smooth_careful, 3),
             "inertia_active": True
         }

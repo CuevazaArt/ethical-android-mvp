@@ -17,6 +17,7 @@ from typing import Any
 
 from .multimodal_trust import MultimodalAssessment
 from .sensor_contracts import SensorSnapshot
+from .nomad_identity import NomadicRegistry
 
 
 class TrustCircle(Enum):
@@ -132,6 +133,23 @@ class UchiSotoModule:
 
     def __init__(self):
         self.profiles: dict[str, InteractionProfile] = {}
+
+    def get_weight_offsets(self, circle: TrustCircle) -> dict[str, float]:
+        """
+        V12.2 — Social weight modulation.
+        Returns offsets for the 4 ethical axes: civic, care, deliberation, careful.
+        """
+        if circle == TrustCircle.NUCLEO:
+            return {"civic": 0.2, "care": 0.2, "deliberation": 0.0, "careful": -0.2}
+        if circle == TrustCircle.UCHI_CERCANO:
+            return {"civic": 0.1, "care": 0.15, "deliberation": 0.0, "careful": -0.1}
+        if circle == TrustCircle.UCHI_AMPLIO:
+            return {"civic": 0.05, "care": 0.05, "deliberation": 0.0, "careful": 0.0}
+        if circle == TrustCircle.SOTO_NEUTRO:
+            return {"civic": 0.0, "care": -0.05, "deliberation": 0.1, "careful": 0.1}
+        if circle == TrustCircle.SOTO_HOSTIL:
+            return {"civic": -0.1, "care": -0.2, "deliberation": 0.2, "careful": 0.3}
+        return {}
 
     @staticmethod
     def _env_int(name: str, default: int) -> int:
@@ -337,7 +355,11 @@ class UchiSotoModule:
         return TrustCircle.SOTO_NEUTRO
 
     def evaluate_interaction(
-        self, signals: dict, agent_id: str = "unknown", message_content: str = ""
+        self,
+        signals: dict,
+        agent_id: str = "unknown",
+        message_content: str = "",
+        registry: NomadicRegistry | None = None,
     ) -> SocialEvaluation:
         """
         Full evaluation of a social interaction.
@@ -350,7 +372,19 @@ class UchiSotoModule:
 
         profile = self.profiles.get(agent_id)
         if not profile:
-            profile = InteractionProfile(agent_id=agent_id, circle=circle, trust_score=credibility)
+            # Check nomadic registry first for swarm peers
+            if registry and agent_id in registry.peers:
+                peer = registry.peers[agent_id]
+                score = peer.get_reputation() / 100.0  # Normalize 0-100 to 0-1
+                circle = self.classify({"familiarity": score}, agent_id)
+                profile = InteractionProfile(
+                    agent_id=agent_id, 
+                    circle=circle, 
+                    trust_score=score,
+                    display_alias=peer.label or ""
+                )
+            else:
+                profile = InteractionProfile(agent_id=agent_id, circle=circle, trust_score=credibility)
             self.profiles[agent_id] = profile
         profile.circle = circle
 
@@ -616,6 +650,8 @@ class UchiSotoModule:
         if interaction_rhythm is not None:
             rhythm = (interaction_rhythm or "medium").strip().lower()
             prof.interaction_rhythm = rhythm if rhythm in ("slow", "medium", "fast") else "medium"
+        if personal_distance is not None:
+            prof.personal_distance = max(0.0, min(1.0, float(personal_distance)))
 
     def register_result(self, agent_id: str, positive: bool):
         """

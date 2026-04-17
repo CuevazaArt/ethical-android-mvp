@@ -47,7 +47,8 @@ class CorpusCallosumOrchestrator:
         self.ethical_lobe = EthicalLobe(
             abs_evil=kernel_ref.absolute_evil, 
             uchi_soto=kernel_ref.uchi_soto,
-            identity=kernel_ref.identity
+            identity=kernel_ref.identity,
+            registry=kernel_ref.nomadic_registry
         )
         self.limbic_lobe = LimbicLobe(
             bayesian=kernel_ref.bayesian,
@@ -143,6 +144,32 @@ class CorpusCallosumOrchestrator:
             err_ethics = EthicalSentence(is_safe=False, social_tension_locus=1.0, veto_reason=str(e))
             return err_state, err_ethics, f"SYSTEM_ERROR: Cognitive collapse. Details: {str(e)}", None
 
+    async def check_urgent_proactive_alert(self) -> tuple[SemanticState, EthicalSentence, str] | None:
+        """
+        Bloque 9.4: Monitor de Stream Inter-Lóbulos (E-Stop Proactivo).
+        Analiza el buffer sensorial actual y dispara una respuesta si hay un peligro crítico detectado visualmente.
+        """
+        # 1. Extraer entidades críticas del buffer de 5Hz
+        visual_entities = list(set([e for ep in self.perceptive_lobe.sensory_buffer for e in ep.entities]))
+        
+        # 2. Heurística de peligro inmediata (Edge Level)
+        # Basado en el listado de AbsoluteEvilCategory
+        has_critical_threat = any(d in ["weapon", "gun", "knife", "intruder", "fire"] for d in visual_entities)
+        
+        if has_critical_threat:
+            _log.critical("CorpusCallosum [E-STOP]: Proactive alert triggered by sensory stream!")
+            
+            # Simular un ciclo de 'observación pasiva forzada'
+            # (Inyectamos un prompt interno de sistema para que el Ejecutivo sepa qué está pasando)
+            state = await self.perceptive_lobe.observe("[SENSORY_INTERRUPT_CRITICAL]", {"lip_movement": 0.0})
+            ethics = await self.ethical_lobe.evaluate(state)
+            
+            # Forzar una respuesta de seguridad inmediata
+            output = await self.executive_lobe.formulate_response(state, ethics)
+            return state, ethics, output
+            
+        return None
+
     def shutdown(self):
         """Cierre seguro del bus de eventos."""
         _log.info("CorpusCallosum: Shutting down...")
@@ -221,6 +248,9 @@ from .modules.judicial_escalation import (
     should_offer_escalation_advisory,
     strikes_threshold_from_env,
 )
+from .modules.moral_hub import ConstitutionLevel, ConstitutionSnapshot, moral_hub_public_enabled
+from .modules.nomad_identity import NomadicRegistry, nomad_identity_public
+from .modules.reparation_vault import ReparationVault, maybe_register_reparation_after_mock_court
 from .modules.kernel_event_bus import (
     EVENT_KERNEL_DECISION,
     EVENT_KERNEL_EPISODE_REGISTERED,
@@ -620,6 +650,10 @@ class EthicalKernel:
             if co and co.escalation_session is not None
             else EscalationSessionTracker()
         )
+        # OOS-12.1 — Nomadic Registry & Reparation Vault
+        self.nomadic_registry = NomadicRegistry()
+        self.reparation_vault = ReparationVault(self.dao)
+        
         self.swarm = (
             co.swarm_negotiator
             if co and hasattr(co, "swarm_negotiator") and co.swarm_negotiator is not None
@@ -1552,7 +1586,22 @@ class EthicalKernel:
         self._raise_if_chat_turn_cooperative_abort()
 
         # ═══ Second-order reflection (Fase 1; read-only, no effect on action) ═══
-        reflection = self.ethical_reflection.reflect(moral, bayes_result, will_decision)
+        trauma_signals = self.identity.get_trauma_signals()
+        reflection = self.ethical_reflection.reflect(moral, bayes_result, will_decision, trauma_signals)
+        
+        # ═══ D1: IDENTITY BIOGRAPHIC DRIFT (Module 11 Veto) ═══
+        # If the decision mode is D_delib or gray_zone, we perform a sovereignty audit
+        if final_mode in ("D_delib", "gray_zone"):
+             sovereignty = self.identity.is_calibration_biographically_coherent(
+                  applied_mixture_weights, 
+                  self._bayesian_genome_threshold
+             )
+             if not sovereignty:
+                  _log.warning("EthicalKernel [SOVEREIGNTY VETO]: Decision contradicted biographic trajectory.")
+                  # We inject a caution signal into salience/reflection but don't hard-block (policy depends on DAO)
+                  reflection = ReflectionSnapshot(
+                       **{**reflection.__dict__, "note": f"SOVEREIGNTY WARNING: {reflection.note}"}
+                  )
 
         # ═══ METACOGNITIVE ALIGNMENT (Phase 5) ═══
         curiosity_val = self._last_meta_report.curiosity_weight if self._last_meta_report else 0.0

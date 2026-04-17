@@ -1,5 +1,6 @@
 import logging
 import random
+import os
 from src.kernel_lobes.models import SemanticState, EthicalSentence
 
 _log = logging.getLogger(__name__)
@@ -21,15 +22,49 @@ class TurnPrefetcher:
         "tense": ["Entiendo...", "Ya veo...", "Escucho.", "..."]
     }
 
-    def predict_bridge(self, state: SemanticState, ethics: EthicalSentence) -> str:
+    def __init__(self, model_name: str | None = None):
+        self.model_name = model_name or os.environ.get("OLLAMA_PREFETCH_MODEL")
+        if self.model_name:
+            _log.info("TurnPrefetcher: Initialized with local model %s", self.model_name)
+
+    async def predict_bridge(self, state: SemanticState, ethics: EthicalSentence) -> str:
         """
         Predice una frase corta basada en el estado semántico, ético y armónico.
+        Intenta usar un micro-LLM local si está disponible.
         """
         tension = ethics.social_tension_locus
         h = ethics.morals.get("harmonics", {})
         warmth = float(h.get("warmth", 0.5))
         mystery = float(h.get("mystery", 0.5))
         
+        # 0. Si hay un modelo configurado, intentamos inferencia flash
+        if self.model_name:
+            try:
+                import httpx
+                # Prompt ultracorto para latencia mínima
+                prompt = (
+                    f"User said: {state.raw_prompt[:100]}\n"
+                    f"State: T={tension:.1f}, W={warmth:.1f}, M={mystery:.1f}\n"
+                    "Generate a single quick assent bridge (1-3 words) to say while you think. "
+                    "Output ONLY the bridge phrase, no quotes."
+                )
+                async with httpx.AsyncClient(timeout=0.3) as client:
+                    resp = await client.post(
+                        "http://localhost:11434/api/generate",
+                        json={
+                            "model": self.model_name,
+                            "prompt": prompt,
+                            "stream": False,
+                            "options": {"num_predict": 5, "temperature": 0.2}
+                        }
+                    )
+                    if resp.status_code == 200:
+                        phrase = resp.json().get("response", "").strip().strip('"')
+                        if phrase:
+                            return phrase
+            except Exception as e:
+                _log.debug("TurnPrefetcher: Model inference failed or timed out, falling back to heuristics: %s", e)
+
         # 1. Caso de Alta Tensión
         if tension > 0.7:
             return random.choice(self.BRIDGES["tense"])

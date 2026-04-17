@@ -43,9 +43,19 @@ class ExecutiveLobe:
             if proactive:
                 return f"Internal Motivation Triggered: {proactive[0]['description']}"
 
-        # 2. Extract Emotional Resonance (Basal Ganglia Harmonics)
-        h = ethics.morals.get("harmonics", {"warmth": "0.50", "mystery": "0.50"})
-        sigma = 1.0 - float(h.get("warmth", 0.5)) # Sigma decreases with warmth
+        # 2. Extract Emotional Resonance (Basal Ganglia Harmonics - V12.2 6-axis)
+        h = ethics.morals.get("harmonics", {})
+        # Ensure fallback to 0.5 if key missing
+        warmth = float(h.get("warmth", 0.5))
+        sigma = 1.0 - warmth # Sigma decreases with warmth
+        
+        # Etosocial Leans V12.2
+        ethical_leans = {
+            "civic": float(h.get("civic", 0.5)),
+            "care": float(h.get("care", 0.5)),
+            "deliberation": float(h.get("deliberation", 0.5)),
+            "careful": float(h.get("careful", 0.5))
+        }
         
         # 3. Verbal Communication via LLM (ASYNC)
         response = await self.llm.acommunicate(
@@ -57,7 +67,8 @@ class ExecutiveLobe:
             verdict="Safe" if ethics.is_safe else "Blocked",
             score=1.0 - ethics.social_tension_locus,
             scenario=state.scenario_summary,
-            weakness_line=f"{ethics.social_posture} | W:{h.get('warmth')} M:{h.get('mystery')}"
+            weakness_line=f"{ethics.social_posture} | W:{warmth:.2f} M:{h.get('mystery', '0.50')}",
+            ethical_leans=ethical_leans
         )
 
         return response.message

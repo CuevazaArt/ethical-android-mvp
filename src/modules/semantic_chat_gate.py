@@ -315,11 +315,18 @@ def _fetch_embedding_with_fallback(text: str, backend: Any | None = None) -> np.
     return _fetch_embedding(text)
 
 async def _afetch_embedding_with_fallback(text: str, backend: Any | None = None) -> np.ndarray | None:
-    """Async: Prefer ``backend.embedding`` when present; otherwise Ollama HTTP (legacy path)."""
+    """Async: Prefer ``backend.aembedding`` when present; otherwise Ollama HTTP."""
     if backend is not None:
-        # Backward compatibility for backends without acompletion
-        # Most modern backends have aembedding or we wrap in to_thread here if needed.
-        # But per Tarea 9.3, we focus on the shared Ollama path.
+        # 1. Prefer async-native aembedding (Module 0.1.2)
+        if hasattr(backend, "aembedding"):
+            try:
+                raw = await backend.aembedding(text)
+                if raw is not None:
+                    return _list_to_unit_vector(raw)
+            except Exception:
+                observe_embedding_error("backend_async")
+
+        # 2. Fallback to sync embedding in thread if native async absent
         v = _embed_via_backend(backend, text)
         if v is not None:
             return v

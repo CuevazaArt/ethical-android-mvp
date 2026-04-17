@@ -45,4 +45,4 @@ class EthicalSentence:
     applied_trauma_weight: float = 0.0
     social_posture: str = "" # Tone/Attitude advisory for the Executive Lobe
     risk_vector: Dict[str, float] = field(default_factory=dict) # Fine-grained risk scores
-    morals: Dict[str, str] = field(default_factory=dict)
+    morals: Dict[str, Any] = field(default_factory=dict)
