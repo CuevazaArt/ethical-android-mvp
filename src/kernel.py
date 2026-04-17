@@ -193,6 +193,22 @@ class CorpusCallosumOrchestrator:
     def shutdown(self) -> None:
         self.cerebellum.stop()
         self.cerebellum.join()
+        self._shutdown_perceptive_lobe_http()
+
+    def _shutdown_perceptive_lobe_http(self) -> None:
+        """Best-effort close of ``PerceptiveLobe`` async HTTP client (avoids resource warnings)."""
+        pl = self.perceptive_lobe
+        aclose = getattr(pl, "aclose", None)
+        if aclose is None:
+            return
+        try:
+            asyncio.run(aclose())
+        except RuntimeError:
+            loop = asyncio.new_event_loop()
+            try:
+                loop.run_until_complete(aclose())
+            finally:
+                loop.close()
 
 
 def _kernel_env_truthy(name: str) -> bool:

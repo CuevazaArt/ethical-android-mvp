@@ -73,7 +73,7 @@ This report documents the current state of Phase 2/3 development work: semantic 
 
 1. **Keep CI green** (`ruff`, `pytest tests/`, integration gates) when touching kernel or MalAbs.
 2. **Extended Optuna Optimization** (P2): optional larger trial budget; validate against held-out adversarial strings per [`ADVERSARIAL_ROBUSTNESS_PLAN.md`](ADVERSARIAL_ROBUSTNESS_PLAN.md).
-3. **Tri-lobe / perceptual lobe:** Cursor line response recorded in [`PROPOSAL_CURSOR_PERCEPTIVE_LOBE_BOUNDARIES.md`](PROPOSAL_CURSOR_PERCEPTIVE_LOBE_BOUNDARIES.md); implement `PerceptiveLobe` async I/O per [`PROPOSAL_LLM_VERTICAL_ROADMAP.md`](PROPOSAL_LLM_VERTICAL_ROADMAP.md) / ADR 0002 when scheduled.
+3. **Tri-lobe / perceptual lobe:** [`PROPOSAL_CURSOR_PERCEPTIVE_LOBE_BOUNDARIES.md`](PROPOSAL_CURSOR_PERCEPTIVE_LOBE_BOUNDARIES.md); optional async probe in [`perception_lobe.py`](../../src/kernel_lobes/perception_lobe.py) (`KERNEL_PERCEPTIVE_LOBE_PROBE_URL`). Further cooperative cancel / full async migration remains per [`PROPOSAL_LLM_VERTICAL_ROADMAP.md`](PROPOSAL_LLM_VERTICAL_ROADMAP.md) phase 3 and ADR 0002.
 
 ---
 

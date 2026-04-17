@@ -40,6 +40,7 @@ _FAMILY_RULES: Final[tuple[tuple[str, tuple[str, ...]], ...]] = (
             "KERNEL_MULTIMODAL_",
             "KERNEL_VITALITY_",
             "KERNEL_PERCEPTION_",
+            "KERNEL_PERCEPTIVE_LOBE_",
             "KERNEL_LIGHT_RISK_",
             "KERNEL_CROSS_CHECK_",
             "KERNEL_CHAT_INCLUDE_LIGHT_RISK",

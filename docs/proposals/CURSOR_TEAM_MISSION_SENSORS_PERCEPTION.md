@@ -116,7 +116,7 @@ The table below is the active starter queue for **`master-Cursor`** work.
 #### SP-P0-01 — Unified degradation policy for perception health *(landed — extend to all LLM touchpoints)*
 
 - **Source:** `WEAKNESSES_AND_BOTTLENECKS.md` Section 3 (explicit gap).
-- **Delivered (perception path):** [`PROPOSAL_PERCEPTION_BACKEND_DEGRADATION_POLICY.md`](PROPOSAL_PERCEPTION_BACKEND_DEGRADATION_POLICY.md), ``KERNEL_PERCEPTION_BACKEND_POLICY``, [`tests/test_perception_backend_policy.py`](../../tests/test_perception_backend_policy.py). **Remaining:** same operator-visible pattern for communicate / narrative / optional monologue when maintainers scope it.
+- **Delivered (perception path):** [`PROPOSAL_PERCEPTION_BACKEND_DEGRADATION_POLICY.md`](PROPOSAL_PERCEPTION_BACKEND_DEGRADATION_POLICY.md), ``KERNEL_PERCEPTION_BACKEND_POLICY``, [`tests/test_perception_backend_policy.py`](../../tests/test_perception_backend_policy.py). **Partial (verbal / monologue):** optional ``KERNEL_LLM_GLOBAL_DEFAULT_POLICY`` after per-touchpoint resolution ([`PROPOSAL_LLM_INTEGRATION_TRACK.md`](PROPOSAL_LLM_INTEGRATION_TRACK.md) G-04). **Remaining:** single-prefix env unification still **deferred** ([`WEAKNESSES_AND_BOTTLENECKS.md`](../WEAKNESSES_AND_BOTTLENECKS.md) §3).
 - **Track label:** `runtime-policy`
 - **Risk class:** `critical`
 - **Owner office:** Cursor (shared)
