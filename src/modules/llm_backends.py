@@ -61,6 +61,11 @@ class LLMBackend(ABC):
     def info(self) -> dict[str, Any]:
         """Stable, JSON-serializable metadata for operators and tests."""
 
+    async def aembedding(self, text: str) -> list[float] | None:
+        """Async embedding; default runs sync :meth:`embedding` in a worker thread."""
+        raise_if_llm_cancel_requested()
+        return await asyncio.to_thread(self.embedding, text)
+
     def complete(self, system: str, user: str) -> str:
         return self.completion(system, user)
 
@@ -335,9 +340,25 @@ class OllamaLLMBackend(LLMBackend):
         except Exception:
             return None
         emb = data.get("embedding")
-        if not emb or not isinstance(emb, list):
+        return [float(x) for x in emb] if isinstance(emb, list) else None
+
+    async def aembedding(self, text: str) -> list[float] | None:
+        """Async ``/api/embeddings``."""
+        if not (text or "").strip():
             return None
-        return [float(x) for x in emb]
+        raise_if_llm_cancel_requested()
+        url = f"{self._base}/api/embeddings"
+        payload = {"model": self._embed_model, "prompt": text}
+        timeout = httpx.Timeout(self._embed_timeout)
+        try:
+            async with httpx.AsyncClient(timeout=timeout) as client:
+                r = await client.post(url, json=payload)
+                r.raise_for_status()
+                data = r.json()
+        except Exception:
+            return None
+        emb = data.get("embedding")
+        return [float(x) for x in emb] if isinstance(emb, list) else None
 
     def info(self) -> dict[str, Any]:
         return {

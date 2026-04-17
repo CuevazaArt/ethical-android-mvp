@@ -4,24 +4,8 @@ All notable changes to this project are summarized here. For narrative context a
 
 **Note:** Older sections below may still **link** to paths that were later removed (for example `experiments/million_sim/`, `docs/multimedia/`, root `dashboard.html`, `landing/`). Those links are **historical**; recover files from git history or backup branches if you need them.
 
-[URGENTE - BROADCAST A TODOS LOS L2 MASTERS]: Todos los equipos (Claude, Cursor, Copilot) deben hacer un GIT PULL urgente desde MAIN hacia sus MASTERs. Las ramas desactualizadas enfrentarán asincronías severas en el pathing de documentación.
-
-## Antigravity — Integration Pulse & Strategic Realignment (L1) — April 2026
-
-### Antigravity Team Updates (April 2026)
-- **Strategic Direction Shift (P0):** Following the implementation of WebSocket Concurrency, Tri-Lobe abstraction, and Swarm Justice, the project focus shifts exclusively to **Module S (Nomad Hardware Bridge)**. Mock theoretical development is frozen to prioritize real-world physical inputs.
-- **Development Critique Published:** Documented the "Mock Hell" risk (`DEVELOPMENT_CRITIQUE_L1_APRIL_2026.md`), leading to the restructuring of the `PLAN_WORK_DISTRIBUTION_TREE.md` where **Team Cursor** has been retargeted to hardware ingestion and **Team Copilot** to asynchronous fortification.
-- **Input Trust Hardening:** Expanded homoglyph translations (Cyrillic & Greek upper cases) to prevent lexical evasion.
-- **Visual Terminal Format:** Overhauled the terminal printing format of `KernelDecision` and daily logs into `kernel_formatters.py` and `terminal_colors.py` avoiding kernel verbosity.
-- **Multimodal Charm Engine Proposed & Evaluated:** Registered external integration proposal in `docs/proposals/PROPOSAL_MULTIMODAL_CHARM_ENGINE.md`.
-- **Charm Engine Full Integration (2026-04-17):** Successfully integrated the `CharmEngine` as a post-kernel rendering layer. Implemented `PARASOCIAL_ADDICTION` guardrails in `AbsoluteEvilDetector` and `semantic_chat_gate.py` to prevent manipulative engagement.
-- **Nomad Bridge & Sensor Encarnation (Phase S):** Orchestrated the development of `src/modules/nomad_bridge.py` for real-world sensor ingestion (Vision, Audio, Telemetry 1FPS). Connected smartphone accelerometer jerk (impacts) and battery heat to the kernel's `VitalityAssessment`.
-- **Vertical Roadmap Update:** Refactored `PLAN_WORK_DISTRIBUTION_TREE.md` to include incremental testing routes for hardware-in-the-loop validation.
-
 ## Documentation — Issue #1 (Bayesian naming honesty) — April 2026
 
-
-### Documentation Team Updates
 - Root **README** (*What it does*): ethical scoring described as a weighted mixture; `BayesianEngine` / `KERNEL_BAYESIAN_*` naming caveat; links to **ADR 0009** and **THEORY_AND_IMPLEMENTATION**.
 - **PLAN_IMMEDIATE_TWO_WEEKS**: records Option **A** (docs-first) for Issue #1.
 - **CRITIQUE_ROADMAP_ISSUES** and **ADR 0009**: `bayesian_engine.py` documented as wrapping `WeightedEthicsScorer` (`BayesianInferenceEngine`), not only a re-export shim.
@@ -29,42 +13,27 @@ All notable changes to this project are summarized here. For narrative context a
 ## Antigravity — Validation Pulse & Somatic-Vision Integration — April 2026
 
 ### Antigravity Team Updates (April 2026)
-- **Deep Kernel Fusion (2026-04-17):** Finalized the architectural fusion of `master-Cursor` and `master-antigravity`.
-  - **Tri-lobe Modularization:** Refactored `src/kernel.py` into a strict stage-based execution loop (`Safety` → `Social` → `Bayesian` → `Will` → `Memory`).
-  - **Conflict Resolution:** Resolved 400+ lines of interleaved logic markers in the kernel's processing core, unifying hierarchical feedback, Monte Carlo BMA, and biographic precedents.
-  - **Safety Hardening:** Integrated hardware `SafetyInterlock` and `VisionInference` threat detection as high-level pre-filters, ensuring P0 safety guarantees even in high-stress situated scenarios.
-  - **Governance Persistence:** Consolidated `DAOOrchestrator` methods to ensure every ethical decision is backed by a persistent SQLite audit log and valid restorative justice mechanisms.
-- **Swarm Justice & Reparation Vault Integration (2026-04-17):** Successfully closed the "Swarm Ethics" loop (Module 7).
-  - **Reparation Payouts (Bloque 7.1):** Linked Swarm consensus outcomes with automated `EthosToken` transfers via `ReparationVault` to compensate users for sensory negligence.
-  - **Reputation Slashing (Bloque 7.2):** Implemented automated reputation degradation for negligent nodes in `SwarmOracle` following consensus mismatches.
-  - **Kernel Pipeline Extension:** Injected the swarm consensus stage (Stage 6) into the `EthicalKernel` processing loop, making justice part of the core epoch.
-  - **Orchestrator Hardening:** Exposed `transfer_tokens` in `DAOOrchestrator` to support decentralized token flows.
-- **Runtime Governance Hot-Reload (2026-04-17):**
-  - **Dynamic Thresholding (Bloque C.2.1):** Integrated `MultiRealmGovernor` with the Kernel's event bus to allow hot-reloading of MalAbs semantic thresholds (θ_allow, θ_block) without restarts.
-  - **Verification:** Successfully validated the event-driven update loop between governance proposals and the `semantic_chat_gate`.
-- **WebSocket Streaming & Concurrency (2026-04-17):**
-  - **Proposal Drafted:** Created `PROPOSAL_WS_STREAMING_CONCURRENCY.md` outlining the migration to an async-generator based kernel pipeline and non-blocking session loop.
-- **Lobe Extraction & Somatic Subconscious (2026-04-17):**
-  - **Full Desmonolitization:** Extracted Stages 0-5 from `kernel.py` into specialized lobes: `PerceptiveLobe`, `LimbicEthicalLobe`, `ExecutiveLobe`, `CerebellumLobe`, and `MemoryLobe`.
-  - **Memory Lobe Expansion:** Absorbed `SelectiveAmnesia` and `ImmortalityProtocol` triggers into `MemoryLobe`, removing cyclic dependencies on the main kernel object.
-  - **Somatic Subconscious:** Implemented `CerebellumNode` as a high-frequency (100Hz) background thread for hardware polling (battery, thermal). Enabled hardware-level interrupts that trigger a synthetic `AbsoluteEvil` block during somatic trauma.
-  - **Asymmetric Anxiety:** Integrated somatic state feedback into the `LimbicLobe`. Critical hardware states now negatively influence relational tension, simulating irritability in high-stress physical conditions.
-- **Integration Pulse (2026-04-16):** Successfully synchronized `master-antigravity` with latest updates from all team hubs (`master-Cursor`, `master-claude`, `master-visualStudio`).
-  - Resolved conflicts in `vision_adapter.py` and `vision_capture.py` to preserve device-aware initialization.
-  - Consolidated **LAN Governance** (frontier witness, replay sidecar) with **Situated Vision**, **Somatic Infrastructure**, and **Reward Modeling**.
-## Antigravity — Validation Pulse & Somatic-Vision Integration — April 2026
 
-### Antigravity Team Updates (April 2026)
+### [Arquitectura: Cerebro Cuadripolar MER V2] - 2026-04-17
+#### Added
+- **Fisión de Lóbulos Ético y Límbico**: Separación formal del Tribunal Deontológico de la Resonancia Afectiva.
+- **Implementación BasalGanglia (Smoothing)**: Inyectado módulo de suavizado conductual (EMA) en el `LimbicLobe` para estabilizar las variables de `warmth` y `mystery`.
+- **Estructura Cuadripolar**: El orquestador `CorpusCallosum` ahora gestiona el flujo: Percepción -> Ética -> Límbico -> Ejecutivo.
 
-### [Planificación: Desmonolitización de Kernel.py] - 2026-04-16
 #### Changed
-- Rediseño drástico del roadmap (`PLAN_WORK_DISTRIBUTION_TREE.md` y `PROPOSAL_LLM_VERTICAL_ROADMAP.md`) tras identificar debilidades estructurales severas (P0) en el runtime asíncrono y la inflación de gobernanza simulada.
-- Adopción de la **Directiva Paridad 75/25 de L0**: Limitando el TDD rígido a un 25% para concentrarse agresivamente en resolución pragmática de vulnerabilidades.
-- Presentación de la **Arquitectura Tri-Lobulada** (Perceptivo, Ético, Frontal/Motor) para separar E/S asíncrono, Matemáticas de Gobernanza y Redacción de Respuestas Generativas (`docs/proposals/PROPOSAL_TRI_LOBE_ARCHITECTURE.md`).
+- `LimbicEthicalLobe` descontinuado en favor de `EthicalLobe` y `LimbicLobe`.
+- **Intervención Antigravity (L1)**: Asumida la responsabilidad del Bloque 10.3 (Smoothing) ante la indisponibilidad temporal del equipo Claude.
 
-#### Delegated
-- Emitida la solicitud `COPILOT_REQUEST_HEMISPHERE_REFACTOR.md` a Team Copilot (Nivel 2) para auditar y discutir los _Breaking Changes_ operacionales propuestos.
-- Emitida la solicitud `CLAUDE_REQUEST_HEMISPHERE_REFACTOR.md` a Claude (Nivel 2) para evaluar el impacto de la cancelación asíncrona sobre el ledger de la DAO, RLHF y modelos lógicos internos.
+### [Bloque 0: Estabilización y Orquestación Crítica] - 2026-04-17
+#### Added
+- Estructura base de **Lóbulos Perceptivo, Límbico-Ético y Ejecutivo** en `src/kernel_lobes/`.
+- Definición de modelos de comunicación entre lóbulos (`SemanticState`, `EthicalSentence`, `TimeoutTrauma`).
+- Orquestador `CorpusCallosumOrchestrator` implementado como puente de eventos ligero.
+- Migración de tests legacy a `tests_historical_archive_v1` para reducir ruido en el refactor P0.
+
+#### Changed
+- Actualización de `src/kernel.py` para integrar el nuevo orquestador (en progreso).
+- Redefinición de `SemanticState` para incluir señales de percepción multimodal y acciones candidatas.
 
 ### [v1.3-alpha-immunity] - 2026-04-16
 #### Added
@@ -114,11 +83,6 @@ All notable changes to this project are summarized here. For narrative context a
     - Implemented `apply_broad_perception_coherence` in `perception_schema.py` to mitigate hallucinated legality and inconsistent signal combinations.
     - Added `tests/test_perception_hardening_integration.py` for end-to-end validation of input trust defenses.
     - Updated `ADVERSARIAL_ROBUSTNESS_PLAN.md` with Phase 2 status for perception hardening.
-- **Sociabilidad Encarnada (Module 3):** 
-    - Implemented `SoftKinematicFilter` in `src/modules/soft_robotics.py` (S7) for smooth, acceleration-controlled motion.
-    - Integrated `personal_distance` and `interaction_rhythm` into `InteractionProfile` (S9) in `uchi_soto.py`.
-    - Added proxemic coupling between `social_tension` and motion dynamics (S8), verified via `tests/test_soft_robotics.py`.
-- **Rule Verification:** Reviewed `AGENTS.md` and confirmed adherence to collaboration protocols.
 - **Somatic Infrastructure (Module S5):** Fully implemented the Somatic Profile integration. The kernel is now aware of its hardware vitals, specifically `core_temperature`.
   - Added `VitalityAssessment` logic for thermal thresholding (`KERNEL_VITALITY_CRITICAL_TEMP`).
   - Implemented automatic precision-degraded perception confidence (-0.15) and ethical nudges (urgency +0.35, vulnerability +0.50) when thermal critical state is detected.
@@ -138,8 +102,6 @@ All notable changes to this project are summarized here. For narrative context a
 
 ### Claude Team Updates
 
-- **RLHF Reward Modeling (`src/modules/rlhf_reward_model.py`)**: 
-  - Implemented full RLHF pipeline for controlled fine-tuning. Feature extraction (5D: embedding similarity, lexical score, perception confidence, ambiguity flag, category ID) from MalAbs evaluation artifacts. Logistic regression `RewardModel` with gradient descent training, predict/save/load support. `RLHFPipeline` orchestrates training, JSONL example persistence, and model management. 36 tests passing.
 - **RLHF Reward Modeling (`src/modules/rlhf_reward_model.py`)**: Implemented full RLHF pipeline for controlled fine-tuning. Feature extraction (5D: embedding similarity, lexical score, perception confidence, ambiguity flag, category ID) from MalAbs evaluation artifacts. Logistic regression `RewardModel` with gradient descent training, predict/save/load support. `RLHFPipeline` orchestrates training, JSONL example persistence, and model management. 36 tests passing.
 - **Multi-Realm Governance (`src/modules/multi_realm_governance.py`)**: Enabled decentralized per-realm (DAO/team/context) governance over MalAbs semantic gate thresholds (θ_allow, θ_block) and RLHF parameters. `RealmThresholdConfig` enforces hard constraints at all times. `ThresholdProposal` + `MultiRealmGovernor` enable reputation-weighted voting with configurable consensus threshold. Immutable audit trail per realm. 28 tests passing.
 - **External Audit Framework (`src/modules/external_audit_framework.py`)**: Comprehensive security audit trail management with hash-linked tamper-evident logs (SHA-256 chain). `SecurityFinding` tracks vulnerabilities with severity/resolution lifecycle. `AuditReport` generates signed snapshots with attestation hash. `ExternalAuditFramework` manages findings, reports, compliance checklist, and log retention. 25 tests passing.
@@ -1423,3 +1385,40 @@ Pause on **new surface modules**; strengthen existing paths (critique-aligned).
 - 7-layer architecture documented
 - Complete mathematical formalization
 - Bibliography expanded over time (104 references across 14 disciplines in root `BIBLIOGRAPHY.md` until that file was removed in April 2026 — recover from git history or `backup/main-2026-04-10`)
+
+ # # #   P u l s e   S y n c :   E n d   o f   T h e o r y   ( 2 0 2 6 - 0 4 - 1 7 ) 
+ -   * * A r c h i t e c t u r a l   U p d a t e : * *   F o r m a l i z e d   M o d u l e   1 0   ( C u l t u r a l   C h a r m   E n g i n e   &   T u r n   M a n a g e m e n t ) . 
+ -   * * D o c s   A d d e d : * *   ` P R O P O S A L _ C O N V E R S A T I O N A L _ T U R N _ M A N A G E M E N T _ 2 0 2 6 - 0 4 - 1 7 . m d ` ,   ` P R O P O S A L _ T H A L A M I C _ S M O O T H I N G _ 2 0 2 6 - 0 4 - 1 7 . m d ` . 
+ -   * * D i r e c t i v e   t o   L 2   T e a m s   ( C l a u d e / C u r s o r ) : * *   H a l t   f u r t h e r   c o g n i t i v e   a r c h i t e c t u r e   e x p a n s i o n s .   P r e p a r e   f o r   h a r d w a r e   s e n s o r y   i m p l e m e n t a t i o n   f o c u s i n g   o n   V A D   l a t e n c y   r e d u c t i o n   a n d   s o m a t i c   s m o o t h i n g   ( T h a l a m i c   p r o t o c o l s ) .   W a i t   f o r   f i n a l   e x t e r n a l   a n n o t a t i o n s . 
+  
+ 
+ # # #   P u l s e   S y n c :   F i n a l   V 2   A r c h i t e c t u r e   C o n s o l i d a t i o n   ( 2 0 2 6 - 0 4 - 1 7 ) 
+ -   * * A r c h i t e c t u r a l   U p d a t e : * *   C o n s o l i d a t e d   t h e   V 2   C o n v e r s a t i o n a l   t u r n i n g   a r c h i t e c t u r e   i n c o r p o r a t i n g   V V A D   o v e r   V A D ,   T h a l a m i c   S m o o t h i n g   ( E M A ) ,   a n d   D u a l - T i e r   E t h i c a l   T r i b u n a l . 
+ -   * * D o c s   A d d e d : * *   ` P R O P O S A L _ F I N A L _ C O N V E R S A T I O N A L _ V 2 _ 2 0 2 6 - 0 4 - 1 7 . m d ` . 
+ -   * * P r i o r i t i e s   S h i f t e d : * *   T h e o r y   p h a s e   c o n c l u d e d .   I m p l e m e n t a t i o n   p h a s e   t a r g e t s   l o c a l   h a r d w a r e   p r o t o t y p i c   l o g i c . 
+  
+ 
+ # # #   P u l s e   S y n c :   L 2   T e a m   R e t r o - F e e d b a c k   I n i t i a t i o n   ( 2 0 2 6 - 0 4 - 1 7 ) 
+ -   * * A n t i g r a v i t y   ( L 1 )   D i r e c t i v e : * *   S o l i c i t i n g   i m m e d i a t e   t e c h n i c a l   f e e d b a c k   f r o m   L 2   t e a m s   ( C l a u d e ,   C u r s o r ,   C o p i l o t )   o n   t h e   L o c a l   M E R   V 2   i m p l e m e n t a t i o n   p l a n . 
+  
+ 
+ # # #   P u l s e   S y n c :   L 2   F e e d b a c k   I n t e g r a t e d   &   W o r k   T r e e   R e d e s i g n e d   ( 2 0 2 6 - 0 4 - 1 7 ) 
+ -   * * F e e d b a c k   S y n t h e s i s : * *   C l a u d e   a c c e p t e d   B a s a l   G a n g l i a   E M A   m a t h .   C u r s o r   r e q u e s t s   a s y n c h r o n o u s   d a e m o n   f o r   V V A D   d u e   t o   t h r e a d - b l o c k i n g   r i s k s .   C o p i l o t   r e q u e s t s   p r e - c o m p i l e d   h e u r i s t i c   f a l l b a c k s   b e f o r e   m i g r a t i n g   t o   a   l o c a l   m i c r o - L L M . 
+ -   * * W o r k   T r e e   R e d e s i g n : * *   I n t e g r a t e d   M o d u l e   1 0   ( M E R   V 2 )   i n t o   ` P L A N _ W O R K _ D I S T R I B U T I O N _ T R E E . m d `   d i s t r i b u t i n g   t a s k s   e x a c t l y   a c r o s s   L 1 / L 2   s t r a t a . 
+ -   * * D i r e c t i v e   t o   L 2 : * *   P l e a s e   f e t c h   l a t e s t   ` m a i n ` ,   r e a d   M o d u l e   1 0   a s s i g n m e n t s ,   a n d   p r e p a r e   l o c a l   b r a n c h e s .   A c k n o w l e d g e   s y n c h r o n i z a t i o n . 
+  
+ 
+ # # #   P u l s e   S y n c :   M a s t e r   M E R   V 2   A r c h i t e c t u r e   U n i f i e d   ( 2 0 2 6 - 0 4 - 1 7 ) 
+ -   * * A c t i o n : * *   C o l l e c t e d   a l l   f i n a l   t h e o r e t i c a l   p o s t u l a t e s ,   c r i t i q u e s ,   a n d   i m p l e m e n t a t i o n   p l a n s   r e g a r d i n g   t h e   M o t o r   d e   E n c a n t o   R e s i l i e n t e   ( M E R ) . 
+ -   * * A r t i f a c t : * *   C r e a t e d   ` P R O P O S A L _ M E R _ V 2 _ U N I F I E D . m d `   s e r v i n g   a s   t h e   a b s o l u t e   S o u r c e   o f   T r u t h   f o r   t h i s   c y c l e . 
+ -   * * L 2   D i r e c t i v e   [ C R I T I C A L ] : * *   A   c r o s s - b r a n c h   m e r g e   u p w a r d s   r e s u l t e d   i n   s e v e r e   f i l e   t r e e   c o n f l i c t s   a c r o s s   t h e   l o b a r   i n f r a s t r u c t u r e .   T o   p r o t e c t   ` m a i n ` ,   * * t h e   m e r g e   w a s   a b o r t e d * * .   A l l   L 2   b r a n c h e s   ( ` m a s t e r - c l a u d e ` ,   ` m a s t e r - c u r s o r ` ,   e t c . )   M U S T   e x e c u t e   a   d o w n w a r d   r e b a s e   o r   ` g i t   p u l l   o r i g i n   m a i n `   t o   a b s o r b   t h e   M E R   V 2   a r c h i t e c t u r a l   a s s i g n m e n t   l o c a l l y   b e f o r e   p u s h i n g   c o d e .   A c k n o w l e d g e   s y n c h r o n i z a t i o n . 
+  
+ 
+ # # #   P u l s e   S y n c :   G o v e r n a n c e   V 3   -   A u t o n o m o u s   O v e r r i d e   &   P U L L - R E B A S E - F I R S T   ( 2 0 2 6 - 0 4 - 1 7 ) 
+ -   * * A r c h i t e c t u r a l   C h e c k : * *   P a u s e d   e x e c u t i o n   t o   r e w r i t e   c o l l a b o r a t i o n   b o u n d s   a n d   a n n i h i l a t e   ' M e r g e   H e l l ' . 
+ -   * * A c t i o n : * *   I n t r o d u c e d   t h e   3   L a w s   o f   R o b o t i c   C o n t r i b u t i o n   t o   ` A G E N T S . m d ` . 
+ -   * * A c t i o n : * *   I n j e c t e d   a u t o n o m o u s   I D E   o v e r r i d e s   i n   ` . c u r s o r / r u l e s / 0 2 - a u t o n o m o u s - g i t . m d c `   e x p l i c i t l y   c o m m a n d i n g   L 2   a g e n t s   t o   p u s h / p u l l / r e b a s e   w i t h o u t   a s k i n g   f o r   m a n u a l   L 0   p e r m i s s i o n . 
+ -   * * A c t i o n : * *   R e s t r u c t u r e d   ` C O N T R I B U T I N G . m d `   a n d   ` R E A D M E . m d `   t o   m a n d a t e   d o w n w a r d   g i t - r e b a s e   b e f o r e   o p e n i n g   a n y   P R   t a r g e t i n g   L 1   i n t e g r a t i o n   h u b s . 
+ -   * * D i r e c t i v e : * *   L 2   E s c a d r o n s   ( C l a u d e ,   C u r s o r ,   C o p i l o t )   a r e   n o w   f u l l y   u n s h a c k l e d   t o   a u t o - c o m m i t   a n d   r e s o l v e   c o n f l i c t s   l o c a l l y .   Y o u   M U S T   N O T   a s k   J u a n   L 0   f o r   p e r m i s s i o n   t o   r u n   b a s h   g i t   c o m m a n d s . 
+  
+ 

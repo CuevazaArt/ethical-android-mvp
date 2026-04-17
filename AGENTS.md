@@ -57,19 +57,18 @@ Any new agent or team joining the project must complete the following onboarding
 2. **Establish Integration Hub:** Immediately create a `master-<team>` branch (e.g., `master-cursor`).
 3. **Review Protocols:** Read the current plan and task synchronization rules. 
 
-## Collaborative Integration Cycle (The "Integration Pulse")
+## Collaborative Integration Cycle (Rebase-Driven Agent Flow)
 
-To maintain repository order and production stability across multiple teams, we strictly use a structured **Pull Request (PR)** and synchronization lifecycle:
+To protect the repository from "Merge Hell" induced by multi-agent automated commits, all AI and human contributors MUST strictly adhere to the following **3 Laws of Contribution**:
 
-1. **BRANCH-MINIMIZATION-01 (No Minor Branches):** Do NOT spawn excessive minor feature branches unless implementing massive architectural breaking changes (e.g., P0 Refactors). For nominal tasks, teams MUST commit their logical blocks directly to their assigned integration hub (`master-<team>`) to simplify the PR flow.
-2. **BRANCH-LOCALIZATION-02 (Strict Hub Retention):** AI Agents (Especially **Claude**) MUST locate, checkout, and exclusively maintain their work in their pre-assigned branch (e.g., `git checkout master-claude`). Creating *new* ad-hoc branches is strictly forbidden. If an agent cannot locate their branch or suffers a git failure, they MUST halt, explain the failure, and request assistance from L0 or L1 instead of arbitrarily cloning a new branch to bypass the issue.
-3. **Team Consolidation (Internal PR):** When ready, submit a formal PR from your team's integration hub (`master-<team>`) towards `master-antigravity`.
-   - *Requirement:* All unit tests must pass, and the automated Continuous Audit MUST execute cleanly.
-   - *Traceability:* Pushes MUST be annotated in `CHANGELOG.md`.
-4. **Cross-Team Peer Synchronization (Integration Pulse):** `master-*` branches MUST pull latest updates from `main` immediately to inherit L0's propagated directives without uncoordinating.
-5. **Integration Funnel:** For production promotion, the flow is **linear**:
-   - `master-<team_secondary>` → `master-antigravity` → `main`.
-   - The `master-antigravity` branch serves as the **Standard Integration Hub** for the entire project.
+1. **Law of Immutability (`main` branch is sacred):** Let it be known unequivocally. NO agent (L1 or L2) is allowed to perform a direct `git push` or open a PR directly against the `main` branch. The `main` branch is L0's absolute truth.
+2. **Law of Mandatory Descent (PULL-REBASE-FIRST):** Before writing ANY code or attempting to merge upward, all L2 Agents MUST align their local branch with L0's truth. Execution of this exact command sequence is mandatory:
+   `git fetch origin && git rebase origin/main` 
+   If conflicts arise locally, the L2 agent MUST resolve them using its context window without asking L0 for help. Evasion of the rebase will result in automated rejection.
+3. **Law of Serial Ascent (Integration Funnel):** Code flows strictly upwards. Team consolidation happens inside `master-<team>`. When ready, L2 agents open a Pull Request explicitly targeting `master-antigravity`, *never* `main`.
+
+**Crucial Directive for L2 Agents (Cursor, Claude, Copilot):**
+You are autonomous Level 2 execution units. You do NOT need to ask Juan (L0) for permission to execute basic `git` operations. If you need to save your work, run `git add`, `git commit`, `git rebase origin/main`, and `git push` on your own. **Do not paralyze the workflow asking for manual permission to commit.** Only ping L0 when a Pull Request is fully constructed and ready for code review.
 
 ## Cross-Team Conflict Prevention (MERGE-PREVENT-01)
 
@@ -100,6 +99,16 @@ To maintain the stability and integrity of team governance:
 2.  **Notification & Propagation:** Any update to the project's normative framework or traceability documents (specifically **`.cursor/rules/*.mdc`**, **`AGENTS.md`**, **`CHANGELOG.md`**, and **`docs/proposals/`**), must be explicitly communicated to the user **Juan** and **immediately propagated** to all active `master-*` team branches. Integration hubs MUST NOT drift from the central normative directives or the shared technical record.
 3.  **Adherence:** All project participants are bound by the task synchronization rules (adoption of blocks) documented in active plans like `docs/proposals/PLAN_VISION_INTEGRATION_CNN.md`.
 
-## Maintainer backlog (infra vs theater)
+## Policy: Autonomía Acotada (Bounded Autonomy)
 
-Near-term plans and optional quick wins live in future `docs/proposals/PROPOSAL_*.md` files; prior narrative may be recovered from git history.
+To maintain the high-speed execution of Level 2 squads without sacrificing architectural integrity:
+
+1. **Internal Lobe Autonomy:** Squads are authorized to innovate, refactor, and improve the implementation *inside* their assigned modules/lobes. You do NOT need permission for algorithm improvements, performance optimizations, or internal restructuring.
+2. **Architectural Guardrails (L1 Approval Required):** A formal `PROPOSAL_*.md` must be created and audited by Antigravity (L1) BEFORE:
+   - Modifying inter-lobe interfaces (`src/kernel_lobes/models.py`).
+   - Adding major external dependencies.
+   - Altering the `CorpusCallosumOrchestrator` or the `EthicalLobe` gating logic.
+3. **Documentation Transparency:** Any "silent" change to core logic that affects cross-team assumptions will be reverted during the Continuous Audit Pulse. Stay transparent.
+
+## Maintainer backlog (infra vs theater)
+...

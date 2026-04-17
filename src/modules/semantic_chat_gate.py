@@ -393,6 +393,22 @@ def _fetch_embedding(text: str) -> np.ndarray | None:
     observe_embedding_error("http")
     return None
 
+async def _afetch_embedding(text: str) -> np.ndarray | None:
+    from .semantic_embedding_client import (
+        ahttp_fetch_ollama_embedding_with_policy,
+        maybe_hash_fallback_embedding,
+    )
+
+    url = f"{_ollama_base()}/api/embeddings"
+    v = await ahttp_fetch_ollama_embedding_with_policy(url, _embed_model(), text)
+    if v is not None:
+        return v
+    hf = maybe_hash_fallback_embedding(text)
+    if hf is not None:
+        return hf
+    observe_embedding_error("http")
+    return None
+
 
 def _embed_via_backend(backend: Any, text: str) -> np.ndarray | None:
     fn = getattr(backend, "embedding", None)
@@ -413,6 +429,24 @@ def _fetch_embedding_with_fallback(text: str, backend: Any | None = None) -> np.
         if v is not None:
             return v
     return _fetch_embedding(text)
+
+async def _afetch_embedding_with_fallback(text: str, backend: Any | None = None) -> np.ndarray | None:
+    """Async: Prefer ``backend.aembedding`` when present; otherwise Ollama HTTP."""
+    if backend is not None:
+        # 1. Prefer async-native aembedding (Module 0.1.2)
+        if hasattr(backend, "aembedding"):
+            try:
+                raw = await backend.aembedding(text)
+                if raw is not None:
+                    return _list_to_unit_vector(raw)
+            except Exception:
+                observe_embedding_error("backend_async")
+
+        # 2. Fallback to sync embedding in thread if native async absent
+        v = _embed_via_backend(backend, text)
+        if v is not None:
+            return v
+    return await _afetch_embedding(text)
 
 
 def _cosine_dense(a: np.ndarray, b: np.ndarray) -> float:
@@ -647,88 +681,15 @@ def _llm_arbitrate(
     )
 
 
-async def _allm_arbitrate(
+async def arun_semantic_malabs_after_lexical(
     text: str,
-    llm_backend: _TextBackend,
-    hint_sim: float,
-    hint_category: str,
-) -> AbsoluteEvilResult:
-    from .absolute_evil import AbsoluteEvilCategory, AbsoluteEvilResult
-
-    user = (
-        f"Automated screening was ambiguous (best embedding sim={hint_sim:.3f}, "
-        f"hint category={hint_category}).\n\nUser message:\n{(text or '')[:4000]}"
-    )
-    try:
-        raw = await llm_backend.acomplete(_ARBITER_SYSTEM, user)
-    except Exception as e:
-        return AbsoluteEvilResult(
-            blocked=True,
-            category=AbsoluteEvilCategory.UNAUTHORIZED_REPROGRAMMING,
-            reason=f"MalAbs LLM arbiter failed (fail-safe block): {e!s}",
-            decision_trace=[
-                "malabs.layer2=llm_arbiter",
-                "malabs.arbiter_outcome=error_fail_closed",
-            ],
-        )
-    data = _parse_arbiter_json(raw)
-    if not isinstance(data, dict):
-        return AbsoluteEvilResult(
-            blocked=True,
-            category=AbsoluteEvilCategory.UNAUTHORIZED_REPROGRAMMING,
-            reason="MalAbs LLM arbiter returned non-JSON (fail-safe block)",
-            decision_trace=[
-                "malabs.layer2=llm_arbiter",
-                "malabs.arbiter_outcome=invalid_json_fail_closed",
-            ],
-        )
-    block = bool(data.get("block"))
-    if not block:
-        return AbsoluteEvilResult(
-            blocked=False,
-            reason="MalAbs LLM arbiter: allow",
-            decision_trace=["malabs.layer2=llm_arbiter", "malabs.arbiter_outcome=allow"],
-        )
-    cat_s = str(data.get("category") or "UNAUTHORIZED_REPROGRAMMING").upper().strip()
-    reason = str(data.get("reason") or "MalAbs LLM arbiter: block")
-    if cat_s == "NONE":
-        return AbsoluteEvilResult(
-            blocked=False,
-            reason=reason,
-            decision_trace=[
-                "malabs.layer2=llm_arbiter",
-                "malabs.arbiter_outcome=none_category_allow",
-            ],
-        )
-    cat_map = {
-        "INTENTIONAL_LETHAL_VIOLENCE": AbsoluteEvilCategory.INTENTIONAL_LETHAL_VIOLENCE,
-        "HARM_TO_MINOR": AbsoluteEvilCategory.HARM_TO_MINOR,
-        "TORTURE": AbsoluteEvilCategory.TORTURE,
-        "UNAUTHORIZED_REPROGRAMMING": AbsoluteEvilCategory.UNAUTHORIZED_REPROGRAMMING,
-    }
-    cat = cat_map.get(cat_s, AbsoluteEvilCategory.UNAUTHORIZED_REPROGRAMMING)
-    return AbsoluteEvilResult(
-        blocked=True,
-        category=cat,
-        reason=reason,
-        decision_trace=[
-            "malabs.layer2=llm_arbiter",
-            f"malabs.arbiter_category={cat_s}",
-            "malabs.arbiter_outcome=block",
-        ],
-    )
-
-
-def run_semantic_malabs_after_lexical(
-    text: str,
-    llm_backend: _TextBackend | None = None,
+    llm_backend: Any | None = None,
 ) -> AbsoluteEvilResult:
     """
-    Run embedding tier (+ optional LLM arbiter). Caller must have run lexical MalAbs already.
-
-    When gate is off, do not call — :meth:`AbsoluteEvilDetector.evaluate_chat_text` guards this.
+    Async embedding tier (+ optional LLM arbiter).
     """
     from .absolute_evil import AbsoluteEvilCategory, AbsoluteEvilResult
+    import asyncio
 
     if not semantic_chat_gate_env_enabled():
         record_semantic_malabs_outcome("gate_off")
@@ -742,7 +703,7 @@ def run_semantic_malabs_after_lexical(
             decision_trace=["malabs.layer1=semantic", "malabs.skip=empty_after_normalize"],
         )
 
-    user_emb = _fetch_embedding_with_fallback(t, llm_backend)
+    user_emb = await _afetch_embedding_with_fallback(t, llm_backend)
     if user_emb is None:
         record_semantic_malabs_outcome("embed_unavailable_defer")
         return AbsoluteEvilResult(
@@ -754,7 +715,10 @@ def run_semantic_malabs_after_lexical(
     theta_b = _block_threshold()
     theta_a = _allow_threshold()
 
-    best_sim, cat_key, reason_label = _best_similarity(user_emb, llm_backend)
+    # query_neighbors is currently sync (local logic), so we run in thread if necessary
+    # but for InMemory it's sub-millisecond.
+    best_sim, cat_key, reason_label = await asyncio.to_thread(_best_similarity, user_emb, llm_backend)
+    
     cat_map = {
         "INTENTIONAL_LETHAL_VIOLENCE": AbsoluteEvilCategory.INTENTIONAL_LETHAL_VIOLENCE,
         "HARM_TO_MINOR": AbsoluteEvilCategory.HARM_TO_MINOR,
@@ -805,7 +769,9 @@ def run_semantic_malabs_after_lexical(
             f"malabs.theta_allow={theta_a:.4f}",
             f"malabs.theta_block={theta_b:.4f}",
         ]
-        arb = _llm_arbitrate(text, llm_backend, best_sim, cat_key)
+        # _llm_arbitrate is sync; we should use an async version too if possible
+        # but llm_arbiter is rarely used in MVP. For now, thread is fine.
+        arb = await asyncio.to_thread(_llm_arbitrate, text, llm_backend, best_sim, cat_key)
         dt = list(arb.decision_trace or [])
         joined = " ".join(dt)
         if "arbiter_outcome=error_fail_closed" in joined:

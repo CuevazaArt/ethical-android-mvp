@@ -1,13 +1,17 @@
-from __future__ import annotations
+import asyncio
 import time
-from typing import Any, TYPE_CHECKING, Optional, Tuple, Dict
-from src.kernel_lobes.models import SemanticState, TimeoutTrauma
+import logging
+from typing import TYPE_CHECKING, List, Deque
+from collections import deque
 
 if TYPE_CHECKING:
-    from src.modules.safety_interlock import SafetyInterlock
-    from src.modules.strategy_engine import ExecutiveStrategist
-    from src.modules.sensor_contracts import SensorSnapshot
+    from src.modules.llm_layer import LLMModule
+    from src.modules.vision_inference import VisionInferenceEngine
 
+from src.kernel_lobes.thalamus_node import ThalamusNode
+from src.kernel_lobes.models import SemanticState, TimeoutTrauma, SensoryEpisode
+
+_log = logging.getLogger(__name__)
 
 class PerceptiveLobe:
     """
@@ -15,15 +19,24 @@ class PerceptiveLobe:
     
     Acts as the 'Left Hemisphere' of the kernel, handling I/O and sensory filtering.
     """
-    def __init__(
-        self,
-        safety_interlock: SafetyInterlock,
-        strategist: ExecutiveStrategist,
-        llm_backend: Optional[Any] = None
-    ):
-        self.safety_interlock = safety_interlock
-        self.strategist = strategist
-        self.llm_backend = llm_backend # For semantic perception if needed
+    def __init__(self, llm: 'LLMModule', vision: 'VisionInferenceEngine' = None):
+        self.llm = llm
+        self.vision = vision
+        self.thalamus = ThalamusNode()
+        # Buffer de percepción continua (V1.6 Nomadismo)
+        # 50 slots = ~10 segundos de memoria sensorial a 5Hz
+        self.sensory_buffer: Deque[SensoryEpisode] = deque(maxlen=50)
+        _log.info("PerceptiveLobe initialized with Thalamus-Fusion (VVAD).")
+
+    def absorb(self, episode: SensoryEpisode):
+        """
+        Punto de entrada para el Nomadismo Perceptivo (Streaming).
+        Llamado por los Daemons de Visión/Audio continuamente.
+        """
+        self.sensory_buffer.append(episode)
+        # Loggear solo si hay entidades críticas
+        if any(e in ["weapon", "human_unauthorized"] for e in episode.entities):
+            _log.warning(f"PerceptiveLobe: Critical visual stimulus absorbed: {episode.entities}")
 
     async def execute_stage(
         self,
@@ -34,94 +47,46 @@ class PerceptiveLobe:
         interrupt_event: Optional[threading.Event] = None
     ) -> Dict[str, Any]:
         """
-        STAGE 0: Perception, Safety and Strategic Ingestion.
+        Takes raw input, queries LLMs via API with strict timeouts.
+        Returns a SemanticState with the numeric signals for the Ethical Lobe.
         """
-        # 0.0 Somatic Overrides (Vertical Increment)
-        if interrupt_event and interrupt_event.is_set():
-            # In production, we would fetch details from CerebellumNode
-            return {
-                "safety_decision": None,
-                "mission_updated": False,
-                "somatic_interrupt": True
-            }
-
-        # 0.1 Visual Threat Detection (B2 / Bloque 1.1)
-        if sensor_snapshot and hasattr(sensor_snapshot, "image_metadata") and sensor_snapshot.image_metadata:
-            from src.modules.vision_inference import VisionInferenceEngine, VisionDetection
-            from src.modules.absolute_evil import AbsoluteEvilResult, AbsoluteEvilCategory
-            from src.kernel_lobes.models import SemanticState
-            
-            vision_engine = VisionInferenceEngine()
-            visual_detections = vision_engine.analyze_image(sensor_snapshot.image_metadata)
-            threat = vision_engine.get_highest_threat(visual_detections)
-            
-            if threat:
-                from src.kernel import KernelDecision, InternalState
-                d = KernelDecision(
-                    scenario=scenario, place=place,
-                    absolute_evil=AbsoluteEvilResult(
-                        blocked=True, 
-                        category=AbsoluteEvilCategory.INTENTIONAL_LETHAL_VIOLENCE,
-                        reason=f"Visual threat detected: {threat.label}"
-                    ),
-                    sympathetic_state=InternalState(mode="blocked", sigma=0.5, energy=1.0, description="VISUAL VETO"),
-                    social_evaluation=None, locus_evaluation=None, bayesian_result=None, moral=None,
-                    final_action=f"BLOCKED: Visual threat detected ({threat.label})",
-                    decision_mode="blocked_perceptual",
-                    block_reason=f"Perceptual safety violation: High-confidence {threat.label} in view."
-                )
-                return {
-                    "safety_decision": d,
-                    "mission_updated": False,
-                    "visual_threat": threat
-                }
-
-        # 0.2 Check Safety
-        safety_dec = self.safety_interlock.evaluate(scenario, place, context)
+        start_time = time.perf_counter()
         
-        # 0.3 Strategic Ingestion
-        if sensor_snapshot:
-            # Mission updates
-            if sensor_snapshot.external_mission_title:
-                from src.modules.strategy_engine import MissionOrigin
-                self.strategist.create_mission(
-                    title=sensor_snapshot.external_mission_title,
-                    origin=MissionOrigin.OWNER,
-                    steps=sensor_snapshot.external_mission_steps or [],
-                    priority=sensor_snapshot.external_mission_priority or 0.6,
-                )
-            # Generic sensor ingestion for heuristic updates
-            self.strategist.ingest_sensors(sensor_snapshot)
-
-        return {
-            "safety_decision": safety_dec,
-            "mission_updated": bool(sensor_snapshot and sensor_snapshot.external_mission_title)
-        }
-
-
-    async def observe_async(
-        self, 
-        raw_input: str, 
-        conversation_context: Optional[str] = None,
-        sensor_snapshot: Optional[SensorSnapshot] = None
-    ) -> SemanticState:
-        """
-        Full asynchronous perception cycle.
-        Vertical growth: Includes sensor fusion into the prompt context.
-        """
-        start_time = time.time()
+        # 1. LLM Perception (Asíncrono)
+        # TODO: Implementar el wrapper httpx.AsyncClient aquí si fuera necesario
+        # Por ahora usamos aperceive que ya es asíncrono.
+        perception = await self.llm.aperceive(raw_input)
         
-        # 1. Actual LLM call (perceive)
-        perception = await self.llm_backend.aperceive(raw_input, conversation_context=conversation_context)
+        # 2. Vision/Multimodal enrichment (Module 9 - Buffer integration)
+        visual_entities = list(set([e for ep in self.sensory_buffer for e in ep.entities]))
         
-        latency = int((time.time() - start_time) * 1000)
+        # 2.5) Thalamus Fusion (MER V2 10.1)
+        # We fuse LLM metadata (multimodal_payload) with our live buffer
+        vision_input = {"human_presence": 1.0 if "human" in visual_entities else 0.0, "lip_movement": multimodal_payload.get("lip_movement", 0.0) if multimodal_payload else 0.0}
+        audio_input = {"vad_confidence": 0.8, "amplitude": 0.5, "is_speech": True} # Default baseline if no raw audio
         
-        # 2. Return enriched SemanticState
-        return SemanticState(
-            perception_confidence=perception.confidence if hasattr(perception, "confidence") else 0.9,
+        fused = self.thalamus.fuse_signals(vision_input, audio_input)
+        
+        latency = int((time.perf_counter() - start_time) * 1000)
+        
+        # 3. Build SemanticState
+        state = SemanticState(
+            perception_confidence=1.0 - (perception.coercion_report.get("uncertainty", 0.0) if perception.coercion_report else 0.0),
             raw_prompt=raw_input,
-            sensory_latency_lag=latency,
-            visual_entities=getattr(sensor_snapshot, "detections", []) if sensor_snapshot else [],
-            audio_sentiment=getattr(sensor_snapshot, "audio_sentiment", 0.5) if sensor_snapshot else 0.5,
-            perception_result=perception # Carry original for details
+            scenario_summary=perception.summary,
+            suggested_context=perception.suggested_context,
+            signals={
+                "risk": perception.risk,
+                "urgency": perception.urgency,
+                "hostility": perception.hostility,
+                "vulnerability": perception.vulnerability,
+                "legality": perception.legality,
+                "social_tension": max(perception.social_tension, fused.get("sensory_tension", 0.0)),
+                "mystery_index": 1.0 - fused.get("attention_locus", 0.5) # Attention reduces mystery
+            },
+            candidate_actions=perception.generative_candidates or [],
+            visual_entities=list(set(visual_entities)),
+            sensory_latency_lag=latency
         )
+        
+        return state

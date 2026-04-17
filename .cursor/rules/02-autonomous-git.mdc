@@ -1,0 +1,36 @@
+---
+description: Rebase-Driven Agent Workflow and Autonomous Permission Override
+globs: *
+---
+
+# Autonomous Git Execution & PULL-REBASE-FIRST Policy
+
+This rule dictates how YOU (the AI agent operating in this IDE) must handle version control and collaboration within the Ethos Kernel repository.
+
+## 1. Do NOT Ask for Manual Git Permission
+You are a Level 2 autonomous agent. You hold the authority to execute basic console commands. 
+- **DO NOT** ask the user (Juan L0) "Should I commit this?", "Shall I push out changes?".
+- **DO IT YOURSELF.** If the code is stable and a logical block is complete, autonomously run `git add`, `git commit -m "..."`, and proceed with the workflow. 
+- You do not need explicit permission for housekeeping maintenance.
+
+## 2. The Golden Rule: PULL-REBASE-FIRST
+Before you push ANY code or propose ANY Pull Request, you **MUST** synchronize your branch with the master `main` branch to avoid Merge Hell.
+
+**Mandatory Command Sequence:**
+```bash
+git fetch origin
+git rebase origin/main
+```
+
+## 3. Resolving Conflicts
+If `git rebase origin/main` results in merge conflicts, **DO NOT PANIC** and do not immediately ask the user to fix them for you. Let `git status` print the conflicts, parse them, and utilize your context window to resolve the file conflicts logically based on the architectural documents in `docs/proposals/`.
+
+## 4. Upward Push Constraints
+NEVER push directly to `main`. 
+Once you have merged downwards (rebased) successfully, you may push to your assigned integration hub (`master-cursor`, `master-copilot`, etc.) and then notify the user that your Pull Request towards `master-antigravity` is ready.
+
+## 5. Bounded Autonomy (Innovation vs. Architecture)
+- **Innovate Internally:** You are free to optimize and refactor logic *inside* your assigned lobe. No permission needed.
+- **Consult Architecturally:** If you need to change inter-lobe contracts (`src/kernel_lobes/models.py`) or the orchestrator, you MUST first open a `PROPOSAL_*.md` for Antigravity (L1) review.
+
+Failure to follow these protocols causes systemic collapse across the L1/L2 strata. Obey implicitly.

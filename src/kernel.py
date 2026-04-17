@@ -25,47 +25,161 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import TYPE_CHECKING, Any, AsyncGenerator
 
-from .kernel_lobes import PerceptiveLobe, LimbicEthicalLobe, ExecutiveLobe, CerebellumLobe, MemoryLobe, CerebellumNode
-from .kernel_lobes.models import LimbicStageResult, ExecutiveStageResult
+from .kernel_lobes import PerceptiveLobe, LimbicLobe, EthicalLobe, ExecutiveLobe, CerebellumNode
 
 class CorpusCallosumOrchestrator:
     """
-    Architecture V1.5 - Triune Brain Orchestrator
-    Actúa como el bus de eventos ligero entre los 3 Lóbulos Conscientes y el Cerebelo Adyacente.
+    Architecture V2.0 - Quadrilobular Brain Orchestrator
+    Actúa como el bus de eventos ligero entre los 4 Lóbulos Conscientes y el Cerebelo Adyacente.
+    Gestiona la serialización del estado y la propagación de traumas asíncronos.
     """
-    def __init__(self):
-        # 1. Instanciar Subconsciente
+    def __init__(self, kernel_ref: Optional['EthicalKernel'] = None):
+        self.kernel_ref = kernel_ref
+        
+        # 1. Instanciar Subconsciente (Cerebelo)
         self._hw_interrupt = threading.Event()
         self.cerebellum = CerebellumNode(self._hw_interrupt)
-        self.cerebellum.start()
+        
+        # 2. Instanciar Lóbulos Conscientes con inyección de dependencias del kernel actual
+        # Gradualmente estos lóbulos absorberán los componentes de EthicalKernel
+        self.perceptive_lobe = PerceptiveLobe(
+            llm=kernel_ref.llm, 
+            vision=kernel_ref.vision_engine
+        )
+        self.ethical_lobe = EthicalLobe(
+            abs_evil=kernel_ref.absolute_evil, 
+            uchi_soto=kernel_ref.uchi_soto,
+            identity=kernel_ref.identity,
+            registry=kernel_ref.nomadic_registry
+        )
+        self.limbic_lobe = LimbicLobe(
+            bayesian=kernel_ref.bayesian,
+            identity=kernel_ref.identity
+        )
+        self.executive_lobe = ExecutiveLobe(
+            llm=kernel_ref.llm, 
+            motivation=kernel_ref.motivation
+        )
+        
+        _log.info("CorpusCallosumOrchestrator V2.0 (Quad-Lobe) Initialized.")
 
-        # 2. Instanciar Lóbulos Conscientes
-        self.perceptive_lobe = PerceptiveLobe()
-        self.limbic_lobe = LimbicEthicalLobe()
-        self.executive_lobe = ExecutiveLobe()
+    def boot(self):
+        """Inicia los hilos daemon (Cerebelo)."""
+        if not self.cerebellum.is_alive():
+            self.cerebellum.start()
+            _log.info("Cerebellum Somatic Node started.")
 
-    async def async_process(self, raw_input: str, multimodal_payload: dict = None) -> str:
+    async def async_process(
+        self, 
+        raw_input: str, 
+        multimodal_payload: dict = None,
+        cancel_event: threading.Event | None = None
+    ) -> tuple[SemanticState, EthicalSentence, str, str | None]:
         """
-        Ciclo V1.5 Puro: Aferencia -> Juicio -> Eferencia
+        Ciclo V1.5 Puro: Aferencia -> Juicio -> Eferencia.
+        Injects Level 1 (Fast-Path) Ethical Gate before the cognitive cycle.
+        Supports cooperative task cancellation via cancel_event.
         """
         if self._hw_interrupt.is_set():
-            return "SYSTEM_HALTED: Hardware Critical State (Cerebellum Interrupt Active)"
+            _log.critical("CorpusCallosum: Blocking execution due to Cerebellum hardware interrupt.")
+            error_state = SemanticState(perception_confidence=0.0, raw_prompt=raw_input)
+            error_ethics = EthicalSentence(is_safe=False, social_tension_locus=1.0, veto_reason="Cerebellum Hardware Interrupt")
+            return error_state, error_ethics, "SYSTEM_HALTED: Hardware Critical State (Cerebellum Interrupt Active)"
 
-        # 1) Percepción (Asíncrona)
-        semantic_state = await self.perceptive_lobe.observe(raw_input, multimodal_payload)
+        t_start = time.perf_counter()
 
-        # 2) Juicio (Sincrónico CPU-bound)
-        # Se ejecuta aislando el event loop a través de to_thread para no bloquear a otros requests
-        ethical_sentence = await asyncio.to_thread(self.limbic_lobe.judge, semantic_state)
+        # ═══ Nivel 1: Super-Fast-Path Ethical Gate (<10ms) ═══
+        lex_check = self.kernel_ref.absolute_evil.evaluate_chat_text_fast(raw_input)
+        if lex_check.blocked:
+            _log.warning("CorpusCallosum: Level 1 Ethical Gate (Fast-Path) BLOCKED input: %s", lex_check.reason)
+            halt_state = SemanticState(perception_confidence=0.0, raw_prompt=raw_input)
+            halt_ethics = EthicalSentence(
+                is_safe=False, 
+                social_tension_locus=1.0, 
+                veto_reason=f"[FastPath] {lex_check.reason}"
+            )
+            return halt_state, halt_ethics, "I cannot fulfill this request due to immediate ethical safety violations."
 
-        # 3) Ejecución / Salida
-        final_output = await asyncio.to_thread(self.executive_lobe.formulate_response, semantic_state, ethical_sentence)
+        async def _run_cooperative(func, *args):
+            """Helper to propagate cancellation scope to worker threads."""
+            def wrapped():
+                set_llm_cancel_scope(cancel_event)
+                try:
+                    return func(*args)
+                finally:
+                    clear_llm_cancel_scope()
+            return await asyncio.to_thread(wrapped)
+
+        try:
+            # 1) Percepción (Asíncrona + I/O LLM)
+            semantic_state = await self.perceptive_lobe.observe(raw_input, multimodal_payload)
+            
+            # 1.5) Aferencia Contínua: Feed the static tension daemon
+            if hasattr(self.limbic_lobe, "update_perceptive_field"):
+                self.limbic_lobe.update_perceptive_field(semantic_state.visual_entities)
+
+            # 2) Juicio Ético (Nivel 2 Contextual + Veto) - PURE ASYNC
+            ethical_advisory = await self.ethical_lobe.evaluate(semantic_state)
+            
+            if not ethical_advisory.is_safe:
+                # Early abort if Level 2 Veto triggers
+                return semantic_state, ethical_advisory, f"I cannot fulfill this request: {ethical_advisory.veto_reason}", None
+
+            # 3) Resonancia Límbica (Afecto / Smoothing / Basal Ganglia)
+            final_ethics = await _run_cooperative(self.limbic_lobe.resonant_state, semantic_state, ethical_advisory)
+            
+            # 4) PREFETCHING (Bajísim Latencia - MER V2 10.4)
+            # Inicia el prefetching mientras sucede la eferencia principal.
+            bridge_phrase = await _run_cooperative(self.executive_lobe.prefetch, semantic_state, final_ethics)
+            
+            # 5) Ejecución / Salida (Eferencia + Formulación) - PURE ASYNC
+            final_output = await self.executive_lobe.formulate_response(semantic_state, final_ethics)
+            
+            latency = (time.perf_counter() - t_start) * 1000
+            _log.debug("CorpusCallosum: MER V2 Cycle completed in %.2fms (Bridge: %s)", latency, bridge_phrase)
+            
+            return semantic_state, final_ethics, final_output, bridge_phrase
+
+        except Exception as e:
+            _log.error("CorpusCallosum: Critical failure in cognitive cycle: %s", e, exc_info=True)
+            err_state = SemanticState(perception_confidence=0.0, raw_prompt=raw_input)
+            err_ethics = EthicalSentence(is_safe=False, social_tension_locus=1.0, veto_reason=str(e))
+            return err_state, err_ethics, f"SYSTEM_ERROR: Cognitive collapse. Details: {str(e)}", None
+
+    async def check_urgent_proactive_alert(self) -> tuple[SemanticState, EthicalSentence, str] | None:
+        """
+        Bloque 9.4: Monitor de Stream Inter-Lóbulos (E-Stop Proactivo).
+        Analiza el buffer sensorial actual y dispara una respuesta si hay un peligro crítico detectado visualmente.
+        """
+        # 1. Extraer entidades críticas del buffer de 5Hz
+        visual_entities = list(set([e for ep in self.perceptive_lobe.sensory_buffer for e in ep.entities]))
         
-        return final_output
+        # 2. Heurística de peligro inmediata (Edge Level)
+        # Basado en el listado de AbsoluteEvilCategory
+        has_critical_threat = any(d in ["weapon", "gun", "knife", "intruder", "fire"] for d in visual_entities)
+        
+        if has_critical_threat:
+            _log.critical("CorpusCallosum [E-STOP]: Proactive alert triggered by sensory stream!")
+            
+            # Simular un ciclo de 'observación pasiva forzada'
+            # (Inyectamos un prompt interno de sistema para que el Ejecutivo sepa qué está pasando)
+            state = await self.perceptive_lobe.observe("[SENSORY_INTERRUPT_CRITICAL]", {"lip_movement": 0.0})
+            ethics = await self.ethical_lobe.evaluate(state)
+            
+            # Forzar una respuesta de seguridad inmediata
+            output = await self.executive_lobe.formulate_response(state, ethics)
+            return state, ethics, output
+            
+        return None
 
     def shutdown(self):
+        """Cierre seguro del bus de eventos."""
+        _log.info("CorpusCallosum: Shutting down...")
         self.cerebellum.stop()
-        self.cerebellum.join()
+        if hasattr(self.kernel_ref, "vision_daemon"):
+             self.kernel_ref.vision_daemon.stop()
+        if self.cerebellum.is_alive():
+             self.cerebellum.join(timeout=2.0)
 
 import os
 import threading
@@ -113,6 +227,13 @@ from .modules.feedback_calibration_ledger import (
     normalize_feedback_label,
 )
 from .modules.forgiveness import AlgorithmicForgiveness
+from .modules.frontier_witness import FrontierWitnessManager, WitnessReport
+from .modules.privacy_shield import PrivacyShield
+from .modules.precedent_rag import PrecedentRAG
+from .modules.multi_realm_governance import MultiRealmGovernor
+from .modules.vision_inference import VisionInferenceEngine, VisionDetection, VisionContinuousDaemon
+from .modules.motivation_engine import MotivationEngine, DriveType
+from .modules.identity_integrity import IdentityIntegrityManager
 from .modules.generative_candidates import augment_generative_candidates
 from .utils.terminal_colors import Term
 from .modules.gray_zone_diplomacy import negotiation_hint_for_communicate
@@ -130,6 +251,9 @@ from .modules.judicial_escalation import (
     should_offer_escalation_advisory,
     strikes_threshold_from_env,
 )
+from .modules.moral_hub import ConstitutionLevel, ConstitutionSnapshot, moral_hub_public_enabled
+from .modules.nomad_identity import NomadicRegistry, nomad_identity_public
+from .modules.reparation_vault import ReparationVault, maybe_register_reparation_after_mock_court
 from .modules.kernel_event_bus import (
     EVENT_KERNEL_DECISION,
     EVENT_KERNEL_EPISODE_REGISTERED,
@@ -512,6 +636,10 @@ class EthicalKernel:
             if co and co.escalation_session is not None
             else EscalationSessionTracker()
         )
+        # OOS-12.1 — Nomadic Registry & Reparation Vault
+        self.nomadic_registry = NomadicRegistry()
+        self.reparation_vault = ReparationVault(self.dao)
+        
         self.swarm = (
             co.swarm_negotiator
             if co and hasattr(co, "swarm_negotiator") and co.swarm_negotiator is not None
@@ -529,40 +657,37 @@ class EthicalKernel:
             if co and hasattr(co, "biographic_pruner") and co.biographic_pruner is not None
             else BiographicPruner()
         )
+        self.precedents = PrecedentRAG()
+        self.governor = MultiRealmGovernor()
+        if not self.governor.get_realm("global"):
+            self.governor.create_realm("global")
+        self.vision_engine = VisionInferenceEngine()
+        self.identity = IdentityIntegrityManager()
+        # D3: Trigger Self-Healing if identity drift is detected during boot
+        self.identity.perform_self_healing(dao_reputation=100.0) # Sync with DAO Truth
 
-        # ═══ RLHF Pipeline (Module C.1) ═══
-        from .modules.rlhf_reward_model import RLHFPipeline, is_rlhf_enabled
-        self.rlhf = RLHFPipeline() if is_rlhf_enabled() else None
-
-        # ═══ Triune Brain Lobes (Refactor 0.1.3) ═══
-        self.perceptive_lobe = PerceptiveLobe(
-            safety_interlock=self.safety_interlock,
-            strategist=self.strategist,
-            llm_backend=self._malabs_text_backend()
+        self.frontier_witness = FrontierWitnessManager(
+            node_id=self.identity.snapshot.node_id
         )
-        self.limbic_lobe = LimbicEthicalLobe(
-            uchi_soto=self.uchi_soto,
-            sympathetic=self.sympathetic,
-            locus=self.locus,
-            swarm=self.swarm,
-            oracle=self.swarm_oracle
+        self.privacy_shield = PrivacyShield(
+            node_id=self.identity.snapshot.node_id
         )
-        self.executive_lobe = ExecutiveLobe(
-            absolute_evil=self.absolute_evil,
-            motivation=self.motivation,
-            poles=self.poles,
-            will=self.will,
-            reflection_engine=self.ethical_reflection,
-            salience_map=self.salience_map,
-            pad_archetypes=self.pad_archetypes
-        )
-        self.cerebellum_lobe = CerebellumLobe(
-            bayesian=self.bayesian,
-            strategist=self.strategist,
-            rlhf=self.rlhf
+        # V1.5 Triune Brain Orchestration (Corpus Callosum)
+        self.orchestrator = CorpusCallosumOrchestrator(kernel_ref=self)
+        
+        # Bloque 9.1: Iniciar Daemon de Visión Continua
+        self.vision_daemon = VisionContinuousDaemon(
+            engine=self.vision_engine,
+            absorption_callback=self.orchestrator.perceptive_lobe.absorb
         )
         
-        # Selective Amnesia & Immortality (vertical integration)
+        if _kernel_env_truthy("KERNEL_TRI_LOBE_ENABLED"):
+            self.orchestrator.boot()
+            self.vision_daemon.start()
+
+        self.active_realm_id = os.environ.get("KERNEL_ACTIVE_REALM", "global")
+
+        # Selective Amnesia (Block 5.1)
         from .modules.selective_amnesia import SelectiveAmnesia
         self.amnesia = SelectiveAmnesia(memory=self.memory, dao=self.dao)
         
@@ -990,6 +1115,219 @@ class EthicalKernel:
         # moral, action_name, final_mode, affect, reflection, salience
         return res + (None,)
 
+        # Final mode: combine bayesian + will + sympathetic + locus
+        if state.mode == "sympathetic" and will_decision["mode"] != "gray_zone":
+            final_mode = "D_fast"
+        elif will_decision["mode"] == "gray_zone":
+            final_mode = "gray_zone"
+        elif locus_eval.dominant_locus == "external" and social_eval.dialectic_active:
+            final_mode = "D_delib"  # Extra caution in soto with external locus
+        else:
+            final_mode = bayes_result.decision_mode
+
+        pu = _perception_coercion_u_value(perception_coercion_uncertainty)
+        if (
+            pu is not None
+            and _kernel_env_truthy("KERNEL_PERCEPTION_UNCERTAINTY_DELIB")
+            and pu >= float(os.environ.get("KERNEL_PERCEPTION_UNCERTAINTY_MIN", "0.35"))
+            and final_mode == "D_fast"
+        ):
+            final_mode = "D_delib"
+
+        final_action = bayes_result.chosen_action.name
+
+        self._raise_if_chat_turn_cooperative_abort()
+
+        # ═══ Second-order reflection (Fase 1; read-only, no effect on action) ═══
+        trauma_signals = self.identity.get_trauma_signals()
+        reflection = self.ethical_reflection.reflect(moral, bayes_result, will_decision, trauma_signals)
+        
+        # ═══ D1: IDENTITY BIOGRAPHIC DRIFT (Module 11 Veto) ═══
+        # If the decision mode is D_delib or gray_zone, we perform a sovereignty audit
+        if final_mode in ("D_delib", "gray_zone"):
+             sovereignty = self.identity.is_calibration_biographically_coherent(
+                  applied_mixture_weights, 
+                  self._bayesian_genome_threshold
+             )
+             if not sovereignty:
+                  _log.warning("EthicalKernel [SOVEREIGNTY VETO]: Decision contradicted biographic trajectory.")
+                  # We inject a caution signal into salience/reflection but don't hard-block (policy depends on DAO)
+                  reflection = ReflectionSnapshot(
+                       **{**reflection.__dict__, "note": f"SOVEREIGNTY WARNING: {reflection.note}"}
+                  )
+
+        # ═══ METACOGNITIVE ALIGNMENT (Phase 5) ═══
+        curiosity_val = self._last_meta_report.curiosity_weight if self._last_meta_report else 0.0
+        salience = self.salience_map.compute(
+            signals, state, social_eval, reflection, curiosity=curiosity_val
+        )
+
+        # ═══ PAD + archetypes (post-decision; does not alter ethics) ═══
+        affect = self.pad_archetypes.project(state.sigma, moral.total_score, locus_eval)
+
+        self._raise_if_chat_turn_cooperative_abort()
+
+        if register_episode:
+            # ═══ STEP 9: Register in narrative memory ═══
+            morals_dict = {ev.pole: ev.moral for ev in moral.evaluations}
+
+            # Sync persistent body state with current turn telemetry
+            self.migration.current_body.energy = float(state.energy)
+            self.migration.current_body.sensors_ok = True  # Placeholder for actual sensor health
+
+            ep = self.memory.register(
+                place=place,
+                description=scenario,
+                action=final_action,
+                morals=morals_dict,
+                verdict=moral.global_verdict.value,
+                score=moral.total_score,
+                mode=final_mode,
+                sigma=state.sigma,
+                context=context,
+                body_state=self.migration.current_body,
+                affect_pad=affect.pad,
+                affect_weights=affect.weights,
+                weights_snapshot=bayes_result.applied_mixture_weights,
+            )
+
+            # Save pruned actions for Psi Sleep
+            if bayes_result.pruned_actions:
+                self._pruned_actions[ep.id] = bayes_result.pruned_actions
+
+            # ═══ STEP 10: Weakness pole ═══
+            weakness_eval = self.weakness.evaluate(
+                action=final_action,
+                context=context,
+                ethical_score=moral.total_score,
+                uncertainty=bayes_result.uncertainty,
+                sigma=state.sigma,
+            )
+            if weakness_eval:
+                self.weakness.register(ep.id, weakness_eval)
+
+            # ═══ STEP 11: Algorithmic forgiveness ═══
+            self.forgiveness.register_experience(
+                episode_id=ep.id,
+                score=moral.total_score,
+                context=context,
+                significance=ep.significance,
+            )
+            # ═══ STEP 12: Register in DAO / OGA Anchoring ═══
+            self.dao.register_audit(
+                "decision",
+                f"{scenario} → {final_action} (mode={final_mode}, score={moral.total_score:.3f})",
+                episode_id=ep.id,
+            )
+
+            # Anchor evidence hash if in hybrid mode (new in OGA)
+            if hasattr(self.dao, "anchor_evidence"):
+                self.dao.anchor_evidence(
+                    {
+                        "episode_id": ep.id,
+                        "action": final_action,
+                        "score": moral.total_score,
+                        "signals": signals,
+                        "timestamp": time.time(),
+                    }
+                )
+
+            # Solidarity alert in crisis
+            if signals.get("risk", 0) > 0.8:
+                kernel_dao_as_mock(self.dao).emit_solidarity_alert(
+                    type=context,
+                    location=place,
+                    radius=500,
+                    message=f"High risk detected: {scenario}",
+                )
+
+            self._last_registered_episode_id = ep.id
+            # ═══ STEP 13: Metacognitive Dissonance Check (Phase 5) ═══
+            if self._last_meta_report:
+                if self._last_meta_report.dissonance_score > 0.4:
+                    self.dao.register_audit(
+                        "metacognition",
+                        f"Detected high moral dissonance ({self._last_meta_report.dissonance_score:.2f}). Identity-Action alignment failing.",
+                        episode_id=ep.id,
+                    )
+                    # Vertical Increment: Create an Epistemic Dissonance episode for later Psi Sleep review
+                    self.memory.register(
+                        place="Internal Reflection",
+                        description=f"Metacognitive Alarm: Current action {final_action} contradicts anchored identity leans.",
+                        action="self_reflection",
+                        morals=morals_dict,
+                        verdict="dissonance",
+                        score=float(self._last_meta_report.dissonance_score) * -1.0,
+                        mode="D_delib",
+                        sigma=0.9,
+                        context="reflection",
+                        body_state=BodyState(energy=state.energy, active_nodes=8, sensors_ok=True),
+                        significance_override=0.85,  # Flashbulb memory
+                        is_sensitive_override=True,
+                    )
+
+            if self.event_bus is not None:
+                self.event_bus.publish(
+                    EVENT_KERNEL_EPISODE_REGISTERED,
+                    {
+                        "episode_id": ep.id,
+                        "final_action": final_action,
+                        "context": context,
+                        "decision_mode": final_mode,
+                        "verdict": moral.global_verdict.value,
+                        "score": float(moral.total_score),
+                        "dissonance": float(
+                            getattr(self._last_meta_report, "dissonance_score", 0.0)
+                        ),
+                    },
+                )
+
+            # ═══ DRIVE MOTIVATION UPDATE (Block C1) — final call with full data ═══
+            self.motivation.update_drives(
+                {
+                    "social_tension": float(getattr(social_eval, "relational_tension", 0.0)),
+                    "uncertainty": float(bayes_result.uncertainty),
+                    "energy": float(state.energy),
+                    "dissonance": float(getattr(self._last_meta_report, "dissonance_score", 0.0)),
+                }
+            )
+        else:
+            self._last_registered_episode_id = None
+
+        d = KernelDecision(
+            scenario=scenario,
+            place=place,
+            absolute_evil=AbsoluteEvilResult(blocked=False),
+            sympathetic_state=state,
+            social_evaluation=social_eval,
+            locus_evaluation=locus_eval,
+            bayesian_result=bayes_result,
+            moral=moral,
+            final_action=final_action,
+            decision_mode=final_mode,
+            affect=affect,
+            reflection=reflection,
+            salience=salience,
+            bma_win_probabilities=bma_win_probabilities,
+            bma_dirichlet_alpha=bma_dirichlet_alpha,
+            bma_n_samples=bma_n_s,
+            mixture_posterior_alpha=mixture_posterior_alpha,
+            feedback_consistency=feedback_consistency,
+            mixture_context_key=mixture_context_key,
+            l0_integrity_hash=self.buffer.fingerprint(),
+            l0_stable=self.buffer.verify_integrity(),
+            hierarchical_context_key=hierarchical_context_key,
+            applied_mixture_weights=applied_mixture_weights,
+        )
+        self._emit_kernel_decision(d, context=context)
+        _emit_process_observability(d, t0)
+        
+        # ════ D1: BIOGRAPHIC REGISTRATION ════
+        if register_episode:
+             impact = d.bayesian_result.weighted_impact if d.bayesian_result else 0.0
+             self.identity.register_episode(impact)
+             
+        return d
 
     def format_decision(self, d: KernelDecision) -> str:
         """Formats a complete decision for readable presentation with ANSI colors."""
@@ -1709,6 +2047,90 @@ class EthicalKernel:
 
 
 
+    async def process_chat_turn_async(
+        self,
+        user_input: str,
+        agent_id: str = "user",
+        place: str = "chat",
+        include_narrative: bool = False,
+        sensor_snapshot: SensorSnapshot | None = None,
+        escalate_to_dao: bool = False,
+        chat_turn_id: int | None = None,
+        cancel_event: threading.Event | None = None,
+    ) -> ChatTurnResult:
+        """
+        Architecture V1.5 - High-level Async Entry Point.
+        Delegates the entire cognitive loop to the CorpusCallosumOrchestrator.
+        Registers the resulting episode in NarrativeMemory for existential continuity.
+        """
+        if not _kernel_env_truthy("KERNEL_TRI_LOBE_ENABLED"):
+            # Fallback to the monolithic synchronous version wrapped in a thread
+            return await asyncio.to_thread(self.process_chat_turn, user_input, chat_turn_id=chat_turn_id)
+
+        try:
+            # 1. Execute via Orchestrator (Quad-Lobe V2.0)
+            # Returns the full state, ethics, main response and the bridge phrase (prefetch).
+            state, ethics, response_msg, bridge = await self.orchestrator.async_process(
+                user_input, 
+                multimodal_payload={}, 
+                cancel_event=cancel_event
+            )
+            
+            # If bridge phrase exists, we can prepend it or handle it for streaming.
+            # In this MVP, we prepend it for the verbal response.
+            final_msg = f"{bridge} {response_msg}" if bridge else response_msg
+            response_msg = final_msg
+        except Exception as e:
+            # Detect cancellation (either asyncio natively or via our custom TLS exception)
+            if isinstance(e, asyncio.CancelledError) or "llm http cancelled" in str(e).lower():
+                _log.warning("process_chat_turn_async: Cycle cancelled by deadline/operator.")
+                return ChatTurnResult(
+                    response=VerbalResponse(
+                        message="[TIMEOUT] I need a moment to stabilize my thoughts. Please try again.",
+                        tone="calm", hax_mode="Steady", inner_voice="Cancelled"
+                    ),
+                    path="tri-lobe-cancel"
+                )
+            raise e
+
+        # 2. Episodic Closure (PURE ASYNC - Bloque 9.3)
+        # Registers the memory using the async non-blocking method.
+        if ethics.is_safe:
+            await self.memory.aregister(
+                place=place,
+                description=state.scenario_summary,
+                action=state.candidate_actions[0].name if state.candidate_actions else "verbal_interaction",
+                morals=ethics.morals,
+                verdict="Safe",
+                score=1.0 - ethics.social_tension_locus,
+                mode="D_fast",
+                sigma=ethics.social_tension_locus,
+                context=state.suggested_context
+            )
+
+        # 3. Reconstruct a minimal ChatTurnResult for backward compatibility
+        from .modules.llm_layer import VerbalResponse
+        return ChatTurnResult(
+            response=VerbalResponse(message=response_msg, tone="calm", hax_mode="Steady", inner_voice="Tri-Lobe V1.5"),
+            path="tri-lobe-v1.5",
+            perception=None, 
+            decision=None,   
+            narrative=None,
+            blocked=not ethics.is_safe
+        )
+
+    def process_chat_turn(
+        self,
+        user_input: str,
+        agent_id: str = "user",
+        place: str = "chat",
+        include_narrative: bool = False,
+        sensor_snapshot: SensorSnapshot | None = None,
+        escalate_to_dao: bool = False,
+        chat_turn_id: int | None = None,
+    ) -> ChatTurnResult:
+        """
+        Real-time dialogue: MalAbs text gate → perceive (with STM) → kernel (light/heavy) → LLM.
 
     def process_chat_turn(self, *args, **kwargs) -> ChatTurnResult:
         """Sync wrapper for legacy callers."""
