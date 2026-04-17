@@ -2319,6 +2319,13 @@ async def ws_chat(ws: WebSocket) -> None:
 
             # ══ Standard Chat Turn ══
             if not text_preview:
+                # Give informative errors for known non-text payloads when their feature is off
+                if data.get("integrity_alert") and not dao_integrity_audit_ws_enabled():
+                    await ws.send_json({
+                        "error": "integrity_audit_disabled",
+                        "hint": "Set KERNEL_DAO_INTEGRITY_AUDIT_WS=1 to enable WebSocket integrity alerts.",
+                    })
+                    continue
                 await ws.send_json({"error": "empty_text"})
                 continue
 

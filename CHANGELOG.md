@@ -6,6 +6,17 @@ All notable changes to this project are summarized here. For narrative context a
 
 [URGENTE - BROADCAST A TODOS LOS L2 MASTERS]: Todos los equipos (Claude, Cursor, Copilot) deben hacer un GIT PULL urgente desde MAIN hacia sus MASTERs. Las ramas desactualizadas enfrentarán asincronías severas en el pathing de documentación.
 
+## Team Copilot — Gap Closure Session 3: Streaming Protocol Fixes — April 2026
+
+### Team Copilot Updates (Session 3)
+
+- **Gap A — `ExecutiveStrategist.ingest_sensors` missing (P0 crash fix):** `perception_lobe.py:94` called `self.strategist.ingest_sensors(sensor_snapshot)` but the method was never implemented in `strategy_engine.py`. Added a documented stub that is a no-op; Bloque S.2 (Nomad telemetry-aware mission-priority updates) will flesh it out when the real bridge is live.
+- **Gap B — WebSocket streaming protocol: 24 test failures resolved:** `process_chat_turn_stream` now emits intermediate events (`turn_started`, `perception_started`, `perception_finished`, `decision_started`, `decision_finished`, `communication_started`, token chunks) BEFORE the final `turn_finished` envelope. All 24 `test_chat_server.py` tests were written for the old single-response protocol and got `turn_started` as their first frame. Fixed by: (1) adding `_ws_recv_turn_result(ws)` helper in the test file that drains streaming events until `turn_finished` and returns the flat payload; (2) updating all 24 failing tests to use the helper; (3) updating `test_websocket_chat_turn_timeout_json` to patch `process_chat_turn_stream` (the live streaming path) instead of the legacy sync `process_chat_turn` wrapper; (4) all 62 `test_chat_server.py` tests now pass.
+- **Gap C — `integrity_alert_disabled` response wrong:** When `KERNEL_DAO_INTEGRITY_AUDIT_WS` was not set and a client sent `{"integrity_alert": {...}}` (without text), the server fell through to the `empty_text` error branch. Added an early check in the WS handler: if `integrity_alert` is present but the env is off, respond with `{"error": "integrity_audit_disabled", "hint": "Set KERNEL_DAO_INTEGRITY_AUDIT_WS=1 ..."}`.
+- **Gap D — `operator_feedback_recorded` always returned `False`:** `_snapshot_feedback_anchor(regime)` was defined in `kernel.py` but never called. Added the call after a successful turn completes in `process_chat_turn_stream` (after `wm.add_turn`). `test_websocket_operator_feedback_recorded` now passes.
+- **Gap E — `support_buffer` / `limbic_profile` missing from streaming `ChatTurnResult`:** `ChatTurnResult` fields were left `None` because `stage.support_buffer` and `stage.limbic_profile` were not passed to the constructor in `process_chat_turn_stream`. Fixed; `test_websocket_chat_roundtrip` now passes.
+- **Gap F — Audit chain log never written for streaming malabs/kernel blocks:** `maybe_append_malabs_block_audit` and `maybe_append_kernel_block_audit` were imported in `kernel.py` but never called from `process_chat_turn_stream`. Added the calls in the `safety_block` (MalAbs) and `kernel_block` (decision blocked) paths with safe `getattr` guards and `AbsoluteEvilCategory.value` serialization. `test_audit_chain_log.py::test_kernel_integration_appends_on_block` now passes.
+
 ## Team Copilot — Bloque E.2 & Gap Closure — April 2026
 
 ### Team Copilot Updates (Session 2)

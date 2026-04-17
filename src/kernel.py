@@ -1595,6 +1595,12 @@ class EthicalKernel:
             msg = "I can't continue this line of conversation: it conflicts with ethical limits."
             resp = VerbalResponse(message=msg, tone="firm", hax_mode="Steady blue light.", inner_voice=f"MalAbs: {mal.reason}")
             wm.add_turn(user_input, msg, {}, blocked=True)
+            maybe_append_malabs_block_audit(
+                path_key="safety_block",
+                category=getattr(mal, "category", None) and getattr(mal.category, "value", str(mal.category)),
+                decision_trace=list(getattr(mal, "decision_trace", [])),
+                reason=mal.reason or "",
+            )
             res = ChatTurnResult(
                 response=resp, path="safety_block", blocked=True, block_reason=mal.reason or "chat_safety",
                 multimodal_trust=mm_blk, epistemic_dissonance=ed_blk, perception_confidence=confidence_blk,
@@ -1652,6 +1658,10 @@ class EthicalKernel:
         }
 
         if decision.blocked:
+            maybe_append_kernel_block_audit(
+                path_key="kernel_block",
+                block_reason=getattr(decision, "block_reason", "") or "",
+            )
             res = ChatTurnResult(response=VerbalResponse("Blocked.", "firm"), path="kernel_block", blocked=True)
             yield {"event_type": "turn_finished", "payload": {"result": res}}
             return
@@ -1715,9 +1725,12 @@ class EthicalKernel:
             reality_verification=stage.reality_verification,
             temporal_context=stage.temporal_context,
             perception_confidence=stage.perception_confidence,
+            support_buffer=stage.support_buffer,
+            limbic_profile=stage.limbic_profile,
         )
         if not self._chat_turn_abandoned(chat_turn_id):
             wm.add_turn(user_input, final_response.message, stage.signals, heavy_kernel=heavy)
+            self._snapshot_feedback_anchor(decision.decision_mode if decision else "")
         else:
             self._release_chat_turn_id(chat_turn_id)
         yield {"event_type": "turn_finished", "payload": {"result": res}}

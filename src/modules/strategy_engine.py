@@ -123,6 +123,16 @@ class ExecutiveStrategist:
                 else:
                     m.status = MissionStatus.ACTIVE
 
+    def ingest_sensors(self, sensor_snapshot: object) -> None:
+        """
+        Ingest a sensor snapshot for heuristic mission-state updates.
+
+        Bloque S.2 / Nomad Bridge: in future releases this will update
+        vitality-aware mission priorities based on telemetry from the physical
+        platform.  For now it is a no-op so that perception_lobe can call it
+        without requiring hardware to be present.
+        """
+
     def active_missions_summary(self) -> str:
         active = [m for m in self.missions.values() if m.status == MissionStatus.ACTIVE]
         if not active:

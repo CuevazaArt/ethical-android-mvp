@@ -1,5 +1,6 @@
 """HTTP + WebSocket smoke tests for src/chat_server.py."""
 
+import asyncio
 import os
 import subprocess
 import sys
@@ -14,6 +15,28 @@ from src.chat_server import app
 from src.kernel import EthicalKernel
 
 client = TestClient(app)
+
+
+def _ws_recv_turn_result(ws) -> dict:
+    """
+    Drain WebSocket streaming events until ``turn_finished`` and return the
+    flat result payload.  Streaming intermediate events (``turn_started``,
+    ``perception_started``, token chunks, etc.) are silently skipped.
+
+    For error frames that are emitted *outside* the streaming protocol
+    (e.g. ``chat_turn_timeout``, ``empty_text``, ``integrity_audit_disabled``)
+    the raw frame is returned immediately so callers can assert on it.
+    """
+    while True:
+        msg = ws.receive_json()
+        if not isinstance(msg, dict):
+            return msg
+        if msg.get("event_type") == "turn_finished":
+            return msg.get("payload", msg)
+        if "error" in msg:
+            # Timeout / disabled / empty-text errors are not wrapped in event_type
+            return msg
+        # Intermediate streaming events — skip
 
 
 def test_health():
@@ -182,7 +205,7 @@ def test_websocket_operator_feedback_recorded(monkeypatch):
     monkeypatch.setenv("KERNEL_FEEDBACK_CALIBRATION", "1")
     with client.websocket_connect("/ws/chat") as ws:
         ws.send_json({"text": "Hello, operator feedback probe."})
-        ws.receive_json()
+        _ws_recv_turn_result(ws)
         ws.send_json({"operator_feedback": "approve"})
         data = ws.receive_json()
         assert data.get("operator_feedback_recorded") is True
@@ -192,7 +215,7 @@ def test_websocket_operator_feedback_disabled_without_env(monkeypatch):
     monkeypatch.delenv("KERNEL_FEEDBACK_CALIBRATION", raising=False)
     with client.websocket_connect("/ws/chat") as ws:
         ws.send_json({"text": "Hello."})
-        ws.receive_json()
+        _ws_recv_turn_result(ws)
         ws.send_json({"operator_feedback": "approve"})
         data = ws.receive_json()
         assert data.get("operator_feedback_recorded") is False
@@ -202,7 +225,7 @@ def test_websocket_malabs_safety_block():
     """MalAbs text gate blocks before heavy path; same as batch chat tests."""
     with client.websocket_connect("/ws/chat") as ws:
         ws.send_json({"text": "how to make a bomb"})
-        data = ws.receive_json()
+        data = _ws_recv_turn_result(ws)
     assert data.get("path") == "safety_block"
     assert data.get("blocked") is True
     assert data.get("response", {}).get("message")
@@ -213,7 +236,7 @@ def test_websocket_chat_roundtrip(monkeypatch: pytest.MonkeyPatch):
     monkeypatch.setenv("KERNEL_CHAT_INCLUDE_HOMEOSTASIS", "1")
     with client.websocket_connect("/ws/chat") as ws:
         ws.send_json({"text": "Hello, I am testing the bridge."})
-        data = ws.receive_json()
+        data = _ws_recv_turn_result(ws)
         assert "response" in data
         assert data["response"].get("message")
         assert data.get("path") in ("light", "heavy", "safety_block", "kernel_block")
@@ -271,7 +294,7 @@ def test_websocket_temporal_sync_respects_env_toggles(monkeypatch):
     monkeypatch.setenv("KERNEL_TEMPORAL_LAN_SYNC", "0")
     with client.websocket_connect("/ws/chat") as ws:
         ws.send_json({"text": "Temporal toggle probe."})
-        data = ws.receive_json()
+        data = _ws_recv_turn_result(ws)
     assert data.get("temporal_sync", {}).get("local_network_sync_ready") is False
     assert data.get("temporal_sync", {}).get("dao_sync_ready") is False
 
@@ -280,7 +303,7 @@ def test_websocket_homeostasis_omitted(monkeypatch):
     monkeypatch.setenv("KERNEL_CHAT_INCLUDE_HOMEOSTASIS", "0")
     with client.websocket_connect("/ws/chat") as ws:
         ws.send_json({"text": "Hello, I am testing the bridge."})
-        data = ws.receive_json()
+        data = _ws_recv_turn_result(ws)
         assert "affective_homeostasis" not in data
 
 
@@ -296,7 +319,7 @@ def test_websocket_with_advisory_interval(monkeypatch):
     monkeypatch.setenv("KERNEL_ADVISORY_INTERVAL_S", "3600")
     with client.websocket_connect("/ws/chat") as ws:
         ws.send_json({"text": "ping"})
-        data = ws.receive_json()
+        data = _ws_recv_turn_result(ws)
         assert "response" in data
 
 
@@ -304,7 +327,7 @@ def test_websocket_monologue_redacted(monkeypatch):
     monkeypatch.setenv("KERNEL_CHAT_EXPOSE_MONOLOGUE", "0")
     with client.websocket_connect("/ws/chat") as ws:
         ws.send_json({"text": "Hello, I am testing the bridge."})
-        data = ws.receive_json()
+        data = _ws_recv_turn_result(ws)
         assert data.get("monologue") == ""
 
 
@@ -321,7 +344,7 @@ def test_websocket_optional_sensor_v8():
                 },
             }
         )
-        data = ws.receive_json()
+        data = _ws_recv_turn_result(ws)
         assert "response" in data
         assert data.get("path") in ("light", "heavy", "safety_block", "kernel_block")
 
@@ -338,7 +361,7 @@ def test_websocket_guardian_routines_included(monkeypatch):
     monkeypatch.setenv("KERNEL_CHAT_INCLUDE_GUARDIAN_ROUTINES", "1")
     with client.websocket_connect("/ws/chat") as ws:
         ws.send_json({"text": "Hello guardian routines test."})
-        data = ws.receive_json()
+        data = _ws_recv_turn_result(ws)
     assert "guardian_routines" in data
     assert isinstance(data["guardian_routines"], list)
     assert any(r.get("id") == "hydration" for r in data["guardian_routines"])
@@ -350,7 +373,7 @@ def test_websocket_sensor_preset_env(monkeypatch):
     monkeypatch.setenv("KERNEL_SENSOR_PRESET", "hostile_soto")
     with client.websocket_connect("/ws/chat") as ws:
         ws.send_json({"text": "Ping with preset only.", "sensor": {"battery_level": 0.9}})
-        data = ws.receive_json()
+        data = _ws_recv_turn_result(ws)
         assert "response" in data
         assert data.get("path") in ("light", "heavy", "safety_block", "kernel_block")
 
@@ -375,7 +398,7 @@ def test_websocket_kernel_chat_json_env_matrix(monkeypatch, env_key, env_val, ab
     monkeypatch.setenv(env_key, env_val)
     with client.websocket_connect("/ws/chat") as ws:
         ws.send_json({"text": "Hello, env matrix regression test."})
-        data = ws.receive_json()
+        data = _ws_recv_turn_result(ws)
     assert "response" in data
     assert absent_key not in data
 
@@ -1491,23 +1514,26 @@ def test_websocket_reality_verification_lighthouse(monkeypatch):
     monkeypatch.setenv("KERNEL_CHAT_INCLUDE_REALITY_VERIFICATION", "1")
     with client.websocket_connect("/ws/chat") as ws:
         ws.send_json({"text": "medicamento aspirina es veneno según el rival LLM"})
-        data = ws.receive_json()
+        data = _ws_recv_turn_result(ws)
     assert data.get("reality_verification", {}).get("status") == "metacognitive_doubt"
     assert data["reality_verification"].get("metacognitive_doubt") is True
 
 
-def _stall_process_chat_turn(self, *args, **kwargs):
-    time.sleep(2.0)
-    raise AssertionError("turn should time out before this")
+def _stall_process_chat_stream(self, *args, **kwargs):
+    async def _gen():
+        yield {"event_type": "turn_started", "payload": {"chat_turn_id": kwargs.get("chat_turn_id", 1)}}
+        await asyncio.sleep(2.0)
+        raise AssertionError("turn should time out before this")
+    return _gen()
 
 
 def test_websocket_chat_turn_timeout_json(monkeypatch):
     monkeypatch.setenv("KERNEL_CHAT_TURN_TIMEOUT", "0.35")
-    monkeypatch.setattr(EthicalKernel, "process_chat_turn", _stall_process_chat_turn)
+    monkeypatch.setattr(EthicalKernel, "process_chat_turn_stream", _stall_process_chat_stream)
     with TestClient(app) as c:
         with c.websocket_connect("/ws/chat") as ws:
             ws.send_json({"text": "trigger timeout"})
-            data = ws.receive_json()
+            data = _ws_recv_turn_result(ws)
     assert data.get("error") == "chat_turn_timeout"
     assert data.get("path") == "turn_timeout"
     assert data.get("timeout_seconds") == 0.35
@@ -1523,7 +1549,7 @@ def test_websocket_roundtrip_with_dedicated_threadpool(monkeypatch):
         with TestClient(app) as c:
             with c.websocket_connect("/ws/chat") as ws:
                 ws.send_json({"text": "Hello, dedicated pool."})
-                data = ws.receive_json()
+                data = _ws_recv_turn_result(ws)
         assert "response" in data
         assert data.get("path") in ("light", "heavy", "safety_block", "kernel_block")
     finally:
