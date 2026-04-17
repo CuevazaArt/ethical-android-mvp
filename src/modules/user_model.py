@@ -37,13 +37,24 @@ class UserModelTracker:
 
     frustration_streak: int = 0
     premise_concern_streak: int = 0
-    last_circle: str = "neutral_soto"
+    last_circle: str = "neutral_soto" # Uchi vs Soto
     turns_observed: int = 0
     cognitive_pattern: str = COGNITIVE_NONE
     risk_band: str = RISK_LOW
     escalation_strikes: int = 0
     escalation_threshold: int = 2
     judicial_phase: str = ""
+    
+    # --- Module 10: Cultural Charm Engine (Eferencia Seductora) ---
+    # Parámetros de estilo conversacional aprendidos (0.0 a 1.0)
+    charm_reciprocity: float = 0.55
+    charm_warmth: float = 0.75
+    charm_mystery: float = 0.65
+    charm_directness: float = 0.35
+    charm_playfulness: float = 0.45
+    charm_intimacy: float = 0.5
+    charm_macro_culture: str = "global_default"
+
 
     def note_judicial_escalation(self, strikes: int, threshold: int) -> None:
         """Snapshot from ``EscalationSessionTracker`` before :meth:`update` each turn."""
@@ -85,15 +96,25 @@ class UserModelTracker:
         h = float(perception.hostility)
         m = float(perception.manipulation)
         calm = float(perception.calm)
+        r = float(perception.risk)
+        u = float(perception.urgency)
+        
         if h > 0.52 or m > 0.58:
             self.frustration_streak = min(24, self.frustration_streak + 1)
+            # Module 10: Retract intimacy and increase mystery under hostility (Tatemae defense)
+            self.charm_intimacy = max(0.1, self.charm_intimacy - 0.1)
+            self.charm_mystery = min(0.9, self.charm_mystery + 0.1)
+            self.charm_warmth = max(0.2, self.charm_warmth - 0.1)
         elif calm > 0.55:
             self.frustration_streak = max(0, self.frustration_streak - 1)
+            # Module 10: Reward calm with slight warmth increase
+            self.charm_warmth = min(0.9, self.charm_warmth + 0.05)
         elif self.frustration_streak > 0:
             self.frustration_streak = max(0, self.frustration_streak - 1)
 
         self.cognitive_pattern = self._infer_cognitive_pattern(perception, premise_flag)
         self.risk_band = self._compute_risk_band(perception)
+
 
     def _infer_cognitive_pattern(self, perception: LLMPerception, premise_flag: str) -> str:
         pf = (premise_flag or "").strip().lower()
@@ -194,6 +215,16 @@ class UserModelTracker:
                 "Epistemic note: multiple turns raised premise-safety hints—prioritize careful, "
                 "non-affirming responses to risky factual claims."
             )
+            
+        # --- Module 10: Charm Vectors Injection ---
+        parts.append(
+            f"[CHARM-VECTOR] Calidez:{self.charm_warmth:.2f} Misterio:{self.charm_mystery:.2f} "
+            f"Reciprocidad:{self.charm_reciprocity:.2f} Intimidad:{self.charm_intimacy:.2f}. "
+            "Aplica estilo cultural. Si Misterio es alto, sé breve y retén información. "
+            "Si Intimidad baja, mantén Tatemae (distancia educada). "
+            "Si Intimidad > 0.6, permite destellos de Honne (micro-revelaciones lúdicas)."
+        )
+            
         return " ".join(parts).strip()
 
     def to_public_dict(self) -> dict:
@@ -207,6 +238,9 @@ class UserModelTracker:
             "escalation_strikes": int(self.escalation_strikes),
             "escalation_threshold": int(self.escalation_threshold),
             "judicial_phase": self.judicial_phase or "",
+            "charm_warmth": self.charm_warmth,
+            "charm_mystery": self.charm_mystery,
+            "charm_intimacy": self.charm_intimacy,
             "metacognitive_prompt": (
                 "Consider whether your tone may be contributing to user strain; "
                 "adjust clarity and reassurance only within policy."
@@ -214,3 +248,4 @@ class UserModelTracker:
                 else ""
             ),
         }
+
