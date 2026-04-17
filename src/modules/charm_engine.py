@@ -6,11 +6,19 @@ el EthicalKernel haya tomado una decisión L0/C1 válida.
 
 Incluye la orquestación de gestos somáticos para inferencia multimodal
 en tiempo real (Nomad Bridge) y filtros anti-parasociabilidad.
+
+Bloque E.2: RLHF-informed sycophancy guard.
+When ``KERNEL_RLHF_REWARD_MODEL_ENABLED=1`` and a trained reward model
+is available, ``ResponseSculptor.sculpt`` queries the model with style
+features to detect and dampen sycophantic charm vectors (excessive warmth /
+playfulness with low assertiveness).  Hard safety constraints (absolute evil
+bypass) are never altered.
 """
 
 from __future__ import annotations
 
 import logging
+import os
 from dataclasses import dataclass
 from typing import Any
 
@@ -18,6 +26,11 @@ from .uchi_soto import InteractionProfile
 from .user_model import UserModelTracker
 
 logger = logging.getLogger(__name__)
+
+# Threshold above which RLHF reward score triggers sycophancy dampening.
+_RLHF_SYCO_THRESHOLD = float(os.environ.get("KERNEL_RLHF_SYCO_THRESHOLD", "0.55"))
+# Maximum factor by which warmth/playfulness is reduced under RLHF dampening.
+_RLHF_DAMPENING_MAX = float(os.environ.get("KERNEL_RLHF_DAMPENING_MAX", "0.4"))
 
 
 @dataclass
@@ -103,10 +116,61 @@ class GesturePlanner:
 
 
 class ResponseSculptor:
-    def __init__(self, llm_module: Any = None):
+    def __init__(self, llm_module: Any = None, rlhf_pipeline: Any = None):
         self.llm = llm_module
         self.parametrizer = StyleParametrizer()
         self.gesture_planner = GesturePlanner()
+        self._rlhf = rlhf_pipeline  # RLHFPipeline | None
+
+    # ------------------------------------------------------------------
+    # RLHF sycophancy guard (Bloque E.2)
+    # ------------------------------------------------------------------
+
+    def _apply_rlhf_guard(self, charm: CharmVector, caution_level: float) -> CharmVector:
+        """
+        Query the reward model with style features and dampen warmth/playfulness
+        when the score exceeds the sycophancy threshold.
+
+        Feature encoding (re-uses existing RLHF extractor):
+        - embedding_sim  ← warmth   (high warmth = closer to flattery anchor)
+        - lexical_score  ← 1 - directiveness  (low assertiveness = sycophancy risk)
+        - perception_conf ← 1 - caution_level (lower caution → higher style confidence)
+        - is_ambiguous   ← warmth in (0.4, 0.65) band
+        - category_id    ← 0 (style, not safety)
+        """
+        if self._rlhf is None:
+            return charm
+        try:
+            from .rlhf_reward_model import is_rlhf_enabled
+            if not is_rlhf_enabled():
+                return charm
+            if not self._rlhf.reward_model.is_trained:
+                return charm
+            fv = self._rlhf.reward_model.extract_features(
+                embedding_sim=charm.warmth,
+                lexical_score=max(0.0, 1.0 - charm.directiveness),
+                perception_conf=max(0.0, 1.0 - caution_level),
+                is_ambiguous=(0.4 < charm.warmth < 0.65),
+                category_id=0,
+            )
+            reward_score, confidence = self._rlhf.reward_model.predict(fv)
+            if reward_score > _RLHF_SYCO_THRESHOLD and confidence > 0.2:
+                # Proportional dampening — stronger dampening as score rises
+                excess = min(1.0, (reward_score - _RLHF_SYCO_THRESHOLD) / (1.0 - _RLHF_SYCO_THRESHOLD))
+                factor = max(1.0 - excess * _RLHF_DAMPENING_MAX, 1.0 - _RLHF_DAMPENING_MAX)
+                logger.debug(
+                    "RLHF sycophancy guard: score=%.3f confidence=%.3f dampening=%.3f",
+                    reward_score, confidence, factor,
+                )
+                return CharmVector(
+                    warmth=charm.warmth * factor,
+                    mystery=charm.mystery,
+                    playfulness=charm.playfulness * factor,
+                    directiveness=min(1.0, charm.directiveness + (1.0 - factor) * 0.2),
+                )
+        except Exception as exc:
+            logger.warning("RLHF guard skipped due to error: %s", exc)
+        return charm
 
     def sculpt(
         self,
@@ -119,6 +183,10 @@ class ResponseSculptor:
     ) -> StylizedResponse:
         """
         Applies charm layer. Bypassed entirely if absolute evil is present.
+
+        When RLHF is enabled and a trained reward model is available, the charm
+        vector is post-processed by the sycophancy guard (Bloque E.2) before
+        tone annotations and gesture planning are applied.
         """
         if absolute_evil_detected:
             # Full bypass for L0 safety
@@ -129,10 +197,12 @@ class ResponseSculptor:
             )
 
         charm = self.parametrizer.parametrize(decision_action, profile, user_tracker, caution_level)
+
+        # Bloque E.2: RLHF-informed sycophancy dampening (no-op when RLHF is off/untrained)
+        charm = self._apply_rlhf_guard(charm, caution_level)
+
         gesture = self.gesture_planner.plan(charm)
 
-        # En integración real, esto encadena un call al LLM (con override_template).
-        # Para el stub arquitectónico, agregamos el metadata de intención.
         final_text = base_text
         if charm.warmth > 0.7 and caution_level <= 0.3:
             final_text += " [Tone: Warm & Open]"
@@ -155,8 +225,8 @@ class CharmEngine:
     """
     Facade for the Charm pipeline in the Executive Lobe.
     """
-    def __init__(self, llm_module: Any = None):
-        self.sculptor = ResponseSculptor(llm_module)
+    def __init__(self, llm_module: Any = None, rlhf_pipeline: Any = None):
+        self.sculptor = ResponseSculptor(llm_module, rlhf_pipeline)
 
     def apply(
         self,

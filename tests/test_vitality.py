@@ -34,12 +34,12 @@ def test_critical_threshold_env(monkeypatch):
 
 
 def test_vitality_hint_only_when_critical():
-    assert vitality_communication_hint(VitalityAssessment(0.5, 0.05, False)) == ""
-    h = vitality_communication_hint(VitalityAssessment(0.02, 0.05, True))
+    assert vitality_communication_hint(VitalityAssessment(0.5, 0.05, False, None, 80.0, False, False)) == ""
+    h = vitality_communication_hint(VitalityAssessment(0.02, 0.05, True, None, 80.0, False, False))
     assert "vitality" in h.lower() or "power" in h.lower() or "operational" in h.lower()
 
 
 def test_to_public_dict():
-    d = VitalityAssessment(0.04, 0.05, True).to_public_dict()
+    d = VitalityAssessment(0.04, 0.05, True, None, 80.0, False, False).to_public_dict()
     assert d["is_critical"] is True
     assert d["battery_unknown"] is False

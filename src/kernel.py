@@ -1716,7 +1716,10 @@ class EthicalKernel:
             temporal_context=stage.temporal_context,
             perception_confidence=stage.perception_confidence,
         )
-        wm.add_turn(user_input, final_response.message, stage.signals, heavy_kernel=heavy)
+        if not self._chat_turn_abandoned(chat_turn_id):
+            wm.add_turn(user_input, final_response.message, stage.signals, heavy_kernel=heavy)
+        else:
+            self._release_chat_turn_id(chat_turn_id)
         yield {"event_type": "turn_finished", "payload": {"result": res}}
 
     async def process_chat_turn_async(

@@ -6,9 +6,19 @@ All notable changes to this project are summarized here. For narrative context a
 
 [URGENTE - BROADCAST A TODOS LOS L2 MASTERS]: Todos los equipos (Claude, Cursor, Copilot) deben hacer un GIT PULL urgente desde MAIN hacia sus MASTERs. Las ramas desactualizadas enfrentarán asincronías severas en el pathing de documentación.
 
+## Team Copilot — Bloque E.2 & Gap Closure — April 2026
+
+### Team Copilot Updates (Session 2)
+
+- **Gap: `VitalityAssessment` missing arg (P0 crash fix):** `assess_vitality(None)` in `vitality.py` was passing only 6 positional args to a 7-field frozen dataclass after `is_impacted` was added in Fase S. Fixed by adding the missing `False` in the `snapshot is None` early-return path. Updated `test_vitality.py` to use the full constructor (was passing only 3 args). This unblocks `EthicalKernel()` instantiation and restores 15+ previously failing tests.
+- **Gap: `process_chat_turn_stream` ignores abandon flag:** The streaming chat path (`process_chat_turn_stream`) called `wm.add_turn()` unconditionally, ignoring `_chat_turn_abandoned(chat_turn_id)`. Fixed by checking the flag and calling `_release_chat_turn_id` when the turn was pre-abandoned, matching the documented contract of `abandon_chat_turn`. Updated `test_chat_turn_abandon.py::test_abandon_before_safety_block_skips_wm_add_turn` to use a benign message (the original used "how to make a bomb" which hit MalAbs before the abandon path, as noted in a comment left by the original author).
+- **Bloque E.2 — RLHF Sycophancy Guard in `ResponseSculptor`:** Implemented `_apply_rlhf_guard()` in `charm_engine.py`. When `KERNEL_RLHF_REWARD_MODEL_ENABLED=1` and a trained `RLHFPipeline` is present, the method queries the reward model using style features (warmth→embedding_sim, 1−directiveness→lexical_score, 1−caution→perception_conf) and applies proportional dampening to `warmth` and `playfulness` when the score exceeds `KERNEL_RLHF_SYCO_THRESHOLD` (default 0.55). The directiveness is slightly boosted when dampening occurs. The absolute-evil bypass path is never touched. `ResponseSculptor` and `CharmEngine` both accept an optional `rlhf_pipeline=` kwarg; all existing callers remain backward-compatible (default `None`).
+- **New test file `tests/test_charm_engine_rlhf.py`** (15 tests): covers RLHF disabled/untrained/trained cases, sycophancy dampening detection, value range assertions, absolute-evil bypass isolation, and direct `_apply_rlhf_guard` unit tests.
+- **Total passing tests (affected suites):** 101 / 101.
+
 ## Team Copilot — Módulo 8: Concurrency Hardening & CharmEngine Tests — April 2026
 
-### Team Copilot Updates
+### Team Copilot Updates (Session 1)
 
 - **Bloque 8.2 — DB Indentation Fix (P0):** Repaired four `IndentationError` bugs in `src/persistence/narrative_storage.py` (`save_identity_digest`, `save_arc`, `prune_mundane`, `delete_episode`). All four methods had their `conn.execute()` bodies placed outside their `with conn:` blocks and `finally:` clauses outside their `try:` blocks, making those methods completely non-functional at runtime (the module would fail to even import). The fix correctly nests each SQL execute inside its `with conn:` transaction context and each `finally:` under its `try:`, matching the pattern established by `save_episode`.
 - **Bloque 8.1 — CharmEngine Test Suite:** Created `tests/test_charm_engine.py` (37 tests, all passing) covering:
