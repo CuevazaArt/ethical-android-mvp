@@ -4,7 +4,7 @@ name: CI
 
 on:
   push:
-    branches: [main]
+    branches: [main, "master-*", "feature-*"]
   pull_request:
     branches: [main]
   workflow_dispatch:
@@ -64,7 +64,7 @@ jobs:
         env:
           PYTHONHASHSEED: "0"
         run: |
-          python -m pytest tests/ -q --tb=short \
+          python -m pytest tests/ -n auto -q --tb=short \
             --junitxml=junit.xml \
             --cov=src \
             --cov-fail-under=65 \
@@ -111,7 +111,7 @@ jobs:
         env:
           PYTHONHASHSEED: "0"
         run: |
-          python -m pytest tests/test_malabs_semantic_integration.py tests/test_semantic_chat_gate.py tests/test_empirical_pilot_runner.py -q --tb=short
+          python -m pytest tests/test_malabs_semantic_integration.py tests/test_semantic_chat_gate.py tests/test_empirical_pilot_runner.py -n auto -q --tb=short
 
   windows-smoke:
     runs-on: windows-latest
@@ -139,4 +139,4 @@ jobs:
         env:
           PYTHONHASHSEED: "0"
         run: |
-          python -m pytest tests/test_runtime_profiles.py tests/test_env_policy.py -q --tb=short
+          python -m pytest tests/test_runtime_profiles.py tests/test_env_policy.py -n auto -q --tb=short

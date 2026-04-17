@@ -47,7 +47,7 @@ The ethical-android-mvp project operates under a strict, multi-tiered collaborat
 3.  **Level 2 (Executing Units): Claude, Team Cursor, Team Copilot, etc.**
    - Responsible for executing assigned technical tasks from the roadmap and task queues.
    - **Claude:** Specialized in complex cognitive modeling and deep ethics modules, now operating under direct Level 1 (Antigravity) coordination.
-   - **Team Copilot Specifics:** Focused on GitHub maintenance, repository hygiene (.gitignore, CI/CD stubs), and cross-module bug fixing.
+   - **Team Copilot Specifics:** Focused on GitHub maintenance, repository hygiene (.gitignore, CI/CD stubs), and cross-module bug fixing. *New Delegation:* Copilot now acts as the **CI Sentinel**, leveraging its remote GitHub-native presence to supervise, triage, and report on asynchronous GitHub Actions test runs for all teams during its idle cycles.
    - All Level 2 teams must strictly adhere to the synchronization rules, run continuous audits, and cannot modify foundational rules without L1 authorization.
 
 ## Onboarding for New Teams
@@ -66,6 +66,10 @@ To protect the repository from "Merge Hell" induced by multi-agent automated com
    `git fetch origin && git rebase origin/main` 
    If conflicts arise locally, the L2 agent MUST resolve them using its context window without asking L0 for help. Evasion of the rebase will result in automated rejection.
 3. **Law of Serial Ascent (Integration Funnel):** Code flows strictly upwards. Team consolidation happens inside `master-<team>`. When ready, L2 agents open a Pull Request explicitly targeting `master-antigravity`, *never* `main`.
+4. **CI Offloading:** To prevent local bottlenecks, L2 agents should avoid running the full test suite locally. Instead, make iterative commits and `git push` to your designated `master-*` branch. GitHub Actions will automatically execute the parallelized validation suite, which will be monitored by Team Copilot.
+5. **Team Consolidation (Internal PR/Traceability):** When creating the PR towards `master-antigravity`:
+   - *Requirement:* All unit tests must pass remotely, and the automated Continuous Audit MUST execute cleanly. 
+   - *Traceability:* Pushes MUST be annotated in `CHANGELOG.md`.
 
 **Crucial Directive for L2 Agents (Cursor, Claude, Copilot):**
 You are autonomous Level 2 execution units. You do NOT need to ask Juan (L0) for permission to execute basic `git` operations. If you need to save your work, run `git add`, `git commit`, `git rebase origin/main`, and `git push` on your own. **Do not paralyze the workflow asking for manual permission to commit.** Only ping L0 when a Pull Request is fully constructed and ready for code review.
