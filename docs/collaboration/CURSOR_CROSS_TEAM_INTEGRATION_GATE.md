@@ -43,6 +43,7 @@ This checklist defines when `master-Cursor` is ready to be interlaced with other
      - `tests/test_semantic_chat_gate.py`
      - `tests/test_llm_touchpoint_policies.py`
      - `tests/test_llm_http_cancel.py` (G-05 cooperative cancel scope)
+     - `tests/test_llm_cancel_burst_operational.py` (G-05 burst concurrency smoke + abandon short-circuit)
      - `tests/test_chat_async_llm_cancel.py` (async LLM HTTP / `KERNEL_CHAT_ASYNC_LLM_HTTP`)
      - `tests/test_chat_turn_abandon.py` (timeout abandon / `turn_abandoned` / cooperative `process` exit)
      - `tests/test_empirical_pilot_runner.py` (Issue 3 — `run_empirical_pilot` / `last_run_summary` regression)

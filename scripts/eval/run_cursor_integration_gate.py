@@ -21,6 +21,7 @@ TEST_TARGETS = [
     "tests/test_semantic_chat_gate.py",
     "tests/test_llm_touchpoint_policies.py",
     "tests/test_llm_http_cancel.py",
+    "tests/test_llm_cancel_burst_operational.py",
     "tests/test_chat_async_llm_cancel.py",
     "tests/test_chat_turn_abandon.py",
     # Issue 3 empirical pilot — batch agreement vs fixtures (scripts/run_empirical_pilot.py)
