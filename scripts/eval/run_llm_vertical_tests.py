@@ -13,6 +13,7 @@ REPO_ROOT = Path(__file__).resolve().parents[2]
 TEST_TARGETS = [
     "tests/test_llm_verbal_backend_policy.py",
     "tests/test_llm_http_cancel.py",
+    "tests/test_llm_cancel_burst_operational.py",
     "tests/test_chat_async_llm_cancel.py",
     "tests/test_chat_turn_abandon.py",
     "tests/test_llm_touchpoint_policies.py",

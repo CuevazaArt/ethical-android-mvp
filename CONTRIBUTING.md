@@ -82,9 +82,13 @@ The modules are in `src/modules/`. Each one is independent:
 Use a virtual environment (Python **3.11+**). **Do not** add **Black** as a separate tool; **Ruff** covers lint + format (Black-compatible).
 
 ```bash
-pip install -r requirements.txt -r requirements-dev.txt
+python -m venv .venv
+# Windows: .venv\Scripts\activate   |   Unix/macOS: source .venv/bin/activate
+pip install -r requirements.txt -r requirements-dev.txt -e .
 pre-commit install
 ```
+
+If `pip` hits read timeouts on a slow network, retry with a higher default timeout, e.g. `pip install --default-timeout=300 -r requirements.txt -r requirements-dev.txt -e .`.
 
 Run the same checks as [`.github/workflows/ci.yml`](.github/workflows/ci.yml) before opening a PR:
 
