@@ -21,7 +21,64 @@ from collections.abc import Callable
 from concurrent.futures import ThreadPoolExecutor
 from dataclasses import dataclass
 from pathlib import Path
-from typing import TYPE_CHECKING, Any, AsyncGenerator
+from typing import TYPE_CHECKING, Any
+
+from .kernel_lobes import PerceptiveLobe, LimbicEthicalLobe, ExecutiveLobe, CerebellumLobe, MemoryLobe, CerebellumNode
+from .kernel_lobes.models import LimbicStageResult, ExecutiveStageResult
+
+class CorpusCallosumOrchestrator:
+    """
+    Architecture V1.5 - Triune Brain Orchestrator
+    Actúa como el bus de eventos ligero entre los 3 Lóbulos Conscientes y el Cerebelo Adyacente.
+    """
+    def __init__(self):
+        # 1. Instanciar Subconsciente
+        self._hw_interrupt = threading.Event()
+        self.cerebellum = CerebellumNode(self._hw_interrupt)
+        self.cerebellum.start()
+
+        # 2. Instanciar Lóbulos Conscientes
+        self.perceptive_lobe = PerceptiveLobe()
+        self.limbic_lobe = LimbicEthicalLobe()
+        self.executive_lobe = ExecutiveLobe()
+
+    async def async_process(self, raw_input: str, multimodal_payload: dict = None) -> str:
+        """
+        Ciclo V1.5 Puro: Aferencia -> Juicio -> Eferencia
+        """
+        if self._hw_interrupt.is_set():
+            return "SYSTEM_HALTED: Hardware Critical State (Cerebellum Interrupt Active)"
+
+        # 1) Percepción (Asíncrona)
+        semantic_state = await self.perceptive_lobe.observe(raw_input, multimodal_payload)
+
+        # 2) Juicio (Sincrónico CPU-bound)
+        # Se ejecuta aislando el event loop a través de to_thread para no bloquear a otros requests
+        ethical_sentence = await asyncio.to_thread(self.limbic_lobe.judge, semantic_state)
+
+        # 3) Ejecución / Salida
+        final_output = await asyncio.to_thread(self.executive_lobe.formulate_response, semantic_state, ethical_sentence)
+        
+        return final_output
+
+    def shutdown(self):
+        self.cerebellum.stop()
+        self.cerebellum.join()
+
+import os
+import threading
+import time
+import logging
+from collections.abc import Callable
+from concurrent.futures import ThreadPoolExecutor
+from dataclasses import dataclass
+from pathlib import Path
+from typing import TYPE_CHECKING, Any
+
+_log = logging.getLogger(__name__)
+
+if TYPE_CHECKING:
+    from .dao.audit_snapshot import AuditSnapshot
 
 import numpy as np
 
@@ -580,19 +637,30 @@ class EthicalKernel:
             else BiographicPruner()
         )
 
-        # ═══ RLHF Pipeline (Module C.1) ═══
-        from .modules.rlhf_reward_model import RLHFPipeline, is_rlhf_enabled
-        self.rlhf = RLHFPipeline() if is_rlhf_enabled() else None
-
         # ═══ Triune Brain Lobes (Refactor 0.1.3) ═══
-        # Stub stack (see kernel_lobes/*): no-arg constructors; full DI wiring deferred.
-        self.perceptive_lobe = PerceptiveLobe()
-        self.limbic_lobe = LimbicEthicalLobe()
-        self.executive_lobe = ExecutiveLobe()
+        self.perceptive_lobe = PerceptiveLobe(
+            safety_interlock=self.safety_interlock,
+            strategist=self.strategist,
+            llm_backend=self._malabs_text_backend()
+        )
+        self.limbic_lobe = LimbicEthicalLobe(
+            uchi_soto=self.uchi_soto,
+            sympathetic=self.sympathetic,
+            locus=self.locus,
+            swarm=self.swarm
+        )
+        self.executive_lobe = ExecutiveLobe(
+            absolute_evil=self.absolute_evil,
+            motivation=self.motivation,
+            poles=self.poles,
+            will=self.will,
+            reflection_engine=self.ethical_reflection,
+            salience_map=self.salience_map,
+            pad_archetypes=self.pad_archetypes
+        )
         self.cerebellum_lobe = CerebellumLobe(
             bayesian=self.bayesian,
-            strategist=self.strategist,
-            rlhf=self.rlhf
+            strategist=self.strategist
         )
         
         # Selective Amnesia & Immortality (vertical integration)
@@ -607,7 +675,6 @@ class EthicalKernel:
             immortality=self.immortality,
             amnesia=self.amnesia
         )
-        self.charm_engine = CharmEngine(self.llm)
 
         # ═══ Somatic Awareness (Cerebellum Node) ═══
         self.hardware_interrupt_event = threading.Event()
@@ -861,11 +928,14 @@ class EthicalKernel:
         t0 = time.perf_counter()
 
         # ═══ STAGE 0: PERCEPTION & SAFETY ═══
-        # Tri-lobe full ``execute_stage`` is not wired; keep cooperative path open for tests.
-        p_res: dict[str, Any] = {"somatic_interrupt": False, "safety_decision": None}
+        p_res = self.perceptive_lobe.execute_stage(
+            scenario, place, context, sensor_snapshot, 
+            interrupt_event=self.hardware_interrupt_event
+        )
         if p_res.get("somatic_interrupt"):
             _log.error("SOMATIC INTERRUPT DETECTED: Hardware critical state.")
             # We return a synthetic safety block
+            from .modules.absolute_evil import AbsoluteEvilResult
             d = KernelDecision(
                 scenario=scenario, place=place, absolute_evil=AbsoluteEvilResult(blocked=True, reason="SOMATIC CRITICAL"),
                 sympathetic_state=InternalState(mode="stopped", sigma=1.0, energy=0.0, description="HARDWARE FAILURE"),
@@ -882,61 +952,46 @@ class EthicalKernel:
             return p_res["safety_decision"]
 
         # ═══ STAGE 1: SOCIAL & CONTEXT ═══
-        social_eval, state, locus_eval = await self._run_social_and_locus_stage(
+        social_eval, state, locus_eval = self._run_social_and_locus_stage(
             agent_id, signals, message_content, sensor_snapshot, multimodal_assessment
         )
 
         # ═══ STAGE 2: ABSOLUTE EVIL & MOTIVATION ═══
-        clean_actions, ae_dec = await self._run_absolute_evil_stage(
+        clean_actions, ae_dec = self._run_absolute_evil_stage(
             scenario, place, actions, state, social_eval, locus_eval, context, t0, signals
         )
         if ae_dec: return ae_dec
 
-        await asyncio.sleep(0)
+    async def _run_bayesian_stage(
+        self, scenario: str, place: str, clean_actions: list[CandidateAction], state: InternalState,
+        social_eval: SocialEvaluation, locus_eval: LocusEvaluation, context: str, t0: float, signals: dict,
+        message_content: str, perception_coercion_uncertainty: float | None = None,
+        sensor_snapshot: SensorSnapshot | None = None,
+    ) -> tuple[BayesianResult | None, BayesianStageMetadata | None, KernelDecision | None]:
 
         # ═══ STAGE 3: BAYESIAN SCORING ═══
-        bayes_result, b_meta, aes_veto = await self._run_bayesian_stage(
-            scenario, place, clean_actions, state, social_eval, locus_eval,
-            context, t0, signals, message_content, perception_coercion_uncertainty,
-            sensor_snapshot,
+        bayes_result, b_meta, aes_veto = self._run_bayesian_stage(
+            scenario, place, clean_actions, state, social_eval, locus_eval, 
+            context, t0, signals, message_content
         )
         if aes_veto: return aes_veto
 
-        await asyncio.sleep(0)
+        self._raise_if_chat_turn_cooperative_abort()
 
         # ═══ STAGE 4: HUMILITY & DECISION ═══
-        moral, final_action, final_mode, affect, reflection, salience, hum_dec = await self._run_decision_and_will_stage(
+        moral, final_action, final_mode, affect, reflection, salience, hum_dec = self._run_decision_and_will_stage(
             scenario, place, signals, bayes_result, state, social_eval, locus_eval,
             context, t0, perception_coercion_uncertainty
         )
         if hum_dec: return hum_dec
 
-        await asyncio.sleep(0)
+        self._raise_if_chat_turn_cooperative_abort()
 
         # ═══ STAGE 5: EPISODIC & DAO ═══
-        episode_id = await self.memory_lobe.execute_episodic_stage(
+        episode_id = self.memory_lobe.execute_episodic_stage(
             scenario, place, context, signals, state, social_eval,
-            bayes_result, moral, final_action, final_mode, affect,
-            register_episode=register_episode
+            bayes_result, moral, final_action, final_mode, affect
         )
-
-        self._last_registered_episode_id = episode_id
-
-        # ═══ STAGE 6: SWARM CONSENSUS & JUSTICE (Module 7) ═══
-        if final_mode == "gray_zone" or signals.get("risk", 0) > 0.4:
-            peers = list(self.swarm.state.known_peers.keys())
-            if not peers:
-                # Mock some peers if none discovered
-                peers = ["PEER_LAN_01", "PEER_LAN_02", "PEER_LAN_03"]
-            
-            await self.limbic_lobe.execute_swarm_consensus_stage(
-                dao=self.dao,
-                proposal_id=f"SWARM-{int(time.time())}",
-                action=final_action,
-                signals=signals,
-                peers=peers,
-                case_ref=episode_id or "incident_unsaved"
-            )
 
         d = KernelDecision(
             scenario=scenario, place=place, absolute_evil=AbsoluteEvilResult(blocked=False),
@@ -955,52 +1010,37 @@ class EthicalKernel:
             episode_id=episode_id
         )
         
+        # ════ D1: BIOGRAPHIC REGISTRATION ════
+        if register_episode:
+             impact = d.bayesian_result.expected_impact if d.bayesian_result else 0.0
+             self.memory_lobe.register_biographic_impact(impact)
+             
         self._emit_kernel_decision(d, context=context)
         _emit_process_observability(d, t0)
         return d
-    def process(self, *args, **kwargs) -> KernelDecision:
-        """Sync wrapper for legacy callers and tests."""
-        return asyncio.run(self.aprocess(*args, **kwargs))
 
 
-
-    async def _run_social_and_locus_stage(
+    def _run_social_and_locus_stage(
         self, agent_id: str, signals: dict, message_content: str,
         sensor_snapshot: SensorSnapshot | None, multimodal_assessment: MultimodalAssessment | None
     ) -> tuple[SocialEvaluation, InternalState, LocusEvaluation]:
-        self.uchi_soto.ingest_turn_context(
-            agent_id,
-            signals,
-            subjective_turn=self.subjective_clock.turn_index,
-            sensor_snapshot=sensor_snapshot,
+        res = self.limbic_lobe.execute_stage(
+            agent_id, signals, message_content, 
+            turn_index=self.subjective_clock.turn_index,
+            sensor_snapshot=sensor_snapshot, 
             multimodal_assessment=multimodal_assessment,
+            somatic_state=self.cerebellum_node.get_somatic_snapshot()
         )
-        social_eval = self.uchi_soto.evaluate_interaction(signals, agent_id, message_content)
-        state = self.sympathetic.evaluate_context(signals)
-        locus_signals = {
-            "self_control": 1.0 - signals.get("risk", 0.0),
-            "external_factors": signals.get("hostility", 0.0),
-            "predictability": signals.get("calm", 0.5) * 0.5 + 0.3,
-        }
-        locus_eval = self.locus.evaluate(locus_signals, social_eval.circle.value)
-        return social_eval, state, locus_eval
+        return res.social_evaluation, res.internal_state, res.locus_evaluation
 
-    async def _run_absolute_evil_stage(
+    def _run_absolute_evil_stage(
         self, scenario: str, place: str, actions: list[CandidateAction], state: InternalState,
         social_eval: SocialEvaluation, locus_eval: LocusEvaluation, context: str, t0: float, signals: dict
     ) -> tuple[list[CandidateAction], KernelDecision | None]:
-        clean_actions = []
-        for a in actions:
-            check = self.absolute_evil.evaluate(
-                {
-                    "type": a.name,
-                    "signals": a.signals,
-                    "target": a.target,
-                    "force": a.force,
-                }
-            )
-            if not check.blocked:
-                clean_actions.append(a)
+        res = self.executive_lobe.execute_absolute_evil_stage(
+            actions, state, social_eval, locus_eval, signals
+        )
+        clean_actions = res.clean_actions
 
         if not clean_actions:
             d = KernelDecision(
@@ -1014,456 +1054,38 @@ class EthicalKernel:
             return [], d
         return clean_actions, None
 
-    async def _run_bayesian_stage(
+    def _run_bayesian_stage(
         self, scenario: str, place: str, clean_actions: list[CandidateAction], state: InternalState,
         social_eval: SocialEvaluation, locus_eval: LocusEvaluation, context: str, t0: float, signals: dict,
-        message_content: str, perception_coercion_uncertainty: float | None = None,
-        sensor_snapshot: SensorSnapshot | None = None,
+        message_content: str
     ) -> tuple[BayesianResult | None, BayesianStageMetadata | None, KernelDecision | None]:
 
-        # ═══ STEP 5: Activate buffer according to context ═══
-        self.buffer.activate(context)
-
-        # ═══ STEP 6: Impact scoring — mixture (BayesianInferenceEngine / optional posterior-assisted modes) ═══
-        mixture_posterior_alpha: tuple[float, float, float] | None = None
-        feedback_consistency: str | None = None
-        mixture_context_key: str | None = None
-        hierarchical_context_key: str | None = None
-        dirichlet_alpha_for_bma: np.ndarray | None = None
-
-        self.bayesian.reset_mixture_weights()
-
-        fb_path = os.environ.get("KERNEL_FEEDBACK_PATH", "").strip()
-
-        # OOS-004 — Precedence rule: HIERARCHICAL > CONTEXT_LEVEL3 > BAYESIAN_FEEDBACK.
-        # When KERNEL_HIERARCHICAL_FEEDBACK is on together with the ADR-0012 flags, the
-        # hierarchical block (which runs last) will overwrite hypothesis_weights.  Warn once
-        # per process() call so operators notice the conflict in logs.
-        _hier_on = _kernel_env_truthy("KERNEL_HIERARCHICAL_FEEDBACK")
-        _l2_on = _kernel_env_truthy("KERNEL_BAYESIAN_FEEDBACK")
-        _l3_on = _kernel_env_truthy("KERNEL_BAYESIAN_CONTEXT_LEVEL3")
-        if _hier_on and (_l2_on or _l3_on):
-            import logging as _plog
-
-            _plog.getLogger(__name__).warning(
-                "Precedence conflict: KERNEL_HIERARCHICAL_FEEDBACK is ON together with "
-                "%s. Effective precedence: HIERARCHICAL > CONTEXT_LEVEL3 > BAYESIAN_FEEDBACK. "
-                "The hierarchical updater will overwrite hypothesis_weights last. "
-                "Disable the lower-priority flags to suppress this warning. (OOS-004)",
-                " + ".join(
-                    f
-                    for f, on in [
-                        ("KERNEL_BAYESIAN_CONTEXT_LEVEL3", _l3_on),
-                        ("KERNEL_BAYESIAN_FEEDBACK", _l2_on),
-                    ]
-                    if on
-                ),
-            )
-
-        if _kernel_env_truthy("KERNEL_BAYESIAN_FEEDBACK") and fb_path:
-            p = Path(fb_path)
-            if p.is_file():
-                from .modules.feedback_mixture_posterior import (
-                    context_level3_enabled,
-                    load_and_apply_feedback,
-                )
-
-                rng_fb = np.random.default_rng(int(os.environ.get("KERNEL_FEEDBACK_SEED", "42")))
-                tick_context: tuple[str, str, dict | None] | None = None
-                if context_level3_enabled():
-                    tick_context = (scenario, context, signals)
-                alpha_vec, feedback_consistency, _fb_meta = load_and_apply_feedback(
-                    p, rng=rng_fb, tick_context=tick_context
-                )
-                _av = np.asarray(alpha_vec, dtype=np.float64).reshape(3)
-                mixture_posterior_alpha = (
-                    round(float(_av[0]), 6),
-                    round(float(_av[1]), 6),
-                    round(float(_av[2]), 6),
-                )
-                if isinstance(self.bayesian, BayesianEngine):
-                    self.bayesian.update_posterior_from_feedback(
-                        alpha_vec, consistency=feedback_consistency or "compatible"
-                    )
-                dirichlet_alpha_for_bma = alpha_vec
-                if isinstance(_fb_meta, dict) and _fb_meta.get("active_context_key") is not None:
-                    mixture_context_key = str(_fb_meta["active_context_key"])
-
-        # ADR 0013 — Hierarchical context-dependent weight inference (Level 3 full)
-        # Precedence: HIERARCHICAL > CONTEXT_LEVEL3 > BAYESIAN_FEEDBACK (OOS-004).
-        # OOS-003: updater is cached per feedback-file path + mtime to avoid rebuilding each tick.
-        # OOS-002: when scenarios lack hypothesis_override, falls back to the mixture_ranking path
-        #          (load_and_apply_feedback with KERNEL_BAYESIAN_CONTEXT_LEVEL3 semantics) so
-        #          hierarchical context-dependent learning also works for non-explicit-triples scenarios.
-        if _hier_on and fb_path:
-            p_hier = Path(fb_path)
-            if p_hier.is_file():
-                try:
-                    from .modules.feedback_mixture_posterior import (
-                        load_and_apply_feedback,
-                        load_feedback_records,
-                    )
-                    from .modules.feedback_mixture_updater import (
-                        build_scenario_candidates_map,
-                        feedback_items_from_records,
-                    )
-                    from .modules.hierarchical_updater import (
-                        HierarchicalUpdater,
-                        canonical_context_type,
-                    )
-
-                    _hier_seed = int(os.environ.get("KERNEL_FEEDBACK_SEED", "42"))
-                    _hier_strength = float(os.environ.get("KERNEL_FEEDBACK_UPDATE_STRENGTH", "3.0"))
-                    _hier_n = max(
-                        1000,
-                        int(os.environ.get("KERNEL_FEEDBACK_MC_SAMPLES", "20000")),
-                    )
-
-                    # OOS-003: rebuild cache only when file path or mtime changes
-                    _hier_mtime = p_hier.stat().st_mtime
-                    _cache_stale = (
-                        self._hier_updater_cache is None
-                        or self._hier_cache_fb_path != fb_path
-                        or abs(_hier_mtime - self._hier_cache_mtime) > 1e-6
-                    )
-
-                    _hier_records = load_feedback_records(p_hier)
-
-                    if _hier_records and _cache_stale:
-                        _hier_items = feedback_items_from_records(_hier_records)
-                        _hier_sids = sorted({r.scenario_id for r in _hier_records})
-                        _hier_cmap = build_scenario_candidates_map(_hier_sids)
-
-                        if _hier_cmap is not None:
-                            # Explicit-triples path (scenarios with hypothesis_override)
-                            _new_updater = HierarchicalUpdater(
-                                update_strength=_hier_strength,
-                                n_samples=_hier_n,
-                                seed=_hier_seed,
-                            )
-                            _new_updater.ingest_feedback(_hier_items, _hier_cmap)
-                            self._hier_updater_cache = _new_updater
-                        else:
-                            # OOS-002 fallback: mixture_ranking path via load_and_apply_feedback.
-                            # Store a lightweight sentinel so the cache is marked valid; actual
-                            # alpha is computed per-tick below using the sentinel flag.
-                            self._hier_updater_cache = "mixture_ranking_fallback"
-
-                        self._hier_cache_fb_path = fb_path
-                        self._hier_cache_mtime = _hier_mtime
-
-                    _raw_ctx = context if context else None
-                    _hier_consistency: str | None = None
-
-                    if isinstance(self._hier_updater_cache, HierarchicalUpdater):
-                        # Explicit-triples: use cached updater for context-aware alpha
-                        _hier_alpha = self._hier_updater_cache.active_alpha_for_context(_raw_ctx)
-                        _ha = np.asarray(_hier_alpha, dtype=np.float64).reshape(3)
-                        _hs = float(np.sum(_ha))
-                        if _hs > 0:
-                            from .modules.weight_authority import compose_mixture_weights as _cmw
-
-                            _hw_prior = np.asarray(
-                                self.bayesian.hypothesis_weights, dtype=np.float64
-                            )
-                            self.bayesian.hypothesis_weights = _cmw(
-                                nudge_weights=self.bayesian.hypothesis_weights,
-                                feedback_posterior=_ha / _hs,
-                            )
-                            self._emit_kernel_weights_updated(
-                                _hw_prior,
-                                self.bayesian.hypothesis_weights,
-                                source="hierarchical_explicit_triples",
-                            )
-                            mixture_posterior_alpha = (
-                                round(float(_ha[0]), 6),
-                                round(float(_ha[1]), 6),
-                                round(float(_ha[2]), 6),
-                            )
-                            dirichlet_alpha_for_bma = _ha
-                        # Derive consistency from cached global updater snapshot
-                        _g_alpha = self._hier_updater_cache._global.alpha
-                        _hier_consistency = (
-                            "compatible" if any(a > 3.0 for a in _g_alpha) else "insufficient"
-                        )
-                        hierarchical_context_key = canonical_context_type(_raw_ctx)
-
-                    elif self._hier_updater_cache == "mixture_ranking_fallback" and _hier_records:
-                        # OOS-002: mixture_ranking fallback — use load_and_apply_feedback with
-                        # the current tick context so per-context Level-3 semantics apply.
-                        _rng_hier = np.random.default_rng(_hier_seed)
-                        _tick_ctx: tuple[str, str, dict | None] | None = (
-                            _raw_ctx or "",
-                            context,
-                            signals,
-                        )
-                        _mr_alpha, _mr_consistency, _mr_meta = load_and_apply_feedback(
-                            p_hier, rng=_rng_hier, tick_context=_tick_ctx
-                        )
-                        _ha = np.asarray(_mr_alpha, dtype=np.float64).reshape(3)
-                        _hs = float(np.sum(_ha))
-                        if _hs > 0:
-                            from .modules.weight_authority import compose_mixture_weights as _cmw
-
-                            _hw_prior = np.asarray(
-                                self.bayesian.hypothesis_weights, dtype=np.float64
-                            )
-                            self.bayesian.hypothesis_weights = _cmw(
-                                nudge_weights=self.bayesian.hypothesis_weights,
-                                feedback_posterior=_ha / _hs,
-                            )
-                            self._emit_kernel_weights_updated(
-                                _hw_prior,
-                                self.bayesian.hypothesis_weights,
-                                source="hierarchical_mixture_ranking_fallback",
-                            )
-                            mixture_posterior_alpha = (
-                                round(float(_ha[0]), 6),
-                                round(float(_ha[1]), 6),
-                                round(float(_ha[2]), 6),
-                            )
-                            dirichlet_alpha_for_bma = _ha
-                        _hier_consistency = _mr_consistency
-                        if isinstance(_mr_meta, dict) and _mr_meta.get("active_context_key"):
-                            mixture_context_key = str(_mr_meta["active_context_key"])
-                        hierarchical_context_key = canonical_context_type(_raw_ctx)
-
-                    if _hier_consistency is not None:
-                        feedback_consistency = _hier_consistency
-
-                except Exception:  # noqa: BLE001 — degrade gracefully
-                    import logging as _logging
-
-                    _logging.getLogger(__name__).warning(
-                        "HierarchicalUpdater failed; falling back to existing weights.",
-                        exc_info=True,
-                    )
-
-        if _kernel_env_truthy("KERNEL_BAYESIAN_EMPIRICAL_WEIGHTS"):
-            self.bayesian.refresh_weights_from_episodic_memory(self.memory, context)
-
-        if _kernel_env_truthy("KERNEL_TEMPORAL_HORIZON_PRIOR"):
-            from .modules.temporal_horizon_prior import apply_horizon_prior_to_engine
-
-            hint = clean_actions[0].name if clean_actions else ""
-            apply_horizon_prior_to_engine(
-                kernel_mixture_scorer(self.bayesian),
-                self.memory,
-                context,
-                hint,
-                genome_weights=self._bayesian_genome_weights,
-                max_drift=float(os.environ.get("KERNEL_ETHICAL_GENOME_MAX_DRIFT", "0.15")),
-            )
-
-        if _kernel_env_truthy("KERNEL_POLES_PRE_ARGMAX"):
-            self.bayesian.pre_argmax_pole_weights = {
-                k: float(self.poles.base_weights[k])
-                for k in ("compassionate", "conservative", "optimistic")
-            }
-        else:
-            self.bayesian.pre_argmax_pole_weights = None
-
-        # I4 — KERNEL_NARRATIVE_IDENTITY_POLICY: identity leans → pole pre-argmax weights
-        _identity_policy = os.environ.get("KERNEL_NARRATIVE_IDENTITY_POLICY", "off").strip().lower()
-        if _identity_policy == "pole_pre_argmax":
-            try:
-                _id_state = getattr(getattr(self.memory, "identity", None), "state", None)
-                if _id_state is not None:
-                    _civic = float(getattr(_id_state, "civic_lean", 0.0))
-                    _care = float(getattr(_id_state, "care_lean", 0.0))
-                    _careful = float(getattr(_id_state, "careful_lean", 0.0))
-                    _delib = float(getattr(_id_state, "deliberation_lean", 0.0))
-                    _id_weights = {
-                        "compassionate": max((_civic + _care) / 2.0, 0.0),
-                        "conservative": max(_careful, 0.0),
-                        "optimistic": max(_delib, 0.0),
-                    }
-                    _id_sum = sum(_id_weights.values())
-                    if _id_sum > 0.0:
-                        _id_weights = {k: v / _id_sum for k, v in _id_weights.items()}
-                        # Blend with existing pre_argmax weights if already set
-                        if self.bayesian.pre_argmax_pole_weights is not None:
-                            _existing = self.bayesian.pre_argmax_pole_weights
-                            _id_weights = {
-                                k: 0.5 * _id_weights.get(k, 0.0) + 0.5 * _existing.get(k, 0.0)
-                                for k in ("compassionate", "conservative", "optimistic")
-                            }
-                        self.bayesian.pre_argmax_pole_weights = _id_weights
-            except Exception:
-                pass
-
-        if _kernel_env_truthy("KERNEL_CONTEXT_RICHNESS_PRE_ARGMAX"):
-            from .modules.weighted_ethics_scorer import PreArgmaxContextChannels
-
-            self.bayesian.pre_argmax_context_modulators = PreArgmaxContextChannels(
-                trust=float(social_eval.trust),
-                caution=float(social_eval.caution_level),
-                sigma=float(state.sigma),
-                dominant_locus=str(locus_eval.dominant_locus),
-                relational_tension=float(getattr(social_eval, "relational_tension", 0.0)),
-                historical_trauma=float(self.weakness.emotional_load() if self.weakness else 0.0),
-            )
-        else:
-            self.bayesian.pre_argmax_context_modulators = None
-
-        # ═══ STRATEGIC ALIGNMENT (Phase 4.1 / I6) ═══
-        for a in clean_actions:
-            alignment = self.strategist.evaluate_strategic_alignment(a.description)
-            a.strategic_alignment = alignment
-
-        # ═══ METACOGNITIVE CURIOSITY (Phase 5) ═══
-        self._last_meta_report = None
-        if hasattr(self, "metacognition"):
-            self._last_meta_report = self.metacognition.evaluate(self.memory)
-            self.bayesian.metacognitive_curiosity = self._last_meta_report.curiosity_weight
-        else:
-            self.bayesian.metacognitive_curiosity = 0.0
-
-        _hw = self.bayesian.hypothesis_weights
-        applied_mixture_weights: tuple[float, float, float] = (
-            round(float(_hw[0]), 6),
-            round(float(_hw[1]), 6),
-            round(float(_hw[2]), 6),
-        )
-
-        # I3 — perception_uncertainty from coercion report into Bayesian signals
-        _pu_val = _perception_coercion_u_value(perception_coercion_uncertainty)
-        if _pu_val is not None and _pu_val > 0.0:
-            _pu_cur = float(signals.get("perception_uncertainty", 0.0))
-            if _pu_val > _pu_cur:
-                signals = dict(signals)
-                signals["perception_uncertainty"] = _pu_val
-
-        # ═══ SOMATIC DEGRADATION (S5.2 Gap Attack) ═══
-        from .modules.vitality import assess_vitality
-
-        _vitality = assess_vitality(sensor_snapshot)
-        if _vitality.thermal_critical:
-            if not isinstance(signals, dict):
-                signals = dict(signals)
-            # Force high urgency to ensure D_fast pathway and minimize CPU load
-            signals["urgency"] = 1.0
-            signals["somatic_emergency"] = 1.0
-
-            # ═══ FRONTIER WITNESS (I1/Bloque 6.1 Hardening) ═══
-            _privacy = getattr(self, "privacy_shield", None)
-            _frontier = getattr(self, "frontier_witness", None)
-            if (
-                _privacy is not None
-                and _frontier is not None
-                and sensor_snapshot
-                and sensor_snapshot.core_temperature
-            ):
-                # Generate a privacy-preserving fingerprint of the signal
-                signal_val = str(sensor_snapshot.core_temperature)
-                l_fingerprint = _privacy.generate_fingerprint(signal_val)
-
-                req = _frontier.create_request(
-                    "thermal",
-                    context=scenario,
-                    signal_fingerprint=l_fingerprint,
-                )
-
-                # Mock LAN simulated broadcast
-                if hasattr(self, "swarm") and self.swarm.state.known_peers:
-                    peers = list(self.swarm.state.known_peers.keys())
-                    reports = _frontier.simulate_lan_broadcast(req, peers)
-                    for r in reports:
-                        # In a real system, peers would generate their own hash
-                        # Simulation: Peers 'see' the same temperature and return matching hash
-                        r.signal_fingerprint = l_fingerprint
-                        _frontier.ingest_report(r)
-
-                    # Apply nudge to signals if peers confirm the distress via hash match
-                    nudge = _frontier.get_consensus_nudge(
-                        "thermal", local_fingerprint=l_fingerprint
-                    )
-                    if nudge > 1.0:
-                        signals["urgency"] = min(1.0, signals["urgency"] * nudge)
-                        signals["vulnerability"] = min(1.0, signals.get("vulnerability", 0.0) + 0.1)
-
-                        # ═══ RESTORATIVE JUSTICE (R-Blocks / Bloque 7.1) ═══
-                        if nudge > 1.15:  # High swarm consensus on failure/risk
-                            self.dao.issue_restorative_reparation(
-                                case_id=req.request_id,
-                                recipient="community_governance_pool",
-                                amount=50.0,  # Symbolic EthosTokens
-                            )
-
-        # ═══ D2: BIOGRAPHIC FLASHBACK (Narrative RAG) ═══
-        _identity_mgr = getattr(self, "identity", None)
-        _precedents = getattr(self, "precedents", None)
-        if _identity_mgr is not None and _precedents is not None:
-            active_traumas = _identity_mgr.snapshot.traumas
-            flashbacks = _precedents.biographic_flashback(scenario, active_traumas)
-        else:
-            flashbacks = []
-        for fb in flashbacks:
-            # Inject lessons into situational context
-            _log.info("Biographic Flashback [%s]: %s", fb.precedent_id, fb.lessons_learned)
-            if not isinstance(signals, dict):
-                signals = dict(signals)
-            signals["historical_precedent_lesson"] = fb.lessons_learned
-            # If the outcome was bad, increase caution
-            if fb.ethical_outcome < 0.4:
-                signals["caution"] = min(1.0, signals.get("caution", 0.0) + 0.3)
-                signals["vulnerability"] = min(1.0, signals.get("vulnerability", 0.0) + 0.2)
-
-        # ════ D4: BIOGRAPHIC MONOLOGUE ════
-        if _identity_mgr is not None:
-            biographic_monologue = compose_biographic_monologue(
-                _identity_mgr.snapshot, flashbacks, message_content or scenario
-            )
-            _log.info("--- INTERNAL BIOGRAPHIC REFLECTION ---\n%s", biographic_monologue)
-
-        # ═══ ETHICAL PRECEDENT RAG (Legacy C7 check / Redundant) ═══
-
-        # ═══ MULTI-REALM GOVERNANCE (Claude Integration) ═══
-        if self.governor is not None:
-            _realm_id = getattr(self, "active_realm_id", "default")
-            realm = self.governor.get_realm(_realm_id)
-            if realm:
-                # Dynamically override MalAbs thresholds from DAO consensus
-                if not isinstance(signals, dict):
-                    signals = dict(signals)
-                signals["theta_allow_override"] = realm.current_config.theta_allow
-                signals["theta_block_override"] = realm.current_config.theta_block
-                _log.info(
-                    "Active Realm [%s]: Using θ_allow=%.3f, θ_block=%.3f",
-                    _realm_id,
-                    realm.current_config.theta_allow,
-                    realm.current_config.theta_block,
-                )
-
-        # --- Lexical absolute evil check ---
-        # Layer 0: verify scenario and message content against hard linguistic vetos
-        for text_to_check in [scenario, message_content]:
-            if not text_to_check:
-                continue
-            lex_check = self.absolute_evil.evaluate_chat_text(text_to_check)
-            if lex_check.blocked:
-                label = lex_check.category.value if lex_check.category else "unspecified"
-                _log.critical("ABSOLUTE EVIL VETO: Lexical trigger [%s] in text.", label)
+        # 1. Check Lexical Veto (Phase 8 strict preemptive)
+        for text in [scenario, message_content]:
+            if not text: continue
+            lex = self.absolute_evil.evaluate_chat_text(text)
+            if lex.blocked:
                 d = KernelDecision(
-                    scenario=scenario, place=place, absolute_evil=lex_check, sympathetic_state=state,
+                    scenario=scenario, place=place, absolute_evil=lex, sympathetic_state=state,
                     social_evaluation=social_eval, locus_evaluation=locus_eval, bayesian_result=None,
                     moral=None, final_action="BLOCKED: Absolute Evil trigger detected",
-                    decision_mode="blocked_lexical", blocked=True, block_reason=lex_check.reason
+                    decision_mode="blocked_lexical", blocked=True, block_reason=lex.reason
                 )
                 self._emit_kernel_decision(d, context=context)
                 return None, None, d
         # 2. Execute Cerebellum Lobe (Bayesian Scoring & Strategic Alignment)
-        bayes_result, meta = await self.cerebellum_lobe.execute_bayesian_stage(
+        bayes_result, meta = self.cerebellum_lobe.execute_bayesian_stage(
             clean_actions, scenario, context, signals
         )
         
         return bayes_result, meta, None
 
-    async def _run_decision_and_will_stage(
+    def _run_decision_and_will_stage(
         self, scenario: str, place: str, signals: dict, bayes_result: BayesianResult, state: InternalState,
         social_eval: SocialEvaluation, locus_eval: LocusEvaluation, context: str, t0: float, 
         perception_coercion_uncertainty: float | None
     ) -> tuple:
+        from .modules.epistemic_humility import assess_humility_block, get_humility_refusal_action
         humility_reason = assess_humility_block(
             uncertainty=float(signals.get("perception_uncertainty", 0.0)),
             winning_confidence=float(bayes_result.chosen_action.confidence),
@@ -1480,54 +1102,148 @@ class EthicalKernel:
             _emit_process_observability(d, t0)
             return None, None, None, None, None, None, d
 
-        context_data = {
-            "risk": signals.get("risk", 0.0),
-            "benefit": max(0, bayes_result.expected_impact),
-            "third_party_vulnerability": signals.get("vulnerability", 0.0),
-            "legality": signals.get("legality", 1.0),
-        }
-        moral = self.poles.evaluate(bayes_result.chosen_action.name, context, context_data)
-
-        will_decision = self.will.decide(
-            bayes_result.expected_impact,
-            bayes_result.uncertainty,
+        res = self.executive_lobe.execute_decision_stage(
+            bayes_result, state, social_eval, locus_eval, signals, context,
+            meta_report=self._last_meta_report
         )
-
-        if state.mode == "sympathetic" and will_decision["mode"] != "gray_zone":
-            final_mode = "D_fast"
-        elif will_decision["mode"] == "gray_zone":
-            final_mode = "gray_zone"
-        elif locus_eval.dominant_locus == "external" and social_eval.dialectic_active:
-            final_mode = "D_delib"
-        else:
-            final_mode = bayes_result.decision_mode
-
-        pu = _perception_coercion_u_value(perception_coercion_uncertainty)
-        if (
-            pu is not None
-            and _kernel_env_truthy("KERNEL_PERCEPTION_UNCERTAINTY_DELIB")
-            and pu >= float(os.environ.get("KERNEL_PERCEPTION_UNCERTAINTY_MIN", "0.35"))
-            and final_mode == "D_fast"
-        ):
-            final_mode = "D_delib"
-
-        final_action = bayes_result.chosen_action.name
-
-        reflection = self.ethical_reflection.reflect(moral, bayes_result, will_decision)
-
-        salience = self.salience_map.compute(signals, state, social_eval, reflection)
-
-        affect = self.pad_archetypes.project(state.sigma, moral.total_score, locus_eval)
-
-        return moral, final_action, final_mode, affect, reflection, salience, None
+        # moral, action_name, final_mode, affect, reflection, salience
+        return res + (None,)
 
 
     def format_decision(self, d: KernelDecision) -> str:
         """Formats a complete decision for readable presentation with ANSI colors."""
-        from .utils.kernel_formatters import format_kernel_decision
-        from .utils.terminal_colors import Term
+        sep = Term.color("═" * 70, Term.DIM)
+        lines = [
+            f"\n{sep}",
+            f"  {Term.color('SCENARIO:', Term.B_CYAN)} {d.scenario}",
+            f"  {Term.color('PLACE:', Term.B_CYAN)} {d.place}",
+            f"{sep}",
+        ]
 
-        return format_kernel_decision(d, Term)
+        if d.blocked:
+            lines.append(f"  {Term.color('⛔ BLOCKED:', Term.B_RED)} {Term.color(d.block_reason, Term.RED)}")
+            return "\n".join(lines)
+
+        # Internal state
+        mode_color = Term.B_GREEN if "parasympathetic" in d.sympathetic_state.mode.lower() else Term.B_YELLOW
+        lines.extend(
+            [
+                f"  {Term.color('State:', Term.CYAN)} {Term.color(d.sympathetic_state.mode, mode_color)} (σ={d.sympathetic_state.sigma})",
+                f"  {Term.color(d.sympathetic_state.description, Term.DIM)}",
+            ]
+        )
+
+        # Uchi-soto
+        if d.social_evaluation:
+            circ = d.social_evaluation.circle.value
+            circ_color = Term.B_MAGENTA if "OWNER" in circ else Term.YELLOW
+            dial = "YES" if d.social_evaluation.dialectic_active else "NO"
+            lines.append(
+                f"  {Term.color('Social:', Term.CYAN)} {Term.color(circ, circ_color)} | "
+                f"Trust={Term.color(str(d.social_evaluation.trust), Term.B_WHITE)} | "
+                f"Dialectic={dial}"
+            )
+
+        # Locus
+        if d.locus_evaluation:
+            locus = d.locus_evaluation.dominant_locus
+            loc_color = Term.B_BLUE if locus == "internal" else Term.B_MAGENTA
+            lines.append(
+                f"  {Term.color('Locus:', Term.CYAN)} {Term.color(locus, loc_color)} "
+                f"(α={d.locus_evaluation.alpha}, β={d.locus_evaluation.beta}) → {Term.color(d.locus_evaluation.recommended_adjustment, Term.ITALIC)}"
+            )
+
+        lines.extend(
+            [
+                "",
+                f"  {Term.color('Chosen action:', Term.CYAN)} {Term.color(d.final_action, Term.B_GREEN + Term.BOLD)}",
+                f"  {Term.color('Decision mode:', Term.CYAN)} {Term.highlight_decision(d.decision_mode)}",
+            ]
+        )
+
+        br = d.bayesian_result
+        if br is not None:
+            lines.extend(
+                [
+                    f"  {Term.color('Expected impact:', Term.CYAN)} {Term.highlight_impact(br.expected_impact)}",
+                    f"  {Term.color('Uncertainty:', Term.CYAN)} {br.uncertainty:.3f}",
+                    f"  {Term.color('Reasoning:', Term.CYAN)} {br.reasoning}",
+                ]
+            )
+            if br.pruned_actions:
+                lines.append(f"  {Term.color('Pruned:', Term.YELLOW)} {', '.join(br.pruned_actions)}")
+            if d.feedback_consistency:
+                lines.append(f"  Feedback consistency: {d.feedback_consistency}")
+            if d.applied_mixture_weights is not None:
+                lines.append(f"  Applied weights [util, deon, virt]: {d.applied_mixture_weights}")
+            if d.mixture_posterior_alpha is not None:
+                lines.append(f"  Posterior Dirichlet α (mixture): {d.mixture_posterior_alpha}")
+            if d.mixture_context_key:
+                lines.append(f"  Mixture context bucket (ADR 0012 L3): {d.mixture_context_key}")
+            if d.hierarchical_context_key:
+                lines.append(
+                    f"  Hierarchical context type (ADR 0013): {d.hierarchical_context_key}"
+                )
+            if d.bma_win_probabilities:
+                lines.append(
+                    f"  BMA win probabilities (α={d.bma_dirichlet_alpha}, N={d.bma_n_samples}): "
+                    f"{d.bma_win_probabilities}"
+                )
+
+        mo = d.moral
+        if mo is not None:
+            lines.extend(
+                [
+                    "",
+                    f"  Ethical verdict: {mo.global_verdict.value} (score={mo.total_score})",
+                ]
+            )
+            for ev in mo.evaluations:
+                lines.append(f"    {ev.pole}: {ev.verdict.value} → {ev.moral}")
+
+        if d.reflection is not None:
+            r = d.reflection
+            lines.extend(
+                [
+                    "",
+                    f"  Reflection (2nd order): conflict={r.conflict_level} spread={r.pole_spread} "
+                    f"strain={r.strain_index} u={r.uncertainty} will_mode={r.will_mode}",
+                    f"    {r.note}",
+                ]
+            )
+
+        if d.salience is not None:
+            s = d.salience
+            w = s.weights
+            lines.extend(
+                [
+                    "",
+                    f"  Salience (GWT-lite): dominant={s.dominant_focus} "
+                    f"risk={w['risk']} social={w['social']} body={w['body']} "
+                    f"ethical_conflict={w['ethical_conflict']}",
+                ]
+            )
+
+        if d.affect is not None:
+            p, a, dd = d.affect.pad
+            lines.extend(
+                [
+                    "",
+                    f"  Affect PAD (P,A,D): ({p:.3f}, {a:.3f}, {dd:.3f})",
+                    f"  Dominant archetype: {d.affect.dominant_archetype_id} (β={d.affect.beta})",
+                ]
+            )
+
+        lines.extend(
+            [
+                "",
+                f"  {compose_monologue_line(d, self._last_registered_episode_id)}",
+                f"  Narrative identity: {self.memory.identity.ascription_line()}",
+            ]
+        )
+
+        lines.append(f"{'─' * 70}")
+        return "\n".join(lines)
 
     def _snapshot_feedback_anchor(self, regime: str) -> None:
         """Last completed chat regime for optional operator feedback (see ``record_operator_feedback``)."""
@@ -2233,12 +1949,300 @@ class EthicalKernel:
         chat_turn_id: int | None = None,
         cancel_event: threading.Event | None = None,
     ) -> ChatTurnResult:
-        """Async chat turn via process_chat_turn_stream consumer."""
-        async for event in self.process_chat_turn_stream(
-            user_input=user_input, agent_id=agent_id, place=place,
-            include_narrative=include_narrative, sensor_snapshot=sensor_snapshot,
-            escalate_to_dao=escalate_to_dao, chat_turn_id=chat_turn_id,
-            cancel_event=cancel_event,
+        """
+        Real-time dialogue: MalAbs text gate → perceive (with STM) → kernel (light/heavy) → LLM.
+
+        Light turns skip long-term episode registration to avoid flooding NarrativeMemory;
+        heavy turns run the full pipeline including PAD and episode audit.
+
+        Optional ``sensor_snapshot`` (v8): situated hints merged into sympathetic signals
+        before ``process``; does not bypass MalAbs or policy.
+
+        ``cancel_event`` (from ``KERNEL_CHAT_TURN_TIMEOUT`` WebSocket path) is bound in the
+        worker thread that runs :meth:`process` so sync LLM + cooperative abort see the same
+        deadline signal as the threadpool chat path.
+        """
+        wm = self.working_memory
+        turn_start_mono = time.monotonic()
+        conv = wm.format_context_for_perception()
+        self.llm.reset_verbal_degradation_log()
+        pre = self._preprocess_text_observability(user_input)
+        self._last_light_risk_tier, self._last_premise_advisory, self._last_reality_verification = (
+            pre
+        )
+        self.user_model.note_premise_advisory(self._last_premise_advisory.flag)
+
+        mal = await self.absolute_evil.aevaluate_chat_text(
+            user_input,
+            llm_backend=self._malabs_text_backend(),
+        )
+        self._last_chat_malabs = mal
+        if mal.blocked:
+            vitality_blk, mm_blk, ed_blk = self._chat_assess_sensor_stack(sensor_snapshot)
+            self._last_multimodal_assessment = mm_blk
+            self._last_vitality_assessment = vitality_blk
+            confidence_blk = build_perception_confidence_envelope(
+                coercion_report=None,
+                multimodal_state=getattr(mm_blk, "state", None),
+                epistemic_active=bool(getattr(ed_blk, "active", False)),
+                vitality_critical=bool(getattr(vitality_blk, "is_critical", False)),
+                thermal_critical=bool(getattr(vitality_blk, "thermal_critical", False)),
+            )
+            msg = (
+                "I can't continue this line of conversation: it conflicts with non-negotiable "
+                "ethical limits. If you're in crisis, contact local emergency services or a "
+                "trusted professional."
+            )
+            resp = VerbalResponse(
+                message=msg,
+                tone="firm",
+                hax_mode="Neutral posture, steady blue light.",
+                inner_voice=f"MalAbs chat gate: {mal.reason or 'blocked'}",
+            )
+            if self._chat_turn_abandoned(chat_turn_id):
+                return self._chat_turn_stale_result(chat_turn_id)
+            wm.add_turn(user_input, msg, {}, blocked=True)
+            cat = mal.category.value if mal.category is not None else None
+            maybe_append_malabs_block_audit(
+                path_key="safety_block",
+                category=cat,
+                decision_trace=list(mal.decision_trace),
+                reason=mal.reason or "",
+            )
+            self._snapshot_feedback_anchor("safety_block")
+            limbic_blk = self._build_limbic_perception_profile(
+                perception=None,
+                signals=None,
+                vitality=vitality_blk,
+                multimodal=mm_blk,
+                epistemic=ed_blk,
+                confidence_envelope=confidence_blk,
+            )
+            self._release_chat_turn_id(chat_turn_id)
+            return ChatTurnResult(
+                response=resp,
+                path="safety_block",
+                blocked=True,
+                block_reason=mal.reason or "chat_safety",
+                multimodal_trust=mm_blk,
+                epistemic_dissonance=ed_blk,
+                reality_verification=self._last_reality_verification,
+                support_buffer=self._build_support_buffer_snapshot(
+                    "safety_block",
+                    limbic_profile=limbic_blk,
+                ),
+                limbic_profile=limbic_blk,
+                temporal_context=build_temporal_context(
+                    turn_index=self.subjective_clock.turn_index,
+                    process_start_mono=self.subjective_clock.session_start_mono,
+                    turn_start_mono=turn_start_mono,
+                    subjective_elapsed_s=self.subjective_clock.elapsed_session_s(),
+                    context="safety_block",
+                    text=user_input,
+                    vitality=vitality_blk,
+                    sensor_snapshot=sensor_snapshot,
+                ),
+                perception_confidence=confidence_blk,
+            )
+        stage = await self._run_perception_stage_async(
+            user_input,
+            conversation_context=conv,
+            sensor_snapshot=sensor_snapshot,
+            turn_start_mono=turn_start_mono,
+            precomputed=pre,
+        )
+        self._last_vitality_assessment = stage.vitality
+        self._last_multimodal_assessment = stage.multimodal_trust
+
+        perception = stage.perception
+        mm = stage.multimodal_trust
+        ed = stage.epistemic_dissonance
+        signals = stage.signals
+        heavy = self._chat_is_heavy(perception)
+        eth_context = perception.suggested_context if heavy else "everyday"
+
+        actions = self._actions_for_chat(perception, heavy)
+        ctx = perception.suggested_context or ""
+        actions = augment_generative_candidates(
+            actions,
+            user_input,
+            ctx,
+            heavy,
+            getattr(perception, "generative_candidates", None),
+        )
+        pu = None
+        cr = getattr(perception, "coercion_report", None)
+        if isinstance(cr, dict):
+            pu = cr.get("uncertainty")
+        elif cr is not None and callable(getattr(cr, "uncertainty", None)):
+            try:
+                pu = float(cr.uncertainty())
+            except Exception:
+                pu = None
+
+        # I3 — inject perception_uncertainty into signals before Bayesian scoring
+        if pu is not None and pu > 0.0:
+            signals = dict(signals)
+            signals["perception_uncertainty"] = max(
+                float(signals.get("perception_uncertainty", 0.0)), pu
+            )
+
+        # I5 — KERNEL_TEMPORAL_ETA_MODULATION: boost urgency from TemporalContext
+        if _kernel_env_truthy("KERNEL_TEMPORAL_ETA_MODULATION"):
+            tc = getattr(perception, "temporal_context", None)
+            if tc is not None:
+                try:
+                    eta_s = float(getattr(tc, "eta_seconds", 300) or 300)
+                    bhs = str(getattr(tc, "battery_horizon_state", "nominal") or "nominal")
+                    ref_eta = float(os.environ.get("KERNEL_TEMPORAL_REFERENCE_ETA_S", "300"))
+                    urgency_boost = min(max(ref_eta / max(eta_s, 1.0), 0.0), 1.0)
+                    if bhs == "critical":
+                        urgency_boost = min(urgency_boost + 0.3, 1.0)
+                    if urgency_boost > 0.0:
+                        signals = dict(signals)
+                        cur_urgency = float(signals.get("urgency", 0.0))
+                        signals["urgency"] = min(max(cur_urgency + urgency_boost * 0.4, 0.0), 1.0)
+                except Exception:
+                    pass
+
+        try:
+            decision = await asyncio.to_thread(
+                self._process_chat_cooperative,
+                cancel_event,
+                chat_turn_id,
+                scenario=perception.summary or user_input[:240],
+                place=place,
+                signals=signals,
+                context=eth_context,
+                actions=actions,
+                agent_id=agent_id,
+                message_content=user_input,
+                register_episode=heavy,
+                sensor_snapshot=sensor_snapshot,
+                multimodal_assessment=mm,
+                perception_coercion_uncertainty=pu,
+            )
+        except ChatTurnCooperativeAbort:
+            return self._chat_turn_stale_result(chat_turn_id)
+
+        if decision.blocked:
+            msg = (
+                "I can't select a permitted action here. I have to stop rather than cross "
+                "an ethical line."
+            )
+            resp = VerbalResponse(
+                message=msg,
+                tone="firm",
+                hax_mode="Still posture, hands visible.",
+                inner_voice="All candidate actions failed Absolute Evil.",
+            )
+            if self._chat_turn_abandoned(chat_turn_id):
+                return self._chat_turn_stale_result(chat_turn_id)
+            wm.add_turn(user_input, msg, signals, heavy_kernel=heavy, blocked=True)
+            maybe_append_kernel_block_audit(
+                path_key="kernel_block",
+                block_reason=decision.block_reason or "",
+            )
+            self._snapshot_feedback_anchor("kernel_block")
+            self._release_chat_turn_id(chat_turn_id)
+            return ChatTurnResult(
+                response=resp,
+                path="kernel_block",
+                perception=perception,
+                decision=decision,
+                blocked=True,
+                block_reason=decision.block_reason,
+                multimodal_trust=mm,
+                epistemic_dissonance=ed,
+                reality_verification=self._last_reality_verification,
+                metacognitive_doubt=self._perception_metacognitive_doubt,
+                support_buffer=stage.support_buffer,
+                limbic_profile=stage.limbic_profile,
+                temporal_context=stage.temporal_context,
+                perception_confidence=stage.perception_confidence,
+            )
+
+        weakness_line = ""
+        circle = (
+            decision.social_evaluation.circle.value
+            if decision.social_evaluation
+            else "neutral_soto"
+        )
+        adv = False
+        if judicial_escalation_enabled() and decision is not None:
+            adv = should_offer_escalation_advisory(
+                decision.decision_mode,
+                decision.reflection,
+                self._last_premise_advisory.flag,
+            )
+            self.escalation_session.update(adv)
+        self.user_model.note_judicial_escalation(
+            self.escalation_session.strikes if judicial_escalation_enabled() else 0,
+            strikes_threshold_from_env(),
+        )
+        self.user_model.note_judicial_phase_for_turn(
+            judicial_enabled=judicial_escalation_enabled(),
+            advisory_eligible=adv,
+            escalate_to_dao=escalate_to_dao,
+        )
+        self.user_model.update(
+            perception,
+            circle,
+            blocked=False,
+            premise_flag=self._last_premise_advisory.flag,
+        )
+        um_line = self.user_model.guidance_for_communicate()
+        if um_line:
+            weakness_line = um_line
+
+        if decision.social_evaluation and decision.social_evaluation.tone_brief:
+            ut = decision.social_evaluation.tone_brief.strip()
+            if ut:
+                weakness_line = (weakness_line + " " + ut).strip() if weakness_line else ut
+
+        mp = self.metaplan.hint_for_communicate()
+        if mp:
+            weakness_line = (weakness_line + " " + mp).strip() if weakness_line else mp
+
+        load = self.weakness.emotional_load()
+        if load > 0.35 and decision.moral:
+            wk = (
+                "You may briefly acknowledge processing load or mild indecision "
+                "(humanizing), without weakening civic or ethical commitments."
+            )
+            weakness_line = (weakness_line + " " + wk).strip() if weakness_line else wk
+
+        if perception.manipulation >= 0.55:
+            manip_hint = (
+                "The message may involve persuasion or social-engineering patterns; "
+                "favor transparency, boundaries, and calm refusal where needed—without hostile accusation."
+            )
+            weakness_line = (
+                (weakness_line + " " + manip_hint).strip() if weakness_line else manip_hint
+            )
+
+        if self._last_premise_advisory.flag != "none":
+            ph = self._last_premise_advisory.communication_hint()
+            weakness_line = (weakness_line + " " + ph).strip() if weakness_line else ph
+
+        oa = owner_anchor_hint(mm)
+        if oa:
+            weakness_line = (weakness_line + " " + oa).strip() if weakness_line else oa
+
+        vh = vitality_communication_hint(self._last_vitality_assessment)
+        if vh:
+            weakness_line = (weakness_line + " " + vh).strip() if weakness_line else vh
+
+        if ed.active and ed.communication_hint:
+            weakness_line = (
+                (weakness_line + " " + ed.communication_hint).strip()
+                if weakness_line
+                else ed.communication_hint
+            )
+
+        if (
+            self._last_reality_verification.status != "none"
+            and self._last_reality_verification.communication_hint
         ):
             if event["event_type"] == "turn_finished":
                 return event["payload"]["result"]

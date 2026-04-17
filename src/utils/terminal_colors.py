@@ -83,23 +83,3 @@ class Term:
         elif val < -0.1:
             color = cls.RED
         return cls.color(f"{val:+.3f}", color)
-
-    @classmethod
-    def header(cls, text: str, width: int = 70) -> str:
-        """Draws a themed header with dual lines."""
-        sep = cls.color("═" * width, cls.CYAN)
-        content = cls.color(f"  {text.upper()}", cls.BOLD + cls.B_WHITE)
-        return f"\n{sep}\n{content}\n{sep}"
-
-    @classmethod
-    def subheader(cls, text: str, width: int = 70) -> str:
-        """Draws a subtle subheader line."""
-        sep = cls.color("─" * width, cls.DIM)
-        return f"\n  {cls.color(text, cls.BOLD + cls.CYAN)}\n{sep}"
-
-    @classmethod
-    def box_line(cls, text: str, width: int = 70, color: str = "") -> str:
-        """Draws a single line inside a stylized border."""
-        border = cls.color("║", cls.CYAN)
-        padding = " " * (width - len(text) - 4)
-        return f"{border}  {cls.color(text, color)}{padding}{border}"

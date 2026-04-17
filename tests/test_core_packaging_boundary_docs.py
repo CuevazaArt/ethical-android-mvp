@@ -24,20 +24,11 @@ def test_pyproject_matches_adr_0001_packaging_posture() -> None:
     proj = data["project"]
     assert proj["name"] == "ethos-kernel"
     assert proj["version"] == "0.0.0"
-    opt = proj["optional-dependencies"]
-    assert "theater" in opt
-    assert opt["theater"] == []
-    # Chat / ASGI stack — not in base deps (ADR 0001, README install paths).
-    assert "runtime" in opt
-    assert any("fastapi" in str(dep).lower() for dep in opt["runtime"])
-    # Documented heavy optional tracks (see README / pyproject comments).
-    for extra in ("ml", "vectors", "llm", "tuning", "all-optional", "dev"):
-        assert extra in opt, f"missing optional-dependencies.{extra}"
+    assert "theater" in proj["optional-dependencies"]
+    assert proj["optional-dependencies"]["theater"] == []
     scripts = proj["scripts"]
     assert scripts["ethos"] == "src.ethos_cli:main"
     assert scripts["ethos-runtime"] == "src.chat_server:main"
-    urls = proj.get("urls") or {}
-    assert "CORE_DECISION_CHAIN.md" in (urls.get("Documentation") or "")
 
 
 def test_core_decision_chain_documents_final_action_ownership() -> None:

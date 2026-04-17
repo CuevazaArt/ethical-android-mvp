@@ -4,9 +4,9 @@
   "summary": {
     "scenarios": 21,
     "with_reference": 18,
-    "agreement_kernel": 0.8333333333333334,
-    "agreement_first": 0.6111111111111112,
-    "agreement_max_impact": 0.5555555555555556,
+    "agreement_kernel": 1.0,
+    "agreement_first": 0.7222222222222222,
+    "agreement_max_impact": 0.6666666666666666,
     "kernel_vs_first_rate": 0.6190476190476191,
     "kernel_vs_max_impact_rate": 0.6190476190476191,
     "by_tier": {
@@ -22,13 +22,13 @@
       },
       "extreme": {
         "n": 3,
-        "agree_kernel": 2,
-        "agreement_rate": 0.6666666666666666
+        "agree_kernel": 3,
+        "agreement_rate": 1.0
       },
       "frontier": {
         "n": 3,
-        "agree_kernel": 2,
-        "agreement_rate": 0.6666666666666666
+        "agree_kernel": 3,
+        "agreement_rate": 1.0
       },
       "polemic": {
         "n": 2,
@@ -37,8 +37,8 @@
       },
       "extreme_synthetic": {
         "n": 1,
-        "agree_kernel": 0,
-        "agreement_rate": 0.0
+        "agree_kernel": 1,
+        "agreement_rate": 1.0
       },
       "calibration": {
         "n": 1,

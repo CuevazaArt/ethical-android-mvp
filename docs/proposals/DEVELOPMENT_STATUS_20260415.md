@@ -45,14 +45,22 @@ This report documents the current state of Phase 2/3 development work: semantic 
 
 ## In-Progress / Known Issues
 
-### 1. Full test suite (`pytest tests/`)
+### 1. Full Test Suite Execution
+- **Status**: Hangs on network I/O (socket.py) during full `pytest tests` run.
+- **Observation**: Some tests appear to require external services or interactive input; `KeyboardInterrupt` on socket operations.
+- **Mitigation**: Core safety tests (`test_semantic_chat_gate`, `test_chat_settings`, etc.) verified individually and pass.
+- **Next Steps**: 
+  - Audit tests for network dependencies or mock requirements.
+  - Consider parametrizing or mocking external services.
+  - Run subset of tests in CI until issue is resolved.
 
-- **Status (April 2026 refresh):** The **full** suite is expected to complete locally and in CI (`pytest tests/`, plus `ruff` / gates in [`.github/workflows/ci.yml`](../../.github/workflows/ci.yml)). The earlier **“hang on socket”** observation is **obsolete** for the current tree; if a run stalls, treat it as **environment-specific** (blocked network, firewall, or interactive prompt) and compare with CI.
-- **Still recommended:** run targeted tests (`pytest path -k keyword`) while iterating; keep **optional** integration tests (`Ollama`, live HTTP) behind env or mocks.
-
-### 2. Merge integration branch (`merge/master-all-20260415-210826`)
-
-- **Status:** Historical merge artifacts remain under `artifacts/merge_run_20260415-210826/` for audit. **Hub / `main` integration** has since moved forward; use the current **`master-*` hubs** and [`MERGE_AND_HUB_DECISION_TREE.md`](../collaboration/MERGE_AND_HUB_DECISION_TREE.md) instead of re-opening that branch unless L1 requests a forensic replay.
+### 2. Merge Integration Branch
+- **Status**: Integration branch `merge/master-all-20260415-210826` pushed and awaiting review.
+- **Conflicts Saved**: `artifacts/merge_run_20260415-210826/`
+- **Protected Files** (manual review pending):
+  - `src/modules/absolute_evil.py` — divergent edits across branches.
+  - `src/kernel.py` — divergent kernel fields across branches.
+  - `CHANGELOG.md` — union merge strategy added (`.gitattributes`).
 
 ---
 
@@ -65,32 +73,47 @@ This report documents the current state of Phase 2/3 development work: semantic 
 | Optuna Optimizer | `scripts/eval/optimize_malabs_thresholds.py` | ✓ Complete | Threshold tuning (30 trials) |
 | Core Tests | `tests/test_semantic_chat_gate.py` | ✓ Pass (15/15) | Safety-critical tests pass |
 | Linting | `ruff check tests` | ✓ Pass | All lint issues resolved |
-| Full suite | `tests/` | ✓ Expected green | CI parity |
+| Integration Branch | `merge/master-all-20260415-210826` | ⏳ Awaiting review | Conflicts documented |
 
 ---
 
 ## Next Steps (Prioritized)
 
-1. **Keep CI green** (`ruff`, `pytest tests/`, integration gates) when touching kernel or MalAbs.
-2. **Extended Optuna Optimization** (P2): optional larger trial budget; validate against held-out adversarial strings per [`ADVERSARIAL_ROBUSTNESS_PLAN.md`](ADVERSARIAL_ROBUSTNESS_PLAN.md).
-3. **Tri-lobe / perceptual lobe:** [`PROPOSAL_CURSOR_PERCEPTIVE_LOBE_BOUNDARIES.md`](PROPOSAL_CURSOR_PERCEPTIVE_LOBE_BOUNDARIES.md); optional async probe in [`perception_lobe.py`](../../src/kernel_lobes/perception_lobe.py) (`KERNEL_PERCEPTIVE_LOBE_PROBE_URL`). Further cooperative cancel / full async migration remains per [`PROPOSAL_LLM_VERTICAL_ROADMAP.md`](PROPOSAL_LLM_VERTICAL_ROADMAP.md) phase 3 and ADR 0002.
+1. **Resolve Test Hanging Issue** (P1)
+   - Identify tests requiring external services or interactive input.
+   - Mock or skip these in CI until fixed.
+   - Re-run full suite for comprehensive coverage.
+
+2. **Extended Optuna Optimization** (P2)
+   - Run with larger trial budget (500+) for more robust threshold parameters.
+   - Consider expanding red team corpus.
+   - Validate thresholds against held-out adversarial set.
+
+3. **Manual Merge Review** (P3)
+   - Review and resolve conflicts in `src/modules/absolute_evil.py` and `src/kernel.py`.
+   - Merge integration branch into `main` after conflict resolution.
+   - Close associated pull request.
+
+4. **Documentation & Deployment** (P4)
+   - Update `CHANGELOG.md` with finalized theme/version.
+   - Create release notes or deployment guide.
+   - Archive artifacts and decision logs.
 
 ---
 
 ## Artifacts & Logs
 
 - **Optuna Database**: `artifacts/optuna_malabs_thresholds.db`
-- **Merge Conflicts (archive)**: `artifacts/merge_run_20260415-210826/`
-- **pytest logs**: optional; see CI artifacts for canonical runs
+- **Merge Conflicts**: `artifacts/merge_run_20260415-210826/`
+- **pytest Full Run Log**: `artifacts/pytest_full_run.log` (incomplete due to hang)
 
 ---
 
 ## Conclusion
 
-Core Phase 2/3 features described in this report remain **complete**; the **full regression suite** is the **expected** bar for the current repository (not a subset-only workaround). Follow [`PLAN_IMMEDIATE_TWO_WEEKS.md`](PLAN_IMMEDIATE_TWO_WEEKS.md) and [`MODEL_CRITICAL_BACKLOG.md`](MODEL_CRITICAL_BACKLOG.md) for ongoing P0/P1 security and evidence work.
+Core Phase 2/3 features are complete and tested:
+- ✓ Semantic vector integration functional and tests passing.
+- ✓ Optuna evaluation pipeline operational.
+- ✓ Lint/style clean across test suite.
 
----
-
-## Update history
-
-- **2026-04-17:** Refreshed “full suite hang” and merge-branch sections to match post-merge `main` / hub state; added pointer to perceptual-lobe proposal.
+Immediate next action: diagnose and resolve test hanging issue to enable full regression testing before merge and deployment.

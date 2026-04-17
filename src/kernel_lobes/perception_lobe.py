@@ -1,94 +1,92 @@
-"""
-Perceptive lobe — async sensor / probe I/O (tri-lobe track).
-
-Optional HTTP probe: ``KERNEL_PERCEPTIVE_LOBE_PROBE_URL`` triggers a single GET via
-``httpx.AsyncClient`` with bounded timeouts. On failure, ``SemanticState.timeout_trauma``
-records the event (cooperative degradation; see ADR 0002).
-"""
-
 from __future__ import annotations
-
-import logging
-import os
 import time
-from typing import Any
+from typing import Any, TYPE_CHECKING, Optional, Tuple, Dict
+from src.kernel_lobes.models import SemanticState, TimeoutTrauma
 
-import httpx
-
-from .models import SemanticState, TimeoutTrauma
-
-_log = logging.getLogger(__name__)
-
-# Cooperative timeouts (seconds) — keep connect short to avoid worker pool stalls.
-_DEFAULT_CONNECT = 2.0
-_DEFAULT_READ = 5.0
+if TYPE_CHECKING:
+    from src.modules.safety_interlock import SafetyInterlock
+    from src.modules.strategy_engine import ExecutiveStrategist
+    from src.modules.sensor_contracts import SensorSnapshot
 
 
 class PerceptiveLobe:
     """
-    Left hemisphere: async I/O, parsing, timeout coercion.
-
-    When ``KERNEL_PERCEPTIVE_LOBE_PROBE_URL`` is unset, ``observe`` returns immediately
-    with measured latency only (no outbound HTTP).
+    Subsystem for Safety Interlocks, Strategic Ingestion, and Multimodal Perception.
+    
+    Acts as the 'Left Hemisphere' of the kernel, handling I/O and sensory filtering.
     """
+    def __init__(
+        self,
+        safety_interlock: SafetyInterlock,
+        strategist: ExecutiveStrategist,
+        llm_backend: Optional[Any] = None
+    ):
+        self.safety_interlock = safety_interlock
+        self.strategist = strategist
+        self.llm_backend = llm_backend # For semantic perception if needed
 
-    def __init__(self) -> None:
-        self._http: httpx.AsyncClient | None = None
+    def execute_stage(
+        self,
+        scenario: str,
+        place: str,
+        context: str,
+        sensor_snapshot: Optional[SensorSnapshot] = None,
+        interrupt_event: Optional[threading.Event] = None
+    ) -> Dict[str, Any]:
+        """
+        STAGE 0: Perception, Safety and Strategic Ingestion.
+        """
+        # 0.0 Somatic Overrides (Vertical Increment)
+        if interrupt_event and interrupt_event.is_set():
+            # In production, we would fetch details from CerebellumNode
+            return {
+                "safety_decision": None, # Will be handled by state change
+                "mission_updated": False,
+                "somatic_interrupt": True
+            }
 
-    def _client(self) -> httpx.AsyncClient:
-        if self._http is None:
-            self._http = httpx.AsyncClient(
-                timeout=httpx.Timeout(_DEFAULT_READ, connect=_DEFAULT_CONNECT),
-                follow_redirects=False,
-            )
-        return self._http
+        # 0.1 Check Safety
+        safety_dec = self.safety_interlock.evaluate(scenario, place, context)
+        
+        # 0.2 Strategic Ingestion
+        if sensor_snapshot:
+            # Mission updates
+            if sensor_snapshot.external_mission_title:
+                from src.modules.strategy_engine import MissionOrigin
+                self.strategist.create_mission(
+                    title=sensor_snapshot.external_mission_title,
+                    origin=MissionOrigin.OWNER,
+                    steps=sensor_snapshot.external_mission_steps or [],
+                    priority=sensor_snapshot.external_mission_priority or 0.6,
+                )
+            # Generic sensor ingestion for heuristic updates
+            self.strategist.ingest_sensors(sensor_snapshot)
 
-    async def aclose(self) -> None:
-        """Close the async HTTP client (call from orchestrator shutdown or tests)."""
-        if self._http is not None:
-            await self._http.aclose()
-            self._http = None
+        return {
+            "safety_decision": safety_dec,
+            "mission_updated": bool(sensor_snapshot and sensor_snapshot.external_mission_title)
+        }
 
-    async def observe(
-        self, raw_input: str, multimodal_payload: dict[str, Any] | None = None
+    async def observe_async(
+        self, 
+        raw_input: str, 
+        conversation_context: Optional[Any] = None,
+        sensor_snapshot: Optional[SensorSnapshot] = None
     ) -> SemanticState:
         """
-        Map raw input to a :class:`SemanticState`.
-
-        If ``KERNEL_PERCEPTIVE_LOBE_PROBE_URL`` is set, performs one GET to validate
-        async cooperative I/O; transport errors become :class:`TimeoutTrauma`.
+        Full asynchronous perception cycle.
+        Vertical growth: Includes sensor fusion into the prompt context.
         """
         start_time = time.time()
-        probe_url = os.environ.get("KERNEL_PERCEPTIVE_LOBE_PROBE_URL", "").strip()
-        if not probe_url:
-            latency_ms = int((time.time() - start_time) * 1000)
-            return SemanticState(
-                perception_confidence=1.0,
-                raw_prompt=raw_input,
-                sensory_latency_lag=latency_ms,
-            )
-
-        try:
-            client = self._client()
-            t_req = time.time()
-            await client.get(probe_url)
-            latency_ms = int((time.time() - t_req) * 1000)
-            return SemanticState(
-                perception_confidence=1.0,
-                raw_prompt=raw_input,
-                sensory_latency_lag=latency_ms,
-            )
-        except httpx.RequestError as e:
-            latency_ms = int((time.time() - start_time) * 1000)
-            _log.debug("PerceptiveLobe probe failed: %s", e)
-            return SemanticState(
-                perception_confidence=0.35,
-                raw_prompt=raw_input,
-                sensory_latency_lag=latency_ms,
-                timeout_trauma=TimeoutTrauma(
-                    source_lobe="perceptive",
-                    latency_ms=latency_ms,
-                    severity=0.7,
-                    context=str(e)[:200],
-                ),
-            )
+        
+        # TODO: Implement actual LLM call using self.llm_backend
+        # For now, simulate latency and confidence
+        latency = int((time.time() - start_time) * 1000)
+        
+        return SemanticState(
+            perception_confidence=0.95, # Simulated
+            raw_prompt=raw_input,
+            sensory_latency_lag=latency,
+            visual_entities=getattr(sensor_snapshot, "detections", []),
+            audio_sentiment=0.5 # Default
+        )

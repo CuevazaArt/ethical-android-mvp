@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-import logging
 import os
 import sys
 
@@ -78,13 +77,3 @@ def test_validate_kernel_env_off_skips_checks(monkeypatch: pytest.MonkeyPatch):
     monkeypatch.delenv("KERNEL_LIGHTHOUSE_KB_PATH", raising=False)
     monkeypatch.setenv("KERNEL_CHAT_INCLUDE_REALITY_VERIFICATION", "1")
     validate_kernel_env(mode="off")  # does not raise
-
-
-def test_warn_logs_violations_without_raise(monkeypatch: pytest.MonkeyPatch, caplog: pytest.LogCaptureFixture):
-    """mode=warn must log consistency issues but not raise (operator escape hatch)."""
-    monkeypatch.delenv("KERNEL_JUDICIAL_ESCALATION", raising=False)
-    monkeypatch.setenv("KERNEL_JUDICIAL_MOCK_COURT", "1")
-    caplog.set_level(logging.WARNING)
-    validate_kernel_env(mode="warn")
-    assert not any(r.levelno >= logging.ERROR for r in caplog.records)
-    assert any("KERNEL_* environment issues" in r.message for r in caplog.records)

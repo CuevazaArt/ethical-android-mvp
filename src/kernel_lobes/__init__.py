@@ -1,6 +1,12 @@
 # Architecture V1.5
 # Triune Brain + Cerebellum Node
 
+from .models import SemanticState, EthicalSentence, TimeoutTrauma
+from .perception_lobe import PerceptiveLobe
+from .limbic_lobe import LimbicEthicalLobe
+from .executive_lobe import ExecutiveLobe
+from .cerebellum_lobe import CerebellumLobe
+from .memory_lobe import MemoryLobe
 from .cerebellum_node import CerebellumNode
 from .executive_lobe import ExecutiveLobe
 from .limbic_lobe import LimbicEthicalLobe
@@ -15,8 +21,7 @@ __all__ = [
     "PerceptiveLobe",
     "LimbicEthicalLobe",
     "ExecutiveLobe",
-    "CerebellumNode",
-    "SensorAdapter",
-    "StubSensorAdapter",
-    "FixedSensorAdapter",
+    "CerebellumLobe",
+    "MemoryLobe",
+    "CerebellumNode"
 ]

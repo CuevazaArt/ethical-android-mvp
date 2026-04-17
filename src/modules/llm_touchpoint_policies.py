@@ -47,12 +47,11 @@ ENV_GLOBAL_POLICY = "KERNEL_LLM_GLOBAL_POLICY"
 # Optional unified fallback after per-touchpoint / family / legacy keys (matrix step 4).
 ENV_LLM_GLOBAL_DEFAULT_POLICY = "KERNEL_LLM_GLOBAL_DEFAULT_POLICY"
 
-MONOLOGUE_POLICIES = frozenset({"passthrough", "annotate_degraded"})
 DEFAULT_MONOLOGUE_BACKEND_POLICY = "passthrough"
 
-# Global policy values: if set, overrides all touchpoints to safe fallbacks
-GLOBAL_POLICY_SAFE = "safe"
-GLOBAL_POLICIES = frozenset({GLOBAL_POLICY_SAFE})
+EMBEDDING_POLICIES = frozenset({"passthrough", "hash_fallback"})
+DEFAULT_EMBEDDING_BACKEND_POLICY = "hash_fallback"
+
 
 
 def global_safe_policy_enabled() -> bool:
@@ -104,14 +103,9 @@ def resolve_monologue_llm_backend_policy() -> str:
     leg = os.environ.get(ENV_MONOLOGUE_BACKEND_POLICY, "").strip().lower()
     if leg and leg in MONOLOGUE_POLICIES:
         return leg
-    g = raw_global_default_policy()
     if g and g in MONOLOGUE_POLICIES:
         return g
     return DEFAULT_MONOLOGUE_BACKEND_POLICY
-
-
-EMBEDDING_POLICIES = frozenset({"passthrough", "hash_fallback"})
-DEFAULT_EMBEDDING_BACKEND_POLICY = "hash_fallback"
 
 
 def resolve_embedding_backend_policy() -> str:
@@ -121,8 +115,6 @@ def resolve_embedding_backend_policy() -> str:
     - ``hash_fallback`` (default): if Ollama is unreachable, return a deterministic hash bypass.
     - ``passthrough``: return None on failure; MalAbs layer will then skip embedding sim.
     """
-    if global_safe_policy_enabled():
-        return "hash_fallback"
     tp = raw_touchpoint_policy(TOUCHPOINT_EMBEDDING)
     if tp and tp in EMBEDDING_POLICIES:
         return tp

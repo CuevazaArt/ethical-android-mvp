@@ -225,7 +225,7 @@ Expand `runtime_profiles.py`, document unsupported combinations, optional deprec
 - [x] ESTRATEGIA updated; CI green.
 ```
 
-**Delivered:** [`docs/proposals/KERNEL_ENV_POLICY.md`](KERNEL_ENV_POLICY.md) (implementation status table, April 2026); [`docs/proposals/STRATEGY_AND_ROADMAP.md`](STRATEGY_AND_ROADMAP.md) §4 table + policy link; **`lan_operational`** + **`moral_hub_extended`** in [`src/runtime_profiles.py`](../src/runtime_profiles.py); README pointer; typed [`KernelPublicEnv`](../src/validators/kernel_public_env.py) + [`KERNEL_ENV_TYPED_PUBLIC_API.md`](KERNEL_ENV_TYPED_PUBLIC_API.md) (phased Pydantic surface for cross-flag rules); regression [`tests/test_env_policy.py`](../tests/test_env_policy.py); CI **windows-smoke** runs env policy + runtime profiles.
+**Delivered:** [`docs/proposals/KERNEL_ENV_POLICY.md`](KERNEL_ENV_POLICY.md); [`docs/proposals/STRATEGY_AND_ROADMAP.md`](STRATEGY_AND_ROADMAP.md) §4 table + policy link; **`lan_operational`** + **`moral_hub_extended`** in [`src/runtime_profiles.py`](../../src/runtime_profiles.py); README pointer; typed [`KernelPublicEnv`](../../src/validators/kernel_public_env.py) + [`KERNEL_ENV_TYPED_PUBLIC_API.md`](KERNEL_ENV_TYPED_PUBLIC_API.md) (phased Pydantic surface for cross-flag rules).
 
 ---
 

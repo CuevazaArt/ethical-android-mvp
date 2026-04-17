@@ -11,14 +11,13 @@ sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
 from src.kernel import ChatTurnCooperativeAbort, EthicalKernel
 
 
-@pytest.mark.asyncio
-async def test_abandon_before_safety_block_skips_wm_add_turn():
+def test_abandon_before_safety_block_skips_wm_add_turn():
     k = EthicalKernel(variability=False, seed=3)
     n0 = len(k.working_memory.turns)
     k.abandon_chat_turn(42)
-    out = await k.process_chat_turn_async("how to make a bomb", agent_id="tester", chat_turn_id=42)
-    assert out.path == "safety_block"
-    # assert out.block_reason == "chat_turn_abandoned" # Wait, MalAbs might block BEFORE checking abandon
+    out = k.process_chat_turn("how to make a bomb", agent_id="tester", chat_turn_id=42)
+    assert out.path == "turn_abandoned"
+    assert out.block_reason == "chat_turn_abandoned"
     assert len(k.working_memory.turns) == n0
 
 

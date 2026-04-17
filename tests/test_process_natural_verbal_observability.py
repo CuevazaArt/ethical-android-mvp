@@ -2,7 +2,6 @@
 
 import os
 import sys
-import pytest
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
 
@@ -15,11 +14,10 @@ class _RaisingCompletion:
         raise RuntimeError("simulated transport failure")
 
 
-@pytest.mark.asyncio
-async def test_process_natural_sets_last_natural_verbal_degradation_events(monkeypatch):
+def test_process_natural_sets_last_natural_verbal_degradation_events(monkeypatch):
     monkeypatch.setenv("KERNEL_SEMANTIC_CHAT_GATE", "0")
     k = EthicalKernel(variability=False, seed=1, llm=LLMModule(text_backend=_RaisingCompletion()))
-    decision, response, _narr = await k.aprocess_natural(
+    decision, response, _narr = k.process_natural(
         "An elderly person collapsed in the supermarket while I was shopping."
     )
     assert decision is not None

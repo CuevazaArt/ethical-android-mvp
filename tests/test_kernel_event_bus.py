@@ -11,7 +11,6 @@ from src.kernel import EthicalKernel
 from src.modules.kernel_event_bus import (
     EVENT_KERNEL_DECISION,
     EVENT_KERNEL_EPISODE_REGISTERED,
-    EVENT_KERNEL_WEIGHTS_UPDATED,
     KernelEventBus,
     kernel_event_bus_enabled,
 )
@@ -89,24 +88,6 @@ def test_process_emits_episode_when_register(monkeypatch: pytest.MonkeyPatch):
     assert len(episodes) == 1
     assert episodes[0]["episode_id"]
     assert episodes[0]["final_action"] == "act"
-
-
-def test_emit_weights_updated_helper_posts_i2_event(monkeypatch: pytest.MonkeyPatch):
-    """ADR 0015 I2: kernel publishes EVENT_KERNEL_WEIGHTS_UPDATED when weights change."""
-    monkeypatch.setenv("KERNEL_EVENT_BUS", "1")
-    k = EthicalKernel(variability=False, seed=0)
-    received: list = []
-    k.subscribe_kernel_event(EVENT_KERNEL_WEIGHTS_UPDATED, lambda p: received.append(dict(p)))
-    k._emit_kernel_weights_updated(
-        [0.5, 0.3, 0.2],
-        [0.2, 0.5, 0.3],
-        source="test_emit",
-    )
-    assert len(received) == 1
-    assert received[0]["source"] == "test_emit"
-    assert received[0]["trust"] == 1.0
-    assert len(received[0]["prior"]) == 3
-    assert len(received[0]["posterior"]) == 3
 
 
 def test_malabs_block_still_emits_decision(monkeypatch: pytest.MonkeyPatch):

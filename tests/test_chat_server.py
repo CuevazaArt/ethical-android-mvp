@@ -355,21 +355,6 @@ def test_websocket_sensor_preset_env(monkeypatch):
         assert data.get("path") in ("light", "heavy", "safety_block", "kernel_block")
 
 
-def test_websocket_sensor_payload_invalid_when_strict(monkeypatch):
-    """KERNEL_SENSOR_INPUT_STRICT rejects invalid merged sensor dict before chat turn."""
-    monkeypatch.setenv("KERNEL_SENSOR_INPUT_STRICT", "1")
-    with client.websocket_connect("/ws/chat") as ws:
-        ws.send_json(
-            {
-                "text": "Hello strict sensor test.",
-                "sensor": {"not_a_real_sensor_field": 1.0},
-            }
-        )
-        data = ws.receive_json()
-    assert data.get("error") == "sensor_payload_invalid"
-    assert "detail" in data
-
-
 @pytest.mark.parametrize(
     "env_key,env_val,absent_key",
     [

@@ -12,7 +12,6 @@ if TYPE_CHECKING:
     from src.modules.uchi_soto import SocialEvaluation
     from src.modules.immortality import ImmortalityProtocol
     from src.modules.selective_amnesia import SelectiveAmnesia
-    from src.modules.judicial_escalation import JudicialEscalationView
 
 _log = logging.getLogger(__name__)
 
@@ -39,7 +38,7 @@ class MemoryLobe:
         self.immortality = immortality
         self.amnesia = amnesia
 
-    async def execute_episodic_stage(
+    def execute_episodic_stage(
         self,
         scenario: str,
         place: str,
@@ -51,20 +50,15 @@ class MemoryLobe:
         moral: Any,
         final_action: str,
         final_mode: str,
-        affect: Any,
-        register_episode: bool = True
+        affect: Any
     ) -> Optional[str]:
         """
-        STAGE 5: Register interaction episode, audit trail, and biographic impact.
-        Returns episode_id.
+        Register interaction episode and audit trail.
         """
-        if not register_episode:
-            return None
-
         morals_dict = {ev.pole: ev.moral for ev in moral.evaluations}
         
-        # 1. Register Episode (Async!)
-        ep = await self.memory.aregister(
+        # 1. Register Episode
+        ep = self.memory.register(
             place=place,
             description=scenario,
             action=final_action,
@@ -82,66 +76,8 @@ class MemoryLobe:
         
         # 2. Register Audit in DAO
         self.dao.register_audit("decision", f"{scenario} → {final_action}", episode_id=ep.id)
-
-        # 3. Biographic Impact (Vertical move from Kernel)
-        impact = bayes_result.expected_impact if bayes_result else 0.0
-        self.register_biographic_impact(impact)
         
         return ep.id
-
-    def execute_judicial_escalation(
-        self,
-        user_input: str,
-        decision_mode: str,
-        signals: dict,
-        mono: str,
-        buffer_conflict: bool,
-        session_strikes: int,
-        episode_id: Optional[str] = None
-    ) -> JudicialEscalationView:
-        """
-        Handles DAO escalation, mock court, and reparations.
-        """
-        from src.modules.judicial_escalation import (
-            build_ethical_dossier,
-            build_escalation_view,
-            should_offer_escalation_advisory,
-            strikes_threshold_from_env
-        )
-        from src.modules.dao_orchestrator import kernel_dao_as_mock
-        from src.modules.judicial_case_reparation import maybe_register_reparation_after_mock_court
-        
-        threshold = strikes_threshold_from_env()
-        dossier = build_ethical_dossier(
-            user_input, decision_mode, signals, mono, buffer_conflict, session_strikes=session_strikes
-        )
-        
-        _dao = kernel_dao_as_mock(self.dao)
-        rec = _dao.register_escalation_case(
-            dossier.to_audit_paragraph(),
-            episode_id=episode_id
-        )
-        
-        mock_court = None
-        from src.modules.safety_interlock import mock_court_enabled
-        if mock_court_enabled():
-            mock_court = _dao.run_mock_escalation_court(
-                dossier.case_uuid,
-                rec.id,
-                dossier.to_audit_paragraph(),
-                dossier.buffer_conflict
-            )
-            maybe_register_reparation_after_mock_court(_dao, mock_court, dossier.case_uuid)
-            
-        return build_escalation_view(
-            offered=True,
-            accepted=True,
-            dossier=dossier,
-            case_id=rec.id,
-            session_strikes=session_strikes,
-            strikes_threshold=threshold,
-            mock_court=mock_court
-        )
 
     def register_biographic_impact(self, impact: float) -> None:
         """Update biographic identity level."""
