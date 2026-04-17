@@ -13,6 +13,7 @@ All notable changes to this project are summarized here. For narrative context a
 - **Justicia Restaurativa (Módulo 7 Bloques 7.1+7.2):** Swarm vote → `EthosToken` reparation wiring in kernel; `SwarmOracle.apply_slashing` for adversarial reputation penalty.
 - **ExecutiveLobe (COPILOT_REQUEST_IDLE_SHIFT.md):** `MotivationEngine` instantiated inside `ExecutiveLobe`; monologue emitted only on `is_safe=True` path.
 - **Gap repair:** Fixed `uchi_soto.set_profile_structured` missing params, `seek_internal_purpose` `CandidateAction` field access, `EthicsMixtureResult.expected_impact` attribute, and `MockDAO.issue_restorative_reparation` stub.
+- **Hemisphere Critique (COPILOT_REQUEST_HEMISPHERE_REFACTOR.md):** Delivered `docs/proposals/PROPOSAL_COPILOT_HEMISPHERE_CRITIQUE.md` — audits breaking-change risk for 64 kernel-coupled tests, recommends sync-façade compatibility shim (Option A), proposes `CorpusCallosumOrchestrator`-owned `SessionContext` injection pattern to avoid circular imports, and evaluates junior-developer maintainability with mitigation plan.
 
 ## Documentation — Issue #1 (Bayesian naming honesty) — April 2026
 
