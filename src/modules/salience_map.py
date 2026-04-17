@@ -35,7 +35,8 @@ class SalienceSnapshot:
 
 class SalienceMap:
     """
-    Maps environment + reflection into a salience distribution. Pure; no side effects.
+    Maps environment signals, internal state, social evaluation, and ethical reflection
+    into a normalized salience distribution over predefined axes. Pure; no side effects.
     """
 
     AXIS_ORDER: tuple[str, ...] = (
@@ -116,7 +117,15 @@ class SalienceMap:
 
 
 def salience_to_llm_context(snapshot: SalienceSnapshot | None) -> str:
-    """One line for communicate() — tone only."""
+    """
+    Format a one-line summary of the current salience snapshot for LLM context or logs.
+
+    Args:
+        snapshot (SalienceSnapshot | None): The current salience snapshot.
+
+    Returns:
+        str: Human-readable summary string, or empty if snapshot is None.
+    """
     if snapshot is None:
         return ""
     w = snapshot.weights
