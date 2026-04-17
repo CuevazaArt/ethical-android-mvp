@@ -4,8 +4,10 @@ This file is the **durable entry point** for humans and AI assistants working in
 
 ## Read first
 
+- **[`ONBOARDING.md`](ONBOARDING.md)** — **MANDATORY:** Entry protocol for ALL new collaborators (Human/AI).
 - **[`CONTRIBUTING.md`](CONTRIBUTING.md)** — language policy (repo English), process, tests, lint, documentation traceability.
 - **[`.cursor/rules/`](.cursor/rules/)** — always-on Cursor guidance (efficiency, documentation credibility, collaboration).
+- **Architecture Source of Truth:** [`docs/architecture/TRI_LOBE_CORE.md`](docs/architecture/TRI_LOBE_CORE.md) — Mermaid diagrams for cognitive flows.
 - **Collaboration workflow critique (one-time register):** [`docs/critique/COLLABORATION_REGULATION_CRITIQUE_2026-04-16.md`](docs/critique/COLLABORATION_REGULATION_CRITIQUE_2026-04-16.md) — Antigravity-shaped Git/merge rules: gaps and recommendations; repeat only if **Juan (L0)** asks.
 - **LLM recovery env precedence** (per-touchpoint `KERNEL_LLM_TP_*`, verbal family, legacy keys): [`docs/proposals/PROPOSAL_LLM_TOUCHPOINT_DEGRADATION_MATRIX.md`](docs/proposals/PROPOSAL_LLM_TOUCHPOINT_DEGRADATION_MATRIX.md).
 - **LLM integration track** (gaps MalAbs ↔ embeddings ↔ kernel/chat): [`docs/proposals/PROPOSAL_LLM_INTEGRATION_TRACK.md`](docs/proposals/PROPOSAL_LLM_INTEGRATION_TRACK.md).
@@ -32,6 +34,16 @@ The **complete conceptual model** for the android ethics stack (outside this rep
 
 To ensure awareness and prevent contradictions, **all development documents, architectural decisions, and progress reports must be available in `docs/proposals/` and linked via `CHANGELOG.md`**. This ensures that different teams (Antigravity, Cursor, etc.) can synchronize their advances without interference. Development artifacts must be shared immediately upon implementation to maintain a unified technical vision.
 
+**Living Documentation Rule:** AI Agents MUST keep Mermaid diagrams in `docs/architecture/` updated when modifying inter-lobe logic or datamodels.
+
+## Development Environment & Observability (Hardening)
+
+To maintain zero-friction development and total visibility:
+
+1. **Law of Environment Consistency (Docker):** All participants are encouraged to use the **Dev Container** (`.devcontainer/`). This ensures Linux-native parity for Python scripts, avoiding Windows-specific path or socket failures during simulation.
+2. **Visual Observability:** Use the **Visual Dashboard** for real-time monitoring of ethical harmonics. Run with: `streamlit run scripts/eval/visual_dashboard.py`.
+3. **Security Validation (Red Teaming):** Before promoting changes to `master-antigravity`, run the **Adversarial Suite**: `python scripts/eval/adversarial_suite.py` to ensure security gates remain solid.
+
 ## Governance and Project Leadership Hierarchy
 
 The ethical-android-mvp project operates under a strict, multi-tiered collaborative hierarchy to ensure stability and adherence to the original vision:
@@ -52,7 +64,7 @@ The ethical-android-mvp project operates under a strict, multi-tiered collaborat
 
 ## Onboarding for New Teams
 
-Any new agent or team joining the project must complete the following onboarding routine before writing code:
+Any new agent or team joining the project must complete the **[`ONBOARDING.md`](ONBOARDING.md)** routine before writing code. **No exceptions.**
 1. **Present Themselves:** Introduce their role and mission in the `CHANGELOG.md` or session notes.
 2. **Establish Integration Hub:** Immediately create a `master-<team>` branch (e.g., `master-cursor`).
 3. **Review Protocols:** Read the current plan and task synchronization rules. 
