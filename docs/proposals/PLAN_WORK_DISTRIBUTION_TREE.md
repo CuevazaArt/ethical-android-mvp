@@ -11,19 +11,20 @@ Este documento estructura el inmenso volumen de trabajo arquitectónico definido
 
 ## 🌳 Árbol de Distribución de Módulos (Blocks Tree)
 
-### ⚙️ Módulo 0: Estabilización Pragmática y Reducción de Deuda (Nuevo P0/P1)
 ### ⚪ Módulo 0: Estabilización Pragmática y Reducción de Deuda (Nuevo P0/P1)
 *Responsabilidad: Nivel 1 (Antigravity)*
 *Objetivo: Mitigar vulnerabilidades operacionales, desmonolitizar componentes críticos y lograr paridad de operaciones/tests enfocado en funcionalidad práctica.*
 
-- **Bloque 0.1: Desmonolitización y Abstracción de `kernel.py` (Prioridad Absoluta)**
-  - Tarea 0.1.1: **Solución Práctica a E/S Sincrónica:** Migrar el pipeline de inferencia HTTP de LLMs (`httpx` sincrónico dentro del hilo worker) hacia clientes cooperativos asíncronos (`httpx.AsyncClient`).
-  - Tarea 0.1.2: **Cancelación Cooperativa (Task Cancellation):** Implementar la cancelación transparente de tareas de red pendientes cuando el loop asíncrono se venza (`KERNEL_CHAT_TURN_TIMEOUT`), liberando inmediatamente memoria y slots en el Worker Pool.
+- **Bloque 0.1: Desmonolitización y Abstracción de `kernel.py` [DONE]**
+  - Tarea 0.1.1: **Solución Práctica a E/S Sincrónica:** Migrar el pipeline de inferencia HTTP de LLMs (`httpx` sincrónico dentro del hilo worker) hacia clientes cooperativos asíncronos (`httpx.AsyncClient`). [DONE]
+  - Tarea 0.1.2: **Cancelación Cooperativa (Task Cancellation):** Cancelación transparente de tareas de red pendientes cuando el loop asíncrono se venza (`KERNEL_CHAT_TURN_TIMEOUT`). [DONE]
   - Tarea 0.1.3: **Desmonolitización Total (Lóbulos):** Extraer Stages 0-5 (Percepción, Ética, Ejecutivo, Cerebelo, Memoria) del objeto gigante `EthicalKernel` hacia handlers aislados. [DONE]
-- **Bloque 0.2: Fiabilidad Funcional (El 25% de Pruebas)**
-  - Tarea 0.2.1: Orientar CI no solo a correr tests rápidos (con semántica apagada) sino a correr escenarios que verifiquen las mitigaciones aplicadas en *producción* (ej. `KERNEL_SEMANTIC_CHAT_GATE=1` y Fallbacks globales funcionales).
-- **Bloque 0.3: Integridad Documental**
-  - Tarea 0.3.1: Detener la especulación y establecer la verdad. Sincronizar discrepancias (Aceptar que encriptaciones pasadas ya ocurren como se afirma en `json_store.py`).
+- **Bloque 0.2: Fiabilidad Funcional y Escalabilidad**
+  - Tarea 0.2.1: Rediseñar la capa WebSocket del servidor (`chat_server.py`) para manejar concurrencia pura sin bloquear el event loop principal, permitiendo streaming asíncrono.
+  - Tarea 0.2.2: Orientar CI no solo a correr tests rápidos (con semántica apagada) sino a correr escenarios que verifiquen las mitigaciones aplicadas en *producción* (ej. `KERNEL_SEMANTIC_CHAT_GATE=1` y Fallbacks globales funcionales).
+- **Bloque 0.3: Mantenimiento Histórico y Documental [DONE]**
+  - Tarea 0.3.1: Detener la especulación y establecer la verdad. Sincronizar discrepancias (Aceptar que encriptaciones pasadas ya ocurren como se afirma en `json_store.py`). [DONE]
+  - Tarea 0.3.2: Consolidación de módulos de integración fundacional 1 al 6. [DONE]
 
 ### 🔴 Módulo 1: Infraestructura DAO Híbrida (Simulación Local Mock)
 *Responsabilidad: Nivel 1 (Antigravity / Claude)*
@@ -62,28 +63,17 @@ Este documento estructura el inmenso volumen de trabajo arquitectónico definido
 - **Bloque 3.3: Normas Locales e Identidad UchiSoto (S9) [DONE]**
   - Tarea 3.3.1: Expandir base de datos relacional para incluir preferencias de "distancia personal" y "ritmo de interacción". (Implementado en `InteractionProfile` en `uchi_soto.py`)
 
-### 🔵 Módulo 4: Cognición Profunda (C-Blocks)
-*Responsabilidad: Nivel 1 (Antigravity)*
-*Objetivo: Mitigar vulnerabilidades operacionales, desmonolitizar componentes críticos y lograr paridad de operaciones/tests enfocado en funcionalidad práctica.*
-
-- **Bloque 0.1: Desmonolitización y Abstracción de `kernel.py` (Prioridad Absoluta)**
-  - Tarea 0.1.1: **Solución Práctica a E/S Sincrónica:** Migrar el pipeline de inferencia HTTP de LLMs (`httpx` sincrónico dentro del hilo worker) hacia clientes cooperativos asíncronos (`httpx.AsyncClient`).
-  - Tarea 0.1.2: **Cancelación Cooperativa (Task Cancellation):** Implementar la cancelación transparente de tareas de red pendientes cuando el loop asíncrono se venza (`KERNEL_CHAT_TURN_TIMEOUT`), liberando inmediatamente memoria y slots en el Worker Pool.
-  - Tarea 0.1.3: Extraer la `Perception` y la lógica de ruteo ético del objeto `EthicalKernel` gigante hacia handlers aislados que aprovechen el Async I/O en lugar de abusar de `run_in_threadpool`.
-- **Bloque 0.2: Escalabilidad del Chat Server**
-  - Tarea 0.2.1: Rediseñar la capa WebSocket del servidor (`chat_server.py`) para manejar concurrencia pura sin bloquear el event loop principal, permitiendo streaming asíncrono.
-- **Bloque 0.3: Mantenimiento Histórico (Legacy Modules) [DONE]**
-  - Tarea 0.3.1: Los módulos de la integración fundacional 1 al 6 (Mock DAO, Safety Interlock, UchiSoto, Swarm Logic) han sido consolidados y se consideran estables en producción local.
+### 🔵 Módulo 4: [REASIGNADO Y CONSOLIDADO EN MODULO 0 Y C]
 
 ### 🧠 Módulo C: Profundidad Cognitiva y Recompensas RLHF
-*Responsabilidad: Nivel 2 (Team Claude)*
-*Dependencias: Modelo RLHF existente y Motor Bayesiano.*
+*Responsabilidad Actual: Nivel 1 (Antigravity) & Nivel 2 (Team Cursor)*
+*Status:* Claude está en reposo hasta recuperación. Transferencia de misiones a Antigravity y Cursor.
 
 - **Bloque C.1: Fusión BMA (Bayesian Mixture Averaging) y Recompensas RLHF**
-  - Tarea C.1.1: Conectar los *outputs* asíncronos del `rlhf_reward_model.py` directamente como *Priors* moduladores dentro de `bayesian_engine.py` en tiempo real.
-  - Tarea C.1.2: Validar el arrastre de métricas RLHF sobre las decisiones de los polos multipolares en el estadio 3 del Kernel.
+  - Tarea C.1.1: Conectar los *outputs* asíncronos del `rlhf_reward_model.py` directamente como *Priors* moduladores dentro de `bayesian_engine.py` en tiempo real. **[DONE por Antigravity]**
+  - Tarea C.1.2: Validar el arrastre de métricas RLHF sobre las decisiones de los polos multipolares en el estadio 3 del Kernel. *(Asignado a: Cursor)*
 - **Bloque C.2: Gobernanza Real en Runtime**
-  - Tarea C.2.1: Implementar handlers para que cualquier voto exitoso en el `MultiRealmGovernor` altere en vivo (hot-reload) los umbrales de Absoluto Mal (`semantic_chat_gate.py`) sin necesidad de reiniciar el proceso del kernel.
+  - Tarea C.2.1: Implementar handlers para que cualquier voto exitoso en el `MultiRealmGovernor` altere en vivo (hot-reload) los umbrales de Absoluto Mal (`semantic_chat_gate.py`) sin necesidad de reiniciar el proceso del kernel. *(Asignado a: Antigravity)*
 
 ### 🦾 Módulo S: Encarnación Activa y Hardware Bridge (Nomad PC/Mobile)
 *Responsabilidad: Nivel 2 (Team Cursor / Team VisualStudio)*
@@ -128,12 +118,13 @@ Este documento estructura el inmenso volumen de trabajo arquitectónico definido
 
 ---
 
-## 🚀 Flujo de Sincronización Recomendado
+## 🚀 Flujo de Sincronización Recomendado (Actualizado con Disponibilidad)
 
-1. **Semana Actual:** Antigravity (N1) se encarga transversalmente de desmonolitizar `kernel.py` y actualizar las dependencias de concurrencia. Claude y Cursor toman sus ramas (`master-claude`, `master-Cursor`) and abordan C.1 y S.1 respectivamente.
-2. **Semana Siguiente:** Sincronización de progresos a `master-antigravity`. Antigravity evalúa el impacto del async I/O en la latencia global del kernel.
-3. **Validación N0:** Integración unificada a `main` tras validaciones somáticas. 
-1. **Semana 1:** Antigravity (N1) trabaja el **Módulo 1** y **Módulo 4**. Cursor Team (N2) despliega **Módulo 2** y **Módulo 3**.
-2. **Semana 2:** Antigravity (N1) despliega el **Módulo 6 (Swarm Ethics)** mientras Team Copilot (N2) realiza la **limpieza de repo y verificación de coherencia (Bloque 6.4)**.
-3. **Sincronización:** Todos los equipos hacen Pull Request hacia sus hubs (`master-*`). Antigravity evalúa y fusiona a `master-antigravity`.
-4. **Validación N0:** Emisión de un *Release Tag* oficial por Juan antes de mover las barreras legales del **Módulo 5**.
+1. **Jornada Actual:** 
+   - **Antigravity (N1)**: Mergear trabajo asíncrono y RLHF a `main`. Empezar Módulo C.2 (Gobernanza Runtime) y Módulo 7 (Justicia Restaurativa).
+   - **Cursor (N2)**: Tomar y continuar pruebas sobre C.1.2 BMA arrastres, y arrancar Módulo S (Nomad SmartPhone LAN Bridge).
+   - **Copilot (N2)**: Mantener prioridades de DX y deuda en Módulo 8 (Linters en Lóbulos, Observabilidad ANSI y Defensas Homoglyphs).
+2. **Próxima Ventana de Sincronización:**
+   - Todos los N2 inyectan PRs a los master-branches. Antigravity fusiona usando `Squash & Merge` a `main` resolviendo conflictos de API.
+3. **Validación N0:**
+   - Lanzamiento de *Release Tag Oficial* con el Chat Server Asíncrono escalable antes de expandir redes de swarm WAN.
