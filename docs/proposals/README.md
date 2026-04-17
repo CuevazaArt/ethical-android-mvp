@@ -27,6 +27,7 @@ High-level summary aligned with the code and docs; full chronology is in [`CHANG
 | [`PROPOSAL_CONSOLIDATION_PRE_DAO.md`](PROPOSAL_CONSOLIDATION_PRE_DAO.md) | Vertical consolidation cycle before field tests and DAO: validate the decision core against ETHICS dataset, shrink env-var surface, separate decision/narrative tiers, deepen tests, contract the DAO-governable surface. ADR 0016. |
 | [`PROPOSAL_FIELD_TEST_PLAN.md`](PROPOSAL_FIELD_TEST_PLAN.md) | Field test plan — phases F0–F4 for model (scorer + MalAbs), next MockDAO (audit UX), and **real physical sensors** via a smartphone relay; defines the PC ↔ phone minimal management interface; maps each test phase to a specific weakness in `WEAKNESSES_AND_BOTTLENECKS.md`. Companion: [ADR 0017](../adr/0017-smartphone-sensor-relay-bridge.md). |
 | [`PROPOSAL_OFFLINE_MODE_TAXONOMY_AND_KNOWLEDGE_CORPUS.md`](PROPOSAL_OFFLINE_MODE_TAXONOMY_AND_KNOWLEDGE_CORPUS.md) | Offline taxonomy (voluntary, transient, structural, systemic); L0 vs curated knowledge pack; resource/energy priority; entry planning and sync; maps to `PreloadedBuffer` and MalAbs. |
+| [`PROPOSAL_MULTIMODAL_CHARM_ENGINE_DIGEST.md`](PROPOSAL_MULTIMODAL_CHARM_ENGINE_DIGEST.md) | **Digest (P0):** multimodal “charm” / conversational-UX stack mapped to kernel seams; critiques, guardrails, phased roadmap; presentation tier vs ethics core; source brief synthesized (not verbatim). |
 
 | Area | What changed |
 |------|----------------|
