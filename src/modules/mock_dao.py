@@ -464,3 +464,19 @@ class MockDAO:
                 counts["dispute"] += 1
 
         return counts
+
+    def issue_restorative_reparation(self, case_id: str, recipient: str, amount: float) -> str:
+        """
+        Simulation-mode stub for Bloque 7.1 restorative justice.
+
+        ``DAOOrchestrator`` provides the persistent version; this in-memory stub logs
+        the same intent so the kernel can call the method on either DAO type without
+        branching.  Returns a deterministic placeholder hash so callers that record the
+        result behave the same in test and production-mock contexts.
+        """
+        msg = (
+            f"[MockDAO] Restorative reparation of {amount} EthosTokens issued to "
+            f"{recipient} for case {case_id}."
+        )
+        self.register_audit("reparation_payout", msg)
+        return f"0x_mock_reparation_{case_id[:8]}"

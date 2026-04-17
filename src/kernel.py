@@ -725,19 +725,7 @@ class EthicalKernel:
         Consults the Motivation Engine to generate proactive internal actions.
         Used when the android is idle or needs to inject self-driven goals.
         """
-        proactive = self.motivation.get_proactive_actions()
-        actions = []
-        for p in proactive:
-            actions.append(
-                CandidateAction(
-                    name=p["name"],
-                    description=p["description"],
-                    estimated_impact=p["impact"],
-                    confidence=0.8,
-                    source="internal_motivation",
-                )
-            )
-        return actions
+        return self.motivation.get_proactive_actions()
 
     def _malabs_text_backend(self):
         """Optional LLM backend for MalAbs semantic tier (embeddings + arbiter; see semantic_chat_gate)."""
@@ -1628,7 +1616,7 @@ class EthicalKernel:
         
         # ════ D1: BIOGRAPHIC REGISTRATION ════
         if register_episode:
-             impact = d.bayesian_result.weighted_impact if d.bayesian_result else 0.0
+             impact = d.bayesian_result.expected_impact if d.bayesian_result else 0.0
              self.identity.register_episode(impact)
              
         return d

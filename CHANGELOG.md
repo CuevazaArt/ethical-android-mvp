@@ -4,6 +4,15 @@ All notable changes to this project are summarized here. For narrative context a
 
 **Note:** Older sections below may still **link** to paths that were later removed (for example `experiments/million_sim/`, `docs/multimedia/`, root `dashboard.html`, `landing/`). Those links are **historical**; recover files from git history or backup branches if you need them.
 
+## Team Copilot — Gap repair pass — April 2026
+
+- **`src/modules/uchi_soto.py`** — `set_profile_structured` was referencing `personal_distance` and `interaction_rhythm` as local variables that were never declared; added both as keyword-only parameters so the method is callable with these fields (mypy `name-defined` errors resolved).
+- **`src/kernel.py`** — `seek_internal_purpose` was reading `CandidateAction` objects as dicts (`p["name"]`, `p["description"]`, `p["impact"]`); simplified to delegate directly to `MotivationEngine.get_proactive_actions()` which already returns `list[CandidateAction]` (mypy `index` errors resolved).
+- **`src/kernel.py`** — `d.bayesian_result.weighted_impact` used a non-existent attribute; corrected to `expected_impact` (the canonical field of `EthicsMixtureResult`).
+- **`src/modules/mock_dao.py`** — Added `issue_restorative_reparation` stub so `MockDAO` satisfies the same interface as `DAOOrchestrator` and kernel restorative-justice code can call it on either DAO type without a `union-attr` type error.
+- **`src/modules/vision_adapter.py`** — Added type annotations (`self.model: Any`, `self.categories: list[str]`, `self._torch_device: Any`); refactored `load_model` to use a local `_model` variable before assigning to `self.model`, removing None-dereference mypy errors; moved misplaced `import os` to file top and removed E402 lint violation.
+- **`.gitignore`** — Added `audit_trail.db`; removed the file from the git index (runtime SQLite should not be versioned).
+
 ## Team Copilot — Executive Lobe pending-task pass — April 2026
 
 - Implemented `src/kernel_lobes/executive_lobe.py` as an actual executable stub:
