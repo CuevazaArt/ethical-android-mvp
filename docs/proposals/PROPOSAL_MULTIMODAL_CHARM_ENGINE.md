@@ -1,9 +1,11 @@
 # Motor de Encanto Multimodal (Multimodal Charm Engine)
 
-**Estado:** Propuesta Evaluada y Registrada (L1 Antigravity)  
+**Estado:** ✅ Implementado en `main` / `master-claude` / `master-Cursor` — ❌ Pendiente en `master-antigravity`
 **Fecha:** Abril 2026  
 **Autoría original:** Aporte Externo / Integración Juan (L0)  
 **Relación con Roadmap:** Complementa sustancialmente el **Módulo S (Nomad Hardware Bridge)** y requiere revisión activa del **Módulo 8 (Concurrencia)**.
+
+> **Nota de sincronización (Team Copilot, Abril 2026):** `src/modules/charm_engine.py` existe en `main`, `master-claude` y rama copilot. **`master-antigravity` carece del módulo** — ver auditoría completa en [`PROPOSAL_COPILOT_MER_V2_AUDIT.md`](PROPOSAL_COPILOT_MER_V2_AUDIT.md).
 
 ---
 

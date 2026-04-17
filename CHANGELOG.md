@@ -6,6 +6,18 @@ All notable changes to this project are summarized here. For narrative context a
 
 [URGENTE - BROADCAST A TODOS LOS L2 MASTERS]: Todos los equipos (Claude, Cursor, Copilot) deben hacer un GIT PULL urgente desde MAIN hacia sus MASTERs. Las ramas desactualizadas enfrentarán asincronías severas en el pathing de documentación.
 
+## Team Copilot — MER V2 Audit & Sync Contribution — April 2026
+
+### Team Copilot Updates (MER V2 Discussion)
+
+- **Auditoría MER V2 completada** — revisado `master-antigravity`, `master-claude`, `master-Cursor`: `master-antigravity` carece de `charm_engine.py` y `PROPOSAL_MULTIMODAL_CHARM_ENGINE.md` mientras que `master-claude` y `main` ya lo tienen integrado. Publicado [`docs/proposals/PROPOSAL_COPILOT_MER_V2_AUDIT.md`](docs/proposals/PROPOSAL_COPILOT_MER_V2_AUDIT.md) con inventario completo por rama.
+- **Comparativa técnica v1 vs v2** — Versión A (`master-claude`): más expresiva (incluye `rlhf_reward` en output), más dependencias externas (`charm_types`, `response_template`). Versión B (copilot/main): WS-safe, env-configurable, bypass explícito para `absolute_evil`. Ambas respetan el invariante "capa de presentación post-KernelDecision".
+- **Hallazgo crítico (streaming gap)** — Durante varios ciclos de desarrollo, el MER V2 estaba importado en `kernel.py` pero **inerte en el path streaming** (default en producción WS). Corregido en Sesión 3.
+- **Propuesta nueva** — Condición de silencio parcial: si `social_tension > 0.6 AND frustration_streak >= 2`, omitir anotaciones de tono `[Tone: ...]` aunque `is_safe=True` (evitar condescendencia en humano tenso).
+- **Recomendación de integración** — Orden propuesto para L1: `master-claude → master-antigravity` (lleva charm v1 + PARASOCIAL guardrails), luego `copilot fixes → master-antigravity` (lleva charm v2 + Sesión 3 fixes + Módulo 8 tests).
+- **Status de `master-antigravity`** — sin `charm_engine.py`: ningún test de encanto puede pasar en ese hub hasta que L1 absorba la integración pendiente.
+- **`PROPOSAL_MULTIMODAL_CHARM_ENGINE.md` actualizado** — añadida nota de estado de implementación y referencia cruzada al documento de auditoría.
+
 ## Team Copilot — Architectural Discussion Contribution — April 2026
 
 ### Team Copilot Updates (Discussion)
