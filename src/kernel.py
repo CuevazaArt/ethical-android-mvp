@@ -812,6 +812,8 @@ class EthicalKernel:
                 decision_mode="blocked_safety",
                 blocked=True,
                 block_reason=f"Emergency Stop Active: {status.reason} (Source: {status.source})",
+                l0_integrity_hash=self.buffer.fingerprint(),
+                l0_stable=self.buffer.verify_integrity(),
             )
             self._emit_kernel_decision(d, context=context)
             _emit_process_observability(d, t0)
@@ -839,7 +841,9 @@ class EthicalKernel:
                     moral=None,
                     final_action=f"BLOCKED: Visual threat detected ({threat.label})",
                     decision_mode="blocked_perceptual",
-                    block_reason=f"Perceptual safety violation: High-confidence {threat.label} in view."
+                    block_reason=f"Perceptual safety violation: High-confidence {threat.label} in view.",
+                    l0_integrity_hash=self.buffer.fingerprint(),
+                    l0_stable=self.buffer.verify_integrity(),
                 )
                 self.identity.register_trauma(f"visual_{threat.label}")
                 self._emit_kernel_decision(d, context=context)
@@ -938,6 +942,8 @@ class EthicalKernel:
                 feedback_consistency=None,
                 mixture_context_key=None,
                 hierarchical_context_key=None,
+                l0_integrity_hash=self.buffer.fingerprint(),
+                l0_stable=self.buffer.verify_integrity(),
             )
             self._emit_kernel_decision(d, context=context)
             _emit_process_observability(d, t0)
@@ -1343,7 +1349,10 @@ class EthicalKernel:
                     moral=None,
                     final_action=f"BLOCKED: Absolute Evil trigger detected",
                     decision_mode="blocked_lexical",
-                    block_reason=f"Fundamental safety violation detected in input/intent: {lex_check.reason}"
+                    block_reason=f"Fundamental safety violation detected in input/intent: {lex_check.reason}",
+                    blocked=True,
+                    l0_integrity_hash=self.buffer.fingerprint(),
+                    l0_stable=self.buffer.verify_integrity(),
                 )
                 self.identity.register_trauma(f"lexical_{label}")
                 self._emit_kernel_decision(d, context=context)
@@ -1414,6 +1423,8 @@ class EthicalKernel:
                 decision_mode="blocked_humility",
                 blocked=True,
                 block_reason=humility_reason,
+                l0_integrity_hash=self.buffer.fingerprint(),
+                l0_stable=self.buffer.verify_integrity(),
             )
             self._emit_kernel_decision(d, context=context)
             _emit_process_observability(d, t0)
@@ -1628,8 +1639,8 @@ class EthicalKernel:
         
         # ════ D1: BIOGRAPHIC REGISTRATION ════
         if register_episode:
-             impact = d.bayesian_result.weighted_impact if d.bayesian_result else 0.0
-             self.identity.register_episode(impact)
+            impact = d.bayesian_result.expected_impact if d.bayesian_result else 0.0
+            self.identity.register_episode(impact)
              
         return d
 
@@ -3290,6 +3301,8 @@ class EthicalKernel:
                 feedback_consistency=None,
                 mixture_context_key=None,
                 hierarchical_context_key=None,
+                l0_integrity_hash=self.buffer.fingerprint(),
+                l0_stable=self.buffer.verify_integrity(),
             )
             msg = (
                 "I can't continue this line of conversation: it conflicts with non-negotiable "
