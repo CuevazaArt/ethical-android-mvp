@@ -1,5 +1,5 @@
 from __future__ import annotations
-from typing import Any, TYPE_CHECKING
+from typing import TYPE_CHECKING, Any, Optional
 from src.kernel_lobes.models import LimbicStageResult
 
 if TYPE_CHECKING:
@@ -85,22 +85,9 @@ class LimbicEthicalLobe:
         return LimbicStageResult(
             social_evaluation=social_eval,
             internal_state=state,
-            locus_evaluation=locus_eval
+            locus_evaluation=locus_eval,
         )
-        
-        # 4. Penalizar por trauma sensorial (Sensory Lag)
-        applied_trauma = 0.0
-        if state.timeout_trauma:
-            applied_trauma = state.timeout_trauma.severity * 0.2
-            _log.info("LimbicLobe: Applying trauma weight (Lag): %.2f", applied_trauma)
 
-        # Enriquecer la sentencia ética
-        resonance = ethical_advisory
-        resonance.applied_trauma_weight = applied_trauma
-        resonance.social_tension_locus = effective_tension
-        
-        # Inyectar el estado armónico en la sentencia para que el Ejecutivo lo use
-        resonance.morals["harmonics"] = resonance_dict
-        resonance.morals["harmonics"]["posture"] = ethical_advisory.social_posture
-        
-        return resonance
+
+# Stable name expected by ``kernel`` / ``kernel_lobes.__init__`` imports.
+LimbicLobe = LimbicEthicalLobe

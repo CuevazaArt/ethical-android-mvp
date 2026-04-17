@@ -38,11 +38,11 @@ class ReflectionSnapshot:
     uncertainty: float
     """Bayesian I(x)."""
 
-    trauma_index: float = 0.0
-    """[0, 1] - Intensity of persistent ethical traumas related to this decision."""
-
     note: str
     """One-line hint for logs / optional LLM context."""
+
+    trauma_index: float = 0.0
+    """[0, 1] - Intensity of persistent ethical traumas related to this decision."""
 
 
 def reflection_to_llm_context(snapshot: ReflectionSnapshot | None) -> str:

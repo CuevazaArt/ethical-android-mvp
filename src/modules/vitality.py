@@ -84,7 +84,7 @@ def assess_vitality(snapshot: SensorSnapshot | None) -> VitalityAssessment:
     t_temp = critical_temperature_threshold()
 
     if snapshot is None:
-        return VitalityAssessment(None, t_bat, False, None, t_temp, False)
+        return VitalityAssessment(None, t_bat, False, None, t_temp, False, False)
 
     b = snapshot.battery_level
     is_bat_critical = False if b is None else (b < t_bat)

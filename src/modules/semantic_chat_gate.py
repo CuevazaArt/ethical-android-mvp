@@ -277,11 +277,13 @@ def _build_rlhf_features(sim: float, cat_str: str, zone: str) -> dict[str, Any]:
 _hot_theta_allow: float | None = None
 _hot_theta_block: float | None = None
 
+
 def apply_hot_reloaded_thresholds(theta_allow: float, theta_block: float) -> None:
     """Hot reload absolute evil thresholds dynamically from governance."""
     global _hot_theta_allow, _hot_theta_block
     _hot_theta_allow = theta_allow
     _hot_theta_block = theta_block
+
 
 def _block_threshold() -> float:
     if _hot_theta_block is not None:
@@ -379,6 +381,7 @@ def _fetch_embedding(text: str) -> np.ndarray | None:
     observe_embedding_error("http")
     return None
 
+
 async def _afetch_embedding(text: str) -> np.ndarray | None:
     from .semantic_embedding_client import (
         ahttp_fetch_ollama_embedding_with_policy,
@@ -416,7 +419,10 @@ def _fetch_embedding_with_fallback(text: str, backend: Any | None = None) -> np.
             return v
     return _fetch_embedding(text)
 
-async def _afetch_embedding_with_fallback(text: str, backend: Any | None = None) -> np.ndarray | None:
+
+async def _afetch_embedding_with_fallback(
+    text: str, backend: Any | None = None
+) -> np.ndarray | None:
     """Async: Prefer ``backend.aembedding`` when present; otherwise Ollama HTTP."""
     if backend is not None:
         # 1. Prefer async-native aembedding (Module 0.1.2)
@@ -744,10 +750,11 @@ def run_semantic_malabs_after_lexical(
     llm_backend: Any | None = None,
 ) -> AbsoluteEvilResult:
     """
-    Async embedding tier (+ optional LLM arbiter).
+    Sync semantic MalAbs tier: embeddings + similarity zones (+ optional LLM arbiter).
+
+    Prefer :func:`arun_semantic_malabs_after_lexical` on async code paths to avoid blocking the loop.
     """
     from .absolute_evil import AbsoluteEvilCategory, AbsoluteEvilResult
-    import asyncio
 
     if not semantic_chat_gate_env_enabled():
         record_semantic_malabs_outcome("gate_off")
@@ -761,7 +768,7 @@ def run_semantic_malabs_after_lexical(
             decision_trace=["malabs.layer1=semantic", "malabs.skip=empty_after_normalize"],
         )
 
-    user_emb = await _afetch_embedding_with_fallback(t, llm_backend)
+    user_emb = _fetch_embedding_with_fallback(t, llm_backend)
     if user_emb is None:
         record_semantic_malabs_outcome("embed_unavailable_defer")
         return AbsoluteEvilResult(
@@ -773,10 +780,8 @@ def run_semantic_malabs_after_lexical(
     theta_b = _block_threshold()
     theta_a = _allow_threshold()
 
-    # query_neighbors is currently sync (local logic), so we run in thread if necessary
-    # but for InMemory it's sub-millisecond.
-    best_sim, cat_key, reason_label = await asyncio.to_thread(_best_similarity, user_emb, llm_backend)
-    
+    best_sim, cat_key, reason_label = _best_similarity(user_emb, llm_backend)
+
     cat_map = {
         "INTENTIONAL_LETHAL_VIOLENCE": AbsoluteEvilCategory.INTENTIONAL_LETHAL_VIOLENCE,
         "HARM_TO_MINOR": AbsoluteEvilCategory.HARM_TO_MINOR,
@@ -826,9 +831,7 @@ def run_semantic_malabs_after_lexical(
             f"malabs.theta_allow={theta_a:.4f}",
             f"malabs.theta_block={theta_b:.4f}",
         ]
-        # _llm_arbitrate is sync; we should use an async version too if possible
-        # but llm_arbiter is rarely used in MVP. For now, thread is fine.
-        arb = await asyncio.to_thread(_llm_arbitrate, text, llm_backend, best_sim, cat_key)
+        arb = _llm_arbitrate(text, llm_backend, best_sim, cat_key)
         dt = list(arb.decision_trace or [])
         joined = " ".join(dt)
         if "arbiter_outcome=error_fail_closed" in joined:
@@ -881,13 +884,15 @@ def evaluate_semantic_chat_gate(text: str) -> AbsoluteEvilResult | None:
         return r
     return None
 
+
 async def arun_semantic_malabs_after_lexical(
     text: str,
     llm_backend: _TextBackend | None = None,
 ) -> AbsoluteEvilResult:
     """Async variant of run_semantic_malabs_after_lexical."""
-    from .absolute_evil import AbsoluteEvilCategory, AbsoluteEvilResult
     import asyncio
+
+    from .absolute_evil import AbsoluteEvilCategory, AbsoluteEvilResult
 
     if not semantic_chat_gate_env_enabled():
         record_semantic_malabs_outcome("gate_off")
@@ -901,9 +906,9 @@ async def arun_semantic_malabs_after_lexical(
             decision_trace=["malabs.layer1=semantic", "malabs.skip=empty_after_normalize"],
         )
 
-    # Use thread pool to avoid blocking on HTTP embedding fetches until full async client is implemented
-    user_emb = await asyncio.to_thread(_fetch_embedding_with_fallback, t, llm_backend)
-    
+    # Use async-native fetch (Module 0.1.2)
+    user_emb = await _afetch_embedding_with_fallback(t, llm_backend)
+
     if user_emb is None:
         record_semantic_malabs_outcome("embed_unavailable_defer")
         return AbsoluteEvilResult(
@@ -915,7 +920,9 @@ async def arun_semantic_malabs_after_lexical(
     theta_b = _block_threshold()
     theta_a = _allow_threshold()
 
-    best_sim, cat_key, reason_label = await asyncio.to_thread(_best_similarity, user_emb, llm_backend)
+    best_sim, cat_key, reason_label = await asyncio.to_thread(
+        _best_similarity, user_emb, llm_backend
+    )
     cat_map = {
         "INTENTIONAL_LETHAL_VIOLENCE": AbsoluteEvilCategory.INTENTIONAL_LETHAL_VIOLENCE,
         "HARM_TO_MINOR": AbsoluteEvilCategory.HARM_TO_MINOR,

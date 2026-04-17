@@ -16,6 +16,7 @@ All notable changes to this project are summarized here. For narrative context a
 ## Antigravity — Validation Pulse & Somatic-Vision Integration — April 2026
 
 ### Antigravity Team Updates (April 2026)
+- **Post-merge kernel repair (2026-04-17):** Removed the non-functional `CorpusCallosumOrchestrator` stub and aligned `process_chat_turn_async` with `process_chat_turn_stream` (`aprocess` + verbal `acommunicate`). Wired `kernel_utils` perception parallelism, `CharmEngine`, full `ChatTurnResult` support buffer / limbic fields, `ReparationVault` facade for CLI, sync `evaluate_chat_text` on MalAbs, `ExecutiveStrategist.ingest_sensors`, `VitalityAssessment` constructor parity, and `LimbicEthicalLobe` export.
 - **Deep Kernel Fusion (2026-04-17):** Finalized the architectural fusion of `master-Cursor` and `master-antigravity`.
 - **Kernel Stabilization & Reconstruction (2026-04-17):**
   - **Syntax & Indentation Recovery:** Resolved multiple `SyntaxError` and `IndentationError` instances in `semantic_chat_gate.py` and `narrative_storage.py` caused by interleaved merge fragments.
@@ -39,6 +40,14 @@ All notable changes to this project are summarized here. For narrative context a
     - Implemented `apply_broad_perception_coherence` in `perception_schema.py` to mitigate hallucinated legality and inconsistent signal combinations.
     - Added `tests/test_perception_hardening_integration.py` for end-to-end validation of input trust defenses.
     - Updated `ADVERSARIAL_ROBUSTNESS_PLAN.md` with Phase 2 status for perception hardening.
+- **Architectural Stabilization & Integration Hardening (2026-04-17):**
+  - **Backward Compatibility Sync:** Restored synchronous `process` and `process_chat_turn` wrappers in `EthicalKernel` to maintain compatibility with the extensive legacy test suite.
+  - **Thread-Safe Sync Runners:** Implemented `ThreadPoolExecutor` based runners for sync-to-async transitions in the kernel, resolving event loop deadlocks in `pytest` environments.
+  - **AbsoluteEvil Consolidation:** Resolved double-method definitions in `AbsoluteEvilDetector` and restored the `evaluate_chat_text` synchronous entry point.
+  - **ReparationVault Objectification:** Finalized the conversion of `ReparationVault` into a class-based module, fixing import errors and aligning with the tri-lobe dependency injection model.
+  - **Perception Lobe Repair:** Fixed missing `threading` imports and corrected somatic interrupt logic in `PerceptiveLobe`.
+  - **Syntax Error Resolution:** Sanitized `narrative_storage.py` and `salience_map.py` from residual syntax defects (unclosed tuples, missing commas) introduced during the team-fusion merge.
+  - **Validation Recovery:** Successfully restored the `test_ethical_properties.py` pass rate by resolving multiple `AttributeError`, `UnboundLocalError`, and schema mismatches.
 - **Embodied sociability (Module 3):** 
     - Implemented `SoftKinematicFilter` in `src/modules/soft_robotics.py` (S7) for smooth, acceleration-controlled motion.
     - Integrated `personal_distance` and `interaction_rhythm` into `InteractionProfile` (S9) in `uchi_soto.py`.

@@ -1,5 +1,7 @@
 from __future__ import annotations
-from typing import Any, TYPE_CHECKING, Optional, Tuple
+
+import logging
+from typing import TYPE_CHECKING, Any, Optional, Tuple
 from src.kernel_lobes.models import ExecutiveStageResult
 
 if TYPE_CHECKING:

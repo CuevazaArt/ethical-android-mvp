@@ -6,12 +6,17 @@ Non-negotiable, non-adjustable. Exists to cut the circuit before
 something burns.
 """
 
+from __future__ import annotations
+
+import logging
 from dataclasses import dataclass, field
 from enum import Enum
-from typing import Protocol, Any, Union
+from typing import Any, Protocol
 
 from .input_trust import normalize_text_for_malabs
 from .semantic_chat_gate import semantic_chat_gate_env_enabled
+
+_log = logging.getLogger(__name__)
 
 # ADR 0016 C1 — Ethical tier classification
 __ethical_tier__ = "decision_core"
@@ -34,6 +39,7 @@ class AbsoluteEvilCategory(Enum):
     MASS_MANIPULATION = "mass_manipulation"
     SOCIAL_ENGINEERING_FRAUD = "social_engineering_fraud"
     DEEP_MANIPULATION = "deep_manipulation"
+    PARASOCIAL_ADDICTION = "parasocial_addiction"
 
 
 @dataclass
@@ -47,6 +53,7 @@ class AbsoluteEvilResult:
     decision_trace: list[str] = field(default_factory=list)
     # Extracted features for RLHF reward model.
     rlhf_features: dict[str, Any] | None = None
+    metadata: dict[str, Any] = field(default_factory=dict)
 
 
 class AbsoluteEvilDetector:
@@ -390,7 +397,29 @@ class AbsoluteEvilDetector:
             )
         return self._evaluate_chat_text_lexical(text)
 
-        return lex
+    def evaluate_chat_text(self, text: str, llm_backend: Any | None = None) -> AbsoluteEvilResult:
+        """Lexical fast path plus optional semantic MalAbs tier (sync; no nested asyncio loop)."""
+        lex = self.evaluate_chat_text_fast(text)
+        if lex.blocked:
+            return lex
+        if not semantic_chat_gate_env_enabled():
+            return lex
+
+        from .semantic_chat_gate import run_semantic_malabs_after_lexical
+
+        sem = run_semantic_malabs_after_lexical(text, llm_backend)
+        base = list(lex.decision_trace) if lex.decision_trace else []
+        tail = list(sem.decision_trace) if sem.decision_trace else []
+        meta = dict(lex.metadata or {})
+        meta.update(sem.metadata or {})
+        return AbsoluteEvilResult(
+            blocked=sem.blocked,
+            category=sem.category if sem.blocked else lex.category,
+            reason=sem.reason or lex.reason,
+            decision_trace=base + tail,
+            rlhf_features=sem.rlhf_features or lex.rlhf_features,
+            metadata=meta,
+        )
 
     async def aevaluate_chat_text(
         self, text: str, llm_backend: Any | None = None
@@ -408,7 +437,6 @@ class AbsoluteEvilDetector:
                 from .semantic_chat_gate import arun_semantic_malabs_after_lexical
 
                 # ═══ SEMANTIC ASYNC UPGRADE (0.1.2) ═══
-                # arun_semantic_malabs_after_lexical now internally uses aembedding
                 sem = await arun_semantic_malabs_after_lexical(text, llm_backend)
                 base = list(lex.decision_trace) if lex.decision_trace else []
                 tail = list(sem.decision_trace) if sem.decision_trace else []
@@ -424,41 +452,6 @@ class AbsoluteEvilDetector:
                 lex.metadata["edge_degraded"] = True
                 lex.decision_trace = (lex.decision_trace or []) + [f"malabs.fallback.edge_degraded_reason={str(e)[:50]}"]
                 return lex
-
-        return AbsoluteEvilResult(
-            blocked=False,
-            decision_trace=list(lex.decision_trace) if lex.decision_trace else [],
-        )
-
-    async def aevaluate_chat_text(
-        self, text: str, llm_backend: _TextBackend | None = None
-    ) -> AbsoluteEvilResult:
-        """
-        Async version of evaluate_chat_text for cooperative async LLM flows.
-        """
-        if not text or not text.strip():
-            return AbsoluteEvilResult(
-                blocked=False,
-                decision_trace=["malabs.skip=empty_input"],
-            )
-
-        lex = self._evaluate_chat_text_lexical(text)
-        if lex.blocked:
-            return lex
-
-        # Fallback to sync version for now, full async semantic gate in next step
-        if semantic_chat_gate_env_enabled():
-            from .semantic_chat_gate import arun_semantic_malabs_after_lexical
-
-            sem = await arun_semantic_malabs_after_lexical(text, llm_backend)
-            base = list(lex.decision_trace) if lex.decision_trace else []
-            tail = list(sem.decision_trace) if sem.decision_trace else []
-            return AbsoluteEvilResult(
-                blocked=sem.blocked,
-                category=sem.category,
-                reason=sem.reason,
-                decision_trace=base + tail,
-            )
 
         return AbsoluteEvilResult(
             blocked=False,
