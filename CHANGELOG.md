@@ -6,6 +6,21 @@ All notable changes to this project are summarized here. For narrative context a
 
 [URGENTE - BROADCAST A TODOS LOS L2 MASTERS]: Todos los equipos (Claude, Cursor, Copilot) deben hacer un GIT PULL urgente desde MAIN hacia sus MASTERs. Las ramas desactualizadas enfrentarán asincronías severas en el pathing de documentación.
 
+## Team Copilot — Módulo 8: Concurrency Hardening & CharmEngine Tests — April 2026
+
+### Team Copilot Updates
+
+- **Bloque 8.2 — DB Indentation Fix (P0):** Repaired four `IndentationError` bugs in `src/persistence/narrative_storage.py` (`save_identity_digest`, `save_arc`, `prune_mundane`, `delete_episode`). All four methods had their `conn.execute()` bodies placed outside their `with conn:` blocks and `finally:` clauses outside their `try:` blocks, making those methods completely non-functional at runtime (the module would fail to even import). The fix correctly nests each SQL execute inside its `with conn:` transaction context and each `finally:` under its `try:`, matching the pattern established by `save_episode`.
+- **Bloque 8.1 — CharmEngine Test Suite:** Created `tests/test_charm_engine.py` (37 tests, all passing) covering:
+  - `StyleParametrizer`: caution/frustration/intimacy effects, value clamping, action-branch coverage.
+  - `GesturePlanner`: warmth/playfulness/directiveness trigger conditions, intensity bounds.
+  - `ResponseSculptor`: absolute-evil bypass, tone annotations, charm-vector rounding.
+  - `CharmEngine` facade: end-to-end, empty action, max-caution edge cases.
+  - **Concurrency** (Bloque 8.1 multithread spec): 10-thread concurrent `apply()` race test; isolation of absolute-evil results across threads.
+  - **Async** (cooperative cancel pattern): `run_in_executor` usage, `asyncio.gather` of 5 coroutines, cancellation-then-recovery test.
+  - **`sqlite_safe_write` smoke** (Bloque 8.2 utility): in-memory roundtrip, 8-thread concurrent file writes with counter integrity, singleton lock identity.
+  - **`NarrativePersistence` regression** tests for all four previously broken methods (`save_identity_digest`, `save_arc`, `delete_episode`, `prune_mundane`), and a concurrent episode-save test.
+
 ## Antigravity — Integration Pulse & Strategic Realignment (L1) — April 2026
 
 ### Antigravity Team Updates (April 2026)
