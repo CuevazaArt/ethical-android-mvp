@@ -202,49 +202,14 @@ from .validators.deprecation_warnings import check_deprecated_flags
 from .modules.charm_engine import CharmEngine
 
 
-def _kernel_env_truthy(name: str) -> bool:
-    v = os.environ.get(name, "").strip().lower()
-    return v in ("1", "true", "yes", "on")
 
-
-def _kernel_env_int(name: str, default: int) -> int:
-    raw = os.environ.get(name, "").strip()
-    if not raw:
-        return default
-    try:
-        return int(raw)
-    except ValueError:
-        return default
-
-
-def _perception_parallel_workers() -> int:
-    """
-    Worker count for optional perception-side parallel enrichment.
-
-    Enabled only when ``KERNEL_PERCEPTION_PARALLEL`` is truthy. If enabled and
-    ``KERNEL_PERCEPTION_PARALLEL_WORKERS`` is unset/invalid, use a conservative
-    hardware-aware default.
-    """
-    if not _kernel_env_truthy("KERNEL_PERCEPTION_PARALLEL"):
-        return 0
-    configured = _kernel_env_int("KERNEL_PERCEPTION_PARALLEL_WORKERS", 0)
-    if configured > 0:
-        return configured
-    cpu_n = os.cpu_count() or 2
-    return max(2, min(cpu_n, 8))
-
-
-def _perception_coercion_u_value(raw: Any) -> float | None:
-    """Normalize optional perception coercion uncertainty to [0, 1] or None."""
-    if raw is None:
-        return None
-    try:
-        u = float(raw)
-    except (TypeError, ValueError):
-        return None
-    if not math.isfinite(u):
-        return None
-    return max(0.0, min(1.0, u))
+# Extracted helpers moved to kernel_utils.py
+from .kernel_utils import (
+    kernel_env_truthy,
+    kernel_env_int,
+    perception_parallel_workers,
+    perception_coercion_u_value,
+)
 
 
 def kernel_dao_as_mock(dao: MockDAO | DAOOrchestrator) -> MockDAO:
