@@ -13,7 +13,7 @@ from ..modules.weighted_ethics_scorer import WeightedEthicsScorer
 
 __all__ = [
     "AbsoluteEvilDetector",
-    "PreloadedBuffer", 
+    "PreloadedBuffer",
     "WeightedEthicsScorer",
     "EthicalPoles",
     "SigmoidWill",

@@ -2,6 +2,7 @@
 Tests for Módulo 0 — Bloque 0.1: Desmonolitización de kernel.py
 (PerceptiveLobe, LimbicEthicalLobe, CerebellumNode).
 """
+
 from __future__ import annotations
 
 import asyncio
@@ -59,9 +60,7 @@ async def test_perceptive_lobe_timeout_returns_trauma() -> None:
     mock_llm.aperceive = slow_perceive
 
     lobe = PerceptiveLobe(llm=mock_llm)
-    with patch(
-        "src.kernel_lobes.perception_lobe._observe_timeout", return_value=0.05
-    ):
+    with patch("src.kernel_lobes.perception_lobe._observe_timeout", return_value=0.05):
         state = await lobe.observe("slow request")
 
     assert state.perception_confidence == 0.0
@@ -126,9 +125,7 @@ def test_limbic_lobe_trauma_applies_bayesian_penalty() -> None:
     state = SemanticState(
         perception_confidence=0.0,
         raw_prompt="x",
-        timeout_trauma=TimeoutTrauma(
-            source_lobe="PerceptiveLobe", latency_ms=3000, severity=1.0
-        ),
+        timeout_trauma=TimeoutTrauma(source_lobe="PerceptiveLobe", latency_ms=3000, severity=1.0),
     )
     lobe.judge(state)
     mock_bayesian.record_event_update.assert_called_once()

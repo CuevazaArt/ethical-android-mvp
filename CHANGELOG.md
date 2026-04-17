@@ -4,6 +4,13 @@ All notable changes to this project are summarized here. For narrative context a
 
 **Note:** Older sections below may still **link** to paths that were later removed (for example `experiments/million_sim/`, `docs/multimedia/`, root `dashboard.html`, `landing/`). Those links are **historical**; recover files from git history or backup branches if you need them.
 
+## Team Copilot — Pipeline integration tests + format hygiene — April 2026 (Session 4)
+
+### Team Copilot Updates
+
+- **`ruff format` violations cleared (5 files):** `src/core/__init__.py`, `tests/test_antigravity_strategy.py`, `tests/test_core_boundary.py`, `tests/test_module0_kernel_lobes.py`, `tests/test_module7_restorative_justice.py` — all reformatted so CI `ruff format --check` passes without drift.
+- **`tests/test_kernel_lobe_pipeline.py` (13 new tests):** End-to-end integration suite for the full Tri-Lobe pipeline (`PerceptiveLobe.observe()` → `LimbicEthicalLobe.judge()` → `ExecutiveLobe.formulate_response()`). Covers: happy-path safe responses, monologue suffix presence, LLM timeout trauma propagation into veto, LLM backend error into veto, mock-injected AbsoluteEvilDetector veto with reason string, standalone `ExecutiveLobe` safe/unsafe/no-reason paths, confidence-to-social-tension propagation, and high-tension-but-safe pass-through. Test suite: **1194 passed, 4 skipped**.
+
 ## Team Copilot — Charm Engine Proposal — April 2026 (Session 3)
 
 ### Team Copilot Updates

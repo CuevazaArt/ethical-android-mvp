@@ -4,6 +4,7 @@ Tests for Módulo 7: Justicia Restaurativa y Compensación Swarm.
 Bloque 7.1 — Swarm vote wired to EthosToken reparation.
 Bloque 7.2 — Adversarial fingerprint mismatch triggers SlashOracle penalty.
 """
+
 from __future__ import annotations
 
 from unittest.mock import MagicMock
@@ -20,11 +21,24 @@ from src.modules.swarm_oracle import SwarmOracle
 # Bloque 7.2 — Slashing
 # ─────────────────────────────────────────────────────────────
 
+
 def test_get_adversarial_nodes_empty_when_no_mismatch() -> None:
     mgr = FrontierWitnessManager(node_id="NODE_A")
     mgr.report_history = [
-        WitnessReport(request_id="r1", witness_node="NODE_B", confidence=0.9, verified=True, signal_fingerprint="HASH_X"),
-        WitnessReport(request_id="r1", witness_node="NODE_C", confidence=0.8, verified=True, signal_fingerprint="HASH_X"),
+        WitnessReport(
+            request_id="r1",
+            witness_node="NODE_B",
+            confidence=0.9,
+            verified=True,
+            signal_fingerprint="HASH_X",
+        ),
+        WitnessReport(
+            request_id="r1",
+            witness_node="NODE_C",
+            confidence=0.8,
+            verified=True,
+            signal_fingerprint="HASH_X",
+        ),
     ]
     assert mgr.get_adversarial_nodes("HASH_X") == []
 
@@ -32,9 +46,27 @@ def test_get_adversarial_nodes_empty_when_no_mismatch() -> None:
 def test_get_adversarial_nodes_detects_contradicting_peer() -> None:
     mgr = FrontierWitnessManager(node_id="NODE_A")
     mgr.report_history = [
-        WitnessReport(request_id="r1", witness_node="NODE_B", confidence=0.9, verified=True, signal_fingerprint="HASH_X"),
-        WitnessReport(request_id="r1", witness_node="NODE_LIAR", confidence=0.9, verified=True, signal_fingerprint="HASH_EVIL"),
-        WitnessReport(request_id="r1", witness_node="NODE_C", confidence=0.8, verified=True, signal_fingerprint="HASH_X"),
+        WitnessReport(
+            request_id="r1",
+            witness_node="NODE_B",
+            confidence=0.9,
+            verified=True,
+            signal_fingerprint="HASH_X",
+        ),
+        WitnessReport(
+            request_id="r1",
+            witness_node="NODE_LIAR",
+            confidence=0.9,
+            verified=True,
+            signal_fingerprint="HASH_EVIL",
+        ),
+        WitnessReport(
+            request_id="r1",
+            witness_node="NODE_C",
+            confidence=0.8,
+            verified=True,
+            signal_fingerprint="HASH_X",
+        ),
     ]
     adversarial = mgr.get_adversarial_nodes("HASH_X")
     assert adversarial == ["NODE_LIAR"]
@@ -43,8 +75,20 @@ def test_get_adversarial_nodes_detects_contradicting_peer() -> None:
 def test_get_adversarial_nodes_deduplicates() -> None:
     mgr = FrontierWitnessManager(node_id="NODE_A")
     mgr.report_history = [
-        WitnessReport(request_id="r1", witness_node="NODE_LIAR", confidence=0.9, verified=True, signal_fingerprint="HASH_EVIL"),
-        WitnessReport(request_id="r2", witness_node="NODE_LIAR", confidence=0.9, verified=True, signal_fingerprint="HASH_EVIL"),
+        WitnessReport(
+            request_id="r1",
+            witness_node="NODE_LIAR",
+            confidence=0.9,
+            verified=True,
+            signal_fingerprint="HASH_EVIL",
+        ),
+        WitnessReport(
+            request_id="r2",
+            witness_node="NODE_LIAR",
+            confidence=0.9,
+            verified=True,
+            signal_fingerprint="HASH_EVIL",
+        ),
     ]
     adversarial = mgr.get_adversarial_nodes("HASH_X")
     assert adversarial.count("NODE_LIAR") == 1
@@ -54,7 +98,13 @@ def test_get_adversarial_nodes_ignores_empty_fingerprint_peers() -> None:
     mgr = FrontierWitnessManager(node_id="NODE_A")
     # A peer that doesn't send a fingerprint should NOT be flagged
     mgr.report_history = [
-        WitnessReport(request_id="r1", witness_node="NODE_SILENT", confidence=0.9, verified=True, signal_fingerprint=""),
+        WitnessReport(
+            request_id="r1",
+            witness_node="NODE_SILENT",
+            confidence=0.9,
+            verified=True,
+            signal_fingerprint="",
+        ),
     ]
     assert mgr.get_adversarial_nodes("HASH_X") == []
 
@@ -62,7 +112,13 @@ def test_get_adversarial_nodes_ignores_empty_fingerprint_peers() -> None:
 def test_get_adversarial_nodes_returns_empty_when_local_fingerprint_empty() -> None:
     mgr = FrontierWitnessManager(node_id="NODE_A")
     mgr.report_history = [
-        WitnessReport(request_id="r1", witness_node="NODE_B", confidence=0.9, verified=True, signal_fingerprint="HASH_X"),
+        WitnessReport(
+            request_id="r1",
+            witness_node="NODE_B",
+            confidence=0.9,
+            verified=True,
+            signal_fingerprint="HASH_X",
+        ),
     ]
     assert mgr.get_adversarial_nodes("") == []
 
@@ -85,8 +141,20 @@ def test_slashing_pipeline_calls_oracle(tmp_path) -> None:
     """
     mgr = FrontierWitnessManager(node_id="NODE_A")
     mgr.report_history = [
-        WitnessReport(request_id="r1", witness_node="NODE_GOOD", confidence=0.9, verified=True, signal_fingerprint="HASH_OK"),
-        WitnessReport(request_id="r1", witness_node="NODE_BAD", confidence=0.9, verified=True, signal_fingerprint="HASH_FAKE"),
+        WitnessReport(
+            request_id="r1",
+            witness_node="NODE_GOOD",
+            confidence=0.9,
+            verified=True,
+            signal_fingerprint="HASH_OK",
+        ),
+        WitnessReport(
+            request_id="r1",
+            witness_node="NODE_BAD",
+            confidence=0.9,
+            verified=True,
+            signal_fingerprint="HASH_FAKE",
+        ),
     ]
 
     oracle = MagicMock(spec=SwarmOracle)
@@ -100,6 +168,7 @@ def test_slashing_pipeline_calls_oracle(tmp_path) -> None:
 # ─────────────────────────────────────────────────────────────
 # Bloque 7.1 — Swarm vote → EthosToken reparation
 # ─────────────────────────────────────────────────────────────
+
 
 def test_cast_distributed_vote_returns_consensus_on_low_risk() -> None:
     negotiator = SwarmNegotiator(node_id="NODE_A")
