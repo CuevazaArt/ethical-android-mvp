@@ -74,7 +74,18 @@ All notable changes to this project are summarized here. For narrative context a
   - **Thread-Safe Sync Runners:** Implemented `ThreadPoolExecutor` based runners for sync-to-async transitions in the kernel, resolving event loop deadlocks in `pytest` environments.
   - **AbsoluteEvil Consolidation:** Resolved double-method definitions in `AbsoluteEvilDetector` and restored the `evaluate_chat_text` synchronous entry point.
   - **ReparationVault Objectification:** Finalized the conversion of `ReparationVault` into a class-based module, fixing import errors and aligning with the tri-lobe dependency injection model.
-  - **Perception Lobe Repair:** Fixed missing `threading` imports and corrected somatic interrupt logic in `PerceptiveLobe`.
+- **Antigravity-Team Updates (2026-04-18):**
+    - **REFACTOR (Block 0.1.3):** Successfully desmonolithized `EthicalKernel` perception logic.
+        - Migrated `_run_perception_stage`, `_preprocess_text_observability`, and sensor-stack evaluation to `PerceptiveLobe`.
+        - Centralized `PerceptionStageResult` in `src/kernel_lobes/models.py`.
+        - Decoupled asynchronous I/O from the monolithic kernel core.
+    - **STABILIZATION:**
+        - Fixed `NameError` in `resolve_monologue_llm_backend_policy` (missing `g` definition).
+        - Fixed `AttributeError` in `UserModelTracker.to_public_dict` (corrected `charm_reciprocity` mapping).
+        - Restored `maybe_register_reparation_after_mock_court` module-level wrapper for `chat_server.py`.
+        - Resolved `AttributeError` in `PerceptiveLobe` by correcting `MissionOrigin` and mission title handling.
+    - **GOVERNANCE:**
+        - Updated `AGENTS.md` to reflect `Team VisualStudio` exhaustion status [INACTIVE].
   - **Syntax Error Resolution:** Sanitized `narrative_storage.py` and `salience_map.py` from residual syntax defects (unclosed tuples, missing commas) introduced during the team-fusion merge.
   - **Validation Recovery:** Successfully restored the `test_ethical_properties.py` pass rate (100%) by resolving multiple `AttributeError`, `UnboundLocalError`, and schema mismatches. Recovered critical logic for `SolidarityAlert` emission (triggered by environmental risk > 0.8) and `AlgorithmicForgiveness` experience registration that was lost during the tri-lobe refactor.
 - **Embodied sociability (Module 3):** 

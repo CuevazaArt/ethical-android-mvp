@@ -204,3 +204,13 @@ def maybe_register_reparation_after_mock_court(
 def clear_reparation_vault_cases_for_tests() -> None:
     """Tests only — reset mock ledger."""
     _case_store.clear()
+
+
+def maybe_register_reparation_after_mock_court(
+    dao: MockDAO,
+    mock_court: dict[str, Any] | None,
+    case_uuid: str,
+) -> None:
+    """Module-level wrapper for ReparationVault method."""
+    vault = ReparationVault(dao)
+    vault.maybe_register_reparation_after_mock_court(mock_court, case_uuid)

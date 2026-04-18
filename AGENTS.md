@@ -47,7 +47,9 @@ The ethical-android-mvp project operates under a strict, multi-tiered collaborat
 3.  **Level 2 (Executing Units): Claude, Team Cursor, Team Copilot, etc.**
    - Responsible for executing assigned technical tasks from the roadmap and task queues.
    - **Claude:** Specialized in complex cognitive modeling and deep ethics modules, now operating under direct Level 1 (Antigravity) coordination.
-   - **Team Copilot Specifics:** Focused on GitHub maintenance, repository hygiene (.gitignore, CI/CD stubs), and cross-module bug fixing.
+   - **cursorultra:** New executing unit joining the squad for high-performance coding and architectural support.
+   - **Team VisualStudio:** [STATUS: INACTIVE/EXHAUSTED] Currently on leave until further notice.
+   - **Team Copilot Specifics:** Focused on GitHub maintenance, repository hygiene (.gitignore, CI/CD stubs), and cross-module bug fixing. *New Delegation:* Copilot now acts as the **CI Sentinel**, leveraging its remote GitHub-native presence to supervise, triage, and report on asynchronous GitHub Actions test runs for all teams during its idle cycles.
    - All Level 2 teams must strictly adhere to the synchronization rules, run continuous audits, and cannot modify foundational rules without L1 authorization.
 
 ## Onboarding for New Teams

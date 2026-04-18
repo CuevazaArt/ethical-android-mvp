@@ -67,3 +67,20 @@ class BayesianStageMetadata:
     bma_win_probabilities: Optional[dict[str, float]] = None
     bma_dirichlet_alpha: Optional[tuple[float, float, float]] = None
     bma_n_samples: Optional[int] = None
+
+
+@dataclass
+class PerceptionStageResult:
+    """Shared perception stage output for chat/natural entrypoints."""
+    tier: Any
+    premise_advisory: Any # PremiseAdvisory
+    reality_verification: Any # RealityVerificationAssessment
+    perception: Any # LLMPerception
+    vitality: Any # VitalityAssessment
+    multimodal_trust: Any # MultimodalAssessment
+    epistemic_dissonance: Any # EpistemicDissonanceAssessment
+    signals: dict[str, float]
+    support_buffer: dict[str, Any]
+    limbic_profile: dict[str, Any]
+    temporal_context: Any # TemporalContext
+    perception_confidence: Any # PerceptionConfidenceEnvelope
