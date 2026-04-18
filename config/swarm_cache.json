@@ -1,0 +1,38 @@
+{
+  "peer_001": {
+    "node_id": "peer_001",
+    "last_seen": 1776483662.4650898,
+    "reputation": 0.5000000000000002,
+    "confirmed_witnesses": 3
+  },
+  "peer_002": {
+    "node_id": "peer_002",
+    "last_seen": 1776483662.4797692,
+    "reputation": 0.0,
+    "confirmed_witnesses": 0
+  },
+  "peer_003": {
+    "node_id": "peer_003",
+    "last_seen": 1776483662.4992766,
+    "reputation": 0.2000000000000001,
+    "confirmed_witnesses": 3
+  },
+  "persistent_peer": {
+    "node_id": "persistent_peer",
+    "last_seen": 1776483662.537626,
+    "reputation": 1.0,
+    "confirmed_witnesses": 3
+  },
+  "witness_node_001": {
+    "node_id": "witness_node_001",
+    "last_seen": 1776483662.5587566,
+    "reputation": 0.3000000000000001,
+    "confirmed_witnesses": 6
+  },
+  "peer_scenario_001": {
+    "node_id": "peer_scenario_001",
+    "last_seen": 1776483661.5462625,
+    "reputation": 1.0,
+    "confirmed_witnesses": 2
+  }
+}
