@@ -113,6 +113,10 @@ def test_nomad_public_queue_stats_shape(nomad_client):
     assert "vision_queued" in stats
     assert stats["latest_telemetry_present"] is False
     assert stats["latest_telemetry_keys"] == []
+    lim = stats["limits"]
+    assert lim["max_vision_frame_bytes"] > 0
+    assert lim["max_audio_pcm_bytes"] > 0
+    assert lim["max_telemetry_keys"] > 0
 
 
 @pytest.mark.asyncio

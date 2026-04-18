@@ -63,7 +63,8 @@ This contract is intended for operator dashboards and alerting stability across 
 ### Nomad bridge, vitality merge, and embodied sociability (Modules S.1 / S.2.1 / S10)
 
 - **`KERNEL_NOMAD_TELEMETRY_VITALITY`** (default `1`): last Nomad WebSocket `telemetry` payload is merged into the sensor snapshot **only where fields are still unset** before `assess_vitality`. Set `0` to keep vitality purely client-side. Implementation: [`src/modules/nomad_bridge.py`](../../src/modules/nomad_bridge.py) (`peek_latest_telemetry`), [`src/modules/vitality.py`](../../src/modules/vitality.py) (`merge_nomad_telemetry_into_snapshot`), [`src/kernel.py`](../../src/kernel.py).
-- **`KERNEL_CHAT_INCLUDE_TRANSPARENCY_S10`** (default `1`): when enabled, chat JSON may include optional **`transparency_s10`** (action narration, withdrawal, discomfort index, operator help codes). Set `0` to omit. Implementation: [`src/modules/transparency_s10.py`](../../src/modules/transparency_s10.py), [`src/chat_server.py`](../../src/chat_server.py).
+- **`KERNEL_CHAT_INCLUDE_TRANSPARENCY_S10`** (default `1`): when enabled, chat JSON may include optional **`transparency_s10`** (action narration, withdrawal, discomfort index, operator help codes). Root object uses **`schema`: `ethos_transparency_s10_bundle_v1`** plus per-block schemas. Set `0` to omit. Implementation: [`src/modules/transparency_s10.py`](../../src/modules/transparency_s10.py), [`src/chat_server.py`](../../src/chat_server.py).
+- **`GET /health` → `nomad_bridge.limits`:** echoes effective **`KERNEL_NOMAD_MAX_VISION_FRAME_BYTES`**, **`KERNEL_NOMAD_MAX_AUDIO_PCM_BYTES`**, and **`KERNEL_NOMAD_MAX_TELEMETRY_KEYS`** (same defaults as [`../ENV_VAR_CATALOG.md`](../ENV_VAR_CATALOG.md) §11).
 
 Canonical env list: [`../ENV_VAR_CATALOG.md`](../ENV_VAR_CATALOG.md) §7 and §11.
 

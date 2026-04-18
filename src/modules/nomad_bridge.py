@@ -128,6 +128,8 @@ class NomadBridge:
 
         Includes **key names only** from the last ``telemetry`` payload (no values), for S.2.1
         vitality merge observability without leaking raw sensor readings in logs.
+
+        ``limits`` echoes effective caps from ``KERNEL_NOMAD_MAX_*`` env (decoded bytes / dict keys).
         """
         peek = self.peek_latest_telemetry()
         tel_keys = sorted(peek.keys()) if peek else []
@@ -143,6 +145,11 @@ class NomadBridge:
             "charm_feedback_max": self.charm_feedback_queue.maxsize,
             "latest_telemetry_present": bool(peek),
             "latest_telemetry_keys": tel_keys,
+            "limits": {
+                "max_vision_frame_bytes": max_vision_frame_bytes(),
+                "max_audio_pcm_bytes": max_audio_pcm_bytes(),
+                "max_telemetry_keys": max_telemetry_dict_keys(),
+            },
         }
 
     async def _recv_loop(self, ws: WebSocket):

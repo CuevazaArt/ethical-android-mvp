@@ -49,9 +49,12 @@ ENV_LLM_GLOBAL_DEFAULT_POLICY = "KERNEL_LLM_GLOBAL_DEFAULT_POLICY"
 
 DEFAULT_MONOLOGUE_BACKEND_POLICY = "passthrough"
 
+MONOLOGUE_POLICIES = frozenset({"passthrough", "annotate_degraded"})
+
+GLOBAL_POLICY_SAFE = "safe"
+
 EMBEDDING_POLICIES = frozenset({"passthrough", "hash_fallback"})
 DEFAULT_EMBEDDING_BACKEND_POLICY = "hash_fallback"
-
 
 
 def global_safe_policy_enabled() -> bool:
@@ -103,6 +106,7 @@ def resolve_monologue_llm_backend_policy() -> str:
     leg = os.environ.get(ENV_MONOLOGUE_BACKEND_POLICY, "").strip().lower()
     if leg and leg in MONOLOGUE_POLICIES:
         return leg
+    g = raw_global_default_policy()
     if g and g in MONOLOGUE_POLICIES:
         return g
     return DEFAULT_MONOLOGUE_BACKEND_POLICY

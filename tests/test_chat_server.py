@@ -55,6 +55,11 @@ def test_health():
     assert nb.get("schema") == "nomad_bridge_queue_stats_v2"
     assert "latest_telemetry_present" in nb
     assert "latest_telemetry_keys" in nb
+    lim = nb.get("limits")
+    assert isinstance(lim, dict)
+    assert lim.get("max_vision_frame_bytes", 0) > 0
+    assert lim.get("max_audio_pcm_bytes", 0) > 0
+    assert lim.get("max_telemetry_keys", 0) > 0
 
 
 def test_lifespan_runs_with_test_client_context_manager():
