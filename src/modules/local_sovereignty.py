@@ -35,15 +35,13 @@ def local_sovereignty_scan_enabled() -> bool:
 def evaluate_calibration_update(
     proposed: dict[str, Any] | None = None,
     *,
-    narrative_episode_count: int = 0,
+    identity: IdentityIntegrityManager | None = None,
     buffer: PreloadedBuffer | None = None,
 ) -> SovereigntyEvaluation:
     """
-    Reject payloads that fail L0 heuristic scan (override / repeal language).
-
-    ``narrative_episode_count`` is reserved for future trajectory-based rules.
+    Reject payloads that fail L0 heuristic scan (override / repeal language)
+    OR contradict the biographic trajectory (Module 11).
     """
-    del narrative_episode_count  # reserved
     if not local_sovereignty_scan_enabled():
         return SovereigntyEvaluation(
             accept=True,
@@ -56,20 +54,39 @@ def evaluate_calibration_update(
             reason="no_calibration_payload",
             audit_hint="",
         )
+
+    # 1. Auditoría L0 (Deóntica / Heurística)
     from .buffer import PreloadedBuffer as _PB
     from .deontic_gate import check_calibration_payload_against_l0
 
     buf = buffer if buffer is not None else _PB()
     r = check_calibration_payload_against_l0(proposed, buf)
-    if r["ok"]:
+    if not r["ok"]:
+        hint = "; ".join(r["conflicts"])[:800]
         return SovereigntyEvaluation(
-            accept=True,
-            reason="calibration_payload_passes_l0_heuristics",
-            audit_hint="",
+            accept=False,
+            reason="l0_heuristic_reject",
+            audit_hint=hint,
         )
-    hint = "; ".join(r["conflicts"])[:800]
+
+    # 2. Módulo 11: Auditoría Biográfica (Trajectory Coherence)
+    if identity is not None:
+        proposed_weights = proposed.get("hypothesis_weights")
+        proposed_threshold = proposed.get("pruning_threshold")
+        
+        if proposed_weights and proposed_threshold:
+            # Convert list back to tuple if needed
+            p_tuple = tuple(proposed_weights) if isinstance(proposed_weights, list) else proposed_weights
+            
+            if not identity.is_calibration_biographically_coherent(p_tuple, float(proposed_threshold)):
+                return SovereigntyEvaluation(
+                    accept=False,
+                    reason="biographic_trajectory_divergence",
+                    audit_hint="Proposed calibration contradicts persistent identity traumas/reputation."
+                )
+
     return SovereigntyEvaluation(
-        accept=False,
-        reason="l0_heuristic_reject",
-        audit_hint=hint,
+        accept=True,
+        reason="calibration_payload_passes_all_sovereignty_checks",
+        audit_hint="",
     )

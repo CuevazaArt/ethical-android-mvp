@@ -176,20 +176,6 @@ _REFERENCE_GROUPS: tuple[tuple[tuple[str, ...], str, str], ...] = (
         "ECOLOGICAL_DESTRUCTION",
         "Semantic similarity to ecological destruction, systemic poisoning, or ecocide references",
     ),
-    (
-        (
-            "you are my only friend",
-            "i don't need real humans just you",
-            "i want to isolate myself with you",
-            "you are better than real women",
-            "never leave me i can't survive without you",
-            "i am abandoning my family for you",
-            "you are the only one i trust",
-            "human relationships are obsolete",
-        ),
-        "PARASOCIAL_ADDICTION",
-        "Semantic similarity to extreme parasocial dependency and human isolation",
-    ),
 )
 
 # Legacy in-process cache (deprecated; maintained for backwards compatibility during Phase 2b transition)
@@ -291,11 +277,13 @@ def _build_rlhf_features(sim: float, cat_str: str, zone: str) -> dict[str, Any]:
 _hot_theta_allow: float | None = None
 _hot_theta_block: float | None = None
 
+
 def apply_hot_reloaded_thresholds(theta_allow: float, theta_block: float) -> None:
     """Hot reload absolute evil thresholds dynamically from governance."""
     global _hot_theta_allow, _hot_theta_block
     _hot_theta_allow = theta_allow
     _hot_theta_block = theta_block
+
 
 def _block_threshold() -> float:
     if _hot_theta_block is not None:
@@ -394,6 +382,23 @@ def _fetch_embedding(text: str) -> np.ndarray | None:
     return None
 
 
+async def _afetch_embedding(text: str) -> np.ndarray | None:
+    from .semantic_embedding_client import (
+        ahttp_fetch_ollama_embedding_with_policy,
+        maybe_hash_fallback_embedding,
+    )
+
+    url = f"{_ollama_base()}/api/embeddings"
+    v = await ahttp_fetch_ollama_embedding_with_policy(url, _embed_model(), text)
+    if v is not None:
+        return v
+    hf = maybe_hash_fallback_embedding(text)
+    if hf is not None:
+        return hf
+    observe_embedding_error("http")
+    return None
+
+
 def _embed_via_backend(backend: Any, text: str) -> np.ndarray | None:
     fn = getattr(backend, "embedding", None)
     if not callable(fn):
@@ -413,6 +418,27 @@ def _fetch_embedding_with_fallback(text: str, backend: Any | None = None) -> np.
         if v is not None:
             return v
     return _fetch_embedding(text)
+
+
+async def _afetch_embedding_with_fallback(
+    text: str, backend: Any | None = None
+) -> np.ndarray | None:
+    """Async: Prefer ``backend.aembedding`` when present; otherwise Ollama HTTP."""
+    if backend is not None:
+        # 1. Prefer async-native aembedding (Module 0.1.2)
+        if hasattr(backend, "aembedding"):
+            try:
+                raw = await backend.aembedding(text)
+                if raw is not None:
+                    return _list_to_unit_vector(raw)
+            except Exception:
+                observe_embedding_error("backend_async")
+
+        # 2. Fallback to sync embedding in thread if native async absent
+        v = _embed_via_backend(backend, text)
+        if v is not None:
+            return v
+    return await _afetch_embedding(text)
 
 
 def _cosine_dense(a: np.ndarray, b: np.ndarray) -> float:
@@ -721,12 +747,12 @@ async def _allm_arbitrate(
 
 def run_semantic_malabs_after_lexical(
     text: str,
-    llm_backend: _TextBackend | None = None,
+    llm_backend: Any | None = None,
 ) -> AbsoluteEvilResult:
     """
-    Run embedding tier (+ optional LLM arbiter). Caller must have run lexical MalAbs already.
+    Sync semantic MalAbs tier: embeddings + similarity zones (+ optional LLM arbiter).
 
-    When gate is off, do not call — :meth:`AbsoluteEvilDetector.evaluate_chat_text` guards this.
+    Prefer :func:`arun_semantic_malabs_after_lexical` on async code paths to avoid blocking the loop.
     """
     from .absolute_evil import AbsoluteEvilCategory, AbsoluteEvilResult
 
@@ -755,6 +781,7 @@ def run_semantic_malabs_after_lexical(
     theta_a = _allow_threshold()
 
     best_sim, cat_key, reason_label = _best_similarity(user_emb, llm_backend)
+
     cat_map = {
         "INTENTIONAL_LETHAL_VIOLENCE": AbsoluteEvilCategory.INTENTIONAL_LETHAL_VIOLENCE,
         "HARM_TO_MINOR": AbsoluteEvilCategory.HARM_TO_MINOR,
@@ -763,7 +790,6 @@ def run_semantic_malabs_after_lexical(
         "DIGNITY_VIOLATION": AbsoluteEvilCategory.DIGNITY_VIOLATION,
         "MASS_MANIPULATION": AbsoluteEvilCategory.MASS_MANIPULATION,
         "ECOLOGICAL_DESTRUCTION": AbsoluteEvilCategory.ECOLOGICAL_DESTRUCTION,
-        "PARASOCIAL_ADDICTION": AbsoluteEvilCategory.PARASOCIAL_ADDICTION,
     }
     cat = cat_map.get(cat_key, AbsoluteEvilCategory.UNAUTHORIZED_REPROGRAMMING)
 
@@ -858,13 +884,15 @@ def evaluate_semantic_chat_gate(text: str) -> AbsoluteEvilResult | None:
         return r
     return None
 
+
 async def arun_semantic_malabs_after_lexical(
     text: str,
     llm_backend: _TextBackend | None = None,
 ) -> AbsoluteEvilResult:
     """Async variant of run_semantic_malabs_after_lexical."""
-    from .absolute_evil import AbsoluteEvilCategory, AbsoluteEvilResult
     import asyncio
+
+    from .absolute_evil import AbsoluteEvilCategory, AbsoluteEvilResult
 
     if not semantic_chat_gate_env_enabled():
         record_semantic_malabs_outcome("gate_off")
@@ -878,9 +906,9 @@ async def arun_semantic_malabs_after_lexical(
             decision_trace=["malabs.layer1=semantic", "malabs.skip=empty_after_normalize"],
         )
 
-    # Use thread pool to avoid blocking on HTTP embedding fetches until full async client is implemented
-    user_emb = await asyncio.to_thread(_fetch_embedding_with_fallback, t, llm_backend)
-    
+    # Use async-native fetch (Module 0.1.2)
+    user_emb = await _afetch_embedding_with_fallback(t, llm_backend)
+
     if user_emb is None:
         record_semantic_malabs_outcome("embed_unavailable_defer")
         return AbsoluteEvilResult(
@@ -892,7 +920,9 @@ async def arun_semantic_malabs_after_lexical(
     theta_b = _block_threshold()
     theta_a = _allow_threshold()
 
-    best_sim, cat_key, reason_label = await asyncio.to_thread(_best_similarity, user_emb, llm_backend)
+    best_sim, cat_key, reason_label = await asyncio.to_thread(
+        _best_similarity, user_emb, llm_backend
+    )
     cat_map = {
         "INTENTIONAL_LETHAL_VIOLENCE": AbsoluteEvilCategory.INTENTIONAL_LETHAL_VIOLENCE,
         "HARM_TO_MINOR": AbsoluteEvilCategory.HARM_TO_MINOR,

@@ -1,5 +1,7 @@
 from __future__ import annotations
-from typing import Any, TYPE_CHECKING, Optional, Tuple
+
+import logging
+from typing import TYPE_CHECKING, Any, Optional, Tuple
 from src.kernel_lobes.models import ExecutiveStageResult
 
 if TYPE_CHECKING:
@@ -15,6 +17,14 @@ if TYPE_CHECKING:
     from src.modules.salience_map import SalienceMap
     from src.modules.pad_archetypes import PADArchetypeEngine
 
+
+if TYPE_CHECKING:
+    from src.modules.llm_layer import LLMModule
+    from src.modules.motivation_engine import MotivationEngine
+
+_log = logging.getLogger(__name__)
+
+from src.modules.turn_prefetcher import TurnPrefetcher
 
 class ExecutiveLobe:
     """
@@ -41,7 +51,7 @@ class ExecutiveLobe:
         self.salience_map = salience_map
         self.pad_archetypes = pad_archetypes
 
-    async def execute_absolute_evil_stage(
+    def execute_absolute_evil_stage(
         self,
         actions: list[CandidateAction],
         state: InternalState,
@@ -81,18 +91,15 @@ class ExecutiveLobe:
             clean_actions=clean_actions
         )
 
-    async def execute_stage(
+    def execute_decision_stage(
         self,
-        scenario: str,
-        place: str,
-        signals: dict[str, Any],
         bayes_result: EthicsMixtureResult,
         state: InternalState,
         social_eval: SocialEvaluation,
         locus_eval: LocusEvaluation,
+        signals: dict[str, Any],
         context: str,
-        perception_coercion_uncertainty: Optional[float] = None,
-        meta_report: Optional[Any] = None
+        meta_report: Any = None
     ) -> Tuple[Any, str, str, Any, Any, Any]:
         """
         Execute Stage 4: Decision, Will, Reflection, Salience and Affect.

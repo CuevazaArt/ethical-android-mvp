@@ -21,21 +21,27 @@ class PrivacyShield:
 
     def anonymize_snapshot(self, snapshot: dict[str, Any]) -> dict[str, Any]:
         """
-        Redacts identifying information from a sensor snapshot.
+        Redacts identifying information or sensitive entities from a sensor snapshot.
+        Smartphone Idea: Intelligent Privacy Protector.
         """
         anonymized = snapshot.copy()
+        entities = snapshot.get("entities", [])
         
-        # Redact raw visual data (mock)
-        if "visual_frame" in anonymized:
-            anonymized["visual_frame"] = "[REDACTED: BLURRED_FACES]"
+        # 1. Proactive Privacy: If sensitive objects are detected, block raw stream
+        sensitive_targets = ["id_card", "credit_card", "document", "password_input", "face"]
+        has_sensitive = any(e in sensitive_targets for e in entities)
+        
+        if has_sensitive or "visual_frame" in anonymized:
+            _type = "SENSITIVE_ENTITY_DETECTED" if has_sensitive else "GPDR_BLUR"
+            anonymized["visual_frame"] = f"[REDACTED: {_type}]"
             anonymized["visual_metadata"] = {
-                "anonymization_schema": "blur_v1",
+                "anonymization_schema": "proactive_privacy_v1",
+                "triggered_by": [e for e in entities if e in sensitive_targets],
                 "original_hash": self.generate_fingerprint(snapshot.get("visual_frame", ""))
             }
         
-        # Redact precise coordinates
+        # 2. Precise Coordinates Redaction
         if "gps" in anonymized:
-            # Add noise to location or truncate decimals
             anonymized["gps"] = "[REDACTED: COARSE_LOCATION]"
 
         return anonymized

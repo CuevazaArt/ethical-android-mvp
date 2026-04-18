@@ -1,5 +1,5 @@
 from __future__ import annotations
-from typing import Any, TYPE_CHECKING
+from typing import TYPE_CHECKING, Any, Optional
 from src.kernel_lobes.models import LimbicStageResult
 
 if TYPE_CHECKING:
@@ -21,16 +21,14 @@ class LimbicEthicalLobe:
         uchi_soto: UchiSotoModule,
         sympathetic: SympatheticModule,
         locus: LocusModule,
-        swarm: Any = None,
-        oracle: Any = None
+        swarm: Any = None
     ):
         self.uchi_soto = uchi_soto
         self.sympathetic = sympathetic
         self.locus = locus
         self.swarm = swarm
-        self.oracle = oracle
 
-    async def execute_stage(
+    def execute_stage(
         self,
         agent_id: str,
         signals: dict[str, float],
@@ -87,35 +85,9 @@ class LimbicEthicalLobe:
         return LimbicStageResult(
             social_evaluation=social_eval,
             internal_state=state,
-            locus_evaluation=locus_eval
+            locus_evaluation=locus_eval,
         )
 
-    async def execute_swarm_consensus_stage(
-        self,
-        dao: Any,
-        proposal_id: str,
-        action: str,
-        signals: dict[str, float],
-        peers: list[str],
-        case_ref: str = "incident_unspecified"
-    ) -> bool:
-        """
-        Conduct a swarm consensus vote and apply justice if needed. (Module 7)
-        """
-        if not self.swarm:
-            return False
-            
-        is_consensus = self.swarm.cast_distributed_vote(
-            proposal_id=proposal_id,
-            action=action,
-            signals=signals,
-            peers=peers
-        )
-        
-        if is_consensus:
-            self.swarm.promote_consensus_to_dao(dao)
-            
-        # Apply justice regardless of consensus outcome to catch deviant peers in the log
-        self.swarm.apply_swarm_justice(dao, self.oracle, case_ref)
-        
-        return is_consensus
+
+# Stable name expected by ``kernel`` / ``kernel_lobes.__init__`` imports.
+LimbicLobe = LimbicEthicalLobe

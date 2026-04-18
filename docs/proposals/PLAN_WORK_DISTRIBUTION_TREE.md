@@ -1,6 +1,6 @@
 # Árbol de Distribución de Trabajo: Escalado a Infraestructura Pública (Fase 8+)
 
-Este documento estructura el volumen de trabajo arquitectónico definido para el Ethos Kernel. El trabajo se asigna a los diferentes equipos (Tiers) según las reglas de gobernanza del repositorio (`AGENTS.md`).
+Este documento estructura el inmenso volumen de trabajo arquitectónico definido para el Ethos Kernel tras la exitosa integración del modelo Tri-lobulado y la evaluación visual-somática en `main`. El trabajo se asigna a los diferentes equipos (Tiers) según las reglas de gobernanza del repositorio (`AGENTS.md`).
 
 > [!IMPORTANT]
 > **Nueva Directiva Estratégica (Update L1 - Abril 2026)**:
@@ -10,61 +10,90 @@ Este documento estructura el volumen de trabajo arquitectónico definido para el
 
 ## 🌳 Árbol de Distribución de Módulos (Blocks Tree)
 
-### ✅ Módulos Consolidados / Completados
-*Se han colapsado los módulos tras su finalización exitosa. Referirse al `CHANGELOG.md` para trazabilidad.*
-- **Módulo 0**: Estabilización Pragmática y Desmonolitización (Lóbulos, WebSockets Concurrentes) [DONE]
-- **Módulo 1**: Infraestructura DAO Híbrida (Simulación Local Mock) [DONE]
-- **Módulo 2**: Simulador, Red-Teaming y Validación Funcional [DONE]
-- **Módulo 3**: Sociabilidad Encarnada y Cinemática (S-Blocks) [DONE]
-- **Módulo C**: Profundidad Cognitiva, BMA, y Gobernanza Runtime [DONE]
-- **Módulo 6 & 7**: Swarm Ethics, Justicia Restaurativa y Slashing [DONE]
-- **Módulo E (Core)**: Integración base del Motor de Encanto y Salvaguardas Contra Adicción Parasocial (L1 Antigravity) [DONE]
+### ⚙️ Módulo 0: Estabilización Pragmática y Reducción de Deuda (Nuevo P0/P1)
+*Responsabilidad: Nivel 1 (Antigravity)*
+*Objetivo: Mitigar vulnerabilidades operacionales, desmonolitizar componentes críticos y lograr paridad de operaciones/tests enfocado en funcionalidad práctica.*
 
----
+- **Bloque 0.1: Desmonolitización y Abstracción de `kernel.py` (Prioridad Absoluta)**
+  - Tarea 0.1.1: **Solución Práctica a E/S Sincrónica:** Migrar el pipeline de inferencia HTTP de LLMs (`httpx` sincrónico dentro del hilo worker) hacia clientes cooperativos asíncronos (`httpx.AsyncClient`).
+  - Tarea 0.1.2: **Cancelación Cooperativa (Task Cancellation):** Implementar la cancelación transparente de tareas de red pendientes cuando el loop asíncrono se venza (`KERNEL_CHAT_TURN_TIMEOUT`), liberando inmediatamente memoria y slots en el Worker Pool.
+  - Tarea 0.1.3: Extraer la `Perception` y la lógica de ruteo ético del objeto `EthicalKernel` gigante hacia handlers aislados que aprovechen el Async I/O en lugar de abusar de `run_in_threadpool`.
+- **Bloque 0.2: Escalabilidad del Chat Server**
+  - Tarea 0.2.1: Rediseñar la capa WebSocket del servidor (`chat_server.py`) para manejar concurrencia pura sin bloquear el event loop principal, permitiendo streaming asíncrono.
+- **Bloque 0.3: Mantenimiento Histórico (Legacy Modules) [DONE]**
+  - Tarea 0.3.1: Los módulos de la integración fundacional 1 al 6 (Mock DAO, Safety Interlock, UchiSoto, Swarm Logic) han sido consolidados y se consideran estables en producción local.
 
-### 🟢 Módulo S: Encarnación Activa y Hardware Bridge (Nomad PC/Mobile) [PRIORIDAD 0]
-*Responsabilidad: Nivel 2 (Team Cursor)*
-*Objetivo: Integrar sensores reales (visión/audio) provenientes de un dispositivo móvil LAN como inputs de inferencia física, abandonando las señales de prueba simuladas.*
+### 🧠 Módulo C: Profundidad Cognitiva y Recompensas RLHF
+*Responsabilidad: Nivel 2 (Team Claude)*
+*Dependencias: Modelo RLHF existente y Motor Bayesiano.*
+
+- **Bloque C.1: Fusión BMA (Bayesian Mixture Averaging) y Recompensas RLHF**
+  - Tarea C.1.1: Conectar los *outputs* asíncronos del `rlhf_reward_model.py` directamente como *Priors* moduladores dentro de `bayesian_engine.py` en tiempo real.
+  - Tarea C.1.2: Validar el arrastre de métricas RLHF sobre las decisiones de los polos multipolares en el estadio 3 del Kernel.
+- **Bloque C.2: Gobernanza Real en Runtime**
+  - Tarea C.2.1: Implementar handlers para que cualquier voto exitoso en el `MultiRealmGovernor` altere en vivo (hot-reload) los umbrales de Absoluto Mal (`semantic_chat_gate.py`) sin necesidad de reiniciar el proceso del kernel.
+
+### 🦾 Módulo S: Encarnación Activa y Hardware Bridge (Nomad PC/Mobile)
+*Responsabilidad: Nivel 2 (Team Cursor / Team VisualStudio)*
+*Dependencias: Arquitectura Somática e Inferencia de Visión estabilizada.*
 
 - **Bloque S.1: Nomad SmartPhone LAN Bridge**
-  - Tarea S.1.1: Desarrollar conectores WebSocket o WebRTC de baja latencia (`src/modules/nomad_bridge.py`) para consumir streams de video y audio desde un dispositivo móvil Android/iOS en red local, inyectando los fotogramas en el `VisionInference` de manera asíncrona.
+  - Tarea S.1.1: Desarrollar conectores WebSocket o WebRTC de baja latencia (`src/modules/nomad_bridge.py`) para consumir streams de video and audio desde un dispositivo móvil Android/iOS en red local, inyectando los fotogramas en el `VisionInference` de manera asíncrona.
 - **Bloque S.2: Calibración Termo-Visual Continua**
-  - Tarea S.2.1: Refinar las interrupciones del `VitalityAssessment` utilizando la telemetría real transmitida por el *Nomad Bridge*.
+  - Tarea S.2.1: Refinar las interrupciones del `VitalityAssessment` (ej. alertas de calor del dispositivo) utilizando la telemetría real transmitida por el *Nomad Bridge*.
 
-### 🟣 Módulo E: Motor de Encanto y Renderizado Somático (Fase 2) [PRIORIDAD 1]
-*Responsabilidad: Nivel 2 (Team Cursor y Claude)*
-*Objetivo: Empalmar la capa de presentación (CharmEngine) recién acoplada en el Kernel con los sistemas físicos y mejorar la persuasión prosódica empática.*
+### 🧹 Módulo 8: Higiene, Mantenimiento y Deuda Menor
+*Responsabilidad: Nivel 2 (Team Copilot / Contribuidores Libres)*
+*Nota:* El registro exhaustivo de estas tareas debe consolidarse permanentemente en el `MINOR_CONTRIBUTIONS_BACKLOG.md`.
 
-- **Bloque E.1: Puente Somático-Hardware (Team Cursor)**
-  - Tarea E.1.1: Conectar el `GesturePlanner` y los vectores somáticos en tiempo real (provenientes de la telemetría del `limbic_profile`) hacia la interfaz gráfica local o motores de interpolación de servos reales del androide (mediado por *Nomad Bridge*).
-- **Bloque E.2: RLHF y Fine-tuning de Prosodia (Claude / Copilot)**
-  - Tarea E.2.1: Reemplazar el `PromptTemplate` base en el `ResponseSculptor` creando un dataset optimizado (Reward Model) para equilibrar assertividad, calidez, y misterio, limitando al mismo tiempo dinámicas aduladoras.
-
-### 🔵 Módulo 8: Higiene, Pruebas Unitarias y Concurrencia [PRIORIDAD 2]
-*Responsabilidad: Nivel 2 (Team Copilot)*
-*Objetivo: Asegurar que el servidor concurrente recién creado no colapse por Data Races en las bases SQLite compartidas.*
-
-- **Bloque 8.1: Unit Tests Asíncronos**
-  - Tarea 8.1.1: Crear suite de testeo masivo asíncrono (`test_charm_engine.py`, multithread server load tests) para verificar cancelaciones limpias en el `chat_server`.
-- **Bloque 8.2: Database Locks**
-  - Tarea 8.2.1: Implementar sistema de colas / bloqueo seguro para que los turnos concurrentes no corrompan los archivos `kernel_episodes.jsonl`, `user_models.db` o `DAO` ledgers.
-
-### 🔴 L1 Oversight: Arquitectura y Governance Gate [PRIORIDAD ABSOLUTA]
-*Responsabilidad: Nivel 1 (Antigravity)*
-*Objetivo: Liderar y coordinar todas las transiciones arquitectónicas pesadas y serializar las fusiones hacia Main.*
-
-- Control de Calidad arquitectónica de los PRs de Cursor sobre el *Nomad Bridge* y vectores Somáticos.
-- Mantenimiento estricto del *Threat Model* contra ataques de red LAN e inyección sensorial. Preservación inmaculada de los guardrails de Adicción Parasocial (MalAbs).
+- **Bloque 8.1: Calidad y DX (Developer Experience)**
+  - Tarea 8.1.1: Linter continuo y auditoría de `docstrings` / `type hints` a lo largo de las divisiones de `kernel.py`.
+  - Tarea 8.1.2: Refactorización y embellecimiento de las salidas ANSI de terminal para facilitar el modo de depuración de operadores locales.
+  - Tarea 8.1.3: Extender mocks para *input_trust* (ej. Caracteres homoglyphs cirílicos para evadir la puerta de Absoluto Mal).
 
 ---
 
-## 🚀 Flujo de Sincronización Estratégica (Abril 2026)
+### ⚪ Módulo 9: Nomadismo Perceptivo (Streaming Aferente Continuo)
+*Responsabilidad: Nivel 1 (Antigravity - Planificación) / Nivel 2 (Ejecución)*
+*Objetivo: Migrar desde un modelo puramente conversacional ("Chat-Turn") hacia un stream sensorial continuo en background, permitiendo al androide percibir el entorno de forma pasiva y detonar la proactividad del MotivationEngine.*
 
-1. **Jornada Actual:** 
-   - **Antigravity (L1)**: Ha fusionado el core del `CharmEngine` en `master-antigravity`. Ahora asume monitorización pasiva de arquitecturas.
-   - **Cursor (N2)**: Frontline único para Módulo S.1 y E.1 (*Puente Hardware + Vectores Gésticos*).
-   - **Copilot (N2)**: Escudero de tests asíncronos y saneamiento Concurrente de persitencia (Módulo 8.2 y Pruebas del Charm Engine).
-2. **Siguiente Fase Inter-Equipos:**
-   - Claude y Copilot unifican un PR común abordando las tareas pendientes del Bloque E.2 (Calibración RLHF para el Motor de Encanto).
-3. **Validación L0:**
-   - La Demostración en vivo ("Hardware in the loop"), donde el Androide observa mediante cámara real y responde persuasivamente sin dañar éticamente, es el gatillo de Release L0.
+- **Bloque 9.1: Daemon de Visión Continua (CNN/Webcam)**
+  - *Responsabilidad:* **Team Cursor**
+  - Tarea: Modificar `VisionInferenceEngine` para crear un stream en background que clasifique "entidades" (humanos, armas, obstáculos) a 5Hz utilizando OpenCV/Ollama Vision ligero.
+  - Vínculo: Alimentará asíncronamente el nuevo `SensoryBuffer` del `PerceptiveLobe`.
+- **Bloque 9.2: Acumulación de Tensión Límbica Estática**
+  - *Responsabilidad:* **Claude**
+  - Tarea: Evolucionar el `BayesianEngine`. Si el Lóbulo Perceptivo dicta que un estímulo peligroso permanece en la vista durante +5 segundos, el Lóbulo Límbico debe escalar automáticamente la *Tensión Social* sin esperar una interacción de texto.
+- **Bloque 9.3: Refactorización Asíncrona Total de Eferencia**
+  - *Responsabilidad:* **Team Copilot**
+  - Tarea: Eliminar los cuellos de botella síncronos en `ExecutiveLobe` (`llm.communicate`) y `NarrativeMemory` (`requests` a Ollama). Migrar `http_fetch_ollama_embedding` a `httpx.AsyncClient`.
+- **Bloque 9.4: Monitor de Stream Inter-Lóbulos**
+  - *Responsabilidad:* **Team VisualStudio**
+  - Tarea: Desarrollar pruebas que inyecten un mock contínuo en el Lóbulo Perceptivo simulando estrés de entorno, midiendo si el Lóbulo Ejecutivo logra interrumpir el stream para alertar (E-Stop).
+
+---
+
+### 🟢 Módulo 10: Motor de Encanto Resiliente (MER V2)
+*Responsabilidad: Nivel 1 (Antigravity - Planificación y Orquestación) / Nivel 2 (Ejecución Escuadrones)*
+*Objetivo: Construir la infraestructura que evite transiciones sociopáticas y asegure latencia instintiva frente al ruido (Lectura labial VVAD + Smoothing Emocional).*
+
+- **Bloque 10.1: Fusión Sensorial (VVAD + VAD) y Tálamo**
+  - *Responsabilidad:* **Team Cursor + Team Copilot**
+  - Tarea: Crear `src/kernel_lobes/thalamus_node.py`. Acoplar OpenCV/LipReading de bajo costo computacional con el VAD existente.
+  - Prioridad: **Alta**. Proveer estabilidad al stream perceptivo.
+- **Bloque 10.2: Tribunal Ético Edge (Doble Capa Local)**
+  - *Responsabilidad:* **Antigravity (L1)**
+  - Tarea: Mover `AbsoluteEvilDetector` directamente al Edge (Nivel 1 <50ms) e instanciar el Lóbulo Límbico Contextual como Nivel 2 (Asíncrono, también local por carencia 6G).
+  - Prioridad: **Máxima**. Asegurar que la censura estricta no estrangule la conversacion fluida.
+- **Bloque 10.3: Amortiguación Afectiva (Ganglios Basales)**
+  - *Responsabilidad:* **Claude**
+  - Tarea: Construir `src/modules/basal_ganglia.py` aplicando Filtros EMA (Exponential Moving Average) sobre las variables `charm_warmth` y `charm_mystery` del `UserModelTracker`. Las transiciones deben durar 3-5 turnos.
+- **Bloque 10.4: Predicción Local y Prefetching**
+  - *Responsabilidad:* **Team Copilot**
+  - Tarea: Inyectar micro-LLM (ej. Llama-3-2B) o precompilador probabilístico para inferir turnos y lanzar asentimientos rápidos en <300ms antes que el API principal complete.
+
+## 🚀 Flujo de Sincronización Recomendado
+
+1. **Semana Actual:** Antigravity (N1) se encarga transversalmente de desmonolitizar `kernel.py` y actualizar las dependencias de concurrencia. Claude y Cursor toman sus ramas (`master-claude`, `master-Cursor`) and abordan C.1 y S.1 respectivamente.
+2. **Semana Siguiente:** Sincronización de progresos a `master-antigravity`. Antigravity evalúa el impacto del async I/O en la latencia global del kernel.
+3. **Validación N0:** Integración unificada a `main` tras validaciones somáticas. 

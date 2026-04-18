@@ -10,7 +10,7 @@ from __future__ import annotations
 import uuid
 from dataclasses import dataclass, field
 from enum import Enum
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
 
 if TYPE_CHECKING:
     pass
@@ -131,3 +131,7 @@ class ExecutiveStrategist:
             [f"{m.title} ({len(m.completed_steps)}/{len(m.steps)})" for m in active]
         )
         return summary
+
+    def ingest_sensors(self, snapshot: Any) -> None:
+        """Hook for multimodal sensor fusion into strategic state (reserved; MVP no-op)."""
+        del snapshot

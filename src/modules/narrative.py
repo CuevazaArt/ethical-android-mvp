@@ -17,8 +17,8 @@ from .identity_reflection import IdentityReflector
 from .narrative_identity import NarrativeIdentityTracker
 from .narrative_types import BodyState, NarrativeArc, NarrativeEpisode
 from .semantic_embedding_client import (
+    ahttp_fetch_ollama_embedding, 
     http_fetch_ollama_embedding, 
-    ahttp_fetch_ollama_embedding_with_policy,
     maybe_hash_fallback_embedding
 )
 from .uchi_soto import RelationalTier
@@ -242,13 +242,10 @@ class NarrativeMemory:
         significance_override: float | None = None,
         is_sensitive_override: bool | None = None,
     ) -> NarrativeEpisode:
-        """
-        Async variant of register using non-blocking embedding infrastructure.
-        """
-        import asyncio
+        """Async version of register."""
         self._counter += 1
-
-        # 1. Calculate Significance
+        
+        # 1. Significance calculation
         score_intensity = abs(score)
         arousal_intensity = abs(sigma - 0.5) * 2.0
         mode_boost = 0.3 if mode == "D_delib" else 0.0
@@ -256,7 +253,7 @@ class NarrativeMemory:
         if significance_override is not None:
             significance = min(1.0, max(0.0, float(significance_override)))
 
-        # 2. Detect Trauma / Arc Shock
+        # 2. Trauma detection
         is_sensitive = False
         if is_sensitive_override is not None:
             is_sensitive = bool(is_sensitive_override)
@@ -264,18 +261,17 @@ class NarrativeMemory:
             is_sensitive = True
             if self.active_arc:
                 self.active_arc.is_active = False
-                self.active_arc.predominant_archetype = "trauma_dissonance"
-                await asyncio.to_thread(self.persistence.save_arc, self.active_arc)
+                self.persistence.save_arc(self.active_arc)
                 self.active_arc = None
 
-        # 3. Generate Semantic Embedding (Async!)
+        # 3. ASYNC Semantic Embedding
         combined_text = f"Context: {context}. Event: {description}. Action: {action}."
         embedding = None
         ollama_url = os.environ.get("OLLAMA_BASE_URL", "http://localhost:11434/api/embeddings")
         ollama_model = os.environ.get("OLLAMA_EMBED_MODEL", "mxbai-embed-large")
 
         try:
-            embedding_vec = await ahttp_fetch_ollama_embedding_with_policy(ollama_url, ollama_model, combined_text)
+            embedding_vec = await ahttp_fetch_ollama_embedding(ollama_url, ollama_model, combined_text)
             if embedding_vec is not None:
                 embedding = embedding_vec.tolist()
             else:
@@ -308,15 +304,14 @@ class NarrativeMemory:
         )
         self.episodes.append(ep)
         self.identity.update_from_episode(ep)
-        self._update_arcs(ep) # Sync logic but saves via persistence
-
-        # Persistence: Wrap sync save in thread
-        await asyncio.to_thread(self.persistence.save_episode, ep)
+        self._update_arcs(ep)
+        self.persistence.save_episode(ep)
 
         if len(self.episodes) > self.max_episodes:
             self.episodes = self.episodes[-self.max_episodes :]
-
         return ep
+
+    def find_similar(self, context: str, limit: int = 5) -> list[NarrativeEpisode]:
         """Finds previous episodes of the same context type from memory."""
         return [ep for ep in self.episodes if ep.context == context][-limit:]
 

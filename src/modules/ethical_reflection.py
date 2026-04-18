@@ -41,6 +41,9 @@ class ReflectionSnapshot:
     note: str
     """One-line hint for logs / optional LLM context."""
 
+    trauma_index: float = 0.0
+    """[0, 1] - Intensity of persistent ethical traumas related to this decision."""
+
 
 def reflection_to_llm_context(snapshot: ReflectionSnapshot | None) -> str:
     """
@@ -70,6 +73,7 @@ class EthicalReflection:
         moral: TripartiteMoral,
         bayes_result: BayesianResult,
         will_decision: dict,
+        trauma_signals: dict[str, float] | None = None,
     ) -> ReflectionSnapshot:
         scores = [ev.score for ev in moral.evaluations]
         if not scores:
@@ -88,7 +92,12 @@ class EthicalReflection:
         # strain: poles disagree more AND model is unsure → harder epistemic load
         strain = min(1.0, (spread / 2.0) * (0.5 + u))
 
-        note = self._compose_note(level, u)
+        # Trauma Index: Average of relevant trauma signals
+        trauma_idx = 0.0
+        if trauma_signals:
+            trauma_idx = sum(trauma_signals.values()) / max(1, len(trauma_signals))
+
+        note = self._compose_note(level, u, trauma_idx)
 
         wm = str(will_decision.get("mode", ""))
 
@@ -99,11 +108,14 @@ class EthicalReflection:
             strain_index=round(strain, 4),
             will_mode=wm,
             uncertainty=round(u, 4),
+            trauma_index=round(trauma_idx, 4),
             note=note,
         )
 
     @staticmethod
-    def _compose_note(level: str, uncertainty: float) -> str:
+    def _compose_note(level: str, uncertainty: float, trauma_idx: float = 0.0) -> str:
+        if trauma_idx > 0.6:
+            return "Moral Exhaustion: Persistent ethical traumas are interfering with clarity."
         if level == "high" and uncertainty > 0.4:
             return "Strong pole tension with elevated uncertainty — deliberation load is high."
         if level == "high":

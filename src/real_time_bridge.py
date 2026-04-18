@@ -147,7 +147,10 @@ class RealTimeBridge:
         cancel_event: threading.Event | None = None,
         chat_turn_id: int | None = None,
     ) -> ChatTurnResult:
-        if _async_chat_llm_http_enabled():
+        # Architecture V1.5 - Forced Async for Tri-Lobe Mode
+        tri_lobe_enabled = os.environ.get("KERNEL_TRI_LOBE_ENABLED", "").lower() in ("1", "true", "yes")
+
+        if _async_chat_llm_http_enabled() or tri_lobe_enabled:
             return await self.kernel.process_chat_turn_async(
                 user_input,
                 agent_id,

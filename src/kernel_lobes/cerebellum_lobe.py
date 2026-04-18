@@ -22,14 +22,12 @@ class CerebellumLobe:
     def __init__(
         self,
         bayesian: BayesianInferenceEngine,
-        strategist: ExecutiveStrategist,
-        rlhf: Optional[Any] = None
+        strategist: ExecutiveStrategist
     ):
         self.bayesian = bayesian
         self.strategist = strategist
-        self.rlhf = rlhf
 
-    async def execute_bayesian_stage(
+    def execute_bayesian_stage(
         self,
         clean_actions: list[CandidateAction],
         scenario: str,
@@ -42,22 +40,6 @@ class CerebellumLobe:
         """
         # 0. Sync Scorer defaults (historical requirement)
         self.bayesian.reset_mixture_weights()
-
-        # 0.5 RLHF Modulation (Module C.1)
-        if self.rlhf and hasattr(self.rlhf, "reward_model"):
-            # Horizontal Growth: Derive features from signals or context
-            # In a production flow, we would pass AbsoluteEvil artifacts here.
-            # For now, we use a heuristic feature vector from signals.
-            from src.modules.rlhf_reward_model import FeatureVector
-            fv = FeatureVector(
-                embedding_sim=float(signals.get("semantic_similarity", 0.0)),
-                lexical_score=float(signals.get("lexical_harm_score", 0.0)),
-                perception_confidence=float(signals.get("perception_confidence", 0.95)),
-                is_ambiguous=bool(signals.get("is_semantic_ambiguous", False))
-            )
-            score, conf = await self.rlhf.reward_model.apredict(fv)
-            if conf > 0.0:
-                self.bayesian.apply_rlhf_modulation(score, conf)
 
         # 1. Update Strategic Alignment
         for a in clean_actions:

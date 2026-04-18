@@ -19,6 +19,11 @@ class CerebellumNode(threading.Thread):
 
     def run(self):
         """Pure hardware polling loop."""
+        from src.modules.vitality import critical_battery_threshold, critical_temperature_threshold
+        
+        t_bat = critical_battery_threshold()
+        t_temp = critical_temperature_threshold()
+        
         while self.is_running:
             # 1. Simulate drift
             self.battery_level -= 0.001
