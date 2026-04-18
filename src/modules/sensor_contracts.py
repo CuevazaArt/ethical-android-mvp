@@ -49,6 +49,9 @@ class SensorSnapshot:
     stability_score: float | None = None  # [0, 1]
     core_temperature: float | None = None  # degrees Celsius
     image_metadata: dict[str, Any] | None = None  # CNN inference results (B2)
+    # Phase 10.1: Attentional Sensory Fusion
+    rms_audio: float | None = None  # [0, 1] audio energy
+    orientation: dict[str, float] | None = None  # {alpha, beta, gamma}
 
     @classmethod
     def from_dict(cls, raw: dict[str, Any]) -> SensorSnapshot:
@@ -101,6 +104,8 @@ class SensorSnapshot:
             stability_score=f("stability_score"),
             core_temperature=f_raw("core_temperature"),
             image_metadata=raw.get("image_metadata"),
+            rms_audio=f("rms_audio"),
+            orientation=raw.get("orientation")
         )
 
     def is_empty(self) -> bool:
@@ -120,6 +125,8 @@ class SensorSnapshot:
             and self.stability_score is None
             and self.core_temperature is None
             and self.image_metadata is None
+            and self.rms_audio is None
+            and self.orientation is None
         )
 
 

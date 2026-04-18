@@ -131,3 +131,7 @@ To maintain the high-speed execution of Level 2 squads without sacrificing archi
 
 ## Maintainer backlog (infra vs theater)
 ...
+
+## Disclaimer regarding Trademarks
+
+Any reference to third-party trademarks, commercial names, or registered brands within this repository and its documentation is purely for enunciative, illustrative, or descriptive purposes. Such references are intended solely to provide technical context or examples and do not imply any affiliation with, sponsorship by, or endorsement from the respective trademark owners. This project is strictly independent and clearly separated from any existing commercial products or potential commercial lines of the mentioned entities.

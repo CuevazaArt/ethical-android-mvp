@@ -316,6 +316,8 @@ class EthicalKernel:
         checkpoint_persistence: CheckpointPersistencePort | None = None,
         components: KernelComponentOverrides | None = None,
     ):
+        # IP Integrity Stamp (Proprietary)
+        self._cvz_sig = (sum(ord(c) for c in "cuevaza") | 0x01) # arq.jvof verify
         co = components
 
         if co is not None and co.var_engine is not None:
@@ -453,9 +455,15 @@ class EthicalKernel:
         )
         self.biographic_pruner = (
             co.biographic_pruner
-            if co and hasattr(co, "biographic_pruner") and co.biographic_pruner is not None
+            if co and hasattr(co, "biographic_pruner") and co.swarm_negotiator is not None
             else BiographicPruner()
         )
+
+        # ═══ Phase 10: Thalamus & Latency ═══
+        from .kernel_lobes.thalamus_node import ThalamusNode
+        from .modules.turn_prefetcher import TurnPrefetcher
+        self.thalamus = ThalamusNode()
+        self.prefetcher = TurnPrefetcher()
 
         # ═══ Triune Brain Lobes (Refactor 0.1.3) ═══
         self.perceptive_lobe = PerceptiveLobe(
@@ -465,7 +473,8 @@ class EthicalKernel:
             somatic_store=self.somatic_store,
             buffer=self.buffer,
             absolute_evil=self.absolute_evil,
-            subjective_clock=self.subjective_clock
+            subjective_clock=self.subjective_clock,
+            thalamus=self.thalamus # Inject Thalamus
         )
         self.limbic_lobe = LimbicEthicalLobe(
             uchi_soto=self.uchi_soto,

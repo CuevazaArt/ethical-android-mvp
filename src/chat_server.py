@@ -112,6 +112,7 @@ Experience digest (pilar 3): KERNEL_CHAT_INCLUDE_EXPERIENCE_DIGEST — if 0, omi
 """
 
 from __future__ import annotations
+__copyright_integrity__ = "cuevaza::arq.jvof"
 
 import asyncio
 import json
@@ -127,6 +128,7 @@ from typing import Any
 
 from fastapi import FastAPI, WebSocket, WebSocketDisconnect
 from fastapi.responses import JSONResponse, Response
+from fastapi.staticfiles import StaticFiles
 
 from .kernel import ChatTurnResult, EthicalKernel, kernel_dao_as_mock
 from .modules.affective_homeostasis import homeostasis_telemetry
@@ -255,6 +257,58 @@ app = FastAPI(
 
 app.add_middleware(RequestContextMiddleware)
 
+# Phase 10: Mount the Nomad PWA Client directly to bypass external web servers.
+nomad_pwa_path = os.path.join(os.path.dirname(__file__), "clients", "nomad_pwa")
+if os.path.exists(nomad_pwa_path):
+    app.mount("/nomad", StaticFiles(directory=nomad_pwa_path, html=True), name="nomad_pwa")
+    logger.info("Nomad PWA Interface mounted at /nomad/")
+else:
+    logger.warning("Nomad PWA Interface not found at %s. Skipping mount.", nomad_pwa_path)
+
+# Phase 12: Mount Prometheus Metrics if enabled
+try:
+    if os.environ.get("KERNEL_METRICS", "1").strip().lower() in ("1", "true", "on"):
+        from prometheus_client import make_asgi_app
+        metrics_app = make_asgi_app()
+        app.mount("/metrics", metrics_app)
+        logger.info("Prometheus metrics endpoint mounted at /metrics")
+except ImportError:
+    logger.warning("prometheus_client not installed, skipping /metrics")
+
+# Phase 10 (V2): Mount the L0 Visual Dashboard
+dashboard_path = os.path.join(os.path.dirname(__file__), "static", "dashboard")
+if os.path.exists(dashboard_path):
+    app.mount("/dashboard", StaticFiles(directory=dashboard_path, html=True), name="l0_dashboard")
+    logger.info("L0 Dashboard mounted at /dashboard/")
+else:
+    logger.warning("L0 Dashboard not found at %s. Skipping mount.", dashboard_path)
+
+
+@app.websocket("/ws/nomad")
+async def nomad_bridge_ws_handler(websocket: WebSocket) -> None:
+    """Nomad LAN bridge sensory endpoint (Module S)."""
+    from .modules.nomad_bridge import get_nomad_bridge
+
+    await get_nomad_bridge().handle_websocket(websocket)
+
+@app.websocket("/ws/dashboard")
+async def dashboard_ws_handler(websocket: WebSocket) -> None:
+    """L0 Dashboard telemetry stream."""
+    from .modules.nomad_bridge import get_nomad_bridge
+    
+    await websocket.accept()
+    q: asyncio.Queue[dict[str, Any]] = asyncio.Queue(maxsize=30)
+    bridge = get_nomad_bridge()
+    bridge.dashboard_queues.append(q)
+    
+    try:
+        while True:
+            msg = await q.get()
+            await websocket.send_json(msg)
+    except Exception as e:
+        logger.error("Dashboard WS error: %s", e)
+    finally:
+        bridge.dashboard_queues.remove(q)
 
 def _chat_expose_monologue() -> bool:
     """If false, omit monologue from WebSocket JSON (privacy; skips LLM embellishment)."""
@@ -2148,6 +2202,20 @@ async def ws_chat(ws: WebSocket) -> None:
                 # Situated v8 sensors
                 sensor_raw = data_in.get("sensor")
                 client = sensor_raw if isinstance(sensor_raw, dict) else None
+                
+                # Phase 10: Inject Nomad Bridge Live Data
+                from .modules.nomad_bridge import get_nomad_bridge
+                nb = get_nomad_bridge()
+                if client is None: client = {}
+                
+                # Merge orientation and battery if available in Nomad Bridge
+                if not nb.telemetry_queue.empty():
+                    # Peek latest without waiting
+                    live_t = nb.telemetry_queue._queue[0] if nb.telemetry_queue.qsize() > 0 else {}
+                    client.update(live_t)
+                
+                client["rms_audio"] = nb.last_rms
+
                 fixture = os.environ.get("KERNEL_SENSOR_FIXTURE", "").strip() or None
                 preset = os.environ.get("KERNEL_SENSOR_PRESET", "").strip() or None
                 sensor_snapshot = snapshot_from_layers(
@@ -2209,6 +2277,15 @@ async def ws_chat(ws: WebSocket) -> None:
                         "event_type": "turn_finished",
                         "payload": payload
                     })
+                    
+                    # Phase 11: Ouroboros TTS hook
+                    android_text = payload.get("response", {}).get("message", "")
+                    if android_text:
+                        await ws.send_json({
+                            "type": "kernel_voice",
+                            "text": android_text
+                        })
+                        
                     maybe_autosave_episodes(kernel, session_ckpt)
 
             except asyncio.TimeoutError:

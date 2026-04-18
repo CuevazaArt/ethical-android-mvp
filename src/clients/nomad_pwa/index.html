@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <!-- Essential for PWA and Mobile-First: prevent scaling to keep app-like feel -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <!-- Theme color for the browser's address bar and OS UI -->
+    <meta name="theme-color" content="#0F172A">
+    <title>Ethos Nomad Bridge</title>
+    
+    <!-- Modern Typeface: Inter -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+    
+    <link rel="stylesheet" href="style.css">
+    <!-- PWA Manifest stub (for Copilot to complete later) -->
+    <link rel="manifest" href="manifest.json">
+</head>
+<body>
+    <!-- Dynamic animated gradient background -->
+    <div class="mesh-background" id="mesh-bg"></div>
+
+    <!-- Main Container -->
+    <main class="app-container">
+        
+        <!-- Header / Telemetry Section -->
+        <header class="top-bar glass-panel">
+            <div class="status-indicator">
+                <span class="status-dot" id="socket-status"></span>
+                <span class="status-text" id="socket-text">Disconnected</span>
+            </div>
+            <div class="telemetry">
+                <!-- Copilot will bind these (Block F.3) -->
+                <span id="battery-level">--%</span> ⚡
+            </div>
+        </header>
+
+        <!-- Center Orb / Emotional Anchor -->
+        <section class="orb-container">
+            <div class="affect-orb" id="affect-orb">
+                <!-- Hidden video element for canvas capture (Cursor's Domain F.2) -->
+                <video id="hidden-video" autoplay playsinline muted></video>
+                <div class="orb-glow"></div>
+            </div>
+        </section>
+
+        <!-- Dialogue / Sentiment Output -->
+        <section class="charm-output glass-panel">
+            <p id="charm-transcript" class="transcript placeholder">Esperando inicialización sensorial...</p>
+        </section>
+
+        <!-- Control Bar -->
+        <footer class="bottom-controls">
+            <button id="btn-install" class="glass-btn secondary">⬇️ Install App</button>
+            <button id="btn-connect" class="glass-btn primary">Connect Bridge</button>
+            <button id="btn-stream" class="glass-btn inactive" disabled>Start Sensors</button>
+        </footer>
+
+    </main>
+
+    <script src="media_engine.js"></script>
+    <script src="app.js"></script>
+</body>
+</html>

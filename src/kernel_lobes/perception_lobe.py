@@ -50,7 +50,8 @@ class PerceptiveLobe:
         somatic_store: "SomaticMarkerStore",
         buffer: "PreloadedBuffer",
         absolute_evil: "AbsoluteEvilDetector",
-        subjective_clock: Any # SubjectiveClock
+        subjective_clock: Any, # SubjectiveClock
+        thalamus: Optional[Any] = None # ThalamusNode
     ):
         self.safety_interlock = safety_interlock
         self.strategist = strategist
@@ -59,6 +60,7 @@ class PerceptiveLobe:
         self.buffer = buffer
         self.absolute_evil = absolute_evil
         self.subjective_clock = subjective_clock
+        self.thalamus = thalamus
 
     def execute_stage(
         self,
@@ -78,6 +80,13 @@ class PerceptiveLobe:
                 "mission_updated": False,
                 "somatic_interrupt": True
             }
+
+        # Phase 10.1: Thalamus Attention Gate
+        if self.thalamus and sensor_snapshot:
+            if hasattr(sensor_snapshot, "orientation"):
+                self.thalamus.ingest_telemetry({"orientation": sensor_snapshot.orientation})
+            if hasattr(sensor_snapshot, "rms_audio"):
+                self.thalamus.ingest_audio_signal(sensor_snapshot.rms_audio)
 
         # 0.1 Check Safety
         safety_dec = self.safety_interlock.evaluate(scenario, place, context)

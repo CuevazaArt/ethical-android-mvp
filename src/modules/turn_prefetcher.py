@@ -1,87 +1,53 @@
-import logging
-import random
-import os
-from src.kernel_lobes.models import SemanticState, EthicalSentence
+"""
+Turn Prefetcher — Pre-emptive linguistic responses.
+Part of Phase 10.4 Infrastructure for <300ms latency.
 
-_log = logging.getLogger(__name__)
+Speculates on probable user closure or simple affirmations
+using micro-models or template-matchers to avoid perceived 
+sociopathic lag while the main LLM delibierates.
+"""
+
+from __future__ import annotations
+import random
+from typing import Optional
 
 class TurnPrefetcher:
     """
-    ARCHITECTURE V2.0 - Turn Prefetcher (Bloque 10.4)
-    Genera 'Frases Puente' de baja latencia (<200ms) para ocultar el tiempo de inferencia del LLM principal.
-    Utiliza heurísticas locales basadas en la tensión social y el sentimiento.
-    Responsabilidad: Copilot Squad (Antigravity Acting).
+    Anticipates user turns to provide near-instant feedback.
     """
+    AFFIRMATIONS = [
+        "Entiendo...",
+        "Te escucho.",
+        "Mmm, comprendo.",
+        "Sigue...",
+        "Interesante."
+    ]
     
-    BRIDGES = {
-        "warm": ["Entiendo perfectamente.", "Me alegra escucharlo.", "Qué buen punto.", "¡Claro!", "Por supuesto."],
-        "mysterious": ["Interesante...", "Hay capas en eso...", "Mmm...", "Curioso.", "¿Tú crees?"],
-        "agreement": ["Entiendo...", "Totalmente.", "Ya veo.", "Claro."],
-        "contemplative": ["Mmm...", "Déjame pensar...", "Interesante punto.", "Veamos..."],
-        "apologetic": ["Lo siento...", "Entiendo tu punto.", "Mi error.", "Disculpa..."],
-        "tense": ["Entiendo...", "Ya veo...", "Escucho.", "..."]
-    }
+    SURPRISE_REACTIONS = [
+        "¡Oh!",
+        "Vaya...",
+        "No esperaba eso."
+    ]
 
-    def __init__(self, model_name: str | None = None):
-        self.model_name = model_name or os.environ.get("OLLAMA_PREFETCH_MODEL")
-        if self.model_name:
-            _log.info("TurnPrefetcher: Initialized with local model %s", self.model_name)
+    def __init__(self, mode: str = "template"):
+        self.mode = mode
 
-    async def predict_bridge(self, state: SemanticState, ethics: EthicalSentence) -> str:
+    def predict_fast_response(self, partial_text: str, signals: dict) -> Optional[str]:
         """
-        Predice una frase corta basada en el estado semántico, ético y armónico.
-        Intenta usar un micro-LLM local si está disponible.
+        Generates a latent response if confidence is high.
         """
-        tension = ethics.social_tension_locus
-        h = ethics.morals.get("harmonics", {})
-        warmth = float(h.get("warmth", 0.5))
-        mystery = float(h.get("mystery", 0.5))
+        text = partial_text.lower().strip()
         
-        # 0. Si hay un modelo configurado, intentamos inferencia flash
-        if self.model_name:
-            try:
-                import httpx
-                # Prompt ultracorto para latencia mínima
-                prompt = (
-                    f"User said: {state.raw_prompt[:100]}\n"
-                    f"State: T={tension:.1f}, W={warmth:.1f}, M={mystery:.1f}\n"
-                    "Generate a single quick assent bridge (1-3 words) to say while you think. "
-                    "Output ONLY the bridge phrase, no quotes."
-                )
-                async with httpx.AsyncClient(timeout=0.3) as client:
-                    resp = await client.post(
-                        "http://localhost:11434/api/generate",
-                        json={
-                            "model": self.model_name,
-                            "prompt": prompt,
-                            "stream": False,
-                            "options": {"num_predict": 5, "temperature": 0.2}
-                        }
-                    )
-                    if resp.status_code == 200:
-                        phrase = resp.json().get("response", "").strip().strip('"')
-                        if phrase:
-                            return phrase
-            except Exception as e:
-                _log.debug("TurnPrefetcher: Model inference failed or timed out, falling back to heuristics: %s", e)
-
-        # 1. Caso de Alta Tensión
-        if tension > 0.7:
-            return random.choice(self.BRIDGES["tense"])
-        
-        # 2. Preferencia Afectiva (MER V2)
-        if warmth > 0.8:
-            return random.choice(self.BRIDGES["warm"])
-        if mystery > 0.7:
-            return random.choice(self.BRIDGES["mysterious"])
-        
-        # 3. Análisis de Lenguaje Simple
-        lower_prompt = state.raw_prompt.lower()
-        if any(word in lower_prompt for word in ["perdón", "disculpa", "lo siento"]):
-            return random.choice(self.BRIDGES["apologetic"])
-        
-        if any(word in lower_prompt for word in ["si", "claro", "cierto", "bueno"]):
-            return random.choice(self.BRIDGES["agreement"])
+        # Logic: If it's a very short acknowledgement or emotional spike
+        if len(text) < 10 and signals.get("trust", 0.5) > 0.6:
+            return random.choice(self.AFFIRMATIONS)
             
-        # 4. Default a Contemplativo
-        return random.choice(self.BRIDGES["contemplative"])
+        if "!" in text or signals.get("risk", 0.0) > 0.8:
+            return random.choice(self.SURPRISE_REACTIONS)
+            
+        return None
+
+    def should_prefetch(self, context: str, sigma: float) -> bool:
+        """Determines if the current emotional state (Sigma) allows prefetching."""
+        # Don't prefetch during high-stress ethical dilemmas (Sociopath risk)
+        return sigma < 0.7 
