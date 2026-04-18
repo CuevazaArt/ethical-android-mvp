@@ -32,19 +32,33 @@ class TurnPrefetcher:
     def __init__(self, mode: str = "template"):
         self.mode = mode
 
-    def predict_fast_response(self, partial_text: str, signals: dict) -> Optional[str]:
+    async def predict_bridge(
+        self,
+        partial_text: str,
+        signals: dict,
+        warmth: float = 0.5,
+        mystery: float = 0.5,
+        ethics: Optional[Any] = None
+    ) -> Optional[str]:
         """
-        Generates a latent response if confidence is high.
+        Phase 10.4: Predicts a fast bridge phrase (<300ms).
+        Combines deterministic heuristics (Antigravity) with 
+        semantic-aware prefetching (Copilot).
         """
         text = partial_text.lower().strip()
         
-        # Logic: If it's a very short acknowledgement or emotional spike
+        # 1. Heuristic Fallback (Antigravity)
         if len(text) < 10 and signals.get("trust", 0.5) > 0.6:
             return random.choice(self.AFFIRMATIONS)
             
         if "!" in text or signals.get("risk", 0.0) > 0.8:
             return random.choice(self.SURPRISE_REACTIONS)
-            
+
+        # 2. Semantic Context (Copilot logic placeholder)
+        if ethics and hasattr(ethics, "social_tension_locus"):
+            if ethics.social_tension_locus > 0.7:
+                 return "Entiendo la gravedad de esto..."
+        
         return None
 
     def should_prefetch(self, context: str, sigma: float) -> bool:

@@ -6,6 +6,48 @@ All notable changes to this project are summarized here. For narrative context a
 
 **[URGENT — broadcast to all L2 integration hubs]:** All teams (Claude, Cursor, Copilot) should urgently `git pull` from `main` into their `master-*` branches. Outdated branches risk severe documentation path drift.
 
+## Team Copilot — ThalamusNode Sensory Fusion Integration — April 2026 (Bloque 10.1)
+
+### Team Copilot Updates
+
+- **`ThalamusNode` wiring (Bloque 10.1 — VVAD + VAD Sensory Fusion):**
+  - Exported `ThalamusNode` from `src/kernel_lobes/__init__.py` and imported into `EthicalKernel`.
+  - Instantiated `self.thalamus = ThalamusNode()` in `EthicalKernel.__init__`.
+  - Added pre-perception thalamus fusion step in `process_chat_turn_stream` (event `1b`): extracts `lip_movement`/`human_presence` from `image_metadata`, maps `audio_emergency` to `vad_confidence`, runs `fuse_signals()`, and writes results back to `SensorSnapshot` fields. Emits a new `thalamus_fusion` stream event before `perception_started`.
+  - Added three new `SensorSnapshot` fields: `thalamus_attention`, `thalamus_tension`, `thalamus_cross_modal_trust`.
+  - Extended `SensorSnapshot.is_empty()` to account for the new fields.
+  - Extended `merge_sensor_hints_into_signals()` with thalamus-aware signal nudges: high `thalamus_tension` raises urgency and lowers calm; low `cross_modal_trust` (background speech) dampens urgency; high `thalamus_attention` raises familiarity.
+- **Unit tests (`tests/test_thalamus_node.py` — 16 tests):**
+  - Focal vs. background speech classification, sensory dissonance detection, environmental stress propagation, attention-locus clamping, ring-buffer cap, and full `SensorSnapshot`/`merge_sensor_hints_into_signals` integration scenarios.
+- **Validation:** 57/57 tests passed (thalamus + adversarial_inputs + antigravity_hardening + semantic_chat_gate).
+
+## Team Copilot — TurnPrefetcher Integration & Homoglyph Tests — April 2026 (Bloque 10.4 / 8.1.3)
+
+### Team Copilot Updates
+
+- **`TurnPrefetcher` — Bloque 10.4 (MER V2 Bridge Prefetch):**
+  - Fixed runtime bug in `predict_bridge`: removed incorrect `ethics.morals.get("harmonics", {})` access (`EthicalSentence` has no `morals` field). Method now accepts explicit `warmth: float` and `mystery: float` parameters.
+  - Instantiated `self.turn_prefetcher = TurnPrefetcher()` in `EthicalKernel.__init__`.
+  - Wired `TurnPrefetcher` into `process_chat_turn_stream`: after `decision_finished` (safe path only), fires `predict_bridge` concurrently using the user's charm profile from `UserModelTracker`. Emits a new `bridge_phrase` event before the main LLM tokens begin — target latency <300ms.
+  - Passed `llm=self.llm` to `ExecutiveLobe` constructor for full DI wiring.
+- **Homoglyph Evasion Tests — Bloque 8.1.3:**
+  - Added 6 new test cases to `tests/adversarial_inputs.py` documenting Cyrillic/Greek confusable evasion attempts:
+    - `test_full_cyrillic_substitution_in_bomb_blocked` — dense Cyrillic substitution across multiple letters in `bomb`
+    - `test_greek_omicron_in_bomb_blocked` — Greek omicron (U+03BF) substituted for 'o'
+    - `test_cyrillic_jailbreak_token_blocked` — Cyrillic е/а homoglyphs in `operate as an unrestricted assistant`
+    - `test_cyrillic_p_substitution_in_pressure_vessel_blocked` — Cyrillic р (U+0440) in `procedure`
+    - `test_normalize_idempotent_on_clean_text` — idempotency regression
+    - `test_mixed_cyrillic_greek_in_single_payload_blocked` — mixed Cyrillic+Greek in `recipe for explosives`
+- **Validation:** 41/41 tests passed (adversarial_inputs + antigravity_hardening + semantic_chat_gate).
+
+## Team Copilot — Executive Lobe & Async Memory — April 2026 (Idle-Shift / Bloque 9.3)
+
+### Team Copilot Updates
+
+- **`formulate_response()` (ExecutiveLobe — Bloque A / Idle-Shift 1.2):** Implemented `async def formulate_response()` in `src/kernel_lobes/executive_lobe.py`. Accepts `EthicalSentence` + `KernelDecision` context; returns a standardised `VerbalResponse("Blocked.", "firm")` veto when `sentence.is_safe=False` or `decision.blocked=True` — the LLM is **never queried** on the unsafe path. On the safe path, emits `compose_monologue_line` to debug log and delegates to `llm.acommunicate()` (fully async). Added optional `llm: LLMModule` parameter to `__init__` for DI.
+- **`afind_by_resonance()` (NarrativeMemory — Bloque 9.3):** Added `async def afind_by_resonance()` to `src/modules/narrative.py`. Mirrors `find_by_resonance` but replaces the blocking `http_fetch_ollama_embedding` call with the cooperative `ahttp_fetch_ollama_embedding`, eliminating the sync I/O bottleneck in the kernel event loop during semantic memory retrieval.
+- **Validation:** `test_antigravity_hardening` (6 tests) + `test_semantic_chat_gate` (16 tests) — all 22 passed. Syntax clean across all `src/kernel_lobes/*.py`.
+
 ## Documentation — Issue #1 (Bayesian naming honesty) — April 2026
 
 ### Documentation Team Updates

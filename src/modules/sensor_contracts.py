@@ -49,9 +49,14 @@ class SensorSnapshot:
     stability_score: float | None = None  # [0, 1]
     core_temperature: float | None = None  # degrees Celsius
     image_metadata: dict[str, Any] | None = None  # CNN inference results (B2)
-    # Phase 10.1: Attentional Sensory Fusion
+    # Phase 10.1: Attentional Sensory Fusion (Antigravity)
     rms_audio: float | None = None  # [0, 1] audio energy
     orientation: dict[str, float] | None = None  # {alpha, beta, gamma}
+
+    # Thalamus VVAD fields (Copilot) — populated by ThalamusNode.fuse_signals()
+    thalamus_attention: float | None = None  # [0, 1] focal-address attention score
+    thalamus_tension: float | None = None    # [0, 1] sensory dissonance / background stress
+    thalamus_cross_modal_trust: float | None = None  # 1.0=focal, 0.4=background
 
     @classmethod
     def from_dict(cls, raw: dict[str, Any]) -> SensorSnapshot:
@@ -105,7 +110,10 @@ class SensorSnapshot:
             core_temperature=f_raw("core_temperature"),
             image_metadata=raw.get("image_metadata"),
             rms_audio=f("rms_audio"),
-            orientation=raw.get("orientation")
+            orientation=raw.get("orientation"),
+            thalamus_attention=f("thalamus_attention"),
+            thalamus_tension=f("thalamus_tension"),
+            thalamus_cross_modal_trust=f("thalamus_cross_modal_trust")
         )
 
     def is_empty(self) -> bool:
@@ -127,7 +135,11 @@ class SensorSnapshot:
             and self.image_metadata is None
             and self.rms_audio is None
             and self.orientation is None
+            and self.thalamus_attention is None
+            and self.thalamus_tension is None
+            and self.thalamus_cross_modal_trust is None
         )
+
 
 
 def merge_sensor_hints_into_signals(
@@ -231,6 +243,21 @@ def merge_sensor_hints_into_signals(
     if snapshot.motor_effort_avg is not None and snapshot.motor_effort_avg > 0.8:
         out["vulnerability"] = _clamp01(out.get("vulnerability", 0.0) + 0.2)
         out["calm"] = _clamp01(out.get("calm", 0.5) - 0.1)
+
+    # ── Thalamus sensory fusion (Bloque 10.1) ─────────────────────────────────
+    # thalamus_tension > 0.5 → background stress (unseen source of noise/speech)
+    if snapshot.thalamus_tension is not None and snapshot.thalamus_tension > 0.4:
+        out["urgency"] = _clamp01(out.get("urgency", 0.5) + snapshot.thalamus_tension * 0.2)
+        out["calm"] = _clamp01(out.get("calm", 0.5) - snapshot.thalamus_tension * 0.15)
+    # low cross_modal_trust → audio-only spike not confirmed by vision → dampen stress
+    if (
+        snapshot.thalamus_cross_modal_trust is not None
+        and snapshot.thalamus_cross_modal_trust < 0.5
+    ):
+        out["urgency"] = _clamp01(out.get("urgency", 0.5) - 0.05)
+    # thalamus_attention high → clear focal interaction → raise familiarity
+    if snapshot.thalamus_attention is not None and snapshot.thalamus_attention > 0.7:
+        out["familiarity"] = _clamp01(out.get("familiarity", 0.5) + 0.1)
 
     return out
 
