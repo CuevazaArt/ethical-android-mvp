@@ -11,7 +11,9 @@
 ## 1. Where we are (verifiable facts)
 
 - The repository is an **MVP runtime** on an ethical kernel (v5) with **fixed simulations**, **WebSocket chat**, versioned persistence, **governance mocks** (DAO, simulated court), constitutional hub, **HAL / nomadic identity**, `HubAudit`-style auditing, and **optional** JSON checkpoint encryption.
-- The **test suite** covers core invariants and server smoke/integration tests; CI installs `requirements.txt` and runs `pytest` on Python 3.11 and 3.12.
+- **Phase 10-11 Stabilized:** Integration of **Nomad Hardware Bridge** (LAN HTTPS), **Tribunal Ético Edge** (Lexical N1 + Async N2), and **Basal Ganglia EMA** (Affective smoothing) is complete.
+- **Observability:** A premium **L0 Visual Dashboard** (Three.js) is active for real-time monitoring of affective and ethical harmonics.
+- The **test suite** covers core invariants and server smoke/integration tests; CI installations and `pytest` are stable.
 - **Documentation** (CHANGELOG, HISTORY, proposals) is extensive; the risk is not missing text but **operational coherence** across `KERNEL_*` combinations.
 
 ---
@@ -48,12 +50,13 @@ The previous roadmap still prioritized features (metaplan, generative LLM, swarm
 
 | Priority | Focus | Goal |
 |----------|--------|------|
-| **P0** | **Nomad Hardware Bridge & Situated Inference** | Leave mock data behind. Build the LAN WebSocket link for smartphone camera/mic as the actual sensory inputs. |
-| **P1** | **Asynchronous Fortification & Locks** | Secure SQLite data structures (Memories & DAO) against concurrent real-time data ingestion. |
-| **P2** | Swarm & P2P Justice Scaling | Deprioritized to P2. Swarm logic functions well locally, wait for hardware validation. |
-| **P3** | Generative LLM & Additional Metaplans | Paused until physical inference proves sound. |
+| **P0 (DONE)** | **Nomad Hardware Bridge & Situated Inference** | **Status: Stabilized.** LAN WebSocket link for smartphone sensors is functional and validated with sim-harness. |
+| **P1 (DONE)** | **Asynchronous Fortification & Locks** | **Status: Implementada.** SQLite WAL mode, async LLM HTTP clients, and cooperative cancellation are active. |
+| **P2** | **Ouroboros (Audio / TTS Bridge)** | **New Priority.** Real-time streaming voice (Ouroboros) and lip-sync coordination for the Nomad Vessel. |
+| **P3** | Swarm & P2P Justice Scaling | Resuming after Audio bridge; Swarm logic validated locally. |
+| **P4** | Generative LLM & Additional Metaplans | Paused until physical inference proves sound. |
 
-**Next task executed as the P0 gap closure:** Implementation of `NomadBridge` and streaming LAN capabilities for the sensory loops in `kernel.py`.
+**Next task executed as the P2 gap closure:** Implementation of the Audio/TTS feedback loop (Ouroboros) and Narrative continuity protocols.
 
 ### 3.1 Recommended delivery order (robustness → physical reality → demo)
 

@@ -10,16 +10,16 @@ Este documento estructura el inmenso volumen de trabajo arquitectónico definido
 
 ## 🌳 Árbol de Distribución de Módulos (Blocks Tree)
 
-### ⚙️ Módulo 0: Estabilización Pragmática y Reducción de Deuda (Nuevo P0/P1)
+### ⚙️ Módulo 0: Estabilización Pragmática y Reducción de Deuda (P0/P1) [DONE]
 *Responsabilidad: Nivel 1 (Antigravity)*
 *Objetivo: Mitigar vulnerabilidades operacionales, desmonolitizar componentes críticos y lograr paridad de operaciones/tests enfocado en funcionalidad práctica.*
 
-- **Bloque 0.1: Desmonolitización y Abstracción de `kernel.py` (Prioridad Absoluta)**
-  - Tarea 0.1.1: **Solución Práctica a E/S Sincrónica:** Migrar el pipeline de inferencia HTTP de LLMs (`httpx` sincrónico dentro del hilo worker) hacia clientes cooperativos asíncronos (`httpx.AsyncClient`).
-  - Tarea 0.1.2: **Cancelación Cooperativa (Task Cancellation):** Implementar la cancelación transparente de tareas de red pendientes cuando el loop asíncrono se venza (`KERNEL_CHAT_TURN_TIMEOUT`), liberando inmediatamente memoria y slots en el Worker Pool.
-  - Tarea 0.1.3: Extraer la `Perception` y la lógica de ruteo ético del objeto `EthicalKernel` gigante hacia handlers aislados que aprovechen el Async I/O en lugar de abusar de `run_in_threadpool`.
-- **Bloque 0.2: Escalabilidad del Chat Server**
-  - Tarea 0.2.1: Rediseñar la capa WebSocket del servidor (`chat_server.py`) para manejar concurrencia pura sin bloquear el event loop principal, permitiendo streaming asíncrono.
+- **Bloque 0.1: Desmonolitización y Abstracción de `kernel.py` [DONE]**
+  - Tarea 0.1.1: **Solución Práctica a E/S Sincrónica:** Migrar el pipeline de inferencia HTTP hacia clientes asíncronos (`httpx.AsyncClient`). [DONE]
+  - Tarea 0.1.2: **Cancelación Cooperativa (Task Cancellation):** Implementar la cancelación transparente de tareas de red. [DONE]
+  - Tarea 0.1.3: Extraer la `Perception` hacia handlers aislados (`PerceptiveLobe`). [DONE]
+- **Bloque 0.2: Escalabilidad del Chat Server [DONE]**
+  - Tarea 0.2.1: Rediseñar la capa WebSocket del servidor para manejar concurrencia pura. [DONE]
 - **Bloque 0.3: Mantenimiento Histórico (Legacy Modules) [DONE]**
   - Tarea 0.3.1: Los módulos de la integración fundacional 1 al 6 (Mock DAO, Safety Interlock, UchiSoto, Swarm Logic) han sido consolidados y se consideran estables en producción local.
 
@@ -77,17 +77,15 @@ Este documento estructura el inmenso volumen de trabajo arquitectónico definido
 *Responsabilidad: Nivel 1 (Antigravity - Planificación y Orquestación) / Nivel 2 (Ejecución Escuadrones)*
 *Objetivo: Construir la infraestructura que evite transiciones sociopáticas y asegure latencia instintiva frente al ruido (Lectura labial VVAD + Smoothing Emocional).*
 
-- **Bloque 10.1: Fusión Sensorial (VVAD + VAD) y Tálamo**
+- **Bloque 10.1: Fusión Sensorial (VVAD + VAD) y Tálamo [DONE]**
   - *Responsabilidad:* **Team Cursor + Team Copilot**
-  - Tarea: Crear `src/kernel_lobes/thalamus_node.py`. Acoplar OpenCV/LipReading de bajo costo computacional con el VAD existente.
-  - Prioridad: **Alta**. Proveer estabilidad al stream perceptivo.
-- **Bloque 10.2: Tribunal Ético Edge (Doble Capa Local)**
+  - Tarea: Crear `src/kernel_lobes/thalamus_node.py`. Acoplar OpenCV/LipReading de bajo costo computacional con el VAD existente. [DONE]
+- **Bloque 10.2: Tribunal Ético Edge (Doble Capa Local) [DONE]**
   - *Responsabilidad:* **Antigravity (L1)**
-  - Tarea: Mover `AbsoluteEvilDetector` directamente al Edge (Nivel 1 <50ms) e instanciar el Lóbulo Límbico Contextual como Nivel 2 (Asíncrono, también local por carencia 6G).
-  - Prioridad: **Máxima**. Asegurar que la censura estricta no estrangule la conversacion fluida.
-- **Bloque 10.3: Amortiguación Afectiva (Ganglios Basales)**
+  - Tarea: Mover `AbsoluteEvilDetector` directamente al Edge (Nivel 1 <50ms) e instanciar el Lóbulo Límbico Contextual como Nivel 2 (Asíncrono, también local por carencia 6G). [DONE]
+- **Bloque 10.3: Amortiguación Afectiva (Ganglios Basales) [DONE]**
   - *Responsabilidad:* **Claude**
-  - Tarea: Construir `src/modules/basal_ganglia.py` aplicando Filtros EMA (Exponential Moving Average) sobre las variables `charm_warmth` y `charm_mystery` del `UserModelTracker`. Las transiciones deben durar 3-5 turnos.
+  - Tarea: Construir `src/modules/basal_ganglia.py` aplicando Filtros EMA (Exponential Moving Average) sobre las variables del `UserModelTracker`. [DONE]
 - **Bloque 10.4: Predicción Local y Prefetching**
   - *Responsabilidad:* **Team Copilot**
   - Tarea: Inyectar micro-LLM (ej. Llama-3-2B) o precompilador probabilístico para inferir turnos y lanzar asentimientos rápidos en <300ms antes que el API principal complete.
