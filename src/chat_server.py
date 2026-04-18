@@ -2317,6 +2317,21 @@ async def ws_chat(ws: WebSocket) -> None:
                     # Prioritize regulation_gap as a proxy for 'effort/tension'
                     tension = lp.get("regulation_gap", lp.get("threat_load", 0.0))
                     set_limbic_tension(tension)
+                    
+                    # Phase 10: Broadcast to L0 Dashboard
+                    nb.broadcast_to_dashboards({
+                        "type": "telemetry", 
+                        "payload": {
+                            "tension": tension,
+                            "trust": lp.get("trust", 0.5),
+                            "turn_index": turn_id
+                        }
+                    })
+                    if result.response and result.response.inner_voice:
+                        nb.broadcast_to_dashboards({
+                            "type": "thought",
+                            "payload": {"text": result.response.inner_voice}
+                        })
 
                     if result.path in ("safety_block", "kernel_block"):
                         record_malabs_block(result.path)
@@ -2517,7 +2532,23 @@ def run_chat_server() -> None:
     import uvicorn
 
     host, port = get_uvicorn_bind()
-    uvicorn.run(app, host=host, port=port, reload=False)
+    
+    ssl_key = ".certs/key.pem"
+    ssl_cert = ".certs/cert.pem"
+    
+    if os.path.exists(ssl_key) and os.path.exists(ssl_cert):
+        logger.info("SSL certificates found. Starting server in HTTPS mode.")
+        uvicorn.run(
+            app, 
+            host=host, 
+            port=port, 
+            reload=False,
+            ssl_keyfile=ssl_key,
+            ssl_certfile=ssl_cert
+        )
+    else:
+        logger.warning("SSL certificates not found. Starting server in HTTP mode (Nomad Camera/Mic may NOT work).")
+        uvicorn.run(app, host=host, port=port, reload=False)
 
 
 def main() -> None:

@@ -16,6 +16,7 @@ from typing import Any
 
 from .uchi_soto import InteractionProfile
 from .user_model import UserModelTracker
+from src.kernel_lobes.basal_ganglia import BasalGanglia
 
 logger = logging.getLogger(__name__)
 
@@ -122,6 +123,7 @@ class ResponseSculptor:
         self.parametrizer = StyleParametrizer()
         self.gesture_planner = GesturePlanner()
         self.haptic_planner = HapticPlanner()
+        self.basal_ganglia = BasalGanglia(alpha=0.4) # Slightly faster smoothing
 
     def sculpt(
         self,
@@ -145,6 +147,22 @@ class ResponseSculptor:
             )
 
         charm = self.parametrizer.parametrize(decision_action, profile, user_tracker, caution_level)
+        
+        # Phase 10.3: Basal Ganglia EMA Smoothing
+        raw_vector = {
+            "warmth": charm.warmth,
+            "mystery": charm.mystery,
+            "playfulness": charm.playfulness,
+            "directiveness": charm.directiveness,
+        }
+        smoothed_vector = self.basal_ganglia.smooth_charm(raw_vector)
+        
+        # Upgrade back to CharmVector for planners
+        charm.warmth = smoothed_vector["warmth"]
+        charm.mystery = smoothed_vector["mystery"]
+        charm.playfulness = smoothed_vector["playfulness"]
+        charm.directiveness = smoothed_vector["directiveness"]
+
         gesture = self.gesture_planner.plan(charm)
         haptic = self.haptic_planner.plan(charm, caution_level)
 
