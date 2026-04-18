@@ -6,20 +6,20 @@ from typing import Any, TYPE_CHECKING, Optional, Tuple, Dict
 from concurrent.futures import ThreadPoolExecutor
 
 from src.kernel_lobes.models import SemanticState, TimeoutTrauma, PerceptionStageResult
-from src.modules.perceptual_abstraction import (
-    assess_vitality,
-    evaluate_multimodal_trust,
-    assess_epistemic_dissonance,
-    perception_parallel_workers,
-    merge_sensor_hints_into_signals,
-    apply_somatic_nudges,
-    build_perception_confidence_envelope,
-    build_temporal_context,
-)
-from src.modules.observability_metrics import (
+from src.modules.vitality import assess_vitality
+from src.modules.multimodal_trust import evaluate_multimodal_trust
+from src.modules.epistemic_dissonance import assess_epistemic_dissonance
+from src.kernel_utils import perception_parallel_workers
+from src.modules.sensor_contracts import merge_sensor_hints_into_signals
+from src.modules.somatic_markers import apply_somatic_nudges
+from src.modules.perception_confidence import build_perception_confidence_envelope
+from src.modules.temporal_planning import build_temporal_context
+from src.modules.light_risk_classifier import (
     light_risk_classifier_enabled,
     light_risk_tier_from_text,
-    scan_premises,
+)
+from src.modules.premise_validation import scan_premises
+from src.modules.reality_verification import (
     verify_against_lighthouse,
     lighthouse_kb_from_env,
 )

@@ -256,7 +256,7 @@ class ChatTurnResult:
     perception_confidence: PerceptionConfidenceEnvelope | None = None
 
 
-@dataclass
+
 from .kernel_lobes.models import PerceptionStageResult
 
 
