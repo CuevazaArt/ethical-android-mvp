@@ -92,8 +92,21 @@ Este documento estructura el inmenso volumen de trabajo arquitectónico definido
   - *Responsabilidad:* **Team Copilot**
   - Tarea: Inyectar micro-LLM (ej. Llama-3-2B) o precompilador probabilístico para inferir turnos y lanzar asentimientos rápidos en <300ms antes que el API principal complete.
 
+---
+
+### ♾️ Módulo 11: El Bucle Ouroboros (Chat AGI y Radares)
+*Responsabilidad: Nivel 1 (Antigravity) & Nivel 2 (Team Claude)*
+*Objetivo: Cerrar el bucle aferente-eferente. El Kernel no solo debe percibir el mundo (Fase 10), sino hablarle de vuelta al smartphone y proyectar sus inferencias morales en un Dashboard local (L0) real.*
+
+- **Bloque 11.1: Tránsito Audio-to-Audio (STT + TTS)**
+  - *Responsabilidad:* **Team Claude**
+  - Tarea: Consumir la `audio_queue` asíncrona del puente, pasar a Whisper y detonar el Lóbulo Ejecutivo. Devolver voz síncroizada a la PWA.
+- **Bloque 11.2: Ampliación del Dashboard de Operador (L0)**
+  - *Responsabilidad:* **Antigravity**
+  - Tarea: Acoplar Radar de Encanto (Charm Engine Vector) y Terminal de Texto interactiva al Dashboard.
+
 ## 🚀 Flujo de Sincronización Recomendado
 
-1. **Semana Actual:** Antigravity (N1) se encarga transversalmente de desmonolitizar `kernel.py` y actualizar las dependencias de concurrencia. Claude y Cursor toman sus ramas (`master-claude`, `master-Cursor`) and abordan C.1 y S.1 respectivamente.
-2. **Semana Siguiente:** Sincronización de progresos a `master-antigravity`. Antigravity evalúa el impacto del async I/O en la latencia global del kernel.
+1. **Semana Actual:** Antigravity (N1) se encarga de cimentar el Ouroboros (Módulo 11). Claude aborda 11.1 en su rama para STT/Voice.
+2. **Semana Siguiente:** Sincronización de progresos a `master-antigravity`.
 3. **Validación N0:** Integración unificada a `main` tras validaciones somáticas. 

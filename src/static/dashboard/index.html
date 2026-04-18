@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Ethos L0 Dashboard</title>
+    <!-- Chart.js for Ethical Radar -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        body { font-family: monospace; background: #0a0a0a; color: #0f0; margin: 0; padding: 20px; }
+        .grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 20px; }
+        .panel { border: 1px solid #333; padding: 15px; background: #111; display: flex; flex-direction: column; }
+        h2 { margin-top: 0; border-bottom: 1px solid #333; padding-bottom: 5px; font-size: 14px; color: #888; }
+        #video-feed { width: 100%; aspect-ratio: 4/3; background: #000; border: 1px solid #222; }
+        .terminal { flex-grow: 1; overflow-y: auto; font-size: 12px; background: #000; padding: 10px; border: 1px solid #222; margin-bottom: 10px; color: #ccc;}
+        .terminal p { margin: 2px 0; }
+        .metric { font-size: 24px; font-weight: bold; }
+        .flex-row { display: flex; justify-content: space-between; }
+        canvas { max-height: 250px; }
+    </style>
+</head>
+<body>
+    <h1>Ethos Kernel L0 Observer - Phase 11</h1>
+    
+    <div class="grid">
+        <!-- Panel 1: Sensory Aferent -->
+        <div class="panel">
+            <h2>Nomad Vision & Audio Stream</h2>
+            <img id="video-feed" alt="Waiting for vision stream..." />
+            <div style="margin-top: 10px;">Inference: <span id="vision-label" class="metric">--</span></div>
+            <div style="margin-top: 10px;">Audio Energy RMS:</div>
+            <div style="width: 100%; height: 10px; background: #222; overflow: hidden;">
+                <div id="audio-bar" style="width: 0%; height: 100%; background: #0f0; transition: width 0.1s;"></div>
+            </div>
+            <div class="flex-row" style="margin-top: 10px;">
+                <div>Batt: <span id="telemetry-battery" style="color: #0f0;">--</span>%</div>
+                <div>Kinetics: <span id="telemetry-kinetics" style="color: #f0f;">0.00</span>G</div>
+            </div>
+        </div>
+
+        <!-- Panel 2: Reflection Terminal -->
+        <div class="panel">
+            <h2>Reflection Terminal (Chat/Log)</h2>
+            <div class="terminal" id="chat-terminal">
+                <p style="color: #0f0;">> System online. Waiting for inference cycle...</p>
+            </div>
+            <!-- Future input box for operator override
+            <input type="text" placeholder="Operator Override..." style="width: 100%; background: #222; border: 1px solid #444; color: #fff; padding: 5px;" disabled />
+            -->
+        </div>
+        
+        <!-- Panel 3: Ethical Radar -->
+        <div class="panel">
+            <h2>Ethical Radar (Charm Vector)</h2>
+            <canvas id="charm-radar"></canvas>
+            <p style="font-size: 10px; color: #555; text-align: center;">Mapping: Warmth, Tension, Dominance (Awaiting 11.2 Integration)</p>
+        </div>
+    </div>
+
+    <script>
+        // Init Chart.js Radar
+        const ctx = document.getElementById('charm-radar').getContext('2d');
+        const radarChart = new Chart(ctx, {
+            type: 'polarArea',
+            data: {
+                labels: ['Warmth', 'Tension', 'Mystery'],
+                datasets: [{
+                    label: 'Affective Vector',
+                    data: [50, 10, 40],
+                    backgroundColor: [
+                        'rgba(0, 255, 0, 0.5)',
+                        'rgba(255, 0, 0, 0.5)',
+                        'rgba(0, 0, 255, 0.5)'
+                    ]
+                }]
+            },
+            options: {
+                responsive: true,
+                scales: { r: { display: false } },
+                plugins: { legend: { display: false } }
+            }
+        });
+
+        const wsProtocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+        const ws = new WebSocket(`${wsProtocol}//${window.location.host}/ws/dashboard`);
+        
+        const videoImg = document.getElementById('video-feed');
+        const battSpan = document.getElementById('telemetry-battery');
+        const kinSpan = document.getElementById('telemetry-kinetics');
+        const labelSpan = document.getElementById('vision-label');
+        const audioBar = document.getElementById('audio-bar');
+        const terminal = document.getElementById('chat-terminal');
+
+        function appendLog(msg, color = "#ccc") {
+            const p = document.createElement('p');
+            p.style.color = color;
+            p.innerText = `> ${msg}`;
+            terminal.appendChild(p);
+            terminal.scrollTop = terminal.scrollHeight;
+        }
+
+        ws.onmessage = (event) => {
+            try {
+                const data = JSON.parse(event.data);
+                
+                if (data.type === 'frame') {
+                    videoImg.src = 'data:image/jpeg;base64,' + data.payload.image_b64;
+                    if (data.payload.inference) {
+                        labelSpan.innerText = `${data.payload.inference.label} (${(data.payload.inference.conf * 100).toFixed(1)}%)`;
+                    }
+                } else if (data.type === 'telemetry') {
+                    if (data.payload.battery !== undefined) {
+                        battSpan.innerText = Math.round(data.payload.battery * 100);
+                    }
+                    if (data.payload.kinetics !== undefined) {
+                        kinSpan.innerText = data.payload.kinetics.toFixed(2);
+                        if (data.payload.kinetics > 4) appendLog("Physical shock/shake detected!", "#f00");
+                    }
+                } else if (data.type === 'audio_energy') {
+                    audioBar.style.width = Math.min(100, data.payload.rms * 100) + '%';
+                }
+            } catch (e) {
+                console.error(e);
+            }
+        };
+
+        ws.onopen = () => appendLog('Dashboard WS connected to Kernel', '#0f0');
+        ws.onclose = () => appendLog('Dashboard WS disconnected', '#f00');
+    </script>
+</body>
+</html>

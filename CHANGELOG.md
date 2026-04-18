@@ -13,6 +13,19 @@ All notable changes to this project are summarized here. For narrative context a
 - **PLAN_IMMEDIATE_TWO_WEEKS**: records Option **A** (docs-first) for Issue #1.
 - **CRITIQUE_ROADMAP_ISSUES** and **ADR 0009**: `bayesian_engine.py` documented as wrapping `WeightedEthicsScorer` (`BayesianInferenceEngine`), not only a re-export shim.
 
+## Antigravity — Ouroboros (Audio Bridge) & Phase 12 Hardening — April 2026
+
+### Antigravity Team Updates (April 2026 - Phase 11/12)
+- **Phase 11: Ouroboros Loop (2026-04-18):**
+    - **Native STT Integration:** Implemented client-side `SpeechRecognition` in `media_engine.js` for real-time audio-to-text transcription on the POCO X3.
+    - **Native TTS Integration:** Implemented client-side `speechSynthesis` in `app.js` to speak kernel responses verbally on the smartphone.
+    - **Kernel Voice Bridge:** Added `kernel_voice` event handlers in `chat_server.py` to bridge the LLM response directly to the PWA voice motor.
+- **Phase 12: Vertical Scaling & Hardening (2026-04-18):**
+    - **SQLite WAL Mode:** Enabled Write-Ahead Logging in `sqlite_store.py` and `narrative_storage.py` to prevent "database is locked" errors during high-frequency telemetry ingestion.
+    - **Prometheus Observability:** Integrated a `/metrics` Prometheus endpoint in `chat_server.py` for real-time latency and affective tension monitoring.
+    - **Vector Memory Core:** Activated `ChromaDB` dependencies in `requirements.txt` preparing the way for long-term semantic memory.
+    - **UI/PWA Fixes:** Calibrated kinetic stress threshold to `> 4G` for realistic impact detection and implemented a manual install fallback modal for the Nomad PWA.
+
 ## Antigravity — Validation Pulse & Somatic-Vision Integration — April 2026
 
 ### Antigravity Team Updates (April 2026)

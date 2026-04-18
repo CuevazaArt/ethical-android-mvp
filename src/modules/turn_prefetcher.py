@@ -24,8 +24,11 @@ class TurnPrefetcher:
 
     def __init__(self, model_name: str | None = None):
         self.model_name = model_name or os.environ.get("OLLAMA_PREFETCH_MODEL")
+        self.ollama_host = os.environ.get("OLLAMA_HOST", "http://localhost:11434")
         if self.model_name:
-            _log.info("TurnPrefetcher: Initialized with local model %s", self.model_name)
+            _log.info("TurnPrefetcher: Active with local model %s via %s", self.model_name, self.ollama_host)
+        else:
+            _log.info("TurnPrefetcher: Running in Heuristic Fallback mode (no micro-LLM).")
 
     async def predict_bridge(self, state: SemanticState, ethics: EthicalSentence) -> str:
         """
@@ -50,7 +53,7 @@ class TurnPrefetcher:
                 )
                 async with httpx.AsyncClient(timeout=0.3) as client:
                     resp = await client.post(
-                        "http://localhost:11434/api/generate",
+                        f"{self.ollama_host}/api/generate",
                         json={
                             "model": self.model_name,
                             "prompt": prompt,
