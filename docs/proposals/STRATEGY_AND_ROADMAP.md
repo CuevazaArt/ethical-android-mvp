@@ -52,9 +52,9 @@ The previous roadmap still prioritized features (metaplan, generative LLM, swarm
 |----------|--------|------|
 | **P0 (DONE)** | **Nomad Hardware Bridge & Situated Inference** | **Status: Stabilized.** LAN WebSocket link for smartphone sensors is functional and validated with sim-harness. |
 | **P1 (DONE)** | **Asynchronous Fortification & Locks** | **Status: Implementada.** SQLite WAL mode, async LLM HTTP clients, and cooperative cancellation are active. |
-| **P2** | **Ouroboros (Audio / TTS Bridge)** | **New Priority.** Real-time streaming voice (Ouroboros) and lip-sync coordination for the Nomad Vessel. |
-| **P3** | Swarm & P2P Justice Scaling | Resuming after Audio bridge; Swarm logic validated locally. |
-| **P4** | Generative LLM & Additional Metaplans | Paused until physical inference proves sound. |
+| **P2 (DONE)** | **Ouroboros (Audio / TTS Bridge)** | **Status: Stabilized.** Real-time streaming voice, haptics and Dissonance Alerts active. |
+| **P3** | **Recursive Narrative Memory (Phase 13)** | **New Priority.** Chronic distillation of episodic memory into recursive high-level summaries. |
+| **P4** | Swarm & P2P Justice Scaling | Resuming after Memory consolidation; Swarm logic validated locally. |
 
 **Next task executed as the P2 gap closure:** Implementation of the Audio/TTS feedback loop (Ouroboros) and Narrative continuity protocols.
 

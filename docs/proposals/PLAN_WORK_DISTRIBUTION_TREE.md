@@ -86,9 +86,24 @@ Este documento estructura el inmenso volumen de trabajo arquitectónico definido
 - **Bloque 10.3: Amortiguación Afectiva (Ganglios Basales) [DONE]**
   - *Responsabilidad:* **Claude**
   - Tarea: Construir `src/modules/basal_ganglia.py` aplicando Filtros EMA (Exponential Moving Average) sobre las variables del `UserModelTracker`. [DONE]
-- **Bloque 10.4: Predicción Local y Prefetching**
-  - *Responsabilidad:* **Team Copilot**
-  - Tarea: Inyectar micro-LLM (ej. Llama-3-2B) o precompilador probabilístico para inferir turnos y lanzar asentimientos rápidos en <300ms antes que el API principal complete.
+- **Bloque 10.4: Predicción Local y Prefetching [DONE]**
+  - Tarea: Inyectar micro-LLM (ej. Llama-3-2B) o precompilador probabilístico para inferir turnos. [DONE]
+
+### 🛰️ Módulo N (Nomad Bridge & Ouroboros)
+*Responsabilidad: Antigravity (L1)*
+
+- **Bloque 11.4: Ouroboros Sensory-Motor Loop [DONE]**
+  - Tarea 11.4.1: Implementación de TTS Nativo y Lip-sync en PWA. [DONE]
+  - Tarea 11.4.2: Retroalimentación Háptica Somática (Charm Engine). [DONE]
+  - Tarea 11.4.3: Telemetría de Disonancia Epistémica Visual. [DONE]
+
+### 📜 Módulo M (Memoria de Largo Plazo & Narrativa)
+*Responsabilidad: Antigravity (L1)*
+
+- **Bloque 12.1: Recursive Narrative Memory (Chronicles) [/]**
+  - Tarea 12.1.1: Esquema de persistencia para crónicas recursivas. [DONE]
+  - Tarea 12.1.2: Motor de consolidación y destilación de episodios. [DONE]
+  - Tarea 12.1.3: Integración de resonancia crónica en la recuperación. [ONGOING]
 
 ## 🚀 Flujo de Sincronización Recomendado
 

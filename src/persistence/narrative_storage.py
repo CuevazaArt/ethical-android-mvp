@@ -70,6 +70,21 @@ def _ensure_schema(conn: sqlite3.Connection) -> None:
         )
         """
     )
+    # Tier 3+: Narrative Chronicles (Recursive Summaries for Phase 13)
+    conn.execute(
+        """
+        CREATE TABLE IF NOT EXISTS narrative_chronicles (
+            id TEXT PRIMARY KEY,
+            start_timestamp TEXT,
+            end_timestamp TEXT,
+            summary TEXT NOT NULL,
+            archetypal_resonance TEXT,
+            ethical_poles_summary TEXT,
+            significance_avg REAL,
+            episode_count INTEGER
+        )
+        """
+    )
     # Migration for I1 Integration: Add weights_snapshot if missing
     try:
         conn.execute("ALTER TABLE narrative_episodes ADD COLUMN weights_snapshot TEXT")
@@ -369,6 +384,74 @@ class NarrativePersistence:
             if own_conn:
                 conn.close()
         return arcs
+
+    def save_chronicle(self, chronicle: NarrativeChronicle) -> None:
+        lock = get_db_lock(self.path) if self._memory_conn is None else contextlib.nullcontext()
+        with lock:
+            own_conn = self._memory_conn is None
+            conn = self._conn()
+            try:
+                _ensure_schema(conn)
+                with conn:
+                    conn.execute(
+                        """
+                    INSERT INTO narrative_chronicles (
+                        id, start_timestamp, end_timestamp, summary,
+                        archetypal_resonance, ethical_poles_summary,
+                        significance_avg, episode_count
+                    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+                    ON CONFLICT(id) DO UPDATE SET
+                        summary=excluded.summary,
+                        archetypal_resonance=excluded.archetypal_resonance,
+                        ethical_poles_summary=excluded.ethical_poles_summary,
+                        significance_avg=excluded.significance_avg,
+                        episode_count=excluded.episode_count
+                    """,
+                        (
+                            chronicle.id,
+                            chronicle.start_timestamp,
+                            chronicle.end_timestamp,
+                            chronicle.summary,
+                            chronicle.archetypal_resonance,
+                            chronicle.ethical_poles_summary,
+                            chronicle.significance_avg,
+                            chronicle.episode_count,
+                        ),
+                    )
+                conn.commit()
+            finally:
+                if own_conn:
+                    conn.close()
+
+    def load_all_chronicles(self) -> list[NarrativeChronicle]:
+        if self._memory_conn is None and not self.path.is_file():
+            return []
+        chronicles = []
+        own_conn = self._memory_conn is None
+        conn = self._conn()
+        try:
+            _ensure_schema(conn)
+            cursor = conn.execute(
+                "SELECT id, start_timestamp, end_timestamp, summary, archetypal_resonance, ethical_poles_summary, significance_avg, episode_count FROM narrative_chronicles ORDER BY start_timestamp ASC"
+            )
+            for row in cursor:
+                id, start, end, summary, arch, poles, sig, count = row
+                chronicles.append(
+                    NarrativeChronicle(
+                        id=id,
+                        start_timestamp=start,
+                        end_timestamp=end,
+                        summary=summary,
+                        archetypal_resonance=arch,
+                        ethical_poles_summary=poles,
+                        significance_avg=sig,
+                        episode_count=count,
+                    )
+                )
+        finally:
+            if own_conn:
+                conn.close()
+        return chronicles
 
     def prune_mundane(self, max_age_days: int = 60, min_significance: float = 0.70) -> int:
         """

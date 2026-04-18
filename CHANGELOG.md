@@ -6,7 +6,18 @@ All notable changes to this project are summarized here. For narrative context a
 
 **[URGENT — broadcast to all L2 integration hubs]:** All teams (Claude, Cursor, Copilot) should urgently `git pull` from `main` into their `master-*` branches. Outdated branches risk severe documentation path drift.
 
-### Antigravity-Team Updates (2026-04-18)
+### Antigravity-Team Updates (2026-04-18 - Session 2)
+
+- [x] **PHASE 12 COMPLETED (Ouroboros Sensory-Motor Loop)**:
+    - **Physical Presence**: Full implementation of TTS (Vox) and Haptics (Charm Engine) synchronized via Nomad Bridge.
+    - **Epistemic Dissonance**: Real-time visual alerts (crimson pulse) on L0 Dashboard and Nomad PWA.
+    - **Resilience**: PWA Keep-alive and WebSocket robust reconnection validated in mobile environments.
+- [x] **PHASE 13 OPENED (Recursive Narrative Memory)**:
+    - **Chronic Tier**: Implemented `NarrativeChronicle` and SQL persistence for multi-level history.
+    - **Recursive Engine**: NarrativeMemory now distills episodic memory into long-term chronicles autonomously when reaching context limits.
+    - **Traceability**: All narrative arcs now link to chronic identifiers for existential continuity.
+
+### Antigravity-Team Updates (2026-04-18 - Session 1)
 
 - [x] **Tribunal Ético Edge (Fase 11.4 COMPLETADA)**:
     - **Nivel 1 (Edge Gate)**: Inyección de `AbsoluteEvilDetector.evaluate_chat_text_fast` en el lóbulo de percepción para bloqueos < 10ms.

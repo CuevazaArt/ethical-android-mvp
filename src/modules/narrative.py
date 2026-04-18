@@ -15,7 +15,7 @@ from src.persistence.narrative_storage import NarrativePersistence
 
 from .identity_reflection import IdentityReflector
 from .narrative_identity import NarrativeIdentityTracker
-from .narrative_types import BodyState, NarrativeArc, NarrativeEpisode
+from .narrative_types import BodyState, NarrativeArc, NarrativeEpisode, NarrativeChronicle
 from .semantic_embedding_client import (
     ahttp_fetch_ollama_embedding, 
     http_fetch_ollama_embedding, 
@@ -75,6 +75,9 @@ class NarrativeMemory:
         self.arcs = self.persistence.load_all_arcs()
         self.active_arc = next((a for a in self.arcs if a.is_active), None)
 
+        # Load Chronicles (Phase 13)
+        self.chronicles = self.persistence.load_all_chronicles()
+
     def consolidate(self) -> str:
         """
         Tier 3: Existential Consolidation.
@@ -92,6 +95,61 @@ class NarrativeMemory:
 
         self.persistence.save_identity_digest(self.experience_digest)
         return self.experience_digest
+
+    async def consolidate_to_chronicle(self, limit: int = 50) -> Optional[NarrativeChronicle]:
+        """
+        Phase 13: Recursive Chronicle Consolidation.
+        Summarizes the oldest 'limit' episodes into a single Chronicle block.
+        """
+        if len(self.episodes) < limit:
+            return None
+        
+        to_summarize = self.episodes[:limit]
+        
+        # 1. Gather stats
+        start_ts = to_summarize[0].timestamp
+        end_ts = to_summarize[-1].timestamp
+        avg_sig = sum(ep.significance for ep in to_summarize) / len(to_summarize)
+        
+        # 2. Extract Ethical Poles Summary
+        poles_counts = {}
+        for ep in to_summarize:
+            for pole in ep.morals:
+                poles_counts[pole] = poles_counts.get(pole, 0) + 1
+        
+        top_poles = sorted(poles_counts.items(), key=lambda x: -x[1])[:3]
+        poles_summary = ", ".join([f"{p} ({c})" for p, c in top_poles])
+        
+        # 3. Request LLM Summary (Thematic Distillation)
+        # For MVP, we'll do a structured procedural summary if LLM not available
+        # In full Phase 13, this calls a dedicated 'chronicler' prompt.
+        events_text = "; ".join([ep.event_description for ep in to_summarize[:10]]) # sample
+        summary_text = f"Chronicle of {len(to_summarize)} episodes. Predominant themes: {poles_summary}. Key events sample: {events_text}..."
+
+        chron_id = f"CHRON-{len(self.chronicles) + 1:03d}"
+        chronicle = NarrativeChronicle(
+            id=chron_id,
+            start_timestamp=start_ts,
+            end_timestamp=end_ts,
+            summary=summary_text,
+            ethical_poles_summary=poles_summary,
+            significance_avg=round(avg_sig, 4),
+            episode_count=len(to_summarize)
+        )
+        
+        # 4. Save and persist
+        self.chronicles.append(chronicle)
+        self.persistence.save_chronicle(chronicle)
+        
+        # 5. REMOVE summarized episodes from active memory list 
+        # (Disk retains them, but active session list is trimmed)
+        self.episodes = self.episodes[limit:]
+        
+        # 6. Final audit log
+        import logging
+        logging.getLogger(__name__).info(f"Memory Chronicle Created: {chron_id} distilling {limit} episodes.")
+        
+        return chronicle
 
     def get_reflection(self) -> str:
         """Returns the first-person reflexive self-model (Pilar de la Mente)."""
@@ -310,8 +368,13 @@ class NarrativeMemory:
         import asyncio
         await asyncio.to_thread(self.persistence.save_episode, ep)
 
+        # 5. Recursive Chronicling logic (Phase 13)
+        # If we exceed max_episodes, we summarize the bottom 10% of memory 
+        # instead of just discarding it.
         if len(self.episodes) > self.max_episodes:
-            self.episodes = self.episodes[-self.max_episodes :]
+            # We summarize a chunk (e.g. 50 episodes) to make space
+            await self.consolidate_to_chronicle(limit=50)
+
         return ep
 
     def find_similar(self, context: str, limit: int = 5) -> list[NarrativeEpisode]:
