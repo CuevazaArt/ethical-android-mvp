@@ -126,10 +126,12 @@ class PerceptiveLobe:
             )
 
         if self.thalamus and sensor_snapshot:
-            if hasattr(sensor_snapshot, "orientation"):
-                self.thalamus.ingest_telemetry({"orientation": sensor_snapshot.orientation})
-            if hasattr(sensor_snapshot, "rms_audio"):
-                self.thalamus.ingest_audio_signal(sensor_snapshot.rms_audio)
+            ori = getattr(sensor_snapshot, "orientation", None)
+            if ori:
+                self.thalamus.ingest_telemetry({"orientation": ori})
+            rms = getattr(sensor_snapshot, "rms_audio", None)
+            if rms is not None:
+                self.thalamus.ingest_audio_signal(float(rms))
 
         # 0.1 Check Safety
         safety_dec = self.safety_interlock.evaluate(scenario, place, context)

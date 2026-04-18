@@ -881,6 +881,25 @@ class EthicalKernel:
         message_content: str
     ) -> tuple[BayesianResult | None, BayesianStageMetadata | None, KernelDecision | None]:
 
+        # Episodic mixture nudge (before scoring) — see THEORY_AND_IMPLEMENTATION.md / ADR 0009.
+        if _kernel_env_truthy("KERNEL_BAYESIAN_EMPIRICAL_WEIGHTS"):
+            self.bayesian.refresh_weights_from_episodic_memory(self.memory, context)
+        else:
+            self.bayesian.reset_mixture_weights()
+
+        if _kernel_env_truthy("KERNEL_TEMPORAL_HORIZON_PRIOR"):
+            from .modules.temporal_horizon_prior import apply_horizon_prior_to_engine
+
+            hint = clean_actions[0].name if clean_actions else ""
+            apply_horizon_prior_to_engine(
+                self.bayesian,
+                self.memory,
+                context,
+                hint,
+                genome_weights=self._bayesian_genome_weights,
+                max_drift=float(os.environ.get("KERNEL_ETHICAL_GENOME_MAX_DRIFT", "0.15")),
+            )
+
         # 1. Check Lexical Veto (Phase 8 strict preemptive)
         for text in [scenario, message_content]:
             if not text:

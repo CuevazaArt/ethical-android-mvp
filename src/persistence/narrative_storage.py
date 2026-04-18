@@ -15,7 +15,9 @@ from src.utils.db_locks import get_db_lock
 
 
 def _connect(path: Path) -> sqlite3.Connection:
-    conn = sqlite3.connect(str(path), timeout=30.0)
+    # EthicalKernel.process may run aprocess via asyncio in a worker thread; narrative
+    # writes must not require the same OS thread as connection creation.
+    conn = sqlite3.connect(str(path), timeout=30.0, check_same_thread=False)
     conn.execute("PRAGMA foreign_keys = ON")
     if str(path) != ":memory:":
         conn.execute("PRAGMA journal_mode = WAL")

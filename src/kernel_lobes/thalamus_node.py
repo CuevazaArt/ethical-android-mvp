@@ -58,8 +58,11 @@ class ThalamusNode:
         
         self.state.last_update = time.time()
 
-    def ingest_audio_signal(self, rms: float):
+    def ingest_audio_signal(self, rms: float | None) -> None:
         """Processes audio volume spikes for VAD (Antigravity)."""
+        if rms is None:
+            return
+        rms = float(rms)
         self._audio_history.append(rms)
         if len(self._audio_history) > self._max_history:
             self._audio_history.pop(0)
