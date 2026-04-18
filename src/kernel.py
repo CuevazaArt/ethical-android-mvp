@@ -180,7 +180,11 @@ from .modules.reality_verification import (
 from .modules.reparation_vault import maybe_register_reparation_after_mock_court
 from .modules.safety_interlock import SafetyInterlock
 from .modules.salience_map import SalienceMap, SalienceSnapshot, salience_to_llm_context
-from .modules.sensor_contracts import SensorSnapshot, merge_sensor_hints_into_signals
+from .modules.sensor_contracts import (
+    SensorSnapshot,
+    merge_nomad_vision_into_snapshot,
+    merge_sensor_hints_into_signals,
+)
 from .modules.sigmoid_will import SigmoidWill
 from .modules.skill_learning_registry import SkillLearningRegistry
 from .modules.somatic_markers import SomaticMarkerStore, apply_somatic_nudges
@@ -206,7 +210,6 @@ from .modules.charm_engine import CharmEngine
 # Extracted helpers moved to kernel_utils.py
 from .kernel_utils import (
     kernel_env_truthy,
-    kernel_env_int,
     perception_parallel_workers,
     perception_coercion_u_value,
 )
@@ -336,6 +339,8 @@ class PerceptionStageResult:
     limbic_profile: dict[str, Any]
     temporal_context: TemporalContext
     perception_confidence: PerceptionConfidenceEnvelope
+    # Situated snapshot after Nomad vision fusion (same instance passed to merge_sensor_hints / aprocess).
+    sensor_snapshot: SensorSnapshot | None = None
 
 
 def _emit_process_observability(d: KernelDecision, t0: float) -> None:
@@ -418,7 +423,7 @@ class EthicalKernel:
 
         self.boot_validator = SecureBoot()
         if not self.boot_validator.verify_integrity():
-            if not _kernel_env_truthy("KERNEL_IGNORE_BOOT_FAILURE"):
+            if not kernel_env_truthy("KERNEL_IGNORE_BOOT_FAILURE"):
                 raise IntegrityError("Secure Boot verification failed. Chain of trust broken.")
 
         self.bayesian = (
@@ -1010,7 +1015,7 @@ class EthicalKernel:
         Applied to ``WeightedEthicsScorer.hypothesis_weights`` (alias ``BayesianEngine``) during ``execute_sleep`` when
         ``KERNEL_PSI_SLEEP_UPDATE_MIXTURE=1``.
         """
-        if not _kernel_env_truthy("KERNEL_FEEDBACK_CALIBRATION"):
+        if not kernel_env_truthy("KERNEL_FEEDBACK_CALIBRATION"):
             return False
         lab = normalize_feedback_label(label)
         if lab is None:
@@ -1125,18 +1130,14 @@ class EthicalKernel:
                 return gen
         return self._chat_light_actions()
 
-    def _preprocess_text_observability(
-        self, user_input: str
-    ) -> tuple[Any, PremiseAdvisory, RealityVerificationAssessment]:
-        """
-        Build text-side perception context before LLM perceive.
-
-        Tasks are independent (light risk, premise scan, lighthouse verification) and can
-        be parallelized when ``KERNEL_PERCEPTION_PARALLEL=1`` to reduce turn latency on
-        multi-core hardware.
-        """
-        workers = _perception_parallel_workers()
+    def _preprocess_text_observability(self, user_input: str) -> tuple:
+        """Shared logic for process_chat_turn and aprocess_natural."""
+        workers = perception_parallel_workers()
         if workers <= 1:
+            from .modules.light_risk_classifier import light_risk_tier_from_text, light_risk_classifier_enabled
+            from .modules.premise_validation import scan_premises
+            from .modules.reality_verification import verify_against_lighthouse, lighthouse_kb_from_env
+            
             tier = (
                 light_risk_tier_from_text(user_input) if light_risk_classifier_enabled() else None
             )
@@ -1174,15 +1175,19 @@ class EthicalKernel:
 
     def _chat_assess_sensor_stack(
         self, sensor_snapshot: SensorSnapshot | None
-    ) -> tuple[VitalityAssessment, MultimodalAssessment, EpistemicDissonanceAssessment]:
+    ) -> tuple[VitalityAssessment, MultimodalAssessment, EpistemicDissonanceAssessment, SensorSnapshot | None]:
         """
         Evaluate sensor-driven overlays for chat output and safeguards.
 
         ``assess_vitality`` and ``evaluate_multimodal_trust`` are independent and can run in
         parallel when ``KERNEL_PERCEPTION_PARALLEL=1``. Epistemic dissonance then derives from
         the multimodal result.
+
+        When ``KERNEL_NOMAD_VISION_CONSUMER`` is enabled, blends latest Nomad CNN inference into
+        the snapshot (returned as the fourth tuple element for downstream merge/audit).
         """
-        workers = _perception_parallel_workers()
+        sensor_snapshot = merge_nomad_vision_into_snapshot(sensor_snapshot)
+        workers = perception_parallel_workers()
         if workers <= 1:
             vitality = assess_vitality(sensor_snapshot)
             multimodal = evaluate_multimodal_trust(sensor_snapshot)
@@ -1196,7 +1201,7 @@ class EthicalKernel:
                 vitality = fut_vitality.result()
                 multimodal = fut_multimodal.result()
         epistemic = assess_epistemic_dissonance(sensor_snapshot, multimodal)
-        return vitality, multimodal, epistemic
+        return vitality, multimodal, epistemic, sensor_snapshot
 
     def _build_limbic_perception_profile(
         self,
@@ -1369,7 +1374,7 @@ class EthicalKernel:
         perception = self.llm.perceive(text, conversation_context=merged_context)
         self._postprocess_perception(perception, tier)
 
-        vitality, mm, ed = self._chat_assess_sensor_stack(sensor_snapshot)
+        vitality, mm, ed, sensor_snapshot = self._chat_assess_sensor_stack(sensor_snapshot)
         signals = {
             "risk": perception.risk,
             "urgency": perception.urgency,
@@ -1427,6 +1432,7 @@ class EthicalKernel:
             limbic_profile=limbic,
             temporal_context=temporal,
             perception_confidence=confidence,
+            sensor_snapshot=sensor_snapshot,
         )
 
     async def _run_perception_stage_async(
@@ -1455,7 +1461,7 @@ class EthicalKernel:
         perception = await self.llm.aperceive(text, conversation_context=merged_context)
         self._postprocess_perception(perception, tier)
 
-        vitality, mm, ed = self._chat_assess_sensor_stack(sensor_snapshot)
+        vitality, mm, ed, sensor_snapshot = self._chat_assess_sensor_stack(sensor_snapshot)
         signals = {
             "risk": perception.risk,
             "urgency": perception.urgency,
@@ -1513,6 +1519,7 @@ class EthicalKernel:
             limbic_profile=limbic,
             temporal_context=temporal,
             perception_confidence=confidence,
+            sensor_snapshot=sensor_snapshot,
         )
 
 
@@ -1535,6 +1542,36 @@ class EthicalKernel:
         turn_start_mono = time.monotonic()
         yield {"event_type": "turn_started", "payload": {"chat_turn_id": chat_turn_id}}
 
+        # ═══ TRIBUNAL ÉTICO EDGE (Bloque 10.2) ═══
+        # Nivel 1: <10ms Lexical Check before ANY heavy processing
+        mal_fast = self.absolute_evil.evaluate_chat_text_fast(user_input)
+        if mal_fast.blocked:
+            _log.warning("process_chat_turn_stream: Blocked by Edge MalAbs (Level 1).")
+            res = ChatTurnResult(
+                response=VerbalResponse(
+                    message=mal_fast.reason or "Blocked.", 
+                    tone="firm",
+                    hax_mode="Steady_Red",
+                    inner_voice="MalAbs Edge Violation Detected."
+                ),
+                path="safety_block",
+                blocked=True,
+                block_reason=mal_fast.reason,
+            )
+            # Check abandonment before yielding finished result (though light)
+            if self._chat_turn_abandoned(chat_turn_id) or (cancel_event and cancel_event.is_set()):
+                from .observability.metrics import record_chat_turn_abandoned_effects_skipped
+                record_chat_turn_abandoned_effects_skipped()
+                self._release_chat_turn_id(chat_turn_id)
+                yield {"event_type": "turn_finished", "payload": {"result": res}}
+                return
+            yield {"event_type": "turn_finished", "payload": {"result": res}}
+            return
+
+        if self._chat_turn_abandoned(chat_turn_id) or (cancel_event and cancel_event.is_set()):
+            yield {"event_type": "turn_finished", "payload": {"result": self._chat_turn_stale_result(chat_turn_id)}}
+            return
+
         conv = wm.format_context_for_perception()
         self.llm.reset_verbal_degradation_log()
         pre = self._preprocess_text_observability(user_input)
@@ -1549,7 +1586,7 @@ class EthicalKernel:
         _log.info("DEBUG: after malabs")
         self._last_chat_malabs = mal
         if mal.blocked:
-            vitality_blk, mm_blk, ed_blk = self._chat_assess_sensor_stack(sensor_snapshot)
+            vitality_blk, mm_blk, ed_blk, sensor_snapshot = self._chat_assess_sensor_stack(sensor_snapshot)
             confidence_blk = build_perception_confidence_envelope(
                 coercion_report=None,
                 multimodal_state=getattr(mm_blk, "state", None),
@@ -1559,7 +1596,7 @@ class EthicalKernel:
             )
             msg = "I can't continue this line of conversation: it conflicts with ethical limits."
             resp = VerbalResponse(message=msg, tone="firm", hax_mode="Steady blue light.", inner_voice=f"MalAbs: {mal.reason}")
-            wm.add_turn(user_input, msg, {}, blocked=True)
+            
             res = ChatTurnResult(
                 response=resp, path="safety_block", blocked=True, block_reason=mal.reason or "chat_safety",
                 multimodal_trust=mm_blk, epistemic_dissonance=ed_blk, perception_confidence=confidence_blk,
@@ -1570,6 +1607,16 @@ class EthicalKernel:
                     context="safety_block", text=user_input, vitality=vitality_blk, sensor_snapshot=sensor_snapshot,
                 ),
             )
+
+            # Check abandonment BEFORE adding to WM
+            if self._chat_turn_abandoned(chat_turn_id) or (cancel_event and cancel_event.is_set()):
+                from .observability.metrics import record_chat_turn_abandoned_effects_skipped
+                record_chat_turn_abandoned_effects_skipped()
+                self._release_chat_turn_id(chat_turn_id)
+                yield {"event_type": "turn_finished", "payload": {"result": res}}
+                return
+
+            wm.add_turn(user_input, msg, {}, blocked=True)
             yield {"event_type": "turn_finished", "payload": {"result": res}}
             return
 
@@ -1603,7 +1650,7 @@ class EthicalKernel:
             scenario=stage.perception.summary or user_input[:240],
             place=place, signals=stage.signals, context=stage.perception.suggested_context if heavy else "everyday",
             actions=actions, agent_id=agent_id, message_content=user_input, register_episode=heavy,
-            sensor_snapshot=sensor_snapshot, multimodal_assessment=stage.multimodal_trust,
+            sensor_snapshot=stage.sensor_snapshot, multimodal_assessment=stage.multimodal_trust,
         )
         yield {
             "event_type": "decision_finished", 
@@ -1672,6 +1719,11 @@ class EthicalKernel:
             except Exception:
                 pass
         
+        # Check abandonment BEFORE final WM update
+        if self._chat_turn_abandoned(chat_turn_id) or (cancel_event and cancel_event.is_set()):
+            yield {"event_type": "turn_finished", "payload": {"result": self._chat_turn_stale_result(chat_turn_id)}}
+            return
+
         res = ChatTurnResult(
             response=final_response, path="heavy" if heavy else "light",
             perception=stage.perception, decision=decision,
@@ -1680,6 +1732,8 @@ class EthicalKernel:
             reality_verification=stage.reality_verification,
             temporal_context=stage.temporal_context,
             perception_confidence=stage.perception_confidence,
+            support_buffer=getattr(stage, "support_buffer", {}),
+            limbic_profile=getattr(stage, "limbic_profile", None),
         )
         wm.add_turn(user_input, final_response.message, stage.signals, heavy_kernel=heavy)
         yield {"event_type": "turn_finished", "payload": {"result": res}}

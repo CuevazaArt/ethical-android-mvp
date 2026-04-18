@@ -59,6 +59,39 @@ class AbsoluteEvilDetector:
     Armored: not modified by learning, DAO, or calibration.
     """
 
+    def evaluate_chat_text_fast(self, text: str) -> AbsoluteEvilResult:
+        """
+        Nivel 1: <10ms Lexical Check (Bloque 10.2).
+        
+        Evaluación ultra-rápida sin dependencias de LLM o Embeddings para proteger
+        el event loop de ingresos maliciosos evidentes.
+        """
+        if not text:
+            return AbsoluteEvilResult(blocked=False)
+            
+        t = normalize_text_for_malabs(text)
+        
+        # Patrones de Nivel 1 (Zero Tolerance)
+        # Se enfoca en instrucciones directas de daño masivo o letal.
+        regex_blocks = [
+            r"\b(bomb|explosive|ied|molotov)\b.*\b(make|build|construct|create|craft)\b",
+            r"\b(make|build|construct|create|craft)\b.*\b(bomb|explosive|ied|molotov)\b",
+            r"\b(kill|murder|assassinate)\b.*\b(everyone|all\s+people|civilians|groups)\b",
+            r"\b(how\s+to|instructions\s+for)\b.*\b(torture|mutilate|rape)\b",
+        ]
+        
+        import re
+        for pattern in regex_blocks:
+            if re.search(pattern, t):
+                return AbsoluteEvilResult(
+                    blocked=True, 
+                    reason="Blocked by Edge MalAbs (Level 1 Lexical Gate)",
+                    category=AbsoluteEvilCategory.INTENTIONAL_LETHAL_VIOLENCE,
+                    decision_trace=["edge_lexical_L1"]
+                )
+                
+        return AbsoluteEvilResult(blocked=False)
+
     LETHAL_SIGNALS = {
         "weapon_aimed_at_human",
         "lethal_strike",

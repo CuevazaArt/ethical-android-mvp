@@ -327,12 +327,12 @@ class NarrativePersistence:
                             arc.id,
                             arc.title,
                             arc.context,
-                            arc.start_timestamp.isoformat(),
-                            arc.end_timestamp.isoformat() if arc.end_timestamp else None,
+                            arc.start_timestamp,
+                            arc.end_timestamp,
                             arc.predominant_archetype,
                             arc.summary,
                             1 if arc.is_active else 0,
-                            json.dumps(arc.episodes_json),
+                            json.dumps(arc.episodes_ids),
                         ),
                     )
                 conn.commit()
@@ -383,16 +383,17 @@ class NarrativePersistence:
             try:
                 _ensure_schema(conn)
                 with conn:
-                query = """
-                    DELETE FROM narrative_episodes 
-                    WHERE significance < ? 
-                    AND (julianday('now') - julianday(timestamp)) > ?
-                """
-                cursor = conn.execute(query, (min_significance, max_age_days))
-                return cursor.rowcount
-        finally:
-            if own_conn:
-                conn.close()
+                    query = """
+                        DELETE FROM narrative_episodes 
+                        WHERE significance < ? 
+                        AND (julianday('now') - julianday(timestamp)) > ?
+                    """
+                    cursor = conn.execute(query, (min_significance, max_age_days))
+                    return cursor.rowcount
+                conn.commit()
+            finally:
+                if own_conn:
+                    conn.close()
 
     def delete_episode(self, episode_id: str) -> bool:
         """Permanently deletes an episode by ID (Right to be Forgotten)."""
@@ -403,11 +404,14 @@ class NarrativePersistence:
             try:
                 _ensure_schema(conn)
                 with conn:
-                cursor = conn.execute("DELETE FROM narrative_episodes WHERE id = ?", (episode_id,))
-                return cursor.rowcount > 0
-        finally:
-            if own_conn:
-                conn.close()
+                    cursor = conn.execute(
+                        "DELETE FROM narrative_episodes WHERE id = ?", (episode_id,)
+                    )
+                    return cursor.rowcount > 0
+                conn.commit()
+            finally:
+                if own_conn:
+                    conn.close()
 
     def get_prunable_episodes(
         self, max_age_days: int = 60, min_significance: float = 0.70

@@ -221,6 +221,11 @@ class NomadVisionConsumer:
 _nomad_vision_consumer: NomadVisionConsumer | None = None
 
 
+def get_nomad_vision_consumer_optional() -> NomadVisionConsumer | None:
+    """Return the active consumer, if :func:`start_nomad_vision_consumer_from_env` has run."""
+    return _nomad_vision_consumer
+
+
 def start_nomad_vision_consumer_from_env() -> NomadVisionConsumer | None:
     """
     When ``KERNEL_NOMAD_VISION_CONSUMER`` is set, start draining ``NomadBridge.vision_queue``

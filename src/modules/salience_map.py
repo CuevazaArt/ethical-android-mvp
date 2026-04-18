@@ -1,8 +1,8 @@
-"""
+﻿"""
 GWT-lite salience: read-only attention weights over existing signal axes.
 
 Does not reorder the kernel pipeline (phase 1). Produces a normalized vector
-for telemetry, UI, and optional LLM nuance — not a policy change.
+for telemetry, UI, and optional LLM nuance ΓÇö not a policy change.
 
 See docs/proposals/README.md (Fase 2).
 """
@@ -43,69 +43,69 @@ class SalienceMap:
     AXIS_ORDER: tuple[str, ...] = (
         "risk",
         "social",
-        def compute(
-            self,
-            signals: dict[str, float],
-            state: InternalState,
-            social_eval: SocialEvaluation,
-            reflection: ReflectionSnapshot | None,
-            curiosity: float = 0.0,
-        ) -> SalienceSnapshot:
-            """
-            Compute the salience (attention) distribution over axes for the current tick.
+        "body",
+        "ethical_conflict",
+        "epistemic_curiosity",
+    )
 
-            Args:
-                signals (dict[str, float]): Input signals, e.g., risk, hostility.
-                state (InternalState): Internal state snapshot (e.g., body load).
-                social_eval (SocialEvaluation): Social context and posture.
-                reflection (ReflectionSnapshot | None): Optional ethical reflection.
-                curiosity (float, optional): Epistemic curiosity signal. Defaults to 0.0.
+    def compute(
+        self,
+        signals: dict[str, float],
+        state: InternalState,
+        social_eval: SocialEvaluation,
+        reflection: ReflectionSnapshot | None,
+        curiosity: float = 0.0,
+    ) -> SalienceSnapshot:
+        """
+        Compute the salience (attention) distribution over axes for the current tick.
 
-            Returns:
-                SalienceSnapshot: Normalized weights and dominant axis.
-            """
-            risk: float = float(signals.get("risk", 0.0))
-            risk = max(0.0, min(1.0, risk))
+        Args:
+            signals (dict[str, float]): Input signals, e.g., risk, hostility.
+            state (InternalState): Internal state snapshot (e.g., body load).
+            social_eval (SocialEvaluation): Social context and posture.
+            reflection (ReflectionSnapshot | None): Optional ethical reflection.
+            curiosity (float, optional): Epistemic curiosity signal. Defaults to 0.0.
 
-            # Social salience: hostility + defensive posture + dialectic tension
-            hostility: float = float(signals.get("hostility", 0.0))
-            caution: float = float(social_eval.caution_level)
-            dialectic: float = 1.0 if social_eval.dialectic_active else 0.0
-            social_raw: float = max(
-                0.0,
-                min(
-                    1.0,
-                    0.45 * hostility + 0.35 * caution + 0.2 * dialectic,
-                ),
-            )
+        Returns:
+            SalienceSnapshot: Normalized weights and dominant axis.
+        """
+        risk: float = float(signals.get("risk", 0.0))
+        risk = max(0.0, min(1.0, risk))
 
-            # Body / autonomic: sympathetic load proxy
-            body_raw: float = max(0.0, min(1.0, float(state.sigma)))
+        # Social salience: hostility + defensive posture + dialectic tension
+        hostility: float = float(signals.get("hostility", 0.0))
+        caution: float = float(social_eval.caution_level)
+        dialectic: float = 1.0 if social_eval.dialectic_active else 0.0
+        social_raw: float = max(
+            0.0,
+            min(
+                1.0,
+                0.45 * hostility + 0.35 * caution + 0.2 * dialectic,
+            ),
+        )
 
-            eth_raw: float = float(reflection.strain_index) if reflection is not None else 0.0
+        # Body / autonomic: sympathetic load proxy
+        body_raw: float = max(0.0, min(1.0, float(state.sigma)))
 
-            raw: dict[str, float] = {
-                "risk": risk,
-                "social": social_raw,
-                "body": body_raw,
-                "ethical_conflict": eth_raw,
-                "epistemic_curiosity": max(0.0, min(1.0, curiosity)),
-            }
+        eth_raw: float = float(reflection.strain_index) if reflection is not None else 0.0
 
-            ssum: float = sum(raw.values())
-            if ssum <= 1e-9:
-                weights: dict[str, float] = {k: 0.25 for k in self.AXIS_ORDER}
-            else:
-                weights = {k: round(raw[k] / ssum, 4) for k in self.AXIS_ORDER}
+        raw: dict[str, float] = {
+            "risk": risk,
+            "social": social_raw,
+            "body": body_raw,
+            "ethical_conflict": eth_raw,
+            "epistemic_curiosity": max(0.0, min(1.0, curiosity)),
+        }
 
-            mx: float = max(weights[k] for k in self.AXIS_ORDER)
-            dominant: str = next(k for k in self.AXIS_ORDER if weights[k] == mx)
+        ssum: float = sum(raw.values())
+        if ssum <= 1e-9:
+            weights: dict[str, float] = {k: 0.25 for k in self.AXIS_ORDER}
+        else:
+            weights = {k: round(raw[k] / ssum, 4) for k in self.AXIS_ORDER}
 
-            return SalienceSnapshot(
-                weights=weights,
-                dominant_focus=dominant,
-                raw_scores=raw,
-            )
+        mx: float = max(weights[k] for k in self.AXIS_ORDER)
+        dominant: str = next(k for k in self.AXIS_ORDER if weights[k] == mx)
+
         return SalienceSnapshot(
             weights=weights,
             dominant_focus=dominant,

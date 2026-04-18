@@ -23,6 +23,11 @@ All notable changes to this project are summarized here. For narrative context a
 - **`PreloadedBuffer`:** added `get_snapshot()` for read-only L0 / support-buffer telemetry (chat and perception paths).
 - **`narrative_storage`:** repaired `with conn:` indentation around identity digest upserts (merge-regression syntax fix).
 - **Module S.1 (Nomad vision path):** gated background `NomadVisionConsumer` behind `KERNEL_NOMAD_VISION_CONSUMER`; started from `chat_server` lifespan and stopped on shutdown so LAN JPEG frames drain into `VisionAdapter` when enabled.
+- **Module S.1 (fusion):** `merge_nomad_vision_into_snapshot` blends the consumer’s latest CNN output into `SensorSnapshot` (`vision_emergency`, `image_metadata.nomad`) before chat perception merge and decision; `PerceptionStageResult` carries the enriched snapshot for `aprocess`.
+- **Architectural Hardening (Pulse):** Finalized core kernel stabilization following the April 2026 rebase.
+  - **Módulo 10 Integration**: Restored Edge MalAbs (Level 1) lexical gate and aligned abandonment logic with vertical test invariants (pass 84/84).
+  - **Persistence Fix**: Resolved `AttributeError` and timestamp mismatches in `save_arc` (narrative_storage).
+  - **Kernel Orchestration**: Corrected NameErrors in sensor evaluating and situational perception stages.
 
 ## Documentation — Issue #1 (Bayesian naming honesty) — April 2026
 
