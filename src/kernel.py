@@ -49,6 +49,7 @@ from .modules.bayesian_engine import BayesianEngine, BayesianResult
 from .modules.biographic_pruning import BiographicPruner
 from .modules.buffer import PreloadedBuffer
 from .modules.charm_engine import CharmEngine
+from .modules.turn_prefetcher import TurnPrefetcher
 from .modules.dao_orchestrator import DAOOrchestrator
 from .modules.drive_arbiter import DriveArbiter
 from .modules.epistemic_dissonance import (
@@ -494,7 +495,8 @@ class EthicalKernel:
             will=self.will,
             reflection_engine=self.ethical_reflection,
             salience_map=self.salience_map,
-            pad_archetypes=self.pad_archetypes
+            pad_archetypes=self.pad_archetypes,
+            llm=self.llm,
         )
         self.cerebellum_lobe = CerebellumLobe(
             bayesian=self.bayesian,
@@ -518,6 +520,9 @@ class EthicalKernel:
         self.hardware_interrupt_event = threading.Event()
         self.cerebellum_node = CerebellumNode(self.hardware_interrupt_event)
         self.cerebellum_node.start()
+
+        # ═══ MER V2 — Turn Prefetcher (Bloque 10.4) ═══
+        self.turn_prefetcher = TurnPrefetcher()
 
         self.constitution_l1_drafts: list[dict[str, Any]] = []
         self.constitution_l2_drafts: list[dict[str, Any]] = []
@@ -1323,6 +1328,32 @@ class EthicalKernel:
             res = ChatTurnResult(response=VerbalResponse("Blocked.", "firm"), path="kernel_block", blocked=True)
             yield {"event_type": "turn_finished", "payload": {"result": res}}
             return
+
+        # 4a. MER V2 — Bridge phrase prefetch (Bloque 10.4)
+        # Emit an instant assent before the main LLM inference begins (<300ms target).
+        try:
+            from src.kernel_lobes.models import EthicalSentence as _EthSentence, SemanticState as _SemState
+            _sem = _SemState(
+                raw_prompt=user_input,
+                perception_confidence=float(stage.perception.calm) if hasattr(stage.perception, "calm") else 0.5,
+                scenario_summary=stage.perception.summary or "",
+                suggested_context=stage.perception.suggested_context or "everyday",
+                signals=stage.signals,
+            )
+            _eth = _EthSentence(
+                is_safe=not decision.blocked,
+                social_tension_locus=float(
+                    decision.social_evaluation.relational_tension
+                    if decision.social_evaluation else 0.0
+                ),
+            )
+            _profile = self.user_model.profiles.get(agent_id) if hasattr(self.user_model, "profiles") else None
+            _warmth = float(_profile.charm_warmth) if _profile else 0.5
+            _mystery = float(_profile.charm_mystery) if _profile else 0.5
+            bridge = await self.turn_prefetcher.predict_bridge(_sem, _eth, warmth=_warmth, mystery=_mystery)
+            yield {"event_type": "bridge_phrase", "payload": {"text": bridge}}
+        except Exception as _bp_err:
+            _log.debug("process_chat_turn_stream: bridge prefetch skipped: %s", _bp_err)
 
         # 4. Global Communication Stream
         yield {"event_type": "communication_started", "payload": {}}

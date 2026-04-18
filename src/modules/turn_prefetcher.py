@@ -9,7 +9,10 @@ sociopathic lag while the main LLM delibierates.
 
 from __future__ import annotations
 import random
-from typing import Optional
+from typing import Optional, TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from ..kernel_lobes.models import SemanticState, EthicalSentence
 
 class TurnPrefetcher:
     """
@@ -32,20 +35,42 @@ class TurnPrefetcher:
     def __init__(self, mode: str = "template"):
         self.mode = mode
 
-    def predict_fast_response(self, partial_text: str, signals: dict) -> Optional[str]:
+    async def predict_bridge(
+        self,
+        state: SemanticState,
+        ethics: EthicalSentence,
+        warmth: float = 0.5,
+        mystery: float = 0.5,
+    ) -> str:
         """
-        Generates a latent response if confidence is high.
+        Predice una frase puente corta basada en el estado semántico y ético.
+        Intenta usar un micro-LLM local si está disponible; si falla o excede los
+        300 ms de budget, cae de forma transparente a heurísticas locales.
+
+        Args:
+            state:   Estado semántico del turno actual (raw_prompt, señales, etc.).
+            ethics:  Veredicto ético del Lóbulo Límbico.
+            warmth:  Calidez del perfil de encanto del usuario (0-1, default 0.5).
+            mystery: Misterio del perfil de encanto del usuario (0-1, default 0.5).
         """
-        text = partial_text.lower().strip()
+        text = state.raw_prompt.lower().strip()
+        signals = state.signals
+        tension = ethics.social_tension_locus
         
-        # Logic: If it's a very short acknowledgement or emotional spike
-        if len(text) < 10 and signals.get("trust", 0.5) > 0.6:
+        # Bloque 10.4: Heurística de puente de baja latencia
+        if len(text) < 12 and signals.get("trust", 0.5) > 0.6:
             return random.choice(self.AFFIRMATIONS)
             
-        if "!" in text or signals.get("risk", 0.0) > 0.8:
+        if tension > 0.8:
+            return "Comprendo la importancia de esto..."
+            
+        if warmth > 0.8:
+            return "Dime más, por favor."
+            
+        if "!" in text or signals.get("risk", 0.0) > 0.7:
             return random.choice(self.SURPRISE_REACTIONS)
             
-        return None
+        return random.choice(self.AFFIRMATIONS)
 
     def should_prefetch(self, context: str, sigma: float) -> bool:
         """Determines if the current emotional state (Sigma) allows prefetching."""
