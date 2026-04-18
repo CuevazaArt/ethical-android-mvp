@@ -27,15 +27,25 @@ class TurnPrefetcher:
         if self.model_name:
             _log.info("TurnPrefetcher: Initialized with local model %s", self.model_name)
 
-    async def predict_bridge(self, state: SemanticState, ethics: EthicalSentence) -> str:
+    async def predict_bridge(
+        self,
+        state: SemanticState,
+        ethics: EthicalSentence,
+        warmth: float = 0.5,
+        mystery: float = 0.5,
+    ) -> str:
         """
-        Predice una frase corta basada en el estado semántico, ético y armónico.
-        Intenta usar un micro-LLM local si está disponible.
+        Predice una frase puente corta basada en el estado semántico y ético.
+        Intenta usar un micro-LLM local si está disponible; si falla o excede los
+        300 ms de budget, cae de forma transparente a heurísticas locales.
+
+        Args:
+            state:   Estado semántico del turno actual (raw_prompt, señales, etc.).
+            ethics:  Veredicto ético del Lóbulo Límbico.
+            warmth:  Calidez del perfil de encanto del usuario (0-1, default 0.5).
+            mystery: Misterio del perfil de encanto del usuario (0-1, default 0.5).
         """
         tension = ethics.social_tension_locus
-        h = ethics.morals.get("harmonics", {})
-        warmth = float(h.get("warmth", 0.5))
-        mystery = float(h.get("mystery", 0.5))
         
         # 0. Si hay un modelo configurado, intentamos inferencia flash
         if self.model_name:
