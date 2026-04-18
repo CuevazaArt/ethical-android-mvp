@@ -1,5 +1,6 @@
 import asyncio
 import base64
+import json
 
 import pytest
 from fastapi.testclient import TestClient
@@ -117,6 +118,7 @@ def test_nomad_public_queue_stats_shape(nomad_client):
     assert lim["max_vision_frame_bytes"] > 0
     assert lim["max_audio_pcm_bytes"] > 0
     assert lim["max_telemetry_keys"] > 0
+    assert lim["max_ws_message_bytes"] == 4 * 1024 * 1024
     assert stats["charm_feedback_max"] == 10
     assert stats["charm_feedback_queued"] == 0
 
@@ -193,4 +195,20 @@ async def test_nomad_telemetry_non_dict_ignored(nomad_client):
     with nomad_client.websocket_connect("/ws/nomad") as websocket:
         websocket.send_json({"type": "telemetry", "payload": [1, 2, 3]})
         await asyncio.sleep(0.15)
+    assert bridge.peek_latest_telemetry() is None
+
+
+@pytest.mark.asyncio
+async def test_nomad_ws_rejects_oversized_text_frame(monkeypatch, nomad_client):
+    """S.1 — skip parse when UTF-8 envelope exceeds KERNEL_NOMAD_WS_MAX_MESSAGE_BYTES."""
+    monkeypatch.setenv("KERNEL_NOMAD_WS_MAX_MESSAGE_BYTES", "120")
+    bridge = get_nomad_bridge()
+    huge = json.dumps(
+        {"type": "telemetry", "payload": {"x": "y" * 500}},
+    )
+    assert len(huge.encode("utf-8")) > 120
+    with nomad_client.websocket_connect("/ws/nomad") as websocket:
+        websocket.send_text(huge)
+        await asyncio.sleep(0.2)
+    assert bridge.telemetry_queue.empty()
     assert bridge.peek_latest_telemetry() is None

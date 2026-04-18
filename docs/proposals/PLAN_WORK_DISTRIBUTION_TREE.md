@@ -42,7 +42,7 @@ Este documento estructura el inmenso volumen de trabajo arquitectónico definido
 *Dependencias: Arquitectura Somática e Inferencia de Visión estabilizada.*
 
 - **Bloque S.1: Nomad SmartPhone LAN Bridge**
-  - Tarea S.1.1: Desarrollar conectores WebSocket o WebRTC de baja latencia (`src/modules/nomad_bridge.py`) para consumir streams de video and audio desde un dispositivo móvil Android/iOS en red local, inyectando los fotogramas en el `VisionInference` de manera asíncrona.
+  - Tarea S.1.1: Desarrollar conectores WebSocket o WebRTC de baja latencia (`src/modules/nomad_bridge.py`) para consumir streams de video and audio desde un dispositivo móvil Android/iOS en red local, inyectando los fotogramas en el `VisionInference` de manera asíncrona. *Estado parcial (abril 2026):* [`nomad_bridge.py`](../../src/modules/nomad_bridge.py) — colas acotadas, límites decoded base64 + telemetría; ``KERNEL_NOMAD_WS_MAX_MESSAGE_BYTES`` (tope frame texto antes de JSON). [`tests/test_nomad_bridge_stream.py`](../../tests/test_nomad_bridge_stream.py).
 - **Bloque S.2: Calibración Termo-Visual Continua**
   - Tarea S.2.1: Refinar las interrupciones del `VitalityAssessment` (ej. alertas de calor del dispositivo) utilizando la telemetría real transmitida por el *Nomad Bridge*.
 

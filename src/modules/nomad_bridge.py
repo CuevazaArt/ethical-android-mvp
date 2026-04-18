@@ -16,6 +16,9 @@ Latest ``telemetry`` payloads are mirrored for synchronous readers (Module S.2.1
 That merge step normalizes common mobile key aliases (e.g. ``battery``, ``core_temperature_c``, ``jerk``)
 onto :class:`~src.modules.sensor_contracts.SensorSnapshot` field names before parsing.
 
+**Inbound WebSocket frame cap:** ``KERNEL_NOMAD_WS_MAX_MESSAGE_BYTES`` (default 4 MiB UTF-8, hard cap 32 MiB)
+rejects oversize text frames before ``json.loads`` (aligned with chat server hardening).
+
 **Decoded size caps (LAN hardening):** ``KERNEL_NOMAD_MAX_VISION_FRAME_BYTES`` (default 5 MiB) and
 ``KERNEL_NOMAD_MAX_AUDIO_PCM_BYTES`` (default 1 MiB) bound base64 payloads before they enter bounded queues.
 
@@ -26,6 +29,7 @@ drops oversized dicts before they hit the queue or ``peek_latest_telemetry``.
 import asyncio
 import base64
 import binascii
+import json
 import logging
 import os
 import threading
@@ -63,6 +67,30 @@ def max_telemetry_dict_keys() -> int:
     """Maximum key count accepted on a ``telemetry`` ``payload`` object (env override)."""
 
     return _parse_positive_int_env("KERNEL_NOMAD_MAX_TELEMETRY_KEYS", 128)
+
+
+_DEFAULT_WS_MAX_MESSAGE_BYTES = 4 * 1024 * 1024
+_CAP_WS_MAX_MESSAGE_BYTES = 32 * 1024 * 1024
+_MIN_WS_MAX_MESSAGE_BYTES = 64
+
+
+def max_ws_inbound_message_bytes() -> int:
+    """
+    Max UTF-8 size of one inbound WebSocket text message (JSON envelope) before parse.
+
+    Base64 vision/audio payloads need headroom versus ``KERNEL_CHAT_WS_MAX_MESSAGE_BYTES``;
+    invalid or tiny env values fall back to the default.
+    """
+    raw = os.environ.get("KERNEL_NOMAD_WS_MAX_MESSAGE_BYTES", "").strip()
+    if not raw:
+        return _DEFAULT_WS_MAX_MESSAGE_BYTES
+    try:
+        n = int(raw, 10)
+    except ValueError:
+        return _DEFAULT_WS_MAX_MESSAGE_BYTES
+    if n < _MIN_WS_MAX_MESSAGE_BYTES:
+        return _DEFAULT_WS_MAX_MESSAGE_BYTES
+    return min(n, _CAP_WS_MAX_MESSAGE_BYTES)
 
 
 def _decoded_upper_bound_from_b64_len(n: int) -> int:
@@ -149,13 +177,22 @@ class NomadBridge:
                 "max_vision_frame_bytes": max_vision_frame_bytes(),
                 "max_audio_pcm_bytes": max_audio_pcm_bytes(),
                 "max_telemetry_keys": max_telemetry_dict_keys(),
+                "max_ws_message_bytes": max_ws_inbound_message_bytes(),
             },
         }
 
     async def _recv_loop(self, ws: WebSocket):
         try:
             while True:
-                data = await ws.receive_json()
+                raw = await ws.receive_text()
+                if len(raw.encode("utf-8")) > max_ws_inbound_message_bytes():
+                    continue
+                try:
+                    data = json.loads(raw)
+                except json.JSONDecodeError:
+                    continue
+                if not isinstance(data, dict):
+                    continue
                 event_type = data.get("type")
                 payload = data.get("payload")
                 
