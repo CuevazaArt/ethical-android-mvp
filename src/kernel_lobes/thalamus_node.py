@@ -83,30 +83,38 @@ class ThalamusNode:
         Main fusion entry point for Phase 10.1.
         Merges vision (VVAD) and audio signals to determine attention locus.
         """
+        if not snapshot.image_metadata:
+            _log.debug("thalamus: skipping fusion, missing image_metadata")
+            return {}
+
         # 1. Vision Logic (VVAD)
-        meta = snapshot.image_metadata or {}
-        lip_mov = meta.get("lip_movement", 0.0)
-        presence = meta.get("human_presence", 0.0)
+        lip_mov = float(snapshot.image_metadata.get("lip_movement", 0.0))
+        presence = float(snapshot.image_metadata.get("human_presence", 0.0))
         
         # 2. Audio Logic (VAD)
-        audio_spike = snapshot.audio_emergency or 0.0
+        audio_spike = float(snapshot.audio_emergency or 0.0)
         
         # 3. Decision Logic: Attention Locus (θ_att)
         attention_locus = (lip_mov * 0.5) + (presence * 0.3) + (audio_spike * 0.2)
         
         # 4. Sensory Tension (δ_tens)
-        amb = snapshot.ambient_noise or 0.0
-        sensory_tension = max(0.0, audio_spike - amb)
+        ambient = float(snapshot.ambient_noise or 0.0)
+        sensory_tension = max(0.0, audio_spike - ambient)
         
+        # 5. Multimodal Trust (Anti-Spoofing)
+        voice_focal_match = (presence > 0.5 and lip_mov > 0.3 and audio_spike > 0.4)
+        cross_modal_trust = 1.0 if voice_focal_match else 0.4
+
         # Update internal state
         self.state.is_user_present = presence > 0.5
         self.state.is_user_speaking = audio_spike > 0.3 or lip_mov > 0.4
-        self.state.confidence = attention_locus
+        self.state.confidence = round(attention_locus, 4)
         self.state.last_update = time.time()
         
         return {
             "attention_locus": round(attention_locus, 4),
             "sensory_tension": round(sensory_tension, 4),
+            "cross_modal_trust": cross_modal_trust,
             "user_activity": "speaking" if self.state.is_user_speaking else "quiet",
             "is_user_present": self.state.is_user_present
         }
