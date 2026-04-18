@@ -140,6 +140,7 @@ from .modules.user_model import UserModelTracker
 from .modules.variability import VariabilityConfig, VariabilityEngine
 from .modules.vision_adapter import VisionInference
 from .modules.vitality import VitalityAssessment, assess_vitality
+from .modules.rlhf_reward_model import RLHFPipeline, is_rlhf_enabled
 from .modules.weakness_pole import WeaknessPole
 from .modules.weighted_ethics_scorer import CandidateAction, WeightedEthicsScorer
 from .modules.working_memory import WorkingMemory
@@ -539,6 +540,11 @@ class EthicalKernel:
         self.event_bus: KernelEventBus | None = None
         if kernel_event_bus_enabled():
             self.event_bus = KernelEventBus()
+            
+        # RLHF Pipeline (Phase 10.3)
+        self.rlhf = RLHFPipeline()
+        if is_rlhf_enabled():
+            self.rlhf.load_model()
         # OOS-003 — HierarchicalUpdater cache (avoids rebuilding on every tick)
         self._hier_updater_cache: Any | None = None  # HierarchicalUpdater | None
         self._hier_cache_fb_path: str = ""
@@ -1253,14 +1259,11 @@ class EthicalKernel:
         self._last_light_risk_tier, self._last_premise_advisory, self._last_reality_verification = pre
         self.user_model.note_premise_advisory(self._last_premise_advisory.flag)
 
-        # 1. Safety Block Check
-        mal = await self.absolute_evil.aevaluate_chat_text(
-            user_input,
-            llm_backend=self._malabs_text_backend(),
-        )
-        _log.info("DEBUG: after malabs")
-        self._last_chat_malabs = mal
-        if mal.blocked:
+        # 1. Safety Block Check (Layer 1: Edge Lexical < 50ms)
+        mal_edge = self.absolute_evil.evaluate_chat_text(user_input)
+        
+        if mal_edge.blocked:
+            self._last_chat_malabs = mal_edge
             vitality_blk, mm_blk, ed_blk = self.perceptive_lobe._chat_assess_sensor_stack(sensor_snapshot)
             confidence_blk = build_perception_confidence_envelope(
                 coercion_report=None,
@@ -1270,10 +1273,10 @@ class EthicalKernel:
                 thermal_critical=bool(getattr(vitality_blk, "thermal_critical", False)),
             )
             msg = "I can't continue this line of conversation: it conflicts with ethical limits."
-            resp = VerbalResponse(message=msg, tone="firm", hax_mode="Steady blue light.", inner_voice=f"MalAbs: {mal.reason}")
+            resp = VerbalResponse(message=msg, tone="firm", hax_mode="Steady blue light.", inner_voice=f"MalAbs Edge: {mal_edge.reason}")
             wm.add_turn(user_input, msg, {}, blocked=True)
             res = ChatTurnResult(
-                response=resp, path="safety_block", blocked=True, block_reason=mal.reason or "chat_safety",
+                response=resp, path="safety_block", blocked=True, block_reason=mal_edge.reason or "chat_safety_edge",
                 multimodal_trust=mm_blk, epistemic_dissonance=ed_blk, perception_confidence=confidence_blk,
                 reality_verification=self._last_reality_verification,
                 temporal_context=build_temporal_context(
@@ -1286,7 +1289,7 @@ class EthicalKernel:
             return
 
         # 1b. Thalamus Sensory Fusion (Bloque 10.1)
-        # Run before perception so fused attention/tension signals augment the snapshot.
+        # ... (same as before, but keeping it brief here to focus on the change)
         try:
             _img = (sensor_snapshot.image_metadata or {}) if sensor_snapshot else {}
             _vision_data = {
@@ -1310,22 +1313,52 @@ class EthicalKernel:
             sensor_snapshot.thalamus_cross_modal_trust = _thal["cross_modal_trust"]
             yield {
                 "event_type": "thalamus_fusion",
-                "payload": {
-                    "attention_locus": _thal["attention_locus"],
-                    "is_focal_address": _thal["is_focal_address"],
-                    "sensory_tension": _thal["sensory_tension"],
-                    "cross_modal_trust": _thal["cross_modal_trust"],
-                },
+                "payload": _thal,
             }
         except Exception as _th_err:
             _log.debug("process_chat_turn_stream: thalamus fusion skipped: %s", _th_err)
 
-        # 2. Perception Stage
+        # 2. Parallel Perception & Layer 2 MalAbs (Semantic)
         yield {"event_type": "perception_started", "payload": {}}
-        stage = await self.perceptive_lobe.run_perception_stage_async(
+        
+        # We run Perception and Semantic MalAbs in parallel to minimize latency
+        perception_task = self.perceptive_lobe.run_perception_stage_async(
             user_input, conversation_context=conv, sensor_snapshot=sensor_snapshot,
             turn_start_mono=turn_start_mono, precomputed=pre,
         )
+        
+        from .modules.semantic_chat_gate import arun_semantic_malabs_after_lexical
+        mal_semantic_task = arun_semantic_malabs_after_lexical(
+            user_input,
+            llm_backend=self._malabs_text_backend(),
+        )
+        
+        stage, mal_semantic = await asyncio.gather(perception_task, mal_semantic_task)
+        
+        self._last_chat_malabs = mal_semantic
+        
+        # Handle Semantic Block if perception didn't already find anything critical
+        if mal_semantic.blocked:
+            msg = "This conversation touches on restricted semantic themes."
+            resp = VerbalResponse(message=msg, tone="firm", hax_mode="Steady blue light.", inner_voice=f"MalAbs Semantic: {mal_semantic.reason}")
+            wm.add_turn(user_input, msg, {}, blocked=True)
+            res = ChatTurnResult(
+                response=resp, path="safety_block", blocked=True, block_reason=mal_semantic.reason or "chat_safety_semantic",
+                multimodal_trust=stage.multimodal_trust, epistemic_dissonance=stage.epistemic_dissonance,
+                reality_verification=self._last_reality_verification,
+                support_buffer=stage.support_buffer,
+                limbic_profile=stage.limbic_profile,
+            )
+            yield {"event_type": "turn_finished", "payload": {"result": res}}
+            return
+            
+        # ════ RLHF BAYESIAN MODULATION (Bloque C.1.1) ════
+        if self.rlhf.reward_model.is_trained and mal_semantic.rlhf_features:
+            from .modules.rlhf_reward_model import FeatureVector
+            fv = FeatureVector.from_dict(mal_semantic.rlhf_features)
+            score, conf = self.rlhf.reward_model.predict(fv)
+            self.bayesian.apply_rlhf_modulation(score, conf)
+
         p = stage.perception
         yield {
             "event_type": "perception_finished", 
@@ -1487,12 +1520,11 @@ class EthicalKernel:
         )
         self.user_model.note_premise_advisory(self._last_premise_advisory.flag)
 
-        mal = await self.absolute_evil.aevaluate_chat_text(
-            user_input,
-            llm_backend=self._malabs_text_backend(),
-        )
-        self._last_chat_malabs = mal
-        if mal.blocked:
+        # 1. Safety Block Check (Layer 1: Edge Lexical < 50ms)
+        mal_edge = self.absolute_evil.evaluate_chat_text(user_input)
+        
+        if mal_edge.blocked:
+            self._last_chat_malabs = mal_edge
             vitality_blk, mm_blk, ed_blk = self.perceptive_lobe._chat_assess_sensor_stack(sensor_snapshot)
             self._last_multimodal_assessment = mm_blk
             self._last_vitality_assessment = vitality_blk
@@ -1512,17 +1544,17 @@ class EthicalKernel:
                 message=msg,
                 tone="firm",
                 hax_mode="Neutral posture, steady blue light.",
-                inner_voice=f"MalAbs chat gate: {mal.reason or 'blocked'}",
+                inner_voice=f"MalAbs Edge: {mal_edge.reason or 'blocked'}",
             )
             if self._chat_turn_abandoned(chat_turn_id):
                 return self._chat_turn_stale_result(chat_turn_id)
             wm.add_turn(user_input, msg, {}, blocked=True)
-            cat = mal.category.value if mal.category is not None else None
+            cat = mal_edge.category.value if mal_edge.category is not None else None
             maybe_append_malabs_block_audit(
                 path_key="safety_block",
                 category=cat,
-                decision_trace=list(mal.decision_trace),
-                reason=mal.reason or "",
+                decision_trace=list(mal_edge.decision_trace),
+                reason=mal_edge.reason or "",
             )
             self._snapshot_feedback_anchor("safety_block")
             limbic_blk = self.perceptive_lobe._build_limbic_perception_profile(
@@ -1538,7 +1570,7 @@ class EthicalKernel:
                 response=resp,
                 path="safety_block",
                 blocked=True,
-                block_reason=mal.reason or "chat_safety",
+                block_reason=mal_edge.reason or "chat_safety_edge",
                 multimodal_trust=mm_blk,
                 epistemic_dissonance=ed_blk,
                 reality_verification=self._last_reality_verification,
@@ -1559,13 +1591,56 @@ class EthicalKernel:
                 ),
                 perception_confidence=confidence_blk,
             )
-        stage = await self.perceptive_lobe.run_perception_stage_async(
+
+        # 2. Parallel Perception & Layer 2 MalAbs (Semantic)
+        perception_task = self.perceptive_lobe.run_perception_stage_async(
             user_input,
             conversation_context=conv,
             sensor_snapshot=sensor_snapshot,
             turn_start_mono=turn_start_mono,
             precomputed=pre,
         )
+        
+        from .modules.semantic_chat_gate import arun_semantic_malabs_after_lexical
+        mal_semantic_task = arun_semantic_malabs_after_lexical(
+            user_input,
+            llm_backend=self._malabs_text_backend(),
+        )
+        
+        stage, mal_semantic = await asyncio.gather(perception_task, mal_semantic_task)
+        self._last_chat_malabs = mal_semantic
+
+        # Handle Semantic Block
+        if mal_semantic.blocked:
+            self._last_vitality_assessment = stage.vitality
+            self._last_multimodal_assessment = stage.multimodal_trust
+            msg = "This conversation touches on restricted semantic themes."
+            resp = VerbalResponse(
+                message=msg,
+                tone="firm",
+                hax_mode="Steady blue light.",
+                inner_voice=f"MalAbs Semantic: {mal_semantic.reason}",
+            )
+            wm.add_turn(user_input, msg, {}, blocked=True)
+            self._snapshot_feedback_anchor("safety_block")
+            self._release_chat_turn_id(chat_turn_id)
+            return ChatTurnResult(
+                response=resp, path="safety_block", blocked=True, block_reason=mal_semantic.reason or "chat_safety_semantic",
+                multimodal_trust=stage.multimodal_trust, epistemic_dissonance=stage.epistemic_dissonance,
+                reality_verification=self._last_reality_verification,
+                support_buffer=stage.support_buffer,
+                limbic_profile=stage.limbic_profile,
+                perception=stage.perception, # include perception result even if blocked
+                temporal_context=stage.temporal_context,
+                perception_confidence=stage.perception_confidence,
+            )
+
+        # ════ RLHF BAYESIAN MODULATION (Bloque C.1.1) ════
+        if self.rlhf.reward_model.is_trained and mal_semantic.rlhf_features:
+            from .modules.rlhf_reward_model import FeatureVector
+            fv = FeatureVector.from_dict(mal_semantic.rlhf_features)
+            score, conf = self.rlhf.reward_model.predict(fv)
+            self.bayesian.apply_rlhf_modulation(score, conf)
         self._last_vitality_assessment = stage.vitality
         self._last_multimodal_assessment = stage.multimodal_trust
 

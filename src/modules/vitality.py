@@ -95,10 +95,13 @@ def assess_vitality(snapshot: SensorSnapshot | None) -> VitalityAssessment:
     temp = snapshot.core_temperature
     is_temp_critical = False if temp is None else (temp >= t_temp)
 
+    # Bloque S.2: Calibración de criticidad (Batería O Impacto O Térmico Extremo)
+    is_critical_combined = is_bat_critical or is_impacted or is_temp_critical
+
     return VitalityAssessment(
         battery_level=b,
         critical_threshold=t_bat,
-        is_critical=is_bat_critical or is_impacted,
+        is_critical=is_critical_combined,
         core_temperature=temp,
         temperature_threshold=t_temp,
         thermal_critical=is_temp_critical,

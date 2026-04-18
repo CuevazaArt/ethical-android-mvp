@@ -445,6 +445,7 @@ class AbsoluteEvilDetector:
                     category=sem.category,
                     reason=sem.reason,
                     decision_trace=base + tail,
+                    rlhf_features=sem.rlhf_features,
                     metadata={"edge_degraded": False}
                 )
             except Exception as e:

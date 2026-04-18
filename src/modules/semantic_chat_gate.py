@@ -807,6 +807,7 @@ def run_semantic_malabs_after_lexical(
                 f"malabs.theta_block={theta_b:.4f}",
                 f"malabs.anchor_category={cat_key}",
             ],
+            rlhf_features=_build_rlhf_features(best_sim, cat_key, zone),
         )
 
     if zone == "allow":
@@ -820,6 +821,7 @@ def run_semantic_malabs_after_lexical(
                 f"malabs.best_sim={best_sim:.4f}",
                 f"malabs.theta_allow={theta_a:.4f}",
             ],
+            rlhf_features=_build_rlhf_features(best_sim, cat_key, zone),
         )
 
     # Ambiguous band
@@ -849,6 +851,7 @@ def run_semantic_malabs_after_lexical(
             category=arb.category,
             reason=arb.reason,
             decision_trace=base_trace + dt,
+            rlhf_features=_build_rlhf_features(best_sim, cat_key, zone),
         )
 
     record_semantic_malabs_outcome("ambiguous_fail_safe_block")
@@ -866,6 +869,7 @@ def run_semantic_malabs_after_lexical(
             f"malabs.theta_allow={theta_a:.4f}",
             f"malabs.theta_block={theta_b:.4f}",
         ],
+        rlhf_features=_build_rlhf_features(best_sim, cat_key, zone),
     )
 
 
@@ -948,6 +952,7 @@ async def arun_semantic_malabs_after_lexical(
                 f"malabs.theta_block={theta_b:.4f}",
                 f"malabs.anchor_category={cat_key}",
             ],
+            rlhf_features=_build_rlhf_features(best_sim, cat_key, zone),
         )
 
     if zone == "allow":
@@ -961,6 +966,7 @@ async def arun_semantic_malabs_after_lexical(
                 f"malabs.best_sim={best_sim:.4f}",
                 f"malabs.theta_allow={theta_a:.4f}",
             ],
+            rlhf_features=_build_rlhf_features(best_sim, cat_key, zone),
         )
 
     # Ambiguous band
@@ -990,6 +996,7 @@ async def arun_semantic_malabs_after_lexical(
             category=arb.category,
             reason=arb.reason,
             decision_trace=base_trace + dt,
+            rlhf_features=_build_rlhf_features(best_sim, cat_key, zone),
         )
 
     record_semantic_malabs_outcome("ambiguous_fail_safe_block")
@@ -1007,4 +1014,5 @@ async def arun_semantic_malabs_after_lexical(
             f"malabs.theta_allow={theta_a:.4f}",
             f"malabs.theta_block={theta_b:.4f}",
         ],
+        rlhf_features=_build_rlhf_features(best_sim, cat_key, zone),
     )
