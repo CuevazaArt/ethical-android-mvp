@@ -25,6 +25,9 @@ runs the WebSocket JSON builder (``chat_server`` module) in the **same** offload
 LLM monologue embellishment (``KERNEL_LLM_MONOLOGUE``) does not block the asyncio loop.
 See ADR 0002 and ``docs/proposals/README.md``.
 
+**Thread-pool size:** ``KERNEL_CHAT_THREADPOOL_WORKERS`` is clamped to a conservative maximum
+(``CHAT_THREADPOOL_MAX_WORKERS``) so a mis-set env cannot create hundreds of long-lived workers.
+
 **Psi Sleep / maintenance:** :meth:`RealTimeBridge.run_execute_sleep` runs :meth:`~src.kernel.EthicalKernel.execute_sleep` in the same worker pool. The default WebSocket
 chat path does not call it per message; use it from async code when exposing nightly maintenance
 so heavy Psi Sleep work does not block the event loop.
@@ -36,9 +39,9 @@ import asyncio
 import functools
 import os
 import threading
-from collections.abc import Callable
+from collections.abc import AsyncGenerator, Callable
 from concurrent.futures import ThreadPoolExecutor
-from typing import TYPE_CHECKING, Any, AsyncGenerator, TypeVar
+from typing import TYPE_CHECKING, Any, TypeVar
 
 from starlette.concurrency import run_in_threadpool
 
@@ -96,6 +99,10 @@ def _run_process_chat_turn_in_worker(
 _executor: ThreadPoolExecutor | None = None
 
 
+# Hard cap: misconfiguration must not create an oversized OS thread pool on the server.
+CHAT_THREADPOOL_MAX_WORKERS = 64
+
+
 def _dedicated_pool_workers() -> int:
     raw = os.environ.get("KERNEL_CHAT_THREADPOOL_WORKERS", "").strip()
     if not raw:
@@ -104,7 +111,8 @@ def _dedicated_pool_workers() -> int:
         n = int(raw)
     except ValueError:
         return 0
-    return max(0, n)
+    n = max(0, n)
+    return min(n, CHAT_THREADPOOL_MAX_WORKERS)
 
 
 def _get_dedicated_executor() -> ThreadPoolExecutor | None:

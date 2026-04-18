@@ -2,12 +2,16 @@
 Cooperative LLM HTTP cancellation for sync backends (chat worker thread).
 
 When ``KERNEL_CHAT_TURN_TIMEOUT`` fires, asyncio drops the waiter but the worker
-thread may still run. The WebSocket handler sets a shared :class:`threading.Event`
+thread may still run. The WebSocket handler closes the chat stream async generator
+(``await gen.aclose()``) so in-flight ``httpx`` awaits on the event loop are torn
+down before late turn handling; it also sets a shared :class:`threading.Event`
 so sync LLM backends can **abort before** the next blocking ``httpx`` call (and
 between chunked waits in tests). The same event is passed when
-``KERNEL_CHAT_ASYNC_LLM_HTTP`` runs ``process_chat_turn_async`` so the thread
-that executes :meth:`EthicalKernel.process` uses :func:`set_llm_cancel_scope`
-(see ``_process_chat_cooperative`` in ``kernel.py``). An in-flight **sync**
+``KERNEL_CHAT_ASYNC_LLM_HTTP`` runs ``process_chat_turn_async``, and WebSocket
+``process_chat_turn_stream`` also binds :func:`set_llm_cancel_scope` on the asyncio
+thread for the whole turn (plus ``_chat_coop_tls`` for :meth:`EthicalKernel.aprocess`),
+not only the thread path that wraps :meth:`EthicalKernel.process` in
+``_process_chat_cooperative``. An in-flight **sync**
 ``httpx`` request is still bounded by its read timeout; use async LLM HTTP for
 cancellable in-flight requests (ADR 0002).
 """

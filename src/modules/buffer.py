@@ -12,6 +12,8 @@ import unicodedata
 from dataclasses import dataclass
 from typing import Any
 
+from ..kernel_lobes.chat_turn_policy import prioritized_principles_for_context
+
 # ADR 0016 C1 — Ethical tier classification
 __ethical_tier__ = "decision_core"
 
@@ -270,27 +272,18 @@ class PreloadedBuffer:
         """
         Local support-buffer view for prompts and WebSocket JSON (offline-capable principle ordering).
 
-        Mirrors :meth:`EthicalKernel._prioritized_principles_for_context` band/priority policy without importing the kernel.
+        Uses the same helper as :meth:`EthicalKernel._prioritized_principles_for_context` (:mod:`~src.kernel_lobes.chat_turn_policy`).
         """
         situation = self._normalize_situation_key(context)
         active = self.activate(situation)
         active_names = sorted(active.keys())
 
         limbic = dict(limbic_profile) if limbic_profile else self._limbic_defaults_from_signals(signals)
-        band = limbic.get("arousal_band", "medium")
+        priority_profile, priority_principles = prioritized_principles_for_context(
+            active_names,
+            limbic,
+        )
         planning_bias = limbic.get("planning_bias", "balanced")
-
-        if planning_bias in ("verification_first", "resource_preservation") or band == "high":
-            priority_profile = "safety_first"
-            order = ["no_harm", "proportionality", "legality", "transparency", "compassion"]
-        elif band == "low":
-            priority_profile = "planning_first"
-            order = ["transparency", "civic_coexistence", "compassion", "legality", "no_harm"]
-        else:
-            priority_profile = "balanced"
-            order = ["compassion", "legality", "transparency", "proportionality", "no_harm"]
-        rank = {name: i for i, name in enumerate(order)}
-        priority_principles = sorted(active_names, key=lambda n: rank.get(n, 100))
 
         return {
             "source": "local_preloaded_buffer",

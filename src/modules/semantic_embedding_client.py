@@ -27,6 +27,8 @@ from typing import Any
 
 import numpy as np
 
+from .llm_http_cancel import raise_if_llm_cancel_requested
+
 
 @dataclass
 class EmbeddingTransportStats:
@@ -224,6 +226,10 @@ def http_fetch_ollama_embedding_with_policy(
     *,
     timeout_s: float | None = None,
 ) -> np.ndarray | None:
+    """
+    Synchronous embeddings fetch (``httpx.Client``). Prefer :func:`ahttp_fetch_ollama_embedding_with_policy`
+    from asyncio code paths for cooperative cancellation (Module 0.1).
+    """
     import httpx
 
     t = (
@@ -240,6 +246,7 @@ def http_fetch_ollama_embedding_with_policy(
     payload = {"model": model, "prompt": prompt}
     last_err = ""
     for attempt in range(retries + 1):
+        raise_if_llm_cancel_requested()
         if _circuit_blocks():
             break
         t0 = time.perf_counter()
@@ -266,8 +273,14 @@ async def ahttp_fetch_ollama_embedding_with_policy(
     *,
     timeout_s: float | None = None,
 ) -> np.ndarray | None:
-    import httpx
+    """
+    Async POST to Ollama ``/api/embeddings`` with the same retry/circuit policy as
+    :func:`http_fetch_ollama_embedding_with_policy` (shared :func:`_apost_once` path).
+    Honors :func:`~.llm_http_cancel.raise_if_llm_cancel_requested` between attempts.
+    """
     import asyncio
+
+    import httpx
 
     t = (
         timeout_s
@@ -282,74 +295,17 @@ async def ahttp_fetch_ollama_embedding_with_policy(
 
     payload = {"model": model, "prompt": prompt}
     last_err = ""
+    timeout = httpx.Timeout(t)
     for attempt in range(retries + 1):
+        raise_if_llm_cancel_requested()
         if _circuit_blocks():
             break
         t0 = time.perf_counter()
         try:
-            async with httpx.AsyncClient(timeout=t) as client:
+            async with httpx.AsyncClient(timeout=timeout) as client:
                 vec_list = await _apost_once(client, url, payload)
             if vec_list is None:
                 raise ValueError("missing or invalid embedding array")
-            latency_ms = (time.perf_counter() - t0) * 1000.0
-            _record_success(latency_ms)
-            return np.asarray(vec_list, dtype=np.float64)
-        except Exception as e:
-            last_err = repr(e)
-            if attempt < retries and backoff > 0:
-                await asyncio.sleep(backoff * (attempt + 1))
-    if last_err:
-        _record_failure(last_err)
-    return None
-
-
-async def ahttp_fetch_ollama_embedding_with_policy(
-    url: str,
-    model: str,
-    prompt: str,
-    *,
-    timeout_s: float | None = None,
-) -> np.ndarray | None:
-    """
-    Async POST to Ollama ``/api/embeddings`` with the same retry/circuit policy as
-    :func:`http_fetch_ollama_embedding_with_policy`.
-    """
-    import asyncio
-
-    import httpx
-
-    t = (
-        timeout_s
-        if timeout_s is not None
-        else max(1.0, _env_float("KERNEL_SEMANTIC_EMBED_TIMEOUT_S", 12.0))
-    )
-    retries = max(0, _env_int("KERNEL_SEMANTIC_EMBED_RETRIES", 2))
-    backoff = max(0.0, _env_float("KERNEL_SEMANTIC_EMBED_BACKOFF_S", 0.25))
-
-    if _circuit_blocks():
-        return None
-
-    payload = {"model": model, "prompt": prompt}
-    last_err = ""
-    for attempt in range(retries + 1):
-        if _circuit_blocks():
-            break
-        t0 = time.perf_counter()
-        try:
-            async with httpx.AsyncClient(timeout=t) as client:
-                r = await client.post(url, json=payload)
-                r.raise_for_status()
-                data = r.json()
-                emb = data.get("embedding")
-                if not emb or not isinstance(emb, list):
-                    raise ValueError("missing or invalid embedding array")
-                arr = np.asarray([float(x) for x in emb], dtype=np.float64).reshape(-1)
-                if arr.size == 0 or not np.all(np.isfinite(arr)):
-                    raise ValueError("invalid embedding values")
-                n = float(np.linalg.norm(arr))
-                if n < 1e-12:
-                    raise ValueError("zero embedding")
-                vec_list = (arr / n).tolist()
             latency_ms = (time.perf_counter() - t0) * 1000.0
             _record_success(latency_ms)
             return np.asarray(vec_list, dtype=np.float64)

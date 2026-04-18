@@ -2,29 +2,23 @@ from __future__ import annotations
 
 import logging
 from typing import TYPE_CHECKING, Any, Optional, Tuple
-from src.kernel_lobes.models import ExecutiveStageResult
+
+from .models import ExecutiveStageResult
 
 if TYPE_CHECKING:
-    from src.modules.absolute_evil import AbsoluteEvilDetector, AbsoluteEvilResult
-    from src.modules.motivation_engine import MotivationEngine
-    from src.modules.uchi_soto import SocialEvaluation
-    from src.modules.sympathetic import InternalState
-    from src.modules.locus import LocusEvaluation
-    from src.modules.weighted_ethics_scorer import CandidateAction, EthicsMixtureResult
+    from src.modules.absolute_evil import AbsoluteEvilDetector
     from src.modules.ethical_poles import EthicalPoles
-    from src.modules.sigmoid_will import SigmoidWill
     from src.modules.ethical_reflection import EthicalReflection
-    from src.modules.salience_map import SalienceMap
-    from src.modules.pad_archetypes import PADArchetypeEngine
-
-
-if TYPE_CHECKING:
-    from src.modules.llm_layer import LLMModule
+    from src.modules.locus import LocusEvaluation
     from src.modules.motivation_engine import MotivationEngine
+    from src.modules.pad_archetypes import PADArchetypeEngine
+    from src.modules.salience_map import SalienceMap
+    from src.modules.sigmoid_will import SigmoidWill
+    from src.modules.sympathetic import InternalState
+    from src.modules.uchi_soto import SocialEvaluation
+    from src.modules.weighted_ethics_scorer import CandidateAction, EthicsMixtureResult
 
 _log = logging.getLogger(__name__)
-
-from src.modules.turn_prefetcher import TurnPrefetcher
 
 class ExecutiveLobe:
     """

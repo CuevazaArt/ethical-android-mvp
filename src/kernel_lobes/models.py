@@ -34,6 +34,7 @@ class SemanticState:
     audio_sentiment: float = 0.5
     sensory_latency_lag: int = 0
     timeout_trauma: Optional[TimeoutTrauma] = None
+    agent_id: Optional[str] = None
 
 @dataclass
 class EthicalSentence:
@@ -43,6 +44,9 @@ class EthicalSentence:
     veto_reason: Optional[str] = None
     dao_consensus_hash: Optional[str] = None
     applied_trauma_weight: float = 0.0
+    social_posture: Optional[str] = None
+    # Optional MER / harmonics envelope for prefetch and affective routing (Module 10.x)
+    morals: Dict[str, Any] = field(default_factory=dict)
 @dataclass
 class LimbicStageResult:
     """Consolidated result from the Limbic Lobe (Social, State, Locus)."""

@@ -1,6 +1,6 @@
 # Cursor cross-team integration gate
 
-This checklist defines when `master-Cursor` is ready to be interlaced with other team branches (`master-*`) before a maintainer decides promotion to `main`.
+**Team remit** (L2 Cursor hub, branch hygiene, and owned PLAN tracks): see [`CURSOR_TEAM_CHARTER.md`](./CURSOR_TEAM_CHARTER.md). This checklist defines when `master-Cursor` is ready to be interlaced with other team branches (`master-*`) before a maintainer decides promotion to `main`.
 
 ## Goal
 
@@ -36,6 +36,9 @@ This checklist defines when `master-Cursor` is ready to be interlaced with other
    - Targeted tests pass (see `scripts/eval/run_cursor_integration_gate.py`):
      - `tests/test_chat_server.py`
      - `tests/test_chat_turn.py`
+     - `tests/test_chat_turn_policy.py` (Module 0.1.3 — `chat_turn_policy` vs `PreloadedBuffer.get_snapshot` alignment)
+     - `tests/test_kernel_utils.py` (Module 0.1.3 — `kernel_decision_event_payload` and env helpers)
+     - `tests/test_real_time_bridge.py` (Module 0.2.1 — chat thread offload / pool cap)
      - `tests/test_temporal_planning.py`
      - `tests/test_perception_confidence.py`
      - `tests/test_process_natural_verbal_observability.py`
@@ -50,8 +53,10 @@ This checklist defines when `master-Cursor` is ready to be interlaced with other
      - `tests/test_governance_mock_honesty_docs.py`
      - `tests/test_semantic_threshold_proposal_doc_alignment.py`
      - `tests/test_transparency_s10.py` (embodied sociability S10 — optional `transparency_s10` in chat JSON)
-     - `tests/test_mer_presentation_contract.py` (MER Block 10.5 / ADR 0018 — presentation module import guardrails)
-     - `tests/test_adr0018_presentation_tier.py` (ADR 0018 — MalAbs `safety_block` unchanged under presentation envs)
+     - `tests/test_mer_presentation_contract.py` (MER Block 10.5 / ADR 0018 — import guardrails + MalAbs `safety_block` unchanged under presentation envs)
+     - `tests/test_turn_prefetcher.py` (MER Block 10.4 — `TurnPrefetcher` heuristic + `OLLAMA_BASE_URL` for `/api/generate`)
+     - `tests/test_rlhf_reward_model.py` (RLHF + Module **C.1.1** Bayesian bridge / `TestRlhfBayesianBridge` when `KERNEL_RLHF_MODULATE_BAYESIAN` is on)
+     - `tests/test_charm_engine_basal.py` (MER Block **10.3** — optional `KERNEL_BASAL_GANGLIA_SMOOTHING` EMA on charm vector)
      - `tests/test_nomad_bridge_stream.py` (Nomad LAN bridge Module S.1)
      - `tests/test_vitality.py` (Nomad → vitality merge Module S.2.1)
 

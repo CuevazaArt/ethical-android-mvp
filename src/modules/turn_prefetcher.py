@@ -1,9 +1,16 @@
 import logging
-import random
 import os
-from src.kernel_lobes.models import SemanticState, EthicalSentence
+import random
+
+from src.kernel_lobes.models import EthicalSentence, SemanticState
 
 _log = logging.getLogger(__name__)
+
+
+def ollama_generate_url() -> str:
+    """Ollama ``/api/generate`` endpoint (same base resolution as :mod:`~src.modules.semantic_chat_gate`)."""
+    base = os.environ.get("OLLAMA_BASE_URL", "http://127.0.0.1:11434").rstrip("/")
+    return f"{base}/api/generate"
 
 class TurnPrefetcher:
     """
@@ -50,7 +57,7 @@ class TurnPrefetcher:
                 )
                 async with httpx.AsyncClient(timeout=0.3) as client:
                     resp = await client.post(
-                        "http://localhost:11434/api/generate",
+                        ollama_generate_url(),
                         json={
                             "model": self.model_name,
                             "prompt": prompt,

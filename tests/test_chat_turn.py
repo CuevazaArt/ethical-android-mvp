@@ -111,11 +111,11 @@ def test_real_time_bridge_runs():
 
 
 def test_chat_preprocess_text_observability_parallel_enabled_uses_multiple_threads(monkeypatch):
-    k = EthicalKernel(variability=False, seed=10)
     monkeypatch.setenv("KERNEL_PERCEPTION_PARALLEL", "1")
     monkeypatch.setenv("KERNEL_PERCEPTION_PARALLEL_WORKERS", "2")
-    monkeypatch.setattr("src.kernel.light_risk_classifier_enabled", lambda: False)
-    monkeypatch.setattr("src.kernel.lighthouse_kb_from_env", lambda: None)
+    k = EthicalKernel(variability=False, seed=10)
+    monkeypatch.setattr("src.kernel_lobes.perception_lobe.light_risk_classifier_enabled", lambda: False)
+    monkeypatch.setattr("src.kernel_lobes.perception_lobe.lighthouse_kb_from_env", lambda: None)
 
     seen_thread_ids: list[int] = []
     lock = threading.Lock()
@@ -134,8 +134,8 @@ def test_chat_preprocess_text_observability_parallel_enabled_uses_multiple_threa
         _record_thread()
         return REALITY_ASSESSMENT_NONE
 
-    monkeypatch.setattr("src.kernel.scan_premises", _fake_scan_premises)
-    monkeypatch.setattr("src.kernel.verify_against_lighthouse", _fake_verify)
+    monkeypatch.setattr("src.kernel_lobes.perception_lobe.scan_premises", _fake_scan_premises)
+    monkeypatch.setattr("src.kernel_lobes.perception_lobe.verify_against_lighthouse", _fake_verify)
 
     _, premise, reality = k._chat_preprocess_text_observability("parallel probe")
     assert premise.flag == "none"
@@ -147,8 +147,8 @@ def test_chat_preprocess_text_observability_parallel_disabled_runs_inline(monkey
     k = EthicalKernel(variability=False, seed=11)
     monkeypatch.delenv("KERNEL_PERCEPTION_PARALLEL", raising=False)
     monkeypatch.delenv("KERNEL_PERCEPTION_PARALLEL_WORKERS", raising=False)
-    monkeypatch.setattr("src.kernel.light_risk_classifier_enabled", lambda: False)
-    monkeypatch.setattr("src.kernel.lighthouse_kb_from_env", lambda: None)
+    monkeypatch.setattr("src.kernel_lobes.perception_lobe.light_risk_classifier_enabled", lambda: False)
+    monkeypatch.setattr("src.kernel_lobes.perception_lobe.lighthouse_kb_from_env", lambda: None)
 
     seen_thread_ids: list[int] = []
 
@@ -160,8 +160,8 @@ def test_chat_preprocess_text_observability_parallel_disabled_runs_inline(monkey
         seen_thread_ids.append(threading.get_ident())
         return REALITY_ASSESSMENT_NONE
 
-    monkeypatch.setattr("src.kernel.scan_premises", _fake_scan_premises)
-    monkeypatch.setattr("src.kernel.verify_against_lighthouse", _fake_verify)
+    monkeypatch.setattr("src.kernel_lobes.perception_lobe.scan_premises", _fake_scan_premises)
+    monkeypatch.setattr("src.kernel_lobes.perception_lobe.verify_against_lighthouse", _fake_verify)
 
     _, premise, reality = k._chat_preprocess_text_observability("inline probe")
     assert premise.flag == "none"
@@ -170,11 +170,11 @@ def test_chat_preprocess_text_observability_parallel_disabled_runs_inline(monkey
 
 
 def test_process_natural_uses_shared_text_preprocess_parallel_path(monkeypatch):
-    k = EthicalKernel(variability=False, seed=12)
     monkeypatch.setenv("KERNEL_PERCEPTION_PARALLEL", "1")
     monkeypatch.setenv("KERNEL_PERCEPTION_PARALLEL_WORKERS", "2")
-    monkeypatch.setattr("src.kernel.light_risk_classifier_enabled", lambda: False)
-    monkeypatch.setattr("src.kernel.lighthouse_kb_from_env", lambda: None)
+    k = EthicalKernel(variability=False, seed=12)
+    monkeypatch.setattr("src.kernel_lobes.perception_lobe.light_risk_classifier_enabled", lambda: False)
+    monkeypatch.setattr("src.kernel_lobes.perception_lobe.lighthouse_kb_from_env", lambda: None)
 
     seen_thread_ids: list[int] = []
     lock = threading.Lock()
@@ -193,8 +193,8 @@ def test_process_natural_uses_shared_text_preprocess_parallel_path(monkeypatch):
         _record_thread()
         return REALITY_ASSESSMENT_NONE
 
-    monkeypatch.setattr("src.kernel.scan_premises", _fake_scan_premises)
-    monkeypatch.setattr("src.kernel.verify_against_lighthouse", _fake_verify)
+    monkeypatch.setattr("src.kernel_lobes.perception_lobe.scan_premises", _fake_scan_premises)
+    monkeypatch.setattr("src.kernel_lobes.perception_lobe.verify_against_lighthouse", _fake_verify)
 
     decision, response, _ = k.process_natural("Friendly greeting in a safe context.")
     assert decision.blocked is False

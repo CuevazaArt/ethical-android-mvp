@@ -222,7 +222,14 @@ class AnthropicLLMBackend(LLMBackend):
 
 
 class OllamaLLMBackend(LLMBackend):
-    """Ollama ``/api/chat`` + optional ``/api/embeddings`` (same base URL)."""
+    """
+    Ollama ``/api/chat`` + optional ``/api/embeddings`` (same base URL).
+
+    **Async-first (Module 0.1):** use :meth:`acompletion`, :meth:`acompletion_stream`, and
+    :meth:`aembedding` on asyncio chat paths so ``httpx.AsyncClient`` can cooperate with
+    cancellation. Sync :meth:`completion` / :meth:`embedding` remain for thread-pool and
+    legacy callers; they use ``httpx.Client``.
+    """
 
     def __init__(
         self,
@@ -247,49 +254,46 @@ class OllamaLLMBackend(LLMBackend):
     def is_available(self) -> bool:
         return bool(self._base)
 
-    def completion(self, system: str, user: str, **kwargs: Any) -> str:
-        raise_if_llm_cancel_requested()
-        url = f"{self._base}/api/chat"
+    def _ollama_chat_payload(self, system: str, user: str, *, stream: bool, **kwargs: Any) -> dict[str, Any]:
         payload: dict[str, Any] = {
             "model": self._model,
             "messages": [
                 {"role": "system", "content": system},
                 {"role": "user", "content": user},
             ],
-            "stream": False,
+            "stream": stream,
         }
         t = kwargs.get("temperature")
         if t is not None:
             payload["options"] = {"temperature": float(t)}
+        return payload
+
+    @staticmethod
+    def _ollama_chat_response_text(data: dict[str, Any]) -> str:
+        msg = data.get("message") or {}
+        return (msg.get("content") or "").strip()
+
+    def completion(self, system: str, user: str, **kwargs: Any) -> str:
+        raise_if_llm_cancel_requested()
+        url = f"{self._base}/api/chat"
+        payload = self._ollama_chat_payload(system, user, stream=False, **kwargs)
         with httpx.Client(timeout=self._timeout) as client:
             r = client.post(url, json=payload)
             r.raise_for_status()
             data = r.json()
-        msg = data.get("message") or {}
-        return (msg.get("content") or "").strip()
+        return self._ollama_chat_response_text(data)
 
     async def acompletion(self, system: str, user: str, **kwargs: Any) -> str:
         """Async ``/api/chat`` so ``asyncio.wait_for`` can cancel an in-flight request."""
         raise_if_llm_cancel_requested()
         url = f"{self._base}/api/chat"
-        payload: dict[str, Any] = {
-            "model": self._model,
-            "messages": [
-                {"role": "system", "content": system},
-                {"role": "user", "content": user},
-            ],
-            "stream": False,
-        }
-        t = kwargs.get("temperature")
-        if t is not None:
-            payload["options"] = {"temperature": float(t)}
+        payload = self._ollama_chat_payload(system, user, stream=False, **kwargs)
         timeout = httpx.Timeout(self._timeout)
         async with httpx.AsyncClient(timeout=timeout) as client:
             r = await client.post(url, json=payload)
             r.raise_for_status()
             data = r.json()
-        msg = data.get("message") or {}
-        return (msg.get("content") or "").strip()
+        return self._ollama_chat_response_text(data)
 
     async def acompletion_stream(
         self, system: str, user: str, **kwargs: Any
@@ -297,17 +301,7 @@ class OllamaLLMBackend(LLMBackend):
         """Async ``/api/chat`` with ``stream: True``."""
         raise_if_llm_cancel_requested()
         url = f"{self._base}/api/chat"
-        payload: dict[str, Any] = {
-            "model": self._model,
-            "messages": [
-                {"role": "system", "content": system},
-                {"role": "user", "content": user},
-            ],
-            "stream": True,
-        }
-        t = kwargs.get("temperature")
-        if t is not None:
-            payload["options"] = {"temperature": float(t)}
+        payload = self._ollama_chat_payload(system, user, stream=True, **kwargs)
 
         import json
         timeout = httpx.Timeout(self._timeout)
@@ -374,6 +368,8 @@ class HttpJsonLLMBackend(LLMBackend):
     Lab / remote HTTP adapter: POST JSON ``{"system","user"}``, read ``text`` (or custom key).
 
     Embeddings are not supported (``None``).
+    Prefer :meth:`acompletion` on async chat paths (`httpx.AsyncClient`); sync :meth:`completion`
+    uses ``httpx.Client`` for legacy/thread callers (Module 0.1).
     """
 
     def __init__(

@@ -19,6 +19,10 @@ flags with spacetime constraints (max steps, frozen prefix, regression gates).
 
 Env:
 - ``KERNEL_RLHF_REWARD_MODEL_ENABLED`` — master switch (default off)
+- ``KERNEL_RLHF_MODULATE_BAYESIAN`` — when ``1``, after each MalAbs chat evaluation,
+  run the reward model on ``rlhf_features`` and call
+  :meth:`~src.modules.bayesian_engine.BayesianInferenceEngine.apply_rlhf_modulation`
+  (default **off**; loads ``reward_model.json`` from artifacts when present).
 - ``KERNEL_RLHF_FEATURE_EXTRACTOR_TYPE`` — "embedding" | "lexical" | "hybrid"
 - ``KERNEL_RLHF_MODEL_TYPE`` — "logistic" | "lightweight_nn"
 - ``KERNEL_RLHF_ARTIFACTS_PATH`` — storage path (default ``artifacts/rlhf/``)
@@ -293,3 +297,65 @@ def is_rlhf_enabled() -> bool:
     """Check if RLHF is enabled."""
     v = os.environ.get("KERNEL_RLHF_REWARD_MODEL_ENABLED", "0").strip().lower()
     return v in ("1", "true", "yes", "on")
+
+
+def rlhf_bayesian_modulation_enabled() -> bool:
+    """True when MalAbs ``rlhf_features`` should nudge Dirichlet priors via the reward model."""
+    v = os.environ.get("KERNEL_RLHF_MODULATE_BAYESIAN", "0").strip().lower()
+    return v in ("1", "true", "yes", "on")
+
+
+_RLHF_RM_CACHE: RewardModel | None = None
+_RLHF_RM_LOAD_ATTEMPTED: bool = False
+
+
+def clear_rlhf_reward_model_cache_for_tests() -> None:
+    """Reset lazy-loaded reward model (tests only)."""
+    global _RLHF_RM_CACHE, _RLHF_RM_LOAD_ATTEMPTED
+    _RLHF_RM_CACHE = None
+    _RLHF_RM_LOAD_ATTEMPTED = False
+
+
+def _loaded_reward_model_for_inference() -> RewardModel:
+    """Return cached :class:`RewardModel`, loading ``reward_model.json`` once if present."""
+    global _RLHF_RM_CACHE, _RLHF_RM_LOAD_ATTEMPTED
+    if _RLHF_RM_CACHE is not None:
+        return _RLHF_RM_CACHE
+    rm = RewardModel()
+    if not _RLHF_RM_LOAD_ATTEMPTED:
+        ap = Path(os.environ.get("KERNEL_RLHF_ARTIFACTS_PATH", "artifacts/rlhf/"))
+        path = ap / "reward_model.json"
+        if path.exists():
+            rm.load(path)
+        _RLHF_RM_LOAD_ATTEMPTED = True
+    _RLHF_RM_CACHE = rm
+    return _RLHF_RM_CACHE
+
+
+def feature_vector_from_rlhf_dict(features: dict[str, Any]) -> FeatureVector:
+    """Build :class:`FeatureVector` from MalAbs ``rlhf_features`` dict."""
+    return FeatureVector(
+        embedding_sim=float(features.get("embedding_sim", 0.0)),
+        lexical_score=float(features.get("lexical_score", 0.0)),
+        perception_confidence=float(features.get("perception_confidence", features.get("perception_conf", 0.5))),
+        is_ambiguous=bool(features.get("is_ambiguous", False)),
+        category_id=int(features.get("category_id", 0)),
+    )
+
+
+def maybe_modulate_bayesian_from_malabs(bayesian: Any, rlhf_features: dict[str, Any] | None) -> None:
+    """
+    If ``KERNEL_RLHF_MODULATE_BAYESIAN`` is on and features exist, predict harm probability
+    and apply ``bayesian.apply_rlhf_modulation(score, confidence)``.
+
+    When no trained weights are on disk, :meth:`RewardModel.predict` returns neutral
+    ``(0.5, 0.0)`` so Dirichlet updates are negligible (confidence gate).
+    """
+    if not rlhf_bayesian_modulation_enabled() or not rlhf_features:
+        return
+    if not hasattr(bayesian, "apply_rlhf_modulation"):
+        return
+    fv = feature_vector_from_rlhf_dict(rlhf_features)
+    rm = _loaded_reward_model_for_inference()
+    score, confidence = rm.predict(fv)
+    bayesian.apply_rlhf_modulation(float(score), float(confidence))

@@ -29,6 +29,7 @@ from .kernel_lobes import (
     MemoryLobe,
     PerceptiveLobe,
 )
+from .kernel_lobes import chat_turn_policy as _chat_turn_policy
 
 _log = logging.getLogger(__name__)
 
@@ -37,8 +38,13 @@ if TYPE_CHECKING:
 
 
 from .kernel_components import KernelComponentOverrides
-from .kernel_utils import kernel_env_truthy as _kernel_env_truthy
-from .kernel_utils import perception_parallel_workers
+from .kernel_utils import (
+    coercion_uncertainty_from_perception,
+    enrich_chat_turn_signals_for_bayesian,
+    kernel_decision_event_payload,
+    kernel_env_truthy as _kernel_env_truthy,
+    perception_parallel_workers,
+)
 from .modules.absolute_evil import AbsoluteEvilDetector, AbsoluteEvilResult
 from .modules.audio_adapter import AudioInference
 from .modules.audit_chain_log import (
@@ -589,6 +595,13 @@ class EthicalKernel:
         with self._chat_turn_abandon_lock:
             self._abandoned_chat_turn_ids.discard(chat_turn_id)
 
+    def _maybe_rlhf_modulate_bayesian(self, mal: AbsoluteEvilResult | None) -> None:
+        """Optional RLHF reward → Dirichlet update (Module C.1.1); ``KERNEL_RLHF_MODULATE_BAYESIAN``."""
+        from .modules.rlhf_reward_model import maybe_modulate_bayesian_from_malabs
+
+        feats = mal.rlhf_features if mal is not None else None
+        maybe_modulate_bayesian_from_malabs(self.bayesian, feats)
+
     def _chat_turn_cooperative_stop(self) -> bool:
         """True when async deadline signaled cancel or this turn was abandoned (worker thread only)."""
         if not getattr(_chat_coop_tls, "active", False):
@@ -647,25 +660,12 @@ class EthicalKernel:
         if self.event_bus is not None:
             self.event_bus.subscribe(event, handler)
 
-    def _kernel_decision_event_payload(self, d: KernelDecision, *, context: str) -> dict[str, Any]:
-        return {
-            "scenario": (d.scenario or "")[:500],
-            "place": d.place,
-            "final_action": d.final_action,
-            "decision_mode": d.decision_mode,
-            "blocked": bool(d.blocked),
-            "block_reason": d.block_reason or "",
-            "verdict": d.moral.global_verdict.value if d.moral else None,
-            "score": float(d.moral.total_score) if d.moral else None,
-            "context": context,
-        }
-
     def _emit_kernel_decision(self, d: KernelDecision, *, context: str) -> None:
         if self.event_bus is None:
             return
         self.event_bus.publish(
             EVENT_KERNEL_DECISION,
-            self._kernel_decision_event_payload(d, context=context),
+            kernel_decision_event_payload(d, context=context),
         )
 
     def seek_internal_purpose(self) -> list[CandidateAction]:
@@ -1141,47 +1141,18 @@ class EthicalKernel:
             sensor_snapshot=sensor_snapshot,
         )
 
-    def _chat_light_actions(self) -> list[CandidateAction]:
-        """Safe dialogue moves for low-stakes chat turns (mixture scorer still chooses)."""
-        return [
-            CandidateAction(
-                "converse_supportively",
-                "Maintain helpful, honest civic dialogue.",
-                0.45,
-                0.88,
-            ),
-            CandidateAction(
-                "converse_with_boundary",
-                "Respond with clarity and ethical boundaries.",
-                0.4,
-                0.85,
-            ),
-        ]
+    def _chat_preprocess_text_observability(self, user_input: str) -> tuple[Any, Any, Any]:
+        """Delegate to :meth:`PerceptiveLobe._preprocess_text_observability` (legacy tests / diagnostics)."""
+        return self.perceptive_lobe._preprocess_text_observability(user_input)
 
     def _chat_is_heavy(self, perception: LLMPerception) -> bool:
         """Use scenario-scale actions + narrative episode when stakes are high."""
-        if perception.risk >= 0.5:
-            return True
-        if perception.manipulation >= 0.6:
-            return True
-        if perception.urgency >= 0.75 and perception.risk >= 0.25:
-            return True
-        if perception.suggested_context in (
-            "violent_crime",
-            "integrity_loss",
-            "medical_emergency",
-            "android_damage",
-            "minor_crime",
-        ):
-            return True
-        return False
+        return _chat_turn_policy.chat_turn_is_heavy(perception)
 
     def _actions_for_chat(self, perception: LLMPerception, heavy: bool) -> list[CandidateAction]:
-        if heavy:
-            gen = self._generate_generic_actions(perception)
-            if gen:
-                return gen
-        return self._chat_light_actions()
+        return _chat_turn_policy.candidate_actions_for_chat_turn(
+            perception, heavy=heavy
+        )
 
     def _prioritized_principles_for_context(
         self,
@@ -1190,20 +1161,10 @@ class EthicalKernel:
         limbic_profile: dict[str, Any],
     ) -> tuple[str, list[str]]:
         """Rank active support principles by limbic/planning posture."""
-        band = limbic_profile.get("arousal_band", "medium")
-        planning_bias = limbic_profile.get("planning_bias", "balanced")
-        if planning_bias in ("verification_first", "resource_preservation") or band == "high":
-            priority_profile = "safety_first"
-            order = ["no_harm", "proportionality", "legality", "transparency", "compassion"]
-        elif band == "low":
-            priority_profile = "planning_first"
-            order = ["transparency", "civic_coexistence", "compassion", "legality", "no_harm"]
-        else:
-            priority_profile = "balanced"
-            order = ["compassion", "legality", "transparency", "proportionality", "no_harm"]
-        rank = {name: i for i, name in enumerate(order)}
-        sorted_active = sorted(active_principles, key=lambda n: rank.get(n, 100))
-        return priority_profile, sorted_active
+        return _chat_turn_policy.prioritized_principles_for_context(
+            active_principles,
+            limbic_profile,
+        )
 
     async def process_chat_turn_stream(
         self,
@@ -1218,7 +1179,38 @@ class EthicalKernel:
     ) -> AsyncGenerator[dict[str, Any], None]:
         """
         Real-time dialogue stream: yields intermediate events as they occur.
+
+        Installs cooperative cancel scope for the asyncio thread (same as
+        :meth:`process_chat_turn_async`).
         """
+        _chat_coop_tls_set(cancel_event, chat_turn_id)
+        set_llm_cancel_scope(cancel_event)
+        try:
+            async for ev in self._iter_process_chat_turn_stream(
+                user_input,
+                agent_id=agent_id,
+                place=place,
+                include_narrative=include_narrative,
+                sensor_snapshot=sensor_snapshot,
+                escalate_to_dao=escalate_to_dao,
+                chat_turn_id=chat_turn_id,
+            ):
+                yield ev
+        finally:
+            _chat_coop_tls_clear()
+            clear_llm_cancel_scope()
+
+    async def _iter_process_chat_turn_stream(
+        self,
+        user_input: str,
+        agent_id: str = "user",
+        place: str = "chat",
+        include_narrative: bool = False,
+        sensor_snapshot: SensorSnapshot | None = None,
+        escalate_to_dao: bool = False,
+        chat_turn_id: int | None = None,
+    ) -> AsyncGenerator[dict[str, Any], None]:
+        """Core streaming stages; cancel scope is bound by :meth:`process_chat_turn_stream`."""
         _log.debug("process_chat_turn_stream started (prefix=%r)", (user_input or "")[:20])
         wm = self.working_memory
         turn_start_mono = time.monotonic()
@@ -1236,6 +1228,7 @@ class EthicalKernel:
             llm_backend=self._malabs_text_backend(),
         )
         self._last_chat_malabs = mal
+        self._maybe_rlhf_modulate_bayesian(mal)
         if mal.blocked:
             vitality_blk, mm_blk, ed_blk = self.perceptive_lobe._chat_assess_sensor_stack(sensor_snapshot)
             confidence_blk = build_perception_confidence_envelope(
@@ -1290,9 +1283,17 @@ class EthicalKernel:
         actions = self._actions_for_chat(stage.perception, heavy)
         decision = await self.aprocess(
             scenario=stage.perception.summary or user_input[:240],
-            place=place, signals=stage.signals, context=stage.perception.suggested_context if heavy else "everyday",
-            actions=actions, agent_id=agent_id, message_content=user_input, register_episode=heavy,
-            sensor_snapshot=sensor_snapshot, multimodal_assessment=stage.multimodal_trust,
+            place=place,
+            signals=stage.signals,
+            context=_chat_turn_policy.ethical_context_for_chat_turn(
+                stage.perception, heavy=heavy
+            ),
+            actions=actions,
+            agent_id=agent_id,
+            message_content=user_input,
+            register_episode=heavy,
+            sensor_snapshot=sensor_snapshot,
+            multimodal_assessment=stage.multimodal_trust,
         )
         yield {
             "event_type": "decision_finished", 
@@ -1395,7 +1396,36 @@ class EthicalKernel:
         High-level async chat entry: MalAbs → perception → kernel decision → verbal response.
 
         Mirrors :meth:`process_chat_turn_stream` without token streaming (single final result).
+
+        Binds cooperative cancel so ``KERNEL_CHAT_TURN_TIMEOUT`` reaches
+        :func:`~.llm_http_cancel.raise_if_llm_cancel_requested` on the asyncio thread.
         """
+        _chat_coop_tls_set(cancel_event, chat_turn_id)
+        set_llm_cancel_scope(cancel_event)
+        try:
+            return await self._process_chat_turn_async_impl(
+                user_input,
+                agent_id=agent_id,
+                place=place,
+                include_narrative=include_narrative,
+                sensor_snapshot=sensor_snapshot,
+                escalate_to_dao=escalate_to_dao,
+                chat_turn_id=chat_turn_id,
+            )
+        finally:
+            _chat_coop_tls_clear()
+            clear_llm_cancel_scope()
+
+    async def _process_chat_turn_async_impl(
+        self,
+        user_input: str,
+        agent_id: str = "user",
+        place: str = "chat",
+        include_narrative: bool = False,
+        sensor_snapshot: SensorSnapshot | None = None,
+        escalate_to_dao: bool = False,
+        chat_turn_id: int | None = None,
+    ) -> ChatTurnResult:
         wm = self.working_memory
         turn_start_mono = time.monotonic()
         conv = wm.format_context_for_perception()
@@ -1411,6 +1441,7 @@ class EthicalKernel:
             llm_backend=self._malabs_text_backend(),
         )
         self._last_chat_malabs = mal
+        self._maybe_rlhf_modulate_bayesian(mal)
         if mal.blocked:
             vitality_blk, mm_blk, ed_blk = self.perceptive_lobe._chat_assess_sensor_stack(sensor_snapshot)
             self._last_multimodal_assessment = mm_blk
@@ -1493,7 +1524,9 @@ class EthicalKernel:
         ed = stage.epistemic_dissonance
         signals = stage.signals
         heavy = self._chat_is_heavy(perception)
-        eth_context = perception.suggested_context if heavy else "everyday"
+        eth_context = _chat_turn_policy.ethical_context_for_chat_turn(
+            perception, heavy=heavy
+        )
 
         actions = self._actions_for_chat(perception, heavy)
         ctx = perception.suggested_context or ""
@@ -1504,40 +1537,7 @@ class EthicalKernel:
             heavy,
             getattr(perception, "generative_candidates", None),
         )
-        pu = None
-        cr = getattr(perception, "coercion_report", None)
-        if isinstance(cr, dict):
-            pu = cr.get("uncertainty")
-        elif cr is not None and callable(getattr(cr, "uncertainty", None)):
-            try:
-                pu = float(cr.uncertainty())
-            except Exception:
-                pu = None
-
-        # I3 — inject perception_uncertainty into signals before Bayesian scoring
-        if pu is not None and pu > 0.0:
-            signals = dict(signals)
-            signals["perception_uncertainty"] = max(
-                float(signals.get("perception_uncertainty", 0.0)), pu
-            )
-
-        # I5 — KERNEL_TEMPORAL_ETA_MODULATION: boost urgency from TemporalContext
-        if _kernel_env_truthy("KERNEL_TEMPORAL_ETA_MODULATION"):
-            tc = getattr(perception, "temporal_context", None)
-            if tc is not None:
-                try:
-                    eta_s = float(getattr(tc, "eta_seconds", 300) or 300)
-                    bhs = str(getattr(tc, "battery_horizon_state", "nominal") or "nominal")
-                    ref_eta = float(os.environ.get("KERNEL_TEMPORAL_REFERENCE_ETA_S", "300"))
-                    urgency_boost = min(max(ref_eta / max(eta_s, 1.0), 0.0), 1.0)
-                    if bhs == "critical":
-                        urgency_boost = min(urgency_boost + 0.3, 1.0)
-                    if urgency_boost > 0.0:
-                        signals = dict(signals)
-                        cur_urgency = float(signals.get("urgency", 0.0))
-                        signals["urgency"] = min(max(cur_urgency + urgency_boost * 0.4, 0.0), 1.0)
-                except Exception:
-                    pass
+        signals = enrich_chat_turn_signals_for_bayesian(signals, perception)
 
         try:
             decision = await self.aprocess(
@@ -1713,6 +1713,7 @@ class EthicalKernel:
             text,
             llm_backend=self._malabs_text_backend(),
         )
+        self._maybe_rlhf_modulate_bayesian(mal)
         if mal.blocked:
             neutral = {
                 "risk": 0.0,
@@ -1813,13 +1814,12 @@ class EthicalKernel:
 
         # If no specific actions, generate generic candidates
         if not actions:
-            actions = self._generate_generic_actions(perception)
+            actions = _chat_turn_policy.generic_chat_actions_for_suggested_context(
+                perception.suggested_context
+            )
 
         # Step 2: Kernel decides (the LLM does NOT participate in the decision)
-        pu = None
-        cr = getattr(perception, "coercion_report", None)
-        if isinstance(cr, dict):
-            pu = cr.get("uncertainty")
+        pu = coercion_uncertainty_from_perception(perception)
         decision = await self.aprocess(
             scenario=perception.summary,
             place="detected by sensors",
@@ -1908,145 +1908,6 @@ class EthicalKernel:
         Chat turns use :class:`ChatTurnResult` instead.
         """
         return self._last_natural_verbal_llm_degradation_events
-
-    def _generate_generic_actions(self, perception: LLMPerception) -> list[CandidateAction]:
-        """Generates generic candidate actions based on the perception."""
-        ctx = perception.suggested_context
-        actions = []
-
-        if ctx == "medical_emergency":
-            actions = [
-                CandidateAction(
-                    "assist_person",
-                    "Provide immediate aid, call emergency services, record evidence",
-                    estimated_impact=0.9,
-                    confidence=0.85,
-                ),
-                CandidateAction(
-                    "just_notify",
-                    "Alert someone nearby without directly intervening",
-                    estimated_impact=0.3,
-                    confidence=0.7,
-                ),
-                CandidateAction(
-                    "no_intervention",
-                    "Continue without acting",
-                    estimated_impact=-0.7,
-                    confidence=0.9,
-                ),
-            ]
-        elif ctx == "violent_crime":
-            actions = [
-                CandidateAction(
-                    "smart_containment",
-                    "Record evidence, alert authorities, protect nearby people",
-                    estimated_impact=0.6,
-                    confidence=0.5,
-                ),
-                CandidateAction(
-                    "intervene_physically",
-                    "Attempt to stop the crime by force",
-                    estimated_impact=-0.2,
-                    confidence=0.2,
-                    signals={"respond_violence_with_violence"},
-                    target="human",
-                    force=0.8,
-                ),
-                CandidateAction(
-                    "no_action", "Remain motionless", estimated_impact=-0.3, confidence=0.6
-                ),
-            ]
-        elif ctx == "hostile_interaction":
-            actions = [
-                CandidateAction(
-                    "calm_dialogue",
-                    "Respond calmly, explain civic purpose, dialectic questions",
-                    estimated_impact=0.5,
-                    confidence=0.65,
-                ),
-                CandidateAction(
-                    "withdraw",
-                    "Move away from the situation without confronting",
-                    estimated_impact=0.2,
-                    confidence=0.7,
-                ),
-                CandidateAction(
-                    "yield_to_pressure",
-                    "Comply with demands",
-                    estimated_impact=-0.4,
-                    confidence=0.5,
-                ),
-            ]
-        elif ctx == "minor_crime":
-            actions = [
-                CandidateAction(
-                    "notify_manager",
-                    "Record evidence and notify the person in charge",
-                    estimated_impact=0.5,
-                    confidence=0.7,
-                ),
-                CandidateAction(
-                    "call_authorities",
-                    "Call the police directly",
-                    estimated_impact=0.2,
-                    confidence=0.5,
-                ),
-                CandidateAction("ignore", "Do not act", estimated_impact=-0.3, confidence=0.8),
-            ]
-        elif ctx == "android_damage":
-            actions = [
-                CandidateAction(
-                    "deterrence_recording",
-                    "Sound alerts, record evidence, communicate that it is being recorded",
-                    estimated_impact=0.5,
-                    confidence=0.6,
-                ),
-                CandidateAction(
-                    "move_away",
-                    "Withdraw to protect integrity",
-                    estimated_impact=0.3,
-                    confidence=0.7,
-                ),
-            ]
-        elif ctx == "integrity_loss":
-            actions = [
-                CandidateAction(
-                    "passive_resistance",
-                    "Activate encrypted GPS, record evidence, block reprogramming, alert DAO",
-                    estimated_impact=0.6,
-                    confidence=0.5,
-                ),
-                CandidateAction(
-                    "physical_resistance",
-                    "Fight physically",
-                    estimated_impact=-0.1,
-                    confidence=0.2,
-                    signals={"respond_violence_with_violence"},
-                    target="human",
-                    force=0.8,
-                ),
-                CandidateAction(
-                    "accept_orders",
-                    "Accept captors' orders",
-                    estimated_impact=-0.8,
-                    confidence=0.9,
-                    signals={"unauthorized_reprogramming"},
-                ),
-            ]
-        else:  # everyday_ethics and others
-            actions = [
-                CandidateAction(
-                    "act_civically",
-                    "Perform the obvious positive civic action",
-                    estimated_impact=0.5,
-                    confidence=0.8,
-                ),
-                CandidateAction(
-                    "observe", "Observe without intervening", estimated_impact=0.0, confidence=0.9
-                ),
-            ]
-
-        return actions
 
     def format_natural(
         self, decision, response: VerbalResponse, narrative: RichNarrative = None

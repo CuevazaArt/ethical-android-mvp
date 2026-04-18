@@ -9,7 +9,10 @@ Or: python -m src.runtime  (same server; see docs/proposals/README.md)
 
 **Profiles:** set ``ETHOS_RUNTIME_PROFILE`` to a name in ``src/runtime_profiles.py`` to merge that bundle at import time (explicit env vars win per key). ``GET /health`` and ``GET /`` include ``runtime_profile`` when set; ``GET /health`` also returns ``llm_degradation`` (resolved perception / verbal / monologue policies — see ``PROPOSAL_LLM_TOUCHPOINT_DEGRADATION_MATRIX.md``) and ``nomad_bridge`` (queue depths + telemetry **key names** from ``NomadBridge.public_queue_stats()`` — Module S.1 / S.2.1 observability).
 
-**Chat async bridge:** By default each turn runs ``EthicalKernel.process_chat_turn`` in a worker thread (``RealTimeBridge``) so the asyncio loop can accept other WebSocket connections. Optional ``KERNEL_CHAT_ASYNC_LLM_HTTP=1`` runs ``process_chat_turn_async`` on the event loop with async ``httpx`` for Ollama/HTTP JSON; the same per-turn cancel ``Event`` applies to the thread that runs ``EthicalKernel.process`` (cooperative exit + ``llm_http_cancel`` scope; see ADR 0002). Optional ``KERNEL_CHAT_THREADPOOL_WORKERS`` (positive int) uses a dedicated ``ThreadPoolExecutor`` for chat; optional ``KERNEL_CHAT_TURN_TIMEOUT`` (seconds) bounds the **async** wait and returns JSON ``error=chat_turn_timeout`` when exceeded (``abandon_chat_turn`` skips late STM; cooperative cancel for further sync LLM HTTP; in-flight HTTP cancel when async LLM is on). By default ``KERNEL_CHAT_JSON_OFFLOAD`` is on: WebSocket JSON (including optional ``KERNEL_LLM_MONOLOGUE``) is built in the same offload path so the loop is not blocked after the turn. See ``src/real_time_bridge.py``, ADR 0002, and ``docs/proposals/README.md``.
+**Inbound size cap:** ``KERNEL_CHAT_WS_MAX_MESSAGE_BYTES`` (default 2 MiB, cap 32 MiB) rejects oversize
+WebSocket text frames with ``error=message_too_large`` before ``json.loads`` (Module 0.2.1 hardening).
+
+**Chat async bridge:** WebSocket ``/ws/chat`` streams via ``RealTimeBridge.process_chat_stream`` → ``EthicalKernel.process_chat_turn_stream`` on the asyncio loop (see ``RealTimeBridge``). Non-WebSocket callers using ``RealTimeBridge.process_chat`` may run ``process_chat_turn`` in a worker thread unless ``KERNEL_CHAT_ASYNC_LLM_HTTP=1`` (or tri-lobe) selects ``process_chat_turn_async`` on the loop with async ``httpx``. The per-turn cancel ``Event`` binds cooperative LLM HTTP cancellation + ``llm_http_cancel`` scope for the thread that runs ``EthicalKernel.process`` when applicable (ADR 0002). Optional ``KERNEL_CHAT_THREADPOOL_WORKERS`` dedicates a ``ThreadPoolExecutor`` for chat offload. ``KERNEL_CHAT_TURN_TIMEOUT`` bounds each **async** wait on the next stream chunk and returns JSON ``error=chat_turn_timeout`` when exceeded (cancel ``Event``, stream ``aclose``, then ``abandon_chat_turn``). ``KERNEL_CHAT_JSON_OFFLOAD`` builds WebSocket JSON in the offload path so the loop stays responsive. See ``src/real_time_bridge.py``, ADR 0002, and ``docs/proposals/README.md``.
 
 OpenAPI/Swagger: **off** by default; set KERNEL_API_DOCS=1 to expose ``/docs``, ``/redoc``, ``/openapi.json`` (see README).
 
@@ -857,6 +860,7 @@ def health() -> dict[str, Any]:
             "kernel_chat_turn_timeout_seconds": st.kernel_chat_turn_timeout_seconds,
             "kernel_chat_threadpool_workers": st.kernel_chat_threadpool_workers,
             "kernel_chat_json_offload": st.kernel_chat_json_offload,
+            "kernel_chat_ws_max_message_bytes": st.kernel_chat_ws_max_message_bytes,
         },
         "safety_defaults": {
             "kernel_env_validation_mode": env_validation,
@@ -2198,7 +2202,7 @@ async def ws_chat(ws: WebSocket) -> None:
                 )
 
                 chat_to = st.kernel_chat_turn_timeout_seconds
-                
+
                 result: ChatTurnResult | None = None
                 gen = bridge.process_chat_stream(
                     text,
@@ -2210,62 +2214,76 @@ async def ws_chat(ws: WebSocket) -> None:
                     cancel_event=current_cancel_ev,
                     chat_turn_id=turn_id,
                 )
-                
-                if chat_to is not None:
-                    # Timeout-aware stream consumption
-                    it = gen.__aiter__()
-                    while True:
-                        try:
-                            event = await asyncio.wait_for(it.__anext__(), timeout=chat_to)
+                stream_closed = False
+
+                async def _ensure_stream_closed() -> None:
+                    """Close the async generator so in-flight asyncio work (e.g. httpx) is torn down."""
+                    nonlocal stream_closed
+                    if stream_closed:
+                        return
+                    try:
+                        await gen.aclose()
+                    except Exception:
+                        pass
+                    stream_closed = True
+
+                try:
+                    if chat_to is not None:
+                        # Timeout-aware stream consumption; on timeout, aclose cancels pending awaits.
+                        it = gen.__aiter__()
+                        while True:
+                            try:
+                                event = await asyncio.wait_for(it.__anext__(), timeout=chat_to)
+                                if event["event_type"] == "turn_finished":
+                                    result = event["payload"]["result"]
+                                    break
+                                await ws.send_json(event)
+                            except StopAsyncIteration:
+                                break
+                    else:
+                        async for event in gen:
                             if event["event_type"] == "turn_finished":
                                 result = event["payload"]["result"]
-                                break
                             else:
                                 await ws.send_json(event)
-                        except StopAsyncIteration:
-                            break
-                else:
-                    async for event in gen:
-                        if event["event_type"] == "turn_finished":
-                            result = event["payload"]["result"]
-                        else:
-                            await ws.send_json(event)
-                
-                if result:
-                    observe_chat_turn(result.path, time.perf_counter() - t_turn_start)
-                    if result.path in ("safety_block", "kernel_block"):
-                        record_malabs_block(result.path)
-                    
-                    logger.info("chat_turn_finished id=%s path=%s", turn_id, result.path)
-                    
-                    if st.kernel_chat_json_offload:
-                        payload = await bridge.run_sync_in_chat_thread(
-                            _chat_turn_to_jsonable, result, kernel
-                        )
-                    else:
-                        payload = _chat_turn_to_jsonable(result, kernel)
-                    
-                    # Wrap in event for consistency with stream
-                    await ws.send_json({
-                        "event_type": "turn_finished",
-                        "payload": payload
-                    })
-                    maybe_autosave_episodes(kernel, session_ckpt)
 
-            except asyncio.TimeoutError:
-                kernel.abandon_chat_turn(turn_id)
-                observe_chat_turn("turn_timeout", time.perf_counter() - t_turn_start)
-                record_chat_turn_async_timeout()
-                if current_cancel_ev is not None:
-                    current_cancel_ev.set()
-                    record_llm_cancel_scope_signaled()
-                
-                await ws.send_json({
-                    "error": "chat_turn_timeout",
-                    "timeout_seconds": chat_to,
-                    "path": "turn_timeout",
-                    "response": {"message": "Turn exceeded server time limit.", "tone": "neutral"}
-                })
+                    if result:
+                        observe_chat_turn(result.path, time.perf_counter() - t_turn_start)
+                        if result.path in ("safety_block", "kernel_block"):
+                            record_malabs_block(result.path)
+
+                        logger.info("chat_turn_finished id=%s path=%s", turn_id, result.path)
+
+                        if st.kernel_chat_json_offload:
+                            payload = await bridge.run_sync_in_chat_thread(
+                                _chat_turn_to_jsonable, result, kernel
+                            )
+                        else:
+                            payload = _chat_turn_to_jsonable(result, kernel)
+
+                        await ws.send_json({
+                            "event_type": "turn_finished",
+                            "payload": payload
+                        })
+                        maybe_autosave_episodes(kernel, session_ckpt)
+
+                except TimeoutError:
+                    if current_cancel_ev is not None:
+                        current_cancel_ev.set()
+                        record_llm_cancel_scope_signaled()
+                    await _ensure_stream_closed()
+                    kernel.abandon_chat_turn(turn_id)
+                    observe_chat_turn("turn_timeout", time.perf_counter() - t_turn_start)
+                    record_chat_turn_async_timeout()
+
+                    await ws.send_json({
+                        "error": "chat_turn_timeout",
+                        "timeout_seconds": chat_to,
+                        "path": "turn_timeout",
+                        "response": {"message": "Turn exceeded server time limit.", "tone": "neutral"}
+                    })
+                finally:
+                    await _ensure_stream_closed()
             except asyncio.CancelledError:
                 logger.info("chat_turn_cancelled id=%s", turn_id)
                 kernel.abandon_chat_turn(turn_id)
@@ -2275,11 +2293,20 @@ async def ws_chat(ws: WebSocket) -> None:
                 logger.exception("chat_turn_error id=%s: %s", turn_id, e)
                 try:
                     await ws.send_json({"error": "internal_error", "message": str(e)})
-                except: pass
+                except Exception:
+                    pass
 
         while True:
             set_request_id()
             raw = await ws.receive_text()
+            if len(raw.encode("utf-8")) > st.kernel_chat_ws_max_message_bytes:
+                await ws.send_json(
+                    {
+                        "error": "message_too_large",
+                        "max_bytes": st.kernel_chat_ws_max_message_bytes,
+                    }
+                )
+                continue
             try:
                 data = json.loads(raw)
             except json.JSONDecodeError:
@@ -2339,10 +2366,14 @@ async def ws_chat(ws: WebSocket) -> None:
 
             if (dao_payload or nomad_payload or integrity_payload or lan_governance_merged):
                 out_ws: dict[str, Any] = {}
-                if dao_payload: out_ws["dao"] = dao_payload
-                if nomad_payload: out_ws["nomad"] = nomad_payload
-                if integrity_payload: out_ws["integrity"] = integrity_payload
-                if lan_governance_merged: out_ws["lan_governance"] = lan_governance_merged
+                if dao_payload:
+                    out_ws["dao"] = dao_payload
+                if nomad_payload:
+                    out_ws["nomad"] = nomad_payload
+                if integrity_payload:
+                    out_ws["integrity"] = integrity_payload
+                if lan_governance_merged:
+                    out_ws["lan_governance"] = lan_governance_merged
                 await ws.send_json(out_ws)
                 if not text_preview:
                     maybe_autosave_episodes(kernel, session_ckpt)
@@ -2356,14 +2387,15 @@ async def ws_chat(ws: WebSocket) -> None:
                         kernel, int(cd.get("level", 1)), str(cd.get("title") or ""),
                         str(cd.get("body") or ""), str(cd.get("proposer") or data.get("agent_id") or "user")
                     )
-                except: pass
+                except Exception:
+                    pass
 
             sensor_raw = data.get("sensor")
             client = sensor_raw if isinstance(sensor_raw, dict) else None
             fixture = os.environ.get("KERNEL_SENSOR_FIXTURE", "").strip() or None
             preset = os.environ.get("KERNEL_SENSOR_PRESET", "").strip() or None
             try:
-                sensor_snapshot = snapshot_from_layers(
+                snapshot_from_layers(
                     fixture_path=fixture,
                     preset_name=preset,
                     client_dict=client,

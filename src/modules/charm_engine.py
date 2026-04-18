@@ -1,16 +1,18 @@
 """
-Multimodal Charm Engine — Renderizado Estilístico y Físico (Fase 8+).
+Multimodal Charm Engine — style / somatic layer after a valid L0/L1 decision.
 
-Aplica la capa de encanto (Intimidad, Misterio, Juego) *después* de que
-el EthicalKernel haya tomado una decisión L0/C1 válida.
+Applies affect (intimacy, mystery, play) *after* the EthicalKernel decision.
+Coordinates gesture hints for Nomad / hardware and optional **basal-ganglia EMA**
+smoothing on warmth/mystery (MER Block 10.3).
 
-Incluye la orquestación de gestos somáticos para inferencia multimodal
-en tiempo real (Nomad Bridge) y filtros anti-parasociabilidad.
+**Env (optional):** ``KERNEL_BASAL_GANGLIA_SMOOTHING=1`` — run :class:`basal_ganglia.BasalGanglia`
+on ``CharmVector`` warmth/mystery to reduce sociopathic parametric jumps (default off).
 """
 
 from __future__ import annotations
 
 import logging
+import os
 from dataclasses import dataclass
 from typing import Any
 
@@ -18,6 +20,28 @@ from .uchi_soto import InteractionProfile
 from .user_model import UserModelTracker
 
 logger = logging.getLogger(__name__)
+
+_basal_ganglia_singleton: Any = None
+
+
+def _basal_ganglia_smoothing_enabled() -> bool:
+    v = os.environ.get("KERNEL_BASAL_GANGLIA_SMOOTHING", "0").strip().lower()
+    return v in ("1", "true", "yes", "on")
+
+
+def _get_basal_ganglia() -> Any:
+    global _basal_ganglia_singleton
+    if _basal_ganglia_singleton is None:
+        from .basal_ganglia import BasalGanglia
+
+        _basal_ganglia_singleton = BasalGanglia()
+    return _basal_ganglia_singleton
+
+
+def clear_charm_engine_basal_singleton_for_tests() -> None:
+    """Reset process-local basal filter (tests only)."""
+    global _basal_ganglia_singleton
+    _basal_ganglia_singleton = None
 
 
 @dataclass
@@ -129,6 +153,17 @@ class ResponseSculptor:
             )
 
         charm = self.parametrizer.parametrize(decision_action, profile, user_tracker, caution_level)
+        if _basal_ganglia_smoothing_enabled():
+            r = _get_basal_ganglia().smooth(
+                target_warmth=charm.warmth,
+                target_mystery=charm.mystery,
+            )
+            charm = CharmVector(
+                warmth=float(r["warmth"]),
+                mystery=float(r["mystery"]),
+                playfulness=charm.playfulness,
+                directiveness=charm.directiveness,
+            )
         gesture = self.gesture_planner.plan(charm)
 
         # En integración real, esto encadena un call al LLM (con override_template).

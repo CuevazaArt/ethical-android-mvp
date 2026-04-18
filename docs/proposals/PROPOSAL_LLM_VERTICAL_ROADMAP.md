@@ -13,3 +13,4 @@ Optional fast suite (when present): `python scripts/eval/run_llm_vertical_tests.
 ## Summary (non-authoritative)
 
 - **Related:** [`PROPOSAL_LLM_INTEGRATION_TRACK.md`](PROPOSAL_LLM_INTEGRATION_TRACK.md) (gap register); [`CURSOR_CROSS_TEAM_INTEGRATION_GATE.md`](../collaboration/CURSOR_CROSS_TEAM_INTEGRATION_GATE.md).
+- **Fast vertical suite (phase 5 targets):** `python scripts/eval/run_llm_vertical_tests.py` — includes LLM/cancel, semantic MalAbs, RLHF↔Bayesian (`tests/test_rlhf_reward_model.py`), and charm + basal EMA (`tests/test_charm_engine_basal.py`).
