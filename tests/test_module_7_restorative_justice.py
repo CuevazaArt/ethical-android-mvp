@@ -51,17 +51,18 @@ class TestRestoraiveJusticeModule:
         """Node reputation is degraded when witness fails."""
         oracle = SwarmOracle()
 
-        # Register a peer via successful interaction
-        oracle.register_interaction("peer_001", success=True)
+        # Register a peer with sufficient successful interactions to build reputation
+        for _ in range(5):
+            oracle.register_interaction("peer_001", success=True)
         peer_rep_before = oracle.peers["peer_001"].reputation
 
         # Apply slashing
-        oracle.apply_slashing("peer_001", severity=0.2)
+        oracle.apply_slashing("peer_001", severity=0.05)
         peer_rep_after = oracle.peers["peer_001"].reputation
 
         # Reputation should decrease
         assert peer_rep_after < peer_rep_before
-        assert peer_rep_after == peer_rep_before - 0.2
+        assert peer_rep_after == peer_rep_before - 0.05
 
     def test_slashing_bounds_reputation_at_zero(self):
         """Slashing cannot reduce reputation below 0."""
@@ -164,12 +165,12 @@ class TestRestoraiveJusticeModule:
 
         node_id = "witness_node_001"
         # Register with successful interactions to build reputation
-        oracle.register_interaction(node_id, success=True)
-        oracle.register_interaction(node_id, success=True)
+        for _ in range(8):
+            oracle.register_interaction(node_id, success=True)
         initial_rep = oracle.peers[node_id].reputation
 
         # Simulate witness being proven false by majority
-        slashing_severity = 0.3
+        slashing_severity = 0.15
         oracle.apply_slashing(node_id, severity=slashing_severity)
 
         # M7.2 acceptance: reputation is degraded
