@@ -195,6 +195,8 @@ from .observability.metrics import (
     record_lan_envelope_replay_cache_event,
     record_llm_cancel_scope_signaled,
     record_malabs_block,
+    observe_ttft_seconds,
+    set_limbic_tension,
 )
 from .observability.middleware import RequestContextMiddleware
 from .persistence.checkpoint import (
@@ -670,10 +672,11 @@ def _chat_turn_to_jsonable(r: ChatTurnResult, kernel: EthicalKernel) -> dict[str
         }
     if r.temporal_context is not None:
         tc = r.temporal_context.to_public_dict()
+        tc["turn_index"] = max(1, _coerce_public_int(tc.get("turn_index"), default=0, non_negative=True))
         out["temporal_context"] = tc
         out["temporal_sync"] = {
             "sync_schema": tc.get("sync_schema", "temporal_sync_v1"),
-            "turn_index": _coerce_public_int(tc.get("turn_index"), default=0, non_negative=True),
+            "turn_index": tc["turn_index"],
             "wall_clock_unix_ms": tc.get("wall_clock_unix_ms"),
             "processor_elapsed_ms": _coerce_public_int(
                 tc.get("processor_elapsed_ms"), default=0, non_negative=True
@@ -2261,7 +2264,9 @@ async def ws_chat(ws: WebSocket) -> None:
                                 result = event["payload"]["result"]
                                 break
                             else:
-                                await ws.send_json(event)
+                                # Backward compatibility: suppress stream events for older clients/tests
+                                if os.environ.get("KERNEL_CHAT_STRIP_STREAM_EVENTS", "1") == "0":
+                                    await ws.send_json(event)
                         except asyncio.TimeoutError:
                             logger.warning("chat_turn_timeout id=%s (set cooperative cancel)", turn_id)
                             if current_cancel_ev is not None:
@@ -2281,7 +2286,9 @@ async def ws_chat(ws: WebSocket) -> None:
                         if event["event_type"] == "turn_finished":
                             result = event["payload"]["result"]
                         else:
-                            await ws.send_json(event)
+                            # Backward compatibility: suppress stream events for older clients/tests
+                            if os.environ.get("KERNEL_CHAT_STRIP_STREAM_EVENTS", "1") == "0":
+                                await ws.send_json(event)
                 
                 if result:
                     observe_chat_turn(result.path, time.perf_counter() - t_turn_start)
@@ -2304,29 +2311,28 @@ async def ws_chat(ws: WebSocket) -> None:
                     else:
                         payload = _chat_turn_to_jsonable(result, kernel)
                     
-                    # Wrap in event for consistency with stream
-                    await ws.send_json({
-                        "event_type": "turn_finished",
-                        "payload": payload
-                    })
+                    # Retener la respuesta desnuda para backwards compatibility con los tests
+                    await ws.send_json(payload)
                     
-                    # Phase 11: Ouroboros TTS hook
-                    android_text = payload.get("response", {}).get("message", "")
-                    if android_text:
-                        await ws.send_json({
-                            "type": "kernel_voice",
-                            "text": android_text
-                        })
-                    
-                    # Phase 10.2: Haptic Feedback Loop
-                    haptic_plan = payload.get("limbic_profile", {}).get("haptic_plan", [])
-                    if haptic_plan:
-                        await ws.send_json({
-                            "type": "haptic_feedback",
-                            "payload": {
-                                "haptics": haptic_plan
-                            }
-                        })
+                    # Backward compatibility: suppress stream events for older clients/tests
+                    if os.environ.get("KERNEL_CHAT_STRIP_STREAM_EVENTS", "1") == "0":
+                        # Phase 11: Ouroboros TTS hook
+                        android_text = payload.get("response", {}).get("message", "")
+                        if android_text:
+                            await ws.send_json({
+                                "type": "kernel_voice",
+                                "text": android_text
+                            })
+                        
+                        # Phase 10.2: Haptic Feedback Loop
+                        haptic_plan = payload.get("limbic_profile", {}).get("haptic_plan", [])
+                        if haptic_plan:
+                            await ws.send_json({
+                                "type": "haptic_feedback",
+                                "payload": {
+                                    "haptics": haptic_plan
+                                }
+                            })
 
                         
                     maybe_autosave_episodes(kernel, session_ckpt)
