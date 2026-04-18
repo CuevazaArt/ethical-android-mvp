@@ -9,6 +9,7 @@ All notable changes to this project are summarized here. For narrative context a
 ## Cursor — Integration merge (April 2026)
 
 ### Cursor Team Updates
+- **Tests:** [`tests/test_chat_server.py`](tests/test_chat_server.py) — drain process-global Nomad **`charm_feedback_queue`** before **`test_health`** so **`charm_feedback_queued`** is not order-dependent when the full module runs after charm/WebSocket tests.
 - **Tests:** [`tests/test_user_model_enrichment.py`](tests/test_user_model_enrichment.py) `_p()` defaults include **`social_tension`** (required by [`LLMPerception`](src/modules/llm_layer.py)); aligns with [`tests/test_user_model.py`](tests/test_user_model.py).
 - **Operator feedback calibration + WebSocket tests:** [`_snapshot_feedback_anchor()`](src/kernel.py) is invoked for completed chat regimes (`safety_block`, `kernel_block`, `light`, `heavy`) on streaming and async paths so [`record_operator_feedback`](src/kernel.py) aligns with the last turn. [`tests/test_chat_server.py`](tests/test_chat_server.py) adds `_recv_turn_payload()` to drain streaming `event_type` frames before asserting on the final turn JSON. Removed stray debug log in streaming MalAbs path.
 - **User model public JSON:** [`UserModelTracker`](src/modules/user_model.py) — `to_public_dict` **reciprocity_index** now reads [`charm_reciprocity`](src/modules/user_model.py); added missing **`sensory_fandoms`** field (defaults to empty list).

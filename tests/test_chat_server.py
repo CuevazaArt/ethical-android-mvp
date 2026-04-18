@@ -1,5 +1,6 @@
 """HTTP + WebSocket smoke tests for src/chat_server.py."""
 
+import asyncio
 import os
 import subprocess
 import sys
@@ -12,8 +13,19 @@ sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
 from fastapi.testclient import TestClient
 from src.chat_server import app
 from src.kernel import EthicalKernel
+from src.modules.nomad_bridge import get_nomad_bridge
 
 client = TestClient(app)
+
+
+def _drain_charm_feedback_queue() -> None:
+    """Clear process-global charm feedback queue so /health counts are order-independent."""
+    q = get_nomad_bridge().charm_feedback_queue
+    while True:
+        try:
+            q.get_nowait()
+        except asyncio.QueueEmpty:
+            break
 
 
 def _recv_turn_payload(ws):
@@ -34,6 +46,7 @@ def _recv_turn_payload(ws):
 
 
 def test_health():
+    _drain_charm_feedback_queue()
     r = client.get("/health")
     assert r.status_code == 200
     body = r.json()
