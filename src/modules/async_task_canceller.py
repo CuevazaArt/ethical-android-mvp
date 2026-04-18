@@ -12,26 +12,18 @@ httpx.AsyncClient requests when deadline passes.
 from __future__ import annotations
 
 import asyncio
+import contextvars
 import logging
 from contextlib import asynccontextmanager
 from typing import AsyncIterator
 
 _log = logging.getLogger(__name__)
 
-_current_turn_task: asyncio.Task | None = None
-_turn_task_lock = asyncio.Lock()
+_current_turn_task: contextvars.ContextVar[asyncio.Task | None] = contextvars.ContextVar(
+	"_current_turn_task", default=None
+)
 
 
-async def _get_turn_task_lock() -> asyncio.Lock:
-	"""Get or create the turn task lock in the running loop."""
-	global _turn_task_lock
-	try:
-		loop = asyncio.get_running_loop()
-	except RuntimeError:
-		return _turn_task_lock
-	if not isinstance(_turn_task_lock, asyncio.Lock) or _turn_task_lock._loop is None:
-		_turn_task_lock = asyncio.Lock()
-	return _turn_task_lock
 
 
 @asynccontextmanager
@@ -39,17 +31,18 @@ async def tracked_turn_context(turn_id: int) -> AsyncIterator[None]:
 	"""
 	Context manager to track current turn's main task for explicit cancellation.
 
+	Uses contextvars to avoid race conditions across concurrent tasks.
+
 	Usage:
 		async with tracked_turn_context(turn_id):
 			result = await kernel.process_chat_turn_async(...)
 	"""
-	global _current_turn_task
 	current = asyncio.current_task()
-	_current_turn_task = current
+	token = _current_turn_task.set(current)
 	try:
 		yield
 	finally:
-		_current_turn_task = None
+		_current_turn_task.reset(token)
 
 
 def cancel_turn_task(turn_id: int) -> bool:
@@ -59,11 +52,12 @@ def cancel_turn_task(turn_id: int) -> bool:
 	Returns True if cancellation was requested, False if task already completed.
 	Call this when KERNEL_CHAT_TURN_TIMEOUT fires to aggressively free resources.
 	"""
-	if _current_turn_task is None or _current_turn_task.done():
+	task = _current_turn_task.get()
+	if task is None or task.done():
 		return False
 
 	try:
-		_current_turn_task.cancel()
+		task.cancel()
 		_log.debug("Explicit task cancellation requested for turn %s", turn_id)
 		return True
 	except Exception as e:

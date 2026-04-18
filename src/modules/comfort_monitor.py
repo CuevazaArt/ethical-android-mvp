@@ -45,6 +45,25 @@ class ComfortMonitor:
 	show signs of stress, distrust, or discomfort.
 	"""
 
+	# Proximity thresholds (meters) — extracted from magic numbers
+	_PROXIMITY_INTRUSIVE_M = 0.5
+	_PROXIMITY_CLOSE_M = 1.0
+
+	# Discomfort score weights
+	_PROXIMITY_INTRUSIVE_PENALTY = 0.3
+	_PROXIMITY_CLOSE_PENALTY = 0.15
+	_VOICE_STRESS_WEIGHT = 0.25
+	_POSTURE_TENSION_WEIGHT = 0.15
+	_HR_ELEVATED_WEIGHT = 0.15
+	_RESPIRATORY_RAPID_WEIGHT = 0.10
+	_EYE_CONTACT_WEIGHT = 0.10
+	_MIN_EYE_CONTACT_S = 1.0
+
+	# ComfortLevel thresholds (discomfort score 0-1)
+	_THRESHOLD_CRITICAL = 0.7
+	_THRESHOLD_LOW = 0.5
+	_THRESHOLD_MEDIUM = 0.3
+
 	def __init__(self, default_comfort_threshold: float = 0.4):
 		self._comfort_threshold = default_comfort_threshold
 		self._last_signals: ComfortSignals | None = None
@@ -65,34 +84,34 @@ class ComfortMonitor:
 		# Compute discomfort score (0-1)
 		discomfort = 0.0
 
-		# Proximity penalty (< 0.5m is intrusive)
-		if signals.proximity_m < 0.5:
-			discomfort += 0.3
-		elif signals.proximity_m < 1.0:
-			discomfort += 0.15
+		# Proximity penalty
+		if signals.proximity_m < self._PROXIMITY_INTRUSIVE_M:
+			discomfort += self._PROXIMITY_INTRUSIVE_PENALTY
+		elif signals.proximity_m < self._PROXIMITY_CLOSE_M:
+			discomfort += self._PROXIMITY_CLOSE_PENALTY
 
 		# Voice and body stress
-		discomfort += signals.voice_stress * 0.25
-		discomfort += signals.posture_tension * 0.15
+		discomfort += signals.voice_stress * self._VOICE_STRESS_WEIGHT
+		discomfort += signals.posture_tension * self._POSTURE_TENSION_WEIGHT
 
 		# Vitality stress (elevated HR, rapid breathing)
 		if signals.vitality_hr_elevated:
-			discomfort += 0.15
+			discomfort += self._HR_ELEVATED_WEIGHT
 		if signals.respiratory_rapid:
-			discomfort += 0.10
+			discomfort += self._RESPIRATORY_RAPID_WEIGHT
 
 		# Lack of eye contact can indicate discomfort
-		if signals.eye_contact_duration < 1.0:
-			discomfort += 0.10
+		if signals.eye_contact_duration < self._MIN_EYE_CONTACT_S:
+			discomfort += self._EYE_CONTACT_WEIGHT
 
 		discomfort = min(1.0, discomfort)
 
 		# Map to ComfortLevel
-		if discomfort >= 0.7:
+		if discomfort >= self._THRESHOLD_CRITICAL:
 			level = ComfortLevel.CRITICAL
-		elif discomfort >= 0.5:
+		elif discomfort >= self._THRESHOLD_LOW:
 			level = ComfortLevel.LOW
-		elif discomfort >= 0.3:
+		elif discomfort >= self._THRESHOLD_MEDIUM:
 			level = ComfortLevel.MEDIUM
 		else:
 			level = ComfortLevel.HIGH
