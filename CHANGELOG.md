@@ -6,6 +6,26 @@ All notable changes to this project are summarized here. For narrative context a
 
 **[URGENT — broadcast to all L2 integration hubs]:** All teams (Claude, Cursor, Copilot) should urgently `git pull` from `main` into their `master-*` branches. Outdated branches risk severe documentation path drift.
 
+### Antigravity-Team Updates (2026-04-18)
+
+- **Phase 11.4 (Hardening & Observability)**:
+    - Implemented persistent `httpx.AsyncClient` across the tri-lobe architecture to eliminate networking overhead in the event loop.
+    - Integrated shared `aclient` in `EthicalKernel`, `LLMModule`, `SemanticChatGate`, and all HTTP/Ollama backends.
+    - Optimized SQLite persistence with `PRAGMA journal_mode=WAL` and mandatory `sqlite_safe_write` locks in `DAOOrchestrator` and `SqlitePersistence`.
+    - Enhanced Prometheus observability: added `/metrics` support for real-time tracking of `limbic_tension` (regulation gap) and `ttft_seconds` (Time To First Token).
+    - Hardened asychronous chat turn lifecycle in `chat_server.py` with streamlined TTFT recording and session resource management.
+- **REFACTOR (Block 0.1.3):** Successfully desmonolithized `EthicalKernel` perception logic.
+    - Migrated `_run_perception_stage`, `_preprocess_text_observability`, and sensor-stack evaluation to `PerceptiveLobe`.
+    - Centralized `PerceptionStageResult` in `src/kernel_lobes/models.py`.
+    - Decoupled asynchronous I/O from the monolithic kernel core.
+- **STABILIZATION:**
+    - Fixed `NameError` in `resolve_monologue_llm_backend_policy` (missing `g` definition).
+    - Fixed `AttributeError` in `UserModelTracker.to_public_dict` (corrected `charm_reciprocity` mapping).
+    - Restored `maybe_register_reparation_after_mock_court` module-level wrapper for `chat_server.py`.
+    - Resolved `AttributeError` in `PerceptiveLobe` by correcting `MissionOrigin` and mission title handling.
+- **GOVERNANCE:**
+    - Updated `AGENTS.md` to reflect `Team VisualStudio` exhaustion status [INACTIVE].
+
 ## Phase 12 — Ouroboros (Audio Bridge) & Hardware Hardening — April 2026
 
 ## Team Copilot — ThalamusNode Sensory Fusion Integration — April 2026 (Bloque 10.1)
@@ -107,18 +127,6 @@ All notable changes to this project are summarized here. For narrative context a
   - **Thread-Safe Sync Runners:** Implemented `ThreadPoolExecutor` based runners for sync-to-async transitions in the kernel, resolving event loop deadlocks in `pytest` environments.
   - **AbsoluteEvil Consolidation:** Resolved double-method definitions in `AbsoluteEvilDetector` and restored the `evaluate_chat_text` synchronous entry point.
   - **ReparationVault Objectification:** Finalized the conversion of `ReparationVault` into a class-based module, fixing import errors and aligning with the tri-lobe dependency injection model.
-- **Antigravity-Team Updates (2026-04-18):**
-    - **REFACTOR (Block 0.1.3):** Successfully desmonolithized `EthicalKernel` perception logic.
-        - Migrated `_run_perception_stage`, `_preprocess_text_observability`, and sensor-stack evaluation to `PerceptiveLobe`.
-        - Centralized `PerceptionStageResult` in `src/kernel_lobes/models.py`.
-        - Decoupled asynchronous I/O from the monolithic kernel core.
-    - **STABILIZATION:**
-        - Fixed `NameError` in `resolve_monologue_llm_backend_policy` (missing `g` definition).
-        - Fixed `AttributeError` in `UserModelTracker.to_public_dict` (corrected `charm_reciprocity` mapping).
-        - Restored `maybe_register_reparation_after_mock_court` module-level wrapper for `chat_server.py`.
-        - Resolved `AttributeError` in `PerceptiveLobe` by correcting `MissionOrigin` and mission title handling.
-    - **GOVERNANCE:**
-        - Updated `AGENTS.md` to reflect `Team VisualStudio` exhaustion status [INACTIVE].
   - **Syntax Error Resolution:** Sanitized `narrative_storage.py` and `salience_map.py` from residual syntax defects (unclosed tuples, missing commas) introduced during the team-fusion merge.
   - **Validation Recovery:** Successfully restored the `test_ethical_properties.py` pass rate (100%) by resolving multiple `AttributeError`, `UnboundLocalError`, and schema mismatches. Recovered critical logic for `SolidarityAlert` emission (triggered by environmental risk > 0.8) and `AlgorithmicForgiveness` experience registration that was lost during the tri-lobe refactor.
 - **Embodied sociability (Module 3):** 

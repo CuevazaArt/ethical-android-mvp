@@ -229,13 +229,19 @@ def _package_version() -> str:
 
 @asynccontextmanager
 async def _lifespan(app: FastAPI):
+    import httpx
+
     configure_logging()
     init_metrics()
+    # Phase 12.1: Global persistent client for Nomad hardware loop
+    aclient = httpx.AsyncClient(timeout=30.0)
+    app.state.aclient = aclient
     try:
         yield
     finally:
         from .real_time_bridge import shutdown_chat_threadpool
 
+        await aclient.aclose()
         shutdown_chat_threadpool(wait=True)
 
 
@@ -2139,6 +2145,7 @@ async def ws_chat(ws: WebSocket) -> None:
         variability=st.kernel_variability,
         llm_mode=st.llm_mode,
         checkpoint_persistence=checkpoint_persistence_from_env(),
+        aclient=getattr(ws.app.state, "aclient", None),
     )
     try_load_checkpoint(kernel)
     session_ckpt = init_session_checkpoint_state(kernel)
@@ -2192,6 +2199,7 @@ async def ws_chat(ws: WebSocket) -> None:
             nonlocal current_cancel_ev
             t_turn_start = time.perf_counter()
             set_request_id()
+            first_meaningful_event = False
             
             try:
                 text = (data_in.get("text") or "").strip()
@@ -2244,6 +2252,11 @@ async def ws_chat(ws: WebSocket) -> None:
                     while True:
                         try:
                             event = await asyncio.wait_for(it.__anext__(), timeout=chat_to)
+                            
+                            if not first_meaningful_event and event["event_type"] not in ("turn_started", "perception_started"):
+                                observe_ttft_seconds(time.perf_counter() - t_turn_start)
+                                first_meaningful_event = True
+
                             if event["event_type"] == "turn_finished":
                                 result = event["payload"]["result"]
                                 break
@@ -2261,6 +2274,10 @@ async def ws_chat(ws: WebSocket) -> None:
                             break
                 else:
                     async for event in gen:
+                        if not first_meaningful_event and event["event_type"] not in ("turn_started", "perception_started"):
+                            observe_ttft_seconds(time.perf_counter() - t_turn_start)
+                            first_meaningful_event = True
+
                         if event["event_type"] == "turn_finished":
                             result = event["payload"]["result"]
                         else:
@@ -2268,6 +2285,13 @@ async def ws_chat(ws: WebSocket) -> None:
                 
                 if result:
                     observe_chat_turn(result.path, time.perf_counter() - t_turn_start)
+                    
+                    # Record Limbic Tension (Prometheus)
+                    lp = result.limbic_profile or {}
+                    # Prioritize regulation_gap as a proxy for 'effort/tension'
+                    tension = lp.get("regulation_gap", lp.get("threat_load", 0.0))
+                    set_limbic_tension(tension)
+
                     if result.path in ("safety_block", "kernel_block"):
                         record_malabs_block(result.path)
                     

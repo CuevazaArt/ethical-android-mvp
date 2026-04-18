@@ -339,8 +339,10 @@ class LLMModule:
         *,
         llm_backend: LLMBackend | None = None,
         text_backend: TextCompletionBackend | None = None,
+        aclient: httpx.AsyncClient | None = None,
     ):
         self.client = None
+        self._aclient_internal = aclient
         self.model = "claude-sonnet-4-20250514"
         self.ollama_model = os.environ.get("OLLAMA_MODEL", "llama3.2:3b")
         self._llm_backend: LLMBackend | None = None
@@ -364,6 +366,7 @@ class LLMModule:
                 os.environ.get("OLLAMA_BASE_URL", "http://127.0.0.1:11434"),
                 self.ollama_model,
                 float(os.environ.get("OLLAMA_TIMEOUT", "120")),
+                aclient=self._aclient_internal,
             )
         elif self.mode in ("api", "auto"):
             api_key = os.environ.get("ANTHROPIC_API_KEY")

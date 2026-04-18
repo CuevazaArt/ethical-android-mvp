@@ -84,7 +84,7 @@ class DAOOrchestrator:
         msg = f"Restorative reparation of {amount} EthosTokens issued to {recipient} for case {case_id}."
         
         # Persistent recording (SQLite)
-        with sqlite3.connect(self.db_path) as conn:
+        with sqlite_safe_write(self.db_path) as conn:
             conn.execute(
                 "INSERT INTO audit_logs (type, content, episode_id, timestamp) VALUES (?, ?, ?, ?)",
                 ("reparation_payout", msg, case_id, time.time())

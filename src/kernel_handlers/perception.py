@@ -59,6 +59,7 @@ async def run_perception_pipeline(
     mal_semantic_task = arun_semantic_malabs_after_lexical(
         user_input,
         llm_backend=kernel._malabs_text_backend(),
+        aclient=kernel.aclient,
     )
     
     stage, mal_semantic = await asyncio.gather(perception_task, mal_semantic_task)

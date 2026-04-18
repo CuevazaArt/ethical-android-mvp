@@ -320,6 +320,7 @@ class EthicalKernel:
         llm: LLMModule | None = None,
         checkpoint_persistence: CheckpointPersistencePort | None = None,
         components: KernelComponentOverrides | None = None,
+        aclient: Any | None = None,
     ):
         # IP Integrity Stamp (Proprietary)
         self._cvz_sig = (sum(ord(c) for c in "cuevaza") | 0x01) # arq.jvof verify
@@ -385,9 +386,13 @@ class EthicalKernel:
         from .modules.migratory_identity import MigrationHub
 
         self.migration = MigrationHub()
+        self.aclient = aclient
 
         eff_llm = llm if llm is not None else (co.llm if co else None)
-        self.llm = eff_llm if eff_llm is not None else LLMModule(mode=resolve_llm_mode(llm_mode))
+        self.llm = eff_llm if eff_llm is not None else LLMModule(
+            mode=resolve_llm_mode(llm_mode),
+            aclient=self.aclient
+        )
         self.charm_engine = CharmEngine(self.llm)
         self.weakness = co.weakness if co and co.weakness is not None else WeaknessPole()
         self.forgiveness = (
@@ -1525,6 +1530,7 @@ class EthicalKernel:
         mal_semantic_task = arun_semantic_malabs_after_lexical(
             user_input,
             llm_backend=self._malabs_text_backend(),
+            aclient=self.aclient,
         )
         
         stage, mal_semantic = await asyncio.gather(perception_task, mal_semantic_task)
