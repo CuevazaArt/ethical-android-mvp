@@ -395,6 +395,78 @@ class NarrativeMemory:
         candidates.sort(key=lambda x: x[1], reverse=True)
         return [c[0] for c in candidates[:limit] if c[1] > 0.0]
 
+    async def afind_by_resonance(
+        self,
+        context: str | None = None,
+        min_sigma: float | None = None,
+        target_pad: tuple[float, float, float] | None = None,
+        query_text: str | None = None,
+        limit: int = 5,
+        requester_tier: RelationalTier = RelationalTier.EPHEMERAL,
+    ) -> list[NarrativeEpisode]:
+        """
+        Async version of :meth:`find_by_resonance` (Bloque 9.3).
+
+        Replaces the synchronous ``http_fetch_ollama_embedding`` call with the
+        non-blocking ``ahttp_fetch_ollama_embedding`` so that resonance lookups
+        do not block the kernel event loop during embedding inference.
+        """
+        from .uchi_soto import _tier_rank
+
+        if _tier_rank(requester_tier) < _tier_rank(RelationalTier.TRUSTED_UCHI):
+            return []
+
+        all_episodes = self.persistence.load_all_episodes()
+        candidates = []
+        current_arc_archetype = self.active_arc.predominant_archetype if self.active_arc else None
+
+        query_embed = None
+        if query_text:
+            ollama_url = os.environ.get("OLLAMA_BASE_URL", "http://localhost:11434/api/embeddings")
+            ollama_model = os.environ.get("OLLAMA_EMBED_MODEL", "mxbai-embed-large")
+            try:
+                q_vec = await ahttp_fetch_ollama_embedding(ollama_url, ollama_model, query_text)
+                if q_vec is not None:
+                    query_embed = q_vec
+                else:
+                    fb = maybe_hash_fallback_embedding(query_text)
+                    if fb is not None:
+                        query_embed = fb.tolist()
+            except Exception:
+                fb = maybe_hash_fallback_embedding(query_text)
+                if fb is not None:
+                    query_embed = fb.tolist()
+
+        for ep in all_episodes:
+            resonance = 0.0
+
+            if context and ep.context == context:
+                resonance += 0.4
+
+            if min_sigma and ep.sigma >= min_sigma:
+                resonance += 0.2
+
+            if target_pad and ep.affect_pad:
+                from .pad_archetypes import euclidean
+
+                dist = euclidean(target_pad, ep.affect_pad)
+                resonance += max(0, 0.4 * (1.0 - dist))
+
+            if current_arc_archetype and ep.arc_id:
+                arc = next((a for a in self.arcs if a.id == ep.arc_id), None)
+                if arc and arc.predominant_archetype == current_arc_archetype:
+                    resonance += 0.2
+
+            if query_embed is not None and ep.semantic_embedding:
+                ep_vec = np.array(ep.semantic_embedding)
+                dot = float(np.dot(query_embed, ep_vec))
+                resonance += max(0, 0.5 * dot)
+
+            candidates.append((ep, resonance))
+
+        candidates.sort(key=lambda x: x[1], reverse=True)
+        return [c[0] for c in candidates[:limit] if c[1] > 0.0]
+
     def save_identity_digest(self, digest: str) -> None:
         """Tier 3: Persist a new existential digest/lesson."""
         self.experience_digest = digest

@@ -6,6 +6,14 @@ All notable changes to this project are summarized here. For narrative context a
 
 **[URGENT — broadcast to all L2 integration hubs]:** All teams (Claude, Cursor, Copilot) should urgently `git pull` from `main` into their `master-*` branches. Outdated branches risk severe documentation path drift.
 
+## Team Copilot — Executive Lobe & Async Memory — April 2026 (Idle-Shift / Bloque 9.3)
+
+### Team Copilot Updates
+
+- **`formulate_response()` (ExecutiveLobe — Bloque A / Idle-Shift 1.2):** Implemented `async def formulate_response()` in `src/kernel_lobes/executive_lobe.py`. Accepts `EthicalSentence` + `KernelDecision` context; returns a standardised `VerbalResponse("Blocked.", "firm")` veto when `sentence.is_safe=False` or `decision.blocked=True` — the LLM is **never queried** on the unsafe path. On the safe path, emits `compose_monologue_line` to debug log and delegates to `llm.acommunicate()` (fully async). Added optional `llm: LLMModule` parameter to `__init__` for DI.
+- **`afind_by_resonance()` (NarrativeMemory — Bloque 9.3):** Added `async def afind_by_resonance()` to `src/modules/narrative.py`. Mirrors `find_by_resonance` but replaces the blocking `http_fetch_ollama_embedding` call with the cooperative `ahttp_fetch_ollama_embedding`, eliminating the sync I/O bottleneck in the kernel event loop during semantic memory retrieval.
+- **Validation:** `test_antigravity_hardening` (6 tests) + `test_semantic_chat_gate` (16 tests) — all 22 passed. Syntax clean across all `src/kernel_lobes/*.py`.
+
 ## Documentation — Issue #1 (Bayesian naming honesty) — April 2026
 
 ### Documentation Team Updates
