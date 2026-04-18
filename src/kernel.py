@@ -462,8 +462,10 @@ class EthicalKernel:
         # ═══ Phase 10: Thalamus & Latency ═══
         from .kernel_lobes.thalamus_node import ThalamusNode
         from .modules.turn_prefetcher import TurnPrefetcher
+        from .modules.vision_inference import VisionInferenceEngine
         self.thalamus = ThalamusNode()
         self.prefetcher = TurnPrefetcher()
+        self.vision_inference = VisionInferenceEngine()
 
         # ═══ Triune Brain Lobes (Refactor 0.1.3) ═══
         self.perceptive_lobe = PerceptiveLobe(
@@ -472,10 +474,13 @@ class EthicalKernel:
             llm=self.llm,
             somatic_store=self.somatic_store,
             buffer=self.buffer,
+            buffer_long=self.buffer, # V1.6 Placeholder for Long-term buffer
             absolute_evil=self.absolute_evil,
             subjective_clock=self.subjective_clock,
-            thalamus=self.thalamus # Inject Thalamus
+            thalamus=self.thalamus, # Inject Thalamus
+            vision_engine=self.vision_inference # Phase 9.1: Inject Vision Engine
         )
+
         self.limbic_lobe = LimbicEthicalLobe(
             uchi_soto=self.uchi_soto,
             sympathetic=self.sympathetic,
@@ -1634,12 +1639,20 @@ class EthicalKernel:
             final_response.message = stylized.final_text
             if stage.limbic_profile is not None:
                 stage.limbic_profile["charm_vector"] = stylized.charm_vector
+                stage.limbic_profile["haptic_plan"] = stylized.haptic_plan
+                stage.limbic_profile["gesture_plan"] = stylized.gesture_plan
             from .modules.nomad_bridge import get_nomad_bridge
 
+
             try:
-                get_nomad_bridge().charm_feedback_queue.put_nowait(stylized.charm_vector)
+                get_nomad_bridge().charm_feedback_queue.put_nowait({
+                    "charm_vector": stylized.charm_vector,
+                    "gesture_plan": stylized.gesture_plan,
+                    "haptic_plan": stylized.haptic_plan  # Phase 10.2
+                })
             except Exception:
                 pass
+
 
         res = ChatTurnResult(
             response=final_response,

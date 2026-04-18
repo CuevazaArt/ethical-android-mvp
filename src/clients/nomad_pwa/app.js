@@ -152,6 +152,18 @@ function connectKernel() {
                     }
                 }
 
+                // Phase 10.2: Haptic Feedback Loop
+                if (msg.type === 'haptic_feedback') {
+                    console.log("Nomad: Haptic Pulse received", msg.payload);
+                    const plans = msg.payload.haptics || [];
+                    plans.forEach(plan => {
+                        if (plan.type === 'vibrate' && plan.pattern && navigator.vibrate) {
+                            navigator.vibrate(plan.pattern);
+                        }
+                    });
+                }
+
+
             } catch(e) {
                 console.error("Parse error on message", e);
             }

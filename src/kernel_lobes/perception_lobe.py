@@ -49,9 +49,11 @@ class PerceptiveLobe:
         llm: "LLMModule",
         somatic_store: "SomaticMarkerStore",
         buffer: "PreloadedBuffer",
+        buffer_long: "PreloadedBuffer", # Shared with Memory
         absolute_evil: "AbsoluteEvilDetector",
         subjective_clock: Any, # SubjectiveClock
-        thalamus: Optional[Any] = None # ThalamusNode
+        thalamus: Optional[Any] = None, # ThalamusNode
+        vision_engine: Optional[Any] = None # VisionInferenceEngine
     ):
         self.safety_interlock = safety_interlock
         self.strategist = strategist
@@ -61,6 +63,42 @@ class PerceptiveLobe:
         self.absolute_evil = absolute_evil
         self.subjective_clock = subjective_clock
         self.thalamus = thalamus
+        self.vision_engine = vision_engine
+        
+        from collections import deque
+        from src.kernel_lobes.models import SensoryEpisode
+        self.sensory_buffer: deque[SensoryEpisode] = deque(maxlen=100)
+        
+        # Phase 9.1: Start Continuous Vision Daemon
+        if self.vision_engine:
+            from src.modules.vision_inference import VisionContinuousDaemon
+            self.vision_daemon = VisionContinuousDaemon(
+                engine=self.vision_engine,
+                absorption_callback=self.absorb_episode
+            )
+            self.vision_daemon.start()
+        else:
+            self.vision_daemon = None
+
+    def absorb_episode(self, episode: "SensoryEpisode") -> None:
+        """Callback for background daemons to inject sensory data."""
+        self.sensory_buffer.append(episode)
+        if episode.signals.get("is_urgent", 0.0) > 0.8:
+            _log.info("PerceptiveLobe: URGENT sensory episode absorbed! (%s)", episode.entities)
+
+
+    def _calculate_sensory_stress(self) -> float:
+        """Calculates static limb stress from accumulated sensory episodes (Phase 9.2)."""
+        if not self.sensory_buffer:
+            return 0.0
+        
+        # Look at last 10 episodes
+        recent = list(self.sensory_buffer)[-10:]
+        urgent_count = sum(1 for e in recent if e.signals.get("is_urgent", 0.0) > 0.5)
+        
+        # If > 50% are urgent, we have a sustained threat
+        stress = (urgent_count / 10.0) * 1.5 
+        return min(1.0, stress)
 
     def execute_stage(
         self,
@@ -80,6 +118,11 @@ class PerceptiveLobe:
                 "mission_updated": False,
                 "somatic_interrupt": True
             }
+
+        # 0.1 Sensory Stress (Phase 9.2)
+        sensory_stress = self._calculate_sensory_stress()
+        if sensory_stress > 0.7:
+             _log.warning("PerceptiveLobe: High sustained sensory stress! (%.2f)", sensory_stress)
 
         # Phase 10.1: Thalamus Attention Gate
         if self.thalamus and sensor_snapshot:
@@ -105,8 +148,10 @@ class PerceptiveLobe:
 
         return {
             "safety_decision": safety_dec,
-            "mission_updated": bool(sensor_snapshot and getattr(sensor_snapshot, "external_mission_title", None))
+            "mission_updated": bool(sensor_snapshot and getattr(sensor_snapshot, "external_mission_title", None)),
+            "sensory_stress": sensory_stress
         }
+
 
     def _postprocess_perception(self, perception: Any, tier: Any) -> None:
         """Apply text-based tier overrides (e.g. Critical risk forcing)."""
@@ -142,6 +187,7 @@ class PerceptiveLobe:
             "vulnerability": perception.vulnerability, "legality": perception.legality,
             "manipulation": perception.manipulation, "familiarity": perception.familiarity,
             "social_tension": getattr(perception, "social_tension", 0.0),
+            "sensory_stress": self._calculate_sensory_stress() # Phase 9.2
         }
         signals = merge_sensor_hints_into_signals(signals, sensor_snapshot, mm)
         signals = apply_somatic_nudges(signals, sensor_snapshot, self.somatic_store)
@@ -239,6 +285,7 @@ class PerceptiveLobe:
             "vulnerability": perception.vulnerability, "legality": perception.legality,
             "manipulation": perception.manipulation, "familiarity": perception.familiarity,
             "social_tension": getattr(perception, "social_tension", 0.0),
+            "sensory_stress": self._calculate_sensory_stress() # Phase 9.2
         }
         signals = merge_sensor_hints_into_signals(signals, sensor_snapshot, mm)
         signals = apply_somatic_nudges(signals, sensor_snapshot, self.somatic_store)

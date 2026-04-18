@@ -2285,6 +2285,17 @@ async def ws_chat(ws: WebSocket) -> None:
                             "type": "kernel_voice",
                             "text": android_text
                         })
+                    
+                    # Phase 10.2: Haptic Feedback Loop
+                    haptic_plan = payload.get("limbic_profile", {}).get("haptic_plan", [])
+                    if haptic_plan:
+                        await ws.send_json({
+                            "type": "haptic_feedback",
+                            "payload": {
+                                "haptics": haptic_plan
+                            }
+                        })
+
                         
                     maybe_autosave_episodes(kernel, session_ckpt)
 

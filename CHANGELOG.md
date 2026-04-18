@@ -15,6 +15,14 @@ All notable changes to this project are summarized here. For narrative context a
 
 ## Antigravity — Ouroboros (Audio Bridge) & Phase 12 Hardening — April 2026
 
+### Antigravity-Team Updates
+- **Phase 12 Consolidation (Hardening & Ouroboros)**:
+    - **Visto Bueno (L1 Sign-off)**: Synchronized `master-antigravity` with `main` (L0) and verified 100% syntactic integrity across all lobes.
+    - **Ouroboros Loop (Phase 11.1)**: Enabled Voice/TTS loopback from the kernel to the Nomad Vessel PWA.
+    - **Multimodal Charm Feedback (Block 10.2)**: Implemented `HapticPlanner` in Charm Engine; smartphone now vibrates with affective patterns (gentle pulse, alert caution) based on kernel tension.
+    - **Vision Daemon (Phase 9.1)**: Stabilized 5Hz background vision processing consuming from the Nomad Bridge.
+    - **Nomad IP Protection**: Re-embedded IP markers (`cuevaza`, `arq.jvof`) and standardized "Nomad Vessel" nomenclature.
+
 ### Antigravity Team Updates (April 2026 - Phase 11/12)
 - **Phase 11: Ouroboros Loop (2026-04-18):**
     - **Native STT Integration:** Implemented client-side `SpeechRecognition` in `media_engine.js` for real-time audio-to-text transcription on the Nomad Vessel.
