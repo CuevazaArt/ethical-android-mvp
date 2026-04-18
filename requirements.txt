@@ -1,5 +1,5 @@
 # ── Core (always needed) ─────────────────────────────────────────────
-numpy>=2.0.0,<3.0.0
+numpy>=1.24.0,<2.1.0
 cryptography>=42.0.0,<47.0.0  # Fernet checkpoints + Phase 4 nomadic Ed25519 handshake
 pydantic>=2.0.0,<3.0.0        # LLM perception JSON schema (perception_schema.py)
 jsonschema>=4.20.0,<5.0.0     # KernelSnapshotV1 JSON Schema validation (persistence)
