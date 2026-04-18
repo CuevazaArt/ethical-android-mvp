@@ -55,10 +55,12 @@ The ethical-android-mvp project operates under a strict, multi-tiered collaborat
    - **General Planner:** Leverages its extensive context window to orchestrate the project's long-term vision and technical roadmap. 
    - Manages the project's normative framework, rules, and cross-team integration funnel. 
    - Authorized to resolve conflicts, shape architecture, and enforce L0 immutability through Continuous Auditing.
-   - **Solely responsible for coordinating all Level 2 teams (Claude, Team Cursor, Team Copilot, etc.).**
-3.  **Level 2 (Executing Units): Claude, Team Cursor, Team Copilot, etc.**
+   - **Solely responsible for coordinating all Level 2 teams (Claude, Team Cursor, Team Copilot, cursorultra, etc.).**
+3.  **Level 2 (Executing Units): Claude, Team Cursor, Team Copilot, cursorultra, etc.**
+   - **Sovereign Autonomy Directive:** Antigravity (L1) has stabilized the Tri-Lobe architecture and the resilient orchestration system. Teams (Claude, Cursor, Copilot) have total authorization to operate **SOVEREIGNLY AND AUTONOMOUSLY**. Do not stop to ask for permission for technical tasks, commits, or rebases. Execute assigned blocks (10.1, 10.3, and 10.4) following the 3 Laws of Contribution and the roadmap. The workflow must be continuous and unstoppable.
    - Responsible for executing assigned technical tasks from the roadmap and task queues.
    - **Claude:** Specialized in complex cognitive modeling and deep ethics modules, now operating under direct Level 1 (Antigravity) coordination.
+   - **cursorultra:** New executing unit joining the squad for high-performance coding and architectural support.
    - **Team Copilot Specifics:** Focused on GitHub maintenance, repository hygiene (.gitignore, CI/CD stubs), and cross-module bug fixing. *New Delegation:* Copilot now acts as the **CI Sentinel**, leveraging its remote GitHub-native presence to supervise, triage, and report on asynchronous GitHub Actions test runs for all teams during its idle cycles.
    - All Level 2 teams must strictly adhere to the synchronization rules, run continuous audits, and cannot modify foundational rules without L1 authorization.
 

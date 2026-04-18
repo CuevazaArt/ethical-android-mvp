@@ -16,6 +16,7 @@ All notable changes to this project are summarized here. For narrative context a
 ## Antigravity — Validation Pulse & Somatic-Vision Integration — April 2026
 
 ### Antigravity Team Updates (April 2026)
+- **Collaborator Onboarding (2026-04-18):** Welcomed **cursorultra** as a new Level 2 executing unit. Initialized coordination protocols for high-performance architectural support.
 - **Post-merge kernel repair (2026-04-17):** Removed the non-functional `CorpusCallosumOrchestrator` stub and aligned `process_chat_turn_async` with `process_chat_turn_stream` (`aprocess` + verbal `acommunicate`). Wired `kernel_utils` perception parallelism, `CharmEngine`, full `ChatTurnResult` support buffer / limbic fields, `ReparationVault` facade for CLI, sync `evaluate_chat_text` on MalAbs, `ExecutiveStrategist.ingest_sensors`, `VitalityAssessment` constructor parity, and `LimbicEthicalLobe` export.
 - **Deep Kernel Fusion (2026-04-17):** Finalized the architectural fusion of `master-Cursor` and `master-antigravity`.
 - **Kernel Stabilization & Reconstruction (2026-04-17):**
@@ -47,7 +48,7 @@ All notable changes to this project are summarized here. For narrative context a
   - **ReparationVault Objectification:** Finalized the conversion of `ReparationVault` into a class-based module, fixing import errors and aligning with the tri-lobe dependency injection model.
   - **Perception Lobe Repair:** Fixed missing `threading` imports and corrected somatic interrupt logic in `PerceptiveLobe`.
   - **Syntax Error Resolution:** Sanitized `narrative_storage.py` and `salience_map.py` from residual syntax defects (unclosed tuples, missing commas) introduced during the team-fusion merge.
-  - **Validation Recovery:** Successfully restored the `test_ethical_properties.py` pass rate by resolving multiple `AttributeError`, `UnboundLocalError`, and schema mismatches.
+  - **Validation Recovery:** Successfully restored the `test_ethical_properties.py` pass rate (100%) by resolving multiple `AttributeError`, `UnboundLocalError`, and schema mismatches. Recovered critical logic for `SolidarityAlert` emission (triggered by environmental risk > 0.8) and `AlgorithmicForgiveness` experience registration that was lost during the tri-lobe refactor.
 - **Embodied sociability (Module 3):** 
     - Implemented `SoftKinematicFilter` in `src/modules/soft_robotics.py` (S7) for smooth, acceleration-controlled motion.
     - Integrated `personal_distance` and `interaction_rhythm` into `InteractionProfile` (S9) in `uchi_soto.py`.
