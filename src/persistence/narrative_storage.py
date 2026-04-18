@@ -271,20 +271,20 @@ class NarrativePersistence:
             try:
                 _ensure_schema(conn)
                 with conn:
-                conn.execute(
-                    """
-                INSERT INTO identity_digests (id, existence_digest, last_updated)
-                VALUES (1, ?, ?)
-                ON CONFLICT(id) DO UPDATE SET
-                    existence_digest=excluded.existence_digest,
-                    last_updated=excluded.last_updated
-                """,
-                    (digest, datetime.now().isoformat()),
-                )
-            conn.commit()
-        finally:
-            if own_conn:
-                conn.close()
+                    conn.execute(
+                        """
+                    INSERT INTO identity_digests (id, existence_digest, last_updated)
+                    VALUES (1, ?, ?)
+                    ON CONFLICT(id) DO UPDATE SET
+                        existence_digest=excluded.existence_digest,
+                        last_updated=excluded.last_updated
+                    """,
+                        (digest, datetime.now().isoformat()),
+                    )
+                conn.commit()
+            finally:
+                if own_conn:
+                    conn.close()
 
     def load_identity_digest(self) -> str:
         if self._memory_conn is None and not self.path.is_file():
@@ -309,35 +309,36 @@ class NarrativePersistence:
             try:
                 _ensure_schema(conn)
                 with conn:
-                conn.execute(
-                    """
-                INSERT INTO narrative_arcs (
-                    id, title, context, start_timestamp, end_timestamp, 
-                    predominant_archetype, summary, is_active, episodes_json
-                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
-                ON CONFLICT(id) DO UPDATE SET
-                    title=excluded.title,
-                    end_timestamp=excluded.end_timestamp,
-                    predominant_archetype=excluded.predominant_archetype,
-                    summary=excluded.summary,
-                    is_active=excluded.is_active,
-                    episodes_json=excluded.episodes_json
-                """,
-                    (
-                        arc.id,
-                        arc.title,
-                        arc.context,
-                        arc.start_timestamp,
-                        arc.end_timestamp,
-                        arc.predominant_archetype,
-                        arc.summary,
-                        arc.is_active,
-                        json.dumps(arc.episodes_ids),
-                    ),
-                )
-        finally:
-            if own_conn:
-                conn.close()
+                    conn.execute(
+                        """
+                    INSERT INTO narrative_arcs (
+                        id, title, context, start_timestamp, end_timestamp, 
+                        predominant_archetype, summary, is_active, episodes_json
+                    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+                    ON CONFLICT(id) DO UPDATE SET
+                        title=excluded.title,
+                        end_timestamp=excluded.end_timestamp,
+                        predominant_archetype=excluded.predominant_archetype,
+                        summary=excluded.summary,
+                        is_active=excluded.is_active,
+                        episodes_json=excluded.episodes_json
+                    """,
+                        (
+                            arc.id,
+                            arc.title,
+                            arc.context,
+                            arc.start_timestamp.isoformat(),
+                            arc.end_timestamp.isoformat() if arc.end_timestamp else None,
+                            arc.predominant_archetype,
+                            arc.summary,
+                            1 if arc.is_active else 0,
+                            json.dumps(arc.episodes_json),
+                        ),
+                    )
+                conn.commit()
+            finally:
+                if own_conn:
+                    conn.close()
 
     def load_all_arcs(self) -> list[NarrativeArc]:
         if self._memory_conn is None and not self.path.is_file():

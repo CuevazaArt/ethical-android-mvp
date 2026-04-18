@@ -18,6 +18,11 @@ All notable changes to this project are summarized here. For narrative context a
 - **Nomad Bridge & Sensor Encarnation (Phase S):** Orchestrated the development of `src/modules/nomad_bridge.py` for real-world sensor ingestion (Vision, Audio, Telemetry 1FPS). Connected smartphone accelerometer jerk (impacts) and battery heat to the kernel's `VitalityAssessment`.
 - **Vertical Roadmap Update:** Refactored `PLAN_WORK_DISTRIBUTION_TREE.md` to include incremental testing routes for hardware-in-the-loop validation.
 
+### Cursor Ultra (cursorultra) Team Updates (2026-04-18)
+- **Pytest:** `pythonpath = ["."]` under `[tool.pytest.ini_options]` so `src.*` imports resolve consistently.
+- **`PreloadedBuffer`:** added `get_snapshot()` for read-only L0 / support-buffer telemetry (chat and perception paths).
+- **`narrative_storage`:** repaired `with conn:` indentation around identity digest upserts (merge-regression syntax fix).
+
 ## Documentation — Issue #1 (Bayesian naming honesty) — April 2026
 
 
