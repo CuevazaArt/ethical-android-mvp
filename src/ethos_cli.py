@@ -114,6 +114,18 @@ def cmd_handshake_export(args: argparse.Namespace) -> int:
     return 0 if bundle.get("ok") else 2
 
 
+def cmd_handshake_verify(args: argparse.Namespace) -> int:
+    from src.modules.existential_serialization import verify_nomadic_handshake
+
+    raw = Path(args.bundle).read_text(encoding="utf-8")
+    bundle = json.loads(raw)
+    k = _kernel(llm_mode=args.llm_mode)
+    _load_checkpoint_if_given(k, args.checkpoint)
+    vr = verify_nomadic_handshake(k, bundle)
+    print(json.dumps(vr, indent=2))
+    return 0 if vr.get("ok") else 3
+
+
 def cmd_config(args: argparse.Namespace) -> int:
     """KERNEL_* inventory, profile alignment, and experimental-risk hints (operator cockpit)."""
     from src.validators.env_policy import validate_kernel_env
@@ -201,16 +213,45 @@ def cmd_config(args: argparse.Namespace) -> int:
     return exit_code
 
 
-def cmd_handshake_verify(args: argparse.Namespace) -> int:
-    from src.modules.existential_serialization import verify_nomadic_handshake
+def cmd_transparency(args: argparse.Namespace) -> int:
+    from .modules.moral_hub import moral_hub_public_enabled
+    from .modules.nomad_identity import nomad_identity_public
 
-    raw = Path(args.bundle).read_text(encoding="utf-8")
-    bundle = json.loads(raw)
     k = _kernel(llm_mode=args.llm_mode)
     _load_checkpoint_if_given(k, args.checkpoint)
-    vr = verify_nomadic_handshake(k, bundle)
-    print(json.dumps(vr, indent=2))
-    return 0 if vr.get("ok") else 3
+    
+    nomad = nomad_identity_public(k)
+    reparation = k.reparation_vault.get_summary()
+    
+    if args.json:
+        out = {
+            "nomad_identity": nomad,
+            "reparation_vault": reparation,
+            "dao_records_count": len(k.dao.records),
+            "reputation": k.identity.snapshot.reputation_score
+        }
+        print(json.dumps(out, indent=2))
+    else:
+        print("ETHOS KERNEL - V12 TRANSPARENCY REPORT")
+        print("=" * 40)
+        print(f"Node Identity: {nomad['label']}")
+        print(f"Reputation Score: {k.identity.snapshot.reputation_score:.1f}")
+        print(f"Swarm Peers Tracked: {k.nomadic_registry.get_peers_count()}")
+        print("-" * 40)
+        print("REPARATION VAULT (V12.1)")
+        print(f"  Treasury Balance: {reparation['balance']} {reparation['currency']}")
+        print(f"  Total Intents: {reparation['total_intents_volume']}")
+        print(f"  Pending: {reparation['pending_intents_count']} | Audited: {reparation['audited_intents_count']}")
+        print("-" * 40)
+        print("CONSTITUTION SUMMARY (UNIVERSAL ETHOS)")
+        from .modules.moral_hub import constitution_snapshot
+        snapshot = constitution_snapshot(k.buffer, k)
+        for level_key, level_data in snapshot.get("levels", {}).items():
+            principles = level_data.get("principles", [])
+            if principles:
+                print(f"  [L{level_key}] {len(principles)} Principles/Drafts Active")
+        print("=" * 40)
+    return 0
 
 
 def _build_parser() -> argparse.ArgumentParser:
@@ -310,6 +351,16 @@ def _build_parser() -> argparse.ArgumentParser:
         help="After the report, run validate_kernel_env(strict); exit 1 on violations.",
     )
     p_cfg.set_defaults(func=cmd_config)
+
+    p_trans = sub.add_parser("transparency-report", help="Etosocial State audit (V12).")
+    p_trans.add_argument(
+        "--checkpoint",
+        type=Path,
+        default=None,
+        help="Optional JSON checkpoint to load before reporting.",
+    )
+    p_trans.add_argument("--json", action="store_true", help="Machine-readable JSON output.")
+    p_trans.set_defaults(func=cmd_transparency)
 
     return parser
 

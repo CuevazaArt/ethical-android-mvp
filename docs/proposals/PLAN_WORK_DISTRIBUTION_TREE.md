@@ -53,9 +53,46 @@ Este documento estructura el inmenso volumen de trabajo arquitectónico definido
 
 ---
 
-### 🟢 Módulo S: Encarnación Activa y Hardware Bridge (Nomad PC/Mobile) [PRIORIDAD 0]
-*Responsabilidad: Nivel 2 (Team Cursor)*
-*Objetivo: Integrar sensores reales (visión/audio) provenientes de un dispositivo móvil LAN como inputs de inferencia física, abandonando las señales de prueba simuladas.*
+### ⚪ Módulo 9: Nomadismo Perceptivo (Streaming Aferente Continuo)
+*Responsabilidad: Nivel 1 (Antigravity - Planificación) / Nivel 2 (Ejecución)*
+*Objetivo: Migrar desde un modelo puramente conversacional ("Chat-Turn") hacia un stream sensorial continuo en background, permitiendo al androide percibir el entorno de forma pasiva y detonar la proactividad del MotivationEngine.*
+
+- **Bloque 9.1: Daemon de Visión Continua (CNN/Webcam)**
+  - *Responsabilidad:* **Team Cursor**
+  - Tarea: Modificar `VisionInferenceEngine` para crear un stream en background que clasifique "entidades" (humanos, armas, obstáculos) a 5Hz utilizando OpenCV/Ollama Vision ligero.
+  - Vínculo: Alimentará asíncronamente el nuevo `SensoryBuffer` del `PerceptiveLobe`.
+- **Bloque 9.2: Acumulación de Tensión Límbica Estática**
+  - *Responsabilidad:* **Claude**
+  - Tarea: Evolucionar el `BayesianEngine`. Si el Lóbulo Perceptivo dicta que un estímulo peligroso permanece en la vista durante +5 segundos, el Lóbulo Límbico debe escalar automáticamente la *Tensión Social* sin esperar una interacción de texto.
+- **Bloque 9.3: Refactorización Asíncrona Total de Eferencia**
+  - *Responsabilidad:* **Team Copilot**
+  - Tarea: Eliminar los cuellos de botella síncronos en `ExecutiveLobe` (`llm.communicate`) y `NarrativeMemory` (`requests` a Ollama). Migrar `http_fetch_ollama_embedding` a `httpx.AsyncClient`.
+- **Bloque 9.4: Monitor de Stream Inter-Lóbulos**
+  - *Responsabilidad:* **Team VisualStudio**
+  - Tarea: Desarrollar pruebas que inyecten un mock contínuo en el Lóbulo Perceptivo simulando estrés de entorno, midiendo si el Lóbulo Ejecutivo logra interrumpir el stream para alertar (E-Stop).
+
+---
+
+### 🟢 Módulo 10: Motor de Encanto Resiliente (MER V2)
+*Responsabilidad: Nivel 1 (Antigravity - Planificación y Orquestación) / Nivel 2 (Ejecución Escuadrones)*
+*Objetivo: Construir la infraestructura que evite transiciones sociopáticas y asegure latencia instintiva frente al ruido (Lectura labial VVAD + Smoothing Emocional).*
+
+- **Bloque 10.1: Fusión Sensorial (VVAD + VAD) y Tálamo**
+  - *Responsabilidad:* **Team Cursor + Team Copilot**
+  - Tarea: Crear `src/kernel_lobes/thalamus_node.py`. Acoplar OpenCV/LipReading de bajo costo computacional con el VAD existente.
+  - Prioridad: **Alta**. Proveer estabilidad al stream perceptivo.
+- **Bloque 10.2: Tribunal Ético Edge (Doble Capa Local)**
+  - *Responsabilidad:* **Antigravity (L1)**
+  - Tarea: Mover `AbsoluteEvilDetector` directamente al Edge (Nivel 1 <50ms) e instanciar el Lóbulo Límbico Contextual como Nivel 2 (Asíncrono, también local por carencia 6G).
+  - Prioridad: **Máxima**. Asegurar que la censura estricta no estrangule la conversacion fluida.
+- **Bloque 10.3: Amortiguación Afectiva (Ganglios Basales)**
+  - *Responsabilidad:* **Claude**
+  - Tarea: Construir `src/modules/basal_ganglia.py` aplicando Filtros EMA (Exponential Moving Average) sobre las variables `charm_warmth` y `charm_mystery` del `UserModelTracker`. Las transiciones deben durar 3-5 turnos.
+- **Bloque 10.4: Predicción Local y Prefetching**
+  - *Responsabilidad:* **Team Copilot**
+  - Tarea: Inyectar micro-LLM (ej. Llama-3-2B) o precompilador probabilístico para inferir turnos y lanzar asentimientos rápidos en <300ms antes que el API principal complete.
+
+## 🚀 Flujo de Sincronización Recomendado
 
 1. **Semana Actual:** Antigravity (N1) se encarga transversalmente de desmonolitizar `kernel.py` y actualizar las dependencias de concurrencia. Claude y Cursor toman sus ramas (`master-claude`, `master-Cursor`) and abordan C.1 y S.1 respectivamente.
 2. **Semana Siguiente:** Sincronización de progresos a `master-antigravity`. Antigravity evalúa el impacto del async I/O en la latencia global del kernel.

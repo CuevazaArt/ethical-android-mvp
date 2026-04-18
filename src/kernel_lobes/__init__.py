@@ -3,7 +3,8 @@
 
 from .models import SemanticState, EthicalSentence, TimeoutTrauma
 from .perception_lobe import PerceptiveLobe
-from .limbic_lobe import LimbicEthicalLobe
+from .limbic_lobe import LimbicEthicalLobe, LimbicLobe
+from .ethical_lobe import EthicalLobe
 from .executive_lobe import ExecutiveLobe
 from .cerebellum_lobe import CerebellumLobe
 from .memory_lobe import MemoryLobe
@@ -20,6 +21,8 @@ __all__ = [
     "TimeoutTrauma",
     "PerceptiveLobe",
     "LimbicEthicalLobe",
+    "LimbicLobe",
+    "EthicalLobe",
     "ExecutiveLobe",
     "CerebellumLobe",
     "MemoryLobe",

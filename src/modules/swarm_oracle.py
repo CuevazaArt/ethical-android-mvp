@@ -8,9 +8,8 @@ reputation scores to enable cross-session trust even in disconnected (offline) m
 from __future__ import annotations
 
 import json
-import os
+from dataclasses import asdict, dataclass
 from pathlib import Path
-from dataclasses import dataclass, asdict
 
 
 @dataclass
@@ -34,7 +33,7 @@ class SwarmOracle:
     def load(self):
         if self.cache_path.exists():
             try:
-                with open(self.cache_path, "r") as f:
+                with open(self.cache_path) as f:
                     data = json.load(f)
                     for k, v in data.items():
                         self.peers[k] = PeerEntry(**v)
@@ -66,9 +65,10 @@ class SwarmOracle:
 
     def apply_slashing(self, node_id: str, penalty: float = 0.2):
         """
-        Bloque 7.2: Forceful reputation penalty for nodes that provide false verification.
+        Block 7.2: apply a strong reputation penalty when a node provides false verification.
         """
         if node_id not in self.peers:
+            # Register unknown peer with default 0.5 before slashing
             now = __import__("time").time()
             self.peers[node_id] = PeerEntry(node_id=node_id, last_seen=now, reputation=0.5)
 
@@ -83,7 +83,9 @@ class SwarmOracle:
         """
         for peer in self.peers.values():
             if peer.reputation < 0.5:
+                # Recovery
                 peer.reputation = min(0.5, peer.reputation + forgiveness_rate)
             elif peer.reputation > 0.5:
+                # Normalization (optional)
                 pass
         self.save()

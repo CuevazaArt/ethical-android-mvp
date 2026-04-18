@@ -1,5 +1,5 @@
 from __future__ import annotations
-from typing import Any, TYPE_CHECKING
+from typing import TYPE_CHECKING, Any, Optional
 from src.kernel_lobes.models import LimbicStageResult
 
 if TYPE_CHECKING:
@@ -85,9 +85,9 @@ class LimbicEthicalLobe:
         return LimbicStageResult(
             social_evaluation=social_eval,
             internal_state=state,
-            locus_evaluation=locus_eval
+            locus_evaluation=locus_eval,
         )
 
-    async def execute_swarm_consensus_stage(self, **kwargs: object) -> None:
-        """Stub until LAN swarm consensus is wired to the limbic stack."""
-        return None
+
+# Stable name expected by ``kernel`` / ``kernel_lobes.__init__`` imports.
+LimbicLobe = LimbicEthicalLobe

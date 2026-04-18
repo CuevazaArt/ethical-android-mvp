@@ -10,8 +10,10 @@ from __future__ import annotations
 import uuid
 from dataclasses import dataclass, field
 from enum import Enum
+from typing import TYPE_CHECKING, Any
 
-from .sensor_contracts import SensorSnapshot
+if TYPE_CHECKING:
+    pass
 
 
 class MissionStatus(Enum):
@@ -121,10 +123,6 @@ class ExecutiveStrategist:
                 else:
                     m.status = MissionStatus.ACTIVE
 
-    def ingest_sensors(self, sensor_snapshot: SensorSnapshot) -> None:
-        """Hook for situated cues (battery, motion, missions); extend for tactical reprioritization."""
-        _ = sensor_snapshot
-
     def active_missions_summary(self) -> str:
         active = [m for m in self.missions.values() if m.status == MissionStatus.ACTIVE]
         if not active:
@@ -133,3 +131,7 @@ class ExecutiveStrategist:
             [f"{m.title} ({len(m.completed_steps)}/{len(m.steps)})" for m in active]
         )
         return summary
+
+    def ingest_sensors(self, snapshot: Any) -> None:
+        """Hook for multimodal sensor fusion into strategic state (reserved; MVP no-op)."""
+        del snapshot

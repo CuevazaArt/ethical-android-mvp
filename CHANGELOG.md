@@ -4,7 +4,7 @@ All notable changes to this project are summarized here. For narrative context a
 
 **Note:** Older sections below may still **link** to paths that were later removed (for example `experiments/million_sim/`, `docs/multimedia/`, root `dashboard.html`, `landing/`). Those links are **historical**; recover files from git history or backup branches if you need them.
 
-[URGENTE - BROADCAST A TODOS LOS L2 MASTERS]: Todos los equipos (Claude, Cursor, Copilot) deben hacer un GIT PULL urgente desde MAIN hacia sus MASTERs. Las ramas desactualizadas enfrentarán asincronías severas en el pathing de documentación.
+**[URGENT — broadcast to all L2 integration hubs]:** All teams (Claude, Cursor, Copilot) should urgently `git pull` from `main` into their `master-*` branches. Outdated branches risk severe documentation path drift.
 
 ## Cursor — Integration merge (April 2026)
 
@@ -19,7 +19,6 @@ All notable changes to this project are summarized here. For narrative context a
 - **Nomad → Vitality (Module S.2.1):** Latest Nomad ``telemetry`` is mirrored thread-safely in **`NomadBridge.peek_latest_telemetry()`**; **`vitality.merge_nomad_telemetry_into_snapshot`** backfills missing sensor fields before **`assess_vitality`**. Opt out with ``KERNEL_NOMAD_TELEMETRY_VITALITY=0``. Tests: **`tests/test_vitality.py`** (also listed in **`scripts/eval/run_cursor_integration_gate.py`**).
 - **Nomad LAN bridge (Module S.1):** Hardened **`src/modules/nomad_bridge.py`** — English contract docstring, safe base64 decode, **`public_queue_stats()`** for operators (`nomad_bridge_queue_stats_v2`: queue depths plus **`latest_telemetry_present`** / **`latest_telemetry_keys`** — key names only, no sensor values); same object exposed under **`GET /health`** as **`nomad_bridge`** for dashboards; extended **`tests/test_nomad_bridge_stream.py`** (vision/audio queue assertions). Cursor integration gate includes this file.
 - **Embodied sociability S10 (L1 directive):** Implemented **`src/modules/transparency_s10.py`** for blocks **S10.1** (action narration / explainability), **S10.2** (withdrawal / non-intervention + client privacy hints), **S10.3** (discomfort index + throttle hint), and **S10.4** (operator help-request codes). WebSocket payloads include optional **`transparency_s10`** when `KERNEL_CHAT_INCLUDE_TRANSPARENCY_S10` is on (default on). Tests: `tests/test_transparency_s10.py` (also listed in **`scripts/eval/run_cursor_integration_gate.py`**). Design reference: `docs/archive_v1-7/proposals/PROPOSAL_EMBODIED_SOCIABILITY.md` (Bloque S10).
-- **`merge(integration):`** Merged `origin/master-antigravity` into `master-Cursor` (conflict resolution favored L1 where needed). Restored **governance / MalAbs proposal** files under `docs/proposals/` that the L1 merge had removed: `CORE_DECISION_CHAIN.md`, `GOVERNANCE_MOCKDAO_AND_L0.md`, `MOCK_DAO_SIMULATION_LIMITS.md`, `PROPOSAL_MALABS_SEMANTIC_THRESHOLD_EVIDENCE.md` (tests reference these paths). **`MER_V2_POSTULATE.md`** and MER V2 links in `AGENTS.md` / `CONTRIBUTING.md` retained.
 - **Persistence & salience hardening:** Repaired SQLite transaction blocks in [`src/persistence/narrative_storage.py`](src/persistence/narrative_storage.py) (`save_identity_digest`, `save_arc`, `prune_mundane`, `delete_episode`) — correct `with conn:` bodies, explicit `conn.commit()`, and `return` outside the context manager where needed. [`src/modules/salience_map.py`](src/modules/salience_map.py): stable `AXIS_ORDER` typing, uniform attention fallback when raw scores sum to ~0 (`1/len(AXIS_ORDER)`). [`tests/test_temporal_planning.py`](tests/test_temporal_planning.py): `VitalityAssessment` constructor aligned with seven-field vitality model.
 - **Nomad telemetry aliases (Module S.2.1):** [`normalize_nomad_telemetry_for_sensor_merge()`](src/modules/vitality.py) maps LAN/mobile shorthand (`battery`, `battery_pct`, `core_temperature_c`, `jerk`, …) onto [`SensorSnapshot`](src/modules/sensor_contracts.py) keys before merge; battery values in **(1, 100]** are treated as legacy percent so they are not clamped to `1.0` by `from_dict`. Doc touch: [`src/modules/nomad_bridge.py`](src/modules/nomad_bridge.py) contract. Tests in [`tests/test_vitality.py`](tests/test_vitality.py).
 - **Nomad bridge payload caps (Module S.1):** [`max_vision_frame_bytes()`](src/modules/nomad_bridge.py) / [`max_audio_pcm_bytes()`](src/modules/nomad_bridge.py) enforce **`KERNEL_NOMAD_MAX_VISION_FRAME_BYTES`** (default 5 MiB) and **`KERNEL_NOMAD_MAX_AUDIO_PCM_BYTES`** (default 1 MiB) with a base64 length pre-check so oversized LAN payloads are skipped before decode. Catalog: [`docs/ENV_VAR_CATALOG.md`](docs/ENV_VAR_CATALOG.md) §11; [`.env.example`](.env.example). Tests: [`tests/test_nomad_bridge_stream.py`](tests/test_nomad_bridge_stream.py).
@@ -28,9 +27,9 @@ All notable changes to this project are summarized here. For narrative context a
 - **Nomad `/health` limits mirror (Module S.1):** [`NomadBridge.public_queue_stats()`](src/modules/nomad_bridge.py) includes **`limits`** (`max_vision_frame_bytes`, `max_audio_pcm_bytes`, `max_telemetry_keys`) so operators see effective LAN caps alongside queue depths. [`tests/test_nomad_bridge_stream.py`](tests/test_nomad_bridge_stream.py), [`tests/test_chat_server.py`](tests/test_chat_server.py); [`docs/proposals/OPERATOR_QUICK_REF.md`](docs/proposals/OPERATOR_QUICK_REF.md).
 - **Nomad `charm_feedback` queue observability (Module S.1):** Documented **`charm_feedback_queued`** / **`charm_feedback_max`** on **`GET /health`** → **`nomad_bridge`** (outbound kernel → Nomad client); assertions in [`tests/test_chat_server.py`](tests/test_chat_server.py) and [`tests/test_nomad_bridge_stream.py`](tests/test_nomad_bridge_stream.py); [`docs/proposals/PROPOSAL_CHAT_SERVER_HTTP_API_SURFACE.md`](docs/proposals/PROPOSAL_CHAT_SERVER_HTTP_API_SURFACE.md).
 - **LLM touchpoint policies repair (P0):** [`llm_touchpoint_policies.py`](src/modules/llm_touchpoint_policies.py) — restored missing **`MONOLOGUE_POLICIES`**, **`GLOBAL_POLICY_SAFE`**, and **`g = raw_global_default_policy()`** in [`resolve_monologue_llm_backend_policy()`](src/modules/llm_touchpoint_policies.py) (fixes `NameError` on **`GET /health`**).
+- **`merge(integration):`** Merged `origin/master-antigravity` into `master-Cursor` (2026-04-18): tri-lobe `kernel.py` + lobe stack from L1; retained Cursor **Nomad S.1/S.2.1**, **narrative async embeddings**, **salience / persistence** fixes, **`swarm_negotiator`** slashing kwarg, and **nomad_bridge** operator caps/tests.
 
 ## Documentation — Issue #1 (Bayesian naming honesty) — April 2026
-
 
 ### Documentation Team Updates
 - Root **README** (*What it does*): ethical scoring described as a weighted mixture; `BayesianEngine` / `KERNEL_BAYESIAN_*` naming caveat; links to **ADR 0009** and **THEORY_AND_IMPLEMENTATION**.
@@ -40,7 +39,14 @@ All notable changes to this project are summarized here. For narrative context a
 ## Antigravity — Validation Pulse & Somatic-Vision Integration — April 2026
 
 ### Antigravity Team Updates (April 2026)
+- **Collaborator Onboarding (2026-04-18):** Welcomed **cursorultra** as a new Level 2 executing unit. Initialized coordination protocols for high-performance architectural support.
+- **Post-merge kernel repair (2026-04-17):** Removed the non-functional `CorpusCallosumOrchestrator` stub and aligned `process_chat_turn_async` with `process_chat_turn_stream` (`aprocess` + verbal `acommunicate`). Wired `kernel_utils` perception parallelism, `CharmEngine`, full `ChatTurnResult` support buffer / limbic fields, `ReparationVault` facade for CLI, sync `evaluate_chat_text` on MalAbs, `ExecutiveStrategist.ingest_sensors`, `VitalityAssessment` constructor parity, and `LimbicEthicalLobe` export.
 - **Deep Kernel Fusion (2026-04-17):** Finalized the architectural fusion of `master-Cursor` and `master-antigravity`.
+- **Kernel Stabilization & Reconstruction (2026-04-17):**
+  - **Syntax & Indentation Recovery:** Resolved multiple `SyntaxError` and `IndentationError` instances in `semantic_chat_gate.py` and `narrative_storage.py` caused by interleaved merge fragments.
+  - **Merge Marker Cleanup:** Sanitized `swarm_oracle.py` from unresolved git markers and fixed undefined variable exceptions in high-impact reputation modules.
+  - **Hardening Validation:** Successfully restored the `test_antigravity_hardening` pass rate to 100% after merge distortion.
+  - **Async Migration (0.1.2):** Completed the async-native pathing for the semantic chat gate, utilizing `aembedding` for non-blocking inference.
   - **Tri-lobe Modularization:** Refactored `src/kernel.py` into a strict stage-based execution loop (`Safety` → `Social` → `Bayesian` → `Will` → `Memory`).
   - **Conflict Resolution:** Resolved 400+ lines of interleaved logic markers in the kernel's processing core, unifying hierarchical feedback, Monte Carlo BMA, and biographic precedents.
   - **Safety Hardening:** Integrated hardware `SafetyInterlock` and `VisionInference` threat detection as high-level pre-filters, ensuring P0 safety guarantees even in high-stress situated scenarios.
@@ -58,7 +64,15 @@ All notable changes to this project are summarized here. For narrative context a
     - Implemented `apply_broad_perception_coherence` in `perception_schema.py` to mitigate hallucinated legality and inconsistent signal combinations.
     - Added `tests/test_perception_hardening_integration.py` for end-to-end validation of input trust defenses.
     - Updated `ADVERSARIAL_ROBUSTNESS_PLAN.md` with Phase 2 status for perception hardening.
-- **Sociabilidad Encarnada (Module 3):** 
+- **Architectural Stabilization & Integration Hardening (2026-04-17):**
+  - **Backward Compatibility Sync:** Restored synchronous `process` and `process_chat_turn` wrappers in `EthicalKernel` to maintain compatibility with the extensive legacy test suite.
+  - **Thread-Safe Sync Runners:** Implemented `ThreadPoolExecutor` based runners for sync-to-async transitions in the kernel, resolving event loop deadlocks in `pytest` environments.
+  - **AbsoluteEvil Consolidation:** Resolved double-method definitions in `AbsoluteEvilDetector` and restored the `evaluate_chat_text` synchronous entry point.
+  - **ReparationVault Objectification:** Finalized the conversion of `ReparationVault` into a class-based module, fixing import errors and aligning with the tri-lobe dependency injection model.
+  - **Perception Lobe Repair:** Fixed missing `threading` imports and corrected somatic interrupt logic in `PerceptiveLobe`.
+  - **Syntax Error Resolution:** Sanitized `narrative_storage.py` and `salience_map.py` from residual syntax defects (unclosed tuples, missing commas) introduced during the team-fusion merge.
+  - **Validation Recovery:** Successfully restored the `test_ethical_properties.py` pass rate (100%) by resolving multiple `AttributeError`, `UnboundLocalError`, and schema mismatches. Recovered critical logic for `SolidarityAlert` emission (triggered by environmental risk > 0.8) and `AlgorithmicForgiveness` experience registration that was lost during the tri-lobe refactor.
+- **Embodied sociability (Module 3):** 
     - Implemented `SoftKinematicFilter` in `src/modules/soft_robotics.py` (S7) for smooth, acceleration-controlled motion.
     - Integrated `personal_distance` and `interaction_rhythm` into `InteractionProfile` (S9) in `uchi_soto.py`.
     - Added proxemic coupling between `social_tension` and motion dynamics (S8), verified via `tests/test_soft_robotics.py`.
@@ -76,7 +90,7 @@ All notable changes to this project are summarized here. For narrative context a
   - Created `tests/test_somatic_profile.py` for thermal regression testing.
   - Fixed outdated `LLMPerception` schema in `scripts/run_vision_pilot_validation.py`.
   - Verified end-to-end multimodal fusion (Vision + Audio) in situated scenarios.
-- **Stabilization Window:** Decreed a **Feature Freeze** on `master-antigravity` prior to the `main` promotion rito.
+- **Stabilization Window:** Decreed a **Feature Freeze** on `master-antigravity` prior to the `main` promotion rite.
 
 ## Claude — Phase 3+ Reward Modeling, Governance & Audit — April 2026
 

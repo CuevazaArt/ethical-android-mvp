@@ -123,6 +123,30 @@ class IdentityIntegrityManager:
                 return False
         return True
 
+    def is_calibration_biographically_coherent(
+        self, proposed_weights: tuple[float, float, float], proposed_threshold: float
+    ) -> bool:
+        """
+        Módulo 11 (V11): Soberanía de Identidad vs Swarm Gaslighting.
+        Verifica si una propuesta del DAO contradice la trayectoria biográfica.
+        """
+        # 1. Genome Guard (Drift Físico)
+        if not self.is_calibration_drift_safe(proposed_weights):
+            return False
+            
+        # 2. Trayectoria de Traumas (Audit Biográfico)
+        # Si tenemos traumas acumulados en 'violence' o 'disrespect', 
+        # y la propuesta baja el umbral de poda (pruning) drásticamente, 
+        # sospechamos de un intento de 'suavizar' la moral local.
+        stress_level = sum(self.snapshot.traumas.values())
+        if stress_level > 5:
+            # En niveles altos de estrés, somos escépticos ante cambios que 
+            # relajen la sensibilidad ética (umbral de poda más bajo).
+            if proposed_threshold < self.snapshot.genome_pruning_threshold * 0.8:
+                return False
+        
+        return True
+
     def get_identity_report(self) -> str:
         s = self.snapshot
         return (f"Identity Vault: Node[{s.node_id}] | Rep[{s.reputation_score:.1f}] | "
