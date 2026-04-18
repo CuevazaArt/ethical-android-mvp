@@ -56,7 +56,7 @@ class NomadBridge:
     async def handle_websocket(self, websocket: WebSocket) -> None:
         """Handles a Nomad smartphone connection."""
         await websocket.accept()
-        _log.info("Nomad Bridge: Handshake successful. Nomad Smartphone is connected.")
+        _log.info("Nomad Bridge: Handshake successful. Nomad Vessel is connected.")
 
         recv_task = asyncio.create_task(self._recv_loop(websocket))
         send_task = asyncio.create_task(self._send_loop(websocket))
@@ -72,7 +72,7 @@ class NomadBridge:
         except Exception as e:
             _log.error("Nomad Bridge exception in handler: %s", e)
         finally:
-            _log.info("Nomad Bridge: Nomad Smartphone disconnected.")
+            _log.info("Nomad Bridge: Nomad Vessel disconnected.")
 
     def broadcast_to_dashboards(self, msg: dict[str, Any]) -> None:
         """Push a message to all connected L0 dashboards."""
