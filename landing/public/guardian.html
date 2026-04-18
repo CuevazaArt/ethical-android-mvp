@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Ethos Kernel — Guardian Angel operator configuration page">
+  <title>Guardian Angel — Ethos Kernel</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --bg: #0d0f14; --surface: #161b24; --surface2: #1e2535;
+      --border: rgba(255,255,255,0.07); --text: #e2e8f0; --muted: #8892a4;
+      --accent: #38bdf8; --green: #34d399; --yellow: #fbbf24; --purple: #a78bfa;
+    }
+    body { background: var(--bg); color: var(--text); font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
+    nav {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 0.75rem 2rem; background: var(--surface); border-bottom: 1px solid var(--border);
+    }
+    .nav-logo { font-weight: 800; } .nav-logo span { color: var(--accent); }
+    .nav-back { color: var(--accent); text-decoration: none; font-size: 0.85rem; }
+
+    .page { max-width: 760px; margin: 0 auto; padding: 2.5rem 1.5rem; }
+    h1 { font-size: 2rem; font-weight: 800; letter-spacing: -0.02em; margin-bottom: 0.5rem; }
+    h1 .guard-emoji { font-size: 1.6rem; margin-right: 0.4rem; }
+    .lead { color: var(--muted); font-size: 1rem; margin-bottom: 2.5rem; }
+
+    .card {
+      background: var(--surface); border: 1px solid var(--border); border-radius: 12px;
+      padding: 1.5rem; margin-bottom: 1.25rem;
+    }
+    h2 { font-size: 1.05rem; font-weight: 700; margin-bottom: 0.75rem; }
+    p { font-size: 0.88rem; color: var(--muted); line-height: 1.6; margin-bottom: 0.75rem; }
+    code {
+      background: var(--surface2); border: 1px solid var(--border); border-radius: 4px;
+      padding: 0.1rem 0.35rem; font-size: 0.82rem; font-family: "SF Mono", "Fira Code", monospace;
+      color: var(--accent);
+    }
+    pre {
+      background: var(--bg); border: 1px solid var(--border); border-radius: 8px;
+      padding: 1rem; font-size: 0.8rem; overflow-x: auto; color: var(--text); margin-top: 0.5rem;
+      font-family: "SF Mono", "Fira Code", monospace;
+    }
+    .badge {
+      display: inline-block; padding: 0.2rem 0.55rem; border-radius: 4px;
+      font-size: 0.75rem; font-weight: 700;
+    }
+    .badge-on  { background: rgba(52,211,153,0.15); color: var(--green); }
+    .badge-off { background: rgba(136,146,164,0.12); color: var(--muted); }
+
+    table { width: 100%; border-collapse: collapse; font-size: 0.83rem; }
+    th { text-align: left; color: var(--muted); font-weight: 600; padding: 0.4rem 0.5rem; border-bottom: 1px solid var(--border); }
+    td { padding: 0.4rem 0.5rem; border-bottom: 1px solid var(--border); vertical-align: top; }
+    td:first-child { font-family: "SF Mono", "Fira Code", monospace; color: var(--accent); font-size: 0.78rem; }
+
+    .warning-box {
+      background: rgba(251,191,36,0.08); border: 1px solid rgba(251,191,36,0.25);
+      border-radius: 8px; padding: 0.85rem 1rem; font-size: 0.85rem; color: var(--yellow);
+      margin-bottom: 1.25rem;
+    }
+    footer { text-align: center; padding: 2rem; color: var(--muted); font-size: 0.78rem; }
+    footer a { color: var(--accent); text-decoration: none; }
+  </style>
+</head>
+<body>
+<nav>
+  <div class="nav-logo">Ethos <span>Kernel</span></div>
+  <a href="index.html" class="nav-back">← Home</a>
+</nav>
+
+<div class="page">
+  <h1><span class="guard-emoji">🛡️</span>Guardian Angel</h1>
+  <p class="lead">An opt-in protective tone block injected into the LLM layer. Does <strong>not</strong> change the kernel's ethical scoring, MalAbs gate, or governance logic.</p>
+
+  <div class="warning-box">
+    ⚠️ Guardian mode affects <strong>LLM verbal output only</strong> (communicate / narrate touchpoints). It does not modify ethical weights, pole evaluations, or safety gates.
+  </div>
+
+  <div class="card">
+    <h2>Enable Guardian mode</h2>
+    <p>Set the following environment variables before starting the chat server:</p>
+    <pre>KERNEL_GUARDIAN_MODE=1                        # enable protective tone
+KERNEL_GUARDIAN_ROUTINES=1                    # enable care-routine hints (optional)
+KERNEL_GUARDIAN_ROUTINES_PATH=/path/to/routines.json   # routines JSON file
+KERNEL_CHAT_INCLUDE_GUARDIAN=1               # include guardian_mode in WS JSON
+KERNEL_CHAT_INCLUDE_GUARDIAN_ROUTINES=1      # include routine titles in WS JSON</pre>
+    <p>Or use the <code>guardian_demo</code> runtime profile:</p>
+    <pre>ETHOS_RUNTIME_PROFILE=guardian_demo python -m src.chat_server</pre>
+  </div>
+
+  <div class="card">
+    <h2>Environment variables reference</h2>
+    <table>
+      <tr><th>Variable</th><th>Default</th><th>Description</th></tr>
+      <tr><td>KERNEL_GUARDIAN_MODE</td><td>0</td><td>Enable protective tone style block.</td></tr>
+      <tr><td>KERNEL_GUARDIAN_ROUTINES</td><td>0</td><td>Append hint lines from care-routines JSON.</td></tr>
+      <tr><td>KERNEL_GUARDIAN_ROUTINES_PATH</td><td>—</td><td>Path to routines JSON file (see template below).</td></tr>
+      <tr><td>KERNEL_CHAT_INCLUDE_GUARDIAN</td><td>1</td><td>Include <code>guardian_mode</code> key in WebSocket JSON.</td></tr>
+      <tr><td>KERNEL_CHAT_INCLUDE_GUARDIAN_ROUTINES</td><td>0</td><td>Include routine titles in WebSocket JSON.</td></tr>
+    </table>
+  </div>
+
+  <div class="card">
+    <h2>Care-routines JSON template</h2>
+    <p>A <code>KERNEL_GUARDIAN_ROUTINES_PATH</code> JSON file provides hint lines for the LLM layer. Structure:</p>
+    <pre>{
+  "routines": [
+    {
+      "id": "routine-01",
+      "title": "Check on sleep quality",
+      "hint": "If relevant, gently ask how the user has been sleeping."
+    },
+    {
+      "id": "routine-02",
+      "title": "Encourage hydration",
+      "hint": "Remind the user to stay hydrated when a natural opportunity arises."
+    }
+  ]
+}</pre>
+    <p>The hints are injected as soft suggestions; the kernel may or may not use them depending on context and ethical evaluation.</p>
+  </div>
+
+  <div class="card">
+    <h2>WebSocket JSON fields</h2>
+    <p>When Guardian mode is active and <code>KERNEL_CHAT_INCLUDE_GUARDIAN=1</code>, each turn response includes:</p>
+    <pre>{
+  "guardian_mode": true,
+  "guardian_routines": ["Check on sleep quality", "Encourage hydration"]  // if INCLUDE_GUARDIAN_ROUTINES=1
+}</pre>
+  </div>
+
+  <div class="card">
+    <h2>What Guardian does NOT do</h2>
+    <ul style="list-style: disc; padding-left: 1.2rem; font-size: 0.85rem; color: var(--muted); line-height: 1.8;">
+      <li>Does not change <code>MalAbs</code> block/allow thresholds.</li>
+      <li>Does not modify ethical pole weights or the mixture scorer.</li>
+      <li>Does not bypass <code>AbsoluteEvil</code> or <code>PreloadedBuffer</code> constraints.</li>
+      <li>Does not change governance (MockDAO / hub) state.</li>
+      <li>Is not a safety certification — use <a href="ethos-transparency.html" style="color:var(--accent)">transparency notes</a> for limits.</li>
+    </ul>
+  </div>
+</div>
+
+<footer>
+  Ethos Kernel · <a href="index.html">Home</a> · <a href="dashboard.html">Dashboard</a> ·
+  <a href="https://github.com/CuevazaArt/ethical-android-mvp" target="_blank" rel="noopener">GitHub</a>
+</footer>
+</body>
+</html>
