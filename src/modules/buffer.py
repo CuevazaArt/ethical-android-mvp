@@ -207,6 +207,20 @@ class PreloadedBuffer:
         names = self.protocols.get(situation_type, {"transparency", "civic_coexistence"})
         return {n: self.principles[n] for n in names if n in self.principles}
 
+    def get_snapshot(self, context: str, kernel=None, signals: dict = None, limbic_profile: dict = None) -> dict:
+        """
+        Returns a snapshot of the active principles for a given context.
+        Matches the interface expected by PerceptiveLobe.
+        """
+        active = self.activate(context)
+        return {
+            "context": context,
+            "active_principles": list(active.keys()),
+            "principles_detail": {n: p.description for n, p in active.items()},
+            "signals": signals,
+            "limbic_profile": limbic_profile
+        }
+
     def verify_action(self, action: str, active_principles: dict) -> dict:
         """
         Verifies whether an action is consistent with the active principles.

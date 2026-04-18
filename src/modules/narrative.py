@@ -305,7 +305,10 @@ class NarrativeMemory:
         self.episodes.append(ep)
         self.identity.update_from_episode(ep)
         self._update_arcs(ep)
-        self.persistence.save_episode(ep)
+        
+        # 4. Async Persistence (Phase 9.3)
+        import asyncio
+        await asyncio.to_thread(self.persistence.save_episode, ep)
 
         if len(self.episodes) > self.max_episodes:
             self.episodes = self.episodes[-self.max_episodes :]
@@ -416,7 +419,8 @@ class NarrativeMemory:
         if _tier_rank(requester_tier) < _tier_rank(RelationalTier.TRUSTED_UCHI):
             return []
 
-        all_episodes = self.persistence.load_all_episodes()
+        import asyncio
+        all_episodes = await asyncio.to_thread(self.persistence.load_all_episodes)
         candidates = []
         current_arc_archetype = self.active_arc.predominant_archetype if self.active_arc else None
 

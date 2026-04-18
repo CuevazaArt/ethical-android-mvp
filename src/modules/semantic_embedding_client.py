@@ -266,50 +266,6 @@ async def ahttp_fetch_ollama_embedding_with_policy(
     *,
     timeout_s: float | None = None,
 ) -> np.ndarray | None:
-    import httpx
-    import asyncio
-
-    t = (
-        timeout_s
-        if timeout_s is not None
-        else max(1.0, _env_float("KERNEL_SEMANTIC_EMBED_TIMEOUT_S", 12.0))
-    )
-    retries = max(0, _env_int("KERNEL_SEMANTIC_EMBED_RETRIES", 2))
-    backoff = max(0.0, _env_float("KERNEL_SEMANTIC_EMBED_BACKOFF_S", 0.25))
-
-    if _circuit_blocks():
-        return None
-
-    payload = {"model": model, "prompt": prompt}
-    last_err = ""
-    for attempt in range(retries + 1):
-        if _circuit_blocks():
-            break
-        t0 = time.perf_counter()
-        try:
-            async with httpx.AsyncClient(timeout=t) as client:
-                vec_list = await _apost_once(client, url, payload)
-            if vec_list is None:
-                raise ValueError("missing or invalid embedding array")
-            latency_ms = (time.perf_counter() - t0) * 1000.0
-            _record_success(latency_ms)
-            return np.asarray(vec_list, dtype=np.float64)
-        except Exception as e:
-            last_err = repr(e)
-            if attempt < retries and backoff > 0:
-                await asyncio.sleep(backoff * (attempt + 1))
-    if last_err:
-        _record_failure(last_err)
-    return None
-
-
-async def ahttp_fetch_ollama_embedding_with_policy(
-    url: str,
-    model: str,
-    prompt: str,
-    *,
-    timeout_s: float | None = None,
-) -> np.ndarray | None:
     """Async variant of embedding fetch with cooperative backoff and circuit breaker."""
     import asyncio
     import httpx
@@ -334,7 +290,6 @@ async def ahttp_fetch_ollama_embedding_with_policy(
         try:
             timeout = httpx.Timeout(t)
             async with httpx.AsyncClient(timeout=timeout) as client:
-                # We use a helper for the async post
                 response = await client.post(url, json=payload)
                 response.raise_for_status()
                 data = response.json()

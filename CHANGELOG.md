@@ -49,6 +49,7 @@ All notable changes to this project are summarized here. For narrative context a
 - **Affective Smoothing (Basal Ganglia):** Implemented EMA-based smoothing for charm vectors (warmth, mystery, intimacy) in `UserModelTracker`. Prevents sociopathic persona swapping by ensuring human-like transitions over 3-5 turns.
 - **Tribunal Ético Edge (Layered Ethics):** Refactored MalAbs into a dual-layer parallel architecture. Level 1 (Lexical) runs in <50ms, while Level 2 (Semantic) is parallelized with LLM perception, significantly reducing total latency for safe inputs.
 - **RLHF Bayesian Modulation:** Integrated the RLHF reward model into the `BayesianInferenceEngine`. Asynchronous human feedback now modulates ethical priors, enabling continuous moral learning from situated interactions.
+- **Async Robustness (Cooperative Cancel):** Implemented `raise_if_llm_cancel_requested` check-points across `EthicalKernel` and `LLMModule`. The `ChatServer` now signals atomic task cancellation when `KERNEL_CHAT_TURN_TIMEOUT` fires, preventing dangling LLM/HTTP background load.
 - **Vitality Calibration (Thermal Alerts):** Enhanced `VitalityAssessment` to include device thermal telemetry. Thermal critical states now trigger pro-active power management and caution tones in the linguistic engine.
 - **IP Protection (Phase 13):** Successfully propagated "cuevaza" and "arq.jvof" IP markers across all new affective and learning modules.
 

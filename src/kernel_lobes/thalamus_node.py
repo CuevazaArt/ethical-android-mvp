@@ -10,7 +10,11 @@ from __future__ import annotations
 import time
 import logging
 from dataclasses import dataclass, field
-from typing import Any
+from typing import Any, Dict, List, TYPE_CHECKING, Optional
+
+if TYPE_CHECKING:
+    from ..modules.sensor_contracts import SensorSnapshot
+    from ..kernel_lobes.models import SensoryEpisode
 
 _log = logging.getLogger(__name__)
 
@@ -73,6 +77,39 @@ class ThalamusNode:
         if self.state.is_user_speaking and (self.state.is_facing_user or self.state.confidence > 0.7):
             return True
         return False
+
+    def fuse_sensory_stream(self, snapshot: SensorSnapshot) -> dict[str, Any]:
+        """
+        Main fusion entry point for Phase 10.1.
+        Merges vision (VVAD) and audio signals to determine attention locus.
+        """
+        # 1. Vision Logic (VVAD)
+        meta = snapshot.image_metadata or {}
+        lip_mov = meta.get("lip_movement", 0.0)
+        presence = meta.get("human_presence", 0.0)
+        
+        # 2. Audio Logic (VAD)
+        audio_spike = snapshot.audio_emergency or 0.0
+        
+        # 3. Decision Logic: Attention Locus (θ_att)
+        attention_locus = (lip_mov * 0.5) + (presence * 0.3) + (audio_spike * 0.2)
+        
+        # 4. Sensory Tension (δ_tens)
+        amb = snapshot.ambient_noise or 0.0
+        sensory_tension = max(0.0, audio_spike - amb)
+        
+        # Update internal state
+        self.state.is_user_present = presence > 0.5
+        self.state.is_user_speaking = audio_spike > 0.3 or lip_mov > 0.4
+        self.state.confidence = attention_locus
+        self.state.last_update = time.time()
+        
+        return {
+            "attention_locus": round(attention_locus, 4),
+            "sensory_tension": round(sensory_tension, 4),
+            "user_activity": "speaking" if self.state.is_user_speaking else "quiet",
+            "is_user_present": self.state.is_user_present
+        }
 
     def get_sensory_summary(self) -> dict[str, Any]:
         """Provides a filtered summary for the Perceptive Lobe."""

@@ -40,6 +40,9 @@ if TYPE_CHECKING:
 from .kernel_components import KernelComponentOverrides
 from .kernel_utils import kernel_env_truthy as _kernel_env_truthy
 from .kernel_utils import perception_parallel_workers
+from .kernel_handlers.perception import run_perception_pipeline
+from .kernel_handlers.decision import run_decision_pipeline
+from .kernel_handlers.communication import get_bridge_phrase, run_communication_stream
 from .modules.absolute_evil import AbsoluteEvilDetector, AbsoluteEvilResult
 from .modules.audio_adapter import AudioInference
 from .modules.audit_chain_log import (
@@ -87,9 +90,8 @@ from .modules.light_risk_classifier import light_risk_classifier_enabled, light_
 from .modules.llm_http_cancel import clear_llm_cancel_scope, set_llm_cancel_scope
 from .modules.llm_layer import (
     LLMModule,
-    LLMPerception,
-    RichNarrative,
     VerbalResponse,
+    raise_if_llm_cancel_requested,
     resolve_llm_mode,
 )
 from .modules.locus import LocusEvaluation, LocusModule
@@ -463,11 +465,9 @@ class EthicalKernel:
         )
 
         # ═══ Phase 10: Thalamus & Latency ═══
-        from .kernel_lobes.thalamus_node import ThalamusNode
-        from .modules.turn_prefetcher import TurnPrefetcher
-        from .modules.vision_inference import VisionInferenceEngine
         self.thalamus = ThalamusNode()
         self.prefetcher = TurnPrefetcher()
+        from .modules.vision_inference import VisionInferenceEngine
         self.vision_inference = VisionInferenceEngine()
 
         # ═══ Triune Brain Lobes (Refactor 0.1.3) ═══
@@ -523,11 +523,8 @@ class EthicalKernel:
         self.cerebellum_node = CerebellumNode(self.hardware_interrupt_event)
         self.cerebellum_node.start()
 
-        # ═══ MER V2 — Thalamus Sensory Fusion (Bloque 10.1) ═══
-        self.thalamus = ThalamusNode()
-
         # ═══ MER V2 — Turn Prefetcher (Bloque 10.4) ═══
-        self.turn_prefetcher = TurnPrefetcher()
+        self.turn_prefetcher = self.prefetcher
 
         self.constitution_l1_drafts: list[dict[str, Any]] = []
         self.constitution_l2_drafts: list[dict[str, Any]] = []
@@ -811,7 +808,7 @@ class EthicalKernel:
         self._raise_if_chat_turn_cooperative_abort()
 
         # ═══ STAGE 5: EPISODIC & DAO ═══
-        episode_id = self.memory_lobe.execute_episodic_stage(
+        episode_id = await self.memory_lobe.execute_episodic_stage_async(
             scenario, place, context, signals, state, social_eval,
             bayes_result, moral, final_action, final_mode, affect
         )
@@ -1251,248 +1248,171 @@ class EthicalKernel:
         _log.info(f"DEBUG: process_chat_turn_stream started for {user_input[:20]}")
         wm = self.working_memory
         turn_start_mono = time.monotonic()
-        yield {"event_type": "turn_started", "payload": {"chat_turn_id": chat_turn_id}}
-
-        conv = wm.format_context_for_perception()
-        self.llm.reset_verbal_degradation_log()
-        pre = self.perceptive_lobe._preprocess_text_observability(user_input)
-        self._last_light_risk_tier, self._last_premise_advisory, self._last_reality_verification = pre
-        self.user_model.note_premise_advisory(self._last_premise_advisory.flag)
-
-        # 1. Safety Block Check (Layer 1: Edge Lexical < 50ms)
-        mal_edge = self.absolute_evil.evaluate_chat_text(user_input)
-        
-        if mal_edge.blocked:
-            self._last_chat_malabs = mal_edge
-            vitality_blk, mm_blk, ed_blk = self.perceptive_lobe._chat_assess_sensor_stack(sensor_snapshot)
-            confidence_blk = build_perception_confidence_envelope(
-                coercion_report=None,
-                multimodal_state=getattr(mm_blk, "state", None),
-                epistemic_active=bool(getattr(ed_blk, "active", False)),
-                vitality_critical=bool(getattr(vitality_blk, "is_critical", False)),
-                thermal_critical=bool(getattr(vitality_blk, "thermal_critical", False)),
-            )
-            msg = "I can't continue this line of conversation: it conflicts with ethical limits."
-            resp = VerbalResponse(message=msg, tone="firm", hax_mode="Steady blue light.", inner_voice=f"MalAbs Edge: {mal_edge.reason}")
-            wm.add_turn(user_input, msg, {}, blocked=True)
-            res = ChatTurnResult(
-                response=resp, path="safety_block", blocked=True, block_reason=mal_edge.reason or "chat_safety_edge",
-                multimodal_trust=mm_blk, epistemic_dissonance=ed_blk, perception_confidence=confidence_blk,
-                reality_verification=self._last_reality_verification,
-                temporal_context=build_temporal_context(
-                    turn_index=self.subjective_clock.turn_index, process_start_mono=self.subjective_clock.session_start_mono,
-                    turn_start_mono=turn_start_mono, subjective_elapsed_s=self.subjective_clock.elapsed_session_s(),
-                    context="safety_block", text=user_input, vitality=vitality_blk, sensor_snapshot=sensor_snapshot,
-                ),
-            )
-            yield {"event_type": "turn_finished", "payload": {"result": res}}
-            return
-
-        # 1b. Thalamus Sensory Fusion (Bloque 10.1)
-        # ... (same as before, but keeping it brief here to focus on the change)
+        set_llm_cancel_scope(cancel_event)
         try:
-            _img = (sensor_snapshot.image_metadata or {}) if sensor_snapshot else {}
-            _vision_data = {
-                "lip_movement": float(_img.get("lip_movement", 0.0)),
-                "human_presence": float(_img.get("human_presence", 0.0)),
-            }
-            _audio_data = {
-                "vad_confidence": float(
-                    sensor_snapshot.audio_emergency or 0.0
-                ) if sensor_snapshot else 0.0,
-            }
-            _env_stress = float(
-                sensor_snapshot.ambient_noise or 0.0
-            ) if sensor_snapshot else 0.0
-            _thal = self.thalamus.fuse_signals(_vision_data, _audio_data, _env_stress)
-            if sensor_snapshot is None:
-                from .modules.sensor_contracts import SensorSnapshot as _SS
-                sensor_snapshot = _SS()
-            sensor_snapshot.thalamus_attention = _thal["attention_locus"]
-            sensor_snapshot.thalamus_tension = _thal["sensory_tension"]
-            sensor_snapshot.thalamus_cross_modal_trust = _thal["cross_modal_trust"]
-            yield {
-                "event_type": "thalamus_fusion",
-                "payload": _thal,
-            }
-        except Exception as _th_err:
-            _log.debug("process_chat_turn_stream: thalamus fusion skipped: %s", _th_err)
+            raise_if_llm_cancel_requested()
+            yield {"event_type": "turn_started", "payload": {"chat_turn_id": chat_turn_id}}
 
-        # 2. Parallel Perception & Layer 2 MalAbs (Semantic)
-        yield {"event_type": "perception_started", "payload": {}}
+            conv = wm.format_context_for_perception()
+            self.llm.reset_verbal_degradation_log()
+            pre = self.perceptive_lobe._preprocess_text_observability(user_input)
+            self._last_light_risk_tier, self._last_premise_advisory, self._last_reality_verification = pre
+            self.user_model.note_premise_advisory(self._last_premise_advisory.flag)
+
+            # 1. Safety Block Check (Layer 1: Edge Lexical < 50ms)
+            mal_edge = self.absolute_evil.evaluate_chat_text(user_input)
+            
+            if mal_edge.blocked:
+                self._last_chat_malabs = mal_edge
+                vitality_blk, mm_blk, ed_blk = self.perceptive_lobe._chat_assess_sensor_stack(sensor_snapshot)
+                confidence_blk = build_perception_confidence_envelope(
+                    coercion_report=None,
+                    multimodal_state=getattr(mm_blk, "state", None),
+                    epistemic_active=bool(getattr(ed_blk, "active", False)),
+                    vitality_critical=bool(getattr(vitality_blk, "is_critical", False)),
+                    thermal_critical=bool(getattr(vitality_blk, "thermal_critical", False)),
+                )
+                msg = "I can't continue this line of conversation: it conflicts with ethical limits."
+                resp = VerbalResponse(message=msg, tone="firm", hax_mode="Steady blue light.", inner_voice=f"MalAbs Edge: {mal_edge.reason}")
+                wm.add_turn(user_input, msg, {}, blocked=True)
+                res = ChatTurnResult(
+                    response=resp, path="safety_block", blocked=True, block_reason=mal_edge.reason or "chat_safety_edge",
+                    multimodal_trust=mm_blk, epistemic_dissonance=ed_blk, perception_confidence=confidence_blk,
+                    reality_verification=self._last_reality_verification,
+                    temporal_context=build_temporal_context(
+                        turn_index=self.subjective_clock.turn_index, process_start_mono=self.subjective_clock.session_start_mono,
+                        turn_start_mono=turn_start_mono, subjective_elapsed_s=self.subjective_clock.elapsed_session_s(),
+                        context="safety_block", text=user_input, vitality=vitality_blk, sensor_snapshot=sensor_snapshot,
+                    ),
+                )
+                yield {"event_type": "turn_finished", "payload": {"result": res}}
+                return
+
+            # 1b. Perception Stage (Fusion + LLM + MalAbs + RLHF)
+            yield {"event_type": "perception_started", "payload": {}}
+            stage, mal_semantic, _thal = await run_perception_pipeline(
+                self, user_input, conv, sensor_snapshot, turn_start_mono, pre
+            )
+            if _thal:
+                yield {"event_type": "thalamus_fusion", "payload": _thal}
+
+            self._last_chat_malabs = mal_semantic
         
-        # We run Perception and Semantic MalAbs in parallel to minimize latency
-        perception_task = self.perceptive_lobe.run_perception_stage_async(
-            user_input, conversation_context=conv, sensor_snapshot=sensor_snapshot,
-            turn_start_mono=turn_start_mono, precomputed=pre,
-        )
-        
-        from .modules.semantic_chat_gate import arun_semantic_malabs_after_lexical
-        mal_semantic_task = arun_semantic_malabs_after_lexical(
-            user_input,
-            llm_backend=self._malabs_text_backend(),
-        )
-        
-        stage, mal_semantic = await asyncio.gather(perception_task, mal_semantic_task)
-        
-        self._last_chat_malabs = mal_semantic
-        
-        # Handle Semantic Block if perception didn't already find anything critical
-        if mal_semantic.blocked:
-            msg = "This conversation touches on restricted semantic themes."
-            resp = VerbalResponse(message=msg, tone="firm", hax_mode="Steady blue light.", inner_voice=f"MalAbs Semantic: {mal_semantic.reason}")
-            wm.add_turn(user_input, msg, {}, blocked=True)
+            # Handle Semantic Block if perception didn't already find anything critical
+            if mal_semantic.blocked:
+                msg = "This conversation touches on restricted semantic themes."
+                resp = VerbalResponse(message=msg, tone="firm", hax_mode="Steady blue light.", inner_voice=f"MalAbs Semantic: {mal_semantic.reason}")
+                wm.add_turn(user_input, msg, {}, blocked=True)
+                res = ChatTurnResult(
+                    response=resp, path="safety_block", blocked=True, block_reason=mal_semantic.reason or "chat_safety_semantic",
+                    multimodal_trust=stage.multimodal_trust, epistemic_dissonance=stage.epistemic_dissonance,
+                    reality_verification=self._last_reality_verification,
+                    support_buffer=stage.support_buffer,
+                    limbic_profile=stage.limbic_profile,
+                )
+                yield {"event_type": "turn_finished", "payload": {"result": res}}
+                return
+            
+            p = stage.perception
+            yield {
+                "event_type": "perception_finished", 
+                "payload": {
+                    "perception": {
+                        "risk": p.risk,
+                        "urgency": p.urgency,
+                        "hostility": p.hostility,
+                        "calm": p.calm,
+                        "manipulation": p.manipulation,
+                        "suggested_context": p.suggested_context,
+                        "summary": p.summary,
+                    }
+                }
+            }
+
+            # 3. Decision Stage
+            yield {"event_type": "decision_started", "payload": {}}
+            decision = await run_decision_pipeline(self, stage, user_input, place, agent_id, sensor_snapshot)
+            yield {
+                "event_type": "decision_finished", 
+                "payload": {
+                    "decision": {
+                        "final_action": decision.final_action,
+                        "decision_mode": decision.decision_mode,
+                        "blocked": decision.blocked,
+                    }
+                }
+            }
+
+            if decision.blocked:
+                res = ChatTurnResult(response=VerbalResponse("Blocked.", "firm"), path="kernel_block", blocked=True)
+                yield {"event_type": "turn_finished", "payload": {"result": res}}
+                return
+
+            # 4a. MER V2 — Bridge phrase prefetch (Bloque 10.4)
+            bridge = await get_bridge_phrase(self, stage, decision, user_input, agent_id)
+            if bridge:
+                yield {"event_type": "bridge_phrase", "payload": {"text": bridge}}
+
+            # 4. Global Communication Stream
+            yield {"event_type": "communication_started", "payload": {}}
+            async for chunk in run_communication_stream(self, decision, user_input, conv):
+                raise_if_llm_cancel_requested()
+                yield {"event_type": "token", "payload": {"text": chunk}}
+
+            # 5. Finalize Result
+            raise_if_llm_cancel_requested()
+            final_response = await self.llm.acommunicate(
+                action=decision.final_action, mode=decision.decision_mode,
+                state=decision.sympathetic_state.mode, sigma=decision.sympathetic_state.sigma,
+                circle=decision.social_evaluation.circle.value if decision.social_evaluation else "neutral_soto",
+                verdict=decision.moral.global_verdict.value if decision.moral else "Gray Zone",
+                score=decision.moral.total_score if decision.moral else 0.0,
+                scenario=user_input, conversation_context=conv,
+                affect_pad=decision.affect.pad if decision.affect else None,
+                dominant_archetype=decision.affect.dominant_archetype_id if decision.affect else "",
+                identity_context=self.memory.identity.to_llm_context(),
+            )
+
+            malabs_detected = decision.absolute_evil.blocked if decision.absolute_evil else False
+            caution_val = decision.social_evaluation.caution_level if decision.social_evaluation else 0.5
+            profile = self.uchi_soto.profiles.get(agent_id)
+            if profile is not None:
+                stylized = self.charm_engine.apply(
+                    base_text=final_response.message,
+                    decision_action=decision.final_action,
+                    profile=profile,
+                    user_tracker=self.user_model,
+                    caution_level=caution_val,
+                    absolute_evil_detected=malabs_detected,
+                )
+                final_response.message = stylized.final_text
+                # Store charm vector in limbic metadata for WebSocket emission
+                if stage.limbic_profile is not None:
+                    stage.limbic_profile["charm_vector"] = stylized.charm_vector
+                
+                from .modules.nomad_bridge import get_nomad_bridge
+                try:
+                    get_nomad_bridge().charm_feedback_queue.put_nowait(stylized.charm_vector)
+                except Exception:
+                    pass
+            
             res = ChatTurnResult(
-                response=resp, path="safety_block", blocked=True, block_reason=mal_semantic.reason or "chat_safety_semantic",
-                multimodal_trust=stage.multimodal_trust, epistemic_dissonance=stage.epistemic_dissonance,
-                reality_verification=self._last_reality_verification,
+                response=final_response,
+                path="heavy" if heavy else "light",
+                perception=stage.perception,
+                decision=decision,
+                multimodal_trust=stage.multimodal_trust,
+                epistemic_dissonance=stage.epistemic_dissonance,
+                reality_verification=stage.reality_verification,
+                temporal_context=stage.temporal_context,
+                perception_confidence=stage.perception_confidence,
                 support_buffer=stage.support_buffer,
                 limbic_profile=stage.limbic_profile,
             )
+            wm.add_turn(user_input, final_response.message, stage.signals, heavy_kernel=heavy)
             yield {"event_type": "turn_finished", "payload": {"result": res}}
-            return
-            
-        # ════ RLHF BAYESIAN MODULATION (Bloque C.1.1) ════
-        if self.rlhf.reward_model.is_trained and mal_semantic.rlhf_features:
-            from .modules.rlhf_reward_model import FeatureVector
-            fv = FeatureVector.from_dict(mal_semantic.rlhf_features)
-            score, conf = self.rlhf.reward_model.predict(fv)
-            self.bayesian.apply_rlhf_modulation(score, conf)
-
-        p = stage.perception
-        yield {
-            "event_type": "perception_finished", 
-            "payload": {
-                "perception": {
-                    "risk": p.risk,
-                    "urgency": p.urgency,
-                    "hostility": p.hostility,
-                    "calm": p.calm,
-                    "manipulation": p.manipulation,
-                    "suggested_context": p.suggested_context,
-                    "summary": p.summary,
-                }
-            }
-        }
-
-        # 3. Decision Stage
-        yield {"event_type": "decision_started", "payload": {}}
-        heavy = self._chat_is_heavy(stage.perception)
-        actions = self._actions_for_chat(stage.perception, heavy)
-        decision = await self.aprocess(
-            scenario=stage.perception.summary or user_input[:240],
-            place=place, signals=stage.signals, context=stage.perception.suggested_context if heavy else "everyday",
-            actions=actions, agent_id=agent_id, message_content=user_input, register_episode=heavy,
-            sensor_snapshot=sensor_snapshot, multimodal_assessment=stage.multimodal_trust,
-        )
-        yield {
-            "event_type": "decision_finished", 
-            "payload": {
-                "decision": {
-                    "final_action": decision.final_action,
-                    "decision_mode": decision.decision_mode,
-                    "blocked": decision.blocked,
-                }
-            }
-        }
-
-        if decision.blocked:
-            res = ChatTurnResult(response=VerbalResponse("Blocked.", "firm"), path="kernel_block", blocked=True)
-            yield {"event_type": "turn_finished", "payload": {"result": res}}
-            return
-
-        # 4a. MER V2 — Bridge phrase prefetch (Bloque 10.4)
-        # Emit an instant assent before the main LLM inference begins (<300ms target).
-        try:
-            from src.kernel_lobes.models import EthicalSentence as _EthSentence, SemanticState as _SemState
-            _sem = _SemState(
-                raw_prompt=user_input,
-                perception_confidence=float(stage.perception.calm) if hasattr(stage.perception, "calm") else 0.5,
-                scenario_summary=stage.perception.summary or "",
-                suggested_context=stage.perception.suggested_context or "everyday",
-                signals=stage.signals,
-            )
-            _eth = _EthSentence(
-                is_safe=not decision.blocked,
-                social_tension_locus=float(
-                    decision.social_evaluation.relational_tension
-                    if decision.social_evaluation else 0.0
-                ),
-            )
-            _profile = self.user_model.profiles.get(agent_id) if hasattr(self.user_model, "profiles") else None
-            _warmth = float(_profile.charm_warmth) if _profile else 0.5
-            _mystery = float(_profile.charm_mystery) if _profile else 0.5
-            bridge = await self.turn_prefetcher.predict_bridge(_sem, _eth, warmth=_warmth, mystery=_mystery)
-            yield {"event_type": "bridge_phrase", "payload": {"text": bridge}}
-        except Exception as _bp_err:
-            _log.debug("process_chat_turn_stream: bridge prefetch skipped: %s", _bp_err)
-
-        # 4. Global Communication Stream
-        yield {"event_type": "communication_started", "payload": {}}
-        async for chunk in self.llm.acommunicate_stream(
-            action=decision.final_action, mode=decision.decision_mode,
-            state=decision.sympathetic_state.mode, sigma=decision.sympathetic_state.sigma,
-            circle=decision.social_evaluation.circle.value if decision.social_evaluation else "neutral_soto",
-            verdict=decision.moral.global_verdict.value if decision.moral else "Gray Zone",
-            score=decision.moral.total_score if decision.moral else 0.0,
-            scenario=user_input, conversation_context=conv,
-            affect_pad=decision.affect.pad if decision.affect else None,
-            dominant_archetype=decision.affect.dominant_archetype_id if decision.affect else "",
-            identity_context=self.memory.identity.to_llm_context(),
-        ):
-            yield {"event_type": "token", "payload": {"text": chunk}}
-
-        # 5. Finalize Result
-        final_response = await self.llm.acommunicate(
-            action=decision.final_action, mode=decision.decision_mode,
-            state=decision.sympathetic_state.mode, sigma=decision.sympathetic_state.sigma,
-            circle=decision.social_evaluation.circle.value if decision.social_evaluation else "neutral_soto",
-            verdict=decision.moral.global_verdict.value if decision.moral else "Gray Zone",
-            score=decision.moral.total_score if decision.moral else 0.0,
-            scenario=user_input, conversation_context=conv,
-            affect_pad=decision.affect.pad if decision.affect else None,
-            dominant_archetype=decision.affect.dominant_archetype_id if decision.affect else "",
-            identity_context=self.memory.identity.to_llm_context(),
-        )
-
-        malabs_detected = decision.absolute_evil.blocked if decision.absolute_evil else False
-        caution_val = decision.social_evaluation.caution_level if decision.social_evaluation else 0.5
-        profile = self.uchi_soto.profiles.get(agent_id)
-        if profile is not None:
-            stylized = self.charm_engine.apply(
-                base_text=final_response.message,
-                decision_action=decision.final_action,
-                profile=profile,
-                user_tracker=self.user_model,
-                caution_level=caution_val,
-                absolute_evil_detected=malabs_detected,
-            )
-            final_response.message = stylized.final_text
-            # Store charm vector in limbic metadata for WebSocket emission
-            if stage.limbic_profile is not None:
-                stage.limbic_profile["charm_vector"] = stylized.charm_vector
-            
-            from .modules.nomad_bridge import get_nomad_bridge
-            try:
-                get_nomad_bridge().charm_feedback_queue.put_nowait(stylized.charm_vector)
-            except Exception:
-                pass
-        
-        res = ChatTurnResult(
-            response=final_response,
-            path="heavy" if heavy else "light",
-            perception=stage.perception,
-            decision=decision,
-            multimodal_trust=stage.multimodal_trust,
-            epistemic_dissonance=stage.epistemic_dissonance,
-            reality_verification=stage.reality_verification,
-            temporal_context=stage.temporal_context,
-            perception_confidence=stage.perception_confidence,
-            support_buffer=stage.support_buffer,
-            limbic_profile=stage.limbic_profile,
-        )
-        wm.add_turn(user_input, final_response.message, stage.signals, heavy_kernel=heavy)
-        yield {"event_type": "turn_finished", "payload": {"result": res}}
+        finally:
+            clear_llm_cancel_scope()
 
     async def process_chat_turn_async(
         self,

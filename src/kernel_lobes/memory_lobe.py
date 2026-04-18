@@ -38,6 +38,47 @@ class MemoryLobe:
         self.immortality = immortality
         self.amnesia = amnesia
 
+    async def execute_episodic_stage_async(
+        self,
+        scenario: str,
+        place: str,
+        context: str,
+        signals: dict,
+        state: InternalState,
+        social_eval: SocialEvaluation,
+        bayes_result: EthicsMixtureResult,
+        moral: Any,
+        final_action: str,
+        final_mode: str,
+        affect: Any
+    ) -> Optional[str]:
+        """
+        Async version of episode registration.
+        """
+        morals_dict = {ev.pole: ev.moral for ev in moral.evaluations}
+        
+        # 1. Register Episode (Async)
+        ep = await self.memory.aregister(
+            place=place,
+            description=scenario,
+            action=final_action,
+            morals=morals_dict,
+            verdict=moral.global_verdict.value,
+            score=moral.total_score,
+            mode=final_mode,
+            sigma=state.sigma,
+            context=context,
+            body_state=self.migration.current_body,
+            affect_pad=affect.pad if hasattr(affect, "pad") else None,
+            affect_weights=affect.weights if hasattr(affect, "weights") else None,
+            weights_snapshot=bayes_result.applied_mixture_weights
+        )
+        
+        # 2. Register Audit in DAO (Async)
+        await self.dao.aregister_audit("decision", f"{scenario} → {final_action}", episode_id=ep.id)
+        
+        return ep.id
+
     def execute_episodic_stage(
         self,
         scenario: str,
@@ -53,7 +94,7 @@ class MemoryLobe:
         affect: Any
     ) -> Optional[str]:
         """
-        Register interaction episode and audit trail.
+        Sync version of episode registration (legacy/sim compatibility).
         """
         morals_dict = {ev.pole: ev.moral for ev in moral.evaluations}
         

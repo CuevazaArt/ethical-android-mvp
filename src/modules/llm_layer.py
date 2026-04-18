@@ -34,6 +34,7 @@ try:
 except ImportError:
     HAS_HTTPX = False
 
+from .llm_http_cancel import raise_if_llm_cancel_requested
 from ..observability.metrics import observe_llm_completion_seconds
 from .llm_backends import (
     AnthropicCompletion,
@@ -419,6 +420,7 @@ class LLMModule:
         temperature: float | None = None,
     ) -> str:
         """Route JSON-oriented prompts through the active LLM backend."""
+        raise_if_llm_cancel_requested()
         b = self._llm_backend
         if b is not None:
             t0 = time.perf_counter()
@@ -440,6 +442,7 @@ class LLMModule:
         temperature: float | None = None,
     ) -> str:
         """Async counterpart to :meth:`_llm_completion` (``httpx.AsyncClient`` on supported backends)."""
+        raise_if_llm_cancel_requested()
         b = self._llm_backend
         if b is not None:
             t0 = time.perf_counter()
@@ -1179,6 +1182,7 @@ class LLMModule:
             )
 
         async for chunk in self._llm_backend.acompletion_stream(system, user_msg):
+            raise_if_llm_cancel_requested()
             yield chunk
 
     def _communicate_local(

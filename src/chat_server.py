@@ -2249,6 +2249,14 @@ async def ws_chat(ws: WebSocket) -> None:
                                 break
                             else:
                                 await ws.send_json(event)
+                        except asyncio.TimeoutError:
+                            logger.warning("chat_turn_timeout id=%s (set cooperative cancel)", turn_id)
+                            if current_cancel_ev is not None:
+                                current_cancel_ev.set()
+                            record_chat_turn_async_timeout()
+                            # Optional: we could break and send an error, but we want the loop to finish cleaning up
+                            await ws.send_json({"event_type": "error", "payload": {"error": "chat_turn_timeout"}})
+                            break
                         except StopAsyncIteration:
                             break
                 else:
