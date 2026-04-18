@@ -264,6 +264,15 @@ app = FastAPI(
 )
 
 app.add_middleware(RequestContextMiddleware)
+@app.get("/nomad/migration")
+async def nomad_migration_meta() -> Response:
+    """Nomad Simulation metadata (v11) for client orchestration."""
+    from .modules.existential_serialization import nomad_simulation_ws_enabled
+    return JSONResponse({
+        "simulation_enabled": nomad_simulation_ws_enabled(),
+        "path": "/ws/chat",
+        "description": "HAL v11 Conscious Migration protocol (simulated)"
+    })
 
 # Phase 10: Mount the Nomad PWA Client directly to bypass external web servers.
 nomad_pwa_path = os.path.join(os.path.dirname(__file__), "clients", "nomad_pwa")
@@ -297,6 +306,8 @@ async def nomad_bridge_ws_handler(websocket: WebSocket) -> None:
     """Nomad LAN bridge sensory endpoint (Module S)."""
     from .modules.nomad_bridge import get_nomad_bridge
 
+    await get_nomad_bridge().handle_websocket(websocket)
+    
     await get_nomad_bridge().handle_websocket(websocket)
 
 @app.websocket("/ws/dashboard")
@@ -1287,11 +1298,14 @@ def _collect_integrity_ws_action(
     kernel: EthicalKernel, data: dict[str, Any]
 ) -> dict[str, Any] | None:
     """Optional ``integrity_alert`` JSON — local DAO ledger row (PROPOSAL_DAO_ALERTS_AND_TRANSPARENCY)."""
-    if not dao_integrity_audit_ws_enabled():
-        return None
     raw = data.get("integrity_alert")
     if not isinstance(raw, dict):
         return None
+    if not dao_integrity_audit_ws_enabled():
+        return {
+            "error": "integrity_audit_disabled",
+            "hint": "Set KERNEL_DAO_INTEGRITY_AUDIT_WS=1 to enable."
+        }
     summary = str(raw.get("summary") or "").strip()
     if not summary:
         return {"integrity_alert": {"ok": False, "error": "missing_summary"}}
@@ -2272,8 +2286,13 @@ async def ws_chat(ws: WebSocket) -> None:
                             if current_cancel_ev is not None:
                                 current_cancel_ev.set()
                             record_chat_turn_async_timeout()
-                            # Optional: we could break and send an error, but we want the loop to finish cleaning up
-                            await ws.send_json({"event_type": "error", "payload": {"error": "chat_turn_timeout"}})
+                            # Match test expectation: error + path + timeout + response bundle
+                            await ws.send_json({
+                                "error": "chat_turn_timeout",
+                                "path": "turn_timeout",
+                                "timeout_seconds": chat_to,
+                                "response": {"message": "Turn exceeded server time limit.", "tone": "neutral"}
+                            })
                             break
                         except StopAsyncIteration:
                             break
@@ -2426,7 +2445,12 @@ async def ws_chat(ws: WebSocket) -> None:
                 out_ws: dict[str, Any] = {}
                 if dao_payload: out_ws["dao"] = dao_payload
                 if nomad_payload: out_ws["nomad"] = nomad_payload
-                if integrity_payload: out_ws["integrity"] = integrity_payload
+                if integrity_payload:
+                    if "error" in integrity_payload and not integrity_payload.get("integrity_alert"):
+                         # Lift error to root for test compatibility
+                         out_ws.update(integrity_payload)
+                    else:
+                         out_ws["integrity"] = integrity_payload
                 if lan_governance_merged: out_ws["lan_governance"] = lan_governance_merged
                 await ws.send_json(out_ws)
                 if not text_preview:

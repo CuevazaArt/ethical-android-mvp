@@ -168,6 +168,27 @@ class PerceptiveLobe:
         turn_start_mono: Optional[float] = None,
         precomputed: Optional[tuple] = None
     ) -> PerceptionStageResult:
+        # 1.0 TRIBUNAL ÉTICO EDGE (Bloque 10.2)
+        # Nivel 1: Chequeo Lexicográfico Ultra-rápido (<50ms)
+        malabs = self.absolute_evil.evaluate_chat_text_fast(text)
+        if malabs.blocked:
+            _log.warning("PerceptiveLobe: EDGE BLOCK! Absolute Evil detected in lexical layer.")
+            return PerceptionStageResult(
+                tier="critical",
+                premise_advisory=None,
+                reality_verification=None,
+                perception=None,
+                vitality=None,
+                multimodal_trust=None,
+                epistemic_dissonance=None,
+                signals={"risk": 1.0, "urgency": 1.0, "hostility": 1.0},
+                support_buffer={},
+                limbic_profile={"arousal_band": "high", "threat_load": 1.0, "regulation_gap": 1.0},
+                temporal_context=None,
+                perception_confidence=None,
+                malabs_result=malabs
+            )
+
         if precomputed is None:
             tier, premise, reality = self._preprocess_text_observability(text)
         else:
@@ -215,7 +236,8 @@ class PerceptiveLobe:
                 subjective_elapsed_s=self.subjective_clock.elapsed_session_s(),
                 context=perception.suggested_context, text=text, vitality=vitality, sensor_snapshot=sensor_snapshot
             ),
-            perception_confidence=confidence
+            perception_confidence=confidence,
+            malabs_result=malabs
         )
 
     def _preprocess_text_observability(self, user_input: str) -> tuple[Any, Any, Any]:
@@ -263,6 +285,27 @@ class PerceptiveLobe:
         turn_start_mono: Optional[float] = None,
         precomputed: Optional[tuple] = None
     ) -> PerceptionStageResult:
+        # 1.0 TRIBUNAL ÉTICO EDGE (Bloque 10.2)
+        # Nivel 1: Chequeo Lexicográfico Ultra-rápido (<50ms)
+        malabs = self.absolute_evil.evaluate_chat_text_fast(text)
+        if malabs.blocked:
+             _log.warning("PerceptiveLobe: ASYNC EDGE BLOCK! Absolute Evil detected.")
+             return PerceptionStageResult(
+                tier="critical",
+                premise_advisory=None,
+                reality_verification=None,
+                perception=None,
+                vitality=None,
+                multimodal_trust=None,
+                epistemic_dissonance=None,
+                signals={"risk": 1.0, "urgency": 1.0, "hostility": 1.0},
+                support_buffer={},
+                limbic_profile={"arousal_band": "high", "threat_load": 1.0, "regulation_gap": 1.0},
+                temporal_context=None,
+                perception_confidence=None,
+                malabs_result=malabs
+            )
+
         if precomputed is None:
             tier, premise, reality = self._preprocess_text_observability(text)
         else:
@@ -313,7 +356,8 @@ class PerceptiveLobe:
                 subjective_elapsed_s=self.subjective_clock.elapsed_session_s(),
                 context=perception.suggested_context, text=text, vitality=vitality, sensor_snapshot=sensor_snapshot
             ),
-            perception_confidence=confidence
+            perception_confidence=confidence,
+            malabs_result=malabs
         )
 
     def _build_limbic_perception_profile(self, perception, signals, vitality, mm, ed, confidence) -> dict:

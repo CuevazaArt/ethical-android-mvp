@@ -783,8 +783,8 @@ class EthicalKernel:
             _emit_process_observability(p_res["safety_decision"], t0)
             return p_res["safety_decision"]
 
-        # ═══ STAGE 1: SOCIAL & CONTEXT ═══
-        social_eval, state, locus_eval = self._run_social_and_locus_stage(
+        # ═══ STAGE 1: SOCIAL & CONTEXT (Nivel 2: Asíncrono) ═══
+        social_eval, state, locus_eval = await self._run_social_and_locus_stage(
             agent_id, signals, message_content, sensor_snapshot, multimodal_assessment
         )
 
@@ -862,11 +862,11 @@ class EthicalKernel:
         return d
 
 
-    def _run_social_and_locus_stage(
+    async def _run_social_and_locus_stage(
         self, agent_id: str, signals: dict, message_content: str,
         sensor_snapshot: SensorSnapshot | None, multimodal_assessment: MultimodalAssessment | None
     ) -> tuple[SocialEvaluation, InternalState, LocusEvaluation]:
-        res = self.limbic_lobe.execute_stage(
+        res = await self.limbic_lobe.execute_stage_async(
             agent_id, signals, message_content, 
             turn_index=self.subjective_clock.turn_index,
             sensor_snapshot=sensor_snapshot, 
@@ -1265,7 +1265,8 @@ class EthicalKernel:
             self.user_model.note_premise_advisory(self._last_premise_advisory.flag)
 
             # 1. Safety Block Check (Layer 1: Edge Lexical < 50ms)
-            mal_edge = self.absolute_evil.evaluate_chat_text(user_input)
+            # Nivel 1: Chequeo Lexicográfico Ultra-rápido (<10ms)
+            mal_edge = self.absolute_evil.evaluate_chat_text_fast(user_input)
             
             if mal_edge.blocked:
                 self._last_chat_malabs = mal_edge
@@ -1415,6 +1416,7 @@ class EthicalKernel:
                 limbic_profile=stage.limbic_profile,
             )
             wm.add_turn(user_input, final_response.message, stage.signals, heavy_kernel=(decision.decision_mode == "heavy"))
+            self._snapshot_feedback_anchor(res.path)
             yield {"event_type": "turn_finished", "payload": {"result": res}}
         finally:
             clear_llm_cancel_scope()
@@ -1446,7 +1448,8 @@ class EthicalKernel:
         self.user_model.note_premise_advisory(self._last_premise_advisory.flag)
 
         # 1. Safety Block Check (Layer 1: Edge Lexical < 50ms)
-        mal_edge = self.absolute_evil.evaluate_chat_text(user_input)
+        # Nivel 1: Chequeo Lexicográfico Ultra-rápido (<10ms)
+        mal_edge = self.absolute_evil.evaluate_chat_text_fast(user_input)
         
         if mal_edge.blocked:
             self._last_chat_malabs = mal_edge
@@ -1739,6 +1742,7 @@ class EthicalKernel:
             limbic_profile=stage.limbic_profile,
         )
         wm.add_turn(user_input, final_response.message, stage.signals, heavy_kernel=heavy)
+        self._snapshot_feedback_anchor(res.path)
         self._release_chat_turn_id(chat_turn_id)
         return res
 

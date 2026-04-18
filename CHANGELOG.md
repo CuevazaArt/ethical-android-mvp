@@ -8,6 +8,11 @@ All notable changes to this project are summarized here. For narrative context a
 
 ### Antigravity-Team Updates (2026-04-18)
 
+- **Phase 11.4 FINALIZED (Sync & Hardware Bridge Stability)**:
+    - Resolved `turn_index` synchronization regression in WebSocket streaming (coerced `temporal_context.turn_index >= 1`).
+    - Fixed `ReparationVault` and `vision_adapter` import/discovery failures in the integration test suite.
+    - Successfully rebased `master-antigravity` against `main`, resolving multi-team conflicts in `TurnPrefetcher` and `SensorSnapshot`.
+    - Initialized **Phase 10 (Motor de Encanto Resiliente)** delegation for Level 2 squads (Claude, Cursor, Copilot).
 - **Phase 11.4 (Hardening & Observability)**:
     - Implemented persistent `httpx.AsyncClient` across the tri-lobe architecture to eliminate networking overhead in the event loop.
     - Integrated shared `aclient` in `EthicalKernel`, `LLMModule`, `SemanticChatGate`, and all HTTP/Ollama backends.

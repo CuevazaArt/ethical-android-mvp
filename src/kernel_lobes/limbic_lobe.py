@@ -88,6 +88,26 @@ class LimbicEthicalLobe:
             locus_evaluation=locus_eval,
         )
 
+    async def execute_stage_async(
+        self,
+        agent_id: str,
+        signals: dict[str, float],
+        message_content: str,
+        turn_index: int,
+        sensor_snapshot: Optional[Any] = None,
+        multimodal_assessment: Optional[Any] = None,
+        somatic_state: Optional[dict[str, Any]] = None
+    ) -> LimbicStageResult:
+        """Async wrapper for Level 2 Limbic processing."""
+        import asyncio
+        loop = asyncio.get_event_loop()
+        return await loop.run_in_executor(
+            None, 
+            self.execute_stage, 
+            agent_id, signals, message_content, turn_index, 
+            sensor_snapshot, multimodal_assessment, somatic_state
+        )
+
 
 # Stable name expected by ``kernel`` / ``kernel_lobes.__init__`` imports.
 LimbicLobe = LimbicEthicalLobe
