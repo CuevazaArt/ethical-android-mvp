@@ -1709,6 +1709,7 @@ class EthicalKernel:
                 user_tracker=self.user_model,
                 caution_level=caution_val,
                 absolute_evil_detected=malabs_detected,
+                tension=decision.sympathetic_state.sigma if decision.sympathetic_state else 0.0,
             )
             final_response.message = stylized.final_text
             if stage.limbic_profile is not None:

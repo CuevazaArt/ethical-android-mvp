@@ -80,7 +80,7 @@ function handleMessage(msg) {
             updateVision(msg.payload.image_b64);
             break;
         case 'thought':
-            updateThoughts(msg.payload.text);
+            updateThoughts(msg.payload.text, msg.payload.dissonance);
             break;
     }
 }
@@ -132,9 +132,17 @@ function updateVision(b64) {
     img.src = `data:image/jpeg;base64,${b64}`;
 }
 
-function updateThoughts(text) {
+function updateThoughts(text, dissonance) {
     const el = document.getElementById('thought-stream');
     el.innerText = text;
+    
+    // Phase 12.3: Show/Hide Dissonance Badge
+    const badge = document.getElementById('dissonance-badge');
+    if (dissonance) {
+        badge.classList.remove('hidden');
+    } else {
+        badge.classList.add('hidden');
+    }
 }
 
 // Start

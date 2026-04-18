@@ -105,10 +105,16 @@ class GesturePlanner:
 
 
 class HapticPlanner:
-    """Phase 10.2: Plans vibrations for the Nomad Vessel PWA."""
-    def plan(self, charm: CharmVector, caution: float) -> list[dict[str, Any]]:
+    """Phase 12: Plans complex vibration patterns for the Nomad Vessel."""
+    def plan(self, charm: CharmVector, caution: float, tension: float = 0.0) -> list[dict[str, Any]]:
         plan = []
-        if caution > 0.8:
+        if caution > 0.9:
+            # Dangerous veto or absolute evil
+            plan.append({"type": "vibrate", "pattern": [100, 50, 100, 50, 200], "label": "emergency_veto"})
+        elif tension > 0.8:
+            # Heartbeat effect for high cognitive load
+            plan.append({"type": "vibrate", "pattern": [30, 100, 30], "label": "limbic_heartbeat"})
+        elif caution > 0.6:
             plan.append({"type": "vibrate", "pattern": [50, 100, 50], "label": "alert_caution"})
         elif charm.warmth > 0.7:
             plan.append({"type": "vibrate", "pattern": [10], "label": "gentle_pulse"})
@@ -133,6 +139,7 @@ class ResponseSculptor:
         user_tracker: UserModelTracker,
         caution_level: float,
         absolute_evil_detected: bool,
+        tension: float = 0.0,
     ) -> StylizedResponse:
         """
         Applies charm layer. Bypassed entirely if absolute evil is present.
@@ -164,7 +171,7 @@ class ResponseSculptor:
         charm.directiveness = smoothed_vector["directiveness"]
 
         gesture = self.gesture_planner.plan(charm)
-        haptic = self.haptic_planner.plan(charm, caution_level)
+        haptic = self.haptic_planner.plan(charm, caution_level, tension=tension)
 
         # En integración real, esto encadena un call al LLM (con override_template).
         # Para el stub arquitectónico, agregamos el metadata de intención.
@@ -203,7 +210,8 @@ class CharmEngine:
         user_tracker: UserModelTracker,
         caution_level: float,
         absolute_evil_detected: bool,
+        tension: float = 0.0,
     ) -> StylizedResponse:
         return self.sculptor.sculpt(
-            base_text, decision_action, profile, user_tracker, caution_level, absolute_evil_detected
+            base_text, decision_action, profile, user_tracker, caution_level, absolute_evil_detected, tension=tension
         )

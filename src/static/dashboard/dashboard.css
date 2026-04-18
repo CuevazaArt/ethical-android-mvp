@@ -141,6 +141,34 @@ main {
     transition: width 0.5s ease;
 }
 
+.badge-dissonance {
+    background: rgba(239, 68, 68, 0.2);
+    color: var(--danger);
+    padding: 0.35rem 0.75rem;
+    border-radius: 9999px;
+    font-size: 0.7rem;
+    font-weight: 700;
+    letter-spacing: 1px;
+    margin-right: 1rem;
+    border: 1px solid rgba(239, 68, 68, 0.3);
+    box-shadow: 0 0 15px rgba(239, 68, 68, 0.2);
+    animation: flash-red 0.8s infinite alternate;
+}
+
+.header-meta {
+    display: flex;
+    align-items: center;
+}
+
+.hidden {
+    display: none;
+}
+
+@keyframes flash-red {
+    from { opacity: 0.5; filter: brightness(1.2); }
+    to { opacity: 1; filter: brightness(1); }
+}
+
 /* ════ Center Panel: The Orb ════ */
 .center-panel {
     display: flex;

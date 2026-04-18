@@ -136,13 +136,16 @@ class NomadBridge:
     async def _send_loop(self, ws: Any) -> None:
         try:
             while True:
-                charm_vector = await self.charm_feedback_queue.get()
-                await ws.send_json(
-                    {
+                try:
+                    # Wait for real feedback or timeout after 10s to send a keep-alive ping
+                    payload = await asyncio.wait_for(self.charm_feedback_queue.get(), timeout=10.0)
+                    await ws.send_json({
                         "type": "charm_feedback",
-                        "payload": charm_vector,
-                    }
-                )
+                        "payload": payload,
+                    })
+                except asyncio.TimeoutError:
+                    # Phase 12.2: Hardening - Send keep-alive ping
+                    await ws.send_json({"type": "ping", "payload": {}})
         except asyncio.CancelledError:
             pass
         except Exception as e:

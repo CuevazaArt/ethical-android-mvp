@@ -133,21 +133,42 @@ function connectKernel() {
                     UI.transcript.innerText = msg.content;
                 }
                 
-                // If a physical veto occurs
                 if (msg.type === 'veto') {
                     setAppAffectState('alert');
                     UI.transcript.innerText = "KERNEL LOCK: Threat detected.";
                 }
 
-                // Phase 11: Ouroboros TTS
+                if (msg.type === 'ping') {
+                    console.debug("Nomad: Keep-alive ping from server.");
+                    // Optional: Send a tiny telemetry pulse back
+                }
+
+                if (msg.type === 'thought') {
+                    // Phase 12.3: Visual hint for dissonance in PWA
+                    if (msg.payload.dissonance) {
+                        UI.transcript.classList.add('dissonance-active');
+                    } else {
+                        UI.transcript.classList.remove('dissonance-active');
+                    }
+                }
+
+                // Phase 12: Ouroboros TTS with Lip-sync
                 if (msg.type === 'kernel_voice') {
                     UI.transcript.innerText = `Kernel: ${msg.text}`;
                     if ('speechSynthesis' in window) {
                         const utterance = new SpeechSynthesisUtterance(msg.text);
-                        // Try to find a robotic or english voice, fallback to default
                         const voices = window.speechSynthesis.getVoices();
-                        const voice = voices.find(v => v.name.includes("Google") || v.name.includes("English")) || voices[0];
-                        if(voice) utterance.voice = voice;
+                        // Priority voices for Ethos personality
+                        const preferred = voices.find(v => v.name.includes("Male") || v.name.includes("UK English")) || voices[0];
+                        if(preferred) utterance.voice = preferred;
+                        
+                        utterance.onstart = () => {
+                            UI.orb.classList.add('speaking');
+                            // Notify back to NomadBridge if needed (Phase 12.1)
+                        };
+                        utterance.onend = () => {
+                            UI.orb.classList.remove('speaking');
+                        };
                         window.speechSynthesis.speak(utterance);
                     }
                 }
@@ -183,7 +204,15 @@ function connectKernel() {
 
         // Antigravity & Cursor - add wsNomad initialization for the sensor stream
         wsNomad = new WebSocket(`${protocol}//${PC_IP}:${WS_PORT}/ws/nomad`);
-        wsNomad.onopen = () => { console.log('Nomad Sensory Bridge established'); };
+        wsNomad.onopen = () => { 
+            console.log('Nomad Sensory Bridge established');
+            // Heavy Heartbeat (Fase 12.2)
+            setInterval(() => {
+               if(wsNomad.readyState === WebSocket.OPEN) {
+                   wsNomad.send(JSON.stringify({ type: "telemetry", payload: { heartbeat: true } }));
+               }
+            }, 15000);
+        };
 
     } catch (e) {
         alert("Cannot connect to the Ethos Kernel. Are you on the same Wi-Fi?");

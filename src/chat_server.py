@@ -2330,7 +2330,10 @@ async def ws_chat(ws: WebSocket) -> None:
                     if result.response and result.response.inner_voice:
                         nb.broadcast_to_dashboards({
                             "type": "thought",
-                            "payload": {"text": result.response.inner_voice}
+                            "payload": {
+                                "text": result.response.inner_voice,
+                                "dissonance": bool(result.epistemic_dissonance.active) if result.epistemic_dissonance else False
+                            }
                         })
 
                     if result.path in ("safety_block", "kernel_block"):
@@ -2348,25 +2351,25 @@ async def ws_chat(ws: WebSocket) -> None:
                     # Retener la respuesta desnuda para backwards compatibility con los tests
                     await ws.send_json(payload)
                     
-                    # Backward compatibility: suppress stream events for older clients/tests
+                    # Phase 11/12: Ouroboros Feedback Loop (Always active for rich clients)
+                    android_text = payload.get("response", {}).get("message", "")
+                    if android_text:
+                        await ws.send_json({
+                            "type": "kernel_voice",
+                            "text": android_text
+                        })
+                    
+                    lp = payload.get("limbic_profile", {})
+                    haptic_plan = lp.get("haptic_plan", [])
+                    if haptic_plan:
+                        await ws.send_json({
+                            "type": "haptic_feedback",
+                            "payload": {"haptics": haptic_plan}
+                        })
+                    
+                    # Backward compatibility: suppress other internal events
                     if os.environ.get("KERNEL_CHAT_STRIP_STREAM_EVENTS", "1") == "0":
-                        # Phase 11: Ouroboros TTS hook
-                        android_text = payload.get("response", {}).get("message", "")
-                        if android_text:
-                            await ws.send_json({
-                                "type": "kernel_voice",
-                                "text": android_text
-                            })
-                        
-                        # Phase 10.2: Haptic Feedback Loop
-                        haptic_plan = payload.get("limbic_profile", {}).get("haptic_plan", [])
-                        if haptic_plan:
-                            await ws.send_json({
-                                "type": "haptic_feedback",
-                                "payload": {
-                                    "haptics": haptic_plan
-                                }
-                            })
+                         pass
 
                         
                     maybe_autosave_episodes(kernel, session_ckpt)

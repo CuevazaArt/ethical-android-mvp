@@ -1,0 +1,178 @@
+:root {
+    --bg-dark: #0F172A;
+    --glass: rgba(255, 255, 255, 0.05);
+    --glass-border: rgba(255, 255, 255, 0.1);
+    --accent-cyan: #22D3EE;
+    --accent-magenta: #F472B6;
+    --text-dim: #94A3B8;
+}
+
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+    -webkit-tap-highlight-color: transparent;
+}
+
+body {
+    font-family: 'Inter', sans-serif;
+    background-color: var(--bg-dark);
+    color: white;
+    overflow: hidden;
+    height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.mesh-background {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: radial-gradient(circle at 50% 50%, #1E293B 0%, #0F172A 100%);
+    z-index: -1;
+}
+
+.app-container {
+    width: 100%;
+    max-width: 450px;
+    height: 100%;
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.glass-panel {
+    background: var(--glass);
+    backdrop-filter: blur(10px);
+    border: 1px solid var(--glass-border);
+    border-radius: 20px;
+    padding: 15px;
+}
+
+.top-bar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.status-indicator {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.status-dot {
+    width: 10px;
+    height: 10px;
+    background: #64748B;
+    border-radius: 50%;
+    box-shadow: 0 0 10px rgba(100, 116, 139, 0.5);
+}
+
+.status-dot.connected {
+    background: #22C55E;
+    box-shadow: 0 0 10px rgba(34, 197, 94, 0.5);
+    animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+    0% { transform: scale(1); opacity: 1; }
+    50% { transform: scale(1.2); opacity: 0.7; }
+    100% { transform: scale(1); opacity: 1; }
+}
+
+.orb-container {
+    flex: 1;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.affect-orb {
+    width: 200px;
+    height: 200px;
+    background: radial-gradient(circle at 30% 30%, var(--accent-cyan), #0891B2);
+    border-radius: 50%;
+    position: relative;
+    box-shadow: 0 0 50px rgba(34, 211, 238, 0.3);
+    transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275), filter 0.3s;
+}
+
+.affect-orb.speaking {
+    animation: speak-pulse 0.4s infinite alternate;
+}
+
+@keyframes speak-pulse {
+    from { transform: scale(1.05); filter: brightness(1.2); }
+    to { transform: scale(0.95); filter: brightness(1.0); }
+}
+
+#hidden-video {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    border-radius: 50%;
+    opacity: 0.1;
+    z-index: 1;
+}
+
+.charm-output {
+    min-height: 100px;
+    transition: box-shadow 0.3s, border-color 0.3s;
+}
+
+.charm-output.dissonance-active {
+    border-color: rgba(239, 68, 68, 0.5);
+    box-shadow: 0 0 15px rgba(239, 68, 68, 0.2);
+}
+
+.transcript {
+    font-size: 1.1rem;
+    line-height: 1.5;
+    font-weight: 300;
+}
+
+.transcript.placeholder {
+    color: var(--text-dim);
+}
+
+.bottom-controls {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.glass-btn {
+    border: none;
+    padding: 15px;
+    border-radius: 15px;
+    font-size: 1rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.glass-btn.primary {
+    background: white;
+    color: var(--bg-dark);
+}
+
+.glass-btn.secondary {
+    background: var(--glass);
+    color: white;
+    border: 1px solid var(--glass-border);
+}
+
+.glass-btn.inactive {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.glass-btn:active:not(.inactive) {
+    transform: scale(0.98);
+}
