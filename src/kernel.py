@@ -1614,7 +1614,6 @@ class EthicalKernel:
             user_input,
             llm_backend=self._malabs_text_backend(),
         )
-        _log.info("DEBUG: after malabs")
         self._last_chat_malabs = mal
         if mal.blocked:
             vitality_blk, mm_blk, ed_blk = self._chat_assess_sensor_stack(sensor_snapshot)
@@ -1628,6 +1627,7 @@ class EthicalKernel:
             msg = "I can't continue this line of conversation: it conflicts with ethical limits."
             resp = VerbalResponse(message=msg, tone="firm", hax_mode="Steady blue light.", inner_voice=f"MalAbs: {mal.reason}")
             wm.add_turn(user_input, msg, {}, blocked=True)
+            self._snapshot_feedback_anchor("safety_block")
             res = ChatTurnResult(
                 response=resp, path="safety_block", blocked=True, block_reason=mal.reason or "chat_safety",
                 multimodal_trust=mm_blk, epistemic_dissonance=ed_blk, perception_confidence=confidence_blk,
@@ -1685,6 +1685,7 @@ class EthicalKernel:
         }
 
         if decision.blocked:
+            self._snapshot_feedback_anchor("kernel_block")
             res = ChatTurnResult(response=VerbalResponse("Blocked.", "firm"), path="kernel_block", blocked=True)
             yield {"event_type": "turn_finished", "payload": {"result": res}}
             return
@@ -1740,9 +1741,11 @@ class EthicalKernel:
             except Exception:
                 pass
         
+        path_key = "heavy" if heavy else "light"
+        self._snapshot_feedback_anchor(path_key)
         res = ChatTurnResult(
             response=final_response,
-            path="heavy" if heavy else "light",
+            path=path_key,
             perception=stage.perception,
             decision=decision,
             multimodal_trust=stage.multimodal_trust,
@@ -1944,6 +1947,7 @@ class EthicalKernel:
             raise
 
         if decision.blocked:
+            self._snapshot_feedback_anchor("kernel_block")
             self._release_chat_turn_id(chat_turn_id)
             return ChatTurnResult(
                 response=VerbalResponse("Blocked.", "firm"),
@@ -2011,9 +2015,11 @@ class EthicalKernel:
             except Exception:
                 pass
 
+        path_key = "heavy" if heavy else "light"
+        self._snapshot_feedback_anchor(path_key)
         res = ChatTurnResult(
             response=final_response,
-            path="heavy" if heavy else "light",
+            path=path_key,
             perception=perception,
             decision=decision,
             multimodal_trust=mm,

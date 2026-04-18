@@ -54,7 +54,7 @@ class UserModelTracker:
     charm_playfulness: float = 0.45
     charm_intimacy: float = 0.5
     charm_macro_culture: str = "global_default"
-
+    sensory_fandoms: list[str] = field(default_factory=list)
 
     def note_judicial_escalation(self, strikes: int, threshold: int) -> None:
         """Snapshot from ``EscalationSessionTracker`` before :meth:`update` each turn."""
@@ -247,7 +247,7 @@ class UserModelTracker:
                 if self.frustration_streak >= 3
                 else ""
             ),
-            "reciprocity_index": float(self.reciprocity_index),
+            "reciprocity_index": float(self.charm_reciprocity),
             "sensory_fandoms": list(self.sensory_fandoms),
         }
 
