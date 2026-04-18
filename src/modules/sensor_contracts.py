@@ -191,6 +191,59 @@ def merge_nomad_vision_into_snapshot(snapshot: SensorSnapshot | None) -> SensorS
     return replace(snapshot, vision_emergency=merged_ve, image_metadata=merged_meta)
 
 
+def merge_nomad_telemetry_into_snapshot(snapshot: SensorSnapshot | None) -> SensorSnapshot | None:
+    """
+    When ``KERNEL_NOMAD_TELEMETRY_CONSUMER`` is on and the consumer has latest telemetry,
+    merge battery, jerk, and temperature into the snapshot.
+    """
+    from dataclasses import replace
+
+    from ..kernel_utils import kernel_env_truthy
+
+    if not kernel_env_truthy("KERNEL_NOMAD_TELEMETRY_CONSUMER"):
+        return snapshot
+
+    from .vitality import get_nomad_telemetry_consumer_optional
+
+    consumer = get_nomad_telemetry_consumer_optional()
+    if consumer is None or consumer.latest_telemetry is None:
+        return snapshot
+
+    tel = consumer.latest_telemetry
+    
+    # Extract values with defaults from the snapshot if already present
+    bat = tel.get("battery_level")
+    jerk = tel.get("accelerometer_jerk")
+    temp = tel.get("core_temperature")
+    
+    if snapshot is None:
+        return SensorSnapshot(
+            battery_level=bat,
+            accelerometer_jerk=jerk,
+            core_temperature=temp
+        )
+
+    # Max-merge for jerk/temp if they exist, or just take the new one
+    merged_bat = bat if bat is not None else snapshot.battery_level
+    
+    if jerk is not None:
+        merged_jerk = max(snapshot.accelerometer_jerk or 0.0, jerk)
+    else:
+        merged_jerk = snapshot.accelerometer_jerk
+        
+    if temp is not None:
+        merged_temp = max(snapshot.core_temperature or 0.0, temp)
+    else:
+        merged_temp = snapshot.core_temperature
+
+    return replace(
+        snapshot, 
+        battery_level=merged_bat, 
+        accelerometer_jerk=merged_jerk, 
+        core_temperature=merged_temp
+    )
+
+
 def merge_sensor_hints_into_signals(
     signals: dict[str, float],
     snapshot: SensorSnapshot | None,

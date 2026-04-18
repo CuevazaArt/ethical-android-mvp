@@ -53,7 +53,7 @@ class StyleParametrizer:
         warmth = 0.5
         mystery = 0.3
         play = 0.3
-        dirct = 0.5
+        dirct = 0.2 + (0.6 * caution_level) # Directiveness scales with caution
 
         lower_action = (decision_action or "").lower()
 
@@ -136,7 +136,7 @@ class ResponseSculptor:
         final_text = base_text
         if charm.warmth > 0.7 and caution_level <= 0.3:
             final_text += " [Tone: Warm & Open]"
-        elif charm.directiveness > 0.8:
+        elif charm.directiveness >= 0.8:
             final_text += " [Tone: Direct & Boundaried]"
 
         return StylizedResponse(

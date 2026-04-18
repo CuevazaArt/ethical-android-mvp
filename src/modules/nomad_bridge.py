@@ -2,6 +2,7 @@ import asyncio
 import base64
 import json
 import logging
+import time
 from typing import Any
 
 from fastapi import FastAPI, WebSocket, WebSocketDisconnect
@@ -28,10 +29,14 @@ class NomadBridge:
         self.charm_feedback_queue: asyncio.Queue[dict[str, Any]] = asyncio.Queue(maxsize=10)
         
         self.app = FastAPI(title="Nomad Bridge Sensor Endpoint")
+        self._is_connected = False
+        self._last_heartbeat = 0.0
         
         @self.app.websocket("/ws/nomad")
         async def websocket_nomad_endpoint(websocket: WebSocket):
             await websocket.accept()
+            self._is_connected = True
+            self._last_heartbeat = time.time()
             _log.info("Nomad Bridge: Handshake successful. Nomad Smartphone is connected.")
             
             # Start full-duplex execution
@@ -45,8 +50,23 @@ class NomadBridge:
             
             for task in pending:
                 task.cancel()
-                
+            
+            self._is_connected = False
             _log.info("Nomad Bridge: Nomad Smartphone disconnected.")
+
+    @property
+    def is_connected(self) -> bool:
+        return self._is_connected
+
+    @property
+    def is_somatic_blind(self) -> bool:
+        """
+        Calculates if the kernel is currently 'somatically blind' (Module S.1.2).
+        True if Nomad was active but heartbeat is older than 5 seconds.
+        """
+        if not self._is_connected:
+            return False
+        return (time.time() - self._last_heartbeat) > 5.0
     
     async def _recv_loop(self, ws: WebSocket):
         try:
@@ -56,6 +76,8 @@ class NomadBridge:
                 payload = data.get("payload")
                 
                 if not event_type or not payload:
+                    if event_type == "heartbeat":
+                        self._last_heartbeat = time.time()
                     continue
                     
                 if event_type == "vision_frame":
@@ -84,13 +106,12 @@ class NomadBridge:
     async def _send_loop(self, ws: WebSocket):
         try:
             while True:
-                charm_vector = await self.charm_feedback_queue.get()
+                # Acceptance of enriched feedback (Charm Vector + Gesture Plan)
+                feedback = await self.charm_feedback_queue.get()
                 await ws.send_json({
-                    "type": "charm_feedback",
-                    "payload": charm_vector
+                    "type": "somatic_feedback",
+                    "payload": feedback
                 })
-        except asyncio.CancelledError:
-            pass
         except Exception as e:
             _log.error(f"Nomad Bridge send error: {e}")
 

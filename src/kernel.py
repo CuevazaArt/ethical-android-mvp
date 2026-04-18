@@ -1187,6 +1187,7 @@ class EthicalKernel:
         the snapshot (returned as the fourth tuple element for downstream merge/audit).
         """
         sensor_snapshot = merge_nomad_vision_into_snapshot(sensor_snapshot)
+        sensor_snapshot = merge_nomad_telemetry_into_snapshot(sensor_snapshot)
         workers = perception_parallel_workers()
         if workers <= 1:
             vitality = assess_vitality(sensor_snapshot)
@@ -1715,7 +1716,11 @@ class EthicalKernel:
             
             from .modules.nomad_bridge import get_nomad_bridge
             try:
-                get_nomad_bridge().charm_feedback_queue.put_nowait(stylized.charm_vector)
+                somatic_payload = {
+                    "charm_vector": stylized.charm_vector,
+                    "gesture_plan": stylized.gesture_plan
+                }
+                get_nomad_bridge().charm_feedback_queue.put_nowait(somatic_payload)
             except Exception:
                 pass
         

@@ -230,12 +230,25 @@ async def _lifespan(app: FastAPI):
     configure_logging()
     init_metrics()
     from .modules.vision_adapter import start_nomad_vision_consumer_from_env, stop_nomad_vision_consumer_async
+    from .modules.vitality import start_nomad_telemetry_consumer_from_env, stop_nomad_telemetry_consumer_async
+    from .modules.audio_adapter import start_nomad_audio_consumer_from_env, stop_nomad_audio_consumer_async, AudioRingBuffer
 
     start_nomad_vision_consumer_from_env()
+    start_nomad_telemetry_consumer_from_env()
+    
+    # Nomad Audio: uses a standalone ring buffer if no hardware mic is active
+    # In full hardware kits, this would be the same buffer used by AudioCaptureInterface
+    from .modules.audio_adapter import get_shared_audio_capture
+    capture = get_shared_audio_capture()
+    if capture:
+        start_nomad_audio_consumer_from_env(capture.ring_buffer)
+
     try:
         yield
     finally:
         await stop_nomad_vision_consumer_async()
+        await stop_nomad_telemetry_consumer_async()
+        await stop_nomad_audio_consumer_async()
         from .real_time_bridge import shutdown_chat_threadpool
 
         shutdown_chat_threadpool(wait=True)
@@ -256,6 +269,10 @@ app = FastAPI(
     openapi_url="/openapi.json" if _api_docs_enabled() else None,
     lifespan=_lifespan,
 )
+
+# Mounting Nomad Bridge (Fase 8+ / Módulo S)
+from .modules.nomad_bridge import get_nomad_bridge
+app.mount("/nomad", get_nomad_bridge().app)
 
 app.add_middleware(RequestContextMiddleware)
 

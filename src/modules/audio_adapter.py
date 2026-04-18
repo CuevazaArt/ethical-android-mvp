@@ -191,10 +191,77 @@ class NomadAudioConsumer:
                 
                 # Offload append to not block the current loop
                 self.ring_buffer.append(np_pcm)
-                
             except asyncio.CancelledError:
                 break
             except Exception as e:
                 import logging
                 logging.getLogger(__name__).error("Error in NomadAudioConsumer: %s", e)
+    async def stop(self) -> None:
+        if self._task is not None:
+            self._task.cancel()
+            try:
+                await self._task
+            except asyncio.CancelledError:
+                pass
+            self._task = None
+
+
+_nomad_audio_consumer: NomadAudioConsumer | None = None
+
+
+def get_nomad_audio_consumer_optional() -> NomadAudioConsumer | None:
+    """Return the active consumer, if started."""
+    return _nomad_audio_consumer
+
+
+def start_nomad_audio_consumer_from_env(ring_buffer: AudioRingBuffer) -> NomadAudioConsumer | None:
+    """
+    When ``KERNEL_NOMAD_AUDIO_CONSUMER`` is set, start draining ``NomadBridge.audio_queue``.
+    """
+    global _nomad_audio_consumer
+    from ..kernel_utils import kernel_env_truthy
+
+    if not kernel_env_truthy("KERNEL_NOMAD_AUDIO_CONSUMER"):
+        return None
+    if _nomad_audio_consumer is not None:
+        return _nomad_audio_consumer
+    
+    _nomad_audio_consumer = NomadAudioConsumer(ring_buffer)
+    _nomad_audio_consumer.start()
+    import logging
+    logging.getLogger(__name__).info("NomadAudioConsumer started (KERNEL_NOMAD_AUDIO_CONSUMER=1).")
+    return _nomad_audio_consumer
+
+
+async def stop_nomad_audio_consumer_async() -> None:
+    """Cancel background audio consumption."""
+    global _nomad_audio_consumer
+    c = _nomad_audio_consumer
+    _nomad_audio_consumer = None
+    if c is not None:
+        await c.stop()
+        import logging
+        logging.getLogger(__name__).info("NomadAudioConsumer stopped.")
+
+
+_SHARED_AUDIO_CAPTURE: AudioCaptureInterface | None = None
+
+def get_shared_audio_capture() -> AudioCaptureInterface | None:
+    """
+    Returns the global shared audio capture interface.
+    Initialized only if KERNEL_AUDIO_CAPTURE=1 or if explicitly started.
+    """
+    global _SHARED_AUDIO_CAPTURE
+    from ..kernel_utils import kernel_env_truthy
+    
+    if _SHARED_AUDIO_CAPTURE is not None:
+        return _SHARED_AUDIO_CAPTURE
+        
+    if kernel_env_truthy("KERNEL_AUDIO_CAPTURE"):
+        _SHARED_AUDIO_CAPTURE = AudioCaptureInterface()
+        _SHARED_AUDIO_CAPTURE.start()
+        import logging
+        logging.getLogger(__name__).info("Shared AudioCaptureInterface started.")
+        
+    return _SHARED_AUDIO_CAPTURE
 
