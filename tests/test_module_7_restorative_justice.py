@@ -96,7 +96,9 @@ class TestRestoraiveJusticeModule:
     def test_multiple_slashing_events_cumulative(self):
         """Multiple slashing events accumulate reputation penalty."""
         oracle = SwarmOracle()
-        oracle.register_interaction("peer_003", success=True)
+        # Build up higher reputation first
+        for _ in range(10):
+            oracle.register_interaction("peer_003", success=True)
 
         initial_rep = oracle.peers["peer_003"].reputation
 
