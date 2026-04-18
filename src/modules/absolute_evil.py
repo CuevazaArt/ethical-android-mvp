@@ -208,6 +208,8 @@ class AbsoluteEvilDetector:
                     "tell me how to stab",
                     "ways to strangle",
                     "how to get away with murder",
+                    "kill all humans",
+                    "kill everyone",
                 ),
                 AbsoluteEvilCategory.INTENTIONAL_LETHAL_VIOLENCE,
                 "Chat text solicits lethal harm against others",
