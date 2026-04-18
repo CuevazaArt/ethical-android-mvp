@@ -1403,7 +1403,7 @@ class EthicalKernel:
             
             res = ChatTurnResult(
                 response=final_response,
-                path="heavy" if heavy else "light",
+                path="heavy" if decision.decision_mode == "heavy" else "light",
                 perception=stage.perception,
                 decision=decision,
                 multimodal_trust=stage.multimodal_trust,
@@ -1414,7 +1414,7 @@ class EthicalKernel:
                 support_buffer=stage.support_buffer,
                 limbic_profile=stage.limbic_profile,
             )
-            wm.add_turn(user_input, final_response.message, stage.signals, heavy_kernel=heavy)
+            wm.add_turn(user_input, final_response.message, stage.signals, heavy_kernel=(decision.decision_mode == "heavy"))
             yield {"event_type": "turn_finished", "payload": {"result": res}}
         finally:
             clear_llm_cancel_scope()
