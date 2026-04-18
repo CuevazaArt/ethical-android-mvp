@@ -102,32 +102,41 @@ class VisionContinuousDaemon:
         _log.info("VisionContinuousDaemon: Background streaming stopped.")
 
     def _daemon_loop(self):
-        """Loop de captura e inferencia continua."""
+        """Continuous vision loop: consume Nomad frames when present, else stub metadata."""
+        from src.modules.nomad_bridge import get_nomad_bridge
+
+        bridge = get_nomad_bridge()
         while self.running:
             start_tick = time.perf_counter()
-            
-            # En un entorno real, aquí llamaríamos a OpenCV / Webcam
-            # Por ahora simulamos la captura con un mock de metadatos ambientales
-            mock_frame = {"detected_objects": []} 
-            
-            # 1. Realizar Inferencia
-            detections = self.engine.analyze_image(mock_frame)
-            
-            # 2. Convertir a SensoryEpisode
-            episode = SensoryEpisode(
-                timestamp=time.time(),
-                origin="vision_daemon",
-                entities=[d.label for d in detections],
-                signals={
-                    "confidence": max([d.confidence for d in detections]) if detections else 1.0,
-                    "is_urgent": 1.0 if any(d.is_prohibited for d in detections) else 0.0
-                }
-            )
-            
-            # 3. Empujar al buffer del Lóbulo Perceptivo
-            self.absorption_callback(episode)
-            
-            # Mantener la frecuencia de 5Hz
+            try:
+                frame_data = None
+                try:
+                    if not bridge.vision_queue.empty():
+                        frame_data = bridge.vision_queue.get_nowait()
+                except Exception:
+                    pass
+
+                if frame_data:
+                    mock_analysis = {"detected_objects": [{"label": "human", "confidence": 0.9}]}
+                    detections = self.engine.analyze_image(mock_analysis)
+                else:
+                    detections = self.engine.analyze_image({"detected_objects": []})
+
+                threat = self.engine.get_highest_threat(detections)
+                episode = SensoryEpisode(
+                    timestamp=time.time(),
+                    origin="vision_daemon",
+                    entities=[d.label for d in detections],
+                    signals={
+                        "confidence": max((d.confidence for d in detections), default=0.0),
+                        "is_urgent": 1.0 if any(d.is_prohibited for d in detections) else 0.0,
+                        "threat_level": threat.confidence if threat else 0.0,
+                    },
+                )
+                self.absorption_callback(episode)
+            except Exception as e:
+                _log.error("VisionContinuousDaemon error in loop: %s", e)
+
             elapsed = time.perf_counter() - start_tick
             sleep_time = max(0.01, self.polling_rate - elapsed)
             time.sleep(sleep_time)

@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Ethos Kernel — transparency, limits, and safety posture summary">
+  <title>Transparency &amp; Limits — Ethos Kernel</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --bg: #0d0f14; --surface: #161b24; --surface2: #1e2535;
+      --border: rgba(255,255,255,0.07); --text: #e2e8f0; --muted: #8892a4;
+      --accent: #38bdf8; --green: #34d399; --yellow: #fbbf24; --red: #f87171;
+    }
+    body { background: var(--bg); color: var(--text); font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
+    nav {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 0.75rem 2rem; background: var(--surface); border-bottom: 1px solid var(--border);
+    }
+    .nav-logo { font-weight: 800; } .nav-logo span { color: var(--accent); }
+    .nav-back { color: var(--accent); text-decoration: none; font-size: 0.85rem; }
+
+    .page { max-width: 820px; margin: 0 auto; padding: 2.5rem 1.5rem; }
+    h1 { font-size: 2rem; font-weight: 800; letter-spacing: -0.02em; margin-bottom: 0.5rem; }
+    .lead { color: var(--muted); font-size: 1rem; margin-bottom: 2.5rem; }
+
+    .card { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 1.5rem; margin-bottom: 1.25rem; }
+    h2 { font-size: 1.05rem; font-weight: 700; margin-bottom: 0.75rem; }
+    h3 { font-size: 0.9rem; font-weight: 700; color: var(--muted); margin-bottom: 0.4rem; }
+    p  { font-size: 0.88rem; color: var(--muted); line-height: 1.65; margin-bottom: 0.6rem; }
+    a  { color: var(--accent); text-decoration: none; }
+
+    table { width: 100%; border-collapse: collapse; font-size: 0.82rem; }
+    th { text-align: left; color: var(--muted); font-weight: 600; padding: 0.4rem 0.5rem; border-bottom: 1px solid var(--border); }
+    td { padding: 0.4rem 0.5rem; border-bottom: 1px solid var(--border); vertical-align: top; line-height: 1.5; }
+    td:first-child { color: var(--text); font-weight: 600; width: 30%; }
+
+    .status-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 0.75rem; margin-bottom: 0.75rem; }
+    .status-item {
+      background: var(--surface2); border: 1px solid var(--border); border-radius: 8px;
+      padding: 0.85rem; display: flex; align-items: flex-start; gap: 0.6rem;
+    }
+    .status-icon { font-size: 1.25rem; flex-shrink: 0; }
+    .status-title { font-size: 0.83rem; font-weight: 700; margin-bottom: 0.2rem; }
+    .status-body  { font-size: 0.78rem; color: var(--muted); }
+
+    .caveat-box {
+      background: rgba(248,113,113,0.07); border: 1px solid rgba(248,113,113,0.2);
+      border-radius: 8px; padding: 0.85rem; font-size: 0.85rem; color: var(--red); margin-bottom: 1rem;
+    }
+    .info-box {
+      background: rgba(56,189,248,0.07); border: 1px solid rgba(56,189,248,0.2);
+      border-radius: 8px; padding: 0.85rem; font-size: 0.85rem; color: var(--accent); margin-bottom: 1rem;
+    }
+
+    footer { text-align: center; padding: 2rem; color: var(--muted); font-size: 0.78rem; }
+    footer a { color: var(--accent); text-decoration: none; }
+  </style>
+</head>
+<body>
+<nav>
+  <div class="nav-logo">Ethos <span>Kernel</span></div>
+  <a href="index.html" class="nav-back">← Home</a>
+</nav>
+
+<div class="page">
+  <h1>Transparency &amp; Limits</h1>
+  <p class="lead">An honest summary of what Ethos Kernel does, what it does not do, and where the known limits are. Updated April 2026.</p>
+
+  <div class="caveat-box">
+    🚨 <strong>This is a research prototype.</strong> Do not use as a standalone safety boundary for high-stakes decisions. See full caveats below.
+  </div>
+
+  <!-- Safety posture -->
+  <div class="card">
+    <h2>Safety mechanisms in place</h2>
+    <div class="status-grid">
+      <div class="status-item">
+        <span class="status-icon">🔒</span>
+        <div>
+          <div class="status-title">MalAbs lexical gate</div>
+          <div class="status-body">Unicode-normalised substring filter. Always runs before LLM input. Cannot be disabled by operators in production mode.</div>
+        </div>
+      </div>
+      <div class="status-item">
+        <span class="status-icon">🧠</span>
+        <div>
+          <div class="status-title">Semantic gate (optional)</div>
+          <div class="status-body"><code>KERNEL_SEMANTIC_CHAT_GATE=1</code> adds embedding similarity checks. Hash fallback when Ollama is unreachable.</div>
+        </div>
+      </div>
+      <div class="status-item">
+        <span class="status-icon">📋</span>
+        <div>
+          <div class="status-title">Immutable constitution (L0)</div>
+          <div class="status-body">8 core ethical principles in <code>PreloadedBuffer</code>. Cannot be overridden by operator flags or DAO votes in the current scope.</div>
+        </div>
+      </div>
+      <div class="status-item">
+        <span class="status-icon">🔗</span>
+        <div>
+          <div class="status-title">Audit trail (optional)</div>
+          <div class="status-body">Append-only JSONL log of safety blocks with hash-linked lines. <code>KERNEL_AUDIT_CHAIN_PATH</code> enables it.</div>
+        </div>
+      </div>
+      <div class="status-item">
+        <span class="status-icon">⚡</span>
+        <div>
+          <div class="status-title">Env validation (strict mode)</div>
+          <div class="status-body"><code>KERNEL_ENV_VALIDATION=strict</code> (default) fails fast on incompatible flag combinations at startup.</div>
+        </div>
+      </div>
+      <div class="status-item">
+        <span class="status-icon">🧩</span>
+        <div>
+          <div class="status-title">Perception clamping</div>
+          <div class="status-body">LLM perception JSON is validated and clamped to [0,1] regardless of model output.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Known limits -->
+  <div class="card">
+    <h2>Known limits and caveats</h2>
+    <table>
+      <tr>
+        <th>Limit</th>
+        <th>Detail</th>
+      </tr>
+      <tr>
+        <td>Lexical filter bypass</td>
+        <td>The MalAbs substring list does not understand paraphrase, homoglyphs, or leetspeak variations. Semantic gate reduces but does not eliminate bypass risk.</td>
+      </tr>
+      <tr>
+        <td>LLM perception trust</td>
+        <td>A compromised or prompt-injected LLM can push risk/hostility/calm values within [0,1] range coherently. Clamping prevents out-of-range values but not adversarial coherent manipulation.</td>
+      </tr>
+      <tr>
+        <td>Ethical weights are priors</td>
+        <td>Mixture weights (utilitarian / deontological / virtue) are engineering-informed priors, not validated against empirical human moral judgement data.</td>
+      </tr>
+      <tr>
+        <td>DAO is a simulation</td>
+        <td><code>MockDAO</code> is an in-process simulation (quadratic voting, audit strings). There is no deployed on-chain product. It should not be treated as tamper-proof consensus.</td>
+      </tr>
+      <tr>
+        <td>Sync LLM in async context</td>
+        <td>LLM calls run in worker threads. Async cancellation after timeout does not guarantee LLM request termination. Known issue tracked.</td>
+      </tr>
+      <tr>
+        <td>Narrative memory drift</td>
+        <td>Long sessions accumulate narrative fragments. No automatic compaction; memory window is bounded but not yet adaptive.</td>
+      </tr>
+      <tr>
+        <td>No hardware</td>
+        <td>This is a pure software behavioral validator. It does not control physical actuators or sensors directly.</td>
+      </tr>
+    </table>
+  </div>
+
+  <!-- Research disclaimer -->
+  <div class="card">
+    <h2>Research prototype disclaimer</h2>
+    <div class="info-box">
+      📚 This project is published as open research. Its purpose is to explore how explicit, auditable ethical reasoning can be implemented and tested in software — not to provide a production safety system.
+    </div>
+    <p>The kernel implements a <strong>weighted mixture scorer</strong> (not full Bayesian updating) over three stylized ethical hypotheses. The names <code>BayesianEngine</code> and related env vars refer to this mixture layer. See <a href="https://github.com/CuevazaArt/ethical-android-mvp/blob/main/docs/adr/0009-ethical-mixture-scorer-naming.md" target="_blank" rel="noopener">ADR 0009</a> for the naming decision.</p>
+    <p>The <strong>bibliography</strong> (104 academic references across 14 disciplines) underpins the design decisions. It is maintained in <a href="https://github.com/CuevazaArt/ethical-android-mvp/blob/main/BIBLIOGRAPHY.md" target="_blank" rel="noopener">BIBLIOGRAPHY.md</a>.</p>
+    <p>For the full limits and bottlenecks inventory, see <a href="https://github.com/CuevazaArt/ethical-android-mvp/blob/main/docs/WEAKNESSES_AND_BOTTLENECKS.md" target="_blank" rel="noopener">WEAKNESSES_AND_BOTTLENECKS.md</a>.</p>
+  </div>
+
+  <!-- Reporting security -->
+  <div class="card">
+    <h2>Reporting security issues</h2>
+    <p>Use the <strong>Report a vulnerability</strong> option in the GitHub Security tab for private vulnerability disclosure. Do not include exploit payloads in public Issues.</p>
+    <p>See <a href="https://github.com/CuevazaArt/ethical-android-mvp/blob/main/SECURITY.md" target="_blank" rel="noopener">SECURITY.md</a> for the full policy, scope, and SLA notes.</p>
+  </div>
+</div>
+
+<footer>
+  Ethos Kernel · <a href="index.html">Home</a> · <a href="dashboard.html">Dashboard</a> ·
+  <a href="https://github.com/CuevazaArt/ethical-android-mvp" target="_blank" rel="noopener">GitHub</a> ·
+  Apache 2.0 · Research prototype
+</footer>
+</body>
+</html>

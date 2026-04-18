@@ -11,12 +11,12 @@ Ethos Kernel is a **research / reference implementation** of a layered ethical d
 | Layer | Mechanism | Guarantee level |
 |-------|-----------|-----------------|
 | **Lexical MalAbs** | Normalized substring checks on chat/action text | **Conservative** blocks on listed weapon, harm-to-minor, and jailbreak patterns. **Does not** catch all paraphrases or novel attacks. |
-| **Semantic MalAbs** (default **on** when unset; `KERNEL_SEMANTIC_CHAT_GATE=0` for lexical-only) | Embedding similarity vs fixed anchors + optional LLM arbiter | Reduces some paraphrase bypass; **still heuristic**. Similarity thresholds (`KERNEL_SEMANTIC_CHAT_SIM_*`) tune false positives/negatives; **default numbers are engineering priors**, not a published benchmark — [PROPOSAL_MALABS_SEMANTIC_THRESHOLD_EVIDENCE.md](proposals/PROPOSAL_MALABS_SEMANTIC_THRESHOLD_EVIDENCE.md). |
+| **Semantic MalAbs** (default **on** when unset; `KERNEL_SEMANTIC_CHAT_GATE=0` for lexical-only) | Embedding similarity vs fixed anchors + optional LLM arbiter | Reduces some paraphrase bypass; **still heuristic**. Similarity thresholds (`KERNEL_SEMANTIC_CHAT_SIM_*`) tune false positives/negatives; defaults are engineering priors exposed through operator policy and runtime profiles. |
 | **Perception JSON** | Clamping, Pydantic validation, coherence nudges | Numeric signals stay in \([0,1]\) and are **not** ground truth; hostile prompts can skew within bounds. |
 | **Kernel / Bayes** | Pruning, gray zone, hypothesis weights | Tunable; see [`THEORY_AND_IMPLEMENTATION.md`](proposals/THEORY_AND_IMPLEMENTATION.md). |
 | **Judicial escalation** (opt-in) | Advisory strikes, dossier registration | **Does not** replace human legal process; mock court is a **demo**. |
 
-Details: [INPUT_TRUST_THREAT_MODEL.md](proposals/INPUT_TRUST_THREAT_MODEL.md), [MALABS_SEMANTIC_LAYERS.md](proposals/MALABS_SEMANTIC_LAYERS.md), [KERNEL_ENV_POLICY.md](proposals/KERNEL_ENV_POLICY.md), [PROPOSAL_MALABS_SEMANTIC_THRESHOLD_EVIDENCE.md](proposals/PROPOSAL_MALABS_SEMANTIC_THRESHOLD_EVIDENCE.md).
+Details: [KERNEL_ENV_POLICY.md](proposals/KERNEL_ENV_POLICY.md), [OPERATOR_QUICK_REF.md](proposals/OPERATOR_QUICK_REF.md), [THEORY_AND_IMPLEMENTATION.md](proposals/THEORY_AND_IMPLEMENTATION.md), [STRATEGY_AND_ROADMAP.md](proposals/STRATEGY_AND_ROADMAP.md).
 
 ## Appeals and redress
 

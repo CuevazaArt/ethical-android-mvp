@@ -42,6 +42,9 @@ def _recv_turn_payload(ws):
             return msg
         if msg.get("event_type") == "turn_finished":
             return msg["payload"]
+        # Ouroboros / haptic side-channel frames (no ``event_type``); keep draining.
+        if msg.get("type") in ("kernel_voice", "haptic_feedback"):
+            continue
         if msg.get("event_type") is None:
             return msg
 

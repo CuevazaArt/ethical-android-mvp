@@ -9,10 +9,7 @@ from .executive_lobe import ExecutiveLobe
 from .cerebellum_lobe import CerebellumLobe
 from .memory_lobe import MemoryLobe
 from .cerebellum_node import CerebellumNode
-from .executive_lobe import ExecutiveLobe
-from .limbic_lobe import LimbicEthicalLobe
-from .models import EthicalSentence, SemanticState, TimeoutTrauma
-from .perception_lobe import PerceptiveLobe
+from .thalamus_node import ThalamusNode
 from .sensor_adapter import FixedSensorAdapter, SensorAdapter, StubSensorAdapter
 
 __all__ = [
@@ -26,5 +23,9 @@ __all__ = [
     "ExecutiveLobe",
     "CerebellumLobe",
     "MemoryLobe",
-    "CerebellumNode"
+    "CerebellumNode",
+    "ThalamusNode",
+    "FixedSensorAdapter",
+    "SensorAdapter",
+    "StubSensorAdapter",
 ]

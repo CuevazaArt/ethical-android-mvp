@@ -2,9 +2,11 @@ import asyncio
 import base64
 import json
 
-import pytest
-from fastapi.testclient import TestClient
 import numpy as np
+import pytest
+
+pytest.importorskip("fastapi")
+from fastapi.testclient import TestClient
 
 from src.modules import nomad_bridge as nomad_bridge_mod
 from src.modules.nomad_bridge import NomadBridge, get_nomad_bridge

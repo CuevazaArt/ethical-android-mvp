@@ -34,11 +34,24 @@ import base64
 import binascii
 import json
 import logging
+import math
 import os
+import struct
 import threading
 from typing import Any
 
-from fastapi import FastAPI, WebSocket, WebSocketDisconnect
+try:
+    from fastapi import FastAPI, WebSocket, WebSocketDisconnect
+
+    _FASTAPI_AVAILABLE = True
+except ImportError:
+
+    class WebSocketDisconnect(Exception):
+        """Placeholder when FastAPI is not installed (WebSocket routes are disabled)."""
+
+    FastAPI = None  # type: ignore[misc, assignment]
+    WebSocket = Any  # type: ignore[misc, assignment]
+    _FASTAPI_AVAILABLE = False
 
 _log = logging.getLogger(__name__)
 
@@ -141,26 +154,48 @@ class NomadBridge:
             "telemetry": 0,
         }
 
-        self.app = FastAPI(title="Ethos Nomad Bridge")
-        
-        @self.app.websocket("/ws/nomad")
-        async def websocket_nomad_endpoint(websocket: WebSocket):
-            await websocket.accept()
-            _log.info("Nomad Bridge: client connected.")
-            
-            # Start full-duplex execution
-            recv_task = asyncio.create_task(self._recv_loop(websocket))
-            send_task = asyncio.create_task(self._send_loop(websocket))
-            
-            done, pending = await asyncio.wait(
-                [recv_task, send_task], 
-                return_when=asyncio.FIRST_COMPLETED
+        # L0 dashboard subscribers (see ``chat_server``); optional audio RMS for Thalamus merge.
+        self.dashboard_queues: list[asyncio.Queue[dict[str, Any]]] = []
+        self.last_rms: float = 0.0
+
+        self.app: Any = None
+
+        if not _FASTAPI_AVAILABLE or FastAPI is None:
+            _log.warning(
+                "Nomad Bridge: FastAPI not installed; queues work but HTTP/WebSocket app is disabled. "
+                'Install with: pip install -e ".[runtime]"'
             )
-            
+            return
+
+        self.app = FastAPI(title="Ethos Nomad Bridge")
+
+        @self.app.websocket("/ws/nomad")
+        async def websocket_nomad_endpoint(websocket: WebSocket) -> None:
+            await self.handle_websocket(websocket)
+
+    async def handle_websocket(self, websocket: WebSocket) -> None:
+        """Run recv/send loops for one Nomad smartphone WebSocket until disconnect."""
+        await websocket.accept()
+        _log.info("Nomad Bridge: client connected.")
+        recv_task = asyncio.create_task(self._recv_loop(websocket))
+        send_task = asyncio.create_task(self._send_loop(websocket))
+        try:
+            _, pending = await asyncio.wait(
+                [recv_task, send_task],
+                return_when=asyncio.FIRST_COMPLETED,
+            )
             for task in pending:
                 task.cancel()
-                
+        except Exception as e:
+            _log.error("Nomad Bridge exception in handler: %s", e)
+        finally:
             _log.info("Nomad Bridge: client disconnected.")
+
+    def broadcast_to_dashboards(self, msg: dict[str, Any]) -> None:
+        """Push a JSON-safe message to all registered L0 dashboard subscriber queues."""
+        for q in self.dashboard_queues:
+            if not q.full():
+                q.put_nowait(msg)
 
     def peek_latest_telemetry(self) -> dict[str, Any] | None:
         """Thread-safe copy of the last ``telemetry`` payload (for vitality / kernel sync path)."""
@@ -208,6 +243,8 @@ class NomadBridge:
             "telemetry_max": self.telemetry_queue.maxsize,
             "charm_feedback_queued": self.charm_feedback_queue.qsize(),
             "charm_feedback_max": self.charm_feedback_queue.maxsize,
+            "last_rms": self.last_rms,
+            "dashboard_subscribers": len(self.dashboard_queues),
             "latest_telemetry_present": bool(peek),
             "latest_telemetry_keys": tel_keys,
             "rejections": rejections,
@@ -221,6 +258,7 @@ class NomadBridge:
         }
 
     async def _recv_loop(self, ws: WebSocket):
+        frame_count = 0
         try:
             while True:
                 text = await ws.receive_text()
@@ -258,6 +296,10 @@ class NomadBridge:
                         continue
                     if jpeg_bytes and len(jpeg_bytes) <= lim:
                         self.vision_queue.put_nowait(jpeg_bytes)
+                        frame_count += 1
+                        if frame_count % 10 == 0:
+                            _log.debug("Nomad Bridge: received %d vision frames", frame_count)
+                        self.broadcast_to_dashboards({"type": "frame", "payload": payload})
                     else:
                         self._bump_rejection("vision_reject")
 
@@ -277,6 +319,16 @@ class NomadBridge:
                         continue
                     if raw_audio and len(raw_audio) <= lim_a:
                         self.audio_queue.put_nowait(raw_audio)
+                        pcm = raw_audio[: (len(raw_audio) // 2) * 2]
+                        if len(pcm) >= 2:
+                            shorts = struct.unpack(f"<{len(pcm) // 2}h", pcm)
+                            if shorts:
+                                rms = math.sqrt(sum(s * s for s in shorts) / len(shorts)) / 32768.0
+                                self.last_rms = rms
+                                if self.dashboard_queues:
+                                    self.broadcast_to_dashboards(
+                                        {"type": "audio_energy", "payload": {"rms": rms}}
+                                    )
                     else:
                         self._bump_rejection("audio_reject")
 
@@ -287,6 +339,7 @@ class NomadBridge:
                     if len(payload) > max_telemetry_dict_keys():
                         self._bump_rejection("telemetry_reject")
                         continue
+                    self.broadcast_to_dashboards({"type": "telemetry", "payload": dict(payload)})
                     if self.telemetry_queue.full():
                         self.telemetry_queue.get_nowait()
                         self._bump_eviction("telemetry")

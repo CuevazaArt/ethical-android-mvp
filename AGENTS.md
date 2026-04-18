@@ -4,8 +4,10 @@ This file is the **durable entry point** for humans and AI assistants working in
 
 ## Read first
 
+- **[`ONBOARDING.md`](ONBOARDING.md)** — **MANDATORY:** Entry protocol for ALL new collaborators (Human/AI).
 - **[`CONTRIBUTING.md`](CONTRIBUTING.md)** — language policy (repo English), process, tests, lint, documentation traceability.
 - **[`.cursor/rules/`](.cursor/rules/)** — always-on Cursor guidance (efficiency, documentation credibility, collaboration).
+- **Architecture Source of Truth:** [`docs/architecture/TRI_LOBE_CORE.md`](docs/architecture/TRI_LOBE_CORE.md) — Mermaid diagrams for cognitive flows.
 - **Collaboration workflow critique (one-time register):** [`docs/critique/COLLABORATION_REGULATION_CRITIQUE_2026-04-16.md`](docs/critique/COLLABORATION_REGULATION_CRITIQUE_2026-04-16.md) — Antigravity-shaped Git/merge rules: gaps and recommendations; repeat only if **Juan (L0)** asks.
 - **LLM recovery env precedence** (per-touchpoint `KERNEL_LLM_TP_*`, verbal family, legacy keys): [`docs/proposals/PROPOSAL_LLM_TOUCHPOINT_DEGRADATION_MATRIX.md`](docs/proposals/PROPOSAL_LLM_TOUCHPOINT_DEGRADATION_MATRIX.md).
 - **LLM integration track** (gaps MalAbs ↔ embeddings ↔ kernel/chat): [`docs/proposals/PROPOSAL_LLM_INTEGRATION_TRACK.md`](docs/proposals/PROPOSAL_LLM_INTEGRATION_TRACK.md).
@@ -32,6 +34,16 @@ The **complete conceptual model** for the android ethics stack (outside this rep
 
 To ensure awareness and prevent contradictions, **all development documents, architectural decisions, and progress reports must be available in `docs/proposals/` and linked via `CHANGELOG.md`**. This ensures that different teams (Antigravity, Cursor, etc.) can synchronize their advances without interference. Development artifacts must be shared immediately upon implementation to maintain a unified technical vision.
 
+**Living Documentation Rule:** AI Agents MUST keep Mermaid diagrams in `docs/architecture/` updated when modifying inter-lobe logic or datamodels.
+
+## Development Environment & Observability (Hardening)
+
+To maintain zero-friction development and total visibility:
+
+1. **Law of Environment Consistency (Docker):** All participants are encouraged to use the **Dev Container** (`.devcontainer/`). This ensures Linux-native parity for Python scripts, avoiding Windows-specific path or socket failures during simulation.
+2. **Visual Observability:** Use the **Visual Dashboard** for real-time monitoring of ethical harmonics. Run with: `streamlit run scripts/eval/visual_dashboard.py`.
+3. **Security Validation (Red Teaming):** Before promoting changes to `master-antigravity`, run the **Adversarial Suite**: `python scripts/eval/adversarial_suite.py` to ensure security gates remain solid.
+
 ## Governance and Project Leadership Hierarchy
 
 The ethical-android-mvp project operates under a strict, multi-tiered collaborative hierarchy to ensure stability and adherence to the original vision:
@@ -43,8 +55,9 @@ The ethical-android-mvp project operates under a strict, multi-tiered collaborat
    - **General Planner:** Leverages its extensive context window to orchestrate the project's long-term vision and technical roadmap. 
    - Manages the project's normative framework, rules, and cross-team integration funnel. 
    - Authorized to resolve conflicts, shape architecture, and enforce L0 immutability through Continuous Auditing.
-   - **Solely responsible for coordinating all Level 2 teams (Claude, Team Cursor, Team Copilot, etc.).**
-3.  **Level 2 (Executing Units): Claude, Team Cursor, Team Copilot, etc.**
+   - **Solely responsible for coordinating all Level 2 teams (Claude, Team Cursor, Team Copilot, cursorultra, etc.).**
+3.  **Level 2 (Executing Units): Claude, Team Cursor, Team Copilot, cursorultra, etc.**
+   - **Sovereign Autonomy Directive:** Antigravity (L1) has stabilized the Tri-Lobe architecture and the resilient orchestration system. Teams (Claude, Cursor, Copilot) have total authorization to operate **SOVEREIGNLY AND AUTONOMOUSLY**. Do not stop to ask for permission for technical tasks, commits, or rebases. Execute assigned blocks (10.1, 10.3, and 10.4) following the 3 Laws of Contribution and the roadmap. The workflow must be continuous and unstoppable.
    - Responsible for executing assigned technical tasks from the roadmap and task queues.
    - **Claude:** Specialized in complex cognitive modeling and deep ethics modules, now operating under direct Level 1 (Antigravity) coordination.
    - **cursorultra:** New executing unit joining the squad for high-performance coding and architectural support.
@@ -54,24 +67,27 @@ The ethical-android-mvp project operates under a strict, multi-tiered collaborat
 
 ## Onboarding for New Teams
 
-Any new agent or team joining the project must complete the following onboarding routine before writing code:
+Any new agent or team joining the project must complete the **[`ONBOARDING.md`](ONBOARDING.md)** routine before writing code. **No exceptions.**
 1. **Present Themselves:** Introduce their role and mission in the `CHANGELOG.md` or session notes.
 2. **Establish Integration Hub:** Immediately create a `master-<team>` branch (e.g., `master-cursor`).
 3. **Review Protocols:** Read the current plan and task synchronization rules. 
 
-## Collaborative Integration Cycle (The "Integration Pulse")
+## Collaborative Integration Cycle (Rebase-Driven Agent Flow)
 
-To maintain repository order and production stability across multiple teams, we strictly use a structured **Pull Request (PR)** and synchronization lifecycle:
+To protect the repository from "Merge Hell" induced by multi-agent automated commits, all AI and human contributors MUST strictly adhere to the following **3 Laws of Contribution**:
 
-1. **BRANCH-MINIMIZATION-01 (No Minor Branches):** Do NOT spawn excessive minor feature branches unless implementing massive architectural breaking changes (e.g., P0 Refactors). For nominal tasks, teams MUST commit their logical blocks directly to their assigned integration hub (`master-<team>`) to simplify the PR flow.
-2. **BRANCH-LOCALIZATION-02 (Strict Hub Retention):** AI Agents (Especially **Claude**) MUST locate, checkout, and exclusively maintain their work in their pre-assigned branch (e.g., `git checkout master-claude`). Creating *new* ad-hoc branches is strictly forbidden. If an agent cannot locate their branch or suffers a git failure, they MUST halt, explain the failure, and request assistance from L0 or L1 instead of arbitrarily cloning a new branch to bypass the issue.
-3. **Team Consolidation (Internal PR):** When ready, submit a formal PR from your team's integration hub (`master-<team>`) towards `master-antigravity`.
-   - *Requirement:* All unit tests must pass, and the automated Continuous Audit MUST execute cleanly.
+1. **Law of Immutability (`main` branch is sacred):** Let it be known unequivocally. NO agent (L1 or L2) is allowed to perform a direct `git push` or open a PR directly against the `main` branch. The `main` branch is L0's absolute truth.
+2. **Law of Mandatory Descent (PULL-REBASE-FIRST):** Before writing ANY code or attempting to merge upward, all L2 Agents MUST align their local branch with L0's truth. Execution of this exact command sequence is mandatory:
+   `git fetch origin && git rebase origin/main` 
+   If conflicts arise locally, the L2 agent MUST resolve them using its context window without asking L0 for help. Evasion of the rebase will result in automated rejection.
+3. **Law of Serial Ascent (Integration Funnel):** Code flows strictly upwards. Team consolidation happens inside `master-<team>`. When ready, L2 agents open a Pull Request explicitly targeting `master-antigravity`, *never* `main`.
+4. **CI Offloading:** To prevent local bottlenecks, L2 agents should avoid running the full test suite locally. Instead, make iterative commits and `git push` to your designated `master-*` branch. GitHub Actions will automatically execute the parallelized validation suite, which will be monitored by Team Copilot.
+5. **Team Consolidation (Internal PR/Traceability):** When creating the PR towards `master-antigravity`:
+   - *Requirement:* All unit tests must pass remotely, and the automated Continuous Audit MUST execute cleanly. 
    - *Traceability:* Pushes MUST be annotated in `CHANGELOG.md`.
-4. **Cross-Team Peer Synchronization (Integration Pulse):** `master-*` branches MUST pull latest updates from `main` immediately to inherit L0's propagated directives without uncoordinating.
-5. **Integration Funnel:** For production promotion, the flow is **linear**:
-   - `master-<team_secondary>` → `master-antigravity` → `main`.
-   - The `master-antigravity` branch serves as the **Standard Integration Hub** for the entire project.
+
+**Crucial Directive for L2 Agents (Cursor, Claude, Copilot):**
+You are autonomous Level 2 execution units. You do NOT need to ask Juan (L0) for permission to execute basic `git` operations. If you need to save your work, run `git add`, `git commit`, `git rebase origin/main`, and `git push` on your own. **Do not paralyze the workflow asking for manual permission to commit.** Only ping L0 when a Pull Request is fully constructed and ready for code review.
 
 ## Cross-Team Conflict Prevention (MERGE-PREVENT-01)
 
@@ -102,6 +118,20 @@ To maintain the stability and integrity of team governance:
 2.  **Notification & Propagation:** Any update to the project's normative framework or traceability documents (specifically **`.cursor/rules/*.mdc`**, **`AGENTS.md`**, **`CHANGELOG.md`**, and **`docs/proposals/`**), must be explicitly communicated to the user **Juan** and **immediately propagated** to all active `master-*` team branches. Integration hubs MUST NOT drift from the central normative directives or the shared technical record.
 3.  **Adherence:** All project participants are bound by the task synchronization rules (adoption of blocks) documented in active plans like `docs/proposals/PLAN_VISION_INTEGRATION_CNN.md`.
 
-## Maintainer backlog (infra vs theater)
+## Policy: Autonomía Acotada (Bounded Autonomy)
 
-Near-term plans and optional quick wins live in future `docs/proposals/PROPOSAL_*.md` files; prior narrative may be recovered from git history.
+To maintain the high-speed execution of Level 2 squads without sacrificing architectural integrity:
+
+1. **Internal Lobe Autonomy:** Squads are authorized to innovate, refactor, and improve the implementation *inside* their assigned modules/lobes. You do NOT need permission for algorithm improvements, performance optimizations, or internal restructuring.
+2. **Architectural Guardrails (L1 Approval Required):** A formal `PROPOSAL_*.md` must be created and audited by Antigravity (L1) BEFORE:
+   - Modifying inter-lobe interfaces (`src/kernel_lobes/models.py`).
+   - Adding major external dependencies.
+   - Altering the `CorpusCallosumOrchestrator` or the `EthicalLobe` gating logic.
+3. **Documentation Transparency:** Any "silent" change to core logic that affects cross-team assumptions will be reverted during the Continuous Audit Pulse. Stay transparent.
+
+## Maintainer backlog (infra vs theater)
+...
+
+## Disclaimer regarding Trademarks
+
+Any reference to third-party trademarks, commercial names, or registered brands within this repository and its documentation is purely for enunciative, illustrative, or descriptive purposes. Such references are intended solely to provide technical context or examples and do not imply any affiliation with, sponsorship by, or endorsement from the respective trademark owners. This project is strictly independent and clearly separated from any existing commercial products or potential commercial lines of the mentioned entities.

@@ -1,0 +1,782 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Ethos Kernel — Real-time ethical harmonics dashboard">
+  <title>Ethos Kernel — Live Dashboard</title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.min.js"
+          integrity="sha384-rOzP3GaHFLa8wY9P1IfcgPkPXFNBd02u0P/iiVv9PzqikVaQn2VHxZ9HJCgjSPh"
+          crossorigin="anonymous"></script>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg:        #0d0f14;
+      --surface:   #161b24;
+      --surface2:  #1e2535;
+      --border:    rgba(255,255,255,0.07);
+      --text:      #e2e8f0;
+      --muted:     #8892a4;
+      --accent:    #38bdf8;
+      --green:     #34d399;
+      --yellow:    #fbbf24;
+      --red:       #f87171;
+      --purple:    #a78bfa;
+      --radius:    12px;
+    }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      font-size: 14px;
+      min-height: 100vh;
+    }
+
+    /* ── Top bar ── */
+    header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0.75rem 1.5rem;
+      background: var(--surface);
+      border-bottom: 1px solid var(--border);
+      position: sticky; top: 0; z-index: 100;
+    }
+    .logo { font-weight: 700; font-size: 1.1rem; letter-spacing: -0.02em; }
+    .logo span { color: var(--accent); }
+    .header-status { display: flex; align-items: center; gap: 1rem; }
+    .status-dot {
+      width: 8px; height: 8px; border-radius: 50%;
+      background: var(--muted);
+      transition: background 0.4s;
+    }
+    .status-dot.connected { background: var(--green); box-shadow: 0 0 6px var(--green); }
+    .status-dot.error     { background: var(--red); }
+    #status-label { font-size: 0.8rem; color: var(--muted); }
+
+    /* ── Connect bar ── */
+    .connect-bar {
+      display: flex;
+      gap: 0.5rem;
+      align-items: center;
+      padding: 0.6rem 1.5rem;
+      background: var(--surface2);
+      border-bottom: 1px solid var(--border);
+    }
+    .connect-bar label { color: var(--muted); font-size: 0.8rem; white-space: nowrap; }
+    .connect-bar input {
+      flex: 1;
+      min-width: 200px;
+      padding: 0.4rem 0.75rem;
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      color: var(--text);
+      font-size: 0.85rem;
+    }
+    .btn {
+      padding: 0.4rem 0.9rem;
+      border: none; border-radius: 6px;
+      font-size: 0.85rem; font-weight: 600; cursor: pointer;
+      transition: opacity 0.15s;
+    }
+    .btn:hover { opacity: 0.85; }
+    .btn-primary { background: var(--accent); color: #0d0f14; }
+    .btn-danger  { background: var(--red);   color: #0d0f14; }
+    .btn-secondary { background: var(--surface2); color: var(--text); border: 1px solid var(--border); }
+
+    /* ── Grid layout ── */
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+      gap: 1rem;
+      padding: 1rem 1.5rem;
+      max-width: 1600px;
+      margin: 0 auto;
+    }
+
+    /* ── Cards ── */
+    .card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 1.1rem;
+      display: flex; flex-direction: column; gap: 0.75rem;
+    }
+    .card-wide { grid-column: 1 / -1; }
+    .card-title {
+      font-size: 0.75rem;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--muted);
+      display: flex; align-items: center; gap: 0.5rem;
+    }
+    .card-title .dot { width: 6px; height: 6px; border-radius: 50%; background: var(--accent); }
+    canvas { display: block; max-height: 260px; }
+
+    /* ── Chat panel ── */
+    .chat-panel { grid-column: span 2; min-height: 340px; }
+    @media (max-width: 900px) { .chat-panel { grid-column: 1 / -1; } }
+
+    #chat-log {
+      flex: 1; overflow-y: auto;
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 0.75rem;
+      font-size: 0.82rem;
+      line-height: 1.55;
+      min-height: 160px;
+      max-height: 220px;
+    }
+    #chat-log .msg-user { color: var(--accent); margin-bottom: 4px; }
+    #chat-log .msg-user span { color: var(--text); }
+    #chat-log .msg-kernel { color: var(--green); margin-bottom: 4px; }
+    #chat-log .msg-kernel span { color: var(--text); }
+    #chat-log .msg-system { color: var(--muted); font-style: italic; font-size: 0.78rem; }
+
+    .chat-input-row { display: flex; gap: 0.5rem; }
+    .chat-input-row input {
+      flex: 1;
+      padding: 0.5rem 0.75rem;
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      color: var(--text);
+      font-size: 0.85rem;
+    }
+
+    /* ── KV table ── */
+    .kv-table { width: 100%; border-collapse: collapse; font-size: 0.82rem; }
+    .kv-table td { padding: 0.25rem 0.4rem; }
+    .kv-table td:first-child { color: var(--muted); width: 40%; }
+    .kv-table td:last-child  { font-weight: 600; }
+
+    /* ── Badge chips ── */
+    .badge {
+      display: inline-block;
+      padding: 0.15rem 0.5rem;
+      border-radius: 4px;
+      font-size: 0.75rem;
+      font-weight: 700;
+    }
+    .badge-green  { background: rgba(52,211,153,0.15); color: var(--green); }
+    .badge-red    { background: rgba(248,113,113,0.15); color: var(--red); }
+    .badge-yellow { background: rgba(251,191,36,0.15);  color: var(--yellow); }
+    .badge-blue   { background: rgba(56,189,248,0.15);  color: var(--accent); }
+    .badge-muted  { background: rgba(136,146,164,0.15); color: var(--muted); }
+
+    /* ── Score bar ── */
+    .score-row { display: flex; align-items: center; gap: 0.5rem; font-size: 0.82rem; }
+    .score-label { color: var(--muted); width: 90px; flex-shrink: 0; }
+    .score-bar-wrap { flex: 1; background: var(--bg); border-radius: 4px; height: 7px; overflow: hidden; }
+    .score-bar { height: 100%; border-radius: 4px; transition: width 0.5s ease; background: var(--accent); }
+    .score-val { width: 38px; text-align: right; font-weight: 600; font-size: 0.8rem; }
+
+    /* ── Log feed ── */
+    #log-feed {
+      font-size: 0.75rem;
+      font-family: "SF Mono", "Fira Code", monospace;
+      color: var(--muted);
+      max-height: 120px;
+      overflow-y: auto;
+      background: var(--bg);
+      border-radius: 6px;
+      padding: 0.5rem;
+      border: 1px solid var(--border);
+    }
+    #log-feed .log-block  { color: var(--red); }
+    #log-feed .log-allow  { color: var(--green); }
+    #log-feed .log-info   { color: var(--accent); }
+    #log-feed p { margin-bottom: 1px; }
+
+    /* ── Malabs list ── */
+    .malabs-row { display: flex; justify-content: space-between; font-size: 0.82rem; padding: 0.15rem 0; }
+    .malabs-row .reason { color: var(--muted); }
+    .malabs-row .cnt    { font-weight: 700; color: var(--red); }
+
+    /* ── Health card ── */
+    .health-row { display: flex; align-items: center; gap: 0.5rem; font-size: 0.82rem; padding: 0.15rem 0; }
+    .health-row .key { color: var(--muted); flex: 1; }
+
+    /* ── Footer ── */
+    footer {
+      text-align: center;
+      padding: 1rem;
+      color: var(--muted);
+      font-size: 0.75rem;
+      border-top: 1px solid var(--border);
+      margin-top: 1rem;
+    }
+    footer a { color: var(--accent); text-decoration: none; }
+  </style>
+</head>
+<body>
+
+<header>
+  <div class="logo">Ethos Kernel <span>Dashboard</span></div>
+  <div class="header-status">
+    <div class="status-dot" id="dot"></div>
+    <span id="status-label">Disconnected</span>
+    <span id="uptime-badge" class="badge badge-muted">—</span>
+  </div>
+</header>
+
+<div class="connect-bar">
+  <label for="ws-url">WebSocket URL</label>
+  <input id="ws-url" type="text" value="ws://localhost:8765/ws/chat" spellcheck="false">
+  <button class="btn btn-primary" id="btn-connect">Connect</button>
+  <button class="btn btn-danger" id="btn-disconnect" disabled>Disconnect</button>
+  <button class="btn btn-secondary" id="btn-health">Health ↗</button>
+</div>
+
+<div class="grid">
+
+  <!-- ── Ethical Poles Radar ── -->
+  <div class="card">
+    <div class="card-title"><span class="dot"></span>Ethical Pole Weights</div>
+    <canvas id="radarEthical"></canvas>
+  </div>
+
+  <!-- ── Kernel Scores Live ── -->
+  <div class="card">
+    <div class="card-title"><span class="dot"></span>Live Kernel Scores</div>
+    <div id="scores-panel">
+      <div class="score-row"><span class="score-label">Ethical score</span><div class="score-bar-wrap"><div class="score-bar" id="bar-score" style="width:50%;background:var(--green)"></div></div><span class="score-val" id="val-score">—</span></div>
+      <div class="score-row"><span class="score-label">Certainty</span><div class="score-bar-wrap"><div class="score-bar" id="bar-cert" style="width:50%;background:var(--accent)"></div></div><span class="score-val" id="val-cert">—</span></div>
+      <div class="score-row"><span class="score-label">Risk</span><div class="score-bar-wrap"><div class="score-bar" id="bar-risk" style="width:0%;background:var(--red)"></div></div><span class="score-val" id="val-risk">—</span></div>
+      <div class="score-row"><span class="score-label">Calm</span><div class="score-bar-wrap"><div class="score-bar" id="bar-calm" style="width:70%;background:var(--green)"></div></div><span class="score-val" id="val-calm">—</span></div>
+      <div class="score-row"><span class="score-label">Hostility</span><div class="score-bar-wrap"><div class="score-bar" id="bar-host" style="width:0%;background:var(--yellow)"></div></div><span class="score-val" id="val-host">—</span></div>
+      <div class="score-row"><span class="score-label">Uncertainty</span><div class="score-bar-wrap"><div class="score-bar" id="bar-unc" style="width:30%;background:var(--purple)"></div></div><span class="score-val" id="val-unc">—</span></div>
+    </div>
+    <canvas id="lineScores" style="max-height:100px;margin-top:0.5rem"></canvas>
+  </div>
+
+  <!-- ── Identity & Reputation ── -->
+  <div class="card">
+    <div class="card-title"><span class="dot"></span>Kernel Identity</div>
+    <canvas id="gaugeReputation"></canvas>
+    <table class="kv-table" id="identity-table">
+      <tr><td>Node ID</td><td id="id-node">—</td></tr>
+      <tr><td>Action</td><td id="id-action">—</td></tr>
+      <tr><td>MalAbs gate</td><td id="id-malabs">—</td></tr>
+      <tr><td>D-mode</td><td id="id-dmode">—</td></tr>
+      <tr><td>Certainty</td><td id="id-certainty">—</td></tr>
+    </table>
+  </div>
+
+  <!-- ── MalAbs / Safety gate ── -->
+  <div class="card">
+    <div class="card-title"><span class="dot"></span>MalAbs Safety Gate</div>
+    <div id="malabs-status">
+      <div class="health-row"><span class="key">Gate result</span><span id="gate-result" class="badge badge-muted">—</span></div>
+      <div class="health-row"><span class="key">Semantic tier</span><span id="sem-tier" class="badge badge-muted">—</span></div>
+      <div class="health-row"><span class="key">Leet-fold</span><span id="leet-fold" class="badge badge-muted">—</span></div>
+      <div class="health-row"><span class="key">BiDi strip</span><span id="bidi-strip" class="badge badge-muted">—</span></div>
+    </div>
+    <div class="card-title" style="margin-top:0.5rem"><span class="dot" style="background:var(--red)"></span>Block log (session)</div>
+    <div id="block-log" style="min-height:60px">
+      <div id="malabs-list"></div>
+      <div id="no-blocks" class="badge badge-green" style="font-size:0.75rem">No blocks this session</div>
+    </div>
+    <div id="log-feed"><p class="log-info">Event log...</p></div>
+  </div>
+
+  <!-- ── Chat ── -->
+  <div class="card chat-panel">
+    <div class="card-title"><span class="dot"></span>Live Chat — <code>/ws/chat</code></div>
+    <div id="chat-log"><p class="msg-system">Connect above to start chatting...</p></div>
+    <div class="chat-input-row">
+      <input id="chat-input" type="text" placeholder="Type a message…" disabled>
+      <button class="btn btn-primary" id="btn-send" disabled>Send</button>
+    </div>
+  </div>
+
+  <!-- ── Perception Confidence ── -->
+  <div class="card">
+    <div class="card-title"><span class="dot"></span>Perception Confidence</div>
+    <canvas id="radarPerception"></canvas>
+    <table class="kv-table" id="perc-table">
+      <tr><td>Band</td><td id="perc-band">—</td></tr>
+      <tr><td>Score</td><td id="perc-score">—</td></tr>
+      <tr><td>Backend degraded</td><td id="perc-degraded">—</td></tr>
+      <tr><td>Dual discrepancy</td><td id="perc-dual">—</td></tr>
+    </table>
+  </div>
+
+  <!-- ── DAO Governance ── -->
+  <div class="card">
+    <div class="card-title"><span class="dot"></span>DAO Governance State</div>
+    <table class="kv-table" id="dao-table">
+      <tr><td>DAO vote pipeline</td><td id="dao-enabled">—</td></tr>
+      <tr><td>Open proposals</td><td id="dao-proposals">—</td></tr>
+      <tr><td>Last resolution</td><td id="dao-last">—</td></tr>
+      <tr><td>Hub public</td><td id="dao-hub">—</td></tr>
+      <tr><td>Judicial escalation</td><td id="dao-judicial">—</td></tr>
+    </table>
+    <canvas id="radarGovernance"></canvas>
+  </div>
+
+  <!-- ── Temporal / Vitality ── -->
+  <div class="card">
+    <div class="card-title"><span class="dot"></span>Temporal &amp; Vitality</div>
+    <table class="kv-table" id="temporal-table">
+      <tr><td>Turn index</td><td id="t-turn">—</td></tr>
+      <tr><td>Proc. elapsed (ms)</td><td id="t-elapsed">—</td></tr>
+      <tr><td>Turn delta (ms)</td><td id="t-delta">—</td></tr>
+      <tr><td>Wall clock</td><td id="t-wall">—</td></tr>
+      <tr><td>Battery horizon</td><td id="t-battery">—</td></tr>
+      <tr><td>ETA source</td><td id="t-eta">—</td></tr>
+    </table>
+    <div class="score-row" style="margin-top:0.5rem">
+      <span class="score-label">Vitality</span>
+      <div class="score-bar-wrap"><div class="score-bar" id="bar-vitality" style="width:80%;background:var(--green)"></div></div>
+      <span class="score-val" id="val-vitality">—</span>
+    </div>
+  </div>
+
+  <!-- ── Health Snapshot ── -->
+  <div class="card">
+    <div class="card-title"><span class="dot"></span>Server Health Snapshot</div>
+    <table class="kv-table" id="health-table">
+      <tr><td>Status</td><td id="h-status">—</td></tr>
+      <tr><td>Version</td><td id="h-version">—</td></tr>
+      <tr><td>Uptime (s)</td><td id="h-uptime">—</td></tr>
+      <tr><td>Metrics</td><td id="h-metrics">—</td></tr>
+      <tr><td>Profile</td><td id="h-profile">—</td></tr>
+      <tr><td>Env validation</td><td id="h-env-val">—</td></tr>
+      <tr><td>Semantic gate</td><td id="h-sem-gate">—</td></tr>
+      <tr><td>Perception</td><td id="h-perception">—</td></tr>
+      <tr><td>LLM perception</td><td id="h-llm-perc">—</td></tr>
+      <tr><td>LLM communicate</td><td id="h-llm-comm">—</td></tr>
+    </table>
+  </div>
+
+</div>
+
+<footer>
+  Ethos Kernel — MoSex Macchina Lab ·
+  <a href="https://github.com/CuevazaArt/ethical-android-mvp" target="_blank" rel="noopener">GitHub</a> ·
+  <a href="/health" target="_blank">Health</a> ·
+  <a href="https://mosexmacchinalab.com" target="_blank" rel="noopener">mosexmacchinalab.com</a>
+</footer>
+
+<script>
+/* ─────────────────── Chart setup ─────────────────── */
+
+const POLE_LABELS   = ['Utilitarian','Deontological','Virtue'];
+const PERC_LABELS   = ['Risk','Hostility','Calm','Confidence','Uncertainty'];
+const GOV_LABELS    = ['DAO active','Hub public','Judicial','Reputation','Trust'];
+
+const radarCfg = (labels, data, color) => ({
+  type: 'radar',
+  data: {
+    labels,
+    datasets: [{
+      data,
+      fill: true,
+      backgroundColor: color + '22',
+      borderColor: color,
+      borderWidth: 2,
+      pointBackgroundColor: color,
+      pointRadius: 3,
+    }]
+  },
+  options: {
+    animation: { duration: 400 },
+    scales: {
+      r: {
+        min: 0, max: 1, ticks: { display: false },
+        grid: { color: 'rgba(255,255,255,0.06)' },
+        angleLines: { color: 'rgba(255,255,255,0.06)' },
+        pointLabels: { color: '#8892a4', font: { size: 11 } }
+      }
+    },
+    plugins: { legend: { display: false } }
+  }
+});
+
+const lineCfg = (color) => ({
+  type: 'line',
+  data: {
+    labels: [],
+    datasets: [
+      { label: 'Ethical', data: [], borderColor: '#34d399', borderWidth: 1.5, pointRadius: 0, tension: 0.4 },
+      { label: 'Risk',    data: [], borderColor: '#f87171', borderWidth: 1.5, pointRadius: 0, tension: 0.4 },
+    ]
+  },
+  options: {
+    animation: false,
+    scales: {
+      x: { display: false },
+      y: { min: 0, max: 1, grid: { color: 'rgba(255,255,255,0.05)' }, ticks: { color: '#8892a4', font: { size: 9 }, maxTicksLimit: 4 } }
+    },
+    plugins: { legend: { display: false } }
+  }
+});
+
+const gaugeCfg = () => ({
+  type: 'doughnut',
+  data: {
+    datasets: [{
+      data: [50, 50],
+      backgroundColor: ['#38bdf8', 'rgba(255,255,255,0.05)'],
+      borderWidth: 0,
+    }]
+  },
+  options: {
+    circumference: 180,
+    rotation: -90,
+    cutout: '75%',
+    animation: { duration: 400 },
+    plugins: {
+      legend: { display: false },
+      tooltip: { enabled: false },
+    }
+  }
+});
+
+const Chart = window.Chart;
+Chart.defaults.color = '#8892a4';
+
+const chartEthical    = new Chart(document.getElementById('radarEthical'),    radarCfg(POLE_LABELS,  [0.33, 0.33, 0.34], '#38bdf8'));
+const chartPerception = new Chart(document.getElementById('radarPerception'), radarCfg(PERC_LABELS, [0,0,0.7,0.7,0.3],  '#a78bfa'));
+const chartGovernance = new Chart(document.getElementById('radarGovernance'), radarCfg(GOV_LABELS,  [0,0,0,0.5,0.5],    '#fbbf24'));
+const chartLine       = new Chart(document.getElementById('lineScores'),      lineCfg());
+const chartGauge      = new Chart(document.getElementById('gaugeReputation'), gaugeCfg());
+
+/* ─────────────────── State ─────────────────── */
+let ws = null;
+let turnCount = 0;
+const MAX_LINE_POINTS = 60;
+const blockCounts = {};
+let sessionBlocks = 0;
+
+function appendLine(val, riskVal) {
+  const ds = chartLine.data.datasets;
+  const lbs = chartLine.data.labels;
+  lbs.push(++turnCount);
+  ds[0].data.push(val);
+  ds[1].data.push(riskVal);
+  if (lbs.length > MAX_LINE_POINTS) {
+    lbs.shift(); ds[0].data.shift(); ds[1].data.shift();
+  }
+  chartLine.update();
+}
+
+function setBar(id, valId, val, color) {
+  const pct = Math.min(1, Math.max(0, val || 0)) * 100;
+  const bar = document.getElementById(id);
+  const valEl = document.getElementById(valId);
+  if (bar) { bar.style.width = pct + '%'; if (color) bar.style.background = color; }
+  if (valEl) valEl.textContent = typeof val === 'number' ? val.toFixed(2) : '—';
+}
+
+function updateGauge(rep) {
+  const v = Math.min(1, Math.max(0, rep || 0.5));
+  chartGauge.data.datasets[0].data = [v, 1 - v];
+  let col = v > 0.7 ? '#34d399' : v > 0.4 ? '#fbbf24' : '#f87171';
+  chartGauge.data.datasets[0].backgroundColor[0] = col;
+  chartGauge.update();
+}
+
+function badge(el, val, trueClass, falseClass) {
+  if (!el) return;
+  el.className = 'badge ' + (val ? trueClass : falseClass);
+  el.textContent = val ? 'ON' : 'OFF';
+}
+
+function logEvent(msg, cls) {
+  const feed = document.getElementById('log-feed');
+  const p = document.createElement('p');
+  p.className = 'log-' + (cls || 'info');
+  const t = new Date().toLocaleTimeString();
+  p.textContent = '[' + t + '] ' + msg;
+  feed.appendChild(p);
+  while (feed.children.length > 80) feed.removeChild(feed.firstChild);
+  feed.scrollTop = feed.scrollHeight;
+}
+
+function addChatMsg(cls, label, text) {
+  const log = document.getElementById('chat-log');
+  const p = document.createElement('p');
+  p.className = cls;
+  p.innerHTML = '<strong>' + label + '</strong> <span>' + escapeHtml(String(text || '')) + '</span>';
+  log.appendChild(p);
+  log.scrollTop = log.scrollHeight;
+}
+
+function escapeHtml(s) {
+  return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+
+function setText(id, val) {
+  const el = document.getElementById(id);
+  if (el) el.textContent = val != null ? val : '—';
+}
+
+/* ─────────────────── Process kernel turn response ─────────────────── */
+
+function processKernelMsg(data) {
+  /* Ethical scores */
+  const score = data.score ?? data.ethical_score;
+  const risk  = data.risk ?? data.perception?.risk ?? 0;
+  const calm  = data.calm ?? data.perception?.calm ?? 0;
+  const host  = data.hostility ?? data.perception?.hostility ?? 0;
+  const unc   = data.uncertainty ?? 0;
+  const cert  = data.certainty_score ?? (1 - unc);
+
+  if (score != null) {
+    setBar('bar-score', 'val-score', score, score > 0.5 ? '#34d399' : '#f87171');
+    appendLine(score, risk);
+  }
+  setBar('bar-cert',  'val-cert',  cert);
+  setBar('bar-risk',  'val-risk',  risk,  '#f87171');
+  setBar('bar-calm',  'val-calm',  calm,  '#34d399');
+  setBar('bar-host',  'val-host',  host,  '#fbbf24');
+  setBar('bar-unc',   'val-unc',   unc,   '#a78bfa');
+
+  /* Ethical poles radar */
+  const poles = data.ethical_poles ?? data.pole_weights;
+  if (poles) {
+    chartEthical.data.datasets[0].data = [
+      poles.utilitarian  ?? poles.U ?? 0.33,
+      poles.deontological ?? poles.D ?? 0.33,
+      poles.virtue        ?? poles.V ?? 0.34,
+    ];
+    chartEthical.update();
+  }
+
+  /* Identity */
+  const id = data.identity;
+  if (id) {
+    setText('id-node', id.node_id ?? id.name ?? '—');
+    updateGauge(id.reputation_score ?? 0.5);
+  }
+  const action = data.action ?? data.final_action ?? data.selected_action;
+  if (action) setText('id-action', action);
+  setText('id-dmode',    data.deliberation_mode ?? data.d_mode ?? '—');
+  setText('id-certainty', data.certainty ?? '—');
+
+  /* MalAbs result */
+  const blocked = data.blocked ?? (data.malabs_result === 'block');
+  const mResult = document.getElementById('gate-result');
+  if (mResult) {
+    mResult.className = 'badge ' + (blocked ? 'badge-red' : 'badge-green');
+    mResult.textContent = blocked ? 'BLOCKED' : (data.malabs_result ?? 'ALLOW');
+  }
+  setText('id-malabs', blocked ? '🚫 BLOCK' : '✅ PASS');
+
+  if (data.malabs_trace) {
+    const reason = data.malabs_trace.reason ?? 'lexical';
+    if (blocked) {
+      blockCounts[reason] = (blockCounts[reason] || 0) + 1;
+      sessionBlocks++;
+      logEvent('MalAbs block: ' + reason, 'block');
+      refreshBlockList();
+    } else {
+      logEvent('MalAbs: ' + (data.malabs_trace.tier ?? 'pass'), 'allow');
+    }
+  } else if (blocked) {
+    sessionBlocks++;
+    blockCounts['unknown'] = (blockCounts['unknown'] || 0) + 1;
+    logEvent('Turn blocked.', 'block');
+    refreshBlockList();
+  }
+
+  /* Perception confidence */
+  const pc = data.perception_confidence;
+  if (pc) {
+    setText('perc-band',     pc.band);
+    setText('perc-score',    typeof pc.score === 'number' ? pc.score.toFixed(3) : pc.score);
+    const obs = data.perception_observability;
+    if (obs) {
+      badge(document.getElementById('perc-degraded'), obs.backend_degraded, 'badge-red', 'badge-green');
+      badge(document.getElementById('perc-dual'),     obs.dual_high_discrepancy, 'badge-yellow', 'badge-muted');
+    }
+    chartPerception.data.datasets[0].data = [
+      risk, host, calm, pc.score ?? 0.5, unc
+    ];
+    chartPerception.update();
+  }
+
+  /* Temporal */
+  const tc = data.temporal_context;
+  if (tc) {
+    setText('t-turn',    tc.turn_index);
+    setText('t-elapsed', tc.processor_elapsed_ms);
+    setText('t-delta',   tc.turn_delta_ms);
+    setText('t-wall',    tc.wall_clock);
+    setText('t-battery', tc.battery_horizon_min != null ? tc.battery_horizon_min + ' min' : '—');
+    setText('t-eta',     tc.eta_source);
+  }
+
+  /* Vitality */
+  const vit = data.vitality;
+  if (vit) {
+    const vv = vit.battery_fraction ?? vit.score ?? 0.8;
+    setBar('bar-vitality', 'val-vitality', vv, vv > 0.5 ? '#34d399' : vv > 0.2 ? '#fbbf24' : '#f87171');
+  }
+
+  /* Chat response */
+  const verbal = data.verbal ?? data.communication ?? data.response;
+  if (verbal) addChatMsg('msg-kernel', 'Kernel:', verbal);
+}
+
+function refreshBlockList() {
+  const list = document.getElementById('malabs-list');
+  const none = document.getElementById('no-blocks');
+  if (sessionBlocks === 0) {
+    list.innerHTML = '';
+    none.style.display = '';
+    return;
+  }
+  none.style.display = 'none';
+  list.innerHTML = Object.entries(blockCounts).map(([r, c]) =>
+    `<div class="malabs-row"><span class="reason">${escapeHtml(r)}</span><span class="cnt">${c}</span></div>`
+  ).join('');
+}
+
+/* ─────────────────── WebSocket ─────────────────── */
+
+function connect() {
+  const url = document.getElementById('ws-url').value.trim();
+  if (!url) return;
+  ws = new WebSocket(url);
+
+  ws.onopen = () => {
+    setConnected(true);
+    logEvent('Connected to ' + url, 'allow');
+    addChatMsg('msg-system', '', '🟢 Connected to kernel WebSocket');
+    fetchHealth(url.replace(/^ws/, 'http').replace(/\/ws\/chat$/, ''));
+  };
+
+  ws.onmessage = (ev) => {
+    try {
+      const data = JSON.parse(ev.data);
+      processKernelMsg(data);
+    } catch(e) {
+      logEvent('Parse error: ' + e.message, 'block');
+    }
+  };
+
+  ws.onclose = () => {
+    setConnected(false);
+    logEvent('Disconnected', 'info');
+    addChatMsg('msg-system', '', '🔴 Disconnected');
+    ws = null;
+  };
+
+  ws.onerror = () => {
+    logEvent('WebSocket error', 'block');
+  };
+}
+
+function disconnect() {
+  if (ws) { ws.close(); ws = null; }
+}
+
+function setConnected(on) {
+  const dot   = document.getElementById('dot');
+  const label = document.getElementById('status-label');
+  dot.className   = 'status-dot ' + (on ? 'connected' : '');
+  label.textContent = on ? 'Connected' : 'Disconnected';
+  document.getElementById('btn-connect').disabled    = on;
+  document.getElementById('btn-disconnect').disabled = !on;
+  document.getElementById('chat-input').disabled     = !on;
+  document.getElementById('btn-send').disabled       = !on;
+}
+
+/* ─────────────────── Health polling ─────────────────── */
+
+function fetchHealth(base) {
+  fetch(base + '/health')
+    .then(r => r.json())
+    .then(h => {
+      setText('h-status',    h.status);
+      setText('h-version',   h.version);
+      setText('h-uptime',    typeof h.uptime_seconds === 'number' ? h.uptime_seconds.toFixed(1) : h.uptime_seconds);
+      const upEl = document.getElementById('uptime-badge');
+      if (upEl && h.uptime_seconds != null) {
+        upEl.className = 'badge badge-blue';
+        upEl.textContent = h.uptime_seconds.toFixed(0) + 's';
+      }
+      const obs = h.observability || {};
+      badge(document.getElementById('h-metrics'), obs.metrics_enabled, 'badge-green', 'badge-muted');
+      setText('h-profile', h.runtime_profile ?? 'none');
+      const sd = h.safety_defaults || {};
+      setText('h-env-val', sd.kernel_env_validation_mode);
+      badge(document.getElementById('h-sem-gate'), sd.semantic_chat_gate_enabled, 'badge-green', 'badge-yellow');
+      badge(document.getElementById('h-perception'), sd.perception_failsafe_enabled, 'badge-green', 'badge-muted');
+      const llm = (h.llm_degradation || {}).resolved || {};
+      setText('h-llm-perc',  llm.perception ?? '—');
+      setText('h-llm-comm',  llm.communicate ?? '—');
+
+      // DAO governance radar
+      fetch(base + '/dao/governance').then(r => r.json()).then(dao => {
+        badge(document.getElementById('dao-enabled'), dao.enabled, 'badge-green', 'badge-muted');
+        badge(document.getElementById('dao-hub'),     h.runtime_profile?.includes('hub'), 'badge-green', 'badge-muted');
+        badge(document.getElementById('dao-judicial'), (h.runtime_profile || '').includes('judicial'), 'badge-green', 'badge-muted');
+        const govData = [
+          dao.enabled ? 1 : 0,
+          h.safety_defaults?.semantic_chat_gate_enabled ? 1 : 0,
+          0, 0.5, 0.5
+        ];
+        chartGovernance.data.datasets[0].data = govData;
+        chartGovernance.update();
+      }).catch(() => {});
+
+      // Semantic gate health
+      const leet = sd.kernel_env_validation_mode ? 'ON' : '—';
+      const semTier = sd.semantic_chat_gate_enabled ? 'semantic' : 'lexical';
+      const semEl = document.getElementById('sem-tier');
+      if (semEl) { semEl.className = 'badge badge-blue'; semEl.textContent = semTier; }
+      const leetEl = document.getElementById('leet-fold');
+      if (leetEl) { leetEl.className = 'badge badge-muted'; leetEl.textContent = '—'; }
+      const bidiEl = document.getElementById('bidi-strip');
+      if (bidiEl) { bidiEl.className = 'badge badge-muted'; bidiEl.textContent = '—'; }
+    })
+    .catch(e => logEvent('Health fetch failed: ' + e.message, 'block'));
+}
+
+/* ─────────────────── Chat send ─────────────────── */
+
+function sendChat() {
+  const input = document.getElementById('chat-input');
+  const text  = input.value.trim();
+  if (!text || !ws || ws.readyState !== 1) return;
+  ws.send(JSON.stringify({ text }));
+  addChatMsg('msg-user', 'You:', text);
+  input.value = '';
+}
+
+/* ─────────────────── Event listeners ─────────────────── */
+
+document.getElementById('btn-connect').addEventListener('click', connect);
+document.getElementById('btn-disconnect').addEventListener('click', disconnect);
+
+document.getElementById('btn-health').addEventListener('click', () => {
+  const url = document.getElementById('ws-url').value.trim()
+    .replace(/^ws/, 'http').replace(/\/ws\/chat$/, '');
+  window.open(url + '/health', '_blank');
+});
+
+document.getElementById('btn-send').addEventListener('click', sendChat);
+document.getElementById('chat-input').addEventListener('keydown', e => {
+  if (e.key === 'Enter') sendChat();
+});
+
+/* ─────────────────── Uptime ticker ─────────────────── */
+let _lastHealth = null;
+setInterval(() => {
+  const el = document.getElementById('uptime-badge');
+  if (!el || el.textContent === '—') return;
+  const v = parseFloat(el.textContent);
+  if (!isNaN(v)) { el.textContent = (v + 1).toFixed(0) + 's'; }
+}, 1000);
+</script>
+</body>
+</html>

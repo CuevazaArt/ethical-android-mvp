@@ -57,6 +57,7 @@ class StylizedResponse:
     final_text: str
     charm_vector: dict[str, float]
     gesture_plan: list[dict[str, Any]]
+    haptic_plan: list[dict[str, Any]] # Phase 10.2
 
 
 class StyleParametrizer:
@@ -126,11 +127,25 @@ class GesturePlanner:
         return plan
 
 
+class HapticPlanner:
+    """Phase 10.2: Plans vibrations for the Nomad Vessel PWA."""
+    def plan(self, charm: CharmVector, caution: float) -> list[dict[str, Any]]:
+        plan = []
+        if caution > 0.8:
+            plan.append({"type": "vibrate", "pattern": [50, 100, 50], "label": "alert_caution"})
+        elif charm.warmth > 0.7:
+            plan.append({"type": "vibrate", "pattern": [10], "label": "gentle_pulse"})
+        elif charm.playfulness > 0.6:
+            plan.append({"type": "vibrate", "pattern": [30, 30], "label": "playful_double"})
+        return plan
+
+
 class ResponseSculptor:
     def __init__(self, llm_module: Any = None):
         self.llm = llm_module
         self.parametrizer = StyleParametrizer()
         self.gesture_planner = GesturePlanner()
+        self.haptic_planner = HapticPlanner()
 
     def sculpt(
         self,
@@ -150,6 +165,7 @@ class ResponseSculptor:
                 final_text=base_text,
                 charm_vector={"warmth": 0.0, "mystery": 0.0, "playfulness": 0.0, "directiveness": 1.0},
                 gesture_plan=[{"actuator": "posture", "action": "rigid_block", "intensity": 1.0}],
+                haptic_plan=[{"type": "vibrate", "pattern": [500], "label": "absolute_evil_warning"}]
             )
 
         charm = self.parametrizer.parametrize(decision_action, profile, user_tracker, caution_level)
@@ -165,6 +181,7 @@ class ResponseSculptor:
                 directiveness=charm.directiveness,
             )
         gesture = self.gesture_planner.plan(charm)
+        haptic = self.haptic_planner.plan(charm, caution_level)
 
         # En integración real, esto encadena un call al LLM (con override_template).
         # Para el stub arquitectónico, agregamos el metadata de intención.
@@ -183,7 +200,9 @@ class ResponseSculptor:
                 "directiveness": round(charm.directiveness, 3),
             },
             gesture_plan=gesture,
+            haptic_plan=haptic
         )
+
 
 
 class CharmEngine:

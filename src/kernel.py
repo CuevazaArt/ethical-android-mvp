@@ -28,6 +28,7 @@ from .kernel_lobes import (
     LimbicEthicalLobe,
     MemoryLobe,
     PerceptiveLobe,
+    ThalamusNode,
 )
 from .kernel_lobes import chat_turn_policy as _chat_turn_policy
 
@@ -56,6 +57,8 @@ from .modules.biographic_pruning import BiographicPruner
 from .modules.buffer import PreloadedBuffer
 from .modules.charm_engine import CharmEngine
 from .modules.dao_orchestrator import DAOOrchestrator
+from .modules.turn_prefetcher import TurnPrefetcher
+from .modules.vision_inference import VisionInferenceEngine
 from .modules.drive_arbiter import DriveArbiter
 from .modules.epistemic_dissonance import (
     EpistemicDissonanceAssessment,
@@ -463,6 +466,10 @@ class EthicalKernel:
             else BiographicPruner()
         )
 
+        self.thalamus = ThalamusNode()
+        self.prefetcher = TurnPrefetcher()
+        self.vision_inference = VisionInferenceEngine()
+
         # ═══ Triune Brain Lobes (Refactor 0.1.3) ═══
         self.perceptive_lobe = PerceptiveLobe(
             safety_interlock=self.safety_interlock,
@@ -471,7 +478,9 @@ class EthicalKernel:
             somatic_store=self.somatic_store,
             buffer=self.buffer,
             absolute_evil=self.absolute_evil,
-            subjective_clock=self.subjective_clock
+            subjective_clock=self.subjective_clock,
+            thalamus=self.thalamus,
+            vision_engine=self.vision_inference,
         )
         self.limbic_lobe = LimbicEthicalLobe(
             uchi_soto=self.uchi_soto,
@@ -486,7 +495,8 @@ class EthicalKernel:
             will=self.will,
             reflection_engine=self.ethical_reflection,
             salience_map=self.salience_map,
-            pad_archetypes=self.pad_archetypes
+            pad_archetypes=self.pad_archetypes,
+            llm=self.llm,
         )
         self.cerebellum_lobe = CerebellumLobe(
             bayesian=self.bayesian,
@@ -1356,13 +1366,22 @@ class EthicalKernel:
             # Store charm vector in limbic metadata for WebSocket emission
             if stage.limbic_profile is not None:
                 stage.limbic_profile["charm_vector"] = stylized.charm_vector
-            
+                stage.limbic_profile["haptic_plan"] = stylized.haptic_plan
+                stage.limbic_profile["gesture_plan"] = stylized.gesture_plan
+
             from .modules.nomad_bridge import get_nomad_bridge
+
             try:
-                get_nomad_bridge().charm_feedback_queue.put_nowait(stylized.charm_vector)
+                get_nomad_bridge().charm_feedback_queue.put_nowait(
+                    {
+                        "charm_vector": stylized.charm_vector,
+                        "gesture_plan": stylized.gesture_plan,
+                        "haptic_plan": stylized.haptic_plan,
+                    }
+                )
             except Exception:
                 pass
-        
+
         path_key = "heavy" if heavy else "light"
         self._snapshot_feedback_anchor(path_key)
         res = ChatTurnResult(
@@ -1629,10 +1648,18 @@ class EthicalKernel:
             final_response.message = stylized.final_text
             if stage.limbic_profile is not None:
                 stage.limbic_profile["charm_vector"] = stylized.charm_vector
+                stage.limbic_profile["haptic_plan"] = stylized.haptic_plan
+                stage.limbic_profile["gesture_plan"] = stylized.gesture_plan
             from .modules.nomad_bridge import get_nomad_bridge
 
             try:
-                get_nomad_bridge().charm_feedback_queue.put_nowait(stylized.charm_vector)
+                get_nomad_bridge().charm_feedback_queue.put_nowait(
+                    {
+                        "charm_vector": stylized.charm_vector,
+                        "gesture_plan": stylized.gesture_plan,
+                        "haptic_plan": stylized.haptic_plan,
+                    }
+                )
             except Exception:
                 pass
 
