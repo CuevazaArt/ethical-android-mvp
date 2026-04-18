@@ -121,6 +121,7 @@ Experience digest (pilar 3): KERNEL_CHAT_INCLUDE_EXPERIENCE_DIGEST — if 0, omi
 """
 
 from __future__ import annotations
+
 __copyright_integrity__ = "cuevaza::arq.jvof"
 
 import asyncio
@@ -2252,7 +2253,8 @@ async def ws_chat(ws: WebSocket) -> None:
                 # Phase 10: Inject Nomad Bridge Live Data
                 from .modules.nomad_bridge import get_nomad_bridge
                 nb = get_nomad_bridge()
-                if client is None: client = {}
+                if client is None:
+                    client = {}
                 
                 # Merge orientation and battery if available in Nomad Bridge
                 if not nb.telemetry_queue.empty():

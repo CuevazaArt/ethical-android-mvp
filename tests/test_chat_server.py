@@ -5,7 +5,6 @@ import json
 import os
 import subprocess
 import sys
-import time
 
 import pytest
 
@@ -98,6 +97,8 @@ def test_health():
     assert lim.get("max_ws_message_bytes", 0) > 0
     assert nb.get("charm_feedback_queued") == 0
     assert nb.get("charm_feedback_max") == 10
+    assert nb.get("last_rms") == 0.0
+    assert nb.get("dashboard_subscribers") == 0
 
 
 def test_lifespan_runs_with_test_client_context_manager():

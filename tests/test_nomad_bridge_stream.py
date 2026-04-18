@@ -7,7 +7,6 @@ import pytest
 
 pytest.importorskip("fastapi")
 from fastapi.testclient import TestClient
-
 from src.modules import nomad_bridge as nomad_bridge_mod
 from src.modules.nomad_bridge import NomadBridge, get_nomad_bridge
 from src.modules.sensor_contracts import SensorSnapshot
@@ -127,6 +126,8 @@ def test_nomad_public_queue_stats_shape(nomad_client):
     assert stats["queue_evictions"]["vision"] == 0
     assert stats["charm_feedback_max"] == 10
     assert stats["charm_feedback_queued"] == 0
+    assert stats["last_rms"] == 0.0
+    assert stats["dashboard_subscribers"] == 0
 
 
 @pytest.mark.asyncio
