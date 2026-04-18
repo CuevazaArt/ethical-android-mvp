@@ -23,9 +23,22 @@ _chat_async_timeouts: Any = None
 _llm_cancel_scope_signals: Any = None
 _chat_abandoned_effects_skipped: Any = None
 _lan_envelope_replay_cache_events: Any = None
+_nomad_bridge_rejections: Any = None
+_nomad_bridge_queue_evictions: Any = None
 _initialized = False
 
 _LAN_ENVELOPE_REPLAY_CACHE_EVENTS = frozenset({"hit", "miss", "evict_ttl", "evict_lru"})
+_NOMAD_REJECTION_REASONS = frozenset(
+    {
+        "ws_oversize",
+        "invalid_json",
+        "invalid_envelope",
+        "vision_reject",
+        "audio_reject",
+        "telemetry_reject",
+    }
+)
+_NOMAD_EVICTION_QUEUES = frozenset({"vision", "audio", "telemetry"})
 
 
 def metrics_enabled() -> bool:
@@ -44,6 +57,7 @@ def init_metrics() -> None:
     global _kernel_decisions, _kernel_process_seconds, _perception_circuit_trips
     global _chat_async_timeouts, _llm_cancel_scope_signals, _chat_abandoned_effects_skipped
     global _lan_envelope_replay_cache_events
+    global _nomad_bridge_rejections, _nomad_bridge_queue_evictions
 
     if _initialized:
         return
@@ -140,6 +154,16 @@ def init_metrics() -> None:
             float("inf"),
         ),
     )
+    _nomad_bridge_rejections = Counter(
+        "ethos_kernel_nomad_bridge_rejections_total",
+        "Nomad LAN WebSocket ingest rejections (see nomad_bridge.public_queue_stats rejections).",
+        ["reason"],
+    )
+    _nomad_bridge_queue_evictions = Counter(
+        "ethos_kernel_nomad_bridge_queue_evictions_total",
+        "Nomad bridge dropped oldest item because the bounded queue was full.",
+        ["queue"],
+    )
 
 
 def observe_llm_completion_seconds(operation: str, seconds: float) -> None:
@@ -201,6 +225,26 @@ def record_dao_ws_operation(operation: str) -> None:
     if _dao_ops is None:
         return
     _dao_ops.labels(operation=operation).inc()
+
+
+def record_nomad_bridge_rejection(reason: str) -> None:
+    """Count one rejected Nomad ingest event (bounded ``reason`` label)."""
+    if _nomad_bridge_rejections is None:
+        return
+    r = (reason or "").strip()
+    if r not in _NOMAD_REJECTION_REASONS:
+        return
+    _nomad_bridge_rejections.labels(reason=r).inc()
+
+
+def record_nomad_bridge_queue_eviction(queue: str) -> None:
+    """Count one queue eviction when a full Nomad buffer dropped the oldest item."""
+    if _nomad_bridge_queue_evictions is None:
+        return
+    q = (queue or "").strip()
+    if q not in _NOMAD_EVICTION_QUEUES:
+        return
+    _nomad_bridge_queue_evictions.labels(queue=q).inc()
 
 
 def record_lan_envelope_replay_cache_event(event: str, *, amount: float = 1.0) -> None:

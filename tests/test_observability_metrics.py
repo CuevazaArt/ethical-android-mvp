@@ -115,3 +115,29 @@ assert 'event="miss"' in b
 assert 'event="evict_ttl"' in b
 """
     subprocess.run([sys.executable, "-c", code], cwd=root, check=True)
+
+
+def test_nomad_bridge_metrics_in_prometheus_subprocess():
+    """Nomad S.1 — rejection and queue-eviction counters register when KERNEL_METRICS=1."""
+    pytest.importorskip("prometheus_client")
+    root = os.path.join(os.path.dirname(__file__), "..")
+    code = """
+import os, sys
+sys.path.insert(0, ".")
+os.environ["KERNEL_METRICS"] = "1"
+from src.observability.metrics import (
+    init_metrics,
+    record_nomad_bridge_rejection,
+    record_nomad_bridge_queue_eviction,
+)
+init_metrics()
+record_nomad_bridge_rejection("ws_oversize")
+record_nomad_bridge_queue_eviction("vision")
+from prometheus_client import generate_latest
+b = generate_latest().decode()
+assert "ethos_kernel_nomad_bridge_rejections_total" in b
+assert "ethos_kernel_nomad_bridge_queue_evictions_total" in b
+assert 'reason="ws_oversize"' in b
+assert 'queue="vision"' in b
+"""
+    subprocess.run([sys.executable, "-c", code], cwd=root, check=True)

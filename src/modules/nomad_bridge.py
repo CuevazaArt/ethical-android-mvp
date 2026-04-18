@@ -11,6 +11,9 @@ Server → client: ``type: charm_feedback``, ``payload``: charm vector dict (fro
 
 ``NomadVisionConsumer`` in ``vision_adapter.py`` drains ``vision_queue``; audio adapter drains ``audio_queue``.
 
+When ``KERNEL_METRICS=1``, rejections and queue evictions are also mirrored to Prometheus
+(``ethos_kernel_nomad_bridge_rejections_total``, ``ethos_kernel_nomad_bridge_queue_evictions_total``).
+
 Latest ``telemetry`` payloads are mirrored for synchronous readers (Module S.2.1 — vitality merge in
 ``vitality.merge_nomad_telemetry_into_snapshot`` / ``KERNEL_NOMAD_TELEMETRY_VITALITY``).
 That merge step normalizes common mobile key aliases (e.g. ``battery``, ``core_temperature_c``, ``jerk``)
@@ -169,10 +172,16 @@ class NomadBridge:
     def _bump_rejection(self, key: str) -> None:
         with self._stats_lock:
             self._rejections[key] = self._rejections.get(key, 0) + 1
+        from ..observability.metrics import record_nomad_bridge_rejection
+
+        record_nomad_bridge_rejection(key)
 
     def _bump_eviction(self, key: str) -> None:
         with self._stats_lock:
             self._queue_evictions[key] = self._queue_evictions.get(key, 0) + 1
+        from ..observability.metrics import record_nomad_bridge_queue_eviction
+
+        record_nomad_bridge_queue_eviction(key)
 
     def public_queue_stats(self) -> dict[str, Any]:
         """JSON-safe queue depths for operators (GET /metrics hooks, health dashboards).
