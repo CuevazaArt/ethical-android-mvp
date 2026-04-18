@@ -21,7 +21,7 @@ The **`nomad_bridge`** field on **`GET /health`** reflects the shared [`get_noma
 | Path | Method | Auth | Response |
 |------|--------|------|----------|
 | `/` | GET | None | JSON: `service`, `websocket`, pointers to other routes, optional `runtime_profile` |
-| `/health` | GET | None | JSON: `status`, `version`, `uptime_seconds`, `observability`, `chat_bridge`, `safety_defaults`, `llm_degradation`, **`nomad_bridge`** (schema `nomad_bridge_queue_stats_v2`: queue depths incl. **`charm_feedback_queued`** / **`charm_feedback_max`** + **`limits`** + `latest_telemetry_present` / `latest_telemetry_keys` — telemetry **values** not included), optional `runtime_profile` |
+| `/health` | GET | None | JSON: `status`, `version`, `uptime_seconds`, `observability`, `chat_bridge`, `safety_defaults`, `llm_degradation`, **`nomad_bridge`** (schema `nomad_bridge_queue_stats_v3`: queue depths incl. **`charm_feedback_queued`** / **`charm_feedback_max`** + **`limits`** + `latest_telemetry_present` / `latest_telemetry_keys` — telemetry **values** not included), optional `runtime_profile` |
 | `/metrics` | GET | None | Prometheus text if `KERNEL_METRICS=1` (includes `ethos_kernel_lan_envelope_replay_cache_events_total` for LAN envelope replay-cache activity); else 404 JSON; 503 if `prometheus_client` missing |
 | `/constitution` | GET | None | L0 constitution JSON if `KERNEL_MORAL_HUB_PUBLIC=1`; else 404 JSON |
 | `/dao/governance` | GET | None | JSON meta for DAO WebSocket messages (`dao_list`, `dao_vote`, …) |
@@ -58,6 +58,6 @@ The **`nomad_bridge`** field on **`GET /health`** reflects the shared [`get_noma
 ## Changelog
 
 - **2026-04-15:** Initial surface inventory for operator and cross-team contract reviews (see archive for full early log).
-- **2026-04-17:** Canonical copy under `docs/proposals/`; **`GET /health`** documents **`nomad_bridge`** (`nomad_bridge_queue_stats_v2`) + Nomad singleton note in Summary; LAN/justice cross-links via `docs/archive_v1-7/proposals/` (not duplicated under `docs/proposals/`).
+- **2026-04-17:** Canonical copy under `docs/proposals/`; **`GET /health`** documents **`nomad_bridge`** (`nomad_bridge_queue_stats_v3`) + Nomad singleton note in Summary; LAN/justice cross-links via `docs/archive_v1-7/proposals/` (not duplicated under `docs/proposals/`).
 - **2026-04-17:** **`nomad_bridge.limits`** documented on **`GET /health`** (effective `KERNEL_NOMAD_MAX_*` caps echo; see [`OPERATOR_QUICK_REF.md`](OPERATOR_QUICK_REF.md)).
 - **2026-04-17:** **`charm_feedback_queued` / `charm_feedback_max`** documented (outbound charm vector queue toward the Nomad WebSocket client).

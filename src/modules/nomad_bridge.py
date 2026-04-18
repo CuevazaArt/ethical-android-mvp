@@ -122,7 +122,22 @@ class NomadBridge:
         self.charm_feedback_queue: asyncio.Queue[dict[str, Any]] = asyncio.Queue(maxsize=10)
         self._telemetry_lock = threading.Lock()
         self._latest_telemetry: dict[str, Any] | None = None
-        
+        # Counters: recv loop (async) and /health (sync threadpool) — protect with a lock.
+        self._stats_lock = threading.Lock()
+        self._rejections: dict[str, int] = {
+            "ws_oversize": 0,
+            "invalid_json": 0,
+            "invalid_envelope": 0,
+            "vision_reject": 0,
+            "audio_reject": 0,
+            "telemetry_reject": 0,
+        }
+        self._queue_evictions: dict[str, int] = {
+            "vision": 0,
+            "audio": 0,
+            "telemetry": 0,
+        }
+
         self.app = FastAPI(title="Ethos Nomad Bridge")
         
         @self.app.websocket("/ws/nomad")
@@ -151,6 +166,14 @@ class NomadBridge:
                 return None
             return dict(self._latest_telemetry)
 
+    def _bump_rejection(self, key: str) -> None:
+        with self._stats_lock:
+            self._rejections[key] = self._rejections.get(key, 0) + 1
+
+    def _bump_eviction(self, key: str) -> None:
+        with self._stats_lock:
+            self._queue_evictions[key] = self._queue_evictions.get(key, 0) + 1
+
     def public_queue_stats(self) -> dict[str, Any]:
         """JSON-safe queue depths for operators (GET /metrics hooks, health dashboards).
 
@@ -158,11 +181,16 @@ class NomadBridge:
         vitality merge observability without leaking raw sensor readings in logs.
 
         ``limits`` echoes effective caps from ``KERNEL_NOMAD_MAX_*`` env (decoded bytes / dict keys).
+
+        ``rejections`` / ``queue_evictions`` are monotonic counters since process start (S.1 observability).
         """
         peek = self.peek_latest_telemetry()
         tel_keys = sorted(peek.keys()) if peek else []
+        with self._stats_lock:
+            rejections = dict(self._rejections)
+            evictions = dict(self._queue_evictions)
         return {
-            "schema": "nomad_bridge_queue_stats_v2",
+            "schema": "nomad_bridge_queue_stats_v3",
             "vision_queued": self.vision_queue.qsize(),
             "vision_max": self.vision_queue.maxsize,
             "audio_queued": self.audio_queue.qsize(),
@@ -173,6 +201,8 @@ class NomadBridge:
             "charm_feedback_max": self.charm_feedback_queue.maxsize,
             "latest_telemetry_present": bool(peek),
             "latest_telemetry_keys": tel_keys,
+            "rejections": rejections,
+            "queue_evictions": evictions,
             "limits": {
                 "max_vision_frame_bytes": max_vision_frame_bytes(),
                 "max_audio_pcm_bytes": max_audio_pcm_bytes(),
@@ -184,56 +214,73 @@ class NomadBridge:
     async def _recv_loop(self, ws: WebSocket):
         try:
             while True:
-                raw = await ws.receive_text()
-                if len(raw.encode("utf-8")) > max_ws_inbound_message_bytes():
+                text = await ws.receive_text()
+                if len(text.encode("utf-8")) > max_ws_inbound_message_bytes():
+                    self._bump_rejection("ws_oversize")
                     continue
                 try:
-                    data = json.loads(raw)
+                    data = json.loads(text)
                 except json.JSONDecodeError:
+                    self._bump_rejection("invalid_json")
                     continue
                 if not isinstance(data, dict):
+                    self._bump_rejection("invalid_envelope")
                     continue
                 event_type = data.get("type")
                 payload = data.get("payload")
-                
+
                 if not event_type or not payload:
+                    self._bump_rejection("invalid_envelope")
                     continue
-                    
+
                 if event_type == "vision_frame":
                     if self.vision_queue.full():
                         self.vision_queue.get_nowait()
+                        self._bump_eviction("vision")
                     b64_img = payload.get("image_b64", "")
                     lim = max_vision_frame_bytes()
                     if not _b64_fits_decoded_limit(b64_img, lim):
+                        self._bump_rejection("vision_reject")
                         continue
                     try:
-                        raw = base64.b64decode(b64_img, validate=False)
+                        jpeg_bytes = base64.b64decode(b64_img, validate=False)
                     except (binascii.Error, ValueError):
+                        self._bump_rejection("vision_reject")
                         continue
-                    if raw and len(raw) <= lim:
-                        self.vision_queue.put_nowait(raw)
+                    if jpeg_bytes and len(jpeg_bytes) <= lim:
+                        self.vision_queue.put_nowait(jpeg_bytes)
+                    else:
+                        self._bump_rejection("vision_reject")
 
                 elif event_type == "audio_pcm":
                     if self.audio_queue.full():
                         self.audio_queue.get_nowait()
+                        self._bump_eviction("audio")
                     b64_pcm = payload.get("audio_b64", "")
                     lim_a = max_audio_pcm_bytes()
                     if not _b64_fits_decoded_limit(b64_pcm, lim_a):
+                        self._bump_rejection("audio_reject")
                         continue
                     try:
                         raw_audio = base64.b64decode(b64_pcm, validate=False)
                     except (binascii.Error, ValueError):
+                        self._bump_rejection("audio_reject")
                         continue
                     if raw_audio and len(raw_audio) <= lim_a:
                         self.audio_queue.put_nowait(raw_audio)
+                    else:
+                        self._bump_rejection("audio_reject")
 
                 elif event_type == "telemetry":
                     if not isinstance(payload, dict):
+                        self._bump_rejection("telemetry_reject")
                         continue
                     if len(payload) > max_telemetry_dict_keys():
+                        self._bump_rejection("telemetry_reject")
                         continue
                     if self.telemetry_queue.full():
                         self.telemetry_queue.get_nowait()
+                        self._bump_eviction("telemetry")
                     self.telemetry_queue.put_nowait(payload)
                     with self._telemetry_lock:
                         self._latest_telemetry = dict(payload)

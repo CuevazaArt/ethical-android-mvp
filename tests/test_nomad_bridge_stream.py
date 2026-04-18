@@ -109,7 +109,7 @@ async def test_nomad_vision_frame_routing(nomad_client):
 
 def test_nomad_public_queue_stats_shape(nomad_client):
     stats = get_nomad_bridge().public_queue_stats()
-    assert stats["schema"] == "nomad_bridge_queue_stats_v2"
+    assert stats["schema"] == "nomad_bridge_queue_stats_v3"
     assert stats["vision_max"] == 5
     assert "vision_queued" in stats
     assert stats["latest_telemetry_present"] is False
@@ -119,6 +119,10 @@ def test_nomad_public_queue_stats_shape(nomad_client):
     assert lim["max_audio_pcm_bytes"] > 0
     assert lim["max_telemetry_keys"] > 0
     assert lim["max_ws_message_bytes"] == 4 * 1024 * 1024
+    rej = stats["rejections"]
+    assert rej["ws_oversize"] == 0
+    assert "queue_evictions" in stats
+    assert stats["queue_evictions"]["vision"] == 0
     assert stats["charm_feedback_max"] == 10
     assert stats["charm_feedback_queued"] == 0
 
@@ -212,3 +216,15 @@ async def test_nomad_ws_rejects_oversized_text_frame(monkeypatch, nomad_client):
         await asyncio.sleep(0.2)
     assert bridge.telemetry_queue.empty()
     assert bridge.peek_latest_telemetry() is None
+    assert bridge.public_queue_stats()["rejections"]["ws_oversize"] >= 1
+
+
+@pytest.mark.asyncio
+async def test_nomad_invalid_json_increments_counter(nomad_client):
+    bridge = get_nomad_bridge()
+    before = bridge.public_queue_stats()["rejections"]["invalid_json"]
+    with nomad_client.websocket_connect("/ws/nomad") as websocket:
+        websocket.send_text("not-json{")
+        await asyncio.sleep(0.15)
+    after = bridge.public_queue_stats()["rejections"]["invalid_json"]
+    assert after > before
