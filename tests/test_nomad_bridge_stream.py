@@ -117,6 +117,8 @@ def test_nomad_public_queue_stats_shape(nomad_client):
     assert lim["max_vision_frame_bytes"] > 0
     assert lim["max_audio_pcm_bytes"] > 0
     assert lim["max_telemetry_keys"] > 0
+    assert stats["charm_feedback_max"] == 10
+    assert stats["charm_feedback_queued"] == 0
 
 
 @pytest.mark.asyncio

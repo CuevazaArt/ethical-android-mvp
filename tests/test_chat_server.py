@@ -60,6 +60,8 @@ def test_health():
     assert lim.get("max_vision_frame_bytes", 0) > 0
     assert lim.get("max_audio_pcm_bytes", 0) > 0
     assert lim.get("max_telemetry_keys", 0) > 0
+    assert nb.get("charm_feedback_queued") == 0
+    assert nb.get("charm_feedback_max") == 10
 
 
 def test_lifespan_runs_with_test_client_context_manager():
