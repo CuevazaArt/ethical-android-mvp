@@ -21,6 +21,7 @@ from .semantic_embedding_client import (
     http_fetch_ollama_embedding, 
     maybe_hash_fallback_embedding
 )
+from .semantic_anchor_store import get_anchor_store
 from .uchi_soto import RelationalTier
 
 
@@ -49,6 +50,9 @@ class NarrativeMemory:
         if db_path is None:
             db_path = os.environ.get("KERNEL_NARRATIVE_DB_PATH", "data/narrative.db")
         self.persistence = NarrativePersistence(db_path)
+        
+        # Phase 12.3: Semantic Vector Store (ChromaDB)
+        self.anchor_store = get_anchor_store()
 
         # Load existing episodes from disk
         self.episodes = self.persistence.load_all_episodes()
@@ -215,6 +219,15 @@ class NarrativeMemory:
 
         # Tier 2 persistence: Save to DB (now with arc_id)
         self.persistence.save_episode(ep)
+        
+        # Phase 12.3: Anchor in Vector DB for fast resonance retrieval
+        if ep.semantic_embedding:
+            self.anchor_store.upsert_anchor(
+                id=ep.id,
+                text=combined_text,
+                embedding=ep.semantic_embedding,
+                metadata={"context": ep.context, "sigma": ep.sigma, "score": ep.ethical_score}
+            )
 
         # Basic compression: if exceeds max, remove oldest from memory
         # (Disk retains all episodes unless explicit cleanup implemented)
@@ -306,6 +319,15 @@ class NarrativeMemory:
         self.identity.update_from_episode(ep)
         self._update_arcs(ep)
         self.persistence.save_episode(ep)
+        
+        # Phase 12.3: Anchor in Vector DB
+        if ep.semantic_embedding:
+            self.anchor_store.upsert_anchor(
+                id=ep.id,
+                text=combined_text,
+                embedding=ep.semantic_embedding,
+                metadata={"context": ep.context, "sigma": ep.sigma, "score": ep.ethical_score}
+            )
 
         if len(self.episodes) > self.max_episodes:
             self.episodes = self.episodes[-self.max_episodes :]
@@ -356,40 +378,47 @@ class NarrativeMemory:
                 if fb is not None:
                     query_embed = fb.tolist()
 
-        for ep in all_episodes:
-            resonance = 0.0
-
-            # 1. Context Match
-            if context and ep.context == context:
-                resonance += 0.4
-
-            # 2. Emotional Arousal Match (Sigma)
-            if min_sigma and ep.sigma >= min_sigma:
-                resonance += 0.2
-
-            # 3. Affective Distance (PAD)
-            if target_pad and ep.affect_pad:
-                from .pad_archetypes import euclidean
-
-                dist = euclidean(target_pad, ep.affect_pad)
-                resonance += max(0, 0.4 * (1.0 - dist))
-
-            # 4. Thematic Boost (Maturing Step)
-            if current_arc_archetype and ep.arc_id:
-                # Find arc for this episode
-                arc = next((a for a in self.arcs if a.id == ep.arc_id), None)
-                if arc and arc.predominant_archetype == current_arc_archetype:
-                    resonance += 0.2
-
-            # 5. Semantic Similarity (Phase 6)
-            if query_embed is not None and ep.semantic_embedding:
-                ep_vec = np.array(ep.semantic_embedding)
-                # Cosine similarity since both are unit vectors (L2 normalized)
-                dot = float(np.dot(query_embed, ep_vec))
-                # Add scaled dot product to resonance
-                resonance += max(0, 0.5 * dot)
-
-            candidates.append((ep, resonance))
+        # Optimization 12.3: Use Vector DB if query_text is provided
+        if query_embed is not None:
+            # Query the vector store for top candidates based on semantic similarity
+            neighbors = self.anchor_store.query_neighbors(query_embed, k=limit * 2)
+            id_to_similarity = {nid: sim for nid, sim, meta in neighbors}
+            
+            # Only consider episodes that came from the vector store
+            all_episodes = [ep for ep in all_episodes if ep.id in id_to_similarity]
+            
+            for ep in all_episodes:
+                resonance = id_to_similarity.get(ep.id, 0.0) * 0.5 # Semantic weight (base)
+                
+                # Apply secondary boosts (Context, PAD, Theme)
+                if context and ep.context == context: resonance += 0.3
+                if min_sigma and ep.sigma >= min_sigma: resonance += 0.1
+                if target_pad and ep.affect_pad:
+                    from .pad_archetypes import euclidean
+                    dist = euclidean(target_pad, ep.affect_pad)
+                    resonance += max(0, 0.3 * (1.0 - dist))
+                
+                if current_arc_archetype and ep.arc_id:
+                    arc = next((a for a in self.arcs if a.id == ep.arc_id), None)
+                    if arc and arc.predominant_archetype == current_arc_archetype:
+                        resonance += 0.1
+                
+                candidates.append((ep, resonance))
+        else:
+            # Legacy loop for matches based purely on context/PAD without text query
+            for ep in all_episodes:
+                resonance = 0.0
+                if context and ep.context == context: resonance += 0.4
+                if min_sigma and ep.sigma >= min_sigma: resonance += 0.2
+                if target_pad and ep.affect_pad:
+                    from .pad_archetypes import euclidean
+                    dist = euclidean(target_pad, ep.affect_pad)
+                    resonance += max(0, 0.4 * (1.0 - dist))
+                if current_arc_archetype and ep.arc_id:
+                    arc = next((a for a in self.arcs if a.id == ep.arc_id), None)
+                    if arc and arc.predominant_archetype == current_arc_archetype:
+                        resonance += 0.2
+                candidates.append((ep, resonance))
 
         # Sort by resonance descending
         candidates.sort(key=lambda x: x[1], reverse=True)

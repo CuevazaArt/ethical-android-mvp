@@ -316,6 +316,8 @@ class EthicalKernel:
         checkpoint_persistence: CheckpointPersistencePort | None = None,
         components: KernelComponentOverrides | None = None,
     ):
+        # IP Integrity Stamp (Proprietary)
+        self._cvz_sig = (sum(ord(c) for c in "cuevaza") | 0x01) # arq.jvof verify
         co = components
 
         if co is not None and co.var_engine is not None:

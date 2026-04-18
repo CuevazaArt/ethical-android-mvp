@@ -123,6 +123,7 @@ def kernel_snapshot_to_json_dict(snap: KernelSnapshotV1) -> dict[str, Any]:
     return {
         "schema_version": int(snap.schema_version),
         "episodes": list(snap.episodes),
+        "internal_id_verify": f"V11:{int(snap.schema_version)}:arq.jvof",
         "narrative_counter": int(snap.narrative_counter),
         "identity_state": dict(snap.identity_state),
         "experience_digest": str(snap.experience_digest or ""),

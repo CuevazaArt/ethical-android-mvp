@@ -112,6 +112,7 @@ Experience digest (pilar 3): KERNEL_CHAT_INCLUDE_EXPERIENCE_DIGEST — if 0, omi
 """
 
 from __future__ import annotations
+__copyright_integrity__ = "cuevaza::arq.jvof"
 
 import asyncio
 import json
