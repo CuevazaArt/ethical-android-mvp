@@ -1219,7 +1219,7 @@ class EthicalKernel:
         """
         Real-time dialogue stream: yields intermediate events as they occur.
         """
-        _log.info(f"DEBUG: process_chat_turn_stream started for {user_input[:20]}")
+        _log.debug("process_chat_turn_stream started (prefix=%r)", (user_input or "")[:20])
         wm = self.working_memory
         turn_start_mono = time.monotonic()
         yield {"event_type": "turn_started", "payload": {"chat_turn_id": chat_turn_id}}
@@ -1445,12 +1445,12 @@ class EthicalKernel:
             )
             self._snapshot_feedback_anchor("safety_block")
             limbic_blk = self.perceptive_lobe._build_limbic_perception_profile(
-                perception=None,
-                signals=None,
-                vitality=vitality_blk,
-                multimodal=mm_blk,
-                epistemic=ed_blk,
-                confidence_envelope=confidence_blk,
+                None,
+                None,
+                vitality_blk,
+                mm_blk,
+                ed_blk,
+                confidence_blk,
             )
             self._release_chat_turn_id(chat_turn_id)
             return ChatTurnResult(

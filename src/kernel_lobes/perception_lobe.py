@@ -193,11 +193,14 @@ class PerceptiveLobe:
         return vitality, multimodal, epistemic
 
     def _build_support_buffer_snapshot(self, context: str, signals: dict = None, limbic_profile: dict = None) -> dict:
-        return self.buffer.get_snapshot(context, kernel=None, signals=signals, limbic_profile=limbic_profile)
+        return self.buffer.get_snapshot(
+            context, kernel=None, signals=signals, limbic_profile=limbic_profile
+        )
 
     def _support_buffer_context_line(self, snapshot: dict) -> str:
         principles = snapshot.get("active_principles", [])
-        if not principles: return ""
+        if not principles:
+            return ""
         return f"[CONTEXT: {snapshot.get('context', 'everyday')}] Principles: {', '.join(principles)}"
 
     async def run_perception_stage_async(

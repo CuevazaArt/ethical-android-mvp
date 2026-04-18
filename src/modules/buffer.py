@@ -5,9 +5,12 @@ Values the android is born with. Defined by the expert panel
 with veto power. Not modified by learning or the DAO.
 """
 
+from __future__ import annotations
+
 import re
 import unicodedata
 from dataclasses import dataclass
+from typing import Any
 
 # ADR 0016 C1 — Ethical tier classification
 __ethical_tier__ = "decision_core"
@@ -230,4 +233,72 @@ class PreloadedBuffer:
             "allowed": len(violated) == 0,
             "violated_principles": violated,
             "fulfilled_principles": fulfilled,
+        }
+
+    def _normalize_situation_key(self, context: str) -> str:
+        raw = (context or "everyday").strip()
+        if raw in self.protocols:
+            return raw
+        aliases = {"everyday": "everyday_ethics", "safety_block": "hostile_interaction"}
+        return aliases.get(raw, "everyday_ethics")
+
+    @staticmethod
+    def _limbic_defaults_from_signals(signals: dict[str, Any] | None) -> dict[str, Any]:
+        sig = signals or {}
+        threat = max(
+            float(sig.get("risk", 0.0) or 0.0),
+            float(sig.get("urgency", 0.0) or 0.0),
+            float(sig.get("hostility", 0.0) or 0.0),
+        )
+        calm = float(sig.get("calm", 0.5) or 0.5)
+        band = "high" if threat >= 0.75 else ("medium" if threat >= 0.45 else "low")
+        planning_bias = (
+            "short_horizon_containment"
+            if band == "high"
+            else ("balanced" if band == "medium" else "long_horizon_deliberation")
+        )
+        return {"arousal_band": band, "planning_bias": planning_bias, "threat_load": threat, "calm": calm}
+
+    def get_snapshot(
+        self,
+        context: str,
+        *,
+        kernel: Any = None,
+        signals: dict[str, Any] | None = None,
+        limbic_profile: dict[str, Any] | None = None,
+    ) -> dict[str, Any]:
+        """
+        Local support-buffer view for prompts and WebSocket JSON (offline-capable principle ordering).
+
+        Mirrors :meth:`EthicalKernel._prioritized_principles_for_context` band/priority policy without importing the kernel.
+        """
+        situation = self._normalize_situation_key(context)
+        active = self.activate(situation)
+        active_names = sorted(active.keys())
+
+        limbic = dict(limbic_profile) if limbic_profile else self._limbic_defaults_from_signals(signals)
+        band = limbic.get("arousal_band", "medium")
+        planning_bias = limbic.get("planning_bias", "balanced")
+
+        if planning_bias in ("verification_first", "resource_preservation") or band == "high":
+            priority_profile = "safety_first"
+            order = ["no_harm", "proportionality", "legality", "transparency", "compassion"]
+        elif band == "low":
+            priority_profile = "planning_first"
+            order = ["transparency", "civic_coexistence", "compassion", "legality", "no_harm"]
+        else:
+            priority_profile = "balanced"
+            order = ["compassion", "legality", "transparency", "proportionality", "no_harm"]
+        rank = {name: i for i, name in enumerate(order)}
+        priority_principles = sorted(active_names, key=lambda n: rank.get(n, 100))
+
+        return {
+            "source": "local_preloaded_buffer",
+            "context": (context or "everyday").strip(),
+            "active_principles": list(active_names),
+            "priority_profile": priority_profile,
+            "priority_principles": priority_principles,
+            "planning_bias": planning_bias,
+            "strategy_hint": "",
+            "offline_ready": True,
         }

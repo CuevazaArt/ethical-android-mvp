@@ -204,7 +204,7 @@ def test_process_natural_uses_shared_text_preprocess_parallel_path(monkeypatch):
 
 def test_run_perception_stage_includes_local_support_buffer():
     k = EthicalKernel(variability=False, seed=13)
-    stage = k._run_perception_stage("Hello and thanks for your help.", conversation_context="")
+    stage = k.perceptive_lobe.run_perception_stage("Hello and thanks for your help.", conversation_context="")
     assert stage.support_buffer.get("source") == "local_preloaded_buffer"
     assert stage.support_buffer.get("offline_ready") is True
     assert isinstance(stage.support_buffer.get("active_principles"), list)
@@ -214,14 +214,16 @@ def test_run_perception_stage_includes_local_support_buffer():
 
 def test_support_buffer_prioritizes_safety_first_for_high_threat():
     k = EthicalKernel(variability=False, seed=14)
-    limbic = k._build_limbic_perception_profile(
-        perception=None,
-        signals={"risk": 0.95, "urgency": 0.9, "hostility": 0.8, "calm": 0.05},
-        vitality=None,
-        multimodal=None,
-        epistemic=None,
+    pl = k.perceptive_lobe
+    limbic = pl._build_limbic_perception_profile(
+        None,
+        {"risk": 0.95, "urgency": 0.9, "hostility": 0.8, "calm": 0.05},
+        None,
+        None,
+        None,
+        None,
     )
-    snap = k._build_support_buffer_snapshot(
+    snap = pl._build_support_buffer_snapshot(
         "violent_crime",
         signals={"risk": 0.95, "urgency": 0.9, "hostility": 0.8, "calm": 0.05},
         limbic_profile=limbic,

@@ -50,6 +50,8 @@ This checklist defines when `master-Cursor` is ready to be interlaced with other
      - `tests/test_governance_mock_honesty_docs.py`
      - `tests/test_semantic_threshold_proposal_doc_alignment.py`
      - `tests/test_transparency_s10.py` (embodied sociability S10 — optional `transparency_s10` in chat JSON)
+     - `tests/test_mer_presentation_contract.py` (MER Block 10.5 / ADR 0018 — presentation module import guardrails)
+     - `tests/test_adr0018_presentation_tier.py` (ADR 0018 — MalAbs `safety_block` unchanged under presentation envs)
      - `tests/test_nomad_bridge_stream.py` (Nomad LAN bridge Module S.1)
      - `tests/test_vitality.py` (Nomad → vitality merge Module S.2.1)
 

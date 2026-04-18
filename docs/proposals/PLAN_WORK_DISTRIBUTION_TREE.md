@@ -91,6 +91,9 @@ Este documento estructura el inmenso volumen de trabajo arquitectónico definido
 - **Bloque 10.4: Predicción Local y Prefetching**
   - *Responsabilidad:* **Team Copilot**
   - Tarea: Inyectar micro-LLM (ej. Llama-3-2B) o precompilador probabilístico para inferir turnos y lanzar asentimientos rápidos en <300ms antes que el API principal complete.
+- **Bloque 10.5: Contrato capa presentación vs núcleo ético (MER ADR)**
+  - *Responsabilidad:* **Team Cursor** (normativo + trazabilidad)
+  - Estado hub: ADR [`0018`](../adr/0018-presentation-tier-vs-ethical-core.md); tests de regresión `tests/test_adr0018_presentation_tier.py`; `PreloadedBuffer.get_snapshot` alimenta el soporte local sin tocar MalAbs.
 
 ## 🚀 Flujo de Sincronización Recomendado
 

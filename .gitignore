@@ -16,6 +16,9 @@ env/
 # Local trace / pilot outputs (not versioned)
 logs/
 
+# Runtime SQLite ledger (MockDAO / orchestrator; not a source artifact)
+audit_trail.db
+
 # Testing
 .pytest_cache/
 .mypy_cache/

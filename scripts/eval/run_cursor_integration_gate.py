@@ -30,6 +30,9 @@ TEST_TARGETS = [
     "tests/test_semantic_threshold_proposal_doc_alignment.py",
     # Embodied sociability S10 (PROPOSAL_EMBODIED_SOCIABILITY.md Bloque S10)
     "tests/test_transparency_s10.py",
+    # MER Block 10.5 — ADR 0018 (presentation tier vs MalAbs core; import guardrails)
+    "tests/test_mer_presentation_contract.py",
+    "tests/test_adr0018_presentation_tier.py",
     # Nomad LAN bridge Module S.1 (PLAN_WORK_DISTRIBUTION_TREE)
     "tests/test_nomad_bridge_stream.py",
     # Nomad → Vitality merge Module S.2.1 (peek_latest_telemetry + merge_nomad_telemetry_into_snapshot)
