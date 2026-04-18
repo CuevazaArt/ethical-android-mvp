@@ -8,6 +8,21 @@ All notable changes to this project are summarized here. For narrative context a
 
 ## Phase 12 — Ouroboros (Audio Bridge) & Hardware Hardening — April 2026
 
+## Team Copilot — ThalamusNode Sensory Fusion Integration — April 2026 (Bloque 10.1)
+
+### Team Copilot Updates
+
+- **`ThalamusNode` wiring (Bloque 10.1 — VVAD + VAD Sensory Fusion):**
+  - Exported `ThalamusNode` from `src/kernel_lobes/__init__.py` and imported into `EthicalKernel`.
+  - Instantiated `self.thalamus = ThalamusNode()` in `EthicalKernel.__init__`.
+  - Added pre-perception thalamus fusion step in `process_chat_turn_stream` (event `1b`): extracts `lip_movement`/`human_presence` from `image_metadata`, maps `audio_emergency` to `vad_confidence`, runs `fuse_signals()`, and writes results back to `SensorSnapshot` fields. Emits a new `thalamus_fusion` stream event before `perception_started`.
+  - Added three new `SensorSnapshot` fields: `thalamus_attention`, `thalamus_tension`, `thalamus_cross_modal_trust`.
+  - Extended `SensorSnapshot.is_empty()` to account for the new fields.
+  - Extended `merge_sensor_hints_into_signals()` with thalamus-aware signal nudges: high `thalamus_tension` raises urgency and lowers calm; low `cross_modal_trust` (background speech) dampens urgency; high `thalamus_attention` raises familiarity.
+- **Unit tests (`tests/test_thalamus_node.py` — 16 tests):**
+  - Focal vs. background speech classification, sensory dissonance detection, environmental stress propagation, attention-locus clamping, ring-buffer cap, and full `SensorSnapshot`/`merge_sensor_hints_into_signals` integration scenarios.
+- **Validation:** 57/57 tests passed (thalamus + adversarial_inputs + antigravity_hardening + semantic_chat_gate).
+
 ## Team Copilot — TurnPrefetcher Integration & Homoglyph Tests — April 2026 (Bloque 10.4 / 8.1.3)
 
 ### Team Copilot Updates
