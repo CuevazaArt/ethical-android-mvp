@@ -229,9 +229,13 @@ def _package_version() -> str:
 async def _lifespan(app: FastAPI):
     configure_logging()
     init_metrics()
+    from .modules.vision_adapter import start_nomad_vision_consumer_from_env, stop_nomad_vision_consumer_async
+
+    start_nomad_vision_consumer_from_env()
     try:
         yield
     finally:
+        await stop_nomad_vision_consumer_async()
         from .real_time_bridge import shutdown_chat_threadpool
 
         shutdown_chat_threadpool(wait=True)

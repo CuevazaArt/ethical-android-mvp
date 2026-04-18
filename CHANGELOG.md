@@ -22,6 +22,7 @@ All notable changes to this project are summarized here. For narrative context a
 - **Pytest:** `pythonpath = ["."]` under `[tool.pytest.ini_options]` so `src.*` imports resolve consistently.
 - **`PreloadedBuffer`:** added `get_snapshot()` for read-only L0 / support-buffer telemetry (chat and perception paths).
 - **`narrative_storage`:** repaired `with conn:` indentation around identity digest upserts (merge-regression syntax fix).
+- **Module S.1 (Nomad vision path):** gated background `NomadVisionConsumer` behind `KERNEL_NOMAD_VISION_CONSUMER`; started from `chat_server` lifespan and stopped on shutdown so LAN JPEG frames drain into `VisionAdapter` when enabled.
 
 ## Documentation — Issue #1 (Bayesian naming honesty) — April 2026
 
