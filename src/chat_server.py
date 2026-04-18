@@ -178,6 +178,7 @@ from .modules.moral_hub import (
     proposal_to_public,
     submit_constitution_draft_for_vote,
 )
+from .modules.async_task_canceller import wait_for_with_explicit_cancel
 from .modules.nomad_identity import nomad_identity_public
 from .modules.perception_schema import perception_report_from_dict
 from .modules.perceptual_abstraction import snapshot_from_layers
@@ -2279,10 +2280,7 @@ async def ws_chat(ws: WebSocket) -> None:
                     cancel_event=chat_cancel_ev,
                     chat_turn_id=current_chat_turn_id,
                 )
-                if chat_to is not None:
-                    result = await asyncio.wait_for(coro, timeout=chat_to)
-                else:
-                    result = await coro
+                result = await wait_for_with_explicit_cancel(coro, chat_to, current_chat_turn_id)
             except TimeoutError:
                 kernel.abandon_chat_turn(current_chat_turn_id)
                 observe_chat_turn("turn_timeout", time.perf_counter() - t_turn)
