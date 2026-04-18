@@ -28,6 +28,7 @@ from .kernel_lobes import (
     LimbicEthicalLobe,
     MemoryLobe,
     PerceptiveLobe,
+    ThalamusNode,
 )
 
 _log = logging.getLogger(__name__)
@@ -506,6 +507,9 @@ class EthicalKernel:
         self.hardware_interrupt_event = threading.Event()
         self.cerebellum_node = CerebellumNode(self.hardware_interrupt_event)
         self.cerebellum_node.start()
+
+        # ═══ MER V2 — Thalamus Sensory Fusion (Bloque 10.1) ═══
+        self.thalamus = ThalamusNode()
 
         # ═══ MER V2 — Turn Prefetcher (Bloque 10.4) ═══
         self.turn_prefetcher = TurnPrefetcher()
@@ -1266,6 +1270,41 @@ class EthicalKernel:
             )
             yield {"event_type": "turn_finished", "payload": {"result": res}}
             return
+
+        # 1b. Thalamus Sensory Fusion (Bloque 10.1)
+        # Run before perception so fused attention/tension signals augment the snapshot.
+        try:
+            _img = (sensor_snapshot.image_metadata or {}) if sensor_snapshot else {}
+            _vision_data = {
+                "lip_movement": float(_img.get("lip_movement", 0.0)),
+                "human_presence": float(_img.get("human_presence", 0.0)),
+            }
+            _audio_data = {
+                "vad_confidence": float(
+                    sensor_snapshot.audio_emergency or 0.0
+                ) if sensor_snapshot else 0.0,
+            }
+            _env_stress = float(
+                sensor_snapshot.ambient_noise or 0.0
+            ) if sensor_snapshot else 0.0
+            _thal = self.thalamus.fuse_signals(_vision_data, _audio_data, _env_stress)
+            if sensor_snapshot is None:
+                from .modules.sensor_contracts import SensorSnapshot as _SS
+                sensor_snapshot = _SS()
+            sensor_snapshot.thalamus_attention = _thal["attention_locus"]
+            sensor_snapshot.thalamus_tension = _thal["sensory_tension"]
+            sensor_snapshot.thalamus_cross_modal_trust = _thal["cross_modal_trust"]
+            yield {
+                "event_type": "thalamus_fusion",
+                "payload": {
+                    "attention_locus": _thal["attention_locus"],
+                    "is_focal_address": _thal["is_focal_address"],
+                    "sensory_tension": _thal["sensory_tension"],
+                    "cross_modal_trust": _thal["cross_modal_trust"],
+                },
+            }
+        except Exception as _th_err:
+            _log.debug("process_chat_turn_stream: thalamus fusion skipped: %s", _th_err)
 
         # 2. Perception Stage
         yield {"event_type": "perception_started", "payload": {}}
