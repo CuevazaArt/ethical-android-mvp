@@ -64,7 +64,9 @@ def test_direct_response_at_low_trust(engine, user_tracker):
     
     assert "[Tone: Direct & Boundaried]" in res.final_text
     assert res.charm_vector["warmth"] <= 0.2
-    assert res.charm_vector["directiveness"] > 0.7
+    assert res.charm_vector["directiveness"] >= 0.8
+    assert "Do not flatter" in res.prosody_guidance
+    assert "objective" in res.prosody_guidance
 
 def test_playfulness_degraded_on_frustration(engine, profile, user_tracker):
     """If user is frustrated, playfulness should be inhibited."""

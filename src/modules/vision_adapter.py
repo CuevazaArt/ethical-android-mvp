@@ -53,13 +53,105 @@ class VisionAdapter(ABC):
 
 import os
 
-def from_env_vision_adapter() -> "MobileNetV2Adapter":
+def from_env_vision_adapter() -> VisionAdapter:
     """
-    Factory method to create a MobileNetV2Adapter using 
+    Factory method to create a VisionAdapter using 
     KERNEL_VISION_DEVICE environment variable (cpu/cuda).
+    Prefers ONNX if available, falls back to MobileNetV2Adapter (Torch).
     """
     device = os.environ.get("KERNEL_VISION_DEVICE", "cpu").lower()
-    return MobileNetV2Adapter(device=device)
+    
+    try:
+        import onnxruntime as ort
+        _log.info("ONNX Runtime detected. Initializing OnnxVisionAdapter.")
+        return OnnxVisionAdapter(device=device)
+    except ImportError:
+        _log.info("ONNX Runtime not found. Initializing MobileNetV2Adapter (Torch).")
+        return MobileNetV2Adapter(device=device)
+
+
+class OnnxVisionAdapter(VisionAdapter):
+    """
+    High-performance MobileNetV2 implementation using ONNX Runtime.
+    Optimized for CPU inference in Phase 9.
+    """
+    def __init__(self, device: str = "cpu"):
+        self.session = None
+        self.device = device
+        self.categories = []
+        self._is_ready = False
+
+    def load_model(self, path: str = None) -> None:
+        """Loads the ONNX model and category metadata."""
+        if path is None:
+            # Placeholder for default bundled ONNX model path
+            path = os.environ.get("KERNEL_VISION_ONNX_PATH", "models/mobilenet_v2.onnx")
+        
+        if not os.path.exists(path):
+            _log.warning("ONNX model file not found at %s. Standing by in MOCK mode.", path)
+            return
+
+        try:
+            import onnxruntime as ort
+            providers = ["CPUExecutionProvider"]
+            if self.device == "cuda":
+                providers = ["CUDAExecutionProvider"]
+            
+            self.session = ort.InferenceSession(path, providers=providers)
+            
+            # Categories normally bundled in a separate JSON or extracted from Torchvision weights
+            # For simplicity, we assume a standard MobileNetV2 category list exists
+            self.categories = [f"category_{i}" for i in range(1000)] 
+            self._is_ready = True
+            _log.info("OnnxVisionAdapter ready (provider: %s).", providers[0])
+        except Exception as e:
+            _log.error("Failed to load ONNX model: %s", e)
+
+    def infer(self, frame: Any) -> VisionInference:
+        if not self._is_ready or self.session is None:
+            return VisionInference(primary_label="unknown (onnx-mock)", confidence=0.0)
+
+        import numpy as np
+        import cv2
+
+        try:
+            # Standard Preprocessing for MobileNetV2 (224x224, normalized)
+            # frame is BGR (OpenCV)
+            resized = cv2.resize(frame, (224, 224))
+            rgb = cv2.cvtColor(resized, cv2.COLOR_BGR2RGB)
+            img_data = rgb.astype(np.float32) / 255.0
+            
+            # Normalize with ImageNet mean/std
+            mean = np.array([0.485, 0.456, 0.406])
+            std = np.array([0.229, 0.224, 0.225])
+            img_data = (img_data - mean) / std
+            
+            # HWC -> CHW and Batch dimension
+            input_data = np.transpose(img_data, (2, 0, 1))
+            input_data = np.expand_dims(input_data, axis=0)
+
+            # Execution
+            input_name = self.session.get_inputs()[0].name
+            output = self.session.run(None, {input_name: input_data})[0]
+            
+            # Post-processing (Softmax)
+            exp_scores = np.exp(output[0] - np.max(output[0]))
+            probs = exp_scores / exp_scores.sum()
+            
+            idx = np.argmax(probs)
+            label = self.categories[idx]
+            conf = probs[idx]
+
+            return VisionInference(
+                primary_label=label,
+                confidence=float(conf),
+                detected_objects=[label],
+                raw_scores={label: float(conf)},
+                timestamp=0.0
+            )
+        except Exception as e:
+            _log.error("ONNX Inference error: %s", e)
+            return VisionInference(primary_label="error", confidence=0.0)
 
 
 class MobileNetV2Adapter(VisionAdapter):
@@ -172,11 +264,15 @@ class NomadVisionConsumer:
     to the underlying VisionAdapter.
     """
     def __init__(self, adapter: VisionAdapter):
+        # Phase 9: B.4.2 Dedicated Process offloading
+        from .vision_multiprocess import MultiprocessVisionInference
+        self.worker = MultiprocessVisionInference()
         self.adapter = adapter
         self._task: asyncio.Task | None = None
         self.latest_inference: VisionInference | None = None
 
     def start(self):
+        self.worker.start()
         self._task = asyncio.create_task(self._consume_loop())
 
     async def _consume_loop(self):
@@ -199,16 +295,20 @@ class NomadVisionConsumer:
                 np_arr = np.frombuffer(frame_bytes, np.uint8)
                 img = cv2.imdecode(np_arr, cv2.IMREAD_COLOR)
                 if img is not None:
-                    # Run inference in a thread to not block the event loop
-                    infer_result = await asyncio.to_thread(self.adapter.infer, img)
-                    self.latest_inference = infer_result
-                    _log.debug("Nomad vision infered: %s", infer_result.primary_label)
+                    # Submit to independent process
+                    self.worker.submit_frame(img)
+                    # Poll for last available result (non-blocking)
+                    self.latest_inference = self.worker.poll_result()
+                    
+                    if self.latest_inference:
+                        _log.debug("Nomad vision (MP) infered: %s", self.latest_inference.primary_label)
             except asyncio.CancelledError:
                 break
             except Exception as e:
                 _log.error("Error in NomadVisionConsumer: %s", e)
 
     async def stop(self) -> None:
+        self.worker.stop()
         if self._task is not None:
             self._task.cancel()
             try:

@@ -10,6 +10,11 @@ from dataclasses import dataclass
 
 import numpy as np
 
+from ..observability.metrics import (
+    observe_audio_ai_inference_seconds,
+    record_audio_ai_hotword_detection,
+)
+
 
 class AudioRingBuffer:
     """
@@ -148,18 +153,130 @@ class AudioAIProcessor:
     """
 
     def __init__(self):
-        # Placeholders for model instances (e.g. whisper, yamnet)
-        pass
+        self._whisper_model = None
+        self._vad = None
+        self._yamnet_session = None
+        self._yamnet_classes = []
+        self._is_initialized = False
+
+    def initialize_models(self) -> None:
+        """Loads lightweight ML models if available."""
+        if self._is_initialized:
+            return
+        
+        try:
+            import whisper
+            # Use tiny/base model for real-time LAN pipeline
+            self._whisper_model = whisper.load_model("tiny", device="cpu")
+        except ImportError:
+            import logging
+            logging.getLogger(__name__).warning("openai-whisper not installed. STT disabled.")
+            
+        try:
+            import webrtcvad
+            self._vad = webrtcvad.Vad(2)  # Level 2 aggressiveness
+        except ImportError:
+            self._vad = None
+            
+        # Phase 9: A.1.2 YAMNet Integration (ONNX)
+        try:
+            import onnxruntime as ort
+            yamnet_path = os.environ.get("KERNEL_AUDIO_YAMNET_ONNX", "models/yamnet.onnx")
+            if os.path.exists(yamnet_path):
+                self._yamnet_session = ort.InferenceSession(yamnet_path)
+                # Placeholder for YAMNet's 521 classes
+                self._yamnet_classes = [f"class_{i}" for i in range(521)]
+                _log.info("YAMNet (Acoustic Event Detection) initialized via ONNX.")
+            else:
+                _log.warning("YAMNet model not found at %s. Ambient detection will use fallback peaks.", yamnet_path)
+        except ImportError:
+            _log.warning("onnxruntime not found. YAMNet disabled.")
+            
+        self._is_initialized = True
 
     def run_inference(self, pcm: np.ndarray, features: np.ndarray) -> AudioInference:
         """Runs the triple-path AI inference on the audio signal."""
-        # TODO (Production): Bind to OpenAI-Whisper, TensorFlow-YAMNet, or TinyML-KWS
-        # For now, simulate a clean background to maintain architecture flow.
+        if not self._is_initialized:
+            self.initialize_models()
+            
+        transcript = None
+        ambient_label = "calm"
+        confidence = 0.9
+        is_hotword = False
+        
+        # 1. Whisper Transcription (STT) 
+        # Block A.1.3: Intelligent VAD Segmenter (webrtcvad)
+        # only runs if we have 16-bit PCM at 8k, 16k, 32k or 48k.
+        # Whisper uses 16k mono.
+        needs_transcription = False
+        if self._vad is not None:
+            try:
+                # Convert float32 back to int16 for webrtcvad
+                # webrtcvad expects frames of 10, 20, or 30 ms
+                # 16000Hz * 0.030s = 480 samples
+                pcm_int16 = (pcm * 32768).astype(np.int16)
+                # Take a 30ms sample from the middle
+                frame = pcm_int16[len(pcm_int16)//2 : len(pcm_int16)//2 + 480].tobytes()
+                if self._vad.is_speech(frame, 16000):
+                    needs_transcription = True
+            except Exception:
+                # Fallback to energy if vad fails
+                needs_transcription = np.mean(pcm**2) > 0.005
+        else:
+            needs_transcription = np.mean(pcm**2) > 0.005
+        
+        if needs_transcription and self._whisper_model is not None:
+            start_t = time.time()
+            try:
+                # Whisper expects float32 from -1 to 1 at 16kHz.
+                import torch
+                # Suppress FP16 warnings on CPU
+                with torch.no_grad():
+                    result = self._whisper_model.transcribe(pcm, fp16=False)
+                text = result.get("text", "").strip()
+                if text:
+                    transcript = text
+            except Exception as e:
+                import logging
+                logging.getLogger(__name__).debug("Whisper inference failed: %s", e)
+            finally:
+                observe_audio_ai_inference_seconds("whisper", time.time() - start_t)
+
+        # 2. Ambient Event Analysis (YAMNet + Fallback)
+        # Block A.1.2: Specialized classifier for non-speech sounds
+        if self._yamnet_session is not None:
+            start_t = time.time()
+            try:
+                # YAMNet expects float32 [1, waveform_len] at 16kHz
+                y_input = pcm.astype(np.float32).reshape(1, -1)
+                y_output = self._yamnet_session.run(None, {"input": y_input})[0]
+                idx = np.argmax(np.mean(y_output, axis=0))
+                ambient_label = self._yamnet_classes[idx]
+                confidence = float(np.max(np.mean(y_output, axis=0)))
+            except Exception as e:
+                _log.debug("YAMNet inference failed: %s", e)
+            finally:
+                observe_audio_ai_inference_seconds("yamnet", time.time() - start_t)
+        else:
+            # Fallback for development (peak-based)
+            peak = np.max(np.abs(pcm))
+            if peak > 0.85:
+                ambient_label = "loud_noise_or_shout"
+                confidence = 0.85
+            elif peak > 0.4:
+                ambient_label = "active_environment"
+                confidence = 0.70
+        
+        # 3. Hotword Spotting (KWS Placeholder)
+        if transcript and "ethos" in transcript.lower():
+            is_hotword = True
+            record_audio_ai_hotword_detection()
+        
         return AudioInference(
-            transcript=None,
-            ambient_label="calm",
-            confidence=0.9,
-            is_hotword_detected=False,
+            transcript=transcript,
+            ambient_label=ambient_label,
+            confidence=confidence,
+            is_hotword_detected=is_hotword,
             timestamp=time.time(),
         )
 

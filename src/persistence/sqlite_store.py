@@ -47,9 +47,10 @@ class SqlitePersistence:
         validate_snapshot_for_apply(snapshot)
         self.path.parent.mkdir(parents=True, exist_ok=True)
         raw = json.dumps(kernel_snapshot_to_json_dict(snapshot), ensure_ascii=False)
-        with _connect(self.path) as conn:
+        
+        from ..utils.db_locks import sqlite_safe_write
+        with sqlite_safe_write(self.path) as conn:
             _ensure_schema(conn)
-            conn.execute("BEGIN IMMEDIATE")
             conn.execute(
                 """
                 INSERT INTO kernel_snapshot (id, json_blob) VALUES (1, ?)
@@ -57,7 +58,6 @@ class SqlitePersistence:
                 """,
                 (raw,),
             )
-            conn.commit()
 
     def load(self) -> KernelSnapshotV1 | None:
         if not self.path.is_file():

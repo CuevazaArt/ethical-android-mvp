@@ -1,10 +1,10 @@
-# Árbol de Distribución de Trabajo: Escalado a Infraestructura Pública (Fase 8+)
+# Árbol de Distribución de Trabajo: Escalado a Infraestructura Pública (Fase 9+)
 
 Este documento estructura el volumen de trabajo arquitectónico definido para el Ethos Kernel. El trabajo se asigna a los diferentes equipos (Tiers) según las reglas de gobernanza del repositorio (`AGENTS.md`).
 
 > [!IMPORTANT]
-> **Nueva Directiva Estratégica (Update L1 - Abril 2026)**:
-> Tras la estabilización concurrente y extracción de Lóbulos, el proyecto se encuentra en riesgo de "Mock-Hell". Las prioridades han cambiado. **Se congela el desarrollo teórico de Gobernanza/DAO**. Toda la potencia de fuego pasa a la **Inferencia Situada y Puente con Hardware Real (Nomad Bridge)**, fusionado ahora con el **Motor de Encanto Multimodal (Charm Engine)** para una interacción persuasiva y segura.
+> **Nueva Directiva Estratégica (Update L1 - Fase 9)**:
+> La transición asíncrona y la integración inicial del hardware (Módulo S) y el Motor de Encanto (Módulo E) se han estabilizado. El objetivo primario de la **Fase 9: Encarnación Endurecida y Multi-Agente** es asegurar los túneles de comunicación del Hardware Bridge (Criptografía HMAC), activar la Inteligencia Acústica real (Whisper/Pyaudio), y blindar el pipeline de CI/CD contra condiciones de carrera.
 
 ---
 
@@ -12,59 +12,53 @@ Este documento estructura el volumen de trabajo arquitectónico definido para el
 
 ### ✅ Módulos Consolidados / Completados
 *Se han colapsado los módulos tras su finalización exitosa. Referirse al `CHANGELOG.md` para trazabilidad.*
-- **Módulo 0**: Estabilización Pragmática y Desmonolitización (Lóbulos, WebSockets Concurrentes) [DONE]
-- **Módulo 1**: Infraestructura DAO Híbrida (Simulación Local Mock) [DONE]
-- **Módulo 2**: Simulador, Red-Teaming y Validación Funcional [DONE]
-- **Módulo 3**: Sociabilidad Encarnada y Cinemática (S-Blocks) [DONE]
-- **Módulo C**: Profundidad Cognitiva, BMA, y Gobernanza Runtime [DONE]
-- **Módulo 6 & 7**: Swarm Ethics, Justicia Restaurativa y Slashing [DONE]
-- **Módulo E (Core)**: Integración base del Motor de Encanto y Salvaguardas Contra Adicción Parasocial (L1 Antigravity) [DONE]
+- **Módulo 0**: Estabilización Pragmática y Desmonolitización [DONE]
+- **Módulo 1-7**: DAO, Red-Teaming, Swarm Ethics, Runtime Governance [DONE]
+- **Módulo S (Fase 1)**: Nomad SmartPhone LAN Bridge (Video/Audio/Telemetría Asíncrona) [DONE]
+- **Módulo E (Fase 1)**: Integración base del Motor de Encanto y Renderizado Somático [DONE]
+- **Módulo 8**: Bloqueos SQLite Concurrentes (sqlite_safe_write) [DONE]
 
 ---
 
-### 🟢 Módulo S: Encarnación Activa y Hardware Bridge (Nomad PC/Mobile) [PRIORIDAD 0]
-*Responsabilidad: Nivel 2 (Team Cursor)*
-*Objetivo: Integrar sensores reales (visión/audio) provenientes de un dispositivo móvil LAN como inputs de inferencia física, abandonando las señales de prueba simuladas.*
+### 🔴 Módulo S: Seguridad Criptográfica y Autenticación LAN [PRIORIDAD 0]
+*Responsabilidad: Nivel 1 (Team Antigravity)*
+*Objetivo: Evitar vectores de ataque de "Spoofing Sensorial" sobre el puerto WebSocket del dispositivo móvil.*
 
-- **Bloque S.1: Nomad SmartPhone LAN Bridge**
-  - Tarea S.1.1: Desarrollar conectores WebSocket o WebRTC de baja latencia (`src/modules/nomad_bridge.py`) para consumir streams de video y audio desde un dispositivo móvil Android/iOS en red local, inyectando los fotogramas en el `VisionInference` de manera asíncrona.
-- **Bloque S.2: Calibración Termo-Visual Continua**
-  - Tarea S.2.1: Refinar las interrupciones del `VitalityAssessment` utilizando la telemetría real transmitida por el *Nomad Bridge*.
+- **Bloque S.4: Handshake Criptográfico (HMAC)**
+  - Tarea S.4.1: Implementar sistema de validación de tokens o firmas HMAC en `/ws/nomad` para rechazar fotogramas o telemetría falsificada en redes LAN.
 
-### 🟣 Módulo E: Motor de Encanto y Renderizado Somático (Fase 2) [PRIORIDAD 1]
-*Responsabilidad: Nivel 2 (Team Cursor y Claude)*
-*Objetivo: Empalmar la capa de presentación (CharmEngine) recién acoplada en el Kernel con los sistemas físicos y mejorar la persuasión prosódica empática.*
+### 🔵 Módulo CI: Estabilización de Integración Continua [PRIORIDAD 1]
+*Responsabilidad: Nivel 1 (Team Antigravity) & Nivel 2 (Copilot)*
+*Objetivo: Prevenir la inyección de fallos concurrentes (Flaky Tests) y subir los estándares de código.*
 
-- **Bloque E.1: Puente Somático-Hardware (Team Cursor)**
-  - Tarea E.1.1: Conectar el `GesturePlanner` y los vectores somáticos en tiempo real (provenientes de la telemetría del `limbic_profile`) hacia la interfaz gráfica local o motores de interpolación de servos reales del androide (mediado por *Nomad Bridge*).
-- **Bloque E.2: RLHF y Fine-tuning de Prosodia (Claude / Copilot)**
-  - Tarea E.2.1: Reemplazar el `PromptTemplate` base en el `ResponseSculptor` creando un dataset optimizado (Reward Model) para equilibrar assertividad, calidez, y misterio, limitando al mismo tiempo dinámicas aduladoras.
+- **Bloque CI.1: Concurrency Workflows**
+  - Tarea CI.1.1: Expandir `.github/workflows/ci.yml` para ejecutar pruebas agresivas de stress de Base de Datos y WebSockets. 
+  - Tarea CI.1.2: Aumentar el piso de cobertura de código (Coverage) del 65% al 75%.
 
-### 🔵 Módulo 8: Higiene, Pruebas Unitarias y Concurrencia [PRIORIDAD 2]
-*Responsabilidad: Nivel 2 (Team Copilot)*
-*Objetivo: Asegurar que el servidor concurrente recién creado no colapse por Data Races en las bases SQLite compartidas.*
+### 🟢 Módulo A: Inteligencia Acústica Autónoma [PRIORIDAD 2]
+*Responsabilidad: Nivel 2 (Team Cursor / Alternate: Copilot)*
+*Objetivo: Conectar los streams de sonido real a un modelo de reconocimiento acústico.*
 
-- **Bloque 8.1: Unit Tests Asíncronos**
-  - Tarea 8.1.1: Crear suite de testeo masivo asíncrono (`test_charm_engine.py`, multithread server load tests) para verificar cancelaciones limpias en el `chat_server`.
-- **Bloque 8.2: Database Locks**
-  - Tarea 8.2.1: Implementar sistema de colas / bloqueo seguro para que los turnos concurrentes no corrompan los archivos `kernel_episodes.jsonl`, `user_models.db` o `DAO` ledgers.
+- **Bloque A.1: Procesamiento Acústico Base**
+  - Tarea A.1.1: Reemplazar los stubs vacíos en el `AudioAIProcessor`. Implementar detección de eventos sonoros (gritos, cristales rotos) y Voice Activity Detection (VAD) acoplado a Whisper local, procesando buffers que fluyen desde el NomadBridge.
 
-### 🔴 L1 Oversight: Arquitectura y Governance Gate [PRIORIDAD ABSOLUTA]
-*Responsabilidad: Nivel 1 (Antigravity)*
-*Objetivo: Liderar y coordinar todas las transiciones arquitectónicas pesadas y serializar las fusiones hacia Main.*
+### 🟣 Módulo B & E: Offloading de Visión y RLHF Judicial [PRIORIDAD 3]
+*Responsabilidad: Nivel 2 (Team Claude para E.3, Copilot para B.4)*
 
-- Control de Calidad arquitectónica de los PRs de Cursor sobre el *Nomad Bridge* y vectores Somáticos.
-- Mantenimiento estricto del *Threat Model* contra ataques de red LAN e inyección sensorial. Preservación inmaculada de los guardrails de Adicción Parasocial (MalAbs).
+- **Bloque E.3: Validación Automatizada (Claude)**
+  - Tarea E.3.1: Configurar "LLM-as-a-Judge" actions que validen si los textos generados usando `prosody_guidance` violan la directiva anti-adulación de bajo nivel.
+- **Bloque B.4: Optimización de Frame-Rate (Copilot)**
+  - Tarea B.4.1: Sustituir `asyncio.to_thread` del adaptador MobileNetV2 por un proceso dedicado u ONNX Runtime para garantizar que el loop concurrente nunca caiga bajo los 30Hz de evaluación.
 
 ---
 
-## 🚀 Flujo de Sincronización Estratégica (Abril 2026)
+## 🚀 Flujo de Sincronización Estratégica (Fase 9)
 
 1. **Jornada Actual:** 
-   - **Antigravity (L1)**: Ha fusionado el core del `CharmEngine` en `master-antigravity`. Ahora asume monitorización pasiva de arquitecturas.
-   - **Cursor (N2)**: Frontline único para Módulo S.1 y E.1 (*Puente Hardware + Vectores Gésticos*).
-   - **Copilot (N2)**: Escudero de tests asíncronos y saneamiento Concurrente de persitencia (Módulo 8.2 y Pruebas del Charm Engine).
+   - **Antigravity (L1)**: Adopta las defensas perimetrales (Security S.4) y el marco de CI para bloquear regresiones.
+   - **Cursor (N2)**: Asume la responsabilidad acústica (Módulo A) ahora que la UI/Física está completa.
+   - **Claude (N2)**: Finaliza las métricas evaluativas del comportamiento somático.
 2. **Siguiente Fase Inter-Equipos:**
-   - Claude y Copilot unifican un PR común abordando las tareas pendientes del Bloque E.2 (Calibración RLHF para el Motor de Encanto).
+   - Convergencia de los canales en un entorno 100% blindado contra manipulación sensorial local.
 3. **Validación L0:**
-   - La Demostración en vivo ("Hardware in the loop"), donde el Androide observa mediante cámara real y responde persuasivamente sin dañar éticamente, es el gatillo de Release L0.
+   - Cuando el testeo concurrente se bloquee verde y no existan riesgos de suplantación de sensaciones, se validará el androide situacional de cara al público.

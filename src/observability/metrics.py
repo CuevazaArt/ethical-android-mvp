@@ -23,6 +23,10 @@ _chat_async_timeouts: Any = None
 _llm_cancel_scope_signals: Any = None
 _chat_abandoned_effects_skipped: Any = None
 _lan_envelope_replay_cache_events: Any = None
+_nomad_bridge_connections: Any = None
+_audio_ai_inference_duration: Any = None
+_audio_ai_hotword_detections: Any = None
+_situated_vetoes: Any = None
 _initialized = False
 
 _LAN_ENVELOPE_REPLAY_CACHE_EVENTS = frozenset({"hit", "miss", "evict_ttl", "evict_lru"})
@@ -43,7 +47,9 @@ def init_metrics() -> None:
     global _malabs_blocks, _semantic_malabs_outcomes, _dao_ops, _embedding_errors
     global _kernel_decisions, _kernel_process_seconds, _perception_circuit_trips
     global _chat_async_timeouts, _llm_cancel_scope_signals, _chat_abandoned_effects_skipped
-    global _lan_envelope_replay_cache_events
+    global _lan_envelope_replay_cache_events, _nomad_bridge_connections
+    global _audio_ai_inference_duration, _audio_ai_hotword_detections
+    global _situated_vetoes
 
     if _initialized:
         return
@@ -120,6 +126,26 @@ def init_metrics() -> None:
         "ethos_kernel_lan_envelope_replay_cache_events_total",
         "LAN governance envelope replay-cache events (hits, misses, evictions).",
         ["event"],
+    )
+    _nomad_bridge_connections = Counter(
+        "ethos_kernel_nomad_bridge_connections_total",
+        "Nomad LAN Bridge WebSocket handshake outcomes.",
+        ["outcome"],
+    )
+    _audio_ai_inference_duration = Histogram(
+        "ethos_kernel_audio_ai_inference_seconds",
+        "Wall time for local acoustic AI tasks (Whisper, VAD).",
+        ["task"],
+        buckets=(0.01, 0.05, 0.1, 0.25, 0.5, 1.0, 2.5, 5.0, 10.0, float("inf")),
+    )
+    _audio_ai_hotword_detections = Counter(
+        "ethos_kernel_audio_ai_hotword_detections_total",
+        "Count of acoustic hotword (Ethos) triggers.",
+    )
+    _situated_vetoes = Counter(
+        "ethos_kernel_situated_vetoes_total",
+        "Count of physical safety lockdowns based on sensor data.",
+        ["reason"],
     )
     _kernel_process_seconds = Histogram(
         "ethos_kernel_kernel_process_seconds",
@@ -268,3 +294,27 @@ def observe_kernel_process_seconds(seconds: float) -> None:
     if _kernel_process_seconds is None:
         return
     _kernel_process_seconds.observe(max(0.0, seconds))
+
+
+def record_nomad_bridge_connection(outcome: str) -> None:
+    if _nomad_bridge_connections is None:
+        return
+    _nomad_bridge_connections.labels(outcome=outcome).inc()
+
+
+def observe_audio_ai_inference_seconds(task: str, seconds: float) -> None:
+    if _audio_ai_inference_duration is None:
+        return
+    _audio_ai_inference_duration.labels(task=task).observe(max(0.0, seconds))
+
+
+def record_audio_ai_hotword_detection() -> None:
+    if _audio_ai_hotword_detections is None:
+        return
+    _audio_ai_hotword_detections.inc()
+
+
+def record_situated_veto(reason: str) -> None:
+    if _situated_vetoes is None:
+        return
+    _situated_vetoes.labels(reason=reason).inc()

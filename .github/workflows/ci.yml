@@ -67,7 +67,7 @@ jobs:
           python -m pytest tests/ -q --tb=short \
             --junitxml=junit.xml \
             --cov=src \
-            --cov-fail-under=65 \
+            --cov-fail-under=75 \
             --cov-report=xml \
             --cov-report=term-missing
 
@@ -140,3 +140,80 @@ jobs:
           PYTHONHASHSEED: "0"
         run: |
           python -m pytest tests/test_runtime_profiles.py tests/test_env_policy.py -q --tb=short
+
+  anti-sycophancy-audit:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python 3.12
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+          cache-dependency-path: |
+            requirements.txt
+            requirements-dev.txt
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt -r requirements-dev.txt
+
+      - name: Generate RLHF Dataset
+        run: python scripts/generate_prosody_dataset.py
+
+      - name: Run Qualitative Audit (LLM-as-a-Judge)
+        run: python scripts/validate_anti_sycophancy.py
+
+  secure-boot-integrity:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python 3.12
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+          cache-dependency-path: |
+            requirements.txt
+            requirements-dev.txt
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt -r requirements-dev.txt
+
+      - name: Validate Cryptographic Manifest
+        env:
+          PYTHONHASHSEED: "0"
+          KERNEL_NOMAD_SECRET: "ci_pipeline_secret_xyz"
+        run: |
+          python scripts/generate_golden_manifest.py
+          python -c "import sys; from src.modules.secure_boot import SecureBoot; sys.exit(0 if SecureBoot().verify_integrity() else 1)"
+
+  concurrency-stress:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python 3.12
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+          cache-dependency-path: |
+            requirements.txt
+            requirements-dev.txt
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt -r requirements-dev.txt
+
+      - name: Async Chat and Concurrent Persistence Stress Tests
+        env:
+          PYTHONHASHSEED: "0"
+        run: |
+          python -m pytest tests/test_concurrent_persistence.py tests/test_charm_engine.py -q --tb=short

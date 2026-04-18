@@ -215,12 +215,16 @@ def merge_nomad_telemetry_into_snapshot(snapshot: SensorSnapshot | None) -> Sens
     bat = tel.get("battery_level")
     jerk = tel.get("accelerometer_jerk")
     temp = tel.get("core_temperature")
+    falling = tel.get("is_falling", False)
+    stability = tel.get("stability_score")
     
     if snapshot is None:
         return SensorSnapshot(
             battery_level=bat,
             accelerometer_jerk=jerk,
-            core_temperature=temp
+            core_temperature=temp,
+            is_falling=falling,
+            stability_score=stability
         )
 
     # Max-merge for jerk/temp if they exist, or just take the new one
@@ -240,7 +244,9 @@ def merge_nomad_telemetry_into_snapshot(snapshot: SensorSnapshot | None) -> Sens
         snapshot, 
         battery_level=merged_bat, 
         accelerometer_jerk=merged_jerk, 
-        core_temperature=merged_temp
+        core_temperature=merged_temp,
+        is_falling=falling or snapshot.is_falling,
+        stability_score=stability if stability is not None else snapshot.stability_score
     )
 
 

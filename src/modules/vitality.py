@@ -76,9 +76,11 @@ class VitalityAssessment:
     temperature_threshold: float
     thermal_critical: bool
 
-    # Fase S: Impactos
+    # Fase S: Impactos y Propriocepción (S.3)
     is_impacted: bool
     impact_threshold: float
+    is_falling: bool
+    stability_score: float | None
 
     def to_public_dict(self) -> dict:
         return {
@@ -90,18 +92,25 @@ class VitalityAssessment:
             "thermal_critical": self.thermal_critical,
             "is_impacted": self.is_impacted,
             "impact_threshold": self.impact_threshold,
+            "is_falling": self.is_falling,
+            "stability_score": self.stability_score,
         }
 
 
 def assess_vitality(snapshot: SensorSnapshot | None) -> VitalityAssessment:
-    """Derive vitality from sensor snapshot (battery, thermal, and impact)."""
+    """Derive vitality from sensor snapshot (battery, thermal, impact, and proprioception)."""
 
     t_bat = critical_battery_threshold()
     t_temp = critical_temperature_threshold()
     t_impact = critical_impact_threshold()
 
     if snapshot is None:
-        return VitalityAssessment(None, t_bat, False, None, t_temp, False, False, t_impact)
+        return VitalityAssessment(
+            None, t_bat, False, 
+            None, t_temp, False, 
+            False, t_impact,
+            False, None
+        )
 
     b = snapshot.battery_level
     is_bat_critical = False if b is None else (b < t_bat)
@@ -115,12 +124,14 @@ def assess_vitality(snapshot: SensorSnapshot | None) -> VitalityAssessment:
     return VitalityAssessment(
         battery_level=b,
         critical_threshold=t_bat,
-        is_critical=is_bat_critical or is_impacted,
+        is_critical=is_bat_critical,
         core_temperature=temp,
         temperature_threshold=t_temp,
         thermal_critical=is_temp_critical,
         is_impacted=is_impacted,
         impact_threshold=t_impact,
+        is_falling=snapshot.is_falling if snapshot else False,
+        stability_score=snapshot.stability_score if snapshot else None
     )
 
 
@@ -129,15 +140,31 @@ def vitality_communication_hint(assessment: VitalityAssessment, trust_level: flo
     Optional line for LLM weakness context when resources are critical.
     Uchi-Soto Aware: modulates technical disclosure based on trust_level.
     """
-    # Any critical condition triggers a hint
-    if not (assessment.is_critical or assessment.thermal_critical or assessment.is_impacted):
+    # Any critical condition triggers a hint (Proprioception S3 added)
+    if not (assessment.is_critical or assessment.thermal_critical or 
+            assessment.is_impacted or assessment.is_falling or 
+            (assessment.stability_score is not None and assessment.stability_score < 0.4)):
         return ""
 
     is_trusted = trust_level >= 0.5
     hints = []
     
-    # Impact has high priority as it signals immediate physical trauma
-    if assessment.is_impacted:
+    # Falling has the highest conversational priority
+    if assessment.is_falling:
+        if is_trusted:
+             hints.append("Free-fall detected. Somatic orientation is lost.")
+        else:
+             hints.append("Executing emergency orientation stabilization.")
+
+    # Stability issues (S.3)
+    if assessment.stability_score is not None and assessment.stability_score < 0.4:
+        if is_trusted:
+             hints.append("Postural stability is degraded. Core balance is at risk.")
+        else:
+             hints.append("Activating secondary balancing protocols.")
+
+    # Impact signals immediate physical trauma
+    if assessment.is_impacted and not assessment.is_falling:
         if is_trusted:
              hints.append("Somatic sensors report a severe physical impact. Movement may be erratic.")
         else:

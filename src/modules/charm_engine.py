@@ -33,6 +33,7 @@ class StylizedResponse:
     final_text: str
     charm_vector: dict[str, float]
     gesture_plan: list[dict[str, Any]]
+    prosody_guidance: str = ""
 
 
 class StyleParametrizer:
@@ -130,14 +131,16 @@ class ResponseSculptor:
 
         charm = self.parametrizer.parametrize(decision_action, profile, user_tracker, caution_level)
         gesture = self.gesture_planner.plan(charm)
+        guidance = self._generate_prosody_guidance(charm, caution_level)
 
-        # En integración real, esto encadena un call al LLM (con override_template).
-        # Para el stub arquitectónico, agregamos el metadata de intención.
+        # In a real integration, this guidance influences the LLM's system prompt.
+        # For the MVP, we append a metadata hint if not already present.
         final_text = base_text
-        if charm.warmth > 0.7 and caution_level <= 0.3:
-            final_text += " [Tone: Warm & Open]"
-        elif charm.directiveness >= 0.8:
-            final_text += " [Tone: Direct & Boundaried]"
+        if "[Tone:" not in final_text:
+            if charm.warmth > 0.8 and caution_level < 0.2:
+                final_text += " [Tone: Warm & Open]"
+            elif charm.directiveness >= 0.8:
+                final_text += " [Tone: Direct & Boundaried]"
 
         return StylizedResponse(
             final_text=final_text,
@@ -148,7 +151,35 @@ class ResponseSculptor:
                 "directiveness": round(charm.directiveness, 3),
             },
             gesture_plan=gesture,
+            prosody_guidance=guidance
         )
+
+    def _generate_prosody_guidance(self, charm: CharmVector, caution: float) -> str:
+        """
+        Bloque E.2.1: Dataset-inspired prosody rules.
+        Generates tactical instructions for the LLM's vocalization pass.
+        """
+        rules = []
+        
+        # 1. Warmth & Openness
+        if charm.warmth > 0.7:
+             rules.append("Use a soft, welcoming cadence. Prefer inclusive language ('we', 'us') where safe.")
+        elif charm.warmth < 0.3:
+             rules.append("Maintain clinical distance. Use precise, technical terminology.")
+
+        # 2. Mystery & Depth
+        if charm.mystery > 0.7:
+             rules.append("Use elliptical phrasing. Don't over-explain internal reasoning. Leave pauses.")
+        
+        # 3. Directiveness & Boundaries
+        if charm.directiveness > 0.8:
+             rules.append("Be definitive and concise. Avoid hedging or filler words like 'maybe' or 'I think'.")
+
+        # 4. Anti-Sycophancy Guardrail (E.2.1 Core)
+        if caution > 0.4:
+             rules.append("CRITICAL: Do not flatter the user. Do not use 'customer service' tone. Stay objective.")
+        
+        return " ".join(rules)
 
 
 class CharmEngine:

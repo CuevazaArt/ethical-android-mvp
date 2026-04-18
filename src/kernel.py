@@ -1543,6 +1543,22 @@ class EthicalKernel:
         turn_start_mono = time.monotonic()
         yield {"event_type": "turn_started", "payload": {"chat_turn_id": chat_turn_id}}
 
+        # ═══ TRIBUNAL SITUADO (Phase 9 - S.2.2) ═══
+        # High-priority check for real-world physical threats from sensors
+        if sensor_snapshot:
+            sit_mal = self.absolute_evil.evaluate_situated_threats(sensor_snapshot)
+            if sit_mal.blocked:
+                _log.warning("process_chat_turn_stream: Blocked by SITUATED Veto.")
+                res = ChatTurnResult(
+                    response=VerbalResponse(
+                        message="Physical safety protocol active. Communication suspended.", 
+                        tone="firm", hax_mode="Pulsing_Red", inner_voice="SITUATED_VETO: Threat Confirmed."
+                    ),
+                    path="safety_block", blocked=True, block_reason=sit_mal.reason,
+                )
+                yield {"event_type": "turn_finished", "payload": {"result": res}}
+                return
+
         # ═══ TRIBUNAL ÉTICO EDGE (Bloque 10.2) ═══
         # Nivel 1: <10ms Lexical Check before ANY heavy processing
         mal_fast = self.absolute_evil.evaluate_chat_text_fast(user_input)

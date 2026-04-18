@@ -198,6 +198,7 @@ def extract_snapshot(kernel: EthicalKernel) -> KernelSnapshotV1:
             interaction_profile_to_dict(p) for p in kernel.uchi_soto.profiles.values()
         ],
         migratory_body=body_state_to_dict(kernel.migration.current_body),
+        absolute_evil_situated_veto_time=float(getattr(kernel.absolute_evil, "_last_situated_veto_time", 0.0)),
     )
 
 
@@ -359,3 +360,7 @@ def apply_snapshot(kernel: EthicalKernel, snap: KernelSnapshotV1) -> None:
             hardware_id=mb.get("hardware_id", "default_body_01"),
             capabilities=list(mb.get("capabilities", [])),
         )
+
+    # Phase 9 — Situated Veto Restore
+    if hasattr(kernel.absolute_evil, "_last_situated_veto_time"):
+        kernel.absolute_evil._last_situated_veto_time = float(snap.absolute_evil_situated_veto_time or 0.0)

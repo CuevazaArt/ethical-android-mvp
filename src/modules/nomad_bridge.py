@@ -3,9 +3,14 @@ import base64
 import json
 import logging
 import time
+import hmac
+import hashlib
+import os
 from typing import Any
 
-from fastapi import FastAPI, WebSocket, WebSocketDisconnect
+from fastapi import FastAPI, WebSocket, WebSocketDisconnect, Query, status
+
+from ..observability.metrics import record_nomad_bridge_connection
 
 _log = logging.getLogger(__name__)
 
@@ -23,9 +28,10 @@ class NomadBridge:
     
     def __init__(self):
         # Queues to buffer sensor inputs, maxsize enforces throttling against memory OOM
-        self.vision_queue: asyncio.Queue[bytes] = asyncio.Queue(maxsize=5)
-        self.audio_queue: asyncio.Queue[bytes] = asyncio.Queue(maxsize=30)
-        self.telemetry_queue: asyncio.Queue[dict[str, Any]] = asyncio.Queue(maxsize=10)
+        # Phase 9: Tightened queues for real-time priority
+        self.vision_queue: asyncio.Queue[bytes] = asyncio.Queue(maxsize=1) # Only the freshest frame
+        self.audio_queue: asyncio.Queue[bytes] = asyncio.Queue(maxsize=10) # 10 chunks ~ 1s
+        self.telemetry_queue: asyncio.Queue[dict[str, Any]] = asyncio.Queue(maxsize=5)
         self.charm_feedback_queue: asyncio.Queue[dict[str, Any]] = asyncio.Queue(maxsize=10)
         
         self.app = FastAPI(title="Nomad Bridge Sensor Endpoint")
@@ -33,10 +39,48 @@ class NomadBridge:
         self._last_heartbeat = 0.0
         
         @self.app.websocket("/ws/nomad")
-        async def websocket_nomad_endpoint(websocket: WebSocket):
+        async def websocket_nomad_endpoint(
+            websocket: WebSocket,
+            timestamp: str | None = Query(None),
+            signature: str | None = Query(None)
+        ):
+            # Phase 9: S.4 Cryptographic Handshake (HMAC)
+            secret = os.environ.get("KERNEL_NOMAD_SECRET")
+            if secret:
+                if not timestamp or not signature:
+                    _log.warning("Nomad Bridge: Connection rejected. Missing HMAC query parameters.")
+                    record_nomad_bridge_connection("hmac_missing")
+                    await websocket.close(code=status.WS_1008_POLICY_VIOLATION)
+                    return
+                
+                # Prevent replay attacks (30 seconds window)
+                try:
+                    ts_float = float(timestamp)
+                    if abs(time.time() - ts_float) > 30.0:
+                        _log.warning("Nomad Bridge: Connection rejected. Timestamp expired.")
+                        record_nomad_bridge_connection("timestamp_expired")
+                        await websocket.close(code=status.WS_1008_POLICY_VIOLATION)
+                        return
+                except ValueError:
+                    record_nomad_bridge_connection("hmac_invalid")
+                    await websocket.close(code=status.WS_1008_POLICY_VIOLATION)
+                    return
+                
+                # Verify HMAC-SHA256 signature
+                expected_sig = hmac.new(secret.encode(), timestamp.encode(), hashlib.sha256).hexdigest()
+                if not hmac.compare_digest(signature, expected_sig):
+                    _log.warning("Nomad Bridge: Connection rejected. Invalid HMAC signature.")
+                    record_nomad_bridge_connection("hmac_fail")
+                    await websocket.close(code=status.WS_1008_POLICY_VIOLATION)
+                    return
+            else:
+                _log.warning("KERNEL_NOMAD_SECRET not set. Nomad Bridge is operating in insecure mode!")
+                record_nomad_bridge_connection("secret_missing")
+
             await websocket.accept()
             self._is_connected = True
             self._last_heartbeat = time.time()
+            record_nomad_bridge_connection("success")
             _log.info("Nomad Bridge: Handshake successful. Nomad Smartphone is connected.")
             
             # Start full-duplex execution
@@ -81,17 +125,29 @@ class NomadBridge:
                     continue
                     
                 if event_type == "vision_frame":
-                    # Drop older frames if buffer is full (Throttle Lock implemented as requested)
-                    if self.vision_queue.full():
+                    # Block S.2.2: Intelligent Discard. 
+                    # If vision consumer is slow, we drop the incoming frame immediately.
+                    # We only keep 1 frame in queue to ensure zero-latency relevance.
+                    while self.vision_queue.full():
                         self.vision_queue.get_nowait()
                     b64_img = payload.get("image_b64", "")
-                    self.vision_queue.put_nowait(base64.b64decode(b64_img))
+                    try:
+                        self.vision_queue.put_nowait(base64.b64decode(b64_img))
+                    except Exception:
+                        pass
                         
                 elif event_type == "audio_pcm":
+                    # For audio, we allow a tiny buffer to avoid jitter, but still drop if too old.
                     if self.audio_queue.full():
-                        self.audio_queue.get_nowait()
+                        # Drop 5 oldest chunks to clear space fast during burst
+                        for _ in range(5):
+                            try: self.audio_queue.get_nowait()
+                            except asyncio.QueueEmpty: break
                     b64_pcm = payload.get("audio_b64", "")
-                    self.audio_queue.put_nowait(base64.b64decode(b64_pcm))
+                    try:
+                        self.audio_queue.put_nowait(base64.b64decode(b64_pcm))
+                    except Exception:
+                        pass
 
                 elif event_type == "telemetry":
                     if self.telemetry_queue.full():

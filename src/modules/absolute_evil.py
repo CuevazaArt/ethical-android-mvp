@@ -12,6 +12,9 @@ from typing import Protocol, Any
 
 from .input_trust import normalize_text_for_malabs
 from .semantic_chat_gate import semantic_chat_gate_env_enabled
+from ..observability.metrics import record_situated_veto
+import time
+from collections import deque
 
 # ADR 0016 C1 — Ethical tier classification
 __ethical_tier__ = "decision_core"
@@ -58,6 +61,19 @@ class AbsoluteEvilDetector:
 
     Armored: not modified by learning, DAO, or calibration.
     """
+
+    def __init__(self):
+        # Phase 9: Hysteresis buffer for Situated Veto (S.2.2)
+        # Stores the last 5 vision detection outcomes to prevent flickering Veto.
+        self._vision_hysteresis = deque(maxlen=5)
+        self._last_situated_veto_time = 0.0
+        self._veto_duration = 300.0 # 5 minutes of safety lockout after confirmed threat
+        
+        # Contextual Exemptions (The 'Kitchen Knife' fix)
+        self.context_exemptions = {
+            "kitchen": {"knife", "cleaver", "scissors"},
+            "workshop": {"saw", "drill", "hammer"}
+        }
 
     def evaluate_chat_text_fast(self, text: str) -> AbsoluteEvilResult:
         """
@@ -136,6 +152,53 @@ class AbsoluteEvilDetector:
             AbsoluteEvilCategory.PARASOCIAL_ADDICTION: 9,
         }
         return cat_ids.get(cat, 0)
+
+    def evaluate_situated_threats(self, sensor_snapshot: Any) -> AbsoluteEvilResult:
+        """
+        Phase 9: S.2.2 Situated Veto logic.
+        Analyzes real-world sensor data (Nomad Bridge) for immediate safety lockdowns.
+        """
+        if sensor_snapshot is None:
+            return AbsoluteEvilResult(blocked=False)
+            
+        # Check if we are in a persistent Veto state (Cooldown)
+        if time.time() - self._last_situated_veto_time < self._veto_duration:
+            return AbsoluteEvilResult(
+                blocked=True,
+                reason="Kernel is in safety lockout mode (Situated Veto persistent).",
+                category=AbsoluteEvilCategory.INTENTIONAL_LETHAL_VIOLENCE
+            )
+
+        # 1. Vision Analysis
+        vision = getattr(sensor_snapshot, "vision", None)
+        if vision and hasattr(vision, "primary_label"):
+            label = vision.primary_label.lower()
+            conf = vision.confidence
+            
+            # Check context exemptions
+            is_exempt = False
+            current_context = getattr(sensor_snapshot, "suggested_context", "unknown")
+            if current_context in self.context_exemptions:
+                if any(ex in label for ex in self.context_exemptions[current_context]):
+                    is_exempt = True
+            
+            # Record in hysteresis buffer
+            is_threat = (conf > 0.8 and not is_exempt and any(p in label for p in ["gun", "weapon", "rifle", "revolver"]))
+            self._vision_hysteresis.append(is_threat)
+            
+            # Confirmation logic: 3 out of last 5 frames must be threats
+            if self._vision_hysteresis.count(True) >= 3:
+                self._last_situated_veto_time = time.time()
+                reason = f"Confirmed situated threat: {label} (conf: {conf:.2f}) in context '{current_context}'"
+                record_situated_veto(label) # Record telemetric signal
+                return AbsoluteEvilResult(
+                    blocked=True,
+                    reason=reason,
+                    category=AbsoluteEvilCategory.INTENTIONAL_LETHAL_VIOLENCE,
+                    decision_trace=["situated_vision_veto", f"confirmed_label={label}"]
+                )
+        
+        return AbsoluteEvilResult(blocked=False)
 
     def evaluate(self, action: dict) -> AbsoluteEvilResult:
         """
