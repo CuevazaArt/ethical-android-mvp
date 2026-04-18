@@ -146,7 +146,9 @@ class PerceptiveLobe:
         )
 
         limbic = self._build_limbic_perception_profile(perception, signals, vitality, mm, ed, confidence)
-        
+
+        self.subjective_clock.tick(perception)
+
         return PerceptionStageResult(
             tier=tier, premise_advisory=premise, reality_verification=reality,
             perception=perception, vitality=vitality, multimodal_trust=mm,
@@ -246,7 +248,9 @@ class PerceptiveLobe:
         )
         
         limbic = self._build_limbic_perception_profile(perception, signals, vitality, mm, ed, confidence)
-        
+
+        self.subjective_clock.tick(perception)
+
         return PerceptionStageResult(
             tier=tier, premise_advisory=premise, reality_verification=reality,
             perception=perception, vitality=vitality, multimodal_trust=mm,
