@@ -33,6 +33,8 @@ def test_s10_bundle_safe_process():
         signals={"risk": 0.05, "hostility": 0.0, "calm": 0.8, "manipulation": 0.0},
         perception=None,
     )
+    assert b["schema"] == "ethos_transparency_s10_bundle_v1"
+    assert b["blocks"] == ["S10.1", "S10.2", "S10.3", "S10.4"]
     assert b["s10_1_action_narration"]["schema"] == "ethos_s10_1_action_narration_v1"
     assert "what" in b["s10_1_action_narration"]
     assert b["s10_2_withdrawal"]["schema"] == "ethos_s10_2_withdrawal_v1"
@@ -120,3 +122,29 @@ def test_s10_4_help_when_blocked():
     assert h["needs_human_help"] is True
     assert h["severity"] == "high"
     assert "kernel_block_or_safety_gate" in h["reason_codes"]
+
+
+def test_s10_4_verbal_degraded_medium_without_block():
+    d = KernelDecision(
+        scenario="unit",
+        place="test",
+        absolute_evil=AbsoluteEvilResult(blocked=False, reason=""),
+        sympathetic_state=InternalState(sigma=0.5, mode="neutral", energy=0.8, description=""),
+        social_evaluation=None,
+        locus_evaluation=None,
+        bayesian_result=None,
+        moral=None,
+        final_action="observe",
+        decision_mode="D_fast",
+        blocked=False,
+        block_reason=None,
+    )
+    h = help_request_s10_4(
+        d,
+        verbal_degraded=True,
+        metacognitive_doubt=False,
+        perception_confidence_score=0.9,
+    )
+    assert h["needs_human_help"] is True
+    assert h["severity"] == "medium"
+    assert "verbal_llm_degraded" in h["reason_codes"]

@@ -245,7 +245,10 @@ def build_transparency_s10_bundle(
     metacognitive_doubt: bool = False,
     perception_confidence_score: float | None = None,
 ) -> dict[str, Any]:
-    """Single JSON object for WebSocket ``transparency_s10`` (blocks S10.1–S10.4)."""
+    """Single JSON object for WebSocket ``transparency_s10`` (blocks S10.1–S10.4).
+
+    Root ``schema`` is ``ethos_transparency_s10_bundle_v1``; each sub-block keeps its own schema id.
+    """
     social = decision.social_evaluation
     summary = getattr(perception, "summary", None) if perception is not None else None
     s10_3 = discomfort_assessment_s10_3(
@@ -259,6 +262,8 @@ def build_transparency_s10_bundle(
         throttle_recommendation=str(s10_3["throttle_recommendation"]),
     )
     return {
+        "schema": "ethos_transparency_s10_bundle_v1",
+        "blocks": ["S10.1", "S10.2", "S10.3", "S10.4"],
         "s10_1_action_narration": action_narration_s10_1(decision),
         "s10_2_withdrawal": s10_2,
         "s10_3_discomfort": s10_3,
