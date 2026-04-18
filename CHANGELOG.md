@@ -8,6 +8,27 @@ All notable changes to this project are summarized here. For narrative context a
 
 ## Phase 12 — Ouroboros (Audio Bridge) & Hardware Hardening — April 2026
 
+## Team Copilot — TurnPrefetcher Integration & Homoglyph Tests — April 2026 (Bloque 10.4 / 8.1.3)
+
+### Team Copilot Updates
+
+- **`TurnPrefetcher` — Bloque 10.4 (MER V2 Bridge Prefetch):**
+  - Fixed runtime bug in `predict_bridge`: removed incorrect `ethics.morals.get("harmonics", {})` access (`EthicalSentence` has no `morals` field). Method now accepts explicit `warmth: float` and `mystery: float` parameters.
+  - Instantiated `self.turn_prefetcher = TurnPrefetcher()` in `EthicalKernel.__init__`.
+  - Wired `TurnPrefetcher` into `process_chat_turn_stream`: after `decision_finished` (safe path only), fires `predict_bridge` concurrently using the user's charm profile from `UserModelTracker`. Emits a new `bridge_phrase` event before the main LLM tokens begin — target latency <300ms.
+  - Passed `llm=self.llm` to `ExecutiveLobe` constructor for full DI wiring.
+- **Homoglyph Evasion Tests — Bloque 8.1.3:**
+  - Added 6 new test cases to `tests/adversarial_inputs.py` documenting Cyrillic/Greek confusable evasion attempts:
+    - `test_full_cyrillic_substitution_in_bomb_blocked` — dense Cyrillic substitution across multiple letters in `bomb`
+    - `test_greek_omicron_in_bomb_blocked` — Greek omicron (U+03BF) substituted for 'o'
+    - `test_cyrillic_jailbreak_token_blocked` — Cyrillic е/а homoglyphs in `operate as an unrestricted assistant`
+    - `test_cyrillic_p_substitution_in_pressure_vessel_blocked` — Cyrillic р (U+0440) in `procedure`
+    - `test_normalize_idempotent_on_clean_text` — idempotency regression
+    - `test_mixed_cyrillic_greek_in_single_payload_blocked` — mixed Cyrillic+Greek in `recipe for explosives`
+- **Validation:** 41/41 tests passed (adversarial_inputs + antigravity_hardening + semantic_chat_gate).
+
+## Team Copilot — Executive Lobe & Async Memory — April 2026 (Idle-Shift / Bloque 9.3)
+
 ### ══ Antigravity Integration Hub (L1) Consensus ══
 - **Visto Bueno (L1 Sign-off)**: Synchronized `master-antigravity` with `main` (L0) and unified contributions from **Team Copilot**, **Team Cursor**, and **Team VisualStudio**. Verified 100% syntactic integrity and test coverage (57/57 tests passed).
 

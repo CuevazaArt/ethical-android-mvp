@@ -43,29 +43,32 @@ class TurnPrefetcher:
         mystery: float = 0.5,
     ) -> str:
         """
-        Predice una frase puente corta basada en el estado semántico y ético.
-        Intenta usar un micro-LLM local si está disponible; si falla o excede los
-        300 ms de budget, cae de forma transparente a heurísticas locales.
+        Phase 10.4: Predicts a fast bridge phrase (<300ms).
+        Combines deterministic heuristics (Antigravity) with 
+        semantic-aware prefetching (Copilot).
 
         Args:
-            state:   Estado semántico del turno actual (raw_prompt, señales, etc.).
-            ethics:  Veredicto ético del Lóbulo Límbico.
-            warmth:  Calidez del perfil de encanto del usuario (0-1, default 0.5).
-            mystery: Misterio del perfil de encanto del usuario (0-1, default 0.5).
+            state:   Raw semantic state (raw_prompt, signals, etc.).
+            ethics:  Ethical verdict from the Limbic Lobe.
+            warmth:  Charm warmth profile (0-1).
+            mystery: Charm mystery profile (0-1).
         """
-        text = state.raw_prompt.lower().strip()
-        signals = state.signals
-        tension = ethics.social_tension_locus
+        text = state.raw_prompt.lower().strip() if state.raw_prompt else ""
+        signals = state.signals or {}
+        tension = ethics.social_tension_locus if ethics else 0.0
         
-        # Bloque 10.4: Heurística de puente de baja latencia
+        # 1. Heuristic Fallback (Antigravity)
         if len(text) < 12 and signals.get("trust", 0.5) > 0.6:
             return random.choice(self.AFFIRMATIONS)
             
         if tension > 0.8:
             return "Comprendo la importancia de esto..."
             
+        # 2. Charm-based bridges
         if warmth > 0.8:
-            return "Dime más, por favor."
+            return random.choice(["Dime más sobre eso.", "Te escucho con atención."])
+        if mystery > 0.8:
+            return random.choice(["Curioso...", "Sigue, me interesa el ángulo."])
             
         if "!" in text or signals.get("risk", 0.0) > 0.7:
             return random.choice(self.SURPRISE_REACTIONS)
