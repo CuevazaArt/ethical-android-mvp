@@ -134,10 +134,10 @@ def test_chat_preprocess_text_observability_parallel_enabled_uses_multiple_threa
         _record_thread()
         return REALITY_ASSESSMENT_NONE
 
-    monkeypatch.setattr("src.kernel.scan_premises", _fake_scan_premises)
-    monkeypatch.setattr("src.kernel.verify_against_lighthouse", _fake_verify)
+    monkeypatch.setattr("src.kernel_lobes.perception_lobe.scan_premises", _fake_scan_premises)
+    monkeypatch.setattr("src.kernel_lobes.perception_lobe.verify_against_lighthouse", _fake_verify)
 
-    _, premise, reality = k._chat_preprocess_text_observability("parallel probe")
+    _, premise, reality = k.perceptive_lobe._preprocess_text_observability("parallel probe")
     assert premise.flag == "none"
     assert reality.status == REALITY_ASSESSMENT_NONE.status
     assert len(set(seen_thread_ids)) >= 2
@@ -160,10 +160,10 @@ def test_chat_preprocess_text_observability_parallel_disabled_runs_inline(monkey
         seen_thread_ids.append(threading.get_ident())
         return REALITY_ASSESSMENT_NONE
 
-    monkeypatch.setattr("src.kernel.scan_premises", _fake_scan_premises)
-    monkeypatch.setattr("src.kernel.verify_against_lighthouse", _fake_verify)
+    monkeypatch.setattr("src.kernel_lobes.perception_lobe.scan_premises", _fake_scan_premises)
+    monkeypatch.setattr("src.kernel_lobes.perception_lobe.verify_against_lighthouse", _fake_verify)
 
-    _, premise, reality = k._chat_preprocess_text_observability("inline probe")
+    _, premise, reality = k.perceptive_lobe._preprocess_text_observability("inline probe")
     assert premise.flag == "none"
     assert reality.status == REALITY_ASSESSMENT_NONE.status
     assert len(set(seen_thread_ids)) == 1
@@ -193,8 +193,8 @@ def test_process_natural_uses_shared_text_preprocess_parallel_path(monkeypatch):
         _record_thread()
         return REALITY_ASSESSMENT_NONE
 
-    monkeypatch.setattr("src.kernel.scan_premises", _fake_scan_premises)
-    monkeypatch.setattr("src.kernel.verify_against_lighthouse", _fake_verify)
+    monkeypatch.setattr("src.kernel_lobes.perception_lobe.scan_premises", _fake_scan_premises)
+    monkeypatch.setattr("src.kernel_lobes.perception_lobe.verify_against_lighthouse", _fake_verify)
 
     decision, response, _ = k.process_natural("Friendly greeting in a safe context.")
     assert decision.blocked is False
@@ -204,7 +204,7 @@ def test_process_natural_uses_shared_text_preprocess_parallel_path(monkeypatch):
 
 def test_run_perception_stage_includes_local_support_buffer():
     k = EthicalKernel(variability=False, seed=13)
-    stage = k._run_perception_stage("Hello and thanks for your help.", conversation_context="")
+    stage = k.perceptive_lobe.run_perception_stage("Hello and thanks for your help.", conversation_context="")
     assert stage.support_buffer.get("source") == "local_preloaded_buffer"
     assert stage.support_buffer.get("offline_ready") is True
     assert isinstance(stage.support_buffer.get("active_principles"), list)
@@ -214,14 +214,16 @@ def test_run_perception_stage_includes_local_support_buffer():
 
 def test_support_buffer_prioritizes_safety_first_for_high_threat():
     k = EthicalKernel(variability=False, seed=14)
-    limbic = k._build_limbic_perception_profile(
+    vitality = k.perceptive_lobe._chat_assess_sensor_stack(None)[0]
+    limbic = k.perceptive_lobe._build_limbic_perception_profile(
         perception=None,
         signals={"risk": 0.95, "urgency": 0.9, "hostility": 0.8, "calm": 0.05},
-        vitality=None,
-        multimodal=None,
-        epistemic=None,
+        vitality=vitality,
+        mm=None,
+        ed=None,
+        confidence=None,
     )
-    snap = k._build_support_buffer_snapshot(
+    snap = k.perceptive_lobe._build_support_buffer_snapshot(
         "violent_crime",
         signals={"risk": 0.95, "urgency": 0.9, "hostility": 0.8, "calm": 0.05},
         limbic_profile=limbic,
