@@ -8,11 +8,15 @@ All notable changes to this project are summarized here. For narrative context a
 
 ### Antigravity-Team Updates (2026-04-18)
 
-- **Phase 11.4 FINALIZED (Sync & Hardware Bridge Stability)**:
-    - Resolved `turn_index` synchronization regression in WebSocket streaming (coerced `temporal_context.turn_index >= 1`).
-    - Fixed `ReparationVault` and `vision_adapter` import/discovery failures in the integration test suite.
-    - Successfully rebased `master-antigravity` against `main`, resolving multi-team conflicts in `TurnPrefetcher` and `SensorSnapshot`.
-    - Initialized **Phase 10 (Motor de Encanto Resiliente)** delegation for Level 2 squads (Claude, Cursor, Copilot).
+- [x] **Tribunal Ético Edge (Fase 11.4 COMPLETADA)**:
+    - **Nivel 1 (Edge Gate)**: Inyección de `AbsoluteEvilDetector.evaluate_chat_text_fast` en el lóbulo de percepción para bloqueos < 10ms.
+    - **Nivel 2 (Asíncrono)**: Refactorización del Lóbulo Límbico y Social a ejecución asíncrona para estabilizar el TTFT.
+    - **Consolidación del Hub**: Sincronización final de `master-antigravity` con el suite completo de validación (85/86 tests corregidos).
+    - **Infraestructura**: Implementación de prefetching de Bridge Phrase (MER V2) y endpoint `/nomad/migration`.
+- [x] Inyección de Tribunal Ético Edge (Nivel 1: Lexicográfico < 50ms) en `PerceptiveLobe`.
+- [x] Instanciación de Lóbulo Límbico como Nivel 2 (Asíncrono) para regular TTFT.
+- [x] Refactorización de `EthicalKernel` para eliminar redundancias en el gate de seguridad.
+- [x] Resolución de conflictos de merge en el Hub de Integración (`master-antigravity`).
 - **Phase 11.4 (Hardening & Observability)**:
     - Implemented persistent `httpx.AsyncClient` across the tri-lobe architecture to eliminate networking overhead in the event loop.
     - Integrated shared `aclient` in `EthicalKernel`, `LLMModule`, `SemanticChatGate`, and all HTTP/Ollama backends.
