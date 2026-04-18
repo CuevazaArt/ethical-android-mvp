@@ -13,7 +13,7 @@ from __future__ import annotations
 import logging
 from dataclasses import dataclass
 from enum import Enum
-from typing import Any
+from typing import Any, Callable
 
 _log = logging.getLogger(__name__)
 
@@ -53,12 +53,12 @@ class HelpRequestProtocol:
 	def __init__(self):
 		self._active_help_request: HelpRequest | None = None
 		self._help_history: list[HelpRequest] = []
-		self._custom_handlers: dict[ChannelType, callable] = {}
+		self._custom_handlers: dict[ChannelType, Callable[[HelpRequest], None]] = {}
 
 	def register_channel_handler(
 		self,
 		channel: ChannelType,
-		handler: callable,
+		handler: Callable[[HelpRequest], None],
 	) -> None:
 		"""Register a custom handler for a communication channel."""
 		self._custom_handlers[channel] = handler
