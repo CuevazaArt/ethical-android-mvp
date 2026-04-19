@@ -59,6 +59,20 @@ body {
     align-items: center;
 }
 
+.telemetry {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 4px;
+    font-size: 0.85rem;
+}
+
+.nomad-rtt {
+    font-size: 0.7rem;
+    color: var(--text-dim);
+    font-variant-numeric: tabular-nums;
+}
+
 .status-indicator {
     display: flex;
     align-items: center;
