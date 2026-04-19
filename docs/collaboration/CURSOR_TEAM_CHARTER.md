@@ -7,6 +7,7 @@
 - **Role:** Executing unit (L2) for **pragmatic kernel stabilization**, **chat / WebSocket / async LLM transport**, **Nomad-hardening** (S.1 / S.2.1), **MER** contract & prefetch (10.4 / 10.5), and **cross-team glue** (integration gate, env/docs alignment).
 - **Hub branch:** `master-cursor` / `master-Cursor` (match remote naming; always **pull** latest `main` per Integration Pulse).
 - **Promotion path:** `master-cursor` → `master-antigravity` → `main` (**L0** merge to `main` only with explicit authorization).
+- **Adversarial / red-team lane (named slot):** [`CURSOR_ROJO1.md`](CURSOR_ROJO1.md) — Cursor Rojo1; use for adversarial suite, gate discipline, and safety-doc alignment (not a separate hub branch unless you create a topic branch).
 
 ## Plan alignment ([`PLAN_WORK_DISTRIBUTION_TREE.md`](../proposals/PLAN_WORK_DISTRIBUTION_TREE.md))
 
