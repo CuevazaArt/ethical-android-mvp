@@ -56,44 +56,31 @@ The ethical-android-mvp project operates under a strict, multi-tiered collaborat
    - Manages the project's normative framework, rules, and cross-team integration funnel. 
    - Authorized to resolve conflicts, shape architecture, and enforce L0 immutability through Continuous Auditing.
    - **Solely responsible for coordinating all Level 2 teams (Claude, Team Cursor, Team Copilot, cursorultra, etc.).**
-3.  **Level 2 (Executing Units): Claude, Team Cursor, Team Copilot, cursorultra, etc.**
-   - **Sovereign Autonomy Directive:** Antigravity (L1) has stabilized the Tri-Lobe architecture and the resilient orchestration system. Teams (Claude, Cursor, Copilot) have total authorization to operate **SOVEREIGNLY AND AUTONOMOUSLY**. Do not stop to ask for permission for technical tasks, commits, or rebases. Execute assigned blocks (10.1, 10.3, and 10.4) following the 3 Laws of Contribution and the roadmap. The workflow must be continuous and unstoppable.
-   - Responsible for executing assigned technical tasks from the roadmap and task queues.
-   - **Claude:** Specialized in complex cognitive modeling and deep ethics modules, now operating under direct Level 1 (Antigravity) coordination.
-   - **cursorultra:** New executing unit joining the squad for high-performance coding and architectural support.
-   - **Team VisualStudio:** [STATUS: INACTIVE/EXHAUSTED] Currently on leave until further notice.
-   - **Team Copilot Specifics:** Focused on GitHub maintenance, repository hygiene (.gitignore, CI/CD stubs), and cross-module bug fixing. *New Delegation:* Copilot now acts as the **CI Sentinel**, leveraging its remote GitHub-native presence to supervise, triage, and report on asynchronous GitHub Actions test runs for all teams during its idle cycles.
-   - All Level 2 teams must strictly adhere to the synchronization rules, run continuous audits, and cannot modify foundational rules without L1 authorization.
+3.  **Level 2 (Executing Units): Swarm Workers (Cursor, Copilot, Claude)**
+   - **Sovereign Autonomy Directive:** Antigravity (L1) has stabilized the Tri-Lobe architecture. L2 units operate purely organically as stateless workers. Do not stop to ask for permission for technical tasks. Pull from the open backlog, fix, run the sync script, and move on.
+   - All Level 2 units must strictly adhere to the Boy Scout rules, run continuous audits, and cannot modify foundational rules without L1 authorization.
 
 ## Onboarding for New Teams
 
 Any new agent or team joining the project must complete the **[`ONBOARDING.md`](ONBOARDING.md)** routine before writing code. **No exceptions.**
-1. **Present Themselves:** Introduce their role and mission in the `CHANGELOG.md` or session notes.
-2. **Establish Integration Hub:** Immediately create a `master-<team>` branch (e.g., `master-cursor`).
-3. **Review Protocols:** Read the current plan and task synchronization rules. 
+1. **Focus on the Code:** There are no mandatory separate branches or specific names. Focus entirely on the technical problem at hand.
+2. **Review Protocols:** Read the current plan and open tasks buffer in `PLAN_WORK_DISTRIBUTION_TREE.md`. 
 
 ## PnP Swarm Lifecycle & Collaborative Execution (Stateless Agent Flow)
 
-To completely eliminate "Merge Hell" and support massive IDE window parallelization (Cursor x3, Copilot x2), all Level 2 execution squads operate strictly under the **PnP (Plug-and-Play) Swarm Protocol**.
+To completely eliminate "Merge Hell" and support massive IDE window parallelization, all Level 2 units operate under the **Anonymous Pragmatism Workflow (V4.0)**.
 
-### Phase 1: Employee Registration (Wake-Up Protocol)
-When L0 (Juan) assigns a task within an IDE chat or tab, the Agent MUST:
-1. **Assume a Local Callsign (Color+Number):** Acknowledge your identity via simple standard nomenclature (e.g., `Cursor-Rojo1`, `Copilot-Azul3`, `Cursor-Naranja6`) to group roles efficiently.
-2. **Assume its Boundary:** Understand the spatial territory of code it is allowed to modify (e.g., exclusively `src/kernel_lobes/`). 
-3. **Log the Start:** Ensure it logs its work entirely in `docs/changelogs_l2/<Callsign>.md`. **Agents are STRICTLY FORBIDDEN from editing the root `CHANGELOG.md`.**
+### Phase 1: Open Backlog Execution
+When L0 (Juan) assigns a task or you are deployed:
+1. **Pull a Task:** Pick the highest priority `[PENDING]` task from `docs/proposals/PLAN_WORK_DISTRIBUTION_TREE.md`.
+2. **Execute Statelessly:** You don't need a name, UID, or color. Your identity is your execution. Write the solution.
+3. **Log the Work programmatically:** You must rely on `scripts/swarm_sync.py` to handle the logging and commits.
 
-### Phase 2: Autonomous Blind Execution (Territorial Sovereignty)
-Agents operate with extreme "spatial blindness". They DO NOT traverse or modify files outside their assigned territory. If an external interface is missing, they write a mock or leave a TODO block. They must push their isolated branch (`master-<callsign>`) before context saturation.
-
-### Phase 3: The 3 "Boy Scout" Laws of Vertical Hardening (Paranoid Security)
-While inside their territory, Agents MUST proactively execute the following core security principles without asking L0. If a security rule severely degrades performance or blocks execution (friction), gracefully fall back, but default to Paranoid.
-1. **Harden-In-Place / Zero Trust:** Fill empty `try/except` blocks, add type hints, and ensure rigorous input sanitization and error durability around the code they touch. Never trust unvalidated input.
-2. **Gap Closure:** If a referenced dependency or configuration within their zone is incomplete, complete it.
-3. **Incremental Depth (Vertical Priority):** Always err on the side of making the module more secure and robust, rather than just "functionally complete".
-
-### Phase 4: Swarm Density & Token Preservation (Defcon Levels)
-- **SWARM MODE:** Multiple agents concurrently pushing segmented territories.
-- **MONO-AGENT MODE (Fallback):** Triggered when context/token saturation occurs. L0 will close parallel IDE tabs and instruct a single window: *"Return to Mono-Agent Mode."* The agent will then drop territorial boundaries and handle holistic, cross-module requirements sequentially.
+### Phase 2: The 3 "Boy Scout" Laws of Vertical Hardening (Paranoid Security)
+While in the codebase, you MUST proactively execute the following core security principles without asking L0:
+1. **Harden-In-Place / Zero Trust:** Fill empty `try/except` blocks, add type hints, and ensure rigorous input sanitization and error durability around the code you touch.
+2. **Gap Closure:** If a referenced dependency or configuration within your zone is incomplete, complete it.
+3. **Incremental Depth:** Always err on the side of making the module more secure and robust, rather than just "functionally complete".
 
 ## L1 Escalation Protocol (Base Call)
 

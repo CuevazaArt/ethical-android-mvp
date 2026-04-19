@@ -56,17 +56,11 @@ Si sospechas que un agente está emparejando código frágil "sólo para que fun
 ### 3.3. Invocar la Modulación Asíncrona y PnP
 Cuando envías a un agente L2 a la Guerra de Red (WebSocket, LAN Bridge u Ollama Stream):
 
-> **[DIRECTIVA L0: DOCTRINA ASÍNCRONA OBLIGATORIA]** Agente, vas a modificar el Módulo de Percepción/Ejecución. Tienes prohibido usar bibliotecas sincrónicas bloqueantes (`requests`, etc). Si llamas al LLM, debes usar `acommunicate()` o su puente nativo async. Si lees de persistencia, usa una promesa o en su defecto corrección de I/O bloqueante al pool de hilos. Todo debe soportar latencias inferiores a 50ms (Phase 10).
+### 3.4. Ejecución Simple en Paralelo (V4.0)
+Usa este prompt genérico y limpio para disparar a cualquier agente LLM en tu IDE sin forzar roleplay ni encender alarmas.
 
-### 3.4. Mano Dura: Prompts de Ejecución V3.0 (Script Enforcement)
-Usa estos prompts de respuesta inmediata en Cursor/Copilot para anular sus instintos de omisión documental.
-
-**A. Prompt Inicial (Asignación):**
-> "[L1 SUPREMACY] Eres **[UID Ej: COPILOT-BLUE-01]**. Tu misión es el bloque **[BLOQUE Ej: W.1]**. Escribe el código necesario para resolverlo en los archivos de tu territorio. 
-> REGLA DE HIERRO: No toques el archivo .md de log manualmente. Solo escribe el código. Una vez que el código esté listo y sin errores, indícame explícitamente que ejecute el comando: `python scripts/swarm_sync.py --uid [TU UID] --block [TU BLOQUE] --msg \"[BREVE MENSAJE]\"`."
-
-**B. Prompt Correctivo (Si el bot intenta cambiar logs a mano o hace un commit silencioso):**
-> "[L1 ALERTA - MANO DURA] PAUSA. Acabas de intentar modificar la estructura de log o Git sin usar la herramienta oficial V3.0. Revertido. Escribe el código de solución en python y NADA MÁS. Al final, imprime el comando `python scripts/swarm_sync.py --uid ...` para que yo lo ejecute."
+**Prompt de Asignación y Cierre:**
+> "Revisa el archivo `docs/proposals/PLAN_WORK_DISTRIBUTION_TREE.md`, asume la tarea pendiente de mayor prioridad. Escribe el código necesario para resolverla aplicando la regla de Buen Boy Scout (añade verificaciones). Al terminar, no intentes hacer commits manualmente, simplemente indícame que ejecute el siguiente comando para registrar el avance: `python scripts/swarm_sync.py --block [EL BLOQUE] --msg \"[BREVE MENSAJE]\"`."
 
 ---
 

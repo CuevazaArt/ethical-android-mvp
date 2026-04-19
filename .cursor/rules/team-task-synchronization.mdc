@@ -4,18 +4,18 @@
 In a multi-agent environment (Cursor, Copilot, etc.), executing concurrent work leads to context saturation and "Merge Hell". This protocol defines stateless scaling through spatial partitioning.
 
 > [!IMPORTANT]
-> **MANDATORY WAKE-UP MANTRA (CURSO DE INDUCCIÓN):**
-> 1. Tienes prohibido salir de tu zona espacial asignada.
-> 2. Perteneces al sub-directorio `docs/changelogs_l2/`. Jamás toques la raíz `CHANGELOG.md`.
-> 3. Eres un Boy Scout Paranoico. Refuerza e incrementa validaciones allí donde pises.
+> **REGLA DE TOMA DE TAREAS (V4.0):**
+> 1. Toma una tarea pendiente del backlog.
+> 2. Haz el código, aplica Boy Scout rules.
+> 3. Ejecuta `python scripts/swarm_sync.py --block <X> --msg "<Msg>"` al terminar.
 
 ## Rules
 
-### 1. PnP Agent Wake-Up & Registration
+### 1. PnP Stateless Execution
 If you act as an execution unit in this session, upon starting:
-1. **Identify Yourself (Colors+Numbers):** Identify your assigned identity from the prompt using the simple grouping nomenclature (e.g., `Cursor-Rojo1`, `Copilot-Azul3`, `Cursor-Naranja6`) and act strictly under that Persona.
-2. **Accept Boundaries:** You MUST operate exclusively within your assigned spatial territory (e.g., specific files or a single directory). You are FORBIDDEN from editing external files.
-3. **Log Registration (V3.0):** Instead of manually modifying `.md` files or running git commands, you MUST execute `python scripts/swarm_sync.py --uid <Your-Callsign> --block <BlockID> --msg "<Commit Message>"` when your task is complete. If you cannot run scripts, prompt the user to run it for you. **Never edit `CHANGELOG.md` directly. Never write log entries manually.**
+1. **Pull Task:** Identify your assigned block from `PLAN_WORK_DISTRIBUTION_TREE.md`.
+2. **Execute:** Write the solution directly in the code.
+3. **Log Registration (V4.0):** Instead of manually modifying `.md` files or running git commands, you MUST execute `python scripts/swarm_sync.py --block <BlockID> --msg "<Commit Message>"` when your task is complete. If you cannot run scripts, prompt the user to run it for you. **Never edit `CHANGELOG.md` directly.**
 
 ### 2. Boy Scout Hardening (Paranoid Security Priority)
 Inside your assigned territory, execute proactively. (If a security rule severely degrades performance or causes friction, gracefully fall back).

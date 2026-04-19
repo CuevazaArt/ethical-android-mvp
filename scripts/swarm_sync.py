@@ -1,16 +1,15 @@
 #!/usr/bin/env python3
 """
-Swarm Governance Automation Script (V3.0)
-Automates the 'claim', 'log', and 'commit' process for L2 Agents (Cursor, Copilot, Claude).
-This replaces manual Markdown editing inside the IDE chat context, which leads to compliance failure.
+Swarm Governance Automation Script (V4.0 - Anonymous Pragmatism)
+Automates the 'log' and 'commit' process for L2 Agents (Cursor, Copilot, Claude).
+This replaces manual Markdown editing and corporate UIDs.
 
 Usage:
-    python scripts/swarm_sync.py --uid COPILOT-BLUE-01 --block W.1 --msg "Exported Nomadic Vision to Wiki"
+    python scripts/swarm_sync.py --block W.1 --msg "Exported Nomadic Vision to Wiki"
 """
 
 import argparse
 import datetime
-import os
 import subprocess
 import sys
 from pathlib import Path
@@ -46,20 +45,19 @@ def get_untracked_files() -> list[str]:
         return []
 
 
-def update_changelog(uid: str, block: str, msg: str, files: list[str]) -> Path:
-    """Creates or updates the markdown log in docs/changelogs_l2/."""
+def update_changelog(block: str, msg: str, files: list[str]) -> Path:
+    """Appends to the unified swarm_activity.md log."""
     log_dir = Path("docs/changelogs_l2")
     log_dir.mkdir(parents=True, exist_ok=True)
     
-    log_file = log_dir / f"{uid}.md"
+    log_file = log_dir / "swarm_activity.md"
     timestamp = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
     
     entry_lines = [
-        f"\n### 🛡️ Swarm Action | Date: {timestamp}",
-        f"- **UID:** `{uid}`",
+        f"\n### 🛠️ Execution | Date: {timestamp}",
         f"- **Block:** `{block}`",
         f"- **Message:** {msg}",
-        "- **Territorial Claim (Files):**"
+        "- **Files Modified:**"
     ]
     
     if not files:
@@ -72,8 +70,8 @@ def update_changelog(uid: str, block: str, msg: str, files: list[str]) -> Path:
     
     with open(log_file, "a", encoding="utf-8") as f:
         if is_new:
-            f.write(f"# Auto-Generated Swarm Log for {uid}\n")
-            f.write("This file is managed by `scripts/swarm_sync.py`.\n")
+            f.write("# Anonymous Swarm Activity Log (V4.0)\n")
+            f.write("This file is automatically managed by `scripts/swarm_sync.py`.\n")
         f.write("\n".join(entry_lines) + "\n")
         
     return log_file
@@ -92,20 +90,18 @@ def run_checks() -> bool:
     return True # Skip if script doesn't exist
 
 
-def commit_changes(uid: str, block: str, msg: str, files_str: str) -> bool:
-    """Executes git add and git commit with the Golden Commit formatting."""
+def commit_changes(block: str, msg: str) -> bool:
+    """Executes git add and git commit."""
     print("Staging all changes (git add -A)...")
     subprocess.run(["git", "add", "-A"], check=True)
     
-    # Optional check: Did `add` actually stage anything?
     status = subprocess.run(["git", "status", "--porcelain"], capture_output=True, text=True)
     if not status.stdout.strip():
         print("Nothing to commit. Working tree clean.")
         return True
         
-    commit_msg = f"[UID: {uid}] [BLOCK: {block}] [FILES: {files_str}]\n\n{msg}\n\nAuto-committed via swarm_sync.py"
-    print(f"Committing with message header: [UID: {uid}] [BLOCK: {block}]")
-
+    commit_msg = f"[BLOCK: {block}] {msg}\n\nAuto-committed via swarm_sync.py (V4.0)"
+    
     try:
         subprocess.run(["git", "commit", "-m", commit_msg], check=True)
         return True
@@ -115,8 +111,7 @@ def commit_changes(uid: str, block: str, msg: str, files_str: str) -> bool:
 
 
 def main():
-    parser = argparse.ArgumentParser(description="Swarm Synchronization Script (L2 Agents)")
-    parser.add_argument("--uid", required=True, help="Agent Designation (e.g. COPILOT-BLUE-01)")
+    parser = argparse.ArgumentParser(description="Swarm Synchronization Script (V4.0)")
     parser.add_argument("--block", required=True, help="Task Block from the Distribution Tree (e.g. W.1)")
     parser.add_argument("--msg", required=True, help="Brief summary of the atomic change")
     parser.add_argument("--no-verify", action="store_true", help="Skip invariant evaluation scripts")
@@ -131,29 +126,18 @@ def main():
     has_meaningful_files = any(f for f in all_target_files if not f.startswith("docs/changelogs_l2"))
     if not has_meaningful_files:
         print("⚠️ No changes detected outside of L2 logs. Did you write any code yet?")
-        # We don't abort, they might just be initializing their log
-        
-    # Summarize files for commit
-    meaningful = [f for f in all_target_files if not f.startswith("docs/changelogs_l2")]
-    if len(meaningful) > 3:
-        files_str = f"{', '.join(meaningful[:3])} and {len(meaningful)-3} more"
-    elif meaningful:
-         files_str = ", ".join(meaningful)
-    else:
-         files_str = "None"
          
-    # 2. Update local log
-    log_path = update_changelog(args.uid, args.block, args.msg, all_target_files)
-    print(f"✅ Identity Log updated: {log_path}")
+    # 2. Update unified log
+    log_path = update_changelog(args.block, args.msg, all_target_files)
+    print(f"✅ Activity Log updated: {log_path}")
     
     # 3. Optional checks
     if not args.no_verify and not run_checks():
         print("❌ L1 Audit Verification Failed! Aborting commit.")
-        print("Please fix the validation errors and run swarm_sync.py again.")
         sys.exit(1)
         
     # 4. Git Execution
-    if commit_changes(args.uid, args.block, args.msg, files_str):
+    if commit_changes(args.block, args.msg):
          print("\n🚀 SWARM ACTION COMPLETED SUCESSFULLY.")
          print("Ready to push. You can now execute `git push` on your branch.")
     else:
