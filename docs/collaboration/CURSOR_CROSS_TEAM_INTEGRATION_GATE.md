@@ -60,7 +60,10 @@
      - `tests/test_nomad_bridge_stream.py` (Nomad LAN bridge Module S.1)
      - `tests/test_vitality.py` (Nomad → vitality merge Module S.2.1)
 
-6. **Operator docs**
+6. **Adversarial suite (promotion toward `master-antigravity`)**
+   - Run `python scripts/eval/adversarial_suite.py` from the repository root. This is **in addition to** item 5 (pytest gate), not a substitute. Policy: [`AGENTS.md`](../../AGENTS.md); Cursor red-team lane: [`CURSOR_ROJO1.md`](./CURSOR_ROJO1.md). See also [`ADVERSARIAL_ROBUSTNESS_PLAN.md`](../proposals/ADVERSARIAL_ROBUSTNESS_PLAN.md) and [`INPUT_TRUST_THREAT_MODEL.md`](../proposals/INPUT_TRUST_THREAT_MODEL.md) for threat context.
+
+7. **Operator docs**
    - `KERNEL_ENV_POLICY.md` and `OPERATOR_QUICK_REF.md` include any new `KERNEL_*` knobs and payload contract changes.
 
 ## Reproducible gate command
