@@ -539,6 +539,8 @@ class TestCoreDecisionChainIntegrity:
 class TestCoreDecisionChainWithPerceptionJSON:
     """Test that perception JSON flows correctly through decision chain."""
 
+    pytestmark = pytest.mark.usefixtures("semantic_gate_enabled")
+
     @pytest.fixture
     def kernel(self):
         return EthicalKernel(variability=False)

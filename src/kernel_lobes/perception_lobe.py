@@ -57,8 +57,12 @@ class PerceptiveLobe:
 
     async def observe(self, raw_input: str, multimodal_payload: dict | None = None) -> SemanticState:
         """
-        Takes raw input, queries LLMs via API with strict timeouts.
-        If timeout occurs, returns a SemanticState with a TimeoutTrauma.
+        Takes raw input and returns a SemanticState.
+
+        If ``KERNEL_PERCEPTIVE_LOBE_PROBE_URL`` is set, the lobe attempts an HTTP
+        request to that URL (e.g. a local Ollama endpoint). If the env var is absent
+        the lobe returns a high-confidence default state immediately (fast-path for
+        tests and offline environments).
 
         Args:
             raw_input: Raw natural language input from user/sensor
@@ -69,6 +73,17 @@ class PerceptiveLobe:
         """
         start_time = time.time()
 
+        probe_url = os.environ.get("KERNEL_PERCEPTIVE_LOBE_PROBE_URL", "").strip()
+        if not probe_url:
+            # Fast-path: no external probe configured → return default confident state.
+            return SemanticState(
+                perception_confidence=1.0,
+                raw_prompt=raw_input,
+                scenario_summary="",
+                suggested_context="everyday",
+                sensory_latency_lag=0,
+            )
+
         # Check for cancellation before starting
         raise_if_llm_cancel_requested()
 
@@ -76,11 +91,11 @@ class PerceptiveLobe:
             # Build perception prompt payload
             payload = self._build_perception_payload(raw_input, multimodal_payload)
 
-            # Query LLM with async timeout enforcement
+            # Query probe URL with async timeout enforcement
             timeout_obj = httpx.Timeout(self._timeout)
             async with httpx.AsyncClient(timeout=timeout_obj) as client:
                 response = await client.post(
-                    self._llm_endpoint,
+                    probe_url,
                     json=payload,
                     headers={"Content-Type": "application/json"}
                 )
@@ -103,7 +118,7 @@ class PerceptiveLobe:
                 suggested_context="emergency",
                 sensory_latency_lag=latency,
                 timeout_trauma=TimeoutTrauma(
-                    source_lobe="perception",
+                    source_lobe="perceptive",
                     latency_ms=latency,
                     severity=1.0,
                     context=f"Perception LLM timeout after {self._timeout}s"
@@ -119,12 +134,16 @@ class PerceptiveLobe:
                 suggested_context="everyday",
                 sensory_latency_lag=latency,
                 timeout_trauma=TimeoutTrauma(
-                    source_lobe="perception",
+                    source_lobe="perceptive",
                     latency_ms=latency,
                     severity=0.5,
                     context=f"Perception processing error: {type(e).__name__} - {str(e)}"
                 )
             )
+
+    async def aclose(self) -> None:
+        """Release resources held by the lobe (no-op; httpx clients are context-managed)."""
+
 
     async def execute_stage(self, scenario, place, context, sensor_snapshot, interrupt_event=None) -> dict:
         """

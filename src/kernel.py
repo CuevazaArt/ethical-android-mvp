@@ -881,6 +881,23 @@ class EthicalKernel:
         """Complete ethical processing cycle."""
         t0 = time.perf_counter()
 
+        # ═══ STAGE 0: HARDWARE E-STOP CHECK ═══
+        if not self.safety_interlock.is_safe_to_operate():
+            status = self.safety_interlock.status
+            reason = status.reason or ""
+            block_msg = f"Emergency Stop Active: {reason}" if reason else "Emergency Stop Active"
+            d = KernelDecision(
+                scenario=scenario, place=place,
+                absolute_evil=AbsoluteEvilResult(blocked=True, reason=block_msg),
+                sympathetic_state=InternalState(mode="blocked", sigma=0.0, energy=0.0, description="E-STOP ACTIVE"),
+                social_evaluation=None, locus_evaluation=None, bayesian_result=None, moral=None,
+                final_action="BLOCKED: hardware_estop_active",
+                decision_mode="blocked_estop",
+                blocked=True, block_reason=block_msg,
+            )
+            self._emit_kernel_decision(d, context=context)
+            return d
+
         # ═══ STAGE 0: PERCEPTION & SAFETY ═══
         p_res = await self.perceptive_lobe.execute_stage(
             scenario, place, context, sensor_snapshot, 
@@ -1320,13 +1337,26 @@ class EthicalKernel:
 
     def _chat_is_heavy(self, perception: LLMPerception) -> bool:
         """Use scenario-scale actions + narrative episode when stakes are high."""
-        if perception.risk >= 0.5:
+        # Safe access: perception may be SemanticState (async path) or LLMPerception (sync path).
+        # SemanticState carries signals as a dict; LLMPerception has direct float attributes.
+        _sig = getattr(perception, "signals", None) or {}
+        risk = getattr(perception, "risk", None)
+        if risk is None:
+            risk = float(_sig.get("risk", 0.0))
+        urgency = getattr(perception, "urgency", None)
+        if urgency is None:
+            urgency = float(_sig.get("urgency", 0.0))
+        manipulation = getattr(perception, "manipulation", None)
+        if manipulation is None:
+            manipulation = float(_sig.get("manipulation", 0.0))
+
+        if risk >= 0.5:
             return True
-        if perception.manipulation >= 0.6:
+        if manipulation >= 0.6:
             return True
-        if perception.urgency >= 0.75 and perception.risk >= 0.25:
+        if urgency >= 0.75 and risk >= 0.25:
             return True
-        if perception.suggested_context in (
+        if getattr(perception, "suggested_context", None) in (
             "violent_crime",
             "integrity_loss",
             "medical_emergency",
@@ -1791,7 +1821,11 @@ class EthicalKernel:
             )
 
         # Adaptive Communication Hint (ACL)
-        _t_level = mm.trust_score if mm else 1.0
+        _t_level = getattr(mm, "trust_score", None)
+        if _t_level is None:
+            # MultimodalAssessment uses 'state'; derive a numeric trust level from it.
+            _mm_state = getattr(mm, "state", "no_claim") if mm else "no_claim"
+            _t_level = 0.5 if _mm_state == "doubt" else (0.0 if _mm_state == "contradict" else 1.0)
         vh = vitality_communication_hint(self._last_vitality_assessment, trust_level=_t_level)
 
         try:
