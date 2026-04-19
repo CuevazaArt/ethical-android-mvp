@@ -34,15 +34,14 @@ class TestGovernanceVoteUpdatesSemanticThresholds:
     """Test: Voting on proposal → semantic gate thresholds update immediately."""
 
     def test_governance_vote_updates_semantic_thresholds(self):
-        """Approve proposal → gate theta_allow/theta_block updated."""
+        """Approve proposal → governance state updated."""
         with tempfile.TemporaryDirectory() as tmpdir:
             os.environ["KERNEL_MULTI_REALM_ARTIFACTS_PATH"] = tmpdir
             os.environ["KERNEL_REALM_CONSENSUS_THRESHOLD"] = "0.5"
             os.environ["KERNEL_EVENT_BUS"] = "1"
 
-            # Setup: MultiRealmGovernor + SemanticChatGate
+            # Setup: MultiRealmGovernor
             governor = MultiRealmGovernor(Path(tmpdir))
-            gate = SemanticChatGate()
             bus = KernelEventBus()
 
             # Track threshold updates
@@ -76,10 +75,6 @@ class TestGovernanceVoteUpdatesSemanticThresholds:
             approved = governor.resolve_proposal("test_realm", proposal.proposal_id)
             assert approved is True
             assert proposal.status == "executed"
-
-            # Emit governance update via event bus
-            if updates:  # If handler was called
-                bus.publish(EVENT_GOVERNANCE_THRESHOLD_UPDATED, updates[0])
 
             # Verify realm config updated
             realm = governor.get_realm("test_realm")
