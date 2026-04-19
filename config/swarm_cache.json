@@ -4,5 +4,11 @@
     "last_seen": 1776401694.3542988,
     "reputation": 0.0,
     "confirmed_witnesses": 0
+  },
+  "peer_scenario_001": {
+    "node_id": "peer_scenario_001",
+    "last_seen": 1776629006.3884413,
+    "reputation": 1.0,
+    "confirmed_witnesses": 1
   }
 }
