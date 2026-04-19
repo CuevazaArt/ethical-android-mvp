@@ -11,6 +11,7 @@ All notable changes to this project are summarized here. For narrative context a
 - **PAUSE TOTAL** on further product code until L2 registers wake-up and callsign adoption per L0: [`docs/changelogs_l2/WAKE_UP_REGISTRY_2026-04-19.md`](docs/changelogs_l2/WAKE_UP_REGISTRY_2026-04-19.md) (callsigns **Rojo**, **Azul**, **Naranja**; close ephemeral branches; comply with [`AGENTS.md`](AGENTS.md)). Index: [`docs/changelogs_l2/README.md`](docs/changelogs_l2/README.md).
 - **Cursor Rojo3** wake-up recorded in the registry; **Azul** / **Naranja** rows remain **pending adoption** by sibling sessions. Local ephemeral branches merged into `master-Cursor` deleted: `cursor-team`, `cursor/claude-bi-p0-01-bayesian-mode-contract`, `cursor/g-04-llm-touchpoint-surface`.
 - **L1 (Antigravity) audit:** three-question sovereign re-integration response registered — [`docs/changelogs_l2/L1_AUDIT_RESPONSE_CURSOR_ROJO3_2026-04-19.md`](docs/changelogs_l2/L1_AUDIT_RESPONSE_CURSOR_ROJO3_2026-04-19.md).
+- **`[RULE: L1_SUPREMACY_INVOCATION]`:** canonical Stop & Sync protocol in [`docs/changelogs_l2/L1_SUPREMACY_INVOCATION.md`](docs/changelogs_l2/L1_SUPREMACY_INVOCATION.md); README index deduplicated; removed duplicate `PROTOCOL_L1_SUPREMACY_INVOCATION.md`.
 
 ### Team Cursor Updates (2026-04-19 — Cursor Rojo3)
 
