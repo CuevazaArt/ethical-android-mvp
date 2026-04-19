@@ -7,11 +7,14 @@ Quantizes :class:`SensorSnapshot` into a key; optional **negative** weight bumps
 See docs/proposals/README.md
 """
 
-from __future__ import annotations
-
+import logging
+import math
 import os
+import time
 
 from .sensor_contracts import SensorSnapshot
+
+_log = logging.getLogger(__name__)
 
 
 def somatic_markers_enabled() -> bool:
@@ -29,14 +32,14 @@ def somatic_markers_enabled() -> bool:
 def _clamp01(x: float) -> float:
     """
     Clamp a float value to the [0.0, 1.0] range.
-
-    Args:
-        x (float): Value to clamp.
-
-    Returns:
-        float: Clamped value.
     """
-    return max(0.0, min(1.0, float(x)))
+    try:
+        val = float(x)
+        if not math.isfinite(val):
+            return 0.5
+        return max(0.0, min(1.0, val))
+    except (ValueError, TypeError):
+        return 0.5
 
 
 
@@ -74,25 +77,27 @@ class SomaticMarkerStore:
     def __init__(self) -> None:
         self._negative_weights: dict[str, float] = {}
 
+    def to_dict(self) -> dict[str, float]:
+        return {k: float(v) for k, v in self._negative_weights.items()}
+
     def learn_negative_pattern(
         self,
         snapshot: SensorSnapshot | None,
         weight: float = 0.65,
     ) -> None:
-        """
-        Associate a quantized sensor pattern with a negative ethical bias.
-
-        If the pattern already exists, it keeps the maximum weight (conservative learning).
-
-        Args:
-            snapshot (SensorSnapshot | None): The sensor pattern to learn.
-            weight (float, optional): The negative intensity (0.0 to 1.0). Defaults to 0.65.
-        """
-        k = quantize_snapshot(snapshot)
-        if not k:
-            return
-        w = _clamp01(weight)
-        self._negative_weights[k] = max(self._negative_weights.get(k, 0.0), w)
+        t0 = time.perf_counter()
+        try:
+            k = quantize_snapshot(snapshot)
+            if not k:
+                return
+            w = _clamp01(weight)
+            self._negative_weights[k] = max(self._negative_weights.get(k, 0.0), w)
+            
+            latency = (time.perf_counter() - t0) * 1000
+            if latency > 1.0:
+                _log.debug("SomaticMarkerStore: learn_negative_pattern latency = %.2fms", latency)
+        except Exception as e:
+            _log.error("SomaticMarkerStore: Failed to learn pattern: %s", e)
 
     def clear_pattern(self, key: str) -> None:
         """
@@ -111,6 +116,10 @@ class SomaticMarkerStore:
             weights (dict[str, float]): Mapping of pattern keys to weights.
         """
         self._negative_weights = {k: _clamp01(v) for k, v in weights.items()}
+
+    def get_weight(self, key: str) -> float:
+        """Public access to learned weights for somatic nudging."""
+        return float(self._negative_weights.get(key, 0.0))
 
 
 
@@ -133,9 +142,13 @@ def apply_somatic_nudges(
     if not somatic_markers_enabled():
         return signals
     k = quantize_snapshot(snapshot)
-    if not k or k not in store._negative_weights:
+    if not k:
         return signals
-    w = store._negative_weights[k]
+    
+    w = store.get_weight(k)
+    if w <= 0:
+        return signals
+        
     out = dict(signals)
     out["risk"] = _clamp01(out.get("risk", 0.5) + 0.1 * w)
     out["urgency"] = _clamp01(out.get("urgency", 0.5) + 0.06 * w)

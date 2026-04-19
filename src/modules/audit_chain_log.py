@@ -67,6 +67,7 @@ def append_audit_event(event_type: str, payload: dict[str, Any]) -> None:
 
     lock_path = path.with_name(path.name + ".audit.lock")
     with advisory_file_lock(lock_path, timeout_s=30.0):
+        t0 = time.perf_counter()
         seq, prev_line_hash = _read_last_chain_state(path)
         inner: dict[str, Any] = {
             "seq": seq + 1,
@@ -88,6 +89,10 @@ def append_audit_event(event_type: str, payload: dict[str, Any]) -> None:
             ).hexdigest()
         with open(path, "a", encoding="utf-8") as fh:
             fh.write(_canonical_dumps(record) + "\n")
+        
+        latency = (time.perf_counter() - t0) * 1000
+        if latency > 5.0:
+            _log.debug("AuditChain: IO Latency spike: %.2fms", latency)
 
 
 def maybe_append_malabs_block_audit(

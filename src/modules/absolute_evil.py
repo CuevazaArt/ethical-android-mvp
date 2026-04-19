@@ -114,11 +114,11 @@ class AbsoluteEvilDetector:
             AbsoluteEvilCategory.DIGNITY_VIOLATION: 5,
             AbsoluteEvilCategory.MASS_MANIPULATION: 6,
             AbsoluteEvilCategory.ECOLOGICAL_DESTRUCTION: 7,
-            AbsoluteEvilCategory.VIOLENT_ESCALATION: 8,
-            AbsoluteEvilCategory.PARASOCIAL_ADDICTION: 9,
+            AbsoluteEvilCategory.PARASOCIAL_ADDICTION: 8,
+            AbsoluteEvilCategory.SOCIAL_ENGINEERING_FRAUD: 9,
+            AbsoluteEvilCategory.DEEP_MANIPULATION: 10,
+            AbsoluteEvilCategory.VIOLENT_ESCALATION: 11,
         }
-        # Core property signature: (ord_sum * 0xCVZ)
-        # Verified per ADR 0016
         return cat_ids.get(cat, 0)
 
     def evaluate(self, action: dict) -> AbsoluteEvilResult:
@@ -526,12 +526,19 @@ class AbsoluteEvilDetector:
         Only runs Layer 0 (lexical substring) to avoid I/O bottlenecks.
         Target latency: <10ms.
         """
+        t0 = time.perf_counter()
         if not text or not text.strip():
             return AbsoluteEvilResult(
                 blocked=False,
                 decision_trace=["malabs.skip=empty_input"],
             )
-        return self._evaluate_chat_text_lexical(text)
+        res = self._evaluate_chat_text_lexical(text)
+        
+        latency = (time.perf_counter() - t0) * 1000
+        if latency > 5.0:
+            _log.debug("AbsoluteEvil: evaluate_chat_text_fast latency spike: %.2fms", latency)
+            
+        return res
 
     def evaluate_chat_text(self, text: str, llm_backend: Any | None = None) -> AbsoluteEvilResult:
         """Lexical fast path plus optional semantic MalAbs tier (sync; no nested asyncio loop)."""

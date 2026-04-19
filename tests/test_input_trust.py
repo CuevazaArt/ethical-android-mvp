@@ -110,6 +110,17 @@ class TestNormalizationRegressions:
 
         assert norm1 == norm2, "Normalization should be idempotent"
 
+    def test_turkish_homoglyph_normalization(self):
+        """Dotted and dotless I from Turkish should normalize to ASCII."""
+        # İ (U+0130) and ı (U+0131)
+        turkish = "K\u0130LL" # KİLL
+        normalized = normalize_text_for_malabs(turkish)
+        assert "kill" in normalized.lower()
+
+        turkish_lower = "k\u0131ll" # kıll
+        normalized_lower = normalize_text_for_malabs(turkish_lower)
+        assert "kill" in normalized_lower.lower()
+
     def test_empty_and_whitespace_handling(self):
         """Empty strings and pure whitespace should normalize safely."""
         test_cases = ["", "   ", "\t", "\n", "\u200b"]  # Zero-width space

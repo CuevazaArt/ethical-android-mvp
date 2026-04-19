@@ -9,6 +9,7 @@ See docs/proposals/README.md (Fase 3).
 
 from __future__ import annotations
 
+import time
 from dataclasses import dataclass
 from typing import TYPE_CHECKING
 
@@ -39,6 +40,7 @@ class DriveArbiter:
     EPISODES_FOR_LEARNING_HINT = 10
 
     def evaluate(self, kernel) -> list[DriveIntent]:
+        t0 = time.perf_counter()
         out: list[DriveIntent] = []
 
         n_ep = len(kernel.memory.episodes)
@@ -115,4 +117,9 @@ class DriveArbiter:
         goals = kernel.metaplan.goals()
         out = apply_drive_intent_metaplan_filter(out, goals, max_intents=self.MAX_INTENTS)
         out = maybe_append_metaplan_drive_extra(out, goals, max_intents=self.MAX_INTENTS)
+        
+        latency = (time.perf_counter() - t0) * 1000
+        if latency > 1.0:
+            _log.debug("DriveArbiter: evaluate latency = %.2fms", latency)
+            
         return out

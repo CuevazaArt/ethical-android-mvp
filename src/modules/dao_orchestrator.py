@@ -5,11 +5,15 @@ Decouples the Ethical Kernel from the specific DAO implementation (on-chain or m
 Handles evidence anchoring and ethical appeals.
 """
 
+from __future__ import annotations
+
 import logging
 import time
 import sqlite3
 import json
-from typing import Any
+import math
+import uuid
+from typing import Any, TYPE_CHECKING
 
 from .evidence_safe import EvidenceSafe
 from .mock_dao import MockDAO
@@ -110,15 +114,22 @@ class DAOOrchestrator:
         Bloque 7.1: Simulates an EthosToken transfer from the kernel treasury to 
         compensate for an ethical failure. Persistent version.
         """
-        txn_hash = f"0x_reparation_{int(time.time())}_{case_id[:4]}"
-        msg = f"Restorative reparation of {amount} EthosTokens issued to {recipient} for case {case_id}."
+        if not math.isfinite(amount):
+            _log.error("DAO: Invalid reparation amount (non-finite): %s", amount)
+            amount = 0.0
+            
+        txn_hash = f"0x_reparation_{int(time.time())}_{uuid.uuid4().hex[:6]}"
+        msg = f"Restorative reparation of {amount:.4f} EthosTokens issued to {recipient} for case {case_id}."
         
-        # Persistent recording (SQLite)
-        with sqlite3.connect(self.db_path) as conn:
-            conn.execute(
-                "INSERT INTO audit_logs (type, content, episode_id, timestamp) VALUES (?, ?, ?, ?)",
-                ("reparation_payout", msg, case_id, time.time())
-            )
+        # Persistent recording (SQLite with safe lock)
+        try:
+            with sqlite_safe_write(self.db_path) as conn:
+                conn.execute(
+                    "INSERT INTO audit_logs (type, content, episode_id, timestamp) VALUES (?, ?, ?, ?)",
+                    ("reparation_payout", msg, case_id, time.time())
+                )
+        except Exception as e:
+            _log.error("DAO: Failed to persist reparation audit: %s", e)
         
         # Legacy/MockDAO internal recording
         self.local_dao.register_audit(
@@ -127,8 +138,6 @@ class DAOOrchestrator:
             episode_id=case_id,
         )
         
-        _log.info(msg)
-        return txn_hash
         _log.info(msg)
         return txn_hash
 

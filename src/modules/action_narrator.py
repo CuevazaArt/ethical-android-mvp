@@ -13,6 +13,8 @@ Integrates with NarrativeMemory and decision trace for transparent accountabilit
 from __future__ import annotations
 
 import logging
+import math
+import time
 from dataclasses import dataclass, field
 from typing import Any
 
@@ -64,20 +66,28 @@ class ActionNarrator:
 		Returns:
 			ActionNarrative ready for human communication
 		"""
+		t0 = time.perf_counter()
+		if not math.isfinite(confidence):
+			confidence = 0.5
+
 		narrative = ActionNarrative(
 			current_action=current,
 			action_reason=reason,
 			projected_next=next_action,
 			stop_protocol="Press red button / Say 'STOP'",  # Placeholder
 			decision_trace=trace,
-			confidence=confidence,
+			confidence=max(0.0, min(1.0, float(confidence))),
+			timestamp_mono=time.perf_counter(),
 		)
 		self._current_narrative = narrative
 		self._narrative_history.append(narrative)
+		
+		latency = (time.perf_counter() - t0) * 1000
 		_log.info(
-			"Action narrated: %s (confidence: %.2f)",
+			"Action narrated: %s (conf: %.2f, lat: %.2fms)",
 			current,
 			confidence,
+			latency
 		)
 		return narrative
 

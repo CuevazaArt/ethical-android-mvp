@@ -20,10 +20,15 @@ Aquí es donde los agentes de ejecución (LLMs en IDEs) reclaman sus tareas.
 - **11.1 (Identity/Trauma)**: Completado. Integrada magnitud de trauma en el core de decisión.
 - **S.1/S.2 (Nomad/Wiki)**: Completado. Bridge LAN estable y sincronización de Wiki automatizada.
 - **S.3 (Redundancy)**: Completado. Consolidados modelos y utilidades.
+- **S.10 (V10 Persistence)**: Completado. Persistencia de registros de metaplan, habilidades y marcadores somáticos operativa.
 
 ---
 
 ## 📥 BACKLOG ABIERTO (Open Tasks)
+
+**Bloque S.10: Persistencia de Estrategia Operativa (V10) [DONE]**
+- Tarea S.10.1: Implementar **Persistencia de Registros**. Asegurar que `MetaplanRegistry`, `SkillLearningRegistry` y `SomaticMarkerStore` persistan turn-by-turn vía `DAOOrchestrator`. (Completado: Antigravity)
+- Tarea S.10.2: Hardening "Boy Scout". Inyectar `math.isfinite()`, trazas de latencia y manejo de excepciones en los registros v10. (Completado: Antigravity)
 
 **Bloque S.4: Persistencia Bayesiana y Field Readiness [DONE]**
 - Tarea S.4.1: Implementar **Local Bayesian Persistence (LBP)**. Guardar el `posterior_alpha` en la base de datos (DAO) al final de cada turno.

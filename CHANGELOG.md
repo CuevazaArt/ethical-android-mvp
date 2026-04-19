@@ -7,6 +7,15 @@ All notable changes to this project are summarized here. For narrative context a
 **[URGENT ΓÇö broadcast to all L2 integration hubs]:** All teams (Claude, Cursor, Copilot) should urgently `git pull` from `main` into their `master-*` branches. Outdated branches risk severe documentation path drift.
 
 ### Antigravity-Team Updates (2026-04-18 - Session 2)
+### Antigravity-Team Updates (2026-04-19 - Session 9)
+
+- [x] **GENERATIVE STABILIZATION & V10 PERSISTENCE**:
+    *   **Generative Candidate Recovery**: Restaurada la propagación de candidatos generativos asíncronos en el Tri-Lobe refactor. Actualizados `SemanticState` y `PerceptiveLobe` para capturar propuestas creativas del LLM sin pérdida de datos.
+    *   **V10 Persistence (Pillar 4)**: Implementada persistencia granular (Save/Restore) para `MetaplanRegistry` (objetivos maestros), `SkillLearningRegistry` (tickets de habilidades) y `SomaticMarkerStore` (intuición sensorial) a través del `DAOOrchestrator`.
+    *   **Attribute Stability**: Corregido `AttributeError` en `multimodal_trust.py` mediante la adición de `trust_score`, estabilizando el flujo de decisión multimodal.
+    *   **Boy Scout Hardening**: Eliminados fallos de `NameError` masivos mediante la inyección preventiva de `import math` en `kernel.py` y `generative_candidates.py`. Implementado monitoreo de latencia en registros.
+    *   **Integrity Verification**: Superado el `test_generative_candidates.py` con 13/13 pasados tras el resellado del `MANIFEST.json`.
+
 ### Antigravity-Team Updates (2026-04-19 - Session 8)
 
 - [x] **NOMAD PWA PREMIUM OVERHAUL (Phase F.1 & F.2 Hardening)**:

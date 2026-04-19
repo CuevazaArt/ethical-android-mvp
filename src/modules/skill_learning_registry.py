@@ -9,9 +9,13 @@ See docs/proposals/README.md
 
 from __future__ import annotations
 
+import logging
+import time
 import uuid
 from dataclasses import dataclass
-from typing import Literal
+from typing import Any, Literal
+
+_log = logging.getLogger(__name__)
 
 Status = Literal["pending", "approved", "rejected"]
 
@@ -23,6 +27,23 @@ class SkillLearningTicket:
     justification: str
     status: Status = "pending"
 
+    def to_dict(self) -> dict[str, Any]:
+        return {
+            "id": self.id,
+            "scope_description": self.scope_description,
+            "justification": self.justification,
+            "status": self.status,
+        }
+
+    @classmethod
+    def from_dict(cls, d: dict[str, Any]) -> SkillLearningTicket:
+        return cls(
+            id=str(d.get("id", uuid.uuid4().hex[:12])),
+            scope_description=str(d.get("scope_description", "")),
+            justification=str(d.get("justification", "")),
+            status=d.get("status", "pending"),  # type: ignore
+        )
+
 
 class SkillLearningRegistry:
     """Ticket queue; state round-trips via ``KernelSnapshotV1.skill_learning_tickets`` (Phase 2)."""
@@ -32,33 +53,55 @@ class SkillLearningRegistry:
         self._max = max_tickets
 
     def request_ticket(self, scope_description: str, justification: str) -> SkillLearningTicket:
-        if len(self._tickets) >= self._max:
-            self._tickets.pop(0)
-        t = SkillLearningTicket(
-            id=f"sk_{uuid.uuid4().hex[:12]}",
-            scope_description=scope_description.strip()[:2000],
-            justification=justification.strip()[:4000],
-            status="pending",
-        )
-        self._tickets.append(t)
-        return t
+        t0 = time.perf_counter()
+        try:
+            if len(self._tickets) >= self._max:
+                self._tickets.pop(0)
+            t = SkillLearningTicket(
+                id=f"sk_{uuid.uuid4().hex[:12]}",
+                scope_description=scope_description.strip()[:2000],
+                justification=justification.strip()[:4000],
+                status="pending",
+            )
+            self._tickets.append(t)
+            
+            latency = (time.perf_counter() - t0) * 1000
+            if latency > 1.0:
+                _log.debug("SkillLearningRegistry: request_ticket latency = %.2fms", latency)
+            
+            return t
+        except Exception as e:
+            _log.error("SkillLearningRegistry: Failed to request ticket: %s", e)
+            return SkillLearningTicket(id="err", scope_description="Error", justification=str(e))
 
     def approve(self, ticket_id: str) -> bool:
-        for t in self._tickets:
-            if t.id == ticket_id:
-                t.status = "approved"
-                return True
-        return False
+        try:
+            for t in self._tickets:
+                if t.id == ticket_id:
+                    t.status = "approved"
+                    return True
+            return False
+        except Exception as e:
+            _log.error("SkillLearningRegistry: Error during approval: %s", e)
+            return False
 
     def reject(self, ticket_id: str) -> bool:
-        for t in self._tickets:
-            if t.id == ticket_id:
-                t.status = "rejected"
-                return True
-        return False
+        try:
+            for t in self._tickets:
+                if t.id == ticket_id:
+                    t.status = "rejected"
+                    return True
+            return False
+        except Exception as e:
+            _log.error("SkillLearningRegistry: Error during rejection: %s", e)
+            return False
 
     def pending(self) -> list[SkillLearningTicket]:
         return [t for t in self._tickets if t.status == "pending"]
+
+    def tickets(self) -> list[SkillLearningTicket]:
+        """Return all tickets in the registry (audit trail)."""
+        return list(self._tickets)
 
     def replace_tickets(self, tickets: list[SkillLearningTicket]) -> None:
         """Restore from snapshot; keeps last ``_max`` entries."""

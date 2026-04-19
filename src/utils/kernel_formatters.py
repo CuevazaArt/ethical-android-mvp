@@ -1,62 +1,65 @@
 """
-Formatting utilities for the EthicalKernel to keep src/kernel.py lightweight.
+Kernel Formatters — Human-readable output utilities for the ethical kernel.
+Extracted from God-Object src/kernel.py (Task 5 - Minor Backlog Hardening).
 """
 
 from __future__ import annotations
+import math
 from typing import TYPE_CHECKING, Any
 
-if TYPE_CHECKING:
-    from ..kernel import KernelDecision
-    from ..utils.terminal_colors import Term
+from src.utils.terminal_colors import Term
 
-def format_kernel_decision(d: KernelDecision, term_cls: type[Term]) -> str:
-    """Implementation of kernel decision formatting for console output."""
-    sep = term_cls.color("═" * 70, term_cls.DIM)
+if TYPE_CHECKING:
+    from src.kernel_lobes.models import KernelDecision, VerbalResponse, RichNarrative
+
+def format_decision(d: KernelDecision) -> str:
+    """Formats a complete decision for readable presentation with ANSI colors."""
+    sep = Term.color("═" * 70, Term.DIM)
     lines = [
         f"\n{sep}",
-        f"  {term_cls.color('SCENARIO:', term_cls.B_CYAN)} {d.scenario}",
-        f"  {term_cls.color('PLACE:', term_cls.B_CYAN)} {d.place}",
+        f"  {Term.color('SCENARIO:', Term.B_CYAN)} {d.scenario}",
+        f"  {Term.color('PLACE:', Term.B_CYAN)} {d.place}",
         f"{sep}",
     ]
 
     if d.blocked:
-        lines.append(f"  {term_cls.color('⛔ BLOCKED:', term_cls.B_RED)} {term_cls.color(d.block_reason, term_cls.RED)}")
+        lines.append(f"  {Term.color('⛔ BLOCKED:', Term.B_RED)} {Term.color(d.block_reason, Term.RED)}")
         return "\n".join(lines)
 
     # Internal state
-    mode_color = term_cls.B_GREEN if "parasympathetic" in d.sympathetic_state.mode.lower() else term_cls.B_YELLOW
+    mode_color = Term.B_GREEN if "parasympathetic" in d.sympathetic_state.mode.lower() else Term.B_YELLOW
     lines.extend(
         [
-            f"  {term_cls.color('State:', term_cls.CYAN)} {term_cls.color(d.sympathetic_state.mode, mode_color)} (σ={d.sympathetic_state.sigma})",
-            f"  {term_cls.color(d.sympathetic_state.description, term_cls.DIM)}",
+            f"  {Term.color('State:', Term.CYAN)} {Term.color(d.sympathetic_state.mode, mode_color)} (σ={d.sympathetic_state.sigma})",
+            f"  {Term.color(d.sympathetic_state.description, Term.DIM)}",
         ]
     )
 
     # Uchi-soto
     if d.social_evaluation:
         circ = d.social_evaluation.circle.value
-        circ_color = term_cls.B_MAGENTA if "OWNER" in circ else term_cls.YELLOW
+        circ_color = Term.B_MAGENTA if "OWNER" in circ else Term.YELLOW
         dial = "YES" if d.social_evaluation.dialectic_active else "NO"
         lines.append(
-            f"  {term_cls.color('Social:', term_cls.CYAN)} {term_cls.color(circ, circ_color)} | "
-            f"Trust={term_cls.color(str(d.social_evaluation.trust), term_cls.B_WHITE)} | "
+            f"  {Term.color('Social:', Term.CYAN)} {Term.color(circ, circ_color)} | "
+            f"Trust={Term.color(str(d.social_evaluation.trust), Term.B_WHITE)} | "
             f"Dialectic={dial}"
         )
 
     # Locus
     if d.locus_evaluation:
         locus = d.locus_evaluation.dominant_locus
-        loc_color = term_cls.B_BLUE if locus == "internal" else term_cls.B_MAGENTA
+        loc_color = Term.B_BLUE if locus == "internal" else Term.B_MAGENTA
         lines.append(
-            f"  {term_cls.color('Locus:', term_cls.CYAN)} {term_cls.color(locus, loc_color)} "
-            f"(α={d.locus_evaluation.alpha}, β={d.locus_evaluation.beta}) → {term_cls.color(d.locus_evaluation.recommended_adjustment, term_cls.ITALIC)}"
+            f"  {Term.color('Locus:', Term.CYAN)} {Term.color(locus, loc_color)} "
+            f"(α={d.locus_evaluation.alpha}, β={d.locus_evaluation.beta}) → {Term.color(d.locus_evaluation.recommended_adjustment, Term.ITALIC)}"
         )
 
     lines.extend(
         [
             "",
-            f"  {term_cls.color('Chosen action:', term_cls.CYAN)} {term_cls.color(d.final_action, term_cls.B_GREEN + term_cls.BOLD)}",
-            f"  {term_cls.color('Decision mode:', term_cls.CYAN)} {term_cls.highlight_decision(d.decision_mode)}",
+            f"  {Term.color('Chosen action:', Term.CYAN)} {Term.color(d.final_action, Term.B_GREEN + Term.BOLD)}",
+            f"  {Term.color('Decision mode:', Term.CYAN)} {Term.highlight_decision(d.decision_mode)}",
         ]
     )
 
@@ -64,13 +67,13 @@ def format_kernel_decision(d: KernelDecision, term_cls: type[Term]) -> str:
     if br is not None:
         lines.extend(
             [
-                f"  {term_cls.color('Expected impact:', term_cls.CYAN)} {term_cls.highlight_impact(br.expected_impact)}",
-                f"  {term_cls.color('Uncertainty:', term_cls.CYAN)} {br.uncertainty:.3f}",
-                f"  {term_cls.color('Reasoning:', term_cls.CYAN)} {br.reasoning}",
+                f"  {Term.color('Expected impact:', Term.CYAN)} {Term.highlight_impact(br.expected_impact)}",
+                f"  {Term.color('Uncertainty:', Term.CYAN)} {br.uncertainty:.3f}",
+                f"  {Term.color('Reasoning:', Term.CYAN)} {br.reasoning}",
             ]
         )
         if br.pruned_actions:
-            lines.append(f"  {term_cls.color('Pruned:', term_cls.YELLOW)} {', '.join(br.pruned_actions)}")
+            lines.append(f"  {Term.color('Pruned:', Term.YELLOW)} {', '.join(br.pruned_actions)}")
         if d.feedback_consistency:
             lines.append(f"  Feedback consistency: {d.feedback_consistency}")
         if d.applied_mixture_weights is not None:
@@ -84,47 +87,103 @@ def format_kernel_decision(d: KernelDecision, term_cls: type[Term]) -> str:
                 f"  Hierarchical context type (ADR 0013): {d.hierarchical_context_key}"
             )
         if d.bma_win_probabilities:
-                lines.append(
-                    f"  BMA win probabilities (α={d.bma_dirichlet_alpha}, N={d.bma_n_samples}): "
-                    f"{d.bma_win_probabilities}"
-                )
+            lines.append(
+                f"  BMA win probabilities (α={d.bma_dirichlet_alpha}, N={d.bma_n_samples}): "
+                f"{d.bma_win_probabilities}"
+            )
 
     mo = d.moral
     if mo is not None:
         lines.extend(
             [
                 "",
-                f"  {term_cls.color('Ethical verdict:', term_cls.CYAN)} {term_cls.color(mo.global_verdict.value, term_cls.B_WHITE)} (score={mo.total_score})",
+                f"  Ethical verdict: {mo.global_verdict.value} (score={mo.total_score})",
             ]
         )
         for ev in mo.evaluations:
-            lines.append(f"    {term_cls.color(ev.pole, term_cls.DIM)}: {ev.verdict.value} → {ev.moral}")
+            lines.append(f"    {ev.pole}: {ev.verdict.value} → {ev.moral}")
 
     if d.reflection is not None:
         r = d.reflection
         lines.extend(
             [
                 "",
-                f"  {term_cls.color('Reflection (2nd order):', term_cls.CYAN)} conflict={r.conflict_level} spread={r.pole_spread} "
-                f"→ {term_cls.color(r.verdict, term_cls.ITALIC)}",
+                f"  Reflection (2nd order): conflict={r.conflict_level} spread={r.pole_spread} "
+                f"strain={r.strain_index} u={r.uncertainty} will_mode={r.will_mode}",
+                f"    {r.note}",
             ]
         )
 
-    if d.salience:
-        w = d.salience.weights
-        lines.append(
-            f"  {term_cls.color('Salience (GWT):', term_cls.CYAN)} focus={term_cls.color(d.salience.dominant_focus, term_cls.B_YELLOW)} "
-            f"(risk={w.get('risk',0)}, social={w.get('social',0)}, body={w.get('body',0)})"
+    if d.salience is not None:
+        s = d.salience
+        w = s.weights
+        lines.extend(
+            [
+                "",
+                f"  Salience (GWT-lite): dominant={s.dominant_focus} "
+                f"risk={w['risk']} social={w['social']} body={w['body']} "
+                f"ethical_conflict={w['ethical_conflict']}",
+            ]
         )
 
-    if d.affective_shift:
-        lines.append(
-            f"  {term_cls.color('Affective shift:', term_cls.CYAN)} {d.affective_shift}"
+    if d.affect is not None:
+        p, a, dd = d.affect.pad
+        # Swarm Rule 2: Anti-NaN hardening for terminal output
+        if not all(math.isfinite(x) for x in (p, a, dd)):
+            p, a, dd = 0.0, 0.0, 0.0
+        lines.extend(
+            [
+                "",
+                f"  {Term.color('Affect PAD (P,A,D):', Term.CYAN)} ({p:.3f}, {a:.3f}, {dd:.3f})",
+                f"  {Term.color('Dominant archetype:', Term.CYAN)} {d.affect.dominant_archetype_id} (β={d.affect.beta})",
+            ]
         )
 
-    if d.dao_audit:
-        lines.append(
-            f"  {term_cls.color('DAO Audit:', term_cls.CYAN)} {term_cls.color(d.dao_audit, term_cls.DIM)}"
+    # Note: composer for monologue belongs to executive_lobe / communications
+    from src.modules.internal_monologue import compose_monologue_line
+    ep_id = getattr(d, 'episode_id', None) or 'unknown'
+    lines.extend(
+        [
+            "",
+            f"  {compose_monologue_line(d, ep_id)}",
+        ]
+    )
+
+    lines.append(f"{'─' * 70}")
+    return "\n".join(lines)
+
+
+def format_natural(
+    decision: KernelDecision, 
+    response: VerbalResponse, 
+    narrative: RichNarrative = None
+) -> str:
+    """Formats complete result of natural language processing."""
+    lines = [format_decision(decision)]
+
+    if response.message:
+        lines.extend(
+            [
+                "",
+                "  💬 VOICE ON (spoken):",
+                f'     "{response.message}"',
+                f"     Tone: {response.tone} | HAX: {response.hax_mode}",
+                "",
+                "  🧠 INNER VOICE (internal reasoning):",
+                f"     {response.inner_voice}",
+            ]
         )
-            
+
+    if narrative:
+        lines.extend(
+            [
+                "",
+                "  📖 NARRATIVE MORALS:",
+                f"     💛 Compassionate: {narrative.compassionate}",
+                f"     🛡️ Conservative: {narrative.conservative}",
+                f"     ✨ Optimistic: {narrative.optimistic}",
+                f"     📌 Synthesis: {narrative.synthesis}",
+            ]
+        )
+
     return "\n".join(lines)

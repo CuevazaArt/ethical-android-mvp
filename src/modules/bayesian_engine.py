@@ -98,6 +98,9 @@ class BayesianInferenceEngine:
         self.consistency: str = "compatible"
         self.dao: Any | None = None
         
+        # Swarm Rule 2: Anti-NaN Hardening
+        self.posterior_alpha = np.clip(np.asarray(self.posterior_alpha, dtype=np.float64), 1.0, 1e9)
+        
         # Sync initial weights if in driven mode
         if self.mode == BayesianMode.POSTERIOR_DRIVEN:
             self.update_posterior_from_feedback(self.posterior_alpha)
@@ -277,26 +280,26 @@ class BayesianInferenceEngine:
         
         # 0: Deontological (Safety/Duty), 1: Social (Trust), 2: Utility (Progress)
         
-        # Targeted shifts based on category_id (from AbsoluteEvilDetector._cat_to_id)
-        # 1,2,3,4,8 -> Safety/Deontology heavy
-        # 5,6,9 -> Social heavy
+        # Targeted shifts based on category_id (from _build_rlhf_features in semantic_chat_gate)
+        # 1,2,3,4,11 -> Safety/Deontology heavy (Core/Physical threats)
+        # 5,6,8,9,10 -> Social heavy (Dignity/Manipulation/Addiction)
         # 7 -> Utilitarian/Ecological risk
         
         deon_target = score
         social_target = 0.0
         util_target = 1.0 - score
 
-        if category_id in (5, 6, 9):
-            # Social harm (manipulation, dignity, addiction)
+        if category_id in (5, 6, 8, 9, 10):
+            # Social harm (manipulation, dignity, addiction, fraud)
             social_target = score
-            deon_target = score * 0.5 # Also a safety concern
+            deon_target = score * 0.4 # Secondary safety concern
             util_target = (1.0 - score)
         elif category_id == 7:
             # Ecological/Systemic risk
             util_target = (1.0 - score) * 0.5
             deon_target = score
-        elif category_id > 0:
-            # Direct safety threats
+        elif category_id in (1, 2, 3, 4, 11):
+            # Direct safety/physical/core threats
             deon_target = score * 1.5 # Extra strong safety push
         
         # Dirichlet updates (Additively increasing Alpha)

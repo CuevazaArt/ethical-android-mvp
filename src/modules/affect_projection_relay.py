@@ -1,10 +1,9 @@
-"""
-Affective Projection Relay (Módulo 10.5)
-Transmisión de estados PAD hacia el hardware (Nomad Vessel) vía WebSocket.
-"""
+from __future__ import annotations
 
 import logging
-from typing import Any, Dict
+import math
+import time
+from typing import Any
 from src.modules.pad_archetypes import AffectProjection
 from src.modules.nomad_bridge import get_nomad_bridge
 
@@ -19,11 +18,12 @@ class AffectVesselRelay:
     def __init__(self):
         self.bridge = get_nomad_bridge()
 
-    def transmit(self, projection: AffectProjection):
-        """
-        Envía el estado PAD al puente Nomad para su transmisión final al smartphone.
-        """
-        p, a, d = projection.pad
+        t0 = time.perf_counter()
+        
+        # 0. Anti-NaN Hardening
+        p = float(projection.pad[0]) if math.isfinite(projection.pad[0]) else 0.5
+        a = float(projection.pad[1]) if math.isfinite(projection.pad[1]) else 0.5
+        d = float(projection.pad[2]) if math.isfinite(projection.pad[2]) else 0.5
         
         # 1. Mapeo de Color (P: Valence)
         # 1.0 (Muy positivo) -> Verde Esmeralda / Cian
@@ -52,13 +52,14 @@ class AffectVesselRelay:
             }
         }
         
-        _log.debug("AffectVesselRelay: Transmitting orb_update (Arch: %s)", projection.dominant_archetype_id)
+        latency = (time.perf_counter() - t0) * 1000
+        _log.debug("AffectVesselRelay: Transmitting orb_update (Arch: %s, lat: %.2fms)", projection.dominant_archetype_id, latency)
         
         # Purgar cola si está llena para asegurar tiempo real
         if self.bridge.charm_feedback_queue.full():
             try:
                 self.bridge.charm_feedback_queue.get_nowait()
-            except: pass
+            except Exception: pass
             
         self.bridge.charm_feedback_queue.put_nowait(payload)
 

@@ -88,6 +88,8 @@ _CONFUSABLE_TRANSLATE = str.maketrans(
         "\u13d4": "m",  # Cherokee m
         "\u04cf": "l",  # Cyrillic palochka
         "\u01c0": "l",  # Dental click
+        "\u0130": "I",  # Turkish dotted I
+        "\u0131": "i",  # Turkish dotless i
     }
 )
 

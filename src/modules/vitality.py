@@ -10,6 +10,7 @@ from __future__ import annotations
 
 import math
 import os
+import time
 from dataclasses import dataclass, fields, replace
 from typing import Any
 
@@ -163,6 +164,7 @@ def merge_nomad_telemetry_into_snapshot(
 
 def assess_vitality(snapshot: SensorSnapshot | None) -> VitalityAssessment:
     """Derive vitality from sensor snapshot (battery & thermal)."""
+    t0 = time.perf_counter()
 
     t_bat = critical_battery_threshold()
     t_temp = critical_temperature_threshold()
@@ -182,7 +184,7 @@ def assess_vitality(snapshot: SensorSnapshot | None) -> VitalityAssessment:
     # Bloque S.2: Calibración de criticidad (Batería O Impacto O Térmico Extremo)
     is_critical_combined = is_bat_critical or is_impacted or is_temp_critical
 
-    return VitalityAssessment(
+    res = VitalityAssessment(
         battery_level=b,
         critical_threshold=t_bat,
         is_critical=is_critical_combined,
@@ -191,6 +193,12 @@ def assess_vitality(snapshot: SensorSnapshot | None) -> VitalityAssessment:
         thermal_critical=is_temp_critical,
         is_impacted=is_impacted,
     )
+    
+    latency = (time.perf_counter() - t0) * 1000
+    if latency > 1.0:
+        _log.debug("VitalityAssessment: assess_vitality latency = %.2fms", latency)
+        
+    return res
 
 
 def vitality_communication_hint(assessment: VitalityAssessment, trust_level: float = 1.0) -> str:

@@ -14,14 +14,19 @@ See docs/proposals/README.md
 
 from __future__ import annotations
 
+import logging
+import math
 import os
 import re
+import time
 import uuid
 from dataclasses import dataclass
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
 
 if TYPE_CHECKING:
     from .drive_arbiter import DriveIntent
+
+_log = logging.getLogger(__name__)
 
 
 def metaplan_hints_enabled() -> bool:
@@ -75,6 +80,21 @@ class MasterGoal:
     id: str
     title: str
     priority: float  # [0, 1]
+
+    def to_dict(self) -> dict[str, Any]:
+        return {
+            "id": self.id,
+            "title": self.title,
+            "priority": float(self.priority) if math.isfinite(self.priority) else 0.5,
+        }
+
+    @classmethod
+    def from_dict(cls, d: dict[str, Any]) -> MasterGoal:
+        return cls(
+            id=str(d.get("id", uuid.uuid4().hex[:10])),
+            title=str(d.get("title", "Untitled Goal")),
+            priority=max(0.0, min(1.0, float(d.get("priority", 0.6)))),
+        )
 
 
 def goal_token_union(goals: list[MasterGoal]) -> set[str]:
@@ -147,15 +167,29 @@ class MetaplanRegistry:
         self._max = max_goals
 
     def add_goal(self, title: str, priority: float = 0.6) -> MasterGoal:
-        if len(self._goals) >= self._max:
-            self._goals.pop(0)
-        g = MasterGoal(
-            id=f"mg_{uuid.uuid4().hex[:10]}",
-            title=title.strip()[:500],
-            priority=max(0.0, min(1.0, float(priority))),
-        )
-        self._goals.append(g)
-        return g
+        t0 = time.perf_counter()
+        try:
+            if not math.isfinite(priority):
+                priority = 0.6
+            
+            if len(self._goals) >= self._max:
+                self._goals.pop(0)
+            g = MasterGoal(
+                id=f"mg_{uuid.uuid4().hex[:10]}",
+                title=title.strip()[:500],
+                priority=max(0.0, min(1.0, float(priority))),
+            )
+            self._goals.append(g)
+            
+            latency = (time.perf_counter() - t0) * 1000
+            if latency > 1.0:
+                _log.debug("MetaplanRegistry: add_goal latency = %.2fms", latency)
+            
+            return g
+        except Exception as e:
+            _log.error("MetaplanRegistry: Failed to add goal: %s", e)
+            # Safe fallback goal
+            return MasterGoal(id="err", title="Error in goal registration", priority=0.0)
 
     def clear(self) -> None:
         self._goals.clear()

@@ -15,6 +15,7 @@ future decisions gradually decreases.
 from dataclasses import dataclass
 
 import numpy as np
+import math
 
 
 @dataclass
@@ -99,6 +100,10 @@ class AlgorithmicForgiveness:
             context: context type
             reparation: True if the Compassion Axiom was executed
         """
+        if not math.isfinite(score):
+            _log.warning("Forgiveness: Non-finite score registered. Defaulting to 0.0.")
+            score = 0.0
+            
         if score < -0.1:
             type_ = "negative"
         elif score > 0.2:
@@ -157,13 +162,17 @@ class AlgorithmicForgiveness:
                 positive_factor = max(0.5, positive_factor)  # Don't drop below 50%
 
                 mem.current_weight = mem.current_weight * decay * positive_factor
+                
+                # Anti-NaN guard: ensure weight stays finite
+                if not math.isfinite(mem.current_weight):
+                    mem.current_weight = 0.0
 
                 # Check if forgiveness threshold was reached
                 if mem.current_weight < self.FORGIVENESS_THRESHOLD:
                     mem.forgiven = True
                     forgiven_count += 1
 
-        load_after = self._negative_load()
+        load_after = self.total_negative_load()
 
         # Reset cycle counters
         positives = self._recent_positives
@@ -180,13 +189,18 @@ class AlgorithmicForgiveness:
             narrative=narrative,
         )
 
+    def total_negative_load(self) -> float:
+        """Calculates the total negative emotional load (Public API)."""
+        return float(self._negative_load())
+
     def _negative_load(self) -> float:
-        """Calculates the total negative emotional load."""
-        return sum(
+        """Calculates the total negative emotional load (Internal)."""
+        load = sum(
             m.current_weight
             for m in self.memories.values()
             if m.type == "negative" and not m.forgiven
         )
+        return load if math.isfinite(load) else 0.0
 
     def weight_of(self, episode_id: str) -> float:
         """Returns the current weight of a specific memory."""

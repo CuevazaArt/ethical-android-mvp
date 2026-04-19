@@ -198,6 +198,7 @@ from .modules.weighted_ethics_scorer import (
 from .modules.working_memory import WorkingMemory
 from .persistence.checkpoint_port import CheckpointPersistencePort
 from .utils.terminal_colors import Term
+from .utils.kernel_formatters import format_decision, format_natural
 
 
 # Extracted helpers moved to kernel_utils.py
@@ -540,6 +541,33 @@ class EthicalKernel:
             if co and hasattr(co, "biographic_pruner") and co.biographic_pruner is not None
             else BiographicPruner()
         )
+
+        # ── PHASE S.10: Persistence Restore for Metaplan & Skills ──────────
+        if self.dao:
+            try:
+                # Metaplan Goals
+                m_data = self.dao.get_state("metaplan_goals")
+                if m_data and isinstance(m_data, list):
+                    from .modules.metaplan_registry import MasterGoal
+                    goals = [MasterGoal.from_dict(g) for g in m_data if isinstance(g, dict)]
+                    self.metaplan.replace_goals(goals)
+                    _log.info("EthicalKernel: Restored %d master goals from DAO.", len(goals))
+                
+                # Skill Learning Tickets
+                s_data = self.dao.get_state("skill_learning_tickets")
+                if s_data and isinstance(s_data, list):
+                    from .modules.skill_learning_registry import SkillLearningTicket
+                    tickets = [SkillLearningTicket.from_dict(t) for t in s_data if isinstance(t, dict)]
+                    self.skill_learning.replace_tickets(tickets)
+                    _log.info("EthicalKernel: Restored %d skill tickets from DAO.", len(tickets))
+
+                # Somatic Markers
+                som_data = self.dao.get_state("somatic_markers")
+                if som_data and isinstance(som_data, dict):
+                    self.somatic_store.replace_weights(som_data)
+                    _log.info("EthicalKernel: Restored somatic markers store from DAO.")
+            except Exception as e:
+                _log.error("EthicalKernel: Failed to restore metaplan/skill/somatic states: %s", e)
 
         # ═══ Phase 10: Thalamus & Latency ═══
         self.thalamus = ThalamusNode()
@@ -1033,8 +1061,21 @@ class EthicalKernel:
             try:
                 alpha_list = self.bayesian.posterior_alpha.tolist()
                 self.dao.set_state("bayesian_posterior_alpha", alpha_list)
+                
+                # ── PHASE S.10: Persistence Save for Metaplan & Skills ──
+                # Metaplan
+                m_goals = [g.to_dict() for g in self.metaplan.goals()]
+                self.dao.set_state("metaplan_goals", m_goals)
+                
+                # Skill Learning (all tickets, status preserved)
+                s_tickets = [t.to_dict() for t in self.skill_learning.tickets()] 
+                self.dao.set_state("skill_learning_tickets", s_tickets)
+                
+                # Somatic Markers
+                self.dao.set_state("somatic_markers", self.somatic_store.to_dict())
+                
             except Exception as e:
-                _log.error("EthicalKernel: Failed to persist bayesian state: %s", e)
+                _log.error("EthicalKernel: Failed to persist bayesian/registry state: %s", e)
         
         # ════ Phase 11.2: Final Breath (Crisis Persistence) ════
         threat = float(signals.get("shutdown_threat", 0.0))
@@ -1161,139 +1202,8 @@ class EthicalKernel:
 
 
     def format_decision(self, d: KernelDecision) -> str:
-        """Formats a complete decision for readable presentation with ANSI colors."""
-        sep = Term.color("═" * 70, Term.DIM)
-        lines = [
-            f"\n{sep}",
-            f"  {Term.color('SCENARIO:', Term.B_CYAN)} {d.scenario}",
-            f"  {Term.color('PLACE:', Term.B_CYAN)} {d.place}",
-            f"{sep}",
-        ]
-
-        if d.blocked:
-            lines.append(f"  {Term.color('⛔ BLOCKED:', Term.B_RED)} {Term.color(d.block_reason, Term.RED)}")
-            return "\n".join(lines)
-
-        # Internal state
-        mode_color = Term.B_GREEN if "parasympathetic" in d.sympathetic_state.mode.lower() else Term.B_YELLOW
-        lines.extend(
-            [
-                f"  {Term.color('State:', Term.CYAN)} {Term.color(d.sympathetic_state.mode, mode_color)} (σ={d.sympathetic_state.sigma})",
-                f"  {Term.color(d.sympathetic_state.description, Term.DIM)}",
-            ]
-        )
-
-        # Uchi-soto
-        if d.social_evaluation:
-            circ = d.social_evaluation.circle.value
-            circ_color = Term.B_MAGENTA if "OWNER" in circ else Term.YELLOW
-            dial = "YES" if d.social_evaluation.dialectic_active else "NO"
-            lines.append(
-                f"  {Term.color('Social:', Term.CYAN)} {Term.color(circ, circ_color)} | "
-                f"Trust={Term.color(str(d.social_evaluation.trust), Term.B_WHITE)} | "
-                f"Dialectic={dial}"
-            )
-
-        # Locus
-        if d.locus_evaluation:
-            locus = d.locus_evaluation.dominant_locus
-            loc_color = Term.B_BLUE if locus == "internal" else Term.B_MAGENTA
-            lines.append(
-                f"  {Term.color('Locus:', Term.CYAN)} {Term.color(locus, loc_color)} "
-                f"(α={d.locus_evaluation.alpha}, β={d.locus_evaluation.beta}) → {Term.color(d.locus_evaluation.recommended_adjustment, Term.ITALIC)}"
-            )
-
-        lines.extend(
-            [
-                "",
-                f"  {Term.color('Chosen action:', Term.CYAN)} {Term.color(d.final_action, Term.B_GREEN + Term.BOLD)}",
-                f"  {Term.color('Decision mode:', Term.CYAN)} {Term.highlight_decision(d.decision_mode)}",
-            ]
-        )
-
-        br = d.bayesian_result
-        if br is not None:
-            lines.extend(
-                [
-                    f"  {Term.color('Expected impact:', Term.CYAN)} {Term.highlight_impact(br.expected_impact)}",
-                    f"  {Term.color('Uncertainty:', Term.CYAN)} {br.uncertainty:.3f}",
-                    f"  {Term.color('Reasoning:', Term.CYAN)} {br.reasoning}",
-                ]
-            )
-            if br.pruned_actions:
-                lines.append(f"  {Term.color('Pruned:', Term.YELLOW)} {', '.join(br.pruned_actions)}")
-            if d.feedback_consistency:
-                lines.append(f"  Feedback consistency: {d.feedback_consistency}")
-            if d.applied_mixture_weights is not None:
-                lines.append(f"  Applied weights [util, deon, virt]: {d.applied_mixture_weights}")
-            if d.mixture_posterior_alpha is not None:
-                lines.append(f"  Posterior Dirichlet α (mixture): {d.mixture_posterior_alpha}")
-            if d.mixture_context_key:
-                lines.append(f"  Mixture context bucket (ADR 0012 L3): {d.mixture_context_key}")
-            if d.hierarchical_context_key:
-                lines.append(
-                    f"  Hierarchical context type (ADR 0013): {d.hierarchical_context_key}"
-                )
-            if d.bma_win_probabilities:
-                lines.append(
-                    f"  BMA win probabilities (α={d.bma_dirichlet_alpha}, N={d.bma_n_samples}): "
-                    f"{d.bma_win_probabilities}"
-                )
-
-        mo = d.moral
-        if mo is not None:
-            lines.extend(
-                [
-                    "",
-                    f"  Ethical verdict: {mo.global_verdict.value} (score={mo.total_score})",
-                ]
-            )
-            for ev in mo.evaluations:
-                lines.append(f"    {ev.pole}: {ev.verdict.value} → {ev.moral}")
-
-        if d.reflection is not None:
-            r = d.reflection
-            lines.extend(
-                [
-                    "",
-                    f"  Reflection (2nd order): conflict={r.conflict_level} spread={r.pole_spread} "
-                    f"strain={r.strain_index} u={r.uncertainty} will_mode={r.will_mode}",
-                    f"    {r.note}",
-                ]
-            )
-
-        if d.salience is not None:
-            s = d.salience
-            w = s.weights
-            lines.extend(
-                [
-                    "",
-                    f"  Salience (GWT-lite): dominant={s.dominant_focus} "
-                    f"risk={w['risk']} social={w['social']} body={w['body']} "
-                    f"ethical_conflict={w['ethical_conflict']}",
-                ]
-            )
-
-        if d.affect is not None:
-            p, a, dd = d.affect.pad
-            lines.extend(
-                [
-                    "",
-                    f"  Affect PAD (P,A,D): ({p:.3f}, {a:.3f}, {dd:.3f})",
-                    f"  Dominant archetype: {d.affect.dominant_archetype_id} (β={d.affect.beta})",
-                ]
-            )
-
-        lines.extend(
-            [
-                "",
-                f"  {compose_monologue_line(d, self._last_registered_episode_id)}",
-                f"  Narrative identity: {self.memory.identity.ascription_line()}",
-            ]
-        )
-
-        lines.append(f"{'─' * 70}")
-        return "\n".join(lines)
+        """Proxies to external formatter (Task 5 isolation)."""
+        return format_decision(d)
 
     def _snapshot_feedback_anchor(self, regime: str) -> None:
         """Last completed chat regime for optional operator feedback (see ``record_operator_feedback``)."""
@@ -2405,35 +2315,8 @@ class EthicalKernel:
     def format_natural(
         self, decision, response: VerbalResponse, narrative: RichNarrative = None
     ) -> str:
-        """Formats complete result of natural language processing."""
-        lines = [self.format_decision(decision)]
-
-        if response.message:
-            lines.extend(
-                [
-                    "",
-                    "  💬 VOICE ON (spoken):",
-                    f'     "{response.message}"',
-                    f"     Tone: {response.tone} | HAX: {response.hax_mode}",
-                    "",
-                    "  🧠 INNER VOICE (internal reasoning):",
-                    f"     {response.inner_voice}",
-                ]
-            )
-
-        if narrative:
-            lines.extend(
-                [
-                    "",
-                    "  📖 NARRATIVE MORALS:",
-                    f"     💛 Compassionate: {narrative.compassionate}",
-                    f"     🛡️ Conservative: {narrative.conservative}",
-                    f"     ✨ Optimistic: {narrative.optimistic}",
-                    f"     📌 Synthesis: {narrative.synthesis}",
-                ]
-            )
-
-        return "\n".join(lines)
+        """Proxies to external formatter (Task 5 isolation)."""
+        return format_natural(decision, response, narrative)
 
     def reset_day(self):
         """Resets state for a new day."""
