@@ -1,4 +1,5 @@
 import logging
+import os
 import threading
 import time
 from collections import deque
@@ -39,6 +40,13 @@ if TYPE_CHECKING:
 _log = logging.getLogger(__name__)
 
 
+def _vision_continuous_daemon_enabled() -> bool:
+    """Module 9.1 — default on; set ``KERNEL_VISION_CONTINUOUS_DAEMON=0`` to skip the background thread."""
+
+    v = os.environ.get("KERNEL_VISION_CONTINUOUS_DAEMON", "1").strip().lower()
+    return v not in ("0", "false", "off", "no")
+
+
 class PerceptiveLobe:
     """
     Subsystem for Safety Interlocks, Strategic Ingestion, and Multimodal Perception.
@@ -69,7 +77,7 @@ class PerceptiveLobe:
 
         self.sensory_buffer: deque[SensoryEpisode] = deque(maxlen=100)
 
-        if self.vision_engine:
+        if self.vision_engine and _vision_continuous_daemon_enabled():
             from src.modules.vision_inference import VisionContinuousDaemon
 
             self.vision_daemon = VisionContinuousDaemon(

@@ -6,6 +6,7 @@ converting visual streams into ethical signals for the kernel.
 """
 
 import logging
+import queue as queue_mod
 from abc import ABC, abstractmethod
 from dataclasses import dataclass, field
 from typing import Any
@@ -214,9 +215,19 @@ class NomadVisionConsumer:
             return
 
         bridge = get_nomad_bridge()
+
+        def _timed_get() -> Any | None:
+            try:
+                return bridge.vision_queue.get(timeout=0.3)
+            except queue_mod.Empty:
+                return None
+
         while True:
             try:
-                raw = await bridge.vision_queue.get()
+                raw = await asyncio.to_thread(_timed_get)
+                if raw is None:
+                    await asyncio.sleep(0)
+                    continue
                 frame_bytes = jpeg_bytes_from_vision_queue_item(raw)
                 if not frame_bytes:
                     _log.debug("Nomad vision: skipped queue item (no raw JPEG bytes)")
@@ -224,7 +235,6 @@ class NomadVisionConsumer:
                 np_arr = np.frombuffer(frame_bytes, np.uint8)
                 img = cv2.imdecode(np_arr, cv2.IMREAD_COLOR)
                 if img is not None:
-                    # Run inference in a thread to not block the event loop
                     infer_result = await asyncio.to_thread(self.adapter.infer, img)
                     self.latest_inference = infer_result
                     _log.debug("Nomad vision infered: %s", infer_result.primary_label)

@@ -66,7 +66,7 @@ Ningún agente debe saltar a tareas de la cola de otro equipo.
 *Responsabilidad prioritaria Team Cursor en el árbol histórico; coordinar con L1 antes de duplicar pipelines.*
 
 - **Bloque 9.1: Daemon de Visión Continua (CNN/Webcam) [DONE]**
-  - Tarea 9.1.1: `VisionInferenceEngine.analyze_jpeg_bytes` + ``VisionContinuousDaemon`` (~5 Hz, ``KERNEL_VISION_DAEMON_HZ``) con inferencia en ``ThreadPoolExecutor``; cola espejo thread-safe ``NomadBridge.vision_queue_threadsafe`` (``nomad_bridge_queue_stats_v4`` / ``vision_sync_queued``). Tests: [`tests/test_vision_continuous_daemon.py`](../../tests/test_vision_continuous_daemon.py).
+  - Tarea 9.1.1: `VisionInferenceEngine.analyze_jpeg_bytes` + ``VisionContinuousDaemon`` (~5 Hz, ``KERNEL_VISION_DAEMON_HZ``) con inferencia en ``ThreadPoolExecutor``; cola espejo thread-safe ``NomadBridge.vision_queue_threadsafe`` (``nomad_bridge_queue_stats_v4`` / ``vision_sync_queued``); CNN opcional ``KERNEL_VISION_DAEMON_CNN``; gate de arranque ``KERNEL_VISION_CONTINUOUS_DAEMON``; ``NomadVisionConsumer`` usa ``queue.Queue`` vía ``asyncio.to_thread``. Tests: [`tests/test_vision_continuous_daemon.py`](../../tests/test_vision_continuous_daemon.py).
 
 ---
 

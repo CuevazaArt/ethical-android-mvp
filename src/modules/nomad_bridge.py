@@ -9,8 +9,8 @@ WebSocket JSON events (client → server):
 
 Server → client: ``type: charm_feedback``, ``payload``: charm vector dict (from kernel).
 
-``NomadVisionConsumer`` in ``vision_adapter.py`` drains ``vision_queue`` (async); audio adapter drains ``audio_queue``.
-``vision_queue_threadsafe`` mirrors accepted JPEG bytes for synchronous consumers (e.g. ``VisionContinuousDaemon`` in ``vision_inference.py``) because ``asyncio.Queue`` is not thread-safe off the event loop.
+``NomadVisionConsumer`` in ``vision_adapter.py`` drains ``vision_queue`` (``queue.Queue``, async via ``asyncio.to_thread``); audio adapter drains ``audio_queue``.
+``vision_queue_threadsafe`` mirrors accepted JPEG bytes for ``VisionContinuousDaemon`` (``vision_inference.py``) so the kernel thread never contends with the event loop.
 
 When ``KERNEL_METRICS=1``, rejections and queue evictions are also mirrored to Prometheus
 (``ethos_kernel_nomad_bridge_rejections_total``, ``ethos_kernel_nomad_bridge_queue_evictions_total``).

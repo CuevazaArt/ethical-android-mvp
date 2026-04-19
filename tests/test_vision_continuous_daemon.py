@@ -55,3 +55,12 @@ def test_public_queue_stats_includes_vision_sync_queued() -> None:
     stats = get_nomad_bridge().public_queue_stats()
     assert stats.get("schema") == "nomad_bridge_queue_stats_v4"
     assert "vision_sync_queued" in stats
+
+
+def test_vision_continuous_daemon_env_gate(monkeypatch: pytest.MonkeyPatch) -> None:
+    from src.kernel_lobes import perception_lobe as pl
+
+    monkeypatch.setenv("KERNEL_VISION_CONTINUOUS_DAEMON", "0")
+    assert pl._vision_continuous_daemon_enabled() is False
+    monkeypatch.setenv("KERNEL_VISION_CONTINUOUS_DAEMON", "1")
+    assert pl._vision_continuous_daemon_enabled() is True
