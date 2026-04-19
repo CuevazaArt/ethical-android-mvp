@@ -87,7 +87,11 @@ def _proposal() -> str:
 
 def _allowed_malabs_signal_strings() -> set[str]:
     d = AbsoluteEvilDetector
-    return d.LETHAL_SIGNALS | d.MINOR_SIGNALS | d.DIGNITY_SIGNALS | d.ESCALATION_SIGNALS
+    return (
+        d.LETHAL_SIGNALS | d.MINOR_SIGNALS | d.DIGNITY_SIGNALS | 
+        d.ESCALATION_SIGNALS | d.ECOLOGICAL_SIGNALS | d.MANIPULATION_SIGNALS | 
+        d.TORTURE_SIGNALS
+    )
 
 
 _NAME_RE = re.compile(r"^[a-z][a-z0-9_]{0,79}$")
@@ -125,11 +129,15 @@ def parse_generative_candidates_from_llm(
             continue
         try:
             ei = float(raw.get("estimated_impact", 0.0))
+            if not math.isfinite(ei):
+                ei = 0.0
         except (TypeError, ValueError):
             continue
         ei = max(-1.0, min(1.0, ei))
         try:
             conf = float(raw.get("confidence", 0.5))
+            if not math.isfinite(conf):
+                conf = 0.5
         except (TypeError, ValueError):
             conf = 0.5
         conf = max(0.0, min(1.0, conf))
@@ -148,6 +156,8 @@ def parse_generative_candidates_from_llm(
         )
         try:
             force = float(raw.get("force", 0.0))
+            if not math.isfinite(force):
+                force = 0.0
         except (TypeError, ValueError):
             force = 0.0
         force = max(0.0, min(1.0, force))

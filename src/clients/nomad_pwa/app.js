@@ -10,7 +10,7 @@ const UI = {
     btnConnect: document.getElementById('btn-connect'),
     btnStream: document.getElementById('btn-stream'),
     btnInstall: document.getElementById('btn-install'),
-    batterySpan: document.getElementById('telemetry-battery'),
+    batterySpan: document.getElementById('battery-level'),
     transcript: document.getElementById('charm-transcript'),
     videoElement: document.getElementById('hidden-video'),
 };
@@ -40,6 +40,9 @@ if ('getBattery' in navigator) {
     navigator.getBattery().then(battery => {
         lastBatteryLevel = battery.level;
         const sendBat = () => {
+            const level = Math.round(battery.level * 100);
+            UI.batterySpan.innerText = `${level}%`;
+            
             if(wsNomad && wsNomad.readyState === WebSocket.OPEN) {
                 // Proxy for 'Temperature' (browser block workaround): High drain scale
                 let tempProxy = 40 + (1.0 - battery.level) * 10; 

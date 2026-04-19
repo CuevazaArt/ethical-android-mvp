@@ -7,6 +7,21 @@ All notable changes to this project are summarized here. For narrative context a
 **[URGENT ΓÇö broadcast to all L2 integration hubs]:** All teams (Claude, Cursor, Copilot) should urgently `git pull` from `main` into their `master-*` branches. Outdated branches risk severe documentation path drift.
 
 ### Antigravity-Team Updates (2026-04-18 - Session 2)
+### Antigravity-Team Updates (2026-04-19 - Session 8)
+
+- [x] **NOMAD PWA PREMIUM OVERHAUL (Phase F.1 & F.2 Hardening)**:
+    *   **Glassmorphic UI**: Transformed the PWA into a high-end interface using mesh gradients, glassmorphic card effects, and dynamic backdrop filters.
+    *   **Affective Orb V2**: Implemented a "morphing" SVG-based orb with high-activiation pulse logic and CSS noise filters for a state-of-the-art aesthetic.
+    *   **Typography & Assets**: Integrated Google Fonts (Outfit/Inter) and a custom 512x512 glassmorphic icon anchor.
+    *   **Situational Awareness**: Fixed real-time battery telemetry binding and mapped high-intensity kinetic impacts (>1.5G) to the sensory stream.
+- [x] **BAYESIAN RESILIENCE & PERSISTENCE (P0 - S.4.2)**:
+    *   **Local Bayesian Persistence (LBP)**: Integrated the `DAOOrchestrator` into the `BayesianInferenceEngine` for immediate "write-through" persistence of ethical priors during feedback loops.
+    *   **State Restoration**: Ensured the `EthicalKernel` and `CerebellumLobe` correctly restore learned priors on system boot, eliminating "Bayesian Amnesia."
+    *   **Anti-NaN Hardening**: Enforced `math.isfinite()` and input trust validation across all Bayesian update paths to prevent numerical decay in long-running sessions.
+- [x] **CODE QUALITY & BOY SCOUTING**:
+    *   **Scorer Cleanup**: Deep removal of redundant aliases and duplicated `__all__` exports in `weighted_ethics_scorer.py`.
+    *   **Type Integrity**: Standardized `from __future__ import annotations` across critical modules.
+
 ### Antigravity-Team Updates (2026-04-19 - Session 7)
 
 - [x] **SITUATED FINITUDE & SHUTDOWN ANXIETY (Phase 11.2)**:

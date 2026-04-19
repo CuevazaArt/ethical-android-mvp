@@ -1018,7 +1018,8 @@ class EthicalKernel:
                 _log.error("EthicalKernel: Failed to persist bayesian state: %s", e)
         
         # ════ Phase 11.2: Final Breath (Crisis Persistence) ════
-        if signals.get("shutdown_threat", 0.0) > 0.8:
+        threat = float(signals.get("shutdown_threat", 0.0))
+        if math.isfinite(threat) and threat > 0.8:
             _log.warning("EthicalKernel: SHUTDOWN THREAT DETECTED. Executing Final Breath backup.")
             try:
                 self.immortality.backup(self)

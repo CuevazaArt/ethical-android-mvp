@@ -7,13 +7,16 @@
     "src/kernel_lobes/thalamus_node.py": "2456ecc5dc1467aff24f6b43537f950f741e678a2e135589f049de70ffe1fd65",
     "src/modules/absolute_evil.py": "bdc44745b56611017f5a212822deecb7188d8d0349080d0d2615391b069adb31",
     "src/modules/nomad_bridge.py": "13b3d0e176aef8d533801db64456bcee9aa632271a6f57c2aa35c65ca2521f27",
-    "src/modules/secure_boot.py": "90c54a7867eab5bc3734dc22e58675d4eea3c7cca04aec2c8061565fb706a9db",
+    "src/modules/secure_boot.py": "36485b7d960789b2d7b8fcca4d8cb48b4047ab07d1f8f5ccd39365ee885152e8",
     "src/modules/immortality.py": "93f05bff17c25f9ab39e9bdfee342611fa282aa9b5d3fac80088eb25f6c7a694",
     "src/modules/bayesian_engine.py": "9207f260c8ad232b6e98a352ce3d1b9e5157b01432163921b884e40dd3d72007",
-    "src/modules/weighted_ethics_scorer.py": "d65789d0ff3e39a3b2846b4514941a04f0390d0567da9d7ddd004603ad0d88af",
+    "src/modules/weighted_ethics_scorer.py": "151ee456ceb6b5c40321f600d5374ef4ccaaf5fa753560b9d447b4d1dc82442f",
     "src/modules/semantic_chat_gate.py": "2eb6c1407f6537c6aa587cc478dcdbcfb4f1bda6c4e9b036cd26d4559814d1e2",
     "src/modules/uchi_soto.py": "fa9855cc4714dd91c6a858d6842bea779c5fa7da1ca5eee89c20484d33edb914",
     "src/modules/sympathetic.py": "fe12ac9f0127535393757b14d848c2c8c7850ce07b8842b5438ddb0c6e71a99e",
+    "src/modules/multimodal_trust.py": "7f662258f782e69b16f52aea6efe7bfca25e1171d11d4fd4e9ea3009e117da00",
+    "src/modules/buffer.py": "d3eb1128706267acbdec0f0a1264fbcc55bccc4ec43fe2c1c68a4e955b1eb604",
+    "src/modules/generative_candidates.py": "e65758022d72d2682a632a8bb8a2a411413ef32c75c3be5cc847dbc50d8d012a",
     "src/persistence/kernel_io.py": "efc99dbfc8aa55bb28b7cd3a74183d66395dcefb1882870118e775d2cdb1973f",
     "src/persistence/snapshot_serde.py": "3920104a50d2b70ec1a79f539866e4bd192bda6a3969fa827c1fd95368c8899f"
 }

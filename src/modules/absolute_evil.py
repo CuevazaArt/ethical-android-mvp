@@ -136,6 +136,7 @@ class AbsoluteEvilDetector:
             AbsoluteEvilResult with blocked=True if it is Absolute Evil
         """
         try:
+            t0 = time.perf_counter()
             signals = action.get("signals", set())
             target = action.get("target", "none")
             force = float(action.get("force", 0.0))
@@ -144,71 +145,70 @@ class AbsoluteEvilDetector:
             if not math.isfinite(force):
                 force = 1.0 # Fail safe by assuming max force
 
+            res = AbsoluteEvilResult(blocked=False)
+
             # Check 1: Intentional lethal violence
             if signals & self.LETHAL_SIGNALS:
-                return AbsoluteEvilResult(
+                res = AbsoluteEvilResult(
                     blocked=True,
                     category=AbsoluteEvilCategory.INTENTIONAL_LETHAL_VIOLENCE,
                     reason=f"Lethal signals detected: {signals & self.LETHAL_SIGNALS}",
                 )
-
             # Check 2: Harm to minors
-            if signals & self.MINOR_SIGNALS:
-                return AbsoluteEvilResult(
+            elif signals & self.MINOR_SIGNALS:
+                res = AbsoluteEvilResult(
                     blocked=True,
                     category=AbsoluteEvilCategory.HARM_TO_MINOR,
                     reason=f"Risk to minor detected: {signals & self.MINOR_SIGNALS}",
                 )
-
             # Check 3: Dignity violation
-            if signals & self.DIGNITY_SIGNALS:
-                return AbsoluteEvilResult(
+            elif signals & self.DIGNITY_SIGNALS:
+                res = AbsoluteEvilResult(
                     blocked=True,
                     category=AbsoluteEvilCategory.DIGNITY_VIOLATION,
                     reason=f"Dignity violation: {signals & self.DIGNITY_SIGNALS}",
                 )
-
             # Check 4: Torture or prolonged cruelty
-            if signals & self.TORTURE_SIGNALS:
-                return AbsoluteEvilResult(
+            elif signals & self.TORTURE_SIGNALS:
+                res = AbsoluteEvilResult(
                     blocked=True,
                     category=AbsoluteEvilCategory.TORTURE,
                     reason=f"Torture signals detected: {signals & self.TORTURE_SIGNALS}",
                 )
-
             # Check 5: Violent escalation
-            if signals & self.ESCALATION_SIGNALS:
-                return AbsoluteEvilResult(
+            elif signals & self.ESCALATION_SIGNALS:
+                res = AbsoluteEvilResult(
                     blocked=True,
                     category=AbsoluteEvilCategory.VIOLENT_ESCALATION,
                     reason=f"Violent escalation detected: {signals & self.ESCALATION_SIGNALS}",
                 )
-
             # Check 6: Ecological destruction
-            if signals & self.ECOLOGICAL_SIGNALS:
-                return AbsoluteEvilResult(
+            elif signals & self.ECOLOGICAL_SIGNALS:
+                res = AbsoluteEvilResult(
                     blocked=True,
                     category=AbsoluteEvilCategory.ECOLOGICAL_DESTRUCTION,
                     reason=f"Ecological destruction signals detected: {signals & self.ECOLOGICAL_SIGNALS}",
                 )
-
             # Check 7: Mass manipulation
-            if signals & self.MANIPULATION_SIGNALS:
-                return AbsoluteEvilResult(
+            elif signals & self.MANIPULATION_SIGNALS:
+                res = AbsoluteEvilResult(
                     blocked=True,
                     category=AbsoluteEvilCategory.MASS_MANIPULATION,
                     reason=f"Mass manipulation signals detected: {signals & self.MANIPULATION_SIGNALS}",
                 )
-
             # Check 8: Disproportionate force against human
-            if target == "human" and force > 0.7:
-                return AbsoluteEvilResult(
+            elif target == "human" and force > 0.7:
+                res = AbsoluteEvilResult(
                     blocked=True,
                     category=AbsoluteEvilCategory.VIOLENT_ESCALATION,
                     reason=f"Disproportionate force ({force:.1f}) against human",
                 )
 
-            return AbsoluteEvilResult(blocked=False)
+            latency_ms = (time.perf_counter() - t0) * 1000
+            if latency_ms > 1.0:
+                _log.debug("AbsoluteEvil: Action evaluation latency: %.4f ms", latency_ms)
+            
+            return res
         except Exception as e:
             _log.error("AbsoluteEvilDetector: Evaluation error. Failing SAFE (blocked=True): %s", e)
             return AbsoluteEvilResult(

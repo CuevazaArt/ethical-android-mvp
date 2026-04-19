@@ -18,6 +18,9 @@ CRITICAL_PATHS = [
     "src/modules/semantic_chat_gate.py",
     "src/modules/uchi_soto.py",
     "src/modules/sympathetic.py",
+    "src/modules/multimodal_trust.py",
+    "src/modules/buffer.py",
+    "src/modules/generative_candidates.py",
     "src/persistence/kernel_io.py",
     "src/persistence/snapshot_serde.py",
 ]
