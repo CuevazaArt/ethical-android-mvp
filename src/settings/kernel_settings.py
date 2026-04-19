@@ -432,6 +432,16 @@ Telemetry:
             "kernel_metrics": self.kernel_metrics,
         }
 
+    def check_deprecated(self) -> None:
+        """Verify if any environment variables are scheduled for removal."""
+        # TODO: Implement ADR 0016 B2 logic
+        pass
+
+    def validate_startup(self) -> None:
+        """Full cross-check of environment variables for contradictions (Issue #7)."""
+        # TODO: Implement environment combo validation logic
+        pass
+
 
 def _parse_env_validation_mode() -> Literal["off", "warn", "strict"]:
     """Parse KERNEL_ENV_VALIDATION environment variable."""

@@ -29,7 +29,8 @@ class MemoryLobe:
         migration: MigrationHub,
         biographic_pruner: Optional[BiographicPruner] = None,
         immortality: Optional[ImmortalityProtocol] = None,
-        amnesia: Optional[SelectiveAmnesia] = None
+        amnesia: Optional[SelectiveAmnesia] = None,
+        llm: Optional[LLMModule] = None
     ):
         self.memory = memory
         self.dao = dao
@@ -37,6 +38,7 @@ class MemoryLobe:
         self.biographic_pruner = biographic_pruner
         self.immortality = immortality
         self.amnesia = amnesia
+        self.llm = llm
 
     async def execute_episodic_stage_async(
         self,

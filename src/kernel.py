@@ -181,7 +181,7 @@ from .modules.uchi_soto import SocialEvaluation, UchiSotoModule
 from .modules.user_model import UserModelTracker
 from .modules.variability import VariabilityConfig, VariabilityEngine
 from .modules.vision_adapter import VisionInference
-from .modules.vitality import VitalityAssessment, assess_vitality
+from .modules.vitality import VitalityAssessment, assess_vitality, vitality_communication_hint
 from .modules.rlhf_reward_model import RLHFPipeline, is_rlhf_enabled
 from .modules.weakness_pole import WeaknessPole
 from .modules.weighted_ethics_scorer import CandidateAction, WeightedEthicsScorer
@@ -1464,8 +1464,11 @@ class EthicalKernel:
                 yield {"event_type": "bridge_phrase", "payload": {"text": bridge}}
 
             # 4. Global Communication Stream
+            vh = vitality_communication_hint(self._last_vitality_assessment)
+            yield {"event_type": "vitality_communication_hint", "payload": {"hint": vh}}
+
             yield {"event_type": "communication_started", "payload": {}}
-            async for chunk in run_communication_stream(self, decision, user_input, conv):
+            async for chunk in run_communication_stream(self, decision, user_input, conv, vitality_context=vh):
                 raise_if_llm_cancel_requested()
                 yield {"event_type": "token", "payload": {"text": chunk}}
 
@@ -1762,12 +1765,17 @@ class EthicalKernel:
                 blocked=True,
             )
 
+        # Adaptive Communication Hint (ACL)
+        _t_level = mm.trust_score if mm else 1.0
+        vh = vitality_communication_hint(self._last_vitality_assessment, trust_level=_t_level)
+
         try:
             final_response = await self.llm.acommunicate(
                 action=decision.final_action,
                 mode=decision.decision_mode,
                 state=decision.sympathetic_state.mode,
                 sigma=decision.sympathetic_state.sigma,
+                vitality_context=vh,  # Inject ACL context
                 circle=(
                     decision.social_evaluation.circle.value
                     if decision.social_evaluation
@@ -1965,7 +1973,7 @@ class EthicalKernel:
 
         self.llm.reset_verbal_degradation_log()
 
-        stage = self.perceptive_lobe.run_perception_stage(
+        stage = await self.perceptive_lobe.run_perception_stage_async(
             text,
             sensor_snapshot=None,
             turn_start_mono=turn_start_mono,

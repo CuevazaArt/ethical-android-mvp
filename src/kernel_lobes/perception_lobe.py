@@ -17,9 +17,33 @@ class PerceptiveLobe:
     and async LLM API integration via httpx.AsyncClient.
     """
 
-    def __init__(self):
+    def __init__(
+        self,
+        safety_interlock=None,
+        strategist=None,
+        llm=None,
+        somatic_store=None,
+        buffer=None,
+        buffer_long=None,
+        absolute_evil=None,
+        subjective_clock=None,
+        thalamus=None,
+        vision_engine=None,
+        event_bus=None
+    ):
         self._timeout = self._get_perception_timeout()
         self._llm_endpoint = os.environ.get("KERNEL_PERCEPTION_LLM_ENDPOINT", "http://localhost:11434/api/generate")
+        self.safety_interlock = safety_interlock
+        self.strategist = strategist
+        self.llm = llm
+        self.somatic_store = somatic_store
+        self.buffer = buffer
+        self.buffer_long = buffer_long
+        self.absolute_evil = absolute_evil
+        self.subjective_clock = subjective_clock
+        self.thalamus = thalamus
+        self.vision_engine = vision_engine
+        self.event_bus = event_bus
 
     @staticmethod
     def _get_perception_timeout() -> float:
@@ -69,43 +93,138 @@ class PerceptiveLobe:
 
             return perception
 
-        except asyncio.TimeoutError:
+        except (asyncio.TimeoutError, httpx.TimeoutException):
             latency = int((time.time() - start_time) * 1000)
             return SemanticState(
                 perception_confidence=0.0,
                 raw_prompt=raw_input,
+                scenario_summary="Perception timeout",
+                suggested_context="emergency",
                 sensory_latency_lag=latency,
                 timeout_trauma=TimeoutTrauma(
+                    source_lobe="perception",
                     latency_ms=latency,
                     severity=1.0,
                     context=f"Perception LLM timeout after {self._timeout}s"
                 )
             )
-        except httpx.TimeoutException:
-            latency = int((time.time() - start_time) * 1000)
-            return SemanticState(
-                perception_confidence=0.0,
-                raw_prompt=raw_input,
-                sensory_latency_lag=latency,
-                timeout_trauma=TimeoutTrauma(
-                    latency_ms=latency,
-                    severity=0.8,
-                    context="Perception API timeout or network unreachable"
-                )
-            )
         except Exception as e:
             latency = int((time.time() - start_time) * 1000)
-            # Graceful degradation: return low-confidence state on any error
+            # Graceful degradation: return low-confidence state on any error (e.g. Ollama 404)
             return SemanticState(
                 perception_confidence=0.1,
                 raw_prompt=raw_input,
+                scenario_summary="Perception error",
+                suggested_context="everyday",
                 sensory_latency_lag=latency,
                 timeout_trauma=TimeoutTrauma(
+                    source_lobe="perception",
                     latency_ms=latency,
                     severity=0.5,
-                    context=f"Perception processing error: {type(e).__name__}"
+                    context=f"Perception processing error: {type(e).__name__} - {str(e)}"
                 )
             )
+
+    async def run_perception_stage_async(
+        self,
+        user_input: str,
+        conversation_context: str = "",
+        sensor_snapshot: Optional[object] = None,
+        turn_start_mono: float = 0.0,
+        precomputed: Optional[tuple] = None,
+    ) -> "PerceptionStageResult":
+        """
+        Unified Tri-Lobe entry point for perception.
+        Integrates with sensor stack, multimodal assessment, and limbic profiling.
+        """
+        from .models import PerceptionStageResult
+        from src.modules.perception_confidence import build_perception_confidence_envelope
+        from src.modules.multimodal_trust import evaluate_multimodal_trust
+        from src.modules.vitality import assess_vitality
+        from src.modules.epistemic_dissonance import assess_epistemic_dissonance
+
+        # 1. Sensors & Multimodal
+        vitality = assess_vitality(sensor_snapshot)
+        multimodal = evaluate_multimodal_trust(sensor_snapshot)
+        epistemic = assess_epistemic_dissonance(sensor_snapshot, multimodal=multimodal)
+        
+        # 2. Parallel LLM Perception (using the new observe method)
+        perception = await self.observe(user_input, multimodal_payload=sensor_snapshot.__dict__ if hasattr(sensor_snapshot, "__dict__") else None)
+        
+        # 3. Confidence Envelope
+        confidence_envelope = build_perception_confidence_envelope(
+            coercion_report=None,
+            multimodal_state=multimodal.state if multimodal else None,
+            epistemic_active=epistemic.active if epistemic else False,
+            vitality_critical=vitality.is_critical if vitality else False,
+            thermal_critical=vitality.thermal_critical if vitality else False,
+        )
+
+        # 4. Building Results
+        signals = perception.to_core_signals() if hasattr(perception, "to_core_signals") else {}
+        limbic_profile = self._build_limbic_perception_profile(
+            perception, signals, vitality, multimodal, epistemic, confidence_envelope
+        )
+        support_buffer = self._build_support_buffer_snapshot("perception", limbic_profile)
+
+        return PerceptionStageResult(
+            tier=precomputed[0] if precomputed else None,
+            premise_advisory=precomputed[1] if precomputed else None,
+            reality_verification=precomputed[2] if precomputed else None,
+            perception=perception,
+            signals=signals,
+            vitality=vitality,
+            multimodal_trust=multimodal,
+            epistemic_dissonance=epistemic,
+            support_buffer=support_buffer,
+            limbic_profile=limbic_profile,
+            temporal_context=None, # To be filled by kernel if needed
+            perception_confidence=confidence_envelope,
+        )
+
+    def _build_limbic_perception_profile(
+        self, perception, signals, vitality, mm, ed, confidence
+    ) -> dict:
+        sig = signals or {}
+        threat = max(
+            float(sig.get("risk", 0)), 
+            float(sig.get("urgency", 0)), 
+            float(sig.get("hostility", 0))
+        )
+        calm = float(sig.get("calm", 0))
+        reg_gap = max(0.0, threat - calm)
+        band = "high" if threat >= 0.75 else ("medium" if threat >= 0.45 else "low")
+        return {
+            "arousal_band": band,
+            "threat_load": threat,
+            "regulation_gap": reg_gap,
+            "planning_bias": (
+                "short_horizon_containment" if band == "high" 
+                else ("balanced" if band == "medium" else "long_horizon_deliberation")
+            ),
+            "multimodal_mismatch": mm.state == "contradict" if mm else False,
+            "vitality_critical": vitality.is_critical if vitality else False,
+            "context": perception.suggested_context if perception else "everyday",
+        }
+
+    def _build_support_buffer_snapshot(self, context_key: str, limbic_profile: dict) -> dict:
+        """Snapshot of strategic advice for the current turn."""
+        return {
+            "context_key": context_key,
+            "strategy_hint": limbic_profile.get("planning_bias", "balanced"),
+            "limbic_resonance": limbic_profile.get("arousal_band", "low"),
+        }
+    
+    def _preprocess_text_observability(self, text: str):
+        """Mock for kernel compatibility if missing elsewhere."""
+        from src.modules.light_risk_classifier import light_risk_tier_from_text
+        from src.modules.premise_validation import scan_premises
+        from src.modules.reality_verification import verify_against_lighthouse, lighthouse_kb_from_env
+        
+        tier = light_risk_tier_from_text(text)
+        premise = scan_premises(text)
+        reality = verify_against_lighthouse(text, kb=lighthouse_kb_from_env())
+        return tier, premise, reality
 
     def _build_perception_payload(self, raw_input: str, multimodal_payload: dict | None) -> dict:
         """Build request payload for LLM perception endpoint."""

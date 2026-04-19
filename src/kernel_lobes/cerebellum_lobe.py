@@ -22,10 +22,12 @@ class CerebellumLobe:
     def __init__(
         self,
         bayesian: BayesianInferenceEngine,
-        strategist: ExecutiveStrategist
+        strategist: ExecutiveStrategist,
+        rlhf: Optional[RLHFPipeline] = None
     ):
         self.bayesian = bayesian
         self.strategist = strategist
+        self.rlhf = rlhf
 
     def execute_bayesian_stage(
         self,
