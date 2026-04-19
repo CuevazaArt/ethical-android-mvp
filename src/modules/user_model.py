@@ -103,6 +103,7 @@ class UserModelTracker:
             return
         self.turns_observed += 1
         self.last_circle = circle or self.last_circle
+        
         h = float(perception.hostility)
         m = float(perception.manipulation)
         calm = float(perception.calm)
@@ -125,6 +126,20 @@ class UserModelTracker:
             target_intimacy = min(0.8, target_intimacy + 0.05)
         elif self.frustration_streak > 0:
             self.frustration_streak = max(0, self.frustration_streak - 1)
+
+        # 2. Smooth via Basal Ganglia (MER V2 - 10.3)
+        ganglia = self._ensure_ganglia()
+        smoothed = ganglia.smooth_batch({
+            "warmth": target_warmth,
+            "mystery": target_mystery,
+            "intimacy": target_intimacy,
+            "reciprocity": self.charm_reciprocity
+        })
+        
+        self.charm_warmth = smoothed["warmth"]
+        self.charm_mystery = smoothed["mystery"]
+        self.charm_intimacy = smoothed["intimacy"]
+        self.charm_reciprocity = smoothed["reciprocity"]
 
         self.cognitive_pattern = self._infer_cognitive_pattern(perception, premise_flag)
         self.risk_band = self._compute_risk_band(perception)

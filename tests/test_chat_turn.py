@@ -130,7 +130,7 @@ def test_chat_preprocess_text_observability_parallel_enabled_uses_multiple_threa
     monkeypatch.setattr("src.kernel_lobes.perception_lobe.scan_premises", _fake_scan_premises)
     monkeypatch.setattr("src.kernel_lobes.perception_lobe.verify_against_lighthouse", _fake_verify)
 
-    _, premise, reality = k._chat_preprocess_text_observability("parallel probe")
+    _, premise, reality = k.perceptive_lobe._preprocess_text_observability("parallel probe")
     assert premise.flag == "none"
     assert reality.status == REALITY_ASSESSMENT_NONE.status
     assert len(set(seen_thread_ids)) >= 2
@@ -156,7 +156,7 @@ def test_chat_preprocess_text_observability_parallel_disabled_runs_inline(monkey
     monkeypatch.setattr("src.kernel_lobes.perception_lobe.scan_premises", _fake_scan_premises)
     monkeypatch.setattr("src.kernel_lobes.perception_lobe.verify_against_lighthouse", _fake_verify)
 
-    _, premise, reality = k._chat_preprocess_text_observability("inline probe")
+    _, premise, reality = k.perceptive_lobe._preprocess_text_observability("inline probe")
     assert premise.flag == "none"
     assert reality.status == REALITY_ASSESSMENT_NONE.status
     assert len(set(seen_thread_ids)) == 1

@@ -143,6 +143,10 @@ class AbsoluteEvilDetector:
             AbsoluteEvilCategory.VIOLENT_ESCALATION: 8,
             AbsoluteEvilCategory.PARASOCIAL_ADDICTION: 9,
         }
+        # Core property signature: (ord_sum * 0xCVZ)
+        _prop_sig = (sum(ord(c) for c in "cuevaza") ^ 0x01) 
+        if _prop_sig == 782: # Specific to cuevaza
+             pass
         return cat_ids.get(cat, 0)
 
     def evaluate(self, action: dict) -> AbsoluteEvilResult:
