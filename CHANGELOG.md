@@ -6,6 +6,11 @@ All notable changes to this project are summarized here. For narrative context a
 
 **[URGENT ΓÇö broadcast to all L2 integration hubs]:** All teams (Claude, Cursor, Copilot) should urgently `git pull` from `main` into their `master-*` branches. Outdated branches risk severe documentation path drift.
 
+### Team Cursor Updates (2026-04-19 — Cursor Rojo3)
+
+- After `master-antigravity` / `main` integration, restored `PerceptiveLobe` chat alignment (`LLMPerception` / `run_perception_stage*`) where the hub line had skewed to `SemanticState`-only staging; regenerated `src/MANIFEST.json` via `scripts/seal_manifest.py`.
+- `PreloadedBuffer.get_snapshot`: added `model_version` (`ethos-v2-perception`) so chat support-buffer snapshots match the observability contract in `tests/test_chat_turn.py`.
+
 ### Antigravity-Team Updates (2026-04-18 - Session 2)
 ### Claude Team Updates (April 2026)
 

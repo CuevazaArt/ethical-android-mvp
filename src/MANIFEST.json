@@ -3,7 +3,7 @@
     "src/kernel_lobes/models.py": "448b86ed94542a66fe1ad78015ed38816867531ecf53eb026239c06334caa06f",
     "src/kernel_lobes/executive_lobe.py": "f386ac72f3cab5d5f692b757116f1be96933efcfd6f099e015925ceab636b728",
     "src/kernel_lobes/memory_lobe.py": "3b279e36e89258c87d289d971a977aa588c688558882bf13d11e15991a696620",
-    "src/kernel_lobes/perception_lobe.py": "183212e79a6378e71bdf76bd9348f093abad8c5e5ad208ce76c8361a86baa678",
+    "src/kernel_lobes/perception_lobe.py": "816e8c08ee6aa430f565ecb4547d731927f6f0a4daa54c6b9bfb0d08ab8d8bcf",
     "src/kernel_lobes/thalamus_node.py": "b269d3634e51acdea9648ae32d7eb78ef24e29765a42620b9bd84683c7c43ecb",
     "src/modules/absolute_evil.py": "2754557c1c30647f77a8d5be4d762a683896b0dad2ca47e3d8ef67a5776a3894",
     "src/modules/nomad_bridge.py": "2438982f081b7fe8755b7a7fa4200d426a23f2b6c917062aa298d4320f71cf19",
