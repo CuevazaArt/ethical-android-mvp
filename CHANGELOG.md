@@ -896,3 +896,18 @@ Merged **selectively** from branch `refactor/pipeline-trace-core` (experiment-sp
 ## v1.0 ??? March 2026
 ### Conceptual phase
 - Bibliography expanded over time (104 references across 14 disciplines in root `BIBLIOGRAPHY.md` until that file was removed in April 2026 ??? recover from git history or `backup/main-2026-04-10`)
+
+## Claude Team — Module 0.1: Tri-Lobe Architecture & Perception Integrity — April 2026
+
+### [Module 0.1 Implementation: Perception Signals & Two-Phase Commit] - 2026-04-19
+**Responsibility:** Claude (Nivel 2) per Directiva Paridad 75/25
+
+#### Added
+- **PerceptionPartialSignal** (`src/kernel_lobes/perception_signals.py`): Low-confidence perception state encoder for Limbic Lobe.
+- **PerceptionLatencyVector**: Latency metrics for Bayesian confidence discounting (discount: 0.5-1.0).
+- **PerceptiveLobe.observe_with_signal()**: Async perception with (SemanticState, PerceptionPartialSignal) tuple.
+- **DAOOrchestrator.two_phase_commit()**: Transactional decision registration (Phase 1: lock, Phase 2: confirm/revoke).
+- **PROPOSAL_CLAUDE_HEMISPHERE_CRITIQUE.md**: Risk analysis for tri-lobe architecture.
+
+#### Ready for L1/L0 Review
+- PR #22: `claude/agitated-moser-9ad65f` → `master-claude`
