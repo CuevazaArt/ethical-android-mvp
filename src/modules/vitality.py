@@ -133,11 +133,8 @@ def merge_nomad_telemetry_into_snapshot(
 ) -> SensorSnapshot | None:
     """
     Module S.2.1 — Merge latest Nomad LAN ``telemetry`` payload into a sensor snapshot.
-
-    Fields already present on ``snapshot`` (e.g. chat ``sensor`` JSON from the operator client)
-    take precedence; Nomad only **fills gaps** so real device telemetry can backfill missing
-    battery / thermal / jerk hints without overriding an explicit session.
     """
+    t0 = time.perf_counter()
     if not nomad:
         return snapshot
     nomad = normalize_nomad_telemetry_for_sensor_merge(nomad)
@@ -157,6 +154,11 @@ def merge_nomad_telemetry_into_snapshot(
             continue
         if cur is None and pat is not None:
             overrides[name] = pat
+            
+    latency = (time.perf_counter() - t0) * 1000
+    if latency > 1.0:
+        _log.debug("Vitality: merge_nomad_telemetry_into_snapshot latency = %.2fms", latency)
+        
     if not overrides:
         return snapshot
     return replace(snapshot, **overrides)

@@ -264,3 +264,13 @@ This file is automatically managed by `scripts/swarm_sync.py`.
   - `src/modules/temporal_horizon_prior.py`
   - `src/modules/uchi_soto.py`
   - `tests/adversarial_inputs.py`
+
+### 🛠️ Execution | Date: 2026-04-19 15:03:35 | Author: Antigravity (L1)
+- **Block:** `S.11`
+- **Message:** Experience-Driven Prior Adjustment (ADR 0005): Enabled temporal horizon nudges in CerebellumLobe. Hardened somatic telemetry merging and calendar-diff calculations with Anti-NaN guards and latency monitoring. Resealed integrity manifest.
+- **Files Modified:**
+  - `audit_trail.db`
+  - `src/MANIFEST.json`
+  - `src/modules/llm_layer.py`
+  - `src/modules/temporal_horizon_prior.py`
+  - `src/modules/vitality.py`

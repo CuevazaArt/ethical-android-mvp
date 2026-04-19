@@ -106,8 +106,13 @@ def compute_horizon_signals(
         if t.tzinfo is not None:
             t = t.astimezone(UTC).replace(tzinfo=None)
         
-        diff = (datetime.now() - t).total_seconds()
-        return diff / 86400.0 if math.isfinite(diff) else None
+        try:
+            diff = (datetime.now() - t).total_seconds()
+            if not math.isfinite(diff):
+                 return None
+            return diff / 86400.0
+        except (ValueError, TypeError, OverflowError):
+            return None
 
     recent = [e for e in by_time if (ad := _age_days(e)) is not None and 0 <= ad <= float(wd)]
 

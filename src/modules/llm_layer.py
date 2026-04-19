@@ -135,11 +135,11 @@ class LLMPerception:
 def _clamp_unit_interval(x: Any, default: float = 0.5) -> float:
     try:
         v = float(x)
+        if not math.isfinite(v):
+            return default
+        return max(0.0, min(1.0, v))
     except (TypeError, ValueError):
         return default
-    if not math.isfinite(v):
-        return default
-    return max(0.0, min(1.0, v))
 
 
 def perception_from_llm_json(
