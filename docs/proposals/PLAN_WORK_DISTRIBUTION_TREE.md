@@ -29,11 +29,11 @@ Ningún agente debe saltar a tareas de la cola de otro equipo.
 ## 🔵 COLA DE EJECUCIÓN AZUL (Team Copilot)
 **Doctrina:** CI/CD Sentinel, Repo Higiene, Pruebas y Deuda Técnica Menor, Boy Scout Paranoico.
 
-- **Bloque 8.1: Linter Continuo y Hardening Vertical [PENDING]**
+- **Bloque 8.1: Linter Continuo y Hardening Vertical [DONE]**
   - Tarea 8.1.1: Auditar `docstrings` y `type hints` en las divisiones de `src/kernel.py` y `src/kernel_lobes/`. Introducir `try/except` donde fallen por variables nulas. 
-- **Bloque 9.3: Refactorización Asíncrona Total de Eferencia [PENDING]**
+- **Bloque 9.3: Refactorización Asíncrona Total de Eferencia [DONE]**
   - Tarea 9.3.1: Eliminar cuellos de botella síncronos en las llamadas a utilidades de API. Migrar `http_fetch_ollama_embedding` a dependencias puramente `async` con `httpx.AsyncClient`.
-- **Bloque 8.2: Hardening de Tests Mocks (Input Trust) [PENDING]**
+- **Bloque 8.2: Hardening de Tests Mocks (Input Trust) [DONE]**
   - Tarea 8.2.1: Extender mocks para *input_trust* (ej. inyectar simulaciones de ataques homoglyphs cirílicos para evadir la puerta de Absoluto Mal y validar la defensa).
 
 ---
@@ -58,3 +58,6 @@ Ningún agente debe saltar a tareas de la cola de otro equipo.
 - Bloque 10.2: Tribunal Ético Edge & Mails Absolutos `[DONE]`
 - Bloque 10.3: Amortiguación Afectiva (Ganglios Basales EMA) `[DONE]`
 - Bloque 12.1: Recursive Narrative Memory (Consolidación) `[DONE]`
+- Bloque 8.1: Linter Continuo y Hardening Vertical (Copilot-Azul) `[DONE]`
+- Bloque 9.3: Refactorización Asíncrona Total de Eferencia (Copilot-Azul) `[DONE]`
+- Bloque 8.2: Hardening de Tests Mocks — Cyrillic Homoglyph Attacks (Copilot-Azul) `[DONE]`
