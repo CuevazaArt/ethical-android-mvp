@@ -145,6 +145,7 @@ class ResponseSculptor:
         """
         Applies charm layer. Bypassed entirely if absolute evil is present.
         """
+        t0 = time.perf_counter()
         if absolute_evil_detected:
             # Full bypass for L0 safety
             return StylizedResponse(
@@ -182,7 +183,7 @@ class ResponseSculptor:
         elif charm.directiveness > 0.8:
             final_text += " [Tone: Direct & Boundaried]"
 
-        return StylizedResponse(
+        res = StylizedResponse(
             final_text=final_text,
             charm_vector={
                 "warmth": round(charm.warmth, 3),
@@ -193,6 +194,12 @@ class ResponseSculptor:
             gesture_plan=gesture,
             haptic_plan=haptic
         )
+        
+        latency = (time.perf_counter() - t0) * 1000
+        if latency > 2.0:
+             logger.debug("CharmEngine: sculpt latency = %.2fms", latency)
+             
+        return res
 
 
 

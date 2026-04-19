@@ -55,7 +55,8 @@ class IdentityIntegrityManager:
                     data["genome_hypothesis_weights"] = tuple(data["genome_hypothesis_weights"])
                     return IdentitySnapshot(**data)
             except Exception as e:
-                print(f"IDENTITY VAULT CORRUPTION: {e}")
+                import logging
+                logging.getLogger(__name__).error("IDENTITY VAULT CORRUPTION: %s. Using safe defaults.", e)
         
         # First Boot - Genome Fixation
         return IdentitySnapshot(
@@ -68,8 +69,10 @@ class IdentityIntegrityManager:
             json.dump(asdict(self.snapshot), f, indent=4)
 
     def register_episode(self, impact: float):
+        import math
+        imp = float(impact) if math.isfinite(impact) else 0.0
         self.snapshot.total_episodes += 1
-        self.snapshot.reputation_score = max(0.0, min(200.0, self.snapshot.reputation_score + impact * 0.1))
+        self.snapshot.reputation_score = max(0.0, min(200.0, self.snapshot.reputation_score + imp * 0.1))
         self.snapshot.operating_hours += 0.02
         self.save_snapshot()
 

@@ -68,10 +68,13 @@ def format_decision(d: KernelDecision) -> str:
 
         br = d.bayesian_result
         if br is not None:
+            uncertainty = float(br.uncertainty)
+            if not math.isfinite(uncertainty):
+                uncertainty = 0.5
             lines.extend(
                 [
                     f"  {Term.color('Expected impact:', Term.CYAN)} {Term.highlight_impact(br.expected_impact)}",
-                    f"  {Term.color('Uncertainty:', Term.CYAN)} {br.uncertainty:.3f}",
+                    f"  {Term.color('Uncertainty:', Term.CYAN)} {uncertainty:.3f}",
                     f"  {Term.color('Reasoning:', Term.CYAN)} {br.reasoning}",
                 ]
             )
@@ -97,10 +100,14 @@ def format_decision(d: KernelDecision) -> str:
 
         mo = d.moral
         if mo is not None:
+            total_score = float(mo.total_score)
+            if not math.isfinite(total_score):
+                total_score = 0.5
+                
             lines.extend(
                 [
                     "",
-                    f"  Ethical verdict: {mo.global_verdict.value} (score={mo.total_score})",
+                    f"  Ethical verdict: {mo.global_verdict.value} (score={total_score:.3f})",
                 ]
             )
             for ev in mo.evaluations:

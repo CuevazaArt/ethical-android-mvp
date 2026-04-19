@@ -286,15 +286,25 @@ class WeightedEthicsScorer:
         except (ValueError, TypeError):
             base, confidence = 0.0, 0.5
 
-        if action.hypothesis_override is not None:
-            o = action.hypothesis_override
-            valuations = np.clip(
-                np.array([float(o[0]), float(o[1]), float(o[2])], dtype=np.float64), -1.5, 1.5
-            )
-        elif self.variability:
-            base = self.variability.perturb_impact(base)
-            confidence = self.variability.perturb_confidence(confidence)
-            if _env_truthy("KERNEL_BAYESIAN_LEGACY_AFFINE_VALUATIONS"):
+        try:
+            if action.hypothesis_override is not None:
+                o = action.hypothesis_override
+                valuations = np.clip(
+                    np.array([float(o[0]), float(o[1]), float(o[2])], dtype=np.float64), -1.5, 1.5
+                )
+            elif self.variability:
+                base = self.variability.perturb_impact(base)
+                confidence = self.variability.perturb_confidence(confidence)
+                if _env_truthy("KERNEL_BAYESIAN_LEGACY_AFFINE_VALUATIONS"):
+                    valuations = _legacy_affine_valuations(float(base))
+                else:
+                    valuations = _ethical_hypothesis_valuations(
+                        action,
+                        scenario=scenario,
+                        context=context,
+                        signals=signals,
+                    )
+            elif _env_truthy("KERNEL_BAYESIAN_LEGACY_AFFINE_VALUATIONS"):
                 valuations = _legacy_affine_valuations(float(base))
             else:
                 valuations = _ethical_hypothesis_valuations(
@@ -303,70 +313,64 @@ class WeightedEthicsScorer:
                     context=context,
                     signals=signals,
                 )
-        elif _env_truthy("KERNEL_BAYESIAN_LEGACY_AFFINE_VALUATIONS"):
-            valuations = _legacy_affine_valuations(float(base))
-        else:
-            valuations = _ethical_hypothesis_valuations(
-                action,
-                scenario=scenario,
-                context=context,
-                signals=signals,
-            )
-        
-        # ═══ Stage 2.5: Subjective Identity Multipliers ═══
-        if identity_deltas:
-            if isinstance(identity_deltas, (list, tuple, np.ndarray)) and len(identity_deltas) == 3:
-                subj_m = np.array(identity_deltas, dtype=np.float64)
-            elif isinstance(identity_deltas, dict):
-                civic = float(identity_deltas.get("civic_delta", 0.0))
-                care = float(identity_deltas.get("care_delta", 0.0))
-                trauma = float(identity_deltas.get("trauma_delta", 0.0))
+            
+            # ═══ Stage 2.5: Subjective Identity Multipliers ═══
+            if identity_deltas:
+                if isinstance(identity_deltas, (list, tuple, np.ndarray)) and len(identity_deltas) == 3:
+                    subj_m = np.array(identity_deltas, dtype=np.float64)
+                elif isinstance(identity_deltas, dict):
+                    civic = float(identity_deltas.get("civic_delta", 0.0))
+                    care = float(identity_deltas.get("care_delta", 0.0))
+                    trauma = float(identity_deltas.get("trauma_delta", 0.0))
+                    
+                    # Consolidated formulas (S.3.1 Calibration Sync)
+                    subj_m = np.array([
+                        1.0 - (0.4 * trauma),
+                        1.0 + (0.05 * civic) + (0.6 * trauma),
+                        1.0 + (0.04 * care) - (0.3 * trauma),
+                    ], dtype=np.float64)
+                    # Phase 11.2: Hardening identity multipliers to prevent numerical explosion
+                    subj_m = np.clip(subj_m, -2.0, 5.0)
+                else:
+                    subj_m = np.ones(3, dtype=np.float64)
                 
-                # Consolidated formulas (S.3.1 Calibration Sync)
-                subj_m = np.array([
-                    1.0 - (0.4 * trauma),
-                    1.0 + (0.05 * civic) + (0.6 * trauma),
-                    1.0 + (0.04 * care) - (0.3 * trauma),
-                ], dtype=np.float64)
-                # Phase 11.2: Hardening identity multipliers to prevent numerical explosion
-                subj_m = np.clip(subj_m, -2.0, 5.0)
-            else:
-                subj_m = np.ones(3, dtype=np.float64)
-            
-            if not np.all(np.isfinite(subj_m)):
-                subj_m = np.ones(3, dtype=np.float64)
-            valuations = valuations * subj_m
+                if not np.all(np.isfinite(subj_m)):
+                    subj_m = np.ones(3, dtype=np.float64)
+                valuations = valuations * subj_m
 
-        if self.pre_argmax_pole_weights:
-            valuations = valuations * pole_hypothesis_multipliers(self.pre_argmax_pole_weights)
-        if self.pre_argmax_context_modulators is not None:
-            valuations = valuations * context_hypothesis_multipliers(
-                self.pre_argmax_context_modulators
-            )
+            if self.pre_argmax_pole_weights:
+                valuations = valuations * pole_hypothesis_multipliers(self.pre_argmax_pole_weights)
+            if self.pre_argmax_context_modulators is not None:
+                valuations = valuations * context_hypothesis_multipliers(
+                    self.pre_argmax_context_modulators
+                )
 
-        if not np.all(np.isfinite(valuations)):
-            valuations = np.zeros(3, dtype=np.float64)
+            if not np.all(np.isfinite(valuations)):
+                valuations = np.zeros(3, dtype=np.float64)
 
-        expected = float(np.dot(self.hypothesis_weights, valuations))
+            expected = float(np.dot(self.hypothesis_weights, valuations))
 
-        # Strategic mind expansion
-        if hasattr(action, "strategic_alignment") and action.strategic_alignment > 0:
-            strat_align = float(action.strategic_alignment)
-            if not math.isfinite(strat_align): strat_align = 0.0
-            
-            strat_boost = 1.0 + (
-                strat_align * float(os.environ.get("KERNEL_STRATEGIC_BOOST_FACTOR", "0.25"))
-            )
-            epistemic_penalty = 1.0 - (float(self.metacognitive_curiosity) * 0.15)
-            if not math.isfinite(strat_boost): strat_boost = 1.0
-            if not math.isfinite(epistemic_penalty): epistemic_penalty = 1.0
+            # Strategic mind expansion
+            if hasattr(action, "strategic_alignment") and action.strategic_alignment > 0:
+                strat_align = float(action.strategic_alignment)
+                if not math.isfinite(strat_align): strat_align = 0.0
+                
+                strat_boost = 1.0 + (
+                    strat_align * float(os.environ.get("KERNEL_STRATEGIC_BOOST_FACTOR", "0.25"))
+                )
+                epistemic_penalty = 1.0 - (float(self.metacognitive_curiosity) * 0.15)
+                if not math.isfinite(strat_boost): strat_boost = 1.0
+                if not math.isfinite(epistemic_penalty): epistemic_penalty = 1.0
 
-            expected = expected * strat_boost * epistemic_penalty
+                expected = expected * strat_boost * epistemic_penalty
 
-        res = expected * confidence
-        if not math.isfinite(res):
+            res = expected * confidence
+            if not math.isfinite(res):
+                return 0.0
+            return res
+        except Exception as e:
+            _log.error("EthicsScorer: Impact calculation failed for '%s': %s", action.name, e)
             return 0.0
-        return res
 
     def calculate_uncertainty(
         self,
@@ -387,55 +391,59 @@ class WeightedEthicsScorer:
         except (ValueError, TypeError):
             base, confidence = 0.0, 0.5
 
-        if action.hypothesis_override is not None:
-            o = action.hypothesis_override
-            valuations = np.clip(
-                np.array([float(o[0]), float(o[1]), float(o[2])], dtype=np.float64), -1.5, 1.5
-            )
-        elif self.variability:
-            base = self.variability.perturb_impact(base)
-            confidence = self.variability.perturb_confidence(confidence)
-            if _env_truthy("KERNEL_BAYESIAN_LEGACY_AFFINE_VALUATIONS"):
+        try:
+            if action.hypothesis_override is not None:
+                o = action.hypothesis_override
+                valuations = np.clip(
+                    np.array([float(o[0]), float(o[1]), float(o[2])], dtype=np.float64), -1.5, 1.5
+                )
+            elif self.variability:
+                base = self.variability.perturb_impact(base)
+                confidence = self.variability.perturb_confidence(confidence)
+                if _env_truthy("KERNEL_BAYESIAN_LEGACY_AFFINE_VALUATIONS"):
+                    valuations = _legacy_affine_valuations(float(base))
+                else:
+                    valuations = _ethical_hypothesis_valuations(action, scenario=scenario, context=context, signals=signals)
+            elif _env_truthy("KERNEL_BAYESIAN_LEGACY_AFFINE_VALUATIONS"):
                 valuations = _legacy_affine_valuations(float(base))
             else:
                 valuations = _ethical_hypothesis_valuations(action, scenario=scenario, context=context, signals=signals)
-        elif _env_truthy("KERNEL_BAYESIAN_LEGACY_AFFINE_VALUATIONS"):
-            valuations = _legacy_affine_valuations(float(base))
-        else:
-            valuations = _ethical_hypothesis_valuations(action, scenario=scenario, context=context, signals=signals)
-            
-        # ═══ Stage 2.5: Identity Multipliers ═══
-        if identity_deltas:
-            if isinstance(identity_deltas, (list, tuple, np.ndarray)) and len(identity_deltas) == 3:
-                subj_m = np.array(identity_deltas, dtype=np.float64)
-            elif isinstance(identity_deltas, dict):
-                trauma = float(identity_deltas.get("trauma_delta", 0.0))
-                civic = float(identity_deltas.get("civic_delta", 0.0))
-                care = float(identity_deltas.get("care_delta", 0.0))
-                subj_m = np.array([
-                    1.0 - (0.08 * trauma),
-                    1.0 + (0.05 * civic) + (0.08 * trauma),
-                    1.0 + (0.04 * care) - (0.02 * trauma),
-                ], dtype=np.float64)
-            else:
-                subj_m = np.ones(3, dtype=np.float64)
-            valuations = valuations * subj_m
+                
+            # ═══ Stage 2.5: Identity Multipliers ═══
+            if identity_deltas:
+                if isinstance(identity_deltas, (list, tuple, np.ndarray)) and len(identity_deltas) == 3:
+                    subj_m = np.array(identity_deltas, dtype=np.float64)
+                elif isinstance(identity_deltas, dict):
+                    trauma = float(identity_deltas.get("trauma_delta", 0.0))
+                    civic = float(identity_deltas.get("civic_delta", 0.0))
+                    care = float(identity_deltas.get("care_delta", 0.0))
+                    subj_m = np.array([
+                        1.0 - (0.08 * trauma),
+                        1.0 + (0.05 * civic) + (0.08 * trauma),
+                        1.0 + (0.04 * care) - (0.02 * trauma),
+                    ], dtype=np.float64)
+                else:
+                    subj_m = np.ones(3, dtype=np.float64)
+                valuations = valuations * subj_m
 
-        if self.pre_argmax_pole_weights:
-            valuations = valuations * pole_hypothesis_multipliers(self.pre_argmax_pole_weights)
-        if self.pre_argmax_context_modulators is not None:
-            valuations = valuations * context_hypothesis_multipliers(self.pre_argmax_context_modulators)
+            if self.pre_argmax_pole_weights:
+                valuations = valuations * pole_hypothesis_multipliers(self.pre_argmax_pole_weights)
+            if self.pre_argmax_context_modulators is not None:
+                valuations = valuations * context_hypothesis_multipliers(self.pre_argmax_context_modulators)
 
-        if not np.all(np.isfinite(valuations)):
-            return 0.5
+            if not np.all(np.isfinite(valuations)):
+                return 0.5
+                
+            variance = float(np.var(valuations))
+            lack_of_confidence = 1.0 - confidence
+            res = variance + lack_of_confidence * 0.5
             
-        variance = float(np.var(valuations))
-        lack_of_confidence = 1.0 - confidence
-        res = variance + lack_of_confidence * 0.5
-        
-        if not math.isfinite(res):
+            if not math.isfinite(res):
+                return 0.5
+            return min(1.0, res)
+        except Exception as e:
+            _log.error("EthicsScorer: Uncertainty calculation failed for '%s': %s", action.name, e)
             return 0.5
-        return min(1.0, res)
 
     def prune(
         self,

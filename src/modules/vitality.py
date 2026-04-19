@@ -52,6 +52,21 @@ def critical_temperature_threshold() -> float:
         return 80.0
 
 
+def critical_jerk_threshold() -> float:
+    """
+    Above this accelerometer jerk (m/s³), somatic impact is treated as **critical**.
+
+    Env: ``KERNEL_VITALITY_CRITICAL_JERK`` (default ``0.8``).
+    """
+    raw = os.environ.get("KERNEL_VITALITY_CRITICAL_JERK", "").strip()
+    if not raw:
+        return 0.8
+    try:
+        return _clamp01(float(raw))
+    except (TypeError, ValueError):
+        return 0.8
+
+
 @dataclass(frozen=True)
 class VitalityAssessment:
     """Snapshot of vitality relevant to one chat turn."""
@@ -170,6 +185,7 @@ def assess_vitality(snapshot: SensorSnapshot | None) -> VitalityAssessment:
 
     t_bat = critical_battery_threshold()
     t_temp = critical_temperature_threshold()
+    t_jerk = critical_jerk_threshold()
 
     if snapshot is None:
         return VitalityAssessment(None, t_bat, False, None, t_temp, False, False)
@@ -178,9 +194,17 @@ def assess_vitality(snapshot: SensorSnapshot | None) -> VitalityAssessment:
     is_bat_critical = False if b is None else (b < t_bat)
     
     jerk = snapshot.accelerometer_jerk
-    is_impacted = False if jerk is None else (jerk > 0.8)
+    # Swarm Rule 2: Anti-NaN check for jerk
+    if jerk is not None and not math.isfinite(jerk):
+        jerk = 0.0
+        
+    is_impacted = False if jerk is None else (jerk > t_jerk)
 
     temp = snapshot.core_temperature
+    # Swarm Rule 2: Anti-NaN check for temp
+    if temp is not None and not math.isfinite(temp):
+        temp = 40.0 # Default safe temp
+        
     is_temp_critical = False if temp is None else (temp >= t_temp)
 
     # Bloque S.2: Calibración de criticidad (Batería O Impacto O Térmico Extremo)
