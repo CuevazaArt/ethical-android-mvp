@@ -615,12 +615,35 @@ class EthicalKernel:
             else MetacognitiveEvaluator()
         )
 
+        # ═══ MODULE 9.1: VISION DAEMON INTEGRATION ═══
+        from collections import deque
+        from .modules.vision_inference import VisionContinuousDaemon
+
+        self._sensory_buffer: deque[dict[str, Any]] = deque(maxlen=100)  # Thread-safe circular buffer
+        self.vision_daemon = VisionContinuousDaemon(self.vision_engine)
+        self.vision_daemon.set_absorption_callback(self._absorb_sensory_episode)
+        self.vision_daemon.start()
+
         # ADR 0016 B2 — emit deprecation warnings for any scheduled-for-removal flags
         check_deprecated_flags()
 
         # WebSocket chat: abandon late worker completions after KERNEL_CHAT_TURN_TIMEOUT (see ADR 0002).
         self._chat_turn_abandon_lock = threading.Lock()
         self._abandoned_chat_turn_ids: set[int] = set()
+
+    def _absorb_sensory_episode(self, episode: dict[str, Any]) -> None:
+        """
+        Absorption callback for VisionContinuousDaemon.
+        Called when daemon generates a SensoryEpisode (at 5Hz).
+        Enqueues episode into sensory_buffer for Perceptive Lobe processing.
+
+        **Thread-Safe:** deque.append() is atomic in CPython (GIL-safe).
+        """
+        try:
+            if self._sensory_buffer is not None:
+                self._sensory_buffer.append(episode)
+        except Exception as e:
+            _log.exception("Failed to absorb sensory episode: %s", e)
 
     def abandon_chat_turn(self, turn_id: int) -> None:
         """Mark ``turn_id`` as abandoned so :meth:`process_chat_turn` skips STM / post-turn effects."""
