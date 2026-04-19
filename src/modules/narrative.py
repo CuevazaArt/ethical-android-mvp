@@ -505,6 +505,16 @@ class NarrativeMemory:
                 if fb is not None:
                     query_embed = fb.tolist()
 
+        # Load chronicles for high-level thematic resonance (Phase 12.1.3)
+        chronicles = await asyncio.to_thread(self.persistence.load_all_chronicles)
+        resonant_chronicle_ranges = []
+        if query_embed is not None:
+            for chr in chronicles:
+                # We mock/approximate thematic resonance by checking if query_text matches summary
+                # Real implementation would use embeddings for chronicles too
+                if query_text and any(word in chr.summary.lower() for word in query_text.lower().split() if len(word) > 4):
+                     resonant_chronicle_ranges.append((chr.start_timestamp, chr.end_timestamp))
+
         for ep in all_episodes:
             resonance = 0.0
 
@@ -529,6 +539,12 @@ class NarrativeMemory:
                 ep_vec = np.array(ep.semantic_embedding)
                 dot = float(np.dot(query_embed, ep_vec))
                 resonance += max(0, 0.5 * dot)
+            
+            # Chronicle Boost (Phase 12.1.3)
+            for start, end in resonant_chronicle_ranges:
+                if start <= ep.timestamp <= end:
+                    resonance += 0.3
+                    break
 
             candidates.append((ep, resonance))
 
