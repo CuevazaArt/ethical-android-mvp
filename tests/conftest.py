@@ -14,6 +14,8 @@ production shell — see ``docs/proposals/README.md`` (Issue 7).
 from __future__ import annotations
 
 import os
+import sqlite3
+import tempfile
 from pathlib import Path
 
 # chat_server validates env at import time; production default is strict. Tests default to warn
@@ -39,3 +41,18 @@ def _malabs_test_env_isolation(
 def _immortality_backup_isolation(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:
     """Fresh immortality snapshot counter per test (avoids shared data/backups state)."""
     monkeypatch.setenv("KERNEL_IMMORTALITY_BACKUP_PATH", str(tmp_path / "immortality.json"))
+
+
+@pytest.fixture(autouse=True)
+def reset_audit_trail(monkeypatch, tmp_path):
+    """Reset audit trail database before each test."""
+    audit_path = tmp_path / "audit_test.db"
+    monkeypatch.setenv("KERNEL_AUDIT_DB_PATH", str(audit_path))
+
+    yield
+
+    if audit_path.exists():
+        try:
+            audit_path.unlink()
+        except Exception:
+            pass
