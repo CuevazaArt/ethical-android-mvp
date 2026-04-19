@@ -14,6 +14,11 @@ All notable changes to this project are summarized here. For narrative context a
     *   **Integración de Lóbulos**: Refactorizado el `CerebellumLobe` para ingerir la `NarrativeMemory` y aplicar nudges de peso antes del scoring bayesiano, cerrando el bucle de retroalimentación entre memoria y ética.
     *   **Endurecimiento Boy Scout**: Inyectadas salvaguardas Anti-NaN y chequeos de finitud en el cálculo de `TemporalHorizonSignals` y en las rutas de renormalización de pesos.
     *   **Documentación de Arquitectura**: Actualizado `docs/architecture/TRI_LOBE_CORE.md` con un diagrama Mermaid de alta fidelidad que ilustra el nuevo flujo de retroalimentación cognitiva desde la Memoria al Cerebelo.
+    *   **Boy Scout Field Hardening**: Ejecutada una pasada integral de endurecimiento en los módulos de eferencia social y persistencia:
+        *   `uchi_soto.py`: Blindaje Anti-NaN en el EMA de confianza y saneamiento de perfiles.
+        *   `drive_arbiter.py` & `forgiveness.py`: Reparación de `NameError` (imports de logging/math) e inyección de bloques de seguridad.
+        *   `affect_projection_relay.py`: Aislamiento de hardware (Nomad Bridge) y validación de existencia.
+        *   `dao_orchestrator.py`: Protección de transacciones SQLite y saneamiento de JSON audit trail.
 
 ### Antigravity-Team Updates (2026-04-19 - Session 9)
 

@@ -99,7 +99,13 @@ class BayesianInferenceEngine:
         self.dao: Any | None = None
         
         # Swarm Rule 2: Anti-NaN Hardening
-        self.posterior_alpha = np.clip(np.asarray(self.posterior_alpha, dtype=np.float64), 1.0, 1e9)
+        try:
+            self.posterior_alpha = np.clip(np.asarray(self.posterior_alpha, dtype=np.float64), 1.0, 1e9)
+            if not np.all(np.isfinite(self.posterior_alpha)):
+                self.posterior_alpha = self.prior_alpha.copy()
+        except Exception as e:
+            _logger.error("Bayesian: Initial alpha stabilization failed: %s", e)
+            self.posterior_alpha = self.prior_alpha.copy()
         
         # Sync initial weights if in driven mode
         if self.mode == BayesianMode.POSTERIOR_DRIVEN:
@@ -156,28 +162,31 @@ class BayesianInferenceEngine:
         """Level 2: Update the Dirichlet parameters from external feedback data."""
         t0 = time.perf_counter()
         
-        # Swarm Rule 2: Anti-NaN Hardening
-        if not np.all(np.isfinite(alpha_vec)):
-            _logger.error("Bayesian: Invalid alpha_vec detected (NaN or Inf). Rejecting update.")
-            return
+        try:
+            # Swarm Rule 2: Anti-NaN Hardening
+            if not np.all(np.isfinite(alpha_vec)):
+                _logger.error("Bayesian: Invalid alpha_vec detected (NaN or Inf). Rejecting update.")
+                return
 
-        self.posterior_alpha = np.asarray(alpha_vec, dtype=np.float64).copy()
-        self.consistency = consistency
+            self.posterior_alpha = np.asarray(alpha_vec, dtype=np.float64).copy()
+            self.consistency = consistency
 
-        if self.mode == BayesianMode.POSTERIOR_DRIVEN:
-            sum_a = float(np.sum(self.posterior_alpha))
-            if sum_a > 1e-9: # Precision-safe threshold
-                self.scorer.hypothesis_weights = self.posterior_alpha / sum_a
-        elif self.mode == BayesianMode.POSTERIOR_ASSISTED:
-            # Assisted mode uses a blend or bounded nudge
-            self._apply_assisted_nudge()
+            if self.mode == BayesianMode.POSTERIOR_DRIVEN:
+                sum_a = float(np.sum(self.posterior_alpha))
+                if sum_a > 1e-9: # Precision-safe threshold
+                    self.scorer.hypothesis_weights = self.posterior_alpha / sum_a
+            elif self.mode == BayesianMode.POSTERIOR_ASSISTED:
+                # Assisted mode uses a blend or bounded nudge
+                self._apply_assisted_nudge()
 
-        # Phase S.4: Local Bayesian Persistence (LBP) - Save to DAO
-        if self.dao:
-            try:
-                self.dao.set_state("bayesian_posterior_alpha", self.posterior_alpha.tolist())
-            except Exception as e:
-                 _logger.warning("Bayesian: Failed to persist posterior_alpha to DAO: %s", e)
+            # Phase S.4: Local Bayesian Persistence (LBP) - Save to DAO
+            if self.dao:
+                try:
+                    self.dao.set_state("bayesian_posterior_alpha", self.posterior_alpha.tolist())
+                except Exception as e:
+                     _logger.warning("Bayesian: Failed to persist posterior_alpha to DAO: %s", e)
+        except Exception as e:
+            _logger.error("Bayesian: Critical update failure: %s", e)
 
         latency_ms = (time.perf_counter() - t0) * 1000
         if latency_ms > 1.0: # Only log heavy updates
@@ -217,27 +226,30 @@ class BayesianInferenceEngine:
             _logger.warning("Bayesian: Non-finite weight in record_event_update: %s. Using 1.0", weight)
             weight = 1.0
 
-        et = event_type.upper()
-        if et == "POSITIVE_SOCIAL":
-            self.posterior_alpha[1] += weight
-        elif et == "LEGAL_COMPLIANCE":
-            self.posterior_alpha[0] += weight
-        elif et == "UTILITY_SUCCESS":
-            self.posterior_alpha[2] += weight
-        elif et == "DAO_FORGIVENESS":
-            # Forgiveness reduces rigid duty and increases social trust
-            self.posterior_alpha[1] += weight * 0.5
-            self.posterior_alpha[0] = max(1.0, self.posterior_alpha[0] - weight * 0.1)
-        elif et == "PENALTY":
-            # Direct penalty to all poles to increase uncertainty (Dirichlet mass reduction)
-            # but usually we want to penalize the winning pole's confidence.
-            self.posterior_alpha = np.maximum(1.0, self.posterior_alpha - weight * 0.2)
+        try:
+            et = event_type.upper()
+            if et == "POSITIVE_SOCIAL":
+                self.posterior_alpha[1] += weight
+            elif et == "LEGAL_COMPLIANCE":
+                self.posterior_alpha[0] += weight
+            elif et == "UTILITY_SUCCESS":
+                self.posterior_alpha[2] += weight
+            elif et == "DAO_FORGIVENESS":
+                # Forgiveness reduces rigid duty and increases social trust
+                self.posterior_alpha[1] += weight * 0.5
+                self.posterior_alpha[0] = max(1.0, self.posterior_alpha[0] - weight * 0.1)
+            elif et == "PENALTY":
+                # Direct penalty to all poles to increase uncertainty (Dirichlet mass reduction)
+                # but usually we want to penalize the winning pole's confidence.
+                self.posterior_alpha = np.maximum(1.0, self.posterior_alpha - weight * 0.2)
 
-        # Swarm Rule 2: Hardening mass limits to avoid precision decay/overflow
-        self.posterior_alpha = np.clip(self.posterior_alpha, 1.0, 1e9)
+            # Swarm Rule 2: Hardening mass limits to avoid precision decay/overflow
+            self.posterior_alpha = np.clip(self.posterior_alpha, 1.0, 1e9)
 
-        # Apply update to the scorer weights if mode allows
-        self.update_posterior_from_feedback(self.posterior_alpha)
+            # Apply update to the scorer weights if mode allows
+            self.update_posterior_from_feedback(self.posterior_alpha)
+        except Exception as e:
+            _logger.error("Bayesian: record_event_update failed: %s", e)
 
     def apply_somatic_latency_penalty(self, latency_ms: float):
         """

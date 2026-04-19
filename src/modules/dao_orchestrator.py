@@ -124,13 +124,33 @@ class DAOOrchestrator:
         """
         Bloque 1.1: Persists structured audit events from high-level frameworks (Claude RLHF/Audit).
         """
-        details_json = json.dumps(details)
-        with sqlite_safe_write(self.db_path) as conn:
-            conn.execute(
-                "INSERT INTO audit_logs (type, content, episode_id, timestamp) VALUES (?, ?, ?, ?)",
-                (event_type, details_json, episode_id, time.time())
-            )
-        _log.debug("Complex audit registered: %s", event_type)
+        t0 = time.perf_counter()
+        try:
+            # Defensive JSON check: ensure no raw NaN/Inf that could break standard parsers
+            def _clean(obj: Any) -> Any:
+                if isinstance(obj, float):
+                    return obj if math.isfinite(obj) else 0.0
+                if isinstance(obj, dict):
+                    return {k: _clean(v) for k, v in obj.items()}
+                if isinstance(obj, list):
+                    return [_clean(x) for x in obj]
+                return obj
+
+            details_json = json.dumps(_clean(details))
+            
+            with sqlite_safe_write(self.db_path) as conn:
+                conn.execute(
+                    "INSERT INTO audit_logs (type, content, episode_id, timestamp) VALUES (?, ?, ?, ?)",
+                    (str(event_type), details_json, str(episode_id) if episode_id else None, time.time())
+                )
+            
+            latency = (time.perf_counter() - t0) * 1000
+            if latency > 10.0:
+                _log.debug("DAO: register_complex_audit latency = %.2fms", latency)
+            else:
+                _log.debug("Complex audit registered: %s", event_type)
+        except Exception as e:
+            _log.error("DAO: Failed to register complex audit for %s: %s", event_type, e)
 
     def issue_restorative_reparation(self, case_id: str, recipient: str, amount: float) -> str:
         """

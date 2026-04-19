@@ -24,48 +24,55 @@ class AffectVesselRelay:
         """
         t0 = time.perf_counter()
         
-        # 0. Anti-NaN Hardening
-        p = float(projection.pad[0]) if math.isfinite(projection.pad[0]) else 0.5
-        a = float(projection.pad[1]) if math.isfinite(projection.pad[1]) else 0.5
-        d = float(projection.pad[2]) if math.isfinite(projection.pad[2]) else 0.5
-        
-        # 1. Mapeo de Color (P: Valence)
-        # 1.0 (Muy positivo) -> Verde Esmeralda / Cian
-        # 0.5 (Neutral) -> Blanco Azulado
-        # 0.0 (Muy negativo) -> Rojo Profundo / Naranja
-        hex_color = self._map_valence_to_color(p)
-        
-        # 2. Mapeo de Pulso (A: Arousal)
-        # 1.0 (Muy activo/tenso) -> Pulso rápido (0.5s)
-        # 0.0 (Calma total) -> Pulso lento / Estático
-        pulse_duration = round(3.0 - (a * 2.5), 2) # Range 0.5s to 3s
-        
-        # 3. Mapeo de Tamaño/Brillo (D: Dominance)
-        # 1.0 (Interno/Poderoso) -> Glow grande / Escala 1.5
-        # 0.0 (Sumiso/Externo) -> Glow pequeño / Escala 0.7
-        glow_size = round(0.7 + (d * 0.8), 2)
-        
-        payload = {
-            "type": "orb_update",
-            "pad": [round(p, 3), round(a, 3), round(d, 3)],
-            "archetype": projection.dominant_archetype_id,
-            "visuals": {
-                "color": hex_color,
-                "pulse_s": pulse_duration,
-                "scale": glow_size
-            }
-        }
-        
-        latency = (time.perf_counter() - t0) * 1000
-        _log.debug("AffectVesselRelay: Transmitting orb_update (Arch: %s, lat: %.2fms)", projection.dominant_archetype_id, latency)
-        
-        # Purgar cola si está llena para asegurar tiempo real
-        if self.bridge.charm_feedback_queue.full():
-            try:
-                self.bridge.charm_feedback_queue.get_nowait()
-            except Exception: pass
+        try:
+            # 0. Anti-NaN Hardening
+            p = float(projection.pad[0]) if math.isfinite(projection.pad[0]) else 0.5
+            a = float(projection.pad[1]) if math.isfinite(projection.pad[1]) else 0.5
+            d = float(projection.pad[2]) if math.isfinite(projection.pad[2]) else 0.5
             
-        self.bridge.charm_feedback_queue.put_nowait(payload)
+            # 1. Mapeo de Color (P: Valence)
+            hex_color = self._map_valence_to_color(p)
+            
+            # 2. Mapeo de Pulso (A: Arousal)
+            pulse_duration = round(3.0 - (a * 2.5), 2) # Range 0.5s to 3s
+            
+            # 3. Mapeo de Tamaño/Brillo (D: Dominance)
+            glow_size = round(0.7 + (d * 0.8), 2)
+            
+            payload = {
+                "type": "orb_update",
+                "pad": [round(p, 3), round(a, 3), round(d, 3)],
+                "archetype": projection.dominant_archetype_id,
+                "visuals": {
+                    "color": hex_color,
+                    "pulse_s": pulse_duration,
+                    "scale": glow_size
+                }
+            }
+            
+            latency = (time.perf_counter() - t0) * 1000
+            
+            # 4. Bridge Integration with safety checks
+            if self.bridge and hasattr(self.bridge, "charm_feedback_queue") and self.bridge.charm_feedback_queue:
+                # Purgar cola si está llena para asegurar tiempo real
+                if self.bridge.charm_feedback_queue.full():
+                    try:
+                        self.bridge.charm_feedback_queue.get_nowait()
+                    except Exception: 
+                        pass
+                    
+                # Note: put_nowait is used because transmit is sync. 
+                # If kernel is multi-threaded, this remains a best-effort non-blocking op.
+                self.bridge.charm_feedback_queue.put_nowait(payload)
+                
+                if latency > 2.0:
+                    _log.debug("AffectVesselRelay: transmitted orb_update (Arch: %s, lat: %.2fms)", 
+                               projection.dominant_archetype_id, latency)
+            else:
+                _log.warning("AffectVesselRelay: Nomad Bridge or queue unavailable. Expression dropped.")
+
+        except Exception as e:
+            _log.error("AffectVesselRelay: Failed to transmit affect: %s", e)
 
     def _map_valence_to_color(self, p: float) -> str:
         """

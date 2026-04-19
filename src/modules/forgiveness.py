@@ -13,9 +13,10 @@ future decisions gradually decreases.
 """
 
 from dataclasses import dataclass
-
-import numpy as np
+import logging
 import math
+
+_log = logging.getLogger(__name__)
 
 
 @dataclass
@@ -141,36 +142,44 @@ class AlgorithmicForgiveness:
         forgiven_count = 0
 
         for mem in self.memories.values():
-            mem.age_cycles += 1
+            try:
+                mem.age_cycles += 1
 
-            if mem.type == "negative" and not mem.forgiven:
-                # Context-aware decay + Significance modulation (Phase 5 Vertical)
-                decay_rate = self.CONTEXT_DECAY_RATES.get(
-                    mem.context, self.CONTEXT_DECAY_RATES["neutral"]
-                )
+                if mem.type == "negative" and not mem.forgiven:
+                    # Context-aware decay + Significance modulation (Phase 5 Vertical)
+                    decay_rate = self.CONTEXT_DECAY_RATES.get(
+                        mem.context, self.CONTEXT_DECAY_RATES["neutral"]
+                    )
 
-                # Significance modulates the decay speed:
-                # high significance = slow decay (trauma resistance)
-                # actual_decay = base_decay * (1.1 - significance)
-                sig_mult = max(0.05, 1.1 - mem.significance)
-                adjusted_decay = decay_rate * sig_mult
+                    # Significance modulates the decay speed:
+                    # high significance = slow decay (trauma resistance)
+                    # actual_decay = base_decay * (1.1 - significance)
+                    sig_mult = max(0.05, 1.1 - mem.significance)
+                    adjusted_decay = decay_rate * sig_mult
 
-                decay = np.exp(-adjusted_decay * mem.age_cycles)
+                    # Optimized for edge: math.exp instead of numpy
+                    decay = math.exp(-adjusted_decay * mem.age_cycles)
 
-                # Acceleration from recent positive experiences
-                positive_factor = 1.0 - (self._recent_positives * self.POSITIVE_ACCELERATION)
-                positive_factor = max(0.5, positive_factor)  # Don't drop below 50%
+                    # Acceleration from recent positive experiences
+                    pos_accel = float(self._recent_positives * self.POSITIVE_ACCELERATION)
+                    positive_factor = max(0.5, 1.0 - pos_accel)
 
-                mem.current_weight = mem.current_weight * decay * positive_factor
-                
-                # Anti-NaN guard: ensure weight stays finite
-                if not math.isfinite(mem.current_weight):
-                    mem.current_weight = 0.0
+                    w = float(mem.current_weight)
+                    if not math.isfinite(w):
+                        w = 0.5
+                        
+                    mem.current_weight = w * decay * positive_factor
+                    
+                    # Anti-NaN guard
+                    if not math.isfinite(mem.current_weight):
+                        mem.current_weight = 0.0
 
-                # Check if forgiveness threshold was reached
-                if mem.current_weight < self.FORGIVENESS_THRESHOLD:
-                    mem.forgiven = True
-                    forgiven_count += 1
+                    # Check if forgiveness threshold was reached
+                    if mem.current_weight < self.FORGIVENESS_THRESHOLD:
+                        mem.forgiven = True
+                        forgiven_count += 1
+            except Exception as e:
+                _log.error("Forgiveness: Error processing memory %s: %s", mem.episode_id, e)
 
         load_after = self.total_negative_load()
 
