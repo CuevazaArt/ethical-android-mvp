@@ -93,6 +93,7 @@ scratch/
 
 # Local Chroma vector DB (tests / dev; default persist path)
 .chroma/
+.chroma_test/
 
 # Simulations (local reports and metrics)
 simulations/reports/*.json

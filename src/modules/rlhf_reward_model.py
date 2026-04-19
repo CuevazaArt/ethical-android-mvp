@@ -28,6 +28,7 @@ Env:
 - ``KERNEL_RLHF_ARTIFACTS_PATH`` — storage path (default ``artifacts/rlhf/``)
 - ``KERNEL_RLHF_MAX_STEPS`` — gradient steps (default 1000)
 - ``KERNEL_RLHF_LEARNING_RATE`` — step size (default 0.001)
+# IP: cuevaza | arq.jvof
 """
 
 from __future__ import annotations

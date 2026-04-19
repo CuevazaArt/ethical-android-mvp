@@ -1,11 +1,5 @@
 # Ethos Kernel
 
-> [!WARNING]
-> **🤖 AI AGENTS AND COLLABORATORS READ FIRST (GOVERNANCE V3):** 
-> 1. The `main` branch is IMMUTABLE. Do not push to it. 
-> 2. **PULL-REBASE-FIRST** is mandatory: You MUST run `git fetch origin && git rebase origin/main` to sync downward before proposing any code upward.
-> 3. Read `AGENTS.md` and `.cursor/rules/` for full autonomous constraints and hierarchical rules before starting your work.
-
 [![CI](https://github.com/CuevazaArt/ethical-android-mvp/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/CuevazaArt/ethical-android-mvp/actions/workflows/ci.yml)
 [![codecov](https://codecov.io/gh/CuevazaArt/ethical-android-mvp/graph/badge.svg)](https://codecov.io/gh/CuevazaArt/ethical-android-mvp)
 

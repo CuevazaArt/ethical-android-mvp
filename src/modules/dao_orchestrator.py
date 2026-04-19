@@ -84,7 +84,7 @@ class DAOOrchestrator:
         msg = f"Restorative reparation of {amount} EthosTokens issued to {recipient} for case {case_id}."
         
         # Persistent recording (SQLite)
-        with sqlite3.connect(self.db_path) as conn:
+        with sqlite_safe_write(self.db_path) as conn:
             conn.execute(
                 "INSERT INTO audit_logs (type, content, episode_id, timestamp) VALUES (?, ?, ?, ?)",
                 ("reparation_payout", msg, case_id, time.time())
@@ -142,6 +142,11 @@ class DAOOrchestrator:
 
     def register_audit(self, *args, **kwargs):
         return self.local_dao.register_audit(*args, **kwargs)
+
+    async def aregister_audit(self, *args, **kwargs):
+        """Async version of register_audit (Phase 9.3)."""
+        import asyncio
+        return await asyncio.to_thread(self.local_dao.register_audit, *args, **kwargs)
 
     def create_proposal(self, *args, **kwargs):
         return self.local_dao.create_proposal(*args, **kwargs)

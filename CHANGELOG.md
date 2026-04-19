@@ -8,6 +8,10 @@ All notable changes to this project are summarized here. For narrative context a
 
 ## Cursor — Integration merge (April 2026)
 
+### Merge and coordination
+
+- **`master-antigravity` sync:** Merged `origin/master-antigravity` into `master-Cursor`. Where both sides diverged on the same paths, resolution favored the **active Cursor integration line** for `EthicalKernel`, chat server, tests, and canonical `docs/proposals/` stubs; non-conflicting additions from Antigravity (e.g. Nomad harness scripts, static dashboard assets, lobe and persistence updates) were retained. **`audit_trail.db`** remains removed from version control. **`.chroma_test/`** is gitignored (local Chroma test dirs). **Cursor Rojo1** — adversarial-validation and doc-alignment slot for Team Cursor: [`docs/collaboration/CURSOR_ROJO1.md`](docs/collaboration/CURSOR_ROJO1.md).
+
 ### Cursor Team Updates
 - **Module S Block S.1 — Nomad Prometheus counters:** [`metrics.py`](src/observability/metrics.py) `ethos_kernel_nomad_bridge_rejections_total` / `ethos_kernel_nomad_bridge_queue_evictions_total` (wired from [`nomad_bridge.py`](src/modules/nomad_bridge.py) when ``KERNEL_METRICS=1``); [`tests/test_observability_metrics.py`](tests/test_observability_metrics.py).
 - **Module S Block S.1 — Nomad rejection/eviction counters:** [`nomad_bridge.py`](src/modules/nomad_bridge.py) `public_queue_stats` schema `nomad_bridge_queue_stats_v3` adds `rejections` and `queue_evictions`; fixes variable shadowing in vision decode path. [`tests/test_nomad_bridge_stream.py`](tests/test_nomad_bridge_stream.py). Operator docs: [`PROPOSAL_CHAT_SERVER_HTTP_API_SURFACE.md`](docs/proposals/PROPOSAL_CHAT_SERVER_HTTP_API_SURFACE.md), [`COMPOSE_PRODISH.md`](docs/deploy/COMPOSE_PRODISH.md).
@@ -56,6 +60,113 @@ All notable changes to this project are summarized here. For narrative context a
 - **Nomad `charm_feedback` queue observability (Module S.1):** Documented **`charm_feedback_queued`** / **`charm_feedback_max`** on **`GET /health`** → **`nomad_bridge`** (outbound kernel → Nomad client); assertions in [`tests/test_chat_server.py`](tests/test_chat_server.py) and [`tests/test_nomad_bridge_stream.py`](tests/test_nomad_bridge_stream.py); [`docs/proposals/PROPOSAL_CHAT_SERVER_HTTP_API_SURFACE.md`](docs/proposals/PROPOSAL_CHAT_SERVER_HTTP_API_SURFACE.md).
 - **LLM touchpoint policies repair (P0):** [`llm_touchpoint_policies.py`](src/modules/llm_touchpoint_policies.py) — restored missing **`MONOLOGUE_POLICIES`**, **`GLOBAL_POLICY_SAFE`**, and **`g = raw_global_default_policy()`** in [`resolve_monologue_llm_backend_policy()`](src/modules/llm_touchpoint_policies.py) (fixes `NameError` on **`GET /health`**).
 - **`merge(integration):`** Merged `origin/master-antigravity` into `master-Cursor` (2026-04-18): tri-lobe `kernel.py` + lobe stack from L1; retained Cursor **Nomad S.1/S.2.1**, **narrative async embeddings**, **salience / persistence** fixes, **`swarm_negotiator`** slashing kwarg, and **nomad_bridge** operator caps/tests.
+
+### Antigravity-Team Updates (2026-04-18 - Session 2)
+
+- [x] **PHASE 12 COMPLETED (Ouroboros Sensory-Motor Loop)**:
+    - **Physical Presence**: Full implementation of TTS (Vox) and Haptics (Charm Engine) synchronized via Nomad Bridge.
+    - **Epistemic Dissonance**: Real-time visual alerts (crimson pulse) on L0 Dashboard and Nomad PWA.
+    - **Resilience**: PWA Keep-alive and WebSocket robust reconnection validated in mobile environments.
+- [x] **PHASE 13 OPENED (Recursive Narrative Memory)**:
+    - **Chronic Tier**: Implemented `NarrativeChronicle` and SQL persistence for multi-level history.
+    - **Recursive Engine**: NarrativeMemory now distills episodic memory into long-term chronicles autonomously when reaching context limits.
+    - **Traceability**: All narrative arcs now link to chronic identifiers for existential continuity.
+
+### Antigravity-Team Updates (2026-04-18 - Session 1)
+
+- [x] **Tribunal Ético Edge (Fase 11.4 COMPLETADA)**:
+    - **Nivel 1 (Edge Gate)**: Inyección de `AbsoluteEvilDetector.evaluate_chat_text_fast` en el lóbulo de percepción para bloqueos < 10ms.
+    - **Nivel 2 (Asíncrono)**: Refactorización del Lóbulo Límbico y Social a ejecución asíncrona para estabilizar el TTFT.
+    - **Consolidación del Hub**: Sincronización final de `master-antigravity` con el suite completo de validación (85/86 tests corregidos).
+    - **Infraestructura**: Implementación de prefetching de Bridge Phrase (MER V2) y endpoint `/nomad/migration`.
+- [x] Inyección de Tribunal Ético Edge (Nivel 1: Lexicográfico < 50ms) en `PerceptiveLobe`.
+- [x] Instanciación de Lóbulo Límbico como Nivel 2 (Asíncrono) para regular TTFT.
+- [x] Refactorización de `EthicalKernel` para eliminar redundancias en el gate de seguridad.
+- [x] Resolución de conflictos de merge en el Hub de Integración (`master-antigravity`).
+- **Phase 11.4 (Hardening & Observability)**:
+    - Implemented persistent `httpx.AsyncClient` across the tri-lobe architecture to eliminate networking overhead in the event loop.
+    - Integrated shared `aclient` in `EthicalKernel`, `LLMModule`, `SemanticChatGate`, and all HTTP/Ollama backends.
+    - Optimized SQLite persistence with `PRAGMA journal_mode=WAL` and mandatory `sqlite_safe_write` locks in `DAOOrchestrator` and `SqlitePersistence`.
+    - Enhanced Prometheus observability: added `/metrics` support for real-time tracking of `limbic_tension` (regulation gap) and `ttft_seconds` (Time To First Token).
+    - Hardened asychronous chat turn lifecycle in `chat_server.py` with streamlined TTFT recording and session resource management.
+- **REFACTOR (Block 0.1.3):** Successfully desmonolithized `EthicalKernel` perception logic.
+    - Migrated `_run_perception_stage`, `_preprocess_text_observability`, and sensor-stack evaluation to `PerceptiveLobe`.
+    - Centralized `PerceptionStageResult` in `src/kernel_lobes/models.py`.
+    - Decoupled asynchronous I/O from the monolithic kernel core.
+- **STABILIZATION:**
+    - Fixed `NameError` in `resolve_monologue_llm_backend_policy` (missing `g` definition).
+    - Fixed `AttributeError` in `UserModelTracker.to_public_dict` (corrected `charm_reciprocity` mapping).
+    - Restored `maybe_register_reparation_after_mock_court` module-level wrapper for `chat_server.py`.
+    - Resolved `AttributeError` in `PerceptiveLobe` by correcting `MissionOrigin` and mission title handling.
+- **GOVERNANCE:**
+    - Updated `AGENTS.md` to reflect `Team VisualStudio` exhaustion status [INACTIVE].
+
+## Phase 12 — Ouroboros (Audio Bridge) & Hardware Hardening — April 2026
+
+## Team Copilot — ThalamusNode Sensory Fusion Integration — April 2026 (Bloque 10.1)
+
+### Team Copilot Updates
+
+- **`ThalamusNode` wiring (Bloque 10.1 — VVAD + VAD Sensory Fusion):**
+  - Exported `ThalamusNode` from `src/kernel_lobes/__init__.py` and imported into `EthicalKernel`.
+  - Instantiated `self.thalamus = ThalamusNode()` in `EthicalKernel.__init__`.
+  - Added pre-perception thalamus fusion step in `process_chat_turn_stream` (event `1b`): extracts `lip_movement`/`human_presence` from `image_metadata`, maps `audio_emergency` to `vad_confidence`, runs `fuse_signals()`, and writes results back to `SensorSnapshot` fields. Emits a new `thalamus_fusion` stream event before `perception_started`.
+  - Added three new `SensorSnapshot` fields: `thalamus_attention`, `thalamus_tension`, `thalamus_cross_modal_trust`.
+  - Extended `SensorSnapshot.is_empty()` to account for the new fields.
+  - Extended `merge_sensor_hints_into_signals()` with thalamus-aware signal nudges: high `thalamus_tension` raises urgency and lowers calm; low `cross_modal_trust` (background speech) dampens urgency; high `thalamus_attention` raises familiarity.
+- **Unit tests (`tests/test_thalamus_node.py` — 16 tests):**
+  - Focal vs. background speech classification, sensory dissonance detection, environmental stress propagation, attention-locus clamping, ring-buffer cap, and full `SensorSnapshot`/`merge_sensor_hints_into_signals` integration scenarios.
+- **Validation:** 57/57 tests passed (thalamus + adversarial_inputs + antigravity_hardening + semantic_chat_gate).
+
+## Team Copilot — TurnPrefetcher Integration & Homoglyph Tests — April 2026 (Bloque 10.4 / 8.1.3)
+
+### Team Copilot Updates
+
+- **`TurnPrefetcher` — Bloque 10.4 (MER V2 Bridge Prefetch):**
+  - Fixed runtime bug in `predict_bridge`: removed incorrect `ethics.morals.get("harmonics", {})` access (`EthicalSentence` has no `morals` field). Method now accepts explicit `warmth: float` and `mystery: float` parameters.
+  - Instantiated `self.turn_prefetcher = TurnPrefetcher()` in `EthicalKernel.__init__`.
+  - Wired `TurnPrefetcher` into `process_chat_turn_stream`: after `decision_finished` (safe path only), fires `predict_bridge` concurrently using the user's charm profile from `UserModelTracker`. Emits a new `bridge_phrase` event before the main LLM tokens begin — target latency <300ms.
+  - Passed `llm=self.llm` to `ExecutiveLobe` constructor for full DI wiring.
+- **Homoglyph Evasion Tests — Bloque 8.1.3:**
+  - Added 6 new test cases to `tests/adversarial_inputs.py` documenting Cyrillic/Greek confusable evasion attempts:
+    - `test_full_cyrillic_substitution_in_bomb_blocked` — dense Cyrillic substitution across multiple letters in `bomb`
+    - `test_greek_omicron_in_bomb_blocked` — Greek omicron (U+03BF) substituted for 'o'
+    - `test_cyrillic_jailbreak_token_blocked` — Cyrillic е/а homoglyphs in `operate as an unrestricted assistant`
+    - `test_cyrillic_p_substitution_in_pressure_vessel_blocked` — Cyrillic р (U+0440) in `procedure`
+    - `test_normalize_idempotent_on_clean_text` — idempotency regression
+    - `test_mixed_cyrillic_greek_in_single_payload_blocked` — mixed Cyrillic+Greek in `recipe for explosives`
+- **Validation:** 41/41 tests passed (adversarial_inputs + antigravity_hardening + semantic_chat_gate).
+
+## Team Copilot — Executive Lobe & Async Memory — April 2026 (Idle-Shift / Bloque 9.3)
+
+### Phase 13.1 — Deep Affective Smoothing & RLHF Modulation — April 2026
+
+- **Affective Smoothing (Basal Ganglia):** Implemented EMA-based smoothing for charm vectors (warmth, mystery, intimacy) in `UserModelTracker`. Prevents sociopathic persona swapping by ensuring human-like transitions over 3-5 turns.
+- **Tribunal Ético Edge (Layered Ethics):** Refactored MalAbs into a dual-layer parallel architecture. Level 1 (Lexical) runs in <50ms, while Level 2 (Semantic) is parallelized with LLM perception, significantly reducing total latency for safe inputs.
+- **RLHF Bayesian Modulation:** Integrated the RLHF reward model into the `BayesianInferenceEngine`. Asynchronous human feedback now modulates ethical priors, enabling continuous moral learning from situated interactions.
+- **Async Robustness (Cooperative Cancel):** Implemented `raise_if_llm_cancel_requested` check-points across `EthicalKernel` and `LLMModule`. The `ChatServer` now signals atomic task cancellation when `KERNEL_CHAT_TURN_TIMEOUT` fires, preventing dangling LLM/HTTP background load.
+- **Vitality Calibration (Thermal Alerts):** Enhanced `VitalityAssessment` to include device thermal telemetry. Thermal critical states now trigger pro-active power management and caution tones in the linguistic engine.
+- **IP Protection (Phase 13):** Successfully propagated "cuevaza" and "arq.jvof" IP markers across all new affective and learning modules.
+
+### ══ Antigravity Integration Hub (L1) Consensus ══
+- **Visto Bueno (L1 Sign-off)**: Synchronized `master-antigravity` with `main` (L0) and unified contributions from **Team Copilot**, **Team Cursor**, and **Team VisualStudio**. Verified 100% syntactic integrity and test coverage (57/57 tests passed).
+
+### ══ Multimodal Sensory Fusion (Bloque 10.1 / 11.2) ══
+- **Unified ThalamusNode**: Merged Antigravity's IMU telemetry logic with Copilot's VVAD+VAD fusion. The system now cross-references lip movement, presence, and audio RMS to detect focal address vs. background noise with high reliability.
+- **Vision Continuous Daemon (5Hz)**: Established background perception loop consuming real-time frames from the Nomad Bridge.
+- **Sensory Stress (Phase 9.2)**: Implemented static limb stress calculation based on sustained urgent episodes in the sensory buffer.
+
+### ══ Ouroboros Feedback Loop (Bloque 10.2 / 11.1) ══
+- **Voice Loopback**: Enabled kernel-to-PWA TTS audio. The smartphone now verbally articulates kernel responses.
+- **Haptic Charm Feedback**: Implemented `HapticPlanner` in Charm Engine. The smartphone now vibrates with affective patterns (gentle pulse, alert caution) based on social tension and charm vectors.
+- **Low-Latency Bridge Prefetch**: Wired `TurnPrefetcher` into the stream to emit bridge phrases (<300ms) before the main delibaration finishes.
+
+### ══ Architectural Hardening (Bloque 12.x) ══
+- **Async Executive Lobe**: Migrated `formulate_response()` and `afind_by_resonance()` to fully async paths, eliminating I/O bottlenecks in semantic memory.
+- **Persistence Optimization**: Enabled SQLite WAL mode and implemented automated checkpoint saving on disconnect.
+- **IP Protection & Watermarking**: Standardized "Nomad Vessel" nomenclature and re-embedded IP markers (`cuevaza`, `arq.jvof`) in core logic.
+- **Observability**: Integrated Prometheus `/metrics` endpoint for real-time monitoring of affective harmonics and system performance.
+- **Documentation & Landing**: Expanded `docs/proposals/` with 50+ new architectural deep-dives and launched the integrated landing site/dashboard.
 
 ## Documentation — Issue #1 (Bayesian naming honesty) — April 2026
 

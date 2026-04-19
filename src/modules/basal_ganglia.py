@@ -1,77 +1,57 @@
+"""
+Basal Ganglia — Affective smoothing and somatic gating.
+Part of the Phase 10.3 Charm Engine (MER V2).
+
+Implements Exponential Moving Average (EMA) and signal dampening to 
+prevent sociopathic transitions in the kernel's affective persona.
+"""
+
+from __future__ import annotations
 import logging
-import time
-import math
 
 _log = logging.getLogger(__name__)
 
 class BasalGanglia:
     """
-    ARCHITECTURE V2.0 - Basal Ganglia (Filtros EMA)
-    Encargado del Smoothing Conductual para prevenir la 'Sociopatía Paramétrica'.
-    Aplica una inercia temporal a las variables de afecto (Warmth, Mystery).
+    Smoothing layer for affective variables.
+    
+    Prevents sudden 'Persona Swapping' by ensuring that charm metrics 
+    (warmth, mystery, intimacy) evolve gradually over 3-5 turns.
+    # IP Signature: cuevaza / ref: arq.jvof
     """
-    def __init__(self, base_inertia: float = 0.8, time_constant: float = 2.0):
+    def __init__(self, alpha: float = 0.35):
         """
-        :param base_inertia: Coeficiente base de suavizado (0.0 a 1.0).
-        :param time_constant: Tiempo (segundos) para que el valor alcance el ~63% del objetivo.
+        alpha: Smoothing factor [0, 1]. 
+               Lower = smoother (slower transitions). 
+               Higher = more reactive (faster transitions).
+               Default 0.35 matches human social adaptation speed (~3 turns).
         """
-        self.base_inertia = base_inertia
-        self.tau = time_constant
-        
-        # Affective States (Theater)
-        self.smooth_warmth = 0.5
-        self.smooth_mystery = 0.5
-        
-        # Ethical Leans (Math/Bayesian Weights)
-        # Neutral baseline is 0.5
-        self.smooth_civic = 0.5
-        self.smooth_care = 0.5
-        self.smooth_deliberation = 0.5
-        self.smooth_careful = 0.5
-        
-        self.last_update = time.perf_counter()
+        self.alpha = alpha
+        self.last_values: dict[str, float] = {}
 
-    def smooth(
-        self, 
-        target_warmth: float, 
-        target_mystery: float,
-        target_civic: float = 0.5,
-        target_care: float = 0.5,
-        target_deliberation: float = 0.5,
-        target_careful: float = 0.5
-    ) -> dict[str, float]:
+    def smooth(self, key: str, target_value: float) -> float:
         """
-        Aplica un filtro de Media Móvil Exponencial (EMA) a los estados afectivos y éticos.
-        Previene la 'Sociopatía Paramétrica' al suavizar las transiciones de pesos.
+        Applies EMA: actual = (alpha * target) + ((1 - alpha) * previous)
         """
-        now = time.perf_counter()
-        dt = now - self.last_update
-        
-        alpha = math.exp(-dt / self.tau) if dt > 0 else self.base_inertia
-        
-        # 1. Affective Smoothing
-        self.smooth_warmth = (target_warmth * (1 - alpha)) + (self.smooth_warmth * alpha)
-        self.smooth_mystery = (target_mystery * (1 - alpha)) + (self.smooth_mystery * alpha)
-        
-        # 2. Ethical Lean Smoothing (Thematic Inertia)
-        self.smooth_civic = (target_civic * (1 - alpha)) + (self.smooth_civic * alpha)
-        self.smooth_care = (target_care * (1 - alpha)) + (self.smooth_care * alpha)
-        self.smooth_deliberation = (target_deliberation * (1 - alpha)) + (self.smooth_deliberation * alpha)
-        self.smooth_careful = (target_careful * (1 - alpha)) + (self.smooth_careful * alpha)
-        
-        self.last_update = now
-        _log.debug("BasalGanglia: Integrated Resonance Update (dt=%.2fs)", dt)
-        
-        return self.get_current_resonance()
+        if key not in self.last_values:
+            self.last_values[key] = target_value
+            return target_value
 
-    def get_current_resonance(self) -> dict[str, float]:
-        """Retorna el estado afectivo y dinámico actual."""
-        return {
-            "warmth": round(self.smooth_warmth, 3),
-            "mystery": round(self.smooth_mystery, 3),
-            "civic": round(self.smooth_civic, 3),
-            "care": round(self.smooth_care, 3),
-            "deliberation": round(self.smooth_deliberation, 3),
-            "careful": round(self.smooth_careful, 3),
-            "inertia_active": True
-        }
+        previous = self.last_values[key]
+        actual = (self.alpha * target_value) + ((1.0 - self.alpha) * previous)
+        
+        # Clamp to [0, 1]
+        actual = max(0.0, min(1.0, actual))
+        self.last_values[key] = actual
+        return actual
+
+    def smooth_batch(self, targets: dict[str, float]) -> dict[str, float]:
+        """Smooths multiple variables at once."""
+        result = {}
+        for k, v in targets.items():
+            result[k] = self.smooth(k, v)
+        return result
+
+    def force_reset(self, key: str, value: float):
+        """Hard reset for trauma/emergency states (Absolute Evil)."""
+        self.last_values[key] = value

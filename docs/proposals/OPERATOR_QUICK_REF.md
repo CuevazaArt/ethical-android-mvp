@@ -126,6 +126,8 @@ Enable with `KERNEL_METRICS=1` (scrapes `http://<host>:<port>/metrics`). If `pro
 | `ethos_kernel_kernel_decisions_total` | Counter | `action`, `certainty`, `blocked` | One increment per completed `EthicalKernel.process`. `action` is a coarse slug (bounded cardinality); `certainty` is `high` / `med` / `low` / `n_a` (inverse of uncertainty bands); `blocked` is `true` / `false`. |
 | `ethos_kernel_kernel_process_seconds` | Histogram | (none) | Wall time for the full ethical cycle inside `process()`. |
 | `ethos_kernel_perception_circuit_trips_total` | Counter | (none) | Increments once when **metacognitive doubt** activates (perception validation streak exceeds two stressed turns; see `perception_circuit.py`). |
+| `ethos_kernel_limbic_tension` | Gauge | (none) | Last calculated limbic tension / strain (0.0–1.0). Recorded per-turn in `chat_server.py`. |
+| `ethos_kernel_chat_ttft_seconds` | Histogram | (none) | Time To First Token (TTFT) for streaming turns. Measured from start of turn to first meaningful event. |
 
 Implementation: [`src/observability/metrics.py`](../../src/observability/metrics.py). Decision JSON lines: [`src/observability/decision_log.py`](../../src/observability/decision_log.py). Log field `request_id` is set when a correlation id exists ([`src/observability/logging_setup.py`](../../src/observability/logging_setup.py)).
 

@@ -88,3 +88,4 @@ class PerceptionStageResult:
     limbic_profile: dict[str, Any]
     temporal_context: Any # TemporalContext
     perception_confidence: Any # PerceptionConfidenceEnvelope
+    malabs_result: Optional[Any] = None # AbsoluteEvilResult

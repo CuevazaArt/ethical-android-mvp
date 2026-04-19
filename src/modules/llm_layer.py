@@ -34,6 +34,7 @@ try:
 except ImportError:
     HAS_HTTPX = False
 
+from .llm_http_cancel import raise_if_llm_cancel_requested
 from ..observability.metrics import observe_llm_completion_seconds
 from .llm_backends import (
     AnthropicCompletion,
@@ -338,8 +339,10 @@ class LLMModule:
         *,
         llm_backend: LLMBackend | None = None,
         text_backend: TextCompletionBackend | None = None,
+        aclient: httpx.AsyncClient | None = None,
     ):
         self.client = None
+        self._aclient_internal = aclient
         self.model = "claude-sonnet-4-20250514"
         self.ollama_model = os.environ.get("OLLAMA_MODEL", "llama3.2:3b")
         self._llm_backend: LLMBackend | None = None
@@ -363,6 +366,7 @@ class LLMModule:
                 os.environ.get("OLLAMA_BASE_URL", "http://127.0.0.1:11434"),
                 self.ollama_model,
                 float(os.environ.get("OLLAMA_TIMEOUT", "120")),
+                aclient=self._aclient_internal,
             )
         elif self.mode in ("api", "auto"):
             api_key = os.environ.get("ANTHROPIC_API_KEY")
@@ -419,6 +423,7 @@ class LLMModule:
         temperature: float | None = None,
     ) -> str:
         """Route JSON-oriented prompts through the active LLM backend."""
+        raise_if_llm_cancel_requested()
         b = self._llm_backend
         if b is not None:
             t0 = time.perf_counter()
@@ -440,6 +445,7 @@ class LLMModule:
         temperature: float | None = None,
     ) -> str:
         """Async counterpart to :meth:`_llm_completion` (``httpx.AsyncClient`` on supported backends)."""
+        raise_if_llm_cancel_requested()
         b = self._llm_backend
         if b is not None:
             t0 = time.perf_counter()
@@ -1179,6 +1185,7 @@ class LLMModule:
             )
 
         async for chunk in self._llm_backend.acompletion_stream(system, user_msg):
+            raise_if_llm_cancel_requested()
             yield chunk
 
     def _communicate_local(

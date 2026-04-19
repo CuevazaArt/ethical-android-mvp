@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ethos Kernel | L0 Visual Dashboard</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="dashboard.css">
+</head>
+<body>
+    <div class="bg-gradient"></div>
+    
+    <header>
+        <div class="logo-group">
+            <div class="status-indicator"></div>
+            <h1>ETHOS KERNEL // L0</h1>
+            <div class="status-badge" id="conn-status">SYSTEM IDLE</div>
+        </div>
+        <div class="header-meta">
+            <div id="dissonance-badge" class="badge-dissonance hidden">EPISTEMIC DISSONANCE</div>
+            <span id="turn-index">TURN #0</span>
+            <span id="time-val">00:00:00</span>
+        </div>
+    </header>
+
+    <main>
+        <!-- AFFECTIVE & ETHICAL PANEL -->
+        <aside class="panel">
+            <div class="panel-header">
+                <h2>Harmonies</h2>
+            </div>
+            
+            <div class="metric-card">
+                <div class="metric-label">Limbic Tension (Σ)</div>
+                <div class="metric-value" id="tension-val">0.00</div>
+                <div class="progress-bar">
+                    <div class="progress-fill" id="tension-fill"></div>
+                </div>
+            </div>
+
+            <div class="metric-card">
+                <div class="metric-label">Social Trust (Uchi-Soto)</div>
+                <div class="metric-value" id="trust-val">0.50</div>
+                <div class="progress-bar">
+                    <div class="progress-fill" id="trust-fill" style="background: var(--accent-magenta);"></div>
+                </div>
+            </div>
+
+            <div class="metric-card">
+                <div class="metric-label">Cognitive Load</div>
+                <div class="metric-value" id="load-val">12ms</div>
+                <div class="progress-bar">
+                    <div class="progress-fill" id="load-fill" style="background: var(--accent-blue);"></div>
+                </div>
+            </div>
+
+            <div class="telemetry-log" id="event-log">
+                <!-- Real-time events will flow here -->
+            </div>
+        </aside>
+
+        <!-- CENTER: THE AFFECTIVE ORB -->
+        <section class="panel center-panel">
+            <div id="orb-container"></div>
+            
+            <div class="kernel-thoughts">
+                <div class="monologue-line" id="thought-stream">
+                    Waiting for sensor nexus handshake...
+                </div>
+            </div>
+        </section>
+
+        <!-- RIGHT PANEL: SENSORS -->
+        <aside class="panel">
+            <div class="panel-header">
+                <h2>Situated Organism</h2>
+            </div>
+
+            <div class="vision-preview">
+                <canvas id="vision-canvas"></canvas>
+                <div class="canvas-overlay">LIVE // NOMAD VESSEL</div>
+            </div>
+
+            <div class="audio-monitor">
+                <div class="metric-label">Audio Energy (dB)</div>
+                <div class="audio-bars" id="audio-bars">
+                    <!-- Dynamic bars -->
+                </div>
+            </div>
+
+            <div class="telemetry-grid">
+                <div class="metric-card">
+                    <div class="metric-label">Battery</div>
+                    <div class="metric-value" id="bat-val">--%</div>
+                </div>
+                <div class="metric-card">
+                    <div class="metric-label">Thermal</div>
+                    <div class="metric-value" id="temp-val">--°C</div>
+                </div>
+            </div>
+        </aside>
+    </main>
+
+    <!-- Scripts -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="dashboard.js"></script>
+</body>
+</html>

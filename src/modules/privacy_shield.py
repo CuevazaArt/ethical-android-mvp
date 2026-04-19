@@ -22,7 +22,7 @@ class PrivacyShield:
     def anonymize_snapshot(self, snapshot: dict[str, Any]) -> dict[str, Any]:
         """
         Redacts identifying information or sensitive entities from a sensor snapshot.
-        Smartphone Idea: Intelligent Privacy Protector.
+        Vessel Concept: Intelligent Privacy Protector.
         """
         anonymized = snapshot.copy()
         entities = snapshot.get("entities", [])

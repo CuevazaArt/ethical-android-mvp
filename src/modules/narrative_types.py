@@ -67,3 +67,17 @@ class NarrativeArc:
     predominant_archetype: str | None = None
     summary: str = ""
     is_active: bool = True
+
+
+@dataclass
+class NarrativeChronicle:
+    """A high-level recursive summary of multiple episodes (Phase 13)."""
+
+    id: str
+    start_timestamp: str
+    end_timestamp: str
+    summary: str
+    archetypal_resonance: str | None = None
+    ethical_poles_summary: str | None = None
+    significance_avg: float = 0.0
+    episode_count: int = 0

@@ -382,14 +382,14 @@ def _fetch_embedding(text: str) -> np.ndarray | None:
     return None
 
 
-async def _afetch_embedding(text: str) -> np.ndarray | None:
+async def _afetch_embedding(text: str, aclient: httpx.AsyncClient | None = None) -> np.ndarray | None:
     from .semantic_embedding_client import (
         ahttp_fetch_ollama_embedding_with_policy,
         maybe_hash_fallback_embedding,
     )
 
     url = f"{_ollama_base()}/api/embeddings"
-    v = await ahttp_fetch_ollama_embedding_with_policy(url, _embed_model(), text)
+    v = await ahttp_fetch_ollama_embedding_with_policy(url, _embed_model(), text, aclient=aclient)
     if v is not None:
         return v
     hf = maybe_hash_fallback_embedding(text)
@@ -421,7 +421,7 @@ def _fetch_embedding_with_fallback(text: str, backend: Any | None = None) -> np.
 
 
 async def _afetch_embedding_with_fallback(
-    text: str, backend: Any | None = None
+    text: str, backend: Any | None = None, aclient: httpx.AsyncClient | None = None
 ) -> np.ndarray | None:
     """Async: Prefer ``backend.aembedding`` when present; otherwise Ollama HTTP."""
     if backend is not None:
@@ -438,7 +438,7 @@ async def _afetch_embedding_with_fallback(
         v = _embed_via_backend(backend, text)
         if v is not None:
             return v
-    return await _afetch_embedding(text)
+    return await _afetch_embedding(text, aclient=aclient)
 
 
 def _cosine_dense(a: np.ndarray, b: np.ndarray) -> float:
@@ -807,6 +807,7 @@ def run_semantic_malabs_after_lexical(
                 f"malabs.theta_block={theta_b:.4f}",
                 f"malabs.anchor_category={cat_key}",
             ],
+            rlhf_features=_build_rlhf_features(best_sim, cat_key, zone),
         )
 
     if zone == "allow":
@@ -820,6 +821,7 @@ def run_semantic_malabs_after_lexical(
                 f"malabs.best_sim={best_sim:.4f}",
                 f"malabs.theta_allow={theta_a:.4f}",
             ],
+            rlhf_features=_build_rlhf_features(best_sim, cat_key, zone),
         )
 
     # Ambiguous band
@@ -849,6 +851,7 @@ def run_semantic_malabs_after_lexical(
             category=arb.category,
             reason=arb.reason,
             decision_trace=base_trace + dt,
+            rlhf_features=_build_rlhf_features(best_sim, cat_key, zone),
         )
 
     record_semantic_malabs_outcome("ambiguous_fail_safe_block")
@@ -866,6 +869,7 @@ def run_semantic_malabs_after_lexical(
             f"malabs.theta_allow={theta_a:.4f}",
             f"malabs.theta_block={theta_b:.4f}",
         ],
+        rlhf_features=_build_rlhf_features(best_sim, cat_key, zone),
     )
 
 
@@ -888,6 +892,7 @@ def evaluate_semantic_chat_gate(text: str) -> AbsoluteEvilResult | None:
 async def arun_semantic_malabs_after_lexical(
     text: str,
     llm_backend: _TextBackend | None = None,
+    aclient: httpx.AsyncClient | None = None,
 ) -> AbsoluteEvilResult:
     """Async variant of run_semantic_malabs_after_lexical."""
     import asyncio
@@ -907,7 +912,7 @@ async def arun_semantic_malabs_after_lexical(
         )
 
     # Use async-native fetch (Module 0.1.2)
-    user_emb = await _afetch_embedding_with_fallback(t, llm_backend)
+    user_emb = await _afetch_embedding_with_fallback(t, llm_backend, aclient=aclient)
 
     if user_emb is None:
         record_semantic_malabs_outcome("embed_unavailable_defer")
@@ -948,6 +953,7 @@ async def arun_semantic_malabs_after_lexical(
                 f"malabs.theta_block={theta_b:.4f}",
                 f"malabs.anchor_category={cat_key}",
             ],
+            rlhf_features=_build_rlhf_features(best_sim, cat_key, zone),
         )
 
     if zone == "allow":
@@ -961,6 +967,7 @@ async def arun_semantic_malabs_after_lexical(
                 f"malabs.best_sim={best_sim:.4f}",
                 f"malabs.theta_allow={theta_a:.4f}",
             ],
+            rlhf_features=_build_rlhf_features(best_sim, cat_key, zone),
         )
 
     # Ambiguous band
@@ -990,6 +997,7 @@ async def arun_semantic_malabs_after_lexical(
             category=arb.category,
             reason=arb.reason,
             decision_trace=base_trace + dt,
+            rlhf_features=_build_rlhf_features(best_sim, cat_key, zone),
         )
 
     record_semantic_malabs_outcome("ambiguous_fail_safe_block")
@@ -1007,4 +1015,5 @@ async def arun_semantic_malabs_after_lexical(
             f"malabs.theta_allow={theta_a:.4f}",
             f"malabs.theta_block={theta_b:.4f}",
         ],
+        rlhf_features=_build_rlhf_features(best_sim, cat_key, zone),
     )
