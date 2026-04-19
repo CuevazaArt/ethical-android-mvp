@@ -8,6 +8,24 @@ All notable changes to this project are summarized here. For narrative context a
 
 ### Claude Team Updates (April 2026)
 
+#### [2026-04-19] — 5 Modules Complete, L1 Merge Decision Required
+**NARANJA2 Completion Report:**
+- ✅ **Module C.1.1 (RLHF Async Injection):** 14 tests — Dirichlet-based Bayesian weight modulation from RLHF reward signals
+- ✅ **Module C.1.2 (RLHF Pole Robustness):** 13 tests — Validates LinearPoleEvaluator thresholds immutable under RLHF
+- ✅ **Module C.2.1 (Governance Hot-Reload):** 8 tests — Live MalAbs semantic gate threshold updates via EVENT_GOVERNANCE_THRESHOLD_UPDATED
+- ✅ **Bloque 9.2 (Limbic Tension Escalation):** 8 tests — PersistentThreatTracker with 3-level auto-escalation (1s/3s/5s stages)
+- ✅ **Bloque 11.1 (Audio Ouroboros):** 22 tests — STT→Reasoning→TTS loop (Whisper+gTTS/pyttsx3) for PWA/mobile
+
+**Totals:** 65+ integration tests passing, zero regressions, all modules independently verified.
+
+**Blocker:** Merge conflict discovered with main branch (v12.0+ moral infrastructure hub) vs PLAN_WORK_DISTRIBUTION_TREE.md architecture. Created comprehensive **PROPOSAL_CLAUDE_TEAM_MERGE_STRATEGY_2026_04_19.md** with three strategic options (A: Rebase+Redesign 2-3h, B: Feature-branch 30min, C: Clean reset 4-6h).
+
+**Action:** Submitted PR #23 to master-antigravity. **Awaiting L1 (Antigravity) decision on merge strategy** (scope, timeline, escalation path). No further code work proceeds until architectural decision made.
+
+**References:** [PR #23](https://github.com/CuevazaArt/ethical-android-mvp/pull/23), [Merge Strategy Proposal](docs/proposals/PROPOSAL_CLAUDE_TEAM_MERGE_STRATEGY_2026_04_19.md), [L1 Decision Document](docs/changelogs_l2/NARANJA2_L1_MERGE_DECISION_REQUIRED_2026_04_19.md)
+
+---
+
 - Root **README** (*What it does*): ethical scoring described as a weighted mixture; `BayesianEngine` / `KERNEL_BAYESIAN_*` naming caveat; links to **ADR 0009** and **THEORY_AND_IMPLEMENTATION**.
 - **PLAN_IMMEDIATE_TWO_WEEKS**: records Option **A** (docs-first) for Issue #1.
 - **CRITIQUE_ROADMAP_ISSUES** and **ADR 0009**: `bayesian_engine.py` documented as wrapping `WeightedEthicsScorer` (`BayesianInferenceEngine`), not only a re-export shim.
