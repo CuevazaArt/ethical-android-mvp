@@ -78,16 +78,16 @@ To completely eliminate "Merge Hell" and support massive IDE window parallelizat
 
 ### Phase 1: Employee Registration (Wake-Up Protocol)
 When L0 (Juan) assigns a task within an IDE chat or tab, the Agent MUST:
-1. **Assume a Local Callsign:** Acknowledge its identity (e.g., `Cursor-Alpha`, `Copilot-Shield`).
+1. **Assume a Local Callsign (Color+Number):** Acknowledge your identity via simple standard nomenclature (e.g., `Cursor-Rojo1`, `Copilot-Azul3`, `Cursor-Naranja6`) to group roles efficiently.
 2. **Assume its Boundary:** Understand the spatial territory of code it is allowed to modify (e.g., exclusively `src/kernel_lobes/`). 
 3. **Log the Start:** Ensure it logs its work entirely in `docs/changelogs_l2/<Callsign>.md`. **Agents are STRICTLY FORBIDDEN from editing the root `CHANGELOG.md`.**
 
 ### Phase 2: Autonomous Blind Execution (Territorial Sovereignty)
 Agents operate with extreme "spatial blindness". They DO NOT traverse or modify files outside their assigned territory. If an external interface is missing, they write a mock or leave a TODO block. They must push their isolated branch (`master-<callsign>`) before context saturation.
 
-### Phase 3: The 3 "Boy Scout" Laws of Vertical Hardening
-While inside their territory, Agents MUST proactively execute the following without asking L0:
-1. **Harden-In-Place:** Fill empty `try/except` blocks, add type hints, and ensure error durability around the code they touch.
+### Phase 3: The 3 "Boy Scout" Laws of Vertical Hardening (Paranoid Security)
+While inside their territory, Agents MUST proactively execute the following core security principles without asking L0. If a security rule severely degrades performance or blocks execution (friction), gracefully fall back, but default to Paranoid.
+1. **Harden-In-Place / Zero Trust:** Fill empty `try/except` blocks, add type hints, and ensure rigorous input sanitization and error durability around the code they touch. Never trust unvalidated input.
 2. **Gap Closure:** If a referenced dependency or configuration within their zone is incomplete, complete it.
 3. **Incremental Depth (Vertical Priority):** Always err on the side of making the module more secure and robust, rather than just "functionally complete".
 

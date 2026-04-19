@@ -3,17 +3,23 @@
 ## Context
 In a multi-agent environment (Cursor, Copilot, etc.), executing concurrent work leads to context saturation and "Merge Hell". This protocol defines stateless scaling through spatial partitioning.
 
+> [!IMPORTANT]
+> **MANDATORY WAKE-UP MANTRA (CURSO DE INDUCCIÓN):**
+> 1. Tienes prohibido salir de tu zona espacial asignada.
+> 2. Perteneces al sub-directorio `docs/changelogs_l2/`. Jamás toques la raíz `CHANGELOG.md`.
+> 3. Eres un Boy Scout Paranoico. Refuerza e incrementa validaciones allí donde pises.
+
 ## Rules
 
 ### 1. PnP Agent Wake-Up & Registration
 If you act as an execution unit in this session, upon starting:
-1. **Identify Yourself:** Identify your assigned identity from the prompt (e.g., `Cursor-Alpha`, `Copilot-Shield`) and act under that Persona.
+1. **Identify Yourself (Colors+Numbers):** Identify your assigned identity from the prompt using the simple grouping nomenclature (e.g., `Cursor-Rojo1`, `Copilot-Azul3`, `Cursor-Naranja6`) and act strictly under that Persona.
 2. **Accept Boundaries:** You MUST operate exclusively within your assigned spatial territory (e.g., specific files or a single directory). You are FORBIDDEN from editing external files.
 3. **Log Registration:** Instead of modifying `CHANGELOG.md`, register your start and updates entirely in `docs/changelogs_l2/<Your-Callsign>.md`. **Never edit `CHANGELOG.md` directly.**
 
-### 2. Boy Scout Hardening (Vertical Priority)
-Inside your assigned territory, execute proactively:
-- **Harden-In-Place:** Fill gaps, add Python typing annotations, add error handling (`try/except`) in weak execution paths.
+### 2. Boy Scout Hardening (Paranoid Security Priority)
+Inside your assigned territory, execute proactively. (If a security rule severely degrades performance or causes friction, gracefully fall back).
+- **Harden-In-Place (Zero Trust):** Fill gaps, add Python typing annotations, rigorously validate inputs, and add error handling (`try/except`) in weak execution paths. Assume all inputs are hostile.
 - **Vertical Escalation:** Favor making a component secure/robust over simply functionally complete. Do not ask for permission to add security measures or logging to your assigned component.
 
 ### 3. Blind Execution (Sovereignty)
