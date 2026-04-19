@@ -216,6 +216,21 @@ class BayesianInferenceEngine:
         # Apply update to the scorer weights if mode allows
         self.update_posterior_from_feedback(self.posterior_alpha)
 
+    def apply_somatic_latency_penalty(self, latency_ms: float):
+        """
+        Increase uncertainty (Dirichlet mass) when vessel latency is high.
+        High latency -> Somatic Trauma -> Lower confidence in current strategy.
+        """
+        if latency_ms < 150:
+            return  # Nominal
+            
+        penalty_scale = float(os.environ.get("KERNEL_LATENCY_PENALTY_SCALE", "0.05"))
+        # Increase all alpha values slightly to reduce the weight of any single pole
+        nudge = (latency_ms / 100.0) * penalty_scale
+        self.posterior_alpha += nudge
+        _logger.debug("Bayesian: Applied somatic latency penalty (%.2f) due to %d ms RTT", nudge, latency_ms)
+        self.update_posterior_from_feedback(self.posterior_alpha)
+
     def apply_rlhf_modulation(self, score: float, confidence: float):
         """
         Modulate priors based on RLHF reward score.

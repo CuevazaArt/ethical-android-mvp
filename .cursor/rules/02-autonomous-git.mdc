@@ -33,4 +33,11 @@ Once you have merged downwards (rebased) successfully, you may push to your assi
 - **Innovate Internally:** You are free to optimize and refactor logic *inside* your assigned lobe. No permission needed.
 - **Consult Architecturally:** If you need to change inter-lobe contracts (`src/kernel_lobes/models.py`) or the orchestrator, you MUST first open a `PROPOSAL_*.md` for Antigravity (L1) review.
 
+## 6. Swarm V4.1 Compliance (Mandatory)
+Para todo avance que cierre un bloque del `PLAN_WORK_DISTRIBUTION_TREE.md`, DEBES usar:
+`python scripts/swarm_sync.py --block <ID> --msg "<DESCRIPCIÓN_ARQUITECTÓNICA>"`
+- Esto reemplaza el commit manual de git para los hitos del backlog.
+- Asegura que el changelog de fragmentos (`docs/changelogs_l2/`) se genere correctamente.
+- **Ley Boy Scout**: Todo mensaje de sync debe confirmar que se han auditado valores `NaN` y latencias.
+
 Failure to follow these protocols causes systemic collapse across the L1/L2 strata. Obey implicitly.

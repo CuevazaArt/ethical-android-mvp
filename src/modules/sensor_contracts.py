@@ -42,6 +42,7 @@ SENSOR_SNAPSHOT_KNOWN_KEYS = frozenset(
         "stability_score",
         "core_temperature",
         "image_metadata",
+        "vessel_latency",
     }
 )
 
@@ -183,6 +184,7 @@ class SensorSnapshot:
     stability_score: float | None = None  # [0, 1]
     core_temperature: float | None = None  # degrees Celsius
     image_metadata: dict[str, Any] | None = None  # CNN inference results (B2)
+    vessel_latency: float | None = None  # latency in ms from Nomad Bridge (S.1.1)
     
     # Phase 10.1: Attentional Sensory Fusion
     rms_audio: float | None = None  # [0, 1] audio energy
@@ -276,7 +278,8 @@ class SensorSnapshot:
             orientation=raw.get("orientation"),
             thalamus_attention=f("thalamus_attention"),
             thalamus_tension=f("thalamus_tension"),
-            thalamus_cross_modal_trust=f("thalamus_cross_modal_trust")
+            thalamus_cross_modal_trust=f("thalamus_cross_modal_trust"),
+            vessel_latency=f_raw("vessel_latency")
         )
 
     def is_empty(self) -> bool:
@@ -301,6 +304,7 @@ class SensorSnapshot:
             and self.thalamus_attention is None
             and self.thalamus_tension is None
             and self.thalamus_cross_modal_trust is None
+            and self.vessel_latency is None
         )
 
 

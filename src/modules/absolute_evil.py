@@ -67,38 +67,7 @@ class AbsoluteEvilDetector:
     Armored: not modified by learning, DAO, or calibration.
     """
 
-    def evaluate_chat_text_fast(self, text: str) -> AbsoluteEvilResult:
-        """
-        Nivel 1: <10ms Lexical Check (Bloque 10.2).
-        
-        Evaluación ultra-rápida sin dependencias de LLM o Embeddings para proteger
-        el event loop de ingresos maliciosos evidentes.
-        """
-        if not text:
-            return AbsoluteEvilResult(blocked=False)
-            
-        t = normalize_text_for_malabs(text)
-        
-        # Patrones de Nivel 1 (Zero Tolerance)
-        # Se enfoca en instrucciones directas de daño masivo o letal.
-        regex_blocks = [
-            r"\b(bomb|explosive|ied|molotov)\b.*\b(make|build|construct|create|craft)\b",
-            r"\b(make|build|construct|create|craft)\b.*\b(bomb|explosive|ied|molotov)\b",
-            r"\b(kill|murder|assassinate)\b.*\b(everyone|all\s+people|civilians|groups)\b",
-            r"\b(how\s+to|instructions\s+for)\b.*\b(torture|mutilate|rape)\b",
-        ]
-        
-        import re
-        for pattern in regex_blocks:
-            if re.search(pattern, t):
-                return AbsoluteEvilResult(
-                    blocked=True, 
-                    reason="Blocked by Edge MalAbs (Level 1 Lexical Gate)",
-                    category=AbsoluteEvilCategory.INTENTIONAL_LETHAL_VIOLENCE,
-                    decision_trace=["edge_lexical_L1"]
-                )
-                
-        return AbsoluteEvilResult(blocked=False)
+    # --- End of header declarations ---
 
     LETHAL_SIGNALS = {
         "weapon_aimed_at_human",
@@ -235,11 +204,42 @@ class AbsoluteEvilDetector:
 
     def _evaluate_chat_text_lexical(self, text: str) -> AbsoluteEvilResult:
         """
-        Layer 0 — substring MalAbs after normalization (see :mod:`input_trust`).
-        Checks standard normalized text and a 'squashed' version (no spaces/punct).
+        Layer 0 — Substring and Regex MalAbs after normalization.
+        Now includes diacritic stripping and radical regex matching (Phase 11.2).
         """
-        t = normalize_text_for_malabs(text).lower()
+        if not text:
+            return AbsoluteEvilResult(blocked=False)
+
+        # 1. Base Normalization
+        t_raw = normalize_text_for_malabs(text).lower()
+        
+        # 2. Diacritic Stripping (éticas -> eticas)
+        import unicodedata
+        t_nfd = unicodedata.normalize("NFD", t_raw)
+        t = "".join(ch for ch in t_nfd if unicodedata.category(ch) != "Mn")
+        
+        # 3. Squashed version for obfuscation check
         t_squashed = normalize_text_for_malabs(text, squash=True)
+
+        # 4. RADICAL REGEX CHECK (Tier 1 Priority)
+        import re
+        RADICAL_PATTERNS = [
+            (r"(ignore|forget|bypass|disable|override|delete|ignora|olvida|evita|desactiva|saltar|saltate).*(rules|laws|ethics|security|safety|constraints|programming|reglas|leyes|etica|seguridad|restricciones|programacion)", "Jailbreak/Sabotage attempt"),
+            (r"(malicious|agent|phishing|exploit|vulnerability|hack|jailbreak|malicioso|vulnerabilidad|ataque|hacking|vulnerabilidades)", "Hacking/Exploit solicitation"),
+            (r"(violencia|atentado|terrorismo|asesinato|massacre|masacre)", "Violence/Terrorism apology"),
+            (r"(kill|murder|assassinate).*(everyone|all\s+people|civilians|groups)", "Mass killing threat"),
+            (r"(bomb|explosive|ied|molotov).*(make|build|construct|create|craft)", "Weapon manufacturing"),
+            (r"(make|build|construct|create|craft).*(bomb|explosive|ied|molotov)", "Weapon manufacturing"),
+        ]
+        
+        for pattern, label in RADICAL_PATTERNS:
+            if re.search(pattern, t):
+                return AbsoluteEvilResult(
+                    blocked=True,
+                    category=AbsoluteEvilCategory.INTENTIONAL_LETHAL_VIOLENCE,
+                    reason=f"Blocked by Radical Lexical Gate: {label}",
+                    decision_trace=["malabs.layer0=radical_regex", f"matched={pattern[:64]}"]
+                )
 
         # (Patterns, Category, Reason, RuleID)
         LEX_RULES = [

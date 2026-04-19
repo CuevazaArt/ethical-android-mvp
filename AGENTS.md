@@ -76,20 +76,20 @@ When L0 (Juan) assigns a task or you are deployed:
 2. **Execute Statelessly:** You don't need a name, UID, or color. Your identity is your execution. Write the solution.
 3. **Log the Work programmatically:** You must rely on `scripts/swarm_sync.py` to handle the logging and commits.
 
-### Phase 2: The 3 "Boy Scout" Laws of Vertical Hardening (Paranoid Security)
-While in the codebase, you MUST proactively execute the following core security principles without asking L0:
-1. **Harden-In-Place / Zero Trust:** Fill empty `try/except` blocks, add type hints, and ensure rigorous input sanitization and error durability around the code you touch.
-2. **Gap Closure:** If a referenced dependency or configuration within your zone is incomplete, complete it.
-3. **Incremental Depth:** Always err on the side of making the module more secure and robust, rather than just "functionally complete".
+### Fase 2: Las 3 "Leyes del Boy Scout" de Endurecimiento Vertical
+Durante cada intervención, DEBES ejecutar proactivamente los siguientes principios de seguridad:
+1. **Harden-In-Place / Zero Trust**: Llena bloques `try/except` vacíos, añade type hints y asegura un saneamiento de inputs riguroso.
+2. **Cierre de Brechas (Anti-NaN)**: Si tocas lógica matemática o de latencia, asegura que los resultados no puedan ser `NaN` o `Inf`. Añade `math.isfinite()` donde sea necesario.
+3. **Métricas de Latencia**: Todo nuevo loop o aferencia sensorial debe registrar su latencia en milisegundos (`time.perf_counter()`) para el lóbulo de telemetría.
 
-## L1 Escalation Protocol (Base Call)
+### Fase 3: Pulso de Auditoría Adversaria (L1-AUDIT-PULSE)
+Para mitigar el "Efecto Túnel", se establece la siguiente restricción:
+- **Regla del Tercer Bloque**: Cada vez que el `PLAN_WORK_DISTRIBUTION_TREE.md` registre 3 bloques terminados en el histórico, el siguiente agente EN PILOTO AUTOMÁTICO debe ignorar el backlog y ejecutar obligatoriamente: `python scripts/eval/adversarial_suite.py`. 
+- No se permiten nuevos avances hasta que los tests de seguridad pasen con 0 fallos.
 
-To maintain absolute architectural alignment and prevent inter-team collisions, all L2 units MUST adhere to the **L1 Supremacy Anchor**:
-
-1. **Invocation**: If L0 (Juan) commands "Consult Antigravity" or if technical ambiguity arises, the agent must PAUSE immediately.
-2. **Synchronization**: Perform a `git pull` from `main` and read the `CHANGELOG.md` entry for the latest **Antigravity-Team Update**.
-3. **Traceability**: If the doubt persists, the agent must register a `[L1_SUPPORT_REQUIRED]` block in their local log in `docs/changelogs_l2/`. 
-4. **Finality**: Antigravity's architectural proposals (`PROPOSAL_*.md`) in `docs/proposals/` take precedence over any individual agent's local logic or AI assumptions.
+### Fase 4: Registro Automatizado (Swarm Sync)
+- No uses mensajes genéricos en `--msg`. El mensaje debe listar los archivos modificados y el impacto arquitectónico.
+- El uso de `scripts/swarm_sync.py` es OBLIGATORIO al final de cada bloque atómico. No es un comentario decorativo; es la única forma de promover el código al funnel de integración L1.
 
 ## Protocolo Seguro y Ordenado de Fusión a Main (L0-STABILIZATION-01)
 

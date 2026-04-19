@@ -25,3 +25,8 @@ If this audit script fails:
 3. Repeat the audit until it passes.
 
 Any attempts to blindly bypass this script or alter its logic without L0/L1 authorization will be treated as an automated breach of governance.
+
+## 3. Pulso de Auditoría Adversaria (L1-AUDIT-PULSE)
+Cada 3 bloques atómicos cerrados en el `PLAN_WORK_DISTRIBUTION_TREE.md`, el sistema entra en estado de **Audit Freeze**.
+- El agente en curso debe ejecutar: `python scripts/eval/adversarial_suite.py`.
+- No se permite avanzar al siguiente bloque sin un reporte de 0 fallos de seguridad críticos (Red Teaming).

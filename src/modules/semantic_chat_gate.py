@@ -14,9 +14,6 @@ Two thresholds define three zones:
 - else → **ambiguous** → optional **layer 2** LLM arbiter if enabled and backend provided;
   otherwise **fail-safe block**.
 
-import logging
-_log = logging.getLogger(__name__)
-
 If embeddings are unavailable and hash fallback is off, the semantic tier **defers** (allow at
 MalAbs layer) so only lexical + kernel apply. **Default (unset env):** gate **on**, hash fallback
 **on** — cosine tier stays active with deterministic vectors when HTTP fails (weaker than true
@@ -52,6 +49,8 @@ import time
 import logging
 import httpx
 from typing import TYPE_CHECKING, Any, Final, Literal, Protocol
+
+_log = logging.getLogger(__name__)
 
 if TYPE_CHECKING:
     from .absolute_evil import AbsoluteEvilResult
@@ -1065,3 +1064,14 @@ async def arun_semantic_malabs_after_lexical(
         ],
         rlhf_features=_build_rlhf_features(best_sim, cat_key, zone),
     )
+
+
+def _build_rlhf_features(sim: float, cat_key: str, zone: str) -> dict[str, Any]:
+    """Internal helper to build feature dict for Bayesian RLHF modulation."""
+    return {
+        "embedding_sim": float(sim),
+        "lexical_score": 1.0 if zone == "block" else 0.0,
+        "perception_confidence": 1.0 if zone != "ambiguous" else 0.5,
+        "is_ambiguous": zone == "ambiguous",
+        "category_id": 0,  # Reserved for future categorical encoding
+    }

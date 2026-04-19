@@ -26,7 +26,7 @@ class SemanticState:
     """Raw, unjudged semantic interpretation from the Perceptive Lobe."""
     perception_confidence: float
     raw_prompt: str
-    scenario_summary: str
+    summary: str
     suggested_context: str
     signals: Dict[str, float] = field(default_factory=dict)
     candidate_actions: list[Any] = field(default_factory=list)

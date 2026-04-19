@@ -75,13 +75,24 @@ async def run_perception_pipeline(
     
     stage, mal_semantic = await asyncio.gather(perception_task, mal_semantic_task)
     
-    # 3. RLHF Bayesian Modulation
+    # 3. RLHF & Somatic Latency Bayesian Modulation
+    from ..modules.nomad_bridge import get_nomad_bridge
+    bridge = get_nomad_bridge()
+    latency = bridge.vessel_metadata.get("latency_ms", 0)
+    
+    if sensor_snapshot:
+        sensor_snapshot.vessel_latency = float(latency)
+
     if kernel.rlhf.reward_model.is_trained and mal_semantic.rlhf_features:
         try:
+            from ..modules.rlhf_reward_model import FeatureVector
             fv = FeatureVector.from_dict(mal_semantic.rlhf_features)
             score, conf = kernel.rlhf.reward_model.predict(fv)
             kernel.bayesian.apply_rlhf_modulation(score, conf)
         except Exception as _rlhf_err:
             _log.warning("perception_handler: RLHF modulation failed: %s", _rlhf_err)
+
+    if latency > 0:
+        kernel.bayesian.apply_somatic_latency_penalty(float(latency))
 
     return stage, mal_semantic, _thal

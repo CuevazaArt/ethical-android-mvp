@@ -117,7 +117,7 @@ class PerceptiveLobe:
             return SemanticState(
                 perception_confidence=0.0,
                 raw_prompt=raw_input,
-                scenario_summary="Perception timeout",
+                summary="Perception timeout",
                 suggested_context="emergency",
                 sensory_latency_lag=latency,
                 timeout_trauma=TimeoutTrauma(
@@ -133,7 +133,7 @@ class PerceptiveLobe:
             return SemanticState(
                 perception_confidence=0.1,
                 raw_prompt=raw_input,
-                scenario_summary="Perception error",
+                summary="Perception error",
                 suggested_context="everyday",
                 sensory_latency_lag=latency,
                 timeout_trauma=TimeoutTrauma(
@@ -316,7 +316,7 @@ class PerceptiveLobe:
         return SemanticState(
             perception_confidence=confidence,
             raw_prompt=raw_input,
-            scenario_summary=response_text[:200],  # Use first chars as summary
+            summary=response_text[:200],  # Use first chars as summary
             suggested_context="everyday",
             visual_entities=entities,
             audio_sentiment=sentiment,

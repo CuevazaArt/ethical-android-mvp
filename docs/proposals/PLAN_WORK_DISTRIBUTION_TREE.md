@@ -20,6 +20,9 @@ Aquí es donde los agentes de ejecución (LLMs en IDEs) reclaman sus tareas.
 **Bloque 9.1: Daemon de Visión Continua (CNN/Webcam) [DONE]**
 - Tarea 9.1.1: Modificar `VisionInferenceEngine` para crear un stream en background que clasifique entidades a 5Hz utilizando pre-procesamiento asíncrono.
 
+**Bloque S.2: Automatización de Wiki-Sync vía GitHub Actions [PENDING]**
+- Tarea S.2.1: Implementar un Workflow de GitHub Actions que sincronice proactivamente archivos de `docs/*` hacia el repositorio Wiki del proyecto. Configurar disparadores en cada `push` a las ramas de integración para mantener la transparencia pública total.
+
 **Bloque 8.1: Linter Continuo y Hardening Vertical [DONE]**
 - Tarea 8.1.1: Auditar `docstrings` y `type hints` en las divisiones de `src/kernel.py` y `src/kernel_lobes/`. Introducir `try/except` donde fallen por variables nulas. 
 

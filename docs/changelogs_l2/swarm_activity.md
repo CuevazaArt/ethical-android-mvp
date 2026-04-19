@@ -49,3 +49,23 @@ This file is automatically managed by `scripts/swarm_sync.py`.
   - `src/modules/nomad_bridge.py`
   - `src/modules/semantic_chat_gate.py`
   - `src/modules/semantic_embedding_client.py`
+
+### 🛠️ Execution | Date: 2026-04-19 14:01:16 | Author: Antigravity
+- **Block:** `C.1`
+- **Message:** Hardening MalAbs L1: Radical Regex + Diacritic Stripping + 100% Adversarial Pass; Core cleaned.
+- **Files Modified:**
+  - `.cursor/rules/02-autonomous-git.mdc`
+  - `.cursor/rules/l1-supremacy-and-audit.mdc`
+  - `AGENTS.md`
+  - `docs/proposals/PLAN_WORK_DISTRIBUTION_TREE.md`
+  - `scripts/eval/adversarial_suite.py`
+  - `src/MANIFEST.json`
+  - `src/kernel.py`
+  - `src/kernel_handlers/perception.py`
+  - `src/kernel_lobes/models.py`
+  - `src/kernel_lobes/perception_lobe.py`
+  - `src/modules/absolute_evil.py`
+  - `src/modules/bayesian_engine.py`
+  - `src/modules/precedent_rag.py`
+  - `src/modules/semantic_chat_gate.py`
+  - `src/modules/sensor_contracts.py`

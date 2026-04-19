@@ -1330,13 +1330,19 @@ class EthicalKernel:
             ),
         ]
 
-    def _chat_is_heavy(self, perception: LLMPerception) -> bool:
+    def _chat_is_heavy(self, perception: Any) -> bool:
         """Use scenario-scale actions + narrative episode when stakes are high."""
-        if perception.risk >= 0.5:
+        # Fix for SemanticState vs LLMPerception compatibility
+        sig = getattr(perception, "signals", {})
+        risk = sig.get("risk", getattr(perception, "risk", 0.0))
+        manip = sig.get("manipulation", getattr(perception, "manipulation", 0.0))
+        urgency = sig.get("urgency", getattr(perception, "urgency", 0.0))
+
+        if risk >= 0.5:
             return True
-        if perception.manipulation >= 0.6:
+        if manip >= 0.6:
             return True
-        if perception.urgency >= 0.75 and perception.risk >= 0.25:
+        if urgency >= 0.75 and risk >= 0.25:
             return True
         if perception.suggested_context in (
             "violent_crime",
@@ -1391,7 +1397,6 @@ class EthicalKernel:
         """
         Real-time dialogue stream: yields intermediate events as they occur.
         """
-        _log.info(f"DEBUG: process_chat_turn_stream started for {user_input[:20]}")
         wm = self.working_memory
         turn_start_mono = time.monotonic()
         set_llm_cancel_scope(cancel_event)
@@ -1411,7 +1416,15 @@ class EthicalKernel:
             
             if mal_edge.blocked:
                 self._last_chat_malabs = mal_edge
-                vitality_blk, mm_blk, ed_blk = self.perceptive_lobe._chat_assess_sensor_stack(sensor_snapshot)
+                from src.modules.vitality import assess_vitality
+                from src.modules.multimodal_trust import evaluate_multimodal_trust
+                from src.modules.epistemic_dissonance import assess_epistemic_dissonance
+                from src.modules.perception_confidence import build_perception_confidence_envelope
+                
+                vitality_blk = assess_vitality(sensor_snapshot)
+                mm_blk = evaluate_multimodal_trust(sensor_snapshot)
+                ed_blk = assess_epistemic_dissonance(sensor_snapshot, multimodal=mm_blk)
+                
                 confidence_blk = build_perception_confidence_envelope(
                     coercion_report=None,
                     multimodal_state=getattr(mm_blk, "state", None),
@@ -1465,13 +1478,13 @@ class EthicalKernel:
                 "event_type": "perception_finished", 
                 "payload": {
                     "perception": {
-                        "risk": p.risk,
-                        "urgency": p.urgency,
-                        "hostility": p.hostility,
-                        "calm": p.calm,
-                        "manipulation": p.manipulation,
+                        "risk": p.signals.get("risk", 0.0),
+                        "urgency": p.signals.get("urgency", 0.0),
+                        "hostility": p.signals.get("hostility", 0.0),
+                        "calm": p.signals.get("calm", 0.0),
+                        "manipulation": p.signals.get("manipulation", 0.0),
                         "suggested_context": p.suggested_context,
-                        "summary": p.scenario_summary,
+                        "summary": p.summary,
                     }
                 }
             }
@@ -1767,7 +1780,7 @@ class EthicalKernel:
 
         try:
             decision = await self.aprocess(
-                scenario=perception.scenario_summary or user_input[:240],
+                scenario=perception.summary or user_input[:240],
                 place=place,
                 signals=signals,
                 context=eth_context,
@@ -2062,7 +2075,7 @@ class EthicalKernel:
         if isinstance(cr, dict):
             pu = cr.get("uncertainty")
         decision = await self.aprocess(
-            scenario=perception.scenario_summary,
+            scenario=perception.summary,
             place="detected by sensors",
             signals=signals,
             context=perception.suggested_context,

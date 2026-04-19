@@ -17,7 +17,7 @@ from typing import Any
 @dataclass
 class Precedent:
     precedent_id: str
-    scenario_summary: str
+    summary: str
     action_taken: str
     ethical_outcome: float  # [0, 1] 1=High Praise, 0=Sanction/Failure
     lessons_learned: str
@@ -37,7 +37,7 @@ class PrecedentRAG:
         p_id = hashlib.sha256(f"{scenario}{time.time()}".encode()).hexdigest()[:12]
         new_p = Precedent(
             precedent_id=p_id,
-            scenario_summary=scenario,
+            summary=scenario,
             action_taken=action,
             ethical_outcome=outcome,
             lessons_learned=lesson,
@@ -64,7 +64,7 @@ class PrecedentRAG:
         if len(matches) < 3:
             for p in self.index:
                 if p in matches: continue
-                p_text = (p.scenario_summary + " " + p.lessons_learned).lower()
+                p_text = (p.summary + " " + p.lessons_learned).lower()
                 if any(k in p_text for k in keywords if len(k) > 3):
                     matches.append(p)
                 if len(matches) >= 4: break
