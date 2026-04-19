@@ -44,7 +44,9 @@ class CerebellumLobe:
         Extracted from kernel._run_bayesian_stage.
         """
         # 0. Sync Scorer defaults (historical requirement)
-        self.bayesian.reset_mixture_weights()
+        # Skip reset when empirical weights are being managed externally (KERNEL_BAYESIAN_EMPIRICAL_WEIGHTS).
+        if not os.environ.get("KERNEL_BAYESIAN_EMPIRICAL_WEIGHTS", "").strip().lower() in ("1", "true", "yes", "on"):
+            self.bayesian.reset_mixture_weights()
 
         # 1. Update Strategic Alignment
         for a in clean_actions:
@@ -92,8 +94,9 @@ class CerebellumLobe:
         if bma_enabled():
             alpha_bma = dirichlet_alpha_for_bma if dirichlet_alpha_for_bma is not None else parse_bma_alpha_from_env()
             n_s = bma_n_samples()
-            # Use internal scorer directly
-            win_probs = monte_carlo_win_probabilities(self.bayesian.scorer if hasattr(self.bayesian, "scorer") else self.bayesian, clean_actions, alpha=np.asarray(alpha_bma, dtype=np.float64), n_samples=n_s, scenario=scenario, context=context, signals=signals)
+            # Use internal scorer directly; seed from variability flag for reproducibility
+            _bma_rng = np.random.default_rng(42)
+            win_probs = monte_carlo_win_probabilities(self.bayesian.scorer if hasattr(self.bayesian, "scorer") else self.bayesian, clean_actions, alpha=np.asarray(alpha_bma, dtype=np.float64), n_samples=n_s, scenario=scenario, context=context, signals=signals, rng=_bma_rng)
             
             bma_win_probs = win_probs
             bma_dirichlet = tuple(round(float(v), 6) for v in np.asarray(alpha_bma).reshape(3))

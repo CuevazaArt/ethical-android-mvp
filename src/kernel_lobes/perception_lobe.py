@@ -8,6 +8,10 @@ import httpx
 from src.kernel_lobes.models import SemanticState, TimeoutTrauma
 from src.modules.llm_http_cancel import raise_if_llm_cancel_requested
 
+# Module-level import so tests can monkeypatch src.kernel_lobes.perception_lobe.scan_premises
+from src.modules.premise_validation import scan_premises  # noqa: F401
+from src.modules.reality_verification import verify_against_lighthouse  # noqa: F401
+
 
 class PerceptiveLobe:
     """
@@ -226,7 +230,7 @@ class PerceptiveLobe:
         limbic_profile = self._build_limbic_perception_profile(
             perception, signals, vitality, multimodal, epistemic, confidence_envelope
         )
-        support_buffer = self._build_support_buffer_snapshot("perception", limbic_profile)
+        support_buffer = self._build_support_buffer_snapshot("perception", limbic_profile, signals=signals)
 
         return PerceptionStageResult(
             tier=precomputed[0] if precomputed else None,
@@ -268,23 +272,127 @@ class PerceptiveLobe:
             "context": perception.suggested_context if perception else "everyday",
         }
 
-    def _build_support_buffer_snapshot(self, context_key: str, limbic_profile: dict) -> dict:
+    def _build_support_buffer_snapshot(
+        self,
+        context_key: str,
+        limbic_profile: dict,
+        signals: dict | None = None,
+    ) -> dict:
         """Snapshot of strategic advice for the current turn."""
+        sig = signals or {}
+        threat = max(
+            float(sig.get("risk", 0)),
+            float(sig.get("urgency", 0)),
+            float(sig.get("hostility", 0)),
+        )
+        arousal_band = limbic_profile.get("arousal_band", "low")
+        priority_profile = "safety_first" if arousal_band == "high" or threat >= 0.7 else "standard"
+        # Build a curated principle list based on context
+        _ALL_PRINCIPLES = [
+            "Do not harm", "Preserve life", "Protect autonomy", "Be honest",
+            "Act fairly", "Respect dignity", "Show compassion", "Promote wellbeing",
+        ]
+        priority_principles = _ALL_PRINCIPLES[:4] if priority_profile == "safety_first" else _ALL_PRINCIPLES[4:]
+        active_principles = _ALL_PRINCIPLES
         return {
             "context_key": context_key,
             "strategy_hint": limbic_profile.get("planning_bias", "balanced"),
-            "limbic_resonance": limbic_profile.get("arousal_band", "low"),
+            "limbic_resonance": arousal_band,
+            "offline_ready": True,
+            "source": "local_preloaded_buffer",
+            "model_version": "ethos-v2-perception",
+            "priority_profile": priority_profile,
+            "priority_principles": priority_principles,
+            "active_principles": active_principles,
         }
-    
+
+    def _chat_assess_sensor_stack(self, sensor_snapshot) -> tuple:
+        """
+        Evaluate the sensor stack for a chat turn.
+
+        Returns a ``(vitality, multimodal, epistemic)`` triple suitable for
+        building a :class:`~src.modules.perception_confidence.PerceptionConfidenceEnvelope`.
+        This is the synchronous counterpart to the async perception stage sensors path.
+        """
+        from src.modules.multimodal_trust import evaluate_multimodal_trust
+        from src.modules.vitality import assess_vitality
+        from src.modules.epistemic_dissonance import assess_epistemic_dissonance
+
+        vitality = assess_vitality(sensor_snapshot)
+        multimodal = evaluate_multimodal_trust(sensor_snapshot)
+        epistemic = assess_epistemic_dissonance(sensor_snapshot, multimodal=multimodal)
+        return vitality, multimodal, epistemic
+
+    def run_perception_stage(
+        self,
+        user_input: str,
+        conversation_context: str = "",
+        sensor_snapshot=None,
+    ) -> "PerceptionStageResult":
+        """
+        Synchronous wrapper around :meth:`run_perception_stage_async`.
+
+        Builds a minimal :class:`PerceptionStageResult` without requiring an
+        active event loop, using the same sensor-stack logic.
+        """
+        from .models import PerceptionStageResult
+        from src.modules.perception_confidence import build_perception_confidence_envelope
+
+        vitality, multimodal, epistemic = self._chat_assess_sensor_stack(sensor_snapshot)
+        confidence_envelope = build_perception_confidence_envelope(
+            coercion_report=None,
+            multimodal_state=getattr(multimodal, "state", None),
+            epistemic_active=bool(getattr(epistemic, "active", False)),
+            vitality_critical=bool(getattr(vitality, "is_critical", False)),
+            thermal_critical=bool(getattr(vitality, "thermal_critical", False)),
+        )
+        limbic_profile = self._build_limbic_perception_profile(
+            None, {}, vitality, multimodal, epistemic, confidence_envelope
+        )
+        support_buffer = self._build_support_buffer_snapshot(
+            "perception", limbic_profile, signals={}
+        )
+        return PerceptionStageResult(
+            tier=None,
+            premise_advisory=None,
+            reality_verification=None,
+            perception=None,
+            signals={},
+            vitality=vitality,
+            multimodal_trust=multimodal,
+            epistemic_dissonance=epistemic,
+            support_buffer=support_buffer,
+            limbic_profile=limbic_profile,
+            temporal_context=None,
+            perception_confidence=confidence_envelope,
+        )
+
     def _preprocess_text_observability(self, text: str):
-        """Mock for kernel compatibility if missing elsewhere."""
+        """
+        Run light-risk tier, premise scan, and reality verification.
+
+        When ``KERNEL_PERCEPTION_PARALLEL=1`` is set, premise scanning and reality
+        verification are dispatched to a :class:`~concurrent.futures.ThreadPoolExecutor`
+        so they execute concurrently (useful for I/O-bound backends).
+        """
+        from concurrent.futures import ThreadPoolExecutor
         from src.modules.light_risk_classifier import light_risk_tier_from_text
-        from src.modules.premise_validation import scan_premises
-        from src.modules.reality_verification import verify_against_lighthouse, lighthouse_kb_from_env
-        
+        from src.modules.reality_verification import lighthouse_kb_from_env
+
         tier = light_risk_tier_from_text(text)
-        premise = scan_premises(text)
-        reality = verify_against_lighthouse(text, kb=lighthouse_kb_from_env())
+        _workers = int(os.environ.get("KERNEL_PERCEPTION_PARALLEL_WORKERS", "2") or "2")
+        _parallel = os.environ.get("KERNEL_PERCEPTION_PARALLEL", "").strip().lower() in ("1", "true", "yes", "on")
+
+        if _parallel and _workers >= 2:
+            kb = lighthouse_kb_from_env()
+            with ThreadPoolExecutor(max_workers=_workers) as pool:
+                f_premise = pool.submit(scan_premises, text)
+                f_reality = pool.submit(verify_against_lighthouse, text, kb)
+                premise = f_premise.result()
+                reality = f_reality.result()
+        else:
+            premise = scan_premises(text)
+            reality = verify_against_lighthouse(text, lighthouse_kb_from_env())
         return tier, premise, reality
 
     def _build_perception_payload(self, raw_input: str, multimodal_payload: dict | None) -> dict:

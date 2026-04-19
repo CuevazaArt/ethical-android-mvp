@@ -142,6 +142,7 @@ from .modules.judicial_escalation import (
 from .modules.kernel_event_bus import (
     EVENT_GOVERNANCE_THRESHOLD_UPDATED,
     EVENT_KERNEL_DECISION,
+    EVENT_KERNEL_EPISODE_REGISTERED,
     KernelEventBus,
     kernel_event_bus_enabled,
 )
@@ -899,6 +900,10 @@ class EthicalKernel:
             return d
 
         # ═══ STAGE 0: PERCEPTION & SAFETY ═══
+        # Ingest any mission payloads from the sensor snapshot before processing.
+        if sensor_snapshot is not None and hasattr(self, "strategist") and self.strategist is not None:
+            self.strategist.ingest_sensors(sensor_snapshot)
+
         p_res = await self.perceptive_lobe.execute_stage(
             scenario, place, context, sensor_snapshot, 
             interrupt_event=self.hardware_interrupt_event
@@ -951,10 +956,24 @@ class EthicalKernel:
         self._raise_if_chat_turn_cooperative_abort()
 
         # ═══ STAGE 5: EPISODIC & DAO ═══
-        episode_id = await self.memory_lobe.execute_episodic_stage_async(
-            scenario, place, context, signals, state, social_eval,
-            bayes_result, moral, final_action, final_mode, affect
-        )
+        episode_id = None
+        if register_episode:
+            episode_id = await self.memory_lobe.execute_episodic_stage_async(
+                scenario, place, context, signals, state, social_eval,
+                bayes_result, moral, final_action, final_mode, affect
+            )
+
+        # Emit episode event when registered
+        if register_episode and episode_id and self.event_bus is not None:
+            self.event_bus.publish(
+                EVENT_KERNEL_EPISODE_REGISTERED,
+                {
+                    "episode_id": episode_id,
+                    "scenario": scenario,
+                    "context": context,
+                    "final_action": final_action,
+                },
+            )
 
         d = KernelDecision(
             scenario=scenario, place=place, absolute_evil=AbsoluteEvilResult(blocked=False),
@@ -976,6 +995,7 @@ class EthicalKernel:
         
         # ════ D1: BIOGRAPHIC REGISTRATION ════
         if register_episode:
+             self._last_registered_episode_id = episode_id
              impact = d.bayesian_result.expected_impact if d.bayesian_result else 0.0
              self.memory_lobe.register_biographic_impact(impact)
              
@@ -1060,6 +1080,11 @@ class EthicalKernel:
             from src.modules.identity_reflection import IdentityReflector
             reflector = IdentityReflector(self.memory_lobe.memory)
             identity_deltas = reflector.threshold_context()
+
+        # Episodic weight nudge: when KERNEL_BAYESIAN_EMPIRICAL_WEIGHTS is set,
+        # refresh hypothesis weights from episodes in the current context before scoring.
+        if _kernel_env_truthy("KERNEL_BAYESIAN_EMPIRICAL_WEIGHTS") and hasattr(self, "memory"):
+            self.bayesian.refresh_weights_from_episodic_memory(self.memory, context)
 
         bayes_result, meta = self.cerebellum_lobe.execute_bayesian_stage(
             clean_actions, scenario, context, signals, 
@@ -1648,12 +1673,12 @@ class EthicalKernel:
             )
             self._snapshot_feedback_anchor("safety_block")
             limbic_blk = self.perceptive_lobe._build_limbic_perception_profile(
-                perception=None,
-                signals=None,
-                vitality=vitality_blk,
-                multimodal=mm_blk,
-                epistemic=ed_blk,
-                confidence_envelope=confidence_blk,
+                None,
+                None,
+                vitality_blk,
+                mm_blk,
+                ed_blk,
+                confidence_blk,
             )
             self._release_chat_turn_id(chat_turn_id)
             return ChatTurnResult(
@@ -1736,7 +1761,7 @@ class EthicalKernel:
         mm = stage.multimodal_trust
         ed = stage.epistemic_dissonance
         signals = stage.signals
-        heavy = self._chat_is_heavy(perception)
+        heavy = self._chat_is_heavy(perception) or (stage.tier == "high")
         eth_context = perception.suggested_context if heavy else "everyday"
 
         actions = self._actions_for_chat(perception, heavy)

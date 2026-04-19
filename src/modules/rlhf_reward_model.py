@@ -289,6 +289,15 @@ class RLHFPipeline:
                     continue
         return examples
 
+    def subscribe_to_bus(self, bus: Any) -> None:
+        """
+        Wire RLHF pipeline into the kernel event bus (optional integration hook).
+
+        Allows RLHF to receive decision and episode events for online learning.
+        This is a no-op stub; the bus integration is advisory-only and does not
+        change reward-model training or inference behaviour.
+        """
+
 
 def is_rlhf_enabled() -> bool:
     """Check if RLHF is enabled."""
