@@ -34,7 +34,9 @@ class CerebellumLobe:
         clean_actions: list[CandidateAction],
         scenario: str,
         context: str,
-        signals: dict[str, Any]
+        signals: dict[str, Any],
+        identity_deltas: Any = None,
+        rlhf_features: Any = None
     ) -> Tuple[EthicsMixtureResult, BayesianStageMetadata]:
         """
         Run Bayesian scoring and BMA.
@@ -75,7 +77,9 @@ class CerebellumLobe:
             actions=clean_actions, 
             scenario=scenario, 
             context=context, 
-            signals=signals
+            signals=signals,
+            identity_deltas=identity_deltas,
+            rlhf_features=rlhf_features
         )
 
         # 4. BMA (Bayesian Mixture Averaging)

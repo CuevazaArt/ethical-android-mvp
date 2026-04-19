@@ -33,6 +33,7 @@ class PerceptiveLobe:
     ):
         self._timeout = self._get_perception_timeout()
         self._llm_endpoint = os.environ.get("KERNEL_PERCEPTION_LLM_ENDPOINT", "http://localhost:11434/api/generate")
+        self._process_start_mono = time.monotonic()
         self.safety_interlock = safety_interlock
         self.strategist = strategist
         self.llm = llm
@@ -125,6 +126,34 @@ class PerceptiveLobe:
                 )
             )
 
+    async def execute_stage(self, scenario, place, context, sensor_snapshot, interrupt_event=None) -> dict:
+        """
+        Legacy adapter for EthicalKernel.aprocess (Synchronous-API fallback).
+        Wraps run_perception_stage_async and returns a dictionary.
+        """
+        # We treat 'scenario' as the primary user input in this legacy path
+        stage = await self.run_perception_stage_async(
+            user_input=scenario,
+            conversation_context=context,
+            sensor_snapshot=sensor_snapshot
+        )
+        
+        # Check for somatic interrupts (thermal or hardware events)
+        somatic_interrupted = False
+        if interrupt_event and interrupt_event.is_set():
+            somatic_interrupted = True
+        
+        return {
+            "somatic_interrupt": somatic_interrupted,
+            "safety_decision": stage.malabs_result,
+            "perception": stage.perception,
+            "signals": stage.signals,
+            "vitality": stage.vitality,
+            "multimodal_trust": stage.multimodal_trust,
+            "epistemic_dissonance": stage.epistemic_dissonance,
+            "perception_confidence": stage.perception_confidence,
+        }
+
     async def run_perception_stage_async(
         self,
         user_input: str,
@@ -142,6 +171,7 @@ class PerceptiveLobe:
         from src.modules.multimodal_trust import evaluate_multimodal_trust
         from src.modules.vitality import assess_vitality
         from src.modules.epistemic_dissonance import assess_epistemic_dissonance
+        from src.modules.temporal_planning import build_temporal_context
 
         # 1. Sensors & Multimodal
         vitality = assess_vitality(sensor_snapshot)
@@ -160,7 +190,19 @@ class PerceptiveLobe:
             thermal_critical=vitality.thermal_critical if vitality else False,
         )
 
-        # 4. Building Results
+        # 4. Temporal Context
+        temporal = build_temporal_context(
+            turn_index=0, # Simplified for peripheral call
+            process_start_mono=self._process_start_mono,
+            turn_start_mono=turn_start_mono or time.monotonic(),
+            subjective_elapsed_s=0.0,
+            context=conversation_context,
+            text=user_input,
+            vitality=vitality,
+            sensor_snapshot=sensor_snapshot
+        )
+
+        # 5. Building Results
         signals = perception.to_core_signals() if hasattr(perception, "to_core_signals") else {}
         limbic_profile = self._build_limbic_perception_profile(
             perception, signals, vitality, multimodal, epistemic, confidence_envelope
@@ -178,7 +220,7 @@ class PerceptiveLobe:
             epistemic_dissonance=epistemic,
             support_buffer=support_buffer,
             limbic_profile=limbic_profile,
-            temporal_context=None, # To be filled by kernel if needed
+            temporal_context=temporal,
             perception_confidence=confidence_envelope,
         )
 
@@ -255,6 +297,8 @@ class PerceptiveLobe:
         return SemanticState(
             perception_confidence=confidence,
             raw_prompt=raw_input,
+            scenario_summary=response_text[:200],  # Use first chars as summary
+            suggested_context="everyday",
             visual_entities=entities,
             audio_sentiment=sentiment,
             sensory_latency_lag=0  # Will be overwritten by caller
