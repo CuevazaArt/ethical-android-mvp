@@ -49,7 +49,7 @@ async def run_perception_pipeline(
 
     # 2. Parallel Perception & Layer 2 MalAbs (Semantic)
     # ACL: Adaptive Cognitive Load - Skip semantic gate if thermal stress is high
-    temp = sensor_snapshot.core_temperature if sensor_snapshot else 0.0
+    temp = sensor_snapshot.core_temperature if (sensor_snapshot and sensor_snapshot.core_temperature is not None) else 0.0
     is_thermal_crisis = (temp > 85.0)
 
     perception_task = kernel.perceptive_lobe.run_perception_stage_async(

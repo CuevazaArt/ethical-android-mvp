@@ -288,21 +288,11 @@ class OllamaLLMBackend(LLMBackend):
         if t is not None:
             payload["options"] = {"temperature": float(t)}
 
-        # Try async path if event loop is running; fallback to sync httpx.Client
-        if _is_event_loop_running():
-            try:
-                data = asyncio.run(_async_post_with_cancel(url, payload, self._timeout))
-            except RuntimeError:
-                # Can't use asyncio.run in thread with event loop; fallback to sync
-                with httpx.Client(timeout=self._timeout) as client:
-                    r = client.post(url, json=payload)
-                    r.raise_for_status()
-                    data = r.json()
-        else:
-            with httpx.Client(timeout=self._timeout) as client:
-                r = client.post(url, json=payload)
-                r.raise_for_status()
-                data = r.json()
+        # Use sync httpx.Client for synchronous completion
+        with httpx.Client(timeout=self._timeout) as client:
+            r = client.post(url, json=payload)
+            r.raise_for_status()
+            data = r.json()
         msg = data.get("message") or {}
         return (msg.get("content") or "").strip()
 
@@ -392,21 +382,11 @@ class OllamaLLMBackend(LLMBackend):
         url = f"{self._base}/api/embeddings"
         payload = {"model": self._embed_model, "prompt": text}
         try:
-            # Try async path if event loop is running; fallback to sync
-            if _is_event_loop_running():
-                try:
-                    data = asyncio.run(_async_post_with_cancel(url, payload, self._embed_timeout))
-                except RuntimeError:
-                    # Can't use asyncio.run in thread with event loop; fallback to sync
-                    with httpx.Client(timeout=self._embed_timeout) as client:
-                        r = client.post(url, json=payload)
-                        r.raise_for_status()
-                        data = r.json()
-            else:
-                with httpx.Client(timeout=self._embed_timeout) as client:
-                    r = client.post(url, json=payload)
-                    r.raise_for_status()
-                    data = r.json()
+            # Use sync httpx.Client for synchronous embedding
+            with httpx.Client(timeout=self._embed_timeout) as client:
+                r = client.post(url, json=payload)
+                r.raise_for_status()
+                data = r.json()
         except Exception:
             return None
         emb = data.get("embedding")
@@ -473,29 +453,15 @@ class HttpJsonLLMBackend(LLMBackend):
         raise_if_llm_cancel_requested()
         payload = {"system": system, "user": user}
 
-        # Try async path if event loop is running; fallback to sync httpx.Client
-        if _is_event_loop_running():
-            try:
-                data = asyncio.run(_async_post_with_cancel(self._url, payload, self._timeout, self._headers))
-            except RuntimeError:
-                # Can't use asyncio.run in thread with event loop; fallback to sync
-                with httpx.Client(timeout=self._timeout) as client:
-                    r = client.post(
-                        self._url,
-                        json=payload,
-                        headers=self._headers,
-                    )
-                    r.raise_for_status()
-                    data = r.json()
-        else:
-            with httpx.Client(timeout=self._timeout) as client:
-                r = client.post(
-                    self._url,
-                    json=payload,
-                    headers=self._headers,
-                )
-                r.raise_for_status()
-                data = r.json()
+        # Use sync httpx.Client for synchronous completion
+        with httpx.Client(timeout=self._timeout) as client:
+            r = client.post(
+                self._url,
+                json=payload,
+                headers=self._headers,
+            )
+            r.raise_for_status()
+            data = r.json()
         return str(data.get(self._key) or "").strip()
 
     async def acompletion(self, system: str, user: str, **kwargs: Any) -> str:

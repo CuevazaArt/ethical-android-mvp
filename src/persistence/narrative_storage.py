@@ -92,6 +92,12 @@ def _ensure_schema(conn: sqlite3.Connection) -> None:
     except sqlite3.OperationalError:
         pass  # Already exists
 
+    # Phase 13+: Add semantic_embedding to chronicles if missing
+    try:
+        conn.execute("ALTER TABLE narrative_chronicles ADD COLUMN semantic_embedding BLOB")
+    except sqlite3.OperationalError:
+        pass  # Already exists
+
 
 class NarrativePersistence:
     """

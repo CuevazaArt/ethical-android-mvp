@@ -42,29 +42,46 @@ class VisionInferenceEngine:
         Simulates CNN inference on image metadata.
         In a real deployment, this receives a frame and returns bounding boxes/labels.
         """
-        if not image_metadata:
+        if not image_metadata or not isinstance(image_metadata, dict):
             return []
 
         detections = []
-        raw_detections = image_metadata.get("detected_objects", [])
-        
-        for d in raw_detections:
-            label = d.get("label", "unknown").lower()
-            conf = d.get("confidence", 0.0)
+        try:
+            raw_detections = image_metadata.get("detected_objects", [])
+            if not isinstance(raw_detections, list):
+                _log.warning("Vision Inference: 'detected_objects' is not a list. Skipping.")
+                return []
             
-            is_bad = any(p in label for p in self.prohibited_labels)
-            
-            detections.append(VisionDetection(
-                label=label,
-                confidence=conf,
-                is_prohibited=is_bad,
-                metadata=d
-            ))
-            
-            if is_bad and conf > 0.75:
-                _log.warning("PROHIBITED OBJECT DETECTED: %s (conf: %.2f)", label, conf)
+            for d in raw_detections:
+                if not isinstance(d, dict): continue
+                
+                label = str(d.get("label", "unknown")).lower()
+                conf = float(d.get("confidence", 0.0))
+                
+                is_bad = any(p in label for p in self.prohibited_labels)
+                
+                detections.append(VisionDetection(
+                    label=label,
+                    confidence=conf,
+                    is_prohibited=is_bad,
+                    metadata=d
+                ))
+                
+                if is_bad and conf > 0.75:
+                    _log.warning("PROHIBITED OBJECT DETECTED: %s (conf: %.2f)", label, conf)
+        except Exception as e:
+            _log.error("Vision Inference: Critical failure during analysis stage: %s", e)
         
         return detections
+
+    async def async_analyze(self, image_metadata: dict[str, Any] | None) -> list[VisionDetection]:
+        """
+        Asynchronous entry point for vision inference.
+        Enables non-blocking integration with the perception lobe.
+        """
+        # Run sync analysis in a threadpool to keep the event loop free
+        import asyncio
+        return await asyncio.to_thread(self.analyze_image, image_metadata)
 
     def get_highest_threat(self, detections: list[VisionDetection]) -> VisionDetection | None:
         """Returns the most confident prohibited detection."""
@@ -102,67 +119,76 @@ class VisionContinuousDaemon:
         _log.info("VisionContinuousDaemon: Background streaming stopped.")
 
     def _daemon_loop(self):
-        """Loop de captura e inferencia continua consumiendo del Nomad Bridge."""
+        """Loop de captura e inferencia continua consumiendo del Nomad Bridge o Cámara Local."""
         from src.modules.nomad_bridge import get_nomad_bridge
-        bridge = get_nomad_bridge()
+        from src.modules.vision_capture import from_env_vision_capture
         
-        _log.info("VisionContinuousDaemon: Loop entered. Waiting for frames from Nomad Bridge...")
+        bridge = get_nomad_bridge()
+        local_cam = from_env_vision_capture()
+        local_cam.start()
+
+        _log.info("VisionContinuousDaemon: Loop entered. Monitoring Nomad + Local Camera.")
         
         while self.running:
             start_tick = time.perf_counter()
             
             try:
-                # 1. Obtener frame del puente (bloqueo corto para no congelar stop)
-                # El bridge llena la cola desde el WebSocket del smartphone
                 frame_data = None
-                try:
-                    # Esperar un poco por un frame
-                    import asyncio
-                    # Nota: estamos en un thread, no en un event loop de asyncio. 
-                    # Pero la cola del bridge es asyncio.Queue. 
-                    # Necesitamos acceder a la cola de forma segura desde el thread.
-                    # El bridge usa asyncio.Queue que es para threads si se usa correctamente, 
-                    # pero aquí lo ideal es usar un mecanismo thread-safe si el bridge corre en el loop principal.
-                    
-                    # Como simplificación para V1.6, accedemos al loop si existe, 
-                    # o simplemente chequeamos si la cola tiene algo.
-                    if not bridge.vision_queue.empty():
+                source = "none"
+
+                # 1. Intentar obtener del Nomad Bridge (Prioridad Hardware Externo)
+                if not bridge.vision_queue.empty():
+                    try:
                         frame_data = bridge.vision_queue.get_nowait()
-                except Exception:
-                    pass
+                        source = "nomad_vessel"
+                    except Exception: pass
+                
+                # 2. Fallback a Cámara Local si no hay nada en el Bridge
+                if not frame_data:
+                    local_frame = local_cam.get_latest_frame()
+                    if local_frame is not None:
+                        # Mock detections for internal webcam for now
+                        frame_data = {
+                            "meta": {"human_presence": 1.0, "user_focus": 0.8},
+                            "detections": [] # Simple background scan
+                        }
+                        source = "local_webcam"
 
                 if frame_data:
-                    # 2. Extract signals (Phase 14: Real data from Nomad Bridge)
-                    # frame_data is now a dict {raw_bytes, meta, detections}
                     meta = frame_data.get("meta", {})
                     detections_raw = frame_data.get("detections", [])
                     
-                    # Convert raw detections to model objects
+                    # 3. Perform inference
                     detections = self.engine.analyze_image({"detected_objects": detections_raw})
                     
-                    # 3. Convert to SensoryEpisode with real signals
+                    # 4. Convert to SensoryEpisode with real signals
+                    highest_threat = self.engine.get_highest_threat(detections)
+                    
                     episode = SensoryEpisode(
                         timestamp=time.time(),
-                        origin="vision_daemon",
+                        origin=f"vision_daemon:{source}",
                         entities=[d.label for d in detections],
                         signals={
-                            "confidence": max([d.confidence for d in detections]) if detections else 1.0,
+                            "confidence": max([d.confidence for d in detections], default=1.0),
                             "is_urgent": 1.0 if any(d.is_prohibited for d in detections) else 0.0,
-                            "threat_level": self.engine.get_highest_threat(detections).confidence if self.engine.get_highest_threat(detections) else 0.0,
+                            "threat_level": highest_threat.confidence if highest_threat else 0.0,
                             "human_presence": meta.get("human_presence", 0.0),
                             "lip_movement": meta.get("lip_movement", 0.0),
                             "user_focus": meta.get("user_focus", 0.5)
                         }
                     )
                     
-                    # 4. Empujar al buffer del Lóbulo Perceptivo
+                    # 5. Empujar al buffer del Lóbulo Perceptivo
                     self.absorption_callback(episode)
                 
             except Exception as e:
                 _log.error("VisionContinuousDaemon error in loop: %s", e)
             
-            # Mantener la frecuencia de 5Hz
+            # Mantener la frecuencia de 5Hz (200ms)
             elapsed = time.perf_counter() - start_tick
             sleep_time = max(0.01, self.polling_rate - elapsed)
             time.sleep(sleep_time)
+
+        local_cam.stop()
+
 
