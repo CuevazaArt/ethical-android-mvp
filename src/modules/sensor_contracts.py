@@ -304,6 +304,74 @@ class SensorSnapshot:
         )
 
 
+def merge_nomad_vision_into_snapshot(snapshot: SensorSnapshot | None) -> SensorSnapshot | None:
+    """
+    When ``KERNEL_NOMAD_VISION_CONSUMER`` is on and the consumer has a latest inference,
+    merge ``vision_emergency`` and ``image_metadata["nomad"]`` so multimodal trust and
+    :func:`merge_sensor_hints_into_signals` see the hardware vision channel.
+    """
+
+    from dataclasses import replace
+
+    from ..kernel_utils import kernel_env_truthy
+
+    if not kernel_env_truthy("KERNEL_NOMAD_VISION_CONSUMER"):
+        return snapshot
+
+    from .vision_adapter import get_nomad_vision_consumer_optional
+    from .vision_signal_mapper import VisionSignalMapper
+
+    consumer = get_nomad_vision_consumer_optional()
+    if consumer is None or consumer.latest_inference is None:
+        return snapshot
+
+    inf = consumer.latest_inference
+    mapper = VisionSignalMapper()
+    mapped = mapper.map_inference(inf)
+
+    urg = float(mapped.get("urgency", 0.0))
+    risk = float(mapped.get("risk", 0.0))
+    ve_merge = _clamp01(max(urg, risk))
+    if inf.confidence < mapper.confidence_threshold:
+        ve_merge = min(ve_merge, 0.25)
+
+    ve_for_snapshot = None if ve_merge < 1e-6 else ve_merge
+
+    top_raw: dict[str, float] = {}
+    if inf.raw_scores:
+        top_raw = dict(
+            list(sorted(inf.raw_scores.items(), key=lambda kv: (-kv[1], str(kv[0]))))[:5]
+        )
+    meta = {
+        "source": "nomad_vision_consumer",
+        "primary_label": inf.primary_label,
+        "confidence": inf.confidence,
+        "top_scores": top_raw,
+    }
+
+    if snapshot is None:
+        return SensorSnapshot(vision_emergency=ve_for_snapshot, image_metadata={"nomad": meta})
+
+    old_ve = snapshot.vision_emergency
+    if ve_for_snapshot is None:
+        merged_ve = old_ve
+    elif old_ve is None:
+        merged_ve = ve_for_snapshot
+    else:
+        merged_ve = max(old_ve, ve_for_snapshot)
+
+    im = snapshot.image_metadata
+    if not im:
+        merged_meta = {"nomad": meta}
+    elif isinstance(im, dict):
+        merged_meta = dict(im)
+        merged_meta["nomad"] = meta
+    else:
+        merged_meta = {"nomad": meta}
+
+    return replace(snapshot, vision_emergency=merged_ve, image_metadata=merged_meta)
+
+
 def merge_sensor_hints_into_signals(
     signals: dict[str, float],
     snapshot: SensorSnapshot | None,

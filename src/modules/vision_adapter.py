@@ -232,3 +232,52 @@ class NomadVisionConsumer:
                 break
             except Exception as e:
                 _log.error("Error in NomadVisionConsumer: %s", e)
+
+    async def stop(self) -> None:
+        if self._task is not None:
+            self._task.cancel()
+            try:
+                await self._task
+            except asyncio.CancelledError:
+                pass
+            self._task = None
+
+
+_nomad_vision_consumer: NomadVisionConsumer | None = None
+
+
+def get_nomad_vision_consumer_optional() -> NomadVisionConsumer | None:
+    """Return the active consumer, if :func:`start_nomad_vision_consumer_from_env` has run."""
+    return _nomad_vision_consumer
+
+
+def start_nomad_vision_consumer_from_env() -> NomadVisionConsumer | None:
+    """
+    When ``KERNEL_NOMAD_VISION_CONSUMER`` is set, start draining ``NomadBridge.vision_queue``
+    into the default MobileNet adapter (Module S.1 — hardware-in-the-loop vision path).
+
+    Idempotent: returns existing consumer if already started.
+    """
+    global _nomad_vision_consumer
+    from ..kernel_utils import kernel_env_truthy
+
+    if not kernel_env_truthy("KERNEL_NOMAD_VISION_CONSUMER"):
+        return None
+    if _nomad_vision_consumer is not None:
+        return _nomad_vision_consumer
+    adapter = from_env_vision_adapter()
+    adapter.load_model()
+    _nomad_vision_consumer = NomadVisionConsumer(adapter)
+    _nomad_vision_consumer.start()
+    _log.info("NomadVisionConsumer started (KERNEL_NOMAD_VISION_CONSUMER=1).")
+    return _nomad_vision_consumer
+
+
+async def stop_nomad_vision_consumer_async() -> None:
+    """Cancel background vision consumption (chat server / process shutdown)."""
+    global _nomad_vision_consumer
+    c = _nomad_vision_consumer
+    _nomad_vision_consumer = None
+    if c is not None:
+        await c.stop()
+        _log.info("NomadVisionConsumer stopped.")
