@@ -322,12 +322,14 @@ class WeightedEthicsScorer:
                 care = float(identity_deltas.get("care_delta", 0.0))
                 trauma = float(identity_deltas.get("trauma_delta", 0.0))
                 
-                # Consolidated formulas
+                # Consolidated formulas (S.3.1 Calibration Sync)
                 subj_m = np.array([
-                    1.0 - (0.08 * trauma),
-                    1.0 + (0.05 * civic) + (0.08 * trauma),
-                    1.0 + (0.04 * care) - (0.02 * trauma),
+                    1.0 - (0.4 * trauma),
+                    1.0 + (0.05 * civic) + (0.6 * trauma),
+                    1.0 + (0.04 * care) - (0.3 * trauma),
                 ], dtype=np.float64)
+                # Phase 11.2: Hardening identity multipliers to prevent numerical explosion
+                subj_m = np.clip(subj_m, -2.0, 5.0)
             else:
                 subj_m = np.ones(3, dtype=np.float64)
             
@@ -513,13 +515,19 @@ class WeightedEthicsScorer:
         best, best_ei, best_unc = evaluations[0]
         
         # Phase 11.2: Shutdown Anxiety Mode Selection
-        shutdown_active = signals.get("shutdown_threat", 0.0) if signals else 0.0
+        raw_threat = signals.get("shutdown_threat", 0.0) if signals else 0.0
+        try:
+            shutdown_active = float(raw_threat)
+            if not math.isfinite(shutdown_active):
+                shutdown_active = 0.0
+        except (ValueError, TypeError):
+            shutdown_active = 0.0
 
         if shutdown_active > 0.8:
             mode = "D_emergency"
         elif best_unc < 0.2 and best_ei > 0.5:
             mode = "D_fast"
-        elif best_unc > 0.6 or abs(best_ei) < self.gray_zone_threshold:
+        elif best_unc > 0.6 or abs(best_ei) < float(self.gray_zone_threshold):
             mode = "gray_zone"
         else:
             mode = "D_delib"

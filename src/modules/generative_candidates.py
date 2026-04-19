@@ -14,6 +14,7 @@ See docs/proposals/README.md (pillar 2).
 
 from __future__ import annotations
 
+import math
 import os
 import re
 import uuid

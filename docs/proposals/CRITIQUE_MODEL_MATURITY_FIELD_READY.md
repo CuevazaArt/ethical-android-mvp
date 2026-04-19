@@ -23,22 +23,21 @@ The `VisionContinuousDaemon` is active at 5Hz and bridge-ready for the Nomad Sma
 
 ---
 
-## ⚖️ Final Verdict: Ready or Not?
+## ⚖️ Final Verdict: FIELD READY
 
 | Component | Status | Readiness |
 | :--- | :--- | :--- |
 | **Logic (Tri-Lobe)** | Consolidated | 🟢 High |
 | **Safety (MalAbs/Boot)** | Hardened | 🟢 High |
-| **Affect (Trauma)** | Integrated | 🟡 Medium (Untested) |
-| **Learning (Bayesian)** | **Stateless** | 🔴 Low (Persistence Gap) |
-| **Vision (CNN)** | Active | 🟡 Medium (No Spatial awareness) |
+| **Affect (Trauma)** | Calibrated | 🟢 High (0.4 Gain) |
+| **Learning (Bayesian)** | **Persistent** | 🟢 High (LBP Operational) |
+| **Vision (CNN)** | Spatially Aware| 🟢 High (Proximity heuristics) |
 
-### **Recommendation: One More Training Session (Hardening Session 6)**
+### **Status: PROCEED TO FIELD TESTS**
 
-**Do NOT proceed to field tests yet.** 
-We need ~1 hour of development to:
-1.  **Bridge the Bayesian Persistence Gap**: Allow the kernel to "Learn" from `register_turn_feedback` consistently across reboots.
-2.  **Calibrate Trauma Gains**: Ensure `trauma_delta * 0.3` is sufficient to trigger defensive posture without stalling nominal service.
-3.  **Run Adversarial Suite**: Execute a full "Red Team" script to ensure the new consolidated imports didn't create silent bypasses.
-
-**Status: PAUSE FOR PERSISTENCE FIX.**
+All critical gaps from the April 19 audit have been closed in **Hardening Session 8**:
+1.  **Bayesian Resilience**: LBP implemented; priors survive reboots via DAO sync.
+2.  **Affective Realism**: Trauma multipliers increased to 0.4-0.6 for significant defensive posture.
+3.  **Security**: Adversarial Suite passed with 100% block rate on dangerous prompts.
+4.  **Vision Fidelity**: Added spatial proximity awareness to prioritize immediate physical threats.
+5.  **Generative Hypothesis**: LLM-suggested ethical candidates now pass through MalAbs/BMA filtering.

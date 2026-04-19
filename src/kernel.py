@@ -13,6 +13,7 @@ from __future__ import annotations
 
 import asyncio
 import logging
+import math
 import os
 import threading
 import time
@@ -937,7 +938,25 @@ class EthicalKernel:
             agent_id, signals, message_content, sensor_snapshot, multimodal_assessment
         )
 
-        # ═══ STAGE 2: ABSOLUTE EVIL & MOTIVATION ═══
+        # ═══ STAGE 2.0: GENERATIVE CANDIDATES INJECTION (Phase 9.2) ═══
+        gen_candidates = p_res.get("generative_candidates")
+        if gen_candidates and isinstance(gen_candidates, list):
+            for gc in gen_candidates:
+                if isinstance(gc, dict):
+                    try:
+                        actions.append(CandidateAction(
+                            name=gc.get("name", "generative_hypothesis"),
+                            description=gc.get("description", ""),
+                            estimated_impact=float(gc.get("impact", 0.0)),
+                            confidence=float(gc.get("confidence", 0.5)),
+                            source="generative_llm",
+                            # Supporting ADR 0012/0013 triple-pole overrides
+                            hypothesis_override=gc.get("hypothesis_override")
+                        ))
+                    except Exception as e:
+                        _log.warning("EthicalKernel: Skipping invalid generative candidate: %s", e)
+
+        # ═══ STAGE 2.1: ABSOLUTE EVIL & MOTIVATION ═══
         clean_actions, ae_dec = self._run_absolute_evil_stage(
             scenario, place, actions, state, social_eval, locus_eval, context, t0, signals
         )

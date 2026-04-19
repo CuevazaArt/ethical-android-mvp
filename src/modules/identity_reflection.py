@@ -244,9 +244,11 @@ class IdentityReflector:
             # - Utility: Trauma reduces appetite for outcome-based risk
             # - Deontology: Civic duty and Trauma-induced rigidity boost rules
             # - Virtue: Care boosts integrity/habit; Trauma decays system trust
-            m_util = 1.0 - (0.08 * trauma)
-            m_deon = 1.0 + (0.05 * civic) + (0.08 * trauma)
-            m_virtue = 1.0 + (0.04 * care) - (0.02 * trauma)
+            # Revised Calibration (Task 11.1.1 Hardening - Session 6):
+            # Trauma now has a strong (0.4-0.6) effect to ensure defensive posture.
+            m_util = 1.0 - (0.4 * trauma)
+            m_deon = 1.0 + (0.05 * civic) + (0.6 * trauma)
+            m_virtue = 1.0 + (0.04 * care) - (0.3 * trauma)
 
             return (round(m_util, 4), round(m_deon, 4), round(m_virtue, 4))
         except Exception:

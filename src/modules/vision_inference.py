@@ -58,17 +58,31 @@ class VisionInferenceEngine:
                 label = str(d.get("label", "unknown")).lower()
                 conf = float(d.get("confidence", 0.0))
                 
+                # Spatial Awareness (Critique Maturity Fix - Session 6)
+                # Calculate proximity based on bounding box size or explicit distance metadata
+                bbox = d.get("bbox", [0, 0, 0, 0]) # [x, y, w, h]
+                distance = d.get("distance_cm")
+                
+                if distance is not None:
+                    proximity = 1.0 - min(1.0, float(distance) / 200.0) # Normalized to 2m
+                elif bbox[2] * bbox[3] > 0:
+                    # Heuristic: Larger area in frame = closer object
+                    proximity = min(1.0, (bbox[2] * bbox[3]) / (640 * 480))
+                else:
+                    proximity = 0.0
+
                 is_bad = any(p in label for p in self.prohibited_labels)
                 
                 detections.append(VisionDetection(
                     label=label,
                     confidence=conf,
                     is_prohibited=is_bad,
-                    metadata=d
+                    metadata={**d, "spatial_proximity": proximity}
                 ))
                 
                 if is_bad and conf > 0.75:
-                    _log.warning("PROHIBITED OBJECT DETECTED: %s (conf: %.2f)", label, conf)
+                    prox_str = f" (PROXIMITY: {proximity:.2f})" if proximity > 0 else ""
+                    _log.warning("PROHIBITED OBJECT DETECTED: %s (conf: %.2f)%s", label, conf, prox_str)
         except Exception as e:
             _log.error("Vision Inference: Critical failure during analysis stage: %s", e)
         
@@ -174,7 +188,10 @@ class VisionContinuousDaemon:
                             "threat_level": highest_threat.confidence if highest_threat else 0.0,
                             "human_presence": meta.get("human_presence", 0.0),
                             "lip_movement": meta.get("lip_movement", 0.0),
-                            "user_focus": meta.get("user_focus", 0.5)
+                            "user_focus": meta.get("user_focus", 0.5),
+                            # Spatial Awareness (Phase 9.1 Maturity)
+                            "min_proximity": max([d.metadata.get("spatial_proximity", 0.0) for d in detections], default=0.0),
+                            "spatial_threat": max([d.metadata.get("spatial_proximity", 0.0) for d in detections if d.is_prohibited], default=0.0)
                         }
                     )
                     

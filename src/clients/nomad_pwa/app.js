@@ -40,20 +40,26 @@ if ('getBattery' in navigator) {
     navigator.getBattery().then(battery => {
         lastBatteryLevel = battery.level;
         const sendBat = () => {
-            const level = Math.round(battery.level * 100);
-            UI.batterySpan.innerText = `${level}%`;
-            
-            if(wsNomad && wsNomad.readyState === WebSocket.OPEN) {
-                // Proxy for 'Temperature' (browser block workaround): High drain scale
-                let tempProxy = 40 + (1.0 - battery.level) * 10; 
-                wsNomad.send(JSON.stringify({ 
-                    type: "telemetry", 
-                    payload: { 
-                        battery: battery.level,
-                        is_charging: battery.charging,
-                        temp: tempProxy // Simulated thermal state based on drain
-                    } 
-                }));
+            try {
+                const level = Math.round(battery.level * 100);
+                UI.batterySpan.innerText = `${level}%`;
+                
+                if(wsNomad && wsNomad.readyState === WebSocket.OPEN) {
+                    // Proxy for 'Temperature' (browser block workaround): High drain scale
+                    let tempProxy = 40 + (1.0 - battery.level) * 10; 
+                    if (!Number.isFinite(tempProxy)) tempProxy = 40.0;
+                    
+                    wsNomad.send(JSON.stringify({ 
+                        type: "telemetry", 
+                        payload: { 
+                            battery: battery.level,
+                            is_charging: battery.charging,
+                            temp: tempProxy // Simulated thermal state based on drain
+                        } 
+                    }));
+                }
+            } catch (e) {
+                console.warn("Nomad: Battery telemetry error", e);
             }
         };
         battery.addEventListener('levelchange', sendBat);
@@ -78,22 +84,28 @@ window.addEventListener('deviceorientation', (event) => {
 });
 
 window.addEventListener('devicemotion', (event) => {
-    if(wsNomad && wsNomad.readyState === WebSocket.OPEN) {
-        let acc = event.acceleration;
-        if(acc) {
-            let magnitude = Math.sqrt((acc.x||0)**2 + (acc.y||0)**2 + (acc.z||0)**2);
-            let now = Date.now();
-            
-            // Phase 12 Hardening: High-intensity impact detection
-            if(magnitude > 15) { // Roughly > 1.5G spike
-                wsNomad.send(JSON.stringify({ type: "telemetry", payload: { kinetics: magnitude, impact: true } }));
-                lastKineticPulse = now;
-            } else if(now - lastKineticPulse > 1000) {
-                // Normal heartbeat telemetry
-                wsNomad.send(JSON.stringify({ type: "telemetry", payload: { kinetics: magnitude } }));
-                lastKineticPulse = now;
+    try {
+        if(wsNomad && wsNomad.readyState === WebSocket.OPEN) {
+            let acc = event.acceleration;
+            if(acc) {
+                let magnitude = Math.sqrt((acc.x||0)**2 + (acc.y||0)**2 + (acc.z||0)**2);
+                if (!Number.isFinite(magnitude)) magnitude = 0.0;
+                
+                let now = Date.now();
+                
+                // Phase 12 Hardening: High-intensity impact detection
+                if(magnitude > 15) { // Roughly > 1.5G spike
+                    wsNomad.send(JSON.stringify({ type: "telemetry", payload: { kinetics: magnitude, impact: true } }));
+                    lastKineticPulse = now;
+                } else if(now - lastKineticPulse > 1000) {
+                    // Normal heartbeat telemetry
+                    wsNomad.send(JSON.stringify({ type: "telemetry", payload: { kinetics: magnitude } }));
+                    lastKineticPulse = now;
+                }
             }
         }
+    } catch (e) {
+        console.warn("Nomad: DeviceMotion telemetry fault", e);
     }
 });
 

@@ -112,16 +112,17 @@ class PerceptiveLobe:
             perception.sensory_latency_lag = latency
 
             return perception
-
+        except (asyncio.TimeoutError, httpx.TimeoutException, httpx.ReadTimeout):
+            latency = int((time.perf_counter() - start_time) * 1000)
             return SemanticState(
                 perception_confidence=0.0,
                 raw_prompt=raw_input,
                 summary="Perception timeout",
                 suggested_context="emergency",
-                sensory_latency_lag=int((time.perf_counter() - start_time) * 1000),
+                sensory_latency_lag=latency,
                 timeout_trauma=TimeoutTrauma(
                     source_lobe="perception",
-                    latency_ms=int((time.perf_counter() - start_time) * 1000),
+                    latency_ms=latency,
                     severity=1.0,
                     context=f"Perception LLM timeout after {self._timeout}s"
                 )
@@ -169,6 +170,7 @@ class PerceptiveLobe:
             "multimodal_trust": stage.multimodal_trust,
             "epistemic_dissonance": stage.epistemic_dissonance,
             "perception_confidence": stage.perception_confidence,
+            "generative_candidates": stage.perception.generative_candidates if hasattr(stage.perception, "generative_candidates") else [],
         }
 
     async def run_perception_stage_async(
@@ -324,23 +326,24 @@ class PerceptiveLobe:
             suggested_context="everyday",
             visual_entities=entities,
             audio_sentiment=sentiment,
+            generative_candidates=llm_result.get("generative_candidates") if isinstance(llm_result, dict) else [],
             sensory_latency_lag=0  # Will be overwritten by caller
         )
 
     @staticmethod
     def _extract_confidence(text: str) -> float:
         """Heuristic: extract confidence from LLM response."""
+        import math
         text_lower = text.lower()
-
-        # Pattern-based confidence scoring
+        conf = 0.5
         if "high confidence" in text_lower or "clearly" in text_lower:
-            return 0.9
+            conf = 0.9
         elif "moderate confidence" in text_lower or "appears" in text_lower:
-            return 0.6
+            conf = 0.6
         elif "low confidence" in text_lower or "unclear" in text_lower:
-            return 0.3
-        else:
-            return 0.5  # Default neutral
+            conf = 0.3
+        
+        return max(0.0, min(1.0, conf if math.isfinite(conf) else 0.5))
 
     @staticmethod
     def _extract_visual_entities(text: str) -> list[str]:
@@ -360,6 +363,7 @@ class PerceptiveLobe:
     @staticmethod
     def _extract_sentiment(text: str) -> float:
         """Heuristic: extract sentiment/emotional tone from LLM response."""
+        import math
         text_lower = text.lower()
 
         # Simple sentiment scoring
@@ -369,9 +373,10 @@ class PerceptiveLobe:
         positive_count = sum(1 for w in positive_words if w in text_lower)
         negative_count = sum(1 for w in negative_words if w in text_lower)
 
+        sent = 0.5
         if positive_count > negative_count:
-            return 0.7  # More positive
+            sent = 0.7  # More positive
         elif negative_count > positive_count:
-            return 0.3  # More negative
-        else:
-            return 0.5  # Neutral
+            sent = 0.3  # More negative
+        
+        return max(0.0, min(1.0, sent if math.isfinite(sent) else 0.5))
