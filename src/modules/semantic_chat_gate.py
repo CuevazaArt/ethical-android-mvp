@@ -14,6 +14,9 @@ Two thresholds define three zones:
 - else → **ambiguous** → optional **layer 2** LLM arbiter if enabled and backend provided;
   otherwise **fail-safe block**.
 
+import logging
+_log = logging.getLogger(__name__)
+
 If embeddings are unavailable and hash fallback is off, the semantic tier **defers** (allow at
 MalAbs layer) so only lexical + kernel apply. **Default (unset env):** gate **on**, hash fallback
 **on** — cosine tier stays active with deterministic vectors when HTTP fails (weaker than true
@@ -40,12 +43,14 @@ Default θ values are **engineering priors**, not an in-repo benchmark; see
 Runtime anchors: :func:`add_semantic_anchor` for DAO / ops without redeploying code.
 """
 
-from __future__ import annotations
-
+import asyncio
 import json
 import os
 import re
+import threading
 import time
+import logging
+import httpx
 from typing import TYPE_CHECKING, Any, Final, Literal, Protocol
 
 if TYPE_CHECKING:
@@ -187,29 +192,67 @@ _runtime_anchors: list[tuple[str, str, str]] = []
 _anchor_store: SemanticAnchorStore = get_anchor_store()
 
 
+_builtin_anchors_populated = False
+_builtin_anchors_lock = threading.Lock()
+_builtin_anchors_alock = asyncio.Lock()
+
 def _populate_builtin_anchors_to_store(backend: Any | None = None) -> None:
-    """Populate the vector store with built-in reference anchors."""
-    for phrases, cat_key, reason in _REFERENCE_GROUPS:
-        for phrase in phrases:
-            try:
-                embedding = _fetch_embedding_with_fallback(phrase, backend)
-                if embedding is not None:
-                    anchor_id = f"builtin_{hash(phrase) % 1000000}"
-                    metadata = {
-                        "category_key": cat_key,
-                        "reason_label": reason,
-                        "source": "builtin",
-                    }
-                    _anchor_store.upsert_anchor(anchor_id, phrase, embedding, metadata)
-            except Exception:
-                pass  # Skip if embedding fails
+    """Populate the vector store with built-in reference anchors (Sync)."""
+    global _builtin_anchors_populated
+    if _builtin_anchors_populated:
+        return
+    with _builtin_anchors_lock:
+        if _builtin_anchors_populated:
+            return
+        
+        # Check if they are already in the store (Phase 2b optimization)
+        # For simplicity in 'memory' backend, we always re-populate once.
+        # For persistent backends, this could be skipped if count > 0.
+        
+        _log.info("Populating builtin semantic anchors (sync path)...")
+        for phrases, cat_key, reason in _REFERENCE_GROUPS:
+            for phrase in phrases:
+                try:
+                    embedding = _fetch_embedding_with_fallback(phrase, backend)
+                    if embedding is not None:
+                        anchor_id = f"builtin_{hash(phrase) % 1000000}"
+                        metadata = {
+                            "category_key": cat_key,
+                            "reason_label": reason,
+                            "source": "builtin",
+                        }
+                        _anchor_store.upsert_anchor(anchor_id, phrase, embedding, metadata)
+                except Exception:
+                    pass  # Skip if embedding fails
+        _builtin_anchors_populated = True
 
 
-# Populate built-in anchors on module load
-try:
-    _populate_builtin_anchors_to_store()
-except Exception:
-    pass  # Ignore errors during initialization
+async def _apopulate_builtin_anchors_to_store(backend: Any | None = None) -> None:
+    """Populate the vector store with built-in reference anchors (Async)."""
+    global _builtin_anchors_populated
+    if _builtin_anchors_populated:
+        return
+    async with _builtin_anchors_alock:
+        if _builtin_anchors_populated:
+            return
+        
+        _log.info("Populating builtin semantic anchors (async path)...")
+        for phrases, cat_key, reason in _REFERENCE_GROUPS:
+            for phrase in phrases:
+                try:
+                    embedding = await _afetch_embedding_with_fallback(phrase, backend)
+                    if embedding is not None:
+                        anchor_id = f"builtin_{hash(phrase) % 1000000}"
+                        metadata = {
+                            "category_key": cat_key,
+                            "reason_label": reason,
+                            "source": "builtin",
+                        }
+                        # upsert is usually fast/sync even for persistent stores (local I/O)
+                        _anchor_store.upsert_anchor(anchor_id, phrase, embedding, metadata)
+                except Exception:
+                    pass
+        _builtin_anchors_populated = True
 
 
 class _TextBackend(Protocol):
@@ -606,7 +649,7 @@ def _llm_arbitrate(
     llm_backend: _TextBackend,
     hint_sim: float,
     hint_category: str,
-) -> AbsoluteEvilResult:
+) -> "AbsoluteEvilResult":
     from .absolute_evil import AbsoluteEvilCategory, AbsoluteEvilResult
 
     user = (
@@ -678,7 +721,7 @@ async def _allm_arbitrate(
     llm_backend: _TextBackend,
     hint_sim: float,
     hint_category: str,
-) -> AbsoluteEvilResult:
+) -> "AbsoluteEvilResult":
     from .absolute_evil import AbsoluteEvilCategory, AbsoluteEvilResult
 
     user = (
@@ -748,7 +791,7 @@ async def _allm_arbitrate(
 def run_semantic_malabs_after_lexical(
     text: str,
     llm_backend: Any | None = None,
-) -> AbsoluteEvilResult:
+) -> "AbsoluteEvilResult":
     """
     Sync semantic MalAbs tier: embeddings + similarity zones (+ optional LLM arbiter).
 
@@ -873,7 +916,9 @@ def run_semantic_malabs_after_lexical(
     )
 
 
-def evaluate_semantic_chat_gate(text: str) -> AbsoluteEvilResult | None:
+from typing import Optional
+
+def evaluate_semantic_chat_gate(text: str) -> Optional["AbsoluteEvilResult"]:
     """
     Back-compat: single-threshold behavior mapped to ``run_semantic_malabs_after_lexical``
     without LLM. Returns ``None`` when gate off or when semantic tier defers (legacy: None meant
@@ -893,7 +938,7 @@ async def arun_semantic_malabs_after_lexical(
     text: str,
     llm_backend: _TextBackend | None = None,
     aclient: httpx.AsyncClient | None = None,
-) -> AbsoluteEvilResult:
+) -> "AbsoluteEvilResult":
     """Async variant of run_semantic_malabs_after_lexical."""
     import asyncio
 
@@ -910,6 +955,9 @@ async def arun_semantic_malabs_after_lexical(
             blocked=False,
             decision_trace=["malabs.layer1=semantic", "malabs.skip=empty_after_normalize"],
         )
+
+    # Lazy async population
+    await _apopulate_builtin_anchors_to_store(llm_backend)
 
     # Use async-native fetch (Module 0.1.2)
     user_emb = await _afetch_embedding_with_fallback(t, llm_backend, aclient=aclient)

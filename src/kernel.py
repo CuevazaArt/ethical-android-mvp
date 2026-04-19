@@ -649,6 +649,18 @@ class EthicalKernel:
         )
         self.governor = MultiRealmGovernor(event_bus=self.event_bus) if is_multi_realm_governance_enabled() else None
 
+        # ═══ Phase 9.1: Start Continuous Vision Daemon ═══
+        from .modules.vision_inference import VisionContinuousDaemon
+        self.vision_daemon = VisionContinuousDaemon(
+            engine=self.vision_inference,
+            absorption_callback=self.perceptive_lobe.receive_sensory_episode
+        )
+        # We start it only if environment flags or hardware availability suggests it
+        from .kernel_utils import kernel_env_truthy
+        if kernel_env_truthy("KERNEL_VISION_DAEMON_ENABLED"):
+            self.vision_daemon.start()
+            _log.info("EthicalKernel: VisionContinuousDaemon launched.")
+
     def abandon_chat_turn(self, turn_id: int) -> None:
         """Mark ``turn_id`` as abandoned so :meth:`process_chat_turn` skips STM / post-turn effects."""
         with self._chat_turn_abandon_lock:

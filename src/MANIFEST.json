@@ -1,12 +1,12 @@
 {
-    "src/kernel.py": "efd006cbdc59f96f93ad772d9bda36842304b73a9fc00e23bc294688e881e7e9",
+    "src/kernel.py": "7de0270e8fa316e31c1e16a944f6c5466995b20a11aa422e910351a9035e9462",
     "src/kernel_lobes/models.py": "72ca7f24e9d9dd1c9c3d34e29a9f460007033433e3388c95a0e677f05a4ef1ab",
     "src/kernel_lobes/executive_lobe.py": "8ec4038bb207af5242c70a1372710fce1742515967339a8d38ccc7927bbd8b72",
     "src/kernel_lobes/memory_lobe.py": "af40234586d659d62cfde5694b7d4c476f9ae535f42eb2d9c0f66f14c88f86c6",
-    "src/kernel_lobes/perception_lobe.py": "f41e9d14c982ab7b3a23272f37788665b95ca7b189add7a5b917ed51ef356825",
+    "src/kernel_lobes/perception_lobe.py": "9b58947d1693104a2c4d7320c9ae27946ffc543b5142b0f197212f42c7211560",
     "src/kernel_lobes/thalamus_node.py": "2456ecc5dc1467aff24f6b43537f950f741e678a2e135589f049de70ffe1fd65",
-    "src/modules/absolute_evil.py": "d72370263e910c35f1ea7a5a3aef5e068ce323d8c054b50275a11d5a3c77fd3e",
-    "src/modules/nomad_bridge.py": "5f94b978c1ece14b2bba094d1f17c055dc54094d1f888b6e06876475211e285d",
+    "src/modules/absolute_evil.py": "69e20029f96c305f0f0f190ed4968b70c0b67449d6ed731a51a188776de556f3",
+    "src/modules/nomad_bridge.py": "bae38fc0b955dbecf36687a22028ee7c384c0c806a68b30b087a9c919206ee9d",
     "src/modules/secure_boot.py": "a119c97b5dc83a4499627735eabd6e0f358f5d32d1a9901497bcf79e2212ceb0",
     "src/modules/immortality.py": "93f05bff17c25f9ab39e9bdfee342611fa282aa9b5d3fac80088eb25f6c7a694"
 }

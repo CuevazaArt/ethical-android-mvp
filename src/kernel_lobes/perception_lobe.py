@@ -46,6 +46,24 @@ class PerceptiveLobe:
         self.vision_engine = vision_engine
         self.event_bus = event_bus
 
+        # High-frequency sensory buffer (10 episodes max)
+        from collections import deque
+        from src.kernel_lobes.models import SensoryEpisode
+        self.sensory_buffer: Deque[SensoryEpisode] = deque(maxlen=10)
+
+    def receive_sensory_episode(self, episode: "SensoryEpisode") -> None:
+        """Callback for high-frequency background sensors (VisionDaemon)."""
+        self.sensory_buffer.append(episode)
+        if episode.signals.get("is_urgent", 0.0) > 0.8:
+            # Emit stress alert via bus if urgent
+            if self.event_bus:
+                from src.modules.kernel_event_bus import EVENT_SENSORY_STRESS_ALERT
+                self.event_bus.publish(EVENT_SENSORY_STRESS_ALERT, {
+                    "origin": episode.origin,
+                    "stress_level": episode.signals.get("threat_level", 0.0),
+                    "entities": episode.entities
+                })
+
     @staticmethod
     def _get_perception_timeout() -> float:
         """Get timeout from KERNEL_CHAT_TURN_TIMEOUT or fallback to 30s."""

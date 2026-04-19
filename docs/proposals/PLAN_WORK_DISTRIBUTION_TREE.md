@@ -23,7 +23,7 @@ Aquí es donde los agentes de ejecución (LLMs en IDEs) reclaman sus tareas.
 **Bloque 8.1: Linter Continuo y Hardening Vertical [DONE]**
 - Tarea 8.1.1: Auditar `docstrings` y `type hints` en las divisiones de `src/kernel.py` y `src/kernel_lobes/`. Introducir `try/except` donde fallen por variables nulas. 
 
-**Bloque 9.3: Refactorización Asíncrona Total de Eferencia [PENDING]**
+**Bloque 9.3: Refactorización Asíncrona Total de Eferencia [DONE]**
 - Tarea 9.3.1: Eliminar cuellos de botella síncronos en las llamadas a utilidades de API. Migrar `http_fetch_ollama_embedding` a dependencias puramente `async` con `httpx.AsyncClient`.
 
 **Bloque W.1: Frontera Wiki y Sincronización Pública [PENDING]**

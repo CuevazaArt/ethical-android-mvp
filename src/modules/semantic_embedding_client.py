@@ -16,8 +16,7 @@ Env:
 - ``KERNEL_SEMANTIC_EMBED_HASH_SCOPE`` — ASCII scope string mixed into hash (default ``malabs_embed_v1``).
 """
 
-from __future__ import annotations
-
+import asyncio
 import hashlib
 import os
 import threading
@@ -26,6 +25,7 @@ from dataclasses import dataclass, field
 from typing import Any
 
 import numpy as np
+import httpx
 
 
 @dataclass
@@ -173,6 +173,22 @@ def http_fetch_ollama_embedding(
     """
     return http_fetch_ollama_embedding_with_policy(url, model, prompt, timeout_s=timeout_s)
 
+_aclient: httpx.AsyncClient | None = None
+_aclient_lock = asyncio.Lock()
+
+async def _get_aclient() -> httpx.AsyncClient:
+    """Singleton pattern for managing a persistent AsyncClient."""
+    global _aclient
+    if _aclient is None or _aclient.is_closed:
+        async with _aclient_lock:
+            if _aclient is None or _aclient.is_closed:
+                import httpx
+                _aclient = httpx.AsyncClient(
+                    limits=httpx.Limits(max_keepalive_connections=5, max_connections=10),
+                    timeout=httpx.Timeout(20.0)
+                )
+    return _aclient
+
 async def ahttp_fetch_ollama_embedding(
     url: str,
     model: str,
@@ -298,10 +314,10 @@ async def ahttp_fetch_ollama_embedding_with_policy(
                 response.raise_for_status()
                 data = response.json()
             else:
-                async with httpx.AsyncClient(timeout=timeout) as client:
-                    response = await client.post(url, json=payload)
-                    response.raise_for_status()
-                    data = response.json()
+                client = await _get_aclient()
+                response = await client.post(url, json=payload, timeout=timeout)
+                response.raise_for_status()
+                data = response.json()
             emb = data.get("embedding")
             if not emb or not isinstance(emb, list):
                 raise ValueError("missing or invalid embedding array")

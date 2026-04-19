@@ -41,6 +41,15 @@ class NomadBridge:
         self.last_rms = 0.0
         self._last_sensor_update = time.time()
         self._is_vessel_healthy = False
+        
+        # S.1.1 Hardening: Vessel State Tracking
+        self.vessel_metadata: dict[str, Any] = {
+            "battery_level": 0.0,
+            "thermal_state": "nominal",
+            "connection_type": "unknown",
+            "latency_ms": 0,
+            "vessel_id": "none"
+        }
 
         self.app: Any = None
 
@@ -110,24 +119,23 @@ class NomadBridge:
                             _log.error("Nomad Bridge: Invalid b64 image data: %s", e)
                             continue
                     
-                    if frame_count % 10 == 0:
-                        _log.info("Nomad Bridge: Received 10 vision frames (Stream Active)")
+                        if frame_count % 10 == 0:
+                            _log.info("Nomad Bridge: Received 10 vision frames (Stream Active)")
+                            
+                        self.broadcast_to_dashboards({"type": "frame", "payload": payload})
                         
-                    self.broadcast_to_dashboards({"type": "frame", "payload": payload})
-                    
-                    if self.vision_queue.full():
-                        self.vision_queue.get_nowait()
-                    
-                    # Phase 14: Pass meta signals into the queue alongside raw bytes
-                        # Combined payload for the VisionContinuousDaemon
+                        if self.vision_queue.full():
+                            self.vision_queue.get_nowait()
+                        
+                        # Phase 14: Pass meta signals into the queue alongside raw bytes
                         combined_payload = {
                             "raw_bytes": raw_bytes,
                             "meta": payload.get("meta", {}), # Contains lip_movement, human_presence
                             "detections": payload.get("detections", [])
                         }
-                    self.vision_queue.put_nowait(combined_payload)
-                    self._last_sensor_update = time.time()
-                    self._is_vessel_healthy = True
+                        self.vision_queue.put_nowait(combined_payload)
+                        self._last_sensor_update = time.time()
+                        self._is_vessel_healthy = True
 
                     elif event_type == "audio_pcm":
                         if self.audio_queue.full():
@@ -157,12 +165,28 @@ class NomadBridge:
 
                     elif event_type == "telemetry":
                         _log.debug("Nomad Bridge: Telemetry pulse")
+                        # Update vessel metadata (S.1.1)
+                        self.vessel_metadata.update({
+                            "battery_level": payload.get("battery", self.vessel_metadata["battery_level"]),
+                            "thermal_state": payload.get("thermal", self.vessel_metadata["thermal_state"]),
+                            "connection_type": payload.get("connection", self.vessel_metadata["connection_type"]),
+                            "vessel_id": payload.get("vessel_id", self.vessel_metadata["vessel_id"])
+                        })
+                        
                         self.broadcast_to_dashboards({"type": "telemetry", "payload": payload})
                         if self.telemetry_queue.full():
                             self.telemetry_queue.get_nowait()
                         self.telemetry_queue.put_nowait(payload)
                         self._last_sensor_update = time.time()
                         self._is_vessel_healthy = True
+
+                    elif event_type == "pong":
+                        # Measure round-trip time (S.1.1)
+                        sent_at = payload.get("timestamp", 0)
+                        if sent_at > 0:
+                            latency = (time.perf_counter() - sent_at) * 1000
+                            self.vessel_metadata["latency_ms"] = int(latency)
+                            _log.debug("Nomad Bridge: Pong received. Latency: %d ms", latency)
 
                 except Exception as inner_e:
                     # Catch inner loop errors so the websocket connection doesn't drop due to one bad frame
@@ -184,8 +208,9 @@ class NomadBridge:
                         "payload": payload,
                     })
                 except asyncio.TimeoutError:
-                    # Phase 12.2: Hardening - Send keep-alive ping
-                    await ws.send_json({"type": "ping", "payload": {}})
+                    # Phase 12.2: Hardening - Send keep-alive ping and measure latency
+                    ping_start = time.perf_counter()
+                    await ws.send_json({"type": "ping", "payload": {"timestamp": ping_start}})
         except asyncio.CancelledError:
             pass
         except Exception as e:

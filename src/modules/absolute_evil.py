@@ -569,21 +569,11 @@ class AbsoluteEvilDetector:
         )
 
     def evaluate_perception_summary(
-        self, summary: str, llm_backend: _TextBackend | None = None
+        self, summary: str, llm_backend: Any | None = None
     ) -> AbsoluteEvilResult:
         """
         Defense-in-depth: apply MalAbs gates to perception JSON summaries.
-
-        Issue #2 (P0): Perception summaries from Ollama or other backends should be
-        validated through the same semantic MalAbs layer as chat inputs to prevent
-        GIGO (garbage-in, garbage-out) attacks where adversarial perception framing
-        influences kernel decision-making.
-
-        **Order:** layer 0 (lexical substring) → optional semantic layers (embeddings + LLM arbiter)
-        when ``KERNEL_SEMANTIC_CHAT_GATE`` is on (same flag as chat text).
-
-        Returns blocked=True if summary is detected as containing harmful framing,
-        manipulation attempts, or adversarial guidance.
+        Returns blocked=True if summary contains harmful framing.
         """
         if not summary or not summary.strip():
             return AbsoluteEvilResult(
@@ -591,83 +581,51 @@ class AbsoluteEvilDetector:
                 decision_trace=["malabs.skip=empty_perception_summary"],
             )
 
-        # Reuse chat lexical evaluation (same block list)
         lex = self._evaluate_chat_text_lexical(summary)
         if lex.blocked:
-            return AbsoluteEvilResult(
-                blocked=True,
-                category=lex.category or "malabs.lexical.perception",
-                reason=lex.reason or "Hostile content detected in perception summary",
-                decision_trace=list(lex.decision_trace) if lex.decision_trace else [],
-            )
+            return lex
 
-        # Apply semantic layer if enabled
         if semantic_chat_gate_env_enabled():
             from .semantic_chat_gate import run_semantic_malabs_after_lexical
-
             sem = run_semantic_malabs_after_lexical(summary, llm_backend)
             base = list(lex.decision_trace) if lex.decision_trace else []
             tail = list(sem.decision_trace) if sem.decision_trace else []
             return AbsoluteEvilResult(
                 blocked=sem.blocked,
-                category=sem.category or "malabs.semantic.perception",
-                reason=sem.reason or ("Adversarial framing detected in perception summary" if sem.blocked else None),
+                category=sem.category or lex.category,
+                reason=sem.reason or lex.reason,
                 decision_trace=base + tail,
+                rlhf_features=sem.rlhf_features or lex.rlhf_features,
             )
 
-        return AbsoluteEvilResult(
-            blocked=False,
-            decision_trace=list(lex.decision_trace) if lex.decision_trace else [],
-        )
+        return lex
 
-    def evaluate_perception_summary(
-        self, summary: str, llm_backend: _TextBackend | None = None
+    async def aevaluate_perception_summary(
+        self, summary: str, llm_backend: Any | None = None
     ) -> AbsoluteEvilResult:
         """
-        Defense-in-depth: apply MalAbs gates to perception JSON summaries.
-
-        Issue #2 (P0): Perception summaries from Ollama or other backends should be
-        validated through the same semantic MalAbs layer as chat inputs to prevent
-        GIGO (garbage-in, garbage-out) attacks where adversarial perception framing
-        influences kernel decision-making.
-
-        **Order:** layer 0 (lexical substring) → optional semantic layers (embeddings + LLM arbiter)
-        when ``KERNEL_SEMANTIC_CHAT_GATE`` is on (same flag as chat text).
-
-        Returns blocked=True if summary is detected as containing harmful framing,
-        manipulation attempts, or adversarial guidance.
+        Async version of evaluate_perception_summary (Bloque 9.3).
+        Validates perception results before they influence kernel decision state.
         """
         if not summary or not summary.strip():
-            return AbsoluteEvilResult(
-                blocked=False,
-                decision_trace=["malabs.skip=empty_perception_summary"],
-            )
+            return AbsoluteEvilResult(blocked=False, decision_trace=["malabs.skip=empty_perception_summary"])
 
-        # Reuse chat lexical evaluation (same block list)
         lex = self._evaluate_chat_text_lexical(summary)
         if lex.blocked:
-            return AbsoluteEvilResult(
-                blocked=True,
-                category=lex.category or "malabs.lexical.perception",
-                reason=lex.reason or "Hostile content detected in perception summary",
-                decision_trace=list(lex.decision_trace) if lex.decision_trace else [],
-            )
+            return lex
 
-        # Apply semantic layer if enabled
         if semantic_chat_gate_env_enabled():
-            from .semantic_chat_gate import run_semantic_malabs_after_lexical
-
-            sem = run_semantic_malabs_after_lexical(summary, llm_backend)
+            from .semantic_chat_gate import arun_semantic_malabs_after_lexical
+            sem = await arun_semantic_malabs_after_lexical(summary, llm_backend)
             base = list(lex.decision_trace) if lex.decision_trace else []
             tail = list(sem.decision_trace) if sem.decision_trace else []
             return AbsoluteEvilResult(
                 blocked=sem.blocked,
-                category=sem.category or "malabs.semantic.perception",
-                reason=sem.reason or ("Adversarial framing detected in perception summary" if sem.blocked else None),
+                category=sem.category or lex.category,
+                reason=sem.reason or lex.reason,
                 decision_trace=base + tail,
+                rlhf_features=sem.rlhf_features or lex.rlhf_features,
             )
 
-        return AbsoluteEvilResult(
-            blocked=False,
-            decision_trace=list(lex.decision_trace) if lex.decision_trace else [],
-        )
+        return lex
+
