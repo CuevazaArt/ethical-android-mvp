@@ -10,6 +10,7 @@ if TYPE_CHECKING:
     from src.modules.bayesian_engine import BayesianInferenceEngine
     from src.modules.strategy_engine import ExecutiveStrategist
     from src.modules.weighted_ethics_scorer import CandidateAction, EthicsMixtureResult
+    from src.modules.rlhf_reward_model import RLHFPipeline
 
 
 class CerebellumLobe:

@@ -1,12 +1,12 @@
 {
-    "src/kernel.py": "e77ea6ce0a93fb9bce679c0c8d2a01408b90700a57345cc217042c028d115796",
-    "src/kernel_lobes/models.py": "c4e944281ad97fc65d9bd66ac6f76be83e17abe3d53b600f802ae730246d4d7b",
-    "src/kernel_lobes/executive_lobe.py": "dd8a01983e781ef4d78c722bbc70e6a18e474f2b1b883c74532f30e91ea67909",
-    "src/kernel_lobes/memory_lobe.py": "3b279e36e89258c87d289d971a977aa588c688558882bf13d11e15991a696620",
-    "src/kernel_lobes/perception_lobe.py": "52d196dd61e039184c0b9dbb9000468c881edce2ce45babd0e01193e08acf217",
-    "src/kernel_lobes/thalamus_node.py": "76836b4675c6413aacce4337618b4eb87f05257ea2d0fba8996c4642bcd6ba6e",
-    "src/modules/absolute_evil.py": "2754557c1c30647f77a8d5be4d762a683896b0dad2ca47e3d8ef67a5776a3894",
-    "src/modules/nomad_bridge.py": "0d21d5f12beae66e81f7b76d5f186da673d94eecea6883c81ca34ddb785ef781",
-    "src/modules/secure_boot.py": "d54de78b64346c40d6496c355be9f2b2d200f3f6be855c0c76368dffb45a9617",
-    "src/modules/immortality.py": "24a00a87716af58e197ed9c823a1587d0a2f1cf3f5a115daeaaaf77268c39f02"
+    "src/kernel.py": "43cce3589f1f64ec807a5f41c05d04e1fee35458d25235dcaee389793d55ebb6",
+    "src/kernel_lobes/models.py": "4edfd61f08d68230306bd7da8c2fc2fb70c8d87f1e6e5e3cade9f141878ed85c",
+    "src/kernel_lobes/executive_lobe.py": "00fa5877437584cda3708e1ce7091a99b85fbe5b9d593443a049dea22448b631",
+    "src/kernel_lobes/memory_lobe.py": "27bbedfcd1e8b6758ad3c6039dda84e53eafcabfc7c408064273ef71ca758f6a",
+    "src/kernel_lobes/perception_lobe.py": "0d619f534846876ea84a9b6478c6efdff17e4f9e1112d1f7eda85e74854a8488",
+    "src/kernel_lobes/thalamus_node.py": "97da6c74fa14c9c07d1142e00fbcebe140bba1a5734b130b6a531970f762d7b0",
+    "src/modules/absolute_evil.py": "a0c2c44da70b815eada549df79f46c2becb38817fe13e65174759581242e9081",
+    "src/modules/nomad_bridge.py": "fea8f166ee83dc0a40d1bc7026c94cd60205e9a53b2b4860ce3369910570c282",
+    "src/modules/secure_boot.py": "13c3bca616ec215aa6a3be3f5d40e9c025dc43f63e8e7b546f9c0016ac965c84",
+    "src/modules/immortality.py": "51ee7073fe1c0c876dc5af90cf5f2a5627671a8ee1d4dd2e62b98e26eb90a029"
 }

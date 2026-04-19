@@ -12,6 +12,7 @@ if TYPE_CHECKING:
     from src.modules.uchi_soto import SocialEvaluation
     from src.modules.immortality import ImmortalityProtocol
     from src.modules.selective_amnesia import SelectiveAmnesia
+    from src.modules.llm_layer import LLMModule
 
 _log = logging.getLogger(__name__)
 

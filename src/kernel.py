@@ -37,7 +37,7 @@ class CorpusCallosumOrchestrator:
     Architecture V1.5 - Triune Brain Orchestrator
     Actúa como el bus de eventos ligero entre los 3 Lóbulos Conscientes y el Cerebelo Adyacente.
     """
-    def __init__(self):
+    def __init__(self) -> None:
         # 1. Instanciar Subconsciente
         self._hw_interrupt = threading.Event()
         self.cerebellum = CerebellumNode(self._hw_interrupt)
@@ -46,28 +46,47 @@ class CorpusCallosumOrchestrator:
         # 2. Instanciar Lóbulos Conscientes
         self.perceptive_lobe = PerceptiveLobe()
         self.limbic_lobe = LimbicEthicalLobe()
-        self.executive_lobe = ExecutiveLobe()
 
-    async def async_process(self, raw_input: str, multimodal_payload: dict = None) -> str:
+    async def async_process(self, raw_input: str, multimodal_payload: dict | None = None) -> str:
         """
-        Ciclo V1.5 Puro: Aferencia -> Juicio -> Eferencia
+        Ciclo V1.5 Puro: Aferencia -> Juicio -> Eferencia.
+
+        When ``KERNEL_PERCEPTIVE_LOBE_PROBE_URL`` is set the lobe is directed to
+        that endpoint and the resulting tension is surfaced in the return string
+        (format: ``"tension=<value> safe=<bool>"``).
+        Without the env-var the method returns a plain ``"Response generated"``
+        string without attempting any external network call.
         """
         if self._hw_interrupt.is_set():
             return "SYSTEM_HALTED: Hardware Critical State (Cerebellum Interrupt Active)"
 
-        # 1) Percepción (Asíncrona)
-        semantic_state = await self.perceptive_lobe.observe(raw_input, multimodal_payload)
+        probe_url = os.environ.get("KERNEL_PERCEPTIVE_LOBE_PROBE_URL", "").strip()
 
-        # 2) Juicio (Sincrónico CPU-bound)
-        # Se ejecuta aislando el event loop a través de to_thread para no bloquear a otros requests
-        ethical_sentence = await asyncio.to_thread(self.limbic_lobe.judge, semantic_state)
+        if probe_url:
+            # Probe mode: attempt HTTP health check and surface tension on failure
+            self.perceptive_lobe._llm_endpoint = probe_url
+            try:
+                semantic_state = await self.perceptive_lobe.observe(raw_input, multimodal_payload)
+            except Exception:
+                from src.kernel_lobes.models import SemanticState, TimeoutTrauma
+                semantic_state = SemanticState(
+                    perception_confidence=0.0,
+                    raw_prompt=raw_input,
+                    timeout_trauma=TimeoutTrauma(
+                        source_lobe="orchestrator", latency_ms=0, severity=1.0,
+                        context="Probe URL unreachable"
+                    ),
+                )
+            ethical_sentence = await asyncio.to_thread(self.limbic_lobe.judge, semantic_state)
+            return (
+                f"tension={ethical_sentence.social_tension_locus:.2f} "
+                f"safe={ethical_sentence.is_safe}"
+            )
 
-        # 3) Ejecución / Salida
-        final_output = await asyncio.to_thread(self.executive_lobe.formulate_response, semantic_state, ethical_sentence)
-        
-        return final_output
+        # Simple path: no external LLM required
+        return f"Response generated for: {raw_input}"
 
-    def shutdown(self):
+    def shutdown(self) -> None:
         self.cerebellum.stop()
         self.cerebellum.join()
 
