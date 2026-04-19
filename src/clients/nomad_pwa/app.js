@@ -10,7 +10,7 @@ const UI = {
     btnConnect: document.getElementById('btn-connect'),
     btnStream: document.getElementById('btn-stream'),
     btnInstall: document.getElementById('btn-install'),
-    batterySpan: document.getElementById('telemetry-battery'),
+    batterySpan: document.getElementById('battery-level'),
     nomadRtt: document.getElementById('nomad-rtt'),
     transcript: document.getElementById('charm-transcript'),
     videoElement: document.getElementById('hidden-video'),
@@ -40,6 +40,15 @@ if ('getBattery' in navigator) {
     navigator.getBattery().then(battery => {
         lastBatteryLevel = battery.level;
         const sendBat = () => {
+            try {
+                lastBatteryLevel = battery.level;
+                if (UI.batterySpan) {
+                    const pct = Math.round(Math.max(0, Math.min(1, battery.level)) * 100);
+                    UI.batterySpan.textContent = battery.charging ? `${pct}% (charging)` : `${pct}%`;
+                }
+            } catch (e) {
+                console.warn('Nomad battery UI update failed', e);
+            }
             if(wsNomad && wsNomad.readyState === WebSocket.OPEN) {
                 // Proxy for 'Temperature' (browser block workaround): High drain scale
                 let tempProxy = 40 + (1.0 - battery.level) * 10; 
@@ -56,6 +65,8 @@ if ('getBattery' in navigator) {
         battery.addEventListener('levelchange', sendBat);
         battery.addEventListener('chargingchange', sendBat);
         sendBat();
+    }).catch((err) => {
+        console.warn('Battery API unavailable', err);
     });
 }
 
