@@ -17,10 +17,10 @@ Aquí es donde los agentes de ejecución (LLMs en IDEs) reclaman sus tareas.
 **Bloque S.1: Nomad SmartPhone LAN Bridge [PENDING]**
 - Tarea S.1.1: Desarrollar conectores WebSocket/WebRTC (`src/modules/nomad_bridge.py`) para consumir streams de video/audio desde un dispositivo móvil Android/iOS en red local de manera asíncrona.
 
-**Bloque 9.1: Daemon de Visión Continua (CNN/Webcam) [PENDING]**
+**Bloque 9.1: Daemon de Visión Continua (CNN/Webcam) [DONE]**
 - Tarea 9.1.1: Modificar `VisionInferenceEngine` para crear un stream en background que clasifique entidades a 5Hz utilizando pre-procesamiento asíncrono.
 
-**Bloque 8.1: Linter Continuo y Hardening Vertical [PENDING]**
+**Bloque 8.1: Linter Continuo y Hardening Vertical [DONE]**
 - Tarea 8.1.1: Auditar `docstrings` y `type hints` en las divisiones de `src/kernel.py` y `src/kernel_lobes/`. Introducir `try/except` donde fallen por variables nulas. 
 
 **Bloque 9.3: Refactorización Asíncrona Total de Eferencia [PENDING]**

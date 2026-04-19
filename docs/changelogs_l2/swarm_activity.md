@@ -25,3 +25,14 @@ This file is automatically managed by `scripts/swarm_sync.py`.
   - `src/modules/llm_backends.py`
   - `src/modules/vision_inference.py`
   - `src/persistence/narrative_storage.py`
+
+### 🛠️ Execution | Date: 2026-04-19 13:13:52 | Author: Antigravity_L1
+- **Block:** `8.1`
+- **Message:** Hardening Vertical: Blindaje contra nulos en Kernel y Lóbulos + Resellado SecureBoot
+- **Files Modified:**
+  - `docs/proposals/PLAN_WORK_DISTRIBUTION_TREE.md`
+  - `src/MANIFEST.json`
+  - `src/kernel.py`
+  - `src/kernel_lobes/executive_lobe.py`
+  - `src/kernel_lobes/memory_lobe.py`
+  - `src/kernel_lobes/perception_lobe.py`

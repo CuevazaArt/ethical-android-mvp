@@ -229,9 +229,9 @@ class PerceptiveLobe:
     ) -> dict:
         sig = signals or {}
         threat = max(
-            float(sig.get("risk", 0)), 
-            float(sig.get("urgency", 0)), 
-            float(sig.get("hostility", 0))
+            float(sig.get("risk") or 0.0), 
+            float(sig.get("urgency") or 0.0), 
+            float(sig.get("hostility") or 0.0)
         )
         calm = float(sig.get("calm", 0))
         reg_gap = max(0.0, threat - calm)
@@ -281,9 +281,10 @@ class PerceptiveLobe:
 
         return payload
 
-    def _parse_llm_response(self, llm_result: dict, raw_input: str) -> SemanticState:
-        """Parse LLM JSON response and extract semantic signals."""
-        response_text = llm_result.get("response", "")
+        if not isinstance(llm_result, dict):
+            response_text = ""
+        else:
+            response_text = llm_result.get("response") or ""
 
         # Extract confidence from response (heuristic: check for keyword patterns)
         confidence = self._extract_confidence(response_text)

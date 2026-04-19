@@ -57,24 +57,33 @@ class MemoryLobe:
         """
         Async version of episode registration.
         """
-        morals_dict = {ev.pole: ev.moral for ev in moral.evaluations}
+        # 0. Safety Check
+        if not moral or not hasattr(moral, "evaluations") or not bayes_result:
+            _log.warning("MemoryLobe: Cannot register episode, missing moral or bayesian result.")
+            return None
+
+        morals_dict = {ev.pole: getattr(ev, "moral", 0.5) for ev in moral.evaluations}
         
         # 1. Register Episode (Async)
-        ep = await self.memory.aregister(
-            place=place,
-            description=scenario,
-            action=final_action,
-            morals=morals_dict,
-            verdict=moral.global_verdict.value,
-            score=moral.total_score,
-            mode=final_mode,
-            sigma=state.sigma,
-            context=context,
-            body_state=self.migration.current_body,
-            affect_pad=affect.pad if hasattr(affect, "pad") else None,
-            affect_weights=affect.weights if hasattr(affect, "weights") else None,
-            weights_snapshot=bayes_result.applied_mixture_weights
-        )
+        try:
+            ep = await self.memory.aregister(
+                place=place or "unknown",
+                description=scenario or "unnamed_scenario",
+                action=final_action or "idle",
+                morals=morals_dict,
+                verdict=getattr(moral.global_verdict, "value", "Gray Zone") if moral.global_verdict else "Gray Zone",
+                score=float(getattr(moral, "total_score", 0.5)),
+                mode=final_mode or "unknown",
+                sigma=float(getattr(state, "sigma", 0.5)),
+                context=context or "neutral",
+                body_state=getattr(self.migration, "current_body", "simulated"),
+                affect_pad=affect.pad if hasattr(affect, "pad") else None,
+                affect_weights=affect.weights if hasattr(affect, "weights") else None,
+                weights_snapshot=getattr(bayes_result, "applied_mixture_weights", (0.33, 0.33, 0.34))
+            )
+        except Exception as e:
+            _log.error("MemoryLobe: aregister failed: %s", e)
+            return None
         
         # 2. Register Audit in DAO (Async)
         await self.dao.aregister_audit("decision", f"{scenario} → {final_action}", episode_id=ep.id)
@@ -98,24 +107,32 @@ class MemoryLobe:
         """
         Sync version of episode registration (legacy/sim compatibility).
         """
-        morals_dict = {ev.pole: ev.moral for ev in moral.evaluations}
+        # 0. Safety Check
+        if not moral or not hasattr(moral, "evaluations") or not bayes_result:
+            return None
+
+        morals_dict = {ev.pole: getattr(ev, "moral", 0.5) for ev in moral.evaluations}
         
         # 1. Register Episode
-        ep = self.memory.register(
-            place=place,
-            description=scenario,
-            action=final_action,
-            morals=morals_dict,
-            verdict=moral.global_verdict.value,
-            score=moral.total_score,
-            mode=final_mode,
-            sigma=state.sigma,
-            context=context,
-            body_state=self.migration.current_body,
-            affect_pad=affect.pad if hasattr(affect, "pad") else None,
-            affect_weights=affect.weights if hasattr(affect, "weights") else None,
-            weights_snapshot=bayes_result.applied_mixture_weights
-        )
+        try:
+            ep = self.memory.register(
+                place=place or "unknown",
+                description=scenario or "unnamed_scenario",
+                action=final_action or "idle",
+                morals=morals_dict,
+                verdict=getattr(moral.global_verdict, "value", "Gray Zone") if moral.global_verdict else "Gray Zone",
+                score=float(getattr(moral, "total_score", 0.5)),
+                mode=final_mode or "unknown",
+                sigma=float(getattr(state, "sigma", 0.5)),
+                context=context or "neutral",
+                body_state=getattr(self.migration, "current_body", "simulated"),
+                affect_pad=affect.pad if hasattr(affect, "pad") else None,
+                affect_weights=affect.weights if hasattr(affect, "weights") else None,
+                weights_snapshot=getattr(bayes_result, "applied_mixture_weights", (0.33, 0.33, 0.34))
+            )
+        except Exception as e:
+            _log.error("MemoryLobe: register failed: %s", e)
+            return None
         
         # 2. Register Audit in DAO
         self.dao.register_audit("decision", f"{scenario} → {final_action}", episode_id=ep.id)

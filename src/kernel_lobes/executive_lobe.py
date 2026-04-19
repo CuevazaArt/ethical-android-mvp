@@ -107,12 +107,20 @@ class ExecutiveLobe:
         Execute Stage 4: Decision, Will, Reflection, Salience and Affect.
         Extracted from kernel._run_decision_and_will_stage.
         """
+        # 0. Safety Check
+        if not bayes_result or not hasattr(bayes_result, "chosen_action") or not bayes_result.chosen_action:
+            _log.error("ExecutiveLobe: Missing bayesian result at decision stage.")
+            # Standardised error tuple for EthicalKernel.aprocess compatibility
+            return None, "system_error", "blocked", None, None, None
+
         # 1. Ethical Poles Evaluation
+        # signals can be None if perception failed completely
+        sig = signals or {}
         moral = self.poles.evaluate(bayes_result.chosen_action.name, context, {
-            "risk": signals.get("risk", 0.0), 
-            "benefit": max(0, bayes_result.expected_impact),
-            "third_party_vulnerability": signals.get("vulnerability", 0.0), 
-            "legality": signals.get("legality", 1.0)
+            "risk": sig.get("risk", 0.0), 
+            "benefit": max(0, float(getattr(bayes_result, "expected_impact", 0.0))),
+            "third_party_vulnerability": sig.get("vulnerability", 0.0), 
+            "legality": sig.get("legality", 1.0)
         })
 
         # 2. Will Decision
@@ -205,14 +213,18 @@ class ExecutiveLobe:
         sympathetic_state = getattr(decision, "sympathetic_state", None)
         affect = getattr(decision, "affect", None)
 
+        if not decision:
+            _log.error("ExecutiveLobe: Missing decision object in formulate_response.")
+            return VerbalResponse(message="I'm experiencing an internal processing error.", tone="neutral")
+
         return await self.llm.acommunicate(
-            action=decision.final_action,
-            mode=decision.decision_mode,
+            action=getattr(decision, "final_action", "unknown"),
+            mode=getattr(decision, "decision_mode", "light"),
             state=sympathetic_state.mode if sympathetic_state else "neutral",
             sigma=sympathetic_state.sigma if sympathetic_state else 0.5,
-            circle=social_eval.circle.value if social_eval else "neutral_soto",
-            verdict=moral.global_verdict.value if moral else "Gray Zone",
-            score=moral.total_score if moral else 0.0,
+            circle=getattr(social_eval, "circle", None).value if (social_eval and hasattr(social_eval, "circle") and social_eval.circle) else "neutral_soto",
+            verdict=getattr(moral, "global_verdict", None).value if (moral and hasattr(moral, "global_verdict") and moral.global_verdict) else "Gray Zone",
+            score=float(getattr(moral, "total_score", 0.0)) if moral else 0.0,
             scenario=user_input,
             conversation_context=conv,
             affect_pad=affect.pad if affect else None,

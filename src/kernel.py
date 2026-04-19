@@ -758,22 +758,32 @@ class EthicalKernel:
             "context": context,
         }
 
-    def _on_sensory_stress_alert(self, payload: dict[str, Any]) -> None:
+    def _on_sensory_stress_alert(self, payload: dict[str, Any] | None) -> None:
         """
         Handle alerts from background sensory daemons (PerceptiveLobe).
         Directly escalates Bayesian Priors toward Safety/Deontic poles.
         """
-        stress = payload.get("stress_level", 0.0)
+        if not payload:
+            _log.debug("EthicalKernel: Received empty sensory stress alert.")
+            return
+
+        stress = float(payload.get("stress_level", 0.0))
         _log.warning("EthicalKernel: Reactive escalation on sustained sensory stress (level=%.2f)", stress)
         
         # Nudge Bayesian Priors toward Safety (Pole 0)
         # We model high sensory stress as a high inherent risk factor.
         if hasattr(self.bayesian, "apply_rlhf_modulation"):
-            self.bayesian.apply_rlhf_modulation(score=stress, confidence=1.0)
+            try:
+                self.bayesian.apply_rlhf_modulation(score=stress, confidence=1.0)
+            except Exception as e:
+                _log.error("EthicalKernel: Failed to apply sensory stress modulation: %s", e)
         
         # Phase 9.2: Scale Limbic Tension
-        if hasattr(self, "limbic_lobe"):
-            self.limbic_lobe.update_situational_stress(stress)
+        if hasattr(self, "limbic_lobe") and self.limbic_lobe is not None:
+            try:
+                self.limbic_lobe.update_situational_stress(stress)
+            except Exception as e:
+                _log.error("EthicalKernel: Failed to update situational stress: %s", e)
         
         # Record for audit trail
         self.feedback_ledger.record("background_sensory_escalation", f"level={stress:.2f}")
@@ -806,17 +816,23 @@ class EthicalKernel:
         Used when the android is idle or needs to inject self-driven goals.
         """
         proactive = self.motivation.get_proactive_actions()
+        if not proactive or not isinstance(proactive, list):
+            return []
+            
         actions = []
         for p in proactive:
-            actions.append(
-                CandidateAction(
-                    name=p["name"],
-                    description=p["description"],
-                    estimated_impact=p["impact"],
-                    confidence=0.8,
-                    source="internal_motivation",
+            if not isinstance(p, dict): continue
+            try:
+                actions.append(
+                    CandidateAction(
+                        name=p.get("name", "internal_task"),
+                        description=p.get("description", "Routine maintenance"),
+                        estimated_impact=float(p.get("impact", 0.5)),
+                        confidence=0.8,
+                        source="internal_motivation",
+                    )
                 )
-            )
+            except Exception: continue
         return actions
 
     def _malabs_text_backend(self):
@@ -1038,9 +1054,12 @@ class EthicalKernel:
         social_eval: SocialEvaluation, locus_eval: LocusEvaluation, context: str, t0: float, 
         perception_coercion_uncertainty: float | None
     ) -> tuple:
+        if not bayes_result or not hasattr(bayes_result, "chosen_action"):
+            return "system_internal_error: missing_bayesian_result"
+
         humility_reason = assess_humility_block(
-            uncertainty=float(signals.get("perception_uncertainty", 0.0)),
-            winning_confidence=float(bayes_result.chosen_action.confidence),
+            uncertainty=float(signals.get("perception_uncertainty", 0.0)) if signals else 0.0,
+            winning_confidence=float(getattr(bayes_result.chosen_action, "confidence", 0.0)),
             social_tension=float(getattr(social_eval, "relational_tension", 0.0))
         )
         if humility_reason:
