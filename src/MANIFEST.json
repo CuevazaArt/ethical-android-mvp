@@ -12,7 +12,7 @@
     "src/modules/bayesian_engine.py": "b1de6ba0a54301f88f9e3a9356c6cda877f8adab5b3c10d0ca1958e888cb4013",
     "src/modules/weighted_ethics_scorer.py": "f8701f5baca5e9dbdb91b941937240654229cb3315c63cda8098125eaeded112",
     "src/modules/semantic_chat_gate.py": "ae7d5ac85f22dc456714bd4652dc05d61756244bb23633fc5faf57fdbdef4812",
-    "src/modules/uchi_soto.py": "8268e7a9c00cf00f2117a5039af3b0d0983971dbb623ae90e2949e9c44416816",
+    "src/modules/uchi_soto.py": "6325053b675380a99c7b8b9aa2c143e34ec603fa8c595caa5797b250ab67da63",
     "src/modules/sympathetic.py": "fe12ac9f0127535393757b14d848c2c8c7850ce07b8842b5438ddb0c6e71a99e",
     "src/modules/multimodal_trust.py": "909554a9ad3742a531f1c1a4c9b757a9e665889b5f13030689f6e22043db1237",
     "src/modules/buffer.py": "d3eb1128706267acbdec0f0a1264fbcc55bccc4ec43fe2c1c68a4e955b1eb604",

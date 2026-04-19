@@ -269,7 +269,12 @@ class UchiSotoModule:
     ) -> None:
         alpha = self._env_float("KERNEL_UCHI_SENSOR_TRUST_EMA_ALPHA", 0.18)
         sample = self._sensor_trust_sample(signals, sensor_snapshot, multimodal_assessment)
-        ema = (1.0 - alpha) * float(profile.sensor_trust_ema) + alpha * sample
+        
+        curr_ema = float(profile.sensor_trust_ema)
+        if not math.isfinite(curr_ema):
+            curr_ema = 0.5
+            
+        ema = (1.0 - alpha) * curr_ema + alpha * sample
         profile.sensor_trust_ema = max(0.0, min(1.0, ema))
 
     def maybe_autopromote_relational_tier(self, agent_id: str, circle: TrustCircle) -> None:
@@ -287,6 +292,8 @@ class UchiSotoModule:
                 p.relational_tier = cap
             return
         ts = float(p.trust_score)
+        if not math.isfinite(ts):
+            ts = 0.5
         pos = int(p.positive_history)
         t = p.relational_tier
         uchi_ok = circle in (
@@ -835,25 +842,32 @@ def interaction_profile_from_dict(d: dict[str, Any]) -> InteractionProfile:
         relational_tier = RelationalTier.STRANGER_STABLE
     else:
         relational_tier = _relational_tier_from_raw(rt_raw)
+    def _f(val: Any, default: float) -> float:
+        try:
+            f = float(val)
+            return f if math.isfinite(f) else default
+        except (ValueError, TypeError):
+            return default
+
     return InteractionProfile(
         agent_id=str(d.get("agent_id", "unknown"))[:256],
         circle=circle,
         positive_history=max(0, int(d.get("positive_history", 0))),
         negative_history=max(0, int(d.get("negative_history", 0))),
         manipulation_attempts=max(0, int(d.get("manipulation_attempts", 0))),
-        trust_score=max(0.0, min(1.0, float(d.get("trust_score", 0.5)))),
+        trust_score=max(0.0, min(1.0, _f(d.get("trust_score"), 0.5))),
         display_alias=str(d.get("display_alias") or "")[:64],
         tone_preference=tp,
         domestic_tags=_sanitize_tag_list([str(x) for x in dom], max_items=6, max_len=24),
         topic_avoid_tags=_sanitize_tag_list([str(x) for x in av], max_items=8, max_len=32),
-        sensor_trust_ema=max(0.0, min(1.0, float(d.get("sensor_trust_ema", 0.5)))),
+        sensor_trust_ema=max(0.0, min(1.0, _f(d.get("sensor_trust_ema"), 0.5))),
         linked_to_agent_id=str(d.get("linked_to_agent_id") or "")[:64],
         linked_peer_ids=_sanitize_peer_ids([str(x) for x in peers_raw], max_items=4, max_len=48),
         relational_tier=relational_tier,
         tier_explicit=bool(d.get("tier_explicit", False)),
         tier_pinned=bool(d.get("tier_pinned", False)),
         last_subjective_turn=int(d.get("last_subjective_turn", -1)),
-        personal_distance=max(0.0, min(1.0, float(d.get("personal_distance", 0.5)))),
+        personal_distance=max(0.0, min(1.0, _f(d.get("personal_distance"), 0.5))),
         interaction_rhythm=str(d.get("interaction_rhythm", "medium")),
-        intimacy_level=max(0.0, min(1.0, float(d.get("intimacy_level", 0.0)))),
+        intimacy_level=max(0.0, min(1.0, _f(d.get("intimacy_level"), 0.0))),
     )

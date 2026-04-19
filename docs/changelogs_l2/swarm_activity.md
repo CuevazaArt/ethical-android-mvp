@@ -283,3 +283,11 @@ This file is automatically managed by `scripts/swarm_sync.py`.
   - `src/MANIFEST.json`
   - `src/modules/absolute_evil.py`
   - `src/modules/metaplan_registry.py`
+
+### 🛠️ Execution | Date: 2026-04-19 15:05:02 | Author: Antigravity (L1)
+- **Block:** `S.10`
+- **Message:** Continuous Boy Scout Hardening: Refined goal tokenization in MetaplanRegistry for superior cross-lingual matching. Injected process-level fault tolerance into the decision formatter to prevent terminal crashes. Resealed integrity manifest.
+- **Files Modified:**
+  - `src/MANIFEST.json`
+  - `src/modules/uchi_soto.py`
+  - `src/utils/kernel_formatters.py`
