@@ -81,3 +81,4 @@ class NarrativeChronicle:
     ethical_poles_summary: str | None = None
     significance_avg: float = 0.0
     episode_count: int = 0
+    semantic_embedding: list[float] | None = None

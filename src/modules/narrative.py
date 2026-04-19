@@ -127,6 +127,21 @@ class NarrativeMemory:
         events_text = "; ".join([ep.event_description for ep in to_summarize[:10]]) # sample
         summary_text = f"Chronicle of {len(to_summarize)} episodes. Predominant themes: {poles_summary}. Key events sample: {events_text}..."
 
+        # 3.1 Fetch Semantic Embedding for the Chronicle summary
+        ollama_url = os.environ.get("OLLAMA_BASE_URL", "http://localhost:11434/api/embeddings")
+        ollama_model = os.environ.get("OLLAMA_EMBED_MODEL", "mxbai-embed-large")
+        embedding = None
+        try:
+            emb_vec = await ahttp_fetch_ollama_embedding(ollama_url, ollama_model, summary_text)
+            if emb_vec is not None:
+                embedding = emb_vec.tolist()
+            else:
+                fallback = maybe_hash_fallback_embedding(summary_text)
+                if fallback is not None:
+                    embedding = fallback.tolist()
+        except Exception:
+            pass
+
         chron_id = f"CHRON-{len(self.chronicles) + 1:03d}"
         chronicle = NarrativeChronicle(
             id=chron_id,
@@ -135,7 +150,8 @@ class NarrativeMemory:
             summary=summary_text,
             ethical_poles_summary=poles_summary,
             significance_avg=round(avg_sig, 4),
-            episode_count=len(to_summarize)
+            episode_count=len(to_summarize),
+            semantic_embedding=embedding
         )
         
         # 4. Save and persist
@@ -510,10 +526,13 @@ class NarrativeMemory:
         resonant_chronicle_ranges = []
         if query_embed is not None:
             for chr in chronicles:
-                # We mock/approximate thematic resonance by checking if query_text matches summary
-                # Real implementation would use embeddings for chronicles too
-                if query_text and any(word in chr.summary.lower() for word in query_text.lower().split() if len(word) > 4):
-                     resonant_chronicle_ranges.append((chr.start_timestamp, chr.end_timestamp))
+                if chr.semantic_embedding:
+                    chr_vec = np.array(chr.semantic_embedding)
+                    # Use cosine similarity between query and chronicle summary
+                    # This finds high-level thematic resonance (Phase 12.1.3)
+                    chron_sim = float(np.dot(query_embed, chr_vec))
+                    if chron_sim > 0.6: # Significant thematic match
+                         resonant_chronicle_ranges.append((chr.start_timestamp, chr.end_timestamp))
 
         for ep in all_episodes:
             resonance = 0.0

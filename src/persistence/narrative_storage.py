@@ -81,7 +81,8 @@ def _ensure_schema(conn: sqlite3.Connection) -> None:
             archetypal_resonance TEXT,
             ethical_poles_summary TEXT,
             significance_avg REAL,
-            episode_count INTEGER
+            episode_count INTEGER,
+            semantic_embedding BLOB
         )
         """
     )
@@ -398,14 +399,15 @@ class NarrativePersistence:
                     INSERT INTO narrative_chronicles (
                         id, start_timestamp, end_timestamp, summary,
                         archetypal_resonance, ethical_poles_summary,
-                        significance_avg, episode_count
-                    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+                        significance_avg, episode_count, semantic_embedding
+                    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
                     ON CONFLICT(id) DO UPDATE SET
                         summary=excluded.summary,
                         archetypal_resonance=excluded.archetypal_resonance,
                         ethical_poles_summary=excluded.ethical_poles_summary,
                         significance_avg=excluded.significance_avg,
-                        episode_count=excluded.episode_count
+                        episode_count=excluded.episode_count,
+                        semantic_embedding=excluded.semantic_embedding
                     """,
                         (
                             chronicle.id,
@@ -416,6 +418,7 @@ class NarrativePersistence:
                             chronicle.ethical_poles_summary,
                             chronicle.significance_avg,
                             chronicle.episode_count,
+                            json.dumps(chronicle.semantic_embedding) if chronicle.semantic_embedding else None,
                         ),
                     )
                 conn.commit()
@@ -432,10 +435,10 @@ class NarrativePersistence:
         try:
             _ensure_schema(conn)
             cursor = conn.execute(
-                "SELECT id, start_timestamp, end_timestamp, summary, archetypal_resonance, ethical_poles_summary, significance_avg, episode_count FROM narrative_chronicles ORDER BY start_timestamp ASC"
+                "SELECT id, start_timestamp, end_timestamp, summary, archetypal_resonance, ethical_poles_summary, significance_avg, episode_count, semantic_embedding FROM narrative_chronicles ORDER BY start_timestamp ASC"
             )
             for row in cursor:
-                id, start, end, summary, arch, poles, sig, count = row
+                id, start, end, summary, arch, poles, sig, count, embed_str = row
                 chronicles.append(
                     NarrativeChronicle(
                         id=id,
@@ -446,6 +449,7 @@ class NarrativePersistence:
                         ethical_poles_summary=poles,
                         significance_avg=sig,
                         episode_count=count,
+                        semantic_embedding=json.loads(embed_str) if embed_str else None,
                     )
                 )
         finally:

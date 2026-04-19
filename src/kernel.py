@@ -448,6 +448,12 @@ class EthicalKernel:
         from .modules.migratory_identity import MigrationHub
 
         self.migration = MigrationHub()
+        
+        # Phase 8: Observability Snapshots for L1 Dashboard
+        self.last_perception_result: PerceptionStageResult | None = None
+        self.last_decision: Any | None = None
+        self.last_stylized: Any | None = None
+
         self.aclient = aclient
 
         eff_llm = llm if llm is not None else (co.llm if co else None)
@@ -857,7 +863,7 @@ class EthicalKernel:
         t0 = time.perf_counter()
 
         # ═══ STAGE 0: PERCEPTION & SAFETY ═══
-        p_res = self.perceptive_lobe.execute_stage(
+        p_res = await self.perceptive_lobe.execute_stage(
             scenario, place, context, sensor_snapshot, 
             interrupt_event=self.hardware_interrupt_event
         )
@@ -874,7 +880,7 @@ class EthicalKernel:
             self._emit_kernel_decision(d, context=context)
             return d
 
-        if p_res["safety_decision"]:
+        if p_res.get("safety_decision"):
             self._emit_kernel_decision(p_res["safety_decision"], context=context)
             _emit_process_observability(p_res["safety_decision"], t0)
             return p_res["safety_decision"]
@@ -1434,7 +1440,7 @@ class EthicalKernel:
                         "calm": p.calm,
                         "manipulation": p.manipulation,
                         "suggested_context": p.suggested_context,
-                        "summary": p.summary,
+                        "summary": p.scenario_summary,
                     }
                 }
             }
@@ -1730,7 +1736,7 @@ class EthicalKernel:
 
         try:
             decision = await self.aprocess(
-                scenario=perception.summary or user_input[:240],
+                scenario=perception.scenario_summary or user_input[:240],
                 place=place,
                 signals=signals,
                 context=eth_context,
@@ -1979,7 +1985,9 @@ class EthicalKernel:
             turn_start_mono=turn_start_mono,
             precomputed=(tier, premise_advisory, reality_assessment),
         )
+        self.last_perception_result = stage
         perception = stage.perception
+
         signals = stage.signals
 
         if vision_inference:
@@ -2023,7 +2031,7 @@ class EthicalKernel:
         if isinstance(cr, dict):
             pu = cr.get("uncertainty")
         decision = await self.aprocess(
-            scenario=perception.summary,
+            scenario=perception.scenario_summary,
             place="detected by sensors",
             signals=signals,
             context=perception.suggested_context,
@@ -2031,6 +2039,8 @@ class EthicalKernel:
             perception_coercion_uncertainty=pu,
             rlhf_features=mal.rlhf_features if mal else None,
         )
+        self.last_decision = decision
+
 
         # Step 3: LLM generates verbal response
         uchi_line = (
@@ -2077,6 +2087,8 @@ class EthicalKernel:
                 absolute_evil_detected=malabs_det,
             )
             response.message = stylized2.final_text
+            self.last_stylized = stylized2
+
 
         if not decision.blocked:
             self.uchi_soto.register_result("unknown", True)
