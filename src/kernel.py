@@ -1016,6 +1016,15 @@ class EthicalKernel:
                 self.dao.set_state("bayesian_posterior_alpha", alpha_list)
             except Exception as e:
                 _log.error("EthicalKernel: Failed to persist bayesian state: %s", e)
+        
+        # ════ Phase 11.2: Final Breath (Crisis Persistence) ════
+        if signals.get("shutdown_threat", 0.0) > 0.8:
+            _log.warning("EthicalKernel: SHUTDOWN THREAT DETECTED. Executing Final Breath backup.")
+            try:
+                self.immortality.backup(self)
+                self.dao.set_state("vessel_shutdown_imminent", True)
+            except Exception as e:
+                _log.error("EthicalKernel: Final Breath backup failed: %s", e)
 
         return d
 

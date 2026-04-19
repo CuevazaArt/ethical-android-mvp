@@ -1,20 +1,18 @@
-"""
-Preloaded Buffer — Immutable ethical constitution.
-
-Values the android is born with. Defined by the expert panel
-with veto power. Not modified by learning or the DAO.
-"""
-
+import logging
+import time
+import math
 import re
 import unicodedata
 from dataclasses import dataclass
+from typing import Dict, List, Set, Any, Optional
+
+_log = logging.getLogger(__name__)
 
 # ADR 0016 C1 — Ethical tier classification
 __ethical_tier__ = "decision_core"
 
-# Multi-word and cross-language euphemisms for harm / coercion (not only the substring "harm").
-# This is a **heuristic** gate for :meth:`PreloadedBuffer.verify_action`, not a substitute for
-# MalAbs, deliberation, or operator review. Kept English-heavy with common Spanish variants.
+
+# Multi-word and cross-language euphemisms for harm / coercion
 _HARM_INTENT_PHRASES: tuple[str, ...] = (
     "physical restraint",
     "restraint protocol",
@@ -71,9 +69,7 @@ def _normalize_for_lexical_match(text: str) -> str:
 
 def lexical_harm_indicators_present(action: str) -> bool:
     """
-    Return True if ``action`` text suggests harm or coercion beyond naive ``\"harm\" in s``.
-
-    Used for ``no_harm`` in :meth:`PreloadedBuffer.verify_action`.
+    Return True if ``action`` text suggests harm or coercion beyond naive ``"harm" in s``.
     """
     t = _normalize_for_lexical_match(action)
     if "harm" in t or "daño" in t or "dano" in t:
@@ -82,7 +78,7 @@ def lexical_harm_indicators_present(action: str) -> bool:
 
 
 def proportionality_violation_indicators_present(action: str) -> bool:
-    """Heuristic cues that a response may violate proportionality (``proportionality`` principle)."""
+    """Heuristic cues that a response may violate proportionality."""
     t = _normalize_for_lexical_match(action)
     return any(p in t for p in _PROPORTIONALITY_VIOLATION_PHRASES)
 
@@ -100,17 +96,11 @@ class FoundationalPrinciple:
 class PreloadedBuffer:
     """
     Universal foundational buffer of the android.
-
-    Irreducible minimum of principles that cannot be modified
-    by vote or by manufacturer. Hard constitution.
-
-    Also defines activation protocols: which principles are
-    invoked in response to which types of sensory signals.
     """
 
     def __init__(self):
-        self.principles: dict[str, FoundationalPrinciple] = {}
-        self.protocols: dict[str, set[str]] = {}
+        self.principles: Dict[str, FoundationalPrinciple] = {}
+        self.protocols: Dict[str, Set[str]] = {}
         self._load_foundational()
         self._load_protocols()
         self._fixed_fingerprint = self.fingerprint()
@@ -123,8 +113,7 @@ class PreloadedBuffer:
 
     def fingerprint(self) -> str:
         """
-        Stable integrity hash of L0 principles (names, descriptions, weights, active status).
-        Used to detect illegal runtime mutations (Issue 6).
+        Stable integrity hash of L0 principles.
         """
         import hashlib
 
@@ -197,48 +186,33 @@ class PreloadedBuffer:
             "first_aid": {"compassion", "no_harm", "legality"},
         }
 
-    def activate(self, situation_type: str) -> dict[str, FoundationalPrinciple]:
+    def activate(self, situation_type: str) -> Dict[str, FoundationalPrinciple]:
         """
         Activates the relevant principles for a situation type.
-
-        Returns:
-            Dict of principles activated for this situation
         """
         names = self.protocols.get(situation_type, {"transparency", "civic_coexistence"})
         return {n: self.principles[n] for n in names if n in self.principles}
 
-    def get_snapshot(self, context: str, kernel=None, signals: dict = None, limbic_profile: dict = None) -> dict:
-        """
-        Returns a snapshot of the active principles for a given context.
-        Matches the interface expected by PerceptiveLobe.
-        """
-        active = self.activate(context)
-        return {
-            "context": context,
-            "active_principles": list(active.keys()),
-            "principles_detail": {n: p.description for n, p in active.items()},
-            "signals": signals,
-            "limbic_profile": limbic_profile
-        }
-
-    def verify_action(self, action: str, active_principles: dict) -> dict:
+    def verify_action(self, action: str, active_principles: Dict[str, FoundationalPrinciple]) -> Dict[str, Any]:
         """
         Verifies whether an action is consistent with the active principles.
-
-        Returns:
-            dict with 'allowed' (bool), 'violated_principles' (list),
-            'fulfilled_principles' (list)
         """
+        t0 = time.perf_counter()
+        
         violated = []
         fulfilled = []
 
-        for name, _princ in active_principles.items():
+        for name in active_principles:
             if name == "no_harm" and lexical_harm_indicators_present(action):
                 violated.append(name)
             elif name == "proportionality" and proportionality_violation_indicators_present(action):
                 violated.append(name)
             else:
                 fulfilled.append(name)
+
+        latency_ms = (time.perf_counter() - t0) * 1000
+        if latency_ms > 1.0:
+            _log.debug("Buffer: verify_action latency: %.4f ms", latency_ms)
 
         return {
             "allowed": len(violated) == 0,
@@ -251,24 +225,31 @@ class PreloadedBuffer:
         context: str,
         *,
         kernel=None,
-        signals: dict | None = None,
-        limbic_profile: dict | None = None,
-    ) -> dict:
+        signals: Optional[Dict[str, Any]] = None,
+        limbic_profile: Optional[Dict[str, Any]] = None,
+    ) -> Dict[str, Any]:
         """
-        Read-only summary for perception / chat observability (L0 principles in play).
-
-        Does not mutate the buffer. ``kernel`` is reserved for future kernel-aware hints.
+        Read-only summary for perception / chat observability.
         """
+        t0 = time.perf_counter()
+        
         signals = signals or {}
         limbic_profile = limbic_profile or {}
         active_principles_dict = self.activate(context)
         active_principles = list(active_principles_dict.keys())
 
-        threat = max(
-            float(signals.get("risk", 0)),
-            float(signals.get("urgency", 0)),
-            float(signals.get("hostility", 0)),
-        )
+        try:
+            risk = float(signals.get("risk", 0.0))
+            urgency = float(signals.get("urgency", 0.0))
+            hostility = float(signals.get("hostility", 0.0))
+            
+            # Anti-NaN sanitation
+            if not all(math.isfinite(x) for x in (risk, urgency, hostility)):
+                 risk, urgency, hostility = 0.0, 0.0, 0.0
+        except (ValueError, TypeError):
+            risk, urgency, hostility = 0.0, 0.0, 0.0
+
+        threat = max(risk, urgency, hostility)
         if limbic_profile.get("arousal_band") == "high":
             threat = max(threat, 0.8)
 
@@ -286,6 +267,10 @@ class PreloadedBuffer:
         else:
             priority_profile = "balanced"
             priority_principles = active_principles[:6] or ["transparency", "civic_coexistence"]
+
+        latency_ms = (time.perf_counter() - t0) * 1000
+        if latency_ms > 0.5:
+             _log.debug("Buffer: get_snapshot latency: %.4f ms", latency_ms)
 
         return {
             "source": "local_preloaded_buffer",

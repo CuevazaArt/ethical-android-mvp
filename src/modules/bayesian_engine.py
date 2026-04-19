@@ -96,6 +96,7 @@ class BayesianInferenceEngine:
         self.prior_alpha = np.array([3.0, 3.0, 3.0], dtype=np.float64)
         self.posterior_alpha = self.prior_alpha.copy()
         self.consistency: str = "compatible"
+        self.dao: Any | None = None
         
         # Sync initial weights if in driven mode
         if self.mode == BayesianMode.POSTERIOR_DRIVEN:
@@ -167,6 +168,13 @@ class BayesianInferenceEngine:
         elif self.mode == BayesianMode.POSTERIOR_ASSISTED:
             # Assisted mode uses a blend or bounded nudge
             self._apply_assisted_nudge()
+
+        # Phase S.4: Local Bayesian Persistence (LBP) - Save to DAO
+        if self.dao:
+            try:
+                self.dao.set_state("bayesian_posterior_alpha", self.posterior_alpha.tolist())
+            except Exception as e:
+                 _logger.warning("Bayesian: Failed to persist posterior_alpha to DAO: %s", e)
 
         latency_ms = (time.perf_counter() - t0) * 1000
         if latency_ms > 1.0: # Only log heavy updates

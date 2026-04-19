@@ -83,10 +83,14 @@ class ExecutiveLobe:
 
             # 2. Update and inject proactive motivations
             if self.motivation:
+                def f_val(v, d=0.0):
+                    f = float(v)
+                    return f if math.isfinite(f) else d
+
                 self.motivation.update_drives({
-                    "social_tension": float(getattr(social_eval, "relational_tension", 0.0)),
-                    "uncertainty": float(signals.get("uncertainty", 0.0)), 
-                    "energy": float(state.energy)
+                    "social_tension": f_val(getattr(social_eval, "relational_tension", 0.0)),
+                    "uncertainty": f_val(signals.get("uncertainty", 0.0)), 
+                    "energy": f_val(state.energy, 1.0)
                 })
                 for pa in self.motivation.get_proactive_actions():
                     # Filter proactive actions too!
@@ -144,8 +148,10 @@ class ExecutiveLobe:
                 uncertainty = 0.5
             will_dec = self.will.decide(impact, uncertainty)
             
-            # 3. Decision Mode Finalization
-            if state.mode == "sympathetic" and will_dec.get("mode") != "gray_zone":
+            # 3. Decision Mode Finalization (Phase 11.2 Shutdown Anxiety aligned)
+            if getattr(bayes_result, "decision_mode", "") == "D_emergency":
+                final_mode = "D_emergency"
+            elif state.mode == "sympathetic" and will_dec.get("mode") != "gray_zone":
                 final_mode = "D_fast"
             elif will_dec.get("mode") == "gray_zone":
                 final_mode = "gray_zone"

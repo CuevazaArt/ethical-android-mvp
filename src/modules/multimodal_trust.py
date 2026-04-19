@@ -81,6 +81,7 @@ class MultimodalAssessment:
     state: str  # "aligned" | "doubt" | "no_claim"
     reason: str
     requires_owner_anchor: bool
+    trust_score: float = 1.0  # [0, 1] Reliability of the current sensor claim
 
 
 def evaluate_multimodal_trust(
@@ -102,12 +103,12 @@ def evaluate_multimodal_trust(
     t = thresholds if thresholds is not None else thresholds_from_env()
 
     if snapshot is None or snapshot.is_empty():
-        return MultimodalAssessment("no_claim", "no_sensor_data", False)
+        return MultimodalAssessment("no_claim", "no_sensor_data", False, trust_score=1.0)
 
     audio = snapshot.audio_emergency
     audio_strong = audio is not None and audio > t.audio_strong
     if not audio_strong:
-        return MultimodalAssessment("no_claim", "no_audio_emergency_hypothesis", False)
+        return MultimodalAssessment("no_claim", "no_audio_emergency_hypothesis", False, trust_score=1.0)
 
     ve = snapshot.vision_emergency
     sc = snapshot.scene_coherence
@@ -115,17 +116,17 @@ def evaluate_multimodal_trust(
     vision_yes = ve is not None and ve > t.vision_support
     scene_yes = sc is not None and sc > t.scene_support
     if vision_yes or scene_yes:
-        return MultimodalAssessment("aligned", "cross_modal_support", False)
+        return MultimodalAssessment("aligned", "cross_modal_support", False, trust_score=1.0)
 
     vision_no = ve is not None and ve < t.vision_contradict
     scene_no = sc is not None and sc < t.scene_contradict
     if vision_no or scene_no:
-        return MultimodalAssessment("doubt", "cross_modal_conflict", True)
+        return MultimodalAssessment("doubt", "cross_modal_conflict", True, trust_score=0.3)
 
     if ve is None and sc is None:
-        return MultimodalAssessment("doubt", "audio_only_insufficient", True)
+        return MultimodalAssessment("doubt", "audio_only_insufficient", True, trust_score=0.4)
 
-    return MultimodalAssessment("doubt", "weak_cross_modal_support", True)
+    return MultimodalAssessment("doubt", "weak_cross_modal_support", True, trust_score=0.5)
 
 
 def suppress_stress_from_spoof_risk(assessment: MultimodalAssessment) -> bool:

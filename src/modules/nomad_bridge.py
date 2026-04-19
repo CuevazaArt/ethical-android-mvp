@@ -193,7 +193,9 @@ class NomadBridge:
                         batt = payload.get("battery")
                         if batt is not None:
                             try:
-                                self.vessel_context.battery_fraction = float(batt)
+                                val = float(batt)
+                                if math.isfinite(val):
+                                    self.vessel_context.battery_fraction = val
                             except (ValueError, TypeError):
                                 pass
                         
@@ -219,8 +221,9 @@ class NomadBridge:
                         sent_at = payload.get("timestamp", 0)
                         if sent_at > 0:
                             latency = (time.perf_counter() - sent_at) * 1000
-                            self.vessel_metadata["latency_ms"] = int(latency)
-                            _log.debug("Nomad Bridge: Pong received. Latency: %d ms", latency)
+                            if math.isfinite(latency):
+                                self.vessel_metadata["latency_ms"] = int(latency)
+                                _log.debug("Nomad Bridge: Pong received. Latency: %d ms", latency)
 
                     elif event_type in ("rtc_offer", "rtc_answer", "rtc_ice"):
                         # WebRTC Signaling Relay (S.1.1)

@@ -7,6 +7,17 @@ All notable changes to this project are summarized here. For narrative context a
 **[URGENT ΓÇö broadcast to all L2 integration hubs]:** All teams (Claude, Cursor, Copilot) should urgently `git pull` from `main` into their `master-*` branches. Outdated branches risk severe documentation path drift.
 
 ### Antigravity-Team Updates (2026-04-18 - Session 2)
+### Antigravity-Team Updates (2026-04-19 - Session 7)
+
+- [x] **SITUATED FINITUDE & SHUTDOWN ANXIETY (Phase 11.2)**:
+    *   **Battery Stress**: Implementada lógica de "Ansiedad de Apagado" en `LimbicEthicalLobe`. Al detectar batería ≤ 5%, se inyecta un pulso de urgencia y estrés somático (+0.4) que eleva la activación (σ) del sistema.
+    *   **Sympathetic Integration**: El `SympatheticModule` ahora prioriza la señal `shutdown_threat` como disparador de alerta máxima.
+- [x] **NOMAD BRIDGE & HAL ALIGNMENT**:
+    *   Refactorizado `NomadBridge` para utilizar la clase `HardwareContext` (HAL), asegurando consistencia arquitectónica entre el bridge WebSocket y el core del kernel.
+- [x] **SECURE BOOT EXPANSION**:
+    *   Ampliada la lista de módulos críticos protegidos por el Chain of Trust (de 10 a 17 archivos), incluyendo motores bayesianos, persistencia y reguladores autonómicos.
+    *   Sincronizado y ejecutado el Resellado de Manifiesto (`MANIFEST.json`).
+
 ### Antigravity-Team Updates (2026-04-19 - Session 6)
 
 - [x] **PERSISTENT ETHICAL LEARNING (Tarea S.4.1 & S.4.2)**:

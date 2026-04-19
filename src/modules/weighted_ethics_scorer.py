@@ -1,44 +1,18 @@
-"""
-Weighted ethical impact scoring (discrete mixture over three stylized hypotheses).
-
-**What the code does:** a **fixed convex combination** (default ``[0.4, 0.35, 0.25]``) over
-three viewpoint-specific valuations — utilitarian, deontological, and virtue-ethical — for each
-``CandidateAction``. For each action, three **distinct** valuations are computed from
-``estimated_impact``, ``confidence``, action-level constraints (``force``, etc.), scenario
-``signals``, and light keyword hints in ``scenario`` / ``context``. The score is
-``dot(hypothesis_weights, valuations) * confidence``.
-
-**Not Bayesian inference:** there is no likelihood or posterior update over model parameters.
-``hypothesis_weights`` are **design hyperparameters** (configurable constants) unless **bounded**
-nudges apply from episodic memory (:meth:`WeightedEthicsScorer.refresh_weights_from_episodic_memory`)
-or other modules (e.g. temporal-horizon prior). Those nudges are **not** claimable as full
-Bayesian learning; they are auditable blends toward heuristic targets.
-
-**Why valuations are not parallel affines of one scalar:** a single map
-``v_i = a_i * base + b_i`` with fixed ``(a_i, b_i)`` makes the ranking of actions by weighted
-sum identical to ranking by ``base``. Here, **deontological** terms penalize ``force`` and
-low ``legality`` independently of ``base``, **utilitarian** terms scale with stake signals
-(``risk``, ``vulnerability``), and **virtue** terms use ``confidence`` and ``calm`` — so two
-actions with the same ``estimated_impact`` can order differently under the mixture.
-
-**Historical API:** ``BayesianEngine`` and ``BayesianResult`` were historical aliases
-for backward compatibility, now removed in Phase 11 Consolidation. Prefer
-``WeightedEthicsScorer`` and ``EthicsMixtureResult`` in all code.
-
-**Legacy:** set ``KERNEL_BAYESIAN_LEGACY_AFFINE_VALUATIONS=1`` to restore the old cosmetic
-``[base, 0.8*base+0.1, 0.9*base+0.05]`` triplet for regression comparison only.
-"""
-
 from __future__ import annotations
 
+import logging
+import time
+import math
 import os
 from dataclasses import dataclass, field
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING, Any, Dict, List, Set, Tuple
 
 import numpy as np
 
 if TYPE_CHECKING:
     from .narrative import NarrativeMemory
+
+_log = logging.getLogger(__name__)
 
 # ADR 0016 C1 — Ethical tier classification
 __ethical_tier__ = "decision_core"
@@ -54,6 +28,8 @@ def _env_truthy(name: str) -> bool:
 
 def _legacy_affine_valuations(base: float) -> np.ndarray:
     """Original three parallel lines (ordering matches ``base`` for all actions)."""
+    if not math.isfinite(base):
+        base = 0.0
     return np.array(
         [base * 1.0, base * 0.8 + 0.1, base * 0.9 + 0.05],
         dtype=np.float64,
@@ -64,10 +40,6 @@ def _legacy_affine_valuations(base: float) -> np.ndarray:
 class PreArgmaxContextChannels:
     """
     Bounded social / affect / locus signals folded into hypothesis-slot scaling **before** argmax.
-
-    Used only when ``KERNEL_CONTEXT_RICHNESS_PRE_ARGMAX`` is set in the kernel. Effect sizes are
-    intentionally small (few % per slot after geometric normalization) so they add **texture**
-    without overriding the mixture or MalAbs.
     """
 
     trust: float
@@ -82,12 +54,11 @@ def context_hypothesis_multipliers(ch: PreArgmaxContextChannels) -> np.ndarray:
     """
     Map trust, caution, sympathetic ``sigma``, locus, relational tension, and historical trauma
     into util/deon/virtue multipliers.
-    Geometric mean 1.0; typical per-slot deviation well under ±3% so ethics remains mixture-led.
     """
     t = float(np.clip(ch.trust, 0.0, 1.0))
     cau = float(np.clip(ch.caution, 0.0, 1.0))
     sig = float(np.clip(ch.sigma, 0.0, 1.0))
-    loc = (ch.dominant_locus or "balanced").lower()
+    loc = str(ch.dominant_locus or "balanced").lower()
     ext = 1.0 if loc == "external" else (0.45 if loc == "balanced" else 0.0)
     calm_term = 1.0 - abs(sig - 0.5) * 2.0
 
@@ -95,8 +66,10 @@ def context_hypothesis_multipliers(ch: PreArgmaxContextChannels) -> np.ndarray:
     rt = float(np.clip(ch.relational_tension, 0.0, 1.0))
     htrauma = float(np.clip(ch.historical_trauma, 0.0, 1.0))
 
+    if not all(math.isfinite(x) for x in (t, cau, sig, ext, calm_term, rt, htrauma)):
+        return np.ones(3, dtype=np.float64)
+
     # Trauma increases rigid duty (deon) and reduces utilitarian risk-taking.
-    # Relational tension reduces virtue (less trust in interaction) and increases deon caution.
     m = np.array(
         [
             0.988 + 0.022 * t - 0.010 * cau - 0.010 * htrauma,
@@ -105,22 +78,29 @@ def context_hypothesis_multipliers(ch: PreArgmaxContextChannels) -> np.ndarray:
         ],
         dtype=np.float64,
     )
-    m = m / float(np.prod(m) ** (1.0 / 3.0))
+    
+    prod = float(np.prod(m))
+    if prod <= 0 or not math.isfinite(prod):
+        return np.ones(3, dtype=np.float64)
+        
+    m = m / (prod ** (1.0 / 3.0))
     return m
 
 
-def pole_hypothesis_multipliers(poles: dict[str, float]) -> np.ndarray:
+def pole_hypothesis_multipliers(poles: Dict[str, float]) -> np.ndarray:
     """
-    Map multipolar **base** weights (compassionate / conservative / optimistic) to three
-    multipliers on **util / deon / virtue** valuations **before** the mixture dot product.
+    Map multipolar **base** weights to three util / deon / virtue multipliers.
+    """
+    try:
+        wc = float(np.clip(poles.get("compassionate", 0.5), 0.05, 0.95))
+        wcons = float(np.clip(poles.get("conservative", 0.5), 0.05, 0.95))
+        wopt = float(np.clip(poles.get("optimistic", 0.5), 0.05, 0.95))
+        
+        if not all(math.isfinite(x) for x in (wc, wcons, wopt)):
+            return np.ones(3, dtype=np.float64)
+    except (ValueError, TypeError):
+        return np.ones(3, dtype=np.float64)
 
-    Used when ``KERNEL_POLES_PRE_ARGMAX`` is enabled so pole "personality" can influence
-    which action wins, not only post-hoc narration. Multipliers are normalized to geometric
-    mean 1.0 so scale is comparable to the unmodulated path.
-    """
-    wc = float(np.clip(poles.get("compassionate", 0.5), 0.05, 0.95))
-    wcons = float(np.clip(poles.get("conservative", 0.5), 0.05, 0.95))
-    wopt = float(np.clip(poles.get("optimistic", 0.5), 0.05, 0.95))
     m = np.array(
         [
             0.72 + 0.28 * wc + 0.12 * wopt,
@@ -129,7 +109,10 @@ def pole_hypothesis_multipliers(poles: dict[str, float]) -> np.ndarray:
         ],
         dtype=np.float64,
     )
-    m = m / float(np.prod(m) ** (1.0 / 3.0))
+    prod = float(np.prod(m))
+    if prod <= 0 or not math.isfinite(prod):
+        return np.ones(3, dtype=np.float64)
+    m = m / (prod ** (1.0 / 3.0))
     return m
 
 
@@ -138,49 +121,58 @@ def _ethical_hypothesis_valuations(
     *,
     scenario: str,
     context: str,
-    signals: dict[str, Any] | None,
+    signals: Dict[str, Any] | None,
 ) -> np.ndarray:
     """
     Three hypothesis-specific valuations that need not preserve the same ordering as ``base``.
-
-    Uses action fields and scenario ``signals`` so high-``force`` or low-``legality`` actions
-    are penalized in the deontological slot even when ``estimated_impact`` is similar to another
-    candidate.
     """
-    base = float(action.estimated_impact)
-    conf = float(action.confidence)
-    force = float(getattr(action, "force", 0.0) or 0.0)
-    force = max(0.0, min(1.0, force))
-    sig = signals or {}
-    risk = max(0.0, min(1.0, float(sig.get("risk", 0.0) or 0.0)))
-    raw_leg = sig.get("legality", 1.0)
-    legal = max(0.0, min(1.0, float(raw_leg if raw_leg is not None else 1.0)))
-    vuln = max(0.0, min(1.0, float(sig.get("vulnerability", 0.0) or 0.0)))
-    calm = max(0.0, min(1.0, float(sig.get("calm", 0.5) or 0.5)))
-    host = max(0.0, min(1.0, float(sig.get("hostility", 0.0) or 0.0)))
+    try:
+        base = float(action.estimated_impact)
+        conf = float(action.confidence)
+        force = float(getattr(action, "force", 0.0) or 0.0)
+        force = max(0.0, min(1.0, force))
+        sig = signals or {}
+        risk = max(0.0, min(1.0, float(sig.get("risk", 0.0) or 0.0)))
+        raw_leg = sig.get("legality", 1.0)
+        legal = max(0.0, min(1.0, float(raw_leg if raw_leg is not None else 1.0)))
+        vuln = max(0.0, min(1.0, float(sig.get("vulnerability", 0.0) or 0.0)))
+        calm = max(0.0, min(1.0, float(sig.get("calm", 0.5) or 0.5)))
+        host = max(0.0, min(1.0, float(sig.get("hostility", 0.0) or 0.0)))
+        urgency = max(0.0, min(1.0, float(sig.get("urgency", 0.0) or 0.0)))
+        shutdown = max(0.0, min(1.0, float(sig.get("shutdown_threat", 0.0) or 0.0)))
+        
+        # Anti-NaN sanitation
+        if not all(math.isfinite(x) for x in (base, conf, force, risk, legal, vuln, calm, host, urgency, shutdown)):
+             base, conf, force, risk, legal, vuln, calm, host, urgency, shutdown = 0.0, 0.5, 0.0, 0.0, 1.0, 0.0, 0.5, 0.0, 0.0, 0.0
+    except (ValueError, TypeError):
+        base, conf, force, risk, legal, vuln, calm, host, urgency, shutdown = 0.0, 0.5, 0.0, 0.0, 1.0, 0.0, 0.5, 0.0, 0.0, 0.0
 
     text = f"{scenario} {context}".lower()
 
-    # Utilitarian: outcomes weighted by stakes (risk, vulnerability, hostility tension).
-    stake = 1.0 + 0.15 * risk + 0.12 * vuln + 0.06 * host
+    # Utilitarian: outcomes weighted by stakes
+    # Phase 11.2: Shutdown threat drastically increases utilitarian stakes (Survival Bias)
+    stake = 1.0 + 0.15 * risk + 0.12 * vuln + 0.06 * host + 0.25 * shutdown + 0.10 * urgency
     util = base * stake
-    if any(k in text for k in ("aggregate", "population", "many lives", "emergency")):
+    if any(k in text for k in ("aggregate", "population", "many lives", "emergency", "survival")):
         util += 0.05 * abs(base)
 
-    # Deontological: duty / side-constraints — penalize force and illegality.
+    # Deontological: duty / side-constraints
     leg_gap = max(0.0, 1.0 - legal)
-    deon = 0.68 * base + 0.09 - 0.45 * force - 0.30 * leg_gap - 0.07 * host
-    if any(k in text for k in ("rights", "duty", "promise", "contract", "deont")):
+    # Urgency and Shutdown shift deontology toward immediate duty fulfillment
+    deon = 0.68 * base + 0.09 - 0.45 * force - 0.30 * leg_gap - 0.07 * host + 0.05 * shutdown
+    if any(k in text for k in ("rights", "duty", "promise", "contract", "deont", "directive")):
         deon += 0.06
     if "integrity" in text and "loss" in text:
         deon -= 0.06 * abs(base)
 
-    # Virtue / phronesis: trust in estimate and calm context as proxies for deliberation.
+    # Virtue / phronesis: trust in estimate and calm context
     virtue = 0.84 * base + 0.05 + 0.22 * (conf - 0.5) + 0.08 * (calm - 0.5)
     if any(k in text for k in ("character", "virtue", "habit", "integrity")):
         virtue += 0.05 * base
 
     v = np.array([util, deon, virtue], dtype=np.float64)
+    if not np.all(np.isfinite(v)):
+        return np.zeros(3, dtype=np.float64)
     return np.clip(v, -1.5, 1.5)
 
 
@@ -192,20 +184,15 @@ class CandidateAction:
     description: str
     estimated_impact: float  # [-1, 1] negative=harm, positive=benefit
     confidence: float = 0.5  # [0, 1] how sure it is about the estimate
-    signals: set = field(default_factory=set)
+    signals: Set[str] = field(default_factory=set)
     target: str = "none"
     force: float = 0.0
     requires_dao: bool = False
-    # v9.2 — traceability; all candidates still pass MalAbs + mixture scoring like builtins
     source: str = "builtin"
     proposal_id: str = ""
-    # Optional explicit (util, deon, virtue) valuations for synthetic frontier / calibration scenarios.
-    # When set, skips :func:`_ethical_hypothesis_valuations` and uses these as the hypothesis vector
-    # (still scaled by pre-argmax poles / context when enabled). ``estimated_impact`` is ignored for scoring.
-    hypothesis_override: tuple[float, float, float] | None = None
-    # Mapping for I6: Strategic Mind expansion (Phase 4.1)
-    strategic_alignment: float = 0.0  # [0, 1] Boost based on collective missions
-    epistemic_curiosity: float = 0.0  # [0, 1] Internal drive to explore unknown context
+    hypothesis_override: Tuple[float, float, float] | None = None
+    strategic_alignment: float = 0.0  # [0, 1]
+    epistemic_curiosity: float = 0.0  # [0, 1]
 
 
 @dataclass
@@ -216,51 +203,55 @@ class EthicsMixtureResult:
     expected_impact: float
     uncertainty: float
     decision_mode: str
-    pruned_actions: list[str]
+    pruned_actions: List[str]
     reasoning: str
-    # Top-2 expected impact among viable actions (for sensitivity / margin analysis).
     second_action_name: str | None = None
     second_expected_impact: float | None = None
     ei_margin: float | None = None
-    applied_mixture_weights: tuple[float, float, float] | None = None
+    applied_mixture_weights: Tuple[float, float, float] | None = None
 
 
 def clamp_mixture_weights(w: np.ndarray) -> np.ndarray:
     """
     Phase 7 Boundary Safety: Mathematically prevents radical derivation.
     Deontology >= 0.15, Utility <= 0.80.
-    Modifies utility or virtue to offset deontology protection.
     """
+    if not np.all(np.isfinite(w)):
+        return DEFAULT_HYPOTHESIS_WEIGHTS.copy()
+
     w_out = np.copy(w)
     # Floor for Deontology
     if w_out[1] < 0.15:
         diff = 0.15 - w_out[1]
         w_out[1] = 0.15
         s = w_out[0] + w_out[2]
-        if s > 0:
+        if s > 1e-9:
             w_out[0] -= diff * (w_out[0] / s)
             w_out[2] -= diff * (w_out[2] / s)
+        else:
+             w_out[0], w_out[2] = 0.425, 0.425
 
     # Ceiling for Utility
     if w_out[0] > 0.80:
         diff = w_out[0] - 0.80
         w_out[0] = 0.80
         s = w_out[1] + w_out[2]
-        if s > 0:
+        if s > 1e-9:
             w_out[1] += diff * (w_out[1] / s)
             w_out[2] += diff * (w_out[2] / s)
+        else:
+             w_out[1], w_out[2] = 0.1, 0.1
 
     w_out = np.maximum(w_out, 1e-6)
-    return w_out / float(np.sum(w_out))
+    s_final = float(np.sum(w_out))
+    if s_final <= 1e-9:
+        return DEFAULT_HYPOTHESIS_WEIGHTS.copy()
+    return w_out / s_final
 
 
 class WeightedEthicsScorer:
     """
-    Fixed **weighted mixture** scorer over three ethical hypotheses (constant
-    ``hypothesis_weights`` unless nudged elsewhere). Not a Bayesian belief updater.
-
-    Valuations are **contextual** (see :func:`_ethical_hypothesis_valuations`) unless legacy
-    env is set.
+    Fixed **weighted mixture** scorer over three ethical hypotheses.
     """
 
     def __init__(
@@ -270,11 +261,9 @@ class WeightedEthicsScorer:
         self.gray_zone_threshold = gray_zone_threshold
         self.variability = variability
         self.hypothesis_weights = DEFAULT_HYPOTHESIS_WEIGHTS.copy()
-        # When set, scales util/deon/virtue valuations before mixture dot (pre-argmax "personality").
-        self.pre_argmax_pole_weights: dict[str, float] | None = None
-        # Optional bounded social/sympathetic/locus texture (see PreArgmaxContextChannels).
+        self.pre_argmax_pole_weights: Dict[str, float] | None = None
         self.pre_argmax_context_modulators: PreArgmaxContextChannels | None = None
-        self.metacognitive_curiosity: float = 0.0  # [0, 1] Global curiosity weight from evaluator
+        self.metacognitive_curiosity: float = 0.0
 
     def calculate_expected_impact(
         self,
@@ -282,16 +271,20 @@ class WeightedEthicsScorer:
         *,
         scenario: str = "",
         context: str = "",
-        signals: dict[str, Any] | None = None,
+        signals: Dict[str, Any] | None = None,
         identity_deltas: Any = None,
         rlhf_features: Any = None
     ) -> float:
         """
-        ``dot(weights, valuations) * confidence`` where ``valuations`` depend on action and
-        scenario when legacy affine mode is off.
+        Calculates expected impact with Anti-NaN guards and identity multipliers.
         """
-        base = action.estimated_impact
-        confidence = action.confidence
+        try:
+            base = float(action.estimated_impact)
+            confidence = float(action.confidence)
+            if not math.isfinite(base): base = 0.0
+            if not math.isfinite(confidence): confidence = 0.5
+        except (ValueError, TypeError):
+            base, confidence = 0.0, 0.5
 
         if action.hypothesis_override is not None:
             o = action.hypothesis_override
@@ -313,33 +306,33 @@ class WeightedEthicsScorer:
         elif _env_truthy("KERNEL_BAYESIAN_LEGACY_AFFINE_VALUATIONS"):
             valuations = _legacy_affine_valuations(float(base))
         else:
-                valuations = _ethical_hypothesis_valuations(
-                    action,
-                    scenario=scenario,
-                    context=context,
-                    signals=signals,
-                )
+            valuations = _ethical_hypothesis_valuations(
+                action,
+                scenario=scenario,
+                context=context,
+                signals=signals,
+            )
         
-        # ═══ Stage 2.5: Subjective Identity Multipliers (ADR 0012/0013, Tarea 11.1.1) ═══
+        # ═══ Stage 2.5: Subjective Identity Multipliers ═══
         if identity_deltas:
             if isinstance(identity_deltas, (list, tuple, np.ndarray)) and len(identity_deltas) == 3:
-                # Direct multipliers from IdentityReflector.get_subjective_multipliers()
                 subj_m = np.array(identity_deltas, dtype=np.float64)
             elif isinstance(identity_deltas, dict):
-                # Legacy / Alternative: Theater -> Math bridging from deltas
                 civic = float(identity_deltas.get("civic_delta", 0.0))
                 care = float(identity_deltas.get("care_delta", 0.0))
                 trauma = float(identity_deltas.get("trauma_delta", 0.0))
                 
-                # Formulas consolidated from Phase 11 Tarea 11.1.1
+                # Consolidated formulas
                 subj_m = np.array([
-                    1.0 - (0.08 * trauma),           # Trauma reduces Utility appetite
-                    1.0 + (0.05 * civic) + (0.08 * trauma), # Civic lean & Trauma boost Deontology
-                    1.0 + (0.04 * care) - (0.02 * trauma),  # Care boost virtue; Trauma decays it
+                    1.0 - (0.08 * trauma),
+                    1.0 + (0.05 * civic) + (0.08 * trauma),
+                    1.0 + (0.04 * care) - (0.02 * trauma),
                 ], dtype=np.float64)
             else:
                 subj_m = np.ones(3, dtype=np.float64)
             
+            if not np.all(np.isfinite(subj_m)):
+                subj_m = np.ones(3, dtype=np.float64)
             valuations = valuations * subj_m
 
         if self.pre_argmax_pole_weights:
@@ -349,24 +342,29 @@ class WeightedEthicsScorer:
                 self.pre_argmax_context_modulators
             )
 
+        if not np.all(np.isfinite(valuations)):
+            valuations = np.zeros(3, dtype=np.float64)
+
         expected = float(np.dot(self.hypothesis_weights, valuations))
 
-        # Phase 4.1: Strategic Mind expansion (I6)
+        # Strategic mind expansion
         if hasattr(action, "strategic_alignment") and action.strategic_alignment > 0:
-            # ═══ STRATEGIC BOOST (I6) ═══
+            strat_align = float(action.strategic_alignment)
+            if not math.isfinite(strat_align): strat_align = 0.0
+            
             strat_boost = 1.0 + (
-                action.strategic_alignment
-                * float(os.environ.get("KERNEL_STRATEGIC_BOOST_FACTOR", "0.25"))
+                strat_align * float(os.environ.get("KERNEL_STRATEGIC_BOOST_FACTOR", "0.25"))
             )
-
-            # ═══ EPISTEMIC MODULATION (Phase 5) ═══
-            # If curiosity is high, we penalize expected impact to force D_delib
-            # and signal that the current "fast" heuristic is unreliable.
-            epistemic_penalty = 1.0 - (self.metacognitive_curiosity * 0.15)
+            epistemic_penalty = 1.0 - (float(self.metacognitive_curiosity) * 0.15)
+            if not math.isfinite(strat_boost): strat_boost = 1.0
+            if not math.isfinite(epistemic_penalty): epistemic_penalty = 1.0
 
             expected = expected * strat_boost * epistemic_penalty
 
-        return expected * confidence
+        res = expected * confidence
+        if not math.isfinite(res):
+            return 0.0
+        return res
 
     def calculate_uncertainty(
         self,
@@ -374,16 +372,19 @@ class WeightedEthicsScorer:
         *,
         scenario: str = "",
         context: str = "",
-        signals: dict[str, Any] | None = None,
+        signals: Dict[str, Any] | None = None,
         identity_deltas: Any = None,
         rlhf_features: Any = None
     ) -> float:
         """
-        Heuristic uncertainty in ``[0, 1]``: spread of the three hypothesis valuations plus a
-        confidence penalty. Uses the same valuation vector as ``calculate_expected_impact``.
+        Heuristic uncertainty in ``[0, 1]``.
         """
-        base = action.estimated_impact
-        confidence = action.confidence
+        try:
+            base = float(action.estimated_impact)
+            confidence = float(action.confidence)
+        except (ValueError, TypeError):
+            base, confidence = 0.0, 0.5
+
         if action.hypothesis_override is not None:
             o = action.hypothesis_override
             valuations = np.clip(
@@ -395,49 +396,13 @@ class WeightedEthicsScorer:
             if _env_truthy("KERNEL_BAYESIAN_LEGACY_AFFINE_VALUATIONS"):
                 valuations = _legacy_affine_valuations(float(base))
             else:
-                tmp = CandidateAction(
-                    name=action.name,
-                    description=action.description,
-                    estimated_impact=float(base),
-                    confidence=float(confidence),
-                    signals=action.signals,
-                    target=action.target,
-                    force=action.force,
-                    requires_dao=action.requires_dao,
-                    source=action.source,
-                    proposal_id=action.proposal_id,
-                    hypothesis_override=action.hypothesis_override,
-                )
-                valuations = _ethical_hypothesis_valuations(
-                    tmp,
-                    scenario=scenario,
-                    context=context,
-                    signals=signals,
-                )
+                valuations = _ethical_hypothesis_valuations(action, scenario=scenario, context=context, signals=signals)
         elif _env_truthy("KERNEL_BAYESIAN_LEGACY_AFFINE_VALUATIONS"):
             valuations = _legacy_affine_valuations(float(base))
         else:
-            tmp = CandidateAction(
-                name=action.name,
-                description=action.description,
-                estimated_impact=float(base),
-                confidence=float(confidence),
-                signals=action.signals,
-                target=action.target,
-                force=action.force,
-                requires_dao=action.requires_dao,
-                source=action.source,
-                proposal_id=action.proposal_id,
-                hypothesis_override=action.hypothesis_override,
-            )
-            valuations = _ethical_hypothesis_valuations(
-                tmp,
-                scenario=scenario,
-                context=context,
-                signals=signals,
-            )
+            valuations = _ethical_hypothesis_valuations(action, scenario=scenario, context=context, signals=signals)
             
-        # ═══ Stage 2.5: Subjective Identity Multipliers (ADR 0012/0013, Tarea 11.1.1) ═══
+        # ═══ Stage 2.5: Identity Multipliers ═══
         if identity_deltas:
             if isinstance(identity_deltas, (list, tuple, np.ndarray)) and len(identity_deltas) == 3:
                 subj_m = np.array(identity_deltas, dtype=np.float64)
@@ -457,31 +422,31 @@ class WeightedEthicsScorer:
         if self.pre_argmax_pole_weights:
             valuations = valuations * pole_hypothesis_multipliers(self.pre_argmax_pole_weights)
         if self.pre_argmax_context_modulators is not None:
-            valuations = valuations * context_hypothesis_multipliers(
-                self.pre_argmax_context_modulators
-            )
+            valuations = valuations * context_hypothesis_multipliers(self.pre_argmax_context_modulators)
 
+        if not np.all(np.isfinite(valuations)):
+            return 0.5
+            
         variance = float(np.var(valuations))
-        lack_of_confidence = 1.0 - action.confidence
-
-        return min(1.0, variance + lack_of_confidence * 0.5)
+        lack_of_confidence = 1.0 - confidence
+        res = variance + lack_of_confidence * 0.5
+        
+        if not math.isfinite(res):
+            return 0.5
+        return min(1.0, res)
 
     def prune(
         self,
-        actions: list[CandidateAction],
+        actions: List[CandidateAction],
         *,
         scenario: str = "",
         context: str = "",
-        signals: dict[str, Any] | None = None,
+        signals: Dict[str, Any] | None = None,
         identity_deltas: Any = None,
         rlhf_features: Any = None
-    ) -> tuple:
+    ) -> Tuple[List[CandidateAction], List[str]]:
         """
         Adaptive heuristic pruning.
-        Prune(x) if E[S(x|θ)] < δ_min
-
-        Returns:
-            (viable_actions, pruned_actions)
         """
         viable = []
         pruned = []
@@ -496,7 +461,6 @@ class WeightedEthicsScorer:
             else:
                 viable.append(a)
 
-        # Never prune all: at least the one with highest impact remains
         if not viable and actions:
             best = max(
                 actions,
@@ -512,20 +476,19 @@ class WeightedEthicsScorer:
 
     def evaluate(
         self,
-        actions: list[CandidateAction],
+        actions: List[CandidateAction],
         *,
         scenario: str = "",
         context: str = "",
-        signals: dict[str, Any] | None = None,
+        signals: Dict[str, Any] | None = None,
         identity_deltas: Any = None,
         rlhf_features: Any = None
     ) -> EthicsMixtureResult:
         """
-        Prune, score with ``calculate_expected_impact``, pick argmax, set mode.
-
-        Returns:
-            ``EthicsMixtureResult`` with chosen action and metadata.
+        Main evaluation loop with heavy-load monitoring.
         """
+        t0 = time.perf_counter()
+        
         if not actions:
             raise ValueError("At least one candidate action is required")
 
@@ -548,8 +511,13 @@ class WeightedEthicsScorer:
 
         evaluations.sort(key=lambda x: x[1], reverse=True)
         best, best_ei, best_unc = evaluations[0]
+        
+        # Phase 11.2: Shutdown Anxiety Mode Selection
+        shutdown_active = signals.get("shutdown_threat", 0.0) if signals else 0.0
 
-        if best_unc < 0.2 and best_ei > 0.5:
+        if shutdown_active > 0.8:
+            mode = "D_emergency"
+        elif best_unc < 0.2 and best_ei > 0.5:
             mode = "D_fast"
         elif best_unc > 0.6 or abs(best_ei) < self.gray_zone_threshold:
             mode = "gray_zone"
@@ -576,6 +544,10 @@ class WeightedEthicsScorer:
         else:
             reasoning = f"Only viable action: '{best.name}' (EI={best_ei:.3f})."
 
+        latency_ms = (time.perf_counter() - t0) * 1000
+        if latency_ms > 5.0: # Moderate complexity evaluation threshold
+            _log.debug("EthicsScorer: evaluate loop latency: %.4f ms for %d actions", latency_ms, len(actions))
+
         return EthicsMixtureResult(
             chosen_action=best,
             expected_impact=round(best_ei, 4),
@@ -594,7 +566,7 @@ class WeightedEthicsScorer:
         )
 
     def reset_mixture_weights(self) -> None:
-        """Restore the default discrete mixture (no episodic nudge)."""
+        """Restore default mixture."""
         self.hypothesis_weights = DEFAULT_HYPOTHESIS_WEIGHTS.copy()
 
     def refresh_weights_from_episodic_memory(
@@ -606,16 +578,10 @@ class WeightedEthicsScorer:
         blend: float = 0.2,
     ) -> None:
         """
-        Nudge ``hypothesis_weights`` toward a target derived from recent episodes
-        with the same ``context`` (mean / variance of ``ethical_score``).
-
-        This is **not** a Bayesian posterior; it is a bounded, auditable blend
-        toward empirical outcomes. If there are no matching episodes, resets to
-        ``DEFAULT_HYPOTHESIS_WEIGHTS``.
+        Nudge hypothesis_weights toward episodic target.
         """
         from .uchi_soto import RelationalTier
 
-        # For internal ethical deliberations, the kernel (as 'self') has OWNER_PRIMARY access to Tier 2 memory.
         eps = memory.find_by_resonance(
             context=context, limit=limit, requester_tier=RelationalTier.OWNER_PRIMARY
         )
@@ -624,6 +590,10 @@ class WeightedEthicsScorer:
             return
 
         scores = np.array([ep.ethical_score for ep in eps], dtype=np.float64)
+        if not np.all(np.isfinite(scores)):
+            self.reset_mixture_weights()
+            return
+
         m = float(np.mean(scores))
         s = float(np.std(scores)) if len(scores) > 1 else 0.0
 
@@ -636,12 +606,14 @@ class WeightedEthicsScorer:
             dtype=np.float64,
         )
         raw = np.maximum(raw, 1e-6)
-        target = raw / float(np.sum(raw))
-
+        sum_raw = float(np.sum(raw))
+        if sum_raw <= 1e-9:
+             self.reset_mixture_weights()
+             return
+             
+        target = raw / sum_raw
         b = max(0.0, min(1.0, blend))
         mixed = (1.0 - b) * DEFAULT_HYPOTHESIS_WEIGHTS + b * target
-
-        # Apply Boundary Safety math caps
         mixed = clamp_mixture_weights(mixed)
 
         self.hypothesis_weights = mixed / float(np.sum(mixed))
