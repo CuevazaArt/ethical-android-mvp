@@ -14,6 +14,7 @@ Aquí es donde los agentes de ejecución (LLMs en IDEs) reclaman sus tareas.
 
 ## 📈 ESTADO DE INTEGRACIÓN (PULSE 2026-04-19-V2)
 - **S.4 (Persistence)**: Completado. Gap de amnesía bayesiana cerrado mediante LBP y Schema V5.
+- **11.2 (Crisis)**: Completado. Protocolo "Final Breath" operativo para persistencia ante amenazas de apagado.
 - **8.2 (Hardening)**: Completado. Blindaje Anti-NaN y saneamiento de sensores en flujo asíncrono.
 - **C.1 (Bayesian RLHF)**: Completado. Modulación no lineal y category-aware operando.
 - **11.1 (Identity/Trauma)**: Completado. Integrada magnitud de trauma en el core de decisión.

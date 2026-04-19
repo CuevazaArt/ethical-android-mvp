@@ -32,6 +32,7 @@ class SemanticState:
     candidate_actions: list[Any] = field(default_factory=list)
     visual_entities: list[str] = field(default_factory=list)
     audio_sentiment: float = 0.5
+    generative_candidates: list[dict[str, Any]] = field(default_factory=list)
     sensory_latency_lag: int = 0
     timeout_trauma: Optional[TimeoutTrauma] = None
 
