@@ -60,7 +60,7 @@ Cuando envías a un agente L2 a la Guerra de Red (WebSocket, LAN Bridge u Ollama
 Usa este prompt genérico y limpio para disparar a cualquier agente LLM en tu IDE sin forzar roleplay ni encender alarmas.
 
 **Prompt de Asignación y Cierre:**
-> "Revisa el archivo `docs/proposals/PLAN_WORK_DISTRIBUTION_TREE.md`, asume la tarea pendiente de mayor prioridad. Escribe el código necesario para resolverla aplicando la regla de Buen Boy Scout (añade verificaciones). Al terminar, no intentes hacer commits manualmente, simplemente indícame que ejecute el siguiente comando para registrar el avance: `python scripts/swarm_sync.py --block [EL BLOQUE] --msg \"[BREVE MENSAJE]\"`."
+> "Revisa el archivo `docs/proposals/PLAN_WORK_DISTRIBUTION_TREE.md`, asume la tarea pendiente de mayor prioridad. Escribe el código necesario de forma precisa (no desperdicies tokens rescribiendo archivos completos enteros si no es necesario, no generes basura). Aplica la regla de Buen Boy Scout (añade verificaciones con try/except). Al terminar pequeñas porciones lógicas (Commits Atómicos), no intentes hacer commits manualmente. Simplemente indícame que ejecute el siguiente comando para registrar tu avance: `python scripts/swarm_sync.py --block [EL BLOQUE] --author [TU LLM, ej: Cursor] --msg \"[BREVE MENSAJE]\"`."
 
 ---
 

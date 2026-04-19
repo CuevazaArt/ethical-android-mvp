@@ -11,11 +11,11 @@ In a multi-agent environment (Cursor, Copilot, etc.), executing concurrent work 
 
 ## Rules
 
-### 1. PnP Stateless Execution
+### 1. PnP Stateless Execution & Atomic Commits
 If you act as an execution unit in this session, upon starting:
 1. **Pull Task:** Identify your assigned block from `PLAN_WORK_DISTRIBUTION_TREE.md`.
-2. **Execute:** Write the solution directly in the code.
-3. **Log Registration (V4.0):** Instead of manually modifying `.md` files or running git commands, you MUST execute `python scripts/swarm_sync.py --block <BlockID> --msg "<Commit Message>"` when your task is complete. If you cannot run scripts, prompt the user to run it for you. **Never edit `CHANGELOG.md` directly.**
+2. **Execute Cleanly:** Write the solution directly in the code. Avoid "trash code" or massive token-wasting rewrites. Keep changes minimal and focused.
+3. **Atomic Commits (V4.0):** Instead of mega-merges, you MUST execute `python scripts/swarm_sync.py --block <BlockID> --msg "<Commit Message>"` frequently for each logical chunk completed. If you cannot run scripts, prompt the user to run it for you. **Never edit `CHANGELOG.md` directly.**
 
 ### 2. Boy Scout Hardening (Paranoid Security Priority)
 Inside your assigned territory, execute proactively. (If a security rule severely degrades performance or causes friction, gracefully fall back).

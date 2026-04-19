@@ -45,7 +45,7 @@ def get_untracked_files() -> list[str]:
         return []
 
 
-def update_changelog(block: str, msg: str, files: list[str]) -> Path:
+def update_changelog(block: str, msg: str, files: list[str], author: str = "Anonymous") -> Path:
     """Appends to the unified swarm_activity.md log."""
     log_dir = Path("docs/changelogs_l2")
     log_dir.mkdir(parents=True, exist_ok=True)
@@ -54,7 +54,7 @@ def update_changelog(block: str, msg: str, files: list[str]) -> Path:
     timestamp = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
     
     entry_lines = [
-        f"\n### 🛠️ Execution | Date: {timestamp}",
+        f"\n### 🛠️ Execution | Date: {timestamp} | Author: {author}",
         f"- **Block:** `{block}`",
         f"- **Message:** {msg}",
         "- **Files Modified:**"
@@ -90,7 +90,7 @@ def run_checks() -> bool:
     return True # Skip if script doesn't exist
 
 
-def commit_changes(block: str, msg: str) -> bool:
+def commit_changes(block: str, msg: str, author: str) -> bool:
     """Executes git add and git commit."""
     print("Staging all changes (git add -A)...")
     subprocess.run(["git", "add", "-A"], check=True)
@@ -100,7 +100,7 @@ def commit_changes(block: str, msg: str) -> bool:
         print("Nothing to commit. Working tree clean.")
         return True
         
-    commit_msg = f"[BLOCK: {block}] {msg}\n\nAuto-committed via swarm_sync.py (V4.0)"
+    commit_msg = f"[BLOCK: {block}] {msg}\n\nAuthor: {author}\nAuto-committed via swarm_sync.py (V4.0)"
     
     try:
         subprocess.run(["git", "commit", "-m", commit_msg], check=True)
@@ -114,6 +114,7 @@ def main():
     parser = argparse.ArgumentParser(description="Swarm Synchronization Script (V4.0)")
     parser.add_argument("--block", required=True, help="Task Block from the Distribution Tree (e.g. W.1)")
     parser.add_argument("--msg", required=True, help="Brief summary of the atomic change")
+    parser.add_argument("--author", default="Anonymous Agent", help="Optional LLM telemetry (e.g. 'Cursor', 'Copilot')")
     parser.add_argument("--no-verify", action="store_true", help="Skip invariant evaluation scripts")
     
     args = parser.parse_args()
@@ -128,7 +129,7 @@ def main():
         print("⚠️ No changes detected outside of L2 logs. Did you write any code yet?")
          
     # 2. Update unified log
-    log_path = update_changelog(args.block, args.msg, all_target_files)
+    log_path = update_changelog(args.block, args.msg, all_target_files, args.author)
     print(f"✅ Activity Log updated: {log_path}")
     
     # 3. Optional checks
@@ -137,7 +138,7 @@ def main():
         sys.exit(1)
         
     # 4. Git Execution
-    if commit_changes(args.block, args.msg):
+    if commit_changes(args.block, args.msg, args.author):
          print("\n🚀 SWARM ACTION COMPLETED SUCESSFULLY.")
          print("Ready to push. You can now execute `git push` on your branch.")
     else:
