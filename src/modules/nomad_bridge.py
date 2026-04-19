@@ -5,7 +5,8 @@ import logging
 import math
 import struct
 import time
-from typing import Any, Union
+from typing import Any, Union, Optional
+from .hardware_abstraction import HardwareContext, ComputeTier
 
 try:
     from fastapi import FastAPI, WebSocket, WebSocketDisconnect
@@ -44,9 +45,13 @@ class NomadBridge:
         self._last_sensor_update = time.time()
         self._is_vessel_healthy = False
         
-        # S.1.1 Hardening: Vessel State Tracking
+        # S.1.1 Hardening: Vessel State Tracking (HAL Aligned)
+        self.vessel_context: HardwareContext = HardwareContext(
+            device_label="none",
+            compute_tier=ComputeTier.EDGE_MOBILE,
+            battery_fraction=None
+        )
         self.vessel_metadata: dict[str, Any] = {
-            "battery_level": 0.0,
             "thermal_state": "nominal",
             "connection_type": "unknown",
             "latency_ms": 0,
@@ -102,6 +107,7 @@ class NomadBridge:
             "charm_feedback_queue_depth": self.charm_feedback_queue.qsize(),
             "vessel_online": is_vessel_online(),
             "vessel_metadata": self.vessel_metadata,
+            "vessel_context": self.vessel_context.to_public_dict(),
             "last_sensor_update_delta": round(time.time() - self._last_sensor_update, 2)
         }
 
@@ -183,9 +189,19 @@ class NomadBridge:
 
                     elif event_type == "telemetry":
                         _log.debug("Nomad Bridge: Telemetry pulse")
-                        # Update vessel metadata (S.1.1)
+                        # Update vessel metadata and context (S.1.1 / HAL v8)
+                        batt = payload.get("battery")
+                        if batt is not None:
+                            try:
+                                self.vessel_context.battery_fraction = float(batt)
+                            except (ValueError, TypeError):
+                                pass
+                        
+                        device_label = payload.get("device_label") or payload.get("vessel_id")
+                        if device_label:
+                            self.vessel_context.device_label = str(device_label)
+
                         self.vessel_metadata.update({
-                            "battery_level": payload.get("battery", self.vessel_metadata["battery_level"]),
                             "thermal_state": payload.get("thermal", self.vessel_metadata["thermal_state"]),
                             "connection_type": payload.get("connection", self.vessel_metadata["connection_type"]),
                             "vessel_id": payload.get("vessel_id", self.vessel_metadata["vessel_id"])

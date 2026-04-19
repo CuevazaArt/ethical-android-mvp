@@ -20,6 +20,13 @@ CRITICAL_PATHS = [
     "src/modules/nomad_bridge.py",
     "src/modules/secure_boot.py",
     "src/modules/immortality.py",
+    "src/modules/bayesian_engine.py",
+    "src/modules/weighted_ethics_scorer.py",
+    "src/modules/semantic_chat_gate.py",
+    "src/modules/uchi_soto.py",
+    "src/modules/sympathetic.py",
+    "src/persistence/kernel_io.py",
+    "src/persistence/snapshot_serde.py",
 ]
 
 def compute_hash(path: Path) -> str:

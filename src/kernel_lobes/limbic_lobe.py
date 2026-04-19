@@ -1,6 +1,11 @@
 from __future__ import annotations
 from typing import TYPE_CHECKING, Any, Optional
 from src.kernel_lobes.models import LimbicStageResult
+import time
+import math
+import logging
+
+_log = logging.getLogger(__name__)
 
 if TYPE_CHECKING:
     from src.modules.uchi_soto import UchiSotoModule
@@ -49,13 +54,30 @@ class LimbicEthicalLobe:
         Evaluate social context and internal autonomic state.
         Vertical Increment: Somatic state (temp/battery) influences relational tension.
         """
+        t0 = time.perf_counter()
+        
+        # Swarm Rule 2: Anti-NaN Hardening for input parameters
+        if not math.isfinite(trauma_magnitude):
+            _log.warning("LimbicLobe: Non-finite trauma_magnitude detected. Resetting to 0.0")
+            trauma_magnitude = 0.0
+
         # 1. Somatic Influences (Irritability)
         somatic_tension = 0.0
         if somatic_state:
-            if somatic_state.get("temp", 45.0) > 70.0:
-                somatic_tension += 0.2
-            if somatic_state.get("battery", 100.0) < 20.0:
-                somatic_tension += 0.1
+            try:
+                temp = float(somatic_state.get("temp", 45.0))
+                batt = float(somatic_state.get("battery", 100.0))
+                if temp > 70.0:
+                    somatic_tension += 0.2
+                if batt < 20.0:
+                    somatic_tension += 0.1
+                if batt <= 5.0:
+                    # Phase 11.2: Shutdown Anxiety (Situational Finitude)
+                    somatic_tension += 0.4
+                    signals["urgency"] = max(signals.get("urgency", 0.0), 0.9)
+                    signals["shutdown_threat"] = 1.0
+            except (ValueError, TypeError):
+                pass # Ignore malformed somatic data
 
         # 2. Ingest social context
         self.uchi_soto.ingest_turn_context(
@@ -83,7 +105,6 @@ class LimbicEthicalLobe:
 
         state = self.sympathetic.evaluate_context(signals)
         
-        # 5. Locus of Control
         locus_eval = self.locus.evaluate(
             {
                 "self_control": 1.0 - signals.get("risk", 0.0), 
@@ -93,6 +114,10 @@ class LimbicEthicalLobe:
             social_eval.circle.value
         )
         
+        latency_ms = (time.perf_counter() - t0) * 1000
+        if latency_ms > 5.0: # Track heavy social computations
+             _log.debug("LimbicLobe: execute_stage latency: %.4f ms", latency_ms)
+
         return LimbicStageResult(
             social_evaluation=social_eval,
             internal_state=state,

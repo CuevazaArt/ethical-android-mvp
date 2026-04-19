@@ -239,6 +239,10 @@ class BayesianInferenceEngine:
         penalty_scale = float(os.environ.get("KERNEL_LATENCY_PENALTY_SCALE", "0.05"))
         # Increase all alpha values slightly to reduce the weight of any single pole
         nudge = (latency_ms / 100.0) * penalty_scale
+        if not math.isfinite(nudge):
+            _logger.warning("Bayesian: Infinite/NaN nudge detected for latency %s; ignoring.", latency_ms)
+            return
+
         self.posterior_alpha += nudge
         _logger.debug("Bayesian: Applied somatic latency penalty (%.2f) due to %d ms RTT", nudge, latency_ms)
         self.update_posterior_from_feedback(self.posterior_alpha)
@@ -258,6 +262,10 @@ class BayesianInferenceEngine:
         base_scale = float(os.environ.get("KERNEL_RLHF_MODULATION_SCALE", "2.0"))
         # Non-linear gain: high confidence feedback should have disproportionate impact (S.1.1)
         gain = base_scale * (confidence ** 2)
+        
+        if not math.isfinite(gain) or not math.isfinite(score):
+            _logger.warning("Bayesian: RLHF modulation received non-finite values (score=%s, conf=%s); ignoring.", score, confidence)
+            return
         
         # 0: Deontological (Safety/Duty), 1: Social (Trust), 2: Utility (Progress)
         

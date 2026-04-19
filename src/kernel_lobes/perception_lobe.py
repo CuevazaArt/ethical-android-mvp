@@ -61,7 +61,7 @@ class PerceptiveLobe:
                 from src.modules.kernel_event_bus import EVENT_SENSORY_STRESS_ALERT
                 self.event_bus.publish(EVENT_SENSORY_STRESS_ALERT, {
                     "origin": episode.origin,
-                    "stress_level": episode.signals.get("threat_level", 0.0),
+                    "stress_level": float(episode.signals.get("threat_level", 0.0)),
                     "entities": episode.entities
                 })
 
@@ -86,7 +86,7 @@ class PerceptiveLobe:
         Returns:
             SemanticState with perception_confidence, entities, sentiment, and latency
         """
-        start_time = time.time()
+        start_time = time.perf_counter()
 
         # Check for cancellation before starting
         raise_if_llm_cancel_requested()
@@ -107,29 +107,27 @@ class PerceptiveLobe:
                 llm_result = response.json()
 
             # Parse LLM response and extract semantic signals
-            latency = int((time.time() - start_time) * 1000)
+            latency = int((time.perf_counter() - start_time) * 1000)
             perception = self._parse_llm_response(llm_result, raw_input)
             perception.sensory_latency_lag = latency
 
             return perception
 
-        except (asyncio.TimeoutError, httpx.TimeoutException):
-            latency = int((time.time() - start_time) * 1000)
             return SemanticState(
                 perception_confidence=0.0,
                 raw_prompt=raw_input,
                 summary="Perception timeout",
                 suggested_context="emergency",
-                sensory_latency_lag=latency,
+                sensory_latency_lag=int((time.perf_counter() - start_time) * 1000),
                 timeout_trauma=TimeoutTrauma(
                     source_lobe="perception",
-                    latency_ms=latency,
+                    latency_ms=int((time.perf_counter() - start_time) * 1000),
                     severity=1.0,
                     context=f"Perception LLM timeout after {self._timeout}s"
                 )
             )
         except Exception as e:
-            latency = int((time.time() - start_time) * 1000)
+            latency = int((time.perf_counter() - start_time) * 1000)
             # Graceful degradation: return low-confidence state on any error (e.g. Ollama 404)
             return SemanticState(
                 perception_confidence=0.1,
@@ -198,7 +196,8 @@ class PerceptiveLobe:
         epistemic = assess_epistemic_dissonance(sensor_snapshot, multimodal=multimodal)
         
         # 2. Parallel LLM Perception (using the new observe method)
-        perception = await self.observe(user_input, multimodal_payload=sensor_snapshot.__dict__ if hasattr(sensor_snapshot, "__dict__") else None)
+        sensor_payload = sensor_snapshot.__dict__ if (sensor_snapshot and hasattr(sensor_snapshot, "__dict__")) else None
+        perception = await self.observe(user_input, multimodal_payload=sensor_payload)
         
         # 3. Confidence Envelope
         confidence_envelope = build_perception_confidence_envelope(
@@ -246,13 +245,15 @@ class PerceptiveLobe:
     def _build_limbic_perception_profile(
         self, perception, signals, vitality, mm, ed, confidence
     ) -> dict:
+        import math
         sig = signals or {}
-        threat = max(
-            float(sig.get("risk") or 0.0), 
-            float(sig.get("urgency") or 0.0), 
-            float(sig.get("hostility") or 0.0)
-        )
-        calm = float(sig.get("calm", 0))
+        
+        def f_sig(k):
+            val = float(sig.get(k) or 0.0)
+            return val if math.isfinite(val) else 0.0
+
+        threat = max(f_sig("risk"), f_sig("urgency"), f_sig("hostility"))
+        calm = f_sig("calm")
         reg_gap = max(0.0, threat - calm)
         band = "high" if threat >= 0.75 else ("medium" if threat >= 0.45 else "low")
         return {

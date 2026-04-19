@@ -3,6 +3,11 @@ import os
 from pathlib import Path
 from typing import Any, TYPE_CHECKING, Optional, Tuple
 import numpy as np
+import time
+import math
+import logging
+
+_log = logging.getLogger(__name__)
 
 from src.kernel_lobes.models import BayesianStageMetadata
 
@@ -42,6 +47,7 @@ class CerebellumLobe:
         Run Bayesian scoring and BMA.
         Extracted from kernel._run_bayesian_stage.
         """
+        t0 = time.perf_counter()
         # 0. Sync Scorer and Priors (High-Friction Restorative Logic)
         from src.modules.dao_orchestrator import DAOOrchestrator
         priors = None
@@ -82,6 +88,10 @@ class CerebellumLobe:
                 
                 if isinstance(fb_meta, dict) and fb_meta.get("active_context_key"):
                     mixture_context_key = str(fb_meta["active_context_key"])
+                
+                # Boy Scout Pass: Log incompatible feedback
+                if feedback_consistency == "incompatible":
+                    _log.warning("CerebellumLobe: Bayesian feedback is INCOMPATIBLE with priors. Risk of ethical drift.")
 
         # 3. Main Bayesian Evaluate
         bayes_result = self.bayesian.evaluate(
@@ -108,6 +118,12 @@ class CerebellumLobe:
             bma_win_probs = win_probs
             bma_dirichlet = tuple(round(float(v), 6) for v in np.asarray(alpha_bma).reshape(3))
             bma_n_s = n_s
+
+        latency_ms = (time.perf_counter() - t0) * 1000
+        if latency_ms > 100.0: # Monte Carlo can be slow
+            _log.warning("CerebellumLobe: Heavy Bayesian stage detected: %.4f ms", latency_ms)
+        elif latency_ms > 20.0:
+            _log.debug("CerebellumLobe: Bayesian stage latency: %.4f ms", latency_ms)
 
         meta = BayesianStageMetadata(
             mixture_posterior_alpha=mixture_posterior_alpha,

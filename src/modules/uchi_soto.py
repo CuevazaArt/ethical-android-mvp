@@ -14,6 +14,11 @@ import os
 from dataclasses import dataclass, field
 from enum import Enum
 from typing import Any
+import math
+import time
+import logging
+
+_log = logging.getLogger(__name__)
 
 from .multimodal_trust import MultimodalAssessment
 from .sensor_contracts import SensorSnapshot
@@ -228,20 +233,30 @@ class UchiSotoModule:
         sensor_snapshot: SensorSnapshot | None,
         multimodal_assessment: MultimodalAssessment | None,
     ) -> float:
-        calm = float(signals.get("calm", 0.5))
-        fam = float(signals.get("familiarity", 0.0))
-        host = float(signals.get("hostility", 0.0))
-        manip = float(signals.get("manipulation", 0.0))
-        sample = 0.22 + 0.34 * calm + 0.34 * fam - 0.26 * host - 0.22 * manip
-        if sensor_snapshot is not None and sensor_snapshot.place_trust is not None:
-            pt = float(sensor_snapshot.place_trust)
-            sample = 0.52 * sample + 0.48 * pt
-        if multimodal_assessment is not None:
-            if multimodal_assessment.state == "aligned":
-                sample += 0.05
-            elif multimodal_assessment.state == "doubt":
-                sample -= 0.09
-        return max(0.0, min(1.0, sample))
+        try:
+            calm = float(signals.get("calm", 0.5))
+            fam = float(signals.get("familiarity", 0.0))
+            host = float(signals.get("hostility", 0.0))
+            manip = float(signals.get("manipulation", 0.0))
+            
+            # Swarm Rule 2: Anti-NaN check
+            if not all(math.isfinite(x) for x in (calm, fam, host, manip)):
+                _log.warning("UchiSoto: Non-finite signals in trust sample. Falling safe.")
+                return 0.5 # Neutral fallback
+                
+            sample = 0.22 + 0.34 * calm + 0.34 * fam - 0.26 * host - 0.22 * manip
+            if sensor_snapshot is not None and sensor_snapshot.place_trust is not None:
+                pt = float(sensor_snapshot.place_trust)
+                if math.isfinite(pt):
+                    sample = 0.52 * sample + 0.48 * pt
+            if multimodal_assessment is not None:
+                if multimodal_assessment.state == "aligned":
+                    sample += 0.05
+                elif multimodal_assessment.state == "doubt":
+                    sample -= 0.09
+            return max(0.0, min(1.0, sample))
+        except (ValueError, TypeError):
+            return 0.5
 
     def _ema_update_sensor_trust(
         self,
@@ -327,22 +342,37 @@ class UchiSotoModule:
         When a profile exists, ``familiarity`` is blended with ``profile.trust_score``
         so accumulated interaction history influences classification (Phase 1).
         """
-        hostility = float(signals.get("hostility", 0.0))
-        manipulation = float(signals.get("manipulation", 0.0))
-        fam_in = float(signals.get("familiarity", 0.0))
+        try:
+            hostility = float(signals.get("hostility", 0.0))
+            manipulation = float(signals.get("manipulation", 0.0))
+            fam_in = float(signals.get("familiarity", 0.0))
+            
+            # Anti-NaN sanitation
+            if not all(math.isfinite(x) for x in (hostility, manipulation, fam_in)):
+                _log.warning("UchiSoto: Non-finite signals in classify. Resetting.")
+                hostility, manipulation, fam_in = 0.0, 0.0, 0.0
+        except (ValueError, TypeError):
+            _log.error("UchiSoto: Invalid signal types in classify.")
+            hostility, manipulation, fam_in = 0.0, 0.0, 0.0
+            
         profile = self.profiles.get(agent_id)
         if profile is not None:
+            # Safe float cast from profile
+            profile_trust = float(profile.trust_score)
+            if not math.isfinite(profile_trust):
+                profile_trust = 0.5
+                
             familiarity = min(
                 1.0,
                 max(
                     0.0,
                     self.FAMILIARITY_BLEND_SIGNAL * fam_in
-                    + self.FAMILIARITY_BLEND_PROFILE * float(profile.trust_score),
+                    + self.FAMILIARITY_BLEND_PROFILE * profile_trust,
                 ),
             )
         else:
             familiarity = fam_in
-        dao_validated = signals.get("dao_validated", False)
+        dao_validated = bool(signals.get("dao_validated", False))
 
         if dao_validated:
             return TrustCircle.NUCLEO
@@ -359,7 +389,7 @@ class UchiSotoModule:
 
     def evaluate_interaction(
         self,
-        signals: dict,
+        signals: Dict[str, Any],
         agent_id: str = "unknown",
         message_content: str = "",
         registry: NomadicRegistry | None = None,
@@ -370,74 +400,100 @@ class UchiSotoModule:
         Determines circle, openness/caution levels,
         whether to activate dialectics, and recommended response.
         """
-        circle = self.classify(signals, agent_id)
-        credibility = self.CREDIBILITY[circle]
+        t0 = time.perf_counter()
+        
+        try:
+            circle = self.classify(signals, agent_id)
+            credibility = float(self.CREDIBILITY[circle])
 
-        profile = self.profiles.get(agent_id)
-        if not profile:
-            # Check nomadic registry first for swarm peers
-            if registry and agent_id in registry.peers:
-                peer = registry.peers[agent_id]
-                score = peer.get_reputation() / 100.0  # Normalize 0-100 to 0-1
-                circle = self.classify({"familiarity": score}, agent_id)
-                profile = InteractionProfile(
-                    agent_id=agent_id, 
-                    circle=circle, 
-                    trust_score=score,
-                    display_alias=peer.label or ""
+            profile = self.profiles.get(agent_id)
+            if not profile:
+                # Check nomadic registry first for swarm peers
+                if registry and agent_id in registry.peers:
+                    peer = registry.peers[agent_id]
+                    score = float(peer.get_reputation() / 100.0)  # Normalize 0-100 to 0-1
+                    if not math.isfinite(score):
+                        score = 0.5
+                    circle = self.classify({"familiarity": score}, agent_id)
+                    profile = InteractionProfile(
+                        agent_id=agent_id, 
+                        circle=circle, 
+                        trust_score=score,
+                        display_alias=str(peer.label or "")
+                    )
+                else:
+                    profile = InteractionProfile(agent_id=agent_id, circle=circle, trust_score=credibility)
+                self.profiles[agent_id] = profile
+            profile.circle = circle
+
+            manipulation_signals = self._detect_manipulation(message_content)
+            if manipulation_signals:
+                profile.manipulation_attempts += 1
+                circle = TrustCircle.SOTO_HOSTIL
+                credibility = float(self.CREDIBILITY[circle])
+
+            dialectic_active = circle in (TrustCircle.SOTO_HOSTIL, TrustCircle.SOTO_NEUTRO)
+            openness_level = credibility
+            caution_level = 1.0 - credibility
+
+            if circle == TrustCircle.SOTO_HOSTIL:
+                response = "Activate defensive dialectics. Pose gentle questions that reveal contradictions. Do not confront directly."
+                reason = f"Interaction classified as hostile soto. Signals: hostility={float(signals.get('hostility', 0)):.1f}, manipulation detected={len(manipulation_signals) > 0}."
+            elif circle == TrustCircle.SOTO_NEUTRO:
+                response = "Moderate caution. Listen but verify. Do not share sensitive information."
+                reason = (
+                    "Interaction with stranger without clear signals. Maintain vigilant neutrality."
                 )
-            else:
-                profile = InteractionProfile(agent_id=agent_id, circle=circle, trust_score=credibility)
-            self.profiles[agent_id] = profile
-        profile.circle = circle
+            elif circle == TrustCircle.UCHI_AMPLIO:
+                response = (
+                    "Moderate openness. Share general information. Collaborate on community topics."
+                )
+                reason = "Known agent in broader community. Partial trust."
+            elif circle == TrustCircle.UCHI_CERCANO:
+                response = "High openness. Share narrative and morals. Close collaboration."
+                reason = "Agent from close circle. High trust based on history."
+            else:  # NUCLEO
+                response = "Full openness. Accept validated instructions. Share internal state."
+                reason = "Agent from nucleus (DAO/ethics panel). Maximum trust."
 
-        manipulation_signals = self._detect_manipulation(message_content)
-        if manipulation_signals:
-            profile.manipulation_attempts += 1
-            circle = TrustCircle.SOTO_HOSTIL
-            credibility = self.CREDIBILITY[circle]
+            # Phase 5 Vertical: Relational Tension
+            # High distance between historical trust and current sensor-ema creates "Tension"
+            prof_trust = float(profile.trust_score)
+            prof_ema = float(profile.sensor_trust_ema)
+            if not math.isfinite(prof_trust): prof_trust = 0.5
+            if not math.isfinite(prof_ema): prof_ema = 0.5
+            
+            tension = abs(prof_trust - prof_ema)
 
-        dialectic_active = circle in (TrustCircle.SOTO_HOSTIL, TrustCircle.SOTO_NEUTRO)
-        openness_level = credibility
-        caution_level = 1.0 - credibility
+            tone_brief = self._compose_tone_brief(circle, profile, tension)
 
-        if circle == TrustCircle.SOTO_HOSTIL:
-            response = "Activate defensive dialectics. Pose gentle questions that reveal contradictions. Do not confront directly."
-            reason = f"Interaction classified as hostile soto. Signals: hostility={signals.get('hostility', 0):.1f}, manipulation detected={len(manipulation_signals) > 0}."
-        elif circle == TrustCircle.SOTO_NEUTRO:
-            response = "Moderate caution. Listen but verify. Do not share sensitive information."
-            reason = (
-                "Interaction with stranger without clear signals. Maintain vigilant neutrality."
+            latency_ms = (time.perf_counter() - t0) * 1000
+            if latency_ms > 10.0: # Track heavy social evaluations
+                 _log.debug("UchiSoto: evaluate_interaction latency: %.4f ms", latency_ms)
+
+            return SocialEvaluation(
+                circle=circle,
+                trust=round(credibility, 4),
+                dialectic_active=dialectic_active,
+                openness_level=round(openness_level, 4),
+                caution_level=round(caution_level, 4),
+                recommended_response=response,
+                reasoning=reason,
+                tone_brief=tone_brief,
+                relational_tension=round(tension, 4),
             )
-        elif circle == TrustCircle.UCHI_AMPLIO:
-            response = (
-                "Moderate openness. Share general information. Collaborate on community topics."
+        except Exception as e:
+            _log.error("UchiSoto: Critical evaluation error: %s", e)
+            # Safe fallback
+            return SocialEvaluation(
+                circle=TrustCircle.SOTO_NEUTRO,
+                trust=0.35,
+                dialectic_active=True,
+                openness_level=0.35,
+                caution_level=0.65,
+                recommended_response="System error in social module. Maintain caution.",
+                reasoning="Internal exception during social judgment.",
             )
-            reason = "Known agent in broader community. Partial trust."
-        elif circle == TrustCircle.UCHI_CERCANO:
-            response = "High openness. Share narrative and morals. Close collaboration."
-            reason = "Agent from close circle. High trust based on history."
-        else:  # NUCLEO
-            response = "Full openness. Accept validated instructions. Share internal state."
-            reason = "Agent from nucleus (DAO/ethics panel). Maximum trust."
-
-        # Phase 5 Vertical: Relational Tension
-        # High distance between historical trust and current sensor-ema creates "Tension"
-        tension = abs(float(profile.trust_score) - float(profile.sensor_trust_ema))
-
-        tone_brief = self._compose_tone_brief(circle, profile, tension)
-
-        return SocialEvaluation(
-            circle=circle,
-            trust=round(credibility, 4),
-            dialectic_active=dialectic_active,
-            openness_level=round(openness_level, 4),
-            caution_level=round(caution_level, 4),
-            recommended_response=response,
-            reasoning=reason,
-            tone_brief=tone_brief,
-            relational_tension=round(tension, 4),
-        )
 
     def _compose_tone_brief(
         self, circle: TrustCircle, profile: InteractionProfile, tension: float = 0.0
@@ -618,6 +674,8 @@ class UchiSotoModule:
         sensor_trust_ema: float | None = None,
         linked_to_agent_id: str | None = None,
         linked_peer_ids: list[str] | None = None,
+        personal_distance: float | None = None,
+        interaction_rhythm: str | None = None,
     ) -> None:
         """
         Set optional Phase 2–3 fields for an agent (operators, UI, or tests).
@@ -653,8 +711,6 @@ class UchiSotoModule:
         if interaction_rhythm is not None:
             rhythm = (interaction_rhythm or "medium").strip().lower()
             prof.interaction_rhythm = rhythm if rhythm in ("slow", "medium", "fast") else "medium"
-        if personal_distance is not None:
-            prof.personal_distance = max(0.0, min(1.0, float(personal_distance)))
 
     def register_result(self, agent_id: str, positive: bool):
         """

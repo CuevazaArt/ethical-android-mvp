@@ -424,8 +424,9 @@ class EthicalKernel:
         self.dao = co.dao if co and co.dao is not None else DAOOrchestrator()
         
         # Inject DAO reference for state persistence (S.4)
-        if hasattr(self.bayesian, "dao") or True: # Force injection
-            self.bayesian.dao = self.dao
+        if self.dao is not None:
+             # Ensure bayesian engine has access to persistence for ethical learning
+             self.bayesian.dao = self.dao
             
         # ── PHASE S.4.2: Local Bayesian Persistence (LBP) Restore ──────────
         # If we have a saved posterior_alpha in the DAO, restore it now to
@@ -535,7 +536,7 @@ class EthicalKernel:
         )
         self.biographic_pruner = (
             co.biographic_pruner
-            if co and hasattr(co, "biographic_pruner") and co.swarm_negotiator is not None
+            if co and hasattr(co, "biographic_pruner") and co.biographic_pruner is not None
             else BiographicPruner()
         )
 
@@ -781,7 +782,14 @@ class EthicalKernel:
             _log.debug("EthicalKernel: Received empty sensory stress alert.")
             return
 
-        stress = float(payload.get("stress_level", 0.0))
+        try:
+            stress = float(payload.get("stress_level", 0.0))
+        except (ValueError, TypeError):
+            stress = 0.0
+
+        if not math.isfinite(stress):
+            stress = 1.0 # Fail safe to maximum stress
+            
         _log.warning("EthicalKernel: Reactive escalation on sustained sensory stress (level=%.2f)", stress)
         
         # Nudge Bayesian Priors toward Safety (Pole 0)

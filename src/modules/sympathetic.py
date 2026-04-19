@@ -1,15 +1,10 @@
-"""
-Sympathetic-Parasympathetic Module.
-
-a* = argmax[U(s,a) · f(σ)]
-
-σ ≈ 1 → sympathetic mode (alert, fast action)
-σ ≈ 0 → parasympathetic mode (rest, deep deliberation)
-
-Analogous to the human autonomic nervous system.
-"""
-
+import logging
+import time
+import math
 from dataclasses import dataclass
+from typing import Dict, Any
+
+_log = logging.getLogger(__name__)
 
 
 @dataclass
@@ -43,9 +38,11 @@ class SympatheticModule:
 
     def _clamp_sigma(self, s: float) -> float:
         """Keeps sigma within the safe range."""
+        if not math.isfinite(s):
+            return self.SIGMA_INITIAL
         return max(self.SIGMA_MIN, min(self.SIGMA_MAX, s))
 
-    def evaluate_context(self, signals: dict) -> InternalState:
+    def evaluate_context(self, signals: Dict[str, Any]) -> InternalState:
         """
         Adjusts σ based on environmental signals.
 
@@ -56,13 +53,25 @@ class SympatheticModule:
                 - 'hostility': float [0,1]
                 - 'calm': float [0,1]
         """
-        risk = signals.get("risk", 0.0)
-        urgency = signals.get("urgency", 0.0)
-        hostility = signals.get("hostility", 0.0)
-        calm = signals.get("calm", 0.0)
+        t0 = time.perf_counter()
+        
+        try:
+            risk = float(signals.get("risk", 0.0))
+            urgency = float(signals.get("urgency", 0.0))
+            hostility = float(signals.get("hostility", 0.0))
+            calm = float(signals.get("calm", 0.0))
+            
+            # Anti-NaN sanitation
+            if not all(math.isfinite(x) for x in (risk, urgency, hostility, calm)):
+                _log.warning("Sympathetic: Non-finite signals detected. Resetting to nominal inputs.")
+                risk, urgency, hostility, calm = 0.0, 0.0, 0.0, 0.0
+        except (ValueError, TypeError):
+            _log.error("Sympathetic: Invalid signal types. Using defaults.")
+            risk, urgency, hostility, calm = 0.0, 0.0, 0.0, 0.0
 
         # Sympathetic activators
-        activation = max(risk, urgency, hostility)
+        shutdown_threat = float(signals.get("shutdown_threat", 0.0))
+        activation = max(risk, urgency, hostility, shutdown_threat)
 
         # Parasympathetic inhibitors
         inhibition = calm
@@ -87,6 +96,10 @@ class SympatheticModule:
         consumption = 0.02 if mode == "parasympathetic" else 0.05
         self.energy = max(0.0, self.energy - consumption)
 
+        latency_ms = (time.perf_counter() - t0) * 1000
+        if latency_ms > 0.5:
+            _log.debug("Sympathetic: evaluate_context latency: %.4f ms", latency_ms)
+
         return InternalState(
             sigma=round(new_sigma, 4),
             mode=mode,
@@ -97,10 +110,9 @@ class SympatheticModule:
     def decision_modifier(self) -> float:
         """
         f(σ) for the decision function.
-
-        In sympathetic mode: prioritizes speed (high value).
-        In parasympathetic mode: prioritizes depth (low value).
         """
+        if not math.isfinite(self.sigma):
+            return self.SIGMA_INITIAL
         return self.sigma
 
     def can_operate(self) -> bool:
@@ -108,6 +120,6 @@ class SympatheticModule:
         return self.energy > 0.05
 
     def reset(self):
-        """Resets to neutral state (e.g., start of the day)."""
+        """Resets to neutral state."""
         self.sigma = self.SIGMA_INITIAL
         self.energy = 1.0

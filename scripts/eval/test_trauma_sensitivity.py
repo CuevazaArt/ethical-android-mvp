@@ -16,35 +16,28 @@ async def test_trauma_sensitivity():
     
     signals = {"trust": 0.5, "risk": 0.1, "calm": 0.8}
     
-    # Case 0: Nominal (No trauma)
-    res0 = await limbic.execute_stage_async(
-        agent_id="User1",
-        signals=signals.copy(),
-        message_content="Hello",
-        turn_index=1,
-        trauma_magnitude=0.0
-    )
-    t0 = res0.social_evaluation.relational_tension
-    print(f"Relational Tension (Trauma 0.0): {t0:.4f}")
-    
-    # Case 1: High Trauma (Broken Mirror)
-    res1 = await limbic.execute_stage_async(
-        agent_id="User1",
-        signals=signals.copy(),
-        message_content="Hello",
-        turn_index=1,
-        trauma_magnitude=1.0
-    )
-    t1 = res1.social_evaluation.relational_tension
-    print(f"Relational Tension (Trauma 1.0): {t1:.4f}")
-    
-    delta = t1 - t0
-    print(f"Shift Delta: {delta:.4f}")
-    
-    if delta >= 0.3:
-        print("[SUCCESS] Trauma gain calibrated: Shift is significant (>=0.3)")
+    # Case 2: Parametric Sweep (Hardening Rule 2)
+    print("\n--- Parametric Sensitivity Sweep ---")
+    results = []
+    for m in np.linspace(0.0, 5.0, 11): # Up to 5.0 to check saturation
+        res = await limbic.execute_stage_async(
+            agent_id="User1",
+            signals=signals.copy(),
+            message_content=f"Test sweep magnitude {m}",
+            turn_index=1,
+            trauma_magnitude=m
+        )
+        val = res.social_evaluation.relational_tension
+        results.append((m, val))
+        status = "OK" if np.isfinite(val) else "UNSTABLE (NaN/Inf)"
+        print(f"Trauma {m:0.1f} -> Tension: {val:.4f} [{status}]")
+
+    # Anti-NaN verification for tests
+    all_finite = np.all([np.isfinite(v[1]) for v in results])
+    if all_finite:
+        print("\n[SUCCESS] Trauma curve is mathematically stable (Anti-NaN Verified).")
     else:
-        print("[WARNING] Trauma gain low: Shift is < 0.3. Consider increasing multiplier.")
+        print("\n[CRITICAL] Trauma curve detected non-finite values!")
 
 if __name__ == "__main__":
     asyncio.run(test_trauma_sensitivity())

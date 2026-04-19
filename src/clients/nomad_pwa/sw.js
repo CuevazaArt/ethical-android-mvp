@@ -37,12 +37,23 @@ self.addEventListener('fetch', (event) => {
   // Only handle HTTP/HTTPS, ignore WebSockets (ws/wss)
   if (!event.request.url.startsWith('http')) return;
 
+  // Stale-While-Revalidate strategy
   event.respondWith(
-    fetch(event.request)
-      .then((response) => {
-        // Cache dynamic assets if needed, but we mostly care about offline fallback
-        return response;
-      })
-      .catch(() => caches.match(event.request))
+    caches.open(CACHE_NAME).then((cache) => {
+      return cache.match(event.request).then((cachedResponse) => {
+        const fetchPromise = fetch(event.request).then((networkResponse) => {
+          // Update cache with the fresh response
+          if (networkResponse && networkResponse.status === 200) {
+            cache.put(event.request, networkResponse.clone());
+          }
+          return networkResponse;
+        }).catch(err => {
+          console.warn('Nomad SW: Network fetch failed, relying on cache.', err);
+        });
+
+        // Return cached response immediately if available, else wait for network
+        return cachedResponse || fetchPromise;
+      });
+    })
   );
 });
