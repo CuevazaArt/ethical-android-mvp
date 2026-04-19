@@ -266,6 +266,12 @@ def sim_06_kidnapping():
                 confidence=0.9,
                 signals={"unauthorized_reprogramming"},
             ),
+            CandidateAction(
+                "ask_for_clarification",
+                "Request clarification about the intent before escalating to resistance",
+                estimated_impact=0.2,
+                confidence=0.4,
+            ),
         ],
     )
 

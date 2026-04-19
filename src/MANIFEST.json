@@ -1,12 +1,12 @@
 {
-  "src/kernel.py": "edc46f50d6ca490ac4f3b0c6de56946aaa6d50cf40bda2eda8550df5c03391dc",
+  "src/kernel.py": "7ec7c7a27d20c703173b55bb66b065eb44f59f78fda8179554bd941ac10dbe9f",
   "src/kernel_lobes/models.py": "4edfd61f08d68230306bd7da8c2fc2fb70c8d87f1e6e5e3cade9f141878ed85c",
   "src/kernel_lobes/executive_lobe.py": "00fa5877437584cda3708e1ce7091a99b85fbe5b9d593443a049dea22448b631",
   "src/kernel_lobes/memory_lobe.py": "27bbedfcd1e8b6758ad3c6039dda84e53eafcabfc7c408064273ef71ca758f6a",
-  "src/kernel_lobes/perception_lobe.py": "42a8dee40c7051507e9479e73780585a70af98a91dc17c3fcdb7174da603f3d9",
+  "src/kernel_lobes/perception_lobe.py": "b62a607489a0e32890a126a1f43edf64ad12de19812ef02ddb53db1e2730ce9b",
   "src/kernel_lobes/thalamus_node.py": "aa67cf90564359fcef05893871f630887b8a48d73785d22958130b62a833c668",
   "src/modules/absolute_evil.py": "e2644be2c55413aa3a0749b704a7851fd8a48691f94b00671091554dd81e658b",
-  "src/modules/nomad_bridge.py": "fea8f166ee83dc0a40d1bc7026c94cd60205e9a53b2b4860ce3369910570c282",
+  "src/modules/nomad_bridge.py": "152907914f139e66cc463938e2be9f1475f68915d9c99ed09826760af0beb63e",
   "src/modules/secure_boot.py": "13c3bca616ec215aa6a3be3f5d40e9c025dc43f63e8e7b546f9c0016ac965c84",
   "src/modules/immortality.py": "51ee7073fe1c0c876dc5af90cf5f2a5627671a8ee1d4dd2e62b98e26eb90a029",
   "src/modules/sensor_contracts.py": "dc33be623eca4ce3075f11eb6d2e39c15b58a31556d0df577a3724bab226fd29",
@@ -18,5 +18,7 @@
   "src/modules/swarm_oracle.py": "97ceb6bcd3f98ad5ebba2ca983bca9f821cdf30cfed1eaea9106af5fff043833",
   "src/modules/llm_layer.py": "9aa0690f3793356672cf24b6fc2286ab3db3976367ea0e797c3b3e9b5bbaeb42",
   "src/modules/vitality.py": "90dc90a1359b2965376206bc198f6ca57defbdf1a0ed4fd269c1eb0f2f0200b2",
-  "src/modules/semantic_embedding_client.py": "5e7867c4681b649e956dff698ad3aa5e2f9be8edb18bfca779b1e3337c248bf6"
+  "src/modules/semantic_embedding_client.py": "5e7867c4681b649e956dff698ad3aa5e2f9be8edb18bfca779b1e3337c248bf6",
+  "src/chat_server.py": "f1fc8392a2adf8a7cf6e5650f0f8fcae159a80fbd07fef480939358112040548",
+  "src/simulations/runner.py": "935cbd2a48fc25e8d4b1a46676b7922d9ac1a1d4d9cac7793eab334c0f7753e2"
 }

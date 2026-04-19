@@ -132,7 +132,7 @@ from contextlib import asynccontextmanager
 from dataclasses import asdict
 from typing import Any
 
-from fastapi import FastAPI, WebSocket, WebSocketDisconnect
+from fastapi import FastAPI, Request, WebSocket, WebSocketDisconnect
 from fastapi.responses import JSONResponse, Response
 from fastapi.staticfiles import StaticFiles
 
@@ -899,7 +899,8 @@ def prometheus_metrics() -> Response:
 
 
 @app.get("/health")
-def health() -> dict[str, Any]:
+def health(request: Request) -> Response:
+    """Liveness + operator-facing observability flags (JSON for dashboards and probes)."""
     """Liveness + operator-facing observability flags (JSON for dashboards and probes)."""
     from .observability.decision_log import decision_log_enabled
     from .runtime_profiles import applied_runtime_profile
@@ -971,7 +972,13 @@ def health() -> dict[str, Any]:
     from .modules.nomad_bridge import get_nomad_bridge
 
     out["nomad_bridge"] = get_nomad_bridge().public_queue_stats()
-    return out
+
+    # Echo X-Request-ID header if present (ADR observability)
+    req_id = request.headers.get("x-request-id")
+    response = JSONResponse(content=out)
+    if req_id:
+        response.headers["x-request-id"] = req_id
+    return response
 
 
 @app.get("/dao/governance")

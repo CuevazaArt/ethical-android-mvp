@@ -461,6 +461,87 @@ class PerceptiveLobe:
 
         return entities
 
+    # ─── Phase 9.2/9.4: Sensory Episode Buffer ───────────────────────────────
+
+    _EPISODE_WINDOW = 10  # rolling window size for stress calculation
+    _URGENCY_THRESHOLD = 0.5  # signals["is_urgent"] above this → high urgency
+    _STRESS_URGENCY_THRESHOLD = 0.5  # fraction of urgent episodes that triggers high stress
+
+    def absorb_episode(self, episode: "Any") -> None:
+        """Absorb a SensoryEpisode into the rolling buffer.
+
+        If the episode is urgent (``is_urgent > _URGENCY_THRESHOLD``), the kernel's
+        ``proactive_sensory_event`` is set to signal proactive interrupt handling.
+        """
+        if not hasattr(self, "_episode_log"):
+            from collections import deque
+            self._episode_log: "deque" = __import__("collections").deque(
+                maxlen=self._EPISODE_WINDOW
+            )
+        self._episode_log.append(episode)
+
+        urgency = float((episode.signals or {}).get("is_urgent", 0.0))
+        if urgency > self._URGENCY_THRESHOLD:
+            # Signal the kernel's proactive sensory event if available
+            if self.event_bus is not None:
+                try:
+                    from src.modules.kernel_event_bus import EVENT_SENSORY_STRESS_ALERT
+                    self.event_bus.emit(EVENT_SENSORY_STRESS_ALERT, {"urgency": urgency})
+                except Exception:
+                    pass
+            # Also set the kernel event directly via a back-reference if present
+            cb = getattr(self, "_proactive_event_setter", None)
+            if callable(cb):
+                cb()
+
+    def _calculate_sensory_stress(self) -> float:
+        """Return a stress score [0, 1.5] based on fraction of urgent episodes in the window."""
+        if not hasattr(self, "_episode_log") or not self._episode_log:
+            return 0.0
+        total = len(self._episode_log)
+        urgent = sum(
+            1 for ep in self._episode_log
+            if float((ep.signals or {}).get("is_urgent", 0.0)) > self._STRESS_URGENCY_THRESHOLD
+        )
+        return min(1.5, (urgent / total) * 1.5)
+
+    def get_sensory_impulses(self) -> dict:
+        """Return connectivity and inertia state from the NomadBridge.
+
+        Returns a dict with keys:
+            offline        bool   True when the vessel has been silent > 5 s
+            inertia_active bool   True when offline but grace window hasn't expired
+            sensory_shutdown bool  True when inertia deadline has passed
+        """
+        import time as _time
+        try:
+            from src.modules.nomad_bridge import get_nomad_bridge
+            bridge = get_nomad_bridge()
+            last_update = getattr(bridge, "_last_sensor_update", _time.time())
+            is_healthy = getattr(bridge, "_is_vessel_healthy", False)
+        except Exception:
+            return {"offline": False, "inertia_active": False}
+
+        stale_secs = _time.time() - last_update
+        _STALE_THRESHOLD = 5.0
+        offline = stale_secs > _STALE_THRESHOLD or not is_healthy
+
+        if not offline:
+            # Clear inertia state when reconnecting
+            if hasattr(self, "_shutdown_deadline"):
+                del self._shutdown_deadline
+            return {"offline": False, "inertia_active": False}
+
+        # Offline path — inertia / graceful shutdown
+        _INERTIA_WINDOW = 5.0  # seconds of grace after disconnect
+        if not hasattr(self, "_shutdown_deadline"):
+            self._shutdown_deadline = _time.time() + _INERTIA_WINDOW
+
+        if _time.time() < self._shutdown_deadline:
+            return {"offline": True, "inertia_active": True}
+
+        return {"offline": True, "inertia_active": True, "sensory_shutdown": True}
+
     @staticmethod
     def _extract_sentiment(text: str) -> float:
         """Heuristic: extract sentiment/emotional tone from LLM response."""

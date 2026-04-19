@@ -563,6 +563,13 @@ class EthicalKernel:
         from .modules.vision_inference import VisionInferenceEngine
         self.vision_inference = VisionInferenceEngine()
 
+        # Phase 9.4: Proactive Sensory Event — set by PerceptiveLobe on urgent episodes
+        self.proactive_sensory_event = asyncio.Event()
+
+        # Phase 10.5: Audio Ring Buffer — populated by background audio ingestion daemon
+        from .modules.audio_adapter import AudioRingBuffer
+        self.audio_ring_buffer = AudioRingBuffer()
+
         # ═══ Triune Brain Lobes (Refactor 0.1.3) ═══
         self.perceptive_lobe = PerceptiveLobe(
             safety_interlock=self.safety_interlock,
@@ -577,6 +584,9 @@ class EthicalKernel:
             vision_engine=self.vision_inference, # Phase 9.1: Inject Vision Engine
             event_bus=self.event_bus # Phase 9.2: Inject Event Bus for background alerts
         )
+        # Wire the proactive_sensory_event back into the perceptive_lobe
+        _event = self.proactive_sensory_event
+        self.perceptive_lobe._proactive_event_setter = _event.set
 
         self.limbic_lobe = LimbicEthicalLobe(
             uchi_soto=self.uchi_soto,
@@ -626,6 +636,10 @@ class EthicalKernel:
         self.cerebellum_node = CerebellumNode(self.hardware_interrupt_event)
         self.cerebellum_node.start()
 
+        # Phase 10.5: Audio ingestion daemon — drain NomadBridge audio_queue → audio_ring_buffer
+        if os.environ.get("KERNEL_NOMAD_BRIDGE_ENABLED", "").strip() == "1":
+            self._start_audio_ingestion_daemon()
+
         # ═══ MER V2 — Turn Prefetcher (Bloque 10.4) ═══
         self.turn_prefetcher = self.prefetcher
         
@@ -668,6 +682,30 @@ class EthicalKernel:
             is_multi_realm_governance_enabled,
         )
         self.governor = MultiRealmGovernor(event_bus=self.event_bus) if is_multi_realm_governance_enabled() else None
+
+    def _start_audio_ingestion_daemon(self) -> None:
+        """Background thread: drains NomadBridge.audio_queue into self.audio_ring_buffer."""
+        import asyncio as _asyncio
+        import numpy as np
+        from .modules.nomad_bridge import get_nomad_bridge as _get_bridge
+
+        audio_ring = self.audio_ring_buffer
+        bridge = _get_bridge()
+
+        def _daemon() -> None:
+            while True:
+                try:
+                    # asyncio.Queue.get_nowait() is safe to call from threads for simple reads
+                    raw_bytes: bytes = bridge.audio_queue.get_nowait()
+                    chunk = np.frombuffer(raw_bytes, dtype=np.float32)
+                    audio_ring.append(chunk)
+                except _asyncio.QueueEmpty:
+                    time.sleep(0.05)
+                except Exception:
+                    time.sleep(0.05)
+
+        t = threading.Thread(target=_daemon, daemon=True, name="kernel-audio-ingest")
+        t.start()
 
     def abandon_chat_turn(self, turn_id: int) -> None:
         """Mark ``turn_id`` as abandoned so :meth:`process_chat_turn` skips STM / post-turn effects."""
