@@ -18,6 +18,7 @@ Env:
 
 from __future__ import annotations
 
+import asyncio
 import hashlib
 import os
 import threading
@@ -25,6 +26,7 @@ import time
 from dataclasses import dataclass, field
 from typing import Any
 
+import httpx
 import numpy as np
 
 
@@ -227,40 +229,33 @@ def http_fetch_ollama_embedding_with_policy(
     *,
     timeout_s: float | None = None,
 ) -> np.ndarray | None:
-    import httpx
+    """
+    Sync bridge: delegates to :func:`ahttp_fetch_ollama_embedding_with_policy`
+    via ``asyncio.run()`` so that all HTTP I/O uses ``httpx.AsyncClient``.
 
-    t = (
-        timeout_s
-        if timeout_s is not None
-        else max(1.0, _env_float("KERNEL_SEMANTIC_EMBED_TIMEOUT_S", 12.0))
-    )
-    retries = max(0, _env_int("KERNEL_SEMANTIC_EMBED_RETRIES", 2))
-    backoff = max(0.0, _env_float("KERNEL_SEMANTIC_EMBED_BACKOFF_S", 0.25))
+    Must **not** be called from inside a running event loop; use the async
+    variant directly in that case.
+    """
+    try:
+        running = asyncio.get_running_loop()
+    except RuntimeError:
+        running = None  # type: ignore[assignment]
 
-    if _circuit_blocks():
+    if running is not None:
+        import logging
+        logging.getLogger(__name__).warning(
+            "http_fetch_ollama_embedding_with_policy called from a running event loop. "
+            "Use ahttp_fetch_ollama_embedding_with_policy instead. Returning None."
+        )
         return None
 
-    payload = {"model": model, "prompt": prompt}
-    last_err = ""
-    for attempt in range(retries + 1):
-        if _circuit_blocks():
-            break
-        t0 = time.perf_counter()
-        try:
-            with httpx.Client(timeout=t) as client:
-                vec_list = _post_once(client, url, payload)
-            if vec_list is None:
-                raise ValueError("missing or invalid embedding array")
-            latency_ms = (time.perf_counter() - t0) * 1000.0
-            _record_success(latency_ms)
-            return np.asarray(vec_list, dtype=np.float64)
-        except Exception as e:
-            last_err = repr(e)
-            if attempt < retries and backoff > 0:
-                time.sleep(backoff * (attempt + 1))
-    if last_err:
-        _record_failure(last_err)
-    return None
+    try:
+        return asyncio.run(
+            ahttp_fetch_ollama_embedding_with_policy(url, model, prompt, timeout_s=timeout_s)
+        )
+    except Exception as exc:
+        _record_failure(repr(exc))
+        return None
 
 async def ahttp_fetch_ollama_embedding_with_policy(
     url: str,
@@ -270,10 +265,7 @@ async def ahttp_fetch_ollama_embedding_with_policy(
     timeout_s: float | None = None,
     aclient: httpx.AsyncClient | None = None,
 ) -> np.ndarray | None:
-    """Async variant of embedding fetch with cooperative backoff and circuit breaker."""
-    import asyncio
-    import httpx
-
+    """Async embedding fetch with cooperative backoff and circuit breaker."""
     t = (
         timeout_s
         if timeout_s is not None
@@ -285,7 +277,7 @@ async def ahttp_fetch_ollama_embedding_with_policy(
     if _circuit_blocks():
         return None
 
-    payload = {"model": model, "prompt": prompt}
+    payload: dict[str, Any] = {"model": model, "prompt": prompt}
     last_err = ""
     for attempt in range(retries + 1):
         if _circuit_blocks():
@@ -294,30 +286,15 @@ async def ahttp_fetch_ollama_embedding_with_policy(
         try:
             timeout = httpx.Timeout(t)
             if aclient is not None:
-                response = await aclient.post(url, json=payload, timeout=timeout)
-                response.raise_for_status()
-                data = response.json()
+                vec_list = await _apost_once(aclient, url, payload)
             else:
                 async with httpx.AsyncClient(timeout=timeout) as client:
-                    response = await client.post(url, json=payload)
-                    response.raise_for_status()
-                    data = response.json()
-            emb = data.get("embedding")
-            if not emb or not isinstance(emb, list):
+                    vec_list = await _apost_once(client, url, payload)
+            if vec_list is None:
                 raise ValueError("missing or invalid embedding array")
-            
-            arr = np.asarray([float(x) for x in emb], dtype=np.float64).reshape(-1)
-            if arr.size == 0 or not np.all(np.isfinite(arr)):
-                raise ValueError("invalid embedding content")
-            
-            n = float(np.linalg.norm(arr))
-            if n < 1e-12:
-                raise ValueError("zero-norm embedding")
-            
-            vec = arr / n
             latency_ms = (time.perf_counter() - t0) * 1000.0
             _record_success(latency_ms)
-            return vec
+            return np.asarray(vec_list, dtype=np.float64)
         except Exception as e:
             last_err = repr(e)
             if attempt < retries and backoff > 0:
