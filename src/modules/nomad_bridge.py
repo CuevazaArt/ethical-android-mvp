@@ -88,16 +88,27 @@ class NomadBridge:
         frame_count = 0
         try:
             while True:
-                data = await ws.receive_json()
-                event_type = data.get("type")
-                payload = data.get("payload")
+                try:
+                    data = await ws.receive_json()
+                    if not isinstance(data, dict):
+                        _log.warning("Nomad Bridge: Hostile or malformed payload. Not a dict.")
+                        continue
+                        
+                    event_type = data.get("type")
+                    payload = data.get("payload")
 
-                if not event_type or not payload:
-                    continue
+                    if not event_type or not isinstance(payload, dict):
+                        continue
 
-                if event_type == "vision_frame":
-                    frame_count += 1
-                    b64_img = payload.get("image_b64", "")
+                    if event_type == "vision_frame":
+                        frame_count += 1
+                        b64_img = payload.get("image_b64", "")
+                        
+                        try:
+                            raw_bytes = base64.b64decode(b64_img)
+                        except Exception as e:
+                            _log.error("Nomad Bridge: Invalid b64 image data: %s", e)
+                            continue
                     
                     if frame_count % 10 == 0:
                         _log.info("Nomad Bridge: Received 10 vision frames (Stream Active)")
@@ -108,41 +119,54 @@ class NomadBridge:
                         self.vision_queue.get_nowait()
                     
                     # Phase 14: Pass meta signals into the queue alongside raw bytes
-                    # Combined payload for the VisionContinuousDaemon
-                    combined_payload = {
-                        "raw_bytes": base64.b64decode(b64_img),
-                        "meta": payload.get("meta", {}), # Contains lip_movement, human_presence
-                        "detections": payload.get("detections", [])
-                    }
+                        # Combined payload for the VisionContinuousDaemon
+                        combined_payload = {
+                            "raw_bytes": raw_bytes,
+                            "meta": payload.get("meta", {}), # Contains lip_movement, human_presence
+                            "detections": payload.get("detections", [])
+                        }
                     self.vision_queue.put_nowait(combined_payload)
                     self._last_sensor_update = time.time()
                     self._is_vessel_healthy = True
 
-                elif event_type == "audio_pcm":
-                    if self.audio_queue.full():
-                        self.audio_queue.get_nowait()
-                    b64_pcm = payload.get("audio_b64", "")
-                    pcm_bytes = base64.b64decode(b64_pcm)
-                    self.audio_queue.put_nowait(pcm_bytes)
-                    
-                    # Calculate very basic rms for dashboard audio bar and Thalamus
-                    if pcm_bytes and len(pcm_bytes) >= 2:
-                        import struct
-                        import math
-                        shorts = struct.unpack(f"<{len(pcm_bytes)//2}h", pcm_bytes[:(len(pcm_bytes)//2)*2])
-                        rms = math.sqrt(sum(s*s for s in shorts) / len(shorts)) / 32768.0
-                        self.last_rms = rms
-                        if self.dashboard_queues:
-                            self.broadcast_to_dashboards({"type": "audio_energy", "payload": {"rms": rms}})
+                    elif event_type == "audio_pcm":
+                        if self.audio_queue.full():
+                            self.audio_queue.get_nowait()
+                        b64_pcm = payload.get("audio_b64", "")
+                        
+                        try:
+                            pcm_bytes = base64.b64decode(b64_pcm)
+                        except Exception as e:
+                            _log.error("Nomad Bridge: Invalid b64 audio data: %s", e)
+                            continue
+                            
+                        self.audio_queue.put_nowait(pcm_bytes)
+                        
+                        # Calculate very basic rms for dashboard audio bar and Thalamus
+                        if pcm_bytes and len(pcm_bytes) >= 2:
+                            import struct
+                            import math
+                            try:
+                                shorts = struct.unpack(f"<{len(pcm_bytes)//2}h", pcm_bytes[:(len(pcm_bytes)//2)*2])
+                                rms = math.sqrt(sum(s*s for s in shorts) / len(shorts)) / 32768.0
+                                self.last_rms = rms
+                                if self.dashboard_queues:
+                                    self.broadcast_to_dashboards({"type": "audio_energy", "payload": {"rms": rms}})
+                            except struct.error:
+                                pass # Corrupted audio chunk
 
-                elif event_type == "telemetry":
-                    _log.debug("Nomad Bridge: Telemetry pulse")
-                    self.broadcast_to_dashboards({"type": "telemetry", "payload": payload})
-                    if self.telemetry_queue.full():
-                        self.telemetry_queue.get_nowait()
-                    self.telemetry_queue.put_nowait(payload)
-                    self._last_sensor_update = time.time()
-                    self._is_vessel_healthy = True
+                    elif event_type == "telemetry":
+                        _log.debug("Nomad Bridge: Telemetry pulse")
+                        self.broadcast_to_dashboards({"type": "telemetry", "payload": payload})
+                        if self.telemetry_queue.full():
+                            self.telemetry_queue.get_nowait()
+                        self.telemetry_queue.put_nowait(payload)
+                        self._last_sensor_update = time.time()
+                        self._is_vessel_healthy = True
+
+                except Exception as inner_e:
+                    # Catch inner loop errors so the websocket connection doesn't drop due to one bad frame
+                    _log.error("Nomad Bridge inner loop error: %s", inner_e)
 
         except WebSocketDisconnect:
             pass

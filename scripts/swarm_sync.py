@@ -130,19 +130,19 @@ def main():
          
     # 2. Update unified log
     log_path = update_changelog(args.block, args.msg, all_target_files, args.author)
-    print(f"✅ Activity Log updated: {log_path}")
+    print(f"[OK] Activity Log updated: {log_path}")
     
     # 3. Optional checks
     if not args.no_verify and not run_checks():
-        print("❌ L1 Audit Verification Failed! Aborting commit.")
+        print("[ERROR] L1 Audit Verification Failed! Aborting commit.")
         sys.exit(1)
         
     # 4. Git Execution
     if commit_changes(args.block, args.msg, args.author):
-         print("\n🚀 SWARM ACTION COMPLETED SUCESSFULLY.")
+         print("\n[SUCCESS] SWARM ACTION COMPLETED SUCESSFULLY.")
          print("Ready to push. You can now execute `git push` on your branch.")
     else:
-         print("\n❌ Git execution failed.")
+         print("\n[FAILED] Git execution failed.")
          sys.exit(1)
 
 
