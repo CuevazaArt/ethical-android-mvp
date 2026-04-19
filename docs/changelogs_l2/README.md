@@ -15,7 +15,13 @@ Antigravity (L1) reported **AGENTS.md protocol drift**. Per **L0**:
    - `git branch` (list) → `git branch -d <topic>` after merge or `git branch -D <topic>` only if abandoned.
    - Do **not** delete `main` or shared hubs without L0/L1 instruction.
 3. **Adopt callsigns** — each L2 session uses one of: **Rojo**, **Azul**, **Naranja** (discipline, traceability, cross-team visibility).
-4. **Register wake-up** — append to [`WAKEUP_REGISTER.md`](WAKEUP_REGISTER.md) **before** touching code again.
+4. **Register wake-up** — update [`WAKE_UP_REGISTRY_2026-04-19.md`](WAKE_UP_REGISTRY_2026-04-19.md) **before** touching code again.
+
+## L1 audit responses (sovereign re-integration)
+
+| File | Description |
+|------|-------------|
+| [`L1_AUDIT_RESPONSE_CURSOR_ROJO3_2026-04-19.md`](L1_AUDIT_RESPONSE_CURSOR_ROJO3_2026-04-19.md) | Antigravity (L1) three-question audit — identity (Rojo), territoriality (`PLAN_WORK_DISTRIBUTION_TREE`), logging commitment. |
 
 ## Callsign reference (L2)
 
@@ -26,6 +32,10 @@ Antigravity (L1) reported **AGENTS.md protocol drift**. Per **L0**:
 | **Naranja** | Operator surface, docs/env parity, observability |
 
 Units map callsigns to their **hub branch** and **charter** (e.g. [`CURSOR_TEAM_CHARTER.md`](../collaboration/CURSOR_TEAM_CHARTER.md)) without creating duplicate normative files in `.cursor/rules/`.
+
+## L1 audit responses (re-integration)
+
+- **2026-04-19 — Cursor Rojo:** [`L1_AUDIT_RESPONSE_2026-04-19_CURSOR_ROJO.md`](L1_AUDIT_RESPONSE_2026-04-19_CURSOR_ROJO.md) (identity, territoriality, logging commitment).
 
 ## Canonical protocol
 
