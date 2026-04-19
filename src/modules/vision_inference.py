@@ -102,7 +102,7 @@ class VisionContinuousDaemon:
         _log.info("VisionContinuousDaemon: Background streaming stopped.")
 
     def _daemon_loop(self):
-        """Continuous vision loop: consume Nomad frames when present, else stub metadata."""
+        """Loop de captura e inferencia continua consumiendo del Nomad Bridge."""
         from src.modules.nomad_bridge import get_nomad_bridge
 
         bridge = get_nomad_bridge()
@@ -117,26 +117,37 @@ class VisionContinuousDaemon:
                     pass
 
                 if frame_data:
-                    mock_analysis = {"detected_objects": [{"label": "human", "confidence": 0.9}]}
-                    detections = self.engine.analyze_image(mock_analysis)
-                else:
-                    detections = self.engine.analyze_image({"detected_objects": []})
-
-                threat = self.engine.get_highest_threat(detections)
-                episode = SensoryEpisode(
-                    timestamp=time.time(),
-                    origin="vision_daemon",
-                    entities=[d.label for d in detections],
-                    signals={
-                        "confidence": max((d.confidence for d in detections), default=0.0),
-                        "is_urgent": 1.0 if any(d.is_prohibited for d in detections) else 0.0,
-                        "threat_level": threat.confidence if threat else 0.0,
-                    },
-                )
-                self.absorption_callback(episode)
+                    # 2. Extract signals (Phase 14: Real data from Nomad Bridge)
+                    # frame_data is now a dict {raw_bytes, meta, detections}
+                    meta = frame_data.get("meta", {})
+                    detections_raw = frame_data.get("detections", [])
+                    
+                    # Convert raw detections to model objects
+                    detections = self.engine.analyze_image({"detected_objects": detections_raw})
+                    
+                    # 3. Convert to SensoryEpisode with real signals
+                    episode = SensoryEpisode(
+                        timestamp=time.time(),
+                        origin="vision_daemon",
+                        entities=[d.label for d in detections],
+                        signals={
+                            "confidence": max([d.confidence for d in detections]) if detections else 1.0,
+                            "is_urgent": 1.0 if any(d.is_prohibited for d in detections) else 0.0,
+                            "threat_level": self.engine.get_highest_threat(detections).confidence if self.engine.get_highest_threat(detections) else 0.0,
+                            "human_presence": meta.get("human_presence", 0.0),
+                            "lip_movement": meta.get("lip_movement", 0.0),
+                            "user_focus": meta.get("user_focus", 0.5)
+                        }
+                    )
+                    
+                    # 4. Empujar al buffer del Lóbulo Perceptivo
+                    self.absorption_callback(episode)
+                
             except Exception as e:
                 _log.error("VisionContinuousDaemon error in loop: %s", e)
-
+            
+            # Mantener la frecuencia de 5Hz
             elapsed = time.perf_counter() - start_tick
             sleep_time = max(0.01, self.polling_rate - elapsed)
             time.sleep(sleep_time)
+

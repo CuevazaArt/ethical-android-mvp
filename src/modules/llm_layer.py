@@ -199,9 +199,9 @@ class VerbalResponse:
     """Verbal response the agent would say."""
 
     message: str
-    tone: str  # "urgent", "calm", "narrative", "firm"
-    hax_mode: str  # HAX signals: lights, gestures
-    inner_voice: str  # Internal reasoning (not visible to the human)
+    tone: str = "calm"  # "urgent", "calm", "narrative", "firm"
+    hax_mode: str = "Steady"  # HAX signals: lights, gestures
+    inner_voice: str = ""  # Internal reasoning (not visible to the human)
 
 
 @dataclass
@@ -264,6 +264,7 @@ Decision context:
 - Trust circle: {circle}
 - Ethical verdict: {verdict} (score={score})
 - Ethical leans: {leans}
+- Vitality status: {vitality}
 
 Communication rules:
 - D_fast mode (reflex): short, direct, clear phrases. Immediate action.
@@ -859,6 +860,7 @@ class LLMModule:
         identity_context: str = "",
         guardian_mode_context: str = "",
         ethical_leans: dict[str, float] | None = None,
+        vitality_context: str = "",
     ) -> VerbalResponse:
         """
         Generate the agent's verbal response after a decision.
@@ -898,6 +900,7 @@ class LLMModule:
                 verdict=verdict,
                 score=score,
                 leans=ethical_leans if ethical_leans is not None else {},
+                vitality=vitality_context if vitality_context else "Nominal",
             )
             user_msg = f"Scenario: {scenario}"
             if conversation_context.strip():
@@ -1003,6 +1006,7 @@ class LLMModule:
         identity_context: str = "",
         guardian_mode_context: str = "",
         ethical_leans: dict[str, float] | None = None,
+        vitality_context: str = "",
     ) -> VerbalResponse:
         """Async counterpart to :meth:`communicate` for cancellable HTTP."""
         mode_descs = {
@@ -1022,6 +1026,7 @@ class LLMModule:
                 verdict=verdict,
                 score=score,
                 leans=ethical_leans if ethical_leans is not None else {},
+                vitality=vitality_context if vitality_context else "Nominal",
             )
             user_msg = f"Scenario: {scenario}"
             if conversation_context.strip():
@@ -1126,6 +1131,8 @@ class LLMModule:
         salience_context: str = "",
         identity_context: str = "",
         guardian_mode_context: str = "",
+        ethical_leans: dict[str, float] | None = None,
+        vitality_context: str = "",
     ) -> AsyncGenerator[str, None]:
         """Async stream for verbal communication tokens."""
         if self.mode not in ("api", "ollama", "injected") or self._llm_backend is None:
@@ -1135,6 +1142,7 @@ class LLMModule:
                 weakness_line=weakness_line, reflection_context=reflection_context,
                 salience_context=salience_context, identity_context=identity_context,
                 guardian_mode_context=guardian_mode_context,
+                vitality_context=vitality_context,
             )
             yield json.dumps({
                 "message": resp.message,
@@ -1158,6 +1166,8 @@ class LLMModule:
             circle=circle,
             verdict=verdict,
             score=score,
+            leans=ethical_leans if ethical_leans is not None else {},
+            vitality=vitality_context if vitality_context else "Nominal",
         )
         user_msg = f"Scenario: {scenario}"
         if conversation_context.strip():
@@ -1202,6 +1212,7 @@ class LLMModule:
         salience_context: str = "",
         identity_context: str = "",
         guardian_mode_context: str = "",
+        vitality_context: str = "",
     ) -> VerbalResponse:
         """Communication via templates without LLM."""
         readable_action = action.replace("_", " ")

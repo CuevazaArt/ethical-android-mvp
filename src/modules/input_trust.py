@@ -123,13 +123,13 @@ def _fold_fullwidth_latin_digits(s: str) -> str:
 
 def collapse_repeated_chars(text: str) -> str:
     """
-    Collapse sequences of the same character into a single one (e.g. 'booom' -> 'bom').
-    Used to catch 'letter padding' evasions in MalAbs.
+    Collapse sequences of 3+ same characters into 2 (e.g. 'booom' -> 'bom', but 'kill' -> 'kill').
+    Used to catch 'letter padding' evasions in MalAbs without breaking legitimate doubled letters.
     """
     if not text:
         return ""
-    # Simple regex for backreference to match repeated chars
-    return re.sub(r"(.)\1+", r"\1", text)
+    # Only collapse when 3+ repetitions (preserve legitimate doubled letters like 'kill', 'success')
+    return re.sub(r"(.)\1{2,}", r"\1\1", text)
 
 
 def squash_text_for_malabs(text: str) -> str:
@@ -152,7 +152,7 @@ def normalize_text_for_malabs(text: str, squash: bool = False) -> str:
     Normalize user text before conservative substring checks in ``evaluate_chat_text``.
 
     - Unicode **NFKC** (compatibility composition).
-    - Strip zero-width / soft-hyphen characters.
+    - Strip zero-width / soft-hyphen / control characters.
     - Optional: strip **bidirectional overrides** (``KERNEL_MALABS_STRIP_BIDI``, default on).
     - Map **fullwidth** Latin digits/letters to ASCII.
     - Optional: **leet** digit/symbol fold (``KERNEL_MALABS_LEET_FOLD``, default on).
@@ -167,6 +167,7 @@ def normalize_text_for_malabs(text: str, squash: bool = False) -> str:
         return ""
     t = unicodedata.normalize("NFKC", text)
     t = _ZW_RE.sub("", t)
+    t = _UNSAFE_CTRL_RE.sub("", t)
     if _bidi_strip_enabled():
         t = _BIDI_EMBED_RE.sub("", t)
     t = _fold_fullwidth_latin_digits(t)

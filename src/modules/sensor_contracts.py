@@ -223,6 +223,31 @@ class SensorSnapshot:
             except (TypeError, ValueError):
                 return None
 
+        # Aliases for Nomad/PWA calibration (S.2.1)
+        # battery (0-100) -> battery_level (0-1)
+        if "battery" in raw and raw.get("battery_level") is None:
+            raw["battery_level"] = f_raw("battery") / 100.0 if f_raw("battery") is not None else None
+        
+        # jerk (0-20 m/s^2) -> accelerometer_jerk (0-1)
+        if "jerk" in raw and raw.get("accelerometer_jerk") is None:
+            jerk_val = f_raw("jerk")
+            raw["accelerometer_jerk"] = min(1.0, jerk_val / 20.0) if jerk_val is not None else None
+            
+        # noise (dB) -> ambient_noise (0-1)
+        if "noise" in raw and raw.get("ambient_noise") is None:
+            noise_db = f_raw("noise")
+            # Map -60dB..0dB to 0..1
+            if noise_db is not None:
+                raw["ambient_noise"] = _clamp01((noise_db + 60) / 60.0)
+
+        # core_temp alias
+        if "temp" in raw and raw.get("core_temperature") is None:
+            raw["core_temperature"] = f_raw("temp")
+
+        # trusted_place -> place_trust
+        if "trusted_place" in raw and raw.get("place_trust") is None:
+            raw["place_trust"] = 1.0 if raw.get("trusted_place") else 0.0
+
         b = raw.get("backup_just_completed")
         backup = bool(b) if b is not None else False
 
@@ -277,6 +302,73 @@ class SensorSnapshot:
             and self.thalamus_cross_modal_trust is None
         )
 
+
+def merge_nomad_vision_into_snapshot(snapshot: SensorSnapshot | None) -> SensorSnapshot | None:
+    """
+    When ``KERNEL_NOMAD_VISION_CONSUMER`` is on and the consumer has a latest inference,
+    merge ``vision_emergency`` and ``image_metadata["nomad"]`` so multimodal trust and
+    :func:`merge_sensor_hints_into_signals` see the hardware vision channel.
+    """
+
+    from dataclasses import replace
+
+    from ..kernel_utils import kernel_env_truthy
+
+    if not kernel_env_truthy("KERNEL_NOMAD_VISION_CONSUMER"):
+        return snapshot
+
+    from .vision_adapter import get_nomad_vision_consumer_optional
+    from .vision_signal_mapper import VisionSignalMapper
+
+    consumer = get_nomad_vision_consumer_optional()
+    if consumer is None or consumer.latest_inference is None:
+        return snapshot
+
+    inf = consumer.latest_inference
+    mapper = VisionSignalMapper()
+    mapped = mapper.map_inference(inf)
+
+    urg = float(mapped.get("urgency", 0.0))
+    risk = float(mapped.get("risk", 0.0))
+    ve_merge = _clamp01(max(urg, risk))
+    if inf.confidence < mapper.confidence_threshold:
+        ve_merge = min(ve_merge, 0.25)
+
+    ve_for_snapshot = None if ve_merge < 1e-6 else ve_merge
+
+    top_raw: dict[str, float] = {}
+    if inf.raw_scores:
+        top_raw = dict(
+            list(sorted(inf.raw_scores.items(), key=lambda kv: (-kv[1], str(kv[0]))))[:5]
+        )
+    meta = {
+        "source": "nomad_vision_consumer",
+        "primary_label": inf.primary_label,
+        "confidence": inf.confidence,
+        "top_scores": top_raw,
+    }
+
+    if snapshot is None:
+        return SensorSnapshot(vision_emergency=ve_for_snapshot, image_metadata={"nomad": meta})
+
+    old_ve = snapshot.vision_emergency
+    if ve_for_snapshot is None:
+        merged_ve = old_ve
+    elif old_ve is None:
+        merged_ve = ve_for_snapshot
+    else:
+        merged_ve = max(old_ve, ve_for_snapshot)
+
+    im = snapshot.image_metadata
+    if not im:
+        merged_meta = {"nomad": meta}
+    elif isinstance(im, dict):
+        merged_meta = dict(im)
+        merged_meta["nomad"] = meta
+    else:
+        merged_meta = {"nomad": meta}
+
+    return replace(snapshot, vision_emergency=merged_ve, image_metadata=merged_meta)
 
 
 def merge_sensor_hints_into_signals(

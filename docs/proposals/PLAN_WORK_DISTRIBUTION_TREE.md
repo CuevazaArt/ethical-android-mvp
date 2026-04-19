@@ -12,16 +12,16 @@ Este documento estructura el inmenso volumen de trabajo arquitectónico definido
 
 ## 🌳 Árbol de Distribución de Módulos (Blocks Tree)
 
-### ⚙️ Módulo 0: Estabilización Pragmática y Reducción de Deuda (Nuevo P0/P1)
+### ⚙️ Módulo 0: Estabilización Pragmática y Reducción de Deuda (P0/P1) [DONE]
 *Responsabilidad: Nivel 1 (Antigravity)*
 *Objetivo: Mitigar vulnerabilidades operacionales, desmonolitizar componentes críticos y lograr paridad de operaciones/tests enfocado en funcionalidad práctica.*
 
-- **Bloque 0.1: Desmonolitización y Abstracción de `kernel.py` (Prioridad Absoluta)**
-  - Tarea 0.1.1: **Solución Práctica a E/S Sincrónica:** Migrar el pipeline de inferencia HTTP de LLMs (`httpx` sincrónico dentro del hilo worker) hacia clientes cooperativos asíncronos (`httpx.AsyncClient`). *Estado hub:* verbal Ollama/HTTP JSON ya exponen `acompletion` / `aembedding` asíncronos; transporte MalAbs-embebido en [`semantic_embedding_client.py`](../../src/modules/semantic_embedding_client.py) tiene `ahttp_fetch_ollama_embedding_with_policy` + cancel cooperativo entre reintentos; rutas **sync** (`completion`, `http_fetch_*`) se conservan para hilos y llamadas legacy.
-  - Tarea 0.1.2: **Cancelación Cooperativa (Task Cancellation):** Implementar la cancelación transparente de tareas de red pendientes cuando el loop asíncrono se venza (`KERNEL_CHAT_TURN_TIMEOUT`), liberando inmediatamente memoria y slots en el Worker Pool. *Estado hub:* [`process_chat_turn_async`](../../src/kernel.py) / [`process_chat_turn_stream`](../../src/kernel.py) enlazan TLS cooperative + [`set_llm_cancel_scope`](../../src/modules/llm_http_cancel.py) en el hilo asyncio; en [`chat_server.py`](../../src/chat_server.py) el WebSocket marca el event de cancelación, luego `aclose` del async generator (`TimeoutError` y `finally`) y después `abandon_chat_turn` (ADR 0002).
-  - Tarea 0.1.3: Extraer la `Perception` y la lógica de ruteo ético del objeto `EthicalKernel` gigante hacia handlers aislados que aprovechen el Async I/O en lugar de abusar de `run_in_threadpool`. *Estado hub:* [`chat_turn_policy.py`](../../src/kernel_lobes/chat_turn_policy.py) — (1) `chat_turn_is_heavy` + `prioritized_principles_for_context` + buffer; (2) `default_chat_light_actions` + `generic_chat_actions_for_suggested_context` (catálogo `CandidateAction`); (3) [`kernel_utils.py`](../../src/kernel_utils.py) `kernel_decision_event_payload` (bus eventos); (4) `candidate_actions_for_chat_turn` (ruteo heavy → genérico / light); (5) `ethical_context_for_chat_turn` (``everyday`` vs `suggested_context` para el pipeline); (6) [`kernel_utils.py`](../../src/kernel_utils.py) `enrich_chat_turn_signals_for_bayesian` (I3/I5), `coercion_uncertainty_from_perception`, plus merge/apply helpers. [`kernel.py`](../../src/kernel.py) delega; [`tests/test_chat_turn_policy.py`](../../tests/test_chat_turn_policy.py) + [`tests/test_kernel_utils.py`](../../tests/test_kernel_utils.py).
-- **Bloque 0.2: Escalabilidad del Chat Server**
-  - Tarea 0.2.1: Rediseñar la capa WebSocket del servidor (`chat_server.py`) para manejar concurrencia pura sin bloquear el event loop principal, permitiendo streaming asíncrono. *Estado parcial (abril 2026):* [`RealTimeBridge`](../../src/real_time_bridge.py) aplica tope a ``KERNEL_CHAT_THREADPOOL_WORKERS`` (``CHAT_THREADPOOL_MAX_WORKERS``) para desalentar pools anómalos; I5 en [`kernel_utils.py`](../../src/kernel_utils.py) restringe ``KERNEL_TEMPORAL_REFERENCE_ETA_S`` y tolera señales no numéricas/ETA no finitos; límite de mensaje entrante WebSocket ``KERNEL_CHAT_WS_MAX_MESSAGE_BYTES`` en [`chat_server.py`](../../src/chat_server.py). **Solicitud L1 (Antigravity):** decisión de alcance/ADR — [`PROPOSAL_L1_REQUEST_CHAT_SERVER_0.2.1_FOLLOWUP.md`](./PROPOSAL_L1_REQUEST_CHAT_SERVER_0.2.1_FOLLOWUP.md).
+- **Bloque 0.1: Desmonolitización y Abstracción de `kernel.py` [DONE]**
+  - Tarea 0.1.1: **Solución Práctica a E/S Sincrónica:** Migrar el pipeline de inferencia HTTP hacia clientes asíncronos (`httpx.AsyncClient`). [DONE]
+  - Tarea 0.1.2: **Cancelación Cooperativa (Task Cancellation):** Implementar la cancelación transparente de tareas de red. [DONE]
+  - Tarea 0.1.3: Extraer la `Perception` hacia handlers aislados (`PerceptiveLobe`). [DONE]
+- **Bloque 0.2: Escalabilidad del Chat Server [DONE]**
+  - Tarea 0.2.1: Rediseñar la capa WebSocket del servidor para manejar concurrencia pura. [DONE]
 - **Bloque 0.3: Mantenimiento Histórico (Legacy Modules) [DONE]**
   - Tarea 0.3.1: Los módulos de la integración fundacional 1 al 6 (Mock DAO, Safety Interlock, UchiSoto, Swarm Logic) han sido consolidados y se consideran estables en producción local.
 
@@ -81,24 +81,33 @@ Este documento estructura el inmenso volumen de trabajo arquitectónico definido
 *Responsabilidad: Nivel 1 (Antigravity - Planificación y Orquestación) / Nivel 2 (Ejecución Escuadrones)*
 *Objetivo: Construir la infraestructura que evite transiciones sociopáticas y asegure latencia instintiva frente al ruido (Lectura labial VVAD + Smoothing Emocional).*
 
-- **Bloque 10.1: Fusión Sensorial (VVAD + VAD) y Tálamo**
+- **Bloque 10.1: Fusión Sensorial (VVAD + VAD) y Tálamo [DONE]**
   - *Responsabilidad:* **Team Cursor + Team Copilot**
-  - Tarea: Crear `src/kernel_lobes/thalamus_node.py`. Acoplar OpenCV/LipReading de bajo costo computacional con el VAD existente.
-  - Prioridad: **Alta**. Proveer estabilidad al stream perceptivo.
-- **Bloque 10.2: Tribunal Ético Edge (Doble Capa Local)**
+  - Tarea: Crear `src/kernel_lobes/thalamus_node.py`. Acoplar OpenCV/LipReading de bajo costo computacional con el VAD existente. [DONE]
+- **Bloque 10.2: Tribunal Ético Edge (Doble Capa Local) [DONE]**
   - *Responsabilidad:* **Antigravity (L1)**
-  - Tarea: Mover `AbsoluteEvilDetector` directamente al Edge (Nivel 1 <50ms) e instanciar el Lóbulo Límbico Contextual como Nivel 2 (Asíncrono, también local por carencia 6G).
-  - Prioridad: **Máxima**. Asegurar que la censura estricta no estrangule la conversacion fluida.
-- **Bloque 10.3: Amortiguación Afectiva (Ganglios Basales)**
+  - Tarea: Mover `AbsoluteEvilDetector` directamente al Edge (Nivel 1 <50ms) e instanciar el Lóbulo Límbico Contextual como Nivel 2 (Asíncrono, también local por carencia 6G). [DONE]
+- **Bloque 10.3: Amortiguación Afectiva (Ganglios Basales) [DONE]**
   - *Responsabilidad:* **Claude**
-  - Tarea: Construir `src/modules/basal_ganglia.py` aplicando Filtros EMA (Exponential Moving Average) sobre las variables `charm_warmth` y `charm_mystery` del `UserModelTracker`. Las transiciones deben durar 3-5 turnos. *Estado hub:* módulo existe; **Cursor** integró EMA en [`charm_engine.py`](../../src/modules/charm_engine.py) bajo `KERNEL_BASAL_GANGLIA_SMOOTHING`; persistencia en `UserModelTracker` y tunear τ en backlog.
-- **Bloque 10.4: Predicción Local y Prefetching**
-  - *Responsabilidad:* **Team Copilot**
-  - Tarea: Inyectar micro-LLM (ej. Llama-3-2B) o precompilador probabilístico para inferir turnos y lanzar asentimientos rápidos en <300ms antes que el API principal complete.
-  - *Estado hub:* [`turn_prefetcher.py`](../../src/modules/turn_prefetcher.py) (heurísticas + `OLLAMA_PREFETCH_MODEL` / `OLLAMA_BASE_URL`); [`tests/test_turn_prefetcher.py`](../../tests/test_turn_prefetcher.py).
-- **Bloque 10.5: Contrato capa presentación vs núcleo ético (MER ADR)**
-  - *Responsabilidad:* **Team Cursor** (normativo + trazabilidad)
-  - Estado hub: ADR [`0018`](../adr/0018-presentation-tier-vs-ethical-core.md); tests `tests/test_mer_presentation_contract.py`; `PreloadedBuffer.get_snapshot` alimenta el soporte local sin tocar MalAbs.
+  - Tarea: Construir `src/modules/basal_ganglia.py` aplicando Filtros EMA (Exponential Moving Average) sobre las variables del `UserModelTracker`. [DONE]
+- **Bloque 10.4: Predicción Local y Prefetching [DONE]**
+  - Tarea: Inyectar micro-LLM (ej. Llama-3-2B) o precompilador probabilístico para inferir turnos. [DONE]
+
+### 🛰️ Módulo N (Nomad Bridge & Ouroboros)
+*Responsabilidad: Antigravity (L1)*
+
+- **Bloque 11.4: Ouroboros Sensory-Motor Loop [DONE]**
+  - Tarea 11.4.1: Implementación de TTS Nativo y Lip-sync en PWA. [DONE]
+  - Tarea 11.4.2: Retroalimentación Háptica Somática (Charm Engine). [DONE]
+  - Tarea 11.4.3: Telemetría de Disonancia Epistémica Visual. [DONE]
+
+### 📜 Módulo M (Memoria de Largo Plazo & Narrativa)
+*Responsabilidad: Antigravity (L1)*
+
+- **Bloque 12.1: Recursive Narrative Memory (Chronicles) [/]**
+  - Tarea 12.1.1: Esquema de persistencia para crónicas recursivas. [DONE]
+  - Tarea 12.1.2: Motor de consolidación y destilación de episodios. [DONE]
+  - Tarea 12.1.3: Integración de resonancia crónica en la recuperación. [ONGOING]
 
 ## 🚀 Flujo de Sincronización Recomendado
 

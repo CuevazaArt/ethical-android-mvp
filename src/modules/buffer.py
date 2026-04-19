@@ -251,61 +251,52 @@ class PreloadedBuffer:
             "fulfilled_principles": fulfilled,
         }
 
-    def _normalize_situation_key(self, context: str) -> str:
-        raw = (context or "everyday").strip()
-        if raw in self.protocols:
-            return raw
-        aliases = {"everyday": "everyday_ethics", "safety_block": "hostile_interaction"}
-        return aliases.get(raw, "everyday_ethics")
-
-    @staticmethod
-    def _limbic_defaults_from_signals(signals: dict[str, Any] | None) -> dict[str, Any]:
-        sig = signals or {}
-        threat = max(
-            float(sig.get("risk", 0.0) or 0.0),
-            float(sig.get("urgency", 0.0) or 0.0),
-            float(sig.get("hostility", 0.0) or 0.0),
-        )
-        calm = float(sig.get("calm", 0.5) or 0.5)
-        band = "high" if threat >= 0.75 else ("medium" if threat >= 0.45 else "low")
-        planning_bias = (
-            "short_horizon_containment"
-            if band == "high"
-            else ("balanced" if band == "medium" else "long_horizon_deliberation")
-        )
-        return {"arousal_band": band, "planning_bias": planning_bias, "threat_load": threat, "calm": calm}
-
     def get_snapshot(
         self,
         context: str,
         *,
-        kernel: Any = None,
-        signals: dict[str, Any] | None = None,
-        limbic_profile: dict[str, Any] | None = None,
-    ) -> dict[str, Any]:
+        kernel=None,
+        signals: dict | None = None,
+        limbic_profile: dict | None = None,
+    ) -> dict:
         """
-        Local support-buffer view for prompts and WebSocket JSON (offline-capable principle ordering).
+        Read-only summary for perception / chat observability (L0 principles in play).
 
-        Uses the same helper as :meth:`EthicalKernel._prioritized_principles_for_context` (:mod:`~src.kernel_lobes.chat_turn_policy`).
+        Does not mutate the buffer. ``kernel`` is reserved for future kernel-aware hints.
         """
-        situation = self._normalize_situation_key(context)
-        active = self.activate(situation)
-        active_names = sorted(active.keys())
+        signals = signals or {}
+        limbic_profile = limbic_profile or {}
+        active_principles_dict = self.activate(context)
+        active_principles = list(active_principles_dict.keys())
 
-        limbic = dict(limbic_profile) if limbic_profile else self._limbic_defaults_from_signals(signals)
-        priority_profile, priority_principles = prioritized_principles_for_context(
-            active_names,
-            limbic,
+        threat = max(
+            float(signals.get("risk", 0)),
+            float(signals.get("urgency", 0)),
+            float(signals.get("hostility", 0)),
         )
-        planning_bias = limbic.get("planning_bias", "balanced")
+        if limbic_profile.get("arousal_band") == "high":
+            threat = max(threat, 0.8)
+
+        critical_ctx = context in (
+            "violent_crime",
+            "safety_block",
+            "hostile_interaction",
+            "medical_emergency",
+        )
+        safety_first = threat >= 0.75 or critical_ctx
+
+        if safety_first:
+            priority_profile = "safety_first"
+            priority_principles = ["no_harm", "compassion", "proportionality", "dignity"]
+        else:
+            priority_profile = "balanced"
+            priority_principles = active_principles[:6] or ["transparency", "civic_coexistence"]
 
         return {
             "source": "local_preloaded_buffer",
-            "context": (context or "everyday").strip(),
-            "active_principles": list(active_names),
-            "priority_profile": priority_profile,
-            "priority_principles": priority_principles,
-            "planning_bias": planning_bias,
-            "strategy_hint": "",
             "offline_ready": True,
+            "context": context,
+            "active_principles": active_principles,
+            "priority_principles": priority_principles,
+            "priority_profile": priority_profile,
         }

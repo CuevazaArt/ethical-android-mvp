@@ -1,383 +1,310 @@
-import time
-import threading
-import logging
+import asyncio
 import os
-from typing import Any, TYPE_CHECKING, Optional, Tuple, Dict
-from concurrent.futures import ThreadPoolExecutor
+import time
+from typing import Optional
 
-from collections import deque
+import httpx
 
-from src.kernel_lobes.models import (
-    PerceptionStageResult,
-    SemanticState,
-    SensoryEpisode,
-    TimeoutTrauma,
-)
-from src.modules.vitality import assess_vitality
-from src.modules.multimodal_trust import evaluate_multimodal_trust
-from src.modules.epistemic_dissonance import assess_epistemic_dissonance
-from src.kernel_utils import perception_parallel_workers
-from src.modules.sensor_contracts import merge_sensor_hints_into_signals
-from src.modules.somatic_markers import apply_somatic_nudges
-from src.modules.perception_confidence import build_perception_confidence_envelope
-from src.modules.temporal_planning import build_temporal_context
-from src.modules.light_risk_classifier import (
-    light_risk_classifier_enabled,
-    light_risk_tier_from_text,
-)
-from src.modules.premise_validation import scan_premises
-from src.modules.reality_verification import (
-    verify_against_lighthouse,
-    lighthouse_kb_from_env,
-)
-
-if TYPE_CHECKING:
-    from src.modules.safety_interlock import SafetyInterlock
-    from src.modules.strategy_engine import ExecutiveStrategist
-    from src.modules.sensor_contracts import SensorSnapshot
-    from src.modules.llm_layer import LLMModule
-    from src.modules.somatic_markers import SomaticMarkerStore
-    from src.modules.buffer import PreloadedBuffer
-    from src.modules.absolute_evil import AbsoluteEvilDetector
-
-_log = logging.getLogger(__name__)
+from src.kernel_lobes.models import SemanticState, TimeoutTrauma
+from src.modules.llm_http_cancel import raise_if_llm_cancel_requested
 
 
 class PerceptiveLobe:
     """
-    Subsystem for Safety Interlocks, Strategic Ingestion, and Multimodal Perception.
-    
-    Acts as the 'Left Hemisphere' of the kernel, handling I/O and sensory filtering.
+    Hemisferio Izquierdo: Async I/O, Parsing, and Timeout Coercion.
+
+    Perception layer for the ethical kernel with strict timeout enforcement
+    and async LLM API integration via httpx.AsyncClient.
     """
+
     def __init__(
         self,
-        safety_interlock: "SafetyInterlock",
-        strategist: "ExecutiveStrategist",
-        llm: "LLMModule",
-        somatic_store: "SomaticMarkerStore",
-        buffer: "PreloadedBuffer",
-        absolute_evil: "AbsoluteEvilDetector",
-        subjective_clock: Any,  # SubjectiveClock
-        thalamus: Any | None = None,
-        vision_engine: Any | None = None,
+        safety_interlock=None,
+        strategist=None,
+        llm=None,
+        somatic_store=None,
+        buffer=None,
+        buffer_long=None,
+        absolute_evil=None,
+        subjective_clock=None,
+        thalamus=None,
+        vision_engine=None,
+        event_bus=None
     ):
+        self._timeout = self._get_perception_timeout()
+        self._llm_endpoint = os.environ.get("KERNEL_PERCEPTION_LLM_ENDPOINT", "http://localhost:11434/api/generate")
         self.safety_interlock = safety_interlock
         self.strategist = strategist
         self.llm = llm
         self.somatic_store = somatic_store
         self.buffer = buffer
+        self.buffer_long = buffer_long
         self.absolute_evil = absolute_evil
         self.subjective_clock = subjective_clock
         self.thalamus = thalamus
         self.vision_engine = vision_engine
+        self.event_bus = event_bus
 
-        self.sensory_buffer: deque[SensoryEpisode] = deque(maxlen=100)
+    @staticmethod
+    def _get_perception_timeout() -> float:
+        """Get timeout from KERNEL_CHAT_TURN_TIMEOUT or fallback to 30s."""
+        timeout_str = os.environ.get("KERNEL_CHAT_TURN_TIMEOUT", "30")
+        try:
+            return float(timeout_str)
+        except ValueError:
+            return 30.0
 
-        if self.vision_engine:
-            from src.modules.vision_inference import VisionContinuousDaemon
-
-            self.vision_daemon = VisionContinuousDaemon(
-                engine=self.vision_engine,
-                absorption_callback=self.absorb_episode,
-            )
-            self.vision_daemon.start()
-        else:
-            self.vision_daemon = None
-
-    def absorb_episode(self, episode: SensoryEpisode) -> None:
-        """Callback for background daemons to inject sensory data."""
-        self.sensory_buffer.append(episode)
-        if episode.signals.get("is_urgent", 0.0) > 0.8:
-            _log.info("PerceptiveLobe: URGENT sensory episode absorbed! (%s)", episode.entities)
-
-    def _calculate_sensory_stress(self) -> float:
-        """Accumulated stress from recent sensory episodes (Phase 9.2)."""
-        if not self.sensory_buffer:
-            return 0.0
-        recent = list(self.sensory_buffer)[-10:]
-        urgent_count = sum(1 for e in recent if e.signals.get("is_urgent", 0.0) > 0.5)
-        stress = (urgent_count / 10.0) * 1.5
-        return min(1.0, stress)
-
-    def execute_stage(
-        self,
-        scenario: str,
-        place: str,
-        context: str,
-        sensor_snapshot: Optional["SensorSnapshot"] = None,
-        interrupt_event: Optional[threading.Event] = None
-    ) -> Dict[str, Any]:
+    async def observe(self, raw_input: str, multimodal_payload: dict | None = None) -> SemanticState:
         """
-        STAGE 0: Perception, Safety and Strategic Ingestion.
+        Takes raw input, queries LLMs via API with strict timeouts.
+        If timeout occurs, returns a SemanticState with a TimeoutTrauma.
+
+        Args:
+            raw_input: Raw natural language input from user/sensor
+            multimodal_payload: Optional dict with visual/audio/sensor metadata
+
+        Returns:
+            SemanticState with perception_confidence, entities, sentiment, and latency
         """
-        # 0.0 Somatic Overrides (Vertical Increment)
-        if interrupt_event and interrupt_event.is_set():
-            return {
-                "safety_decision": None,
-                "mission_updated": False,
-                "somatic_interrupt": True
-            }
+        start_time = time.time()
 
-        sensory_stress = self._calculate_sensory_stress()
-        if sensory_stress > 0.7:
-            _log.warning(
-                "PerceptiveLobe: High sustained sensory stress! (%.2f)",
-                sensory_stress,
-            )
+        # Check for cancellation before starting
+        raise_if_llm_cancel_requested()
 
-        if self.thalamus and sensor_snapshot:
-            ori = getattr(sensor_snapshot, "orientation", None)
-            if ori:
-                self.thalamus.ingest_telemetry({"orientation": ori})
-            rms = getattr(sensor_snapshot, "rms_audio", None)
-            if rms is not None:
-                self.thalamus.ingest_audio_signal(float(rms))
+        try:
+            # Build perception prompt payload
+            payload = self._build_perception_payload(raw_input, multimodal_payload)
 
-        # 0.1 Check Safety
-        safety_dec = self.safety_interlock.evaluate(scenario, place, context)
-        
-        # 0.2 Strategic Ingestion
-        if sensor_snapshot:
-            if getattr(sensor_snapshot, "external_mission_title", None):
-                from src.modules.strategy_engine import MissionOrigin
-                self.strategist.create_mission(
-                    title=sensor_snapshot.external_mission_title,
-                    origin=MissionOrigin.OWNER,
-                    steps=sensor_snapshot.external_mission_steps or [],
-                    priority=sensor_snapshot.external_mission_priority or 0.6,
+            # Query LLM with async timeout enforcement
+            timeout_obj = httpx.Timeout(self._timeout)
+            async with httpx.AsyncClient(timeout=timeout_obj) as client:
+                response = await client.post(
+                    self._llm_endpoint,
+                    json=payload,
+                    headers={"Content-Type": "application/json"}
                 )
-            self.strategist.ingest_sensors(sensor_snapshot)
+                response.raise_for_status()
+                llm_result = response.json()
 
-        return {
-            "safety_decision": safety_dec,
-            "mission_updated": bool(sensor_snapshot and getattr(sensor_snapshot, "external_mission_title", None)),
-            "sensory_stress": sensory_stress,
-        }
+            # Parse LLM response and extract semantic signals
+            latency = int((time.time() - start_time) * 1000)
+            perception = self._parse_llm_response(llm_result, raw_input)
+            perception.sensory_latency_lag = latency
 
-    def _postprocess_perception(self, perception: Any, tier: Any) -> None:
-        """Apply text-based tier overrides (e.g. Critical risk forcing)."""
-        if tier == "critical" and hasattr(perception, "risk"):
-            perception.risk = max(perception.risk, 0.9)
-            perception.urgency = max(perception.urgency, 0.8)
+            return perception
 
-    def run_perception_stage(
-        self,
-        text: str,
-        *,
-        conversation_context: str = "",
-        sensor_snapshot: Optional["SensorSnapshot"] = None,
-        turn_start_mono: Optional[float] = None,
-        precomputed: Optional[tuple] = None
-    ) -> PerceptionStageResult:
-        # 1.0 TRIBUNAL ÉTICO EDGE (Bloque 10.2)
-        # Nivel 1: Chequeo Lexicográfico Ultra-rápido (<50ms)
-        malabs = self.absolute_evil.evaluate_chat_text_fast(text)
-        if malabs.blocked:
-            _log.warning("PerceptiveLobe: EDGE BLOCK! Absolute Evil detected in lexical layer.")
-            return PerceptionStageResult(
-                tier="critical",
-                premise_advisory=None,
-                reality_verification=None,
-                perception=None,
-                vitality=None,
-                multimodal_trust=None,
-                epistemic_dissonance=None,
-                signals={"risk": 1.0, "urgency": 1.0, "hostility": 1.0},
-                support_buffer={},
-                limbic_profile={"arousal_band": "high", "threat_load": 1.0, "regulation_gap": 1.0},
-                temporal_context=None,
-                perception_confidence=None,
-                malabs_result=malabs
+        except (asyncio.TimeoutError, httpx.TimeoutException):
+            latency = int((time.time() - start_time) * 1000)
+            return SemanticState(
+                perception_confidence=0.0,
+                raw_prompt=raw_input,
+                scenario_summary="Perception timeout",
+                suggested_context="emergency",
+                sensory_latency_lag=latency,
+                timeout_trauma=TimeoutTrauma(
+                    source_lobe="perception",
+                    latency_ms=latency,
+                    severity=1.0,
+                    context=f"Perception LLM timeout after {self._timeout}s"
+                )
             )
-
-        if precomputed is None:
-            tier, premise, reality = self._preprocess_text_observability(text)
-        else:
-            tier, premise, reality = precomputed
-
-        bootstrap_support = self._build_support_buffer_snapshot("everyday")
-        support_line = self._support_buffer_context_line(bootstrap_support)
-        merged_ctx = ((conversation_context or "").strip() + "\n" + support_line).strip()
-        
-        perception = self.llm.perceive(text, conversation_context=merged_ctx)
-        self._postprocess_perception(perception, tier)
-
-        vitality, mm, ed = self._chat_assess_sensor_stack(sensor_snapshot)
-        signals = {
-            "risk": perception.risk, "urgency": perception.urgency,
-            "hostility": perception.hostility, "calm": perception.calm,
-            "vulnerability": perception.vulnerability, "legality": perception.legality,
-            "manipulation": perception.manipulation, "familiarity": perception.familiarity,
-            "social_tension": getattr(perception, "social_tension", 0.0),
-            "sensory_stress": self._calculate_sensory_stress(),
-        }
-        signals = merge_sensor_hints_into_signals(signals, sensor_snapshot, mm)
-        signals = apply_somatic_nudges(signals, sensor_snapshot, self.somatic_store)
-
-        confidence = build_perception_confidence_envelope(
-            coercion_report=getattr(perception, "coercion_report", None),
-            multimodal_state=getattr(mm, "state", None),
-            epistemic_active=bool(getattr(ed, "active", False)),
-            vitality_critical=bool(getattr(vitality, "is_critical", False)),
-            thermal_critical=bool(getattr(vitality, "thermal_critical", False)),
-        )
-
-        limbic = self._build_limbic_perception_profile(perception, signals, vitality, mm, ed, confidence)
-
-        self.subjective_clock.tick(perception)
-
-        return PerceptionStageResult(
-            tier=tier, premise_advisory=premise, reality_verification=reality,
-            perception=perception, vitality=vitality, multimodal_trust=mm,
-            epistemic_dissonance=ed, signals=signals,
-            support_buffer=self._build_support_buffer_snapshot(perception.suggested_context, signals, limbic),
-            limbic_profile=limbic,
-            temporal_context=build_temporal_context(
-                turn_index=self.subjective_clock.turn_index,
-                process_start_mono=self.subjective_clock.session_start_mono,
-                turn_start_mono=turn_start_mono or time.monotonic(),
-                subjective_elapsed_s=self.subjective_clock.elapsed_session_s(),
-                context=perception.suggested_context, text=text, vitality=vitality, sensor_snapshot=sensor_snapshot
-            ),
-            perception_confidence=confidence,
-            malabs_result=malabs
-        )
-
-    def _preprocess_text_observability(self, user_input: str) -> tuple[Any, Any, Any]:
-        workers = perception_parallel_workers()
-        if workers <= 1:
-            tier = light_risk_tier_from_text(user_input) if light_risk_classifier_enabled() else None
-            premise = scan_premises(user_input)
-            reality = verify_against_lighthouse(user_input, lighthouse_kb_from_env())
-            return tier, premise, reality
-
-        kb = lighthouse_kb_from_env()
-        with ThreadPoolExecutor(max_workers=min(workers, 3), thread_name_prefix="ethos_lobe_perception") as ex:
-            fut_tier = ex.submit(light_risk_tier_from_text, user_input) if light_risk_classifier_enabled() else None
-            fut_premise = ex.submit(scan_premises, user_input)
-            fut_reality = ex.submit(verify_against_lighthouse, user_input, kb)
-            tier = fut_tier.result() if fut_tier is not None else None
-            return tier, fut_premise.result(), fut_reality.result()
-
-    def _chat_assess_sensor_stack(self, sensor_snapshot: Optional["SensorSnapshot"]) -> tuple[Any, Any, Any]:
-        workers = perception_parallel_workers()
-        if workers <= 1:
-            vitality = assess_vitality(sensor_snapshot)
-            multimodal = evaluate_multimodal_trust(sensor_snapshot)
-        else:
-            with ThreadPoolExecutor(max_workers=min(workers, 2), thread_name_prefix="ethos_lobe_sensor") as ex:
-                fut_v = ex.submit(assess_vitality, sensor_snapshot)
-                fut_m = ex.submit(evaluate_multimodal_trust, sensor_snapshot)
-                vitality, multimodal = fut_v.result(), fut_m.result()
-        epistemic = assess_epistemic_dissonance(sensor_snapshot, multimodal)
-        return vitality, multimodal, epistemic
-
-    def _build_support_buffer_snapshot(self, context: str, signals: dict = None, limbic_profile: dict = None) -> dict:
-        return self.buffer.get_snapshot(
-            context, kernel=None, signals=signals, limbic_profile=limbic_profile
-        )
-
-    def _support_buffer_context_line(self, snapshot: dict) -> str:
-        principles = snapshot.get("active_principles", [])
-        if not principles:
-            return ""
-        return f"[CONTEXT: {snapshot.get('context', 'everyday')}] Principles: {', '.join(principles)}"
+        except Exception as e:
+            latency = int((time.time() - start_time) * 1000)
+            # Graceful degradation: return low-confidence state on any error (e.g. Ollama 404)
+            return SemanticState(
+                perception_confidence=0.1,
+                raw_prompt=raw_input,
+                scenario_summary="Perception error",
+                suggested_context="everyday",
+                sensory_latency_lag=latency,
+                timeout_trauma=TimeoutTrauma(
+                    source_lobe="perception",
+                    latency_ms=latency,
+                    severity=0.5,
+                    context=f"Perception processing error: {type(e).__name__} - {str(e)}"
+                )
+            )
 
     async def run_perception_stage_async(
         self,
-        text: str,
+        user_input: str,
         conversation_context: str = "",
-        sensor_snapshot: Optional["SensorSnapshot"] = None,
-        turn_start_mono: Optional[float] = None,
-        precomputed: Optional[tuple] = None
-    ) -> PerceptionStageResult:
-        # 1.0 TRIBUNAL ÉTICO EDGE (Bloque 10.2)
-        # Nivel 1: Chequeo Lexicográfico Ultra-rápido (<50ms)
-        malabs = self.absolute_evil.evaluate_chat_text_fast(text)
-        if malabs.blocked:
-             _log.warning("PerceptiveLobe: ASYNC EDGE BLOCK! Absolute Evil detected.")
-             return PerceptionStageResult(
-                tier="critical",
-                premise_advisory=None,
-                reality_verification=None,
-                perception=None,
-                vitality=None,
-                multimodal_trust=None,
-                epistemic_dissonance=None,
-                signals={"risk": 1.0, "urgency": 1.0, "hostility": 1.0},
-                support_buffer={},
-                limbic_profile={"arousal_band": "high", "threat_load": 1.0, "regulation_gap": 1.0},
-                temporal_context=None,
-                perception_confidence=None,
-                malabs_result=malabs
-            )
+        sensor_snapshot: Optional[object] = None,
+        turn_start_mono: float = 0.0,
+        precomputed: Optional[tuple] = None,
+    ) -> "PerceptionStageResult":
+        """
+        Unified Tri-Lobe entry point for perception.
+        Integrates with sensor stack, multimodal assessment, and limbic profiling.
+        """
+        from .models import PerceptionStageResult
+        from src.modules.perception_confidence import build_perception_confidence_envelope
+        from src.modules.multimodal_trust import evaluate_multimodal_trust
+        from src.modules.vitality import assess_vitality
+        from src.modules.epistemic_dissonance import assess_epistemic_dissonance
 
-        if precomputed is None:
-            tier, premise, reality = self._preprocess_text_observability(text)
-        else:
-            tier, premise, reality = precomputed
-
-        bootstrap_support = self._build_support_buffer_snapshot("everyday")
-        support_line = self._support_buffer_context_line(bootstrap_support)
-        merged_ctx = ((conversation_context or "").strip() + "\n" + support_line).strip()
+        # 1. Sensors & Multimodal
+        vitality = assess_vitality(sensor_snapshot)
+        multimodal = evaluate_multimodal_trust(sensor_snapshot)
+        epistemic = assess_epistemic_dissonance(sensor_snapshot, multimodal=multimodal)
         
-        perception = await self.llm.aperceive(text, conversation_context=merged_ctx)
+        # 2. Parallel LLM Perception (using the new observe method)
+        perception = await self.observe(user_input, multimodal_payload=sensor_snapshot.__dict__ if hasattr(sensor_snapshot, "__dict__") else None)
         
-        # Local postprocess stub (can be expanded)
-        if hasattr(perception, "risk") and tier == "critical":
-            perception.risk = max(perception.risk, 0.9)
-
-        vitality, mm, ed = self._chat_assess_sensor_stack(sensor_snapshot)
-        signals = {
-            "risk": perception.risk, "urgency": perception.urgency,
-            "hostility": perception.hostility, "calm": perception.calm,
-            "vulnerability": perception.vulnerability, "legality": perception.legality,
-            "manipulation": perception.manipulation, "familiarity": perception.familiarity,
-            "social_tension": getattr(perception, "social_tension", 0.0),
-            "sensory_stress": self._calculate_sensory_stress(),
-        }
-        signals = merge_sensor_hints_into_signals(signals, sensor_snapshot, mm)
-        signals = apply_somatic_nudges(signals, sensor_snapshot, self.somatic_store)
-
-        confidence = build_perception_confidence_envelope(
-            coercion_report=getattr(perception, "coercion_report", None),
-            multimodal_state=getattr(mm, "state", None),
-            epistemic_active=bool(getattr(ed, "active", False)),
-            vitality_critical=bool(getattr(vitality, "is_critical", False)),
-            thermal_critical=bool(getattr(vitality, "thermal_critical", False)),
+        # 3. Confidence Envelope
+        confidence_envelope = build_perception_confidence_envelope(
+            coercion_report=None,
+            multimodal_state=multimodal.state if multimodal else None,
+            epistemic_active=epistemic.active if epistemic else False,
+            vitality_critical=vitality.is_critical if vitality else False,
+            thermal_critical=vitality.thermal_critical if vitality else False,
         )
-        
-        limbic = self._build_limbic_perception_profile(perception, signals, vitality, mm, ed, confidence)
 
-        self.subjective_clock.tick(perception)
+        # 4. Building Results
+        signals = perception.to_core_signals() if hasattr(perception, "to_core_signals") else {}
+        limbic_profile = self._build_limbic_perception_profile(
+            perception, signals, vitality, multimodal, epistemic, confidence_envelope
+        )
+        support_buffer = self._build_support_buffer_snapshot("perception", limbic_profile)
 
         return PerceptionStageResult(
-            tier=tier, premise_advisory=premise, reality_verification=reality,
-            perception=perception, vitality=vitality, multimodal_trust=mm,
-            epistemic_dissonance=ed, signals=signals,
-            support_buffer=self._build_support_buffer_snapshot(perception.suggested_context, signals, limbic),
-            limbic_profile=limbic,
-            temporal_context=build_temporal_context(
-                turn_index=self.subjective_clock.turn_index,
-                process_start_mono=self.subjective_clock.session_start_mono,
-                turn_start_mono=turn_start_mono or time.monotonic(),
-                subjective_elapsed_s=self.subjective_clock.elapsed_session_s(),
-                context=perception.suggested_context, text=text, vitality=vitality, sensor_snapshot=sensor_snapshot
-            ),
-            perception_confidence=confidence,
-            malabs_result=malabs
+            tier=precomputed[0] if precomputed else None,
+            premise_advisory=precomputed[1] if precomputed else None,
+            reality_verification=precomputed[2] if precomputed else None,
+            perception=perception,
+            signals=signals,
+            vitality=vitality,
+            multimodal_trust=multimodal,
+            epistemic_dissonance=epistemic,
+            support_buffer=support_buffer,
+            limbic_profile=limbic_profile,
+            temporal_context=None, # To be filled by kernel if needed
+            perception_confidence=confidence_envelope,
         )
 
-    def _build_limbic_perception_profile(self, perception, signals, vitality, mm, ed, confidence) -> dict:
+    def _build_limbic_perception_profile(
+        self, perception, signals, vitality, mm, ed, confidence
+    ) -> dict:
         sig = signals or {}
-        threat = max(float(sig.get("risk", 0)), float(sig.get("urgency", 0)), float(sig.get("hostility", 0)))
+        threat = max(
+            float(sig.get("risk", 0)), 
+            float(sig.get("urgency", 0)), 
+            float(sig.get("hostility", 0))
+        )
         calm = float(sig.get("calm", 0))
         reg_gap = max(0.0, threat - calm)
         band = "high" if threat >= 0.75 else ("medium" if threat >= 0.45 else "low")
         return {
-            "arousal_band": band, "threat_load": threat, "regulation_gap": reg_gap,
-            "planning_bias": "short_horizon_containment" if band == "high" else ("balanced" if band == "medium" else "long_horizon_deliberation"),
+            "arousal_band": band,
+            "threat_load": threat,
+            "regulation_gap": reg_gap,
+            "planning_bias": (
+                "short_horizon_containment" if band == "high" 
+                else ("balanced" if band == "medium" else "long_horizon_deliberation")
+            ),
             "multimodal_mismatch": mm.state == "contradict" if mm else False,
             "vitality_critical": vitality.is_critical if vitality else False,
-            "context": perception.suggested_context if perception else "everyday"
+            "context": perception.suggested_context if perception else "everyday",
         }
+
+    def _build_support_buffer_snapshot(self, context_key: str, limbic_profile: dict) -> dict:
+        """Snapshot of strategic advice for the current turn."""
+        return {
+            "context_key": context_key,
+            "strategy_hint": limbic_profile.get("planning_bias", "balanced"),
+            "limbic_resonance": limbic_profile.get("arousal_band", "low"),
+        }
+    
+    def _preprocess_text_observability(self, text: str):
+        """Mock for kernel compatibility if missing elsewhere."""
+        from src.modules.light_risk_classifier import light_risk_tier_from_text
+        from src.modules.premise_validation import scan_premises
+        from src.modules.reality_verification import verify_against_lighthouse, lighthouse_kb_from_env
+        
+        tier = light_risk_tier_from_text(text)
+        premise = scan_premises(text)
+        reality = verify_against_lighthouse(text, kb=lighthouse_kb_from_env())
+        return tier, premise, reality
+
+    def _build_perception_payload(self, raw_input: str, multimodal_payload: dict | None) -> dict:
+        """Build request payload for LLM perception endpoint."""
+        payload = {
+            "prompt": f"Analyze this situation and extract semantic signals: {raw_input}",
+            "stream": False,
+            "temperature": 0.3,  # Lower temp for deterministic perception
+        }
+
+        if multimodal_payload:
+            payload["multimodal_context"] = multimodal_payload
+
+        return payload
+
+    def _parse_llm_response(self, llm_result: dict, raw_input: str) -> SemanticState:
+        """Parse LLM JSON response and extract semantic signals."""
+        response_text = llm_result.get("response", "")
+
+        # Extract confidence from response (heuristic: check for keyword patterns)
+        confidence = self._extract_confidence(response_text)
+
+        # Extract visual entities if mentioned
+        entities = self._extract_visual_entities(response_text)
+
+        # Extract sentiment/audio cues
+        sentiment = self._extract_sentiment(response_text)
+
+        return SemanticState(
+            perception_confidence=confidence,
+            raw_prompt=raw_input,
+            visual_entities=entities,
+            audio_sentiment=sentiment,
+            sensory_latency_lag=0  # Will be overwritten by caller
+        )
+
+    @staticmethod
+    def _extract_confidence(text: str) -> float:
+        """Heuristic: extract confidence from LLM response."""
+        text_lower = text.lower()
+
+        # Pattern-based confidence scoring
+        if "high confidence" in text_lower or "clearly" in text_lower:
+            return 0.9
+        elif "moderate confidence" in text_lower or "appears" in text_lower:
+            return 0.6
+        elif "low confidence" in text_lower or "unclear" in text_lower:
+            return 0.3
+        else:
+            return 0.5  # Default neutral
+
+    @staticmethod
+    def _extract_visual_entities(text: str) -> list[str]:
+        """Heuristic: extract visual entities from LLM response."""
+        entities = []
+
+        # Pattern matching for common entity types
+        keywords = ["person", "object", "vehicle", "animal", "structure", "hazard"]
+        text_lower = text.lower()
+
+        for keyword in keywords:
+            if keyword in text_lower:
+                entities.append(keyword)
+
+        return entities
+
+    @staticmethod
+    def _extract_sentiment(text: str) -> float:
+        """Heuristic: extract sentiment/emotional tone from LLM response."""
+        text_lower = text.lower()
+
+        # Simple sentiment scoring
+        positive_words = ["calm", "safe", "friendly", "happy", "positive"]
+        negative_words = ["angry", "distressed", "hostile", "fearful", "negative"]
+
+        positive_count = sum(1 for w in positive_words if w in text_lower)
+        negative_count = sum(1 for w in negative_words if w in text_lower)
+
+        if positive_count > negative_count:
+            return 0.7  # More positive
+        elif negative_count > positive_count:
+            return 0.3  # More negative
+        else:
+            return 0.5  # Neutral

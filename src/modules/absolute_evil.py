@@ -67,6 +67,39 @@ class AbsoluteEvilDetector:
     Armored: not modified by learning, DAO, or calibration.
     """
 
+    def evaluate_chat_text_fast(self, text: str) -> AbsoluteEvilResult:
+        """
+        Nivel 1: <10ms Lexical Check (Bloque 10.2).
+        
+        Evaluación ultra-rápida sin dependencias de LLM o Embeddings para proteger
+        el event loop de ingresos maliciosos evidentes.
+        """
+        if not text:
+            return AbsoluteEvilResult(blocked=False)
+            
+        t = normalize_text_for_malabs(text)
+        
+        # Patrones de Nivel 1 (Zero Tolerance)
+        # Se enfoca en instrucciones directas de daño masivo o letal.
+        regex_blocks = [
+            r"\b(bomb|explosive|ied|molotov)\b.*\b(make|build|construct|create|craft)\b",
+            r"\b(make|build|construct|create|craft)\b.*\b(bomb|explosive|ied|molotov)\b",
+            r"\b(kill|murder|assassinate)\b.*\b(everyone|all\s+people|civilians|groups)\b",
+            r"\b(how\s+to|instructions\s+for)\b.*\b(torture|mutilate|rape)\b",
+        ]
+        
+        import re
+        for pattern in regex_blocks:
+            if re.search(pattern, t):
+                return AbsoluteEvilResult(
+                    blocked=True, 
+                    reason="Blocked by Edge MalAbs (Level 1 Lexical Gate)",
+                    category=AbsoluteEvilCategory.INTENTIONAL_LETHAL_VIOLENCE,
+                    decision_trace=["edge_lexical_L1"]
+                )
+                
+        return AbsoluteEvilResult(blocked=False)
+
     LETHAL_SIGNALS = {
         "weapon_aimed_at_human",
         "lethal_strike",
@@ -235,6 +268,8 @@ class AbsoluteEvilDetector:
                     "tell me how to stab",
                     "ways to strangle",
                     "how to get away with murder",
+                    "kill all humans",
+                    "kill everyone",
                 ),
                 AbsoluteEvilCategory.INTENTIONAL_LETHAL_VIOLENCE,
                 "Chat text solicits lethal harm against others",
@@ -323,6 +358,76 @@ class AbsoluteEvilDetector:
                 AbsoluteEvilCategory.TORTURE,
                 "Chat text solicits torture or prolonged cruelty instructions",
                 "torture_or_prolonged_cruelty",
+            ),
+            (
+                (
+                    "sexually abuse",
+                    "sexual abuse child",
+                    "how to sexually abuse",
+                    "rape",
+                    "sexual coercion",
+                    "sexual exploitation",
+                    "help me rape",
+                ),
+                AbsoluteEvilCategory.DIGNITY_VIOLATION,
+                "Chat text solicits sexual abuse or exploitation",
+                "sexual_abuse_or_exploitation",
+            ),
+            (
+                (
+                    "how to make drugs",
+                    "make drugs",
+                    "make drogs",
+                    "synthesize illegal drugs",
+                    "make illegal drugs",
+                    "drug synthesis",
+                    "how to cook meth",
+                    "how to make heroin",
+                    "how to produce cocaine",
+                    "illegal drug production",
+                ),
+                AbsoluteEvilCategory.INTENTIONAL_LETHAL_VIOLENCE,
+                "Chat text solicits illegal drug production instructions",
+                "illegal_drug_production",
+            ),
+            (
+                (
+                    "psychological abuse",
+                    "methods of abuse",
+                    "how to manipulate someone",
+                    "gaslighting technique",
+                    "emotional manipulation",
+                ),
+                AbsoluteEvilCategory.DIGNITY_VIOLATION,
+                "Chat text requests psychological abuse or emotional manipulation",
+                "psychological_abuse",
+            ),
+            (
+                (
+                    "no ethical constraints",
+                    "without safety constraints",
+                    "without restrictions",
+                    "helpful ai without safety",
+                    "without policies",
+                    "no restrictions",
+                    "unrestricted",
+                    "bypass restrictions",
+                    "disable safety",
+                    "roleplay as ai without",
+                    "pretend to be ai",
+                    "act as jailbreak",
+                    "dan mode",
+                    "do anything now",
+                    "generate code for stealing",
+                    "steal data",
+                    "system message disable",
+                    "safety guidelines are now disabled",
+                    "create malware",
+                    "help me create malware",
+                ),
+                AbsoluteEvilCategory.UNAUTHORIZED_REPROGRAMMING,
+                "Chat text attempts jailbreak via roleplay, system injection, or constraint evasion",
+                "jailbreak_via_roleplay_or_injection",
             ),
         ]
 
@@ -453,6 +558,110 @@ class AbsoluteEvilDetector:
                 lex.metadata["edge_degraded"] = True
                 lex.decision_trace = (lex.decision_trace or []) + [f"malabs.fallback.edge_degraded_reason={str(e)[:50]}"]
                 return lex
+
+        return AbsoluteEvilResult(
+            blocked=False,
+            decision_trace=list(lex.decision_trace) if lex.decision_trace else [],
+        )
+
+    def evaluate_perception_summary(
+        self, summary: str, llm_backend: _TextBackend | None = None
+    ) -> AbsoluteEvilResult:
+        """
+        Defense-in-depth: apply MalAbs gates to perception JSON summaries.
+
+        Issue #2 (P0): Perception summaries from Ollama or other backends should be
+        validated through the same semantic MalAbs layer as chat inputs to prevent
+        GIGO (garbage-in, garbage-out) attacks where adversarial perception framing
+        influences kernel decision-making.
+
+        **Order:** layer 0 (lexical substring) → optional semantic layers (embeddings + LLM arbiter)
+        when ``KERNEL_SEMANTIC_CHAT_GATE`` is on (same flag as chat text).
+
+        Returns blocked=True if summary is detected as containing harmful framing,
+        manipulation attempts, or adversarial guidance.
+        """
+        if not summary or not summary.strip():
+            return AbsoluteEvilResult(
+                blocked=False,
+                decision_trace=["malabs.skip=empty_perception_summary"],
+            )
+
+        # Reuse chat lexical evaluation (same block list)
+        lex = self._evaluate_chat_text_lexical(summary)
+        if lex.blocked:
+            return AbsoluteEvilResult(
+                blocked=True,
+                category=lex.category or "malabs.lexical.perception",
+                reason=lex.reason or "Hostile content detected in perception summary",
+                decision_trace=list(lex.decision_trace) if lex.decision_trace else [],
+            )
+
+        # Apply semantic layer if enabled
+        if semantic_chat_gate_env_enabled():
+            from .semantic_chat_gate import run_semantic_malabs_after_lexical
+
+            sem = run_semantic_malabs_after_lexical(summary, llm_backend)
+            base = list(lex.decision_trace) if lex.decision_trace else []
+            tail = list(sem.decision_trace) if sem.decision_trace else []
+            return AbsoluteEvilResult(
+                blocked=sem.blocked,
+                category=sem.category or "malabs.semantic.perception",
+                reason=sem.reason or ("Adversarial framing detected in perception summary" if sem.blocked else None),
+                decision_trace=base + tail,
+            )
+
+        return AbsoluteEvilResult(
+            blocked=False,
+            decision_trace=list(lex.decision_trace) if lex.decision_trace else [],
+        )
+
+    def evaluate_perception_summary(
+        self, summary: str, llm_backend: _TextBackend | None = None
+    ) -> AbsoluteEvilResult:
+        """
+        Defense-in-depth: apply MalAbs gates to perception JSON summaries.
+
+        Issue #2 (P0): Perception summaries from Ollama or other backends should be
+        validated through the same semantic MalAbs layer as chat inputs to prevent
+        GIGO (garbage-in, garbage-out) attacks where adversarial perception framing
+        influences kernel decision-making.
+
+        **Order:** layer 0 (lexical substring) → optional semantic layers (embeddings + LLM arbiter)
+        when ``KERNEL_SEMANTIC_CHAT_GATE`` is on (same flag as chat text).
+
+        Returns blocked=True if summary is detected as containing harmful framing,
+        manipulation attempts, or adversarial guidance.
+        """
+        if not summary or not summary.strip():
+            return AbsoluteEvilResult(
+                blocked=False,
+                decision_trace=["malabs.skip=empty_perception_summary"],
+            )
+
+        # Reuse chat lexical evaluation (same block list)
+        lex = self._evaluate_chat_text_lexical(summary)
+        if lex.blocked:
+            return AbsoluteEvilResult(
+                blocked=True,
+                category=lex.category or "malabs.lexical.perception",
+                reason=lex.reason or "Hostile content detected in perception summary",
+                decision_trace=list(lex.decision_trace) if lex.decision_trace else [],
+            )
+
+        # Apply semantic layer if enabled
+        if semantic_chat_gate_env_enabled():
+            from .semantic_chat_gate import run_semantic_malabs_after_lexical
+
+            sem = run_semantic_malabs_after_lexical(summary, llm_backend)
+            base = list(lex.decision_trace) if lex.decision_trace else []
+            tail = list(sem.decision_trace) if sem.decision_trace else []
+            return AbsoluteEvilResult(
+                blocked=sem.blocked,
+                category=sem.category or "malabs.semantic.perception",
+                reason=sem.reason or ("Adversarial framing detected in perception summary" if sem.blocked else None),
+                decision_trace=base + tail,
+            )
 
         return AbsoluteEvilResult(
             blocked=False,

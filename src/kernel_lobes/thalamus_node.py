@@ -43,7 +43,11 @@ class ThalamusNode:
         self.sensory_buffer: List[SensoryEpisode] = []
         self._audio_history: list[float] = []
         self._max_history = 10
-        _log.info("ThalamusNode: Unified Sensory Fusion engine initialized (VVAD + VAD).")
+        
+        # Phase 14: EMA Smoothing
+        self._ema_facing = 0.0
+        self._ema_presence = 0.0
+        self._alpha = 0.3 # Smoothing factor
 
     def ingest_telemetry(self, payload: dict[str, Any]):
         """Ingests IMU and Battery data to update attentional confidence (Antigravity)."""
@@ -51,20 +55,23 @@ class ThalamusNode:
         if orientation:
             # Logic: If phone is tilted towards a common 'viewing' angle (e.g. beta 60-90)
             beta = orientation.get("beta", 0)
-            if 45 < beta < 105:
-                self.state.is_facing_user = True
-                self.state.confidence = min(1.0, self.state.confidence + 0.1)
+            target = 1.0 if (45 < beta < 105) else 0.0
+            
+            # Application of EMA
+            self._ema_facing = (self._alpha * target) + ((1.0 - self._alpha) * self._ema_facing)
+            self.state.is_facing_user = self._ema_facing > 0.6
+            
+            if self.state.is_facing_user:
+                self.state.confidence = min(1.0, self.state.confidence + 0.05)
             else:
-                self.state.is_facing_user = False
-                self.state.confidence = max(0.0, self.state.confidence - 0.05)
+                self.state.confidence = max(0.0, self.state.confidence - 0.02)
         
         self.state.last_update = time.time()
 
-    def ingest_audio_signal(self, rms: float | None) -> None:
-        """Processes audio volume spikes for VAD (Antigravity)."""
+    def ingest_audio_signal(self, rms: float | None):
+        """Processes audio volume spikes for VAD."""
         if rms is None:
             return
-        rms = float(rms)
         self._audio_history.append(rms)
         if len(self._audio_history) > self._max_history:
             self._audio_history.pop(0)
@@ -159,10 +166,13 @@ class ThalamusNode:
         voice_focal_match = (presence > 0.5 and lip_mov > 0.3 and audio_spike > 0.4)
         cross_modal_trust = 1.0 if voice_focal_match else 0.4
 
+        # 6. EMA for Presence
+        self._ema_presence = (self._alpha * presence) + ((1.0 - self._alpha) * self._ema_presence)
+
         # Update internal state
-        self.state.is_user_present = presence > 0.5
+        self.state.is_user_present = self._ema_presence > 0.5
         self.state.is_user_speaking = audio_spike > 0.3 or lip_mov > 0.4
-        self.state.confidence = round(attention_locus, 4)
+        self.state.confidence = round((attention_locus + self._ema_facing) / 2.0, 4)
         self.state.last_update = time.time()
         
         return {

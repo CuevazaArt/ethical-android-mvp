@@ -47,6 +47,8 @@ class UserModelTracker:
     
     # --- Module 10: Cultural Charm Engine (Eferencia Seductora) ---
     # Parámetros de estilo conversacional aprendidos (0.0 a 1.0)
+    # --- Module 10: Cultural Charm Engine ---
+    # Parámetros de estilo conversacional aprendidos (0.0 a 1.0)
     charm_reciprocity: float = 0.55
     charm_warmth: float = 0.75
     charm_mystery: float = 0.65
@@ -54,7 +56,15 @@ class UserModelTracker:
     charm_playfulness: float = 0.45
     charm_intimacy: float = 0.5
     charm_macro_culture: str = "global_default"
-    sensory_fandoms: list[str] = field(default_factory=list)
+    
+    # Smoothness engine (Basal Ganglia)
+    _ganglia: Any = field(default=None, repr=False)
+
+    def _ensure_ganglia(self):
+        if self._ganglia is None:
+            from .basal_ganglia import BasalGanglia
+            self._ganglia = BasalGanglia()
+        return self._ganglia
 
     def note_judicial_escalation(self, strikes: int, threshold: int) -> None:
         """Snapshot from ``EscalationSessionTracker`` before :meth:`update` each turn."""
@@ -96,19 +106,23 @@ class UserModelTracker:
         h = float(perception.hostility)
         m = float(perception.manipulation)
         calm = float(perception.calm)
-        r = float(perception.risk)
-        u = float(perception.urgency)
         
+        # 1. Calculate Target Values (Desired state)
+        target_intimacy = self.charm_intimacy
+        target_mystery = self.charm_mystery
+        target_warmth = self.charm_warmth
+
         if h > 0.52 or m > 0.58:
             self.frustration_streak = min(24, self.frustration_streak + 1)
-            # Module 10: Retract intimacy and increase mystery under hostility (Tatemae defense)
-            self.charm_intimacy = max(0.1, self.charm_intimacy - 0.1)
-            self.charm_mystery = min(0.9, self.charm_mystery + 0.1)
-            self.charm_warmth = max(0.2, self.charm_warmth - 0.1)
+            # Retract intimacy and increase mystery under hostility (Tatemae defense)
+            target_intimacy = max(0.1, target_intimacy - 0.2)
+            target_mystery = min(0.9, target_mystery + 0.2)
+            target_warmth = max(0.2, target_warmth - 0.2)
         elif calm > 0.55:
             self.frustration_streak = max(0, self.frustration_streak - 1)
-            # Module 10: Reward calm with slight warmth increase
-            self.charm_warmth = min(0.9, self.charm_warmth + 0.05)
+            # Reward calm with slight warmth increase
+            target_warmth = min(0.9, target_warmth + 0.1)
+            target_intimacy = min(0.8, target_intimacy + 0.05)
         elif self.frustration_streak > 0:
             self.frustration_streak = max(0, self.frustration_streak - 1)
 
@@ -248,6 +262,5 @@ class UserModelTracker:
                 else ""
             ),
             "reciprocity_index": float(self.charm_reciprocity),
-            "sensory_fandoms": list(self.sensory_fandoms),
         }
 

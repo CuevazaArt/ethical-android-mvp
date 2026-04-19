@@ -1,8 +1,8 @@
-"""
+﻿"""
 GWT-lite salience: read-only attention weights over existing signal axes.
 
 Does not reorder the kernel pipeline (phase 1). Produces a normalized vector
-for telemetry, UI, and optional LLM nuance — not a policy change.
+for telemetry, UI, and optional LLM nuance ΓÇö not a policy change.
 
 See docs/proposals/README.md (Fase 2).
 """
@@ -33,6 +33,7 @@ class SalienceSnapshot:
     """Pre-normalization [0,1] scores for audit."""
 
 
+
 class SalienceMap:
     """
     Maps environment signals, internal state, social evaluation, and ethical reflection
@@ -56,26 +57,26 @@ class SalienceMap:
         curiosity: float = 0.0,
     ) -> SalienceSnapshot:
         """
-        Calculates the current salience distribution across ethical and somatic axes.
+        Compute the salience (attention) distribution over axes for the current tick.
 
         Args:
-            signals: The environmental signals (risk, urgency, etc.).
-            state: The current internal autonomic state (sympathetic/parasympathetic).
-            social_eval: The social context and trust evaluation.
-            reflection: The results of the internal ethical reflection Lobe.
-            curiosity: The current epistemic drive/curiosity coefficient.
+            signals (dict[str, float]): Input signals, e.g., risk, hostility.
+            state (InternalState): Internal state snapshot (e.g., body load).
+            social_eval (SocialEvaluation): Social context and posture.
+            reflection (ReflectionSnapshot | None): Optional ethical reflection.
+            curiosity (float, optional): Epistemic curiosity signal. Defaults to 0.0.
 
         Returns:
-            A SalienceSnapshot containing normalized attention weights.
+            SalienceSnapshot: Normalized weights and dominant axis.
         """
-        risk = float(signals.get("risk", 0.0))
+        risk: float = float(signals.get("risk", 0.0))
         risk = max(0.0, min(1.0, risk))
 
         # Social salience: hostility + defensive posture + dialectic tension
-        hostility = float(signals.get("hostility", 0.0))
-        caution = float(social_eval.caution_level)
-        dialectic = 1.0 if social_eval.dialectic_active else 0.0
-        social_raw = max(
+        hostility: float = float(signals.get("hostility", 0.0))
+        caution: float = float(social_eval.caution_level)
+        dialectic: float = 1.0 if social_eval.dialectic_active else 0.0
+        social_raw: float = max(
             0.0,
             min(
                 1.0,
@@ -84,14 +85,11 @@ class SalienceMap:
         )
 
         # Body / autonomic: sympathetic load proxy
-        body_raw = max(0.0, min(1.0, float(state.sigma)))
+        body_raw: float = max(0.0, min(1.0, float(state.sigma)))
 
-        if reflection is not None:
-            eth_raw = float(reflection.strain_index)
-        else:
-            eth_raw = 0.0
+        eth_raw: float = float(reflection.strain_index) if reflection is not None else 0.0
 
-        raw = {
+        raw: dict[str, float] = {
             "risk": risk,
             "social": social_raw,
             "body": body_raw,
@@ -99,21 +97,21 @@ class SalienceMap:
             "epistemic_curiosity": max(0.0, min(1.0, curiosity)),
         }
 
-        ssum = sum(raw.values())
+        ssum: float = sum(raw.values())
         if ssum <= 1e-9:
-            u = round(1.0 / len(self.AXIS_ORDER), 4)
-            weights = {k: u for k in self.AXIS_ORDER}
+            weights: dict[str, float] = {k: 0.25 for k in self.AXIS_ORDER}
         else:
             weights = {k: round(raw[k] / ssum, 4) for k in self.AXIS_ORDER}
 
-        mx = max(weights[k] for k in self.AXIS_ORDER)
-        dominant = next(k for k in self.AXIS_ORDER if weights[k] == mx)
+        mx: float = max(weights[k] for k in self.AXIS_ORDER)
+        dominant: str = next(k for k in self.AXIS_ORDER if weights[k] == mx)
 
         return SalienceSnapshot(
             weights=weights,
             dominant_focus=dominant,
             raw_scores=raw,
         )
+
 
 
 def salience_to_llm_context(snapshot: SalienceSnapshot | None) -> str:

@@ -192,34 +192,16 @@ class ReparationVault:
         }
 
 
-def reparation_vault_mock_enabled() -> bool:
-    """Module-level check (same rule as :meth:`ReparationVault.reparation_vault_mock_enabled`)."""
-    v = os.environ.get("KERNEL_REPARATION_VAULT_MOCK", "0").strip().lower()
-    return v in ("1", "true", "yes", "on")
-
-
-def get_reparation_case(case_ref: str) -> dict[str, Any] | None:
-    """Return a copy of the in-process mock case (aligned with :meth:`ReparationVault.get_reparation_case`)."""
-    key = (case_ref or "").strip()[:120] or "_default"
-    if key not in _case_store:
-        return None
-    return json.loads(json.dumps(_case_store[key]))
-
-
-def register_reparation_intent(dao: Any, summary: str, case_ref: str = "") -> None:
-    """Thin facade for hub/tests (CLI / chat use :class:`ReparationVault` on the kernel)."""
-    ReparationVault(dao).register_reparation_intent(summary, case_ref)
-
-
-def maybe_register_reparation_after_mock_court(
-    dao: Any,
-    mock_court: dict[str, Any] | None,
-    case_uuid: str,
-) -> None:
-    """Module facade for :meth:`ReparationVault.maybe_register_reparation_after_mock_court` (chat server / WS)."""
-    ReparationVault(dao).maybe_register_reparation_after_mock_court(mock_court, case_uuid)
-
-
 def clear_reparation_vault_cases_for_tests() -> None:
     """Tests only — reset mock ledger."""
     _case_store.clear()
+
+
+def maybe_register_reparation_after_mock_court(
+    dao: MockDAO,
+    mock_court: dict[str, Any] | None,
+    case_uuid: str,
+) -> None:
+    """Module-level wrapper for ReparationVault method."""
+    vault = ReparationVault(dao)
+    vault.maybe_register_reparation_after_mock_court(mock_court, case_uuid)

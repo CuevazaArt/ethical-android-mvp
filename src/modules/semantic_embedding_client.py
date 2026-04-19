@@ -181,11 +181,14 @@ async def ahttp_fetch_ollama_embedding(
     prompt: str,
     *,
     timeout_s: float | None = None,
+    aclient: httpx.AsyncClient | None = None,
 ) -> np.ndarray | None:
     """
     Async POST Ollama embeddings JSON; return unit L2 vector or ``None``.
     """
-    return await ahttp_fetch_ollama_embedding_with_policy(url, model, prompt, timeout_s=timeout_s)
+    return await ahttp_fetch_ollama_embedding_with_policy(
+        url, model, prompt, timeout_s=timeout_s, aclient=aclient
+    )
 
 
 def _post_once(client: Any, url: str, payload: dict[str, Any]) -> list[float] | None:
@@ -272,14 +275,10 @@ async def ahttp_fetch_ollama_embedding_with_policy(
     prompt: str,
     *,
     timeout_s: float | None = None,
+    aclient: httpx.AsyncClient | None = None,
 ) -> np.ndarray | None:
-    """
-    Async POST to Ollama ``/api/embeddings`` with the same retry/circuit policy as
-    :func:`http_fetch_ollama_embedding_with_policy` (shared :func:`_apost_once` path).
-    Honors :func:`~.llm_http_cancel.raise_if_llm_cancel_requested` between attempts.
-    """
+    """Async variant of embedding fetch with cooperative backoff and circuit breaker."""
     import asyncio
-
     import httpx
 
     t = (
@@ -295,20 +294,37 @@ async def ahttp_fetch_ollama_embedding_with_policy(
 
     payload = {"model": model, "prompt": prompt}
     last_err = ""
-    timeout = httpx.Timeout(t)
     for attempt in range(retries + 1):
-        raise_if_llm_cancel_requested()
         if _circuit_blocks():
             break
         t0 = time.perf_counter()
         try:
-            async with httpx.AsyncClient(timeout=timeout) as client:
-                vec_list = await _apost_once(client, url, payload)
-            if vec_list is None:
+            timeout = httpx.Timeout(t)
+            if aclient is not None:
+                response = await aclient.post(url, json=payload, timeout=timeout)
+                response.raise_for_status()
+                data = response.json()
+            else:
+                async with httpx.AsyncClient(timeout=timeout) as client:
+                    response = await client.post(url, json=payload)
+                    response.raise_for_status()
+                    data = response.json()
+            emb = data.get("embedding")
+            if not emb or not isinstance(emb, list):
                 raise ValueError("missing or invalid embedding array")
+            
+            arr = np.asarray([float(x) for x in emb], dtype=np.float64).reshape(-1)
+            if arr.size == 0 or not np.all(np.isfinite(arr)):
+                raise ValueError("invalid embedding content")
+            
+            n = float(np.linalg.norm(arr))
+            if n < 1e-12:
+                raise ValueError("zero-norm embedding")
+            
+            vec = arr / n
             latency_ms = (time.perf_counter() - t0) * 1000.0
             _record_success(latency_ms)
-            return np.asarray(vec_list, dtype=np.float64)
+            return vec
         except Exception as e:
             last_err = repr(e)
             if attempt < retries and backoff > 0:
@@ -321,7 +337,6 @@ async def ahttp_fetch_ollama_embedding_with_policy(
 def maybe_hash_fallback_embedding(text: str) -> np.ndarray | None:
     """If policy allows (hash_fallback), return hash-scoped vector; else ``None``."""
     from .llm_touchpoint_policies import resolve_embedding_backend_policy
-
     policy = resolve_embedding_backend_policy()
     if policy == "hash_fallback":
         return hash_scoped_unit_embedding(text)

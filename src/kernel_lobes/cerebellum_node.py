@@ -30,11 +30,12 @@ class CerebellumNode(threading.Thread):
             self.cpu_temperature += random.uniform(-0.1, 0.1)
             
             # 2. Check critical thresholds (Vertical logic)
-            if self.battery_level < 5.0:
+            # battery_level is 0-100, t_bat is 0-1
+            if self.battery_level < (t_bat * 100.0):
                 # Critical Battery Trauma
                 self.interrupt_event.set()
                 
-            if self.cpu_temperature > 95.0:
+            if self.cpu_temperature > t_temp:
                 # Thermal Trauma
                 self.interrupt_event.set()
                 

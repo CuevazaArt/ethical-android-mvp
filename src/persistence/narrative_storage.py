@@ -329,7 +329,7 @@ class NarrativePersistence:
                     conn.execute(
                         """
                     INSERT INTO narrative_arcs (
-                        id, title, context, start_timestamp, end_timestamp,
+                        id, title, context, start_timestamp, end_timestamp, 
                         predominant_archetype, summary, is_active, episodes_json
                     ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
                     ON CONFLICT(id) DO UPDATE SET
@@ -352,7 +352,6 @@ class NarrativePersistence:
                             json.dumps(arc.episodes_ids),
                         ),
                     )
-                conn.commit()
             finally:
                 if own_conn:
                     conn.close()
@@ -469,14 +468,12 @@ class NarrativePersistence:
                 _ensure_schema(conn)
                 with conn:
                     query = """
-                        DELETE FROM narrative_episodes
-                        WHERE significance < ?
+                        DELETE FROM narrative_episodes 
+                        WHERE significance < ? 
                         AND (julianday('now') - julianday(timestamp)) > ?
                     """
                     cursor = conn.execute(query, (min_significance, max_age_days))
-                    deleted = cursor.rowcount
-                conn.commit()
-                return deleted
+                    return cursor.rowcount
             finally:
                 if own_conn:
                     conn.close()
@@ -493,9 +490,7 @@ class NarrativePersistence:
                     cursor = conn.execute(
                         "DELETE FROM narrative_episodes WHERE id = ?", (episode_id,)
                     )
-                    ok = cursor.rowcount > 0
-                conn.commit()
-                return ok
+                    return cursor.rowcount > 0
             finally:
                 if own_conn:
                     conn.close()

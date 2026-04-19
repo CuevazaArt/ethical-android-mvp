@@ -27,6 +27,12 @@ class LimbicEthicalLobe:
         self.sympathetic = sympathetic
         self.locus = locus
         self.swarm = swarm
+        self.situational_stress = 0.0  # Phase 9.2 Accumulator
+
+    def update_situational_stress(self, level: float) -> None:
+        """Accumulate or decay situational stress based on sensory alerts."""
+        # Persistent stress scales the baseline social tension
+        self.situational_stress = max(0.0, min(1.0, level))
 
     def execute_stage(
         self,
@@ -66,9 +72,10 @@ class LimbicEthicalLobe:
         # 4. Evaluations
         social_eval = self.uchi_soto.evaluate_interaction(signals, agent_id, message_content)
         
-        # Inject somatic tension into social evaluation
-        if hasattr(social_eval, "relational_tension"):
-            social_eval.relational_tension = max(0.0, min(1.0, social_eval.relational_tension + somatic_tension))
+        # Inject somatic and situational tension into social evaluation
+        total_stress_nudge = somatic_tension + (self.situational_stress * 0.5)
+        if hasattr(social_eval, "relational_tension") and total_stress_nudge > 0:
+            social_eval.relational_tension = max(0.0, min(1.0, social_eval.relational_tension + total_stress_nudge))
 
         state = self.sympathetic.evaluate_context(signals)
         

@@ -10,11 +10,10 @@ from .cerebellum_lobe import CerebellumLobe
 from .memory_lobe import MemoryLobe
 from .cerebellum_node import CerebellumNode
 from .thalamus_node import ThalamusNode
-from .sensor_adapter import FixedSensorAdapter, SensorAdapter, StubSensorAdapter
 
 __all__ = [
     "SemanticState",
-    "EthicalSentence",
+    "EthicalSentence", 
     "TimeoutTrauma",
     "PerceptiveLobe",
     "LimbicEthicalLobe",

@@ -8,6 +8,7 @@ The android does not store data: it builds history.
 import os
 from datetime import datetime
 from pathlib import Path
+from typing import Optional, List, Any
 
 import numpy as np
 
@@ -17,9 +18,9 @@ from .identity_reflection import IdentityReflector
 from .narrative_identity import NarrativeIdentityTracker
 from .narrative_types import BodyState, NarrativeArc, NarrativeEpisode
 from .semantic_embedding_client import (
-    http_fetch_ollama_embedding,
-    ahttp_fetch_ollama_embedding_with_policy,
-    maybe_hash_fallback_embedding,
+    ahttp_fetch_ollama_embedding, 
+    http_fetch_ollama_embedding, 
+    maybe_hash_fallback_embedding
 )
 from .uchi_soto import RelationalTier
 
@@ -242,11 +243,7 @@ class NarrativeMemory:
         significance_override: float | None = None,
         is_sensitive_override: bool | None = None,
     ) -> NarrativeEpisode:
-        """
-        Async variant of register using non-blocking embedding infrastructure.
-        """
-        import asyncio
-
+        """Async version of register."""
         self._counter += 1
 
         # 1. Calculate Significance
@@ -276,9 +273,7 @@ class NarrativeMemory:
         ollama_model = os.environ.get("OLLAMA_EMBED_MODEL", "mxbai-embed-large")
 
         try:
-            embedding_vec = await ahttp_fetch_ollama_embedding_with_policy(
-                ollama_url, ollama_model, combined_text
-            )
+            embedding_vec = await ahttp_fetch_ollama_embedding(ollama_url, ollama_model, combined_text)
             if embedding_vec is not None:
                 embedding = embedding_vec.tolist()
             else:
@@ -311,9 +306,10 @@ class NarrativeMemory:
         )
         self.episodes.append(ep)
         self.identity.update_from_episode(ep)
-        self._update_arcs(ep)  # Sync logic but saves via persistence
-
-        # Persistence: Wrap sync save in thread
+        self._update_arcs(ep)
+        
+        # 4. Async Persistence (Phase 9.3)
+        import asyncio
         await asyncio.to_thread(self.persistence.save_episode, ep)
 
         if len(self.episodes) > self.max_episodes:
@@ -322,7 +318,7 @@ class NarrativeMemory:
         return ep
 
     def find_similar(self, context: str, limit: int = 5) -> list[NarrativeEpisode]:
-        """Finds previous episodes of the same context type."""
+        """Finds previous episodes of the same context type from memory."""
         return [ep for ep in self.episodes if ep.context == context][-limit:]
 
     def find_by_resonance(
@@ -402,6 +398,95 @@ class NarrativeMemory:
             candidates.append((ep, resonance))
 
         # Sort by resonance descending
+        candidates.sort(key=lambda x: x[1], reverse=True)
+        return [c[0] for c in candidates[:limit] if c[1] > 0.0]
+
+    async def afind_by_resonance(
+        self,
+        context: str | None = None,
+        min_sigma: float | None = None,
+        target_pad: tuple[float, float, float] | None = None,
+        query_text: str | None = None,
+        limit: int = 5,
+        requester_tier: RelationalTier = RelationalTier.EPHEMERAL,
+    ) -> list[NarrativeEpisode]:
+        """
+        Async version of :meth:`find_by_resonance` (Bloque 9.3).
+
+        Replaces the synchronous ``http_fetch_ollama_embedding`` call with the
+        non-blocking ``ahttp_fetch_ollama_embedding`` so that resonance lookups
+        do not block the kernel event loop during embedding inference.
+        """
+        from .uchi_soto import _tier_rank
+
+        if _tier_rank(requester_tier) < _tier_rank(RelationalTier.TRUSTED_UCHI):
+            return []
+
+        import asyncio
+        all_episodes = await asyncio.to_thread(self.persistence.load_all_episodes)
+        candidates = []
+        current_arc_archetype = self.active_arc.predominant_archetype if self.active_arc else None
+
+        query_embed = None
+        if query_text:
+            ollama_url = os.environ.get("OLLAMA_BASE_URL", "http://localhost:11434/api/embeddings")
+            ollama_model = os.environ.get("OLLAMA_EMBED_MODEL", "mxbai-embed-large")
+            try:
+                q_vec = await ahttp_fetch_ollama_embedding(ollama_url, ollama_model, query_text)
+                if q_vec is not None:
+                    query_embed = q_vec
+                else:
+                    fb = maybe_hash_fallback_embedding(query_text)
+                    if fb is not None:
+                        query_embed = fb.tolist()
+            except Exception:
+                fb = maybe_hash_fallback_embedding(query_text)
+                if fb is not None:
+                    query_embed = fb.tolist()
+
+        # Load chronicles for high-level thematic resonance (Phase 12.1.3)
+        chronicles = await asyncio.to_thread(self.persistence.load_all_chronicles)
+        resonant_chronicle_ranges = []
+        if query_embed is not None:
+            for chr in chronicles:
+                # We mock/approximate thematic resonance by checking if query_text matches summary
+                # Real implementation would use embeddings for chronicles too
+                if query_text and any(word in chr.summary.lower() for word in query_text.lower().split() if len(word) > 4):
+                     resonant_chronicle_ranges.append((chr.start_timestamp, chr.end_timestamp))
+
+        for ep in all_episodes:
+            resonance = 0.0
+
+            if context and ep.context == context:
+                resonance += 0.4
+
+            if min_sigma and ep.sigma >= min_sigma:
+                resonance += 0.2
+
+            if target_pad and ep.affect_pad:
+                from .pad_archetypes import euclidean
+
+                dist = euclidean(target_pad, ep.affect_pad)
+                resonance += max(0, 0.4 * (1.0 - dist))
+
+            if current_arc_archetype and ep.arc_id:
+                arc = next((a for a in self.arcs if a.id == ep.arc_id), None)
+                if arc and arc.predominant_archetype == current_arc_archetype:
+                    resonance += 0.2
+
+            if query_embed is not None and ep.semantic_embedding:
+                ep_vec = np.array(ep.semantic_embedding)
+                dot = float(np.dot(query_embed, ep_vec))
+                resonance += max(0, 0.5 * dot)
+            
+            # Chronicle Boost (Phase 12.1.3)
+            for start, end in resonant_chronicle_ranges:
+                if start <= ep.timestamp <= end:
+                    resonance += 0.3
+                    break
+
+            candidates.append((ep, resonance))
+
         candidates.sort(key=lambda x: x[1], reverse=True)
         return [c[0] for c in candidates[:limit] if c[1] > 0.0]
 
