@@ -19,6 +19,8 @@ the Reflexive Mirror and Broken-Mirror logic survive restores.
 import hashlib
 import json
 import os
+import math
+import shutil
 from dataclasses import dataclass
 from datetime import datetime
 from pathlib import Path
@@ -134,11 +136,20 @@ class ImmortalityProtocol:
             pass
 
     def _persist_local_backups(self):
-        """Saves snapshots to disk."""
+        """Saves snapshots to disk using an atomic write pattern."""
         self.path.parent.mkdir(parents=True, exist_ok=True)
         data = {layer: [snap.__dict__ for snap in snaps] for layer, snaps in self.layers.items()}
-        with open(self.path, "w", encoding="utf-8") as f:
-            json.dump(data, f, indent=2, ensure_ascii=False)
+        
+        temp_path = self.path.with_suffix(".tmp")
+        try:
+            with open(temp_path, "w", encoding="utf-8") as f:
+                json.dump(data, f, indent=2, ensure_ascii=False)
+            # Atomic rename
+            os.replace(temp_path, self.path)
+        except Exception as e:
+            if temp_path.exists():
+                os.remove(temp_path)
+            raise e
 
     def _calculate_hash(self, snapshot: Snapshot) -> str:
         """Calculates the integrity hash of the snapshot."""
@@ -200,7 +211,7 @@ class ImmortalityProtocol:
         neg_load = 0.0
         forgiven_count = 0
         if hasattr(kernel, "forgiveness"):
-            neg_load = kernel.forgiveness._negative_load()
+            neg_load = kernel.forgiveness.total_negative_load()
             forgiven_count = sum(1 for m in kernel.forgiveness.memories.values() if m.forgiven)
 
         # Weakness pole
@@ -211,6 +222,10 @@ class ImmortalityProtocol:
             weakness_t = kernel.weakness.type.value
             weakness_int = kernel.weakness.base_intensity
             emo_load = kernel.weakness.emotional_load()
+            
+        # Mandatory Anti-NaN / Finitude hardening (Boy Scout)
+        def _f(val: float, default: float = 0.5) -> float:
+            return float(val) if math.isfinite(val) else default
 
         # Serialise the full NarrativeIdentityState (gap closed April 2026)
         identity_json = self._serialize_identity_state(kernel)
@@ -223,16 +238,16 @@ class ImmortalityProtocol:
             last_episode_id=last_ep,
             experience_digest=digest,
             active_arc_id=arc_id,
-            pruning_threshold=kernel.bayesian.pruning_threshold,
-            hypothesis_weights=kernel.bayesian.hypothesis_weights.tolist(),
-            alpha_locus=kernel.locus.alpha,
-            beta_locus=kernel.locus.beta,
-            negative_load=round(neg_load, 4),
+            pruning_threshold=_f(kernel.bayesian.pruning_threshold),
+            hypothesis_weights=[_f(w) for w in kernel.bayesian.hypothesis_weights.tolist()],
+            alpha_locus=_f(kernel.locus.alpha),
+            beta_locus=_f(kernel.locus.beta),
+            negative_load=round(_f(neg_load, 0.0), 4),
             forgiven_memories=forgiven_count,
             weakness_type=weakness_t,
-            weakness_intensity=weakness_int,
-            emotional_load=round(emo_load, 4),
-            pole_weights=dict(kernel.poles.base_weights),
+            weakness_intensity=_f(weakness_int),
+            emotional_load=round(_f(emo_load, 0.0), 4),
+            pole_weights={k: _f(v) for k, v in kernel.poles.base_weights.items()},
             identity_state_json=identity_json,
         )
 

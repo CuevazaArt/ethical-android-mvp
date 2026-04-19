@@ -60,23 +60,40 @@ class DAOOrchestrator:
 
     def set_state(self, key: str, value: Any) -> None:
         """Persist a piece of kernel state (JSON serialized)."""
-        val_json = json.dumps(value)
-        with sqlite_safe_write(self.db_path) as conn:
-            conn.execute(
-                "INSERT OR REPLACE INTO kernel_state (key, value, updated_at) VALUES (?, ?, ?)",
-                (key, val_json, time.time())
-            )
+        t0 = time.perf_counter()
+        try:
+            val_json = json.dumps(value)
+            with sqlite_safe_write(self.db_path) as conn:
+                conn.execute(
+                    "INSERT OR REPLACE INTO kernel_state (key, value, updated_at) VALUES (?, ?, ?)",
+                    (key, val_json, time.time())
+                )
+            
+            latency = (time.perf_counter() - t0) * 1000
+            if latency > 10.0:
+                _log.debug("DAO: set_state latency for key '%s' = %.2fms", key, latency)
+        except Exception as e:
+            _log.error("DAO: Failed to set state for key '%s': %s", key, e)
 
     def get_state(self, key: str, default: Any = None) -> Any:
         """Retrieve persisted kernel state or return default."""
-        with sqlite_safe_write(self.db_path) as conn:
-            cursor = conn.execute("SELECT value FROM kernel_state WHERE key = ?", (key,))
-            row = cursor.fetchone()
-            if row:
-                try:
-                    return json.loads(row[0])
-                except Exception:
-                    return default
+        t0 = time.perf_counter()
+        try:
+            with sqlite_safe_write(self.db_path) as conn:
+                cursor = conn.execute("SELECT value FROM kernel_state WHERE key = ?", (key,))
+                row = cursor.fetchone()
+                if row:
+                    try:
+                        return json.loads(row[0])
+                    except Exception:
+                        return default
+            
+            latency = (time.perf_counter() - t0) * 1000
+            if latency > 5.0:
+                _log.debug("DAO: get_state latency for key '%s' = %.2fms", key, latency)
+        except Exception as e:
+            _log.error("DAO: Failed to get state for key '%s': %s", key, e)
+            return default
         return default
 
     def anchor_evidence(self, payload: dict[str, Any]) -> str:
@@ -84,18 +101,24 @@ class DAOOrchestrator:
         Calculates hash of evidence, encrypts it, and anchors it to the (simulated) blockchain.
         Returns the anchoring hash.
         """
-        packet = self.safe.prepare_anchoring_packet(payload)
-        evidence_hash = packet["evidence_hash"]
+        t0 = time.perf_counter()
+        try:
+            packet = self.safe.prepare_anchoring_packet(payload)
+            evidence_hash = packet["evidence_hash"]
 
-        # Persistent recording
-        with sqlite_safe_write(self.db_path) as conn:
-            conn.execute(
-                "INSERT INTO audit_logs (type, content, episode_id, timestamp) VALUES (?, ?, ?, ?)",
-                ("anchoring", f"Anchored Hash {evidence_hash}", payload.get("episode_id"), time.time())
-            )
+            # Persistent recording
+            with sqlite_safe_write(self.db_path) as conn:
+                conn.execute(
+                    "INSERT INTO audit_logs (type, content, episode_id, timestamp) VALUES (?, ?, ?, ?)",
+                    ("anchoring", f"Anchored Hash {evidence_hash}", payload.get("episode_id"), time.time())
+                )
 
-        _log.info("Evidence anchored securely. Hash: %s", evidence_hash)
-        return evidence_hash
+            latency = (time.perf_counter() - t0) * 1000
+            _log.info("Evidence anchored securely. Hash: %s (lat: %.2fms)", evidence_hash, latency)
+            return evidence_hash
+        except Exception as e:
+            _log.error("DAO: Failed to anchor evidence: %s", e)
+            return "hash_error"
 
     def register_complex_audit(self, event_type: str, details: dict[str, Any], episode_id: str | None = None):
         """

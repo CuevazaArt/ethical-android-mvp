@@ -71,8 +71,10 @@ _STOP = frozenset(
 )
 
 
-def _tokens(s: str) -> set[str]:
-    return set(re.findall(r"[a-z0-9_]+", s.lower())) - _STOP
+def _tokens(s: str | None) -> set[str]:
+    if s is None:
+        return set()
+    return set(re.findall(r"[a-z0-9_]+", str(s).lower())) - _STOP
 
 
 @dataclass

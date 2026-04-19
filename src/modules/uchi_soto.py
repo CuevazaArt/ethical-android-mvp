@@ -186,12 +186,19 @@ class UchiSotoModule:
         sensor_snapshot: SensorSnapshot | None = None,
         multimodal_assessment: MultimodalAssessment | None = None,
     ) -> None:
+    def ingest_turn_context(
+        self,
+        agent_id: str,
+        signals: dict,
+        *,
+        subjective_turn: int,
+        sensor_snapshot: SensorSnapshot | None = None,
+        multimodal_assessment: MultimodalAssessment | None = None,
+    ) -> None:
         """
         Phase 3 — call once per kernel decision before :meth:`evaluate_interaction`.
-
-        Updates ``sensor_trust_ema`` from perception + optional sensor / multimodal
-        hints, touches ``last_subjective_turn``, and purges idle low-weight profiles.
         """
+        t0 = time.perf_counter()
         aid = (agent_id or "unknown").strip()[:256]
         self._decay_forget_buffer(aid, int(subjective_turn))
         prof = self.profiles.get(aid)
@@ -205,6 +212,10 @@ class UchiSotoModule:
             self.profiles[aid] = prof
         prof.last_subjective_turn = int(subjective_turn)
         self._ema_update_sensor_trust(prof, signals, sensor_snapshot, multimodal_assessment)
+        
+        latency = (time.perf_counter() - t0) * 1000
+        if latency > 1.0:
+            _log.debug("UchiSoto: ingest_turn_context latency = %.2fms", latency)
 
     def _decay_forget_buffer(self, active_agent_id: str, turn: int) -> None:
         ttl = self._env_int("KERNEL_UCHI_ROSTER_FORGET_TTL_TURNS", 96)
@@ -389,7 +400,7 @@ class UchiSotoModule:
 
     def evaluate_interaction(
         self,
-        signals: Dict[str, Any],
+        signals: dict[str, Any],
         agent_id: str = "unknown",
         message_content: str = "",
         registry: NomadicRegistry | None = None,
@@ -719,14 +730,24 @@ class UchiSotoModule:
         On success, nudges ``trust_score`` slightly so :meth:`classify` can stabilize uchi over time.
         Uses :attr:`POSITIVE_TRUST_STEP` (default 0.02) per positive event.
         """
+    def register_result(self, agent_id: str, positive: bool):
+        """
+        Update agent history after an interaction.
+        """
         profile = self.profiles.get(agent_id)
         if profile:
-            if positive:
-                profile.positive_history += 1
-                profile.trust_score = min(1.0, profile.trust_score + self.POSITIVE_TRUST_STEP)
-            else:
-                profile.negative_history += 1
-                profile.trust_score = max(0.0, profile.trust_score - 0.1)
+            try:
+                curr = float(profile.trust_score)
+                if not math.isfinite(curr): curr = 0.5
+                
+                if positive:
+                    profile.positive_history += 1
+                    profile.trust_score = min(1.0, curr + self.POSITIVE_TRUST_STEP)
+                else:
+                    profile.negative_history += 1
+                    profile.trust_score = max(0.0, curr - 0.1)
+            except (ValueError, TypeError):
+                profile.trust_score = 0.5
 
     def format(self, ev: SocialEvaluation) -> str:
         """Format social evaluation for display."""

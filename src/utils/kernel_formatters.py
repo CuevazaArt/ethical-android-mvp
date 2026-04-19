@@ -40,9 +40,11 @@ def format_decision(d: KernelDecision) -> str:
         circ = d.social_evaluation.circle.value
         circ_color = Term.B_MAGENTA if "OWNER" in circ else Term.YELLOW
         dial = "YES" if d.social_evaluation.dialectic_active else "NO"
+        trust_val = float(d.social_evaluation.trust)
+        trust_str = f"{trust_val:.3f}" if math.isfinite(trust_val) else "0.500"
         lines.append(
             f"  {Term.color('Social:', Term.CYAN)} {Term.color(circ, circ_color)} | "
-            f"Trust={Term.color(str(d.social_evaluation.trust), Term.B_WHITE)} | "
+            f"Trust={Term.color(trust_str, Term.B_WHITE)} | "
             f"Dialectic={dial}"
         )
 

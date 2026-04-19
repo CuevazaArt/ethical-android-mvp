@@ -14,6 +14,7 @@ from __future__ import annotations
 
 import math
 import os
+import time
 from dataclasses import dataclass
 
 from .sensor_contracts import SensorSnapshot
@@ -99,6 +100,7 @@ def evaluate_multimodal_trust(
     If ``thresholds`` is None, reads :func:`thresholds_from_env` on each call
     (so tests can ``monkeypatch.setenv``).
     """
+    t0 = time.perf_counter()
 
     t = thresholds if thresholds is not None else thresholds_from_env()
 
@@ -126,7 +128,13 @@ def evaluate_multimodal_trust(
     if ve is None and sc is None:
         return MultimodalAssessment("doubt", "audio_only_insufficient", True, trust_score=0.4)
 
-    return MultimodalAssessment("doubt", "weak_cross_modal_support", True, trust_score=0.5)
+    res = MultimodalAssessment("doubt", "weak_cross_modal_support", True, trust_score=0.5)
+    
+    latency = (time.perf_counter() - t0) * 1000
+    if latency > 1.0:
+        _log.debug("MultimodalTrust: evaluate_multimodal_trust latency = %.2fms", latency)
+        
+    return res
 
 
 def suppress_stress_from_spoof_risk(assessment: MultimodalAssessment) -> bool:

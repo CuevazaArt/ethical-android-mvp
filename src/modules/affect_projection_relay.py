@@ -18,6 +18,10 @@ class AffectVesselRelay:
     def __init__(self):
         self.bridge = get_nomad_bridge()
 
+    def transmit(self, projection: AffectProjection) -> None:
+        """
+        Envía el estado PAD al puente Nomad para su transmisión final al smartphone.
+        """
         t0 = time.perf_counter()
         
         # 0. Anti-NaN Hardening
