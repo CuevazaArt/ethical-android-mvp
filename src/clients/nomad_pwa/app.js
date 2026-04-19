@@ -18,6 +18,10 @@ const UI = {
 let wsChat = null;
 let wsNomad = null;
 let isConnected = false;
+/** @type {number|null} performance.now() when last bridge ping was sent (S.1.1 RTT) */
+let nomadBridgePingT0 = null;
+/** @type {ReturnType<typeof setInterval>|null} */
+let nomadPingIntervalId = null;
 
 // We will default to localhost for DEV, but it should be set to the PC's actual LAN IP
 const PC_IP = window.location.hostname || "127.0.0.1";
@@ -219,14 +223,44 @@ function connectKernel() {
 
         // Antigravity & Cursor - add wsNomad initialization for the sensor stream
         wsNomad = new WebSocket(`${protocol}//${PC_IP}:${WS_PORT}/ws/nomad`);
-        wsNomad.onopen = () => { 
+        wsNomad.onopen = () => {
             console.log('Nomad Sensory Bridge established');
+            if (nomadPingIntervalId != null) {
+                try { clearInterval(nomadPingIntervalId); } catch (e) { /* ignore */ }
+                nomadPingIntervalId = null;
+            }
             // Heavy Heartbeat (Fase 12.2)
             setInterval(() => {
                if(wsNomad.readyState === WebSocket.OPEN) {
                    wsNomad.send(JSON.stringify({ type: "telemetry", payload: { heartbeat: true } }));
                }
             }, 15000);
+            // S.1.1 — LAN RTT / keepalive (pairs with server `pong` in nomad_bridge.py)
+            nomadPingIntervalId = setInterval(() => {
+                try {
+                    if (wsNomad && wsNomad.readyState === WebSocket.OPEN) {
+                        nomadBridgePingT0 = performance.now();
+                        wsNomad.send(JSON.stringify({ type: "ping", payload: {} }));
+                    }
+                } catch (e) {
+                    console.warn('Nomad bridge ping failed', e);
+                }
+            }, 10000);
+        };
+
+        wsNomad.onmessage = (event) => {
+            try {
+                const msg = JSON.parse(event.data);
+                if (msg.type === 'pong' && msg.payload && nomadBridgePingT0 != null) {
+                    const rttMs = Math.round(performance.now() - nomadBridgePingT0);
+                    nomadBridgePingT0 = null;
+                    console.debug('Nomad bridge RTT (ms):', rttMs);
+                } else if (msg.type === 'charm_feedback') {
+                    console.debug('Nomad charm_feedback', msg.payload);
+                }
+            } catch (e) {
+                console.warn('Nomad WS message parse error', e);
+            }
         };
 
     } catch (e) {
