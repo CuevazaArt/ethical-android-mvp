@@ -13,32 +13,38 @@
   },
   "peer_001": {
     "node_id": "peer_001",
-    "last_seen": 1776631214.3685706,
-    "reputation": 1.0,
-    "confirmed_witnesses": 15
+    "last_seen": 1776632103.2537775,
+    "reputation": 0.95,
+    "confirmed_witnesses": 40
   },
   "peer_002": {
     "node_id": "peer_002",
-    "last_seen": 1776631214.372952,
-    "reputation": 0.10000000000000014,
+    "last_seen": 1776632103.2568014,
+    "reputation": 0.0,
     "confirmed_witnesses": 0
   },
   "peer_003": {
     "node_id": "peer_003",
-    "last_seen": 1776631214.3860657,
-    "reputation": 1.0,
-    "confirmed_witnesses": 30
+    "last_seen": 1776632103.2703924,
+    "reputation": 0.7000000000000001,
+    "confirmed_witnesses": 80
   },
   "persistent_peer": {
     "node_id": "persistent_peer",
-    "last_seen": 1776631214.3938665,
+    "last_seen": 1776632103.2782524,
     "reputation": 1.0,
-    "confirmed_witnesses": 3
+    "confirmed_witnesses": 8
   },
   "witness_node_001": {
     "node_id": "witness_node_001",
-    "last_seen": 1776631214.4007342,
-    "reputation": 1.0,
-    "confirmed_witnesses": 24
+    "last_seen": 1776632103.285924,
+    "reputation": 0.85,
+    "confirmed_witnesses": 64
+  },
+  "nonexistent_peer": {
+    "node_id": "nonexistent_peer",
+    "last_seen": 1776631916.5899246,
+    "reputation": 0.0,
+    "confirmed_witnesses": 0
   }
 }

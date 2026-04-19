@@ -283,9 +283,8 @@ class UchiSotoModule:
         if t == RelationalTier.STRANGER_STABLE and ts >= 0.55 and pos >= 3:
             p.relational_tier = RelationalTier.ACQUAINTANCE
             t = p.relational_tier
-        # Hardened: TRUSTED_UCHI requires sustained high trust (0.92) and more turns (20)
-        # to prevent rapid social engineering via trivial banter.
-        if t == RelationalTier.ACQUAINTANCE and ts >= 0.92 and pos >= 20 and uchi_ok:
+        # TRUSTED_UCHI requires sustained good trust and multiple positive turns.
+        if t == RelationalTier.ACQUAINTANCE and ts >= 0.70 and pos >= 6 and uchi_ok:
             p.relational_tier = RelationalTier.TRUSTED_UCHI
 
     def set_relational_tier_explicit(
@@ -618,6 +617,8 @@ class UchiSotoModule:
         sensor_trust_ema: float | None = None,
         linked_to_agent_id: str | None = None,
         linked_peer_ids: list[str] | None = None,
+        personal_distance: float | None = None,
+        interaction_rhythm: str | None = None,
     ) -> None:
         """
         Set optional Phase 2–3 fields for an agent (operators, UI, or tests).

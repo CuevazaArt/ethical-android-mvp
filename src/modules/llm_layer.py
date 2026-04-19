@@ -120,9 +120,9 @@ class LLMPerception:
     legality: float
     manipulation: float
     familiarity: float
-    social_tension: float
     suggested_context: str
     summary: str
+    social_tension: float = 0.0
     # Optional raw dicts from perception JSON (v9.2+); parsed in generative_candidates when KERNEL_GENERATIVE_LLM=1
     generative_candidates: list[dict[str, Any]] | None = None
     # Coercion / fallback diagnostics from validate_perception_dict (LLM JSON path only; local heuristics leave None).

@@ -828,15 +828,32 @@ class EthicalKernel:
         proactive = self.motivation.get_proactive_actions()
         actions = []
         for p in proactive:
-            actions.append(
-                CandidateAction(
-                    name=p["name"],
-                    description=p["description"],
-                    estimated_impact=p["impact"],
-                    confidence=0.8,
-                    source="internal_motivation",
+            if isinstance(p, CandidateAction):
+                # Re-wrap to expose via internal_motivation source
+                desc_lower = (p.description or "").lower()
+                name = (
+                    f"investigate_{p.name}" if "investigat" in desc_lower
+                    else p.name
                 )
-            )
+                actions.append(
+                    CandidateAction(
+                        name=name,
+                        description=p.description,
+                        estimated_impact=p.estimated_impact,
+                        confidence=p.confidence,
+                        source="internal_motivation",
+                    )
+                )
+            else:
+                actions.append(
+                    CandidateAction(
+                        name=p["name"],
+                        description=p["description"],
+                        estimated_impact=p["impact"],
+                        confidence=0.8,
+                        source="internal_motivation",
+                    )
+                )
         return actions
 
     def _malabs_text_backend(self):
@@ -1119,7 +1136,16 @@ class EthicalKernel:
             bayes_result, state, social_eval, locus_eval, signals, context,
             meta_report=self._last_meta_report
         )
-        # moral, action_name, final_mode, affect, reflection, salience
+        # res = (moral, action_name, final_mode, affect, reflection, salience)
+        # Optionally upgrade D_fast → D_delib when perception coercion uncertainty is high.
+        if (
+            os.environ.get("KERNEL_PERCEPTION_UNCERTAINTY_DELIB", "").strip() == "1"
+            and perception_coercion_uncertainty is not None
+        ):
+            _min = float(os.environ.get("KERNEL_PERCEPTION_UNCERTAINTY_MIN", "0.3"))
+            if perception_coercion_uncertainty >= _min and res[2] == "D_fast":
+                res = res[:2] + ("D_delib",) + res[3:]
+
         return res + (None,)
 
 

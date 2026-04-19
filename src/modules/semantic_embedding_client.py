@@ -306,6 +306,10 @@ async def ahttp_fetch_ollama_embedding_with_policy(
 
 def maybe_hash_fallback_embedding(text: str) -> np.ndarray | None:
     """If policy allows (hash_fallback), return hash-scoped vector; else ``None``."""
+    import os
+    # KERNEL_SEMANTIC_EMBED_HASH_FALLBACK=0 explicitly disables hash fallback regardless of policy.
+    if os.environ.get("KERNEL_SEMANTIC_EMBED_HASH_FALLBACK", "").strip() == "0":
+        return None
     from .llm_touchpoint_policies import resolve_embedding_backend_policy
     policy = resolve_embedding_backend_policy()
     if policy == "hash_fallback":
