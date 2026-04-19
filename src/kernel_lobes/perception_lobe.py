@@ -26,7 +26,7 @@ from src.modules.reality_verification import (
 from src.modules.sensor_contracts import merge_sensor_hints_into_signals
 from src.modules.somatic_markers import apply_somatic_nudges
 from src.modules.temporal_planning import build_temporal_context
-from src.modules.vitality import assess_vitality
+from src.modules.vitality import apply_nomad_telemetry_if_enabled, assess_vitality
 
 if TYPE_CHECKING:
     from src.modules.absolute_evil import AbsoluteEvilDetector
@@ -264,6 +264,7 @@ class PerceptiveLobe:
             return tier, fut_premise.result(), fut_reality.result()
 
     def _chat_assess_sensor_stack(self, sensor_snapshot: Optional["SensorSnapshot"]) -> tuple[Any, Any, Any]:
+        sensor_snapshot = apply_nomad_telemetry_if_enabled(sensor_snapshot)
         workers = perception_parallel_workers()
         if workers <= 1:
             vitality = assess_vitality(sensor_snapshot)

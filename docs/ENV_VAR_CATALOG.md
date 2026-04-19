@@ -114,6 +114,11 @@ variable read by the codebase (`src/`). Variables are grouped by functional tier
 | `KERNEL_EPISTEMIC_MOTION_MAX` | `""` | float | Max jerk for epistemic dissonance pass. |
 | `KERNEL_EPISTEMIC_VISION_LOW` | `""` | float | Low vision threshold for dissonance. |
 | `KERNEL_VITALITY_CRITICAL_BATTERY` | `0.15` | float ⚙ | Battery fraction below which guardian mode activates. |
+| `KERNEL_VITALITY_CRITICAL_TEMP` | `80` | float ⚙ | °C — thermal critical band for vitality (see `vitality.py`). |
+| `KERNEL_VITALITY_WARNING_TEMP` | `70` | float ⚙ | °C — elevated thermal band (soft interrupt) below critical. |
+| `KERNEL_VITALITY_THERMAL_HYSTERESIS` | `1` | bool | Latched thermal critical until temp drops by `KERNEL_VITALITY_THERMAL_HYSTERESIS_C` below critical. |
+| `KERNEL_VITALITY_THERMAL_HYSTERESIS_C` | `4` | float | °C hysteresis delta for clearing latched thermal critical. |
+| `KERNEL_VITALITY_IMPACT_JERK_THRESHOLD` | `0.8` | float ⚙ | Accelerometer jerk above this `[0,1]` marks `is_impacted`. |
 | `KERNEL_FIELD_CONTROL` | `0` | bool | Enable phone-relay field test control surface (ADR 0017). |
 | `KERNEL_FIELD_PAIRING_TOKEN` | `""` | str | One-time token for phone pairing. Keep secret. |
 | `KERNEL_FIELD_SENSOR_HZ` | `2` | int ⚙ | Max sensor frame rate from phone relay (Hz). |

@@ -50,8 +50,8 @@ Ningún agente debe saltar a tareas de la cola de otro equipo.
 
 - **Bloque S.1: Nomad SmartPhone LAN Bridge**
   - Tarea S.1.1: Desarrollar conectores WebSocket o WebRTC de baja latencia (`src/modules/nomad_bridge.py`) para consumir streams de video and audio desde un dispositivo móvil Android/iOS en red local, inyectando los fotogramas en el `VisionInference` de manera asíncrona. *Estado parcial (abril 2026):* [`nomad_bridge.py`](../../src/modules/nomad_bridge.py) — colas acotadas, límites decoded base64 + telemetría; ``KERNEL_NOMAD_WS_MAX_MESSAGE_BYTES``; contadores ``rejections`` / ``queue_evictions`` en ``nomad_bridge_queue_stats_v3``; con ``KERNEL_METRICS=1``, mismos eventos en Prometheus (`ethos_kernel_nomad_bridge_*`). [`tests/test_nomad_bridge_stream.py`](../../tests/test_nomad_bridge_stream.py), [`test_observability_metrics.py`](../../tests/test_observability_metrics.py).
-- **Bloque S.2: Calibración Termo-Visual Continua**
-  - Tarea S.2.1: Refinar las interrupciones del `VitalityAssessment` (ej. alertas de calor del dispositivo) utilizando la telemetría real transmitida por el *Nomad Bridge*.
+- **Bloque S.2: Calibración Termo-Visual Continua [DONE]**
+  - Tarea S.2.1: Banda de advertencia ``KERNEL_VITALITY_WARNING_TEMP`` + histéresis anti-flap ``KERNEL_VITALITY_THERMAL_HYSTERESIS`` / ``KERNEL_VITALITY_THERMAL_HYSTERESIS_C``; campo ``thermal_elevated`` en ``VitalityAssessment``; ``KERNEL_VITALITY_IMPACT_JERK_THRESHOLD``; más alias Nomad → ``core_temperature`` (``skin_temperature``, ``battery_temp_c``, …); ``apply_nomad_telemetry_if_enabled`` en ``PerceptiveLobe._chat_assess_sensor_stack`` + ``peek_latest_telemetry``. Tests: [`tests/test_vitality.py`](../../tests/test_vitality.py).
 
 ### 🧹 Módulo 8: Higiene, Mantenimiento y Deuda Menor
 *Responsabilidad: Nivel 2 (Team Copilot / Contribuidores Libres)*
