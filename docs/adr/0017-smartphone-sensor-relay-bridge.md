@@ -1,7 +1,8 @@
 # ADR 0017 — Smartphone sensor relay bridge (PC ↔ phone, field tests)
 
-**Status:** Proposed  
+**Status:** Accepted (core implementation in-tree; follow-ups below)  
 **Date:** 2026-04-15  
+**Implementation record:** [`docs/ADR_0017_IMPLEMENTATION.md`](../ADR_0017_IMPLEMENTATION.md) (`GET /phone`, `/control/*`, `src/static/phone_relay.html`).
 **Depends on:** —  
 **Related:**
 [ADR 0002](0002-async-orchestration-future.md) (thread offload),
@@ -181,15 +182,11 @@ This keeps the governance ledger continuous with the session lifecycle.
 
 ## Implementation checklist
 
-- [ ] `src/chat_server.py` — add `GET /phone`, `/control/*` under
-      `KERNEL_FIELD_CONTROL` guard.
-- [ ] `src/real_time_bridge.py` — add `FieldSensorRateLimiter` (token bucket).
-- [ ] `src/static/phone_relay.html` (or inline string) — PWA implementation.
-- [ ] `src/modules/hardware_abstraction.py` — add `EDGE_MOBILE_RELAY` label
-      constant for the `HardwareContext` emitted when a phone relay is active.
-- [ ] `src/modules/mock_dao.py` — add three field-session audit event types.
-- [ ] `tests/test_field_control.py` — unit tests: pairing, rate limiter,
-      manifest flush.
-- [ ] `experiments/out/field/.gitignore` — exclude `*.jsonl`, `manifest.json`.
-- [ ] `.env.example` — document `KERNEL_FIELD_CONTROL`, `KERNEL_FIELD_PAIRING_TOKEN`,
-      `KERNEL_FIELD_SENSOR_HZ`, `KERNEL_FIELD_ALLOW_WAN`.
+- [x] `src/chat_server.py` — `GET /phone`, `/control/pair`, `/control/status`, `/control/session` under `KERNEL_FIELD_CONTROL` guard; session manifest stub; audit hooks for field sessions.
+- [ ] `src/real_time_bridge.py` — `FieldSensorRateLimiter` (token bucket) per [`PROPOSAL_FIELD_TEST_PLAN.md`](../proposals/PROPOSAL_FIELD_TEST_PLAN.md) open question on frame-rate bounds (**not yet implemented**; `KERNEL_FIELD_SENSOR_HZ` is read for status/docs).
+- [x] `src/static/phone_relay.html` — PWA implementation (see [`docs/ADR_0017_IMPLEMENTATION.md`](../ADR_0017_IMPLEMENTATION.md)).
+- [ ] `src/modules/hardware_abstraction.py` — optional `EDGE_MOBILE_RELAY` label distinct from `EDGE_MOBILE` (**deferred**).
+- [ ] `src/modules/mock_dao.py` — three dedicated field-session audit event types (**deferred**; field audit lines emitted from `chat_server` today).
+- [ ] `tests/test_field_control.py` — pairing, rate limiter, manifest flush (**deferred**; partial coverage via [`tests/integration/test_cross_tier_decisions.py`](../../tests/integration/test_cross_tier_decisions.py) env-coherence rules).
+- [x] `experiments/out/field/.gitignore` — present.
+- [x] `.env.example` — documents `KERNEL_FIELD_*` (field-test block).

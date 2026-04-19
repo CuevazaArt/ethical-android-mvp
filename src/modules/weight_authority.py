@@ -45,6 +45,11 @@ def _feedback_trust_weight() -> float:
     return max(0.0, min(1.0, v))
 
 
+def feedback_trust_weight() -> float:
+    """Effective ``KERNEL_FEEDBACK_TRUST_WEIGHT`` for telemetry (same default as :func:`compose_mixture_weights`)."""
+    return _feedback_trust_weight()
+
+
 def compose_mixture_weights(
     nudge_weights: np.ndarray | list[float] | None,
     feedback_posterior: np.ndarray | list[float] | None,
@@ -90,4 +95,4 @@ def compose_mixture_weights(
     return blended / float(np.sum(blended))
 
 
-__all__ = ["compose_mixture_weights"]
+__all__ = ["compose_mixture_weights", "feedback_trust_weight"]

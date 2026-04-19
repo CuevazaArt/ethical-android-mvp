@@ -8,8 +8,10 @@ See docs/proposals/README.md §1–2
 
 from __future__ import annotations
 
+import math
 import os
-from dataclasses import dataclass
+from dataclasses import dataclass, fields, replace
+from typing import Any
 
 from .sensor_contracts import SensorSnapshot
 
@@ -75,6 +77,88 @@ class VitalityAssessment:
             "thermal_critical": self.thermal_critical,
             "is_impacted": self.is_impacted,
         }
+
+
+def _coerce_battery_fraction(v: Any) -> float | None:
+    """Interpret battery as a [0,1] fraction; values in (1, 100] are treated as legacy percent."""
+
+    if v is None:
+        return None
+    try:
+        x = float(v)
+    except (TypeError, ValueError):
+        return None
+    if math.isnan(x) or math.isinf(x):
+        return None
+    if 1.0 < x <= 100.0:
+        x = x / 100.0
+    return max(0.0, min(1.0, x))
+
+
+def normalize_nomad_telemetry_for_sensor_merge(raw: dict[str, Any]) -> dict[str, Any]:
+    """
+    Map common smartphone / Nomad LAN shorthand keys onto :class:`SensorSnapshot` field names
+    before :meth:`SensorSnapshot.from_dict` (Module S.2.1 — Bloque S.2.1 calibration path).
+    """
+
+    out = dict(raw)
+
+    if out.get("battery_level") is not None:
+        out["battery_level"] = _coerce_battery_fraction(out.get("battery_level"))
+    else:
+        for key in ("battery", "battery_pct", "batt"):
+            if key in out and out[key] is not None:
+                out["battery_level"] = _coerce_battery_fraction(out[key])
+                break
+
+    if out.get("core_temperature") is None:
+        for key in ("core_temperature_c", "temperature_c", "temp_c", "cpu_temp"):
+            if key in out and out[key] is not None:
+                out["core_temperature"] = out[key]
+                break
+
+    if out.get("accelerometer_jerk") is None:
+        for key in ("jerk", "accel_jerk", "impact_jerk"):
+            if key in out and out[key] is not None:
+                out["accelerometer_jerk"] = out[key]
+                break
+
+    return out
+
+
+def merge_nomad_telemetry_into_snapshot(
+    snapshot: SensorSnapshot | None,
+    nomad: dict[str, Any] | None,
+) -> SensorSnapshot | None:
+    """
+    Module S.2.1 — Merge latest Nomad LAN ``telemetry`` payload into a sensor snapshot.
+
+    Fields already present on ``snapshot`` (e.g. chat ``sensor`` JSON from the operator client)
+    take precedence; Nomad only **fills gaps** so real device telemetry can backfill missing
+    battery / thermal / jerk hints without overriding an explicit session.
+    """
+    if not nomad:
+        return snapshot
+    nomad = normalize_nomad_telemetry_for_sensor_merge(nomad)
+    patch = SensorSnapshot.from_dict(nomad, strict=False)
+    if snapshot is None:
+        return patch
+
+    overrides: dict[str, Any] = {}
+    for f in fields(SensorSnapshot):
+        name = f.name
+        cur = getattr(snapshot, name)
+        pat = getattr(patch, name)
+        if name == "backup_just_completed":
+            merged = bool(cur or pat)
+            if merged is not cur:
+                overrides[name] = merged
+            continue
+        if cur is None and pat is not None:
+            overrides[name] = pat
+    if not overrides:
+        return snapshot
+    return replace(snapshot, **overrides)
 
 
 def assess_vitality(snapshot: SensorSnapshot | None) -> VitalityAssessment:

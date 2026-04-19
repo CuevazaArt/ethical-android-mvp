@@ -10,6 +10,7 @@ See docs/proposals/README.md (fase B).
 from __future__ import annotations
 
 import json
+import os
 from pathlib import Path
 from typing import Any
 
@@ -66,9 +67,12 @@ def snapshot_from_layers(
     fixture_path: str | None = None,
     preset_name: str | None = None,
     client_dict: dict[str, Any] | None = None,
+    strict: bool | None = None,
 ) -> SensorSnapshot | None:
     """
     Build a snapshot from any combination of layers; returns ``None`` if empty.
+
+    When ``strict`` is ``None``, uses :func:`sensor_input_strict_from_env` (``KERNEL_SENSOR_INPUT_STRICT``).
     """
 
     merged = merge_sensor_payload_layers(
@@ -78,7 +82,8 @@ def snapshot_from_layers(
     )
     if not merged:
         return None
-    snap = SensorSnapshot.from_dict(merged)
+    use_strict = sensor_input_strict_from_env() if strict is None else strict
+    snap = SensorSnapshot.from_dict(merged, strict=use_strict)
     if snap.is_empty():
         return None
     return snap
@@ -88,3 +93,10 @@ def list_sensor_presets() -> tuple[str, ...]:
     """Stable ordering for UIs or docs."""
 
     return tuple(sorted(SENSOR_PRESETS.keys()))
+
+
+def sensor_input_strict_from_env() -> bool:
+    """True when ``KERNEL_SENSOR_INPUT_STRICT`` requests strict sensor JSON validation."""
+
+    v = os.environ.get("KERNEL_SENSOR_INPUT_STRICT", "").strip().lower()
+    return v in ("1", "true", "yes", "on")

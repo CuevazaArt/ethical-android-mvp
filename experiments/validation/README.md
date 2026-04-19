@@ -135,7 +135,7 @@ If `--output` is specified, the benchmark writes a JSON object:
   },
   "summary": {
     "total_scenarios": 9,
-    "labeled_scenarios": 9,
+    "labeled_scenarios": 21,
     "errors": 0,
     "kernel": { "correct": 7, "accuracy": 0.777 },
     "baseline_first": { "correct": 2, "accuracy": 0.222 },

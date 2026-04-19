@@ -8,7 +8,8 @@ This note **institutionalizes** a Git branching pattern for **distributed teams*
 
 - Give **analogous teams** a **single, copyable convention**: where to integrate day to day, how locals relate to production, and how promotion to `main` is supposed to happen.
 - Keep **production** (`main`) **stable and reviewable**, while allowing **parallel work** on a team integration line.
-- **Hub vs funnel (one page):** [`MERGE_AND_HUB_DECISION_TREE.md`](MERGE_AND_HUB_DECISION_TREE.md) — which branch to use for daily work, peer sync, L0-gated `main`, **pulse triggers** (when to sync), push-vs-PR hygiene, and `merge(sync)` / `merge(integration)` message prefixes.
+- **Hub vs funnel (one page):** [`MERGE_AND_HUB_DECISION_TREE.md`](MERGE_AND_HUB_DECISION_TREE.md) — which branch to use for daily work, peer sync, L0-gated `main`, **pulse triggers** (when to sync), push-vs-PR hygiene, and `merge(sync)` / `merge(integration)` message prefixes. **Normative umbrella name:** [`MER_V2_POSTULATE.md`](MER_V2_POSTULATE.md).
+- **L0 → L1 relay (workflow efficiency):** [`L0_WORKFLOW_CONTINUOUS_IMPROVEMENT_RELAY.md`](L0_WORKFLOW_CONTINUOUS_IMPROVEMENT_RELAY.md) — keep rituals and docs current; Antigravity owns consolidation without diluting audit/invariants.
 
 ## Branch model (generic)
 

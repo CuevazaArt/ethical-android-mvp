@@ -5,6 +5,8 @@ Hardware may be absent: callers pass :class:`SensorSnapshot` when available;
 :func:`merge_sensor_hints_into_signals` blends into the same ``signals`` dict
 used by ``SympatheticModule`` without bypassing MalAbs or the decision stack.
 
+Ingress normalization and fusion pipeline: ``docs/proposals/PROPOSAL_SENSOR_FUSION_NORMALIZATION.md``.
+
 See docs/proposals/README.md, multimodal_trust.py (cross-modal doubt),
 and epistemic_dissonance.py (v9.1 telemetry).
 """
@@ -17,6 +19,138 @@ from typing import Any
 
 # ADR 0016 C1 — Ethical tier classification
 __ethical_tier__ = "decision_support"
+
+# WebSocket ``sensor`` object keys recognized by :meth:`SensorSnapshot.from_dict`.
+SENSOR_SNAPSHOT_KNOWN_KEYS = frozenset(
+    {
+        "battery_level",
+        "place_trust",
+        "accelerometer_jerk",
+        "ambient_noise",
+        "silence",
+        "biometric_anomaly",
+        "backup_just_completed",
+        "audio_emergency",
+        "vision_emergency",
+        "scene_coherence",
+        "external_mission_title",
+        "external_mission_priority",
+        "external_mission_steps",
+        "is_falling",
+        "is_obstructed",
+        "motor_effort_avg",
+        "stability_score",
+        "core_temperature",
+        "image_metadata",
+    }
+)
+
+class SensorPayloadValidationError(ValueError):
+    """Raised when ``KERNEL_SENSOR_INPUT_STRICT`` validation fails before coercion."""
+
+
+def _is_boolish_json(v: Any) -> bool:
+    if isinstance(v, bool):
+        return True
+    return isinstance(v, int) and v in (0, 1)
+
+
+def validate_sensor_dict_strict(raw: dict[str, Any]) -> None:
+    """
+    Reject unknown keys and obviously wrong types before silent coercion.
+
+    Used when ``strict=True`` on :meth:`SensorSnapshot.from_dict` or when the chat
+    server enables ``KERNEL_SENSOR_INPUT_STRICT``.
+    """
+
+    unknown = set(raw) - SENSOR_SNAPSHOT_KNOWN_KEYS
+    if unknown:
+        raise SensorPayloadValidationError(
+            f"unknown sensor keys (strict): {sorted(unknown)}"
+        )
+
+    float_clamp_keys = (
+        "battery_level",
+        "place_trust",
+        "accelerometer_jerk",
+        "ambient_noise",
+        "silence",
+        "biometric_anomaly",
+        "audio_emergency",
+        "vision_emergency",
+        "scene_coherence",
+        "external_mission_priority",
+        "motor_effort_avg",
+        "stability_score",
+    )
+    for key in float_clamp_keys:
+        if key not in raw:
+            continue
+        v = raw[key]
+        if v is None:
+            continue
+        if isinstance(v, bool):
+            raise SensorPayloadValidationError(
+                f"sensor.{key}: boolean is not allowed for this field in strict mode"
+            )
+        if not isinstance(v, int | float):
+            raise SensorPayloadValidationError(
+                f"sensor.{key}: expected number, got {type(v).__name__}"
+            )
+        fv = float(v)
+        if math.isnan(fv) or math.isinf(fv):
+            raise SensorPayloadValidationError(f"sensor.{key}: nan/inf not allowed")
+
+    if "core_temperature" in raw and raw["core_temperature"] is not None:
+        v = raw["core_temperature"]
+        if isinstance(v, bool):
+            raise SensorPayloadValidationError(
+                "sensor.core_temperature: boolean is not allowed in strict mode"
+            )
+        if not isinstance(v, int | float):
+            raise SensorPayloadValidationError(
+                f"sensor.core_temperature: expected number, got {type(v).__name__}"
+            )
+        fv = float(v)
+        if math.isnan(fv) or math.isinf(fv):
+            raise SensorPayloadValidationError("sensor.core_temperature: nan/inf not allowed")
+
+    if "backup_just_completed" in raw and raw["backup_just_completed"] is not None:
+        v = raw["backup_just_completed"]
+        if not _is_boolish_json(v):
+            raise SensorPayloadValidationError(
+                f"sensor.backup_just_completed: expected bool or 0/1, got {type(v).__name__}"
+            )
+
+    for bk in ("is_falling", "is_obstructed"):
+        if bk in raw and raw[bk] is not None and not _is_boolish_json(raw[bk]):
+            raise SensorPayloadValidationError(
+                f"sensor.{bk}: expected bool or 0/1, got {type(raw[bk]).__name__}"
+            )
+
+    if "external_mission_title" in raw and raw["external_mission_title"] is not None:
+        if not isinstance(raw["external_mission_title"], str):
+            raise SensorPayloadValidationError(
+                "sensor.external_mission_title: expected string or null"
+            )
+
+    if "external_mission_steps" in raw and raw["external_mission_steps"] is not None:
+        steps = raw["external_mission_steps"]
+        if not isinstance(steps, list):
+            raise SensorPayloadValidationError(
+                "sensor.external_mission_steps: expected list or null"
+            )
+        for i, item in enumerate(steps):
+            if not isinstance(item, str):
+                raise SensorPayloadValidationError(
+                    f"sensor.external_mission_steps[{i}]: expected string elements"
+                )
+
+    if "image_metadata" in raw and raw["image_metadata"] is not None:
+        if not isinstance(raw["image_metadata"], dict):
+            raise SensorPayloadValidationError(
+                "sensor.image_metadata: expected object or null"
+            )
 
 
 def _clamp01(x: float) -> float:
@@ -60,8 +194,11 @@ class SensorSnapshot:
     thalamus_cross_modal_trust: float | None = None  # 1.0=focal, 0.4=background
 
     @classmethod
-    def from_dict(cls, raw: dict[str, Any]) -> SensorSnapshot:
-        """Build from WebSocket ``sensor`` JSON; ignores unknown keys."""
+    def from_dict(cls, raw: dict[str, Any], *, strict: bool = False) -> SensorSnapshot:
+        """Build from WebSocket ``sensor`` JSON; ignores unknown keys unless ``strict``."""
+
+        if strict:
+            validate_sensor_dict_strict(raw)
 
         def f(key: str) -> float | None:
             v = raw.get(key)

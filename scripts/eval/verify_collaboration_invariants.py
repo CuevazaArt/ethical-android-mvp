@@ -13,6 +13,103 @@ import subprocess
 import sys
 from pathlib import Path
 
+# Path segments to skip when scanning for merge markers (nested deps / vendored trees / worktrees).
+_MERGE_MARKER_SKIP_PARTS: frozenset[str] = frozenset(
+    {
+        ".git",
+        ".venv",
+        "venv",
+        "node_modules",
+        "__pycache__",
+        ".pytest_cache",
+        ".mypy_cache",
+        ".tox",
+        "dist",
+        "build",
+        "htmlcov",
+        ".ruff_cache",
+        "site-packages",
+    }
+)
+
+
+def _skip_path_for_merge_scan(path: Path) -> bool:
+    for part in path.parts:
+        if part in _MERGE_MARKER_SKIP_PARTS:
+            return True
+        if part.startswith("ethical-android-mvp-feature-"):
+            return True
+    return False
+
+
+_MERGE_SCAN_SUFFIXES: tuple[str, ...] = (
+    ".py",
+    ".md",
+    ".mdc",
+    ".yml",
+    ".yaml",
+    ".json",
+    ".txt",
+)
+
+
+def _path_matches_merge_scan_suffix(path: Path) -> bool:
+    n = path.name.lower()
+    return any(n.endswith(s) for s in _MERGE_SCAN_SUFFIXES)
+
+
+def _tracked_files_for_merge_scan(root: Path) -> list[Path] | None:
+    """Return tracked text-ish files via ``git ls-files`` (fast; ignores vendor trees)."""
+    try:
+        r = subprocess.run(
+            ["git", "ls-files", "-z", "--", "."],
+            cwd=root,
+            capture_output=True,
+            check=False,
+        )
+        if r.returncode != 0 or not r.stdout:
+            return None
+        out: list[Path] = []
+        for rel in r.stdout.split(b"\0"):
+            if not rel:
+                continue
+            p = root / rel.decode("utf-8", errors="replace")
+            if _path_matches_merge_scan_suffix(p):
+                out.append(p)
+        return out
+    except Exception:
+        return None
+
+
+def _rglob_fallback_merge_files(root: Path) -> list[Path]:
+    """Fallback when ``git ls-files`` is unavailable — scan project roots only (no whole-disk ``rglob``)."""
+    out: list[Path] = []
+    patterns = ("*.py", "*.md", "*.mdc", "*.yml", "*.yaml", "*.json", "*.txt")
+    for pattern in patterns:
+        for file_path in root.glob(pattern):
+            if file_path.is_file():
+                out.append(file_path)
+    for sub in ("src", "tests", "docs", "scripts", ".cursor"):
+        base = root / sub
+        if not base.is_dir():
+            continue
+        for pattern in patterns:
+            for file_path in base.rglob(pattern):
+                if not file_path.is_file():
+                    continue
+                if _skip_path_for_merge_scan(file_path):
+                    continue
+                out.append(file_path)
+    # De-dupe stable order
+    seen: set[str] = set()
+    unique: list[Path] = []
+    for p in out:
+        key = str(p.resolve())
+        if key not in seen:
+            seen.add(key)
+            unique.append(p)
+    return unique
+
 
 def git_diff_files() -> list[str]:
     """Returns a list of files modified in the current branch relative to origin/main."""
@@ -38,18 +135,20 @@ def check_no_merge_markers(directory: Path) -> list[str]:
     violations = []
     marker_pattern = re.compile(r'^(<<<<<<<|=======|>>>>>>>)( |$)')
 
-    for ext in ['.py', '.md', '.mdc', '.yml', '.yaml', '.json', '.txt']:
-        for file_path in directory.rglob(f"*{ext}"):
-            if '.venv' in str(file_path) or '.git' in str(file_path):
-                continue
-            
-            try:
-                with open(file_path, 'r', encoding='utf-8') as f:
-                    for line_num, line in enumerate(f, 1):
-                        if marker_pattern.match(line):
-                            violations.append(f"{file_path}:{line_num} contains unresolved git merge marker.")
-            except Exception:
-                pass
+    candidates = _tracked_files_for_merge_scan(directory)
+    if candidates is None:
+        candidates = _rglob_fallback_merge_files(directory)
+
+    for file_path in candidates:
+        try:
+            with open(file_path, "r", encoding="utf-8") as f:
+                for line_num, line in enumerate(f, 1):
+                    if marker_pattern.match(line):
+                        violations.append(
+                            f"{file_path}:{line_num} contains unresolved git merge marker."
+                        )
+        except Exception:
+            pass
     return violations
 
 

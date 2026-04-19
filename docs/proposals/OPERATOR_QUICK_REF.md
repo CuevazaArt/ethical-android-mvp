@@ -60,6 +60,15 @@ When a chat turn includes `perception`, the server emits:
 
 This contract is intended for operator dashboards and alerting stability across perception fallback modes.
 
+### Nomad bridge, vitality merge, and embodied sociability (Modules S.1 / S.2.1 / S10)
+
+- **`KERNEL_NOMAD_TELEMETRY_VITALITY`** (default `1`): last Nomad WebSocket `telemetry` payload is merged into the sensor snapshot **only where fields are still unset** before `assess_vitality`. Set `0` to keep vitality purely client-side. Implementation: [`src/modules/nomad_bridge.py`](../../src/modules/nomad_bridge.py) (`peek_latest_telemetry`), [`src/modules/vitality.py`](../../src/modules/vitality.py) (`merge_nomad_telemetry_into_snapshot`), [`src/kernel.py`](../../src/kernel.py).
+- **`KERNEL_CHAT_INCLUDE_TRANSPARENCY_S10`** (default `1`): when enabled, chat JSON may include optional **`transparency_s10`** (action narration, withdrawal, discomfort index, operator help codes). Root object uses **`schema`: `ethos_transparency_s10_bundle_v1`** plus per-block schemas. Set `0` to omit. Implementation: [`src/modules/transparency_s10.py`](../../src/modules/transparency_s10.py), [`src/chat_server.py`](../../src/chat_server.py).
+- **`GET /health` → `nomad_bridge.limits`:** echoes effective **`KERNEL_NOMAD_MAX_VISION_FRAME_BYTES`**, **`KERNEL_NOMAD_MAX_AUDIO_PCM_BYTES`**, and **`KERNEL_NOMAD_MAX_TELEMETRY_KEYS`** (same defaults as [`../ENV_VAR_CATALOG.md`](../ENV_VAR_CATALOG.md) §11).
+- **`GET /health` → `nomad_bridge.charm_feedback_*`:** **`charm_feedback_queued`** / **`charm_feedback_max`** bound the outbound queue for **`type: charm_feedback`** messages (kernel → Nomad LAN client). Same object as [`NomadBridge.public_queue_stats()`](../../src/modules/nomad_bridge.py).
+
+Canonical env list: [`../ENV_VAR_CATALOG.md`](../ENV_VAR_CATALOG.md) §7 and §11.
+
 ### Temporal planning / sync contract (chat JSON)
 
 When a chat turn returns, the server may emit:
@@ -101,7 +110,7 @@ When a generative touchpoint falls back (**communicate**, **narrate**, or option
 
 ### Observability (metrics and logs)
 
-Enable with `KERNEL_METRICS=1` (scrapes `http://<host>:<port>/metrics`). If `prometheus_client` is missing, the server returns HTTP 503 JSON for `/metrics` instead of crashing. Structured JSON logs: `KERNEL_LOG_JSON=1`; severity: `KERNEL_LOG_LEVEL` (e.g. `INFO`, `DEBUG`). Per-decision machine-readable lines (one JSON object per `EthicalKernel.process`): default **on** when JSON logging is on — disable with `KERNEL_LOG_DECISION_EVENTS=0`. **`GET /health`** returns `version`, `uptime_seconds`, an `observability` object (metrics/log flags, `prometheus_client` import status), **`chat_bridge`** (`kernel_chat_turn_timeout_seconds`, `kernel_chat_threadpool_workers`, `kernel_chat_json_offload` — see [`chat_settings.py`](../../src/chat_settings.py)), and a compact **`safety_defaults`** block (`kernel_env_validation_mode`, semantic gate/hash fallback toggles, perception fail-safe and parallel toggles) for quick operator diagnostics.
+Enable with `KERNEL_METRICS=1` (scrapes `http://<host>:<port>/metrics`). If `prometheus_client` is missing, the server returns HTTP 503 JSON for `/metrics` instead of crashing. Structured JSON logs: `KERNEL_LOG_JSON=1`; severity: `KERNEL_LOG_LEVEL` (e.g. `INFO`, `DEBUG`). Per-decision machine-readable lines (one JSON object per `EthicalKernel.process`): default **on** when JSON logging is on — disable with `KERNEL_LOG_DECISION_EVENTS=0`. **`GET /health`** returns `version`, `uptime_seconds`, an `observability` object (metrics/log flags, `prometheus_client` import status), **`chat_bridge`** (`kernel_chat_turn_timeout_seconds`, `kernel_chat_threadpool_workers`, `kernel_chat_json_offload` — see [`chat_settings.py`](../../src/chat_settings.py)), **`nomad_bridge`** (same object as [`NomadBridge.public_queue_stats()`](../../src/modules/nomad_bridge.py) — queue depths incl. **`charm_feedback`** + **`limits`** + telemetry **key names** only), and a compact **`safety_defaults`** block (`kernel_env_validation_mode`, semantic gate/hash fallback toggles, perception fail-safe and parallel toggles) for quick operator diagnostics.
 
 | Metric name | Type | Labels | Notes |
 |--------------|------|--------|--------|

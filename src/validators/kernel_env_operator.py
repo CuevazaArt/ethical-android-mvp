@@ -40,6 +40,7 @@ _FAMILY_RULES: Final[tuple[tuple[str, tuple[str, ...]], ...]] = (
             "KERNEL_MULTIMODAL_",
             "KERNEL_VITALITY_",
             "KERNEL_PERCEPTION_",
+            "KERNEL_PERCEPTIVE_LOBE_",
             "KERNEL_LIGHT_RISK_",
             "KERNEL_CROSS_CHECK_",
             "KERNEL_CHAT_INCLUDE_LIGHT_RISK",
@@ -66,7 +67,7 @@ _FAMILY_RULES: Final[tuple[tuple[str, tuple[str, ...]], ...]] = (
         "Poles / mixture / temporal",
         (
             "KERNEL_POLE_",
-            "KERNEL_BAYESIAN_EMPIRICAL_WEIGHTS",
+            "KERNEL_BAYESIAN_",
             "KERNEL_TEMPORAL_HORIZON_",
             "KERNEL_FEEDBACK_CALIBRATION",
             "KERNEL_PSI_SLEEP_",

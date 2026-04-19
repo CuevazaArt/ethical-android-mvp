@@ -62,7 +62,7 @@ This proposal **justifies** a phased roadmap and records **evidence posture**: i
 
 **Done when:** Script exits non-zero on failure; documented in this file and cross-team gate doc.
 
-**Targets include:** G-05 cooperative cancel ([`tests/test_llm_http_cancel.py`](../../tests/test_llm_http_cancel.py), [`tests/test_chat_async_llm_cancel.py`](../../tests/test_chat_async_llm_cancel.py), [`tests/test_chat_turn_abandon.py`](../../tests/test_chat_turn_abandon.py)) alongside verbal/touchpoint/MalAbs/operator metrics tests. Empirical pilot regression ([`tests/test_empirical_pilot_runner.py`](../../tests/test_empirical_pilot_runner.py)) lives in [`run_cursor_integration_gate.py`](../../scripts/eval/run_cursor_integration_gate.py) only — too slow for this focused vertical by default ([Issue #3](PLAN_IMMEDIATE_TWO_WEEKS.md) / [`EMPIRICAL_METHODOLOGY.md`](EMPIRICAL_METHODOLOGY.md)).
+**Targets include:** G-05 cooperative cancel ([`tests/test_llm_http_cancel.py`](../../tests/test_llm_http_cancel.py), [`tests/test_llm_cancel_burst_operational.py`](../../tests/test_llm_cancel_burst_operational.py), [`tests/test_chat_async_llm_cancel.py`](../../tests/test_chat_async_llm_cancel.py), [`tests/test_chat_turn_abandon.py`](../../tests/test_chat_turn_abandon.py)) alongside verbal/touchpoint/MalAbs/operator metrics tests. Empirical pilot regression ([`tests/test_empirical_pilot_runner.py`](../../tests/test_empirical_pilot_runner.py)) lives in [`run_cursor_integration_gate.py`](../../scripts/eval/run_cursor_integration_gate.py) only — too slow for this focused vertical by default ([Issue #3](PLAN_IMMEDIATE_TWO_WEEKS.md) / [`EMPIRICAL_METHODOLOGY.md`](EMPIRICAL_METHODOLOGY.md)).
 
 ---
 
@@ -90,3 +90,4 @@ This proposal **justifies** a phased roadmap and records **evidence posture**: i
 
 - **2026-04-14:** Initial roadmap (phases 1–5) aligned with integration track and weaknesses §1/§3.
 - **2026-04-16:** Phase 5 — [`run_llm_vertical_tests.py`](../../scripts/eval/run_llm_vertical_tests.py) includes cooperative-cancel tests through `test_chat_turn_abandon`; [`run_cursor_integration_gate.py`](../../scripts/eval/run_cursor_integration_gate.py) extends the gate with `test_empirical_pilot_runner` (Issue 3); [`CURSOR_CROSS_TEAM_INTEGRATION_GATE.md`](../collaboration/CURSOR_CROSS_TEAM_INTEGRATION_GATE.md) list aligned. Phase 3 — abandoned-turn metric + ADR 0002 alignment in [`OPERATOR_QUICK_REF.md`](OPERATOR_QUICK_REF.md).
+- **2026-04-17:** Phase 5 — [`run_llm_vertical_tests.py`](../../scripts/eval/run_llm_vertical_tests.py) includes [`test_llm_cancel_burst_operational.py`](../../tests/test_llm_cancel_burst_operational.py); operator burst smoke [`run_burst_cancel_smoke.py`](../../scripts/eval/run_burst_cancel_smoke.py); ADR 0002 documents burst concurrency path.

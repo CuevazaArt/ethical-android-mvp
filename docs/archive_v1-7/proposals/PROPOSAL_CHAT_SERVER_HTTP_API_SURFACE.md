@@ -1,5 +1,7 @@
 # Chat server — HTTP / REST-style JSON surface
 
+> **Canonical doc (use this for PRs / `AGENTS.md`):** [`docs/proposals/PROPOSAL_CHAT_SERVER_HTTP_API_SURFACE.md`](../../proposals/PROPOSAL_CHAT_SERVER_HTTP_API_SURFACE.md). This archive copy may lag.
+
 **Status:** Reference (implements **read-mostly** JSON over HTTP; primary UX is WebSocket).  
 **Language:** English (durable record per repository policy).  
 **Implementation:** [`src/chat_server.py`](../../src/chat_server.py) — FastAPI.

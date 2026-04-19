@@ -7,7 +7,7 @@ Run from repo root:
 Or: python -m src.chat_server
 Or: python -m src.runtime  (same server; see docs/proposals/README.md)
 
-**Profiles:** set ``ETHOS_RUNTIME_PROFILE`` to a name in ``src/runtime_profiles.py`` to merge that bundle at import time (explicit env vars win per key). ``GET /health`` and ``GET /`` include ``runtime_profile`` when set; ``GET /health`` also returns ``llm_degradation`` (resolved perception / verbal / monologue policies — see ``PROPOSAL_LLM_TOUCHPOINT_DEGRADATION_MATRIX.md``).
+**Profiles:** set ``ETHOS_RUNTIME_PROFILE`` to a name in ``src/runtime_profiles.py`` to merge that bundle at import time (explicit env vars win per key). ``GET /health`` and ``GET /`` include ``runtime_profile`` when set; ``GET /health`` also returns ``llm_degradation`` (resolved perception / verbal / monologue policies — see ``PROPOSAL_LLM_TOUCHPOINT_DEGRADATION_MATRIX.md``) and ``nomad_bridge`` (queue depths + telemetry **key names** from ``NomadBridge.public_queue_stats()`` — Module S.1 / S.2.1 observability).
 
 **Chat async bridge:** By default each turn runs ``EthicalKernel.process_chat_turn`` in a worker thread (``RealTimeBridge``) so the asyncio loop can accept other WebSocket connections. Optional ``KERNEL_CHAT_ASYNC_LLM_HTTP=1`` runs ``process_chat_turn_async`` on the event loop with async ``httpx`` for Ollama/HTTP JSON; the same per-turn cancel ``Event`` applies to the thread that runs ``EthicalKernel.process`` (cooperative exit + ``llm_http_cancel`` scope; see ADR 0002). Optional ``KERNEL_CHAT_THREADPOOL_WORKERS`` (positive int) uses a dedicated ``ThreadPoolExecutor`` for chat; optional ``KERNEL_CHAT_TURN_TIMEOUT`` (seconds) bounds the **async** wait and returns JSON ``error=chat_turn_timeout`` when exceeded (``abandon_chat_turn`` skips late STM; cooperative cancel for further sync LLM HTTP; in-flight HTTP cancel when async LLM is on). By default ``KERNEL_CHAT_JSON_OFFLOAD`` is on: WebSocket JSON (including optional ``KERNEL_LLM_MONOLOGUE``) is built in the same offload path so the loop is not blocked after the turn. See ``src/real_time_bridge.py``, ADR 0002, and ``docs/proposals/README.md``.
 
@@ -22,12 +22,15 @@ Conduct guide export (optional): KERNEL_CONDUCT_GUIDE_EXPORT_PATH — JSON on We
 
 Situated v8 (optional): KERNEL_SENSOR_FIXTURE (path to JSON), KERNEL_SENSOR_PRESET (name from
 perceptual_abstraction.SENSOR_PRESETS) — merged before client ``sensor`` JSON; see PROPOSAL_SITUATED_ORGANISM_V8.md.
+Optional ``KERNEL_SENSOR_INPUT_STRICT=1`` rejects unknown keys / bad types in the merged sensor object
+(``error=sensor_payload_invalid`` on WebSocket); see PROPOSAL_SENSOR_FUSION_NORMALIZATION.md.
 
 Multimodal thresholds (optional): KERNEL_MULTIMODAL_AUDIO_STRONG, KERNEL_MULTIMODAL_VISION_SUPPORT,
 KERNEL_MULTIMODAL_SCENE_SUPPORT, KERNEL_MULTIMODAL_VISION_CONTRADICT, KERNEL_MULTIMODAL_SCENE_CONTRADICT
 — see README / multimodal_trust.thresholds_from_env.
 
 Vitality (optional): KERNEL_VITALITY_CRITICAL_BATTERY, KERNEL_CHAT_INCLUDE_VITALITY — see vitality.py.
+Nomad S.2.1: ``KERNEL_NOMAD_TELEMETRY_VITALITY`` (default on) merges last Nomad ``telemetry`` into the sensor snapshot before vitality when fields are missing — see ``vitality.merge_nomad_telemetry_into_snapshot``.
 
 Guardian Angel (optional, opt-in): KERNEL_GUARDIAN_MODE=1 enables protective tone in LLM layer only;
 KERNEL_CHAT_INCLUDE_GUARDIAN — omit ``guardian_mode`` key from JSON if 0. KERNEL_GUARDIAN_ROUTINES,
@@ -107,6 +110,9 @@ field is omitted from content (empty string) and LLM embellishment is skipped.
 Homeostasis UX (pilar 4): KERNEL_CHAT_INCLUDE_HOMEOSTASIS — if 0/false/no/off, omit
 ``affective_homeostasis`` (σ / strain / PAD advisory; does not change decisions).
 
+Embodied sociability S10: KERNEL_CHAT_INCLUDE_TRANSPARENCY_S10 — if 0/false/no/off, omit
+``transparency_s10`` (S10.1 narration, S10.2 withdrawal / non-intervention hints, S10.3 discomfort throttle, S10.4 help-request codes; see ``src/modules/transparency_s10.py``). Optional signal key ``silence`` in the merged perception/sensor path refines S10.2 when present.
+
 Experience digest (pilar 3): KERNEL_CHAT_INCLUDE_EXPERIENCE_DIGEST — if 0, omit
 ``experience_digest`` (semantic line from last Ψ Sleep; additive, not a policy change).
 """
@@ -184,6 +190,7 @@ from .modules.nomad_identity import nomad_identity_public
 from .modules.perception_schema import perception_report_from_dict
 from .modules.perceptual_abstraction import snapshot_from_layers
 from .modules.reparation_vault import maybe_register_reparation_after_mock_court
+from .modules.sensor_contracts import SensorPayloadValidationError
 from .observability.context import clear_request_context, set_request_id
 from .observability.logging_setup import configure_logging
 from .observability.metrics import (
@@ -425,6 +432,12 @@ def _chat_include_malabs_trace() -> bool:
     from .chat_settings import chat_server_settings
 
     return chat_server_settings().kernel_chat_include_malabs_trace
+
+
+def _chat_include_transparency_s10() -> bool:
+    """Embodied sociability S10.1/S10.3/S10.4 — ``transparency_s10`` in WebSocket JSON (default on)."""
+    v = os.environ.get("KERNEL_CHAT_INCLUDE_TRANSPARENCY_S10", "1").strip().lower()
+    return v not in ("0", "false", "no", "off")
 
 
 def _env_truthy(name: str, default: bool = False) -> bool:
@@ -782,6 +795,30 @@ def _chat_turn_to_jsonable(r: ChatTurnResult, kernel: EthicalKernel) -> dict[str
             }
         if _chat_include_homeostasis():
             out["affective_homeostasis"] = homeostasis_telemetry(d)
+        if _chat_include_transparency_s10():
+            from src.modules.transparency_s10 import build_transparency_s10_bundle
+
+            sig: dict[str, Any] = {}
+            if r.perception:
+                p = r.perception
+                sig = {
+                    "risk": float(getattr(p, "risk", 0.0) or 0.0),
+                    "hostility": float(getattr(p, "hostility", 0.0) or 0.0),
+                    "calm": float(getattr(p, "calm", 0.5) or 0.5),
+                    "manipulation": float(getattr(p, "manipulation", 0.0) or 0.0),
+                    "silence": float(getattr(p, "silence", 0.0) or 0.0),
+                }
+            pc_score = None
+            if r.perception_confidence is not None:
+                pc_score = float(r.perception_confidence.to_public_dict().get("score", 0.0))
+            out["transparency_s10"] = build_transparency_s10_bundle(
+                d,
+                signals=sig,
+                perception=r.perception,
+                verbal_degraded=bool(r.verbal_llm_degradation_events),
+                metacognitive_doubt=bool(r.metacognitive_doubt),
+                perception_confidence_score=pc_score,
+            )
     if r.narrative:
         n = r.narrative
         out["narrative"] = {
@@ -930,6 +967,10 @@ def health() -> dict[str, Any]:
             "monologue": resolve_monologue_llm_backend_policy(),
         },
     }
+
+    from .modules.nomad_bridge import get_nomad_bridge
+
+    out["nomad_bridge"] = get_nomad_bridge().public_queue_stats()
     return out
 
 
@@ -2490,9 +2531,21 @@ async def ws_chat(ws: WebSocket) -> None:
                     )
                 except: pass
 
-            # ══ Standard Chat Turn ══
+            sensor_raw = data.get("sensor")
+            client = sensor_raw if isinstance(sensor_raw, dict) else None
+            fixture = os.environ.get("KERNEL_SENSOR_FIXTURE", "").strip() or None
+            preset = os.environ.get("KERNEL_SENSOR_PRESET", "").strip() or None
+            try:
+                sensor_snapshot = snapshot_from_layers(
+                    fixture_path=fixture,
+                    preset_name=preset,
+                    client_dict=client,
+                )
+            except SensorPayloadValidationError as e:
+                await ws.send_json({"error": "sensor_payload_invalid", "detail": str(e)})
+                continue
+
             if not text_preview:
-                await ws.send_json({"error": "empty_text"})
                 continue
 
             # Start new turn, cancelling previous if necessary (Serial Turns)

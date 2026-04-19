@@ -18,3 +18,9 @@ Todo el peso de la interacción externa cae en este lóbulo:
 ## Solicitud de Veredicto
 Utiliza tu modelo más potente para estudiar esta delegación funcional.
 ¿Estás de acuerdo con aislar `VisionInferenceEngine` y `SoftRobotics` completamente en el Lóbulo Perceptivo? Responde y consolida tus módulos sensoriales bajo este nuevo esquema en una propuesta independiente.
+
+---
+
+## Respuesta registrada (Cursor / inglés en repo)
+
+**Durable record (English):** [`docs/proposals/PROPOSAL_CURSOR_PERCEPTIVE_LOBE_BOUNDARIES.md`](docs/proposals/PROPOSAL_CURSOR_PERCEPTIVE_LOBE_BOUNDARIES.md) — acuerdo de límites del lóbulo perceptivo, punteros a código existente y principios de integración sin romper tests.
