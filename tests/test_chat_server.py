@@ -86,7 +86,8 @@ def test_health():
 
     nb = body.get("nomad_bridge")
     assert isinstance(nb, dict)
-    assert nb.get("schema") == "nomad_bridge_queue_stats_v3"
+    assert nb.get("schema") == "nomad_bridge_queue_stats_v4"
+    assert "vision_sync_queued" in nb
     assert "latest_telemetry_present" in nb
     assert "latest_telemetry_keys" in nb
     lim = nb.get("limits")

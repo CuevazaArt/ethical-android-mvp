@@ -9,7 +9,8 @@ WebSocket JSON events (client → server):
 
 Server → client: ``type: charm_feedback``, ``payload``: charm vector dict (from kernel).
 
-``NomadVisionConsumer`` in ``vision_adapter.py`` drains ``vision_queue``; audio adapter drains ``audio_queue``.
+``NomadVisionConsumer`` in ``vision_adapter.py`` drains ``vision_queue`` (async); audio adapter drains ``audio_queue``.
+``vision_queue_threadsafe`` mirrors accepted JPEG bytes for synchronous consumers (e.g. ``VisionContinuousDaemon`` in ``vision_inference.py``) because ``asyncio.Queue`` is not thread-safe off the event loop.
 
 When ``KERNEL_METRICS=1``, rejections and queue evictions are also mirrored to Prometheus
 (``ethos_kernel_nomad_bridge_rejections_total``, ``ethos_kernel_nomad_bridge_queue_evictions_total``).
@@ -37,6 +38,7 @@ import logging
 import math
 import os
 import struct
+import queue
 import threading
 from typing import Any
 
@@ -131,8 +133,12 @@ class NomadBridge:
     """
 
     def __init__(self):
-        # Bounded queues throttle bursty mobile uplinks
-        self.vision_queue: asyncio.Queue[bytes] = asyncio.Queue(maxsize=5)
+        # Vision uses a thread-safe ``queue.Queue`` so ``VisionContinuousDaemon`` (kernel thread)
+        # and ``NomadVisionConsumer`` (asyncio) can share the same buffer without asyncio.Queue
+        # cross-thread hazards.
+        self.vision_queue: queue.Queue[bytes] = queue.Queue(maxsize=5)
+        # Mirror of vision JPEG bytes for sync threads (Module 9.1 — VisionContinuousDaemon).
+        self.vision_queue_threadsafe: queue.Queue[bytes] = queue.Queue(maxsize=5)
         self.audio_queue: asyncio.Queue[bytes] = asyncio.Queue(maxsize=30)
         self.telemetry_queue: asyncio.Queue[dict[str, Any]] = asyncio.Queue(maxsize=10)
         self.charm_feedback_queue: asyncio.Queue[dict[str, Any]] = asyncio.Queue(maxsize=10)
@@ -218,6 +224,21 @@ class NomadBridge:
 
         record_nomad_bridge_queue_eviction(key)
 
+    def _mirror_vision_jpeg_to_threadsafe(self, jpeg_bytes: bytes) -> None:
+        """Copy an accepted JPEG into ``vision_queue_threadsafe`` (drop-oldest when full)."""
+        q = self.vision_queue_threadsafe
+        try:
+            q.put_nowait(jpeg_bytes)
+        except queue.Full:
+            try:
+                q.get_nowait()
+            except queue.Empty:
+                pass
+            try:
+                q.put_nowait(jpeg_bytes)
+            except queue.Full:
+                pass
+
     def public_queue_stats(self) -> dict[str, Any]:
         """JSON-safe queue depths for operators (GET /metrics hooks, health dashboards).
 
@@ -234,8 +255,9 @@ class NomadBridge:
             rejections = dict(self._rejections)
             evictions = dict(self._queue_evictions)
         return {
-            "schema": "nomad_bridge_queue_stats_v3",
+            "schema": "nomad_bridge_queue_stats_v4",
             "vision_queued": self.vision_queue.qsize(),
+            "vision_sync_queued": self.vision_queue_threadsafe.qsize(),
             "vision_max": self.vision_queue.maxsize,
             "audio_queued": self.audio_queue.qsize(),
             "audio_max": self.audio_queue.maxsize,
@@ -296,6 +318,7 @@ class NomadBridge:
                         continue
                     if jpeg_bytes and len(jpeg_bytes) <= lim:
                         self.vision_queue.put_nowait(jpeg_bytes)
+                        self._mirror_vision_jpeg_to_threadsafe(jpeg_bytes)
                         frame_count += 1
                         if frame_count % 10 == 0:
                             _log.debug("Nomad Bridge: received %d vision frames", frame_count)

@@ -62,11 +62,11 @@ Ningún agente debe saltar a tareas de la cola de otro equipo.
   - Tarea 8.1.2: Refactorización y embellecimiento de las salidas ANSI de terminal para facilitar el modo de depuración de operadores locales.
   - Tarea 8.1.3: Extender mocks para *input_trust* (ej. Caracteres homoglyphs cirílicos para evadir la puerta de Absoluto Mal).
 
-### ⚪ Módulo 9: Nomadismo Perceptivo (streaming) — visión continua [PENDING]
+### ⚪ Módulo 9: Nomadismo Perceptivo (streaming) — visión continua [DONE]
 *Responsabilidad prioritaria Team Cursor en el árbol histórico; coordinar con L1 antes de duplicar pipelines.*
 
-- **Bloque 9.1: Daemon de Visión Continua (CNN/Webcam) [PENDING]**
-  - Tarea 9.1.1: Modificar `VisionInferenceEngine` para crear un stream en background que clasifique entidades a ~5Hz con pre-procesamiento asíncrono (ver también cola Rojo / hardware bridge arriba).
+- **Bloque 9.1: Daemon de Visión Continua (CNN/Webcam) [DONE]**
+  - Tarea 9.1.1: `VisionInferenceEngine.analyze_jpeg_bytes` + ``VisionContinuousDaemon`` (~5 Hz, ``KERNEL_VISION_DAEMON_HZ``) con inferencia en ``ThreadPoolExecutor``; cola espejo thread-safe ``NomadBridge.vision_queue_threadsafe`` (``nomad_bridge_queue_stats_v4`` / ``vision_sync_queued``). Tests: [`tests/test_vision_continuous_daemon.py`](../../tests/test_vision_continuous_daemon.py).
 
 ---
 
