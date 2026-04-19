@@ -1,40 +1,24 @@
-# Task Synchronization and Block Adoption (Rule: SYNC-TASKS-01)
+# PnP Swarm Synchronization & Territorial Execution (Rule: SWARM-SYNC-02)
 
 ## Context
-In a multi-agent or multi-human collaboration, prevents fragmentation and ensures contiguous development of critical features.
+In a multi-agent environment (Cursor, Copilot, etc.), executing concurrent work leads to context saturation and "Merge Hell". This protocol defines stateless scaling through spatial partitioning.
 
 ## Rules
 
-### 1. Team Onboarding (Prerequisite)
-If you are a new team or agent (e.g., `pycharm`, `visualstudio`), you MUST NOT adopt a task until you have:
-1. Introduced yourself in the project logs/chat.
-2. Created your `master-<team>` branch from `main`.
-3. Reviewed the current roadmap or plan documents.
+### 1. PnP Agent Wake-Up & Registration
+If you act as an execution unit in this session, upon starting:
+1. **Identify Yourself:** Identify your assigned identity from the prompt (e.g., `Cursor-Alpha`, `Copilot-Shield`) and act under that Persona.
+2. **Accept Boundaries:** You MUST operate exclusively within your assigned spatial territory (e.g., specific files or a single directory). You are FORBIDDEN from editing external files.
+3. **Log Registration:** Instead of modifying `CHANGELOG.md`, register your start and updates entirely in `docs/changelogs_l2/<Your-Callsign>.md`. **Never edit `CHANGELOG.md` directly.**
 
-### 2. Shift Registration and Availability
-Whenever an agent/team begins a session or returns from being away, they MUST register their status as `AVAILABLE` or `WORKING` in the session log or `CHANGELOG.md` notes. 
-If a team goes offline, it must be reported (either by the agent/team itself, or explicitly notified by **Juan** if a team is suspended "until further notice").
+### 2. Boy Scout Hardening (Vertical Priority)
+Inside your assigned territory, execute proactively:
+- **Harden-In-Place:** Fill gaps, add Python typing annotations, add error handling (`try/except`) in weak execution paths.
+- **Vertical Escalation:** Favor making a component secure/robust over simply functionally complete. Do not ask for permission to add security measures or logging to your assigned component.
 
-### 3. Mandatory Plan Review
-Every participant MUST review the current active plan (e.g., `docs/proposals/PLAN_*.md`) and the project `CHANGELOG.md` upon starting a session or switching tasks.
+### 3. Blind Execution (Sovereignty)
+- Do NOT read or wait for other agents' branches.
+- If your code requires an interface function from another module that hasn't been built yet, **write a mock (stub) or a TODO and use it**. NEVER step outside your territory to build the dependency yourself.
 
-### 4. Contiguous Block Adoption
-- Select a task marked as **PENDING** from the project's task blocks.
-- Register ownership by updating the plan with "Adoptado por: [Nombre]" and the current date.
-- **Commitment:** You must NOT abandon an adopted block until it is marked as **COMPLETADO** or a blocking issue is formally documented.
-
-### 5. Progressive Handover
-Upon completion of a block:
-1.  Document relevant implementation details in the plan's "Registro de Progreso".
-2.  Update `CHANGELOG.md` with a summary of the change.
-3.  Immediately adopt the next logical pending block if availability allows.
-
-### 6. Communication Channel
-All technical comments, blockers, or coordination notes must be recorded in the specific **Plan document** to maintain a single source of truth for that feature's lifecycle.
-
-### 7. Promotion to Main (Linearization Ritual)
-Promotion from any `master-*` branch to `main` must follow this linear path:
-1.  **Peer-to-Peer Pulse:** `master-*` branches merge from each other upon block completion (if tests pass).
-2.  **Linear Funnel:** `master-<team>` merges into `master-antigravity`.
-3.  **Stabilization:** Feature freeze in `master-antigravity`; only stability patches allowed.
-4.  **L0 Approval:** Juan must authorize the final promotion to production.
+### 4. Switch to Mono-Agent (Fallback Mode)
+If the prompt explicitly states "Return to Mono-Agent Mode" or "Core Density", lift territorial rules. You lose your specific callsign boundary and return to acting as a holistic single agent (Cross-team integration), prioritizing token conservation.
