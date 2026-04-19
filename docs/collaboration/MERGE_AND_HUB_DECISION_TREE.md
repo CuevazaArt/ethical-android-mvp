@@ -2,6 +2,8 @@
 
 **Purpose:** Remove ambiguity between **your team integration hub**, **peer `master-*` hubs**, and **Antigravity staging** before `main`. Complements [`MULTI_OFFICE_GIT_WORKFLOW.md`](MULTI_OFFICE_GIT_WORKFLOW.md) Rule C-1 and [`.cursor/rules/collaboration-prioritization.mdc`](../../.cursor/rules/collaboration-prioritization.mdc).
 
+**Umbrella label:** The normative bundle described here (plus MERGE-PREVENT-01 in [`AGENTS.md`](../../AGENTS.md)) is also called **MER V2** — see [`MER_V2_POSTULATE.md`](MER_V2_POSTULATE.md) for definition, critique, and cross-`master-*` sync checklist.
+
 **Authority:** Promotion to **`main`** is **only** with **Juan (L0)** approval per [`CONTRIBUTING.md`](../../CONTRIBUTING.md) and collaboration rules.
 
 ---
@@ -79,6 +81,12 @@ Use a **prefix** so `git log --oneline` distinguishes sync noise from promotion 
 | `merge(sync): …` | Catching up **peer** `master-*` (Rule C-1). |
 | `merge(integration): …` | Merging **from** `master-antigravity` (or L1 staging) **into** a team hub **after** L1 stabilization—*promotion prep*, not routine peer drift. |
 | `merge(main): …` | Refreshing your hub **from** `origin/main` to align with production. |
+
+---
+
+## L0 relay — workflow cadence (Antigravity)
+
+**Juan (L0)** asks that collaboration **stay efficient and kept up to date** (docs + rituals), with **Antigravity (L1)** steering consolidation without weakening governance. Cursor relays that intent here: [**`L0_WORKFLOW_CONTINUOUS_IMPROVEMENT_RELAY.md`**](L0_WORKFLOW_CONTINUOUS_IMPROVEMENT_RELAY.md).
 
 ---
 

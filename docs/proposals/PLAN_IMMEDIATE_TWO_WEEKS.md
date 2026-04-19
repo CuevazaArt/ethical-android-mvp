@@ -84,13 +84,13 @@ This file is the **repo-local execution backlog**. **GitHub milestones, assignee
 
 ### 1. Env combo validation (Issue #7)
 
-**Status in repo:** [`src/validators/env_policy.py`](../../src/validators/env_policy.py) implements `SUPPORTED_COMBOS`, `collect_env_violations`, `validate_kernel_env`; [`src/chat_server.py`](../../src/chat_server.py) runs validation after profile merge.
+**Status (April 2026):** Closed for the **two-week** checklist — [`KERNEL_ENV_POLICY.md`](KERNEL_ENV_POLICY.md) **Implementation status** table; [`src/validators/env_policy.py`](../../src/validators/env_policy.py) (`SUPPORTED_COMBOS`, `collect_env_violations`, `validate_kernel_env`, `DEPRECATION_ROADMAP`); [`src/chat_server.py`](../../src/chat_server.py) validates after profile merge; [`tests/test_env_policy.py`](../../tests/test_env_policy.py) + CI **windows-smoke** ([`.github/workflows/ci.yml`](../../.github/workflows/ci.yml)).
 
 | Task | Done when |
 |------|-----------|
 | Confirm **strict** path tested | [`tests/test_env_policy.py`](../../tests/test_env_policy.py) (`mode="strict"`); CI **windows-smoke** runs the same module ([`.github/workflows/ci.yml`](../../.github/workflows/ci.yml)) |
 | Document operator workflow | [KERNEL_ENV_POLICY.md](KERNEL_ENV_POLICY.md); [README.md](../../README.md) § *Environment validation*; `ethos config --strict` ([`CONTRIBUTING.md`](../../CONTRIBUTING.md)) |
-| Expand `DEPRECATION_ROADMAP` | First **real** entry when a flag is scheduled (see P2) |
+| Expand `DEPRECATION_ROADMAP` | First **real** entry when a flag is scheduled (see P2) — roadmap dict populated in [`env_policy.py`](../../src/validators/env_policy.py); full strings in [`deprecation_warnings.py`](../../src/validators/deprecation_warnings.py) |
 
 ### 2. Labeled scenarios + baselines (Issue #3)
 
@@ -109,11 +109,13 @@ This file is the **repo-local execution backlog**. **GitHub milestones, assignee
 
 ## P2 — Polish (spillover acceptable)
 
+**Status (April 2026):** Baseline P2 docs/tests tightened — Compose verification includes `/health` `metrics_enabled` vs `/metrics` codes; [`REPOSITORY_LAYOUT.md`](../REPOSITORY_LAYOUT.md) states no in-repo `landing/` + static surfaces under `src/static/`; [KERNEL_ENV_POLICY.md](KERNEL_ENV_POLICY.md) §4 matches populated `DEPRECATION_ROADMAP` / `DEPRECATED_FLAGS` + bidirectional sync test.
+
 | Item | Pointer |
 |------|---------|
-| **Prometheus / structured logging** | [ADR 0008](../adr/0008-runtime-observability-prometheus-and-logs.md), [`src/observability/`](../../src/observability/); **verification table** in [`docs/deploy/COMPOSE_PRODISH.md`](../deploy/COMPOSE_PRODISH.md) (`/health`, `/metrics` 200 vs 404 when disabled, compose `config` = CI) |
-| **End-to-end tests (kernel ↔ landing)** | Landing is **Next.js** — E2E is **manual or Playwright in `landing/`** (not kernel pytest). Add a **smoke checklist** in [REPOSITORY_LAYOUT.md](../REPOSITORY_LAYOUT.md) or landing README if missing. |
-| **Deprecation roadmap for flags** | [`DEPRECATION_ROADMAP`](../../src/validators/env_policy.py) + [KERNEL_ENV_POLICY.md](KERNEL_ENV_POLICY.md); first scheduled deprecation needs CHANGELOG + version bump policy |
+| **Prometheus / structured logging** | [ADR 0008](../adr/0008-runtime-observability-prometheus-and-logs.md), [`src/observability/`](../../src/observability/); **verification table** in [`docs/deploy/COMPOSE_PRODISH.md`](../deploy/COMPOSE_PRODISH.md) (`/health`, `/health.observability.metrics_enabled` vs `/metrics` 200/404, compose `config` = CI) |
+| **End-to-end tests (kernel ↔ landing)** | No **`landing/`** subtree here — E2E Playwright stays in an external frontend repo if used; kernel manual smoke in [REPOSITORY_LAYOUT.md](../REPOSITORY_LAYOUT.md). |
+| **Deprecation roadmap for flags** | [`DEPRECATION_ROADMAP`](../../src/validators/env_policy.py) ↔ [`DEPRECATED_FLAGS`](../../src/validators/deprecation_warnings.py) — same keys; [KERNEL_ENV_POLICY.md](KERNEL_ENV_POLICY.md) §4; removal = CHANGELOG + version string on flag (semver release optional while `pyproject` is `0.0.0`). |
 
 ---
 

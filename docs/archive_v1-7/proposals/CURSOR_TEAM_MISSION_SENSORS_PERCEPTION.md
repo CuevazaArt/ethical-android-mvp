@@ -87,8 +87,9 @@ An item is done only when all apply:
 |--------|-----------------|
 | Perception pipeline | [`PERCEPTION_VALIDATION.md`](PERCEPTION_VALIDATION.md), [`src/modules/llm_layer.py`](../../src/modules/llm_layer.py) |
 | Input trust + MalAbs | [`INPUT_TRUST_THREAT_MODEL.md`](INPUT_TRUST_THREAT_MODEL.md), [`MALABS_SEMANTIC_LAYERS.md`](MALABS_SEMANTIC_LAYERS.md), [`PROPOSAL_MALABS_SEMANTIC_THRESHOLD_EVIDENCE.md`](PROPOSAL_MALABS_SEMANTIC_THRESHOLD_EVIDENCE.md) |
-| Known perception gap | [`docs/WEAKNESSES_AND_BOTTLENECKS.md`](../WEAKNESSES_AND_BOTTLENECKS.md) (Section 3: unified degradation policy gap) |
+| Known inference limits | [`docs/WEAKNESSES_AND_BOTTLENECKS.md`](../WEAKNESSES_AND_BOTTLENECKS.md) §3 (Ollama failure modes; **operator surface** for LLM degradation is documented — touchpoint matrix + `KERNEL_LLM_GLOBAL_DEFAULT_POLICY`; **legacy prefix rename** still deferred) |
 | LLM touchpoint env precedence | [`PROPOSAL_LLM_TOUCHPOINT_DEGRADATION_MATRIX.md`](PROPOSAL_LLM_TOUCHPOINT_DEGRADATION_MATRIX.md), [`src/modules/llm_touchpoint_policies.py`](../../src/modules/llm_touchpoint_policies.py) |
+| Multimodal charm / conversational UX (digest) | [`PROPOSAL_MULTIMODAL_CHARM_ENGINE_DIGEST.md`](PROPOSAL_MULTIMODAL_CHARM_ENGINE_DIGEST.md) — maps presentation-tier “charm” concepts to kernel seams (`process_chat_turn`, verbal/monologue policies, lobes); P0 design record, not an implementation spec |
 | Situated model theory | [`PROPOSAL_SITUATED_ORGANISM_V8.md`](PROPOSAL_SITUATED_ORGANISM_V8.md) |
 | Contribution guardrails | [`CONTRIBUTING.md`](../../CONTRIBUTING.md), [`AGENTS.md`](../../AGENTS.md) |
 
@@ -113,10 +114,10 @@ The table below is the active starter queue for **`master-Cursor`** work.
 
 ### P0 (immediate, operator-facing risk)
 
-#### SP-P0-01 — Unified degradation policy for perception health *(landed — extend to all LLM touchpoints)*
+#### SP-P0-01 — Unified degradation policy for perception health *(landed — LLM touchpoint surface complete)*
 
 - **Source:** `WEAKNESSES_AND_BOTTLENECKS.md` Section 3 (explicit gap).
-- **Delivered (perception path):** [`PROPOSAL_PERCEPTION_BACKEND_DEGRADATION_POLICY.md`](PROPOSAL_PERCEPTION_BACKEND_DEGRADATION_POLICY.md), ``KERNEL_PERCEPTION_BACKEND_POLICY``, [`tests/test_perception_backend_policy.py`](../../tests/test_perception_backend_policy.py). **Remaining:** same operator-visible pattern for communicate / narrative / optional monologue when maintainers scope it.
+- **Delivered (perception path):** [`PROPOSAL_PERCEPTION_BACKEND_DEGRADATION_POLICY.md`](PROPOSAL_PERCEPTION_BACKEND_DEGRADATION_POLICY.md), ``KERNEL_PERCEPTION_BACKEND_POLICY``, [`tests/test_perception_backend_policy.py`](../../tests/test_perception_backend_policy.py). **Delivered (verbal / monologue + global fallback):** touchpoint keys, legacy keys, optional ``KERNEL_LLM_GLOBAL_DEFAULT_POLICY`` with resolver precedence and ``GET /health`` → ``llm_degradation`` ([`PROPOSAL_LLM_INTEGRATION_TRACK.md`](PROPOSAL_LLM_INTEGRATION_TRACK.md) **G-04 — closed**). **Remaining (non‑G‑04):** renaming every legacy ``KERNEL_PERCEPTION_*`` / ``KERNEL_VERBAL_*`` knob under one prefix is still **deferred** ([`WEAKNESSES_AND_BOTTLENECKS.md`](../WEAKNESSES_AND_BOTTLENECKS.md) §3).
 - **Track label:** `runtime-policy`
 - **Risk class:** `critical`
 - **Owner office:** Cursor (shared)
@@ -163,28 +164,30 @@ The table below is the active starter queue for **`master-Cursor`** work.
 
 ### P1 (next increment, architecture readiness)
 
-#### SP-P1-01 — Sensor adapter contract (pre-hardware integration seam)
+#### SP-P1-01 — Sensor adapter contract (pre-hardware integration seam) *[landed baseline]*
 
 - **Source:** pending module “Hardware integration” in `CONTRIBUTING.md`.
 - **Track label:** `sensor-fusion`
 - **Risk class:** `normal`
 - **Owner office:** Cursor (design + implementation)
-- **Target branch:** `cursor/sensors-adapter-contract`
+- **Target branch:** `cursor/sensors-adapter-contract` (merged via `master-Cursor`)
+- **Delivered:** [`SensorAdapter`](../../src/kernel_lobes/sensor_adapter.py) ABC + [`StubSensorAdapter`](../../src/kernel_lobes/sensor_adapter.py) / [`FixedSensorAdapter`](../../src/kernel_lobes/sensor_adapter.py); proposal [`PROPOSAL_SENSOR_ADAPTER_CONTRACT.md`](PROPOSAL_SENSOR_ADAPTER_CONTRACT.md); tests [`tests/test_kernel_lobes_stack.py`](../../tests/test_kernel_lobes_stack.py).
 - **Implementation target:**
   - Define the minimal sensor adapter interface needed by perception without coupling to one transport/vendor.
   - Add deterministic test doubles for local CI usage.
 - **Evidence links (start):**
   - [`PROPOSAL_SITUATED_ORGANISM_V8.md`](PROPOSAL_SITUATED_ORGANISM_V8.md)
   - [`src/modules/llm_layer.py`](../../src/modules/llm_layer.py)
-  - [`tests/`](../../tests/)
+  - [`tests/test_kernel_lobes_stack.py`](../../tests/test_kernel_lobes_stack.py)
 
-#### SP-P1-02 — Sensor fusion input normalization profile
+#### SP-P1-02 — Sensor fusion input normalization profile *[landed baseline — design + tests]*
 
 - **Source:** situated model + perception consistency requirements.
 - **Track label:** `sensor-fusion`
 - **Risk class:** `normal`
 - **Owner office:** Cursor (design first)
-- **Target branch:** `cursor/sensors-fusion-normalization`
+- **Target branch:** `cursor/sensors-fusion-normalization` (merged via `master-Cursor`)
+- **Delivered:** [`PROPOSAL_SENSOR_FUSION_NORMALIZATION.md`](PROPOSAL_SENSOR_FUSION_NORMALIZATION.md) (canonical `SensorSnapshot.from_dict` → `merge_sensor_hints_into_signals` + multimodal doubt); optional **`KERNEL_SENSOR_INPUT_STRICT`** rejects unknown keys / bad types in merged WebSocket `sensor` payloads (`error=sensor_payload_invalid` with `detail`); regression coverage in [`tests/test_sensor_contracts.py`](../../tests/test_sensor_contracts.py) and [`tests/test_chat_server.py`](../../tests/test_chat_server.py).
 - **Implementation target:**
   - Specify canonical normalization for incoming sensor signals before they influence perception/risk signals.
   - Document failure handling and fallback posture for missing/noisy sensors.
@@ -216,9 +219,25 @@ The table below is the active starter queue for **`master-Cursor`** work.
 
 ## 9) Model-critical backlog (beyond sensors/perception)
 
-When perception P0 items are stable, **prioritize cross-cutting kernel/model risk** in this order (rationale and pointers): [`MODEL_CRITICAL_BACKLOG.md`](MODEL_CRITICAL_BACKLOG.md). It aligns [`CRITIQUE_ROADMAP_ISSUES.md`](CRITIQUE_ROADMAP_ISSUES.md) P0 rows with [`WEAKNESSES_AND_BOTTLENECKS.md`](../WEAKNESSES_AND_BOTTLENECKS.md) §3 (unified LLM degradation) and packaging/governance blockers.
+When perception P0 items are stable, **prioritize cross-cutting kernel/model risk** in this order (rationale and pointers): [`MODEL_CRITICAL_BACKLOG.md`](MODEL_CRITICAL_BACKLOG.md). It aligns [`CRITIQUE_ROADMAP_ISSUES.md`](CRITIQUE_ROADMAP_ISSUES.md) P0 rows with input trust, packaging/governance blockers, and [`WEAKNESSES_AND_BOTTLENECKS.md`](../WEAKNESSES_AND_BOTTLENECKS.md) §3 (inference limits; **G-04** operator surface for degradation is **closed** — see gap register).
 
 **LLM incorporation / adjacent layers / integration** (embedding vs completion, MalAbs semantic, `process_natural` observability, generative candidates): assigned gap register [`PROPOSAL_LLM_INTEGRATION_TRACK.md`](PROPOSAL_LLM_INTEGRATION_TRACK.md) (Cursor shared line).
+
+**Cross-team integration sprint (ADR 0015, I1–I5):** Landed — see [`PROPOSAL_INTEGRATION_SPRINT_I1_I5.md`](PROPOSAL_INTEGRATION_SPRINT_I1_I5.md) (weights snapshot, event bus weights updates, perception uncertainty, identity policy, temporal ETA).
+
+### Current Cursor execution slice (P1 backlog + ongoing maintenance)
+
+1. **Issue #3 (P1)** — **runner + docs aligned (April 2026):** [`scripts/run_empirical_pilot.py`](../../scripts/run_empirical_pilot.py) defaults to [`tests/fixtures/labeled_scenarios.json`](../../tests/fixtures/labeled_scenarios.json); [`EMPIRICAL_METHODOLOGY.md`](EMPIRICAL_METHODOLOGY.md) implementation status; slim [`empirical_pilot/scenarios.json`](../../tests/fixtures/empirical_pilot/scenarios.json) remains for identical outcomes. **Research backlog:** ablation / external panels — [`MODULE_IMPACT_AND_EMPIRICAL_GAP.md`](MODULE_IMPACT_AND_EMPIRICAL_GAP.md).
+2. **Issue #4 (P1)** — **core packaging boundary (April 2026):** [`tests/test_core_packaging_boundary_docs.py`](../../tests/test_core_packaging_boundary_docs.py) locks `pyproject.toml` entry points, empty `theater` marker, optional extras (`runtime`, `ml`, `vectors`, …), and `Documentation` URL → [`CORE_DECISION_CHAIN.md`](CORE_DECISION_CHAIN.md); [`docs/adr/0001-packaging-core-boundary.md`](../adr/0001-packaging-core-boundary.md). **Follow-up:** import-split / `ethos_kernel` package name — ADR 0001 §6, phased remediation.
+3. **Issue #7 (P1)** — **`KERNEL_*` policy / validation (April 2026):** [`KERNEL_ENV_POLICY.md`](KERNEL_ENV_POLICY.md) implementation status; [`src/validators/env_policy.py`](../../src/validators/env_policy.py); [`tests/test_env_policy.py`](../../tests/test_env_policy.py) (incl. `warn` path); CI **windows-smoke**. [`PLAN_IMMEDIATE_TWO_WEEKS.md`](PLAN_IMMEDIATE_TWO_WEEKS.md) § P1 Issue #7 marked closed for the checklist.
+4. **Presentation-layer digest (P0, April 2026):** [`PROPOSAL_MULTIMODAL_CHARM_ENGINE_DIGEST.md`](PROPOSAL_MULTIMODAL_CHARM_ENGINE_DIGEST.md) — multimodal conversational UX / “charm” stack mapped to kernel seams, guardrails (MalAbs, input trust, DAO/L0), and phased roadmap P0–P3; listed in [`PROPOSAL_LLM_INTEGRATION_TRACK.md`](PROPOSAL_LLM_INTEGRATION_TRACK.md) §4.
+
+### Next milestone (P2 polish + research backlog)
+
+- **Field test / smartphone (gating real-world slice):** First handset session follows [`PROPOSAL_FIELD_TEST_PLAN.md`](PROPOSAL_FIELD_TEST_PLAN.md) **§12** (F1 readiness) and [ADR 0017](../adr/0017-smartphone-sensor-relay-bridge.md). PC-side relay is behind `KERNEL_FIELD_CONTROL`; **next step is operator-led F1** (LAN pairing, `/phone` PWA) — not blocked on multimodal “charm” UX. Pending engineering: token-bucket rate limit in `RealTimeBridge` (ADR checklist), optional `tests/test_field_control.py`.
+- **P2 polish / ops (April 2026 baseline):** [`PLAN_IMMEDIATE_TWO_WEEKS.md`](PLAN_IMMEDIATE_TWO_WEEKS.md) § P2 status — Compose [`COMPOSE_PRODISH.md`](../deploy/COMPOSE_PRODISH.md) health/metrics cross-check; [`REPOSITORY_LAYOUT.md`](../REPOSITORY_LAYOUT.md) E2E + no `landing/` here; [`KERNEL_ENV_POLICY.md`](KERNEL_ENV_POLICY.md) §4 deprecation sync.
+- **P0 security (optional priority):** Issue **#2** input trust / MalAbs — [`PLAN_IMMEDIATE_TWO_WEEKS.md`](PLAN_IMMEDIATE_TWO_WEEKS.md) § P0; [`INPUT_TRUST_THREAT_MODEL.md`](INPUT_TRUST_THREAT_MODEL.md).
+- **Research / backlog (non-blocking):** LLM **legacy prefix rename** (single `KERNEL_LLM_*` for every old knob) — **not** G-04; tracked as deferred in [`WEAKNESSES_AND_BOTTLENECKS.md`](../WEAKNESSES_AND_BOTTLENECKS.md) §3 and [`PROPOSAL_LLM_INTEGRATION_TRACK.md`](PROPOSAL_LLM_INTEGRATION_TRACK.md). **G-04** (operator index + `KERNEL_LLM_GLOBAL_DEFAULT_POLICY` + `llm_degradation` health) is **closed**. Peripheral **ablation** — [`MODULE_IMPACT_AND_EMPIRICAL_GAP.md`](MODULE_IMPACT_AND_EMPIRICAL_GAP.md).
 
 ## 10) Ready-to-use task card examples
 
@@ -230,7 +249,7 @@ Source: docs/WEAKNESSES_AND_BOTTLENECKS.md §3
 Track label: runtime-policy
 Risk class: critical
 Redundancy check: open issue/PR scan + docs/proposals scan
-Owner office: cursor-team (shared)
+Owner office: Cursor (shared; integrate via `master-Cursor`)
 Target branch: cursor/perception-backend-degradation-policy
 Definition of done:
 - Named defaults documented

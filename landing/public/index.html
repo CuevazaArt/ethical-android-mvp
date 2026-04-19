@@ -1,0 +1,403 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Ethos Kernel — Open kernel for artificial ethical agency by MoSex Macchina Lab">
+  <meta name="robots" content="index, follow">
+  <title>Ethos Kernel — MoSex Macchina Lab</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg:       #0d0f14;
+      --surface:  #161b24;
+      --surface2: #1e2535;
+      --border:   rgba(255,255,255,0.07);
+      --text:     #e2e8f0;
+      --muted:    #8892a4;
+      --accent:   #38bdf8;
+      --green:    #34d399;
+      --yellow:   #fbbf24;
+      --purple:   #a78bfa;
+    }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      line-height: 1.65;
+    }
+
+    /* ── Nav ── */
+    nav {
+      position: sticky; top: 0; z-index: 50;
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 0.75rem 2rem;
+      background: rgba(13,15,20,0.92);
+      backdrop-filter: blur(12px);
+      border-bottom: 1px solid var(--border);
+    }
+    .nav-logo { font-weight: 800; font-size: 1.1rem; letter-spacing: -0.02em; }
+    .nav-logo span { color: var(--accent); }
+    .nav-links { display: flex; gap: 1.5rem; list-style: none; }
+    .nav-links a { color: var(--muted); text-decoration: none; font-size: 0.9rem; transition: color 0.2s; }
+    .nav-links a:hover { color: var(--text); }
+    .nav-cta {
+      padding: 0.4rem 1rem;
+      background: var(--accent); color: #0d0f14;
+      border-radius: 6px; font-size: 0.85rem; font-weight: 700;
+      text-decoration: none; transition: opacity 0.15s;
+    }
+    .nav-cta:hover { opacity: 0.85; }
+
+    /* ── Hero ── */
+    .hero {
+      text-align: center;
+      padding: 5rem 2rem 4rem;
+      max-width: 840px;
+      margin: 0 auto;
+    }
+    .badge-pill {
+      display: inline-flex; align-items: center; gap: 0.4rem;
+      padding: 0.25rem 0.75rem;
+      border-radius: 999px;
+      background: rgba(56,189,248,0.1);
+      border: 1px solid rgba(56,189,248,0.25);
+      color: var(--accent);
+      font-size: 0.78rem; font-weight: 600;
+      letter-spacing: 0.05em; text-transform: uppercase;
+      margin-bottom: 1.5rem;
+    }
+    h1 {
+      font-size: clamp(2rem, 5vw, 3.5rem);
+      font-weight: 800; letter-spacing: -0.03em;
+      line-height: 1.15;
+      margin-bottom: 1.25rem;
+    }
+    h1 .grad {
+      background: linear-gradient(135deg, var(--accent) 0%, var(--purple) 100%);
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+    .hero p {
+      font-size: 1.15rem; color: var(--muted); max-width: 600px; margin: 0 auto 2rem;
+    }
+    .hero-actions { display: flex; gap: 0.75rem; justify-content: center; flex-wrap: wrap; }
+    .btn-hero {
+      padding: 0.65rem 1.5rem;
+      border-radius: 8px; font-size: 0.95rem; font-weight: 700;
+      text-decoration: none; transition: all 0.2s;
+    }
+    .btn-hero-primary {
+      background: var(--accent); color: #0d0f14;
+    }
+    .btn-hero-primary:hover { opacity: 0.85; transform: translateY(-1px); }
+    .btn-hero-ghost {
+      border: 1px solid var(--border); color: var(--text);
+    }
+    .btn-hero-ghost:hover { border-color: var(--accent); color: var(--accent); }
+
+    /* ── CI badges ── */
+    .badges { display: flex; gap: 0.5rem; justify-content: center; margin-top: 1.5rem; flex-wrap: wrap; }
+    .badges img { height: 20px; }
+
+    /* ── What it does ── */
+    section { padding: 4rem 2rem; max-width: 1100px; margin: 0 auto; }
+    h2 {
+      font-size: 1.7rem; font-weight: 700; letter-spacing: -0.02em;
+      margin-bottom: 0.5rem;
+    }
+    .section-lead { color: var(--muted); margin-bottom: 2.5rem; font-size: 1rem; }
+
+    .feature-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+      gap: 1.25rem;
+    }
+    .feature-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 1.4rem;
+    }
+    .feature-icon { font-size: 1.75rem; margin-bottom: 0.75rem; }
+    .feature-card h3 { font-size: 1rem; font-weight: 700; margin-bottom: 0.4rem; }
+    .feature-card p  { font-size: 0.85rem; color: var(--muted); }
+
+    /* ── Architecture ── */
+    .arch-block {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 1.5rem;
+      font-family: "SF Mono", "Fira Code", monospace;
+      font-size: 0.82rem;
+      color: var(--muted);
+      white-space: pre;
+      overflow-x: auto;
+      margin-bottom: 1.5rem;
+    }
+    .arch-block .hi { color: var(--green); }
+    .arch-block .acc { color: var(--accent); }
+    .arch-block .pur { color: var(--purple); }
+
+    /* ── Quick start ── */
+    .code-block {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 1rem 1.25rem;
+      font-family: "SF Mono", "Fira Code", monospace;
+      font-size: 0.82rem;
+      color: var(--text);
+      overflow-x: auto;
+      margin-bottom: 1rem;
+    }
+    .code-block .comment { color: var(--muted); }
+    .code-block .cmd     { color: var(--green); }
+
+    /* ── Metrics table ── */
+    .metric-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+      gap: 1rem;
+    }
+    .metric-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 1.1rem;
+      text-align: center;
+    }
+    .metric-value { font-size: 2rem; font-weight: 800; color: var(--accent); }
+    .metric-label { font-size: 0.8rem; color: var(--muted); margin-top: 0.25rem; }
+
+    /* ── Timeline ── */
+    .timeline { border-left: 2px solid var(--border); padding-left: 1.5rem; }
+    .tl-item { position: relative; padding-bottom: 1.5rem; }
+    .tl-item::before {
+      content: '';
+      position: absolute; left: -1.6rem; top: 0.35rem;
+      width: 10px; height: 10px;
+      border-radius: 50%;
+      background: var(--surface2);
+      border: 2px solid var(--accent);
+    }
+    .tl-item h3 { font-size: 0.9rem; font-weight: 700; margin-bottom: 0.25rem; }
+    .tl-item p  { font-size: 0.82rem; color: var(--muted); }
+    .tl-date    { font-size: 0.75rem; color: var(--accent); font-weight: 600; }
+
+    /* ── Footer ── */
+    footer {
+      border-top: 1px solid var(--border);
+      padding: 2rem;
+      text-align: center;
+      color: var(--muted);
+      font-size: 0.8rem;
+    }
+    footer a { color: var(--accent); text-decoration: none; }
+
+    @media (max-width: 640px) {
+      .nav-links { display: none; }
+      .hero { padding: 3rem 1rem 2rem; }
+    }
+  </style>
+</head>
+<body>
+
+<nav>
+  <div class="nav-logo">Ethos <span>Kernel</span></div>
+  <ul class="nav-links">
+    <li><a href="#what">What it does</a></li>
+    <li><a href="#quickstart">Quick start</a></li>
+    <li><a href="#architecture">Architecture</a></li>
+    <li><a href="#history">History</a></li>
+    <li><a href="dashboard.html">Live Demo</a></li>
+  </ul>
+  <a href="https://github.com/CuevazaArt/ethical-android-mvp" target="_blank" rel="noopener" class="nav-cta">GitHub →</a>
+</nav>
+
+<!-- ── Hero ── -->
+<div class="hero">
+  <div class="badge-pill">🔬 Research prototype · Apache 2.0</div>
+  <h1>Open kernel for<br><span class="grad">artificial ethical agency</span></h1>
+  <p>Traceable governance, narrative identity, LLM integration, and a real-time operator dashboard — all in Python.</p>
+  <div class="hero-actions">
+    <a href="#quickstart" class="btn-hero btn-hero-primary">Get started</a>
+    <a href="dashboard.html" class="btn-hero btn-hero-ghost">Live dashboard ↗</a>
+    <a href="https://github.com/CuevazaArt/ethical-android-mvp" target="_blank" rel="noopener" class="btn-hero btn-hero-ghost">GitHub ↗</a>
+  </div>
+  <div class="badges">
+    <a href="https://github.com/CuevazaArt/ethical-android-mvp/actions/workflows/ci.yml" target="_blank" rel="noopener">
+      <img src="https://github.com/CuevazaArt/ethical-android-mvp/actions/workflows/ci.yml/badge.svg?branch=main" alt="CI">
+    </a>
+    <a href="https://codecov.io/gh/CuevazaArt/ethical-android-mvp" target="_blank" rel="noopener">
+      <img src="https://codecov.io/gh/CuevazaArt/ethical-android-mvp/graph/badge.svg" alt="codecov">
+    </a>
+  </div>
+</div>
+
+<!-- ── Numbers ── -->
+<section>
+  <div class="metric-grid">
+    <div class="metric-card"><div class="metric-value">800+</div><div class="metric-label">pytest tests (CI: Python 3.11 / 3.12)</div></div>
+    <div class="metric-card"><div class="metric-value">104</div><div class="metric-label">Academic references across 14 disciplines</div></div>
+    <div class="metric-card"><div class="metric-value">v12</div><div class="metric-label">Current version — etosocial hub &amp; DAO</div></div>
+    <div class="metric-card"><div class="metric-value">3</div><div class="metric-label">Ethical hypotheses: utilitarian · deontological · virtue</div></div>
+  </div>
+</section>
+
+<!-- ── What it does ── -->
+<section id="what">
+  <h2>What it does</h2>
+  <p class="section-lead">A modular Python kernel that scores candidate actions using an explicit weighted mixture over three ethical viewpoints, with traceable governance, LLM perception, and real-time WebSocket chat.</p>
+  <div class="feature-grid">
+    <div class="feature-card">
+      <div class="feature-icon">🧠</div>
+      <h3>Ethical scoring engine</h3>
+      <p>Weighted mixture (utilitarian · deontological · virtue) with configurable linear pole modulation. Not a black-box neural net — every decision is auditable.</p>
+    </div>
+    <div class="feature-card">
+      <div class="feature-icon">🔒</div>
+      <h3>MalAbs safety gate</h3>
+      <p>Lexical + semantic (embedding) filter before any LLM input reaches the kernel. Optional LLM arbiter for ambiguous bands. Hash fallback when Ollama is unreachable.</p>
+    </div>
+    <div class="feature-card">
+      <div class="feature-icon">🌐</div>
+      <h3>WebSocket chat server</h3>
+      <p>FastAPI + uvicorn; JSON over <code>/ws/chat</code>. Per-session kernel state, async timeout, and optional dedicated thread pool. Full observable JSON output.</p>
+    </div>
+    <div class="feature-card">
+      <div class="feature-icon">🗂️</div>
+      <h3>Versioned persistence</h3>
+      <p>JSON / SQLite snapshots with schema migration, optional Fernet encryption, and conduct guide export for PC → edge handoff (nomadic bridge).</p>
+    </div>
+    <div class="feature-card">
+      <div class="feature-icon">⚖️</div>
+      <h3>Governance (MockDAO)</h3>
+      <p>In-process simulation of quadratic DAO voting, constitution drafts, judicial escalation, hub audit, and LAN batch merge — not on-chain, explicitly marked as research.</p>
+    </div>
+    <div class="feature-card">
+      <div class="feature-icon">📡</div>
+      <h3>Operator observability</h3>
+      <p>Prometheus metrics (<code>GET /metrics</code>), structured JSON logs, per-decision event lines, <code>GET /health</code> with LLM degradation map, and <code>ethos config</code> CLI cockpit.</p>
+    </div>
+    <div class="feature-card">
+      <div class="feature-icon">📱</div>
+      <h3>LAN / mobile client</h3>
+      <p>Serve <code>landing/public/</code> on the local network. Open <a href="mobile.html" style="color:var(--accent)">mobile.html</a> on a phone — lightweight WebSocket chat client.</p>
+    </div>
+    <div class="feature-card">
+      <div class="feature-icon">🛡️</div>
+      <h3>Guardian Angel (opt-in)</h3>
+      <p>Protective tone block injected into LLM layer. Does not change ethical policy. Optional care routines JSON. See <a href="guardian.html" style="color:var(--accent)">guardian.html</a>.</p>
+    </div>
+    <div class="feature-card">
+      <div class="feature-icon">📊</div>
+      <h3>Real-time dashboard</h3>
+      <p>Open <a href="dashboard.html" style="color:var(--accent)">dashboard.html</a> for live radar charts (ethical pole weights, perception confidence, governance state), chat, and health snapshot.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ── Quick start ── -->
+<section id="quickstart">
+  <h2>Quick start</h2>
+  <p class="section-lead">Python 3.11+ recommended. CI runs on 3.11 and 3.12.</p>
+
+  <div class="code-block">
+<span class="comment"># 1. Clone and install</span>
+<span class="cmd">git clone https://github.com/CuevazaArt/ethical-android-mvp.git</span>
+<span class="cmd">cd ethical-android-mvp</span>
+<span class="cmd">python -m venv .venv &amp;&amp; source .venv/bin/activate</span>
+<span class="cmd">pip install -r requirements.txt</span>
+<span class="cmd">pip install -r requirements-dev.txt  </span><span class="comment"># for tests + lints</span></div>
+
+  <div class="code-block">
+<span class="comment"># 2. Run the chat server</span>
+<span class="cmd">python -m src.chat_server</span>
+<span class="comment"># → http://127.0.0.1:8765/health   ws://127.0.0.1:8765/ws/chat</span></div>
+
+  <div class="code-block">
+<span class="comment"># 3. Open the dashboard (no npm needed)</span>
+<span class="comment"># Serve landing/public/ with any static server, e.g.:</span>
+<span class="cmd">python -m http.server 9000 --directory landing/public</span>
+<span class="comment"># → open http://localhost:9000/dashboard.html</span></div>
+
+  <div class="code-block">
+<span class="comment"># 4. Run the test suite</span>
+<span class="cmd">pytest tests/ -v</span>
+<span class="cmd">python -m ruff check src tests</span>
+<span class="cmd">python -m mypy src</span></div>
+
+  <div class="code-block">
+<span class="comment"># 5. Operator config cockpit (editable install required)</span>
+<span class="cmd">pip install -e .</span>
+<span class="cmd">ethos config --strict</span>
+<span class="cmd">python -m src.cli check-config</span></div>
+</section>
+
+<!-- ── Architecture ── -->
+<section id="architecture">
+  <h2>Architecture overview</h2>
+  <p class="section-lead">Every decision flows through a deterministic pipeline. LLM layers are optional accelerators, not the ethical authority.</p>
+  <div class="arch-block"><span class="hi">Input text</span>
+  │
+  ▼
+<span class="acc">MalAbs gate</span>  ←── Lexical substring filter
+  │           ←── Semantic embeddings (optional, hash fallback)
+  │           ←── LLM arbiter (optional, ambiguous band only)
+  │ PASS
+  ▼
+<span class="pur">LLM Perception</span> ─── risk / hostility / calm [0,1], clamped
+  │
+  ▼
+<span class="hi">EthicalKernel.process()</span>
+  ├── Weighted mixture scorer  (utilitarian · deontological · virtue)
+  ├── Ethical poles            (linear modulation, configurable JSON)
+  ├── Sigmoid will             (continuous decision function)
+  ├── Narrative memory         (identity + forgiveness)
+  ├── Uchi-Soto                (trust circles)
+  ├── Psi Sleep Ψ              (retrospective audit + recalibration)
+  └── MockDAO / hub            (advisory governance, not on-chain)
+  │
+  ▼
+<span class="acc">LLM Communicate</span>  ─── verbal response (optional)
+  │
+  ▼
+<span class="hi">WebSocket JSON</span>   ─── streamed to client</div>
+
+  <p style="color:var(--muted); font-size:0.85rem;">
+    Runtime profiles (<code>lan_operational</code>, <code>moral_hub_extended</code>, <code>llm_integration_lab</code>, …) group <code>KERNEL_*</code> env vars into tested bundles.
+    See <a href="https://github.com/CuevazaArt/ethical-android-mvp/blob/main/src/runtime_profiles.py" target="_blank" rel="noopener" style="color:var(--accent)">src/runtime_profiles.py</a>
+    and <a href="https://github.com/CuevazaArt/ethical-android-mvp/blob/main/docs/proposals/KERNEL_ENV_POLICY.md" target="_blank" rel="noopener" style="color:var(--accent)">KERNEL_ENV_POLICY.md</a>.
+  </p>
+</section>
+
+<!-- ── History ── -->
+<section id="history">
+  <h2>Version history</h2>
+  <p class="section-lead">From a Bayesian sketch to a full-stack ethical agent runtime.</p>
+  <div class="timeline">
+    <div class="tl-item"><div class="tl-date">March 2026</div><h3>v1 — Conceptual phase</h3><p>40+ design docs, 7-layer architecture, 104 academic references, Spanish prototype.</p></div>
+    <div class="tl-item"><div class="tl-date">March 2026</div><h3>v2 — Base kernel</h3><p>Absolute Evil, weighted scorer, ethical poles, sigmoid will, narrative memory. Single NumPy dependency.</p></div>
+    <div class="tl-item"><div class="tl-date">March 2026</div><h3>v3 — Integrated kernel</h3><p>Uchi-Soto trust circles, locus of control, Psi Sleep Ψ, MockDAO, variability. 38 tests.</p></div>
+    <div class="tl-item"><div class="tl-date">March 2026</div><h3>v4 — LLM layer</h3><p>Natural language without breaking kernel/communication separation. Ollama + Anthropic adapters.</p></div>
+    <div class="tl-item"><div class="tl-date">March–April 2026</div><h3>v5–v8 — Persistence, sensors, hub</h3><p>Versioned snapshots, multi-modal trust, situated v8, LAN thin clients, V12 moral hub.</p></div>
+    <div class="tl-item"><div class="tl-date">April 2026</div><h3>v9–v12 — Governance stack + operator hardening</h3><p>Judicial escalation, reality verification, LAN governance merge, Prometheus metrics, tri-lobe architecture, RLHF foundations, 800+ tests.</p></div>
+  </div>
+</section>
+
+<footer>
+  <p>
+    <strong>Ethos Kernel</strong> · MoSex Macchina Lab ·
+    <a href="https://github.com/CuevazaArt/ethical-android-mvp" target="_blank" rel="noopener">GitHub</a> ·
+    <a href="ethos-transparency.html">Transparency</a> ·
+    <a href="https://mosexmacchinalab.com" target="_blank" rel="noopener">mosexmacchinalab.com</a>
+  </p>
+  <p style="margin-top:0.5rem">Apache 2.0 license · Research prototype — not a certified safety boundary</p>
+</footer>
+
+</body>
+</html>

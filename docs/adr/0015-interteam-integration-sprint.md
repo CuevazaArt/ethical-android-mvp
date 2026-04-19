@@ -1,9 +1,9 @@
 # ADR 0015 — Inter-team Integration Sprint: Closing the Interlayer Gaps
 
 **Date:** 2026-04-14  
-**Status:** Active  
+**Status:** Accepted (implemented)  
 **Team:** Claude (proposer) | Affects: Antigravity, Cursor  
-**Branch:** master-claude
+**Branch:** Integration landed via `master-Cursor` / peer hubs (see [`PROPOSAL_INTEGRATION_SPRINT_I1_I5.md`](../proposals/PROPOSAL_INTEGRATION_SPRINT_I1_I5.md) land record).
 
 ---
 
@@ -165,6 +165,6 @@ P6 (codepath unification) is deferred until after this sprint is merged to `main
 - Confirm `TemporalContext` is available before `kernel.process()` calls `bayesian.evaluate()`
 
 **For Claude:**
-- Implement all five items in `master-claude`
+- Original plan: implement in `master-claude`; **as of April 2026** the sprint is merged on integration hubs — see proposal land record.
 - All new env vars default to backward-compatible values (off/None)
 - PRs to `main` should be coordinated after all three teams have reviewed

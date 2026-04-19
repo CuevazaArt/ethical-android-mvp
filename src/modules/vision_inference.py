@@ -102,32 +102,67 @@ class VisionContinuousDaemon:
         _log.info("VisionContinuousDaemon: Background streaming stopped.")
 
     def _daemon_loop(self):
-        """Loop de captura e inferencia continua."""
+        """Loop de captura e inferencia continua consumiendo del Nomad Bridge."""
+        from src.modules.nomad_bridge import get_nomad_bridge
+        bridge = get_nomad_bridge()
+        
+        _log.info("VisionContinuousDaemon: Loop entered. Waiting for frames from Nomad Bridge...")
+        
         while self.running:
             start_tick = time.perf_counter()
             
-            # En un entorno real, aquí llamaríamos a OpenCV / Webcam
-            # Por ahora simulamos la captura con un mock de metadatos ambientales
-            mock_frame = {"detected_objects": []} 
-            
-            # 1. Realizar Inferencia
-            detections = self.engine.analyze_image(mock_frame)
-            
-            # 2. Convertir a SensoryEpisode
-            episode = SensoryEpisode(
-                timestamp=time.time(),
-                origin="vision_daemon",
-                entities=[d.label for d in detections],
-                signals={
-                    "confidence": max([d.confidence for d in detections]) if detections else 1.0,
-                    "is_urgent": 1.0 if any(d.is_prohibited for d in detections) else 0.0
-                }
-            )
-            
-            # 3. Empujar al buffer del Lóbulo Perceptivo
-            self.absorption_callback(episode)
+            try:
+                # 1. Obtener frame del puente (bloqueo corto para no congelar stop)
+                # El bridge llena la cola desde el WebSocket del smartphone
+                frame_data = None
+                try:
+                    # Esperar un poco por un frame
+                    import asyncio
+                    # Nota: estamos en un thread, no en un event loop de asyncio. 
+                    # Pero la cola del bridge es asyncio.Queue. 
+                    # Necesitamos acceder a la cola de forma segura desde el thread.
+                    # El bridge usa asyncio.Queue que es para threads si se usa correctamente, 
+                    # pero aquí lo ideal es usar un mecanismo thread-safe si el bridge corre en el loop principal.
+                    
+                    # Como simplificación para V1.6, accedemos al loop si existe, 
+                    # o simplemente chequeamos si la cola tiene algo.
+                    if not bridge.vision_queue.empty():
+                        frame_data = bridge.vision_queue.get_nowait()
+                except Exception:
+                    pass
+
+                if frame_data:
+                    # 2. Extract signals (Phase 14: Real data from Nomad Bridge)
+                    # frame_data is now a dict {raw_bytes, meta, detections}
+                    meta = frame_data.get("meta", {})
+                    detections_raw = frame_data.get("detections", [])
+                    
+                    # Convert raw detections to model objects
+                    detections = self.engine.analyze_image({"detected_objects": detections_raw})
+                    
+                    # 3. Convert to SensoryEpisode with real signals
+                    episode = SensoryEpisode(
+                        timestamp=time.time(),
+                        origin="vision_daemon",
+                        entities=[d.label for d in detections],
+                        signals={
+                            "confidence": max([d.confidence for d in detections]) if detections else 1.0,
+                            "is_urgent": 1.0 if any(d.is_prohibited for d in detections) else 0.0,
+                            "threat_level": self.engine.get_highest_threat(detections).confidence if self.engine.get_highest_threat(detections) else 0.0,
+                            "human_presence": meta.get("human_presence", 0.0),
+                            "lip_movement": meta.get("lip_movement", 0.0),
+                            "user_focus": meta.get("user_focus", 0.5)
+                        }
+                    )
+                    
+                    # 4. Empujar al buffer del Lóbulo Perceptivo
+                    self.absorption_callback(episode)
+                
+            except Exception as e:
+                _log.error("VisionContinuousDaemon error in loop: %s", e)
             
             # Mantener la frecuencia de 5Hz
             elapsed = time.perf_counter() - start_tick
             sleep_time = max(0.01, self.polling_rate - elapsed)
             time.sleep(sleep_time)
+

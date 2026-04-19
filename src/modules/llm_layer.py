@@ -34,6 +34,7 @@ try:
 except ImportError:
     HAS_HTTPX = False
 
+from .llm_http_cancel import raise_if_llm_cancel_requested
 from ..observability.metrics import observe_llm_completion_seconds
 from .llm_backends import (
     AnthropicCompletion,
@@ -198,9 +199,9 @@ class VerbalResponse:
     """Verbal response the agent would say."""
 
     message: str
-    tone: str  # "urgent", "calm", "narrative", "firm"
-    hax_mode: str  # HAX signals: lights, gestures
-    inner_voice: str  # Internal reasoning (not visible to the human)
+    tone: str = "calm"  # "urgent", "calm", "narrative", "firm"
+    hax_mode: str = "Steady"  # HAX signals: lights, gestures
+    inner_voice: str = ""  # Internal reasoning (not visible to the human)
 
 
 @dataclass
@@ -263,6 +264,7 @@ Decision context:
 - Trust circle: {circle}
 - Ethical verdict: {verdict} (score={score})
 - Ethical leans: {leans}
+- Vitality status: {vitality}
 
 Communication rules:
 - D_fast mode (reflex): short, direct, clear phrases. Immediate action.
@@ -338,8 +340,10 @@ class LLMModule:
         *,
         llm_backend: LLMBackend | None = None,
         text_backend: TextCompletionBackend | None = None,
+        aclient: httpx.AsyncClient | None = None,
     ):
         self.client = None
+        self._aclient_internal = aclient
         self.model = "claude-sonnet-4-20250514"
         self.ollama_model = os.environ.get("OLLAMA_MODEL", "llama3.2:3b")
         self._llm_backend: LLMBackend | None = None
@@ -363,6 +367,7 @@ class LLMModule:
                 os.environ.get("OLLAMA_BASE_URL", "http://127.0.0.1:11434"),
                 self.ollama_model,
                 float(os.environ.get("OLLAMA_TIMEOUT", "120")),
+                aclient=self._aclient_internal,
             )
         elif self.mode in ("api", "auto"):
             api_key = os.environ.get("ANTHROPIC_API_KEY")
@@ -419,6 +424,7 @@ class LLMModule:
         temperature: float | None = None,
     ) -> str:
         """Route JSON-oriented prompts through the active LLM backend."""
+        raise_if_llm_cancel_requested()
         b = self._llm_backend
         if b is not None:
             t0 = time.perf_counter()
@@ -440,6 +446,7 @@ class LLMModule:
         temperature: float | None = None,
     ) -> str:
         """Async counterpart to :meth:`_llm_completion` (``httpx.AsyncClient`` on supported backends)."""
+        raise_if_llm_cancel_requested()
         b = self._llm_backend
         if b is not None:
             t0 = time.perf_counter()
@@ -853,6 +860,7 @@ class LLMModule:
         identity_context: str = "",
         guardian_mode_context: str = "",
         ethical_leans: dict[str, float] | None = None,
+        vitality_context: str = "",
     ) -> VerbalResponse:
         """
         Generate the agent's verbal response after a decision.
@@ -892,6 +900,7 @@ class LLMModule:
                 verdict=verdict,
                 score=score,
                 leans=ethical_leans if ethical_leans is not None else {},
+                vitality=vitality_context if vitality_context else "Nominal",
             )
             user_msg = f"Scenario: {scenario}"
             if conversation_context.strip():
@@ -997,6 +1006,7 @@ class LLMModule:
         identity_context: str = "",
         guardian_mode_context: str = "",
         ethical_leans: dict[str, float] | None = None,
+        vitality_context: str = "",
     ) -> VerbalResponse:
         """Async counterpart to :meth:`communicate` for cancellable HTTP."""
         mode_descs = {
@@ -1016,6 +1026,7 @@ class LLMModule:
                 verdict=verdict,
                 score=score,
                 leans=ethical_leans if ethical_leans is not None else {},
+                vitality=vitality_context if vitality_context else "Nominal",
             )
             user_msg = f"Scenario: {scenario}"
             if conversation_context.strip():
@@ -1120,6 +1131,8 @@ class LLMModule:
         salience_context: str = "",
         identity_context: str = "",
         guardian_mode_context: str = "",
+        ethical_leans: dict[str, float] | None = None,
+        vitality_context: str = "",
     ) -> AsyncGenerator[str, None]:
         """Async stream for verbal communication tokens."""
         if self.mode not in ("api", "ollama", "injected") or self._llm_backend is None:
@@ -1129,6 +1142,7 @@ class LLMModule:
                 weakness_line=weakness_line, reflection_context=reflection_context,
                 salience_context=salience_context, identity_context=identity_context,
                 guardian_mode_context=guardian_mode_context,
+                vitality_context=vitality_context,
             )
             yield json.dumps({
                 "message": resp.message,
@@ -1152,6 +1166,8 @@ class LLMModule:
             circle=circle,
             verdict=verdict,
             score=score,
+            leans=ethical_leans if ethical_leans is not None else {},
+            vitality=vitality_context if vitality_context else "Nominal",
         )
         user_msg = f"Scenario: {scenario}"
         if conversation_context.strip():
@@ -1179,6 +1195,7 @@ class LLMModule:
             )
 
         async for chunk in self._llm_backend.acompletion_stream(system, user_msg):
+            raise_if_llm_cancel_requested()
             yield chunk
 
     def _communicate_local(
@@ -1195,6 +1212,7 @@ class LLMModule:
         salience_context: str = "",
         identity_context: str = "",
         guardian_mode_context: str = "",
+        vitality_context: str = "",
     ) -> VerbalResponse:
         """Communication via templates without LLM."""
         readable_action = action.replace("_", " ")

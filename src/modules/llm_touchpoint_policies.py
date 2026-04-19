@@ -22,10 +22,9 @@ Precedence is documented in
 - Perception: ``KERNEL_PERCEPTION_BACKEND_POLICY``
 - Verbal: ``KERNEL_VERBAL_LLM_BACKEND_POLICY``
 
-**Optional unified fallback (after legacy, before built-in defaults):**
+**Optional unified fallback (after legacy keys, before built-in defaults):**
 
-- ``KERNEL_LLM_GLOBAL_DEFAULT_POLICY`` — single string; **each** resolver keeps only values valid for
-  that touchpoint (invalid or inapplicable values are ignored). See the degradation matrix.
+- ``KERNEL_LLM_GLOBAL_DEFAULT_POLICY`` — applied only when valid for the target resolver.
 
 Concrete validation and canned templates live in
 :mod:`perception_backend_policy`, :mod:`llm_verbal_backend_policy`, and :meth:`LLMModule` methods.
@@ -44,23 +43,40 @@ TOUCHPOINT_EMBEDDING = "embedding"
 
 ENV_VERBAL_FAMILY_POLICY = "KERNEL_LLM_VERBAL_FAMILY_POLICY"
 ENV_MONOLOGUE_BACKEND_POLICY = "KERNEL_LLM_MONOLOGUE_BACKEND_POLICY"
+ENV_GLOBAL_POLICY = "KERNEL_LLM_GLOBAL_POLICY"
+# Optional unified fallback after per-touchpoint / family / legacy keys (matrix step 4).
 ENV_LLM_GLOBAL_DEFAULT_POLICY = "KERNEL_LLM_GLOBAL_DEFAULT_POLICY"
 
 DEFAULT_MONOLOGUE_BACKEND_POLICY = "passthrough"
+
+MONOLOGUE_POLICIES = frozenset({"passthrough", "annotate_degraded"})
+
+GLOBAL_POLICY_SAFE = "safe"
 
 EMBEDDING_POLICIES = frozenset({"passthrough", "hash_fallback"})
 DEFAULT_EMBEDDING_BACKEND_POLICY = "hash_fallback"
 
 
-def raw_global_default_policy() -> str | None:
-    """Raw ``KERNEL_LLM_GLOBAL_DEFAULT_POLICY`` (lowercased), or ``None`` if unset."""
-    v = os.environ.get(ENV_LLM_GLOBAL_DEFAULT_POLICY, "").strip().lower()
-    return v if v else None
+def global_safe_policy_enabled() -> bool:
+    """True if KERNEL_LLM_GLOBAL_POLICY=safe, forcing all touchpoints to safe fallbacks."""
+    v = os.environ.get(ENV_GLOBAL_POLICY, "").strip().lower()
+    return v == GLOBAL_POLICY_SAFE
 
 
 def touchpoint_policy_env_key(slug: str) -> str:
     """Env name for ``KERNEL_LLM_TP_<SLUG.upper()>_POLICY``."""
     return f"KERNEL_LLM_TP_{slug.strip().upper()}_POLICY"
+
+
+def raw_global_default_policy() -> str | None:
+    """
+    Normalized ``KERNEL_LLM_GLOBAL_DEFAULT_POLICY`` value, or ``None`` if unset.
+
+    Each resolver validates against its own allowed set; invalid globals are ignored
+    (see ``PROPOSAL_LLM_TOUCHPOINT_DEGRADATION_MATRIX.md``).
+    """
+    v = os.environ.get(ENV_LLM_GLOBAL_DEFAULT_POLICY, "").strip().lower()
+    return v if v else None
 
 
 def raw_touchpoint_policy(slug: str) -> str | None:
@@ -73,8 +89,6 @@ def raw_touchpoint_policy(slug: str) -> str | None:
     return v if v else None
 
 
-MONOLOGUE_POLICIES = frozenset({"passthrough", "annotate_degraded"})
-
 def resolve_monologue_llm_backend_policy() -> str:
     """
     Policy for :meth:`LLMModule.optional_monologue_embellishment` when generative mode is on.
@@ -83,6 +97,9 @@ def resolve_monologue_llm_backend_policy() -> str:
     - ``annotate_degraded``: append a short ``| monologue_llm_*`` suffix and record a degradation
       event for observability.
     """
+    # Global safe override
+    if global_safe_policy_enabled():
+        return "annotate_degraded"
     tp = raw_touchpoint_policy(TOUCHPOINT_MONOLOGUE)
     if tp and tp in MONOLOGUE_POLICIES:
         return tp

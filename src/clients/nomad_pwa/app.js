@@ -27,24 +27,59 @@ const WS_PORT = window.location.port || "8765"; // Use current port or default t
  * Battery & Kinetic Telemetry (Replaced Temp due to browser security)
  */
 let lastKineticPulse = 0;
+let lastBatteryLevel = null;
+
 if ('getBattery' in navigator) {
     navigator.getBattery().then(battery => {
-        battery.addEventListener('levelchange', () => {
+        lastBatteryLevel = battery.level;
+        const sendBat = () => {
             if(wsNomad && wsNomad.readyState === WebSocket.OPEN) {
-                wsNomad.send(JSON.stringify({ type: "telemetry", payload: { battery: battery.level } }));
+                // Proxy for 'Temperature' (browser block workaround): High drain scale
+                let tempProxy = 40 + (1.0 - battery.level) * 10; 
+                wsNomad.send(JSON.stringify({ 
+                    type: "telemetry", 
+                    payload: { 
+                        battery: battery.level,
+                        is_charging: battery.charging,
+                        temp: tempProxy // Simulated thermal state based on drain
+                    } 
+                }));
             }
-        });
+        };
+        battery.addEventListener('levelchange', sendBat);
+        battery.addEventListener('chargingchange', sendBat);
+        sendBat();
     });
 }
+
+window.addEventListener('deviceorientation', (event) => {
+    if(wsNomad && wsNomad.readyState === WebSocket.OPEN) {
+        wsNomad.send(JSON.stringify({
+            type: "telemetry",
+            payload: {
+                orientation: {
+                    alpha: event.alpha, // Z-axis compass
+                    beta: event.beta,   // X-axis tilt
+                    gamma: event.gamma  // Y-axis roll
+                }
+            }
+        }));
+    }
+});
+
 window.addEventListener('devicemotion', (event) => {
-    // Only send kinetic telemetry if connected
     if(wsNomad && wsNomad.readyState === WebSocket.OPEN) {
         let acc = event.acceleration;
         if(acc) {
             let magnitude = Math.sqrt((acc.x||0)**2 + (acc.y||0)**2 + (acc.z||0)**2);
-            // Throttle to 1 Hz to avoid flooding
             let now = Date.now();
-            if(now - lastKineticPulse > 1000) {
+            
+            // Phase 12 Hardening: High-intensity impact detection
+            if(magnitude > 15) { // Roughly > 1.5G spike
+                wsNomad.send(JSON.stringify({ type: "telemetry", payload: { kinetics: magnitude, impact: true } }));
+                lastKineticPulse = now;
+            } else if(now - lastKineticPulse > 1000) {
+                // Normal heartbeat telemetry
                 wsNomad.send(JSON.stringify({ type: "telemetry", payload: { kinetics: magnitude } }));
                 lastKineticPulse = now;
             }
@@ -98,24 +133,72 @@ function connectKernel() {
                     UI.transcript.innerText = msg.content;
                 }
                 
-                // If a physical veto occurs
                 if (msg.type === 'veto') {
                     setAppAffectState('alert');
                     UI.transcript.innerText = "KERNEL LOCK: Threat detected.";
                 }
 
-                // Phase 11: Ouroboros TTS
+                if (msg.type === 'ping') {
+                    console.debug("Nomad: Keep-alive ping from server.");
+                    // Optional: Send a tiny telemetry pulse back
+                }
+
+                if (msg.type === 'thought') {
+                    // Phase 12.3: Visual hint for dissonance in PWA
+                    if (msg.payload.dissonance) {
+                        UI.transcript.classList.add('dissonance-active');
+                    } else {
+                        UI.transcript.classList.remove('dissonance-active');
+                    }
+                }
+
+                // Phase 12: Ouroboros TTS with Lip-sync
                 if (msg.type === 'kernel_voice') {
                     UI.transcript.innerText = `Kernel: ${msg.text}`;
                     if ('speechSynthesis' in window) {
                         const utterance = new SpeechSynthesisUtterance(msg.text);
-                        // Try to find a robotic or english voice, fallback to default
                         const voices = window.speechSynthesis.getVoices();
-                        const voice = voices.find(v => v.name.includes("Google") || v.name.includes("English")) || voices[0];
-                        if(voice) utterance.voice = voice;
+                        // Priority voices for Ethos personality
+                        const preferred = voices.find(v => v.name.includes("Male") || v.name.includes("UK English")) || voices[0];
+                        if(preferred) utterance.voice = preferred;
+                        
+                        utterance.onstart = () => {
+                            UI.orb.classList.add('speaking');
+                            // Notify back to NomadBridge if needed (Phase 12.1)
+                        };
+                        utterance.onend = () => {
+                            UI.orb.classList.remove('speaking');
+                        };
                         window.speechSynthesis.speak(utterance);
                     }
                 }
+
+                // Phase 10.5: Real-time Affective Orb Update
+                if (msg.type === 'orb_update') {
+                    console.log("Nomad: Affective shift", msg.archetype);
+                    const v = msg.visuals;
+                    
+                    // Update Orb Appearance
+                    UI.orb.style.backgroundColor = v.color;
+                    UI.orb.style.boxShadow = `0 0 ${20 * v.scale}px ${10 * v.scale}px ${v.color}`;
+                    UI.orb.style.transform = `scale(${v.scale})`;
+                    UI.orb.style.animationDuration = `${v.pulse_s}s`;
+                    
+                    // Update Text for feedback
+                    UI.transcript.innerText = `Limbic State: ${msg.archetype.replace(/_/g, ' ')}`;
+                }
+
+                // Phase 10.2: Haptic Feedback Loop
+                if (msg.type === 'haptic_feedback') {
+                    console.log("Nomad: Haptic Pulse received", msg.payload);
+                    const plans = msg.payload.haptics || [];
+                    plans.forEach(plan => {
+                        if (plan.type === 'vibrate' && plan.pattern && navigator.vibrate) {
+                            navigator.vibrate(plan.pattern);
+                        }
+                    });
+                }
+
 
             } catch(e) {
                 console.error("Parse error on message", e);
@@ -136,7 +219,15 @@ function connectKernel() {
 
         // Antigravity & Cursor - add wsNomad initialization for the sensor stream
         wsNomad = new WebSocket(`${protocol}//${PC_IP}:${WS_PORT}/ws/nomad`);
-        wsNomad.onopen = () => { console.log('Nomad Sensory Bridge established'); };
+        wsNomad.onopen = () => { 
+            console.log('Nomad Sensory Bridge established');
+            // Heavy Heartbeat (Fase 12.2)
+            setInterval(() => {
+               if(wsNomad.readyState === WebSocket.OPEN) {
+                   wsNomad.send(JSON.stringify({ type: "telemetry", payload: { heartbeat: true } }));
+               }
+            }, 15000);
+        };
 
     } catch (e) {
         alert("Cannot connect to the Ethos Kernel. Are you on the same Wi-Fi?");

@@ -26,6 +26,30 @@ import httpx
 from .llm_http_cancel import raise_if_llm_cancel_requested
 
 
+def _is_event_loop_running() -> bool:
+	"""Check if asyncio event loop is currently running in this thread."""
+	try:
+		asyncio.get_running_loop()
+		return True
+	except RuntimeError:
+		return False
+
+
+async def _async_post_with_cancel(
+	url: str,
+	payload: dict[str, Any],
+	timeout: float,
+	headers: dict[str, str] | None = None,
+) -> dict[str, Any]:
+	"""Perform async POST with cancellation awareness."""
+	raise_if_llm_cancel_requested()
+	timeout_obj = httpx.Timeout(timeout)
+	async with httpx.AsyncClient(timeout=timeout_obj) as client:
+		r = await client.post(url, json=payload, headers=headers or {})
+		r.raise_for_status()
+		return r.json()
+
+
 @runtime_checkable
 class TextCompletionBackend(Protocol):
     def complete(self, system: str, user: str) -> str:
@@ -232,6 +256,7 @@ class OllamaLLMBackend(LLMBackend):
         *,
         embed_model: str | None = None,
         embed_timeout: float | None = None,
+        aclient: httpx.AsyncClient | None = None,
     ) -> None:
         self._base = base_url.rstrip("/")
         self._model = model
@@ -243,6 +268,7 @@ class OllamaLLMBackend(LLMBackend):
             or "nomic-embed-text"
         )
         self._embed_timeout = float(embed_timeout) if embed_timeout is not None else 10.0
+        self._aclient = aclient
 
     def is_available(self) -> bool:
         return bool(self._base)
@@ -261,10 +287,22 @@ class OllamaLLMBackend(LLMBackend):
         t = kwargs.get("temperature")
         if t is not None:
             payload["options"] = {"temperature": float(t)}
-        with httpx.Client(timeout=self._timeout) as client:
-            r = client.post(url, json=payload)
-            r.raise_for_status()
-            data = r.json()
+
+        # Try async path if event loop is running; fallback to sync httpx.Client
+        if _is_event_loop_running():
+            try:
+                data = asyncio.run(_async_post_with_cancel(url, payload, self._timeout))
+            except RuntimeError:
+                # Can't use asyncio.run in thread with event loop; fallback to sync
+                with httpx.Client(timeout=self._timeout) as client:
+                    r = client.post(url, json=payload)
+                    r.raise_for_status()
+                    data = r.json()
+        else:
+            with httpx.Client(timeout=self._timeout) as client:
+                r = client.post(url, json=payload)
+                r.raise_for_status()
+                data = r.json()
         msg = data.get("message") or {}
         return (msg.get("content") or "").strip()
 
@@ -284,10 +322,15 @@ class OllamaLLMBackend(LLMBackend):
         if t is not None:
             payload["options"] = {"temperature": float(t)}
         timeout = httpx.Timeout(self._timeout)
-        async with httpx.AsyncClient(timeout=timeout) as client:
-            r = await client.post(url, json=payload)
+        if self._aclient is not None:
+            r = await self._aclient.post(url, json=payload, timeout=timeout)
             r.raise_for_status()
             data = r.json()
+        else:
+            async with httpx.AsyncClient(timeout=timeout) as client:
+                r = await client.post(url, json=payload)
+                r.raise_for_status()
+                data = r.json()
         msg = data.get("message") or {}
         return (msg.get("content") or "").strip()
 
@@ -311,8 +354,8 @@ class OllamaLLMBackend(LLMBackend):
 
         import json
         timeout = httpx.Timeout(self._timeout)
-        async with httpx.AsyncClient(timeout=timeout) as client:
-            async with client.stream("POST", url, json=payload) as response:
+        if self._aclient is not None:
+            async with self._aclient.stream("POST", url, json=payload, timeout=timeout) as response:
                 response.raise_for_status()
                 async for line in response.aiter_lines():
                     if not line:
@@ -326,6 +369,22 @@ class OllamaLLMBackend(LLMBackend):
                             yield content
                     except json.JSONDecodeError:
                         continue
+        else:
+            async with httpx.AsyncClient(timeout=timeout) as client:
+                async with client.stream("POST", url, json=payload) as response:
+                    response.raise_for_status()
+                    async for line in response.aiter_lines():
+                        if not line:
+                            continue
+                        try:
+                            chunk = json.loads(line)
+                            if chunk.get("done"):
+                                break
+                            content = chunk.get("message", {}).get("content", "")
+                            if content:
+                                yield content
+                        except json.JSONDecodeError:
+                            continue
 
     def embedding(self, text: str) -> list[float] | None:
         if not (text or "").strip():
@@ -333,10 +392,21 @@ class OllamaLLMBackend(LLMBackend):
         url = f"{self._base}/api/embeddings"
         payload = {"model": self._embed_model, "prompt": text}
         try:
-            with httpx.Client(timeout=self._embed_timeout) as client:
-                r = client.post(url, json=payload)
-                r.raise_for_status()
-                data = r.json()
+            # Try async path if event loop is running; fallback to sync
+            if _is_event_loop_running():
+                try:
+                    data = asyncio.run(_async_post_with_cancel(url, payload, self._embed_timeout))
+                except RuntimeError:
+                    # Can't use asyncio.run in thread with event loop; fallback to sync
+                    with httpx.Client(timeout=self._embed_timeout) as client:
+                        r = client.post(url, json=payload)
+                        r.raise_for_status()
+                        data = r.json()
+            else:
+                with httpx.Client(timeout=self._embed_timeout) as client:
+                    r = client.post(url, json=payload)
+                    r.raise_for_status()
+                    data = r.json()
         except Exception:
             return None
         emb = data.get("embedding")
@@ -351,10 +421,15 @@ class OllamaLLMBackend(LLMBackend):
         payload = {"model": self._embed_model, "prompt": text}
         timeout = httpx.Timeout(self._embed_timeout)
         try:
-            async with httpx.AsyncClient(timeout=timeout) as client:
-                r = await client.post(url, json=payload)
+            if self._aclient is not None:
+                r = await self._aclient.post(url, json=payload, timeout=timeout)
                 r.raise_for_status()
                 data = r.json()
+            else:
+                async with httpx.AsyncClient(timeout=timeout) as client:
+                    r = await client.post(url, json=payload)
+                    r.raise_for_status()
+                    data = r.json()
         except Exception:
             return None
         emb = data.get("embedding")
@@ -383,38 +458,67 @@ class HttpJsonLLMBackend(LLMBackend):
         timeout: float = 60.0,
         response_text_key: str = "text",
         headers: dict[str, str] | None = None,
+        aclient: httpx.AsyncClient | None = None,
     ) -> None:
         self._url = url
         self._timeout = float(timeout)
         self._key = response_text_key
         self._headers = dict(headers or {})
+        self._aclient = aclient
 
     def is_available(self) -> bool:
         return bool(self._url)
 
     def completion(self, system: str, user: str, **kwargs: Any) -> str:
         raise_if_llm_cancel_requested()
-        with httpx.Client(timeout=self._timeout) as client:
-            r = client.post(
-                self._url,
-                json={"system": system, "user": user},
-                headers=self._headers,
-            )
-            r.raise_for_status()
-            data = r.json()
+        payload = {"system": system, "user": user}
+
+        # Try async path if event loop is running; fallback to sync httpx.Client
+        if _is_event_loop_running():
+            try:
+                data = asyncio.run(_async_post_with_cancel(self._url, payload, self._timeout, self._headers))
+            except RuntimeError:
+                # Can't use asyncio.run in thread with event loop; fallback to sync
+                with httpx.Client(timeout=self._timeout) as client:
+                    r = client.post(
+                        self._url,
+                        json=payload,
+                        headers=self._headers,
+                    )
+                    r.raise_for_status()
+                    data = r.json()
+        else:
+            with httpx.Client(timeout=self._timeout) as client:
+                r = client.post(
+                    self._url,
+                    json=payload,
+                    headers=self._headers,
+                )
+                r.raise_for_status()
+                data = r.json()
         return str(data.get(self._key) or "").strip()
 
     async def acompletion(self, system: str, user: str, **kwargs: Any) -> str:
         raise_if_llm_cancel_requested()
         timeout = httpx.Timeout(self._timeout)
-        async with httpx.AsyncClient(timeout=timeout) as client:
-            r = await client.post(
+        if self._aclient is not None:
+            r = await self._aclient.post(
                 self._url,
                 json={"system": system, "user": user},
                 headers=self._headers,
+                timeout=timeout,
             )
             r.raise_for_status()
             data = r.json()
+        else:
+            async with httpx.AsyncClient(timeout=timeout) as client:
+                r = await client.post(
+                    self._url,
+                    json={"system": system, "user": user},
+                    headers=self._headers,
+                )
+                r.raise_for_status()
+                data = r.json()
         return str(data.get(self._key) or "").strip()
 
     def embedding(self, text: str) -> list[float] | None:

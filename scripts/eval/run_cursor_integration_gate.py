@@ -21,12 +21,19 @@ TEST_TARGETS = [
     "tests/test_semantic_chat_gate.py",
     "tests/test_llm_touchpoint_policies.py",
     "tests/test_llm_http_cancel.py",
+    "tests/test_llm_cancel_burst_operational.py",
     "tests/test_chat_async_llm_cancel.py",
     "tests/test_chat_turn_abandon.py",
     # Issue 3 empirical pilot — batch agreement vs fixtures (scripts/run_empirical_pilot.py)
     "tests/test_empirical_pilot_runner.py",
     "tests/test_governance_mock_honesty_docs.py",
     "tests/test_semantic_threshold_proposal_doc_alignment.py",
+    # Embodied sociability S10 (PROPOSAL_EMBODIED_SOCIABILITY.md Bloque S10)
+    "tests/test_transparency_s10.py",
+    # Nomad LAN bridge Module S.1 (PLAN_WORK_DISTRIBUTION_TREE)
+    "tests/test_nomad_bridge_stream.py",
+    # Nomad → Vitality merge Module S.2.1 (peek_latest_telemetry + merge_nomad_telemetry_into_snapshot)
+    "tests/test_vitality.py",
 ]
 
 

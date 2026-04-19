@@ -13,11 +13,9 @@ from src.modules.nomad_identity import nomad_identity_public
 from src.modules.reparation_vault import (
     STATE_INTENT,
     STATE_POST_TRIBUNAL,
+    ReparationVault,
     clear_reparation_vault_cases_for_tests,
-    get_reparation_case,
     maybe_register_reparation_after_mock_court,
-    register_reparation_intent,
-    reparation_vault_mock_enabled,
 )
 
 
@@ -46,18 +44,21 @@ def test_nomad_identity_public_shape():
 
 
 def test_reparation_vault_off_by_default():
-    assert reparation_vault_mock_enabled() is False
+    dao = MockDAO()
+    vault = ReparationVault(dao)
+    assert vault.reparation_vault_mock_enabled() is False
 
 
 def test_reparation_vault_registers_when_enabled(monkeypatch):
     monkeypatch.setenv("KERNEL_REPARATION_VAULT_MOCK", "1")
     clear_reparation_vault_cases_for_tests()
     k = EthicalKernel(variability=False)
+    vault = ReparationVault(k.dao)
     n0 = len(k.dao.records)
-    register_reparation_intent(k.dao, "third party harmed", case_ref="CASE-1")
+    vault.register_reparation_intent("third party harmed", case_ref="CASE-1")
     assert len(k.dao.records) == n0 + 1
     assert "ReparationVaultV1" in k.dao.records[-1].content
-    st = get_reparation_case("CASE-1")
+    st = vault.get_reparation_case("CASE-1")
     assert st is not None
     assert st["state"] == STATE_INTENT
 
@@ -79,7 +80,8 @@ def test_maybe_register_after_mock_court(monkeypatch):
     assert len(dao.records) == n0 + 1
     assert "mock tribunal" in dao.records[-1].content.lower()
     assert "ReparationVaultV1" in dao.records[-1].content
-    st = get_reparation_case("case-uuid-1234")
+    vault = ReparationVault(dao)
+    st = vault.get_reparation_case("case-uuid-1234")
     assert st["state"] == STATE_POST_TRIBUNAL
 
 

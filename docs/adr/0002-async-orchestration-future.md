@@ -36,7 +36,9 @@
 
 **Metrics:** When ``KERNEL_METRICS=1``, ``ethos_kernel_llm_cancel_scope_signals_total`` increments alongside ``ethos_kernel_chat_turn_async_timeouts_total`` on the async-timeout path. Late abandoned effects (skipped STM updates) increment ``ethos_kernel_chat_turn_abandoned_effects_skipped_total``.
 
-**Still future work:** Burst-cancel stress tests; finer-grained preemption inside the Bayesian engine if profiling shows hotspots.
+**Burst concurrency (April 2026):** Many concurrent mock completions exercise thread-local cancel scope with a shared ``MockLLMBackend`` (``src/modules/llm_cancel_burst.py``); operator entrypoint ``scripts/eval/run_burst_cancel_smoke.py``; pytest ``tests/test_llm_cancel_burst_operational.py`` (also listed in ``scripts/eval/run_llm_vertical_tests.py``).
+
+**Still future work:** Finer-grained preemption inside the Bayesian engine if profiling shows hotspots.
 
 **Operator alignment:** Tune ``OLLAMA_TIMEOUT`` relative to ``KERNEL_CHAT_TURN_TIMEOUT`` when using the default sync worker path; see [`WEAKNESSES_AND_BOTTLENECKS.md`](../WEAKNESSES_AND_BOTTLENECKS.md) §1 and G-05 in [`PROPOSAL_LLM_INTEGRATION_TRACK.md`](../proposals/PROPOSAL_LLM_INTEGRATION_TRACK.md).
 

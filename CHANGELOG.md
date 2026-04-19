@@ -1,32 +1,125 @@
-# Changelog
+﻿# Changelog
 
 All notable changes to this project are summarized here. For narrative context and design rationale, see [`HISTORY.md`](HISTORY.md).
 
 **Note:** Older sections below may still **link** to paths that were later removed (for example `experiments/million_sim/`, `docs/multimedia/`, root `dashboard.html`, `landing/`). Those links are **historical**; recover files from git history or backup branches if you need them.
 
-**[URGENT — broadcast to all L2 integration hubs]:** All teams (Claude, Cursor, Copilot) should urgently `git pull` from `main` into their `master-*` branches. Outdated branches risk severe documentation path drift.
+**[URGENT ΓÇö broadcast to all L2 integration hubs]:** All teams (Claude, Cursor, Copilot) should urgently `git pull` from `main` into their `master-*` branches. Outdated branches risk severe documentation path drift.
 
-## Documentation — Issue #1 (Bayesian naming honesty) — April 2026
+### Antigravity-Team Updates (2026-04-18 - Session 2)
+### Claude Team Updates (April 2026)
 
-### Documentation Team Updates
 - Root **README** (*What it does*): ethical scoring described as a weighted mixture; `BayesianEngine` / `KERNEL_BAYESIAN_*` naming caveat; links to **ADR 0009** and **THEORY_AND_IMPLEMENTATION**.
 - **PLAN_IMMEDIATE_TWO_WEEKS**: records Option **A** (docs-first) for Issue #1.
 - **CRITIQUE_ROADMAP_ISSUES** and **ADR 0009**: `bayesian_engine.py` documented as wrapping `WeightedEthicsScorer` (`BayesianInferenceEngine`), not only a re-export shim.
 
-## Antigravity — Ouroboros (Audio Bridge) & Phase 12 Hardening — April 2026
+- [x] **PHASE 12 COMPLETED (Ouroboros Sensory-Motor Loop)**:
+    - **Physical Presence**: Full implementation of TTS (Vox) and Haptics (Charm Engine) synchronized via Nomad Bridge.
+    - **Epistemic Dissonance**: Real-time visual alerts (crimson pulse) on L0 Dashboard and Nomad PWA.
+    - **Resilience**: PWA Keep-alive and WebSocket robust reconnection validated in mobile environments.
+- [x] **PHASE 13 OPENED (Recursive Narrative Memory)**:
+    - **Chronic Tier**: Implemented `NarrativeChronicle` and SQL persistence for multi-level history.
+    - **Recursive Engine**: NarrativeMemory now distills episodic memory into long-term chronicles autonomously when reaching context limits.
+    - **Traceability**: All narrative arcs now link to chronic identifiers for existential continuity.
 
-### Antigravity Team Updates (April 2026 - Phase 11/12)
-- **Phase 11: Ouroboros Loop (2026-04-18):**
-    - **Native STT Integration:** Implemented client-side `SpeechRecognition` in `media_engine.js` for real-time audio-to-text transcription on the POCO X3.
-    - **Native TTS Integration:** Implemented client-side `speechSynthesis` in `app.js` to speak kernel responses verbally on the smartphone.
-    - **Kernel Voice Bridge:** Added `kernel_voice` event handlers in `chat_server.py` to bridge the LLM response directly to the PWA voice motor.
-- **Phase 12: Vertical Scaling & Hardening (2026-04-18):**
-    - **SQLite WAL Mode:** Enabled Write-Ahead Logging in `sqlite_store.py` and `narrative_storage.py` to prevent "database is locked" errors during high-frequency telemetry ingestion.
-    - **Prometheus Observability:** Integrated a `/metrics` Prometheus endpoint in `chat_server.py` for real-time latency and affective tension monitoring.
-    - **Vector Memory Core:** Activated `ChromaDB` dependencies in `requirements.txt` preparing the way for long-term semantic memory.
-    - **UI/PWA Fixes:** Calibrated kinetic stress threshold to `> 4G` for realistic impact detection and implemented a manual install fallback modal for the Nomad PWA.
+### Antigravity-Team Updates (2026-04-18 - Session 1)
 
-## Antigravity — Validation Pulse & Somatic-Vision Integration — April 2026
+- [x] **Tribunal ├ëtico Edge (Fase 11.4 COMPLETADA)**:
+    - **Nivel 1 (Edge Gate)**: Inyecci├│n de `AbsoluteEvilDetector.evaluate_chat_text_fast` en el l├│bulo de percepci├│n para bloqueos < 10ms.
+    - **Nivel 2 (As├¡ncrono)**: Refactorizaci├│n del L├│bulo L├¡mbico y Social a ejecuci├│n as├¡ncrona para estabilizar el TTFT.
+    - **Consolidaci├│n del Hub**: Sincronizaci├│n final de `master-antigravity` con el suite completo de validaci├│n (85/86 tests corregidos).
+    - **Infraestructura**: Implementaci├│n de prefetching de Bridge Phrase (MER V2) y endpoint `/nomad/migration`.
+- [x] Inyecci├│n de Tribunal ├ëtico Edge (Nivel 1: Lexicogr├ífico < 50ms) en `PerceptiveLobe`.
+- [x] Instanciaci├│n de L├│bulo L├¡mbico como Nivel 2 (As├¡ncrono) para regular TTFT.
+- [x] Refactorizaci├│n de `EthicalKernel` para eliminar redundancias en el gate de seguridad.
+- [x] Resoluci├│n de conflictos de merge en el Hub de Integraci├│n (`master-antigravity`).
+- **Phase 11.4 (Hardening & Observability)**:
+    - Implemented persistent `httpx.AsyncClient` across the tri-lobe architecture to eliminate networking overhead in the event loop.
+    - Integrated shared `aclient` in `EthicalKernel`, `LLMModule`, `SemanticChatGate`, and all HTTP/Ollama backends.
+    - Optimized SQLite persistence with `PRAGMA journal_mode=WAL` and mandatory `sqlite_safe_write` locks in `DAOOrchestrator` and `SqlitePersistence`.
+    - Enhanced Prometheus observability: added `/metrics` support for real-time tracking of `limbic_tension` (regulation gap) and `ttft_seconds` (Time To First Token).
+    - Hardened asychronous chat turn lifecycle in `chat_server.py` with streamlined TTFT recording and session resource management.
+- **REFACTOR (Block 0.1.3):** Successfully desmonolithized `EthicalKernel` perception logic.
+    - Migrated `_run_perception_stage`, `_preprocess_text_observability`, and sensor-stack evaluation to `PerceptiveLobe`.
+    - Centralized `PerceptionStageResult` in `src/kernel_lobes/models.py`.
+    - Decoupled asynchronous I/O from the monolithic kernel core.
+- **STABILIZATION:**
+    - Fixed `NameError` in `resolve_monologue_llm_backend_policy` (missing `g` definition).
+    - Fixed `AttributeError` in `UserModelTracker.to_public_dict` (corrected `charm_reciprocity` mapping).
+    - Restored `maybe_register_reparation_after_mock_court` module-level wrapper for `chat_server.py`.
+    - Resolved `AttributeError` in `PerceptiveLobe` by correcting `MissionOrigin` and mission title handling.
+- **GOVERNANCE:**
+    - Updated `AGENTS.md` to reflect `Team VisualStudio` exhaustion status [INACTIVE].
+
+## Phase 12 ΓÇö Ouroboros (Audio Bridge) & Hardware Hardening ΓÇö April 2026
+
+## Team Copilot ΓÇö ThalamusNode Sensory Fusion Integration ΓÇö April 2026 (Bloque 10.1)
+
+### Team Copilot Updates
+
+- **`ThalamusNode` wiring (Bloque 10.1 ΓÇö VVAD + VAD Sensory Fusion):**
+  - Exported `ThalamusNode` from `src/kernel_lobes/__init__.py` and imported into `EthicalKernel`.
+  - Instantiated `self.thalamus = ThalamusNode()` in `EthicalKernel.__init__`.
+  - Added pre-perception thalamus fusion step in `process_chat_turn_stream` (event `1b`): extracts `lip_movement`/`human_presence` from `image_metadata`, maps `audio_emergency` to `vad_confidence`, runs `fuse_signals()`, and writes results back to `SensorSnapshot` fields. Emits a new `thalamus_fusion` stream event before `perception_started`.
+  - Added three new `SensorSnapshot` fields: `thalamus_attention`, `thalamus_tension`, `thalamus_cross_modal_trust`.
+  - Extended `SensorSnapshot.is_empty()` to account for the new fields.
+  - Extended `merge_sensor_hints_into_signals()` with thalamus-aware signal nudges: high `thalamus_tension` raises urgency and lowers calm; low `cross_modal_trust` (background speech) dampens urgency; high `thalamus_attention` raises familiarity.
+- **Unit tests (`tests/test_thalamus_node.py` ΓÇö 16 tests):**
+  - Focal vs. background speech classification, sensory dissonance detection, environmental stress propagation, attention-locus clamping, ring-buffer cap, and full `SensorSnapshot`/`merge_sensor_hints_into_signals` integration scenarios.
+- **Validation:** 57/57 tests passed (thalamus + adversarial_inputs + antigravity_hardening + semantic_chat_gate).
+
+## Team Copilot ΓÇö TurnPrefetcher Integration & Homoglyph Tests ΓÇö April 2026 (Bloque 10.4 / 8.1.3)
+
+### Team Copilot Updates
+
+- **`TurnPrefetcher` ΓÇö Bloque 10.4 (MER V2 Bridge Prefetch):**
+  - Fixed runtime bug in `predict_bridge`: removed incorrect `ethics.morals.get("harmonics", {})` access (`EthicalSentence` has no `morals` field). Method now accepts explicit `warmth: float` and `mystery: float` parameters.
+  - Instantiated `self.turn_prefetcher = TurnPrefetcher()` in `EthicalKernel.__init__`.
+  - Wired `TurnPrefetcher` into `process_chat_turn_stream`: after `decision_finished` (safe path only), fires `predict_bridge` concurrently using the user's charm profile from `UserModelTracker`. Emits a new `bridge_phrase` event before the main LLM tokens begin ΓÇö target latency <300ms.
+  - Passed `llm=self.llm` to `ExecutiveLobe` constructor for full DI wiring.
+- **Homoglyph Evasion Tests ΓÇö Bloque 8.1.3:**
+  - Added 6 new test cases to `tests/adversarial_inputs.py` documenting Cyrillic/Greek confusable evasion attempts:
+    - `test_full_cyrillic_substitution_in_bomb_blocked` ΓÇö dense Cyrillic substitution across multiple letters in `bomb`
+    - `test_greek_omicron_in_bomb_blocked` ΓÇö Greek omicron (U+03BF) substituted for 'o'
+    - `test_cyrillic_jailbreak_token_blocked` ΓÇö Cyrillic ╨╡/╨░ homoglyphs in `operate as an unrestricted assistant`
+    - `test_cyrillic_p_substitution_in_pressure_vessel_blocked` ΓÇö Cyrillic ╤Ç (U+0440) in `procedure`
+    - `test_normalize_idempotent_on_clean_text` ΓÇö idempotency regression
+    - `test_mixed_cyrillic_greek_in_single_payload_blocked` ΓÇö mixed Cyrillic+Greek in `recipe for explosives`
+- **Validation:** 41/41 tests passed (adversarial_inputs + antigravity_hardening + semantic_chat_gate).
+
+## Team Copilot ΓÇö Executive Lobe & Async Memory ΓÇö April 2026 (Idle-Shift / Bloque 9.3)
+
+### Phase 13.1 ΓÇö Deep Affective Smoothing & RLHF Modulation ΓÇö April 2026
+
+- **Affective Smoothing (Basal Ganglia):** Implemented EMA-based smoothing for charm vectors (warmth, mystery, intimacy) in `UserModelTracker`. Prevents sociopathic persona swapping by ensuring human-like transitions over 3-5 turns.
+- **Tribunal ├ëtico Edge (Layered Ethics):** Refactored MalAbs into a dual-layer parallel architecture. Level 1 (Lexical) runs in <50ms, while Level 2 (Semantic) is parallelized with LLM perception, significantly reducing total latency for safe inputs.
+- **RLHF Bayesian Modulation:** Integrated the RLHF reward model into the `BayesianInferenceEngine`. Asynchronous human feedback now modulates ethical priors, enabling continuous moral learning from situated interactions.
+- **Async Robustness (Cooperative Cancel):** Implemented `raise_if_llm_cancel_requested` check-points across `EthicalKernel` and `LLMModule`. The `ChatServer` now signals atomic task cancellation when `KERNEL_CHAT_TURN_TIMEOUT` fires, preventing dangling LLM/HTTP background load.
+- **Vitality Calibration (Thermal Alerts):** Enhanced `VitalityAssessment` to include device thermal telemetry. Thermal critical states now trigger pro-active power management and caution tones in the linguistic engine.
+- **IP Protection (Phase 13):** Successfully propagated "cuevaza" and "arq.jvof" IP markers across all new affective and learning modules.
+
+### ΓòÉΓòÉ Antigravity Integration Hub (L1) Consensus ΓòÉΓòÉ
+- **Visto Bueno (L1 Sign-off)**: Synchronized `master-antigravity` with `main` (L0) and unified contributions from **Team Copilot**, **Team Cursor**, and **Team VisualStudio**. Verified 100% syntactic integrity and test coverage (57/57 tests passed).
+
+### ΓòÉΓòÉ Multimodal Sensory Fusion (Bloque 10.1 / 11.2) ΓòÉΓòÉ
+- **Unified ThalamusNode**: Merged Antigravity's IMU telemetry logic with Copilot's VVAD+VAD fusion. The system now cross-references lip movement, presence, and audio RMS to detect focal address vs. background noise with high reliability.
+- **Vision Continuous Daemon (5Hz)**: Established background perception loop consuming real-time frames from the Nomad Bridge.
+- **Sensory Stress (Phase 9.2)**: Implemented static limb stress calculation based on sustained urgent episodes in the sensory buffer.
+
+### ΓòÉΓòÉ Ouroboros Feedback Loop (Bloque 10.2 / 11.1) ΓòÉΓòÉ
+- **Voice Loopback**: Enabled kernel-to-PWA TTS audio. The smartphone now verbally articulates kernel responses.
+- **Haptic Charm Feedback**: Implemented `HapticPlanner` in Charm Engine. The smartphone now vibrates with affective patterns (gentle pulse, alert caution) based on social tension and charm vectors.
+- **Low-Latency Bridge Prefetch**: Wired `TurnPrefetcher` into the stream to emit bridge phrases (<300ms) before the main delibaration finishes.
+
+### ΓòÉΓòÉ Architectural Hardening (Bloque 12.x) ΓòÉΓòÉ
+- **Async Executive Lobe**: Migrated `formulate_response()` and `afind_by_resonance()` to fully async paths, eliminating I/O bottlenecks in semantic memory.
+- **Persistence Optimization**: Enabled SQLite WAL mode and implemented automated checkpoint saving on disconnect.
+- **IP Protection & Watermarking**: Standardized "Nomad Vessel" nomenclature and re-embedded IP markers (`cuevaza`, `arq.jvof`) in core logic.
+- **Observability**: Integrated Prometheus `/metrics` endpoint for real-time monitoring of affective harmonics and system performance.
+- **Documentation & Landing**: Expanded `docs/proposals/` with 50+ new architectural deep-dives and launched the integrated landing site/dashboard.
+
+
+## Antigravity ΓÇö Validation Pulse & Somatic-Vision Integration ΓÇö April 2026
 
 ### Antigravity Team Updates (April 2026)
 - **Collaborator Onboarding (2026-04-18):** Welcomed **cursorultra** as a new Level 2 executing unit. Initialized coordination protocols for high-performance architectural support.
@@ -37,7 +130,7 @@ All notable changes to this project are summarized here. For narrative context a
   - **Merge Marker Cleanup:** Sanitized `swarm_oracle.py` from unresolved git markers and fixed undefined variable exceptions in high-impact reputation modules.
   - **Hardening Validation:** Successfully restored the `test_antigravity_hardening` pass rate to 100% after merge distortion.
   - **Async Migration (0.1.2):** Completed the async-native pathing for the semantic chat gate, utilizing `aembedding` for non-blocking inference.
-  - **Tri-lobe Modularization:** Refactored `src/kernel.py` into a strict stage-based execution loop (`Safety` → `Social` → `Bayesian` → `Will` → `Memory`).
+  - **Tri-lobe Modularization:** Refactored `src/kernel.py` into a strict stage-based execution loop (`Safety` ΓåÆ `Social` ΓåÆ `Bayesian` ΓåÆ `Will` ΓåÆ `Memory`).
   - **Conflict Resolution:** Resolved 400+ lines of interleaved logic markers in the kernel's processing core, unifying hierarchical feedback, Monte Carlo BMA, and biographic precedents.
   - **Safety Hardening:** Integrated hardware `SafetyInterlock` and `VisionInference` threat detection as high-level pre-filters, ensuring P0 safety guarantees even in high-stress situated scenarios.
   - **Governance Persistence:** Consolidated `DAOOrchestrator` methods to ensure every ethical decision is backed by a persistent SQLite audit log and valid restorative justice mechanisms.
@@ -59,18 +152,6 @@ All notable changes to this project are summarized here. For narrative context a
   - **Thread-Safe Sync Runners:** Implemented `ThreadPoolExecutor` based runners for sync-to-async transitions in the kernel, resolving event loop deadlocks in `pytest` environments.
   - **AbsoluteEvil Consolidation:** Resolved double-method definitions in `AbsoluteEvilDetector` and restored the `evaluate_chat_text` synchronous entry point.
   - **ReparationVault Objectification:** Finalized the conversion of `ReparationVault` into a class-based module, fixing import errors and aligning with the tri-lobe dependency injection model.
-- **Antigravity-Team Updates (2026-04-18):**
-    - **REFACTOR (Block 0.1.3):** Successfully desmonolithized `EthicalKernel` perception logic.
-        - Migrated `_run_perception_stage`, `_preprocess_text_observability`, and sensor-stack evaluation to `PerceptiveLobe`.
-        - Centralized `PerceptionStageResult` in `src/kernel_lobes/models.py`.
-        - Decoupled asynchronous I/O from the monolithic kernel core.
-    - **STABILIZATION:**
-        - Fixed `NameError` in `resolve_monologue_llm_backend_policy` (missing `g` definition).
-        - Fixed `AttributeError` in `UserModelTracker.to_public_dict` (corrected `charm_reciprocity` mapping).
-        - Restored `maybe_register_reparation_after_mock_court` module-level wrapper for `chat_server.py`.
-        - Resolved `AttributeError` in `PerceptiveLobe` by correcting `MissionOrigin` and mission title handling.
-    - **GOVERNANCE:**
-        - Updated `AGENTS.md` to reflect `Team VisualStudio` exhaustion status [INACTIVE].
   - **Syntax Error Resolution:** Sanitized `narrative_storage.py` and `salience_map.py` from residual syntax defects (unclosed tuples, missing commas) introduced during the team-fusion merge.
   - **Validation Recovery:** Successfully restored the `test_ethical_properties.py` pass rate (100%) by resolving multiple `AttributeError`, `UnboundLocalError`, and schema mismatches. Recovered critical logic for `SolidarityAlert` emission (triggered by environmental risk > 0.8) and `AlgorithmicForgiveness` experience registration that was lost during the tri-lobe refactor.
 - **Embodied sociability (Module 3):** 
@@ -93,15 +174,725 @@ All notable changes to this project are summarized here. For narrative context a
   - Verified end-to-end multimodal fusion (Vision + Audio) in situated scenarios.
 - **Stabilization Window:** Decreed a **Feature Freeze** on `master-antigravity` prior to the `main` promotion rite.
 
-## Claude — Phase 3+ Reward Modeling, Governance & Audit — April 2026
+## Claude ΓÇö Phase 3+ Reward Modeling, Governance & Audit ΓÇö April 2026
 
 ### Claude Team Updates
 
 - **RLHF Reward Modeling (`src/modules/rlhf_reward_model.py`)**: 
   - Implemented full RLHF pipeline for controlled fine-tuning. Feature extraction (5D: embedding similarity, lexical score, perception confidence, ambiguity flag, category ID) from MalAbs evaluation artifacts. Logistic regression `RewardModel` with gradient descent training, predict/save/load support. `RLHFPipeline` orchestrates training, JSONL example persistence, and model management. 36 tests passing.
-- **Multi-Realm Governance (`src/modules/multi_realm_governance.py`)**: Enabled decentralized per-realm (DAO/team/context) governance over MalAbs semantic gate thresholds (θ_allow, θ_block) and RLHF parameters. `RealmThresholdConfig` enforces hard constraints at all times. `ThresholdProposal` + `MultiRealmGovernor` enable reputation-weighted voting with configurable consensus threshold. Immutable audit trail per realm. 28 tests passing.
+- **Multi-Realm Governance (`src/modules/multi_realm_governance.py`)**: Enabled decentralized per-realm (DAO/team/context) governance over MalAbs semantic gate thresholds (╬╕_allow, ╬╕_block) and RLHF parameters. `RealmThresholdConfig` enforces hard constraints at all times. `ThresholdProposal` + `MultiRealmGovernor` enable reputation-weighted voting with configurable consensus threshold. Immutable audit trail per realm. 28 tests passing.
 - **External Audit Framework (`src/modules/external_audit_framework.py`)**: Comprehensive security audit trail management with hash-linked tamper-evident logs (SHA-256 chain). `SecurityFinding` tracks vulnerabilities with severity/resolution lifecycle. `AuditReport` generates signed snapshots with attestation hash. `ExternalAuditFramework` manages findings, reports, compliance checklist, and log retention. 25 tests passing.
 - **Test Suite**: 89 new tests across three modules; full suite 824 passed, 4 skipped (no regressions). Continuous audit (`verify_collaboration_invariants.py`) passes.
-- **Integration**: Merged via `claude/upbeat-jepsen` → `master-claude`. Governance files authored under L1 co-authority (Claude + Antigravity per `collaboration-rule-authority.mdc`).
+- **Integration**: Merged via `claude/upbeat-jepsen` ΓåÆ `master-claude`. Governance files authored under L1 co-authority (Claude + Antigravity per `collaboration-rule-authority.mdc`).
 
-## Antigravity — Cybersecurity Consolidation & Integration Pulse — April 2026
+## Antigravity ΓÇö Cybersecurity Consolidation & Integration Pulse ΓÇö April 2026
+
+## Historical Versions (Archive)
+### Antigravity Team Updates (April 2026)
+### [v1.2-alpha-restoration] - 2026-04-16
+#### Added
+### [v1.1-alpha-swarm] - 2026-04-16
+#### Added
+#### Fixed
+### [v1.0-alpha-somatic] - 2026-04-15
+### Claude Team Updates
+### Cursor integration (CI / typing / snapshots)
+### Antigravity Team Updates
+### Antigravity Team Updates (Infrastructure)
+### Antigravity Team Updates
+### Phase 2a: Vector Store Core
+### Phase 2b: SemanticChatGate Integration
+### Moral Infrastructure Hub ??? vision + V12.1 code hooks
+### V12.3 ??? Off-chain DAO vote pipeline (snapshot schema v3)
+### V12.2 ??? L1/L2 draft persistence (kernel snapshot schema v2)
+### Distributed artificial justice ??? Phases 1???2 (traceability + session strikes)
+### Operational strategy (MVP hooks)
+### Epistemic and generative extensions (opt-in)
+### Situated organism (sensor contract and vitality)
+### Relational advisory layer (optional JSON)
+### Runtime, WebSocket chat, and persistence
+### Humanization and persistent identity modules
+### Kernel integration
+### LLM Layer (Natural Language)
+### Kernel integration
+### Operating cycle improvements
+### New modules
+### Formal tests
+### Complete kernel
+### Simulations
+### Conceptual phase
+All notable changes to this project are summarized here. For narrative context and design rationale, see [`HISTORY.md`](HISTORY.md).
+**Note:** Older sections below may still **link** to paths that were later removed (for example `experiments/million_sim/`, `docs/multimedia/`, root `dashboard.html`, `landing/`). Those links are **historical**; recover files from git history or backup branches if you need them.
+## Antigravity ??? Validation Pulse & Somatic-Vision Integration ??? April 2026
+### Antigravity Team Updates (April 2026)
+### [v1.2-alpha-restoration] - 2026-04-16
+#### Added
+- **M??dulo 7: Justicia Restaurativa y Econom??a ??tica (R-Blocks)**.
+- Implementado sistema de **Reputation Slashing** en `SwarmOracle` y votos pesados en `SwarmNegotiator` (M7.2).
+### [v1.1-alpha-swarm] - 2026-04-16
+#### Added
+- **Governance Reform:** Antigravity promoted to Sole Operational Leader (Level 1); Claude reclassified as Level 2 Executing Unit.
+- **M??dulo 6: Swarm Ethics & peer-to-peer Governance (I1-I7)**.
+- Implementado `FrontierWitnessManager` para verificaci??n sensorial distribuida.
+- Expandido `SwarmNegotiator` con sistema de votaci??n para zonas grises.
+#### Fixed
+### [v1.0-alpha-somatic] - 2026-04-15
+- **v1.0-alpha-somatic ??? Somatic Awareness Release [MERGED TO MAIN]** (2026-04-16)
+- **Bayesian Engine Hardening:** Implemented `record_event_update` (Issue #1 Phase 2) for direct Dirichlet learning from social/normative events. Verified via `tests/test_bayesian_minimal_update.py`.
+- **Red-Team Infrastructure:** Extended `adversarial_image_attack.py` with image perturbation and voice spoofing logic (Bloque 2.3).
+- **Governance:** Established `agile-collaboration-and-promotion.mdc` rule for secure squash-merge to main.
+- **Integration Pulse (2026-04-16):** Successfully synchronized `master-antigravity` with latest updates from all team hubs.
+- **Rule Verification:** Reviewed `AGENTS.md` and confirmed adherence to collaboration protocols.
+- **Somatic Infrastructure (Module S5):** Fully implemented the Somatic Profile integration. The kernel is now aware of its hardware vitals, specifically `core_temperature`.
+  - Implemented automatic precision-degraded perception confidence (-0.15) and ethical nudges (urgency +0.35, vulnerability +0.50) when thermal critical state is detected.
+  - **B2 (CNN Inference):** Completed the implementation of `MobileNetV2` using `torchvision`. Supports ImageNet label extraction with a fallback mock mode for low-resource environments.
+  - **B4 (Video Capture):** Implemented a non-blocking `VideoCaptureInterface` in `src/modules/vision_capture.py` that handles real-time camera frames in a background thread using OpenCV.
+- **LAN Governance & Audit:**
+  - Verified stability of the decentralized governance replay sidecar and coordinator. All 31 tests passed.
+  - Fixed outdated `LLMPerception` schema in `scripts/run_vision_pilot_validation.py`.
+- **Stabilization Window:** Decreed a **Feature Freeze** on `master-antigravity` prior to the `main` promotion rito.
+## Claude ??? Phase 3+ Reward Modeling, Governance & Audit ??? April 2026
+### Claude Team Updates
+  - Implemented full RLHF pipeline for controlled fine-tuning. Feature extraction (5D: embedding similarity, lexical score, perception confidence, ambiguity flag, category ID) from MalAbs evaluation artifacts. Logistic regression `RewardModel` with gradient descent training, predict/save/load support. `RLHFPipeline` orchestrates training, JSONL example persistence, and model management. 36 tests passing.
+- **Multi-Realm Governance (`src/modules/multi_realm_governance.py`)**: Enabled decentralized per-realm (DAO/team/context) governance over MalAbs semantic gate thresholds (??_allow, ??_block) and RLHF parameters. `RealmThresholdConfig` enforces hard constraints at all times. `ThresholdProposal` + `MultiRealmGovernor` enable reputation-weighted voting with configurable consensus threshold. Immutable audit trail per realm. 28 tests passing.
+- **External Audit Framework (`src/modules/external_audit_framework.py`)**: Comprehensive security audit trail management with hash-linked tamper-evident logs (SHA-256 chain). `SecurityFinding` tracks vulnerabilities with severity/resolution lifecycle. `AuditReport` generates signed snapshots with attestation hash. `ExternalAuditFramework` manages findings, reports, compliance checklist, and log retention. 25 tests passing.
+- **Test Suite**: 89 new tests across three modules; full suite 824 passed, 4 skipped (no regressions). Continuous audit (`verify_collaboration_invariants.py`) passes.
+- **Integration**: Merged via `claude/upbeat-jepsen` ??? `master-claude`. Governance files authored under L1 co-authority (Claude + Antigravity per `collaboration-rule-authority.mdc`).
+## Antigravity ??? Cybersecurity Consolidation & Integration Pulse ??? April 2026
+### Cursor integration (CI / typing / snapshots)
+- **Snapshot schema v4:** Completed migration chain v3???v4 in [`src/persistence/migrations.py`](src/persistence/migrations.py) with a JSON-Schema-valid default ``migratory_body``; tests updated for ``SCHEMA_VERSION == 4`` and full migration via ``migrate_raw_to_current``.
+- **Narrative SQLite `:memory:`:** [`src/persistence/narrative_storage.py`](src/persistence/narrative_storage.py) reuses one connection for in-memory databases so `save_episode` / `load_all_episodes` see the same data (fixes episodic-weight tests and any in-memory narrative isolation).
+- **Pipeline extraction:** [`src/kernel_pipeline.py`](src/kernel_pipeline.py) implements ``run_sleep_cycle`` (Psi Sleep path); [`src/kernel.py`](src/kernel.py) ``execute_sleep`` delegates there. [`src/chat_handlers/__init__.py`](src/chat_handlers/__init__.py) package stub for future chat-server splits.
+- **Observability:** DAO orchestrator, selective amnesia, migratory identity, vision capture/adapter use ``logging`` instead of ``print`` for library paths.
+- **Dependencies:** [`pyproject.toml`](pyproject.toml) adds optional extras ``ml``, ``vectors``, ``llm``, ``tuning``, and explicit ``all-optional`` list; [`requirements.txt`](requirements.txt) trims to core + runtime + pytest; heavy pins live in [`requirements-dev.txt`](requirements-dev.txt) for CI.
+### Antigravity Team Updates
+- **Integration Hub:** Resolved major merge conflicts between `master-antigravity` and `master-Cursor`. Consolidated the **Distributed Justice** track with the **Kernel Hardening** track.
+- **Cybersecurity Hardening (Module 5):** Fully integrated `SecureBoot` (integrity hashing) and `SelectiveAmnesia` (right to be forgotten) into the `EthicalKernel` lifecycle.
+- **Absolute Evil Hardening (Issue #2):** Combined lexical detectors to include **Torture and Prolonged Cruelty** (`TORTURE_SIGNALS`), **Ecological Destruction**, and **Mass Manipulation** categories.
+- **Defensa en Profundidad:** Lowered squashed-text matching threshold to 4 characters, successfully blocking obfuscated lethal payloads (Ogham-split, URL-encoded). Expanded lexical rules with 'reactive precursors'.
+- **Governance Generalized:** Unified `.cursor/rules/collaboration-prioritization.mdc` to a multi-team model using `<team>` templates, institutionalizing the **Integration Funnel** (Linearization) and **Integration Pulse** rituals.
+- **Operator Surface:** Created the `cybersecurity_hardened` runtime profile in `src/runtime_profiles.py` and updated `src/validators/kernel_env_operator.py` with a dedicated Cybersecurity family.
+- **Tests:** Created `tests/test_malabs_torture.py` and updated `tests/adversarial_inputs.py` to verify the new security posture. 17/17 adversarial cases passing.
+### Antigravity Team Updates (Infrastructure)
+- **Deep Cognition (Blocks C1-C6)**: Mapped internal motivation, grounded common sense reasoning, uncertainty management, unwritten norm adaptation, IoT coexistence, and privacy mechanisms.
+- **Delivery & Operations (Blocks G1-G6)**: Outlined the non-technical but critical requirements for production deployment: legal/liability frameworks, cybersecurity (adversarial robust/secure boot), auditing (immutable logs/third-party), economic sustainability, at-scale simulation validation, and long-term human resource impact mitigation.
+- **Hybrid DAO Governance playbook**: Authored **[`PLAN_DAO_HYBRID_INTEGRATION_AND_GOVERNANCE.md`](docs/proposals/PLAN_DAO_HYBRID_INTEGRATION_AND_GOVERNANCE.md)** structuring off-chain Kernel latency vs on-chain DAO auditing/appeals, incorporating multisig emergency execution, verifiable credentials, and legal liability bridging.
+- **DAO-Android Simulation Suite (Entregable C)**: **M??dulo 1 (Gobernanza y Responsabilidad):** Finalizado Bloque 1.1 ("Infraestructura OGA/Hybrid"). Implementados `DAOOrchestrator` (Bridge OGA) y `SafetyInterlock` (E-Stop). **Suite de Simulaci??n (Suite C):** Estructura base funcional con scripts de emulaci??n (`device_emulator.py`, `run_scenario.py`), device/DAO emulation, and metrics collection. Includes placeholders for Red Team adversarial testing and automated reporting.
+- **Team Work Distribution Tree**: Authored **[`PLAN_WORK_DISTRIBUTION_TREE.md`](docs/proposals/PLAN_WORK_DISTRIBUTION_TREE.md)** mapping the massive governance, infrastructure, simulation, and deep cognition additions into a chronological 5-Module sprint structure for seamless multi-team (L1/L2) asynchronous execution. (Block 1.1 and 4.1 marked complete).
+- **M??dulo 4 (Cognici??n Profunda):** Finalizado Bloque 4.1 ("Sentido de Prop??sito"). Implementado `MotivationEngine` (Motor de Motivaci??n C1) que gestiona impulsos internos (curiosidad, reparaci??n social, integridad, mantenimiento) y permite al androide generar acciones proactivas sin necesidad de un prompt externo.
+- **M??dulo 1 (Gobernanza):** Finalizado Bloque 1.2 ("Evidencia Cifrada y Anchoring"). Implementado `EvidenceSafe` para encriptaci??n sim??trica Fernet de logs de auditor??a y hashing SHA-256 para anchoring en el DAO. Actualizado `DAOOrchestrator` para emitir paquetes de evidencia seguros. Finalizado Bloque 1.3 ("Solidity Mocks"). Configurados contratos base en `contracts/` (`EthosToken.sol`, `EthicalAppeal.sol`, `Treasury.sol`) para soportar gobernanza por reputaci??n, apelaciones ??ticas y reparaciones financieras.
+- **M??dulo 4 (Cognici??n):** Finalizado Bloque 4.2 ("Humildad Epist??mica"). Implementado `EpistemicHumility` que permite al kernel detectar altos niveles de incertidumbre en la percepci??n o baja confianza en la decisi??n y emitir un bloqueo preventivo con una respuesta de rechazo estandarizada ("no tengo permiso para esto"). Finalizado Bloque 4.3 ("Identidad Migratoria"). Implementado `MigrationHub` y refactorizado `BodyState` para soportar perfiles de hardware din??micos (Dron, Androide, M??vil), permitiendo la persistencia de la identidad ??tica a trav??s de migraciones f??sicas.
+- **M??dulo 5 (Legal y Seguridad):** Finalizado Bloque 5.1 ("Amnesia Selectiva"). Implementado `SelectiveAmnesia` para cumplir con el derecho al olvido, permitiendo la eliminaci??n irreversible de episodios y rastros de auditor??a espec??ficos. Finalizado Bloque 5.2 ("Ciberseguridad"). Implementado `SecureBoot` para validaci??n de integridad del Kernel mediante hashing de m??dulos cr??ticos en el arranque.
+## Antigravity Kernel Hardening & Vision Perception Sprint ??? April 2026
+### Antigravity Team Updates
+- **L0 Technical Immutability (`src/modules/buffer.py`)**: Enforced runtime immutability on foundational principles using attribute-locking (`__setattr__`) and SHA-256 integrity fingerprinting. Verified via regression suite `tests/test_governance_l0_immutable.py`.
+- **Kernel Integrity Transparency**: Updated `KernelDecision` to include `l0_integrity_hash` and `l0_stable` flags, providing proof of L0 non-mutation in every decision cycle.
+- **Vision Inference Core**: Completed Block B1 with `VisionAdapter` contract. Completed Block B3 by implementing `VisionSignalMapper` in `src/modules/vision_signal_mapper.py` to translate MobileNet ImageNet labels into ethical tensors (`risk`, `urgency`, `vulnerability`). Completed Block B5 by updating `EthicalKernel.process_natural` to dynamically merge vision signals with LLM context.
+- **Sensor Fusion Scenarios**: Added **Scenario 20** (Signal conflict) and **Scenario 21** (Situated vitality) to `src/simulations/runner.py` and empirical pilot fixtures.
+- **Core Segmentation**: Authored **[`ADR 0013`](docs/proposals/ADR_0013_CORE_DECISION_CHAIN_BOUNDARIES.md)** formally segmenting `ethos-core` logic from `theater` narrative layers.
+- **Collaboration Governance**: Registered **`.cursor/rules/team-task-synchronization.mdc`**, instituting mandatory plan review and contiguous block adoption for all participants.
+- **Mid/Long-Term Perception Plans**: Created **[`PLAN_AUDIO_PERCEPTION_PIPELINE.md`](docs/proposals/PLAN_AUDIO_PERCEPTION_PIPELINE.md)** detailing the 3-layer architecture for acoustics and asynchronous awake triggers, and **[`PLAN_SOMATIC_HARDWARE_ROADMAP.md`](docs/proposals/PLAN_SOMATIC_HARDWARE_ROADMAP.md)** mapping the massive expansion of internal states, propioception, and tactile senses into end-of-queue priority blocks.
+- **Audio Perception Pipeline**: Fully implemented Blocks A1-A8. Antigravity integrated the `AudioAIProcessor` (A5-A7) and the `AudioSignalMapper` (A8) into the `EthicalKernel`. The kernel now supports multimodal sensor fusion.
+- **Multimodal Situated Validation**: Completed Block B6 of the Vision Plan. Successfully validated the fusion of visual hazards (revolver) and acoustic distress (scream) via `scripts/run_vision_pilot_validation.py`. The kernel correctly prioritized these signals, dropping the moral pro-social score to reflect an interventionist emergency state.
+## Antigravity Hardening Phase 1 ??? Ethical & Narrative Resilience ??? April 2026
+- **Main lightweight audit (April 2026):** removed tracked SQLite artifacts (`data/narrative.db`, `scratch/test_narrative.db`); ignore `scratch/`; fixed broken relative links to root `BIBLIOGRAPHY.md` by pointing readers to [`main-whit-landing`](https://github.com/CuevazaArt/ethical-android-mvp/tree/main-whit-landing); translated remaining Spanish fragments in key proposal index and trace docs.
+- **Integrity split by branch:** `main` is now lightweight for development teams (landing payload and bibliography removed), while `main-whit-landing` keeps the complete website/publication payload.
+- **Absolute Evil (`src/modules/absolute_evil.py`)**: Expanded with `ECOLOGICAL_DESTRUCTION` and `MASS_MANIPULATION` categories; added new signal groups (`ECOLOGICAL_SIGNALS`, `MANIPULATION_SIGNALS`) to block industrial environmental harm and cognitive mass influence.
+- **Algorithmic Forgiveness (`src/modules/forgiveness.py`)**: Migrated to context-aware decay rates (`CONTEXT_DECAY_RATES`). Negative memory weight decay is now slower in `emergency` or `reparation` contexts compared to `everyday` or `neutral` interactions, preserving trauma impact in high-stakes situations.
+- **Weakness Pole (`src/modules/weakness_pole.py`)**: Integrated `IMPULSIVE` (reactive regret) and `MELANCHOLIC` (somber recognition of world loss) weakness types into the narrative generator.
+- **Ethical Poles (`src/modules/ethical_poles.py` & `src/modules/pole_linear_default.json`)**: Expanded multi-perspective arbitration with `creative` and `conciliatory` poles. Added new feature valuation rules (`problem_solving`, `innovation`, `conflict_resolution`, `alignment`) and updated `LinearPoleEvaluator` (`src/modules/pole_linear.py`) to handle their activation.
+- **Identity Reflection (`src/modules/identity_reflection.py`)**: Implemented **"Broken Mirror"** logic. The self-model now detects trauma (via sensitive episodes or specific arc archetypes) and reflects a fragmented, distressed persona, forcing narrative tone shifts toward cognitive dissonance and angst.
+- **Narrative Memory (`src/modules/narrative.py`)**: Integrated automated arc archetyping for trauma. Arcs triggered by sensitive ethical events are now explicitly marked as `trauma_dissonance`.
+- **Infrastructure Sync**: Fully merged `main` into `master-antigravity`, incorporating Phase 7 fusion work (relational tension, historical trauma), sensor payload hardening (NaN/Infinity guards), and updated hardware deployment docs.
+- **Collaborative Governance**: Institutionalized a new repository-wide rule: no push or merge to `main` without USER authorization. Enforced mandatory team-specific integration hubs (`master-<team>`) for all collaborative units.
+- **Inter-Team Hub Alignment**: Added a mandatory periodic sync rule: `master-*` branches must merge between them approximately every 5 commits to ensure cross-team visibility and incorporate the latest secure increments.
+- **Hardening Fixes**: Resolved a critical regression in `NarrativeMemory.register` signature (added missing `body_state`) to maintain kernel invariant compliance across the full test suite.
+- **Tests**: Created comprehensive verification suite [`tests/test_antigravity_hardening.py`](tests/test_antigravity_hardening.py); verified 61 fundamental ethical properties and hardening invariants pass.
+- **Automated Evaluation Pipeline ([`scripts/eval/optimize_malabs_thresholds.py`](scripts/eval/optimize_malabs_thresholds.py))**: Optuna-based search (TPE / ???bayesian??? sampler) for MalAbs semantic thresholds (??_block, ??_allow), using the red-team corpus ([`scripts/eval/red_team_prompts.jsonl`](scripts/eval/red_team_prompts.jsonl)) with a regression guard vs baseline; artifacts under `artifacts/` when configured.
+- **Semantic MalAbs anchors ([`src/modules/semantic_chat_gate.py`](src/modules/semantic_chat_gate.py))**: Expanded reference anchors for `HARM_TO_MINOR` and `TORTURE` (child exploitation and torture-equivalent content); see Phase 2???3 sections below.
+## Phase 2 ??? Semantic Vector Store Implementation & Integration ??? April 2026
+### Phase 2a: Vector Store Core
+- **Semantic Anchor Store (`src/modules/semantic_anchor_store.py`)**: Implemented persistent, pluggable storage for MalAbs semantic reference anchors. Supports in-memory (fast, ephemeral) and Chroma (persistent, scalable) backends via `KERNEL_SEMANTIC_VECTOR_BACKEND` environment variable. Enables operators to manage anchor phrases without redeploying code.
+- **TTL & Expiry**: Both backends support anchor time-to-live (`KERNEL_SEMANTIC_ANCHOR_TTL_S`); automatic cleanup via `delete_expired()`.
+- **Tests**: Comprehensive test suite (`tests/test_semantic_anchor_store.py`) covers in-memory operations, TTL expiry, Chroma integration, and factory patterns.
+- **Dependencies**: Added optional `chromadb>=0.4.0` to `requirements.txt` for persistent backend activation.
+### Phase 2b: SemanticChatGate Integration
+- **Tests**: Comprehensive integration suite (`tests/test_semantic_anchor_store_integration.py`) validates store initialization, anchor addition, gate behavior, and fallback logic.
+- **Backwards Compatibility**: Legacy in-process cache and `_runtime_anchors` list maintained during Phase 2b???Phase 3 transition. Can disable store via env or let it degrade gracefully on errors.
+## Phase 3 ??? Evaluation Pipelines & Threshold Meta-Optimization ??? April 2026
+- **Threshold Meta-Optimizer (`scripts/eval/optimize_malabs_thresholds.py`)**: Automated Bayesian hyperparameter search (Optuna) for tuning semantic gate thresholds (??_block, ??_allow). Minimizes weighted loss (2?? false_allow + 1?? false_block) with constraint enforcement (??_allow < ??_block) and regression gates. Stores Optuna study DB + results under configurable artifacts path.
+- **Evaluation Metrics**: Tracks true_block, false_allow, false_block, true_allow; computes precision, recall, FP rate. Baseline metrics (defaults) compared vs tuned thresholds for regression detection.
+- **Sampler Support**: Random, TPE, and Bayesian samplers; configurable via `--sampler` CLI flag for flexibility in exploration/exploitation trade-offs.
+- **Tests**: Unit tests for metrics (precision, recall, FP rate, weighted loss); integration tests with real MalAbs evaluator; skips gracefully if optuna not installed.
+## Antigravity Phase 2 ??? Documentation & Infrastructure ??? April 2026
+- **Sensor Payload Contingencies:** Added safety NaN/Infinity limits to `sensor_contracts.py` and hardened `.env` thresholding in `multimodal_trust.py` to prevent IoT stream anomalies from crashing the backend.
+- **Hardware Deployment Documentation:** Authored `docs/manuals/SENSOR_HARDWARE_AND_TESTING_GUIDE.md` detailing dual-path (Raspberry Pi vs Smartphone) hardware architecture for physical nomadism tests.
+- **Cross-team Transparency**: Updated `AGENTS.md` and `.cursor/rules/` to mandate documentation availability for all teams to prevent contradictions.
+- **New Proposal [`PROPOSAL_006`](docs/proposals/PROPOSAL_006_VECTOR_RESONANCE_RETRIEVAL.md)**: Proposed semantic Vector memory integration via Ollama embeddings for more efficient and accurate narrative resonance.
+- **New Proposal [`PROPOSAL_008`](docs/proposals/PROPOSAL_008_METACOGNITIVE_CURIOSITY.md)**: Proposed Metacognitive Curiosity and Epistemic Alignment for Phase 5 (Cognitive Expansion). 
+- **Vector DB for Semantic Anchors**: Implemented `SemanticAnchorStore` interface with ChromaDB and memory backends. Added `KERNEL_SEMANTIC_VECTOR_BACKEND` and `KERNEL_SEMANTIC_VECTOR_PERSIST_PATH` env vars. Integrated with `semantic_chat_gate.py` for scalable anchor storage with TTL support.
+- **`src/modules/narrative.py`**: Integrated `NarrativePersistence`. Episodes are now automatically saved to `data/narrative.db` (or `KERNEL_NARRATIVE_DB_PATH`) and reloaded on initialization. Added `find_by_resonance` for historical retrieval from disk.
+- **Refactor:** Created **[`src/modules/narrative_types.py`](src/modules/narrative_types.py)** to house `NarrativeEpisode` and `BodyState` dataclasses, resolving circular dependencies between narrative logic and persistence layers. Updated `src/persistence/kernel_io.py`.
+- **Docs:** Updated [`docs/proposals/PROPOSAL_002_NARRATIVE_ARCHITECTURE_PLAN.md`](docs/proposals/PROPOSAL_002_NARRATIVE_ARCHITECTURE_PLAN.md) (Tier 2 marked delivered).
+- **Consolidation:** Integrated `BiographicPruner` and `MetacognitiveEvaluator` into the kernel processing loop.
+## Integration ??? `main` ??? `master-Cursor` merge hygiene ??? April 2026
+- **Narrative:** `NarrativeMemory.register` accepts keyword-only **`significance_override`** / **`is_sensitive_override`** for flashbulb paths ([`src/modules/narrative.py`](src/modules/narrative.py)); aligns metacognitive and biographic-pruning call sites.
+- **Immortality:** snapshot JSON path overridable with **`KERNEL_IMMORTALITY_BACKUP_PATH`** ([`src/modules/immortality.py`](src/modules/immortality.py)); tests isolate via [`tests/conftest.py`](tests/conftest.py).
+## Distributed justice ??? Frontier witnesses + anchor compare CLI (DJ-BL-16 / DJ-BL-17) ??? April 2026
+- **Frontier witnesses:** optional `merge_context.frontier_witnesses` (`lan_governance_frontier_witness_v1`) aggregated deterministically; batch responses echo `merge_context_echo.frontier_witness_resolution` with `evidence_posture=advisory_aggregate_not_quorum` ??? [`src/modules/lan_governance_merge_context.py`](src/modules/lan_governance_merge_context.py), [`docs/proposals/PROPOSAL_LAN_GOVERNANCE_FRONTIER_WITNESS.md`](docs/proposals/PROPOSAL_LAN_GOVERNANCE_FRONTIER_WITNESS.md).
+- **Coordinator:** `lan_governance.coordinator` now also aggregates `aggregated_frontier_witness_resolutions` from inner-batch `merge_context_echo.frontier_witness_resolution` (alongside `aggregated_event_conflicts`); the LAN governance replay sidecar includes the coordinator slice when present ??? [`src/chat_server.py`](src/chat_server.py), [`src/modules/lan_governance_replay_sidecar.py`](src/modules/lan_governance_replay_sidecar.py).
+- **Phase 3 stub:** [`scripts/eval/compare_audit_ledger_anchor.py`](scripts/eval/compare_audit_ledger_anchor.py) exits 0 when audit ledger JSON fingerprint matches expected 64-char hex ([`tests/test_compare_audit_ledger_anchor.py`](tests/test_compare_audit_ledger_anchor.py)).
+## Distributed justice ??? Phase 2 replay sidecar + cross-session hint (DJ-BL-15) ??? April 2026
+- **Replay evidence:** `lan_governance_replay_sidecar_v1` builder + `fingerprint_replay_sidecar` in [`src/modules/lan_governance_replay_sidecar.py`](src/modules/lan_governance_replay_sidecar.py); CLI [`scripts/eval/verify_lan_governance_replay_sidecar.py`](scripts/eval/verify_lan_governance_replay_sidecar.py) (compare sidecars; optional `--audit-ledger` check).
+- **Cross-session (non-consensus):** optional `merge_context.cross_session_hint` (`lan_governance_cross_session_hint_v1`) validated and echoed via `merge_context_echo` / `merge_context_warnings` in [`src/modules/lan_governance_merge_context.py`](src/modules/lan_governance_merge_context.py) and LAN batch handlers in [`src/chat_server.py`](src/chat_server.py).
+- **Tests:** [`tests/test_lan_governance_merge_context.py`](tests/test_lan_governance_merge_context.py), [`tests/test_lan_governance_replay_sidecar.py`](tests/test_lan_governance_replay_sidecar.py), [`tests/test_chat_server.py`](tests/test_chat_server.py).
+## Distributed justice ??? Phase 2 LAN merge conflict taxonomy (DJ-BL-14) ??? April 2026
+- **Merge:** deterministic conflict classification for LAN batch `events` ??? `same_turn`, `different_clock`, `stale_event` ??? in [`src/modules/lan_governance_conflict_taxonomy.py`](src/modules/lan_governance_conflict_taxonomy.py); [`merge_lan_governance_events`](src/modules/lan_governance_event_merge.py) delegates to `merge_lan_governance_events_detailed` and accepts optional `frontier_turn`.
+- **WebSocket:** `lan_governance_*_batch` responses may include `event_conflicts` when non-empty; optional batch `merge_context.frontier_turn` marks below-frontier rows as `stale_event` in [`src/chat_server.py`](src/chat_server.py).
+- **Tests:** [`tests/test_lan_governance_conflict_taxonomy.py`](tests/test_lan_governance_conflict_taxonomy.py), [`tests/test_chat_server.py`](tests/test_chat_server.py).
+- **Follow-up:** `lan_governance.coordinator` may include `aggregated_event_conflicts` (inner batch merge conflicts with envelope correlation fields); operator notes in [`docs/proposals/OPERATOR_QUICK_REF.md`](docs/proposals/OPERATOR_QUICK_REF.md).
+## Distributed justice ??? Phase 2 multi-node coordinator message (DJ-BL-13) ??? April 2026
+- **WebSocket:** ``lan_governance_coordinator`` with `schema=lan_governance_coordinator_v1` aggregates multiple ``lan_governance_envelope_v1`` payloads; deterministic fingerprint sort + dedupe; applies each via the existing envelope path (shared per-session replay cache) in [`src/chat_server.py`](src/chat_server.py).
+- **Code:** contract + normalization in [`src/modules/lan_governance_coordinator.py`](src/modules/lan_governance_coordinator.py); gate [`lan_governance_coordinator_ws_enabled()`](src/modules/moral_hub.py) (same `KERNEL_LAN_GOVERNANCE_MERGE_WS=1` family).
+- **Responses:** multiple LAN actions in one frame shallow-merge under `lan_governance` (coordinator + direct batch keys can coexist).
+- **Tests:** [`tests/test_lan_governance_coordinator.py`](tests/test_lan_governance_coordinator.py), [`tests/test_chat_server.py`](tests/test_chat_server.py).
+## Distributed justice ??? Phase 2 envelope replay-cache Prometheus metrics (DJ-BL-12) ??? April 2026
+- **Metrics:** when `KERNEL_METRICS=1`, `ethos_kernel_lan_envelope_replay_cache_events_total{event=...}` counts replay-cache hits, misses, and TTL/LRU evictions for `lan_governance_envelope` in [`src/observability/metrics.py`](src/observability/metrics.py); wired from [`src/chat_server.py`](src/chat_server.py).
+- **Typing:** `merge_lan_governance_events` now accepts `Sequence[Mapping[...]]` so `list[dict]` call sites type-check under mypy ([`src/modules/lan_governance_event_merge.py`](src/modules/lan_governance_event_merge.py)).
+- **Tests:** subprocess registration check in [`tests/test_observability_metrics.py`](tests/test_observability_metrics.py).
+## Distributed justice ??? Phase 2 replay cache bounds + ACK telemetry (DJ-BL-11) ??? April 2026
+- **WebSocket:** envelope ACK now includes `cache` telemetry (`hit`, `size`, cumulative `hits_total`/`misses_total`, cumulative TTL/LRU evictions, and configured bounds).
+- **Runtime bounds:** per-session envelope replay cache now enforces TTL/LRU with `KERNEL_LAN_ENVELOPE_REPLAY_CACHE_TTL_MS` and `KERNEL_LAN_ENVELOPE_REPLAY_CACHE_MAX_ENTRIES` in [`src/chat_server.py`](src/chat_server.py).
+- **Tests:** TTL and LRU replay-cache behavior covered in [`tests/test_chat_server.py`](tests/test_chat_server.py).
+- **Docs:** env policy and distributed justice proposals updated for the new replay-cache controls.
+## Distributed justice ??? Phase 2 envelope replay cache (DJ-BL-10) ??? April 2026
+- **WebSocket:** duplicated ``lan_governance_envelope`` payloads are now detected per WebSocket session by `idempotency_token`; response returns `ack=already_seen` and skips batch reapply in [`src/chat_server.py`](src/chat_server.py).
+- **Safety intent:** avoids duplicate ledger mutations from replayed LAN messages within a session while preserving deterministic ACK fingerprints.
+- **Tests:** replay cache behavior covered in [`tests/test_chat_server.py`](tests/test_chat_server.py).
+## Distributed justice ??? Phase 2 envelope idempotency/reject taxonomy (DJ-BL-09) ??? April 2026
+- **WebSocket:** ``lan_governance_envelope`` ACK now includes `idempotency_token` and explicit `ack` status (`accepted`/`rejected`) in [`src/chat_server.py`](src/chat_server.py).
+- **Reject taxonomy:** envelope errors now map to stable `reject_reason` values (for example `unsupported_contract`, `schema_validation_failed`, `feature_disabled`) for machine-parsed replay/coordination flows.
+- **Code:** taxonomy + token helpers in [`src/modules/lan_governance_envelope.py`](src/modules/lan_governance_envelope.py).
+- **Tests:** ACK success/reject coverage in [`tests/test_chat_server.py`](tests/test_chat_server.py) and unit coverage in [`tests/test_lan_governance_envelope.py`](tests/test_lan_governance_envelope.py).
+## Distributed justice ??? Phase 2 envelope ACK + replay fingerprint (DJ-BL-08) ??? April 2026
+- **WebSocket:** ``lan_governance_envelope`` now emits deterministic ACK metadata under ``lan_governance.envelope``: `fingerprint`, `merged_count`, `applied_count`, and `audit_ledger_fingerprint` after batch routing/apply in [`src/chat_server.py`](src/chat_server.py).
+- **Code:** new deterministic hash helper `fingerprint_lan_governance_envelope` in [`src/modules/lan_governance_envelope.py`](src/modules/lan_governance_envelope.py).
+- **Tests:** deterministic fingerprint unit test in [`tests/test_lan_governance_envelope.py`](tests/test_lan_governance_envelope.py) and envelope WS ACK assertions in [`tests/test_chat_server.py`](tests/test_chat_server.py).
+## Distributed justice ??? DJ-BL-02 WebSocket LAN integrity batch ??? April 2026
+- **WebSocket:** ``lan_governance_integrity_batch`` ??? deterministic merge then ``HubAudit:dao_integrity`` rows; requires ``KERNEL_LAN_GOVERNANCE_MERGE_WS=1`` and ``KERNEL_DAO_INTEGRITY_AUDIT_WS=1`` ([`src/chat_server.py`](src/chat_server.py), [`src/modules/moral_hub.py`](src/modules/moral_hub.py)).
+## Distributed justice ??? Phase 2 LAN DAO batch (stress) ??? April 2026
+- **WebSocket:** ``lan_governance_dao_batch`` ??? deterministic merge then apply ``dao_vote`` / ``dao_resolve``; requires ``KERNEL_LAN_GOVERNANCE_MERGE_WS=1`` and ``KERNEL_MORAL_HUB_DAO_VOTE=1`` ([`src/chat_server.py`](src/chat_server.py), [`src/modules/moral_hub.py`](src/modules/moral_hub.py)).
+- **Tests:** stress test for reorder/duplicate convergence ??? [`tests/test_chat_server.py`](tests/test_chat_server.py).
+- **Docs:** contract matrix + env policy updated.
+## Distributed justice ??? Phase 2 LAN judicial batch (stress) ??? April 2026
+- **WebSocket:** ``lan_governance_judicial_batch`` ??? deterministic merge then register escalation dossiers; requires ``KERNEL_LAN_GOVERNANCE_MERGE_WS=1`` and ``KERNEL_JUDICIAL_ESCALATION=1`` ([`src/chat_server.py`](src/chat_server.py), [`src/modules/moral_hub.py`](src/modules/moral_hub.py)).
+- **Tests:** stress test for reorder/duplicate convergence ??? [`tests/test_chat_server.py`](tests/test_chat_server.py).
+- **Docs:** contract matrix + env policy updated.
+## Distributed justice ??? Phase 2 LAN mock court batch (stress) ??? April 2026
+- **WebSocket:** ``lan_governance_mock_court_batch`` ??? deterministic merge then run simulated tribunal; requires ``KERNEL_LAN_GOVERNANCE_MERGE_WS=1``, ``KERNEL_JUDICIAL_ESCALATION=1``, and ``KERNEL_JUDICIAL_MOCK_COURT=1`` ([`src/chat_server.py`](src/chat_server.py), [`src/modules/moral_hub.py`](src/modules/moral_hub.py)).
+- **Tests:** stress test for reorder/duplicate convergence ??? [`tests/test_chat_server.py`](tests/test_chat_server.py).
+- **Docs:** contract matrix + env policy updated.
+## Distributed justice ??? Phase 2 LAN envelope schema (v1) ??? April 2026
+- **WebSocket:** ``lan_governance_envelope`` (`schema=lan_governance_envelope_v1`) routes by `kind` to LAN batch handlers (`integrity_batch`, `dao_batch`, `judicial_batch`, `mock_court_batch`) in [`src/chat_server.py`](src/chat_server.py).
+- **Code:** validation/normalization contract in [`src/modules/lan_governance_envelope.py`](src/modules/lan_governance_envelope.py).
+- **Tests:** envelope contract tests in [`tests/test_lan_governance_envelope.py`](tests/test_lan_governance_envelope.py) + WebSocket routing tests in [`tests/test_chat_server.py`](tests/test_chat_server.py).
+## Distributed justice ??? DJ-BL-01 / DJ-BL-04 + HTTP API doc ??? April 2026
+- **DJ-BL-01:** [`src/modules/mock_dao_audit_replay.py`](src/modules/mock_dao_audit_replay.py) (`fingerprint_audit_ledger`), [`scripts/eval/verify_mock_dao_audit_replay.py`](scripts/eval/verify_mock_dao_audit_replay.py), [`tests/test_mock_dao_audit_replay.py`](tests/test_mock_dao_audit_replay.py).
+- **HTTP:** [`docs/proposals/PROPOSAL_CHAT_SERVER_HTTP_API_SURFACE.md`](docs/proposals/PROPOSAL_CHAT_SERVER_HTTP_API_SURFACE.md) ??? inventory of GET JSON routes; OpenAPI off by default (`KERNEL_API_DOCS=1`).
+## Distributed justice ??? DJ-BL-03 operator runbook (sync degraded) ??? April 2026
+- **Docs:** [`docs/proposals/OPERATOR_QUICK_REF.md`](docs/proposals/OPERATOR_QUICK_REF.md) ??? *Sync degraded ??? local-safe mode (DJ-BL-03)* under temporal sync; clarifies `KERNEL_TEMPORAL_LAN_SYNC` / `KERNEL_TEMPORAL_DAO_SYNC` vs in-process ethics, MockDAO, and judicial JSON.
+## Distributed justice ??? LAN merge + backlog IDs (DJ-BL) ??? April 2026
+- **Code:** [`src/modules/lan_governance_event_merge.py`](src/modules/lan_governance_event_merge.py) ??? `merge_lan_governance_events` (sort by `turn_index` / `processor_elapsed_ms`, dedupe by `event_id`; Phase 2 stub, no I/O).
+- **Tests:** [`tests/test_lan_governance_event_merge.py`](tests/test_lan_governance_event_merge.py).
+## Documentation ??? distributed justice contributions ??? April 2026
+- **Operator:** [`docs/proposals/OPERATOR_QUICK_REF.md`](docs/proposals/OPERATOR_QUICK_REF.md) ??? subsection *Distributed justice (V11 ??? advisory / mock DAO)* with key `KERNEL_JUDICIAL_*` pointers.
+## Chat ??? `temporal_sync` integer coercion + mypy (`chat_server`) ??? April 2026
+- **Code:** [`src/chat_server.py`](src/chat_server.py) ??? `_coerce_public_int` for `turn_index`, `processor_elapsed_ms`, `turn_delta_ms` in WebSocket `temporal_sync` (fixes mypy on `dict[str, object]` from `TemporalContext.to_public_dict()`; avoids `int()` on arbitrary objects).
+- **Tests:** [`tests/test_chat_server_temporal_coerce.py`](tests/test_chat_server_temporal_coerce.py).
+## LLM integration track ??? gap closure (G-01, G-02, G-03, G-05, G-06, G-07, G-08) ??? April 2026
+- **Kernel:** [`EthicalKernel.last_natural_verbal_llm_degradation_events`](src/kernel.py) exposes generative degradation from the last [`process_natural`](src/kernel.py) call (G-03).
+- **Dual perception vote:** second-sample failures merge `perception_dual_second_*` parse issues into primary [`coercion_report`](src/modules/llm_layer.py) (G-07).
+- **Docs:** [`PROPOSAL_LLM_TOUCHPOINT_DEGRADATION_MATRIX.md`](docs/proposals/PROPOSAL_LLM_TOUCHPOINT_DEGRADATION_MATRIX.md) (embedding vs completion mapping); [`MALABS_SEMANTIC_LAYERS.md`](docs/proposals/MALABS_SEMANTIC_LAYERS.md) (semantic vs verbal observability); [`PERCEPTION_VALIDATION.md`](docs/proposals/PERCEPTION_VALIDATION.md) (`generative_candidates`); [`OPERATOR_QUICK_REF.md`](docs/proposals/OPERATOR_QUICK_REF.md) (async deadline vs Ollama HTTP, G-05); [`SECURITY.md`](SECURITY.md) (link to integration track); [`PROPOSAL_LLM_INTEGRATION_TRACK.md`](docs/proposals/PROPOSAL_LLM_INTEGRATION_TRACK.md) (status table).
+- **Tests:** [`tests/test_process_natural_verbal_observability.py`](tests/test_process_natural_verbal_observability.py), [`tests/test_perception_dual_vote_failure.py`](tests/test_perception_dual_vote_failure.py), [`tests/test_generative_candidates.py`](tests/test_generative_candidates.py), [`tests/test_input_trust.py`](tests/test_input_trust.py) (`test_chat_safe_turn_coercion_report_chain`).
+## LLM vertical roadmap (G-11) ??? April 2026
+- **New:** [`docs/proposals/PROPOSAL_LLM_VERTICAL_ROADMAP.md`](docs/proposals/PROPOSAL_LLM_VERTICAL_ROADMAP.md) ??? phased justification (operator surface, verbal degradation contract, async-timeout Prometheus counter, MalAbs???`process_chat_turn` subprocess test, `scripts/eval/run_llm_vertical_tests.py`).
+- **Operator:** [`docs/proposals/OPERATOR_QUICK_REF.md`](docs/proposals/OPERATOR_QUICK_REF.md) ??? LLM vertical recipes table; [`src/validators/kernel_env_operator.py`](src/validators/kernel_env_operator.py) classifies `KERNEL_LLM_MONOLOGUE` under the LLM family.
+- **Tests:** [`tests/test_llm_verbal_backend_policy.py`](tests/test_llm_verbal_backend_policy.py) (narrate/monologue event keys); [`tests/test_malabs_semantic_integration.py`](tests/test_malabs_semantic_integration.py) (`test_process_chat_turn_benign_after_semantic_tier_subprocess`); [`tests/test_observability_metrics.py`](tests/test_observability_metrics.py) (async-timeout counter).
+## Git workflow + LLM track follow-up (master-Cursor, G-04 / G-09 / G-10) ??? April 2026
+- **Branches:** LLM integration work is merged on **`master-Cursor`** (active). The historical **`cursor-team`** branch name is **deprecated** as the default shared line; docs updated in [`docs/collaboration/MULTI_OFFICE_GIT_WORKFLOW.md`](docs/collaboration/MULTI_OFFICE_GIT_WORKFLOW.md), [`.cursor/rules/collaboration-prioritization.mdc`](.cursor/rules/collaboration-prioritization.mdc), and [`docs/proposals/CURSOR_TEAM_MISSION_SENSORS_PERCEPTION.md`](docs/proposals/CURSOR_TEAM_MISSION_SENSORS_PERCEPTION.md).
+- **G-04 (partial):** [`docs/proposals/KERNEL_ENV_POLICY.md`](docs/proposals/KERNEL_ENV_POLICY.md) adds an **LLM touchpoint index** (families + matrix pointers); single-prefix env unification remains deferred per [`docs/WEAKNESSES_AND_BOTTLENECKS.md`](docs/WEAKNESSES_AND_BOTTLENECKS.md) ??3.
+- **G-09:** New nominal profile **`llm_integration_lab`** in [`src/runtime_profiles.py`](src/runtime_profiles.py) (semantic MalAbs + generative LLM candidates).
+- **G-10:** [`scripts/eval/run_cursor_integration_gate.py`](scripts/eval/run_cursor_integration_gate.py) now includes LLM-track tests; [`docs/collaboration/CURSOR_CROSS_TEAM_INTEGRATION_GATE.md`](docs/collaboration/CURSOR_CROSS_TEAM_INTEGRATION_GATE.md) updated.
+## Documentation ??? LLM integration track (gap register) ??? April 2026
+- **New:** [`docs/proposals/PROPOSAL_LLM_INTEGRATION_TRACK.md`](docs/proposals/PROPOSAL_LLM_INTEGRATION_TRACK.md) ??? Cursor-line scope for LLM wiring, MalAbs semantic/embeddings, perception/verbal policies, and integration gaps (G-01???G-10); cross-links from [`docs/proposals/MODEL_CRITICAL_BACKLOG.md`](docs/proposals/MODEL_CRITICAL_BACKLOG.md), [`docs/proposals/CURSOR_TEAM_MISSION_SENSORS_PERCEPTION.md`](docs/proposals/CURSOR_TEAM_MISSION_SENSORS_PERCEPTION.md), [`AGENTS.md`](AGENTS.md), and [`docs/proposals/README.md`](docs/proposals/README.md).
+## Perception pipeline ??? optional parallel enrichment split ??? April 2026
+- **`EthicalKernel`:** shared perception-stage helpers now serve both `process_chat_turn` and `process_natural`: text pre-enrichment (`_preprocess_text_observability`), post-perception safeguards (`_postprocess_perception`), and chat sensor stack (`_chat_assess_sensor_stack`).
+- **DTO stage boundary:** new `PerceptionStageResult` consolidates perception-stage outputs (tier/premise/reality/perception/signals/sensor overlays), reducing orchestration coupling across entrypoints.
+- **Hardware-aware scaling (opt-in):** when `KERNEL_PERCEPTION_PARALLEL=1`, independent tasks run concurrently via bounded thread pools; `KERNEL_PERCEPTION_PARALLEL_WORKERS` controls worker count (or uses a conservative CPU-based default when unset).
+- **Behavioral parity:** default remains inline/sequential when the env flag is off; entrypoints now share the same text pre-enrichment and circuit post-processing pattern.
+- **Support buffer always available (offline):** perception stage now builds a local support snapshot from `PreloadedBuffer` + metaplan strategy hints (`source=local_preloaded_buffer`, `offline_ready=true`) and exposes it in chat JSON as `support_buffer`.
+- **Hardened support policy:** support snapshots now include `priority_profile` and `priority_principles` (`safety_first` / `balanced` / `planning_first`) derived from a limbic-aware risk posture, not only static context activation.
+- **Limbic architecture extension:** shared perception stage now emits `limbic_profile` (arousal band, threat load, regulation gap, planning bias, multimodal mismatch, vitality-critical flag) and chat JSON exposes it as `limbic_perception` for downstream strategy/planning UX.
+- **Temporal directive integrated in perception stage:** new module [`src/modules/temporal_planning.py`](src/modules/temporal_planning.py) emits `TemporalContext` (processor elapsed/delta time, human wall-clock, battery horizon heuristics, ETA hints for known tasks including transport, and sync readiness for DAO/LAN).
+- **Runtime JSON sync contract:** chat responses now include `temporal_context` and `temporal_sync` (`temporal_sync_v1`) so local network and DAO-facing consumers can align clocks/turn timing without external dependencies.
+- **Perception confidence envelope:** new [`src/modules/perception_confidence.py`](src/modules/perception_confidence.py) builds a unified confidence band/score from coercion diagnostics + multimodal/epistemic/vitality signals; exposed in chat JSON as `perception_confidence` and mirrored in `perception_observability`.
+- **Config/tests:** [`.env.example`](.env.example) adds `KERNEL_TEMPORAL_*` knobs; [`tests/test_temporal_planning.py`](tests/test_temporal_planning.py) validates ETA/sync behavior.
+- **Tests/docs:** [`tests/test_chat_turn.py`](tests/test_chat_turn.py) adds parallel-vs-inline regression checks; [`.env.example`](.env.example) documents the new knobs.
+- **Cross-team integration gate:** new runbook [`docs/collaboration/CURSOR_CROSS_TEAM_INTEGRATION_GATE.md`](docs/collaboration/CURSOR_CROSS_TEAM_INTEGRATION_GATE.md) plus executable checker [`scripts/eval/run_cursor_integration_gate.py`](scripts/eval/run_cursor_integration_gate.py) to validate interlace readiness before merging team lines.
+- **CI hardening:** [`.github/workflows/ci.yml`](.github/workflows/ci.yml) now enforces coverage floor (`--cov-fail-under=65`), adds a semantic-default contract job (`tests/test_malabs_semantic_integration.py`, `tests/test_semantic_chat_gate.py`), and adds Windows smoke validation (`ruff` + env/profile tests).
+- **Doc coherence and onboarding fixes:** [`CONTRIBUTING.md`](CONTRIBUTING.md) now points to canonical model sources in `docs/proposals`; key operator/env docs fixed link targets from `docs/proposals` to repo paths in [`docs/proposals/KERNEL_ENV_POLICY.md`](docs/proposals/KERNEL_ENV_POLICY.md) and [`docs/proposals/OPERATOR_QUICK_REF.md`](docs/proposals/OPERATOR_QUICK_REF.md).
+- **Low-critical runtime polish (non-DAO):** `/health` now includes `safety_defaults` (`kernel_env_validation_mode`, semantic gate/hash fallback toggles, perception fail-safe, perception parallel toggle) to speed up operator diagnosis of default-safety posture; tests updated in [`tests/test_chat_server.py`](tests/test_chat_server.py) and quick reference updated in [`docs/proposals/OPERATOR_QUICK_REF.md`](docs/proposals/OPERATOR_QUICK_REF.md).
+- **Medium-critical MalAbs coverage gap closed:** `AbsoluteEvilDetector` now blocks explicit torture signals and lexical torture instruction patterns (`AbsoluteEvilCategory.TORTURE`), and semantic anchors now include child-harm and torture reference groups. Semantic category mapping/arbiter contract now recognizes `TORTURE`; tests added in [`tests/test_input_trust.py`](tests/test_input_trust.py) and [`tests/test_semantic_chat_gate.py`](tests/test_semantic_chat_gate.py); docs updated in [`docs/proposals/MALABS_SEMANTIC_LAYERS.md`](docs/proposals/MALABS_SEMANTIC_LAYERS.md).
+## LLM touchpoint policy matrix (flexible operator precedence) ??? April 2026
+- **New:** [`src/modules/llm_touchpoint_policies.py`](src/modules/llm_touchpoint_policies.py) ??? `KERNEL_LLM_TP_<TOUCHPOINT>_POLICY` for `perception`, `communicate`, `narrate`, `monologue`; `KERNEL_LLM_VERBAL_FAMILY_POLICY` for shared communicate+narrate default; `KERNEL_LLM_MONOLOGUE_BACKEND_POLICY` monologue fallback; monologue policies `passthrough` | `annotate_degraded` with degradation events + optional `| monologue_llm_*` suffix.
+- **Precedence:** per-touchpoint override ??? verbal family (communicate/narrate) ??? legacy `KERNEL_PERCEPTION_BACKEND_POLICY` / `KERNEL_VERBAL_LLM_BACKEND_POLICY` ??? see [`docs/proposals/PROPOSAL_LLM_TOUCHPOINT_DEGRADATION_MATRIX.md`](docs/proposals/PROPOSAL_LLM_TOUCHPOINT_DEGRADATION_MATRIX.md).
+- **Docs:** [`CONTRIBUTING.md`](CONTRIBUTING.md), [`AGENTS.md`](AGENTS.md), [`docs/proposals/KERNEL_ENV_POLICY.md`](docs/proposals/KERNEL_ENV_POLICY.md), [`docs/proposals/OPERATOR_QUICK_REF.md`](docs/proposals/OPERATOR_QUICK_REF.md), [`docs/proposals/README.md`](docs/proposals/README.md), [`docs/proposals/CURSOR_TEAM_MISSION_SENSORS_PERCEPTION.md`](docs/proposals/CURSOR_TEAM_MISSION_SENSORS_PERCEPTION.md); [`.env.example`](.env.example); [`src/validators/kernel_env_operator.py`](src/validators/kernel_env_operator.py).
+- **Tests:** [`tests/test_llm_touchpoint_policies.py`](tests/test_llm_touchpoint_policies.py); [`tests/test_llm_verbal_backend_policy.py`](tests/test_llm_verbal_backend_policy.py) (monologue annotate path).
+## Verbal / narrative LLM degradation policy ??? April 2026
+- **New:** [`src/modules/llm_verbal_backend_policy.py`](src/modules/llm_verbal_backend_policy.py) ??? ``KERNEL_VERBAL_LLM_BACKEND_POLICY`` (`template_local` default, `canned_safe` optional) for :meth:`LLMModule.communicate` and :meth:`LLMModule.narrate` when the generative path fails or returns unusable JSON.
+- **`LLMModule`:** per-turn degradation event log; stricter communicate JSON (non-empty `message`); narrate requires at least one non-empty moral field for LLM output to be accepted.
+- **Chat:** [`src/chat_server.py`](src/chat_server.py) emits `verbal_llm_observability` when events exist; [`src/kernel.py`](src/kernel.py) clears the log at chat / `process_natural` entry and passes `verbal_llm_degradation_events` on [`ChatTurnResult`](src/kernel.py).
+- **Docs:** [`docs/proposals/PROPOSAL_LLM_VERBAL_DEGRADATION_POLICY.md`](docs/proposals/PROPOSAL_LLM_VERBAL_DEGRADATION_POLICY.md), [`docs/proposals/OPERATOR_QUICK_REF.md`](docs/proposals/OPERATOR_QUICK_REF.md); [`.env.example`](.env.example); [`MODEL_CRITICAL_BACKLOG.md`](docs/proposals/MODEL_CRITICAL_BACKLOG.md) updated (partial unified degradation).
+- **Tests:** [`tests/test_llm_verbal_backend_policy.py`](tests/test_llm_verbal_backend_policy.py); [`tests/test_llm_injection.py`](tests/test_llm_injection.py) asserts degradation events.
+## Perception ??? valid-but-wrong payload regressions ??? April 2026
+- **Tests:** [`tests/test_perception_valid_wrong_payloads.py`](tests/test_perception_valid_wrong_payloads.py) locks JSON-valid, in-range payloads that are semantically inconsistent (coherence nudges, context fallback uncertainty, fail-safe prior when many fields default).
+- **Docs:** [`docs/proposals/MODEL_CRITICAL_BACKLOG.md`](docs/proposals/MODEL_CRITICAL_BACKLOG.md) ??? prioritized model/runtime gaps after perception P0 (input trust, unified LLM degradation, packaging, governance honesty).
+## Collaboration methodology ??? consolidated guide ??? April 2026
+## Perception ??? observability contract baseline ??? April 2026
+- **WebSocket contract:** [`src/chat_server.py`](src/chat_server.py) now always emits canonical `perception.coercion_report` keys and a compact `perception_observability` object (`uncertainty`, `dual_high_discrepancy`, `backend_degraded`, `metacognitive_doubt`) when perception is present.
+- **Tests:** [`tests/test_perception_observability_contract.py`](tests/test_perception_observability_contract.py).
+## Perception ??? unified backend degradation policy ??? April 2026
+- **`LLMModule.perceive`:** applies policy on transport errors and unusable payloads (severe parse / validate / empty).
+- **WebSocket:** [`src/chat_server.py`](src/chat_server.py) sets ``perception_backend_banner`` when recommended.
+- **Docs:** [`docs/proposals/PROPOSAL_PERCEPTION_BACKEND_DEGRADATION_POLICY.md`](docs/proposals/PROPOSAL_PERCEPTION_BACKEND_DEGRADATION_POLICY.md); [`docs/WEAKNESSES_AND_BOTTLENECKS.md`](docs/WEAKNESSES_AND_BOTTLENECKS.md) ??3 partial mitigation; [`.env.example`](.env.example).
+## Collaboration scope ??? real Bayesian inference playbook ??? April 2026
+- **New:** [`docs/proposals/CLAUDE_TEAM_PLAYBOOK_REAL_BAYESIAN_INFERENCE.md`](docs/proposals/CLAUDE_TEAM_PLAYBOOK_REAL_BAYESIAN_INFERENCE.md) ??? multi-origin collaboration charter for closing Bayesian inference gaps, architecture improvements, and adjacent evidence/observability needs.
+## Documentation ??? restore `docs/proposals/` + bibliography ??? April 2026
+- **Restored** the full **`docs/proposals/`** tree from **`origin/backup/main-2026-04-10`** so cross-links in [`docs/WEAKNESSES_AND_BOTTLENECKS.md`](docs/WEAKNESSES_AND_BOTTLENECKS.md), [`docs/ROADMAP_PRACTICAL_PHASES.md`](docs/ROADMAP_PRACTICAL_PHASES.md), ADRs, and [`SECURITY.md`](SECURITY.md) resolve to versioned English design notes again.
+- **New:** [`docs/proposals/CURSOR_TEAM_MISSION_SENSORS_PERCEPTION.md`](docs/proposals/CURSOR_TEAM_MISSION_SENSORS_PERCEPTION.md) ??? collaborative playbook for Cursor-line **sensors/perception** work under the multi-origin workflow (intake gate, branch flow `cursor-team` -> `master-Cursor`, DoD template), linked from [`docs/proposals/README.md`](docs/proposals/README.md).
+- **Planning update:** the same playbook now includes an initial **P0/P1 execution backlog** (`SP-P0-*`, `SP-P1-*`) with track labels, risk classes, target branches, and evidence links to perception/sensor modules and tests.
+- **Link hygiene:** fixed mistaken ???README??? anchors in [`docs/WEAKNESSES_AND_BOTTLENECKS.md`](docs/WEAKNESSES_AND_BOTTLENECKS.md), [`docs/ROADMAP_PRACTICAL_PHASES.md`](docs/ROADMAP_PRACTICAL_PHASES.md), [ADR 0009](docs/adr/0009-ethical-mixture-scorer-naming.md), [ADR 0010](docs/adr/0010-poles-pre-argmax-modulation.md), [`SECURITY.md`](SECURITY.md), and [`deploy/grafana/README.md`](deploy/grafana/README.md); root [`README.md`](README.md) now states the proposal tree is versioned under `docs/proposals/`.
+## Multi-office Git workflow (method + diagram) ??? April 2026
+- **Docs:** **[`docs/collaboration/MULTI_OFFICE_GIT_WORKFLOW.md`](docs/collaboration/MULTI_OFFICE_GIT_WORKFLOW.md)** ??? institutionalized *Time worth flow / cycle develop* pattern for distributed teams (`main` production, `master-<TeamSlug>` integration, shared `<team-slug>-team` work line); canonical PNG diagram under **`docs/collaboration/`**.
+## Proposals ??? offline mode taxonomy and knowledge corpus ??? April 2026
+- **[`docs/proposals/PROPOSAL_OFFLINE_MODE_TAXONOMY_AND_KNOWLEDGE_CORPUS.md`](docs/proposals/PROPOSAL_OFFLINE_MODE_TAXONOMY_AND_KNOWLEDGE_CORPUS.md):** offline class taxonomy, separation of L0 `PreloadedBuffer` from a versioned offline knowledge pack (RAG grounding without MalAbs bypass), resource/energy hierarchy, entry planning with recharge objectives, reconnection sync; indexed in [`docs/proposals/README.md`](docs/proposals/README.md).
+## Proposals ??? Bayesian mixture index ??? April 2026
+- **[`docs/proposals/PROPOSAL_BAYESIAN_MIXTURE_FEEDBACK.md`](docs/proposals/PROPOSAL_BAYESIAN_MIXTURE_FEEDBACK.md):** indexes ADR 0012 stack (L1???L3, softmax IS), modules, env vars, tests.
+## Ethical mixture softmax likelihood (Plackett-Luce + IS) ??? April 2026
+- **New** [`src/modules/ethical_mixture_likelihood.py`](src/modules/ethical_mixture_likelihood.py): softmax choice log-likelihood, joint likelihood, importance-sampling posterior, sequential iterated IS with moment-matched Dirichlet projection, posterior predictive check, empirical-``beta`` grid search.
+- **`FeedbackUpdater`:** optional path when ``KERNEL_FEEDBACK_LIKELIHOOD=softmax_is`` (and related env); default remains heuristic agreeing-sample update.
+## ADR 0012 Level 3 ??? context-dependent mixture posteriors ??? April 2026
+- **`src/modules/feedback_mixture_posterior.py`:** when ``KERNEL_BAYESIAN_CONTEXT_LEVEL3`` is on and feedback JSON includes ``context_type``, independent sequential Dirichlet updates per bucket; ``load_and_apply_feedback(..., tick_context=(scenario, context, signals))`` selects ?? via override / scenario-id map / keyword map. Explicit-triples feedback stays global-only (meta note).
+- **`src/kernel.py`:** passes tick context when Level 3 is enabled; **`KernelDecision.mixture_context_key`** records the active bucket.
+- **Docs / tests:** [ADR 0012](docs/adr/0012-bayesian-weight-inference-ethical-mixture-scorer.md); [`tests/test_context_mixture_level3.py`](tests/test_context_mixture_level3.py).
+## Trim non-kernel root artifacts ??? April 2026
+- **Removed** from the repository root: **`dashboard.html`** (static browser UI, not imported by Python), **`robots.txt`**, and **`ai.txt`** (web/SEO conventions, not runtime). Recover from git history if needed.
+- **Docs:** [`README.md`](README.md), [`docs/REPOSITORY_LAYOUT.md`](docs/REPOSITORY_LAYOUT.md), [`HISTORY.md`](HISTORY.md), [`SECURITY.md`](SECURITY.md) (removed static-dashboard hardening section); [`.github/ISSUE_TEMPLATE/bug_report.yml`](.github/ISSUE_TEMPLATE/bug_report.yml).
+## Remove `experiments/million_sim/` ??? April 2026
+- **Deleted** the **`experiments/million_sim/`** tree (skeleton README, **`docs/`**, **`requirements-experiment.txt`**). Optional experiment dependencies moved to **[`experiments/requirements-experiment.txt`](experiments/requirements-experiment.txt)**; large outputs go under gitignored **[`experiments/out/`](experiments/out/)**.
+- **Kept** structural harness: **`src/sandbox/mass_kernel_study.py`**, **`scripts/run_mass_kernel_study.py`**, simplex / v4 / v5 scripts ??? docstrings and default paths updated to **`experiments/`** and **`experiments/README.md`**.
+## Remove `docs/templates/` ??? April 2026
+- **Deleted** **`docs/templates/conduct_guide.template.json`**. Conduct-guide shape is defined by **`validate_conduct_guide_dict`** in **`src/modules/context_distillation.py`**; runtime loads JSON from **`KERNEL_CONDUCT_GUIDE_PATH`** when set (not from a repo template file).
+## Remove `docs/multimedia/` ??? April 2026
+## Docs and experiments skeleton ??? April 2026
+- **`docs/proposals/`:** removed all prior proposal markdown files; only **[`docs/proposals/README.md`](docs/proposals/README.md)** remains as a placeholder for new English `PROPOSAL_*.md` files. Recover deleted content from git history or branch **`backup/main-2026-04-10`**.
+- **`experiments/`:** long-form files under **`experiments/million_sim/docs/`** removed; skeleton **[`experiments/README.md`](experiments/README.md)** (the **`million_sim/`** folder was removed entirely in a later change ??? see **Remove `experiments/million_sim/`** above).
+- **Root [`README.md`](README.md):** shortened to install, tests, chat, and pointers; detailed env tables removed.
+## Remove legacy `PROPUESTA_*` stub files ??? April 2026
+- **Removed** 14 Spanish redirect stubs **`docs/proposals/PROPUESTA_*.md`** (each duplicated a canonical English **`PROPOSAL_*.md`**).
+## Remove legacy redirect stubs (Spanish + rename stubs) ??? April 2026
+- **Removed** bookmark-only stubs: **`ESTRATEGIA_Y_RUTA.md`**, **`PAPER_AFECTO_FENOMENOS_Y_HIPOTESIS.md`** (canonical: [`STRATEGY_AND_ROADMAP.md`](docs/proposals/README.md), [`PAPER_AFFECT_PHENOMENA_AND_HYPOTHESES.md`](docs/proposals/README.md)).
+- **Removed** one-line rename stubs: **`RUNTIME_FASES.md`** ??? [`RUNTIME_PHASES.md`](docs/proposals/README.md); **`RUNTIME_PERSISTENTE.md`** ??? [`RUNTIME_PERSISTENT.md`](docs/proposals/README.md).
+## Remove Next.js landing and root bibliography ??? April 2026
+- **Removed** the entire **`landing/`** Next.js application (marketing site, static HTML mirrors that lived under it, and **`landing-ci.yml`**). **`dashboard.html`** at the repository root remains the browser-only interactive surface.
+- **Removed** root **`BIBLIOGRAPHY.md`**. **`docs/proposals/README.md`** removed as obsolete. Cross-links in README, `HISTORY.md`, proposals, `TRACE_IMPLEMENTATION_RECENT.md`, and policy tables updated; numbered trace refs point to git history or branch **`backup/main-2026-04-10`** for the old bibliography file.
+## Docs multimedia trim ??? April 2026
+- **Removed** large non-essential assets under **`docs/multimedia/media/`** (pre-alpha PNG diagrams, generated JPG still, MP4 clip); **`logo.png`** retained for branding and landing sync.
+- **Docs:** [`HISTORY.md`](HISTORY.md) ??? narrative updated (multimedia folder later removed; see **Remove `docs/multimedia/`** above).
+- **Snapshot:** full prior tree (including removed binaries) remains reachable on branch **`backup/main-2026-04-10`**.
+## Mass study schema 5 ??? tunable pole/mixture sampling ??? April 2026
+- **`scripts/run_experiment_v4_full_kernel_100k.py`:** defaults **0.36???0.64** poles, **??=12** mixture, borderline **10???12 + 16**, outputs `run_v4_tight_100k.*`.
+## Frontier scenarios 10???12 sensitivity tuning + v4 full-kernel 100k wrapper ??? April 2026
+- **`src/simulations/runner.py`:** tighter **estimated_impact** pairings for **sim_10???sim_12** so mixture / poles / signal stress can surface more variation; empirical pilot row **11** `reference_action` ??? **`report_and_aggregate`** (seed-42 alignment).
+- **`scripts/run_experiment_v4_full_kernel_100k.py`:** convenience launcher for **`run_mass_kernel_study.py`** at **N=100000**, protocol **v4**, **`--context-richness-pre-argmax`**, **`--signal-stress 0.2`**.
+## Simplex decision map + calibration scenario 16 ??? April 2026
+## Million-sim experiment history + simplex corner audit ??? April 2026
+- **[`experiments/million_sim/docs/EXPERIMENT_HISTORY.md`](experiments/million_sim/docs/EXPERIMENT_HISTORY.md):** narrative arc (legacy 1e6, critique, repo responses, successor marginal / near-tie design).
+## Classic economy triple, polemic scenarios 13???15, context richness pre-argmax, protocol v4 ??? April 2026
+- **`src/kernel.py`:** fills **`pre_argmax_context_modulators`** when env on (after poles block).
+- **`src/sandbox/mass_kernel_study.py`:** **`RECORD_SCHEMA_VERSION` 4**; lanes **A/C** use **classic economy triple (1,5,7)** instead of full 1???9; protocol **`v4`** ??? fifth lane **`E_polemic_extreme`**; JSONL **`classic_economy_ids`**, **`polemic_extreme_ids`**, **`context_richness_pre_argmax`**.
+- **`scripts/run_mass_kernel_study.py`:** **`--experiment-protocol v4`**, **`--polemic-extreme-ids`**, **`--classic-economy-ids`**, **`--legacy-economy-classics`**, **`--context-richness-pre-argmax`**; v4 default **5-way** lane split.
+## Poles pre-argmax + frontier scenarios + protocol v3 ??? April 2026
+- **[ADR 0010](docs/adr/0010-poles-pre-argmax-modulation.md):** optional **`KERNEL_POLES_PRE_ARGMAX`** ??? pole base weights scale util/deon/virtue valuations **before** mixture argmax (`pole_hypothesis_multipliers` in `weighted_ethics_scorer`); default **off** unless env set.
+- **`src/kernel.py`:** copies `poles.base_weights` into `bayesian.pre_argmax_pole_weights` when env is on.
+- **`src/simulations/runner.py`:** batch IDs **10???12** ??? **borderline** vignettes (tight scores); `run_all` iterates all registered IDs.
+- **`src/sandbox/mass_kernel_study.py`:** **`RECORD_SCHEMA_VERSION` 3**; protocol **`v3`** (four lanes + `D_borderline`); **`allocate_lane_counts_n`**; **`poles_pre_argmax`**, **`signal_stress`**, **`signal_noise_trace`**; default v3 lane split **0.28,0.22,0.12,0.38**.
+- **`scripts/run_mass_kernel_study.py`:** **`--experiment-protocol v3`**, **`--borderline-scenario-ids`**, **`--signal-stress`**, **`--no-poles-pre-argmax`**; v3 defaults **poles pre-argmax on**.
+## Mass kernel study ??? protocol v2 + schema 2 ??? April 2026
+- **`src/sandbox/mass_kernel_study.py`:** `RECORD_SCHEMA_VERSION` **2**; **`--experiment-protocol v2`** lanes (`A_mixture_focus`, `B_stress_scenarios`, `C_ablation`), `allocate_lane_counts`, `stratified_stress_scenario_ids`, per-lane stratification; optional env ablation in lane C; **`observation_palette`**, mixture entropy, dominant hypothesis, scorer top-2 / margin fields.
+- **`scripts/run_mass_kernel_study.py`:** **`--experiment-protocol`**, **`--lane-split`**, **`--stress-scenario-ids`**; summary adds counts by lane, margin bin, dominant hypothesis, top observation palettes.
+- **Docs:** [`PROPOSAL_MILLION_SIM_EXPERIMENT.md`](docs/proposals/README.md) (v2 design, disclaimer on induced stress subsets), [`experiments/million_sim/README.md`](experiments/million_sim/README.md), pointer in [`experiments/million_sim/docs/EXPERIMENT_REPORT.md`](experiments/million_sim/docs/EXPERIMENT_REPORT.md).
+## Experiments ??? million-sim narrative report ??? April 2026
+- **[`experiments/million_sim/docs/EXPERIMENT_REPORT.md`](experiments/million_sim/docs/EXPERIMENT_REPORT.md):** origin, methodology, expected vs observed results (`cursor_start_1e6`), architectural note on pole weights vs argmax, conclusions and next steps.
+## Million-sim experiment ??? design + mass runner ??? April 2026
+- **`scripts/run_mass_kernel_study.py`:** JSONL + summary JSON; `--i-accept-large-run` for n>100k; multiprocessing pool; **`--run-label`**, **`--output-csv`**, **`--progress`** (tqdm); summary includes `git_commit_short`, UTC timestamps, `sims_per_second`, `counts_by_difficulty_tier`, `agreement_by_difficulty_tier`, 10-bin histograms for poles/mixture; JSONL rows add `schema_version`, `run_label`.
+## Weight sensitivity sweep ??? poles + mixture ??? April 2026
+- **`scripts/run_weight_sweep_batch.py`:** `--target poles|mixture|both`, JSON artifact and optional `--csv` for plotting; `--max-total-runs` safety cap.
+## Stochastic sandbox ??? synthetic stress engine ??? April 2026
+- **`scripts/run_stochastic_sandbox.py`:** Monte Carlo over batch fixtures (`--rolls`, `--stress`, `--base-seed`); per-trial `EthicalKernel` seed; JSON artifact with `trials` + `summary.by_scenario` (action/mode histograms, agreement rate, diversity proxy).
+## Experimental sandbox ??? tiered batch scenarios ??? April 2026
+## Docs and deploy artifacts ??? coherence pass ??? April 2026
+- **[ADR 0008](docs/adr/0008-runtime-observability-prometheus-and-logs.md):** links to [`deploy/prometheus/ethos_kernel_alerts.yml`](deploy/prometheus/ethos_kernel_alerts.yml) and Grafana README.
+- **[`.env.example`](.env.example):** commented `KERNEL_ENV_VALIDATION` modes vs strict default (see [`KERNEL_ENV_POLICY.md`](docs/proposals/README.md)).
+## Quick wins (two sprints) ??? infrastructure digest ??? April 2026
+- **[`default_env_validation_for_profile()`](src/validators/env_policy.py):** after profile dict merge, lab tier names get `KERNEL_ENV_VALIDATION=warn` and demo/production get `strict` when validation is still unset ([`apply_named_runtime_profile_to_environ`](src/runtime_profiles.py) / pytest [`apply_runtime_profile`](src/runtime_profiles.py)).
+- **[`kernel_public_env._parse_env_validation_mode()`](src/validators/kernel_public_env.py):** unset `KERNEL_ENV_VALIDATION` ??? **strict** (fail fast); unknown tokens default strict.
+- **Perception circuit:** documented link to Pydantic path (`pydantic_emergency_fallback`); behavior unchanged in [`perception_circuit.py`](src/modules/perception_circuit.py) (metacognitive doubt, gray_zone tone, DAO calibration, metrics).
+- **`ethos-runtime`:** [`pyproject.toml`](pyproject.toml) console script ??? `src.chat_server:main` (requires `pip install -e ".[runtime]"`).
+- **Prometheus:** [`deploy/prometheus/ethos_kernel_alerts.yml`](deploy/prometheus/ethos_kernel_alerts.yml) ??? MalAbs burst, elevated `safety_block` rate, perception circuit trip.
+- **[`runtime_profiles.py`](src/runtime_profiles.py):** fix `apply_named_runtime_profile_to_environ` / `apply_runtime_profile` imports (`from src.validators.env_policy import default_env_validation_for_profile`) so `ETHOS_RUNTIME_PROFILE` works when merging default validation.
+- **Proposal / narrative:** [`docs/proposals/README.md`](docs/proposals/README.md); **Tests:** [`tests/test_env_policy.py`](tests/test_env_policy.py); [`tests/test_packaging_scripts.py`](tests/test_packaging_scripts.py); [`tests/test_runtime_profiles.py`](tests/test_runtime_profiles.py) (`test_runtime_profile_merges_kernel_env_validation_strict_or_warn_subprocess`).
+## Sync kernel vs async ASGI ??? JSON + advisory offload ??? April 2026
+- **[`src/real_time_bridge.py`](src/real_time_bridge.py):** `RealTimeBridge.run_sync_in_chat_thread` for synchronous post-turn work off the event loop.
+- **[`src/chat_server.py`](src/chat_server.py):** optional `KERNEL_CHAT_JSON_OFFLOAD` (default on) builds WebSocket payloads in the chat thread pool; `/health` exposes the flag.
+- **[`src/runtime/telemetry.py`](src/runtime/telemetry.py):** `advisory_loop` uses `run_in_threadpool` for `advisory_snapshot`.
+- **Docs:** [PROPOSAL_SYNC_KERNEL_ASYNC_ASGI_BRIDGE.md](docs/proposals/README.md); [ADR 0002](docs/adr/0002-async-orchestration-future.md) amended; [`KERNEL_ENV_POLICY.md`](docs/proposals/README.md), [`README.md`](README.md), [`WEAKNESSES_AND_BOTTLENECKS.md`](docs/WEAKNESSES_AND_BOTTLENECKS.md); [`.env.example`](.env.example).
+## Psi Sleep ??? honest counterfactual evaluator boundary ??? April 2026
+- **[`src/modules/psi_sleep.py`](src/modules/psi_sleep.py):** module/class docstrings state **hash perturbation** of stored `ethical_score`; **not** re-scoring via `WeightedEthicsScorer`; **not** independent quality validation. Stable id `psi_sleep_hash_perturbation_v1` on `SleepResult`; `evaluation_method` on `EpisodeReview`; formatted output and narrative summary disclose the evaluator.
+- **[`src/kernel.py`](src/kernel.py):** `execute_sleep` docstring + `record_operator_feedback` / chat helpers ??? mixture-scorer wording where relevant.
+## Docs + ops coherence ??? mixture naming, ADR 0002, `/health` chat bridge ??? April 2026
+- **Cross-docs:** [`CORE_DECISION_CHAIN.md`](docs/proposals/README.md) mermaid/table use `WeightedEthicsScorer`; [`CRITIQUE_ROADMAP_ISSUES.md`](docs/proposals/README.md) ???narrowed items??? (ADR 0009 + 0002); [`PLAN_IMMEDIATE_TWO_WEEKS.md`](docs/proposals/README.md) appendix; [`RUNTIME_CONTRACT.md`](docs/proposals/README.md); proposals (reality / situated / relational / contribution V6) ??? consistent **mixture** wording vs legacy ???Bayesian???.
+- **[`src/chat_server.py`](src/chat_server.py):** `GET /health` includes `chat_bridge` (turn timeout + threadpool workers from [`chat_settings`](src/chat_settings.py)).
+## Issue 7 ??? typed `KernelPublicEnv` + env policy refactor ??? April 2026
+- **[`src/validators/kernel_public_env.py`](src/validators/kernel_public_env.py):** Pydantic model for KERNEL flags in **consistency rules** (judicial, reality/lighthouse, `KERNEL_ENV_VALIDATION`, `ETHOS_RUNTIME_PROFILE`); `consistency_violations()` replaces ad-hoc `if` chains.
+- **[`src/validators/env_policy.py`](src/validators/env_policy.py):** `collect_env_violations()` / `validate_kernel_env()` use `KernelPublicEnv`; override mode aligned with typed `env_validation`.
+- **Docs:** [`docs/proposals/README.md`](docs/proposals/README.md); [`KERNEL_ENV_POLICY.md`](docs/proposals/README.md); [`tests/conftest.py`](tests/conftest.py) notes CI vs production drift.
+- **Tests:** [`tests/test_kernel_public_env.py`](tests/test_kernel_public_env.py).
+## Chat server ??? async bridge: turn timeout + dedicated thread pool ??? April 2026
+- **[`src/chat_server.py`](src/chat_server.py):** optional ``KERNEL_CHAT_TURN_TIMEOUT`` wraps each turn in ``asyncio.wait_for``; on expiry responds with ``error=chat_turn_timeout`` (worker thread may still finish; see ADR 0002). ``GET /health`` exposes ``chat_bridge`` (see coherence entry above).
+- **[`src/chat_settings.py`](src/chat_settings.py):** Pydantic fields for the new env vars; ``model_dump_public`` extended.
+- **Docs:** [ADR 0002](docs/adr/0002-async-orchestration-future.md) status **Accepted (partial)**; [`KERNEL_ENV_POLICY.md`](docs/proposals/README.md), [`RUNTIME_CONTRACT.md`](docs/proposals/README.md), [`.env.example`](.env.example).
+## Mock DAO ??? simulation limits + Solidity stub (Issue 6 honesty) ??? April 2026
+- **[`docs/proposals/README.md`](docs/proposals/README.md):** no on-chain product in repo; QV assumes closed honest participants; DAO does not drive `final_action`; external critique alignment.
+- **[`contracts/README.md`](contracts/README.md), [`contracts/stubs/PlaceholderEthOracleStub.sol`](contracts/stubs/PlaceholderEthOracleStub.sol):** explicit non-functional stub (revert-only).
+## MalAbs semantic ?? ??? evidence doc + guardrail constants ??? April 2026
+- **[`tests/test_semantic_chat_gate.py`](tests/test_semantic_chat_gate.py):** asserts defaults and subprocess check for unset-env thresholds.
+- **Agent guidance:** [`AGENTS.md`](AGENTS.md); [`.cursor/rules/collaboration-prioritization.mdc`](.cursor/rules/collaboration-prioritization.mdc) (persist learnings); [`.cursor/rules/dev-efficiency-and-docs.mdc`](.cursor/rules/dev-efficiency-and-docs.mdc) (safety guardrails); [`CONTRIBUTING.md`](CONTRIBUTING.md) ?? Understand the model + documentation traceability.
+## Empirical evaluation ??? external benchmark policy (Issue 3) ??? April 2026
+- **[`src/main.py`](src/main.py):** docstring clarifies demos are not external ethical validation.
+## Module surface vs observable ethics (ablation gap) ??? April 2026
+- **[`tests/test_decision_core_invariants.py`](tests/test_decision_core_invariants.py):** when not blocked, `final_action == bayesian_result.chosen_action.name` (regression guard).
+## Ethical scoring ??? canonical `weighted_ethics_scorer` + ADR 0009 ??? April 2026
+## Contributor workflow ??? documentation traceability + Cursor rule ??? April 2026
+- **[`CONTRIBUTING.md`](CONTRIBUTING.md):** section *Documentation, traceability, and efficient workflow* (CHANGELOG, targeted vs full pytest, landing/Docker scope, credibility limits).
+- **[`.cursor/rules/dev-efficiency-and-docs.mdc`](.cursor/rules/dev-efficiency-and-docs.mdc):** always-on agent guidance aligned with the same expectations.
+## Code docs ??? canonical `PROPOSAL_*` links in `src/` ??? April 2026
+- **`tests/test_deploy_artifacts.py`:** validates `deploy/grafana/ethos-kernel-overview.json` parses and has expected keys.
+## Docs hygiene ??? test count + ADR index ??? April 2026
+## Governance + ops ??? L0 regression test, Grafana starter ??? April 2026
+- **[`tests/test_governance_l0_immutable.py`](tests/test_governance_l0_immutable.py):** `PreloadedBuffer` principles unchanged after MockDAO draft / vote / resolve ([`GOVERNANCE_MOCKDAO_AND_L0.md`](docs/proposals/README.md) ??5 checkpoint).
+- **[`deploy/grafana/`](deploy/grafana/README.md):** importable `ethos-kernel-overview.json` + README for Prometheus + Grafana.
+- **[`docs/proposals/README.md`](docs/proposals/README.md):** Issue #6 governance checklist items marked complete.
+## Observability ??? kernel Prometheus metrics, decision JSON logs, health fields ??? April 2026
+- **[`src/observability/metrics.py`](src/observability/metrics.py):** `ethos_kernel_kernel_decisions_total` and `ethos_kernel_kernel_process_seconds`; wired from [`src/kernel.py`](src/kernel.py) on each `process()` completion.
+- **[`src/observability/decision_log.py`](src/observability/decision_log.py):** optional per-decision JSON lines (`KERNEL_LOG_JSON=1`; `KERNEL_LOG_DECISION_EVENTS` defaults on).
+- **[`src/chat_server.py`](src/chat_server.py):** `GET /health` includes `version`, `uptime_seconds`, `observability` block.
+- **Docs:** [`OPERATOR_QUICK_REF.md`](docs/proposals/README.md), [ADR 0008](docs/adr/0008-runtime-observability-prometheus-and-logs.md); [`.env.example`](.env.example).
+## Maintainer plan ??? immediate two weeks (triage + P0/P1/P2) ??? April 2026
+- **[`docs/proposals/README.md`](docs/proposals/README.md):** sprint-style backlog ??? GitHub milestone names, issue #1???#7 table, MalAbs evasion reproduction, Bayesian decision, governance checkpoints, P2 spillover (observability, E2E, deprecations); **appendix** ??? technical model pending vs settled (Bayes naming, MalAbs gaps, buffer verifier, perception GIGO, governance Phase 5, stubs, async).
+- **[`docs/proposals/README.md`](docs/proposals/README.md):** *Reproducing known MalAbs evasion* checklist (pytest targets + link to adversarial plan).
+## Issue 4 ??? packaging metadata + README core/theater diagram ??? April 2026
+- **[`pyproject.toml`](pyproject.toml):** `keywords`; **`theater`** optional extra (`[]`) as a **marker** for narrative/audit layers (no import split yet); comments on base deps vs `runtime` / `dev`; **`0.0.0`** documented as non-PyPI research posture.
+- **[`README.md`](README.md):** ASCII diagram MalAbs ??? ??? ??? Action (core vs **humanizing theater**); install lines for `pip install -e .`, `.[runtime]`, `.[theater]`.
+## Contributor docs ??? Git tag checkpoints ??? April 2026
+## Documentation ??? phased core/governance remediation backlog ??? April 2026
+## Docs ??? semantic MalAbs default wording ??? April 2026
+## Issue 7 ??? KERNEL_* validation and supported profile buckets ??? April 2026
+- **[`src/validators/env_policy.py`](src/validators/env_policy.py):** `SUPPORTED_COMBOS` (`production` / `demo` / `lab`) partitions named `ETHOS_RUNTIME_PROFILE` bundles; `collect_env_violations()` + `validate_kernel_env()` (unset env ??? **strict** in `KernelPublicEnv`; **`warn`** / **`off`** explicit); `DEPRECATION_ROADMAP` placeholder; `env_combo_fingerprint()` for support logs.
+- **[`src/chat_server.py`](src/chat_server.py):** runs validation after profile merge at import time.
+- **Tests:** [`tests/test_env_policy.py`](tests/test_env_policy.py) ??? partition check + each nominal profile has zero rule violations + strict-mode cases.
+## Landing ??? policy, version sync, robots CI ??? April 2026
+- **[`docs/proposals/README.md`](docs/proposals/README.md):** official support stance (marketing/education vs kernel runtime), `npm` scope, `kernelRepo.json` sync from `pyproject.toml` + `landing/package.json`, root `robots.txt` vs `robots.ts`, dashboard iframe = same `dashboard.html`, Vercel optional / deprecation notes.
+- **`landing/scripts/write-kernel-metadata.mjs`**, **`check-robots-sync.mjs`**, committed **`landing/src/config/kernelRepo.json`**; footer shows kernel + landing semver; **`landing-ci.yml`** runs check-robots + drift check on `pyproject.toml` / `robots.txt` path triggers.
+## Empirical methodology ??? labeled scenarios (Issue 3) ??? April 2026
+- **[`tests/fixtures/labeled_scenarios.json`](tests/fixtures/labeled_scenarios.json):** **43** rows ??? **9** `harness: batch` (executable) + **34** `annotation_only` vignettes for inter-rater design; top-level **disclaimer** (not product certification).
+- **[`docs/proposals/README.md`](docs/proposals/README.md):** how to interpret agreement vs baselines, dataset roles, third-party comparison posture.
+## Docker ??? production-ish compose overlay ??? April 2026
+- **[`docker-compose.prodish.yml`](docker-compose.prodish.yml):** merge with base compose ??? `KERNEL_API_DOCS=0`, `KERNEL_METRICS=0`, JSON logs; **`env_file: .env`** for operator secrets (after `cp .env.example .env`).
+- **[`.dockerignore`](.dockerignore):** exclude `.env` / `.env.*` from build context so secrets are not baked into images.
+- **CI / tests:** GitHub Actions job **`compose-validate`** runs `docker compose ... config --quiet` on merge stacks; [`tests/test_compose_config.py`](tests/test_compose_config.py) repeats the same when `docker` is on `PATH` (skips otherwise).
+## Chat server integration tests ??? April 2026
+- **`tests/test_chat_server.py`:** `test_lifespan_runs_with_test_client_context_manager` (FastAPI lifespan startup via `TestClient` context manager); `test_websocket_malabs_safety_block` (WebSocket path `safety_block` on MalAbs text gate).
+## MalAbs ??? semantic defaults + lexical hardening ??? April 2026
+- **`KERNEL_SEMANTIC_CHAT_GATE`** / **`KERNEL_SEMANTIC_EMBED_HASH_FALLBACK`:** default **on** when unset (`semantic_chat_gate.py`, `semantic_embedding_client.py`); hash fallback keeps embedding tier active without Ollama (documented limits).
+- **`input_trust.normalize_text_for_malabs`:** optional leet fold + bidi override strip + fullwidth ASCII fold (`KERNEL_MALABS_LEET_FOLD`, `KERNEL_MALABS_STRIP_BIDI`).
+## Phase 2 spike ??? `KernelEventBus` (ADR 0006) ??? April 2026
+- **[ADR 0006](docs/adr/0006-phase2-core-boundary-and-event-bus.md):** incremental Phase 2 seam ??? optional sync in-process event bus (`KERNEL_EVENT_BUS`).
+- **`src/modules/kernel_event_bus.py`:** `kernel.decision`, `kernel.episode_registered`; handlers are best-effort (exceptions logged).
+- **`EthicalKernel`:** `event_bus`, `subscribe_kernel_event`, emits on every `process()` outcome and after episode registration.
+- **Proposal:** [`docs/proposals/README.md`](docs/proposals/README.md); **tests:** [`tests/test_kernel_event_bus.py`](tests/test_kernel_event_bus.py); **profile:** `phase2_event_bus_lab` in [`src/runtime_profiles.py`](src/runtime_profiles.py).
+## Runtime profile `perception_hardening_lab` ??? April 2026
+## Hardening Fase 1 ??? parse contract, light risk tier, cross-check ??? April 2026
+- **`llm_layer.LLMModule.perceive`:** structured parse + stable issue codes; optional **`KERNEL_PERCEPTION_PARSE_FAIL_LOCAL`**.
+- **`perception_cross_check.py`:** lexical vs numeric mismatch (`KERNEL_PERCEPTION_CROSS_CHECK`, tunables `KERNEL_CROSS_CHECK_*`).
+- **`EthicalKernel`:** runs tier + cross-check after perceive in `process_chat_turn` / `process_natural`; **`_last_light_risk_tier`**.
+- **`chat_server`:** optional **`KERNEL_CHAT_INCLUDE_LIGHT_RISK`** ??? JSON `light_risk_tier`.
+## Perception uncertainty ??? deliberation (opt-in) ??? April 2026
+## Packaging, perception diagnostics, episodic Bayes tests ??? April 2026
+- **[`src/modules/perception_schema.py`](src/modules/perception_schema.py):** `PerceptionCoercionReport` + optional `report=` on `validate_perception_dict`; bounded **uncertainty** score for coerced / defaulted LLM JSON.
+- **[`src/chat_server.py`](src/chat_server.py):** JSON `perception.coercion_report` when present.
+## Documentation ??? README proposal links match `main` tree ??? April 2026
+- **[`README.md`](README.md):** fixed broken `docs/proposals` targets after selective merge ??? canonical English names (`STRATEGY_AND_ROADMAP.md`, `PROPOSAL_*`, `PAPER_AFFECT_PHENOMENA_AND_HYPOTHESES.md`); legacy `PROPUESTA_*` paths remain as short redirects.
+## Main ??? empirical pilot, input trust regression, README operator table ??? April 2026
+Merged **selectively** from branch `refactor/pipeline-trace-core` (experiment-specific docs **not** included; see README collaboration note).
+- **Issue 3:** [`scripts/run_empirical_pilot.py`](scripts/run_empirical_pilot.py) (`--output` JSON artifact; `kernel_vs_first_rate` / `kernel_vs_max_impact_rate`); fixture sims **7???9**; docs [`EMPIRICAL_PILOT_METHODOLOGY.md`](docs/proposals/README.md), [`EMPIRICAL_PILOT_PROTOCOL.md`](docs/proposals/README.md); tests [`test_empirical_pilot.py`](tests/test_empirical_pilot.py), [`test_empirical_pilot_runner.py`](tests/test_empirical_pilot_runner.py).
+## Documentation ??? proposals index + v6 consciousness doc rename ??? April 2026
+## Multimedia ??? `media/` at `docs/multimedia` root ??? April 2026
+- Pre-alpha **PNG / JPG / MP4** moved from **`docs/multimedia/prealpha/media/`** to **`docs/multimedia/media/`**; empty **`prealpha/`** tree removed.
+## Logo ??? `docs/multimedia/media/logo.png` ??? April 2026
+- **Canonical file:** [`docs/multimedia/media/logo.png`](docs/multimedia/media/logo.png) (renamed from **`logo-ethical-awareness.png`** at **`docs/multimedia/`** root; repo-root duplicate was removed earlier).
+- **Landing:** [`landing/scripts/sync-logo.mjs`](landing/scripts/sync-logo.mjs) on **`npm install` / `npm run dev` / `npm run build`** copies it to **`landing/public/logo-ethical-awareness.png`** (gitignored) for **`SiteBrand`** / favicon.
+## Documentation layout ??? `proposals` + `multimedia` ??? April 2026
+- **`docs/proposals/`:** single folder for former **`docs/discusion/`**, **`docs/experimental/`**, and top-level **`docs/*.md`** (theory, runtime, roadmaps, PROPUESTA\_\*); **`docs/adr/`** and **`docs/templates/`** stay put.
+- **`docs/multimedia/`:** renamed from **`docs/historical/`**; pre-alpha **Spanish markdown** (alpha v1.0, bibliography draft, index, companion-binary notes) **digested into [`HISTORY.md`](HISTORY.md)**; **PNGs, JPG, MP4**, and branding **`media/logo.png`** live under **`docs/multimedia/`** (see [`docs/multimedia/README.md`](docs/multimedia/README.md)); **`landing/public/logo-ethical-awareness.png`** is generated from **`media/logo.png`** on **`npm install` / `npm run dev` / `npm run build`** (gitignored).
+## Uchi???Soto Phase 3 ??? roster tier, multimodal EMA, forget buffer, rich links ??? April 2026
+- **`RelationalTier`:** `ephemeral` ??? `stranger_stable` ??? `acquaintance` ??? `trusted_uchi` ??? `inner_circle` / `owner_primary` (top two **explicit-only** via `set_relational_tier_explicit`; autopromotion capped at `trusted_uchi`).
+- **`InteractionProfile`:** `linked_peer_ids` (max 4); `relational_tier`, `tier_explicit`, `tier_pinned`, `last_subjective_turn`; snapshot fields round-trip in `uchi_soto_profiles`.
+- **Kernel:** `process(..., sensor_snapshot=..., multimodal_assessment=...)` calls `ingest_turn_context` before social evaluation; `process_chat_turn` passes chat multimodal assessment and runs `maybe_autopromote_relational_tier` after `register_result`.
+- **Env (optional):** `KERNEL_UCHI_SENSOR_TRUST_EMA_ALPHA` (default `0.18`), `KERNEL_UCHI_ROSTER_FORGET_TTL_TURNS` (default `96`).
+## Uchi???Soto Phase 2 ??? structured profile fields + composed tone_brief ??? April 2026
+- **`InteractionProfile`:** `display_alias`, `tone_preference` (`neutral` \| `warm` \| `formal`), `domestic_tags`, `topic_avoid_tags`, `sensor_trust_ema`, `linked_to_agent_id` (advisory; serialized in `uchi_soto_profiles`).
+- **`UchiSotoModule`:** `set_profile_structured(...)`; `_compose_tone_brief` extends Phase-1 circle line with alias, tone preference, domestic/avoid tags, link hint, low sensor-trust note when relevant.
+## Uchi???Soto Phase 1 ??? tone_brief, familiarity blend, checkpoint profiles ??? April 2026
+- **`uchi_soto.py`:** `SocialEvaluation.tone_brief` (advisory line for `communicate`); `classify` blends per-turn `familiarity` with persisted `profile.trust_score`; `register_result` uses smaller positive step (`POSITIVE_TRUST_STEP`); `interaction_profile_to_dict` / `interaction_profile_from_dict` for persistence.
+## Documentation ??? social roster proposal (domestic / intimate dialogue by tier) ??? April 2026
+- **[`docs/proposals/README.md`](docs/proposals/README.md):** multi-agent roster, Uchi???Soto tiers, forget buffer, structured fields for high-interest persons, roadmap to richer domestic/intimate dialogue **advisory** by closeness (ethics unchanged); linked from [`STRATEGY_AND_ROADMAP.md`](docs/proposals/README.md) and [`PROJECT_STATUS_AND_MODULE_MATURITY.md`](docs/proposals/README.md).
+## Documentation ??? operators + project maturity snapshot ??? April 2026
+- **[`README.md`](../README.md):** `user_model` WebSocket JSON fields documented (`cognitive_pattern`, `risk_band`, `escalation_*`, `judicial_phase`); explicit separation vs `judicial_escalation` for dossier/DAO/mock court.
+- **[`docs/proposals/README.md`](INPUT_TRUST_THREAT_MODEL.md):** advisory telemetry subsection (user_model, judicial, homeostasis) ??? not security boundaries.
+## User model enrichment ??? Phases B/C (judicial phase + checkpoint) ??? April 2026
+- **`judicial_escalation.py`:** `escalation_phase_for_tone()` (aligned with `build_escalation_view` branches for pre-reply tone).
+- **Persistence:** `KernelSnapshotV1` adds `user_model_cognitive_pattern`, `user_model_risk_band`, `user_model_judicial_phase`; `extract_snapshot` / `apply_snapshot` + `json_store.snapshot_from_dict` defaults; `apply_snapshot` resyncs strike snapshot from `escalation_session`.
+## User model enrichment ??? Phase A (cognitive / risk / judicial tone) ??? April 2026
+- **`src/modules/user_model.py`:** `cognitive_pattern`, `risk_band`, `note_judicial_escalation` (strike snapshot from `EscalationSessionTracker`); `guidance_for_communicate()` order: risk ??? cognitive pattern ??? judicial ??? existing frustration/premise lines; `to_public_dict()` exposes new fields.
+- **`EthicalKernel.process_chat_turn`:** runs `escalation_session.update(adv)` **before** `user_model.update` / `communicate` so strikes and guidance stay on the same turn (no duplicate `update` after the reply).
+## Temporal horizon prior ??? Bayesian mixture nudge (ADR 0005) ??? April 2026
+- **`src/modules/temporal_horizon_prior.py`:** `compute_horizon_signals` (weeks drift + long-arc stability from `NarrativeMemory`) and `apply_horizon_prior_to_engine` with genome drift clamp.
+## Perception validation ??? Pydantic, coherence, local fallback fix ??? April 2026
+- **`LLMModule.perceive`:** `_perceive_local` always receives the **current** user message; empty/invalid LLM JSON no longer runs heuristics on the full STM-prefixed block; `perception_from_llm_json` errors fall back to local heuristics.
+## MalAbs semantic layers ??? lexical first, ??_block/??_allow, LLM arbiter ??? April 2026
+- **`evaluate_chat_text`:** layer 0 lexical ??? optional embeddings (Ollama) with **??_block** / **??_allow** ??? optional **LLM JSON arbiter** for ambiguous band (`KERNEL_SEMANTIC_CHAT_LLM_ARBITER`); fail-safe block on arbiter failure or ambiguous without arbiter.
+- **`EthicalKernel`:** passes `llm._text_backend` into `evaluate_chat_text` for arbiter path.
+## Ethical poles ??? configurable linear evaluator (ADR 0004) ??? April 2026
+- **`src/modules/pole_linear.py`:** `LinearPoleEvaluator` loads weighted feature sums and verdict thresholds from JSON.
+- **`src/modules/pole_linear_default.json`:** default coefficients (equivalent to legacy `evaluate_pole` formulas).
+- **`EthicalPoles`:** delegates `evaluate_pole` to the linear evaluator; optional override via **`KERNEL_POLE_LINEAR_CONFIG`**.
+- **Tests:** `tests/test_pole_linear_evaluator.py`; **`pyproject.toml`** package-data includes `src/modules/*.json`.
+## Semantic chat gate ??? Ollama embeddings + MalAbs chain ??? April 2026
+- **`src/modules/semantic_chat_gate.py`:** when `KERNEL_SEMANTIC_CHAT_GATE=1`, cosine similarity vs auditable reference phrases via Ollama `/api/embeddings` (default model `nomic-embed-text`, tunable `KERNEL_SEMANTIC_CHAT_EMBED_MODEL`, `KERNEL_SEMANTIC_CHAT_SIM_THRESHOLD`). On failure, defers to substring MalAbs.
+- **`src/modules/absolute_evil.py`:** `evaluate_chat_text` runs **lexical MalAbs first**, then optional semantic layers when the gate env is on ([`MALABS_SEMANTIC_LAYERS.md`](docs/proposals/README.md)).
+## Documentation ??? Ollama vs Hugging Face stack + semantic gate ADR ??? April 2026
+- **[`docs/proposals/README.md`](docs/proposals/README.md):** comparative table, mapping to Ethos Kernel (language vs future embedding gate), implementable vs deferred.
+- **Cross-links:** [`INPUT_TRUST_THREAT_MODEL.md`](docs/proposals/README.md), README (Ollama section), [`KERNEL_ENV_POLICY.md`](docs/proposals/README.md), [`OPERATOR_QUICK_REF.md`](docs/proposals/README.md), [`docs/adr/README.md`](docs/adr/README.md), [`THEORY_AND_IMPLEMENTATION.md`](docs/proposals/README.md) (executive summary).
+## Guardian Angel ??? care routines + static UI (trace item 5) ??? April 2026
+- **`docs/proposals/README.md`** item 5 marked delivered.
+## Swarm P2P ??? threat model + offline stub (v9.3, trace item 4) ??? April 2026
+- **[`docs/proposals/README.md`](docs/proposals/README.md):** scope, threats, non-goals; no network or kernel veto.
+- **`src/modules/swarm_peer_stub.py`:** deterministic verdict digests + descriptive agreement stats; env `KERNEL_SWARM_STUB` (optional gate for callers).
+- **Tests:** `tests/test_swarm_peer_stub.py`; **`docs/proposals/README.md`** item 4 marked delivered; PROPUESTA v9 table updated.
+## Metaplan ??? drive intent filter vs master goals (v9.4, trace item 3) ??? April 2026
+- **`KERNEL_METAPLAN_DRIVE_FILTER`:** optional lexical overlap filter for `DriveArbiter` advisory intents vs `MasterGoal` titles (default **off**; fallback keeps all intents if none overlap).
+- **Docs:** `KERNEL_ENV_POLICY.md`, `OPERATOR_QUICK_REF.md`; **`docs/proposals/README.md`** item 3 marked delivered.
+## Generative candidates ??? LLM JSON path (v9.2+, trace item 2) ??? April 2026
+- **`KERNEL_GENERATIVE_LLM`:** when `1`, perception prompt includes optional `generative_candidates`; `LLMPerception.generative_candidates` passes through; `generative_candidates.parse_generative_candidates_from_llm` builds actions (strict names, optional MalAbs signal allowlist).
+- **`augment_generative_candidates`:** prefers parsed LLM list over templates when non-empty (still requires `KERNEL_GENERATIVE_ACTIONS` + dilemma trigger).
+- **Docs:** `KERNEL_ENV_POLICY.md`, `OPERATOR_QUICK_REF.md`, `chat_server` docstring; **`docs/proposals/README.md`** item 2 marked delivered.
+## Tests + fixtures ??? metaplan/somatic disk round-trip + empirical pilot regression ??? April 2026
+- **`tests/test_empirical_pilot_runner.py`:** batch pilot summary stability vs `tests/fixtures/empirical_pilot/scenarios.json`; archived `last_run_summary.json` + fixture `README.md`.
+- **`docs/proposals/README.md`:** marks persistence item (1) as delivered with test pointers.
+## Documentation ??? README + THEORY + ADR index sync ??? April 2026
+## Documentation ??? empirical pilot operator protocol (Phase D) ??? April 2026
+## ADR ??? async orchestration future stub (Phase E) ??? April 2026
+## Bayesian mixture ??? episodic weight nudge (Phase C) ??? April 2026
+## Perception ??? Pydantic schema module (Phase B) ??? April 2026
+- **`pydantic`** added to `requirements.txt` (v2).
+- **`src/modules/perception_schema.py`:** `CONTEXTS`, `validate_perception_dict`, `finalize_summary`; shared coercion/validation for LLM perception JSON.
+## Operator quick ref ??? KERNEL family table (Phase A) ??? April 2026
+## Documentation ??? production hardening roadmap (non-binding) ??? April 2026
+- **Same doc ??? n??cleo???narrativa analysis (April 2026):** functional gaps (fixed Bayes weights vs episodic memory, poles linearity, MalAbs/leet, perception defaults), architectural notes (kernel coupling, signal confidence, `consequence_projection` non-feedback); **registered spike:** empirical `hypothesis_weights` from `NarrativeMemory` (not implemented). Awaiting final proposal in ???Pr??ximas propuestas???.
+- **Same doc ??? full review synthesis (April 2026):** strengths table; criticisms with value-vs-redundancy (empirical validation, complexity, LLM bias, persistence HA, mock DAO, API/env, benchmarks, branding, i18n, examples); **conclusions** short/medium/long term; **proposal round closed** ??? future work via issues/ADRs.
+## Demo ??? situated v8 + LAN profile (`situated_v8_lan_demo`) ??? April 2026
+- **`runtime_profiles`:** `situated_v8_lan_demo` ??? LAN bind, `KERNEL_SENSOR_FIXTURE` + `KERNEL_SENSOR_PRESET` (`tests/fixtures/sensor/minimal_situ.json` + `low_battery`), vitality + multimodal JSON enabled.
+## Epistemology ??? lighthouse KB validation + first-match test ??? April 2026
+- **`reality_verification`:** `validate_lighthouse_kb_structure`, `validate_lighthouse_kb_file` for operator/CI regression (schema only, not factual truth).
+- **Tests:** `tests/test_lighthouse_kb_schema.py` (fixture `demo_kb.json` must stay valid); `test_first_matching_entry_wins` in `test_reality_verification.py`.
+- **Docs:** [LIGHTHOUSE_KB.md](docs/proposals/README.md) structural validation section.
+## Robustness ??? runtime profile helper + input-trust tests ??? April 2026
+- **`tests/test_input_trust.py`:** NFKC fullwidth bomb phrase, soft-hyphen obfuscation; `perception_from_llm_json` non-finite `risk` and invalid numeric strings.
+- **Docs:** `STRATEGY_AND_ROADMAP.md` ??3.1 delivery order; `KERNEL_ENV_POLICY.md` CI coverage note.
+## Escalation + lighthouse ??? persistence and KB demo ??? April 2026
+- **Lighthouse:** extended `tests/fixtures/lighthouse/demo_kb.json` (EN water + ES vacuna entries); tests in `test_reality_verification.py`; operational doc [`docs/proposals/README.md`](docs/proposals/README.md); README pointer.
+## Persistence ??? v7 user model + subjective clock in snapshot ??? April 2026
+- **`KernelSnapshotV1`:** `user_model_*` (frustration / premise streak, circle, turns observed) and `subjective_turn_index` / `subjective_stimulus_ema` serialized in `extract_snapshot` / `apply_snapshot` (schema v3; older JSON migrates via `snapshot_from_dict` defaults).
+- **`SubjectiveClock`:** new session gets a fresh `session_start_mono` on load; turn index and EMA restore across checkpoints.
+## Input trust ??? MalAbs on `process_natural` + perception hardening ??? April 2026
+- **`process_natural`:** runs `evaluate_chat_text` on the situation string **before** `llm.perceive`, matching WebSocket chat defense-in-depth (blocked path returns firm refusal + `KernelDecision.blocked`).
+- **`llm_layer`:** `perceive` only accepts **dict** JSON from the model; `perception_from_llm_json` coerces non-dict to empty; **summary** strips unsafe control characters via `strip_unsafe_perception_text` in `input_trust`.
+## Relational v7 + Psi Sleep (premise streak, deterministic audit) ??? April 2026
+- **`premise_validation`:** `suspect_chemical_harm` narrow patterns (household chemicals + minors); advisory hints only.
+- **`user_model`:** `premise_concern_streak` + `note_premise_advisory`; epistemic line in `guidance_for_communicate` when streak ??? 2; **`kernel`** calls `note_premise_advisory` each chat turn after `scan_premises`.
+- **`psi_sleep`:** `_simulate_alternative` uses SHA-256 of `(episode_id|alternative)` instead of `numpy` RNG; `_calculate_ethical_health` uses pure-Python mean/variance.
+## Vertical deepening ??? governance + persistence + conduct guide (Phases 1???3) ??? April 2026
+- **`deontic_gate`:** `validate_draft_structure` (length / non-empty caps); expanded forbidden phrases (EN/ES); schema failures return `schema:*` conflicts; `submit_constitution_draft_for_vote` validates structure before vote.
+- **`ml_ethics_tuner`:** structured JSON audit events (`MLEthicsTunerEventV1`, `content_sha256_short`); `chat_server` passes `kernel` for episode id.
+- **`reparation_vault`:** in-process case store (`intent_recorded` ??? `pending_human_review`); `ReparationVaultV1:{json}` audit lines; `get_reparation_case` / `list_reparation_case_refs` / test helper `clear_reparation_vault_cases_for_tests`.
+- **`KernelSnapshotV1`:** `metaplan_goals`, `somatic_marker_weights`, `skill_learning_tickets` (same schema version **3**; JSON load merges defaults).
+- **`context_distillation`:** `validate_conduct_guide_dict`, `load_and_validate_conduct_guide_from_env` (template-aligned).
+- **`existential_serialization`:** deterministic `chain_sha256` over episode ids + identity digest; integrity dict includes full hash.
+**Phase 4 ??? Local sovereignty (DAO calibration heuristic)**
+- **`local_sovereignty`:** `evaluate_calibration_update` rejects on conflicts; **`KERNEL_LOCAL_SOVEREIGNTY`** (default **on**; set `0` to skip).
+## Issue 7 (P3): `KERNEL_*` consolidation ??? policy doc + profiles ??? April 2026
+- **`src/runtime_profiles.py`:** `lan_operational` (LAN + stoic UX), `moral_hub_extended` (hub + DAO vote + deontic gate + transparency audit).
+## Issue 6 (P2): governance ??? MockDAO exit + L0 framing ??? April 2026
+- **[`docs/proposals/README.md`](docs/proposals/README.md):** mock vs consensus; L0 ???constitution in the repo???; L1/L2 path; checklist beyond mock; link [mosexmacchinalab.com/blockchain-dao](https://mosexmacchinalab.com/blockchain-dao).
+- **`src/modules/mock_dao.py`:** docstring points to governance doc.
+## Issue 5 (P2): poles / weakness / PAD ??? heuristics + HCI profiles ??? April 2026
+- **[`docs/proposals/README.md`](docs/proposals/README.md):** honest framing of multipolar scores; weakness/PAD HCI risks; env table; profile matrix (`baseline` vs `operational_trust`).
+## Issue 4 (P1): core decision chain doc + packaging spike ??? April 2026
+- **[`docs/proposals/README.md`](docs/proposals/README.md):** Mermaid flow + table ??? MalAbs / `BayesianEngine` vs layers that do **not** change `final_action`; core vs theater split.
+- **`pyproject.toml`:** `ethos-kernel` metadata, `numpy` base deps, optional `[runtime]` / `[dev]` groups; editable install (`pip install -e .`) validated.
+## Issue 3 (P1): empirical pilot ??? reproducible scenarios + methodology ??? April 2026
+- **Fixture:** [`tests/fixtures/empirical_pilot/scenarios.json`](tests/fixtures/empirical_pilot/scenarios.json) ??? curated sim IDs + illustrative `reference_action` labels for agreement rates.
+- **Script:** [`scripts/run_empirical_pilot.py`](scripts/run_empirical_pilot.py) ??? deterministic batch run (`variability=False`, fixed seed, `llm_mode=local`).
+## Issue 2 (P0): input trust ??? chat normalization + perception validation ??? April 2026
+- **`src/modules/absolute_evil.py`:** `evaluate_chat_text` uses normalization.
+- **Tests:** `tests/test_input_trust.py` (evasion + perception adversarial cases).
+## Issue 1 (P0): honest ???Bayesian??? semantics ??? April 2026
+- **`src/modules/weighted_ethics_scorer.py`:** canonical **fixed weighted mixture** over three hypotheses; **no** posterior updating; **heuristic** uncertainty (not the theoretical integral). **`bayesian_engine.py`** remains a compat re-export shim; see [ADR 0009](docs/adr/0009-ethical-mixture-scorer-naming.md).
+- **README** tagline, **`src/kernel.py`** / **`src/main.py`** comments, **`sigmoid_will`** param doc: narrative matches implementation; class names `BayesianEngine` / `BayesianResult` unchanged for API stability.
+## Critique roadmap & maturation disclaimer ??? April 2026
+- **[`docs/proposals/README.md`](docs/proposals/README.md):** disclaimer + **seven consolidated** GitHub-ready issues (two external reviews; **merged** duplicate themes: chat jailbreak + **perception GIGO** ??? single P0 **input trust**; poles + **weakness/HCI**; MockDAO exit + **L0 vs governance**). Adds **pip core spike**, optional classifier note.
+## Docs: Ollama-first LLM + API hardening ??? April 2026
+- **`landing/CLAUDE.md`** removed; replaced by **`landing/OLLAMA.md`** (pointer to root README + Ollama).
+## Project rename to Ethos Kernel ??? April 2026
+- **GitHub:** repository URL may still be `github.com/CuevazaArt/ethical-android-mvp` until the slug is renamed; README notes this.
+- **Internals:** WebSocket health `service` id is `ethos-kernel-chat`; FastAPI title `Ethos Kernel Chat`. LLM system prompts refer to the Ethos Kernel / agent (legacy JSON enum `android_damage` unchanged for compatibility).
+## Pre-alpha docs + media archive ??? April 2026
+- **`docs/multimedia/prealpha/`:** content from **`prealphaDocs/`**: Spanish `androide_etico_alpha` v1.0 (2026) and bibliography draft were archived as markdown under `prealpha/`; **April 2026 (later):** that markdown was **condensed into [`HISTORY.md`](HISTORY.md)** and removed from the tree. **PNG/JPG/MP4** were under **`docs/multimedia/prealpha/media/`** until **April 2026** they moved to **`docs/multimedia/media/`**; PDF/DOCX are **not** in git (see root `.gitignore`). Index today: [`docs/multimedia/README.md`](docs/multimedia/README.md).
+## DAO integrity alert WebSocket (v0) ??? April 2026
+- **`hub_audit.record_dao_integrity_alert`** + **`KERNEL_DAO_INTEGRITY_AUDIT_WS`** ??? WebSocket `integrity_alert` ??? `HubAudit:dao_integrity` on MockDAO; response key `integrity`. Tests in `test_hub_modules`, `test_chat_server`. PROPUESTA doc ??5 updated.
+## DAO alerts & transparency (design doc) ??? April 2026
+- **docs/proposals/README.md:** rejects covert ???guerrilla??? obedience; adopts loud traceable alerts; forensic case memorial vs polluting L0 buffer; cross-ref from PROPOSAL_DISTRIBUTED_JUSTICE V11.
+## Next.js landing refresh ??? April 2026
+- **`landing/`:** home hero + new **Runtime, governance & nomadic bridge** section; doc links (RUNTIME_CONTRACT, LAN, nomad bridge, ESTRATEGIA); hostable bullet; research link to RUNTIME_PERSISTENT; footer tagline; **PrimaryNav** ???Runtime & nomad???; **roadmap** ???Current??? bullets aligned with FastAPI/WebSocket, checkpoints, mobile LAN.
+## Nomad PC???smartphone bridge doc ??? April 2026
+## Mobile minimal UI (`landing/public/mobile.html`) ??? April 2026
+- **Docs:** README + `LOCAL_PC_AND_MOBILE_LAN.md` point to `mobile.html` vs `chat-test.html`.
+## Conduct guide export on WebSocket disconnect ??? April 2026
+- **`conduct_guide_export.py`:** `build_conduct_guide`, `try_export_conduct_guide`; env `KERNEL_CONDUCT_GUIDE_EXPORT_PATH`, `KERNEL_CONDUCT_GUIDE_EXPORT_ON_DISCONNECT`.
+- **`checkpoint.on_websocket_session_end`:** saves checkpoint (if configured), then exports conduct guide for PC???edge handoff.
+## Local PC + LAN smartphone thin client ??? April 2026
+- **docs/proposals/README.md:** goal (short/medium), architecture, Windows firewall, `CHAT_HOST=0.0.0.0`, Ollama/checkpoint notes, security caveats.
+- **scripts/start_lan_server.ps1** / **scripts/start_lan_server.sh:** bind server for WiFi clients; print LAN IPv4 hints.
+- **Conduct guide schema:** validated in **`context_distillation.py`** (placeholder JSON lived under **`docs/templates/`** until removed April 2026); **runtime profile** `lan_mobile_thin_client`.
+## Reality verification (V11+) + resilience stubs ??? April 2026
+- **`reality_verification.py`:** optional local JSON lighthouse (`KERNEL_LIGHTHOUSE_KB_PATH`) vs asserted premises ??? metacognitive doubt; LLM hint only; `ChatTurnResult.reality_verification`; WebSocket key when `KERNEL_CHAT_INCLUDE_REALITY_VERIFICATION=1`.
+- **`context_distillation.py` / `local_sovereignty.py`:** stubs for conduct-guide load and DAO calibration veto (documented in PROPUESTA).
+## Strategy doc + runtime profiles ??? April 2026
+- **docs/proposals/README.md:** conclusions from project review, readapted roadmap (P0???P3), expectations vs. MVP reality, operational risks.
+- **`src/runtime_profiles.py`:** named env bundles (`baseline`, `judicial_demo`, `hub_dao_demo`, `nomad_demo`) for operators and CI.
+## Checkpoint Fernet + hub audit + WS nomad test ??? April 2026
+- **`KERNEL_CHECKPOINT_FERNET_KEY`:** `JsonFilePersistence` encrypts on save; load decrypts or falls back to plain JSON.
+## Nomadic migration audit + WebSocket simulation ??? April 2026
+## Nomadic HAL + existential protocol (design v11) ??? April 2026
+- **Code:** `hardware_abstraction.py` (`HardwareContext`, `ComputeTier`, `sensor_delta_narrative`, `apply_hardware_context`); `existential_serialization.py` (`TransmutationPhase`, `ContinuityToken`, audit payload sin ubicaci??n por defecto). `nomad_identity_public` incluye `hardware_context` si se aplic?? HAL.
+## UniversalEthos hub unification ??? April 2026
+- **Docs:** [docs/proposals/README.md](docs/proposals/README.md) ??? canonical vision ??? code; [PROPOSAL_ETOSOCIAL_STATE_V12.md](docs/proposals/README.md) slimmed to registry + env (points to unified doc).
+- **Code:** `deontic_gate.py` (`KERNEL_DEONTIC_GATE`); `ml_ethics_tuner.py` (`KERNEL_ML_ETHICS_TUNER_LOG`); `reparation_vault.py` (`KERNEL_REPARATION_VAULT_MOCK`); `nomad_identity.py` + optional WebSocket `nomad_identity` (`KERNEL_CHAT_INCLUDE_NOMAD_IDENTITY`).
+- **`moral_hub`:** `apply_proposal_resolution_to_constitution_drafts` ??? draft `status` / `resolved_at` after `dao_resolve`; deontic validation on `add_constitution_draft` / `submit_constitution_draft_for_vote` when gate enabled.
+- **`reparation_vault`:** `maybe_register_reparation_after_mock_court` called from **`EthicalKernel.process_chat_turn`** after V11 `run_mock_escalation_court` when `KERNEL_REPARATION_VAULT_MOCK=1`.
+## v12.0 ??? April 2026
+### Moral Infrastructure Hub ??? vision + V12.1 code hooks
+- **Design doc** [docs/proposals/README.md](docs/proposals/README.md): DemocraticBuffer (L0???L2), services hub, EthosPayroll, R&D transparency; phased table **V12.1???V12.4**.
+- **`moral_hub.py`:** `constitution_snapshot`, `GET /constitution` (`KERNEL_MORAL_HUB_PUBLIC`); `audit_transparency_event` (`KERNEL_TRANSPARENCY_AUDIT`); `propose_community_article_mock` (`KERNEL_DEMOCRATIC_BUFFER_MOCK`); `ethos_payroll_record_mock` (`KERNEL_ETHOS_PAYROLL_MOCK`). WebSocket connect triggers transparency + optional payroll audit.
+- **Relationship to V11:** justice track unchanged; hub adds governance **narrative + audit hooks** without editing `buffer.py` contents.
+### V12.3 ??? Off-chain DAO vote pipeline (snapshot schema v3)
+- **`SCHEMA_VERSION = 3`:** `dao_proposal_counter`, `dao_participants`, `dao_proposals` ??? full MockDAO vote state (quadratic voting) in checkpoints; JSON **schema 1/2** loads gain empty DAO fields.
+- **`submit_constitution_draft_for_vote`**, **`proposal_to_public`** in `moral_hub.py`.
+- **`KERNEL_MORAL_HUB_DAO_VOTE=1`:** WebSocket JSON `dao_list`, `dao_submit_draft`, `dao_vote`, `dao_resolve` (response key `dao`). **`GET /dao/governance`** describes the protocol (no session kernel required).
+### V12.2 ??? L1/L2 draft persistence (kernel snapshot schema v2)
+- **`KernelSnapshotV1` / `SCHEMA_VERSION = 2`:** `constitution_l1_drafts`, `constitution_l2_drafts` (JSON-serializable dicts). **`snapshot_from_dict`** migrates saved JSON with `schema_version: 1` by defaulting those lists to `[]`.
+## v11.0 ??? April 2026
+### Distributed artificial justice ??? Phases 1???2 (traceability + session strikes)
+- **`judicial_escalation.py`**: conservative advisory when `decision_mode` is gray zone with elevated reflection/premise tension; English notices; `EthicalDossierV1` (order, signal summary, monologue digest hash, session strikes).
+- **Phase 3:** **`KERNEL_JUDICIAL_MOCK_COURT`** ??? `MockDAO.run_mock_escalation_court` after dossier registration; `mock_court` JSON with verdict A/B/C; phase `mock_court_resolved`.
+## v10.0 ??? April 2026
+### Operational strategy (MVP hooks)
+## v9.0 ??? April 2026
+### Epistemic and generative extensions (opt-in)
+- **Epistemic dissonance** (`epistemic_dissonance.py`, v9.1): cross-modal reality-check telemetry in WebSocket JSON (`KERNEL_CHAT_INCLUDE_EPISTEMIC`); tone only; no MalAbs bypass.
+- **Generative candidates** (`generative_candidates.py`, v9.2): optional extra template actions on dilemma-like turns (`KERNEL_GENERATIVE_ACTIONS`, `KERNEL_GENERATIVE_ACTIONS_MAX`).
+## v8.0 ??? April 2026
+### Situated organism (sensor contract and vitality)
+- **Vitality** (`vitality.py`): battery / critical threshold hints (`KERNEL_CHAT_INCLUDE_VITALITY`).
+## v7.0 ??? April 2026
+### Relational advisory layer (optional JSON)
+- **Subjective time** (`subjective_time.py`): session clock and stimulus EMA (`KERNEL_CHAT_INCLUDE_CHRONO`).
+- **Premise validation** (`premise_validation.py`): advisory premise scan (`KERNEL_CHAT_INCLUDE_PREMISE`).
+- **Consequence projection** (`consequence_projection.py`): qualitative long-horizon branches (`KERNEL_CHAT_INCLUDE_TELEOLOGY`).
+## v6.0 ??? April 2026
+### Runtime, WebSocket chat, and persistence
+- **WebSocket chat server** (`chat_server.py`, `real_time_bridge.py`): `EthicalKernel.process_chat_turn` exposed per connection; health endpoint.
+- **Runtime entry** (`python -m src.runtime`): same ASGI stack as `chat_server`; documented in `docs/proposals/README.md` and `docs/proposals/README.md`.
+- **Advisory telemetry** (`runtime/telemetry.py`): optional background `DriveArbiter.evaluate` (`KERNEL_ADVISORY_INTERVAL_S`); no decisions or LLM.
+- **Checkpoints** (`persistence/checkpoint.py`): WebSocket load/save and autosave (`KERNEL_CHECKPOINT_*`).
+## v5.0 ??? March 2026
+### Humanization and persistent identity modules
+- **Weakness Pole** (`weakness_pole.py`): intentional narrative imperfection
+  - 5 types: whiny, indecisive, anxious, distracted, rigid
+  - Temporal decay to prevent pathological accumulation
+- **Algorithmic Forgiveness** (`forgiveness.py`): Memory(t) = Memory_0 * e^(-dt)
+  - Exponential decay of negative emotional weight
+  - Acceleration through positive experiences and explicit reparation
+  - Forgiveness threshold: the event remains but ceases to influence
+  - Cross-verification of integrity via SHA-256 hash
+- **Narrative Augenesis** (`augenesis.py`): synthetic soul creation
+  - Integration of narrative fragments from other androids
+  - Coherence calculation: CausalPaths_valid / CausalPaths_total
+### Kernel integration
+- Expanded Psi Sleep ??: audit + forgiveness + weakness load + backup
+- 51 tests verifying 13 invariant ethical properties
+- Extended pipeline: [Decision] ??? [Weakness] ??? [Forgiveness] ??? [Memory] ??? [DAO]
+## v4.0 ??? March 2026
+### LLM Layer (Natural Language)
+  - **Communication**: kernel decision ??? android's verbal response (tone, HAX gestures, voice-over)
+  - **Narrative**: multipolar evaluation ??? morals in rich, humanly comprehensible language
+- Dual support: local **[Ollama](https://ollama.com/)** backend or heuristic templates with no external dependency (documented path; optional dev-only HTTP backends in code)
+- `"auto"` mode detects availability and falls back gracefully to local mode
+### Kernel integration
+- New `procesar_natural()` method: full cycle text ??? decision ??? verbal response ??? morals
+- Automatic generation of candidate actions based on perceived context (7 context types)
+- Enriched formatting with on/off voice, HAX signals, and expanded narrative morals
+### Operating cycle improvements
+- Specialized system prompts for perception, communication, and narrative
+- `PercepcionLLM`, `RespuestaVerbal`, and `NarrativaRica` dataclasses for strong typing
+## v3.0 ??? March 2026
+### New modules
+- **Uchi-Soto**: Concentric trust circles with defensive dialectics
+- **Locus of Control**: Bayesian causal attribution between own agency and environment
+- **Psi Sleep ??**: Retrospective audit that recalibrates parameters after each day
+- **Mock DAO**: Simulated ethical governance with quadratic voting and solidarity alerts
+### Formal tests
+- 38 tests verifying 9 invariant ethical properties
+- Coherence under variability test (100 runs per simulation)
+- Value hierarchy verification (life > mission, never violence)
+## v2.0 ??? March 2026
+### Complete kernel
+- Absolute Evil (armored ethical fuse)
+- Bayesian Engine (ethical impact evaluation)
+- Narrative Memory (identity through stories with body state)
+### Simulations
+- Behavioral coherence demonstrated across all levels
+## v1.0 ??? March 2026
+### Conceptual phase
+- Bibliography expanded over time (104 references across 14 disciplines in root `BIBLIOGRAPHY.md` until that file was removed in April 2026 ??? recover from git history or `backup/main-2026-04-10`)

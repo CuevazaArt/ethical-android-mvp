@@ -23,6 +23,8 @@ _chat_async_timeouts: Any = None
 _llm_cancel_scope_signals: Any = None
 _chat_abandoned_effects_skipped: Any = None
 _lan_envelope_replay_cache_events: Any = None
+_limbic_tension: Any = None
+_ttft_histogram: Any = None
 _initialized = False
 
 _LAN_ENVELOPE_REPLAY_CACHE_EVENTS = frozenset({"hit", "miss", "evict_ttl", "evict_lru"})
@@ -43,7 +45,7 @@ def init_metrics() -> None:
     global _malabs_blocks, _semantic_malabs_outcomes, _dao_ops, _embedding_errors
     global _kernel_decisions, _kernel_process_seconds, _perception_circuit_trips
     global _chat_async_timeouts, _llm_cancel_scope_signals, _chat_abandoned_effects_skipped
-    global _lan_envelope_replay_cache_events
+    global _lan_envelope_replay_cache_events, _limbic_tension, _ttft_histogram
 
     if _initialized:
         return
@@ -53,7 +55,7 @@ def init_metrics() -> None:
         return
 
     try:
-        from prometheus_client import Counter, Histogram
+        from prometheus_client import Counter, Histogram, Gauge
     except ImportError:
         return
 
@@ -139,6 +141,15 @@ def init_metrics() -> None:
             5.0,
             float("inf"),
         ),
+    )
+    _limbic_tension = Gauge(
+        "ethos_kernel_limbic_tension",
+        "Last calculated limbic tension / strain (0-1 range).",
+    )
+    _ttft_histogram = Histogram(
+        "ethos_kernel_chat_ttft_seconds",
+        "Time To First Token for chat stream responses.",
+        buckets=(0.1, 0.25, 0.5, 1.0, 2.5, 5.0, 10.0, float("inf")),
     )
 
 
@@ -268,3 +279,15 @@ def observe_kernel_process_seconds(seconds: float) -> None:
     if _kernel_process_seconds is None:
         return
     _kernel_process_seconds.observe(max(0.0, seconds))
+
+
+def set_limbic_tension(value: float) -> None:
+    if _limbic_tension is None:
+        return
+    _limbic_tension.set(max(0.0, min(1.0, value)))
+
+
+def observe_ttft_seconds(seconds: float) -> None:
+    if _ttft_histogram is None:
+        return
+    _ttft_histogram.observe(max(0.0, seconds))

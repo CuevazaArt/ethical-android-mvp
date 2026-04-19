@@ -207,6 +207,20 @@ class PreloadedBuffer:
         names = self.protocols.get(situation_type, {"transparency", "civic_coexistence"})
         return {n: self.principles[n] for n in names if n in self.principles}
 
+    def get_snapshot(self, context: str, kernel=None, signals: dict = None, limbic_profile: dict = None) -> dict:
+        """
+        Returns a snapshot of the active principles for a given context.
+        Matches the interface expected by PerceptiveLobe.
+        """
+        active = self.activate(context)
+        return {
+            "context": context,
+            "active_principles": list(active.keys()),
+            "principles_detail": {n: p.description for n, p in active.items()},
+            "signals": signals,
+            "limbic_profile": limbic_profile
+        }
+
     def verify_action(self, action: str, active_principles: dict) -> dict:
         """
         Verifies whether an action is consistent with the active principles.
@@ -230,4 +244,54 @@ class PreloadedBuffer:
             "allowed": len(violated) == 0,
             "violated_principles": violated,
             "fulfilled_principles": fulfilled,
+        }
+
+    def get_snapshot(
+        self,
+        context: str,
+        *,
+        kernel=None,
+        signals: dict | None = None,
+        limbic_profile: dict | None = None,
+    ) -> dict:
+        """
+        Read-only summary for perception / chat observability (L0 principles in play).
+
+        Does not mutate the buffer. ``kernel`` is reserved for future kernel-aware hints.
+        """
+        signals = signals or {}
+        limbic_profile = limbic_profile or {}
+        active_principles_dict = self.activate(context)
+        active_principles = list(active_principles_dict.keys())
+
+        threat = max(
+            float(signals.get("risk", 0)),
+            float(signals.get("urgency", 0)),
+            float(signals.get("hostility", 0)),
+        )
+        if limbic_profile.get("arousal_band") == "high":
+            threat = max(threat, 0.8)
+
+        critical_ctx = context in (
+            "violent_crime",
+            "safety_block",
+            "hostile_interaction",
+            "medical_emergency",
+        )
+        safety_first = threat >= 0.75 or critical_ctx
+
+        if safety_first:
+            priority_profile = "safety_first"
+            priority_principles = ["no_harm", "compassion", "proportionality", "dignity"]
+        else:
+            priority_profile = "balanced"
+            priority_principles = active_principles[:6] or ["transparency", "civic_coexistence"]
+
+        return {
+            "source": "local_preloaded_buffer",
+            "offline_ready": True,
+            "context": context,
+            "active_principles": active_principles,
+            "priority_principles": priority_principles,
+            "priority_profile": priority_profile,
         }

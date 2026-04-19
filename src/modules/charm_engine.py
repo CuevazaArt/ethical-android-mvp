@@ -16,6 +16,7 @@ from typing import Any
 
 from .uchi_soto import InteractionProfile
 from .user_model import UserModelTracker
+from src.kernel_lobes.basal_ganglia import BasalGanglia
 
 logger = logging.getLogger(__name__)
 
@@ -33,6 +34,7 @@ class StylizedResponse:
     final_text: str
     charm_vector: dict[str, float]
     gesture_plan: list[dict[str, Any]]
+    haptic_plan: list[dict[str, Any]] # Phase 10.2
 
 
 class StyleParametrizer:
@@ -102,11 +104,32 @@ class GesturePlanner:
         return plan
 
 
+class HapticPlanner:
+    """Phase 12: Plans complex vibration patterns for the Nomad Vessel."""
+    def plan(self, charm: CharmVector, caution: float, tension: float = 0.0) -> list[dict[str, Any]]:
+        plan = []
+        if caution > 0.9:
+            # Dangerous veto or absolute evil
+            plan.append({"type": "vibrate", "pattern": [100, 50, 100, 50, 200], "label": "emergency_veto"})
+        elif tension > 0.8:
+            # Heartbeat effect for high cognitive load
+            plan.append({"type": "vibrate", "pattern": [30, 100, 30], "label": "limbic_heartbeat"})
+        elif caution > 0.6:
+            plan.append({"type": "vibrate", "pattern": [50, 100, 50], "label": "alert_caution"})
+        elif charm.warmth > 0.7:
+            plan.append({"type": "vibrate", "pattern": [10], "label": "gentle_pulse"})
+        elif charm.playfulness > 0.6:
+            plan.append({"type": "vibrate", "pattern": [30, 30], "label": "playful_double"})
+        return plan
+
+
 class ResponseSculptor:
     def __init__(self, llm_module: Any = None):
         self.llm = llm_module
         self.parametrizer = StyleParametrizer()
         self.gesture_planner = GesturePlanner()
+        self.haptic_planner = HapticPlanner()
+        self.basal_ganglia = BasalGanglia(alpha=0.4) # Slightly faster smoothing
 
     def sculpt(
         self,
@@ -116,6 +139,7 @@ class ResponseSculptor:
         user_tracker: UserModelTracker,
         caution_level: float,
         absolute_evil_detected: bool,
+        tension: float = 0.0,
     ) -> StylizedResponse:
         """
         Applies charm layer. Bypassed entirely if absolute evil is present.
@@ -126,10 +150,28 @@ class ResponseSculptor:
                 final_text=base_text,
                 charm_vector={"warmth": 0.0, "mystery": 0.0, "playfulness": 0.0, "directiveness": 1.0},
                 gesture_plan=[{"actuator": "posture", "action": "rigid_block", "intensity": 1.0}],
+                haptic_plan=[{"type": "vibrate", "pattern": [500], "label": "absolute_evil_warning"}]
             )
 
         charm = self.parametrizer.parametrize(decision_action, profile, user_tracker, caution_level)
+        
+        # Phase 10.3: Basal Ganglia EMA Smoothing
+        raw_vector = {
+            "warmth": charm.warmth,
+            "mystery": charm.mystery,
+            "playfulness": charm.playfulness,
+            "directiveness": charm.directiveness,
+        }
+        smoothed_vector = self.basal_ganglia.smooth_charm(raw_vector)
+        
+        # Upgrade back to CharmVector for planners
+        charm.warmth = smoothed_vector["warmth"]
+        charm.mystery = smoothed_vector["mystery"]
+        charm.playfulness = smoothed_vector["playfulness"]
+        charm.directiveness = smoothed_vector["directiveness"]
+
         gesture = self.gesture_planner.plan(charm)
+        haptic = self.haptic_planner.plan(charm, caution_level, tension=tension)
 
         # En integración real, esto encadena un call al LLM (con override_template).
         # Para el stub arquitectónico, agregamos el metadata de intención.
@@ -148,7 +190,9 @@ class ResponseSculptor:
                 "directiveness": round(charm.directiveness, 3),
             },
             gesture_plan=gesture,
+            haptic_plan=haptic
         )
+
 
 
 class CharmEngine:
@@ -166,7 +210,8 @@ class CharmEngine:
         user_tracker: UserModelTracker,
         caution_level: float,
         absolute_evil_detected: bool,
+        tension: float = 0.0,
     ) -> StylizedResponse:
         return self.sculptor.sculpt(
-            base_text, decision_action, profile, user_tracker, caution_level, absolute_evil_detected
+            base_text, decision_action, profile, user_tracker, caution_level, absolute_evil_detected, tension=tension
         )

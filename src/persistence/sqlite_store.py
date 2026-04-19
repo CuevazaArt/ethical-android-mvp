@@ -16,8 +16,7 @@ from .snapshot_validate import validate_snapshot_for_apply
 def _connect(path: Path) -> sqlite3.Connection:
     conn = sqlite3.connect(str(path))
     conn.execute("PRAGMA foreign_keys = ON")
-    if str(path) != ":memory:":
-        conn.execute("PRAGMA journal_mode = WAL")
+    conn.execute("PRAGMA journal_mode = WAL")
     return conn
 
 

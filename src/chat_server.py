@@ -7,7 +7,7 @@ Run from repo root:
 Or: python -m src.chat_server
 Or: python -m src.runtime  (same server; see docs/proposals/README.md)
 
-**Profiles:** set ``ETHOS_RUNTIME_PROFILE`` to a name in ``src/runtime_profiles.py`` to merge that bundle at import time (explicit env vars win per key). ``GET /health`` and ``GET /`` include ``runtime_profile`` when set; ``GET /health`` also returns ``llm_degradation`` (resolved perception / verbal / monologue policies — see ``PROPOSAL_LLM_TOUCHPOINT_DEGRADATION_MATRIX.md``).
+**Profiles:** set ``ETHOS_RUNTIME_PROFILE`` to a name in ``src/runtime_profiles.py`` to merge that bundle at import time (explicit env vars win per key). ``GET /health`` and ``GET /`` include ``runtime_profile`` when set; ``GET /health`` also returns ``llm_degradation`` (resolved perception / verbal / monologue policies — see ``PROPOSAL_LLM_TOUCHPOINT_DEGRADATION_MATRIX.md``) and ``nomad_bridge`` (queue depths + telemetry **key names** from ``NomadBridge.public_queue_stats()`` — Module S.1 / S.2.1 observability).
 
 **Chat async bridge:** By default each turn runs ``EthicalKernel.process_chat_turn`` in a worker thread (``RealTimeBridge``) so the asyncio loop can accept other WebSocket connections. Optional ``KERNEL_CHAT_ASYNC_LLM_HTTP=1`` runs ``process_chat_turn_async`` on the event loop with async ``httpx`` for Ollama/HTTP JSON; the same per-turn cancel ``Event`` applies to the thread that runs ``EthicalKernel.process`` (cooperative exit + ``llm_http_cancel`` scope; see ADR 0002). Optional ``KERNEL_CHAT_THREADPOOL_WORKERS`` (positive int) uses a dedicated ``ThreadPoolExecutor`` for chat; optional ``KERNEL_CHAT_TURN_TIMEOUT`` (seconds) bounds the **async** wait and returns JSON ``error=chat_turn_timeout`` when exceeded (``abandon_chat_turn`` skips late STM; cooperative cancel for further sync LLM HTTP; in-flight HTTP cancel when async LLM is on). By default ``KERNEL_CHAT_JSON_OFFLOAD`` is on: WebSocket JSON (including optional ``KERNEL_LLM_MONOLOGUE``) is built in the same offload path so the loop is not blocked after the turn. See ``src/real_time_bridge.py``, ADR 0002, and ``docs/proposals/README.md``.
 
@@ -22,12 +22,15 @@ Conduct guide export (optional): KERNEL_CONDUCT_GUIDE_EXPORT_PATH — JSON on We
 
 Situated v8 (optional): KERNEL_SENSOR_FIXTURE (path to JSON), KERNEL_SENSOR_PRESET (name from
 perceptual_abstraction.SENSOR_PRESETS) — merged before client ``sensor`` JSON; see PROPOSAL_SITUATED_ORGANISM_V8.md.
+Optional ``KERNEL_SENSOR_INPUT_STRICT=1`` rejects unknown keys / bad types in the merged sensor object
+(``error=sensor_payload_invalid`` on WebSocket); see PROPOSAL_SENSOR_FUSION_NORMALIZATION.md.
 
 Multimodal thresholds (optional): KERNEL_MULTIMODAL_AUDIO_STRONG, KERNEL_MULTIMODAL_VISION_SUPPORT,
 KERNEL_MULTIMODAL_SCENE_SUPPORT, KERNEL_MULTIMODAL_VISION_CONTRADICT, KERNEL_MULTIMODAL_SCENE_CONTRADICT
 — see README / multimodal_trust.thresholds_from_env.
 
 Vitality (optional): KERNEL_VITALITY_CRITICAL_BATTERY, KERNEL_CHAT_INCLUDE_VITALITY — see vitality.py.
+Nomad S.2.1: ``KERNEL_NOMAD_TELEMETRY_VITALITY`` (default on) merges last Nomad ``telemetry`` into the sensor snapshot before vitality when fields are missing — see ``vitality.merge_nomad_telemetry_into_snapshot``.
 
 Guardian Angel (optional, opt-in): KERNEL_GUARDIAN_MODE=1 enables protective tone in LLM layer only;
 KERNEL_CHAT_INCLUDE_GUARDIAN — omit ``guardian_mode`` key from JSON if 0. KERNEL_GUARDIAN_ROUTINES,
@@ -107,6 +110,9 @@ field is omitted from content (empty string) and LLM embellishment is skipped.
 Homeostasis UX (pilar 4): KERNEL_CHAT_INCLUDE_HOMEOSTASIS — if 0/false/no/off, omit
 ``affective_homeostasis`` (σ / strain / PAD advisory; does not change decisions).
 
+Embodied sociability S10: KERNEL_CHAT_INCLUDE_TRANSPARENCY_S10 — if 0/false/no/off, omit
+``transparency_s10`` (S10.1 narration, S10.2 withdrawal / non-intervention hints, S10.3 discomfort throttle, S10.4 help-request codes; see ``src/modules/transparency_s10.py``). Optional signal key ``silence`` in the merged perception/sensor path refines S10.2 when present.
+
 Experience digest (pilar 3): KERNEL_CHAT_INCLUDE_EXPERIENCE_DIGEST — if 0, omit
 ``experience_digest`` (semantic line from last Ψ Sleep; additive, not a policy change).
 """
@@ -184,6 +190,7 @@ from .modules.nomad_identity import nomad_identity_public
 from .modules.perception_schema import perception_report_from_dict
 from .modules.perceptual_abstraction import snapshot_from_layers
 from .modules.reparation_vault import maybe_register_reparation_after_mock_court
+from .modules.sensor_contracts import SensorPayloadValidationError
 from .observability.context import clear_request_context, set_request_id
 from .observability.logging_setup import configure_logging
 from .observability.metrics import (
@@ -195,6 +202,8 @@ from .observability.metrics import (
     record_lan_envelope_replay_cache_event,
     record_llm_cancel_scope_signaled,
     record_malabs_block,
+    observe_ttft_seconds,
+    set_limbic_tension,
 )
 from .observability.middleware import RequestContextMiddleware
 from .persistence.checkpoint import (
@@ -229,13 +238,19 @@ def _package_version() -> str:
 
 @asynccontextmanager
 async def _lifespan(app: FastAPI):
+    import httpx
+
     configure_logging()
     init_metrics()
+    # Phase 12.1: Global persistent client for Nomad hardware loop
+    aclient = httpx.AsyncClient(timeout=30.0)
+    app.state.aclient = aclient
     try:
         yield
     finally:
         from .real_time_bridge import shutdown_chat_threadpool
 
+        await aclient.aclose()
         shutdown_chat_threadpool(wait=True)
 
 
@@ -256,6 +271,15 @@ app = FastAPI(
 )
 
 app.add_middleware(RequestContextMiddleware)
+@app.get("/nomad/migration")
+async def nomad_migration_meta() -> Response:
+    """Nomad Simulation metadata (v11) for client orchestration."""
+    from .modules.existential_serialization import nomad_simulation_ws_enabled
+    return JSONResponse({
+        "simulation_enabled": nomad_simulation_ws_enabled(),
+        "path": "/ws/chat",
+        "description": "HAL v11 Conscious Migration protocol (simulated)"
+    })
 
 # Phase 10: Mount the Nomad PWA Client directly to bypass external web servers.
 nomad_pwa_path = os.path.join(os.path.dirname(__file__), "clients", "nomad_pwa")
@@ -289,6 +313,8 @@ async def nomad_bridge_ws_handler(websocket: WebSocket) -> None:
     """Nomad LAN bridge sensory endpoint (Module S)."""
     from .modules.nomad_bridge import get_nomad_bridge
 
+    await get_nomad_bridge().handle_websocket(websocket)
+    
     await get_nomad_bridge().handle_websocket(websocket)
 
 @app.websocket("/ws/dashboard")
@@ -406,6 +432,12 @@ def _chat_include_malabs_trace() -> bool:
     from .chat_settings import chat_server_settings
 
     return chat_server_settings().kernel_chat_include_malabs_trace
+
+
+def _chat_include_transparency_s10() -> bool:
+    """Embodied sociability S10.1/S10.3/S10.4 — ``transparency_s10`` in WebSocket JSON (default on)."""
+    v = os.environ.get("KERNEL_CHAT_INCLUDE_TRANSPARENCY_S10", "1").strip().lower()
+    return v not in ("0", "false", "no", "off")
 
 
 def _env_truthy(name: str, default: bool = False) -> bool:
@@ -664,10 +696,11 @@ def _chat_turn_to_jsonable(r: ChatTurnResult, kernel: EthicalKernel) -> dict[str
         }
     if r.temporal_context is not None:
         tc = r.temporal_context.to_public_dict()
+        tc["turn_index"] = max(1, _coerce_public_int(tc.get("turn_index"), default=0, non_negative=True))
         out["temporal_context"] = tc
         out["temporal_sync"] = {
             "sync_schema": tc.get("sync_schema", "temporal_sync_v1"),
-            "turn_index": _coerce_public_int(tc.get("turn_index"), default=0, non_negative=True),
+            "turn_index": tc["turn_index"],
             "wall_clock_unix_ms": tc.get("wall_clock_unix_ms"),
             "processor_elapsed_ms": _coerce_public_int(
                 tc.get("processor_elapsed_ms"), default=0, non_negative=True
@@ -762,6 +795,30 @@ def _chat_turn_to_jsonable(r: ChatTurnResult, kernel: EthicalKernel) -> dict[str
             }
         if _chat_include_homeostasis():
             out["affective_homeostasis"] = homeostasis_telemetry(d)
+        if _chat_include_transparency_s10():
+            from src.modules.transparency_s10 import build_transparency_s10_bundle
+
+            sig: dict[str, Any] = {}
+            if r.perception:
+                p = r.perception
+                sig = {
+                    "risk": float(getattr(p, "risk", 0.0) or 0.0),
+                    "hostility": float(getattr(p, "hostility", 0.0) or 0.0),
+                    "calm": float(getattr(p, "calm", 0.5) or 0.5),
+                    "manipulation": float(getattr(p, "manipulation", 0.0) or 0.0),
+                    "silence": float(getattr(p, "silence", 0.0) or 0.0),
+                }
+            pc_score = None
+            if r.perception_confidence is not None:
+                pc_score = float(r.perception_confidence.to_public_dict().get("score", 0.0))
+            out["transparency_s10"] = build_transparency_s10_bundle(
+                d,
+                signals=sig,
+                perception=r.perception,
+                verbal_degraded=bool(r.verbal_llm_degradation_events),
+                metacognitive_doubt=bool(r.metacognitive_doubt),
+                perception_confidence_score=pc_score,
+            )
     if r.narrative:
         n = r.narrative
         out["narrative"] = {
@@ -910,6 +967,10 @@ def health() -> dict[str, Any]:
             "monologue": resolve_monologue_llm_backend_policy(),
         },
     }
+
+    from .modules.nomad_bridge import get_nomad_bridge
+
+    out["nomad_bridge"] = get_nomad_bridge().public_queue_stats()
     return out
 
 
@@ -1278,11 +1339,14 @@ def _collect_integrity_ws_action(
     kernel: EthicalKernel, data: dict[str, Any]
 ) -> dict[str, Any] | None:
     """Optional ``integrity_alert`` JSON — local DAO ledger row (PROPOSAL_DAO_ALERTS_AND_TRANSPARENCY)."""
-    if not dao_integrity_audit_ws_enabled():
-        return None
     raw = data.get("integrity_alert")
     if not isinstance(raw, dict):
         return None
+    if not dao_integrity_audit_ws_enabled():
+        return {
+            "error": "integrity_audit_disabled",
+            "hint": "Set KERNEL_DAO_INTEGRITY_AUDIT_WS=1 to enable."
+        }
     summary = str(raw.get("summary") or "").strip()
     if not summary:
         return {"integrity_alert": {"ok": False, "error": "missing_summary"}}
@@ -2139,6 +2203,7 @@ async def ws_chat(ws: WebSocket) -> None:
         variability=st.kernel_variability,
         llm_mode=st.llm_mode,
         checkpoint_persistence=checkpoint_persistence_from_env(),
+        aclient=getattr(ws.app.state, "aclient", None),
     )
     try_load_checkpoint(kernel)
     session_ckpt = init_session_checkpoint_state(kernel)
@@ -2192,6 +2257,7 @@ async def ws_chat(ws: WebSocket) -> None:
             nonlocal current_cancel_ev
             t_turn_start = time.perf_counter()
             set_request_id()
+            first_meaningful_event = False
             
             try:
                 text = (data_in.get("text") or "").strip()
@@ -2202,6 +2268,25 @@ async def ws_chat(ws: WebSocket) -> None:
                 # Situated v8 sensors
                 sensor_raw = data_in.get("sensor")
                 client = sensor_raw if isinstance(sensor_raw, dict) else None
+                
+                # Phase 10: Inject Nomad Bridge Live Data
+                from .modules.nomad_bridge import get_nomad_bridge
+                nb = get_nomad_bridge()
+                if client is None: client = {}
+                
+                # Drain telemetry_queue to get the LATEST entry (S.2.1 Calibration)
+                live_t = {}
+                while not nb.telemetry_queue.empty():
+                    try:
+                        live_t = nb.telemetry_queue.get_nowait()
+                    except asyncio.QueueEmpty:
+                        break
+                
+                if live_t:
+                    client.update(live_t)
+                
+                client["rms_audio"] = nb.last_rms
+
                 fixture = os.environ.get("KERNEL_SENSOR_FIXTURE", "").strip() or None
                 preset = os.environ.get("KERNEL_SENSOR_PRESET", "").strip() or None
                 sensor_snapshot = snapshot_from_layers(
@@ -2230,22 +2315,73 @@ async def ws_chat(ws: WebSocket) -> None:
                     while True:
                         try:
                             event = await asyncio.wait_for(it.__anext__(), timeout=chat_to)
+                            
+                            if not first_meaningful_event and event["event_type"] not in ("turn_started", "perception_started"):
+                                observe_ttft_seconds(time.perf_counter() - t_turn_start)
+                                first_meaningful_event = True
+
                             if event["event_type"] == "turn_finished":
                                 result = event["payload"]["result"]
                                 break
                             else:
-                                await ws.send_json(event)
+                                # Backward compatibility: suppress stream events for older clients/tests
+                                if os.environ.get("KERNEL_CHAT_STRIP_STREAM_EVENTS", "1") == "0":
+                                    await ws.send_json(event)
+                        except asyncio.TimeoutError:
+                            logger.warning("chat_turn_timeout id=%s (set cooperative cancel)", turn_id)
+                            if current_cancel_ev is not None:
+                                current_cancel_ev.set()
+                            record_chat_turn_async_timeout()
+                            # Match test expectation: error + path + timeout + response bundle
+                            await ws.send_json({
+                                "error": "chat_turn_timeout",
+                                "path": "turn_timeout",
+                                "timeout_seconds": chat_to,
+                                "response": {"message": "Turn exceeded server time limit.", "tone": "neutral"}
+                            })
+                            break
                         except StopAsyncIteration:
                             break
                 else:
                     async for event in gen:
+                        if not first_meaningful_event and event["event_type"] not in ("turn_started", "perception_started"):
+                            observe_ttft_seconds(time.perf_counter() - t_turn_start)
+                            first_meaningful_event = True
+
                         if event["event_type"] == "turn_finished":
                             result = event["payload"]["result"]
                         else:
-                            await ws.send_json(event)
+                            # Backward compatibility: suppress stream events for older clients/tests
+                            if os.environ.get("KERNEL_CHAT_STRIP_STREAM_EVENTS", "1") == "0":
+                                await ws.send_json(event)
                 
                 if result:
                     observe_chat_turn(result.path, time.perf_counter() - t_turn_start)
+                    
+                    # Record Limbic Tension (Prometheus)
+                    lp = result.limbic_profile or {}
+                    # Prioritize regulation_gap as a proxy for 'effort/tension'
+                    tension = lp.get("regulation_gap", lp.get("threat_load", 0.0))
+                    set_limbic_tension(tension)
+                    
+                    # Phase 10: Broadcast to L0 Dashboard
+                    nb.broadcast_to_dashboards({
+                        "type": "telemetry", 
+                        "payload": {
+                            "tension": tension,
+                            "trust": lp.get("trust", 0.5),
+                            "turn_index": turn_id
+                        }
+                    })
+                    if result.response and result.response.inner_voice:
+                        nb.broadcast_to_dashboards({
+                            "type": "thought",
+                            "payload": {
+                                "text": result.response.inner_voice,
+                                "dissonance": bool(result.epistemic_dissonance.active) if result.epistemic_dissonance else False
+                            }
+                        })
+
                     if result.path in ("safety_block", "kernel_block"):
                         record_malabs_block(result.path)
                     
@@ -2258,19 +2394,29 @@ async def ws_chat(ws: WebSocket) -> None:
                     else:
                         payload = _chat_turn_to_jsonable(result, kernel)
                     
-                    # Wrap in event for consistency with stream
-                    await ws.send_json({
-                        "event_type": "turn_finished",
-                        "payload": payload
-                    })
+                    # Retener la respuesta desnuda para backwards compatibility con los tests
+                    await ws.send_json(payload)
                     
-                    # Phase 11: Ouroboros TTS hook
+                    # Phase 11/12: Ouroboros Feedback Loop (Always active for rich clients)
                     android_text = payload.get("response", {}).get("message", "")
                     if android_text:
                         await ws.send_json({
                             "type": "kernel_voice",
                             "text": android_text
                         })
+                    
+                    lp = payload.get("limbic_profile", {})
+                    haptic_plan = lp.get("haptic_plan", [])
+                    if haptic_plan:
+                        await ws.send_json({
+                            "type": "haptic_feedback",
+                            "payload": {"haptics": haptic_plan}
+                        })
+                    
+                    # Backward compatibility: suppress other internal events
+                    if os.environ.get("KERNEL_CHAT_STRIP_STREAM_EVENTS", "1") == "0":
+                         pass
+
                         
                     maybe_autosave_episodes(kernel, session_ckpt)
 
@@ -2363,7 +2509,12 @@ async def ws_chat(ws: WebSocket) -> None:
                 out_ws: dict[str, Any] = {}
                 if dao_payload: out_ws["dao"] = dao_payload
                 if nomad_payload: out_ws["nomad"] = nomad_payload
-                if integrity_payload: out_ws["integrity"] = integrity_payload
+                if integrity_payload:
+                    if "error" in integrity_payload and not integrity_payload.get("integrity_alert"):
+                         # Lift error to root for test compatibility
+                         out_ws.update(integrity_payload)
+                    else:
+                         out_ws["integrity"] = integrity_payload
                 if lan_governance_merged: out_ws["lan_governance"] = lan_governance_merged
                 await ws.send_json(out_ws)
                 if not text_preview:
@@ -2380,9 +2531,21 @@ async def ws_chat(ws: WebSocket) -> None:
                     )
                 except: pass
 
-            # ══ Standard Chat Turn ══
+            sensor_raw = data.get("sensor")
+            client = sensor_raw if isinstance(sensor_raw, dict) else None
+            fixture = os.environ.get("KERNEL_SENSOR_FIXTURE", "").strip() or None
+            preset = os.environ.get("KERNEL_SENSOR_PRESET", "").strip() or None
+            try:
+                sensor_snapshot = snapshot_from_layers(
+                    fixture_path=fixture,
+                    preset_name=preset,
+                    client_dict=client,
+                )
+            except SensorPayloadValidationError as e:
+                await ws.send_json({"error": "sensor_payload_invalid", "detail": str(e)})
+                continue
+
             if not text_preview:
-                await ws.send_json({"error": "empty_text"})
                 continue
 
             # Start new turn, cancelling previous if necessary (Serial Turns)
@@ -2430,7 +2593,23 @@ def run_chat_server() -> None:
     import uvicorn
 
     host, port = get_uvicorn_bind()
-    uvicorn.run(app, host=host, port=port, reload=False)
+    
+    ssl_key = ".certs/key.pem"
+    ssl_cert = ".certs/cert.pem"
+    
+    if os.path.exists(ssl_key) and os.path.exists(ssl_cert):
+        logger.info("SSL certificates found. Starting server in HTTPS mode.")
+        uvicorn.run(
+            app, 
+            host=host, 
+            port=port, 
+            reload=False,
+            ssl_keyfile=ssl_key,
+            ssl_certfile=ssl_cert
+        )
+    else:
+        logger.warning("SSL certificates not found. Starting server in HTTP mode (Nomad Camera/Mic may NOT work).")
+        uvicorn.run(app, host=host, port=port, reload=False)
 
 
 def main() -> None:

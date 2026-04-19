@@ -8,6 +8,7 @@ The android does not store data: it builds history.
 import os
 from datetime import datetime
 from pathlib import Path
+from typing import Optional, List, Any
 
 import numpy as np
 
@@ -15,13 +16,12 @@ from src.persistence.narrative_storage import NarrativePersistence
 
 from .identity_reflection import IdentityReflector
 from .narrative_identity import NarrativeIdentityTracker
-from .narrative_types import BodyState, NarrativeArc, NarrativeEpisode
+from .narrative_types import BodyState, NarrativeArc, NarrativeEpisode, NarrativeChronicle
 from .semantic_embedding_client import (
     ahttp_fetch_ollama_embedding, 
     http_fetch_ollama_embedding, 
     maybe_hash_fallback_embedding
 )
-from .semantic_anchor_store import get_anchor_store
 from .uchi_soto import RelationalTier
 
 
@@ -50,9 +50,6 @@ class NarrativeMemory:
         if db_path is None:
             db_path = os.environ.get("KERNEL_NARRATIVE_DB_PATH", "data/narrative.db")
         self.persistence = NarrativePersistence(db_path)
-        
-        # Phase 12.3: Semantic Vector Store (ChromaDB)
-        self.anchor_store = get_anchor_store()
 
         # Load existing episodes from disk
         self.episodes = self.persistence.load_all_episodes()
@@ -79,6 +76,9 @@ class NarrativeMemory:
         self.arcs = self.persistence.load_all_arcs()
         self.active_arc = next((a for a in self.arcs if a.is_active), None)
 
+        # Load Chronicles (Phase 13)
+        self.chronicles = self.persistence.load_all_chronicles()
+
     def consolidate(self) -> str:
         """
         Tier 3: Existential Consolidation.
@@ -96,6 +96,61 @@ class NarrativeMemory:
 
         self.persistence.save_identity_digest(self.experience_digest)
         return self.experience_digest
+
+    async def consolidate_to_chronicle(self, limit: int = 50) -> Optional[NarrativeChronicle]:
+        """
+        Phase 13: Recursive Chronicle Consolidation.
+        Summarizes the oldest 'limit' episodes into a single Chronicle block.
+        """
+        if len(self.episodes) < limit:
+            return None
+        
+        to_summarize = self.episodes[:limit]
+        
+        # 1. Gather stats
+        start_ts = to_summarize[0].timestamp
+        end_ts = to_summarize[-1].timestamp
+        avg_sig = sum(ep.significance for ep in to_summarize) / len(to_summarize)
+        
+        # 2. Extract Ethical Poles Summary
+        poles_counts = {}
+        for ep in to_summarize:
+            for pole in ep.morals:
+                poles_counts[pole] = poles_counts.get(pole, 0) + 1
+        
+        top_poles = sorted(poles_counts.items(), key=lambda x: -x[1])[:3]
+        poles_summary = ", ".join([f"{p} ({c})" for p, c in top_poles])
+        
+        # 3. Request LLM Summary (Thematic Distillation)
+        # For MVP, we'll do a structured procedural summary if LLM not available
+        # In full Phase 13, this calls a dedicated 'chronicler' prompt.
+        events_text = "; ".join([ep.event_description for ep in to_summarize[:10]]) # sample
+        summary_text = f"Chronicle of {len(to_summarize)} episodes. Predominant themes: {poles_summary}. Key events sample: {events_text}..."
+
+        chron_id = f"CHRON-{len(self.chronicles) + 1:03d}"
+        chronicle = NarrativeChronicle(
+            id=chron_id,
+            start_timestamp=start_ts,
+            end_timestamp=end_ts,
+            summary=summary_text,
+            ethical_poles_summary=poles_summary,
+            significance_avg=round(avg_sig, 4),
+            episode_count=len(to_summarize)
+        )
+        
+        # 4. Save and persist
+        self.chronicles.append(chronicle)
+        self.persistence.save_chronicle(chronicle)
+        
+        # 5. REMOVE summarized episodes from active memory list 
+        # (Disk retains them, but active session list is trimmed)
+        self.episodes = self.episodes[limit:]
+        
+        # 6. Final audit log
+        import logging
+        logging.getLogger(__name__).info(f"Memory Chronicle Created: {chron_id} distilling {limit} episodes.")
+        
+        return chronicle
 
     def get_reflection(self) -> str:
         """Returns the first-person reflexive self-model (Pilar de la Mente)."""
@@ -219,15 +274,6 @@ class NarrativeMemory:
 
         # Tier 2 persistence: Save to DB (now with arc_id)
         self.persistence.save_episode(ep)
-        
-        # Phase 12.3: Anchor in Vector DB for fast resonance retrieval
-        if ep.semantic_embedding:
-            self.anchor_store.upsert_anchor(
-                id=ep.id,
-                text=combined_text,
-                embedding=ep.semantic_embedding,
-                metadata={"context": ep.context, "sigma": ep.sigma, "score": ep.ethical_score}
-            )
 
         # Basic compression: if exceeds max, remove oldest from memory
         # (Disk retains all episodes unless explicit cleanup implemented)
@@ -318,19 +364,18 @@ class NarrativeMemory:
         self.episodes.append(ep)
         self.identity.update_from_episode(ep)
         self._update_arcs(ep)
-        self.persistence.save_episode(ep)
         
-        # Phase 12.3: Anchor in Vector DB
-        if ep.semantic_embedding:
-            self.anchor_store.upsert_anchor(
-                id=ep.id,
-                text=combined_text,
-                embedding=ep.semantic_embedding,
-                metadata={"context": ep.context, "sigma": ep.sigma, "score": ep.ethical_score}
-            )
+        # 4. Async Persistence (Phase 9.3)
+        import asyncio
+        await asyncio.to_thread(self.persistence.save_episode, ep)
 
+        # 5. Recursive Chronicling logic (Phase 13)
+        # If we exceed max_episodes, we summarize the bottom 10% of memory 
+        # instead of just discarding it.
         if len(self.episodes) > self.max_episodes:
-            self.episodes = self.episodes[-self.max_episodes :]
+            # We summarize a chunk (e.g. 50 episodes) to make space
+            await self.consolidate_to_chronicle(limit=50)
+
         return ep
 
     def find_similar(self, context: str, limit: int = 5) -> list[NarrativeEpisode]:
@@ -378,49 +423,131 @@ class NarrativeMemory:
                 if fb is not None:
                     query_embed = fb.tolist()
 
-        # Optimization 12.3: Use Vector DB if query_text is provided
-        if query_embed is not None:
-            # Query the vector store for top candidates based on semantic similarity
-            neighbors = self.anchor_store.query_neighbors(query_embed, k=limit * 2)
-            id_to_similarity = {nid: sim for nid, sim, meta in neighbors}
-            
-            # Only consider episodes that came from the vector store
-            all_episodes = [ep for ep in all_episodes if ep.id in id_to_similarity]
-            
-            for ep in all_episodes:
-                resonance = id_to_similarity.get(ep.id, 0.0) * 0.5 # Semantic weight (base)
-                
-                # Apply secondary boosts (Context, PAD, Theme)
-                if context and ep.context == context: resonance += 0.3
-                if min_sigma and ep.sigma >= min_sigma: resonance += 0.1
-                if target_pad and ep.affect_pad:
-                    from .pad_archetypes import euclidean
-                    dist = euclidean(target_pad, ep.affect_pad)
-                    resonance += max(0, 0.3 * (1.0 - dist))
-                
-                if current_arc_archetype and ep.arc_id:
-                    arc = next((a for a in self.arcs if a.id == ep.arc_id), None)
-                    if arc and arc.predominant_archetype == current_arc_archetype:
-                        resonance += 0.1
-                
-                candidates.append((ep, resonance))
-        else:
-            # Legacy loop for matches based purely on context/PAD without text query
-            for ep in all_episodes:
-                resonance = 0.0
-                if context and ep.context == context: resonance += 0.4
-                if min_sigma and ep.sigma >= min_sigma: resonance += 0.2
-                if target_pad and ep.affect_pad:
-                    from .pad_archetypes import euclidean
-                    dist = euclidean(target_pad, ep.affect_pad)
-                    resonance += max(0, 0.4 * (1.0 - dist))
-                if current_arc_archetype and ep.arc_id:
-                    arc = next((a for a in self.arcs if a.id == ep.arc_id), None)
-                    if arc and arc.predominant_archetype == current_arc_archetype:
-                        resonance += 0.2
-                candidates.append((ep, resonance))
+        for ep in all_episodes:
+            resonance = 0.0
+
+            # 1. Context Match
+            if context and ep.context == context:
+                resonance += 0.4
+
+            # 2. Emotional Arousal Match (Sigma)
+            if min_sigma and ep.sigma >= min_sigma:
+                resonance += 0.2
+
+            # 3. Affective Distance (PAD)
+            if target_pad and ep.affect_pad:
+                from .pad_archetypes import euclidean
+
+                dist = euclidean(target_pad, ep.affect_pad)
+                resonance += max(0, 0.4 * (1.0 - dist))
+
+            # 4. Thematic Boost (Maturing Step)
+            if current_arc_archetype and ep.arc_id:
+                # Find arc for this episode
+                arc = next((a for a in self.arcs if a.id == ep.arc_id), None)
+                if arc and arc.predominant_archetype == current_arc_archetype:
+                    resonance += 0.2
+
+            # 5. Semantic Similarity (Phase 6)
+            if query_embed is not None and ep.semantic_embedding:
+                ep_vec = np.array(ep.semantic_embedding)
+                # Cosine similarity since both are unit vectors (L2 normalized)
+                dot = float(np.dot(query_embed, ep_vec))
+                # Add scaled dot product to resonance
+                resonance += max(0, 0.5 * dot)
+
+            candidates.append((ep, resonance))
 
         # Sort by resonance descending
+        candidates.sort(key=lambda x: x[1], reverse=True)
+        return [c[0] for c in candidates[:limit] if c[1] > 0.0]
+
+    async def afind_by_resonance(
+        self,
+        context: str | None = None,
+        min_sigma: float | None = None,
+        target_pad: tuple[float, float, float] | None = None,
+        query_text: str | None = None,
+        limit: int = 5,
+        requester_tier: RelationalTier = RelationalTier.EPHEMERAL,
+    ) -> list[NarrativeEpisode]:
+        """
+        Async version of :meth:`find_by_resonance` (Bloque 9.3).
+
+        Replaces the synchronous ``http_fetch_ollama_embedding`` call with the
+        non-blocking ``ahttp_fetch_ollama_embedding`` so that resonance lookups
+        do not block the kernel event loop during embedding inference.
+        """
+        from .uchi_soto import _tier_rank
+
+        if _tier_rank(requester_tier) < _tier_rank(RelationalTier.TRUSTED_UCHI):
+            return []
+
+        import asyncio
+        all_episodes = await asyncio.to_thread(self.persistence.load_all_episodes)
+        candidates = []
+        current_arc_archetype = self.active_arc.predominant_archetype if self.active_arc else None
+
+        query_embed = None
+        if query_text:
+            ollama_url = os.environ.get("OLLAMA_BASE_URL", "http://localhost:11434/api/embeddings")
+            ollama_model = os.environ.get("OLLAMA_EMBED_MODEL", "mxbai-embed-large")
+            try:
+                q_vec = await ahttp_fetch_ollama_embedding(ollama_url, ollama_model, query_text)
+                if q_vec is not None:
+                    query_embed = q_vec
+                else:
+                    fb = maybe_hash_fallback_embedding(query_text)
+                    if fb is not None:
+                        query_embed = fb.tolist()
+            except Exception:
+                fb = maybe_hash_fallback_embedding(query_text)
+                if fb is not None:
+                    query_embed = fb.tolist()
+
+        # Load chronicles for high-level thematic resonance (Phase 12.1.3)
+        chronicles = await asyncio.to_thread(self.persistence.load_all_chronicles)
+        resonant_chronicle_ranges = []
+        if query_embed is not None:
+            for chr in chronicles:
+                # We mock/approximate thematic resonance by checking if query_text matches summary
+                # Real implementation would use embeddings for chronicles too
+                if query_text and any(word in chr.summary.lower() for word in query_text.lower().split() if len(word) > 4):
+                     resonant_chronicle_ranges.append((chr.start_timestamp, chr.end_timestamp))
+
+        for ep in all_episodes:
+            resonance = 0.0
+
+            if context and ep.context == context:
+                resonance += 0.4
+
+            if min_sigma and ep.sigma >= min_sigma:
+                resonance += 0.2
+
+            if target_pad and ep.affect_pad:
+                from .pad_archetypes import euclidean
+
+                dist = euclidean(target_pad, ep.affect_pad)
+                resonance += max(0, 0.4 * (1.0 - dist))
+
+            if current_arc_archetype and ep.arc_id:
+                arc = next((a for a in self.arcs if a.id == ep.arc_id), None)
+                if arc and arc.predominant_archetype == current_arc_archetype:
+                    resonance += 0.2
+
+            if query_embed is not None and ep.semantic_embedding:
+                ep_vec = np.array(ep.semantic_embedding)
+                dot = float(np.dot(query_embed, ep_vec))
+                resonance += max(0, 0.5 * dot)
+            
+            # Chronicle Boost (Phase 12.1.3)
+            for start, end in resonant_chronicle_ranges:
+                if start <= ep.timestamp <= end:
+                    resonance += 0.3
+                    break
+
+            candidates.append((ep, resonance))
+
         candidates.sort(key=lambda x: x[1], reverse=True)
         return [c[0] for c in candidates[:limit] if c[1] > 0.0]
 

@@ -143,6 +143,11 @@ class DAOOrchestrator:
     def register_audit(self, *args, **kwargs):
         return self.local_dao.register_audit(*args, **kwargs)
 
+    async def aregister_audit(self, *args, **kwargs):
+        """Async version of register_audit (Phase 9.3)."""
+        import asyncio
+        return await asyncio.to_thread(self.local_dao.register_audit, *args, **kwargs)
+
     def create_proposal(self, *args, **kwargs):
         return self.local_dao.create_proposal(*args, **kwargs)
 

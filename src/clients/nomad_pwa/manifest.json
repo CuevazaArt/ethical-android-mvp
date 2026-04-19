@@ -1,7 +1,7 @@
 {
   "name": "Ethos Nomad Bridge",
   "short_name": "EthosNomad",
-  "description": "Nomad LAN bridge for POCO X3 NFC sensory ingestion.",
+  "description": "Nomad LAN bridge for Somatic Vessel sensory ingestion.",
   "start_url": "/nomad/",
   "display": "standalone",
   "background_color": "#0F172A",

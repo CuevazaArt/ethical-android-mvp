@@ -1,63 +1,143 @@
-import logging
+"""
+Thalamus Node — Sensory routing and gatekeeping.
+Part of the Phase 10.1 Sensory Fusion (VVAD + VAD).
+
+Pre-filters raw sensor streams to determine attentional focus 
+before the Perceptive Lobe performs high-cost inference.
+"""
+
+from __future__ import annotations
 import time
-from typing import Dict, Any, List
-from src.kernel_lobes.models import SensoryEpisode
+import logging
+from dataclasses import dataclass, field
+from typing import Any, Dict, List, TYPE_CHECKING, Optional
+
+if TYPE_CHECKING:
+    from ..modules.sensor_contracts import SensorSnapshot
+    from ..kernel_lobes.models import SensoryEpisode
 
 _log = logging.getLogger(__name__)
 
+@dataclass
+class AttentionState:
+    """Current attentional focus of the kernel."""
+    is_user_present: bool = False
+    is_user_speaking: bool = False
+    is_facing_user: bool = False
+    confidence: float = 0.0
+    last_update: float = field(default_factory=time.time)
+
 class ThalamusNode:
     """
-    ARCHITECTURE V2.0 - Thalamus (Fusión Sensorial - Bloque 10.1)
-    Responsable de unificar los streams de VVAD (Visual) y VAD (Audio).
-    Actúa como el filtro de atención del Lóbulo Perceptivo.
-    Responsabilidad: Team Cursor.
+    Acts as a sensory filter and synchronizer.
+    
+    Logic:
+    - VVAD: Voice Activity + Video Presence.
+    - Posture: IMU alpha/beta/gamma check.
     """
-    def __init__(self):
-        self.sensory_buffer: List[SensoryEpisode] = []
-        _log.info("ThalamusNode: Sensory Fusion engine initialized.")
+    def __init__(self, sensitivity: float = 0.5):
+        self.sensitivity = sensitivity
+        self.state = AttentionState()
+        self._audio_history: list[float] = []
+        self._max_history = 10
+        
+        # Phase 14: EMA Smoothing
+        self._ema_facing = 0.0
+        self._ema_presence = 0.0
+        self._alpha = 0.3 # Smoothing factor
 
-    def fuse_signals(self, 
-                     vision_data: Dict[str, Any], 
-                     audio_data: Dict[str, Any],
-                     environmental_stress: float = 0.0) -> Dict[str, Any]:
+    def ingest_telemetry(self, payload: dict[str, Any]):
+        """Ingests IMU and Battery data to update attentional confidence."""
+        orientation = payload.get("orientation")
+        if orientation:
+            # Logic: If phone is tilted towards a common 'viewing' angle (e.g. beta 60-90)
+            # we assume the user is looking at or addressing the device.
+            beta = orientation.get("beta", 0)
+            target = 1.0 if (45 < beta < 105) else 0.0
+            
+            # Application of EMA
+            self._ema_facing = (self._alpha * target) + ((1.0 - self._alpha) * self._ema_facing)
+            self.state.is_facing_user = self._ema_facing > 0.6
+            
+            if self.state.is_facing_user:
+                self.state.confidence = min(1.0, self.state.confidence + 0.05)
+            else:
+                self.state.confidence = max(0.0, self.state.confidence - 0.02)
+        
+        self.state.last_update = time.time()
+
+    def ingest_audio_signal(self, rms: float | None):
+        """Processes audio volume spikes for VAD."""
+        if rms is None:
+            return
+        self._audio_history.append(rms)
+        if len(self._audio_history) > self._max_history:
+            self._audio_history.pop(0)
+            
+        avg_rms = sum(self._audio_history) / len(self._audio_history)
+        if rms > avg_rms * 1.5 and rms > 0.05: # Threshold for 'speaking'
+            self.state.is_user_speaking = True
+            self.state.confidence = min(1.0, self.state.confidence + 0.2)
+        else:
+            self.state.is_user_speaking = False
+            self.state.confidence = max(0.0, self.state.confidence - 0.1)
+
+    def should_trigger_deliberation(self) -> bool:
+        """Determines if the current sensory state warrants a full kernel tick."""
+        # Simple AND/OR gate for situated importance
+        if self.state.is_user_speaking and (self.state.is_facing_user or self.state.confidence > 0.7):
+            return True
+        return False
+
+    def fuse_sensory_stream(self, snapshot: SensorSnapshot) -> dict[str, Any]:
         """
-        Calcula la probabilidad de interacción humana real cruzando audio y visión.
-        Evita falsos positivos de VAD mediante verificación visual (Lip Reading/Presence).
+        Main fusion entry point for Phase 10.1.
+        Merges vision (VVAD) and audio signals to determine attention locus.
         """
-        # 1. VVAD (Visual Voice Activity Detection)
-        lip_movement = float(vision_data.get("lip_movement", 0.0))
-        presence = float(vision_data.get("human_presence", 0.0))
-        
-        # 2. VAD (Audio Voice Activity Detection)
-        vad_confidence = float(audio_data.get("vad_confidence", 0.0))
-        
-        # 3. Fusión Multimodal (Anti-Spoofing & Attention)
-        # Si hay habla pero no movimiento de labios, tratamos como 'Voz de Fondo'
-        voice_focal_match = (presence > 0.5 and lip_movement > 0.3 and vad_confidence > 0.5)
-        
-        attention_locus = 0.0
-        if presence > 0.5:
-            # Atención proporcional al habla y al contacto visual (lip sync)
-            attention_locus = (vad_confidence * 0.7) + (lip_movement * 0.3)
-        
-        # 4. Cálculo de Tensión Social Percibida
-        # La tensión sube con ruidos fuertes o falta de coherencia visión/audio
-        sensory_dissonance = 0.0
-        if vad_confidence > 0.8 and lip_movement < 0.2:
-             sensory_dissonance = 0.4 # Alguien grita pero no lo vemos (Alerta)
+        if not snapshot.image_metadata:
+            _log.debug("thalamus: skipping fusion, missing image_metadata")
+            return {}
 
-        total_tension = (environmental_stress * 0.5) + (sensory_dissonance * 0.5)
+        # 1. Vision Logic (VVAD)
+        lip_mov = float(snapshot.image_metadata.get("lip_movement", 0.0))
+        presence = float(snapshot.image_metadata.get("human_presence", 0.0))
+        
+        # 2. Audio Logic (VAD)
+        audio_spike = float(snapshot.audio_emergency or 0.0)
+        
+        # 3. Decision Logic: Attention Locus (θ_att)
+        attention_locus = (lip_mov * 0.5) + (presence * 0.3) + (audio_spike * 0.2)
+        
+        # 4. Sensory Tension (δ_tens)
+        ambient = float(snapshot.ambient_noise or 0.0)
+        sensory_tension = max(0.0, audio_spike - ambient)
+        
+        # 5. Multimodal Trust (Anti-Spoofing)
+        voice_focal_match = (presence > 0.5 and lip_mov > 0.3 and audio_spike > 0.4)
+        cross_modal_trust = 1.0 if voice_focal_match else 0.4
 
+        # 6. EMA for Presence
+        self._ema_presence = (self._alpha * presence) + ((1.0 - self._alpha) * self._ema_presence)
+
+        # Update internal state
+        self.state.is_user_present = self._ema_presence > 0.5
+        self.state.is_user_speaking = audio_spike > 0.3 or lip_mov > 0.4
+        self.state.confidence = round((attention_locus + self._ema_facing) / 2.0, 4)
+        self.state.last_update = time.time()
+        
         return {
-            "attention_locus": round(attention_locus, 3),
-            "presence_confidence": round(presence, 3),
-            "is_focal_address": voice_focal_match,
-            "sensory_tension": round(total_tension, 3),
-            "cross_modal_trust": 1.0 if voice_focal_match else 0.4
+            "attention_locus": round(attention_locus, 4),
+            "sensory_tension": round(sensory_tension, 4),
+            "cross_modal_trust": cross_modal_trust,
+            "user_activity": "speaking" if self.state.is_user_speaking else "quiet",
+            "is_user_present": self.state.is_user_present
         }
 
-    def push_episode(self, episode: SensoryEpisode):
-        """Mantiene el buffer circular de episodios sensoriales."""
-        self.sensory_buffer.append(episode)
-        if len(self.sensory_buffer) > 50:
-            self.sensory_buffer.pop(0)
+    def get_sensory_summary(self) -> dict[str, Any]:
+        """Provides a filtered summary for the Perceptive Lobe."""
+        return {
+            "attention_confidence": round(self.state.confidence, 4),
+            "user_activity": "speaking" if self.state.is_user_speaking else "quiet",
+            "posture": "focused" if self.state.is_facing_user else "away",
+            "situated_priority": 1.0 if self.should_trigger_deliberation() else 0.2
+        }

@@ -2,8 +2,18 @@
 
 **Author:** Claude Team  
 **Date:** 2026-04-14  
-**Status:** In Progress  
+**Status:** Landed (implemented on integration hubs)  
 **ADR:** [ADR 0015](../adr/0015-interteam-integration-sprint.md)
+
+---
+
+## Land record (implementation)
+
+**As of April 2026**, items **I1**, **I3**, **I4**, and **I5** are implemented in [`src/kernel.py`](../../src/kernel.py) (perception uncertainty, identity policy, temporal urgency modulation) with narrative persistence in [`src/modules/narrative_types.py`](../../src/modules/narrative_types.py) / [`src/persistence/narrative_storage.py`](../../src/persistence/narrative_storage.py) (**I1** `weights_snapshot`). **I2** — [`EVENT_KERNEL_WEIGHTS_UPDATED`](../../src/modules/kernel_event_bus.py) is emitted when hierarchical feedback composition changes mixture weights (`_emit_kernel_weights_updated` on [`EthicalKernel`](../../src/kernel.py)); [`feedback_trust_weight()`](../../src/modules/weight_authority.py) exposes trust for the payload.
+
+**Regression tests:** [`tests/test_integration_sprint_i1_i5.py`](../../tests/test_integration_sprint_i1_i5.py), [`tests/test_kernel_event_bus.py`](../../tests/test_kernel_event_bus.py) (`test_emit_weights_updated_helper_posts_i2_event`).
+
+Integration code is carried on **`master-Cursor`** (and peer hubs per merge policy); the historical “implement only in `master-claude`” line is superseded by merged trees.
 
 ---
 

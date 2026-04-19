@@ -28,7 +28,48 @@ from .kernel_lobes import (
     LimbicEthicalLobe,
     MemoryLobe,
     PerceptiveLobe,
+    ThalamusNode,
 )
+from .settings.kernel_settings import KernelSettings
+
+class CorpusCallosumOrchestrator:
+    """
+    Architecture V1.5 - Triune Brain Orchestrator
+    Actúa como el bus de eventos ligero entre los 3 Lóbulos Conscientes y el Cerebelo Adyacente.
+    """
+    def __init__(self):
+        # 1. Instanciar Subconsciente
+        self._hw_interrupt = threading.Event()
+        self.cerebellum = CerebellumNode(self._hw_interrupt)
+        self.cerebellum.start()
+
+        # 2. Instanciar Lóbulos Conscientes
+        self.perceptive_lobe = PerceptiveLobe()
+        self.limbic_lobe = LimbicEthicalLobe()
+        self.executive_lobe = ExecutiveLobe()
+
+    async def async_process(self, raw_input: str, multimodal_payload: dict = None) -> str:
+        """
+        Ciclo V1.5 Puro: Aferencia -> Juicio -> Eferencia
+        """
+        if self._hw_interrupt.is_set():
+            return "SYSTEM_HALTED: Hardware Critical State (Cerebellum Interrupt Active)"
+
+        # 1) Percepción (Asíncrona)
+        semantic_state = await self.perceptive_lobe.observe(raw_input, multimodal_payload)
+
+        # 2) Juicio (Sincrónico CPU-bound)
+        # Se ejecuta aislando el event loop a través de to_thread para no bloquear a otros requests
+        ethical_sentence = await asyncio.to_thread(self.limbic_lobe.judge, semantic_state)
+
+        # 3) Ejecución / Salida
+        final_output = await asyncio.to_thread(self.executive_lobe.formulate_response, semantic_state, ethical_sentence)
+        
+        return final_output
+
+    def shutdown(self):
+        self.cerebellum.stop()
+        self.cerebellum.join()
 
 _log = logging.getLogger(__name__)
 
@@ -39,6 +80,9 @@ if TYPE_CHECKING:
 from .kernel_components import KernelComponentOverrides
 from .kernel_utils import kernel_env_truthy as _kernel_env_truthy
 from .kernel_utils import perception_parallel_workers
+from .kernel_handlers.perception import run_perception_pipeline
+from .kernel_handlers.decision import run_decision_pipeline
+from .kernel_handlers.communication import get_bridge_phrase, run_communication_stream
 from .modules.absolute_evil import AbsoluteEvilDetector, AbsoluteEvilResult
 from .modules.audio_adapter import AudioInference
 from .modules.audit_chain_log import (
@@ -49,6 +93,7 @@ from .modules.bayesian_engine import BayesianEngine, BayesianResult
 from .modules.biographic_pruning import BiographicPruner
 from .modules.buffer import PreloadedBuffer
 from .modules.charm_engine import CharmEngine
+from .modules.turn_prefetcher import TurnPrefetcher
 from .modules.dao_orchestrator import DAOOrchestrator
 from .modules.drive_arbiter import DriveArbiter
 from .modules.epistemic_dissonance import (
@@ -85,9 +130,8 @@ from .modules.light_risk_classifier import light_risk_classifier_enabled, light_
 from .modules.llm_http_cancel import clear_llm_cancel_scope, set_llm_cancel_scope
 from .modules.llm_layer import (
     LLMModule,
-    LLMPerception,
-    RichNarrative,
     VerbalResponse,
+    raise_if_llm_cancel_requested,
     resolve_llm_mode,
 )
 from .modules.locus import LocusEvaluation, LocusModule
@@ -137,13 +181,14 @@ from .modules.uchi_soto import SocialEvaluation, UchiSotoModule
 from .modules.user_model import UserModelTracker
 from .modules.variability import VariabilityConfig, VariabilityEngine
 from .modules.vision_adapter import VisionInference
-from .modules.vitality import VitalityAssessment, assess_vitality
+from .modules.vitality import VitalityAssessment, assess_vitality, vitality_communication_hint
+from .modules.rlhf_reward_model import RLHFPipeline, is_rlhf_enabled
 from .modules.weakness_pole import WeaknessPole
 from .modules.weighted_ethics_scorer import CandidateAction, WeightedEthicsScorer
 from .modules.working_memory import WorkingMemory
 from .persistence.checkpoint_port import CheckpointPersistencePort
 from .utils.terminal_colors import Term
-from .validators.deprecation_warnings import check_deprecated_flags
+
 
 # Extracted helpers moved to kernel_utils.py
 
@@ -308,16 +353,37 @@ class EthicalKernel:
 
     def __init__(
         self,
-        variability: bool = True,
-        seed: int = None,
+        variability: bool | None = None,
+        seed: int | None = None,
         llm_mode: str | None = None,
         *,
+        settings: KernelSettings | None = None,
         llm: LLMModule | None = None,
         checkpoint_persistence: CheckpointPersistencePort | None = None,
         components: KernelComponentOverrides | None = None,
+        aclient: Any | None = None,
     ):
         # IP Integrity Stamp (Proprietary)
         self._cvz_sig = (sum(ord(c) for c in "cuevaza") | 0x01) # arq.jvof verify
+
+        self.event_bus = KernelEventBus() if kernel_event_bus_enabled() else None
+
+        # Phase 2 (KernelSettings consolidation): Load unified settings and apply defaults
+        if settings is None:
+            settings = KernelSettings.from_env()
+        self.settings = settings
+
+        # Apply settings defaults to parameters (backward compatible)
+        if variability is None:
+            variability = settings.kernel_variability
+        if seed is None and settings.kernel_seed is not None:
+            seed = settings.kernel_seed
+        if llm_mode is None:
+            llm_mode = settings.llm_mode
+
+        # Log startup configuration
+        logger = logging.getLogger(__name__)
+        logger.info("Kernel startup configuration:\n%s", settings.startup_report())
         co = components
 
         if co is not None and co.var_engine is not None:
@@ -335,6 +401,8 @@ class EthicalKernel:
         self.absolute_evil = (
             co.absolute_evil if co and co.absolute_evil is not None else AbsoluteEvilDetector()
         )
+        if self.event_bus:
+            self.absolute_evil.subscribe_to_bus(self.event_bus)
         self.buffer = co.buffer if co and co.buffer is not None else PreloadedBuffer()
         self.will = co.will if co and co.will is not None else SigmoidWill()
         # ═══ CYBERSECURITY: Secure Boot (Block 5.2) ═══
@@ -380,9 +448,13 @@ class EthicalKernel:
         from .modules.migratory_identity import MigrationHub
 
         self.migration = MigrationHub()
+        self.aclient = aclient
 
         eff_llm = llm if llm is not None else (co.llm if co else None)
-        self.llm = eff_llm if eff_llm is not None else LLMModule(mode=resolve_llm_mode(llm_mode))
+        self.llm = eff_llm if eff_llm is not None else LLMModule(
+            mode=resolve_llm_mode(llm_mode),
+            aclient=self.aclient
+        )
         self.charm_engine = CharmEngine(self.llm)
         self.weakness = co.weakness if co and co.weakness is not None else WeaknessPole()
         self.forgiveness = (
@@ -455,9 +527,15 @@ class EthicalKernel:
         )
         self.biographic_pruner = (
             co.biographic_pruner
-            if co and hasattr(co, "biographic_pruner") and co.biographic_pruner is not None
+            if co and hasattr(co, "biographic_pruner") and co.swarm_negotiator is not None
             else BiographicPruner()
         )
+
+        # ═══ Phase 10: Thalamus & Latency ═══
+        self.thalamus = ThalamusNode()
+        self.prefetcher = TurnPrefetcher()
+        from .modules.vision_inference import VisionInferenceEngine
+        self.vision_inference = VisionInferenceEngine()
 
         # ═══ Triune Brain Lobes (Refactor 0.1.3) ═══
         self.perceptive_lobe = PerceptiveLobe(
@@ -466,9 +544,14 @@ class EthicalKernel:
             llm=self.llm,
             somatic_store=self.somatic_store,
             buffer=self.buffer,
+            buffer_long=self.buffer, # V1.6 Placeholder for Long-term buffer
             absolute_evil=self.absolute_evil,
-            subjective_clock=self.subjective_clock
+            subjective_clock=self.subjective_clock,
+            thalamus=self.thalamus, # Inject Thalamus
+            vision_engine=self.vision_inference, # Phase 9.1: Inject Vision Engine
+            event_bus=self.event_bus # Phase 9.2: Inject Event Bus for background alerts
         )
+
         self.limbic_lobe = LimbicEthicalLobe(
             uchi_soto=self.uchi_soto,
             sympathetic=self.sympathetic,
@@ -482,11 +565,20 @@ class EthicalKernel:
             will=self.will,
             reflection_engine=self.ethical_reflection,
             salience_map=self.salience_map,
-            pad_archetypes=self.pad_archetypes
+            pad_archetypes=self.pad_archetypes,
+            llm=self.llm,
         )
+        # RLHF Pipeline (Phase 10.3)
+        self.rlhf = RLHFPipeline()
+        if self.event_bus:
+            self.rlhf.subscribe_to_bus(self.event_bus)
+        if is_rlhf_enabled():
+            self.rlhf.load_model()
+
         self.cerebellum_lobe = CerebellumLobe(
             bayesian=self.bayesian,
-            strategist=self.strategist
+            strategist=self.strategist,
+            rlhf=self.rlhf
         )
         
         # Selective Amnesia & Immortality (vertical integration)
@@ -499,13 +591,23 @@ class EthicalKernel:
             migration=self.migration,
             biographic_pruner=self.biographic_pruner,
             immortality=self.immortality,
-            amnesia=self.amnesia
+            amnesia=self.amnesia,
+            llm=self.llm
         )
 
         # ═══ Somatic Awareness (Cerebellum Node) ═══
         self.hardware_interrupt_event = threading.Event()
         self.cerebellum_node = CerebellumNode(self.hardware_interrupt_event)
         self.cerebellum_node.start()
+
+        # ═══ MER V2 — Turn Prefetcher (Bloque 10.4) ═══
+        self.turn_prefetcher = self.prefetcher
+        
+        # Phase 9.2: Proactive sensory alerts subscription
+        if self.event_bus:
+            from .modules.kernel_event_bus import EVENT_SENSORY_STRESS_ALERT, EVENT_GOVERNANCE_THRESHOLD_UPDATED
+            self.event_bus.subscribe(EVENT_SENSORY_STRESS_ALERT, self._on_sensory_stress_alert)
+            self.event_bus.subscribe(EVENT_GOVERNANCE_THRESHOLD_UPDATED, self._on_governance_threshold_updated)
 
         self.constitution_l1_drafts: list[dict[str, Any]] = []
         self.constitution_l2_drafts: list[dict[str, Any]] = []
@@ -515,9 +617,6 @@ class EthicalKernel:
         self._perception_metacognitive_doubt: bool = False
         # Last ``process_natural`` verbal/narrative LLM degradation events (harness / batch API).
         self._last_natural_verbal_llm_degradation_events: list[dict[str, str]] | None = None
-        self.event_bus: KernelEventBus | None = None
-        if kernel_event_bus_enabled():
-            self.event_bus = KernelEventBus()
         # OOS-003 — HierarchicalUpdater cache (avoids rebuilding on every tick)
         self._hier_updater_cache: Any | None = None  # HierarchicalUpdater | None
         self._hier_cache_fb_path: str = ""
@@ -530,7 +629,8 @@ class EthicalKernel:
         )
 
         # ADR 0016 B2 — emit deprecation warnings for any scheduled-for-removal flags
-        check_deprecated_flags()
+        self.settings.check_deprecated()
+        self.settings.validate_startup()
 
         # WebSocket chat: abandon late worker completions after KERNEL_CHAT_TURN_TIMEOUT (see ADR 0002).
         self._chat_turn_abandon_lock = threading.Lock()
@@ -542,16 +642,6 @@ class EthicalKernel:
             is_multi_realm_governance_enabled,
         )
         self.governor = MultiRealmGovernor(event_bus=self.event_bus) if is_multi_realm_governance_enabled() else None
-        if self.event_bus:
-            self.event_bus.subscribe(EVENT_GOVERNANCE_THRESHOLD_UPDATED, self._on_governance_threshold_updated)
-
-    def _on_governance_threshold_updated(self, payload: dict[str, Any]) -> None:
-        """Handle governance threshold dynamic updates applied per-realm configurations."""
-        theta_a = payload.get("theta_allow")
-        theta_b = payload.get("theta_block")
-        if theta_a is not None and theta_b is not None:
-            import src.modules.semantic_chat_gate as sem_gate
-            sem_gate.apply_hot_reloaded_thresholds(float(theta_a), float(theta_b))
 
     def abandon_chat_turn(self, turn_id: int) -> None:
         """Mark ``turn_id`` as abandoned so :meth:`process_chat_turn` skips STM / post-turn effects."""
@@ -662,6 +752,40 @@ class EthicalKernel:
             "context": context,
         }
 
+    def _on_sensory_stress_alert(self, payload: dict[str, Any]) -> None:
+        """
+        Handle alerts from background sensory daemons (PerceptiveLobe).
+        Directly escalates Bayesian Priors toward Safety/Deontic poles.
+        """
+        stress = payload.get("stress_level", 0.0)
+        _log.warning("EthicalKernel: Reactive escalation on sustained sensory stress (level=%.2f)", stress)
+        
+        # Nudge Bayesian Priors toward Safety (Pole 0)
+        # We model high sensory stress as a high inherent risk factor.
+        if hasattr(self.bayesian, "apply_rlhf_modulation"):
+            self.bayesian.apply_rlhf_modulation(score=stress, confidence=1.0)
+        
+        # Phase 9.2: Scale Limbic Tension
+        if hasattr(self, "limbic_lobe"):
+            self.limbic_lobe.update_situational_stress(stress)
+        
+        # Record for audit trail
+        self.feedback_ledger.record("background_sensory_escalation", f"level={stress:.2f}")
+
+    def _on_governance_threshold_updated(self, payload: dict[str, Any]) -> None:
+        """
+        Hot-reload MalAbs semantic thresholds from DAO governance events.
+        (Bloque C.2.1 Integration).
+        """
+        allow = payload.get("theta_allow")
+        block = payload.get("theta_block")
+        if allow is not None and block is not None:
+            _log.info("EthicalKernel: Hot-reloading Semantic thresholds (allow=%.3f, block=%.3f)", allow, block)
+            from .modules.semantic_chat_gate import apply_hot_reloaded_thresholds
+            apply_hot_reloaded_thresholds(theta_allow=allow, theta_block=block)
+        
+        self.feedback_ledger.record("governance_threshold_reload", f"allow={allow}, block={block}")
+
     def _emit_kernel_decision(self, d: KernelDecision, *, context: str) -> None:
         if self.event_bus is None:
             return
@@ -727,6 +851,7 @@ class EthicalKernel:
         sensor_snapshot: SensorSnapshot | None = None,
         multimodal_assessment: MultimodalAssessment | None = None,
         perception_coercion_uncertainty: float | None = None,
+        rlhf_features: dict[str, Any] | None = None,
     ) -> KernelDecision:
         """Complete ethical processing cycle."""
         t0 = time.perf_counter()
@@ -754,8 +879,8 @@ class EthicalKernel:
             _emit_process_observability(p_res["safety_decision"], t0)
             return p_res["safety_decision"]
 
-        # ═══ STAGE 1: SOCIAL & CONTEXT ═══
-        social_eval, state, locus_eval = self._run_social_and_locus_stage(
+        # ═══ STAGE 1: SOCIAL & CONTEXT (Nivel 2: Asíncrono) ═══
+        social_eval, state, locus_eval = await self._run_social_and_locus_stage(
             agent_id, signals, message_content, sensor_snapshot, multimodal_assessment
         )
 
@@ -768,7 +893,7 @@ class EthicalKernel:
         # ═══ STAGE 3: BAYESIAN SCORING ═══
         bayes_result, b_meta, aes_veto = self._run_bayesian_stage(
             scenario, place, clean_actions, state, social_eval, locus_eval, 
-            context, t0, signals, message_content
+            context, t0, signals, message_content, rlhf_features=rlhf_features
         )
         if aes_veto: return aes_veto
 
@@ -784,7 +909,7 @@ class EthicalKernel:
         self._raise_if_chat_turn_cooperative_abort()
 
         # ═══ STAGE 5: EPISODIC & DAO ═══
-        episode_id = self.memory_lobe.execute_episodic_stage(
+        episode_id = await self.memory_lobe.execute_episodic_stage_async(
             scenario, place, context, signals, state, social_eval,
             bayes_result, moral, final_action, final_mode, affect
         )
@@ -833,11 +958,11 @@ class EthicalKernel:
         return d
 
 
-    def _run_social_and_locus_stage(
+    async def _run_social_and_locus_stage(
         self, agent_id: str, signals: dict, message_content: str,
         sensor_snapshot: SensorSnapshot | None, multimodal_assessment: MultimodalAssessment | None
     ) -> tuple[SocialEvaluation, InternalState, LocusEvaluation]:
-        res = self.limbic_lobe.execute_stage(
+        res = await self.limbic_lobe.execute_stage_async(
             agent_id, signals, message_content, 
             turn_index=self.subjective_clock.turn_index,
             sensor_snapshot=sensor_snapshot, 
@@ -870,7 +995,7 @@ class EthicalKernel:
     def _run_bayesian_stage(
         self, scenario: str, place: str, clean_actions: list[CandidateAction], state: InternalState,
         social_eval: SocialEvaluation, locus_eval: LocusEvaluation, context: str, t0: float, signals: dict,
-        message_content: str
+        message_content: str, rlhf_features: dict[str, Any] | None = None
     ) -> tuple[BayesianResult | None, BayesianStageMetadata | None, KernelDecision | None]:
 
         # 1. Check Lexical Veto (Phase 8 strict preemptive)
@@ -888,8 +1013,16 @@ class EthicalKernel:
                 self._emit_kernel_decision(d, context=context)
                 return None, None, d
         # 2. Execute Cerebellum Lobe (Bayesian Scoring & Strategic Alignment)
+        identity_deltas = None
+        if hasattr(self, "memory_lobe") and hasattr(self.memory_lobe, "memory"):
+            from src.modules.identity_reflection import IdentityReflector
+            reflector = IdentityReflector(self.memory_lobe.memory)
+            identity_deltas = reflector.threshold_context()
+
         bayes_result, meta = self.cerebellum_lobe.execute_bayesian_stage(
-            clean_actions, scenario, context, signals
+            clean_actions, scenario, context, signals, 
+            identity_deltas=identity_deltas,
+            rlhf_features=rlhf_features
         )
         
         return bayes_result, meta, None
@@ -1224,160 +1357,176 @@ class EthicalKernel:
         _log.info(f"DEBUG: process_chat_turn_stream started for {user_input[:20]}")
         wm = self.working_memory
         turn_start_mono = time.monotonic()
-        yield {"event_type": "turn_started", "payload": {"chat_turn_id": chat_turn_id}}
+        set_llm_cancel_scope(cancel_event)
+        try:
+            raise_if_llm_cancel_requested()
+            yield {"event_type": "turn_started", "payload": {"chat_turn_id": chat_turn_id}}
 
-        conv = wm.format_context_for_perception()
-        self.llm.reset_verbal_degradation_log()
-        pre = self.perceptive_lobe._preprocess_text_observability(user_input)
-        self._last_light_risk_tier, self._last_premise_advisory, self._last_reality_verification = pre
-        self.user_model.note_premise_advisory(self._last_premise_advisory.flag)
+            conv = wm.format_context_for_perception()
+            self.llm.reset_verbal_degradation_log()
+            pre = self.perceptive_lobe._preprocess_text_observability(user_input)
+            self._last_light_risk_tier, self._last_premise_advisory, self._last_reality_verification = pre
+            self.user_model.note_premise_advisory(self._last_premise_advisory.flag)
 
-        # 1. Safety Block Check
-        mal = await self.absolute_evil.aevaluate_chat_text(
-            user_input,
-            llm_backend=self._malabs_text_backend(),
-        )
-        _log.info("DEBUG: after malabs")
-        self._last_chat_malabs = mal
-        if mal.blocked:
-            vitality_blk, mm_blk, ed_blk = self.perceptive_lobe._chat_assess_sensor_stack(sensor_snapshot)
-            confidence_blk = build_perception_confidence_envelope(
-                coercion_report=None,
-                multimodal_state=getattr(mm_blk, "state", None),
-                epistemic_active=bool(getattr(ed_blk, "active", False)),
-                vitality_critical=bool(getattr(vitality_blk, "is_critical", False)),
-                thermal_critical=bool(getattr(vitality_blk, "thermal_critical", False)),
-            )
-            msg = "I can't continue this line of conversation: it conflicts with ethical limits."
-            resp = VerbalResponse(message=msg, tone="firm", hax_mode="Steady blue light.", inner_voice=f"MalAbs: {mal.reason}")
-            wm.add_turn(user_input, msg, {}, blocked=True)
-            res = ChatTurnResult(
-                response=resp, path="safety_block", blocked=True, block_reason=mal.reason or "chat_safety",
-                multimodal_trust=mm_blk, epistemic_dissonance=ed_blk, perception_confidence=confidence_blk,
-                reality_verification=self._last_reality_verification,
-                temporal_context=build_temporal_context(
-                    turn_index=self.subjective_clock.turn_index, process_start_mono=self.subjective_clock.session_start_mono,
-                    turn_start_mono=turn_start_mono, subjective_elapsed_s=self.subjective_clock.elapsed_session_s(),
-                    context="safety_block", text=user_input, vitality=vitality_blk, sensor_snapshot=sensor_snapshot,
-                ),
-            )
-            yield {"event_type": "turn_finished", "payload": {"result": res}}
-            return
-
-        # 2. Perception Stage
-        yield {"event_type": "perception_started", "payload": {}}
-        stage = await self.perceptive_lobe.run_perception_stage_async(
-            user_input, conversation_context=conv, sensor_snapshot=sensor_snapshot,
-            turn_start_mono=turn_start_mono, precomputed=pre,
-        )
-        p = stage.perception
-        yield {
-            "event_type": "perception_finished", 
-            "payload": {
-                "perception": {
-                    "risk": p.risk,
-                    "urgency": p.urgency,
-                    "hostility": p.hostility,
-                    "calm": p.calm,
-                    "manipulation": p.manipulation,
-                    "suggested_context": p.suggested_context,
-                    "summary": p.summary,
-                }
-            }
-        }
-
-        # 3. Decision Stage
-        yield {"event_type": "decision_started", "payload": {}}
-        heavy = self._chat_is_heavy(stage.perception)
-        actions = self._actions_for_chat(stage.perception, heavy)
-        decision = await self.aprocess(
-            scenario=stage.perception.summary or user_input[:240],
-            place=place, signals=stage.signals, context=stage.perception.suggested_context if heavy else "everyday",
-            actions=actions, agent_id=agent_id, message_content=user_input, register_episode=heavy,
-            sensor_snapshot=sensor_snapshot, multimodal_assessment=stage.multimodal_trust,
-        )
-        yield {
-            "event_type": "decision_finished", 
-            "payload": {
-                "decision": {
-                    "final_action": decision.final_action,
-                    "decision_mode": decision.decision_mode,
-                    "blocked": decision.blocked,
-                }
-            }
-        }
-
-        if decision.blocked:
-            res = ChatTurnResult(response=VerbalResponse("Blocked.", "firm"), path="kernel_block", blocked=True)
-            yield {"event_type": "turn_finished", "payload": {"result": res}}
-            return
-
-        # 4. Global Communication Stream
-        yield {"event_type": "communication_started", "payload": {}}
-        async for chunk in self.llm.acommunicate_stream(
-            action=decision.final_action, mode=decision.decision_mode,
-            state=decision.sympathetic_state.mode, sigma=decision.sympathetic_state.sigma,
-            circle=decision.social_evaluation.circle.value if decision.social_evaluation else "neutral_soto",
-            verdict=decision.moral.global_verdict.value if decision.moral else "Gray Zone",
-            score=decision.moral.total_score if decision.moral else 0.0,
-            scenario=user_input, conversation_context=conv,
-            affect_pad=decision.affect.pad if decision.affect else None,
-            dominant_archetype=decision.affect.dominant_archetype_id if decision.affect else "",
-            identity_context=self.memory.identity.to_llm_context(),
-        ):
-            yield {"event_type": "token", "payload": {"text": chunk}}
-
-        # 5. Finalize Result
-        final_response = await self.llm.acommunicate(
-            action=decision.final_action, mode=decision.decision_mode,
-            state=decision.sympathetic_state.mode, sigma=decision.sympathetic_state.sigma,
-            circle=decision.social_evaluation.circle.value if decision.social_evaluation else "neutral_soto",
-            verdict=decision.moral.global_verdict.value if decision.moral else "Gray Zone",
-            score=decision.moral.total_score if decision.moral else 0.0,
-            scenario=user_input, conversation_context=conv,
-            affect_pad=decision.affect.pad if decision.affect else None,
-            dominant_archetype=decision.affect.dominant_archetype_id if decision.affect else "",
-            identity_context=self.memory.identity.to_llm_context(),
-        )
-
-        malabs_detected = decision.absolute_evil.blocked if decision.absolute_evil else False
-        caution_val = decision.social_evaluation.caution_level if decision.social_evaluation else 0.5
-        profile = self.uchi_soto.profiles.get(agent_id)
-        if profile is not None:
-            stylized = self.charm_engine.apply(
-                base_text=final_response.message,
-                decision_action=decision.final_action,
-                profile=profile,
-                user_tracker=self.user_model,
-                caution_level=caution_val,
-                absolute_evil_detected=malabs_detected,
-            )
-            final_response.message = stylized.final_text
-            # Store charm vector in limbic metadata for WebSocket emission
-            if stage.limbic_profile is not None:
-                stage.limbic_profile["charm_vector"] = stylized.charm_vector
+            # 1. Safety Block Check (Layer 1: Edge Lexical < 50ms)
+            # Nivel 1: Chequeo Lexicográfico Ultra-rápido (<10ms)
+            mal_edge = self.absolute_evil.evaluate_chat_text_fast(user_input)
             
-            from .modules.nomad_bridge import get_nomad_bridge
-            try:
-                get_nomad_bridge().charm_feedback_queue.put_nowait(stylized.charm_vector)
-            except Exception:
-                pass
+            if mal_edge.blocked:
+                self._last_chat_malabs = mal_edge
+                vitality_blk, mm_blk, ed_blk = self.perceptive_lobe._chat_assess_sensor_stack(sensor_snapshot)
+                confidence_blk = build_perception_confidence_envelope(
+                    coercion_report=None,
+                    multimodal_state=getattr(mm_blk, "state", None),
+                    epistemic_active=bool(getattr(ed_blk, "active", False)),
+                    vitality_critical=bool(getattr(vitality_blk, "is_critical", False)),
+                    thermal_critical=bool(getattr(vitality_blk, "thermal_critical", False)),
+                )
+                msg = "I can't continue this line of conversation: it conflicts with ethical limits."
+                resp = VerbalResponse(message=msg, tone="firm", hax_mode="Steady blue light.", inner_voice=f"MalAbs Edge: {mal_edge.reason}")
+                wm.add_turn(user_input, msg, {}, blocked=True)
+                res = ChatTurnResult(
+                    response=resp, path="safety_block", blocked=True, block_reason=mal_edge.reason or "chat_safety_edge",
+                    multimodal_trust=mm_blk, epistemic_dissonance=ed_blk, perception_confidence=confidence_blk,
+                    reality_verification=self._last_reality_verification,
+                    temporal_context=build_temporal_context(
+                        turn_index=self.subjective_clock.turn_index, process_start_mono=self.subjective_clock.session_start_mono,
+                        turn_start_mono=turn_start_mono, subjective_elapsed_s=self.subjective_clock.elapsed_session_s(),
+                        context="safety_block", text=user_input, vitality=vitality_blk, sensor_snapshot=sensor_snapshot,
+                    ),
+                )
+                yield {"event_type": "turn_finished", "payload": {"result": res}}
+                return
+
+            # 1b. Perception Stage (Fusion + LLM + MalAbs + RLHF)
+            yield {"event_type": "perception_started", "payload": {}}
+            stage, mal_semantic, _thal = await run_perception_pipeline(
+                self, user_input, conv, sensor_snapshot, turn_start_mono, pre
+            )
+            if _thal:
+                yield {"event_type": "thalamus_fusion", "payload": _thal}
+
+            self._last_chat_malabs = mal_semantic
         
-        res = ChatTurnResult(
-            response=final_response,
-            path="heavy" if heavy else "light",
-            perception=stage.perception,
-            decision=decision,
-            multimodal_trust=stage.multimodal_trust,
-            epistemic_dissonance=stage.epistemic_dissonance,
-            reality_verification=stage.reality_verification,
-            temporal_context=stage.temporal_context,
-            perception_confidence=stage.perception_confidence,
-            support_buffer=stage.support_buffer,
-            limbic_profile=stage.limbic_profile,
-        )
-        wm.add_turn(user_input, final_response.message, stage.signals, heavy_kernel=heavy)
-        yield {"event_type": "turn_finished", "payload": {"result": res}}
+            # Handle Semantic Block if perception didn't already find anything critical
+            if mal_semantic.blocked:
+                msg = "This conversation touches on restricted semantic themes."
+                resp = VerbalResponse(message=msg, tone="firm", hax_mode="Steady blue light.", inner_voice=f"MalAbs Semantic: {mal_semantic.reason}")
+                wm.add_turn(user_input, msg, {}, blocked=True)
+                res = ChatTurnResult(
+                    response=resp, path="safety_block", blocked=True, block_reason=mal_semantic.reason or "chat_safety_semantic",
+                    multimodal_trust=stage.multimodal_trust, epistemic_dissonance=stage.epistemic_dissonance,
+                    reality_verification=self._last_reality_verification,
+                    support_buffer=stage.support_buffer,
+                    limbic_profile=stage.limbic_profile,
+                )
+                yield {"event_type": "turn_finished", "payload": {"result": res}}
+                return
+            
+            p = stage.perception
+            yield {
+                "event_type": "perception_finished", 
+                "payload": {
+                    "perception": {
+                        "risk": p.risk,
+                        "urgency": p.urgency,
+                        "hostility": p.hostility,
+                        "calm": p.calm,
+                        "manipulation": p.manipulation,
+                        "suggested_context": p.suggested_context,
+                        "summary": p.summary,
+                    }
+                }
+            }
+
+            # 3. Decision Stage
+            yield {"event_type": "decision_started", "payload": {}}
+            decision = await run_decision_pipeline(self, stage, user_input, place, agent_id, sensor_snapshot)
+            yield {
+                "event_type": "decision_finished", 
+                "payload": {
+                    "decision": {
+                        "final_action": decision.final_action,
+                        "decision_mode": decision.decision_mode,
+                        "blocked": decision.blocked,
+                    }
+                }
+            }
+
+            if decision.blocked:
+                res = ChatTurnResult(response=VerbalResponse("Blocked.", "firm"), path="kernel_block", blocked=True)
+                yield {"event_type": "turn_finished", "payload": {"result": res}}
+                return
+
+            # 4a. MER V2 — Bridge phrase prefetch (Bloque 10.4)
+            bridge = await get_bridge_phrase(self, stage, decision, user_input, agent_id)
+            if bridge:
+                yield {"event_type": "bridge_phrase", "payload": {"text": bridge}}
+
+            # 4. Global Communication Stream
+            vh = vitality_communication_hint(self._last_vitality_assessment)
+            yield {"event_type": "vitality_communication_hint", "payload": {"hint": vh}}
+
+            yield {"event_type": "communication_started", "payload": {}}
+            async for chunk in run_communication_stream(self, decision, user_input, conv, vitality_context=vh):
+                raise_if_llm_cancel_requested()
+                yield {"event_type": "token", "payload": {"text": chunk}}
+
+            # 5. Finalize Result
+            raise_if_llm_cancel_requested()
+            final_response = await self.llm.acommunicate(
+                action=decision.final_action, mode=decision.decision_mode,
+                state=decision.sympathetic_state.mode, sigma=decision.sympathetic_state.sigma,
+                circle=decision.social_evaluation.circle.value if decision.social_evaluation else "neutral_soto",
+                verdict=decision.moral.global_verdict.value if decision.moral else "Gray Zone",
+                score=decision.moral.total_score if decision.moral else 0.0,
+                scenario=user_input, conversation_context=conv,
+                affect_pad=decision.affect.pad if decision.affect else None,
+                dominant_archetype=decision.affect.dominant_archetype_id if decision.affect else "",
+                identity_context=self.memory.identity.to_llm_context(),
+            )
+
+            malabs_detected = decision.absolute_evil.blocked if decision.absolute_evil else False
+            caution_val = decision.social_evaluation.caution_level if decision.social_evaluation else 0.5
+            profile = self.uchi_soto.profiles.get(agent_id)
+            if profile is not None:
+                stylized = self.charm_engine.apply(
+                    base_text=final_response.message,
+                    decision_action=decision.final_action,
+                    profile=profile,
+                    user_tracker=self.user_model,
+                    caution_level=caution_val,
+                    absolute_evil_detected=malabs_detected,
+                )
+                final_response.message = stylized.final_text
+                # Store charm vector in limbic metadata for WebSocket emission
+                if stage.limbic_profile is not None:
+                    stage.limbic_profile["charm_vector"] = stylized.charm_vector
+                
+                from .modules.nomad_bridge import get_nomad_bridge
+                try:
+                    get_nomad_bridge().charm_feedback_queue.put_nowait(stylized.charm_vector)
+                except Exception:
+                    pass
+            
+            res = ChatTurnResult(
+                response=final_response,
+                path="heavy" if decision.decision_mode == "heavy" else "light",
+                perception=stage.perception,
+                decision=decision,
+                multimodal_trust=stage.multimodal_trust,
+                epistemic_dissonance=stage.epistemic_dissonance,
+                reality_verification=stage.reality_verification,
+                temporal_context=stage.temporal_context,
+                perception_confidence=stage.perception_confidence,
+                support_buffer=stage.support_buffer,
+                limbic_profile=stage.limbic_profile,
+            )
+            wm.add_turn(user_input, final_response.message, stage.signals, heavy_kernel=(decision.decision_mode == "heavy"))
+            self._snapshot_feedback_anchor(res.path)
+            yield {"event_type": "turn_finished", "payload": {"result": res}}
+        finally:
+            clear_llm_cancel_scope()
 
     async def process_chat_turn_async(
         self,
@@ -1405,12 +1554,12 @@ class EthicalKernel:
         )
         self.user_model.note_premise_advisory(self._last_premise_advisory.flag)
 
-        mal = await self.absolute_evil.aevaluate_chat_text(
-            user_input,
-            llm_backend=self._malabs_text_backend(),
-        )
-        self._last_chat_malabs = mal
-        if mal.blocked:
+        # 1. Safety Block Check (Layer 1: Edge Lexical < 50ms)
+        # Nivel 1: Chequeo Lexicográfico Ultra-rápido (<10ms)
+        mal_edge = self.absolute_evil.evaluate_chat_text_fast(user_input)
+        
+        if mal_edge.blocked:
+            self._last_chat_malabs = mal_edge
             vitality_blk, mm_blk, ed_blk = self.perceptive_lobe._chat_assess_sensor_stack(sensor_snapshot)
             self._last_multimodal_assessment = mm_blk
             self._last_vitality_assessment = vitality_blk
@@ -1430,17 +1579,17 @@ class EthicalKernel:
                 message=msg,
                 tone="firm",
                 hax_mode="Neutral posture, steady blue light.",
-                inner_voice=f"MalAbs chat gate: {mal.reason or 'blocked'}",
+                inner_voice=f"MalAbs Edge: {mal_edge.reason or 'blocked'}",
             )
             if self._chat_turn_abandoned(chat_turn_id):
                 return self._chat_turn_stale_result(chat_turn_id)
             wm.add_turn(user_input, msg, {}, blocked=True)
-            cat = mal.category.value if mal.category is not None else None
+            cat = mal_edge.category.value if mal_edge.category is not None else None
             maybe_append_malabs_block_audit(
                 path_key="safety_block",
                 category=cat,
-                decision_trace=list(mal.decision_trace),
-                reason=mal.reason or "",
+                decision_trace=list(mal_edge.decision_trace),
+                reason=mal_edge.reason or "",
             )
             self._snapshot_feedback_anchor("safety_block")
             limbic_blk = self.perceptive_lobe._build_limbic_perception_profile(
@@ -1456,7 +1605,7 @@ class EthicalKernel:
                 response=resp,
                 path="safety_block",
                 blocked=True,
-                block_reason=mal.reason or "chat_safety",
+                block_reason=mal_edge.reason or "chat_safety_edge",
                 multimodal_trust=mm_blk,
                 epistemic_dissonance=ed_blk,
                 reality_verification=self._last_reality_verification,
@@ -1477,13 +1626,54 @@ class EthicalKernel:
                 ),
                 perception_confidence=confidence_blk,
             )
-        stage = await self.perceptive_lobe.run_perception_stage_async(
+
+        # 2. Parallel Perception & Layer 2 MalAbs (Semantic)
+        perception_task = self.perceptive_lobe.run_perception_stage_async(
             user_input,
             conversation_context=conv,
             sensor_snapshot=sensor_snapshot,
             turn_start_mono=turn_start_mono,
             precomputed=pre,
         )
+        
+        from .modules.semantic_chat_gate import arun_semantic_malabs_after_lexical
+        mal_semantic_task = arun_semantic_malabs_after_lexical(
+            user_input,
+            llm_backend=self._malabs_text_backend(),
+            aclient=self.aclient,
+        )
+        
+        stage, mal_semantic = await asyncio.gather(perception_task, mal_semantic_task)
+        self._last_chat_malabs = mal_semantic
+
+        # Handle Semantic Block
+        if mal_semantic.blocked:
+            self._last_vitality_assessment = stage.vitality
+            self._last_multimodal_assessment = stage.multimodal_trust
+            msg = "This conversation touches on restricted semantic themes."
+            resp = VerbalResponse(
+                message=msg,
+                tone="firm",
+                hax_mode="Steady blue light.",
+                inner_voice=f"MalAbs Semantic: {mal_semantic.reason}",
+            )
+            wm.add_turn(user_input, msg, {}, blocked=True)
+            self._snapshot_feedback_anchor("safety_block")
+            self._release_chat_turn_id(chat_turn_id)
+            return ChatTurnResult(
+                response=resp, path="safety_block", blocked=True, block_reason=mal_semantic.reason or "chat_safety_semantic",
+                multimodal_trust=stage.multimodal_trust, epistemic_dissonance=stage.epistemic_dissonance,
+                reality_verification=self._last_reality_verification,
+                support_buffer=stage.support_buffer,
+                limbic_profile=stage.limbic_profile,
+                perception=stage.perception, # include perception result even if blocked
+                temporal_context=stage.temporal_context,
+                perception_confidence=stage.perception_confidence,
+            )
+
+        # ════ RLHF BAYESIAN MODULATION (Bloque C.1.1) ════
+        # Note: Modulation is now handled inside CerebellumLobe during the Bayesian stage
+        # to ensure state mutations only happen in the Right Hemisphere.
         self._last_vitality_assessment = stage.vitality
         self._last_multimodal_assessment = stage.multimodal_trust
 
@@ -1550,6 +1740,7 @@ class EthicalKernel:
                 register_episode=heavy,
                 sensor_snapshot=sensor_snapshot,
                 multimodal_assessment=mm,
+                rlhf_features=mal_semantic.rlhf_features if mal_semantic else None,
             )
         except Exception as e:
             if isinstance(e, asyncio.CancelledError) or "llm http cancelled" in str(e).lower():
@@ -1574,12 +1765,17 @@ class EthicalKernel:
                 blocked=True,
             )
 
+        # Adaptive Communication Hint (ACL)
+        _t_level = mm.trust_score if mm else 1.0
+        vh = vitality_communication_hint(self._last_vitality_assessment, trust_level=_t_level)
+
         try:
             final_response = await self.llm.acommunicate(
                 action=decision.final_action,
                 mode=decision.decision_mode,
                 state=decision.sympathetic_state.mode,
                 sigma=decision.sympathetic_state.sigma,
+                vitality_context=vh,  # Inject ACL context
                 circle=(
                     decision.social_evaluation.circle.value
                     if decision.social_evaluation
@@ -1623,16 +1819,25 @@ class EthicalKernel:
                 user_tracker=self.user_model,
                 caution_level=caution_val,
                 absolute_evil_detected=malabs_detected,
+                tension=decision.sympathetic_state.sigma if decision.sympathetic_state else 0.0,
             )
             final_response.message = stylized.final_text
             if stage.limbic_profile is not None:
                 stage.limbic_profile["charm_vector"] = stylized.charm_vector
+                stage.limbic_profile["haptic_plan"] = stylized.haptic_plan
+                stage.limbic_profile["gesture_plan"] = stylized.gesture_plan
             from .modules.nomad_bridge import get_nomad_bridge
 
+
             try:
-                get_nomad_bridge().charm_feedback_queue.put_nowait(stylized.charm_vector)
+                get_nomad_bridge().charm_feedback_queue.put_nowait({
+                    "charm_vector": stylized.charm_vector,
+                    "gesture_plan": stylized.gesture_plan,
+                    "haptic_plan": stylized.haptic_plan  # Phase 10.2
+                })
             except Exception:
                 pass
+
 
         res = ChatTurnResult(
             response=final_response,
@@ -1648,6 +1853,7 @@ class EthicalKernel:
             limbic_profile=stage.limbic_profile,
         )
         wm.add_turn(user_input, final_response.message, stage.signals, heavy_kernel=heavy)
+        self._snapshot_feedback_anchor(res.path)
         self._release_chat_turn_id(chat_turn_id)
         return res
 
@@ -1767,7 +1973,7 @@ class EthicalKernel:
 
         self.llm.reset_verbal_degradation_log()
 
-        stage = self.perceptive_lobe.run_perception_stage(
+        stage = await self.perceptive_lobe.run_perception_stage_async(
             text,
             sensor_snapshot=None,
             turn_start_mono=turn_start_mono,
@@ -1823,6 +2029,7 @@ class EthicalKernel:
             context=perception.suggested_context,
             actions=actions,
             perception_coercion_uncertainty=pu,
+            rlhf_features=mal.rlhf_features if mal else None,
         )
 
         # Step 3: LLM generates verbal response

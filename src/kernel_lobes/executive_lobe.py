@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import logging
 from typing import TYPE_CHECKING, Any, Optional, Tuple
-from src.kernel_lobes.models import ExecutiveStageResult
+from src.kernel_lobes.models import ExecutiveStageResult, EthicalSentence
 
 if TYPE_CHECKING:
     from src.modules.absolute_evil import AbsoluteEvilDetector, AbsoluteEvilResult
@@ -16,10 +16,7 @@ if TYPE_CHECKING:
     from src.modules.ethical_reflection import EthicalReflection
     from src.modules.salience_map import SalienceMap
     from src.modules.pad_archetypes import PADArchetypeEngine
-
-
-if TYPE_CHECKING:
-    from src.modules.llm_layer import LLMModule
+    from src.modules.llm_layer import LLMModule, VerbalResponse
     from src.modules.motivation_engine import MotivationEngine
 
 _log = logging.getLogger(__name__)
@@ -41,7 +38,8 @@ class ExecutiveLobe:
         will: Optional[SigmoidWill] = None,
         reflection_engine: Optional[EthicalReflection] = None,
         salience_map: Optional[SalienceMap] = None,
-        pad_archetypes: Optional[PADArchetypeEngine] = None
+        pad_archetypes: Optional[PADArchetypeEngine] = None,
+        llm: Optional[LLMModule] = None,
     ):
         self.absolute_evil = absolute_evil
         self.motivation = motivation
@@ -50,6 +48,10 @@ class ExecutiveLobe:
         self.reflection_engine = reflection_engine
         self.salience_map = salience_map
         self.pad_archetypes = pad_archetypes
+        self.llm = llm
+        
+        from src.modules.basal_ganglia import BasalGanglia
+        self.ganglia = BasalGanglia() # Smoothing layer
 
     def execute_absolute_evil_stage(
         self,
@@ -131,11 +133,89 @@ class ExecutiveLobe:
         curiosity = getattr(meta_report, "curiosity_weight", 0.0) if meta_report else 0.0
         salience = self.salience_map.compute(signals, state, social_eval, reflection, curiosity=curiosity)
 
-        # 6. Affective Projection
+        # 6. Affective Projection (with Basal Ganglia smoothing)
         affect = self.pad_archetypes.project(state.sigma, moral.total_score, locus_eval)
         
+        # Smooth the PAD vectors to prevent sociopathic snaps
+        affect.pad = (
+            self.ganglia.smooth("pleasure", affect.pad[0]),
+            self.ganglia.smooth("arousal", affect.pad[1]),
+            self.ganglia.smooth("dominance", affect.pad[2])
+        )
+        
+        # 7. Real-Time Hardware Projection (Phase 10.5)
+        try:
+            from src.modules.affect_projection_relay import get_affect_relay
+            get_affect_relay().transmit(affect)
+        except Exception as e:
+            _log.error("ExecutiveLobe: Affective relay failed: %s", e)
+            
         return moral, bayes_result.chosen_action.name, final_mode, affect, reflection, salience
 
     def judge_action_lethality(self, action_data: dict[str, Any]) -> bool:
         """Categorical veto helper."""
         return self.absolute_evil.evaluate(action_data).blocked
+
+    async def formulate_response(
+        self,
+        sentence: EthicalSentence,
+        decision: Any,
+        user_input: str,
+        conv: str = "",
+        identity_context: str = "",
+        episode_id: str | None = None,
+    ) -> VerbalResponse:
+        """
+        Generate the final verbal response based on the EthicalSentence from the Limbic Lobe.
+
+        Invariant: If sentence.is_safe is False (or decision.blocked), a standardised veto
+        message is returned immediately — the LLM is never queried.
+        If the sentence is safe, acommunicate is awaited and the internal monologue is logged.
+
+        Args:
+            sentence:         The absolute ethical verdict from the Limbic Lobe.
+            decision:         The KernelDecision object with action/mode/moral/affect fields.
+            user_input:       Raw user message (used as LLM scenario context).
+            conv:             Short-term memory snippet for dialogue coherence.
+            identity_context: Narrative identity string (NarrativeMemory.identity context).
+            episode_id:       Optional current episode ID for monologue tagging.
+
+        Returns:
+            VerbalResponse with the final verbal content.
+        """
+        from src.modules.llm_layer import VerbalResponse
+        from src.modules.internal_monologue import compose_monologue_line
+
+        # ── VETO PATH ────────────────────────────────────────────────────────────
+        if not sentence.is_safe or getattr(decision, "blocked", False):
+            veto_reason = sentence.veto_reason or getattr(decision, "block_reason", "Ethical veto.")
+            _log.info("ExecutiveLobe.formulate_response: VETO — %s", veto_reason)
+            return VerbalResponse(message="Blocked.", tone="firm")
+
+        # ── SAFE PATH — narrative monologue + LLM communicate ───────────────────
+        monologue_line = compose_monologue_line(decision, episode_id)
+        _log.debug("ExecutiveLobe monologue: %s", monologue_line)
+
+        if self.llm is None:
+            _log.warning("ExecutiveLobe.formulate_response: no LLM module attached; returning empty response.")
+            return VerbalResponse(message="", tone="neutral")
+
+        social_eval = getattr(decision, "social_evaluation", None)
+        moral = getattr(decision, "moral", None)
+        sympathetic_state = getattr(decision, "sympathetic_state", None)
+        affect = getattr(decision, "affect", None)
+
+        return await self.llm.acommunicate(
+            action=decision.final_action,
+            mode=decision.decision_mode,
+            state=sympathetic_state.mode if sympathetic_state else "neutral",
+            sigma=sympathetic_state.sigma if sympathetic_state else 0.5,
+            circle=social_eval.circle.value if social_eval else "neutral_soto",
+            verdict=moral.global_verdict.value if moral else "Gray Zone",
+            score=moral.total_score if moral else 0.0,
+            scenario=user_input,
+            conversation_context=conv,
+            affect_pad=affect.pad if affect else None,
+            dominant_archetype=affect.dominant_archetype_id if affect else "",
+            identity_context=identity_context,
+        )

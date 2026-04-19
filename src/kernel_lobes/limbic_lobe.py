@@ -8,7 +8,6 @@ if TYPE_CHECKING:
     from src.modules.locus import LocusModule
     from src.modules.sensor_contracts import SensorSnapshot
     from src.modules.multimodal_trust import MultimodalAssessment
-    from src.modules.basal_ganglia import BasalGanglia
 
 class LimbicEthicalLobe:
     """
@@ -22,16 +21,18 @@ class LimbicEthicalLobe:
         uchi_soto: UchiSotoModule,
         sympathetic: SympatheticModule,
         locus: LocusModule,
-        swarm: Any = None,
-        basal_ganglia: Optional[BasalGanglia] = None
+        swarm: Any = None
     ):
         self.uchi_soto = uchi_soto
         self.sympathetic = sympathetic
         self.locus = locus
         self.swarm = swarm
-        # Phase 10: Smooth emotional/ethical transitions
-        from src.modules.basal_ganglia import BasalGanglia
-        self.basal_ganglia = basal_ganglia or BasalGanglia()
+        self.situational_stress = 0.0  # Phase 9.2 Accumulator
+
+    def update_situational_stress(self, level: float) -> None:
+        """Accumulate or decay situational stress based on sensory alerts."""
+        # Persistent stress scales the baseline social tension
+        self.situational_stress = max(0.0, min(1.0, level))
 
     def execute_stage(
         self,
@@ -71,20 +72,10 @@ class LimbicEthicalLobe:
         # 4. Evaluations
         social_eval = self.uchi_soto.evaluate_interaction(signals, agent_id, message_content)
         
-        # Inject somatic tension into social evaluation
-        if hasattr(social_eval, "relational_tension"):
-            social_eval.relational_tension = max(0.0, min(1.0, social_eval.relational_tension + somatic_tension))
-
-        # Phase 10: Basal Ganglia Smoothing (EMA Filter)
-        # Apply temporal inertia to warmth, mystery and tension to avoid "sociopathic jumps"
-        smoothed = self.basal_ganglia.smooth(
-            target_warmth=social_eval.charm_warmth,
-            target_mystery=social_eval.charm_mystery,
-            target_civic=social_eval.relational_tension # Using tension as a proxy for civic urgency here
-        )
-        social_eval.charm_warmth = smoothed["warmth"]
-        social_eval.charm_mystery = smoothed["mystery"]
-        social_eval.relational_tension = smoothed["civic"]
+        # Inject somatic and situational tension into social evaluation
+        total_stress_nudge = somatic_tension + (self.situational_stress * 0.5)
+        if hasattr(social_eval, "relational_tension") and total_stress_nudge > 0:
+            social_eval.relational_tension = max(0.0, min(1.0, social_eval.relational_tension + total_stress_nudge))
 
         state = self.sympathetic.evaluate_context(signals)
         
@@ -102,6 +93,26 @@ class LimbicEthicalLobe:
             social_evaluation=social_eval,
             internal_state=state,
             locus_evaluation=locus_eval,
+        )
+
+    async def execute_stage_async(
+        self,
+        agent_id: str,
+        signals: dict[str, float],
+        message_content: str,
+        turn_index: int,
+        sensor_snapshot: Optional[Any] = None,
+        multimodal_assessment: Optional[Any] = None,
+        somatic_state: Optional[dict[str, Any]] = None
+    ) -> LimbicStageResult:
+        """Async wrapper for Level 2 Limbic processing."""
+        import asyncio
+        loop = asyncio.get_event_loop()
+        return await loop.run_in_executor(
+            None, 
+            self.execute_stage, 
+            agent_id, signals, message_content, turn_index, 
+            sensor_snapshot, multimodal_assessment, somatic_state
         )
 
 

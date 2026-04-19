@@ -2,7 +2,7 @@
 
 ## Scope
 
-This repository contains a **research prototype** (Python kernel, tests, static dashboard). Reports are welcome for issues that affect **users of this software** or **repository integrity** (e.g. supply chain, secrets in history, XSS in static HTML if applicable).
+This repository contains a **research prototype** (Python kernel, runtime server, CLI/operator tools, and tests). Reports are welcome for issues that affect **users of this software** or **repository integrity** (e.g. supply chain, secrets in history, API abuse paths, or client-side injection in static assets if applicable).
 
 ## How to report
 
@@ -29,7 +29,7 @@ Do not use the generic “Funding, partnership, or press” template for undiscl
 
 - Spam, social engineering, or denial-of-service against demo infrastructure unless you have a minimal reproducible report agreed in advance.
 - Theoretical flaws in the **ethical model** or philosophy without a concrete software impact (use Issues / Discussions for research debate).
-- **On-chain governance:** [`src/modules/mock_dao.py`](src/modules/mock_dao.py) is an **in-process simulation** (quadratic voting, audit strings). There is **no** deployed smart-contract product in this repository; a **non-functional** Solidity stub lives under [`contracts/`](contracts/README.md) for transparency only — see [`MOCK_DAO_SIMULATION_LIMITS.md`](docs/proposals/MOCK_DAO_SIMULATION_LIMITS.md). Do not treat DAO UX as tamper-proof consensus or as the same thing as the kernel’s MalAbs / scoring policy path.
+- **On-chain governance:** [`src/modules/mock_dao.py`](src/modules/mock_dao.py) is an **in-process simulation** (quadratic voting, audit strings). There is **no** deployed smart-contract product in this repository; a **non-functional** Solidity stub lives under [`contracts/`](contracts/README.md) for transparency only. Do not treat DAO UX as tamper-proof consensus or as the same thing as the kernel’s MalAbs / scoring policy path.
 
 ## Supported versions
 
@@ -42,11 +42,11 @@ Security fixes, when provided, apply to the **default branch** (`main`) going fo
 
 ## Kernel input trust (MalAbs + LLM perception)
 
-**LLM-specific risks (summary):** Untrusted user text and untrusted model outputs are both in scope. Lexical filters do **not** provide semantic understanding; structured perception can be **valid but misleading** (values in range, wrong summary). Do not deploy this stack as a standalone safety boundary for high-stakes abuse without additional controls. See [`INPUT_TRUST_THREAT_MODEL.md`](docs/proposals/INPUT_TRUST_THREAT_MODEL.md) and the **hardening plan** in [`PRODUCTION_HARDENING_ROADMAP.md`](docs/proposals/PRODUCTION_HARDENING_ROADMAP.md). Automated cases: [`tests/adversarial_inputs.py`](tests/adversarial_inputs.py) (evasion) and [`tests/test_input_trust.py`](tests/test_input_trust.py) (normalization regressions).
+**LLM-specific risks (summary):** Untrusted user text and untrusted model outputs are both in scope. Lexical filters do **not** provide semantic understanding; structured perception can be **valid but misleading** (values in range, wrong summary). Do not deploy this stack as a standalone safety boundary for high-stakes abuse without additional controls. See [`docs/TRANSPARENCY_AND_LIMITS.md`](docs/TRANSPARENCY_AND_LIMITS.md), [`docs/proposals/KERNEL_ENV_POLICY.md`](docs/proposals/KERNEL_ENV_POLICY.md), and [`docs/proposals/OPERATOR_QUICK_REF.md`](docs/proposals/OPERATOR_QUICK_REF.md). Automated cases: [`tests/adversarial_inputs.py`](tests/adversarial_inputs.py) (evasion) and [`tests/test_input_trust.py`](tests/test_input_trust.py) (normalization regressions).
 
-- **MalAbs chat gate** (`AbsoluteEvilDetector.evaluate_chat_text`) uses **conservative substring lists** after Unicode normalization — **not** unbreakable filtering. Paraphrase, homoglyphs, leetspeak, and novel jailbreaks can slip through; see [`MALABS_SEMANTIC_LAYERS.md`](docs/proposals/MALABS_SEMANTIC_LAYERS.md). The same gate runs on **`process_natural`** input before perception. **Optional:** `KERNEL_SEMANTIC_CHAT_GATE=1` adds Ollama **embeddings** after lexical matching, with optional **LLM arbiter** for ambiguous bands — see [`PROPOSAL_MALABS_SEMANTIC_THRESHOLD_EVIDENCE.md`](docs/proposals/PROPOSAL_MALABS_SEMANTIC_THRESHOLD_EVIDENCE.md); not a guarantee.
+- **MalAbs chat gate** (`AbsoluteEvilDetector.evaluate_chat_text`) uses **conservative substring lists** after Unicode normalization — **not** unbreakable filtering. Paraphrase, homoglyphs, leetspeak, and novel jailbreaks can slip through. The same gate runs on **`process_natural`** input before perception. **Optional:** `KERNEL_SEMANTIC_CHAT_GATE=1` adds semantic (embedding) checks after lexical matching, with optional LLM arbitration in ambiguous bands; this remains heuristic, not a guarantee.
 - **LLM perception JSON** is **clamped and validated** (`perception_from_llm_json` in `src/modules/llm_layer.py`); non-object JSON is ignored. Prompt-injection or compromised models can still push hostility/risk/calm within \([0,1]\) coherently enough to bias downstream heuristics; the kernel does not treat numeric outputs as ground truth.
-- **Integration backlog (LLM touchpoints, embeddings, degradation):** [`docs/proposals/PROPOSAL_LLM_INTEGRATION_TRACK.md`](docs/proposals/PROPOSAL_LLM_INTEGRATION_TRACK.md) (gap register G-01…G-10).
+- **Integration and roadmap references:** [`docs/proposals/STRATEGY_AND_ROADMAP.md`](docs/proposals/STRATEGY_AND_ROADMAP.md), [`docs/proposals/PROPOSAL_TRI_LOBE_ARCHITECTURE.md`](docs/proposals/PROPOSAL_TRI_LOBE_ARCHITECTURE.md), and [`docs/proposals/PROPOSAL_WS_STREAMING_CONCURRENCY.md`](docs/proposals/PROPOSAL_WS_STREAMING_CONCURRENCY.md).
 
 ## Audit chain (optional)
 

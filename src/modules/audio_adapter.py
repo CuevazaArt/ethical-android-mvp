@@ -3,12 +3,15 @@ Audio Perception Pipeline — Blocks A1 & A2 (Capture & RingBuffer)
 This module provides the low-level acoustic stream ingestion framework.
 """
 
+import logging
 import queue
 import threading
 import time
 from dataclasses import dataclass
 
 import numpy as np
+
+_log = logging.getLogger(__name__)
 
 
 class AudioRingBuffer:
@@ -128,6 +131,58 @@ class AudioPreprocessor:
         """
         # Placeholder for 128 Mel bands over the chunk
         return np.random.rand(128, 10).astype(np.float32)
+
+
+class AudioContinuousDaemon:
+    """
+    ARCHITECTURE V1.6 - Daemon de Audio Continuo (Bloque 9.1 extension)
+    Consumes raw PCM streams from the NomadBridge and injects them 
+    into the Ethos Kernel's AudioRingBuffer at a continuous rate.
+    """
+    def __init__(self, ring_buffer: AudioRingBuffer):
+        self.ring_buffer = ring_buffer
+        self.running = False
+        self._thread = None
+
+    def start(self):
+        """Starts the background audio consumption thread."""
+        if self.running:
+            return
+        self.running = True
+        self._thread = threading.Thread(target=self._daemon_loop, daemon=True, name="AudioContinuousDaemon")
+        self._thread.start()
+        import logging
+        logging.getLogger(__name__).info("AudioContinuousDaemon: Started.")
+
+    def stop(self):
+        """Stops the audio consumption thread."""
+        self.running = False
+        if self._thread:
+            self._thread.join(timeout=1.0)
+
+    def _daemon_loop(self):
+        """Loop that pulls PCM from the nomad bridge and appends to ring buffer."""
+        import asyncio
+        from src.modules.nomad_bridge import get_nomad_bridge
+        
+        bridge = get_nomad_bridge()
+        _log.info("AudioContinuousDaemon: Loop entered. Consuming from Nomad Bridge...")
+        
+        while self.running:
+            try:
+                # Direct queue access (non-blocking if empty)
+                if not bridge.audio_queue.empty():
+                    pcm_bytes = bridge.audio_queue.get_nowait()
+                    # Convert to float32 (matching smartphone encoding)
+                    np_pcm = np.frombuffer(pcm_bytes, dtype=np.float32)
+                    self.ring_buffer.append(np_pcm)
+                else:
+                    # Tiny sleep to avoid spinning
+                    time.sleep(0.01)
+            except Exception as e:
+                import logging
+                logging.getLogger(__name__).error("AudioContinuousDaemon error: %s", e)
+                time.sleep(0.1)
 
 
 @dataclass

@@ -63,7 +63,8 @@ None of the above contradicts the **documented** split in [CORE_DECISION_CHAIN.m
 
 3. **Honest docs**  
    - [WEAKNESSES_AND_BOTTLENECKS.md](../WEAKNESSES_AND_BOTTLENECKS.md) — peripheral complexity vs measurement.  
-   - This file — traceability for “why so many modules.”
+   - This file — traceability for “why so many modules.”  
+   - [EMPIRICAL_METHODOLOGY.md](EMPIRICAL_METHODOLOGY.md) — **Implementation status** table documents what the repo already runs (`run_empirical_pilot.py` + `labeled_scenarios.json`) vs what would still require a dedicated ablation / panel study.
 
 ---
 

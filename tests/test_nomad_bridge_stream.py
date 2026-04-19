@@ -11,6 +11,20 @@ from fastapi.testclient import TestClient
 from src.modules.nomad_bridge import get_nomad_bridge
 from src.modules.sensor_contracts import SensorSnapshot
 from src.modules.vitality import assess_vitality
+from src.modules.vision_adapter import jpeg_bytes_from_vision_queue_item
+
+def test_jpeg_bytes_from_vision_queue_item_accepts_bytes_and_bridge_dict():
+    """LAN WebSocket path uses dict payloads; tests and legacy code use raw bytes."""
+    assert jpeg_bytes_from_vision_queue_item(b"\xff\xd8\xff") == b"\xff\xd8\xff"
+    assert (
+        jpeg_bytes_from_vision_queue_item(
+            {"raw_bytes": b"\xff\xd8", "meta": {"human_presence": 0.5}}
+        )
+        == b"\xff\xd8"
+    )
+    assert jpeg_bytes_from_vision_queue_item({}) is None
+    assert jpeg_bytes_from_vision_queue_item(None) is None
+
 
 @pytest.fixture
 def nomad_client():
