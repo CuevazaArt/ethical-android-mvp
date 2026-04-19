@@ -14,7 +14,7 @@ Ningún agente debe saltar a tareas de la cola de otro equipo.
 
 ---
 
-## 🔴 COLA DE EJECUCIÓN ROJO (Cursor Squad)
+## 🔴 COLA DE EJECUCIÓN ROJO (UID: CURSOR-RED)
 **Doctrina:** Alta Fricción, Integración Hardware, Refactorización Arquitectónica, Concurrencia y Streaming.
 
 - **Bloque S.1: Nomad SmartPhone LAN Bridge [PENDING]**
@@ -26,7 +26,7 @@ Ningún agente debe saltar a tareas de la cola de otro equipo.
 
 ---
 
-## 🔵 COLA DE EJECUCIÓN AZUL (Team Copilot)
+## 🔵 COLA DE EJECUCIÓN AZUL (UID: COPILOT-BLUE)
 **Doctrina:** CI/CD Sentinel, Repo Higiene, Pruebas y Deuda Técnica Menor, Boy Scout Paranoico.
 
 - **Bloque 8.1: Linter Continuo y Hardening Vertical [PENDING]**
@@ -35,10 +35,12 @@ Ningún agente debe saltar a tareas de la cola de otro equipo.
   - Tarea 9.3.1: Eliminar cuellos de botella síncronos en las llamadas a utilidades de API. Migrar `http_fetch_ollama_embedding` a dependencias puramente `async` con `httpx.AsyncClient`.
 - **Bloque 8.2: Hardening de Tests Mocks (Input Trust) [PENDING]**
   - Tarea 8.2.1: Extender mocks para *input_trust* (ej. inyectar simulaciones de ataques homoglyphs cirílicos para evadir la puerta de Absoluto Mal y validar la defensa).
+- **Bloque W.1: Frontera Wiki y Sincronización Pública [PENDING]**
+  - Tarea W.1.1: Exportar el `WIKI_EXECUTIVE_SUMMARY_NOMADIC_VISION.md` a la página principal de la Wiki de GitHub ("Welcome to the ethical-android-mvp wiki!"). Asegurar licencias legales visibles.
 
 ---
 
-## 🟠 COLA DE EJECUCIÓN NARANJA (Team Claude)
+## 🟠 COLA DE EJECUCIÓN NARANJA (UID: CLAUDE-ORANGE)
 **Doctrina:** Matemática Bayesiana Avanzada, Modelado Cognitivo, Identidad Persistente y RLHF.
 
 - **Bloque C.1: Fusión BMA y Recompensas RLHF [PENDING]**

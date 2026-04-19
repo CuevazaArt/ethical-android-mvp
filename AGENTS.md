@@ -95,6 +95,15 @@ While inside their territory, Agents MUST proactively execute the following core
 - **SWARM MODE:** Multiple agents concurrently pushing segmented territories.
 - **MONO-AGENT MODE (Fallback):** Triggered when context/token saturation occurs. L0 will close parallel IDE tabs and instruct a single window: *"Return to Mono-Agent Mode."* The agent will then drop territorial boundaries and handle holistic, cross-module requirements sequentially.
 
+## L1 Escalation Protocol (Base Call)
+
+To maintain absolute architectural alignment and prevent inter-team collisions, all L2 units MUST adhere to the **L1 Supremacy Anchor**:
+
+1. **Invocation**: If L0 (Juan) commands "Consult Antigravity" or if technical ambiguity arises, the agent must PAUSE immediately.
+2. **Synchronization**: Perform a `git pull` from `main` and read the `CHANGELOG.md` entry for the latest **Antigravity-Team Update**.
+3. **Traceability**: If the doubt persists, the agent must register a `[L1_SUPPORT_REQUIRED]` block in their local log in `docs/changelogs_l2/`. 
+4. **Finality**: Antigravity's architectural proposals (`PROPOSAL_*.md`) in `docs/proposals/` take precedence over any individual agent's local logic or AI assumptions.
+
 ## Protocolo Seguro y Ordenado de Fusión a Main (L0-STABILIZATION-01)
 
 Para minimizar conflictos y asegurar la inmutabilidad de la rama `main` (L0), el método de fusión ha sido reformado para máxima seguridad:
