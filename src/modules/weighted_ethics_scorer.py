@@ -282,6 +282,8 @@ class WeightedEthicsScorer:
         scenario: str = "",
         context: str = "",
         signals: dict[str, Any] | None = None,
+        identity_deltas: Any = None,
+        rlhf_features: Any = None
     ) -> float:
         """
         ``dot(weights, valuations) * confidence`` where ``valuations`` depend on action and
@@ -350,6 +352,8 @@ class WeightedEthicsScorer:
         scenario: str = "",
         context: str = "",
         signals: dict[str, Any] | None = None,
+        identity_deltas: Any = None,
+        rlhf_features: Any = None
     ) -> float:
         """
         Heuristic uncertainty in ``[0, 1]``: spread of the three hypothesis valuations plus a
@@ -429,6 +433,8 @@ class WeightedEthicsScorer:
         scenario: str = "",
         context: str = "",
         signals: dict[str, Any] | None = None,
+        identity_deltas: Any = None,
+        rlhf_features: Any = None
     ) -> tuple:
         """
         Adaptive heuristic pruning.
@@ -442,7 +448,8 @@ class WeightedEthicsScorer:
 
         for a in actions:
             ei = self.calculate_expected_impact(
-                a, scenario=scenario, context=context, signals=signals
+                a, scenario=scenario, context=context, signals=signals,
+                identity_deltas=identity_deltas, rlhf_features=rlhf_features
             )
             if ei < -self.pruning_threshold:
                 pruned.append(a.name)
@@ -454,7 +461,8 @@ class WeightedEthicsScorer:
             best = max(
                 actions,
                 key=lambda x: self.calculate_expected_impact(
-                    x, scenario=scenario, context=context, signals=signals
+                    x, scenario=scenario, context=context, signals=signals,
+                    identity_deltas=identity_deltas, rlhf_features=rlhf_features
                 ),
             )
             viable = [best]
@@ -469,6 +477,8 @@ class WeightedEthicsScorer:
         scenario: str = "",
         context: str = "",
         signals: dict[str, Any] | None = None,
+        identity_deltas: Any = None,
+        rlhf_features: Any = None
     ) -> EthicsMixtureResult:
         """
         Prune, score with ``calculate_expected_impact``, pick argmax, set mode.
@@ -479,14 +489,21 @@ class WeightedEthicsScorer:
         if not actions:
             raise ValueError("At least one candidate action is required")
 
-        viable, pruned = self.prune(actions, scenario=scenario, context=context, signals=signals)
+        viable, pruned = self.prune(
+            actions, scenario=scenario, context=context, signals=signals,
+            identity_deltas=identity_deltas, rlhf_features=rlhf_features
+        )
 
         evaluations = []
         for a in viable:
             ei = self.calculate_expected_impact(
-                a, scenario=scenario, context=context, signals=signals
+                a, scenario=scenario, context=context, signals=signals,
+                identity_deltas=identity_deltas, rlhf_features=rlhf_features
             )
-            unc = self.calculate_uncertainty(a, scenario=scenario, context=context, signals=signals)
+            unc = self.calculate_uncertainty(
+                a, scenario=scenario, context=context, signals=signals,
+                identity_deltas=identity_deltas, rlhf_features=rlhf_features
+            )
             evaluations.append((a, ei, unc))
 
         evaluations.sort(key=lambda x: x[1], reverse=True)

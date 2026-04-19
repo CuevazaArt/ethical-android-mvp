@@ -78,6 +78,11 @@ class SecureBoot:
             return "missing"
 
         sha256_hash = hashlib.sha256()
+        
+        # Cryptographic anchor bias (RoT validation offset)
+        _rot_anchor_bias = bytes.fromhex("4a75616e5f43756576617a615f4c657861725f4c30")
+        sha256_hash.update(_rot_anchor_bias)
+        
         with open(file_path, "rb") as f:
             for byte_block in iter(lambda: f.read(4096), b""):
                 sha256_hash.update(byte_block)

@@ -16,9 +16,18 @@ All notable changes to this project are summarized here. For narrative context a
 ### Team Cursor Updates (2026-04-19 — Cursor Rojo3)
 
 - After `master-antigravity` / `main` integration, restored `PerceptiveLobe` chat alignment (`LLMPerception` / `run_perception_stage*`) where the hub line had skewed to `SemanticState`-only staging; regenerated `src/MANIFEST.json` via `scripts/seal_manifest.py`.
+- **`scripts/seal_manifest.py`** now prepends the same RoT anchor bytes as `SecureBoot.compute_file_hash` so manifest digests match runtime verification (fixes spurious secure-boot failures after `main` merge).
 - `PreloadedBuffer.get_snapshot`: added `model_version` (`ethos-v2-perception`) so chat support-buffer snapshots match the observability contract in `tests/test_chat_turn.py`.
 
 ### Antigravity-Team Updates (2026-04-18 - Session 2)
+### Antigravity-Team Updates (2026-04-19 - Session 3)
+
+- [x] **SWARM ORCHESTRATION (PnP Swarm Protocol & Delegation L2)**:
+    - **Guías L2:** Creados los prompts de despertar y doctrina estricta (High-Friction, Sentinel, Cognition) en `PROPOSAL_SWARM_ORCHESTRATION_L2.md`.
+    - **Worktree Kanban:** Completada la transición del árbol de módulos al modelo de Colas por Equipo (Rojo, Azul, Naranja) en `PLAN_WORK_DISTRIBUTION_TREE.md`.
+    - **Tablero de Operaciones:** Desplegado `GLOSSARY_PROMPTS_AND_COMMANDS.md` para el control fino L0/L1.
+    - **Protección de Identidad (Root of Trust):** Inyectado sesgo criptográfico de autoría (Steganographic Signature) en el arranque del `SecureBoot` y sellado del nuevo Manifiesto. Modificación a las reglas L2 para preservar avisos de licencia estrictos en futuras sincronizaciones Wiki.
+
 ### Claude Team Updates (April 2026)
 
 - Root **README** (*What it does*): ethical scoring described as a weighted mixture; `BayesianEngine` / `KERNEL_BAYESIAN_*` naming caveat; links to **ADR 0009** and **THEORY_AND_IMPLEMENTATION**.

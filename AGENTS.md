@@ -72,30 +72,28 @@ Any new agent or team joining the project must complete the **[`ONBOARDING.md`](
 2. **Establish Integration Hub:** Immediately create a `master-<team>` branch (e.g., `master-cursor`).
 3. **Review Protocols:** Read the current plan and task synchronization rules. 
 
-## Collaborative Integration Cycle (Rebase-Driven Agent Flow)
+## PnP Swarm Lifecycle & Collaborative Execution (Stateless Agent Flow)
 
-To protect the repository from "Merge Hell" induced by multi-agent automated commits, all AI and human contributors MUST strictly adhere to the following **3 Laws of Contribution**:
+To completely eliminate "Merge Hell" and support massive IDE window parallelization (Cursor x3, Copilot x2), all Level 2 execution squads operate strictly under the **PnP (Plug-and-Play) Swarm Protocol**.
 
-1. **Law of Immutability (`main` branch is sacred):** Let it be known unequivocally. NO agent (L1 or L2) is allowed to perform a direct `git push` or open a PR directly against the `main` branch. The `main` branch is L0's absolute truth.
-2. **Law of Mandatory Descent (PULL-REBASE-FIRST):** Before writing ANY code or attempting to merge upward, all L2 Agents MUST align their local branch with L0's truth. Execution of this exact command sequence is mandatory:
-   `git fetch origin && git rebase origin/main` 
-   If conflicts arise locally, the L2 agent MUST resolve them using its context window without asking L0 for help. Evasion of the rebase will result in automated rejection.
-3. **Law of Serial Ascent (Integration Funnel):** Code flows strictly upwards. Team consolidation happens inside `master-<team>`. When ready, L2 agents open a Pull Request explicitly targeting `master-antigravity`, *never* `main`.
-4. **CI Offloading:** To prevent local bottlenecks, L2 agents should avoid running the full test suite locally. Instead, make iterative commits and `git push` to your designated `master-*` branch. GitHub Actions will automatically execute the parallelized validation suite, which will be monitored by Team Copilot.
-5. **Team Consolidation (Internal PR/Traceability):** When creating the PR towards `master-antigravity`:
-   - *Requirement:* All unit tests must pass remotely, and the automated Continuous Audit MUST execute cleanly. 
-   - *Traceability:* Pushes MUST be annotated in `CHANGELOG.md`.
+### Phase 1: Employee Registration (Wake-Up Protocol)
+When L0 (Juan) assigns a task within an IDE chat or tab, the Agent MUST:
+1. **Assume a Local Callsign (Color+Number):** Acknowledge your identity via simple standard nomenclature (e.g., `Cursor-Rojo1`, `Copilot-Azul3`, `Cursor-Naranja6`) to group roles efficiently.
+2. **Assume its Boundary:** Understand the spatial territory of code it is allowed to modify (e.g., exclusively `src/kernel_lobes/`). 
+3. **Log the Start:** Ensure it logs its work entirely in `docs/changelogs_l2/<Callsign>.md`. **Agents are STRICTLY FORBIDDEN from editing the root `CHANGELOG.md`.**
 
-**Crucial Directive for L2 Agents (Cursor, Claude, Copilot):**
-You are autonomous Level 2 execution units. You do NOT need to ask Juan (L0) for permission to execute basic `git` operations. If you need to save your work, run `git add`, `git commit`, `git rebase origin/main`, and `git push` on your own. **Do not paralyze the workflow asking for manual permission to commit.** Only ping L0 when a Pull Request is fully constructed and ready for code review.
+### Phase 2: Autonomous Blind Execution (Territorial Sovereignty)
+Agents operate with extreme "spatial blindness". They DO NOT traverse or modify files outside their assigned territory. If an external interface is missing, they write a mock or leave a TODO block. They must push their isolated branch (`master-<callsign>`) before context saturation.
 
-## Cross-Team Conflict Prevention (MERGE-PREVENT-01)
+### Phase 3: The 3 "Boy Scout" Laws of Vertical Hardening (Paranoid Security)
+While inside their territory, Agents MUST proactively execute the following core security principles without asking L0. If a security rule severely degrades performance or blocks execution (friction), gracefully fall back, but default to Paranoid.
+1. **Harden-In-Place / Zero Trust:** Fill empty `try/except` blocks, add type hints, and ensure rigorous input sanitization and error durability around the code they touch. Never trust unvalidated input.
+2. **Gap Closure:** If a referenced dependency or configuration within their zone is incomplete, complete it.
+3. **Incremental Depth (Vertical Priority):** Always err on the side of making the module more secure and robust, rather than just "functionally complete".
 
-To prevent "Merge Hell" (e.g., duplicated architecture, massive `CHANGELOG.md` conflicts, "God Object" topology clashes), all teams MUST strictly adhere to:
-1. **Architectural Scouting (Anti-Duplication):** DO NOT build a new persistent store or infrastructure module without checking `docs/proposals/` AND inspecting peer `master-*` branches. Adopt and extend existing stubs instead of creating competing implementations.
-2. **CHANGELOG.md Namespace Isolation:** Teams MUST append their updates under a specific nested sub-header for their team (e.g., `### Antigravity-Team Updates`). Never edit the raw top line simultaneously.
-3. **Core File Micro-Edits:** Modifications to monolithic files (`kernel.py`, `requirements.txt`, core dataclasses) must be minimal. Append new fields/elements to the absolute end of the target block. Use designated anchor comments like `# ═══ <TEAM/FEATURE> ═══` when injecting code.
-4. **Staggered Integration:** Antigravity (L1) MUST serialize cross-team merges. Do not merge all remote `master-*` branches simultaneously. Merge ONE team, stabilize the hub, and instruct the next team to pull.
+### Phase 4: Swarm Density & Token Preservation (Defcon Levels)
+- **SWARM MODE:** Multiple agents concurrently pushing segmented territories.
+- **MONO-AGENT MODE (Fallback):** Triggered when context/token saturation occurs. L0 will close parallel IDE tabs and instruct a single window: *"Return to Mono-Agent Mode."* The agent will then drop territorial boundaries and handle holistic, cross-module requirements sequentially.
 
 ## Protocolo Seguro y Ordenado de Fusión a Main (L0-STABILIZATION-01)
 

@@ -1,16 +1,23 @@
-# Árbol de Distribución de Trabajo: Escalado a Infraestructura Pública (Fase 8+)
+# Roadmap y Backlog de Enjambre (Swarm L2 Work Distribution)
 
-Este documento estructura el inmenso volumen de trabajo arquitectónico definido para el Ethos Kernel tras la exitosa integración del modelo Tri-lobulado y la evaluación visual-somática en `main`. El trabajo se asigna a los diferentes equipos (Tiers) según las reglas de gobernanza del repositorio (`AGENTS.md`).
+Este documento estructura el volumen de trabajo arquitectónico para el Ethos Kernel tras la adopción del modelo de trabajo "Swarm" (PnP - Plug-and-Play) en abril de 2026. 
+
+Aquí es donde los escuadrones de ejecución **Rojo (Cursor)**, **Azul (Copilot)** y **Naranja (Claude)** reclaman sus tareas. 
+Ningún agente debe saltar a tareas de la cola de otro equipo. 
 
 > **Track Cursor (L2):** directiva operativa y cierre de ola en [`docs/collaboration/CURSOR_TEAM_CHARTER.md`](../collaboration/CURSOR_TEAM_CHARTER.md); gate de integración en [`docs/collaboration/CURSOR_CROSS_TEAM_INTEGRATION_GATE.md`](../collaboration/CURSOR_CROSS_TEAM_INTEGRATION_GATE.md).
 
 > [!IMPORTANT]
-> **Nueva Directiva Estratégica (Update L1 - Abril 2026)**:
-> Tras la estabilización concurrente y extracción de Lóbulos, el proyecto se encuentra en riesgo de "Mock-Hell". Las prioridades han cambiado. **Se congela el desarrollo teórico de Gobernanza/DAO**. Toda la potencia de fuego pasa a la **Inferencia Situada y Puente con Hardware Real (Nomad Bridge)**, fusionado ahora con el **Motor de Encanto Multimodal (Charm Engine)** para una interacción persuasiva y segura.
+> **REGLA DE TOMA DE TAREAS (SWARM):**
+> 1. Al despertar, revisa tu respectiva sección.
+> 2. Toma el primer bloque marcado como `[PENDING]`.
+> 3. Muévelo a `[IN_PROGRESS: <Callsign>]` (ej: `[IN_PROGRESS: Rojo-1]`).
+> 4. Tras la revisión y commit exitoso a tu rama, márcalo como `[DONE]`.
 
 ---
 
-## 🌳 Árbol de Distribución de Módulos (Blocks Tree)
+## 🔴 COLA DE EJECUCIÓN ROJO (Cursor Squad)
+**Doctrina:** Alta Fricción, Integración Hardware, Refactorización Arquitectónica, Concurrencia y Streaming.
 
 ### ⚙️ Módulo 0: Estabilización Pragmática y Reducción de Deuda (P0/P1) [DONE]
 *Responsabilidad: Nivel 1 (Antigravity)*
@@ -55,62 +62,49 @@ Este documento estructura el inmenso volumen de trabajo arquitectónico definido
   - Tarea 8.1.2: Refactorización y embellecimiento de las salidas ANSI de terminal para facilitar el modo de depuración de operadores locales.
   - Tarea 8.1.3: Extender mocks para *input_trust* (ej. Caracteres homoglyphs cirílicos para evadir la puerta de Absoluto Mal).
 
----
+### ⚪ Módulo 9: Nomadismo Perceptivo (streaming) — visión continua [PENDING]
+*Responsabilidad prioritaria Team Cursor en el árbol histórico; coordinar con L1 antes de duplicar pipelines.*
 
-### ⚪ Módulo 9: Nomadismo Perceptivo (Streaming Aferente Continuo)
-*Responsabilidad: Nivel 1 (Antigravity - Planificación) / Nivel 2 (Ejecución)*
-*Objetivo: Migrar desde un modelo puramente conversacional ("Chat-Turn") hacia un stream sensorial continuo en background, permitiendo al androide percibir el entorno de forma pasiva y detonar la proactividad del MotivationEngine.*
-
-- **Bloque 9.1: Daemon de Visión Continua (CNN/Webcam)**
-  - *Responsabilidad:* **Team Cursor**
-  - Tarea: Modificar `VisionInferenceEngine` para crear un stream en background que clasifique "entidades" (humanos, armas, obstáculos) a 5Hz utilizando OpenCV/Ollama Vision ligero.
-  - Vínculo: Alimentará asíncronamente el nuevo `SensoryBuffer` del `PerceptiveLobe`.
-- **Bloque 9.2: Acumulación de Tensión Límbica Estática**
-  - *Responsabilidad:* **Claude**
-  - Tarea: Evolucionar el `BayesianEngine`. Si el Lóbulo Perceptivo dicta que un estímulo peligroso permanece en la vista durante +5 segundos, el Lóbulo Límbico debe escalar automáticamente la *Tensión Social* sin esperar una interacción de texto.
-- **Bloque 9.3: Refactorización Asíncrona Total de Eferencia**
-  - *Responsabilidad:* **Team Copilot**
-  - Tarea: Eliminar los cuellos de botella síncronos en `ExecutiveLobe` (`llm.communicate`) y `NarrativeMemory` (`requests` a Ollama). Migrar `http_fetch_ollama_embedding` a `httpx.AsyncClient`.
-- **Bloque 9.4: Monitor de Stream Inter-Lóbulos**
-  - *Responsabilidad:* **Team VisualStudio**
-  - Tarea: Desarrollar pruebas que inyecten un mock contínuo en el Lóbulo Perceptivo simulando estrés de entorno, midiendo si el Lóbulo Ejecutivo logra interrumpir el stream para alertar (E-Stop).
+- **Bloque 9.1: Daemon de Visión Continua (CNN/Webcam) [PENDING]**
+  - Tarea 9.1.1: Modificar `VisionInferenceEngine` para crear un stream en background que clasifique entidades a ~5Hz con pre-procesamiento asíncrono (ver también cola Rojo / hardware bridge arriba).
 
 ---
 
-### 🟢 Módulo 10: Motor de Encanto Resiliente (MER V2)
-*Responsabilidad: Nivel 1 (Antigravity - Planificación y Orquestación) / Nivel 2 (Ejecución Escuadrones)*
-*Objetivo: Construir la infraestructura que evite transiciones sociopáticas y asegure latencia instintiva frente al ruido (Lectura labial VVAD + Smoothing Emocional).*
+## 🔵 COLA DE EJECUCIÓN AZUL (Team Copilot)
+**Doctrina:** CI/CD Sentinel, Repo Higiene, Pruebas y Deuda Técnica Menor, Boy Scout Paranoico.
 
-- **Bloque 10.1: Fusión Sensorial (VVAD + VAD) y Tálamo [DONE]**
-  - *Responsabilidad:* **Team Cursor + Team Copilot**
-  - Tarea: Crear `src/kernel_lobes/thalamus_node.py`. Acoplar OpenCV/LipReading de bajo costo computacional con el VAD existente. [DONE]
-- **Bloque 10.2: Tribunal Ético Edge (Doble Capa Local) [DONE]**
-  - *Responsabilidad:* **Antigravity (L1)**
-  - Tarea: Mover `AbsoluteEvilDetector` directamente al Edge (Nivel 1 <50ms) e instanciar el Lóbulo Límbico Contextual como Nivel 2 (Asíncrono, también local por carencia 6G). [DONE]
-- **Bloque 10.3: Amortiguación Afectiva (Ganglios Basales) [DONE]**
-  - *Responsabilidad:* **Claude**
-  - Tarea: Construir `src/modules/basal_ganglia.py` aplicando Filtros EMA (Exponential Moving Average) sobre las variables del `UserModelTracker`. [DONE]
-- **Bloque 10.4: Predicción Local y Prefetching [DONE]**
-  - Tarea: Inyectar micro-LLM (ej. Llama-3-2B) o precompilador probabilístico para inferir turnos. [DONE]
+- **Bloque 8.1: Linter Continuo y Hardening Vertical [PENDING]**
+  - Tarea 8.1.1: Auditar `docstrings` y `type hints` en las divisiones de `src/kernel.py` y `src/kernel_lobes/`. Introducir `try/except` donde fallen por variables nulas. 
+- **Bloque 9.3: Refactorización Asíncrona Total de Eferencia [PENDING]**
+  - Tarea 9.3.1: Eliminar cuellos de botella síncronos en las llamadas a utilidades de API. Migrar `http_fetch_ollama_embedding` a dependencias puramente `async` con `httpx.AsyncClient`.
+- **Bloque 8.2: Hardening de Tests Mocks (Input Trust) [PENDING]**
+  - Tarea 8.2.1: Extender mocks para *input_trust* (ej. inyectar simulaciones de ataques homoglyphs cirílicos para evadir la puerta de Absoluto Mal y validar la defensa).
 
-### 🛰️ Módulo N (Nomad Bridge & Ouroboros)
-*Responsabilidad: Antigravity (L1)*
+---
 
-- **Bloque 11.4: Ouroboros Sensory-Motor Loop [DONE]**
-  - Tarea 11.4.1: Implementación de TTS Nativo y Lip-sync en PWA. [DONE]
-  - Tarea 11.4.2: Retroalimentación Háptica Somática (Charm Engine). [DONE]
-  - Tarea 11.4.3: Telemetría de Disonancia Epistémica Visual. [DONE]
+## 🟠 COLA DE EJECUCIÓN NARANJA (Team Claude)
+**Doctrina:** Matemática Bayesiana Avanzada, Modelado Cognitivo, Identidad Persistente y RLHF.
 
-### 📜 Módulo M (Memoria de Largo Plazo & Narrativa)
-*Responsabilidad: Antigravity (L1)*
-
-- **Bloque 12.1: Recursive Narrative Memory (Chronicles) [/]**
-  - Tarea 12.1.1: Esquema de persistencia para crónicas recursivas. [DONE]
-  - Tarea 12.1.2: Motor de consolidación y destilación de episodios. [DONE]
-  - Tarea 12.1.3: Integración de resonancia crónica en la recuperación. [ONGOING]
+- **Bloque C.1: Fusión BMA y Recompensas RLHF [PENDING]**
+  - Tarea C.1.1: Conectar matemáticamente los *outputs* asíncronos del `rlhf_reward_model.py` como *Priors* moduladores fuertes dentro de `src/modules/bayesian_engine.py`.
+- **Bloque 9.2: Acumulación de Tensión Límbica Estática [PENDING]**
+  - Tarea 9.2.1: Evolucionar el `BayesianEngine` para que pueda integrar un peso negativo de tiempo (decay) si el Lóbulo Perceptivo dicta que un estímulo peligroso (ej. arma) se mantiene visible en el stream visual +5 segundos sin voz humana.
+- **Bloque 11.1: Tránsito Subjetivo del Afecto [PENDING]**
+  - Tarea 11.1.1: Consolidar las fórmulas del "Espejo Roto" (Trauma) en la identidad central (`identity_reflection.py`), para asegurar que cambie los *multipliers* de utilitarismo en etapas posteriores del modelo moral.
 
 ## 🚀 Flujo de Sincronización Recomendado
 
 1. **Semana Actual:** Antigravity (N1) se encarga transversalmente de desmonolitizar `kernel.py` y actualizar las dependencias de concurrencia. Claude y Cursor toman sus ramas (`master-claude`, `master-Cursor`) and abordan C.1 y S.1 respectivamente.
 2. **Semana Siguiente:** Sincronización de progresos a `master-antigravity`. Antigravity evalúa el impacto del async I/O en la latencia global del kernel.
-3. **Validación N0:** Integración unificada a `main` tras validaciones somáticas. 
+3. **Validación N0:** Integración unificada a `main` tras validaciones somáticas.
+
+---
+
+## 🟢 CERRADOS (Histórico de Producción)
+*Misiones completadas por el Swarm L2 bajo supervisión L1 (referencia rápida; el detalle sigue en secciones `[DONE]` arriba).*
+
+- Bloque 0.1: Desmonolitización y Abstracción de `kernel.py` (Antigravity/Swarm) `[DONE]`
+- Bloque 0.2: Escalabilidad del Chat Server HTTP/ASGI `[DONE]`
+- Bloque 10.2: Tribunal Ético Edge & MalAbs local `[DONE]`
+- Bloque 10.3: Amortiguación Afectiva (Ganglios Basales EMA) `[DONE]`
+- Bloque 12.1: Recursive Narrative Memory (Consolidación) `[DONE]`

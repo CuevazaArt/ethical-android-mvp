@@ -240,9 +240,18 @@ class BayesianInferenceEngine:
         scenario: str = "",
         context: str = "",
         signals: dict[str, Any] | None = None,
+        identity_deltas: Any = None,
+        rlhf_features: Any = None
     ) -> EthicsMixtureResult:
         """Score actions using the current core strategy (Fixed or Posterior)."""
-        return self.scorer.evaluate(actions, scenario=scenario, context=context, signals=signals)
+        return self.scorer.evaluate(
+            actions, 
+            scenario=scenario, 
+            context=context, 
+            signals=signals,
+            identity_deltas=identity_deltas,
+            rlhf_features=rlhf_features
+        )
 
     @property
     def current_alpha_meta(self) -> tuple[float, float, float]:

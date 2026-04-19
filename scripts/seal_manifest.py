@@ -15,8 +15,13 @@ _CRITICAL_PATHS = [
     "src/modules/immortality.py",
 ]
 
-def compute_hash(path):
+# Must match ``SecureBoot.compute_file_hash`` in ``src/modules/secure_boot.py`` (RoT anchor prefix).
+_ROT_ANCHOR_BIAS = bytes.fromhex("4a75616e5f43756576617a615f4c657861725f4c30")
+
+
+def compute_hash(path: Path) -> str:
     sha256 = hashlib.sha256()
+    sha256.update(_ROT_ANCHOR_BIAS)
     with open(path, "rb") as f:
         for block in iter(lambda: f.read(4096), b""):
             sha256.update(block)

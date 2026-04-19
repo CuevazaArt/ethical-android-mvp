@@ -51,3 +51,5 @@ L2 **executes** inside L1-defined boundaries; it does **not** invent architectur
 - **ONBOARDING:** [`ONBOARDING.md`](../../ONBOARDING.md)
 - **Integration gate (Cursor hub):** [`CURSOR_CROSS_TEAM_INTEGRATION_GATE.md`](../collaboration/CURSOR_CROSS_TEAM_INTEGRATION_GATE.md)
 - **Cursor rule of law (always-on):** [`.cursor/rules/l1-supremacy-and-audit.mdc`](../../.cursor/rules/l1-supremacy-and-audit.mdc)
+
+> **Note:** Root [`CHANGELOG.md`](../../CHANGELOG.md) remains the **merge-visible** trace per [`AGENTS.md`](../../AGENTS.md) (team namespace headers). This directory holds **L2 wake-up / L1 audit / support** records — not a substitute for skipping the root changelog when shipping product changes.
