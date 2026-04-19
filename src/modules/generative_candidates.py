@@ -14,6 +14,7 @@ See docs/proposals/README.md (pillar 2).
 
 from __future__ import annotations
 
+import logging
 import math
 import os
 import re
@@ -22,6 +23,8 @@ from typing import Any
 
 from .absolute_evil import AbsoluteEvilDetector
 from .weighted_ethics_scorer import CandidateAction
+
+_log = logging.getLogger(__name__)
 
 GENERATIVE_ORIGIN = "generative_proposal"
 

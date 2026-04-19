@@ -21,10 +21,15 @@ Aquí es donde los agentes de ejecución (LLMs en IDEs) reclaman sus tareas.
 - **S.1/S.2 (Nomad/Wiki)**: Completado. Bridge LAN estable y sincronización de Wiki automatizada.
 - **S.3 (Redundancy)**: Completado. Consolidados modelos y utilidades.
 - **S.10 (V10 Persistence)**: Completado. Persistencia de registros de metaplan, habilidades y marcadores somáticos operativa.
+- **S.11 (Bayesian Learning)**: Completado. Ajuste de priors temporales (deriva episódica) integrado en el Lóbulo Cerebelar.
 
 ---
 
 ## 📥 BACKLOG ABIERTO (Open Tasks)
+
+**Bloque S.11: Ajuste de Priors Experienciales (Learning Loop) [DONE]**
+- Tarea S.11.1: Activar el lóbulo `temporal_horizon_prior` en el `CerebellumLobe` para nudges de peso basados en deriva de 3 semanas. (Completado: Antigravity)
+- Tarea S.11.2: Endurecimiento Anti-NaN y validación de finitud en los cálculos de tendencia episódica. (Completado: Antigravity)
 
 **Bloque S.10: Persistencia de Estrategia Operativa (V10) [DONE]**
 - Tarea S.10.1: Implementar **Persistencia de Registros**. Asegurar que `MetaplanRegistry`, `SkillLearningRegistry` y `SomaticMarkerStore` persistan turn-by-turn vía `DAOOrchestrator`. (Completado: Antigravity)

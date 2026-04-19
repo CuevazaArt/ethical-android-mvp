@@ -10,12 +10,11 @@ graph TD
     
     subgraph "Ethical Tri-Lobe Core"
         Thalamus --> PL[Perception Lobe]
-        Thalamus --> LL[Limbic Lobe]
-        Thalamus --> EL[Executive Lobe]
-        
-        PL -- "Environment State" --> LL
-        LL -- "Cognitive Tension" --> EL
-        EL -- "Action Candidates" --> Thalamus
+        PL -- "Signals" --> LL[Limbic Lobe]
+        LL -- "Tension" --> CL[Cerebellum Lobe]
+        ML[(Memory Lobe)] -- "Temporal Priors" --> CL
+        CL -- "Hypothesis weights" --> EL[Executive Lobe]
+        EL -- "Action" --> ML
     end
     
     subgraph "Safety & Governance"

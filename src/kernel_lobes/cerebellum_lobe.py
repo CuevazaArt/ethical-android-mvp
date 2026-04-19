@@ -15,6 +15,8 @@ if TYPE_CHECKING:
     from src.modules.bayesian_engine import BayesianInferenceEngine
     from src.modules.strategy_engine import ExecutiveStrategist
     from src.modules.weighted_ethics_scorer import CandidateAction, EthicsMixtureResult
+    from src.modules.narrative import NarrativeMemory
+    from src.modules.rlhf_reward_model import RLHFPipeline
 
 
 class CerebellumLobe:
@@ -28,10 +30,12 @@ class CerebellumLobe:
         self,
         bayesian: BayesianInferenceEngine,
         strategist: ExecutiveStrategist,
+        memory: NarrativeMemory,
         rlhf: Optional[RLHFPipeline] = None
     ):
         self.bayesian = bayesian
         self.strategist = strategist
+        self.memory = memory
         self.rlhf = rlhf
 
     def execute_bayesian_stage(
@@ -92,6 +96,28 @@ class CerebellumLobe:
                 # Boy Scout Pass: Log incompatible feedback
                 if feedback_consistency == "incompatible":
                     _log.warning("CerebellumLobe: Bayesian feedback is INCOMPATIBLE with priors. Risk of ethical drift.")
+
+        # 2.5 Apply Temporal Horizon Prior Nudge (ADR 0005 / Issue #1 B)
+        # This closes the gap between 'weighted mixture' and 'experiential learning'
+        from src.kernel_utils import kernel_env_truthy
+        if kernel_env_truthy("KERNEL_TEMPORAL_HORIZON_PRIOR"):
+            from src.modules.temporal_horizon_prior import apply_horizon_prior_to_engine
+            # We use the 'genome' stored in the kernel if available, or the current state
+            # Here we assume the mixture should not drift more than 15% from its core geometry.
+            try:
+                # We need the genome weights (the 'long-term constitutional' weights)
+                # If not provided, we use the current weights as the baseline for this tick's drift.
+                genome = getattr(self.bayesian, "prior_weights", (0.4, 0.35, 0.25))
+                apply_horizon_prior_to_engine(
+                    engine=self.bayesian.scorer if hasattr(self.bayesian, "scorer") else self.bayesian,
+                    memory=self.memory,
+                    context=context,
+                    genome_weights=genome,
+                    max_drift=0.15
+                )
+                _log.debug("CerebellumLobe: Applied temporal horizon nudge based on NarrativeMemory.")
+            except Exception as e:
+                _log.error("CerebellumLobe: Failed to apply temporal horizon prior: %s", e)
 
         # 3. Main Bayesian Evaluate
         bayes_result = self.bayesian.evaluate(

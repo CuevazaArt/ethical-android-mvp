@@ -7,6 +7,14 @@ All notable changes to this project are summarized here. For narrative context a
 **[URGENT ΓÇö broadcast to all L2 integration hubs]:** All teams (Claude, Cursor, Copilot) should urgently `git pull` from `main` into their `master-*` branches. Outdated branches risk severe documentation path drift.
 
 ### Antigravity-Team Updates (2026-04-18 - Session 2)
+### Antigravity-Team Updates (2026-04-19 - Session 10)
+
+- [x] **EXPERIENCE-DRIVEN PRIOR ADJUSTMENT (ADR 0005 / ISSUE #1 B)**:
+    *   **Temporal Horizon Nudge**: Activado el lóbulo `temporal_horizon_prior` dentro del `CerebellumLobe`. El kernel ahora realiza ajustes de priors "basados en la experiencia" analizando tendencias de 3 semanas y estabilidad de largo plazo desde la `NarrativeMemory`.
+    *   **Integración de Lóbulos**: Refactorizado el `CerebellumLobe` para ingerir la `NarrativeMemory` y aplicar nudges de peso antes del scoring bayesiano, cerrando el bucle de retroalimentación entre memoria y ética.
+    *   **Endurecimiento Boy Scout**: Inyectadas salvaguardas Anti-NaN y chequeos de finitud en el cálculo de `TemporalHorizonSignals` y en las rutas de renormalización de pesos.
+    *   **Documentación de Arquitectura**: Actualizado `docs/architecture/TRI_LOBE_CORE.md` con un diagrama Mermaid de alta fidelidad que ilustra el nuevo flujo de retroalimentación cognitiva desde la Memoria al Cerebelo.
+
 ### Antigravity-Team Updates (2026-04-19 - Session 9)
 
 - [x] **GENERATIVE STABILIZATION & V10 PERSISTENCE**:

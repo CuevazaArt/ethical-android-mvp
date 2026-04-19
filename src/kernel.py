@@ -616,6 +616,7 @@ class EthicalKernel:
         self.cerebellum_lobe = CerebellumLobe(
             bayesian=self.bayesian,
             strategist=self.strategist,
+            memory=self.memory,
             rlhf=self.rlhf
         )
         

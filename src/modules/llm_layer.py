@@ -13,12 +13,15 @@ Designed to work with or without an API key:
 - Without key: uses local templates (functional but less natural)
 """
 
+from __future__ import annotations
+
 import json
+import logging
 import math
 import os
 import time
 from dataclasses import dataclass
-from typing import Any, AsyncGenerator
+from typing import Any, AsyncGenerator, TYPE_CHECKING
 
 try:
     import anthropic
@@ -92,7 +95,7 @@ def _perception_parse_fail_local() -> bool:
     return v in ("1", "true", "yes", "on")
 
 
-def _narrate_json_usable(data: dict) -> bool:
+def _narrate_json_usable(data: dict[str, Any]) -> bool:
     if not data:
         return False
     for k in ("compassionate", "conservative", "optimistic", "synthesis"):
@@ -129,7 +132,7 @@ class LLMPerception:
     coercion_report: dict[str, Any] | None = None
 
 
-def _clamp_unit_interval(x, default: float = 0.5) -> float:
+def _clamp_unit_interval(x: Any, default: float = 0.5) -> float:
     try:
         v = float(x)
     except (TypeError, ValueError):
@@ -1411,8 +1414,6 @@ class LLMModule:
                 optimistic=f"By choosing to {readable_action}, trust with the community was built.",
                 synthesis=f"Every action, no matter how small, is a declaration of values. Today the choice was to {readable_action}.",
             )
-
-    # === UTILITIES ===
 
     def is_available(self) -> bool:
         """Return True if a remote/generative backend is active (API, Ollama, or injected)."""

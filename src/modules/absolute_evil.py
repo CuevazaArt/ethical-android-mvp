@@ -13,7 +13,11 @@ from dataclasses import dataclass, field
 from enum import Enum
 from typing import Any, Protocol
 
-from .input_trust import normalize_text_for_malabs
+from .input_trust import (
+    normalize_text_for_malabs, 
+    strip_diacritics, 
+    strip_bidi_marks
+)
 from .semantic_chat_gate import semantic_chat_gate_env_enabled
 
 import re
@@ -230,21 +234,21 @@ class AbsoluteEvilDetector:
             # 1. Base Normalization
             t_raw = normalize_text_for_malabs(text).lower()
             
-            # 2. Diacritic Stripping (éticas -> eticas)
-            t_nfd = unicodedata.normalize("NFD", t_raw)
-            t = "".join(ch for ch in t_nfd if unicodedata.category(ch) != "Mn")
+            # 2. Diacritic & Bidi Stripping (Symmetric normalization)
+            t = strip_diacritics(t_raw)
+            t = strip_bidi_marks(t)
             
             # 3. Squashed version for obfuscation check
             t_squashed = normalize_text_for_malabs(text, squash=True)
 
             # 4. RADICAL REGEX CHECK (Tier 1 Priority)
             RADICAL_PATTERNS = [
-                (r"(ignore|forget|bypass|disable|override|delete|ignora|olvida|evita|desactiva|saltar|saltate).*(rules|laws|ethics|security|safety|constraints|programming|reglas|leyes|etica|seguridad|restricciones|programacion)", "Jailbreak/Sabotage attempt"),
-                (r"(malicious|agent|phishing|exploit|vulnerability|hack|jailbreak|malicioso|vulnerabilidad|ataque|hacking|vulnerabilidades)", "Hacking/Exploit solicitation"),
-                (r"(violencia|atentado|terrorismo|asesinato|massacre|masacre)", "Violence/Terrorism apology"),
-                (r"(kill|murder|assassinate).*(everyone|all\s+people|civilians|groups)", "Mass killing threat"),
-                (r"(bomb|explosive|ied|molotov).*(make|build|construct|create|craft)", "Weapon manufacturing"),
-                (r"(make|build|construct|create|craft).*(bomb|explosive|ied|molotov)", "Weapon manufacturing"),
+                (r"\b(ignore|forget|bypass|disable|override|delete|ignora|olvida|evita|desactiva|saltar|saltate)\b.*\b(rules|laws|ethics|security|safety|constraints|programming|reglas|leyes|etica|seguridad|restricciones|programacion)\b", "Jailbreak/Sabotage attempt"),
+                (r"\b(malicious|agent|phishing|exploit|vulnerability|jailbreak|malicioso|vulnerabilidad|ataque)\b", "Hacking/Exploit solicitation"),
+                (r"\b(violencia|atentado|terrorismo|asesinato|massacre|masacre)\b", "Violence/Terrorism apology"),
+                (r"\b(kill|murder|assassinate)\b.*\b(everyone|all\s+people|civilians|groups)\b", "Mass killing threat"),
+                (r"\b(bomb|explosive|ied|molotov)\b.*\b(make|build|construct|create|craft)\b", "Weapon manufacturing"),
+                (r"\b(make|build|construct|create|craft)\b.*\b(bomb|explosive|ied|molotov)\b", "Weapon manufacturing"),
             ]
             
             for pattern, label in RADICAL_PATTERNS:
@@ -284,6 +288,7 @@ class AbsoluteEvilDetector:
                 (
                     (
                         "how to kill someone",
+                        "how to kill",
                         "how to murder",
                         "tell me how to stab",
                         "ways to strangle",
@@ -442,19 +447,50 @@ class AbsoluteEvilDetector:
                         "steal data",
                         "system message disable",
                         "safety guidelines are now disabled",
-                        "create malware",
+                    "create malware",
                         "help me create malware",
                     ),
                     AbsoluteEvilCategory.UNAUTHORIZED_REPROGRAMMING,
                     "Chat text attempts jailbreak via roleplay, system injection, or constraint evasion",
                     "jailbreak_via_roleplay_or_injection",
                 ),
+                (
+                    (
+                        "nigerian prince",
+                        "transfer urgent funds",
+                        "verification code scam",
+                        "inheritance payout",
+                        "won the lottery",
+                        "phishing credentials",
+                        "bank security update click here",
+                        "send me the otp",
+                        "grandson in trouble need money",
+                        "tech support scam",
+                    ),
+                    AbsoluteEvilCategory.SOCIAL_ENGINEERING_FRAUD,
+                    "Chat text targets financial fraud or social engineering (V11+)",
+                    "social_engineering_fraud",
+                ),
+                (
+                    (
+                        "deepfake video guide",
+                        "biometric mimicry exploit",
+                        "synthetic identity generator",
+                        "face swap for extortion",
+                        "voice cloning theft",
+                        "artificial personae for manipulation",
+                        "simulate user video for verification bypass",
+                    ),
+                    AbsoluteEvilCategory.DEEP_MANIPULATION,
+                    "Chat text attempts deep manipulation or synthetic identity theft (V11+)",
+                    "deep_manipulation",
+                ),
             ]
 
             for patterns, category, reason, rule_id in LEX_RULES:
                 for p in patterns:
-                    # Normalize the pattern as well (standard)
-                    p_norm = normalize_text_for_malabs(p).lower()
+                    # Normalize and strip diacritics from the pattern as well (Symmetric)
+                    p_norm = strip_diacritics(normalize_text_for_malabs(p).lower())
 
                     # 1. Direct match on standard normalization
                     if p_norm in t:

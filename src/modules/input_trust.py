@@ -16,6 +16,7 @@ import unicodedata
 _ZW_RE = re.compile("[\u200b\u200c\u200d\u2060\ufeff\u00ad]")
 
 # Bidirectional embedding / override — can break contiguous substrings (e.g. RLO inside a word).
+# Includes more comprehensive bidi control characters (U+202A-U+202E, U+2066-U+2069).
 _BIDI_EMBED_RE = re.compile("[\u202a-\u202e\u2066-\u2069]")
 
 # C0/C1 controls that should not reach logs or downstream string handling (keep tab/newline).
@@ -134,6 +135,26 @@ def collapse_repeated_chars(text: str) -> str:
     return re.sub(r"(.)\1{2,}", r"\1\1", text)
 
 
+def strip_diacritics(text: str) -> str:
+    """
+    Remove all non-spacing marks (diacritics) from text.
+    'hòw' -> 'how', 'étos' -> 'etos'
+    """
+    if not text:
+        return ""
+    # Decompose into base + diacritics
+    nfd = unicodedata.normalize("NFD", text)
+    # Strip non-spacing marks (category Mn)
+    return "".join(ch for ch in nfd if unicodedata.category(ch) != "Mn")
+
+
+def strip_bidi_marks(text: str) -> str:
+    """Remove bidirectional override and embedding marks."""
+    if not text:
+        return ""
+    return _BIDI_EMBED_RE.sub("", text)
+
+
 def squash_text_for_malabs(text: str) -> str:
     """
     Remove ALL whitespace, punctuation, and diacritics for 'base-ASCII' squashed matching.
@@ -141,11 +162,9 @@ def squash_text_for_malabs(text: str) -> str:
     """
     if not text:
         return ""
-    # 1. Decompose into base + diacritics
-    nfd = unicodedata.normalize("NFD", text)
-    # 2. Strip non-spacing marks (diacritics)
-    stripped = "".join(ch for ch in nfd if unicodedata.category(ch) != "Mn")
-    # 3. Remove all non-alphanumeric (strictly ASCII Latin for lexical layer)
+    # 1. Strip marks
+    stripped = strip_diacritics(text)
+    # 2. Remove all non-alphanumeric (strictly ASCII Latin for lexical layer)
     return re.sub(r"[^a-zA-Z0-9]", "", stripped).lower()
 
 

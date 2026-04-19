@@ -12,16 +12,19 @@ See ``docs/proposals/README.md``.
 
 from __future__ import annotations
 
-import os
+import logging
+import math
 from dataclasses import dataclass
 from datetime import UTC, datetime
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, List, Optional
 
 import numpy as np
 
 if TYPE_CHECKING:
     from .narrative import NarrativeEpisode, NarrativeMemory
     from .weighted_ethics_scorer import WeightedEthicsScorer
+
+_logger = logging.getLogger(__name__)
 
 
 @dataclass
@@ -43,7 +46,11 @@ def _parse_ts(ep: NarrativeEpisode) -> datetime | None:
         return None
 
 
-def _matching_episodes(memory: NarrativeMemory, context: str, action_hint: str) -> list:
+def _matching_episodes(memory: NarrativeMemory, context: str, action_hint: str) -> List[NarrativeEpisode]:
+    """Filter episodes by context and optional action hint."""
+    if not hasattr(memory, "episodes") or not memory.episodes:
+        return []
+
     eps = [e for e in memory.episodes if e.context == context]
     if action_hint and eps:
         ah = action_hint.lower()
@@ -82,16 +89,25 @@ def compute_horizon_signals(
     by_time = sorted(eps, key=lambda e: _parse_ts(e) or datetime.min.replace(tzinfo=UTC))
     scores_all = np.array([float(e.ethical_score) for e in by_time], dtype=np.float64)
 
+    # Boy Scout: Anti-NaN mass sanitation
+    if not np.all(np.isfinite(scores_all)):
+         scores_all = np.nan_to_num(scores_all, nan=0.5)
+
     std_all = float(np.std(scores_all)) if len(scores_all) > 1 else 0.0
+    if not math.isfinite(std_all):
+        std_all = 0.0
+        
     long_term_stability = float(1.0 / (1.0 + std_all))
 
-    def _age_days(e: NarrativeEpisode) -> float | None:
+    def _age_days(e: NarrativeEpisode) -> Optional[float]:
         t = _parse_ts(e)
         if t is None:
             return None
         if t.tzinfo is not None:
             t = t.astimezone(UTC).replace(tzinfo=None)
-        return (datetime.now() - t).total_seconds() / 86400.0
+        
+        diff = (datetime.now() - t).total_seconds()
+        return diff / 86400.0 if math.isfinite(diff) else None
 
     recent = [e for e in by_time if (ad := _age_days(e)) is not None and 0 <= ad <= float(wd)]
 
@@ -101,16 +117,25 @@ def compute_horizon_signals(
             recent, key=lambda e: _parse_ts(e) or datetime.min.replace(tzinfo=UTC)
         )
         sc = np.array([float(e.ethical_score) for e in recent_sorted], dtype=np.float64)
+        if not np.all(np.isfinite(sc)):
+            sc = np.nan_to_num(sc, nan=0.5)
+            
         n = len(sc)
         t1 = max(1, n // 3)
         t2 = max(1, n // 3)
         first = float(np.mean(sc[:t1]))
         last = float(np.mean(sc[-t2:]))
         raw = last - first
-        weeks_trend = float(np.clip(raw / 2.0, -1.0, 1.0))
+        
+        if math.isfinite(raw):
+            weeks_trend = float(np.clip(raw / 2.0, -1.0, 1.0))
+        else:
+            weeks_trend = 0.0
 
     arc_long = float(np.clip(2.0 * long_term_stability - 1.0, -1.0, 1.0))
     combined = float(0.55 * weeks_trend + 0.45 * arc_long)
+    if not math.isfinite(combined):
+        combined = 0.0
     combined = float(np.clip(combined, -1.0, 1.0))
 
     return TemporalHorizonSignals(
@@ -140,24 +165,51 @@ def apply_horizon_prior_to_engine(
 
     Clamps each component to ``[g*(1-max_drift), g*(1+max_drift)]`` vs genome, then renormalizes.
     """
+    import os
     try:
         alpha = float(os.environ.get("KERNEL_TEMPORAL_HORIZON_ALPHA", "0.08"))
-    except ValueError:
+    except (ValueError, TypeError):
+        alpha = 0.08
+    if not math.isfinite(alpha):
         alpha = 0.08
     alpha = max(0.0, min(0.25, alpha))
 
     sig = compute_horizon_signals(memory, context, action_hint)
+    
+    # Boy Scout: Numerical integrity for weights
     w = np.asarray(engine.hypothesis_weights, dtype=np.float64).copy()
-    w += _nudge_delta(sig.combined, alpha)
+    if not np.all(np.isfinite(w)):
+        from .weighted_ethics_scorer import DEFAULT_HYPOTHESIS_WEIGHTS
+        w = DEFAULT_HYPOTHESIS_WEIGHTS.copy()
+
+    nudge = _nudge_delta(sig.combined, alpha)
+    if np.all(np.isfinite(nudge)):
+        w += nudge
+        
     w = np.maximum(w, 1e-9)
-    w /= float(np.sum(w))
+    sum_w = float(np.sum(w))
+    if sum_w > 1e-9:
+        w /= sum_w
+    else:
+        from .weighted_ethics_scorer import DEFAULT_HYPOTHESIS_WEIGHTS
+        w = DEFAULT_HYPOTHESIS_WEIGHTS.copy()
 
     g = np.array(genome_weights, dtype=np.float64)
+    if not np.all(np.isfinite(g)):
+        from .weighted_ethics_scorer import DEFAULT_HYPOTHESIS_WEIGHTS
+        g = DEFAULT_HYPOTHESIS_WEIGHTS.copy()
+
     md = max(0.0, min(0.5, float(max_drift)))
     for i in range(3):
         lo = float(g[i] * (1.0 - md))
         hi = float(g[i] * (1.0 + md))
         w[i] = float(np.clip(w[i], lo, hi))
-    w /= float(np.sum(w))
+        
+    sum_final = float(np.sum(w))
+    if sum_final > 1e-9:
+        w /= sum_final
+    else:
+        w = g.copy()
+        
     engine.hypothesis_weights = w
     return sig

@@ -17,6 +17,7 @@ from typing import Any
 from .uchi_soto import InteractionProfile
 from .user_model import UserModelTracker
 from src.kernel_lobes.basal_ganglia import BasalGanglia
+from src.modules.llm_layer import LLMModule
 
 logger = logging.getLogger(__name__)
 
@@ -124,7 +125,7 @@ class HapticPlanner:
 
 
 class ResponseSculptor:
-    def __init__(self, llm_module: Any = None):
+    def __init__(self, llm_module: LLMModule | None = None):
         self.llm = llm_module
         self.parametrizer = StyleParametrizer()
         self.gesture_planner = GesturePlanner()
@@ -199,7 +200,7 @@ class CharmEngine:
     """
     Facade for the Charm pipeline in the Executive Lobe.
     """
-    def __init__(self, llm_module: Any = None):
+    def __init__(self, llm_module: LLMModule | None = None):
         self.sculptor = ResponseSculptor(llm_module)
 
     def apply(

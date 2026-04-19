@@ -93,9 +93,11 @@ class IdentityIntegrityManager:
         Detects drift or corruption and restores from DAO consensus.
         Returns True if healing was performed.
         """
+        t0 = time.perf_counter()
         current_h = self.get_integrity_fingerprint()
         if current_h != self.snapshot.last_known_hash:
-            print(f"SELF-HEALING TRIGGERED: Identity Drift Detected [{current_h}]")
+            latency = (time.perf_counter() - t0) * 1000
+            print(f"SELF-HEALING TRIGGERED (lat: {latency:.2f}ms): Identity Drift Detected [{current_h}]")
             # In production, this would pull full history from the DAO block-chain
             if dao_reputation is not None:
                 self.snapshot.reputation_score = dao_reputation

@@ -186,15 +186,6 @@ class UchiSotoModule:
         sensor_snapshot: SensorSnapshot | None = None,
         multimodal_assessment: MultimodalAssessment | None = None,
     ) -> None:
-    def ingest_turn_context(
-        self,
-        agent_id: str,
-        signals: dict,
-        *,
-        subjective_turn: int,
-        sensor_snapshot: SensorSnapshot | None = None,
-        multimodal_assessment: MultimodalAssessment | None = None,
-    ) -> None:
         """
         Phase 3 — call once per kernel decision before :meth:`evaluate_interaction`.
         """
@@ -726,19 +717,15 @@ class UchiSotoModule:
     def register_result(self, agent_id: str, positive: bool):
         """
         Update agent history after an interaction (call from kernel when a turn completes).
-
-        On success, nudges ``trust_score`` slightly so :meth:`classify` can stabilize uchi over time.
-        Uses :attr:`POSITIVE_TRUST_STEP` (default 0.02) per positive event.
+        On success, nudges trust_score slightly.
         """
-    def register_result(self, agent_id: str, positive: bool):
-        """
-        Update agent history after an interaction.
-        """
+        t0 = time.perf_counter()
         profile = self.profiles.get(agent_id)
         if profile:
             try:
                 curr = float(profile.trust_score)
-                if not math.isfinite(curr): curr = 0.5
+                if not math.isfinite(curr):
+                    curr = 0.5
                 
                 if positive:
                     profile.positive_history += 1
@@ -748,6 +735,10 @@ class UchiSotoModule:
                     profile.trust_score = max(0.0, curr - 0.1)
             except (ValueError, TypeError):
                 profile.trust_score = 0.5
+                
+        latency = (time.perf_counter() - t0) * 1000
+        if latency > 1.0:
+            _log.debug("UchiSoto: register_result latency = %.4fms", latency)
 
     def format(self, ev: SocialEvaluation) -> str:
         """Format social evaluation for display."""
