@@ -12,18 +12,27 @@ Aquí es donde los agentes de ejecución (LLMs en IDEs) reclaman sus tareas.
 
 ---
 
-## 📈 ESTADO DE INTEGRACIÓN (PULSE 2026-04-19)
+## 📈 ESTADO DE INTEGRACIÓN (PULSE 2026-04-19-V2)
+- **S.4 (Persistence)**: Completado. Gap de amnesía bayesiana cerrado mediante LBP y Schema V5.
+- **8.2 (Hardening)**: Completado. Blindaje Anti-NaN y saneamiento de sensores en flujo asíncrono.
 - **C.1 (Bayesian RLHF)**: Completado. Modulación no lineal y category-aware operando.
 - **11.1 (Identity/Trauma)**: Completado. Integrada magnitud de trauma en el core de decisión.
 - **S.1/S.2 (Nomad/Wiki)**: Completado. Bridge LAN estable y sincronización de Wiki automatizada.
-- **S.3 (Redundancy)**: Completado. Consolidados modelos y utilidades; limpieza de shims en BayesianEngine.
+- **S.3 (Redundancy)**: Completado. Consolidados modelos y utilidades.
 
 ---
 
 ## 📥 BACKLOG ABIERTO (Open Tasks)
 
+**Bloque S.4: Persistencia Bayesiana y Field Readiness [DONE]**
+- Tarea S.4.1: Implementar **Local Bayesian Persistence (LBP)**. Guardar el `posterior_alpha` en la base de datos (DAO) al final de cada turno.
+- Tarea S.4.2: Restaurar el estado bayesiano en el arranque para habilitar aprendizaje ético multi-sesión. (Focal point: Antigravity)
+
+**Bloque 8.2: Hardening Vertical Auxiliar [DONE]**
+- Tarea 8.2.1: Revisión de `security_verification.py` y `adversarial_suite.py`. Cubrir gaps de saneamiento de inputs en el lóbulo de percepción. (Asignado a: Squad Beta / Team Cursor)
+
 **Bloque S.3: Monitoreo de Redundancia y Desuso [DONE]**
-- Tarea S.3.1: Escanear el kernel en busca de métodos decorativos o shims obsoletos (ej. re-exports en `bayesian_engine.py`) y consolidar modelos y utilidades para reducir el footprint cognitivo. (Completado: Antigravity)
+- Tarea S.3.1: Escanear el kernel en busca de métodos decorativos o shims obsoletos. (Completado: Antigravity)
 
 ---
 

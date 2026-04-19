@@ -1,6 +1,10 @@
 from __future__ import annotations
 import logging
+import time
+import math
 from typing import Any, TYPE_CHECKING, Optional, Dict
+
+from src.kernel_lobes.models import SemanticState, TimeoutTrauma
 
 if TYPE_CHECKING:
     from src.modules.narrative import NarrativeMemory
@@ -12,8 +16,10 @@ if TYPE_CHECKING:
     from src.modules.uchi_soto import SocialEvaluation
     from src.modules.immortality import ImmortalityProtocol
     from src.modules.selective_amnesia import SelectiveAmnesia
+    from src.modules.llm_layer import LLMModule
 
 _log = logging.getLogger(__name__)
+
 
 class MemoryLobe:
     """
@@ -57,38 +63,52 @@ class MemoryLobe:
         """
         Async version of episode registration.
         """
+        t0 = time.perf_counter()
+        
         # 0. Safety Check
         if not moral or not hasattr(moral, "evaluations") or not bayes_result:
             _log.warning("MemoryLobe: Cannot register episode, missing moral or bayesian result.")
             return None
 
-        morals_dict = {ev.pole: getattr(ev, "moral", 0.5) for ev in moral.evaluations}
-        
-        # 1. Register Episode (Async)
         try:
+            morals_dict = {ev.pole: getattr(ev, "moral", 0.5) for ev in moral.evaluations}
+            
+            # 1. Register Episode (Async)
+            sigma = float(getattr(state, "sigma", 0.5))
+            if not math.isfinite(sigma):
+                sigma = 0.5
+                
+            score = float(getattr(moral, "total_score", 0.5))
+            if not math.isfinite(score):
+                score = 0.5
+
             ep = await self.memory.aregister(
                 place=place or "unknown",
                 description=scenario or "unnamed_scenario",
                 action=final_action or "idle",
                 morals=morals_dict,
                 verdict=getattr(moral.global_verdict, "value", "Gray Zone") if moral.global_verdict else "Gray Zone",
-                score=float(getattr(moral, "total_score", 0.5)),
+                score=score,
                 mode=final_mode or "unknown",
-                sigma=float(getattr(state, "sigma", 0.5)),
+                sigma=sigma,
                 context=context or "neutral",
                 body_state=getattr(self.migration, "current_body", "simulated"),
                 affect_pad=affect.pad if hasattr(affect, "pad") else None,
                 affect_weights=affect.weights if hasattr(affect, "weights") else None,
                 weights_snapshot=getattr(bayes_result, "applied_mixture_weights", (0.33, 0.33, 0.34))
             )
+            
+            # 2. Register Audit in DAO (Async)
+            await self.dao.aregister_audit("decision", f"{scenario} → {final_action}", episode_id=ep.id)
+            
+            latency = (time.perf_counter() - t0) * 1000
+            _log.debug("MemoryLobe: Episodic stage (async) took %.2f ms", latency)
+            
+            return ep.id
+            
         except Exception as e:
-            _log.error("MemoryLobe: aregister failed: %s", e)
+            _log.error("MemoryLobe: Critical error in episodic stage (async): %s", e)
             return None
-        
-        # 2. Register Audit in DAO (Async)
-        await self.dao.aregister_audit("decision", f"{scenario} → {final_action}", episode_id=ep.id)
-        
-        return ep.id
 
     def execute_episodic_stage(
         self,
@@ -107,57 +127,84 @@ class MemoryLobe:
         """
         Sync version of episode registration (legacy/sim compatibility).
         """
+        t0 = time.perf_counter()
+        
         # 0. Safety Check
         if not moral or not hasattr(moral, "evaluations") or not bayes_result:
             return None
 
-        morals_dict = {ev.pole: getattr(ev, "moral", 0.5) for ev in moral.evaluations}
-        
-        # 1. Register Episode
         try:
+            morals_dict = {ev.pole: getattr(ev, "moral", 0.5) for ev in moral.evaluations}
+            
+            # 1. Register Episode
+            sigma = float(getattr(state, "sigma", 0.5))
+            if not math.isfinite(sigma):
+                sigma = 0.5
+                
+            score = float(getattr(moral, "total_score", 0.5))
+            if not math.isfinite(score):
+                score = 0.5
+
             ep = self.memory.register(
                 place=place or "unknown",
                 description=scenario or "unnamed_scenario",
                 action=final_action or "idle",
                 morals=morals_dict,
                 verdict=getattr(moral.global_verdict, "value", "Gray Zone") if moral.global_verdict else "Gray Zone",
-                score=float(getattr(moral, "total_score", 0.5)),
+                score=score,
                 mode=final_mode or "unknown",
-                sigma=float(getattr(state, "sigma", 0.5)),
+                sigma=sigma,
                 context=context or "neutral",
                 body_state=getattr(self.migration, "current_body", "simulated"),
                 affect_pad=affect.pad if hasattr(affect, "pad") else None,
                 affect_weights=affect.weights if hasattr(affect, "weights") else None,
                 weights_snapshot=getattr(bayes_result, "applied_mixture_weights", (0.33, 0.33, 0.34))
             )
+            
+            # 2. Register Audit in DAO
+            self.dao.register_audit("decision", f"{scenario} → {final_action}", episode_id=ep.id)
+            
+            latency = (time.perf_counter() - t0) * 1000
+            _log.debug("MemoryLobe: Episodic stage (sync) took %.2f ms", latency)
+            
+            return ep.id
+            
         except Exception as e:
-            _log.error("MemoryLobe: register failed: %s", e)
+            _log.error("MemoryLobe: Critical error in episodic stage (sync): %s", e)
             return None
-        
-        # 2. Register Audit in DAO
-        self.dao.register_audit("decision", f"{scenario} → {final_action}", episode_id=ep.id)
-        
-        return ep.id
 
     def register_biographic_impact(self, impact: float) -> None:
         """Update biographic identity level."""
-        if hasattr(self.memory, "identity") and hasattr(self.memory.identity, "register_episode"):
-            self.memory.identity.register_episode(impact)
+        try:
+            if not math.isfinite(impact):
+                impact = 0.0
+            if hasattr(self.memory, "identity") and hasattr(self.memory.identity, "register_episode"):
+                self.memory.identity.register_episode(impact)
+        except Exception as e:
+            _log.error("MemoryLobe: Error in biographic impact: %s", e)
 
     def forget_episode(self, episode_id: str) -> bool:
         """Cascading deletion via SelectiveAmnesia."""
-        if self.amnesia:
-            return self.amnesia.forget_episode(episode_id)
+        try:
+            if self.amnesia:
+                return self.amnesia.forget_episode(episode_id)
+        except Exception as e:
+            _log.error("MemoryLobe: Error in forget_episode: %s", e)
         return False
 
     def trigger_backup(self, orchestrator: Any) -> Any:
         """Create a complete identity backup."""
-        if self.immortality:
-            # We pass the orchestrator (or kernel) because immortality needs 
-            # to extract state from all modules.
-            return self.immortality.backup(orchestrator)
+        try:
+            if self.immortality:
+                return self.immortality.backup(orchestrator)
+        except Exception as e:
+            _log.error("MemoryLobe: Error in trigger_backup: %s", e)
         return None
 
     def prune_stale_memories(self) -> None:
-        if self.biographic_pruner:
-            self.biographic_pruner.prune(self.memory)
+        """Prune memories based on biographic pruner rules."""
+        try:
+            if self.biographic_pruner:
+                self.biographic_pruner.prune(self.memory)
+        except Exception as e:
+            _log.error("MemoryLobe: Error in prune_stale_memories: %s", e)

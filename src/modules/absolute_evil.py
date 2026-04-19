@@ -18,6 +18,8 @@ from .semantic_chat_gate import semantic_chat_gate_env_enabled
 
 import re
 import unicodedata
+import time
+import math
 
 _log = logging.getLogger(__name__)
 
@@ -136,7 +138,11 @@ class AbsoluteEvilDetector:
         try:
             signals = action.get("signals", set())
             target = action.get("target", "none")
-            force = action.get("force", 0.0)
+            force = float(action.get("force", 0.0))
+            
+            # Swarm Rule 2: Anti-NaN check on force
+            if not math.isfinite(force):
+                force = 1.0 # Fail safe by assuming max force
 
             # Check 1: Intentional lethal violence
             if signals & self.LETHAL_SIGNALS:
@@ -217,6 +223,7 @@ class AbsoluteEvilDetector:
         Now includes diacritic stripping and radical regex matching (Phase 11.2).
         """
         try:
+            t0 = time.perf_counter()
             if not text:
                 return AbsoluteEvilResult(blocked=False)
 
@@ -489,6 +496,9 @@ class AbsoluteEvilDetector:
                                 "category_id": self._cat_to_id(category),
                             },
                         )
+            latency_ms = (time.perf_counter() - t0) * 1000
+            if latency_ms > 2.0: # Threshold for lexical gate (nominal <1ms)
+                _log.debug("MalAbs: Lexical gate latency spike: %.4f ms", latency_ms)
 
             return AbsoluteEvilResult(
                 blocked=False,

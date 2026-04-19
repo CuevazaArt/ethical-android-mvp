@@ -33,8 +33,9 @@ class DAOOrchestrator:
         self._init_db()
 
     def _init_db(self):
-        """Initializes the persistent audit ledger."""
+        """Initializes the persistent audit ledger and state store."""
         with sqlite_safe_write(self.db_path) as conn:
+            # Audit Trail
             conn.execute('''
                 CREATE TABLE IF NOT EXISTS audit_logs (
                     id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -44,6 +45,35 @@ class DAOOrchestrator:
                     timestamp REAL
                 )
             ''')
+            # Persistent Kernel State (Key-Value)
+            conn.execute('''
+                CREATE TABLE IF NOT EXISTS kernel_state (
+                    key TEXT PRIMARY KEY,
+                    value TEXT,
+                    updated_at REAL
+                )
+            ''')
+
+    def set_state(self, key: str, value: Any) -> None:
+        """Persist a piece of kernel state (JSON serialized)."""
+        val_json = json.dumps(value)
+        with sqlite_safe_write(self.db_path) as conn:
+            conn.execute(
+                "INSERT OR REPLACE INTO kernel_state (key, value, updated_at) VALUES (?, ?, ?)",
+                (key, val_json, time.time())
+            )
+
+    def get_state(self, key: str, default: Any = None) -> Any:
+        """Retrieve persisted kernel state or return default."""
+        with sqlite_safe_write(self.db_path) as conn:
+            cursor = conn.execute("SELECT value FROM kernel_state WHERE key = ?", (key,))
+            row = cursor.fetchone()
+            if row:
+                try:
+                    return json.loads(row[0])
+                except Exception:
+                    return default
+        return default
 
     def anchor_evidence(self, payload: dict[str, Any]) -> str:
         """

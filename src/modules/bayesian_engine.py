@@ -24,6 +24,8 @@ from enum import Enum
 from typing import Any
 
 import numpy as np
+import math
+import time
 
 from .weighted_ethics_scorer import (
     DEFAULT_HYPOTHESIS_WEIGHTS,
@@ -82,7 +84,7 @@ class BayesianInferenceEngine:
     Wraps a WeightedEthicsScorer and applies Bayesian updates/telemetry.
     """
 
-    def __init__(self, mode: str | BayesianMode = BayesianMode.DISABLED, variability=None):
+    def __init__(self, mode: str | BayesianMode = BayesianMode.DISABLED, variability: float | None = None):
         if isinstance(mode, BayesianMode):
             self.mode = mode
         else:
@@ -93,6 +95,7 @@ class BayesianInferenceEngine:
         # Default symmetric prior Alpha=[3,3,3] -> Mean=[1/3, 1/3, 1/3]
         self.prior_alpha = np.array([3.0, 3.0, 3.0], dtype=np.float64)
         self.posterior_alpha = self.prior_alpha.copy()
+        self.consistency: str = "compatible"
         
         # Sync initial weights if in driven mode
         if self.mode == BayesianMode.POSTERIOR_DRIVEN:
@@ -147,16 +150,27 @@ class BayesianInferenceEngine:
         self, alpha_vec: np.ndarray, consistency: str = "compatible"
     ):
         """Level 2: Update the Dirichlet parameters from external feedback data."""
+        t0 = time.perf_counter()
+        
+        # Swarm Rule 2: Anti-NaN Hardening
+        if not np.all(np.isfinite(alpha_vec)):
+            _logger.error("Bayesian: Invalid alpha_vec detected (NaN or Inf). Rejecting update.")
+            return
+
         self.posterior_alpha = np.asarray(alpha_vec, dtype=np.float64).copy()
         self.consistency = consistency
 
         if self.mode == BayesianMode.POSTERIOR_DRIVEN:
             sum_a = float(np.sum(self.posterior_alpha))
-            if sum_a > 0:
+            if sum_a > 1e-9: # Precision-safe threshold
                 self.scorer.hypothesis_weights = self.posterior_alpha / sum_a
         elif self.mode == BayesianMode.POSTERIOR_ASSISTED:
             # Assisted mode uses a blend or bounded nudge
             self._apply_assisted_nudge()
+
+        latency_ms = (time.perf_counter() - t0) * 1000
+        if latency_ms > 1.0: # Only log heavy updates
+            _logger.debug("Bayesian: update_posterior_from_feedback latency: %.4f ms", latency_ms)
 
     def _apply_assisted_nudge(self):
         """Nudge the scorer's weights toward the posterior mean, staying within 'genome' caps."""
@@ -167,10 +181,18 @@ class BayesianInferenceEngine:
         target = self.posterior_alpha / sum_a
         # In assisted mode, we blend 40% toward posterior by default
         blend = float(os.environ.get("KERNEL_BAYESIAN_ASSISTED_BLEND", "0.4"))
+        if not math.isfinite(blend):
+            blend = 0.4
+            
         new_weights = (1.0 - blend) * DEFAULT_HYPOTHESIS_WEIGHTS + blend * target
 
         # Boundary caps (reusing logic from scorer if applicable or local)
         from .weighted_ethics_scorer import clamp_mixture_weights
+        
+        # Swarm Rule 2: Gap Closure (Anti-NaN)
+        if not np.all(np.isfinite(new_weights)):
+            _logger.error("Bayesian: Non-finite weight blend in assisted nudge. Aborting nudge.")
+            return
 
         self.scorer.hypothesis_weights = clamp_mixture_weights(new_weights)
 
@@ -180,6 +202,10 @@ class BayesianInferenceEngine:
         Directly shifts Dirichlet parameters based on discrete ethical events.
         0: Deontological, 1: Social, 2: Utilitarian
         """
+        if not math.isfinite(weight):
+            _logger.warning("Bayesian: Non-finite weight in record_event_update: %s. Using 1.0", weight)
+            weight = 1.0
+
         et = event_type.upper()
         if et == "POSITIVE_SOCIAL":
             self.posterior_alpha[1] += weight
@@ -195,6 +221,9 @@ class BayesianInferenceEngine:
             # Direct penalty to all poles to increase uncertainty (Dirichlet mass reduction)
             # but usually we want to penalize the winning pole's confidence.
             self.posterior_alpha = np.maximum(1.0, self.posterior_alpha - weight * 0.2)
+
+        # Swarm Rule 2: Hardening mass limits to avoid precision decay/overflow
+        self.posterior_alpha = np.clip(self.posterior_alpha, 1.0, 1e9)
 
         # Apply update to the scorer weights if mode allows
         self.update_posterior_from_feedback(self.posterior_alpha)

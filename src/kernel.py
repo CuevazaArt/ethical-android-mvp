@@ -16,6 +16,7 @@ import logging
 import os
 import threading
 import time
+import numpy as np
 from collections.abc import AsyncGenerator, Callable
 from concurrent.futures import ThreadPoolExecutor
 from dataclasses import dataclass
@@ -421,6 +422,23 @@ class EthicalKernel:
 
         # OGA / Hybrid DAO Infrastructure (Phase 1.1)
         self.dao = co.dao if co and co.dao is not None else DAOOrchestrator()
+        
+        # Inject DAO reference for state persistence (S.4)
+        if hasattr(self.bayesian, "dao") or True: # Force injection
+            self.bayesian.dao = self.dao
+            
+        # ── PHASE S.4.2: Local Bayesian Persistence (LBP) Restore ──────────
+        # If we have a saved posterior_alpha in the DAO, restore it now to
+        # ensure ethical learning continuity across reboots.
+        if hasattr(self.bayesian, "update_posterior_from_feedback") and self.dao:
+            try:
+                saved_alpha = self.dao.get_state("bayesian_posterior_alpha")
+                if saved_alpha and isinstance(saved_alpha, list):
+                    _log.info("EthicalKernel: Restoring bayesian posterior_alpha from DAO: %s", saved_alpha)
+                    # Convert back to numpy array via list
+                    self.bayesian.update_posterior_from_feedback(np.array(saved_alpha, dtype=np.float64))
+            except Exception as e:
+                _log.error("EthicalKernel: Failed to restore bayesian state from OGA: %s", e)
         self.safety_interlock = (
             co.safety_interlock if co and co.safety_interlock is not None else SafetyInterlock()
         )
@@ -837,11 +855,20 @@ class EthicalKernel:
 
     def register_turn_feedback(self, event_type: str, weight: float = 1.0):
         """
-        Record the outcome of a turn to update ethical priors.
+        Record the outcome of a turn to update ethical priors and persist to DB (S.4.1).
         Supported events: POSITIVE_SOCIAL, LEGAL_COMPLIANCE, UTILITY_SUCCESS, DAO_FORGIVENESS, PENALTY.
         """
         if hasattr(self.bayesian, "record_event_update"):
             self.bayesian.record_event_update(event_type, weight)
+            
+            # Immediate Persistence for LBP (Local Bayesian Persistence)
+            if hasattr(self.bayesian, "posterior_alpha") and self.dao:
+                try:
+                    alpha_list = self.bayesian.posterior_alpha.tolist()
+                    self.dao.set_state("bayesian_posterior_alpha", alpha_list)
+                except Exception as e:
+                    _log.error("EthicalKernel: Failed to persist bayesian state on feedback: %s", e)
+
         self.feedback_ledger.record("direct_event", event_type)
 
     def get_constitution_snapshot(self) -> dict[str, Any]:
@@ -973,6 +1000,15 @@ class EthicalKernel:
              
         self._emit_kernel_decision(d, context=context)
         _emit_process_observability(d, t0)
+        
+        # ════ S.4: PERSISTENT ETHICAL LEARNING ════
+        if hasattr(self.bayesian, "posterior_alpha") and self.dao:
+            try:
+                alpha_list = self.bayesian.posterior_alpha.tolist()
+                self.dao.set_state("bayesian_posterior_alpha", alpha_list)
+            except Exception as e:
+                _log.error("EthicalKernel: Failed to persist bayesian state: %s", e)
+
         return d
 
 
@@ -1377,6 +1413,23 @@ class EthicalKernel:
         sorted_active = sorted(active_principles, key=lambda n: rank.get(n, 100))
         return priority_profile, sorted_active
 
+    def _lbp_heartbeat(self):
+        """
+        S.4.1: Local Bayesian Persistence (LBP) Heartbeat.
+        Registers the current posterior_alpha in the DAO audit trail and optionally
+        forces a disk checkpoint sync.
+        """
+        if not _kernel_env_truthy("KERNEL_LBP_ENABLED"):
+            return
+        
+        alpha_list = self.bayesian.posterior_alpha.tolist()
+        self.dao.register_audit("calibration", f"LBP_PULSE: alpha={alpha_list}")
+        self.dao.set_state("bayesian_posterior_alpha", alpha_list)
+        
+        if _kernel_env_truthy("KERNEL_LBP_FORCE_DISK"):
+            from src.persistence.checkpoint import try_save_checkpoint
+            try_save_checkpoint(self)
+
     async def process_chat_turn_stream(
         self,
         user_input: str,
@@ -1550,8 +1603,8 @@ class EthicalKernel:
                 from .modules.nomad_bridge import get_nomad_bridge
                 try:
                     get_nomad_bridge().charm_feedback_queue.put_nowait(stylized.charm_vector)
-                except Exception:
-                    pass
+                except Exception as e:
+                    _log.debug("Nomad Bridge: Failed to queue charm feedback: %s", e)
             
             res = ChatTurnResult(
                 response=final_response,
@@ -1568,6 +1621,7 @@ class EthicalKernel:
             )
             wm.add_turn(user_input, final_response.message, stage.signals, heavy_kernel=(decision.decision_mode == "heavy"))
             self._snapshot_feedback_anchor(res.path)
+            self._lbp_heartbeat()
             yield {"event_type": "turn_finished", "payload": {"result": res}}
         finally:
             clear_llm_cancel_scope()
@@ -1604,9 +1658,18 @@ class EthicalKernel:
         
         if mal_edge.blocked:
             self._last_chat_malabs = mal_edge
-            vitality_blk, mm_blk, ed_blk = self.perceptive_lobe._chat_assess_sensor_stack(sensor_snapshot)
+            from src.modules.vitality import assess_vitality
+            from src.modules.multimodal_trust import evaluate_multimodal_trust
+            from src.modules.epistemic_dissonance import assess_epistemic_dissonance
+            
+            vitality_blk = assess_vitality(sensor_snapshot)
+            mm_blk = evaluate_multimodal_trust(sensor_snapshot)
+            ed_blk = assess_epistemic_dissonance(sensor_snapshot, multimodal=mm_blk)
+            
             self._last_multimodal_assessment = mm_blk
             self._last_vitality_assessment = vitality_blk
+            
+            from src.modules.perception_confidence import build_perception_confidence_envelope
             confidence_blk = build_perception_confidence_envelope(
                 coercion_report=None,
                 multimodal_state=getattr(mm_blk, "state", None),
@@ -1879,8 +1942,8 @@ class EthicalKernel:
                     "gesture_plan": stylized.gesture_plan,
                     "haptic_plan": stylized.haptic_plan  # Phase 10.2
                 })
-            except Exception:
-                pass
+            except Exception as e:
+                _log.debug("Nomad Bridge: Failed to queue multimodal feedback: %s", e)
 
 
         res = ChatTurnResult(
@@ -1898,6 +1961,7 @@ class EthicalKernel:
         )
         wm.add_turn(user_input, final_response.message, stage.signals, heavy_kernel=heavy)
         self._snapshot_feedback_anchor(res.path)
+        self._lbp_heartbeat()
         self._release_chat_turn_id(chat_turn_id)
         return res
 

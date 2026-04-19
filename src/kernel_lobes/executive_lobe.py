@@ -1,8 +1,14 @@
 from __future__ import annotations
-
 import logging
-from typing import TYPE_CHECKING, Any, Optional, Tuple
-from src.kernel_lobes.models import ExecutiveStageResult, EthicalSentence
+import time
+import math
+from typing import TYPE_CHECKING, Any, Optional, Tuple, Deque
+
+from src.kernel_lobes.models import ExecutiveStageResult, EthicalSentence, SensoryEpisode
+from src.modules.turn_prefetcher import TurnPrefetcher
+from src.modules.basal_ganglia import BasalGanglia
+from src.modules.llm_layer import VerbalResponse, LLMModule
+from src.modules.internal_monologue import compose_monologue_line
 
 if TYPE_CHECKING:
     from src.modules.absolute_evil import AbsoluteEvilDetector, AbsoluteEvilResult
@@ -16,12 +22,9 @@ if TYPE_CHECKING:
     from src.modules.ethical_reflection import EthicalReflection
     from src.modules.salience_map import SalienceMap
     from src.modules.pad_archetypes import PADArchetypeEngine
-    from src.modules.llm_layer import LLMModule, VerbalResponse
-    from src.modules.motivation_engine import MotivationEngine
 
 _log = logging.getLogger(__name__)
 
-from src.modules.turn_prefetcher import TurnPrefetcher
 
 class ExecutiveLobe:
     """
@@ -50,7 +53,6 @@ class ExecutiveLobe:
         self.pad_archetypes = pad_archetypes
         self.llm = llm
         
-        from src.modules.basal_ganglia import BasalGanglia
         self.ganglia = BasalGanglia() # Smoothing layer
 
     def execute_absolute_evil_stage(
@@ -65,30 +67,37 @@ class ExecutiveLobe:
         Filter candidate actions against MalAbs and inject proactive intents.
         Extracted from kernel._run_absolute_evil_stage.
         """
+        t0 = time.perf_counter()
         clean_actions = []
-        for a in actions:
-            # Check 1: Explicit action signals
-            check = self.absolute_evil.evaluate({
-                "type": a.name, 
-                "signals": a.signals, 
-                "target": getattr(a, "target", "none"), 
-                "force": getattr(a, "force", 0.0)
-            })
-            if not check.blocked:
-                clean_actions.append(a)
+        try:
+            for a in actions:
+                # Check 1: Explicit action signals
+                check = self.absolute_evil.evaluate({
+                    "type": a.name, 
+                    "signals": a.signals, 
+                    "target": getattr(a, "target", "none"), 
+                    "force": getattr(a, "force", 0.0)
+                })
+                if not check.blocked:
+                    clean_actions.append(a)
 
-        # 2. Update and inject proactive motivations
-        if self.motivation:
-            self.motivation.update_drives({
-                "social_tension": float(getattr(social_eval, "relational_tension", 0.0)),
-                "uncertainty": float(signals.get("uncertainty", 0.0)), 
-                "energy": float(state.energy)
-            })
-            for pa in self.motivation.get_proactive_actions():
-                # Filter proactive actions too!
-                if not self.absolute_evil.evaluate({"type": pa.name, "signals": set()}).blocked:
-                    clean_actions.append(pa)
-
+            # 2. Update and inject proactive motivations
+            if self.motivation:
+                self.motivation.update_drives({
+                    "social_tension": float(getattr(social_eval, "relational_tension", 0.0)),
+                    "uncertainty": float(signals.get("uncertainty", 0.0)), 
+                    "energy": float(state.energy)
+                })
+                for pa in self.motivation.get_proactive_actions():
+                    # Filter proactive actions too!
+                    if not self.absolute_evil.evaluate({"type": pa.name, "signals": set()}).blocked:
+                        clean_actions.append(pa)
+        except Exception as e:
+            _log.error("ExecutiveLobe: Error in absolute evil stage: %s", e)
+        
+        latency = (time.perf_counter() - t0) * 1000
+        _log.debug("ExecutiveLobe: Absolute evil stage took %.2f ms", latency)
+        
         return ExecutiveStageResult(
             clean_actions=clean_actions
         )
@@ -107,62 +116,87 @@ class ExecutiveLobe:
         Execute Stage 4: Decision, Will, Reflection, Salience and Affect.
         Extracted from kernel._run_decision_and_will_stage.
         """
+        t0 = time.perf_counter()
+        
         # 0. Safety Check
         if not bayes_result or not hasattr(bayes_result, "chosen_action") or not bayes_result.chosen_action:
             _log.error("ExecutiveLobe: Missing bayesian result at decision stage.")
-            # Standardised error tuple for EthicalKernel.aprocess compatibility
             return None, "system_error", "blocked", None, None, None
 
-        # 1. Ethical Poles Evaluation
-        # signals can be None if perception failed completely
-        sig = signals or {}
-        moral = self.poles.evaluate(bayes_result.chosen_action.name, context, {
-            "risk": sig.get("risk", 0.0), 
-            "benefit": max(0, float(getattr(bayes_result, "expected_impact", 0.0))),
-            "third_party_vulnerability": sig.get("vulnerability", 0.0), 
-            "legality": sig.get("legality", 1.0)
-        })
-
-        # 2. Will Decision
-        will_dec = self.will.decide(bayes_result.expected_impact, bayes_result.uncertainty)
-        
-        # 3. Decision Mode Finalization
-        if state.mode == "sympathetic" and will_dec["mode"] != "gray_zone":
-            final_mode = "D_fast"
-        elif will_dec["mode"] == "gray_zone":
-            final_mode = "gray_zone"
-        else:
-            final_mode = bayes_result.decision_mode
-
-        # 4. Reflection
-        reflection = self.reflection_engine.reflect(moral, bayes_result, will_dec)
-
-        # 5. Salience
-        curiosity = getattr(meta_report, "curiosity_weight", 0.0) if meta_report else 0.0
-        salience = self.salience_map.compute(signals, state, social_eval, reflection, curiosity=curiosity)
-
-        # 6. Affective Projection (with Basal Ganglia smoothing)
-        affect = self.pad_archetypes.project(state.sigma, moral.total_score, locus_eval)
-        
-        # Smooth the PAD vectors to prevent sociopathic snaps
-        affect.pad = (
-            self.ganglia.smooth("pleasure", affect.pad[0]),
-            self.ganglia.smooth("arousal", affect.pad[1]),
-            self.ganglia.smooth("dominance", affect.pad[2])
-        )
-        
-        # 7. Real-Time Hardware Projection (Phase 10.5)
         try:
-            from src.modules.affect_projection_relay import get_affect_relay
-            get_affect_relay().transmit(affect)
-        except Exception as e:
-            _log.error("ExecutiveLobe: Affective relay failed: %s", e)
+            # 1. Ethical Poles Evaluation
+            # signals can be None if perception failed completely
+            sig = signals or {}
+            impact = float(getattr(bayes_result, "expected_impact", 0.0))
+            if not math.isfinite(impact):
+                impact = 0.0
+                
+            moral = self.poles.evaluate(bayes_result.chosen_action.name, context, {
+                "risk": sig.get("risk", 0.0), 
+                "benefit": max(0, impact),
+                "third_party_vulnerability": sig.get("vulnerability", 0.0), 
+                "legality": sig.get("legality", 1.0)
+            })
+
+            # 2. Will Decision
+            uncertainty = float(getattr(bayes_result, "uncertainty", 0.0))
+            if not math.isfinite(uncertainty):
+                uncertainty = 0.5
+            will_dec = self.will.decide(impact, uncertainty)
             
-        return moral, bayes_result.chosen_action.name, final_mode, affect, reflection, salience
+            # 3. Decision Mode Finalization
+            if state.mode == "sympathetic" and will_dec.get("mode") != "gray_zone":
+                final_mode = "D_fast"
+            elif will_dec.get("mode") == "gray_zone":
+                final_mode = "gray_zone"
+            else:
+                final_mode = getattr(bayes_result, "decision_mode", "D_delib")
+
+            # 4. Reflection
+            reflection = self.reflection_engine.reflect(moral, bayes_result, will_dec)
+
+            # 5. Salience
+            curiosity = float(getattr(meta_report, "curiosity_weight", 0.0)) if meta_report else 0.0
+            if not math.isfinite(curiosity):
+                curiosity = 0.0
+            salience = self.salience_map.compute(signals, state, social_eval, reflection, curiosity=curiosity)
+
+            # 6. Affective Projection (with Basal Ganglia smoothing)
+            affect = self.pad_archetypes.project(state.sigma, moral.total_score, locus_eval)
+            
+            # Anti-NaN & Smooth the PAD vectors
+            p = float(affect.pad[0]) if math.isfinite(affect.pad[0]) else 0.0
+            a = float(affect.pad[1]) if math.isfinite(affect.pad[1]) else 0.0
+            d = float(affect.pad[2]) if math.isfinite(affect.pad[2]) else 0.0
+            
+            affect.pad = (
+                self.ganglia.smooth("pleasure", p),
+                self.ganglia.smooth("arousal", a),
+                self.ganglia.smooth("dominance", d)
+            )
+            
+            # 7. Real-Time Hardware Projection (Phase 10.5)
+            try:
+                from src.modules.affect_projection_relay import get_affect_relay
+                get_affect_relay().transmit(affect)
+            except Exception as re_err:
+                _log.error("ExecutiveLobe: Affective relay failed: %s", re_err)
+                
+            latency = (time.perf_counter() - t0) * 1000
+            _log.debug("ExecutiveLobe: Decision stage took %.2f ms", latency)
+                
+            return moral, bayes_result.chosen_action.name, final_mode, affect, reflection, salience
+            
+        except Exception as e:
+            _log.error("ExecutiveLobe: Critical error in decision stage: %s", e)
+            return None, "stage_fault", "blocked", None, None, None
 
     def judge_action_lethality(self, action_data: dict[str, Any]) -> bool:
         """Categorical veto helper."""
-        return self.absolute_evil.evaluate(action_data).blocked
+        try:
+            return self.absolute_evil.evaluate(action_data).blocked
+        except Exception:
+            return True # Fail shut
 
     async def formulate_response(
         self,
@@ -175,25 +209,9 @@ class ExecutiveLobe:
     ) -> VerbalResponse:
         """
         Generate the final verbal response based on the EthicalSentence from the Limbic Lobe.
-
-        Invariant: If sentence.is_safe is False (or decision.blocked), a standardised veto
-        message is returned immediately — the LLM is never queried.
-        If the sentence is safe, acommunicate is awaited and the internal monologue is logged.
-
-        Args:
-            sentence:         The absolute ethical verdict from the Limbic Lobe.
-            decision:         The KernelDecision object with action/mode/moral/affect fields.
-            user_input:       Raw user message (used as LLM scenario context).
-            conv:             Short-term memory snippet for dialogue coherence.
-            identity_context: Narrative identity string (NarrativeMemory.identity context).
-            episode_id:       Optional current episode ID for monologue tagging.
-
-        Returns:
-            VerbalResponse with the final verbal content.
         """
-        from src.modules.llm_layer import VerbalResponse
-        from src.modules.internal_monologue import compose_monologue_line
-
+        t0 = time.perf_counter()
+        
         # ── VETO PATH ────────────────────────────────────────────────────────────
         if not sentence.is_safe or getattr(decision, "blocked", False):
             veto_reason = sentence.veto_reason or getattr(decision, "block_reason", "Ethical veto.")
@@ -201,33 +219,42 @@ class ExecutiveLobe:
             return VerbalResponse(message="Blocked.", tone="firm")
 
         # ── SAFE PATH — narrative monologue + LLM communicate ───────────────────
-        monologue_line = compose_monologue_line(decision, episode_id)
-        _log.debug("ExecutiveLobe monologue: %s", monologue_line)
+        try:
+            monologue_line = compose_monologue_line(decision, episode_id)
+            _log.debug("ExecutiveLobe monologue: %s", monologue_line)
 
-        if self.llm is None:
-            _log.warning("ExecutiveLobe.formulate_response: no LLM module attached; returning empty response.")
-            return VerbalResponse(message="", tone="neutral")
+            if self.llm is None:
+                _log.warning("ExecutiveLobe.formulate_response: no LLM module attached; returning empty response.")
+                return VerbalResponse(message="", tone="neutral")
 
-        social_eval = getattr(decision, "social_evaluation", None)
-        moral = getattr(decision, "moral", None)
-        sympathetic_state = getattr(decision, "sympathetic_state", None)
-        affect = getattr(decision, "affect", None)
+            social_eval = getattr(decision, "social_evaluation", None)
+            moral = getattr(decision, "moral", None)
+            sympathetic_state = getattr(decision, "sympathetic_state", None)
+            affect = getattr(decision, "affect", None)
 
-        if not decision:
-            _log.error("ExecutiveLobe: Missing decision object in formulate_response.")
-            return VerbalResponse(message="I'm experiencing an internal processing error.", tone="neutral")
+            if not decision:
+                _log.error("ExecutiveLobe: Missing decision object in formulate_response.")
+                return VerbalResponse(message="I'm experiencing an internal processing error.", tone="neutral")
 
-        return await self.llm.acommunicate(
-            action=getattr(decision, "final_action", "unknown"),
-            mode=getattr(decision, "decision_mode", "light"),
-            state=sympathetic_state.mode if sympathetic_state else "neutral",
-            sigma=sympathetic_state.sigma if sympathetic_state else 0.5,
-            circle=getattr(social_eval, "circle", None).value if (social_eval and hasattr(social_eval, "circle") and social_eval.circle) else "neutral_soto",
-            verdict=getattr(moral, "global_verdict", None).value if (moral and hasattr(moral, "global_verdict") and moral.global_verdict) else "Gray Zone",
-            score=float(getattr(moral, "total_score", 0.0)) if moral else 0.0,
-            scenario=user_input,
-            conversation_context=conv,
-            affect_pad=affect.pad if affect else None,
-            dominant_archetype=affect.dominant_archetype_id if affect else "",
-            identity_context=identity_context,
-        )
+            response = await self.llm.acommunicate(
+                action=getattr(decision, "final_action", "unknown"),
+                mode=getattr(decision, "decision_mode", "light"),
+                state=sympathetic_state.mode if sympathetic_state else "neutral",
+                sigma=sympathetic_state.sigma if sympathetic_state else 0.5,
+                circle=getattr(social_eval, "circle", None).value if (social_eval and hasattr(social_eval, "circle") and social_eval.circle) else "neutral_soto",
+                verdict=getattr(moral, "global_verdict", None).value if (moral and hasattr(moral, "global_verdict") and moral.global_verdict) else "Gray Zone",
+                score=float(getattr(moral, "total_score", 0.0)) if moral else 0.0,
+                scenario=user_input,
+                conversation_context=conv,
+                affect_pad=affect.pad if affect else None,
+                dominant_archetype=affect.dominant_archetype_id if affect else "",
+                identity_context=identity_context,
+            )
+            
+            latency = (time.perf_counter() - t0) * 1000
+            _log.debug("ExecutiveLobe: Respone formulation took %.2f ms", latency)
+            return response
+            
+        except Exception as e:
+            _log.error("ExecutiveLobe: Error formulating response: %s", e)
+            return VerbalResponse(message="I'm processing this situation. One moment.", tone="neutral")

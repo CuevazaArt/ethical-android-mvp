@@ -7,6 +7,18 @@ All notable changes to this project are summarized here. For narrative context a
 **[URGENT ΓÇö broadcast to all L2 integration hubs]:** All teams (Claude, Cursor, Copilot) should urgently `git pull` from `main` into their `master-*` branches. Outdated branches risk severe documentation path drift.
 
 ### Antigravity-Team Updates (2026-04-18 - Session 2)
+### Antigravity-Team Updates (2026-04-19 - Session 6)
+
+- [x] **PERSISTENT ETHICAL LEARNING (Tarea S.4.1 & S.4.2)**:
+    - **Local Bayesian Persistence (LBP)**: Habilitado el almacenamiento persistente de priors éticos en `audit_trail.db` vía `DAOOrchestrator.kernel_state`.
+    - **Session Recovery**: Refactorizado `CerebellumLobe` para restaurar los priors desde el DAO al inicio de cada turno, cerrando el "Bloque de Amnesia" identificado en la auditoría de madurez.
+    - **Feedback Hardening**: Forzada la persistencia inmediata de aprendizaje tras cada `register_turn_feedback` para garantizar integridad emocional ante reinicios súbitos.
+    - **Regressions Fixed**: Reparados fallos de `NameError` y `SyntaxError` en los lóbulos de percepción, ejecutivo y memoria heredados de la consolidación.
+    - **Verification**: Validado el flujo completo con `tests/test_bayesian_persistence.py` (100% Pass).
+    - **Trauma Calibration**: Ajustada la fórmula de estrés traumático a `trauma_magnitude * 0.4`, logrando una desviación significativa (~0.4) en la tensión relacional para posturas defensivas.
+    - **Anti-NaN Hardening**: Aplicadas reglas Boy Scout de Swarm a `bayesian_engine.py`, protegiendo el estado de priors contra valores no finitos (`math.isfinite`).
+    - **Adversarial Pass**: Superado el `adversarial_suite.py` tras sellado final del manifest.
+
 ### Antigravity-Team Updates (2026-04-19 - Session 5)
 
 - [x] **KERNEL CONSOLIDATION & REDUNDANCY SCAN (Tarea S.3.1)**:

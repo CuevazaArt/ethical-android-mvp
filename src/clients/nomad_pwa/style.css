@@ -33,6 +33,17 @@ body {
     height: 100%;
     background: radial-gradient(circle at 50% 50%, #1E293B 0%, #0F172A 100%);
     z-index: -1;
+    transition: background 1.5s ease-in-out;
+}
+
+.state-alert .mesh-background {
+    background: radial-gradient(circle at 50% 50%, #7F1D1D 0%, #450A0A 100%);
+    animation: danger-pulse 4s infinite alternate;
+}
+
+@keyframes danger-pulse {
+    from { opacity: 0.8; }
+    to { opacity: 1; }
 }
 
 .app-container {
@@ -111,6 +122,20 @@ body {
     100% { transform: scale(1); filter: brightness(1); }
 }
 
+.state-alert .affect-orb {
+    background: radial-gradient(circle at 30% 30%, #EF4444, #7F1D1D);
+    box-shadow: 0 0 70px rgba(239, 68, 68, 0.6);
+    animation: orb-vibrate 0.1s infinite;
+}
+
+@keyframes orb-vibrate {
+    0% { transform: translate(0,0) scale(1); }
+    25% { transform: translate(2px, -2px) scale(1); }
+    50% { transform: translate(-2px, 2px) scale(1); }
+    75% { transform: translate(2px, 2px) scale(1); }
+    100% { transform: translate(-2px, -2px) scale(1); }
+}
+
 .affect-orb.speaking {
     animation: speak-pulse 0.4s infinite alternate;
 }
@@ -148,6 +173,13 @@ body {
 
 .transcript.placeholder {
     color: var(--text-dim);
+}
+
+.state-alert .transcript {
+    color: #FCA5A5;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 2px;
 }
 
 .bottom-controls {

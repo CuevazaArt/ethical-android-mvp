@@ -75,7 +75,7 @@ class LimbicEthicalLobe:
         
         # Inject somatic, situational and identity trauma tension into social evaluation
         # Trauma (Broken Mirror) creates a baseline irritability / hyper-vigilance
-        trauma_stress = trauma_magnitude * 0.3
+        trauma_stress = trauma_magnitude * 0.4
         total_stress_nudge = somatic_tension + (self.situational_stress * 0.5) + trauma_stress
         
         if hasattr(social_eval, "relational_tension") and total_stress_nudge > 0:

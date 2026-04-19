@@ -1,7 +1,8 @@
+from __future__ import annotations
 import asyncio
 import os
 import time
-from typing import Optional
+from typing import Optional, Any, TYPE_CHECKING, Deque
 
 import httpx
 
@@ -299,6 +300,8 @@ class PerceptiveLobe:
 
         return payload
 
+    def _parse_llm_response(self, llm_result: Any, raw_input: str) -> SemanticState:
+        """Parse LLM response and extract semantic signals."""
         if not isinstance(llm_result, dict):
             response_text = ""
         else:

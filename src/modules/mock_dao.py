@@ -137,6 +137,7 @@ class MockDAO:
         self.alerts: list[SolidarityAlert] = []
         self._proposal_counter = 0
         self._record_counter = 0
+        self._state_store: dict[str, Any] = {}
 
         self._initialize_community()
 
@@ -405,6 +406,7 @@ class MockDAO:
                 asdict(p) for p in sorted(self.participants.values(), key=lambda x: x.id)
             ],
             "proposals": [asdict(p) for p in self.proposals],
+            "state_store": dict(self._state_store),
         }
 
     def import_state(self, data: dict[str, Any] | None) -> None:
@@ -444,6 +446,15 @@ class MockDAO:
                     timestamp=d.get("timestamp", ""),
                 )
             )
+        self._state_store = dict(data.get("state_store") or {})
+
+    def get_state(self, key: str, default: Any = None) -> Any:
+        """S.4.2: Retrieve a value from the DAO's persistent state store."""
+        return self._state_store.get(key, default)
+
+    def set_state(self, key: str, value: Any) -> None:
+        """S.4.1: Persist a value in the DAO's persistent state store."""
+        self._state_store[key] = value
 
     def format_status(self) -> str:
         """Format current DAO status for display."""

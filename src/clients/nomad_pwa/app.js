@@ -24,6 +24,13 @@ const PC_IP = window.location.hostname || "127.0.0.1";
 const WS_PORT = window.location.port || "8765"; // Use current port or default to 8765
 
 /**
+ * Reconnection Logic (Bloque F.4: Claude)
+ */
+let reconnectAttempts = 0;
+const MAX_RECONNECT_ATTEMPTS = 5;
+const RECONNECT_DELAY_BASE = 2000;
+
+/**
  * Battery & Kinetic Telemetry (Replaced Temp due to browser security)
  */
 let lastKineticPulse = 0;
@@ -215,6 +222,16 @@ function connectKernel() {
             UI.btnConnect.innerText = "Reconnect";
             UI.btnStream.disabled = true;
             UI.btnStream.classList.add('inactive');
+
+            // Trigger reconnection (Claude's backoff)
+            if (reconnectAttempts < MAX_RECONNECT_ATTEMPTS) {
+                const delay = RECONNECT_DELAY_BASE * Math.pow(2, reconnectAttempts);
+                UI.statusText.innerText = `Retrying in ${delay / 1000}s...`;
+                setTimeout(() => {
+                    reconnectAttempts++;
+                    connectKernel();
+                }, delay);
+            }
         };
 
         // Antigravity & Cursor - add wsNomad initialization for the sensor stream

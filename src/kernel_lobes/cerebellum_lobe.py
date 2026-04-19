@@ -42,8 +42,19 @@ class CerebellumLobe:
         Run Bayesian scoring and BMA.
         Extracted from kernel._run_bayesian_stage.
         """
-        # 0. Sync Scorer and Priors (High-Friction Reset)
-        self.bayesian.reset()
+        # 0. Sync Scorer and Priors (High-Friction Restorative Logic)
+        from src.modules.dao_orchestrator import DAOOrchestrator
+        priors = None
+        if hasattr(self.bayesian, "dao") and isinstance(self.bayesian.dao, DAOOrchestrator):
+             priors = self.bayesian.dao.get_state("bayesian_posterior_alpha")
+        elif os.environ.get("KERNEL_BAYESIAN_PERSISTENCE", "0") == "1":
+             # If we have a global reference, we would load it here
+             pass
+
+        if priors:
+            self.bayesian.update_posterior_from_feedback(priors)
+        else:
+            self.bayesian.reset()
 
         # 1. Update Strategic Alignment
         for a in clean_actions:

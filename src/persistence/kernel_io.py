@@ -157,6 +157,7 @@ def extract_snapshot(kernel: EthicalKernel) -> KernelSnapshotV1:
         bayesian_pruning_threshold=kernel.bayesian.pruning_threshold,
         bayesian_gray_zone_threshold=kernel.bayesian.gray_zone_threshold,
         bayesian_hypothesis_weights=[float(x) for x in kernel.bayesian.hypothesis_weights],
+        bayesian_posterior_alpha=[float(x) for x in kernel.bayesian.posterior_alpha],
         locus_alpha=kernel.locus.alpha,
         locus_beta=kernel.locus.beta,
         locus_success_history=kernel.locus.success_history,
@@ -242,6 +243,12 @@ def apply_snapshot(kernel: EthicalKernel, snap: KernelSnapshotV1) -> None:
         for i, x in enumerate(snap.bayesian_hypothesis_weights)
     ]
     kernel.bayesian.hypothesis_weights = np.array(hw_list, dtype=float)
+    
+    alpha_list = [
+        _finite_float(x, f"bayesian_posterior_alpha[{i}]")
+        for i, x in enumerate(getattr(snap, "bayesian_posterior_alpha", [1.0, 1.0, 1.0]))
+    ]
+    kernel.bayesian.posterior_alpha = np.array(alpha_list, dtype=float)
 
     lo = kernel.locus
     lo.alpha = max(lo.ALPHA_MIN, min(lo.ALPHA_MAX, snap.locus_alpha))

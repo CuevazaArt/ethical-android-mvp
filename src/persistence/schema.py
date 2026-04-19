@@ -5,7 +5,7 @@ from __future__ import annotations
 from dataclasses import dataclass, field
 from typing import Any
 
-SCHEMA_VERSION = 4
+SCHEMA_VERSION = 5
 
 
 @dataclass
@@ -39,6 +39,7 @@ class KernelSnapshotV1:
     bayesian_pruning_threshold: float = 0.3
     bayesian_gray_zone_threshold: float = 0.15
     bayesian_hypothesis_weights: list[float] = field(default_factory=lambda: [0.4, 0.35, 0.25])
+    bayesian_posterior_alpha: list[float] = field(default_factory=lambda: [1.0, 1.0, 1.0])
 
     # LocusModule
     locus_alpha: float = 1.0
