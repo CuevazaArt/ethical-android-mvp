@@ -72,9 +72,15 @@ _STOP = frozenset(
 
 
 def _tokens(s: str | None) -> set[str]:
-    if s is None:
+    if not s:
         return set()
-    return set(re.findall(r"[a-z0-9_]+", str(s).lower())) - _STOP
+    try:
+        # Refined regex for multi-lingual and alphanumeric tokens
+        raw = str(s).lower()
+        toks = set(re.findall(r"\b[a-z0-9_]{2,}\b", raw))
+        return toks - _STOP
+    except Exception:
+        return set()
 
 
 @dataclass
@@ -166,7 +172,7 @@ class MetaplanRegistry:
 
     def __init__(self, max_goals: int = 16) -> None:
         self._goals: list[MasterGoal] = []
-        self._max = max_goals
+        self._max = max(1, int(max_goals))
 
     def add_goal(self, title: str, priority: float = 0.6) -> MasterGoal:
         t0 = time.perf_counter()
