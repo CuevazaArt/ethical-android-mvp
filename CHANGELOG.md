@@ -7,6 +7,29 @@ All notable changes to this project are summarized here. For narrative context a
 **[URGENT ΓÇö broadcast to all L2 integration hubs]:** All teams (Claude, Cursor, Copilot) should urgently `git pull` from `main` into their `master-*` branches. Outdated branches risk severe documentation path drift.
 
 ### Antigravity-Team Updates (2026-04-18 - Session 2)
+### Antigravity-Team Updates (2026-04-19 - Session 5)
+
+- [x] **KERNEL CONSOLIDATION & REDUNDANCY SCAN (Tarea S.3.1)**:
+    - **Backporting Utilities**: Movido `kernel_mixture_scorer` y `kernel_dao_as_mock` a `src/kernel_utils.py` para reducir el acoplamiento circular.
+    - **Model Consolidation**: Unificada la definición de `BayesianStageMetadata` en `src/kernel_lobes/models.py`, eliminando la copia redundante de `kernel.py`.
+    - **Shim Cleanup**: Limpieza exhaustiva de re-exports obsoletos en `bayesian_engine.py` (ej. `CandidateAction` alias).
+    - **Manifest Hardening**: Reparado `scripts/generate_secure_boot_manifest.py` para incluir el sesgo criptográfico (RoT Anchor) del Kernel, resolviendo fallos persistentes en el Chain of Trust.
+
+### Antigravity-Team Updates (2026-04-19 - Session 4)
+
+- [x] **BAYESIAN RLHF HARDENING (Tarea C.1.1 & C.1.2)**: 
+    - Implementada modulación no lineal en `BayesianEngine` basada en confianza RLHF (`confidence ** 2`).
+    - Añadida lógica de **Priors Específicos por Categoría** (ej. Social target para manipulación, Deontología extrema para riesgo letal).
+    - Hardened el pipeline con un script de validación matemática: `scripts/eval/eval_rlhf_alignment.py`.
+- [x] **IDENTITY & TRAUMA INTEGRATION (Tarea 11.1.1)**:
+    - Implementada magnitud de trauma ("Broken Mirror") en `identity_reflection.py`.
+    - Integrado el `trauma_delta` en `WeightedEthicsScorer`, forzando cambios en el apetito utilitario y rigidez deontológica según el estado afectivo.
+- [x] **NOMAD INFRASTRUCTURE & WIKI SYNC (Tarea S.1.1, S.2.1, W.1.1)**:
+    - Estabilizado el `NomadBridge` con tracking de latencia (RTT) y estados de salud del vessel.
+    - Implementado `.github/workflows/wiki_sync.yml` para sincronización proactiva de docs hacia GitHub Wiki.
+    - Exportado el Executive Summary Nomádico a la Wiki Pública.
+- [x] **SECURE BOOT RE-SEALING**: Actualizado `src/MANIFEST.json` para reflejar las modificaciones en mallas críticas y asegurar la cadena de confianza en el arranque.
+
 ### Antigravity-Team Updates (2026-04-19 - Session 3)
 
 - [x] **SWARM ORCHESTRATION (PnP Swarm Protocol & Delegation L2)**:
@@ -45,6 +68,7 @@ All notable changes to this project are summarized here. For narrative context a
     - Implemented persistent `httpx.AsyncClient` across the tri-lobe architecture to eliminate networking overhead in the event loop.
     - Integrated shared `aclient` in `EthicalKernel`, `LLMModule`, `SemanticChatGate`, and all HTTP/Ollama backends.
     - Optimized SQLite persistence with `PRAGMA journal_mode=WAL` and mandatory `sqlite_safe_write` locks in `DAOOrchestrator` and `SqlitePersistence`.
+    - **Modernization**: Transitioned `src/kernel_utils.py` to use `from __future__ import annotations` for cleaner type hinting.
     - Enhanced Prometheus observability: added `/metrics` support for real-time tracking of `limbic_tension` (regulation gap) and `ttft_seconds` (Time To First Token).
     - Hardened asychronous chat turn lifecycle in `chat_server.py` with streamlined TTFT recording and session resource management.
 - **REFACTOR (Block 0.1.3):** Successfully desmonolithized `EthicalKernel` perception logic.

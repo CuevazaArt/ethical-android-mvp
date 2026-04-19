@@ -42,8 +42,8 @@ class CerebellumLobe:
         Run Bayesian scoring and BMA.
         Extracted from kernel._run_bayesian_stage.
         """
-        # 0. Sync Scorer defaults (historical requirement)
-        self.bayesian.reset_mixture_weights()
+        # 0. Sync Scorer and Priors (High-Friction Reset)
+        self.bayesian.reset()
 
         # 1. Update Strategic Alignment
         for a in clean_actions:

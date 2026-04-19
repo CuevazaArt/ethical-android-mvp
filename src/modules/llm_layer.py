@@ -37,9 +37,9 @@ except ImportError:
 from .llm_http_cancel import raise_if_llm_cancel_requested
 from ..observability.metrics import observe_llm_completion_seconds
 from .llm_backends import (
-    AnthropicCompletion,
+    AnthropicLLMBackend,
     LLMBackend,
-    OllamaCompletion,
+    OllamaLLMBackend,
     TextCompletionBackend,
     coerce_to_llm_backend,
 )
@@ -363,7 +363,7 @@ class LLMModule:
         if self.mode == "ollama":
             if not HAS_HTTPX:
                 raise ValueError("Mode 'ollama' requires httpx (see requirements.txt)")
-            self._llm_backend = OllamaCompletion(
+            self._llm_backend = OllamaLLMBackend(
                 os.environ.get("OLLAMA_BASE_URL", "http://127.0.0.1:11434"),
                 self.ollama_model,
                 float(os.environ.get("OLLAMA_TIMEOUT", "120")),
@@ -374,7 +374,7 @@ class LLMModule:
             if api_key and HAS_ANTHROPIC:
                 self.client = anthropic.Anthropic(api_key=api_key)
                 self.mode = "api"
-                self._llm_backend = AnthropicCompletion(self.client, self.model)
+                self._llm_backend = AnthropicLLMBackend(self.client, self.model)
             elif self.mode == "api":
                 raise ValueError("Mode 'api' requires ANTHROPIC_API_KEY and pip install anthropic")
             else:
@@ -406,14 +406,6 @@ class LLMModule:
         """Unified adapter (completion + optional ``embedding``) when configured."""
         return self._llm_backend
 
-    @property
-    def _text_backend(self) -> LLMBackend | None:
-        """Backward-compatible name; same object as :meth:`llm_backend`."""
-        return self._llm_backend
-
-    @_text_backend.setter
-    def _text_backend(self, value: Any) -> None:
-        self._llm_backend = coerce_to_llm_backend(value)
 
     def _llm_completion(
         self,
@@ -470,9 +462,9 @@ class LLMModule:
         t2 = perception_dual_second_temperature()
         dual_model = perception_dual_ollama_model()
         try:
-            if dual_model and isinstance(self._llm_backend, OllamaCompletion):
+            if dual_model and isinstance(self._llm_backend, OllamaLLMBackend):
                 inf = self._llm_backend.info()
-                b2 = OllamaCompletion(
+                b2 = OllamaLLMBackend(
                     str(inf["base_url"]),
                     dual_model,
                     float(os.environ.get("OLLAMA_TIMEOUT", "120")),
@@ -514,9 +506,9 @@ class LLMModule:
         t2 = perception_dual_second_temperature()
         dual_model = perception_dual_ollama_model()
         try:
-            if dual_model and isinstance(self._llm_backend, OllamaCompletion):
+            if dual_model and isinstance(self._llm_backend, OllamaLLMBackend):
                 inf = self._llm_backend.info()
-                b2 = OllamaCompletion(
+                b2 = OllamaLLMBackend(
                     str(inf["base_url"]),
                     dual_model,
                     float(os.environ.get("OLLAMA_TIMEOUT", "120")),

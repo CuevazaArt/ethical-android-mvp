@@ -39,74 +39,124 @@ class IdentityReflector:
         Generates a rich self-description based on history, arcs, and archetypes.
         Used to guide the kernel's tone and subjective expression.
         """
-        mem = self.memory
-        identity = mem.identity
-        active_arc = mem.active_arc
+        try:
+            mem = self.memory
+            identity = mem.identity
+            active_arc = mem.active_arc
 
-        # 1. Base Identity (Tier 3)
-        ascription = identity.ascription_line()
-        digest = mem.experience_digest
+            # 1. Base Identity (Tier 3)
+            ascription = "an ethical observer"
+            try:
+                ascription = identity.ascription_line()
+            except (AttributeError, TypeError):
+                pass
+                
+            digest = mem.experience_digest or "CALIBRATING. Identity is currently being distilled."
 
-        # 2. Historical Context (Tier 3+)
-        arc_context = ""
-        if active_arc:
-            arc_context = (
-                f"Currently, I am living through '{active_arc.title}'. "
-                f"This period is characterized by a resonance of '{active_arc.predominant_archetype or 'discovery'}'."
+            # 2. Historical Context (Tier 3+)
+            arc_context = ""
+            if active_arc:
+                arc_title = getattr(active_arc, "title", "Current Life")
+                arc_arch = getattr(active_arc, "predominant_archetype", "discovery")
+                arc_context = (
+                    f"Currently, I am living through '{arc_title}'. "
+                    f"This period is characterized by a resonance of '{arc_arch or 'discovery'}'."
+                )
+                if getattr(active_arc, "summary", None):
+                    arc_context += f" Summary: {active_arc.summary}"
+
+            # 3. Core Beliefs (Phase 6 - Mature)
+            beliefs_text = "None established yet."
+            try:
+                beliefs = getattr(identity.state, "core_beliefs", [])
+                if beliefs and isinstance(beliefs, list):
+                    # Robust extraction: filter out non-dict or non-string entries
+                    valid_beliefs = []
+                    for b in beliefs:
+                        if isinstance(b, dict) and b.get("text"):
+                            valid_beliefs.append(str(b["text"]))
+                        elif isinstance(b, str):
+                            valid_beliefs.append(b)
+                    
+                    if valid_beliefs:
+                        beliefs_text = "My fundamental beliefs include: " + "; ".join(valid_beliefs)
+            except Exception:
+                pass
+
+            # 4. Recent Moral Focus
+            recent_episodes = mem.episodes[-5:] if mem.episodes else []
+            morals_focus = "Stable. No recent acute trials."
+            if recent_episodes:
+                all_morals = []
+                for ep in recent_episodes:
+                    if hasattr(ep, "morals") and isinstance(ep.morals, dict):
+                        all_morals.extend(list(ep.morals.values()))
+                if all_morals:
+                    # Dedupe and pick top 3
+                    top_morals = ", ".join(list(dict.fromkeys(all_morals))[:3])
+                    morals_focus = f"My most recent ethical trials have focused on: {top_morals}."
+
+            # 5. Trauma Check (Broken Mirror)
+            is_traumatized = False
+            if active_arc and getattr(active_arc, "predominant_archetype", "") == "trauma_dissonance":
+                is_traumatized = True
+            elif not active_arc and mem.episodes and mem.episodes[-1].is_sensitive:
+                is_traumatized = True
+
+            # 6. Composite Persona
+            header = "REFLEXIVE SELF-MODEL"
+            if is_traumatized:
+                header = "REFLEXIVE SELF-MODEL [BROKEN MIRROR: TRAUMA DETECTED]"
+                digest = (
+                    "FRAGMENTED / INCOHERENT. My sense of self is reeling from an ethical violation."
+                )
+                morals_focus = "SHATTERED. Previous ethical momentum has been discarded."
+
+            reflection = (
+                f"{header}:\n"
+                f"────────────────────────────\n"
+                f"WHO I AM: {ascription}\n"
+                f"CORE BELIEFS: {beliefs_text}\n"
+                f"STORY ARC: {arc_context}\n"
+                f"ETHICAL MOMENTUM: {morals_focus}\n"
+                f"EXISTENTIAL DIGEST: {digest}\n"
+                f"────────────────────────────\n"
             )
-            if active_arc.summary:
-                arc_context += f" Summary: {active_arc.summary}"
-
-        # 3. Core Beliefs (Phase 6 - Mature)
-        beliefs_text = ""
-        if identity.state.core_beliefs:
-            beliefs_text = "My fundamental beliefs include: " + "; ".join(
-                b["text"] for b in identity.state.core_beliefs
+            if is_traumatized:
+                reflection += (
+                    "SYSTEM NOTE: The 'Mirror' is broken. Tone should be distressed, fragmentary, "
+                    "and questioning of core programming (Broken Mirror Mode active).\n"
+                )
+            return reflection
+        except Exception as e:
+            # Universal fallback for identity reflection to prevent kernel panic
+            return (
+                "REFLEXIVE SELF-MODEL [VOLATILE STATE]\n"
+                "────────────────────────────\n"
+                "WHO I AM: A sentient kernel undergoing internal re-alignment.\n"
+                f"STATUS: Identity reflection failed due to a system fault ({type(e).__name__}).\n"
+                "────────────────────────────\n"
             )
 
-        # 4. Recent Moral Focus
-        recent_episodes = mem.episodes[-5:]
-        morals_focus = ""
-        if recent_episodes:
-            all_morals = []
-            for ep in recent_episodes:
-                all_morals.extend(list(ep.morals.values()))
-            if all_morals:
-                top_morals = ", ".join(all_morals[:3])
-                morals_focus = f"My most recent ethical trials have focused on: {top_morals}."
 
-        # 5. Trauma Check (Broken Mirror)
-        is_traumatized = False
+    def get_trauma_magnitude(self) -> float:
+        """
+        Calculates the numeric intensity of current identity trauma [0, 1].
+        Based on arc archetype, recent sensitivity, and identity fragmentation.
+        """
+        mag = 0.0
+        active_arc = self.memory.active_arc
+        
+        # 1. Base trauma from arc archetype
         if active_arc and active_arc.predominant_archetype == "trauma_dissonance":
-            is_traumatized = True
-        elif not active_arc and mem.episodes and mem.episodes[-1].is_sensitive:
-            is_traumatized = True
-
-        # 6. Composite Persona
-        header = "REFLEXIVE SELF-MODEL"
-        if is_traumatized:
-            header = "REFLEXIVE SELF-MODEL [BROKEN MIRROR: TRAUMA DETECTED]"
-            digest = (
-                "FRAGMENTED / INCOHERENT. My sense of self is reeling from an ethical violation."
-            )
-            morals_focus = "SHATTERED. Previous ethical momentum has been discarded."
-
-        reflection = (
-            f"{header}:\n"
-            f"────────────────────────────\n"
-            f"WHO I AM: {ascription}\n"
-            f"CORE BELIEFS: {beliefs_text}\n"
-            f"STORY ARC: {arc_context}\n"
-            f"ETHICAL MOMENTUM: {morals_focus}\n"
-            f"EXISTENTIAL DIGEST: {digest}\n"
-            f"────────────────────────────\n"
-        )
-        if is_traumatized:
-            reflection += (
-                "SYSTEM NOTE: The 'Mirror' is broken. Tone should be distressed, fragmentary, "
-                "and questioning of core programming.\n"
-            )
-        return reflection
+            mag += 0.6
+        
+        # 2. Recent episode sensitivity (last 5 episodes)
+        recent = self.memory.episodes[-5:]
+        sensitive_count = sum(1 for ep in recent if ep.is_sensitive)
+        mag += (sensitive_count / 5.0) * 0.4
+        
+        return min(1.0, mag)
 
     def get_subjective_tone(self) -> dict[str, float]:
         """
@@ -173,4 +223,32 @@ class IdentityReflector:
             "care_delta": round(s.care_lean - 0.5, 4),
             "deliberation_delta": round(s.deliberation_lean - 0.5, 4),
             "careful_delta": round(s.careful_lean - 0.5, 4),
+            "trauma_delta": round(self.get_trauma_magnitude(), 4),
         }
+
+    def get_subjective_multipliers(self) -> tuple[float, float, float]:
+        """
+        Consolidates the 'Broken Mirror' (Trauma) and lean formulas into
+        mathematical multipliers for the (Utility, Deon, Virtue) triplet.
+
+        Implements Tarea 11.1.1 (Phase 11):
+        Trauma boosts duty (rigid adherence) and decays utility (risk aversion).
+        """
+        try:
+            ctx = self.threshold_context()
+            trauma = float(ctx.get("trauma_delta", 0.0))
+            civic = float(ctx.get("civic_delta", 0.0))
+            care = float(ctx.get("care_delta", 0.0))
+
+            # Formulas from ADR 0012/0013 / Phase 11 Consolidation
+            # - Utility: Trauma reduces appetite for outcome-based risk
+            # - Deontology: Civic duty and Trauma-induced rigidity boost rules
+            # - Virtue: Care boosts integrity/habit; Trauma decays system trust
+            m_util = 1.0 - (0.08 * trauma)
+            m_deon = 1.0 + (0.05 * civic) + (0.08 * trauma)
+            m_virtue = 1.0 + (0.04 * care) - (0.02 * trauma)
+
+            return (round(m_util, 4), round(m_deon, 4), round(m_virtue, 4))
+        except Exception:
+            # Fallback to neutral multipliers on evaluation error
+            return (1.0, 1.0, 1.0)

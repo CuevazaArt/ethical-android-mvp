@@ -1,0 +1,59 @@
+name: Wiki Sync (Nomadic Docs)
+
+on:
+  push:
+    branches:
+      - main
+      - master-antigravity
+    paths:
+      - 'docs/**'
+  workflow_dispatch: # Manual trigger
+
+jobs:
+  sync-to-wiki:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Source Repo
+        uses: actions/checkout@v4
+        with:
+          path: source-repo
+
+      - name: Sync to GitHub Wiki
+        # Using a specialized action or custom script to push to .wiki repo
+        env:
+          GH_TOKEN: ${{ secrets.WIKI_SYNC_TOKEN }} # Required for pushing to wiki repo
+        run: |
+          if [ -z "$GH_TOKEN" ]; then
+            echo "::warning title=Missing Secret::WIKI_SYNC_TOKEN is not set. Skipping sync."
+            exit 0
+          fi
+          
+          # 1. Setup Wiki Repo
+          WIKI_URL="https://x-access-token:${GH_TOKEN}@github.com/${{ github.repository }}.wiki.git"
+          git clone "$WIKI_URL" wiki-repo
+          
+          # 2. Sync Content
+          # We mirror the docs/ folder but flatten or maintain structure depending on preference.
+          # GitHub Wiki supports folders in the sidebar if configured, but root files are easier.
+          
+          mkdir -p wiki-repo/proposals
+          cp -r source-repo/docs/proposals/*.md wiki-repo/proposals/ 2>/dev/null || true
+          cp -r source-repo/docs/architecture/*.md wiki-repo/ 2>/dev/null || true
+          
+          # Root docs (AGENTS.md, ONBOARDING.md) are also valuable
+          cp source-repo/AGENTS.md wiki-repo/ 2>/dev/null || true
+          cp source-repo/ONBOARDING.md wiki-repo/ 2>/dev/null || true
+          cp source-repo/CONTRIBUTING.md wiki-repo/ 2>/dev/null || true
+          
+          # 3. Commit and Push
+          cd wiki-repo
+          git config user.name "Antigravity (Swarm Sync)"
+          git config user.email "antigravity@ethos-kernel.local"
+          
+          git add .
+          if git diff-index --quiet HEAD; then
+            echo "No changes in docs to sync."
+          else
+            git commit -m "Auto-sync docs from source commit ${{ github.sha }}"
+            git push origin master # Wikis usually use master
+          fi

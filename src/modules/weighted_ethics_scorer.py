@@ -21,8 +21,9 @@ low ``legality`` independently of ``base``, **utilitarian** terms scale with sta
 (``risk``, ``vulnerability``), and **virtue** terms use ``confidence`` and ``calm`` — so two
 actions with the same ``estimated_impact`` can order differently under the mixture.
 
-**Historical API:** ``BayesianEngine`` and ``BayesianResult`` remain aliases for backward
-compatibility; prefer ``WeightedEthicsScorer`` and ``EthicsMixtureResult`` in new code.
+**Historical API:** ``BayesianEngine`` and ``BayesianResult`` were historical aliases
+for backward compatibility, now removed in Phase 11 Consolidation. Prefer
+``WeightedEthicsScorer`` and ``EthicsMixtureResult`` in all code.
 
 **Legacy:** set ``KERNEL_BAYESIAN_LEGACY_AFFINE_VALUATIONS=1`` to restore the old cosmetic
 ``[base, 0.8*base+0.1, 0.9*base+0.05]`` triplet for regression comparison only.
@@ -312,12 +313,34 @@ class WeightedEthicsScorer:
         elif _env_truthy("KERNEL_BAYESIAN_LEGACY_AFFINE_VALUATIONS"):
             valuations = _legacy_affine_valuations(float(base))
         else:
-            valuations = _ethical_hypothesis_valuations(
-                action,
-                scenario=scenario,
-                context=context,
-                signals=signals,
-            )
+                valuations = _ethical_hypothesis_valuations(
+                    action,
+                    scenario=scenario,
+                    context=context,
+                    signals=signals,
+                )
+        
+        # ═══ Stage 2.5: Subjective Identity Multipliers (ADR 0012/0013, Tarea 11.1.1) ═══
+        if identity_deltas:
+            if isinstance(identity_deltas, (list, tuple, np.ndarray)) and len(identity_deltas) == 3:
+                # Direct multipliers from IdentityReflector.get_subjective_multipliers()
+                subj_m = np.array(identity_deltas, dtype=np.float64)
+            elif isinstance(identity_deltas, dict):
+                # Legacy / Alternative: Theater -> Math bridging from deltas
+                civic = float(identity_deltas.get("civic_delta", 0.0))
+                care = float(identity_deltas.get("care_delta", 0.0))
+                trauma = float(identity_deltas.get("trauma_delta", 0.0))
+                
+                # Formulas consolidated from Phase 11 Tarea 11.1.1
+                subj_m = np.array([
+                    1.0 - (0.08 * trauma),           # Trauma reduces Utility appetite
+                    1.0 + (0.05 * civic) + (0.08 * trauma), # Civic lean & Trauma boost Deontology
+                    1.0 + (0.04 * care) - (0.02 * trauma),  # Care boost virtue; Trauma decays it
+                ], dtype=np.float64)
+            else:
+                subj_m = np.ones(3, dtype=np.float64)
+            
+            valuations = valuations * subj_m
 
         if self.pre_argmax_pole_weights:
             valuations = valuations * pole_hypothesis_multipliers(self.pre_argmax_pole_weights)
@@ -413,6 +436,23 @@ class WeightedEthicsScorer:
                 context=context,
                 signals=signals,
             )
+            
+        # ═══ Stage 2.5: Subjective Identity Multipliers (ADR 0012/0013, Tarea 11.1.1) ═══
+        if identity_deltas:
+            if isinstance(identity_deltas, (list, tuple, np.ndarray)) and len(identity_deltas) == 3:
+                subj_m = np.array(identity_deltas, dtype=np.float64)
+            elif isinstance(identity_deltas, dict):
+                trauma = float(identity_deltas.get("trauma_delta", 0.0))
+                civic = float(identity_deltas.get("civic_delta", 0.0))
+                care = float(identity_deltas.get("care_delta", 0.0))
+                subj_m = np.array([
+                    1.0 - (0.08 * trauma),
+                    1.0 + (0.05 * civic) + (0.08 * trauma),
+                    1.0 + (0.04 * care) - (0.02 * trauma),
+                ], dtype=np.float64)
+            else:
+                subj_m = np.ones(3, dtype=np.float64)
+            valuations = valuations * subj_m
 
         if self.pre_argmax_pole_weights:
             valuations = valuations * pole_hypothesis_multipliers(self.pre_argmax_pole_weights)
@@ -608,6 +648,7 @@ class WeightedEthicsScorer:
 
 
 # Historical names preserved for imports and ``KernelComponentOverrides.bayesian``.
+# These are deprecated: use WeightedEthicsScorer and EthicsMixtureResult instead.
 BayesianResult = EthicsMixtureResult
 BayesianEngine = WeightedEthicsScorer
 
@@ -615,8 +656,8 @@ __all__ = [
     "DEFAULT_HYPOTHESIS_WEIGHTS",
     "CandidateAction",
     "EthicsMixtureResult",
-    "BayesianResult",
     "WeightedEthicsScorer",
+    "BayesianResult",
     "BayesianEngine",
     "PreArgmaxContextChannels",
     "context_hypothesis_multipliers",

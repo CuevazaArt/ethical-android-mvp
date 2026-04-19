@@ -2,6 +2,8 @@ import asyncio
 import base64
 import json
 import logging
+import math
+import struct
 import time
 from typing import Any, Union
 
@@ -68,8 +70,12 @@ class NomadBridge:
 
     async def handle_websocket(self, websocket: WebSocket) -> None:
         """Handles a Nomad smartphone connection."""
-        await websocket.accept()
-        _log.info("Nomad Bridge: Handshake successful. Nomad Vessel is connected.")
+        try:
+            await websocket.accept()
+            _log.info("Nomad Bridge: Handshake successful. Nomad Vessel is connected.")
+        except Exception as e:
+            _log.error("Nomad Bridge: Failed to accept connection: %s", e)
+            return
 
         recv_task = asyncio.create_task(self._recv_loop(websocket))
         send_task = asyncio.create_task(self._send_loop(websocket))
@@ -87,13 +93,19 @@ class NomadBridge:
         finally:
             _log.info("Nomad Bridge: Nomad Vessel disconnected.")
 
-    def broadcast_to_dashboards(self, msg: dict[str, Any]) -> None:
-        """Push a message to all connected L0 dashboards."""
-        for q in self.dashboard_queues:
-            if not q.full():
-                q.put_nowait(msg)
+    def public_queue_stats(self) -> dict[str, Any]:
+        """Returns key metrics and queue depths for the L0 health monitor."""
+        return {
+            "vision_queue_depth": self.vision_queue.qsize(),
+            "audio_queue_depth": self.audio_queue.qsize(),
+            "telemetry_queue_depth": self.telemetry_queue.qsize(),
+            "charm_feedback_queue_depth": self.charm_feedback_queue.qsize(),
+            "vessel_online": is_vessel_online(),
+            "vessel_metadata": self.vessel_metadata,
+            "last_sensor_update_delta": round(time.time() - self._last_sensor_update, 2)
+        }
 
-    async def _recv_loop(self, ws: Any) -> None:
+    async def _recv_loop(self, ws: WebSocket) -> None:
         frame_count = 0
         try:
             while True:
@@ -152,16 +164,22 @@ class NomadBridge:
                         
                         # Calculate very basic rms for dashboard audio bar and Thalamus
                         if pcm_bytes and len(pcm_bytes) >= 2:
-                            import struct
-                            import math
                             try:
-                                shorts = struct.unpack(f"<{len(pcm_bytes)//2}h", pcm_bytes[:(len(pcm_bytes)//2)*2])
-                                rms = math.sqrt(sum(s*s for s in shorts) / len(shorts)) / 32768.0
-                                self.last_rms = rms
-                                if self.dashboard_queues:
-                                    self.broadcast_to_dashboards({"type": "audio_energy", "payload": {"rms": rms}})
-                            except struct.error:
-                                pass # Corrupted audio chunk
+                                count = len(pcm_bytes) // 2
+                                shorts = struct.unpack(f"<{count}h", pcm_bytes[:count * 2])
+                                if shorts:
+                                    sum_sq = sum(float(s) * s for s in shorts)
+                                    rms = math.sqrt(sum_sq / len(shorts)) / 32768.0
+                                    if math.isfinite(rms):
+                                        self.last_rms = rms
+                                        if self.dashboard_queues:
+                                            self.broadcast_to_dashboards({
+                                                "type": "audio_energy", 
+                                                "payload": {"rms": rms}
+                                            })
+                            except (struct.error, ZeroDivisionError, ValueError) as e:
+                                _log.debug("Nomad Bridge: Audio RMS failed: %s", e)
+                                pass # Corrupted audio chunk or math error
 
                     elif event_type == "telemetry":
                         _log.debug("Nomad Bridge: Telemetry pulse")
@@ -188,6 +206,15 @@ class NomadBridge:
                             self.vessel_metadata["latency_ms"] = int(latency)
                             _log.debug("Nomad Bridge: Pong received. Latency: %d ms", latency)
 
+                    elif event_type in ("rtc_offer", "rtc_answer", "rtc_ice"):
+                        # WebRTC Signaling Relay (S.1.1)
+                        _log.info("Nomad Bridge: WebRTC signaling event: %s", event_type)
+                        self.broadcast_to_dashboards({
+                            "type": "rtc_signal",
+                            "event": event_type,
+                            "payload": payload
+                        })
+
                 except Exception as inner_e:
                     # Catch inner loop errors so the websocket connection doesn't drop due to one bad frame
                     _log.error("Nomad Bridge inner loop error: %s", inner_e)
@@ -197,7 +224,7 @@ class NomadBridge:
         except Exception as e:
             _log.error("Nomad Bridge read error: %s", e)
 
-    async def _send_loop(self, ws: Any) -> None:
+    async def _send_loop(self, ws: WebSocket) -> None:
         try:
             while True:
                 try:

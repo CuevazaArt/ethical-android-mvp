@@ -78,8 +78,12 @@ if TYPE_CHECKING:
 
 
 from .kernel_components import KernelComponentOverrides
-from .kernel_utils import kernel_env_truthy as _kernel_env_truthy
-from .kernel_utils import perception_parallel_workers
+from .kernel_utils import (
+    kernel_env_truthy as _kernel_env_truthy,
+    perception_parallel_workers,
+    kernel_dao_as_mock,
+    kernel_mixture_scorer
+)
 from .kernel_handlers.perception import run_perception_pipeline
 from .kernel_handlers.decision import run_decision_pipeline
 from .kernel_handlers.communication import get_bridge_phrase, run_communication_stream
@@ -89,7 +93,7 @@ from .modules.audit_chain_log import (
     maybe_append_malabs_block_audit,
 )
 from .modules.augenesis import AugenesisEngine
-from .modules.bayesian_engine import BayesianEngine, BayesianResult
+from .modules.bayesian_engine import BayesianEngine
 from .modules.biographic_pruning import BiographicPruner
 from .modules.buffer import PreloadedBuffer
 from .modules.charm_engine import CharmEngine
@@ -184,7 +188,11 @@ from .modules.vision_adapter import VisionInference
 from .modules.vitality import VitalityAssessment, assess_vitality, vitality_communication_hint
 from .modules.rlhf_reward_model import RLHFPipeline, is_rlhf_enabled
 from .modules.weakness_pole import WeaknessPole
-from .modules.weighted_ethics_scorer import CandidateAction, WeightedEthicsScorer
+from .modules.weighted_ethics_scorer import (
+    CandidateAction,
+    EthicsMixtureResult,
+    WeightedEthicsScorer,
+)
 from .modules.working_memory import WorkingMemory
 from .persistence.checkpoint_port import CheckpointPersistencePort
 from .utils.terminal_colors import Term
@@ -193,18 +201,6 @@ from .utils.terminal_colors import Term
 # Extracted helpers moved to kernel_utils.py
 
 
-def kernel_dao_as_mock(dao: MockDAO | DAOOrchestrator) -> MockDAO:
-    """Return the in-process :class:`MockDAO` for APIs not wrapped by :class:`DAOOrchestrator`."""
-    if isinstance(dao, DAOOrchestrator):
-        return dao.local_dao
-    return dao
-
-
-def kernel_mixture_scorer(bayesian: BayesianEngine | WeightedEthicsScorer) -> WeightedEthicsScorer:
-    """Return the :class:`WeightedEthicsScorer` used for mixture / BMA operations."""
-    if isinstance(bayesian, BayesianEngine):
-        return bayesian.scorer
-    return bayesian
 
 
 @dataclass
@@ -226,7 +222,7 @@ class KernelDecision:
     locus_evaluation: LocusEvaluation | None
 
     # Evaluation
-    bayesian_result: BayesianResult | None
+    bayesian_result: EthicsMixtureResult | None
     moral: TripartiteMoral | None
 
     # Final decision
@@ -257,18 +253,6 @@ class KernelDecision:
 
 
 
-@dataclass
-class BayesianStageMetadata:
-    """Metadata output from STAGE 3: Bayesian Scoring."""
-
-    mixture_posterior_alpha: tuple[float, float, float] | None = None
-    feedback_consistency: str | None = None
-    mixture_context_key: str | None = None
-    hierarchical_context_key: str | None = None
-    applied_mixture_weights: tuple[float, float, float] | None = None
-    bma_win_probabilities: dict[str, float] | None = None
-    bma_dirichlet_alpha: tuple[float, float, float] | None = None
-    bma_n_samples: int | None = None
 
 
 @dataclass
@@ -302,7 +286,7 @@ class ChatTurnResult:
 
 
 
-from .kernel_lobes.models import PerceptionStageResult
+from .kernel_lobes.models import PerceptionStageResult, BayesianStageMetadata
 
 
 def _emit_process_observability(d: KernelDecision, t0: float) -> None:
@@ -849,7 +833,7 @@ class EthicalKernel:
 
     def _malabs_text_backend(self):
         """Optional LLM backend for MalAbs semantic tier (embeddings + arbiter; see semantic_chat_gate)."""
-        return getattr(self.llm, "llm_backend", None) or getattr(self.llm, "_text_backend", None)
+        return getattr(self.llm, "llm_backend", None)
 
     def register_turn_feedback(self, event_type: str, weight: float = 1.0):
         """
@@ -996,12 +980,21 @@ class EthicalKernel:
         self, agent_id: str, signals: dict, message_content: str,
         sensor_snapshot: SensorSnapshot | None, multimodal_assessment: MultimodalAssessment | None
     ) -> tuple[SocialEvaluation, InternalState, LocusEvaluation]:
+        trauma_magnitude = 0.0
+        try:
+            from .modules.identity_reflection import IdentityReflector
+            reflector = IdentityReflector(self.memory_lobe.memory)
+            trauma_magnitude = reflector.get_trauma_magnitude()
+        except Exception as e:
+            _log.warning("EthicalKernel: Failed to calculate trauma magnitude for limbic stage: %s", e)
+
         res = await self.limbic_lobe.execute_stage_async(
             agent_id, signals, message_content, 
             turn_index=self.subjective_clock.turn_index,
             sensor_snapshot=sensor_snapshot, 
             multimodal_assessment=multimodal_assessment,
-            somatic_state=self.cerebellum_node.get_somatic_snapshot()
+            somatic_state=self.cerebellum_node.get_somatic_snapshot(),
+            trauma_magnitude=trauma_magnitude
         )
         return res.social_evaluation, res.internal_state, res.locus_evaluation
 
@@ -1030,7 +1023,7 @@ class EthicalKernel:
         self, scenario: str, place: str, clean_actions: list[CandidateAction], state: InternalState,
         social_eval: SocialEvaluation, locus_eval: LocusEvaluation, context: str, t0: float, signals: dict,
         message_content: str, rlhf_features: dict[str, Any] | None = None
-    ) -> tuple[BayesianResult | None, BayesianStageMetadata | None, KernelDecision | None]:
+    ) -> tuple[EthicsMixtureResult | None, BayesianStageMetadata | None, KernelDecision | None]:
 
         # 1. Check Lexical Veto (Phase 8 strict preemptive)
         for text in [scenario, message_content]:
@@ -1047,22 +1040,23 @@ class EthicalKernel:
                 self._emit_kernel_decision(d, context=context)
                 return None, None, d
         # 2. Execute Cerebellum Lobe (Bayesian Scoring & Strategic Alignment)
-        identity_deltas = None
+        identity_multipliers = None
         if hasattr(self, "memory_lobe") and hasattr(self.memory_lobe, "memory"):
             from src.modules.identity_reflection import IdentityReflector
             reflector = IdentityReflector(self.memory_lobe.memory)
-            identity_deltas = reflector.threshold_context()
+            # Consolidation (Tarea 11.1.1): pass direct multipliers instead of deltas
+            identity_multipliers = reflector.get_subjective_multipliers()
 
         bayes_result, meta = self.cerebellum_lobe.execute_bayesian_stage(
             clean_actions, scenario, context, signals, 
-            identity_deltas=identity_deltas,
+            identity_deltas=identity_multipliers,
             rlhf_features=rlhf_features
         )
         
         return bayes_result, meta, None
 
     def _run_decision_and_will_stage(
-        self, scenario: str, place: str, signals: dict, bayes_result: BayesianResult, state: InternalState,
+        self, scenario: str, place: str, signals: dict, bayes_result: EthicsMixtureResult, state: InternalState,
         social_eval: SocialEvaluation, locus_eval: LocusEvaluation, context: str, t0: float, 
         perception_coercion_uncertainty: float | None
     ) -> tuple:
@@ -1237,7 +1231,7 @@ class EthicalKernel:
         Record calibration feedback for the **last** chat turn's decision regime.
 
         Requires ``KERNEL_FEEDBACK_CALIBRATION=1``. Labels: ``approve``, ``dispute``, ``harm_report``.
-        Applied to ``WeightedEthicsScorer.hypothesis_weights`` (alias ``BayesianEngine``) during ``execute_sleep`` when
+        Applied to ``WeightedEthicsScorer.hypothesis_weights`` during ``execute_sleep`` when
         ``KERNEL_PSI_SLEEP_UPDATE_MIXTURE=1``.
         """
         if not _kernel_env_truthy("KERNEL_FEEDBACK_CALIBRATION"):

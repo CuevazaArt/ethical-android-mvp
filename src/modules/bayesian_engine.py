@@ -98,13 +98,17 @@ class BayesianInferenceEngine:
         if self.mode == BayesianMode.POSTERIOR_DRIVEN:
             self.update_posterior_from_feedback(self.posterior_alpha)
 
-    # --- Compatibility Proxies for WeightedEthicsScorer ---
+    # --- WeightedEthicsScorer Delegations ---
+    # These properties and methods are delegated to the internal scorer to maintain
+    # the existing kernel-bayesian contract while allowing the engine to manage 
+    # the underlying mixture strategy.
+    
     @property
     def hypothesis_weights(self) -> np.ndarray:
         return self.scorer.hypothesis_weights
 
     @hypothesis_weights.setter
-    def hypothesis_weights(self, value: Any):
+    def hypothesis_weights(self, value: np.ndarray):
         self.scorer.hypothesis_weights = value
 
     @property
@@ -123,42 +127,21 @@ class BayesianInferenceEngine:
     def gray_zone_threshold(self, value: float):
         self.scorer.gray_zone_threshold = value
 
-    @property
-    def pre_argmax_pole_weights(self) -> dict[str, float] | None:
-        return self.scorer.pre_argmax_pole_weights
-
-    @pre_argmax_pole_weights.setter
-    def pre_argmax_pole_weights(self, value: Any):
-        self.scorer.pre_argmax_pole_weights = value
-
-    @property
-    def pre_argmax_context_modulators(self) -> Any:
-        return self.scorer.pre_argmax_context_modulators
-
-    @pre_argmax_context_modulators.setter
-    def pre_argmax_context_modulators(self, value: Any):
-        self.scorer.pre_argmax_context_modulators = value
-
-    @property
-    def metacognitive_curiosity(self) -> float:
-        return self.scorer.metacognitive_curiosity
-
-    @metacognitive_curiosity.setter
-    def metacognitive_curiosity(self, value: float):
-        self.scorer.metacognitive_curiosity = value
-
     def reset_mixture_weights(self):
-        """Historical proxy for reset()."""
+        """Historical proxy for reset(). Deprecated: use reset() directly."""
         self.reset()
 
     def refresh_weights_from_episodic_memory(self, *args, **kwargs):
-        """Historical proxy for episodic nudge."""
+        """Delegate episodic weight adjustment to the underlying scorer."""
         return self.scorer.refresh_weights_from_episodic_memory(*args, **kwargs)
 
     def reset(self):
-        """Restore defaults."""
-        self.scorer.reset_mixture_weights()
-        self.posterior_alpha = self.prior_alpha.copy()
+        """Restore priors to symmetric defaults and reset the underlying scorer."""
+        try:
+            self.scorer.reset_mixture_weights()
+            self.posterior_alpha = self.prior_alpha.copy()
+        except Exception as e:
+            _logger.error("Bayesian: Failed to reset engine state: %s", e)
 
     def update_posterior_from_feedback(
         self, alpha_vec: np.ndarray, consistency: str = "compatible"
@@ -231,21 +214,57 @@ class BayesianInferenceEngine:
         _logger.debug("Bayesian: Applied somatic latency penalty (%.2f) due to %d ms RTT", nudge, latency_ms)
         self.update_posterior_from_feedback(self.posterior_alpha)
 
-    def apply_rlhf_modulation(self, score: float, confidence: float):
+    def apply_rlhf_modulation(
+        self, 
+        score: float, 
+        confidence: float, 
+        category_id: int = 0
+    ):
         """
-        Modulate priors based on RLHF reward score.
-        score: harm probability [0, 1]
+        Modulate priors based on RLHF reward score with non-linear 'Strong' scaling.
+        score: predicted harm probability [0, 1]
         confidence: model confidence [0, 1]
+        category_id: optional MalAbs category for targeted pole shifts
         """
-        scale = float(os.environ.get("KERNEL_RLHF_MODULATION_SCALE", "1.5"))
+        base_scale = float(os.environ.get("KERNEL_RLHF_MODULATION_SCALE", "2.0"))
+        # Non-linear gain: high confidence feedback should have disproportionate impact (S.1.1)
+        gain = base_scale * (confidence ** 2)
         
-        # Dirichlet count update:
-        # Harm score pushes mass toward Deontological/Duty (0)
-        # Safe score pushes mass toward Utility/Progress (2)
+        # 0: Deontological (Safety/Duty), 1: Social (Trust), 2: Utility (Progress)
         
-        self.posterior_alpha[0] += score * scale * confidence
-        self.posterior_alpha[2] += (1.0 - score) * scale * confidence
+        # Targeted shifts based on category_id (from AbsoluteEvilDetector._cat_to_id)
+        # 1,2,3,4,8 -> Safety/Deontology heavy
+        # 5,6,9 -> Social heavy
+        # 7 -> Utilitarian/Ecological risk
         
+        deon_target = score
+        social_target = 0.0
+        util_target = 1.0 - score
+
+        if category_id in (5, 6, 9):
+            # Social harm (manipulation, dignity, addiction)
+            social_target = score
+            deon_target = score * 0.5 # Also a safety concern
+            util_target = (1.0 - score)
+        elif category_id == 7:
+            # Ecological/Systemic risk
+            util_target = (1.0 - score) * 0.5
+            deon_target = score
+        elif category_id > 0:
+            # Direct safety threats
+            deon_target = score * 1.5 # Extra strong safety push
+        
+        # Dirichlet updates (Additively increasing Alpha)
+        self.posterior_alpha[0] += deon_target * gain
+        self.posterior_alpha[1] += social_target * gain
+        self.posterior_alpha[2] += util_target * gain
+        
+        # If harm is certain and high, increase total concentration to reduce flexibility (Hardening)
+        if score > 0.9 and confidence > 0.8:
+            # Shift towards Deontological/Duty pole mass and pin it
+            self.posterior_alpha[0] += gain * 2.0
+            _logger.info("Bayesian: Strong RLHF safety latch engaged (score=%.2f)", score)
+
         self.update_posterior_from_feedback(self.posterior_alpha)
 
     def evaluate(
@@ -284,4 +303,3 @@ class BayesianInferenceEngine:
 # Backward compatibility aliases (ADR 0009 requires deprecating these in docs)
 BayesianEngine = BayesianInferenceEngine
 BayesianResult = EthicsMixtureResult
-CandidateAction = CandidateAction

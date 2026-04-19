@@ -12,16 +12,29 @@ Aquí es donde los agentes de ejecución (LLMs en IDEs) reclaman sus tareas.
 
 ---
 
+## 📈 ESTADO DE INTEGRACIÓN (PULSE 2026-04-19)
+- **C.1 (Bayesian RLHF)**: Completado. Modulación no lineal y category-aware operando.
+- **11.1 (Identity/Trauma)**: Completado. Integrada magnitud de trauma en el core de decisión.
+- **S.1/S.2 (Nomad/Wiki)**: Completado. Bridge LAN estable y sincronización de Wiki automatizada.
+- **S.3 (Redundancy)**: Completado. Consolidados modelos y utilidades; limpieza de shims en BayesianEngine.
+
+---
+
 ## 📥 BACKLOG ABIERTO (Open Tasks)
 
-**Bloque S.1: Nomad SmartPhone LAN Bridge [PENDING]**
-- Tarea S.1.1: Desarrollar conectores WebSocket/WebRTC (`src/modules/nomad_bridge.py`) para consumir streams de video/audio desde un dispositivo móvil Android/iOS en red local de manera asíncrona.
+**Bloque S.3: Monitoreo de Redundancia y Desuso [DONE]**
+- Tarea S.3.1: Escanear el kernel en busca de métodos decorativos o shims obsoletos (ej. re-exports en `bayesian_engine.py`) y consolidar modelos y utilidades para reducir el footprint cognitivo. (Completado: Antigravity)
+
+---
+
+**Bloque S.1: Nomad SmartPhone LAN Bridge [DONE]**
+- Tarea S.1.1: Desarrollar conectores WebSocket/WebRTC (`src/modules/nomad_bridge.py`) para consumir streams de video/audio desde un dispositivo móvil Android/iOS en red local de manera asíncrona. (Completado: Antigravity)
 
 **Bloque 9.1: Daemon de Visión Continua (CNN/Webcam) [DONE]**
 - Tarea 9.1.1: Modificar `VisionInferenceEngine` para crear un stream en background que clasifique entidades a 5Hz utilizando pre-procesamiento asíncrono.
 
-**Bloque S.2: Automatización de Wiki-Sync vía GitHub Actions [PENDING]**
-- Tarea S.2.1: Implementar un Workflow de GitHub Actions que sincronice proactivamente archivos de `docs/*` hacia el repositorio Wiki del proyecto. Configurar disparadores en cada `push` a las ramas de integración para mantener la transparencia pública total.
+**Bloque S.2: Automatización de Wiki-Sync vía GitHub Actions [DONE]**
+- Tarea S.2.1: Implementar un Workflow de GitHub Actions que sincronice proactivamente archivos de `docs/*` hacia el repositorio Wiki del proyecto. (Completado: Antigravity)
 
 **Bloque 8.1: Linter Continuo y Hardening Vertical [DONE]**
 - Tarea 8.1.1: Auditar `docstrings` y `type hints` en las divisiones de `src/kernel.py` y `src/kernel_lobes/`. Introducir `try/except` donde fallen por variables nulas. 
@@ -29,14 +42,15 @@ Aquí es donde los agentes de ejecución (LLMs en IDEs) reclaman sus tareas.
 **Bloque 9.3: Refactorización Asíncrona Total de Eferencia [DONE]**
 - Tarea 9.3.1: Eliminar cuellos de botella síncronos en las llamadas a utilidades de API. Migrar `http_fetch_ollama_embedding` a dependencias puramente `async` con `httpx.AsyncClient`.
 
-**Bloque W.1: Frontera Wiki y Sincronización Pública [PENDING]**
-- Tarea W.1.1: Exportar el `WIKI_EXECUTIVE_SUMMARY_NOMADIC_VISION.md` a la página principal de la Wiki de GitHub ("Welcome to the ethical-android-mvp wiki!"). Asegurar licencias legales visibles.
+**Bloque W.1: Frontera Wiki y Sincronización Pública [DONE]**
+- Tarea W.1.1: Exportar el `WIKI_EXECUTIVE_SUMMARY_NOMADIC_VISION.md` a la página principal de la Wiki de GitHub ("Welcome to the ethical-android-mvp wiki!"). (Completado: Antigravity)
 
-**Bloque C.1: Fusión BMA y Recompensas RLHF [PENDING]**
+**Bloque C.1: Fusión BMA y Recompensas RLHF [DONE]**
 - Tarea C.1.1: Conectar matemáticamente los *outputs* asíncronos del `rlhf_reward_model.py` como *Priors* moduladores fuertes dentro de `src/modules/bayesian_engine.py`.
+- Tarea C.1.2: Validación matemática de alineación RLHF -> BMA (`scripts/eval/eval_rlhf_alignment.py`). (Completado: Antigravity)
 
-**Bloque 11.1: Tránsito Subjetivo del Afecto [PENDING]**
-- Tarea 11.1.1: Consolidar las fórmulas del "Espejo Roto" (Trauma) en la identidad central (`identity_reflection.py`), para asegurar que cambie los *multipliers* de utilitarismo en etapas posteriores del modelo moral.
+**Bloque 11.1: Tránsito Subjetivo del Afecto [DONE]**
+- Tarea 11.1.1: Consolidar las fórmulas del "Espejo Roto" (Trauma) en la identidad central (`identity_reflection.py`), para asegurar que cambie los *multipliers* de utilitarismo en etapas posteriores del modelo moral. (Completado: Antigravity)
 
 ---
 

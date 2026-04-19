@@ -42,7 +42,8 @@ class LimbicEthicalLobe:
         turn_index: int,
         sensor_snapshot: Optional[Any] = None,
         multimodal_assessment: Optional[Any] = None,
-        somatic_state: Optional[dict[str, Any]] = None
+        somatic_state: Optional[dict[str, Any]] = None,
+        trauma_magnitude: float = 0.0
     ) -> LimbicStageResult:
         """
         Evaluate social context and internal autonomic state.
@@ -72,8 +73,11 @@ class LimbicEthicalLobe:
         # 4. Evaluations
         social_eval = self.uchi_soto.evaluate_interaction(signals, agent_id, message_content)
         
-        # Inject somatic and situational tension into social evaluation
-        total_stress_nudge = somatic_tension + (self.situational_stress * 0.5)
+        # Inject somatic, situational and identity trauma tension into social evaluation
+        # Trauma (Broken Mirror) creates a baseline irritability / hyper-vigilance
+        trauma_stress = trauma_magnitude * 0.3
+        total_stress_nudge = somatic_tension + (self.situational_stress * 0.5) + trauma_stress
+        
         if hasattr(social_eval, "relational_tension") and total_stress_nudge > 0:
             social_eval.relational_tension = max(0.0, min(1.0, social_eval.relational_tension + total_stress_nudge))
 
@@ -103,7 +107,8 @@ class LimbicEthicalLobe:
         turn_index: int,
         sensor_snapshot: Optional[Any] = None,
         multimodal_assessment: Optional[Any] = None,
-        somatic_state: Optional[dict[str, Any]] = None
+        somatic_state: Optional[dict[str, Any]] = None,
+        trauma_magnitude: float = 0.0
     ) -> LimbicStageResult:
         """Async wrapper for Level 2 Limbic processing."""
         import asyncio
@@ -112,7 +117,8 @@ class LimbicEthicalLobe:
             None, 
             self.execute_stage, 
             agent_id, signals, message_content, turn_index, 
-            sensor_snapshot, multimodal_assessment, somatic_state
+            sensor_snapshot, multimodal_assessment, somatic_state,
+            trauma_magnitude
         )
 
 

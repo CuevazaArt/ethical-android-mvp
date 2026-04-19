@@ -88,7 +88,7 @@ async def run_perception_pipeline(
             from ..modules.rlhf_reward_model import FeatureVector
             fv = FeatureVector.from_dict(mal_semantic.rlhf_features)
             score, conf = kernel.rlhf.reward_model.predict(fv)
-            kernel.bayesian.apply_rlhf_modulation(score, conf)
+            kernel.bayesian.apply_rlhf_modulation(score, conf, category_id=fv.category_id)
         except Exception as _rlhf_err:
             _log.warning("perception_handler: RLHF modulation failed: %s", _rlhf_err)
 

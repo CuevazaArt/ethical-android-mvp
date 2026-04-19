@@ -21,7 +21,7 @@ import numpy as np
 
 if TYPE_CHECKING:
     from .narrative import NarrativeEpisode, NarrativeMemory
-    from .weighted_ethics_scorer import BayesianEngine
+    from .weighted_ethics_scorer import WeightedEthicsScorer
 
 
 @dataclass
@@ -127,7 +127,7 @@ def _nudge_delta(combined: float, alpha: float) -> np.ndarray:
 
 
 def apply_horizon_prior_to_engine(
-    engine: BayesianEngine,
+    engine: WeightedEthicsScorer,
     memory: NarrativeMemory,
     context: str,
     action_hint: str = "",

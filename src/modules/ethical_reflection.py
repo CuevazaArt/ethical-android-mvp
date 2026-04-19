@@ -13,7 +13,7 @@ from __future__ import annotations
 from dataclasses import dataclass
 
 from .ethical_poles import TripartiteMoral
-from .weighted_ethics_scorer import BayesianResult
+from .weighted_ethics_scorer import EthicsMixtureResult
 
 
 @dataclass(frozen=True)
@@ -71,7 +71,7 @@ class EthicalReflection:
     def reflect(
         self,
         moral: TripartiteMoral,
-        bayes_result: BayesianResult,
+        bayes_result: EthicsMixtureResult,
         will_decision: dict,
         trauma_signals: dict[str, float] | None = None,
     ) -> ReflectionSnapshot:

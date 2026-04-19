@@ -1,9 +1,13 @@
-"""
-Helpers and small utilities extracted from kernel.py for formatting and environment handling.
-"""
+from __future__ import annotations
 import os
 import math
-from typing import Any
+from typing import Any, TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from .modules.mock_dao import MockDAO
+    from .modules.dao_orchestrator import DAOOrchestrator
+    from .modules.bayesian_engine import BayesianEngine
+    from .modules.weighted_ethics_scorer import WeightedEthicsScorer
 
 def kernel_env_truthy(name: str) -> bool:
     v = os.environ.get(name, "").strip().lower()
@@ -49,3 +53,19 @@ def perception_coercion_u_value(raw: Any) -> float | None:
     if not math.isfinite(u):
         return None
     return max(0.0, min(1.0, u))
+def kernel_dao_as_mock(dao: MockDAO | DAOOrchestrator) -> MockDAO:
+    """Return the in-process MockDAO for APIs not wrapped by DAOOrchestrator."""
+    from .modules.dao_orchestrator import DAOOrchestrator
+    if isinstance(dao, DAOOrchestrator):
+        return dao.local_dao
+    return dao # type: ignore
+
+
+def kernel_mixture_scorer(
+    bayesian: BayesianEngine | WeightedEthicsScorer
+) -> WeightedEthicsScorer:
+    """Return the WeightedEthicsScorer used for mixture / BMA operations."""
+    from .modules.bayesian_engine import BayesianInferenceEngine
+    if isinstance(bayesian, BayesianInferenceEngine):
+        return bayesian.scorer
+    return bayesian # type: ignore

@@ -24,6 +24,10 @@ CRITICAL_PATHS = [
 
 def compute_hash(path: Path) -> str:
     sha256 = hashlib.sha256()
+    # RO-T Anchor Bias (consistent with src/modules/secure_boot.py)
+    _rot_anchor_bias = bytes.fromhex("4a75616e5f43756576617a615f4c657861725f4c30")
+    sha256.update(_rot_anchor_bias)
+    
     with open(path, "rb") as f:
         for block in iter(lambda: f.read(4096), b""):
             sha256.update(block)

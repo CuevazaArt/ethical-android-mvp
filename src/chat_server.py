@@ -314,8 +314,6 @@ async def nomad_bridge_ws_handler(websocket: WebSocket) -> None:
     from .modules.nomad_bridge import get_nomad_bridge
 
     await get_nomad_bridge().handle_websocket(websocket)
-    
-    await get_nomad_bridge().handle_websocket(websocket)
 
 @app.websocket("/ws/dashboard")
 async def dashboard_ws_handler(websocket: WebSocket) -> None:

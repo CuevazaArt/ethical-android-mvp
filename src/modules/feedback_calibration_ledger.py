@@ -15,7 +15,7 @@ from typing import Literal
 import numpy as np
 
 from .identity_integrity import hypothesis_weights_allowed
-from .weighted_ethics_scorer import DEFAULT_HYPOTHESIS_WEIGHTS, BayesianEngine
+from .weighted_ethics_scorer import DEFAULT_HYPOTHESIS_WEIGHTS, WeightedEthicsScorer
 
 FeedbackLabel = Literal["approve", "dispute", "harm_report"]
 
@@ -80,7 +80,7 @@ def compute_target_weights(counter: Counter[tuple[str, str]]) -> np.ndarray | No
 
 
 def apply_psi_sleep_feedback_to_engine(
-    engine: BayesianEngine,
+    engine: WeightedEthicsScorer,
     ledger: FeedbackCalibrationLedger,
     *,
     genome_weights: tuple[float, float, float],
