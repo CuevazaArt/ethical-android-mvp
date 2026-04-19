@@ -6,6 +6,11 @@ All notable changes to this project are summarized here. For narrative context a
 
 **[URGENT ΓÇö broadcast to all L2 integration hubs]:** All teams (Claude, Cursor, Copilot) should urgently `git pull` from `main` into their `master-*` branches. Outdated branches risk severe documentation path drift.
 
+### Team Cursor — L0 pause / L2 wake-up (2026-04-19)
+
+- **PAUSE TOTAL** on further product code until L2 registers wake-up and callsign adoption per L0: [`docs/changelogs_l2/WAKE_UP_REGISTRY_2026-04-19.md`](docs/changelogs_l2/WAKE_UP_REGISTRY_2026-04-19.md) (callsigns **Rojo**, **Azul**, **Naranja**; close ephemeral branches; comply with [`AGENTS.md`](AGENTS.md)). Index: [`docs/changelogs_l2/README.md`](docs/changelogs_l2/README.md).
+- **Cursor Rojo3** wake-up recorded in the registry; **Azul** / **Naranja** rows remain **pending adoption** by sibling sessions. Local ephemeral branches merged into `master-Cursor` deleted: `cursor-team`, `cursor/claude-bi-p0-01-bayesian-mode-contract`, `cursor/g-04-llm-touchpoint-surface`.
+
 ### Team Cursor Updates (2026-04-19 — Cursor Rojo3)
 
 - After `master-antigravity` / `main` integration, restored `PerceptiveLobe` chat alignment (`LLMPerception` / `run_perception_stage*`) where the hub line had skewed to `SemanticState`-only staging; regenerated `src/MANIFEST.json` via `scripts/seal_manifest.py`.
