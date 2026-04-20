@@ -6,20 +6,17 @@ All notable changes to this project are summarized here. For narrative context a
 
 **[URGENT — broadcast to all L2 integration hubs]:** All teams (Claude, Cursor, Copilot) should urgently `git pull` from `main` into their `master-*` branches. Outdated branches risk severe documentation path drift.
 
-## [2026-04-20] Session 13: Autopilot & Multimodal Hardening
+## [2026-04-20] Session 14: Nomad Hardening & Clinical Overhaul
 ### Added
-- **Dynamic Sensor Calibration (Task 12.2)**: Implemented `SensorBaselineCalibrator` for boot-time acclimatization (60s cycle). Replaced static thresholds for temperature and acceleration with dynamic Means/StdDev (μ+σ) logic.
-- **Nomad Chat Reconnection (Task 13.1)**: Enabled text communication from Nomad Vessel (Smartphone) via the Bridge. Added `NomadChatConsumer` in the server with strict limbic timeouts and async queuing.
-- **Global Hardware Kernel**: Initialized a persistent kernel instance in `chat_server.py` to handle background sensor loops and chat reconnection.
-
-### Fixed
-- Improved robustness of the `NomadBridge` event loop by adding missing event handlers and hardening type checks.
-- Fixed a SyntaxError in `sensor_calibration.py` docstrings.
+- **Local VAD Implementation (Task 13.2)**: Integrated RMS-based Voice Activity Detection in `media_engine.js`. Audio transmission is now gated locally in the PWA, reducing bridge saturation.
+- **Auto-Discovery (Task 14.1)**: Implemented mDNS advertisement in `chat_server.py` using `zeroconf_discovery.py`. Nomad PWA can now find the kernel on the LAN without IP entry.
+- **Anti-NaN Hardening (Buffer B.1.1)**: Injected `math.isfinite` guards and defensive clipping in `sigmoid_will.py` and `ethical_poles.py` to prevent mathematical destabilization.
 
 ### Updated
-- `src/kernel.py`: Integrated calibration start and chat consumer attachment.
-- `src/modules/vitality.py`: Thresholds now query the `SensorBaselineCalibrator`.
-- `docs/proposals/PLAN_WORK_DISTRIBUTION_TREE.md`: Marked 12.2 and 13.1 as closed.
+- **Clinical Dashboard (Task 14.2)**: Complete overhaul of the L0 interface (`dashboard.js`, `index.html`, `dashboard.css`). Removed decorative 3D elements in favor of tabulated telemetry feeds (Latencies, Sigma, VAD Status).
+- `docs/proposals/PLAN_WORK_DISTRIBUTION_TREE.md`: Synchronized task completion status.
+
+## [2026-04-20] Session 13: Autopilot & Multimodal Hardening
 
 ---
 

@@ -20,12 +20,9 @@ Aquí es donde los agentes de ejecución (LLMs en IDEs) reclaman sus tareas.
 
 ---
 
-**Bloque 13.0: Desbloqueo Conversacional y Voz (Zero-Friction Audio) [PENDING]**
-- Tarea 13.2: **VAD (Voice Activity Detection) Local:** Integrar detección de voz robusta en el cliente PWA antes de consumir tokens o saturar el Bridge. Requisito para el futuro Text-to-Speech (TTS).
+**Bloque 13.0: Desbloqueo Conversacional y Voz (Zero-Friction Audio) [CERRADO]**
 
-**Bloque 14.0: Cero Fricción y Recuperación Autónoma [PENDING]**
-- Tarea 14.1: **Auto-Descubrimiento (mDNS/Zeroconf):** Implementar un broadcast local en el servidor para que el PWA encuentre la IP automáticamente, minimizando la interacción humana (Server Self-Healing).
-- Tarea 14.2: **Dashboard Clínico:** Eliminar elementos UI decorativos y reemplazarlos por feeds de datos expuestos y tabulados (Float/Boolean) de latencia, sigma, y telemetría pura.
+**Bloque 14.0: Cero Fricción y Recuperación Autónoma [CERRADO]**
 
 ---
 
@@ -45,8 +42,13 @@ Aquí es donde los agentes de ejecución (LLMs en IDEs) reclaman sus tareas.
 
 ## 🟢 CERRADOS (Histórico de Producción)
 
-**Bloque 13.0: Desbloqueo Conversacional y Voz (Zero-Friction Audio) [CERRADO PARCIAL]**
+**Bloque 14.0: Cero Fricción y Recuperación Autónoma [DONE]**
+- Tarea 14.1: Auto-Descubrimiento (mDNS/Zeroconf) integrado en el servidor. (Completado: Antigravity)
+- Tarea 14.2: Dashboard Clínico: Overhaul completo a interfaz diagnóstica. (Completado: Antigravity)
+
+**Bloque 13.0: Desbloqueo Conversacional y Voz (Zero-Friction Audio) [DONE]**
 - Tarea 13.1: Reconexión del chat (Smartphone -> Kernel) con timeouts estrictos y encolamiento async en NomadBridge. (Completado: Antigravity)
+- Tarea 13.2: VAD (Voice Activity Detection) Local en el cliente PWA. (Completado: Antigravity)
 
 **Bloque 12.0: Autocalibración Física y Corrección Sensorial [DONE]**
 - Tarea 12.1: Implementar corrección "Velo Azul" (BGR -> RGB) y streaming de webcam local al Dashboard. (Completado: Antigravity)

@@ -38,7 +38,7 @@ class SigmoidWill:
         self.params = params or SigmoidParameters()
 
     def calculate(self, x: float, uncertainty: float = 0.0) -> float:
-        """
+        \"\"\"
         Calculates the will to act.
 
         Args:
@@ -47,15 +47,25 @@ class SigmoidWill:
 
         Returns:
             float [0, 1+λ] where values > 0.5 incline toward acting
-        """
+        \"\"\"
+        import math
+        # Phase 13 Hardening: Anti-NaN guard
+        if not math.isfinite(x): x = 0.0
+        if not math.isfinite(uncertainty): uncertainty = 0.0
+
         k = self.params.k
         x0 = self.params.x0
         lam = self.params.lambda_i
 
-        sigmoid = 1.0 / (1.0 + np.exp(-k * (x - x0)))
+        # Defensive clipping for exponential to avoid overflow in extreme cases
+        exp_input = -k * (x - x0)
+        exp_input = max(-500, min(500, exp_input))
+
+        sigmoid = 1.0 / (1.0 + np.exp(exp_input))
         creativity = lam * uncertainty
 
-        return float(sigmoid + creativity)
+        res = float(sigmoid + creativity)
+        return res if math.isfinite(res) else 0.5
 
     def decide(self, x: float, uncertainty: float = 0.0, threshold: float = 0.5) -> dict:
         """
