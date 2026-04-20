@@ -291,7 +291,7 @@ app = FastAPI(
 
 # Mounting Nomad Bridge (Fase 8+ / Módulo S)
 from .modules.nomad_bridge import get_nomad_bridge
-app.mount("/nomad", get_nomad_bridge().app)
+app.mount("/nomad_bridge", get_nomad_bridge().app)
 
 app.add_middleware(RequestContextMiddleware)
 @app.get("/nomad/migration")

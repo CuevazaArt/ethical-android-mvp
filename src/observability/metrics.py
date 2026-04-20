@@ -25,6 +25,7 @@ _chat_abandoned_effects_skipped: Any = None
 _lan_envelope_replay_cache_events: Any = None
 _limbic_tension: Any = None
 _ttft_histogram: Any = None
+_nomad_connections: Any = None
 _initialized = False
 
 _LAN_ENVELOPE_REPLAY_CACHE_EVENTS = frozenset({"hit", "miss", "evict_ttl", "evict_lru"})
@@ -45,7 +46,7 @@ def init_metrics() -> None:
     global _malabs_blocks, _semantic_malabs_outcomes, _dao_ops, _embedding_errors
     global _kernel_decisions, _kernel_process_seconds, _perception_circuit_trips
     global _chat_async_timeouts, _llm_cancel_scope_signals, _chat_abandoned_effects_skipped
-    global _lan_envelope_replay_cache_events, _limbic_tension, _ttft_histogram
+    global _lan_envelope_replay_cache_events, _limbic_tension, _ttft_histogram, _nomad_connections
 
     if _initialized:
         return
@@ -150,6 +151,11 @@ def init_metrics() -> None:
         "ethos_kernel_chat_ttft_seconds",
         "Time To First Token for chat stream responses.",
         buckets=(0.1, 0.25, 0.5, 1.0, 2.5, 5.0, 10.0, float("inf")),
+    )
+    _nomad_connections = Counter(
+        "ethos_kernel_nomad_bridge_connections_total",
+        "Total connections to the Nomad SmartPhone Bridge (S.2.1).",
+        ["status"],
     )
 
 
@@ -291,3 +297,17 @@ def observe_ttft_seconds(seconds: float) -> None:
     if _ttft_histogram is None:
         return
     _ttft_histogram.observe(max(0.0, seconds))
+
+
+def record_nomad_bridge_connection(status: str = "connected") -> None:
+    if _nomad_connections is None:
+        return
+    s = (status or "connected").strip()
+    _nomad_connections.labels(status=s).inc()
+
+
+def record_nomad_bridge_disconnection(status: str = "disconnected") -> None:
+    if _nomad_connections is None:
+        return
+    s = (status or "disconnected").strip()
+    _nomad_connections.labels(status=s).inc()

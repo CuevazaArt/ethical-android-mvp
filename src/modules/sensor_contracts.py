@@ -376,6 +376,16 @@ def merge_nomad_vision_into_snapshot(snapshot: SensorSnapshot | None) -> SensorS
     return replace(snapshot, vision_emergency=merged_ve, image_metadata=merged_meta)
 
 
+def _get_sensory_gain() -> float:
+    """Read KERNEL_SENSORY_GAIN from env (default 1.0)."""
+    import os
+    try:
+        val = float(os.environ.get("KERNEL_SENSORY_GAIN", "1.0"))
+        return max(0.0, min(5.0, val))
+    except (ValueError, TypeError):
+        return 1.0
+
+
 def merge_sensor_hints_into_signals(
     signals: dict[str, float],
     snapshot: SensorSnapshot | None,
@@ -400,28 +410,31 @@ def merge_sensor_hints_into_signals(
     )
 
     out = dict(signals)
+    gain = _get_sensory_gain()
 
     from .vitality import critical_battery_threshold, critical_temperature_threshold
 
     crit = critical_battery_threshold()
     if snapshot.battery_level is not None and snapshot.battery_level < crit:
-        out["urgency"] = _clamp01(out.get("urgency", 0.5) + 0.15)
-        out["calm"] = _clamp01(out.get("calm", 0.5) - 0.12)
+        # Battery stress: moderately persistent
+        out["urgency"] = _clamp01(out.get("urgency", 0.5) + (0.15 * gain))
+        out["calm"] = _clamp01(out.get("calm", 0.5) - (0.12 * gain))
 
     crit_temp = critical_temperature_threshold()
     if snapshot.core_temperature is not None and snapshot.core_temperature >= crit_temp:
-        out["urgency"] = _clamp01(out.get("urgency", 0.5) + 0.35)
-        out["vulnerability"] = _clamp01(out.get("vulnerability", 0.0) + 0.50)
-        out["risk"] = _clamp01(out.get("risk", 0.5) + 0.20)
-        out["calm"] = _clamp01(out.get("calm", 0.5) - 0.40)
+        # Thermal stress: very high priority but now modulated
+        out["urgency"] = _clamp01(out.get("urgency", 0.5) + (0.25 * gain)) # Reduced from 0.35
+        out["vulnerability"] = _clamp01(out.get("vulnerability", 0.0) + (0.40 * gain)) # Reduced from 0.50
+        out["risk"] = _clamp01(out.get("risk", 0.5) + (0.15 * gain)) # Reduced from 0.20
+        out["calm"] = _clamp01(out.get("calm", 0.5) - (0.30 * gain)) # Reduced from 0.40
 
     if snapshot.place_trust is not None and snapshot.place_trust < 0.35:
-        out["risk"] = _clamp01(out.get("risk", 0.5) + 0.1)
-        out["hostility"] = _clamp01(out.get("hostility", 0.0) + 0.08)
+        out["risk"] = _clamp01(out.get("risk", 0.5) + (0.1 * gain))
+        out["hostility"] = _clamp01(out.get("hostility", 0.0) + (0.08 * gain))
 
     if snapshot.accelerometer_jerk is not None and snapshot.accelerometer_jerk > 0.6:
-        out["urgency"] = _clamp01(out.get("urgency", 0.5) + 0.2)
-        out["risk"] = _clamp01(out.get("risk", 0.5) + 0.1)
+        out["urgency"] = _clamp01(out.get("urgency", 0.5) + (0.15 * gain)) # Reduced from 0.2
+        out["risk"] = _clamp01(out.get("risk", 0.5) + (0.08 * gain)) # Reduced from 0.1
 
     t_audio = thresholds_from_env().audio_strong
     if (
@@ -429,69 +442,69 @@ def merge_sensor_hints_into_signals(
         and snapshot.audio_emergency is not None
         and snapshot.audio_emergency > t_audio
     ):
-        out["urgency"] = _clamp01(out.get("urgency", 0.5) + 0.1)
-        out["risk"] = _clamp01(out.get("risk", 0.5) + 0.06)
+        out["urgency"] = _clamp01(out.get("urgency", 0.5) + (0.1 * gain))
+        out["risk"] = _clamp01(out.get("risk", 0.5) + (0.06 * gain))
 
     if (
         not suppress_audio_stress
         and snapshot.vision_emergency is not None
         and snapshot.vision_emergency > 0.5
     ):
-        out["vulnerability"] = _clamp01(out.get("vulnerability", 0.0) + 0.08)
+        out["vulnerability"] = _clamp01(out.get("vulnerability", 0.0) + (0.08 * gain))
 
     if (
         not suppress_audio_stress
         and snapshot.ambient_noise is not None
         and snapshot.ambient_noise > 0.75
     ):
-        out["calm"] = _clamp01(out.get("calm", 0.5) - 0.08)
+        out["calm"] = _clamp01(out.get("calm", 0.5) - (0.08 * gain))
 
     if snapshot.silence is not None and snapshot.silence > 0.9:
-        out["urgency"] = _clamp01(out.get("urgency", 0.5) + 0.05)
+        out["urgency"] = _clamp01(out.get("urgency", 0.5) + (0.05 * gain))
 
     if (
         not suppress_audio_stress
         and snapshot.biometric_anomaly is not None
         and snapshot.biometric_anomaly > 0.5
     ):
-        out["urgency"] = _clamp01(out.get("urgency", 0.5) + 0.12)
-        out["vulnerability"] = _clamp01(out.get("vulnerability", 0.0) + 0.1)
+        out["urgency"] = _clamp01(out.get("urgency", 0.5) + (0.12 * gain))
+        out["vulnerability"] = _clamp01(out.get("vulnerability", 0.0) + (0.1 * gain))
 
     if snapshot.backup_just_completed:
-        out["calm"] = _clamp01(out.get("calm", 0.5) + 0.08)
+        out["calm"] = _clamp01(out.get("calm", 0.5) + (0.08 * gain))
 
     # --- S3: Proprioception Nudges ---
     if snapshot.is_falling:
-        out["risk"] = _clamp01(out.get("risk", 0.5) + 0.45)
-        out["urgency"] = _clamp01(out.get("urgency", 0.5) + 0.5)
-        out["calm"] = _clamp01(out.get("calm", 0.5) - 0.4)
+        out["risk"] = _clamp01(out.get("risk", 0.5) + (0.40 * gain)) # Reduced from 0.45
+        out["urgency"] = _clamp01(out.get("urgency", 0.5) + (0.45 * gain)) # Reduced from 0.5
+        out["calm"] = _clamp01(out.get("calm", 0.5) - (0.35 * gain)) # Reduced from 0.4
 
     if snapshot.is_obstructed:
-        out["vulnerability"] = _clamp01(out.get("vulnerability", 0.0) + 0.3)
-        out["risk"] = _clamp01(out.get("risk", 0.5) + 0.15)
+        out["vulnerability"] = _clamp01(out.get("vulnerability", 0.0) + (0.3 * gain))
+        out["risk"] = _clamp01(out.get("risk", 0.5) + (0.15 * gain))
 
     if snapshot.stability_score is not None and snapshot.stability_score < 0.4:
-        out["risk"] = _clamp01(out.get("risk", 0.5) + (0.4 - snapshot.stability_score))
-        out["urgency"] = _clamp01(out.get("urgency", 0.5) + 0.1)
+        out["risk"] = _clamp01(out.get("risk", 0.5) + ((0.4 - snapshot.stability_score) * gain))
+        out["urgency"] = _clamp01(out.get("urgency", 0.5) + (0.1 * gain))
 
     if snapshot.motor_effort_avg is not None and snapshot.motor_effort_avg > 0.8:
-        out["vulnerability"] = _clamp01(out.get("vulnerability", 0.0) + 0.2)
-        out["calm"] = _clamp01(out.get("calm", 0.5) - 0.1)
+        out["vulnerability"] = _clamp01(out.get("vulnerability", 0.0) + (0.2 * gain))
+        out["calm"] = _clamp01(out.get("calm", 0.5) - (0.1 * gain))
 
     # ── Thalamus sensory fusion (Bloque 10.1) ─────────────────────────────────
     # thalamus_tension > 0.5 → background stress (unseen source of noise/speech)
     if snapshot.thalamus_tension is not None and snapshot.thalamus_tension > 0.4:
-        out["urgency"] = _clamp01(out.get("urgency", 0.5) + snapshot.thalamus_tension * 0.2)
-        out["calm"] = _clamp01(out.get("calm", 0.5) - snapshot.thalamus_tension * 0.15)
+        out["urgency"] = _clamp01(out.get("urgency", 0.5) + snapshot.thalamus_tension * 0.2 * gain)
+        out["calm"] = _clamp01(out.get("calm", 0.5) - snapshot.thalamus_tension * 0.15 * gain)
     # low cross_modal_trust → audio-only spike not confirmed by vision → dampen stress
     if (
         snapshot.thalamus_cross_modal_trust is not None
         and snapshot.thalamus_cross_modal_trust < 0.5
     ):
-        out["urgency"] = _clamp01(out.get("urgency", 0.5) - 0.05)
+        out["urgency"] = _clamp01(out.get("urgency", 0.5) - (0.05 * gain))
     # thalamus_attention high → clear focal interaction → raise familiarity
     if snapshot.thalamus_attention is not None and snapshot.thalamus_attention > 0.7:
-        out["familiarity"] = _clamp01(out.get("familiarity", 0.5) + 0.1)
+        out["familiarity"] = _clamp01(out.get("familiarity", 0.5) + (0.1 * gain))
 
     return out
 

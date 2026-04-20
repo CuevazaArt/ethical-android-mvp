@@ -94,12 +94,13 @@ window.addEventListener('devicemotion', (event) => {
                 let now = Date.now();
                 
                 // Phase 12 Hardening: High-intensity impact detection
-                if(magnitude > 15) { // Roughly > 1.5G spike
-                    wsNomad.send(JSON.stringify({ type: "telemetry", payload: { kinetics: magnitude, impact: true } }));
-                    lastKineticPulse = now;
-                } else if(now - lastKineticPulse > 1000) {
-                    // Normal heartbeat telemetry
+                // Phase 12 Hardening: Enhanced sensitivity for real-time dashboard sync
+                if(magnitude > 1.5) { // Detect even subtle movement
                     wsNomad.send(JSON.stringify({ type: "telemetry", payload: { kinetics: magnitude } }));
+                    lastKineticPulse = now;
+                } else if(now - lastKineticPulse > 2000) {
+                    // Send idle heartbeat with 0 kinetics to settle the dashboard lóbulo
+                    wsNomad.send(JSON.stringify({ type: "telemetry", payload: { kinetics: 0, heartbeat: true } }));
                     lastKineticPulse = now;
                 }
             }
@@ -250,7 +251,7 @@ function connectKernel() {
         };
 
         // Antigravity & Cursor - add wsNomad initialization for the sensor stream
-        wsNomad = new WebSocket(`${protocol}//${PC_IP}:${WS_PORT}/ws/nomad`);
+        wsNomad = new WebSocket(`${protocol}//${PC_IP}:${WS_PORT}/nomad_bridge/ws/nomad`);
         wsNomad.onopen = () => { 
             console.log('Nomad Sensory Bridge established');
             // Heavy Heartbeat (Fase 12.2)

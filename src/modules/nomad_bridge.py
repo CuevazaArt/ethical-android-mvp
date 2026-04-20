@@ -74,6 +74,10 @@ class NomadBridge:
         else:
             self.app = FastAPI(title="Nomad Bridge Sensor Endpoint")
 
+            @self.app.get("/")
+            async def nomad_root():
+                return {"status": "ok", "bridge": "nomad", "vessel_healthy": self._is_vessel_healthy}
+
             @self.app.websocket("/ws/nomad")
             async def websocket_nomad_endpoint(
                 websocket: WebSocket,
@@ -146,6 +150,9 @@ class NomadBridge:
 
     def broadcast_to_dashboards(self, msg: dict[str, Any]) -> None:
         """Sends a message to all connected dashboards (Module S / Phase 10)."""
+        if not self.dashboard_queues:
+            return
+            
         for q in self.dashboard_queues:
             try:
                 if q.full():
@@ -153,6 +160,11 @@ class NomadBridge:
                 q.put_nowait(msg)
             except Exception:
                 pass
+        
+        # Periodic debug log to ensure broadcast is reaching targets
+        if time.time() - getattr(self, "_last_broadcast_log", 0) > 10.0:
+            _log.info("Nomad Bridge: Broadcasting to %d dashboard(s). Latest type: %s", len(self.dashboard_queues), msg.get("type"))
+            self._last_broadcast_log = time.time()
 
     def public_queue_stats(self) -> dict[str, Any]:
         """Returns key metrics and queue depths for the L0 health monitor."""

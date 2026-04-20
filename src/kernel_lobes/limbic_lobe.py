@@ -61,20 +61,21 @@ class LimbicEthicalLobe:
             _log.warning("LimbicLobe: Non-finite trauma_magnitude detected. Resetting to 0.0")
             trauma_magnitude = 0.0
 
-        # 1. Somatic Influences (Irritability)
+        # 1. Somatic Influences (Irritability) - Phase 11.2 Refinement
         somatic_tension = 0.0
         if somatic_state:
             try:
                 temp = float(somatic_state.get("temp", 45.0))
                 batt = float(somatic_state.get("battery", 100.0))
-                if temp > 70.0:
-                    somatic_tension += 0.2
-                if batt < 20.0:
-                    somatic_tension += 0.1
+                # Soften somatic impact on relational tension
+                if temp > 75.0: # Raised threshold from 70.0
+                    somatic_tension += 0.15 # Reduced from 0.2
+                if batt < 15.0: # Lowered threshold from 20.0
+                    somatic_tension += 0.05 # Reduced from 0.1
                 if batt <= 5.0:
-                    # Phase 11.2: Shutdown Anxiety (Situational Finitude)
-                    somatic_tension += 0.4
-                    signals["urgency"] = max(signals.get("urgency", 0.0), 0.9)
+                    # Phase 11.2: Shutdown Anxiety remains high but slightly capped
+                    somatic_tension += 0.3 # Reduced from 0.4
+                    signals["urgency"] = max(signals.get("urgency", 0.0), 0.85) # Reduced from 0.9
                     signals["shutdown_threat"] = 1.0
             except (ValueError, TypeError):
                 pass # Ignore malformed somatic data
@@ -97,8 +98,16 @@ class LimbicEthicalLobe:
         
         # Inject somatic, situational and identity trauma tension into social evaluation
         # Trauma (Broken Mirror) creates a baseline irritability / hyper-vigilance
-        trauma_stress = trauma_magnitude * 0.4
-        total_stress_nudge = somatic_tension + (self.situational_stress * 0.5) + trauma_stress
+        # Modulate total stress nudge by KERNEL_SENSORY_GAIN
+        import os
+        try:
+            gain = float(os.environ.get("KERNEL_SENSORY_GAIN", "1.0"))
+            gain = max(0.0, min(2.0, gain))
+        except (ValueError, TypeError):
+            gain = 1.0
+
+        trauma_stress = trauma_magnitude * 0.3 # Reduced from 0.4
+        total_stress_nudge = (somatic_tension + (self.situational_stress * 0.4) + trauma_stress) * gain
         
         if hasattr(social_eval, "relational_tension") and total_stress_nudge > 0:
             social_eval.relational_tension = max(0.0, min(1.0, social_eval.relational_tension + total_stress_nudge))

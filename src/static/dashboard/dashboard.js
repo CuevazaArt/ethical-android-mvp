@@ -94,9 +94,9 @@ function handleMessage(msg) {
 }
 
 function updateTelemetry(data) {
-    if (data.battery) document.getElementById('bat-val').innerText = `${Math.round(data.battery)}%`;
-    if (data.temp) document.getElementById('temp-val').innerText = `${Math.round(data.temp)}°C`;
-    if (data.turn_index) document.getElementById('turn-index').innerText = `TURN #${data.turn_index}`;
+    if (data.battery !== undefined) document.getElementById('bat-val').innerText = `${Math.round(data.battery * 100)}%`;
+    if (data.temp !== undefined) document.getElementById('temp-val').innerText = `${Math.round(data.temp)}°C`;
+    if (data.turn_index !== undefined) document.getElementById('turn-index').innerText = `TURN #${data.turn_index}`;
     if (data.trust) {
         document.getElementById('trust-val').innerText = data.trust.toFixed(2);
         document.getElementById('trust-fill').style.width = `${data.trust * 100}%`;

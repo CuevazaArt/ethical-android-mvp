@@ -8,6 +8,7 @@ See docs/proposals/README.md §1–2
 
 from __future__ import annotations
 
+import asyncio
 import math
 import os
 import time
@@ -251,3 +252,74 @@ def vitality_communication_hint(assessment: VitalityAssessment, trust_level: flo
             hints.append("System load management active; maintaining safety margins.")
 
     return " ".join(hints)
+
+
+_nomad_telemetry_consumer: NomadTelemetryConsumer | None = None
+
+
+class NomadTelemetryConsumer:
+    """
+    Consumes telemetry updates from the NomadBridge asynchronously and 
+    updates the global sensor state or individual snapshot buffers.
+    """
+    def __init__(self):
+        self._task: asyncio.Task | None = None
+        self.latest_raw: dict[str, Any] = {}
+
+    def start(self):
+        self._task = asyncio.create_task(self._consume_loop())
+
+    async def _consume_loop(self):
+        from .nomad_bridge import get_nomad_bridge
+        bridge = get_nomad_bridge()
+        while True:
+            try:
+                raw = await bridge.telemetry_queue.get()
+                if isinstance(raw, dict):
+                    self.latest_raw = raw
+                    # Process telemetry in a future phase if needed (logging, persistent storage)
+                    # Currently, the bridge itself provides latest telemetry via .telemetry
+            except asyncio.CancelledError:
+                break
+            except Exception as e:
+                import logging
+                logging.getLogger(__name__).error("Error in NomadTelemetryConsumer: %s", e)
+
+    async def stop(self) -> None:
+        if self._task is not None:
+            self._task.cancel()
+            try:
+                await self._task
+            except asyncio.CancelledError:
+                pass
+            self._task = None
+
+
+def start_nomad_telemetry_consumer_from_env() -> NomadTelemetryConsumer | None:
+    """
+    Start the background telemetry drain when KERNEL_NOMAD_TELEMETRY_CONSUMER=1.
+    """
+    global _nomad_telemetry_consumer
+    from ..kernel_utils import kernel_env_truthy
+
+    if not kernel_env_truthy("KERNEL_NOMAD_TELEMETRY_CONSUMER"):
+        return None
+    if _nomad_telemetry_consumer is not None:
+        return _nomad_telemetry_consumer
+    
+    _nomad_telemetry_consumer = NomadTelemetryConsumer()
+    _nomad_telemetry_consumer.start()
+    import logging
+    logging.getLogger(__name__).info("NomadTelemetryConsumer started.")
+    return _nomad_telemetry_consumer
+
+
+async def stop_nomad_telemetry_consumer_async() -> None:
+    """Graceful stop for telemetry background task."""
+    global _nomad_telemetry_consumer
+    c = _nomad_telemetry_consumer
+    _nomad_telemetry_consumer = None
+    if c is not None:
+        await c.stop()
+        import logging
+        logging.getLogger(__name__).info("NomadTelemetryConsumer stopped.")

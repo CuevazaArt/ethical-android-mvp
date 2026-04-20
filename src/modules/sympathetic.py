@@ -17,6 +17,16 @@ class InternalState:
     description: str = ""
 
 
+def _get_attack_rate() -> float:
+    """Read KERNEL_SYMPATHETIC_ATTACK from env (default 0.15 for smoother transition)."""
+    import os
+    try:
+        val = float(os.environ.get("KERNEL_SYMPATHETIC_ATTACK", "0.15"))
+        return max(0.01, min(0.5, val))
+    except (ValueError, TypeError):
+        return 0.15
+
+
 class SympatheticModule:
     """
     Body-level regulator for alert and rest states.
@@ -76,16 +86,17 @@ class SympatheticModule:
         # Parasympathetic inhibitors
         inhibition = calm
 
-        # New sigma: smooth transition
-        delta = (activation - inhibition) * 0.3
+        # New sigma: smooth transition (modulated by attack rate)
+        attack_rate = _get_attack_rate()
+        delta = (activation - inhibition) * attack_rate
         new_sigma = self._clamp_sigma(self.sigma + delta)
         self.sigma = new_sigma
 
-        # Classify mode
-        if new_sigma > 0.65:
+        # Classify mode (slightly wider neutral zone for stabilization)
+        if new_sigma > 0.70: # Raised from 0.65
             mode = "sympathetic"
             desc = "Active alert. Fast action prioritized."
-        elif new_sigma < 0.35:
+        elif new_sigma < 0.30: # Lowered from 0.35
             mode = "parasympathetic"
             desc = "Deliberative rest. Memory consolidation."
         else:

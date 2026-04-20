@@ -253,3 +253,55 @@ class NomadAudioConsumer:
                 import logging
                 logging.getLogger(__name__).error("Error in NomadAudioConsumer: %s", e)
 
+    async def stop(self) -> None:
+        if self._task is not None:
+            self._task.cancel()
+            try:
+                await self._task
+            except asyncio.CancelledError:
+                pass
+            self._task = None
+
+
+_shared_capture: AudioCaptureInterface | None = None
+_nomad_audio_consumer: NomadAudioConsumer | None = None
+
+
+def get_shared_audio_capture() -> AudioCaptureInterface:
+    """Singleton for the shared audio capture interface."""
+    global _shared_capture
+    if _shared_capture is None:
+        _shared_capture = AudioCaptureInterface()
+        _shared_capture.start()
+    return _shared_capture
+
+
+def start_nomad_audio_consumer_from_env(ring_buffer: AudioRingBuffer) -> NomadAudioConsumer | None:
+    """
+    Start the background audio drain from NomadBridge when KERNEL_NOMAD_AUDIO_CONSUMER=1.
+    """
+    global _nomad_audio_consumer
+    from ..kernel_utils import kernel_env_truthy
+    
+    # We always need the background consumer if we want real-time phone audio 
+    # even if simulated mic capture is running.
+    if not kernel_env_truthy("KERNEL_NOMAD_AUDIO_CONSUMER"):
+        return None
+    if _nomad_audio_consumer is not None:
+        return _nomad_audio_consumer
+        
+    _nomad_audio_consumer = NomadAudioConsumer(ring_buffer)
+    _nomad_audio_consumer.start()
+    _log.info("NomadAudioConsumer started.")
+    return _nomad_audio_consumer
+
+
+async def stop_nomad_audio_consumer_async() -> None:
+    """Gracefully stop the background audio task."""
+    global _nomad_audio_consumer
+    c = _nomad_audio_consumer
+    _nomad_audio_consumer = None
+    if c is not None:
+        await c.stop()
+        _log.info("NomadAudioConsumer stopped.")
+
