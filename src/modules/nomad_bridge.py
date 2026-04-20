@@ -168,13 +168,30 @@ class NomadBridge:
 
     def public_queue_stats(self) -> dict[str, Any]:
         """Return observable queue depths and vessel health for /health endpoint (Module S.1/S.2.1)."""
+        # Peek at the latest telemetry item without consuming it
+        try:
+            latest_tel: dict[str, Any] | None = self.telemetry_queue.get_nowait()
+            self.telemetry_queue.put_nowait(latest_tel)
+        except Exception:
+            latest_tel = None
+
         return {
+            "schema": "nomad_bridge_queue_stats_v2",
             "vision_queue_depth": self.vision_queue.qsize(),
             "audio_queue_depth": self.audio_queue.qsize(),
             "telemetry_queue_depth": self.telemetry_queue.qsize(),
             "charm_feedback_queue_depth": self.charm_feedback_queue.qsize(),
+            "charm_feedback_queued": self.charm_feedback_queue.qsize(),
+            "charm_feedback_max": self.charm_feedback_queue.maxsize,
             "vessel_healthy": self._is_vessel_healthy,
             "last_sensor_update_keys": ["_last_sensor_update"],
+            "latest_telemetry_present": latest_tel is not None,
+            "latest_telemetry_keys": list(latest_tel.keys()) if latest_tel else [],
+            "limits": {
+                "max_vision_frame_bytes": 512 * 1024,   # 512 KB — standard JPEG cap
+                "max_audio_pcm_bytes": 64 * 1024,       # 64 KB — ~1 s @ 16-bit/32 kHz
+                "max_telemetry_keys": 64,               # max keys per telemetry payload
+            },
         }
 
     async def _chat_text_consumer(
