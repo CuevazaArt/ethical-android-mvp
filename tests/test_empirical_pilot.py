@@ -97,9 +97,9 @@ class TestLabeledScenariosFixture:
             )
 
     def test_batch_ids_sequential(self, labeled_scenarios):
-        """Batch IDs should be sequential."""
+        """Batch IDs should be sequential. Annotation-only rows have batch_id=None and are excluded."""
         scenarios = labeled_scenarios["scenarios"]
-        batch_ids = sorted(set(s["batch_id"] for s in scenarios))
+        batch_ids = sorted(set(s["batch_id"] for s in scenarios if s.get("batch_id") is not None))
         assert batch_ids[0] >= 1, "Batch IDs should start at 1 or higher"
         assert batch_ids[-1] <= 20, "Batch IDs should be reasonable number"
 
