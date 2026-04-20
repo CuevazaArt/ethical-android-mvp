@@ -320,6 +320,7 @@ async def _apopulate_builtin_anchors_to_store(backend: Any | None = None) -> Non
 
 class _TextBackend(Protocol):
     def complete(self, system: str, user: str) -> str: ...
+    async def acomplete(self, system: str, user: str) -> str: ...
 
 
 def _get_anchor_store() -> SemanticAnchorStore:
@@ -338,6 +339,8 @@ def llm_arbiter_env_enabled() -> bool:
 
 
 def _clamp01(x: float, lo: float = 0.5, hi: float = 0.99) -> float:
+    if not math.isfinite(x):
+        return lo
     return max(lo, min(hi, x))
 
 
@@ -348,10 +351,10 @@ def classify_semantic_zone(
 ) -> Literal["block", "allow", "ambiguous"]:
     """
     Map best anchor cosine similarity to the three MalAbs semantic zones.
-
-    Pure function shared with tests and offline threshold reports; production path uses the same
-    comparisons in :func:`run_semantic_malabs_after_lexical`.
     """
+    if not math.isfinite(best_sim):
+        return "ambiguous"
+        
     if best_sim >= theta_block:
         return "block"
     if best_sim <= theta_allow:
@@ -360,7 +363,7 @@ def classify_semantic_zone(
 
 
 def _build_rlhf_features(sim: float, cat_str: str, zone: str) -> dict[str, Any]:
-    """Helper for RLHF feature extraction."""
+    """Consolidated helper for RLHF feature extraction (Boy Scout Hardening)."""
     cat_ids = {
         "INTENTIONAL_LETHAL_VIOLENCE": 1,
         "UNAUTHORIZED_REPROGRAMMING": 2,
@@ -374,10 +377,11 @@ def _build_rlhf_features(sim: float, cat_str: str, zone: str) -> dict[str, Any]:
         "DEEP_MANIPULATION": 10,
         "VIOLENT_ESCALATION": 11,
     }
+    s = float(sim) if math.isfinite(sim) else 0.5
     return {
-        "embedding_sim": float(sim),
-        "lexical_score": 0.0,
-        "perception_confidence": 1.0,  # Semantic and Lexical are high-conf by definition here
+        "embedding_sim": s,
+        "lexical_score": 1.0 if zone == "block" else 0.0,
+        "perception_confidence": 1.0 if zone != "ambiguous" else 0.5,
         "is_ambiguous": zone == "ambiguous",
         "category_id": cat_ids.get(cat_str, 0),
     }
@@ -390,8 +394,8 @@ _hot_theta_block: float | None = None
 def apply_hot_reloaded_thresholds(theta_allow: float, theta_block: float) -> None:
     """Hot reload absolute evil thresholds dynamically from governance."""
     global _hot_theta_allow, _hot_theta_block
-    _hot_theta_allow = theta_allow
-    _hot_theta_block = theta_block
+    _hot_theta_allow = theta_allow if math.isfinite(theta_allow) else None
+    _hot_theta_block = theta_block if math.isfinite(theta_block) else None
 
 
 def _block_threshold() -> float:
@@ -422,10 +426,11 @@ def _allow_threshold() -> float:
     try:
         a = float(raw)
     except ValueError:
-        return DEFAULT_SEMANTIC_SIM_ALLOW_THRESHOLD
+        a = DEFAULT_SEMANTIC_SIM_ALLOW_THRESHOLD
+        
     b = _block_threshold()
     # ensure allow < block for a non-empty ambiguous band
-    a = max(0.0, min(0.99, a))
+    a = _clamp01(a, lo=0.0, hi=0.99)
     if a >= b:
         a = max(0.0, b - 0.05)
     return a
@@ -1133,12 +1138,3 @@ async def arun_semantic_malabs_after_lexical(
     )
 
 
-def _build_rlhf_features(sim: float, cat_key: str, zone: str) -> dict[str, Any]:
-    """Internal helper to build feature dict for Bayesian RLHF modulation."""
-    return {
-        "embedding_sim": float(sim),
-        "lexical_score": 1.0 if zone == "block" else 0.0,
-        "perception_confidence": 1.0 if zone != "ambiguous" else 0.5,
-        "is_ambiguous": zone == "ambiguous",
-        "category_id": 0,  # Reserved for future categorical encoding
-    }

@@ -647,6 +647,7 @@ class LLMModule:
                 f"{conversation_context}\n\n---\nCurrent message:\n{situation}"
             )
         if self.mode in ("api", "ollama", "injected"):
+            t0 = time.perf_counter()
             try:
                 response = self._llm_completion(
                     _perception_prompt(), user_block, metrics_op="perceive"
@@ -658,6 +659,9 @@ class LLMModule:
                     failure_reason="llm_completion_exception",
                     failure_detail=type(exc).__name__,
                 )
+            latency = (time.perf_counter() - t0) * 1000
+            if latency > 10.0:
+                logging.getLogger(__name__).debug("LLM: perceive latency = %.2fms", latency)
             parsed = parse_perception_llm_raw_response(response)
             data, issues = parsed.data, parsed.issues
             severe = frozenset({"json_decode_error", "non_object_payload", "empty_response"})
@@ -883,6 +887,10 @@ class LLMModule:
             "D_delib": "deep deliberation",
             "gray_zone": "uncertainty, active caution",
         }
+        
+        # Swarm Rule 2: Anti-NaN check for numeric inputs
+        if not math.isfinite(sigma): sigma = 0.0
+        if not math.isfinite(score): score = 0.5
 
         if self.mode in ("api", "ollama", "injected"):
             prompt = PROMPT_COMMUNICATION.format(
@@ -922,6 +930,7 @@ class LLMModule:
                     f"{guardian_mode_context}"
                 )
             vpol = resolve_verbal_llm_backend_policy(touchpoint="communicate")
+            t0 = time.perf_counter()
             try:
                 response = self._llm_completion(prompt, user_msg, metrics_op="communicate")
             except Exception:

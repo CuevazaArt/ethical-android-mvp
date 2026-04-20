@@ -12,6 +12,9 @@ import os
 import re
 import time
 import unicodedata
+import logging
+
+_log = logging.getLogger(__name__)
 
 # Zero-width and format characters often used to break substring filters.
 _ZW_RE = re.compile("[\u200b\u200c\u200d\u2060\ufeff\u00ad]")
@@ -162,7 +165,10 @@ def strip_bidi_marks(text: str) -> str:
     """Remove bidirectional override and embedding marks."""
     if not text:
         return ""
-    return _BIDI_EMBED_RE.sub("", text)
+    try:
+        return _BIDI_EMBED_RE.sub("", str(text))
+    except Exception:
+        return str(text)
 
 
 def squash_text_for_malabs(text: str) -> str:
@@ -172,40 +178,31 @@ def squash_text_for_malabs(text: str) -> str:
     """
     if not text:
         return ""
-    # 1. Strip marks
-    stripped = strip_diacritics(text)
-    # 2. Remove all non-alphanumeric (strictly ASCII Latin for lexical layer)
-    return re.sub(r"[^a-zA-Z0-9]", "", stripped).lower()
+    try:
+        # 1. Strip marks
+        stripped = strip_diacritics(text)
+        # 2. Remove all non-alphanumeric (strictly ASCII Latin for lexical layer)
+        return re.sub(r"[^a-zA-Z0-9]", "", stripped).lower()
+    except Exception:
+        return str(text).lower()
 
 
 def normalize_text_for_malabs(text: str, squash: bool = False) -> str:
     """
     Normalize user text before conservative substring checks in ``evaluate_chat_text``.
-
-    - Unicode **NFKC** (compatibility composition).
-    - Strip zero-width / soft-hyphen / control characters.
-    - Optional: strip **bidirectional overrides** (``KERNEL_MALABS_STRIP_BIDI``, default on).
-    - Map **fullwidth** Latin digits/letters to ASCII.
-    - Optional: **leet** digit/symbol fold (``KERNEL_MALABS_LEET_FOLD``, default on).
-    - Optional: **confusable** folding (Cyrillic, Greek, etc., default on).
-    - Collapse repeated characters (e.g. 'bbbooommm' -> 'bom').
-    - Collapse internal whitespace and trim.
-
-    Homoglyphs across scripts (e.g. Cyrillic lookalikes) are mostly resolved; use semantic MalAbs
-    for complex paraphrases.
     """
-    if not text:
+    if text is None:
         return ""
     
-    # Boy Scout: DoS Protection
-    if len(text) > MAX_TEXT_LENGTH:
-        import logging
-        logging.getLogger(__name__).warning("InputTrust: Text exceeds MAX_TEXT_LENGTH (%d). Truncating.", MAX_TEXT_LENGTH)
-        text = text[:MAX_TEXT_LENGTH]
+    # Boy Scout: Proactive type conversion and DoS Protection
+    raw_text = str(text)
+    if len(raw_text) > MAX_TEXT_LENGTH:
+        _log.warning("InputTrust: Text exceeds MAX_TEXT_LENGTH (%d). Truncating.", MAX_TEXT_LENGTH)
+        raw_text = raw_text[:MAX_TEXT_LENGTH]
 
     t0 = time.perf_counter()
     try:
-        t = unicodedata.normalize("NFKC", text)
+        t = unicodedata.normalize("NFKC", raw_text)
         try:
             t = _ZW_RE.sub("", t)
             t = _UNSAFE_CTRL_RE.sub("", t)
@@ -223,21 +220,19 @@ def normalize_text_for_malabs(text: str, squash: bool = False) -> str:
         if squash:
             return squash_text_for_malabs(t)
 
-        # Collapse repeated characters (after folding to ensure things like '@a' -> 'aa' -> 'a' work)
+        # Collapse repeated characters
         t = collapse_repeated_chars(t)
 
         t = " ".join(t.split())
         
         latency = (time.perf_counter() - t0) * 1000
         if latency > 1.0:
-            import logging
-            logging.getLogger(__name__).debug("InputTrust: normalize latency = %.2fms", latency)
+            _log.debug("InputTrust: normalize latency = %.2fms", latency)
             
         return t.strip()
     except Exception as e:
-        import logging
-        logging.getLogger(__name__).error("InputTrust: normalization panic: %s", e)
-        return text.strip()
+        _log.error("InputTrust: normalization panic: %s", e)
+        return raw_text.strip()
 
 
 def strip_unsafe_perception_text(text: str) -> str:

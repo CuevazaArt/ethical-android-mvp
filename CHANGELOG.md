@@ -7,6 +7,15 @@ All notable changes to this project are summarized here. For narrative context a
 **[URGENT ΓÇö broadcast to all L2 integration hubs]:** All teams (Claude, Cursor, Copilot) should urgently `git pull` from `main` into their `master-*` branches. Outdated branches risk severe documentation path drift.
 
 ### Antigravity-Team Updates (2026-04-18 - Session 2)
+### Antigravity-Team Updates (2026-04-19 - Session 11)
+
+- [x] **BOY SCOUT VERTICAL HARDENING (Finalization Phase)**:
+    *   **Absolute Evil Circuit**: Blindada la entrada de `AbsoluteEvilDetector` contra tipos hostiles. Inyectada normalización defensiva en la extracción de señales sensoriales para prevenir `TypeError`.
+    *   **Input trust & Normalization**: Refactorizada la arquitectura de logs en `input_trust.py`. Implementada protección DoS mediante truncamiento proactivo y casting a `str` garantizado en todos los flujos de MalAbs.
+    *   **Semantic Gate Cleanup**: Consolidada la redundancia de `_build_rlhf_features`. Actualizado el protocolo `_TextBackend` para soportar `acomplete` nativamente. Inyectadas guardas `math.isfinite` en los umbrales de similitud coseno (Zone Classification).
+    *   **Multimodal Trust Resilience**: Reparado el `NameError` en logs de latencia. Envuelto el evaluador de confianza multimodal en un bloque `try/except` global para asegurar la continuidad operativa ante sensores ruidosos o corruptos.
+    *   **Numerical Stability**: Sincronizadas las guardas Anti-NaN en `weighted_ethics_scorer.py` y `kernel_formatters.py`, eliminando la propagación de `NaN` en los informes de auditoría final.
+
 ### Antigravity-Team Updates (2026-04-19 - Session 10)
 
 - [x] **EXPERIENCE-DRIVEN PRIOR ADJUSTMENT (ADR 0005 / ISSUE #1 B)**:
