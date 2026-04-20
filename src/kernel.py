@@ -42,6 +42,7 @@ class EthosKernel:
         # 1. Initialize the Nervous System (The Multi-Bus)
         self.bus = CorpusCallosum()
         self.modulator = BusModulator(self.bus)
+        self.bus.modulator = self.modulator
         self.mode = mode
 
         # 2. Initialize the 4 Mnemonic Organs (Lobes)
@@ -102,8 +103,12 @@ class EthosKernel:
 
         self._pending_reactions: dict[str, asyncio.Future] = {}
 
-    async def start(self):
-        """Awaken the Android's Nervous System."""
+    async def start(self) -> None:
+        """
+        Awaken the Android's Nervous System.
+        Starts the event bus and the modulator, and subscribes the kernel
+        to motor commands to bridge back to the chat interface.
+        """
         self.bus.start()
         self.modulator.start(mode=self.mode)
         
@@ -112,8 +117,11 @@ class EthosKernel:
         
         _log.info("EthosKernel: The distributed brain is AWAKE.")
 
-    async def stop(self):
-        """Shut down the biological cycle."""
+    async def stop(self) -> None:
+        """
+        Shut down the biological cycle.
+        Gracefully stops the bus and throttling modulator.
+        """
         await self.bus.stop()
         await self.modulator.stop()
         _log.info("EthosKernel: The distributed brain is SLEEPING.")
@@ -153,10 +161,15 @@ class EthosKernel:
 
         # Wait for the Prefrontal Cortex to finish (with a safety timeout)
         try:
-            result_str = await asyncio.wait_for(future, timeout=30.0)
+            dispatch_result = await asyncio.wait_for(future, timeout=30.0)
             return ChatTurnResult(
-                response=VerbalResponse(message=result_str, tone="neutral"),
-                path="nervous_bus"
+                response=VerbalResponse(
+                    message=f"Distributed Action: {getattr(dispatch_result, 'action_id', 'unknown')} (Vetoed: {getattr(dispatch_result, 'is_vetoed', False)})...", 
+                    tone="neutral"
+                ),
+                path="nervous_bus",
+                blocked=getattr(dispatch_result, "is_vetoed", False),
+                block_reason="Vetoed by Prefrontal Cortex" if getattr(dispatch_result, "is_vetoed", False) else ""
             )
         except asyncio.TimeoutError:
             _log.error(f"EthosKernel: Distributed timeout for stimulus {spike.pulse_id}.")
@@ -187,7 +200,7 @@ class EthosKernel:
             pulse_id = list(self._pending_reactions.keys())[0]
             future = self._pending_reactions[pulse_id]
             if not future.done():
-                future.set_result(f"Distributed Action: {dispatch.action_id} (Vetoed: {dispatch.is_vetoed})")
+                future.set_result(dispatch)
 
 # Legacy Alias
 EthicalKernel = EthosKernel

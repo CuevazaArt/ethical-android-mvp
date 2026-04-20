@@ -62,12 +62,21 @@ class CorpusCallosum:
 
     async def _dispatch_loop(self):
         """The core sub-pulse dispatcher."""
+        import time
         while self._running:
             # Order of consumption: 0 (Critical) first
             for priority in sorted(self._queues.keys()):
                 queue = self._queues[priority]
                 if not queue.empty():
                     pulse = await queue.get()
+                    
+                    # Telemetry: Measure how long the pulse waited in the queue
+                    wait_time_ms = (time.time() - pulse.timestamp) * 1000
+                    if wait_time_ms > 50.0:
+                        _log.warning(f"CorpusCallosum: HIGH LATENCY. Pulse {pulse.pulse_id} waited {wait_time_ms:.2f}ms in queue {priority}")
+                    elif wait_time_ms > 10.0:
+                        _log.debug(f"CorpusCallosum: Latency. Pulse {pulse.pulse_id} waited {wait_time_ms:.2f}ms in queue {priority}")
+                        
                     await self._notify_subscribers(pulse)
                     queue.task_done()
                     # After a critical pulse, we restart the priority scan

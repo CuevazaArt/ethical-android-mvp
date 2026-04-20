@@ -1,8 +1,8 @@
 {
   "files": {
-    "src/kernel.py": "926199d406aec6b5d2a4eb4400b918ed8cd0d77be283159e2237aedcee8968c7",
+    "src/kernel.py": "7b52f3cc85eadd97499a2b64253e25cea19607c3a09425fbdf4c6abd5d4e78b6",
     "src/kernel_lobes/models.py": "35234fa7b47c1d140fa55994e2e3a9a565b5119d8e65a24d195c139c2db14f59",
-    "src/kernel_lobes/executive_lobe.py": "7dbcc75d758ca29ca0c99f72fc8646b5c9dc455175c1a7295bfbf40093b03476",
+    "src/kernel_lobes/executive_lobe.py": "0132269d18fdef0a6c86ba759d686fcadf12b26b1e51b27de1329dfd2054fa2f",
     "src/kernel_lobes/memory_lobe.py": "d362b0b790d0e45c5e902519e3e8a02aa2aed6f06a29c7054a517c62ad116913",
     "src/kernel_lobes/perception_lobe.py": "7b4ac7748c2c9fbe7a7e7e0ab712803d576f2bd7f95663509229f5be29769e2b",
     "src/kernel_lobes/thalamus_node.py": "365e59c3b83aa3723993d812092b6f303eed4b1097f4d385ac50a6656837d35d",
@@ -21,6 +21,6 @@
     "src/persistence/kernel_io.py": "00474e4908d2cbb7cc5e6547c6db629c4f4b88b0190342847b6ac9930c163689",
     "src/persistence/snapshot_serde.py": "3920104a50d2b70ec1a79f539866e4bd192bda6a3969fa827c1fd95368c8899f"
   },
-  "signature": "a0cee2fd6d389e40db37cedba18d3e03b60d9802f1eb325a235f821a8a1306d3",
+  "signature": "112d11619baf202ad3cafffff4364c65c37c911a3e18c76684c87e713789ffa4",
   "signed_by": "Antigravity (L1) - Hardening Pulse Recovery"
 }

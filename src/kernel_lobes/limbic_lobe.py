@@ -245,6 +245,13 @@ class LimbicEthicalLobe:
     async def _on_sensory_spike(self, spike: SensorySpike):
         """Limbic reaction to a new sensory stimulus."""
         _log.debug(f"Sistema Límbico: Analizando impacto social del Spike {spike.pulse_id}")
+        
+        # Throttling Orgánico: Pausar biológicamente si hay sobrecarga
+        if self.bus and hasattr(self.bus, "modulator"):
+            yield_func = getattr(self.bus.modulator, "biological_yield", None)
+            if yield_func is not None:
+                await yield_func()
+        
         # Aquí se activaría la heurística de 'Uchi-Soto' preliminar al ver el origen.
         pass
 

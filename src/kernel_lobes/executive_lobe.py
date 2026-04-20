@@ -279,6 +279,12 @@ class ExecutiveLobe:
         _log.info(f"Córtex Prefrontal: Evaluando respuesta ejecutiva para Spike {spike.pulse_id}")
         # Aquí se iniciaría la planificación de la respuesta verbal o motora.
 
+    async def _on_bayesian_math_update(self, grade: BayesianEcograde):
+        """Prefrontal reaction to analytical moral computation from Cerebellum."""
+        _log.info(f"Córtex Prefrontal: Recibido BayesianEcograde ({getattr(grade, 'moral_score', 0.0):.2f})")
+        # In the future this will influence volition or reflection.
+        pass
+
     async def _on_cognitive_event(self, pulse: CognitivePulse):
         """Prefrontal reaction to a high-level mental broadcast."""
         _log.info(f"Córtex Prefrontal: Recibido CognitivePulse de {pulse.origin_lobe}. Convergiendo...")
@@ -286,9 +292,22 @@ class ExecutiveLobe:
         # En este sprint, si recibimos un estado semántico del Córtex Sensorial, 
         # disparamos la voluntad.
         if pulse.origin_lobe == "sensory_cortex":
-            # Aquí vendría toda la lógica de judgement_stage y formulate_response decoupada.
-            # Por simplicidad del sprint hito V13:
-            _log.info("Córtex Prefrontal: Convergencia lograda. Despachando Voluntad...")
+            state = pulse.state_ref
+            
+            # Decoupling de Judgement: Ejecución reactiva de MalAbs
+            if state and self.absolute_evil:
+                intent = getattr(state, "raw_prompt", "")
+                _log.debug(f"Córtex Prefrontal: Analizando intención: '{intent[:30]}...'")
+                
+                # Evaluamos de forma autónoma usando el gate textual de profundidad completa
+                check = await self.absolute_evil.aevaluate_chat_text(intent)
+                
+                if check.blocked:
+                    _log.warning(f"Córtex Prefrontal: MAL ABSOLUTO DETECTADO ({getattr(check, 'reason', 'unknown')}). Veto Inmediato.")
+                    await self.dispatch_volition(action_id="blocked_by_malabs", is_vetoed=True)
+                    return
+            
+            _log.info("Córtex Prefrontal: Convergencia de seguridad lograda. Despachando Voluntad...")
             await self.dispatch_volition(action_id="say_hello", is_vetoed=False)
 
     async def dispatch_volition(self, action_id: str, is_vetoed: bool = False):

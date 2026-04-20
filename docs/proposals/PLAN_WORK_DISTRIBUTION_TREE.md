@@ -28,6 +28,20 @@ Aquí es donde los agentes de ejecución (LLMs en IDEs) reclaman sus tareas.
 
 ---
 
+## 🚀 BACKLOG ABIERTO (Próximos Pasos V13.0+)
+
+**Bloque 16.0: Refinamiento de la Telemetría y Modulación Neuronal [PENDING]**
+- Tarea 16.1: **Visualización de Carga del Bus**: Integración de métricas de latencia de `CorpusCallosum` en el Dashboard Clínico (WebSockets).
+- Tarea 16.2: **Throttling Dinámico del Bus**: Implementar lógica en `BusModulator` para ajustar el `asyncio.sleep` de los lóbulos basado en el uso de CPU.
+- Tarea 16.3: **Decoupling de Judgement**: Mover la lógica de `AbsoluteEvilDetector` de forma nativa al loop reactivo del `ExecutiveLobe` sin dependencias del kernel.
+
+**Bloque 15.0: Desmonolitización del Sistema Nervioso (Ethos V13.0) [DONE]**
+- Tarea 15.1: Guillotina del Kernel Monolítico y creación de la fachada `EthosKernel`. (Completado: Antigravity)
+- Tarea 15.2: Implementación de `CorpusCallosum` (Pub/Sub Async) y modelos de pulsos `NervousPulse`. (Completado: Antigravity)
+- Tarea 15.3: Migración de los 4 lóbulos al modelo "Bus-Aware" y resolución de importaciones circulares. (Completado: Antigravity)
+
+---
+
 ## 🗄️ RESERVA DEL ENJAMBRE (Buffer de Optimización Continua)
 > *Estas tareas no bloquean el progreso crítico (`main` branch) y deben ser tomadas por los agentes L2 cuando hay cuellos de botella en la inferencia, sobran tokens horarios, o mientras el L1 está en procesos de consolidación.*
 

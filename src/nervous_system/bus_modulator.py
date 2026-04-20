@@ -66,3 +66,16 @@ class BusModulator:
             
         # Modulate down based on internal load
         return int(base_samples * (1.0 - (self.load_factor * 0.5)))
+
+    async def biological_yield(self):
+        """
+        Organically pauses execution based on the current load factor.
+        Lobes call this during heavy processing to prevent CPU saturation.
+        """
+        base_sleep = 0.001
+        throttle = 0.0
+        if self.load_factor > 0.5:
+            # Scale up to 100ms yield at full saturation
+            throttle = ((self.load_factor - 0.5) * 2.0) * 0.1
+            
+        await asyncio.sleep(base_sleep + throttle)

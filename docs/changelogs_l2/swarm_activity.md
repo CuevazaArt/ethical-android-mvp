@@ -694,3 +694,16 @@ This file is automatically managed by `scripts/swarm_sync.py`.
   - `src/kernel_lobes/limbic_lobe.py`
   - `src/kernel_lobes/models.py`
   - `src/kernel_lobes/perception_lobe.py`
+
+### 🛠️ Execution | Date: 2026-04-20 15:16:12 | Author: Anonymous Agent
+- **Block:** `16.0`
+- **Message:** Refinamiento de la Telemetria Neuronal (16.1), Throttling Biologico (16.2), y Decoupling de Judgement (16.3). Suite adversaria pasando.
+- **Files Modified:**
+  - `docs/proposals/PLAN_WORK_DISTRIBUTION_TREE.md`
+  - `golden_manifest.json`
+  - `src/MANIFEST.json`
+  - `src/kernel.py`
+  - `src/kernel_lobes/executive_lobe.py`
+  - `src/kernel_lobes/limbic_lobe.py`
+  - `src/nervous_system/bus_modulator.py`
+  - `src/nervous_system/corpus_callosum.py`
