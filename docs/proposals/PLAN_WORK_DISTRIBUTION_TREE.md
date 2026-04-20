@@ -23,7 +23,6 @@ Aquí es donde los agentes de ejecución (LLMs en IDEs) reclaman sus tareas.
 ## 📥 BACKLOG ABIERTO (Open Tasks)
 
 **Bloque 12.0: Autocalibración Física y Corrección Sensorial [PENDING]**
-- Tarea 12.1: **Corrección "Velo Azul" (Visión):** Resolver el problema de inversión de canales RGB a BGR típico de la interacción entre OpenCV (`cv2`) y el canvas de HTML5/PWA en la ingesta del `VisionContinuousDaemon`.
 - Tarea 12.2: **Calibración Dinámica de Entorno (Aclimatación):** Crear una rutina `SensorBaselineCalibrator` durante los primeros 60 segundos de boot. En lugar de usar valores fijos (ej. 75ºC o 0.6 de Jerk), calcular medias y varianzas relativas al entorno actual para definir el "Punto Dulce" de forma autónoma.
 
 **Bloque 13.0: Desbloqueo Conversacional y Voz (Zero-Friction Audio) [PENDING]**
@@ -51,6 +50,9 @@ Aquí es donde los agentes de ejecución (LLMs en IDEs) reclaman sus tareas.
 ---
 
 ## 🟢 CERRADOS (Histórico de Producción)
+
+**Bloque 12.0: Autocalibración Física y Corrección Sensorial [DONE]**
+- Tarea 12.1: Implementar corrección "Velo Azul" (BGR -> RGB) y streaming de webcam local al Dashboard. (Completado: Antigravity)
 
 **Bloque S.13: Refinación de Tensión Límbica (Field Test 1) [DONE]**
 - Tarea S.13.1: Introducción de ganancia global `KERNEL_SENSORY_GAIN` y suavizado de transiciones paramétricas (`KERNEL_SYMPATHETIC_ATTACK`). (Completado: Antigravity)

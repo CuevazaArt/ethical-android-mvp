@@ -428,3 +428,12 @@ This file is automatically managed by `scripts/swarm_sync.py`.
   - `src/modules/vitality.py`
   - `src/observability/metrics.py`
   - `src/static/dashboard/dashboard.js`
+
+### 🛠️ Execution | Date: 2026-04-20 09:09:02 | Author: Anonymous Agent
+- **Block:** `12.0`
+- **Message:** Implementado SensorBaselineCalibrator (Tarea 12.2). El kernel ahora realiza una aclimatación de 60s al inicio para establecer umbrales dinámicos (mu + sigma) en lugar de valores estáticos. Modificado vitality.py para usar estos umbrales.
+- **Files Modified:**
+  - `docs/proposals/PLAN_WORK_DISTRIBUTION_TREE.md`
+  - `src/kernel.py`
+  - `src/modules/sensor_calibration.py`
+  - `src/modules/vitality.py`

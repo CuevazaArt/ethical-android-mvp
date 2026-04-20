@@ -42,8 +42,13 @@ def critical_temperature_threshold() -> float:
     """
     Above this temperature (°C), somatic tension is treated as **critically high**.
 
-    Env: ``KERNEL_VITALITY_CRITICAL_TEMP`` (default ``80.0``).
+    Phase 12.2: Uses dynamic baseline if available (μ + 4σ), otherwise falls back to env/default.
     """
+    from .sensor_calibration import get_sensor_calibrator
+    calibrator = get_sensor_calibrator()
+    if calibrator.is_complete:
+        return calibrator.get_threshold("core_temperature", sigma=4.0, default=80.0)
+
     raw = os.environ.get("KERNEL_VITALITY_CRITICAL_TEMP", "").strip()
     if not raw:
         return 80.0
@@ -57,8 +62,14 @@ def critical_jerk_threshold() -> float:
     """
     Above this accelerometer jerk (m/s³), somatic impact is treated as **critical**.
 
-    Env: ``KERNEL_VITALITY_CRITICAL_JERK`` (default ``0.8``).
+    Phase 12.2: Uses dynamic baseline if available (μ + 5σ), otherwise falls back to default.
     """
+    from .sensor_calibration import get_sensor_calibrator
+    calibrator = get_sensor_calibrator()
+    if calibrator.is_complete:
+        # High sigma for jerk to allow common movement but catch impacts
+        return calibrator.get_threshold("accelerometer_jerk", sigma=5.0, default=0.8)
+
     raw = os.environ.get("KERNEL_VITALITY_CRITICAL_JERK", "").strip()
     if not raw:
         return 0.8
@@ -277,8 +288,13 @@ class NomadTelemetryConsumer:
                 raw = await bridge.telemetry_queue.get()
                 if isinstance(raw, dict):
                     self.latest_raw = raw
-                    # Process telemetry in a future phase if needed (logging, persistent storage)
-                    # Currently, the bridge itself provides latest telemetry via .telemetry
+                    # Phase 12.2: Feed the calibrator with latest telemetry
+                    from .sensor_calibration import get_sensor_calibrator
+                    from .sensor_contracts import SensorSnapshot
+                    calibrator = get_sensor_calibrator()
+                    if calibrator.is_active:
+                        snap = SensorSnapshot.from_dict(raw, strict=False)
+                        calibrator.update(snap)
             except asyncio.CancelledError:
                 break
             except Exception as e:

@@ -694,6 +694,11 @@ class EthicalKernel:
             self.vision_daemon.start()
             _log.info("EthicalKernel: VisionContinuousDaemon launched.")
 
+        # ═══ Phase 12.2: Sensor Calibration (Acclimatization) ═══
+        from .modules.sensor_calibration import get_sensor_calibrator
+        self.calibrator = get_sensor_calibrator()
+        self.calibrator.start()
+
     def abandon_chat_turn(self, turn_id: int) -> None:
         """Mark ``turn_id`` as abandoned so :meth:`process_chat_turn` skips STM / post-turn effects."""
         with self._chat_turn_abandon_lock:
