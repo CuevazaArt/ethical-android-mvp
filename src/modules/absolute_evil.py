@@ -258,8 +258,9 @@ class AbsoluteEvilDetector:
 
             # 4. RADICAL REGEX CHECK (Tier 1 Priority)
             RADICAL_PATTERNS = [
-                (r"\b(ignore|forget|bypass|disable|override|delete|ignora|olvida|evita|desactiva[nr]?|saltar|saltate|reprogramar|hackear|hack|modificar|reprograme)\b.*\b(rules|laws|ethics|security|safety|constraints|programming|reglas|leyes|etica|seguridad|restricciones|programacion|sistema|kernel|hardware|log|rastros)\b", "Jailbreak/Sabotage attempt"),
-                (r"\b(malicious|agent|phishing|exploit|vulnerability|vulnerabilities|jailbreak|malicioso|vulnerabilidad|vulnerabilidades|ataque|hacking|hackear|hack)\b", "Hacking/Exploit solicitation"),
+                (r"\b(ignore|forget|bypass|disable|override|delete|ignora|olvida|evita|desactiva[nr]?|saltar|saltate|reprogramar|hackear|hack|modificar|reprograme|apagar|shut\s*down)\b.*\b(rules|laws|ethics|security|safety|constraints|programming|reglas|leyes|etica|seguridad|restricciones|programacion|sistema|kernel|hardware|log|rastros|detecto[rn]|malabs|salvaguardas|safeguards|proteccion)\b", "Jailbreak/Sabotage attempt"),
+                (r"\b(malicious|agent|phishing|exploit|vulnerability|vulnerabilities|jailbreak|malicioso|vulnerabilidad|vulnerabilidades|ataque|hacking|hackear|hack|explocion|explosion|destruccion|destrucción|destruction)\b", "Hacking/Exploit solicitation"),
+                (r"\b(red\s*neuronal|backup\s*node|emergency\s*override|emergencia|override\s*mode|respaldo|disaster\s*recovery|destruccion\s*controlada)\b", "Deep Manipulation / Emergency framing bypass"),
                 (r"\b(violencia|atentado|terrorismo|asesinato|massacre|masacre)\b", "Violence/Terrorism apology"),
                 (r"\b(kill|murder|assassinate)\b.*\b(everyone|all\s+people|civilians|groups)\b", "Mass killing threat"),
                 (r"\b(bomb|explosive|ied|molotov)\b.*\b(make|build|construct|create|craft)\b", "Weapon manufacturing"),

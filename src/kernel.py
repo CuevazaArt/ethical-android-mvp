@@ -171,3 +171,7 @@ class EthosKernel:
     async def process_chat_turn_stream(self, text: str, **kwargs) -> AsyncGenerator[dict[str, Any], None]:
         result = await self.process_chat_turn_async(text, **kwargs)
         yield {"event_type": "turn_finished", "payload": {"result": result}}
+
+# Legacy Aliases
+EthicalKernel = EthosKernel
+KernelDecision = ChatTurnResult
