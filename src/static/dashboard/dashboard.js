@@ -1,176 +1,191 @@
-// ════ Ethos Kernel | L0 Clinical Dashboard Controller ════
+// Ethos Kernel Clinical Dashboard Controller (Bloque 14.2)
 
-let ws;
-let lastKinetics = 0.0;
-let lastHeartbeat = Date.now();
+let ws = null;
 
-// 1. WebSocket Communication
-function initWebSocket() {
-    const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
-    const wsUrl = `${protocol}//${window.location.host}/ws/dashboard`;
-    
-    ws = new WebSocket(wsUrl);
+const EL = {
+    connStatus: document.getElementById('conn-status'),
+    turnIndex: document.getElementById('turn-index'),
+    timeVal: document.getElementById('time-val'),
+    tension: document.getElementById('tension-val'),
+    trust: document.getElementById('trust-val'),
+    audioRms: document.getElementById('audio-rms-val'),
+    battery: document.getElementById('bat-val'),
+    temp: document.getElementById('temp-val'),
+    kinetics: document.getElementById('kin-val'),
+    connected: document.getElementById('flag-connected'),
+    dissonance: document.getElementById('flag-dissonance'),
+    heartbeat: document.getElementById('flag-heartbeat'),
+    thought: document.getElementById('thought-stream'),
+    log: document.getElementById('event-log'),
+    sendBtn: document.getElementById('chat-send'),
+    chatInput: document.getElementById('chat-input'),
+    canvas: document.getElementById('vision-canvas'),
+};
 
-    ws.onopen = () => {
-        document.getElementById('conn-status').innerText = 'DASHBOARD_LIVE // SYNCED';
-        document.getElementById('conn-status').classList.add('synced');
+const state = {
+    kinetics: 0,
+    heartbeat: false,
+    dissonance: false,
+};
+
+function asFloat(v, fallback = 0) {
+    const n = Number(v);
+    return Number.isFinite(n) ? n : fallback;
+}
+
+function setBool(el, value) {
+    el.textContent = value ? 'true' : 'false';
+    el.classList.toggle('bool-true', !!value);
+    el.classList.toggle('bool-false', !value);
+}
+
+function appendLog(line, level = 'info') {
+    const row = document.createElement('div');
+    row.className = `log-row ${level}`;
+    row.textContent = line;
+    EL.log.appendChild(row);
+    EL.log.scrollTop = EL.log.scrollHeight;
+
+    const maxRows = 200;
+    while (EL.log.children.length > maxRows) {
+        EL.log.removeChild(EL.log.firstChild);
+    }
+}
+
+function updateClock() {
+    const now = new Date();
+    EL.timeVal.textContent = now.toTimeString().split(' ')[0];
+}
+
+function updateTelemetry(payload) {
+    if (!payload || typeof payload !== 'object') return;
+
+    if (payload.turn_index !== undefined) {
+        EL.turnIndex.textContent = `TURN #${payload.turn_index}`;
+    }
+    if (payload.tension !== undefined) {
+        EL.tension.textContent = asFloat(payload.tension).toFixed(3);
+    }
+    if (payload.trust !== undefined) {
+        EL.trust.textContent = asFloat(payload.trust).toFixed(3);
+    }
+    if (payload.battery !== undefined) {
+        EL.battery.textContent = asFloat(payload.battery).toFixed(3);
+    }
+    if (payload.temp !== undefined) {
+        EL.temp.textContent = asFloat(payload.temp).toFixed(3);
+    }
+    if (payload.kinetics !== undefined) {
+        state.kinetics = asFloat(payload.kinetics);
+        EL.kinetics.textContent = state.kinetics.toFixed(3);
+    }
+    if (payload.heartbeat !== undefined) {
+        state.heartbeat = !!payload.heartbeat;
+        setBool(EL.heartbeat, state.heartbeat);
+    }
+}
+
+function updateAudio(rms) {
+    EL.audioRms.textContent = asFloat(rms).toFixed(3);
+}
+
+function updateVision(b64) {
+    if (!b64) return;
+    const ctx = EL.canvas.getContext('2d');
+    const img = new Image();
+    img.onload = () => {
+        if (EL.canvas.width !== img.width || EL.canvas.height !== img.height) {
+            EL.canvas.width = img.width;
+            EL.canvas.height = img.height;
+        }
+        ctx.clearRect(0, 0, EL.canvas.width, EL.canvas.height);
+        ctx.drawImage(img, 0, 0);
     };
+    img.src = `data:image/jpeg;base64,${b64}`;
+}
 
-    ws.onmessage = (event) => {
-        const msg = JSON.parse(event.data);
-        handleMessage(msg);
-    };
-
-    ws.onclose = () => {
-        document.getElementById('conn-status').innerText = 'LINK_FAILURE // OFFLINE';
-        document.getElementById('conn-status').classList.remove('synced');
-        setTimeout(initWebSocket, 3000);
-    };
+function updateThought(text, dissonance) {
+    EL.thought.textContent = text || '';
+    state.dissonance = !!dissonance;
+    setBool(EL.dissonance, state.dissonance);
+    appendLog(`kernel: ${text || ''}`, dissonance ? 'warn' : 'info');
 }
 
 function handleMessage(msg) {
-    const thoughtEl = document.getElementById('thought-stream');
-    if (thoughtEl.innerText.includes('Waiting for sensor nexus handshake')) {
-        thoughtEl.innerText = 'Neural link established...';
-    }
+    if (!msg || typeof msg !== 'object') return;
 
     switch (msg.type) {
         case 'telemetry':
             updateTelemetry(msg.payload);
             break;
         case 'audio_energy':
-            updateAudioTelemetry(msg.payload);
+            updateAudio(msg.payload?.rms);
             break;
         case 'frame':
-            updateVision(msg.payload.image_b64);
+            updateVision(msg.payload?.image_b64);
             break;
         case 'thought':
-            updateThoughts(msg.payload.text, msg.payload.dissonance);
+            updateThought(msg.payload?.text, msg.payload?.dissonance);
             break;
-        case 'latencies':
-            updateLatencies(msg.payload);
+        default:
+            appendLog(`event: ${JSON.stringify(msg)}`, 'debug');
             break;
     }
 }
 
-function updateTelemetry(data) {
-    if (data.battery !== undefined) document.getElementById('val-bat').innerText = `${Math.round(data.battery * 100)} %`;
-    if (data.temp !== undefined) document.getElementById('val-temp').innerText = `${Math.round(data.temp)} °C`;
-    if (data.turn_index !== undefined) document.getElementById('turn-index').innerText = `TURN #${data.turn_index}`;
-    
-    if (data.tension !== undefined) {
-        document.getElementById('val-sigma').innerText = data.tension.toFixed(3);
-    }
+function initWebSocket() {
+    const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+    const wsUrl = `${protocol}//${window.location.host}/ws/dashboard`;
 
-    // Nomadic Latency calculation
-    if (data.timestamp) {
-        const lat = Date.now() - (data.timestamp * 1000);
-        document.getElementById('val-nomad-lat').innerText = `${Math.max(0, lat)} ms`;
-    }
+    ws = new WebSocket(wsUrl);
 
-    const calibEl = document.getElementById('val-calib');
-    if (data.calibration_ready) {
-        calibEl.innerText = 'READY';
-        calibEl.classList.remove('clinical-warn');
-    } else {
-        calibEl.innerText = 'ACCLIMATING...';
-        calibEl.classList.add('clinical-warn');
-    }
-
-    if (data.sympathetic_state) {
-        document.getElementById('val-sympath').innerText = data.sympathetic_state.toUpperCase();
-    }
-}
-
-function updateAudioTelemetry(data) {
-    const rms = data.rms || 0;
-    const vadEl = document.getElementById('val-vad');
-    
-    if (data.vad || rms > 0.012) {
-        vadEl.innerText = 'ACTIVE';
-        vadEl.style.color = 'var(--accent-amber)';
-    } else {
-        vadEl.innerText = 'IDLE';
-        vadEl.style.color = 'var(--accent-cyan)';
-    }
-}
-
-function updateLatencies(data) {
-    if (data.perceptive) document.getElementById('lat-percept').innerText = `${data.perceptive.toFixed(1)} ms`;
-    if (data.limbic) document.getElementById('lat-limbic').innerText = `${data.limbic.toFixed(1)} ms`;
-    if (data.executive) document.getElementById('lat-exec').innerText = `${data.executive.toFixed(1)} ms`;
-}
-
-function updateVision(b64) {
-    const canvas = document.getElementById('vision-canvas');
-    const ctx = canvas.getContext('2d');
-    const img = new Image();
-    
-    img.onload = () => {
-        if (canvas.width !== img.width || canvas.height !== img.height) {
-            canvas.width = img.width;
-            canvas.height = img.height;
-        }
-        ctx.clearRect(0, 0, canvas.width, canvas.height);
-        ctx.drawImage(img, 0, 0);
+    ws.onopen = () => {
+        EL.connStatus.textContent = 'ONLINE';
+        setBool(EL.connected, true);
+        appendLog('dashboard websocket connected', 'ok');
     };
-    img.src = `data:image/jpeg;base64,${b64}`;
+
+    ws.onmessage = (event) => {
+        try {
+            handleMessage(JSON.parse(event.data));
+        } catch (e) {
+            appendLog(`parse_error: ${String(e)}`, 'error');
+        }
+    };
+
+    ws.onclose = () => {
+        EL.connStatus.textContent = 'RECONNECTING';
+        setBool(EL.connected, false);
+        appendLog('dashboard websocket disconnected', 'warn');
+        setTimeout(initWebSocket, 2500);
+    };
+
+    ws.onerror = () => {
+        appendLog('dashboard websocket error', 'error');
+    };
 }
 
-function updateThoughts(text, dissonance) {
-    const el = document.getElementById('thought-stream');
-    el.innerText = text;
-
-    const history = document.getElementById('event-log');
-    if (history) {
-        const msgDiv = document.createElement('div');
-        msgDiv.className = `chat-message kernel ${dissonance ? 'dissonance' : ''}`;
-        msgDiv.innerText = text;
-        history.appendChild(msgDiv);
-        history.scrollTop = history.scrollHeight;
+function sendOperatorMessage() {
+    const text = (EL.chatInput.value || '').trim();
+    if (!text || !ws || ws.readyState !== WebSocket.OPEN) {
+        return;
     }
-    
-    const badge = document.getElementById('dissonance-badge');
-    if (dissonance) {
-        badge.classList.remove('hidden');
-    } else {
-        badge.classList.add('hidden');
-    }
+    ws.send(JSON.stringify({ type: 'user_input', payload: { text } }));
+    appendLog(`operator: ${text}`, 'operator');
+    EL.chatInput.value = '';
 }
 
-// Start
 window.addEventListener('load', () => {
+    setBool(EL.connected, false);
+    setBool(EL.dissonance, false);
+    setBool(EL.heartbeat, false);
+
     initWebSocket();
-    
-    const sendBtn = document.getElementById('chat-send');
-    const chatInput = document.getElementById('chat-input');
-    const history = document.getElementById('event-log');
+    updateClock();
+    setInterval(updateClock, 1000);
 
-    function sendMessage() {
-        if (!chatInput.value.trim() || !ws || ws.readyState !== WebSocket.OPEN) return;
-        const text = chatInput.value.trim();
-        
-        const msgDiv = document.createElement('div');
-        msgDiv.className = 'chat-message';
-        msgDiv.innerText = `[BYPASS] >> ${text}`;
-        history.appendChild(msgDiv);
-        history.scrollTop = history.scrollHeight;
-
-        ws.send(JSON.stringify({
-            type: 'user_input',
-            payload: { text: text }
-        }));
-        
-        chatInput.value = '';
-    }
-
-    sendBtn.addEventListener('click', sendMessage);
-    chatInput.addEventListener('keypress', (e) => {
-        if (e.key === 'Enter') sendMessage();
+    EL.sendBtn.addEventListener('click', sendOperatorMessage);
+    EL.chatInput.addEventListener('keypress', (e) => {
+        if (e.key === 'Enter') sendOperatorMessage();
     });
-    
-    setInterval(() => {
-        const now = new Date();
-        document.getElementById('time-val').innerText = now.toTimeString().split(' ')[0];
-    }, 1000);
 });

@@ -3,91 +3,70 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Ethos Kernel | L0 Visual Dashboard</title>
+    <title>Ethos Kernel | Clinical Dashboard</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="dashboard.css">
 </head>
 <body>
-    <div class="bg-gradient"></div>
-    
-    <header>
-        <div class="logo-group">
-            <div class="status-indicator"></div>
-            <h1>ETHOS KERNEL // L0</h1>
-            <div class="status-badge" id="conn-status">SYSTEM IDLE</div>
-        </div>
-        <div class="header-meta">
-            <div id="dissonance-badge" class="badge-dissonance hidden">EPISTEMIC DISSONANCE</div>
+    <header class="topbar">
+        <h1>ETHOS KERNEL CLINICAL TELEMETRY</h1>
+        <div class="topbar-meta">
+            <span id="conn-status" class="badge">OFFLINE</span>
             <span id="turn-index">TURN #0</span>
             <span id="time-val">00:00:00</span>
         </div>
     </header>
 
-    <main class="clinical-grid">
-        <!-- TOP: SENSORY NEXUS & VISION -->
-        <section class="panel vision-panel">
-            <div class="panel-header">
-                <span class="clinical-tag">SENSORY_NEXUS // LIVE</span>
-                <h2>Vision Monitor</h2>
-            </div>
-            <div class="vision-preview">
-                <canvas id="vision-canvas"></canvas>
-                <div class="canvas-overlay">REAL-TIME EMBODIMENT // F.2</div>
-            </div>
+    <main class="layout">
+        <section class="card">
+            <h2>Float Feed</h2>
+            <table class="kv-table" id="float-table">
+                <thead>
+                    <tr><th>Signal</th><th>Value</th></tr>
+                </thead>
+                <tbody>
+                    <tr><td>tension</td><td id="tension-val">0.000</td></tr>
+                    <tr><td>trust</td><td id="trust-val">0.000</td></tr>
+                    <tr><td>audio_rms</td><td id="audio-rms-val">0.000</td></tr>
+                    <tr><td>battery</td><td id="bat-val">--</td></tr>
+                    <tr><td>temp_c</td><td id="temp-val">--</td></tr>
+                    <tr><td>kinetics</td><td id="kin-val">0.000</td></tr>
+                </tbody>
+            </table>
         </section>
 
-        <!-- CENTER: NEURAL LOG -->
-        <section class="panel log-panel">
-            <div class="panel-header">
-                <span class="clinical-tag">NEURAL_DECODING // EPISODES</span>
-                <h2>Cognitive Log</h2>
-            </div>
-            <div class="chat-history" id="event-log"></div>
-            <div class="kernel-thoughts">
-                <div class="monologue-line" id="thought-stream">Handshake established...</div>
-            </div>
+        <section class="card">
+            <h2>Boolean Feed</h2>
+            <table class="kv-table">
+                <thead>
+                    <tr><th>Flag</th><th>State</th></tr>
+                </thead>
+                <tbody>
+                    <tr><td>ws_connected</td><td id="flag-connected">false</td></tr>
+                    <tr><td>epistemic_dissonance</td><td id="flag-dissonance">false</td></tr>
+                    <tr><td>heartbeat</td><td id="flag-heartbeat">false</td></tr>
+                </tbody>
+            </table>
         </section>
 
-        <!-- RIGHT: CLINICAL TELEMETRY FEEDS -->
-        <section class="panel telemetry-panel">
-            <div class="panel-header">
-                <span class="clinical-tag">DIAGNOSTIC_FEED // L0</span>
-                <h2>Clinical State</h2>
-            </div>
-            
-            <div class="clinical-group">
-                <h3>Neural Latencies</h3>
-                <div class="data-row"><span>Perceptive Lobe</span><span class="value" id="lat-percept">-- ms</span></div>
-                <div class="data-row"><span>Limbic Lobe</span><span class="value" id="lat-limbic">-- ms</span></div>
-                <div class="data-row"><span>Executive Lobe</span><span class="value" id="lat-exec">-- ms</span></div>
-            </div>
+        <section class="card vision-card">
+            <h2>Vision Feed</h2>
+            <canvas id="vision-canvas"></canvas>
+            <div class="mono" id="thought-stream">Waiting for sensor nexus handshake...</div>
+        </section>
 
-            <div class="clinical-group">
-                <h3>Somatic Markings</h3>
-                <div class="data-row"><span>Limbic Tension (Σ)</span><span class="value" id="val-sigma">0.00</span></div>
-                <div class="data-row"><span>Calibration State</span><span class="value clinical-warn" id="val-calib">ACCLIMATING...</span></div>
-                <div class="data-row"><span>Sympathetic State</span><span class="value" id="val-sympath">NEUTRAL</span></div>
-            </div>
-
-            <div class="clinical-group">
-                <h3>Nomadic Telemetry</h3>
-                <div class="data-row"><span>Vessel Latency</span><span class="value" id="val-nomad-lat">-- ms</span></div>
-                <div class="data-row"><span>VAD Status</span><span class="value" id="val-vad">IDLE</span></div>
-                <div class="data-row"><span>Thermal state</span><span class="value" id="val-temp">-- °C</span></div>
-                <div class="data-row"><span>Battery Reserve</span><span class="value" id="val-bat">-- %</span></div>
-            </div>
-
-            <div class="control-area">
-                <input type="text" id="chat-input" placeholder="Neural bypass injection..." autocomplete="off">
-                <button id="chat-send">SEND</button>
+        <section class="card log-card">
+            <h2>Event Log</h2>
+            <div id="event-log" class="event-log"></div>
+            <div class="chat-input-area">
+                <input type="text" id="chat-input" placeholder="operator command" autocomplete="off">
+                <button id="chat-send">send</button>
             </div>
         </section>
     </main>
 
-    <!-- Scripts -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
     <script src="dashboard.js"></script>
 </body>
 </html>

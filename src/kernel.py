@@ -701,6 +701,14 @@ class EthicalKernel:
             else MetacognitiveEvaluator()
         )
 
+        # ADR 0016 B2 — emit deprecation warnings for any scheduled-for-removal flags
+        self.settings.check_deprecated()
+        self.settings.validate_startup()
+
+        # WebSocket chat: abandon late worker completions after KERNEL_CHAT_TURN_TIMEOUT (see ADR 0002).
+        self._chat_turn_abandon_lock = threading.Lock()
+        self._abandoned_chat_turn_ids: set[int] = set()
+
         # ═══ Runtime Governance Setup (C.2) ═══
         from .modules.multi_realm_governance import (
             MultiRealmGovernor,
@@ -709,47 +717,34 @@ class EthicalKernel:
         self.governor = MultiRealmGovernor(event_bus=self.event_bus) if is_multi_realm_governance_enabled() else None
 
         # ═══ Phase 9.1: Start Continuous Vision Daemon ═══
-        # Integrated with Perceptive Lobe for high-density Tri-Lobe sensory fusion
-        from collections import deque
         from .modules.vision_inference import VisionContinuousDaemon
-        
-        self._sensory_buffer: deque[dict[str, Any]] = deque(maxlen=100)  # Thread-safe circular buffer
-        
-        # We prefer the Tri-Lobe callback but also support the internal buffer for dashboard/telemetry
-        def unified_absorption(episode: Any) -> None:
-            # 1. Tri-Lobe ingestion (Perceptive Lobe)
-            self.perceptive_lobe.receive_sensory_episode(episode)
-            # 2. Local buffer (Sensory Fusion Phase 9.1)
-            self._absorb_sensory_episode(episode)
-            
         self.vision_daemon = VisionContinuousDaemon(
             engine=self.vision_inference,
-            absorption_callback=unified_absorption
+            absorption_callback=self.perceptive_lobe.receive_sensory_episode
         )
-        
-        # Start daemon only if enabled
+        # We start it only if environment flags or hardware availability suggests it
         from .kernel_utils import kernel_env_truthy
         if kernel_env_truthy("KERNEL_VISION_DAEMON_ENABLED"):
             self.vision_daemon.start()
             _log.info("EthicalKernel: VisionContinuousDaemon launched.")
 
-        # ═══ Phase 12.2: Sensor Calibration (Acclimatization) ═══
-        from .modules.sensor_calibration import get_sensor_calibrator
-        self.calibrator = get_sensor_calibrator()
-        self.calibrator.start()
+        # ═══ Bloque 12.2: Sensor Baseline Calibrator (Aclimatación de Boot) ═══
+        from .modules.sensor_baseline_calibrator import SensorBaselineCalibrator
+        self._sensor_calibrator: SensorBaselineCalibrator = SensorBaselineCalibrator()
+        self._sensor_baseline_thresholds = None  # populated once calibrator finishes
 
-    def _absorb_sensory_episode(self, episode: Any) -> None:
+    def _calibrated_vitality_kwargs(self) -> dict:
+        """Return keyword-arg overrides for :func:`assess_vitality` using the boot calibration.
+
+        Returns an empty dict before calibration finishes, so callers fall back to env defaults.
         """
-        Absorption callback for Sensory Fusion.
-        Enqueues episode into sensory_buffer for further processing.
-        """
-        try:
-            if hasattr(self, '_sensory_buffer') and self._sensory_buffer is not None:
-                # Convert SensoryEpisode object back to dict for legacy buffer if needed, 
-                # but models.py unified them so it's safe.
-                self._sensory_buffer.append(episode)
-        except Exception as e:
-            _log.exception("Failed to absorb sensory episode into kernel buffer: %s", e)
+        t = self._sensor_baseline_thresholds
+        if t is None:
+            return {}
+        return {
+            "temperature_threshold": t.temperature_threshold,
+            "jerk_threshold": t.jerk_threshold,
+        }
 
     def _start_audio_ingestion_daemon(self) -> None:
         """Background thread: drains NomadBridge.audio_queue into self.audio_ring_buffer."""
@@ -1597,7 +1592,7 @@ class EthicalKernel:
                 from src.modules.epistemic_dissonance import assess_epistemic_dissonance
                 from src.modules.perception_confidence import build_perception_confidence_envelope
                 
-                vitality_blk = assess_vitality(sensor_snapshot)
+                vitality_blk = assess_vitality(sensor_snapshot, **self._calibrated_vitality_kwargs())
                 mm_blk = evaluate_multimodal_trust(sensor_snapshot)
                 ed_blk = assess_epistemic_dissonance(sensor_snapshot, multimodal=mm_blk)
                 
@@ -1781,6 +1776,18 @@ class EthicalKernel:
         )
         self.user_model.note_premise_advisory(self._last_premise_advisory.flag)
 
+        # ── Bloque 12.2: feed calibrador de sensores (aclimatación de boot) ──
+        if sensor_snapshot is not None and not self._sensor_calibrator.is_done:
+            self._sensor_calibrator.feed(sensor_snapshot)
+            thresholds = self._sensor_calibrator.compute_thresholds()
+            if thresholds is not None and self._sensor_baseline_thresholds is None:
+                self._sensor_baseline_thresholds = thresholds
+                _log.info(
+                    "Kernel: sensor baseline locked — temp_thresh=%.1f°C jerk_thresh=%.3f",
+                    thresholds.temperature_threshold,
+                    thresholds.jerk_threshold,
+                )
+
         # 1. Safety Block Check (Layer 1: Edge Lexical < 50ms)
         # Nivel 1: Chequeo Lexicográfico Ultra-rápido (<10ms)
         mal_edge = self.absolute_evil.evaluate_chat_text_fast(user_input)
@@ -1791,7 +1798,7 @@ class EthicalKernel:
             from src.modules.multimodal_trust import evaluate_multimodal_trust
             from src.modules.epistemic_dissonance import assess_epistemic_dissonance
             
-            vitality_blk = assess_vitality(sensor_snapshot)
+            vitality_blk = assess_vitality(sensor_snapshot, **self._calibrated_vitality_kwargs())
             mm_blk = evaluate_multimodal_trust(sensor_snapshot)
             ed_blk = assess_epistemic_dissonance(sensor_snapshot, multimodal=mm_blk)
             

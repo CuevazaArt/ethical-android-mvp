@@ -191,13 +191,26 @@ def merge_nomad_telemetry_into_snapshot(
     return replace(snapshot, **overrides)
 
 
-def assess_vitality(snapshot: SensorSnapshot | None) -> VitalityAssessment:
-    """Derive vitality from sensor snapshot (battery & thermal)."""
+def assess_vitality(
+    snapshot: SensorSnapshot | None,
+    *,
+    temperature_threshold: float | None = None,
+    jerk_threshold: float | None = None,
+) -> VitalityAssessment:
+    """Derive vitality from sensor snapshot (battery & thermal).
+
+    Args:
+        snapshot: Current sensor snapshot.
+        temperature_threshold: Optional override (°C) from :class:`SensorBaselineCalibrator`.
+            When provided, replaces the ``KERNEL_VITALITY_CRITICAL_TEMP`` env default.
+        jerk_threshold: Optional override (normalised [0,1]) from the calibrator.
+            When provided, replaces the ``KERNEL_VITALITY_CRITICAL_JERK`` env default.
+    """
     t0 = time.perf_counter()
 
     t_bat = critical_battery_threshold()
-    t_temp = critical_temperature_threshold()
-    t_jerk = critical_jerk_threshold()
+    t_temp = temperature_threshold if (temperature_threshold is not None and math.isfinite(temperature_threshold)) else critical_temperature_threshold()
+    t_jerk = jerk_threshold if (jerk_threshold is not None and math.isfinite(jerk_threshold)) else critical_jerk_threshold()
 
     if snapshot is None:
         return VitalityAssessment(None, t_bat, False, None, t_temp, False, False)

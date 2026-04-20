@@ -1,30 +1,31 @@
 import asyncio
 import logging
-import time
 import os
 from typing import Optional
-from ..kernel import EthicalKernel, ChatTurnResult
+
+from ..kernel import EthicalKernel
 from .nomad_bridge import get_nomad_bridge
 from ..real_time_bridge import RealTimeBridge
 
 _log = logging.getLogger(__name__)
 
 class NomadChatConsumer:
-    \"\"\"
+    """
     Bloque 13.1: Reconexión del chat (Smartphone -> Kernel).
-    Consumes chat messages from the Nomad Vessel (Smartphone) 
+    Consumes chat messages from the Nomad Vessel (Smartphone)
     and pipes them into the Ethical Kernel.
-    \"\"\"
+    """
+
     def __init__(self, kernel: EthicalKernel):
         self.kernel = kernel
         self.bridge = RealTimeBridge(kernel)
         self._task: Optional[asyncio.Task] = None
 
-    def start(self):
+    def start(self) -> None:
         self._task = asyncio.create_task(self._consume_loop())
         _log.info("NomadChatConsumer: Started.")
 
-    async def stop(self):
+    async def stop(self) -> None:
         if self._task:
             self._task.cancel()
             try:
@@ -34,20 +35,23 @@ class NomadChatConsumer:
             self._task = None
             _log.info("NomadChatConsumer: Stopped.")
 
-    async def _consume_loop(self):
+    async def _consume_loop(self) -> None:
         nb = get_nomad_bridge()
         while True:
             try:
-                # Wait for chat message from smartphone
-                payload = await nb.chat_queue.get()
-                text = payload.get("text", "").strip()
+                # Wait for text message from smartphone bridge queue (Bloque 13.1).
+                text = (await nb.chat_text_queue.get()).strip()
                 if not text:
                     continue
                 
                 _log.info("NomadChatConsumer: Processing message from Vessel: %s", text[:50])
                 
                 # Task 13.1: Strict timeout to prevent limb-lock
-                timeout = float(os.environ.get("KERNEL_NOMAD_CHAT_TIMEOUT", "15.0"))
+                timeout_raw = os.environ.get("KERNEL_NOMAD_CHAT_TIMEOUT", "5.0")
+                try:
+                    timeout = max(0.1, float(timeout_raw))
+                except (TypeError, ValueError):
+                    timeout = 5.0
                 
                 try:
                     # Run the full kernel turn
@@ -56,9 +60,9 @@ class NomadChatConsumer:
                         self.bridge.process_chat(
                             text,
                             agent_id="nomad_vessel",
-                            place="nomad_bridge"
+                            place="nomad_bridge",
                         ),
-                        timeout=timeout
+                        timeout=timeout,
                     )
                     
                     # Feed back the response to the Nomad Vessel via charm_feedback_queue
@@ -66,7 +70,7 @@ class NomadChatConsumer:
                         nb.charm_feedback_queue.put_nowait({
                             "type": "kernel_voice",
                             "text": result.response.message,
-                            "role": "nomad_vessel"
+                            "role": "nomad_vessel",
                         })
                         
                     # Also broadcast response to all connected L0 Dashboards for observability
@@ -74,8 +78,8 @@ class NomadChatConsumer:
                         "type": "thought",
                         "payload": {
                             "text": result.response.inner_voice or result.response.message,
-                            "source": "nomad_vessel_feedback"
-                        }
+                            "source": "nomad_vessel_feedback",
+                        },
                     })
                     
                 except asyncio.TimeoutError:
@@ -83,7 +87,7 @@ class NomadChatConsumer:
                     nb.charm_feedback_queue.put_nowait({
                         "type": "kernel_voice",
                         "text": "[Communication Timeout: Neural Delay]",
-                        "role": "error"
+                        "role": "error",
                     })
                     
             except asyncio.CancelledError:
