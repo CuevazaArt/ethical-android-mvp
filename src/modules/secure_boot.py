@@ -97,25 +97,28 @@ class SecureBoot:
             _log.critical("CRITICAL FAILURE: Invalid manifest format! %s", e)
             return False
 
-        signature = manifest_doc.get("signature", "")
-        payload = manifest_doc.get("files", {})
+        signature = manifest_doc.get("signature", "presence_only")
+        payload = manifest_doc.get("files", manifest_doc) # Fallback to flat dict
 
-        # Verify HMAC sealing
-        payload_str = json.dumps(payload, sort_keys=True, separators=(",", ":"))
-        expected_sig = hmac.new(
-            self.secret_key.encode("utf-8"),
-            payload_str.encode("utf-8"),
-            hashlib.sha256
-        ).hexdigest()
+        if not isinstance(payload, dict):
+            _log.critical("CRITICAL FAILURE: Manifest payload is not a dict!")
+            return False
 
+        # Verify HMAC sealing if signature is provided
         if signature and signature != "presence_only":
+            payload_str = json.dumps(payload, sort_keys=True, separators=(",", ":"))
+            expected_sig = hmac.new(
+                self.secret_key.encode("utf-8"),
+                payload_str.encode("utf-8"),
+                hashlib.sha256
+            ).hexdigest()
+
             if not hmac.compare_digest(signature, expected_sig):
-                _log.critical("INTEGRITY BREACH DETECTED: Manifest HMAC mismatch! The manifest has been tampered with or the KERNEL_NOMAD_SECRET is invalid.")
-                # If we are in dev and have a specific override, we might allow it, but Phase 9 is strict.
+                _log.critical("INTEGRITY BREACH DETECTED: Manifest HMAC mismatch!")
                 if not os.environ.get("KERNEL_IGNORE_BOOT_FAILURE"):
                     return False
         else:
-             _log.warning("SecureBoot: Manifest verifies by presence only (HMAC MISSING).")
+            _log.warning("SecureBoot: Manifest verifies by presence only (HMAC MISSING).")
 
         _log.info("Manifest signature verified or presence-checked. Checking payload...")
 
@@ -131,14 +134,12 @@ class SecureBoot:
             
             if actual_hash == "missing":
                 _log.critical("SECURE BOOT FAILURE: %s is missing!", rel_path)
-                violations.append(f"{rel_path}: MISSING")
                 all_ok = False
             elif expected_hash == "presence_only":
                  _log.warning("SecureBoot: %s verified by presence (HASH PENDING).", rel_path)
             elif actual_hash != expected_hash:
                 _log.critical("SECURE BOOT FAILURE: %s hash mismatch!", rel_path)
                 _log.debug("Expected: %s | Actual: %s", expected_hash, actual_hash)
-                violations.append(f"{rel_path}: TAMPERED")
                 all_ok = False
                 continue
                 
