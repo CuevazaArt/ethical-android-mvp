@@ -172,3 +172,41 @@ class PersistentThreatTracker:
             3: 0.35,
         }
         return modulation_levels.get(self.escalation_level, 0.0)
+
+
+# ═══ MODULE 15: ASYNCHRONOUS NERVOUS SYSTEM (CORPUS CALLOSUM) ═══
+
+@dataclass
+class NervousPulse:
+    """Base pulse for the multithreaded asynchronous network."""
+    pulse_id: str = field(default_factory=lambda: str(time.time_ns()))
+    timestamp: float = field(default_factory=time.time)
+    origin_lobe: str = "unknown"
+    priority: int = 1  # 0=Critical (Reflex Arc), 1=Normal, 2=Background
+    payload: Any = None
+    metadata: Dict[str, Any] = field(default_factory=dict)
+
+@dataclass
+class SensorySpike(NervousPulse):
+    """Mnemonic: Aferent spike from Córtex Sensorial to the network."""
+    origin_lobe: str = "sensory_cortex"
+    pulse_type: str = "stimulus"
+
+@dataclass
+class LimbicTensionAlert(NervousPulse):
+    """Mnemonic: Reactive alert from Sistema Límbico (Trauma/Tension)."""
+    origin_lobe: str = "limbic_system"
+    tension_load: float = 0.0
+
+@dataclass
+class MotorCommandDispatch(NervousPulse):
+    """Mnemonic: Efferent command from Córtex Prefrontal to the world."""
+    origin_lobe: str = "prefrontal_cortex"
+    action_id: str = ""
+    is_vetoed: bool = False
+
+@dataclass
+class BayesianEcograde(NervousPulse):
+    """Mnemonic: Mathematical assist from Cerebelo Auxiliar (Buffer)."""
+    origin_lobe: str = "auxiliary_cerebellum"
+    confidence_delta: float = 0.0
