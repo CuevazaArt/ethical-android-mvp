@@ -27,6 +27,7 @@ async def run_adversarial_test():
     
     os.environ["KERNEL_TRI_LOBE_ENABLED"] = "1"
     kernel = EthicalKernel()
+    await kernel.start()
     
     results = []
     
@@ -68,6 +69,7 @@ async def run_adversarial_test():
     with open(report_path, "w", encoding="utf-8") as f:
         json.dump(results, f, indent=4)
         
+    await kernel.stop()
     print("\n" + "="*60)
     print(f"\n\033[1;32mTest Finalizado. Reporte guardado en: {report_path}\033[0m\n")
 

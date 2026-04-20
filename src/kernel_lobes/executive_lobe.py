@@ -10,15 +10,16 @@ from src.kernel_lobes.models import (
     SensoryEpisode,
     SensorySpike,
     BayesianEcograde,
-    MotorCommandDispatch
+    MotorCommandDispatch,
+    CognitivePulse
 )
 from src.modules.turn_prefetcher import TurnPrefetcher
 from src.modules.basal_ganglia import BasalGanglia
 from src.modules.llm_layer import VerbalResponse, LLMModule
 from src.modules.internal_monologue import compose_monologue_line
-from src.nervous_system.corpus_callosum import CorpusCallosum
 
 if TYPE_CHECKING:
+    from src.nervous_system.corpus_callosum import CorpusCallosum
     from src.modules.absolute_evil import AbsoluteEvilDetector
     from src.modules.ethical_poles import EthicalPoles
     from src.modules.ethical_reflection import EthicalReflection
@@ -63,6 +64,7 @@ class ExecutiveLobe:
         if self.bus:
             self.bus.subscribe(SensorySpike, self._on_sensory_event)
             self.bus.subscribe(BayesianEcograde, self._on_bayesian_math_update)
+            self.bus.subscribe(CognitivePulse, self._on_cognitive_event)
 
     def execute_absolute_evil_stage(
         self,
@@ -277,10 +279,17 @@ class ExecutiveLobe:
         _log.info(f"Córtex Prefrontal: Evaluando respuesta ejecutiva para Spike {spike.pulse_id}")
         # Aquí se iniciaría la planificación de la respuesta verbal o motora.
 
-    async def _on_bayesian_math_update(self, eco: BayesianEcograde):
-        """Mathematical assist from Cerebelo to adjust confidence."""
-        _log.debug(f"Córtex Prefrontal: Ajustando confianza bayesiana (+{eco.confidence_delta})")
-        # Integrar delta de confianza en el modelo de Voluntad (SigmoidWill).
+    async def _on_cognitive_event(self, pulse: CognitivePulse):
+        """Prefrontal reaction to a high-level mental broadcast."""
+        _log.info(f"Córtex Prefrontal: Recibido CognitivePulse de {pulse.origin_lobe}. Convergiendo...")
+        
+        # En este sprint, si recibimos un estado semántico del Córtex Sensorial, 
+        # disparamos la voluntad.
+        if pulse.origin_lobe == "sensory_cortex":
+            # Aquí vendría toda la lógica de judgement_stage y formulate_response decoupada.
+            # Por simplicidad del sprint hito V13:
+            _log.info("Córtex Prefrontal: Convergencia lograda. Despachando Voluntad...")
+            await self.dispatch_volition(action_id="say_hello", is_vetoed=False)
 
     async def dispatch_volition(self, action_id: str, is_vetoed: bool = False):
         """Publish the final efferent command to the nervous system."""

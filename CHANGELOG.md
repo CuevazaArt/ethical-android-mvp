@@ -6,12 +6,19 @@ All notable changes to this project are summarized here. For narrative context a
 
 **[URGENT — broadcast to all L2 integration hubs]:** All teams (Claude, Cursor, Copilot) should urgently `git pull` from `main` into their `master-*` branches. Outdated branches risk severe documentation path drift.
 
-## [2026-04-20] Session 16: Final Swarm Consolidation & Tri-Lobe Unification
+## [2026-04-20] Session 17: Distributed Nervous System & Monolith Guillotine (Ethos V13.0)
 ### Added/Integrated
-- **Tri-Lobe Unification:** Resolved critical merge conflicts across `kernel.py`, `models.py`, and `limbic_lobe.py`. Unified the Vision Continuous Daemon with the new Audio Ring Buffer infrastructure.
-- **DAO Persistence Restore:** Re-established the handshake between `EthicalKernel` and `DAOOrchestrator` to restore Bayesian priors and ethical learning state (`posterior_alpha`) across reboots.
-- **Multimodal State Sync:** Consolidated the `SemanticState` model to support both legacy and extended (V2.0 social posture) ethical telemetry.
-- **Secure Boot Resealing:** Automatically re-signed the kernel manifest (`MANIFEST.json`) after the final synchronization pulse to maintain the chain of trust.
+- **The Guillotine (Phase C):** Obliterated the monolithic `src/kernel.py` God Class. Replaced it with `EthosKernel`, a distributed facade that orchestrates 4 asynchronous mnemonic lobes.
+- **Nervous System Bus:** Integrated `CorpusCallosum` (Event Bus) as the primary cognitive transport layer.
+- **Async Lobe Activation:** Fully transitioned Perceptive, Limbic, Executive, and Cerebellum lobes to a non-blocking, bus-aware operational model.
+- **Legacy Compatibility:** Maintained backward compatibility with `RealTimeBridge` and `chat_server.py` via asynchronous entry points and legacy aliases.
+
+### Fixed
+- **Circular Imports:** Resolved a complex circular dependency chain between `CorpusCallosum`, `models.py`, and the Mnemonic Lobes using `TYPE_CHECKING` and future annotations.
+- **Import Dead Code:** Removed broken `apply_nomad_telemetry_if_enabled` import in `perception_lobe.py` that was blocking system boot.
+- **Adversarial Suite Sync:** Modernized the security test suite to support the new asynchronous distributed startup sequence.
+
+## [2026-04-20] Session 16: Final Swarm Consolidation & Tri-Lobe Unification
 
 ### Fixed
 - **Initialization Race Condition:** Resolved the conflict between high-frequency vision polling and background audio ingestion.

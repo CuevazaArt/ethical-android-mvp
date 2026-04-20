@@ -1,9 +1,10 @@
 {
-    "src/kernel.py": "bae9479eb8544a5bd47583bad1398b55b92e70dd5359f4536f6c2cc6354a1250",
-    "src/kernel_lobes/models.py": "e17356ccc12048e8bcf40a6fe4341c7375f81698bda5d0d84d89df7fb7844cfd",
-    "src/kernel_lobes/executive_lobe.py": "fa48f5442a63d85b092f2b9a87d143d4576acec902f8a467023389f3424081c4",
+  "files": {
+    "src/kernel.py": "926199d406aec6b5d2a4eb4400b918ed8cd0d77be283159e2237aedcee8968c7",
+    "src/kernel_lobes/models.py": "35234fa7b47c1d140fa55994e2e3a9a565b5119d8e65a24d195c139c2db14f59",
+    "src/kernel_lobes/executive_lobe.py": "7dbcc75d758ca29ca0c99f72fc8646b5c9dc455175c1a7295bfbf40093b03476",
     "src/kernel_lobes/memory_lobe.py": "d362b0b790d0e45c5e902519e3e8a02aa2aed6f06a29c7054a517c62ad116913",
-    "src/kernel_lobes/perception_lobe.py": "4a97dd080431f74d141b801838b6114f79bcd554a5aee801a56b55ae760ed3ce",
+    "src/kernel_lobes/perception_lobe.py": "7b4ac7748c2c9fbe7a7e7e0ab712803d576f2bd7f95663509229f5be29769e2b",
     "src/kernel_lobes/thalamus_node.py": "365e59c3b83aa3723993d812092b6f303eed4b1097f4d385ac50a6656837d35d",
     "src/modules/absolute_evil.py": "7419aee166e5124b3b8c403df8d7d1d7a10314e58faf1ab7c563e9564da4930a",
     "src/modules/nomad_bridge.py": "22ccce5c537918f58b4501cafe62b41c24b018c3403cfe65a0e7e1197a67e299",
@@ -19,4 +20,7 @@
     "src/modules/generative_candidates.py": "0e9a4ad91a64f803e171dbd2c675363cafb9e1a8bca4669a98f670bedd9e7c95",
     "src/persistence/kernel_io.py": "00474e4908d2cbb7cc5e6547c6db629c4f4b88b0190342847b6ac9930c163689",
     "src/persistence/snapshot_serde.py": "3920104a50d2b70ec1a79f539866e4bd192bda6a3969fa827c1fd95368c8899f"
+  },
+  "signature": "a0cee2fd6d389e40db37cedba18d3e03b60d9802f1eb325a235f821a8a1306d3",
+  "signed_by": "Antigravity (L1) - Hardening Pulse Recovery"
 }

@@ -21,8 +21,10 @@ from src.kernel_lobes.models import (
     SensorySpike,
     BayesianEcograde
 )
-from src.nervous_system.corpus_callosum import CorpusCallosum
 import asyncio
+
+if TYPE_CHECKING:
+    from src.nervous_system.corpus_callosum import CorpusCallosum
 
 
 class CerebellumLobe:

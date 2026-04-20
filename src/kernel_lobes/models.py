@@ -210,3 +210,9 @@ class BayesianEcograde(NervousPulse):
     """Mnemonic: Mathematical assist from Cerebelo Auxiliar (Buffer)."""
     origin_lobe: str = "auxiliary_cerebellum"
     confidence_delta: float = 0.0
+
+@dataclass
+class CognitivePulse(NervousPulse):
+    """Mnemonic: High-level mental state broadcast (Ethical/Semantic)."""
+    state_ref: Any = None
+    priority: int = 1

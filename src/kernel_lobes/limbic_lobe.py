@@ -14,7 +14,9 @@ from src.kernel_lobes.models import (
     LimbicTensionAlert
 )
 from src.modules.persistent_threat_tracker import PersistentThreatTracker
-from src.nervous_system.corpus_callosum import CorpusCallosum
+
+if TYPE_CHECKING:
+    from src.nervous_system.corpus_callosum import CorpusCallosum
 
 _log = logging.getLogger(__name__)
 

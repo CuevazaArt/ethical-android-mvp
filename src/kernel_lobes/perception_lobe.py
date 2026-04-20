@@ -11,7 +11,8 @@ from src.kernel_lobes.models import (
     SensorySpike, # Mnemonic asincrónico
     SemanticState,
 )
-from src.nervous_system.corpus_callosum import CorpusCallosum
+if TYPE_CHECKING:
+    from src.nervous_system.corpus_callosum import CorpusCallosum
 from src.kernel_utils import perception_parallel_workers
 from src.modules.epistemic_dissonance import assess_epistemic_dissonance
 from src.modules.light_risk_classifier import (
@@ -28,7 +29,7 @@ from src.modules.reality_verification import (
 from src.modules.sensor_contracts import merge_sensor_hints_into_signals
 from src.modules.somatic_markers import apply_somatic_nudges
 from src.modules.temporal_planning import build_temporal_context
-from src.modules.vitality import apply_nomad_telemetry_if_enabled, assess_vitality
+from src.modules.vitality import assess_vitality
 
 if TYPE_CHECKING:
     from src.modules.absolute_evil import AbsoluteEvilDetector
@@ -115,9 +116,22 @@ class PerceptiveLobe:
         This allows the lobe to 'awaken' when the bus receives a stimulus.
         """
         _log.info(f"Córtex Sensorial: Recibido SensorySpike {spike.pulse_id}. Procesando...")
-        # En una versión futura, observe() será disparado desde aquí y el resultado
-        # será republicado como un 'PerceptionEcho'.
-        pass
+        text = spike.payload.get("text", "")
+        # Realizar observación del mundo (CPU bound offloaded to thread or logic)
+        state = await self.observe(text)
+        
+        # Publicar el estado semántico de vuelta al bus para que otros órganos lo vean
+        # Usamos el payload del spike original para trazabilidad
+        if self.bus:
+            # En V13, el estado semántico viaja como un 'CognitivePulse'
+            _log.info(f"Córtex Sensorial: Observación completa para {spike.pulse_id}. Notificando...")
+            from src.kernel_lobes.models import CognitivePulse
+            pulse = CognitivePulse(
+                origin_lobe="sensory_cortex",
+                state_ref=state,
+                payload={"ref_spike": spike.pulse_id}
+            )
+            asyncio.create_task(self.bus.publish(pulse))
 
     @staticmethod
     def _get_perception_timeout() -> float:
