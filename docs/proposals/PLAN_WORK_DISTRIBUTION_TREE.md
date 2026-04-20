@@ -22,16 +22,16 @@ Aquí es donde los agentes de ejecución (LLMs en IDEs) reclaman sus tareas.
 - **S.3 (Redundancy)**: Completado. Consolidados modelos y utilidades.
 - **S.10 (V10 Persistence)**: Completado. Persistencia de registros de metaplan, habilidades y marcadores somáticos operativa.
 - **S.11 (Bayesian Learning)**: Completado. Ajuste de priors temporales (deriva episódica) integrado en el Lóbulo Cerebelar.
-- **S.12 (Vertical Armor)**: En Progreso (Audit Pulse). Endurecimiento final de MalAbs, InputTrust y Multimodal Perception.
+- **S.12 (Vertical Armor)**: Completado. Endurecimiento final de MalAbs, InputTrust y Multimodal Perception.
 
 ---
 
 ## 📥 BACKLOG ABIERTO (Open Tasks)
 
-**Bloque S.12: Boy Scout Vertical Armor (Final Pass) [PENDING]**
-- Tarea S.12.1: Implementar blindaje de entradas en `AbsoluteEvilDetector` y normalización resiliente en `InputTrust`. (En progreso: Antigravity)
-- Tarea S.12.2: Consolidar duplicación de lógica en `SemanticChatGate` y asegurar cumplimiento de protocolos asíncronos en el LLM Arbiter.
-- Tarea S.12.3: Reparar logs de latencia y bloqueos de seguridad en `MultimodalTrust`.
+**Bloque S.12: Boy Scout Vertical Armor (Final Pass) [DONE]**
+- Tarea S.12.1: Implementar blindaje de entradas en `AbsoluteEvilDetector` y normalización resiliente en `InputTrust`. (Completado: Antigravity/User)
+- Tarea S.12.2: Consolidar duplicación de lógica en `SemanticChatGate` y asegurar cumplimiento de protocolos asíncronos en el LLM Arbiter. (Completado: Antigravity)
+- Tarea S.12.3: Reparar logs de latencia y bloqueos de seguridad en `MultimodalTrust`. (Completado: User/Antigravity)
 
 **Bloque S.11: Ajuste de Priors Experienciales (Learning Loop) [DONE]**
 - Tarea S.11.1: Activar el lóbulo `temporal_horizon_prior` en el `CerebellumLobe` para nudges de peso basados en deriva de 3 semanas. (Completado: Antigravity)
