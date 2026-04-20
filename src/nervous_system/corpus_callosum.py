@@ -84,7 +84,7 @@ class CorpusCallosum:
             self._yield_every = yield_every
         if max_in_flight is not None and max_in_flight > 0:
             self._max_in_flight = max_in_flight
-            self._notify_sem = asyncio.BoundedSemaphore(self._max_in_flight)
+            self._notify_sem = asyncio.Semaphore(self._max_in_flight)
 
     def subscribe(self, pulse_type: type, callback: Callable[..., Any]) -> None:
         """Register a listener for a pulse class name."""
@@ -187,9 +187,9 @@ class CorpusCallosum:
     async def _dispatch_loop(self) -> None:
         """Priority-aware dispatcher with bounded batch sizes and cooperative yields."""
 
-        processed_in_batch = 0
         while self._running:
             has_work = False
+            processed_round = 0
 
             for priority in sorted(self._queues.keys()):
                 queue = self._queues[priority]
@@ -201,7 +201,7 @@ class CorpusCallosum:
                     wait_time_ms = (time.time() - pulse.timestamp) * 1000
                     self.latency_sum_ms += wait_time_ms
                     self.total_pulses_processed += 1
-                    processed_in_batch += 1
+                    processed_round += 1
 
                     await self._notify_subscribers(pulse)
                     queue.task_done()
@@ -210,7 +210,7 @@ class CorpusCallosum:
                     if priority > 0 and not self._queues[0].empty():
                         break
 
-                    if processed_in_batch % self._yield_every == 0:
+                    if processed_round % self._yield_every == 0:
                         await asyncio.sleep(0)
 
                 if priority > 0 and not self._queues[0].empty():
@@ -249,7 +249,7 @@ class CorpusCallosum:
         callback: Callable[[NervousPulse], Any],
         pulse: NervousPulse,
     ) -> None:
-        """Run async subscriber under BoundedSemaphore (backpressure)."""
+        """Run async subscriber under a bounded :class:`asyncio.Semaphore` (backpressure)."""
 
         async with self._notify_sem:
             self._async_subscribers_active += 1

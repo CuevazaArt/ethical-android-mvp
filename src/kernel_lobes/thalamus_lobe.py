@@ -28,7 +28,31 @@ class ThalamusLobe:
         self.bus.subscribe(RawSensoryPulse, self._handle_raw_pulse)
         self.bus.subscribe(GlobalDegradationPulse, self._handle_degradation)
         
-        _log.info("ThalamusLobe: Sensory Gateway initialized and listening.")
+        # Register as the gate for the bus to pre-filter traffic
+        self.bus.set_ingress_gate(self.can_conscious_access)
+        
+        _log.info("ThalamusLobe: Sensory Gateway initialized and gated.")
+
+    def can_conscious_access(self, pulse: Any) -> bool:
+        """
+        Ingress Gate for the CorpusCallosum.
+        Blocks high-frequency noise (RawSensoryPulse) if it doesn't meet the conscious threshold.
+        """
+        if not isinstance(pulse, RawSensoryPulse):
+            return True # Let all other pulses through
+            
+        # Refined Throttling Variable: Dynamic barrier based on system load
+        # If load is high (>80%), focus only on high-priority reflex pulses
+        if self._degradation > 0.8 and getattr(pulse, "priority", 2) > 0:
+            return False
+            
+        # Throttling Logic for Background Noise
+        if self._degradation > 0.5 and getattr(pulse, "priority", 2) == 2:
+            # 50% probability of dropping background noise at mid-load
+            import random
+            return random.random() > 0.5
+            
+        return True # Default allow for routing to _handle_raw_pulse
 
     async def _handle_degradation(self, pulse: GlobalDegradationPulse):
         """Reactor for global system stress."""
@@ -62,16 +86,19 @@ class ThalamusLobe:
         # 3. Dynamic Gating (Throttling Variable)
         # We calculate the 'Conscious Threshold' based on the system's current load (degradation)
         base_gate = 0.25
-        # If load is 1.0 (Panic), gate rises to 0.75, blocking all but critical focal interaction
-        effective_gate = base_gate + (self._degradation * 0.5)
+        effective_gate = base_gate + (self._degradation * 0.4)
 
-        if fusion["attention_locus"] > effective_gate or fusion["is_focal_address"]:
+        # Survival Rule: If there is explicit text, it's a direct address, bypass gate.
+        has_text = bool(payload.get("text"))
+        
+        if has_text or fusion["attention_locus"] > effective_gate or fusion["is_focal_address"]:
             # The signal is 'perceived' by the higher cortex
             spike = SensorySpike(
                 payload={
                     "origin": pulse.origin_lobe,
                     "fusion": fusion,
-                    "text": payload.get("text", "") # Carry forward conversation text
+                    "text": payload.get("text", ""),
+                    "agent_id": payload.get("agent_id", "unknown")
                 },
                 priority=1,
                 origin_lobe="thalamus_gateway",
