@@ -42,6 +42,7 @@ Runtime anchors: :func:`add_semantic_anchor` for DAO / ops without redeploying c
 
 import asyncio
 import json
+import math
 import os
 import re
 import threading

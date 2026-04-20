@@ -256,9 +256,9 @@ async def _lifespan(app: FastAPI):
 
 def _api_docs_enabled() -> bool:
     """OpenAPI/Swagger UI — off by default (LAN deployments); set KERNEL_API_DOCS=1 to expose."""
-    from .chat_settings import chat_server_settings
+    from .settings import kernel_settings
 
-    return chat_server_settings().kernel_api_docs
+    return kernel_settings().kernel_api_docs
 
 
 app = FastAPI(
@@ -317,22 +317,79 @@ async def nomad_bridge_ws_handler(websocket: WebSocket) -> None:
 
 @app.websocket("/ws/dashboard")
 async def dashboard_ws_handler(websocket: WebSocket) -> None:
-    """L0 Dashboard telemetry stream."""
+    """L0 Dashboard telemetry stream and command receiver."""
     from .modules.nomad_bridge import get_nomad_bridge
+    from .settings import kernel_settings
     
     await websocket.accept()
     q: asyncio.Queue[dict[str, Any]] = asyncio.Queue(maxsize=30)
     bridge = get_nomad_bridge()
     bridge.dashboard_queues.append(q)
     
+    st = kernel_settings()
+    # Phase 10: Virtual session for dashboard commands
+    kernel = EthicalKernel(
+        variability=st.kernel_variability,
+        llm_mode=st.llm_mode,
+        aclient=getattr(websocket.app.state, "aclient", None),
+    )
+    rt_bridge = RealTimeBridge(kernel)
+    turn_seq = 0
+
+    async def recv_task():
+        nonlocal turn_seq
+        try:
+            while True:
+                data = await websocket.receive_json()
+                if data.get("type") == "user_input":
+                    text = data.get("payload", {}).get("text", "")
+                    if text:
+                        turn_seq += 1
+                        logger.info("Dashboard User Input: %s", text)
+                        
+                        # Process as a Kernel Turn to get a real response
+                        async for event in rt_bridge.process_chat_stream(
+                            text, agent_id="dashboard_op", place="dashboard"
+                        ):
+                            if event["event_type"] == "turn_finished":
+                                result = event["payload"]["result"]
+                                response_text = result.response.message if result.response else "Affirmative."
+                                
+                                # Send response back to Dashboard
+                                await websocket.send_json({
+                                    "type": "thought",
+                                    "payload": {
+                                        "text": response_text,
+                                        "dissonance": bool(result.epistemic_dissonance.active) if result.epistemic_dissonance else False
+                                    }
+                                })
+                                
+                                # Forward to Nomad Vessel as kernel voice
+                                bridge.charm_feedback_queue.put_nowait({
+                                    "type": "kernel_voice",
+                                    "text": response_text,
+                                    "role": "dashboard_relay"
+                                })
+                                break
+
+        except Exception as e:
+            logger.debug("Dashboard recv task ended: %s", e)
+
+    async def send_task():
+        try:
+            while True:
+                msg = await q.get()
+                await websocket.send_json(msg)
+        except Exception as e:
+            logger.debug("Dashboard send task ended: %s", e)
+
     try:
-        while True:
-            msg = await q.get()
-            await websocket.send_json(msg)
+        await asyncio.gather(recv_task(), send_task())
     except Exception as e:
-        logger.error("Dashboard WS error: %s", e)
+        logger.error("Dashboard WS handler error: %s", e)
     finally:
-        bridge.dashboard_queues.remove(q)
+        if q in bridge.dashboard_queues:
+            bridge.dashboard_queues.remove(q)
 
 def _chat_expose_monologue() -> bool:
     """If false, omit monologue from WebSocket JSON (privacy; skips LLM embellishment)."""
@@ -427,9 +484,9 @@ def _chat_include_light_risk() -> bool:
 
 def _chat_include_malabs_trace() -> bool:
     """Include ``malabs_trace`` (atomic decision steps) when the last chat MalAbs result has them."""
-    from .chat_settings import chat_server_settings
+    from .settings import kernel_settings
 
-    return chat_server_settings().kernel_chat_include_malabs_trace
+    return kernel_settings().kernel_chat_include_malabs_trace
 
 
 def _chat_include_transparency_s10() -> bool:
@@ -2194,9 +2251,8 @@ async def ws_chat(ws: WebSocket) -> None:
     await ws.accept()
     set_request_id()
     logger.info("websocket_session_open")
-    from .chat_settings import chat_server_settings
-
-    st = chat_server_settings()
+    from .settings import kernel_settings
+    st = kernel_settings()
     kernel = EthicalKernel(
         variability=st.kernel_variability,
         llm_mode=st.llm_mode,
@@ -2580,9 +2636,9 @@ async def ws_chat(ws: WebSocket) -> None:
 
 def get_uvicorn_bind() -> tuple[str, int]:
     """Host and port from environment; see :mod:`src.chat_settings`."""
-    from .chat_settings import chat_server_settings
+    from .settings import kernel_settings
 
-    s = chat_server_settings()
+    s = kernel_settings()
     return s.chat_host, s.chat_port
 
 

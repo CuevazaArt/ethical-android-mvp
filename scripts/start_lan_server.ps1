@@ -21,6 +21,21 @@ Set-Location $root
 $env:CHAT_HOST = "0.0.0.0"
 $env:CHAT_PORT = "$Port"
 
+# Auto-Harden: Clear the port if occupied (Boy Scout Protocol)
+try {
+    $connections = Get-NetTCPConnection -LocalPort $Port -State Listen -ErrorAction SilentlyContinue
+    if ($connections) {
+        $pids = $connections.OwningProcess | Select-Object -Unique
+        foreach ($pid in $pids) {
+            Write-Host "[!] Port $Port occupied by PID $pid. Killing process to ensure clean startup..." -ForegroundColor Yellow
+            Stop-Process -Id $pid -Force -ErrorAction SilentlyContinue
+        }
+        Start-Sleep -Seconds 1
+    }
+} catch {
+    # Skip if we don't have permissions or NetTCPLib is missing
+}
+
 Write-Host "CHAT_HOST=$($env:CHAT_HOST) CHAT_PORT=$($env:CHAT_PORT)" -ForegroundColor Cyan
 Write-Host "Health: http://127.0.0.1:${Port}/health  |  WebSocket: ws://127.0.0.1:${Port}/ws/chat" -ForegroundColor DarkGray
 

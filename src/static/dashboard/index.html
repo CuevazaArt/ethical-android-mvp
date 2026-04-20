@@ -56,14 +56,24 @@
                 </div>
             </div>
 
-            <div class="telemetry-log" id="event-log">
-                <!-- Real-time events will flow here -->
+            <div class="chat-container">
+                <div class="chat-header">Neural Log // Chat</div>
+                <div class="chat-history" id="event-log">
+                    <!-- Real-time events and chat will flow here -->
+                </div>
+                <div class="chat-input-area">
+                    <input type="text" id="chat-input" placeholder="Communicate with Nomad..." autocomplete="off">
+                    <button id="chat-send">▶</button>
+                </div>
             </div>
         </aside>
 
-        <!-- CENTER: THE AFFECTIVE ORB -->
+        <!-- CENTER: VISION MONITOR -->
         <section class="panel center-panel">
-            <div id="orb-container"></div>
+            <div class="vision-preview">
+                <canvas id="vision-canvas"></canvas>
+                <div class="canvas-overlay">LIVE // NOMAD VESSEL</div>
+            </div>
             
             <div class="kernel-thoughts">
                 <div class="monologue-line" id="thought-stream">
@@ -72,16 +82,13 @@
             </div>
         </section>
 
-        <!-- RIGHT PANEL: SENSORS -->
+        <!-- RIGHT PANEL: AFFECTIVE ORB & SENSORS -->
         <aside class="panel">
             <div class="panel-header">
                 <h2>Situated Organism</h2>
             </div>
 
-            <div class="vision-preview">
-                <canvas id="vision-canvas"></canvas>
-                <div class="canvas-overlay">LIVE // NOMAD VESSEL</div>
-            </div>
+            <div id="orb-container"></div>
 
             <div class="audio-monitor">
                 <div class="metric-label">Audio Energy (dB)</div>

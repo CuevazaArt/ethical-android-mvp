@@ -261,6 +261,30 @@ function connectKernel() {
             }, 15000);
         };
 
+        wsNomad.onmessage = (event) => {
+            try {
+                const msg = JSON.parse(event.data);
+                if (msg.type === 'charm_feedback') {
+                    const payload = msg.payload;
+                    // Support standard voice nudges from the bridge (S.2.1)
+                    if (payload.type === 'kernel_voice' || payload.text) {
+                        const text = payload.text || payload.content;
+                        UI.transcript.innerText = `[Proxied] Kernel: ${text}`;
+                        if ('speechSynthesis' in window) {
+                            const utterance = new SpeechSynthesisUtterance(text);
+                            window.speechSynthesis.speak(utterance);
+                        }
+                    }
+                    if (payload.type === 'haptic_feedback' || payload.haptics) {
+                        const pattern = payload.haptics || [200, 100, 200];
+                        if (navigator.vibrate) navigator.vibrate(pattern);
+                    }
+                }
+            } catch (e) {
+                console.error("Nomad Bridge message error", e);
+            }
+        };
+
     } catch (e) {
         alert("Cannot connect to the Ethos Kernel. Are you on the same Wi-Fi?");
         UI.statusText.innerText = "Error";

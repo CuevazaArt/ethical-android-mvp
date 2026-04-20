@@ -44,6 +44,7 @@ class NomadBridge:
         self.last_rms = 0.0
         self._last_sensor_update = time.time()
         self._is_vessel_healthy = False
+        self._last_dash_frame = 0 # Throttling for dashboard (S.2.1)
         
         # S.1.1 Hardening: Vessel State Tracking (HAL Aligned)
         self.vessel_context: HardwareContext = HardwareContext(
@@ -150,7 +151,11 @@ class NomadBridge:
                         if frame_count % 10 == 0:
                             _log.info("Nomad Bridge: Received 10 vision frames (Stream Active)")
                             
-                        self.broadcast_to_dashboards({"type": "frame", "payload": payload})
+                        # Throttled Dashboard Broadcast (Phase 10 Stability)
+                        now = time.time()
+                        if now - self._last_dash_frame > 0.05: # Max 20fps for dashboard
+                            self.broadcast_to_dashboards({"type": "frame", "payload": payload})
+                            self._last_dash_frame = now
                         
                         if self.vision_queue.full():
                             self.vision_queue.get_nowait()
@@ -185,7 +190,8 @@ class NomadBridge:
                                 shorts = struct.unpack(f"<{count}h", pcm_bytes[:count * 2])
                                 if shorts:
                                     sum_sq = sum(float(s) * s for s in shorts)
-                                    rms = math.sqrt(sum_sq / len(shorts)) / 32768.0
+                                    rms = (math.sqrt(sum_sq / len(shorts)) / 32768.0) * 5.5 # Sensitivity boost (Module S.2.1)
+                                    rms = min(1.0, rms) # Clamp to 1.0
                                     if math.isfinite(rms):
                                         self.last_rms = rms
                                         if self.dashboard_queues:

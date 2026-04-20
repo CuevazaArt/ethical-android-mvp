@@ -79,12 +79,14 @@ body {
     width: 100%;
     max-width: 480px;
     height: 100%;
-    padding: 24px 24px calc(80px + env(safe-area-inset-bottom, 16px)) 24px;
+    padding: 24px 24px calc(120px + env(safe-area-inset-bottom, 24px)) 24px;
     display: flex;
     flex-direction: column;
     gap: 24px;
     position: relative;
     z-index: 10;
+    overflow-y: auto;
+    overflow-x: hidden;
 }
 
 .glass-panel {
@@ -179,6 +181,7 @@ body {
     justify-content: center;
     align-items: center;
     position: relative;
+    min-height: 250px;
 }
 
 .affect-orb {
@@ -270,7 +273,8 @@ body {
     display: flex;
     flex-direction: column;
     gap: 12px;
-    margin-bottom: 60px; /* High clearance for OS UI */
+    margin-bottom: 80px; /* High clearance for OS UI combined with container padding */
+    flex-shrink: 0;
 }
 
 .glass-btn {
