@@ -110,8 +110,15 @@ class DAOOrchestrator:
             with sqlite_safe_write(self.db_path) as conn:
                 conn.execute(
                     "INSERT INTO audit_logs (type, content, episode_id, timestamp) VALUES (?, ?, ?, ?)",
-                    ("anchoring", f"Anchored Hash {evidence_hash}", payload.get("episode_id"), time.time())
+                    ("anchoring", f"Anchored Hash {evidence_hash}. Blob size: {len(str(packet))} bytes", payload.get("episode_id"), time.time())
                 )
+
+            # In-memory MockDAO recording for compatibility with legacy record queries
+            self.local_dao.register_audit(
+                type="anchoring",
+                content=f"Anchored Hash {evidence_hash}. Blob size: {len(str(packet))} bytes",
+                episode_id=payload.get("episode_id"),
+            )
 
             latency = (time.perf_counter() - t0) * 1000
             _log.info("Evidence anchored securely. Hash: %s (lat: %.2fms)", evidence_hash, latency)

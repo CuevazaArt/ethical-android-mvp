@@ -149,6 +149,17 @@ class NomadBridge:
             self._is_vessel_healthy = False
             _log.info("Nomad Bridge: Nomad Vessel disconnected.")
 
+    def public_queue_stats(self) -> dict[str, Any]:
+        """Return observable queue depths and vessel health for /health endpoint (Module S.1/S.2.1)."""
+        return {
+            "vision_queue_depth": self.vision_queue.qsize(),
+            "audio_queue_depth": self.audio_queue.qsize(),
+            "telemetry_queue_depth": self.telemetry_queue.qsize(),
+            "charm_feedback_queue_depth": self.charm_feedback_queue.qsize(),
+            "vessel_healthy": self._is_vessel_healthy,
+            "last_sensor_update_keys": ["_last_sensor_update"],
+        }
+
     def broadcast_to_dashboards(self, msg: dict[str, Any]) -> None:
         """Sends a message to all connected dashboards (Module S / Phase 10)."""
         if not self.dashboard_queues:
@@ -345,6 +356,7 @@ _NOMAD_BRIDGE = NomadBridge()
 
 def get_nomad_bridge() -> NomadBridge:
     return _NOMAD_BRIDGE
+
 
 def is_vessel_online() -> bool:
     """Returns True if a Nomad Vessel sent data in the last 5 seconds."""

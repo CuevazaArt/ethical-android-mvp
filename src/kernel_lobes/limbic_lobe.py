@@ -1,6 +1,4 @@
-from __future__ import annotations
-from typing import TYPE_CHECKING, Any, Optional
-from src.kernel_lobes.models import LimbicStageResult, SemanticState, EthicalSentence
+from src.kernel_lobes.models import EthicalSentence, LimbicStageResult, SemanticState
 from src.modules.persistent_threat_tracker import PersistentThreatTracker
 import time
 import math
@@ -26,14 +24,26 @@ class LimbicEthicalLobe:
     Bloque 9.2 Integration:
     - Persistent Threat Tracking + Limbic Tension Escalation
     - Tracks sustained perception hazards (timeout, low confidence >5s)
+    
+    All injected modules default to lightweight auto-instantiated instances so
+    the class can be used standalone (e.g. in the V1.5 Orchestrator or tests).
     """
     def __init__(
         self,
-        uchi_soto: UchiSotoModule,
-        sympathetic: SympatheticModule,
-        locus: LocusModule,
+        uchi_soto: Optional[UchiSotoModule] = None,
+        sympathetic: Optional[SympatheticModule] = None,
+        locus: Optional[LocusModule] = None,
         swarm: Any = None
-    ):
+    ) -> None:
+        if uchi_soto is None:
+            from src.modules.uchi_soto import UchiSotoModule as _US
+            uchi_soto = _US()
+        if sympathetic is None:
+            from src.modules.sympathetic import SympatheticModule as _Sym
+            sympathetic = _Sym()
+        if locus is None:
+            from src.modules.locus import LocusModule as _Loc
+            locus = _Loc()
         self.uchi_soto = uchi_soto
         self.sympathetic = sympathetic
         self.locus = locus
@@ -45,6 +55,43 @@ class LimbicEthicalLobe:
     def update_situational_stress(self, level: float) -> None:
         """Accumulate or decay situational stress based on sensory alerts."""
         self.situational_stress = max(0.0, min(1.0, level))
+
+    def judge(self, state: SemanticState) -> EthicalSentence:
+        """
+        V1.5 simplified judgment path for the CorpusCallosumOrchestrator.
+
+        Derives tension and trauma weight directly from the SemanticState without
+        requiring the full Uchi-Soto / Sympathetic / Locus pipeline.  This is
+        intentionally CPU-light so it can be offloaded via ``asyncio.to_thread``.
+
+        Args:
+            state: The SemanticState produced by PerceptiveLobe.observe().
+
+        Returns:
+            EthicalSentence with social_tension_locus and applied_trauma_weight set.
+        """
+        trauma = state.timeout_trauma
+        if trauma is None:
+            return EthicalSentence(is_safe=True, social_tension_locus=0.0)
+
+        try:
+            confidence_gap = max(0.0, 1.0 - min(1.0, float(state.perception_confidence)))
+            severity = max(0.0, min(1.0, float(trauma.severity)))
+            applied_trauma_weight = severity * confidence_gap
+            social_tension_locus = min(
+                1.0,
+                float(state.signals.get("social_tension", 0.0))
+                + applied_trauma_weight * 0.8
+                + confidence_gap * 0.1
+            )
+            return EthicalSentence(
+                is_safe=True,
+                social_tension_locus=round(social_tension_locus, 4),
+                applied_trauma_weight=round(applied_trauma_weight, 4),
+            )
+        except Exception as exc:  # pragma: no cover
+            _log.error("LimbicEthicalLobe.judge error: %s", exc)
+            return EthicalSentence(is_safe=True, social_tension_locus=0.0)
 
     def execute_stage(
         self,
@@ -161,8 +208,7 @@ class LimbicEthicalLobe:
         trauma_magnitude: float = 0.0
     ) -> LimbicStageResult:
         """Async wrapper for Level 2 Limbic processing."""
-        import asyncio
-        loop = asyncio.get_event_loop()
+        loop = asyncio.get_running_loop()
         return await loop.run_in_executor(
             None, 
             self.execute_stage, 

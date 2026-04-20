@@ -132,7 +132,7 @@ from contextlib import asynccontextmanager
 from dataclasses import asdict
 from typing import Any
 
-from fastapi import FastAPI, WebSocket, WebSocketDisconnect
+from fastapi import FastAPI, Request, WebSocket, WebSocketDisconnect
 from fastapi.responses import JSONResponse, Response
 from fastapi.staticfiles import StaticFiles
 
@@ -805,7 +805,7 @@ def _chat_turn_to_jsonable(r: ChatTurnResult, kernel: EthicalKernel) -> dict[str
         }
     if r.temporal_context is not None:
         tc = r.temporal_context.to_public_dict()
-        tc["turn_index"] = max(1, _coerce_public_int(tc.get("turn_index"), default=0, non_negative=True))
+        tc["turn_index"] = _coerce_public_int(tc.get("turn_index"), default=0, non_negative=True)
         out["temporal_context"] = tc
         out["temporal_sync"] = {
             "sync_schema": tc.get("sync_schema", "temporal_sync_v1"),
@@ -1008,7 +1008,8 @@ def prometheus_metrics() -> Response:
 
 
 @app.get("/health")
-def health() -> dict[str, Any]:
+def health(request: Request) -> Response:
+    """Liveness + operator-facing observability flags (JSON for dashboards and probes)."""
     """Liveness + operator-facing observability flags (JSON for dashboards and probes)."""
     from .observability.decision_log import decision_log_enabled
     from .runtime_profiles import applied_runtime_profile
@@ -1080,7 +1081,13 @@ def health() -> dict[str, Any]:
     from .modules.nomad_bridge import get_nomad_bridge
 
     out["nomad_bridge"] = get_nomad_bridge().public_queue_stats()
-    return out
+
+    # Echo X-Request-ID header if present (ADR observability)
+    req_id = request.headers.get("x-request-id")
+    response = JSONResponse(content=out)
+    if req_id:
+        response.headers["x-request-id"] = req_id
+    return response
 
 
 @app.get("/dao/governance")

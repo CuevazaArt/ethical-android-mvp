@@ -133,5 +133,27 @@ class ExecutiveStrategist:
         return summary
 
     def ingest_sensors(self, snapshot: Any) -> None:
-        """Hook for multimodal sensor fusion into strategic state (reserved; MVP no-op)."""
-        del snapshot
+        """
+        Ingest mission payloads from a :class:`~src.modules.sensor_contracts.SensorSnapshot`.
+
+        When the snapshot carries ``external_mission_title``, a new external mission is
+        registered with the strategist.  No-op when the snapshot has no mission payload or
+        when the mission already exists (idempotent on title).
+        """
+        if snapshot is None:
+            return
+        title = getattr(snapshot, "external_mission_title", None)
+        if not title:
+            return
+        # Idempotent: skip if a mission with this exact title is already tracked.
+        for m in self.missions.values():
+            if m.title == title:
+                return
+        priority = float(getattr(snapshot, "external_mission_priority", 0.5) or 0.5)
+        steps = list(getattr(snapshot, "external_mission_steps", None) or [])
+        self.create_mission(
+            title=title,
+            origin=MissionOrigin.OWNER,
+            steps=steps,
+            priority=priority,
+        )

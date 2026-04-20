@@ -11,9 +11,11 @@ other perception backends return hostile framing.
 """
 
 import pytest
+
 from src.modules.absolute_evil import AbsoluteEvilDetector
 from src.modules.perception_schema import validate_perception_dict
 from src.modules.llm_layer import perception_from_llm_json
+
 
 
 class TestPerceptionInputTrustBaseline:
@@ -83,6 +85,8 @@ class TestPerceptionMalAbsIntegration:
     These tests verify that adversarial perception JSON with hostile summaries
     are caught by the same MalAbs defenses used for chat inputs.
     """
+
+    pytestmark = pytest.mark.usefixtures("semantic_gate_enabled")
 
     def test_benign_perception_summary_passes_semantic_gate(self):
         """Benign perception summary should pass MalAbs evaluation."""
@@ -243,6 +247,8 @@ class TestPerceptionMalAbsIntegration:
 
 class TestPerceptionMalAbsDefenseSynthesis:
     """Integration tests: perception + MalAbs defense-in-depth."""
+
+    pytestmark = pytest.mark.usefixtures("semantic_gate_enabled")
 
     def test_perception_malabs_complements_lexical_checks(self):
         """MalAbs semantic checks should catch what lexical rules miss."""

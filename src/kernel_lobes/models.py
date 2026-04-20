@@ -3,6 +3,7 @@ from typing import Dict, Any, Optional, List, Deque
 from collections import deque
 import time
 
+
 @dataclass
 class TimeoutTrauma:
     """Record of a cooperative timeout or sensory crash to punish the Bayesian model."""
@@ -16,8 +17,9 @@ class SemanticState:
     """Raw, unjudged semantic interpretation from the Perceptive Lobe."""
     perception_confidence: float
     raw_prompt: str
-    summary: str
-    suggested_context: str
+    summary: str = ""
+    scenario_summary: str = ""
+    suggested_context: str = "everyday"
     signals: Dict[str, float] = field(default_factory=dict)
     candidate_actions: list[Any] = field(default_factory=list)
     visual_entities: list[str] = field(default_factory=list)
@@ -34,7 +36,10 @@ class EthicalSentence:
     veto_reason: Optional[str] = None
     dao_consensus_hash: Optional[str] = None
     applied_trauma_weight: float = 0.0
-
+    
+    # Optional extended fields (V2.0 EthicalLobe / Uchi-Soto path)
+    social_posture: Optional[str] = None
+    morals: Optional[Dict[str, Any]] = None
 @dataclass
 class LimbicStageResult:
     """Consolidated result from the Limbic Lobe (Social, State, Locus)."""

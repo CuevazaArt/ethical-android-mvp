@@ -219,8 +219,10 @@ def assess_vitality(snapshot: SensorSnapshot | None) -> VitalityAssessment:
         
     is_temp_critical = False if temp is None else (temp >= t_temp)
 
-    # Bloque S.2: Calibración de criticidad (Batería O Impacto O Térmico Extremo)
-    is_critical_combined = is_bat_critical or is_impacted or is_temp_critical
+    # Bloque S.2: Calibración de criticidad (Batería O Impacto)
+    # Thermal is tracked separately via thermal_critical — it does not
+    # count as a full is_critical event (battery/impact override).
+    is_critical_combined = is_bat_critical or is_impacted
 
     res = VitalityAssessment(
         battery_level=b,
@@ -258,7 +260,7 @@ def vitality_communication_hint(assessment: VitalityAssessment, trust_level: flo
 
     if assessment.thermal_critical:
         if is_trusted:
-            hints.append("Thermal critical: core temperature high. Processing power is degraded.")
+            hints.append("My internal core temperature is critically high, causing thermal tension and degraded processing power.")
         else:
             hints.append("System load management active; maintaining safety margins.")
 

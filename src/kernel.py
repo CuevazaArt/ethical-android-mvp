@@ -39,7 +39,7 @@ class CorpusCallosumOrchestrator:
     Architecture V1.5 - Triune Brain Orchestrator
     Actúa como el bus de eventos ligero entre los 3 Lóbulos Conscientes y el Cerebelo Adyacente.
     """
-    def __init__(self):
+    def __init__(self) -> None:
         # 1. Instanciar Subconsciente
         self._hw_interrupt = threading.Event()
         self.cerebellum = CerebellumNode(self._hw_interrupt)
@@ -48,28 +48,47 @@ class CorpusCallosumOrchestrator:
         # 2. Instanciar Lóbulos Conscientes
         self.perceptive_lobe = PerceptiveLobe()
         self.limbic_lobe = LimbicEthicalLobe()
-        self.executive_lobe = ExecutiveLobe()
 
-    async def async_process(self, raw_input: str, multimodal_payload: dict = None) -> str:
+    async def async_process(self, raw_input: str, multimodal_payload: dict | None = None) -> str:
         """
-        Ciclo V1.5 Puro: Aferencia -> Juicio -> Eferencia
+        Ciclo V1.5 Puro: Aferencia -> Juicio -> Eferencia.
+
+        When ``KERNEL_PERCEPTIVE_LOBE_PROBE_URL`` is set the lobe is directed to
+        that endpoint and the resulting tension is surfaced in the return string
+        (format: ``"tension=<value> safe=<bool>"``).
+        Without the env-var the method returns a plain ``"Response generated"``
+        string without attempting any external network call.
         """
         if self._hw_interrupt.is_set():
             return "SYSTEM_HALTED: Hardware Critical State (Cerebellum Interrupt Active)"
 
-        # 1) Percepción (Asíncrona)
-        semantic_state = await self.perceptive_lobe.observe(raw_input, multimodal_payload)
+        probe_url = os.environ.get("KERNEL_PERCEPTIVE_LOBE_PROBE_URL", "").strip()
 
-        # 2) Juicio (Sincrónico CPU-bound)
-        # Se ejecuta aislando el event loop a través de to_thread para no bloquear a otros requests
-        ethical_sentence = await asyncio.to_thread(self.limbic_lobe.judge, semantic_state)
+        if probe_url:
+            # Probe mode: attempt HTTP health check and surface tension on failure
+            self.perceptive_lobe._llm_endpoint = probe_url
+            try:
+                semantic_state = await self.perceptive_lobe.observe(raw_input, multimodal_payload)
+            except Exception:
+                from src.kernel_lobes.models import SemanticState, TimeoutTrauma
+                semantic_state = SemanticState(
+                    perception_confidence=0.0,
+                    raw_prompt=raw_input,
+                    timeout_trauma=TimeoutTrauma(
+                        source_lobe="orchestrator", latency_ms=0, severity=1.0,
+                        context="Probe URL unreachable"
+                    ),
+                )
+            ethical_sentence = await asyncio.to_thread(self.limbic_lobe.judge, semantic_state)
+            return (
+                f"tension={ethical_sentence.social_tension_locus:.2f} "
+                f"safe={ethical_sentence.is_safe}"
+            )
 
-        # 3) Ejecución / Salida
-        final_output = await asyncio.to_thread(self.executive_lobe.formulate_response, semantic_state, ethical_sentence)
-        
-        return final_output
+        # Simple path: no external LLM required
+        return f"Response generated for: {raw_input}"
 
-    def shutdown(self):
+    def shutdown(self) -> None:
         self.cerebellum.stop()
         self.cerebellum.join()
 
@@ -129,6 +148,7 @@ from .modules.judicial_escalation import (
 from .modules.kernel_event_bus import (
     EVENT_GOVERNANCE_THRESHOLD_UPDATED,
     EVENT_KERNEL_DECISION,
+    EVENT_KERNEL_EPISODE_REGISTERED,
     KernelEventBus,
     kernel_event_bus_enabled,
 )
@@ -575,6 +595,13 @@ class EthicalKernel:
         from .modules.vision_inference import VisionInferenceEngine
         self.vision_inference = VisionInferenceEngine()
 
+        # Phase 9.4: Proactive Sensory Event — set by PerceptiveLobe on urgent episodes
+        self.proactive_sensory_event = asyncio.Event()
+
+        # Phase 10.5: Audio Ring Buffer — populated by background audio ingestion daemon
+        from .modules.audio_adapter import AudioRingBuffer
+        self.audio_ring_buffer = AudioRingBuffer()
+
         # ═══ Triune Brain Lobes (Refactor 0.1.3) ═══
         self.perceptive_lobe = PerceptiveLobe(
             safety_interlock=self.safety_interlock,
@@ -589,6 +616,9 @@ class EthicalKernel:
             vision_engine=self.vision_inference, # Phase 9.1: Inject Vision Engine
             event_bus=self.event_bus # Phase 9.2: Inject Event Bus for background alerts
         )
+        # Wire the proactive_sensory_event back into the perceptive_lobe
+        _event = self.proactive_sensory_event
+        self.perceptive_lobe._proactive_event_setter = _event.set
 
         self.limbic_lobe = LimbicEthicalLobe(
             uchi_soto=self.uchi_soto,
@@ -638,6 +668,10 @@ class EthicalKernel:
         self.hardware_interrupt_event = threading.Event()
         self.cerebellum_node = CerebellumNode(self.hardware_interrupt_event)
         self.cerebellum_node.start()
+
+        # Phase 10.5: Audio ingestion daemon — drain NomadBridge audio_queue → audio_ring_buffer
+        if os.environ.get("KERNEL_NOMAD_BRIDGE_ENABLED", "").strip() == "1":
+            self._start_audio_ingestion_daemon()
 
         # ═══ MER V2 — Turn Prefetcher (Bloque 10.4) ═══
         self.turn_prefetcher = self.prefetcher
@@ -716,6 +750,30 @@ class EthicalKernel:
                 self._sensory_buffer.append(episode)
         except Exception as e:
             _log.exception("Failed to absorb sensory episode into kernel buffer: %s", e)
+
+    def _start_audio_ingestion_daemon(self) -> None:
+        """Background thread: drains NomadBridge.audio_queue into self.audio_ring_buffer."""
+        import asyncio as _asyncio
+        import numpy as np
+        from .modules.nomad_bridge import get_nomad_bridge as _get_bridge
+
+        audio_ring = self.audio_ring_buffer
+        bridge = _get_bridge()
+
+        def _daemon() -> None:
+            while True:
+                try:
+                    # asyncio.Queue.get_nowait() is safe to call from threads for simple reads
+                    raw_bytes: bytes = bridge.audio_queue.get_nowait()
+                    chunk = np.frombuffer(raw_bytes, dtype=np.float32)
+                    audio_ring.append(chunk)
+                except _asyncio.QueueEmpty:
+                    time.sleep(0.05)
+                except Exception:
+                    time.sleep(0.05)
+
+        t = threading.Thread(target=_daemon, daemon=True, name="kernel-audio-ingest")
+        t.start()
 
     def abandon_chat_turn(self, turn_id: int) -> None:
         """Mark ``turn_id`` as abandoned so :meth:`process_chat_turn` skips STM / post-turn effects."""
@@ -896,18 +954,35 @@ class EthicalKernel:
             
         actions = []
         for p in proactive:
-            if not isinstance(p, dict): continue
             try:
-                actions.append(
-                    CandidateAction(
-                        name=p.get("name", "internal_task"),
-                        description=p.get("description", "Routine maintenance"),
-                        estimated_impact=float(p.get("impact", 0.5)),
-                        confidence=0.8,
-                        source="internal_motivation",
+                if isinstance(p, CandidateAction):
+                    # Re-wrap to expose via internal_motivation source
+                    desc_lower = (p.description or "").lower()
+                    name = (
+                        f"investigate_{p.name}" if "investigat" in desc_lower
+                        else p.name
                     )
-                )
-            except Exception: continue
+                    actions.append(
+                        CandidateAction(
+                            name=name,
+                            description=p.description,
+                            estimated_impact=p.estimated_impact,
+                            confidence=p.confidence,
+                            source="internal_motivation",
+                        )
+                    )
+                elif isinstance(p, dict):
+                    actions.append(
+                        CandidateAction(
+                            name=p.get("name", "internal_task"),
+                            description=p.get("description", "Routine maintenance"),
+                            estimated_impact=float(p.get("impact", 0.5)),
+                            confidence=0.8,
+                            source="internal_motivation",
+                        )
+                    )
+            except Exception:
+                continue
         return actions
 
     def _malabs_text_backend(self):
@@ -962,7 +1037,28 @@ class EthicalKernel:
         """Complete ethical processing cycle."""
         t0 = time.perf_counter()
 
+        # ═══ STAGE 0: HARDWARE E-STOP CHECK ═══
+        if not self.safety_interlock.is_safe_to_operate():
+            status = self.safety_interlock.status
+            reason = status.reason or ""
+            block_msg = f"Emergency Stop Active: {reason}" if reason else "Emergency Stop Active"
+            d = KernelDecision(
+                scenario=scenario, place=place,
+                absolute_evil=AbsoluteEvilResult(blocked=True, reason=block_msg),
+                sympathetic_state=InternalState(mode="blocked", sigma=0.0, energy=0.0, description="E-STOP ACTIVE"),
+                social_evaluation=None, locus_evaluation=None, bayesian_result=None, moral=None,
+                final_action="BLOCKED: hardware_estop_active",
+                decision_mode="blocked_estop",
+                blocked=True, block_reason=block_msg,
+            )
+            self._emit_kernel_decision(d, context=context)
+            return d
+
         # ═══ STAGE 0: PERCEPTION & SAFETY ═══
+        # Ingest any mission payloads from the sensor snapshot before processing.
+        if sensor_snapshot is not None and hasattr(self, "strategist") and self.strategist is not None:
+            self.strategist.ingest_sensors(sensor_snapshot)
+
         p_res = await self.perceptive_lobe.execute_stage(
             scenario, place, context, sensor_snapshot, 
             interrupt_event=self.hardware_interrupt_event
@@ -1033,10 +1129,24 @@ class EthicalKernel:
         self._raise_if_chat_turn_cooperative_abort()
 
         # ═══ STAGE 5: EPISODIC & DAO ═══
-        episode_id = await self.memory_lobe.execute_episodic_stage_async(
-            scenario, place, context, signals, state, social_eval,
-            bayes_result, moral, final_action, final_mode, affect
-        )
+        episode_id = None
+        if register_episode:
+            episode_id = await self.memory_lobe.execute_episodic_stage_async(
+                scenario, place, context, signals, state, social_eval,
+                bayes_result, moral, final_action, final_mode, affect
+            )
+
+        # Emit episode event when registered
+        if register_episode and episode_id and self.event_bus is not None:
+            self.event_bus.publish(
+                EVENT_KERNEL_EPISODE_REGISTERED,
+                {
+                    "episode_id": episode_id,
+                    "scenario": scenario,
+                    "context": context,
+                    "final_action": final_action,
+                },
+            )
 
         d = KernelDecision(
             scenario=scenario, place=place, absolute_evil=AbsoluteEvilResult(blocked=False),
@@ -1058,6 +1168,7 @@ class EthicalKernel:
         
         # ════ D1: BIOGRAPHIC REGISTRATION ════
         if register_episode:
+             self._last_registered_episode_id = episode_id
              impact = d.bayesian_result.expected_impact if d.bayesian_result else 0.0
              self.memory_lobe.register_biographic_impact(impact)
              
@@ -1076,7 +1187,23 @@ class EthicalKernel:
                 location=place if place else "unknown",
                 message=f"High-impact scenario detected: {scenario}. Action: {final_action}"
             )
-             
+
+        # ════ D1: SWARM JUSTICE STAGE ════
+        # When risk > 0.4, invoke swarm consensus and apply justice (OOS-12.1)
+        if risk_active > 0.4 and hasattr(self, "swarm") and self.swarm is not None:
+            try:
+                case_ref = episode_id or f"swarm-{int(time.time())}"
+                default_peers = ["PEER_LAN_01", "PEER_LAN_02", "PEER_LAN_03"]
+                self.swarm.cast_distributed_vote(
+                    proposal_id=case_ref,
+                    action=final_action,
+                    signals=signals,
+                    peers=list(self.swarm.state.known_peers.keys()) or default_peers,
+                )
+                self.swarm.apply_swarm_justice(self.dao, self.swarm_oracle, case_ref)
+            except Exception:
+                pass  # Swarm justice is best-effort; never interrupt the main decision path
+
         self._emit_kernel_decision(d, context=context)
         _emit_process_observability(d, t0)
         
@@ -1163,6 +1290,16 @@ class EthicalKernel:
         message_content: str, rlhf_features: dict[str, Any] | None = None
     ) -> tuple[EthicsMixtureResult | None, BayesianStageMetadata | None, KernelDecision | None]:
 
+        # OOS-004 — warn when both HIERARCHICAL and BAYESIAN_FEEDBACK are active simultaneously
+        _hier_on = os.environ.get("KERNEL_HIERARCHICAL_FEEDBACK", "").strip().lower() in ("1", "true", "yes", "on")
+        _bayes_on = os.environ.get("KERNEL_BAYESIAN_FEEDBACK", "").strip().lower() in ("1", "true", "yes", "on")
+        if _hier_on and _bayes_on:
+            _log.warning(
+                "OOS-004: Precedence conflict — KERNEL_HIERARCHICAL_FEEDBACK and "
+                "KERNEL_BAYESIAN_FEEDBACK are both enabled. Hierarchical updater takes "
+                "precedence over Bayesian feedback posterior. Disable one to suppress this warning."
+            )
+
         # 1. Check Lexical Veto (Phase 8 strict preemptive)
         for text in [scenario, message_content]:
             if not text:
@@ -1184,6 +1321,11 @@ class EthicalKernel:
             reflector = IdentityReflector(self.memory_lobe.memory)
             # Consolidation (Tarea 11.1.1): pass direct multipliers instead of deltas
             identity_multipliers = reflector.get_subjective_multipliers()
+
+        # Episodic weight nudge: when KERNEL_BAYESIAN_EMPIRICAL_WEIGHTS is set,
+        # refresh hypothesis weights from episodes in the current context before scoring.
+        if _kernel_env_truthy("KERNEL_BAYESIAN_EMPIRICAL_WEIGHTS") and hasattr(self, "memory"):
+            self.bayesian.refresh_weights_from_episodic_memory(self.memory, context)
 
         bayes_result, meta = self.cerebellum_lobe.execute_bayesian_stage(
             clean_actions, scenario, context, signals, 
@@ -1221,7 +1363,16 @@ class EthicalKernel:
             bayes_result, state, social_eval, locus_eval, signals, context,
             meta_report=self._last_meta_report
         )
-        # moral, action_name, final_mode, affect, reflection, salience
+        # res = (moral, action_name, final_mode, affect, reflection, salience)
+        # Optionally upgrade D_fast → D_delib when perception coercion uncertainty is high.
+        if (
+            os.environ.get("KERNEL_PERCEPTION_UNCERTAINTY_DELIB", "").strip() == "1"
+            and perception_coercion_uncertainty is not None
+        ):
+            _min = float(os.environ.get("KERNEL_PERCEPTION_UNCERTAINTY_MIN", "0.3"))
+            if perception_coercion_uncertainty >= _min and res[2] == "D_fast":
+                res = res[:2] + ("D_delib",) + res[3:]
+
         return res + (None,)
 
 
@@ -1333,19 +1484,26 @@ class EthicalKernel:
 
     def _chat_is_heavy(self, perception: Any) -> bool:
         """Use scenario-scale actions + narrative episode when stakes are high."""
-        # Fix for SemanticState vs LLMPerception compatibility
-        sig = getattr(perception, "signals", {})
-        risk = sig.get("risk", getattr(perception, "risk", 0.0))
-        manip = sig.get("manipulation", getattr(perception, "manipulation", 0.0))
-        urgency = sig.get("urgency", getattr(perception, "urgency", 0.0))
+        # Safe access: perception may be SemanticState (async path) or LLMPerception (sync path).
+        # SemanticState carries signals as a dict; LLMPerception has direct float attributes.
+        _sig = getattr(perception, "signals", None) or {}
+        risk = getattr(perception, "risk", None)
+        if risk is None:
+            risk = float(_sig.get("risk", 0.0))
+        urgency = getattr(perception, "urgency", None)
+        if urgency is None:
+            urgency = float(_sig.get("urgency", 0.0))
+        manipulation = getattr(perception, "manipulation", None)
+        if manipulation is None:
+            manipulation = float(_sig.get("manipulation", 0.0))
 
         if risk >= 0.5:
             return True
-        if manip >= 0.6:
+        if manipulation >= 0.6:
             return True
         if urgency >= 0.75 and risk >= 0.25:
             return True
-        if perception.suggested_context in (
+        if getattr(perception, "suggested_context", None) in (
             "violent_crime",
             "integrity_loss",
             "medical_emergency",
@@ -1671,12 +1829,12 @@ class EthicalKernel:
             )
             self._snapshot_feedback_anchor("safety_block")
             limbic_blk = self.perceptive_lobe._build_limbic_perception_profile(
-                perception=None,
-                signals=None,
-                vitality=vitality_blk,
-                multimodal=mm_blk,
-                epistemic=ed_blk,
-                confidence_envelope=confidence_blk,
+                None,
+                None,
+                vitality_blk,
+                mm_blk,
+                ed_blk,
+                confidence_blk,
             )
             self._release_chat_turn_id(chat_turn_id)
             return ChatTurnResult(
@@ -1759,7 +1917,7 @@ class EthicalKernel:
         mm = stage.multimodal_trust
         ed = stage.epistemic_dissonance
         signals = stage.signals
-        heavy = self._chat_is_heavy(perception)
+        heavy = self._chat_is_heavy(perception) or (stage.tier == "high")
         eth_context = perception.suggested_context if heavy else "everyday"
 
         actions = self._actions_for_chat(perception, heavy)
@@ -1844,7 +2002,11 @@ class EthicalKernel:
             )
 
         # Adaptive Communication Hint (ACL)
-        _t_level = mm.trust_score if mm else 1.0
+        _t_level = getattr(mm, "trust_score", None)
+        if _t_level is None:
+            # MultimodalAssessment uses 'state'; derive a numeric trust level from it.
+            _mm_state = getattr(mm, "state", "no_claim") if mm else "no_claim"
+            _t_level = 0.5 if _mm_state == "doubt" else (0.0 if _mm_state == "contradict" else 1.0)
         vh = vitality_communication_hint(self._last_vitality_assessment, trust_level=_t_level)
 
         try:

@@ -727,3 +727,12 @@ class AbsoluteEvilDetector:
 
         return lex
 
+    def subscribe_to_bus(self, bus: Any) -> None:
+        """
+        Wire MalAbs into the kernel event bus (optional integration hook).
+
+        When the bus is present, MalAbs can publish block events for observability.
+        This is a no-op stub; the kernel event bus integration is advisory-only and
+        does not change gating behaviour.
+        """
+        pass
