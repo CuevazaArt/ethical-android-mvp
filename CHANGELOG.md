@@ -6,6 +6,16 @@ All notable changes to this project are summarized here. For narrative context a
 
 **[URGENT — broadcast to all L2 integration hubs]:** All teams (Claude, Cursor, Copilot) should urgently `git pull` from `main` into their `master-*` branches. Outdated branches risk severe documentation path drift.
 
+## [2026-04-20] Session 15: Swarm Stabilization & Cryptographic Recovery
+### Added
+- **Secure Boot Recovery (scripts/update_secure_boot_hashes.py):** Created a mandatory L1 utility to re-sign the kernel manifest after architectural hardening pulses.
+- **Numerical Hardening (Buffer B.1.1):** Applied strict `math.isfinite` guards and overflow protection to `sigmoid_will.py` and Bayesian likelihood modules.
+- **Strict Typing (Buffer B.2.1):** Implemented full Type Hinting in `audio_adapter.py` and `vision_adapter.py` for MyPy compliance.
+- **Architecture Traceability (Buffer B.3.1):** Updated `docs/architecture/TRI_LOBE_CORE.md` (Mermaid) and `kernel_utils.py` documentation.
+
+### Fixed
+- **System Integrity:** Resolved "Chain of trust broken" state caused by hardening modifications.
+
 ## [2026-04-20] Session 14: Nomad Hardening & Clinical Overhaul
 ### Added
 - **Local VAD Implementation (Task 13.2)**: Integrated RMS-based Voice Activity Detection in `media_engine.js`. Audio transmission is now gated locally in the PWA, reducing bridge saturation.

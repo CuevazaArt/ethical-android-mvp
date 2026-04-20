@@ -8,6 +8,7 @@ This file is the **durable entry point** for humans and AI assistants working in
 - **[`CONTRIBUTING.md`](CONTRIBUTING.md)** — language policy (repo English), process, tests, lint, documentation traceability.
 - **[`.cursor/rules/`](.cursor/rules/)** — always-on Cursor guidance (efficiency, documentation credibility, collaboration).
 - **Architecture Source of Truth:** [`docs/architecture/TRI_LOBE_CORE.md`](docs/architecture/TRI_LOBE_CORE.md) — Mermaid diagrams for cognitive flows.
+- **Secure Boot Manifest Recovery:** [`scripts/update_secure_boot_hashes.py`](scripts/update_secure_boot_hashes.py) — **L1/L0 ONLY:** Re-signatures the kernel manifest after intentional modifications.
 - **Collaboration workflow critique (one-time register):** [`docs/critique/COLLABORATION_REGULATION_CRITIQUE_2026-04-16.md`](docs/critique/COLLABORATION_REGULATION_CRITIQUE_2026-04-16.md) — Antigravity-shaped Git/merge rules: gaps and recommendations; repeat only if **Juan (L0)** asks.
 - **LLM recovery env precedence** (per-touchpoint `KERNEL_LLM_TP_*`, verbal family, legacy keys): [`docs/proposals/PROPOSAL_LLM_TOUCHPOINT_DEGRADATION_MATRIX.md`](docs/proposals/PROPOSAL_LLM_TOUCHPOINT_DEGRADATION_MATRIX.md).
 - **LLM integration track** (gaps MalAbs ↔ embeddings ↔ kernel/chat): [`docs/proposals/PROPOSAL_LLM_INTEGRATION_TRACK.md`](docs/proposals/PROPOSAL_LLM_INTEGRATION_TRACK.md).
