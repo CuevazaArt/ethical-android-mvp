@@ -375,3 +375,9 @@ This file is automatically managed by `scripts/swarm_sync.py`.
   - `.certs/key.pem`
   - `scripts/generate_local_certs.py`
   - `src/clients/nomad_pwa/style.css`
+
+### 🛠️ Execution | Date: 2026-04-19 20:01:00 | Author: Antigravity
+- **Block:** `S.12`
+- **Message:** UI: Drastically increased bottom padding and margin in Nomad PWA to clear persistent system overlays.
+- **Files Modified:**
+  - `src/clients/nomad_pwa/style.css`
