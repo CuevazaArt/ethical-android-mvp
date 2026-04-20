@@ -10,6 +10,7 @@ import os
 import logging
 import threading
 import time
+import base64
 from dataclasses import dataclass, field
 from typing import Any, Callable
 from src.kernel_lobes.models import SensoryEpisode
@@ -161,11 +162,25 @@ class VisionContinuousDaemon:
                 if not frame_data:
                     local_frame = local_cam.get_latest_frame()
                     if local_frame is not None:
-                        # Mock detections for internal webcam for now
-                        frame_data = {
-                            "meta": {"human_presence": 1.0, "user_focus": 0.8},
-                            "detections": [] # Simple background scan
-                        }
+                        # Phase 12.1: Real local capture with BGR -> RGB fix (Velo Azul)
+                        try:
+                            import cv2
+                            # Convert BGR (OpenCV default) to RGB for web/canvas compatibility
+                            # This prevents the 'Blue Veil' effect on the Dashboard/PWA
+                            rgb_frame = cv2.cvtColor(local_frame, cv2.COLOR_BGR2RGB)
+                            ret_enc, buffer = cv2.imencode('.jpg', rgb_frame)
+                            if ret_enc:
+                                b64_img = base64.b64encode(buffer).decode('utf-8')
+                                frame_data = {
+                                    "image_b64": b64_img,
+                                    "meta": {"human_presence": 1.0, "user_focus": 0.8}, 
+                                    "detections": [] 
+                                }
+                                # Broadcast to dashboard for immediate verification
+                                bridge.broadcast_to_dashboards({"type": "frame", "payload": frame_data})
+                        except Exception as e:
+                            _log.error("VisionContinuousDaemon: Failed to process local frame: %s", e)
+                        
                         source = "local_webcam"
 
                 if frame_data:
