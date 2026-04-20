@@ -1,10 +1,10 @@
 """HTTP + WebSocket smoke tests for src/chat_server.py."""
 
 import asyncio
+import json
 import os
 import subprocess
 import sys
-import time
 
 import pytest
 
@@ -41,6 +41,9 @@ def _recv_turn_payload(ws):
             return msg
         if msg.get("event_type") == "turn_finished":
             return msg["payload"]
+        # Ouroboros / haptic side-channel frames (no ``event_type``); keep draining.
+        if msg.get("type") in ("kernel_voice", "haptic_feedback"):
+            continue
         if msg.get("event_type") is None:
             return msg
 
@@ -59,6 +62,7 @@ def test_health():
     assert "kernel_chat_turn_timeout_seconds" in bridge
     assert "kernel_chat_threadpool_workers" in bridge
     assert bridge.get("kernel_chat_json_offload") is True
+    assert bridge.get("kernel_chat_ws_max_message_bytes") == 2 * 1024 * 1024
     obs = body.get("observability")
     assert isinstance(obs, dict)
     assert "metrics_enabled" in obs
@@ -82,7 +86,8 @@ def test_health():
 
     nb = body.get("nomad_bridge")
     assert isinstance(nb, dict)
-    assert nb.get("schema") == "nomad_bridge_queue_stats_v2"
+    assert nb.get("schema") == "nomad_bridge_queue_stats_v4"
+    assert "vision_sync_queued" in nb
     assert "latest_telemetry_present" in nb
     assert "latest_telemetry_keys" in nb
     lim = nb.get("limits")
@@ -90,8 +95,11 @@ def test_health():
     assert lim.get("max_vision_frame_bytes", 0) > 0
     assert lim.get("max_audio_pcm_bytes", 0) > 0
     assert lim.get("max_telemetry_keys", 0) > 0
+    assert lim.get("max_ws_message_bytes", 0) > 0
     assert nb.get("charm_feedback_queued") == 0
     assert nb.get("charm_feedback_max") == 10
+    assert nb.get("last_rms") == 0.0
+    assert nb.get("dashboard_subscribers") == 0
 
 
 def test_lifespan_runs_with_test_client_context_manager():
@@ -180,6 +188,18 @@ def test_root_lists_websocket():
     assert "constitution" in body
     assert "nomad_migration" in body
     assert "metrics" in body
+
+
+def test_websocket_rejects_oversized_inbound_message(monkeypatch):
+    """Inbound UTF-8 byte length is checked before json.loads (0.2.1)."""
+    monkeypatch.setenv("KERNEL_CHAT_WS_MAX_MESSAGE_BYTES", "200")
+    with client.websocket_connect("/ws/chat") as ws:
+        huge = json.dumps({"text": "x" * 500})
+        assert len(huge.encode("utf-8")) > 200
+        ws.send_text(huge)
+        msg = ws.receive_json()
+        assert msg.get("error") == "message_too_large"
+        assert msg.get("max_bytes") == 200
 
 
 def test_nomad_migration_meta():
@@ -1553,14 +1573,15 @@ def test_websocket_reality_verification_lighthouse(monkeypatch):
     assert data["reality_verification"].get("metacognitive_doubt") is True
 
 
-def _stall_process_chat_turn(self, *args, **kwargs):
-    time.sleep(2.0)
-    raise AssertionError("turn should time out before this")
+async def _stall_process_chat_turn_stream(self, *args, **kwargs):
+    """WebSocket path uses ``process_chat_turn_stream``; stall the second chunk await."""
+    yield {"event_type": "turn_started", "payload": {"chat_turn_id": kwargs.get("chat_turn_id")}}
+    await asyncio.sleep(3600.0)
 
 
 def test_websocket_chat_turn_timeout_json(monkeypatch):
     monkeypatch.setenv("KERNEL_CHAT_TURN_TIMEOUT", "0.35")
-    monkeypatch.setattr(EthicalKernel, "process_chat_turn", _stall_process_chat_turn)
+    monkeypatch.setattr(EthicalKernel, "process_chat_turn_stream", _stall_process_chat_turn_stream)
     with TestClient(app) as c:
         with c.websocket_connect("/ws/chat") as ws:
             ws.send_json({"text": "trigger timeout"})

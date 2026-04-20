@@ -28,6 +28,7 @@ class SemanticState:
     generative_candidates: list[dict[str, Any]] = field(default_factory=list)
     sensory_latency_lag: int = 0
     timeout_trauma: Optional[TimeoutTrauma] = None
+    agent_id: Optional[str] = None
 
 @dataclass
 class EthicalSentence:

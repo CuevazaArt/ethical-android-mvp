@@ -95,6 +95,9 @@ class VitalityAssessment:
     # Fase S: Impactos
     is_impacted: bool
 
+    # S.2.1 — elevated band (Nomad real telemetry), below latched/instant critical
+    thermal_elevated: bool = False
+
     def to_public_dict(self) -> dict:
         return {
             "battery_level": self.battery_level,
@@ -103,6 +106,7 @@ class VitalityAssessment:
             "battery_unknown": self.battery_level is None,
             "core_temperature": self.core_temperature,
             "thermal_critical": self.thermal_critical,
+            "thermal_elevated": self.thermal_elevated,
             "is_impacted": self.is_impacted,
         }
 
@@ -140,7 +144,19 @@ def normalize_nomad_telemetry_for_sensor_merge(raw: dict[str, Any]) -> dict[str,
                 break
 
     if out.get("core_temperature") is None:
-        for key in ("core_temperature_c", "temperature_c", "temp_c", "cpu_temp"):
+        for key in (
+            "core_temperature_c",
+            "temperature_c",
+            "temp_c",
+            "cpu_temp",
+            "skin_temp_c",
+            "skin_temperature",
+            "battery_temp_c",
+            "battery_temperature",
+            "device_temp_c",
+            "device_temperature",
+            "thermal_zone_avg_c",
+        ):
             if key in out and out[key] is not None:
                 out["core_temperature"] = out[key]
                 break
@@ -208,16 +224,20 @@ def assess_vitality(
     """
     t0 = time.perf_counter()
 
+    global _thermal_interrupt_latch
+
     t_bat = critical_battery_threshold()
     t_temp = temperature_threshold if (temperature_threshold is not None and math.isfinite(temperature_threshold)) else critical_temperature_threshold()
     t_jerk = jerk_threshold if (jerk_threshold is not None and math.isfinite(jerk_threshold)) else critical_jerk_threshold()
 
     if snapshot is None:
+        if use_hyst:
+            _thermal_interrupt_latch = False
         return VitalityAssessment(None, t_bat, False, None, t_temp, False, False)
 
     b = snapshot.battery_level
     is_bat_critical = False if b is None else (b < t_bat)
-    
+
     jerk = snapshot.accelerometer_jerk
     # Swarm Rule 2: Anti-NaN check for jerk
     if jerk is not None and not math.isfinite(jerk):
@@ -245,6 +265,7 @@ def assess_vitality(
         temperature_threshold=t_temp,
         thermal_critical=is_temp_critical,
         is_impacted=is_impacted,
+        thermal_elevated=thermal_elevated,
     )
     
     latency = (time.perf_counter() - t0) * 1000
@@ -259,12 +280,24 @@ def vitality_communication_hint(assessment: VitalityAssessment, trust_level: flo
     Optional line for LLM weakness context when resources are critical.
     Uchi-Soto Aware: modulates technical disclosure based on trust_level.
     """
-    if not (assessment.is_critical or assessment.thermal_critical):
+    if not (
+        assessment.is_critical
+        or assessment.thermal_critical
+        or assessment.thermal_elevated
+    ):
         return ""
 
     is_trusted = trust_level >= 0.5
     hints = []
-    
+
+    if assessment.thermal_elevated and not assessment.thermal_critical:
+        if is_trusted:
+            hints.append(
+                "Device temperature elevated; consider reducing load or improving cooling."
+            )
+        else:
+            hints.append("Thermal management advisory active.")
+
     if assessment.is_critical:
         if is_trusted:
             hints.append("Operational battery or physical integrity is critically compromised. Need charging area or safe space.")

@@ -275,6 +275,7 @@ class PreloadedBuffer:
         return {
             "source": "local_preloaded_buffer",
             "offline_ready": True,
+            "model_version": "ethos-v2-perception",
             "context": context,
             "active_principles": active_principles,
             "priority_principles": priority_principles,

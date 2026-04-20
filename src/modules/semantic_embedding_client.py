@@ -29,6 +29,8 @@ import httpx
 import numpy as np
 import httpx
 
+from .llm_http_cancel import raise_if_llm_cancel_requested
+
 
 @dataclass
 class EmbeddingTransportStats:

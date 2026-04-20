@@ -9,6 +9,7 @@ if TYPE_CHECKING:
     from .modules.bayesian_engine import BayesianEngine
     from .modules.weighted_ethics_scorer import WeightedEthicsScorer
 
+
 def kernel_env_truthy(name: str) -> bool:
     """
     Check if an environment variable is set to a truthy value (1, true, yes, on).
@@ -33,6 +34,36 @@ def kernel_env_int(name: str, default: int) -> int:
         return int(raw)
     except ValueError:
         return default
+
+
+def kernel_env_float(
+    name: str, default: float, *, min_v: float, max_v: float
+) -> float:
+    """
+    Parse a float from the environment, clamped to ``[min_v, max_v]``; non-finite or
+    missing/invalid values yield ``default``.
+    """
+    raw = os.environ.get(name, "").strip()
+    if not raw:
+        return default
+    try:
+        v = float(raw)
+    except ValueError:
+        return default
+    if not math.isfinite(v):
+        return default
+    return min(max_v, max(min_v, v))
+
+
+def _safe_unit_float(x: Any, default: float = 0.0) -> float:
+    """Coerce a mapping value to a finite float in ``[0.0, 1.0]`` for signal slots."""
+    try:
+        f = float(x)
+    except (TypeError, ValueError):
+        return default
+    if not math.isfinite(f):
+        return default
+    return max(0.0, min(1.0, f))
 
 
 def perception_parallel_workers() -> int:

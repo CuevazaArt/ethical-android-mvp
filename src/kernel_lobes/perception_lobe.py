@@ -1,13 +1,49 @@
 from __future__ import annotations
 import asyncio
 import os
+import threading
 import time
 from typing import Optional, Any, TYPE_CHECKING, Deque
 
-import httpx
+from src.kernel_lobes.models import (
+    PerceptionStageResult,
+    SensoryEpisode,
+)
+from src.kernel_utils import perception_parallel_workers
+from src.modules.epistemic_dissonance import assess_epistemic_dissonance
+from src.modules.light_risk_classifier import (
+    light_risk_classifier_enabled,
+    light_risk_tier_from_text,
+)
+from src.modules.multimodal_trust import evaluate_multimodal_trust
+from src.modules.perception_confidence import build_perception_confidence_envelope
+from src.modules.premise_validation import scan_premises
+from src.modules.reality_verification import (
+    lighthouse_kb_from_env,
+    verify_against_lighthouse,
+)
+from src.modules.sensor_contracts import merge_sensor_hints_into_signals
+from src.modules.somatic_markers import apply_somatic_nudges
+from src.modules.temporal_planning import build_temporal_context
+from src.modules.vitality import apply_nomad_telemetry_if_enabled, assess_vitality
 
-from src.kernel_lobes.models import SemanticState, TimeoutTrauma
-from src.modules.llm_http_cancel import raise_if_llm_cancel_requested
+if TYPE_CHECKING:
+    from src.modules.absolute_evil import AbsoluteEvilDetector
+    from src.modules.buffer import PreloadedBuffer
+    from src.modules.llm_layer import LLMModule
+    from src.modules.safety_interlock import SafetyInterlock
+    from src.modules.sensor_contracts import SensorSnapshot
+    from src.modules.somatic_markers import SomaticMarkerStore
+    from src.modules.strategy_engine import ExecutiveStrategist
+
+_log = logging.getLogger(__name__)
+
+
+def _vision_continuous_daemon_enabled() -> bool:
+    """Module 9.1 — default on; set ``KERNEL_VISION_CONTINUOUS_DAEMON=0`` to skip the background thread."""
+
+    v = os.environ.get("KERNEL_VISION_CONTINUOUS_DAEMON", "1").strip().lower()
+    return v not in ("0", "false", "off", "no")
 
 # Module-level import so tests can monkeypatch src.kernel_lobes.perception_lobe.scan_premises
 from src.modules.premise_validation import scan_premises  # noqa: F401
@@ -16,25 +52,21 @@ from src.modules.reality_verification import verify_against_lighthouse  # noqa: 
 
 class PerceptiveLobe:
     """
-    Hemisferio Izquierdo: Async I/O, Parsing, and Timeout Coercion.
-
-    Perception layer for the ethical kernel with strict timeout enforcement
-    and async LLM API integration via httpx.AsyncClient.
+    Subsystem for Safety Interlocks, Strategic Ingestion, and Multimodal Perception.
+    
+    Acts as the 'Left Hemisphere' of the kernel, handling I/O and sensory filtering.
     """
-
     def __init__(
         self,
-        safety_interlock=None,
-        strategist=None,
-        llm=None,
-        somatic_store=None,
-        buffer=None,
-        buffer_long=None,
-        absolute_evil=None,
-        subjective_clock=None,
-        thalamus=None,
-        vision_engine=None,
-        event_bus=None
+        safety_interlock: "SafetyInterlock",
+        strategist: "ExecutiveStrategist",
+        llm: "LLMModule",
+        somatic_store: "SomaticMarkerStore",
+        buffer: "PreloadedBuffer",
+        absolute_evil: "AbsoluteEvilDetector",
+        subjective_clock: Any,  # SubjectiveClock
+        thalamus: Any | None = None,
+        vision_engine: Any | None = None,
     ):
         self._timeout = self._get_perception_timeout()
         self._llm_endpoint = os.environ.get("KERNEL_PERCEPTION_LLM_ENDPOINT", "http://localhost:11434/api/generate")
@@ -44,12 +76,10 @@ class PerceptiveLobe:
         self.llm = llm
         self.somatic_store = somatic_store
         self.buffer = buffer
-        self.buffer_long = buffer_long
         self.absolute_evil = absolute_evil
         self.subjective_clock = subjective_clock
         self.thalamus = thalamus
         self.vision_engine = vision_engine
-        self.event_bus = event_bus
 
         # High-frequency sensory buffer (10 episodes max)
         from collections import deque
@@ -182,6 +212,9 @@ class PerceptiveLobe:
                     context=f"Perception processing error: {type(e).__name__} - {str(e)}"
                 )
             )
+            self.vision_daemon.start()
+        else:
+            self.vision_daemon = None
 
     async def aclose(self) -> None:
         """Release resources held by the lobe (no-op; httpx clients are context-managed)."""
@@ -189,21 +222,46 @@ class PerceptiveLobe:
 
     async def execute_stage(self, scenario, place, context, sensor_snapshot, interrupt_event=None) -> dict:
         """
-        Legacy adapter for EthicalKernel.aprocess (Synchronous-API fallback).
-        Wraps run_perception_stage_async and returns a dictionary.
+        STAGE 0: Perception, Safety and Strategic Ingestion.
         """
-        # We treat 'scenario' as the primary user input in this legacy path
-        stage = await self.run_perception_stage_async(
-            user_input=scenario,
-            conversation_context=context,
-            sensor_snapshot=sensor_snapshot
-        )
-        
-        # Check for somatic interrupts (thermal or hardware events)
-        somatic_interrupted = False
+        # 0.0 Somatic Overrides (Vertical Increment)
         if interrupt_event and interrupt_event.is_set():
-            somatic_interrupted = True
+            return {
+                "safety_decision": None,
+                "mission_updated": False,
+                "somatic_interrupt": True
+            }
+
+        sensory_stress = self._calculate_sensory_stress()
+        if sensory_stress > 0.7:
+            _log.warning(
+                "PerceptiveLobe: High sustained sensory stress! (%.2f)",
+                sensory_stress,
+            )
+
+        if self.thalamus and sensor_snapshot:
+            ori = getattr(sensor_snapshot, "orientation", None)
+            if ori:
+                self.thalamus.ingest_telemetry({"orientation": ori})
+            rms = getattr(sensor_snapshot, "rms_audio", None)
+            if rms is not None:
+                self.thalamus.ingest_audio_signal(float(rms))
+
+        # 0.1 Check Safety
+        safety_dec = self.safety_interlock.evaluate(scenario, place, context)
         
+        # 0.2 Strategic Ingestion
+        if sensor_snapshot:
+            if getattr(sensor_snapshot, "external_mission_title", None):
+                from src.modules.strategy_engine import MissionOrigin
+                self.strategist.create_mission(
+                    title=sensor_snapshot.external_mission_title,
+                    origin=MissionOrigin.OWNER,
+                    steps=sensor_snapshot.external_mission_steps or [],
+                    priority=sensor_snapshot.external_mission_priority or 0.6,
+                )
+            self.strategist.ingest_sensors(sensor_snapshot)
+
         return {
             "somatic_interrupt": somatic_interrupted,
             "safety_decision": stage.malabs_result,
@@ -218,7 +276,8 @@ class PerceptiveLobe:
 
     async def run_perception_stage_async(
         self,
-        user_input: str,
+        text: str,
+        *,
         conversation_context: str = "",
         sensor_snapshot: Optional[object] = None,
         turn_start_mono: float = 0.0,
@@ -270,10 +329,14 @@ class PerceptiveLobe:
         from src.modules.epistemic_dissonance import assess_epistemic_dissonance
         from src.modules.temporal_planning import build_temporal_context
 
-        # 1. Sensors & Multimodal
-        vitality = assess_vitality(sensor_snapshot)
-        multimodal = evaluate_multimodal_trust(sensor_snapshot)
-        epistemic = assess_epistemic_dissonance(sensor_snapshot, multimodal=multimodal)
+        if precomputed is None:
+            tier, premise, reality = self._preprocess_text_observability(text)
+        else:
+            tier, premise, reality = precomputed
+
+        bootstrap_support = self._build_support_buffer_snapshot("everyday")
+        support_line = self._support_buffer_context_line(bootstrap_support)
+        merged_ctx = ((conversation_context or "").strip() + "\n" + support_line).strip()
         
         # 2. Parallel LLM Perception (using the new observe method)
         sensor_payload = sensor_snapshot.__dict__ if (sensor_snapshot and hasattr(sensor_snapshot, "__dict__")) else None
@@ -337,16 +400,11 @@ class PerceptiveLobe:
         reg_gap = max(0.0, threat - calm)
         band = "high" if threat >= 0.75 else ("medium" if threat >= 0.45 else "low")
         return {
-            "arousal_band": band,
-            "threat_load": threat,
-            "regulation_gap": reg_gap,
-            "planning_bias": (
-                "short_horizon_containment" if band == "high" 
-                else ("balanced" if band == "medium" else "long_horizon_deliberation")
-            ),
+            "arousal_band": band, "threat_load": threat, "regulation_gap": reg_gap,
+            "planning_bias": "short_horizon_containment" if band == "high" else ("balanced" if band == "medium" else "long_horizon_deliberation"),
             "multimodal_mismatch": mm.state == "contradict" if mm else False,
             "vitality_critical": vitality.is_critical if vitality else False,
-            "context": perception.suggested_context if perception else "everyday",
+            "context": perception.suggested_context if perception else "everyday"
         }
 
     def _build_support_buffer_snapshot(

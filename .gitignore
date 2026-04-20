@@ -16,6 +16,9 @@ env/
 # Local trace / pilot outputs (not versioned)
 logs/
 
+# Runtime SQLite ledger (MockDAO / orchestrator; not a source artifact)
+audit_trail.db
+
 # Testing
 .pytest_cache/
 .mypy_cache/
@@ -88,8 +91,12 @@ data/
 # Local scratch databases (never commit)
 scratch/
 
+# Local dev TLS (generate_local_certs / Nomad); never commit keys
+.certs/
+
 # Local Chroma vector DB (tests / dev; default persist path)
 .chroma/
+.chroma_test/
 
 # Simulations (local reports and metrics)
 simulations/reports/*.json

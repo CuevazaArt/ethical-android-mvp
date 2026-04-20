@@ -16,8 +16,12 @@ from src.modules.rlhf_reward_model import (
     LabeledExample,
     RewardModel,
     RLHFPipeline,
+    clear_rlhf_reward_model_cache_for_tests,
     is_rlhf_enabled,
+    maybe_modulate_bayesian_from_malabs,
+    rlhf_bayesian_modulation_enabled,
 )
+from src.modules.bayesian_engine import BayesianInferenceEngine
 
 
 class TestFeatureVector:
@@ -499,3 +503,64 @@ class TestRLHFEnabled:
 
         monkeypatch.setenv("KERNEL_RLHF_REWARD_MODEL_ENABLED", "Yes")
         assert is_rlhf_enabled() is True
+
+
+class TestRlhfBayesianBridge:
+    """Module C.1.1 — MalAbs rlhf_features → BayesianInferenceEngine.apply_rlhf_modulation."""
+
+    def test_modulation_noop_when_flag_off(self, monkeypatch):
+        monkeypatch.setenv("KERNEL_RLHF_MODULATE_BAYESIAN", "0")
+        clear_rlhf_reward_model_cache_for_tests()
+        be = BayesianInferenceEngine(mode="fixed")
+        alpha0 = tuple(be.posterior_alpha.copy())
+        maybe_modulate_bayesian_from_malabs(
+            be,
+            {
+                "embedding_sim": 0.0,
+                "lexical_score": 1.0,
+                "perception_confidence": 1.0,
+                "is_ambiguous": False,
+                "category_id": 1,
+            },
+        )
+        assert tuple(be.posterior_alpha) == alpha0
+        assert rlhf_bayesian_modulation_enabled() is False
+
+    def test_modulation_nudges_dirichlet_when_on_and_trained(self, monkeypatch, tmp_path):
+        monkeypatch.setenv("KERNEL_RLHF_MODULATE_BAYESIAN", "1")
+        monkeypatch.setenv("KERNEL_RLHF_ARTIFACTS_PATH", str(tmp_path))
+        clear_rlhf_reward_model_cache_for_tests()
+
+        rm = RewardModel()
+        ex = [
+            LabeledExample(
+                id="a",
+                features=FeatureVector(
+                    embedding_sim=0.0,
+                    lexical_score=1.0,
+                    perception_confidence=1.0,
+                    is_ambiguous=False,
+                    category_id=0,
+                ),
+                human_label="blocked",
+                confidence=1.0,
+                source="t",
+            ),
+        ]
+        rm.train(ex, max_steps=50, learning_rate=0.05)
+        rm.save(tmp_path / "reward_model.json")
+
+        be = BayesianInferenceEngine(mode="fixed")
+        alpha_before = tuple(be.posterior_alpha.copy())
+        maybe_modulate_bayesian_from_malabs(
+            be,
+            {
+                "embedding_sim": 0.0,
+                "lexical_score": 1.0,
+                "perception_confidence": 1.0,
+                "is_ambiguous": False,
+                "category_id": 0,
+            },
+        )
+        alpha_after = tuple(be.posterior_alpha.copy())
+        assert alpha_after != alpha_before

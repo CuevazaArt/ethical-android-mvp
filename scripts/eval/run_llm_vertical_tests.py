@@ -22,9 +22,13 @@ TEST_TARGETS = [
     "tests/test_semantic_chat_gate.py",
     "tests/test_malabs_semantic_integration.py",
     "tests/test_generative_candidates.py",
+    "tests/test_kernel_utils.py",
+    "tests/test_real_time_bridge.py",
     "tests/test_kernel_env_operator.py",
     "tests/test_observability_metrics.py",
     "tests/test_chat_server_temporal_coerce.py",
+    "tests/test_rlhf_reward_model.py",
+    "tests/test_charm_engine_basal.py",
 ]
 
 

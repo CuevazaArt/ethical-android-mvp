@@ -1,5 +1,38 @@
+"""
+LAN Nomad bridge (Module S / PLAN_WORK_DISTRIBUTION_TREE Bloque S.1).
+
+WebSocket JSON events (client → server):
+
+- ``type: vision_frame``, ``payload: { "image_b64": "<base64 JPEG>" }``
+- ``type: audio_pcm``, ``payload: { "audio_b64": "<base64 raw PCM>" }``
+- ``type`` = ``telemetry``, ``payload``: flat sensor dict (accelerometer, battery, temperature, …)
+
+Server → client: ``type: charm_feedback``, ``payload``: charm vector dict (from kernel).
+
+``NomadVisionConsumer`` in ``vision_adapter.py`` drains ``vision_queue`` (``queue.Queue``, async via ``asyncio.to_thread``); audio adapter drains ``audio_queue``.
+``vision_queue_threadsafe`` mirrors accepted JPEG bytes for ``VisionContinuousDaemon`` (``vision_inference.py``) so the kernel thread never contends with the event loop.
+
+When ``KERNEL_METRICS=1``, rejections and queue evictions are also mirrored to Prometheus
+(``ethos_kernel_nomad_bridge_rejections_total``, ``ethos_kernel_nomad_bridge_queue_evictions_total``).
+
+Latest ``telemetry`` payloads are mirrored for synchronous readers (Module S.2.1 — vitality merge in
+``vitality.merge_nomad_telemetry_into_snapshot`` / ``KERNEL_NOMAD_TELEMETRY_VITALITY``).
+That merge step normalizes common mobile key aliases (e.g. ``battery``, ``core_temperature_c``, ``jerk``)
+onto :class:`~src.modules.sensor_contracts.SensorSnapshot` field names before parsing.
+
+**Inbound WebSocket frame cap:** ``KERNEL_NOMAD_WS_MAX_MESSAGE_BYTES`` (default 4 MiB UTF-8, hard cap 32 MiB)
+rejects oversize text frames before ``json.loads`` (aligned with chat server hardening).
+
+**Decoded size caps (LAN hardening):** ``KERNEL_NOMAD_MAX_VISION_FRAME_BYTES`` (default 5 MiB) and
+``KERNEL_NOMAD_MAX_AUDIO_PCM_BYTES`` (default 1 MiB) bound base64 payloads before they enter bounded queues.
+
+**Telemetry shape:** ``payload`` must be a **flat JSON object**; ``KERNEL_NOMAD_MAX_TELEMETRY_KEYS`` (default 128)
+drops oversized dicts before they hit the queue or ``peek_latest_telemetry``.
+"""
+
 import asyncio
 import base64
+import binascii
 import json
 import logging
 import math
@@ -27,12 +60,78 @@ except ImportError:
 _log = logging.getLogger(__name__)
 
 
+def _parse_positive_int_env(name: str, default: int) -> int:
+    raw = os.environ.get(name, "").strip()
+    if not raw:
+        return default
+    try:
+        v = int(raw, 10)
+        return default if v <= 0 else v
+    except ValueError:
+        return default
+
+
+def max_vision_frame_bytes() -> int:
+    """Upper bound on decoded JPEG bytes accepted from ``vision_frame`` (env override)."""
+
+    return _parse_positive_int_env("KERNEL_NOMAD_MAX_VISION_FRAME_BYTES", 5_242_880)
+
+
+def max_audio_pcm_bytes() -> int:
+    """Upper bound on decoded PCM chunk bytes from ``audio_pcm`` (env override)."""
+
+    return _parse_positive_int_env("KERNEL_NOMAD_MAX_AUDIO_PCM_BYTES", 1_048_576)
+
+
+def max_telemetry_dict_keys() -> int:
+    """Maximum key count accepted on a ``telemetry`` ``payload`` object (env override)."""
+
+    return _parse_positive_int_env("KERNEL_NOMAD_MAX_TELEMETRY_KEYS", 128)
+
+
+_DEFAULT_WS_MAX_MESSAGE_BYTES = 4 * 1024 * 1024
+_CAP_WS_MAX_MESSAGE_BYTES = 32 * 1024 * 1024
+_MIN_WS_MAX_MESSAGE_BYTES = 64
+
+
+def max_ws_inbound_message_bytes() -> int:
+    """
+    Max UTF-8 size of one inbound WebSocket text message (JSON envelope) before parse.
+
+    Base64 vision/audio payloads need headroom versus ``KERNEL_CHAT_WS_MAX_MESSAGE_BYTES``;
+    invalid or tiny env values fall back to the default.
+    """
+    raw = os.environ.get("KERNEL_NOMAD_WS_MAX_MESSAGE_BYTES", "").strip()
+    if not raw:
+        return _DEFAULT_WS_MAX_MESSAGE_BYTES
+    try:
+        n = int(raw, 10)
+    except ValueError:
+        return _DEFAULT_WS_MAX_MESSAGE_BYTES
+    if n < _MIN_WS_MAX_MESSAGE_BYTES:
+        return _DEFAULT_WS_MAX_MESSAGE_BYTES
+    return min(n, _CAP_WS_MAX_MESSAGE_BYTES)
+
+
+def _decoded_upper_bound_from_b64_len(n: int) -> int:
+    """RFC 4648 — maximum possible decoded length from a base64 string of character length ``n``."""
+
+    if n <= 0:
+        return 0
+    return (n * 3 + 3) // 4
+
+
+def _b64_fits_decoded_limit(b64_s: str, max_raw: int) -> bool:
+    if max_raw <= 0 or not isinstance(b64_s, str):
+        return False
+    return _decoded_upper_bound_from_b64_len(len(b64_s)) <= max_raw
+
+
 class NomadBridge:
     """
-    Nomad LAN bridge for smartphone peripherals (Module S).
+    FastAPI WebSocket endpoint that buffers smartphone LAN streams into bounded asyncio queues.
 
-    Async WebSocket listener for real-world sensor data (vision frames, audio, telemetry).
-    Requires optional dependency ``fastapi`` (``pip install -e ".[runtime]"``) for ``app``.
+    Drops oldest items when a queue is full to cap memory (frame/audio throttle).
     """
 
     def __init__(self) -> None:
@@ -73,7 +172,7 @@ class NomadBridge:
         if not _FASTAPI_AVAILABLE or FastAPI is None:
             _log.warning(
                 "Nomad Bridge: FastAPI not installed; queues work but HTTP/WebSocket app is disabled. "
-                "Install with: pip install -e \".[runtime]\""
+                'Install with: pip install -e ".[runtime]"'
             )
         else:
             self.app = FastAPI(title="Nomad Bridge Sensor Endpoint")
@@ -428,7 +527,7 @@ class NomadBridge:
         except WebSocketDisconnect:
             pass
         except Exception as e:
-            _log.error("Nomad Bridge read error: %s", e)
+            _log.error(f"Nomad Bridge read error: {e}")
 
     async def _send_loop(self, ws: WebSocket) -> None:
         try:
@@ -445,9 +544,9 @@ class NomadBridge:
         except asyncio.CancelledError:
             pass
         except Exception as e:
-            _log.error("Nomad Bridge send error: %s", e)
+            _log.error(f"Nomad Bridge send error: {e}")
 
-
+# Global instance
 _NOMAD_BRIDGE = NomadBridge()
 
 def get_nomad_bridge() -> NomadBridge:

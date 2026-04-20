@@ -4,11 +4,11 @@ SQLite-based persistent storage for Narrative Episodes (Tier 2).
 
 from __future__ import annotations
 
-import contextlib
 import json
 import sqlite3
 from datetime import datetime
 from pathlib import Path
+import contextlib
 
 from src.modules.narrative_types import BodyState, NarrativeArc, NarrativeEpisode
 from src.utils.db_locks import get_db_lock

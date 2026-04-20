@@ -1,81 +1,94 @@
-"""
-Turn Prefetcher — Pre-emptive linguistic responses.
-Part of Phase 10.4 Infrastructure for <300ms latency.
-
-Speculates on probable user closure or simple affirmations
-using micro-models or template-matchers to avoid perceived 
-sociopathic lag while the main LLM delibierates.
-"""
-
-from __future__ import annotations
+import logging
+import os
 import random
-from typing import Optional, TYPE_CHECKING
 
-if TYPE_CHECKING:
-    from ..kernel_lobes.models import SemanticState, EthicalSentence
+from src.kernel_lobes.models import EthicalSentence, SemanticState
+
+_log = logging.getLogger(__name__)
+
+
+def ollama_generate_url() -> str:
+    """Ollama ``/api/generate`` endpoint (same base resolution as :mod:`~src.modules.semantic_chat_gate`)."""
+    base = os.environ.get("OLLAMA_BASE_URL", "http://127.0.0.1:11434").rstrip("/")
+    return f"{base}/api/generate"
 
 class TurnPrefetcher:
     """
-    Anticipates user turns to provide near-instant feedback.
+    ARCHITECTURE V2.0 - Turn Prefetcher (Bloque 10.4)
+    Genera 'Frases Puente' de baja latencia (<200ms) para ocultar el tiempo de inferencia del LLM principal.
+    Utiliza heurísticas locales basadas en la tensión social y el sentimiento.
+    Responsabilidad: Copilot Squad (Antigravity Acting).
     """
-    AFFIRMATIONS = [
-        "Entiendo...",
-        "Te escucho.",
-        "Mmm, comprendo.",
-        "Sigue...",
-        "Interesante."
-    ]
     
-    SURPRISE_REACTIONS = [
-        "¡Oh!",
-        "Vaya...",
-        "No esperaba eso."
-    ]
+    BRIDGES = {
+        "warm": ["Entiendo perfectamente.", "Me alegra escucharlo.", "Qué buen punto.", "¡Claro!", "Por supuesto."],
+        "mysterious": ["Interesante...", "Hay capas en eso...", "Mmm...", "Curioso.", "¿Tú crees?"],
+        "agreement": ["Entiendo...", "Totalmente.", "Ya veo.", "Claro."],
+        "contemplative": ["Mmm...", "Déjame pensar...", "Interesante punto.", "Veamos..."],
+        "apologetic": ["Lo siento...", "Entiendo tu punto.", "Mi error.", "Disculpa..."],
+        "tense": ["Entiendo...", "Ya veo...", "Escucho.", "..."]
+    }
 
-    def __init__(self, mode: str = "template"):
-        self.mode = mode
+    def __init__(self, model_name: str | None = None):
+        self.model_name = model_name or os.environ.get("OLLAMA_PREFETCH_MODEL")
+        if self.model_name:
+            _log.info("TurnPrefetcher: Initialized with local model %s", self.model_name)
 
-    async def predict_bridge(
-        self,
-        state: SemanticState,
-        ethics: EthicalSentence,
-        warmth: float = 0.5,
-        mystery: float = 0.5,
-    ) -> str:
+    async def predict_bridge(self, state: SemanticState, ethics: EthicalSentence) -> str:
         """
-        Phase 10.4: Predicts a fast bridge phrase (<300ms).
-        Combines deterministic heuristics (Antigravity) with 
-        semantic-aware prefetching (Copilot).
-
-        Args:
-            state:   Raw semantic state (raw_prompt, signals, etc.).
-            ethics:  Ethical verdict from the Limbic Lobe.
-            warmth:  Charm warmth profile (0-1).
-            mystery: Charm mystery profile (0-1).
+        Predice una frase corta basada en el estado semántico, ético y armónico.
+        Intenta usar un micro-LLM local si está disponible.
         """
-        text = state.raw_prompt.lower().strip() if state.raw_prompt else ""
-        signals = state.signals or {}
-        tension = ethics.social_tension_locus if ethics else 0.0
+        tension = ethics.social_tension_locus
+        h = ethics.morals.get("harmonics", {})
+        warmth = float(h.get("warmth", 0.5))
+        mystery = float(h.get("mystery", 0.5))
         
-        # 1. Heuristic Fallback (Antigravity)
-        if len(text) < 12 and signals.get("trust", 0.5) > 0.6:
-            return random.choice(self.AFFIRMATIONS)
-            
-        if tension > 0.8:
-            return "Comprendo la importancia de esto..."
-            
-        # 2. Charm-based bridges
-        if warmth > 0.8:
-            return random.choice(["Dime más sobre eso.", "Te escucho con atención."])
-        if mystery > 0.8:
-            return random.choice(["Curioso...", "Sigue, me interesa el ángulo."])
-            
-        if "!" in text or signals.get("risk", 0.0) > 0.7:
-            return random.choice(self.SURPRISE_REACTIONS)
-            
-        return random.choice(self.AFFIRMATIONS)
+        # 0. Si hay un modelo configurado, intentamos inferencia flash
+        if self.model_name:
+            try:
+                import httpx
+                # Prompt ultracorto para latencia mínima
+                prompt = (
+                    f"User said: {state.raw_prompt[:100]}\n"
+                    f"State: T={tension:.1f}, W={warmth:.1f}, M={mystery:.1f}\n"
+                    "Generate a single quick assent bridge (1-3 words) to say while you think. "
+                    "Output ONLY the bridge phrase, no quotes."
+                )
+                async with httpx.AsyncClient(timeout=0.3) as client:
+                    resp = await client.post(
+                        ollama_generate_url(),
+                        json={
+                            "model": self.model_name,
+                            "prompt": prompt,
+                            "stream": False,
+                            "options": {"num_predict": 5, "temperature": 0.2}
+                        }
+                    )
+                    if resp.status_code == 200:
+                        phrase = resp.json().get("response", "").strip().strip('"')
+                        if phrase:
+                            return phrase
+            except Exception as e:
+                _log.debug("TurnPrefetcher: Model inference failed or timed out, falling back to heuristics: %s", e)
 
-    def should_prefetch(self, context: str, sigma: float) -> bool:
-        """Determines if the current emotional state (Sigma) allows prefetching."""
-        # Don't prefetch during high-stress ethical dilemmas (Sociopath risk)
-        return sigma < 0.7 
+        # 1. Caso de Alta Tensión
+        if tension > 0.7:
+            return random.choice(self.BRIDGES["tense"])
+        
+        # 2. Preferencia Afectiva (MER V2)
+        if warmth > 0.8:
+            return random.choice(self.BRIDGES["warm"])
+        if mystery > 0.7:
+            return random.choice(self.BRIDGES["mysterious"])
+        
+        # 3. Análisis de Lenguaje Simple
+        lower_prompt = state.raw_prompt.lower()
+        if any(word in lower_prompt for word in ["perdón", "disculpa", "lo siento"]):
+            return random.choice(self.BRIDGES["apologetic"])
+        
+        if any(word in lower_prompt for word in ["si", "claro", "cierto", "bueno"]):
+            return random.choice(self.BRIDGES["agreement"])
+            
+        # 4. Default a Contemplativo
+        return random.choice(self.BRIDGES["contemplative"])

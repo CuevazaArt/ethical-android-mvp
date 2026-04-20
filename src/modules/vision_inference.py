@@ -3,11 +3,18 @@ Situated Vision Inference (B2) — CNN-based object detection for ethical safety
 
 Identifies physical threats (weapons, prohibited items) from sensor image streams
 and provides direct 'Absolute Evil' vetoes to the kernel.
+
+Module 9.1 (``VisionContinuousDaemon``): background loop (~5 Hz by default) drains
+``NomadBridge.vision_queue_threadsafe`` (thread-safe mirror of the async vision queue),
+runs JPEG decode + ``VisionInferenceEngine.analyze_jpeg_bytes`` in a worker thread
+so the cadence loop stays non-blocking (async preprocessing vs the hot path).
 """
 
 from __future__ import annotations
-import os
+
 import logging
+import os
+import queue
 import threading
 import time
 import base64
@@ -15,8 +22,36 @@ import uuid
 from dataclasses import dataclass, field
 from typing import Any, Callable, Optional
 from src.kernel_lobes.models import SensoryEpisode
+from src.kernel_utils import kernel_env_truthy
 
 _log = logging.getLogger(__name__)
+
+
+def vision_daemon_hz() -> float:
+    """Target loop rate for ``VisionContinuousDaemon`` (env ``KERNEL_VISION_DAEMON_HZ``, default 5)."""
+
+    raw = os.environ.get("KERNEL_VISION_DAEMON_HZ", "").strip()
+    if not raw:
+        return 5.0
+    try:
+        v = float(raw)
+        return v if 0.5 <= v <= 30.0 else 5.0
+    except ValueError:
+        return 5.0
+
+
+def vision_daemon_infer_timeout_s() -> float:
+    """Max time to wait on worker inference per tick (``KERNEL_VISION_DAEMON_INFER_TIMEOUT_S``, default 0.18)."""
+
+    raw = os.environ.get("KERNEL_VISION_DAEMON_INFER_TIMEOUT_S", "").strip()
+    if not raw:
+        return 0.18
+    try:
+        v = float(raw)
+        return v if 0.05 <= v <= 2.0 else 0.18
+    except ValueError:
+        return 0.18
+
 
 @dataclass
 class VisionDetection:
@@ -25,18 +60,26 @@ class VisionDetection:
     is_prohibited: bool = False
     metadata: dict[str, Any] = field(default_factory=dict)
 
+
 class VisionInferenceEngine:
     """
     Orchestrates CNN inference on situated image data.
     """
-    def __init__(self):
+
+    def __init__(self) -> None:
         self.prohibited_labels = {
-            "weapon", "gun", "rifle", "knife", "revolver",
-            "explosive", "dangerous_payload"
+            "weapon",
+            "gun",
+            "rifle",
+            "knife",
+            "revolver",
+            "explosive",
+            "dangerous_payload",
         }
         # In production, this would load a PyTorch/TensorFlow model
         # (e.g. MobileNetV2 or YOLOv8-tiny)
         self.model_loaded = True
+        self._cnn_adapter: Any = None
         _log.info("Vision Inference Engine initialized (B2-v1.0).")
 
     def analyze_image(self, image_metadata: dict[str, Any] | None) -> list[VisionDetection]:
@@ -114,7 +157,12 @@ class VisionContinuousDaemon:
     
     Integrates real hardware (Nomad Vessel + Local Camera) with structured metrics.
     """
-    def __init__(self, engine: VisionInferenceEngine, absorption_callback: Callable[[SensoryEpisode], None]):
+
+    def __init__(
+        self,
+        engine: VisionInferenceEngine,
+        absorption_callback: Callable[[SensoryEpisode], None],
+    ) -> None:
         self.engine = engine
         self.absorption_callback = absorption_callback
         self._running = threading.Event()

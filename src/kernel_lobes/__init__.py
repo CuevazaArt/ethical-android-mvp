@@ -24,4 +24,7 @@ __all__ = [
     "MemoryLobe",
     "CerebellumNode",
     "ThalamusNode",
+    "FixedSensorAdapter",
+    "SensorAdapter",
+    "StubSensorAdapter",
 ]

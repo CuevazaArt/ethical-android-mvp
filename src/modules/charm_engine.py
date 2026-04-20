@@ -1,11 +1,12 @@
 """
-Multimodal Charm Engine — Renderizado Estilístico y Físico (Fase 8+).
+Multimodal Charm Engine — style / somatic layer after a valid L0/L1 decision.
 
-Aplica la capa de encanto (Intimidad, Misterio, Juego) *después* de que
-el EthicalKernel haya tomado una decisión L0/C1 válida.
+Applies affect (intimacy, mystery, play) *after* the EthicalKernel decision.
+Coordinates gesture hints for Nomad / hardware and optional **basal-ganglia EMA**
+smoothing on warmth/mystery (MER Block 10.3).
 
-Incluye la orquestación de gestos somáticos para inferencia multimodal
-en tiempo real (Nomad Bridge) y filtros anti-parasociabilidad.
+**Env (optional):** ``KERNEL_BASAL_GANGLIA_SMOOTHING=1`` — run :class:`basal_ganglia.BasalGanglia`
+on ``CharmVector`` warmth/mystery to reduce sociopathic parametric jumps (default off).
 """
 
 from __future__ import annotations
@@ -21,6 +22,28 @@ from src.kernel_lobes.basal_ganglia import BasalGanglia
 from src.modules.llm_layer import LLMModule
 
 logger = logging.getLogger(__name__)
+
+_basal_ganglia_singleton: Any = None
+
+
+def _basal_ganglia_smoothing_enabled() -> bool:
+    v = os.environ.get("KERNEL_BASAL_GANGLIA_SMOOTHING", "0").strip().lower()
+    return v in ("1", "true", "yes", "on")
+
+
+def _get_basal_ganglia() -> Any:
+    global _basal_ganglia_singleton
+    if _basal_ganglia_singleton is None:
+        from .basal_ganglia import BasalGanglia
+
+        _basal_ganglia_singleton = BasalGanglia()
+    return _basal_ganglia_singleton
+
+
+def clear_charm_engine_basal_singleton_for_tests() -> None:
+    """Reset process-local basal filter (tests only)."""
+    global _basal_ganglia_singleton
+    _basal_ganglia_singleton = None
 
 
 @dataclass
@@ -107,16 +130,10 @@ class GesturePlanner:
 
 
 class HapticPlanner:
-    """Phase 12: Plans complex vibration patterns for the Nomad Vessel."""
-    def plan(self, charm: CharmVector, caution: float, tension: float = 0.0) -> list[dict[str, Any]]:
+    """Phase 10.2: Plans vibrations for the Nomad Vessel PWA."""
+    def plan(self, charm: CharmVector, caution: float) -> list[dict[str, Any]]:
         plan = []
-        if caution > 0.9:
-            # Dangerous veto or absolute evil
-            plan.append({"type": "vibrate", "pattern": [100, 50, 100, 50, 200], "label": "emergency_veto"})
-        elif tension > 0.8:
-            # Heartbeat effect for high cognitive load
-            plan.append({"type": "vibrate", "pattern": [30, 100, 30], "label": "limbic_heartbeat"})
-        elif caution > 0.6:
+        if caution > 0.8:
             plan.append({"type": "vibrate", "pattern": [50, 100, 50], "label": "alert_caution"})
         elif charm.warmth > 0.7:
             plan.append({"type": "vibrate", "pattern": [10], "label": "gentle_pulse"})
@@ -131,7 +148,6 @@ class ResponseSculptor:
         self.parametrizer = StyleParametrizer()
         self.gesture_planner = GesturePlanner()
         self.haptic_planner = HapticPlanner()
-        self.basal_ganglia = BasalGanglia(alpha=0.4) # Slightly faster smoothing
 
     def sculpt(
         self,
@@ -141,7 +157,6 @@ class ResponseSculptor:
         user_tracker: UserModelTracker,
         caution_level: float,
         absolute_evil_detected: bool,
-        tension: float = 0.0,
     ) -> StylizedResponse:
         """
         Applies charm layer. Bypassed entirely if absolute evil is present.
@@ -157,24 +172,19 @@ class ResponseSculptor:
             )
 
         charm = self.parametrizer.parametrize(decision_action, profile, user_tracker, caution_level)
-        
-        # Phase 10.3: Basal Ganglia EMA Smoothing
-        raw_vector = {
-            "warmth": charm.warmth,
-            "mystery": charm.mystery,
-            "playfulness": charm.playfulness,
-            "directiveness": charm.directiveness,
-        }
-        smoothed_vector = self.basal_ganglia.smooth_charm(raw_vector)
-        
-        # Upgrade back to CharmVector for planners
-        charm.warmth = smoothed_vector["warmth"]
-        charm.mystery = smoothed_vector["mystery"]
-        charm.playfulness = smoothed_vector["playfulness"]
-        charm.directiveness = smoothed_vector["directiveness"]
-
+        if _basal_ganglia_smoothing_enabled():
+            r = _get_basal_ganglia().smooth(
+                target_warmth=charm.warmth,
+                target_mystery=charm.mystery,
+            )
+            charm = CharmVector(
+                warmth=float(r["warmth"]),
+                mystery=float(r["mystery"]),
+                playfulness=charm.playfulness,
+                directiveness=charm.directiveness,
+            )
         gesture = self.gesture_planner.plan(charm)
-        haptic = self.haptic_planner.plan(charm, caution_level, tension=tension)
+        haptic = self.haptic_planner.plan(charm, caution_level)
 
         # En integración real, esto encadena un call al LLM (con override_template).
         # Para el stub arquitectónico, agregamos el metadata de intención.
@@ -220,8 +230,7 @@ class CharmEngine:
         user_tracker: UserModelTracker,
         caution_level: float,
         absolute_evil_detected: bool,
-        tension: float = 0.0,
     ) -> StylizedResponse:
         return self.sculptor.sculpt(
-            base_text, decision_action, profile, user_tracker, caution_level, absolute_evil_detected, tension=tension
+            base_text, decision_action, profile, user_tracker, caution_level, absolute_evil_detected
         )

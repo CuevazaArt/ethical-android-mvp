@@ -4,17 +4,18 @@ Part of the Phase 10.1 Sensory Fusion (VVAD + VAD).
 
 Pre-filters raw sensor streams to determine attentional focus 
 before the Perceptive Lobe performs high-cost inference.
+
+Responsibility: Antigravity + Team Cursor.
 """
 
 from __future__ import annotations
 import time
 import logging
 from dataclasses import dataclass, field
-from typing import Any, Dict, List, TYPE_CHECKING, Optional
+from typing import Any, Dict, List
 
-if TYPE_CHECKING:
-    from ..modules.sensor_contracts import SensorSnapshot
-    from ..kernel_lobes.models import SensoryEpisode
+from src.kernel_lobes.models import SensoryEpisode
+from src.modules.sensor_contracts import SensorSnapshot
 
 _log = logging.getLogger(__name__)
 
@@ -32,8 +33,9 @@ class ThalamusNode:
     Acts as a sensory filter and synchronizer.
     
     Logic:
-    - VVAD: Voice Activity + Video Presence.
-    - Posture: IMU alpha/beta/gamma check.
+    - VVAD: Visual Voice Activity Detection (Presence + Lips).
+    - VAD: Audio Voice Activity Detection (RMS / Confidence).
+    - Posture: IMU alpha/beta/gamma check (Orientation).
     """
 
     _SENSORY_BUFFER_MAX = 50
@@ -41,6 +43,7 @@ class ThalamusNode:
     def __init__(self, sensitivity: float = 0.5):
         self.sensitivity = sensitivity
         self.state = AttentionState()
+        self.sensory_buffer: List[SensoryEpisode] = []
         self._audio_history: list[float] = []
         self._max_history = 10
         
@@ -53,11 +56,10 @@ class ThalamusNode:
         self.sensory_buffer: list = []
 
     def ingest_telemetry(self, payload: dict[str, Any]):
-        """Ingests IMU and Battery data to update attentional confidence."""
+        """Ingests IMU and Battery data to update attentional confidence (Antigravity)."""
         orientation = payload.get("orientation")
         if orientation:
             # Logic: If phone is tilted towards a common 'viewing' angle (e.g. beta 60-90)
-            # we assume the user is looking at or addressing the device.
             beta = orientation.get("beta", 0)
             target = 1.0 if (45 < beta < 105) else 0.0
             
@@ -88,9 +90,57 @@ class ThalamusNode:
             self.state.is_user_speaking = False
             self.state.confidence = max(0.0, self.state.confidence - 0.1)
 
+    def fuse_signals(self, 
+                     vision_data: Dict[str, Any], 
+                     audio_data: Dict[str, Any],
+                     environmental_stress: float = 0.0) -> Dict[str, Any]:
+        """
+        Calculates focal address probability by crossing audio and vision (Copilot).
+        Improves VAD reliability using Lip Reading/Presence verification.
+        """
+        # 1. VVAD (Visual Voice Activity Detection)
+        lip_movement = float(vision_data.get("lip_movement", 0.0))
+        presence = float(vision_data.get("human_presence", 0.0))
+        
+        # 2. VAD (Audio Voice Activity Detection)
+        vad_confidence = float(audio_data.get("vad_confidence", 0.0))
+        
+        # 3. Fusión Multimodal (Anti-Spoofing & Attention)
+        voice_focal_match = (presence > 0.5 and lip_movement > 0.3 and vad_confidence > 0.5)
+        
+        attention_locus = 0.0
+        if presence > 0.5:
+            # Proportion of speech vs lip sync
+            attention_locus = (vad_confidence * 0.7) + (lip_movement * 0.3)
+        
+        # 4. Social Tension Calculation
+        sensory_dissonance = 0.0
+        if vad_confidence > 0.8 and lip_movement < 0.2:
+             sensory_dissonance = 0.4 # Background speaker / invisible threat
+
+        total_tension = (environmental_stress * 0.5) + (sensory_dissonance * 0.5)
+
+        # Update core state
+        self.state.is_user_present = presence > 0.5
+        self.state.is_user_speaking = vad_confidence > 0.5
+        self.state.confidence = round(0.7 * attention_locus + 0.3 * self.state.confidence, 4)
+
+        return {
+            "attention_locus": round(attention_locus, 3),
+            "presence_confidence": round(presence, 3),
+            "is_focal_address": voice_focal_match,
+            "sensory_tension": round(total_tension, 3),
+            "cross_modal_trust": 1.0 if voice_focal_match else 0.4
+        }
+
+    def push_episode(self, episode: SensoryEpisode):
+        """Maintains the circular buffer for sensory history (Copilot)."""
+        self.sensory_buffer.append(episode)
+        if len(self.sensory_buffer) > 50:
+            self.sensory_buffer.pop(0)
+
     def should_trigger_deliberation(self) -> bool:
         """Determines if the current sensory state warrants a full kernel tick."""
-        # Simple AND/OR gate for situated importance
         if self.state.is_user_speaking and (self.state.is_facing_user or self.state.confidence > 0.7):
             return True
         return False

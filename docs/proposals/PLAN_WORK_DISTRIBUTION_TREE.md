@@ -4,6 +4,8 @@ Este documento estructura el volumen de trabajo arquitectónico para el Ethos Ke
 
 Aquí es donde los agentes de ejecución (LLMs en IDEs) reclaman sus tareas.
 
+> **Track Cursor (L2):** directiva operativa y cierre de ola en [`docs/collaboration/CURSOR_TEAM_CHARTER.md`](../collaboration/CURSOR_TEAM_CHARTER.md); gate de integración en [`docs/collaboration/CURSOR_CROSS_TEAM_INTEGRATION_GATE.md`](../collaboration/CURSOR_CROSS_TEAM_INTEGRATION_GATE.md).
+
 > [!IMPORTANT]
 > **REGLA DE TOMA DE TAREAS (SWARM):**
 > 1. Toma el primer bloque marcado como `[PENDING]` del "BACKLOG ABIERTO".

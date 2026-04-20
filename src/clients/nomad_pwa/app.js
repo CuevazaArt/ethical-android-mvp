@@ -18,6 +18,12 @@ const UI = {
 let wsChat = null;
 let wsNomad = null;
 let isConnected = false;
+/** @type {number|null} performance.now() when last bridge ping was sent (S.1.1 RTT) */
+let nomadBridgePingT0 = null;
+/** @type {ReturnType<typeof setInterval>|null} */
+let nomadPingIntervalId = null;
+/** @type {ReturnType<typeof setInterval>|null} */
+let nomadHeartbeatIntervalId = null;
 
 const NOMAD_LAST_GOOD_HOST_KEY = 'nomad:last_good_host';
 
@@ -154,6 +160,8 @@ if ('getBattery' in navigator) {
         battery.addEventListener('levelchange', sendBat);
         battery.addEventListener('chargingchange', sendBat);
         sendBat();
+    }).catch((err) => {
+        console.warn('Battery API unavailable', err);
     });
 }
 
@@ -358,12 +366,53 @@ async function connectKernel() {
 
         wsNomad.onopen = () => { 
             console.log('Nomad Sensory Bridge established');
+            if (nomadPingIntervalId != null) {
+                try { clearInterval(nomadPingIntervalId); } catch (e) { /* ignore */ }
+                nomadPingIntervalId = null;
+            }
+            if (nomadHeartbeatIntervalId != null) {
+                try { clearInterval(nomadHeartbeatIntervalId); } catch (e) { /* ignore */ }
+                nomadHeartbeatIntervalId = null;
+            }
             // Heavy Heartbeat (Fase 12.2)
-            setInterval(() => {
-               if(wsNomad.readyState === WebSocket.OPEN) {
-                   wsNomad.send(JSON.stringify({ type: "telemetry", payload: { heartbeat: true } }));
+            nomadHeartbeatIntervalId = setInterval(() => {
+               try {
+                   if(wsNomad.readyState === WebSocket.OPEN) {
+                       wsNomad.send(JSON.stringify({ type: "telemetry", payload: { heartbeat: true } }));
+                   }
+               } catch (e) {
+                   console.warn('Nomad heartbeat send failed', e);
                }
             }, 15000);
+            // S.1.1 — LAN RTT / keepalive (pairs with server `pong` in nomad_bridge.py)
+            nomadPingIntervalId = setInterval(() => {
+                try {
+                    if (wsNomad && wsNomad.readyState === WebSocket.OPEN) {
+                        nomadBridgePingT0 = performance.now();
+                        wsNomad.send(JSON.stringify({ type: "ping", payload: {} }));
+                    }
+                } catch (e) {
+                    console.warn('Nomad bridge ping failed', e);
+                }
+            }, 10000);
+        };
+
+        wsNomad.onmessage = (event) => {
+            try {
+                const msg = JSON.parse(event.data);
+                if (msg.type === 'pong' && msg.payload && nomadBridgePingT0 != null) {
+                    const rttMs = Math.round(performance.now() - nomadBridgePingT0);
+                    nomadBridgePingT0 = null;
+                    console.debug('Nomad bridge RTT (ms):', rttMs);
+                    if (UI.nomadRtt) {
+                        UI.nomadRtt.textContent = `${rttMs} ms`;
+                    }
+                } else if (msg.type === 'charm_feedback') {
+                    console.debug('Nomad charm_feedback', msg.payload);
+                }
+            } catch (e) {
+                console.warn('Nomad WS message parse error', e);
+            }
         };
 
         wsNomad.onmessage = (event) => {

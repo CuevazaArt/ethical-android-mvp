@@ -65,6 +65,30 @@ def _env_optional_positive_float(name: str) -> float | None:
     return v if v > 0.0 else None
 
 
+# WebSocket: reject inbound text frames larger than this (UTF-8 byte length) before json.loads.
+_DEFAULT_CHAT_WS_MAX_MESSAGE_BYTES = 2 * 1024 * 1024
+_CAP_CHAT_WS_MAX_MESSAGE_BYTES = 32 * 1024 * 1024
+# Allow operators (and tests) to set a strict cap; absurdly small values still fall back to default.
+_MIN_CHAT_WS_MAX_MESSAGE_BYTES = 64
+
+
+def _env_chat_ws_max_message_bytes() -> int:
+    raw = os.environ.get("KERNEL_CHAT_WS_MAX_MESSAGE_BYTES", "").strip()
+    if not raw:
+        return _DEFAULT_CHAT_WS_MAX_MESSAGE_BYTES
+    try:
+        n = int(raw)
+    except ValueError:
+        return _DEFAULT_CHAT_WS_MAX_MESSAGE_BYTES
+    if n < _MIN_CHAT_WS_MAX_MESSAGE_BYTES:
+        return _DEFAULT_CHAT_WS_MAX_MESSAGE_BYTES
+    return min(n, _CAP_CHAT_WS_MAX_MESSAGE_BYTES)
+
+
+# Keep in sync with ``CHAT_THREADPOOL_MAX_WORKERS`` in ``real_time_bridge`` (no import — avoid cycles).
+_CHAT_THREADPOOL_ENV_CAP = 64
+
+
 def _env_truthy(name: str, *, default_true: bool = True) -> bool:
     raw = os.environ.get(name, "").strip().lower()
     if not raw:
@@ -118,9 +142,11 @@ class ChatServerSettings(BaseModel):
     )
     kernel_chat_threadpool_workers: int = Field(
         ge=0,
+        le=_CHAT_THREADPOOL_ENV_CAP,
         description=(
             "KERNEL_CHAT_THREADPOOL_WORKERS — dedicated thread pool size for chat turns; "
-            "0 = use Starlette/anyio default thread offload."
+            "0 = use Starlette/anyio default thread offload; values are clamped to "
+            f"{_CHAT_THREADPOOL_ENV_CAP} (same cap as RealTimeBridge)."
         ),
     )
     kernel_chat_json_offload: bool = Field(
@@ -128,6 +154,15 @@ class ChatServerSettings(BaseModel):
             "KERNEL_CHAT_JSON_OFFLOAD — when true (default), build WebSocket JSON "
             "(including optional KERNEL_LLM_MONOLOGUE) in a worker thread so the asyncio "
             "loop stays responsive. Set to 0 for debugging only."
+        ),
+    )
+    kernel_chat_ws_max_message_bytes: int = Field(
+        ge=64,
+        le=32 * 1024 * 1024,
+        description=(
+            "KERNEL_CHAT_WS_MAX_MESSAGE_BYTES — max UTF-8 size of a single inbound WebSocket "
+            "text frame (JSON) before parse; default 2 MiB, hard cap 32 MiB. Invalid/small values "
+            "fall back to default."
         ),
     )
 
@@ -145,11 +180,15 @@ class ChatServerSettings(BaseModel):
             kernel_chat_turn_timeout_seconds=_env_optional_positive_float(
                 "KERNEL_CHAT_TURN_TIMEOUT"
             ),
-            kernel_chat_threadpool_workers=max(0, _env_int("KERNEL_CHAT_THREADPOOL_WORKERS", 0)),
+            kernel_chat_threadpool_workers=min(
+                _CHAT_THREADPOOL_ENV_CAP,
+                max(0, _env_int("KERNEL_CHAT_THREADPOOL_WORKERS", 0)),
+            ),
             kernel_chat_json_offload=_env_truthy("KERNEL_CHAT_JSON_OFFLOAD", default_true=True),
             kernel_chat_async_llm_http=_env_truthy(
                 "KERNEL_CHAT_ASYNC_LLM_HTTP", default_true=False
             ),
+            kernel_chat_ws_max_message_bytes=_env_chat_ws_max_message_bytes(),
         )
 
     def model_dump_public(self) -> dict[str, Any]:
@@ -165,6 +204,7 @@ class ChatServerSettings(BaseModel):
             "kernel_chat_threadpool_workers": self.kernel_chat_threadpool_workers,
             "kernel_chat_json_offload": self.kernel_chat_json_offload,
             "kernel_chat_async_llm_http": self.kernel_chat_async_llm_http,
+            "kernel_chat_ws_max_message_bytes": self.kernel_chat_ws_max_message_bytes,
         }
 
 

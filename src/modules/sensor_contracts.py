@@ -189,8 +189,8 @@ class SensorSnapshot:
     # Phase 10.1: Attentional Sensory Fusion
     rms_audio: float | None = None  # [0, 1] audio energy
     orientation: dict[str, float] | None = None  # {alpha, beta, gamma}
-    
-    # Thalamus VVAD fields (Bloque 10.1) — populated by ThalamusNode.fuse_signals()
+
+    # Thalamus VVAD fields (Copilot) — populated by ThalamusNode.fuse_signals()
     thalamus_attention: float | None = None  # [0, 1] focal-address attention score
     thalamus_tension: float | None = None    # [0, 1] sensory dissonance / background stress
     thalamus_cross_modal_trust: float | None = None  # 1.0=focal, 0.4=background

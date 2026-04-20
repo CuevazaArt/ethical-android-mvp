@@ -246,7 +246,14 @@ class AnthropicLLMBackend(LLMBackend):
 
 
 class OllamaLLMBackend(LLMBackend):
-    """Ollama ``/api/chat`` + optional ``/api/embeddings`` (same base URL)."""
+    """
+    Ollama ``/api/chat`` + optional ``/api/embeddings`` (same base URL).
+
+    **Async-first (Module 0.1):** use :meth:`acompletion`, :meth:`acompletion_stream`, and
+    :meth:`aembedding` on asyncio chat paths so ``httpx.AsyncClient`` can cooperate with
+    cancellation. Sync :meth:`completion` / :meth:`embedding` remain for thread-pool and
+    legacy callers; they use ``httpx.Client``.
+    """
 
     def __init__(
         self,
@@ -256,7 +263,6 @@ class OllamaLLMBackend(LLMBackend):
         *,
         embed_model: str | None = None,
         embed_timeout: float | None = None,
-        aclient: httpx.AsyncClient | None = None,
     ) -> None:
         self._base = base_url.rstrip("/")
         self._model = model
@@ -268,7 +274,6 @@ class OllamaLLMBackend(LLMBackend):
             or "nomic-embed-text"
         )
         self._embed_timeout = float(embed_timeout) if embed_timeout is not None else 10.0
-        self._aclient = aclient
 
     def is_available(self) -> bool:
         return bool(self._base)
@@ -286,7 +291,7 @@ class OllamaLLMBackend(LLMBackend):
                 {"role": "system", "content": system},
                 {"role": "user", "content": user},
             ],
-            "stream": False,
+            "stream": stream,
         }
         t = kwargs.get("temperature")
         if t is not None:
@@ -304,29 +309,13 @@ class OllamaLLMBackend(LLMBackend):
         """Async ``/api/chat`` so ``asyncio.wait_for`` can cancel an in-flight request."""
         raise_if_llm_cancel_requested()
         url = f"{self._base}/api/chat"
-        payload: dict[str, Any] = {
-            "model": self._model,
-            "messages": [
-                {"role": "system", "content": system},
-                {"role": "user", "content": user},
-            ],
-            "stream": False,
-        }
-        t = kwargs.get("temperature")
-        if t is not None:
-            payload["options"] = {"temperature": float(t)}
+        payload = self._ollama_chat_payload(system, user, stream=False, **kwargs)
         timeout = httpx.Timeout(self._timeout)
-        if self._aclient is not None:
-            r = await self._aclient.post(url, json=payload, timeout=timeout)
+        async with httpx.AsyncClient(timeout=timeout) as client:
+            r = await client.post(url, json=payload)
             r.raise_for_status()
             data = r.json()
-        else:
-            async with httpx.AsyncClient(timeout=timeout) as client:
-                r = await client.post(url, json=payload)
-                r.raise_for_status()
-                data = r.json()
-        msg = data.get("message") or {}
-        return (msg.get("content") or "").strip()
+        return self._ollama_chat_response_text(data)
 
     async def acompletion_stream(
         self, system: str, user: str, **kwargs: Any
@@ -334,22 +323,12 @@ class OllamaLLMBackend(LLMBackend):
         """Async ``/api/chat`` with ``stream: True``."""
         raise_if_llm_cancel_requested()
         url = f"{self._base}/api/chat"
-        payload: dict[str, Any] = {
-            "model": self._model,
-            "messages": [
-                {"role": "system", "content": system},
-                {"role": "user", "content": user},
-            ],
-            "stream": True,
-        }
-        t = kwargs.get("temperature")
-        if t is not None:
-            payload["options"] = {"temperature": float(t)}
+        payload = self._ollama_chat_payload(system, user, stream=True, **kwargs)
 
         import json
         timeout = httpx.Timeout(self._timeout)
-        if self._aclient is not None:
-            async with self._aclient.stream("POST", url, json=payload, timeout=timeout) as response:
+        async with httpx.AsyncClient(timeout=timeout) as client:
+            async with client.stream("POST", url, json=payload) as response:
                 response.raise_for_status()
                 async for line in response.aiter_lines():
                     if not line:
@@ -363,22 +342,6 @@ class OllamaLLMBackend(LLMBackend):
                             yield content
                     except json.JSONDecodeError:
                         continue
-        else:
-            async with httpx.AsyncClient(timeout=timeout) as client:
-                async with client.stream("POST", url, json=payload) as response:
-                    response.raise_for_status()
-                    async for line in response.aiter_lines():
-                        if not line:
-                            continue
-                        try:
-                            chunk = json.loads(line)
-                            if chunk.get("done"):
-                                break
-                            content = chunk.get("message", {}).get("content", "")
-                            if content:
-                                yield content
-                        except json.JSONDecodeError:
-                            continue
 
     def embedding(self, text: str) -> list[float] | None:
         if not (text or "").strip():
@@ -433,6 +396,8 @@ class HttpJsonLLMBackend(LLMBackend):
     Lab / remote HTTP adapter: POST JSON ``{"system","user"}``, read ``text`` (or custom key).
 
     Embeddings are not supported (``None``).
+    Prefer :meth:`acompletion` on async chat paths (`httpx.AsyncClient`); sync :meth:`completion`
+    uses ``httpx.Client`` for legacy/thread callers (Module 0.1).
     """
 
     def __init__(
@@ -442,13 +407,11 @@ class HttpJsonLLMBackend(LLMBackend):
         timeout: float = 60.0,
         response_text_key: str = "text",
         headers: dict[str, str] | None = None,
-        aclient: httpx.AsyncClient | None = None,
     ) -> None:
         self._url = url
         self._timeout = float(timeout)
         self._key = response_text_key
         self._headers = dict(headers or {})
-        self._aclient = aclient
 
     def is_available(self) -> bool:
         return bool(self._url)
@@ -471,24 +434,14 @@ class HttpJsonLLMBackend(LLMBackend):
     async def acompletion(self, system: str, user: str, **kwargs: Any) -> str:
         raise_if_llm_cancel_requested()
         timeout = httpx.Timeout(self._timeout)
-        if self._aclient is not None:
-            r = await self._aclient.post(
+        async with httpx.AsyncClient(timeout=timeout) as client:
+            r = await client.post(
                 self._url,
                 json={"system": system, "user": user},
                 headers=self._headers,
-                timeout=timeout,
             )
             r.raise_for_status()
             data = r.json()
-        else:
-            async with httpx.AsyncClient(timeout=timeout) as client:
-                r = await client.post(
-                    self._url,
-                    json={"system": system, "user": user},
-                    headers=self._headers,
-                )
-                r.raise_for_status()
-                data = r.json()
         return str(data.get(self._key) or "").strip()
 
     def embedding(self, text: str) -> list[float] | None:

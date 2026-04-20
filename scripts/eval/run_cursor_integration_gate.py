@@ -13,6 +13,10 @@ REPO_ROOT = Path(__file__).resolve().parents[2]
 TEST_TARGETS = [
     "tests/test_chat_server.py",
     "tests/test_chat_turn.py",
+    # Module 0.1.3 — shared chat policy (heavy turn + principle ordering vs buffer snapshot)
+    "tests/test_chat_turn_policy.py",
+    "tests/test_kernel_utils.py",
+    "tests/test_real_time_bridge.py",
     "tests/test_temporal_planning.py",
     "tests/test_perception_confidence.py",
     # LLM integration track (PROPOSAL_LLM_INTEGRATION_TRACK.md G-10)
@@ -30,6 +34,14 @@ TEST_TARGETS = [
     "tests/test_semantic_threshold_proposal_doc_alignment.py",
     # Embodied sociability S10 (PROPOSAL_EMBODIED_SOCIABILITY.md Bloque S10)
     "tests/test_transparency_s10.py",
+    # MER Block 10.5 — ADR 0018 (presentation tier vs MalAbs core; import + behavioral guardrails)
+    "tests/test_mer_presentation_contract.py",
+    # MER Block 10.4 — bridge prefetch (Team Copilot track)
+    "tests/test_turn_prefetcher.py",
+    # C.1.1 RLHF → Bayesian (reward model + TestRlhfBayesianBridge)
+    "tests/test_rlhf_reward_model.py",
+    # MER 10.3 — basal EMA on charm (KERNEL_BASAL_GANGLIA_SMOOTHING)
+    "tests/test_charm_engine_basal.py",
     # Nomad LAN bridge Module S.1 (PLAN_WORK_DISTRIBUTION_TREE)
     "tests/test_nomad_bridge_stream.py",
     # Nomad → Vitality merge Module S.2.1 (peek_latest_telemetry + merge_nomad_telemetry_into_snapshot)
