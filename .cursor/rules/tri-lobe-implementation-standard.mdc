@@ -1,0 +1,24 @@
+---
+description: Standards for modifying or extending the Ethical Tri-Lobe Core (Perceptive, Limbic, Executive) and its sensory adapters.
+globs: src/kernel.py, src/kernel_lobes/*.py, src/modules/nomad_bridge.py
+---
+
+# Tri-Lobe Implementation Standard (V12.0)
+
+This rule governs all structural modifications to the kernel's cognitive lobes. As Cursor takes over from Claude, these invariants MUST be maintained.
+
+## Core Invariants
+
+1. **Async Separation**: The `PerceptiveLobe` MUST remain non-blocking. Any I/O-bound sensor ingestion (Nomad Bridge) must use the enqueued async buffer pattern.
+2. **Type Safety**: All lobe methods (e.g., `observe`, `judge`, `execute`) MUST include type hints for `SemanticState`, `LimbicProfile`, and other models defined in `src/kernel_lobes/models.py`.
+3. **Graceful Degradation**: Every primary lobe entry point must support a `TimeoutTrauma` fallback. If a lobe exceeds `KERNEL_LIMBIC_PERCEPTION_TIMEOUT`, it must return a low-confidence state instead of crashing.
+4. **Somatic Integrity**: The `CerebellumLobe` (daemon thread) is the only component allowed to perform raw hardware polling at 100Hz. All other lobes consume high-level summarized signals.
+
+## Implementation Workflow
+
+- **Modifying Interfaces**: If you change the method signature of a lobe, you **MUST** update the `CorpusCallosumOrchestrator` in `src/kernel.py` and the Mermaid diagram in `docs/architecture/TRI_LOBE_CORE.md`.
+- **Sensory Bridge (Nomad)**: When adding new sensors, update the `SensoryEpisode` model and add a mapping in `NomadBridge.public_queue_stats()`.
+- **Adversarial Audit**: Any change to `LimbicLobe` or `EthicalGating` logic requires immediately running `python scripts/eval/adversarial_suite.py`.
+
+## Persona Note (Cursor)
+Cursor favors **Scouting before Splicing**. Always `grep` for existing implementations of a signal before creating a new one. Priority is given to **Repository Hygiene** and **Developer Velocity**.

@@ -7,11 +7,13 @@ This document tracks the visual evolution of the Tri-Lobe core. **AI Agents MUST
 ```mermaid
 graph TD
     User([User Chat Input]) --> Thalamus[Thalamus Node]
-    SD[Sensory Daemons (Vision/Audio)] --> PL[Perception Lobe]
+    NB[Nomad Bridge / LAN Bridge] --> PL[Perceptive Lobe]
+    Discovery[Nomad Discovery mDNS] --> NB
+    SD[Sensory Daemons (Vision/Audio)] --> NB
     
     subgraph "Ethical Tri-Lobe Core"
         Thalamus -- "Context" --> PL
-        PL -- "Signals (EP)" --> LL[Limbic Lobe]
+        PL -- "Signals (EP)" --> LL[Limbic Ethical Lobe]
         LL -- "Tension" --> CL[Cerebellum Lobe]
         ML[(Memory Lobe)] -- "Temporal Priors" --> CL
         CL -- "Hypothesis weights" --> EL[Executive Lobe]
@@ -19,8 +21,9 @@ graph TD
     end
     
     subgraph "Safety & Governance"
-        EL --> DG[DAO Governance V11]
+        EL --> DG[DAO Governance V12]
         DG --> Interlock{Safety Gate}
+        Interlock -- "Audit" --> DB[(Persistent Audit Ledger)]
     end
     
     Interlock -- "Validated" --> Output[/System Response/]
