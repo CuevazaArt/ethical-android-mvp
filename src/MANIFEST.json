@@ -1,18 +1,18 @@
 {
   "files": {
-    "src/kernel.py": "54fc535a6f25595dad2db830d1613985623830d5e6d4ea12ab3dc63898784716",
+    "src/kernel.py": "20c9f79a294d53ed8c076d8ce5387c2e363caea437f7c911d88e7d5cf6465a28",
     "src/kernel_lobes/models.py": "1072db3060bfd53cb2a06ab55d04dc41d1511eb457f7bfbec112c42a9082ed62",
-    "src/kernel_lobes/executive_lobe.py": "776d7c91a225f34d8e7b0b029788fed62b1004c14478e4ab9b096b837f057903",
+    "src/kernel_lobes/executive_lobe.py": "9e2886b538f93c86fddb6ee16e5a5578dc0e7986fec141ce4c41e0bc298b3ccf",
     "src/kernel_lobes/memory_lobe.py": "d362b0b790d0e45c5e902519e3e8a02aa2aed6f06a29c7054a517c62ad116913",
     "src/kernel_lobes/perception_lobe.py": "0cb916907514423d2d9bdf91064f515316cc89b697a8ec06b8f3d968186512ee",
     "src/kernel_lobes/thalamus_node.py": "8b4741b67e3e799ad1407f8cab2e36e46693dbb31eb1b2486712dfd5bd1c641a",
-    "src/modules/absolute_evil.py": "76ab1adc81e247650be86e40087e868f7c8007afee2f0900c9e1a08ae0dc340e",
+    "src/modules/absolute_evil.py": "1ed829e7e0e9bf0511d6c959514514c8e044b8271846f1b75e880bcc5afc42e1",
     "src/modules/nomad_bridge.py": "22ccce5c537918f58b4501cafe62b41c24b018c3403cfe65a0e7e1197a67e299",
     "src/modules/secure_boot.py": "e482fb010f84fa36fe847eacb0749e583c6a729ac32581cdefc4f449089c7ca0",
     "src/modules/immortality.py": "b3fa2ef27daf48c0a4d75459cf35ae2fd989cb7f6f0814a09e368d77d0c94d70",
     "src/modules/bayesian_engine.py": "5fa385eab3f3c6cb17f847c2ac7480c0c297a47ed13b34f42c406d8d8c11d2e6",
     "src/modules/weighted_ethics_scorer.py": "746f11ae89357a4bbc507c8fe63d63aa68aa983258d01e8926cb0ebdb5cf2a08",
-    "src/modules/semantic_chat_gate.py": "bdde397650ec1d235a9109ce30fdbb28efc4c7880f18be34716066cbd2026587",
+    "src/modules/semantic_chat_gate.py": "cdc8140fc7c2d65f71542326ac6270f1655bfc5b9f8be069a3465914f94c688c",
     "src/modules/uchi_soto.py": "78577d2c31c66b35364c2a5ae51a0867354514c02753923268dd9ed16b2b396d",
     "src/modules/sympathetic.py": "65f3c97c3163023fdcc3388055f0ae239a887dd09f2fd64e2c3525bdec914a17",
     "src/modules/multimodal_trust.py": "95f8bbc61a2a0091e70229af23600b623dd9b6d7e588c3c8ef06b9234367162c",
@@ -21,6 +21,6 @@
     "src/persistence/kernel_io.py": "00474e4908d2cbb7cc5e6547c6db629c4f4b88b0190342847b6ac9930c163689",
     "src/persistence/snapshot_serde.py": "3920104a50d2b70ec1a79f539866e4bd192bda6a3969fa827c1fd95368c8899f"
   },
-  "signature": "c46d9e1c13edd6d69e61224a5b9486b5b03d865f41faf6838e914759b2617eaf",
+  "signature": "9f950c4dd0b1b9edb6dba70a82cc7fef83da940e2c10d70a833dadda75f814db",
   "signed_by": "Antigravity (L1) - Hardening Pulse Recovery"
 }

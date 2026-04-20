@@ -141,7 +141,8 @@ from fastapi import FastAPI, Request, WebSocket, WebSocketDisconnect
 from fastapi.responses import JSONResponse, Response
 from fastapi.staticfiles import StaticFiles
 
-from .kernel import ChatTurnResult, EthicalKernel, kernel_dao_as_mock
+from .kernel import ChatTurnResult, EthicalKernel
+from .kernel_utils import kernel_dao_as_mock
 from .modules.affective_homeostasis import homeostasis_telemetry
 from .modules.buffer import PreloadedBuffer
 from .modules.consequence_projection import qualitative_temporal_branches

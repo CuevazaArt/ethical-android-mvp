@@ -17,8 +17,8 @@ Aquí es donde los agentes de ejecución (LLMs en IDEs) reclaman sus tareas.
 
 ## 📈 ESTADO DE INTEGRACIÓN (PULSE 2026-04-19 / CIERRE)
 - **Phase 9 (Hardened Embodiment)**: INTEGRADO. Handshake seguro y telemetría en tiempo real desde Nomad Bridge operativa.
-- **S.13 (Field Test 1 - Límbico)**: Completado. Control de ganancia sensorial (`KERNEL_SENSORY_GAIN`) y amortiguación emocional estabilizados.
-- **S.12 (Vertical Armor)**: Completado. Blindaje final de MalAbs y InputTrust.
+- **V13.0 (Distributed Brain Initialization)**: COMPLETADO. Monolito destruido, bus asíncrono CorpusCallosum verificado.
+- **V13.1 (Aesthetic & Legacy Stabilization)**: COMPLETADO. Enriquecimiento de terminal (TColors) y restauración de puentes de compatibilidad legado.
 
 ---
 
@@ -105,4 +105,7 @@ Aquí es donde los agentes de ejecución (LLMs en IDEs) reclaman sus tareas.
 **Bloque S.10: Persistencia de Estrategia Operativa (V10) [DONE]**
 - Tarea S.10.1: Persistencia de `MetaplanRegistry`, `SkillLearningRegistry` y `SomaticMarkerStore`. (Completado: Antigravity)
 
-... (rest of the history from main) ...
+**Bloque V.13.1: Enriquecimiento Estético y Compatibilidad Legacy [DONE]**
+- Tarea V.13.1.1: Integrar TColors (ANSI) en la salida del Kernel y restaurar alias de soporte legacy (ChatTurnCooperativeAbort, ApplyNomadTelemetry). (Completado: Antigravity)
+
+**Bloque 15.0: Desmonolitización del Sistema Nervioso (Ethos V13.0) [DONE]**

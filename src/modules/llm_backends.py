@@ -518,3 +518,4 @@ class MockLLMBackend(LLMBackend):
 # Legacy Aliases
 MockBackend = MockLLMBackend
 HTTPRemote = HttpJsonLLMBackend
+OllamaRemote = OllamaLLMBackend
