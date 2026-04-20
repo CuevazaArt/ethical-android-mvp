@@ -6,7 +6,7 @@
   "src/kernel_lobes/perception_lobe.py": "b62a607489a0e32890a126a1f43edf64ad12de19812ef02ddb53db1e2730ce9b",
   "src/kernel_lobes/thalamus_node.py": "aa67cf90564359fcef05893871f630887b8a48d73785d22958130b62a833c668",
   "src/modules/absolute_evil.py": "e2644be2c55413aa3a0749b704a7851fd8a48691f94b00671091554dd81e658b",
-  "src/modules/nomad_bridge.py": "152907914f139e66cc463938e2be9f1475f68915d9c99ed09826760af0beb63e",
+  "src/modules/nomad_bridge.py": "bea823da5c1c6a7fbe60f899ead5523a972a3b39586c9cf115c073c26cb0da6f",
   "src/modules/secure_boot.py": "13c3bca616ec215aa6a3be3f5d40e9c025dc43f63e8e7b546f9c0016ac965c84",
   "src/modules/immortality.py": "51ee7073fe1c0c876dc5af90cf5f2a5627671a8ee1d4dd2e62b98e26eb90a029",
   "src/modules/sensor_contracts.py": "dc33be623eca4ce3075f11eb6d2e39c15b58a31556d0df577a3724bab226fd29",
