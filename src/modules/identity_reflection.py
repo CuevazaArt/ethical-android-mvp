@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 """
 Identity Reflection (Espejo Narrativo).
 
@@ -31,7 +33,7 @@ class IdentityReflector:
     Synthesizes historical arcs and philosophical leans into a self-model.
     """
 
-    def __init__(self, memory: NarrativeMemory):
+    def __init__(self, memory: "NarrativeMemory"):
         self.memory = memory
 
     def generate_first_person_mirror(self) -> str:
