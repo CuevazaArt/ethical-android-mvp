@@ -1069,7 +1069,23 @@ class EthicalKernel:
                 location=place if place else "unknown",
                 message=f"High-impact scenario detected: {scenario}. Action: {final_action}"
             )
-             
+
+        # ════ D1: SWARM JUSTICE STAGE ════
+        # When risk > 0.4, invoke swarm consensus and apply justice (OOS-12.1)
+        if risk_active > 0.4 and hasattr(self, "swarm") and self.swarm is not None:
+            try:
+                case_ref = episode_id or f"swarm-{int(time.time())}"
+                default_peers = ["PEER_LAN_01", "PEER_LAN_02", "PEER_LAN_03"]
+                self.swarm.cast_distributed_vote(
+                    proposal_id=case_ref,
+                    action=final_action,
+                    signals=signals,
+                    peers=list(self.swarm.state.known_peers.keys()) or default_peers,
+                )
+                self.swarm.apply_swarm_justice(self.dao, self.swarm_oracle, case_ref)
+            except Exception:
+                pass  # Swarm justice is best-effort; never interrupt the main decision path
+
         self._emit_kernel_decision(d, context=context)
         _emit_process_observability(d, t0)
         return d
@@ -1114,6 +1130,16 @@ class EthicalKernel:
         social_eval: SocialEvaluation, locus_eval: LocusEvaluation, context: str, t0: float, signals: dict,
         message_content: str, rlhf_features: dict[str, Any] | None = None
     ) -> tuple[BayesianResult | None, BayesianStageMetadata | None, KernelDecision | None]:
+
+        # OOS-004 — warn when both HIERARCHICAL and BAYESIAN_FEEDBACK are active simultaneously
+        _hier_on = os.environ.get("KERNEL_HIERARCHICAL_FEEDBACK", "").strip().lower() in ("1", "true", "yes", "on")
+        _bayes_on = os.environ.get("KERNEL_BAYESIAN_FEEDBACK", "").strip().lower() in ("1", "true", "yes", "on")
+        if _hier_on and _bayes_on:
+            _log.warning(
+                "OOS-004: Precedence conflict — KERNEL_HIERARCHICAL_FEEDBACK and "
+                "KERNEL_BAYESIAN_FEEDBACK are both enabled. Hierarchical updater takes "
+                "precedence over Bayesian feedback posterior. Disable one to suppress this warning."
+            )
 
         # 1. Check Lexical Veto (Phase 8 strict preemptive)
         for text in [scenario, message_content]:

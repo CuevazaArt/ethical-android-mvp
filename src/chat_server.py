@@ -696,7 +696,7 @@ def _chat_turn_to_jsonable(r: ChatTurnResult, kernel: EthicalKernel) -> dict[str
         }
     if r.temporal_context is not None:
         tc = r.temporal_context.to_public_dict()
-        tc["turn_index"] = max(1, _coerce_public_int(tc.get("turn_index"), default=0, non_negative=True))
+        tc["turn_index"] = _coerce_public_int(tc.get("turn_index"), default=0, non_negative=True)
         out["temporal_context"] = tc
         out["temporal_sync"] = {
             "sync_schema": tc.get("sync_schema", "temporal_sync_v1"),

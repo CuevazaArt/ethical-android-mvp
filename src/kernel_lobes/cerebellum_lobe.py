@@ -56,9 +56,12 @@ class CerebellumLobe:
         mixture_posterior_alpha = None
         feedback_consistency = None
         mixture_context_key = None
+        hierarchical_context_key = None
         dirichlet_alpha_for_bma = None
         
         fb_path = os.environ.get("KERNEL_FEEDBACK_PATH", "").strip()
+        _hier_on = os.environ.get("KERNEL_HIERARCHICAL_FEEDBACK", "").strip().lower() in ("1", "true", "yes", "on")
+
         if fb_path:
             p = Path(fb_path)
             if p.is_file():
@@ -74,6 +77,26 @@ class CerebellumLobe:
                 
                 if isinstance(fb_meta, dict) and fb_meta.get("active_context_key"):
                     mixture_context_key = str(fb_meta["active_context_key"])
+
+                # ADR 0013 — Hierarchical updater: apply per-context Dirichlet blending
+                if _hier_on:
+                    from src.modules.hierarchical_updater import (
+                        HierarchicalUpdater,
+                        canonical_context_type,
+                    )
+                    ctype = canonical_context_type(context)
+                    min_local = int(os.environ.get("KERNEL_HIERARCHICAL_MIN_LOCAL", "2"))
+                    # Use a fresh hierarchical updater with the global alpha from feedback
+                    hier = HierarchicalUpdater(
+                        initial_alpha=list(np.asarray(alpha_vec).reshape(3)),
+                        min_local_items=min_local,
+                        seed=int(os.environ.get("KERNEL_FEEDBACK_SEED", "42")),
+                    )
+                    hier_alpha = hier.active_alpha_for_context(ctype)
+                    mixture_posterior_alpha = tuple(round(float(v), 6) for v in np.asarray(hier_alpha).reshape(3))
+                    self.bayesian.update_posterior_from_feedback(hier_alpha, feedback_consistency or "compatible")
+                    dirichlet_alpha_for_bma = hier_alpha
+                    hierarchical_context_key = ctype
 
         # 3. Main Bayesian Evaluate
         bayes_result = self.bayesian.evaluate(
@@ -106,6 +129,7 @@ class CerebellumLobe:
             mixture_posterior_alpha=mixture_posterior_alpha,
             feedback_consistency=feedback_consistency,
             mixture_context_key=mixture_context_key,
+            hierarchical_context_key=hierarchical_context_key,
             applied_mixture_weights=tuple(round(float(v), 6) for v in self.bayesian.hypothesis_weights),
             bma_win_probabilities=bma_win_probs,
             bma_dirichlet_alpha=bma_dirichlet,

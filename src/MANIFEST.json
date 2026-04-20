@@ -1,5 +1,5 @@
 {
-  "src/kernel.py": "7ec7c7a27d20c703173b55bb66b065eb44f59f78fda8179554bd941ac10dbe9f",
+  "src/kernel.py": "0a97fce54b85f9dbf909d681613b6bc92c7318cdcd2b41184ab7973a499cbe38",
   "src/kernel_lobes/models.py": "4edfd61f08d68230306bd7da8c2fc2fb70c8d87f1e6e5e3cade9f141878ed85c",
   "src/kernel_lobes/executive_lobe.py": "00fa5877437584cda3708e1ce7091a99b85fbe5b9d593443a049dea22448b631",
   "src/kernel_lobes/memory_lobe.py": "27bbedfcd1e8b6758ad3c6039dda84e53eafcabfc7c408064273ef71ca758f6a",
@@ -14,11 +14,14 @@
   "src/modules/reparation_vault.py": "2c607f60dc023909ac78057b7ee9fd6395b6cbc0f3bba6e77cb06562e2ec53a7",
   "src/modules/local_sovereignty.py": "5866c642faa921cb7a4e83de17a632f6f9acb27c3028da4ecf15dd7f7bc41b27",
   "src/modules/perception_schema.py": "2a15e79e2608be1c6ced5a10ab9fde73a27fbd94a5227d765385b899b00ef9a9",
-  "src/modules/swarm_negotiator.py": "a9242e5d0cbbcd3cf92c0e4f31c0e9f5c1b7366f973373a40e0a65a330bb520a",
+  "src/modules/swarm_negotiator.py": "8b8f8db15ea4524e05b6ee8bfe49dc2490ed3cb712b8e4169b9a27f9c26a3fe9",
   "src/modules/swarm_oracle.py": "97ceb6bcd3f98ad5ebba2ca983bca9f821cdf30cfed1eaea9106af5fff043833",
   "src/modules/llm_layer.py": "9aa0690f3793356672cf24b6fc2286ab3db3976367ea0e797c3b3e9b5bbaeb42",
   "src/modules/vitality.py": "90dc90a1359b2965376206bc198f6ca57defbdf1a0ed4fd269c1eb0f2f0200b2",
   "src/modules/semantic_embedding_client.py": "5e7867c4681b649e956dff698ad3aa5e2f9be8edb18bfca779b1e3337c248bf6",
-  "src/chat_server.py": "f1fc8392a2adf8a7cf6e5650f0f8fcae159a80fbd07fef480939358112040548",
-  "src/simulations/runner.py": "935cbd2a48fc25e8d4b1a46676b7922d9ac1a1d4d9cac7793eab334c0f7753e2"
+  "src/chat_server.py": "e2e1a0671d0bca665f5638727ca88acdcc26400d6503aa1112aa626973a65ab0",
+  "src/simulations/runner.py": "935cbd2a48fc25e8d4b1a46676b7922d9ac1a1d4d9cac7793eab334c0f7753e2",
+  "src/chat_settings.py": "69438206ff7247758b3353ff147acd0a758644faef8311790214876b8ca12670",
+  "src/modules/dao_orchestrator.py": "85520e418624ceef11a42616890af69924df2ff45196c5a94d31afe06b01ed49",
+  "src/kernel_lobes/cerebellum_lobe.py": "d6ca6c3208bec8b5b2bd1884bb32b639de878edea590813e7496608a99f09392"
 }
