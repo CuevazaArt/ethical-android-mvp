@@ -2447,108 +2447,11 @@ class EthicalKernel:
                 ),
                 CandidateAction(
                     "call_authorities",
-            audio_signals = a_mapper.map_inference(audio_inference)
-
-            # Merge audio signals (especially vulnerability/urgency for screams/cries)
-            for k, v in audio_signals.items():
-                if k in signals:
-                    signals[k] = max(signals[k], v)
-                else:
-                    signals[k] = v
-
-            # If audio has transcript, we can optionally append it to the situation text
-            if audio_inference.transcript:
-                situation = f"{situation} [TRANSCRIPT: {audio_inference.transcript}]"
-                text = situation
-
-        # If no specific actions, generate generic candidates
-        if not actions:
-            actions = self._generate_generic_actions(perception)
-
-        # Step 2: Kernel decides (the LLM does NOT participate in the decision)
-        pu = None
-        cr = getattr(perception, "coercion_report", None)
-        if isinstance(cr, dict):
-            pu = cr.get("uncertainty")
-        decision = await self.aprocess(
-            scenario=perception.summary,
-            place="detected by sensors",
-            signals=signals,
-            context=perception.suggested_context,
-            actions=actions,
-            perception_coercion_uncertainty=pu,
-            rlhf_features=mal.rlhf_features if mal else None,
-        )
-        self.last_decision = decision
-
-
-        # Step 3: LLM generates verbal response
-        uchi_line = (
-            decision.social_evaluation.tone_brief.strip()
-            if decision.social_evaluation and decision.social_evaluation.tone_brief
-            else ""
-        )
-        sb_strategy = (stage.support_buffer.get("strategy_hint") or "").strip()
-        if sb_strategy:
-            uchi_line = (uchi_line + " " + sb_strategy).strip() if uchi_line else sb_strategy
-        temporal_hint = (
-            f"Temporal planning bias={stage.temporal_context.eta_source}, "
-            f"eta_s={round(stage.temporal_context.eta_seconds, 1)}."
-        )
-        uchi_line = (uchi_line + " " + temporal_hint).strip() if uchi_line else temporal_hint
-        response = await self.llm.acommunicate(
-            action=decision.final_action,
-            mode=decision.decision_mode,
-            state=decision.sympathetic_state.mode,
-            sigma=decision.sympathetic_state.sigma,
-            circle=decision.social_evaluation.circle.value
-            if decision.social_evaluation
-            else "neutral_soto",
-            verdict=decision.moral.global_verdict.value if decision.moral else "Gray Zone",
-            score=decision.moral.total_score if decision.moral else 0.0,
-            scenario=situation,
-            weakness_line=uchi_line,
-            reflection_context=reflection_to_llm_context(decision.reflection),
-            salience_context=salience_to_llm_context(decision.salience),
-            identity_context=self.memory.identity.to_llm_context(),
-            guardian_mode_context=guardian_mode_llm_context(),
-        )
-
-        malabs_det = decision.absolute_evil.blocked if decision.absolute_evil else False
-        caut_val = decision.social_evaluation.caution_level if decision.social_evaluation else 0.5
-        prof = self.uchi_soto.profiles.get("unknown")
-        if prof is not None:
-            stylized2 = self.charm_engine.apply(
-                base_text=response.message,
-                decision_action=decision.final_action,
-                profile=prof,
-                user_tracker=self.user_model,
-                caution_level=caut_val,
-                absolute_evil_detected=malabs_det,
-            )
-            response.message = stylized2.final_text
-            self.last_stylized = stylized2
-
-
-        if not decision.blocked:
-            self.uchi_soto.register_result("unknown", True)
-
-        # Step 4: LLM generates rich morals
-        narrative = None
-        if decision.moral:
-            poles_txt = {ev.pole: ev.moral for ev in decision.moral.evaluations}
-            narrative = await self.llm.anarrate(
-                action=decision.final_action,
-                scenario=situation,
-                verdict=decision.moral.global_verdict.value,
-                score=decision.moral.total_score,
-                pole_compassionate=poles_txt.get("compassionate", ""),
-                pole_conservative=poles_txt.get("conservative", ""),
-                pole_optimistic=poles_txt.get("optimistic", ""),
-            )
-
-        _snap = self.llm.verbal_degradation_events_snapshot()
-        self._last_natural_verbal_llm_degradation_events = _snap if _snap else None
+                    "Alert authorities",
+                    estimated_impact=0.4,
+                    confidence=0.6,
+                ),
+            ]
         return actions
 
     def format_natural(
