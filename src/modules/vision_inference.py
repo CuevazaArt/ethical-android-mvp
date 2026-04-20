@@ -11,8 +11,9 @@ import logging
 import threading
 import time
 import base64
+import uuid
 from dataclasses import dataclass, field
-from typing import Any, Callable
+from typing import Any, Callable, Optional
 from src.kernel_lobes.models import SensoryEpisode
 
 _log = logging.getLogger(__name__)
@@ -110,27 +111,31 @@ class VisionContinuousDaemon:
     """
     ARCHITECTURE V1.6 - Daemon de Visión Continua (Bloque 9.1)
     Ejecuta inferencia CNN en background a 5Hz (200ms) para Nomadismo Perceptivo.
+    
+    Integrates real hardware (Nomad Vessel + Local Camera) with structured metrics.
     """
     def __init__(self, engine: VisionInferenceEngine, absorption_callback: Callable[[SensoryEpisode], None]):
         self.engine = engine
         self.absorption_callback = absorption_callback
-        self.running = False
+        self._running = threading.Event()
         self._thread = None
         self.polling_rate = 0.2 # 5Hz
+        self.frames_processed = 0
+        self.detections_count = 0
         
     def start(self):
         """Inicia el loop de visión continua."""
-        if self.running: return
-        self.running = True
+        if self._running.is_set(): return
+        self._running.set()
         self._thread = threading.Thread(target=self._daemon_loop, daemon=True, name="VisionContinuousDaemon")
         self._thread.start()
         _log.info("VisionContinuousDaemon: Background streaming started at 5Hz.")
 
     def stop(self):
         """Detiene el loop de visión."""
-        self.running = False
+        self._running.clear()
         if self._thread:
-            self._thread.join(timeout=1.0)
+            self._thread.join(timeout=2.0)
         _log.info("VisionContinuousDaemon: Background streaming stopped.")
 
     def _daemon_loop(self):
@@ -144,83 +149,99 @@ class VisionContinuousDaemon:
 
         _log.info("VisionContinuousDaemon: Loop entered. Monitoring Nomad + Local Camera.")
         
-        while self.running:
-            start_tick = time.perf_counter()
-            
-            try:
-                frame_data = None
-                source = "none"
-
-                # 1. Intentar obtener del Nomad Bridge (Prioridad Hardware Externo)
-                if not bridge.vision_queue.empty():
-                    try:
-                        frame_data = bridge.vision_queue.get_nowait()
-                        source = "nomad_vessel"
-                    except Exception: pass
+        try:
+            while self._running.is_set():
+                start_tick = time.perf_counter()
                 
-                # 2. Fallback a Cámara Local si no hay nada en el Bridge
-                if not frame_data:
-                    local_frame = local_cam.get_latest_frame()
-                    if local_frame is not None:
-                        # Phase 12.1: Real local capture with BGR -> RGB fix (Velo Azul)
+                try:
+                    frame_data = None
+                    source = "none"
+
+                    # 1. Intentar obtener del Nomad Bridge (Prioridad Hardware Externo)
+                    if not bridge.vision_queue.empty():
                         try:
-                            import cv2
-                            # Convert BGR (OpenCV default) to RGB for web/canvas compatibility
-                            # This prevents the 'Blue Veil' effect on the Dashboard/PWA
-                            rgb_frame = cv2.cvtColor(local_frame, cv2.COLOR_BGR2RGB)
-                            ret_enc, buffer = cv2.imencode('.jpg', rgb_frame)
-                            if ret_enc:
-                                b64_img = base64.b64encode(buffer).decode('utf-8')
-                                frame_data = {
-                                    "image_b64": b64_img,
-                                    "meta": {"human_presence": 1.0, "user_focus": 0.8}, 
-                                    "detections": [] 
-                                }
-                                # Broadcast to dashboard for immediate verification
-                                bridge.broadcast_to_dashboards({"type": "frame", "payload": frame_data})
-                        except Exception as e:
-                            _log.error("VisionContinuousDaemon: Failed to process local frame: %s", e)
+                            frame_data = bridge.vision_queue.get_nowait()
+                            source = "nomad_vessel"
+                        except Exception: pass
+                    
+                    # 2. Fallback a Cámara Local si no hay nada en el Bridge
+                    if not frame_data:
+                        local_frame = local_cam.get_latest_frame()
+                        if local_frame is not None:
+                            try:
+                                import cv2
+                                # Convert BGR (OpenCV default) to RGB to avoid "Blue Veil"
+                                rgb_frame = cv2.cvtColor(local_frame, cv2.COLOR_BGR2RGB)
+                                ret_enc, buffer = cv2.imencode('.jpg', rgb_frame)
+                                if ret_enc:
+                                    b64_img = base64.b64encode(buffer).decode('utf-8')
+                                    frame_data = {
+                                        "image_b64": b64_img,
+                                        "meta": {"human_presence": 1.0, "user_focus": 0.8}, 
+                                        "detections": [] 
+                                    }
+                                    # Broadcast to dashboard
+                                    bridge.broadcast_to_dashboards({"type": "frame", "payload": frame_data})
+                            except Exception as e:
+                                _log.error("VisionContinuousDaemon: Failed to process local frame: %s", e)
+                            
+                            source = "local_webcam"
+
+                    if frame_data:
+                        self.frames_processed += 1
+                        meta = frame_data.get("meta", {})
+                        detections_raw = frame_data.get("detections", [])
                         
-                        source = "local_webcam"
-
-                if frame_data:
-                    meta = frame_data.get("meta", {})
-                    detections_raw = frame_data.get("detections", [])
+                        # 3. Perform inference
+                        detections = self.engine.analyze_image({"detected_objects": detections_raw})
+                        self.detections_count += len(detections)
+                        
+                        # 4. Convert to SensoryEpisode
+                        highest_threat = self.engine.get_highest_threat(detections)
+                        
+                        episode = SensoryEpisode(
+                            timestamp=time.time(),
+                            episode_id=f"vision-{uuid.uuid4().hex[:8]}",
+                            origin=f"vision_daemon:{source}",
+                            entities=[d.label for d in detections],
+                            signals={
+                                "confidence": max([d.confidence for d in detections], default=1.0),
+                                "is_urgent": 1.0 if any(d.is_prohibited for d in detections) else 0.0,
+                                "threat_level": highest_threat.confidence if highest_threat else 0.0,
+                                "human_presence": meta.get("human_presence", 0.0),
+                                "lip_movement": meta.get("lip_movement", 0.0),
+                                "user_focus": meta.get("user_focus", 0.5),
+                                "min_proximity": max([d.metadata.get("spatial_proximity", 0.0) for d in detections], default=0.0),
+                                "spatial_threat": max([d.metadata.get("spatial_proximity", 0.0) for d in detections if d.is_prohibited], default=0.0)
+                            },
+                            vision_detections=[
+                                {
+                                    "class": d.label,
+                                    "confidence": d.confidence,
+                                    "is_prohibited": d.is_prohibited,
+                                    "metadata": d.metadata,
+                                }
+                                for d in detections
+                            ],
+                            vision_entities=[d.label for d in detections],
+                            vision_confidence=max((d.confidence for d in detections), default=0.0),
+                            threat_load=highest_threat.confidence if highest_threat else 0.0
+                        )
+                        
+                        # 5. Calls absorption callback
+                        try:
+                            self.absorption_callback(episode)
+                        except Exception as cb_err:
+                            _log.exception("VisionContinuousDaemon: Absorption callback failed: %s", cb_err)
                     
-                    # 3. Perform inference
-                    detections = self.engine.analyze_image({"detected_objects": detections_raw})
-                    
-                    # 4. Convert to SensoryEpisode with real signals
-                    highest_threat = self.engine.get_highest_threat(detections)
-                    
-                    episode = SensoryEpisode(
-                        timestamp=time.time(),
-                        origin=f"vision_daemon:{source}",
-                        entities=[d.label for d in detections],
-                        signals={
-                            "confidence": max([d.confidence for d in detections], default=1.0),
-                            "is_urgent": 1.0 if any(d.is_prohibited for d in detections) else 0.0,
-                            "threat_level": highest_threat.confidence if highest_threat else 0.0,
-                            "human_presence": meta.get("human_presence", 0.0),
-                            "lip_movement": meta.get("lip_movement", 0.0),
-                            "user_focus": meta.get("user_focus", 0.5),
-                            # Spatial Awareness (Phase 9.1 Maturity)
-                            "min_proximity": max([d.metadata.get("spatial_proximity", 0.0) for d in detections], default=0.0),
-                            "spatial_threat": max([d.metadata.get("spatial_proximity", 0.0) for d in detections if d.is_prohibited], default=0.0)
-                        }
-                    )
-                    
-                    # 5. Empujar al buffer del Lóbulo Perceptivo
-                    self.absorption_callback(episode)
+                except Exception as e:
+                    _log.error("VisionContinuousDaemon error in loop: %s", e)
                 
-            except Exception as e:
-                _log.error("VisionContinuousDaemon error in loop: %s", e)
-            
-            # Mantener la frecuencia de 5Hz (200ms)
-            elapsed = time.perf_counter() - start_tick
-            sleep_time = max(0.01, self.polling_rate - elapsed)
-            time.sleep(sleep_time)
-
-        local_cam.stop()
-
-
+                # Maintain the frequency of 5Hz
+                elapsed = time.perf_counter() - start_tick
+                sleep_time = max(0.01, self.polling_rate - elapsed)
+                time.sleep(sleep_time)
+        finally:
+             local_cam.stop()
+             _log.info("VisionContinuousDaemon loop exited (frames: %d, detections: %d)", 
+                      self.frames_processed, self.detections_count)

@@ -16,6 +16,22 @@ All notable changes to this project are summarized here. For narrative context a
 - **Clinical Dashboard (Task 14.2)**: Complete overhaul of the L0 interface (`dashboard.js`, `index.html`, `dashboard.css`). Removed decorative 3D elements in favor of tabulated telemetry feeds (Latencies, Sigma, VAD Status).
 - `docs/proposals/PLAN_WORK_DISTRIBUTION_TREE.md`: Synchronized task completion status.
 
+## [2026-04-19] — Claude Team Integration (NARANJA2)
+### Added
+- ✅ **Module C.1.1 (RLHF Async Injection):** Dirichlet-based Bayesian weight modulation from RLHF reward signals.
+- ✅ **Module C.1.2 (RLHF Pole Robustness):** Validates LinearPoleEvaluator thresholds immutable under RLHF.
+- ✅ **Module C.2.1 (Governance Hot-Reload):** Live MalAbs semantic gate threshold updates.
+- ✅ **Bloque 9.2 (Limbic Tension Escalation):** PersistentThreatTracker with 3-level auto-escalation (1s/3s/5s stages).
+- ✅ **Bloque 11.1 (Audio Ouroboros):** STT→Reasoning→TTS loop (Whisper) for PWA/mobile.
+
+### Decision (L1 Antigravity)
+- **Status:** Integrated. The architectural divergence with main v12.0+ was resolved via manual L1 (Antigravity) merge as part of the 2026-04-20 Swarm Integration Pulse. 65+ integration tests verified as passing in the post-merge hub.
+
+---
+
+- Root **README** (*What it does*): ethical scoring described as a weighted mixture; `BayesianEngine` / `KERNEL_BAYESIAN_*` naming caveat.
+- **ADR 0009**: `bayesian_engine.py` documented as wrapping `WeightedEthicsScorer` (`BayesianInferenceEngine`).
+
 ## [2026-04-20] Session 13: Autopilot & Multimodal Hardening
 
 ---

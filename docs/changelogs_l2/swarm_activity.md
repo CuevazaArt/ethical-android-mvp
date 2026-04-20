@@ -470,3 +470,32 @@ This file is automatically managed by `scripts/swarm_sync.py`.
   - `docs/proposals/PLAN_WORK_DISTRIBUTION_TREE.md`
   - `src/modules/ethical_poles.py`
   - `src/modules/sigmoid_will.py`
+
+### 🛠️ Execution | Date: 2026-04-20 09:48:20 | Author: Anonymous Agent
+- **Block:** `Phase 9`
+- **Message:** Session 15: General Merge & Swarm Integration Pulse. Unified Tri-Lobe models, fixed kernel initialization, merged threat tracking, and hardened vision daemon integration.
+- **Files Modified:**
+  - `AGENTS.md`
+  - `CHANGELOG.md`
+  - `docs/changelogs_l2/NARANJA2_L1_SUPREMACY_PROTOCOL.md`
+  - `docs/changelogs_l2/NARANJA2_WAKE_UP_2026_04_19.md`
+  - `docs/changelogs_l2/NARANJA_GAP_CLOSURE_2026_04_19.md`
+  - `docs/changelogs_l2/NARANJA_WAKE_UP_2026_04_19.md`
+  - `docs/proposals/PROPOSAL_CLAUDE_TEAM_MERGE_STRATEGY_2026_04_19.md`
+  - `src/kernel.py`
+  - `src/kernel_lobes/limbic_lobe.py`
+  - `src/kernel_lobes/models.py`
+  - `src/kernel_lobes/perception_signals.py`
+  - `src/modules/audio_ouroboros.py`
+  - `src/modules/audit_chain_log.py`
+  - `src/modules/bayesian_engine.py`
+  - `src/modules/kernel_event_bus.py`
+  - `src/modules/persistent_threat_tracker.py`
+  - `src/modules/vision_inference.py`
+  - `tests/test_audit_chain_hardening.py`
+  - `tests/test_bloque_11_audio_ouroboros.py`
+  - `tests/test_modulo_9_limbic_tension.py`
+  - `tests/test_modulo_9_vision_daemon.py`
+  - `tests/test_modulo_c11_rlhf_bayesian.py`
+  - `tests/test_modulo_c12_rlhf_pole_robustness.py`
+  - `tests/test_modulo_c21_governance_hot_reload.py`

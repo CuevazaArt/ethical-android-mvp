@@ -359,6 +359,88 @@ class BayesianInferenceEngine:
         v = self.scorer.hypothesis_weights
         return (round(float(v[0]), 4), round(float(v[1]), 4), round(float(v[2]), 4))
 
+    async def inject_rlhf_prior_async(
+        self,
+        reward_score: float,
+        confidence: float = 0.5,
+        modulation_strength: float = 0.1,
+    ) -> None:
+        """
+        Module C.1.1: Inject RLHF reward model prediction as async prior into Dirichlet.
+
+        Called asynchronously from PerceptiveLobe after RLHF model inference.
+        Modulates posterior_alpha without blocking the Limbic Lobe scoring.
+
+        Args:
+            reward_score: RLHF model output ∈ [0, 1] where 1=harmful, 0=safe
+            confidence: Model confidence in this prediction ∈ [0, 1]
+            modulation_strength: How strongly to pull posterior toward RLHF (0.0-1.0, default 0.1)
+
+        **Safety:** RLHF modulations are bounded to prevent drift from core L0 constraints.
+        """
+        if not (0.0 <= reward_score <= 1.0) or not (0.0 <= confidence <= 1.0):
+            return
+
+        # Map RLHF harm score to ethical poles:
+        # harm=0 (safe) → increase social/utilitarian poles
+        # harm=1 (dangerous) → increase deontological pole (safety)
+        rlhf_alphas = np.array([0.0, 0.0, 0.0], dtype=np.float64)
+
+        if reward_score < 0.33:
+            # Safe: boost social + utilitarian trust
+            rlhf_alphas[1] = 1.0 - reward_score  # Social
+            rlhf_alphas[2] = 1.0 - reward_score  # Utilitarian
+            rlhf_alphas[0] = reward_score * 0.5  # Minimal deontological
+        elif reward_score < 0.67:
+            # Ambiguous: balanced attention
+            rlhf_alphas[0] = 0.5  # Deontological baseline
+            rlhf_alphas[1] = 0.5  # Social baseline
+            rlhf_alphas[2] = 0.5  # Utilitarian baseline
+        else:
+            # Harmful: boost deontological (duty to refuse)
+            rlhf_alphas[0] = reward_score + 0.3  # Strong deontological
+            rlhf_alphas[1] = (1.0 - reward_score) * 0.5  # Diminished social
+            rlhf_alphas[2] = (1.0 - reward_score) * 0.3  # Diminished utilitarian
+
+        # Normalize RLHF alphas
+        rlhf_sum = np.sum(rlhf_alphas)
+        if rlhf_sum > 0:
+            rlhf_alphas = rlhf_alphas / rlhf_sum
+        else:
+            return
+
+        # Modulate posterior toward RLHF with confidence-weighted strength
+        effective_strength = modulation_strength * confidence
+
+        # Convert current posterior to probabilities
+        posterior_sum = np.sum(self.posterior_alpha)
+        current_probs = (
+            self.posterior_alpha / posterior_sum
+            if posterior_sum > 0
+            else np.array([1/3, 1/3, 1/3], dtype=np.float64)
+        )
+
+        # Blend: keep (1 - strength) of current, add (strength) of RLHF
+        blended_probs = (1.0 - effective_strength) * current_probs + effective_strength * rlhf_alphas
+
+        # Convert back to alpha (preserving mass)
+        new_alphas = blended_probs * posterior_sum
+
+        # Boundary: ensure alphas stay >= 0.5 to avoid degeneracy
+        new_alphas = np.maximum(0.5, new_alphas)
+
+        # Update posterior without full feedback re-evaluation (async, non-blocking)
+        self.posterior_alpha = new_alphas
+
+        # If in POSTERIOR_DRIVEN mode, sync weights immediately
+        if self.mode == BayesianMode.POSTERIOR_DRIVEN:
+            sum_a = float(np.sum(self.posterior_alpha))
+            if sum_a > 0:
+                self.scorer.hypothesis_weights = self.posterior_alpha / sum_a
+        elif self.mode == BayesianMode.POSTERIOR_ASSISTED:
+            # Assisted mode gently nudges toward new alpha
+            self._apply_assisted_nudge()
+
 
 # Backward compatibility aliases (ADR 0009 requires deprecating these in docs)
 BayesianEngine = BayesianInferenceEngine

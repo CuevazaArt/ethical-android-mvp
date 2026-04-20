@@ -1,9 +1,11 @@
 from __future__ import annotations
 from typing import TYPE_CHECKING, Any, Optional
-from src.kernel_lobes.models import LimbicStageResult
+from src.kernel_lobes.models import LimbicStageResult, SemanticState, EthicalSentence
+from src.modules.persistent_threat_tracker import PersistentThreatTracker
 import time
 import math
 import logging
+import os
 
 _log = logging.getLogger(__name__)
 
@@ -20,6 +22,10 @@ class LimbicEthicalLobe:
     
     Acts as the 'Right Hemisphere' of the kernel, handling CPU-bound emotional 
     and relational context. No network I/O here (Phase-8 strict separation).
+
+    Bloque 9.2 Integration:
+    - Persistent Threat Tracking + Limbic Tension Escalation
+    - Tracks sustained perception hazards (timeout, low confidence >5s)
     """
     def __init__(
         self,
@@ -33,10 +39,11 @@ class LimbicEthicalLobe:
         self.locus = locus
         self.swarm = swarm
         self.situational_stress = 0.0  # Phase 9.2 Accumulator
+        self.threat_tracker = PersistentThreatTracker()
+        self.relational_tension: float = 0.0
 
     def update_situational_stress(self, level: float) -> None:
         """Accumulate or decay situational stress based on sensory alerts."""
-        # Persistent stress scales the baseline social tension
         self.situational_stress = max(0.0, min(1.0, level))
 
     def execute_stage(
@@ -56,10 +63,23 @@ class LimbicEthicalLobe:
         """
         t0 = time.perf_counter()
         
-        # Swarm Rule 2: Anti-NaN Hardening for input parameters
+        # Swarm Rule 2: Anti-NaN Hardening
         if not math.isfinite(trauma_magnitude):
             _log.warning("LimbicLobe: Non-finite trauma_magnitude detected. Resetting to 0.0")
             trauma_magnitude = 0.0
+
+        # Bloque 9.2: Threat Tracking Update
+        # If signals indicate low confidence or urgency from vision/audio, treat as threat load
+        threat_load = 0.0
+        if signals.get("urgency", 0.0) > 0.8 or signals.get("threat_level", 0.0) > 0.5:
+             threat_load = signals.get("threat_level", 0.5)
+        
+        confidence = signals.get("confidence", 1.0)
+        self.threat_tracker.update_threat_load(threat_load)
+        tension_delta = self.threat_tracker.get_tension_modulation()
+        
+        # Apply persistent tension delta to the base relational_tension
+        self.relational_tension = max(0.0, min(1.0, self.relational_tension + tension_delta * 0.1))
 
         # 1. Somatic Influences (Irritability) - Phase 11.2 Refinement
         somatic_tension = 0.0
@@ -67,18 +87,16 @@ class LimbicEthicalLobe:
             try:
                 temp = float(somatic_state.get("temp", 45.0))
                 batt = float(somatic_state.get("battery", 100.0))
-                # Soften somatic impact on relational tension
-                if temp > 75.0: # Raised threshold from 70.0
-                    somatic_tension += 0.15 # Reduced from 0.2
-                if batt < 15.0: # Lowered threshold from 20.0
-                    somatic_tension += 0.05 # Reduced from 0.1
+                if temp > 75.0:
+                    somatic_tension += 0.15
+                if batt < 15.0:
+                    somatic_tension += 0.05
                 if batt <= 5.0:
-                    # Phase 11.2: Shutdown Anxiety remains high but slightly capped
-                    somatic_tension += 0.3 # Reduced from 0.4
-                    signals["urgency"] = max(signals.get("urgency", 0.0), 0.85) # Reduced from 0.9
+                    somatic_tension += 0.3
+                    signals["urgency"] = max(signals.get("urgency", 0.0), 0.85)
                     signals["shutdown_threat"] = 1.0
             except (ValueError, TypeError):
-                pass # Ignore malformed somatic data
+                pass 
 
         # 2. Ingest social context
         self.uchi_soto.ingest_turn_context(
@@ -96,18 +114,16 @@ class LimbicEthicalLobe:
         # 4. Evaluations
         social_eval = self.uchi_soto.evaluate_interaction(signals, agent_id, message_content)
         
-        # Inject somatic, situational and identity trauma tension into social evaluation
-        # Trauma (Broken Mirror) creates a baseline irritability / hyper-vigilance
-        # Modulate total stress nudge by KERNEL_SENSORY_GAIN
-        import os
+        # Inject somatic, situational, threat and trauma tension
         try:
             gain = float(os.environ.get("KERNEL_SENSORY_GAIN", "1.0"))
             gain = max(0.0, min(2.0, gain))
         except (ValueError, TypeError):
             gain = 1.0
 
-        trauma_stress = trauma_magnitude * 0.3 # Reduced from 0.4
-        total_stress_nudge = (somatic_tension + (self.situational_stress * 0.4) + trauma_stress) * gain
+        trauma_stress = trauma_magnitude * 0.3
+        # Combined Stress Nudge: somatic + situational + trauma + persistent threat
+        total_stress_nudge = (somatic_tension + (self.situational_stress * 0.4) + trauma_stress + self.relational_tension) * gain
         
         if hasattr(social_eval, "relational_tension") and total_stress_nudge > 0:
             social_eval.relational_tension = max(0.0, min(1.0, social_eval.relational_tension + total_stress_nudge))
@@ -124,7 +140,7 @@ class LimbicEthicalLobe:
         )
         
         latency_ms = (time.perf_counter() - t0) * 1000
-        if latency_ms > 5.0: # Track heavy social computations
+        if latency_ms > 5.0:
              _log.debug("LimbicLobe: execute_stage latency: %.4f ms", latency_ms)
 
         return LimbicStageResult(
@@ -155,6 +171,9 @@ class LimbicEthicalLobe:
             trauma_magnitude
         )
 
+    def reset_threat_tracking(self):
+        """Reset threat tracker for clean state (used in testing/restart)."""
+        self.threat_tracker.reset()
+        self.relational_tension = 0.0
 
-# Stable name expected by ``kernel`` / ``kernel_lobes.__init__`` imports.
 LimbicLobe = LimbicEthicalLobe

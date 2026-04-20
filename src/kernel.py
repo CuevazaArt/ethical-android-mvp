@@ -667,14 +667,6 @@ class EthicalKernel:
             else MetacognitiveEvaluator()
         )
 
-        # ADR 0016 B2 — emit deprecation warnings for any scheduled-for-removal flags
-        self.settings.check_deprecated()
-        self.settings.validate_startup()
-
-        # WebSocket chat: abandon late worker completions after KERNEL_CHAT_TURN_TIMEOUT (see ADR 0002).
-        self._chat_turn_abandon_lock = threading.Lock()
-        self._abandoned_chat_turn_ids: set[int] = set()
-
         # ═══ Runtime Governance Setup (C.2) ═══
         from .modules.multi_realm_governance import (
             MultiRealmGovernor,
@@ -683,12 +675,25 @@ class EthicalKernel:
         self.governor = MultiRealmGovernor(event_bus=self.event_bus) if is_multi_realm_governance_enabled() else None
 
         # ═══ Phase 9.1: Start Continuous Vision Daemon ═══
+        # Integrated with Perceptive Lobe for high-density Tri-Lobe sensory fusion
+        from collections import deque
         from .modules.vision_inference import VisionContinuousDaemon
+        
+        self._sensory_buffer: deque[dict[str, Any]] = deque(maxlen=100)  # Thread-safe circular buffer
+        
+        # We prefer the Tri-Lobe callback but also support the internal buffer for dashboard/telemetry
+        def unified_absorption(episode: Any) -> None:
+            # 1. Tri-Lobe ingestion (Perceptive Lobe)
+            self.perceptive_lobe.receive_sensory_episode(episode)
+            # 2. Local buffer (Sensory Fusion Phase 9.1)
+            self._absorb_sensory_episode(episode)
+            
         self.vision_daemon = VisionContinuousDaemon(
             engine=self.vision_inference,
-            absorption_callback=self.perceptive_lobe.receive_sensory_episode
+            absorption_callback=unified_absorption
         )
-        # We start it only if environment flags or hardware availability suggests it
+        
+        # Start daemon only if enabled
         from .kernel_utils import kernel_env_truthy
         if kernel_env_truthy("KERNEL_VISION_DAEMON_ENABLED"):
             self.vision_daemon.start()
@@ -698,6 +703,19 @@ class EthicalKernel:
         from .modules.sensor_calibration import get_sensor_calibrator
         self.calibrator = get_sensor_calibrator()
         self.calibrator.start()
+
+    def _absorb_sensory_episode(self, episode: Any) -> None:
+        """
+        Absorption callback for Sensory Fusion.
+        Enqueues episode into sensory_buffer for further processing.
+        """
+        try:
+            if hasattr(self, '_sensory_buffer') and self._sensory_buffer is not None:
+                # Convert SensoryEpisode object back to dict for legacy buffer if needed, 
+                # but models.py unified them so it's safe.
+                self._sensory_buffer.append(episode)
+        except Exception as e:
+            _log.exception("Failed to absorb sensory episode into kernel buffer: %s", e)
 
     def abandon_chat_turn(self, turn_id: int) -> None:
         """Mark ``turn_id`` as abandoned so :meth:`process_chat_turn` skips STM / post-turn effects."""

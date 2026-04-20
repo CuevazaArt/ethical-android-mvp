@@ -56,9 +56,17 @@ The ethical-android-mvp project operates under a strict, multi-tiered collaborat
    - Manages the project's normative framework, rules, and cross-team integration funnel. 
    - Authorized to resolve conflicts, shape architecture, and enforce L0 immutability through Continuous Auditing.
    - **Solely responsible for coordinating all Level 2 teams (Claude, Team Cursor, Team Copilot, cursorultra, etc.).**
-3.  **Level 2 (Executing Units): Swarm Workers (Cursor, Copilot, Claude)**
-   - **Sovereign Autonomy Directive:** Antigravity (L1) has stabilized the Tri-Lobe architecture. L2 units operate purely organically as stateless workers. Do not stop to ask for permission for technical tasks. Pull from the open backlog, fix, run the sync script, and move on.
-   - All Level 2 units must strictly adhere to the Boy Scout rules, run continuous audits, and cannot modify foundational rules without L1 authorization.
+3.  **Level 2 (Executing Units): Swarm Workers (Claude, Cursor, Copilot, etc.)**
+    - **Sovereign Autonomy Directive:** Antigravity (L1) has stabilized the Tri-Lobe architecture. L2 units operate purely organically as stateless workers. Do not stop to ask for permission for technical tasks. Pull from the open backlog, fix, run the sync script, and move on.
+    - **Claude Team Specifics:** Specialized in complex cognitive modeling and deep ethics modules.
+      - **Implementation Status (2026-04-19):** 
+        - ✅ **Module C.1.1** (Async RLHF): Dirichlet-based Bayesian weight modulation.
+        - ✅ **Module C.1.2** (Pole Robustness): Validation against LinearPoleEvaluator corruption.
+        - ✅ **Module C.2.1** (Governance Hot-Reload): Live threshold updates via Event Bus.
+        - ✅ **Bloque 9.2** (Limbic Escalation): PersistentThreatTracker with 5s auto-escalation.
+        - ✅ **Bloque 11.1** (Audio Ouroboros): Full Whisper -> Kernel -> TTS loop.
+    - **Team Copilot Specifics:** Focused on repository hygiene, CI/CD stubs, and cross-module bug fixing.
+    - All Level 2 units must strictly adhere to the Boy Scout rules, run continuous audits, and cannot modify foundational rules without L1 authorization.
 
 ## Onboarding for New Teams
 
@@ -96,6 +104,8 @@ Para mitigar el "Efecto Túnel", se establece la siguiente restricción:
 Para minimizar conflictos y asegurar la inmutabilidad de la rama `main` (L0), el método de fusión ha sido reformado para máxima seguridad:
 
 1.  **Cierre del Bloque Atómico**: Solo se promoverán avances que cierren bloques lógicos completos del `PLAN_WORK_DISTRIBUTION_TREE.md`. "Trabajos en progreso" están prohibidos en `main`.
+   - **BLOCKER ACTUAL (2026-04-19):** Claude Team ha completado 5 módulos (C.1.1, C.1.2, C.2.1, 9.2, 11.1) con 65+ tests passing. Sin embargo, `git pull origin main` reveló que main branch ha evolucionado a v12.0+ (moral infrastructure hub, distributed justice, DAO pipelines) que diverge de la arquitectura de PLAN_WORK_DISTRIBUTION_TREE.md. Se detectaron 11 archivos con merge conflicts. **Requiere L1 decision:** (A) Rebase/redesign modules for v12.0+, (B) Mantener como feature branches, (C) L1 merge manual.
+   
 2.  **Sello de Calidad Antigravity (Auditoría Continua)**: El equipo Antigravity (L1) actúa como el Guardián de la Puerta y supervisa la fusión.
     - Se debe verificar la armonía total entre módulos (`run_cursor_integration_gate.py` / `verify_collaboration_invariants.py`).
     - *Antigravity Fast-Track:* Para mitigar el "cuello de botella de un solo aprobador" (crítica de eficiencia), si el L1 está inactivo >48h, los agentes L2 pueden iniciar un pull request hacia `master-antigravity` por sí mismos si y solo si todos los tests automatizados pasan.
