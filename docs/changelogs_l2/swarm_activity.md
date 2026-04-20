@@ -777,3 +777,9 @@ This file is automatically managed by `scripts/swarm_sync.py`.
   - `docs/proposals/PLAN_WORK_DISTRIBUTION_TREE.md`
   - `src/kernel_lobes/perception_lobe.py`
   - `tests/test_perceptive_lobe.py`
+
+### 🛠️ Execution | Date: 2026-04-20 17:34:25 | Author: Swarm_BoyScout
+- **Block:** `B.3`
+- **Message:** Boy Scout Hardening: Refactored EthosKernel for cleaner modularity. Extracted utilities and created LobeRegistry. Verified distributed brain and adversarial robustness.
+- **Files Modified:**
+  - `src/kernel_lobes/registry.py`
