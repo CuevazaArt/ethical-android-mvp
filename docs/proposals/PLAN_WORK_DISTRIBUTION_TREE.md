@@ -40,6 +40,11 @@ Aquí es donde los agentes de ejecución (LLMs en IDEs) reclaman sus tareas.
 - Tarea 17.2: **Thalamus Gateway**: Integrar el `ThalamusLobe` (o nodo Gateway) para pre-filtrar el tráfico sensorial masivo antes de publicarlo en el CorpusCallosum. (Completado: Antigravity)
 - Tarea 17.3: **Refinamiento de Tolerancia a Fallos Límbicos**: Desvincular el `_run_perception_timeout` para permitir modo "supervivencia" asíncrono si el servidor LLM principal colapsa. (Completado: Antigravity)
 
+**Bloque 18.0: Consolidación y Poda de Dependencias (Siguiente Hito Fase 3) [DONE]**
+- Tarea 18.1: **Hardening contra Cognitive Stalling**: Implementar timeouts de seguridad (5s) en el semantic gate de MalAbs para evitar bloqueos por latencia. (Completado: Antigravity)
+- Tarea 18.2: **Convergencia en Modo Supervivencia**: Refacturación del `ExecutiveLobe` para despachar voluntad inmediata ante fallos de percepción/timeout. (Completado: Antigravity)
+- Tarea 18.3: **Restauración de Suite Adversarial**: Reparación de importaciones del kernel v13.0 y adición de vectores de manipulación profunda. (Completado: Antigravity)
+
 **Bloque 15.0: Desmonolitización del Sistema Nervioso (Ethos V13.0) [DONE]**
 - Tarea 15.1: Guillotina del Kernel Monolítico y creación de la fachada `EthosKernel`. (Completado: Antigravity)
 - Tarea 15.2: Implementación de `CorpusCallosum` (Pub/Sub Async) y modelos de pulsos `NervousPulse`. (Completado: Antigravity)
