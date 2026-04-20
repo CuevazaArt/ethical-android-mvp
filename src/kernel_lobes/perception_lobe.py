@@ -67,12 +67,32 @@ class PerceptiveLobe:
 
     @staticmethod
     def _get_perception_timeout() -> float:
-        """Get timeout from KERNEL_CHAT_TURN_TIMEOUT or fallback to 30s."""
+        """Timeout for the outer httpx call (KERNEL_CHAT_TURN_TIMEOUT, default 30 s)."""
         timeout_str = os.environ.get("KERNEL_CHAT_TURN_TIMEOUT", "30")
         try:
-            return float(timeout_str)
-        except ValueError:
+            v = float(timeout_str)
+            return v if v > 0 else 30.0
+        except (ValueError, TypeError):
             return 30.0
+
+    @staticmethod
+    def _get_limbic_perception_timeout() -> float | None:
+        """
+        Hard asyncio timeout that caps the full ``run_perception_stage_async`` call
+        (LLM + sensor stack).  Prevents limbic latency from stalling Nomad text turns.
+
+        Env: ``KERNEL_LIMBIC_PERCEPTION_TIMEOUT`` seconds (default 12 s).
+        Set to 0 to disable.
+        """
+        raw = os.environ.get("KERNEL_LIMBIC_PERCEPTION_TIMEOUT", "12").strip()
+        try:
+            v = float(raw)
+            import math
+            if not math.isfinite(v):
+                return 12.0
+            return v if v > 0 else None
+        except (ValueError, TypeError):
+            return 12.0
 
     async def observe(self, raw_input: str, multimodal_payload: dict | None = None) -> SemanticState:
         """
@@ -184,7 +204,42 @@ class PerceptiveLobe:
         """
         Unified Tri-Lobe entry point for perception.
         Integrates with sensor stack, multimodal assessment, and limbic profiling.
+
+        A hard asyncio timeout (KERNEL_LIMBIC_PERCEPTION_TIMEOUT, default 12 s) caps
+        the entire stage so limbic latency never stalls Nomad text turns.  On timeout
+        the stage gracefully degrades: sensor signals are still computed; only the LLM
+        observation is replaced by a low-confidence SemanticState.
         """
+        lp_timeout = self._get_limbic_perception_timeout()
+        try:
+            result = await asyncio.wait_for(
+                self._run_perception_stage_inner(
+                    user_input, conversation_context, sensor_snapshot, turn_start_mono, precomputed
+                ),
+                timeout=lp_timeout,
+            )
+        except asyncio.TimeoutError:
+            latency_ms = int((time.perf_counter()) * 1000)  # approximate
+            import logging as _logging
+            _logging.getLogger(__name__).warning(
+                "PerceptionLobe: stage timeout after %.1fs (KERNEL_LIMBIC_PERCEPTION_TIMEOUT); "
+                "falling back to degraded perception.",
+                lp_timeout,
+            )
+            result = await self._run_perception_stage_degraded(
+                user_input, sensor_snapshot, precomputed, latency_ms
+            )
+        return result
+
+    async def _run_perception_stage_inner(
+        self,
+        user_input: str,
+        conversation_context: str = "",
+        sensor_snapshot: Optional[object] = None,
+        turn_start_mono: float = 0.0,
+        precomputed: Optional[tuple] = None,
+    ) -> "PerceptionStageResult":
+        """Core perception stage — called by run_perception_stage_async under wait_for."""
         from .models import PerceptionStageResult
         from src.modules.perception_confidence import build_perception_confidence_envelope
         from src.modules.multimodal_trust import evaluate_multimodal_trust
@@ -278,6 +333,72 @@ class PerceptiveLobe:
             "strategy_hint": limbic_profile.get("planning_bias", "balanced"),
             "limbic_resonance": limbic_profile.get("arousal_band", "low"),
         }
+
+    async def _run_perception_stage_degraded(
+        self,
+        user_input: str,
+        sensor_snapshot: Optional[object],
+        precomputed: Optional[tuple],
+        latency_ms: int,
+    ) -> "PerceptionStageResult":
+        """
+        Fallback perception stage used when KERNEL_LIMBIC_PERCEPTION_TIMEOUT is exceeded.
+
+        Sensor signals are still computed (fast, local).  The LLM observation is
+        replaced by a low-confidence SemanticState so the kernel can still respond
+        with reduced fidelity rather than hanging the turn.
+        """
+        from .models import PerceptionStageResult, SemanticState, TimeoutTrauma
+        from src.modules.perception_confidence import build_perception_confidence_envelope
+        from src.modules.multimodal_trust import evaluate_multimodal_trust
+        from src.modules.vitality import assess_vitality
+        from src.modules.epistemic_dissonance import assess_epistemic_dissonance
+
+        vitality = assess_vitality(sensor_snapshot)
+        multimodal = evaluate_multimodal_trust(sensor_snapshot)
+        epistemic = assess_epistemic_dissonance(sensor_snapshot, multimodal=multimodal)
+
+        degraded_perception = SemanticState(
+            perception_confidence=0.1,
+            raw_prompt=user_input,
+            summary="Limbic perception timeout — degraded response",
+            suggested_context="everyday",
+            sensory_latency_lag=latency_ms,
+            timeout_trauma=TimeoutTrauma(
+                source_lobe="limbic_perception_stage",
+                latency_ms=latency_ms,
+                severity=0.5,
+                context="KERNEL_LIMBIC_PERCEPTION_TIMEOUT exceeded; graceful degradation active",
+            ),
+        )
+
+        confidence_envelope = build_perception_confidence_envelope(
+            coercion_report=None,
+            multimodal_state=multimodal.state if multimodal else None,
+            epistemic_active=epistemic.active if epistemic else False,
+            vitality_critical=vitality.is_critical if vitality else False,
+            thermal_critical=vitality.thermal_critical if vitality else False,
+        )
+
+        limbic_profile = self._build_limbic_perception_profile(
+            degraded_perception, {}, vitality, multimodal, epistemic, confidence_envelope
+        )
+        support_buffer = self._build_support_buffer_snapshot("perception_degraded", limbic_profile)
+
+        return PerceptionStageResult(
+            tier=precomputed[0] if precomputed else None,
+            premise_advisory=precomputed[1] if precomputed else None,
+            reality_verification=precomputed[2] if precomputed else None,
+            perception=degraded_perception,
+            signals={},
+            vitality=vitality,
+            multimodal_trust=multimodal,
+            epistemic_dissonance=epistemic,
+            support_buffer=support_buffer,
+            limbic_profile=limbic_profile,
+            temporal_context=None,
+            perception_confidence=confidence_envelope,
+        )
     
     def _preprocess_text_observability(self, text: str):
         """Mock for kernel compatibility if missing elsewhere."""

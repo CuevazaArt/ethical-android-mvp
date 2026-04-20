@@ -19,9 +19,98 @@ let wsChat = null;
 let wsNomad = null;
 let isConnected = false;
 
-// We will default to localhost for DEV, but it should be set to the PC's actual LAN IP
-const PC_IP = window.location.hostname || "127.0.0.1";
-const WS_PORT = window.location.port || "8765"; // Use current port or default to 8765
+const NOMAD_LAST_GOOD_HOST_KEY = 'nomad:last_good_host';
+
+function _wsProtocol() {
+    return window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+}
+
+function _httpProtocol() {
+    return window.location.protocol === 'https:' ? 'https:' : 'http:';
+}
+
+async function resolveKernelEndpointCandidates() {
+    const candidates = [];
+    const currentHost = window.location.hostname || '127.0.0.1';
+    const currentPort = window.location.port || '8765';
+    const wsProto = _wsProtocol();
+    const baseCurrent = `${wsProto}//${currentHost}:${currentPort}`;
+
+    candidates.push({
+        host: currentHost,
+        chat_ws: `${baseCurrent}/ws/chat`,
+        nomad_ws: `${baseCurrent}/nomad_bridge/ws/nomad`,
+    });
+
+    const cachedHost = localStorage.getItem(NOMAD_LAST_GOOD_HOST_KEY);
+    if (cachedHost && cachedHost !== currentHost) {
+        const baseCached = `${wsProto}//${cachedHost}:${currentPort}`;
+        candidates.push({
+            host: cachedHost,
+            chat_ws: `${baseCached}/ws/chat`,
+            nomad_ws: `${baseCached}/nomad_bridge/ws/nomad`,
+        });
+    }
+
+    try {
+        const discoveryUrl = `${_httpProtocol()}//${currentHost}:${currentPort}/discovery/nomad`;
+        const resp = await fetch(discoveryUrl, { method: 'GET', cache: 'no-store' });
+        if (resp.ok) {
+            const payload = await resp.json();
+            const fromApi = Array.isArray(payload?.candidates) ? payload.candidates : [];
+            fromApi.forEach((row) => {
+                if (!row || typeof row !== 'object') return;
+                if (!row.chat_ws || !row.nomad_ws) return;
+                const already = candidates.some((c) => c.chat_ws === row.chat_ws);
+                if (!already) {
+                    candidates.push({
+                        host: row.host || currentHost,
+                        chat_ws: row.chat_ws,
+                        nomad_ws: row.nomad_ws,
+                    });
+                }
+            });
+        }
+    } catch (_) {
+        // Keep local fallback candidates when discovery endpoint is unavailable.
+    }
+
+    return candidates;
+}
+
+function connectPair(candidate) {
+    return new Promise((resolve, reject) => {
+        let settled = false;
+        const chat = new WebSocket(candidate.chat_ws);
+        const nomad = new WebSocket(candidate.nomad_ws);
+
+        const cleanupAndReject = (err) => {
+            if (settled) return;
+            settled = true;
+            try { chat.close(); } catch (_) {}
+            try { nomad.close(); } catch (_) {}
+            reject(err);
+        };
+
+        let chatReady = false;
+        let nomadReady = false;
+
+        const maybeResolve = () => {
+            if (settled) return;
+            if (chatReady && nomadReady) {
+                settled = true;
+                resolve({ chat, nomad, host: candidate.host });
+            }
+        };
+
+        chat.onopen = () => { chatReady = true; maybeResolve(); };
+        nomad.onopen = () => { nomadReady = true; maybeResolve(); };
+        chat.onerror = () => cleanupAndReject(new Error('chat ws connect failed'));
+        nomad.onerror = () => cleanupAndReject(new Error('nomad ws connect failed'));
+        chat.onclose = () => { if (!settled) cleanupAndReject(new Error('chat ws closed')); };
+        nomad.onclose = () => { if (!settled) cleanupAndReject(new Error('nomad ws closed')); };
+    });
+}
 
 /**
  * Reconnection Logic (Bloque F.4: Claude)
@@ -124,14 +213,31 @@ function setAppAffectState(state) {
 /**
  * Handle initial Backend Connection
  */
-function connectKernel() {
+async function connectKernel() {
     UI.statusText.innerText = "Connecting...";
-    
-    // Determine protocol: WSS for HTTPS, WS for HTTP
-    const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
-    
+
     try {
-        wsChat = new WebSocket(`${protocol}//${PC_IP}:${WS_PORT}/ws/chat`);
+        const candidates = await resolveKernelEndpointCandidates();
+        let connected = null;
+        for (const c of candidates) {
+            try {
+                connected = await connectPair(c);
+                break;
+            } catch (_) {
+                // Try next candidate.
+            }
+        }
+        if (!connected) {
+            throw new Error('No reachable kernel endpoint candidate');
+        }
+
+        wsChat = connected.chat;
+        wsNomad = connected.nomad;
+        try {
+            localStorage.setItem(NOMAD_LAST_GOOD_HOST_KEY, connected.host || '');
+        } catch (_) {
+            // Non-fatal in private browsing/storage-restricted contexts.
+        }
         
         wsChat.onopen = () => {
             isConnected = true;
@@ -250,8 +356,6 @@ function connectKernel() {
             }
         };
 
-        // Antigravity & Cursor - add wsNomad initialization for the sensor stream
-        wsNomad = new WebSocket(`${protocol}//${PC_IP}:${WS_PORT}/nomad_bridge/ws/nomad`);
         wsNomad.onopen = () => { 
             console.log('Nomad Sensory Bridge established');
             // Heavy Heartbeat (Fase 12.2)

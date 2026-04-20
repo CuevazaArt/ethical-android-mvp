@@ -132,7 +132,7 @@ from contextlib import asynccontextmanager
 from dataclasses import asdict
 from typing import Any
 
-from fastapi import FastAPI, WebSocket, WebSocketDisconnect
+from fastapi import FastAPI, Request, WebSocket, WebSocketDisconnect
 from fastapi.responses import JSONResponse, Response
 from fastapi.staticfiles import StaticFiles
 
@@ -185,6 +185,12 @@ from .modules.moral_hub import (
     moral_hub_public_enabled,
     proposal_to_public,
     submit_constitution_draft_for_vote,
+)
+from .modules.nomad_discovery import (
+    NomadDiscoveryAnnouncer,
+    build_nomad_discovery_payload,
+    nomad_discovery_service_name,
+    nomad_discovery_service_type,
 )
 from .modules.nomad_identity import nomad_identity_public
 from .modules.perception_schema import perception_report_from_dict
@@ -259,40 +265,33 @@ async def _lifespan(app: FastAPI):
     aclient = httpx.AsyncClient(timeout=30.0)
     app.state.aclient = aclient
 
-    # Phase 13.1: Global Persistent Kernel for Nomad Hardware Loop (Chat Auto-Reconnect)
-    from .kernel import EthicalKernel
-    from .settings import kernel_settings
-    from .persistence.checkpoint import checkpoint_persistence_from_env
-    st = kernel_settings()
-    hw_kernel = EthicalKernel(
-        variability=st.kernel_variability,
-        llm_mode=st.llm_mode,
-        checkpoint_persistence=checkpoint_persistence_from_env(),
-        aclient=aclient
-    )
-    from .modules.nomad_chat_adapter import start_nomad_chat_consumer, stop_nomad_chat_consumer_async
-    start_nomad_chat_consumer(hw_kernel) if os.environ.get("KERNEL_NOMAD_CHAT_CONSUMER", "1") == "1" else None
+    # Bloque 14.1: optional mDNS/Zeroconf advertisement for Nomad auto-discovery.
+    from .chat_settings import chat_server_settings
 
-    # Phase 14.1: Auto-Descubrimiento (mDNS/Zeroconf)
-    from .modules.zeroconf_discovery import start_zeroconf_broadcast, stop_zeroconf_broadcast
-    from .chat_server import get_uvicorn_bind
-    _, port = get_uvicorn_bind()
-    start_zeroconf_broadcast(port)
+    cst = chat_server_settings()
+    announcer = NomadDiscoveryAnnouncer(
+        bind_host=cst.chat_host,
+        bind_port=cst.chat_port,
+        service_name=nomad_discovery_service_name(),
+        service_type=nomad_discovery_service_type(),
+    )
+    announcer.start()
+    app.state.nomad_discovery_announcer = announcer
 
     try:
         yield
     finally:
-        # Phase 9, 13 & 14: Graceful shutdown of consumers
-        stop_zeroconf_broadcast()
-        
-        from .modules.nomad_chat_adapter import stop_nomad_chat_consumer_async
-        await stop_nomad_chat_consumer_async()
-        
+        # Phase 9: Graceful shutdown of consumers
         await stop_nomad_vision_consumer_async()
         await stop_nomad_telemetry_consumer_async()
         await stop_nomad_audio_consumer_async()
 
         from .real_time_bridge import shutdown_chat_threadpool
+
+        try:
+            announcer.stop()
+        except Exception:
+            pass
 
         await aclient.aclose()
         shutdown_chat_threadpool(wait=True)
@@ -329,6 +328,56 @@ async def nomad_migration_meta() -> Response:
         "description": "HAL v11 Conscious Migration protocol (simulated)"
     })
 
+
+@app.get("/nomad/clinical")
+def nomad_clinical() -> dict[str, Any]:
+    """Bloque 14.2: Clinical telemetry snapshot — pure Float/Boolean tabular feed.
+
+    Returns raw, undecorated sensor metrics from the live NomadBridge for
+    operator dashboards, health monitors, and LAN diagnostic tooling.
+    No narrative, no styling — only typed scalars.
+    """
+    nb = get_nomad_bridge()
+    meta = nb.vessel_metadata
+    ctx = nb.vessel_context
+
+    battery: float | None = None
+    try:
+        battery = float(ctx.battery_fraction) if ctx.battery_fraction is not None else None
+    except (TypeError, ValueError):
+        battery = None
+
+    latency_ms: int = 0
+    try:
+        latency_ms = int(meta.get("latency_ms", 0))
+    except (TypeError, ValueError):
+        latency_ms = 0
+
+    rms = nb.last_rms
+    rms_safe = rms if (isinstance(rms, float) and math.isfinite(rms)) else 0.0
+
+    return {
+        "schema": "nomad_clinical_v1",
+        "vessel_online": bool(nb._is_vessel_healthy),
+        "vad_speaking": bool(nb.vad_speaking),
+        "rms_audio": rms_safe,
+        "latency_ms": latency_ms,
+        "battery_fraction": battery,
+        "thermal_state": str(meta.get("thermal_state", "unknown")),
+        "connection_type": str(meta.get("connection_type", "unknown")),
+        "vessel_id": str(meta.get("vessel_id", "none")),
+        "device_label": str(ctx.device_label),
+        "queues": {
+            "vision_depth": nb.vision_queue.qsize(),
+            "audio_depth": nb.audio_queue.qsize(),
+            "telemetry_depth": nb.telemetry_queue.qsize(),
+            "charm_feedback_depth": nb.charm_feedback_queue.qsize(),
+            "chat_text_depth": nb.chat_text_queue.qsize(),
+        },
+        "last_sensor_update_delta_s": round(time.time() - nb._last_sensor_update, 3),
+    }
+
+
 # Phase 10: Mount the Nomad PWA Client directly to bypass external web servers.
 nomad_pwa_path = os.path.join(os.path.dirname(__file__), "clients", "nomad_pwa")
 if os.path.exists(nomad_pwa_path):
@@ -358,10 +407,70 @@ else:
 
 @app.websocket("/ws/nomad")
 async def nomad_bridge_ws_handler(websocket: WebSocket) -> None:
-    """Nomad LAN bridge sensory endpoint (Module S)."""
-    from .modules.nomad_bridge import get_nomad_bridge
+    """Nomad LAN bridge sensory endpoint (Module S).
 
-    await get_nomad_bridge().handle_websocket(websocket)
+    Bloque 13.1: chat_text messages received on /ws/nomad are relayed to a
+    lightweight kernel turn protected by KERNEL_NOMAD_CHAT_TIMEOUT (default 5 s)
+    so Nomad typed input is never blocked by full limbic-latency stalls.
+    """
+    from .modules.nomad_bridge import get_nomad_bridge
+    from .settings import kernel_settings
+
+    st = kernel_settings()
+    nomad_timeout = st.kernel_nomad_chat_timeout_seconds
+
+    nomad_kernel = EthicalKernel(
+        variability=st.kernel_variability,
+        llm_mode=st.llm_mode,
+        aclient=getattr(websocket.app.state, "aclient", None),
+    )
+    nomad_rt_bridge = RealTimeBridge(nomad_kernel)
+    nb = get_nomad_bridge()
+
+    async def _nomad_chat_callback(text: str) -> None:
+        """Process a Nomad typed message with a strict timeout (Bloque 13.1)."""
+        t0 = time.perf_counter()
+        try:
+            gen = nomad_rt_bridge.process_chat_stream(text, agent_id="nomad", place="chat")
+            it = gen.__aiter__()
+            result = None
+            while True:
+                try:
+                    event = await asyncio.wait_for(it.__anext__(), timeout=nomad_timeout)
+                    if event["event_type"] == "turn_finished":
+                        result = event["payload"]["result"]
+                        break
+                except asyncio.TimeoutError:
+                    logger.warning(
+                        "nomad_chat_text_timeout text_len=%d timeout=%.1fs",
+                        len(text), nomad_timeout,
+                    )
+                    record_chat_turn_async_timeout()
+                    try:
+                        nb.charm_feedback_queue.put_nowait(
+                            {"type": "error", "message": "nomad_chat_turn_timeout"}
+                        )
+                    except Exception:
+                        pass
+                    break
+                except StopAsyncIteration:
+                    break
+            if result is not None:
+                observe_chat_turn(result.path, time.perf_counter() - t0)
+                response_text = result.response.message if result.response else ""
+                if response_text:
+                    try:
+                        nb.charm_feedback_queue.put_nowait(
+                            {"type": "kernel_voice", "text": response_text}
+                        )
+                    except Exception:
+                        pass
+        except asyncio.CancelledError:
+            raise
+        except Exception as chat_e:
+            logger.warning("nomad_chat_text error: %s", chat_e)
+
+    await nb.handle_websocket(websocket, chat_text_callback=_nomad_chat_callback)
 
 @app.websocket("/ws/dashboard")
 async def dashboard_ws_handler(websocket: WebSocket) -> None:
@@ -1080,7 +1189,35 @@ def health() -> dict[str, Any]:
     from .modules.nomad_bridge import get_nomad_bridge
 
     out["nomad_bridge"] = get_nomad_bridge().public_queue_stats()
+    announcer = getattr(app.state, "nomad_discovery_announcer", None)
+    out["nomad_discovery"] = {
+        "enabled": bool(announcer is not None),
+        "mdns_registered": bool(getattr(announcer, "registered", False)),
+        "service_name": nomad_discovery_service_name(),
+        "service_type": nomad_discovery_service_type(),
+        "endpoint": "/discovery/nomad",
+    }
     return out
+
+
+@app.get("/discovery/nomad")
+def nomad_discovery(request: Request) -> dict[str, Any]:
+    """Bloque 14.1: endpoint consumido por PWA para auto-descubrimiento LAN."""
+    from .chat_settings import chat_server_settings
+
+    st = chat_server_settings()
+    host = request.url.hostname or st.chat_host
+    scheme = request.url.scheme or "http"
+    announcer = getattr(app.state, "nomad_discovery_announcer", None)
+    return build_nomad_discovery_payload(
+        request_host=host,
+        request_scheme=scheme,
+        bind_host=st.chat_host,
+        bind_port=st.chat_port,
+        mdns_registered=bool(getattr(announcer, "registered", False)),
+        mdns_service_name=nomad_discovery_service_name(),
+        mdns_service_type=nomad_discovery_service_type(),
+    )
 
 
 @app.get("/dao/governance")
@@ -1371,6 +1508,8 @@ def root() -> JSONResponse:
     body: dict[str, Any] = {
         "service": "ethos-kernel-chat",
         "websocket": "/ws/chat",
+        "nomad_discovery": "/discovery/nomad (LAN auto-discovery payload + mDNS metadata)",
+        "nomad_clinical": "/nomad/clinical (Bloque 14.2 — raw Float/Boolean clinical telemetry snapshot)",
         "constitution": "/constitution (requires KERNEL_MORAL_HUB_PUBLIC=1)",
         "dao_governance": "/dao/governance (V12.3 vote protocol; KERNEL_MORAL_HUB_DAO_VOTE for WebSocket actions)",
         "nomad_migration": "/nomad/migration (KERNEL_NOMAD_SIMULATION + optional KERNEL_NOMAD_MIGRATION_AUDIT)",

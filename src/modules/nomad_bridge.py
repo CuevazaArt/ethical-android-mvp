@@ -8,7 +8,7 @@ import time
 import hmac
 import hashlib
 import os
-from typing import Any, Union, Optional
+from typing import Any, Callable, Coroutine, Union, Optional
 from .hardware_abstraction import HardwareContext, ComputeTier
 from ..observability.metrics import record_nomad_bridge_connection
 
@@ -42,15 +42,18 @@ class NomadBridge:
         self.audio_queue: asyncio.Queue[bytes] = asyncio.Queue(maxsize=20)
         self.telemetry_queue: asyncio.Queue[dict[str, Any]] = asyncio.Queue(maxsize=10)
         self.charm_feedback_queue: asyncio.Queue[dict[str, Any]] = asyncio.Queue(maxsize=10)
-        self.chat_queue: asyncio.Queue[dict[str, Any]] = asyncio.Queue(maxsize=5)
-        
+        # Bloque 13.1: relay queue for chat_text messages arriving via /ws/nomad
+        self.chat_text_queue: asyncio.Queue[str] = asyncio.Queue(maxsize=20)
+
         # Phase 10: L0 Dashboard Telemetry Broadcaster
         self.dashboard_queues: list[asyncio.Queue[dict[str, Any]]] = []
         self.last_rms = 0.0
         self._last_sensor_update = time.time()
         self._is_vessel_healthy = False
-        self._last_dash_frame = 0 # Throttling for dashboard (S.2.1)
+        self._last_dash_frame = 0  # Throttling for dashboard (S.2.1)
         self._last_heartbeat = 0.0
+        # Bloque 13.1: VAD speaking state tracked server-side
+        self.vad_speaking: bool = False
         
         # S.1.1 Hardening: Vessel State Tracking (HAL Aligned)
         self.vessel_context: HardwareContext = HardwareContext(
@@ -120,8 +123,19 @@ class NomadBridge:
 
                 await self.handle_websocket(websocket)
 
-    async def handle_websocket(self, websocket: WebSocket) -> None:
-        """Handles a Nomad smartphone connection after handshake."""
+    async def handle_websocket(
+        self,
+        websocket: WebSocket,
+        chat_text_callback: Optional[Callable[[str], Coroutine[Any, Any, None]]] = None,
+    ) -> None:
+        """Handles a Nomad smartphone connection after handshake.
+
+        Args:
+            websocket: The connected WebSocket client.
+            chat_text_callback: Optional async callable invoked with each dequeued
+                ``chat_text`` message.  When provided, a consumer task runs
+                concurrently alongside the recv/send loops.
+        """
         try:
             await websocket.accept()
             self._is_vessel_healthy = True
@@ -132,15 +146,18 @@ class NomadBridge:
             _log.error("Nomad Bridge: Failed to accept connection: %s", e)
             return
 
-        recv_task = asyncio.create_task(self._recv_loop(websocket))
-        send_task = asyncio.create_task(self._send_loop(websocket))
+        tasks: list[asyncio.Task[Any]] = [
+            asyncio.create_task(self._recv_loop(websocket)),
+            asyncio.create_task(self._send_loop(websocket)),
+        ]
+        if chat_text_callback is not None:
+            tasks.append(asyncio.create_task(self._chat_text_consumer(chat_text_callback)))
 
         try:
             _, pending = await asyncio.wait(
-                [recv_task, send_task],
+                tasks,
                 return_when=asyncio.FIRST_COMPLETED,
             )
-
             for task in pending:
                 task.cancel()
         except Exception as e:
@@ -148,6 +165,30 @@ class NomadBridge:
         finally:
             self._is_vessel_healthy = False
             _log.info("Nomad Bridge: Nomad Vessel disconnected.")
+
+    async def _chat_text_consumer(
+        self,
+        callback: Callable[[str], Coroutine[Any, Any, None]],
+    ) -> None:
+        """Bloque 13.1: drain chat_text_queue and invoke callback for each message.
+
+        Runs concurrently with _recv_loop / _send_loop and is cancelled on disconnect.
+        """
+        try:
+            while True:
+                try:
+                    text = await self.chat_text_queue.get()
+                    if text:
+                        try:
+                            await callback(text)
+                        except Exception as cb_e:
+                            _log.warning("Nomad Bridge: chat_text_callback error: %s", cb_e)
+                except asyncio.CancelledError:
+                    raise
+                except Exception as e:
+                    _log.warning("Nomad Bridge: chat_text_consumer error: %s", e)
+        except asyncio.CancelledError:
+            pass
 
     def broadcast_to_dashboards(self, msg: dict[str, Any]) -> None:
         """Sends a message to all connected dashboards (Module S / Phase 10)."""
@@ -168,7 +209,14 @@ class NomadBridge:
             self._last_broadcast_log = time.time()
 
     def public_queue_stats(self) -> dict[str, Any]:
-        """Returns key metrics and queue depths for the L0 health monitor."""
+        """Returns key metrics and queue depths for the L0 health monitor.
+
+        Bloque 14.2: includes ``last_rms`` (float [0,1]) and ``vad_speaking`` (bool)
+        so the clinical dashboard can render raw sensor floats without polling the
+        audio broadcast separately.
+        """
+        rms = self.last_rms
+        rms = rms if (isinstance(rms, float) and math.isfinite(rms)) else 0.0
         return {
             "vision_queue_depth": self.vision_queue.qsize(),
             "audio_queue_depth": self.audio_queue.qsize(),
@@ -177,7 +225,10 @@ class NomadBridge:
             "vessel_online": is_vessel_online(),
             "vessel_metadata": self.vessel_metadata,
             "vessel_context": self.vessel_context.to_public_dict(),
-            "last_sensor_update_delta": round(time.time() - self._last_sensor_update, 2)
+            "last_sensor_update_delta": round(time.time() - self._last_sensor_update, 2),
+            # Bloque 14.2 — clinical raw fields
+            "last_rms": round(rms, 4),
+            "vad_speaking": bool(self.vad_speaking),
         }
 
     async def _recv_loop(self, ws: WebSocket) -> None:
@@ -294,6 +345,37 @@ class NomadBridge:
                         self.telemetry_queue.put_nowait(payload)
                         self._last_sensor_update = time.time()
 
+                    elif event_type == "vad_event":
+                        # Bloque 13.1: track VAD state server-side for situational awareness
+                        try:
+                            state = str(payload.get("state", "")).strip()
+                            if state == "speech_start":
+                                self.vad_speaking = True
+                            elif state == "speech_end":
+                                self.vad_speaking = False
+                            self.broadcast_to_dashboards({
+                                "type": "vad_state",
+                                "payload": {"speaking": self.vad_speaking},
+                            })
+                        except Exception as vad_e:
+                            _log.warning("Nomad Bridge: vad_event parse error: %s", vad_e)
+
+                    elif event_type == "chat_text":
+                        # Bloque 13.1: relay typed text from Nomad UI to the kernel chat queue
+                        # (processed by chat_server.py with KERNEL_NOMAD_CHAT_TIMEOUT)
+                        try:
+                            text = str(payload.get("text", "")).strip()
+                            if text:
+                                if self.chat_text_queue.full():
+                                    try:
+                                        self.chat_text_queue.get_nowait()
+                                    except asyncio.QueueEmpty:
+                                        pass
+                                self.chat_text_queue.put_nowait(text)
+                                _log.debug("Nomad Bridge: chat_text queued (%d chars)", len(text))
+                        except Exception as ct_e:
+                            _log.warning("Nomad Bridge: chat_text parse error: %s", ct_e)
+
                     elif event_type == "pong":
                         sent_at = payload.get("timestamp", 0)
                         if sent_at > 0:
@@ -307,13 +389,6 @@ class NomadBridge:
                             "event": event_type,
                             "payload": payload
                         })
-
-                    elif event_type == "user_input":
-                        # Phase 13.1: Smartphone chat message
-                        if self.chat_queue.full():
-                            self.chat_queue.get_nowait()
-                        self.chat_queue.put_nowait(payload)
-                        _log.info("Nomad Bridge: Chat message received from Vessel.")
 
                 except Exception as inner_e:
                     _log.error("Nomad Bridge inner loop error: %s", inner_e)

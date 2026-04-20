@@ -4,5 +4,35 @@
     "last_seen": 1776401694.3542988,
     "reputation": 0.0,
     "confirmed_witnesses": 0
+  },
+  "peer_001": {
+    "node_id": "peer_001",
+    "last_seen": 1776700150.8688622,
+    "reputation": 1.0,
+    "confirmed_witnesses": 5
+  },
+  "peer_002": {
+    "node_id": "peer_002",
+    "last_seen": 1776700151.0206292,
+    "reputation": 0.7000000000000001,
+    "confirmed_witnesses": 0
+  },
+  "peer_003": {
+    "node_id": "peer_003",
+    "last_seen": 1776700151.5453253,
+    "reputation": 1.0,
+    "confirmed_witnesses": 10
+  },
+  "persistent_peer": {
+    "node_id": "persistent_peer",
+    "last_seen": 1776700151.9447408,
+    "reputation": 1.0,
+    "confirmed_witnesses": 1
+  },
+  "witness_node_001": {
+    "node_id": "witness_node_001",
+    "last_seen": 1776700152.162707,
+    "reputation": 1.0,
+    "confirmed_witnesses": 8
   }
 }
