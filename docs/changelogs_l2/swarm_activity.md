@@ -760,3 +760,12 @@ This file is automatically managed by `scripts/swarm_sync.py`.
   - `src/nervous_system/corpus_callosum.py`
   - `tests/stress_thalamus_filtering.py`
   - `tests/test_v13_distributed_brain.py`
+
+### 🛠️ Execution | Date: 2026-04-20 17:31:23 | Author: Cursor L2
+- **Block:** `17.2`
+- **Message:** CorpusCallosum: ingress gate, batch+yield dispatch, semaphore backpressure, variable modulator delay; BusModulator optional psutil CPU blend
+- **Files Modified:**
+  - `docs/proposals/PLAN_WORK_DISTRIBUTION_TREE.md`
+  - `src/nervous_system/bus_modulator.py`
+  - `tests/stress_nervous_system.py`
+  - `tests/test_corpus_callosum.py`

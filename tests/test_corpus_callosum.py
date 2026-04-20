@@ -50,3 +50,38 @@ async def test_corpus_callosum_priority_dropping():
     await bus.publish(DummyPulse(priority=0))
     
     assert bus.pulses_dropped > 0, "Should drop priority 1 pulse due to high load factor"
+
+
+@pytest.mark.asyncio
+async def test_ingress_gate_drops_pulse():
+    bus = CorpusCallosum(max_qsize=100)
+    bus.start()
+
+    def gate(_p):
+        return False
+
+    bus.set_ingress_gate(gate)
+    await bus.publish(DummyPulse())
+
+    await asyncio.sleep(0.05)
+    assert bus.pulses_gated == 1
+    assert bus.total_pulses_processed == 0
+
+    await bus.stop()
+
+
+@pytest.mark.asyncio
+async def test_unsubscribe_removes_listener():
+    bus = CorpusCallosum()
+    seen = []
+
+    async def sub(p):
+        seen.append(p)
+
+    bus.subscribe(DummyPulse, sub)
+    bus.unsubscribe(DummyPulse, sub)
+    bus.start()
+    await bus.publish(DummyPulse())
+    await asyncio.sleep(0.05)
+    assert seen == []
+    await bus.stop()

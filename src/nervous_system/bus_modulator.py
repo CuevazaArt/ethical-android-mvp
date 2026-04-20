@@ -41,6 +41,8 @@ class BusModulator:
     async def _monitor_loop(self):
         """Main loop for biological throttling with awareness of queue caps."""
         from src.kernel_lobes.models import GlobalDegradationPulse
+
+        cpu_ema = 0.0
         while self._running:
             # Check saturation percentage per channel
             saturation_scores = []
@@ -48,10 +50,21 @@ class BusModulator:
                 if queue.maxsize > 0:
                     sat = queue.qsize() / queue.maxsize
                     saturation_scores.append(sat)
-            
-            # The system load is the worst-case saturation
-            new_load = max(saturation_scores) if saturation_scores else 0.0
-            
+
+            queue_load = max(saturation_scores) if saturation_scores else 0.0
+
+            cpu_load = 0.0
+            try:
+                import psutil  # type: ignore[import-untyped]
+
+                cpu_load = float(psutil.cpu_percent(interval=None)) / 100.0
+            except Exception:
+                cpu_load = 0.0
+            cpu_ema = (cpu_ema * 0.85) + (cpu_load * 0.15)
+
+            # Blend queue saturation with CPU so multi-node / single host spikes both modulate.
+            new_load = max(queue_load, cpu_ema * 0.95)
+
             # Exponential smoothing
             self.load_factor = (self.load_factor * 0.7) + (new_load * 0.3)
             

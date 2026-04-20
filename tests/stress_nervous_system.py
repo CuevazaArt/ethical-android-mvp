@@ -61,7 +61,7 @@ async def run_stress_test(duration=5.0, high_load=True):
         print(f"    - Pulses Sent: {pulses_sent} | Received: {lobe.pulses_received} | Load: {modulator.load_factor:.2f} | Saturation: {lobe.degradation_level:.2f}")
         await asyncio.sleep(1.0)
     
-    bus.stop()
+    await bus.stop()
     await modulator.stop()
     
     print(f"\n[!] Stress Test Finished.")
