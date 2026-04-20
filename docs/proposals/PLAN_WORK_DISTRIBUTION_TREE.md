@@ -30,10 +30,15 @@ Aquí es donde los agentes de ejecución (LLMs en IDEs) reclaman sus tareas.
 
 ## 🚀 BACKLOG ABIERTO (Próximos Pasos V13.0+)
 
-**Bloque 16.0: Refinamiento de la Telemetría y Modulación Neuronal [PENDING]**
-- Tarea 16.1: **Visualización de Carga del Bus**: Integración de métricas de latencia de `CorpusCallosum` en el Dashboard Clínico (WebSockets).
-- Tarea 16.2: **Throttling Dinámico del Bus**: Implementar lógica en `BusModulator` para ajustar el `asyncio.sleep` de los lóbulos basado en el uso de CPU.
-- Tarea 16.3: **Decoupling de Judgement**: Mover la lógica de `AbsoluteEvilDetector` de forma nativa al loop reactivo del `ExecutiveLobe` sin dependencias del kernel.
+**Bloque 16.0: Refinamiento de la Telemetría y Modulación Neuronal [DONE]**
+- Tarea 16.1: **Visualización de Carga del Bus**: Integración de métricas de latencia de `CorpusCallosum` en el Dashboard Clínico (WebSockets). (Completado: Antigravity)
+- Tarea 16.2: **Throttling Dinámico del Bus**: Implementar lógica en `BusModulator` para ajustar el `asyncio.sleep` de los lóbulos basado en el uso de CPU. (Completado: Antigravity)
+- Tarea 16.3: **Decoupling de Judgement**: Mover la lógica de `AbsoluteEvilDetector` de forma nativa al loop reactivo del `ExecutiveLobe` sin dependencias del kernel. (Completado: Antigravity)
+
+**Bloque 17.0: Reducción del Monolito Perceptual (Siguiente Hito Fase 2 Lóbulos) [PENDING]**
+- Tarea 17.1: **Decoupling del Sensory Cortex**: Desensamblar `PerceptiveLobe` para mover `MultimodalTrust` y `Vitality` a observadores asíncronos en el Bus.
+- Tarea 17.2: **Thalamus Gateway**: Integrar el `ThalamusLobe` (o nodo Gateway) para pre-filtrar el tráfico sensorial masivo antes de publicarlo en el CorpusCallosum.
+- Tarea 17.3: **Refinamiento de Tolerancia a Fallos Límbicos**: Desvincular el `_run_perception_timeout` para permitir modo "supervivencia" asíncrono si el servidor LLM principal colapsa.
 
 **Bloque 15.0: Desmonolitización del Sistema Nervioso (Ethos V13.0) [DONE]**
 - Tarea 15.1: Guillotina del Kernel Monolítico y creación de la fachada `EthosKernel`. (Completado: Antigravity)
