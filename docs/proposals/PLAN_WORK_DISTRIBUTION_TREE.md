@@ -40,10 +40,10 @@ Aquí es donde los agentes de ejecución (LLMs en IDEs) reclaman sus tareas.
 - Tarea 17.2: **Thalamus Gateway**: Integrar el `ThalamusLobe` (o nodo Gateway) para pre-filtrar el tráfico sensorial masivo antes de publicarlo en el CorpusCallosum. (Completado: Antigravity)
 - Tarea 17.3: **Refinamiento de Tolerancia a Fallos Límbicos**: Desvincular el `_run_perception_timeout` para permitir modo "supervivencia" asíncrono si el servidor LLM principal colapsa. (Completado: Antigravity)
 
-**Bloque 19.0: Sello de Calidad y Cierre de Brechas (Stabilization Tranche) [PENDING]**
-- Tarea 19.1: **Expansión de Input Trust**: Añadir anchors semánticos para `HARM_TO_MINOR`, `TORTURE` y `DIGNITY_VIOLATION` en `semantic_chat_gate.py`.
-- Tarea 19.2: **Corrección de Evidencia (P0)**: Alineación de `docs/proposals/RUNTIME_PHASES.md` con la implementación real de encriptación en `json_store.py`.
-- Tarea 19.3: **Poda del Monolito (Regla Boy Scout)**: Extraer la lógica de gestión de sesión y contexto de `src/kernel.py` hacia un módulo especializado.
+**Bloque 19.0: Sello de Calidad y Cierre de Brechas (Stabilization Tranche) [DONE]**
+- Tarea 19.1: **Expansión de Input Trust**: Añadir anchors semánticos para `HARM_TO_MINOR`, `TORTURE` y `DIGNITY_VIOLATION` en `semantic_chat_gate.py`. (Completado: Antigravity)
+- Tarea 19.2: **Corrección de Evidencia (P0)**: Alineación de `docs/proposals/RUNTIME_PHASES.md` con la implementación real de encriptación en `json_store.py`. (Completado: Antigravity)
+- Tarea 19.3: **Poda del Monolito (Regla Boy Scout)**: Extraer la lógica de gestión de sesión y contexto de `src/kernel.py` hacia un módulo especializado. (Completado: Antigravity)
 
 **Bloque 18.0: Consolidación y Poda de Dependencias (Siguiente Hito Fase 3) [DONE]**
 - Tarea 18.1: **Hardening contra Cognitive Stalling**: Implementar timeouts de seguridad (5s) en el semantic gate de MalAbs para evitar bloqueos por latencia. (Completado: Antigravity)

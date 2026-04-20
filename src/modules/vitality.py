@@ -9,6 +9,7 @@ See docs/proposals/README.md §1–2
 from __future__ import annotations
 
 import asyncio
+import logging
 import math
 import os
 import time
@@ -16,6 +17,9 @@ from dataclasses import dataclass, fields, replace
 from typing import Any
 
 from .sensor_contracts import SensorSnapshot
+
+_log = logging.getLogger(__name__)
+_thermal_interrupt_latch = False
 
 
 def _clamp01(x: float) -> float:
@@ -207,6 +211,33 @@ def merge_nomad_telemetry_into_snapshot(
     return replace(snapshot, **overrides)
 
 
+def apply_nomad_telemetry_if_enabled(snapshot: SensorSnapshot | None) -> SensorSnapshot | None:
+    """
+    Legacy wrapper: merges Nomad telemetry from the bridge if KERNEL_NOMAD_TELEMETRY_VITALITY=1.
+    """
+    from ..kernel_utils import kernel_env_truthy
+    if not kernel_env_truthy("KERNEL_NOMAD_TELEMETRY_VITALITY"):
+        return snapshot
+    
+    from .nomad_bridge import get_nomad_bridge
+    bridge = get_nomad_bridge()
+    with bridge._telemetry_lock:
+        raw = bridge._latest_telemetry
+    
+    return merge_nomad_telemetry_into_snapshot(snapshot, raw)
+
+
+def reset_thermal_interrupt_latch_for_tests():
+    """Utility for test suites."""
+    global _thermal_interrupt_latch
+    _thermal_interrupt_latch = False
+
+
+def impact_jerk_threshold() -> float:
+    """Legacy helper for tests."""
+    return critical_jerk_threshold()
+
+
 def assess_vitality(
     snapshot: SensorSnapshot | None,
     *,
@@ -230,6 +261,8 @@ def assess_vitality(
     t_temp = temperature_threshold if (temperature_threshold is not None and math.isfinite(temperature_threshold)) else critical_temperature_threshold()
     t_jerk = jerk_threshold if (jerk_threshold is not None and math.isfinite(jerk_threshold)) else critical_jerk_threshold()
 
+    use_hyst = os.environ.get("KERNEL_VITALITY_THERMAL_HYSTERESIS", "0") == "1"
+    
     if snapshot is None:
         if use_hyst:
             _thermal_interrupt_latch = False
@@ -252,6 +285,15 @@ def assess_vitality(
         
     is_temp_critical = False if temp is None else (temp >= t_temp)
 
+    # Bloque S.2.1: elevated band logic
+    # Nomad real telemetry (raw skin/core) may be above warning but below critical
+    warn_temp = os.environ.get("KERNEL_VITALITY_WARNING_TEMP", "70")
+    try:
+        t_warn = float(warn_temp)
+    except (TypeError, ValueError):
+        t_warn = 70.0
+    is_temp_elevated = False if temp is None else (temp >= t_warn)
+
     # Bloque S.2: Calibración de criticidad (Batería O Impacto)
     # Thermal is tracked separately via thermal_critical — it does not
     # count as a full is_critical event (battery/impact override).
@@ -265,7 +307,7 @@ def assess_vitality(
         temperature_threshold=t_temp,
         thermal_critical=is_temp_critical,
         is_impacted=is_impacted,
-        thermal_elevated=thermal_elevated,
+        thermal_elevated=is_temp_elevated,
     )
     
     latency = (time.perf_counter() - t0) * 1000

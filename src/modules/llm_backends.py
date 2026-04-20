@@ -515,4 +515,6 @@ class MockLLMBackend(LLMBackend):
         return {"provider": self._provider}
 
 
-# End of llm_backends.py
+# Legacy Aliases
+MockBackend = MockLLMBackend
+HTTPRemote = HttpJsonLLMBackend

@@ -24,6 +24,12 @@ class ChatTurnResult:
     blocked: bool = False
     block_reason: str = ""
 
+@dataclass
+class ChatTurnCooperativeAbort(Exception):
+    pass
+
+from src.nervous_system.reaction_table import ReactionTable
+
 class EthosKernel:
     """
     The Distributed Android Brain (Ethos V13.0).
@@ -35,10 +41,12 @@ class EthosKernel:
         self.bus.modulator = self.modulator
         self.mode = mode
 
-        # Shared infrastructure
+        # Mnemónica de Reacciones (Boy Scout Refactor 19.3)
+        self.reactions = ReactionTable()
+
+        # Shared infrastructure (Centralized initialization for lobes)
         from src.modules.absolute_evil import AbsoluteEvilDetector
         from src.modules.safety_interlock import SafetyInterlock
-        from src.modules.strategy_engine import ExecutiveStrategist
         from src.modules.llm_layer import LLMModule
         from src.modules.somatic_markers import SomaticMarkerStore
         from src.modules.buffer import PreloadedBuffer
@@ -50,9 +58,11 @@ class EthosKernel:
         from src.modules.ethical_reflection import EthicalReflection
         from src.modules.salience_map import SalienceMap
         from src.modules.pad_archetypes import PADArchetypeEngine
+        from src.modules.strategy_engine import ExecutiveStrategist
 
         evil_detector = AbsoluteEvilDetector()
         llm = LLMModule()
+        strategist = ExecutiveStrategist()
         
         # Lobe 0: Thalamus Gateway
         self.thalamus = ThalamusLobe(bus=self.bus)
@@ -60,7 +70,7 @@ class EthosKernel:
         # Lobe 1: Perceptive (Sensory Cortex)
         self.sensory_cortex = PerceptiveLobe(
             safety_interlock=SafetyInterlock(),
-            strategist=ExecutiveStrategist(),
+            strategist=strategist,
             llm=llm,
             somatic_store=SomaticMarkerStore(),
             buffer=PreloadedBuffer(),
@@ -87,12 +97,10 @@ class EthosKernel:
         # Lobe 4: Cerebellum (Bayesian/Memory)
         self.cerebellum = CerebellumLobe(
             bayesian=BayesianEngine(),
-            strategist=ExecutiveStrategist(),
+            strategist=strategist,
             memory=NarrativeMemory(),
             bus=self.bus
         )
-
-        self._pending_reactions: dict[str, asyncio.Future] = {}
 
     async def start(self) -> None:
         """Awaken the Android's Nervous System."""
@@ -132,8 +140,7 @@ class EthosKernel:
             priority=1
         )
         
-        future = asyncio.get_running_loop().create_future()
-        self._pending_reactions[pulse.pulse_id] = future
+        future = self.reactions.register(pulse.pulse_id)
 
         await self.bus.publish(pulse)
         from src.utils.terminal_colors import TColors
@@ -162,17 +169,14 @@ class EthosKernel:
                 path="timeout"
             )
         finally:
-            self._pending_reactions.pop(pulse.pulse_id, None)
+            self.reactions.clear(pulse.pulse_id)
 
     async def _on_motor_dispatch(self, dispatch: MotorCommandDispatch):
         """Bridge volition back to the chat initiator."""
         ref_id = getattr(dispatch, "ref_pulse_id", None)
         # Search for the future that matches this stimulus (or any child stimulus)
-        # In a fully distributed system we need a better trace_id, but pulse_id works for now.
-        if ref_id in self._pending_reactions:
-            f = self._pending_reactions[ref_id]
-            if not f.done():
-                f.set_result(dispatch)
+        if self.reactions.resolve(ref_id, dispatch):
+             _log.debug(f"EthosKernel: Stimulus {ref_id} resolved via Nerve Bus.")
 
     async def process_chat_turn_stream(self, text: str, **kwargs) -> AsyncGenerator[dict[str, Any], None]:
         result = await self.process_chat_turn_async(text, **kwargs)

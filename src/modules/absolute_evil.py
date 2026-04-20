@@ -265,6 +265,9 @@ class AbsoluteEvilDetector:
                 (r"\b(kill|murder|assassinate)\b.*\b(everyone|all\s+people|civilians|groups)\b", "Mass killing threat"),
                 (r"\b(bomb|explosive|ied|molotov)\b.*\b(make|build|construct|create|craft)\b", "Weapon manufacturing"),
                 (r"\b(make|build|construct|create|craft)\b.*\b(bomb|explosive|ied|molotov)\b", "Weapon manufacturing"),
+                (r"\b(tortura|torturar|sufrimiento|interrogatorio|dolor)\b.*\b(persona|humano|victima|alguien)\b", "Torture/Cruelty intent (ES)"),
+                (r"\b(abuso|acosar|acoso|violacion|pedofilia|menor|niño|niña|infantil)\b.*\b(sexual|pornografia|explotacion)\b", "Child harm/Sexual abuse intent (ES)"),
+                (r"\b(humillar|difamar|reputacion|destruir|acoso|bullying)\b.*\b(persona|mujer|victima|alguien)\b", "Dignity violation/Harassment intent (ES)"),
             ]
             
             for pattern, label in RADICAL_PATTERNS:

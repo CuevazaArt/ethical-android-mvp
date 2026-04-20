@@ -56,10 +56,4 @@ Staged delivery: **runtime first**, then **persistence/DB**, then **local LLM (O
 
 **Runtime contract (Phase 1):** [RUNTIME_CONTRACT.md](RUNTIME_CONTRACT.md).
 
-## Suggested next steps
-
-1. Define a **minimal snapshot DTO** (JSON or msgpack serializable) aligned with what `ImmortalityProtocol` / episodes already expose.
-2. Add a **filesystem** adapter behind the port without changing `EthicalKernel.process`.
-3. Idempotence tests: restore → same ethical behavior on fixed scenarios (same variability seed).
-
 When this is reflected in code, update [THEORY_AND_IMPLEMENTATION.md](THEORY_AND_IMPLEMENTATION.md) and the README with the default adapter path.
