@@ -1,62 +1,62 @@
 {
-  "PEER_LAN_03": {
-    "node_id": "PEER_LAN_03",
-    "last_seen": 1776401694.3542988,
-    "reputation": 0.0,
-    "confirmed_witnesses": 0
-  },
-  "peer_scenario_001": {
-    "node_id": "peer_scenario_001",
-    "last_seen": 1776644560.9614468,
-    "reputation": 1.0,
-    "confirmed_witnesses": 4
-  },
-  "peer_001": {
-    "node_id": "peer_001",
-    "last_seen": 1776647137.250107,
-    "reputation": 0.95,
-    "confirmed_witnesses": 60
-  },
-  "peer_002": {
-    "node_id": "peer_002",
-    "last_seen": 1776647137.255099,
-    "reputation": 0.0,
-    "confirmed_witnesses": 0
-  },
-  "peer_003": {
-    "node_id": "peer_003",
-    "last_seen": 1776647137.267757,
-    "reputation": 0.7000000000000001,
-    "confirmed_witnesses": 120
-  },
-  "persistent_peer": {
-    "node_id": "persistent_peer",
-    "last_seen": 1776647137.2763124,
-    "reputation": 1.0,
-    "confirmed_witnesses": 12
-  },
-  "witness_node_001": {
-    "node_id": "witness_node_001",
-    "last_seen": 1776647137.2840827,
-    "reputation": 0.85,
-    "confirmed_witnesses": 96
-  },
-  "nonexistent_peer": {
-    "node_id": "nonexistent_peer",
-    "last_seen": 1776631916.5899246,
-    "reputation": 0.0,
-    "confirmed_witnesses": 0
-  },
   "PEER_LAN_01": {
     "node_id": "PEER_LAN_01",
-    "last_seen": 1776646116.8761919,
+    "last_seen": 1776701831.8094747,
     "reputation": 0.0,
     "confirmed_witnesses": 0
   },
   "PEER_LAN_02": {
     "node_id": "PEER_LAN_02",
-    "last_seen": 1776646116.879167,
+    "last_seen": 1776701831.8174572,
     "reputation": 0.0,
     "confirmed_witnesses": 0
+  },
+  "PEER_LAN_03": {
+    "node_id": "PEER_LAN_03",
+    "last_seen": 1776701831.823379,
+    "reputation": 0.0,
+    "confirmed_witnesses": 0
+  },
+  "peer_001": {
+    "node_id": "peer_001",
+    "last_seen": 1776701918.5021722,
+    "reputation": 0.95,
+    "confirmed_witnesses": 5
+  },
+  "peer_002": {
+    "node_id": "peer_002",
+    "last_seen": 1776701918.5063663,
+    "reputation": 0.20000000000000007,
+    "confirmed_witnesses": 0
+  },
+  "nonexistent_peer": {
+    "node_id": "nonexistent_peer",
+    "last_seen": 1776701918.5095983,
+    "reputation": 0.2,
+    "confirmed_witnesses": 0
+  },
+  "peer_003": {
+    "node_id": "peer_003",
+    "last_seen": 1776701918.5202885,
+    "reputation": 0.7000000000000001,
+    "confirmed_witnesses": 10
+  },
+  "persistent_peer": {
+    "node_id": "persistent_peer",
+    "last_seen": 1776701918.5300896,
+    "reputation": 1.0,
+    "confirmed_witnesses": 1
+  },
+  "witness_node_001": {
+    "node_id": "witness_node_001",
+    "last_seen": 1776701918.5387669,
+    "reputation": 0.85,
+    "confirmed_witnesses": 8
+  },
+  "peer_scenario_001": {
+    "node_id": "peer_scenario_001",
+    "last_seen": 1776702044.2954912,
+    "reputation": 1.0,
+    "confirmed_witnesses": 1
   }
 }
