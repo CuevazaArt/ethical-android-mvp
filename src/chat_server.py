@@ -518,6 +518,12 @@ def _chat_include_transparency_s10() -> bool:
     return v not in ("0", "false", "no", "off")
 
 
+def _chat_include_transparency_s10() -> bool:
+    """Embodied sociability S10.1/S10.3/S10.4 — ``transparency_s10`` in WebSocket JSON (default on)."""
+    v = os.environ.get("KERNEL_CHAT_INCLUDE_TRANSPARENCY_S10", "1").strip().lower()
+    return v not in ("0", "false", "no", "off")
+
+
 def _env_truthy(name: str, default: bool = False) -> bool:
     raw = os.environ.get(name, "").strip().lower()
     if not raw:

@@ -538,7 +538,7 @@ class EthicalKernel:
         )
         self.biographic_pruner = (
             co.biographic_pruner
-            if co and hasattr(co, "biographic_pruner") and co.biographic_pruner is not None
+            if co and hasattr(co, "biographic_pruner") and co.swarm_negotiator is not None
             else BiographicPruner()
         )
 
@@ -1892,6 +1892,7 @@ class EthicalKernel:
                 })
             except Exception as e:
                 _log.debug("Nomad Bridge: Failed to queue multimodal feedback: %s", e)
+
 
 
         res = ChatTurnResult(

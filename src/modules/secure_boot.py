@@ -130,7 +130,15 @@ class SecureBoot:
             expected_hash = payload[rel_path]
             
             if actual_hash == "missing":
-                _log.critical("CRITICAL FAILURE: %s is missing!", rel_path)
+                _log.critical("SECURE BOOT FAILURE: %s is missing!", rel_path)
+                violations.append(f"{rel_path}: MISSING")
+                all_ok = False
+            elif expected_hash == "presence_only":
+                 _log.warning("SecureBoot: %s verified by presence (HASH PENDING).", rel_path)
+            elif actual_hash != expected_hash:
+                _log.critical("SECURE BOOT FAILURE: %s hash mismatch!", rel_path)
+                _log.debug("Expected: %s | Actual: %s", expected_hash, actual_hash)
+                violations.append(f"{rel_path}: TAMPERED")
                 all_ok = False
                 continue
                 
