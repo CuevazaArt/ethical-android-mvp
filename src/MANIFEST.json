@@ -1,12 +1,12 @@
 {
   "files": {
-    "src/kernel.py": "7b52f3cc85eadd97499a2b64253e25cea19607c3a09425fbdf4c6abd5d4e78b6",
-    "src/kernel_lobes/models.py": "35234fa7b47c1d140fa55994e2e3a9a565b5119d8e65a24d195c139c2db14f59",
-    "src/kernel_lobes/executive_lobe.py": "0132269d18fdef0a6c86ba759d686fcadf12b26b1e51b27de1329dfd2054fa2f",
+    "src/kernel.py": "54fc535a6f25595dad2db830d1613985623830d5e6d4ea12ab3dc63898784716",
+    "src/kernel_lobes/models.py": "1072db3060bfd53cb2a06ab55d04dc41d1511eb457f7bfbec112c42a9082ed62",
+    "src/kernel_lobes/executive_lobe.py": "776d7c91a225f34d8e7b0b029788fed62b1004c14478e4ab9b096b837f057903",
     "src/kernel_lobes/memory_lobe.py": "d362b0b790d0e45c5e902519e3e8a02aa2aed6f06a29c7054a517c62ad116913",
-    "src/kernel_lobes/perception_lobe.py": "7b4ac7748c2c9fbe7a7e7e0ab712803d576f2bd7f95663509229f5be29769e2b",
-    "src/kernel_lobes/thalamus_node.py": "365e59c3b83aa3723993d812092b6f303eed4b1097f4d385ac50a6656837d35d",
-    "src/modules/absolute_evil.py": "7419aee166e5124b3b8c403df8d7d1d7a10314e58faf1ab7c563e9564da4930a",
+    "src/kernel_lobes/perception_lobe.py": "0cb916907514423d2d9bdf91064f515316cc89b697a8ec06b8f3d968186512ee",
+    "src/kernel_lobes/thalamus_node.py": "8b4741b67e3e799ad1407f8cab2e36e46693dbb31eb1b2486712dfd5bd1c641a",
+    "src/modules/absolute_evil.py": "76ab1adc81e247650be86e40087e868f7c8007afee2f0900c9e1a08ae0dc340e",
     "src/modules/nomad_bridge.py": "22ccce5c537918f58b4501cafe62b41c24b018c3403cfe65a0e7e1197a67e299",
     "src/modules/secure_boot.py": "e482fb010f84fa36fe847eacb0749e583c6a729ac32581cdefc4f449089c7ca0",
     "src/modules/immortality.py": "b3fa2ef27daf48c0a4d75459cf35ae2fd989cb7f6f0814a09e368d77d0c94d70",
@@ -21,6 +21,6 @@
     "src/persistence/kernel_io.py": "00474e4908d2cbb7cc5e6547c6db629c4f4b88b0190342847b6ac9930c163689",
     "src/persistence/snapshot_serde.py": "3920104a50d2b70ec1a79f539866e4bd192bda6a3969fa827c1fd95368c8899f"
   },
-  "signature": "112d11619baf202ad3cafffff4364c65c37c911a3e18c76684c87e713789ffa4",
+  "signature": "c46d9e1c13edd6d69e61224a5b9486b5b03d865f41faf6838e914759b2617eaf",
   "signed_by": "Antigravity (L1) - Hardening Pulse Recovery"
 }

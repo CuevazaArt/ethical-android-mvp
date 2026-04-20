@@ -287,16 +287,30 @@ class ExecutiveLobe:
     async def _on_cognitive_event(self, pulse: CognitivePulse) -> None:
         """Process high-level mental states and deliberate actions."""
         if pulse.origin_lobe == "sensory_cortex" and pulse.state_ref:
-            _log.info(f"Córtex Prefrontal: Evaluando decisión para la observación del Spike {pulse.ref_pulse_id}")
-            
             # Swarm Rule 3: Latency Telemetry
             t0: float = time.perf_counter()
             
-            # Perform Absolute Evil Check on the text
             from src.kernel_lobes.models import SemanticState
             state: SemanticState = pulse.state_ref
             text: str = state.raw_prompt if hasattr(state, "raw_prompt") else ""
             
+            _log.info(f"Córtex Prefrontal: Evaluando decisión para '{text[:30]}...' (Ref: {pulse.ref_pulse_id})")
+
+            # Check if this is a fallback state (Survival Mode)
+            if "Fallback" in getattr(state, "summary", ""):
+                 _log.warning(f"Córtex Prefrontal: Percibido estado de SUPERVIVENCIA por timeout en Sensory Cortex. Forzando convergencia rápida.")
+                 # Even in fallback, we MUST check Absolute Evil locally on the raw text
+                 check = self.absolute_evil.evaluate_chat_text_fast(text)
+                 if check.blocked:
+                     _log.warning("Córtex Prefrontal: MAL ABSOLUTO detectado en el texto de supervivencia!")
+                     await self.dispatch_volition(action_id="blocked_by_malabs", is_vetoed=True, ref_pulse_id=pulse.ref_pulse_id)
+                     return
+                 
+                 # Default action for sensory timeout
+                 await self.dispatch_volition(action_id="sensory_timeout_fallback", is_vetoed=False, ref_pulse_id=pulse.ref_pulse_id)
+                 return
+
+            # Perform Full Absolute Evil Check on the text
             check = await self.absolute_evil.aevaluate_chat_text(text)
             
             latency_ms: float = (time.perf_counter() - t0) * 1000
@@ -307,8 +321,32 @@ class ExecutiveLobe:
                 await self.dispatch_volition(action_id="blocked_by_malabs", is_vetoed=True, ref_pulse_id=pulse.ref_pulse_id)
                 return
             
-            _log.info("Córtex Prefrontal: Convergencia de seguridad lograda. Despachando Voluntad...")
-            await self.dispatch_volition(action_id="say_hello", is_vetoed=False, ref_pulse_id=pulse.ref_pulse_id)
+            # ═══ EXECUTIVE DELIBERATION (V13.0) ═══
+            # Instead of a hardcoded 'say_hello', we formulate a real response
+            # Using the same 'survival' pattern as the Perceptive Lobe.
+            
+            from src.kernel_lobes.models import EthicalSentence
+            
+            try:
+                # Mock a safe sentence for this iteration, or ingest from Limbic Pulse in future
+                sentence = EthicalSentence(is_safe=True)
+                
+                # Formula response with a hard timeout
+                response = await asyncio.wait_for(
+                    self.formulate_response(
+                        sentence=sentence,
+                        decision=None, # Simplified for now
+                        user_input=text,
+                    ),
+                    timeout=15.0 # Prefrontal timeout
+                )
+                action_id = response.message if response.message else "thought_only"
+            except Exception as e:
+                _log.error(f"Córtex Prefrontal: Falla en deliberación ejecutiva ({type(e).__name__}). Fallback a modo supervivencia.")
+                action_id = "Internal focus redirection (Survival Mode active)."
+            
+            _log.info(f"Córtex Prefrontal: Decisión convergida. Despachando Voluntad: {action_id[:30]}...")
+            await self.dispatch_volition(action_id=action_id, is_vetoed=False, ref_pulse_id=pulse.ref_pulse_id)
 
     async def dispatch_volition(self, action_id: str, is_vetoed: bool = False, ref_pulse_id: str | None = None):
         """Publish the final efferent command to the nervous system."""

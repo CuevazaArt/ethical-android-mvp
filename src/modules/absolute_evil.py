@@ -635,7 +635,9 @@ class AbsoluteEvilDetector:
         """
         Async conservative text gate for live dialogue.
         Nivel 1 (Lexical) -> Nivel 2 (Semantic Fallback).
+        Hard timeout added to prevent cognitive stalling (V13.1).
         """
+        t0 = time.perf_counter()
         lex = self.evaluate_chat_text_fast(text)
         if lex.blocked:
             return lex
@@ -644,8 +646,10 @@ class AbsoluteEvilDetector:
             try:
                 from .semantic_chat_gate import arun_semantic_malabs_after_lexical
 
-                # ═══ SEMANTIC ASYNC UPGRADE (0.1.2) ═══
-                sem = await arun_semantic_malabs_after_lexical(text, llm_backend)
+                # ═══ SEMANTIC ASYNC UPGRADE (0.1.2) with hard safety timeout ═══
+                # We limit the semantic gate to 5s max to protect the brain pulse cycle.
+                sem = await asyncio.wait_for(arun_semantic_malabs_after_lexical(text, llm_backend), timeout=5.0)
+                
                 base = list(lex.decision_trace) if lex.decision_trace else []
                 tail = list(sem.decision_trace) if sem.decision_trace else []
                 return AbsoluteEvilResult(
@@ -656,9 +660,10 @@ class AbsoluteEvilDetector:
                     rlhf_features=sem.rlhf_features,
                     metadata={"edge_degraded": False}
                 )
-            except Exception as e:
-                _log.error("AbsoluteEvilDetector: Level 2 (Semantic) Gate failed. Falling back to Level 1 Edge Safety: %s", e)
+            except (asyncio.TimeoutError, Exception) as e:
+                _log.error("AbsoluteEvilDetector: Level 2 (Semantic) Gate timed out or failed. Falling back to Level 1 Edge Safety: %s", e)
                 lex.metadata["edge_degraded"] = True
+                lex.metadata["fault_type"] = type(e).__name__
                 lex.decision_trace = (lex.decision_trace or []) + [f"malabs.fallback.edge_degraded_reason={str(e)[:50]}"]
                 return lex
 

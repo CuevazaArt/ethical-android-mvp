@@ -11,7 +11,8 @@ from src.kernel_lobes.models import (
     LimbicStageResult, 
     SemanticState,
     SensorySpike,
-    LimbicTensionAlert
+    LimbicTensionAlert,
+    CognitivePulse
 )
 from src.modules.persistent_threat_tracker import PersistentThreatTracker
 
@@ -71,6 +72,7 @@ class LimbicEthicalLobe:
         if self.bus:
             self.bus.subscribe(SensorySpike, self._on_sensory_spike)
             self.bus.subscribe(LimbicTensionAlert, self._on_tension_alert)
+            self.bus.subscribe(CognitivePulse, self._on_cognitive_event)
 
     def update_situational_stress(self, level: float) -> None:
         """Accumulate or decay situational stress based on sensory alerts."""
@@ -275,5 +277,15 @@ class LimbicEthicalLobe:
         """High-priority reactive stress modulation."""
         _log.warning(f"Sistema Límbico: ALERTA DE TENSIÓN RECIBIDA ({alert.tension_load}). Escalando...")
         self.update_situational_stress(alert.tension_load)
+
+    async def _on_cognitive_event(self, pulse: CognitivePulse) -> None:
+        """Process cognitive outcomes to update the relational/sympathetic state."""
+        if pulse.state_ref:
+            _log.debug(f"Sistema Límbico: Actualizando estado emocional basado en CognitivePulse {pulse.ref_pulse_id}")
+            # Simplified relational update for this async pass
+            confidence = getattr(pulse.state_ref, "perception_confidence", 0.5)
+            # Dissonance if confidence is low
+            if confidence < 0.3:
+                self.relational_tension = max(0.0, min(1.0, self.relational_tension + 0.1))
 
 LimbicLobe = LimbicEthicalLobe
