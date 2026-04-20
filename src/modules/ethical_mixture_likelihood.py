@@ -111,19 +111,45 @@ def softmax_choice_log_likelihood(
         )
 
     w = np.asarray(weights, dtype=np.float64)
+    if not np.all(np.isfinite(w)):
+        w = np.array([0.4, 0.35, 0.25], dtype=np.float64)
 
     scores: dict[str, float] = {}
     for name, vals in candidates.items():
-        s = float(w[0] * vals["util"] + w[1] * vals["deon"] + w[2] * vals["virtue"])
+        v_util = float(vals.get("util", 0.0))
+        v_deon = float(vals.get("deon", 0.0))
+        v_virtue = float(vals.get("virtue", 0.0))
+        
+        # Anti-NaN guard for valuations
+        if not math.isfinite(v_util): v_util = 0.0
+        if not math.isfinite(v_deon): v_deon = 0.0
+        if not math.isfinite(v_virtue): v_virtue = 0.0
+
+        s = float(w[0] * v_util + w[1] * v_deon + w[2] * v_virtue)
         scores[name] = s
 
     raw = np.array([beta * scores[name] for name in candidates])
+    if not np.all(np.isfinite(raw)):
+        # If any score exploded, we can't reliably compute softmax.
+        # Fallback to uniform log-likelihood.
+        return -math.log(float(max(1, len(candidates))))
+
     max_raw = float(np.max(raw))
     shifted = raw - max_raw
-    log_sum_exp = max_raw + math.log(float(np.sum(np.exp(shifted))))
+    
+    # log_sum_exp
+    try:
+        sum_exp = float(np.sum(np.exp(shifted)))
+        if not math.isfinite(sum_exp) or sum_exp <= 0:
+             log_sum_exp = max_raw 
+        else:
+             log_sum_exp = max_raw + math.log(sum_exp)
+    except Exception:
+        log_sum_exp = max_raw
 
     preferred_score = beta * scores[preferred_action]
-    return float(preferred_score - log_sum_exp)
+    res = float(preferred_score - log_sum_exp)
+    return res if math.isfinite(res) else -100.0
 
 
 def softmax_choice_probability(
@@ -134,14 +160,14 @@ def softmax_choice_probability(
     beta: float = 10.0,
 ) -> float:
     """Probability of choice (exp of log-likelihood)."""
-    return math.exp(
-        softmax_choice_log_likelihood(
+    ll = softmax_choice_log_likelihood(
             preferred_action,
             candidates,
             weights,
             beta=beta,
         )
-    )
+    # Bounded exp for stability
+    return math.exp(max(-100.0, ll))
 
 
 # -- Multi-feedback joint log-likelihood --------------------------------------
@@ -235,13 +261,27 @@ def _dirichlet_moment_match(mean: np.ndarray, var: np.ndarray) -> np.ndarray:
     m = np.asarray(mean, dtype=np.float64)
     v = np.asarray(var, dtype=np.float64)
 
-    ratios = m * (1.0 - m) / np.maximum(v, 1e-15) - 1.0
+    # Phase 13 Hardening: Anti-NaN for mean/var
+    if not np.all(np.isfinite(m)):
+        m = np.array([0.33, 0.33, 0.33], dtype=np.float64)
+    if not np.all(np.isfinite(v)):
+        v = np.array([0.01, 0.01, 0.01], dtype=np.float64)
+
+    # Prevent division by zero and extreme concentrations
+    v_clipped = np.maximum(v, 1e-12)
+    ratios = m * (1.0 - m) / v_clipped - 1.0
+    
     valid = ratios[ratios > 0]
     if len(valid) == 0:
-        return m * 3.0
+        # Default to a weak concentration if no valid S can be inferred
+        return np.maximum(m * 2.0, 0.1)
 
     s = float(np.median(valid))
+    if not math.isfinite(s):
+        s = 1.0
+        
     s = max(s, 1.0)
+    s = min(s, 1000.0) # Cap concentration to prevent delta-like priors
 
     alpha = m * s
     return np.maximum(alpha, 0.01)

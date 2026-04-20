@@ -29,8 +29,8 @@ Aquí es donde los agentes de ejecución (LLMs en IDEs) reclaman sus tareas.
 ## 🗄️ RESERVA DEL ENJAMBRE (Buffer de Optimización Continua)
 > *Estas tareas no bloquean el progreso crítico (`main` branch) y deben ser tomadas por los agentes L2 cuando hay cuellos de botella en la inferencia, sobran tokens horarios, o mientras el L1 está en procesos de consolidación.*
 
-**Bloque B.1: Cacería de NaNs y Hardening Matemático [BUFFER]**
-- Tarea B.1.1: Revisar funciones trigonométricas/logarítmicas en `modules/ethical_poles.py` y `modules/sigmoid_will.py` agregando `math.isfinite()`.
+**Bloque B.1: Cacería de NaNs y Hardening Matemático [DONE]**
+- Tarea B.1.1: Revisar funciones trigonométricas/logarítmicas en `modules/ethical_poles.py` y `modules/sigmoid_will.py` agregando `math.isfinite()`. (Completado: Antigravity)
 
 **Bloque B.2: Tipado Estricto Paralelo [BUFFER]**
 - Tarea B.2.1: Corregir advertencias de MyPy (o equivalentes) en los adaptadores de audio y test suites aisladas.

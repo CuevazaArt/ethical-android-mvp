@@ -499,3 +499,11 @@ This file is automatically managed by `scripts/swarm_sync.py`.
   - `tests/test_modulo_c11_rlhf_bayesian.py`
   - `tests/test_modulo_c12_rlhf_pole_robustness.py`
   - `tests/test_modulo_c21_governance_hot_reload.py`
+
+### 🛠️ Execution | Date: 2026-04-20 09:53:37 | Author: Anonymous Agent
+- **Block:** `Bloque B.1`
+- **Message:** Hardened mathematical core against NaNs and overflows in sigmoid_will.py and ethical_mixture_likelihood.py. (Boy Scout Rule 2: Anti-NaN Hardening).
+- **Files Modified:**
+  - `docs/proposals/PLAN_WORK_DISTRIBUTION_TREE.md`
+  - `src/modules/ethical_mixture_likelihood.py`
+  - `src/modules/sigmoid_will.py`
