@@ -20,37 +20,39 @@ Aquí es donde los agentes de ejecución (LLMs en IDEs) reclaman sus tareas.
 
 ---
 
-## 📥 BACKLOG ABIERTO (Open Tasks)
+**Bloque 13.0: Desbloqueo Conversacional y Voz (Zero-Friction Audio) [CERRADO]**
 
-**Bloque 12.0: Autocalibración Física y Corrección Sensorial [PENDING]**
-- Tarea 12.1: **Corrección "Velo Azul" (Visión):** Resolver el problema de inversión de canales RGB a BGR típico de la interacción entre OpenCV (`cv2`) y el canvas de HTML5/PWA en la ingesta del `VisionContinuousDaemon`.
-- Tarea 12.2: **Calibración Dinámica de Entorno (Aclimatación):** Crear una rutina `SensorBaselineCalibrator` durante los primeros 60 segundos de boot. En lugar de usar valores fijos (ej. 75ºC o 0.6 de Jerk), calcular medias y varianzas relativas al entorno actual para definir el "Punto Dulce" de forma autónoma.
-
-**Bloque 13.0: Desbloqueo Conversacional y Voz (Zero-Friction Audio) [PENDING]**
-- Tarea 13.1: **Reconexión del chat:** Asegurar que los mensajes de texto del Nomad (Smartphone) fluyan hacia `process_chat_turn` sin ser bloqueados por la latencia límbica. Implementar timeouts estrictos.
-- Tarea 13.2: **VAD (Voice Activity Detection) Local:** Integrar detección de voz robusta en el cliente PWA antes de consumir tokens o saturar el Bridge. Requisito para el futuro Text-to-Speech (TTS).
-
-**Bloque 14.0: Cero Fricción y Recuperación Autónoma [PENDING]**
-- Tarea 14.1: **Auto-Descubrimiento (mDNS/Zeroconf):** Implementar un broadcast local en el servidor para que el PWA encuentre la IP automáticamente, minimizando la interacción humana (Server Self-Healing).
-- Tarea 14.2: **Dashboard Clínico:** Eliminar elementos UI decorativos y reemplazarlos por feeds de datos expuestos y tabulados (Float/Boolean) de latencia, sigma, y telemetría pura.
+**Bloque 14.0: Cero Fricción y Recuperación Autónoma [CERRADO]**
 
 ---
 
 ## 🗄️ RESERVA DEL ENJAMBRE (Buffer de Optimización Continua)
 > *Estas tareas no bloquean el progreso crítico (`main` branch) y deben ser tomadas por los agentes L2 cuando hay cuellos de botella en la inferencia, sobran tokens horarios, o mientras el L1 está en procesos de consolidación.*
 
-**Bloque B.1: Cacería de NaNs y Hardening Matemático [BUFFER]**
-- Tarea B.1.1: Revisar funciones trigonométricas/logarítmicas en `modules/ethical_poles.py` y `modules/sigmoid_will.py` agregando `math.isfinite()`.
+**Bloque B.1: Cacería de NaNs y Hardening Matemático [DONE]**
+- Tarea B.1.1: Revisar funciones trigonométricas/logarítmicas en `modules/ethical_poles.py` y `modules/sigmoid_will.py` agregando `math.isfinite()`. (Completado: Antigravity)
 
-**Bloque B.2: Tipado Estricto Paralelo [BUFFER]**
-- Tarea B.2.1: Corregir advertencias de MyPy (o equivalentes) en los adaptadores de audio y test suites aisladas.
+**Bloque B.2: Tipado Estricto Paralelo [DONE]**
+- Tarea B.2.1: Corregir advertencias de MyPy (o equivalentes) en los adaptadores de audio y test suites aisladas. (Completado: Antigravity)
 
-**Bloque B.3: Documentación y Refactorización Pasiva [BUFFER]**
-- Tarea B.3.1: Actualizar docstrings en `kernel_utils.py` y diagramas de Mermaid si las interfaces han cambiado sin documentarse.
+**Bloque B.3: Documentación y Refactorización Pasiva [DONE]**
+- Tarea B.3.1: Actualizar docstrings en `kernel_utils.py` y diagramas de Mermaid si las interfaces han cambiado sin documentarse. (Completado: Antigravity)
 
 ---
 
 ## 🟢 CERRADOS (Histórico de Producción)
+
+**Bloque 14.0: Cero Fricción y Recuperación Autónoma [DONE]**
+- Tarea 14.1: Auto-Descubrimiento (mDNS/Zeroconf) integrado en el servidor. (Completado: Antigravity)
+- Tarea 14.2: Dashboard Clínico: Overhaul completo a interfaz diagnóstica. (Completado: Antigravity)
+
+**Bloque 13.0: Desbloqueo Conversacional y Voz (Zero-Friction Audio) [DONE]**
+- Tarea 13.1: Reconexión del chat (Smartphone -> Kernel) con timeouts estrictos y encolamiento async en NomadBridge. (Completado: Antigravity)
+- Tarea 13.2: VAD (Voice Activity Detection) Local en el cliente PWA. (Completado: Antigravity)
+
+**Bloque 12.0: Autocalibración Física y Corrección Sensorial [DONE]**
+- Tarea 12.1: Implementar corrección "Velo Azul" (BGR -> RGB) y streaming de webcam local al Dashboard. (Completado: Antigravity)
+- Tarea 12.2: Implementado `SensorBaselineCalibrator` (Aclimatación de 60s) para umbrales dinámicos de temperatura y jerk. (Completado: Antigravity)
 
 **Bloque S.13: Refinación de Tensión Límbica (Field Test 1) [DONE]**
 - Tarea S.13.1: Introducción de ganancia global `KERNEL_SENSORY_GAIN` y suavizado de transiciones paramétricas (`KERNEL_SYMPATHETIC_ATTACK`). (Completado: Antigravity)
@@ -58,6 +60,9 @@ Aquí es donde los agentes de ejecución (LLMs en IDEs) reclaman sus tareas.
 **Bloque S.12: Boy Scout Vertical Armor (Final Pass) [DONE]**
 - Tarea S.12.1: Implementar blindaje de entradas en `AbsoluteEvilDetector` y normalización resiliente en `InputTrust`. (Completado: Antigravity)
 - Tarea S.12.2: Consolidar redundancia en `SemanticChatGate` y asegurar cumplimiento de protocolos asíncronos. (Completado: Antigravity)
+
+**Bloque S.14: Consolidación y Sincronización Final [DONE]**
+- Tarea S.14.1: Unificar ramas de enjambre (Claude/Cursor/Copilot), resolver conflictos de inicialización Tri-Lobe y re-sellar manifiesto criptográfico. (Completado: Antigravity)
 
 **Bloque Phase 9: Hardened Embodiment [DONE]**
 - Tarea 9.1: Implementar HMAC-SHA256 en `SecureBoot` y handshake criptográfico en `NomadBridge`. (Completado: master-cursorultra / Antigravity)

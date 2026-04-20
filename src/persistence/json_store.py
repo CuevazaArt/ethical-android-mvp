@@ -28,6 +28,8 @@ def fernet_key_from_env() -> bytes | None:
 
 def snapshot_from_dict(raw: dict) -> KernelSnapshotV1:
     merged = migrate_raw_to_current(raw)
+    # Strip advisory-only keys that are not KernelSnapshotV1 fields.
+    merged.pop("internal_id_verify", None)
     snap = KernelSnapshotV1(**merged)
     validate_snapshot_for_apply(snap)
     return snap

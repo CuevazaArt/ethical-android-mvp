@@ -27,10 +27,10 @@ def test_circuit_opens_after_failures(monkeypatch):
     os.environ["KERNEL_SEMANTIC_EMBED_RETRIES"] = "0"
     try:
 
-        def boom(*a, **k):
+        async def boom_async(*a, **k):
             raise OSError("down")
 
-        monkeypatch.setattr(sec, "_post_once", boom)
+        monkeypatch.setattr(sec, "_apost_once", boom_async)
         v = sec.http_fetch_ollama_embedding_with_policy("http://x", "m", "t")
         assert v is None
         v2 = sec.http_fetch_ollama_embedding_with_policy("http://x", "m", "t")

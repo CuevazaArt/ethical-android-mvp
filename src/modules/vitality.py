@@ -42,8 +42,13 @@ def critical_temperature_threshold() -> float:
     """
     Above this temperature (°C), somatic tension is treated as **critically high**.
 
-    Env: ``KERNEL_VITALITY_CRITICAL_TEMP`` (default ``80.0``).
+    Phase 12.2: Uses dynamic baseline if available (μ + 4σ), otherwise falls back to env/default.
     """
+    from .sensor_calibration import get_sensor_calibrator
+    calibrator = get_sensor_calibrator()
+    if calibrator.is_complete:
+        return calibrator.get_threshold("core_temperature", sigma=4.0, default=80.0)
+
     raw = os.environ.get("KERNEL_VITALITY_CRITICAL_TEMP", "").strip()
     if not raw:
         return 80.0
@@ -57,8 +62,14 @@ def critical_jerk_threshold() -> float:
     """
     Above this accelerometer jerk (m/s³), somatic impact is treated as **critical**.
 
-    Env: ``KERNEL_VITALITY_CRITICAL_JERK`` (default ``0.8``).
+    Phase 12.2: Uses dynamic baseline if available (μ + 5σ), otherwise falls back to default.
     """
+    from .sensor_calibration import get_sensor_calibrator
+    calibrator = get_sensor_calibrator()
+    if calibrator.is_complete:
+        # High sigma for jerk to allow common movement but catch impacts
+        return calibrator.get_threshold("accelerometer_jerk", sigma=5.0, default=0.8)
+
     raw = os.environ.get("KERNEL_VITALITY_CRITICAL_JERK", "").strip()
     if not raw:
         return 0.8
@@ -180,13 +191,26 @@ def merge_nomad_telemetry_into_snapshot(
     return replace(snapshot, **overrides)
 
 
-def assess_vitality(snapshot: SensorSnapshot | None) -> VitalityAssessment:
-    """Derive vitality from sensor snapshot (battery & thermal)."""
+def assess_vitality(
+    snapshot: SensorSnapshot | None,
+    *,
+    temperature_threshold: float | None = None,
+    jerk_threshold: float | None = None,
+) -> VitalityAssessment:
+    """Derive vitality from sensor snapshot (battery & thermal).
+
+    Args:
+        snapshot: Current sensor snapshot.
+        temperature_threshold: Optional override (°C) from :class:`SensorBaselineCalibrator`.
+            When provided, replaces the ``KERNEL_VITALITY_CRITICAL_TEMP`` env default.
+        jerk_threshold: Optional override (normalised [0,1]) from the calibrator.
+            When provided, replaces the ``KERNEL_VITALITY_CRITICAL_JERK`` env default.
+    """
     t0 = time.perf_counter()
 
     t_bat = critical_battery_threshold()
-    t_temp = critical_temperature_threshold()
-    t_jerk = critical_jerk_threshold()
+    t_temp = temperature_threshold if (temperature_threshold is not None and math.isfinite(temperature_threshold)) else critical_temperature_threshold()
+    t_jerk = jerk_threshold if (jerk_threshold is not None and math.isfinite(jerk_threshold)) else critical_jerk_threshold()
 
     if snapshot is None:
         return VitalityAssessment(None, t_bat, False, None, t_temp, False, False)
@@ -208,8 +232,10 @@ def assess_vitality(snapshot: SensorSnapshot | None) -> VitalityAssessment:
         
     is_temp_critical = False if temp is None else (temp >= t_temp)
 
-    # Bloque S.2: Calibración de criticidad (Batería O Impacto O Térmico Extremo)
-    is_critical_combined = is_bat_critical or is_impacted or is_temp_critical
+    # Bloque S.2: Calibración de criticidad (Batería O Impacto)
+    # Thermal is tracked separately via thermal_critical — it does not
+    # count as a full is_critical event (battery/impact override).
+    is_critical_combined = is_bat_critical or is_impacted
 
     res = VitalityAssessment(
         battery_level=b,
@@ -247,7 +273,7 @@ def vitality_communication_hint(assessment: VitalityAssessment, trust_level: flo
 
     if assessment.thermal_critical:
         if is_trusted:
-            hints.append("Thermal critical: core temperature high. Processing power is degraded.")
+            hints.append("My internal core temperature is critically high, causing thermal tension and degraded processing power.")
         else:
             hints.append("System load management active; maintaining safety margins.")
 
@@ -277,8 +303,13 @@ class NomadTelemetryConsumer:
                 raw = await bridge.telemetry_queue.get()
                 if isinstance(raw, dict):
                     self.latest_raw = raw
-                    # Process telemetry in a future phase if needed (logging, persistent storage)
-                    # Currently, the bridge itself provides latest telemetry via .telemetry
+                    # Phase 12.2: Feed the calibrator with latest telemetry
+                    from .sensor_calibration import get_sensor_calibrator
+                    from .sensor_contracts import SensorSnapshot
+                    calibrator = get_sensor_calibrator()
+                    if calibrator.is_active:
+                        snap = SensorSnapshot.from_dict(raw, strict=False)
+                        calibrator.update(snap)
             except asyncio.CancelledError:
                 break
             except Exception as e:

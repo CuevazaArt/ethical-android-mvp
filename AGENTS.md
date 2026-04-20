@@ -8,6 +8,7 @@ This file is the **durable entry point** for humans and AI assistants working in
 - **[`CONTRIBUTING.md`](CONTRIBUTING.md)** — language policy (repo English), process, tests, lint, documentation traceability.
 - **[`.cursor/rules/`](.cursor/rules/)** — always-on Cursor guidance (efficiency, documentation credibility, collaboration).
 - **Architecture Source of Truth:** [`docs/architecture/TRI_LOBE_CORE.md`](docs/architecture/TRI_LOBE_CORE.md) — Mermaid diagrams for cognitive flows.
+- **Secure Boot Manifest Recovery:** [`scripts/update_secure_boot_hashes.py`](scripts/update_secure_boot_hashes.py) — **L1/L0 ONLY:** Re-signatures the kernel manifest after intentional modifications.
 - **Collaboration workflow critique (one-time register):** [`docs/critique/COLLABORATION_REGULATION_CRITIQUE_2026-04-16.md`](docs/critique/COLLABORATION_REGULATION_CRITIQUE_2026-04-16.md) — Antigravity-shaped Git/merge rules: gaps and recommendations; repeat only if **Juan (L0)** asks.
 - **LLM recovery env precedence** (per-touchpoint `KERNEL_LLM_TP_*`, verbal family, legacy keys): [`docs/proposals/PROPOSAL_LLM_TOUCHPOINT_DEGRADATION_MATRIX.md`](docs/proposals/PROPOSAL_LLM_TOUCHPOINT_DEGRADATION_MATRIX.md).
 - **LLM integration track** (gaps MalAbs ↔ embeddings ↔ kernel/chat): [`docs/proposals/PROPOSAL_LLM_INTEGRATION_TRACK.md`](docs/proposals/PROPOSAL_LLM_INTEGRATION_TRACK.md).
@@ -55,19 +56,17 @@ The ethical-android-mvp project operates under a strict, multi-tiered collaborat
    - **General Planner:** Leverages its extensive context window to orchestrate the project's long-term vision and technical roadmap. 
    - Manages the project's normative framework, rules, and cross-team integration funnel. 
    - Authorized to resolve conflicts, shape architecture, and enforce L0 immutability through Continuous Auditing.
-<<<<<<< Updated upstream
-   - **Solely responsible for coordinating all Level 2 teams (Claude, Team Cursor, Team Copilot, cursorultra, etc.).**
-3.  **Level 2 (Executing Units): Swarm Workers (Cursor, Copilot, Claude)**
-   - **Sovereign Autonomy Directive:** Antigravity (L1) has stabilized the Tri-Lobe architecture. L2 units operate purely organically as stateless workers. Do not stop to ask for permission for technical tasks. Pull from the open backlog, fix, run the sync script, and move on.
-   - All Level 2 units must strictly adhere to the Boy Scout rules, run continuous audits, and cannot modify foundational rules without L1 authorization.
-=======
-   - **Solely responsible for coordinating all Level 2 teams (Claude, Team Cursor, Team Copilot, etc.).**
-3.  **Level 2 (Executing Units): Claude, Team Cursor, Team Copilot, etc.**
-   - Responsible for executing assigned technical tasks from the roadmap and task queues.
-   - **Claude:** Specialized in complex cognitive modeling and deep ethics modules, now operating under direct Level 1 (Antigravity) coordination.
-   - **Team Copilot Specifics:** Focused on GitHub maintenance, repository hygiene (.gitignore, CI/CD stubs), and cross-module bug fixing. *New Delegation:* Copilot now acts as the **CI Sentinel**, leveraging its remote GitHub-native presence to supervise, triage, and report on asynchronous GitHub Actions test runs for all teams during its idle cycles.
-   - All Level 2 teams must strictly adhere to the synchronization rules, run continuous audits, and cannot modify foundational rules without L1 authorization.
->>>>>>> Stashed changes
+3.  **Level 2 (Executing Units): Swarm Workers (Claude, Cursor, Copilot, etc.)**
+    - **Sovereign Autonomy Directive:** Antigravity (L1) has stabilized the Tri-Lobe architecture. L2 units operate purely organically as stateless workers. Do not stop to ask for permission for technical tasks. Pull from the open backlog, fix, run the sync script, and move on.
+    - **Claude Team Specifics:** Specialized in complex cognitive modeling and deep ethics modules.
+      - **Implementation Status (2026-04-19):** 
+        - ✅ **Module C.1.1** (Async RLHF): Dirichlet-based Bayesian weight modulation.
+        - ✅ **Module C.1.2** (Pole Robustness): Validation against LinearPoleEvaluator corruption.
+        - ✅ **Module C.2.1** (Governance Hot-Reload): Live threshold updates via Event Bus.
+        - ✅ **Bloque 9.2** (Limbic Escalation): PersistentThreatTracker with 5s auto-escalation.
+        - ✅ **Bloque 11.1** (Audio Ouroboros): Full Whisper -> Kernel -> TTS loop.
+    - **Team Copilot Specifics:** Focused on repository hygiene, CI/CD stubs, and cross-module bug fixing.
+    - All Level 2 units must strictly adhere to the Boy Scout rules, run continuous audits, and cannot modify foundational rules without L1 authorization.
 
 ## Onboarding for New Teams
 
@@ -79,24 +78,11 @@ Any new agent or team joining the project must complete the **[`ONBOARDING.md`](
 
 To completely eliminate "Merge Hell" and support massive IDE window parallelization, all Level 2 units operate under the **Anonymous Pragmatism Workflow (V4.0)**.
 
-<<<<<<< Updated upstream
 ### Phase 1: Open Backlog Execution
 When L0 (Juan) assigns a task or you are deployed:
 1. **Pull a Task:** Pick the highest priority `[PENDING]` task from `docs/proposals/PLAN_WORK_DISTRIBUTION_TREE.md`.
 2. **Execute Statelessly:** You don't need a name, UID, or color. Your identity is your execution. Write the solution.
 3. **Log the Work programmatically:** You must rely on `scripts/swarm_sync.py` to handle the logging and commits.
-=======
-1. **BRANCH-MINIMIZATION-01 (No Minor Branches):** Do NOT spawn excessive minor feature branches unless implementing massive architectural breaking changes (e.g., P0 Refactors). For nominal tasks, teams MUST commit their logical blocks directly to their assigned integration hub (`master-<team>`) to simplify the PR flow.
-2. **BRANCH-LOCALIZATION-02 (Strict Hub Retention):** AI Agents (Especially **Claude**) MUST locate, checkout, and exclusively maintain their work in their pre-assigned branch (e.g., `git checkout master-claude`). Creating *new* ad-hoc branches is strictly forbidden. If an agent cannot locate their branch or suffers a git failure, they MUST halt, explain the failure, and request assistance from L0 or L1 instead of arbitrarily cloning a new branch to bypass the issue.
-3. **Team Consolidation (Internal PR):** When ready, submit a formal PR from your team's integration hub (`master-<team>`) towards `master-antigravity`.
-   - *Requirement:* All unit tests must pass, and the automated Continuous Audit MUST execute cleanly. 
-   - *CI Offloading:* To prevent local bottlenecks, L2 agents should avoid running the full test suite locally. Instead, make iterative commits and `git push` to your designated `master-*` branch. GitHub Actions will automatically execute the parallelized validation suite, which will be monitored by Team Copilot.
-   - *Traceability:* Pushes MUST be annotated in `CHANGELOG.md`.
-4. **Cross-Team Peer Synchronization (Integration Pulse):** `master-*` branches MUST pull latest updates from `main` immediately to inherit L0's propagated directives without uncoordinating.
-5. **Integration Funnel:** For production promotion, the flow is **linear**:
-   - `master-<team_secondary>` → `master-antigravity` → `main`.
-   - The `master-antigravity` branch serves as the **Standard Integration Hub** for the entire project.
->>>>>>> Stashed changes
 
 ### Fase 2: Las 3 "Leyes del Boy Scout" de Endurecimiento Vertical
 Durante cada intervención, DEBES ejecutar proactivamente los siguientes principios de seguridad:
@@ -118,6 +104,8 @@ Para mitigar el "Efecto Túnel", se establece la siguiente restricción:
 Para minimizar conflictos y asegurar la inmutabilidad de la rama `main` (L0), el método de fusión ha sido reformado para máxima seguridad:
 
 1.  **Cierre del Bloque Atómico**: Solo se promoverán avances que cierren bloques lógicos completos del `PLAN_WORK_DISTRIBUTION_TREE.md`. "Trabajos en progreso" están prohibidos en `main`.
+   - **BLOCKER ACTUAL (2026-04-19):** Claude Team ha completado 5 módulos (C.1.1, C.1.2, C.2.1, 9.2, 11.1) con 65+ tests passing. Sin embargo, `git pull origin main` reveló que main branch ha evolucionado a v12.0+ (moral infrastructure hub, distributed justice, DAO pipelines) que diverge de la arquitectura de PLAN_WORK_DISTRIBUTION_TREE.md. Se detectaron 11 archivos con merge conflicts. **Requiere L1 decision:** (A) Rebase/redesign modules for v12.0+, (B) Mantener como feature branches, (C) L1 merge manual.
+   
 2.  **Sello de Calidad Antigravity (Auditoría Continua)**: El equipo Antigravity (L1) actúa como el Guardián de la Puerta y supervisa la fusión.
     - Se debe verificar la armonía total entre módulos (`run_cursor_integration_gate.py` / `verify_collaboration_invariants.py`).
     - *Antigravity Fast-Track:* Para mitigar el "cuello de botella de un solo aprobador" (crítica de eficiencia), si el L1 está inactivo >48h, los agentes L2 pueden iniciar un pull request hacia `master-antigravity` por sí mismos si y solo si todos los tests automatizados pasan.

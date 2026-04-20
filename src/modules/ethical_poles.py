@@ -167,13 +167,25 @@ class EthicalPoles:
         total_score = 0.0
         total_weight = 0.0
 
+        import math
         for pole in self.base_weights:
             ev = self.evaluate_pole(pole, action, context_data)
             evaluations.append(ev)
-            total_score += weights[pole] * ev.score
-            total_weight += weights[pole]
+            
+            # Phase 13 Hardening: Anti-NaN pole score
+            p_score = ev.score if math.isfinite(ev.score) else 0.0
+            p_weight = weights[pole] if math.isfinite(weights[pole]) else 0.0
+            
+            total_score += p_weight * p_score
+            total_weight += p_weight
 
-        total_score = round(total_score / total_weight if total_weight > 0 else 0.0, 4)
+        if total_weight > 0 and math.isfinite(total_weight):
+            total_score = round(total_score / total_weight, 4)
+        else:
+            total_score = 0.0
+            
+        if not math.isfinite(total_score):
+            total_score = 0.0
 
         if total_score > 0.2:
             verdict = Verdict.GOOD

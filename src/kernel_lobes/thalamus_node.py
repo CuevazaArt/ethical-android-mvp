@@ -35,6 +35,9 @@ class ThalamusNode:
     - VVAD: Voice Activity + Video Presence.
     - Posture: IMU alpha/beta/gamma check.
     """
+
+    _SENSORY_BUFFER_MAX = 50
+
     def __init__(self, sensitivity: float = 0.5):
         self.sensitivity = sensitivity
         self.state = AttentionState()
@@ -45,6 +48,9 @@ class ThalamusNode:
         self._ema_facing = 0.0
         self._ema_presence = 0.0
         self._alpha = 0.3 # Smoothing factor
+
+        # Phase 10.1: Sensory episode ring buffer
+        self.sensory_buffer: list = []
 
     def ingest_telemetry(self, payload: dict[str, Any]):
         """Ingests IMU and Battery data to update attentional confidence."""
@@ -132,6 +138,74 @@ class ThalamusNode:
             "user_activity": "speaking" if self.state.is_user_speaking else "quiet",
             "is_user_present": self.state.is_user_present
         }
+
+    def fuse_signals(
+        self,
+        vision_data: Dict[str, Any] | None = None,
+        audio_data: Dict[str, Any] | None = None,
+        environmental_stress: float = 0.0,
+    ) -> Dict[str, Any]:
+        """
+        Fuse raw vision + audio dicts to produce attention and trust signals.
+
+        Expected keys (all optional, default 0.0):
+            vision_data: ``lip_movement`` [0-1], ``human_presence`` [0-1]
+            audio_data:  ``vad_confidence`` [0-1]
+
+        Returns a dict with:
+            is_focal_address   bool   — True when presence + lip + vad all exceed thresholds
+            attention_locus    float  — [0, 1] weighted fusion
+            sensory_tension    float  — [0, 1] dissonance + environmental stress
+            cross_modal_trust  float  — 1.0 if focal, 0.4 if background
+        """
+        v = vision_data or {}
+        a = audio_data or {}
+
+        lip_mov = float(v.get("lip_movement", 0.0))
+        presence = float(v.get("human_presence", 0.0))
+        vad = float(a.get("vad_confidence", 0.0))
+
+        # Focal address: all three channels must exceed thresholds
+        _LIP_THR = 0.3
+        _PRES_THR = 0.5
+        _VAD_THR = 0.5
+        is_focal = presence > _PRES_THR and lip_mov > _LIP_THR and vad > _VAD_THR
+
+        # Attention locus: only meaningful when presence is detected
+        if presence <= _PRES_THR:
+            attention_locus = 0.0
+        else:
+            attention_locus = min(1.0, (lip_mov * 0.4) + (presence * 0.3) + (vad * 0.3))
+
+        # Sensory dissonance: high VAD without lip movement or presence
+        if presence > _PRES_THR:
+            dissonance = max(0.0, vad - lip_mov) * presence
+        else:
+            dissonance = 0.0
+
+        sensory_tension = min(1.0, dissonance + float(environmental_stress))
+
+        cross_modal_trust = 1.0 if is_focal else 0.4
+
+        # EMA update
+        self._ema_presence = self._alpha * presence + (1.0 - self._alpha) * self._ema_presence
+        self.state.is_user_present = self._ema_presence > _PRES_THR
+        self.state.is_user_speaking = vad > _VAD_THR or lip_mov > _LIP_THR
+        self.state.confidence = round((attention_locus + self._ema_facing) / 2.0, 4)
+        self.state.last_update = time.time()
+
+        return {
+            "is_focal_address": is_focal,
+            "attention_locus": round(max(0.0, min(1.0, attention_locus)), 4),
+            "sensory_tension": round(max(0.0, min(1.0, sensory_tension)), 4),
+            "cross_modal_trust": cross_modal_trust,
+        }
+
+    def push_episode(self, episode: Any) -> None:
+        """Append a sensory episode to the ring buffer (capped at _SENSORY_BUFFER_MAX)."""
+        self.sensory_buffer.append(episode)
+        if len(self.sensory_buffer) > self._SENSORY_BUFFER_MAX:
+            self.sensory_buffer = self.sensory_buffer[-self._SENSORY_BUFFER_MAX:]
 
     def get_sensory_summary(self) -> dict[str, Any]:
         """Provides a filtered summary for the Perceptive Lobe."""

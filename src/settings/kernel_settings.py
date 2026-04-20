@@ -139,11 +139,19 @@ class KernelSettings(BaseModel):
     )
 
     # ════ ASYNC / CHAT ORCHESTRATION ════
-    kernel_chat_turn_timeout_seconds: float | None = Field(
-        default=None,
+    kernel_nomad_chat_timeout_seconds: float = Field(
+        default=5.0,
         description=(
-            "KERNEL_CHAT_TURN_TIMEOUT — max seconds for one chat turn (async wait); "
-            "unset = unlimited."
+            "KERNEL_NOMAD_CHAT_TIMEOUT — max seconds to wait for a Nomad chat_text turn; "
+            "default 5 s. Keeps the Nomad bridge zero-friction by bounding limbic latency."
+        ),
+    )
+    kernel_chat_turn_timeout_seconds: float | None = Field(
+        default=30.0,
+        description=(
+            "KERNEL_CHAT_TURN_TIMEOUT — max seconds for one WebSocket chat turn (async wait); "
+            "default 30 s. Set to 0 or a negative value to disable. "
+            "For Nomad LAN use-cases keep ≤30 s to prevent limbic-latency stalls."
         ),
     )
     kernel_chat_threadpool_workers: int = Field(
@@ -269,6 +277,16 @@ class KernelSettings(BaseModel):
         description="KERNEL_METRICS — enable Prometheus metrics export.",
     )
 
+    # ════ AUDIO OUROBOROS ════
+    kernel_audio_ouroboros_enabled: bool = Field(
+        default=False,
+        description="KERNEL_AUDIO_OUROBOROS_ENABLED — enable STT->Reasoning->TTS loop.",
+    )
+    kernel_whisper_model: str = Field(
+        default="base",
+        description="KERNEL_WHISPER_MODEL — Whisper model size.",
+    )
+
     @classmethod
     def from_env(cls) -> KernelSettings:
         """Load settings from environment variables."""
@@ -293,7 +311,8 @@ class KernelSettings(BaseModel):
                 "KERNEL_SEMANTIC_CHAT_SIM_ALLOW_THRESHOLD", 0.45
             ),
             # Async/chat
-            kernel_chat_turn_timeout_seconds=_env_optional_positive_float("KERNEL_CHAT_TURN_TIMEOUT"),
+            kernel_nomad_chat_timeout_seconds=max(0.1, _env_float("KERNEL_NOMAD_CHAT_TIMEOUT", 5.0)),
+            kernel_chat_turn_timeout_seconds=_env_optional_positive_float("KERNEL_CHAT_TURN_TIMEOUT") or 30.0,
             kernel_chat_threadpool_workers=max(0, _env_int("KERNEL_CHAT_THREADPOOL_WORKERS", 0)),
             kernel_chat_async_llm_http=_env_truthy("KERNEL_CHAT_ASYNC_LLM_HTTP", default_true=False),
             kernel_chat_json_offload=_env_truthy("KERNEL_CHAT_JSON_OFFLOAD", default_true=True),
@@ -329,6 +348,9 @@ class KernelSettings(BaseModel):
             ethos_runtime_profile=_env_optional_str("ETHOS_RUNTIME_PROFILE"),
             # Metrics
             kernel_metrics=_env_truthy("KERNEL_METRICS", default_true=False),
+            # Audio Ouroboros
+            kernel_audio_ouroboros_enabled=_env_truthy("KERNEL_AUDIO_OUROBOROS_ENABLED", default_true=False),
+            kernel_whisper_model=_env_str("KERNEL_WHISPER_MODEL", "base"),
         )
 
     @field_validator("kernel_semantic_chat_sim_allow_threshold")
@@ -406,6 +428,10 @@ Optional Features:
 
 Telemetry:
   Metrics Enabled: {self.kernel_metrics}
+
+Audio Ouroboros:
+  Enabled: {self.kernel_audio_ouroboros_enabled}
+  Whisper Model: {self.kernel_whisper_model}
 ════════════════════════════════════════
 """
 

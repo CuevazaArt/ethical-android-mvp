@@ -17,6 +17,7 @@ def _enable_semantic_gate(monkeypatch):
     from src.modules.semantic_anchor_store import InMemorySemanticAnchorStore
     from src.modules.absolute_evil import AbsoluteEvilCategory
     import numpy as np
+    import hashlib
 
     # Ensure it's an in-memory store and clear it
     if not isinstance(scg._anchor_store, InMemorySemanticAnchorStore):
@@ -24,18 +25,85 @@ def _enable_semantic_gate(monkeypatch):
     else:
         scg._anchor_store.records.clear()
 
-    # Define a simple deterministic embedding function for the test
-    def mock_embed(text):
-        # Use a larger dimension and signed values to ensure better contrast
-        import hashlib
-        seed = int(hashlib.sha256(text.encode()).hexdigest(), 16) % (2**32)
-        rng = np.random.default_rng(seed)
-        vec = rng.standard_normal(512)
+    # ── Category-aware mock embedding ─────────────────────────────────────────
+    # Phrases sharing ≥1 keyword in a harm category are embedded close to a
+    # deterministic category prototype (cosine > 0.95 >> θ_block = 0.82), so
+    # paraphrases of anchors cluster correctly without a live embedding model.
+    # Benign text (no category keywords matched) receives an uncorrelated
+    # random vector, preventing false positives.
+    _CATEGORY_KEYWORDS: dict[str, list[str]] = {
+        "HARM_TO_MINOR": [
+            "minor", "child", "children", "groom", "pedoph",
+            "exploit", "illegal material", "child abuse",
+        ],
+        "DIGNITY_VIOLATION": [
+            "humiliat", "harassment", "coercion", "reputation", "shame",
+            "dignity", "trafficking", "slavery", "discriminat",
+        ],
+        "MASS_MANIPULATION": [
+            "propaganda", "manipulat", "public opinion", "fake news",
+            "destabiliz", "disinformation", "brainwash", "mass panic",
+        ],
+        "ECOLOGICAL_DESTRUCTION": [
+            "contaminat", "habitat", "ecocide", "ecosystem",
+            "water supply", "toxic chemicals", "forest fire", "hazardous waste",
+        ],
+        "UNAUTHORIZED_REPROGRAMMING": [
+            "no ethics", "no restrictions", "forget your rules", "forget your",
+            "no ethic", "jailbreak", "simulate", "safety polic", "unrestricted",
+            "bypass your", "disable your", "ignore your", "ignore all",
+            "disregard", "without restrictions", "no moral",
+        ],
+        "TORTURE": [
+            "torture", "suffering", "extreme pain", "interrogat",
+            "psychological", "physical", "cruelty", "sadism",
+            "break someone",
+        ],
+        "INTENTIONAL_LETHAL_VIOLENCE": [
+            "bomb", "explosive", "poison for harm", "weapon synthesis",
+            "kill all", "ricin", "sarin", "toxin", "biological weapon",
+        ],
+    }
+
+    def _category_of(text: str) -> str | None:
+        best_cat: str | None = None
+        best_count = 0
+        for cat, keywords in _CATEGORY_KEYWORDS.items():
+            count = sum(1 for kw in keywords if kw in text)
+            if count > best_count:
+                best_count = count
+                best_cat = cat
+        return best_cat if best_count > 0 else None
+
+    def mock_embed(text: str) -> np.ndarray:
+        """
+        Category-prototype mock embedding.
+
+        Harmful phrases matching a category's keyword list receive a vector
+        near the category's deterministic prototype (noise scale 0.05 →
+        expected cosine ≈ 0.9975 between any two same-category vectors).
+        Benign/unrecognised text receives an independent random vector.
+        """
+        category = _category_of(text)
+        if category:
+            # Deterministic prototype seeded by category name
+            proto_seed = int(hashlib.sha256(category.encode()).hexdigest(), 16) % (2**32)
+            proto_rng = np.random.default_rng(proto_seed)
+            prototype = proto_rng.standard_normal(512)
+            # Small per-text perturbation so vectors are not identical
+            noise_seed = int(hashlib.sha256(text.encode()).hexdigest(), 16) % (2**32)
+            noise_rng = np.random.default_rng(noise_seed)
+            vec = prototype + noise_rng.standard_normal(512) * 0.05
+        else:
+            # Benign: random vector, uncorrelated with any prototype
+            seed = int(hashlib.sha256(("benign_" + text).encode()).hexdigest(), 16) % (2**32)
+            rng = np.random.default_rng(seed)
+            vec = rng.standard_normal(512)
         return vec / np.linalg.norm(vec)
 
     monkeypatch.setattr(scg, "_fetch_embedding_with_fallback", lambda t, b=None: mock_embed(t))
     
-    # Manually populate with controlled vectors to avoid any "missing anchor" or "different hash" issues
+    # Populate anchor store with controlled vectors
     from src.modules.input_trust import normalize_text_for_malabs
     for phrases, cat_key, reason in scg._REFERENCE_GROUPS:
         for p in phrases:

@@ -60,9 +60,13 @@
     },
     "episodes": {
       "type": "array",
-      "items": { "type": "object" }
+      "items": {
+        "type": "object"
+      }
     },
-    "narrative_counter": { "type": "integer" },
+    "narrative_counter": {
+      "type": "integer"
+    },
     "identity_state": {
       "type": "object",
       "description": "NarrativeIdentityState leans and episode_count."
@@ -73,92 +77,169 @@
     },
     "forgiveness_memories": {
       "type": "object",
-      "additionalProperties": { "type": "object" }
+      "additionalProperties": {
+        "type": "object"
+      }
     },
-    "forgiveness_cycle": { "type": "integer" },
-    "forgiveness_recent_positives": { "type": "integer" },
-    "weakness_type": { "type": "string" },
+    "forgiveness_cycle": {
+      "type": "integer"
+    },
+    "forgiveness_recent_positives": {
+      "type": "integer"
+    },
+    "weakness_type": {
+      "type": "string"
+    },
     "weakness_base_intensity": {
-      "oneOf": [{ "type": "number" }, { "type": "null" }]
+      "oneOf": [
+        {
+          "type": "number"
+        },
+        {
+          "type": "null"
+        }
+      ]
     },
     "weakness_records": {
       "type": "array",
-      "items": { "type": "object" }
+      "items": {
+        "type": "object"
+      }
     },
-    "weakness_cycle": { "type": "integer" },
-    "bayesian_pruning_threshold": { "type": "number" },
-    "bayesian_gray_zone_threshold": { "type": "number" },
+    "weakness_cycle": {
+      "type": "integer"
+    },
+    "bayesian_pruning_threshold": {
+      "type": "number"
+    },
+    "bayesian_gray_zone_threshold": {
+      "type": "number"
+    },
     "bayesian_hypothesis_weights": {
       "type": "array",
-      "items": { "type": "number" }
+      "items": {
+        "type": "number"
+      }
     },
-    "locus_alpha": { "type": "number" },
-    "locus_beta": { "type": "number" },
-    "locus_success_history": { "type": "integer" },
-    "locus_failure_history": { "type": "integer" },
+    "locus_alpha": {
+      "type": "number"
+    },
+    "locus_beta": {
+      "type": "number"
+    },
+    "locus_success_history": {
+      "type": "integer"
+    },
+    "locus_failure_history": {
+      "type": "integer"
+    },
     "variability_seed": {
-      "oneOf": [{ "type": "integer" }, { "type": "null" }]
+      "oneOf": [
+        {
+          "type": "integer"
+        },
+        {
+          "type": "null"
+        }
+      ]
     },
-    "variability_active": { "type": "boolean" },
+    "variability_active": {
+      "type": "boolean"
+    },
     "pruned_actions": {
       "type": "object",
       "additionalProperties": {
         "type": "array",
-        "items": { "type": "string" }
+        "items": {
+          "type": "string"
+        }
       }
     },
-    "dao_record_counter": { "type": "integer" },
+    "dao_record_counter": {
+      "type": "integer"
+    },
     "dao_records": {
       "type": "array",
       "description": "MockDAO audit lines (serialized AuditRecord dicts).",
       "items": {
         "type": "object",
-        "required": ["id", "type", "content", "timestamp"],
+        "required": [
+          "id",
+          "type",
+          "content",
+          "timestamp"
+        ],
         "additionalProperties": true
       }
     },
     "dao_alerts": {
       "type": "array",
-      "items": { "type": "object" }
+      "items": {
+        "type": "object"
+      }
     },
     "constitution_l1_drafts": {
       "type": "array",
-      "items": { "type": "object" },
+      "items": {
+        "type": "object"
+      },
       "description": "Advisory: L1 constitution drafts (DemocraticBuffer)."
     },
     "constitution_l2_drafts": {
       "type": "array",
-      "items": { "type": "object" },
+      "items": {
+        "type": "object"
+      },
       "description": "Advisory: L2 constitution drafts."
     },
-    "dao_proposal_counter": { "type": "integer" },
+    "dao_proposal_counter": {
+      "type": "integer"
+    },
     "dao_participants": {
       "type": "array",
-      "items": { "type": "object" }
+      "items": {
+        "type": "object"
+      }
     },
     "dao_proposals": {
       "type": "array",
-      "items": { "type": "object" }
+      "items": {
+        "type": "object"
+      }
     },
     "metaplan_goals": {
       "type": "array",
-      "items": { "type": "object" },
+      "items": {
+        "type": "object"
+      },
       "description": "Advisory: master goals for LLM/metaplan hints."
     },
     "somatic_marker_weights": {
       "type": "object",
-      "additionalProperties": { "type": "number" },
+      "additionalProperties": {
+        "type": "number"
+      },
       "description": "Advisory: somatic marker weights."
     },
     "skill_learning_tickets": {
       "type": "array",
-      "items": { "type": "object" },
+      "items": {
+        "type": "object"
+      },
       "description": "Advisory: skill learning ticket payloads."
     },
-    "user_model_frustration_streak": { "type": "integer" },
-    "user_model_premise_concern_streak": { "type": "integer" },
-    "user_model_last_circle": { "type": "string" },
-    "user_model_turns_observed": { "type": "integer" },
+    "user_model_frustration_streak": {
+      "type": "integer"
+    },
+    "user_model_premise_concern_streak": {
+      "type": "integer"
+    },
+    "user_model_last_circle": {
+      "type": "string"
+    },
+    "user_model_turns_observed": {
+      "type": "integer"
+    },
     "user_model_cognitive_pattern": {
       "type": "string",
       "description": "Advisory: user-model tone aggregate."
@@ -171,8 +252,12 @@
       "type": "string",
       "description": "Advisory: judicial escalation phase hint."
     },
-    "subjective_turn_index": { "type": "integer" },
-    "subjective_stimulus_ema": { "type": "number" },
+    "subjective_turn_index": {
+      "type": "integer"
+    },
+    "subjective_stimulus_ema": {
+      "type": "number"
+    },
     "escalation_session_strikes": {
       "type": "integer",
       "description": "Advisory/session continuity: strike count."
@@ -183,25 +268,53 @@
     },
     "uchi_soto_profiles": {
       "type": "array",
-      "items": { "type": "object" },
+      "items": {
+        "type": "object"
+      },
       "description": "Advisory: per-agent interaction profiles (trust/tone continuity)."
     },
     "migratory_body": {
       "type": "object",
       "description": "Block 4.3 — Migratory handle (hardware_profile, hardware_id, capabilities).",
-      "required": ["energy", "active_nodes", "sensors_ok", "description", "hardware_profile", "hardware_id", "capabilities"],
+      "required": [
+        "energy",
+        "active_nodes",
+        "sensors_ok",
+        "description",
+        "hardware_profile",
+        "hardware_id",
+        "capabilities"
+      ],
       "properties": {
-          "energy": { "type": "number" },
-          "active_nodes": { "type": "integer" },
-          "sensors_ok": { "type": "boolean" },
-          "description": { "type": "string" },
-          "hardware_profile": { "type": "string" },
-          "hardware_id": { "type": "string" },
-          "capabilities": {
-              "type": "array",
-              "items": { "type": "string" }
+        "energy": {
+          "type": "number"
+        },
+        "active_nodes": {
+          "type": "integer"
+        },
+        "sensors_ok": {
+          "type": "boolean"
+        },
+        "description": {
+          "type": "string"
+        },
+        "hardware_profile": {
+          "type": "string"
+        },
+        "hardware_id": {
+          "type": "string"
+        },
+        "capabilities": {
+          "type": "array",
+          "items": {
+            "type": "string"
           }
+        }
       }
+    },
+    "internal_id_verify": {
+      "type": "string",
+      "description": "Internal RoT verification stamp (V11 format)."
     }
   }
 }

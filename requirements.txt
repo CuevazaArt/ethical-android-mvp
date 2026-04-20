@@ -9,6 +9,7 @@ prometheus-client>=0.20.0,<1.0.0  # optional /metrics when KERNEL_METRICS=1
 fastapi>=0.115.0,<1.0.0       # WebSocket chat server (src/chat_server.py)
 uvicorn[standard]>=0.30.0,<1.0.0
 httpx>=0.27.0,<1.0.0          # FastAPI TestClient
+zeroconf>=0.132.0             # mDNS/Zeroconf Autodiscovery (Task 14.1)
 
 # ── Testing ──────────────────────────────────────────────────────────
 pytest>=7.4.0,<10.0.0

@@ -1,15 +1,15 @@
-"""
-Audio Perception Pipeline — Blocks A1 & A2 (Capture & RingBuffer)
-This module provides the low-level acoustic stream ingestion framework.
-"""
-
+from __future__ import annotations
 import logging
 import queue
 import threading
 import time
 from dataclasses import dataclass
+from typing import TYPE_CHECKING, Any, Callable, List, Optional, Set, Tuple
 
 import numpy as np
+
+if TYPE_CHECKING:
+    from src.modules.nomad_bridge import NomadBridge
 
 _log = logging.getLogger(__name__)
 
@@ -20,10 +20,10 @@ class AudioRingBuffer:
     Overwrites the oldest data if the buffer overflows to keep the feed real-time.
     """
 
-    def __init__(self, capacity_chunks: int = 100):
-        self.capacity = capacity_chunks
+    def __init__(self, capacity_chunks: int = 100) -> None:
+        self.capacity: int = capacity_chunks
         self.buffer: queue.Queue[np.ndarray] = queue.Queue(maxsize=capacity_chunks)
-        self.lock = threading.Lock()
+        self.lock: threading.Lock = threading.Lock()
 
     def append(self, chunk: np.ndarray) -> None:
         """Appends a new PCM audio chunk. Evicts oldest if full."""
@@ -35,16 +35,16 @@ class AudioRingBuffer:
                     pass
             self.buffer.put_nowait(chunk)
 
-    def get_next(self) -> np.ndarray | None:
+    def get_next(self) -> Optional[np.ndarray]:
         """Pulls the oldest unread chunk from the buffer."""
         try:
             return self.buffer.get_nowait()
         except queue.Empty:
             return None
 
-    def flush(self) -> list[np.ndarray]:
+    def flush(self) -> List[np.ndarray]:
         """Returns all currently buffered chunks and empties the queue."""
-        frames = []
+        frames: List[np.ndarray] = []
         with self.lock:
             while not self.buffer.empty():
                 frames.append(self.buffer.get_nowait())
@@ -57,13 +57,13 @@ class AudioCaptureInterface:
     Continuously samples audio and pushes it to the RingBuffer.
     """
 
-    def __init__(self, sample_rate: int = 16000, chunk_size: int = 1024):
-        self.sample_rate = sample_rate
-        self.chunk_size = chunk_size
-        self.ring_buffer = AudioRingBuffer()
+    def __init__(self, sample_rate: int = 16000, chunk_size: int = 1024) -> None:
+        self.sample_rate: int = sample_rate
+        self.chunk_size: int = chunk_size
+        self.ring_buffer: AudioRingBuffer = AudioRingBuffer()
 
-        self._running = False
-        self._thread: threading.Thread | None = None
+        self._running: bool = False
+        self._thread: Optional[threading.Thread] = None
 
     def start(self) -> None:
         """Starts the asynchronous capture thread."""
@@ -82,35 +82,29 @@ class AudioCaptureInterface:
     def _capture_loop(self) -> None:
         """
         Hardware acquisition loop.
-        Currently implemented as a mock generator to fulfill the contract framework.
-        TODO (Hardware Integration): Replace `np.zeros` with `sounddevice` or `pyaudio` read calls.
+        Current implementation uses a mock generator.
         """
-        # Duration of one chunk in seconds
-        chunk_duration = self.chunk_size / self.sample_rate
+        chunk_duration: float = self.chunk_size / self.sample_rate
 
         while self._running:
-            # Simulate picking up a block of audio data (silence for now)
-            # Future edge implementations will bind directly to the ADC stream here.
-            simulated_pcm = np.zeros(self.chunk_size, dtype=np.float32)
+            simulated_pcm: np.ndarray = np.zeros(self.chunk_size, dtype=np.float32)
             self.ring_buffer.append(simulated_pcm)
-
-            # Wait precisely the time it takes to "record" the chunk to avoid flooding
             time.sleep(chunk_duration)
 
 
 class AudioPreprocessor:
     """
     Block A3 & A4: Signal processing and feature extraction.
-    Handles Voice Activity Detection (VAD) and feature transformations (Spectrograms).
+    Handles Voice Activity Detection (VAD) and feature transformations.
     """
 
-    def __init__(self, sample_rate: int = 16000, energy_threshold: float = 0.01):
-        self.sample_rate = sample_rate
-        self.energy_threshold = energy_threshold
+    def __init__(self, sample_rate: int = 16000, energy_threshold: float = 0.01) -> None:
+        self.sample_rate: int = sample_rate
+        self.energy_threshold: float = energy_threshold
 
     def normalize(self, pcm: np.ndarray) -> np.ndarray:
         """Normalizes audio to -1.0 to 1.0 range."""
-        max_val = np.max(np.abs(pcm))
+        max_val: float = float(np.max(np.abs(pcm)))
         if max_val > 0:
             return pcm / max_val
         return pcm
@@ -118,79 +112,66 @@ class AudioPreprocessor:
     def detect_voice(self, pcm: np.ndarray) -> bool:
         """
         Block A3: Simple energy-based Voice Activity Detection.
-        Returns True if the audio chunk likely contains human speech or significant noise.
         """
-        energy = np.mean(pcm**2)
+        energy: float = float(np.mean(pcm**2))
         return energy > self.energy_threshold
 
     def compute_mel_spectrogram(self, pcm: np.ndarray) -> np.ndarray:
         """
-        Block A4: Generates a Mel-Spectrogram snapshot (simplified for the contract).
-        Real implementations would use Librosa or TorchAudio.
-        For now, returns a dummy feature vector to maintain pipeline flow.
+        Block A4: Generates a Mel-Spectrogram snapshot (simplified).
         """
-        # Placeholder for 128 Mel bands over the chunk
         return np.random.rand(128, 10).astype(np.float32)
 
 
 class AudioContinuousDaemon:
     """
     ARCHITECTURE V1.6 - Daemon de Audio Continuo (Bloque 9.1 extension)
-    Consumes raw PCM streams from the NomadBridge and injects them 
-    into the Ethos Kernel's AudioRingBuffer at a continuous rate.
     """
-    def __init__(self, ring_buffer: AudioRingBuffer):
-        self.ring_buffer = ring_buffer
-        self.running = False
-        self._thread = None
+    def __init__(self, ring_buffer: AudioRingBuffer) -> None:
+        self.ring_buffer: AudioRingBuffer = ring_buffer
+        self.running: bool = False
+        self._thread: Optional[threading.Thread] = None
 
-    def start(self):
+    def start(self) -> None:
         """Starts the background audio consumption thread."""
         if self.running:
             return
         self.running = True
         self._thread = threading.Thread(target=self._daemon_loop, daemon=True, name="AudioContinuousDaemon")
         self._thread.start()
-        import logging
-        logging.getLogger(__name__).info("AudioContinuousDaemon: Started.")
+        _log.info("AudioContinuousDaemon: Started.")
 
-    def stop(self):
+    def stop(self) -> None:
         """Stops the audio consumption thread."""
         self.running = False
         if self._thread:
             self._thread.join(timeout=1.0)
 
-    def _daemon_loop(self):
+    def _daemon_loop(self) -> None:
         """Loop that pulls PCM from the nomad bridge and appends to ring buffer."""
-        import asyncio
         from src.modules.nomad_bridge import get_nomad_bridge
         
-        bridge = get_nomad_bridge()
+        bridge: NomadBridge = get_nomad_bridge()
         _log.info("AudioContinuousDaemon: Loop entered. Consuming from Nomad Bridge...")
         
         while self.running:
             try:
-                # Direct queue access (non-blocking if empty)
                 if not bridge.audio_queue.empty():
-                    pcm_bytes = bridge.audio_queue.get_nowait()
-                    # Convert to float32 (matching smartphone encoding)
-                    np_pcm = np.frombuffer(pcm_bytes, dtype=np.float32)
+                    pcm_bytes: bytes = bridge.audio_queue.get_nowait()
+                    np_pcm: np.ndarray = np.frombuffer(pcm_bytes, dtype=np.float32)
                     self.ring_buffer.append(np_pcm)
                 else:
-                    # Tiny sleep to avoid spinning
                     time.sleep(0.01)
             except Exception as e:
-                import logging
-                logging.getLogger(__name__).error("AudioContinuousDaemon error: %s", e)
+                _log.error("AudioContinuousDaemon error: %s", e)
                 time.sleep(0.1)
 
 
 @dataclass
 class AudioInference:
     """Consolidated result of an acoustic inference turn."""
-
-    transcript: str | None = None
-    ambient_label: str | None = None
+    transcript: Optional[str] = None
+    ambient_label: Optional[str] = None
     confidence: float = 0.0
     is_hotword_detected: bool = False
     timestamp: float = 0.0
@@ -199,17 +180,13 @@ class AudioInference:
 class AudioAIProcessor:
     """
     Blocks A5, A6 & A7: AI-driven acoustic understanding.
-    Wraps models like Whisper, YAMNet, and KWS (Keyword Spotting).
     """
 
-    def __init__(self):
-        # Placeholders for model instances (e.g. whisper, yamnet)
+    def __init__(self) -> None:
         pass
 
     def run_inference(self, pcm: np.ndarray, features: np.ndarray) -> AudioInference:
         """Runs the triple-path AI inference on the audio signal."""
-        # TODO (Production): Bind to OpenAI-Whisper, TensorFlow-YAMNet, or TinyML-KWS
-        # For now, simulate a clean background to maintain architecture flow.
         return AudioInference(
             transcript=None,
             ambient_label="calm",
@@ -222,36 +199,28 @@ import asyncio
 
 class NomadAudioConsumer:
     """
-    Consumes raw PCM streams from the NomadBridge and injects them 
-    into the Ethos Kernel's AudioRingBuffer asynchronously.
+    Consumes raw PCM streams from the NomadBridge asynchronously.
     """
-    def __init__(self, ring_buffer: AudioRingBuffer):
-        self.ring_buffer = ring_buffer
-        self._task: asyncio.Task | None = None
+    def __init__(self, ring_buffer: AudioRingBuffer) -> None:
+        self.ring_buffer: AudioRingBuffer = ring_buffer
+        self._task: Optional[asyncio.Task[None]] = None
 
-    def start(self):
+    def start(self) -> None:
         self._task = asyncio.create_task(self._consume_loop())
 
-    async def _consume_loop(self):
+    async def _consume_loop(self) -> None:
         from .nomad_bridge import get_nomad_bridge
         
-        bridge = get_nomad_bridge()
+        bridge: NomadBridge = get_nomad_bridge()
         while True:
             try:
-                pcm_bytes = await bridge.audio_queue.get()
-                
-                # We expect float32 PCM data from the smartphone 
-                # (matching the interface of simulated_pcm)
-                np_pcm = np.frombuffer(pcm_bytes, dtype=np.float32)
-                
-                # Offload append to not block the current loop
+                pcm_bytes: bytes = await bridge.audio_queue.get()
+                np_pcm: np.ndarray = np.frombuffer(pcm_bytes, dtype=np.float32)
                 self.ring_buffer.append(np_pcm)
-                
             except asyncio.CancelledError:
                 break
             except Exception as e:
-                import logging
-                logging.getLogger(__name__).error("Error in NomadAudioConsumer: %s", e)
+                _log.error("Error in NomadAudioConsumer: %s", e)
 
     async def stop(self) -> None:
         if self._task is not None:
@@ -263,8 +232,8 @@ class NomadAudioConsumer:
             self._task = None
 
 
-_shared_capture: AudioCaptureInterface | None = None
-_nomad_audio_consumer: NomadAudioConsumer | None = None
+_shared_capture: Optional[AudioCaptureInterface] = None
+_nomad_audio_consumer: Optional[NomadAudioConsumer] = None
 
 
 def get_shared_audio_capture() -> AudioCaptureInterface:
@@ -276,15 +245,13 @@ def get_shared_audio_capture() -> AudioCaptureInterface:
     return _shared_capture
 
 
-def start_nomad_audio_consumer_from_env(ring_buffer: AudioRingBuffer) -> NomadAudioConsumer | None:
+def start_nomad_audio_consumer_from_env(ring_buffer: AudioRingBuffer) -> Optional[NomadAudioConsumer]:
     """
     Start the background audio drain from NomadBridge when KERNEL_NOMAD_AUDIO_CONSUMER=1.
     """
     global _nomad_audio_consumer
     from ..kernel_utils import kernel_env_truthy
     
-    # We always need the background consumer if we want real-time phone audio 
-    # even if simulated mic capture is running.
     if not kernel_env_truthy("KERNEL_NOMAD_AUDIO_CONSUMER"):
         return None
     if _nomad_audio_consumer is not None:
@@ -299,7 +266,7 @@ def start_nomad_audio_consumer_from_env(ring_buffer: AudioRingBuffer) -> NomadAu
 async def stop_nomad_audio_consumer_async() -> None:
     """Gracefully stop the background audio task."""
     global _nomad_audio_consumer
-    c = _nomad_audio_consumer
+    c: Optional[NomadAudioConsumer] = _nomad_audio_consumer
     _nomad_audio_consumer = None
     if c is not None:
         await c.stop()

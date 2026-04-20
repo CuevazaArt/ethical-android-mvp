@@ -42,18 +42,40 @@ def _sha256_hex(data: str) -> str:
 
 
 def _read_last_chain_state(path: Path) -> tuple[int, str]:
+    """Read last chain entry; return (seq, prev_hash) or (0, genesis) on init/error."""
     if not path.is_file():
         return 0, _GENESIS_PREV
-    text = path.read_text(encoding="utf-8").strip()
-    if not text:
+    try:
+        text = path.read_text(encoding="utf-8").strip()
+        if not text:
+            return 0, _GENESIS_PREV
+        lines = text.splitlines()
+        if not lines:
+            return 0, _GENESIS_PREV
+        # Parse last line; error means corrupted file — return safe defaults
+        last = json.loads(lines[-1])
+        seq = int(last.get("seq", -1))
+        line_hash = str(last.get("line_sha256", _GENESIS_PREV))
+        if seq < 0:
+            raise ValueError(f"Invalid seq in last line: {seq}")
+        return seq, line_hash
+    except (json.JSONDecodeError, ValueError, KeyError) as e:
+        # Audit file corruption detected; log and return safe defaults
+        import logging
+        logging.getLogger(__name__).warning(
+            "Audit chain read error (possibly corrupted): %s. Resuming from genesis.",
+            e,
+        )
         return 0, _GENESIS_PREV
-    lines = text.splitlines()
-    last = json.loads(lines[-1])
-    return int(last["seq"]), str(last["line_sha256"])
 
 
 def append_audit_event(event_type: str, payload: dict[str, Any]) -> None:
-    """Append one chain record if ``KERNEL_AUDIT_CHAIN_PATH`` is set."""
+    """
+    Append one hash-linked audit record if ``KERNEL_AUDIT_CHAIN_PATH`` is set.
+
+    Uses advisory file lock + hash chain to detect truncation/tampering.
+    Logs warnings on corruption but does not halt the kernel.
+    """
     raw_path = os.environ.get("KERNEL_AUDIT_CHAIN_PATH", "").strip()
     if not raw_path:
         return
@@ -66,33 +88,53 @@ def append_audit_event(event_type: str, payload: dict[str, Any]) -> None:
     from src.persistence.file_lock import advisory_file_lock
 
     lock_path = path.with_name(path.name + ".audit.lock")
-    with advisory_file_lock(lock_path, timeout_s=30.0):
-        t0 = time.perf_counter()
-        seq, prev_line_hash = _read_last_chain_state(path)
-        inner: dict[str, Any] = {
-            "seq": seq + 1,
-            "ts_unix": time.time(),
-            "event_type": event_type,
-            "payload": payload,
-            "payload_sha256": payload_sha,
-            "prev_line_sha256": prev_line_hash,
-        }
-        inner_canon = _canonical_dumps(inner)
-        line_sha = _sha256_hex(inner_canon)
-        record: dict[str, Any] = {**inner, "line_sha256": line_sha}
-        secret = os.environ.get("KERNEL_AUDIT_HMAC_SECRET", "").strip()
-        if secret:
-            record["hmac_sha256"] = hmac.new(
-                secret.encode("utf-8"),
-                inner_canon.encode("utf-8"),
-                hashlib.sha256,
-            ).hexdigest()
-        with open(path, "a", encoding="utf-8") as fh:
-            fh.write(_canonical_dumps(record) + "\n")
-        
-        latency = (time.perf_counter() - t0) * 1000
-        if latency > 5.0:
-            _log.debug("AuditChain: IO Latency spike: %.2fms", latency)
+    import logging
+    logger = logging.getLogger(__name__)
+
+    try:
+        with advisory_file_lock(lock_path, timeout_s=30.0):
+            t0 = time.perf_counter()
+            seq, prev_line_hash = _read_last_chain_state(path)
+            next_seq = seq + 1
+            inner: dict[str, Any] = {
+                "seq": next_seq,
+                "ts_unix": time.time(),
+                "event_type": event_type,
+                "payload": payload,
+                "payload_sha256": payload_sha,
+                "prev_line_sha256": prev_line_hash,
+            }
+            inner_canon = _canonical_dumps(inner)
+            line_sha = _sha256_hex(inner_canon)
+            record: dict[str, Any] = {**inner, "line_sha256": line_sha}
+            secret = os.environ.get("KERNEL_AUDIT_HMAC_SECRET", "").strip()
+            if secret:
+                record["hmac_sha256"] = hmac.new(
+                    secret.encode("utf-8"),
+                    inner_canon.encode("utf-8"),
+                    hashlib.sha256,
+                ).hexdigest()
+                
+            record_line = _canonical_dumps(record) + "\n"
+            with open(path, "a", encoding="utf-8") as fh:
+                fh.write(record_line)
+                fh.flush()  # Explicit flush before releasing lock
+                
+            # Verify by re-reading last line
+            try:
+                with open(path, "r", encoding="utf-8") as fh:
+                    lines = fh.readlines()
+                    last_line = lines[-1] if lines else None
+                if last_line and last_line.strip() != record_line.strip():
+                    logger.error("Audit chain write verification failed (possible corruption); expected seq=%d", next_seq)
+            except Exception as ve:
+                logger.warning("Audit chain read-back verification failed: %s", ve)
+
+            latency = (time.perf_counter() - t0) * 1000
+            if latency > 5.0:
+                logger.debug("AuditChain: IO Latency spike: %.2fms", latency)
+    except Exception as e:
+        logger.error("Audit chain append failed: %s (kernel continues)", e)
 
 
 def maybe_append_malabs_block_audit(

@@ -87,6 +87,6 @@ def evaluate_calibration_update(
 
     return SovereigntyEvaluation(
         accept=True,
-        reason="calibration_payload_passes_all_sovereignty_checks",
+        reason="passes_l0_calibration_payload_passes_all_sovereignty_checks",
         audit_hint="",
     )

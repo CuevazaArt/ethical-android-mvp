@@ -63,10 +63,14 @@ class SwarmOracle:
     def get_reputation_hint(self, node_id: str) -> float:
         return self.peers.get(node_id, PeerEntry(node_id, 0, 0.5)).reputation
 
-    def apply_slashing(self, node_id: str, penalty: float = 0.2):
+    def apply_slashing(self, node_id: str, penalty: float = 0.2, *, severity: float | None = None):
         """
         Block 7.2: apply a strong reputation penalty when a node provides false verification.
+
+        ``severity`` is an alias for ``penalty`` (kept for backward-compat with older callers).
         """
+        if severity is not None:
+            penalty = severity
         if node_id not in self.peers:
             # Register unknown peer with default 0.5 before slashing
             now = __import__("time").time()

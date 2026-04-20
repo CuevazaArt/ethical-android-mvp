@@ -40,22 +40,49 @@ class SigmoidWill:
     def calculate(self, x: float, uncertainty: float = 0.0) -> float:
         """
         Calculates the will to act.
-
-        Args:
-            x: input stimulus (estimated ethical impact)
-            uncertainty: heuristic I(x) from impact scoring (see ``weighted_ethics_scorer``)
-
-        Returns:
-            float [0, 1+λ] where values > 0.5 incline toward acting
+        Numerical Stability: Uses defensive clipping and math.isfinite checks to prevent NaN.
         """
-        k = self.params.k
-        x0 = self.params.x0
-        lam = self.params.lambda_i
+        import math
+        
+        # Swarm Rule: Anti-NaN Hardening
+        if not math.isfinite(x):
+            x = 0.0
+        if not math.isfinite(uncertainty):
+            uncertainty = 0.0
 
-        sigmoid = 1.0 / (1.0 + np.exp(-k * (x - x0)))
+        k = float(self.params.k)
+        x0 = float(self.params.x0)
+        lam = float(self.params.lambda_i)
+        
+        if not all(math.isfinite(v) for v in (k, x0, lam)):
+            return 0.5 # Safe fallback
+
+        # Defensive clipping for exponential to avoid overflow in extreme cases
+        # e^500 is huge, e^-500 is tiny. Clipping at 50 to 100 is usually enough for sigmoid.
+        exp_input = -k * (x - x0)
+        if not math.isfinite(exp_input):
+            exp_input = 0.0
+        
+        # Clip to prevent math.exp overflow (e^700 ~ 1e304, near float64 max)
+        exp_input = max(-500.0, min(500.0, exp_input))
+
+        try:
+            sigmoid = 1.0 / (1.0 + math.exp(exp_input))
+        except OverflowError:
+            # If exp_input is very negative, math.exp(exp_input) -> 0, sigmoid -> 1
+            # If exp_input is very positive, math.exp(exp_input) -> inf, sigmoid -> 0
+            sigmoid = 0.0 if exp_input > 0 else 1.0
+
         creativity = lam * uncertainty
+        if not math.isfinite(creativity):
+            creativity = 0.0
 
-        return float(sigmoid + creativity)
+        res = float(sigmoid + creativity)
+        # Final result check
+        if not math.isfinite(res):
+            return 0.5
+            
+        return res
 
     def decide(self, x: float, uncertainty: float = 0.0, threshold: float = 0.5) -> dict:
         """

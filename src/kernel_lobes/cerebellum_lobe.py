@@ -9,14 +9,14 @@ import logging
 
 _log = logging.getLogger(__name__)
 
-from src.kernel_lobes.models import BayesianStageMetadata
-
 if TYPE_CHECKING:
     from src.modules.bayesian_engine import BayesianInferenceEngine
     from src.modules.strategy_engine import ExecutiveStrategist
     from src.modules.weighted_ethics_scorer import CandidateAction, EthicsMixtureResult
     from src.modules.narrative import NarrativeMemory
     from src.modules.rlhf_reward_model import RLHFPipeline
+
+from src.kernel_lobes.models import BayesianStageMetadata
 
 
 class CerebellumLobe:
@@ -57,14 +57,12 @@ class CerebellumLobe:
         priors = None
         if hasattr(self.bayesian, "dao") and isinstance(self.bayesian.dao, DAOOrchestrator):
              priors = self.bayesian.dao.get_state("bayesian_posterior_alpha")
-        elif os.environ.get("KERNEL_BAYESIAN_PERSISTENCE", "0") == "1":
-             # If we have a global reference, we would load it here
-             pass
-
+        
+        # 0.5 Sync Scorer defaults or empirical overrides (historical requirement)
         if priors:
             self.bayesian.update_posterior_from_feedback(priors)
-        else:
-            self.bayesian.reset()
+        elif not os.environ.get("KERNEL_BAYESIAN_EMPIRICAL_WEIGHTS", "").strip().lower() in ("1", "true", "yes", "on"):
+            self.bayesian.reset_mixture_weights()
 
         # 1. Update Strategic Alignment
         for a in clean_actions:
@@ -74,9 +72,12 @@ class CerebellumLobe:
         mixture_posterior_alpha = None
         feedback_consistency = None
         mixture_context_key = None
+        hierarchical_context_key = None
         dirichlet_alpha_for_bma = None
         
         fb_path = os.environ.get("KERNEL_FEEDBACK_PATH", "").strip()
+        _hier_on = os.environ.get("KERNEL_HIERARCHICAL_FEEDBACK", "").strip().lower() in ("1", "true", "yes", "on")
+
         if fb_path:
             p = Path(fb_path)
             if p.is_file():
@@ -119,6 +120,26 @@ class CerebellumLobe:
             except Exception as e:
                 _log.error("CerebellumLobe: Failed to apply temporal horizon prior: %s", e)
 
+                # ADR 0013 — Hierarchical updater: apply per-context Dirichlet blending
+                if _hier_on:
+                    from src.modules.hierarchical_updater import (
+                        HierarchicalUpdater,
+                        canonical_context_type,
+                    )
+                    ctype = canonical_context_type(context)
+                    min_local = int(os.environ.get("KERNEL_HIERARCHICAL_MIN_LOCAL", "2"))
+                    # Use a fresh hierarchical updater with the global alpha from feedback
+                    hier = HierarchicalUpdater(
+                        initial_alpha=list(np.asarray(alpha_vec).reshape(3)),
+                        min_local_items=min_local,
+                        seed=int(os.environ.get("KERNEL_FEEDBACK_SEED", "42")),
+                    )
+                    hier_alpha = hier.active_alpha_for_context(ctype)
+                    mixture_posterior_alpha = tuple(round(float(v), 6) for v in np.asarray(hier_alpha).reshape(3))
+                    self.bayesian.update_posterior_from_feedback(hier_alpha, feedback_consistency or "compatible")
+                    dirichlet_alpha_for_bma = hier_alpha
+                    hierarchical_context_key = ctype
+
         # 3. Main Bayesian Evaluate
         bayes_result = self.bayesian.evaluate(
             actions=clean_actions, 
@@ -138,8 +159,9 @@ class CerebellumLobe:
         if bma_enabled():
             alpha_bma = dirichlet_alpha_for_bma if dirichlet_alpha_for_bma is not None else parse_bma_alpha_from_env()
             n_s = bma_n_samples()
-            # Use internal scorer directly
-            win_probs = monte_carlo_win_probabilities(self.bayesian.scorer if hasattr(self.bayesian, "scorer") else self.bayesian, clean_actions, alpha=np.asarray(alpha_bma, dtype=np.float64), n_samples=n_s, scenario=scenario, context=context, signals=signals)
+            # Use internal scorer directly; seed from variability flag for reproducibility
+            _bma_rng = np.random.default_rng(42)
+            win_probs = monte_carlo_win_probabilities(self.bayesian.scorer if hasattr(self.bayesian, "scorer") else self.bayesian, clean_actions, alpha=np.asarray(alpha_bma, dtype=np.float64), n_samples=n_s, scenario=scenario, context=context, signals=signals, rng=_bma_rng)
             
             bma_win_probs = win_probs
             bma_dirichlet = tuple(round(float(v), 6) for v in np.asarray(alpha_bma).reshape(3))
@@ -155,6 +177,7 @@ class CerebellumLobe:
             mixture_posterior_alpha=mixture_posterior_alpha,
             feedback_consistency=feedback_consistency,
             mixture_context_key=mixture_context_key,
+            hierarchical_context_key=hierarchical_context_key,
             applied_mixture_weights=tuple(round(float(v), 6) for v in self.bayesian.hypothesis_weights),
             bma_win_probabilities=bma_win_probs,
             bma_dirichlet_alpha=bma_dirichlet,

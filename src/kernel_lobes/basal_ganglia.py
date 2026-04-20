@@ -14,7 +14,7 @@ class BasalGanglia:
         """Ensures gradual transitions in the kernel's social persona."""
         return self.engine.smooth_batch(raw_charm)
 
-    def emergency_reset(self, value: float = 0.0):
+    def emergency_reset(self, value: float = 0.0) -> None:
         """Hard reset for all charm axes (trauma / safety block)."""
         for key in ["warmth", "mystery", "playfulness", "directiveness"]:
             self.engine.force_reset(key, value)

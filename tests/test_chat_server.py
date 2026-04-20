@@ -190,6 +190,20 @@ def test_nomad_migration_meta():
     assert j.get("path") == "/ws/chat"
 
 
+def test_nomad_discovery_endpoint_contract():
+    r = client.get("/discovery/nomad")
+    assert r.status_code == 200
+    body = r.json()
+    assert body.get("schema") == "nomad_discovery_v1"
+    assert body.get("service") == "ethos-kernel-chat"
+    assert isinstance(body.get("candidates"), list)
+    assert len(body["candidates"]) >= 1
+    first = body["candidates"][0]
+    assert first.get("chat_ws", "").endswith("/ws/chat")
+    assert first.get("nomad_ws", "").endswith("/nomad_bridge/ws/nomad")
+    assert first.get("dashboard_ws", "").endswith("/ws/dashboard")
+
+
 def test_websocket_nomad_simulate_migration_only(monkeypatch):
     monkeypatch.setenv("KERNEL_NOMAD_SIMULATION", "1")
     monkeypatch.setenv("KERNEL_NOMAD_MIGRATION_AUDIT", "1")

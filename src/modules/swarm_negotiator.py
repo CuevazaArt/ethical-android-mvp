@@ -111,6 +111,7 @@ class SwarmNegotiator:
         """
         Bloque 6.2: Asks peers to vote on a candidate action.
         Returns True if consensus is reached (>50% agreement).
+        Always records the vote log so apply_swarm_justice can process negligent peers.
         """
         votes = []
         for peer in peers:
@@ -140,17 +141,17 @@ class SwarmNegotiator:
                 agreement_weight += weight
 
         is_consensus = agreement_weight > (total_weight / 2.0)
-        
-        if is_consensus:
-            voter_map = {i: peer for i, peer in enumerate(peers)}
-            self.state.consensus_log.append({
-                "proposal_id": proposal_id,
-                "action": action,
-                "votes": votes,
-                "voters": voter_map,
-                "agreement_weight": agreement_weight,
-                "timestamp": time.time()
-            })
+
+        # Always record the vote entry so apply_swarm_justice can process any negligent nodes
+        voter_map = {i: peer for i, peer in enumerate(peers)}
+        self.state.consensus_log.append({
+            "proposal_id": proposal_id,
+            "action": action,
+            "votes": votes,
+            "voters": voter_map,
+            "agreement_weight": agreement_weight,
+            "timestamp": time.time()
+        })
         
         return is_consensus
 
@@ -221,7 +222,7 @@ class SwarmNegotiator:
                     penalty = 0.05 # Reduced penalty for stable nodes
 
                 # Bloque 7.2: Slashing
-                oracle.apply_slashing(node_id, severity=penalty)
+                oracle.apply_slashing(node_id, penalty)
                 register_slashing_intent(
                     dao, 
                     node_id, 
@@ -236,3 +237,6 @@ class SwarmNegotiator:
                         recipient_id="community_01",
                         amount=20 # EthosTokens
                     )
+                else:
+                    # Direct DAO transfer when vault mock is disabled (always keep community whole)
+                    dao.transfer_tokens("ethics_panel_01", "community_01", 20)

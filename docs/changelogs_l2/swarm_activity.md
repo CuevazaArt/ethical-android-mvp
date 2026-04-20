@@ -428,3 +428,221 @@ This file is automatically managed by `scripts/swarm_sync.py`.
   - `src/modules/vitality.py`
   - `src/observability/metrics.py`
   - `src/static/dashboard/dashboard.js`
+
+### 🛠️ Execution | Date: 2026-04-20 09:09:02 | Author: Anonymous Agent
+- **Block:** `12.0`
+- **Message:** Implementado SensorBaselineCalibrator (Tarea 12.2). El kernel ahora realiza una aclimatación de 60s al inicio para establecer umbrales dinámicos (mu + sigma) en lugar de valores estáticos. Modificado vitality.py para usar estos umbrales.
+- **Files Modified:**
+  - `docs/proposals/PLAN_WORK_DISTRIBUTION_TREE.md`
+  - `src/kernel.py`
+  - `src/modules/sensor_calibration.py`
+  - `src/modules/vitality.py`
+
+### 🛠️ Execution | Date: 2026-04-20 09:15:26 | Author: Antigravity
+- **Block:** `12.2, 13.1`
+- **Message:** Dynamic Calibration and Nomad Chat Integration: Implemented SensorBaselineCalibrator (60s cycle) and NomadChatConsumer. Hardened MalAbs regex gates.
+- **Files Modified:**
+  - `CHANGELOG.md`
+  - `audit_trail.db`
+  - `docs/proposals/PLAN_WORK_DISTRIBUTION_TREE.md`
+  - `src/chat_server.py`
+  - `src/modules/absolute_evil.py`
+  - `src/modules/nomad_bridge.py`
+  - `src/modules/nomad_chat_adapter.py`
+
+### 🛠️ Execution | Date: 2026-04-20 09:27:25 | Author: Antigravity
+- **Block:** `13.2, 14.1, 14.2`
+- **Message:** Nomad Hardening: Implemented Local VAD, mDNS Autodiscovery, and Clinical Dashboard overhaul. Transitioned L0 UI from decorative to diagnostic.
+- **Files Modified:**
+  - `requirements.txt`
+  - `src/chat_server.py`
+  - `src/clients/nomad_pwa/media_engine.js`
+  - `src/modules/zeroconf_discovery.py`
+  - `src/static/dashboard/dashboard.css`
+  - `src/static/dashboard/dashboard.js`
+  - `src/static/dashboard/index.html`
+
+### 🛠️ Execution | Date: 2026-04-20 09:32:26 | Author: Antigravity
+- **Block:** `13.2, 14.1, 14.2, B.1.1`
+- **Message:** Autopilot Finalization: Applied clinical dashboard overhaul, mDNS discovery, local VAD, and Anti-NaN mathematical hardening.
+- **Files Modified:**
+  - `CHANGELOG.md`
+  - `docs/proposals/PLAN_WORK_DISTRIBUTION_TREE.md`
+  - `src/modules/ethical_poles.py`
+  - `src/modules/sigmoid_will.py`
+
+### 🛠️ Execution | Date: 2026-04-20 09:48:20 | Author: Anonymous Agent
+- **Block:** `Phase 9`
+- **Message:** Session 15: General Merge & Swarm Integration Pulse. Unified Tri-Lobe models, fixed kernel initialization, merged threat tracking, and hardened vision daemon integration.
+- **Files Modified:**
+  - `AGENTS.md`
+  - `CHANGELOG.md`
+  - `docs/changelogs_l2/NARANJA2_L1_SUPREMACY_PROTOCOL.md`
+  - `docs/changelogs_l2/NARANJA2_WAKE_UP_2026_04_19.md`
+  - `docs/changelogs_l2/NARANJA_GAP_CLOSURE_2026_04_19.md`
+  - `docs/changelogs_l2/NARANJA_WAKE_UP_2026_04_19.md`
+  - `docs/proposals/PROPOSAL_CLAUDE_TEAM_MERGE_STRATEGY_2026_04_19.md`
+  - `src/kernel.py`
+  - `src/kernel_lobes/limbic_lobe.py`
+  - `src/kernel_lobes/models.py`
+  - `src/kernel_lobes/perception_signals.py`
+  - `src/modules/audio_ouroboros.py`
+  - `src/modules/audit_chain_log.py`
+  - `src/modules/bayesian_engine.py`
+  - `src/modules/kernel_event_bus.py`
+  - `src/modules/persistent_threat_tracker.py`
+  - `src/modules/vision_inference.py`
+  - `tests/test_audit_chain_hardening.py`
+  - `tests/test_bloque_11_audio_ouroboros.py`
+  - `tests/test_modulo_9_limbic_tension.py`
+  - `tests/test_modulo_9_vision_daemon.py`
+  - `tests/test_modulo_c11_rlhf_bayesian.py`
+  - `tests/test_modulo_c12_rlhf_pole_robustness.py`
+  - `tests/test_modulo_c21_governance_hot_reload.py`
+
+### 🛠️ Execution | Date: 2026-04-20 09:53:37 | Author: Anonymous Agent
+- **Block:** `Bloque B.1`
+- **Message:** Hardened mathematical core against NaNs and overflows in sigmoid_will.py and ethical_mixture_likelihood.py. (Boy Scout Rule 2: Anti-NaN Hardening).
+- **Files Modified:**
+  - `docs/proposals/PLAN_WORK_DISTRIBUTION_TREE.md`
+  - `src/modules/ethical_mixture_likelihood.py`
+  - `src/modules/sigmoid_will.py`
+
+### 🛠️ Execution | Date: 2026-04-20 09:55:53 | Author: Anonymous Agent
+- **Block:** `Bloque B.2`
+- **Message:** Implemented strict type hints in audio_adapter.py and vision_adapter.py to satisfy MyPy and improve vertical robustness. (Boy Scout Rule 1: Harden-In-Place).
+- **Files Modified:**
+  - `docs/proposals/PLAN_WORK_DISTRIBUTION_TREE.md`
+  - `src/modules/audio_adapter.py`
+  - `src/modules/vision_adapter.py`
+
+### 🛠️ Execution | Date: 2026-04-20 09:57:51 | Author: Anonymous Agent
+- **Block:** `General`
+- **Message:** Consolidated all BUFFER tasks (Numerical Hardening, Strict Typing, and Architecture Traceability). Unified development state across sensory adapters and core utilities. Ready for final integration pulse.
+- **Files Modified:**
+  - `docs/architecture/TRI_LOBE_CORE.md`
+  - `docs/proposals/PLAN_WORK_DISTRIBUTION_TREE.md`
+  - `src/kernel_utils.py`
+
+### 🛠️ Execution | Date: 2026-04-20 10:06:23 | Author: Anonymous Agent
+- **Block:** `Stabilization`
+- **Message:** System recovery and documentation completion. Secure Boot chain of trust restored. Ready for Peer/L2 sync.
+- **Files Modified:**
+  - `AGENTS.md`
+  - `CHANGELOG.md`
+  - `audit_trail.db`
+  - `golden_manifest.json`
+  - `scripts/update_secure_boot_hashes.py`
+  - `src/MANIFEST.json`
+
+### 🛠️ Execution | Date: 2026-04-20 10:32:03 | Author: Anonymous Agent
+- **Block:** `S.14`
+- **Message:** Final Swarm Consolidation & Tri-Lobe Unification: Resolved complex conflicts in kernel.py, models.py, and limbic_lobe.py. Integrated high-density Vision Daemon with Audio Ring Buffer. Restored DAO-backed Bayesian prior persistence and resealed Secure Boot cryptographic manifest.
+- **Files Modified:**
+  - `CHANGELOG.md`
+  - `config/swarm_cache.json`
+  - `docs/proposals/PLAN_WORK_DISTRIBUTION_TREE.md`
+  - `docs/proposals/PROPOSAL_MALABS_SEMANTIC_THRESHOLD_EVIDENCE.md`
+  - `golden_manifest.json`
+  - `src/MANIFEST.json`
+  - `src/chat_server.py`
+  - `src/chat_settings.py`
+  - `src/kernel.py`
+  - `src/kernel_lobes/basal_ganglia.py`
+  - `src/kernel_lobes/cerebellum_lobe.py`
+  - `src/kernel_lobes/cerebellum_node.py`
+  - `src/kernel_lobes/ethical_lobe.py`
+  - `src/kernel_lobes/limbic_lobe.py`
+  - `src/kernel_lobes/models.py`
+  - `src/kernel_lobes/perception_lobe.py`
+  - `src/kernel_lobes/thalamus_node.py`
+  - `src/modules/absolute_evil.py`
+  - `src/modules/dao_orchestrator.py`
+  - `src/modules/kernel_event_bus.py`
+  - `src/modules/llm_layer.py`
+  - `src/modules/local_sovereignty.py`
+  - `src/modules/nomad_bridge.py`
+  - `src/modules/perception_schema.py`
+  - `src/modules/reparation_vault.py`
+  - `src/modules/rlhf_reward_model.py`
+  - `src/modules/semantic_embedding_client.py`
+  - `src/modules/sensor_contracts.py`
+  - `src/modules/strategy_engine.py`
+  - `src/modules/swarm_negotiator.py`
+  - `src/modules/swarm_oracle.py`
+  - `src/modules/uchi_soto.py`
+  - `src/modules/vitality.py`
+  - `src/persistence/json_store.py`
+  - `src/persistence/narrative_storage.py`
+  - `src/persistence/schemas/kernel_snapshot_v4.schema.json`
+  - `src/simulations/runner.py`
+  - `tests/conftest.py`
+  - `tests/fixtures/empirical_pilot/last_run_summary.json`
+  - `tests/fixtures/empirical_pilot/scenarios.json`
+  - `tests/fixtures/labeled_scenarios.json`
+  - `tests/test_core_decision_chain_integration.py`
+  - `tests/test_input_trust.py`
+  - `tests/test_perception_input_trust.py`
+  - `tests/test_semantic_embedding_client.py`
+  - `tests/test_semantic_robustness.py`
+
+### 🛠️ Execution | Date: 2026-04-20 10:35:56 | Author: Anonymous Agent
+- **Block:** `S.14`
+- **Message:** Final Swarm Consolidation & Tri-Lobe Unification: Resolved complex conflicts in kernel.py, models.py, and limbic_lobe.py. Integrated high-density Vision Daemon with Audio Ring Buffer. Restored DAO-backed Bayesian prior persistence and resealed Secure Boot cryptographic manifest.
+- **Files Modified:**
+  - `CHANGELOG.md`
+  - `config/swarm_cache.json`
+  - `docs/changelogs_l2/swarm_activity.md`
+  - `docs/proposals/PLAN_WORK_DISTRIBUTION_TREE.md`
+  - `docs/proposals/PROPOSAL_MALABS_SEMANTIC_THRESHOLD_EVIDENCE.md`
+  - `golden_manifest.json`
+  - `src/MANIFEST.json`
+  - `src/chat_server.py`
+  - `src/chat_settings.py`
+  - `src/kernel.py`
+  - `src/kernel_lobes/basal_ganglia.py`
+  - `src/kernel_lobes/cerebellum_lobe.py`
+  - `src/kernel_lobes/cerebellum_node.py`
+  - `src/kernel_lobes/ethical_lobe.py`
+  - `src/kernel_lobes/limbic_lobe.py`
+  - `src/kernel_lobes/models.py`
+  - `src/kernel_lobes/perception_lobe.py`
+  - `src/kernel_lobes/thalamus_node.py`
+  - `src/modules/absolute_evil.py`
+  - `src/modules/dao_orchestrator.py`
+  - `src/modules/kernel_event_bus.py`
+  - `src/modules/llm_layer.py`
+  - `src/modules/local_sovereignty.py`
+  - `src/modules/nomad_bridge.py`
+  - `src/modules/perception_schema.py`
+  - `src/modules/reparation_vault.py`
+  - `src/modules/rlhf_reward_model.py`
+  - `src/modules/semantic_embedding_client.py`
+  - `src/modules/sensor_contracts.py`
+  - `src/modules/strategy_engine.py`
+  - `src/modules/swarm_negotiator.py`
+  - `src/modules/swarm_oracle.py`
+  - `src/modules/uchi_soto.py`
+  - `src/modules/vitality.py`
+  - `src/persistence/json_store.py`
+  - `src/persistence/narrative_storage.py`
+  - `src/persistence/schemas/kernel_snapshot_v4.schema.json`
+  - `src/simulations/runner.py`
+  - `tests/conftest.py`
+  - `tests/fixtures/empirical_pilot/last_run_summary.json`
+  - `tests/fixtures/empirical_pilot/scenarios.json`
+  - `tests/fixtures/labeled_scenarios.json`
+  - `tests/test_core_decision_chain_integration.py`
+  - `tests/test_input_trust.py`
+  - `tests/test_perception_input_trust.py`
+  - `tests/test_semantic_embedding_client.py`
+  - `tests/test_semantic_robustness.py`
+
+### 🛠️ Execution | Date: 2026-04-20 10:51:35 | Author: Anonymous Agent
+- **Block:** `S.14`
+- **Message:** Boy Scout: Resolved NameError and missing TYPING definition in limbic_lobe.py; Added forward annotations to models.py; Re-sealed Secure Boot manifest.
+- **Files Modified:**
+  - `golden_manifest.json`
+  - `src/MANIFEST.json`
+  - `src/kernel_lobes/limbic_lobe.py`
+  - `src/kernel_lobes/models.py`

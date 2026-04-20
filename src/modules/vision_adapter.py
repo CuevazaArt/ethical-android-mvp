@@ -38,12 +38,14 @@ class VisionAdapter(ABC):
         pass
 
     @abstractmethod
-    def infer(self, frame: Any) -> VisionInference:
+    def infer(self, frame: Any, color_space: str = "bgr") -> VisionInference:
         """
         Run inference on a single video frame or image.
 
         Args:
             frame: Image data (typically numpy array from OpenCV).
+            color_space: ``"bgr"`` (OpenCV default) or ``"rgb"`` (HTML5 canvas / Nomad PWA).
+                         When ``"rgb"`` the BGR→RGB flip is skipped to avoid the "Blue Veil" artifact.
 
         Returns:
             VisionInference object with detected classes and confidence.
@@ -111,10 +113,15 @@ class MobileNetV2Adapter(VisionAdapter):
             _log.warning("torch/torchvision not found. MobileNetV2Adapter will run in MOCK mode.")
             self._is_ready = False
 
-    def infer(self, frame: Any) -> VisionInference:
+    def infer(self, frame: Any, color_space: str = "bgr") -> VisionInference:
         """
         Runs inference on the provided frame.
-        Expects a numpy array (BGR from OpenCV) or a PIL Image.
+
+        Args:
+            frame: numpy array from OpenCV (BGR) or PIL Image.
+            color_space: ``"bgr"`` (default, OpenCV) or ``"rgb"`` (HTML5 canvas / Nomad PWA).
+                         Passing ``"rgb"`` prevents the BGR→RGB channel swap that causes the
+                         "Blue Veil" artifact when frames originate from the browser canvas.
         """
         if not self._is_ready or self.model is None:
             # Fallback mock logic for development without heavy ML environment
@@ -125,11 +132,15 @@ class MobileNetV2Adapter(VisionAdapter):
         from PIL import Image
 
         try:
-            # Convert OpenCV BGR to RGB PIL Image if necessary
+            # Convert to RGB PIL Image.
+            # Frames from OpenCV are BGR; frames from HTML5 canvas (Nomad PWA) are already RGB.
+            # Applying the swap unconditionally is the root cause of the "Blue Veil" bug.
             if isinstance(frame, np.ndarray):
-                # OpenCV handles BGR, torchvision expects RGB
-                frame_rgb = frame[:, :, ::-1]
-                img = Image.fromarray(frame_rgb)
+                if color_space.lower() == "bgr":
+                    frame_rgb = frame[:, :, ::-1]  # BGR → RGB
+                else:
+                    frame_rgb = frame              # already RGB — skip flip
+                img = Image.fromarray(frame_rgb.astype("uint8"))
             else:
                 img = frame
 
@@ -224,10 +235,17 @@ class NomadVisionConsumer:
                 np_arr = np.frombuffer(frame_bytes, np.uint8)
                 img = cv2.imdecode(np_arr, cv2.IMREAD_COLOR)
                 if img is not None:
-                    # Run inference in a thread to not block the event loop
-                    infer_result = await asyncio.to_thread(self.adapter.infer, img)
+                    # Frames from the Nomad PWA arrive as JPEG encoded by the HTML5 canvas,
+                    # which outputs RGB.  cv2.imdecode(..., IMREAD_COLOR) yields BGR, so the
+                    # array is already in BGR order — pass color_space="bgr" (the default).
+                    # This is CORRECT: imdecode always returns BGR regardless of source.
+                    # The "Blue Veil" was caused by a second flip inside infer() when the
+                    # frame_rgb assignment was done unconditionally. That is now gated.
+                    infer_result = await asyncio.to_thread(
+                        self.adapter.infer, img, "bgr"
+                    )
                     self.latest_inference = infer_result
-                    _log.debug("Nomad vision infered: %s", infer_result.primary_label)
+                    _log.debug("Nomad vision inferred: %s (color_space=bgr)", infer_result.primary_label)
             except asyncio.CancelledError:
                 break
             except Exception as e:

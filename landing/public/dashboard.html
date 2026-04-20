@@ -355,6 +355,22 @@
     </table>
   </div>
 
+  <!-- ── Clinical Telemetry (Bloque 14.2) ── -->
+  <div class="card">
+    <div class="card-title"><span class="dot"></span>Clinical Telemetry</div>
+    <table class="kv-table" id="clinical-table">
+      <tr><td>Proc. latency (ms)</td><td id="ct-latency">—</td></tr>
+      <tr><td>Turn delta (ms)</td><td id="ct-turn-delta">—</td></tr>
+      <tr><td>Vessel online</td><td id="ct-vessel-online">—</td></tr>
+      <tr><td>VAD speaking</td><td id="ct-vad">—</td></tr>
+      <tr><td>Last RMS</td><td id="ct-rms">—</td></tr>
+      <tr><td>Battery fraction</td><td id="ct-battery">—</td></tr>
+      <tr><td>Sensor update Δ (s)</td><td id="ct-sensor-delta">—</td></tr>
+      <tr><td>Audio queue depth</td><td id="ct-audio-q">—</td></tr>
+      <tr><td>Vision queue depth</td><td id="ct-vision-q">—</td></tr>
+    </table>
+  </div>
+
 </div>
 
 <footer>
@@ -612,6 +628,8 @@ function processKernelMsg(data) {
     setText('t-wall',    tc.wall_clock);
     setText('t-battery', tc.battery_horizon_min != null ? tc.battery_horizon_min + ' min' : '—');
     setText('t-eta',     tc.eta_source);
+    // Bloque 14.2 — mirror latency into clinical card on each turn
+    updateClinicalFromTurn(tc);
   }
 
   /* Vitality */
@@ -651,7 +669,14 @@ function connect() {
     setConnected(true);
     logEvent('Connected to ' + url, 'allow');
     addChatMsg('msg-system', '', '🟢 Connected to kernel WebSocket');
-    fetchHealth(url.replace(/^ws/, 'http').replace(/\/ws\/chat$/, ''));
+    const base = url.replace(/^ws/, 'http').replace(/\/ws\/chat$/, '');
+    fetchHealth(base);
+    // Bloque 14.2 — poll /health every 2 s to keep clinical card fresh
+    if (window._healthPoll) clearInterval(window._healthPoll);
+    window._healthPollBase = base;
+    window._healthPoll = setInterval(() => {
+      if (ws && ws.readyState === 1) fetchHealth(window._healthPollBase);
+    }, 2000);
   };
 
   ws.onmessage = (ev) => {
@@ -668,6 +693,8 @@ function connect() {
     logEvent('Disconnected', 'info');
     addChatMsg('msg-system', '', '🔴 Disconnected');
     ws = null;
+    // Bloque 14.2 — stop clinical poll
+    if (window._healthPoll) { clearInterval(window._healthPoll); window._healthPoll = null; }
   };
 
   ws.onerror = () => {
@@ -738,8 +765,28 @@ function fetchHealth(base) {
       if (leetEl) { leetEl.className = 'badge badge-muted'; leetEl.textContent = '—'; }
       const bidiEl = document.getElementById('bidi-strip');
       if (bidiEl) { bidiEl.className = 'badge badge-muted'; bidiEl.textContent = '—'; }
+
+      // ── Clinical Telemetry (Bloque 14.2) ─────────────────────────
+      const nb = h.nomad_bridge || {};
+      const vc = nb.vessel_context || {};
+      badge(document.getElementById('ct-vessel-online'), nb.vessel_online, 'badge-green', 'badge-muted');
+      badge(document.getElementById('ct-vad'),           nb.vad_speaking,  'badge-green', 'badge-muted');
+      setText('ct-rms',          typeof nb.last_rms       === 'number' ? nb.last_rms.toFixed(4)       : '—');
+      setText('ct-battery',      typeof vc.battery_fraction === 'number' ? vc.battery_fraction.toFixed(3) : '—');
+      setText('ct-sensor-delta', typeof nb.last_sensor_update_delta === 'number' ? nb.last_sensor_update_delta.toFixed(2) : '—');
+      setText('ct-audio-q',      nb.audio_queue_depth  ?? '—');
+      setText('ct-vision-q',     nb.vision_queue_depth ?? '—');
     })
     .catch(e => logEvent('Health fetch failed: ' + e.message, 'block'));
+}
+
+/* ── Clinical telemetry: keep updating from WS turn data ─────────── */
+function updateClinicalFromTurn(temporal) {
+  if (!temporal) return;
+  if (temporal.processor_elapsed_ms != null)
+    setText('ct-latency',    temporal.processor_elapsed_ms.toFixed(2));
+  if (temporal.turn_delta_ms != null)
+    setText('ct-turn-delta', temporal.turn_delta_ms.toFixed(2));
 }
 
 /* ─────────────────── Chat send ─────────────────── */

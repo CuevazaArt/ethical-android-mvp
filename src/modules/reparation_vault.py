@@ -205,3 +205,27 @@ def maybe_register_reparation_after_mock_court(
     """Module-level wrapper for ReparationVault method."""
     vault = ReparationVault(dao)
     vault.maybe_register_reparation_after_mock_court(mock_court, case_uuid)
+
+
+def reparation_vault_mock_enabled() -> bool:
+    """Module-level: return True when KERNEL_REPARATION_VAULT_MOCK is truthy."""
+    return os.environ.get("KERNEL_REPARATION_VAULT_MOCK", "").strip().lower() in ("1", "true", "yes", "on")
+
+
+def execute_simulated_payout(
+    dao: MockDAO,
+    *,
+    case_ref: str,
+    recipient_id: str,
+    amount: int,
+    treasury_id: str = "ethics_panel_01",
+) -> dict[str, Any]:
+    """Module-level wrapper: creates a ReparationVault and executes the simulated payout."""
+    vault = ReparationVault(dao)
+    return vault.execute_simulated_payout(case_ref, recipient_id, amount, treasury_id)
+
+
+def register_slashing_intent(dao: MockDAO, node_id: str, reason: str) -> None:
+    """Module-level wrapper: creates a ReparationVault and registers a slashing intent."""
+    vault = ReparationVault(dao)
+    vault.register_slashing_intent(node_id, reason)

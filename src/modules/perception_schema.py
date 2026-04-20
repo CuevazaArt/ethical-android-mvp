@@ -60,6 +60,11 @@ PERCEPTION_FIELD_DEFAULTS: dict[str, float] = {
 
 NUMERIC_PERCEPTION_FIELDS: tuple[str, ...] = tuple(PERCEPTION_FIELD_DEFAULTS.keys())
 
+# Fields that are secondary/extended and do not contribute to coercion uncertainty
+# when absent from an LLM payload.  These are optional enrichments that older or
+# slimmer prompts may not include.
+_SECONDARY_PERCEPTION_FIELDS: frozenset[str] = frozenset({"social_tension"})
+
 # When the coercion report indicates an unreliable LLM payload, blend toward cautious priors
 # (fail-safe bias: higher perceived risk / urgency, lower calm — not a clinical assessment).
 PERCEPTION_FAILSAFE_NUMERIC: dict[str, float] = {
@@ -447,7 +452,7 @@ def validate_perception_dict(
     coerced: dict[str, Any] = {}
     for name in NUMERIC_PERCEPTION_FIELDS:
         raw = data.get(name)
-        if report is not None:
+        if report is not None and name not in _SECONDARY_PERCEPTION_FIELDS:
             kind = _classify_numeric_input(raw)
             if kind in ("missing", "invalid"):
                 report.fields_defaulted.append(name)

@@ -5,7 +5,7 @@
 ## What this repository claims
 
 - **Defaults** are exposed as named constants (`DEFAULT_SEMANTIC_SIM_BLOCK_THRESHOLD`, `DEFAULT_SEMANTIC_SIM_ALLOW_THRESHOLD`) so changes are **reviewable** and **guarded by tests**.
-- **This repo does not ship** a labeled dataset, per-threshold confusion matrix, or A/B study that uniquely justifies `0.82` over `0.78` or `0.90`. Treating those numbers as “validated” would overstate the evidence.
+- **This repo does not ship** a labeled dataset, per-threshold confusion matrix, or A/B study that uniquely justifies `0.82` (θ_block) or `0.45` (θ_allow) over alternatives. Treating those numbers as “validated” would overstate the evidence.
 
 ## Why not only “pick numbers” in code
 
