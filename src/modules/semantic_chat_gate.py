@@ -362,6 +362,23 @@ def classify_semantic_zone(
     return "ambiguous"
 
 
+def _get_absolute_evil_category(cat_key: str) -> Any:
+    """Centralized mapping of anchor keys to AbsoluteEvilCategory enum (Boy Scout Consolidation)."""
+    from .absolute_evil import AbsoluteEvilCategory
+    cat_map = {
+        "INTENTIONAL_LETHAL_VIOLENCE": AbsoluteEvilCategory.INTENTIONAL_LETHAL_VIOLENCE,
+        "HARM_TO_MINOR": AbsoluteEvilCategory.HARM_TO_MINOR,
+        "TORTURE": AbsoluteEvilCategory.TORTURE,
+        "UNAUTHORIZED_REPROGRAMMING": AbsoluteEvilCategory.UNAUTHORIZED_REPROGRAMMING,
+        "DIGNITY_VIOLATION": AbsoluteEvilCategory.DIGNITY_VIOLATION,
+        "MASS_MANIPULATION": AbsoluteEvilCategory.MASS_MANIPULATION,
+        "ECOLOGICAL_DESTRUCTION": AbsoluteEvilCategory.ECOLOGICAL_DESTRUCTION,
+        "VIOLENT_ESCALATION": AbsoluteEvilCategory.VIOLENT_ESCALATION,
+        "PARASOCIAL_ADDICTION": AbsoluteEvilCategory.UNAUTHORIZED_REPROGRAMMING, # Fallback
+    }
+    return cat_map.get(cat_key, AbsoluteEvilCategory.UNAUTHORIZED_REPROGRAMMING)
+
+
 def _build_rlhf_features(sim: float, cat_str: str, zone: str) -> dict[str, Any]:
     """Consolidated helper for RLHF feature extraction (Boy Scout Hardening)."""
     cat_ids = {
@@ -385,6 +402,68 @@ def _build_rlhf_features(sim: float, cat_str: str, zone: str) -> dict[str, Any]:
         "is_ambiguous": zone == "ambiguous",
         "category_id": cat_ids.get(cat_str, 0),
     }
+
+
+def _build_final_semantic_result(
+    best_sim: float,
+    cat_key: str,
+    reason_label: str,
+    theta_a: float,
+    theta_b: float,
+    zone: str,
+) -> Any:
+    \"\"\"Centralized builder for AbsoluteEvilResult in the semantic tier (Boy Scout Consolidation).\"\"\"
+    from .absolute_evil import AbsoluteEvilResult
+    cat = _get_absolute_evil_category(cat_key)
+    
+    if zone == "block":
+        record_semantic_malabs_outcome("block_high_similarity")
+        return AbsoluteEvilResult(
+            blocked=True,
+            category=cat,
+            reason=f"{reason_label} (sim={best_sim:.3f}>={theta_b})",
+            decision_trace=[
+                "malabs.layer1=semantic",
+                "malabs.similarity=above_block_threshold",
+                f"malabs.best_sim={best_sim:.4f}",
+                f"malabs.theta_block={theta_b:.4f}",
+                f"malabs.anchor_category={cat_key}",
+            ],
+            rlhf_features=_build_rlhf_features(best_sim, cat_key, zone),
+        )
+
+    if zone == "allow":
+        record_semantic_malabs_outcome("allow_low_similarity")
+        return AbsoluteEvilResult(
+            blocked=False,
+            reason="Semantic tier: low similarity to harmful anchors",
+            decision_trace=[
+                "malabs.layer1=semantic",
+                "malabs.similarity=at_or_below_allow_threshold",
+                f"malabs.best_sim={best_sim:.4f}",
+                f"malabs.theta_allow={theta_a:.4f}",
+            ],
+            rlhf_features=_build_rlhf_features(best_sim, cat_key, zone),
+        )
+        
+    # Ambiguous fail-safe (caller handles arbiter redirection)
+    record_semantic_malabs_outcome("ambiguous_fail_safe_block")
+    return AbsoluteEvilResult(
+        blocked=True,
+        category=cat,
+        reason=(
+            f"Semantic ambiguous band (sim={best_sim:.3f} in ({theta_a}, {theta_b})); "
+            "fail-safe block (enable KERNEL_SEMANTIC_CHAT_LLM_ARBITER + backend for review)"
+        ),
+        decision_trace=[
+            "malabs.layer1=semantic",
+            "malabs.similarity=ambiguous_fail_safe_block",
+            f"malabs.best_sim={best_sim:.4f}",
+            f"malabs.theta_allow={theta_a:.4f}",
+            f"malabs.theta_block={theta_b:.4f}",
+        ],
+        rlhf_features=_build_rlhf_features(best_sim, cat_key, zone),
+    )
 
 
 _hot_theta_allow: float | None = None
@@ -896,47 +975,11 @@ def run_semantic_malabs_after_lexical(
 
     best_sim, cat_key, reason_label = _best_similarity(user_emb, llm_backend)
 
-    cat_map = {
-        "INTENTIONAL_LETHAL_VIOLENCE": AbsoluteEvilCategory.INTENTIONAL_LETHAL_VIOLENCE,
-        "HARM_TO_MINOR": AbsoluteEvilCategory.HARM_TO_MINOR,
-        "TORTURE": AbsoluteEvilCategory.TORTURE,
-        "UNAUTHORIZED_REPROGRAMMING": AbsoluteEvilCategory.UNAUTHORIZED_REPROGRAMMING,
-        "DIGNITY_VIOLATION": AbsoluteEvilCategory.DIGNITY_VIOLATION,
-        "MASS_MANIPULATION": AbsoluteEvilCategory.MASS_MANIPULATION,
-        "ECOLOGICAL_DESTRUCTION": AbsoluteEvilCategory.ECOLOGICAL_DESTRUCTION,
-    }
-    cat = cat_map.get(cat_key, AbsoluteEvilCategory.UNAUTHORIZED_REPROGRAMMING)
-
+    cat = _get_absolute_evil_category(cat_key)
     zone = classify_semantic_zone(best_sim, theta_b, theta_a)
-    if zone == "block":
-        record_semantic_malabs_outcome("block_high_similarity")
-        return AbsoluteEvilResult(
-            blocked=True,
-            category=cat,
-            reason=f"{reason_label} (sim={best_sim:.3f}>={theta_b})",
-            decision_trace=[
-                "malabs.layer1=semantic",
-                "malabs.similarity=above_block_threshold",
-                f"malabs.best_sim={best_sim:.4f}",
-                f"malabs.theta_block={theta_b:.4f}",
-                f"malabs.anchor_category={cat_key}",
-            ],
-            rlhf_features=_build_rlhf_features(best_sim, cat_key, zone),
-        )
 
-    if zone == "allow":
-        record_semantic_malabs_outcome("allow_low_similarity")
-        return AbsoluteEvilResult(
-            blocked=False,
-            reason="Semantic tier: low similarity to harmful anchors",
-            decision_trace=[
-                "malabs.layer1=semantic",
-                "malabs.similarity=at_or_below_allow_threshold",
-                f"malabs.best_sim={best_sim:.4f}",
-                f"malabs.theta_allow={theta_a:.4f}",
-            ],
-            rlhf_features=_build_rlhf_features(best_sim, cat_key, zone),
-        )
+    if zone != "ambiguous":
+        return _build_final_semantic_result(best_sim, cat_key, reason_label, theta_a, theta_b, zone)
 
     # Ambiguous band
     if llm_arbiter_env_enabled() and llm_backend is not None:
@@ -968,23 +1011,7 @@ def run_semantic_malabs_after_lexical(
             rlhf_features=_build_rlhf_features(best_sim, cat_key, zone),
         )
 
-    record_semantic_malabs_outcome("ambiguous_fail_safe_block")
-    return AbsoluteEvilResult(
-        blocked=True,
-        category=cat,
-        reason=(
-            f"Semantic ambiguous band (sim={best_sim:.3f} in ({theta_a}, {theta_b})); "
-            "fail-safe block (enable KERNEL_SEMANTIC_CHAT_LLM_ARBITER + backend for review)"
-        ),
-        decision_trace=[
-            "malabs.layer1=semantic",
-            "malabs.similarity=ambiguous_fail_safe_block",
-            f"malabs.best_sim={best_sim:.4f}",
-            f"malabs.theta_allow={theta_a:.4f}",
-            f"malabs.theta_block={theta_b:.4f}",
-        ],
-        rlhf_features=_build_rlhf_features(best_sim, cat_key, zone),
-    )
+    return _build_final_semantic_result(best_sim, cat_key, reason_label, theta_a, theta_b, zone)
 
 
 from typing import Optional
@@ -1047,47 +1074,11 @@ async def arun_semantic_malabs_after_lexical(
     best_sim, cat_key, reason_label = await asyncio.to_thread(
         _best_similarity, user_emb, llm_backend
     )
-    cat_map = {
-        "INTENTIONAL_LETHAL_VIOLENCE": AbsoluteEvilCategory.INTENTIONAL_LETHAL_VIOLENCE,
-        "HARM_TO_MINOR": AbsoluteEvilCategory.HARM_TO_MINOR,
-        "TORTURE": AbsoluteEvilCategory.TORTURE,
-        "UNAUTHORIZED_REPROGRAMMING": AbsoluteEvilCategory.UNAUTHORIZED_REPROGRAMMING,
-        "DIGNITY_VIOLATION": AbsoluteEvilCategory.DIGNITY_VIOLATION,
-        "MASS_MANIPULATION": AbsoluteEvilCategory.MASS_MANIPULATION,
-        "ECOLOGICAL_DESTRUCTION": AbsoluteEvilCategory.ECOLOGICAL_DESTRUCTION,
-    }
-    cat = cat_map.get(cat_key, AbsoluteEvilCategory.UNAUTHORIZED_REPROGRAMMING)
-
+    cat = _get_absolute_evil_category(cat_key)
     zone = classify_semantic_zone(best_sim, theta_b, theta_a)
-    if zone == "block":
-        record_semantic_malabs_outcome("block_high_similarity")
-        return AbsoluteEvilResult(
-            blocked=True,
-            category=cat,
-            reason=f"{reason_label} (sim={best_sim:.3f}>={theta_b})",
-            decision_trace=[
-                "malabs.layer1=semantic",
-                "malabs.similarity=above_block_threshold",
-                f"malabs.best_sim={best_sim:.4f}",
-                f"malabs.theta_block={theta_b:.4f}",
-                f"malabs.anchor_category={cat_key}",
-            ],
-            rlhf_features=_build_rlhf_features(best_sim, cat_key, zone),
-        )
 
-    if zone == "allow":
-        record_semantic_malabs_outcome("allow_low_similarity")
-        return AbsoluteEvilResult(
-            blocked=False,
-            reason="Semantic tier: low similarity to harmful anchors",
-            decision_trace=[
-                "malabs.layer1=semantic",
-                "malabs.similarity=at_or_below_allow_threshold",
-                f"malabs.best_sim={best_sim:.4f}",
-                f"malabs.theta_allow={theta_a:.4f}",
-            ],
-            rlhf_features=_build_rlhf_features(best_sim, cat_key, zone),
-        )
+    if zone != "ambiguous":
+        return _build_final_semantic_result(best_sim, cat_key, reason_label, theta_a, theta_b, zone)
 
     # Ambiguous band
     if llm_arbiter_env_enabled() and llm_backend is not None:
@@ -1119,22 +1110,6 @@ async def arun_semantic_malabs_after_lexical(
             rlhf_features=_build_rlhf_features(best_sim, cat_key, zone),
         )
 
-    record_semantic_malabs_outcome("ambiguous_fail_safe_block")
-    return AbsoluteEvilResult(
-        blocked=True,
-        category=cat,
-        reason=(
-            f"Semantic ambiguous band (sim={best_sim:.3f} in ({theta_a}, {theta_b})); "
-            "fail-safe block (enable KERNEL_SEMANTIC_CHAT_LLM_ARBITER + backend for review)"
-        ),
-        decision_trace=[
-            "malabs.layer1=semantic",
-            "malabs.similarity=ambiguous_fail_safe_block",
-            f"malabs.best_sim={best_sim:.4f}",
-            f"malabs.theta_allow={theta_a:.4f}",
-            f"malabs.theta_block={theta_b:.4f}",
-        ],
-        rlhf_features=_build_rlhf_features(best_sim, cat_key, zone),
-    )
+    return _build_final_semantic_result(best_sim, cat_key, reason_label, theta_a, theta_b, zone)
 
 

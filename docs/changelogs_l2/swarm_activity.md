@@ -339,3 +339,9 @@ This file is automatically managed by `scripts/swarm_sync.py`.
   - `src/modules/llm_layer.py`
   - `src/modules/multimodal_trust.py`
   - `src/modules/semantic_chat_gate.py`
+
+### 🛠️ Execution | Date: 2026-04-19 18:29:34 | Author: Antigravity
+- **Block:** `S.12`
+- **Message:** CONSOLIDATION: Unified sync/async results construction in SemanticChatGate. Applied Boy Scout hardening (math.isfinite) to similarity zones and expanded AbsoluteEvilCategory mapping. Sealed perception resilient gates.
+- **Files Modified:**
+  - `src/modules/semantic_chat_gate.py`
