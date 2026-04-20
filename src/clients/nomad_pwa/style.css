@@ -79,7 +79,7 @@ body {
     width: 100%;
     max-width: 480px;
     height: 100%;
-    padding: 24px;
+    padding: 24px 24px calc(24px + env(safe-area-inset-bottom, 16px)) 24px;
     display: flex;
     flex-direction: column;
     gap: 24px;
@@ -270,6 +270,7 @@ body {
     display: flex;
     flex-direction: column;
     gap: 12px;
+    margin-bottom: 20px; /* Extra clearance for OS UI */
 }
 
 .glass-btn {
