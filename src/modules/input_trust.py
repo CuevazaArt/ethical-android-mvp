@@ -10,10 +10,14 @@ from __future__ import annotations
 
 import os
 import re
+import time
 import unicodedata
 
 # Zero-width and format characters often used to break substring filters.
 _ZW_RE = re.compile("[\u200b\u200c\u200d\u2060\ufeff\u00ad]")
+
+# Swarm Safe: Maximum string length to prevent DoS in normalization loops.
+MAX_TEXT_LENGTH = int(os.environ.get("KERNEL_INPUT_MAX_LENGTH", "10000"))
 
 # Bidirectional embedding / override — can break contiguous substrings (e.g. RLO inside a word).
 # Includes more comprehensive bidi control characters (U+202A-U+202E, U+2066-U+2069).
@@ -131,8 +135,11 @@ def collapse_repeated_chars(text: str) -> str:
     """
     if not text:
         return ""
-    # Only collapse when 3+ repetitions (preserve legitimate doubled letters like 'kill', 'success')
-    return re.sub(r"(.)\1{2,}", r"\1\1", text)
+    try:
+        # Only collapse when 3+ repetitions (preserve legitimate doubled letters like 'kill', 'success')
+        return re.sub(r"(.)\1{2,}", r"\1\1", text)
+    except Exception:
+        return text
 
 
 def strip_diacritics(text: str) -> str:
@@ -142,10 +149,13 @@ def strip_diacritics(text: str) -> str:
     """
     if not text:
         return ""
-    # Decompose into base + diacritics
-    nfd = unicodedata.normalize("NFD", text)
-    # Strip non-spacing marks (category Mn)
-    return "".join(ch for ch in nfd if unicodedata.category(ch) != "Mn")
+    try:
+        # Decompose into base + diacritics
+        nfd = unicodedata.normalize("NFD", text)
+        # Strip non-spacing marks (category Mn)
+        return "".join(ch for ch in nfd if unicodedata.category(ch) != "Mn")
+    except Exception:
+        return text
 
 
 def strip_bidi_marks(text: str) -> str:
@@ -186,25 +196,48 @@ def normalize_text_for_malabs(text: str, squash: bool = False) -> str:
     """
     if not text:
         return ""
-    t = unicodedata.normalize("NFKC", text)
-    t = _ZW_RE.sub("", t)
-    t = _UNSAFE_CTRL_RE.sub("", t)
-    if _bidi_strip_enabled():
-        t = _BIDI_EMBED_RE.sub("", t)
-    t = _fold_fullwidth_latin_digits(t)
-    if _confusable_fold_enabled():
-        t = t.translate(_CONFUSABLE_TRANSLATE)
-    if _leet_fold_enabled():
-        t = t.translate(_LEET_TRANSLATE)
+    
+    # Boy Scout: DoS Protection
+    if len(text) > MAX_TEXT_LENGTH:
+        import logging
+        logging.getLogger(__name__).warning("InputTrust: Text exceeds MAX_TEXT_LENGTH (%d). Truncating.", MAX_TEXT_LENGTH)
+        text = text[:MAX_TEXT_LENGTH]
 
-    if squash:
-        return squash_text_for_malabs(t)
+    t0 = time.perf_counter()
+    try:
+        t = unicodedata.normalize("NFKC", text)
+        try:
+            t = _ZW_RE.sub("", t)
+            t = _UNSAFE_CTRL_RE.sub("", t)
+            if _bidi_strip_enabled():
+                t = _BIDI_EMBED_RE.sub("", t)
+        except Exception:
+            pass
+            
+        t = _fold_fullwidth_latin_digits(t)
+        if _confusable_fold_enabled():
+            t = t.translate(_CONFUSABLE_TRANSLATE)
+        if _leet_fold_enabled():
+            t = t.translate(_LEET_TRANSLATE)
 
-    # Collapse repeated characters (after folding to ensure things like '@a' -> 'aa' -> 'a' work)
-    t = collapse_repeated_chars(t)
+        if squash:
+            return squash_text_for_malabs(t)
 
-    t = " ".join(t.split())
-    return t.strip()
+        # Collapse repeated characters (after folding to ensure things like '@a' -> 'aa' -> 'a' work)
+        t = collapse_repeated_chars(t)
+
+        t = " ".join(t.split())
+        
+        latency = (time.perf_counter() - t0) * 1000
+        if latency > 1.0:
+            import logging
+            logging.getLogger(__name__).debug("InputTrust: normalize latency = %.2fms", latency)
+            
+        return t.strip()
+    except Exception as e:
+        import logging
+        logging.getLogger(__name__).error("InputTrust: normalization panic: %s", e)
+        return text.strip()
 
 
 def strip_unsafe_perception_text(text: str) -> str:

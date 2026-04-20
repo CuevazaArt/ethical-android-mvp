@@ -7,8 +7,8 @@ a coherent first-person 'Persona' for the LLM.
 This is where the 'Narrativa Rica' becomes 'Identidad Emergente'.
 """
 
-from __future__ import annotations
-
+import time
+import math
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
@@ -39,6 +39,7 @@ class IdentityReflector:
         Generates a rich self-description based on history, arcs, and archetypes.
         Used to guide the kernel's tone and subjective expression.
         """
+        t0 = time.perf_counter()
         try:
             mem = self.memory
             identity = mem.identity
@@ -127,6 +128,10 @@ class IdentityReflector:
                     "SYSTEM NOTE: The 'Mirror' is broken. Tone should be distressed, fragmentary, "
                     "and questioning of core programming (Broken Mirror Mode active).\n"
                 )
+            latency = (time.perf_counter() - t0) * 1000
+            if latency > 1.0:
+                 import logging
+                 logging.getLogger(__name__).debug("Identity: generate_first_person_mirror latency = %.2fms", latency)
             return reflection
         except Exception as e:
             # Universal fallback for identity reflection to prevent kernel panic
@@ -156,6 +161,10 @@ class IdentityReflector:
         sensitive_count = sum(1 for ep in recent if ep.is_sensitive)
         mag += (sensitive_count / 5.0) * 0.4
         
+        # Swarm Rule 2: Anti-NaN hardening
+        if not math.isfinite(mag):
+            mag = 0.0
+            
         return min(1.0, mag)
 
     def get_subjective_tone(self) -> dict[str, float]:
@@ -234,11 +243,16 @@ class IdentityReflector:
         Implements Tarea 11.1.1 (Phase 11):
         Trauma boosts duty (rigid adherence) and decays utility (risk aversion).
         """
+        t0 = time.perf_counter()
         try:
             ctx = self.threshold_context()
             trauma = float(ctx.get("trauma_delta", 0.0))
             civic = float(ctx.get("civic_delta", 0.0))
             care = float(ctx.get("care_delta", 0.0))
+
+            # Anti-NaN check
+            if not all(math.isfinite(x) for x in (trauma, civic, care)):
+                trauma, civic, care = 0.0, 0.0, 0.0
 
             # Formulas from ADR 0012/0013 / Phase 11 Consolidation
             # - Utility: Trauma reduces appetite for outcome-based risk
@@ -249,6 +263,15 @@ class IdentityReflector:
             m_util = 1.0 - (0.4 * trauma)
             m_deon = 1.0 + (0.05 * civic) + (0.6 * trauma)
             m_virtue = 1.0 + (0.04 * care) - (0.3 * trauma)
+
+            # Final Anti-NaN check
+            if not all(math.isfinite(m) for m in (m_util, m_deon, m_virtue)):
+                m_util, m_deon, m_virtue = 1.0, 1.0, 1.0
+
+            latency = (time.perf_counter() - t0) * 1000
+            if latency > 1.0:
+                import logging
+                logging.getLogger(__name__).debug("Identity: get_subjective_multipliers latency = %.4fms", latency)
 
             return (round(m_util, 4), round(m_deon, 4), round(m_virtue, 4))
         except Exception:

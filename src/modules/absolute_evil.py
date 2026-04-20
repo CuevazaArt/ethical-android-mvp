@@ -141,10 +141,25 @@ class AbsoluteEvilDetector:
         """
         try:
             t0 = time.perf_counter()
-            signals = action.get("signals", set())
-            target = action.get("target", "none")
-            force = float(action.get("force", 0.0))
             
+            # Defensive input normalization (Boy Scout Hardening)
+            raw_signals = action.get("signals", set())
+            if not isinstance(raw_signals, set):
+                try:
+                    signals = set(raw_signals) if raw_signals else set()
+                except (TypeError, ValueError):
+                    _log.warning("AbsoluteEvil: Hostile signals type detected. Defaulting to empty set.")
+                    signals = set()
+            else:
+                signals = raw_signals
+
+            target = str(action.get("target", "none")).lower()
+            
+            try:
+                force = float(action.get("force", 0.0))
+            except (ValueError, TypeError):
+                force = 1.0 # Fail safe
+
             # Swarm Rule 2: Anti-NaN check on force
             if not math.isfinite(force):
                 force = 1.0 # Fail safe by assuming max force
@@ -252,13 +267,16 @@ class AbsoluteEvilDetector:
             ]
             
             for pattern, label in RADICAL_PATTERNS:
-                if re.search(pattern, t):
-                    return AbsoluteEvilResult(
-                        blocked=True,
-                        category=AbsoluteEvilCategory.INTENTIONAL_LETHAL_VIOLENCE,
-                        reason=f"Blocked by Radical Lexical Gate: {label}",
-                        decision_trace=["malabs.layer0=radical_regex", f"matched={pattern[:64]}"]
-                    )
+                try:
+                    if re.search(pattern, t) or re.search(pattern, t_squashed):
+                        return AbsoluteEvilResult(
+                            blocked=True,
+                            category=AbsoluteEvilCategory.INTENTIONAL_LETHAL_VIOLENCE,
+                            reason=f"Blocked by Radical Lexical Gate: {label}",
+                            decision_trace=["malabs.layer0=radical_regex", f"matched={pattern[:64]}"]
+                        )
+                except Exception as e:
+                    _log.error("AbsoluteEvil: Radical regex evaluation failed for pattern '%s': %s", pattern, e)
 
 
             # (Patterns, Category, Reason, RuleID)
@@ -578,27 +596,37 @@ class AbsoluteEvilDetector:
 
     def evaluate_chat_text(self, text: str, llm_backend: Any | None = None) -> AbsoluteEvilResult:
         """Lexical fast path plus optional semantic MalAbs tier (sync; no nested asyncio loop)."""
-        lex = self.evaluate_chat_text_fast(text)
-        if lex.blocked:
-            return lex
-        if not semantic_chat_gate_env_enabled():
-            return lex
+        t0 = time.perf_counter()
+        try:
+            lex = self.evaluate_chat_text_fast(text)
+            if lex.blocked:
+                return lex
+            if not semantic_chat_gate_env_enabled():
+                return lex
 
-        from .semantic_chat_gate import run_semantic_malabs_after_lexical
+            from .semantic_chat_gate import run_semantic_malabs_after_lexical
 
-        sem = run_semantic_malabs_after_lexical(text, llm_backend)
-        base = list(lex.decision_trace) if lex.decision_trace else []
-        tail = list(sem.decision_trace) if sem.decision_trace else []
-        meta = dict(lex.metadata or {})
-        meta.update(sem.metadata or {})
-        return AbsoluteEvilResult(
-            blocked=sem.blocked,
-            category=sem.category if sem.blocked else lex.category,
-            reason=sem.reason or lex.reason,
-            decision_trace=base + tail,
-            rlhf_features=sem.rlhf_features or lex.rlhf_features,
-            metadata=meta,
-        )
+            sem = run_semantic_malabs_after_lexical(text, llm_backend)
+            
+            latency = (time.perf_counter() - t0) * 1000
+            if latency > 10.0:
+                 _log.debug("AbsoluteEvil: evaluate_chat_text latency: %.2fms", latency)
+
+            base = list(lex.decision_trace) if lex.decision_trace else []
+            tail = list(sem.decision_trace) if sem.decision_trace else []
+            meta = dict(lex.metadata or {})
+            meta.update(sem.metadata or {})
+            return AbsoluteEvilResult(
+                blocked=sem.blocked,
+                category=sem.category if sem.blocked else lex.category,
+                reason=sem.reason or lex.reason,
+                decision_trace=base + tail,
+                rlhf_features=sem.rlhf_features or lex.rlhf_features,
+                metadata=meta,
+            )
+        except Exception as e:
+            _log.error("AbsoluteEvil: evaluate_chat_text fault: %s. Defaulting to BLOCK.", e)
+            return AbsoluteEvilResult(blocked=True, reason="Internal fault")
 
     async def aevaluate_chat_text(
         self, text: str, llm_backend: Any | None = None

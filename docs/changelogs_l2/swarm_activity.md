@@ -314,3 +314,17 @@ This file is automatically managed by `scripts/swarm_sync.py`.
   - `src/modules/vitality.py`
   - `src/modules/weighted_ethics_scorer.py`
   - `src/utils/kernel_formatters.py`
+
+### 🛠️ Execution | Date: 2026-04-19 18:18:11 | Author: Antigravity (L1)
+- **Block:** `S.10`
+- **Message:** Continuous Boy Scout Hardening: Injected DoS protection via MAX_TEXT_LENGTH (10k) in InputTrust. Hardened Ollama backend with 20k payload limits and improved regex fault tolerance. Resealed integrity manifest.
+- **Files Modified:**
+  - `audit_trail.db`
+  - `docs/proposals/PROPOSAL_BOY_SCOUT_HARDENING_REPORT.md`
+  - `src/MANIFEST.json`
+  - `src/modules/absolute_evil.py`
+  - `src/modules/charm_engine.py`
+  - `src/modules/input_trust.py`
+  - `src/modules/judicial_escalation.py`
+  - `src/modules/llm_backends.py`
+  - `src/modules/mock_dao.py`

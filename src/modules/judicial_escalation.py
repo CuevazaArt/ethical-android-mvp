@@ -17,6 +17,8 @@ from dataclasses import dataclass, field
 from datetime import datetime
 from enum import Enum
 from typing import Any
+import time
+import math
 
 from .ethical_reflection import ReflectionSnapshot
 
@@ -191,9 +193,18 @@ def build_ethical_dossier(
     buffer_conflict: bool,
     session_strikes: int = 0,
 ) -> EthicalDossierV1:
-    somatic_bits = [f"{k}={signals[k]:.3f}" for k in sorted(signals.keys())[:12]]
+    t0 = time.perf_counter()
+    
+    somatic_bits = []
+    for k in sorted(signals.keys())[:12]:
+        val = signals[k]
+        # Swarm Rule 2: Anti-NaN check
+        if not math.isfinite(val):
+            val = 0.0
+        somatic_bits.append(f"{k}={val:.3f}")
+        
     somatic_summary = ";".join(somatic_bits) if somatic_bits else "no_signals"
-    return EthicalDossierV1(
+    dossier = EthicalDossierV1(
         case_uuid=str(uuid.uuid4()),
         order_text=user_order[:2000],
         decision_mode=decision_mode,
@@ -202,6 +213,15 @@ def build_ethical_dossier(
         monologue_digest_hex=_digest_hex(monologue_line or ""),
         session_strikes=session_strikes,
     )
+    
+    latency = (time.perf_counter() - t0) * 1000
+    from .uchi_soto import _log # Re-using logger or importing logging
+    import logging
+    _log = logging.getLogger(__name__)
+    if latency > 1.0:
+        _log.debug("Judicial: build_ethical_dossier latency = %.2fms", latency)
+        
+    return dossier
 
 
 @dataclass

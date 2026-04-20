@@ -23,9 +23,14 @@ import hashlib
 import json
 import math
 import os
+import time
+import logging
 from dataclasses import asdict, dataclass, field
 from datetime import datetime
 from typing import Any, TYPE_CHECKING
+
+_log = logging.getLogger(__name__)
+
 if TYPE_CHECKING:
     from .dao_orchestrator import DAOOrchestrator
 
@@ -185,6 +190,7 @@ class MockDAO:
 
         **Assumes** honest participants and unique IDs — no Sybil or vote-buying model.
         """
+        t0 = time.perf_counter()
         prop = next((p for p in self.proposals if p.id == proposal_id), None)
         if not prop or prop.status != "open":
             return {"success": False, "reason": "Proposal not found or closed."}
@@ -204,11 +210,23 @@ class MockDAO:
 
         part.available_tokens -= cost
 
-        weight = n_votes * part.total_reputation
+        rep = part.total_reputation
+        # Swarm Rule 2: Anti-NaN check for reputation
+        if not math.isfinite(rep):
+            rep = 0.5
+            
+        weight = n_votes * rep
+        if not math.isfinite(weight):
+            weight = 0.0
+            
         if in_favor:
             prop.votes_for[participant_id] = weight
         else:
             prop.votes_against[participant_id] = weight
+
+        latency = (time.perf_counter() - t0) * 1000
+        if latency > 1.0:
+            _log.debug("MockDAO: vote latency = %.4fms", latency)
 
         return {
             "success": True,

@@ -275,6 +275,10 @@ class OllamaLLMBackend(LLMBackend):
 
     def completion(self, system: str, user: str, **kwargs: Any) -> str:
         raise_if_llm_cancel_requested()
+        # Sanity check: prevent massive payloads from being sent over network
+        if len(user) > 20000:
+             user = user[:20000] + "... [TRUNCATED]"
+             
         url = f"{self._base}/api/chat"
         payload: dict[str, Any] = {
             "model": self._model,
