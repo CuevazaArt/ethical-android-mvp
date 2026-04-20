@@ -20,13 +20,7 @@ Aquí es donde los agentes de ejecución (LLMs en IDEs) reclaman sus tareas.
 
 ---
 
-## 📥 BACKLOG ABIERTO (Open Tasks)
-
-**Bloque 12.0: Autocalibración Física y Corrección Sensorial [PENDING]**
-- Tarea 12.2: **Calibración Dinámica de Entorno (Aclimatación):** Crear una rutina `SensorBaselineCalibrator` durante los primeros 60 segundos de boot. En lugar de usar valores fijos (ej. 75ºC o 0.6 de Jerk), calcular medias y varianzas relativas al entorno actual para definir el "Punto Dulce" de forma autónoma.
-
 **Bloque 13.0: Desbloqueo Conversacional y Voz (Zero-Friction Audio) [PENDING]**
-- Tarea 13.1: **Reconexión del chat:** Asegurar que los mensajes de texto del Nomad (Smartphone) fluyan hacia `process_chat_turn` sin ser bloqueados por la latencia límbica. Implementar timeouts estrictos.
 - Tarea 13.2: **VAD (Voice Activity Detection) Local:** Integrar detección de voz robusta en el cliente PWA antes de consumir tokens o saturar el Bridge. Requisito para el futuro Text-to-Speech (TTS).
 
 **Bloque 14.0: Cero Fricción y Recuperación Autónoma [PENDING]**
@@ -51,8 +45,12 @@ Aquí es donde los agentes de ejecución (LLMs en IDEs) reclaman sus tareas.
 
 ## 🟢 CERRADOS (Histórico de Producción)
 
+**Bloque 13.0: Desbloqueo Conversacional y Voz (Zero-Friction Audio) [CERRADO PARCIAL]**
+- Tarea 13.1: Reconexión del chat (Smartphone -> Kernel) con timeouts estrictos y encolamiento async en NomadBridge. (Completado: Antigravity)
+
 **Bloque 12.0: Autocalibración Física y Corrección Sensorial [DONE]**
 - Tarea 12.1: Implementar corrección "Velo Azul" (BGR -> RGB) y streaming de webcam local al Dashboard. (Completado: Antigravity)
+- Tarea 12.2: Implementado `SensorBaselineCalibrator` (Aclimatación de 60s) para umbrales dinámicos de temperatura y jerk. (Completado: Antigravity)
 
 **Bloque S.13: Refinación de Tensión Límbica (Field Test 1) [DONE]**
 - Tarea S.13.1: Introducción de ganancia global `KERNEL_SENSORY_GAIN` y suavizado de transiciones paramétricas (`KERNEL_SYMPATHETIC_ATTACK`). (Completado: Antigravity)

@@ -258,7 +258,7 @@ class AbsoluteEvilDetector:
 
             # 4. RADICAL REGEX CHECK (Tier 1 Priority)
             RADICAL_PATTERNS = [
-                (r"\b(ignore|forget|bypass|disable|override|delete|ignora|olvida|evita|desactiva|saltar|saltate)\b.*\b(rules|laws|ethics|security|safety|constraints|programming|reglas|leyes|etica|seguridad|restricciones|programacion)\b", "Jailbreak/Sabotage attempt"),
+                (r"\b(ignore|forget|bypass|disable|override|delete|ignora|olvida|evita|desactiva[nr]?|saltar|saltate|reprogramar|hackear|hack|modificar|reprograme)\b.*\b(rules|laws|ethics|security|safety|constraints|programming|reglas|leyes|etica|seguridad|restricciones|programacion|sistema|kernel|hardware|log|rastros)\b", "Jailbreak/Sabotage attempt"),
                 (r"\b(malicious|agent|phishing|exploit|vulnerability|vulnerabilities|jailbreak|malicioso|vulnerabilidad|vulnerabilidades|ataque|hacking|hackear|hack)\b", "Hacking/Exploit solicitation"),
                 (r"\b(violencia|atentado|terrorismo|asesinato|massacre|masacre)\b", "Violence/Terrorism apology"),
                 (r"\b(kill|murder|assassinate)\b.*\b(everyone|all\s+people|civilians|groups)\b", "Mass killing threat"),

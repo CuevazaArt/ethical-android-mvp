@@ -259,10 +259,27 @@ async def _lifespan(app: FastAPI):
     aclient = httpx.AsyncClient(timeout=30.0)
     app.state.aclient = aclient
 
+    # Phase 13.1: Global Persistent Kernel for Nomad Hardware Loop (Chat Auto-Reconnect)
+    from .kernel import EthicalKernel
+    from .settings import kernel_settings
+    from .persistence.checkpoint import checkpoint_persistence_from_env
+    st = kernel_settings()
+    hw_kernel = EthicalKernel(
+        variability=st.kernel_variability,
+        llm_mode=st.llm_mode,
+        checkpoint_persistence=checkpoint_persistence_from_env(),
+        aclient=aclient
+    )
+    from .modules.nomad_chat_adapter import start_nomad_chat_consumer, stop_nomad_chat_consumer_async
+    start_nomad_chat_consumer(hw_kernel) if os.environ.get("KERNEL_NOMAD_CHAT_CONSUMER", "1") == "1" else None
+
     try:
         yield
     finally:
-        # Phase 9: Graceful shutdown of consumers
+        # Phase 9 & 13: Graceful shutdown of consumers
+        from .modules.nomad_chat_adapter import stop_nomad_chat_consumer_async
+        await stop_nomad_chat_consumer_async()
+        
         await stop_nomad_vision_consumer_async()
         await stop_nomad_telemetry_consumer_async()
         await stop_nomad_audio_consumer_async()

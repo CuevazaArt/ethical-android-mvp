@@ -437,3 +437,15 @@ This file is automatically managed by `scripts/swarm_sync.py`.
   - `src/kernel.py`
   - `src/modules/sensor_calibration.py`
   - `src/modules/vitality.py`
+
+### 🛠️ Execution | Date: 2026-04-20 09:15:26 | Author: Antigravity
+- **Block:** `12.2, 13.1`
+- **Message:** Dynamic Calibration and Nomad Chat Integration: Implemented SensorBaselineCalibrator (60s cycle) and NomadChatConsumer. Hardened MalAbs regex gates.
+- **Files Modified:**
+  - `CHANGELOG.md`
+  - `audit_trail.db`
+  - `docs/proposals/PLAN_WORK_DISTRIBUTION_TREE.md`
+  - `src/chat_server.py`
+  - `src/modules/absolute_evil.py`
+  - `src/modules/nomad_bridge.py`
+  - `src/modules/nomad_chat_adapter.py`

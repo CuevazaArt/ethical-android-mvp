@@ -42,6 +42,7 @@ class NomadBridge:
         self.audio_queue: asyncio.Queue[bytes] = asyncio.Queue(maxsize=20)
         self.telemetry_queue: asyncio.Queue[dict[str, Any]] = asyncio.Queue(maxsize=10)
         self.charm_feedback_queue: asyncio.Queue[dict[str, Any]] = asyncio.Queue(maxsize=10)
+        self.chat_queue: asyncio.Queue[dict[str, Any]] = asyncio.Queue(maxsize=5)
         
         # Phase 10: L0 Dashboard Telemetry Broadcaster
         self.dashboard_queues: list[asyncio.Queue[dict[str, Any]]] = []
@@ -306,6 +307,13 @@ class NomadBridge:
                             "event": event_type,
                             "payload": payload
                         })
+
+                    elif event_type == "user_input":
+                        # Phase 13.1: Smartphone chat message
+                        if self.chat_queue.full():
+                            self.chat_queue.get_nowait()
+                        self.chat_queue.put_nowait(payload)
+                        _log.info("Nomad Bridge: Chat message received from Vessel.")
 
                 except Exception as inner_e:
                     _log.error("Nomad Bridge inner loop error: %s", inner_e)
