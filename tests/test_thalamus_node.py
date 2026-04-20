@@ -117,7 +117,7 @@ def test_missing_vision_keys_default_to_zero(thalamus: ThalamusNode):
 
 
 def test_push_episode_stores_in_buffer(thalamus: ThalamusNode):
-    ep = SensoryEpisode(origin="audio", entities=["human"], signals={"tension": 0.3})
+    ep = SensoryEpisode(origin="audio", vision_entities=["human"], signals={"tension": 0.3})
     thalamus.push_episode(ep)
     assert len(thalamus.sensory_buffer) == 1
     assert thalamus.sensory_buffer[0].origin == "audio"
