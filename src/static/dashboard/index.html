@@ -25,89 +25,65 @@
         </div>
     </header>
 
-    <main>
-        <!-- AFFECTIVE & ETHICAL PANEL -->
-        <aside class="panel">
+    <main class="clinical-grid">
+        <!-- TOP: SENSORY NEXUS & VISION -->
+        <section class="panel vision-panel">
             <div class="panel-header">
-                <h2>Harmonies</h2>
+                <span class="clinical-tag">SENSORY_NEXUS // LIVE</span>
+                <h2>Vision Monitor</h2>
             </div>
-            
-            <div class="metric-card">
-                <div class="metric-label">Limbic Tension (Σ)</div>
-                <div class="metric-value" id="tension-val">0.00</div>
-                <div class="progress-bar">
-                    <div class="progress-fill" id="tension-fill"></div>
-                </div>
-            </div>
-
-            <div class="metric-card">
-                <div class="metric-label">Social Trust (Uchi-Soto)</div>
-                <div class="metric-value" id="trust-val">0.50</div>
-                <div class="progress-bar">
-                    <div class="progress-fill" id="trust-fill" style="background: var(--accent-magenta);"></div>
-                </div>
-            </div>
-
-            <div class="metric-card">
-                <div class="metric-label">Cognitive Load</div>
-                <div class="metric-value" id="load-val">12ms</div>
-                <div class="progress-bar">
-                    <div class="progress-fill" id="load-fill" style="background: var(--accent-blue);"></div>
-                </div>
-            </div>
-
-            <div class="chat-container">
-                <div class="chat-header">Neural Log // Chat</div>
-                <div class="chat-history" id="event-log">
-                    <!-- Real-time events and chat will flow here -->
-                </div>
-                <div class="chat-input-area">
-                    <input type="text" id="chat-input" placeholder="Communicate with Nomad..." autocomplete="off">
-                    <button id="chat-send">▶</button>
-                </div>
-            </div>
-        </aside>
-
-        <!-- CENTER: VISION MONITOR -->
-        <section class="panel center-panel">
             <div class="vision-preview">
                 <canvas id="vision-canvas"></canvas>
-                <div class="canvas-overlay">LIVE // NOMAD VESSEL</div>
-            </div>
-            
-            <div class="kernel-thoughts">
-                <div class="monologue-line" id="thought-stream">
-                    Waiting for sensor nexus handshake...
-                </div>
+                <div class="canvas-overlay">REAL-TIME EMBODIMENT // F.2</div>
             </div>
         </section>
 
-        <!-- RIGHT PANEL: AFFECTIVE ORB & SENSORS -->
-        <aside class="panel">
+        <!-- CENTER: NEURAL LOG -->
+        <section class="panel log-panel">
             <div class="panel-header">
-                <h2>Situated Organism</h2>
+                <span class="clinical-tag">NEURAL_DECODING // EPISODES</span>
+                <h2>Cognitive Log</h2>
+            </div>
+            <div class="chat-history" id="event-log"></div>
+            <div class="kernel-thoughts">
+                <div class="monologue-line" id="thought-stream">Handshake established...</div>
+            </div>
+        </section>
+
+        <!-- RIGHT: CLINICAL TELEMETRY FEEDS -->
+        <section class="panel telemetry-panel">
+            <div class="panel-header">
+                <span class="clinical-tag">DIAGNOSTIC_FEED // L0</span>
+                <h2>Clinical State</h2>
+            </div>
+            
+            <div class="clinical-group">
+                <h3>Neural Latencies</h3>
+                <div class="data-row"><span>Perceptive Lobe</span><span class="value" id="lat-percept">-- ms</span></div>
+                <div class="data-row"><span>Limbic Lobe</span><span class="value" id="lat-limbic">-- ms</span></div>
+                <div class="data-row"><span>Executive Lobe</span><span class="value" id="lat-exec">-- ms</span></div>
             </div>
 
-            <div id="orb-container"></div>
-
-            <div class="audio-monitor">
-                <div class="metric-label">Audio Energy (dB)</div>
-                <div class="audio-bars" id="audio-bars">
-                    <!-- Dynamic bars -->
-                </div>
+            <div class="clinical-group">
+                <h3>Somatic Markings</h3>
+                <div class="data-row"><span>Limbic Tension (Σ)</span><span class="value" id="val-sigma">0.00</span></div>
+                <div class="data-row"><span>Calibration State</span><span class="value clinical-warn" id="val-calib">ACCLIMATING...</span></div>
+                <div class="data-row"><span>Sympathetic State</span><span class="value" id="val-sympath">NEUTRAL</span></div>
             </div>
 
-            <div class="telemetry-grid">
-                <div class="metric-card">
-                    <div class="metric-label">Battery</div>
-                    <div class="metric-value" id="bat-val">--%</div>
-                </div>
-                <div class="metric-card">
-                    <div class="metric-label">Thermal</div>
-                    <div class="metric-value" id="temp-val">--°C</div>
-                </div>
+            <div class="clinical-group">
+                <h3>Nomadic Telemetry</h3>
+                <div class="data-row"><span>Vessel Latency</span><span class="value" id="val-nomad-lat">-- ms</span></div>
+                <div class="data-row"><span>VAD Status</span><span class="value" id="val-vad">IDLE</span></div>
+                <div class="data-row"><span>Thermal state</span><span class="value" id="val-temp">-- °C</span></div>
+                <div class="data-row"><span>Battery Reserve</span><span class="value" id="val-bat">-- %</span></div>
             </div>
-        </aside>
+
+            <div class="control-area">
+                <input type="text" id="chat-input" placeholder="Neural bypass injection..." autocomplete="off">
+                <button id="chat-send">SEND</button>
+            </div>
+        </section>
     </main>
 
     <!-- Scripts -->

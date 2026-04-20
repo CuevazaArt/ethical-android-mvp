@@ -92,55 +92,110 @@ main {
     display: flex;
     flex-direction: column;
     overflow: hidden; /* No scroll on panels if possible */
-}
-
-.panel-header {
-    padding: 0.75rem 1rem;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 4px; /* Clinical sharp edges */
     display: flex;
-    justify-content: space-between;
-    align-items: center;
-}
-
-.panel-header h2 {
-    font-size: 0.875rem;
-    text-transform: uppercase;
-    letter-spacing: 1px;
-    color: var(--text-secondary);
-}
-
-/* ════ Left Panel: Affective & Ethical ════ */
-.metric-card {
-    padding: 0.75rem 1rem;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.03);
-}
-
-.metric-label {
-    font-size: 0.7rem;
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-    color: var(--text-secondary);
-    margin-bottom: 0.25rem;
-}
-
-.metric-value {
-    font-size: 1.25rem;
-    font-weight: 700;
-}
-
-.progress-bar {
-    height: 4px;
-    background: rgba(255, 255, 255, 0.05);
-    border-radius: 2px;
-    margin-top: 0.5rem;
+    flex-direction: column;
     overflow: hidden;
 }
 
-.progress-fill {
-    height: 100%;
+.panel-header {
+    padding: 1rem;
+    background: rgba(0, 0, 0, 0.3);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.clinical-tag {
+    font-size: 0.65rem;
+    letter-spacing: 0.1em;
+    color: var(--accent-magenta);
+    font-weight: 700;
+}
+
+h2 { margin: 0.2rem 0 0 0; font-size: 1rem; }
+
+/* ════ Telemetry Data ════ */
+.telemetry-panel {
+    padding: 0;
+}
+
+.clinical-group {
+    padding: 1.2rem;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.03);
+}
+
+.clinical-group h3 {
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    color: rgba(255, 255, 255, 0.4);
+    margin: 0 0 0.8rem 0;
+}
+
+.data-row {
+    display: flex;
+    justify-content: space-between;
+    font-family: 'Inter', sans-serif;
+    font-size: 0.85rem;
+    margin-bottom: 0.4rem;
+}
+
+.data-row .value {
+    color: var(--accent-cyan);
+    font-weight: 600;
+}
+
+.clinical-warn { color: var(--accent-amber) !important; }
+
+/* ════ Logs & Vision ════ */
+.chat-history {
+    flex: 1;
+    padding: 1rem;
+    color: rgba(255, 255, 255, 0.85);
+    font-size: 0.9rem;
+    line-height: 1.5;
+    overflow-y: auto;
+}
+
+.chat-message { margin-bottom: 0.8rem; }
+.chat-message.kernel { color: var(--accent-cyan); }
+.chat-message.dissonance { border-left: 2px solid var(--accent-magenta); padding-left: 8px; }
+
+.control-area {
+    padding: 1rem;
+    background: rgba(0,0,0,0.4);
+    display: flex;
+    gap: 0.5rem;
+}
+
+#chat-input {
+    flex: 1;
+    background: rgba(255,255,255,0.03);
+    border: 1px solid rgba(255,255,255,0.1);
+    color: white;
+    padding: 0.5rem;
+}
+
+#chat-send {
     background: var(--accent-cyan);
-    width: 0%;
-    transition: width 0.5s ease;
+    color: #000;
+    border: none;
+    padding: 0.5rem 1rem;
+    font-weight: 700;
+    cursor: pointer;
+}
+
+.vision-preview {
+    flex: 1;
+    position: relative;
+    background: #000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+#vision-canvas {
+    max-width: 100%;
+    max-height: 100%;
 }
 
 .badge-dissonance {

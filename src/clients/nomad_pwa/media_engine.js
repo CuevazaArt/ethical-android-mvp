@@ -16,6 +16,19 @@ canvas.height = 240;
 const ctx = canvas.getContext('2d', { willReadFrequently: true });
 
 /**
+ * Phase 13.2: Local VAD Architecture
+ * Blocks transmission of silent PCM packets to optimize Bridge bandwidth.
+ */
+const VAD_CONFIG = {
+    threshold: 0.012,    // RMS threshold (adjusted for smartphone mics)
+    holdFrames: 8,       // Number of frames to keep stream open (~2s at 4096/16kHz)
+    preRollBuffer: []    // To capture the start of speech (not yet fully implemented)
+};
+
+let vadActive = false;
+let vadFramesRemaining = 0;
+
+/**
  * Encodes Float32Array PCM data to 16-bit Int PCM and then to Base64
  */
 function encodeAudioToBase64(float32Array) {
@@ -95,11 +108,32 @@ async function startSensors() {
                     if (window.updateOrbScale) window.updateOrbScale(normalizedVolume);
                 });
 
-                const b64Audio = encodeAudioToBase64(inputData);
-                wsNomad.send(JSON.stringify({
-                    type: "audio_pcm",
-                    payload: { audio_b64: b64Audio }
-                }));
+                // Phase 13.2: Gated PCM Transmission (VAD)
+                if (rms > VAD_CONFIG.threshold) {
+                    if (!vadActive) {
+                        console.log("Nomad VAD: Voice detected (RMS: " + rms.toFixed(4) + ")");
+                        vadActive = true;
+                    }
+                    vadFramesRemaining = VAD_CONFIG.holdFrames;
+                } else if (vadActive) {
+                    vadFramesRemaining--;
+                    if (vadFramesRemaining <= 0) {
+                        console.log("Nomad VAD: Silence timeout (Stream paused)");
+                        vadActive = false;
+                    }
+                }
+
+                if (vadActive) {
+                    const b64Audio = encodeAudioToBase64(inputData);
+                    wsNomad.send(JSON.stringify({
+                        type: "audio_pcm",
+                        payload: { 
+                            audio_b64: b64Audio,
+                            vad: true,
+                            rms: rms
+                        }
+                    }));
+                }
             }
         };
 

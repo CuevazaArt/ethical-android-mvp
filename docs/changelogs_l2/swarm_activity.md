@@ -449,3 +449,15 @@ This file is automatically managed by `scripts/swarm_sync.py`.
   - `src/modules/absolute_evil.py`
   - `src/modules/nomad_bridge.py`
   - `src/modules/nomad_chat_adapter.py`
+
+### 🛠️ Execution | Date: 2026-04-20 09:27:25 | Author: Antigravity
+- **Block:** `13.2, 14.1, 14.2`
+- **Message:** Nomad Hardening: Implemented Local VAD, mDNS Autodiscovery, and Clinical Dashboard overhaul. Transitioned L0 UI from decorative to diagnostic.
+- **Files Modified:**
+  - `requirements.txt`
+  - `src/chat_server.py`
+  - `src/clients/nomad_pwa/media_engine.js`
+  - `src/modules/zeroconf_discovery.py`
+  - `src/static/dashboard/dashboard.css`
+  - `src/static/dashboard/dashboard.js`
+  - `src/static/dashboard/index.html`

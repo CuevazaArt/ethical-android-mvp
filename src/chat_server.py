@@ -273,10 +273,18 @@ async def _lifespan(app: FastAPI):
     from .modules.nomad_chat_adapter import start_nomad_chat_consumer, stop_nomad_chat_consumer_async
     start_nomad_chat_consumer(hw_kernel) if os.environ.get("KERNEL_NOMAD_CHAT_CONSUMER", "1") == "1" else None
 
+    # Phase 14.1: Auto-Descubrimiento (mDNS/Zeroconf)
+    from .modules.zeroconf_discovery import start_zeroconf_broadcast, stop_zeroconf_broadcast
+    from .chat_server import get_uvicorn_bind
+    _, port = get_uvicorn_bind()
+    start_zeroconf_broadcast(port)
+
     try:
         yield
     finally:
-        # Phase 9 & 13: Graceful shutdown of consumers
+        # Phase 9, 13 & 14: Graceful shutdown of consumers
+        stop_zeroconf_broadcast()
+        
         from .modules.nomad_chat_adapter import stop_nomad_chat_consumer_async
         await stop_nomad_chat_consumer_async()
         
