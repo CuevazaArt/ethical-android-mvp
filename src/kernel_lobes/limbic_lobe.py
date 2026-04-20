@@ -1,9 +1,12 @@
-from src.kernel_lobes.models import EthicalSentence, LimbicStageResult, SemanticState
-from src.modules.persistent_threat_tracker import PersistentThreatTracker
+from __future__ import annotations
 import time
 import math
 import logging
 import os
+from typing import TYPE_CHECKING, Any, Optional
+
+from src.kernel_lobes.models import EthicalSentence, LimbicStageResult, SemanticState
+from src.modules.persistent_threat_tracker import PersistentThreatTracker
 
 _log = logging.getLogger(__name__)
 

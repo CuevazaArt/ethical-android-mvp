@@ -1,7 +1,7 @@
 {
   "files": {
     "src/kernel.py": "6cb03e2af66ed98da32e96f97bf8c7704c7dea17beb29ade138e89b30570bf87",
-    "src/kernel_lobes/models.py": "f0707a303ffd5c566471ff86ec3b505a767f838ca64561217fa3946e9677c022",
+    "src/kernel_lobes/models.py": "3608057f099f7243748bff95ad6cee083ee9c2d13138720250ebff35937ed462",
     "src/kernel_lobes/executive_lobe.py": "f855eac2729d39071fe85908857f82781fe9c2bbca74506ff901fd8ca0825582",
     "src/kernel_lobes/memory_lobe.py": "d362b0b790d0e45c5e902519e3e8a02aa2aed6f06a29c7054a517c62ad116913",
     "src/kernel_lobes/perception_lobe.py": "3553e9a558da07fe2784a7e6ae8a748945dd476b9775452f32bc0dde6b9f6686",
@@ -21,6 +21,6 @@
     "src/persistence/kernel_io.py": "00474e4908d2cbb7cc5e6547c6db629c4f4b88b0190342847b6ac9930c163689",
     "src/persistence/snapshot_serde.py": "3920104a50d2b70ec1a79f539866e4bd192bda6a3969fa827c1fd95368c8899f"
   },
-  "signature": "cced4bf0642fd906678c1aba8281297aca777483d111ecaf872b8488c73b1540",
+  "signature": "9c3e2df19d0a9cd716bd9dde6497de8f6344b5305b892d3a988a2dfc0073d4e4",
   "signed_by": "Antigravity (L1) - Hardening Pulse Recovery"
 }
