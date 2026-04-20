@@ -136,18 +136,24 @@ class EthosKernel:
         self._pending_reactions[pulse.pulse_id] = future
 
         await self.bus.publish(pulse)
-        _log.info(f"EthosKernel: Injected raw stimulus {pulse.pulse_id}. Waiting for brain response...")
+        from src.utils.terminal_colors import TColors
+        _log.info(TColors.color(f"EthosKernel: Injected raw stimulus {pulse.pulse_id}. Waiting for brain response...", TColors.OKCYAN))
 
         try:
             dispatch_result = await asyncio.wait_for(future, timeout=25.0)
+            from src.utils.terminal_colors import color_verdict
+            
+            is_blocked = getattr(dispatch_result, "is_vetoed", False)
+            status_tag = color_verdict("BLOCKED") if is_blocked else color_verdict("PASS")
+            
             return ChatTurnResult(
                 response=VerbalResponse(
                     message=f"Distributed Brain Response: {getattr(dispatch_result, 'action_id', 'unknown')}", 
                     tone="neutral"
                 ),
                 path="nervous_bus",
-                blocked=getattr(dispatch_result, "is_vetoed", False),
-                block_reason="Vetoed by Prefrontal" if getattr(dispatch_result, "is_vetoed", False) else ""
+                blocked=is_blocked,
+                block_reason=f"[{status_tag}] Vetoed by Prefrontal" if is_blocked else ""
             )
         except asyncio.TimeoutError:
             _log.error(f"EthosKernel: Response timeout for {pulse.pulse_id}.")

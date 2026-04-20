@@ -6,28 +6,27 @@ This document tracks the visual evolution of the Tri-Lobe core. **AI Agents MUST
 
 ```mermaid
 graph TD
-    User([User Chat Input]) --> Thalamus[Thalamus Node]
-    NB[Nomad Bridge / LAN Bridge] --> PL[Perceptive Lobe]
-    Discovery[Nomad Discovery mDNS] --> NB
-    SD[Sensory Daemons (Vision/Audio)] --> NB
+    User([User Chat Input]) --> Thalamus[Thalamus Lobe]
+    Sensors[(Sensors: Vision/Audio)] --> PL[Perceptive Lobe]
     
-    subgraph "Ethical Tri-Lobe Core"
-        Thalamus -- "Context" --> PL
-        PL -- "Signals (EP)" --> LL[Limbic Ethical Lobe]
-        LL -- "Tension" --> CL[Cerebellum Lobe]
-        ML[(Memory Lobe)] -- "Temporal Priors" --> CL
-        CL -- "Hypothesis weights" --> EL[Executive Lobe]
-        EL -- "Action" --> ML
+    subgraph "Nervous System (Asynchronous Bus)"
+        CC{{"Corpus Callosum (Event Bus)"}}
     end
     
-    subgraph "Safety & Governance"
-        EL --> DG[DAO Governance V12]
-        DG --> Interlock{Safety Gate}
-        Interlock -- "Audit" --> DB[(Persistent Audit Ledger)]
-    end
+    Thalamus -- "SensorySpike" --> CC
+    PL -- "CognitivePulse" --> CC
     
-    Interlock -- "Validated" --> Output[/System Response/]
-    Interlock -- "Blocked" --> Trauma[Identity Trauma Module]
+    CC -- "Sensory/Cognitive" --> LL[Limbic Lobe]
+    CC -- "SensorySpike" --> CL[Cerebellum Lobe]
+    CL -- "BayesianEcograde" --> CC
+    
+    CC -- "Cognitive/Bayesian" --> EL[Executive Lobe]
+    EL -- "MotorCommand" --> CC
+    
+    CC -- "MotorCommand" --> Output[/System Response/]
+    
+    CC -- "Veto/Trauma" --> Trauma[Identity Trauma Module]
+    CC -- "Logging" --> DB[(Persistent Audit Ledger)]
 ```
 
 ## System Dependencies

@@ -807,3 +807,13 @@ This file is automatically managed by `scripts/swarm_sync.py`.
 - **Message:** Hardened Ethos V13.0: Fixed adversarial suite, implemented 5s semantic timeouts in MalAbs, and optimized Executive fallback convergence.
 - **Files Modified:**
   - `docs/proposals/PLAN_WORK_DISTRIBUTION_TREE.md`
+
+### 🛠️ Execution | Date: 2026-04-20 17:38:40 | Author: Anonymous Agent
+- **Block:** `18.0`
+- **Message:** Cierre Bloque 18.0: Consolidación y Poda de Dependencias. Timeouts de 5s en fallbacks ejecutivos y puente cognitivo a límbico validados. 0 Fallos en Adversarial.
+- **Files Modified:**
+  - `docs/architecture/TRI_LOBE_CORE.md`
+  - `docs/proposals/PLAN_WORK_DISTRIBUTION_TREE.md`
+  - `src/kernel.py`
+  - `src/kernel_lobes/cerebellum_lobe.py`
+  - `src/utils/terminal_colors.py`

@@ -197,7 +197,8 @@ class CerebellumLobe:
             bma_dirichlet_alpha=bma_dirichlet,
             bma_n_samples=bma_n_s
         )
-        
+
+        return bayes_result, meta
     async def _on_sensory_event(self, spike: SensorySpike):
         """Asynchronous Bayesian assistance loop."""
         _log.info(f"Cerebelo Auxiliar: Iniciando pre-cálculo asíncrono para Spike {spike.pulse_id}")
