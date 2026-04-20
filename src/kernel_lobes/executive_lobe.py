@@ -4,11 +4,19 @@ import time
 import math
 from typing import TYPE_CHECKING, Any, Optional, Tuple, Deque
 
-from src.kernel_lobes.models import ExecutiveStageResult, EthicalSentence, SensoryEpisode
+from src.kernel_lobes.models import (
+    ExecutiveStageResult, 
+    EthicalSentence, 
+    SensoryEpisode,
+    SensorySpike,
+    BayesianEcograde,
+    MotorCommandDispatch
+)
 from src.modules.turn_prefetcher import TurnPrefetcher
 from src.modules.basal_ganglia import BasalGanglia
 from src.modules.llm_layer import VerbalResponse, LLMModule
 from src.modules.internal_monologue import compose_monologue_line
+from src.nervous_system.corpus_callosum import CorpusCallosum
 
 if TYPE_CHECKING:
     from src.modules.absolute_evil import AbsoluteEvilDetector
@@ -37,6 +45,7 @@ class ExecutiveLobe:
         salience_map: Optional[SalienceMap] = None,
         pad_archetypes: Optional[PADArchetypeEngine] = None,
         llm: Optional[LLMModule] = None,
+        bus: Optional[CorpusCallosum] = None,
     ):
         self.absolute_evil = absolute_evil
         self.motivation = motivation
@@ -46,8 +55,14 @@ class ExecutiveLobe:
         self.salience_map = salience_map
         self.pad_archetypes = pad_archetypes
         self.llm = llm
+        self.bus = bus
         
         self.ganglia = BasalGanglia() # Smoothing layer
+
+        # Escuchar señales convergentes para decidir la acción final
+        if self.bus:
+            self.bus.subscribe(SensorySpike, self._on_sensory_event)
+            self.bus.subscribe(BayesianEcograde, self._on_bayesian_math_update)
 
     def execute_absolute_evil_stage(
         self,
@@ -257,4 +272,23 @@ class ExecutiveLobe:
             
         except Exception as e:
             _log.error("ExecutiveLobe: Error formulating response: %s", e)
-            return VerbalResponse(message="I'm processing this situation. One moment.", tone="neutral")
+    async def _on_sensory_event(self, spike: SensorySpike):
+        """Prefrontal awareness of a new world stimulus."""
+        _log.info(f"Córtex Prefrontal: Evaluando respuesta ejecutiva para Spike {spike.pulse_id}")
+        # Aquí se iniciaría la planificación de la respuesta verbal o motora.
+
+    async def _on_bayesian_math_update(self, eco: BayesianEcograde):
+        """Mathematical assist from Cerebelo to adjust confidence."""
+        _log.debug(f"Córtex Prefrontal: Ajustando confianza bayesiana (+{eco.confidence_delta})")
+        # Integrar delta de confianza en el modelo de Voluntad (SigmoidWill).
+
+    async def dispatch_volition(self, action_id: str, is_vetoed: bool = False):
+        """Publish the final efferent command to the nervous system."""
+        if self.bus:
+            dispatch = MotorCommandDispatch(
+                action_id=action_id,
+                is_vetoed=is_vetoed,
+                priority=1
+            )
+            await self.bus.publish(dispatch)
+            _log.info(f"Córtex Prefrontal: VOLUNTAD DESPACHADA ({action_id})")

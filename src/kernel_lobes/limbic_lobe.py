@@ -4,9 +4,17 @@ import math
 import logging
 import os
 from typing import TYPE_CHECKING, Any, Optional
+import asyncio
 
-from src.kernel_lobes.models import EthicalSentence, LimbicStageResult, SemanticState
+from src.kernel_lobes.models import (
+    EthicalSentence, 
+    LimbicStageResult, 
+    SemanticState,
+    SensorySpike,
+    LimbicTensionAlert
+)
 from src.modules.persistent_threat_tracker import PersistentThreatTracker
+from src.nervous_system.corpus_callosum import CorpusCallosum
 
 _log = logging.getLogger(__name__)
 
@@ -36,7 +44,8 @@ class LimbicEthicalLobe:
         uchi_soto: Optional[UchiSotoModule] = None,
         sympathetic: Optional[SympatheticModule] = None,
         locus: Optional[LocusModule] = None,
-        swarm: Any = None
+        swarm: Any = None,
+        bus: Optional[CorpusCallosum] = None
     ) -> None:
         if uchi_soto is None:
             from src.modules.uchi_soto import UchiSotoModule as _US
@@ -51,9 +60,15 @@ class LimbicEthicalLobe:
         self.sympathetic = sympathetic
         self.locus = locus
         self.swarm = swarm
+        self.bus = bus
         self.situational_stress = 0.0  # Phase 9.2 Accumulator
         self.threat_tracker = PersistentThreatTracker()
         self.relational_tension: float = 0.0
+
+        # Mnemónica asíncrona: Escuchar impulsos sensoriales y alertas de tensión
+        if self.bus:
+            self.bus.subscribe(SensorySpike, self._on_sensory_spike)
+            self.bus.subscribe(LimbicTensionAlert, self._on_tension_alert)
 
     def update_situational_stress(self, level: float) -> None:
         """Accumulate or decay situational stress based on sensory alerts."""
@@ -224,5 +239,16 @@ class LimbicEthicalLobe:
         """Reset threat tracker for clean state (used in testing/restart)."""
         self.threat_tracker.reset()
         self.relational_tension = 0.0
+
+    async def _on_sensory_spike(self, spike: SensorySpike):
+        """Limbic reaction to a new sensory stimulus."""
+        _log.debug(f"Sistema Límbico: Analizando impacto social del Spike {spike.pulse_id}")
+        # Aquí se activaría la heurística de 'Uchi-Soto' preliminar al ver el origen.
+        pass
+
+    async def _on_tension_alert(self, alert: LimbicTensionAlert):
+        """High-priority reactive stress modulation."""
+        _log.warning(f"Sistema Límbico: ALERTA DE TENSIÓN RECIBIDA ({alert.tension_load}). Escalando...")
+        self.update_situational_stress(alert.tension_load)
 
 LimbicLobe = LimbicEthicalLobe

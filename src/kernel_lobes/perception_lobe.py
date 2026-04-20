@@ -3,12 +3,15 @@ import asyncio
 import os
 import threading
 import time
+import logging
 from typing import Optional, Any, TYPE_CHECKING, Deque
-
 from src.kernel_lobes.models import (
     PerceptionStageResult,
     SensoryEpisode,
+    SensorySpike, # Mnemonic asincrónico
+    SemanticState,
 )
+from src.nervous_system.corpus_callosum import CorpusCallosum
 from src.kernel_utils import perception_parallel_workers
 from src.modules.epistemic_dissonance import assess_epistemic_dissonance
 from src.modules.light_risk_classifier import (
@@ -67,6 +70,7 @@ class PerceptiveLobe:
         subjective_clock: Any,  # SubjectiveClock
         thalamus: Any | None = None,
         vision_engine: Any | None = None,
+        bus: Optional[CorpusCallosum] = None,
     ):
         self._timeout = self._get_perception_timeout()
         self._llm_endpoint = os.environ.get("KERNEL_PERCEPTION_LLM_ENDPOINT", "http://localhost:11434/api/generate")
@@ -80,6 +84,11 @@ class PerceptiveLobe:
         self.subjective_clock = subjective_clock
         self.thalamus = thalamus
         self.vision_engine = vision_engine
+        self.bus = bus
+
+        # Suspensión asíncrona: Escuchar impulsos sensoriales externos si el bus existe
+        if self.bus:
+            self.bus.subscribe(SensorySpike, self._on_sensory_spike_received)
 
         # High-frequency sensory buffer (10 episodes max)
         from collections import deque
@@ -91,13 +100,24 @@ class PerceptiveLobe:
         self.sensory_buffer.append(episode)
         if episode.signals.get("is_urgent", 0.0) > 0.8:
             # Emit stress alert via bus if urgent
-            if self.event_bus:
-                from src.modules.kernel_event_bus import EVENT_SENSORY_STRESS_ALERT
-                self.event_bus.publish(EVENT_SENSORY_STRESS_ALERT, {
-                    "origin": episode.origin,
-                    "stress_level": float(episode.signals.get("threat_level", 0.0)),
-                    "entities": episode.entities
-                })
+            if self.bus:
+                from src.kernel_lobes.models import LimbicTensionAlert
+                alert = LimbicTensionAlert(
+                    priority=0, # ALTA PRIORIDAD (Arco Reflejo)
+                    tension_load=float(episode.signals.get("threat_level", 0.0)),
+                    metadata={"origin": episode.origin, "entities": episode.vision_entities}
+                )
+                asyncio.create_task(self.bus.publish(alert))
+
+    async def _on_sensory_spike_received(self, spike: SensorySpike):
+        """
+        Nervous System Hook: Process a sensory spike asynchronously.
+        This allows the lobe to 'awaken' when the bus receives a stimulus.
+        """
+        _log.info(f"Córtex Sensorial: Recibido SensorySpike {spike.pulse_id}. Procesando...")
+        # En una versión futura, observe() será disparado desde aquí y el resultado
+        # será republicado como un 'PerceptionEcho'.
+        pass
 
     @staticmethod
     def _get_perception_timeout() -> float:

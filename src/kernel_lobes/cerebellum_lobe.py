@@ -16,7 +16,13 @@ if TYPE_CHECKING:
     from src.modules.narrative import NarrativeMemory
     from src.modules.rlhf_reward_model import RLHFPipeline
 
-from src.kernel_lobes.models import BayesianStageMetadata
+from src.kernel_lobes.models import (
+    BayesianStageMetadata,
+    SensorySpike,
+    BayesianEcograde
+)
+from src.nervous_system.corpus_callosum import CorpusCallosum
+import asyncio
 
 
 class CerebellumLobe:
@@ -31,12 +37,18 @@ class CerebellumLobe:
         bayesian: BayesianInferenceEngine,
         strategist: ExecutiveStrategist,
         memory: NarrativeMemory,
-        rlhf: Optional[RLHFPipeline] = None
+        rlhf: Optional[RLHFPipeline] = None,
+        bus: Optional[CorpusCallosum] = None,
     ):
         self.bayesian = bayesian
         self.strategist = strategist
         self.memory = memory
         self.rlhf = rlhf
+        self.bus = bus
+
+        # Mnemónica asíncrona: El Cerebelo escucha estímulos para pre-calcular confianza
+        if self.bus:
+            self.bus.subscribe(SensorySpike, self._on_sensory_event)
 
     def execute_bayesian_stage(
         self,
@@ -184,4 +196,14 @@ class CerebellumLobe:
             bma_n_samples=bma_n_s
         )
         
-        return bayes_result, meta
+    async def _on_sensory_event(self, spike: SensorySpike):
+        """Asynchronous Bayesian assistance loop."""
+        _log.info(f"Cerebelo Auxiliar: Iniciando pre-cálculo asíncrono para Spike {spike.pulse_id}")
+        # En una versión madura, aquí se ejecutaría el BMA en segundo plano 
+        # y se emitiría un BayesianEcograde con el delta de confianza.
+        if self.bus:
+            eco = BayesianEcograde(
+                confidence_delta=0.05, # Simulación de mejora de confianza por análisis bayesiano
+                metadata={"ref_spike": spike.pulse_id}
+            )
+            await self.bus.publish(eco)
