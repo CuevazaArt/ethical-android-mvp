@@ -66,6 +66,15 @@ class EthosKernel:
         evil_detector = AbsoluteEvilDetector()
         llm = LLMModule()
         
+        # Lobe 0: Thalamus Gateway (Filtro Sensorial V13.0)
+        from src.kernel_lobes.thalamus_lobe import ThalamusLobe
+        self.thalamus = ThalamusLobe(bus=self.bus)
+        self.bus.set_ingress_gate(self.thalamus.ingress_gate_v2 if hasattr(self.thalamus, 'ingress_gate_v2') else None)
+
+        # Lobe 0: Thalamus Gateway (Sensory Filter)
+        from src.kernel_lobes.thalamus_lobe import ThalamusLobe
+        self.thalamus = ThalamusLobe(bus=self.bus)
+
         # Lobe 1: Córtex Sensorial
         self.sensory_cortex = PerceptiveLobe(
             safety_interlock=SafetyInterlock(),

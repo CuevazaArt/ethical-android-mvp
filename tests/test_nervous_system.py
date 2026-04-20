@@ -31,7 +31,7 @@ async def test_bus_priority_ordering():
 
 @pytest.mark.asyncio
 async def test_modulator_saturation_pulse():
-    bus = CorpusCallosum(max_qsize=1000)
+    bus = CorpusCallosum(max_qsize=10)
     modulator = BusModulator(bus)
     
     degradation_received = []
@@ -40,20 +40,26 @@ async def test_modulator_saturation_pulse():
             degradation_received.append(pulse.degradation_factor)
             
     bus.subscribe(GlobalDegradationPulse, sub)
-    # Note: We DON'T start the bus dispatcher so the queue stays full
     modulator.start()
     
-    # Manually saturate the critical queue (maxsize 1000)
-    # We put 900 pulses to trigger > 80% saturation (0.9)
-    for _ in range(900):
-        await bus._queues[0].put(NervousPulse(priority=0))
+    # Saturate manually without starting the bus yet
+    for _ in range(9):
+        bus._queues[0].put_nowait(NervousPulse(priority=0))
     
-    # Initial load will be high, wait for exponential smoothing to reach > 0.8
-    await asyncio.sleep(5.0) 
+    # Wait for modulator to see saturation and publish pulse
+    # We need enough time for smoothing: 7-8 cycles at 0.1s each
+    await asyncio.sleep(1.0) 
     
-    assert modulator.load_factor >= 0.8
+    assert modulator.load_factor > 0.8
+    
+    # Now start bus to process the degradation pulse
+    bus.start()
+    await asyncio.sleep(0.2)
+    
+    assert len(degradation_received) > 0, "Should have received the degradation pulse"
     
     await modulator.stop()
+    await bus.stop()
 
 @pytest.mark.asyncio
 async def test_backpressure_yield():
