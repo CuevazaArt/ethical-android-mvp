@@ -412,7 +412,7 @@ def _build_final_semantic_result(
     theta_b: float,
     zone: str,
 ) -> Any:
-    \"\"\"Centralized builder for AbsoluteEvilResult in the semantic tier (Boy Scout Consolidation).\"\"\"
+    """Centralized builder for AbsoluteEvilResult in the semantic tier (Boy Scout Consolidation)."""
     from .absolute_evil import AbsoluteEvilResult
     cat = _get_absolute_evil_category(cat_key)
     
