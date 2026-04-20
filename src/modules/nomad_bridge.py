@@ -98,6 +98,16 @@ class NomadBridge:
         finally:
             _log.info("Nomad Bridge: Nomad Vessel disconnected.")
 
+    def broadcast_to_dashboards(self, msg: dict[str, Any]) -> None:
+        """Sends a message to all connected dashboards (Module S / Phase 10)."""
+        for q in self.dashboard_queues:
+            try:
+                if q.full():
+                    q.get_nowait()
+                q.put_nowait(msg)
+            except Exception:
+                pass
+
     def public_queue_stats(self) -> dict[str, Any]:
         """Returns key metrics and queue depths for the L0 health monitor."""
         return {
