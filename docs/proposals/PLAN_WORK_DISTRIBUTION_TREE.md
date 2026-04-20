@@ -36,7 +36,7 @@ Aquí es donde los agentes de ejecución (LLMs en IDEs) reclaman sus tareas.
 - Tarea 16.3: **Decoupling de Judgement**: Mover la lógica de `AbsoluteEvilDetector` de forma nativa al loop reactivo del `ExecutiveLobe` sin dependencias del kernel. (Completado: Antigravity)
 
 **Bloque 17.0: Reducción del Monolito Perceptual (Siguiente Hito Fase 2 Lóbulos) [PENDING]**
-- Tarea 17.1: **Decoupling del Sensory Cortex**: Desensamblar `PerceptiveLobe` para mover `MultimodalTrust` y `Vitality` a observadores asíncronos en el Bus.
+- Tarea 17.1: **Decoupling del Sensory Cortex**: Desensamblar `PerceptiveLobe` para mover el procesamiento de texto a un manejador asíncrono y la emisión de sensores a pulsos brutos. (Completado: Antigravity)
 - Tarea 17.2: **Thalamus Gateway**: Integrar el `ThalamusLobe` (o nodo Gateway) para pre-filtrar el tráfico sensorial masivo antes de publicarlo en el CorpusCallosum.
 - Tarea 17.3: **Refinamiento de Tolerancia a Fallos Límbicos**: Desvincular el `_run_perception_timeout` para permitir modo "supervivencia" asíncrono si el servidor LLM principal colapsa.
 

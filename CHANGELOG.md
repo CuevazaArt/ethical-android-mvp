@@ -11,6 +11,8 @@ All notable changes to this project are summarized here. For narrative context a
 - **The Guillotine (Phase C):** Obliterated the monolithic `src/kernel.py` God Class. Replaced it with `EthosKernel`, a distributed facade that orchestrates 4 asynchronous mnemonic lobes.
 - **Nervous System Bus:** Integrated `CorpusCallosum` (Event Bus) as the primary cognitive transport layer.
 - **Async Lobe Activation:** Fully transitioned Perceptive, Limbic, Executive, and Cerebellum lobes to a non-blocking, bus-aware operational model.
+- **Traceability Chain:** Implemented `ref_pulse_id` across the nervous system to link stimuli to motor responses in a distributed environment.
+- **Latency Telemetry:** Injected real-time latency tracking in each lobe's reactive handlers (Swarm Rule 3).
 - **Legacy Compatibility:** Maintained backward compatibility with `RealTimeBridge` and `chat_server.py` via asynchronous entry points and legacy aliases.
 
 ### Fixed
@@ -77,7 +79,7 @@ All notable changes to this project are summarized here. For narrative context a
 - [x] **BOY SCOUT VERTICAL HARDENING (Finalization Phase)**:
     *   **Absolute Evil Circuit**: Blindada la entrada de `AbsoluteEvilDetector` contra tipos hostiles.
     *   **Input trust & Normalization**: Refactorizada la arquitectura de logs en `input_trust.py`. 
-    *   **Semantic Gate Cleanup**: Inyectadas guardas `math.isfinite` en los umbrales de similitud coseno.
+    *   **Semantic Gate Cleanup**: Tarea 17.1: **Decoupling del Sensory Cortex**: Desensamblar `PerceptiveLobe` para mover el procesamiento de texto a un manejador asíncrono y la emisión de sensores a pulsos brutos. (Completado: Antigravity)
     *   **Multimodal Trust Resilience**: Reparado el `NameError` en logs de latencia. 
     *   **Numerical Stability**: Sincronizadas las guardas Anti-NaN en `weighted_ethics_scorer.py` y `kernel_formatters.py`.
 

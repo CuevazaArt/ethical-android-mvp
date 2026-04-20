@@ -8,8 +8,11 @@ from typing import Optional, Any, TYPE_CHECKING, Deque
 from src.kernel_lobes.models import (
     PerceptionStageResult,
     SensoryEpisode,
-    SensorySpike, # Mnemonic asincrónico
+    SensorySpike,
     SemanticState,
+    LimbicTensionAlert,
+    CognitivePulse,
+    MotorCommandDispatch,
 )
 if TYPE_CHECKING:
     from src.nervous_system.corpus_callosum import CorpusCallosum
@@ -87,9 +90,11 @@ class PerceptiveLobe:
         self.vision_engine = vision_engine
         self.bus = bus
 
-        # Suspensión asíncrona: Escuchar impulsos sensoriales externos si el bus existe
+        # Suspensión asíncrona: El PerceptiveLobe (Córtex Sensorial) actúa como
+        # receptor de spikes de alto nivel (texto) y emisor de spikes brutos (sensores).
         if self.bus:
             self.bus.subscribe(SensorySpike, self._on_sensory_spike_received)
+
 
         # High-frequency sensory buffer (10 episodes max)
         from collections import deque
@@ -99,6 +104,17 @@ class PerceptiveLobe:
     def receive_sensory_episode(self, episode: "SensoryEpisode") -> None:
         """Callback for high-frequency background sensors (VisionDaemon)."""
         self.sensory_buffer.append(episode)
+        
+        # Fase A: Publicar SensorySpike en el bus asíncrono
+        if self.bus:
+            from src.kernel_lobes.models import SensorySpike
+            spike = SensorySpike(
+                payload={"origin": episode.origin, "entities": episode.vision_entities, "threat_level": episode.threat_load},
+                priority=1,
+                origin_lobe="sensory_cortex_raw" # Tag different origin to avoid infinite loop
+            )
+            asyncio.create_task(self.bus.publish(spike))
+            
         if episode.signals.get("is_urgent", 0.0) > 0.8:
             # Emit stress alert via bus if urgent
             if self.bus:
@@ -110,28 +126,36 @@ class PerceptiveLobe:
                 )
                 asyncio.create_task(self.bus.publish(alert))
 
-    async def _on_sensory_spike_received(self, spike: SensorySpike):
+    async def _on_sensory_spike_received(self, spike: SensorySpike) -> None:
         """
         Nervous System Hook: Process a sensory spike asynchronously.
-        This allows the lobe to 'awaken' when the bus receives a stimulus.
+        Only process if it contains text (high-level input).
         """
-        _log.info(f"Córtex Sensorial: Recibido SensorySpike {spike.pulse_id}. Procesando...")
-        text = spike.payload.get("text", "")
-        # Realizar observación del mundo (CPU bound offloaded to thread or logic)
+        if spike.origin_lobe == "sensory_cortex_raw":
+            return # Skip our own raw spikes
+
+        text: str = (spike.payload or {}).get("text", "")
+        if not text:
+            return
+
+        _log.info(f"Córtex Sensorial: Recibido impulso de texto {spike.pulse_id}. Procesando observación...")
+        
+        # Swarm Rule 3: Latency Telemetry
+        t0 = time.perf_counter()
         state = await self.observe(text)
+        latency_ms = (time.perf_counter() - t0) * 1000
         
         # Publicar el estado semántico de vuelta al bus para que otros órganos lo vean
-        # Usamos el payload del spike original para trazabilidad
         if self.bus:
-            # En V13, el estado semántico viaja como un 'CognitivePulse'
-            _log.info(f"Córtex Sensorial: Observación completa para {spike.pulse_id}. Notificando...")
-            from src.kernel_lobes.models import CognitivePulse
+            _log.info(f"Córtex Sensorial: Observación completa (latencia: {latency_ms:.2f}ms) para {spike.pulse_id}. Notificando sistema cognitivo...")
             pulse = CognitivePulse(
                 origin_lobe="sensory_cortex",
                 state_ref=state,
-                payload={"ref_spike": spike.pulse_id}
+                ref_pulse_id=spike.pulse_id # Trace back to original stimulus
             )
             asyncio.create_task(self.bus.publish(pulse))
+
+
 
     @staticmethod
     def _get_perception_timeout() -> float:

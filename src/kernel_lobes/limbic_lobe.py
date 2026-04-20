@@ -143,7 +143,7 @@ class LimbicEthicalLobe:
         
         confidence = signals.get("confidence", 1.0)
         self.threat_tracker.update_threat_load(threat_load)
-        tension_delta = self.threat_tracker.get_tension_modulation()
+        tension_delta = self.threat_tracker.get_limbic_tension_delta()
         
         # Apply persistent tension delta to the base relational_tension
         self.relational_tension = max(0.0, min(1.0, self.relational_tension + tension_delta * 0.1))
@@ -252,8 +252,24 @@ class LimbicEthicalLobe:
             if yield_func is not None:
                 await yield_func()
         
-        # Aquí se activaría la heurística de 'Uchi-Soto' preliminar al ver el origen.
-        pass
+        # Fase A: Calcular la tensión de forma inmediata al vuelo
+        payload = getattr(spike, "payload", {}) or {}
+        threat_level = payload.get("threat_level", 0.0)
+        entities = payload.get("entities", [])
+        
+        self.threat_tracker.update_threat_load(threat_level)
+        tension_delta = self.threat_tracker.get_limbic_tension_delta()
+        self.relational_tension = max(0.0, min(1.0, self.relational_tension + tension_delta))
+        
+        if self.relational_tension > 0.7:
+             _log.warning(f"Sistema Límbico: Tensión Límbica alta ({self.relational_tension}). Publicando alerta.")
+             if self.bus:
+                 alert = LimbicTensionAlert(
+                     priority=0,
+                     tension_load=self.relational_tension,
+                     payload={"reason": "high relational tension", "entities": entities}
+                 )
+                 asyncio.create_task(self.bus.publish(alert))
 
     async def _on_tension_alert(self, alert: LimbicTensionAlert):
         """High-priority reactive stress modulation."""

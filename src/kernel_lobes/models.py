@@ -191,12 +191,14 @@ class SensorySpike(NervousPulse):
     """Mnemonic: Aferent spike from Córtex Sensorial to the network."""
     origin_lobe: str = "sensory_cortex"
     pulse_type: str = "stimulus"
+    ref_pulse_id: Optional[str] = None
 
 @dataclass
 class LimbicTensionAlert(NervousPulse):
     """Mnemonic: Reactive alert from Sistema Límbico (Trauma/Tension)."""
     origin_lobe: str = "limbic_system"
     tension_load: float = 0.0
+    ref_pulse_id: Optional[str] = None
 
 @dataclass
 class MotorCommandDispatch(NervousPulse):
@@ -204,15 +206,32 @@ class MotorCommandDispatch(NervousPulse):
     origin_lobe: str = "prefrontal_cortex"
     action_id: str = ""
     is_vetoed: bool = False
+    ref_pulse_id: Optional[str] = None
 
 @dataclass
 class BayesianEcograde(NervousPulse):
     """Mnemonic: Mathematical assist from Cerebelo Auxiliar (Buffer)."""
     origin_lobe: str = "auxiliary_cerebellum"
     confidence_delta: float = 0.0
+    ref_pulse_id: Optional[str] = None
 
 @dataclass
 class CognitivePulse(NervousPulse):
     """Mnemonic: High-level mental state broadcast (Ethical/Semantic)."""
     state_ref: Any = None
     priority: int = 1
+    ref_pulse_id: Optional[str] = None
+
+@dataclass
+class RawSensoryPulse(NervousPulse):
+    """Mnemonic: High-frequency data from bridge (VVAD/VAD/IMU) before filtering."""
+    origin_lobe: str = "hardware_bridge"
+    priority: int = 2 # Background usually
+    ref_pulse_id: Optional[str] = None
+
+@dataclass
+class GlobalDegradationPulse(NervousPulse):
+    """Mnemonic: Signal from BusModulator to all lobes to reduce fidelity."""
+    origin_lobe: str = "bus_modulator"
+    degradation_factor: float = 0.0 # 0.0=none, 1.0=maximum (only reflex path)
+    priority: int = 0 # High priority

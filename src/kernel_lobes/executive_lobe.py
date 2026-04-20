@@ -284,39 +284,42 @@ class ExecutiveLobe:
         _log.info(f"Córtex Prefrontal: Recibido BayesianEcograde ({getattr(grade, 'moral_score', 0.0):.2f})")
         # In the future this will influence volition or reflection.
         pass
-
-    async def _on_cognitive_event(self, pulse: CognitivePulse):
-        """Prefrontal reaction to a high-level mental broadcast."""
-        _log.info(f"Córtex Prefrontal: Recibido CognitivePulse de {pulse.origin_lobe}. Convergiendo...")
-        
-        # En este sprint, si recibimos un estado semántico del Córtex Sensorial, 
-        # disparamos la voluntad.
-        if pulse.origin_lobe == "sensory_cortex":
-            state = pulse.state_ref
+    async def _on_cognitive_event(self, pulse: CognitivePulse) -> None:
+        """Process high-level mental states and deliberate actions."""
+        if pulse.origin_lobe == "sensory_cortex" and pulse.state_ref:
+            _log.info(f"Córtex Prefrontal: Evaluando decisión para la observación del Spike {pulse.ref_pulse_id}")
             
-            # Decoupling de Judgement: Ejecución reactiva de MalAbs
-            if state and self.absolute_evil:
-                intent = getattr(state, "raw_prompt", "")
-                _log.debug(f"Córtex Prefrontal: Analizando intención: '{intent[:30]}...'")
-                
-                # Evaluamos de forma autónoma usando el gate textual de profundidad completa
-                check = await self.absolute_evil.aevaluate_chat_text(intent)
-                
-                if check.blocked:
-                    _log.warning(f"Córtex Prefrontal: MAL ABSOLUTO DETECTADO ({getattr(check, 'reason', 'unknown')}). Veto Inmediato.")
-                    await self.dispatch_volition(action_id="blocked_by_malabs", is_vetoed=True)
-                    return
+            # Swarm Rule 3: Latency Telemetry
+            t0: float = time.perf_counter()
+            
+            # Perform Absolute Evil Check on the text
+            from src.kernel_lobes.models import SemanticState
+            state: SemanticState = pulse.state_ref
+            text: str = state.raw_prompt if hasattr(state, "raw_prompt") else ""
+            
+            check = await self.absolute_evil.aevaluate_chat_text(text)
+            
+            latency_ms: float = (time.perf_counter() - t0) * 1000
+            _log.debug(f"Córtex Prefrontal: Evaluación de seguridad completada en {latency_ms:.2f}ms")
+            
+            if check.blocked:
+                _log.warning(f"Córtex Prefrontal: MAL ABSOLUTO DETECTADO ({getattr(check, 'reason', 'unknown')}). Veto Inmediato.")
+                await self.dispatch_volition(action_id="blocked_by_malabs", is_vetoed=True, ref_pulse_id=pulse.ref_pulse_id)
+                return
             
             _log.info("Córtex Prefrontal: Convergencia de seguridad lograda. Despachando Voluntad...")
-            await self.dispatch_volition(action_id="say_hello", is_vetoed=False)
+            await self.dispatch_volition(action_id="say_hello", is_vetoed=False, ref_pulse_id=pulse.ref_pulse_id)
 
-    async def dispatch_volition(self, action_id: str, is_vetoed: bool = False):
+    async def dispatch_volition(self, action_id: str, is_vetoed: bool = False, ref_pulse_id: str | None = None):
         """Publish the final efferent command to the nervous system."""
         if self.bus:
+            import time
             dispatch = MotorCommandDispatch(
                 action_id=action_id,
                 is_vetoed=is_vetoed,
-                priority=1
+                priority=1,
+                timestamp=time.time(),
+                ref_pulse_id=ref_pulse_id
             )
             await self.bus.publish(dispatch)
-            _log.info(f"Córtex Prefrontal: VOLUNTAD DESPACHADA ({action_id})")
+            _log.info(f"Córtex Prefrontal: VOLUNTAD DESPACHADA ({action_id}) | Vetoed: {is_vetoed} | Ref: {ref_pulse_id}")

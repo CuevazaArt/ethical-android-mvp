@@ -194,13 +194,18 @@ class EthosKernel:
 
     async def _on_motor_dispatch(self, dispatch: MotorCommandDispatch):
         """Callback for when the Prefrontal Cortex issues a command."""
-        # Find the matching future (we need a way to link the dispatch back to the spike)
-        # For this MVP sprint, we assume the latest pending reaction if not linked
-        if self._pending_reactions:
-            pulse_id = list(self._pending_reactions.keys())[0]
+        pulse_id = getattr(dispatch, "ref_pulse_id", None)
+        if pulse_id in self._pending_reactions:
             future = self._pending_reactions[pulse_id]
             if not future.done():
                 future.set_result(dispatch)
+        else:
+            # Fallback for old/unlinked dispatches
+            if self._pending_reactions:
+                pid = list(self._pending_reactions.keys())[0]
+                future = self._pending_reactions[pid]
+                if not future.done():
+                    future.set_result(dispatch)
 
 # Legacy Alias
 EthicalKernel = EthosKernel

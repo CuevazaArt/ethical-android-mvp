@@ -713,3 +713,21 @@ This file is automatically managed by `scripts/swarm_sync.py`.
 - **Message:** Finalización Bloque 16.0: Roadmap actualizado y sistema estabilizado antes del turno vespertino.
 - **Files Modified:**
   - `docs/proposals/PLAN_WORK_DISTRIBUTION_TREE.md`
+
+### 🛠️ Execution | Date: 2026-04-20 17:28:19 | Author: Anonymous Agent
+- **Block:** `15.2`
+- **Message:** Refactor Corpus Callosum: added Variable Throttling, latency telemetry, starvation prevention, and Unit tests for V13.0 scale.
+- **Files Modified:**
+  - `CHANGELOG.md`
+  - `docs/proposals/PLAN_WORK_DISTRIBUTION_TREE.md`
+  - `src/kernel.py`
+  - `src/kernel_lobes/executive_lobe.py`
+  - `src/kernel_lobes/limbic_lobe.py`
+  - `src/kernel_lobes/models.py`
+  - `src/kernel_lobes/perception_lobe.py`
+  - `src/nervous_system/bus_modulator.py`
+  - `src/nervous_system/corpus_callosum.py`
+  - `tests/stress_nervous_system.py`
+  - `tests/test_corpus_callosum.py`
+  - `tests/test_corpus_callosum_benchmark.py`
+  - `tests/test_nervous_system.py`
