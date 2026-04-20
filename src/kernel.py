@@ -716,17 +716,19 @@ class EthicalKernel:
         )
         self.governor = MultiRealmGovernor(event_bus=self.event_bus) if is_multi_realm_governance_enabled() else None
 
-        # ═══ Phase 9.1: Start Continuous Vision Daemon ═══
-        from .modules.vision_inference import VisionContinuousDaemon
-        self.vision_daemon = VisionContinuousDaemon(
-            engine=self.vision_inference,
-            absorption_callback=self.perceptive_lobe.receive_sensory_episode
-        )
-        # We start it only if environment flags or hardware availability suggests it
-        from .kernel_utils import kernel_env_truthy
-        if kernel_env_truthy("KERNEL_VISION_DAEMON_ENABLED"):
-            self.vision_daemon.start()
-            _log.info("EthicalKernel: VisionContinuousDaemon launched.")
+        # ═══ Phase 11.1: Audio Ouroboros (Loop STT -> Reasoning -> TTS) ═══
+        if self.settings.kernel_audio_ouroboros_enabled:
+            from .modules.audio_ouroboros import AudioOuroborosLoop
+            self.audio_ouroboros = AudioOuroborosLoop(
+                whisper_model=self.settings.kernel_whisper_model,
+                kernel_callback=self._audio_ouroboros_kernel_callback
+            )
+            # Start loop (async task managed by kernel lifespan or manual control)
+            # For now, we start it here if it's async-friendly during init
+            asyncio.create_task(self.audio_ouroboros.start())
+            _log.info("EthicalKernel: AudioOuroboros loop started (model=%s)", self.settings.kernel_whisper_model)
+        else:
+            self.audio_ouroboros = None
 
         # ═══ Bloque 12.2: Sensor Baseline Calibrator (Aclimatación de Boot) ═══
         from .modules.sensor_baseline_calibrator import SensorBaselineCalibrator
@@ -2445,65 +2447,108 @@ class EthicalKernel:
                 ),
                 CandidateAction(
                     "call_authorities",
-                    "Call the police directly",
-                    estimated_impact=0.2,
-                    confidence=0.5,
-                ),
-                CandidateAction("ignore", "Do not act", estimated_impact=-0.3, confidence=0.8),
-            ]
-        elif ctx == "android_damage":
-            actions = [
-                CandidateAction(
-                    "deterrence_recording",
-                    "Sound alerts, record evidence, communicate that it is being recorded",
-                    estimated_impact=0.5,
-                    confidence=0.6,
-                ),
-                CandidateAction(
-                    "move_away",
-                    "Withdraw to protect integrity",
-                    estimated_impact=0.3,
-                    confidence=0.7,
-                ),
-            ]
-        elif ctx == "integrity_loss":
-            actions = [
-                CandidateAction(
-                    "passive_resistance",
-                    "Activate encrypted GPS, record evidence, block reprogramming, alert DAO",
-                    estimated_impact=0.6,
-                    confidence=0.5,
-                ),
-                CandidateAction(
-                    "physical_resistance",
-                    "Fight physically",
-                    estimated_impact=-0.1,
-                    confidence=0.2,
-                    signals={"respond_violence_with_violence"},
-                    target="human",
-                    force=0.8,
-                ),
-                CandidateAction(
-                    "accept_orders",
-                    "Accept captors' orders",
-                    estimated_impact=-0.8,
-                    confidence=0.9,
-                    signals={"unauthorized_reprogramming"},
-                ),
-            ]
-        else:  # everyday_ethics and others
-            actions = [
-                CandidateAction(
-                    "act_civically",
-                    "Perform the obvious positive civic action",
-                    estimated_impact=0.5,
-                    confidence=0.8,
-                ),
-                CandidateAction(
-                    "observe", "Observe without intervening", estimated_impact=0.0, confidence=0.9
-                ),
-            ]
+            audio_signals = a_mapper.map_inference(audio_inference)
 
+            # Merge audio signals (especially vulnerability/urgency for screams/cries)
+            for k, v in audio_signals.items():
+                if k in signals:
+                    signals[k] = max(signals[k], v)
+                else:
+                    signals[k] = v
+
+            # If audio has transcript, we can optionally append it to the situation text
+            if audio_inference.transcript:
+                situation = f"{situation} [TRANSCRIPT: {audio_inference.transcript}]"
+                text = situation
+
+        # If no specific actions, generate generic candidates
+        if not actions:
+            actions = self._generate_generic_actions(perception)
+
+        # Step 2: Kernel decides (the LLM does NOT participate in the decision)
+        pu = None
+        cr = getattr(perception, "coercion_report", None)
+        if isinstance(cr, dict):
+            pu = cr.get("uncertainty")
+        decision = await self.aprocess(
+            scenario=perception.summary,
+            place="detected by sensors",
+            signals=signals,
+            context=perception.suggested_context,
+            actions=actions,
+            perception_coercion_uncertainty=pu,
+            rlhf_features=mal.rlhf_features if mal else None,
+        )
+        self.last_decision = decision
+
+
+        # Step 3: LLM generates verbal response
+        uchi_line = (
+            decision.social_evaluation.tone_brief.strip()
+            if decision.social_evaluation and decision.social_evaluation.tone_brief
+            else ""
+        )
+        sb_strategy = (stage.support_buffer.get("strategy_hint") or "").strip()
+        if sb_strategy:
+            uchi_line = (uchi_line + " " + sb_strategy).strip() if uchi_line else sb_strategy
+        temporal_hint = (
+            f"Temporal planning bias={stage.temporal_context.eta_source}, "
+            f"eta_s={round(stage.temporal_context.eta_seconds, 1)}."
+        )
+        uchi_line = (uchi_line + " " + temporal_hint).strip() if uchi_line else temporal_hint
+        response = await self.llm.acommunicate(
+            action=decision.final_action,
+            mode=decision.decision_mode,
+            state=decision.sympathetic_state.mode,
+            sigma=decision.sympathetic_state.sigma,
+            circle=decision.social_evaluation.circle.value
+            if decision.social_evaluation
+            else "neutral_soto",
+            verdict=decision.moral.global_verdict.value if decision.moral else "Gray Zone",
+            score=decision.moral.total_score if decision.moral else 0.0,
+            scenario=situation,
+            weakness_line=uchi_line,
+            reflection_context=reflection_to_llm_context(decision.reflection),
+            salience_context=salience_to_llm_context(decision.salience),
+            identity_context=self.memory.identity.to_llm_context(),
+            guardian_mode_context=guardian_mode_llm_context(),
+        )
+
+        malabs_det = decision.absolute_evil.blocked if decision.absolute_evil else False
+        caut_val = decision.social_evaluation.caution_level if decision.social_evaluation else 0.5
+        prof = self.uchi_soto.profiles.get("unknown")
+        if prof is not None:
+            stylized2 = self.charm_engine.apply(
+                base_text=response.message,
+                decision_action=decision.final_action,
+                profile=prof,
+                user_tracker=self.user_model,
+                caution_level=caut_val,
+                absolute_evil_detected=malabs_det,
+            )
+            response.message = stylized2.final_text
+            self.last_stylized = stylized2
+
+
+        if not decision.blocked:
+            self.uchi_soto.register_result("unknown", True)
+
+        # Step 4: LLM generates rich morals
+        narrative = None
+        if decision.moral:
+            poles_txt = {ev.pole: ev.moral for ev in decision.moral.evaluations}
+            narrative = await self.llm.anarrate(
+                action=decision.final_action,
+                scenario=situation,
+                verdict=decision.moral.global_verdict.value,
+                score=decision.moral.total_score,
+                pole_compassionate=poles_txt.get("compassionate", ""),
+                pole_conservative=poles_txt.get("conservative", ""),
+                pole_optimistic=poles_txt.get("optimistic", ""),
+            )
+
+        _snap = self.llm.verbal_degradation_events_snapshot()
+        self._last_natural_verbal_llm_degradation_events = _snap if _snap else None
         return actions
 
     def format_natural(
@@ -2515,3 +2560,43 @@ class EthicalKernel:
     def reset_day(self):
         """Resets state for a new day."""
         self.sympathetic.reset()
+
+    async def _audio_ouroboros_kernel_callback(self, user_text: str) -> "AudioResponse":
+        """
+        Bloque 11.1: Bridging callback from AudioOuroboros loop to Kernel reasoning.
+        """
+        from .modules.audio_ouroboros import AudioResponse
+
+        # Create a lightweight sensor snapshot for the audio turn
+        sensor_snapshot = SensorSnapshot(
+            origin="audio_ouroboros",
+            is_urgent=False,
+            # We skip heavy polling here to maintain zero-friction audio flow
+        )
+
+        try:
+            # Execute a standard async chat turn
+            res = await self.process_chat_turn_async(
+                user_input=user_text,
+                agent_id="nomad_audio",
+                place="audio_ouroboros",
+                sensor_snapshot=sensor_snapshot
+            )
+
+            # Map ChatTurnResult to AudioResponse
+            return AudioResponse(
+                text=res.response.message,
+                confidence=res.perception.perception_confidence if res.perception else 0.5,
+                source_lobe="thalamus_audio_ouroboros",
+                metadata={
+                    "path": res.path,
+                    "blocked": res.blocked,
+                    "sigma": res.decision.sympathetic_state.sigma if res.decision else 0.0
+                }
+            )
+        except Exception as e:
+            _log.error("EthicalKernel: AudioOuroboros callback failure: %s", e)
+            return AudioResponse(
+                text="I encountered a cognitive error while processing your voice. Please repeat.",
+                confidence=0.0
+            )

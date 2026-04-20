@@ -277,6 +277,16 @@ class KernelSettings(BaseModel):
         description="KERNEL_METRICS — enable Prometheus metrics export.",
     )
 
+    # ════ AUDIO OUROBOROS ════
+    kernel_audio_ouroboros_enabled: bool = Field(
+        default=False,
+        description="KERNEL_AUDIO_OUROBOROS_ENABLED — enable STT->Reasoning->TTS loop.",
+    )
+    kernel_whisper_model: str = Field(
+        default="base",
+        description="KERNEL_WHISPER_MODEL — Whisper model size.",
+    )
+
     @classmethod
     def from_env(cls) -> KernelSettings:
         """Load settings from environment variables."""
@@ -338,6 +348,9 @@ class KernelSettings(BaseModel):
             ethos_runtime_profile=_env_optional_str("ETHOS_RUNTIME_PROFILE"),
             # Metrics
             kernel_metrics=_env_truthy("KERNEL_METRICS", default_true=False),
+            # Audio Ouroboros
+            kernel_audio_ouroboros_enabled=_env_truthy("KERNEL_AUDIO_OUROBOROS_ENABLED", default_true=False),
+            kernel_whisper_model=_env_str("KERNEL_WHISPER_MODEL", "base"),
         )
 
     @field_validator("kernel_semantic_chat_sim_allow_threshold")
@@ -415,6 +428,10 @@ Optional Features:
 
 Telemetry:
   Metrics Enabled: {self.kernel_metrics}
+
+Audio Ouroboros:
+  Enabled: {self.kernel_audio_ouroboros_enabled}
+  Whisper Model: {self.kernel_whisper_model}
 ════════════════════════════════════════
 """
 

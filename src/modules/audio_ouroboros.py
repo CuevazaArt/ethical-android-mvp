@@ -244,11 +244,17 @@ class AudioOuroborosLoop:
     - TTS audio → PWA speaker queue
     """
 
-    def __init__(self, sample_rate: int = 16000, whisper_model: str = "base"):
+    def __init__(
+        self,
+        sample_rate: int = 16000,
+        whisper_model: str = "base",
+        kernel_callback: Optional[Callable[[str], Coroutine[Any, Any, AudioResponse]]] = None
+    ):
         """Initialize Ouroboros loop."""
         self.sample_rate = sample_rate
         self.whisper = WhisperAdapter(model_size=whisper_model)
         self.tts = TextToSpeechAdapter(backend="gtts")
+        self.kernel_callback = kernel_callback
 
         # Queues for I/O
         self.audio_input_queue: queue.Queue[np.ndarray] = queue.Queue(maxsize=50)
@@ -293,9 +299,13 @@ class AudioOuroborosLoop:
                 self.transcriptions_processed += 1
                 logger.info(f"Transcribed: {transcription.text[:100]} (conf={transcription.confidence:.2f})")
 
-                # 3. TODO: Trigger ExecutiveLobe with transcribed intent
-                # For now, generate a simple response
-                kernel_response = await self._generate_kernel_response(transcription)
+                # 3. Trigger Ethical Kernel with transcribed intent
+                if self.kernel_callback:
+                    logger.debug("AudioOuroboros: Invoking kernel callback for: %s", transcription.text)
+                    kernel_response = await self.kernel_callback(transcription.text)
+                else:
+                    # Fallback if no kernel is wired
+                    kernel_response = await self._generate_kernel_response(transcription)
 
                 # 4. Text-to-speech
                 audio_bytes, duration = await self.tts.synthesize(kernel_response.text)
