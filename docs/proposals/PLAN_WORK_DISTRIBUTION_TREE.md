@@ -35,8 +35,8 @@ Aquí es donde los agentes de ejecución (LLMs en IDEs) reclaman sus tareas.
 **Bloque B.2: Tipado Estricto Paralelo [DONE]**
 - Tarea B.2.1: Corregir advertencias de MyPy (o equivalentes) en los adaptadores de audio y test suites aisladas. (Completado: Antigravity)
 
-**Bloque B.3: Documentación y Refactorización Pasiva [BUFFER]**
-- Tarea B.3.1: Actualizar docstrings en `kernel_utils.py` y diagramas de Mermaid si las interfaces han cambiado sin documentarse.
+**Bloque B.3: Documentación y Refactorización Pasiva [DONE]**
+- Tarea B.3.1: Actualizar docstrings en `kernel_utils.py` y diagramas de Mermaid si las interfaces han cambiado sin documentarse. (Completado: Antigravity)
 
 ---
 

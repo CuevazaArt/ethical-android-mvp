@@ -6,11 +6,12 @@ This document tracks the visual evolution of the Tri-Lobe core. **AI Agents MUST
 
 ```mermaid
 graph TD
-    User([User Input]) --> Thalamus[Thalamus Node]
+    User([User Chat Input]) --> Thalamus[Thalamus Node]
+    SD[Sensory Daemons (Vision/Audio)] --> PL[Perception Lobe]
     
     subgraph "Ethical Tri-Lobe Core"
-        Thalamus --> PL[Perception Lobe]
-        PL -- "Signals" --> LL[Limbic Lobe]
+        Thalamus -- "Context" --> PL
+        PL -- "Signals (EP)" --> LL[Limbic Lobe]
         LL -- "Tension" --> CL[Cerebellum Lobe]
         ML[(Memory Lobe)] -- "Temporal Priors" --> CL
         CL -- "Hypothesis weights" --> EL[Executive Lobe]
