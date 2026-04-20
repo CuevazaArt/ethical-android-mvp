@@ -387,3 +387,9 @@ This file is automatically managed by `scripts/swarm_sync.py`.
 - **Message:** FIX: Implemented missing broadcast_to_dashboards method in NomadBridge to resolve inner loop AttributeErrors.
 - **Files Modified:**
   - `src/modules/nomad_bridge.py`
+
+### 🛠️ Execution | Date: 2026-04-19 20:08:36 | Author: Antigravity
+- **Block:** `S.12`
+- **Message:** SECURITY: Resealed Secure Boot manifest (MANIFEST.json) to reflect hardening updates in semantic, multimodal, and bridge modules.
+- **Files Modified:**
+  - `src/MANIFEST.json`
