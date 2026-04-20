@@ -74,7 +74,9 @@ class PerceptiveLobe:
 
         # Tarea 17.3: ASYNCHRONOUS SURVIVAL MODE.
         # Desvinculamos el procesamiento para no bloquear el dispatcher del bus.
-        asyncio.create_task(self._deliberate_observation_async(text, spike.pulse_id))
+        # Track the root stimulus if possible for kernel convergence
+        trace_id = spike.ref_pulse_id or spike.pulse_id
+        asyncio.create_task(self._deliberate_observation_async(text, trace_id))
 
     async def _deliberate_observation_async(self, text: str, ref_id: str):
         """Asynchronous deliberation with self-contained survival logic."""

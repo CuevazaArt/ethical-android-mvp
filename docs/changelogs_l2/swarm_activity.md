@@ -769,3 +769,11 @@ This file is automatically managed by `scripts/swarm_sync.py`.
   - `src/nervous_system/bus_modulator.py`
   - `tests/stress_nervous_system.py`
   - `tests/test_corpus_callosum.py`
+
+### 🛠️ Execution | Date: 2026-04-20 17:32:45 | Author: Anonymous Agent
+- **Block:** `17.0`
+- **Message:** Cierre Bloque 17.0: Reducción del Monolito Perceptual. Fijado fallback asíncrono y dependencias en test_perceptive_lobe.py, validación completa.
+- **Files Modified:**
+  - `docs/proposals/PLAN_WORK_DISTRIBUTION_TREE.md`
+  - `src/kernel_lobes/perception_lobe.py`
+  - `tests/test_perceptive_lobe.py`
