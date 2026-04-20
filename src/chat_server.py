@@ -242,12 +242,31 @@ async def _lifespan(app: FastAPI):
 
     configure_logging()
     init_metrics()
+    
+    # Phase 9: Nomad hardware loop consumers (Hardened Embodiment)
+    from .modules.vision_adapter import start_nomad_vision_consumer_from_env, stop_nomad_vision_consumer_async
+    from .modules.vitality import start_nomad_telemetry_consumer_from_env, stop_nomad_telemetry_consumer_async
+    from .modules.audio_adapter import start_nomad_audio_consumer_from_env, stop_nomad_audio_consumer_async, get_shared_audio_capture
+
+    start_nomad_vision_consumer_from_env()
+    start_nomad_telemetry_consumer_from_env()
+    
+    capture = get_shared_audio_capture()
+    if capture:
+        start_nomad_audio_consumer_from_env(capture.ring_buffer)
+
     # Phase 12.1: Global persistent client for Nomad hardware loop
     aclient = httpx.AsyncClient(timeout=30.0)
     app.state.aclient = aclient
+
     try:
         yield
     finally:
+        # Phase 9: Graceful shutdown of consumers
+        await stop_nomad_vision_consumer_async()
+        await stop_nomad_telemetry_consumer_async()
+        await stop_nomad_audio_consumer_async()
+
         from .real_time_bridge import shutdown_chat_threadpool
 
         await aclient.aclose()
@@ -269,6 +288,10 @@ app = FastAPI(
     openapi_url="/openapi.json" if _api_docs_enabled() else None,
     lifespan=_lifespan,
 )
+
+# Mounting Nomad Bridge (Fase 8+ / Módulo S)
+from .modules.nomad_bridge import get_nomad_bridge
+app.mount("/nomad", get_nomad_bridge().app)
 
 app.add_middleware(RequestContextMiddleware)
 @app.get("/nomad/migration")

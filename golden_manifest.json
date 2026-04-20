@@ -1,0 +1,11 @@
+{
+  "format": "v1_hmac",
+  "signature": "3eaf882a959b2abebbf93506d0ae4a5c2d96c66911f15367a01d7ec29db4a182",
+  "files": {
+    "src/kernel.py": "6169be9b36dcad0f0928b69c2e8635b1b9664b1f0932787dfffc956e5e0bb405",
+    "src/modules/absolute_evil.py": "d11cd074722cbb9a1c622aa2510b8e43e93c754e199093c746490b2732f8387e",
+    "src/modules/bayesian_engine.py": "0ecb25301a786045b4cafac65ad9c0c802b58ba3b3caf61a88b0e35609191237",
+    "src/modules/safety_interlock.py": "04ef55110e8c9c198ea503e814b0361727533237071dec90b020ea4eb1d97f5e",
+    "src/modules/buffer.py": "987b944e8cbdbd2370282651b00609114942f6a395f59410c91ac1354f212619"
+  }
+}

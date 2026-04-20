@@ -16,7 +16,22 @@ All notable changes to this project are summarized here. For narrative context a
     *   **Multimodal Trust Resilience**: Reparado el `NameError` en logs de latencia. Envuelto el evaluador de confianza multimodal en un bloque `try/except` global para asegurar la continuidad operativa ante sensores ruidosos o corruptos.
     *   **Numerical Stability**: Sincronizadas las guardas Anti-NaN en `weighted_ethics_scorer.py` y `kernel_formatters.py`, eliminando la propagación de `NaN` en los informes de auditoría final.
 
+<<<<<<< HEAD
 ### Antigravity-Team Updates (2026-04-19 - Session 10)
+=======
+### Cursor Ultra (cursorultra) Team Updates (2026-04-18)
+- **Pytest:** `pythonpath = ["."]` under `[tool.pytest.ini_options]` so `src.*` imports resolve consistently.
+- **`PreloadedBuffer`:** added `get_snapshot()` for read-only L0 / support-buffer telemetry (chat and perception paths).
+- **`narrative_storage`:** repaired `with conn:` indentation around identity digest upserts (merge-regression syntax fix).
+- **Module S.1 (Nomad vision path):** gated background `NomadVisionConsumer` behind `KERNEL_NOMAD_VISION_CONSUMER`; started from `chat_server` lifespan and stopped on shutdown so LAN JPEG frames drain into `VisionAdapter` when enabled.
+- **Module S.1 (fusion):** `merge_nomad_vision_into_snapshot` blends the consumer’s latest CNN output into `SensorSnapshot` (`vision_emergency`, `image_metadata.nomad`) before chat perception merge and decision; `PerceptionStageResult` carries the enriched snapshot for `aprocess`.
+- **Architectural Hardening (Pulse):** Finalized core kernel stabilization following the April 2026 rebase.
+  - **Módulo 10 Integration**: Restored Edge MalAbs (Level 1) lexical gate and aligned abandonment logic with vertical test invariants (pass 84/84).
+  - **Persistence Fix**: Resolved `AttributeError` and timestamp mismatches in `save_arc` (narrative_storage).
+  - **Kernel Orchestration**: Corrected NameErrors in sensor evaluating and situational perception stages.
+
+## Documentation — Issue #1 (Bayesian naming honesty) — April 2026
+>>>>>>> master-cursorultra
 
 - [x] **EXPERIENCE-DRIVEN PRIOR ADJUSTMENT (ADR 0005 / ISSUE #1 B)**:
     *   **Temporal Horizon Nudge**: Activado el lóbulo `temporal_horizon_prior` dentro del `CerebellumLobe`. El kernel ahora realiza ajustes de priors "basados en la experiencia" analizando tendencias de 3 semanas y estabilidad de largo plazo desde la `NarrativeMemory`.

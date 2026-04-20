@@ -93,3 +93,6 @@ class KernelSnapshotV1:
 
     # Block 4.3 — Migratory Body
     migratory_body: dict[str, Any] = field(default_factory=dict)
+
+    # Phase 9 — Situated Veto Persistence
+    absolute_evil_situated_veto_time: float = 0.0
