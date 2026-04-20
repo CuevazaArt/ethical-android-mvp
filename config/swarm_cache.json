@@ -19,13 +19,13 @@
   },
   "peer_001": {
     "node_id": "peer_001",
-    "last_seen": 1776704339.9912386,
+    "last_seen": 1776728557.9856858,
     "reputation": 0.95,
-    "confirmed_witnesses": 15
+    "confirmed_witnesses": 20
   },
   "peer_002": {
     "node_id": "peer_002",
-    "last_seen": 1776704339.9952557,
+    "last_seen": 1776728557.9971352,
     "reputation": 0.0,
     "confirmed_witnesses": 0
   },
@@ -37,21 +37,21 @@
   },
   "peer_003": {
     "node_id": "peer_003",
-    "last_seen": 1776704340.0095913,
+    "last_seen": 1776728558.028024,
     "reputation": 0.7000000000000001,
-    "confirmed_witnesses": 30
+    "confirmed_witnesses": 40
   },
   "persistent_peer": {
     "node_id": "persistent_peer",
-    "last_seen": 1776704340.0192325,
+    "last_seen": 1776728558.0639348,
     "reputation": 1.0,
-    "confirmed_witnesses": 3
+    "confirmed_witnesses": 4
   },
   "witness_node_001": {
     "node_id": "witness_node_001",
-    "last_seen": 1776704340.0272796,
+    "last_seen": 1776728558.0903018,
     "reputation": 0.85,
-    "confirmed_witnesses": 24
+    "confirmed_witnesses": 32
   },
   "peer_scenario_001": {
     "node_id": "peer_scenario_001",

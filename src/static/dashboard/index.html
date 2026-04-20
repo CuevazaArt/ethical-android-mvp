@@ -3,15 +3,29 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Ethos Kernel | Clinical Dashboard</title>
+    <title>Ethos Kernel | Neural Dashboard</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&family=IBM+Plex+Mono:wght@400;600&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="dashboard.css">
+    <style>
+        /* Pulse Animation for Status */
+        .badge.online {
+            animation: pulse-online 2s infinite;
+            background: rgba(74, 222, 128, 0.1);
+            color: var(--ok);
+            border-color: var(--ok);
+        }
+        @keyframes pulse-online {
+            0% { box-shadow: 0 0 0 0 rgba(74, 222, 128, 0.4); }
+            70% { box-shadow: 0 0 0 6px rgba(74, 222, 128, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(74, 222, 128, 0); }
+        }
+    </style>
 </head>
 <body>
     <header class="topbar">
-        <h1>ETHOS KERNEL CLINICAL TELEMETRY</h1>
+        <h1>V13.1 NERVOUS SYSTEM MONITOR</h1>
         <div class="topbar-meta">
             <span id="conn-status" class="badge">OFFLINE</span>
             <span id="turn-index">TURN #0</span>
@@ -21,48 +35,49 @@
 
     <main class="layout">
         <section class="card">
-            <h2>Float Feed</h2>
+            <h2>Sensory Float Feed</h2>
             <table class="kv-table" id="float-table">
                 <thead>
                     <tr><th>Signal</th><th>Value</th></tr>
                 </thead>
                 <tbody>
-                    <tr><td>tension</td><td id="tension-val">0.000</td></tr>
-                    <tr><td>trust</td><td id="trust-val">0.000</td></tr>
-                    <tr><td>audio_rms</td><td id="audio-rms-val">0.000</td></tr>
-                    <tr><td>battery</td><td id="bat-val">--</td></tr>
-                    <tr><td>temp_c</td><td id="temp-val">--</td></tr>
-                    <tr><td>kinetics</td><td id="kin-val">0.000</td></tr>
+                    <tr><td>Somatic Tension</td><td id="tension-val">0.000</td></tr>
+                    <tr><td>Epistemic Trust</td><td id="trust-val">0.000</td></tr>
+                    <tr><td>Audio Amplitude</td><td id="audio-rms-val">0.000</td></tr>
+                    <tr><td>Battery Depth</td><td id="bat-val">--</td></tr>
+                    <tr><td>Core Thermal (°C)</td><td id="temp-val">--</td></tr>
+                    <tr><td>Limbic Kinetics</td><td id="kin-val">0.000</td></tr>
                 </tbody>
             </table>
         </section>
 
         <section class="card">
-            <h2>Boolean Feed</h2>
+            <h2>Nervous System Flags</h2>
             <table class="kv-table">
                 <thead>
                     <tr><th>Flag</th><th>State</th></tr>
                 </thead>
                 <tbody>
-                    <tr><td>ws_connected</td><td id="flag-connected">false</td></tr>
-                    <tr><td>epistemic_dissonance</td><td id="flag-dissonance">false</td></tr>
-                    <tr><td>heartbeat</td><td id="flag-heartbeat">false</td></tr>
+                    <tr><td>WebSocket Bus</td><td id="flag-connected">false</td></tr>
+                    <tr><td>Ethical Dissonance</td><td id="flag-dissonance">false</td></tr>
+                    <tr><td>Nervous Heartbeat</td><td id="flag-heartbeat">false</td></tr>
+                    <tr><td>Nomad Bridge Sync</td><td id="flag-bridge-sync" class="bool-false">false</td></tr>
                 </tbody>
             </table>
         </section>
 
         <section class="card vision-card">
-            <h2>Vision Feed</h2>
+            <h2>Vision Nexus</h2>
             <canvas id="vision-canvas"></canvas>
-            <div class="mono" id="thought-stream">Waiting for sensor nexus handshake...</div>
+            <div class="mono" id="thought-stream">Searching for sensory ingress...</div>
         </section>
 
         <section class="card log-card">
-            <h2>Event Log</h2>
+            <h2>Cognitive Event Log</h2>
             <div id="event-log" class="event-log"></div>
             <div class="chat-input-area">
-                <input type="text" id="chat-input" placeholder="operator command" autocomplete="off">
-                <button id="chat-send">send</button>
+                <input type="text" id="chat-input" placeholder="Neural Command Entry..." autocomplete="off">
+                <button id="chat-send">EXECUTE</button>
             </div>
         </section>
     </main>

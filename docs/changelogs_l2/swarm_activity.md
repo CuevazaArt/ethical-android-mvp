@@ -842,3 +842,13 @@ This file is automatically managed by `scripts/swarm_sync.py`.
   - `src/chat_server.py`
   - `src/modules/llm_backends.py`
   - `test_persistence.db`
+
+### 🛠️ Execution | Date: 2026-04-20 17:57:54 | Author: Antigravity
+- **Block:** `V.13.1`
+- **Message:** Upgrade: Dashboard L0 con Neural Dark Theme y tipografía JetBrains Mono para monitoreo V13.1.
+- **Files Modified:**
+  - `audit_trail.db`
+  - `config/swarm_cache.json`
+  - `src/chat_server.py`
+  - `src/static/dashboard/dashboard.css`
+  - `src/static/dashboard/index.html`

@@ -132,6 +132,7 @@ import math
 import os
 import threading
 import time
+import httpx
 from collections.abc import Mapping
 from contextlib import asynccontextmanager
 from dataclasses import asdict
