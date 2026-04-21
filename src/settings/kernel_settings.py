@@ -286,6 +286,10 @@ class KernelSettings(BaseModel):
         default="base",
         description="KERNEL_WHISPER_MODEL — Whisper model size.",
     )
+    kernel_nomad_mode: bool = Field(
+        default=False,
+        description="KERNEL_NOMAD_MODE — enable nomadic hardware mode (forces local Ollama).",
+    )
 
     @classmethod
     def from_env(cls) -> KernelSettings:
@@ -351,6 +355,7 @@ class KernelSettings(BaseModel):
             # Audio Ouroboros
             kernel_audio_ouroboros_enabled=_env_truthy("KERNEL_AUDIO_OUROBOROS_ENABLED", default_true=False),
             kernel_whisper_model=_env_str("KERNEL_WHISPER_MODEL", "base"),
+            kernel_nomad_mode=_env_truthy("KERNEL_NOMAD_MODE", default_true=False),
         )
 
     @field_validator("kernel_semantic_chat_sim_allow_threshold")

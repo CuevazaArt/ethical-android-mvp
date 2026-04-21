@@ -855,3 +855,10 @@ This file is automatically managed by `scripts/swarm_sync.py`.
 - **Message:** Transition default Ollama model to llama3.2:1b (1.5B class) for limited nomadic hardware support.
 - **Files Modified:**
   - `src/modules/llm_layer.py`
+
+### 🛠️ Execution | Date: 2026-04-21 10:16:56 | Author: Anonymous Agent
+- **Block:** `20.1`
+- **Message:** Enforced Zero-API policy (Task 20.1): Forces Ollama backend when KERNEL_NOMAD_MODE=1. Updated settings and LLM initialization.
+- **Files Modified:**
+  - `src/modules/llm_layer.py`
+  - `src/settings/kernel_settings.py`

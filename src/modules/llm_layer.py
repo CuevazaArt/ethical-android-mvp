@@ -362,6 +362,12 @@ class LLMModule:
             return
 
         self.mode = _normalize_llm_mode((mode or "auto").strip())
+        self.nomad_mode = os.environ.get("KERNEL_NOMAD_MODE", "").lower() in ("1", "true", "yes", "on")
+
+        if self.nomad_mode:
+            if self.mode != "ollama":
+                logger.warning("NOMAD_MODE ACTIVE: Forcing Zero-API Fluency (ollama). Ignoring mode: %s", self.mode)
+                self.mode = "ollama"
 
         if self.mode == "ollama":
             if not HAS_HTTPX:
