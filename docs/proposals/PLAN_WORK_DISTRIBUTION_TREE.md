@@ -19,6 +19,7 @@ Aquí es donde los agentes de ejecución (LLMs en IDEs) reclaman sus tareas.
 - **Phase 9 (Hardened Embodiment)**: INTEGRADO. Handshake seguro y telemetría en tiempo real desde Nomad Bridge operativa.
 - **V13.0 (Distributed Brain Initialization)**: COMPLETADO. Monolito destruido, bus asíncrono CorpusCallosum verificado.
 - **V13.1 (Aesthetic & Legacy Stabilization)**: COMPLETADO. Enriquecimiento de terminal (TColors) y restauración de puentes de compatibilidad legado.
+- **V14.0 (Nomadic Identity & Local Matrix)**: INTEGRADO. Zero-API fluency y handshake de identidad [SYNC_IDENTITY] operacional.
 
 ---
 
@@ -46,6 +47,11 @@ Aquí es donde los agentes de ejecución (LLMs en IDEs) reclaman sus tareas.
 **Bloque 22.0: Nomad Field Test (Texto en Terreno) [PENDING]**
 - Tarea 22.1: **Puente Web Chat Robustecido:** Refinar la PWA de `NomadBridge` (foco en modo texto/chat clásico). Eliminar o enmascarar componentes irrelevantes de UI pesadas para priorizar input/output liviano de texto.
 - Tarea 22.2: **Inyección de Identidad al Front:** [COMPLETED] El servidor backend asíncrono debe enviar un paquete `[SYNC_IDENTITY]` al WebSocket conectarse al origen, para que la UI de chat se alinee al estado actual e historia de la entidad.
+
+**Bloque 23.0: Episodic Pruning & Limbic Sleep [COMPLETED]**
+- Tarea 23.1: **Mecanismo de Poda de Memoria:** [COMPLETED] Implementar proceso de "Sueño Límbico" para archivar y podar episodios de `BiographicMemory` que excedan el límite de almacenamiento local, evitando la degradación de performance en hardware de 1.5B.
+- Tarea 23.2: **Consolidación de Identidad Dinámica:** [COMPLETED] Permitir que los rasgos de personalidad en el `IdentityManifest` se calibren ligeramente basados en el feedback acumulado en la memoria biográfica.
+
 
 ---
 
