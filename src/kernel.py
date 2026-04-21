@@ -55,6 +55,7 @@ from .modules.augenesis import AugenesisEngine
 from .modules.bayesian_engine import BayesianEngine, BayesianResult
 from .modules.biographic_pruning import BiographicPruner
 from .modules.buffer import PreloadedBuffer
+from .modules.cerebellum_biography import CerebellumBiographyMatrix
 from .modules.charm_engine import CharmEngine
 from .modules.dao_orchestrator import DAOOrchestrator
 from .modules.turn_prefetcher import TurnPrefetcher
@@ -515,6 +516,7 @@ class EthicalKernel:
             immortality=self.immortality,
             amnesia=self.amnesia
         )
+        self.cerebellum_biography = CerebellumBiographyMatrix(memory=self.memory)
 
         # ═══ Somatic Awareness (Cerebellum Node) ═══
         self.hardware_interrupt_event = threading.Event()
@@ -560,12 +562,27 @@ class EthicalKernel:
             self.event_bus.subscribe(EVENT_GOVERNANCE_THRESHOLD_UPDATED, self._on_governance_threshold_updated)
 
     def _on_governance_threshold_updated(self, payload: dict[str, Any]) -> None:
-        """Handle governance threshold dynamic updates applied per-realm configurations."""
+        """Apply hot-reloaded MalAbs cosine thresholds from governance events (best-effort)."""
         theta_a = payload.get("theta_allow")
         theta_b = payload.get("theta_block")
-        if theta_a is not None and theta_b is not None:
+        if theta_a is None or theta_b is None:
+            return
+        try:
+            a = float(theta_a)
+            b = float(theta_b)
+        except (TypeError, ValueError):
+            _log.warning(
+                "governance threshold payload not numeric: theta_allow=%r theta_block=%r",
+                theta_a,
+                theta_b,
+            )
+            return
+        try:
             import src.modules.semantic_chat_gate as sem_gate
-            sem_gate.apply_hot_reloaded_thresholds(float(theta_a), float(theta_b))
+
+            sem_gate.apply_hot_reloaded_thresholds(a, b)
+        except Exception:
+            _log.exception("apply_hot_reloaded_thresholds failed from governance event")
 
     def abandon_chat_turn(self, turn_id: int) -> None:
         """Mark ``turn_id`` as abandoned so :meth:`process_chat_turn` skips STM / post-turn effects."""
@@ -697,7 +714,7 @@ class EthicalKernel:
             )
         return actions
 
-    def _malabs_text_backend(self):
+    def _malabs_text_backend(self) -> Any:
         """Optional LLM backend for MalAbs semantic tier (embeddings + arbiter; see semantic_chat_gate)."""
         return getattr(self.llm, "llm_backend", None) or getattr(self.llm, "_text_backend", None)
 
@@ -767,6 +784,11 @@ class EthicalKernel:
             agent_id, signals, message_content, sensor_snapshot, multimodal_assessment
         )
 
+        try:
+            signals = self.cerebellum_biography.augment_signals(dict(signals))
+        except Exception:
+            signals = dict(signals)
+
         # ═══ STAGE 2: ABSOLUTE EVIL & MOTIVATION ═══
         clean_actions, ae_dec = self._run_absolute_evil_stage(
             scenario, place, actions, state, social_eval, locus_eval, context, t0, signals
@@ -817,15 +839,22 @@ class EthicalKernel:
         
         # ════ D1: BIOGRAPHIC REGISTRATION ════
         if register_episode:
-             impact = d.bayesian_result.expected_impact if d.bayesian_result else 0.0
-             self.memory_lobe.register_biographic_impact(impact)
-             
-             # ════ D1: FORGIVENESS EXPERIENCE ════
-             self.forgiveness.register_experience(
-                 episode_id=episode_id or "unknown",
-                 score=moral.total_score if moral else 0.5,
-                 context=context or "neutral"
-             )
+            impact = d.bayesian_result.expected_impact if d.bayesian_result else 0.0
+            self.memory_lobe.register_biographic_impact(impact)
+
+            # ════ D1: FORGIVENESS EXPERIENCE ════
+            self.forgiveness.register_experience(
+                episode_id=episode_id or "unknown",
+                score=moral.total_score if moral else 0.5,
+                context=context or "neutral",
+            )
+            try:
+                self.cerebellum_biography.after_decision(
+                    expected_impact=float(impact),
+                    register_episode=True,
+                )
+            except Exception:
+                pass
 
         # ════ D1: SOLIDARITY ALERT ════
         risk_active = float(signals.get("risk", 0.0))
@@ -841,6 +870,14 @@ class EthicalKernel:
         return d
 
 
+    def _cerebellum_somatic_overlay(self) -> dict[str, Any]:
+        """Refresh narrative identity into the biography shard, then limbic overlay keys."""
+        try:
+            self.cerebellum_biography.refresh_from_memory()
+            return self.cerebellum_biography.somatic_state_overlay()
+        except Exception:
+            return {}
+
     def _run_social_and_locus_stage(
         self, agent_id: str, signals: dict, message_content: str,
         sensor_snapshot: SensorSnapshot | None, multimodal_assessment: MultimodalAssessment | None
@@ -850,7 +887,10 @@ class EthicalKernel:
             turn_index=self.subjective_clock.turn_index,
             sensor_snapshot=sensor_snapshot, 
             multimodal_assessment=multimodal_assessment,
-            somatic_state=self.cerebellum_node.get_somatic_snapshot()
+            somatic_state={
+                **self.cerebellum_node.get_somatic_snapshot(),
+                **self._cerebellum_somatic_overlay(),
+            },
         )
         return res.social_evaluation, res.internal_state, res.locus_evaluation
 
@@ -1337,7 +1377,16 @@ class EthicalKernel:
 
         if decision.blocked:
             self._snapshot_feedback_anchor("kernel_block")
-            res = ChatTurnResult(response=VerbalResponse("Blocked.", "firm"), path="kernel_block", blocked=True)
+            res = ChatTurnResult(
+                response=VerbalResponse(
+                    message="Blocked.",
+                    tone="firm",
+                    hax_mode="Still posture.",
+                    inner_voice="Kernel decision blocked all candidates.",
+                ),
+                path="kernel_block",
+                blocked=True,
+            )
             yield {"event_type": "turn_finished", "payload": {"result": res}}
             return
 
