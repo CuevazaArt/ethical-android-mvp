@@ -104,7 +104,7 @@ class ChatServerSettings(BaseModel):
     model_config = ConfigDict(extra="ignore")
 
     chat_host: str = Field(
-        default="127.0.0.1",
+        default="0.0.0.0",
         description="CHAT_HOST — WebSocket / ASGI bind address.",
     )
     chat_port: int = Field(
@@ -169,7 +169,7 @@ class ChatServerSettings(BaseModel):
     @classmethod
     def from_env(cls) -> ChatServerSettings:
         return cls(
-            chat_host=_env_str("CHAT_HOST", "127.0.0.1"),
+            chat_host=_env_str("CHAT_HOST", "0.0.0.0"),
             chat_port=_env_int("CHAT_PORT", 8765),
             kernel_api_docs=_env_truthy("KERNEL_API_DOCS", default_true=False),
             kernel_variability=_env_truthy("KERNEL_VARIABILITY", default_true=True),

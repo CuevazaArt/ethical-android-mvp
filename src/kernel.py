@@ -35,11 +35,12 @@ class EthosKernel:
     The Distributed Android Brain (Ethos V13.0).
     Orchestrates the 5 Mnemonic Organs via the Corpus Callosum event bus.
     """
-    def __init__(self, mode: str = "office_2"):
+    def __init__(self, mode: str = "office_2", **kwargs):
         self.bus = CorpusCallosum()
         self.modulator = BusModulator(self.bus)
         self.bus.modulator = self.modulator
         self.mode = mode
+        self._kwargs = kwargs
 
         # Mnemónica de Reacciones (Boy Scout Refactor 19.3)
         self.reactions = ReactionTable()

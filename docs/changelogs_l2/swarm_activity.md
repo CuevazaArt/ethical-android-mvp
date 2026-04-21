@@ -852,3 +852,12 @@ This file is automatically managed by `scripts/swarm_sync.py`.
   - `src/chat_server.py`
   - `src/static/dashboard/dashboard.css`
   - `src/static/dashboard/index.html`
+
+### 🛠️ Execution | Date: 2026-04-20 18:05:17 | Author: Anonymous Agent
+- **Block:** `B.4`
+- **Message:** Habilitada accesibilidad LAN (0.0.0.0) para el dashboard L0 y corrección de binding
+- **Files Modified:**
+  - `docs/proposals/PLAN_WORK_DISTRIBUTION_TREE.md`
+  - `src/chat_settings.py`
+  - `src/kernel.py`
+  - `src/settings/kernel_settings.py`

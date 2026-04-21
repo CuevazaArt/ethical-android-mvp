@@ -86,7 +86,7 @@ class KernelSettings(BaseModel):
 
     # ════ CHAT SERVER ════
     chat_host: str = Field(
-        default="127.0.0.1",
+        default="0.0.0.0",
         description="CHAT_HOST — WebSocket/ASGI bind address.",
     )
     chat_port: int = Field(
@@ -292,7 +292,7 @@ class KernelSettings(BaseModel):
         """Load settings from environment variables."""
         return cls(
             # Chat server
-            chat_host=_env_str("CHAT_HOST", "127.0.0.1"),
+            chat_host=_env_str("CHAT_HOST", "0.0.0.0"),
             chat_port=_env_int("CHAT_PORT", 8765),
             # Kernel core
             kernel_mode=_env_str("KERNEL_MODE", "default"),

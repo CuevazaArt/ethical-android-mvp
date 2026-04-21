@@ -68,6 +68,9 @@ Aquí es donde los agentes de ejecución (LLMs en IDEs) reclaman sus tareas.
 
 **Bloque B.3: Documentación y Refactorización Pasiva [DONE]**
 - Tarea B.3.1: Actualizar docstrings en `kernel_utils.py` y diagramas de Mermaid si las interfaces han cambiado sin documentarse. (Completado: Antigravity)
+|
+**Bloque B.4: Mantenimiento y Accesibilidad de Red [DONE]**
+- Tarea B.4.1: Habilitar binding 0.0.0.0 por defecto para permitir acceso LAN desde dispositivos móviles. (Completado: Antigravity)
 
 ---
 
