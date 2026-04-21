@@ -892,3 +892,12 @@ This file is automatically managed by `scripts/swarm_sync.py`.
 - **Files Modified:**
   - `docs/proposals/PLAN_WORK_DISTRIBUTION_TREE.md`
   - `src/modules/biographic_memory.py`
+
+### 🛠️ Execution | Date: 2026-04-21 12:10:39 | Author: Anonymous Agent
+- **Block:** `22.0`
+- **Message:** Nomad Field Test: Refined PWA UI for classic text chat mode, hiding sensory orb and enabling text inputs (Task 22.1).
+- **Files Modified:**
+  - `docs/proposals/PLAN_WORK_DISTRIBUTION_TREE.md`
+  - `src/clients/nomad_pwa/app.js`
+  - `src/clients/nomad_pwa/index.html`
+  - `src/clients/nomad_pwa/style.css`

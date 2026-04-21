@@ -36,8 +36,8 @@
             </div>
         </header>
 
-        <!-- Center Orb / Emotional Anchor -->
-        <section class="orb-container">
+        <!-- Center Orb / Emotional Anchor (Masked for Nomad Chat Mode) -->
+        <section class="orb-container" style="display: none;">
             <div class="affect-orb" id="affect-orb">
                 <!-- Hidden video element for canvas capture (Cursor's Domain F.2) -->
                 <video id="hidden-video" autoplay playsinline muted></video>
@@ -45,9 +45,15 @@
             </div>
         </section>
 
-        <!-- Dialogue / Sentiment Output -->
-        <section class="charm-output glass-panel">
-            <p id="charm-transcript" class="transcript placeholder">Esperando inicialización sensorial...</p>
+        <!-- Dialogue / Sentiment Output (Chat Mode) -->
+        <section class="chat-container glass-panel">
+            <div id="chat-history" class="chat-history">
+                <p id="charm-transcript" class="transcript placeholder">Esperando inicialización sensorial...</p>
+            </div>
+            <div class="chat-input-area">
+                <input type="text" id="chat-input" placeholder="Escribe un mensaje de campo..." disabled>
+                <button id="btn-send" class="glass-btn primary" disabled>Enviar</button>
+            </div>
         </section>
 
         <!-- Control Bar -->

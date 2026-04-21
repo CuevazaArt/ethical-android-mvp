@@ -11,7 +11,9 @@ const UI = {
     btnStream: document.getElementById('btn-stream'),
     btnInstall: document.getElementById('btn-install'),
     batterySpan: document.getElementById('battery-level'),
-    transcript: document.getElementById('charm-transcript'),
+    chatHistory: document.getElementById('chat-history'),
+    chatInput: document.getElementById('chat-input'),
+    btnSend: document.getElementById('btn-send'),
     videoElement: document.getElementById('hidden-video'),
 };
 
@@ -219,6 +221,22 @@ function setAppAffectState(state) {
 }
 
 /**
+ * Append a message to the chat history.
+ */
+function appendChatMessage(text, roleClass) {
+    if(!text) return;
+    // Remove placeholder if present
+    const placeholder = UI.chatHistory.querySelector('.placeholder');
+    if (placeholder) placeholder.remove();
+    
+    const msgDiv = document.createElement('div');
+    msgDiv.className = `chat-msg ${roleClass}`;
+    msgDiv.innerText = text;
+    UI.chatHistory.appendChild(msgDiv);
+    UI.chatHistory.scrollTop = UI.chatHistory.scrollHeight;
+}
+
+/**
  * Handle initial Backend Connection
  */
 async function connectKernel() {
@@ -256,23 +274,29 @@ async function connectKernel() {
             
             UI.btnConnect.disabled = true;
             UI.btnConnect.innerText = "Connected";
+            UI.chatHistory.innerHTML = ""; // Clear
+            appendChatMessage("Sys: Nomad Bridge Ready", "kernel");
             
             // Enable the streaming button for Cursor (Block F.2)
             UI.btnStream.disabled = false;
             UI.btnStream.classList.remove('inactive');
+            
+            // Enable text input
+            UI.chatInput.disabled = false;
+            UI.btnSend.disabled = false;
         };
 
         wsChat.onmessage = (event) => {
             try {
                 const msg = JSON.parse(event.data);
                 // Claude's domain (F.4): detailed message handling
-                if (msg.role === 'android') {
-                    UI.transcript.innerText = msg.content;
+                if (msg.role === 'android' || msg.final_action) {
+                    appendChatMessage(msg.content || msg.final_action, "kernel");
                 }
                 
                 if (msg.type === 'veto') {
                     setAppAffectState('alert');
-                    UI.transcript.innerText = "KERNEL LOCK: Threat detected.";
+                    appendChatMessage("KERNEL LOCK: Threat detected.", "kernel");
                 }
 
                 if (msg.type === 'ping') {
@@ -283,15 +307,15 @@ async function connectKernel() {
                 if (msg.type === 'thought') {
                     // Phase 12.3: Visual hint for dissonance in PWA
                     if (msg.payload.dissonance) {
-                        UI.transcript.classList.add('dissonance-active');
+                        UI.chatHistory.parentElement.classList.add('dissonance-active');
                     } else {
-                        UI.transcript.classList.remove('dissonance-active');
+                        UI.chatHistory.parentElement.classList.remove('dissonance-active');
                     }
                 }
 
                 // Phase 12: Ouroboros TTS with Lip-sync
                 if (msg.type === 'kernel_voice') {
-                    UI.transcript.innerText = `Kernel: ${msg.text}`;
+                    appendChatMessage(msg.text, "kernel");
                     if ('speechSynthesis' in window) {
                         const utterance = new SpeechSynthesisUtterance(msg.text);
                         const voices = window.speechSynthesis.getVoices();
@@ -321,8 +345,8 @@ async function connectKernel() {
                     UI.orb.style.transform = `scale(${v.scale})`;
                     UI.orb.style.animationDuration = `${v.pulse_s}s`;
                     
-                    // Update Text for feedback
-                    UI.transcript.innerText = `Limbic State: ${msg.archetype.replace(/_/g, ' ')}`;
+                    // Optional: small diagnostic to chat
+                    // appendChatMessage(`Limbic: ${msg.archetype.replace(/_/g, ' ')}`, "kernel");
                 }
 
                 // Phase 10.2: Haptic Feedback Loop
@@ -352,6 +376,8 @@ async function connectKernel() {
             UI.btnConnect.innerText = "Reconnect";
             UI.btnStream.disabled = true;
             UI.btnStream.classList.add('inactive');
+            UI.chatInput.disabled = true;
+            UI.btnSend.disabled = true;
 
             // Trigger reconnection (Claude's backoff)
             if (reconnectAttempts < MAX_RECONNECT_ATTEMPTS) {
@@ -423,7 +449,7 @@ async function connectKernel() {
                     // Support standard voice nudges from the bridge (S.2.1)
                     if (payload.type === 'kernel_voice' || payload.text) {
                         const text = payload.text || payload.content;
-                        UI.transcript.innerText = `[Proxied] Kernel: ${text}`;
+                        appendChatMessage(text, "kernel");
                         if ('speechSynthesis' in window) {
                             const utterance = new SpeechSynthesisUtterance(text);
                             window.speechSynthesis.speak(utterance);
@@ -451,6 +477,32 @@ UI.btnConnect.addEventListener('click', connectKernel);
 UI.btnStream.addEventListener('click', () => {
     setAppAffectState('active'); // Transition UI immediately to Active State
     startSensors(); // Defined in media_engine.js
+});
+
+function sendUserMessage() {
+    if (!isConnected || !wsChat) return;
+    const text = UI.chatInput.value.trim();
+    if (!text) return;
+
+    // Echo directly locally
+    appendChatMessage(text, 'user');
+    
+    // As per server expectations, it may be a standard text or json.
+    // The chat server ws handler accepts JSON:
+    wsChat.send(JSON.stringify({
+        role: "user",
+        text: text
+    }));
+    
+    UI.chatInput.value = '';
+}
+
+UI.btnSend.addEventListener('click', sendUserMessage);
+UI.chatInput.addEventListener('keypress', (e) => {
+    if (e.key === 'Enter') {
+        e.preventDefault();
+        sendUserMessage();
+    }
 });
 
 // Expose a function to scale the orb based on audio volume

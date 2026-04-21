@@ -44,9 +44,10 @@ Aquí es donde los agentes de ejecución (LLMs en IDEs) reclaman sus tareas.
 - Tarea 21.1: **Manifiesto de Identidad (Birth Context):** [COMPLETED] Crear `src/persistence/identity_manifest.py` para gestionar la narrativa base del agente.
 - Tarea 21.2: **BiographicMemoryTracker:** [COMPLETED] Implementar el rastreador de episodios biográficos en el `CerebellumLobe` para que las sesiones de chat se guarden como hitos narrativos.
 
-**Bloque 22.0: Nomad Field Test (Texto en Terreno) [PENDING]**
-- Tarea 22.1: **Puente Web Chat Robustecido:** Refinar la PWA de `NomadBridge` (foco en modo texto/chat clásico). Eliminar o enmascarar componentes irrelevantes de UI pesadas para priorizar input/output liviano de texto.
+**Bloque 22.0: Nomad Field Test (Texto en Terreno) [COMPLETED]**
+- Tarea 22.1: **Puente Web Chat Robustecido:** [COMPLETED] Refinar la PWA de `NomadBridge` (foco en modo texto/chat clásico). Eliminar o enmascarar componentes irrelevantes de UI pesadas para priorizar input/output liviano de texto.
 - Tarea 22.2: **Inyección de Identidad al Front:** [COMPLETED] El servidor backend asíncrono debe enviar un paquete `[SYNC_IDENTITY]` al WebSocket conectarse al origen, para que la UI de chat se alinee al estado actual e historia de la entidad.
+
 
 **Bloque 23.0: Episodic Pruning & Limbic Sleep [COMPLETED]**
 - Tarea 23.1: **Mecanismo de Poda de Memoria:** [COMPLETED] Implementar proceso de "Sueño Límbico" para archivar y podar episodios de `BiographicMemory` que excedan el límite de almacenamiento local, evitando la degradación de performance en hardware de 1.5B.
