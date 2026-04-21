@@ -861,3 +861,11 @@ This file is automatically managed by `scripts/swarm_sync.py`.
   - `src/chat_settings.py`
   - `src/kernel.py`
   - `src/settings/kernel_settings.py`
+
+### 🛠️ Execution | Date: 2026-04-20 18:10:56 | Author: Anonymous Agent
+- **Block:** `B.4`
+- **Message:** Stabilized Ethos V13.1: Restored compatibility properties to EthosKernel, fixed checkpoint AttributeError, and enabled LAN access on 0.0.0.0.
+- **Files Modified:**
+  - `golden_manifest.json`
+  - `src/MANIFEST.json`
+  - `src/kernel.py`

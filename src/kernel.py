@@ -62,17 +62,37 @@ class EthosKernel:
         from src.modules.strategy_engine import ExecutiveStrategist
 
         evil_detector = AbsoluteEvilDetector()
-        llm = LLMModule()
-        strategist = ExecutiveStrategist()
+        self.llm = LLMModule()
+        self.strategist = ExecutiveStrategist()
         
         # Lobe 0: Thalamus Gateway
         self.thalamus = ThalamusLobe(bus=self.bus)
 
+        # External Governance, Identity & Proactivity (Compatibility layer)
+        from src.modules.dao_orchestrator import DAOOrchestrator
+        from src.modules.drive_arbiter import DriveArbiter
+        from src.modules.metaplan_registry import MetaplanRegistry
+        from src.modules.metacognition import MetacognitiveEvaluator
+        from src.modules.immortality import ImmortalityProtocol
+        from src.modules.forgiveness import AlgorithmicForgiveness
+        from src.modules.locus import LocusModule
+        from src.modules.weakness_pole import WeaknessPole
+
+        self.dao = DAOOrchestrator()
+        self.drive_arbiter = DriveArbiter()
+        self.metaplan = MetaplanRegistry()
+        self.metacognition = MetacognitiveEvaluator()
+        self.immortality = ImmortalityProtocol()
+        self.forgiveness = AlgorithmicForgiveness()
+        self.locus = LocusModule()
+        self.weakness = WeaknessPole()
+        self.checkpoint_persistence = kwargs.get("checkpoint_persistence")
+
         # Lobe 1: Perceptive (Sensory Cortex)
         self.sensory_cortex = PerceptiveLobe(
             safety_interlock=SafetyInterlock(),
-            strategist=strategist,
-            llm=llm,
+            strategist=self.strategist,
+            llm=self.llm,
             somatic_store=SomaticMarkerStore(),
             buffer=PreloadedBuffer(),
             absolute_evil=evil_detector,
@@ -81,27 +101,57 @@ class EthosKernel:
         )
 
         # Lobe 2: Limbic (Affective/Ethical)
-        self.limbic_system = LimbicEthicalLobe(bus=self.bus)
+        from src.modules.sympathetic import SympatheticModule
+        from src.modules.uchi_soto import UchiSotoModule
+        from src.modules.locus import LocusModule
+        self.limbic_system = LimbicEthicalLobe(
+            uchi_soto=UchiSotoModule(),
+            sympathetic=SympatheticModule(),
+            locus=LocusModule(),
+            bus=self.bus
+        )
 
         # Lobe 3: Executive (Prefrontal)
+        from src.modules.motivation_engine import MotivationEngine
         self.prefrontal_cortex = ExecutiveLobe(
             absolute_evil=evil_detector,
+            motivation=MotivationEngine(),
             poles=EthicalPoles(),
             will=SigmoidWill(),
             reflection_engine=EthicalReflection(),
             salience_map=SalienceMap(),
             pad_archetypes=PADArchetypeEngine(),
-            llm=llm,
+            llm=self.llm,
             bus=self.bus
         )
 
         # Lobe 4: Cerebellum (Bayesian/Memory)
         self.cerebellum = CerebellumLobe(
             bayesian=BayesianEngine(),
-            strategist=strategist,
+            strategist=self.strategist,
             memory=NarrativeMemory(),
             bus=self.bus
         )
+
+    @property
+    def memory(self):
+        """Compatibility property for NarrativeMemory access."""
+        return self.cerebellum.memory
+
+    @property
+    def identity(self):
+        """Compatibility property for NarrativeIdentityTracker."""
+        return self.cerebellum.memory.identity
+
+    @property
+    def bayesian(self):
+        """Compatibility property for BayesianEngine."""
+        return self.cerebellum.bayesian
+
+    @property
+    def poles(self):
+        """Compatibility property for EthicalPoles."""
+        return self.prefrontal_cortex.poles
 
     async def start(self) -> None:
         """Awaken the Android's Nervous System."""
