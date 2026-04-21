@@ -907,3 +907,9 @@ This file is automatically managed by `scripts/swarm_sync.py`.
 - **Message:** Hardening audit complete. Purged residual Thalamus mocks and verified Tri-Lobe stability. Marked B.4 as [COMPLETED].
 - **Files Modified:**
   - `docs/proposals/PLAN_WORK_DISTRIBUTION_TREE.md`
+
+### 🛠️ Execution | Date: 2026-04-21 12:28:53 | Author: Antigravity
+- **Block:** `S.14`
+- **Message:** Replenished Work Distribution Tree with Blocks 24.0, 25.0 and B.5 for Local Semantic Calibration and Hardening.
+- **Files Modified:**
+  - `docs/proposals/PLAN_WORK_DISTRIBUTION_TREE.md`
