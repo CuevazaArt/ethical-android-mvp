@@ -19,7 +19,8 @@ if TYPE_CHECKING:
 from src.kernel_lobes.models import (
     BayesianStageMetadata,
     SensorySpike,
-    BayesianEcograde
+    BayesianEcograde,
+    MotorCommandDispatch
 )
 import asyncio
 
@@ -48,9 +49,13 @@ class CerebellumLobe:
         self.rlhf = rlhf
         self.bus = bus
 
+        from src.modules.biographic_memory import BiographicMemoryTracker
+        self.tracker = BiographicMemoryTracker(self.memory)
+
         # Mnemónica asíncrona: El Cerebelo escucha estímulos para pre-calcular confianza
         if self.bus:
             self.bus.subscribe(SensorySpike, self._on_sensory_event)
+            self.bus.subscribe(MotorCommandDispatch, self._on_motor_dispatch)
 
     def execute_bayesian_stage(
         self,
@@ -210,3 +215,9 @@ class CerebellumLobe:
                 metadata={"ref_spike": spike.pulse_id}
             )
             await self.bus.publish(eco)
+
+    async def _on_motor_dispatch(self, dispatch: MotorCommandDispatch):
+        """Monitor final decisions and promote them to biographic memory."""
+        # Note: In a fully distributed system, we would retrieve context from a distributed cache.
+        # For now, we promote the dispatch to a narrative episode.
+        self.tracker.register_dispatch(dispatch)
