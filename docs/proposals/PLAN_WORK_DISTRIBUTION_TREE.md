@@ -54,12 +54,12 @@ Aquí es donde los agentes de ejecución (LLMs en IDEs) reclaman sus tareas.
 - Tarea 23.2: **Consolidación de Identidad Dinámica:** [COMPLETED] Permitir que los rasgos de personalidad en el `IdentityManifest` se calibren ligeramente basados en el feedback acumulado en la memoria biográfica.
 
 
-**Bloque 24.0: Local Semantic Calibration (Ollama Alignment) [PENDING]**
-- Tarea 24.1: **Ajuste de Temperatura Dinámica:** Implementar en `src/modules/llm_layer.py` un mecanismo para variar la temperatura del modelo local (Ollama) basado en la `social_tension` lóbulo Límbico (mayor tensión = menor temperatura/más determinismo).
-- Tarea 24.2: **Refuerzo de Stop Sequences:** Asegurar que los modelos locales no generen diálogos imaginarios del usuario mediante la inyección agresiva de stop sequences en el `SystemPrompt` del `OllamaLLMBackend`.
+**Bloque 24.0: Local Semantic Calibration (Ollama Alignment) [COMPLETED]**
+- Tarea 24.1: **Ajuste de Temperatura Dinámica:** [COMPLETED] Implementar en `src/modules/llm_layer.py` un mecanismo para variar la temperatura del modelo local (Ollama) basado en la `social_tension` lóbulo Límbico (mayor tensión = menor temperatura/más determinismo).
+- Tarea 24.2: **Refuerzo de Stop Sequences:** [COMPLETED] Asegurar que los modelos locales no generen diálogos imaginarios del usuario mediante la inyección agresiva de stop sequences en el `SystemPrompt` del `OllamaLLMBackend`.
 
-**Bloque 25.0: Cognitive Resilience & Signal Smoothing [PENDING]**
-- Tarea 25.1: **Filtro de Butterword en Percepción:** Implementar un suavizado de señales de baja frecuencia en `src/kernel_lobes/perception_lobe.py` para evitar oscilaciones rápidas en la clasificación de riesgo ante ruidos momentáneos de Ollama.
+**Bloque 25.0: Cognitive Resilience & Signal Smoothing [COMPLETED]**
+- Tarea 25.1: **Filtro de Butterword en Percepción:** [COMPLETED] Implementar un suavizado de señales de baja frecuencia en `src/kernel_lobes/perception_lobe.py` para evitar oscilaciones rápidas en la clasificación de riesgo ante ruidos momentáneos de Ollama.
 
 ---
 
@@ -69,8 +69,8 @@ Aquí es donde los agentes de ejecución (LLMs en IDEs) reclaman sus tareas.
 **Bloque B.4: Poda de Viejas Vías [COMPLETED]**
 - Tarea B.4.1: Eliminar y purgar todos los mocks asíncronos residuales temporales en las áreas de Thalamus que ya cumplieron su propósito durante el salto de la V12 a V13. [DONE]
 
-**Bloque B.5: Hardening de ThalamusNode [PENDING]**
-- Tarea B.5.1: Añadir validaciones `math.isfinite()` en todos los cálculos de EMA y Fusión Sensorial en `src/kernel_lobes/thalamus_node.py` para prevenir envenenamiento de confianza por NaNs.
+**Bloque B.5: Hardening de ThalamusNode [COMPLETED]**
+- Tarea B.5.1: Añadir validaciones `math.isfinite()` en todos los cálculos de EMA y Fusión Sensorial en `src/kernel_lobes/thalamus_node.py` para prevenir envenenamiento de confianza por NaNs. [DONE]
 
 ---
 

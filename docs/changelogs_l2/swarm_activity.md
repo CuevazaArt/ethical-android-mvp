@@ -913,3 +913,14 @@ This file is automatically managed by `scripts/swarm_sync.py`.
 - **Message:** Replenished Work Distribution Tree with Blocks 24.0, 25.0 and B.5 for Local Semantic Calibration and Hardening.
 - **Files Modified:**
   - `docs/proposals/PLAN_WORK_DISTRIBUTION_TREE.md`
+
+### 🛠️ Execution | Date: 2026-04-21 12:38:35 | Author: Antigravity
+- **Block:** `24.0`
+- **Message:** Implemented Local Semantic Calibration (Dynamic Temperature) in llm_layer.py and added Stop Sequences to OllamaLLMBackend. Addressed Cognitive Resilience via EMA smoothing in PerceptiveLobe and NaN safety in ThalamusNode (Blocks 24.0, 25.0, B.5).
+- **Files Modified:**
+  - `docs/proposals/PLAN_WORK_DISTRIBUTION_TREE.md`
+  - `src/kernel_lobes/executive_lobe.py`
+  - `src/kernel_lobes/perception_lobe.py`
+  - `src/kernel_lobes/thalamus_node.py`
+  - `src/modules/llm_backends.py`
+  - `src/modules/llm_layer.py`

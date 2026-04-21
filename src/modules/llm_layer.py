@@ -875,6 +875,7 @@ class LLMModule:
         guardian_mode_context: str = "",
         ethical_leans: dict[str, float] | None = None,
         vitality_context: str = "",
+        social_tension: float = 0.5,
     ) -> VerbalResponse:
         """
         Generate the agent's verbal response after a decision.
@@ -950,8 +951,13 @@ class LLMModule:
                 )
             vpol = resolve_verbal_llm_backend_policy(touchpoint="communicate")
             t0 = time.perf_counter()
+            
+            # Tarea 24.1: Dynamic temperature adjustment based on social tension
+            # Map tension [0.0, 1.0] to temperature [0.8, 0.1]
+            dynamic_temp = max(0.1, 0.8 - (float(social_tension) * 0.7))
+            
             try:
-                response = self._llm_completion(prompt, user_msg, metrics_op="communicate")
+                response = self._llm_completion(prompt, user_msg, metrics_op="communicate", temperature=dynamic_temp)
             except Exception:
                 self._record_verbal_degradation("communicate", "llm_completion_exception", vpol)
                 if vpol == "canned_safe":
@@ -1030,6 +1036,7 @@ class LLMModule:
         guardian_mode_context: str = "",
         ethical_leans: dict[str, float] | None = None,
         vitality_context: str = "",
+        social_tension: float = 0.5,
     ) -> VerbalResponse:
         """Async counterpart to :meth:`communicate` for cancellable HTTP."""
         mode_descs = {
@@ -1080,8 +1087,12 @@ class LLMModule:
                     f"{guardian_mode_context}"
                 )
             vpol = resolve_verbal_llm_backend_policy(touchpoint="communicate")
+            
+            # Tarea 24.1: Dynamic temperature adjustment based on social tension
+            dynamic_temp = max(0.1, 0.8 - (float(social_tension) * 0.7))
+            
             try:
-                response = await self._allm_completion(prompt, user_msg, metrics_op="communicate")
+                response = await self._allm_completion(prompt, user_msg, metrics_op="communicate", temperature=dynamic_temp)
             except Exception:
                 self._record_verbal_degradation("communicate", "llm_completion_exception", vpol)
                 if vpol == "canned_safe":
@@ -1160,6 +1171,7 @@ class LLMModule:
         guardian_mode_context: str = "",
         ethical_leans: dict[str, float] | None = None,
         vitality_context: str = "",
+        social_tension: float = 0.5,
     ) -> AsyncGenerator[str, None]:
         """Async stream for verbal communication tokens."""
         if self.mode not in ("api", "ollama", "injected") or self._llm_backend is None:

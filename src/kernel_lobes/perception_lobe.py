@@ -3,6 +3,7 @@ import asyncio
 import os
 import threading
 import time
+import math
 import logging
 import httpx
 from typing import Optional, Any, TYPE_CHECKING, Deque
@@ -54,6 +55,10 @@ class PerceptiveLobe:
         
         self._timeout = float(os.environ.get("KERNEL_PERCEPTION_TIMEOUT", "15.0"))
         
+        # Tarea 25.1: Low-frequency butterworth-lite smoothing for signals
+        self._ema_signals = {}
+        self._signal_alpha = 0.3
+        
         if self.bus:
             self.bus.subscribe(SensorySpike, self._on_sensory_spike_received)
             _log.info("PerceptiveLobe: Subscribed to Nervous System Bus.")
@@ -101,6 +106,18 @@ class PerceptiveLobe:
                     context=str(e)
                 )
              )
+
+        # Tarea 25.1: Apply EMA smoothing to signals to prevent rapid risk oscillation
+        if getattr(state, "signals", None):
+            for key, value in state.signals.items():
+                if not math.isfinite(value): value = 0.0
+                if key not in self._ema_signals:
+                    self._ema_signals[key] = value
+                else:
+                    self._ema_signals[key] = (self._signal_alpha * value) + ((1.0 - self._signal_alpha) * self._ema_signals[key])
+                    if not math.isfinite(self._ema_signals[key]):
+                        self._ema_signals[key] = 0.0
+                state.signals[key] = self._ema_signals[key]
 
         # Broadcast the resulting cognitive state back to the bus
         if self.bus:

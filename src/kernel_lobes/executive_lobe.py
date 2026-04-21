@@ -266,6 +266,7 @@ class ExecutiveLobe:
                 affect_pad=affect.pad if affect else None,
                 dominant_archetype=affect.dominant_archetype_id if affect else "",
                 identity_context=identity_context,
+                social_tension=sentence.social_tension_locus if sentence else 0.5,
             )
             
             latency = (time.perf_counter() - t0) * 1000

@@ -11,6 +11,7 @@ import time
 import logging
 from dataclasses import dataclass, field
 from typing import Any, Dict, List
+import math
 
 _log = logging.getLogger(__name__)
 
@@ -52,11 +53,15 @@ class ThalamusNode:
         orientation = payload.get("orientation")
         if orientation:
             # Common smartphone viewing angle (beta between 45 and 105 degrees)
-            beta = orientation.get("beta", 0)
+            beta = float(orientation.get("beta", 0))
+            if not math.isfinite(beta):
+                beta = 0.0
             target = 1.0 if (45 < beta < 105) else 0.0
             
-            # Application of EMA for stability
+            # Application of EMA for stability (Anti-NaN protected)
             self._ema_facing = (self._alpha * target) + ((1.0 - self._alpha) * self._ema_facing)
+            if not math.isfinite(self._ema_facing):
+                self._ema_facing = 0.0
             self.state.is_facing_user = self._ema_facing > 0.6
             
             if self.state.is_facing_user:
@@ -99,9 +104,16 @@ class ThalamusNode:
         v = vision_data or {}
         a = audio_data or {}
 
-        lip_mov = float(v.get("lip_movement", 0.0))
-        presence = float(v.get("human_presence", 0.0))
-        vad = float(a.get("vad_confidence", 0.0))
+        try:
+            lip_mov = float(v.get("lip_movement", 0.0))
+            presence = float(v.get("human_presence", 0.0))
+            vad = float(a.get("vad_confidence", 0.0))
+            env_stress = float(environmental_stress)
+            
+            if not all(math.isfinite(x) for x in (lip_mov, presence, vad, env_stress)):
+                lip_mov, presence, vad, env_stress = 0.0, 0.0, 0.0, 0.0
+        except (ValueError, TypeError):
+            lip_mov, presence, vad, env_stress = 0.0, 0.0, 0.0, 0.0
 
         # 1. Focal Address: requires cross-modal intersection
         # Tightly coupled VVAD + VAD
@@ -123,10 +135,12 @@ class ThalamusNode:
         if presence > _PRES_THR:
             dissonance = max(0.0, vad - lip_mov) * 0.5
         
-        sensory_tension = min(1.0, dissonance + float(environmental_stress))
+        sensory_tension = min(1.0, dissonance + env_stress)
 
         # 4. State Updates (EMA)
         self._ema_presence = self._alpha * presence + (1.0 - self._alpha) * self._ema_presence
+        if not math.isfinite(self._ema_presence):
+            self._ema_presence = 0.0
         self.state.is_user_present = self._ema_presence > _PRES_THR
         self.state.is_user_speaking = vad > _VAD_THR or lip_mov > _LIP_THR
         
