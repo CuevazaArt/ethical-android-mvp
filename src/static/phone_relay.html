@@ -362,6 +362,17 @@
           const data = JSON.parse(e.data);
           if (data.final_action) {
             $('last-action').textContent = data.final_action;
+            
+            // TTS Integration (Viva Voz for Nomad)
+            if ('speechSynthesis' in window) {
+               // Strip Markdown and internal tags for cleaner speech
+               let speakText = data.final_action.replace(/\[.*?\]/g, '').replace(/[*_~`#>\-]/g, '').trim();
+               if(speakText) {
+                 const utterance = new SpeechSynthesisUtterance(speakText);
+                 utterance.rate = 1.05; // Slightly faster for natural rhythm
+                 window.speechSynthesis.speak(utterance);
+               }
+            }
           }
         } catch (e) {}
       };
@@ -479,6 +490,13 @@
 
     // === UI Event Handlers ===
     $('btn-start').addEventListener('click', () => {
+      // Unlock Web Speech API context on user gesture
+      if ('speechSynthesis' in window) {
+        let unlockUtterance = new SpeechSynthesisUtterance('');
+        unlockUtterance.volume = 0; // Silent unlock
+        window.speechSynthesis.speak(unlockUtterance);
+      }
+      
       if (sessionId) {
         controlSession('resume');
       } else {

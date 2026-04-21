@@ -70,6 +70,9 @@ Aquí es donde los agentes de ejecución (LLMs en IDEs) reclaman sus tareas.
 **Bloque 28.0: Somatic Refinement (Nervous System Jitter Management) [COMPLETED]**
 - Tarea 28.1: **Agility EMA (Dynamic Smoothing):** [COMPLETED] Refactorizar `ThalamusNode` para que el factor de suavizado `_alpha` no sea estático, sino que se ajuste dinámicamente según la varianza de la señal entrante (mayor ruido = mayor inercia sensorial).
 
+**Bloque 29.0: Nomadic Field Readiness (Voice & Vision) [PENDING]**
+- Tarea 29.1: **Corrección "Velo Azul" (Visión OpenCV):** Implementar la conversión de BGR a RGB en la capa de hardware local de `src/modules/vision_capture.py` antes de que el frame ingrese al pipeline sensorial.
+- Tarea 29.2: **Respuestas a Viva Voz (Web Speech API):** Integrar la síntesis de voz nativa del navegador en el cliente móvil (`src/static/phone_relay.html`) para que las directivas y el chat del modelo sean vocalizados en tiempo real por el sistema operativo huésped, filtrando marcas de markdown y permitiendo la operación Zero-API e independiente.
 
 ---
 
