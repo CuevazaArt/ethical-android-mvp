@@ -198,6 +198,7 @@ from .modules.nomad_discovery import (
     nomad_discovery_service_name,
     nomad_discovery_service_type,
 )
+from .persistence.identity_manifest import IdentityManifestStore
 from .modules.nomad_identity import nomad_identity_public
 from .modules.perception_schema import perception_report_from_dict
 from .modules.perceptual_abstraction import snapshot_from_layers
@@ -2493,6 +2494,26 @@ async def ws_chat(ws: WebSocket) -> None:
         advisory_task = asyncio.create_task(
             advisory_loop(kernel, interval_s=interval, stop=advisory_stop)
         )
+
+    # ══ Handshake (Identity Sync) ══
+    # ADR 0054: Before processing turns, sync the agent's biographic identity to the UI.
+    try:
+        manifest_store = IdentityManifestStore()
+        manifest = manifest_store.manifest
+        await ws.send_json({
+            "type": "[SYNC_IDENTITY]",
+            "payload": {
+                "name": manifest.name,
+                "version": manifest.version,
+                "description": manifest.description,
+                "backstory": manifest.narrative_backstory,
+                "status": manifest.operational_status,
+                "is_nomadic": st.kernel_nomad_mode,
+                "birth_date": manifest.birth_date
+            }
+        })
+    except Exception as handshake_err:
+        logger.error("failed_to_send_identity_handshake: %s", handshake_err)
 
     try:
         current_turn_task: asyncio.Task | None = None

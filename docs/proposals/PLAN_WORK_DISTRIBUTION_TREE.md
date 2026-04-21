@@ -35,9 +35,9 @@ Aquí es donde los agentes de ejecución (LLMs en IDEs) reclaman sus tareas.
 > **PROMPT DE ARRANQUE PARA AGENTES L2 (BOY SCOUTS):**
 > *"Estás autorizado bajo la política de Pragmatismo Anónimo. El monolito ha sido abolido y la infraestructura asíncrona V13.0 está estable. Tu objetivo primordial absoluto ahora es consolidar el **Bloque 20.0 y 21.0**: la fluidez de interacción usando estrictamente LLMs locales (Ollama), desvinculándonos de dependencias API cerradas, y dotando a la matriz del Cerebelo de una identidad biográfica persistente. **Instrucciones:** Toma un ticket de `V14.0`, enfócate en el código (Python en `src/`), asume 100% de propiedad, y termina tu sesión ejecutando `python scripts/swarm_sync.py --msg '...'`. ¡Ejecuta!"*
 
-**Bloque 20.0: Local Conversational Matrix (Zero-API Fluency) [PENDING]**
+**Bloque 20.0: Local Conversational Matrix (Zero-API Fluency) [COMPLETED]**
 - Tarea 20.1: **Desacoplamiento Estricto Comercial:** [COMPLETED] Refactorizar el backend de percepción y decisión para enrutar el 100% de `process_chat_turn` hacia `OllamaLLMBackend`. 
-- Tarea 20.2: **Refinamiento de Tiempos y Tolerancia Textual:** Sincronizar el `KERNEL_CHAT_TURN_TIMEOUT` con latencias largas realistas de modelos Llama3/Mistral corriendo en local. Optimizar el `System Prompt` maestro de chat para favorecer réplicas cortas y directas sin introspección verbosa.
+- Tarea 20.2: **Refinamiento de Tiempos y Tolerancia Textual:** [COMPLETED] Sincronizar el `KERNEL_CHAT_TURN_TIMEOUT` con latencias largas realistas de modelos Llama3/Mistral corriendo en local. Optimizar el `System Prompt` maestro de chat para favorecer réplicas cortas y directas sin introspección verbosa.
  
 **Bloque 21.0: Biographic Memory & Persistent Identity [COMPLETED]**
 - Tarea 21.1: **Manifiesto de Identidad (Birth Context):** [COMPLETED] Crear `src/persistence/identity_manifest.py` para gestionar la narrativa base del agente.
@@ -45,7 +45,7 @@ Aquí es donde los agentes de ejecución (LLMs en IDEs) reclaman sus tareas.
 
 **Bloque 22.0: Nomad Field Test (Texto en Terreno) [PENDING]**
 - Tarea 22.1: **Puente Web Chat Robustecido:** Refinar la PWA de `NomadBridge` (foco en modo texto/chat clásico). Eliminar o enmascarar componentes irrelevantes de UI pesadas para priorizar input/output liviano de texto.
-- Tarea 22.2: **Inyección de Identidad al Front:** El servidor backend asíncrono debe enviar un paquete `[SYNC_IDENTITY]` al WebSocket conectarse al origen, para que la UI de chat se alinee al estado actual e historia de la entidad.
+- Tarea 22.2: **Inyección de Identidad al Front:** [COMPLETED] El servidor backend asíncrono debe enviar un paquete `[SYNC_IDENTITY]` al WebSocket conectarse al origen, para que la UI de chat se alinee al estado actual e historia de la entidad.
 
 ---
 
