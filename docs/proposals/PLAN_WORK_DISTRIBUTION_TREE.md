@@ -63,9 +63,9 @@ Aquí es donde los agentes de ejecución (LLMs en IDEs) reclaman sus tareas.
 
 - Tarea 26.2: **Corazón Motivacional (Idle Pulses):** [COMPLETED] Recuperar el `MotivationEngine` (Bloque C1) e instanciarlo dentro de `ExecutiveLobe` o kernel. Diseñar un mecanismo (o daemon de fondo) que emita de forma periódica un `ProactivePulse` cuando no haya interacción del usuario, logrando que el androide tenga propósito autónomo.
 
-**Bloque 27.0: Narrative Integrity & Coherence (The "Self-Audit" Cycle) [PENDING]**
-- Tarea 27.1: **Validación de Coherencia de Identidad:** Implementar un servicio en `src/modules/identity_integrity.py` que realice una validación cruzada entre el `IdentityManifest` (valores estáticos) y los últimos episodios de `NarrativeMemory` (valores empíricos), detectando derivas éticas o "traumas" no procesados.
-- Tarea 27.2: **Dashboard de Motivación:** Crear una extensión en el Visual Dashboard (`scripts/eval/visual_dashboard.py`) para monitorear en tiempo real los drives del `MotivationEngine` (Curiosidad, Integridad, Reparación Social).
+**Bloque 27.0: Narrative Integrity & Coherence (The "Self-Audit" Cycle) [COMPLETED]**
+- Tarea 27.1: **Validación de Coherencia de Identidad:** [COMPLETED] Implementar un servicio en `src/modules/identity_integrity.py` que realice una validación cruzada entre el `IdentityManifest` (valores estáticos) y los últimos episodios de `NarrativeMemory` (valores empíricos), detectando derivas éticas o "traumas" no procesados.
+- Tarea 27.2: **Dashboard de Motivación:** [COMPLETED] Crear una extensión en el Visual Dashboard (`scripts/eval/visual_dashboard.py`) para monitorear en tiempo real los drives del `MotivationEngine` (Curiosidad, Integridad, Reparación Social).
 
 **Bloque 28.0: Somatic Refinement (Nervous System Jitter Management) [COMPLETED]**
 - Tarea 28.1: **Agility EMA (Dynamic Smoothing):** [COMPLETED] Refactorizar `ThalamusNode` para que el factor de suavizado `_alpha` no sea estático, sino que se ajuste dinámicamente según la varianza de la señal entrante (mayor ruido = mayor inercia sensorial).
