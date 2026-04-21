@@ -59,8 +59,8 @@ Aquí es donde los agentes de ejecución (LLMs en IDEs) reclaman sus tareas.
 ## 🗄️ RESERVA DEL ENJAMBRE (Buffer de Optimización Continua V14)
 > *Estas tareas no bloquean el progreso crítico (main branch) y son para mantenimiento estructural.*
 
-**Bloque B.4: Poda de Viejas Vías [PENDING]**
-- Tarea B.4.1: Eliminar y purgar todos los mocks asíncronos residuales temporales en las áreas de Thalamus que ya cumplieron su propósito durante el salto de la V12 a V13.
+**Bloque B.4: Poda de Viejas Vías [COMPLETED]**
+- Tarea B.4.1: Eliminar y purgar todos los mocks asíncronos residuales temporales en las áreas de Thalamus que ya cumplieron su propósito durante el salto de la V12 a V13. [DONE]
 
 ---
 
