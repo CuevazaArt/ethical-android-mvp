@@ -521,6 +521,9 @@ async def dashboard_ws_handler(websocket: WebSocket) -> None:
 
     async def recv_task():
         nonlocal turn_seq
+        # Bloque 22.0: Conversational Fluidity STM
+        session_context = ""
+        
         try:
             while True:
                 data = await websocket.receive_json()
@@ -532,11 +535,19 @@ async def dashboard_ws_handler(websocket: WebSocket) -> None:
                         
                         # Process as a Kernel Turn to get a real response
                         async for event in rt_bridge.process_chat_stream(
-                            text, agent_id="dashboard_op", place="dashboard"
+                            text, 
+                            agent_id="dashboard_op", 
+                            place="dashboard",
+                            conversation_context=session_context
                         ):
                             if event["event_type"] == "turn_finished":
                                 result = event["payload"]["result"]
                                 response_text = result.response.message if result.response else "Affirmative."
+                                
+                                # Append to Short Term Memory buffer
+                                if len(session_context) > 2000:
+                                    session_context = session_context[-1000:] # Truncate old WS context
+                                session_context += f"User: {text}\nKernel: {response_text}\n"
                                 
                                 # Send response back to Dashboard
                                 await websocket.send_json({

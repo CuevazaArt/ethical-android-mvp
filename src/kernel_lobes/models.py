@@ -29,6 +29,7 @@ class SemanticState:
     sensory_latency_lag: int = 0
     timeout_trauma: Optional[TimeoutTrauma] = None
     agent_id: Optional[str] = None
+    conversation_context: str = ""
 
 @dataclass
 class EthicalSentence:

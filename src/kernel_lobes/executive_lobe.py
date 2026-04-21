@@ -264,6 +264,35 @@ class ExecutiveLobe:
             if not identity_ctx and self.memory:
                 identity_ctx = self.memory.get_reflection()
 
+            # --- LTM Semantic Retrieval Block (Bloque 21.0) ---
+            ltm_context = ""
+            if self.memory and hasattr(self.memory, "get_relevant_episodes"):
+                # Realiza la busqueda vectorial asincrona
+                episodes = await self.memory.get_relevant_episodes(user_input, top_k=2)
+                if episodes:
+                    try:
+                        ltm_lines = []
+                        for idx, ep in enumerate(episodes):
+                            ltm_lines.append(f"Recuerdo {idx+1}: Situación '{ep.event_description}' -> Acción '{ep.action_taken}' (Veredicto: {ep.verdict})")
+                            
+                            # Telemetry for Dashboard Domain (Bloque 24.0)
+                            from src.modules.nomad_bridge import get_nomad_bridge
+                            bridge = get_nomad_bridge()
+                            if bridge:
+                                for q in bridge.dashboard_queues:
+                                    try:
+                                        q.put_nowait({"type": "telemetry_update", "payload": {"ltm_rescue": f"LTM: {ep.event_description}"}})
+                                    except Exception:
+                                        pass
+                        if ltm_lines:
+                            ltm_context = "\n\n[MEMORIA A LARGO PLAZO ASOCIADA]\n" + "\n".join(ltm_lines) + "\n(Contexto histórico a usar solo si es pertinente)."
+                    except Exception as e:
+                        _log.debug(f"ExecutiveLobe LTM Error: {e}")
+            
+            if ltm_context:
+                 identity_ctx = (identity_ctx or "") + ltm_context
+            # ----------------------------------------------------
+
             from src.kernel_lobes.models import GestaltSnapshot
             snapshot = GestaltSnapshot(
                 identity_reflection=identity_ctx,
@@ -379,6 +408,7 @@ class ExecutiveLobe:
                         sentence=sentence,
                         decision=None, # Simplified for now
                         user_input=text,
+                        conv=getattr(state, "conversation_context", ""),
                         stream_callback=_on_chunk
                     ),
                     timeout=15.0 # Prefrontal timeout

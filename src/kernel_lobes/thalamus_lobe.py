@@ -98,7 +98,8 @@ class ThalamusLobe:
                     "origin": pulse.origin_lobe,
                     "fusion": fusion,
                     "text": payload.get("text", ""),
-                    "agent_id": payload.get("agent_id", "unknown")
+                    "agent_id": payload.get("agent_id", "unknown"),
+                    "conversation_context": payload.get("conversation_context", "")
                 },
                 priority=1,
                 origin_lobe="thalamus_gateway",

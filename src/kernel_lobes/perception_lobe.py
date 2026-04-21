@@ -76,15 +76,18 @@ class PerceptiveLobe:
         # Desvinculamos el procesamiento para no bloquear el dispatcher del bus.
         # Track the root stimulus if possible for kernel convergence
         trace_id = spike.ref_pulse_id or spike.pulse_id
-        asyncio.create_task(self._deliberate_observation_async(text, trace_id))
+        conversation_context = payload.get("conversation_context", "")
+        asyncio.create_task(self._deliberate_observation_async(text, trace_id, conversation_context))
 
-    async def _deliberate_observation_async(self, text: str, ref_id: str):
+    async def _deliberate_observation_async(self, text: str, ref_id: str, conversation_context: str = ""):
         """Asynchronous deliberation with self-contained survival logic."""
         t0 = time.perf_counter()
         
         try:
              # Observer call with hard timeout to prevent cognitive stalling
              state = await asyncio.wait_for(self.observe(text), timeout=self._timeout)
+             # Manually attach STM conversation_context to the perception summary state
+             state.conversation_context = conversation_context
         except Exception as e:
              _log.warning(f"PerceptiveLobe: Observation FAILED for {ref_id} ({type(e).__name__}). Survival fallback.")
              latency = int((time.perf_counter() - t0) * 1000)

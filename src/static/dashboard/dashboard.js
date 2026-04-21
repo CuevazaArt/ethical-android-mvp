@@ -166,6 +166,11 @@ function handleMessage(msg) {
         case 'telemetry':
             updateTelemetry(msg.payload);
             break;
+        case 'telemetry_update': // Bloque 24.0: Integración Dashboard LTM
+            if (msg.payload && msg.payload.ltm_rescue) {
+                appendLog(`[LTM RETRIEVAL] ${msg.payload.ltm_rescue}`, 'info');
+            }
+            break;
         case 'audio_energy':
             updateAudio(msg.payload?.rms);
             break;

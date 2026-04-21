@@ -189,7 +189,8 @@ class EthosKernel:
                 "place": place, 
                 "vision": getattr(sensor_snapshot, "image_metadata", {}),
                 "audio": {"vad_confidence": 1.0 if text else 0.0},
-                "orientation": getattr(sensor_snapshot, "orientation", None)
+                "orientation": getattr(sensor_snapshot, "orientation", None),
+                "conversation_context": kwargs.get("conversation_context", "")
             },
             priority=1
         )

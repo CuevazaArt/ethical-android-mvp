@@ -170,7 +170,11 @@ class NarrativeMemory:
 
     def get_reflection(self) -> str:
         """Returns the first-person reflexive self-model (Pilar de la Mente)."""
-        return self.reflector.generate_first_person_mirror()
+        base_reflection = self.reflector.generate_first_person_mirror()
+        # Bloque 23.0: Dynamic Identity Reflection
+        if hasattr(self, "experience_digest") and self.experience_digest:
+             return f"{base_reflection}\n[EVOLVING IDENTITY (Neuroplasticity)]:\n{self.experience_digest}"
+        return base_reflection
 
     def get_subjective_tone(self) -> dict[str, float]:
         """Returns archetypal weights for affective downstream processing."""
@@ -297,6 +301,48 @@ class NarrativeMemory:
             self.episodes = self.episodes[-self.max_episodes :]
 
         return ep
+
+    async def get_relevant_episodes(self, query: str, top_k: int = 3) -> list[NarrativeEpisode]:
+        """
+        Bloque Mnemotécnico LTM: Búsqueda Semántica Vectorial In-Memory.
+        Usa Similitud Coseno de Python puro para no depender de librerías vectoriales masivas en edge.
+        """
+        import os
+        import math
+        from .semantic_embedding_client import ahttp_fetch_ollama_embedding, maybe_hash_fallback_embedding
+        
+        ollama_url = os.environ.get("OLLAMA_BASE_URL", "http://localhost:11434/api/embeddings")
+        ollama_model = os.environ.get("OLLAMA_EMBED_MODEL", "mxbai-embed-large")
+        
+        try:
+            emb_vec = await ahttp_fetch_ollama_embedding(ollama_url, ollama_model, query)
+            if emb_vec is not None:
+                query_emb = emb_vec.tolist()
+            else:
+                fallback = maybe_hash_fallback_embedding(query)
+                if fallback is None:
+                    return []
+                query_emb = fallback.tolist()
+                
+            def cosine_sim(a, b):
+                dot = sum(x*y for x, y in zip(a, b))
+                norm_a = math.sqrt(sum(x*x for x in a))
+                norm_b = math.sqrt(sum(x*x for x in b))
+                if norm_a == 0 or norm_b == 0: return 0.0
+                return dot / (norm_a * norm_b)
+                
+            scored = []
+            for ep in self.episodes:
+                if ep.semantic_embedding:
+                    score = cosine_sim(query_emb, ep.semantic_embedding)
+                    scored.append((score, ep))
+            
+            # Sort by similarity
+            scored.sort(key=lambda x: x[0], reverse=True)
+            # Threshold basic (> 0.5) to avoid injecting irrelevant memories
+            return [x[1] for x in scored[:top_k] if x[0] > 0.5]
+        except Exception:
+            return []
 
     async def aregister(
         self,
