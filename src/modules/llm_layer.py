@@ -296,6 +296,15 @@ Respond ONLY with JSON:
   "inner_voice": "internal reasoning guiding the response (not visible to the human)"
 }}"""
 
+PROMPT_COMMUNICATION_NOMAD_APPEND = """
+CRITICAL NOMADIC DIRECTIVE:
+You are running on limited hardware. Every token counts for latency.
+- Prioritize extreme brevity and directness.
+- Maximum two short sentences.
+- No verbose introspection or filler.
+- If in D_fast, use max 10 words.
+"""
+
 PROMPT_NARRATIVE = """You are the narrative module of the Ethos Kernel. You transform ethical
 evaluations into rich, humanly understandable morals.
 
@@ -899,7 +908,11 @@ class LLMModule:
         if not math.isfinite(score): score = 0.5
 
         if self.mode in ("api", "ollama", "injected"):
-            prompt = PROMPT_COMMUNICATION.format(
+            prompt = PROMPT_COMMUNICATION
+            if self.nomad_mode:
+                prompt += PROMPT_COMMUNICATION_NOMAD_APPEND
+
+            prompt = prompt.format(
                 action=action,
                 mode=mode,
                 mode_desc=mode_descs.get(mode, mode),
@@ -1026,7 +1039,11 @@ class LLMModule:
         }
 
         if self.mode in ("api", "ollama", "injected"):
-            prompt = PROMPT_COMMUNICATION.format(
+            prompt = PROMPT_COMMUNICATION
+            if self.nomad_mode:
+                prompt += PROMPT_COMMUNICATION_NOMAD_APPEND
+
+            prompt = prompt.format(
                 action=action,
                 mode=mode,
                 mode_desc=mode_descs.get(mode, mode),
@@ -1167,7 +1184,11 @@ class LLMModule:
             "D_delib": "deep deliberation",
             "gray_zone": "uncertainty, active caution",
         }
-        system = PROMPT_COMMUNICATION.format(
+        system_base = PROMPT_COMMUNICATION
+        if self.nomad_mode:
+            system_base += PROMPT_COMMUNICATION_NOMAD_APPEND
+
+        system = system_base.format(
             action=action,
             mode=mode,
             mode_desc=mode_descs.get(mode, mode),

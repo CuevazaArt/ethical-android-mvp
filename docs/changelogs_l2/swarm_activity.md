@@ -870,3 +870,11 @@ This file is automatically managed by `scripts/swarm_sync.py`.
   - `src/kernel_lobes/cerebellum_lobe.py`
   - `src/modules/biographic_memory.py`
   - `src/persistence/identity_manifest.py`
+
+### 🛠️ Execution | Date: 2026-04-21 11:00:36 | Author: Anonymous Agent
+- **Block:** `20.0`
+- **Message:** Refined Nomadic Timing and Prompt (Task 20.2): Increased chat timeout to 60s in Nomad Mode and optimized communication prompt for extreme brevity on local hardware.
+- **Files Modified:**
+  - `docs/proposals/PLAN_WORK_DISTRIBUTION_TREE.md`
+  - `src/modules/llm_layer.py`
+  - `src/settings/kernel_settings.py`

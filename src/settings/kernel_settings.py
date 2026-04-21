@@ -294,6 +294,7 @@ class KernelSettings(BaseModel):
     @classmethod
     def from_env(cls) -> KernelSettings:
         """Load settings from environment variables."""
+        nomad_m = _env_truthy("KERNEL_NOMAD_MODE", default_true=False)
         return cls(
             # Chat server
             chat_host=_env_str("CHAT_HOST", "127.0.0.1"),
@@ -316,7 +317,7 @@ class KernelSettings(BaseModel):
             ),
             # Async/chat
             kernel_nomad_chat_timeout_seconds=max(0.1, _env_float("KERNEL_NOMAD_CHAT_TIMEOUT", 5.0)),
-            kernel_chat_turn_timeout_seconds=_env_optional_positive_float("KERNEL_CHAT_TURN_TIMEOUT") or 30.0,
+            kernel_chat_turn_timeout_seconds=_env_optional_positive_float("KERNEL_CHAT_TURN_TIMEOUT") or (60.0 if nomad_m else 30.0),
             kernel_chat_threadpool_workers=max(0, _env_int("KERNEL_CHAT_THREADPOOL_WORKERS", 0)),
             kernel_chat_async_llm_http=_env_truthy("KERNEL_CHAT_ASYNC_LLM_HTTP", default_true=False),
             kernel_chat_json_offload=_env_truthy("KERNEL_CHAT_JSON_OFFLOAD", default_true=True),
@@ -355,7 +356,7 @@ class KernelSettings(BaseModel):
             # Audio Ouroboros
             kernel_audio_ouroboros_enabled=_env_truthy("KERNEL_AUDIO_OUROBOROS_ENABLED", default_true=False),
             kernel_whisper_model=_env_str("KERNEL_WHISPER_MODEL", "base"),
-            kernel_nomad_mode=_env_truthy("KERNEL_NOMAD_MODE", default_true=False),
+            kernel_nomad_mode=nomad_m,
         )
 
     @field_validator("kernel_semantic_chat_sim_allow_threshold")
