@@ -61,6 +61,10 @@ Aquí es donde los agentes de ejecución (LLMs en IDEs) reclaman sus tareas.
 **Bloque 25.0: Cognitive Resilience & Signal Smoothing [COMPLETED]**
 - Tarea 25.1: **Filtro de Butterword en Percepción:** [COMPLETED] Implementar un suavizado de señales de baja frecuencia en `src/kernel_lobes/perception_lobe.py` para evitar oscilaciones rápidas en la clasificación de riesgo ante ruidos momentáneos de Ollama.
 
+**Bloque 26.0: Convergencia de Motivación e Identidad (Anti-Orphan Phase 1) [COMPLETED]**
+- Tarea 26.1: **Reconexión Asíncrona de MemoryLobe:** [COMPLETED] Recuperar el módulo `MemoryLobe` que quedó huérfano en V13. Actualizar `src/kernel.py` para instanciarlo con sus dependencias (`DAOOrchestrator`, `MigrationHub`, etc.) y suscribirlo al `CorpusCallosum` escuchando `MotorCommandDispatch` para ejecutar el audit de memoria y persistencia DAO asíncronamente (eliminando el parche temporal en el Cerebelo).
+- Tarea 26.2: **Corazón Motivacional (Idle Pulses):** [COMPLETED] Recuperar el `MotivationEngine` (Bloque C1) e instanciarlo dentro de `ExecutiveLobe` o kernel. Diseñar un mecanismo (o daemon de fondo) que emita de forma periódica un `ProactivePulse` cuando no haya interacción del usuario, logrando que el androide tenga propósito autónomo.
+
 ---
 
 ## 🗄️ RESERVA DEL ENJAMBRE (Buffer de Optimización Continua V14)

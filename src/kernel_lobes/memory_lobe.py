@@ -4,9 +4,11 @@ import time
 import math
 from typing import Any, TYPE_CHECKING, Optional, Dict
 
-from src.kernel_lobes.models import SemanticState, TimeoutTrauma
+from src.kernel_lobes.models import SemanticState, TimeoutTrauma, MotorCommandDispatch
+from src.modules.biographic_memory import BiographicMemoryTracker
 
 if TYPE_CHECKING:
+    from src.nervous_system.corpus_callosum import CorpusCallosum
     from src.modules.narrative import NarrativeMemory
     from src.modules.dao_orchestrator import DAOOrchestrator
     from src.modules.migratory_identity import MigrationHub
@@ -36,7 +38,8 @@ class MemoryLobe:
         biographic_pruner: Optional[BiographicPruner] = None,
         immortality: Optional[ImmortalityProtocol] = None,
         amnesia: Optional[SelectiveAmnesia] = None,
-        llm: Optional[LLMModule] = None
+        llm: Optional[LLMModule] = None,
+        bus: Optional['CorpusCallosum'] = None
     ):
         self.memory = memory
         self.dao = dao
@@ -45,6 +48,29 @@ class MemoryLobe:
         self.immortality = immortality
         self.amnesia = amnesia
         self.llm = llm
+        self.bus = bus
+        self.tracker = BiographicMemoryTracker(self.memory)
+
+        if self.bus:
+            self.bus.subscribe(MotorCommandDispatch, self._on_motor_dispatch)
+            _log.info("MemoryLobe: Subscribed to Nervous System Bus.")
+
+    async def _on_motor_dispatch(self, dispatch: MotorCommandDispatch) -> None:
+        """Monitor final decisions and promote them to biographic memory via tracker."""
+        meta = dispatch.metadata or {}
+        self.tracker.register_dispatch(dispatch, context_data=meta)
+        
+        # Trigger DAO Auditing asynchronously if needed (Task 26.1)
+        action_desc = dispatch.action_id
+        if getattr(dispatch, "is_vetoed", False):
+            action_desc = "VETO"
+        
+        try:
+            # Generate pseudo-episode ID for logging in DAO
+            ep_id = f"ep_{dispatch.pulse_id}"
+            await self.dao.aregister_audit("motor_dispatch", action_desc, episode_id=ep_id)
+        except Exception as e:
+            _log.error(f"MemoryLobe DAO audit failed for {dispatch.pulse_id}: {e}")
 
     async def execute_episodic_stage_async(
         self,

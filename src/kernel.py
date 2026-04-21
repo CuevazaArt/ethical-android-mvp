@@ -59,10 +59,23 @@ class EthosKernel:
         from src.modules.salience_map import SalienceMap
         from src.modules.pad_archetypes import PADArchetypeEngine
         from src.modules.strategy_engine import ExecutiveStrategist
+        from src.modules.motivation_engine import MotivationEngine
+        from src.modules.dao_orchestrator import DAOOrchestrator
+        from src.modules.migratory_identity import MigrationHub
+        from src.modules.biographic_pruning import BiographicPruner
+        from src.modules.immortality import ImmortalityProtocol
+        from src.modules.selective_amnesia import SelectiveAmnesia
+        from src.kernel_lobes.memory_lobe import MemoryLobe
 
         evil_detector = AbsoluteEvilDetector()
         llm = LLMModule()
         strategist = ExecutiveStrategist()
+        motivation_engine = MotivationEngine()
+        
+        narrative = NarrativeMemory()
+        dao = DAOOrchestrator()
+        migration = MigrationHub()
+        amnesia = SelectiveAmnesia(memory=narrative, dao=dao)
         
         # Lobe 0: Thalamus Gateway
         self.thalamus = ThalamusLobe(bus=self.bus)
@@ -90,6 +103,7 @@ class EthosKernel:
             reflection_engine=EthicalReflection(),
             salience_map=SalienceMap(),
             pad_archetypes=PADArchetypeEngine(),
+            motivation=motivation_engine,
             llm=llm,
             bus=self.bus
         )
@@ -98,22 +112,57 @@ class EthosKernel:
         self.cerebellum = CerebellumLobe(
             bayesian=BayesianEngine(),
             strategist=strategist,
-            memory=NarrativeMemory(),
+            memory=narrative,
             bus=self.bus
         )
+        
+        # Lobe 5: Memory (Hippocampus/DAO/Identity) [Block 26.0 Integration]
+        self.memory_lobe = MemoryLobe(
+            memory=narrative,
+            dao=dao,
+            migration=migration,
+            biographic_pruner=BiographicPruner(),
+            immortality=ImmortalityProtocol(),
+            amnesia=amnesia,
+            llm=llm,
+            bus=self.bus
+        )
+        
+        self._proactive_task = None
 
     async def start(self) -> None:
         """Awaken the Android's Nervous System."""
         self.bus.start()
         self.modulator.start(mode=self.mode)
         self.bus.subscribe(MotorCommandDispatch, self._on_motor_dispatch)
+        self._proactive_task = asyncio.create_task(self._proactive_daemon_loop())
         _log.info("EthosKernel: The distributed brain is AWAKE.")
 
     async def stop(self) -> None:
         """Shut down the biological cycle."""
+        if self._proactive_task:
+            self._proactive_task.cancel()
         await self.bus.stop()
         await self.modulator.stop()
         _log.info("EthosKernel: The distributed brain is SLEEPING.")
+
+    async def _proactive_daemon_loop(self):
+        """Block 26.2: Emits an internal proactive pulse to trigger MotivationEngine intent."""
+        from src.kernel_lobes.models import SensorySpike
+        while True:
+            await asyncio.sleep(45.0)  # Check idle drives every 45s
+            if self.prefrontal_cortex.motivation:
+                # Update drives based on simulated internal state (using last sensory latency or tension as proxy)
+                self.prefrontal_cortex.motivation.update_drives({"social_tension": 0.0}) # Baseline
+                actions = self.prefrontal_cortex.motivation.get_proactive_actions()
+                if actions:
+                    _log.info("EthosKernel: Proactive intent bubbling up from MotivationEngine.")
+                    # Inject a simulated SensorySpike representing internal deliberation
+                    pulse = SensorySpike(
+                        payload={"text": "[INTERNAL_PROACTIVE_PULSE]", "agent_id": "kernel", "proactive": True},
+                        priority=2
+                    )
+                    await self.bus.publish(pulse)
 
     async def process_chat_turn_async(
         self, 
