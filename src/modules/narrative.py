@@ -162,6 +162,14 @@ class NarrativeMemory:
         # (Disk retains them, but active session list is trimmed)
         self.episodes = self.episodes[limit:]
         
+        # 5.1 Neuroplasticity Digest Update (Bloque 26.0)
+        # We assimilate the new chronicle into the Evolving Identity matrix
+        digest = getattr(self, "experience_digest", "")
+        if len(digest) > 1000:
+            digest = digest[-500:] # Truncate old digest to prevent explosion
+        digest += f"\n- {start_ts}: {summary_text}"
+        self.experience_digest = digest
+        
         # 6. Final audit log
         import logging
         logging.getLogger(__name__).info(f"Memory Chronicle Created: {chron_id} distilling {limit} episodes.")

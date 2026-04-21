@@ -54,3 +54,16 @@ Toda nuestra logística de Swarm actual será modificada para aprovechar el **Ce
 *   **Fase 3: CTDE Flow**
     - *Entrenamiento Centralizado*: En `master-antigravity`, la macro-GNN aprende la matriz $W$ observando cientos de miles de interacciones de los Nómadas contra simuladores sociales.
     - *Ejecución Descentralizada*: La matriz $W$ destilada se carga directamente a memoria en los teléfonos físicos Nómadas. Allá, operan de manera ultraligera multiplicando matrices dispersas $A$ que se llenan a tiempo real con los valores de la batería, cámara, audio y variables límbicas, rebotando inferencias rápidas y esquivando al LLM de forma segura.
+
+---
+
+## 5. Decisiones Arquitectónicas (Crítica y Limitaciones)
+*(Adendum 2026-04-20 - Revisión Matemática de SpMM)*
+
+Al integrar este modelo relacional para abrazar las 3 Entidades y las 3 Diversidades, reconocemos ganancias pero también contrapesos técnicos severos documentados en el bloque de discusión de L0:
+
+*   **Riesgo de Oversmoothing:** En redes GNN profundas, las señales de los nodos individuales pueden diluirse. La multiplicación de matrices por sí sola no garantiza un "razonamiento humano" si no se acompaña de *inductive biases* (módulos probabilísticos) y capas residuales.
+*   **Densidad vs Escasez (El Cuello de Botella):** 
+    *   Si optamos por matrices densas rápidas (GEMM), aprovechamos el hardware GPU de paralelización pero explotamos la latencia local por el overhead de memoria (contrario al modelo Android Nómada).
+    *   Si optamos por **SpMM** (matrices dispersas con formatos estructurados como `CSR` o `COO`), ahorramos memoria crítica, pero corremos el riesgo de que el cálculo disperso en CPU se vuelva el cuello de botella.
+*   **Balance CTDE Sugerido:** Iniciar con un prototipo GNN de capa densa (small-scale factor graph) conectando nuestras 3 diversidades centrales para evaluar calidad (coherencia de respuesta y mitigación de disonancia), para posteriormente escalar la optimización HW en formatos COO.

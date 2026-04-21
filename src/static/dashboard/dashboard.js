@@ -184,7 +184,7 @@ function handleMessage(msg) {
             updateThoughtStream(msg.payload?.chunk);
             break;
         case 'thought_flush':
-            EL.thought.textContent = ""; // Clear before next thought stream
+            EL.thought.textContent = "[Pensando... ] "; // Clear before next thought stream and show indicator
             break;
         case 'turn_finished':
             // Final response from kernel

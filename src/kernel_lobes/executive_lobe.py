@@ -394,11 +394,15 @@ class ExecutiveLobe:
                 # Mock a safe sentence for this iteration, or ingest from Limbic Pulse in future
                 sentence = EthicalSentence(is_safe=True)
                 self._trauma_abort_active = False # Reset abort flag
+                # Register the current active pulse to detect interruptions
+                self._active_pulse_id = pulse.ref_pulse_id
                 
                 from src.kernel_lobes.models import ThoughtStreamPulse
                 async def _on_chunk(chunk: str):
                     if self._trauma_abort_active:
                         raise Exception("Deliberation Preempted by Trauma")
+                    if hasattr(self, '_active_pulse_id') and self._active_pulse_id != pulse.ref_pulse_id:
+                        raise Exception("Deliberation Preempted by Semantic Override (Interruption)")
                     if self.bus:
                         await self.bus.publish(ThoughtStreamPulse(chunk=chunk, ref_pulse_id=pulse.ref_pulse_id))
 
