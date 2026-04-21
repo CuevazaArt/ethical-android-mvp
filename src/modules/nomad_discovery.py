@@ -91,7 +91,7 @@ def build_nomad_discovery_payload(
             {
                 "host": host,
                 "chat_ws": f"{base}/ws/chat",
-                "nomad_ws": f"{base}/nomad_bridge/ws/nomad",
+                "nomad_ws": f"{base}/ws/nomad",
                 "dashboard_ws": f"{base}/ws/dashboard",
                 "nomad_ui": f"{http_scheme}://{host}:{port}/nomad/",
             }

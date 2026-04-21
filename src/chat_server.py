@@ -418,6 +418,18 @@ if os.path.exists(dashboard_path):
 else:
     logger.warning("L0 Dashboard not found at %s. Skipping mount.", dashboard_path)
 
+# Phase 13.1: Mount Clinical UI
+clinical_path = os.path.join(os.path.dirname(__file__), "static", "clinical")
+if os.path.exists(clinical_path):
+    app.mount("/clinical", StaticFiles(directory=clinical_path, html=True), name="clinical_ui")
+    logger.info("Clinical UI mounted at /clinical/")
+
+# Phase 13.2: Mount Master Orchestrator (Mission Control)
+master_path = os.path.join(os.path.dirname(__file__), "static", "master")
+if os.path.exists(master_path):
+    app.mount("/master", StaticFiles(directory=master_path, html=True), name="master_orchestrator")
+    logger.info("Master Orchestrator mounted at /master/")
+
 
 @app.websocket("/ws/nomad")
 async def nomad_bridge_ws_handler(websocket: WebSocket) -> None:

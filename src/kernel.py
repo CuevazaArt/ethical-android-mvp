@@ -111,7 +111,15 @@ class EthosKernel:
             bus=self.bus
         )
 
-        # Lobe 3: Executive (Prefrontal)
+        # Lobe 3: Cerebellum (Bayesian/Memory)
+        self.cerebellum = CerebellumLobe(
+            bayesian=BayesianEngine(),
+            strategist=self.strategist,
+            memory=NarrativeMemory(),
+            bus=self.bus
+        )
+
+        # Lobe 4: Executive (Prefrontal)
         from src.modules.motivation_engine import MotivationEngine
         self.prefrontal_cortex = ExecutiveLobe(
             absolute_evil=evil_detector,
@@ -122,15 +130,8 @@ class EthosKernel:
             salience_map=SalienceMap(),
             pad_archetypes=PADArchetypeEngine(),
             llm=self.llm,
-            bus=self.bus
-        )
-
-        # Lobe 4: Cerebellum (Bayesian/Memory)
-        self.cerebellum = CerebellumLobe(
-            bayesian=BayesianEngine(),
-            strategist=self.strategist,
-            memory=NarrativeMemory(),
-            bus=self.bus
+            bus=self.bus,
+            memory=self.memory # Added memory link
         )
 
     @property
@@ -155,9 +156,11 @@ class EthosKernel:
 
     async def start(self) -> None:
         """Awaken the Android's Nervous System."""
+        from src.kernel_lobes.models import ThoughtStreamPulse
         self.bus.start()
         self.modulator.start(mode=self.mode)
         self.bus.subscribe(MotorCommandDispatch, self._on_motor_dispatch)
+        self.bus.subscribe(ThoughtStreamPulse, self._on_thought_stream)
         _log.info("EthosKernel: The distributed brain is AWAKE.")
 
     async def stop(self) -> None:
@@ -194,6 +197,20 @@ class EthosKernel:
         future = self.reactions.register(pulse.pulse_id)
 
         await self.bus.publish(pulse)
+        
+        # Flush the dashboard inner voice UI before starting the new stream
+        try:
+            from src.modules.nomad_bridge import get_nomad_bridge
+            b = get_nomad_bridge()
+            if b:
+                for q in b.dashboard_queues:
+                    try:
+                        q.put_nowait({"type": "thought_flush"})
+                    except asyncio.QueueFull:
+                        pass
+        except Exception:
+            pass
+
         from src.utils.terminal_colors import TColors
         _log.info(TColors.color(f"EthosKernel: Injected raw stimulus {pulse.pulse_id}. Waiting for brain response...", TColors.OKCYAN))
 
@@ -204,14 +221,32 @@ class EthosKernel:
             is_blocked = getattr(dispatch_result, "is_vetoed", False)
             status_tag = color_verdict("BLOCKED") if is_blocked else color_verdict("PASS")
             
+            # Registration of the conversation episode (Phase 13.2 / 13.3)
+            snapshot = getattr(dispatch_result, 'gestalt_snapshot', None)
+            sigma_val = snapshot.sigma if snapshot else 0.5
+            pad_val = snapshot.pad_state if snapshot else None
+
+            await self.memory.aregister(
+                place=place,
+                description=f"Chat interaction with {agent_id}",
+                action=str(getattr(dispatch_result, 'action_id', 'Cognitive silence.')),
+                morals={}, # Can be expanded in future
+                verdict="Good" if not is_blocked else "Blocked",
+                score=1.0 if not is_blocked else -1.0,
+                mode=getattr(dispatch_result, 'decision_mode', 'D_delib'),
+                sigma=sigma_val,
+                affect_pad=pad_val,
+                context=place
+            )
+
             return ChatTurnResult(
                 response=VerbalResponse(
-                    message=f"Distributed Brain Response: {getattr(dispatch_result, 'action_id', 'unknown')}", 
-                    tone="neutral"
+                    message=str(getattr(dispatch_result, 'action_id', 'Cognitive silence.')), 
+                    tone=str(getattr(dispatch_result, 'tone', 'neutral'))
                 ),
                 path="nervous_bus",
                 blocked=is_blocked,
-                block_reason=f"[{status_tag}] Vetoed by Prefrontal" if is_blocked else ""
+                block_reason=getattr(dispatch_result, 'block_reason', "") if is_blocked else ""
             )
         except asyncio.TimeoutError:
             _log.error(f"EthosKernel: Response timeout for {pulse.pulse_id}.")
@@ -229,6 +264,19 @@ class EthosKernel:
         if self.reactions.resolve(ref_id, dispatch):
              _log.debug(f"EthosKernel: Stimulus {ref_id} resolved via Nerve Bus.")
 
+    async def _on_thought_stream(self, pulse: Any):
+        """Forward real-time thoughts to L0 Dashboard (Bloque 20.3)"""
+        try:
+            from src.modules.nomad_bridge import get_nomad_bridge
+            b = get_nomad_bridge()
+            if b:
+                for q in b.dashboard_queues:
+                    try:
+                        q.put_nowait({"type": "thought_stream", "payload": {"chunk": getattr(pulse, "chunk", "")}})
+                    except asyncio.QueueFull:
+                        pass
+        except Exception as e:
+            _log.debug(f"Failed to forward ThoughtStreamPulse: {e}")
     async def process_chat_turn_stream(self, text: str, **kwargs) -> AsyncGenerator[dict[str, Any], None]:
         result = await self.process_chat_turn_async(text, **kwargs)
         yield {"event_type": "turn_finished", "payload": {"result": result}}

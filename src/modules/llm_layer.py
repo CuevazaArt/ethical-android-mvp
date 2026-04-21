@@ -439,6 +439,7 @@ class LLMModule:
         *,
         metrics_op: str = "completion",
         temperature: float | None = None,
+        stream_callback: Any = None,
     ) -> str:
         """Async counterpart to :meth:`_llm_completion` (``httpx.AsyncClient`` on supported backends)."""
         raise_if_llm_cancel_requested()
@@ -449,7 +450,18 @@ class LLMModule:
                 kw: dict[str, Any] = {}
                 if temperature is not None:
                     kw["temperature"] = temperature
-                return await b.acompletion(system, user, **kw)
+                if stream_callback is not None:
+                    full_text = ""
+                    async for chunk in b.acompletion_stream(system, user, **kw):
+                        full_text += chunk
+                        # Fire and forget or await the callback
+                        if asyncio.iscoroutinefunction(stream_callback):
+                            await stream_callback(chunk)
+                        else:
+                            stream_callback(chunk)
+                    return full_text
+                else:
+                    return await b.acompletion(system, user, **kw)
             finally:
                 observe_llm_completion_seconds(metrics_op, time.perf_counter() - t0)
         return ""
@@ -1009,8 +1021,10 @@ class LLMModule:
         salience_context: str = "",
         identity_context: str = "",
         guardian_mode_context: str = "",
+
         ethical_leans: dict[str, float] | None = None,
         vitality_context: str = "",
+        stream_callback: Any = None,
     ) -> VerbalResponse:
         """Async counterpart to :meth:`communicate` for cancellable HTTP."""
         mode_descs = {
@@ -1058,8 +1072,11 @@ class LLMModule:
                 )
             vpol = resolve_verbal_llm_backend_policy(touchpoint="communicate")
             try:
-                response = await self._allm_completion(prompt, user_msg, metrics_op="communicate")
-            except Exception:
+                response = await self._allm_completion(
+                    prompt, user_msg, metrics_op="communicate", stream_callback=stream_callback
+                )
+            except Exception as e:
+                self._log.warning(f"LLM acommunicate exception: {e}")
                 self._record_verbal_degradation("communicate", "llm_completion_exception", vpol)
                 if vpol == "canned_safe":
                     return VerbalResponse(

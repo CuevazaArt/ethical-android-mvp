@@ -9,10 +9,16 @@ const UI = {
     statusDot: document.querySelector('.status-indicator'),
     btnConnect: document.getElementById('btn-connect'),
     btnStream: document.getElementById('btn-stream'),
-    btnInstall: document.getElementById('btn-install'),
     batterySpan: document.getElementById('battery-level'),
     transcript: document.getElementById('charm-transcript'),
     videoElement: document.getElementById('hidden-video'),
+    // NEW BLOCK 13.1 elements
+    chatInput: document.getElementById('chat-input'),
+    btnSend: document.getElementById('btn-send'),
+    telBat: document.getElementById('tel-bat'),
+    telTemp: document.getElementById('tel-temp'),
+    telKin: document.getElementById('tel-kin'),
+    telAud: document.getElementById('tel-aud'),
 };
 
 let wsChat = null;
@@ -45,7 +51,7 @@ async function resolveKernelEndpointCandidates() {
     candidates.push({
         host: currentHost,
         chat_ws: `${baseCurrent}/ws/chat`,
-        nomad_ws: `${baseCurrent}/nomad_bridge/ws/nomad`,
+        nomad_ws: `${baseCurrent}/ws/nomad`,
     });
 
     const cachedHost = localStorage.getItem(NOMAD_LAST_GOOD_HOST_KEY);
@@ -54,7 +60,7 @@ async function resolveKernelEndpointCandidates() {
         candidates.push({
             host: cachedHost,
             chat_ws: `${baseCached}/ws/chat`,
-            nomad_ws: `${baseCached}/nomad_bridge/ws/nomad`,
+            nomad_ws: `${baseCached}/ws/nomad`,
         });
     }
 
@@ -87,12 +93,27 @@ async function resolveKernelEndpointCandidates() {
 function connectPair(candidate) {
     return new Promise((resolve, reject) => {
         let settled = false;
-        const chat = new WebSocket(candidate.chat_ws);
-        const nomad = new WebSocket(candidate.nomad_ws);
+        
+        // Bloque 13.1 Resilience: Timeout to prevent "Trying..." hang if firewall drops packets
+        const timeoutId = setTimeout(() => {
+            cleanupAndReject(new Error('Connection timed out. Checking firewall/network...'));
+        }, 8000);
+
+        console.log(`Nomad: Attempting WS handshake at ${candidate.host}`);
+        
+        // We create nomad first. If chat fails, we might still function via nomad relay.
+        let nomad, chat;
+        try {
+            nomad = new WebSocket(candidate.nomad_ws);
+            chat = new WebSocket(candidate.chat_ws);
+        } catch (e) {
+            return cleanupAndReject(new Error(`Browser blocked WS creation: ${e.message}`));
+        }
 
         const cleanupAndReject = (err) => {
             if (settled) return;
             settled = true;
+            clearTimeout(timeoutId);
             try { chat.close(); } catch (_) {}
             try { nomad.close(); } catch (_) {}
             reject(err);
@@ -103,18 +124,29 @@ function connectPair(candidate) {
 
         const maybeResolve = () => {
             if (settled) return;
+            // For now, we require both for full functionality. 
+            // In future, nomad relay could allow chat=null.
             if (chatReady && nomadReady) {
                 settled = true;
+                clearTimeout(timeoutId);
                 resolve({ chat, nomad, host: candidate.host });
             }
         };
 
-        chat.onopen = () => { chatReady = true; maybeResolve(); };
-        nomad.onopen = () => { nomadReady = true; maybeResolve(); };
-        chat.onerror = () => cleanupAndReject(new Error('chat ws connect failed'));
-        nomad.onerror = () => cleanupAndReject(new Error('nomad ws connect failed'));
-        chat.onclose = () => { if (!settled) cleanupAndReject(new Error('chat ws closed')); };
-        nomad.onclose = () => { if (!settled) cleanupAndReject(new Error('nomad ws closed')); };
+        chat.onopen = () => { console.log("Nomad: Chat WS Open"); chatReady = true; maybeResolve(); };
+        nomad.onopen = () => { console.log("Nomad: Sensor WS Open"); nomadReady = true; maybeResolve(); };
+        
+        chat.onerror = (e) => {
+            console.error("Nomad: Chat WS Error", e);
+            cleanupAndReject(new Error('Chat WebSocket (ws/chat) failed. Check Firewall.'));
+        };
+        nomad.onerror = (e) => {
+            console.error("Nomad: Sensor WS Error", e);
+            cleanupAndReject(new Error('Sensor WebSocket (ws/nomad) failed. Check Firewall.'));
+        };
+        
+        chat.onclose = () => { if (!settled) cleanupAndReject(new Error('Chat WS closed by server/router.')); };
+        nomad.onclose = () => { if (!settled) cleanupAndReject(new Error('Sensor WS closed by server/router.')); };
     });
 }
 
@@ -165,6 +197,22 @@ if ('getBattery' in navigator) {
     });
 }
 
+// Bloque S.2.2: Screen Wake Lock (prevents disconnection when screen dims)
+let wakeLock = null;
+async function requestWakeLock() {
+    try {
+        if ('wakeLock' in navigator) {
+            wakeLock = await navigator.wakeLock.request('screen');
+            console.log('Nomad: Wake Lock acquired.');
+            wakeLock.addEventListener('release', () => {
+                console.log('Nomad: Wake Lock released.');
+            });
+        }
+    } catch (err) {
+        console.warn(`Nomad: Wake Lock failed: ${err.name}, ${err.message}`);
+    }
+}
+
 window.addEventListener('deviceorientation', (event) => {
     if(wsNomad && wsNomad.readyState === WebSocket.OPEN) {
         wsNomad.send(JSON.stringify({
@@ -191,8 +239,8 @@ window.addEventListener('devicemotion', (event) => {
                 let now = Date.now();
                 
                 // Phase 12 Hardening: High-intensity impact detection
-                // Phase 12 Hardening: Enhanced sensitivity for real-time dashboard sync
-                if(magnitude > 1.5) { // Detect even subtle movement
+                // Phase 12 Hardening: Enhanced sensitivity (tuned to 1.1 from user feedback)
+                if(magnitude > 1.1) { 
                     wsNomad.send(JSON.stringify({ type: "telemetry", payload: { kinetics: magnitude } }));
                     lastKineticPulse = now;
                 } else if(now - lastKineticPulse > 2000) {
@@ -222,123 +270,82 @@ function setAppAffectState(state) {
  * Handle initial Backend Connection
  */
 async function connectKernel() {
-    UI.statusText.innerText = "Connecting...";
+    // Bloque 13.1 Security: Check for Secure Context (HTTPS or Localhost)
+    // Sensors (Camera/Mic) are blocked by modern browsers on insecure origins.
+    if (!window.isSecureContext) {
+        console.warn("Nomad: Not running in a Secure Context. Sensors may be blocked.");
+        // We show a one-time non-blocking warning (or log it)
+        UI.statusText.innerText = "Insecure Context (Sensors Limited)";
+    } else {
+        UI.statusText.innerText = "Connecting...";
+    }
+    
+    console.log("Nomad: Initializing connection sequence...");
 
     try {
         const candidates = await resolveKernelEndpointCandidates();
+        console.log("Nomad: Candidates identified:", candidates);
+        
         let connected = null;
+        let lastErr = 'None';
+        
         for (const c of candidates) {
+            UI.statusText.innerText = `Trying ${c.host}...`;
             try {
+                // Bloque 13.1 Resilience: Attempt to connect to the pair.
                 connected = await connectPair(c);
+                console.log(`Nomad: Successfully connected to ${c.host}`);
+                
+                // Bloque S.2.2: Acquire Wake Lock upon successful connection
+                requestWakeLock();
                 break;
-            } catch (_) {
-                // Try next candidate.
+            } catch (err) {
+                console.warn(`Nomad: Candidate ${c.host} failed:`, err);
+                lastErr = err.message || err.toString();
             }
         }
+        
         if (!connected) {
-            throw new Error('No reachable kernel endpoint candidate');
+            throw new Error(`Connection failed across all candidates. Last error: ${lastErr}`);
         }
 
         wsChat = connected.chat;
         wsNomad = connected.nomad;
+        
         try {
             localStorage.setItem(NOMAD_LAST_GOOD_HOST_KEY, connected.host || '');
-        } catch (_) {
-            // Non-fatal in private browsing/storage-restricted contexts.
-        }
+        } catch (_) {}
         
-        wsChat.onopen = () => {
-            isConnected = true;
-            UI.statusDot.classList.add('connected');
-            UI.statusText.innerText = "Kernel Synced";
-            UI.transcript.innerText = "Ready. Waiting for sensors...";
-            UI.transcript.classList.remove('placeholder');
-            
-            UI.btnConnect.disabled = true;
-            UI.btnConnect.innerText = "Connected";
-            
-            // Enable the streaming button for Cursor (Block F.2)
-            UI.btnStream.disabled = false;
-            UI.btnStream.classList.remove('inactive');
-        };
+        // Bloque 13.1 Resilience: sockets are ALREADY open because connectPair resolved.
+        // We trigger the UI transition immediately.
+        isConnected = true;
+        UI.statusDot.classList.add('connected');
+        UI.statusText.innerText = "Kernel Synced";
+        UI.transcript.innerText = "Ready. Waiting for sensors...";
+        UI.transcript.classList.remove('placeholder');
+        
+        UI.btnConnect.disabled = true;
+        UI.btnConnect.innerText = "Connected";
+        
+        // Enable the streaming button for Cursor (Block F.2)
+        UI.btnStream.disabled = false;
+        UI.btnStream.classList.remove('inactive');
+
+        // Note: wsChat.onopen would be too late here, so we skip it.
 
         wsChat.onmessage = (event) => {
             try {
-                const msg = JSON.parse(event.data);
-                // Claude's domain (F.4): detailed message handling
-                if (msg.role === 'android') {
-                    UI.transcript.innerText = msg.content;
-                }
-                
-                if (msg.type === 'veto') {
-                    setAppAffectState('alert');
-                    UI.transcript.innerText = "KERNEL LOCK: Threat detected.";
-                }
-
-                if (msg.type === 'ping') {
-                    console.debug("Nomad: Keep-alive ping from server.");
-                    // Optional: Send a tiny telemetry pulse back
-                }
-
-                if (msg.type === 'thought') {
-                    // Phase 12.3: Visual hint for dissonance in PWA
-                    if (msg.payload.dissonance) {
-                        UI.transcript.classList.add('dissonance-active');
-                    } else {
-                        UI.transcript.classList.remove('dissonance-active');
+                const data = JSON.parse(event.data);
+                // Bloque 13.1: Native response handling from Ethos Kernel
+                if (data.event_type === "turn_finished") {
+                    const msg = data.payload?.response?.message || "";
+                    if (msg) {
+                        UI.transcript.innerText = msg;
+                        UI.transcript.classList.remove('placeholder');
                     }
                 }
-
-                // Phase 12: Ouroboros TTS with Lip-sync
-                if (msg.type === 'kernel_voice') {
-                    UI.transcript.innerText = `Kernel: ${msg.text}`;
-                    if ('speechSynthesis' in window) {
-                        const utterance = new SpeechSynthesisUtterance(msg.text);
-                        const voices = window.speechSynthesis.getVoices();
-                        // Priority voices for Ethos personality
-                        const preferred = voices.find(v => v.name.includes("Male") || v.name.includes("UK English")) || voices[0];
-                        if(preferred) utterance.voice = preferred;
-                        
-                        utterance.onstart = () => {
-                            UI.orb.classList.add('speaking');
-                            // Notify back to NomadBridge if needed (Phase 12.1)
-                        };
-                        utterance.onend = () => {
-                            UI.orb.classList.remove('speaking');
-                        };
-                        window.speechSynthesis.speak(utterance);
-                    }
-                }
-
-                // Phase 10.5: Real-time Affective Orb Update
-                if (msg.type === 'orb_update') {
-                    console.log("Nomad: Affective shift", msg.archetype);
-                    const v = msg.visuals;
-                    
-                    // Update Orb Appearance
-                    UI.orb.style.backgroundColor = v.color;
-                    UI.orb.style.boxShadow = `0 0 ${20 * v.scale}px ${10 * v.scale}px ${v.color}`;
-                    UI.orb.style.transform = `scale(${v.scale})`;
-                    UI.orb.style.animationDuration = `${v.pulse_s}s`;
-                    
-                    // Update Text for feedback
-                    UI.transcript.innerText = `Limbic State: ${msg.archetype.replace(/_/g, ' ')}`;
-                }
-
-                // Phase 10.2: Haptic Feedback Loop
-                if (msg.type === 'haptic_feedback') {
-                    console.log("Nomad: Haptic Pulse received", msg.payload);
-                    const plans = msg.payload.haptics || [];
-                    plans.forEach(plan => {
-                        if (plan.type === 'vibrate' && plan.pattern && navigator.vibrate) {
-                            navigator.vibrate(plan.pattern);
-                        }
-                    });
-                }
-
-
-            } catch(e) {
-                console.error("Parse error on message", e);
+            } catch (e) {
+                console.warn("Nomad: Chat message parse error", e);
             }
         };
 
@@ -440,18 +447,38 @@ async function connectKernel() {
         };
 
     } catch (e) {
-        alert("Cannot connect to the Ethos Kernel. Are you on the same Wi-Fi?");
+        alert(`Connectivity Error: ${e.message || e}\n\nTroubleshoot:\n1. Ensure you are on the SAME Wi-Fi.\n2. Allow port 8765 in Windows Firewall (PC).\n3. Keep mobile browser 'Shields' off for this IP.`);
         UI.statusText.innerText = "Error";
     }
 }
 
-// Event Listeners
-UI.btnConnect.addEventListener('click', connectKernel);
+// Event Listeners with Safe-Check (Boy Scout Hardening)
+if (UI.btnConnect) {
+ /**
+ * Dispatch typed message to the kernel via /ws/chat
+ */
+function sendNomadChatMessage() {
+    const text = (UI.chatInput.value || "").trim();
+    if (!text || !wsChat || wsChat.readyState !== WebSocket.OPEN) return;
 
+    wsChat.send(JSON.stringify({ text }));
+    UI.transcript.innerText = `...`; // Thinking state
+    UI.chatInput.value = "";
+}
+
+// ── INIT ───────────────────────────────────────────────────────────────────
+UI.btnConnect.addEventListener('click', connectKernel);
 UI.btnStream.addEventListener('click', () => {
-    setAppAffectState('active'); // Transition UI immediately to Active State
-    startSensors(); // Defined in media_engine.js
+    if (typeof startSensors === 'function') startSensors();
+    UI.btnStream.disabled = true;
+    UI.btnStream.innerText = "STREAMING";
 });
+
+UI.btnSend.addEventListener('click', sendNomadChatMessage);
+UI.chatInput.addEventListener('keypress', (e) => {
+    if (e.key === 'Enter') sendNomadChatMessage();
+});
+}
 
 // Expose a function to scale the orb based on audio volume
 window.updateOrbScale = function(volume) {
@@ -481,13 +508,66 @@ UI.btnInstall.addEventListener('click', async () => {
     }
 });
 
+/**
+ * Dispatch typed message to the kernel via /ws/chat
+ */
+function sendNomadChatMessage() {
+    const text = (UI.chatInput.value || "").trim();
+    if (!text || !wsChat || wsChat.readyState !== WebSocket.OPEN) return;
+
+    wsChat.send(JSON.stringify({ text }));
+    UI.transcript.innerText = `...`; // Thinking state
+    UI.chatInput.classList.add('sending');
+    UI.chatInput.value = "";
+    setTimeout(() => UI.chatInput.classList.remove('sending'), 500);
+}
+
+// ── Sensory HUD Updates ──────────────────────────────────────────────────
+function updateHud(type, val) {
+    try {
+        if (type === 'bat' && UI.telBat) UI.telBat.innerText = `${Math.round(val * 100)}%`;
+        if (type === 'temp' && UI.telTemp) UI.telTemp.innerText = `${Math.round(val)}°`;
+        if (type === 'kin' && UI.telKin) UI.telKin.innerText = val.toFixed(1);
+        if (type === 'aud' && UI.telAud) UI.telAud.innerText = val.toFixed(2);
+    } catch(_) {}
+}
+
+// ── INIT ───────────────────────────────────────────────────────────────────
+if (UI.btnConnect) UI.btnConnect.addEventListener('click', connectKernel);
+if (UI.btnStream)  UI.btnStream.addEventListener('click', () => {
+    if (typeof startSensors === 'function') startSensors();
+    UI.btnStream.disabled = true;
+    UI.btnStream.innerText = "STREAMING";
+});
+if (UI.btnSend)    UI.btnSend.addEventListener('click', sendNomadChatMessage);
+if (UI.chatInput)  UI.chatInput.addEventListener('keypress', (e) => {
+    if (e.key === 'Enter') sendNomadChatMessage();
+});
+
+// Update battery in real-time if available
+if ('getBattery' in navigator) {
+    navigator.getBattery().then(bat => {
+        const up = () => updateHud('bat', bat.level);
+        bat.addEventListener('levelchange', up);
+        up();
+    });
+}
+
+// Global Orb Scale
+window.updateOrbScale = function(volume) {
+    if (!UI.orb) return;
+    const s = 1 + (volume * 0.4);
+    UI.orb.style.transform = `scale(${s})`;
+    updateHud('aud', volume);
+};
+
+// ... existing SW registration ...
 if ('serviceWorker' in navigator) {
     window.addEventListener('load', () => {
-        navigator.serviceWorker.register('./sw.js')
+        navigator.serviceWorker.register('./sw.js?v=13.1.5')
             .then(reg => console.log('Nomad Service Worker registered', reg))
             .catch(err => console.error('SW block:', err));
     });
 }
 
-// Initialization
-console.log("Nomad PWA V2.1 Initialized. Waiting for connection.");
+console.log("Nomad PWA V13.1.5 Initialized.");

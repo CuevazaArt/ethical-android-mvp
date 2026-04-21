@@ -56,6 +56,24 @@ class ExecutiveStageResult:
     decision: Optional[Any] = None
 
 @dataclass
+class GestaltSnapshot:
+    """
+    Cognitive Snapshot (Phase 13.3)
+    Freezes the state of the mind and subjective reality at the exact millisecond 
+    a conversation turn begins. Prevents race conditions with asynchronous sensory spikes.
+    """
+    timestamp: float = field(default_factory=time.time)
+    identity_reflection: str = ""
+    sigma: float = 0.5
+    sympathetic_mode: str = "neutral"
+    tension_level: float = 0.0
+    pad_state: tuple[float, float, float] = (0.0, 0.0, 0.0)
+    dominant_archetype: str = "neutral"
+    active_arc_id: Optional[str] = None
+    social_circle: str = "neutral_soto"
+    bayesian_confidence: Optional[float] = None
+
+@dataclass
 class BayesianStageMetadata:
     """Metadata output from STAGE 3: Bayesian Scoring."""
     mixture_posterior_alpha: Optional[tuple[float, float, float]] = None
@@ -194,6 +212,23 @@ class SensorySpike(NervousPulse):
     ref_pulse_id: Optional[str] = None
 
 @dataclass
+class CognitivePulse(NervousPulse):
+    """Mnemonic: Thought formed by Perceptive/Límbico for the Executive to review."""
+    origin_lobe: str = "sensory_cortex"
+    state_ref: Optional[SemanticState] = None
+    ref_pulse_id: Optional[str] = None
+
+@dataclass
+class ThoughtStreamPulse(NervousPulse):
+    """
+    Mnemonic: Fragment of the Inner Voice (Phase 13.3).
+    Streamed out character by character or chunk by chunk during LLM deliberation.
+    """
+    origin_lobe: str = "prefrontal_cortex"
+    chunk: str = ""
+    ref_pulse_id: Optional[str] = None
+
+@dataclass
 class LimbicTensionAlert(NervousPulse):
     """Mnemonic: Reactive alert from Sistema Límbico (Trauma/Tension)."""
     origin_lobe: str = "limbic_system"
@@ -206,6 +241,8 @@ class MotorCommandDispatch(NervousPulse):
     origin_lobe: str = "prefrontal_cortex"
     action_id: str = ""
     is_vetoed: bool = False
+    tone: str = "neutral"
+    gestalt_snapshot: Optional[GestaltSnapshot] = None
     ref_pulse_id: Optional[str] = None
 
 @dataclass

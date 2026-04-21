@@ -47,6 +47,7 @@ class ExecutiveLobe:
         pad_archetypes: Optional[PADArchetypeEngine] = None,
         llm: Optional[LLMModule] = None,
         bus: Optional[CorpusCallosum] = None,
+        memory: Optional[NarrativeMemory] = None,
     ):
         self.absolute_evil = absolute_evil
         self.motivation = motivation
@@ -57,6 +58,7 @@ class ExecutiveLobe:
         self.pad_archetypes = pad_archetypes
         self.llm = llm
         self.bus = bus
+        self.memory = memory
         
         self.ganglia = BasalGanglia() # Smoothing layer
 
@@ -65,6 +67,10 @@ class ExecutiveLobe:
             self.bus.subscribe(SensorySpike, self._on_sensory_event)
             self.bus.subscribe(BayesianEcograde, self._on_bayesian_math_update)
             self.bus.subscribe(CognitivePulse, self._on_cognitive_event)
+            from src.kernel_lobes.models import LimbicTensionAlert
+            self.bus.subscribe(LimbicTensionAlert, self._on_limbic_tension)
+        
+        self._trauma_abort_active = False
 
     def execute_absolute_evil_stage(
         self,
@@ -223,7 +229,8 @@ class ExecutiveLobe:
         conv: str = "",
         identity_context: str = "",
         episode_id: str | None = None,
-    ) -> VerbalResponse:
+        stream_callback: Any = None,
+    ) -> tuple[VerbalResponse, GestaltSnapshot]:
         """
         Generate the final verbal response based on the EthicalSentence from the Limbic Lobe.
         """
@@ -253,6 +260,19 @@ class ExecutiveLobe:
                 _log.error("ExecutiveLobe: Missing decision object in formulate_response.")
                 return VerbalResponse(message="I'm experiencing an internal processing error.", tone="neutral")
 
+            identity_ctx = identity_context
+            if not identity_ctx and self.memory:
+                identity_ctx = self.memory.get_reflection()
+
+            from src.kernel_lobes.models import GestaltSnapshot
+            snapshot = GestaltSnapshot(
+                identity_reflection=identity_ctx,
+                sigma=sympathetic_state.sigma if sympathetic_state else 0.5,
+                sympathetic_mode=sympathetic_state.mode if sympathetic_state else "neutral",
+                pad_state=affect.pad if affect else (0.0, 0.0, 0.0),
+                dominant_archetype=affect.dominant_archetype_id if affect else "neutral"
+            )
+
             response = await self.llm.acommunicate(
                 action=getattr(decision, "final_action", "unknown"),
                 mode=getattr(decision, "decision_mode", "light"),
@@ -265,15 +285,29 @@ class ExecutiveLobe:
                 conversation_context=conv,
                 affect_pad=affect.pad if affect else None,
                 dominant_archetype=affect.dominant_archetype_id if affect else "",
-                identity_context=identity_context,
+                identity_context=identity_ctx,
+                stream_callback=stream_callback,
             )
+
             
             latency = (time.perf_counter() - t0) * 1000
             _log.debug("ExecutiveLobe: Respone formulation took %.2f ms", latency)
-            return response
+            return response, snapshot
             
         except Exception as e:
+            if "Trauma" in str(e):
+                _log.warning("ExecutiveLobe: Deliberation aborted due to Trauma.")
+                return VerbalResponse(message="*system override: sensory shock*", tone="firm"), GestaltSnapshot()
             _log.error("ExecutiveLobe: Error formulating response: %s", e)
+            return VerbalResponse(message="I'm experiencing an internal processing error.", tone="neutral"), GestaltSnapshot()
+    
+    async def _on_limbic_tension(self, alert):
+        """Mnemonic: Reacción visceral paraliza la deliberación actual."""
+        tension = getattr(alert, "tension_load", 0.0)
+        if tension > 0.8:
+            _log.warning(f"Córtex Prefrontal: TRAUMA RECIBIDO ({tension}). Cancelando flujo de pensamientos.")
+            self._trauma_abort_active = True
+
     async def _on_sensory_event(self, spike: SensorySpike):
         """Prefrontal awareness of a new world stimulus."""
         _log.info(f"Córtex Prefrontal: Evaluando respuesta ejecutiva para Spike {spike.pulse_id}")
@@ -303,11 +337,11 @@ class ExecutiveLobe:
                  check = self.absolute_evil.evaluate_chat_text_fast(text)
                  if check.blocked:
                      _log.warning("Córtex Prefrontal: MAL ABSOLUTO detectado en el texto de supervivencia!")
-                     await self.dispatch_volition(action_id="blocked_by_malabs", is_vetoed=True, ref_pulse_id=pulse.ref_pulse_id)
+                     await self.dispatch_volition(response=VerbalResponse(message="blocked_by_malabs", tone="firm"), is_vetoed=True, ref_pulse_id=pulse.ref_pulse_id)
                      return
                  
                  # Default action for sensory timeout
-                 await self.dispatch_volition(action_id="sensory_timeout_fallback", is_vetoed=False, ref_pulse_id=pulse.ref_pulse_id)
+                 await self.dispatch_volition(response=VerbalResponse(message="sensory_timeout_fallback", tone="neutral"), is_vetoed=False, ref_pulse_id=pulse.ref_pulse_id)
                  return
 
             # Perform Full Absolute Evil Check on the text
@@ -318,7 +352,7 @@ class ExecutiveLobe:
             
             if check.blocked:
                 _log.warning(f"Córtex Prefrontal: MAL ABSOLUTO DETECTADO ({getattr(check, 'reason', 'unknown')}). Veto Inmediato.")
-                await self.dispatch_volition(action_id="blocked_by_malabs", is_vetoed=True, ref_pulse_id=pulse.ref_pulse_id)
+                await self.dispatch_volition(response=VerbalResponse(message="blocked_by_malabs", tone="firm"), is_vetoed=True, ref_pulse_id=pulse.ref_pulse_id)
                 return
             
             # ═══ EXECUTIVE DELIBERATION (V13.0) ═══
@@ -330,34 +364,48 @@ class ExecutiveLobe:
             try:
                 # Mock a safe sentence for this iteration, or ingest from Limbic Pulse in future
                 sentence = EthicalSentence(is_safe=True)
+                self._trauma_abort_active = False # Reset abort flag
                 
+                from src.kernel_lobes.models import ThoughtStreamPulse
+                async def _on_chunk(chunk: str):
+                    if self._trauma_abort_active:
+                        raise Exception("Deliberation Preempted by Trauma")
+                    if self.bus:
+                        await self.bus.publish(ThoughtStreamPulse(chunk=chunk, ref_pulse_id=pulse.ref_pulse_id))
+
                 # Formula response with a hard timeout
-                response = await asyncio.wait_for(
+                response, snapshot = await asyncio.wait_for(
                     self.formulate_response(
                         sentence=sentence,
                         decision=None, # Simplified for now
                         user_input=text,
+                        stream_callback=_on_chunk
                     ),
                     timeout=15.0 # Prefrontal timeout
                 )
-                action_id = response.message if response.message else "thought_only"
+
             except Exception as e:
                 _log.error(f"Córtex Prefrontal: Falla en deliberación ejecutiva ({type(e).__name__}). Fallback a modo supervivencia.")
-                action_id = "Internal focus redirection (Survival Mode active)."
+                response = VerbalResponse(message="Internal focus redirection (Survival Mode active).", tone="neutral")
+                from src.kernel_lobes.models import GestaltSnapshot
+                snapshot = GestaltSnapshot()
             
-            _log.info(f"Córtex Prefrontal: Decisión convergida. Despachando Voluntad: {action_id[:30]}...")
-            await self.dispatch_volition(action_id=action_id, is_vetoed=False, ref_pulse_id=pulse.ref_pulse_id)
+            _log.info(f"Córtex Prefrontal: Decisión convergida. Despachando Voluntad: {response.message[:30]}...")
+            await self.dispatch_volition(response=response, snapshot=snapshot, is_vetoed=False, ref_pulse_id=pulse.ref_pulse_id)
 
-    async def dispatch_volition(self, action_id: str, is_vetoed: bool = False, ref_pulse_id: str | None = None):
+    async def dispatch_volition(self, response: VerbalResponse, snapshot: Any = None, is_vetoed: bool = False, ref_pulse_id: str | None = None):
         """Publish the final efferent command to the nervous system."""
         if self.bus:
             import time
+            from src.kernel_lobes.models import MotorCommandDispatch
             dispatch = MotorCommandDispatch(
-                action_id=action_id,
+                action_id=response.message,
                 is_vetoed=is_vetoed,
+                tone=response.tone if not is_vetoed else 'firm',
+                gestalt_snapshot=snapshot,
                 priority=1,
                 timestamp=time.time(),
                 ref_pulse_id=ref_pulse_id
             )
             await self.bus.publish(dispatch)
-            _log.info(f"Córtex Prefrontal: VOLUNTAD DESPACHADA ({action_id}) | Vetoed: {is_vetoed} | Ref: {ref_pulse_id}")
+            _log.info(f"Córtex Prefrontal: VOLUNTAD DESPACHADA ({response.message[:20]}) | Vetoed: {is_vetoed} | Ref: {ref_pulse_id}")

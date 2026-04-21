@@ -6,6 +6,10 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <!-- Theme color for the browser's address bar and OS UI -->
     <meta name="theme-color" content="#0F172A">
+    <!-- Cache-Busting: ensure LAN deployments pick up the latest kernels -->
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
     <title>Ethos Nomad Bridge</title>
     
     <!-- Modern Typefaces: Inter & Outfit -->
@@ -13,7 +17,7 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;600&family=Inter:wght@300;400;600&display=swap" rel="stylesheet">
     
-    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="style.css?v=13.1.5">
     <!-- PWA Manifest stub (for Copilot to complete later) -->
     <link rel="manifest" href="manifest.json">
 </head>
@@ -33,6 +37,7 @@
             <div class="ethical-pulse" id="ethical-heartbeat"></div>
             <div class="telemetry">
                 <span id="battery-level">--%</span> <span class="telemetry-icon">🔋</span>
+                <div style="font-size: 0.5rem; opacity: 0.5; margin-top: 2px;">v13.1.1-L1</div>
             </div>
         </header>
 
@@ -50,16 +55,31 @@
             <p id="charm-transcript" class="transcript placeholder">Esperando inicialización sensorial...</p>
         </section>
 
-        <!-- Control Bar -->
+        <!-- Control Bar (Compact) -->
         <footer class="bottom-controls">
-            <button id="btn-install" class="glass-btn secondary">⬇️ Install App</button>
-            <button id="btn-connect" class="glass-btn primary">Connect Bridge</button>
-            <button id="btn-stream" class="glass-btn inactive" disabled>Start Sensors</button>
+            <!-- Telemetry Grid (New) -->
+            <div class="telemetry-grid glass-panel">
+                <div class="telemetry-item"><span>BT:</span><span id="tel-bat">--</span></div>
+                <div class="telemetry-item"><span>TH:</span><span id="tel-temp">--</span></div>
+                <div class="telemetry-item"><span>KN:</span><span id="tel-kin">0.0</span></div>
+                <div class="telemetry-item"><span>AU:</span><span id="tel-aud">0.0</span></div>
+            </div>
+
+            <!-- Chat Entry (New) -->
+            <div class="chat-entry-container glass-panel">
+                <input type="text" id="chat-input" placeholder="Message Kernel..." autocomplete="off">
+                <button id="btn-send">SEND</button>
+            </div>
+
+            <div class="btn-row">
+                <button id="btn-connect" class="glass-btn primary small">CONNECT</button>
+                <button id="btn-stream" class="glass-btn inactive small" disabled>STREAM</button>
+            </div>
         </footer>
 
     </main>
 
-    <script src="media_engine.js"></script>
-    <script src="app.js"></script>
+    <script src="media_engine.js?v=13.1.5"></script>
+    <script src="app.js?v=13.1.5"></script>
 </body>
 </html>

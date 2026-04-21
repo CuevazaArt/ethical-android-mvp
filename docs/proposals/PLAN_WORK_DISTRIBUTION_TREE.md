@@ -30,6 +30,12 @@ Aquí es donde los agentes de ejecución (LLMs en IDEs) reclaman sus tareas.
 
 ## 🚀 BACKLOG ABIERTO (Próximos Pasos V13.0+)
 
+**Bloque 20.0: Sincronización de Identidad Narrativa (Mind-Sync) [PENDING]**
+- Tarea 20.1: **GestaltSnapshot**: Congelar el estado telemetrico (PAD, sigma) y memoria al momento de invocar al LLM en `ExecutiveLobe` para evitar Race Conditions.
+- Tarea 20.2: **Preempción por Trauma**: Abortar la deliberación asíncrona del LLM si el Talamus emite un pulso perjudicial urgente (daño físico o extremo).
+- Tarea 20.3: **Thought Streaming / Inner Voice**: Emitir `ThoughtStreamPulse` al bus desde la inferencia del LLM para iterar pensamientos en vivo hacia el Dashboard (Dominio 05).
+- Tarea 20.4: **Fusión de Snapshot Temporal**: Acoplar la fotometría `GestaltSnapshot` al contexto persistente de `NarrativeMemory`.
+
 **Bloque 16.0: Refinamiento de la Telemetría y Modulación Neuronal [DONE]**
 - Tarea 16.1: **Visualización de Carga del Bus**: Integración de métricas de latencia de `CorpusCallosum` en el Dashboard Clínico (WebSockets). (Completado: Antigravity)
 - Tarea 16.2: **Throttling Dinámico del Bus**: Implementar lógica en `BusModulator` para ajustar el `asyncio.sleep` de los lóbulos basado en el uso de CPU. (Completado: Antigravity)

@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Ethos | Clinical Telemetry</title>
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg: #0a0a0c;
+            --card-bg: #141417;
+            --text: #e0e0e6;
+            --accent: #ff4d4d; /* Bio-hazard / Critical red */
+            --ok: #4ade80;
+            --warning: #facc15;
+            --border: #2a2a32;
+        }
+        body {
+            background: var(--bg);
+            color: var(--text);
+            font-family: 'JetBrains+Mono', monospace;
+            margin: 0;
+            padding: 20px;
+            overflow-x: hidden;
+        }
+        .header {
+            border-bottom: 2px solid var(--accent);
+            padding-bottom: 10px;
+            margin-bottom: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-end;
+        }
+        h1 { margin: 0; font-size: 1.2rem; letter-spacing: 2px; }
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+        }
+        .stat-card {
+            background: var(--card-bg);
+            border: 1px solid var(--border);
+            padding: 15px;
+            border-radius: 4px;
+            position: relative;
+        }
+        .stat-label { font-size: 0.7rem; color: #888; text-transform: uppercase; margin-bottom: 5px; }
+        .stat-value { font-size: 1.4rem; font-weight: bold; }
+        .stat-value.healthy { color: var(--ok); }
+        .stat-value.unhealthy { color: var(--accent); }
+        .battery-bar {
+            height: 4px;
+            background: #333;
+            margin-top: 8px;
+            border-radius: 2px;
+            overflow: hidden;
+        }
+        .battery-fill { height: 100%; background: var(--ok); transition: width 0.5s; }
+        .queue-item {
+            display: flex;
+            justify-content: space-between;
+            font-size: 0.8rem;
+            margin-bottom: 4px;
+            border-bottom: 1px dashed #333;
+        }
+        .refresh-indicator {
+            font-size: 0.65rem;
+            color: #aaa;
+        }
+        .heartbeat {
+            width: 10px;
+            height: 10px;
+            background: var(--accent);
+            border-radius: 50%;
+            display: inline-block;
+            margin-right: 5px;
+            opacity: 0;
+        }
+        .heartbeat.pulse {
+            animation: pulse-dot 0.5s ease-out;
+        }
+        @keyframes pulse-dot {
+            0% { opacity: 1; transform: scale(1); }
+            100% { opacity: 0; transform: scale(2.5); }
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>[ CLINICAL_V1 ]</h1>
+        <div class="refresh-indicator">SYNCING_NOMAD_LOBE... <span id="hb" class="heartbeat"></span></div>
+    </div>
+    
+    <div class="grid">
+        <div class="stat-card">
+            <div class="stat-label">Vessel Status</div>
+            <div id="vessel-online" class="stat-value">OFFLINE</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-label">Latency (e2e)</div>
+            <div class="stat-value"><span id="latency">-</span><small style="font-size: 0.6em;">ms</small></div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-label">Power Reservoir</div>
+            <div id="battery-val" class="stat-value">--%</div>
+            <div class="battery-bar"><div id="battery-fill" class="battery-fill" style="width: 0%"></div></div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-label">Thermal State</div>
+            <div id="thermal" class="stat-value">--</div>
+        </div>
+    </div>
+
+    <div style="margin-top: 20px;">
+        <div class="stat-label">Neural Queues</div>
+        <div class="stat-card" id="queues-list">
+            <!-- Queues injected here -->
+        </div>
+    </div>
+
+    <div style="margin-top: 20px; font-size: 0.72rem; color: #888;">
+        DEVICE_ID: <span id="vessel-id" style="color: #bbb;">-</span><br>
+        LABEL: <span id="device-label" style="color: #bbb;">-</span>
+    </div>
+
+    <script>
+        async function update() {
+            try {
+                const hb = document.getElementById('hb');
+                hb.classList.add('pulse');
+                setTimeout(() => hb.classList.remove('pulse'), 500);
+
+                const resp = await fetch('/nomad/clinical');
+                const data = await resp.json();
+
+                document.getElementById('vessel-online').textContent = data.vessel_online ? 'CONNECTED' : 'OFFLINE';
+                document.getElementById('vessel-online').className = 'stat-value ' + (data.vessel_online ? 'healthy' : 'unhealthy');
+                
+                document.getElementById('latency').textContent = data.latency_ms;
+                
+                const bat = Math.round((data.battery_fraction || 0) * 100);
+                document.getElementById('battery-val').textContent = bat + '%';
+                document.getElementById('battery-fill').style.width = bat + '%';
+                document.getElementById('battery-fill').style.background = bat < 20 ? 'var(--accent)' : (bat < 50 ? 'var(--warning)' : 'var(--ok)');
+
+                document.getElementById('thermal').textContent = data.thermal_state.toUpperCase();
+                document.getElementById('thermal').style.color = data.thermal_state === 'nominal' ? 'var(--ok)' : 'var(--warning)';
+
+                document.getElementById('vessel-id').textContent = data.vessel_id;
+                document.getElementById('device-label').textContent = data.device_label;
+
+                const qList = document.getElementById('queues-list');
+                qList.innerHTML = '';
+                for (const [name, size] of Object.entries(data.queues)) {
+                    const row = document.createElement('div');
+                    row.className = 'queue-item';
+                    row.innerHTML = `<span>${name.toUpperCase()}</span><span>${size}</span>`;
+                    qList.appendChild(row);
+                }
+
+            } catch (e) {
+                console.error("Sync error", e);
+            }
+        }
+
+        setInterval(update, 1000);
+        update();
+    </script>
+</body>
+</html>

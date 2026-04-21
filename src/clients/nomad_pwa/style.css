@@ -1,11 +1,11 @@
 :root {
-    --bg-dark: #020617;
-    --glass: rgba(15, 23, 42, 0.6);
-    --glass-bright: rgba(255, 255, 255, 0.05);
-    --glass-border: rgba(255, 255, 255, 0.1);
-    --accent-primary: #38bdf8; /* Sky 400 */
-    --accent-secondary: #818cf8; /* Indigo 400 */
-    --accent-danger: #f43f5e; /* Rose 500 */
+    --bg-dark: #0a0a0c;
+    --glass: rgba(255, 255, 255, 0.03);
+    --glass-bright: rgba(255, 255, 255, 0.08);
+    --glass-border: rgba(255, 255, 255, 0.12);
+    --accent-primary: #cbd5e1; /* Slate 300 (Neutral) */
+    --accent-secondary: #64748b; /* Slate 500 */
+    --accent-danger: #ef4444;
     --text-primary: #f8fafc;
     --text-secondary: #94a3b8;
     --font-main: 'Inter', -apple-system, sans-serif;
@@ -91,8 +91,8 @@ body {
 
 .glass-panel {
     background: var(--glass);
-    backdrop-filter: blur(20px) saturate(180%);
-    -webkit-backdrop-filter: blur(20px) saturate(180%);
+    backdrop-filter: blur(8px) saturate(100%);
+    -webkit-backdrop-filter: blur(8px) saturate(100%);
     border: 1px solid var(--glass-border);
     border-radius: 24px;
     padding: 20px;
@@ -127,6 +127,7 @@ body {
     justify-content: space-between;
     align-items: center;
     border-top: 1px solid var(--glass-bright);
+    @media (max-width: 380px) { flex-direction: column; gap: 12px; }
 }
 
 .telemetry {
@@ -286,9 +287,81 @@ body {
 .bottom-controls {
     display: flex;
     flex-direction: column;
-    gap: 12px;
-    margin-bottom: 80px; /* High clearance for OS UI combined with container padding */
+    gap: 8px;
+    margin-bottom: 40px;
     flex-shrink: 0;
+}
+
+.telemetry-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 6px;
+    padding: 8px !important;
+    font-family: var(--font-heading);
+    font-size: 0.65rem;
+    font-weight: 600;
+}
+
+.telemetry-item {
+    display: flex;
+    justify-content: space-between;
+    color: var(--text-secondary);
+}
+
+.telemetry-item span:last-child {
+    color: var(--accent-primary);
+}
+
+.chat-entry-container {
+    display: flex;
+    padding: 4px !important;
+    gap: 4px;
+    border-radius: 12px !important;
+}
+
+#chat-input {
+    flex: 1;
+    background: transparent;
+    border: none;
+    outline: none;
+    color: #fff;
+    padding: 8px;
+    font-size: 0.85rem;
+}
+
+#chat-input.sending {
+    opacity: 0.5;
+    transform: translateX(10px);
+    transition: all 0.2s ease;
+}
+
+.transcript {
+    font-size: 0.9rem;
+    line-height: 1.4;
+    font-weight: 400;
+    color: var(--text-primary);
+    transition: all 0.5s ease;
+}
+
+#btn-send {
+    background: var(--text-primary);
+    color: var(--bg-dark);
+    border: none;
+    border-radius: 8px;
+    padding: 0 12px;
+    font-size: 0.7rem;
+    font-weight: 700;
+}
+
+.btn-row {
+    display: flex;
+    gap: 8px;
+}
+
+.glass-btn.small {
+    flex: 1;
+    padding: 10px;
+    font-size: 0.75rem;
 }
 
 .glass-btn {

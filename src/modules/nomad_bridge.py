@@ -339,28 +339,6 @@ class NomadBridge:
             _log.info("Nomad Bridge: Broadcasting to %d dashboard(s). Latest type: %s", len(self.dashboard_queues), msg.get("type"))
             self._last_broadcast_log = time.time()
 
-    def public_queue_stats(self) -> dict[str, Any]:
-        """Returns key metrics and queue depths for the L0 health monitor.
-
-        Bloque 14.2: includes ``last_rms`` (float [0,1]) and ``vad_speaking`` (bool)
-        so the clinical dashboard can render raw sensor floats without polling the
-        audio broadcast separately.
-        """
-        rms = self.last_rms
-        rms = rms if (isinstance(rms, float) and math.isfinite(rms)) else 0.0
-        return {
-            "vision_queue_depth": self.vision_queue.qsize(),
-            "audio_queue_depth": self.audio_queue.qsize(),
-            "telemetry_queue_depth": self.telemetry_queue.qsize(),
-            "charm_feedback_queue_depth": self.charm_feedback_queue.qsize(),
-            "vessel_online": is_vessel_online(),
-            "vessel_metadata": self.vessel_metadata,
-            "vessel_context": self.vessel_context.to_public_dict(),
-            "last_sensor_update_delta": round(time.time() - self._last_sensor_update, 2),
-            # Bloque 14.2 — clinical raw fields
-            "last_rms": round(rms, 4),
-            "vad_speaking": bool(self.vad_speaking),
-        }
 
     async def _recv_loop(self, ws: WebSocket) -> None:
         frame_count = 0
@@ -522,7 +500,13 @@ class NomadBridge:
                         })
 
                 except Exception as inner_e:
+                    # Starlette/FastAPI: 'Cannot call "receive" once a disconnect message has been received.'
+                    if "disconnect message has been received" in str(inner_e).lower():
+                        _log.info("Nomad Bridge: Handshake loop detected client disconnect.")
+                        break
                     _log.error("Nomad Bridge inner loop error: %s", inner_e)
+                    # For other errors, break the loop to avoid spinning on a broken socket
+                    break
 
         except WebSocketDisconnect:
             pass
