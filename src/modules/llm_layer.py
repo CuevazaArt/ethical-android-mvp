@@ -326,7 +326,7 @@ class LLMModule:
 
     Operating modes:
     - "api": uses Claude API (requires ANTHROPIC_API_KEY)
-    - "ollama": local HTTP server (OLLAMA_BASE_URL, OLLAMA_MODEL default llama3.2:3b); requires httpx
+    - "ollama": local HTTP server (OLLAMA_BASE_URL, OLLAMA_MODEL default llama3.2:1b); requires httpx
     - "local": uses local templates (no API, functional but basic)
     - "auto": tries API, falls back to local if no key. If ``USE_LOCAL_LLM=1``, uses Ollama instead.
 
@@ -348,7 +348,7 @@ class LLMModule:
         self.client = None
         self._aclient_internal = aclient
         self.model = "claude-sonnet-4-20250514"
-        self.ollama_model = os.environ.get("OLLAMA_MODEL", "llama3.2:3b")
+        self.ollama_model = os.environ.get("OLLAMA_MODEL", "llama3.2:1b")
         self._llm_backend: LLMBackend | None = None
         self._verbal_degradation_events: list[dict[str, str]] = []
 
