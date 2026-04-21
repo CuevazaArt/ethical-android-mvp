@@ -46,7 +46,8 @@ class ThalamusNode:
         # EMA Smoothing state
         self._ema_facing = 0.0
         self._ema_presence = 0.0
-        self._alpha = 0.3 # Smoothing factor (biological persistence)
+        self._alpha_base = 0.4 # Base smoothing factor
+        self._presence_history: List[float] = []
 
     def ingest_telemetry(self, payload: Dict[str, Any]):
         """Ingests IMU data to update attentional confidence."""
@@ -58,8 +59,11 @@ class ThalamusNode:
                 beta = 0.0
             target = 1.0 if (45 < beta < 105) else 0.0
             
+            # Dynamic alpha for telemetry based on baseline
+            dynamic_alpha_facing = self._alpha_base
+            
             # Application of EMA for stability (Anti-NaN protected)
-            self._ema_facing = (self._alpha * target) + ((1.0 - self._alpha) * self._ema_facing)
+            self._ema_facing = (dynamic_alpha_facing * target) + ((1.0 - dynamic_alpha_facing) * self._ema_facing)
             if not math.isfinite(self._ema_facing):
                 self._ema_facing = 0.0
             self.state.is_facing_user = self._ema_facing > 0.6
@@ -137,8 +141,21 @@ class ThalamusNode:
         
         sensory_tension = min(1.0, dissonance + env_stress)
 
-        # 4. State Updates (EMA)
-        self._ema_presence = self._alpha * presence + (1.0 - self._alpha) * self._ema_presence
+        # Calculate variance to adjust EMA agility (more noise = more inertia)
+        self._presence_history.append(presence)
+        if len(self._presence_history) > self._max_history:
+            self._presence_history.pop(0)
+            
+        var_presence = 0.0
+        if len(self._presence_history) > 1:
+            mean_p = sum(self._presence_history) / len(self._presence_history)
+            var_presence = sum((x - mean_p) ** 2 for x in self._presence_history) / len(self._presence_history)
+
+        # Dynamic Alpha: lower alpha when variance is high (more smoothing)
+        dynamic_alpha = max(0.05, min(self._alpha_base, self._alpha_base - (var_presence * 2.0)))
+
+        # 4. State Updates (Dynamic EMA)
+        self._ema_presence = dynamic_alpha * presence + (1.0 - dynamic_alpha) * self._ema_presence
         if not math.isfinite(self._ema_presence):
             self._ema_presence = 0.0
         self.state.is_user_present = self._ema_presence > _PRES_THR

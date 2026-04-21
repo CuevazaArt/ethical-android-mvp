@@ -61,9 +61,15 @@ Aquí es donde los agentes de ejecución (LLMs en IDEs) reclaman sus tareas.
 **Bloque 25.0: Cognitive Resilience & Signal Smoothing [COMPLETED]**
 - Tarea 25.1: **Filtro de Butterword en Percepción:** [COMPLETED] Implementar un suavizado de señales de baja frecuencia en `src/kernel_lobes/perception_lobe.py` para evitar oscilaciones rápidas en la clasificación de riesgo ante ruidos momentáneos de Ollama.
 
-**Bloque 26.0: Convergencia de Motivación e Identidad (Anti-Orphan Phase 1) [COMPLETED]**
-- Tarea 26.1: **Reconexión Asíncrona de MemoryLobe:** [COMPLETED] Recuperar el módulo `MemoryLobe` que quedó huérfano en V13. Actualizar `src/kernel.py` para instanciarlo con sus dependencias (`DAOOrchestrator`, `MigrationHub`, etc.) y suscribirlo al `CorpusCallosum` escuchando `MotorCommandDispatch` para ejecutar el audit de memoria y persistencia DAO asíncronamente (eliminando el parche temporal en el Cerebelo).
 - Tarea 26.2: **Corazón Motivacional (Idle Pulses):** [COMPLETED] Recuperar el `MotivationEngine` (Bloque C1) e instanciarlo dentro de `ExecutiveLobe` o kernel. Diseñar un mecanismo (o daemon de fondo) que emita de forma periódica un `ProactivePulse` cuando no haya interacción del usuario, logrando que el androide tenga propósito autónomo.
+
+**Bloque 27.0: Narrative Integrity & Coherence (The "Self-Audit" Cycle) [PENDING]**
+- Tarea 27.1: **Validación de Coherencia de Identidad:** Implementar un servicio en `src/modules/identity_integrity.py` que realice una validación cruzada entre el `IdentityManifest` (valores estáticos) y los últimos episodios de `NarrativeMemory` (valores empíricos), detectando derivas éticas o "traumas" no procesados.
+- Tarea 27.2: **Dashboard de Motivación:** Crear una extensión en el Visual Dashboard (`scripts/eval/visual_dashboard.py`) para monitorear en tiempo real los drives del `MotivationEngine` (Curiosidad, Integridad, Reparación Social).
+
+**Bloque 28.0: Somatic Refinement (Nervous System Jitter Management) [COMPLETED]**
+- Tarea 28.1: **Agility EMA (Dynamic Smoothing):** [COMPLETED] Refactorizar `ThalamusNode` para que el factor de suavizado `_alpha` no sea estático, sino que se ajuste dinámicamente según la varianza de la señal entrante (mayor ruido = mayor inercia sensorial).
+
 
 ---
 
@@ -75,6 +81,10 @@ Aquí es donde los agentes de ejecución (LLMs en IDEs) reclaman sus tareas.
 
 **Bloque B.5: Hardening de ThalamusNode [COMPLETED]**
 - Tarea B.5.1: Añadir validaciones `math.isfinite()` en todos los cálculos de EMA y Fusión Sensorial en `src/kernel_lobes/thalamus_node.py` para prevenir envenenamiento de confianza por NaNs. [DONE]
+
+**Bloque B.6: L1-AUDIT-PULSE (Security Enforcement) [COMPLETED]**
+- Tarea B.6.1: [DONE] Ejecutar obligatoriamente `python scripts/eval/adversarial_suite.py` tras completar 3 bloques (24, 25, 26). Resultados: 6/6 PASS. Ref: cfedbd7a.
+
 
 ---
 

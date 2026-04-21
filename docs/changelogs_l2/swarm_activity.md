@@ -934,3 +934,11 @@ This file is automatically managed by `scripts/swarm_sync.py`.
   - `src/kernel.py`
   - `src/kernel_lobes/cerebellum_lobe.py`
   - `src/kernel_lobes/memory_lobe.py`
+
+### 🛠️ Execution | Date: 2026-04-21 13:18:04 | Author: Antigravity/Swarm
+- **Block:** `28.0`
+- **Message:** Implemented Dynamic EMA Smoothing in ThalamusNode (Agility EMA). The alpha factor now scales dynamically based on incoming signal variance to provide jitter management and sensory inertia.
+- **Files Modified:**
+  - `docs/proposals/PLAN_WORK_DISTRIBUTION_TREE.md`
+  - `src/kernel_lobes/thalamus_node.py`
+  - `src/modules/motivation_engine.py`
