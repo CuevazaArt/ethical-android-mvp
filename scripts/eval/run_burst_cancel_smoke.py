@@ -26,7 +26,7 @@ def main() -> int:
             completion_delay_s=args.delay,
             join_timeout_s=args.join_timeout,
         )
-    except RuntimeError as exc:
+    except (RuntimeError, ValueError, TypeError) as exc:
         print(exc, file=sys.stderr)
         return 1
     print(f"burst_cancel_smoke ok workers={args.workers}")

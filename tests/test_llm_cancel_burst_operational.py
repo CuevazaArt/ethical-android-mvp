@@ -17,6 +17,11 @@ from src.modules.llm_cancel_burst import run_burst_cancel_smoke
 from src.real_time_bridge import _async_chat_llm_http_enabled
 
 
+def test_run_burst_cancel_smoke_rejects_nonfinite_completion_delay() -> None:
+    with pytest.raises(ValueError, match="completion_delay_s"):
+        run_burst_cancel_smoke(n_workers=2, completion_delay_s=float("nan"), join_timeout_s=2.0)
+
+
 def test_llm_cancel_burst_async_and_env_smoke(monkeypatch: pytest.MonkeyPatch) -> None:
     """Concurrent cancels + asyncio wait_for + KERNEL_CHAT_ASYNC_LLM_HTTP toggle."""
     run_burst_cancel_smoke(n_workers=8, completion_delay_s=1.0)
@@ -32,6 +37,73 @@ def test_llm_cancel_burst_async_and_env_smoke(monkeypatch: pytest.MonkeyPatch) -
     assert _async_chat_llm_http_enabled() is False
     monkeypatch.setenv("KERNEL_CHAT_ASYNC_LLM_HTTP", "1")
     assert _async_chat_llm_http_enabled() is True
+
+
+def test_run_burst_cancel_smoke_rejects_bad_numeric_params() -> None:
+    bad: list[dict[str, int | float | bool]] = [
+        {
+            "n_workers": 0,
+            "completion_delay_s": 1.0,
+            "join_timeout_s": 2.0,
+            "cancel_after_s": 0.0,
+        },
+        {
+            "n_workers": True,  # type: ignore[dict-item]
+            "completion_delay_s": 1.0,
+            "join_timeout_s": 2.0,
+            "cancel_after_s": 0.0,
+        },
+        {
+            "n_workers": 1.0,  # type: ignore[dict-item]
+            "completion_delay_s": 1.0,
+            "join_timeout_s": 2.0,
+            "cancel_after_s": 0.0,
+        },
+        {
+            "n_workers": 1,
+            "completion_delay_s": float("nan"),
+            "join_timeout_s": 2.0,
+            "cancel_after_s": 0.0,
+        },
+        {
+            "n_workers": 1,
+            "completion_delay_s": 1.0,
+            "join_timeout_s": float("inf"),
+            "cancel_after_s": 0.0,
+        },
+        {
+            "n_workers": 1,
+            "completion_delay_s": 1.0,
+            "join_timeout_s": 2.0,
+            "cancel_after_s": -0.01,
+        },
+        {
+            "n_workers": 1,
+            "completion_delay_s": -0.5,
+            "join_timeout_s": 2.0,
+            "cancel_after_s": 0.0,
+        },
+        {
+            "n_workers": 10_000,
+            "completion_delay_s": 1.0,
+            "join_timeout_s": 2.0,
+            "cancel_after_s": 0.0,
+        },
+        {
+            "n_workers": 1,
+            "completion_delay_s": 1.0,
+            "join_timeout_s": 2.0,
+            "cancel_after_s": float("nan"),
+        },
+    ]
+    for case in bad:
+        with pytest.raises((ValueError, TypeError)):
+            run_burst_cancel_smoke(
+                n_workers=case["n_workers"],
+                completion_delay_s=case["completion_delay_s"],
+                join_timeout_s=case["join_timeout_s"],
+                cancel_after_s=case["cancel_after_s"],
+            )
 
 
 def test_kernel_abandon_and_cooperative_abort() -> None:
