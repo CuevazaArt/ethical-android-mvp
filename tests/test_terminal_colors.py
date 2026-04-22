@@ -8,11 +8,19 @@ import pytest
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
 
 from src.utils.terminal_colors import (
+    _DEFAULT_SEP_WIDTH,
     _MAX_HEADER_BAR,
     Term,
     _clamped_header_bar_width,
     _enable_windows_ansi,
 )
+
+
+def test_default_sep_width_export_matches_base_class():
+    """Module default bar width is public (8.1.27) — same integer as :attr:`Term.SEP_WIDTH` for the stock class."""
+    assert isinstance(_DEFAULT_SEP_WIDTH, int)
+    assert _DEFAULT_SEP_WIDTH >= 1
+    assert _DEFAULT_SEP_WIDTH == Term.SEP_WIDTH
 
 
 def test_header_subheader_plain_when_color_off(monkeypatch):
@@ -73,6 +81,19 @@ def test_highlight_decision_whitespace_trim_and_empty(monkeypatch):
     assert "?" in h3
     h4 = Term.highlight_decision(None)
     assert "?" in h4
+
+
+def test_subheader_coercion_matches_decision_contract(monkeypatch: pytest.MonkeyPatch) -> None:
+    """Plan 8.1.28 — :meth:`Term.subheader` accepts ``object`` like :meth:`highlight_decision`."""
+    monkeypatch.setenv("KERNEL_TERM_COLOR", "1")
+    s0 = Term.subheader(None)
+    assert "?" in s0
+    s1 = Term.subheader("  Section  ")
+    assert "Section" in s1
+    s2 = Term.subheader("   \t  ")
+    assert "?" in s2
+    s3 = Term.subheader(42)
+    assert "42" in s3
 
 
 def test_highlight_impact_brackets_float():
@@ -142,6 +163,12 @@ def test_clamped_header_bar_width_is_public_and_matches_header_logic() -> None:
     assert _clamped_header_bar_width("  40  ", default=Term.SEP_WIDTH) == 40
     assert _clamped_header_bar_width(40, default=Term.SEP_WIDTH) == 40
     assert _clamped_header_bar_width(9_999, default=Term.SEP_WIDTH) == _MAX_HEADER_BAR
+
+
+def test_clamped_header_bar_width_saturates_default_on_invalid_raw() -> None:
+    """Oversized *default* must not win on bool/``None`` paths (Pragmatismo 8.1.27, defense in depth)."""
+    assert _clamped_header_bar_width(True, default=9_999) == _MAX_HEADER_BAR
+    assert _clamped_header_bar_width(None, default=9_999) == _MAX_HEADER_BAR
 
 
 def test_rule_heavy_and_light_respect_clamped_width(monkeypatch) -> None:

@@ -22,12 +22,18 @@ _log = logging.getLogger(__name__)
 
 # Operator / tests: ``Term`` is the public API; width helpers keep demo scripts aligned with
 # the same anti-DoS / finitude rules as :meth:`Term.header` (V4.0 / Pragmatismo).
-__all__ = ("Term", "_MAX_HEADER_BAR", "_clamped_header_bar_width")
+__all__ = ("Term", "_DEFAULT_SEP_WIDTH", "_MAX_HEADER_BAR", "_clamped_header_bar_width")
 
 # ``Term.header`` bar length cap (operator / demo scripts; avoids pathological ``"═" * n``).
 _MAX_HEADER_BAR = 512
 # Default class separator width (rules + :meth:`Term.header`); single source to avoid magic ``70`` drift.
+# Exported in :data:`__all__` for operator scripts and integration gates (same value as :attr:`Term.SEP_WIDTH` on the base class).
 _DEFAULT_SEP_WIDTH = 70
+
+
+def _saturate_bar_width(n: int) -> int:
+    """Integral bar width in ``[1, _MAX_HEADER_BAR]`` (all exit paths, including *default*)."""
+    return min(_MAX_HEADER_BAR, max(1, n))
 
 
 def _clamped_header_bar_width(raw: object, *, default: int) -> int:
@@ -38,48 +44,51 @@ def _clamped_header_bar_width(raw: object, *, default: int) -> int:
     string forms that do not parse to a finite scalar. The **plain ``int``** path never calls
     ``float(n)`` on the width: huge integers would otherwise turn into ``inf`` and erase the
     bar (V4.0 / Harden-In-Place).
+
+    Fallbacks that return *default* are passed through :func:`_saturate_bar_width` so callers
+    cannot bypass the cap with an oversized *default* (8.1.27).
     """
     if isinstance(raw, bool) or raw is None:
-        return default
+        return _saturate_bar_width(default)
     if isinstance(raw, int):
         w = raw
         if w < 1:
             w = 1
-        return min(_MAX_HEADER_BAR, w)
+        return _saturate_bar_width(w)
     if isinstance(raw, float):
         if not math.isfinite(raw):
-            return default
+            return _saturate_bar_width(default)
         try:
             w = int(raw)
         except (TypeError, ValueError, OverflowError):
-            return default
+            return _saturate_bar_width(default)
         if w < 1:
             w = 1
-        return min(_MAX_HEADER_BAR, w)
+        return _saturate_bar_width(w)
     if isinstance(raw, str):
         s = raw.strip()
         if not s:
-            return default
+            return _saturate_bar_width(default)
         try:
             f = float(s)
         except (TypeError, ValueError, OverflowError):
-            return default
+            return _saturate_bar_width(default)
         if not math.isfinite(f):
-            return default
+            return _saturate_bar_width(default)
         try:
             w = int(f)
         except (TypeError, ValueError, OverflowError):
-            return default
+            return _saturate_bar_width(default)
         if w < 1:
             w = 1
-        return min(_MAX_HEADER_BAR, w)
+        return _saturate_bar_width(w)
     try:
         w = operator.index(raw)
     except (TypeError, ValueError, OverflowError):
-        return default
+        return _saturate_bar_width(default)
     if w < 1:
         w = 1
-    return min(_MAX_HEADER_BAR, w)
+    return _saturate_bar_width(w)
 
 
 def _enable_windows_ansi() -> None:
@@ -148,10 +157,11 @@ class Term:
     BG_BLUE = "\033[44m"
 
     @classmethod
-    def color(cls, text: str, color_code: str) -> str:
+    def color(cls, text: object, color_code: str) -> str:
         if not _colors_enabled():
-            return text
-        return f"{color_code}{text}{cls.RESET}"
+            return str(text) if not isinstance(text, str) else text
+        t = text if isinstance(text, str) else str(text)
+        return f"{color_code}{t}{cls.RESET}"
 
     @classmethod
     def _rule_width(cls) -> int:
@@ -248,8 +258,15 @@ class Term:
         return f"\n{bar}\n{line}\n{bar}"
 
     @classmethod
-    def subheader(cls, title: str) -> str:
-        """Secondary section line under a header."""
+    def subheader(cls, title: object) -> str:
+        """Secondary section line under a header (operator demo; *title* coerced like :meth:`highlight_decision`)."""
+        try:
+            s = str(title).strip() if title is not None else ""
+        except (TypeError, ValueError):
+            s = ""
         prefix = cls.color("▸", cls.DIM)
-        label = cls.color(title.strip(), cls.CYAN + cls.BOLD)
+        if not s:
+            label = cls.color("?", cls.DIM)
+        else:
+            label = cls.color(s, cls.CYAN + cls.BOLD)
         return f"\n  {prefix} {label}"
