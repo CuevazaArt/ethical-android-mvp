@@ -6,9 +6,14 @@ This document tracks the visual evolution of the Tri-Lobe core. **AI Agents MUST
 
 ```mermaid
 graph TD
-    User([User Chat Input]) --> Thalamus[Thalamus Lobe]
-    Sensors[(Sensors: Vision/Audio)] --> PL[Perceptive Lobe]
+    User([User Chat Input]) --> Thalamus[Thalamus Lobe - L0]
+    Sensors[(Sensors: Vision/Audio)] --> PL[Perceptive Lobe - L1]
     
+    subgraph "Kernel Central"
+        K[EthosKernel]
+        K -- "ProactivePulse (45s)" --> CC
+    end
+
     subgraph "Nervous System (Asynchronous Bus)"
         CC{{"Corpus Callosum (Event Bus)"}}
     end
@@ -16,17 +21,22 @@ graph TD
     Thalamus -- "SensorySpike" --> CC
     PL -- "CognitivePulse" --> CC
     
-    CC -- "Sensory/Cognitive" --> LL[Limbic Lobe]
-    CC -- "SensorySpike" --> CL[Cerebellum Lobe]
+    CC -- "Sensory/Cognitive" --> LL[Limbic Lobe - L2]
+    CC -- "SensorySpike" --> CL[Cerebellum Lobe - L4]
     CL -- "BayesianEcograde" --> CC
     
-    CC -- "Cognitive/Bayesian" --> EL[Executive Lobe]
+    CC -- "Cognitive/Bayesian" --> EL[Executive Lobe - L3]
     EL -- "MotorCommand" --> CC
+    EL -- "Drives/Curiosity" --> ME[Motivation Engine]
+    ME -- "ProactiveIntent" --> EL
     
+    CC -- "Sensory/Motor" --> ML[Memory Lobe - L5]
+    ML -- "Biographic/DAO/Identity" --> CC
+
     CC -- "MotorCommand" --> Output[/System Response/]
     
-    CC -- "Veto/Trauma" --> Trauma[Identity Trauma Module]
-    CC -- "Logging" --> DB[(Persistent Audit Ledger)]
+    CC -- "Veto/Trauma" --> Trauma[Identity Integrity Manager]
+    CC -- "Audit" --> DB[(Distributed Justice Ledger)]
 ```
 
 ## System Dependencies

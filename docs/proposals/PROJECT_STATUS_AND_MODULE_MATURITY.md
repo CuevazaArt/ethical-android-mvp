@@ -10,15 +10,15 @@ This document summarizes **where** the Ethos Kernel MVP stands today and gives a
 
 | Dimension | Status |
 |-------------|--------|
-| **Ethical core** | MalAbs → buffer → Bayes → poles → will pipeline; decisions covered by invariant tests. |
-| **Real-time chat** | WebSocket `/ws/chat`, MalAbs text + validated perception (Pydantic/coherence), advisory layers behind flags. |
-| **Input trust** | MalAbs lexical first; optional semantic layers (embeddings / LLM arbiter); bounded perception and field coherence. |
-| **User model (light ToM)** | Phases A–C implemented: cognitive patterns, risk band, judicial phase for tone, persistence in snapshot. |
-| **Justice / DAO (demo)** | Per-session escalation, mock dossier, optional simulated tribunal; **off-chain** governance in this repo. |
-| **Persistence** | `KernelSnapshotV1` (schema v3 with backward-compatible new fields), JSON optionally Fernet. |
-| **Operations** | Many `KERNEL_*` variables; named profiles in `runtime_profiles.py`; policy in `KERNEL_ENV_POLICY.md`. |
+| **Ethical core** | **Distributed Tri-Lobe (V13):** Orchestrated by `CorpusCallosum` bus across 5 autonomous lobes (L0-L5). |
+| **Real-time chat** | **Nomadic Autonomy (V13.1):** Zero-API voice responses (TTS) and proactive intents via MotivationEngine. |
+| **Input trust** | Lexical + Semantic MalAbs (distributec); hardened vision (BGR to RGB) and Agility EMA smoothing. |
+| **User model (ToM)** | Integrated into the Executive Lobe; checked against Identity Integrity for narrative coherence. |
+| **Justice / DAO (demo)** | **Memory Lobe (L5):** Persistent DAO/Reputation audit ledger integrated into the nervous bus. |
+| **Persistence** | Distributed biographic pruning and biographic identity snapshots. |
+| **Operations** | `KERNEL_TRI_LOBE_ENABLED=1` for async distributed mode; `KERNEL_NOMAD_MODE=1` for field operation. |
 
-**Takeaway:** the product is a **demonstration and research runtime** with auditable traces; it is not a content-moderation product or a legal certification system.
+**Takeaway:** the system has evolved from a monolithic research prototype into a **distributed, self-driven autonomous agent architecture** ready for nomadic field testing on mobile hardware.
 
 ---
 

@@ -256,6 +256,16 @@ Governance track: **artificial social contract** metaphor — owner insistence i
 
 ---
 
+## v13.0 — April 2026 | Distributed Nervous System (The Guillotine)
+
+Full decoupling of the monolithic `src/kernel.py` into 5 asynchronous mnemonic lobes orchestrated by the `CorpusCallosum` event bus. Transition from sequential execution to parallel cognitive pulses with standardized `ref_pulse_id` traceability and latency telemetry.
+
+## v13.1 — April 2026 | Nomadic Autonomy & Morphological Readiness
+
+Transition to field-ready autonomous operation. Integrated the `MotivationEngine` and proactive intents (daemon loop). Hardened sensory feeds with BGR→RGB vision correction and dynamic Agility EMA smoothing. Implemented Zero-API voice responses via native Web Speech API in the Nomad frontline.
+
+---
+
 ## Nine canonical simulation scenarios (v2 origins)
 
 The batch runner (`python -m src.main`) still exercises these nine fixed scenarios of increasing ethical complexity, plus a **random situation generator** (new scenario each run). This table is the historical catalog; it is not the primary story of the project today (runtime, WebSocket, and governance hooks — see `README.md` and v6+ sections above).

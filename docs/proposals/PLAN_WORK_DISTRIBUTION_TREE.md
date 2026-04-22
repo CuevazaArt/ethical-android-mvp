@@ -34,7 +34,7 @@ Aquí es donde los agentes de ejecución (LLMs en IDEs) reclaman sus tareas.
 ## 🚀 BACKLOG ABIERTO (Próximos Pasos V14.0: Encarnación Conversacional Nómada)
 
 > **PROMPT DE ARRANQUE PARA AGENTES L2 (BOY SCOUTS):**
-> *"Estás autorizado bajo la política de Pragmatismo Anónimo. El monolito ha sido abolido y la infraestructura asíncrona V13.0 está estable. Tu objetivo primordial absoluto ahora es consolidar el **Bloque 20.0 y 21.0**: la fluidez de interacción usando estrictamente LLMs locales (Ollama), desvinculándonos de dependencias API cerradas, y dotando a la matriz del Cerebelo de una identidad biográfica persistente. **Instrucciones:** Toma un ticket de `V14.0`, enfócate en el código (Python en `src/`), asume 100% de propiedad, y termina tu sesión ejecutando `python scripts/swarm_sync.py --msg '...'`. ¡Ejecuta!"*
+> *"Estás autorizado bajo la política de Pragmatismo Anónimo. La infraestructura V13.1 (Nomadic Autonomy) está estabilizada. Tu objetivo primordial ahora es el **Bloque 30.0**: implementar la **Memoria Narrativa Recursiva (P3)**. El androide debe ser capaz de destilar sus episodios en predicados de identidad para sobrevivir a despliegues móviles de larga duración sin saturar RAM. **Instrucciones:** Implementa el destilador, intégralo en el ciclo de sueño, y termina ejecutando `python scripts/swarm_sync.py --msg '...'`. ¡Ejecuta!"*
 
 **Bloque 20.0: Local Conversational Matrix (Zero-API Fluency) [COMPLETED]**
 - Tarea 20.1: **Desacoplamiento Estricto Comercial:** [COMPLETED] Refactorizar el backend de percepción y decisión para enrutar el 100% de `process_chat_turn` hacia `OllamaLLMBackend`. 
@@ -70,9 +70,13 @@ Aquí es donde los agentes de ejecución (LLMs en IDEs) reclaman sus tareas.
 **Bloque 28.0: Somatic Refinement (Nervous System Jitter Management) [COMPLETED]**
 - Tarea 28.1: **Agility EMA (Dynamic Smoothing):** [COMPLETED] Refactorizar `ThalamusNode` para que el factor de suavizado `_alpha` no sea estático, sino que se ajuste dinámicamente según la varianza de la señal entrante (mayor ruido = mayor inercia sensorial).
 
-**Bloque 29.0: Nomadic Field Readiness (Voice & Vision) [PENDING]**
-- Tarea 29.1: **Corrección "Velo Azul" (Visión OpenCV):** Implementar la conversión de BGR a RGB en la capa de hardware local de `src/modules/vision_capture.py` antes de que el frame ingrese al pipeline sensorial.
-- Tarea 29.2: **Respuestas a Viva Voz (Web Speech API):** Integrar la síntesis de voz nativa del navegador en el cliente móvil (`src/static/phone_relay.html`) para que las directivas y el chat del modelo sean vocalizados en tiempo real por el sistema operativo huésped, filtrando marcas de markdown y permitiendo la operación Zero-API e independiente.
+**Bloque 29.0: Nomadic Field Readiness (Voice & Vision) [COMPLETED]**
+- Tarea 29.1: **Corrección "Velo Azul" (Visión OpenCV):** [COMPLETED] Implementar la conversión de BGR a RGB en la capa de hardware local de `src/modules/vision_capture.py` antes de que el frame ingrese al pipeline sensorial.
+- Tarea 29.2: **Respuestas a Viva Voz (Web Speech API):** [COMPLETED] Integrar la síntesis de voz nativa del navegador en el cliente móvil (`src/static/phone_relay.html`) para que las directivas y el chat del modelo sean vocalizados en tiempo real por el sistema operativo huésped, filtrando marcas de markdown y permitiendo la operación Zero-API e independiente.
+
+**Bloque 30.0: Recursive Narrative Memory (P3) [PENDING]**
+- Tarea 30.1: **Destilador Episódico:** Implementar `NarrativeEpisodicSummarizer` en `src/modules/narrative.py`. El sistema debe ser capaz de colapsar hilos de 20+ episodios en un solo "Predicado de Identidad" para ahorrar memoria en hardware nómada.
+- Tarea 30.2: **Auto-Reflexión de Identidad:** Integrar el destilador en el ciclo de `LimbicSleep`. Cada vez que el sistema "duerme", debe re-escribir su biografía condensada, permitiendo que el núcleo mantenga coherencia de largo plazo sin saturar el bus.
 
 ---
 

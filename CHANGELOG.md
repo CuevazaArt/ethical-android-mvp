@@ -5,8 +5,24 @@ All notable changes to this project are summarized here. For narrative context a
 **Note:** Older sections below may still **link** to paths that were later removed (for example `experiments/million_sim/`, `docs/multimedia/`, root `dashboard.html`, `landing/`). Those links are **historical**; recover files from git history or backup branches if you need them.
 
 **[URGENT — broadcast to all L2 integration hubs]:** All teams (Claude, Cursor, Copilot) should urgently `git pull` from `main` into their `master-*` branches. Outdated branches risk severe documentation path drift.
+## [2026-04-22] Session 20: Nomadic Field Readiness & Voice Synthesis (Ethos V13.1)
+### Added
+- **Ouroboros Voice (Task 29.2):** Integrated native Web Speech API in `phone_relay.html`. The model now vocalizes chat responses and system directives in real-time on mobile devices without external API costs.
+- **Chromodynamics Fix (Task 29.1):** Implemented BGR→RGB conversion in `vision_capture.py`. Resolved the "Blue Veil" artifact in clinical and PWA vision feeds.
+- **Zero-API Field Manual:** Updated `test_chat.py` and `Ollama` documentation to support standalone nomadic operation.
 
-## [2026-04-20] Session 17: Distributed Nervous System & Monolith Guillotine (Ethos V13.0)
+## [2026-04-21] Session 19: Narrative Integrity & Somatic Refinement
+### Added
+- **Agility EMA (Task 28.1):** Implemented dynamic signal smoothing in `ThalamusNode`. The nervous system now adjusts sensory inertia based on input variance to mitigate jitter in unstable environments.
+- **Self-Audit Cycle (Task 27.1):** Integrated `validate_narrative_coherence` in `IdentityIntegrityManager`. The brain now autonomously detects ethical drift between the birth manifest and empirical memory.
+- **Motivational Telemetry (Task 27.2):** Extended the `visual_dashboard.py` to monitor real-time Motivation Engine drives.
+
+## [2026-04-21] Session 18: Cognitive Autonomy & Purpose (Bloque 26.0)
+### Added
+- **Memory Lobe (Task 26.1):** Fully integrated `MemoryLobe` (Lobe 5) into the Nervous System Bus. Centralized DAO, Identity, and Biographic Pruning as a distributed cognitive organ.
+- **Motivation Engine (Task 26.2):** Restored and hardened the `MotivationEngine`. 
+- **Proactive Daemon:** Implemented `_proactive_daemon_loop` in `EthosKernel`. The android now generates autonomous intents every 45s during idle cycles.
+
 ### Added/Integrated
 - **The Guillotine (Phase C):** Obliterated the monolithic `src/kernel.py` God Class. Replaced it with `EthosKernel`, a distributed facade that orchestrates 4 asynchronous mnemonic lobes.
 - **Nervous System Bus:** Integrated `CorpusCallosum` (Event Bus) as the primary cognitive transport layer.

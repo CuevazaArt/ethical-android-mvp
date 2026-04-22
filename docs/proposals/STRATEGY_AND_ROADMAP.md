@@ -50,13 +50,13 @@ The previous roadmap still prioritized features (metaplan, generative LLM, swarm
 
 | Priority | Focus | Goal |
 |----------|--------|------|
-| **P0 (DONE)** | **Nomad Hardware Bridge & Situated Inference** | **Status: Stabilized.** LAN WebSocket link for smartphone sensors is functional and validated with sim-harness. |
-| **P1 (DONE)** | **Asynchronous Fortification & Locks** | **Status: Implementada.** SQLite WAL mode, async LLM HTTP clients, and cooperative cancellation are active. |
-| **P2 (DONE)** | **Ouroboros (Audio / TTS Bridge)** | **Status: Stabilized.** Real-time streaming voice, haptics and Dissonance Alerts active. |
-| **P3** | **Recursive Narrative Memory (Phase 13)** | **New Priority.** Chronic distillation of episodic memory into recursive high-level summaries. |
+| **P0 (DONE)** | **Distributed Tri-Lobe Brain (V13)** | **Status: Stabilized.** Full decoupling of the monolithic kernel into 5 autonomous mnemonic lobes (L0-L5). |
+| **P1 (DONE)** | **Nomadic Autonomy (V13.1)** | **Status: Stabilized.** Proactive intents (MotivationEngine), BGR→RGB vision fix, and native mobile TTS (Ouroboros). |
+| **P2 (DONE)** | **Somatic Jitter & Hardening** | **Status: Stabilized.** Agility EMA smoothing, Self-Audit coherence cycles, and numerical safety (Anti-NaN). |
+| **P3** | **Recursive Narrative Memory (Phase 13)** | **New Priority.** Chronic distillation of episodic memory into recursive high-level summaries for long-term identity stability. |
 | **P4** | Swarm & P2P Justice Scaling | Resuming after Memory consolidation; Swarm logic validated locally. |
 
-**Next task executed as the P2 gap closure:** Implementation of the Audio/TTS feedback loop (Ouroboros) and Narrative continuity protocols.
+**Next task executed as the P2 gap closure:** Implementation of the Nomadic Field Readiness (Voice & Vision) and high-frequency somatic smoothing.
 
 ### 3.1 Recommended delivery order (robustness → physical reality → demo)
 
