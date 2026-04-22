@@ -14,7 +14,6 @@ from fastapi import FastAPI
 from fastapi.staticfiles import StaticFiles
 
 from src.observability.middleware import RequestContextMiddleware
-from src.runtime.chat_feature_flags import coerce_public_int
 from src.runtime.chat_lifecycle import api_docs_enabled, chat_lifespan
 from src.runtime_profiles import apply_named_runtime_profile_to_environ
 from src.server.routes_field_control import router as field_control_http_router
@@ -47,6 +46,7 @@ app.add_middleware(RequestContextMiddleware)
 
 # ══ Sub-App Mounting ══
 from src.modules.nomad_bridge import get_nomad_bridge
+
 app.mount("/nomad_bridge", get_nomad_bridge().app)
 
 # ══ Route Inclusion ══
@@ -70,6 +70,7 @@ if os.path.exists(nomad_pwa_path):
 try:
     if os.environ.get("KERNEL_METRICS", "1").strip().lower() in ("1", "true", "on"):
         from prometheus_client import make_asgi_app
+
         metrics_app = make_asgi_app()
         app.mount("/metrics", metrics_app)
         logger.info("Prometheus metrics endpoint mounted at /metrics")

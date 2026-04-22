@@ -74,11 +74,11 @@ Aquí es donde los agentes de ejecución (LLMs en IDEs) reclaman sus tareas.
 - [x] Tarea 35.3: **Eliminar `kernel_legacy_v12.py`:** Borrar el archivo (y su alias `ethical_kernel_batch.py`) y validar que CI pasa sin él.
 - [x] Tarea 35.4: **Limpiar `kernel_components.py`:** Eliminar campo `augenesis: AugenesisEngine | None = None` and el import correspondiente.
 
-**Bloque 36.0: Poda Documental y Archivo de Propuestas Obsoletas [DONE]**
-- [x] Tarea 36.1: **Clasificar propuestas:** Mover propuestas implementadas/rechazadas/superadas a `docs/proposals/archived/` (estimado: ~120 de 149).
-- [x] Tarea 36.2: **Consolidar duplicados:** Eliminar o fusionar documentos con nombres casi idénticos (ej. `PROPOSAL_NOMADIC_CONSCIOUSNESS_HAL.md` vs `PROPOSAL_NOMAD_CONSCIOUSNESS_HAL.md`).
-- [x] Tarea 36.3: **Índice activo:** Crear `docs/proposals/INDEX.md` con solo las propuestas vigentes y su estado.
-- [x] Tarea 36.4: **Purga de retórica:** En los 15+ documentos que mencionan "consciousness", "soul", "sentient", añadir disclaimer claro de que es aspiracional, no implementado.
+**Bloque 36.0: Poda Documental y Archivo de Propuestas Obsoletas [PENDING]**
+- Tarea 36.1: **Clasificar propuestas:** Mover propuestas implementadas/rechazadas/superadas a `docs/proposals/archived/` (estimado: ~120 de 149) — *incremental;* ver [archived/README.md](archived/README.md). [INCREMENTAL] `PULSE_SYNC_2026-04-17` (pre-merge) en `archived/` + *stub* de redirección.
+- Tarea 36.2: **Consolidar duplicados:** NOMAD HAL: inglés canónico `PROPOSAL_NOMAD_CONSCIOUSNESS_HAL.md`; *stub* en `PROPUESTA_CONCIENCIA_NOMADA_HAL.md`. Búsqueda de otros pares: olas futuras.
+- Tarea 36.3: [COMPLETED] `docs/proposals/INDEX.md` (navegación, PLAN, disclaimer, política de archivo); [archived/README.md](archived/README.md) (`git mv` incremental).
+- Tarea 36.4: [PARCIAL] `ASPIRATIONAL_DISCLAIMER.md` + enlaces desde INDEX/README; faltan ediciones puntuales en 15+ documentos con lenguaje aspiracional.
 
 **Bloque 20.0: Local Conversational Matrix (Zero-API Fluency) [DONE]**
 - Tarea 20.1: **Desacoplamiento Estricto Comercial:** [COMPLETED] Refactorizar el backend de percepción y decisión para enrutar el 100% de `process_chat_turn` hacia `OllamaLLMBackend`. 
