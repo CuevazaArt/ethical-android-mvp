@@ -14,6 +14,9 @@ from dataclasses import dataclass
 from unittest.mock import MagicMock, patch
 
 import numpy as np
+import pytest
+
+pytest.importorskip("torch")
 
 # ---------------------------------------------------------------------------
 # 12.1 — RGB/BGR fix in MobileNetV2Adapter.infer()
