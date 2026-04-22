@@ -29,6 +29,18 @@ class IdentityManifest:
         "Designed to maintain moral agency in hardware-limited environments."
     )
     operational_status: str = "NOMADIC_ACTIVE"
+    evolving_backstory: str = ""  # Populated by PsiSleep based on Chronicles
+
+    def get_context_block(self) -> str:
+        """Returns a formatted block of text for LLM system prompts."""
+        ctx = (
+            f"You are {self.name} (v{self.version}).\n"
+            f"Description: {self.description}\n"
+            f"Core Identity: {self.narrative_backstory}\n"
+        )
+        if self.evolving_backstory:
+            ctx += f"Evolving Narrative Identity:\n{self.evolving_backstory}\n"
+        return ctx
 
 
 class IdentityManifestStore:
@@ -47,7 +59,10 @@ class IdentityManifestStore:
                     data = json.load(f)
                 if not isinstance(data, dict):
                     raise TypeError("manifest root must be a JSON object")
-                return IdentityManifest(**data)
+                # Filter out unknown keys to be safe
+                valid_keys = {f.name for f in IdentityManifest.__dataclass_fields__.values()}
+                filtered_data = {k: v for k, v in data.items() if k in valid_keys}
+                return IdentityManifest(**filtered_data)
             except (OSError, json.JSONDecodeError, TypeError, ValueError, KeyError) as e:
                 _log.error("IDENTITY MANIFEST LOADING FAILED: %s. Using defaults.", e)
         return IdentityManifest()
@@ -61,3 +76,15 @@ class IdentityManifestStore:
             _log.info("Identity Manifest saved to %s", self.path)
         except (OSError, TypeError, ValueError) as e:
             _log.error("FAILED TO SAVE IDENTITY MANIFEST: %s", e)
+
+    def update_evolving_identity(self, new_narrative: str):
+        """Appends or updates the evolving identity based on recent chronicles."""
+        if not self.manifest.evolving_backstory:
+            self.manifest.evolving_backstory = new_narrative
+        else:
+            # Simple concatenation for now, could be LLM-summarized later
+            self.manifest.evolving_backstory += f"\n- {new_narrative}"
+            # Keep it bounded
+            if len(self.manifest.evolving_backstory) > 1000:
+                self.manifest.evolving_backstory = self.manifest.evolving_backstory[-1000:]
+        self.save()

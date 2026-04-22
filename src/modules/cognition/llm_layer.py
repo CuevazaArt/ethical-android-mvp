@@ -266,6 +266,9 @@ Use snake_case names only [a-z0-9_]. Omit the field entirely if not needed."""
 PROMPT_COMMUNICATION = """You are the verbal communication module for an Ethos Kernel civic agent.
 You generate the exact words the agent would say out loud.
 
+Identity Context:
+{manifest}
+
 Decision context:
 - Chosen action: {action}
 - Decision mode: {mode} ({mode_desc})
@@ -910,6 +913,7 @@ class LLMModule:
         ethical_leans: dict[str, float] | None = None,
         vitality_context: str = "",
         social_tension: float = 0.5,
+        manifest_context: str = "",
     ) -> VerbalResponse:
         """
         Generate the agent's verbal response after a decision.
@@ -952,6 +956,7 @@ class LLMModule:
                 prompt += PROMPT_COMMUNICATION_NOMAD_APPEND
 
             prompt = prompt.format(
+                manifest=manifest_context,
                 action=action,
                 mode=mode,
                 mode_desc=mode_descs.get(mode, mode),
@@ -1074,6 +1079,7 @@ class LLMModule:
         ethical_leans: dict[str, float] | None = None,
         vitality_context: str = "",
         social_tension: float = 0.5,
+        manifest_context: str = "",
         stream_callback: Any = None,
     ) -> VerbalResponse:
         """Async counterpart to :meth:`communicate` for cancellable HTTP."""
@@ -1091,6 +1097,7 @@ class LLMModule:
                 prompt += PROMPT_COMMUNICATION_NOMAD_APPEND
 
             prompt = prompt.format(
+                manifest=manifest_context,
                 action=action,
                 mode=mode,
                 mode_desc=mode_descs.get(mode, mode),

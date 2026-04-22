@@ -19,6 +19,7 @@ from src.persistence.narrative_storage import NarrativePersistence
 from src.modules.governance.identity_reflection import IdentityReflector
 from src.modules.memory.narrative_identity import NarrativeIdentityTracker
 from src.modules.memory.narrative_types import BodyState, NarrativeArc, NarrativeChronicle, NarrativeEpisode
+from src.persistence.identity_manifest import IdentityManifestStore
 from src.modules.memory.semantic_embedding_client import (
     ahttp_fetch_ollama_embedding,
     http_fetch_ollama_embedding,
@@ -79,6 +80,7 @@ class NarrativeMemory:
         if db_path is None:
             db_path = os.environ.get("KERNEL_NARRATIVE_DB_PATH", "data/narrative.db")
         self.persistence = NarrativePersistence(db_path)
+        self.identity_manifest_store = IdentityManifestStore()
 
         # Load existing episodes from disk
         self.episodes = self.persistence.load_all_episodes()
@@ -199,6 +201,9 @@ class NarrativeMemory:
             digest = digest[-500:]  # Truncate old digest to prevent explosion
         digest += f"\n- {start_ts}: {summary_text}"
         self.experience_digest = digest
+        
+        # 5.2 Identity Manifest Update (Birth Context + Evolving Context)
+        self.identity_manifest_store.update_evolving_identity(summary_text)
 
         # 6. Final audit log
         import logging
