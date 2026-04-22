@@ -132,6 +132,9 @@ with col_left:
     st.subheader("🧪 Behavioral Physics")
     limbic_placeholder = st.empty()
     st.write("")
+    st.subheader("🔋 Autonomy Drives")
+    motivation_placeholder = st.empty()
+    st.write("")
     charm_placeholder = st.empty()
 
 with col_mid:
@@ -177,6 +180,18 @@ while True:
             limbic_placeholder.plotly_chart(fig_limbic, use_container_width=True)
         except:
             limbic_placeholder.warning("Resonance stabilizing...")
+
+        # 1.5. MOTIVATION DRIVES
+        if hasattr(kernel.prefrontal_cortex, "motivation") and kernel.prefrontal_cortex.motivation:
+            mot_report = kernel.prefrontal_cortex.motivation.get_motivation_report()
+            mot_html = ""
+            for drive_name, val in mot_report.items():
+                pct = int(val * 100)
+                color = "#ff3366" if pct > 70 else "#00ffcc" # Red if passing action threshold
+                mot_html += f"<div><span class='label'>{drive_name}</span><div style='width: 100%; background-color: #30333d; border-radius: 4px; margin-top: 2px; margin-bottom: 8px;'><div style='width: {pct}%; background-color: {color}; height: 8px; border-radius: 4px;'></div></div></div>"
+            motivation_placeholder.markdown(mot_html, unsafe_allow_stdio=True)
+        else:
+            motivation_placeholder.info("Motivation Engine offline.")
 
         # 2. CHARM ENGINE RADAR (REAL DATA)
         if mt['stylized']:

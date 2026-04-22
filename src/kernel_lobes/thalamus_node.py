@@ -12,7 +12,7 @@ import logging
 import math
 import time
 from dataclasses import dataclass, field
-from typing import Any
+from typing import Any, Dict, List
 
 _log = logging.getLogger(__name__)
 
@@ -63,6 +63,8 @@ class ThalamusNode:
         self._ema_facing = 0.0
         self._ema_presence = 0.0
         self._alpha = 0.3  # Smoothing factor (biological persistence)
+        self._alpha_base = 0.4 # Base smoothing factor
+        self._presence_history: List[float] = []
 
     def ingest_telemetry(self, payload: dict[str, Any]):
         """Ingests IMU data to update attentional confidence."""
@@ -77,9 +79,14 @@ class ThalamusNode:
             if not math.isfinite(beta):
                 beta = 0.0
             target = 1.0 if (45 < beta < 105) else 0.0
-
-            # Application of EMA for stability
-            self._ema_facing = (self._alpha * target) + ((1.0 - self._alpha) * self._ema_facing)
+            
+            # Dynamic alpha for telemetry based on baseline
+            dynamic_alpha_facing = getattr(self, "_alpha_base", 0.4)
+            
+            # Application of EMA for stability (Anti-NaN protected)
+            self._ema_facing = (dynamic_alpha_facing * target) + ((1.0 - dynamic_alpha_facing) * self._ema_facing)
+            if not math.isfinite(self._ema_facing):
+                self._ema_facing = 0.0
             self.state.is_facing_user = self._ema_facing > 0.6
 
             if self.state.is_facing_user:
@@ -136,6 +143,7 @@ class ThalamusNode:
         presence = _finite_unit(v.get("human_presence", 0.0), 0.0)
         vad = _finite_unit(a.get("vad_confidence", 0.0), 0.0)
         stress = _finite_unit(environmental_stress, 0.0)
+        env_stress = stress
 
         # 1. Focal Address: requires cross-modal intersection
         # Tightly coupled VVAD + VAD
@@ -156,11 +164,25 @@ class ThalamusNode:
         dissonance = 0.0
         if presence > _PRES_THR:
             dissonance = max(0.0, vad - lip_mov) * 0.5
-
         sensory_tension = min(1.0, dissonance + stress)
 
-        # 4. State Updates (EMA)
-        self._ema_presence = self._alpha * presence + (1.0 - self._alpha) * self._ema_presence
+        # Calculate variance to adjust EMA agility (more noise = more inertia)
+        self._presence_history.append(presence)
+        if len(self._presence_history) > self._max_history:
+            self._presence_history.pop(0)
+            
+        var_presence = 0.0
+        if len(self._presence_history) > 1:
+            mean_p = sum(self._presence_history) / len(self._presence_history)
+            var_presence = sum((x - mean_p) ** 2 for x in self._presence_history) / len(self._presence_history)
+
+        # Dynamic Alpha: lower alpha when variance is high (more smoothing)
+        dynamic_alpha = max(0.05, min(self._alpha_base, self._alpha_base - (var_presence * 2.0)))
+
+        # 4. State Updates (Dynamic EMA)
+        self._ema_presence = dynamic_alpha * presence + (1.0 - dynamic_alpha) * self._ema_presence
+        if not math.isfinite(self._ema_presence):
+            self._ema_presence = 0.0
         self.state.is_user_present = self._ema_presence > _PRES_THR
         self.state.is_user_speaking = vad > _VAD_THR or lip_mov > _LIP_THR
 

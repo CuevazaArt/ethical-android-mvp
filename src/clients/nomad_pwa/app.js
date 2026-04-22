@@ -10,7 +10,9 @@ const UI = {
     btnConnect: document.getElementById('btn-connect'),
     btnStream: document.getElementById('btn-stream'),
     batterySpan: document.getElementById('battery-level'),
-    transcript: document.getElementById('charm-transcript'),
+    chatHistory: document.getElementById('chat-history'),
+    chatInput: document.getElementById('chat-input'),
+    btnSend: document.getElementById('btn-send'),
     videoElement: document.getElementById('hidden-video'),
     identityStrip: document.getElementById('identity-strip'),
     btnUiMode: document.getElementById('btn-ui-mode'),
@@ -478,6 +480,22 @@ function applySyncIdentity(data) {
 }
 
 /**
+ * Append a message to the chat history.
+ */
+function appendChatMessage(text, roleClass) {
+    if(!text) return;
+    // Remove placeholder if present
+    const placeholder = UI.chatHistory.querySelector('.placeholder');
+    if (placeholder) placeholder.remove();
+    
+    const msgDiv = document.createElement('div');
+    msgDiv.className = `chat-msg ${roleClass}`;
+    msgDiv.innerText = text;
+    UI.chatHistory.appendChild(msgDiv);
+    UI.chatHistory.scrollTop = UI.chatHistory.scrollHeight;
+}
+
+/**
  * Handle initial Backend Connection
  */
 async function connectKernel() {
@@ -542,16 +560,45 @@ async function connectKernel() {
         
         UI.btnConnect.disabled = true;
         UI.btnConnect.innerText = "Connected";
+        UI.chatHistory.innerHTML = ""; // Clear
+        appendChatMessage("Sys: Nomad Bridge Ready", "kernel");
         
         // Enable the streaming button for Cursor (Block F.2)
         UI.btnStream.disabled = false;
         UI.btnStream.classList.remove('inactive');
+
+        // Enable text input
+        UI.chatInput.disabled = false;
+        UI.btnSend.disabled = false;
 
         // Note: wsChat.onopen would be too late here, so we skip it.
 
         wsChat.onmessage = (event) => {
             try {
                 const data = JSON.parse(event.data);
+                
+                // Claude's domain (F.4): detailed message handling
+                if (data.role === 'android' || data.final_action) {
+                    appendChatMessage(data.content || data.final_action, "kernel");
+                }
+                
+                if (data.type === 'veto') {
+                    setAppAffectState('alert');
+                    appendChatMessage("KERNEL LOCK: Threat detected.", "kernel");
+                }
+
+                if (data.type === 'ping') {
+                    console.debug("Nomad: Keep-alive ping from server.");
+                }
+
+                if (data.type === 'thought') {
+                    if (data.payload && data.payload.dissonance) {
+                        UI.chatHistory.parentElement.classList.add('dissonance-active');
+                    } else {
+                        UI.chatHistory.parentElement.classList.remove('dissonance-active');
+                    }
+                }
+                
                 if (data.type === '[SYNC_IDENTITY]' || data.type === 'SYNC_IDENTITY') {
                     applySyncIdentity(data);
                     const inner =
@@ -570,6 +617,7 @@ async function connectKernel() {
                     flushOutboundChatBuffer();
                     return;
                 }
+
                 if (data.event_type === "turn_finished") {
                     const msg = data.payload?.response?.message || "";
                     if (msg && UI.transcript) {
@@ -578,9 +626,41 @@ async function connectKernel() {
                     }
                     return;
                 }
-                if (data.type === 'kernel_voice' && data.text && UI.transcript) {
-                    UI.transcript.innerText = data.text;
-                    UI.transcript.classList.remove('placeholder');
+
+                if (data.type === 'kernel_voice') {
+                    if (data.text) {
+                        appendChatMessage(data.text, "kernel");
+                        if (UI.transcript) {
+                            UI.transcript.innerText = data.text;
+                            UI.transcript.classList.remove('placeholder');
+                        }
+                        if ('speechSynthesis' in window) {
+                            const utterance = new SpeechSynthesisUtterance(data.text);
+                            const voices = window.speechSynthesis.getVoices();
+                            const preferred = voices.find(v => v.name.includes("Male") || v.name.includes("UK English")) || voices[0];
+                            if (preferred) utterance.voice = preferred;
+                            
+                            utterance.onstart = () => {
+                                UI.orb.classList.add('speaking');
+                            };
+                            utterance.onend = () => {
+                                UI.orb.classList.remove('speaking');
+                            };
+                            window.speechSynthesis.speak(utterance);
+                        }
+                    }
+                }
+
+                if (data.type === 'orb_update') {
+                    console.log("Nomad: Affective shift", data.archetype);
+                    const v = data.visuals;
+                    if (v) {
+                        UI.orb.style.backgroundColor = v.color;
+                        UI.orb.style.boxShadow = `0 0 ${20 * v.scale}px ${10 * v.scale}px ${v.color}`;
+                        UI.orb.style.transform = `scale(${v.scale})`;
+                        UI.orb.style.animationDuration = `${v.pulse_s}s`;
+                    }
+                }
                 }
             } catch (e) {
                 console.warn("Nomad: Chat message parse error", e);
@@ -595,7 +675,22 @@ async function connectKernel() {
             UI.btnConnect.innerText = 'Reconnect';
             UI.btnStream.disabled = true;
             UI.btnStream.classList.add('inactive');
+<<<<<<< HEAD
+            UI.chatInput.disabled = true;
+            UI.btnSend.disabled = true;
+
+            // Trigger reconnection (Claude's backoff)
+            if (reconnectAttempts < MAX_RECONNECT_ATTEMPTS) {
+                const delay = RECONNECT_DELAY_BASE * Math.pow(2, reconnectAttempts);
+                UI.statusText.innerText = `Retrying in ${delay / 1000}s...`;
+                setTimeout(() => {
+                    reconnectAttempts++;
+                    connectKernel();
+                }, delay);
+            }
+=======
             scheduleKernelReconnect('chat');
+>>>>>>> origin/main
         };
 
         wsNomad.onclose = () => {
@@ -679,12 +774,16 @@ async function connectKernel() {
                     const payload = msg.payload || {};
                     if (payload.type === 'kernel_voice' || payload.text || payload.content) {
                         const text = payload.text || payload.content || '';
-                        if (text && UI.transcript) {
-                            UI.transcript.innerText = `[Proxied] Kernel: ${text}`;
+                        if (text) {
+                            appendChatMessage(text, "kernel");
+                            if (UI.transcript) {
+                                UI.transcript.innerText = `[Proxied] Kernel: ${text}`;
+                            }
                             if ('speechSynthesis' in window) {
                                 const utterance = new SpeechSynthesisUtterance(text);
                                 window.speechSynthesis.speak(utterance);
                             }
+                        }
                         }
                     }
                     if (payload.type === 'haptic_feedback' || payload.haptics) {
@@ -723,6 +822,39 @@ function syncUiModeButtonLabel() {
         ? 'Full UI'
         : 'Text focus';
 }
+
+function sendUserMessage() {
+    if (!isConnected || !wsChat) return;
+    const text = UI.chatInput.value.trim();
+    if (!text) return;
+
+    // Echo directly locally
+    appendChatMessage(text, 'user');
+    
+    // As per server expectations, it may be a standard text or json.
+    // The chat server ws handler accepts JSON:
+    wsChat.send(JSON.stringify({
+        role: "user",
+        text: text
+    }));
+    
+    UI.chatInput.value = '';
+}
+
+UI.btnSend.addEventListener('click', sendUserMessage);
+UI.chatInput.addEventListener('keypress', (e) => {
+    if (e.key === 'Enter') {
+        e.preventDefault();
+        sendUserMessage();
+    }
+});
+
+// Expose a function to scale the orb based on audio volume
+window.updateOrbScale = function(volume) {
+    // Volume is typically between 0 and 1
+    const scale = 1 + (volume * 1.5);
+    UI.orb.style.transform = `scale(${scale})`;
+};
 
 initNomadUiModeFromQuery();
 syncUiModeButtonLabel();

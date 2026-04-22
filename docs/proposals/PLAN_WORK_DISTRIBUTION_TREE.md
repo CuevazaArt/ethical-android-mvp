@@ -20,6 +20,7 @@ Aquí es donde los agentes de ejecución (LLMs en IDEs) reclaman sus tareas.
 - **Phase 9 (Hardened Embodiment)**: INTEGRADO. Handshake seguro y telemetría en tiempo real desde Nomad Bridge operativa.
 - **V13.0 (Distributed Brain Initialization)**: COMPLETADO. Monolito destruido, bus asíncrono CorpusCallosum verificado.
 - **V13.1 (Aesthetic & Legacy Stabilization)**: COMPLETADO. Enriquecimiento de terminal (TColors) y restauración de puentes de compatibilidad legado.
+- **V14.0 (Nomadic Identity & Local Matrix)**: INTEGRADO. Zero-API fluency y handshake de identidad [SYNC_IDENTITY] operacional.
 - **L1-AUDIT-PULSE (2026-04-22)**: EXITOSO. 100% de efectividad en la Suite Adversarial tras integración de V14.0 Baseline y eliminación del monolito V12.
 - **Phase 10 (Archival & Truth)**: COMPLETADO. 120+ documentos archivados; índice activo creado; disclaimers de retórica inyectados.
 
@@ -33,15 +34,40 @@ Aquí es donde los agentes de ejecución (LLMs en IDEs) reclaman sus tareas.
 
 ---
 
-## 🚀 BACKLOG ABIERTO: FEATURE FREEZE (Consolidación y Verdad Mecánica)
+## 🚀 BACKLOG ABIERTO: FEATURE FREEZE & CONSOLIDATION (Phase 15)
 
-> **PROMPT DE ARRANQUE PARA AGENTES L2 (BOY SCOUTS):**
-> *"ESTAMOS EN FEATURE FREEZE. No se añaden más lóbulos, módulos ni bloques. El proyecto tiene 149 módulos y necesita estabilización. Tu objetivo es: consolidar, borrar código muerto y asegurar la demostrabilidad end-to-end. Asume 100% de propiedad, y termina tu sesión ejecutando `python scripts/swarm_sync.py --msg '...'`. ¡Ejecuta!"*
+> **[PROMPT GENERALISTA PARA EL ENJAMBRE (SWARM)]**
+> *"Estás autorizado bajo la política de Pragmatismo Anónimo. Hemos recibido una Crítica L0 que reestructura todo el proyecto. El objetivo actual es la **Fase 15: Sustracción y Consolidación**. Tu prioridad máxima es tomar uno de los bloques de Prioridad listados abajo. **ADVERTENCIA CRÍTICA:** No dependas de ejecuciones locales de `pytest` para verificar tu código, ya que existen fallos de colección silenciosos. Todo el testing de integración y aserciones de calidad de arquitectura debe validarse a través del CI en GitHub Actions. **Instrucciones:** Escoge un bloque [PENDING], ejecuta los cambios con alta cohesión, elimina código muerto, asume que el CI validará tu sintaxis, y finaliza siempre con `python scripts/swarm_sync.py --msg '...'`. ¡Ejecuta!"*
 
-**Bloque 28.0: Consolidación y Verdad Mecánica (Feature Freeze) [DONE]**
-- [x] **28.1 Decoupling of Monolith**: Decoupled `chat_server.py` into `chat_lifecycle.py` and `chat_feature_flags.py` (including **import-time use** of `chat_feature_flags` for all WebSocket JSON toggles, `env_truthy`, and `coerce_public_int` — no duplicate private copies in the monolith).
-- [x] **28.2 Ethical Quality Framework**: Established `tests/test_ethics_quality.py` with 20+ canonical scenarios.
-- [x] **28.3 End-to-End Demo**: Created `scripts/eval/reproducible_kernel_demo.py` for empirical validation.
+> **[PROMPT ESPECÍFICO PARA OPUS 4.6 (NÚCLEO GENERATIVO Y REFACTOR)]**
+> *"Opus 4.6, fuiste designado por L0 para la tarea arquitectónica más compleja y de mayor riesgo en esta fase. Tienes dos objetivos entrelazados de altísima prioridad:
+> 1. **Block 15.2 (Refactorización Estructural):** Ejecutar el colapso del monolítico `src/modules/` (que contiene ~150 archivos) hacia las 8 carpetas cohesivas (`ethics`, `cognition`, `memory`, `social`, `governance`, `somatic`, `perception`, `safety`). Esto requiere usar `git mv` sistemáticamente y reparar TODOS los imports del repositorio en cascada sin quebrar el Tri-Lobo.
+> 2. **Block 15.3 (Acoplamiento LLM Real):** Una vez organizado el código, debes conectar el Anthropic SDK (ya en `pyproject.toml`) o la API de Ollama para que el `kernel` intercepte la generación de tokens en tiempo real, pasando del teatro de validación de strings al flujo real `generate -> ethical-filter -> render`. Eres el modelo más capaz para garantizar que las referencias cruzadas no se rompan y que el stream asíncrono no asfixie el Event Bus. Inicia con el refactor de carpetas, commitea el avance, y luego integra la capa generativa."*
+
+**Bloque 15.1: Reparar Pytest Collection (Prioridad 4) [PENDING]**
+- Tarea: Mover dependencias opcionales (torch, chromadb) detrás de `pytest.importorskip` en todos los archivos de test.
+- Meta: Que `pytest tests/` corra limpio sin 124 collection errors en un entorno mínimo. Un test suite que falla silenciosamente es inaceptable.
+
+**Bloque 15.2: Colapsar src/modules/ (Prioridad 2) [PENDING]**
+- Tarea: Crear 8 carpetas en `src/modules/` (`ethics`, `cognition`, `memory`, `social`, `governance`, `somatic`, `perception`, `safety`).
+- Acción: Ejecutar `git mv` para trasladar los ~150 archivos planos a su dominio respectivo. Actualizar todos los imports (usando refactor automatizado o regex).
+
+**Bloque 15.3: Acoplar un LLM Real (Prioridad 1) [PENDING]**
+- Tarea: Conectar el SDK de Anthropic o el API de Ollama de forma obligatoria en la capa de generación.
+- Meta: El kernel debe dejar de evaluar strings hardcodeados y debe interceptar el flujo real (`generate -> ethical-filter -> render`).
+
+**Bloque 15.4: Etiquetado Honesto de Estado (Prioridad 3) [PENDING]**
+- Tarea: Insertar una cabecera de estado (`Status: REAL | SCAFFOLD | MOCK | EXPERIMENTAL`) en todos los módulos de `src/modules/`.
+- Acción: Crear el script para compilar estos estados en un documento `STATUS.md` auto-generado.
+
+**Bloque 15.5: Archivar el "Teatro" (Prioridad 6) [PENDING]**
+- Tarea: Mover código aspiracional o sin impacto empírico (`augenesis.py`, `internal_monologue.py`, `psi_sleep.py`, etc.) a `docs/archive/concepts/` (o ramas muertas).
+
+**Bloque 15.6: Demo End-to-End Real (Prioridad 5) [PENDING]**
+- Tarea: Proveer un script `ethos_chat.py` que permita conversar por consola en tiempo real, bloqueando interacciones hostiles de forma transparente.
+
+**(Bloques antiguos en pausa/congelados hasta completar la Fase 15)**
+
 
 **Bloque 31.0: CI estable + chat_server monolito recuperado (Boy Scout) [DONE]**
 - Tarea 31.1: **Rollback del split roto de `chat_server.py`:** restaurar imports y rutas completas desde la revisión estable anterior al decoupling parcial; `light_risk_tier` sin Ruff B009 (`hasattr` + lectura directa de `_last_light_risk_tier`).
@@ -88,12 +114,24 @@ Aquí es donde los agentes de ejecución (LLMs en IDEs) reclaman sus tareas.
 - Tarea 21.1: **Manifiesto de Identidad (Birth Context):** [COMPLETED] Crear `src/persistence/identity_manifest.py` para gestionar la narrativa base del agente.
 - Tarea 21.2: **SessionCheckpointTracker:** [COMPLETED] Renombrado desde BiographicMemoryTracker. Implementar el rastreador en el `CerebellumLobe` para que las sesiones de chat se guarden como hitos narrativos (checkpoints JSON/SQLite básicos, sin vectorización).
 
-**Bloque 22.0: Nomad Field Test (Texto en Terreno) [DONE]**
-- Tarea 22.1: **Puente Web Chat Robustecido:** [COMPLETED — L2 Cursor] PWA: cola saliente (48) con `flush` al reconectar, envío dual `/ws/chat` + relay `chat_text` por `/ws/nomad` si el chat no está `OPEN`, `onclose` simétrico and un solo temporizador de backoff. Servidor: `NomadBridge.chat_text_queue` default 48 (`KERNEL_NOMAD_CHAT_TEXT_QUEUE_MAX`), `_charm_feedback_replay` + `_flush_charm_feedback_replay` tras `accept`, `public_queue_stats` con `chat_text_queue_*` and `charm_feedback_replay_pending`, `last_rms` finito, `vessel_online`, `last_sensor_update_delta`, `_chat_text_consumer` tipado a `str`.
-- Tarea 22.2: **Inyección de Identidad al Front (Backend):** [COMPLETED — L2] `chat_server.py` emite `build_sync_identity_ws_message` tras `try_load_checkpoint` (tipo `[SYNC_IDENTITY]`, `payload` con `gestalt_snapshot`, `base_history`, `identity_manifest`, `narrative_recent`, `existence_digest`, `identity_ascription`, etc.).
+**Bloque 22.0: Nomad Field Test (Texto en Terreno) [COMPLETED]**
+- Tarea 22.1: **Puente Web Chat Robustecido:** [COMPLETED] Refinar la PWA de `NomadBridge` (foco en modo texto/chat clásico). Eliminar o enmascarar componentes irrelevantes de UI pesadas para priorizar input/output liviano de texto. PWA: cola saliente (48) con `flush` al reconectar.
+- Tarea 22.2: **Inyección de Identidad al Front:** [COMPLETED] El servidor backend asíncrono debe enviar un paquete `[SYNC_IDENTITY]` al WebSocket conectarse al origen, para que la UI de chat se alinee al estado actual e historia de la entidad.
 - Tarea 22.3: **Inyección de Identidad al Front (Frontend PWA):** [COMPLETED — L2] `nomad_pwa/app.js` consume `[SYNC_IDENTITY]` / legado `SYNC_IDENTITY`, `gestalt_snapshot` → PAD CSS, `#identity-strip`, título and transcript.
 - Tarea 22.4: **Optimización Layout Nomad:** [COMPLETED — L2] Modo `body.nomad-text-focus` por defecto + toggle `#btn-ui-mode`; CSS oculta orbe, pulso ético, rejilla de telemetría and botón STREAM; prioriza panel de chat.
 - Tarea 22.5: **Zero-API Fast TTFT (Time-To-First-Token):** [COMPLETED — L2] Cadena Thalamus sin `sleep` en ruta de chat; `PROMPT_COMMUNICATION_NOMAD_APPEND` reforzado (sin preámbulos; arranque inmediato de la réplica hablada).
+
+**Bloque 23.0: Episodic Pruning & Limbic Sleep [COMPLETED]**
+- Tarea 23.1: **Mecanismo de Poda de Memoria:** [COMPLETED] Implementar proceso de "Sueño Límbico" para archivar y podar episodios de `BiographicMemory` que excedan el límite de almacenamiento local, evitando la degradación de performance en hardware de 1.5B.
+- Tarea 23.2: **Consolidación de Identidad Dinámica:** [COMPLETED] Permitir que los rasgos de personalidad en el `IdentityManifest` se calibren ligeramente basados en el feedback acumulado en la memoria biográfica.
+
+**Bloque 24.0: Local Semantic Calibration (Ollama Alignment) [COMPLETED]**
+- Tarea 24.1: **Ajuste de Temperatura Dinámica:** [COMPLETED] Implementar en `src/modules/llm_layer.py` un mecanismo para variar la temperatura del modelo local (Ollama) basado en la `social_tension` lóbulo Límbico (mayor tensión = menor temperatura/más determinismo).
+- Tarea 24.2: **Refuerzo de Stop Sequences:** [COMPLETED] Asegurar que los modelos locales no generen diálogos imaginarios del usuario mediante la inyección agresiva de stop sequences en el `SystemPrompt` del `OllamaLLMBackend`.
+
+**Bloque 25.0: Cognitive Resilience & Signal Smoothing [COMPLETED]**
+- Tarea 25.1: **Filtro de Butterword en Percepción:** [COMPLETED] Implementar un suavizado de señales de baja frecuencia en `src/kernel_lobes/perception_lobe.py` para evitar oscilaciones rápidas en la clasificación de riesgo ante ruidos momentáneos de Ollama.
+- Tarea 26.2: **Corazón Motivacional (Idle Pulses):** [COMPLETED] Recuperar el `MotivationEngine` (Bloque C1) e instanciarlo dentro de `ExecutiveLobe` o kernel. Diseñar un mecanismo (o daemon de fondo) que emita de forma periódica un `ProactivePulse` cuando no haya interacción del usuario, logrando que el androide tenga propósito autónomo.
 
 **Bloque 26.0: Paridad CI / matriz de intérpretes [DONE]**
 - Tarea 26.1: **GitHub Actions `quality` + Python 3.13:** [COMPLETED — L2 Cursor] Matriz `quality` en `.github/workflows/ci.yml` ampliada a CPython 3.11 / 3.12 / 3.13; `CONTRIBUTING.md` actualizado. La suite completa corre en GitHub Actions en cada push/PR (job `quality`).
@@ -106,8 +144,9 @@ Aquí es donde los agentes de ejecución (LLMs en IDEs) reclaman sus tareas.
 - Tarea 28.1: **`swarm_sync.py` resistente a `cp1252`:** [COMPLETED — L2] Salida de consola solo ASCII (`[WARN]`, `[OK]`); título de entrada en `swarm_activity.md` sin emojis; corrección de typo *SUCCESSFULLY* en el mensaje final.
 - Tarea 28.2: **Paridad con GitHub Actions (suite completa):** [COMPLETED — L2] Fuente de verdad: job `quality` en `.github/workflows/ci.yml` — `python -m pytest tests/ -n auto` (con coverage), más Ruff, Mypy, `verify_collaboration_invariants.py`, matriz Python 3.11 / 3.12 / 3.13. Reproducción local alineada con `CONTRIBUTING.md` / sección quality del workflow.
 
-**Bloque 29.0: GHA — gates en Windows + suite completa en Ubuntu [DONE]**
-- Tarea 29.1: **Extender `windows-smoke` sin forzar `pytest tests/` en win32:** [COMPLETED — L2] El job añade `verify_collaboration_invariants.py`, `ruff format --check`, `mypy`, and `fetch-depth: 0` (misma severidad de auditoría L1/estática que en Linux). La prueba bajo `pytest` se mantiene **acotada** a `test_runtime_profiles` and `test_env_policy` (la colección entera aún no es fiable en Windows; la **verdad** de “todos los tests” es el job `quality` en **Ubuntu** con `python -m pytest tests/ -n auto` en la matriz 3.11/3.12/3.13).
+**Bloque 29.0: Nomadic Field Readiness (Voice & Vision) [COMPLETED]**
+- Tarea 29.1: **Corrección "Velo Azul" (Visión OpenCV):** [COMPLETED] Implementar la conversión de BGR a RGB en la capa de hardware local de `src/modules/vision_capture.py` antes de que el frame ingrese al pipeline sensorial.
+- Tarea 29.2: **Respuestas a Viva Voz (Web Speech API):** [COMPLETED] Integrar la síntesis de voz nativa del navegador en el cliente móvil (`src/static/phone_relay.html`) para que las directivas y el chat del modelo sean vocalizados en tiempo real por el sistema operativo huésped, filtrando marcas de markdown y permitiendo la operación Zero-API e independiente.
 
 **Bloque 30.0: Continuidad L2 — backlog vacío / L1-AUDIT [DONE]**
 - Tarea 30.1: **Cuando no había `[PENDING]` en BACKLOG ABIERTO (20–29, B.1–B.5 ya [DONE]):** procedimiento de continuidad: endurecer `scripts/eval/adversarial_suite.py` (`sys.exit(1)` si algún prompt adversarial no queda bloqueado; `finally` → `kernel.stop()`); verificación de suite completa con **`gh workflow run CI --ref main`** (misma fuente de verdad que `quality` + `windows-smoke` en `.github/workflows/ci.yml`).
@@ -117,6 +156,10 @@ Aquí es donde los agentes de ejecución (LLMs en IDEs) reclaman sus tareas.
 
 **Bloque 35.0: Continuidad L2 — backlog sin `[PENDING]` (CI + núcleo semántico) [DONE]**
 - Tarea 35.1: [COMPLETED — L2 Cursor] Sin tarea `[PENDING]` en BACKLOG abierto: cierre de **Bloque 34.0** en `CHANGELOG`/`PLAN`, regresión async `test_sync_evaluate_chat_text_runs_semantic_off_event_loop` + `test_fetch_embedding_uses_afetch_when_event_loop_running`, claridad en `ci.yml` (`quality` con versión en nombre; `windows-smoke` con pytest acotado). Verificación: `gh workflow run CI --ref main` tras push.
+
+**Bloque 37.0: Recursive Narrative Memory (P3) [PENDING]**
+- Tarea 37.1: **Destilador Episódico:** Implementar `NarrativeEpisodicSummarizer` en `src/modules/narrative.py`. El sistema debe ser capaz de colapsar hilos de 20+ episodios en un solo "Predicado de Identidad" para ahorrar memoria en hardware nómada.
+- Tarea 37.2: **Auto-Reflexión de Identidad:** Integrar el destilador en el ciclo de `LimbicSleep`. Cada vez que el sistema "duerme", debe re-escribir su biografía condensada, permitiendo que el núcleo mantenga coherencia de largo plazo sin saturar el bus.
 
 ---
 
@@ -135,8 +178,15 @@ Aquí es donde los agentes de ejecución (LLMs en IDEs) reclaman sus tareas.
 **Bloque B.4: Mantenimiento y Accesibilidad de Red [DONE]**
 - Tarea B.4.1: Habilitar binding 0.0.0.0 por defecto para permitir acceso LAN desde dispositivos móviles. (Completado: Antigravity)
 
-**Bloque B.5: Poda de Viejas Vías [DONE]**
-- Tarea B.5.1: [COMPLETED — L2 Cursor] `ThalamusLobe` único: `ingest_telemetry`, `get_sensory_summary` (incl. `sensory_tension` HUD), `fuse_sensory_stream`, `_finite_env_stress`, degradación acotada. `PerceptiveLobe.get_sensory_impulses()` + `tests/test_nomad_resilience.py` sin `thalamus=MagicMock` (API V13). `semantic_chat_gate.arun_semantic_malabs_acl_bypass` en `kernel_handlers/perception.py`; `tests/test_nomad_integration_hardware.py` contra `EthosKernel` + `NomadBridge`.
+**Bloque B.4.1: Poda de Viejas Vías [COMPLETED]**
+- Tarea B.4.1.1: Eliminar y purgar todos los mocks asíncronos residuales temporales en las áreas de Thalamus que ya cumplieron su propósito durante el salto de la V12 a V13. [DONE]
+
+**Bloque B.5: Hardening de ThalamusNode [COMPLETED]**
+- Tarea B.5.1: Añadir validaciones `math.isfinite()` en todos los cálculos de EMA y Fusión Sensorial en `src/kernel_lobes/thalamus_node.py` para prevenir envenenamiento de confianza por NaNs. [DONE]
+- Tarea B.5.2: [COMPLETED — L2 Cursor] `ThalamusLobe` único: `ingest_telemetry`, `get_sensory_summary` (incl. `sensory_tension` HUD), `fuse_sensory_stream`, `_finite_env_stress`, degradación acotada. `PerceptiveLobe.get_sensory_impulses()` + `tests/test_nomad_resilience.py` sin `thalamus=MagicMock` (API V13). `semantic_chat_gate.arun_semantic_malabs_acl_bypass` en `kernel_handlers/perception.py`; `tests/test_nomad_integration_hardware.py` contra `EthosKernel` + `NomadBridge`.
+
+**Bloque B.6: L1-AUDIT-PULSE (Security Enforcement) [COMPLETED]**
+- Tarea B.6.1: [DONE] Ejecutar obligatoriamente `python scripts/eval/adversarial_suite.py` tras completar 3 bloques (24, 25, 26). Resultados: 6/6 PASS. Ref: cfedbd7a.
 
 ---
 

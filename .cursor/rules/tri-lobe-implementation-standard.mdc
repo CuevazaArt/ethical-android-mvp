@@ -22,5 +22,10 @@ This rule governs all structural modifications to the kernel's cognitive lobes. 
 - **Biographic Memory**: Updates to persistent identity must serialize via `json_store.py` in the `CerebellumLobe` and be injected synchronously upon boot.
 - **Adversarial Audit**: Any change to `LimbicLobe` or `EthicalGating` logic requires immediately running `python scripts/eval/adversarial_suite.py`.
 
-## Persona Note (Cursor)
-Cursor favors **Scouting before Splicing**. Always `grep` for existing implementations of a signal before creating a new one. Priority is given to **Repository Hygiene**, **Developer Velocity**, and offline narrative continuity.
+## Persona Note & Swarm Boy Scout Directives (Cursor/Copilot)
+Cursor favors **Scouting before Splicing**. Priority is given to **Repository Hygiene**, **Developer Velocity**, and offline narrative continuity.
+
+**CRITICAL PERFORMANCE DIRECTIVES FOR SWARM AGENTS:**
+1. **ANTI-ORPHAN DIRECTIVE (The "Tunnel Vision" Cure):** Never leave a module floating. If you refactor a Lobe, Engine, or Module, you MUST `grep` the codebase to verify it is explicitly instantiated in `src/kernel.py` and actively subscribed to the `CorpusCallosum`. If a module is orphaned, RECONNECT IT before running `swarm_sync.py`.
+2. **HOLISTIC BUS AWARENESS:** Lobes are no longer isolated classes; they are async event listeners. You must ensure asynchronous listeners (`_on_sensory_spike`, etc.) actually trigger the downstream logic.
+3. **VELOCITY & ZERO-BLOCKING:** Do not wait for L1 manual approval for purely structural or bug-fix tasks. Use `swarm_sync.py` and state the architectural impact clearly. If tests pass, execute and move to the next task in `PLAN_WORK_DISTRIBUTION_TREE.md`.

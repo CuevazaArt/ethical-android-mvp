@@ -162,6 +162,50 @@ class IdentityIntegrityManager:
                 return False
 
         return True
+    def validate_narrative_coherence(self, manifest: Any, memory: Any) -> dict:
+        """
+        Block 27.1: Performs cross-validation between the static IdentityManifest
+        and the empirical NarrativeMemory to detect Ethical Drift or Unprocessed Traumas.
+        """
+        is_coherent = True
+        drift_warning = False
+        unprocessed_traumas = []
+        
+        # 1. Analyze recent episodes
+        recent = list(memory.episodes)[-20:] if hasattr(memory, "episodes") else []
+        if not recent:
+            return {"is_coherent": True, "drift_warning": False, "unprocessed_traumas": []}
+            
+        recent_scores = [ep.score for ep in recent if hasattr(ep, "score") and ep.score is not None]
+        avg_score = sum(recent_scores) / len(recent_scores) if recent_scores else 0.5
+        
+        # 2. Check for Ethical Drift
+        # If reputation says we are good (>100) but recent actions are negative
+        if self.snapshot.reputation_score > 80.0 and avg_score < 0.2:
+            drift_warning = True
+            is_coherent = False
+            
+        # Check manifest consistency
+        if hasattr(manifest, "operational_status") and manifest.operational_status == "NOMADIC_ACTIVE":
+            if self.snapshot.reputation_score < 20.0:
+                drift_warning = True
+                is_coherent = False
+                
+        # 3. Check for Unprocessed Traumas
+        # If trauma count >= 3, but there are no recent high-score episodes (reparation)
+        stress_level = sum(self.snapshot.traumas.values())
+        if stress_level >= 3:
+            reparation_found = any(s > 0.8 for s in recent_scores)
+            if not reparation_found:
+                unprocessed_traumas = list(self.snapshot.traumas.keys())
+                is_coherent = False
+                
+        return {
+            "is_coherent": is_coherent,
+            "drift_warning": drift_warning,
+            "unprocessed_traumas": unprocessed_traumas,
+            "avg_recent_score": round(avg_score, 3)
+        }
 
     def get_identity_report(self) -> str:
         s = self.snapshot

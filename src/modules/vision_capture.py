@@ -81,8 +81,10 @@ class VideoCaptureInterface:
         while self._running and self.cap:
             ret, frame = self.cap.read()
             if ret:
+                # FIX B4.1 (Block 29.1): Convert BGR (OpenCV default) to RGB to fix the "Blue Veil" on PWA/Dashboard
+                frame_rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
                 with self.lock:
-                    self._last_frame = frame
+                    self._last_frame = frame_rgb
             else:
                 # Brief sleep to prevent CPU pegging if camera drops or slows
                 time.sleep(0.01)

@@ -953,6 +953,96 @@ This file is automatically managed by `scripts/swarm_sync.py`.
   - `src/modules/llm_layer.py`
   - `src/settings/kernel_settings.py`
 
+### 🛠️ Execution | Date: 2026-04-21 11:47:52 | Author: Anonymous Agent
+- **Block:** `V14.0/22.0`
+- **Message:** NOMAD: Finalized [SYNC_IDENTITY] handshake in chat_server.py and updated work tree.
+- **Files Modified:**
+  - `docs/proposals/PLAN_WORK_DISTRIBUTION_TREE.md`
+  - `src/chat_server.py`
+
+### 🛠️ Execution | Date: 2026-04-21 11:59:15 | Author: Anonymous Agent
+- **Block:** `23.0`
+- **Message:** Episodic Pruning & Limbic Sleep: Implemented async memory consolidation limited to 50 episodes for 1.5B hardware. Dynamic identity context calibration.
+- **Files Modified:**
+  - `docs/proposals/PLAN_WORK_DISTRIBUTION_TREE.md`
+  - `src/modules/biographic_memory.py`
+
+### 🛠️ Execution | Date: 2026-04-21 12:10:39 | Author: Anonymous Agent
+- **Block:** `22.0`
+- **Message:** Nomad Field Test: Refined PWA UI for classic text chat mode, hiding sensory orb and enabling text inputs (Task 22.1).
+- **Files Modified:**
+  - `docs/proposals/PLAN_WORK_DISTRIBUTION_TREE.md`
+  - `src/clients/nomad_pwa/app.js`
+  - `src/clients/nomad_pwa/index.html`
+  - `src/clients/nomad_pwa/style.css`
+
+### 🛠️ Execution | Date: 2026-04-21 12:28:02 | Author: Antigravity
+- **Block:** `B.4`
+- **Message:** Hardening audit complete. Purged residual Thalamus mocks and verified Tri-Lobe stability. Marked B.4 as [COMPLETED].
+- **Files Modified:**
+  - `docs/proposals/PLAN_WORK_DISTRIBUTION_TREE.md`
+
+### 🛠️ Execution | Date: 2026-04-21 12:28:53 | Author: Antigravity
+- **Block:** `S.14`
+- **Message:** Replenished Work Distribution Tree with Blocks 24.0, 25.0 and B.5 for Local Semantic Calibration and Hardening.
+- **Files Modified:**
+  - `docs/proposals/PLAN_WORK_DISTRIBUTION_TREE.md`
+
+### 🛠️ Execution | Date: 2026-04-21 12:38:35 | Author: Antigravity
+- **Block:** `24.0`
+- **Message:** Implemented Local Semantic Calibration (Dynamic Temperature) in llm_layer.py and added Stop Sequences to OllamaLLMBackend. Addressed Cognitive Resilience via EMA smoothing in PerceptiveLobe and NaN safety in ThalamusNode (Blocks 24.0, 25.0, B.5).
+- **Files Modified:**
+  - `docs/proposals/PLAN_WORK_DISTRIBUTION_TREE.md`
+  - `src/kernel_lobes/executive_lobe.py`
+  - `src/kernel_lobes/perception_lobe.py`
+  - `src/kernel_lobes/thalamus_node.py`
+  - `src/modules/llm_backends.py`
+  - `src/modules/llm_layer.py`
+
+### 🛠️ Execution | Date: 2026-04-21 12:57:23 | Author: Antigravity
+- **Block:** `26.0`
+- **Message:** Implemented Anti-Orphan Phase 1 (Motivation & Memory Convergence). MemoryLobe is now bus-aware, executing distributed DAO auditing. MotivationEngine is instantiated inside kernel.py emitting a 45s idle ProactivePulse.
+- **Files Modified:**
+  - `.cursor/rules/tri-lobe-implementation-standard.mdc`
+  - `docs/proposals/PLAN_WORK_DISTRIBUTION_TREE.md`
+  - `src/kernel.py`
+  - `src/kernel_lobes/cerebellum_lobe.py`
+  - `src/kernel_lobes/memory_lobe.py`
+
+### 🛠️ Execution | Date: 2026-04-21 13:18:04 | Author: Antigravity/Swarm
+- **Block:** `28.0`
+- **Message:** Implemented Dynamic EMA Smoothing in ThalamusNode (Agility EMA). The alpha factor now scales dynamically based on incoming signal variance to provide jitter management and sensory inertia.
+- **Files Modified:**
+  - `docs/proposals/PLAN_WORK_DISTRIBUTION_TREE.md`
+  - `src/kernel_lobes/thalamus_node.py`
+  - `src/modules/motivation_engine.py`
+
+### 🛠️ Execution | Date: 2026-04-21 13:25:44 | Author: Antigravity/Swarm
+- **Block:** `27.0`
+- **Message:** Implemented Narrative Integrity & Coherence (Block 27.0). Added cross-validation self-audit cycle between IdentityManifest and NarrativeMemory to detect Ethical Drift. Deployed live Motivation Engine UI metrics to the L1 Visual Dashboard.
+- **Files Modified:**
+  - `docs/proposals/PLAN_WORK_DISTRIBUTION_TREE.md`
+  - `scripts/eval/visual_dashboard.py`
+  - `src/modules/identity_integrity.py`
+
+### 🛠️ Execution | Date: 2026-04-21 13:34:46 | Author: Antigravity/Swarm
+- **Block:** `29.0`
+- **Message:** Nomadic Field Readiness (Voice & Vision). Fixed the 'Blue Veil' in vision_capture.py by converting BGR to RGB. Integrated TTS (Web Speech API) into the phone_relay.html frontend to enable zero-API voice responses natively on mobile.
+- **Files Modified:**
+  - `docs/proposals/PLAN_WORK_DISTRIBUTION_TREE.md`
+  - `src/modules/vision_capture.py`
+  - `src/static/phone_relay.html`
+
+### 🛠️ Execution | Date: 2026-04-22 08:43:09 | Author: Antigravity
+- **Block:** `V13.1-DOCS`
+- **Message:** Synchronized documentation and architecture diagrams for V13.1 Nomadic Autonomy.
+- **Files Modified:**
+  - `CHANGELOG.md`
+  - `HISTORY.md`
+  - `docs/architecture/TRI_LOBE_CORE.md`
+  - `docs/proposals/PLAN_WORK_DISTRIBUTION_TREE.md`
+  - `docs/proposals/PROJECT_STATUS_AND_MODULE_MATURITY.md`
+  - `docs/proposals/STRATEGY_AND_ROADMAP.md`
 
 ### 🛠️ Execution | Date: 2026-04-21 19:47:47 | Author: Cursor L2 Swarm
 - **Block:** `20.2`
@@ -1829,3 +1919,29 @@ This file is automatically managed by `scripts/swarm_sync.py`.
   - `src/ethos_cli.py`
   - `src/kernel.py`
   - `src/main.py`
+
+### Execution (Swarm) | Date: 2026-04-22 09:31:02 | Author: Anonymous Agent
+- **Block:** `14.1`
+- **Message:** Phase 14: Stabilized Tri-Lobe Architecture merge. Resolved PWA UI conflicts for Nomad TTS and WebCam logic. Fixed test suite imports. Added PROPOSAL_L1_CROSS_OFFICE_HANDOVER_PROTOCOL.md for L1 synchronization between physical labs.
+- **Files Modified:**
+  - `audit_trail.db`
+
+### Execution (Swarm) | Date: 2026-04-22 09:32:32 | Author: Anonymous Agent
+- **Block:** `14.2`
+- **Message:** Fixed merge marker in swarm_activity.md
+- **Files Modified:**
+  - `audit_trail.db`
+  - `docs/changelogs_l2/swarm_activity.md`
+
+### Execution (Swarm) | Date: 2026-04-22 09:37:54 | Author: Anonymous Agent
+- **Block:** `15.0`
+- **Message:** L1 Action: Absorbed brutal honest critique. Created PROPOSAL_L1_ARCHITECTURAL_CONSOLIDATION.md. Paused previous worktree blocks and instantiated Phase 15 priorities: LLM Coupling, Module Collapsing, Pytest Repair, E2E Demo, and Archiving Theater.
+- **Files Modified:**
+  - `docs/proposals/PLAN_WORK_DISTRIBUTION_TREE.md`
+  - `docs/proposals/PROPOSAL_L1_ARCHITECTURAL_CONSOLIDATION.md`
+
+### Execution (Swarm) | Date: 2026-04-22 09:47:50 | Author: Anonymous Agent
+- **Block:** `15.0`
+- **Message:** Swarm Master Prompts Added for Opus 4.6 and Generic Normalization
+- **Files Modified:**
+  - `docs/proposals/PLAN_WORK_DISTRIBUTION_TREE.md`

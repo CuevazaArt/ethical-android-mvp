@@ -26,6 +26,7 @@ class InternalDrive:
     type: DriveType
     value: float = 0.5  # [0, 1] Current level
     growth_rate: float = 0.01  # Rate at which drive increases per "tick" (idle cycle)
+    decay_rate: float = 0.002 # Baseline reduction per tick if not stimulated
     threshold: float = 0.7  # When to trigger proactive action
 
 
@@ -53,26 +54,37 @@ class MotivationEngine:
 
     def update_drives(self, kernel_state: dict[str, Any]):
         """
-        Dynamically adjusts drives based on kernel state.
+        Dynamically adjusts drives and growth rates based on kernel state.
         """
-        # 1. Update based on social tension
-        tension = kernel_state.get("social_tension", 0.0)
-        if tension > 0.6:
-            self.drives[DriveType.SOCIAL_REPAIR].value += tension * 0.1
+        # 1. Adapt growth rates based on stress/vitality
+        tension = float(kernel_state.get("social_tension", 0.0))
+        energy = float(kernel_state.get("energy", 1.0))
+        
+        # In high tension, SOCIAL_REPAIR grows faster, CURIOSITY slows down
+        if tension > 0.5:
+             self.drives[DriveType.SOCIAL_REPAIR].growth_rate = 0.02 + (tension * 0.05)
+             self.drives[DriveType.CURIOSITY].growth_rate = max(0.001, 0.02 - (tension * 0.02))
+        else:
+             self.drives[DriveType.SOCIAL_REPAIR].growth_rate = 0.001
+             self.drives[DriveType.CURIOSITY].growth_rate = 0.02
 
-        # 2. Update based on uncertainty
+        # 2. Update values based on immediate state
+        if tension > 0.6:
+            self.drives[DriveType.SOCIAL_REPAIR].value += tension * 0.05
+
         uncertainty = kernel_state.get("uncertainty", 0.0)
         if uncertainty > 0.4:
-            self.drives[DriveType.CURIOSITY].value += uncertainty * 0.05
+            self.drives[DriveType.CURIOSITY].value += uncertainty * 0.02
 
-        # 3. Update based on maintenance (energy)
-        energy = kernel_state.get("energy", 1.0)
         if energy < 0.3:
-            self.drives[DriveType.MAINTENANCE].value += (1.0 - energy) * 0.2
+            self.drives[DriveType.MAINTENANCE].value += (1.0 - energy) * 0.1
 
-        # 4. Standard growth
+        # 3. Standard growth & decay
         for drive in self.drives.values():
+            # Apply growth
             drive.value = min(1.0, drive.value + drive.growth_rate)
+            # Apply passive decay
+            drive.value = max(0.0, drive.value - drive.decay_rate)
 
         self.last_update = time.time()
 

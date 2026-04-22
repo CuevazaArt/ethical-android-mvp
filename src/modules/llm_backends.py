@@ -287,11 +287,9 @@ class OllamaLLMBackend(LLMBackend):
 
     def completion(self, system: str, user: str, **kwargs: Any) -> str:
         raise_if_llm_cancel_requested()
-        # Sanity check: prevent massive payloads from being sent over network
+    def _ollama_chat_payload(self, system: str, user: str, stream: bool, **kwargs: Any) -> dict[str, Any]:
         if len(user) > 20000:
             user = user[:20000] + "... [TRUNCATED]"
-
-        url = f"{self._base}/api/chat"
         payload: dict[str, Any] = {
             "model": self._model,
             "messages": [
@@ -300,17 +298,31 @@ class OllamaLLMBackend(LLMBackend):
             ],
             "stream": bool(kwargs.get("stream", False)),
         }
+        options = {}
         t = kwargs.get("temperature")
         if t is not None:
-            payload["options"] = {"temperature": float(t)}
+            options["temperature"] = float(t)
+            
+        # Tarea 24.2: Aggressive stop sequences to prevent LLMs from hallucinating user dialogue
+        options["stop"] = ["\nUser:", "\n[USER]", "<|im_end|>", "\n<|im_start|>user", "User: "]
+        payload["options"] = options
+        return payload
+
+    def _ollama_chat_response_text(self, data: dict[str, Any]) -> str:
+        msg = data.get("message") or {}
+        return (msg.get("content") or "").strip()
+
+    def completion(self, system: str, user: str, **kwargs: Any) -> str:
+        raise_if_llm_cancel_requested()
+        url = f"{self._base}/api/chat"
+        payload = self._ollama_chat_payload(system, user, stream=False, **kwargs)
 
         # Use sync httpx.Client for synchronous completion
         with httpx.Client(timeout=self._timeout) as client:
             r = client.post(url, json=payload)
             r.raise_for_status()
             data = r.json()
-        msg = data.get("message") or {}
-        return (msg.get("content") or "").strip()
+        return self._ollama_chat_response_text(data)
 
     async def acompletion(self, system: str, user: str, **kwargs: Any) -> str:
         """Async ``/api/chat`` so ``asyncio.wait_for`` can cancel an in-flight request."""

@@ -88,12 +88,24 @@ class EthosKernel:
         from src.modules.sigmoid_will import SigmoidWill
         from src.modules.somatic_markers import SomaticMarkerStore
         from src.modules.strategy_engine import ExecutiveStrategist
+        from src.modules.motivation_engine import MotivationEngine
+        from src.modules.dao_orchestrator import DAOOrchestrator
+        from src.modules.migratory_identity import MigrationHub
+        from src.modules.memory_hygiene import MemoryHygieneService
+        from src.modules.immortality import ImmortalityProtocol
+        from src.kernel_lobes.memory_lobe import MemoryLobe
         from src.modules.subjective_time import SubjectiveClock
 
         evil_detector = AbsoluteEvilDetector()
         self.llm = LLMModule()
         self.strategist = ExecutiveStrategist()
-
+        self.motivation_engine = MotivationEngine()
+        
+        self.narrative = NarrativeMemory()
+        self.dao = DAOOrchestrator()
+        self.migration = MigrationHub()
+        self.hygiene = MemoryHygieneService(memory=self.narrative, dao=self.dao)
+        self._proactive_task = None
         # Lobe 0: Thalamus Gateway
         self.thalamus = ThalamusLobe(bus=self.bus)
 
@@ -167,13 +179,28 @@ class EthosKernel:
             pad_archetypes=PADArchetypeEngine(),
             llm=self.llm,
             bus=self.bus,
-            memory=self.memory,
+            memory=self.narrative,
         )
 
-        from src.modules.memory_hygiene import MemoryHygieneService
+        # Lobe 5: Cerebellum (Bayesian/Memory)
+        self.cerebellum = CerebellumLobe(
+            bayesian=BayesianEngine(),
+            strategist=self.strategist,
+            memory=self.narrative,
+            bus=self.bus
+        )
+
+        # Lobe 6: Memory (Hippocampus/DAO/Identity) [Block 26.0 Integration]
+        self.memory_lobe = MemoryLobe(
+            memory=self.narrative,
+            dao=self.dao,
+            migration=self.migration,
+            hygiene=self.hygiene,
+            bus=self.bus
+        )
 
         # Pruning / hygiene surface expected by legacy integration tests (BiographicPruner removal).
-        self.biographic_pruner = MemoryHygieneService(memory=self.memory, dao=self.dao)
+        self.biographic_pruner = self.hygiene
 
         # V12 moral hub: per-session L1/L2 draft lists + ``buffer`` alias for draft validation (see moral_hub).
         self.constitution_l1_drafts: list[dict[str, Any]] = []
@@ -431,14 +458,35 @@ class EthosKernel:
         self.bus.start()
         self.modulator.start(mode=self.mode)
         self.bus.subscribe(MotorCommandDispatch, self._on_motor_dispatch)
+        self._proactive_task = asyncio.create_task(self._proactive_daemon_loop())
         self.bus.subscribe(ThoughtStreamPulse, self._on_thought_stream)
         _log.info("EthosKernel: The distributed brain is AWAKE.")
 
     async def stop(self) -> None:
         """Shut down the biological cycle."""
+        if self._proactive_task:
+            self._proactive_task.cancel()
         await self.bus.stop()
         await self.modulator.stop()
         _log.info("EthosKernel: The distributed brain is SLEEPING.")
+
+    async def _proactive_daemon_loop(self):
+        """Block 26.2: Emits an internal proactive pulse to trigger MotivationEngine intent."""
+        from src.kernel_lobes.models import SensorySpike
+        while True:
+            await asyncio.sleep(45.0)  # Check idle drives every 45s
+            if self.prefrontal_cortex.motivation:
+                # Update drives based on simulated internal state (using last sensory latency or tension as proxy)
+                self.prefrontal_cortex.motivation.update_drives({"social_tension": 0.0}) # Baseline
+                actions = self.prefrontal_cortex.motivation.get_proactive_actions()
+                if actions:
+                    _log.info("EthosKernel: Proactive intent bubbling up from MotivationEngine.")
+                    # Inject a simulated SensorySpike representing internal deliberation
+                    pulse = SensorySpike(
+                        payload={"text": "[INTERNAL_PROACTIVE_PULSE]", "agent_id": "kernel", "proactive": True},
+                        priority=2
+                    )
+                    await self.bus.publish(pulse)
 
     async def process_chat_turn_async(
         self,

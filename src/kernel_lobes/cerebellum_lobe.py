@@ -54,7 +54,6 @@ class CerebellumLobe:
         from src.modules.session_checkpoint import SessionCheckpointTracker
 
         self.tracker = SessionCheckpointTracker(self.memory)
-
         # Mnemónica asíncrona: El Cerebelo escucha estímulos para pre-calcular confianza
         if self.bus:
             self.bus.subscribe(SensorySpike, self._on_sensory_event)
@@ -276,7 +275,5 @@ class CerebellumLobe:
             await self.bus.publish(eco)
 
     async def _on_motor_dispatch(self, dispatch: MotorCommandDispatch):
-        """Monitor final decisions and promote them to biographic memory."""
-        # Note: In a fully distributed system, we would retrieve context from a distributed cache.
-        # For now, we promote the dispatch to a narrative episode.
-        self.tracker.register_dispatch(dispatch)
+        """Monitor final decisions (Moved to MemoryLobe in Block 26)."""
+        pass
