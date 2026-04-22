@@ -97,6 +97,13 @@ class EthosKernel:
         from src.modules.memory.immortality import ImmortalityProtocol
         from src.kernel_lobes.memory_lobe import MemoryLobe
         from src.modules.cognition.subjective_time import SubjectiveClock
+        from src.modules.drive_arbiter import DriveArbiter
+        from src.modules.cognition.metaplan_registry import MetaplanRegistry
+        from src.modules.cognition.metacognition import MetacognitiveEvaluator
+        from src.modules.memory.forgiveness import AlgorithmicForgiveness
+        from src.modules.safety.locus import LocusModule
+        from src.modules.ethics.weakness_pole import WeaknessPole
+        from src.modules.cognition.feedback_calibration_ledger import FeedbackCalibrationLedger
 
         evil_detector = AbsoluteEvilDetector()
         self.llm = LLMModule()
@@ -398,6 +405,19 @@ class EthosKernel:
         try:
             dispatch_result = await asyncio.wait_for(future, timeout=20.0)
             is_blocked = getattr(dispatch_result, "is_vetoed", False)
+
+            if register_episode:
+                await self.memory.aregister(
+                    place=place,
+                    description=scenario,
+                    action=str(getattr(dispatch_result, "action_id", "Cognitive silence.")),
+                    morals={},
+                    verdict=str(getattr(dispatch_result, "verdict", "Good")) if not is_blocked else "Blocked",
+                    score=float(getattr(dispatch_result, "weighted_score", 0.0)) if not is_blocked else -1.0,
+                    mode=getattr(dispatch_result, "decision_mode", "D_delib"),
+                    sigma=0.5, # Default for bridge
+                    context=context,
+                )
 
             return ChatTurnResult(
                 response=VerbalResponse(

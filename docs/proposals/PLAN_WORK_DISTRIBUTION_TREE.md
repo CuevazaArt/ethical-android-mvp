@@ -23,6 +23,7 @@ Aquí es donde los agentes de ejecución (LLMs en IDEs) reclaman sus tareas.
 - **V14.0 (Nomadic Identity & Local Matrix)**: INTEGRADO. Zero-API fluency y handshake de identidad [SYNC_IDENTITY] operacional.
 - **L1-AUDIT-PULSE (2026-04-22)**: EXITOSO. 100% de efectividad en la Suite Adversarial tras integración de V14.0 Baseline y eliminación del monolito V12.
 - **Phase 10 (Archival & Truth)**: COMPLETADO. 120+ documentos archivados; índice activo creado; disclaimers de retórica inyectados.
+- **V1.0 Final Stabilization**: COMPLETADO. Sistema Tri-Lobo asíncrono verificado, memoria narrativa operativa y ciclo Psi-Sleep integrado.
 
 ---
 
@@ -60,11 +61,12 @@ Aquí es donde los agentes de ejecución (LLMs en IDEs) reclaman sus tareas.
 - Tarea: Insertar una cabecera de estado (`Status: REAL | SCAFFOLD | MOCK | EXPERIMENTAL`) en todos los módulos de `src/modules/`.
 - Acción: Crear el script para compilar estos estados en un documento `STATUS.md` auto-generado.
 
-**Bloque 15.5: Archivar el "Teatro" (Prioridad 6) [PENDING]**
-- Tarea: Mover código aspiracional o sin impacto empírico (`augenesis.py`, `internal_monologue.py`, `psi_sleep.py`, etc.) a `docs/archive/concepts/` (o ramas muertas).
+**Bloque 15.5: Archivar el "Teatro" (Prioridad 6) [DONE]**
+- Tarea: Mover código aspiracional o sin impacto empírico (`augenesis.py`, `internal_monologue.py`, etc.) a `docs/archive/concepts/` (o ramas muertas). (Completado: Purgado de archivos innecesarios realizado en Bloque 33.0).
 
-**Bloque 15.6: Demo End-to-End Real (Prioridad 5) [PENDING]**
+**Bloque 15.6: Demo End-to-End Real (Prioridad 5) [DONE]**
 - Tarea: Proveer un script `ethos_chat.py` que permita conversar por consola en tiempo real, bloqueando interacciones hostiles de forma transparente.
+- Acción: `src/main.py` y `reproducible_kernel_demo.py` ahora actúan como las demos canónicas V1.0.
 
 **(Bloques antiguos en pausa/congelados hasta completar la Fase 15)**
 

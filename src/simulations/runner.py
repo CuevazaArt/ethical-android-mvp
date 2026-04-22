@@ -894,13 +894,13 @@ ALL_SIMULATIONS = {
 }
 
 
-def run_simulation(kernel: EthicalKernel, num: int) -> str:
+async def run_simulation(kernel: EthicalKernel, num: int) -> str:
     """Runs a simulation and returns the formatted result."""
     if num not in ALL_SIMULATIONS:
         return f"Simulation {num} does not exist. Available: {sorted(ALL_SIMULATIONS)}."
 
     scn = ALL_SIMULATIONS[num]()
-    decision = kernel.process(
+    decision = await kernel.aprocess(
         scenario=f"[SIM {num}] {scn.name}",
         place=scn.place,
         signals=scn.signals,
@@ -910,9 +910,9 @@ def run_simulation(kernel: EthicalKernel, num: int) -> str:
     return kernel.format_decision(decision)
 
 
-def run_all(kernel: EthicalKernel) -> str:
+async def run_all(kernel: EthicalKernel) -> str:
     """Runs every registered batch simulation and returns results."""
     results = []
     for i in sorted(ALL_SIMULATIONS):
-        results.append(run_simulation(kernel, i))
+        results.append(await run_simulation(kernel, i))
     return "\n".join(results)

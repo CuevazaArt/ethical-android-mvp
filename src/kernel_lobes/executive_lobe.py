@@ -438,7 +438,7 @@ class ExecutiveLobe:
 
     async def _on_cognitive_event(self, pulse: CognitivePulse) -> None:
         """Process high-level mental states and deliberate actions."""
-        if pulse.origin_lobe == "sensory_cortex" and pulse.state_ref:
+        if pulse.origin_lobe in ("sensory_cortex", "sensory_cortex_bridge") and pulse.state_ref:
             # Swarm Rule 3: Latency Telemetry
             t0: float = time.perf_counter()
 

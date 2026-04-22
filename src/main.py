@@ -110,6 +110,7 @@ async def _async_main():
 
     # 2. Kernel initialization
     kernel = EthicalKernel()
+    await kernel.start()
     print(banner())
 
     # 3. Simulation execution
@@ -126,14 +127,15 @@ async def _async_main():
                 f"Simulation {sim_idx} does not exist. Available: {sorted(ALL_SIMULATIONS)}."
             )
             sys.exit(1)
-        result = run_simulation(kernel, sim_idx)
+        result = await run_simulation(kernel, sim_idx)
         print(result)
     else:
         for i in sorted(ALL_SIMULATIONS):
-            result = run_simulation(kernel, i)
+            result = await run_simulation(kernel, i)
             print(result)
 
     await final_summary(kernel)
+    await kernel.stop()
 
 
 if __name__ == "__main__":
