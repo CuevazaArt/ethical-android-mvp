@@ -59,6 +59,13 @@ Aquí es donde los agentes de ejecución (LLMs en IDEs) reclaman sus tareas.
 **Bloque 27.0: GHA L1 collaboration-audit parity [DONE]**
 - Tarea 27.1: **verify_collaboration_invariants en CI:** [COMPLETED — L2 Cursor] En el job `quality` de `.github/workflows/ci.yml` se añade el paso `L1 collaboration invariants` (`python scripts/eval/verify_collaboration_invariants.py`); el checkout del job usa `fetch-depth: 0` para que el diff frente a `main` y las reglas L1 sean fiables en PRs. `CONTRIBUTING.md` alinea comprobación local y GHA.
 
+**Bloque 28.0: Hardening integración L2 (Swarm) / consola & paridad CI [DONE]**
+- Tarea 28.1: **`swarm_sync.py` resistente a `cp1252`:** [COMPLETED — L2] Salida de consola solo ASCII (`[WARN]`, `[OK]`); título de entrada en `swarm_activity.md` sin emojis; corrección de typo *SUCCESSFULLY* en el mensaje final.
+- Tarea 28.2: **Paridad con GitHub Actions (suite completa):** [COMPLETED — L2] Fuente de verdad: job `quality` en `.github/workflows/ci.yml` — `python -m pytest tests/ -n auto` (con coverage), más Ruff, Mypy, `verify_collaboration_invariants.py`, matriz Python 3.11 / 3.12 / 3.13. Reproducción local alineada con `CONTRIBUTING.md` / sección quality del workflow.
+
+**Bloque 29.0: Paridad Windows / suite completa en GHA [DONE]**
+- Tarea 29.1: **GHA `windows-smoke` alineado con `quality` (sin matriz de versiones):** [COMPLETED — L2] Invariantes L1, Ruff check+format, Mypy, y `python -m pytest tests/ -n auto` con el mismo umbral de cobertura en **windows-latest** (antes solo dos módulos de prueba). Checkout `fetch-depth: 0` + artefacto JUnit a la par del job en Linux; la matriz 3.11/3.12/3.13 sigue en Ubuntu.
+
 ---
 
 ## 🗄️ RESERVA DEL ENJAMBRE (Buffer de Optimización Continua V14)

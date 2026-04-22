@@ -121,9 +121,12 @@ jobs:
           python -m pytest tests/test_malabs_semantic_integration.py tests/test_semantic_chat_gate.py tests/test_empirical_pilot_runner.py -n auto -q --tb=short
 
   windows-smoke:
+    # Full pytest parity with Linux `quality` (portability on win32; no duplicate coverage upload).
     runs-on: windows-latest
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
       - name: Set up Python 3.12
         uses: actions/setup-python@v5
@@ -139,11 +142,27 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r requirements.txt -r requirements-dev.txt
 
-      - name: Ruff lint smoke
+      - name: L1 collaboration invariants
+        run: python scripts/eval/verify_collaboration_invariants.py
+
+      - name: Ruff lint
         run: python -m ruff check src tests
 
-      - name: Runtime profile smoke tests
+      - name: Ruff format
+        run: python -m ruff format --check src tests
+
+      - name: Mypy
+        run: python -m mypy src
+
+      - name: Pytest (full tests/)
         env:
           PYTHONHASHSEED: "0"
-        run: |
-          python -m pytest tests/test_runtime_profiles.py tests/test_env_policy.py -n auto -q --tb=short
+        run: python -m pytest tests/ -n auto -q --tb=short --junitxml=junit-windows.xml --cov=src --cov-fail-under=65 --cov-report=term-missing
+
+      - name: Upload JUnit (Windows)
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: junit-windows-3.12
+          path: junit-windows.xml
+          if-no-files-found: ignore

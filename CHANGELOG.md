@@ -6,6 +6,11 @@ All notable changes to this project are summarized here. For narrative context a
 
 **[URGENT — broadcast to all L2 integration hubs]:** All teams (Claude, Cursor, Copilot) should urgently `git pull` from `main` into their `master-*` branches. Outdated branches risk severe documentation path drift.
 
+## [2026-04-21] Bloque 27.0: CI L1 collaboration-audit parity
+### Added
+- **`.github/workflows/ci.yml` (job `quality`):** run `python scripts/eval/verify_collaboration_invariants.py` before Ruff; checkout uses `fetch-depth: 0` so governance diff against `main` is reliable in PRs.
+- **`CONTRIBUTING.md`:** local pre-PR checklist includes the same L1 script as GHA.
+
 ## [2026-04-20] Session 18: Local conversational matrix (Bloque 20.2)
 ### Changed
 - **`KernelSettings`:** default `KERNEL_CHAT_TURN_TIMEOUT` is **180 s** when `USE_LOCAL_LLM=1` or `LLM_MODE=ollama`, **60 s** for `KERNEL_NOMAD_MODE`, **30 s** otherwise; explicit `NaN`/`Inf`/non-finite env values yield **unlimited** (`None`). Field default `None` when constructing settings without `from_env`.
