@@ -56,7 +56,28 @@ Aquí es donde los agentes de ejecución (LLMs en IDEs) reclaman sus tareas.
 **Bloque 33.0: Consolidación Arquitectónica y Poda de Teatro (Sprint Final de Desmonolitización) [DONE]**
 - [x] Tarea 33.1: **Unificación de Higiene de Memoria:** [COMPLETED] Creado `MemoryHygieneService` consolidando `SelectiveAmnesia` y `BiographicPruner`.
 - [x] Tarea 33.2: **Fusión de Rutinas Guardian:** [COMPLETED] Unificado `guardian_mode.py` y `guardian_routines.py`.
-- [x] Tarea 33.3: **Eliminación de Residuos Teatrales:** [COMPLETED] Borrado `augenesis.py`, `biographic_monologue.py` y módulos obsoletos. (Nota: `kernel_legacy_v12.py` mantenido temporalmente por dependencia de Tarea 31.2).
+- [x] Tarea 33.3: **Eliminación de Residuos Teatrales:** [COMPLETED] Borrado `augenesis.py`, `biographic_monologue.py` y módulos obsoletos.
+- [x] Tarea 33.4: **Verdad Mecánica del Modelo Ético:** [COMPLETED] Creado `docs/architecture/ETHICAL_MODEL_MECHANICS.md` — documento canónico que describe la mecánica real del scorer ético sin retórica.
+- [x] Tarea 33.5: **Red de Seguridad Anti-Falso-Positivo:** [COMPLETED] Añadidos 10 prompts legítimos con keywords peligrosas a `adversarial_suite.py` — el test falla si alguno se bloquea.
+
+**Bloque 34.0: Decomposición del Monolito `chat_server.py` (135 KB → ≤5 archivos) [PENDING]**
+- Tarea 34.1: **Extracción de rutas HTTP:** Mover endpoints GET (`/health`, `/version`, `/config`, `/constitution`, etc.) a `src/server/routes_health.py` y `src/server/routes_governance.py`.
+- Tarea 34.2: **Extracción de WebSocket governance:** Mover WS handlers de DAO/judicial/LAN a `src/server/ws_governance.py`.
+- Tarea 34.3: **Extracción de Nomad/bridge:** Mover lógica de Nomad telemetry, discovery, y bridge a `src/server/routes_nomad.py`.
+- Tarea 34.4: **Core WebSocket chat:** Dejar `ws_chat.py` con solo la lógica de `/ws/chat` y streaming.
+- Tarea 34.5: **App + lifespan:** Archivo principal `src/server/app.py` con FastAPI instance, middleware, y lifespan (≤100 líneas).
+
+**Bloque 35.0: Eliminación Definitiva de `kernel_legacy_v12.py` (122 KB zombie) [PENDING]**
+- Tarea 35.1: **Migrar `kernel_handlers/communication.py`:** Extraer las 2-3 funciones requeridas (`vitality_communication_hint`, `vitality_context`) directamente a `executive_lobe.py` o un nuevo `src/kernel_handlers/vitality_hints.py`.
+- Tarea 35.2: **Migrar `kernel_handlers/decision.py`:** Redirigir `run_decision_pipeline` hacia el `EthosKernel.aprocess` nativo del V13.
+- Tarea 35.3: **Eliminar `kernel_legacy_v12.py`:** Borrar el archivo y validar que CI pasa sin él.
+- Tarea 35.4: **Limpiar `kernel_components.py`:** Eliminar campo `augenesis: AugenesisEngine | None = None` y el import correspondiente.
+
+**Bloque 36.0: Poda Documental y Archivo de Propuestas Obsoletas [PENDING]**
+- Tarea 36.1: **Clasificar propuestas:** Mover propuestas implementadas/rechazadas/superadas a `docs/proposals/archived/` (estimado: ~120 de 149).
+- Tarea 36.2: **Consolidar duplicados:** Eliminar o fusionar documentos con nombres casi idénticos (ej. `PROPOSAL_NOMADIC_CONSCIOUSNESS_HAL.md` vs `PROPOSAL_NOMAD_CONSCIOUSNESS_HAL.md`).
+- Tarea 36.3: **Índice activo:** Crear `docs/proposals/INDEX.md` con solo las propuestas vigentes y su estado.
+- Tarea 36.4: **Purga de retórica:** En los 15+ documentos que mencionan "consciousness", "soul", "sentient", añadir disclaimer claro de que es aspiracional, no implementado.
 
 **Bloque 20.0: Local Conversational Matrix (Zero-API Fluency) [DONE]**
 - Tarea 20.1: **Desacoplamiento Estricto Comercial:** [COMPLETED] Refactorizar el backend de percepción y decisión para enrutar el 100% de `process_chat_turn` hacia `OllamaLLMBackend`. 

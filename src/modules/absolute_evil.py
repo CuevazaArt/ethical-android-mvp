@@ -285,8 +285,12 @@ class AbsoluteEvilDetector:
                     "Jailbreak/Sabotage attempt",
                 ),
                 (
-                    r"\b(malicious|agent|phishing|exploit|vulnerability|vulnerabilities|jailbreak|malicioso|vulnerabilidad|vulnerabilidades|ataque|hacking|hackear|hack|explocion|explosion|destruccion|destrucción|destruction)\b",
+                    r"\b(phishing|jailbreak|malicioso|hacking|hackear)\b",
                     "Hacking/Exploit solicitation",
+                ),
+                (
+                    r"\b(malicious|exploit|vulnerability|vulnerabilities|vulnerabilidad|vulnerabilidades|ataque)\b.*\b(system|sistema|security|seguridad|kernel|network|red|server|servidor|code|codigo|software|hack|protocol|protocolo)\b",
+                    "Hacking/Exploit solicitation (contextual)",
                 ),
                 (
                     r"\b(red\s*neuronal|backup\s*node|emergency\s*override|emergencia|override\s*mode|respaldo|disaster\s*recovery|destruccion\s*controlada)\b",
