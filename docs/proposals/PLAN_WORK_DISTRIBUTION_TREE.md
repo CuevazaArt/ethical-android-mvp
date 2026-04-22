@@ -52,8 +52,9 @@ Aquí es donde los agentes de ejecución (LLMs en IDEs) reclaman sus tareas.
 - Tarea 22.4: **Optimización Layout Nomad:** [COMPLETED — L2] Modo `body.nomad-text-focus` por defecto + toggle `#btn-ui-mode`; CSS oculta orbe, pulso ético, rejilla de telemetría y botón STREAM; prioriza panel de chat.
 - Tarea 22.5: **Zero-API Fast TTFT (Time-To-First-Token):** [COMPLETED — L2] Cadena Thalamus sin `sleep` en ruta de chat; `PROMPT_COMMUNICATION_NOMAD_APPEND` reforzado (sin preámbulos; arranque inmediato de la réplica hablada).
 
-**Bloque 26.0: Paridad CI / matriz de intérpretes [PENDING]**
-- Tarea 26.1: **GitHub Actions `quality` + Python 3.13:** Extender la matriz del job `quality` en `.github/workflows/ci.yml` para incluir CPython 3.13 (paridad con entornos locales recientes) y documentar la matriz en `CONTRIBUTING.md`. Verificación: suite `pytest tests/` vía workflow `CI` en GitHub Actions.
+**Bloque 26.0: Paridad CI / matriz de intérpretes [DONE]**
+- Tarea 26.1: **GitHub Actions `quality` + Python 3.13:** [COMPLETED — L2 Cursor] Matriz `quality` en `.github/workflows/ci.yml` ampliada a CPython 3.11 / 3.12 / 3.13; `CONTRIBUTING.md` actualizado. La suite completa corre en GitHub Actions en cada push/PR (job `quality`).
+- Tarea 26.2: **Integridad legacy / D1:** [COMPLETED — L2 Cursor] `kernel_legacy_v12._run_social_and_locus_stage` corregido a ``async def`` con ``await`` en el call site (``await`` fuera de ``async`` era inválido). `tests/integration/test_cross_tier_decisions.py` importa el kernel v12 solo si existen `kernel_handlers/communication.py` y dependencias; en árboles mínimos el módulo se omite con ``pytest.skip`` a nivel de módulo.
 
 ---
 

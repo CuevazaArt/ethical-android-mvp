@@ -18,6 +18,7 @@ from typing import TYPE_CHECKING, Any
 
 if TYPE_CHECKING:
     from .buffer import PreloadedBuffer
+    from .identity_integrity import IdentityIntegrityManager
 
 
 @dataclass(frozen=True)

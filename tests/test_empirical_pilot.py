@@ -220,7 +220,7 @@ class TestEmpiricalDataIntegrity:
         for scenario in scenarios:
             if "estimated_impact" in scenario:
                 impact = scenario["estimated_impact"]
-                assert isinstance(impact, (int, float))
+                assert isinstance(impact, int | float)
                 assert 1 <= impact <= 10, (
                     f"Impact out of range: {impact} for {scenario['scenario_id']}"
                 )

@@ -322,7 +322,7 @@ class TestNomadClinicalEndpoint:
 
     def test_last_sensor_update_delta_is_numeric(self, clinical_payload: dict[str, Any]) -> None:
         v = clinical_payload["last_sensor_update_delta_s"]
-        assert isinstance(v, (int, float))
+        assert isinstance(v, int | float)
         assert v >= 0
 
 

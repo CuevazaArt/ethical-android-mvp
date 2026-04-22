@@ -278,10 +278,8 @@ class EthosKernel:
 
         try:
             dispatch_result = await asyncio.wait_for(future, timeout=25.0)
-            from src.utils.terminal_colors import color_verdict
 
             is_blocked = getattr(dispatch_result, "is_vetoed", False)
-            status_tag = color_verdict("BLOCKED") if is_blocked else color_verdict("PASS")
 
             # Registration of the conversation episode (Phase 13.2 / 13.3)
             snapshot = getattr(dispatch_result, "gestalt_snapshot", None)

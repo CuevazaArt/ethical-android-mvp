@@ -997,7 +997,7 @@ def run_semantic_malabs_after_lexical(
 
     best_sim, cat_key, reason_label = _best_similarity(user_emb, llm_backend)
 
-    cat = _get_absolute_evil_category(cat_key)
+    _get_absolute_evil_category(cat_key)
     zone = classify_semantic_zone(best_sim, theta_b, theta_a)
 
     if zone != "ambiguous":
@@ -1111,7 +1111,7 @@ async def arun_semantic_malabs_after_lexical(
     best_sim, cat_key, reason_label = await asyncio.to_thread(
         _best_similarity, user_emb, llm_backend
     )
-    cat = _get_absolute_evil_category(cat_key)
+    _get_absolute_evil_category(cat_key)
     zone = classify_semantic_zone(best_sim, theta_b, theta_a)
 
     if zone != "ambiguous":

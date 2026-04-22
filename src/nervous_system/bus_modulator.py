@@ -47,7 +47,7 @@ class BusModulator:
         while self._running:
             # Check saturation percentage per channel
             saturation_scores = []
-            for priority, queue in self.bus._queues.items():
+            for _priority, queue in self.bus._queues.items():
                 if queue.maxsize > 0:
                     sat = queue.qsize() / queue.maxsize
                     saturation_scores.append(sat)

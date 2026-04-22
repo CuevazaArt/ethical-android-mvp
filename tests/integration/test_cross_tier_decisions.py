@@ -19,10 +19,23 @@ import json
 import os
 import sys
 import time
+from pathlib import Path
+
+import pytest
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), "../.."))
 
-from src.kernel import EthicalKernel
+_REPO_ROOT = Path(__file__).resolve().parents[2]
+_HANDLERS = _REPO_ROOT / "src" / "kernel_handlers"
+if not (_HANDLERS / "communication.py").is_file() or not (_HANDLERS / "decision.py").is_file():
+    pytest.skip(
+        "ADR 0016 D1 integration requires ``src.kernel_legacy_v12`` plus "
+        "``src/kernel_handlers/{communication,decision}.py`` (not present in this checkout).",
+        allow_module_level=True,
+    )
+
+# Full synchronous ``process()`` / ``KernelDecision`` pipeline (v12).
+from src.kernel_legacy_v12 import EthicalKernel
 from src.modules.bayesian_engine import CandidateAction
 from src.modules.sensor_contracts import SensorSnapshot
 

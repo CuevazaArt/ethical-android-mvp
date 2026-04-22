@@ -124,7 +124,7 @@ class TestAuditChainHardening:
             try:
                 # First write should succeed
                 append_audit_event("event1", {"id": 1})
-                initial_size = path.stat().st_size
+                assert path.stat().st_size > 0
 
                 # Even if write fails (e.g., permissions), should not corrupt chain
                 original_open = open

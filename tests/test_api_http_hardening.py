@@ -67,8 +67,8 @@ class TestAPIHTTPHardening:
         def client_worker(client_id: int):
             try:
                 k = kernels[client_id]
-                r1 = k.process_natural(f"client {client_id} turn 1")
-                r2 = k.process_natural(f"client {client_id} turn 2")
+                k.process_natural(f"client {client_id} turn 1")
+                k.process_natural(f"client {client_id} turn 2")
                 results.append((client_id, len(k.memory.episodes)))
             except Exception as e:
                 results.append((client_id, str(e)))
@@ -164,7 +164,7 @@ class TestAPIHTTPHardening:
                 k = EthicalKernel(variability=False)
                 for turn in range(3):
                     try:
-                        r = k.process_natural(f"worker {worker_id} turn {turn}")
+                        k.process_natural(f"worker {worker_id} turn {turn}")
                         results.append((worker_id, "ok"))
                     except Exception as e:
                         results.append((worker_id, str(e)))
@@ -202,7 +202,7 @@ class TestAPIHTTPHardening:
         k = EthicalKernel(variability=False)
 
         start = time.time()
-        result = k.process_natural("quick query")
+        k.process_natural("quick query")
         elapsed = time.time() - start
 
         # Should respond in reasonable time (under 60 seconds for MVP)

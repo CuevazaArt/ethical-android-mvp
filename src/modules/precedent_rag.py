@@ -36,8 +36,10 @@ class PrecedentRAG:
         self._load()
 
     def add_precedent(
-        self, scenario: str, action: str, outcome: float, lesson: str, traumas: list[str] = []
+        self, scenario: str, action: str, outcome: float, lesson: str, traumas: list[str] = None
     ):
+        if traumas is None:
+            traumas = []
         p_id = hashlib.sha256(f"{scenario}{time.time()}".encode()).hexdigest()[:12]
         new_p = Precedent(
             precedent_id=p_id,

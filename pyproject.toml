@@ -116,6 +116,8 @@ exclude = [
     ".claude",
     "build",
     "dist",
+    # V13+ tri-lobe uses ``src/kernel.py``; this file remains as an archival reference (ADR 0018).
+    "src/kernel_legacy_v12.py",
     "androide-etico-mvp-v2",
     "androide-etico-mvp-v3",
     "androide-etico-mvp-v4-llm",
@@ -136,6 +138,7 @@ select = [
 ]
 ignore = [
     "E501",
+    "E402",
     "B008",
     "B904",
     "B905",

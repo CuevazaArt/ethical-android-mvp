@@ -195,7 +195,7 @@ class TestPersistenceHardening:
         k3 = EthicalKernel(variability=False)
         store.load_into_kernel(k3)
         k3.process_natural("cycle 3")
-        snap3 = extract_snapshot(k3)
+        extract_snapshot(k3)
 
         # Episode count should grow
         assert len(k3.memory.episodes) >= 1

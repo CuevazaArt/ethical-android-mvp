@@ -108,7 +108,7 @@ class OrchestrationTrace:
 
         prev_time = self.start_time
         for trans in self.transitions:
-            elapsed = (trans.timestamp - prev_time) * 1000
+            (trans.timestamp - prev_time) * 1000
             lines.append(f"  {trans.summary()}")
             if trans.reason:
                 lines.append(f"    → {trans.reason}")

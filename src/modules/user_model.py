@@ -11,6 +11,7 @@ Enrichment (cognitive pattern, risk band, judicial snapshot for tone):
 from __future__ import annotations
 
 from dataclasses import dataclass, field
+from typing import Any
 
 from .llm_layer import LLMPerception
 

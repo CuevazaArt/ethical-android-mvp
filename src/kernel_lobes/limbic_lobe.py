@@ -147,7 +147,7 @@ class LimbicEthicalLobe:
         if signals.get("urgency", 0.0) > 0.8 or signals.get("threat_level", 0.0) > 0.5:
             threat_load = signals.get("threat_level", 0.5)
 
-        confidence = signals.get("confidence", 1.0)
+        signals.get("confidence", 1.0)
         self.threat_tracker.update_threat_load(threat_load)
         tension_delta = self.threat_tracker.get_limbic_tension_delta()
 

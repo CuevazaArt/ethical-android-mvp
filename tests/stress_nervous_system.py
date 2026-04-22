@@ -57,7 +57,7 @@ async def run_stress_test(duration=5.0, high_load=True):
             await asyncio.sleep(1.0 / rate)
 
     # Launch multiple producers
-    producers = [asyncio.create_task(fast_producer(i, rate=2000)) for i in range(10)]
+    [asyncio.create_task(fast_producer(i, rate=2000)) for i in range(10)]
 
     # Monitor loop
     while time.time() - start_time < duration:

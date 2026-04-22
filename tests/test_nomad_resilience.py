@@ -11,7 +11,6 @@ import time
 from unittest.mock import MagicMock
 
 import pytest
-
 from src.kernel_lobes.models import RawSensoryPulse, SensorySpike
 from src.kernel_lobes.perception_lobe import PerceptiveLobe
 from src.kernel_lobes.thalamus_lobe import ThalamusLobe

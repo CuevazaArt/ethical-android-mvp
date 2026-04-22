@@ -49,7 +49,7 @@ def vision_worker(
             while not output_queue.empty():
                 try:
                     output_queue.get_nowait()
-                except:
+                except Exception:
                     break
             output_queue.put(result)
 
@@ -126,7 +126,7 @@ class MultiprocessVisionInference:
         if self._input_q.full():
             try:
                 self._input_q.get_nowait()
-            except:
+            except Exception:
                 pass
         self._input_q.put("NEW_FRAME")
 
@@ -136,5 +136,5 @@ class MultiprocessVisionInference:
             res = self._output_q.get_nowait()
             self.latest_result = res
             return res
-        except:
+        except Exception:
             return self.latest_result

@@ -22,7 +22,7 @@ def test_kinematic_filter_smooths_jumps():
 
     # Mocking time for deterministic test
     # (In a real test we'd use a mock clock, here we sleep briefly or accept jitter)
-    start_time = time.time()
+    time.time()
     time.sleep(0.1)
     v1 = f.filter_action("arm", 10.0)
 

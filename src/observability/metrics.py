@@ -26,6 +26,8 @@ _lan_envelope_replay_cache_events: Any = None
 _limbic_tension: Any = None
 _ttft_histogram: Any = None
 _nomad_connections: Any = None
+_nomad_bridge_rejections: Any = None
+_nomad_bridge_queue_evictions: Any = None
 _initialized = False
 
 _LAN_ENVELOPE_REPLAY_CACHE_EVENTS = frozenset({"hit", "miss", "evict_ttl", "evict_lru"})
@@ -58,6 +60,7 @@ def init_metrics() -> None:
     global _kernel_decisions, _kernel_process_seconds, _perception_circuit_trips
     global _chat_async_timeouts, _llm_cancel_scope_signals, _chat_abandoned_effects_skipped
     global _lan_envelope_replay_cache_events, _limbic_tension, _ttft_histogram, _nomad_connections
+    global _nomad_bridge_rejections, _nomad_bridge_queue_evictions
 
     if _initialized:
         return

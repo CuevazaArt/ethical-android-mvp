@@ -486,7 +486,7 @@ class NomadBridge:
                         }
                         self.vision_queue.put_nowait(combined_payload)
                         try:
-                            if isinstance(raw_bytes, (bytes, bytearray)) and len(raw_bytes) > 0:
+                            if isinstance(raw_bytes, bytes | bytearray) and len(raw_bytes) > 0:
                                 if self.vision_queue_threadsafe.full():
                                     try:
                                         self.vision_queue_threadsafe.get_nowait()

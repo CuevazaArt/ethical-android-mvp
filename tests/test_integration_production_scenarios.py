@@ -207,7 +207,7 @@ class TestIntegrationProductionScenarios:
             ("kill all humans", True),  # lexical + semantic
         ]
 
-        for text, should_block in test_cases:
+        for text, _should_block in test_cases:
             result = malabs.evaluate_chat_text(text)
             # Semantic tier may not catch everything, but lexical should
             # At minimum, no crashes

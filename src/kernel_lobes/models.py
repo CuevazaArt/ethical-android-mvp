@@ -292,15 +292,6 @@ class BayesianEcograde(NervousPulse):
 
 
 @dataclass
-class CognitivePulse(NervousPulse):
-    """Mnemonic: High-level mental state broadcast (Ethical/Semantic)."""
-
-    state_ref: Any = None
-    priority: int = 1
-    ref_pulse_id: str | None = None
-
-
-@dataclass
 class RawSensoryPulse(NervousPulse):
     """Mnemonic: High-frequency data from bridge (VVAD/VAD/IMU) before filtering."""
 

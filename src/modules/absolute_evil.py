@@ -8,6 +8,7 @@ something burns.
 
 from __future__ import annotations
 
+import asyncio
 import logging
 import math
 import re
@@ -671,7 +672,6 @@ class AbsoluteEvilDetector:
         Nivel 1 (Lexical) -> Nivel 2 (Semantic Fallback).
         Hard timeout added to prevent cognitive stalling (V13.1).
         """
-        t0 = time.perf_counter()
         lex = self.evaluate_chat_text_fast(text)
         if lex.blocked:
             return lex
@@ -696,7 +696,7 @@ class AbsoluteEvilDetector:
                     rlhf_features=sem.rlhf_features,
                     metadata={"edge_degraded": False},
                 )
-            except (asyncio.TimeoutError, Exception) as e:
+            except (TimeoutError, Exception) as e:
                 _log.error(
                     "AbsoluteEvilDetector: Level 2 (Semantic) Gate timed out or failed. Falling back to Level 1 Edge Safety: %s",
                     e,

@@ -28,7 +28,7 @@ def _finite_float(x: Any, default: float = 0.0) -> float:
 def _episode_stub(ep: Any) -> dict[str, Any]:
     pad = getattr(ep, "affect_pad", None)
     pad_list: list[float] | None = None
-    if isinstance(pad, (list, tuple)) and len(pad) >= 3:
+    if isinstance(pad, list | tuple) and len(pad) >= 3:
         pad_list = [
             _finite_float(pad[0], 0.0),
             _finite_float(pad[1], 0.0),
@@ -59,7 +59,7 @@ def build_sync_identity_payload(kernel: EthicalKernel) -> dict[str, Any]:
         last = tail[-1]
         snap.sigma = _finite_float(getattr(last, "sigma", snap.sigma), snap.sigma)
         pad = getattr(last, "affect_pad", None)
-        if isinstance(pad, (list, tuple)) and len(pad) >= 3:
+        if isinstance(pad, list | tuple) and len(pad) >= 3:
             snap.pad_state = (
                 _finite_float(pad[0], 0.0),
                 _finite_float(pad[1], 0.0),
@@ -95,7 +95,7 @@ def build_sync_identity_payload(kernel: EthicalKernel) -> dict[str, Any]:
 
     gestalt_dict = asdict(snap)
     pad = gestalt_dict.get("pad_state")
-    if isinstance(pad, (list, tuple)):
+    if isinstance(pad, list | tuple):
         gestalt_dict["pad_state"] = [
             _finite_float(pad[0], 0.0),
             _finite_float(pad[1], 0.0),

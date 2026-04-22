@@ -25,6 +25,7 @@ import os
 import time
 from dataclasses import dataclass
 from enum import Enum
+from typing import Any
 
 _log = logging.getLogger(__name__)
 
@@ -97,7 +98,7 @@ class SafetyInterlock:
         """Kernel check: can we even move?"""
         return not self._estop_active
 
-    def evaluate(self, scenario: str, place: str, context: str) -> Optional[Any]:
+    def evaluate(self, scenario: str, place: str, context: str) -> Any | None:
         """Perceptual stage safety check."""
         if not self.is_safe_to_operate():
             from src.kernel import InternalState, KernelDecision

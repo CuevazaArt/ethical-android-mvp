@@ -20,8 +20,9 @@ from __future__ import annotations
 import asyncio
 import logging
 import queue
+from collections.abc import Callable, Coroutine
 from dataclasses import dataclass, field
-from typing import Literal
+from typing import Any, Literal
 
 import numpy as np
 
@@ -202,7 +203,7 @@ class TextToSpeechAdapter:
             estimated_duration = len(text) / 15.0
 
             # Save to bytes buffer
-            buffer = io.BytesIO()
+            io.BytesIO()
             # Note: pyttsx3 doesn't directly support BytesIO, would need WAV encoder
             # For now, return placeholder
             logger.warning("pyttsx3 BytesIO support limited; returning silence")

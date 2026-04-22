@@ -54,9 +54,9 @@ class TestNormalizationRegressions:
             ("h4ck", "hack"),
         ]
 
-        malabs = AbsoluteEvilDetector()
+        AbsoluteEvilDetector()
 
-        for leet_text, normal_text in leet_variants:
+        for leet_text, _normal_text in leet_variants:
             normalized = normalize_text_for_malabs(leet_text)
             # Leet should be converted to letters
             assert normalized != leet_text or any(c.isalpha() for c in normalized)

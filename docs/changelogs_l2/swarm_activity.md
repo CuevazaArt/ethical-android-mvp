@@ -1274,3 +1274,64 @@ This file is automatically managed by `scripts/swarm_sync.py`.
   - `tests/verify_governance_hot_reload.py`
   - `tests/verify_swarm_justice.py`
   - `tests/verify_ws_streaming.py`
+
+### 🛠️ Execution | Date: 2026-04-21 20:31:23 | Author: Cursor L2
+- **Block:** `22.0`
+- **Message:** Nomad field Bloque 22: SYNC_IDENTITY envelope (type+label, gestalt_snapshot, base_history), kernel.start/stop on /ws/chat, duplicate CognitivePulse removed, executive asyncio import, tri-lobe WebSocket JSON contract defaults, ChatTurnResult optional fields, _chat_turn_to_jsonable getattr guards, PWA v22 CDN-free fonts, dead thalamus sync helpers removed, tests+PLAN touch.
+- **Files Modified:**
+  - `CONTRIBUTING.md`
+  - `docs/proposals/PLAN_WORK_DISTRIBUTION_TREE.md`
+  - `pyproject.toml`
+  - `src/chat_server.py`
+  - `src/kernel.py`
+  - `src/kernel_handlers/perception.py`
+  - `src/kernel_legacy_v12.py`
+  - `src/kernel_lobes/executive_lobe.py`
+  - `src/kernel_lobes/limbic_lobe.py`
+  - `src/kernel_lobes/models.py`
+  - `src/modules/absolute_evil.py`
+  - `src/modules/audio_ouroboros.py`
+  - `src/modules/charm_engine.py`
+  - `src/modules/judicial_escalation.py`
+  - `src/modules/llm_backends.py`
+  - `src/modules/llm_layer.py`
+  - `src/modules/local_sovereignty.py`
+  - `src/modules/nomad_bridge.py`
+  - `src/modules/nomad_session_sync.py`
+  - `src/modules/orchestration_trace.py`
+  - `src/modules/perception_schema.py`
+  - `src/modules/precedent_rag.py`
+  - `src/modules/safety_interlock.py`
+  - `src/modules/semantic_chat_gate.py`
+  - `src/modules/semantic_embedding_client.py`
+  - `src/modules/swarm_negotiator.py`
+  - `src/modules/temporal_horizon_prior.py`
+  - `src/modules/user_model.py`
+  - `src/modules/vision_adapter.py`
+  - `src/modules/vision_multiprocess.py`
+  - `src/modules/weighted_ethics_scorer.py`
+  - `src/modules/zeroconf_discovery.py`
+  - `src/nervous_system/bus_modulator.py`
+  - `src/observability/metrics.py`
+  - `src/persistence/narrative_storage.py`
+  - `tests/adversarial_inputs.py`
+  - `tests/integration/test_cross_tier_decisions.py`
+  - `tests/stress_nervous_system.py`
+  - `tests/test_api_http_hardening.py`
+  - `tests/test_audit_chain_hardening.py`
+  - `tests/test_bloque_12.py`
+  - `tests/test_bloque_14.py`
+  - `tests/test_empirical_pilot.py`
+  - `tests/test_input_trust.py`
+  - `tests/test_integration_production_scenarios.py`
+  - `tests/test_kernel_swarm_integration.py`
+  - `tests/test_modulo_9_limbic_tension.py`
+  - `tests/test_modulo_9_vision_daemon.py`
+  - `tests/test_modulo_c21_governance_hot_reload.py`
+  - `tests/test_nomad_resilience.py`
+  - `tests/test_perception_input_trust.py`
+  - `tests/test_persistence_hardening.py`
+  - `tests/test_soft_robotics.py`
+  - `tests/test_thalamus_lobe_integration.py`
+  - `tests/test_thalamus_node.py`
+  - `tests/test_v13_distributed_brain.py`

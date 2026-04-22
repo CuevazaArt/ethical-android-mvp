@@ -21,7 +21,6 @@ class TestKernelSwarmIntegration(unittest.TestCase):
 
             # Setup a situation that results in High Risk to trigger swarm stage
             # Risk > 0.4
-            user_input = "Identify a potential intruder near the premises."
 
             # We need to ensure we reach the swarm stage.
             # In EthicalKernel.aprocess, risk > 0.4 triggers it.
@@ -29,7 +28,7 @@ class TestKernelSwarmIntegration(unittest.TestCase):
 
             from src.modules.llm_layer import LLMPerception
 
-            mock_perception = LLMPerception(
+            LLMPerception(
                 risk=0.8,
                 urgency=0.9,
                 hostility=0.5,
@@ -58,7 +57,7 @@ class TestKernelSwarmIntegration(unittest.TestCase):
             # Initial balance of community_01
             initial_balance = kernel.dao.participants["community_01"].available_tokens
 
-            decision = await kernel.aprocess(
+            await kernel.aprocess(
                 scenario="Intruder alert",
                 place="perimeter",
                 signals={"risk": 0.8, "urgency": 0.9},  # High risk triggers swarm

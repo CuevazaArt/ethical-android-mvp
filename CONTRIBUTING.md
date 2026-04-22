@@ -76,7 +76,7 @@ To protect repository integrity from multi-agent collision, this project strictl
 2. **Mandatory Synchronization:** `git fetch origin && git rebase origin/main` (Never skip this step)
 3. Create your isolated branch: `git checkout -b feature/module-name` (or use your pre-assigned `master-<team>` hub).
 4. Implement your change
-5. **Make sure the tests pass**: `pytest tests/ -v` (full suite; CI runs the same on Python 3.11 and 3.12)
+5. **Make sure the tests pass**: `pytest tests/ -v` (full suite; CI runs the same on Python 3.11, 3.12, and 3.13 in the `quality` job — see `.github/workflows/ci.yml`)
 6. **Lint and types (same as CI):** run `python -m ruff check src tests`, `python -m ruff format --check src tests`, and `python -m mypy src`. Optional: `pre-commit install`.
 7. **Re-Sync:** Before PR, run `git fetch origin && git rebase origin/main` again to catch any new changes.
 8. Open a Pull Request targeting the integration hub (`master-antigravity`), **NEVER** `main`.
@@ -93,6 +93,8 @@ pre-commit install
 ```
 
 If `pip` hits read timeouts on a slow network, retry with a higher default timeout, e.g. `pip install --default-timeout=300 -r requirements.txt -r requirements-dev.txt -e .`.
+
+**Run the full suite on GitHub Actions** (same as the `quality` job) after you push: open the **Actions** tab → workflow **CI** → confirm the matrix for your branch. With the [GitHub CLI](https://cli.github.com/): `gh workflow run CI --ref <branch>` (requires `gh auth login`).
 
 Run the same checks as [`.github/workflows/ci.yml`](.github/workflows/ci.yml) before opening a PR:
 

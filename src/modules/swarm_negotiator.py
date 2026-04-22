@@ -126,7 +126,7 @@ class SwarmNegotiator:
                 vote = "agree" if risk < 0.8 else "abstain"
             votes.append(vote)
 
-        agreements = votes.count("agree")
+        votes.count("agree")
 
         # Bloque 7.2: Weighted consensus logic
         total_weight = 0.0

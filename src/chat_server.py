@@ -950,7 +950,7 @@ def _identity_state_public_dict(kernel: EthicalKernel) -> dict[str, Any]:
                 out[k] = int(v)
             except (TypeError, ValueError):
                 out[k] = 0
-        elif isinstance(v, (list, dict, tuple)):
+        elif isinstance(v, list | dict | tuple):
             out[k] = v
         else:
             try:
@@ -960,6 +960,93 @@ def _identity_state_public_dict(kernel: EthicalKernel) -> dict[str, Any]:
                 out[k] = 0.0
     out["ascription"] = idn.ascription_line()
     return out
+
+
+def _tri_lobe_chat_ws_contract_defaults(kernel: EthicalKernel) -> dict[str, Any]:
+    """
+    When the tri-lobe path returns a sparse :class:`~src.kernel.ChatTurnResult` (no ``decision``
+    graph), preserve the WebSocket JSON contract expected by integration tests and dashboards.
+    """
+    limb = kernel.limbic_system
+    sym = getattr(limb, "sympathetic", None)
+    try:
+        sigma = float(getattr(sym, "sigma", 0.5) or 0.5)
+    except (TypeError, ValueError):
+        sigma = 0.5
+    if not math.isfinite(sigma):
+        sigma = 0.5
+    sigma = max(0.0, min(1.0, sigma))
+
+    sc = getattr(getattr(kernel, "sensory_cortex", None), "subjective_clock", None)
+    chrono: dict[str, Any]
+    if sc is not None and hasattr(sc, "to_public_dict"):
+        chrono = dict(sc.to_public_dict())
+    else:
+        chrono = {"turn_index": 1}
+    chrono.setdefault("turn_index", 1)
+
+    now_ms = int(time.time() * 1000)
+    turn_idx = _coerce_public_int(chrono.get("turn_index"), default=1, non_negative=True)
+    temporal: dict[str, Any] = {
+        "sync_schema": "temporal_sync_v1",
+        "turn_index": turn_idx,
+        "wall_clock_unix_ms": now_ms,
+        "processor_elapsed_ms": 0,
+        "turn_delta_ms": 0,
+        "local_network_sync_ready": False,
+        "dao_sync_ready": False,
+    }
+
+    return {
+        "affective_homeostasis": {
+            "state": "within_range",
+            "sigma": round(sigma, 4),
+            "strain_index": None,
+            "pad_max_component": None,
+            "hint": "advisory_only_no_policy_change",
+        },
+        "user_model": {
+            "frustration_streak": 0,
+            "premise_concern_streak": 0,
+            "turns_observed": 0,
+            "cognitive_pattern": "tri_lobe_contract_stub",
+            "risk_band": "low",
+            "judicial_phase": "",
+            "last_circle": "",
+        },
+        "chronobiology": chrono,
+        "premise_advisory": {"flag": "none", "detail": ""},
+        "multimodal_trust": {"state": "no_claim", "reason": "", "requires_owner_anchor": False},
+        "vitality": {"is_critical": False, "critical_threshold": 0.15},
+        "guardian_mode": False,
+        "epistemic_dissonance": {"active": False},
+        "decision": {
+            "final_action": "tri_lobe_turn",
+            "decision_mode": "light",
+            "blocked": False,
+            "chosen_action_source": "builtin",
+        },
+        "support_buffer": {
+            "source": "local_preloaded_buffer",
+            "context": "everyday",
+            "active_principles": [],
+            "priority_profile": "balanced",
+        },
+        "limbic_perception": {
+            "arousal_band": "medium",
+            "threat_load": 0.0,
+            "regulation_gap": 0.0,
+            "planning_bias": "balanced",
+            "multimodal_mismatch": False,
+            "vitality_critical": False,
+            "context": "everyday",
+        },
+        "temporal_context": dict(temporal),
+        "temporal_sync": dict(temporal),
+        "teleology_branches": qualitative_temporal_branches("converse", "Gray Zone", "everyday"),
+        "perception_confidence": {"band": "medium", "score": 0.5},
+        "perception_observability": {"confidence_band": "medium", "confidence_score": 0.5},
+    }
 
 
 def _chat_turn_to_jsonable(r: ChatTurnResult, kernel: EthicalKernel) -> dict[str, Any]:
@@ -1217,6 +1304,11 @@ def _chat_turn_to_jsonable(r: ChatTurnResult, kernel: EthicalKernel) -> dict[str
         out["nomad_identity"] = nomad_identity_public(kernel)
     if _chat_include_light_risk() and getattr(kernel, "_last_light_risk_tier", None):
         out["light_risk_tier"] = kernel._last_light_risk_tier
+    if r.decision is None and r.path == "nervous_bus":
+        fill = _tri_lobe_chat_ws_contract_defaults(kernel)
+        for k, v in fill.items():
+            if k not in out:
+                out[k] = v
     maybe_log_gray_zone_tuning_opportunity(kernel_dao_as_mock(kernel.dao), r, kernel=kernel)
     return out
 

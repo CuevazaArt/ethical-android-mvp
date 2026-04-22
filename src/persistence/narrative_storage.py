@@ -10,7 +10,12 @@ import sqlite3
 from datetime import datetime
 from pathlib import Path
 
-from src.modules.narrative_types import BodyState, NarrativeArc, NarrativeEpisode
+from src.modules.narrative_types import (
+    BodyState,
+    NarrativeArc,
+    NarrativeChronicle,
+    NarrativeEpisode,
+)
 from src.utils.db_locks import get_db_lock
 
 

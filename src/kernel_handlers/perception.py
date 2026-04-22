@@ -25,7 +25,7 @@ async def run_perception_pipeline(
     sensor_snapshot: SensorSnapshot | None,
     turn_start_mono: float,
     precomputed: tuple | None,
-) -> tuple[PerceptionStageResult, Any]:
+) -> tuple[PerceptionStageResult, Any, Any]:
     """
     Executes the layered perception pipeline:
     1. Thalamus fusion (if available)

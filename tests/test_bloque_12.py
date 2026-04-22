@@ -68,7 +68,7 @@ class TestColorSpaceParameter:
         # Mock model output
         import torch
 
-        mock_output = MagicMock()
+        MagicMock()
         mock_softmax = torch.tensor([1.0])
         mock_conf = torch.tensor(1.0)
         mock_idx = torch.tensor(0)

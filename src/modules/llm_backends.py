@@ -298,7 +298,7 @@ class OllamaLLMBackend(LLMBackend):
                 {"role": "system", "content": system},
                 {"role": "user", "content": user},
             ],
-            "stream": stream,
+            "stream": bool(kwargs.get("stream", False)),
         }
         t = kwargs.get("temperature")
         if t is not None:

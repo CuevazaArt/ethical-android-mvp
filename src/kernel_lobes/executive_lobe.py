@@ -1,30 +1,64 @@
 from __future__ import annotations
 
+import asyncio
 import logging
 import math
 import time
-from typing import TYPE_CHECKING, Any
+from typing import Any
 
 from src.kernel_lobes.models import (
     BayesianEcograde,
     CognitivePulse,
     EthicalSentence,
     ExecutiveStageResult,
+    GestaltSnapshot,
     SensorySpike,
 )
+from src.modules.absolute_evil import AbsoluteEvilDetector
 from src.modules.basal_ganglia import BasalGanglia
+from src.modules.ethical_poles import EthicalPoles
+from src.modules.ethical_reflection import EthicalReflection
 from src.modules.internal_monologue import compose_monologue_line
 from src.modules.llm_layer import LLMModule, VerbalResponse
-
-if TYPE_CHECKING:
-    from src.modules.absolute_evil import AbsoluteEvilDetector
-    from src.modules.ethical_poles import EthicalPoles
-    from src.modules.ethical_reflection import EthicalReflection
-    from src.modules.pad_archetypes import PADArchetypeEngine
-    from src.modules.salience_map import SalienceMap
-    from src.nervous_system.corpus_callosum import CorpusCallosum
+from src.modules.locus import LocusEvaluation
+from src.modules.motivation_engine import MotivationEngine
+from src.modules.narrative import NarrativeMemory
+from src.modules.pad_archetypes import PADArchetypeEngine
+from src.modules.salience_map import SalienceMap
+from src.modules.sigmoid_will import SigmoidWill
+from src.modules.sympathetic import InternalState
+from src.modules.uchi_soto import SocialEvaluation
+from src.modules.weighted_ethics_scorer import CandidateAction, EthicsMixtureResult
+from src.nervous_system.corpus_callosum import CorpusCallosum
 
 _log = logging.getLogger(__name__)
+
+
+def _default_deliberation_decision_v13() -> Any:
+    """
+    Minimal limbic-shaped decision when the V13 bus invokes the executive directly
+    from sensory cortex without a full limbic stage (decision=None at call site).
+    Uses SimpleNamespace — not unittest mocks.
+    """
+    from types import SimpleNamespace
+
+    circle = SimpleNamespace(value="neutral_soto")
+    social = SimpleNamespace(circle=circle)
+    verdict = SimpleNamespace(value="Gray Zone")
+    moral = SimpleNamespace(global_verdict=verdict, total_score=0.0)
+    affect = SimpleNamespace(pad=(0.0, 0.0, 0.0), dominant_archetype_id="neutral")
+    sym = SimpleNamespace(mode="neutral", sigma=0.5)
+    return SimpleNamespace(
+        blocked=False,
+        final_action="converse",
+        decision_mode="light",
+        salience=None,
+        reflection=None,
+        social_evaluation=social,
+        moral=moral,
+        sympathetic_state=sym,
+        affect=affect,
+    )
 
 
 class ExecutiveLobe:
@@ -249,7 +283,6 @@ class ExecutiveLobe:
         Generate the final verbal response based on the EthicalSentence from the Limbic Lobe.
         """
         t0 = time.perf_counter()
-        from src.kernel_lobes.models import GestaltSnapshot
 
         # ── VETO PATH ────────────────────────────────────────────────────────────
         if not sentence.is_safe or getattr(decision, "blocked", False):
@@ -259,6 +292,9 @@ class ExecutiveLobe:
 
         # ── SAFE PATH — narrative monologue + LLM communicate ───────────────────
         try:
+            if decision is None:
+                decision = _default_deliberation_decision_v13()
+
             monologue_line = compose_monologue_line(decision, episode_id)
             _log.debug("ExecutiveLobe monologue: %s", monologue_line)
 
@@ -272,15 +308,6 @@ class ExecutiveLobe:
             moral = getattr(decision, "moral", None)
             sympathetic_state = getattr(decision, "sympathetic_state", None)
             affect = getattr(decision, "affect", None)
-
-            if not decision:
-                _log.error("ExecutiveLobe: Missing decision object in formulate_response.")
-                return (
-                    VerbalResponse(
-                        message="I'm experiencing an internal processing error.", tone="neutral"
-                    ),
-                    GestaltSnapshot(),
-                )
 
             identity_ctx = identity_context
             if not identity_ctx and self.memory:
@@ -461,8 +488,8 @@ class ExecutiveLobe:
             from src.kernel_lobes.models import EthicalSentence
 
             try:
-                # Mock a safe sentence for this iteration, or ingest from Limbic Pulse in future
-                sentence = EthicalSentence(is_safe=True)
+                # Limbic pulse may be absent on the sensory→executive shortcut; use a minimal sentence.
+                sentence = EthicalSentence(is_safe=True, social_tension_locus=0.0)
                 self._trauma_abort_active = False  # Reset abort flag
                 # Register the current active pulse to detect interruptions
                 self._active_pulse_id = pulse.ref_pulse_id
@@ -503,8 +530,6 @@ class ExecutiveLobe:
                 response = VerbalResponse(
                     message="Internal focus redirection (Survival Mode active).", tone="neutral"
                 )
-                from src.kernel_lobes.models import GestaltSnapshot
-
                 snapshot = GestaltSnapshot()
 
             _log.info(

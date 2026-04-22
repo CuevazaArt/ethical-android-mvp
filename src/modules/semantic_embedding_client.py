@@ -309,7 +309,7 @@ async def ahttp_fetch_ollama_embedding_with_policy(
             break
         t0 = time.perf_counter()
         try:
-            timeout = httpx.Timeout(t)
+            httpx.Timeout(t)
             if aclient is not None:
                 vec_list = await _apost_once(aclient, url, payload)
             else:

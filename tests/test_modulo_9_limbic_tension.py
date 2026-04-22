@@ -89,7 +89,7 @@ class TestMildEscalationAt1Second:
 
         # Judge with timeout threat
         limbic.threat_tracker.state.first_threat_detected_at = time.time() - 1.5
-        result = limbic.judge(state)
+        limbic.judge(state)
 
         # Tension should have increased (mild escalation = 0.05)
         assert limbic.relational_tension > initial_tension, (
@@ -112,13 +112,13 @@ class TestMediumEscalationAt3Seconds:
 
         # 1s threat
         limbic.threat_tracker.state.first_threat_detected_at = time.time() - 1.5
-        result = limbic.judge(state)
+        limbic.judge(state)
         tension_after_1s = limbic.relational_tension
 
         # 3s threat
         limbic.reset_threat_tracking()
         limbic.threat_tracker.state.first_threat_detected_at = time.time() - 3.5
-        result = limbic.judge(state)
+        limbic.judge(state)
         tension_after_3s = limbic.relational_tension
 
         assert tension_after_3s > tension_after_1s, (
@@ -141,7 +141,7 @@ class TestHighEscalationAt5Seconds:
 
         # Simulate 5s sustained threat
         limbic.threat_tracker.state.first_threat_detected_at = time.time() - 5.5
-        result = limbic.judge(state)
+        limbic.judge(state)
 
         # After high escalation (0.30 delta), tension should be significant
         assert limbic.relational_tension > 0.02, (
@@ -188,7 +188,7 @@ class TestThreatLoadZeroNoEscalation:
         state.perception_signal.confidence = 0.9
 
         initial_tension = limbic.relational_tension
-        result = limbic.judge(state)
+        limbic.judge(state)
 
         # No threat, so no tension increase
         assert limbic.relational_tension == initial_tension, (

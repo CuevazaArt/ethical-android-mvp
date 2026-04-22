@@ -87,8 +87,8 @@ class TestHotReloadAffectsPerceptionImmediately:
     def test_hot_reload_affects_perception_immediately(self):
         """New thresholds take effect immediately in gate evaluation."""
         # Get initial thresholds from semantic_chat_gate functions
-        initial_allow = semantic_chat_gate._allow_threshold()
-        initial_block = semantic_chat_gate._block_threshold()
+        semantic_chat_gate._allow_threshold()
+        semantic_chat_gate._block_threshold()
 
         # Apply hot-reloaded thresholds via environment override
         with patch.dict(

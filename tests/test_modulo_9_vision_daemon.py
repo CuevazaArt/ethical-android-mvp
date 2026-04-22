@@ -48,7 +48,7 @@ class TestDaemonCallsAbsorptionCallbackOnDetections:
 
     def test_daemon_calls_absorption_callback_on_detections(self):
         """Detections trigger sensory buffer callback."""
-        engine = VisionInferenceEngine()
+        VisionInferenceEngine()
         callback_calls: list[dict] = []
 
         def mock_absorption_callback(episode: dict):

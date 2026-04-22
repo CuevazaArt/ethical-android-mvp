@@ -1092,7 +1092,7 @@ class EthicalKernel:
             return p_res["safety_decision"]
 
         # ═══ STAGE 1: SOCIAL & CONTEXT ═══
-        social_eval, state, locus_eval = self._run_social_and_locus_stage(
+        social_eval, state, locus_eval = await self._run_social_and_locus_stage(
             agent_id, signals, message_content, sensor_snapshot, multimodal_assessment
         )
 
@@ -1291,7 +1291,7 @@ class EthicalKernel:
 
         return d
 
-    def _run_social_and_locus_stage(
+    async def _run_social_and_locus_stage(
         self,
         agent_id: str,
         signals: dict,

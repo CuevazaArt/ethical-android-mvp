@@ -194,13 +194,13 @@ def jpeg_bytes_from_vision_queue_item(item: Any) -> bytes | None:
     """
     if item is None:
         return None
-    if isinstance(item, (bytes, bytearray)):
+    if isinstance(item, bytes | bytearray):
         return bytes(item)
     if isinstance(item, dict):
         rb = item.get("raw_bytes")
         if rb is None:
             return None
-        if isinstance(rb, (bytes, bytearray)):
+        if isinstance(rb, bytes | bytearray):
             return bytes(rb)
     return None
 

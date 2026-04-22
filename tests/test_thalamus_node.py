@@ -143,7 +143,7 @@ def test_push_episode_stores_in_buffer(thalamus: ThalamusNode):
 
 
 def test_push_episode_circular_buffer_caps_at_50(thalamus: ThalamusNode):
-    for i in range(60):
+    for _i in range(60):
         thalamus.push_episode(SensoryEpisode(origin="vision"))
     assert len(thalamus.sensory_buffer) <= 50
 

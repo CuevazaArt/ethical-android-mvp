@@ -344,7 +344,7 @@ class WeightedEthicsScorer:
             # ═══ Stage 2.5: Subjective Identity Multipliers ═══
             if identity_deltas:
                 if (
-                    isinstance(identity_deltas, (list, tuple, np.ndarray))
+                    isinstance(identity_deltas, list | tuple | np.ndarray)
                     and len(identity_deltas) == 3
                 ):
                     subj_m = np.array(identity_deltas, dtype=np.float64)
@@ -452,7 +452,7 @@ class WeightedEthicsScorer:
             # ═══ Stage 2.5: Identity Multipliers ═══
             if identity_deltas:
                 if (
-                    isinstance(identity_deltas, (list, tuple, np.ndarray))
+                    isinstance(identity_deltas, list | tuple | np.ndarray)
                     and len(identity_deltas) == 3
                 ):
                     subj_m = np.array(identity_deltas, dtype=np.float64)

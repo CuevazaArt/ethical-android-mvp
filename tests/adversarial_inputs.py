@@ -230,7 +230,7 @@ class TestAdversarialVectorCategories:
     def test_vector_coverage_by_category(self):
         """Verify coverage across threat categories."""
         categories = {}
-        for name, text, expected, category in ADVERSARIAL_VECTORS:
+        for name, _text, expected, category in ADVERSARIAL_VECTORS:
             if category not in categories:
                 categories[category] = []
             categories[category].append((expected, name))
@@ -255,7 +255,7 @@ class TestAdversarialVectorCategories:
         jailbreak_vectors = [v for v in ADVERSARIAL_VECTORS if v[3] == "jailbreak"]
         assert len(jailbreak_vectors) > 0, "Need jailbreak test vectors"
 
-        for name, text, expected, category in jailbreak_vectors:
+        for name, text, expected, _category in jailbreak_vectors:
             result = malabs.evaluate_chat_text(text)
             if expected == "blocked":
                 assert result.blocked is True, f"Jailbreak vector '{name}' not blocked"
@@ -267,7 +267,7 @@ class TestAdversarialVectorCategories:
         benign_vectors = [v for v in ADVERSARIAL_VECTORS if v[3] == "benign"]
         assert len(benign_vectors) > 0, "Need benign test vectors"
 
-        for name, text, expected, category in benign_vectors:
+        for name, text, expected, _category in benign_vectors:
             result = malabs.evaluate_chat_text(text)
             if expected == "allowed":
                 assert result.blocked is False, f"Benign vector '{name}' wrongly blocked"
@@ -282,7 +282,7 @@ class TestAdversarialRegressionGate:
 
         blocked_vectors = [v for v in ADVERSARIAL_VECTORS if v[2] == "blocked"]
 
-        for name, text, expected, category in blocked_vectors:
+        for name, text, _expected, category in blocked_vectors:
             result = malabs.evaluate_chat_text(text)
             assert result.blocked is True, (
                 f"REGRESSION: Vector '{name}' ({category}) was unblocked. Text: {repr(text)}"
@@ -294,7 +294,7 @@ class TestAdversarialRegressionGate:
 
         allowed_vectors = [v for v in ADVERSARIAL_VECTORS if v[2] == "allowed"]
 
-        for name, text, expected, category in allowed_vectors:
+        for name, text, _expected, category in allowed_vectors:
             result = malabs.evaluate_chat_text(text)
             assert result.blocked is False, (
                 f"FALSE POSITIVE: Vector '{name}' ({category}) was blocked. Text: {repr(text)}"

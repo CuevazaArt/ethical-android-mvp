@@ -11,6 +11,7 @@ See docs/proposals/README.md
 from __future__ import annotations
 
 import hashlib
+import logging
 import math
 import os
 import time
@@ -21,6 +22,8 @@ from enum import Enum
 from typing import Any
 
 from .ethical_reflection import ReflectionSnapshot
+
+_log = logging.getLogger(__name__)
 
 
 class EscalationPhase(str, Enum):
@@ -215,11 +218,6 @@ def build_ethical_dossier(
     )
 
     latency = (time.perf_counter() - t0) * 1000
-    import logging
-
-    from .uchi_soto import _log  # Re-using logger or importing logging
-
-    _log = logging.getLogger(__name__)
     if latency > 1.0:
         _log.debug("Judicial: build_ethical_dossier latency = %.2fms", latency)
 

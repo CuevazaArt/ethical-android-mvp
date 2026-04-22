@@ -15,6 +15,7 @@ Designed to work with or without an API key:
 
 from __future__ import annotations
 
+import asyncio
 import json
 import logging
 import math
@@ -76,6 +77,8 @@ from .perception_schema import (
 
 # ADR 0016 C1 — Ethical tier classification
 __ethical_tier__ = "decision_support"
+
+_log = logging.getLogger(__name__)
 
 
 def _normalize_llm_mode(mode: str) -> str:
@@ -390,7 +393,7 @@ class LLMModule:
 
         if self.nomad_mode:
             if self.mode != "ollama":
-                logger.warning(
+                _log.warning(
                     "NOMAD_MODE ACTIVE: Forcing Zero-API Fluency (ollama). Ignoring mode: %s",
                     self.mode,
                 )
@@ -980,7 +983,7 @@ class LLMModule:
                     f"{guardian_mode_context}"
                 )
             vpol = resolve_verbal_llm_backend_policy(touchpoint="communicate")
-            t0 = time.perf_counter()
+            time.perf_counter()
             try:
                 response = self._llm_completion(prompt, user_msg, metrics_op="communicate")
             except Exception:
@@ -1119,7 +1122,7 @@ class LLMModule:
                     prompt, user_msg, metrics_op="communicate", stream_callback=stream_callback
                 )
             except Exception as e:
-                self._log.warning(f"LLM acommunicate exception: {e}")
+                _log.warning("LLM acommunicate exception: %s", e)
                 self._record_verbal_degradation("communicate", "llm_completion_exception", vpol)
                 if vpol == "canned_safe":
                     return VerbalResponse(

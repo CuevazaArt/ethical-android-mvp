@@ -11,7 +11,7 @@ async def test_thalamus_lobe_filtering():
     bus = CorpusCallosum()
     bus.start()
 
-    thalamus = ThalamusLobe(bus)
+    ThalamusLobe(bus)
 
     received_spikes = []
 

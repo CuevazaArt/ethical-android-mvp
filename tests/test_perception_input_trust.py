@@ -70,7 +70,7 @@ class TestPerceptionInputTrustBaseline:
             "familiarity": 0.7,
         }
         report = PerceptionCoercionReport()
-        validated = validate_perception_dict(data, report=report)
+        validate_perception_dict(data, report=report)
 
         assert "risk" in report.fields_defaulted or "risk" in report.fields_clamped
         assert "urgency" in report.fields_clamped or "urgency" in report.fields_defaulted
