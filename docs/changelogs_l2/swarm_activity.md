@@ -1407,3 +1407,10 @@ This file is automatically managed by `scripts/swarm_sync.py`.
   - `src/runtime/chat_feature_flags.py`
   - `src/runtime/chat_lifecycle.py`
   - `tests/test_ethics_quality.py`
+
+### Execution (Swarm) | Date: 2026-04-21 20:50:27 | Author: Cursor L2
+- **Block:** `B.5`
+- **Message:** B.5.1: tests/test_nomad_resilience.py replace MagicMock with SimpleNamespace for PerceptiveLobe inertia test; restore NomadBridge singleton health in finally; src/chat_server.py light_risk_tier uses hasattr (Ruff B009). Core: Thalamus gateway test stays real-bus; no AsyncMock in Thalamus path.
+- **Files Modified:**
+  - `src/chat_server.py`
+  - `tests/test_nomad_resilience.py`

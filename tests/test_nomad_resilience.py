@@ -8,7 +8,7 @@ from __future__ import annotations
 
 import asyncio
 import time
-from unittest.mock import MagicMock
+from types import SimpleNamespace
 
 import pytest
 from src.kernel_lobes.models import RawSensoryPulse, SensorySpike
@@ -54,40 +54,50 @@ def test_nomad_bridge_health_is_readable_without_mock() -> None:
     """Global NomadBridge exposes queue stats for observability (no MagicMock)."""
 
     nb = get_nomad_bridge()
-    stats = nb.public_queue_stats()
-    assert str(stats.get("schema", "")).startswith("nomad_bridge_queue_stats_v")
-    nb._last_sensor_update = time.time()
-    nb._is_vessel_healthy = True
-    assert isinstance(nb.public_queue_stats().get("vessel_healthy"), bool)
+    try:
+        stats = nb.public_queue_stats()
+        assert str(stats.get("schema", "")).startswith("nomad_bridge_queue_stats_v")
+        nb._last_sensor_update = time.time()
+        nb._is_vessel_healthy = True
+        assert isinstance(nb.public_queue_stats().get("vessel_healthy"), bool)
+    finally:
+        nb._last_sensor_update = time.time()
+        nb._is_vessel_healthy = True
 
 
 def test_perceptive_somatic_inertia_without_thalamus_mock() -> None:
-    """PerceptiveLobe inertia uses real NomadBridge + ``is_vessel_online`` (no thalamus MagicMock)."""
+    """PerceptiveLobe inertia uses real NomadBridge + ``is_vessel_online`` (no unittest mocks)."""
 
     bridge = get_nomad_bridge()
-    bridge._last_sensor_update = time.time()
-    bridge._is_vessel_healthy = True
+    try:
+        bridge._last_sensor_update = time.time()
+        bridge._is_vessel_healthy = True
 
-    lobe = PerceptiveLobe(
-        safety_interlock=MagicMock(),
-        strategist=MagicMock(),
-        llm=MagicMock(),
-        somatic_store=MagicMock(),
-        buffer=MagicMock(),
-        absolute_evil=MagicMock(),
-        subjective_clock=MagicMock(turn_index=1),
-        bus=None,
-    )
+        dummy = SimpleNamespace()
+        clock = SimpleNamespace(turn_index=1)
+        lobe = PerceptiveLobe(
+            safety_interlock=dummy,
+            strategist=dummy,
+            llm=dummy,
+            somatic_store=dummy,
+            buffer=dummy,
+            absolute_evil=dummy,
+            subjective_clock=clock,
+            bus=None,
+        )
 
-    assert lobe.get_sensory_impulses()["offline"] is False
+        assert lobe.get_sensory_impulses()["offline"] is False
 
-    bridge._last_sensor_update = time.time() - 10.0
-    ghost = lobe.get_sensory_impulses()
-    assert ghost["offline"] is True
-    assert ghost["inertia_active"] is True
-    assert "sensory_shutdown" not in ghost
+        bridge._last_sensor_update = time.time() - 10.0
+        ghost = lobe.get_sensory_impulses()
+        assert ghost["offline"] is True
+        assert ghost["inertia_active"] is True
+        assert "sensory_shutdown" not in ghost
 
-    lobe._nomad_inertia_deadline = time.time() - 1.0
-    shutdown = lobe.get_sensory_impulses()
-    assert shutdown.get("sensory_shutdown") is True
-    assert shutdown["offline"] is True
+        lobe._nomad_inertia_deadline = time.time() - 1.0
+        shutdown = lobe.get_sensory_impulses()
+        assert shutdown.get("sensory_shutdown") is True
+        assert shutdown["offline"] is True
+    finally:
+        bridge._last_sensor_update = time.time()
+        bridge._is_vessel_healthy = True
