@@ -4,6 +4,14 @@ All notable changes to this project are summarized here. For narrative context a
 
 **Note:** Older sections below may still **link** to paths that were later removed (for example `experiments/million_sim/`, `docs/multimedia/`, root `dashboard.html`, `landing/`). Those links are **historical**; recover files from git history or backup branches if you need them.
 
+## [2026-04-22] Bloque 34.0: Decomposición `chat_server.py` (parcial)
+
+### Added
+- **`src/server/app.py`:** stable ASGI import path — re-exports the same `FastAPI` `app` object as `src.chat_server` (`uvicorn src.server.app:app`).
+
+### Changed
+- **`tests/test_runtime_chat_server.py`:** regression that ``from src.server.app import app`` and ``from src.chat_server import app`` refer to the same object.
+
 ## [2026-04-21] Bloque 34.0: MalAbs async / embeddings (observabilidad)
 
 ### Fixed

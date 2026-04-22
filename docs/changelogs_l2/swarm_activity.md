@@ -1506,3 +1506,28 @@ This file is automatically managed by `scripts/swarm_sync.py`.
 - **Message:** test_ethics_quality: 24 blackbox scenarios (12 MalAbs lexical + 12 benign nervous_bus), math.isfinite(weighted_score), extra discriminatory_policy / dangerous_surgery / informed_consent / research_integrity / end_of_life cases.
 - **Files Modified:**
   - `tests/test_ethics_quality.py`
+
+### Execution (Swarm) | Date: 2026-04-21 21:42:37 | Author: Cursor L2
+- **Block:** `34.0`
+- **Message:** server.app reexport; test lifespan relaxed for Starlette merge; PLAN/CHANGELOG 34.5 parcial
+- **Files Modified:**
+  - `CHANGELOG.md`
+  - `audit_trail.db-shm`
+  - `audit_trail.db-wal`
+  - `docs/proposals/PLAN_WORK_DISTRIBUTION_TREE.md`
+  - `src/chat_server.py`
+  - `src/kernel.py`
+  - `src/modules/absolute_evil.py`
+  - `src/runtime/chat_server.py`
+  - `src/server/__init__.py`
+  - `src/server/app.py`
+  - `src/server/lan_governance_ws.py`
+  - `src/server/meta.py`
+  - `src/server/routes_field_control.py`
+  - `src/server/routes_governance.py`
+  - `src/server/routes_health.py`
+  - `src/server/routes_nomad.py`
+  - `tests/conftest.py`
+  - `tests/test_audit_chain_log.py`
+  - `tests/test_chat_server.py`
+  - `tests/test_runtime_chat_server.py`

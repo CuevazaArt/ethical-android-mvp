@@ -61,11 +61,11 @@ Aquí es donde los agentes de ejecución (LLMs en IDEs) reclaman sus tareas.
 - [x] Tarea 33.5: **Red de Seguridad Anti-Falso-Positivo:** [COMPLETED] Añadidos 10 prompts legítimos con keywords peligrosas a `adversarial_suite.py` — el test falla si alguno se bloquea.
 
 **Bloque 34.0: Decomposición del Monolito `chat_server.py` (135 KB → ≤5 archivos) [PENDING]**
-- Tarea 34.1: **Extracción de rutas HTTP:** Mover endpoints GET (`/health`, `/version`, `/config`, `/constitution`, etc.) a `src/server/routes_health.py` y `src/server/routes_governance.py`.
+- Tarea 34.1: **Extracción de rutas HTTP:** [PARCIAL] Endpoints de salud y gobernanza en `src/server/routes_health.py` y `src/server/routes_governance.py` (`/discovery/nomad` solo en gobernanza; sin duplicar en `routes_health`). Rutas Nomad HAL (`/nomad/migration`, `/nomad/clinical`) en `src/server/routes_nomad.py`, incluidas en `app` desde `src/chat_server.py` (mismo grafo de URLs). Metadatos de proceso: `src/server/meta.py`.
 - Tarea 34.2: **Extracción de WebSocket governance:** Mover WS handlers de DAO/judicial/LAN a `src/server/ws_governance.py`.
-- Tarea 34.3: **Extracción de Nomad/bridge:** Mover lógica de Nomad telemetry, discovery, y bridge a `src/server/routes_nomad.py`.
+- Tarea 34.3: **Nomad/bridge (HTTP):** [DONE — L2 Cursor] `src/server/routes_nomad.py` (telemetry clínica + meta migración). PWA static mount y `GET /discovery/nomad` siguen en su sitio actual hasta la siguiente ola.
 - Tarea 34.4: **Core WebSocket chat:** Dejar `ws_chat.py` con solo la lógica de `/ws/chat` y streaming.
-- Tarea 34.5: **App + lifespan:** Archivo principal `src/server/app.py` con FastAPI instance, middleware, y lifespan (≤100 líneas).
+- Tarea 34.5: **App + lifespan:** [PARCIAL — L2 Cursor] `src/server/app.py` reexporta `app` desde `src.chat_server` (mismo objeto; `uvicorn src.server.app:app`); `lifespan` sigue en `runtime/chat_lifecycle.py` vía `chat_server.FastAPI`. Test: `test_server_module_app_reexports_chat_server_app`. Mover `FastAPI()` aquí con middleware queda pospuesto hasta 34.2/34.4.
 
 **Bloque 35.0: Eliminación Definitiva de `kernel_legacy_v12.py` (122 KB zombie) [PENDING]**
 - Tarea 35.1: **Migrar `kernel_handlers/communication.py`:** Extraer las 2-3 funciones requeridas (`vitality_communication_hint`, `vitality_context`) directamente a `executive_lobe.py` o un nuevo `src/kernel_handlers/vitality_hints.py`.
