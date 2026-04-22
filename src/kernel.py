@@ -102,26 +102,6 @@ class EthosKernel:
         self.llm = LLMModule()
         self.strategist = ExecutiveStrategist()
         self.motivation_engine = MotivationEngine()
-        
-        self.narrative = NarrativeMemory()
-        self.dao = DAOOrchestrator()
-        self.migration = MigrationHub()
-        self.hygiene = MemoryHygieneService(memory=self.narrative, dao=self.dao)
-        self._proactive_task = None
-        # Lobe 0: Thalamus Gateway
-        self.thalamus = ThalamusLobe(bus=self.bus)
-
-        # External Governance, Identity & Proactivity (Compatibility layer)
-        from src.modules.governance.dao_orchestrator import DAOOrchestrator
-        from src.modules.drive_arbiter import DriveArbiter
-        from src.modules.memory.forgiveness import AlgorithmicForgiveness
-        from src.modules.memory.immortality import ImmortalityProtocol
-        from src.modules.safety.locus import LocusModule
-        from src.modules.cognition.metacognition import MetacognitiveEvaluator
-        from src.modules.cognition.metaplan_registry import MetaplanRegistry
-        from src.modules.ethics.weakness_pole import WeaknessPole
-
-        self.dao = DAOOrchestrator()
         self.drive_arbiter = DriveArbiter()
         self.metaplan = MetaplanRegistry()
         self.metacognition = MetacognitiveEvaluator()
@@ -129,10 +109,14 @@ class EthosKernel:
         self.forgiveness = AlgorithmicForgiveness()
         self.locus = LocusModule()
         self.weakness = WeaknessPole()
+        
+        self.narrative = NarrativeMemory()
+        self.dao = DAOOrchestrator()
+        self.migration = MigrationHub()
+        self.hygiene = MemoryHygieneService(memory=self.narrative, dao=self.dao)
+        self._proactive_task = None
+        self.sleep = PsiSleep()
         self.checkpoint_persistence = kwargs.get("checkpoint_persistence")
-
-        from src.modules.cognition.feedback_calibration_ledger import FeedbackCalibrationLedger
-
         self.feedback_ledger = FeedbackCalibrationLedger()
         self._feedback_turn_anchor: dict[str, str] = {}
 
@@ -192,21 +176,11 @@ class EthosKernel:
             bus=self.bus
         )
 
-        # Lobe 6: Memory (Hippocampus/DAO/Identity) [Block 26.0 Integration]
-        self.memory_lobe = MemoryLobe(
-            memory=self.narrative,
-            dao=self.dao,
-            migration=self.migration,
-            hygiene=self.hygiene,
-            bus=self.bus
-        )
+        # Lobe 0: Thalamus Gateway
+        self.thalamus = ThalamusLobe(bus=self.bus)
 
         # Pruning / hygiene surface expected by legacy integration tests (BiographicPruner removal).
-        self.migration = MigrationHub()
-        self.hygiene = MemoryHygieneService(self.memory, self.dao)
         self.biographic_pruner = self.hygiene
-        self.sleep = PsiSleep()
-        self.immortality = ImmortalityProtocol()
         # V12 moral hub: per-session L1/L2 draft lists + ``buffer`` alias for draft validation (see moral_hub).
         self.constitution_l1_drafts: list[dict[str, Any]] = []
         self.constitution_l2_drafts: list[dict[str, Any]] = []
