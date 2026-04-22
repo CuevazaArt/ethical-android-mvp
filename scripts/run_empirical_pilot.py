@@ -33,13 +33,8 @@ ROOT = Path(__file__).resolve().parents[1]
 if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
 
-<<<<<<< HEAD
 # Batch harness uses V13 distributed kernel via aprocess() bridge.
 from src.kernel import EthicalKernel  # noqa: E402
-=======
-# Batch harness uses monolithic ``process`` / ``aprocess`` in ``ethical_kernel_batch``.
-from src.ethical_kernel_batch import EthicalKernel  # noqa: E402
->>>>>>> e66a5e389f733337013e643fa4817dbcdaddd69f
 from src.simulations.runner import ALL_SIMULATIONS  # noqa: E402
 
 

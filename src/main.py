@@ -19,7 +19,7 @@ from .simulations.runner import ALL_SIMULATIONS, run_simulation
 from .validators.env_policy import validate_kernel_env
 
 
-def banner():
+def banner() -> None:
     from .utils.terminal_colors import Term
 
     b_color = Term.B_CYAN + Term.BOLD
@@ -53,7 +53,7 @@ def banner():
 """
 
 
-def final_summary(kernel: EthicalKernel):
+def final_summary(kernel: EthicalKernel) -> None:
     """Displays day summary, Psi Sleep, and DAO status."""
     from .utils.terminal_colors import Term
 

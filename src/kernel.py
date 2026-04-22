@@ -60,7 +60,7 @@ class EthosKernel:
     Orchestrates the 5 Mnemonic Organs via the Corpus Callosum event bus.
     """
 
-    def __init__(self, mode: str = "office_2", **kwargs):
+    def __init__(self, mode: str = "office_2", **kwargs) -> None:
         self.bus = CorpusCallosum()
         self.modulator = BusModulator(self.bus)
         self.bus.modulator = self.modulator
@@ -181,32 +181,32 @@ class EthosKernel:
         self.buffer = self.sensory_cortex.buffer
 
     @property
-    def memory(self):
+    def memory(self) -> Any:
         """Compatibility property for NarrativeMemory access."""
         return self.cerebellum.memory
 
     @property
-    def identity(self):
+    def identity(self) -> Any:
         """Compatibility property for NarrativeIdentityTracker."""
         return self.cerebellum.memory.identity
 
     @property
-    def bayesian(self):
+    def bayesian(self) -> Any:
         """Compatibility property for BayesianEngine."""
         return self.cerebellum.bayesian
 
     @property
-    def poles(self):
+    def poles(self) -> Any:
         """Compatibility property for EthicalPoles."""
         return self.prefrontal_cortex.poles
 
     @property
-    def uchi_soto(self):
+    def uchi_soto(self) -> Any:
         """Legacy alias for limbic Uchi-Soto profiles (v12 tests / tooling)."""
         return self.limbic_system.uchi_soto
 
     @property
-    def perceptive_lobe(self):
+    def perceptive_lobe(self) -> Any:
         """Legacy alias for the perceptive (sensory) lobe."""
         return self.sensory_cortex
 

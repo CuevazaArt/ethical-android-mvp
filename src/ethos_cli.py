@@ -21,7 +21,7 @@ import sys
 from pathlib import Path
 
 
-def _kernel(*, llm_mode: str = "local"):
+def _kernel(*, llm_mode: str = "local") -> Any:
     from src.kernel import EthicalKernel
 
     return EthicalKernel(variability=False, llm_mode=llm_mode)
