@@ -47,11 +47,11 @@ Aquí es donde los agentes de ejecución (LLMs en IDEs) reclaman sus tareas.
 - Tarea 31.2: **`kernel_legacy_v12` chat sync:** import de `vitality_communication_hint` y `vitality_context` en `acommunicate` para el camino `process_chat_turn` / subprocess MalAbs.
 - Tarea 31.3: **Ruff/format:** `kernel_legacy_v12.py`, `test_ethics_quality.py`, módulos `runtime/` alineados con el job `quality` de GitHub Actions.
 
-**Bloque 32.0: Consolidación y Verdad Mecánica (Feature Freeze) — continuación [PENDING]**
-- Tarea 32.1: **Completar decoupling real:** mover rutas HTTP/WS a `src/runtime/chat_server.py` sin dejar símbolos huérfanos; unificar `lifespan` con `chat_lifecycle` como única fuente.
-- Tarea 32.2: **Ampliar `tests/test_ethics_quality.py`:** 15-20+ escenarios y aserciones de `path`/`verdict` acordes al tri-lobe.
-- Tarea 32.3: **Redundancias:** cerrar ítems en `REDUNDANT_MODULES_AND_CONSOLIDATION.md`.
-- Tarea 32.4: **Demo E2E:** endurecer `scripts/eval/reproducible_kernel_demo.py` + documentación operador.
+**Bloque 32.0: Consolidación y Verdad Mecánica (Feature Freeze) — continuación [DONE]**
+- Tarea 32.1: [COMPLETED — L2 Cursor] `chat_lifespan` único en `src/runtime/chat_lifecycle.py` (tipado `AsyncIterator[None]`, shutdown del announcer con `logger.debug` en error). Fachada `src/runtime/chat_server.py` reexporta `app`, `chat_lifespan`, `api_docs_enabled`. Regresión: `tests/test_runtime_chat_server.py` (identidad de `app`, `router.lifespan_context` y reexports).
+- Tarea 32.2: **Ampliar `tests/test_ethics_quality.py`:** [COMPLETED — L2 Cursor] ≥22 escenarios canónicos + aserciones `path`/`verdict`/`math.isfinite(score)` alineadas al tri-lobe.
+- Tarea 32.3: **Redundancias:** [COMPLETED — L2 2026-04-21] sección de tracking Bloque 32.3 en `REDUNDANT_MODULES_AND_CONSOLIDATION.md` (merges narrativos siguen diferidos post–field tests).
+- Tarea 32.4: **Demo E2E:** [COMPLETED — L2 Cursor] `reproducible_kernel_demo.py`: `KERNEL_TRI_LOBE_ENABLED` por defecto, turno `must_block` adicional, validación de `path` ∈ {`malabs_entry_gate`,`nervous_bus`,`timeout`}, `math.isfinite` en score/latencia, `kernel.stop()` en `finally`.
 
 **Bloque 33.0: Consolidación Arquitectónica y Poda de Teatro (Sprint Final de Desmonolitización) [DONE]**
 - [x] Tarea 33.1: **Unificación de Higiene de Memoria:** [COMPLETED] Creado `MemoryHygieneService` consolidando `SelectiveAmnesia` y `BiographicPruner`.

@@ -133,11 +133,9 @@ import os
 import threading
 import time
 from collections.abc import Mapping
-from contextlib import asynccontextmanager
 from dataclasses import asdict
 from typing import Any
 
-import httpx
 from fastapi import FastAPI, Request, WebSocket, WebSocketDisconnect
 from fastapi.responses import JSONResponse, Response
 from fastapi.staticfiles import StaticFiles
@@ -197,7 +195,6 @@ from .modules.moral_hub import (
     submit_constitution_draft_for_vote,
 )
 from .modules.nomad_discovery import (
-    NomadDiscoveryAnnouncer,
     build_nomad_discovery_payload,
     nomad_discovery_service_name,
     nomad_discovery_service_type,
@@ -208,9 +205,7 @@ from .modules.perceptual_abstraction import snapshot_from_layers
 from .modules.reparation_vault import maybe_register_reparation_after_mock_court
 from .modules.sensor_contracts import SensorPayloadValidationError
 from .observability.context import clear_request_context, set_request_id
-from .observability.logging_setup import configure_logging
 from .observability.metrics import (
-    init_metrics,
     metrics_enabled,
     observe_chat_turn,
     record_chat_turn_async_timeout,
@@ -229,6 +224,7 @@ from .persistence.checkpoint import (
 )
 from .persistence.identity_manifest import IdentityManifestStore
 from .real_time_bridge import RealTimeBridge
+from .runtime.chat_lifecycle import api_docs_enabled, chat_lifespan
 from .runtime.telemetry import advisory_interval_seconds_from_env, advisory_loop
 from .runtime_profiles import apply_named_runtime_profile_to_environ
 from .validators.env_policy import validate_kernel_env
@@ -251,83 +247,13 @@ def _package_version() -> str:
         return "dev"
 
 
-@asynccontextmanager
-async def _lifespan(app: FastAPI):
-    configure_logging()
-    init_metrics()
-
-    # Phase 9: Nomad hardware loop consumers (Hardened Embodiment)
-    from .modules.audio_adapter import (
-        get_shared_audio_capture,
-        start_nomad_audio_consumer_from_env,
-        stop_nomad_audio_consumer_async,
-    )
-    from .modules.vision_adapter import (
-        start_nomad_vision_consumer_from_env,
-        stop_nomad_vision_consumer_async,
-    )
-    from .modules.vitality import (
-        start_nomad_telemetry_consumer_from_env,
-        stop_nomad_telemetry_consumer_async,
-    )
-
-    start_nomad_vision_consumer_from_env()
-    start_nomad_telemetry_consumer_from_env()
-
-    capture = get_shared_audio_capture()
-    if capture:
-        start_nomad_audio_consumer_from_env(capture.ring_buffer)
-
-    # Phase 12.1: Global persistent client for Nomad hardware loop
-    aclient = httpx.AsyncClient(timeout=30.0)
-    app.state.aclient = aclient
-
-    # Bloque 14.1: optional mDNS/Zeroconf advertisement for Nomad auto-discovery.
-    from .chat_settings import chat_server_settings
-
-    cst = chat_server_settings()
-    announcer = NomadDiscoveryAnnouncer(
-        bind_host=cst.chat_host,
-        bind_port=cst.chat_port,
-        service_name=nomad_discovery_service_name(),
-        service_type=nomad_discovery_service_type(),
-    )
-    announcer.start()
-    app.state.nomad_discovery_announcer = announcer
-
-    try:
-        yield
-    finally:
-        # Phase 9: Graceful shutdown of consumers
-        await stop_nomad_vision_consumer_async()
-        await stop_nomad_telemetry_consumer_async()
-        await stop_nomad_audio_consumer_async()
-
-        from .real_time_bridge import shutdown_chat_threadpool
-
-        try:
-            announcer.stop()
-        except Exception:
-            pass
-
-        await aclient.aclose()
-        shutdown_chat_threadpool(wait=True)
-
-
-def _api_docs_enabled() -> bool:
-    """OpenAPI/Swagger UI — off by default (LAN deployments); set KERNEL_API_DOCS=1 to expose."""
-    from .settings import kernel_settings
-
-    return kernel_settings().kernel_api_docs
-
-
 app = FastAPI(
     title="Ethos Kernel Chat",
     version="1.0",
-    docs_url="/docs" if _api_docs_enabled() else None,
-    redoc_url="/redoc" if _api_docs_enabled() else None,
-    openapi_url="/openapi.json" if _api_docs_enabled() else None,
-    lifespan=_lifespan,
+    docs_url="/docs" if api_docs_enabled() else None,
+    redoc_url="/redoc" if api_docs_enabled() else None,
+    openapi_url="/openapi.json" if api_docs_enabled() else None,
+    lifespan=chat_lifespan,
 )
 
 # Mounting Nomad Bridge (Fase 8+ / Módulo S)

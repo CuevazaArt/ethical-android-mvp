@@ -86,6 +86,13 @@ _cached_path: str = ""
 _cached_routines: list[GuardianRoutine] = []
 
 
+def invalidate_guardian_routines_cache() -> None:
+    """Clear cached routines (tests and config hot-reload)."""
+    global _cached_path, _cached_routines
+    _cached_path = ""
+    _cached_routines = []
+
+
 def get_guardian_routines() -> list[GuardianRoutine]:
     """Load routines from KERNEL_GUARDIAN_ROUTINES_PATH with caching."""
     global _cached_path, _cached_routines
@@ -98,6 +105,24 @@ def get_guardian_routines() -> list[GuardianRoutine]:
         _cached_routines = load_guardian_routines_from_path(raw)
         _cached_path = raw
     return _cached_routines
+
+
+def guardian_routines_llm_suffix() -> str:
+    """Append-only care-routine block for LLM prompts when routines are enabled."""
+    if not guardian_routines_feature_enabled():
+        return ""
+    if not os.environ.get("KERNEL_GUARDIAN_ROUTINES_PATH", "").strip():
+        return ""
+    routines = get_guardian_routines()
+    if not routines:
+        return ""
+    lines = [
+        "",
+        "Care routines registered by the operator (hints for supportive tone only):",
+    ]
+    for r in routines:
+        lines.append(f"- [{r.id}] {r.title} — {r.hint}")
+    return "\n".join(lines)
 
 
 def guardian_mode_llm_context() -> str:

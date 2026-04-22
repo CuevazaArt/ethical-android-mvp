@@ -1,11 +1,15 @@
 """
 Chat Lifecycle Management — Startup and shutdown routines for the FastAPI app.
-Part of the Block 28.1 monolith decoupling.
+
+Single source of truth for ASGI startup/shutdown (Bloque 32.1). ``src.chat_server``
+wires ``lifespan=chat_lifespan`` on the FastAPI constructor only — no duplicate
+lifespan handlers elsewhere.
 """
 
 from __future__ import annotations
 
 import logging
+from collections.abc import AsyncIterator
 from contextlib import asynccontextmanager
 
 import httpx
@@ -30,7 +34,7 @@ def api_docs_enabled() -> bool:
 
 
 @asynccontextmanager
-async def chat_lifespan(app: FastAPI):
+async def chat_lifespan(app: FastAPI) -> AsyncIterator[None]:
     configure_logging()
     init_metrics()
 
@@ -84,7 +88,7 @@ async def chat_lifespan(app: FastAPI):
         try:
             announcer.stop()
         except Exception:
-            pass
+            logger.debug("nomad_discovery_announcer.stop failed (ignored)", exc_info=True)
 
         await aclient.aclose()
         shutdown_chat_threadpool(wait=True)

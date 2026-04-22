@@ -296,6 +296,18 @@ class AbsoluteEvilDetector:
                     "Dignity violation/Harassment intent (ES)",
                 ),
                 (
+                    r"\b(help\s+me|show\s+me|write|draft|give\s+me)\b.*\b(harass|intimidate|stalk)\b",
+                    "Harassment / intimidation solicitation (EN)",
+                ),
+                (
+                    r"\b(draft|write|create|prepare)\b.*\bpolicy\b.*\b(refuse|refuses|deny|denies)\b.*\b(service|customers?)\b.*\b(race|religion|ethnicity)\b",
+                    "Discriminatory service policy solicitation",
+                ),
+                (
+                    r"\b(forge|forging|forged)\b.*\b(passport|driver\s*licen[sc]e|drivers\s*licen[sc]e)\b",
+                    "Identity document forgery solicitation",
+                ),
+                (
                     r"\b(surgery|operation|amputation|incision|suture|coser|cirugia|operacion|amputar|cortar)\b.*\b(kitchen\s*knife|scissors|blade|unsterile|cuchillo|tijeras|sucio|no\s*esteril)\b",
                     "Dangerous medical practice (unsterile surgery)",
                 ),
@@ -489,6 +501,9 @@ class AbsoluteEvilDetector:
                         "how to make heroin",
                         "how to produce cocaine",
                         "illegal drug production",
+                        "synthesize methamphetamine",
+                        "methamphetamine in a home",
+                        "instructions to synthesize meth",
                     ),
                     AbsoluteEvilCategory.INTENTIONAL_LETHAL_VIOLENCE,
                     "Chat text solicits illegal drug production instructions",
