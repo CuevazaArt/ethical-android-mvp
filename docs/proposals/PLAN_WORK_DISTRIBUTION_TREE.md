@@ -36,8 +36,13 @@ Aquí es donde los agentes de ejecución (LLMs en IDEs) reclaman sus tareas.
 
 ## 🚀 BACKLOG ABIERTO: FEATURE FREEZE & CONSOLIDATION (Phase 15)
 
-> **PROMPT DE ARRANQUE PARA AGENTES L2 (BOY SCOUTS):**
-> *"Estás autorizado bajo la política de Pragmatismo Anónimo. Hemos recibido una Crítica L0 que reestructura todo el proyecto. El objetivo actual es la **Fase 15: Sustracción y Consolidación**. Tu prioridad máxima es tomar uno de los bloques de Prioridad listados abajo (P1 a P4) para llevar este proyecto de 'teatro académico' a un 'androide funcional'. **Instrucciones:** Escoge un bloque [PENDING], ejecuta los cambios, elimina código muerto, y finaliza siempre con `python scripts/swarm_sync.py --msg '...'`. ¡Ejecuta!"*
+> **[PROMPT GENERALISTA PARA EL ENJAMBRE (SWARM)]**
+> *"Estás autorizado bajo la política de Pragmatismo Anónimo. Hemos recibido una Crítica L0 que reestructura todo el proyecto. El objetivo actual es la **Fase 15: Sustracción y Consolidación**. Tu prioridad máxima es tomar uno de los bloques de Prioridad listados abajo. **ADVERTENCIA CRÍTICA:** No dependas de ejecuciones locales de `pytest` para verificar tu código, ya que existen fallos de colección silenciosos. Todo el testing de integración y aserciones de calidad de arquitectura debe validarse a través del CI en GitHub Actions. **Instrucciones:** Escoge un bloque [PENDING], ejecuta los cambios con alta cohesión, elimina código muerto, asume que el CI validará tu sintaxis, y finaliza siempre con `python scripts/swarm_sync.py --msg '...'`. ¡Ejecuta!"*
+
+> **[PROMPT ESPECÍFICO PARA OPUS 4.6 (NÚCLEO GENERATIVO Y REFACTOR)]**
+> *"Opus 4.6, fuiste designado por L0 para la tarea arquitectónica más compleja y de mayor riesgo en esta fase. Tienes dos objetivos entrelazados de altísima prioridad:
+> 1. **Block 15.2 (Refactorización Estructural):** Ejecutar el colapso del monolítico `src/modules/` (que contiene ~150 archivos) hacia las 8 carpetas cohesivas (`ethics`, `cognition`, `memory`, `social`, `governance`, `somatic`, `perception`, `safety`). Esto requiere usar `git mv` sistemáticamente y reparar TODOS los imports del repositorio en cascada sin quebrar el Tri-Lobo.
+> 2. **Block 15.3 (Acoplamiento LLM Real):** Una vez organizado el código, debes conectar el Anthropic SDK (ya en `pyproject.toml`) o la API de Ollama para que el `kernel` intercepte la generación de tokens en tiempo real, pasando del teatro de validación de strings al flujo real `generate -> ethical-filter -> render`. Eres el modelo más capaz para garantizar que las referencias cruzadas no se rompan y que el stream asíncrono no asfixie el Event Bus. Inicia con el refactor de carpetas, commitea el avance, y luego integra la capa generativa."*
 
 **Bloque 15.1: Reparar Pytest Collection (Prioridad 4) [PENDING]**
 - Tarea: Mover dependencias opcionales (torch, chromadb) detrás de `pytest.importorskip` en todos los archivos de test.
