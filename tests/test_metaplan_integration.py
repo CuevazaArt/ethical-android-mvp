@@ -16,14 +16,10 @@ Acceptance criteria:
 from __future__ import annotations
 
 import json
-import tempfile
-from pathlib import Path
 
 import pytest
-
 from src.kernel import EthicalKernel
 from src.modules.metaplan_registry import MetaplanRegistry
-from src.persistence import extract_snapshot, apply_snapshot
 
 
 class TestMetaplanIntegration:

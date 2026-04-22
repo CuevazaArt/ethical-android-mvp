@@ -67,6 +67,7 @@ def _async_chat_llm_http_enabled() -> bool:
         "on",
     )
 
+
 _T = TypeVar("_T")
 
 
@@ -95,6 +96,7 @@ def _run_process_chat_turn_in_worker(
         )
     finally:
         clear_llm_cancel_scope()
+
 
 _executor: ThreadPoolExecutor | None = None
 
@@ -156,7 +158,11 @@ class RealTimeBridge:
         chat_turn_id: int | None = None,
     ) -> ChatTurnResult:
         # Architecture V1.5 - Forced Async for Tri-Lobe Mode
-        tri_lobe_enabled = os.environ.get("KERNEL_TRI_LOBE_ENABLED", "").lower() in ("1", "true", "yes")
+        tri_lobe_enabled = os.environ.get("KERNEL_TRI_LOBE_ENABLED", "").lower() in (
+            "1",
+            "true",
+            "yes",
+        )
 
         if _async_chat_llm_http_enabled() or tri_lobe_enabled:
             return await self.kernel.process_chat_turn_async(
@@ -197,6 +203,7 @@ class RealTimeBridge:
         escalate_to_dao: bool = False,
         cancel_event: threading.Event | None = None,
         chat_turn_id: int | None = None,
+        conversation_context: str = "",
     ) -> AsyncGenerator[dict[str, Any], None]:
         """Real-time stream via kernel.process_chat_turn_stream."""
         async for event in self.kernel.process_chat_turn_stream(
@@ -208,6 +215,7 @@ class RealTimeBridge:
             escalate_to_dao=escalate_to_dao,
             chat_turn_id=chat_turn_id,
             cancel_event=cancel_event,
+            conversation_context=conversation_context,
         ):
             yield event
 

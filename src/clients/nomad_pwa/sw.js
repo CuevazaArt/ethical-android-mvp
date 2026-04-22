@@ -1,4 +1,4 @@
-const CACHE_NAME = 'nomad-bridge-v2';
+const CACHE_NAME = 'nomad-bridge-v7';
 const ASSETS = [
   '/',
   '/index.html',
@@ -39,21 +39,10 @@ self.addEventListener('fetch', (event) => {
 
   // Stale-While-Revalidate strategy
   event.respondWith(
-    caches.open(CACHE_NAME).then((cache) => {
-      return cache.match(event.request).then((cachedResponse) => {
-        const fetchPromise = fetch(event.request).then((networkResponse) => {
-          // Update cache with the fresh response
-          if (networkResponse && networkResponse.status === 200) {
-            cache.put(event.request, networkResponse.clone());
-          }
-          return networkResponse;
-        }).catch(err => {
-          console.warn('Nomad SW: Network fetch failed, relying on cache.', err);
-        });
-
-        // Return cached response immediately if available, else wait for network
-        return cachedResponse || fetchPromise;
-      });
-    })
+    fetch(event.request).then((res) => {
+      let copy = res.clone();
+      caches.open(CACHE_NAME).then(c => c.put(event.request, copy));
+      return res;
+    }).catch(() => caches.match(event.request))
   );
 });

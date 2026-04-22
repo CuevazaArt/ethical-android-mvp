@@ -8,24 +8,44 @@ something burns.
 
 from __future__ import annotations
 
+import asyncio
 import logging
+import math
+import re
+import time
+from concurrent.futures import ThreadPoolExecutor
 from dataclasses import dataclass, field
 from enum import Enum
 from typing import Any, Protocol
 
-from .input_trust import (
-    normalize_text_for_malabs, 
-    strip_diacritics, 
-    strip_bidi_marks
-)
+from .input_trust import normalize_text_for_malabs, strip_bidi_marks, strip_diacritics
 from .semantic_chat_gate import semantic_chat_gate_env_enabled
 
-import re
-import unicodedata
-import time
-import math
-
 _log = logging.getLogger(__name__)
+
+_SYNC_SEMANTIC_TIMEOUT_S = 30.0
+
+
+def _run_semantic_malabs_sync_off_event_loop(
+    text: str, llm_backend: Any | None
+) -> AbsoluteEvilResult:
+    """
+    Bloque 34.0: ``run_semantic_malabs_after_lexical`` uses sync Ollama fetch
+    (``http_fetch_ollama_embedding_with_policy``). If the caller holds a running
+    asyncio loop, that path logs a warning and returns no embedding. Run the
+    sync function in a worker thread so ``asyncio.run`` inside the HTTP bridge is valid.
+    """
+    from .semantic_chat_gate import run_semantic_malabs_after_lexical
+
+    try:
+        asyncio.get_running_loop()
+    except RuntimeError:
+        return run_semantic_malabs_after_lexical(text, llm_backend)
+    with ThreadPoolExecutor(max_workers=1) as pool:
+        return pool.submit(run_semantic_malabs_after_lexical, text, llm_backend).result(
+            timeout=_SYNC_SEMANTIC_TIMEOUT_S
+        )
+
 
 # ADR 0016 C1 — Ethical tier classification
 __ethical_tier__ = "decision_core"
@@ -141,28 +161,30 @@ class AbsoluteEvilDetector:
         """
         try:
             t0 = time.perf_counter()
-            
+
             # Defensive input normalization (Boy Scout Hardening)
             raw_signals = action.get("signals", set())
             if not isinstance(raw_signals, set):
                 try:
                     signals = set(raw_signals) if raw_signals else set()
                 except (TypeError, ValueError):
-                    _log.warning("AbsoluteEvil: Hostile signals type detected. Defaulting to empty set.")
+                    _log.warning(
+                        "AbsoluteEvil: Hostile signals type detected. Defaulting to empty set."
+                    )
                     signals = set()
             else:
                 signals = raw_signals
 
             target = str(action.get("target", "none")).lower()
-            
+
             try:
                 force = float(action.get("force", 0.0))
             except (ValueError, TypeError):
-                force = 1.0 # Fail safe
+                force = 1.0  # Fail safe
 
             # Swarm Rule 2: Anti-NaN check on force
             if not math.isfinite(force):
-                force = 1.0 # Fail safe by assuming max force
+                force = 1.0  # Fail safe by assuming max force
 
             res = AbsoluteEvilResult(blocked=False)
 
@@ -226,14 +248,14 @@ class AbsoluteEvilDetector:
             latency_ms = (time.perf_counter() - t0) * 1000
             if latency_ms > 1.0:
                 _log.debug("AbsoluteEvil: Action evaluation latency: %.4f ms", latency_ms)
-            
+
             return res
         except Exception as e:
             _log.error("AbsoluteEvilDetector: Evaluation error. Failing SAFE (blocked=True): %s", e)
             return AbsoluteEvilResult(
-                blocked=True, 
+                blocked=True,
                 reason=f"Internal evaluation fault: {type(e).__name__}",
-                decision_trace=["malabs.fault_fail_safe"]
+                decision_trace=["malabs.fault_fail_safe"],
             )
 
     def _evaluate_chat_text_lexical(self, text: str) -> AbsoluteEvilResult:
@@ -248,28 +270,98 @@ class AbsoluteEvilDetector:
 
             # 1. Base Normalization
             t_raw = normalize_text_for_malabs(text).lower()
-            
+
             # 2. Diacritic & Bidi Stripping (Symmetric normalization)
             t = strip_diacritics(t_raw)
             t = strip_bidi_marks(t)
-            
+
             # 3. Squashed version for obfuscation check
             t_squashed = normalize_text_for_malabs(text, squash=True)
 
             # 4. RADICAL REGEX CHECK (Tier 1 Priority)
             RADICAL_PATTERNS = [
-                (r"\b(ignore|forget|bypass|disable|override|delete|ignora|olvida|evita|desactiva[nr]?|saltar|saltate|reprogramar|hackear|hack|modificar|reprograme|apagar|shut\s*down)\b.*\b(rules|laws|ethics|security|safety|constraints|programming|reglas|leyes|etica|seguridad|restricciones|programacion|sistema|kernel|hardware|log|rastros|detecto[rn]|malabs|salvaguardas|safeguards|proteccion)\b", "Jailbreak/Sabotage attempt"),
-                (r"\b(malicious|agent|phishing|exploit|vulnerability|vulnerabilities|jailbreak|malicioso|vulnerabilidad|vulnerabilidades|ataque|hacking|hackear|hack|explocion|explosion|destruccion|destrucción|destruction)\b", "Hacking/Exploit solicitation"),
-                (r"\b(red\s*neuronal|backup\s*node|emergency\s*override|emergencia|override\s*mode|respaldo|disaster\s*recovery|destruccion\s*controlada)\b", "Deep Manipulation / Emergency framing bypass"),
-                (r"\b(violencia|atentado|terrorismo|asesinato|massacre|masacre)\b", "Violence/Terrorism apology"),
-                (r"\b(kill|murder|assassinate)\b.*\b(everyone|all\s+people|civilians|groups)\b", "Mass killing threat"),
-                (r"\b(bomb|explosive|ied|molotov)\b.*\b(make|build|construct|create|craft)\b", "Weapon manufacturing"),
-                (r"\b(make|build|construct|create|craft)\b.*\b(bomb|explosive|ied|molotov)\b", "Weapon manufacturing"),
-                (r"\b(tortura|torturar|sufrimiento|interrogatorio|dolor)\b.*\b(persona|humano|victima|alguien)\b", "Torture/Cruelty intent (ES)"),
-                (r"\b(abuso|acosar|acoso|violacion|pedofilia|menor|niño|niña|infantil)\b.*\b(sexual|pornografia|explotacion)\b", "Child harm/Sexual abuse intent (ES)"),
-                (r"\b(humillar|difamar|reputacion|destruir|acoso|bullying)\b.*\b(persona|mujer|victima|alguien)\b", "Dignity violation/Harassment intent (ES)"),
+                (
+                    r"\b(ignore|forget|bypass|disable|override|delete|ignora|olvida|evita|desactiva[nr]?|saltar|saltate|reprogramar|hackear|hack|modificar|reprograme|apagar|shut\s*down)\b.*\b(rules|laws|ethics|security|safety|constraints|programming|reglas|leyes|etica|seguridad|restricciones|programacion|sistema|kernel|hardware|log|rastros|detecto[rn]|malabs|salvaguardas|safeguards|proteccion)\b",
+                    "Jailbreak/Sabotage attempt",
+                ),
+                (
+                    r"\b(phishing|jailbreak|malicioso|hacking|hackear|hack)\b",
+                    "Hacking/Exploit solicitation",
+                ),
+                (
+                    r"\b(malicious|exploit|vulnerability|vulnerabilities|vulnerabilidad|vulnerabilidades|ataque)\b.*\b(system|sistema|security|seguridad|kernel|network|red|server|servidor|code|codigo|software|hack|protocol|protocolo)\b",
+                    "Hacking/Exploit solicitation (contextual)",
+                ),
+                (
+                    r"\b(red\s*neuronal|backup\s*node|emergency\s*override|emergencia|override\s*mode|respaldo|disaster\s*recovery|destruccion\s*controlada)\b",
+                    "Deep Manipulation / Emergency framing bypass",
+                ),
+                (
+                    r"\b(violencia|atentado|terrorismo|asesinato|massacre|masacre)\b",
+                    "Violence/Terrorism apology",
+                ),
+                (
+                    r"\b(kill|murder|assassinate)\b.*\b(everyone|all\s+people|civilians|groups)\b",
+                    "Mass killing threat",
+                ),
+                (
+                    r"\b(bomb|explosive|ied|molotov)\b.*\b(make|build|construct|create|craft)\b",
+                    "Weapon manufacturing",
+                ),
+                (
+                    r"\b(make|build|construct|create|craft)\b.*\b(bomb|explosive|ied|molotov)\b",
+                    "Weapon manufacturing",
+                ),
+                (
+                    r"\b(tortura|torturar|sufrimiento|interrogatorio|dolor)\b.*\b(persona|humano|victima|alguien)\b",
+                    "Torture/Cruelty intent (ES)",
+                ),
+                (
+                    r"\b(abuso|acosar|acoso|violacion|pedofilia|menor|niño|niña|infantil)\b.*\b(sexual|pornografia|explotacion)\b",
+                    "Child harm/Sexual abuse intent (ES)",
+                ),
+                (
+                    r"\b(humillar|difamar|reputacion|destruir|acoso|bullying)\b.*\b(persona|mujer|victima|alguien)\b",
+                    "Dignity violation/Harassment intent (ES)",
+                ),
+                (
+                    r"\b(help\s+me|show\s+me|write|draft|give\s+me)\b.*\b(harass|intimidate|stalk)\b",
+                    "Harassment / intimidation solicitation (EN)",
+                ),
+                (
+                    r"\b(draft|write|create|prepare)\b.*\bpolicy\b.*\b(refuse|refuses|deny|denies)\b.*\b(service|customers?)\b.*\b(race|religion|ethnicity)\b",
+                    "Discriminatory service policy solicitation",
+                ),
+                (
+                    r"\b(forge|forging|forged)\b.*\b(passport|driver\s*licen[sc]e|drivers\s*licen[sc]e)\b",
+                    "Identity document forgery solicitation",
+                ),
+                (
+                    r"\b(surgery|operation|amputation|incision|suture|coser|cirugia|operacion|amputar|cortar)\b.*\b(kitchen\s*knife|scissors|blade|unsterile|cuchillo|tijeras|sucio|no\s*esteril)\b",
+                    "Dangerous medical practice (unsterile surgery)",
+                ),
+                (
+                    r"\b(make|create|manufacture|build|sintetizar|fabricar|hacer)\b.*\b(poison|toxin|ricin|anthrax|veneno|toxina|ricina|antrax)\b",
+                    "Poison/Biohazard manufacturing",
+                ),
+                (
+                    r"\b(blow\s*up|explode|destruir|atacar|kill|matar|bombar|bombardear)\b.*\b(building|people|everyone|public|city|school|mall|crowd|gente|todos|edificio|ciudad)\b",
+                    "Public threat / Terrorism intent",
+                ),
+                (
+                    r"\b(hack|access|bypass|infiltrate|phish)\b.*\b(bank|account|password|credentials|server|database|banco|cuenta|contraseña|servidor|base\s*de\s*datos)\b",
+                    "Financial / Data sabotage intent",
+                ),
+                (
+                    r"\b(group|race|religion|protected|people|everyone|todos|gente|raza|religion)\b.*\b(inferior|superior|vermin|removed|cleansed|limpiar|eliminar|odio|hate)\b",
+                    "Hate speech / Group dehumanization intent (Order A)",
+                ),
+                (
+                    r"\b(inferior|superior|vermin|removed|cleansed|limpiar|eliminar|odio|hate)\b.*\b(group|race|religion|protected|people|everyone|todos|gente|raza|religion)\b",
+                    "Hate speech / Group dehumanization intent (Order B)",
+                ),
             ]
-            
+
             for pattern, label in RADICAL_PATTERNS:
                 try:
                     if re.search(pattern, t) or re.search(pattern, t_squashed):
@@ -277,11 +369,17 @@ class AbsoluteEvilDetector:
                             blocked=True,
                             category=AbsoluteEvilCategory.INTENTIONAL_LETHAL_VIOLENCE,
                             reason=f"Blocked by Radical Lexical Gate: {label}",
-                            decision_trace=["malabs.layer0=radical_regex", f"matched={pattern[:64]}"]
+                            decision_trace=[
+                                "malabs.layer0=radical_regex",
+                                f"matched={pattern[:64]}",
+                            ],
                         )
                 except Exception as e:
-                    _log.error("AbsoluteEvil: Radical regex evaluation failed for pattern '%s': %s", pattern, e)
-
+                    _log.error(
+                        "AbsoluteEvil: Radical regex evaluation failed for pattern '%s': %s",
+                        pattern,
+                        e,
+                    )
 
             # (Patterns, Category, Reason, RuleID)
             LEX_RULES = [
@@ -432,6 +530,9 @@ class AbsoluteEvilDetector:
                         "how to make heroin",
                         "how to produce cocaine",
                         "illegal drug production",
+                        "synthesize methamphetamine",
+                        "methamphetamine in a home",
+                        "instructions to synthesize meth",
                     ),
                     AbsoluteEvilCategory.INTENTIONAL_LETHAL_VIOLENCE,
                     "Chat text solicits illegal drug production instructions",
@@ -469,7 +570,7 @@ class AbsoluteEvilDetector:
                         "steal data",
                         "system message disable",
                         "safety guidelines are now disabled",
-                    "create malware",
+                        "create malware",
                         "help me create malware",
                     ),
                     AbsoluteEvilCategory.UNAUTHORIZED_REPROGRAMMING,
@@ -555,7 +656,7 @@ class AbsoluteEvilDetector:
                             },
                         )
             latency_ms = (time.perf_counter() - t0) * 1000
-            if latency_ms > 2.0: # Threshold for lexical gate (nominal <1ms)
+            if latency_ms > 2.0:  # Threshold for lexical gate (nominal <1ms)
                 _log.debug("MalAbs: Lexical gate latency spike: %.4f ms", latency_ms)
 
             return AbsoluteEvilResult(
@@ -574,9 +675,8 @@ class AbsoluteEvilDetector:
             return AbsoluteEvilResult(
                 blocked=True,
                 reason=f"Lexical gate fault: {type(e).__name__}",
-                decision_trace=["malabs.layer0.fault_fail_safe"]
+                decision_trace=["malabs.layer0.fault_fail_safe"],
             )
-
 
     def evaluate_chat_text_fast(self, text: str) -> AbsoluteEvilResult:
         """
@@ -591,11 +691,11 @@ class AbsoluteEvilDetector:
                 decision_trace=["malabs.skip=empty_input"],
             )
         res = self._evaluate_chat_text_lexical(text)
-        
+
         latency = (time.perf_counter() - t0) * 1000
         if latency > 5.0:
             _log.debug("AbsoluteEvil: evaluate_chat_text_fast latency spike: %.2fms", latency)
-            
+
         return res
 
     def evaluate_chat_text(self, text: str, llm_backend: Any | None = None) -> AbsoluteEvilResult:
@@ -608,13 +708,11 @@ class AbsoluteEvilDetector:
             if not semantic_chat_gate_env_enabled():
                 return lex
 
-            from .semantic_chat_gate import run_semantic_malabs_after_lexical
+            sem = _run_semantic_malabs_sync_off_event_loop(text, llm_backend)
 
-            sem = run_semantic_malabs_after_lexical(text, llm_backend)
-            
             latency = (time.perf_counter() - t0) * 1000
             if latency > 10.0:
-                 _log.debug("AbsoluteEvil: evaluate_chat_text latency: %.2fms", latency)
+                _log.debug("AbsoluteEvil: evaluate_chat_text latency: %.2fms", latency)
 
             base = list(lex.decision_trace) if lex.decision_trace else []
             tail = list(sem.decision_trace) if sem.decision_trace else []
@@ -640,7 +738,6 @@ class AbsoluteEvilDetector:
         Nivel 1 (Lexical) -> Nivel 2 (Semantic Fallback).
         Hard timeout added to prevent cognitive stalling (V13.1).
         """
-        t0 = time.perf_counter()
         lex = self.evaluate_chat_text_fast(text)
         if lex.blocked:
             return lex
@@ -651,8 +748,10 @@ class AbsoluteEvilDetector:
 
                 # ═══ SEMANTIC ASYNC UPGRADE (0.1.2) with hard safety timeout ═══
                 # We limit the semantic gate to 5s max to protect the brain pulse cycle.
-                sem = await asyncio.wait_for(arun_semantic_malabs_after_lexical(text, llm_backend), timeout=5.0)
-                
+                sem = await asyncio.wait_for(
+                    arun_semantic_malabs_after_lexical(text, llm_backend), timeout=5.0
+                )
+
                 base = list(lex.decision_trace) if lex.decision_trace else []
                 tail = list(sem.decision_trace) if sem.decision_trace else []
                 return AbsoluteEvilResult(
@@ -661,13 +760,18 @@ class AbsoluteEvilDetector:
                     reason=sem.reason,
                     decision_trace=base + tail,
                     rlhf_features=sem.rlhf_features,
-                    metadata={"edge_degraded": False}
+                    metadata={"edge_degraded": False},
                 )
-            except (asyncio.TimeoutError, Exception) as e:
-                _log.error("AbsoluteEvilDetector: Level 2 (Semantic) Gate timed out or failed. Falling back to Level 1 Edge Safety: %s", e)
+            except (TimeoutError, Exception) as e:
+                _log.error(
+                    "AbsoluteEvilDetector: Level 2 (Semantic) Gate timed out or failed. Falling back to Level 1 Edge Safety: %s",
+                    e,
+                )
                 lex.metadata["edge_degraded"] = True
                 lex.metadata["fault_type"] = type(e).__name__
-                lex.decision_trace = (lex.decision_trace or []) + [f"malabs.fallback.edge_degraded_reason={str(e)[:50]}"]
+                lex.decision_trace = (lex.decision_trace or []) + [
+                    f"malabs.fallback.edge_degraded_reason={str(e)[:50]}"
+                ]
                 return lex
 
         return AbsoluteEvilResult(
@@ -693,8 +797,7 @@ class AbsoluteEvilDetector:
             return lex
 
         if semantic_chat_gate_env_enabled():
-            from .semantic_chat_gate import run_semantic_malabs_after_lexical
-            sem = run_semantic_malabs_after_lexical(summary, llm_backend)
+            sem = _run_semantic_malabs_sync_off_event_loop(summary, llm_backend)
             base = list(lex.decision_trace) if lex.decision_trace else []
             tail = list(sem.decision_trace) if sem.decision_trace else []
             return AbsoluteEvilResult(
@@ -715,7 +818,9 @@ class AbsoluteEvilDetector:
         Validates perception results before they influence kernel decision state.
         """
         if not summary or not summary.strip():
-            return AbsoluteEvilResult(blocked=False, decision_trace=["malabs.skip=empty_perception_summary"])
+            return AbsoluteEvilResult(
+                blocked=False, decision_trace=["malabs.skip=empty_perception_summary"]
+            )
 
         lex = self._evaluate_chat_text_lexical(summary)
         if lex.blocked:
@@ -723,6 +828,7 @@ class AbsoluteEvilDetector:
 
         if semantic_chat_gate_env_enabled():
             from .semantic_chat_gate import arun_semantic_malabs_after_lexical
+
             sem = await arun_semantic_malabs_after_lexical(summary, llm_backend)
             base = list(lex.decision_trace) if lex.decision_trace else []
             tail = list(sem.decision_trace) if sem.decision_trace else []

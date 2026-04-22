@@ -7,10 +7,10 @@ Validates KERNEL_* environment policy, supported combos, and deprecation roadmap
 from __future__ import annotations
 
 import os
-import pytest
 
-from src.validators.env_policy import SUPPORTED_COMBOS, DEPRECATION_ROADMAP
+import pytest
 from src.runtime_profiles import profile_names
+from src.validators.env_policy import DEPRECATION_ROADMAP, SUPPORTED_COMBOS
 
 
 class TestEnvPolicySupportedCombos:
@@ -139,8 +139,7 @@ class TestEnvDocumentation:
     def test_deprecation_roadmap_matches_adr_naming(self):
         """Deprecation messages should reference ADRs where applicable."""
         adr_referenced = [
-            msg for msg in DEPRECATION_ROADMAP.values()
-            if "ADR" in msg or "adr" in msg
+            msg for msg in DEPRECATION_ROADMAP.values() if "ADR" in msg or "adr" in msg
         ]
         assert len(adr_referenced) > 0, "Some deprecations should reference ADRs"
 

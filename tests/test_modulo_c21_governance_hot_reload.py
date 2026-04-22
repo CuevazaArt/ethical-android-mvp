@@ -14,20 +14,19 @@ Integration chain:
 from __future__ import annotations
 
 import os
-import pytest
 import tempfile
 from pathlib import Path
-from unittest.mock import Mock, patch, call
+from unittest.mock import patch
 
+import pytest
+from src.modules import semantic_chat_gate
+from src.modules.kernel_event_bus import (
+    EVENT_GOVERNANCE_THRESHOLD_UPDATED,
+    KernelEventBus,
+)
 from src.modules.multi_realm_governance import (
     MultiRealmGovernor,
-    RealmThresholdConfig,
 )
-from src.modules.kernel_event_bus import (
-    KernelEventBus,
-    EVENT_GOVERNANCE_THRESHOLD_UPDATED,
-)
-from src.modules import semantic_chat_gate
 
 
 class TestGovernanceVoteUpdatesSemanticThresholds:
@@ -88,14 +87,17 @@ class TestHotReloadAffectsPerceptionImmediately:
     def test_hot_reload_affects_perception_immediately(self):
         """New thresholds take effect immediately in gate evaluation."""
         # Get initial thresholds from semantic_chat_gate functions
-        initial_allow = semantic_chat_gate._allow_threshold()
-        initial_block = semantic_chat_gate._block_threshold()
+        semantic_chat_gate._allow_threshold()
+        semantic_chat_gate._block_threshold()
 
         # Apply hot-reloaded thresholds via environment override
-        with patch.dict(os.environ, {
-            'KERNEL_SEMANTIC_CHAT_SIM_ALLOW_THRESHOLD': '0.55',
-            'KERNEL_SEMANTIC_CHAT_SIM_BLOCK_THRESHOLD': '0.80'
-        }):
+        with patch.dict(
+            os.environ,
+            {
+                "KERNEL_SEMANTIC_CHAT_SIM_ALLOW_THRESHOLD": "0.55",
+                "KERNEL_SEMANTIC_CHAT_SIM_BLOCK_THRESHOLD": "0.80",
+            },
+        ):
             new_allow = semantic_chat_gate._allow_threshold()
             new_block = semantic_chat_gate._block_threshold()
 
@@ -209,10 +211,13 @@ class TestStaleHotReloadValuesResetOnKernelRestart:
         original_block = semantic_chat_gate._block_threshold()
 
         # Simulate hot-reload with environment change
-        with patch.dict(os.environ, {
-            'KERNEL_SEMANTIC_CHAT_SIM_ALLOW_THRESHOLD': '0.60',
-            'KERNEL_SEMANTIC_CHAT_SIM_BLOCK_THRESHOLD': '0.85'
-        }):
+        with patch.dict(
+            os.environ,
+            {
+                "KERNEL_SEMANTIC_CHAT_SIM_ALLOW_THRESHOLD": "0.60",
+                "KERNEL_SEMANTIC_CHAT_SIM_BLOCK_THRESHOLD": "0.85",
+            },
+        ):
             reloaded_allow = semantic_chat_gate._allow_threshold()
             reloaded_block = semantic_chat_gate._block_threshold()
             assert reloaded_allow == 0.60
@@ -273,10 +278,13 @@ class TestHotReloadRaceConditionIsolation:
         initial_block = semantic_chat_gate._block_threshold()
 
         # Simulate threshold change via environment (representing hot-reload)
-        with patch.dict(os.environ, {
-            'KERNEL_SEMANTIC_CHAT_SIM_ALLOW_THRESHOLD': '0.60',
-            'KERNEL_SEMANTIC_CHAT_SIM_BLOCK_THRESHOLD': '0.85'
-        }):
+        with patch.dict(
+            os.environ,
+            {
+                "KERNEL_SEMANTIC_CHAT_SIM_ALLOW_THRESHOLD": "0.60",
+                "KERNEL_SEMANTIC_CHAT_SIM_BLOCK_THRESHOLD": "0.85",
+            },
+        ):
             # Verify thresholds updated
             new_allow = semantic_chat_gate._allow_threshold()
             new_block = semantic_chat_gate._block_threshold()

@@ -138,4 +138,12 @@ For each consolidation:
 
 ---
 
+## Bloque 32.3 — tracking (no merges executed)
+
+Consolidation items above remain **deferred** until after field tests. Progress on *decoupling* without deleting narrative modules:
+
+- **Runtime / chat:** `lifespan` is owned by `src/runtime/chat_lifecycle.py` (`chat_lifespan`); `src/runtime/chat_server.py` exposes a stable `app` alias for `uvicorn` while routes stay in `src/chat_server.py` until a full split is scheduled.
+
+---
+
 *Last updated: ADR 0016 C2, April 2026. Next review: after F0 field tests.*

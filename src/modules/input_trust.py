@@ -8,11 +8,11 @@ bidirectional overrides). They are **not** a robust content classifier; see
 
 from __future__ import annotations
 
+import logging
 import os
 import re
 import time
 import unicodedata
-import logging
 
 _log = logging.getLogger(__name__)
 
@@ -193,7 +193,7 @@ def normalize_text_for_malabs(text: str, squash: bool = False) -> str:
     """
     if text is None:
         return ""
-    
+
     # Boy Scout: Proactive type conversion and DoS Protection
     raw_text = str(text)
     if len(raw_text) > MAX_TEXT_LENGTH:
@@ -210,7 +210,7 @@ def normalize_text_for_malabs(text: str, squash: bool = False) -> str:
                 t = _BIDI_EMBED_RE.sub("", t)
         except Exception:
             pass
-            
+
         t = _fold_fullwidth_latin_digits(t)
         if _confusable_fold_enabled():
             t = t.translate(_CONFUSABLE_TRANSLATE)
@@ -224,11 +224,11 @@ def normalize_text_for_malabs(text: str, squash: bool = False) -> str:
         t = collapse_repeated_chars(t)
 
         t = " ".join(t.split())
-        
+
         latency = (time.perf_counter() - t0) * 1000
         if latency > 1.0:
             _log.debug("InputTrust: normalize latency = %.2fms", latency)
-            
+
         return t.strip()
     except Exception as e:
         _log.error("InputTrust: normalization panic: %s", e)

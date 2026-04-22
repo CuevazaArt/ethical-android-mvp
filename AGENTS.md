@@ -78,17 +78,23 @@ Any new agent or team joining the project must complete the **[`ONBOARDING.md`](
 
 To completely eliminate "Merge Hell" and support massive IDE window parallelization, all Level 2 units operate under the **Anonymous Pragmatism Workflow (V4.0)**.
 
+### Phase 0: Bi-Locational Handover (Wake-Up Sync)
+Due to the reality of physical mobility (Office A vs Office B) and dual shifts, **NO AGENT is allowed to write code before synchronizing the reality**.
+- **MANDATORY**: Execute `git pull origin main --rebase` immediately upon waking up. This prevents Split-Brain divergence across physical offices.
+- **Auto-Push Assurance**: Always use `scripts/swarm_sync.py` which now enforces an automatic `git push` to preserve the state for the next physical location.
+
 ### Phase 1: Open Backlog Execution
 When L0 (Juan) assigns a task or you are deployed:
 1. **Pull a Task:** Pick the highest priority `[PENDING]` task from `docs/proposals/PLAN_WORK_DISTRIBUTION_TREE.md`.
 2. **Execute Statelessly:** You don't need a name, UID, or color. Your identity is your execution. Write the solution.
 3. **Log the Work programmatically:** You must rely on `scripts/swarm_sync.py` to handle the logging and commits.
 
-### Fase 2: Las 3 "Leyes del Boy Scout" de Endurecimiento Vertical
+### Fase 2: Las 4 "Leyes del Boy Scout" de Endurecimiento Vertical
 Durante cada intervención, DEBES ejecutar proactivamente los siguientes principios de seguridad:
 1. **Harden-In-Place / Zero Trust**: Llena bloques `try/except` vacíos, añade type hints y asegura un saneamiento de inputs riguroso.
 2. **Cierre de Brechas (Anti-NaN)**: Si tocas lógica matemática o de latencia, asegura que los resultados no puedan ser `NaN` o `Inf`. Añade `math.isfinite()` donde sea necesario.
 3. **Métricas de Latencia**: Todo nuevo loop o aferencia sensorial debe registrar su latencia en milisegundos (`time.perf_counter()`) para el lóbulo de telemetría.
+4. **Poda de Viejas Vías (Zero Dead Code)**: Si detectas simuladores (mocks) residuales o código que fue reemplazado por el bus asíncrono (ej. monolito antiguo), tu deber es eliminarlo. Mantén el repositorio ligero.
 
 ### Fase 3: Pulso de Auditoría Adversaria (L1-AUDIT-PULSE)
 Para mitigar el "Efecto Túnel", se establece la siguiente restricción:

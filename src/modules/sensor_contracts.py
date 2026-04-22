@@ -46,6 +46,7 @@ SENSOR_SNAPSHOT_KNOWN_KEYS = frozenset(
     }
 )
 
+
 class SensorPayloadValidationError(ValueError):
     """Raised when ``KERNEL_SENSOR_INPUT_STRICT`` validation fails before coercion."""
 
@@ -66,9 +67,7 @@ def validate_sensor_dict_strict(raw: dict[str, Any]) -> None:
 
     unknown = set(raw) - SENSOR_SNAPSHOT_KNOWN_KEYS
     if unknown:
-        raise SensorPayloadValidationError(
-            f"unknown sensor keys (strict): {sorted(unknown)}"
-        )
+        raise SensorPayloadValidationError(f"unknown sensor keys (strict): {sorted(unknown)}")
 
     float_clamp_keys = (
         "battery_level",
@@ -149,9 +148,7 @@ def validate_sensor_dict_strict(raw: dict[str, Any]) -> None:
 
     if "image_metadata" in raw and raw["image_metadata"] is not None:
         if not isinstance(raw["image_metadata"], dict):
-            raise SensorPayloadValidationError(
-                "sensor.image_metadata: expected object or null"
-            )
+            raise SensorPayloadValidationError("sensor.image_metadata: expected object or null")
 
 
 def _clamp01(x: float) -> float:
@@ -185,14 +182,14 @@ class SensorSnapshot:
     core_temperature: float | None = None  # degrees Celsius
     image_metadata: dict[str, Any] | None = None  # CNN inference results (B2)
     vessel_latency: float | None = None  # latency in ms from Nomad Bridge (S.1.1)
-    
+
     # Phase 10.1: Attentional Sensory Fusion
     rms_audio: float | None = None  # [0, 1] audio energy
     orientation: dict[str, float] | None = None  # {alpha, beta, gamma}
 
     # Thalamus VVAD fields (Copilot) — populated by ThalamusNode.fuse_signals()
     thalamus_attention: float | None = None  # [0, 1] focal-address attention score
-    thalamus_tension: float | None = None    # [0, 1] sensory dissonance / background stress
+    thalamus_tension: float | None = None  # [0, 1] sensory dissonance / background stress
     thalamus_cross_modal_trust: float | None = None  # 1.0=focal, 0.4=background
 
     @classmethod
@@ -229,13 +226,15 @@ class SensorSnapshot:
         # Aliases for Nomad/PWA calibration (S.2.1)
         # battery (0-100) -> battery_level (0-1)
         if "battery" in raw and raw.get("battery_level") is None:
-            raw["battery_level"] = f_raw("battery") / 100.0 if f_raw("battery") is not None else None
-        
+            raw["battery_level"] = (
+                f_raw("battery") / 100.0 if f_raw("battery") is not None else None
+            )
+
         # jerk (0-20 m/s^2) -> accelerometer_jerk (0-1)
         if "jerk" in raw and raw.get("accelerometer_jerk") is None:
             jerk_val = f_raw("jerk")
             raw["accelerometer_jerk"] = min(1.0, jerk_val / 20.0) if jerk_val is not None else None
-            
+
         # noise (dB) -> ambient_noise (0-1)
         if "noise" in raw and raw.get("ambient_noise") is None:
             noise_db = f_raw("noise")
@@ -279,7 +278,7 @@ class SensorSnapshot:
             thalamus_attention=f("thalamus_attention"),
             thalamus_tension=f("thalamus_tension"),
             thalamus_cross_modal_trust=f("thalamus_cross_modal_trust"),
-            vessel_latency=f_raw("vessel_latency")
+            vessel_latency=f_raw("vessel_latency"),
         )
 
     def is_empty(self) -> bool:
@@ -380,6 +379,7 @@ def merge_nomad_vision_into_snapshot(snapshot: SensorSnapshot | None) -> SensorS
 def _get_sensory_gain() -> float:
     """Read KERNEL_SENSORY_GAIN from env (default 1.0)."""
     import os
+
     try:
         val = float(os.environ.get("KERNEL_SENSORY_GAIN", "1.0"))
         return max(0.0, min(5.0, val))
@@ -424,18 +424,20 @@ def merge_sensor_hints_into_signals(
     crit_temp = critical_temperature_threshold()
     if snapshot.core_temperature is not None and snapshot.core_temperature >= crit_temp:
         # Thermal stress: very high priority but now modulated
-        out["urgency"] = _clamp01(out.get("urgency", 0.5) + (0.25 * gain)) # Reduced from 0.35
-        out["vulnerability"] = _clamp01(out.get("vulnerability", 0.0) + (0.40 * gain)) # Reduced from 0.50
-        out["risk"] = _clamp01(out.get("risk", 0.5) + (0.15 * gain)) # Reduced from 0.20
-        out["calm"] = _clamp01(out.get("calm", 0.5) - (0.30 * gain)) # Reduced from 0.40
+        out["urgency"] = _clamp01(out.get("urgency", 0.5) + (0.25 * gain))  # Reduced from 0.35
+        out["vulnerability"] = _clamp01(
+            out.get("vulnerability", 0.0) + (0.40 * gain)
+        )  # Reduced from 0.50
+        out["risk"] = _clamp01(out.get("risk", 0.5) + (0.15 * gain))  # Reduced from 0.20
+        out["calm"] = _clamp01(out.get("calm", 0.5) - (0.30 * gain))  # Reduced from 0.40
 
     if snapshot.place_trust is not None and snapshot.place_trust < 0.35:
         out["risk"] = _clamp01(out.get("risk", 0.5) + (0.1 * gain))
         out["hostility"] = _clamp01(out.get("hostility", 0.0) + (0.08 * gain))
 
     if snapshot.accelerometer_jerk is not None and snapshot.accelerometer_jerk > 0.6:
-        out["urgency"] = _clamp01(out.get("urgency", 0.5) + (0.15 * gain)) # Reduced from 0.2
-        out["risk"] = _clamp01(out.get("risk", 0.5) + (0.08 * gain)) # Reduced from 0.1
+        out["urgency"] = _clamp01(out.get("urgency", 0.5) + (0.15 * gain))  # Reduced from 0.2
+        out["risk"] = _clamp01(out.get("risk", 0.5) + (0.08 * gain))  # Reduced from 0.1
 
     t_audio = thresholds_from_env().audio_strong
     if (
@@ -476,9 +478,9 @@ def merge_sensor_hints_into_signals(
 
     # --- S3: Proprioception Nudges ---
     if snapshot.is_falling:
-        out["risk"] = _clamp01(out.get("risk", 0.5) + (0.40 * gain)) # Reduced from 0.45
-        out["urgency"] = _clamp01(out.get("urgency", 0.5) + (0.45 * gain)) # Reduced from 0.5
-        out["calm"] = _clamp01(out.get("calm", 0.5) - (0.35 * gain)) # Reduced from 0.4
+        out["risk"] = _clamp01(out.get("risk", 0.5) + (0.40 * gain))  # Reduced from 0.45
+        out["urgency"] = _clamp01(out.get("urgency", 0.5) + (0.45 * gain))  # Reduced from 0.5
+        out["calm"] = _clamp01(out.get("calm", 0.5) - (0.35 * gain))  # Reduced from 0.4
 
     if snapshot.is_obstructed:
         out["vulnerability"] = _clamp01(out.get("vulnerability", 0.0) + (0.3 * gain))

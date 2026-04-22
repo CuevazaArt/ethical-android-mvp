@@ -46,7 +46,9 @@ def discover_lan_ipv4_candidates(bind_host: str | None = None) -> list[str]:
 
     try:
         host_name = socket.gethostname()
-        for row in socket.getaddrinfo(host_name, None, family=socket.AF_INET, type=socket.SOCK_STREAM):
+        for row in socket.getaddrinfo(
+            host_name, None, family=socket.AF_INET, type=socket.SOCK_STREAM
+        ):
             _add(str(row[4][0]))
     except OSError:
         pass
@@ -91,7 +93,7 @@ def build_nomad_discovery_payload(
             {
                 "host": host,
                 "chat_ws": f"{base}/ws/chat",
-                "nomad_ws": f"{base}/nomad_bridge/ws/nomad",
+                "nomad_ws": f"{base}/ws/nomad",
                 "dashboard_ws": f"{base}/ws/dashboard",
                 "nomad_ui": f"{http_scheme}://{host}:{port}/nomad/",
             }

@@ -18,12 +18,12 @@ This closes the gap between perception (vision+audio) and user-facing I/O.
 from __future__ import annotations
 
 import asyncio
-import json
 import logging
-from dataclasses import dataclass, field
-from pathlib import Path
-from typing import Optional, Literal
 import queue
+from collections.abc import Callable, Coroutine
+from dataclasses import dataclass, field
+from typing import Any, Literal
+
 import numpy as np
 
 logger = logging.getLogger(__name__)
@@ -32,11 +32,12 @@ logger = logging.getLogger(__name__)
 @dataclass
 class AudioTranscription:
     """Result of speech-to-text processing."""
+
     text: str
     confidence: float  # [0, 1] model confidence
     language: str = "en"
     duration_sec: float = 0.0
-    timestamp: float = field(default_factory=lambda: __import__('time').time())
+    timestamp: float = field(default_factory=lambda: __import__("time").time())
 
     def to_dict(self) -> dict:
         """Serialize to JSON-compatible dict."""
@@ -52,8 +53,9 @@ class AudioTranscription:
 @dataclass
 class AudioResponse:
     """Kernel's audio response to user input."""
+
     text: str  # What to say
-    audio_bytes: Optional[bytes] = None  # Synthesized audio (WAV/MP3)
+    audio_bytes: bytes | None = None  # Synthesized audio (WAV/MP3)
     duration_sec: float = 0.0
     confidence: float = 0.5  # Kernel confidence in response
     source_lobe: str = "executive"  # Which lobe generated response
@@ -82,6 +84,7 @@ class WhisperAdapter:
         """Load Whisper model (lazy-loads on first use)."""
         try:
             import whisper
+
             logger.info(f"Loading Whisper {self.model_size} model...")
             self.model = whisper.load_model(self.model_size)
             logger.info("Whisper model loaded successfully")
@@ -89,7 +92,9 @@ class WhisperAdapter:
             logger.warning("Whisper not installed. STT will be unavailable.")
             self.model = None
 
-    async def transcribe_audio(self, audio_chunk: np.ndarray, sample_rate: int = 16000) -> AudioTranscription:
+    async def transcribe_audio(
+        self, audio_chunk: np.ndarray, sample_rate: int = 16000
+    ) -> AudioTranscription:
         """
         Transcribe audio chunk to text using Whisper.
 
@@ -108,10 +113,7 @@ class WhisperAdapter:
             # Run in thread pool to avoid blocking async loop
             loop = asyncio.get_event_loop()
             result = await loop.run_in_executor(
-                None,
-                self._transcribe_blocking,
-                audio_chunk,
-                sample_rate
+                None, self._transcribe_blocking, audio_chunk, sample_rate
             )
             return result
         except Exception as e:
@@ -172,9 +174,7 @@ class TextToSpeechAdapter:
         try:
             loop = asyncio.get_event_loop()
             audio_bytes, duration = await loop.run_in_executor(
-                None,
-                self._synthesize_blocking,
-                text
+                None, self._synthesize_blocking, text
             )
             return audio_bytes, duration
         except Exception as e:
@@ -191,18 +191,19 @@ class TextToSpeechAdapter:
     def _synthesize_pyttsx3(self, text: str) -> tuple[bytes, float]:
         """Synthesize using pyttsx3 (offline)."""
         try:
-            import pyttsx3
             import io
 
+            import pyttsx3
+
             engine = pyttsx3.init()
-            engine.setProperty('rate', 150)  # Words per minute
-            engine.setProperty('volume', 0.9)
+            engine.setProperty("rate", 150)  # Words per minute
+            engine.setProperty("volume", 0.9)
 
             # Estimate duration (rough: ~15 chars per second at 150 wpm)
             estimated_duration = len(text) / 15.0
 
             # Save to bytes buffer
-            buffer = io.BytesIO()
+            io.BytesIO()
             # Note: pyttsx3 doesn't directly support BytesIO, would need WAV encoder
             # For now, return placeholder
             logger.warning("pyttsx3 BytesIO support limited; returning silence")
@@ -215,8 +216,9 @@ class TextToSpeechAdapter:
     def _synthesize_gtts(self, text: str) -> tuple[bytes, float]:
         """Synthesize using Google Translate API (online, via gTTS)."""
         try:
-            from gtts import gTTS
             import io
+
+            from gtts import gTTS
 
             tts = gTTS(text=text, lang=self.language, slow=False)
             buffer = io.BytesIO()
@@ -248,7 +250,7 @@ class AudioOuroborosLoop:
         self,
         sample_rate: int = 16000,
         whisper_model: str = "base",
-        kernel_callback: Optional[Callable[[str], Coroutine[Any, Any, AudioResponse]]] = None
+        kernel_callback: Callable[[str], Coroutine[Any, Any, AudioResponse]] | None = None,
     ):
         """Initialize Ouroboros loop."""
         self.sample_rate = sample_rate
@@ -261,7 +263,7 @@ class AudioOuroborosLoop:
         self.audio_output_queue: queue.Queue[bytes] = queue.Queue(maxsize=20)
 
         self._running = False
-        self._loop_task: Optional[asyncio.Task] = None
+        self._loop_task: asyncio.Task | None = None
 
         # Metrics
         self.transcriptions_processed = 0
@@ -297,11 +299,15 @@ class AudioOuroborosLoop:
                 # 2. Speech-to-text
                 transcription = await self.whisper.transcribe_audio(audio_chunk, self.sample_rate)
                 self.transcriptions_processed += 1
-                logger.info(f"Transcribed: {transcription.text[:100]} (conf={transcription.confidence:.2f})")
+                logger.info(
+                    f"Transcribed: {transcription.text[:100]} (conf={transcription.confidence:.2f})"
+                )
 
                 # 3. Trigger Ethical Kernel with transcribed intent
                 if self.kernel_callback:
-                    logger.debug("AudioOuroboros: Invoking kernel callback for: %s", transcription.text)
+                    logger.debug(
+                        "AudioOuroboros: Invoking kernel callback for: %s", transcription.text
+                    )
                     kernel_response = await self.kernel_callback(transcription.text)
                 else:
                     # Fallback if no kernel is wired

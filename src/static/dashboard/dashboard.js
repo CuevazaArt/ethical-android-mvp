@@ -20,12 +20,25 @@ const EL = {
     sendBtn: document.getElementById('chat-send'),
     chatInput: document.getElementById('chat-input'),
     canvas: document.getElementById('vision-canvas'),
+    chatHistory: document.getElementById('chat-history'),
+    orbPreview: document.getElementById('orb-preview'),
+    vesselId: document.getElementById('vessel-id'),
+    syncStatus: document.getElementById('sync-status'),
+    rtt: document.getElementById('rtt-val'),
+    vitality: document.getElementById('vitality-val'),
+    orient: document.getElementById('orient-val'),
+    socialCircle: document.getElementById('social-circle'),
+    socialPosture: document.getElementById('social-posture'),
+    bayesConf: document.getElementById('bayes-conf'),
+    bayesDelta: document.getElementById('bayes-delta'),
 };
 
 const state = {
     kinetics: 0,
     heartbeat: false,
     dissonance: false,
+    orbColor: '#38bdf8',
+    lastVesselUpdate: 0,
 };
 
 function asFloat(v, fallback = 0) {
@@ -63,18 +76,10 @@ function updateTelemetry(payload) {
     if (payload.turn_index !== undefined) {
         EL.turnIndex.textContent = `TURN #${payload.turn_index}`;
     }
-    if (payload.tension !== undefined) {
-        EL.tension.textContent = asFloat(payload.tension).toFixed(3);
-    }
-    if (payload.trust !== undefined) {
-        EL.trust.textContent = asFloat(payload.trust).toFixed(3);
-    }
-    if (payload.battery !== undefined) {
-        EL.battery.textContent = asFloat(payload.battery).toFixed(3);
-    }
-    if (payload.temp !== undefined) {
-        EL.temp.textContent = asFloat(payload.temp).toFixed(3);
-    }
+    if (payload.tension !== undefined) EL.tension.textContent = asFloat(payload.tension).toFixed(3);
+    if (payload.trust !== undefined) EL.trust.textContent = asFloat(payload.trust).toFixed(3);
+    if (payload.battery !== undefined) EL.battery.textContent = payload.battery;
+    if (payload.temp !== undefined) EL.temp.textContent = payload.temp;
     if (payload.kinetics !== undefined) {
         state.kinetics = asFloat(payload.kinetics);
         EL.kinetics.textContent = state.kinetics.toFixed(3);
@@ -83,10 +88,34 @@ function updateTelemetry(payload) {
         state.heartbeat = !!payload.heartbeat;
         setBool(EL.heartbeat, state.heartbeat);
     }
+    
+    // New 12-domain specific fields
+    if (payload.vitality !== undefined) EL.vitality.textContent = asFloat(payload.vitality).toFixed(2);
+    if (payload.orientation) EL.orient.textContent = JSON.stringify(payload.orientation);
+    if (payload.social_circle) EL.socialCircle.textContent = payload.social_circle;
+    if (payload.social_posture) EL.socialPosture.textContent = payload.social_posture;
+    if (payload.bayes_confidence !== undefined) EL.bayesConf.textContent = asFloat(payload.bayes_confidence).toFixed(3);
+    if (payload.bayes_delta !== undefined) EL.bayesDelta.textContent = asFloat(payload.bayes_delta).toFixed(3);
+    
+    // Vessel latency
+    if (payload.vessel_id) EL.vesselId.textContent = payload.vessel_id;
+    EL.syncStatus.textContent = "active";
+    const now = Date.now();
+    if (state.lastVesselUpdate > 0) {
+        EL.rtt.textContent = (now - state.lastVesselUpdate) + " ms";
+    }
+    state.lastVesselUpdate = now;
 }
 
 function updateAudio(rms) {
-    EL.audioRms.textContent = asFloat(rms).toFixed(3);
+    const val = asFloat(rms);
+    EL.audioRms.textContent = val.toFixed(3);
+    // Visual feedback on the Orb Preview
+    if (EL.orbPreview) {
+        const scale = 1 + (val * 0.5);
+        EL.orbPreview.style.transform = `scale(${scale})`;
+        EL.orbPreview.style.boxShadow = `0 0 ${15 + (val * 20)}px ${state.orbColor}`;
+    }
 }
 
 function updateVision(b64) {
@@ -94,6 +123,10 @@ function updateVision(b64) {
     const ctx = EL.canvas.getContext('2d');
     const img = new Image();
     img.onload = () => {
+        // Force non-scroll by fitting to parent
+        const parentW = EL.canvas.parentElement.clientWidth - 16;
+        const parentH = EL.canvas.parentElement.clientHeight - 40;
+        
         if (EL.canvas.width !== img.width || EL.canvas.height !== img.height) {
             EL.canvas.width = img.width;
             EL.canvas.height = img.height;
@@ -105,11 +138,26 @@ function updateVision(b64) {
 }
 
 function updateThought(text, dissonance) {
-    EL.thought.textContent = text || '';
+    if (!text) return;
+    EL.thought.textContent = text;
     state.dissonance = !!dissonance;
     setBool(EL.dissonance, state.dissonance);
-    appendLog(`kernel: ${text || ''}`, dissonance ? 'warn' : 'info');
+    
+    // Add to chat history too if it's a kernel response
+    const row = document.createElement('div');
+    row.className = `log-row ${dissonance ? 'warn' : 'ok'}`;
+    row.textContent = `KERNEL> ${text}`;
+    EL.chatHistory.appendChild(row);
+    EL.chatHistory.scrollTop = EL.chatHistory.scrollHeight;
+    
+    appendLog(`kernel: ${text}`, dissonance ? 'warn' : 'info');
 }
+
+function updateThoughtStream(chunk) {
+    if (!chunk) return;
+    EL.thought.textContent += chunk;
+}
+
 
 function handleMessage(msg) {
     if (!msg || typeof msg !== 'object') return;
@@ -117,6 +165,11 @@ function handleMessage(msg) {
     switch (msg.type) {
         case 'telemetry':
             updateTelemetry(msg.payload);
+            break;
+        case 'telemetry_update': // Bloque 24.0: Integración Dashboard LTM
+            if (msg.payload && msg.payload.ltm_rescue) {
+                appendLog(`[LTM RETRIEVAL] ${msg.payload.ltm_rescue}`, 'info');
+            }
             break;
         case 'audio_energy':
             updateAudio(msg.payload?.rms);
@@ -127,8 +180,20 @@ function handleMessage(msg) {
         case 'thought':
             updateThought(msg.payload?.text, msg.payload?.dissonance);
             break;
+        case 'thought_stream':
+            updateThoughtStream(msg.payload?.chunk);
+            break;
+        case 'thought_flush':
+            EL.thought.textContent = "[Pensando... ] "; // Clear before next thought stream and show indicator
+            break;
+        case 'turn_finished':
+            // Final response from kernel
+            if (msg.payload?.response?.message) {
+                updateThought(msg.payload.response.message, false);
+            }
+            break;
         default:
-            appendLog(`event: ${JSON.stringify(msg)}`, 'debug');
+            appendLog(`event: ${msg.type}`, 'debug');
             break;
     }
 }
@@ -171,6 +236,14 @@ function sendOperatorMessage() {
         return;
     }
     ws.send(JSON.stringify({ type: 'user_input', payload: { text } }));
+    
+    // Add to chat history
+    const row = document.createElement('div');
+    row.className = `log-row operator`;
+    row.textContent = `OPERATOR> ${text}`;
+    EL.chatHistory.appendChild(row);
+    EL.chatHistory.scrollTop = EL.chatHistory.scrollHeight;
+
     appendLog(`operator: ${text}`, 'operator');
     EL.chatInput.value = '';
 }

@@ -18,6 +18,7 @@ from typing import TYPE_CHECKING, Any
 
 if TYPE_CHECKING:
     from .buffer import PreloadedBuffer
+    from .identity_integrity import IdentityIntegrityManager
 
 
 @dataclass(frozen=True)
@@ -73,16 +74,20 @@ def evaluate_calibration_update(
     if identity is not None:
         proposed_weights = proposed.get("hypothesis_weights")
         proposed_threshold = proposed.get("pruning_threshold")
-        
+
         if proposed_weights and proposed_threshold:
             # Convert list back to tuple if needed
-            p_tuple = tuple(proposed_weights) if isinstance(proposed_weights, list) else proposed_weights
-            
-            if not identity.is_calibration_biographically_coherent(p_tuple, float(proposed_threshold)):
+            p_tuple = (
+                tuple(proposed_weights) if isinstance(proposed_weights, list) else proposed_weights
+            )
+
+            if not identity.is_calibration_biographically_coherent(
+                p_tuple, float(proposed_threshold)
+            ):
                 return SovereigntyEvaluation(
                     accept=False,
                     reason="biographic_trajectory_divergence",
-                    audit_hint="Proposed calibration contradicts persistent identity traumas/reputation."
+                    audit_hint="Proposed calibration contradicts persistent identity traumas/reputation.",
                 )
 
     return SovereigntyEvaluation(

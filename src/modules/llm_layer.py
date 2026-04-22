@@ -15,13 +15,15 @@ Designed to work with or without an API key:
 
 from __future__ import annotations
 
+import asyncio
 import json
 import logging
 import math
 import os
 import time
+from collections.abc import AsyncGenerator
 from dataclasses import dataclass
-from typing import Any, AsyncGenerator, TYPE_CHECKING
+from typing import Any
 
 try:
     import anthropic
@@ -37,8 +39,8 @@ try:
 except ImportError:
     HAS_HTTPX = False
 
-from .llm_http_cancel import raise_if_llm_cancel_requested
 from ..observability.metrics import observe_llm_completion_seconds
+from .light_risk_classifier import light_risk_classifier_enabled, light_risk_tier_from_text
 from .llm_backends import (
     AnthropicLLMBackend,
     LLMBackend,
@@ -46,6 +48,7 @@ from .llm_backends import (
     TextCompletionBackend,
     coerce_to_llm_backend,
 )
+from .llm_http_cancel import raise_if_llm_cancel_requested
 from .llm_touchpoint_policies import resolve_monologue_llm_backend_policy
 from .llm_verbal_backend_policy import (
     canned_rich_narrative_fields,
@@ -57,14 +60,13 @@ from .perception_backend_policy import (
     build_fast_fail_perception,
     resolve_perception_backend_policy,
 )
+from .perception_cross_check import apply_lexical_perception_cross_check
 from .perception_dual_vote import (
     apply_perception_dual_vote_metadata,
     perception_dual_ollama_model,
     perception_dual_second_temperature,
     perception_dual_vote_enabled,
 )
-from .light_risk_classifier import light_risk_classifier_enabled, light_risk_tier_from_text
-from .perception_cross_check import apply_lexical_perception_cross_check
 from .perception_schema import (
     PerceptionCoercionReport,
     finalize_summary,
@@ -75,6 +77,8 @@ from .perception_schema import (
 
 # ADR 0016 C1 — Ethical tier classification
 __ethical_tier__ = "decision_support"
+
+_log = logging.getLogger(__name__)
 
 
 def _normalize_llm_mode(mode: str) -> str:
@@ -296,6 +300,14 @@ Respond ONLY with JSON:
   "inner_voice": "internal reasoning guiding the response (not visible to the human)"
 }}"""
 
+PROMPT_COMMUNICATION_LOCAL_FLUENCY_APPEND = """
+LOCAL LLM FLUENCY (Ollama / on-device):
+- Keep the spoken "message" to at most three short sentences; prefer one or two.
+- Avoid meta-commentary about being an AI or about your own reasoning process.
+- "inner_voice" must be a single short clause (no chain-of-thought, no numbered steps).
+- Time-to-first-token: begin "message" with the substantive reply; no throat-clearing or filler lead-in.
+"""
+
 PROMPT_COMMUNICATION_NOMAD_APPEND = """
 CRITICAL NOMADIC DIRECTIVE:
 You are running on limited hardware. Every token counts for latency.
@@ -303,6 +315,7 @@ You are running on limited hardware. Every token counts for latency.
 - Maximum two short sentences.
 - No verbose introspection or filler.
 - If in D_fast, use max 10 words.
+- Do not prepend acknowledgements, disclaimers, or self-description; start the spoken answer immediately.
 """
 
 PROMPT_NARRATIVE = """You are the narrative module of the Ethos Kernel. You transform ethical
@@ -371,11 +384,19 @@ class LLMModule:
             return
 
         self.mode = _normalize_llm_mode((mode or "auto").strip())
-        self.nomad_mode = os.environ.get("KERNEL_NOMAD_MODE", "").lower() in ("1", "true", "yes", "on")
+        self.nomad_mode = os.environ.get("KERNEL_NOMAD_MODE", "").lower() in (
+            "1",
+            "true",
+            "yes",
+            "on",
+        )
 
         if self.nomad_mode:
             if self.mode != "ollama":
-                logger.warning("NOMAD_MODE ACTIVE: Forcing Zero-API Fluency (ollama). Ignoring mode: %s", self.mode)
+                _log.warning(
+                    "NOMAD_MODE ACTIVE: Forcing Zero-API Fluency (ollama). Ignoring mode: %s",
+                    self.mode,
+                )
                 self.mode = "ollama"
 
         if self.mode == "ollama":
@@ -424,7 +445,6 @@ class LLMModule:
         """Unified adapter (completion + optional ``embedding``) when configured."""
         return self._llm_backend
 
-
     def _llm_completion(
         self,
         system: str,
@@ -454,6 +474,7 @@ class LLMModule:
         *,
         metrics_op: str = "completion",
         temperature: float | None = None,
+        stream_callback: Any = None,
     ) -> str:
         """Async counterpart to :meth:`_llm_completion` (``httpx.AsyncClient`` on supported backends)."""
         raise_if_llm_cancel_requested()
@@ -464,7 +485,18 @@ class LLMModule:
                 kw: dict[str, Any] = {}
                 if temperature is not None:
                     kw["temperature"] = temperature
-                return await b.acompletion(system, user, **kw)
+                if stream_callback is not None:
+                    full_text = ""
+                    async for chunk in b.acompletion_stream(system, user, **kw):
+                        full_text += chunk
+                        # Fire and forget or await the callback
+                        if asyncio.iscoroutinefunction(stream_callback):
+                            await stream_callback(chunk)
+                        else:
+                            stream_callback(chunk)
+                    return full_text
+                else:
+                    return await b.acompletion(system, user, **kw)
             finally:
                 observe_llm_completion_seconds(metrics_op, time.perf_counter() - t0)
         return ""
@@ -532,9 +564,7 @@ class LLMModule:
                     float(os.environ.get("OLLAMA_TIMEOUT", "120")),
                     embed_model=str(inf.get("embed_model") or "nomic-embed-text"),
                 )
-                response_b = await b2.acompletion(
-                    _perception_prompt(), user_block, temperature=t2
-                )
+                response_b = await b2.acompletion(_perception_prompt(), user_block, temperature=t2)
             else:
                 response_b = await self._allm_completion(
                     _perception_prompt(),
@@ -903,13 +933,17 @@ class LLMModule:
             "D_delib": "deep deliberation",
             "gray_zone": "uncertainty, active caution",
         }
-        
+
         # Swarm Rule 2: Anti-NaN check for numeric inputs
-        if not math.isfinite(sigma): sigma = 0.0
-        if not math.isfinite(score): score = 0.5
+        if not math.isfinite(sigma):
+            sigma = 0.0
+        if not math.isfinite(score):
+            score = 0.5
 
         if self.mode in ("api", "ollama", "injected"):
             prompt = PROMPT_COMMUNICATION
+            if self.mode == "ollama":
+                prompt += PROMPT_COMMUNICATION_LOCAL_FLUENCY_APPEND
             if self.nomad_mode:
                 prompt += PROMPT_COMMUNICATION_NOMAD_APPEND
 
@@ -955,7 +989,6 @@ class LLMModule:
             # Tarea 24.1: Dynamic temperature adjustment based on social tension
             # Map tension [0.0, 1.0] to temperature [0.8, 0.1]
             dynamic_temp = max(0.1, 0.8 - (float(social_tension) * 0.7))
-            
             try:
                 response = self._llm_completion(prompt, user_msg, metrics_op="communicate", temperature=dynamic_temp)
             except Exception:
@@ -1037,6 +1070,7 @@ class LLMModule:
         ethical_leans: dict[str, float] | None = None,
         vitality_context: str = "",
         social_tension: float = 0.5,
+        stream_callback: Any = None,
     ) -> VerbalResponse:
         """Async counterpart to :meth:`communicate` for cancellable HTTP."""
         mode_descs = {
@@ -1047,6 +1081,8 @@ class LLMModule:
 
         if self.mode in ("api", "ollama", "injected"):
             prompt = PROMPT_COMMUNICATION
+            if self.mode == "ollama":
+                prompt += PROMPT_COMMUNICATION_LOCAL_FLUENCY_APPEND
             if self.nomad_mode:
                 prompt += PROMPT_COMMUNICATION_NOMAD_APPEND
 
@@ -1092,8 +1128,11 @@ class LLMModule:
             dynamic_temp = max(0.1, 0.8 - (float(social_tension) * 0.7))
             
             try:
-                response = await self._allm_completion(prompt, user_msg, metrics_op="communicate", temperature=dynamic_temp)
-            except Exception:
+                response = await self._allm_completion(
+                    prompt, user_msg, metrics_op="communicate", temperature=dynamic_temp, stream_callback=stream_callback
+                )
+            except Exception as e:
+                _log.warning("LLM acommunicate exception: %s", e)
                 self._record_verbal_degradation("communicate", "llm_completion_exception", vpol)
                 if vpol == "canned_safe":
                     return VerbalResponse(
@@ -1150,6 +1189,7 @@ class LLMModule:
             identity_context=identity_context,
             guardian_mode_context=guardian_mode_context,
         )
+
     async def acommunicate_stream(
         self,
         *,
@@ -1176,19 +1216,28 @@ class LLMModule:
         """Async stream for verbal communication tokens."""
         if self.mode not in ("api", "ollama", "injected") or self._llm_backend is None:
             resp = self._communicate_local(
-                action, mode, state, circle, scenario,
-                affect_pad=affect_pad, dominant_archetype=dominant_archetype,
-                weakness_line=weakness_line, reflection_context=reflection_context,
-                salience_context=salience_context, identity_context=identity_context,
+                action,
+                mode,
+                state,
+                circle,
+                scenario,
+                affect_pad=affect_pad,
+                dominant_archetype=dominant_archetype,
+                weakness_line=weakness_line,
+                reflection_context=reflection_context,
+                salience_context=salience_context,
+                identity_context=identity_context,
                 guardian_mode_context=guardian_mode_context,
                 vitality_context=vitality_context,
             )
-            yield json.dumps({
-                "message": resp.message,
-                "tone": resp.tone,
-                "hax_mode": resp.hax_mode,
-                "inner_voice": resp.inner_voice
-            })
+            yield json.dumps(
+                {
+                    "message": resp.message,
+                    "tone": resp.tone,
+                    "hax_mode": resp.hax_mode,
+                    "inner_voice": resp.inner_voice,
+                }
+            )
             return
 
         mode_descs = {
@@ -1197,6 +1246,8 @@ class LLMModule:
             "gray_zone": "uncertainty, active caution",
         }
         system_base = PROMPT_COMMUNICATION
+        if self.mode == "ollama":
+            system_base += PROMPT_COMMUNICATION_LOCAL_FLUENCY_APPEND
         if self.nomad_mode:
             system_base += PROMPT_COMMUNICATION_NOMAD_APPEND
 

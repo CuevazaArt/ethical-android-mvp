@@ -28,11 +28,11 @@ Env vars
 
 from __future__ import annotations
 
+import logging
 import math
 import os
 import time
-import logging
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from typing import Any
 
 _log = logging.getLogger(__name__)
@@ -70,7 +70,7 @@ class BaselineThresholds:
 
     jerk_mean: float
     jerk_std: float
-    jerk_threshold: float        # mean + k*std (critical above this)
+    jerk_threshold: float  # mean + k*std (critical above this)
 
     sample_count: int
     window_seconds: float
@@ -120,7 +120,9 @@ class SensorBaselineCalibrator:
         window_seconds: float | None = None,
         sigma_k: float | None = None,
     ) -> None:
-        self._window = window_seconds if window_seconds is not None else _calibration_window_seconds()
+        self._window = (
+            window_seconds if window_seconds is not None else _calibration_window_seconds()
+        )
         self._k = sigma_k if sigma_k is not None else _calibration_sigma_k()
         self._start: float = time.perf_counter()
         self._temp_acc: _Welford = _Welford()
@@ -211,16 +213,17 @@ class SensorBaselineCalibrator:
                 self._temp_acc.n,
             )
             from .vitality import critical_temperature_threshold
+
             t_mean = critical_temperature_threshold() - 5.0  # assume near-threshold baseline
             t_std = 1.0
 
         if self._jerk_acc.n < 3:
             _log.warning(
-                "SensorBaselineCalibrator: too few jerk samples (%d), "
-                "falling back to env default.",
+                "SensorBaselineCalibrator: too few jerk samples (%d), falling back to env default.",
                 self._jerk_acc.n,
             )
             from .vitality import critical_jerk_threshold
+
             j_mean = critical_jerk_threshold() * 0.5
             j_std = 0.05
 
@@ -244,7 +247,11 @@ class SensorBaselineCalibrator:
             "(samples=%d, temp=%.1f±%.1f→thresh=%.1f°C, "
             "jerk=%.3f±%.3f→thresh=%.3f) in %.1fs",
             self._thresholds.sample_count,
-            t_mean, t_std, t_thresh,
-            j_mean, j_std, j_thresh,
+            t_mean,
+            t_std,
+            t_thresh,
+            j_mean,
+            j_std,
+            j_thresh,
             self.elapsed,
         )

@@ -5,7 +5,8 @@ import sys
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
 
-from src.kernel import EthicalKernel, KernelDecision
+from src.ethical_kernel_batch import EthicalKernel
+from src.kernel import KernelDecision
 from src.modules.absolute_evil import AbsoluteEvilResult
 from src.modules.bayesian_engine import CandidateAction
 from src.modules.sympathetic import InternalState
@@ -38,7 +39,11 @@ def test_s10_bundle_safe_process():
     assert b["s10_1_action_narration"]["schema"] == "ethos_s10_1_action_narration_v1"
     assert "what" in b["s10_1_action_narration"]
     assert b["s10_2_withdrawal"]["schema"] == "ethos_s10_2_withdrawal_v1"
-    assert b["s10_2_withdrawal"]["withdrawal_level"] in ("engaged", "soft_withdrawal", "deep_withdrawal")
+    assert b["s10_2_withdrawal"]["withdrawal_level"] in (
+        "engaged",
+        "soft_withdrawal",
+        "deep_withdrawal",
+    )
     assert b["s10_3_discomfort"]["throttle_recommendation"] in ("continue", "slow", "pause")
     assert 0.0 <= b["s10_3_discomfort"]["discomfort_index"] <= 1.0
     assert b["s10_4_help_request"]["schema"] == "ethos_s10_4_help_request_v1"
@@ -62,7 +67,9 @@ def test_s10_2_deep_when_pause():
             scenario="u",
             place="p",
             absolute_evil=AbsoluteEvilResult(blocked=False, reason=""),
-            sympathetic_state=InternalState(sigma=0.6, mode="sympathetic", energy=0.7, description=""),
+            sympathetic_state=InternalState(
+                sigma=0.6, mode="sympathetic", energy=0.7, description=""
+            ),
             social_evaluation=se,
             locus_evaluation=None,
             bayesian_result=None,

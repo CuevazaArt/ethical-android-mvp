@@ -54,7 +54,7 @@ def update_changelog(block: str, msg: str, files: list[str], author: str = "Anon
     timestamp = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
     
     entry_lines = [
-        f"\n### 🛠️ Execution | Date: {timestamp} | Author: {author}",
+        f"\n### Execution (Swarm) | Date: {timestamp} | Author: {author}",
         f"- **Block:** `{block}`",
         f"- **Message:** {msg}",
         "- **Files Modified:**"
@@ -126,7 +126,10 @@ def main():
     
     has_meaningful_files = any(f for f in all_target_files if not f.startswith("docs/changelogs_l2"))
     if not has_meaningful_files:
-        print("⚠️ No changes detected outside of L2 logs. Did you write any code yet?")
+        print(
+            "[WARN] No code changes outside docs/changelogs_l2. "
+            "Did you write any code yet?"
+        )
          
     # 2. Update unified log
     log_path = update_changelog(args.block, args.msg, all_target_files, args.author)
@@ -139,8 +142,13 @@ def main():
         
     # 4. Git Execution
     if commit_changes(args.block, args.msg, args.author):
-         print("\n[SUCCESS] SWARM ACTION COMPLETED SUCESSFULLY.")
-         print("Ready to push. You can now execute `git push` on your branch.")
+         print("\n[OK] SWARM ACTION COMPLETED SUCCESSFULLY.")
+         print("Pushing changes to remote to maintain Office A / Office B sync...")
+         try:
+             subprocess.run(["git", "push"], check=True)
+             print("[OK] Changes pushed successfully.")
+         except subprocess.CalledProcessError as e:
+             print(f"\n[WARNING] Git push failed. You may need to pull/rebase first or push manually. Error: {e}")
     else:
          print("\n[FAILED] Git execution failed.")
          sys.exit(1)

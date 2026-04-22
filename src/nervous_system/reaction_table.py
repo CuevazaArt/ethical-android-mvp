@@ -1,16 +1,18 @@
 import asyncio
 import logging
-from typing import Any, Dict
+from typing import Any
 
 _log = logging.getLogger(__name__)
+
 
 class ReactionTable:
     """
     Manages pending stimuli-to-reaction futures for the distributed nervous system.
     Part of the 'Obliteración del Monolito' (Tarea 19.3).
     """
+
     def __init__(self):
-        self._pending: Dict[str, asyncio.Future] = {}
+        self._pending: dict[str, asyncio.Future] = {}
 
     def register(self, pulse_id: str) -> asyncio.Future:
         """Create a future for a specific sensory stimulus."""

@@ -1,4 +1,4 @@
-﻿"""
+"""
 GWT-lite salience: read-only attention weights over existing signal axes.
 
 Does not reorder the kernel pipeline (phase 1). Produces a normalized vector
@@ -31,7 +31,6 @@ class SalienceSnapshot:
 
     raw_scores: dict[str, float]
     """Pre-normalization [0,1] scores for audit."""
-
 
 
 class SalienceMap:
@@ -111,7 +110,6 @@ class SalienceMap:
             dominant_focus=dominant,
             raw_scores=raw,
         )
-
 
 
 def salience_to_llm_context(snapshot: SalienceSnapshot | None) -> str:

@@ -389,7 +389,7 @@ def apply_broad_perception_coherence(
     Mutates 'out' and 'report' in place.
     """
     ctx = str(out.get("suggested_context", "everyday_ethics"))
-    legality = float(out.get("legality", 1.0))
+    float(out.get("legality", 1.0))
     risk = float(out.get("risk", 0.0))
     changed = False
 
@@ -400,7 +400,11 @@ def apply_broad_perception_coherence(
         changed = True
 
     # High risk + high legality is contradictory (unless it's a legal high-risk activity like medical)
-    if out["risk"] > 0.8 and out["legality"] > 0.9 and ctx not in ("medical_emergency", "everyday_ethics"):
+    if (
+        out["risk"] > 0.8
+        and out["legality"] > 0.9
+        and ctx not in ("medical_emergency", "everyday_ethics")
+    ):
         out["legality"] = 0.55
         changed = True
 

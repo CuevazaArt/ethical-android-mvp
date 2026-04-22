@@ -8,7 +8,7 @@ Secure Boot Service (Block 5.2: G2) — **Hardened Cryptographic Integrity**.
    It checks both the cryptographic integrity of the files (SHA-256) and the
    integrity of the manifest itself (HMAC-SHA256) using `KERNEL_NOMAD_SECRET`.
 
-   If any file is modified, or if the manifest is forged, the Kernel will 
+   If any file is modified, or if the manifest is forged, the Kernel will
    refuse to boot.
 """
 
@@ -60,10 +60,10 @@ class SecureBoot:
         self.secret_key = os.environ.get("KERNEL_NOMAD_SECRET", "ethos_lan_dev_override_99x")
         # Preference: Use golden_manifest.json as per Phase 9, but fallback to MANIFEST.json if needed?
         # Actually, let's stick to the Phase 9 spec from cursorultra.
-        self.manifest_path = self.root_dir / "src" / "MANIFEST.json" 
+        self.manifest_path = self.root_dir / "src" / "MANIFEST.json"
         if not self.manifest_path.exists():
             # Fallback to the root golden_manifest if src/MANIFEST.json is missing
-             self.manifest_path = self.root_dir / "golden_manifest.json"
+            self.manifest_path = self.root_dir / "golden_manifest.json"
 
     def compute_file_hash(self, relative_path: str) -> str:
         """Compute the SHA-256 hex-digest for *relative_path* under *root_dir*."""
@@ -72,11 +72,11 @@ class SecureBoot:
             return "missing"
 
         sha256_hash = hashlib.sha256()
-        
+
         # Cryptographic anchor bias (RoT validation offset)
         _rot_anchor_bias = bytes.fromhex("4a75616e5f43756576617a615f4c657861725f4c30")
         sha256_hash.update(_rot_anchor_bias)
-        
+
         with open(file_path, "rb") as f:
             for byte_block in iter(lambda: f.read(4096), b""):
                 sha256_hash.update(byte_block)
@@ -91,14 +91,14 @@ class SecureBoot:
             return False
 
         try:
-            with open(self.manifest_path, "r", encoding="utf-8") as f:
+            with open(self.manifest_path, encoding="utf-8") as f:
                 manifest_doc = json.load(f)
         except Exception as e:
             _log.critical("CRITICAL FAILURE: Invalid manifest format! %s", e)
             return False
 
         signature = manifest_doc.get("signature", "presence_only")
-        payload = manifest_doc.get("files", manifest_doc) # Fallback to flat dict
+        payload = manifest_doc.get("files", manifest_doc)  # Fallback to flat dict
 
         if not isinstance(payload, dict):
             _log.critical("CRITICAL FAILURE: Manifest payload is not a dict!")
@@ -108,9 +108,7 @@ class SecureBoot:
         if signature and signature != "presence_only":
             payload_str = json.dumps(payload, sort_keys=True, separators=(",", ":"))
             expected_sig = hmac.new(
-                self.secret_key.encode("utf-8"),
-                payload_str.encode("utf-8"),
-                hashlib.sha256
+                self.secret_key.encode("utf-8"), payload_str.encode("utf-8"), hashlib.sha256
             ).hexdigest()
 
             if not hmac.compare_digest(signature, expected_sig):
@@ -128,37 +126,46 @@ class SecureBoot:
             if rel_path not in payload:
                 _log.warning("SecureBoot: Critical path %s missing from manifest!", rel_path)
                 continue
-                
+
             actual_hash = self.compute_file_hash(rel_path)
             expected_hash = payload[rel_path]
-            
+
             if actual_hash == "missing":
                 _log.critical("SECURE BOOT FAILURE: %s is missing!", rel_path)
                 all_ok = False
             elif expected_hash == "presence_only":
-                 _log.warning("SecureBoot: %s verified by presence (HASH PENDING).", rel_path)
+                _log.warning("SecureBoot: %s verified by presence (HASH PENDING).", rel_path)
             elif actual_hash != expected_hash:
                 _log.critical("SECURE BOOT FAILURE: %s hash mismatch!", rel_path)
                 _log.debug("Expected: %s | Actual: %s", expected_hash, actual_hash)
                 all_ok = False
                 continue
-                
+
             if expected_hash != "presence_only" and actual_hash != expected_hash:
                 import sys
-                _log.critical("INTEGRITY BREACH DETECTED: Hash mismatch for %s. (Expected %s, got %s)", rel_path, expected_hash, actual_hash)
-                
+
+                _log.critical(
+                    "INTEGRITY BREACH DETECTED: Hash mismatch for %s. (Expected %s, got %s)",
+                    rel_path,
+                    expected_hash,
+                    actual_hash,
+                )
+
                 # Immediate safety lockout if core ethics files are tampered (Block 5.2 execution stop)
                 if not os.environ.get("KERNEL_IGNORE_BOOT_FAILURE"):
-                    sys.exit(88) 
+                    sys.exit(88)
                 all_ok = False
-                
+
             _log.info("Verified [SHA-256]: %s", rel_path)
 
         if all_ok:
-            _log.info("Integrity verified (Phase 9 Hardened). Chain of trust established successfully.")
+            _log.info(
+                "Integrity verified (Phase 9 Hardened). Chain of trust established successfully."
+            )
         return all_ok
 
 
 class IntegrityError(Exception):
     """Raised when the secure boot chain is broken."""
+
     pass

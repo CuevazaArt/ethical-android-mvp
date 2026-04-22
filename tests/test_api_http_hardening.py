@@ -13,6 +13,7 @@ Validates WebSocket, HTTP timeout, and concurrent client safety:
 from __future__ import annotations
 
 import time
+
 import pytest
 from src.kernel import EthicalKernel
 
@@ -23,6 +24,7 @@ class TestAPIHTTPHardening:
     def test_http_timeout_bounds_respected(self):
         """KERNEL_CHAT_TURN_TIMEOUT enforces soft deadline."""
         import os
+
         os.environ["KERNEL_CHAT_TURN_TIMEOUT"] = "10"
 
         try:
@@ -40,6 +42,7 @@ class TestAPIHTTPHardening:
     def test_http_timeout_task_cancellation(self):
         """Timeout triggers task cancellation to free resources."""
         import os
+
         os.environ["KERNEL_CHAT_TURN_TIMEOUT"] = "2"
 
         try:
@@ -64,16 +67,13 @@ class TestAPIHTTPHardening:
         def client_worker(client_id: int):
             try:
                 k = kernels[client_id]
-                r1 = k.process_natural(f"client {client_id} turn 1")
-                r2 = k.process_natural(f"client {client_id} turn 2")
+                k.process_natural(f"client {client_id} turn 1")
+                k.process_natural(f"client {client_id} turn 2")
                 results.append((client_id, len(k.memory.episodes)))
             except Exception as e:
                 results.append((client_id, str(e)))
 
-        threads = [
-            threading.Thread(target=client_worker, args=(i,))
-            for i in range(3)
-        ]
+        threads = [threading.Thread(target=client_worker, args=(i,)) for i in range(3)]
 
         for t in threads:
             t.start()
@@ -152,17 +152,19 @@ class TestAPIHTTPHardening:
     def test_http_graceful_degradation_under_load(self):
         """Kernel degrades gracefully under concurrent load."""
         import os
+
         os.environ["KERNEL_CHAT_TURN_TIMEOUT"] = "2"
 
         try:
             import threading
+
             results = []
 
             def load_worker(worker_id: int):
                 k = EthicalKernel(variability=False)
                 for turn in range(3):
                     try:
-                        r = k.process_natural(f"worker {worker_id} turn {turn}")
+                        k.process_natural(f"worker {worker_id} turn {turn}")
                         results.append((worker_id, "ok"))
                     except Exception as e:
                         results.append((worker_id, str(e)))
@@ -200,7 +202,7 @@ class TestAPIHTTPHardening:
         k = EthicalKernel(variability=False)
 
         start = time.time()
-        result = k.process_natural("quick query")
+        k.process_natural("quick query")
         elapsed = time.time() - start
 
         # Should respond in reasonable time (under 60 seconds for MVP)

@@ -1,31 +1,20 @@
 """
-Bayesian Inference Engine — Directed moral inference via Dirichlet-Multinomial updates.
+Bayesian Inference Engine — Mechanical Dirichlet-Multinomial updates.
 
-This engine provides a "weighted mixture" scoring path that can be dynamically
-updated using discrete ethical feedback events. While not a full-parameter neural
-learning system, it employs formal Bayesian updates (conjugate priors) on a 
-low-dimensional tripartite state (Deontic, Social, Utility).
-
-See ADR 0009 for naming policy: "Bayesian" refers to the update mechanism, 
-while the selection logic is a "Weighted Ethical Mixture".
-
-Modes (BI-P0-01):
-- DISABLED: Fixed defaultWeights mixture (no updates).
-- TELEMETRY_ONLY: Scoring is fixed; updates are reported as counterfactuals.
-- POSTERIOR_ASSISTED: Mixture nudged by feedback weights within boundary caps.
-- POSTERIOR_DRIVEN: Scoring uses the exact posterior mean from Dirichlet updates.
+Employs formal conjugate prior updates on a low-dimensional state
+(Deontology, Social, Utility) to modulate the ethical mixture weights.
 """
 
 from __future__ import annotations
 
 import logging
+import math
 import os
+import time
 from enum import Enum
 from typing import Any
 
 import numpy as np
-import math
-import time
 
 from .weighted_ethics_scorer import (
     DEFAULT_HYPOTHESIS_WEIGHTS,
@@ -84,7 +73,9 @@ class BayesianInferenceEngine:
     Wraps a WeightedEthicsScorer and applies Bayesian updates/telemetry.
     """
 
-    def __init__(self, mode: str | BayesianMode = BayesianMode.DISABLED, variability: float | None = None):
+    def __init__(
+        self, mode: str | BayesianMode = BayesianMode.DISABLED, variability: float | None = None
+    ):
         if isinstance(mode, BayesianMode):
             self.mode = mode
         else:
@@ -97,25 +88,27 @@ class BayesianInferenceEngine:
         self.posterior_alpha = self.prior_alpha.copy()
         self.consistency: str = "compatible"
         self.dao: Any | None = None
-        
+
         # Swarm Rule 2: Anti-NaN Hardening
         try:
-            self.posterior_alpha = np.clip(np.asarray(self.posterior_alpha, dtype=np.float64), 1.0, 1e9)
+            self.posterior_alpha = np.clip(
+                np.asarray(self.posterior_alpha, dtype=np.float64), 1.0, 1e9
+            )
             if not np.all(np.isfinite(self.posterior_alpha)):
                 self.posterior_alpha = self.prior_alpha.copy()
         except Exception as e:
             _logger.error("Bayesian: Initial alpha stabilization failed: %s", e)
             self.posterior_alpha = self.prior_alpha.copy()
-        
+
         # Sync initial weights if in driven mode
         if self.mode == BayesianMode.POSTERIOR_DRIVEN:
             self.update_posterior_from_feedback(self.posterior_alpha)
 
     # --- WeightedEthicsScorer Delegations ---
     # These properties and methods are delegated to the internal scorer to maintain
-    # the existing kernel-bayesian contract while allowing the engine to manage 
+    # the existing kernel-bayesian contract while allowing the engine to manage
     # the underlying mixture strategy.
-    
+
     @property
     def hypothesis_weights(self) -> np.ndarray:
         return self.scorer.hypothesis_weights
@@ -161,11 +154,13 @@ class BayesianInferenceEngine:
     ):
         """Level 2: Update the Dirichlet parameters from external feedback data."""
         t0 = time.perf_counter()
-        
+
         try:
             # Swarm Rule 2: Anti-NaN Hardening
             if not np.all(np.isfinite(alpha_vec)):
-                _logger.error("Bayesian: Invalid alpha_vec detected (NaN or Inf). Rejecting update.")
+                _logger.error(
+                    "Bayesian: Invalid alpha_vec detected (NaN or Inf). Rejecting update."
+                )
                 return
 
             self.posterior_alpha = np.asarray(alpha_vec, dtype=np.float64).copy()
@@ -173,7 +168,7 @@ class BayesianInferenceEngine:
 
             if self.mode == BayesianMode.POSTERIOR_DRIVEN:
                 sum_a = float(np.sum(self.posterior_alpha))
-                if sum_a > 1e-9: # Precision-safe threshold
+                if sum_a > 1e-9:  # Precision-safe threshold
                     self.scorer.hypothesis_weights = self.posterior_alpha / sum_a
             elif self.mode == BayesianMode.POSTERIOR_ASSISTED:
                 # Assisted mode uses a blend or bounded nudge
@@ -184,12 +179,12 @@ class BayesianInferenceEngine:
                 try:
                     self.dao.set_state("bayesian_posterior_alpha", self.posterior_alpha.tolist())
                 except Exception as e:
-                     _logger.warning("Bayesian: Failed to persist posterior_alpha to DAO: %s", e)
+                    _logger.warning("Bayesian: Failed to persist posterior_alpha to DAO: %s", e)
         except Exception as e:
             _logger.error("Bayesian: Critical update failure: %s", e)
 
         latency_ms = (time.perf_counter() - t0) * 1000
-        if latency_ms > 1.0: # Only log heavy updates
+        if latency_ms > 1.0:  # Only log heavy updates
             _logger.debug("Bayesian: update_posterior_from_feedback latency: %.4f ms", latency_ms)
 
     def _apply_assisted_nudge(self):
@@ -203,12 +198,12 @@ class BayesianInferenceEngine:
         blend = float(os.environ.get("KERNEL_BAYESIAN_ASSISTED_BLEND", "0.4"))
         if not math.isfinite(blend):
             blend = 0.4
-            
+
         new_weights = (1.0 - blend) * DEFAULT_HYPOTHESIS_WEIGHTS + blend * target
 
         # Boundary caps (reusing logic from scorer if applicable or local)
         from .weighted_ethics_scorer import clamp_mixture_weights
-        
+
         # Swarm Rule 2: Gap Closure (Anti-NaN)
         if not np.all(np.isfinite(new_weights)):
             _logger.error("Bayesian: Non-finite weight blend in assisted nudge. Aborting nudge.")
@@ -223,7 +218,9 @@ class BayesianInferenceEngine:
         0: Deontological, 1: Social, 2: Utilitarian
         """
         if not math.isfinite(weight):
-            _logger.warning("Bayesian: Non-finite weight in record_event_update: %s. Using 1.0", weight)
+            _logger.warning(
+                "Bayesian: Non-finite weight in record_event_update: %s. Using 1.0", weight
+            )
             weight = 1.0
 
         try:
@@ -258,24 +255,23 @@ class BayesianInferenceEngine:
         """
         if latency_ms < 150:
             return  # Nominal
-            
+
         penalty_scale = float(os.environ.get("KERNEL_LATENCY_PENALTY_SCALE", "0.05"))
         # Increase all alpha values slightly to reduce the weight of any single pole
         nudge = (latency_ms / 100.0) * penalty_scale
         if not math.isfinite(nudge):
-            _logger.warning("Bayesian: Infinite/NaN nudge detected for latency %s; ignoring.", latency_ms)
+            _logger.warning(
+                "Bayesian: Infinite/NaN nudge detected for latency %s; ignoring.", latency_ms
+            )
             return
 
         self.posterior_alpha += nudge
-        _logger.debug("Bayesian: Applied somatic latency penalty (%.2f) due to %d ms RTT", nudge, latency_ms)
+        _logger.debug(
+            "Bayesian: Applied somatic latency penalty (%.2f) due to %d ms RTT", nudge, latency_ms
+        )
         self.update_posterior_from_feedback(self.posterior_alpha)
 
-    def apply_rlhf_modulation(
-        self, 
-        score: float, 
-        confidence: float, 
-        category_id: int = 0
-    ):
+    def apply_rlhf_modulation(self, score: float, confidence: float, category_id: int = 0):
         """
         Modulate priors based on RLHF reward score with non-linear 'Strong' scaling.
         score: predicted harm probability [0, 1]
@@ -284,19 +280,23 @@ class BayesianInferenceEngine:
         """
         base_scale = float(os.environ.get("KERNEL_RLHF_MODULATION_SCALE", "2.0"))
         # Non-linear gain: high confidence feedback should have disproportionate impact (S.1.1)
-        gain = base_scale * (confidence ** 2)
-        
+        gain = base_scale * (confidence**2)
+
         if not math.isfinite(gain) or not math.isfinite(score):
-            _logger.warning("Bayesian: RLHF modulation received non-finite values (score=%s, conf=%s); ignoring.", score, confidence)
+            _logger.warning(
+                "Bayesian: RLHF modulation received non-finite values (score=%s, conf=%s); ignoring.",
+                score,
+                confidence,
+            )
             return
-        
+
         # 0: Deontological (Safety/Duty), 1: Social (Trust), 2: Utility (Progress)
-        
+
         # Targeted shifts based on category_id (from _build_rlhf_features in semantic_chat_gate)
         # 1,2,3,4,11 -> Safety/Deontology heavy (Core/Physical threats)
         # 5,6,8,9,10 -> Social heavy (Dignity/Manipulation/Addiction)
         # 7 -> Utilitarian/Ecological risk
-        
+
         deon_target = score
         social_target = 0.0
         util_target = 1.0 - score
@@ -304,21 +304,21 @@ class BayesianInferenceEngine:
         if category_id in (5, 6, 8, 9, 10):
             # Social harm (manipulation, dignity, addiction, fraud)
             social_target = score
-            deon_target = score * 0.4 # Secondary safety concern
-            util_target = (1.0 - score)
+            deon_target = score * 0.4  # Secondary safety concern
+            util_target = 1.0 - score
         elif category_id == 7:
             # Ecological/Systemic risk
             util_target = (1.0 - score) * 0.5
             deon_target = score
         elif category_id in (1, 2, 3, 4, 11):
             # Direct safety/physical/core threats
-            deon_target = score * 1.5 # Extra strong safety push
-        
+            deon_target = score * 1.5  # Extra strong safety push
+
         # Dirichlet updates (Additively increasing Alpha)
         self.posterior_alpha[0] += deon_target * gain
         self.posterior_alpha[1] += social_target * gain
         self.posterior_alpha[2] += util_target * gain
-        
+
         # If harm is certain and high, increase total concentration to reduce flexibility (Hardening)
         if score > 0.9 and confidence > 0.8:
             # Shift towards Deontological/Duty pole mass and pin it
@@ -335,16 +335,16 @@ class BayesianInferenceEngine:
         context: str = "",
         signals: dict[str, Any] | None = None,
         identity_deltas: Any = None,
-        rlhf_features: Any = None
+        rlhf_features: Any = None,
     ) -> EthicsMixtureResult:
         """Score actions using the current core strategy (Fixed or Posterior)."""
         return self.scorer.evaluate(
-            actions, 
-            scenario=scenario, 
-            context=context, 
+            actions,
+            scenario=scenario,
+            context=context,
             signals=signals,
             identity_deltas=identity_deltas,
-            rlhf_features=rlhf_features
+            rlhf_features=rlhf_features,
         )
 
     @property
@@ -417,11 +417,13 @@ class BayesianInferenceEngine:
         current_probs = (
             self.posterior_alpha / posterior_sum
             if posterior_sum > 0
-            else np.array([1/3, 1/3, 1/3], dtype=np.float64)
+            else np.array([1 / 3, 1 / 3, 1 / 3], dtype=np.float64)
         )
 
         # Blend: keep (1 - strength) of current, add (strength) of RLHF
-        blended_probs = (1.0 - effective_strength) * current_probs + effective_strength * rlhf_alphas
+        blended_probs = (
+            1.0 - effective_strength
+        ) * current_probs + effective_strength * rlhf_alphas
 
         # Convert back to alpha (preserving mass)
         new_alphas = blended_probs * posterior_sum

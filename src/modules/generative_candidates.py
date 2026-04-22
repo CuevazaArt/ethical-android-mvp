@@ -92,9 +92,13 @@ def _proposal() -> str:
 def _allowed_malabs_signal_strings() -> set[str]:
     d = AbsoluteEvilDetector
     return (
-        d.LETHAL_SIGNALS | d.MINOR_SIGNALS | d.DIGNITY_SIGNALS | 
-        d.ESCALATION_SIGNALS | d.ECOLOGICAL_SIGNALS | d.MANIPULATION_SIGNALS | 
-        d.TORTURE_SIGNALS
+        d.LETHAL_SIGNALS
+        | d.MINOR_SIGNALS
+        | d.DIGNITY_SIGNALS
+        | d.ESCALATION_SIGNALS
+        | d.ECOLOGICAL_SIGNALS
+        | d.MANIPULATION_SIGNALS
+        | d.TORTURE_SIGNALS
     )
 
 

@@ -10,19 +10,19 @@ In soto contexts, defensive dialectical reasoning is activated.
 
 from __future__ import annotations
 
+import logging
+import math
 import os
+import time
 from dataclasses import dataclass, field
 from enum import Enum
 from typing import Any
-import math
-import time
-import logging
 
 _log = logging.getLogger(__name__)
 
 from .multimodal_trust import MultimodalAssessment
-from .sensor_contracts import SensorSnapshot
 from .nomad_identity import NomadicRegistry
+from .sensor_contracts import SensorSnapshot
 
 
 class TrustCircle(Enum):
@@ -203,7 +203,7 @@ class UchiSotoModule:
             self.profiles[aid] = prof
         prof.last_subjective_turn = int(subjective_turn)
         self._ema_update_sensor_trust(prof, signals, sensor_snapshot, multimodal_assessment)
-        
+
         latency = (time.perf_counter() - t0) * 1000
         if latency > 1.0:
             _log.debug("UchiSoto: ingest_turn_context latency = %.2fms", latency)
@@ -240,12 +240,12 @@ class UchiSotoModule:
             fam = float(signals.get("familiarity", 0.0))
             host = float(signals.get("hostility", 0.0))
             manip = float(signals.get("manipulation", 0.0))
-            
+
             # Swarm Rule 2: Anti-NaN check
             if not all(math.isfinite(x) for x in (calm, fam, host, manip)):
                 _log.warning("UchiSoto: Non-finite signals in trust sample. Falling safe.")
-                return 0.5 # Neutral fallback
-                
+                return 0.5  # Neutral fallback
+
             sample = 0.22 + 0.34 * calm + 0.34 * fam - 0.26 * host - 0.22 * manip
             if sensor_snapshot is not None and sensor_snapshot.place_trust is not None:
                 pt = float(sensor_snapshot.place_trust)
@@ -269,11 +269,11 @@ class UchiSotoModule:
     ) -> None:
         alpha = self._env_float("KERNEL_UCHI_SENSOR_TRUST_EMA_ALPHA", 0.18)
         sample = self._sensor_trust_sample(signals, sensor_snapshot, multimodal_assessment)
-        
+
         curr_ema = float(profile.sensor_trust_ema)
         if not math.isfinite(curr_ema):
             curr_ema = 0.5
-            
+
         ema = (1.0 - alpha) * curr_ema + alpha * sample
         profile.sensor_trust_ema = max(0.0, min(1.0, ema))
 
@@ -354,7 +354,7 @@ class UchiSotoModule:
             hostility = float(signals.get("hostility", 0.0))
             manipulation = float(signals.get("manipulation", 0.0))
             fam_in = float(signals.get("familiarity", 0.0))
-            
+
             # Anti-NaN sanitation
             if not all(math.isfinite(x) for x in (hostility, manipulation, fam_in)):
                 _log.warning("UchiSoto: Non-finite signals in classify. Resetting.")
@@ -362,14 +362,14 @@ class UchiSotoModule:
         except (ValueError, TypeError):
             _log.error("UchiSoto: Invalid signal types in classify.")
             hostility, manipulation, fam_in = 0.0, 0.0, 0.0
-            
+
         profile = self.profiles.get(agent_id)
         if profile is not None:
             # Safe float cast from profile
             profile_trust = float(profile.trust_score)
             if not math.isfinite(profile_trust):
                 profile_trust = 0.5
-                
+
             familiarity = min(
                 1.0,
                 max(
@@ -409,7 +409,7 @@ class UchiSotoModule:
         whether to activate dialectics, and recommended response.
         """
         t0 = time.perf_counter()
-        
+
         try:
             circle = self.classify(signals, agent_id)
             credibility = float(self.CREDIBILITY[circle])
@@ -424,13 +424,15 @@ class UchiSotoModule:
                         score = 0.5
                     circle = self.classify({"familiarity": score}, agent_id)
                     profile = InteractionProfile(
-                        agent_id=agent_id, 
-                        circle=circle, 
+                        agent_id=agent_id,
+                        circle=circle,
                         trust_score=score,
-                        display_alias=str(peer.label or "")
+                        display_alias=str(peer.label or ""),
                     )
                 else:
-                    profile = InteractionProfile(agent_id=agent_id, circle=circle, trust_score=credibility)
+                    profile = InteractionProfile(
+                        agent_id=agent_id, circle=circle, trust_score=credibility
+                    )
                 self.profiles[agent_id] = profile
             profile.circle = circle
 
@@ -448,7 +450,9 @@ class UchiSotoModule:
                 response = "Activate defensive dialectics. Pose gentle questions that reveal contradictions. Do not confront directly."
                 reason = f"Interaction classified as hostile soto. Signals: hostility={float(signals.get('hostility', 0)):.1f}, manipulation detected={len(manipulation_signals) > 0}."
             elif circle == TrustCircle.SOTO_NEUTRO:
-                response = "Moderate caution. Listen but verify. Do not share sensitive information."
+                response = (
+                    "Moderate caution. Listen but verify. Do not share sensitive information."
+                )
                 reason = (
                     "Interaction with stranger without clear signals. Maintain vigilant neutrality."
                 )
@@ -468,16 +472,18 @@ class UchiSotoModule:
             # High distance between historical trust and current sensor-ema creates "Tension"
             prof_trust = float(profile.trust_score)
             prof_ema = float(profile.sensor_trust_ema)
-            if not math.isfinite(prof_trust): prof_trust = 0.5
-            if not math.isfinite(prof_ema): prof_ema = 0.5
-            
+            if not math.isfinite(prof_trust):
+                prof_trust = 0.5
+            if not math.isfinite(prof_ema):
+                prof_ema = 0.5
+
             tension = abs(prof_trust - prof_ema)
 
             tone_brief = self._compose_tone_brief(circle, profile, tension)
 
             latency_ms = (time.perf_counter() - t0) * 1000
-            if latency_ms > 10.0: # Track heavy social evaluations
-                 _log.debug("UchiSoto: evaluate_interaction latency: %.4f ms", latency_ms)
+            if latency_ms > 10.0:  # Track heavy social evaluations
+                _log.debug("UchiSoto: evaluate_interaction latency: %.4f ms", latency_ms)
 
             return SocialEvaluation(
                 circle=circle,
@@ -732,7 +738,7 @@ class UchiSotoModule:
                 curr = float(profile.trust_score)
                 if not math.isfinite(curr):
                     curr = 0.5
-                
+
                 if positive:
                     profile.positive_history += 1
                     profile.trust_score = min(1.0, curr + self.POSITIVE_TRUST_STEP)
@@ -741,7 +747,7 @@ class UchiSotoModule:
                     profile.trust_score = max(0.0, curr - 0.1)
             except (ValueError, TypeError):
                 profile.trust_score = 0.5
-                
+
         latency = (time.perf_counter() - t0) * 1000
         if latency > 1.0:
             _log.debug("UchiSoto: register_result latency = %.4fms", latency)
@@ -841,6 +847,7 @@ def interaction_profile_from_dict(d: dict[str, Any]) -> InteractionProfile:
         relational_tier = RelationalTier.STRANGER_STABLE
     else:
         relational_tier = _relational_tier_from_raw(rt_raw)
+
     def _f(val: Any, default: float) -> float:
         try:
             f = float(val)

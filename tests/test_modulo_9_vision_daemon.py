@@ -14,18 +14,11 @@ Integration chain:
 
 from __future__ import annotations
 
-import os
-import pytest
-import threading
-import time
-import tempfile
-from pathlib import Path
-from unittest.mock import Mock, patch, MagicMock
 from collections import deque
 
+import pytest
 from src.modules.vision_inference import (
     VisionInferenceEngine,
-    VisionDetection,
 )
 
 
@@ -55,7 +48,7 @@ class TestDaemonCallsAbsorptionCallbackOnDetections:
 
     def test_daemon_calls_absorption_callback_on_detections(self):
         """Detections trigger sensory buffer callback."""
-        engine = VisionInferenceEngine()
+        VisionInferenceEngine()
         callback_calls: list[dict] = []
 
         def mock_absorption_callback(episode: dict):

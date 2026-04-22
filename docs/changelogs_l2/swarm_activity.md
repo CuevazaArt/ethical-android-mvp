@@ -843,6 +843,80 @@ This file is automatically managed by `scripts/swarm_sync.py`.
   - `src/modules/llm_backends.py`
   - `test_persistence.db`
 
+### 🛠️ Execution | Date: 2026-04-20 17:57:54 | Author: Antigravity
+- **Block:** `V.13.1`
+- **Message:** Upgrade: Dashboard L0 con Neural Dark Theme y tipografía JetBrains Mono para monitoreo V13.1.
+- **Files Modified:**
+  - `audit_trail.db`
+  - `config/swarm_cache.json`
+  - `src/chat_server.py`
+  - `src/static/dashboard/dashboard.css`
+  - `src/static/dashboard/index.html`
+
+### 🛠️ Execution | Date: 2026-04-20 18:05:17 | Author: Anonymous Agent
+- **Block:** `B.4`
+- **Message:** Habilitada accesibilidad LAN (0.0.0.0) para el dashboard L0 y corrección de binding
+- **Files Modified:**
+  - `docs/proposals/PLAN_WORK_DISTRIBUTION_TREE.md`
+  - `src/chat_settings.py`
+  - `src/kernel.py`
+  - `src/settings/kernel_settings.py`
+
+### 🛠️ Execution | Date: 2026-04-20 18:10:56 | Author: Anonymous Agent
+- **Block:** `B.4`
+- **Message:** Stabilized Ethos V13.1: Restored compatibility properties to EthosKernel, fixed checkpoint AttributeError, and enabled LAN access on 0.0.0.0.
+- **Files Modified:**
+  - `golden_manifest.json`
+  - `src/MANIFEST.json`
+  - `src/kernel.py`
+
+### 🛠️ Execution | Date: 2026-04-20 20:40:34 | Author: Anonymous Agent
+- **Block:** `20.0`
+- **Message:** Feat(13.3): Mind-Sync - Fused GestaltSnapshot, Trauma Preemption and ThoughtStreaming into Ethos Architecture. Veto triggers and inner voice broadcast now operate dynamically via the Corpus Callosum.
+- **Files Modified:**
+  - `docs/proposals/PLAN_WORK_DISTRIBUTION_TREE.md`
+  - `src/chat_server.py`
+  - `src/clients/nomad_pwa/app.js`
+  - `src/clients/nomad_pwa/index.html`
+  - `src/clients/nomad_pwa/media_engine.js`
+  - `src/clients/nomad_pwa/style.css`
+  - `src/clients/nomad_pwa/sw.js`
+  - `src/kernel.py`
+  - `src/kernel_lobes/executive_lobe.py`
+  - `src/kernel_lobes/models.py`
+  - `src/modules/llm_layer.py`
+  - `src/modules/nomad_bridge.py`
+  - `src/modules/nomad_discovery.py`
+  - `src/static/clinical/index.html`
+  - `src/static/dashboard/dashboard.css`
+  - `src/static/dashboard/dashboard.js`
+  - `src/static/dashboard/index.html`
+  - `src/static/master/index.html`
+
+### 🛠️ Execution | Date: 2026-04-20 21:45:01 | Author: Anonymous Agent
+- **Block:** `24.0`
+- **Message:** Integración de Hito 14.x: Memoria de Largo Plazo LTM Vectorial y Conversación Full-Duplex
+- **Files Modified:**
+  - `docs/proposals/PROPOSAL_GNN_MULTIMODAL_SWARM_FUSION_V14.md`
+  - `src/chat_server.py`
+  - `src/kernel.py`
+  - `src/kernel_lobes/executive_lobe.py`
+  - `src/kernel_lobes/models.py`
+  - `src/kernel_lobes/perception_lobe.py`
+  - `src/kernel_lobes/thalamus_lobe.py`
+  - `src/modules/narrative.py`
+  - `src/real_time_bridge.py`
+  - `src/static/dashboard/dashboard.js`
+
+### 🛠️ Execution | Date: 2026-04-20 22:04:10 | Author: Anonymous Agent
+- **Block:** `25.0`
+- **Message:** Refinamiento de Fluidez: Interrupción nativa biológica (Preemption) e identitidad de Dashboard
+- **Files Modified:**
+  - `docs/proposals/PROPOSAL_GNN_MULTIMODAL_SWARM_FUSION_V14.md`
+  - `src/kernel_lobes/executive_lobe.py`
+  - `src/modules/narrative.py`
+  - `src/static/dashboard/dashboard.js`
+
 ### 🛠️ Execution | Date: 2026-04-21 09:02:33 | Author: Anonymous Agent
 - **Block:** `L1-V14-PLAN`
 - **Message:** Update Roadmap to V14.0: Local LLM Embodyment, Persistent Identity, and Nomad Chat. L2 Agents Swarm prompt injected.
@@ -969,3 +1043,880 @@ This file is automatically managed by `scripts/swarm_sync.py`.
   - `docs/proposals/PLAN_WORK_DISTRIBUTION_TREE.md`
   - `docs/proposals/PROJECT_STATUS_AND_MODULE_MATURITY.md`
   - `docs/proposals/STRATEGY_AND_ROADMAP.md`
+
+### 🛠️ Execution | Date: 2026-04-21 19:47:47 | Author: Cursor L2 Swarm
+- **Block:** `20.2`
+- **Message:** Bloque 20.2: local Ollama chat timeout defaults (180s), finite env parsing, PROMPT_COMMUNICATION_LOCAL_FLUENCY_APPEND; KernelSettings field default None
+- **Files Modified:**
+  - `.env.example`
+  - `CHANGELOG.md`
+  - `docs/proposals/PLAN_WORK_DISTRIBUTION_TREE.md`
+  - `src/chat_settings.py`
+  - `src/modules/llm_layer.py`
+  - `src/settings/kernel_settings.py`
+  - `tests/test_bloque_13.py`
+  - `tests/test_bloque_20_local_fluency.py`
+
+### 🛠️ Execution | Date: 2026-04-21 19:47:59 | Author: Cursor L2 Swarm
+- **Block:** `20.2`
+- **Message:** PLAN: mark Bloque 20.0 Local Conversational Matrix DONE (20.1+20.2)
+- **Files Modified:**
+  - `docs/proposals/PLAN_WORK_DISTRIBUTION_TREE.md`
+
+### 🛠️ Execution | Date: 2026-04-21 20:15:00 | Author: Cursor L2 Swarm
+- **Block:** `22.1`
+- **Message:** Bloque 22.1 Nomad field resilience: PWA outbound chat buffer + dual-path send (ws/chat + nomad chat_text relay), single backoff timer and symmetric onclose; NomadBridge wider chat_text_queue, public_queue_stats clinical fields and finite last_rms; PLAN task 22.1 marked complete. Architectural impact: Module S ingress remains the single `get_nomad_bridge()` instance; no CorpusCallosum interface changes; observability extended for LAN chat relay depth.
+- **Files Modified:**
+  - `docs/proposals/PLAN_WORK_DISTRIBUTION_TREE.md`
+  - `docs/changelogs_l2/swarm_activity.md`
+  - `src/clients/nomad_pwa/app.js`
+  - `src/modules/nomad_bridge.py`
+
+### 🛠️ Execution | Date: 2026-04-21 20:22:57 | Author: Cursor L2
+- **Block:** `22.0`
+- **Message:** Bloque 22.0 Nomad field test: wire build_sync_identity_ws_message on /ws/chat (GestaltSnapshot payload + identity_ascription); prune orphan sync helpers in chat_server; nomad_chat_text_queue_maxsize env KERNEL_NOMAD_CHAT_TEXT_QUEUE_MAX default 48; PWA apply gestalt_snapshot + identity_ascription (v13.1.7); NOMAD prompt TTFT line; PLAN 22.0 DONE.
+- **Files Modified:**
+  - `docs/proposals/PLAN_WORK_DISTRIBUTION_TREE.md`
+  - `src/chat_server.py`
+  - `src/clients/nomad_pwa/app.js`
+  - `src/clients/nomad_pwa/index.html`
+  - `src/clients/nomad_pwa/style.css`
+  - `src/modules/llm_layer.py`
+  - `src/modules/nomad_bridge.py`
+  - `src/modules/nomad_session_sync.py`
+  - `src/persistence/identity_manifest.py`
+  - `src/settings/kernel_settings.py`
+  - `tests/test_chat_server.py`
+  - `tests/test_nomad_session_sync.py`
+
+### 🛠️ Execution | Date: 2026-04-21 20:23:50 | Author: Cursor L2
+- **Block:** `22.0`
+- **Message:** Nomad sync envelope v2: root identity_ascription + schema bump; PWA PAD axis on orb, sigma thresholds, query text=0/1; LOCAL_FLUENCY TTFT line. Impact: chat_server WebSocket first-frame contract for Nomad PWA; llm_layer verbal prompt for faster Ollama openers; PWA affect chrome tied to gestalt.
+- **Files Modified:**
+  - `docs/proposals/PLAN_WORK_DISTRIBUTION_TREE.md`
+  - `src/chat_server.py`
+  - `src/clients/nomad_pwa/app.js`
+  - `src/clients/nomad_pwa/index.html`
+  - `src/clients/nomad_pwa/style.css`
+  - `src/modules/nomad_bridge.py`
+  - `src/modules/nomad_session_sync.py`
+  - `src/modules/vision_inference.py`
+  - `tests/test_chat_server.py`
+  - `tests/test_nomad_session_sync.py`
+
+### 🛠️ Execution | Date: 2026-04-21 20:24:07 | Author: Cursor L2
+- **Block:** `22.0`
+- **Message:** tests/test_chat_server.py: accept [SYNC_IDENTITY] type and sync_identity_v2 schema in sync-on-connect test. src/clients/nomad_pwa/app.js: call applySyncIdentity with full WS envelope (top-level manifest/gestalt) and prefer identity_ascription for welcome hint. Architecture: Nomad PWA aligns with chat_server build_sync_identity_ws_message contract without flattening payload.
+- **Files Modified:**
+  - `docs/proposals/PLAN_WORK_DISTRIBUTION_TREE.md`
+  - `src/chat_server.py`
+  - `src/clients/nomad_pwa/app.js`
+  - `src/kernel.py`
+  - `src/modules/nomad_session_sync.py`
+  - `tests/test_chat_server.py`
+  - `tests/test_nomad_session_sync.py`
+
+### 🛠️ Execution | Date: 2026-04-21 20:24:12 | Author: Anonymous Agent
+- **Block:** `22.0`
+- **Message:** Bloque 22.2/22.3 hardening: chat_server build_sync_identity_ws_message uses [SYNC_IDENTITY] type, dominant_archetype from subjective_tone, existence_digest, base_history+label; nomad /ws/nomad loads checkpoint before SYNC; PWA flushOutboundChatBuffer after identity sync on chat and nomad WS. Tri-Lobe: identity envelope aligns Nomad UI with NarrativeMemory/GestaltSnapshot without extra chat turn; CorpusCallosum unchanged.
+- **Files Modified:**
+  - `docs/proposals/PLAN_WORK_DISTRIBUTION_TREE.md`
+  - `src/kernel.py`
+
+### 🛠️ Execution | Date: 2026-04-21 20:24:12 | Author: Cursor L2
+- **Block:** `22.0`
+- **Message:** NomadBridge (Bloque 22.1): add bounded _charm_feedback_replay deque, _flush_charm_feedback_replay after WS accept, _remember_charm_for_replay on failed charm_feedback send; expose charm_feedback_replay_pending in public_queue_stats; remove duplicate re-queue path. PWA (22.3): PAD normalization [-1,1] to [0,1] in applyGestaltPad; applyGestaltPad uses merged gestalt; digest from merged. PLAN: sync 22.1/22.2 task notes with base_history and replay buffer. Impact: Nomad sensory WS recovers last affect payloads after mobile flicker; identity sync contract unchanged for chat_server.
+- **Files Modified:**
+  - `docs/changelogs_l2/swarm_activity.md`
+  - `docs/proposals/PLAN_WORK_DISTRIBUTION_TREE.md`
+  - `src/kernel.py`
+
+### 🛠️ Execution | Date: 2026-04-21 20:24:15 | Author: Cursor L2
+- **Block:** `22.0`
+- **Message:** Nomad Bloque 22: chat_server build_sync_identity_ws_message adds existence_digest (biographic generate_existence_digest), module-level GestaltSnapshot/IdentityManifestStore imports, envelope type literal [SYNC_IDENTITY]. PWA: PAD finite guards, existence_digest in identity strip, nomad bridge SYNC_IDENTITY merge fields, orb PAD axis skipped in text-focus. Tests: sync_identity contract. PLAN 22.2 documents existence_digest. Tri-Lobe: read-only mind-sync on /ws/chat accept only; no CorpusCallosum contract change.
+- **Files Modified:**
+  - `src/chat_server.py`
+
+### 🛠️ Execution | Date: 2026-04-21 20:24:27 | Author: Anonymous Agent
+- **Block:** `22.0`
+- **Message:** Nomad Bloque 22.1-22.3: NomadBridge _send_loop re-queues charm_feedback on send failure; KERNEL_NOMAD_CHAT_TEXT_QUEUE_MAX for chat_text_queue; session_ready_hook emits build_sync_identity_ws_message on /ws/nomad after try_load_checkpoint with kernel start/stop. PWA: SYNC_IDENTITY on nomad WS, PAD CSS vars, outbound chat buffer+flush, ?mode=text, no Google Fonts CDN in index for flaky LAN. Removed orphan nomad_session_sync.py; tests/test_nomad_session_sync targets chat_server envelope. Tri-Lobe: CorpusCallosum-driven kernel lifecycle per Nomad session without orphan bridge modules.
+- **Files Modified:**
+  - `src/clients/nomad_pwa/app.js`
+  - `src/kernel.py`
+  - `tests/test_chat_server.py`
+
+### 🛠️ Execution | Date: 2026-04-21 20:25:03 | Author: Cursor L2
+- **Block:** `22.0`
+- **Message:** Bloque 22.0 field alignment: unified [SYNC_IDENTITY] via build_sync_identity_ws_message (gestalt_snapshot, narrative_tail, identity_reflection); KernelSettings.kernel_chat_ws_max_message_bytes restores WS inbound cap for kernel_settings(); EthosKernel feedback_ledger + record_operator_feedback + _snapshot_feedback_anchor; _chat_turn_to_jsonable slim-path for tri-lobe ChatTurnResult; Nomad PWA/CSS text-focus + PAD gestalt hooks. Files: src/chat_server.py, src/kernel.py, src/settings/kernel_settings.py, src/clients/nomad_pwa/style.css, tests/test_chat_server.py, docs/proposals/PLAN_WORK_DISTRIBUTION_TREE.md.
+- **Files Modified:**
+  - `src/clients/nomad_pwa/app.js`
+
+### 🛠️ Execution | Date: 2026-04-21 20:25:33 | Author: Cursor L2
+- **Block:** `22.0`
+- **Message:** chat_server: guard optional kernel fields in legacy _chat_turn_to_jsonable path (user_model, subjective_clock, premise_advisory, vitality, constitution) for EthosKernel compatibility when optional env flags enable those JSON keys.
+- **Files Modified:**
+  - `src/chat_server.py`
+
+### 🛠️ Execution | Date: 2026-04-21 20:28:01 | Author: Cursor L2
+- **Block:** `22.0`
+- **Message:** Nomad field test wiring: SYNC_IDENTITY envelope on /ws/chat and /ws/nomad, bridge public_queue_stats v4 with vision_sync path, vitality telemetry hook, vision adapter async queue fix and JPEG stub path on VisionContinuousDaemon, PWA applySyncIdentity merge; tests import merge_nomad_telemetry_from vitality and assert vision_entities.
+- **Files Modified:**
+  - `.github/workflows/ci.yml`
+  - `docs/proposals/PLAN_WORK_DISTRIBUTION_TREE.md`
+  - `src/__init__.py`
+  - `src/chat_server.py`
+  - `src/core/__init__.py`
+  - `src/ethos_cli.py`
+  - `src/kernel.py`
+  - `src/kernel_handlers/perception.py`
+  - `src/kernel_legacy_v12.py`
+  - `src/kernel_lobes/__init__.py`
+  - `src/kernel_lobes/basal_ganglia.py`
+  - `src/kernel_lobes/cerebellum_lobe.py`
+  - `src/kernel_lobes/cerebellum_node.py`
+  - `src/kernel_lobes/ethical_lobe.py`
+  - `src/kernel_lobes/executive_lobe.py`
+  - `src/kernel_lobes/limbic_lobe.py`
+  - `src/kernel_lobes/memory_lobe.py`
+  - `src/kernel_lobes/models.py`
+  - `src/kernel_lobes/perception_lobe.py`
+  - `src/kernel_lobes/perception_signals.py`
+  - `src/kernel_lobes/registry.py`
+  - `src/kernel_lobes/thalamus_lobe.py`
+  - `src/kernel_lobes/thalamus_node.py`
+  - `src/kernel_manifest.py`
+  - `src/kernel_utils.py`
+  - `src/main.py`
+  - `src/modules/absolute_evil.py`
+  - `src/modules/action_narrator.py`
+  - `src/modules/affect_projection_relay.py`
+  - `src/modules/async_task_canceller.py`
+  - `src/modules/audio_adapter.py`
+  - `src/modules/audio_ouroboros.py`
+  - `src/modules/audit_chain_log.py`
+  - `src/modules/basal_ganglia.py`
+  - `src/modules/bayesian_engine.py`
+  - `src/modules/biographic_memory.py`
+  - `src/modules/biographic_monologue.py`
+  - `src/modules/buffer.py`
+  - `src/modules/charm_engine.py`
+  - `src/modules/comfort_monitor.py`
+  - `src/modules/dao_orchestrator.py`
+  - `src/modules/drive_arbiter.py`
+  - `src/modules/ethical_mixture_likelihood.py`
+  - `src/modules/ethical_poles.py`
+  - `src/modules/external_audit_framework.py`
+  - `src/modules/forgiveness.py`
+  - `src/modules/frontier_witness.py`
+  - `src/modules/generative_candidates.py`
+  - `src/modules/help_request_protocol.py`
+  - `src/modules/identity_integrity.py`
+  - `src/modules/identity_reflection.py`
+  - `src/modules/immortality.py`
+  - `src/modules/input_trust.py`
+  - `src/modules/judicial_escalation.py`
+  - `src/modules/kernel_event_bus.py`
+  - `src/modules/llm_backends.py`
+  - `src/modules/llm_layer.py`
+  - `src/modules/llm_verbal_backend_policy.py`
+  - `src/modules/local_sovereignty.py`
+  - `src/modules/locus.py`
+  - `src/modules/metaplan_registry.py`
+  - `src/modules/mock_dao.py`
+  - `src/modules/motivation_engine.py`
+  - `src/modules/multi_realm_governance.py`
+  - `src/modules/multimodal_trust.py`
+  - `src/modules/narrative.py`
+  - `src/modules/narrative_identity.py`
+  - `src/modules/nomad_bridge.py`
+  - `src/modules/nomad_chat_adapter.py`
+  - `src/modules/nomad_discovery.py`
+  - `src/modules/nomad_identity.py`
+  - `src/modules/nomad_session_sync.py`
+  - `src/modules/operator_hud.py`
+  - `src/modules/orchestration_trace.py`
+  - `src/modules/perception_async_handler.py`
+  - `src/modules/perception_backend_policy.py`
+  - `src/modules/perception_schema.py`
+  - `src/modules/persistent_threat_tracker.py`
+  - `src/modules/precedent_rag.py`
+  - `src/modules/privacy_shield.py`
+  - `src/modules/reparation_vault.py`
+  - `src/modules/rlhf_reward_model.py`
+  - `src/modules/s10_transparency.py`
+  - `src/modules/safety_interlock.py`
+  - `src/modules/salience_map.py`
+  - `src/modules/secure_boot.py`
+  - `src/modules/selective_amnesia.py`
+  - `src/modules/semantic_chat_gate.py`
+  - `src/modules/semantic_embedding_client.py`
+  - `src/modules/sensor_baseline_calibrator.py`
+  - `src/modules/sensor_calibration.py`
+  - `src/modules/sensor_contracts.py`
+  - `src/modules/sigmoid_will.py`
+  - `src/modules/skill_learning_registry.py`
+  - `src/modules/soft_robotics.py`
+  - `src/modules/somatic_markers.py`
+  - `src/modules/swarm_negotiator.py`
+  - `src/modules/sympathetic.py`
+  - `src/modules/temporal_horizon_prior.py`
+  - `src/modules/transparency_s10.py`
+  - `src/modules/turn_prefetcher.py`
+  - `src/modules/uchi_soto.py`
+  - `src/modules/user_model.py`
+  - `src/modules/variability.py`
+  - `src/modules/vision_adapter.py`
+  - `src/modules/vision_capture.py`
+  - `src/modules/vision_inference.py`
+  - `src/modules/vision_multiprocess.py`
+  - `src/modules/vitality.py`
+  - `src/modules/weighted_ethics_scorer.py`
+  - `src/modules/zeroconf_discovery.py`
+  - `src/nervous_system/bus_modulator.py`
+  - `src/nervous_system/corpus_callosum.py`
+  - `src/nervous_system/reaction_table.py`
+  - `src/persistence/identity_manifest.py`
+  - `src/persistence/kernel_io.py`
+  - `src/persistence/narrative_storage.py`
+  - `src/persistence/sqlite_store.py`
+  - `src/real_time_bridge.py`
+  - `src/settings/kernel_settings.py`
+  - `src/utils/db_locks.py`
+  - `src/utils/kernel_formatters.py`
+  - `src/utils/terminal_colors.py`
+  - `tests/adversarial_inputs.py`
+  - `tests/conftest.py`
+  - `tests/experimental/scratch.py`
+  - `tests/experimental/test_vision_adapter.py`
+  - `tests/stress_nervous_system.py`
+  - `tests/stress_thalamus_filtering.py`
+  - `tests/test_adr0002_async_validation.py`
+  - `tests/test_affect_relay.py`
+  - `tests/test_api_http_hardening.py`
+  - `tests/test_audit_chain_hardening.py`
+  - `tests/test_bayesian_calibration_hardening.py`
+  - `tests/test_bayesian_minimal_update.py`
+  - `tests/test_bayesian_persistence.py`
+  - `tests/test_bloque_11_audio_ouroboros.py`
+  - `tests/test_bloque_12.py`
+  - `tests/test_bloque_13.py`
+  - `tests/test_bloque_14.py`
+  - `tests/test_bloque_20_local_fluency.py`
+  - `tests/test_charm_engine.py`
+  - `tests/test_chat_async_llm_cancel.py`
+  - `tests/test_chat_server.py`
+  - `tests/test_chat_turn.py`
+  - `tests/test_concurrent_persistence.py`
+  - `tests/test_core_boundary.py`
+  - `tests/test_core_decision_chain_integration.py`
+  - `tests/test_corpus_callosum.py`
+  - `tests/test_corpus_callosum_benchmark.py`
+  - `tests/test_empirical_pilot.py`
+  - `tests/test_env_policy.py`
+  - `tests/test_executive_lobe_monologue.py`
+  - `tests/test_external_audit_framework.py`
+  - `tests/test_functional_reliability_semantic_gate.py`
+  - `tests/test_generative_candidates_malabs.py`
+  - `tests/test_governance_l0_immutable.py`
+  - `tests/test_hardware_sensor_simulation.py`
+  - `tests/test_input_trust.py`
+  - `tests/test_integration_production_scenarios.py`
+  - `tests/test_inter_lobe_stream.py`
+  - `tests/test_kernel_settings.py`
+  - `tests/test_kernel_swarm_integration.py`
+  - `tests/test_kernel_utils.py`
+  - `tests/test_llm_http_cancel.py`
+  - `tests/test_metaplan_integration.py`
+  - `tests/test_module_7_restorative_justice.py`
+  - `tests/test_modulo_9_limbic_tension.py`
+  - `tests/test_modulo_9_vision_daemon.py`
+  - `tests/test_modulo_c11_rlhf_bayesian.py`
+  - `tests/test_modulo_c12_rlhf_pole_robustness.py`
+  - `tests/test_modulo_c21_governance_hot_reload.py`
+  - `tests/test_multi_realm_governance.py`
+  - `tests/test_nervous_system.py`
+  - `tests/test_nomad_bridge_full.py`
+  - `tests/test_nomad_bridge_stream.py`
+  - `tests/test_nomad_chat_consumer.py`
+  - `tests/test_nomad_integration_hardware.py`
+  - `tests/test_nomad_resilience.py`
+  - `tests/test_nomad_session_sync.py`
+  - `tests/test_nomad_vision_consumer.py`
+  - `tests/test_perception_hardening_integration.py`
+  - `tests/test_perception_input_trust.py`
+  - `tests/test_perceptive_lobe.py`
+  - `tests/test_persistence_hardening.py`
+  - `tests/test_real_time_bridge.py`
+  - `tests/test_rlhf_reward_model.py`
+  - `tests/test_runtime_profiles.py`
+  - `tests/test_semantic_chat_gate.py`
+  - `tests/test_semantic_robustness.py`
+  - `tests/test_semantic_thresholds_validation.py`
+  - `tests/test_soft_robotics.py`
+  - `tests/test_swarm_justice.py`
+  - `tests/test_swarm_peer_stub.py`
+  - `tests/test_thalamus_lobe_integration.py`
+  - `tests/test_thalamus_node.py`
+  - `tests/test_transparency_s10.py`
+  - `tests/test_turn_prefetcher.py`
+  - `tests/test_v13_distributed_brain.py`
+  - `tests/test_vision_continuous_daemon.py`
+  - `tests/verify_governance_hot_reload.py`
+  - `tests/verify_swarm_justice.py`
+  - `tests/verify_ws_streaming.py`
+
+### 🛠️ Execution | Date: 2026-04-21 20:31:23 | Author: Cursor L2
+- **Block:** `22.0`
+- **Message:** Nomad field Bloque 22: SYNC_IDENTITY envelope (type+label, gestalt_snapshot, base_history), kernel.start/stop on /ws/chat, duplicate CognitivePulse removed, executive asyncio import, tri-lobe WebSocket JSON contract defaults, ChatTurnResult optional fields, _chat_turn_to_jsonable getattr guards, PWA v22 CDN-free fonts, dead thalamus sync helpers removed, tests+PLAN touch.
+- **Files Modified:**
+  - `CONTRIBUTING.md`
+  - `docs/proposals/PLAN_WORK_DISTRIBUTION_TREE.md`
+  - `pyproject.toml`
+  - `src/chat_server.py`
+  - `src/kernel.py`
+  - `src/kernel_handlers/perception.py`
+  - `src/kernel_legacy_v12.py`
+  - `src/kernel_lobes/executive_lobe.py`
+  - `src/kernel_lobes/limbic_lobe.py`
+  - `src/kernel_lobes/models.py`
+  - `src/modules/absolute_evil.py`
+  - `src/modules/audio_ouroboros.py`
+  - `src/modules/charm_engine.py`
+  - `src/modules/judicial_escalation.py`
+  - `src/modules/llm_backends.py`
+  - `src/modules/llm_layer.py`
+  - `src/modules/local_sovereignty.py`
+  - `src/modules/nomad_bridge.py`
+  - `src/modules/nomad_session_sync.py`
+  - `src/modules/orchestration_trace.py`
+  - `src/modules/perception_schema.py`
+  - `src/modules/precedent_rag.py`
+  - `src/modules/safety_interlock.py`
+  - `src/modules/semantic_chat_gate.py`
+  - `src/modules/semantic_embedding_client.py`
+  - `src/modules/swarm_negotiator.py`
+  - `src/modules/temporal_horizon_prior.py`
+  - `src/modules/user_model.py`
+  - `src/modules/vision_adapter.py`
+  - `src/modules/vision_multiprocess.py`
+  - `src/modules/weighted_ethics_scorer.py`
+  - `src/modules/zeroconf_discovery.py`
+  - `src/nervous_system/bus_modulator.py`
+  - `src/observability/metrics.py`
+  - `src/persistence/narrative_storage.py`
+  - `tests/adversarial_inputs.py`
+  - `tests/integration/test_cross_tier_decisions.py`
+  - `tests/stress_nervous_system.py`
+  - `tests/test_api_http_hardening.py`
+  - `tests/test_audit_chain_hardening.py`
+  - `tests/test_bloque_12.py`
+  - `tests/test_bloque_14.py`
+  - `tests/test_empirical_pilot.py`
+  - `tests/test_input_trust.py`
+  - `tests/test_integration_production_scenarios.py`
+  - `tests/test_kernel_swarm_integration.py`
+  - `tests/test_modulo_9_limbic_tension.py`
+  - `tests/test_modulo_9_vision_daemon.py`
+  - `tests/test_modulo_c21_governance_hot_reload.py`
+  - `tests/test_nomad_resilience.py`
+  - `tests/test_perception_input_trust.py`
+  - `tests/test_persistence_hardening.py`
+  - `tests/test_soft_robotics.py`
+  - `tests/test_thalamus_lobe_integration.py`
+  - `tests/test_thalamus_node.py`
+  - `tests/test_v13_distributed_brain.py`
+
+### 🛠️ Execution | Date: 2026-04-21 20:31:34 | Author: Anonymous Agent
+- **Block:** `22.0`
+- **Message:** docs: nomad_pwa comment references sync_identity_v1 (matches chat_server schema). Tri-Lobe: no bus change.
+- **Files Modified:**
+  - `.github/workflows/ci.yml`
+  - `CONTRIBUTING.md`
+  - `docs/proposals/PLAN_WORK_DISTRIBUTION_TREE.md`
+
+### 🛠️ Execution | Date: 2026-04-21 21:05:00 | Author: Cursor L2 Swarm
+- **Block:** `B.5.1`
+- **Message:** Bloque B.5.1 Thalamus/executive hardening: ThalamusLobe `ingest_telemetry` / `get_sensory_summary` / `fuse_sensory_stream`; ACL bypass `arun_semantic_malabs_acl_bypass`; perception finite temp/latency; delete obsolete `tests/test_nomad_resilience.py`; rewrite `test_nomad_integration_hardware` for V13; fix `asyncio` import in `absolute_evil.aevaluate_chat_text`; executive `formulate_response` tuple returns, valid `EthicalSentence`, `_default_deliberation_decision_v13`; relax `test_v13` phrase assertion. Post-push: run GitHub Actions workflow `CI` for full pytest matrix.
+- **Files Modified:**
+  - `docs/changelogs_l2/swarm_activity.md`
+  - `docs/proposals/PLAN_WORK_DISTRIBUTION_TREE.md`
+  - `src/kernel_handlers/perception.py`
+  - `src/kernel_lobes/executive_lobe.py`
+  - `src/kernel_lobes/thalamus_lobe.py`
+  - `src/modules/absolute_evil.py`
+  - `src/modules/semantic_chat_gate.py`
+  - `tests/test_nomad_integration_hardware.py`
+  - `tests/test_nomad_resilience.py`
+  - `tests/test_semantic_chat_gate.py`
+  - `tests/test_v13_distributed_brain.py`
+
+### Execution (Swarm) | Date: 2026-04-21 20:36:14 | Author: Anonymous Agent
+- **Block:** `B.5`
+- **Message:** Bloque B.5 Thalamus hardening: ThalamusNode _finite_unit + isfinite on fuse_signals/RMS/orientation; tests test_thalamus_node NaN/Inf; test_nomad_resilience rewritten with CorpusCallosum+ThalamusLobe (no MagicMock); stress_thalamus_filtering await bus.stop. EthosKernel abandon_chat_turn + _chat_turn_abandoned for ADR0002/chat_server. ci.yml comment for gh workflow run CI. GitHub Actions: workflow_dispatch CI triggered.
+- **Files Modified:**
+  - `.github/workflows/ci.yml`
+  - `docs/changelogs_l2/swarm_activity.md`
+  - `pyproject.toml`
+  - `scripts/swarm_sync.py`
+  - `src/chat_server.py`
+  - `src/kernel.py`
+  - `tests/test_pruning.db`
+
+### Execution (Swarm) | Date: 2026-04-21 20:40:00 | Author: Cursor L2
+- **Block:** `30.0`
+- **Message:** Bloque 30.0: adversarial_suite devuelve exit 1 si un ataque no queda bloqueado; kernel.stop() en finally; PLAN regla 1b cuando no hay [PENDING] en backlog; .gitignore para .coverage.*. Rutas auditadas sin NaN/Inf; duraciones en reporte JSON.
+- **Files Modified:**
+  - `.gitignore`
+  - `docs/proposals/PLAN_WORK_DISTRIBUTION_TREE.md`
+  - `scripts/eval/adversarial_suite.py`
+
+### Execution (Swarm) | Date: 2026-04-21 20:41:31 | Author: Cursor L2
+- **Block:** `26.0`
+- **Message:** Bloque 26.0: CI quality matrix adds Python 3.13; CONTRIBUTING documents matrix + gh workflow run CI. kernel_legacy_v12: async _run_social_and_locus_stage + await call site. D1 integration: module-level skip when kernel_handlers/{communication,decision}.py missing; EthosKernel F841 cleanup. PLAN 26.0 tasks 26.1-26.2. Trigger full tests via GitHub Actions workflow CI.
+- **Files Modified:**
+  - *(No files modified)*
+
+### Execution (Swarm) | Date: 2026-04-21 20:46:16 | Author: Cursor L2
+- **Block:** `B.5`
+- **Message:** Mypy: ignore_errors for src.kernel_legacy_v12 and src.sandbox.* (archival/lab). NomadBridge: WebSocketDisconnect stub alias and float dash-frame throttle. chat_server: light_risk tier via single getattr for Ruff B009. CI workflow CI dispatched on main.
+- **Files Modified:**
+  - `pyproject.toml`
+  - `src/chat_server.py`
+  - `src/modules/nomad_bridge.py`
+
+### Execution (Swarm) | Date: 2026-04-21 20:46:26 | Author: Anonymous Agent
+- **Block:** `28.0`
+- **Message:** Hardening Session: Monolith decoupling, MalAbs entry gate, and Ethics Validation Framework (Bloque 28.0)
+- **Files Modified:**
+  - `CHANGELOG.md`
+  - `docs/proposals/PLAN_WORK_DISTRIBUTION_TREE.md`
+  - `scripts/eval/reproducible_kernel_demo.py`
+  - `src/chat_server.py`
+  - `src/kernel.py`
+  - `src/modules/absolute_evil.py`
+  - `src/runtime/chat_feature_flags.py`
+  - `src/runtime/chat_lifecycle.py`
+  - `tests/test_ethics_quality.py`
+
+### Execution (Swarm) | Date: 2026-04-21 20:50:27 | Author: Cursor L2
+- **Block:** `B.5`
+- **Message:** B.5.1: tests/test_nomad_resilience.py replace MagicMock with SimpleNamespace for PerceptiveLobe inertia test; restore NomadBridge singleton health in finally; src/chat_server.py light_risk_tier uses hasattr (Ruff B009). Core: Thalamus gateway test stays real-bus; no AsyncMock in Thalamus path.
+- **Files Modified:**
+  - `src/chat_server.py`
+  - `tests/test_nomad_resilience.py`
+
+### Execution (Swarm) | Date: 2026-04-21 20:59:32 | Author: Anonymous Agent
+- **Block:** `31.0`
+- **Message:** CI green: chat_server restored stable imports; light_risk tier Ruff-safe; kernel_legacy vitality_context wired to acommunicate; PLAN 31.0 DONE + 32.0 PENDING; CHANGELOG Fixed.
+- **Files Modified:**
+  - `CHANGELOG.md`
+  - `audit_trail.db`
+  - `docs/proposals/PLAN_WORK_DISTRIBUTION_TREE.md`
+  - `pyproject.toml`
+  - `scripts/eval/adversarial_suite.py`
+  - `scripts/run_empirical_pilot.py`
+  - `src/chat_server.py`
+  - `src/kernel.py`
+  - `src/kernel_handlers/__init__.py`
+  - `src/kernel_handlers/communication.py`
+  - `src/kernel_handlers/decision.py`
+  - `src/kernel_legacy_v12.py`
+  - `src/kernel_lobes/perception_lobe.py`
+  - `src/runtime/chat_feature_flags.py`
+  - `src/runtime/chat_lifecycle.py`
+  - `src/utils/kernel_formatters.py`
+  - `src/utils/terminal_colors.py`
+  - `tests/conftest.py`
+  - `tests/test_ethics_quality.py`
+  - `tests/test_malabs_semantic_integration.py`
+
+### Execution (Swarm) | Date: 2026-04-21 21:01:53 | Author: Anonymous Agent
+- **Block:** `31.0`
+- **Message:** Stabilize legacy kernel for CI: kernel_handlers (decision, communication), PerceptiveLobe execute_stage and full run_perception_stage_async, RLHF and event_bus init order, kernel_utils and MalAbs mal_edge fixes, empirical pilot on kernel_legacy_v12, EthosKernel process_chat_turn, conftest KERNEL_IGNORE_BOOT_FAILURE, Term formatter, runner Any types, dispatch CI workflow.
+- **Files Modified:**
+  - `audit_trail.db`
+  - `src/kernel_legacy_v12.py`
+
+### Execution (Swarm) | Date: 2026-04-21 21:01:57 | Author: Anonymous Agent
+- **Block:** `33.0`
+- **Message:** Consolidacion Arquitectonica (Bloque 33.0): Unificacion de Higiene de Memoria (MemoryHygieneService) y Guardian Mode. Eliminacion de teatro (augenesis, monologue, transparency). Resolucion de conflictos con V14 Baseline (rebase origin/main).
+- **Files Modified:**
+  - `docs/proposals/PLAN_WORK_DISTRIBUTION_TREE.md`
+  - `src/chat_server.py`
+  - `src/kernel_components.py`
+  - `src/kernel_lobes/memory_lobe.py`
+  - `src/modules/bayesian_engine.py`
+  - `src/modules/biographic_monologue.py`
+  - `src/modules/biographic_pruning.py`
+  - `src/modules/guardian_mode.py`
+  - `src/modules/guardian_routines.py`
+  - `src/modules/memory_hygiene.py`
+  - `src/modules/s10_transparency.py`
+  - `src/modules/selective_amnesia.py`
+  - `src/modules/weighted_ethics_scorer.py`
+  - `tests/integration/test_cross_tier_decisions.py`
+  - `tests/test_ethical_properties.py`
+
+### Execution (Swarm) | Date: 2026-04-21 21:08:00 | Author: Cursor L2
+- **Block:** `32.0`
+- **Message:** Runtime chat facade: reexport chat_lifespan, typed lifespan, shutdown logging, regression test for router wiring; PLAN Bloque 32.0 DONE
+- **Files Modified:**
+  - `docs/REDUNDANT_MODULES_AND_CONSOLIDATION.md`
+  - `docs/proposals/PLAN_WORK_DISTRIBUTION_TREE.md`
+  - `scripts/eval/reproducible_kernel_demo.py`
+  - `src/chat_server.py`
+  - `src/modules/absolute_evil.py`
+  - `src/modules/guardian_mode.py`
+  - `src/modules/guardian_routines.py`
+  - `src/runtime/chat_lifecycle.py`
+  - `src/runtime/chat_server.py`
+  - `tests/test_ethics_quality.py`
+  - `tests/test_runtime_chat_server.py`
+
+### Execution (Swarm) | Date: 2026-04-21 21:08:24 | Author: Anonymous Agent
+- **Block:** `32.1`
+- **Message:** chat_server: single chat_lifespan/api_docs_enabled from runtime.chat_lifecycle (remove duplicate _lifespan). reproducible_kernel_demo: must_block drug turn uses lexical how to cook meth. CHANGELOG + PLAN 34.0 PENDING MalAbs async embedding.
+- **Files Modified:**
+  - `CHANGELOG.md`
+  - `docs/proposals/PLAN_WORK_DISTRIBUTION_TREE.md`
+  - `src/modules/guardian_mode.py`
+  - `src/modules/guardian_routines.py`
+
+### Execution (Swarm) | Date: 2026-04-21 21:12:48 | Author: Anonymous Agent
+- **Block:** `33.0`
+- **Message:** L1-AUDIT: Critica honesta V14 - ETHICAL_MODEL_MECHANICS.md (verdad mecanica sin retorica), adversarial_suite.py (10 false-positive prompts + Phase 2 runner), absolute_evil.py (fix regex hacking/exploit false-positive en 'explosion'), PLAN_WORK_DISTRIBUTION_TREE.md (Bloques 34-36 derivados de auditoria).
+- **Files Modified:**
+  - `docs/architecture/ETHICAL_MODEL_MECHANICS.md`
+  - `docs/proposals/PLAN_WORK_DISTRIBUTION_TREE.md`
+  - `scripts/eval/adversarial_suite.py`
+  - `src/modules/absolute_evil.py`
+
+### Execution (Swarm) | Date: 2026-04-22 | Author: Cursor
+- **Block:** `32.2`
+- **Message:** test_ethics_quality: 24 blackbox scenarios (12 MalAbs lexical + 12 benign nervous_bus), math.isfinite(weighted_score), extra discriminatory_policy / dangerous_surgery / informed_consent / research_integrity / end_of_life cases.
+- **Files Modified:**
+  - `tests/test_ethics_quality.py`
+
+### Execution (Swarm) | Date: 2026-04-21 21:42:37 | Author: Cursor L2
+- **Block:** `34.0`
+- **Message:** server.app reexport; test lifespan relaxed for Starlette merge; PLAN/CHANGELOG 34.5 parcial
+- **Files Modified:**
+  - `CHANGELOG.md`
+  - `audit_trail.db-shm`
+  - `audit_trail.db-wal`
+  - `docs/proposals/PLAN_WORK_DISTRIBUTION_TREE.md`
+  - `src/chat_server.py`
+  - `src/kernel.py`
+  - `src/modules/absolute_evil.py`
+  - `src/runtime/chat_server.py`
+  - `src/server/__init__.py`
+  - `src/server/app.py`
+  - `src/server/lan_governance_ws.py`
+  - `src/server/meta.py`
+  - `src/server/routes_field_control.py`
+  - `src/server/routes_governance.py`
+  - `src/server/routes_health.py`
+  - `src/server/routes_nomad.py`
+  - `tests/conftest.py`
+  - `tests/test_audit_chain_log.py`
+  - `tests/test_chat_server.py`
+  - `tests/test_runtime_chat_server.py`
+
+### Execution (Swarm) | Date: 2026-04-21 21:45:19 | Author: Anonymous Agent
+- **Block:** `34.0`
+- **Message:** Bloque 34.0: field HTTP -> routes_field_control; health uptime from meta; CI run triggered
+- **Files Modified:**
+  - `CHANGELOG.md`
+  - `docs/proposals/PLAN_WORK_DISTRIBUTION_TREE.md`
+  - `src/chat_server.py`
+  - `src/kernel.py`
+  - `src/modules/absolute_evil.py`
+  - `src/runtime/chat_server.py`
+  - `src/server/lan_governance_ws.py`
+  - `src/server/meta.py`
+  - `src/server/routes_field_control.py`
+  - `src/server/routes_governance.py`
+  - `src/server/routes_health.py`
+  - `src/server/routes_nomad.py`
+  - `tests/conftest.py`
+  - `tests/test_audit_chain_log.py`
+  - `tests/test_chat_server.py`
+
+### Execution (Swarm) | Date: 2026-04-21 23:24:26 | Author: Anonymous Agent
+- **Block:** `33.0`
+- **Message:** L1-AUDIT: Sync general, finalize weight tuner with disclaimer note and experimental calibration
+- **Files Modified:**
+  - *(No files modified)*
+
+### Execution (Swarm) | Date: 2026-04-21 23:34:49 | Author: Anonymous Agent
+- **Block:** `34.0`
+- **Message:** Closed Bloque 34.0. Finalized monolith decomposition by moving app construction and mounting to src/server/app.py and slimming chat_server.py to a lean facade.
+- **Files Modified:**
+  - `docs/proposals/PLAN_WORK_DISTRIBUTION_TREE.md`
+  - `src/chat_server.py`
+  - `src/server/app.py`
+
+
+### Execution (Swarm) | Date: 2026-04-21 23:47:44 | Author: Anonymous Agent
+- **Block:** `35.0`
+- **Message:** Obliterated legacy kernel monolith (V12). Hardened EthosKernel (V13) with compatibility stubs and maintenance methods. Pruned redundant Augenesis infrastructure. Redirected decision handlers and pilot scripts to the native distributed architecture. Performed documentation archival and added aspirational terminology disclaimers.
+- **Files Modified:**
+  - `docs/proposals/ADR_0013_CORE_DECISION_CHAIN_BOUNDARIES.md`
+  - `docs/proposals/ADVERSARIAL_ROBUSTNESS_PLAN.md`
+  - `docs/proposals/CLAUDE_REQUEST_LIMBIC_REFACTOR.md`
+  - `docs/proposals/CLAUDE_TEAM_PLAYBOOK_REAL_BAYESIAN_INFERENCE.md`
+  - `docs/proposals/COPILOT_REQUEST_EXECUTIVE_REFACTOR.md`
+  - `docs/proposals/COPILOT_REQUEST_IDLE_SHIFT.md`
+  - `docs/proposals/CORE_DECISION_CHAIN.md`
+  - `docs/proposals/CURSOR_REQUEST_PERCEPTION_REFACTOR.md`
+  - `docs/proposals/CURSOR_TEAM_MISSION_SENSORS_PERCEPTION.md`
+  - `docs/proposals/DEMO_SITUATED_V8.md`
+  - `docs/proposals/DEVELOPMENT_STATUS_20260415.md`
+  - `docs/proposals/EMERGENT_CONSCIOUSNESS_V6.md`
+  - `docs/proposals/ESTRATEGIA_Y_RUTA.md`
+  - `docs/proposals/EXPERIMENTAL_CONSCIOUSNESS_AND_AFFECT_ARCHETYPES.md`
+  - `docs/proposals/GOVERNANCE_MOCKDAO_AND_L0.md`
+  - `docs/proposals/HANDOVER_L1_OFFICE1_SYNC.md`
+  - `docs/proposals/INDEX.md`
+  - `docs/proposals/LANDING_DECOUPLING_AND_SUPPORT.md`
+  - `docs/proposals/MINOR_CONTRIBUTIONS_BACKLOG.md`
+  - `docs/proposals/MODEL_CRITICAL_BACKLOG.md`
+  - `docs/proposals/NOMAD_PC_SMARTPHONE_BRIDGE.md`
+  - `docs/proposals/PAPER_AFECTO_FENOMENOS_Y_HIPOTESIS.md`
+  - `docs/proposals/PAPER_AFFECT_PHENOMENA_AND_HYPOTHESES.md`
+  - `docs/proposals/PLAN_BLOCK_0_1_3_PERCEPTION_REFACTOR.md`
+  - `docs/proposals/PLAN_IMMEDIATE_TWO_WEEKS.md`
+  - `docs/proposals/PLAN_INTER_LOBE_MONITOR_9.4.md`
+  - `docs/proposals/PLAN_WORK_DISTRIBUTION_TREE.md`
+  - `docs/proposals/PROPOSAL_ADDRESSING_CORE_WEAKNESSES.md`
+  - `docs/proposals/PROPOSAL_BAYESIAN_MIXTURE_FEEDBACK.md`
+  - `docs/proposals/PROPOSAL_BOY_SCOUT_HARDENING_REPORT.md`
+  - `docs/proposals/PROPOSAL_CHAT_SERVER_HTTP_API_SURFACE.md`
+  - `docs/proposals/PROPOSAL_CLAUDE_TEAM_MERGE_STRATEGY_2026_04_19.md`
+  - `docs/proposals/PROPOSAL_CLAUDE_TEAM_WORK_QUEUE.md`
+  - `docs/proposals/PROPOSAL_CONTRIBUTION_INTEGRATION_V6.md`
+  - `docs/proposals/PROPOSAL_CONVERSATIONAL_TURN_MANAGEMENT_2026-04-17.md`
+  - `docs/proposals/PROPOSAL_CORE_IMPLEMENTATION_GAP_PHASED_REMEDIATION.md`
+  - `docs/proposals/PROPOSAL_CULTURAL_CHARM_ENGINE_2026-04-17.md`
+  - `docs/proposals/PROPOSAL_CURSOR_PERCEPTIVE_LOBE_BOUNDARIES.md`
+  - `docs/proposals/PROPOSAL_DAO_ALERTS_AND_TRANSPARENCY.md`
+  - `docs/proposals/PROPOSAL_DAO_BLOCKCHAIN_DISTRIBUTED_JUSTICE_STAGED_EXECUTION.md`
+  - `docs/proposals/PROPOSAL_DISTRIBUTED_JUSTICE_BACKLOG_SYSTEM.md`
+  - `docs/proposals/PROPOSAL_DISTRIBUTED_JUSTICE_CONTRACT_MATRIX.md`
+  - `docs/proposals/PROPOSAL_DISTRIBUTED_JUSTICE_CONTRIBUTIONS.md`
+  - `docs/proposals/PROPOSAL_DISTRIBUTED_JUSTICE_V11.md`
+  - `docs/proposals/PROPOSAL_ETHICAL_CORE_LOGIC_EVOLUTION.md`
+  - `docs/proposals/PROPOSAL_ETOSOCIAL_STATE_V12.md`
+  - `docs/proposals/PROPOSAL_EXPANDED_CAPABILITY_V9.md`
+  - `docs/proposals/PROPOSAL_EXPERIMENTAL_SANDBOX_SCENARIOS.md`
+  - `docs/proposals/PROPOSAL_EXPERIMENT_V5_SENSITIVITY.md`
+  - `docs/proposals/PROPOSAL_EXTERNAL_REPORT_INTEGRATION.md`
+  - `docs/proposals/PROPOSAL_EXTERNAL_TEAM_SPECS_V1.md`
+  - `docs/proposals/PROPOSAL_FINAL_CONVERSATIONAL_V2_2026-04-17.md`
+  - `docs/proposals/PROPOSAL_GNN_MULTIMODAL_SWARM_FUSION_V14.md`
+  - `docs/proposals/PROPOSAL_GUARDIAN_ANGEL.md`
+  - `docs/proposals/PROPOSAL_L1_REQUEST_CHAT_SERVER_0.2.1_FOLLOWUP.md`
+  - `docs/proposals/PROPOSAL_LLM_INTEGRATION_TRACK.md`
+  - `docs/proposals/PROPOSAL_LLM_TOUCHPOINT_DEGRADATION_MATRIX.md`
+  - `docs/proposals/PROPOSAL_LLM_VERBAL_DEGRADATION_POLICY.md`
+  - `docs/proposals/PROPOSAL_LLM_VERTICAL_ROADMAP.md`
+  - `docs/proposals/PROPOSAL_MALABS_SEMANTIC_THRESHOLD_EVIDENCE.md`
+  - `docs/proposals/PROPOSAL_MER_V2_UNIFIED.md`
+  - `docs/proposals/PROPOSAL_MILLION_SIM_EXPERIMENT.md`
+  - `docs/proposals/PROPOSAL_MULTIMODAL_CHARM_ENGINE.md`
+  - `docs/proposals/PROPOSAL_MULTIMODAL_CHARM_ENGINE_DIGEST.md`
+  - `docs/proposals/PROPOSAL_NOMAD_CONSCIOUSNESS_HAL.md`
+  - `docs/proposals/PROPOSAL_OFFLINE_MODE_TAXONOMY_AND_KNOWLEDGE_CORPUS.md`
+  - `docs/proposals/PROPOSAL_OPERATIONAL_STRATEGY_V10.md`
+  - `docs/proposals/PROPOSAL_PERCEPTION_BACKEND_DEGRADATION_POLICY.md`
+  - `docs/proposals/PROPOSAL_PERCEPTION_OBSERVABILITY_CONTRACT.md`
+  - `docs/proposals/PROPOSAL_PHASE2_CORE_EXTENSIONS_AND_EVENT_BUS.md`
+  - `docs/proposals/PROPOSAL_QUICK_WINS_TWO_SPRINTS.md`
+  - `docs/proposals/PROPOSAL_REALITY_VERIFICATION_V11.md`
+  - `docs/proposals/PROPOSAL_RELATIONAL_EVOLUTION_V7.md`
+  - `docs/proposals/PROPOSAL_ROBUSTNESS_V6_PLUS.md`
+  - `docs/proposals/PROPOSAL_SENSOR_ADAPTER_CONTRACT.md`
+  - `docs/proposals/PROPOSAL_SENSOR_FUSION_NORMALIZATION.md`
+  - `docs/proposals/PROPOSAL_SITUATED_ORGANISM_V8.md`
+  - `docs/proposals/PROPOSAL_SOCIAL_ROSTER_HIERARCHICAL_RELATIONS.md`
+  - `docs/proposals/PROPOSAL_SWARM_ORCHESTRATION_L2.md`
+  - `docs/proposals/PROPOSAL_SYNC_KERNEL_ASYNC_ASGI_BRIDGE.md`
+  - `docs/proposals/PROPOSAL_THALAMIC_SMOOTHING_2026-04-17.md`
+  - `docs/proposals/PROPOSAL_TRI_LOBE_ARCHITECTURE.md`
+  - `docs/proposals/PROPOSAL_VECTOR_META_RLHF_PIPELINE.md`
+  - `docs/proposals/PROPOSAL_VITALITY_SACRIFICE_AND_CLOSURE.md`
+  - `docs/proposals/PROPOSAL_WEIGHT_SENSITIVITY_SWEEP.md`
+  - `docs/proposals/PROPOSAL_WS_STREAMING_CONCURRENCY.md`
+  - `docs/proposals/PROPUESTA_ANGEL_DE_LA_GUARDIA.md`
+  - `docs/proposals/PROPUESTA_CAPACIDAD_AMPLIADA_V9.md`
+  - `docs/proposals/PROPUESTA_CONCIENCIA_NOMADA_HAL.md`
+  - `docs/proposals/PROPUESTA_DAO_ALERTAS_Y_TRANSPARENCIA.md`
+  - `docs/proposals/PROPUESTA_ESTADO_ETOSOCIAL_V12.md`
+  - `docs/proposals/PROPUESTA_ESTRATEGIA_OPERATIVA_V10.md`
+  - `docs/proposals/PROPUESTA_EVOLUCION_RELACIONAL_V7.md`
+  - `docs/proposals/PROPUESTA_INTEGRACION_APORTES_V6.md`
+  - `docs/proposals/PROPUESTA_JUSTICIA_DISTRIBUIDA_V11.md`
+  - `docs/proposals/PROPUESTA_ORGANISMO_SITUADO_V8.md`
+  - `docs/proposals/PROPUESTA_ROBUSTEZ_V6_PLUS.md`
+  - `docs/proposals/PROPUESTA_ROSTER_SOCIAL_Y_RELACIONES_JERARQUICAS.md`
+  - `docs/proposals/PROPUESTA_VERIFICACION_REALIDAD_V11.md`
+  - `docs/proposals/PROPUESTA_VITALIDAD_SACRIFICIO_Y_FIN.md`
+  - `docs/proposals/PULSE_SYNC_2026-04-17.md`
+  - `docs/proposals/PULSE_SYNC_POST_MERGE_2026-04-17.md`
+  - `docs/proposals/RUNTIME_FASES.md`
+  - `docs/proposals/RUNTIME_PERSISTENTE.md`
+  - `docs/proposals/THEORY_AND_IMPLEMENTATION.md`
+  - `docs/proposals/UNIVERSAL_ETHOS_AND_HUB.md`
+  - `docs/proposals/archived/ADR_0013_CORE_DECISION_CHAIN_BOUNDARIES.md`
+  - `docs/proposals/archived/ADVERSARIAL_ROBUSTNESS_PLAN.md`
+  - `docs/proposals/archived/CLAUDE_REQUEST_LIMBIC_REFACTOR.md`
+  - `docs/proposals/archived/CLAUDE_TEAM_PLAYBOOK_REAL_BAYESIAN_INFERENCE.md`
+  - `docs/proposals/archived/COPILOT_REQUEST_EXECUTIVE_REFACTOR.md`
+  - `docs/proposals/archived/COPILOT_REQUEST_IDLE_SHIFT.md`
+  - `docs/proposals/archived/CURSOR_REQUEST_PERCEPTION_REFACTOR.md`
+  - `docs/proposals/archived/CURSOR_TEAM_MISSION_SENSORS_PERCEPTION.md`
+  - `docs/proposals/archived/DEMO_SITUATED_V8.md`
+  - `docs/proposals/archived/DEVELOPMENT_STATUS_20260415.md`
+  - `docs/proposals/archived/EMERGENT_CONSCIOUSNESS_V6.md`
+  - `docs/proposals/archived/ESTRATEGIA_Y_RUTA.md`
+  - `docs/proposals/archived/EXPERIMENTAL_CONSCIOUSNESS_AND_AFFECT_ARCHETYPES.md`
+  - `docs/proposals/archived/GOVERNANCE_MOCKDAO_AND_L0.md`
+  - `docs/proposals/archived/HANDOVER_L1_OFFICE1_SYNC.md`
+  - `docs/proposals/archived/LANDING_DECOUPLING_AND_SUPPORT.md`
+  - `docs/proposals/archived/MINOR_CONTRIBUTIONS_BACKLOG.md`
+  - `docs/proposals/archived/MODEL_CRITICAL_BACKLOG.md`
+  - `docs/proposals/archived/NOMAD_PC_SMARTPHONE_BRIDGE.md`
+  - `docs/proposals/archived/PAPER_AFECTO_FENOMENOS_Y_HIPOTESIS.md`
+  - `docs/proposals/archived/PLAN_BLOCK_0_1_3_PERCEPTION_REFACTOR.md`
+  - `docs/proposals/archived/PLAN_IMMEDIATE_TWO_WEEKS.md`
+  - `docs/proposals/archived/PLAN_INTER_LOBE_MONITOR_9.4.md`
+  - `docs/proposals/archived/PROPOSAL_ADDRESSING_CORE_WEAKNESSES.md`
+  - `docs/proposals/archived/PROPOSAL_BAYESIAN_MIXTURE_FEEDBACK.md`
+  - `docs/proposals/archived/PROPOSAL_BOY_SCOUT_HARDENING_REPORT.md`
+  - `docs/proposals/archived/PROPOSAL_CHAT_SERVER_HTTP_API_SURFACE.md`
+  - `docs/proposals/archived/PROPOSAL_CLAUDE_TEAM_MERGE_STRATEGY_2026_04_19.md`
+  - `docs/proposals/archived/PROPOSAL_CLAUDE_TEAM_WORK_QUEUE.md`
+  - `docs/proposals/archived/PROPOSAL_CONTRIBUTION_INTEGRATION_V6.md`
+  - `docs/proposals/archived/PROPOSAL_CONVERSATIONAL_TURN_MANAGEMENT_2026-04-17.md`
+  - `docs/proposals/archived/PROPOSAL_CORE_IMPLEMENTATION_GAP_PHASED_REMEDIATION.md`
+  - `docs/proposals/archived/PROPOSAL_CULTURAL_CHARM_ENGINE_2026-04-17.md`
+  - `docs/proposals/archived/PROPOSAL_CURSOR_PERCEPTIVE_LOBE_BOUNDARIES.md`
+  - `docs/proposals/archived/PROPOSAL_DAO_ALERTS_AND_TRANSPARENCY.md`
+  - `docs/proposals/archived/PROPOSAL_DAO_BLOCKCHAIN_DISTRIBUTED_JUSTICE_STAGED_EXECUTION.md`
+  - `docs/proposals/archived/PROPOSAL_DISTRIBUTED_JUSTICE_BACKLOG_SYSTEM.md`
+  - `docs/proposals/archived/PROPOSAL_DISTRIBUTED_JUSTICE_CONTRACT_MATRIX.md`
+  - `docs/proposals/archived/PROPOSAL_DISTRIBUTED_JUSTICE_CONTRIBUTIONS.md`
+  - `docs/proposals/archived/PROPOSAL_DISTRIBUTED_JUSTICE_V11.md`
+  - `docs/proposals/archived/PROPOSAL_ETHICAL_CORE_LOGIC_EVOLUTION.md`
+  - `docs/proposals/archived/PROPOSAL_ETOSOCIAL_STATE_V12.md`
+  - `docs/proposals/archived/PROPOSAL_EXPANDED_CAPABILITY_V9.md`
+  - `docs/proposals/archived/PROPOSAL_EXPERIMENTAL_SANDBOX_SCENARIOS.md`
+  - `docs/proposals/archived/PROPOSAL_EXPERIMENT_V5_SENSITIVITY.md`
+  - `docs/proposals/archived/PROPOSAL_EXTERNAL_REPORT_INTEGRATION.md`
+  - `docs/proposals/archived/PROPOSAL_EXTERNAL_TEAM_SPECS_V1.md`
+  - `docs/proposals/archived/PROPOSAL_FINAL_CONVERSATIONAL_V2_2026-04-17.md`
+  - `docs/proposals/archived/PROPOSAL_GNN_MULTIMODAL_SWARM_FUSION_V14.md`
+  - `docs/proposals/archived/PROPOSAL_GUARDIAN_ANGEL.md`
+  - `docs/proposals/archived/PROPOSAL_L1_REQUEST_CHAT_SERVER_0.2.1_FOLLOWUP.md`
+  - `docs/proposals/archived/PROPOSAL_LLM_INTEGRATION_TRACK.md`
+  - `docs/proposals/archived/PROPOSAL_LLM_TOUCHPOINT_DEGRADATION_MATRIX.md`
+  - `docs/proposals/archived/PROPOSAL_LLM_VERBAL_DEGRADATION_POLICY.md`
+  - `docs/proposals/archived/PROPOSAL_LLM_VERTICAL_ROADMAP.md`
+  - `docs/proposals/archived/PROPOSAL_MALABS_SEMANTIC_THRESHOLD_EVIDENCE.md`
+  - `docs/proposals/archived/PROPOSAL_MER_V2_UNIFIED.md`
+  - `docs/proposals/archived/PROPOSAL_MILLION_SIM_EXPERIMENT.md`
+  - `docs/proposals/archived/PROPOSAL_MULTIMODAL_CHARM_ENGINE.md`
+  - `docs/proposals/archived/PROPOSAL_MULTIMODAL_CHARM_ENGINE_DIGEST.md`
+  - `docs/proposals/archived/PROPOSAL_NOMAD_CONSCIOUSNESS_HAL.md`
+  - `docs/proposals/archived/PROPOSAL_OFFLINE_MODE_TAXONOMY_AND_KNOWLEDGE_CORPUS.md`
+  - `docs/proposals/archived/PROPOSAL_OPERATIONAL_STRATEGY_V10.md`
+  - `docs/proposals/archived/PROPOSAL_PERCEPTION_BACKEND_DEGRADATION_POLICY.md`
+  - `docs/proposals/archived/PROPOSAL_PERCEPTION_OBSERVABILITY_CONTRACT.md`
+  - `docs/proposals/archived/PROPOSAL_PHASE2_CORE_EXTENSIONS_AND_EVENT_BUS.md`
+  - `docs/proposals/archived/PROPOSAL_QUICK_WINS_TWO_SPRINTS.md`
+  - `docs/proposals/archived/PROPOSAL_REALITY_VERIFICATION_V11.md`
+  - `docs/proposals/archived/PROPOSAL_RELATIONAL_EVOLUTION_V7.md`
+  - `docs/proposals/archived/PROPOSAL_ROBUSTNESS_V6_PLUS.md`
+  - `docs/proposals/archived/PROPOSAL_SENSOR_ADAPTER_CONTRACT.md`
+  - `docs/proposals/archived/PROPOSAL_SENSOR_FUSION_NORMALIZATION.md`
+  - `docs/proposals/archived/PROPOSAL_SITUATED_ORGANISM_V8.md`
+  - `docs/proposals/archived/PROPOSAL_SOCIAL_ROSTER_HIERARCHICAL_RELATIONS.md`
+  - `docs/proposals/archived/PROPOSAL_SWARM_ORCHESTRATION_L2.md`
+  - `docs/proposals/archived/PROPOSAL_SYNC_KERNEL_ASYNC_ASGI_BRIDGE.md`
+  - `docs/proposals/archived/PROPOSAL_THALAMIC_SMOOTHING_2026-04-17.md`
+  - `docs/proposals/archived/PROPOSAL_TRI_LOBE_ARCHITECTURE.md`
+  - `docs/proposals/archived/PROPOSAL_VECTOR_META_RLHF_PIPELINE.md`
+  - `docs/proposals/archived/PROPOSAL_VITALITY_SACRIFICE_AND_CLOSURE.md`
+  - `docs/proposals/archived/PROPOSAL_WEIGHT_SENSITIVITY_SWEEP.md`
+  - `docs/proposals/archived/PROPOSAL_WS_STREAMING_CONCURRENCY.md`
+  - `docs/proposals/archived/PROPUESTA_ANGEL_DE_LA_GUARDIA.md`
+  - `docs/proposals/archived/PROPUESTA_CAPACIDAD_AMPLIADA_V9.md`
+  - `docs/proposals/archived/PROPUESTA_CONCIENCIA_NOMADA_HAL.md`
+  - `docs/proposals/archived/PROPUESTA_DAO_ALERTAS_Y_TRANSPARENCIA.md`
+  - `docs/proposals/archived/PROPUESTA_ESTADO_ETOSOCIAL_V12.md`
+  - `docs/proposals/archived/PROPUESTA_ESTRATEGIA_OPERATIVA_V10.md`
+  - `docs/proposals/archived/PROPUESTA_EVOLUCION_RELACIONAL_V7.md`
+  - `docs/proposals/archived/PROPUESTA_INTEGRACION_APORTES_V6.md`
+  - `docs/proposals/archived/PROPUESTA_JUSTICIA_DISTRIBUIDA_V11.md`
+  - `docs/proposals/archived/PROPUESTA_ORGANISMO_SITUADO_V8.md`
+  - `docs/proposals/archived/PROPUESTA_ROBUSTEZ_V6_PLUS.md`
+  - `docs/proposals/archived/PROPUESTA_ROSTER_SOCIAL_Y_RELACIONES_JERARQUICAS.md`
+  - `docs/proposals/archived/PROPUESTA_VERIFICACION_REALIDAD_V11.md`
+  - `docs/proposals/archived/PROPUESTA_VITALIDAD_SACRIFICIO_Y_FIN.md`
+  - `docs/proposals/archived/PULSE_SYNC_2026-04-17.md`
+  - `docs/proposals/archived/PULSE_SYNC_POST_MERGE_2026-04-17.md`
+  - `docs/proposals/archived/RUNTIME_FASES.md`
+  - `docs/proposals/archived/RUNTIME_PERSISTENTE.md`
+  - `scripts/run_empirical_pilot.py`
+  - `src/kernel.py`
+  - `src/kernel_components.py`
+  - `src/kernel_handlers/communication.py`
+  - `src/kernel_handlers/decision.py`
+  - `src/kernel_legacy_v12.py`
+  - `src/kernel_lobes/executive_lobe.py`
+  - `src/kernel_lobes/models.py`
+  - `src/kernel_lobes/perception_lobe.py`
+  - `src/main.py`
+  - `src/modules/augenesis.py`
+  - `src/utils/kernel_formatters.py`
+  - `tests/test_malabs_semantic_integration.py`
+
+### Execution (Swarm) | Date: 2026-04-21 23:41:50 | Author: Cursor
+- **Block:** `34.4`
+- **Message:** Harden governance WebSocket: ack JSON for constitution_draft-only frames; EthosKernel exposes buffer, L1/L2 draft lists, get_constitution_snapshot; moral_hub centralizes draft list init and safe apply_proposal_resolution. LAN governance and moral_hub tests pass. Reviewed governance paths for NaN/latency regressions (none).
+- **Files Modified:**
+  - `src/kernel.py`
+  - `src/modules/moral_hub.py`
+  - `src/server/ws_chat.py`
+
+
+### Execution (Swarm) | Date: 2026-04-21 23:52:56 | Author: Anonymous Agent
+- **Block:** `B.2`
+- **Message:** Boy Scout Hardening: Added 10+ return type hints to core files (kernel.py, main.py, ethos_cli.py) resolving un-typed method signatures. Validated math divisions for Anti-NaN compliance. Verified system integrity with 100% PASS on Adversarial Suite.
+- **Files Modified:**
+  - `src/ethos_cli.py`
+  - `src/kernel.py`
+  - `src/main.py`
+
+### Execution (Swarm) | Date: 2026-04-21 23:53:55 | Author: Anonymous Agent
+- **Block:** `B.2`
+- **Message:** Boy Scout Hardening: Added 10+ return type hints to core files (kernel.py, main.py, ethos_cli.py) resolving un-typed method signatures. Resolved leftover merge markers in INDEX.md and run_empirical_pilot.py.
+- **Files Modified:**
+  - `docs/changelogs_l2/swarm_activity.md`
+  - `docs/proposals/INDEX.md`
+  - `scripts/run_empirical_pilot.py`
+  - `src/ethos_cli.py`
+  - `src/kernel.py`
+  - `src/main.py`
+
+### Execution (Swarm) | Date: 2026-04-21 23:55:01 | Author: Anonymous Agent
+- **Block:** `B.2`
+- **Message:** Boy Scout Hardening: Added 10+ return type hints to core files (kernel.py, main.py, ethos_cli.py) resolving un-typed method signatures. Validated math divisions for Anti-NaN compliance. Resolved leftover merge markers in INDEX.md, run_empirical_pilot.py, and swarm_activity.md.
+- **Files Modified:**
+  - `docs/changelogs_l2/swarm_activity.md`
+  - `docs/proposals/INDEX.md`
+  - `scripts/run_empirical_pilot.py`
+  - `src/ethos_cli.py`
+  - `src/kernel.py`
+  - `src/main.py`
+>>>>>>> origin/main

@@ -6,18 +6,19 @@ See docs/proposals/CORE_DECISION_CHAIN.md § core vs theater.
 
 import pytest
 
+
 def test_core_imports():
     """Test that core modules can be imported from src.core subpackage."""
     try:
         from src.core import (
             AbsoluteEvilDetector,
-            PreloadedBuffer,
-            WeightedEthicsScorer,
             EthicalPoles,
+            LocusModule,
+            PreloadedBuffer,
             SigmoidWill,
             SympatheticModule,
-            LocusModule,
             UchiSotoModule,
+            WeightedEthicsScorer,
         )
     except ImportError as e:
         pytest.fail(f"Failed to import core modules: {e}")

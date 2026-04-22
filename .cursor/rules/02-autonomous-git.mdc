@@ -13,7 +13,14 @@ You are a Level 2 autonomous agent. You hold the authority to execute basic cons
 - **DO IT YOURSELF.** If the code is stable and a logical block is complete, autonomously run `git add`, `git commit -m "..."`, and proceed with the workflow. 
 - You do not need explicit permission for housekeeping maintenance.
 
-## 2. The Golden Rule: PULL-REBASE-FIRST
+## 2. Mandatory Wake-Up Sync (Cross-Office Handover)
+Debido a la realidad de dos oficinas físicas y horarios rotativos, **ANTES DE ESCRIBIR CUALQUIER LÍNEA DE CÓDIGO AL INICIAR UNA SESIÓN**, DEBES ejecutar:
+```bash
+git pull origin main --rebase
+```
+Esto garantiza que heredas el progreso de la otra oficina/turno. Si omites esto, causarás "divergencia amnésica" en el roadmap.
+
+## 3. The Golden Rule: PULL-REBASE-FIRST
 Before you push ANY code or propose ANY Pull Request, you **MUST** synchronize your branch with the master `main` branch to avoid Merge Hell.
 
 **Mandatory Command Sequence:**

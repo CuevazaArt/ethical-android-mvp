@@ -1,15 +1,23 @@
 :root {
-    --bg-dark: #020617;
-    --glass: rgba(15, 23, 42, 0.6);
-    --glass-bright: rgba(255, 255, 255, 0.05);
-    --glass-border: rgba(255, 255, 255, 0.1);
-    --accent-primary: #38bdf8; /* Sky 400 */
-    --accent-secondary: #818cf8; /* Indigo 400 */
-    --accent-danger: #f43f5e; /* Rose 500 */
+    --identity-warmth: 0.2;
+    --pad-p: 0.5;
+    --pad-a: 0.5;
+    --pad-d: 0.5;
+    --pad-pleasure: 0.5;
+    --pad-arousal: 0.5;
+    --pad-dominance: 0.5;
+    --gestalt-sigma: 0.5;
+    --bg-dark: #0a0a0c;
+    --glass: rgba(255, 255, 255, 0.03);
+    --glass-bright: rgba(255, 255, 255, 0.08);
+    --glass-border: rgba(255, 255, 255, 0.12);
+    --accent-primary: #cbd5e1; /* Slate 300 (Neutral) */
+    --accent-secondary: #64748b; /* Slate 500 */
+    --accent-danger: #ef4444;
     --text-primary: #f8fafc;
     --text-secondary: #94a3b8;
-    --font-main: 'Inter', -apple-system, sans-serif;
-    --font-heading: 'Outfit', sans-serif;
+    --font-main: system-ui, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    --font-heading: system-ui, "Segoe UI", Roboto, sans-serif;
     --shimmer: linear-gradient(
         120deg,
         rgba(255, 255, 255, 0) 30%,
@@ -18,8 +26,6 @@
         rgba(255, 255, 255, 0) 48%
     );
 }
-
-@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;600&family=Inter:wght@300;400;600&display=swap');
 
 * {
     box-sizing: border-box;
@@ -91,8 +97,8 @@ body {
 
 .glass-panel {
     background: var(--glass);
-    backdrop-filter: blur(20px) saturate(180%);
-    -webkit-backdrop-filter: blur(20px) saturate(180%);
+    backdrop-filter: blur(8px) saturate(100%);
+    -webkit-backdrop-filter: blur(8px) saturate(100%);
     border: 1px solid var(--glass-border);
     border-radius: 24px;
     padding: 20px;
@@ -127,6 +133,7 @@ body {
     justify-content: space-between;
     align-items: center;
     border-top: 1px solid var(--glass-bright);
+    @media (max-width: 380px) { flex-direction: column; gap: 12px; }
 }
 
 .telemetry {
@@ -201,15 +208,36 @@ body {
 .affect-orb {
     width: 240px;
     height: 240px;
-    background: radial-gradient(circle at 30% 30%, var(--accent-primary), var(--accent-secondary));
+    background: radial-gradient(
+        circle at 30% 30%,
+        hsl(calc(185 + var(--pad-pleasure) * 70) 55% calc(58% + var(--pad-arousal) * 12%)),
+        var(--accent-secondary)
+    );
     border-radius: 42% 58% 70% 30% / 45% 45% 55% 55%;
     position: relative;
     box-shadow: 
-        0 0 80px rgba(56, 189, 248, 0.2),
+        0 0 calc(48px + var(--pad-arousal) * 72px) hsl(calc(200 + var(--pad-dominance) * 40) 70% 52% / 0.35),
         inset 0 0 40px rgba(255, 255, 255, 0.1);
     transition: all 1s cubic-bezier(0.175, 0.885, 0.32, 1.275);
     animation: orb-float 8s infinite ease-in-out, orb-morph 20s infinite alternate linear;
     overflow: hidden;
+}
+
+/* Bloque 22.3 — PAD-dominant glow (full UI); variables driven by ``[SYNC_IDENTITY]`` gestalt. */
+.affect-orb[data-pad-axis="pleasure"] {
+    box-shadow:
+        0 0 96px rgba(52, 211, 153, calc(0.12 + var(--pad-p, 0.5) * 0.55)),
+        inset 0 0 40px rgba(255, 255, 255, 0.1);
+}
+.affect-orb[data-pad-axis="arousal"] {
+    box-shadow:
+        0 0 96px rgba(251, 191, 36, calc(0.12 + var(--pad-a, 0.5) * 0.55)),
+        inset 0 0 40px rgba(255, 255, 255, 0.1);
+}
+.affect-orb[data-pad-axis="dominance"] {
+    box-shadow:
+        0 0 96px rgba(96, 165, 250, calc(0.12 + var(--pad-d, 0.5) * 0.55)),
+        inset 0 0 40px rgba(255, 255, 255, 0.1);
 }
 
 @keyframes orb-float {
@@ -362,9 +390,81 @@ body {
 .bottom-controls {
     display: flex;
     flex-direction: column;
-    gap: 12px;
-    margin-bottom: 80px; /* High clearance for OS UI combined with container padding */
+    gap: 8px;
+    margin-bottom: 40px;
     flex-shrink: 0;
+}
+
+.telemetry-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 6px;
+    padding: 8px !important;
+    font-family: var(--font-heading);
+    font-size: 0.65rem;
+    font-weight: 600;
+}
+
+.telemetry-item {
+    display: flex;
+    justify-content: space-between;
+    color: var(--text-secondary);
+}
+
+.telemetry-item span:last-child {
+    color: var(--accent-primary);
+}
+
+.chat-entry-container {
+    display: flex;
+    padding: 4px !important;
+    gap: 4px;
+    border-radius: 12px !important;
+}
+
+#chat-input {
+    flex: 1;
+    background: transparent;
+    border: none;
+    outline: none;
+    color: #fff;
+    padding: 8px;
+    font-size: 0.85rem;
+}
+
+#chat-input.sending {
+    opacity: 0.5;
+    transform: translateX(10px);
+    transition: all 0.2s ease;
+}
+
+.transcript {
+    font-size: 0.9rem;
+    line-height: 1.4;
+    font-weight: 400;
+    color: var(--text-primary);
+    transition: all 0.5s ease;
+}
+
+#btn-send {
+    background: var(--text-primary);
+    color: var(--bg-dark);
+    border: none;
+    border-radius: 8px;
+    padding: 0 12px;
+    font-size: 0.7rem;
+    font-weight: 700;
+}
+
+.btn-row {
+    display: flex;
+    gap: 8px;
+}
+
+.glass-btn.small {
+    flex: 1;
+    padding: 10px;
+    font-size: 0.75rem;
 }
 
 .glass-btn {
@@ -466,4 +566,82 @@ body {
     .app-container { gap: 12px; padding: 12px; }
     .affect-orb { width: 140px; height: 140px; }
     .glass-panel { padding: 12px; }
+}
+
+/* Bloque 22.0 — text-first field mode (default on body.nomad-text-focus) */
+.identity-strip {
+    font-size: 0.72rem;
+    line-height: 1.35;
+    color: var(--text-secondary);
+    padding: 10px 14px !important;
+    border-radius: 16px;
+}
+
+.ui-mode-toggle {
+    flex-shrink: 0;
+    font-size: 0.65rem !important;
+    padding: 6px 10px !important;
+    max-width: 38%;
+}
+
+body.nomad-text-focus .orb-container,
+body.nomad-text-focus .ethical-heartbeat,
+body.nomad-text-focus .telemetry-grid {
+    display: none !important;
+}
+
+body.nomad-text-focus #btn-stream {
+    display: none !important;
+}
+
+body.nomad-text-focus .app-container {
+    padding-top: 10px;
+    gap: 10px;
+    padding-bottom: calc(72px + env(safe-area-inset-bottom, 16px));
+}
+
+body.nomad-text-focus .charm-output {
+    flex: 1;
+    min-height: min(52vh, 420px);
+    border-left-color: rgb(56 189 248 / calc(0.28 + var(--identity-warmth) * 0.45));
+}
+
+body.nomad-text-focus .top-bar {
+    flex-wrap: wrap;
+    row-gap: 8px;
+}
+
+/* Bloque 22.1 — Text-first field mode (lightweight chat on mobile / LAN) */
+body.nomad-text-focus .orb-container {
+    display: none !important;
+}
+body.nomad-text-focus #ethical-heartbeat {
+    display: none !important;
+}
+body.nomad-text-focus #btn-stream {
+    display: none !important;
+}
+body.nomad-text-focus .mesh-background::after {
+    display: none;
+}
+body.nomad-text-focus .glass-panel::before {
+    animation: none !important;
+    opacity: 0 !important;
+}
+body.nomad-text-focus .app-container {
+    gap: 14px;
+    padding-top: 12px;
+}
+.identity-strip {
+    font-size: 0.75rem;
+    line-height: 1.4;
+    color: var(--text-secondary);
+    padding: 10px 14px;
+    max-height: 5rem;
+    overflow: hidden;
+}
+.ui-mode-toggle {
+    font-size: 0.65rem;
+    padding: 6px 10px;
+    white-space: nowrap;
 }

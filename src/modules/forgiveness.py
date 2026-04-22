@@ -12,9 +12,9 @@ narrative memory, but its emotional weight and influence on
 future decisions gradually decreases.
 """
 
-from dataclasses import dataclass
 import logging
 import math
+from dataclasses import dataclass
 
 _log = logging.getLogger(__name__)
 
@@ -104,7 +104,7 @@ class AlgorithmicForgiveness:
         if not math.isfinite(score):
             _log.warning("Forgiveness: Non-finite score registered. Defaulting to 0.0.")
             score = 0.0
-            
+
         if score < -0.1:
             type_ = "negative"
         elif score > 0.2:
@@ -167,9 +167,9 @@ class AlgorithmicForgiveness:
                     w = float(mem.current_weight)
                     if not math.isfinite(w):
                         w = 0.5
-                        
+
                     mem.current_weight = w * decay * positive_factor
-                    
+
                     # Anti-NaN guard
                     if not math.isfinite(mem.current_weight):
                         mem.current_weight = 0.0

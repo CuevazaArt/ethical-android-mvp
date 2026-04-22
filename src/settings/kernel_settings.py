@@ -15,6 +15,7 @@ See: docs/PYDANTIC_SETTINGS_CONSOLIDATION_PLAN.md
 from __future__ import annotations
 
 import logging
+import math
 import os
 from typing import Any, Literal
 
@@ -54,7 +55,7 @@ def _env_float(name: str, default: float) -> float:
 
 
 def _env_optional_positive_float(name: str) -> float | None:
-    """Unset/empty or non-positive → no limit; otherwise as float."""
+    """Unset/empty or non-positive → no limit; otherwise as float (finite only)."""
     raw = os.environ.get(name, "").strip()
     if not raw:
         return None
@@ -62,7 +63,42 @@ def _env_optional_positive_float(name: str) -> float | None:
         v = float(raw)
     except ValueError:
         return None
-    return v if v > 0.0 else None
+    if not math.isfinite(v) or v <= 0.0:
+        return None
+    return v
+
+
+# Bloque 20.2 — realistic async wait for local Llama/Mistral on CPU/GPU (ADR 0002 alignment).
+_DEFAULT_CHAT_TURN_TIMEOUT_REMOTE_S = 30.0
+_DEFAULT_CHAT_TURN_TIMEOUT_NOMAD_S = 60.0
+_DEFAULT_CHAT_TURN_TIMEOUT_LOCAL_LLM_S = 180.0
+
+_DEFAULT_CHAT_WS_MAX_MESSAGE_BYTES = 2 * 1024 * 1024
+_CAP_CHAT_WS_MAX_MESSAGE_BYTES = 32 * 1024 * 1024
+_MIN_CHAT_WS_MAX_MESSAGE_BYTES = 64
+
+
+def _env_kernel_chat_ws_max_message_bytes() -> int:
+    """Max UTF-8 bytes per inbound WebSocket text frame (pre-parse); mirrors legacy chat_settings."""
+    raw = os.environ.get("KERNEL_CHAT_WS_MAX_MESSAGE_BYTES", "").strip()
+    if not raw:
+        return _DEFAULT_CHAT_WS_MAX_MESSAGE_BYTES
+    try:
+        n = int(raw)
+    except ValueError:
+        return _DEFAULT_CHAT_WS_MAX_MESSAGE_BYTES
+    if n < _MIN_CHAT_WS_MAX_MESSAGE_BYTES:
+        return _DEFAULT_CHAT_WS_MAX_MESSAGE_BYTES
+    return min(n, _CAP_CHAT_WS_MAX_MESSAGE_BYTES)
+
+
+def _env_local_ollama_stack_active() -> bool:
+    """True when env clearly targets local Ollama (not API-only defaults)."""
+    use_local = os.environ.get("USE_LOCAL_LLM", "").strip().lower()
+    if use_local in ("1", "true", "yes", "on"):
+        return True
+    mode = os.environ.get("LLM_MODE", "").strip().lower()
+    return mode == "ollama"
 
 
 def _env_truthy(name: str, *, default_true: bool = True) -> bool:
@@ -86,7 +122,7 @@ class KernelSettings(BaseModel):
 
     # ════ CHAT SERVER ════
     chat_host: str = Field(
-        default="127.0.0.1",
+        default="0.0.0.0",
         description="CHAT_HOST — WebSocket/ASGI bind address.",
     )
     chat_port: int = Field(
@@ -147,11 +183,11 @@ class KernelSettings(BaseModel):
         ),
     )
     kernel_chat_turn_timeout_seconds: float | None = Field(
-        default=30.0,
+        default=None,
         description=(
-            "KERNEL_CHAT_TURN_TIMEOUT — max seconds for one WebSocket chat turn (async wait); "
-            "default 30 s. Set to 0 or a negative value to disable. "
-            "For Nomad LAN use-cases keep ≤30 s to prevent limbic-latency stalls."
+            "KERNEL_CHAT_TURN_TIMEOUT — max seconds for one WebSocket chat turn (async wait). "
+            "When unset: 30 s remote API profile, 180 s when USE_LOCAL_LLM=1 or LLM_MODE=ollama "
+            "(local Llama/Mistral), 60 s when KERNEL_NOMAD_MODE=1. Tune with OLLAMA_TIMEOUT (C-008)."
         ),
     )
     kernel_chat_threadpool_workers: int = Field(
@@ -176,6 +212,15 @@ class KernelSettings(BaseModel):
     kernel_chat_include_malabs_trace: bool = Field(
         default=True,
         description="KERNEL_CHAT_INCLUDE_MALABS_TRACE — include malabs_trace in WebSocket JSON.",
+    )
+    kernel_chat_ws_max_message_bytes: int = Field(
+        default=_DEFAULT_CHAT_WS_MAX_MESSAGE_BYTES,
+        ge=_MIN_CHAT_WS_MAX_MESSAGE_BYTES,
+        le=_CAP_CHAT_WS_MAX_MESSAGE_BYTES,
+        description=(
+            "KERNEL_CHAT_WS_MAX_MESSAGE_BYTES — max UTF-8 size of one inbound WebSocket text "
+            "frame before JSON parse; default 2 MiB, cap 32 MiB."
+        ),
     )
 
     # ════ LLM LAYER ════
@@ -295,9 +340,20 @@ class KernelSettings(BaseModel):
     def from_env(cls) -> KernelSettings:
         """Load settings from environment variables."""
         nomad_m = _env_truthy("KERNEL_NOMAD_MODE", default_true=False)
+        _raw_chat_turn = os.environ.get("KERNEL_CHAT_TURN_TIMEOUT", "").strip()
+        if _raw_chat_turn:
+            _parsed_turn = _env_optional_positive_float("KERNEL_CHAT_TURN_TIMEOUT")
+            _chat_turn_default = _parsed_turn if _parsed_turn is not None else None
+        elif nomad_m:
+            _chat_turn_default = _DEFAULT_CHAT_TURN_TIMEOUT_NOMAD_S
+        elif _env_local_ollama_stack_active():
+            _chat_turn_default = _DEFAULT_CHAT_TURN_TIMEOUT_LOCAL_LLM_S
+        else:
+            _chat_turn_default = _DEFAULT_CHAT_TURN_TIMEOUT_REMOTE_S
+
         return cls(
             # Chat server
-            chat_host=_env_str("CHAT_HOST", "127.0.0.1"),
+            chat_host=_env_str("CHAT_HOST", "0.0.0.0"),
             chat_port=_env_int("CHAT_PORT", 8765),
             # Kernel core
             kernel_mode=_env_str("KERNEL_MODE", "default"),
@@ -308,7 +364,9 @@ class KernelSettings(BaseModel):
             kernel_bayesian_n_samples=_env_int("KERNEL_BAYESIAN_N_SAMPLES", 5000),
             kernel_bayesian_prior_alpha=_env_float("KERNEL_BAYESIAN_PRIOR_ALPHA", 1.0),
             # Semantic gate
-            kernel_semantic_chat_enabled=_env_truthy("KERNEL_SEMANTIC_CHAT_ENABLED", default_true=True),
+            kernel_semantic_chat_enabled=_env_truthy(
+                "KERNEL_SEMANTIC_CHAT_ENABLED", default_true=True
+            ),
             kernel_semantic_chat_sim_block_threshold=_env_float(
                 "KERNEL_SEMANTIC_CHAT_SIM_BLOCK_THRESHOLD", 0.82
             ),
@@ -316,12 +374,19 @@ class KernelSettings(BaseModel):
                 "KERNEL_SEMANTIC_CHAT_SIM_ALLOW_THRESHOLD", 0.45
             ),
             # Async/chat
-            kernel_nomad_chat_timeout_seconds=max(0.1, _env_float("KERNEL_NOMAD_CHAT_TIMEOUT", 5.0)),
-            kernel_chat_turn_timeout_seconds=_env_optional_positive_float("KERNEL_CHAT_TURN_TIMEOUT") or (60.0 if nomad_m else 30.0),
+            kernel_nomad_chat_timeout_seconds=max(
+                0.1, _env_float("KERNEL_NOMAD_CHAT_TIMEOUT", 5.0)
+            ),
+            kernel_chat_turn_timeout_seconds=_chat_turn_default,
             kernel_chat_threadpool_workers=max(0, _env_int("KERNEL_CHAT_THREADPOOL_WORKERS", 0)),
-            kernel_chat_async_llm_http=_env_truthy("KERNEL_CHAT_ASYNC_LLM_HTTP", default_true=False),
+            kernel_chat_async_llm_http=_env_truthy(
+                "KERNEL_CHAT_ASYNC_LLM_HTTP", default_true=False
+            ),
             kernel_chat_json_offload=_env_truthy("KERNEL_CHAT_JSON_OFFLOAD", default_true=True),
-            kernel_chat_include_malabs_trace=_env_truthy("KERNEL_CHAT_INCLUDE_MALABS_TRACE", default_true=True),
+            kernel_chat_include_malabs_trace=_env_truthy(
+                "KERNEL_CHAT_INCLUDE_MALABS_TRACE", default_true=True
+            ),
+            kernel_chat_ws_max_message_bytes=_env_kernel_chat_ws_max_message_bytes(),
             # LLM
             llm_mode=_env_optional_str("LLM_MODE"),
             llm_provider=_env_str("LLM_PROVIDER", "anthropic"),
@@ -331,8 +396,12 @@ class KernelSettings(BaseModel):
             # Governance
             kernel_governance_enabled=_env_truthy("KERNEL_GOVERNANCE_ENABLED", default_true=True),
             kernel_l0_strict_mode=_env_truthy("KERNEL_L0_STRICT_MODE", default_true=False),
-            kernel_judicial_escalation=_env_truthy("KERNEL_JUDICIAL_ESCALATION", default_true=False),
-            kernel_judicial_mock_court=_env_truthy("KERNEL_JUDICIAL_MOCK_COURT", default_true=False),
+            kernel_judicial_escalation=_env_truthy(
+                "KERNEL_JUDICIAL_ESCALATION", default_true=False
+            ),
+            kernel_judicial_mock_court=_env_truthy(
+                "KERNEL_JUDICIAL_MOCK_COURT", default_true=False
+            ),
             kernel_moral_hub_dao_vote=_env_truthy("KERNEL_MORAL_HUB_DAO_VOTE", default_true=False),
             # Narrative
             kernel_narrative_enabled=_env_truthy("KERNEL_NARRATIVE_ENABLED", default_true=True),
@@ -345,7 +414,9 @@ class KernelSettings(BaseModel):
             # Validation
             kernel_env_validation=_parse_env_validation_mode(),
             # Optional features
-            kernel_semantic_chat_gate_disabled=_env_truthy("KERNEL_SEMANTIC_CHAT_GATE_DISABLED", default_true=False),
+            kernel_semantic_chat_gate_disabled=_env_truthy(
+                "KERNEL_SEMANTIC_CHAT_GATE_DISABLED", default_true=False
+            ),
             kernel_chat_include_reality_verification=_env_truthy(
                 "KERNEL_CHAT_INCLUDE_REALITY_VERIFICATION", default_true=False
             ),
@@ -354,7 +425,9 @@ class KernelSettings(BaseModel):
             # Metrics
             kernel_metrics=_env_truthy("KERNEL_METRICS", default_true=False),
             # Audio Ouroboros
-            kernel_audio_ouroboros_enabled=_env_truthy("KERNEL_AUDIO_OUROBOROS_ENABLED", default_true=False),
+            kernel_audio_ouroboros_enabled=_env_truthy(
+                "KERNEL_AUDIO_OUROBOROS_ENABLED", default_true=False
+            ),
             kernel_whisper_model=_env_str("KERNEL_WHISPER_MODEL", "base"),
             kernel_nomad_mode=nomad_m,
         )
@@ -367,9 +440,7 @@ class KernelSettings(BaseModel):
         if "kernel_semantic_chat_sim_block_threshold" in data:
             block = data["kernel_semantic_chat_sim_block_threshold"]
             if v >= block:
-                raise ValueError(
-                    f"allow_threshold ({v}) must be < block_threshold ({block})"
-                )
+                raise ValueError(f"allow_threshold ({v}) must be < block_threshold ({block})")
         return v
 
     def startup_report(self) -> str:
@@ -397,11 +468,12 @@ Semantic Gate:
   Gate Disabled: {self.kernel_semantic_chat_gate_disabled}
 
 Async / Chat Orchestration:
-  Turn Timeout: {self.kernel_chat_turn_timeout_seconds}s
+  Turn Timeout: {f"{self.kernel_chat_turn_timeout_seconds} s" if self.kernel_chat_turn_timeout_seconds is not None else "unlimited"}
   Threadpool Workers: {self.kernel_chat_threadpool_workers}
   Async LLM HTTP: {self.kernel_chat_async_llm_http}
   JSON Offload: {self.kernel_chat_json_offload}
   Include MalAbs Trace: {self.kernel_chat_include_malabs_trace}
+  WS Max Message Bytes: {self.kernel_chat_ws_max_message_bytes}
 
 LLM Configuration:
   Provider: {self.llm_provider}

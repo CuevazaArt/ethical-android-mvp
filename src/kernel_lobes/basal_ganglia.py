@@ -1,12 +1,14 @@
 from __future__ import annotations
-from typing import Any
+
 from src.modules.basal_ganglia import BasalGanglia as BasalGangliaModule
+
 
 class BasalGanglia:
     """
     Structural Node for the Basal Ganglia in the Ethical Tri-Lobe.
     Responsible for affective smoothing and action selection resonance.
     """
+
     def __init__(self, alpha: float = 0.35):
         self.engine = BasalGangliaModule(alpha=alpha)
 

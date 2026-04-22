@@ -5,7 +5,6 @@ from types import SimpleNamespace
 from unittest.mock import patch
 
 import pytest
-
 from src.modules.nomad_chat_adapter import NomadChatConsumer
 
 
@@ -27,9 +26,7 @@ async def test_nomad_chat_consumer_success_path() -> None:
     consumer = NomadChatConsumer(kernel=object())
 
     async def _fake_process_chat(*args, **kwargs):
-        return SimpleNamespace(
-            response=SimpleNamespace(message="ok", inner_voice="inner ok")
-        )
+        return SimpleNamespace(response=SimpleNamespace(message="ok", inner_voice="inner ok"))
 
     consumer.bridge = SimpleNamespace(process_chat=_fake_process_chat)
 
@@ -84,7 +81,9 @@ async def test_nomad_chat_consumer_ignores_empty_text() -> None:
     consumer = NomadChatConsumer(kernel=object())
 
     async def _fake_process_chat(*args, **kwargs):
-        return SimpleNamespace(response=SimpleNamespace(message="should_not_happen", inner_voice=None))
+        return SimpleNamespace(
+            response=SimpleNamespace(message="should_not_happen", inner_voice=None)
+        )
 
     consumer.bridge = SimpleNamespace(process_chat=_fake_process_chat)
 

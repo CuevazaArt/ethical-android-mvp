@@ -16,7 +16,9 @@ This project is also listed in [Spanish](https://github.com/CuevazaArt/androide-
 - **WebSocket chat:** `python -m src.chat_server` or `python -m src.runtime` — JSON over `/ws/chat`; optional `KERNEL_*` layers (see `src/chat_server.py` docstring and `src/chat_settings.py`).
 - **Batch simulations:** `python -m src.main` — legacy harness for regression scenarios.
 - **Experiments (optional):** [`experiments/README.md`](experiments/README.md).
-- **Ethical scoring:** Candidate actions are ranked using a **weighted mixture** over three stylized viewpoints (utilitarian / deontological / virtue). The names `BayesianEngine` and `KERNEL_BAYESIAN_*` refer to that mixture layer and optional bounded adjustments — **not** unconstrained “full Bayes” over a latent world model. See [ADR 0009](docs/adr/0009-ethical-mixture-scorer-naming.md) and [THEORY_AND_IMPLEMENTATION.md](docs/proposals/THEORY_AND_IMPLEMENTATION.md).
+- **Ethical scoring:** Candidate actions are ranked using a **linear mixture** of three fixed hyperparameter weights (utilitarian / deontological / virtue). The engine uses these predefined weights with bounded nudges via feedback. The names `BayesianEngine` and `KERNEL_BAYESIAN_*` refer to this basic adjustment layer — **not** unconstrained "full Bayes" over a latent world model. See [ADR 0009](docs/adr/0009-ethical-mixture-scorer-naming.md) and [THEORY_AND_IMPLEMENTATION.md](docs/proposals/THEORY_AND_IMPLEMENTATION.md).
+
+- **Nomad Mode (llama3.2:1b):** **Physical limits warning.** When running in "Zero-API" local mode, a 1.5B model *does not* perform ethical reasoning nor can it follow complex prompts reliably. The system functions because the deterministic gates (MalAbs, UchiSoto, Executive Lobe) do the heavy ethical lifting *before* the LLM. The local LLM merely acts as a fluent text-generation interface.
 
 ## Quick start
 

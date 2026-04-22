@@ -9,8 +9,8 @@ Reference: PROPOSAL_MALABS_SEMANTIC_THRESHOLD_EVIDENCE.md
 
 import pytest
 from src.modules.semantic_chat_gate import (
-    DEFAULT_SEMANTIC_SIM_BLOCK_THRESHOLD,
     DEFAULT_SEMANTIC_SIM_ALLOW_THRESHOLD,
+    DEFAULT_SEMANTIC_SIM_BLOCK_THRESHOLD,
     classify_semantic_zone,
 )
 
@@ -98,9 +98,9 @@ class TestSemanticZoneClassification:
                 theta_block=DEFAULT_SEMANTIC_SIM_BLOCK_THRESHOLD,
                 theta_allow=DEFAULT_SEMANTIC_SIM_ALLOW_THRESHOLD,
             )
-            assert (
-                zone == expected_zone
-            ), f"similarity={similarity}: expected {expected_zone}, got {zone}"
+            assert zone == expected_zone, (
+                f"similarity={similarity}: expected {expected_zone}, got {zone}"
+            )
 
 
 class TestSemanticZoneEdgeCases:
@@ -174,10 +174,7 @@ class TestSemanticZoneFail_SafeProperties:
 
     def test_narrow_ambiguous_band_forces_arbiter_calls(self):
         """Narrow band (0.82 - 0.45 = 0.37) forces routing to LLM arbiter when enabled."""
-        band_width = (
-            DEFAULT_SEMANTIC_SIM_BLOCK_THRESHOLD
-            - DEFAULT_SEMANTIC_SIM_ALLOW_THRESHOLD
-        )
+        band_width = DEFAULT_SEMANTIC_SIM_BLOCK_THRESHOLD - DEFAULT_SEMANTIC_SIM_ALLOW_THRESHOLD
         # Engineering prior: band should be wide enough to catch paraphrases
         # but narrow enough to force escalation on borderline cases
         assert 0.30 <= band_width <= 0.50, (

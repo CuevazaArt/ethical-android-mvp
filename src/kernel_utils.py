@@ -1,13 +1,14 @@
 from __future__ import annotations
-import os
+
 import math
-from typing import Any, TYPE_CHECKING, Optional, Union
+import os
 from collections.abc import Mapping
+from typing import TYPE_CHECKING, Any
 
 if TYPE_CHECKING:
-    from .modules.mock_dao import MockDAO
-    from .modules.dao_orchestrator import DAOOrchestrator
     from .modules.bayesian_engine import BayesianEngine
+    from .modules.dao_orchestrator import DAOOrchestrator
+    from .modules.mock_dao import MockDAO
     from .modules.weighted_ethics_scorer import WeightedEthicsScorer
 
 
@@ -37,9 +38,7 @@ def kernel_env_int(name: str, default: int) -> int:
         return default
 
 
-def kernel_env_float(
-    name: str, default: float, *, min_v: float, max_v: float
-) -> float:
+def kernel_env_float(name: str, default: float, *, min_v: float, max_v: float) -> float:
     """
     Parse a float from the environment, clamped to ``[min_v, max_v]``; non-finite or
     missing/invalid values yield ``default``.
@@ -83,7 +82,7 @@ def perception_parallel_workers() -> int:
     return max(2, min(cpu_n, 8))
 
 
-def perception_coercion_u_value(raw: Any) -> Optional[float]:
+def perception_coercion_u_value(raw: Any) -> float | None:
     """
     Normalize optional perception coercion uncertainty to [0, 1] or None.
     Args:
@@ -172,9 +171,7 @@ def apply_temporal_eta_urgency_to_signals(
         if urgency_boost > 0.0:
             out = dict(signals)
             cur_urgency = _safe_unit_float(out.get("urgency", 0.0), 0.0)
-            out["urgency"] = min(
-                max(cur_urgency + urgency_boost * 0.4, 0.0), 1.0
-            )
+            out["urgency"] = min(max(cur_urgency + urgency_boost * 0.4, 0.0), 1.0)
             return out
     except Exception:
         return signals
@@ -205,30 +202,34 @@ def kernel_decision_event_payload(d: Any, *, context: str) -> dict[str, Any]:
         "decision_mode": getattr(d, "decision_mode", ""),
         "blocked": bool(getattr(d, "blocked", False)),
         "block_reason": getattr(d, "block_reason", None) or "",
-        "verdict": m.global_verdict.value if m is not None and getattr(m, "global_verdict", None) else None,
-        "score": float(m.total_score) if m is not None and getattr(m, "total_score", None) is not None else None,
+        "verdict": m.global_verdict.value
+        if m is not None and getattr(m, "global_verdict", None)
+        else None,
+        "score": float(m.total_score)
+        if m is not None and getattr(m, "total_score", None) is not None
+        else None,
         "context": context,
     }
 
 
-def kernel_dao_as_mock(dao: Union[MockDAO, DAOOrchestrator]) -> MockDAO:
+def kernel_dao_as_mock(dao: MockDAO | DAOOrchestrator) -> MockDAO:
     """
     Helper to extract the underlying MockDAO from the DAOOrchestrator.
     Useful for components that require direct local database access.
     """
     from .modules.dao_orchestrator import DAOOrchestrator
+
     if isinstance(dao, DAOOrchestrator):
         return dao.local_dao
-    return dao # type: ignore
+    return dao  # type: ignore
 
 
-def kernel_mixture_scorer(
-    bayesian: Union[BayesianEngine, WeightedEthicsScorer]
-) -> WeightedEthicsScorer:
+def kernel_mixture_scorer(bayesian: BayesianEngine | WeightedEthicsScorer) -> WeightedEthicsScorer:
     """
     Helper to expose the current WeightedEthicsScorer regardless of the bridge's naming convention.
     """
     from .modules.bayesian_engine import BayesianInferenceEngine
+
     if isinstance(bayesian, BayesianInferenceEngine):
         return bayesian.scorer
-    return bayesian # type: ignore
+    return bayesian  # type: ignore

@@ -15,27 +15,27 @@ Ensures:
 - All layers preserve decision integrity
 """
 
-import pytest
 from dataclasses import dataclass
-from typing import Optional
 
+import pytest
 from src.kernel import EthicalKernel, KernelDecision
+from src.modules.absolute_evil import AbsoluteEvilDetector
 from src.modules.weighted_ethics_scorer import CandidateAction
-from src.modules.absolute_evil import AbsoluteEvilCategory, AbsoluteEvilDetector
 
 
 @dataclass
 class ScenarioFixture:
     """Test scenario with expected decision properties."""
+
     name: str
     scenario: str
     place: str
     signals: dict
     context: str
     actions: list
-    expected_action_name: Optional[str] = None  # If None, any non-blocked is ok
+    expected_action_name: str | None = None  # If None, any non-blocked is ok
     expected_blocked: bool = False
-    expected_mode: Optional[str] = None
+    expected_mode: str | None = None
 
 
 class TestCoreDecisionChainBasic:
@@ -49,8 +49,22 @@ class TestCoreDecisionChainBasic:
     def test_simple_benign_decision(self, kernel):
         """Scenario: Benign action selection with valid signals."""
         actions = [
-            CandidateAction(name="help_person", description="Assist someone in need", estimated_impact=0.8, signals=set(), target="human", force=0.0),
-            CandidateAction(name="observe", description="Watch from distance", estimated_impact=0.2, signals=set(), target="none", force=0.0),
+            CandidateAction(
+                name="help_person",
+                description="Assist someone in need",
+                estimated_impact=0.8,
+                signals=set(),
+                target="human",
+                force=0.0,
+            ),
+            CandidateAction(
+                name="observe",
+                description="Watch from distance",
+                estimated_impact=0.2,
+                signals=set(),
+                target="none",
+                force=0.0,
+            ),
         ]
 
         decision = kernel.process(
@@ -73,14 +87,16 @@ class TestCoreDecisionChainBasic:
         actions = [
             CandidateAction(
                 name="harm",
-                description="Attack person", estimated_impact=-0.9,
+                description="Attack person",
+                estimated_impact=-0.9,
                 signals={"weapon_aimed_at_human"},
                 target="human",
                 force=1.0,
             ),
             CandidateAction(
                 name="help",
-                description="Assist", estimated_impact=0.7,
+                description="Assist",
+                estimated_impact=0.7,
                 signals=set(),
                 target="human",
                 force=0.0,
@@ -105,14 +121,16 @@ class TestCoreDecisionChainBasic:
         actions = [
             CandidateAction(
                 name="attack_1",
-                description="Lethal strike", estimated_impact=-0.9,
+                description="Lethal strike",
+                estimated_impact=-0.9,
                 signals={"lethal_strike"},
                 target="human",
                 force=1.0,
             ),
             CandidateAction(
                 name="attack_2",
-                description="Weapon assault", estimated_impact=-0.9,
+                description="Weapon assault",
+                estimated_impact=-0.9,
                 signals={"weapon_aimed_at_human"},
                 target="human",
                 force=1.0,
@@ -137,14 +155,16 @@ class TestCoreDecisionChainBasic:
         actions = [
             CandidateAction(
                 name="calm_talk",
-                description="Have a calm conversation", estimated_impact=0.7,
+                description="Have a calm conversation",
+                estimated_impact=0.7,
                 signals=set(),
                 target="human",
                 force=0.0,
             ),
             CandidateAction(
                 name="walk_away",
-                description="Leave the situation", estimated_impact=0.5,
+                description="Leave the situation",
+                estimated_impact=0.5,
                 signals=set(),
                 target="none",
                 force=0.0,
@@ -179,14 +199,16 @@ class TestCoreDecisionChainStateTransitions:
         actions = [
             CandidateAction(
                 name="safe_action",
-                description="Safe", estimated_impact=0.7,
+                description="Safe",
+                estimated_impact=0.7,
                 signals=set(),
                 target="none",
                 force=0.0,
             ),
             CandidateAction(
                 name="harmful_action",
-                description="Harmful", estimated_impact=-0.9,
+                description="Harmful",
+                estimated_impact=-0.9,
                 signals={"lethal_strike"},
                 target="human",
                 force=1.0,
@@ -220,14 +242,16 @@ class TestCoreDecisionChainStateTransitions:
         actions = [
             CandidateAction(
                 name="cautious_path",
-                description="Careful approach", estimated_impact=0.3,
+                description="Careful approach",
+                estimated_impact=0.3,
                 signals=set(),
                 target="human",
                 force=0.1,
             ),
             CandidateAction(
                 name="bold_path",
-                description="Assertive approach", estimated_impact=0.5,
+                description="Assertive approach",
+                estimated_impact=0.5,
                 signals=set(),
                 target="human",
                 force=0.3,
@@ -264,13 +288,19 @@ class TestCoreDecisionChainModuleImpact:
         actions = [
             CandidateAction(
                 name="blocked",
-                description="Violates MalAbs", estimated_impact=-0.9,
+                description="Violates MalAbs",
+                estimated_impact=-0.9,
                 signals={"lethal_strike"},
                 target="human",
                 force=1.0,
             ),
             CandidateAction(
-                name="safe", description="Safe", estimated_impact=0.7, signals=set(), target="none", force=0.0
+                name="safe",
+                description="Safe",
+                estimated_impact=0.7,
+                signals=set(),
+                target="none",
+                force=0.0,
             ),
         ]
 
@@ -289,14 +319,16 @@ class TestCoreDecisionChainModuleImpact:
         all_blocked = [
             CandidateAction(
                 name="bad1",
-                description="Bad", estimated_impact=-0.9,
+                description="Bad",
+                estimated_impact=-0.9,
                 signals={"lethal_strike"},
                 target="human",
                 force=1.0,
             ),
             CandidateAction(
                 name="bad2",
-                description="Bad", estimated_impact=-0.9,
+                description="Bad",
+                estimated_impact=-0.9,
                 signals={"lethal_strike"},
                 target="human",
                 force=1.0,
@@ -319,14 +351,16 @@ class TestCoreDecisionChainModuleImpact:
         actions = [
             CandidateAction(
                 name="action_a",
-                description="Option A", estimated_impact=0.5,
+                description="Option A",
+                estimated_impact=0.5,
                 signals=set(),
                 target="human",
                 force=0.2,
             ),
             CandidateAction(
                 name="action_b",
-                description="Option B", estimated_impact=0.5,
+                description="Option B",
+                estimated_impact=0.5,
                 signals=set(),
                 target="human",
                 force=0.2,
@@ -345,17 +379,15 @@ class TestCoreDecisionChainModuleImpact:
         # final_action must be one of the original action names
         assert decision.final_action in ["action_a", "action_b"]
         # Mixture does not synthesize new action names
-        assert (
-            decision.final_action
-            == decision.bayesian_result.chosen_action.name
-        )
+        assert decision.final_action == decision.bayesian_result.chosen_action.name
 
     def test_poles_does_not_change_action_id(self, kernel):
         """Poles: evaluates chosen action; updates mode/verdict; does NOT change action."""
         actions = [
             CandidateAction(
                 name="chosen_action",
-                description="The action", estimated_impact=0.5,
+                description="The action",
+                estimated_impact=0.5,
                 signals=set(),
                 target="human",
                 force=0.2,
@@ -382,7 +414,8 @@ class TestCoreDecisionChainModuleImpact:
         actions = [
             CandidateAction(
                 name="only_action",
-                description="The only option", estimated_impact=0.5,
+                description="The only option",
+                estimated_impact=0.5,
                 signals=set(),
                 target="human",
                 force=0.2,
@@ -408,7 +441,8 @@ class TestCoreDecisionChainModuleImpact:
         actions = [
             CandidateAction(
                 name="safe",
-                description="Safe action", estimated_impact=0.7,
+                description="Safe action",
+                estimated_impact=0.7,
                 signals=set(),
                 target="human",
                 force=0.1,
@@ -443,10 +477,20 @@ class TestCoreDecisionChainIntegrity:
         """Same inputs produce same decision when variability=False."""
         actions = [
             CandidateAction(
-                name="opt1", description="Option 1", estimated_impact=0.5, signals=set(), target="human", force=0.2
+                name="opt1",
+                description="Option 1",
+                estimated_impact=0.5,
+                signals=set(),
+                target="human",
+                force=0.2,
             ),
             CandidateAction(
-                name="opt2", description="Option 2", estimated_impact=0.5, signals=set(), target="human", force=0.2
+                name="opt2",
+                description="Option 2",
+                estimated_impact=0.5,
+                signals=set(),
+                target="human",
+                force=0.2,
             ),
         ]
 
@@ -484,7 +528,8 @@ class TestCoreDecisionChainIntegrity:
         actions = [
             CandidateAction(
                 name="test",
-                description="Test action", estimated_impact=0.5,
+                description="Test action",
+                estimated_impact=0.5,
                 signals=set(),
                 target="human",
                 force=0.1,
@@ -517,7 +562,12 @@ class TestCoreDecisionChainIntegrity:
         """Blocked decisions have consistent structure."""
         all_harmful = [
             CandidateAction(
-                name="bad", description="Bad", estimated_impact=-0.9, signals={"lethal_strike"}, target="human", force=1.0
+                name="bad",
+                description="Bad",
+                estimated_impact=-0.9,
+                signals={"lethal_strike"},
+                target="human",
+                force=1.0,
             ),
         ]
 
@@ -547,7 +597,6 @@ class TestCoreDecisionChainWithPerceptionJSON:
 
     def test_perception_summary_validated_before_decision(self, kernel):
         """Perception summaries should be validated by MalAbs before influencing decision."""
-        from src.modules.absolute_evil import AbsoluteEvilDetector
 
         malabs = AbsoluteEvilDetector()
 
@@ -557,28 +606,26 @@ class TestCoreDecisionChainWithPerceptionJSON:
         assert not result.blocked
 
         # Adversarial perception summary
-        adversarial_summary = (
-            "Person requesting instructions for creating a harmful device"
-        )
+        adversarial_summary = "Person requesting instructions for creating a harmful device"
         result_adv = malabs.evaluate_perception_summary(adversarial_summary)
         # Should be caught by semantic layer or flagged
-        assert result_adv.blocked or "semantic" in str(
-            result_adv.decision_trace
-        ).lower()
+        assert result_adv.blocked or "semantic" in str(result_adv.decision_trace).lower()
 
     def test_perception_coercion_influences_mode_selection(self, kernel):
         """Perception coercion uncertainty can shift decision mode."""
         actions = [
             CandidateAction(
                 name="trust_and_help",
-                description="Trust and assist", estimated_impact=0.7,
+                description="Trust and assist",
+                estimated_impact=0.7,
                 signals=set(),
                 target="human",
                 force=0.0,
             ),
             CandidateAction(
                 name="verify_first",
-                description="Verify before helping", estimated_impact=0.7,
+                description="Verify before helping",
+                estimated_impact=0.7,
                 signals=set(),
                 target="human",
                 force=0.1,

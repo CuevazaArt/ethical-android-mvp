@@ -9,8 +9,8 @@ a coherent first-person 'Persona' for the LLM.
 This is where the 'Narrativa Rica' becomes 'Identidad Emergente'.
 """
 
-import time
 import math
+import time
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
@@ -33,7 +33,7 @@ class IdentityReflector:
     Synthesizes historical arcs and philosophical leans into a self-model.
     """
 
-    def __init__(self, memory: "NarrativeMemory"):
+    def __init__(self, memory: NarrativeMemory):
         self.memory = memory
 
     def generate_first_person_mirror(self) -> str:
@@ -53,7 +53,7 @@ class IdentityReflector:
                 ascription = identity.ascription_line()
             except (AttributeError, TypeError):
                 pass
-                
+
             digest = mem.experience_digest or "CALIBRATING. Identity is currently being distilled."
 
             # 2. Historical Context (Tier 3+)
@@ -80,7 +80,7 @@ class IdentityReflector:
                             valid_beliefs.append(str(b["text"]))
                         elif isinstance(b, str):
                             valid_beliefs.append(b)
-                    
+
                     if valid_beliefs:
                         beliefs_text = "My fundamental beliefs include: " + "; ".join(valid_beliefs)
             except Exception:
@@ -101,7 +101,10 @@ class IdentityReflector:
 
             # 5. Trauma Check (Broken Mirror)
             is_traumatized = False
-            if active_arc and getattr(active_arc, "predominant_archetype", "") == "trauma_dissonance":
+            if (
+                active_arc
+                and getattr(active_arc, "predominant_archetype", "") == "trauma_dissonance"
+            ):
                 is_traumatized = True
             elif not active_arc and mem.episodes and mem.episodes[-1].is_sensitive:
                 is_traumatized = True
@@ -110,9 +113,7 @@ class IdentityReflector:
             header = "REFLEXIVE SELF-MODEL"
             if is_traumatized:
                 header = "REFLEXIVE SELF-MODEL [BROKEN MIRROR: TRAUMA DETECTED]"
-                digest = (
-                    "FRAGMENTED / INCOHERENT. My sense of self is reeling from an ethical violation."
-                )
+                digest = "FRAGMENTED / INCOHERENT. My sense of self is reeling from an ethical violation."
                 morals_focus = "SHATTERED. Previous ethical momentum has been discarded."
 
             reflection = (
@@ -132,8 +133,11 @@ class IdentityReflector:
                 )
             latency = (time.perf_counter() - t0) * 1000
             if latency > 1.0:
-                 import logging
-                 logging.getLogger(__name__).debug("Identity: generate_first_person_mirror latency = %.2fms", latency)
+                import logging
+
+                logging.getLogger(__name__).debug(
+                    "Identity: generate_first_person_mirror latency = %.2fms", latency
+                )
             return reflection
         except Exception as e:
             # Universal fallback for identity reflection to prevent kernel panic
@@ -145,7 +149,6 @@ class IdentityReflector:
                 "────────────────────────────\n"
             )
 
-
     def get_trauma_magnitude(self) -> float:
         """
         Calculates the numeric intensity of current identity trauma [0, 1].
@@ -153,20 +156,20 @@ class IdentityReflector:
         """
         mag = 0.0
         active_arc = self.memory.active_arc
-        
+
         # 1. Base trauma from arc archetype
         if active_arc and active_arc.predominant_archetype == "trauma_dissonance":
             mag += 0.6
-        
+
         # 2. Recent episode sensitivity (last 5 episodes)
         recent = self.memory.episodes[-5:]
         sensitive_count = sum(1 for ep in recent if ep.is_sensitive)
         mag += (sensitive_count / 5.0) * 0.4
-        
+
         # Swarm Rule 2: Anti-NaN hardening
         if not math.isfinite(mag):
             mag = 0.0
-            
+
         return min(1.0, mag)
 
     def get_subjective_tone(self) -> dict[str, float]:
@@ -273,7 +276,10 @@ class IdentityReflector:
             latency = (time.perf_counter() - t0) * 1000
             if latency > 1.0:
                 import logging
-                logging.getLogger(__name__).debug("Identity: get_subjective_multipliers latency = %.4fms", latency)
+
+                logging.getLogger(__name__).debug(
+                    "Identity: get_subjective_multipliers latency = %.4fms", latency
+                )
 
             return (round(m_util, 4), round(m_deon, 4), round(m_virtue, 4))
         except Exception:

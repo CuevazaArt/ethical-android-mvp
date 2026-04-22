@@ -162,7 +162,9 @@ def test_apply_temporal_skips_non_finite_eta() -> None:
         os.environ["KERNEL_TEMPORAL_ETA_MODULATION"] = "1"
         s = {"urgency": 0.1}
         p = SimpleNamespace(
-            temporal_context=SimpleNamespace(eta_seconds=float("nan"), battery_horizon_state="nominal")
+            temporal_context=SimpleNamespace(
+                eta_seconds=float("nan"), battery_horizon_state="nominal"
+            )
         )
         out = apply_temporal_eta_urgency_to_signals(s, p)
         assert out is s

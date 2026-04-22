@@ -46,7 +46,7 @@ def test_vision_continuous_daemon_emits_episode(monkeypatch: pytest.MonkeyPatch)
     d.start()
     time.sleep(0.35)
     d.stop()
-    assert any("knife" in e.entities for e in absorbed)
+    assert any("knife" in e.vision_entities for e in absorbed)
 
 
 def test_public_queue_stats_includes_vision_sync_queued() -> None:

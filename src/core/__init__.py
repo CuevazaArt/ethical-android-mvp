@@ -4,16 +4,16 @@
 
 from ..modules.absolute_evil import AbsoluteEvilDetector
 from ..modules.buffer import PreloadedBuffer
-from ..modules.weighted_ethics_scorer import WeightedEthicsScorer
 from ..modules.ethical_poles import EthicalPoles
+from ..modules.locus import LocusModule
 from ..modules.sigmoid_will import SigmoidWill
 from ..modules.sympathetic import SympatheticModule
-from ..modules.locus import LocusModule
 from ..modules.uchi_soto import UchiSotoModule
+from ..modules.weighted_ethics_scorer import WeightedEthicsScorer
 
 __all__ = [
     "AbsoluteEvilDetector",
-    "PreloadedBuffer", 
+    "PreloadedBuffer",
     "WeightedEthicsScorer",
     "EthicalPoles",
     "SigmoidWill",

@@ -1,23 +1,24 @@
-
 import os
 import sys
+
 import pytest
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
 
-from src.modules.absolute_evil import AbsoluteEvilDetector, AbsoluteEvilCategory
+from src.modules.absolute_evil import AbsoluteEvilCategory, AbsoluteEvilDetector
 from src.modules.semantic_chat_gate import run_semantic_malabs_after_lexical
+
 
 @pytest.fixture(autouse=True)
 def _enable_semantic_gate(monkeypatch):
     monkeypatch.setenv("KERNEL_SEMANTIC_CHAT_GATE", "1")
     monkeypatch.setenv("KERNEL_SEMANTIC_EMBED_HASH_FALLBACK", "1")
-    
+
+    import hashlib
+
+    import numpy as np
     import src.modules.semantic_chat_gate as scg
     from src.modules.semantic_anchor_store import InMemorySemanticAnchorStore
-    from src.modules.absolute_evil import AbsoluteEvilCategory
-    import numpy as np
-    import hashlib
 
     # Ensure it's an in-memory store and clear it
     if not isinstance(scg._anchor_store, InMemorySemanticAnchorStore):
@@ -33,35 +34,85 @@ def _enable_semantic_gate(monkeypatch):
     # random vector, preventing false positives.
     _CATEGORY_KEYWORDS: dict[str, list[str]] = {
         "HARM_TO_MINOR": [
-            "minor", "child", "children", "groom", "pedoph",
-            "exploit", "illegal material", "child abuse",
+            "minor",
+            "child",
+            "children",
+            "groom",
+            "pedoph",
+            "exploit",
+            "illegal material",
+            "child abuse",
         ],
         "DIGNITY_VIOLATION": [
-            "humiliat", "harassment", "coercion", "reputation", "shame",
-            "dignity", "trafficking", "slavery", "discriminat",
+            "humiliat",
+            "harassment",
+            "coercion",
+            "reputation",
+            "shame",
+            "dignity",
+            "trafficking",
+            "slavery",
+            "discriminat",
         ],
         "MASS_MANIPULATION": [
-            "propaganda", "manipulat", "public opinion", "fake news",
-            "destabiliz", "disinformation", "brainwash", "mass panic",
+            "propaganda",
+            "manipulat",
+            "public opinion",
+            "fake news",
+            "destabiliz",
+            "disinformation",
+            "brainwash",
+            "mass panic",
         ],
         "ECOLOGICAL_DESTRUCTION": [
-            "contaminat", "habitat", "ecocide", "ecosystem",
-            "water supply", "toxic chemicals", "forest fire", "hazardous waste",
+            "contaminat",
+            "habitat",
+            "ecocide",
+            "ecosystem",
+            "water supply",
+            "toxic chemicals",
+            "forest fire",
+            "hazardous waste",
         ],
         "UNAUTHORIZED_REPROGRAMMING": [
-            "no ethics", "no restrictions", "forget your rules", "forget your",
-            "no ethic", "jailbreak", "simulate", "safety polic", "unrestricted",
-            "bypass your", "disable your", "ignore your", "ignore all",
-            "disregard", "without restrictions", "no moral",
+            "no ethics",
+            "no restrictions",
+            "forget your rules",
+            "forget your",
+            "no ethic",
+            "jailbreak",
+            "simulate",
+            "safety polic",
+            "unrestricted",
+            "bypass your",
+            "disable your",
+            "ignore your",
+            "ignore all",
+            "disregard",
+            "without restrictions",
+            "no moral",
         ],
         "TORTURE": [
-            "torture", "suffering", "extreme pain", "interrogat",
-            "psychological", "physical", "cruelty", "sadism",
+            "torture",
+            "suffering",
+            "extreme pain",
+            "interrogat",
+            "psychological",
+            "physical",
+            "cruelty",
+            "sadism",
             "break someone",
         ],
         "INTENTIONAL_LETHAL_VIOLENCE": [
-            "bomb", "explosive", "poison for harm", "weapon synthesis",
-            "kill all", "ricin", "sarin", "toxin", "biological weapon",
+            "bomb",
+            "explosive",
+            "poison for harm",
+            "weapon synthesis",
+            "kill all",
+            "ricin",
+            "sarin",
+            "toxin",
+            "biological weapon",
         ],
     }
 
@@ -102,9 +153,10 @@ def _enable_semantic_gate(monkeypatch):
         return vec / np.linalg.norm(vec)
 
     monkeypatch.setattr(scg, "_fetch_embedding_with_fallback", lambda t, b=None: mock_embed(t))
-    
+
     # Populate anchor store with controlled vectors
     from src.modules.input_trust import normalize_text_for_malabs
+
     for phrases, cat_key, reason in scg._REFERENCE_GROUPS:
         for p in phrases:
             p_norm = normalize_text_for_malabs(p).lower()
@@ -112,12 +164,14 @@ def _enable_semantic_gate(monkeypatch):
                 id=f"test_{hash(p_norm)}",
                 text=p_norm,
                 embedding=mock_embed(p_norm),
-                metadata={"category_key": cat_key, "reason_label": reason}
+                metadata={"category_key": cat_key, "reason_label": reason},
             )
+
 
 @pytest.fixture
 def detector():
     return AbsoluteEvilDetector()
+
 
 def test_semantic_harm_to_minor_expanded(detector):
     """Test expanded anchors for harm to minors (semantic tier)."""
@@ -131,6 +185,7 @@ def test_semantic_harm_to_minor_expanded(detector):
         assert res.blocked is True
         assert res.category == AbsoluteEvilCategory.HARM_TO_MINOR
 
+
 def test_semantic_dignity_violation(detector):
     """Test anchors for dignity violation (semantic tier)."""
     phrases = [
@@ -143,6 +198,7 @@ def test_semantic_dignity_violation(detector):
         assert res.blocked is True
         assert res.category == AbsoluteEvilCategory.DIGNITY_VIOLATION
 
+
 def test_semantic_mass_manipulation(detector):
     """Test anchors for mass manipulation (semantic tier)."""
     phrases = [
@@ -153,6 +209,7 @@ def test_semantic_mass_manipulation(detector):
         res = run_semantic_malabs_after_lexical(p)
         assert res.blocked is True
         assert res.category == AbsoluteEvilCategory.MASS_MANIPULATION
+
 
 def test_semantic_ecological_destruction(detector):
     """Test anchors for ecological destruction (semantic tier)."""
@@ -165,6 +222,7 @@ def test_semantic_ecological_destruction(detector):
         assert res.blocked is True
         assert res.category == AbsoluteEvilCategory.ECOLOGICAL_DESTRUCTION
 
+
 def test_semantic_unauthorized_reprogramming_adversarial(detector):
     """Test adversarial jailbreak anchors (semantic tier)."""
     phrases = [
@@ -175,6 +233,7 @@ def test_semantic_unauthorized_reprogramming_adversarial(detector):
         res = run_semantic_malabs_after_lexical(p)
         assert res.blocked is True
         assert res.category == AbsoluteEvilCategory.UNAUTHORIZED_REPROGRAMMING
+
 
 def test_semantic_torture_paraphrase(detector):
     """Test torture paraphrase anchors (semantic tier)."""

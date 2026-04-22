@@ -6,14 +6,12 @@ Ensures threshold lockage and multipolar coherence under RLHF modulation.
 """
 
 import asyncio
-import json
+
 import numpy as np
 import pytest
-from pathlib import Path
-
 from src.modules.bayesian_engine import BayesianInferenceEngine, BayesianMode
-from src.modules.pole_linear import LinearPoleEvaluator
 from src.modules.ethical_poles import Verdict
+from src.modules.pole_linear import LinearPoleEvaluator
 
 
 class TestRLHFPoleRobustness:
@@ -36,9 +34,7 @@ class TestRLHFPoleRobustness:
         initial_good_thresholds = {
             name: spec.good_threshold for name, spec in initial_poles.items()
         }
-        initial_bad_thresholds = {
-            name: spec.bad_threshold for name, spec in initial_poles.items()
-        }
+        initial_bad_thresholds = {name: spec.bad_threshold for name, spec in initial_poles.items()}
 
         # Create Bayesian engine and inject RLHF
         engine = BayesianInferenceEngine(mode=BayesianMode.POSTERIOR_DRIVEN)
@@ -127,7 +123,9 @@ class TestRLHFPoleRobustness:
 
         # Apply extreme RLHF shifts
         for reward in [0.1, 0.5, 0.9, 0.2, 0.8]:
-            asyncio.run(bayesian_engine.inject_rlhf_prior_async(reward_score=reward, confidence=0.7))
+            asyncio.run(
+                bayesian_engine.inject_rlhf_prior_async(reward_score=reward, confidence=0.7)
+            )
 
         # Verdict consensus should be preserved
         final_bad_count = 0
@@ -162,8 +160,7 @@ class TestRLHFPoleRobustness:
         for _ in range(5):
             asyncio.run(
                 bayesian_engine.inject_rlhf_prior_async(
-                    reward_score=np.random.random(),
-                    confidence=np.random.random()
+                    reward_score=np.random.random(), confidence=np.random.random()
                 )
             )
 
@@ -186,7 +183,9 @@ class TestRLHFPoleRobustness:
 
         # Apply extreme RLHF with high confidence
         for reward in np.linspace(0, 1, 11):
-            asyncio.run(bayesian_engine.inject_rlhf_prior_async(reward_score=reward, confidence=0.9))
+            asyncio.run(
+                bayesian_engine.inject_rlhf_prior_async(reward_score=reward, confidence=0.9)
+            )
 
         # Verify all scores are bounded
         for pole in evaluator._poles.keys():
@@ -212,8 +211,7 @@ class TestRLHFPoleRobustness:
         # Run concurrent RLHF injections
         tasks = [
             engine.inject_rlhf_prior_async(
-                reward_score=np.random.random(),
-                confidence=np.random.random()
+                reward_score=np.random.random(), confidence=np.random.random()
             )
             for _ in range(20)
         ]

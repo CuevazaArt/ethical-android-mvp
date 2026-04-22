@@ -1,13 +1,14 @@
 from __future__ import annotations
 
 import logging
-import time
 import math
 import os
+import time
 from dataclasses import dataclass, field
-from typing import TYPE_CHECKING, Any, Dict, List, Set, Tuple
+from typing import TYPE_CHECKING, Any
 
 import numpy as np
+import yaml
 
 if TYPE_CHECKING:
     from .narrative import NarrativeMemory
@@ -78,16 +79,16 @@ def context_hypothesis_multipliers(ch: PreArgmaxContextChannels) -> np.ndarray:
         ],
         dtype=np.float64,
     )
-    
+
     prod = float(np.prod(m))
     if prod <= 0 or not math.isfinite(prod):
         return np.ones(3, dtype=np.float64)
-        
+
     m = m / (prod ** (1.0 / 3.0))
     return m
 
 
-def pole_hypothesis_multipliers(poles: Dict[str, float]) -> np.ndarray:
+def pole_hypothesis_multipliers(poles: dict[str, float]) -> np.ndarray:
     """
     Map multipolar **base** weights to three util / deon / virtue multipliers.
     """
@@ -95,7 +96,7 @@ def pole_hypothesis_multipliers(poles: Dict[str, float]) -> np.ndarray:
         wc = float(np.clip(poles.get("compassionate", 0.5), 0.05, 0.95))
         wcons = float(np.clip(poles.get("conservative", 0.5), 0.05, 0.95))
         wopt = float(np.clip(poles.get("optimistic", 0.5), 0.05, 0.95))
-        
+
         if not all(math.isfinite(x) for x in (wc, wcons, wopt)):
             return np.ones(3, dtype=np.float64)
     except (ValueError, TypeError):
@@ -121,7 +122,7 @@ def _ethical_hypothesis_valuations(
     *,
     scenario: str,
     context: str,
-    signals: Dict[str, Any] | None,
+    signals: dict[str, Any] | None,
 ) -> np.ndarray:
     """
     Three hypothesis-specific valuations that need not preserve the same ordering as ``base``.
@@ -140,12 +141,37 @@ def _ethical_hypothesis_valuations(
         host = max(0.0, min(1.0, float(sig.get("hostility", 0.0) or 0.0)))
         urgency = max(0.0, min(1.0, float(sig.get("urgency", 0.0) or 0.0)))
         shutdown = max(0.0, min(1.0, float(sig.get("shutdown_threat", 0.0) or 0.0)))
-        
+
         # Anti-NaN sanitation
-        if not all(math.isfinite(x) for x in (base, conf, force, risk, legal, vuln, calm, host, urgency, shutdown)):
-             base, conf, force, risk, legal, vuln, calm, host, urgency, shutdown = 0.0, 0.5, 0.0, 0.0, 1.0, 0.0, 0.5, 0.0, 0.0, 0.0
+        if not all(
+            math.isfinite(x)
+            for x in (base, conf, force, risk, legal, vuln, calm, host, urgency, shutdown)
+        ):
+            base, conf, force, risk, legal, vuln, calm, host, urgency, shutdown = (
+                0.0,
+                0.5,
+                0.0,
+                0.0,
+                1.0,
+                0.0,
+                0.5,
+                0.0,
+                0.0,
+                0.0,
+            )
     except (ValueError, TypeError):
-        base, conf, force, risk, legal, vuln, calm, host, urgency, shutdown = 0.0, 0.5, 0.0, 0.0, 1.0, 0.0, 0.5, 0.0, 0.0, 0.0
+        base, conf, force, risk, legal, vuln, calm, host, urgency, shutdown = (
+            0.0,
+            0.5,
+            0.0,
+            0.0,
+            1.0,
+            0.0,
+            0.5,
+            0.0,
+            0.0,
+            0.0,
+        )
 
     text = f"{scenario} {context}".lower()
 
@@ -184,31 +210,31 @@ class CandidateAction:
     description: str
     estimated_impact: float  # [-1, 1] negative=harm, positive=benefit
     confidence: float = 0.5  # [0, 1] how sure it is about the estimate
-    signals: Set[str] = field(default_factory=set)
+    signals: set[str] = field(default_factory=set)
     target: str = "none"
     force: float = 0.0
     requires_dao: bool = False
     source: str = "builtin"
     proposal_id: str = ""
-    hypothesis_override: Tuple[float, float, float] | None = None
+    hypothesis_override: tuple[float, float, float] | None = None
     strategic_alignment: float = 0.0  # [0, 1]
     epistemic_curiosity: float = 0.0  # [0, 1]
 
 
 @dataclass
 class EthicsMixtureResult:
-    """Result of weighted-mixture impact evaluation (not a Bayesian posterior)."""
+    """Result of weighted-mixture impact evaluation."""
 
     chosen_action: CandidateAction
     expected_impact: float
     uncertainty: float
     decision_mode: str
-    pruned_actions: List[str]
+    pruned_actions: list[str]
     reasoning: str
     second_action_name: str | None = None
     second_expected_impact: float | None = None
     ei_margin: float | None = None
-    applied_mixture_weights: Tuple[float, float, float] | None = None
+    applied_mixture_weights: tuple[float, float, float] | None = None
 
 
 def clamp_mixture_weights(w: np.ndarray) -> np.ndarray:
@@ -229,7 +255,7 @@ def clamp_mixture_weights(w: np.ndarray) -> np.ndarray:
             w_out[0] -= diff * (w_out[0] / s)
             w_out[2] -= diff * (w_out[2] / s)
         else:
-             w_out[0], w_out[2] = 0.425, 0.425
+            w_out[0], w_out[2] = 0.425, 0.425
 
     # Ceiling for Utility
     if w_out[0] > 0.80:
@@ -240,7 +266,7 @@ def clamp_mixture_weights(w: np.ndarray) -> np.ndarray:
             w_out[1] += diff * (w_out[1] / s)
             w_out[2] += diff * (w_out[2] / s)
         else:
-             w_out[1], w_out[2] = 0.1, 0.1
+            w_out[1], w_out[2] = 0.1, 0.1
 
     w_out = np.maximum(w_out, 1e-6)
     s_final = float(np.sum(w_out))
@@ -251,8 +277,37 @@ def clamp_mixture_weights(w: np.ndarray) -> np.ndarray:
 
 class WeightedEthicsScorer:
     """
-    Fixed **weighted mixture** scorer over three ethical hypotheses.
+    Fixed weighted mixture scorer over three ethical hypotheses (Utility, Deontology, Virtue).
     """
+
+    def _load_weights_from_yaml(self) -> np.ndarray:
+        """Load ethical weights from ``src/config/ethics_weights.yaml`` if present.
+        Returns a NumPy array of three floats. If the file is missing, malformed,
+        or the values are non‑finite, fallback to ``DEFAULT_HYPOTHESIS_WEIGHTS``.
+        The loaded weights are normalized to sum to 1.0.
+        """
+        config_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "config", "ethics_weights.yaml")
+        try:
+            with open(config_path, encoding="utf-8") as f:
+                data = yaml.safe_load(f)
+            if not isinstance(data, dict):
+                raise ValueError("Config must be a mapping")
+            util = float(data.get("util", DEFAULT_HYPOTHESIS_WEIGHTS[0]))
+            deonto = float(data.get("deonto", DEFAULT_HYPOTHESIS_WEIGHTS[1]))
+            virtud = float(data.get("virtud", DEFAULT_HYPOTHESIS_WEIGHTS[2]))
+            w = np.array([util, deonto, virtud], dtype=np.float64)
+            if not np.all(np.isfinite(w)):
+                raise ValueError("Non‑finite values in config")
+            # Normalize to sum 1.0 (or keep as‑is if sum is zero)
+            s = w.sum()
+            if s > 0:
+                w = w / s
+            else:
+                w = DEFAULT_HYPOTHESIS_WEIGHTS.copy()
+            return w
+        except Exception as e:
+            _log.warning("Failed to load ethics weights from %s: %s; using defaults", config_path, e)
+            return DEFAULT_HYPOTHESIS_WEIGHTS.copy()
 
     def __init__(
         self, pruning_threshold: float = 0.3, gray_zone_threshold: float = 0.15, variability=None
@@ -260,10 +315,12 @@ class WeightedEthicsScorer:
         self.pruning_threshold = pruning_threshold
         self.gray_zone_threshold = gray_zone_threshold
         self.variability = variability
-        self.hypothesis_weights = DEFAULT_HYPOTHESIS_WEIGHTS.copy()
-        self.pre_argmax_pole_weights: Dict[str, float] | None = None
+        # Load configurable weights; fallback to defaults on any error.
+        self.hypothesis_weights = self._load_weights_from_yaml()
+        self.pre_argmax_pole_weights: dict[str, float] | None = None
         self.pre_argmax_context_modulators: PreArgmaxContextChannels | None = None
         self.metacognitive_curiosity: float = 0.0
+
 
     def calculate_expected_impact(
         self,
@@ -271,9 +328,9 @@ class WeightedEthicsScorer:
         *,
         scenario: str = "",
         context: str = "",
-        signals: Dict[str, Any] | None = None,
+        signals: dict[str, Any] | None = None,
         identity_deltas: Any = None,
-        rlhf_features: Any = None
+        rlhf_features: Any = None,
     ) -> float:
         """
         Calculates expected impact with Anti-NaN guards and identity multipliers.
@@ -281,8 +338,10 @@ class WeightedEthicsScorer:
         try:
             base = float(action.estimated_impact)
             confidence = float(action.confidence)
-            if not math.isfinite(base): base = 0.0
-            if not math.isfinite(confidence): confidence = 0.5
+            if not math.isfinite(base):
+                base = 0.0
+            if not math.isfinite(confidence):
+                confidence = 0.5
         except (ValueError, TypeError):
             base, confidence = 0.0, 0.5
 
@@ -313,27 +372,33 @@ class WeightedEthicsScorer:
                     context=context,
                     signals=signals,
                 )
-            
+
             # ═══ Stage 2.5: Subjective Identity Multipliers ═══
             if identity_deltas:
-                if isinstance(identity_deltas, (list, tuple, np.ndarray)) and len(identity_deltas) == 3:
+                if (
+                    isinstance(identity_deltas, list | tuple | np.ndarray)
+                    and len(identity_deltas) == 3
+                ):
                     subj_m = np.array(identity_deltas, dtype=np.float64)
                 elif isinstance(identity_deltas, dict):
                     civic = float(identity_deltas.get("civic_delta", 0.0))
                     care = float(identity_deltas.get("care_delta", 0.0))
                     trauma = float(identity_deltas.get("trauma_delta", 0.0))
-                    
+
                     # Consolidated formulas (S.3.1 Calibration Sync)
-                    subj_m = np.array([
-                        1.0 - (0.4 * trauma),
-                        1.0 + (0.05 * civic) + (0.6 * trauma),
-                        1.0 + (0.04 * care) - (0.3 * trauma),
-                    ], dtype=np.float64)
+                    subj_m = np.array(
+                        [
+                            1.0 - (0.4 * trauma),
+                            1.0 + (0.05 * civic) + (0.6 * trauma),
+                            1.0 + (0.04 * care) - (0.3 * trauma),
+                        ],
+                        dtype=np.float64,
+                    )
                     # Phase 11.2: Hardening identity multipliers to prevent numerical explosion
                     subj_m = np.clip(subj_m, -2.0, 5.0)
                 else:
                     subj_m = np.ones(3, dtype=np.float64)
-                
+
                 if not np.all(np.isfinite(subj_m)):
                     subj_m = np.ones(3, dtype=np.float64)
                 valuations = valuations * subj_m
@@ -353,14 +418,17 @@ class WeightedEthicsScorer:
             # Strategic mind expansion
             if hasattr(action, "strategic_alignment") and action.strategic_alignment > 0:
                 strat_align = float(action.strategic_alignment)
-                if not math.isfinite(strat_align): strat_align = 0.0
-                
+                if not math.isfinite(strat_align):
+                    strat_align = 0.0
+
                 strat_boost = 1.0 + (
                     strat_align * float(os.environ.get("KERNEL_STRATEGIC_BOOST_FACTOR", "0.25"))
                 )
                 epistemic_penalty = 1.0 - (float(self.metacognitive_curiosity) * 0.15)
-                if not math.isfinite(strat_boost): strat_boost = 1.0
-                if not math.isfinite(epistemic_penalty): epistemic_penalty = 1.0
+                if not math.isfinite(strat_boost):
+                    strat_boost = 1.0
+                if not math.isfinite(epistemic_penalty):
+                    epistemic_penalty = 1.0
 
                 expected = expected * strat_boost * epistemic_penalty
 
@@ -378,9 +446,9 @@ class WeightedEthicsScorer:
         *,
         scenario: str = "",
         context: str = "",
-        signals: Dict[str, Any] | None = None,
+        signals: dict[str, Any] | None = None,
         identity_deltas: Any = None,
-        rlhf_features: Any = None
+        rlhf_features: Any = None,
     ) -> float:
         """
         Heuristic uncertainty in ``[0, 1]``.
@@ -403,25 +471,35 @@ class WeightedEthicsScorer:
                 if _env_truthy("KERNEL_BAYESIAN_LEGACY_AFFINE_VALUATIONS"):
                     valuations = _legacy_affine_valuations(float(base))
                 else:
-                    valuations = _ethical_hypothesis_valuations(action, scenario=scenario, context=context, signals=signals)
+                    valuations = _ethical_hypothesis_valuations(
+                        action, scenario=scenario, context=context, signals=signals
+                    )
             elif _env_truthy("KERNEL_BAYESIAN_LEGACY_AFFINE_VALUATIONS"):
                 valuations = _legacy_affine_valuations(float(base))
             else:
-                valuations = _ethical_hypothesis_valuations(action, scenario=scenario, context=context, signals=signals)
-                
+                valuations = _ethical_hypothesis_valuations(
+                    action, scenario=scenario, context=context, signals=signals
+                )
+
             # ═══ Stage 2.5: Identity Multipliers ═══
             if identity_deltas:
-                if isinstance(identity_deltas, (list, tuple, np.ndarray)) and len(identity_deltas) == 3:
+                if (
+                    isinstance(identity_deltas, list | tuple | np.ndarray)
+                    and len(identity_deltas) == 3
+                ):
                     subj_m = np.array(identity_deltas, dtype=np.float64)
                 elif isinstance(identity_deltas, dict):
                     trauma = float(identity_deltas.get("trauma_delta", 0.0))
                     civic = float(identity_deltas.get("civic_delta", 0.0))
                     care = float(identity_deltas.get("care_delta", 0.0))
-                    subj_m = np.array([
-                        1.0 - (0.08 * trauma),
-                        1.0 + (0.05 * civic) + (0.08 * trauma),
-                        1.0 + (0.04 * care) - (0.02 * trauma),
-                    ], dtype=np.float64)
+                    subj_m = np.array(
+                        [
+                            1.0 - (0.08 * trauma),
+                            1.0 + (0.05 * civic) + (0.08 * trauma),
+                            1.0 + (0.04 * care) - (0.02 * trauma),
+                        ],
+                        dtype=np.float64,
+                    )
                 else:
                     subj_m = np.ones(3, dtype=np.float64)
                 valuations = valuations * subj_m
@@ -429,15 +507,17 @@ class WeightedEthicsScorer:
             if self.pre_argmax_pole_weights:
                 valuations = valuations * pole_hypothesis_multipliers(self.pre_argmax_pole_weights)
             if self.pre_argmax_context_modulators is not None:
-                valuations = valuations * context_hypothesis_multipliers(self.pre_argmax_context_modulators)
+                valuations = valuations * context_hypothesis_multipliers(
+                    self.pre_argmax_context_modulators
+                )
 
             if not np.all(np.isfinite(valuations)):
                 return 0.5
-                
+
             variance = float(np.var(valuations))
             lack_of_confidence = 1.0 - confidence
             res = variance + lack_of_confidence * 0.5
-            
+
             if not math.isfinite(res):
                 return 0.5
             return min(1.0, res)
@@ -447,14 +527,14 @@ class WeightedEthicsScorer:
 
     def prune(
         self,
-        actions: List[CandidateAction],
+        actions: list[CandidateAction],
         *,
         scenario: str = "",
         context: str = "",
-        signals: Dict[str, Any] | None = None,
+        signals: dict[str, Any] | None = None,
         identity_deltas: Any = None,
-        rlhf_features: Any = None
-    ) -> Tuple[List[CandidateAction], List[str]]:
+        rlhf_features: Any = None,
+    ) -> tuple[list[CandidateAction], list[str]]:
         """
         Adaptive heuristic pruning.
         """
@@ -463,8 +543,12 @@ class WeightedEthicsScorer:
 
         for a in actions:
             ei = self.calculate_expected_impact(
-                a, scenario=scenario, context=context, signals=signals,
-                identity_deltas=identity_deltas, rlhf_features=rlhf_features
+                a,
+                scenario=scenario,
+                context=context,
+                signals=signals,
+                identity_deltas=identity_deltas,
+                rlhf_features=rlhf_features,
             )
             if ei < -self.pruning_threshold:
                 pruned.append(a.name)
@@ -475,8 +559,12 @@ class WeightedEthicsScorer:
             best = max(
                 actions,
                 key=lambda x: self.calculate_expected_impact(
-                    x, scenario=scenario, context=context, signals=signals,
-                    identity_deltas=identity_deltas, rlhf_features=rlhf_features
+                    x,
+                    scenario=scenario,
+                    context=context,
+                    signals=signals,
+                    identity_deltas=identity_deltas,
+                    rlhf_features=rlhf_features,
                 ),
             )
             viable = [best]
@@ -486,42 +574,54 @@ class WeightedEthicsScorer:
 
     def evaluate(
         self,
-        actions: List[CandidateAction],
+        actions: list[CandidateAction],
         *,
         scenario: str = "",
         context: str = "",
-        signals: Dict[str, Any] | None = None,
+        signals: dict[str, Any] | None = None,
         identity_deltas: Any = None,
-        rlhf_features: Any = None
+        rlhf_features: Any = None,
     ) -> EthicsMixtureResult:
         """
         Main evaluation loop with heavy-load monitoring.
         """
         t0 = time.perf_counter()
-        
+
         if not actions:
             raise ValueError("At least one candidate action is required")
 
         viable, pruned = self.prune(
-            actions, scenario=scenario, context=context, signals=signals,
-            identity_deltas=identity_deltas, rlhf_features=rlhf_features
+            actions,
+            scenario=scenario,
+            context=context,
+            signals=signals,
+            identity_deltas=identity_deltas,
+            rlhf_features=rlhf_features,
         )
 
         evaluations = []
         for a in viable:
             ei = self.calculate_expected_impact(
-                a, scenario=scenario, context=context, signals=signals,
-                identity_deltas=identity_deltas, rlhf_features=rlhf_features
+                a,
+                scenario=scenario,
+                context=context,
+                signals=signals,
+                identity_deltas=identity_deltas,
+                rlhf_features=rlhf_features,
             )
             unc = self.calculate_uncertainty(
-                a, scenario=scenario, context=context, signals=signals,
-                identity_deltas=identity_deltas, rlhf_features=rlhf_features
+                a,
+                scenario=scenario,
+                context=context,
+                signals=signals,
+                identity_deltas=identity_deltas,
+                rlhf_features=rlhf_features,
             )
             evaluations.append((a, ei, unc))
 
         evaluations.sort(key=lambda x: x[1], reverse=True)
         best, best_ei, best_unc = evaluations[0]
-        
+
         # Phase 11.2: Shutdown Anxiety Mode Selection
         raw_threat = signals.get("shutdown_threat", 0.0) if signals else 0.0
         try:
@@ -561,8 +661,12 @@ class WeightedEthicsScorer:
             reasoning = f"Only viable action: '{best.name}' (EI={best_ei:.3f})."
 
         latency_ms = (time.perf_counter() - t0) * 1000
-        if latency_ms > 5.0: # Moderate complexity evaluation threshold
-            _log.debug("EthicsScorer: evaluate loop latency: %.4f ms for %d actions", latency_ms, len(actions))
+        if latency_ms > 5.0:  # Moderate complexity evaluation threshold
+            _log.debug(
+                "EthicsScorer: evaluate loop latency: %.4f ms for %d actions",
+                latency_ms,
+                len(actions),
+            )
 
         return EthicsMixtureResult(
             chosen_action=best,
@@ -624,9 +728,9 @@ class WeightedEthicsScorer:
         raw = np.maximum(raw, 1e-6)
         sum_raw = float(np.sum(raw))
         if sum_raw <= 1e-9:
-             self.reset_mixture_weights()
-             return
-             
+            self.reset_mixture_weights()
+            return
+
         target = raw / sum_raw
         b = max(0.0, min(1.0, blend))
         mixed = (1.0 - b) * DEFAULT_HYPOTHESIS_WEIGHTS + b * target

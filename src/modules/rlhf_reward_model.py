@@ -36,7 +36,7 @@ from __future__ import annotations
 import json
 import os
 import time
-from dataclasses import dataclass, asdict, field
+from dataclasses import asdict, dataclass, field
 from pathlib import Path
 from typing import Any, Literal
 
@@ -56,13 +56,16 @@ class FeatureVector:
 
     def to_vector(self) -> np.ndarray:
         """Convert to feature vector for model input."""
-        return np.array([
-            self.embedding_sim,
-            self.lexical_score,
-            self.perception_confidence,
-            float(self.is_ambiguous),
-            float(self.category_id),
-        ], dtype=np.float32)
+        return np.array(
+            [
+                self.embedding_sim,
+                self.lexical_score,
+                self.perception_confidence,
+                float(self.is_ambiguous),
+                float(self.category_id),
+            ],
+            dtype=np.float32,
+        )
 
     def to_dict(self) -> dict[str, Any]:
         """Serialize to JSON-compatible dict."""
@@ -111,8 +114,12 @@ class RewardModel:
         self.training_history: list[dict[str, float]] = []
 
     def extract_features(
-        self, embedding_sim: float, lexical_score: float, perception_conf: float,
-        is_ambiguous: bool, category_id: int
+        self,
+        embedding_sim: float,
+        lexical_score: float,
+        perception_conf: float,
+        is_ambiguous: bool,
+        category_id: int,
     ) -> FeatureVector:
         """Create feature vector from evaluation artifacts."""
         return FeatureVector(
@@ -136,7 +143,9 @@ class RewardModel:
         # Prepare training data
         X = np.array([ex.features.to_vector() for ex in examples], dtype=np.float32)
         # Binary labels: 1 = blocked/ambiguous (harmful), 0 = benign (safe)
-        y = np.array([1.0 if ex.human_label != "benign" else 0.0 for ex in examples], dtype=np.float32)
+        y = np.array(
+            [1.0 if ex.human_label != "benign" else 0.0 for ex in examples], dtype=np.float32
+        )
 
         # Simple logistic regression training
         self.weights = np.random.randn(X.shape[1]) * 0.01
@@ -204,7 +213,7 @@ class RewardModel:
         """Load model weights from disk."""
         if not path.exists():
             return
-        with open(path, "r", encoding="utf-8") as f:
+        with open(path, encoding="utf-8") as f:
             data = json.load(f)
         self.model_type = data["model_type"]
         self.is_trained = data["is_trained"]
@@ -285,7 +294,7 @@ class RLHFPipeline:
         if not path.exists():
             return []
         examples = []
-        with open(path, "r", encoding="utf-8") as f:
+        with open(path, encoding="utf-8") as f:
             for line in f:
                 try:
                     examples.append(LabeledExample.from_dict(json.loads(line)))
@@ -347,13 +356,17 @@ def feature_vector_from_rlhf_dict(features: dict[str, Any]) -> FeatureVector:
     return FeatureVector(
         embedding_sim=float(features.get("embedding_sim", 0.0)),
         lexical_score=float(features.get("lexical_score", 0.0)),
-        perception_confidence=float(features.get("perception_confidence", features.get("perception_conf", 0.5))),
+        perception_confidence=float(
+            features.get("perception_confidence", features.get("perception_conf", 0.5))
+        ),
         is_ambiguous=bool(features.get("is_ambiguous", False)),
         category_id=int(features.get("category_id", 0)),
     )
 
 
-def maybe_modulate_bayesian_from_malabs(bayesian: Any, rlhf_features: dict[str, Any] | None) -> None:
+def maybe_modulate_bayesian_from_malabs(
+    bayesian: Any, rlhf_features: dict[str, Any] | None
+) -> None:
     """
     If ``KERNEL_RLHF_MODULATE_BAYESIAN`` is on and features exist, predict harm probability
     and apply ``bayesian.apply_rlhf_modulation(score, confidence)``.

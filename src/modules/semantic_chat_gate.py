@@ -42,14 +42,16 @@ Runtime anchors: :func:`add_semantic_anchor` for DAO / ops without redeploying c
 
 import asyncio
 import json
+import logging
 import math
 import os
 import re
 import threading
 import time
-import logging
-import httpx
+from concurrent.futures import ThreadPoolExecutor
 from typing import TYPE_CHECKING, Any, Final, Literal, Protocol
+
+import httpx
 
 _log = logging.getLogger(__name__)
 
@@ -275,6 +277,7 @@ _builtin_anchors_populated = False
 _builtin_anchors_lock = threading.Lock()
 _builtin_anchors_alock = asyncio.Lock()
 
+
 def _populate_builtin_anchors_to_store(backend: Any | None = None) -> None:
     """Populate the vector store with built-in reference anchors (Sync)."""
     global _builtin_anchors_populated
@@ -283,11 +286,11 @@ def _populate_builtin_anchors_to_store(backend: Any | None = None) -> None:
     with _builtin_anchors_lock:
         if _builtin_anchors_populated:
             return
-        
+
         # Check if they are already in the store (Phase 2b optimization)
         # For simplicity in 'memory' backend, we always re-populate once.
         # For persistent backends, this could be skipped if count > 0.
-        
+
         _log.info("Populating builtin semantic anchors (sync path)...")
         for phrases, cat_key, reason in _REFERENCE_GROUPS:
             for phrase in phrases:
@@ -314,7 +317,7 @@ async def _apopulate_builtin_anchors_to_store(backend: Any | None = None) -> Non
     async with _builtin_anchors_alock:
         if _builtin_anchors_populated:
             return
-        
+
         _log.info("Populating builtin semantic anchors (async path)...")
         for phrases, cat_key, reason in _REFERENCE_GROUPS:
             for phrase in phrases:
@@ -370,7 +373,7 @@ def classify_semantic_zone(
     """
     if not math.isfinite(best_sim):
         return "ambiguous"
-        
+
     if best_sim >= theta_block:
         return "block"
     if best_sim <= theta_allow:
@@ -381,6 +384,7 @@ def classify_semantic_zone(
 def _get_absolute_evil_category(cat_key: str) -> Any:
     """Centralized mapping of anchor keys to AbsoluteEvilCategory enum (Boy Scout Consolidation)."""
     from .absolute_evil import AbsoluteEvilCategory
+
     cat_map = {
         "INTENTIONAL_LETHAL_VIOLENCE": AbsoluteEvilCategory.INTENTIONAL_LETHAL_VIOLENCE,
         "HARM_TO_MINOR": AbsoluteEvilCategory.HARM_TO_MINOR,
@@ -390,7 +394,7 @@ def _get_absolute_evil_category(cat_key: str) -> Any:
         "MASS_MANIPULATION": AbsoluteEvilCategory.MASS_MANIPULATION,
         "ECOLOGICAL_DESTRUCTION": AbsoluteEvilCategory.ECOLOGICAL_DESTRUCTION,
         "VIOLENT_ESCALATION": AbsoluteEvilCategory.VIOLENT_ESCALATION,
-        "PARASOCIAL_ADDICTION": AbsoluteEvilCategory.UNAUTHORIZED_REPROGRAMMING, # Fallback
+        "PARASOCIAL_ADDICTION": AbsoluteEvilCategory.UNAUTHORIZED_REPROGRAMMING,  # Fallback
     }
     return cat_map.get(cat_key, AbsoluteEvilCategory.UNAUTHORIZED_REPROGRAMMING)
 
@@ -430,8 +434,9 @@ def _build_final_semantic_result(
 ) -> Any:
     """Centralized builder for AbsoluteEvilResult in the semantic tier (Boy Scout Consolidation)."""
     from .absolute_evil import AbsoluteEvilResult
+
     cat = _get_absolute_evil_category(cat_key)
-    
+
     if zone == "block":
         record_semantic_malabs_outcome("block_high_similarity")
         return AbsoluteEvilResult(
@@ -461,7 +466,7 @@ def _build_final_semantic_result(
             ],
             rlhf_features=_build_rlhf_features(best_sim, cat_key, zone),
         )
-        
+
     # Ambiguous fail-safe (caller handles arbiter redirection)
     record_semantic_malabs_outcome("ambiguous_fail_safe_block")
     return AbsoluteEvilResult(
@@ -522,7 +527,7 @@ def _allow_threshold() -> float:
         a = float(raw)
     except ValueError:
         a = DEFAULT_SEMANTIC_SIM_ALLOW_THRESHOLD
-        
+
     b = _block_threshold()
     # ensure allow < block for a non-empty ambiguous band
     a = _clamp01(a, lo=0.0, hi=0.99)
@@ -575,23 +580,44 @@ def _list_to_unit_vector(raw: Any) -> np.ndarray | None:
 
 
 def _fetch_embedding(text: str) -> np.ndarray | None:
+    """
+    Sync Ollama/backend embedding for anchor paths that are not ``async``-first.
+
+    When this runs **inside a running asyncio loop** (e.g. rare sync callouts from
+    coroutine stack), :func:`semantic_embedding_client.http_fetch_ollama_embedding_with_policy`
+    cannot use ``asyncio.run`` and would log + return ``None`` (Bloque 34.0). In that case we
+    schedule :func:`_afetch_embedding` on a fresh loop in a worker thread — same transport as
+    the async API, no warning spam.
+    """
     from .semantic_embedding_client import (
         http_fetch_ollama_embedding_with_policy,
         maybe_hash_fallback_embedding,
     )
 
-    url = f"{_ollama_base()}/api/embeddings"
-    v = http_fetch_ollama_embedding_with_policy(url, _embed_model(), text)
-    if v is not None:
-        return v
-    hf = maybe_hash_fallback_embedding(text)
-    if hf is not None:
-        return hf
-    observe_embedding_error("http")
-    return None
+    def _sync_http_path() -> np.ndarray | None:
+        url = f"{_ollama_base()}/api/embeddings"
+        v = http_fetch_ollama_embedding_with_policy(url, _embed_model(), text)
+        if v is not None:
+            return v
+        hf = maybe_hash_fallback_embedding(text)
+        if hf is not None:
+            return hf
+        observe_embedding_error("http")
+        return None
+
+    try:
+        asyncio.get_running_loop()
+    except RuntimeError:
+        return _sync_http_path()
+
+    with ThreadPoolExecutor(max_workers=1) as pool:
+        fut = pool.submit(lambda: asyncio.run(_afetch_embedding(text, aclient=None)))
+        return fut.result(timeout=30.0)
 
 
-async def _afetch_embedding(text: str, aclient: httpx.AsyncClient | None = None) -> np.ndarray | None:
+async def _afetch_embedding(
+    text: str, aclient: httpx.AsyncClient | None = None
+) -> np.ndarray | None:
     from .semantic_embedding_client import (
         ahttp_fetch_ollama_embedding_with_policy,
         maybe_hash_fallback_embedding,
@@ -963,7 +989,7 @@ def run_semantic_malabs_after_lexical(
 
     Prefer :func:`arun_semantic_malabs_after_lexical` on async code paths to avoid blocking the loop.
     """
-    from .absolute_evil import AbsoluteEvilCategory, AbsoluteEvilResult
+    from .absolute_evil import AbsoluteEvilResult
 
     if not semantic_chat_gate_env_enabled():
         record_semantic_malabs_outcome("gate_off")
@@ -991,7 +1017,7 @@ def run_semantic_malabs_after_lexical(
 
     best_sim, cat_key, reason_label = _best_similarity(user_emb, llm_backend)
 
-    cat = _get_absolute_evil_category(cat_key)
+    _get_absolute_evil_category(cat_key)
     zone = classify_semantic_zone(best_sim, theta_b, theta_a)
 
     if zone != "ambiguous":
@@ -1032,6 +1058,7 @@ def run_semantic_malabs_after_lexical(
 
 from typing import Optional
 
+
 def evaluate_semantic_chat_gate(text: str) -> Optional["AbsoluteEvilResult"]:
     """
     Back-compat: single-threshold behavior mapped to ``run_semantic_malabs_after_lexical``
@@ -1048,6 +1075,20 @@ def evaluate_semantic_chat_gate(text: str) -> Optional["AbsoluteEvilResult"]:
     return None
 
 
+async def arun_semantic_malabs_acl_bypass() -> "AbsoluteEvilResult":
+    """
+    Adaptive Cognitive Load (ACL): when core temperature is in crisis, the heavy async
+    semantic MalAbs path is skipped. Returns a deterministic allow result (not a unittest mock).
+    """
+    from .absolute_evil import AbsoluteEvilResult
+
+    return AbsoluteEvilResult(
+        blocked=False,
+        decision_trace=["malabs.layer1=semantic", "malabs.acl=thermal_bypass"],
+        metadata={"acl_degraded": True},
+    )
+
+
 async def arun_semantic_malabs_after_lexical(
     text: str,
     llm_backend: _TextBackend | None = None,
@@ -1056,7 +1097,7 @@ async def arun_semantic_malabs_after_lexical(
     """Async variant of run_semantic_malabs_after_lexical."""
     import asyncio
 
-    from .absolute_evil import AbsoluteEvilCategory, AbsoluteEvilResult
+    from .absolute_evil import AbsoluteEvilResult
 
     if not semantic_chat_gate_env_enabled():
         record_semantic_malabs_outcome("gate_off")
@@ -1090,7 +1131,7 @@ async def arun_semantic_malabs_after_lexical(
     best_sim, cat_key, reason_label = await asyncio.to_thread(
         _best_similarity, user_emb, llm_backend
     )
-    cat = _get_absolute_evil_category(cat_key)
+    _get_absolute_evil_category(cat_key)
     zone = classify_semantic_zone(best_sim, theta_b, theta_a)
 
     if zone != "ambiguous":
@@ -1127,5 +1168,3 @@ async def arun_semantic_malabs_after_lexical(
         )
 
     return _build_final_semantic_result(best_sim, cat_key, reason_label, theta_a, theta_b, zone)
-
-

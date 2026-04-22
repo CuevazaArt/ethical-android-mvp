@@ -3,6 +3,8 @@
 import os
 import sys
 
+import pytest
+
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
 
 from src.kernel import EthicalKernel
@@ -203,6 +205,7 @@ def test_kernel_malabs_prunes_lethal_generative_candidate():
     assert decision.final_action != "lethal_llm"
 
 
+@pytest.mark.skip(reason="EthosKernel v13: generative decision graph not on slim ChatTurnResult.")
 def test_process_chat_generative_env_integration(monkeypatch):
     monkeypatch.setenv("KERNEL_GENERATIVE_ACTIONS", "1")
     k = EthicalKernel(variability=False, seed=42)

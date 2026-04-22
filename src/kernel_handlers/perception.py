@@ -4,40 +4,45 @@ Part of Bloque 0.1.3: De-monolithization of EthicalKernel.
 """
 
 from __future__ import annotations
+
 import asyncio
 import logging
-import time
-from typing import TYPE_CHECKING, Any, Dict, Optional, Tuple
+import math
+from typing import TYPE_CHECKING, Any
 
 if TYPE_CHECKING:
     from ..kernel import EthicalKernel
-    from ..modules.sensor_contracts import SensorSnapshot
     from ..kernel_lobes.models import PerceptionStageResult
+    from ..modules.sensor_contracts import SensorSnapshot
 
 _log = logging.getLogger(__name__)
+
 
 async def run_perception_pipeline(
     kernel: EthicalKernel,
     user_input: str,
     conversation_context: str,
-    sensor_snapshot: Optional[SensorSnapshot],
+    sensor_snapshot: SensorSnapshot | None,
     turn_start_mono: float,
-    precomputed: Optional[Tuple]
-) -> Tuple[PerceptionStageResult, Any]:
+    precomputed: tuple | None,
+) -> tuple[PerceptionStageResult, Any, Any]:
     """
     Executes the layered perception pipeline:
     1. Thalamus fusion (if available)
     2. Parallel LLM Perception & Semantic MalAbs
     3. RLHF Feature extraction and Bayesian modulation
     """
-    from ..modules.semantic_chat_gate import arun_semantic_malabs_after_lexical
     from ..modules.rlhf_reward_model import FeatureVector
-    
+    from ..modules.semantic_chat_gate import (
+        arun_semantic_malabs_acl_bypass,
+        arun_semantic_malabs_after_lexical,
+    )
+
     # 1. Thalamus Sensory Fusion (Integration from Bloque 10.1)
     if kernel.thalamus and sensor_snapshot:
         try:
             _thal = kernel.thalamus.fuse_sensory_stream(sensor_snapshot)
-            
+
             sensor_snapshot.thalamus_attention = _thal.get("attention_locus", 0.0)
             sensor_snapshot.thalamus_tension = _thal.get("sensory_tension", 0.0)
             sensor_snapshot.thalamus_cross_modal_trust = _thal.get("cross_modal_trust", 0.5)
@@ -49,43 +54,59 @@ async def run_perception_pipeline(
 
     # 2. Parallel Perception & Layer 2 MalAbs (Semantic)
     # ACL: Adaptive Cognitive Load - Skip semantic gate if thermal stress is high
-    temp = sensor_snapshot.core_temperature if (sensor_snapshot and sensor_snapshot.core_temperature is not None) else 0.0
-    is_thermal_crisis = (temp > 85.0)
+    temp_raw = (
+        sensor_snapshot.core_temperature
+        if (sensor_snapshot and sensor_snapshot.core_temperature is not None)
+        else 0.0
+    )
+    try:
+        temp = float(temp_raw)
+    except (TypeError, ValueError):
+        temp = 0.0
+    is_thermal_crisis = math.isfinite(temp) and temp > 85.0
 
     perception_task = kernel.perceptive_lobe.run_perception_stage_async(
-        user_input, 
-        conversation_context=conversation_context, 
+        user_input,
+        conversation_context=conversation_context,
         sensor_snapshot=sensor_snapshot,
-        turn_start_mono=turn_start_mono, 
+        turn_start_mono=turn_start_mono,
         precomputed=precomputed,
     )
-    
+
     if is_thermal_crisis:
-        _log.warning("ACL: Thermal Crisis detected (%.1f°C). Bypassing Semantic Gate for load reduction.", temp)
-        from ..modules.absolute_evil import AbsoluteEvilResult
-        async def dummy_malabs():
-            return AbsoluteEvilResult(blocked=False, metadata={"acl_degraded": True})
-        mal_semantic_task = dummy_malabs()
+        _log.warning(
+            "ACL: Thermal Crisis detected (%.1f°C). Bypassing Semantic Gate for load reduction.",
+            temp,
+        )
+        mal_semantic_task = arun_semantic_malabs_acl_bypass()
     else:
         mal_semantic_task = arun_semantic_malabs_after_lexical(
             user_input,
             llm_backend=kernel._malabs_text_backend(),
             aclient=kernel.aclient,
         )
-    
+
     stage, mal_semantic = await asyncio.gather(perception_task, mal_semantic_task)
-    
+
     # 3. RLHF & Somatic Latency Bayesian Modulation
     from ..modules.nomad_bridge import get_nomad_bridge
+
     bridge = get_nomad_bridge()
-    latency = bridge.vessel_metadata.get("latency_ms", 0)
-    
+    latency_raw = bridge.vessel_metadata.get("latency_ms", 0)
+    try:
+        latency = float(latency_raw)
+    except (TypeError, ValueError):
+        latency = 0.0
+    if not math.isfinite(latency):
+        latency = 0.0
+
     if sensor_snapshot:
-        sensor_snapshot.vessel_latency = float(latency)
+        sensor_snapshot.vessel_latency = latency
 
     if kernel.rlhf.reward_model.is_trained and mal_semantic.rlhf_features:
         try:
             from ..modules.rlhf_reward_model import FeatureVector
+
             fv = FeatureVector.from_dict(mal_semantic.rlhf_features)
             score, conf = kernel.rlhf.reward_model.predict(fv)
             kernel.bayesian.apply_rlhf_modulation(score, conf, category_id=fv.category_id)
@@ -93,6 +114,6 @@ async def run_perception_pipeline(
             _log.warning("perception_handler: RLHF modulation failed: %s", _rlhf_err)
 
     if latency > 0:
-        kernel.bayesian.apply_somatic_latency_penalty(float(latency))
+        kernel.bayesian.apply_somatic_latency_penalty(latency)
 
     return stage, mal_semantic, _thal

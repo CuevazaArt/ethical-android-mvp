@@ -3,15 +3,66 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Ethos Kernel | Clinical Dashboard</title>
+    <title>Ethos Kernel | Neural Dashboard</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&family=IBM+Plex+Mono:wght@400;600&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="dashboard.css">
+    <style>
+        /* Pulse Animation for Status */
+        .badge.online {
+            animation: pulse-online 2s infinite;
+            background: rgba(74, 222, 128, 0.1);
+            color: var(--ok);
+            border-color: var(--ok);
+        }
+        .layout {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            grid-template-rows: repeat(3, 1fr); /* 4x3 = 12 Quadrants */
+            height: calc(100vh - 48px);
+            gap: 6px;
+            padding: 6px;
+            overflow: hidden;
+            box-sizing: border-box;
+        }
+        .card { 
+            min-height: 0 !important; 
+            max-height: 100%;
+            display: flex; 
+            flex-direction: column; 
+            overflow: hidden;
+            border-radius: 6px;
+            padding: 6px;
+            background: var(--surface);
+            border: 1px solid var(--line);
+        }
+        .card h2 { 
+            font-size: 0.65rem; 
+            margin-bottom: 2px; 
+            padding-bottom: 2px;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            color: var(--accent);
+            border-bottom: 1px solid var(--line);
+        }
+        .kv-table td { padding: 1px 4px; font-size: 0.65rem; line-height: 1.1; }
+        .event-log { font-size: 0.6rem; flex: 1; overflow-y: auto; scrollbar-width: none; }
+        .event-log::-webkit-scrollbar { display: none; }
+        #vision-canvas { flex: 1; min-height: 0; width: 100%; background: #000; border-radius: 4px; object-fit: contain; }
+        .mono { font-size: 0.65rem; line-height: 1.1; flex: 1; overflow-y: auto; }
+        #chat-input { font-size: 0.7rem; padding: 2px 4px; border-radius: 4px; }
+        #chat-send { font-size: 0.65rem; padding: 0 6px; border-radius: 4px; }
+        @keyframes pulse-online {
+            0% { box-shadow: 0 0 0 0 rgba(74, 222, 128, 0.4); }
+            70% { box-shadow: 0 0 0 4px rgba(74, 222, 128, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(74, 222, 128, 0); }
+        }
+    </style>
 </head>
 <body>
     <header class="topbar">
-        <h1>ETHOS KERNEL CLINICAL TELEMETRY</h1>
+        <h1>V13.1 NERVOUS SYSTEM MONITOR</h1>
         <div class="topbar-meta">
             <span id="conn-status" class="badge">OFFLINE</span>
             <span id="turn-index">TURN #0</span>
@@ -20,49 +71,121 @@
     </header>
 
     <main class="layout">
+        <!-- 01: NEURAL VISION -->
         <section class="card">
-            <h2>Float Feed</h2>
-            <table class="kv-table" id="float-table">
-                <thead>
-                    <tr><th>Signal</th><th>Value</th></tr>
-                </thead>
-                <tbody>
-                    <tr><td>tension</td><td id="tension-val">0.000</td></tr>
-                    <tr><td>trust</td><td id="trust-val">0.000</td></tr>
-                    <tr><td>audio_rms</td><td id="audio-rms-val">0.000</td></tr>
-                    <tr><td>battery</td><td id="bat-val">--</td></tr>
-                    <tr><td>temp_c</td><td id="temp-val">--</td></tr>
-                    <tr><td>kinetics</td><td id="kin-val">0.000</td></tr>
-                </tbody>
-            </table>
-        </section>
-
-        <section class="card">
-            <h2>Boolean Feed</h2>
-            <table class="kv-table">
-                <thead>
-                    <tr><th>Flag</th><th>State</th></tr>
-                </thead>
-                <tbody>
-                    <tr><td>ws_connected</td><td id="flag-connected">false</td></tr>
-                    <tr><td>epistemic_dissonance</td><td id="flag-dissonance">false</td></tr>
-                    <tr><td>heartbeat</td><td id="flag-heartbeat">false</td></tr>
-                </tbody>
-            </table>
-        </section>
-
-        <section class="card vision-card">
-            <h2>Vision Feed</h2>
+            <h2>01 Neural Vision</h2>
             <canvas id="vision-canvas"></canvas>
-            <div class="mono" id="thought-stream">Waiting for sensor nexus handshake...</div>
         </section>
 
-        <section class="card log-card">
-            <h2>Event Log</h2>
+        <!-- 02: NOMAD VESSEL -->
+        <section class="card">
+            <h2>02 Nomad Vessel</h2>
+            <table class="kv-table">
+                <tbody>
+                    <tr><td>Vessel ID</td><td id="vessel-id">--</td></tr>
+                    <tr><td>Sync Status</td><td id="sync-status">idle</td></tr>
+                    <tr><td>RTT Latency</td><td id="rtt-val">-- ms</td></tr>
+                </tbody>
+            </table>
+        </section>
+
+        <!-- 03: CLINICAL CORE -->
+        <section class="card">
+            <h2>03 Clinical Core</h2>
+            <table class="kv-table">
+                <tbody>
+                    <tr><td>Ethical Stress</td><td id="tension-val">0.000</td></tr>
+                    <tr><td>Trust Gate</td><td id="trust-val">0.000</td></tr>
+                    <tr><td>Dissonance</td><td id="flag-dissonance">false</td></tr>
+                </tbody>
+            </table>
+        </section>
+
+        <!-- 04: SOMATIC HEALTH -->
+        <section class="card">
+            <h2>04 Somatic Health</h2>
+            <table class="kv-table">
+                <tbody>
+                    <tr><td>Battery LVL</td><td id="bat-val">--</td></tr>
+                    <tr><td>Core Temp</td><td id="temp-val">--</td></tr>
+                    <tr><td>Vitality</td><td id="vitality-val">1.00</td></tr>
+                </tbody>
+            </table>
+        </section>
+
+        <!-- 05: IDENTITY STREAM -->
+        <section class="card">
+            <h2>05 Identity Stream</h2>
+            <div class="mono" id="thought-stream">Searching for sensory ingress...</div>
+        </section>
+
+        <!-- 06: INTEGRITY SENTINEL -->
+        <section class="card">
+            <h2>06 Integrity Sentinel</h2>
+            <table class="kv-table">
+                <tbody>
+                    <tr><td>WS Bus</td><td id="flag-connected">false</td></tr>
+                    <tr><td>Bridge Sync</td><td id="flag-bridge-sync">false</td></tr>
+                    <tr><td>Heartbeat</td><td id="flag-heartbeat">false</td></tr>
+                </tbody>
+            </table>
+        </section>
+
+        <!-- 07: COGNITIVE LOG -->
+        <section class="card">
+            <h2>07 Cognitive Log</h2>
             <div id="event-log" class="event-log"></div>
-            <div class="chat-input-area">
-                <input type="text" id="chat-input" placeholder="operator command" autocomplete="off">
-                <button id="chat-send">send</button>
+        </section>
+
+        <!-- 08: LOBE TELEMETRY -->
+        <section class="card">
+            <h2>08 Lobe Telemetry</h2>
+            <table class="kv-table">
+                <tbody>
+                    <tr><td>Kinetics</td><td id="kin-val">0.000</td></tr>
+                    <tr><td>Vocal Signal</td><td id="audio-rms-val">0.000</td></tr>
+                    <tr><td>Orientation</td><td id="orient-val">--</td></tr>
+                </tbody>
+            </table>
+        </section>
+
+        <!-- 09: LIMBIC AFFECT -->
+        <section class="card" style="align-items:center; justify-content:center;">
+            <h2>09 Limbic Affect</h2>
+            <div id="orb-preview" style="width:50px; height:50px; border-radius:50%; background:var(--accent); box-shadow:0 0 15px var(--accent); transition: all 0.2s ease;"></div>
+        </section>
+
+        <!-- 10: SOCIAL EVAL -->
+        <section class="card">
+            <h2>10 Social Eval</h2>
+            <table class="kv-table">
+                <tbody>
+                    <tr><td>Circle</td><td id="social-circle">--</td></tr>
+                    <tr><td>Posture</td><td id="social-posture">--</td></tr>
+                </tbody>
+            </table>
+        </section>
+
+        <!-- 11: BAYESIAN ECOGRADE -->
+        <section class="card">
+            <h2>11 Bayesian Ecograde</h2>
+            <table class="kv-table">
+                <tbody>
+                    <tr><td>Confidence</td><td id="bayes-conf">--</td></tr>
+                    <tr><td>Delta</td><td id="bayes-delta">--</td></tr>
+                </tbody>
+            </table>
+        </section>
+
+        <!-- 12: NEURAL COMMAND -->
+        <section class="card">
+            <h2>12 Neural Command</h2>
+            <div style="flex:1; display:flex; flex-direction:column; overflow:hidden;">
+                <div id="chat-history" class="event-log" style="background:transparent; border:none; padding:0;"></div>
+                <div class="chat-input-area">
+                    <input type="text" id="chat-input" placeholder="Command..." autocomplete="off">
+                    <button id="chat-send">EXEC</button>
+                </div>
             </div>
         </section>
     </main>

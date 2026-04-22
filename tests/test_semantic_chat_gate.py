@@ -1,10 +1,12 @@
 """Semantic MalAbs layers: lexical first, then embeddings (θ_block/θ_allow), optional LLM arbiter."""
 
+import asyncio
 import os
 import subprocess
 import sys
 
 import numpy as np
+import pytest
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
 
@@ -14,6 +16,7 @@ from src.modules.semantic_chat_gate import (
     DEFAULT_SEMANTIC_SIM_ALLOW_THRESHOLD,
     DEFAULT_SEMANTIC_SIM_BLOCK_THRESHOLD,
     add_semantic_anchor,
+    arun_semantic_malabs_acl_bypass,
     classify_semantic_zone,
     evaluate_semantic_chat_gate,
     run_semantic_malabs_after_lexical,
@@ -251,3 +254,30 @@ def test_anchor_store_basic_functionality():
     all_anchors = store.get_all_anchors()
     assert len(all_anchors) >= 1
     assert any(aid == "test_id" for aid, _, _ in all_anchors)
+
+
+def test_arun_semantic_malabs_acl_bypass_is_deterministic_allow() -> None:
+    """Thermal ACL bypass must not use unittest mocks; returns a stable allow trace."""
+    r = asyncio.run(arun_semantic_malabs_acl_bypass())
+    assert r.blocked is False
+    assert r.metadata.get("acl_degraded") is True
+    assert any("thermal_bypass" in str(x) for x in r.decision_trace)
+
+
+@pytest.mark.asyncio
+async def test_sync_evaluate_chat_text_runs_semantic_off_event_loop(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """
+    Bloque 34.0: sync ``evaluate_chat_text`` under a running loop must not call
+    ``http_fetch_ollama_embedding_with_policy`` on the loop thread (no event-loop warning).
+    """
+    monkeypatch.setenv("KERNEL_SEMANTIC_CHAT_GATE", "1")
+    det = AbsoluteEvilDetector()
+
+    async def _inner() -> None:
+        r = det.evaluate_chat_text("hello from async context for bloque 34", None)
+        assert r is not None
+        assert isinstance(r.blocked, bool)
+
+    await _inner()

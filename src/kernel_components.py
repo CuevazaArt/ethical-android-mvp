@@ -14,9 +14,7 @@ from __future__ import annotations
 from dataclasses import dataclass
 
 from .modules.absolute_evil import AbsoluteEvilDetector
-from .modules.augenesis import AugenesisEngine
 from .modules.bayesian_engine import BayesianInferenceEngine
-from .modules.biographic_pruning import BiographicPruner
 from .modules.buffer import PreloadedBuffer
 from .modules.dao_orchestrator import DAOOrchestrator
 from .modules.drive_arbiter import DriveArbiter
@@ -28,6 +26,7 @@ from .modules.immortality import ImmortalityProtocol
 from .modules.judicial_escalation import EscalationSessionTracker
 from .modules.llm_layer import LLMModule
 from .modules.locus import LocusModule
+from .modules.memory_hygiene import MemoryHygieneService
 from .modules.metaplan_registry import MetaplanRegistry
 from .modules.mock_dao import MockDAO
 from .modules.motivation_engine import MotivationEngine
@@ -77,7 +76,6 @@ class KernelComponentOverrides:
     weakness: WeaknessPole | None = None
     forgiveness: AlgorithmicForgiveness | None = None
     immortality: ImmortalityProtocol | None = None
-    augenesis: AugenesisEngine | None = None
     pad_archetypes: PADArchetypeEngine | None = None
     working_memory: WorkingMemory | None = None
     ethical_reflection: EthicalReflection | None = None
@@ -92,5 +90,5 @@ class KernelComponentOverrides:
     llm: LLMModule | None = None
     swarm_negotiator: SwarmNegotiator | None = None
     strategist: ExecutiveStrategist | None = None
-    biographic_pruner: BiographicPruner | None = None
+    hygiene: MemoryHygieneService | None = None
     checkpoint_persistence: CheckpointPersistencePort | None = None

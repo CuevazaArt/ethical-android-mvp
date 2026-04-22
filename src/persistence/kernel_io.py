@@ -199,7 +199,9 @@ def extract_snapshot(kernel: EthicalKernel) -> KernelSnapshotV1:
             interaction_profile_to_dict(p) for p in kernel.uchi_soto.profiles.values()
         ],
         migratory_body=body_state_to_dict(kernel.migration.current_body),
-        absolute_evil_situated_veto_time=float(getattr(kernel.absolute_evil, "_last_situated_veto_time", 0.0)),
+        absolute_evil_situated_veto_time=float(
+            getattr(kernel.absolute_evil, "_last_situated_veto_time", 0.0)
+        ),
     )
 
 
@@ -244,7 +246,7 @@ def apply_snapshot(kernel: EthicalKernel, snap: KernelSnapshotV1) -> None:
         for i, x in enumerate(snap.bayesian_hypothesis_weights)
     ]
     kernel.bayesian.hypothesis_weights = np.array(hw_list, dtype=float)
-    
+
     alpha_list = [
         _finite_float(x, f"bayesian_posterior_alpha[{i}]")
         for i, x in enumerate(getattr(snap, "bayesian_posterior_alpha", [1.0, 1.0, 1.0]))
@@ -370,4 +372,6 @@ def apply_snapshot(kernel: EthicalKernel, snap: KernelSnapshotV1) -> None:
 
     # Phase 9 — Situated Veto Restore
     if hasattr(kernel.absolute_evil, "_last_situated_veto_time"):
-        kernel.absolute_evil._last_situated_veto_time = float(snap.absolute_evil_situated_veto_time or 0.0)
+        kernel.absolute_evil._last_situated_veto_time = float(
+            snap.absolute_evil_situated_veto_time or 0.0
+        )

@@ -25,6 +25,7 @@ import os
 import time
 from dataclasses import dataclass
 from enum import Enum
+from typing import Any
 
 _log = logging.getLogger(__name__)
 
@@ -97,18 +98,28 @@ class SafetyInterlock:
         """Kernel check: can we even move?"""
         return not self._estop_active
 
-    def evaluate(self, scenario: str, place: str, context: str) -> Optional[Any]:
+    def evaluate(self, scenario: str, place: str, context: str) -> Any | None:
         """Perceptual stage safety check."""
         if not self.is_safe_to_operate():
-            from src.kernel import KernelDecision, InternalState
+            from src.kernel_decision import KernelDecision
             from src.modules.absolute_evil import AbsoluteEvilResult
+            from src.modules.sympathetic import InternalState
+
             return KernelDecision(
-                scenario=scenario, place=place,
-                absolute_evil=AbsoluteEvilResult(blocked=True, reason=f"Hardware E-STOP: {self._reason}"),
-                sympathetic_state=InternalState(mode="blocked", sigma=0.0, energy=0.0, description="E-STOP ACTIVE"),
-                social_evaluation=None, locus_evaluation=None, bayesian_result=None, moral=None,
+                scenario=scenario,
+                place=place,
+                absolute_evil=AbsoluteEvilResult(
+                    blocked=True, reason=f"Hardware E-STOP: {self._reason}"
+                ),
+                sympathetic_state=InternalState(
+                    mode="blocked", sigma=0.0, energy=0.0, description="E-STOP ACTIVE"
+                ),
+                social_evaluation=None,
+                locus_evaluation=None,
+                bayesian_result=None,
+                moral=None,
                 final_action="HALT: Hardware Emergency Stop active.",
                 decision_mode="blocked_estop",
-                block_reason=f"Emergency Interlock Active: {self._reason}"
+                block_reason=f"Emergency Interlock Active: {self._reason}",
             )
         return None

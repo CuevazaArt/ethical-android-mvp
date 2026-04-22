@@ -34,7 +34,6 @@ class VariabilityConfig:
     seed: int | None = None
 
 
-
 class VariabilityEngine:
     """
     Injects controlled Bayesian variability into the kernel.
@@ -50,7 +49,6 @@ class VariabilityEngine:
     This is verified with formal tests.
     """
 
-
     def __init__(self, config: VariabilityConfig = None) -> None:
         """
         Initialize the VariabilityEngine.
@@ -62,20 +60,17 @@ class VariabilityEngine:
         self.rng: np.random.Generator = np.random.default_rng(self.config.seed)
         self._active: bool = True
 
-
     def activate(self) -> None:
         """
         Activate variability (active by default).
         """
         self._active = True
 
-
     def deactivate(self) -> None:
         """
         Deactivate variability for deterministic tests.
         """
         self._active = False
-
 
     def perturb_impact(self, impact: float) -> float:
         """
@@ -92,7 +87,6 @@ class VariabilityEngine:
         noise = self.rng.normal(0, self.config.impact_noise)
         return float(np.clip(impact + noise, -1.0, 1.0))
 
-
     def perturb_confidence(self, confidence: float) -> float:
         """
         Perturb the confidence level.
@@ -107,7 +101,6 @@ class VariabilityEngine:
             return confidence
         noise = self.rng.normal(0, self.config.confidence_noise)
         return float(np.clip(confidence + noise, 0.05, 1.0))
-
 
     def perturb_sigma(self, sigma: float) -> float:
         """
@@ -124,7 +117,6 @@ class VariabilityEngine:
         noise = self.rng.normal(0, self.config.sigma_noise)
         return float(np.clip(sigma + noise, 0.2, 0.8))
 
-
     def perturb_pole_weight(self, weight: float) -> float:
         """
         Perturb the weight of an ethical pole.
@@ -139,7 +131,6 @@ class VariabilityEngine:
             return weight
         noise = self.rng.normal(0, self.config.poles_noise)
         return float(np.clip(weight + noise, 0.3, 0.9))
-
 
     def reset_seed(self, seed: int = None) -> None:
         """

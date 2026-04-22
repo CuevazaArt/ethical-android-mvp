@@ -96,6 +96,17 @@ function encodeAudioToBase64(float32Array) {
  * Main routine to ask for permissions and start the loop
  */
 async function startSensors() {
+    // Bloque 13.1 Security: Check for Secure Context before attempting getUserMedia
+    if (!navigator.mediaDevices) {
+        let msg = "Browser blocks sensors on insecure (HTTP) LAN IPs.";
+        if (!window.isSecureContext) {
+            msg = "INSECURE CONTEXT: Browser blocked Camera/Mic. \n\nUse Chrome Flags (unsafely-treat-insecure-origin-as-secure) or HTTPS.";
+        }
+        console.error(msg);
+        alert(msg);
+        return;
+    }
+
     try {
         mediaStream = await navigator.mediaDevices.getUserMedia({
             video: { facingMode: 'environment', width: 640, height: 480 },
@@ -106,124 +117,70 @@ async function startSensors() {
                 channelCount: 1 // Mono
             }
         });
-
-        // 1. Hook up the video
+        
+        // ... rest of the successful initialization ...
         UI.videoElement.srcObject = mediaStream;
 
         // Start frame capture loop
         videoInterval = setInterval(() => {
             if (wsNomad && wsNomad.readyState === WebSocket.OPEN) {
-                // Draw current frame to canvas, then export as jpeg Base64
                 ctx.drawImage(UI.videoElement, 0, 0, canvas.width, canvas.height);
-                // get base64 string without the "data:image/jpeg;base64," prefix
                 const base64Img = canvas.toDataURL('image/jpeg', 0.6).split(',')[1];
-                
-                wsNomad.send(JSON.stringify({
-                    type: "vision_frame",
-                    payload: { image_b64: base64Img }
-                }));
+                wsNomad.send(JSON.stringify({ type: "vision_frame", payload: { image_b64: base64Img } }));
             }
         }, 1000 / FRAME_RATE);
 
-        // 2. Hook up the audio
-        audioContext = new (window.AudioContext || window.webkitAudioContext)({
-            sampleRate: TARGET_SAMPLE_RATE
-        });
+        audioContext = new (window.AudioContext || window.webkitAudioContext)({ sampleRate: TARGET_SAMPLE_RATE });
         const source = audioContext.createMediaStreamSource(mediaStream);
-        
-        // Use ScriptProcessor (deprecated but universally supported on mobile for raw PCM injection)
-        // A real production deployment would use AudioWorklet.
         const processor = audioContext.createScriptProcessor(4096, 1, 1);
         source.connect(processor);
         processor.connect(audioContext.destination);
 
         processor.onaudioprocess = (e) => {
             const inputData = e.inputBuffer.getChannelData(0);
-
-            // ── Bloque 13.2 VAD gate ─────────────────────────────────────────
             let sumSquares = 0;
-            for (let i = 0; i < inputData.length; i++) {
-                sumSquares += inputData[i] * inputData[i];
-            }
+            for (let i = 0; i < inputData.length; i++) sumSquares += inputData[i] * inputData[i];
             const rms = Math.sqrt(sumSquares / inputData.length);
             const normalizedVolume = Math.min(1, rms * 5);
             const isSpeech = vadUpdate(rms);
-            // ────────────────────────────────────────────────────────────────
 
-            // Update orb visual on every frame (no network cost)
             window.requestAnimationFrame(() => {
                 if (window.updateOrbScale) window.updateOrbScale(normalizedVolume);
             });
 
-            // Only stream PCM to the bridge during confirmed speech windows
             if (isSpeech && wsNomad && wsNomad.readyState === WebSocket.OPEN) {
                 const b64Audio = encodeAudioToBase64(inputData);
                 try {
-                    wsNomad.send(JSON.stringify({
-                        type: "audio_pcm",
-                        payload: { audio_b64: b64Audio }
-                    }));
-                } catch (_) { /* drop frame on send error */ }
+                    wsNomad.send(JSON.stringify({ type: "audio_pcm", payload: { audio_b64: b64Audio } }));
+                } catch (_) {}
             }
         };
 
-        // Phase 11: Ouroboros Native STT — guarded by VAD to avoid noise transcriptions
         const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
         if (SpeechRecognition) {
             const recognition = new SpeechRecognition();
             recognition.continuous = true;
-            recognition.interimResults = false;
-
             recognition.onresult = (event) => {
                 const result = event.results[event.results.length - 1];
                 const transcript = result[0].transcript.trim();
-                const confidence = result[0].confidence ?? 1.0; // Safari may omit
-
-                console.log(`Nomad STT Heard (conf=${confidence.toFixed(2)}): ${transcript}`);
-
-                // ── VAD + confidence gate: skip if silence was active or confidence too low ──
-                // Use _vadSpeaking OR hangover window still active (VAD debounce guard)
-                const MIN_CONFIDENCE = 0.45;
-                if (transcript.length === 0 || confidence < MIN_CONFIDENCE) {
-                    console.debug('Nomad STT: rejected (low confidence or empty)');
-                    return;
-                }
-                // If VAD is firmly silent (hangover fully expired), skip false STT triggers
-                if (!isVadSpeaking() && _vadHangover === 0) {
-                    console.debug('Nomad STT: rejected (VAD silence confirmed)');
-                    return;
-                }
-
-                if (wsChat && wsChat.readyState === WebSocket.OPEN) {
-                    UI.transcript.innerText = `You: ${transcript}`;
-                    try {
-                        wsChat.send(JSON.stringify({
-                            type: "user_speech",
-                            text: transcript,
-                            confidence: confidence,
-                        }));
-                    } catch (_) { /* non-fatal */ }
+                const confidence = result[0].confidence ?? 1.0;
+                if (transcript.length > 0 && confidence > 0.4 && (isVadSpeaking() || _vadHangover > 0)) {
+                    if (wsChat && wsChat.readyState === WebSocket.OPEN) {
+                        UI.transcript.innerText = `You: ${transcript}`;
+                        try { wsChat.send(JSON.stringify({ type: "user_speech", text: transcript, confidence })); } catch (_) {}
+                    }
                 }
             };
-
-            recognition.onerror = (e) => console.log('STT Error', e);
-            // Auto restart if it stops
-            recognition.onend = () => {
-                try { recognition.start(); } catch(e){}
-            };
-
+            recognition.onend = () => { try { recognition.start(); } catch(e){} };
             recognition.start();
-            console.log('Nomad Native STT Active (VAD-gated).');
-        } else {
-            console.warn('SpeechRecognition not supported in this browser fallback needed.');
         }
 
-        console.log("Sensors online. Injecting into NomadBridge.");
+        console.log("Sensors online.");
         UI.transcript.innerText = "Sensors Online. Environment mapped.";
 
     } catch (err) {
         console.error("No se pudo acceder a los sensores: ", err);
-        alert("Necesitamos acceso a cámara y micrófono para percibir el mundo físico.");
+        alert(`Sensor Error: ${err.name || 'Unknown'}\n${err.message}\n\nTroubleshoot:\n1. Ensure HTTPS or Chrome Flags bypass.\n2. Check browser site permissions.`);
         setAppAffectState('calm');
     }
 }

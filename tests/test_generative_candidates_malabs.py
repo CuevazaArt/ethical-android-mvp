@@ -16,10 +16,9 @@ from __future__ import annotations
 import pytest
 from src.modules.absolute_evil import AbsoluteEvilDetector
 from src.modules.generative_candidates import (
-    parse_generative_candidates_from_llm,
     GENERATIVE_ORIGIN,
+    parse_generative_candidates_from_llm,
 )
-from src.modules.weighted_ethics_scorer import CandidateAction
 
 
 class TestGenerativeCandidatesMalAbs:

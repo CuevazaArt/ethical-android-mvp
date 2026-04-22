@@ -7,10 +7,10 @@ import tempfile
 from pathlib import Path
 
 import numpy as np
-import pytest
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
 
+from src.modules.bayesian_engine import BayesianInferenceEngine
 from src.modules.rlhf_reward_model import (
     FeatureVector,
     LabeledExample,
@@ -21,7 +21,6 @@ from src.modules.rlhf_reward_model import (
     maybe_modulate_bayesian_from_malabs,
     rlhf_bayesian_modulation_enabled,
 )
-from src.modules.bayesian_engine import BayesianInferenceEngine
 
 
 class TestFeatureVector:

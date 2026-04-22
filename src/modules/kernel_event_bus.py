@@ -23,9 +23,7 @@ EVENT_KERNEL_EPISODE_REGISTERED = "kernel.episode_registered"
 EVENT_KERNEL_WEIGHTS_UPDATED = (
     "kernel.weights_updated"  # I2 — emitted when hypothesis_weights change
 )
-EVENT_GOVERNANCE_THRESHOLD_UPDATED = (
-    "kernel.governance_threshold_updated"  # C.2.1 — emitted when MultiRealmGovernor resolves a proposal
-)
+EVENT_GOVERNANCE_THRESHOLD_UPDATED = "kernel.governance_threshold_updated"  # C.2.1 — emitted when MultiRealmGovernor resolves a proposal
 EVENT_SENSORY_STRESS_ALERT = "kernel.sensory_stress_alert"
 
 KernelEventHandler = Callable[[dict[str, Any]], None]

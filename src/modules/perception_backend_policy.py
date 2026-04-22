@@ -27,7 +27,6 @@ from typing import TYPE_CHECKING, Any
 
 from .llm_touchpoint_policies import (
     TOUCHPOINT_PERCEPTION,
-    global_safe_policy_enabled,
     raw_global_default_policy,
     raw_touchpoint_policy,
 )

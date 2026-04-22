@@ -28,7 +28,6 @@ def somatic_markers_enabled() -> bool:
     return v not in ("0", "false", "no", "off")
 
 
-
 def _clamp01(x: float) -> float:
     """
     Clamp a float value to the [0.0, 1.0] range.
@@ -40,7 +39,6 @@ def _clamp01(x: float) -> float:
         return max(0.0, min(1.0, val))
     except (ValueError, TypeError):
         return 0.5
-
 
 
 def quantize_snapshot(snapshot: SensorSnapshot | None) -> str | None:
@@ -68,7 +66,6 @@ def quantize_snapshot(snapshot: SensorSnapshot | None) -> str | None:
     return "|".join(parts) if parts else None
 
 
-
 class SomaticMarkerStore:
     """
     Stores pattern → negative association weight in [0, 1]; persisted in snapshot (Phase 2).
@@ -92,7 +89,7 @@ class SomaticMarkerStore:
                 return
             w = _clamp01(weight)
             self._negative_weights[k] = max(self._negative_weights.get(k, 0.0), w)
-            
+
             latency = (time.perf_counter() - t0) * 1000
             if latency > 1.0:
                 _log.debug("SomaticMarkerStore: learn_negative_pattern latency = %.2fms", latency)
@@ -122,7 +119,6 @@ class SomaticMarkerStore:
         return float(self._negative_weights.get(key, 0.0))
 
 
-
 def apply_somatic_nudges(
     signals: dict[str, float],
     snapshot: SensorSnapshot | None,
@@ -144,11 +140,11 @@ def apply_somatic_nudges(
     k = quantize_snapshot(snapshot)
     if not k:
         return signals
-    
+
     w = store.get_weight(k)
     if w <= 0:
         return signals
-        
+
     out = dict(signals)
     out["risk"] = _clamp01(out.get("risk", 0.5) + 0.1 * w)
     out["urgency"] = _clamp01(out.get("urgency", 0.5) + 0.06 * w)

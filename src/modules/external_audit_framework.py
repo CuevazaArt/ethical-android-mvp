@@ -31,7 +31,6 @@ import os
 import time
 import uuid
 from dataclasses import asdict, dataclass, field
-from datetime import datetime, timedelta
 from pathlib import Path
 from typing import Any, Literal
 
@@ -245,15 +244,16 @@ class ExternalAuditFramework:
         """Create a comprehensive audit report."""
         # Collect all open and recent findings
         recent_findings = [
-            f for f in self.findings.values()
-            if f.days_since_discovery() <= self.retention_days
+            f for f in self.findings.values() if f.days_since_discovery() <= self.retention_days
         ]
 
         # Determine overall risk rating
         critical_findings = [f for f in recent_findings if f.severity == "critical"]
         overall_risk = (
-            "critical" if critical_findings
-            else "high" if any(f.severity == "high" for f in recent_findings)
+            "critical"
+            if critical_findings
+            else "high"
+            if any(f.severity == "high" for f in recent_findings)
             else "medium"
         )
 

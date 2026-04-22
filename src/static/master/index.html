@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ethos Kernel | Mission Control</title>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;600&family=JetBrains+Mono&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg: #050505;
+            --panel-bg: #0f0f12;
+            --accent: #00f2ff;
+            --accent-glass: rgba(0, 242, 255, 0.1);
+            --border: rgba(255, 255, 255, 0.05);
+        }
+        body, html {
+            margin: 0;
+            padding: 0;
+            height: 100%;
+            background: var(--bg);
+            color: #fff;
+            font-family: 'Outfit', sans-serif;
+            overflow: hidden;
+        }
+        .app-container {
+            display: grid;
+            grid-template-columns: 400px 1fr 350px;
+            height: 100vh;
+            gap: 2px;
+            background: var(--border);
+        }
+        .panel {
+            background: var(--panel-bg);
+            display: flex;
+            flex-direction: column;
+            position: relative;
+        }
+        .panel-header {
+            padding: 12px 20px;
+            background: rgba(255, 255, 255, 0.02);
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .panel-header h2 {
+            margin: 0;
+            font-size: 0.8rem;
+            letter-spacing: 2px;
+            color: var(--accent);
+            text-transform: uppercase;
+        }
+        iframe {
+            flex: 1;
+            width: 100%;
+            border: none;
+            background: transparent;
+        }
+        .center-stack {
+            display: grid;
+            grid-template-rows: 1fr;
+            height: 100%;
+        }
+        .right-stack {
+            display: grid;
+            grid-template-rows: 1fr 1fr;
+            height: 100%;
+            gap: 2px;
+            background: var(--border);
+        }
+        .overlay-status {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            box-shadow: inset 0 0 100px rgba(0, 242, 255, 0.05);
+            border: 1px solid var(--accent-glass);
+            z-index: 10;
+        }
+        /* Mobile adjustment if window resized */
+        @media (max-width: 1200px) {
+            .app-container {
+                grid-template-columns: 1fr 1fr;
+            }
+            .panel.clinical { display: none; }
+        }
+    </style>
+</head>
+<body>
+    <div class="app-container">
+        <!-- LEFT: NOMAD PWA -->
+        <div class="panel">
+            <div class="panel-header">
+                <h2>Nomad Vessel</h2>
+                <small>INTERACTIVE_CORE</small>
+            </div>
+            <iframe src="/nomad/"></iframe>
+            <div class="overlay-status"></div>
+        </div>
+
+        <!-- CENTER: NEURAL DASHBOARD -->
+        <div class="panel">
+            <div class="panel-header">
+                <h2>Neural Dashboard</h2>
+                <small>SYSTEM_HARMONICS</small>
+            </div>
+            <iframe src="/dashboard/"></iframe>
+        </div>
+
+        <!-- RIGHT: CLINICAL + METRICS -->
+        <div class="panel right-stack">
+            <div class="panel clinical" style="background: #000;">
+                 <div class="panel-header">
+                    <h2>Clinical</h2>
+                    <small>BIO_TELEMETRY</small>
+                </div>
+                <iframe src="/clinical/"></iframe>
+            </div>
+            <div class="panel" style="background: #000;">
+                <div class="panel-header">
+                    <h2>Terminal Output</h2>
+                    <small>LOG_STREAM</small>
+                </div>
+                <!-- We could point this to a mini-log view if available, 
+                     for now let's reuse one of the views or a placeholder -->
+                <div style="padding: 20px; font-family: 'JetBrains+Mono'; font-size: 0.72rem; color: #ccc; line-height: 1.4;">
+                    [INFO] Orchestrator synchronized.<br>
+                    [INFO] Master session bound to L1-AUDIT.<br>
+                    [WAIT] Awaiting sensory ingress...
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Optional: synchronization logic between iframes if needed
+        console.log("Ethos Mission Control Initialized.");
+    </script>
+</body>
+</html>

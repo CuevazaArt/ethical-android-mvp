@@ -1,5 +1,8 @@
 # UniversalEthos + Hub — canonical architecture (vision ↔ code)
 
+> [!IMPORTANT]
+> **Aspirational Terminology Disclaimer:** Terms such as "consciousness", "soul", "sentience", or "artificial conscience" are used within this document in a purely aspirational or metaphorical sense to describe the intended complexity and systemic behavior of the ethical kernel. These do not imply actual biological sentience or metaphysical soulhood. All kernel behaviors are deterministic or stochastic mathematical processes.
+
 **Purpose:** Single source of truth for the *DemocraticBuffer / multicultural overlays*, *services hub*, *audit protocol*, *evolution loops*, and the *V11–V12 module map*. Detailed phase specs remain in versioned proposals ([V11](PROPOSAL_DISTRIBUTED_JUSTICE_V11.md), [V12](PROPOSAL_ETOSOCIAL_STATE_V12.md)); this document **unifies** narrative and **maps** to `src/` without duplicating their env tables.
 
 **Kernel contract:** MalAbs → `PreloadedBuffer` (L0) remains the **normative core**. Hub layers add governance, audit, and operations **without** bypassing safety.

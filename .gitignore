@@ -20,11 +20,14 @@ logs/
 audit_trail.db
 
 # Testing
+tests/test_pruning.db
 .pytest_cache/
 .mypy_cache/
 .ruff_cache/
 .coverage
+.coverage.*
 coverage.xml
+_mypy_exclude_test.toml
 htmlcov/
 junit.xml
 

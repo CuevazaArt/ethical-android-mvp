@@ -132,7 +132,7 @@ class TestSemanticThresholdValidation:
         """Valid ordering: allow < block should pass."""
         settings = KernelSettings(
             kernel_semantic_chat_sim_allow_threshold=0.40,
-            kernel_semantic_chat_sim_block_threshold=0.85
+            kernel_semantic_chat_sim_block_threshold=0.85,
         )
         assert settings.kernel_semantic_chat_sim_allow_threshold == 0.40
         assert settings.kernel_semantic_chat_sim_block_threshold == 0.85
@@ -142,7 +142,7 @@ class TestSemanticThresholdValidation:
         with pytest.raises(ValueError, match="allow_threshold .* must be <"):
             KernelSettings(
                 kernel_semantic_chat_sim_allow_threshold=0.50,
-                kernel_semantic_chat_sim_block_threshold=0.50
+                kernel_semantic_chat_sim_block_threshold=0.50,
             )
 
     def test_threshold_ordering_invalid_allow_greater(self):
@@ -150,13 +150,16 @@ class TestSemanticThresholdValidation:
         with pytest.raises(ValueError, match="allow_threshold .* must be <"):
             KernelSettings(
                 kernel_semantic_chat_sim_allow_threshold=0.90,
-                kernel_semantic_chat_sim_block_threshold=0.80
+                kernel_semantic_chat_sim_block_threshold=0.80,
             )
 
     def test_threshold_ordering_default_valid(self):
         """Default thresholds should satisfy ordering constraint."""
         settings = KernelSettings()
-        assert settings.kernel_semantic_chat_sim_allow_threshold < settings.kernel_semantic_chat_sim_block_threshold
+        assert (
+            settings.kernel_semantic_chat_sim_allow_threshold
+            < settings.kernel_semantic_chat_sim_block_threshold
+        )
 
 
 class TestTemperatureValidation:
@@ -210,10 +213,7 @@ class TestStartupReport:
     def test_startup_report_includes_values(self):
         """Startup report should include actual configuration values."""
         settings = KernelSettings(
-            chat_host="0.0.0.0",
-            chat_port=9999,
-            kernel_variability=False,
-            llm_model="claude-sonnet"
+            chat_host="0.0.0.0", chat_port=9999, kernel_variability=False, llm_model="claude-sonnet"
         )
         report = settings.startup_report()
 
@@ -249,9 +249,7 @@ class TestPublicDictionary:
     def test_public_dict_values_match_settings(self):
         """Public dict values should match actual settings."""
         settings = KernelSettings(
-            chat_host="0.0.0.0",
-            kernel_variability=False,
-            kernel_metrics=True
+            chat_host="0.0.0.0", kernel_variability=False, kernel_metrics=True
         )
         public = settings.model_dump_public()
 

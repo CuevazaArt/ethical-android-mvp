@@ -4,25 +4,27 @@ Verifies that concurrent writes to the same SQLite file do not cause 'database i
 """
 
 import asyncio
-import pytest
 import os
 import time
 from pathlib import Path
+
+import pytest
+from src.modules.narrative_types import BodyState, NarrativeEpisode
 from src.persistence.narrative_storage import NarrativePersistence
-from src.modules.narrative_types import NarrativeEpisode, BodyState
+
 
 @pytest.mark.asyncio
 async def test_concurrent_narrative_writes():
     """Simulate multiple concurrent tasks writing to the same narrative DB."""
     db_path = Path("tests/concurrent_audit_test.db")
     if db_path.exists():
-         os.remove(db_path)
-         
+        os.remove(db_path)
+
     storage = NarrativePersistence(db_path)
-    
+
     tasks = []
     num_tasks = 50
-    
+
     def create_episode(i):
         return NarrativeEpisode(
             id=f"ep_{i}",
@@ -36,7 +38,7 @@ async def test_concurrent_narrative_writes():
             ethical_score=0.5,
             decision_mode="D_fast",
             sigma=0.0,
-            context="everyday"
+            context="everyday",
         )
 
     async def worker(i):
@@ -52,13 +54,13 @@ async def test_concurrent_narrative_writes():
     start_time = time.time()
     for i in range(num_tasks):
         tasks.append(worker(i))
-        
+
     await asyncio.gather(*tasks)
     end_time = time.time()
-    
+
     final_count = len(storage.load_all_episodes())
     print(f"[Bench] Completed in {end_time - start_time:.2f}s. Final count: {final_count}")
-    
+
     assert final_count == num_tasks
     if db_path.exists():
-         os.remove(db_path)
+        os.remove(db_path)

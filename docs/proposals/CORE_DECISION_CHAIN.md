@@ -1,4 +1,7 @@
-# Core decision chain (MalAbs → action)
+# Core Decision Chain — Deterministic Predicates & Bayesian Evaluation
+
+> [!IMPORTANT]
+> **Aspirational Terminology Disclaimer:** Terms such as "consciousness", "soul", "sentience", or "artificial conscience" are used within this document in a purely aspirational or metaphorical sense to describe the intended complexity and systemic behavior of the ethical kernel. These do not imply actual biological sentience or metaphysical soulhood. All kernel behaviors are deterministic or stochastic mathematical processes.
 
 **Audience:** reviewers and integrators who need a **single map** from inputs to `KernelDecision.final_action`, without reading all of `src/kernel.py` first.
 

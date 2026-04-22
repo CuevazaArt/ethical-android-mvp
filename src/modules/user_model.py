@@ -11,6 +11,7 @@ Enrichment (cognitive pattern, risk band, judicial snapshot for tone):
 from __future__ import annotations
 
 from dataclasses import dataclass, field
+from typing import Any
 
 from .llm_layer import LLMPerception
 
@@ -37,14 +38,14 @@ class UserModelTracker:
 
     frustration_streak: int = 0
     premise_concern_streak: int = 0
-    last_circle: str = "neutral_soto" # Uchi vs Soto
+    last_circle: str = "neutral_soto"  # Uchi vs Soto
     turns_observed: int = 0
     cognitive_pattern: str = COGNITIVE_NONE
     risk_band: str = RISK_LOW
     escalation_strikes: int = 0
     escalation_threshold: int = 2
     judicial_phase: str = ""
-    
+
     # --- Module 10: Cultural Charm Engine (Eferencia Seductora) ---
     # Parámetros de estilo conversacional aprendidos (0.0 a 1.0)
     # --- Module 10: Cultural Charm Engine ---
@@ -56,13 +57,14 @@ class UserModelTracker:
     charm_playfulness: float = 0.45
     charm_intimacy: float = 0.5
     charm_macro_culture: str = "global_default"
-    
+
     # Smoothness engine (Basal Ganglia)
     _ganglia: Any = field(default=None, repr=False)
 
     def _ensure_ganglia(self):
         if self._ganglia is None:
             from .basal_ganglia import BasalGanglia
+
             self._ganglia = BasalGanglia()
         return self._ganglia
 
@@ -103,11 +105,11 @@ class UserModelTracker:
             return
         self.turns_observed += 1
         self.last_circle = circle or self.last_circle
-        
+
         h = float(perception.hostility)
         m = float(perception.manipulation)
         calm = float(perception.calm)
-        
+
         # 1. Calculate Target Values (Desired state)
         target_intimacy = self.charm_intimacy
         target_mystery = self.charm_mystery
@@ -129,13 +131,15 @@ class UserModelTracker:
 
         # 2. Smooth via Basal Ganglia (MER V2 - 10.3)
         ganglia = self._ensure_ganglia()
-        smoothed = ganglia.smooth_batch({
-            "warmth": target_warmth,
-            "mystery": target_mystery,
-            "intimacy": target_intimacy,
-            "reciprocity": self.charm_reciprocity
-        })
-        
+        smoothed = ganglia.smooth_batch(
+            {
+                "warmth": target_warmth,
+                "mystery": target_mystery,
+                "intimacy": target_intimacy,
+                "reciprocity": self.charm_reciprocity,
+            }
+        )
+
         self.charm_warmth = smoothed["warmth"]
         self.charm_mystery = smoothed["mystery"]
         self.charm_intimacy = smoothed["intimacy"]
@@ -143,7 +147,6 @@ class UserModelTracker:
 
         self.cognitive_pattern = self._infer_cognitive_pattern(perception, premise_flag)
         self.risk_band = self._compute_risk_band(perception)
-
 
     def _infer_cognitive_pattern(self, perception: LLMPerception, premise_flag: str) -> str:
         pf = (premise_flag or "").strip().lower()
@@ -244,7 +247,7 @@ class UserModelTracker:
                 "Epistemic note: multiple turns raised premise-safety hints—prioritize careful, "
                 "non-affirming responses to risky factual claims."
             )
-            
+
         # --- Module 10: Charm Vectors Injection ---
         parts.append(
             f"[CHARM-VECTOR] Calidez:{self.charm_warmth:.2f} Misterio:{self.charm_mystery:.2f} "
@@ -253,7 +256,7 @@ class UserModelTracker:
             "Si Intimidad baja, mantén Tatemae (distancia educada). "
             "Si Intimidad > 0.6, permite destellos de Honne (micro-revelaciones lúdicas)."
         )
-            
+
         return " ".join(parts).strip()
 
     def to_public_dict(self) -> dict:
@@ -278,4 +281,3 @@ class UserModelTracker:
             ),
             "reciprocity_index": float(self.charm_reciprocity),
         }
-

@@ -12,7 +12,8 @@ import asyncio
 import logging
 import os
 import time
-from typing import Any, Callable, Dict, List, Optional, Set
+from collections.abc import Callable
+from typing import Any
 
 from src.kernel_lobes.models import NervousPulse
 
@@ -34,16 +35,16 @@ class CorpusCallosum:
     """
 
     def __init__(self, max_qsize: int = 5000):
-        self._subscribers: Dict[str, List[Callable[..., Any]]] = {}
+        self._subscribers: dict[str, list[Callable[..., Any]]] = {}
 
-        self._queues: Dict[int, asyncio.Queue[NervousPulse]] = {
+        self._queues: dict[int, asyncio.Queue[NervousPulse]] = {
             0: asyncio.Queue(maxsize=max_qsize),
             1: asyncio.Queue(maxsize=max_qsize),
             2: asyncio.Queue(maxsize=max_qsize),
         }
 
         self._running = False
-        self._loop_task: Optional[asyncio.Task[None]] = None
+        self._loop_task: asyncio.Task[None] | None = None
         self._wake_event = asyncio.Event()
 
         self.total_pulses_processed = 0
@@ -56,15 +57,15 @@ class CorpusCallosum:
         self._async_subscribers_active = 0
         self._in_flight_peak = 0
 
-        self.modulator: Optional[Any] = None
+        self.modulator: Any | None = None
 
         self._dispatch_max_batch = _DEFAULT_MAX_BATCH
         self._yield_every = _DEFAULT_YIELD_EVERY
 
         # Optional ingress gate (e.g. Thalamus pre-filter); True = accept pulse.
-        self._ingress_gate: Optional[Callable[[NervousPulse], Any]] = None
+        self._ingress_gate: Callable[[NervousPulse], Any] | None = None
 
-    def set_ingress_gate(self, gate: Optional[Callable[[NervousPulse], Any]]) -> None:
+    def set_ingress_gate(self, gate: Callable[[NervousPulse], Any] | None) -> None:
         """Register an optional pulse filter (sync or async). Return False to drop."""
 
         self._ingress_gate = gate
@@ -72,9 +73,9 @@ class CorpusCallosum:
     def configure_dispatch(
         self,
         *,
-        max_batch: Optional[int] = None,
-        yield_every: Optional[int] = None,
-        max_in_flight: Optional[int] = None,
+        max_batch: int | None = None,
+        yield_every: int | None = None,
+        max_in_flight: int | None = None,
     ) -> None:
         """Tune batching / fan-out for overload scenarios (tests or large clusters)."""
 
@@ -224,14 +225,14 @@ class CorpusCallosum:
                 self._wake_event.clear()
                 try:
                     await asyncio.wait_for(self._wake_event.wait(), timeout=0.1)
-                except asyncio.TimeoutError:
+                except TimeoutError:
                     pass
 
     async def _notify_subscribers(self, pulse: NervousPulse) -> None:
         """Fan-out to listeners; async callbacks share a bounded semaphore."""
 
         type_name = type(pulse).__name__
-        target_types: Set[str] = {type_name, "NervousPulse"}
+        target_types: set[str] = {type_name, "NervousPulse"}
 
         for t_name in target_types:
             callbacks = self._subscribers.get(t_name, [])
@@ -258,4 +259,3 @@ class CorpusCallosum:
                 await callback(pulse)
             finally:
                 self._async_subscribers_active -= 1
-

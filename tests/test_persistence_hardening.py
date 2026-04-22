@@ -11,14 +11,11 @@ Validates robustness of SQLite persistence layer through realistic kernel operat
 
 from __future__ import annotations
 
-import sqlite3
 import threading
-import time
-from pathlib import Path
 
 import pytest
 from src.kernel import EthicalKernel
-from src.persistence import extract_snapshot, apply_snapshot, JsonFilePersistence
+from src.persistence import JsonFilePersistence, apply_snapshot, extract_snapshot
 
 
 class TestPersistenceHardening:
@@ -33,6 +30,7 @@ class TestPersistenceHardening:
             try:
                 # Set kernel to use shared temp DB
                 import os
+
                 os.environ["KERNEL_NARRATIVE_DB_PATH"] = str(db_path)
 
                 k = EthicalKernel(variability=False)
@@ -43,10 +41,7 @@ class TestPersistenceHardening:
             except Exception as e:
                 results.append((kernel_id, str(e)))
 
-        threads = [
-            threading.Thread(target=kernel_worker, args=(i,))
-            for i in range(3)
-        ]
+        threads = [threading.Thread(target=kernel_worker, args=(i,)) for i in range(3)]
 
         for t in threads:
             t.start()
@@ -86,6 +81,7 @@ class TestPersistenceHardening:
     def test_persistence_large_conversation_scale(self, tmp_path):
         """Kernel handles extended conversations without degradation."""
         import os
+
         os.environ["KERNEL_NARRATIVE_DB_PATH"] = str(tmp_path / "large_conv.db")
 
         try:
@@ -174,8 +170,8 @@ class TestPersistenceHardening:
         snap = snapshot_from_dict(v1_snap)
         assert snap.schema_version == 4
         # All new fields should exist
-        assert hasattr(snap, 'dao_proposals')
-        assert hasattr(snap, 'dao_participants')
+        assert hasattr(snap, "dao_proposals")
+        assert hasattr(snap, "dao_participants")
 
     def test_persistence_multiple_snapshot_cycles(self, tmp_path):
         """Multiple extract/apply cycles maintain consistency."""
@@ -199,7 +195,7 @@ class TestPersistenceHardening:
         k3 = EthicalKernel(variability=False)
         store.load_into_kernel(k3)
         k3.process_natural("cycle 3")
-        snap3 = extract_snapshot(k3)
+        extract_snapshot(k3)
 
         # Episode count should grow
         assert len(k3.memory.episodes) >= 1
@@ -246,6 +242,7 @@ class TestPersistenceHardening:
     def test_persistence_db_file_accessibility(self, tmp_path):
         """Database file remains accessible and kernel stores episodes."""
         import os
+
         db_path = tmp_path / "accessible.db"
         os.environ["KERNEL_NARRATIVE_DB_PATH"] = str(db_path)
 

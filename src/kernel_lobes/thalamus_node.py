@@ -7,27 +7,43 @@ detecting attentional focus and sensory dissonance.
 """
 
 from __future__ import annotations
-import time
+
 import logging
+import math
+import time
 from dataclasses import dataclass, field
 from typing import Any, Dict, List
-import math
 
 _log = logging.getLogger(__name__)
+
+
+def _finite_unit(x: Any, default: float = 0.0) -> float:
+    """Clamp to [0, 1] after coercing to float; non-finite → ``default``."""
+
+    try:
+        v = float(x)
+    except (TypeError, ValueError):
+        return default
+    if not math.isfinite(v):
+        return default
+    return max(0.0, min(1.0, v))
+
 
 @dataclass
 class AttentionState:
     """Current attentional focus of the kernel."""
+
     is_user_present: bool = False
     is_user_speaking: bool = False
     is_facing_user: bool = False
     confidence: float = 0.0
     last_update: float = field(default_factory=time.time)
 
+
 class ThalamusNode:
     """
     Biological model for sensory filtering and synchrony.
-    
+
     Logic:
     - VVAD: Visual Voice Activity Detection (Presence + Lips).
     - VAD: Audio Voice Activity Detection (RMS / Confidence).
@@ -39,53 +55,68 @@ class ThalamusNode:
     def __init__(self, sensitivity: float = 0.5):
         self.sensitivity = sensitivity
         self.state = AttentionState()
-        self.sensory_buffer: List[Any] = []
-        self._audio_history: List[float] = []
+        self.sensory_buffer: list[Any] = []
+        self._audio_history: list[float] = []
         self._max_history = 10
-        
+
         # EMA Smoothing state
         self._ema_facing = 0.0
         self._ema_presence = 0.0
+        self._alpha = 0.3  # Smoothing factor (biological persistence)
         self._alpha_base = 0.4 # Base smoothing factor
         self._presence_history: List[float] = []
 
-    def ingest_telemetry(self, payload: Dict[str, Any]):
+    def ingest_telemetry(self, payload: dict[str, Any]):
         """Ingests IMU data to update attentional confidence."""
         orientation = payload.get("orientation")
-        if orientation:
+        if orientation and isinstance(orientation, dict):
             # Common smartphone viewing angle (beta between 45 and 105 degrees)
-            beta = float(orientation.get("beta", 0))
+            beta_raw = orientation.get("beta", 0)
+            try:
+                beta = float(beta_raw)
+            except (TypeError, ValueError):
+                beta = 0.0
             if not math.isfinite(beta):
                 beta = 0.0
             target = 1.0 if (45 < beta < 105) else 0.0
             
             # Dynamic alpha for telemetry based on baseline
-            dynamic_alpha_facing = self._alpha_base
+            dynamic_alpha_facing = getattr(self, "_alpha_base", 0.4)
             
             # Application of EMA for stability (Anti-NaN protected)
             self._ema_facing = (dynamic_alpha_facing * target) + ((1.0 - dynamic_alpha_facing) * self._ema_facing)
             if not math.isfinite(self._ema_facing):
                 self._ema_facing = 0.0
             self.state.is_facing_user = self._ema_facing > 0.6
-            
+
             if self.state.is_facing_user:
                 self.state.confidence = min(1.0, self.state.confidence + 0.05)
             else:
                 self.state.confidence = max(0.0, self.state.confidence - 0.02)
-        
+
         self.state.last_update = time.time()
 
     def ingest_audio_signal(self, rms: float | None):
         """Processes audio volume spikes for VAD when raw RMS is available."""
         if rms is None:
             return
-        self._audio_history.append(rms)
+        try:
+            r = float(rms)
+        except (TypeError, ValueError):
+            return
+        if not math.isfinite(r):
+            return
+        self._audio_history.append(r)
         if len(self._audio_history) > self._max_history:
             self._audio_history.pop(0)
-            
-        avg_rms = sum(self._audio_history) / len(self._audio_history) if self._audio_history else 0.0
+
+        avg_rms = (
+            sum(self._audio_history) / len(self._audio_history) if self._audio_history else 0.0
+        )
+        if not math.isfinite(avg_rms):
+            avg_rms = 0.0
         # Threshold: 150% of background average and minimum absolute floor
-        if rms > avg_rms * 1.5 and rms > 0.03: 
+        if r > avg_rms * 1.5 and r > 0.03:
             self.state.is_user_speaking = True
             self.state.confidence = min(1.0, self.state.confidence + 0.1)
         else:
@@ -94,13 +125,13 @@ class ThalamusNode:
 
     def fuse_signals(
         self,
-        vision_data: Dict[str, Any] | None = None,
-        audio_data: Dict[str, Any] | None = None,
+        vision_data: dict[str, Any] | None = None,
+        audio_data: dict[str, Any] | None = None,
         environmental_stress: float = 0.0,
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         """
         Calculates focal address probability by crossing audio and vision.
-        
+
         Expected keys (0.0 to 1.0):
             vision_data: [lip_movement, human_presence]
             audio_data:  [vad_confidence]
@@ -108,16 +139,11 @@ class ThalamusNode:
         v = vision_data or {}
         a = audio_data or {}
 
-        try:
-            lip_mov = float(v.get("lip_movement", 0.0))
-            presence = float(v.get("human_presence", 0.0))
-            vad = float(a.get("vad_confidence", 0.0))
-            env_stress = float(environmental_stress)
-            
-            if not all(math.isfinite(x) for x in (lip_mov, presence, vad, env_stress)):
-                lip_mov, presence, vad, env_stress = 0.0, 0.0, 0.0, 0.0
-        except (ValueError, TypeError):
-            lip_mov, presence, vad, env_stress = 0.0, 0.0, 0.0, 0.0
+        lip_mov = _finite_unit(v.get("lip_movement", 0.0), 0.0)
+        presence = _finite_unit(v.get("human_presence", 0.0), 0.0)
+        vad = _finite_unit(a.get("vad_confidence", 0.0), 0.0)
+        stress = _finite_unit(environmental_stress, 0.0)
+        env_stress = stress
 
         # 1. Focal Address: requires cross-modal intersection
         # Tightly coupled VVAD + VAD
@@ -138,8 +164,7 @@ class ThalamusNode:
         dissonance = 0.0
         if presence > _PRES_THR:
             dissonance = max(0.0, vad - lip_mov) * 0.5
-        
-        sensory_tension = min(1.0, dissonance + env_stress)
+        sensory_tension = min(1.0, dissonance + stress)
 
         # Calculate variance to adjust EMA agility (more noise = more inertia)
         self._presence_history.append(presence)
@@ -160,7 +185,7 @@ class ThalamusNode:
             self._ema_presence = 0.0
         self.state.is_user_present = self._ema_presence > _PRES_THR
         self.state.is_user_speaking = vad > _VAD_THR or lip_mov > _LIP_THR
-        
+
         # Combined confidence from locus and posture
         self.state.confidence = round((attention_locus + self._ema_facing) / 2.0, 4)
         self.state.last_update = time.time()
@@ -170,15 +195,17 @@ class ThalamusNode:
             "attention_locus": round(max(0.0, min(1.0, attention_locus)), 4),
             "sensory_tension": round(max(0.0, min(1.0, sensory_tension)), 4),
             "cross_modal_trust": 1.0 if is_focal else 0.4,
-            "presence_confidence": round(self._ema_presence, 4)
+            "presence_confidence": round(self._ema_presence, 4),
         }
 
     def push_episode(self, episode: Any) -> None:
         """Maintenance of the ring buffer for recent sensory memory."""
         self.sensory_buffer.append(episode)
         if len(self.sensory_buffer) > self._SENSORY_BUFFER_MAX:
-            self.sensory_buffer = self.sensory_buffer[-self._SENSORY_BUFFER_MAX:]
+            self.sensory_buffer = self.sensory_buffer[-self._SENSORY_BUFFER_MAX :]
 
     def should_trigger_deliberation(self) -> bool:
         """Biological check: should the organism react?"""
-        return self.state.is_user_speaking and (self.state.is_facing_user or self.state.confidence > 0.6)
+        return self.state.is_user_speaking and (
+            self.state.is_facing_user or self.state.confidence > 0.6
+        )

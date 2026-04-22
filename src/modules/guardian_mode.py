@@ -1,49 +1,159 @@
 """
-Guardian Angel mode — optional presentation layer for vulnerable users.
+Guardian Angel — Optional care routines and tone adjustment for vulnerable users.
 
-When active (``KERNEL_GUARDIAN_MODE``), a fixed tone block is passed to
-``LLMModule.communicate`` only; it does **not** change MalAbs, Bayes, buffer,
-or will. See docs/proposals/README.md
+Consolidated module for managing the KERNEL_GUARDIAN_MODE and its routines.
 """
 
 from __future__ import annotations
 
+import json
+import logging
 import os
+import re
+from dataclasses import dataclass
+from pathlib import Path
+from typing import Any
+
+_log = logging.getLogger(__name__)
+_MAX_ROUTINES = 16
+_ID_RE = re.compile(r"^[a-z][a-z0-9_]{0,47}$")
+
+
+@dataclass(frozen=True)
+class GuardianRoutine:
+    id: str
+    title: str
+    hint: str
 
 
 def is_guardian_mode_active() -> bool:
-    """
-    Return True if Guardian Angel mode is enabled for this process.
-
-    Env: ``KERNEL_GUARDIAN_MODE`` — ``1`` / ``true`` / ``yes`` / ``on`` to enable;
-    default **off** (explicit opt-in for child-/vulnerability-oriented tone).
-    """
-
+    """Return True if Guardian Angel mode is enabled via KERNEL_GUARDIAN_MODE."""
     v = os.environ.get("KERNEL_GUARDIAN_MODE", "0").strip().lower()
     return v in ("1", "true", "yes", "on")
 
 
+def guardian_routines_feature_enabled() -> bool:
+    """Return True if KERNEL_GUARDIAN_ROUTINES is enabled."""
+    v = os.environ.get("KERNEL_GUARDIAN_ROUTINES", "0").strip().lower()
+    return v in ("1", "true", "yes", "on")
+
+
+def _parse_one_routine(raw: Any) -> GuardianRoutine | None:
+    if not isinstance(raw, dict):
+        return None
+    rid = raw.get("id")
+    if not isinstance(rid, str) or not _ID_RE.match(rid.strip().lower()):
+        return None
+    rid = rid.strip().lower()
+    title = str(raw.get("title", "")).strip()[:120]
+    hint = str(raw.get("hint", "")).strip()[:400]
+    if not title or not hint:
+        return None
+    return GuardianRoutine(id=rid, title=title, hint=hint)
+
+
+def load_guardian_routines_from_path(path: Path | str) -> list[GuardianRoutine]:
+    p = Path(path)
+    if not p.is_file():
+        return []
+    try:
+        text = p.read_text(encoding="utf-8")
+        data = json.loads(text)
+    except (OSError, json.JSONDecodeError):
+        return []
+
+    items: Any
+    if isinstance(data, dict) and "routines" in data:
+        items = data.get("routines")
+    elif isinstance(data, list):
+        items = data
+    else:
+        return []
+
+    if not isinstance(items, list):
+        return []
+
+    out: list[GuardianRoutine] = []
+    for x in items:
+        gr = _parse_one_routine(x)
+        if gr:
+            out.append(gr)
+        if len(out) >= _MAX_ROUTINES:
+            break
+    return out
+
+
+_cached_path: str = ""
+_cached_routines: list[GuardianRoutine] = []
+
+
+def invalidate_guardian_routines_cache() -> None:
+    """Clear cached routines (tests and config hot-reload)."""
+    global _cached_path, _cached_routines
+    _cached_path = ""
+    _cached_routines = []
+
+
+def get_guardian_routines() -> list[GuardianRoutine]:
+    """Load routines from KERNEL_GUARDIAN_ROUTINES_PATH with caching."""
+    global _cached_path, _cached_routines
+    if not guardian_routines_feature_enabled():
+        return []
+    raw = os.environ.get("KERNEL_GUARDIAN_ROUTINES_PATH", "").strip()
+    if not raw:
+        return []
+    if raw != _cached_path:
+        _cached_routines = load_guardian_routines_from_path(raw)
+        _cached_path = raw
+    return _cached_routines
+
+
+def guardian_routines_llm_suffix() -> str:
+    """Append-only care-routine block for LLM prompts when routines are enabled."""
+    if not guardian_routines_feature_enabled():
+        return ""
+    if not os.environ.get("KERNEL_GUARDIAN_ROUTINES_PATH", "").strip():
+        return ""
+    routines = get_guardian_routines()
+    if not routines:
+        return ""
+    lines = [
+        "",
+        "Care routines registered by the operator (hints for supportive tone only):",
+    ]
+    for r in routines:
+        lines.append(f"- [{r.id}] {r.title} — {r.hint}")
+    return "\n".join(lines)
+
+
 def guardian_mode_llm_context() -> str:
-    """
-    Non-empty only when :func:`is_guardian_mode_active` is True.
-
-    Appended to the LLM user block as style guidance; empty string when mode off.
-    Optionally appends **care routines** from :mod:`guardian_routines` when enabled.
-    """
-
+    """Return the context string to append to LLM prompts when in Guardian mode."""
     if not is_guardian_mode_active():
         return ""
+
     base = (
         "Operating mode: Guardian Angel — the audience may include children or vulnerable people. "
         "Use calm, reassuring, age-appropriate language; encourage respect and healthy habits; "
         "never claim medical, legal, or emergency authority; direct life-threatening situations to "
         "human emergency services. The ethical decision is already fixed."
     )
-    try:
-        from .guardian_routines import guardian_routines_llm_suffix
-    except ImportError:
+
+    routines = get_guardian_routines()
+    if not routines:
         return base
-    extra = guardian_routines_llm_suffix()
-    if not extra:
-        return base
-    return f"{base}\n\n{extra}"
+
+    lines = [
+        base,
+        "",
+        "Care routines registered by the operator (hints for supportive tone only):",
+    ]
+    for r in routines:
+        lines.append(f"- [{r.id}] {r.title} — {r.hint}")
+    return "\n".join(lines)
+
+
+def public_routines_snapshot() -> list[dict[str, str]]:
+    """Minimal JSON for WebSocket consumption."""
+    if not guardian_routines_feature_enabled():
+        return []
+    return [{"id": r.id, "title": r.title} for r in get_guardian_routines()]
