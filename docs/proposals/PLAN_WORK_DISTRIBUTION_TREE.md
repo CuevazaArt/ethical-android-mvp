@@ -38,7 +38,7 @@ Aquí es donde los agentes de ejecución (LLMs en IDEs) reclaman sus tareas.
 > *"ESTAMOS EN FEATURE FREEZE. No se añaden más lóbulos, módulos ni bloques. El proyecto tiene 149 módulos y necesita estabilización. Tu objetivo es: consolidar, borrar código muerto y asegurar la demostrabilidad end-to-end. Asume 100% de propiedad, y termina tu sesión ejecutando `python scripts/swarm_sync.py --msg '...'`. ¡Ejecuta!"*
 
 **Bloque 28.0: Consolidación y Verdad Mecánica (Feature Freeze) [DONE]**
-- [x] **28.1 Decoupling of Monolith**: Decoupled `chat_server.py` into `chat_lifecycle.py` and `chat_feature_flags.py`.
+- [x] **28.1 Decoupling of Monolith**: Decoupled `chat_server.py` into `chat_lifecycle.py` and `chat_feature_flags.py` (including **import-time use** of `chat_feature_flags` for all WebSocket JSON toggles, `env_truthy`, and `coerce_public_int` — no duplicate private copies in the monolith).
 - [x] **28.2 Ethical Quality Framework**: Established `tests/test_ethics_quality.py` with 20+ canonical scenarios.
 - [x] **28.3 End-to-End Demo**: Created `scripts/eval/reproducible_kernel_demo.py` for empirical validation.
 
@@ -48,7 +48,7 @@ Aquí es donde los agentes de ejecución (LLMs en IDEs) reclaman sus tareas.
 - Tarea 31.3: **Ruff/format:** `kernel_legacy_v12.py`, `test_ethics_quality.py`, módulos `runtime/` alineados con el job `quality` de GitHub Actions.
 
 **Bloque 32.0: Consolidación y Verdad Mecánica (Feature Freeze) — continuación [DONE]**
-- Tarea 32.1: [COMPLETED — L2 Cursor] `chat_lifespan` único en `src/runtime/chat_lifecycle.py` (tipado `AsyncIterator[None]`, shutdown del announcer con `logger.debug` en error). Fachada `src/runtime/chat_server.py` reexporta `app`, `chat_lifespan`, `api_docs_enabled`. Regresión: `tests/test_runtime_chat_server.py` (identidad de `app`, `router.lifespan_context` y reexports).
+- Tarea 32.1: [COMPLETED — L2 Cursor] `chat_lifespan` único en `src/runtime/chat_lifecycle.py` (tipado `AsyncIterator[None]`, shutdown del announcer con `logger.debug` en error). Fachada `src/runtime/chat_server.py` reexporta `app`, `chat_lifespan`, `api_docs_enabled`, `run_chat_server`; `python -m src.runtime` usa esa fachada. Regresión: `tests/test_runtime_chat_server.py` (identidad de `app`, `run_chat_server`, `router.lifespan_context` y reexports).
 - Tarea 32.2: **Ampliar `tests/test_ethics_quality.py`:** [COMPLETED — L2 Cursor] ≥22 escenarios canónicos + aserciones `path`/`verdict`/`math.isfinite(score)` alineadas al tri-lobe.
 - Tarea 32.3: **Redundancias:** [COMPLETED — L2 2026-04-21] sección de tracking Bloque 32.3 en `REDUNDANT_MODULES_AND_CONSOLIDATION.md` (merges narrativos siguen diferidos post–field tests).
 - Tarea 32.4: **Demo E2E:** [COMPLETED — L2 Cursor] `reproducible_kernel_demo.py`: `KERNEL_TRI_LOBE_ENABLED` por defecto, turno `must_block` adicional, validación de `path` ∈ {`malabs_entry_gate`,`nervous_bus`,`timeout`}, `math.isfinite` en score/latencia, `kernel.stop()` en `finally`.
@@ -84,14 +84,14 @@ Aquí es donde los agentes de ejecución (LLMs en IDEs) reclaman sus tareas.
 - Tarea 28.1: **`swarm_sync.py` resistente a `cp1252`:** [COMPLETED — L2] Salida de consola solo ASCII (`[WARN]`, `[OK]`); título de entrada en `swarm_activity.md` sin emojis; corrección de typo *SUCCESSFULLY* en el mensaje final.
 - Tarea 28.2: **Paridad con GitHub Actions (suite completa):** [COMPLETED — L2] Fuente de verdad: job `quality` en `.github/workflows/ci.yml` — `python -m pytest tests/ -n auto` (con coverage), más Ruff, Mypy, `verify_collaboration_invariants.py`, matriz Python 3.11 / 3.12 / 3.13. Reproducción local alineada con `CONTRIBUTING.md` / sección quality del workflow.
 
-**Bloque 29.0: Paridad Windows / suite completa en GHA [DONE]**
-- Tarea 29.1: **GHA `windows-smoke` alineado con `quality` (sin matriz de versiones):** [COMPLETED — L2] Invariantes L1, Ruff check+format, Mypy, y `python -m pytest tests/ -n auto` con el mismo umbral de cobertura en **windows-latest** (antes solo dos módulos de prueba). Checkout `fetch-depth: 0` + artefacto JUnit a la par del job en Linux; la matriz 3.11/3.12/3.13 sigue en Ubuntu.
+**Bloque 29.0: GHA — gates en Windows + suite completa en Ubuntu [DONE]**
+- Tarea 29.1: **Extender `windows-smoke` sin forzar `pytest tests/` en win32:** [COMPLETED — L2] El job añade `verify_collaboration_invariants.py`, `ruff format --check`, `mypy`, y `fetch-depth: 0` (misma severidad de auditoría L1/estática que en Linux). La prueba bajo `pytest` se mantiene **acotada** a `test_runtime_profiles` y `test_env_policy` (la colección entera aún no es fiable en Windows; la **verdad** de “todos los tests” es el job `quality` en **Ubuntu** con `python -m pytest tests/ -n auto` en la matriz 3.11/3.12/3.13).
 
 **Bloque 30.0: Continuidad L2 — backlog vacío / L1-AUDIT [DONE]**
 - Tarea 30.1: **Cuando no había `[PENDING]` en BACKLOG ABIERTO (20–29, B.1–B.5 ya [DONE]):** procedimiento de continuidad: endurecer `scripts/eval/adversarial_suite.py` (`sys.exit(1)` si algún prompt adversarial no queda bloqueado; `finally` → `kernel.stop()`); verificación de suite completa con **`gh workflow run CI --ref main`** (misma fuente de verdad que `quality` + `windows-smoke` en `.github/workflows/ci.yml`).
 
-**Bloque 34.0: MalAbs / embeddings en bucle asyncio (observabilidad) [PENDING]**
-- Tarea 34.1: Eliminar avisos `http_fetch_ollama_embedding_with_policy called from a running event loop` en rutas tri-lobe: usar `ahttp_fetch_ollama_embedding_with_policy` (o ejecutar fetch en un executor explícito) cuando el gate semántico quede habilitado en procesos async.
+**Bloque 34.0: MalAbs / embeddings en bucle asyncio (observabilidad) [DONE]**
+- Tarea 34.1: [COMPLETED — L2 Cursor] Rutas async usan `aevaluate_chat_text` / `asyncio.to_thread` (`perception_async_handler`) y `aprocess_natural` usa `aevaluate_chat_text`; kernel legado alineado a `MemoryHygieneService` + `MemoryLobe(hygiene=…)` (sin módulos eliminados).
 
 ---
 

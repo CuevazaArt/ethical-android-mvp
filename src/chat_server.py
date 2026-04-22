@@ -156,7 +156,6 @@ from .modules.guardian_mode import (
 )
 from .modules.hub_audit import record_dao_integrity_alert
 from .modules.internal_monologue import compose_monologue_line
-from .modules.judicial_escalation import chat_include_judicial
 from .modules.lan_governance_coordinator import (
     fingerprint_lan_governance_coordinator,
     normalize_lan_governance_coordinator,
@@ -179,7 +178,6 @@ from .modules.moral_hub import (
     add_constitution_draft,
     apply_proposal_resolution_to_constitution_drafts,
     audit_transparency_event,
-    chat_include_constitution,
     constitution_draft_ws_enabled,
     constitution_snapshot,
     dao_governance_api_enabled,
@@ -224,10 +222,36 @@ from .persistence.checkpoint import (
 )
 from .persistence.identity_manifest import IdentityManifestStore
 from .real_time_bridge import RealTimeBridge
+from .runtime.chat_feature_flags import (
+    chat_expose_monologue,
+    chat_include_chrono,
+    chat_include_constitution,
+    chat_include_epistemic,
+    chat_include_experience_digest,
+    chat_include_guardian,
+    chat_include_guardian_routines,
+    chat_include_homeostasis,
+    chat_include_judicial,
+    chat_include_light_risk,
+    chat_include_malabs_trace,
+    chat_include_multimodal_trust,
+    chat_include_nomad_identity,
+    chat_include_premise,
+    chat_include_reality_verification,
+    chat_include_teleology,
+    chat_include_transparency_s10,
+    chat_include_user_model,
+    chat_include_vitality,
+    coerce_public_int,
+    env_truthy,
+)
 from .runtime.chat_lifecycle import api_docs_enabled, chat_lifespan
 from .runtime.telemetry import advisory_interval_seconds_from_env, advisory_loop
 from .runtime_profiles import apply_named_runtime_profile_to_environ
 from .validators.env_policy import validate_kernel_env
+
+# Alias for tests / temporal JSON helpers (implementation: ``coerce_public_int``).
+_coerce_public_int = coerce_public_int
 
 logger = logging.getLogger(__name__)
 
@@ -563,145 +587,6 @@ async def dashboard_ws_handler(websocket: WebSocket) -> None:
             bridge.dashboard_queues.remove(q)
 
 
-def _chat_expose_monologue() -> bool:
-    """If false, omit monologue from WebSocket JSON (privacy; skips LLM embellishment)."""
-    v = os.environ.get("KERNEL_CHAT_EXPOSE_MONOLOGUE", "1").strip().lower()
-    return v not in ("0", "false", "no", "off")
-
-
-def _chat_include_homeostasis() -> bool:
-    """If false, omit affective_homeostasis (pilar 4 UX telemetry)."""
-    v = os.environ.get("KERNEL_CHAT_INCLUDE_HOMEOSTASIS", "1").strip().lower()
-    return v not in ("0", "false", "no", "off")
-
-
-def _chat_include_experience_digest() -> bool:
-    """If false, omit experience_digest (pilar 3; updated in Ψ Sleep)."""
-    v = os.environ.get("KERNEL_CHAT_INCLUDE_EXPERIENCE_DIGEST", "1").strip().lower()
-    return v not in ("0", "false", "no", "off")
-
-
-def _chat_include_user_model() -> bool:
-    v = os.environ.get("KERNEL_CHAT_INCLUDE_USER_MODEL", "1").strip().lower()
-    return v not in ("0", "false", "no", "off")
-
-
-def _chat_include_chrono() -> bool:
-    v = os.environ.get("KERNEL_CHAT_INCLUDE_CHRONO", "1").strip().lower()
-    return v not in ("0", "false", "no", "off")
-
-
-def _chat_include_premise() -> bool:
-    v = os.environ.get("KERNEL_CHAT_INCLUDE_PREMISE", "1").strip().lower()
-    return v not in ("0", "false", "no", "off")
-
-
-def _chat_include_teleology() -> bool:
-    v = os.environ.get("KERNEL_CHAT_INCLUDE_TELEOLOGY", "1").strip().lower()
-    return v not in ("0", "false", "no", "off")
-
-
-def _chat_include_multimodal_trust() -> bool:
-    v = os.environ.get("KERNEL_CHAT_INCLUDE_MULTIMODAL", "1").strip().lower()
-    return v not in ("0", "false", "no", "off")
-
-
-def _chat_include_vitality() -> bool:
-    v = os.environ.get("KERNEL_CHAT_INCLUDE_VITALITY", "1").strip().lower()
-    return v not in ("0", "false", "no", "off")
-
-
-def _chat_include_guardian() -> bool:
-    v = os.environ.get("KERNEL_CHAT_INCLUDE_GUARDIAN", "1").strip().lower()
-    return v not in ("0", "false", "no", "off")
-
-
-def _chat_include_guardian_routines() -> bool:
-    v = os.environ.get("KERNEL_CHAT_INCLUDE_GUARDIAN_ROUTINES", "0").strip().lower()
-    return v in ("1", "true", "yes", "on")
-
-
-def _chat_include_epistemic() -> bool:
-    v = os.environ.get("KERNEL_CHAT_INCLUDE_EPISTEMIC", "1").strip().lower()
-    return v not in ("0", "false", "no", "off")
-
-
-def _chat_include_reality_verification() -> bool:
-    """Lighthouse KB vs asserted premises — ``reality_verification`` in JSON (default off)."""
-    v = os.environ.get("KERNEL_CHAT_INCLUDE_REALITY_VERIFICATION", "0").strip().lower()
-    return v in ("1", "true", "yes", "on")
-
-
-def _chat_include_judicial() -> bool:
-    """V11 Phase 1 — include judicial_escalation when KERNEL_CHAT_INCLUDE_JUDICIAL is on."""
-    return chat_include_judicial()
-
-
-def _chat_include_constitution() -> bool:
-    """V12 — include full constitution JSON (L0 + L1/L2 drafts) on WebSocket payloads."""
-    return chat_include_constitution()
-
-
-def _chat_include_nomad_identity() -> bool:
-    """Include NomadIdentity / immortality bridge summary (see UNIVERSAL_ETHOS_AND_HUB.md)."""
-    v = os.environ.get("KERNEL_CHAT_INCLUDE_NOMAD_IDENTITY", "0").strip().lower()
-    return v in ("1", "true", "yes", "on")
-
-
-def _chat_include_light_risk() -> bool:
-    """Lexical ``light_risk_tier`` from ``KERNEL_LIGHT_RISK_CLASSIFIER`` (default off in JSON)."""
-    v = os.environ.get("KERNEL_CHAT_INCLUDE_LIGHT_RISK", "0").strip().lower()
-    return v in ("1", "true", "yes", "on")
-
-
-def _chat_include_malabs_trace() -> bool:
-    """Include ``malabs_trace`` (atomic decision steps) when the last chat MalAbs result has them."""
-    from .settings import kernel_settings
-
-    return kernel_settings().kernel_chat_include_malabs_trace
-
-
-def _chat_include_transparency_s10() -> bool:
-    """Embodied sociability S10.1/S10.3/S10.4 — ``transparency_s10`` in WebSocket JSON (default on)."""
-    v = os.environ.get("KERNEL_CHAT_INCLUDE_TRANSPARENCY_S10", "1").strip().lower()
-    return v not in ("0", "false", "no", "off")
-
-
-def _env_truthy(name: str, default: bool = False) -> bool:
-    raw = os.environ.get(name, "").strip().lower()
-    if not raw:
-        return default
-    return raw in ("1", "true", "yes", "on")
-
-
-def _coerce_public_int(value: object, *, default: int = 0, non_negative: bool = False) -> int:
-    """
-    JSON-safe int for public WebSocket payloads (e.g. temporal_sync).
-
-    ``TemporalContext.to_public_dict()`` is typed as ``dict[str, object]``; this avoids
-    ``int(object)`` mypy errors and prevents rare runtime failures on bad values.
-    """
-    if value is None:
-        out = default
-    elif isinstance(value, bool):
-        out = default
-    elif isinstance(value, int):
-        out = value
-    elif isinstance(value, float):
-        out = int(value) if math.isfinite(value) else default
-    elif isinstance(value, str):
-        try:
-            s = value.strip()
-            out = int(s, 10) if s else default
-        except ValueError:
-            out = default
-    else:
-        out = default
-    if non_negative:
-        out = max(0, out)
-    return out
-
-
 def _attach_merge_context_telemetry(
     batch_body: dict[str, Any],
     mctx: LanMergeContextParsed,
@@ -807,7 +692,7 @@ def _prune_lan_envelope_replay_cache(
     expired_tokens: list[str] = []
     for token, entry in replay_cache.items():
         cached_at_ms = (
-            _coerce_public_int(entry.get("cached_at_ms"), default=now_ms, non_negative=True)
+            coerce_public_int(entry.get("cached_at_ms"), default=now_ms, non_negative=True)
             if isinstance(entry, dict)
             else now_ms
         )
@@ -914,7 +799,7 @@ def _tri_lobe_chat_ws_contract_defaults(kernel: EthicalKernel) -> dict[str, Any]
     chrono.setdefault("turn_index", 1)
 
     now_ms = int(time.time() * 1000)
-    turn_idx = _coerce_public_int(chrono.get("turn_index"), default=1, non_negative=True)
+    turn_idx = coerce_public_int(chrono.get("turn_index"), default=1, non_negative=True)
     temporal: dict[str, Any] = {
         "sync_schema": "temporal_sync_v1",
         "turn_index": turn_idx,
@@ -998,7 +883,7 @@ def _chat_turn_to_jsonable(r: ChatTurnResult, kernel: EthicalKernel) -> dict[str
             ],
             "monologue": "",
         }
-        if _chat_include_experience_digest():
+        if chat_include_experience_digest():
             out_min["experience_digest"] = kernel.memory.experience_digest
         return out_min
 
@@ -1018,7 +903,7 @@ def _chat_turn_to_jsonable(r: ChatTurnResult, kernel: EthicalKernel) -> dict[str
             for di in kernel.drive_arbiter.evaluate(kernel)
         ],
     }
-    if _chat_include_malabs_trace():
+    if chat_include_malabs_trace():
         m = getattr(kernel, "_last_chat_malabs", None)
         if m is not None and getattr(m, "decision_trace", None):
             out["malabs_trace"] = list(m.decision_trace)
@@ -1047,16 +932,16 @@ def _chat_turn_to_jsonable(r: ChatTurnResult, kernel: EthicalKernel) -> dict[str
         }
     if r.temporal_context is not None:
         tc = r.temporal_context.to_public_dict()
-        tc["turn_index"] = _coerce_public_int(tc.get("turn_index"), default=0, non_negative=True)
+        tc["turn_index"] = coerce_public_int(tc.get("turn_index"), default=0, non_negative=True)
         out["temporal_context"] = tc
         out["temporal_sync"] = {
             "sync_schema": tc.get("sync_schema", "temporal_sync_v1"),
-            "turn_index": _coerce_public_int(tc.get("turn_index"), default=0, non_negative=True),
+            "turn_index": coerce_public_int(tc.get("turn_index"), default=0, non_negative=True),
             "wall_clock_unix_ms": tc.get("wall_clock_unix_ms"),
-            "processor_elapsed_ms": _coerce_public_int(
+            "processor_elapsed_ms": coerce_public_int(
                 tc.get("processor_elapsed_ms"), default=0, non_negative=True
             ),
-            "turn_delta_ms": _coerce_public_int(
+            "turn_delta_ms": coerce_public_int(
                 tc.get("turn_delta_ms"), default=0, non_negative=True
             ),
             "local_network_sync_ready": bool(tc.get("local_network_sync_ready", False)),
@@ -1105,7 +990,7 @@ def _chat_turn_to_jsonable(r: ChatTurnResult, kernel: EthicalKernel) -> dict[str
             )
     if r.decision is not None:
         d = r.decision
-        if _chat_expose_monologue():
+        if chat_expose_monologue():
             base_mono = compose_monologue_line(
                 d, getattr(kernel, "_last_registered_episode_id", None)
             )
@@ -1146,9 +1031,9 @@ def _chat_turn_to_jsonable(r: ChatTurnResult, kernel: EthicalKernel) -> dict[str
                 "weights": d.salience.weights,
                 "raw_scores": d.salience.raw_scores,
             }
-        if _chat_include_homeostasis():
+        if chat_include_homeostasis():
             out["affective_homeostasis"] = homeostasis_telemetry(d)
-        if _chat_include_transparency_s10():
+        if chat_include_transparency_s10():
             from src.modules.transparency_s10 import build_transparency_s10_bundle
 
             sig: dict[str, Any] = {}
@@ -1182,57 +1067,57 @@ def _chat_turn_to_jsonable(r: ChatTurnResult, kernel: EthicalKernel) -> dict[str
         }
     if r.decision is None:
         out["monologue"] = ""
-    if _chat_include_experience_digest():
+    if chat_include_experience_digest():
         out["experience_digest"] = kernel.memory.experience_digest
-    if _chat_include_user_model():
+    if chat_include_user_model():
         um = getattr(kernel, "user_model", None)
         if um is not None and hasattr(um, "to_public_dict"):
             out["user_model"] = um.to_public_dict()
-    if _chat_include_chrono():
+    if chat_include_chrono():
         sc = getattr(kernel, "subjective_clock", None)
         if sc is not None and hasattr(sc, "to_public_dict"):
             out["chronobiology"] = sc.to_public_dict()
-    if _chat_include_premise():
+    if chat_include_premise():
         pa = getattr(kernel, "_last_premise_advisory", None)
         if pa is not None and hasattr(pa, "flag") and hasattr(pa, "detail"):
             out["premise_advisory"] = {"flag": pa.flag, "detail": pa.detail}
-    if _chat_include_multimodal_trust() and r.multimodal_trust is not None:
+    if chat_include_multimodal_trust() and r.multimodal_trust is not None:
         mt = r.multimodal_trust
         out["multimodal_trust"] = {
             "state": mt.state,
             "reason": mt.reason,
             "requires_owner_anchor": mt.requires_owner_anchor,
         }
-    if _chat_include_vitality():
+    if chat_include_vitality():
         va = getattr(kernel, "_last_vitality_assessment", None)
         if va is not None and hasattr(va, "to_public_dict"):
             out["vitality"] = va.to_public_dict()
-    if _chat_include_guardian():
+    if chat_include_guardian():
         out["guardian_mode"] = is_guardian_mode_active()
-    if _chat_include_guardian_routines():
+    if chat_include_guardian_routines():
         gr = public_routines_snapshot()
         if gr:
             out["guardian_routines"] = gr
-    if _chat_include_epistemic() and r.epistemic_dissonance is not None:
+    if chat_include_epistemic() and r.epistemic_dissonance is not None:
         out["epistemic_dissonance"] = r.epistemic_dissonance.to_public_dict()
-    if _chat_include_reality_verification() and r.reality_verification is not None:
+    if chat_include_reality_verification() and r.reality_verification is not None:
         out["reality_verification"] = r.reality_verification.to_public_dict()
-    if _chat_include_teleology() and r.decision is not None and r.perception is not None:
+    if chat_include_teleology() and r.decision is not None and r.perception is not None:
         v = r.decision.moral.global_verdict.value if r.decision.moral else "Gray Zone"
         out["teleology_branches"] = qualitative_temporal_branches(
             r.decision.final_action,
             v,
             r.perception.suggested_context,
         )
-    if _chat_include_judicial() and r.judicial_escalation is not None:
+    if chat_include_judicial() and r.judicial_escalation is not None:
         out["judicial_escalation"] = r.judicial_escalation.to_public_dict()
-    if _chat_include_constitution():
+    if chat_include_constitution():
         snap = getattr(kernel, "get_constitution_snapshot", None)
         if callable(snap):
             out["constitution"] = snap()
-    if _chat_include_nomad_identity():
+    if chat_include_nomad_identity():
         out["nomad_identity"] = nomad_identity_public(kernel)
-    if _chat_include_light_risk() and hasattr(kernel, "_last_light_risk_tier"):
+    if chat_include_light_risk() and hasattr(kernel, "_last_light_risk_tier"):
         lrt = kernel._last_light_risk_tier
         if lrt:
             out["light_risk_tier"] = lrt
@@ -1305,12 +1190,12 @@ def health(request: Request) -> Response:
         },
         "safety_defaults": {
             "kernel_env_validation_mode": env_validation,
-            "semantic_chat_gate_enabled": _env_truthy("KERNEL_SEMANTIC_CHAT_GATE", True),
-            "semantic_embed_hash_fallback_enabled": _env_truthy(
+            "semantic_chat_gate_enabled": env_truthy("KERNEL_SEMANTIC_CHAT_GATE", True),
+            "semantic_embed_hash_fallback_enabled": env_truthy(
                 "KERNEL_SEMANTIC_EMBED_HASH_FALLBACK", True
             ),
-            "perception_failsafe_enabled": _env_truthy("KERNEL_PERCEPTION_FAILSAFE", True),
-            "perception_parallel_enabled": _env_truthy("KERNEL_PERCEPTION_PARALLEL", False),
+            "perception_failsafe_enabled": env_truthy("KERNEL_PERCEPTION_FAILSAFE", True),
+            "perception_parallel_enabled": env_truthy("KERNEL_PERCEPTION_PARALLEL", False),
         },
     }
     prof = applied_runtime_profile()
@@ -2758,7 +2643,7 @@ def build_sync_identity_ws_message(kernel: EthicalKernel) -> dict[str, Any]:
         "narrative_identity": identity_pub,
         "episode_total": ep_total,
     }
-    if _chat_include_nomad_identity():
+    if chat_include_nomad_identity():
         envelope["nomad_identity"] = nomad_identity_public(kernel)
     return envelope
 
@@ -2830,7 +2715,7 @@ async def ws_chat(ws: WebSocket) -> None:
     bridge = RealTimeBridge(kernel)
     chat_turn_seq = 0
 
-    if _env_truthy("KERNEL_CHAT_WS_SYNC_IDENTITY", True):
+    if env_truthy("KERNEL_CHAT_WS_SYNC_IDENTITY", True):
         try:
             await ws.send_json(build_sync_identity_ws_message(kernel))
         except Exception as exc:
@@ -2846,14 +2731,14 @@ async def ws_chat(ws: WebSocket) -> None:
         "evicted_ttl": 0,
         "evicted_lru": 0,
     }
-    lan_envelope_replay_cache_ttl_ms = _coerce_public_int(
+    lan_envelope_replay_cache_ttl_ms = coerce_public_int(
         os.environ.get("KERNEL_LAN_ENVELOPE_REPLAY_CACHE_TTL_MS"),
         default=DEFAULT_LAN_ENVELOPE_REPLAY_CACHE_TTL_MS,
         non_negative=True,
     )
     lan_envelope_replay_cache_max_entries = max(
         1,
-        _coerce_public_int(
+        coerce_public_int(
             os.environ.get("KERNEL_LAN_ENVELOPE_REPLAY_CACHE_MAX_ENTRIES"),
             default=DEFAULT_LAN_ENVELOPE_REPLAY_CACHE_MAX_ENTRIES,
             non_negative=True,

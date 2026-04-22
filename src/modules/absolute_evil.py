@@ -13,6 +13,7 @@ import logging
 import math
 import re
 import time
+from concurrent.futures import ThreadPoolExecutor
 from dataclasses import dataclass, field
 from enum import Enum
 from typing import Any, Protocol
@@ -21,6 +22,30 @@ from .input_trust import normalize_text_for_malabs, strip_bidi_marks, strip_diac
 from .semantic_chat_gate import semantic_chat_gate_env_enabled
 
 _log = logging.getLogger(__name__)
+
+_SYNC_SEMANTIC_TIMEOUT_S = 30.0
+
+
+def _run_semantic_malabs_sync_off_event_loop(
+    text: str, llm_backend: Any | None
+) -> AbsoluteEvilResult:
+    """
+    Bloque 34.0: ``run_semantic_malabs_after_lexical`` uses sync Ollama fetch
+    (``http_fetch_ollama_embedding_with_policy``). If the caller holds a running
+    asyncio loop, that path logs a warning and returns no embedding. Run the
+    sync function in a worker thread so ``asyncio.run`` inside the HTTP bridge is valid.
+    """
+    from .semantic_chat_gate import run_semantic_malabs_after_lexical
+
+    try:
+        asyncio.get_running_loop()
+    except RuntimeError:
+        return run_semantic_malabs_after_lexical(text, llm_backend)
+    with ThreadPoolExecutor(max_workers=1) as pool:
+        return pool.submit(run_semantic_malabs_after_lexical, text, llm_backend).result(
+            timeout=_SYNC_SEMANTIC_TIMEOUT_S
+        )
+
 
 # ADR 0016 C1 — Ethical tier classification
 __ethical_tier__ = "decision_core"
@@ -679,9 +704,7 @@ class AbsoluteEvilDetector:
             if not semantic_chat_gate_env_enabled():
                 return lex
 
-            from .semantic_chat_gate import run_semantic_malabs_after_lexical
-
-            sem = run_semantic_malabs_after_lexical(text, llm_backend)
+            sem = _run_semantic_malabs_sync_off_event_loop(text, llm_backend)
 
             latency = (time.perf_counter() - t0) * 1000
             if latency > 10.0:
@@ -770,9 +793,7 @@ class AbsoluteEvilDetector:
             return lex
 
         if semantic_chat_gate_env_enabled():
-            from .semantic_chat_gate import run_semantic_malabs_after_lexical
-
-            sem = run_semantic_malabs_after_lexical(summary, llm_backend)
+            sem = _run_semantic_malabs_sync_off_event_loop(summary, llm_backend)
             base = list(lex.decision_trace) if lex.decision_trace else []
             tail = list(sem.decision_trace) if sem.decision_trace else []
             return AbsoluteEvilResult(

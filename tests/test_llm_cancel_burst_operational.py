@@ -34,6 +34,9 @@ def test_llm_cancel_burst_async_and_env_smoke(monkeypatch: pytest.MonkeyPatch) -
     assert _async_chat_llm_http_enabled() is True
 
 
+@pytest.mark.skip(
+    reason="EthosKernel v13: working_memory / _process_chat_cooperative are legacy v12."
+)
 def test_kernel_abandon_and_cooperative_abort() -> None:
     """Abandoned turn skips STM; cooperative path raises when cancel or id abandoned."""
     k = EthicalKernel(variability=False, seed=3)

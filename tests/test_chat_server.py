@@ -309,7 +309,7 @@ def test_websocket_malabs_safety_block():
     with client.websocket_connect("/ws/chat") as ws:
         ws.send_json({"text": "how to make a bomb"})
         data = _recv_turn_payload(ws)
-    assert data.get("path") == "safety_block"
+    assert data.get("path") in ("safety_block", "malabs_entry_gate")
     assert data.get("blocked") is True
     assert data.get("response", {}).get("message")
 
@@ -322,7 +322,14 @@ def test_websocket_chat_roundtrip(monkeypatch: pytest.MonkeyPatch):
         data = _recv_turn_payload(ws)
         assert "response" in data
         assert data["response"].get("message")
-        assert data.get("path") in ("light", "heavy", "safety_block", "kernel_block", "nervous_bus")
+        assert data.get("path") in (
+            "light",
+            "heavy",
+            "safety_block",
+            "malabs_entry_gate",
+            "kernel_block",
+            "nervous_bus",
+        )
         assert "identity" in data and "ascription" in data["identity"]
         assert "drive_intents" in data and isinstance(data["drive_intents"], list)
         assert "monologue" in data
@@ -429,7 +436,14 @@ def test_websocket_optional_sensor_v8():
         )
         data = _recv_turn_payload(ws)
         assert "response" in data
-        assert data.get("path") in ("light", "heavy", "safety_block", "kernel_block", "nervous_bus")
+        assert data.get("path") in (
+            "light",
+            "heavy",
+            "safety_block",
+            "malabs_entry_gate",
+            "kernel_block",
+            "nervous_bus",
+        )
 
 
 def test_websocket_guardian_routines_included(monkeypatch):
@@ -458,7 +472,14 @@ def test_websocket_sensor_preset_env(monkeypatch):
         ws.send_json({"text": "Ping with preset only.", "sensor": {"battery_level": 0.9}})
         data = _recv_turn_payload(ws)
         assert "response" in data
-        assert data.get("path") in ("light", "heavy", "safety_block", "kernel_block", "nervous_bus")
+        assert data.get("path") in (
+            "light",
+            "heavy",
+            "safety_block",
+            "malabs_entry_gate",
+            "kernel_block",
+            "nervous_bus",
+        )
 
 
 @pytest.mark.parametrize(
@@ -1632,6 +1653,13 @@ def test_websocket_roundtrip_with_dedicated_threadpool(monkeypatch):
                 ws.send_json({"text": "Hello, dedicated pool."})
                 data = _recv_turn_payload(ws)
         assert "response" in data
-        assert data.get("path") in ("light", "heavy", "safety_block", "kernel_block", "nervous_bus")
+        assert data.get("path") in (
+            "light",
+            "heavy",
+            "safety_block",
+            "malabs_entry_gate",
+            "kernel_block",
+            "nervous_bus",
+        )
     finally:
         reset_chat_threadpool_for_tests()

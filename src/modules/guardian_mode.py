@@ -18,6 +18,7 @@ _log = logging.getLogger(__name__)
 _MAX_ROUTINES = 16
 _ID_RE = re.compile(r"^[a-z][a-z0-9_]{0,47}$")
 
+
 @dataclass(frozen=True)
 class GuardianRoutine:
     id: str
@@ -129,18 +130,18 @@ def guardian_mode_llm_context() -> str:
     """Return the context string to append to LLM prompts when in Guardian mode."""
     if not is_guardian_mode_active():
         return ""
-    
+
     base = (
         "Operating mode: Guardian Angel — the audience may include children or vulnerable people. "
         "Use calm, reassuring, age-appropriate language; encourage respect and healthy habits; "
         "never claim medical, legal, or emergency authority; direct life-threatening situations to "
         "human emergency services. The ethical decision is already fixed."
     )
-    
+
     routines = get_guardian_routines()
     if not routines:
         return base
-        
+
     lines = [
         base,
         "",

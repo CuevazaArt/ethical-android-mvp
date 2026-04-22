@@ -169,6 +169,11 @@ class EthosKernel:
             memory=self.memory,  # Added memory link
         )
 
+        from src.modules.memory_hygiene import MemoryHygieneService
+
+        # Pruning / hygiene surface expected by legacy integration tests (BiographicPruner removal).
+        self.biographic_pruner = MemoryHygieneService(memory=self.memory, dao=self.dao)
+
     @property
     def memory(self):
         """Compatibility property for NarrativeMemory access."""
@@ -188,6 +193,42 @@ class EthosKernel:
     def poles(self):
         """Compatibility property for EthicalPoles."""
         return self.prefrontal_cortex.poles
+
+    @property
+    def uchi_soto(self):
+        """Legacy alias for limbic Uchi-Soto profiles (v12 tests / tooling)."""
+        return self.limbic_system.uchi_soto
+
+    @property
+    def perceptive_lobe(self):
+        """Legacy alias for the perceptive (sensory) lobe."""
+        return self.sensory_cortex
+
+    def process_chat_turn(
+        self,
+        text: str,
+        agent_id: str = "user",
+        place: str = "chat",
+        sensor_snapshot: Any = None,
+        **kwargs: Any,
+    ) -> ChatTurnResult:
+        """Synchronous wrapper for :meth:`process_chat_turn_async` (thread / tests)."""
+        try:
+            asyncio.get_running_loop()
+        except RuntimeError:
+            return asyncio.run(
+                self.process_chat_turn_async(
+                    text,
+                    agent_id=agent_id,
+                    place=place,
+                    sensor_snapshot=sensor_snapshot,
+                    **kwargs,
+                )
+            )
+        raise RuntimeError(
+            "process_chat_turn() cannot be called while an event loop is running; "
+            "use await process_chat_turn_async(...)."
+        )
 
     def _snapshot_feedback_anchor(self, regime: str) -> None:
         """Anchor for optional ``record_operator_feedback`` (chat_server / KERNEL_FEEDBACK_CALIBRATION)."""
@@ -242,6 +283,16 @@ class EthosKernel:
         Injects a RawSensoryPulse into the Gateway (Thalamus).
         Waits for the brain to converge on a MotorCommandDispatch.
         """
+        chat_turn_id = kwargs.get("chat_turn_id")
+        if self._chat_turn_abandoned(chat_turn_id):
+            _log.debug("EthosKernel: chat_turn_id %s abandoned before turn.", chat_turn_id)
+            return ChatTurnResult(
+                response=VerbalResponse(message="", tone="neutral"),
+                path="turn_abandoned",
+                blocked=False,
+                block_reason="chat_turn_abandoned",
+            )
+
         # Phase 13.5: Hard Lexical Guard (Fast Fuse)
         # We check MalAbs synchronously at the entry point to ensure zero-latency rejection.
         malabs_res = self.sensory_cortex.absolute_evil.evaluate_chat_text_fast(text)
@@ -249,6 +300,16 @@ class EthosKernel:
             _log.warning(
                 f"EthosKernel: Entry gate BLOCKED prompt {text[:50]}... | {malabs_res.reason}"
             )
+            if os.environ.get("KERNEL_AUDIT_CHAIN_PATH", "").strip():
+                from src.modules.audit_chain_log import maybe_append_malabs_block_audit
+
+                cat_val = malabs_res.category.value if malabs_res.category else None
+                maybe_append_malabs_block_audit(
+                    path_key="safety_block",
+                    category=cat_val,
+                    decision_trace=list(malabs_res.decision_trace),
+                    reason=malabs_res.reason,
+                )
             return ChatTurnResult(
                 response=VerbalResponse(message="Blocked.", tone="firm"),
                 path="malabs_entry_gate",

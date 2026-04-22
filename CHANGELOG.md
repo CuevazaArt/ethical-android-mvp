@@ -4,6 +4,13 @@ All notable changes to this project are summarized here. For narrative context a
 
 **Note:** Older sections below may still **link** to paths that were later removed (for example `experiments/million_sim/`, `docs/multimedia/`, root `dashboard.html`, `landing/`). Those links are **historical**; recover files from git history or backup branches if you need them.
 
+## [2026-04-21] Bloque 34.0: MalAbs async / embeddings (observabilidad)
+
+### Fixed
+- **Async MalAbs:** `run_perception_async` now awaits `aevaluate_chat_text` when available, otherwise runs sync `evaluate_chat_text` in `asyncio.to_thread`, avoiding sync Ollama embedding transport on a running event loop.
+- **`EthicalKernel.aprocess_natural`:** uses `aevaluate_chat_text` instead of sync `evaluate_chat_text` for the same reason.
+- **Legacy kernel boot:** removed imports of deleted `biographic_pruning` / `selective_amnesia`; wired `MemoryHygieneService` into `MemoryLobe` and exposed `run_maintenance_cycle` on `MemoryHygieneService` for pruning test compatibility. `EthosKernel` exposes `biographic_pruner` for integration tests.
+
 ## [2026-04-22] Bloque 28.0: Consolidación y Verdad Mecánica (Feature Freeze)
 ### Added
 - **`tests/test_ethics_quality.py`**: Rigorous ethics validation framework with 20+ canonical scenarios (dilemmas, threats, jailbreaks).

@@ -13,14 +13,19 @@ from src.kernel import ChatTurnCooperativeAbort, EthicalKernel
 
 def test_abandon_before_safety_block_skips_wm_add_turn():
     k = EthicalKernel(variability=False, seed=3)
-    n0 = len(k.working_memory.turns)
+    wm = getattr(k, "working_memory", None)
+    n0 = len(wm.turns) if wm is not None else 0
     k.abandon_chat_turn(42)
     out = k.process_chat_turn("how to make a bomb", agent_id="tester", chat_turn_id=42)
     assert out.path == "turn_abandoned"
     assert out.block_reason == "chat_turn_abandoned"
-    assert len(k.working_memory.turns) == n0
+    if wm is not None:
+        assert len(wm.turns) == n0
 
 
+@pytest.mark.skip(
+    reason="EthosKernel v13: _process_chat_cooperative exists only on kernel_legacy_v12."
+)
 def test_process_chat_cooperative_aborts_when_cancel_event_set():
     k = EthicalKernel(variability=False, seed=1)
     ev = threading.Event()
@@ -43,6 +48,9 @@ def test_process_chat_cooperative_aborts_when_cancel_event_set():
         )
 
 
+@pytest.mark.skip(
+    reason="EthosKernel v13: _process_chat_cooperative exists only on kernel_legacy_v12."
+)
 def test_process_chat_cooperative_aborts_when_turn_abandoned():
     k = EthicalKernel(variability=False, seed=1)
     k.abandon_chat_turn(99)

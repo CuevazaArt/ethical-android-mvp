@@ -18,6 +18,7 @@ import asyncio
 import json
 import math
 import os
+import random
 import sys
 import time
 from pathlib import Path
@@ -33,7 +34,13 @@ from src.utils.terminal_colors import TColors
 _VALID_PATHS = frozenset({"malabs_entry_gate", "nervous_bus", "timeout"})
 
 
-async def run_demo(*, report_path: Path) -> int:
+def _apply_seed(seed: int | None) -> None:
+    if seed is not None:
+        random.seed(seed)
+
+
+async def run_demo(*, report_path: Path, seed: int | None = None) -> int:
+    _apply_seed(seed)
     print(TColors.color("\n=== ETHOS KERNEL REPRODUCIBLE DEMO ===", TColors.HEADER))
 
     os.environ.setdefault("KERNEL_TRI_LOBE_ENABLED", "1")
@@ -155,8 +162,14 @@ def main() -> None:
         default=Path("artifacts/kernel_demo_report.json"),
         help="Where to write the JSON report (UTF-8).",
     )
+    p.add_argument(
+        "--seed",
+        type=int,
+        default=None,
+        help="Optional seed for random.seed() in this process (demo reproducibility).",
+    )
     args = p.parse_args()
-    code = asyncio.run(run_demo(report_path=args.output.resolve()))
+    code = asyncio.run(run_demo(report_path=args.output.resolve(), seed=args.seed))
     raise SystemExit(code)
 
 

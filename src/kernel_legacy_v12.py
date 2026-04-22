@@ -124,7 +124,6 @@ from .modules.audit_chain_log import (
 )
 from .modules.augenesis import AugenesisEngine
 from .modules.bayesian_engine import BayesianEngine
-from .modules.biographic_pruning import BiographicPruner
 from .modules.buffer import PreloadedBuffer
 from .modules.charm_engine import CharmEngine
 from .modules.dao_orchestrator import DAOOrchestrator
@@ -170,6 +169,7 @@ from .modules.llm_layer import (
     resolve_llm_mode,
 )
 from .modules.locus import LocusEvaluation, LocusModule
+from .modules.memory_hygiene import MemoryHygieneService
 from .modules.metacognition import MetacognitiveEvaluator, MetacognitiveReport
 from .modules.metaplan_registry import MetaplanRegistry
 from .modules.motivation_engine import MotivationEngine
@@ -532,11 +532,13 @@ class EthicalKernel:
             if co and hasattr(co, "strategist") and co.strategist is not None
             else ExecutiveStrategist()
         )
-        self.biographic_pruner = (
-            co.biographic_pruner
-            if co and hasattr(co, "biographic_pruner") and co.biographic_pruner is not None
-            else BiographicPruner()
+        self.memory_hygiene = (
+            co.hygiene
+            if co and co.hygiene is not None
+            else MemoryHygieneService(self.memory, self.dao)
         )
+        # Legacy name retained for scripts/tests that still expect ``biographic_pruner``.
+        self.biographic_pruner = self.memory_hygiene
 
         # ── PHASE S.10: Persistence Restore for Metaplan & Skills ──────────
         if self.dao:
@@ -621,18 +623,16 @@ class EthicalKernel:
             bayesian=self.bayesian, strategist=self.strategist, memory=self.memory, rlhf=self.rlhf
         )
 
-        # Selective Amnesia & Immortality (vertical integration)
-        from .modules.selective_amnesia import SelectiveAmnesia
-
-        self.amnesia = SelectiveAmnesia(memory=self.memory, dao=self.dao)
+        # Selective amnesia API (Block 5.1) — consolidated into MemoryHygieneService.
+        self.amnesia = self.memory_hygiene
 
         self.memory_lobe = MemoryLobe(
             memory=self.memory,
             dao=self.dao,
             migration=self.migration,
-            biographic_pruner=self.biographic_pruner,
+            hygiene=self.memory_hygiene,
             immortality=self.immortality,
-            amnesia=self.amnesia,
+            llm=self.llm,
         )
 
         # ═══ Somatic Awareness (Cerebellum Node) ═══
@@ -2544,7 +2544,7 @@ class EthicalKernel:
         self.user_model.note_premise_advisory(self._last_premise_advisory.flag)
         self._last_reality_verification = reality_assessment
 
-        mal = self.absolute_evil.evaluate_chat_text(
+        mal = await self.absolute_evil.aevaluate_chat_text(
             text,
             llm_backend=self._malabs_text_backend(),
         )

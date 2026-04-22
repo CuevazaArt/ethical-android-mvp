@@ -7,15 +7,15 @@ Consolidates Selective Amnesia (Right to be Forgotten) and Biographic Pruning.
 from __future__ import annotations
 
 import logging
-import math
 from typing import TYPE_CHECKING, Any
 
 if TYPE_CHECKING:
     from .dao_orchestrator import DAOOrchestrator
-    from .narrative import NarrativeMemory
     from .llm_layer import LLMModule
+    from .narrative import NarrativeMemory
 
 _log = logging.getLogger(__name__)
+
 
 class MemoryHygieneService:
     """
@@ -23,11 +23,11 @@ class MemoryHygieneService:
     """
 
     def __init__(
-        self, 
-        memory: NarrativeMemory, 
+        self,
+        memory: NarrativeMemory,
         dao: DAOOrchestrator,
         retention_days: int = 60,
-        min_flashbulb_significance: float = 0.7
+        min_flashbulb_significance: float = 0.7,
     ):
         self.memory = memory
         self.dao = dao
@@ -66,16 +66,24 @@ class MemoryHygieneService:
                 count += 1
         return count
 
+    def run_maintenance_cycle(self, memory: Any | None = None) -> dict[str, Any]:
+        """
+        Back-compat API for removed ``BiographicPruner`` (legacy kernel / tests).
+
+        ``memory`` is ignored: this service is already bound to the live ``NarrativeMemory``.
+        """
+        _ = memory
+        return self.run_pruning_cycle(None)
+
     def run_pruning_cycle(self, llm: LLMModule | None = None) -> dict[str, Any]:
         """
         Manages database growth by deleting low-significance episodes.
         """
         _log.info("MemoryHygiene: Starting pruning cycle.")
-        
+
         # 1. Fetch prunable episodes
         prunable = self.memory.persistence.get_prunable_episodes(
-            max_age_days=self.retention_days, 
-            min_significance=self.min_flashbulb_significance
+            max_age_days=self.retention_days, min_significance=self.min_flashbulb_significance
         )
 
         summary_episode_id = None
@@ -84,6 +92,7 @@ class MemoryHygieneService:
             summary_text = self._generate_compression_summary(prunable, llm)
 
             from .narrative_types import BodyState
+
             sum_ep = self.memory.register(
                 place="System Maintenance",
                 description=f"Biographic Compression: {summary_text}",
@@ -102,8 +111,7 @@ class MemoryHygieneService:
 
         # 3. Prune mundane episodes from persistence
         deleted_count = self.memory.persistence.prune_mundane(
-            max_age_days=self.retention_days, 
-            min_significance=self.min_flashbulb_significance
+            max_age_days=self.retention_days, min_significance=self.min_flashbulb_significance
         )
 
         return {
@@ -116,8 +124,7 @@ class MemoryHygieneService:
     def _generate_compression_summary(self, episodes: list[Any], llm: LLMModule) -> str:
         """Distill mundane experiences into a single archetypal insight."""
         texts = [
-            f"- {ep.timestamp}: {ep.event_description} ({ep.action_taken})" 
-            for ep in episodes[:10]
+            f"- {ep.timestamp}: {ep.event_description} ({ep.action_taken})" for ep in episodes[:10]
         ]
         prompt = (
             "Distill the following mundane experiences into a single archetypal insight for the android's narrative identity:\n\n"

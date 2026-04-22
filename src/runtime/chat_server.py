@@ -24,7 +24,7 @@ Importing this module runs the same import-time guards as ``src.chat_server``
 
 from __future__ import annotations
 
-from ..chat_server import app
+from ..chat_server import app, run_chat_server
 from .chat_lifecycle import api_docs_enabled, chat_lifespan
 
-__all__ = ["api_docs_enabled", "app", "chat_lifespan"]
+__all__ = ["api_docs_enabled", "app", "chat_lifespan", "run_chat_server"]

@@ -14,8 +14,8 @@ from __future__ import annotations
 from dataclasses import dataclass
 
 from .modules.absolute_evil import AbsoluteEvilDetector
+from .modules.augenesis import AugenesisEngine
 from .modules.bayesian_engine import BayesianInferenceEngine
-from .modules.memory_hygiene import MemoryHygieneService
 from .modules.buffer import PreloadedBuffer
 from .modules.dao_orchestrator import DAOOrchestrator
 from .modules.drive_arbiter import DriveArbiter
@@ -27,6 +27,7 @@ from .modules.immortality import ImmortalityProtocol
 from .modules.judicial_escalation import EscalationSessionTracker
 from .modules.llm_layer import LLMModule
 from .modules.locus import LocusModule
+from .modules.memory_hygiene import MemoryHygieneService
 from .modules.metaplan_registry import MetaplanRegistry
 from .modules.mock_dao import MockDAO
 from .modules.motivation_engine import MotivationEngine

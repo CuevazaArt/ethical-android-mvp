@@ -10,6 +10,7 @@ matching hemisphere refactor architecture.
 
 from __future__ import annotations
 
+import asyncio
 import logging
 from dataclasses import dataclass
 from typing import Any
@@ -40,7 +41,8 @@ async def run_perception_async(
 
     Parameters:
             ctx: Perception context (input, conversation, sensors)
-            malabs_evaluator: MalAbs safety gate (sync-compatible)
+            malabs_evaluator: MalAbs gate; ``aevaluate_chat_text`` is used when present so
+            semantic embeddings never run sync HTTP on the event loop.
             semantic_backend: Optional semantic embedding backend
 
     Returns:
@@ -55,13 +57,18 @@ async def run_perception_async(
         "ready_for_ethical_stage": True,
     }
 
-    # Run MalAbs (can be sync-wrapped in thread if needed)
+    # Run MalAbs without calling sync ``evaluate_chat_text`` on the event loop (Bloque 34.0).
     if malabs_evaluator is not None:
         try:
-            decision = malabs_evaluator.evaluate_chat_text(
-                ctx.user_input,
-                llm_backend=semantic_backend,
-            )
+            aeval = getattr(malabs_evaluator, "aevaluate_chat_text", None)
+            if callable(aeval):
+                decision = await aeval(ctx.user_input, llm_backend=semantic_backend)
+            else:
+                decision = await asyncio.to_thread(
+                    malabs_evaluator.evaluate_chat_text,
+                    ctx.user_input,
+                    semantic_backend,
+                )
             result["malabs_decision"] = decision
             result["ready_for_ethical_stage"] = not decision.blocked
         except Exception as e:
