@@ -5,8 +5,8 @@ Stable bind target::
 
     uvicorn src.runtime.chat_server:app --host 127.0.0.1 --port 8765
 
-The FastAPI application and HTTP/WebSocket route graph remain implemented in
-:mod:`src.chat_server` until the monolith is split without orphan symbols.
+The FastAPI application and WebSocket graph remain in :mod:`src.chat_server`;
+HTTP sub-routers live under :mod:`src.server` (e.g. ``routes_health``, ``routes_governance``, ``routes_nomad``) and are included on the same ``app`` instance.
 This module re-exports ``app`` (and lifecycle helpers) so ``uvicorn src.runtime.chat_server:app`` and
 ``uvicorn src.chat_server:app`` resolve to the **same** application object (see
 ``tests/test_runtime_chat_server.py``).

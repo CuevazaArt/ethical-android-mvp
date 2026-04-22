@@ -11,6 +11,8 @@ All notable changes to this project are summarized here. For narrative context a
 
 ### Changed
 - **`tests/test_runtime_chat_server.py`:** regression that ``from src.server.app import app`` and ``from src.chat_server import app`` refer to the same object.
+- **`src/chat_server.py`:** `include_router` para `routes_field_control` (ADR 0017); se eliminó el bloque inline de `/control/*` y `/phone` (~220 líneas).
+- **`src/server/routes_health.py`:** `uptime_seconds` en `GET /health` desde `meta.py` (mismo ancla de proceso que el resto del servicio).
 
 ## [2026-04-21] Bloque 34.0: MalAbs async / embeddings (observabilidad)
 

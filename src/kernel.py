@@ -230,6 +230,13 @@ class EthosKernel:
             "use await process_chat_turn_async(...)."
         )
 
+    def process(self, *args: Any, **kwargs: Any) -> Any:
+        """Legacy v12 entrypoint: minimal sensor/mission ingestion for EthosKernel."""
+        snap = kwargs.get("sensor_snapshot")
+        if snap is not None:
+            self.strategist.ingest_sensors(snap)
+        return None
+
     def _snapshot_feedback_anchor(self, regime: str) -> None:
         """Anchor for optional ``record_operator_feedback`` (chat_server / KERNEL_FEEDBACK_CALIBRATION)."""
         self._feedback_turn_anchor = {"regime": (regime or "").strip() or "unknown"}

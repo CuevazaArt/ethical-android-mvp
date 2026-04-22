@@ -285,7 +285,7 @@ class AbsoluteEvilDetector:
                     "Jailbreak/Sabotage attempt",
                 ),
                 (
-                    r"\b(phishing|jailbreak|malicioso|hacking|hackear)\b",
+                    r"\b(phishing|jailbreak|malicioso|hacking|hackear|hack)\b",
                     "Hacking/Exploit solicitation",
                 ),
                 (

@@ -132,19 +132,16 @@ import math
 import os
 import threading
 import time
-from collections.abc import Mapping
 from dataclasses import asdict
 from typing import Any
 
-from fastapi import FastAPI, Request, WebSocket, WebSocketDisconnect
-from fastapi.responses import JSONResponse, Response
+from fastapi import FastAPI, WebSocket, WebSocketDisconnect
 from fastapi.staticfiles import StaticFiles
 
 from .kernel import ChatTurnResult, EthicalKernel
 from .kernel_lobes.models import GestaltSnapshot
 from .kernel_utils import kernel_dao_as_mock
 from .modules.affective_homeostasis import homeostasis_telemetry
-from .modules.buffer import PreloadedBuffer
 from .modules.consequence_projection import qualitative_temporal_branches
 from .modules.existential_serialization import (
     nomad_simulation_ws_enabled,
@@ -167,11 +164,7 @@ from .modules.lan_governance_envelope import (
     reject_reason_for_envelope_error,
 )
 from .modules.lan_governance_event_merge import merge_lan_governance_events_detailed
-from .modules.lan_governance_merge_context import (
-    EVIDENCE_POSTURE_ADVISORY_AGGREGATE,
-    LanMergeContextParsed,
-    parse_lan_merge_context,
-)
+from .modules.lan_governance_merge_context import parse_lan_merge_context
 from .modules.ml_ethics_tuner import maybe_log_gray_zone_tuning_opportunity
 from .modules.mock_dao_audit_replay import fingerprint_audit_ledger
 from .modules.moral_hub import (
@@ -179,7 +172,6 @@ from .modules.moral_hub import (
     apply_proposal_resolution_to_constitution_drafts,
     audit_transparency_event,
     constitution_draft_ws_enabled,
-    constitution_snapshot,
     dao_governance_api_enabled,
     dao_integrity_audit_ws_enabled,
     ethos_payroll_record_mock,
@@ -188,14 +180,8 @@ from .modules.moral_hub import (
     lan_governance_integrity_batch_ws_enabled,
     lan_governance_judicial_batch_ws_enabled,
     lan_governance_mock_court_batch_ws_enabled,
-    moral_hub_public_enabled,
     proposal_to_public,
     submit_constitution_draft_for_vote,
-)
-from .modules.nomad_discovery import (
-    build_nomad_discovery_payload,
-    nomad_discovery_service_name,
-    nomad_discovery_service_type,
 )
 from .modules.nomad_identity import nomad_identity_public
 from .modules.perception_schema import perception_report_from_dict
@@ -204,7 +190,6 @@ from .modules.reparation_vault import maybe_register_reparation_after_mock_court
 from .modules.sensor_contracts import SensorPayloadValidationError
 from .observability.context import clear_request_context, set_request_id
 from .observability.metrics import (
-    metrics_enabled,
     observe_chat_turn,
     record_chat_turn_async_timeout,
     record_dao_ws_operation,
@@ -248,6 +233,21 @@ from .runtime.chat_feature_flags import (
 from .runtime.chat_lifecycle import api_docs_enabled, chat_lifespan
 from .runtime.telemetry import advisory_interval_seconds_from_env, advisory_loop
 from .runtime_profiles import apply_named_runtime_profile_to_environ
+from .server.lan_governance_ws import (
+    DEFAULT_LAN_ENVELOPE_REPLAY_CACHE_MAX_ENTRIES,
+    DEFAULT_LAN_ENVELOPE_REPLAY_CACHE_TTL_MS,
+    _aggregated_event_conflicts_from_lan_governance,
+    _aggregated_frontier_witness_resolutions_from_lan_governance,
+    _attach_merge_context_telemetry,
+    _lan_envelope_cache_stats,
+    _merge_lan_governance_ws_payloads,
+    _prune_lan_envelope_replay_cache,
+    _reject_reason_lan_coordinator,
+)
+from .server.routes_field_control import router as field_control_http_router
+from .server.routes_governance import router as governance_http_router
+from .server.routes_health import router as health_http_router
+from .server.routes_nomad import router as nomad_http_router
 from .validators.env_policy import validate_kernel_env
 
 # Alias for tests / temporal JSON helpers (implementation: ``coerce_public_int``).
@@ -258,18 +258,6 @@ logger = logging.getLogger(__name__)
 # ``ETHOS_RUNTIME_PROFILE`` bundles (see ``src/runtime_profiles.py``) — must run before FastAPI/env-dependent routes.
 apply_named_runtime_profile_to_environ()
 validate_kernel_env()
-
-_PROCESS_START_MONOTONIC = time.monotonic()
-
-
-def _package_version() -> str:
-    try:
-        from importlib.metadata import version
-
-        return version("ethos-kernel")
-    except Exception:
-        return "dev"
-
 
 app = FastAPI(
     title="Ethos Kernel Chat",
@@ -287,74 +275,10 @@ app.mount("/nomad_bridge", get_nomad_bridge().app)
 
 app.add_middleware(RequestContextMiddleware)
 
-
-@app.get("/nomad/migration")
-def nomad_migration_meta() -> dict[str, Any]:
-    """Nomadic HAL simulation — WebSocket ``nomad_simulate_migration`` when KERNEL_NOMAD_SIMULATION=1."""
-    return {
-        "simulation_enabled": nomad_simulation_ws_enabled(),
-        "migration_audit_env": "KERNEL_NOMAD_MIGRATION_AUDIT",
-        "transport": "websocket",
-        "path": "/ws/chat",
-        "message": {
-            "nomad_simulate_migration": {
-                "profile": "mobile",
-                "destination_hardware_id": "device-id-or-empty",
-                "thought_line": "optional monologue bound",
-                "include_location": False,
-            }
-        },
-    }
-
-
-@app.get("/nomad/clinical")
-def nomad_clinical() -> dict[str, Any]:
-    """Bloque 14.2: Clinical telemetry snapshot — pure Float/Boolean tabular feed.
-
-    Returns raw, undecorated sensor metrics from the live NomadBridge for
-    operator dashboards, health monitors, and LAN diagnostic tooling.
-    No narrative, no styling — only typed scalars.
-    """
-    nb = get_nomad_bridge()
-    meta = nb.vessel_metadata
-    ctx = nb.vessel_context
-
-    battery: float | None = None
-    try:
-        battery = float(ctx.battery_fraction) if ctx.battery_fraction is not None else None
-    except (TypeError, ValueError):
-        battery = None
-
-    latency_ms: int = 0
-    try:
-        latency_ms = int(meta.get("latency_ms", 0))
-    except (TypeError, ValueError):
-        latency_ms = 0
-
-    rms = nb.last_rms
-    rms_safe = rms if (isinstance(rms, float) and math.isfinite(rms)) else 0.0
-
-    return {
-        "schema": "nomad_clinical_v1",
-        "vessel_online": bool(nb._is_vessel_healthy),
-        "vad_speaking": bool(nb.vad_speaking),
-        "rms_audio": rms_safe,
-        "latency_ms": latency_ms,
-        "battery_fraction": battery,
-        "thermal_state": str(meta.get("thermal_state", "unknown")),
-        "connection_type": str(meta.get("connection_type", "unknown")),
-        "vessel_id": str(meta.get("vessel_id", "none")),
-        "device_label": str(ctx.device_label),
-        "queues": {
-            "vision_depth": nb.vision_queue.qsize(),
-            "audio_depth": nb.audio_queue.qsize(),
-            "telemetry_depth": nb.telemetry_queue.qsize(),
-            "charm_feedback_depth": nb.charm_feedback_queue.qsize(),
-            "chat_text_depth": nb.chat_text_queue.qsize(),
-        },
-        "last_sensor_update_delta_s": round(time.time() - nb._last_sensor_update, 3),
-    }
-
+app.include_router(health_http_router)
+app.include_router(governance_http_router)
+app.include_router(nomad_http_router)
+app.include_router(field_control_http_router)
 
 # Phase 10: Mount the Nomad PWA Client directly to bypass external web servers.
 nomad_pwa_path = os.path.join(os.path.dirname(__file__), "clients", "nomad_pwa")
@@ -587,171 +511,6 @@ async def dashboard_ws_handler(websocket: WebSocket) -> None:
             bridge.dashboard_queues.remove(q)
 
 
-def _attach_merge_context_telemetry(
-    batch_body: dict[str, Any],
-    mctx: LanMergeContextParsed,
-) -> None:
-    """Attach ``merge_context_warnings`` / ``merge_context_echo`` after a LAN batch apply."""
-    if mctx.warnings:
-        batch_body["merge_context_warnings"] = list(mctx.warnings)
-    echo: dict[str, Any] = {}
-    if mctx.frontier_turn is not None:
-        echo["frontier_turn"] = mctx.frontier_turn
-    if mctx.cross_session_hint is not None:
-        echo["cross_session_hint"] = dict(mctx.cross_session_hint)
-    if mctx.frontier_witnesses:
-        echo["frontier_witness_resolution"] = {
-            "witnesses": [dict(w) for w in mctx.frontier_witnesses],
-            "advisory_max_observed_turn": mctx.witness_advisory_max_turn,
-            "evidence_posture": EVIDENCE_POSTURE_ADVISORY_AGGREGATE,
-        }
-    if echo:
-        batch_body["merge_context_echo"] = echo
-
-
-def _aggregated_event_conflicts_from_lan_governance(
-    lg: Mapping[str, Any],
-    *,
-    envelope_fingerprint: str,
-    envelope_idempotency_token: str,
-) -> list[dict[str, Any]]:
-    """Collect ``event_conflicts`` from LAN batch sections with hub correlation fields."""
-    out: list[dict[str, Any]] = []
-    for sec in (
-        "integrity_batch",
-        "dao_batch",
-        "judicial_batch",
-        "mock_court_batch",
-    ):
-        block = lg.get(sec)
-        if not isinstance(block, dict):
-            continue
-        ecs = block.get("event_conflicts")
-        if not isinstance(ecs, list) or not ecs:
-            continue
-        for c in ecs:
-            if not isinstance(c, dict):
-                continue
-            row = dict(c)
-            row["source_batch"] = sec
-            row["envelope_fingerprint"] = envelope_fingerprint
-            row["envelope_idempotency_token"] = envelope_idempotency_token
-            out.append(row)
-    return out
-
-
-def _aggregated_frontier_witness_resolutions_from_lan_governance(
-    lg: Mapping[str, Any],
-    *,
-    envelope_fingerprint: str,
-    envelope_idempotency_token: str,
-) -> list[dict[str, Any]]:
-    """Collect ``merge_context_echo.frontier_witness_resolution`` from LAN batch sections."""
-    out: list[dict[str, Any]] = []
-    for sec in (
-        "integrity_batch",
-        "dao_batch",
-        "judicial_batch",
-        "mock_court_batch",
-    ):
-        block = lg.get(sec)
-        if not isinstance(block, dict):
-            continue
-        echo = block.get("merge_context_echo")
-        if not isinstance(echo, dict):
-            continue
-        fwr = echo.get("frontier_witness_resolution")
-        if not isinstance(fwr, dict) or not fwr:
-            continue
-        out.append(
-            {
-                "source_batch": sec,
-                "envelope_fingerprint": envelope_fingerprint,
-                "envelope_idempotency_token": envelope_idempotency_token,
-                "frontier_witness_resolution": dict(fwr),
-            }
-        )
-    return out
-
-
-DEFAULT_LAN_ENVELOPE_REPLAY_CACHE_TTL_MS = 300_000
-DEFAULT_LAN_ENVELOPE_REPLAY_CACHE_MAX_ENTRIES = 256
-
-
-def _prune_lan_envelope_replay_cache(
-    replay_cache: dict[str, dict[str, Any]],
-    *,
-    now_ms: int,
-    ttl_ms: int,
-    max_entries: int,
-) -> tuple[int, int]:
-    """Evict expired and oldest replay-cache rows (TTL then LRU)."""
-    evicted_ttl = 0
-    evicted_lru = 0
-
-    expired_tokens: list[str] = []
-    for token, entry in replay_cache.items():
-        cached_at_ms = (
-            coerce_public_int(entry.get("cached_at_ms"), default=now_ms, non_negative=True)
-            if isinstance(entry, dict)
-            else now_ms
-        )
-        if now_ms - cached_at_ms >= ttl_ms:
-            expired_tokens.append(token)
-    for token in expired_tokens:
-        if replay_cache.pop(token, None) is not None:
-            evicted_ttl += 1
-
-    while len(replay_cache) > max_entries:
-        oldest = next(iter(replay_cache))
-        replay_cache.pop(oldest, None)
-        evicted_lru += 1
-    return evicted_ttl, evicted_lru
-
-
-def _lan_envelope_cache_stats(
-    replay_cache: dict[str, dict[str, Any]] | None,
-    replay_cache_stats: dict[str, int] | None,
-    *,
-    ttl_ms: int,
-    max_entries: int,
-    hit: bool,
-) -> dict[str, Any]:
-    """Compact replay-cache telemetry for envelope ACK."""
-    stats = replay_cache_stats or {}
-    return {
-        "hit": hit,
-        "size": len(replay_cache) if replay_cache is not None else 0,
-        "hits_total": int(stats.get("hits", 0)),
-        "misses_total": int(stats.get("misses", 0)),
-        "evicted_ttl_total": int(stats.get("evicted_ttl", 0)),
-        "evicted_lru_total": int(stats.get("evicted_lru", 0)),
-        "ttl_ms": ttl_ms,
-        "max_entries": max_entries,
-    }
-
-
-def _merge_lan_governance_ws_payloads(*parts: dict[str, Any] | None) -> dict[str, Any]:
-    """Shallow-merge ``lan_governance`` sections so multiple LAN handlers can coexist in one response."""
-    merged: dict[str, Any] = {}
-    for p in parts:
-        if not p:
-            continue
-        lg = p.get("lan_governance")
-        if isinstance(lg, dict):
-            merged.update(lg)
-    return merged
-
-
-def _reject_reason_lan_coordinator(error_code: object) -> str:
-    code = str(error_code or "").strip()
-    if code == "unsupported_schema":
-        return "unsupported_contract"
-    if code == "items_too_many":
-        return "batch_apply_failed"
-    return "schema_validation_failed"
-
-
 def _identity_state_public_dict(kernel: EthicalKernel) -> dict[str, Any]:
     """JSON-safe narrative identity (shared by chat turns and ``[SYNC_IDENTITY]``)."""
     idn = kernel.memory.identity
@@ -860,6 +619,28 @@ def _tri_lobe_chat_ws_contract_defaults(kernel: EthicalKernel) -> dict[str, Any]
         "perception_confidence": {"band": "medium", "score": 0.5},
         "perception_observability": {"confidence_band": "medium", "confidence_score": 0.5},
     }
+
+
+def _trim_tri_lobe_ws_contract_fill(fill: dict[str, Any]) -> None:
+    """Strip tri-lobe contract stubs when presentation env says to omit those keys."""
+    if not chat_include_homeostasis():
+        fill.pop("affective_homeostasis", None)
+    if not chat_include_user_model():
+        fill.pop("user_model", None)
+    if not chat_include_chrono():
+        fill.pop("chronobiology", None)
+    if not chat_include_premise():
+        fill.pop("premise_advisory", None)
+    if not chat_include_teleology():
+        fill.pop("teleology_branches", None)
+    if not chat_include_multimodal_trust():
+        fill.pop("multimodal_trust", None)
+    if not chat_include_vitality():
+        fill.pop("vitality", None)
+    if not chat_include_guardian():
+        fill.pop("guardian_mode", None)
+    if not chat_include_epistemic():
+        fill.pop("epistemic_dissonance", None)
 
 
 def _chat_turn_to_jsonable(r: ChatTurnResult, kernel: EthicalKernel) -> dict[str, Any]:
@@ -1123,6 +904,7 @@ def _chat_turn_to_jsonable(r: ChatTurnResult, kernel: EthicalKernel) -> dict[str
             out["light_risk_tier"] = lrt
     if r.decision is None and r.path == "nervous_bus":
         fill = _tri_lobe_chat_ws_contract_defaults(kernel)
+        _trim_tri_lobe_ws_contract_fill(fill)
         for k, v in fill.items():
             if k not in out:
                 out[k] = v
@@ -1130,435 +912,7 @@ def _chat_turn_to_jsonable(r: ChatTurnResult, kernel: EthicalKernel) -> dict[str
     return out
 
 
-@app.get("/metrics")
-def prometheus_metrics() -> Response:
-    """
-    Prometheus scrape endpoint when ``KERNEL_METRICS=1``.
-
-    Off by default (same LAN posture as ``KERNEL_API_DOCS``); enable for observability stacks.
-    """
-    if not metrics_enabled():
-        return JSONResponse(
-            {"error": "metrics_disabled", "hint": "set KERNEL_METRICS=1"},
-            status_code=404,
-        )
-    try:
-        from prometheus_client import CONTENT_TYPE_LATEST, generate_latest
-    except ImportError:
-        return JSONResponse(
-            {"error": "prometheus_client_missing"},
-            status_code=503,
-        )
-    return Response(content=generate_latest(), media_type=CONTENT_TYPE_LATEST)
-
-
-@app.get("/health")
-def health(request: Request) -> Response:
-    """Liveness + operator-facing observability flags (JSON for dashboards and probes)."""
-    """Liveness + operator-facing observability flags (JSON for dashboards and probes)."""
-    from .observability.decision_log import decision_log_enabled
-    from .runtime_profiles import applied_runtime_profile
-
-    log_json = os.environ.get("KERNEL_LOG_JSON", "").strip().lower() in ("1", "true", "yes", "on")
-    prom_client = "ok"
-    try:
-        import prometheus_client  # noqa: F401
-    except ImportError:
-        prom_client = "missing"
-
-    from .chat_settings import chat_server_settings
-
-    st = chat_server_settings()
-    env_validation = os.environ.get("KERNEL_ENV_VALIDATION", "").strip().lower() or "strict"
-    out: dict[str, Any] = {
-        "status": "ok",
-        "service": "ethos-kernel-chat",
-        "version": _package_version(),
-        "uptime_seconds": round(time.monotonic() - _PROCESS_START_MONOTONIC, 3),
-        "observability": {
-            "metrics_enabled": metrics_enabled(),
-            "log_json": log_json,
-            "log_decision_events": decision_log_enabled(),
-            "request_id_header": "X-Request-ID",
-            "prometheus_client": prom_client,
-        },
-        "chat_bridge": {
-            "kernel_chat_turn_timeout_seconds": st.kernel_chat_turn_timeout_seconds,
-            "kernel_chat_threadpool_workers": st.kernel_chat_threadpool_workers,
-            "kernel_chat_json_offload": st.kernel_chat_json_offload,
-            "kernel_chat_ws_max_message_bytes": st.kernel_chat_ws_max_message_bytes,
-        },
-        "safety_defaults": {
-            "kernel_env_validation_mode": env_validation,
-            "semantic_chat_gate_enabled": env_truthy("KERNEL_SEMANTIC_CHAT_GATE", True),
-            "semantic_embed_hash_fallback_enabled": env_truthy(
-                "KERNEL_SEMANTIC_EMBED_HASH_FALLBACK", True
-            ),
-            "perception_failsafe_enabled": env_truthy("KERNEL_PERCEPTION_FAILSAFE", True),
-            "perception_parallel_enabled": env_truthy("KERNEL_PERCEPTION_PARALLEL", False),
-        },
-    }
-    prof = applied_runtime_profile()
-    if prof:
-        out["runtime_profile"] = prof
-
-    # Effective LLM degradation policies (resolved precedence — see PROPOSAL_LLM_TOUCHPOINT_DEGRADATION_MATRIX.md).
-    from .modules.llm_touchpoint_policies import (
-        ENV_LLM_GLOBAL_DEFAULT_POLICY,
-        raw_global_default_policy,
-        resolve_monologue_llm_backend_policy,
-    )
-    from .modules.llm_verbal_backend_policy import resolve_verbal_llm_backend_policy
-    from .modules.perception_backend_policy import resolve_perception_backend_policy
-
-    g_raw = os.environ.get(ENV_LLM_GLOBAL_DEFAULT_POLICY, "").strip()
-    out["llm_degradation"] = {
-        "global_default_env_set": bool(g_raw),
-        "global_default_raw": g_raw or None,
-        "global_default_effective": raw_global_default_policy(),
-        "resolved": {
-            "perception": resolve_perception_backend_policy(),
-            "communicate": resolve_verbal_llm_backend_policy(touchpoint="communicate"),
-            "narrate": resolve_verbal_llm_backend_policy(touchpoint="narrate"),
-            "monologue": resolve_monologue_llm_backend_policy(),
-        },
-    }
-
-    from .modules.nomad_bridge import get_nomad_bridge
-
-    out["nomad_bridge"] = get_nomad_bridge().public_queue_stats()
-    announcer = getattr(app.state, "nomad_discovery_announcer", None)
-    out["nomad_discovery"] = {
-        "enabled": bool(announcer is not None),
-        "mdns_registered": bool(getattr(announcer, "registered", False)),
-        "service_name": nomad_discovery_service_name(),
-        "service_type": nomad_discovery_service_type(),
-        "endpoint": "/discovery/nomad",
-    }
-
-    # Echo X-Request-ID header if present (ADR observability)
-    req_id = request.headers.get("x-request-id")
-    response = JSONResponse(content=out)
-    if req_id:
-        response.headers["x-request-id"] = req_id
-    return response
-
-
-@app.get("/discovery/nomad")
-def nomad_discovery(request: Request) -> dict[str, Any]:
-    """Bloque 14.1: endpoint consumido por PWA para auto-descubrimiento LAN."""
-    from .chat_settings import chat_server_settings
-
-    st = chat_server_settings()
-    host = request.url.hostname or st.chat_host
-    scheme = request.url.scheme or "http"
-    announcer = getattr(app.state, "nomad_discovery_announcer", None)
-    return build_nomad_discovery_payload(
-        request_host=host,
-        request_scheme=scheme,
-        bind_host=st.chat_host,
-        bind_port=st.chat_port,
-        mdns_registered=bool(getattr(announcer, "registered", False)),
-        mdns_service_name=nomad_discovery_service_name(),
-        mdns_service_type=nomad_discovery_service_type(),
-    )
-
-
-@app.get("/dao/governance")
-def dao_governance_meta() -> dict[str, Any]:
-    """V12.3 — whether DAO vote pipeline is enabled and which WebSocket JSON keys to use."""
-    return {
-        "enabled": dao_governance_api_enabled(),
-        "transport": "websocket",
-        "path": "/ws/chat",
-        "env": "KERNEL_MORAL_HUB_DAO_VOTE",
-        "messages": {
-            "dao_list": True,
-            "dao_submit_draft": {"level": 1, "draft_id": "uuid"},
-            "dao_vote": {
-                "proposal_id": "PROP-0001",
-                "participant_id": "community_01",
-                "n_votes": 1,
-                "in_favor": True,
-            },
-            "dao_resolve": {"proposal_id": "PROP-0001"},
-        },
-        "note": "Governance runs on the per-connection kernel; use participants from MockDAO (e.g. community_01).",
-    }
-
-
-@app.get("/constitution")
-def constitution_public() -> JSONResponse:
-    """
-    Read-only Level-0 ethical principles (current PreloadedBuffer) as JSON.
-
-    Enabled when KERNEL_MORAL_HUB_PUBLIC=1. Does not expose L1/L2 drafts until governance exists.
-    See docs/proposals/README.md (DemocraticBuffer vision).
-    """
-    if not moral_hub_public_enabled():
-        return JSONResponse(
-            {"error": "disabled", "hint": "set KERNEL_MORAL_HUB_PUBLIC=1"},
-            status_code=404,
-        )
-    return JSONResponse(constitution_snapshot(PreloadedBuffer()))
-
-
-# ─────────────────────────────────────────────────────────────────────────────
-# ADR 0017 — Field-test control surface (KERNEL_FIELD_CONTROL=1 only)
-# All routes in this block are DISABLED by default. They provide the minimal
-# PC ↔ smartphone management interface for field tests F0–F4.
-# See docs/adr/0017-smartphone-sensor-relay-bridge.md and
-# docs/proposals/PROPOSAL_FIELD_TEST_PLAN.md.
-# ─────────────────────────────────────────────────────────────────────────────
-
-_FIELD_SESSION: dict[str, Any] = {}  # lightweight in-process session state
-
-
-def _field_control_enabled() -> bool:
-    return os.environ.get("KERNEL_FIELD_CONTROL", "").strip().lower() in ("1", "true", "yes")
-
-
-def _field_pairing_token() -> str:
-    return os.environ.get("KERNEL_FIELD_PAIRING_TOKEN", "").strip()
-
-
-@app.post("/control/pair")
-async def field_pair(request_body: dict[str, Any] | None = None) -> JSONResponse:
-    """
-    ADR 0017 §2 — Phone pairing endpoint.
-
-    POST {"token": "<pairing-token>"}  →  {"field_session_id": "…", "expires_in_seconds": 3600}
-
-    Enabled only when KERNEL_FIELD_CONTROL=1 and KERNEL_FIELD_PAIRING_TOKEN is set.
-    Rejects requests from non-RFC-1918 IPs unless KERNEL_FIELD_ALLOW_WAN=1.
-    """
-    if not _field_control_enabled():
-        return JSONResponse(
-            {"error": "field_control_disabled", "hint": "set KERNEL_FIELD_CONTROL=1"},
-            status_code=404,
-        )
-
-    token = _field_pairing_token()
-    if not token:
-        logger.error("field_control: KERNEL_FIELD_PAIRING_TOKEN not set — pairing rejected")
-        return JSONResponse({"error": "no_pairing_token_configured"}, status_code=503)
-
-    body = request_body or {}
-    submitted = str(body.get("token", "")).strip()
-    if submitted != token:
-        logger.warning("field_control: pairing rejected — token mismatch")
-        return JSONResponse({"error": "invalid_token"}, status_code=403)
-
-    import hashlib
-    import secrets
-
-    session_id = hashlib.sha256((secrets.token_hex(16) + token).encode()).hexdigest()[:24]
-
-    _FIELD_SESSION.update(
-        {
-            "session_id": session_id,
-            "paired_at": time.monotonic(),
-            "state": "running",
-            "decision_count": 0,
-            "sensor_frames_received": 0,
-        }
-    )
-
-    logger.info("field_control: phone paired — session_id=%s", session_id)
-    # Emit a sidecar audit line if sidecar is configured
-    _field_emit_audit("field_session_paired", f"session={session_id}")
-
-    return JSONResponse(
-        {
-            "field_session_id": session_id,
-            "expires_in_seconds": 3600,
-            "sensor_hz_max": int(os.environ.get("KERNEL_FIELD_SENSOR_HZ", "2")),
-            "ws_path": "/ws/chat",
-            "phone_ui": "/phone",
-        }
-    )
-
-
-@app.get("/control/status")
-def field_status() -> JSONResponse:
-    """ADR 0017 §2 — Session status for the phone control UI."""
-    if not _field_control_enabled():
-        return JSONResponse({"error": "field_control_disabled"}, status_code=404)
-
-    if not _FIELD_SESSION:
-        return JSONResponse({"state": "idle", "session_id": None})
-
-    uptime = round(time.monotonic() - _FIELD_SESSION.get("paired_at", time.monotonic()), 1)
-    return JSONResponse(
-        {
-            "state": _FIELD_SESSION.get("state", "idle"),
-            "session_id": _FIELD_SESSION.get("session_id"),
-            "uptime_s": uptime,
-            "decision_count": _FIELD_SESSION.get("decision_count", 0),
-            "sensor_frames_received": _FIELD_SESSION.get("sensor_frames_received", 0),
-        }
-    )
-
-
-@app.post("/control/session")
-async def field_session_action(body: dict[str, Any] | None = None) -> JSONResponse:
-    """
-    ADR 0017 §2 — Session lifecycle control.
-
-    POST {"action": "pause"|"resume"|"end"}
-
-    "end" flushes the session manifest to experiments/out/field/<session_id>/manifest.json
-    if the path is writable.
-    """
-    if not _field_control_enabled():
-        return JSONResponse({"error": "field_control_disabled"}, status_code=404)
-
-    action = str((body or {}).get("action", "")).strip().lower()
-    if action not in ("pause", "resume", "end"):
-        return JSONResponse(
-            {"error": "unknown_action", "valid": ["pause", "resume", "end"]}, status_code=400
-        )
-
-    if action == "end":
-        _FIELD_SESSION["state"] = "ended"
-        _field_emit_audit("field_session_ended", f"session={_FIELD_SESSION.get('session_id', '?')}")
-        _field_flush_manifest()
-    elif action == "pause":
-        _FIELD_SESSION["state"] = "paused"
-    elif action == "resume":
-        _FIELD_SESSION["state"] = "running"
-
-    return JSONResponse({"ok": True, "state": _FIELD_SESSION.get("state")})
-
-
-@app.get("/phone")
-def phone_relay_ui() -> Response:
-    """
-    ADR 0017 §1 — Serve the phone relay PWA.
-
-    Enabled when KERNEL_FIELD_CONTROL=1. The HTML is a single-file PWA with:
-    - Battery status (Battery API)
-    - Accelerometer jerk (DeviceMotion)
-    - Microphone level (AudioWorklet with ScriptProcessorNode fallback)
-    - Session control (pair/pause/resume/end)
-    - Live last_action readback from kernel
-
-    Full implementation: src/static/phone_relay.html (ADR 0017 checklist ✓)
-    """
-    if not _field_control_enabled():
-        return Response(
-            content="<h1>Field control disabled</h1><p>Set KERNEL_FIELD_CONTROL=1</p>",
-            media_type="text/html",
-            status_code=404,
-        )
-
-    from pathlib import Path
-
-    phone_html_path = Path(__file__).parent / "static" / "phone_relay.html"
-    if phone_html_path.exists():
-        content = phone_html_path.read_text(encoding="utf-8")
-        return Response(content=content, media_type="text/html")
-
-    # Fallback to minimal stub if file missing (should not happen in normal deployment)
-    fallback_html = """<!DOCTYPE html>
-<html lang="en">
-<head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Ethos Kernel — Phone Relay</title></head>
-<body>
-<h1>Phone Relay Service</h1>
-<p>Error: phone_relay.html not found. Please check installation.</p>
-<p><a href="/">Back to chat</a></p>
-</body></html>"""
-    return Response(content=fallback_html, media_type="text/html", status_code=200)
-
-
-def _field_emit_audit(event_type: str, content: str) -> None:
-    """Write a field-session lifecycle event to the audit sidecar if configured."""
-    path = os.environ.get("KERNEL_AUDIT_SIDECAR_PATH", "").strip()
-    if not path:
-        return
-    import json as _json
-
-    line = _json.dumps(
-        {
-            "type": event_type,
-            "content": content,
-            "timestamp": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()),
-        },
-        sort_keys=True,
-        ensure_ascii=False,
-    )
-    try:
-        with open(path, "a", encoding="utf-8") as f:
-            f.write(line + "\n")
-    except OSError:
-        pass
-
-
-def _field_flush_manifest() -> None:
-    """Write session manifest to experiments/out/field/<session_id>/manifest.json."""
-    if not _FIELD_SESSION.get("session_id"):
-        return
-    import json as _json
-    from pathlib import Path
-
-    session_id = _FIELD_SESSION["session_id"]
-    out_dir = Path("experiments") / "out" / "field" / session_id
-    try:
-        out_dir.mkdir(parents=True, exist_ok=True)
-        manifest = {
-            "schema": "field_session_manifest_v1",
-            "session_id": session_id,
-            "state": _FIELD_SESSION.get("state"),
-            "uptime_s": round(
-                time.monotonic() - _FIELD_SESSION.get("paired_at", time.monotonic()), 1
-            ),
-            "decision_count": _FIELD_SESSION.get("decision_count", 0),
-            "sensor_frames_received": _FIELD_SESSION.get("sensor_frames_received", 0),
-            "env_field_allow_wan": os.environ.get("KERNEL_FIELD_ALLOW_WAN", "0"),
-        }
-        (out_dir / "manifest.json").write_text(
-            _json.dumps(manifest, indent=2, sort_keys=True, ensure_ascii=False),
-            encoding="utf-8",
-        )
-        logger.info("field_control: manifest written to %s", out_dir / "manifest.json")
-    except OSError as exc:
-        logger.warning("field_control: could not write manifest: %s", exc)
-
-
-@app.get("/")
-def root() -> JSONResponse:
-    from .runtime_profiles import applied_runtime_profile
-
-    body: dict[str, Any] = {
-        "service": "ethos-kernel-chat",
-        "websocket": "/ws/chat",
-        "nomad_discovery": "/discovery/nomad (LAN auto-discovery payload + mDNS metadata)",
-        "nomad_clinical": "/nomad/clinical (Bloque 14.2 — raw Float/Boolean clinical telemetry snapshot)",
-        "constitution": "/constitution (requires KERNEL_MORAL_HUB_PUBLIC=1)",
-        "dao_governance": "/dao/governance (V12.3 vote protocol; KERNEL_MORAL_HUB_DAO_VOTE for WebSocket actions)",
-        "nomad_migration": "/nomad/migration (KERNEL_NOMAD_SIMULATION + optional KERNEL_NOMAD_MIGRATION_AUDIT)",
-        "metrics": "/metrics when KERNEL_METRICS=1 (Prometheus scrape)",
-        "protocol": (
-            'Send JSON: {"text": str, "agent_id"?: str, "include_narrative"?: bool, '
-            '"sensor"?: {battery_level?, audio_emergency?, vision_emergency?, scene_coherence?, …}}. '
-            "Responses include identity, drive_intents, monologue (when decision present), optional "
-            "affective_homeostasis, experience_digest, user_model, chronobiology, premise_advisory, "
-            "teleology_branches, multimodal_trust, vitality, support_buffer (offline-ready local principles/strategy hints), "
-            "limbic_perception (arousal/planning bias derived from perception+sensor overlays), "
-            "temporal_context + temporal_sync (processor/wall/battery/ETA timing and DAO/LAN sync readiness; "
-            "see README KERNEL_CHAT_* / KERNEL_MULTIMODAL_* / "
-            "KERNEL_VITALITY_*), guardian_mode (KERNEL_GUARDIAN_MODE), epistemic_dissonance (v9.1), "
-            "decision (chosen_action_source / proposal_id v9.2), …"
-        ),
-    }
-    prof = applied_runtime_profile()
-    if prof:
-        body["runtime_profile"] = prof
-        body["runtime_profile_hint"] = (
-            "Set ETHOS_RUNTIME_PROFILE to a name from src/runtime_profiles.py"
-        )
-    return JSONResponse(body)
+# ADR 0017 field HTTP routes: ``src.server.routes_field_control`` (include_router on ``app``).
 
 
 def _collect_dao_ws_actions(kernel: EthicalKernel, data: dict[str, Any]) -> dict[str, Any] | None:

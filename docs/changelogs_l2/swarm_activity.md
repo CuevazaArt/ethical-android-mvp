@@ -1531,3 +1531,23 @@ This file is automatically managed by `scripts/swarm_sync.py`.
   - `tests/test_audit_chain_log.py`
   - `tests/test_chat_server.py`
   - `tests/test_runtime_chat_server.py`
+
+### Execution (Swarm) | Date: 2026-04-21 21:45:19 | Author: Anonymous Agent
+- **Block:** `34.0`
+- **Message:** Bloque 34.0: field HTTP -> routes_field_control; health uptime from meta; CI run triggered
+- **Files Modified:**
+  - `CHANGELOG.md`
+  - `docs/proposals/PLAN_WORK_DISTRIBUTION_TREE.md`
+  - `src/chat_server.py`
+  - `src/kernel.py`
+  - `src/modules/absolute_evil.py`
+  - `src/runtime/chat_server.py`
+  - `src/server/lan_governance_ws.py`
+  - `src/server/meta.py`
+  - `src/server/routes_field_control.py`
+  - `src/server/routes_governance.py`
+  - `src/server/routes_health.py`
+  - `src/server/routes_nomad.py`
+  - `tests/conftest.py`
+  - `tests/test_audit_chain_log.py`
+  - `tests/test_chat_server.py`
