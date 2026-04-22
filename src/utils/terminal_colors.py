@@ -158,9 +158,19 @@ class Term:
 
     @classmethod
     def color(cls, text: object, color_code: str) -> str:
+        """
+        Wrap *text* with *color_code* and :attr:`RESET`.
+
+        *text* is ``object`` (kernel / demos may pass numbers); coerced with :func:`str`
+        when not already a :class:`str` — same idea as :meth:`header` / :meth:`subheader`.
+        If coercion fails, emits ``"?"`` (Pragmatismo / no crash on pathological ``__str__``).
+        """
+        try:
+            t = text if isinstance(text, str) else str(text)
+        except (TypeError, ValueError):
+            t = "?"
         if not _colors_enabled():
-            return str(text) if not isinstance(text, str) else text
-        t = text if isinstance(text, str) else str(text)
+            return t
         return f"{color_code}{t}{cls.RESET}"
 
     @classmethod
@@ -237,11 +247,13 @@ class Term:
     @classmethod
     def header(
         cls,
-        title: str,
+        title: object,
         *,
         width: int | float | str | None = None,
     ) -> str:
         """Primary section block (demo summaries, operator debug).
+
+        *title* is coerced like :meth:`subheader` / :meth:`highlight_decision` (8.1.28 / 8.1.20).
 
         When *width* is ``None`` (the default), uses :meth:`_rule_width` — same subclass-aware
         bar length as :meth:`rule_heavy` / :meth:`rule_light` (not a frozen module literal).
@@ -253,8 +265,14 @@ class Term:
             w = cls._rule_width()
         else:
             w = _clamped_header_bar_width(width, default=cls._rule_width())
+        try:
+            t = str(title).strip() if title is not None else ""
+        except (TypeError, ValueError):
+            t = ""
+        if not t:
+            t = "?"
         bar = cls.color("═" * w, cls.DIM)
-        line = f"  {cls.color(title.strip(), cls.B_CYAN + cls.BOLD)}"
+        line = f"  {cls.color(t, cls.B_CYAN + cls.BOLD)}"
         return f"\n{bar}\n{line}\n{bar}"
 
     @classmethod

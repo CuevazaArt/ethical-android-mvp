@@ -60,6 +60,35 @@ def test_color_respects_switch(monkeypatch):
     assert Term.color("x", Term.RED) == "x"
 
 
+def test_color_coerces_non_str_plain_and_ansi(monkeypatch):
+    """8.1.35 — :meth:`Term.color` accepts non-``str`` (coercion); parity plain vs ANSI."""
+    monkeypatch.setenv("KERNEL_TERM_COLOR", "0")
+    monkeypatch.delenv("NO_COLOR", raising=False)
+    assert Term.color(42, Term.RED) == "42"
+    assert Term.color(0.5, Term.GREEN) == "0.5"
+    monkeypatch.setenv("KERNEL_TERM_COLOR", "1")
+    out = Term.color(7, Term.BLUE)
+    assert "7" in out
+    assert "\033" in out
+
+
+def test_color_str_coercion_failure_falls_back_to_question(monkeypatch):
+    """8.1.40 — pathological ``__str__`` must not crash operator output (aligns with :meth:`header`)."""
+
+    class _Bad:
+        def __str__(self) -> str:
+            raise ValueError("no")
+
+    b = _Bad()
+    monkeypatch.setenv("KERNEL_TERM_COLOR", "0")
+    assert Term.color(b, Term.RED) == "?"
+    monkeypatch.setenv("KERNEL_TERM_COLOR", "1")
+    monkeypatch.delenv("NO_COLOR", raising=False)
+    out = Term.color(b, Term.RED)
+    assert "?" in out
+    assert "\033" in out
+
+
 def test_enable_windows_ansi_is_noop_off_windows():
     if sys.platform == "win32":
         pytest.skip("Windows-only branch")
@@ -94,6 +123,17 @@ def test_subheader_coercion_matches_decision_contract(monkeypatch: pytest.Monkey
     assert "?" in s2
     s3 = Term.subheader(42)
     assert "42" in s3
+
+
+def test_header_title_coercion_object_like_subheader(monkeypatch: pytest.MonkeyPatch) -> None:
+    """Plan 8.1.34 — :meth:`Term.header` accepts ``object`` titles (parity with 8.1.28 / no ``None.strip``)."""
+    monkeypatch.setenv("KERNEL_TERM_COLOR", "0")
+    h0 = Term.header(None)
+    assert "?" in h0
+    h1 = Term.header(42)
+    assert "42" in h1
+    h2 = Term.header("  Title  ")
+    assert "Title" in h2
 
 
 def test_highlight_impact_brackets_float():
