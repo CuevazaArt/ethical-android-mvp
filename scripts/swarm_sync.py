@@ -140,7 +140,12 @@ def main():
     # 4. Git Execution
     if commit_changes(args.block, args.msg, args.author):
          print("\n[SUCCESS] SWARM ACTION COMPLETED SUCESSFULLY.")
-         print("Ready to push. You can now execute `git push` on your branch.")
+         print("Pushing changes to remote to maintain Office A / Office B sync...")
+         try:
+             subprocess.run(["git", "push"], check=True)
+             print("[OK] Changes pushed successfully.")
+         except subprocess.CalledProcessError as e:
+             print(f"\n[WARNING] Git push failed. You may need to pull/rebase first or push manually. Error: {e}")
     else:
          print("\n[FAILED] Git execution failed.")
          sys.exit(1)
