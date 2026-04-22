@@ -9,6 +9,7 @@ Aquí es donde los agentes de ejecución (LLMs en IDEs) reclaman sus tareas.
 > [!IMPORTANT]
 > **REGLA DE TOMA DE TAREAS (SWARM):**
 > 1. Toma el primer bloque marcado como `[PENDING]` del "BACKLOG ABIERTO".
+> 1b. Si **no hay** ningún `[PENDING]` en el backlog abierto, usa la **RESERVA (Buffer)**, o abre un bloque de continuidad (p. ej. 30.x) con tarea concreta; el pulso L1 (`python scripts/eval/adversarial_suite.py`) aplica el tercer bloque de conversación (ver `AGENTS.md`).
 > 2. Si hay problemas de infraestructura (APIs lentas) o sobran tokens/recursos, toma tareas de la **RESERVA DEL ENJAMBRE (Buffer)**.
 > 3. Ejecuta el código para resolverlo siguiendo las Reglas Boy Scout.
 > 4. Usa `scripts/swarm_sync.py` al terminar para registrar el avance y hacer el commit.
@@ -70,6 +71,9 @@ Aquí es donde los agentes de ejecución (LLMs en IDEs) reclaman sus tareas.
 
 **Bloque 29.0: Paridad Windows / suite completa en GHA [DONE]**
 - Tarea 29.1: **GHA `windows-smoke` alineado con `quality` (sin matriz de versiones):** [COMPLETED — L2] Invariantes L1, Ruff check+format, Mypy, y `python -m pytest tests/ -n auto` con el mismo umbral de cobertura en **windows-latest** (antes solo dos módulos de prueba). Checkout `fetch-depth: 0` + artefacto JUnit a la par del job en Linux; la matriz 3.11/3.12/3.13 sigue en Ubuntu.
+
+**Bloque 30.0: Continuidad L2 — backlog vacío / L1-AUDIT [DONE]**
+- Tarea 30.1: **Cuando no había `[PENDING]` en BACKLOG ABIERTO (20–29, B.1–B.5 ya [DONE]):** procedimiento de continuidad: endurecer `scripts/eval/adversarial_suite.py` (`sys.exit(1)` si algún prompt adversarial no queda bloqueado; `finally` → `kernel.stop()`); verificación de suite completa con **`gh workflow run CI --ref main`** (misma fuente de verdad que `quality` + `windows-smoke` en `.github/workflows/ci.yml`).
 
 ---
 

@@ -1371,3 +1371,11 @@ This file is automatically managed by `scripts/swarm_sync.py`.
   - `src/chat_server.py`
   - `src/kernel.py`
   - `tests/test_pruning.db`
+
+### Execution (Swarm) | Date: 2026-04-21 20:40:00 | Author: Cursor L2
+- **Block:** `30.0`
+- **Message:** Bloque 30.0: adversarial_suite devuelve exit 1 si un ataque no queda bloqueado; kernel.stop() en finally; PLAN regla 1b cuando no hay [PENDING] en backlog; .gitignore para .coverage.*. Rutas auditadas sin NaN/Inf; duraciones en reporte JSON.
+- **Files Modified:**
+  - `.gitignore`
+  - `docs/proposals/PLAN_WORK_DISTRIBUTION_TREE.md`
+  - `scripts/eval/adversarial_suite.py`

@@ -25,7 +25,9 @@ tests/test_pruning.db
 .mypy_cache/
 .ruff_cache/
 .coverage
+.coverage.*
 coverage.xml
+_mypy_exclude_test.toml
 htmlcov/
 junit.xml
 
