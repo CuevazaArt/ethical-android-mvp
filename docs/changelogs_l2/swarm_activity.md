@@ -1414,3 +1414,28 @@ This file is automatically managed by `scripts/swarm_sync.py`.
 - **Files Modified:**
   - `src/chat_server.py`
   - `tests/test_nomad_resilience.py`
+
+### Execution (Swarm) | Date: 2026-04-21 20:59:32 | Author: Anonymous Agent
+- **Block:** `31.0`
+- **Message:** CI green: chat_server restored stable imports; light_risk tier Ruff-safe; kernel_legacy vitality_context wired to acommunicate; PLAN 31.0 DONE + 32.0 PENDING; CHANGELOG Fixed.
+- **Files Modified:**
+  - `CHANGELOG.md`
+  - `audit_trail.db`
+  - `docs/proposals/PLAN_WORK_DISTRIBUTION_TREE.md`
+  - `pyproject.toml`
+  - `scripts/eval/adversarial_suite.py`
+  - `scripts/run_empirical_pilot.py`
+  - `src/chat_server.py`
+  - `src/kernel.py`
+  - `src/kernel_handlers/__init__.py`
+  - `src/kernel_handlers/communication.py`
+  - `src/kernel_handlers/decision.py`
+  - `src/kernel_legacy_v12.py`
+  - `src/kernel_lobes/perception_lobe.py`
+  - `src/runtime/chat_feature_flags.py`
+  - `src/runtime/chat_lifecycle.py`
+  - `src/utils/kernel_formatters.py`
+  - `src/utils/terminal_colors.py`
+  - `tests/conftest.py`
+  - `tests/test_ethics_quality.py`
+  - `tests/test_malabs_semantic_integration.py`

@@ -4,26 +4,30 @@ Part of the Block 28.1 monolith decoupling.
 """
 
 from __future__ import annotations
+
 import logging
-import time
-import httpx
 from contextlib import asynccontextmanager
+
+import httpx
 from fastapi import FastAPI
-from src.observability.logging_setup import configure_logging
-from src.observability.metrics import init_metrics
+
+from src.chat_settings import chat_server_settings
 from src.modules.nomad_discovery import (
     NomadDiscoveryAnnouncer,
     nomad_discovery_service_name,
     nomad_discovery_service_type,
 )
-from src.chat_settings import chat_server_settings
+from src.observability.logging_setup import configure_logging
+from src.observability.metrics import init_metrics
 from src.settings import kernel_settings
 
 logger = logging.getLogger(__name__)
 
+
 def api_docs_enabled() -> bool:
     """OpenAPI/Swagger UI — off by default (LAN deployments); set KERNEL_API_DOCS=1 to expose."""
     return kernel_settings().kernel_api_docs
+
 
 @asynccontextmanager
 async def chat_lifespan(app: FastAPI):

@@ -133,70 +133,103 @@ import os
 import threading
 import time
 from collections.abc import Mapping
+from contextlib import asynccontextmanager
 from dataclasses import asdict
 from typing import Any
 
-from fastapi import FastAPI, WebSocket, WebSocketDisconnect
+import httpx
+from fastapi import FastAPI, Request, WebSocket, WebSocketDisconnect
+from fastapi.responses import JSONResponse, Response
 from fastapi.staticfiles import StaticFiles
 
-from .kernel import EthicalKernel
+from .kernel import ChatTurnResult, EthicalKernel
 from .kernel_lobes.models import GestaltSnapshot
 from .kernel_utils import kernel_dao_as_mock
+from .modules.affective_homeostasis import homeostasis_telemetry
+from .modules.buffer import PreloadedBuffer
+from .modules.consequence_projection import qualitative_temporal_branches
 from .modules.existential_serialization import (
     nomad_simulation_ws_enabled,
+    simulate_nomadic_migration,
 )
+from .modules.guardian_mode import is_guardian_mode_active
+from .modules.guardian_routines import public_routines_snapshot
+from .modules.hub_audit import record_dao_integrity_alert
+from .modules.internal_monologue import compose_monologue_line
+from .modules.judicial_escalation import chat_include_judicial
+from .modules.lan_governance_coordinator import (
+    fingerprint_lan_governance_coordinator,
+    normalize_lan_governance_coordinator,
+)
+from .modules.lan_governance_envelope import (
+    fingerprint_lan_governance_envelope,
+    idempotency_token_for_envelope,
+    normalize_lan_governance_envelope,
+    reject_reason_for_envelope_error,
+)
+from .modules.lan_governance_event_merge import merge_lan_governance_events_detailed
+from .modules.lan_governance_merge_context import (
+    EVIDENCE_POSTURE_ADVISORY_AGGREGATE,
+    LanMergeContextParsed,
+    parse_lan_merge_context,
+)
+from .modules.ml_ethics_tuner import maybe_log_gray_zone_tuning_opportunity
+from .modules.mock_dao_audit_replay import fingerprint_audit_ledger
 from .modules.moral_hub import (
+    add_constitution_draft,
     apply_proposal_resolution_to_constitution_drafts,
+    audit_transparency_event,
     chat_include_constitution,
+    constitution_draft_ws_enabled,
+    constitution_snapshot,
+    dao_governance_api_enabled,
     dao_integrity_audit_ws_enabled,
+    ethos_payroll_record_mock,
     lan_governance_coordinator_ws_enabled,
     lan_governance_dao_batch_ws_enabled,
     lan_governance_integrity_batch_ws_enabled,
     lan_governance_judicial_batch_ws_enabled,
     lan_governance_mock_court_batch_ws_enabled,
+    moral_hub_public_enabled,
     proposal_to_public,
+    submit_constitution_draft_for_vote,
 )
-from .modules.nomad_bridge import get_nomad_bridge
+from .modules.nomad_discovery import (
+    NomadDiscoveryAnnouncer,
+    build_nomad_discovery_payload,
+    nomad_discovery_service_name,
+    nomad_discovery_service_type,
+)
 from .modules.nomad_identity import nomad_identity_public
+from .modules.perception_schema import perception_report_from_dict
+from .modules.perceptual_abstraction import snapshot_from_layers
 from .modules.reparation_vault import maybe_register_reparation_after_mock_court
+from .modules.sensor_contracts import SensorPayloadValidationError
+from .observability.context import clear_request_context, set_request_id
+from .observability.logging_setup import configure_logging
 from .observability.metrics import (
+    init_metrics,
+    metrics_enabled,
     observe_chat_turn,
     record_chat_turn_async_timeout,
     record_dao_ws_operation,
     record_lan_envelope_replay_cache_event,
+    record_llm_cancel_scope_signaled,
+    record_malabs_block,
 )
 from .observability.middleware import RequestContextMiddleware
 from .persistence.checkpoint import (
+    checkpoint_persistence_from_env,
+    init_session_checkpoint_state,
+    maybe_autosave_episodes,
+    on_websocket_session_end,
     try_load_checkpoint,
 )
 from .persistence.identity_manifest import IdentityManifestStore
 from .real_time_bridge import RealTimeBridge
+from .runtime.telemetry import advisory_interval_seconds_from_env, advisory_loop
 from .runtime_profiles import apply_named_runtime_profile_to_environ
 from .validators.env_policy import validate_kernel_env
-
-from .runtime.chat_lifecycle import api_docs_enabled, chat_lifespan
-from .runtime.chat_feature_flags import (
-    chat_expose_monologue,
-    chat_include_homeostasis,
-    chat_include_experience_digest,
-    chat_include_user_model,
-    chat_include_chrono,
-    chat_include_premise,
-    chat_include_teleology,
-    chat_include_multimodal_trust,
-    chat_include_vitality,
-    chat_include_guardian,
-    chat_include_guardian_routines,
-    chat_include_epistemic,
-    chat_include_reality_verification,
-    chat_include_judicial,
-    chat_include_constitution,
-    chat_include_nomad_identity,
-    chat_include_light_risk,
-    chat_include_malabs_trace,
-    chat_include_transparency_s10,
-    coerce_public_int,
-)
 
 logger = logging.getLogger(__name__)
 
@@ -207,13 +240,92 @@ validate_kernel_env()
 _PROCESS_START_MONOTONIC = time.monotonic()
 
 
+def _package_version() -> str:
+    try:
+        from importlib.metadata import version
+
+        return version("ethos-kernel")
+    except Exception:
+        return "dev"
+
+
+@asynccontextmanager
+async def _lifespan(app: FastAPI):
+    configure_logging()
+    init_metrics()
+
+    # Phase 9: Nomad hardware loop consumers (Hardened Embodiment)
+    from .modules.audio_adapter import (
+        get_shared_audio_capture,
+        start_nomad_audio_consumer_from_env,
+        stop_nomad_audio_consumer_async,
+    )
+    from .modules.vision_adapter import (
+        start_nomad_vision_consumer_from_env,
+        stop_nomad_vision_consumer_async,
+    )
+    from .modules.vitality import (
+        start_nomad_telemetry_consumer_from_env,
+        stop_nomad_telemetry_consumer_async,
+    )
+
+    start_nomad_vision_consumer_from_env()
+    start_nomad_telemetry_consumer_from_env()
+
+    capture = get_shared_audio_capture()
+    if capture:
+        start_nomad_audio_consumer_from_env(capture.ring_buffer)
+
+    # Phase 12.1: Global persistent client for Nomad hardware loop
+    aclient = httpx.AsyncClient(timeout=30.0)
+    app.state.aclient = aclient
+
+    # Bloque 14.1: optional mDNS/Zeroconf advertisement for Nomad auto-discovery.
+    from .chat_settings import chat_server_settings
+
+    cst = chat_server_settings()
+    announcer = NomadDiscoveryAnnouncer(
+        bind_host=cst.chat_host,
+        bind_port=cst.chat_port,
+        service_name=nomad_discovery_service_name(),
+        service_type=nomad_discovery_service_type(),
+    )
+    announcer.start()
+    app.state.nomad_discovery_announcer = announcer
+
+    try:
+        yield
+    finally:
+        # Phase 9: Graceful shutdown of consumers
+        await stop_nomad_vision_consumer_async()
+        await stop_nomad_telemetry_consumer_async()
+        await stop_nomad_audio_consumer_async()
+
+        from .real_time_bridge import shutdown_chat_threadpool
+
+        try:
+            announcer.stop()
+        except Exception:
+            pass
+
+        await aclient.aclose()
+        shutdown_chat_threadpool(wait=True)
+
+
+def _api_docs_enabled() -> bool:
+    """OpenAPI/Swagger UI — off by default (LAN deployments); set KERNEL_API_DOCS=1 to expose."""
+    from .settings import kernel_settings
+
+    return kernel_settings().kernel_api_docs
+
+
 app = FastAPI(
     title="Ethos Kernel Chat",
     version="1.0",
-    docs_url="/docs" if api_docs_enabled() else None,
-    redoc_url="/redoc" if api_docs_enabled() else None,
-    openapi_url="/openapi.json" if api_docs_enabled() else None,
-    lifespan=chat_lifespan,
+    docs_url="/docs" if _api_docs_enabled() else None,
+    redoc_url="/redoc" if _api_docs_enabled() else None,
+    openapi_url="/openapi.json" if _api_docs_enabled() else None,
+    lifespan=_lifespan,
 )
 
 # Mounting Nomad Bridge (Fase 8+ / Módulo S)
@@ -523,6 +635,143 @@ async def dashboard_ws_handler(websocket: WebSocket) -> None:
             bridge.dashboard_queues.remove(q)
 
 
+def _chat_expose_monologue() -> bool:
+    """If false, omit monologue from WebSocket JSON (privacy; skips LLM embellishment)."""
+    v = os.environ.get("KERNEL_CHAT_EXPOSE_MONOLOGUE", "1").strip().lower()
+    return v not in ("0", "false", "no", "off")
+
+
+def _chat_include_homeostasis() -> bool:
+    """If false, omit affective_homeostasis (pilar 4 UX telemetry)."""
+    v = os.environ.get("KERNEL_CHAT_INCLUDE_HOMEOSTASIS", "1").strip().lower()
+    return v not in ("0", "false", "no", "off")
+
+
+def _chat_include_experience_digest() -> bool:
+    """If false, omit experience_digest (pilar 3; updated in Ψ Sleep)."""
+    v = os.environ.get("KERNEL_CHAT_INCLUDE_EXPERIENCE_DIGEST", "1").strip().lower()
+    return v not in ("0", "false", "no", "off")
+
+
+def _chat_include_user_model() -> bool:
+    v = os.environ.get("KERNEL_CHAT_INCLUDE_USER_MODEL", "1").strip().lower()
+    return v not in ("0", "false", "no", "off")
+
+
+def _chat_include_chrono() -> bool:
+    v = os.environ.get("KERNEL_CHAT_INCLUDE_CHRONO", "1").strip().lower()
+    return v not in ("0", "false", "no", "off")
+
+
+def _chat_include_premise() -> bool:
+    v = os.environ.get("KERNEL_CHAT_INCLUDE_PREMISE", "1").strip().lower()
+    return v not in ("0", "false", "no", "off")
+
+
+def _chat_include_teleology() -> bool:
+    v = os.environ.get("KERNEL_CHAT_INCLUDE_TELEOLOGY", "1").strip().lower()
+    return v not in ("0", "false", "no", "off")
+
+
+def _chat_include_multimodal_trust() -> bool:
+    v = os.environ.get("KERNEL_CHAT_INCLUDE_MULTIMODAL", "1").strip().lower()
+    return v not in ("0", "false", "no", "off")
+
+
+def _chat_include_vitality() -> bool:
+    v = os.environ.get("KERNEL_CHAT_INCLUDE_VITALITY", "1").strip().lower()
+    return v not in ("0", "false", "no", "off")
+
+
+def _chat_include_guardian() -> bool:
+    v = os.environ.get("KERNEL_CHAT_INCLUDE_GUARDIAN", "1").strip().lower()
+    return v not in ("0", "false", "no", "off")
+
+
+def _chat_include_guardian_routines() -> bool:
+    v = os.environ.get("KERNEL_CHAT_INCLUDE_GUARDIAN_ROUTINES", "0").strip().lower()
+    return v in ("1", "true", "yes", "on")
+
+
+def _chat_include_epistemic() -> bool:
+    v = os.environ.get("KERNEL_CHAT_INCLUDE_EPISTEMIC", "1").strip().lower()
+    return v not in ("0", "false", "no", "off")
+
+
+def _chat_include_reality_verification() -> bool:
+    """Lighthouse KB vs asserted premises — ``reality_verification`` in JSON (default off)."""
+    v = os.environ.get("KERNEL_CHAT_INCLUDE_REALITY_VERIFICATION", "0").strip().lower()
+    return v in ("1", "true", "yes", "on")
+
+
+def _chat_include_judicial() -> bool:
+    """V11 Phase 1 — include judicial_escalation when KERNEL_CHAT_INCLUDE_JUDICIAL is on."""
+    return chat_include_judicial()
+
+
+def _chat_include_constitution() -> bool:
+    """V12 — include full constitution JSON (L0 + L1/L2 drafts) on WebSocket payloads."""
+    return chat_include_constitution()
+
+
+def _chat_include_nomad_identity() -> bool:
+    """Include NomadIdentity / immortality bridge summary (see UNIVERSAL_ETHOS_AND_HUB.md)."""
+    v = os.environ.get("KERNEL_CHAT_INCLUDE_NOMAD_IDENTITY", "0").strip().lower()
+    return v in ("1", "true", "yes", "on")
+
+
+def _chat_include_light_risk() -> bool:
+    """Lexical ``light_risk_tier`` from ``KERNEL_LIGHT_RISK_CLASSIFIER`` (default off in JSON)."""
+    v = os.environ.get("KERNEL_CHAT_INCLUDE_LIGHT_RISK", "0").strip().lower()
+    return v in ("1", "true", "yes", "on")
+
+
+def _chat_include_malabs_trace() -> bool:
+    """Include ``malabs_trace`` (atomic decision steps) when the last chat MalAbs result has them."""
+    from .settings import kernel_settings
+
+    return kernel_settings().kernel_chat_include_malabs_trace
+
+
+def _chat_include_transparency_s10() -> bool:
+    """Embodied sociability S10.1/S10.3/S10.4 — ``transparency_s10`` in WebSocket JSON (default on)."""
+    v = os.environ.get("KERNEL_CHAT_INCLUDE_TRANSPARENCY_S10", "1").strip().lower()
+    return v not in ("0", "false", "no", "off")
+
+
+def _env_truthy(name: str, default: bool = False) -> bool:
+    raw = os.environ.get(name, "").strip().lower()
+    if not raw:
+        return default
+    return raw in ("1", "true", "yes", "on")
+
+
+def _coerce_public_int(value: object, *, default: int = 0, non_negative: bool = False) -> int:
+    """
+    JSON-safe int for public WebSocket payloads (e.g. temporal_sync).
+
+    ``TemporalContext.to_public_dict()`` is typed as ``dict[str, object]``; this avoids
+    ``int(object)`` mypy errors and prevents rare runtime failures on bad values.
+    """
+    if value is None:
+        out = default
+    elif isinstance(value, bool):
+        out = default
+    elif isinstance(value, int):
+        out = value
+    elif isinstance(value, float):
+        out = int(value) if math.isfinite(value) else default
+    elif isinstance(value, str):
+        try:
+            s = value.strip()
+            out = int(s, 10) if s else default
+        except ValueError:
+            out = default
+    else:
+        out = default
+    if non_negative:
+        out = max(0, out)
+    return out
 
 
 def _attach_merge_context_telemetry(
@@ -1057,7 +1306,7 @@ def _chat_turn_to_jsonable(r: ChatTurnResult, kernel: EthicalKernel) -> dict[str
         out["nomad_identity"] = nomad_identity_public(kernel)
     if _chat_include_light_risk() and hasattr(kernel, "_last_light_risk_tier"):
         lrt = kernel._last_light_risk_tier
-        if lrt is not None:
+        if lrt:
             out["light_risk_tier"] = lrt
     if r.decision is None and r.path == "nervous_bus":
         fill = _tri_lobe_chat_ws_contract_defaults(kernel)

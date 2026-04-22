@@ -37,10 +37,16 @@ Aquí es donde los agentes de ejecución (LLMs en IDEs) reclaman sus tareas.
 > **PROMPT DE ARRANQUE PARA AGENTES L2 (BOY SCOUTS):**
 > *"ESTAMOS EN FEATURE FREEZE. No se añaden más lóbulos, módulos ni bloques. El proyecto tiene 149 módulos y necesita estabilización. Tu objetivo es: consolidar, borrar código muerto y asegurar la demostrabilidad end-to-end. Asume 100% de propiedad, y termina tu sesión ejecutando `python scripts/swarm_sync.py --msg '...'`. ¡Ejecuta!"*
 
-**Bloque 28.0: Consolidación y Verdad Mecánica (Feature Freeze) [PENDING]**
-- [x] **28.1 Decoupling of Monolith**: Decoupled `chat_server.py` into `chat_lifecycle.py` and `chat_feature_flags.py`.
-- [x] **28.2 Ethical Quality Framework**: Established `tests/test_ethics_quality.py` with 20+ canonical scenarios.
-- [x] **28.3 End-to-End Demo**: Created `scripts/eval/reproducible_kernel_demo.py` for empirical validation.
+**Bloque 31.0: CI estable + chat_server monolito recuperado (Boy Scout) [DONE]**
+- Tarea 31.1: **Rollback del split roto de `chat_server.py`:** restaurar imports y rutas completas desde la revisión estable anterior al decoupling parcial; `light_risk_tier` sin Ruff B009 (`hasattr` + lectura directa de `_last_light_risk_tier`).
+- Tarea 31.2: **`kernel_legacy_v12` chat sync:** import de `vitality_communication_hint` y `vitality_context` en `acommunicate` para el camino `process_chat_turn` / subprocess MalAbs.
+- Tarea 31.3: **Ruff/format:** `kernel_legacy_v12.py`, `test_ethics_quality.py`, módulos `runtime/` alineados con el job `quality` de GitHub Actions.
+
+**Bloque 32.0: Consolidación y Verdad Mecánica (Feature Freeze) — continuación [PENDING]**
+- Tarea 32.1: **Completar decoupling real:** mover rutas HTTP/WS a `src/runtime/chat_server.py` sin dejar símbolos huérfanos; unificar `lifespan` con `chat_lifecycle` como única fuente.
+- Tarea 32.2: **Ampliar `tests/test_ethics_quality.py`:** 15-20+ escenarios y aserciones de `path`/`verdict` acordes al tri-lobe.
+- Tarea 32.3: **Redundancias:** cerrar ítems en `REDUNDANT_MODULES_AND_CONSOLIDATION.md`.
+- Tarea 32.4: **Demo E2E:** endurecer `scripts/eval/reproducible_kernel_demo.py` + documentación operador.
 
 **Bloque 20.0: Local Conversational Matrix (Zero-API Fluency) [DONE]**
 - Tarea 20.1: **Desacoplamiento Estricto Comercial:** [COMPLETED] Refactorizar el backend de percepción y decisión para enrutar el 100% de `process_chat_turn` hacia `OllamaLLMBackend`. 

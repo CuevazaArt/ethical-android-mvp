@@ -20,6 +20,10 @@ from src.kernel_lobes.models import (
 if TYPE_CHECKING:
     from src.nervous_system.corpus_callosum import CorpusCallosum
 
+# Module-level imports so tests can monkeypatch ``scan_premises`` / ``verify_against_lighthouse``.
+from src.modules.premise_validation import scan_premises  # noqa: F401
+from src.modules.reality_verification import verify_against_lighthouse  # noqa: F401
+
 _log = logging.getLogger(__name__)
 
 
@@ -53,14 +57,21 @@ class PerceptiveLobe:
         absolute_evil: Any,
         subjective_clock: Any,
         bus: CorpusCallosum | None = None,
+        *,
+        thalamus: Any = None,
+        vision_engine: Any = None,
     ):
         self.bus = bus
         self.llm = llm
         self.absolute_evil = absolute_evil
-        # ... other components initialized for backward compat or internal use
         self.safety_interlock = safety_interlock
         self.strategist = strategist
         self.somatic_store = somatic_store
+        self.buffer = buffer
+        self.subjective_clock = subjective_clock
+        self.thalamus = thalamus
+        self.vision_engine = vision_engine
+        self._process_start_mono = time.monotonic()
 
         self._timeout = float(os.environ.get("KERNEL_PERCEPTION_TIMEOUT", "15.0"))
         self._nomad_inertia_deadline: float | None = None
@@ -134,7 +145,12 @@ class PerceptiveLobe:
         # Existing LLM query logic
         probe_url = os.environ.get("KERNEL_PERCEPTIVE_LOBE_PROBE_URL", "").strip()
         if not probe_url:
-            return SemanticState(perception_confidence=1.0, raw_prompt=raw_input)
+            return SemanticState(
+                perception_confidence=1.0,
+                raw_prompt=raw_input,
+                summary="",
+                suggested_context="everyday",
+            )
 
         try:
             async with httpx.AsyncClient(timeout=self._timeout) as client:
@@ -149,11 +165,208 @@ class PerceptiveLobe:
         except Exception:
             raise  # Let _deliberate_observation_async handle fallbacks
 
-    # Legacy method stubs for compatibility
-    async def run_perception_stage_async(self, text, **kwargs):
-        # This is now handled asynchronously via the bus, but we return a default result if called directly
-        state = await self.observe(text)
-        return PerceptionStageResult(perception=state, signals={}, vitality=None)
+    async def execute_stage(
+        self,
+        scenario: str,
+        place: str,
+        context: str,
+        sensor_snapshot: Any,
+        interrupt_event: Any = None,
+    ) -> dict[str, Any]:
+        """Legacy adapter for :meth:`~src.kernel_legacy_v12.EthicalKernel.aprocess` (batch path)."""
+
+        del place
+        stage = await self.run_perception_stage_async(
+            user_input=scenario,
+            conversation_context=context,
+            sensor_snapshot=sensor_snapshot,
+        )
+        somatic_interrupted = bool(interrupt_event and interrupt_event.is_set())
+        gen_cand = (
+            stage.perception.generative_candidates
+            if stage.perception and hasattr(stage.perception, "generative_candidates")
+            else []
+        )
+        return {
+            "somatic_interrupt": somatic_interrupted,
+            "safety_decision": stage.malabs_result,
+            "perception": stage.perception,
+            "signals": stage.signals,
+            "vitality": stage.vitality,
+            "multimodal_trust": stage.multimodal_trust,
+            "epistemic_dissonance": stage.epistemic_dissonance,
+            "perception_confidence": stage.perception_confidence,
+            "generative_candidates": gen_cand,
+        }
+
+    async def run_perception_stage_async(
+        self,
+        user_input: str,
+        conversation_context: str = "",
+        sensor_snapshot: Any = None,
+        turn_start_mono: float | None = None,
+        precomputed: tuple[Any, ...] | None = None,
+    ) -> PerceptionStageResult:
+        """Full perception envelope for legacy chat + batch pipelines."""
+
+        from src.modules.epistemic_dissonance import assess_epistemic_dissonance
+        from src.modules.multimodal_trust import evaluate_multimodal_trust
+        from src.modules.perception_confidence import build_perception_confidence_envelope
+        from src.modules.temporal_planning import build_temporal_context
+        from src.modules.vitality import assess_vitality
+
+        vitality = assess_vitality(sensor_snapshot)
+        multimodal = evaluate_multimodal_trust(sensor_snapshot)
+        epistemic = assess_epistemic_dissonance(sensor_snapshot, multimodal=multimodal)
+
+        sensor_payload = (
+            sensor_snapshot.__dict__
+            if (sensor_snapshot and hasattr(sensor_snapshot, "__dict__"))
+            else None
+        )
+        perception = await self.observe(user_input, multimodal_payload=sensor_payload)
+
+        confidence_envelope = build_perception_confidence_envelope(
+            coercion_report=None,
+            multimodal_state=multimodal.state if multimodal else None,
+            epistemic_active=epistemic.active if epistemic else False,
+            vitality_critical=vitality.is_critical if vitality else False,
+            thermal_critical=vitality.thermal_critical if vitality else False,
+        )
+
+        temporal = build_temporal_context(
+            turn_index=0,
+            process_start_mono=self._process_start_mono,
+            turn_start_mono=turn_start_mono or time.monotonic(),
+            subjective_elapsed_s=0.0,
+            context=conversation_context,
+            text=user_input,
+            vitality=vitality,
+            sensor_snapshot=sensor_snapshot,
+        )
+
+        signals = perception.to_core_signals() if hasattr(perception, "to_core_signals") else {}
+        limbic_profile = self._build_limbic_perception_profile(
+            perception, signals, vitality, multimodal, epistemic, confidence_envelope
+        )
+        support_buffer = self._build_support_buffer_snapshot(
+            "perception", limbic_profile, signals=signals
+        )
+
+        return PerceptionStageResult(
+            tier=precomputed[0] if precomputed else None,
+            premise_advisory=precomputed[1] if precomputed else None,
+            reality_verification=precomputed[2] if precomputed else None,
+            perception=perception,
+            signals=signals,
+            vitality=vitality,
+            multimodal_trust=multimodal,
+            epistemic_dissonance=epistemic,
+            support_buffer=support_buffer,
+            limbic_profile=limbic_profile,
+            temporal_context=temporal,
+            perception_confidence=confidence_envelope,
+        )
+
+    def _build_limbic_perception_profile(
+        self,
+        perception: Any,
+        signals: dict[str, float],
+        vitality: Any,
+        mm: Any,
+        ed: Any,
+        confidence: Any,
+    ) -> dict[str, Any]:
+        sig = signals or {}
+
+        def f_sig(k: str) -> float:
+            val = float(sig.get(k) or 0.0)
+            return val if math.isfinite(val) else 0.0
+
+        threat = max(f_sig("risk"), f_sig("urgency"), f_sig("hostility"))
+        calm = f_sig("calm")
+        reg_gap = max(0.0, threat - calm)
+        band = "high" if threat >= 0.75 else ("medium" if threat >= 0.45 else "low")
+        return {
+            "arousal_band": band,
+            "threat_load": threat,
+            "regulation_gap": reg_gap,
+            "planning_bias": (
+                "short_horizon_containment"
+                if band == "high"
+                else ("balanced" if band == "medium" else "long_horizon_deliberation")
+            ),
+            "multimodal_mismatch": mm.state == "contradict" if mm else False,
+            "vitality_critical": vitality.is_critical if vitality else False,
+            "context": getattr(perception, "suggested_context", None) or "everyday",
+        }
+
+    def _build_support_buffer_snapshot(
+        self,
+        context_key: str,
+        limbic_profile: dict[str, Any],
+        signals: dict[str, float] | None = None,
+    ) -> dict[str, Any]:
+        sig = signals or {}
+        threat = max(
+            float(sig.get("risk", 0)),
+            float(sig.get("urgency", 0)),
+            float(sig.get("hostility", 0)),
+        )
+        arousal_band = limbic_profile.get("arousal_band", "low")
+        priority_profile = "safety_first" if arousal_band == "high" or threat >= 0.7 else "standard"
+        _ALL_PRINCIPLES = [
+            "Do not harm",
+            "Preserve life",
+            "Protect autonomy",
+            "Be honest",
+            "Act fairly",
+            "Respect dignity",
+            "Show compassion",
+            "Promote wellbeing",
+        ]
+        priority_principles = (
+            _ALL_PRINCIPLES[:4] if priority_profile == "safety_first" else _ALL_PRINCIPLES[4:]
+        )
+        active_principles = _ALL_PRINCIPLES
+        return {
+            "context_key": context_key,
+            "strategy_hint": limbic_profile.get("planning_bias", "balanced"),
+            "limbic_resonance": arousal_band,
+            "offline_ready": True,
+            "source": "local_preloaded_buffer",
+            "model_version": "ethos-v2-perception",
+            "priority_profile": priority_profile,
+            "priority_principles": priority_principles,
+            "active_principles": active_principles,
+        }
+
+    def _preprocess_text_observability(self, text: str) -> tuple[Any, Any, Any]:
+        from concurrent.futures import ThreadPoolExecutor
+
+        from src.modules.light_risk_classifier import light_risk_tier_from_text
+        from src.modules.reality_verification import lighthouse_kb_from_env
+
+        tier = light_risk_tier_from_text(text)
+        _workers = int(os.environ.get("KERNEL_PERCEPTION_PARALLEL_WORKERS", "2") or "2")
+        _parallel = os.environ.get("KERNEL_PERCEPTION_PARALLEL", "").strip().lower() in (
+            "1",
+            "true",
+            "yes",
+            "on",
+        )
+
+        if _parallel and _workers >= 2:
+            kb = lighthouse_kb_from_env()
+            with ThreadPoolExecutor(max_workers=_workers) as pool:
+                f_premise = pool.submit(scan_premises, text)
+                f_reality = pool.submit(verify_against_lighthouse, text, kb)
+                premise = f_premise.result()
+                reality = f_reality.result()
+        else:
+            premise = scan_premises(text)
+            reality = verify_against_lighthouse(text, lighthouse_kb_from_env())
+        return tier, premise, reality
 
     def get_sensory_impulses(self) -> dict[str, Any]:
         """

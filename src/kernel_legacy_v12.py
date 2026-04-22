@@ -108,9 +108,15 @@ from .kernel_components import KernelComponentOverrides
 from .kernel_handlers.communication import get_bridge_phrase, run_communication_stream
 from .kernel_handlers.decision import run_decision_pipeline
 from .kernel_handlers.perception import run_perception_pipeline
-from .kernel_utils import kernel_env_truthy as _kernel_env_truthy
+from .kernel_utils import (
+    coercion_uncertainty_from_perception,
+    enrich_chat_turn_signals_for_bayesian,
+    kernel_decision_event_payload,
+    kernel_env_truthy as _kernel_env_truthy,
+)
 from .modules.absolute_evil import AbsoluteEvilDetector, AbsoluteEvilResult
 from .modules.audio_adapter import AudioInference
+from .modules.audio_ouroboros import AudioResponse
 from .modules.audit_chain_log import (
     maybe_append_malabs_block_audit,
 )
@@ -149,7 +155,11 @@ from .modules.kernel_event_bus import (
     KernelEventBus,
     kernel_event_bus_enabled,
 )
-from .modules.llm_http_cancel import clear_llm_cancel_scope, set_llm_cancel_scope
+from .modules.llm_http_cancel import (
+    clear_llm_cancel_scope,
+    raise_if_llm_cancel_requested,
+    set_llm_cancel_scope,
+)
 from .modules.llm_layer import (
     LLMModule,
     LLMPerception,
@@ -158,7 +168,7 @@ from .modules.llm_layer import (
     resolve_llm_mode,
 )
 from .modules.locus import LocusEvaluation, LocusModule
-from .modules.metacognition import MetacognitiveEvaluator
+from .modules.metacognition import MetacognitiveEvaluator, MetacognitiveReport
 from .modules.metaplan_registry import MetaplanRegistry
 from .modules.motivation_engine import MotivationEngine
 from .modules.multimodal_trust import (
@@ -198,7 +208,11 @@ from .modules.user_model import UserModelTracker
 from .modules.variability import VariabilityConfig, VariabilityEngine
 from .modules.vision_adapter import VisionInference
 from .modules.vision_inference import VisionInferenceEngine
-from .modules.vitality import VitalityAssessment, assess_vitality
+from .modules.vitality import (
+    VitalityAssessment,
+    assess_vitality,
+    vitality_communication_hint,
+)
 from .modules.weakness_pole import WeaknessPole
 from .modules.weighted_ethics_scorer import (
     CandidateAction,
@@ -290,6 +304,7 @@ class ChatTurnResult:
     perception_confidence: PerceptionConfidenceEnvelope | None = None
 
 
+from .kernel_lobes import chat_turn_policy as _chat_turn_policy
 from .kernel_lobes.models import BayesianStageMetadata, PerceptionStageResult
 
 
@@ -440,7 +455,7 @@ class EthicalKernel:
         self.last_decision: Any | None = None
         self.last_stylized: Any | None = None
 
-        self.aclient = aclient
+        self.aclient = None  # optional httpx.AsyncClient; inject via components in tests if needed
 
         eff_llm = llm if llm is not None else (co.llm if co else None)
         self.llm = eff_llm if eff_llm is not None else LLMModule(mode=resolve_llm_mode(llm_mode))
@@ -597,6 +612,9 @@ class EthicalKernel:
             pad_archetypes=self.pad_archetypes,
             llm=self.llm,
         )
+        from .modules.rlhf_reward_model import RLHFPipeline
+
+        self.rlhf = RLHFPipeline()
         self.cerebellum_lobe = CerebellumLobe(
             bayesian=self.bayesian, strategist=self.strategist, memory=self.memory, rlhf=self.rlhf
         )
@@ -627,18 +645,6 @@ class EthicalKernel:
         # ═══ MER V2 — Turn Prefetcher (Bloque 10.4) ═══
         self.turn_prefetcher = self.prefetcher
 
-        # Phase 9.2: Proactive sensory alerts subscription
-        if self.event_bus:
-            from .modules.kernel_event_bus import (
-                EVENT_GOVERNANCE_THRESHOLD_UPDATED,
-                EVENT_SENSORY_STRESS_ALERT,
-            )
-
-            self.event_bus.subscribe(EVENT_SENSORY_STRESS_ALERT, self._on_sensory_stress_alert)
-            self.event_bus.subscribe(
-                EVENT_GOVERNANCE_THRESHOLD_UPDATED, self._on_governance_threshold_updated
-            )
-
         self.constitution_l1_drafts: list[dict[str, Any]] = []
         self.constitution_l2_drafts: list[dict[str, Any]] = []
         self._last_reality_verification: RealityVerificationAssessment = REALITY_ASSESSMENT_NONE
@@ -650,6 +656,16 @@ class EthicalKernel:
         self.event_bus: KernelEventBus | None = None
         if kernel_event_bus_enabled():
             self.event_bus = KernelEventBus()
+            # Phase 9.2: Proactive sensory alerts subscription (after bus exists)
+            from .modules.kernel_event_bus import (
+                EVENT_GOVERNANCE_THRESHOLD_UPDATED,
+                EVENT_SENSORY_STRESS_ALERT,
+            )
+
+            self.event_bus.subscribe(EVENT_SENSORY_STRESS_ALERT, self._on_sensory_stress_alert)
+            self.event_bus.subscribe(
+                EVENT_GOVERNANCE_THRESHOLD_UPDATED, self._on_governance_threshold_updated
+            )
         # OOS-003 — HierarchicalUpdater cache (avoids rebuilding on every tick)
         self._hier_updater_cache: Any | None = None  # HierarchicalUpdater | None
         self._hier_cache_fb_path: str = ""
@@ -662,7 +678,11 @@ class EthicalKernel:
         )
 
         # ADR 0016 B2 — emit deprecation warnings for any scheduled-for-removal flags
-        check_deprecated_flags()
+        from src.validators.deprecation_warnings import (
+            check_deprecated_flags as _check_deprecated_flags,
+        )
+
+        _check_deprecated_flags()
 
         # WebSocket chat: abandon late worker completions after KERNEL_CHAT_TURN_TIMEOUT (see ADR 0002).
         self._chat_turn_abandon_lock = threading.Lock()
@@ -2256,17 +2276,17 @@ class EthicalKernel:
                 message=msg,
                 tone="firm",
                 hax_mode="Neutral posture, steady blue light.",
-                inner_voice=f"MalAbs chat gate: {mal.reason or 'blocked'}",
+                inner_voice=f"MalAbs chat gate: {mal_edge.reason or 'blocked'}",
             )
             if self._chat_turn_abandoned(chat_turn_id):
                 return self._chat_turn_stale_result(chat_turn_id)
             wm.add_turn(user_input, msg, {}, blocked=True)
-            cat = mal.category.value if mal.category is not None else None
+            cat = mal_edge.category.value if mal_edge.category is not None else None
             maybe_append_malabs_block_audit(
                 path_key="safety_block",
                 category=cat,
-                decision_trace=list(mal.decision_trace),
-                reason=mal.reason or "",
+                decision_trace=list(mal_edge.decision_trace),
+                reason=mal_edge.reason or "",
             )
             self._snapshot_feedback_anchor("safety_block")
             limbic_blk = self.perceptive_lobe._build_limbic_perception_profile(
@@ -2282,7 +2302,7 @@ class EthicalKernel:
                 response=resp,
                 path="safety_block",
                 blocked=True,
-                block_reason=mal.reason or "chat_safety",
+                block_reason=mal_edge.reason or "chat_safety",
                 multimodal_trust=mm_blk,
                 epistemic_dissonance=ed_blk,
                 reality_verification=self._last_reality_verification,
@@ -2374,7 +2394,7 @@ class EthicalKernel:
             # MultimodalAssessment uses 'state'; derive a numeric trust level from it.
             _mm_state = getattr(mm, "state", "no_claim") if mm else "no_claim"
             _t_level = 0.5 if _mm_state == "doubt" else (0.0 if _mm_state == "contradict" else 1.0)
-        vh = vitality_communication_hint(self._last_vitality_assessment, trust_level=_t_level)
+        _vh = vitality_communication_hint(self._last_vitality_assessment, trust_level=_t_level)
 
         try:
             final_response = await self.llm.acommunicate(
@@ -2396,6 +2416,7 @@ class EthicalKernel:
                     decision.affect.dominant_archetype_id if decision.affect else ""
                 ),
                 identity_context=self.memory.identity.to_llm_context(),
+                vitality_context=_vh,
             )
         except Exception as e:
             if isinstance(e, asyncio.CancelledError) or "llm http cancelled" in str(e).lower():
@@ -2820,8 +2841,6 @@ class EthicalKernel:
         """
         Bloque 11.1: Bridging callback from AudioOuroboros loop to Kernel reasoning.
         """
-        from .modules.audio_ouroboros import AudioResponse
-
         # Create a lightweight sensor snapshot for the audio turn
         sensor_snapshot = SensorSnapshot(
             origin="audio_ouroboros",

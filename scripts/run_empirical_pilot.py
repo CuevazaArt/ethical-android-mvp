@@ -33,7 +33,8 @@ ROOT = Path(__file__).resolve().parents[1]
 if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
 
-from src.kernel import EthicalKernel  # noqa: E402
+# Batch harness uses V12 ``process`` / ``aprocess``; ``src.kernel.EthicalKernel`` is tri-lobe chat-first.
+from src.kernel_legacy_v12 import EthicalKernel  # noqa: E402
 from src.simulations.runner import ALL_SIMULATIONS  # noqa: E402
 
 
