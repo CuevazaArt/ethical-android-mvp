@@ -3,7 +3,9 @@ Multimodal Charm Engine — style / somatic layer after a valid L0/L1 decision.
 
 Applies affect (intimacy, mystery, play) *after* the EthicalKernel decision.
 Coordinates gesture hints for Nomad / hardware and optional **basal-ganglia EMA**
-smoothing on warmth/mystery (MER Block 10.3).
+smoothing on warmth/mystery (MER Block 10.3). Gesture and style paths are
+**EXPERIMENTAL / MOCK** until hardware or LLM bridges are wired; trust scalars are
+coerced to finite, bounded values before ``CharmVector`` and gesture metadata.
 
 **Env (optional):** ``KERNEL_BASAL_GANGLIA_SMOOTHING=1`` — run :class:`basal_ganglia.BasalGanglia`
 on ``CharmVector`` warmth/mystery to reduce sociopathic parametric jumps (default off).
@@ -12,6 +14,7 @@ on ``CharmVector`` warmth/mystery to reduce sociopathic parametric jumps (defaul
 from __future__ import annotations
 
 import logging
+import math
 import os
 from dataclasses import dataclass
 from typing import Any
@@ -44,6 +47,33 @@ def clear_charm_engine_basal_singleton_for_tests() -> None:
     _basal_ganglia_singleton = None
 
 
+_DEFAULT_CHARM_01 = 0.5
+
+
+def _as_unit01(value: object, *, default: float = _DEFAULT_CHARM_01) -> float:
+    """Coerce to a **finite** scalar in [0, 1] (Nomad / gesture safety). Reject ``bool``."""
+    if isinstance(value, bool) or not isinstance(value, (int, float)):
+        return default
+    v = float(value)
+    if not math.isfinite(v):
+        return default
+    if v < 0.0:
+        return 0.0
+    if v > 1.0:
+        return 1.0
+    return v
+
+
+def _as_nonneg_int_streak(x: object) -> int:
+    try:
+        n = int(x)  # type: ignore[arg-type]
+    except (TypeError, ValueError, OverflowError):
+        return 0
+    if n < 0:
+        return 0
+    return n
+
+
 @dataclass
 class CharmVector:
     warmth: float
@@ -70,10 +100,14 @@ class StyleParametrizer:
     ) -> CharmVector:
         """
         Derives style parameters based on kernel intention, restricted by trust.
+        Coerces ``caution_level`` and profile intimacy to finitely bounded [0,1] (MOCK/EXPERIMENTAL).
         """
+        caution_level = _as_unit01(caution_level)
+        intimacy = _as_unit01(getattr(profile, "intimacy_level", 0.0))
+        streak = _as_nonneg_int_streak(getattr(user_tracker, "frustration_streak", 0))
         # Baseline limits
         max_warmth = max(0.1, 1.0 - caution_level)
-        max_play = 0.8 if user_tracker.frustration_streak < 3 else 0.1
+        max_play = 0.8 if streak < 3 else 0.1
 
         warmth = 0.5
         mystery = 0.3
@@ -93,12 +127,12 @@ class StyleParametrizer:
             warmth += 0.3
             dirct -= 0.2
 
-        if profile.intimacy_level > 0.6 and caution_level <= 0.5:
+        if intimacy > 0.6 and caution_level <= 0.5:
             warmth += 0.2
             play += 0.2
         elif caution_level > 0.5:
             # Force downgrade intimacy if kernel trust is low
-            profile.intimacy_level = min(float(profile.intimacy_level), 0.5)
+            profile.intimacy_level = min(intimacy, 0.5)
 
         return CharmVector(
             warmth=min(max_warmth, warmth),
@@ -168,7 +202,8 @@ class ResponseSculptor:
                 haptic_plan=[{"type": "vibrate", "pattern": [500], "label": "absolute_evil_warning"}]
             )
 
-        charm = self.parametrizer.parametrize(decision_action, profile, user_tracker, caution_level)
+        caution = _as_unit01(caution_level)
+        charm = self.parametrizer.parametrize(decision_action, profile, user_tracker, caution)
         if _basal_ganglia_smoothing_enabled():
             r = _get_basal_ganglia().smooth(
                 target_warmth=charm.warmth,
@@ -181,12 +216,12 @@ class ResponseSculptor:
                 directiveness=charm.directiveness,
             )
         gesture = self.gesture_planner.plan(charm)
-        haptic = self.haptic_planner.plan(charm, caution_level)
+        haptic = self.haptic_planner.plan(charm, caution)
 
         # En integración real, esto encadena un call al LLM (con override_template).
         # Para el stub arquitectónico, agregamos el metadata de intención.
         final_text = base_text
-        if charm.warmth > 0.7 and caution_level <= 0.3:
+        if charm.warmth > 0.7 and caution <= 0.3:
             final_text += " [Tone: Warm & Open]"
         elif charm.directiveness > 0.8:
             final_text += " [Tone: Direct & Boundaried]"
