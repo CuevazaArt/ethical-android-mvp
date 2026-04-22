@@ -54,9 +54,10 @@ try:
     _FASTAPI_AVAILABLE = True
 except ImportError:
 
-    class WebSocketDisconnect(Exception):
+    class _WebSocketDisconnectStub(Exception):
         """Placeholder when FastAPI is not installed (WebSocket routes are disabled)."""
 
+    WebSocketDisconnect = _WebSocketDisconnectStub  # type: ignore[misc, assignment]
     FastAPI = None  # type: ignore[misc, assignment]
     WebSocket = Any  # type: ignore[misc, assignment]
     Query = Any  # type: ignore[misc, assignment]
@@ -183,7 +184,7 @@ class NomadBridge:
         self.last_rms = 0.0
         self._last_sensor_update = time.time()
         self._is_vessel_healthy = False
-        self._last_dash_frame = 0  # Throttling for dashboard (S.2.1)
+        self._last_dash_frame: float = 0.0  # Throttling for dashboard (S.2.1)
         self._last_heartbeat = 0.0
         self._is_connected: bool = False
         self._telemetry_lock = threading.Lock()

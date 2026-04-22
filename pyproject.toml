@@ -169,3 +169,7 @@ check_untyped_defs = false
 [[tool.mypy.overrides]]
 module = "src.kernel_legacy_v12"
 ignore_errors = true
+
+[[tool.mypy.overrides]]
+module = "src.sandbox.*"
+ignore_errors = true

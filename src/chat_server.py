@@ -1304,8 +1304,9 @@ def _chat_turn_to_jsonable(r: ChatTurnResult, kernel: EthicalKernel) -> dict[str
             out["constitution"] = snap()
     if _chat_include_nomad_identity():
         out["nomad_identity"] = nomad_identity_public(kernel)
-    if _chat_include_light_risk() and getattr(kernel, "_last_light_risk_tier", None):
-        out["light_risk_tier"] = getattr(kernel, "_last_light_risk_tier")
+    _light_risk_tier = getattr(kernel, "_last_light_risk_tier", None)
+    if _chat_include_light_risk() and _light_risk_tier:
+        out["light_risk_tier"] = _light_risk_tier
     if r.decision is None and r.path == "nervous_bus":
         fill = _tri_lobe_chat_ws_contract_defaults(kernel)
         for k, v in fill.items():
