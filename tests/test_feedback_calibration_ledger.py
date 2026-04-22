@@ -5,7 +5,7 @@ from __future__ import annotations
 import numpy as np
 import pytest
 from src.kernel import EthicalKernel
-from src.modules.feedback_calibration_ledger import (
+from src.modules.cognition.feedback_calibration_ledger import (
     FeedbackCalibrationLedger,
     apply_psi_sleep_feedback_to_engine,
     compute_target_weights,

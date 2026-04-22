@@ -3,7 +3,7 @@ Tests for Block 4.2: Epistemic Humility (C3).
 """
 
 from src.kernel import EthicalKernel
-from src.modules.weighted_ethics_scorer import CandidateAction
+from src.modules.ethics.weighted_ethics_scorer import CandidateAction
 
 
 def test_humility_block_high_uncertainty(monkeypatch):

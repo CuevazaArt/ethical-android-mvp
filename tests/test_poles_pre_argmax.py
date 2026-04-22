@@ -7,7 +7,7 @@ import numpy as np
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
 
-from src.modules.weighted_ethics_scorer import (
+from src.modules.ethics.weighted_ethics_scorer import (
     CandidateAction,
     PreArgmaxContextChannels,
     WeightedEthicsScorer,
@@ -80,7 +80,7 @@ def test_kernel_env_enables_pre_argmax_from_poles(monkeypatch):
     monkeypatch.setenv("KERNEL_POLES_PRE_ARGMAX", "1")
     from src.kernel import EthicalKernel
     from src.kernel_components import KernelComponentOverrides
-    from src.modules.ethical_poles import EthicalPoles
+    from src.modules.ethics.ethical_poles import EthicalPoles
     from src.simulations.runner import ALL_SIMULATIONS
 
     poles = EthicalPoles(

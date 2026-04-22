@@ -2,7 +2,7 @@
 
 import numpy as np
 from src.kernel import EthicalKernel
-from src.modules.weighted_ethics_scorer import (
+from src.modules.ethics.weighted_ethics_scorer import (
     DEFAULT_HYPOTHESIS_WEIGHTS,
     BayesianEngine,
     CandidateAction,
@@ -24,7 +24,7 @@ def _register_episode(mem, *, score: float, context: str = "everyday") -> None:
 
 
 def test_refresh_weights_moves_off_default_when_scores_skewed():
-    from src.modules.narrative import NarrativeMemory
+    from src.modules.memory.narrative import NarrativeMemory
 
     be = BayesianEngine()
     mem = NarrativeMemory(db_path=":memory:")
@@ -38,7 +38,7 @@ def test_refresh_weights_moves_off_default_when_scores_skewed():
 def test_refresh_empty_memory_resets_to_default():
     be = BayesianEngine()
     be.hypothesis_weights = np.array([0.1, 0.2, 0.7])
-    from src.modules.narrative import NarrativeMemory
+    from src.modules.memory.narrative import NarrativeMemory
 
     mem = NarrativeMemory(db_path=":memory:")
     be.refresh_weights_from_episodic_memory(mem, "everyday")
@@ -97,7 +97,7 @@ def test_kernel_episodic_refresh_ignores_other_context(monkeypatch):
 
 def test_refresh_weights_blend_zero_is_default():
     be = BayesianEngine()
-    from src.modules.narrative import NarrativeMemory
+    from src.modules.memory.narrative import NarrativeMemory
 
     mem = NarrativeMemory(db_path=":memory:")
     for _ in range(4):

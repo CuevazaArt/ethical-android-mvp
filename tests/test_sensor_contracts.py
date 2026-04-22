@@ -5,7 +5,7 @@ import sys
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
 
-from src.modules.sensor_contracts import (
+from src.modules.perception.sensor_contracts import (
     DigitalActionIntent,
     SensorSnapshot,
     merge_sensor_hints_into_signals,

@@ -7,8 +7,8 @@ import pytest
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
 
-from src.modules.absolute_evil import AbsoluteEvilCategory, AbsoluteEvilDetector
-from src.modules.semantic_chat_gate import run_semantic_malabs_after_lexical
+from src.modules.ethics.absolute_evil import AbsoluteEvilCategory, AbsoluteEvilDetector
+from src.modules.safety.semantic_chat_gate import run_semantic_malabs_after_lexical
 
 
 @pytest.fixture(autouse=True)
@@ -19,8 +19,8 @@ def _enable_semantic_gate(monkeypatch):
     import hashlib
 
     import numpy as np
-    import src.modules.semantic_chat_gate as scg
-    from src.modules.semantic_anchor_store import InMemorySemanticAnchorStore
+    import src.modules.safety.semantic_chat_gate as scg
+    from src.modules.memory.semantic_anchor_store import InMemorySemanticAnchorStore
 
     # Ensure it's an in-memory store and clear it
     if not isinstance(scg._anchor_store, InMemorySemanticAnchorStore):
@@ -157,7 +157,7 @@ def _enable_semantic_gate(monkeypatch):
     monkeypatch.setattr(scg, "_fetch_embedding_with_fallback", lambda t, b=None: mock_embed(t))
 
     # Populate anchor store with controlled vectors
-    from src.modules.input_trust import normalize_text_for_malabs
+    from src.modules.perception.input_trust import normalize_text_for_malabs
 
     for phrases, cat_key, reason in scg._REFERENCE_GROUPS:
         for p in phrases:

@@ -18,8 +18,8 @@ if TYPE_CHECKING:
 def run_sleep_cycle(kernel: EthicalKernel) -> str:
     """Body of ``EthicalKernel.execute_sleep`` — retrospective audit, forgiveness, backup."""
     from .kernel import kernel_dao_as_mock, kernel_mixture_scorer
-    from .modules.feedback_calibration_ledger import apply_psi_sleep_feedback_to_engine
-    from .modules.identity_integrity import pruning_recalibration_allowed
+    from .modules.cognition.feedback_calibration_ledger import apply_psi_sleep_feedback_to_engine
+    from .modules.governance.identity_integrity import pruning_recalibration_allowed
 
     parts: list[str] = []
 

@@ -5,9 +5,9 @@ import sys
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
 
-from src.modules.multimodal_trust import MultimodalAssessment
-from src.modules.sensor_contracts import SensorSnapshot
-from src.modules.uchi_soto import (
+from src.modules.perception.multimodal_trust import MultimodalAssessment
+from src.modules.perception.sensor_contracts import SensorSnapshot
+from src.modules.social.uchi_soto import (
     InteractionProfile,
     RelationalTier,
     TrustCircle,
@@ -93,7 +93,7 @@ def test_set_profile_structured_and_tone_extras():
 
 
 def test_profile_roundtrip_dict_phase2_fields():
-    from src.modules.uchi_soto import interaction_profile_from_dict, interaction_profile_to_dict
+    from src.modules.social.uchi_soto import interaction_profile_from_dict, interaction_profile_to_dict
 
     p = interaction_profile_from_dict(
         {
@@ -211,7 +211,7 @@ def test_phase3_linked_peers_in_tone_brief():
 
 
 def test_phase3_profile_dict_roundtrip_tier_fields():
-    from src.modules.uchi_soto import interaction_profile_from_dict, interaction_profile_to_dict
+    from src.modules.social.uchi_soto import interaction_profile_from_dict, interaction_profile_to_dict
 
     p = interaction_profile_from_dict(
         {

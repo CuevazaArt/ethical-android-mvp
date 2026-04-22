@@ -10,8 +10,8 @@ from __future__ import annotations
 from collections.abc import Mapping
 from typing import Any
 
-from ..modules.llm_layer import LLMPerception
-from ..modules.weighted_ethics_scorer import CandidateAction
+from src.modules.cognition.llm_layer import LLMPerception
+from src.modules.ethics.weighted_ethics_scorer import CandidateAction
 
 
 def chat_turn_is_heavy(perception: LLMPerception) -> bool:

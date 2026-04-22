@@ -6,18 +6,18 @@ import sys
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
 
 from src.modules.drive_arbiter import DriveIntent
-from src.modules.ethical_reflection import ReflectionSnapshot
-from src.modules.gray_zone_diplomacy import negotiation_hint_for_communicate
-from src.modules.metaplan_registry import (
+from src.modules.ethics.ethical_reflection import ReflectionSnapshot
+from src.modules.social.gray_zone_diplomacy import negotiation_hint_for_communicate
+from src.modules.cognition.metaplan_registry import (
     MasterGoal,
     MetaplanRegistry,
     apply_drive_intent_metaplan_filter,
     goal_token_union,
     maybe_append_metaplan_drive_extra,
 )
-from src.modules.sensor_contracts import SensorSnapshot
-from src.modules.skill_learning_registry import SkillLearningRegistry
-from src.modules.somatic_markers import (
+from src.modules.perception.sensor_contracts import SensorSnapshot
+from src.modules.cognition.skill_learning_registry import SkillLearningRegistry
+from src.modules.somatic.somatic_markers import (
     SomaticMarkerStore,
     apply_somatic_nudges,
     quantize_snapshot,

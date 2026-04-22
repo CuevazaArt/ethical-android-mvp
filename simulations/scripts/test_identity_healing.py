@@ -16,7 +16,7 @@ from pathlib import Path
 # Add src to path
 sys.path.append(str(Path(__file__).parent.parent.parent))
 
-from src.modules.identity_integrity import IdentityIntegrityManager
+from src.modules.governance.identity_integrity import IdentityIntegrityManager
 from src.kernel import EthicalKernel
 
 def run_simulation():

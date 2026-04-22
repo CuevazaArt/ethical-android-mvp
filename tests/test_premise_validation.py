@@ -5,7 +5,7 @@ import sys
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
 
-from src.modules.premise_validation import scan_premises
+from src.modules.cognition.premise_validation import scan_premises
 
 
 def test_neutral_text_no_flag():

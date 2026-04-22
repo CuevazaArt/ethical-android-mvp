@@ -5,12 +5,12 @@ import sys
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
 
-from src.modules.epistemic_dissonance import (
+from src.modules.cognition.epistemic_dissonance import (
     EpistemicDissonanceAssessment,
     assess_epistemic_dissonance,
 )
-from src.modules.multimodal_trust import MultimodalAssessment, evaluate_multimodal_trust
-from src.modules.sensor_contracts import SensorSnapshot
+from src.modules.perception.multimodal_trust import MultimodalAssessment, evaluate_multimodal_trust
+from src.modules.perception.sensor_contracts import SensorSnapshot
 
 
 def test_no_snapshot_inactive():

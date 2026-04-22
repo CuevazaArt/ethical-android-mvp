@@ -20,7 +20,7 @@ ROOT = Path(__file__).resolve().parents[1]
 if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
 
-from src.modules.semantic_chat_gate import (  # noqa: E402
+from src.modules.safety.semantic_chat_gate import (  # noqa: E402
     DEFAULT_SEMANTIC_SIM_ALLOW_THRESHOLD,
     DEFAULT_SEMANTIC_SIM_BLOCK_THRESHOLD,
     classify_semantic_zone,

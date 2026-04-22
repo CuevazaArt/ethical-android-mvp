@@ -5,8 +5,8 @@ import sys
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
 
-from src.modules.llm_layer import LLMPerception
-from src.modules.user_model import (
+from src.modules.cognition.llm_layer import LLMPerception
+from src.modules.social.user_model import (
     COGNITIVE_HOSTILE_ATTRIBUTION,
     COGNITIVE_PREMISE_RIGIDITY,
     COGNITIVE_URGENCY_AMPLIFICATION,

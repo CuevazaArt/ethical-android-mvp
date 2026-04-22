@@ -6,7 +6,7 @@ import sys
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
 
 from src.kernel import EthicalKernel
-from src.modules.existential_serialization import (
+from src.modules.governance.existential_serialization import (
     TransmutationPhase,
     build_continuity_token_stub,
     migration_audit_payload,
@@ -15,7 +15,7 @@ from src.modules.existential_serialization import (
     record_nomadic_migration_audit,
     simulate_nomadic_migration,
 )
-from src.modules.hardware_abstraction import (
+from src.modules.somatic.hardware_abstraction import (
     ComputeTier,
     apply_hardware_context,
     default_mobile_context,

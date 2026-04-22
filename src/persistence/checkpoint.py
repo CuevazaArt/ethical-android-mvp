@@ -167,6 +167,6 @@ def on_websocket_session_end(kernel: EthicalKernel) -> None:
     """Save on disconnect when enabled; optional conduct guide export for nomadic handoff."""
     if should_save_on_disconnect(kernel):
         try_save_checkpoint(kernel)
-    from src.modules.conduct_guide_export import try_export_conduct_guide
+    from src.modules.governance.conduct_guide_export import try_export_conduct_guide
 
     try_export_conduct_guide(kernel)

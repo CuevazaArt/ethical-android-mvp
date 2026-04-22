@@ -1,6 +1,6 @@
 from datetime import datetime, timedelta
 
-from src.modules.narrative import NarrativeMemory
+from src.modules.memory.narrative import NarrativeMemory
 
 
 def test_significance_calculation(tmp_path):

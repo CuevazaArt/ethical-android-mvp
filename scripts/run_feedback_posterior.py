@@ -77,7 +77,7 @@ def main() -> int:
         print(f"error: feedback file not found: {fb_path}", file=sys.stderr)
         return 2
 
-    from src.modules.feedback_mixture_posterior import load_and_apply_feedback
+    from src.modules.cognition.feedback_mixture_posterior import load_and_apply_feedback
 
     seed = int(os.environ.get("KERNEL_FEEDBACK_SEED", "42"))
     rng = np.random.default_rng(seed)

@@ -5,7 +5,7 @@ import sys
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
 
-from src.modules.lan_governance_merge_context import (
+from src.modules.governance.lan_governance_merge_context import (
     LAN_GOVERNANCE_CROSS_SESSION_HINT_SCHEMA_V1,
     LAN_GOVERNANCE_FRONTIER_WITNESS_SCHEMA_V1,
     normalize_cross_session_hint,

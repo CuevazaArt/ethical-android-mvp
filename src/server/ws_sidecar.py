@@ -27,7 +27,7 @@ router = APIRouter()
 @router.websocket("/ws/nomad")
 async def nomad_bridge_ws_handler(websocket: WebSocket) -> None:
     """Nomad LAN bridge sensory endpoint (Module S)."""
-    from ..modules.nomad_bridge import get_nomad_bridge
+    from src.modules.perception.nomad_bridge import get_nomad_bridge
     from ..settings import kernel_settings
 
     st = kernel_settings()
@@ -110,7 +110,7 @@ async def nomad_bridge_ws_handler(websocket: WebSocket) -> None:
 @router.websocket("/ws/dashboard")
 async def dashboard_ws_handler(websocket: WebSocket) -> None:
     """L0 Dashboard telemetry stream and command receiver."""
-    from ..modules.nomad_bridge import get_nomad_bridge
+    from src.modules.perception.nomad_bridge import get_nomad_bridge
     from ..settings import kernel_settings
 
     await websocket.accept()

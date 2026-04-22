@@ -8,7 +8,7 @@ import pytest
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
 
-from src.modules.mock_dao import MockDAO
+from src.modules.governance.mock_dao import MockDAO
 
 
 def test_register_audit_appends_sidecar_jsonl(monkeypatch: pytest.MonkeyPatch):

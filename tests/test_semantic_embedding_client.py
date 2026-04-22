@@ -5,7 +5,7 @@ import sys
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
 
-from src.modules import semantic_embedding_client as sec
+from src.modules.memory import semantic_embedding_client as sec
 
 
 def test_hash_scoped_embedding_is_unit_norm():

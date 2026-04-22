@@ -1,7 +1,7 @@
 import os
 
 from src.kernel import EthicalKernel
-from src.modules.narrative_types import BodyState, NarrativeEpisode
+from src.modules.memory.narrative_types import BodyState, NarrativeEpisode
 
 
 def test_biographic_pruning_mundane():

@@ -13,7 +13,7 @@ from src.kernel_lobes.limbic_lobe import LimbicEthicalLobe
 from src.kernel_lobes.models import MotorCommandDispatch, RawSensoryPulse
 from src.kernel_lobes.perception_lobe import PerceptiveLobe
 from src.kernel_lobes.thalamus_lobe import ThalamusLobe
-from src.modules.llm_layer import VerbalResponse
+from src.modules.cognition.llm_layer import VerbalResponse
 from src.nervous_system.bus_modulator import BusModulator
 from src.nervous_system.corpus_callosum import CorpusCallosum
 
@@ -75,26 +75,26 @@ class EthosKernel:
         self.reactions = ReactionTable()
 
         # Shared infrastructure (Centralized initialization for lobes)
-        from src.modules.absolute_evil import AbsoluteEvilDetector
-        from src.modules.bayesian_engine import BayesianEngine
-        from src.modules.buffer import PreloadedBuffer
-        from src.modules.ethical_poles import EthicalPoles
-        from src.modules.ethical_reflection import EthicalReflection
-        from src.modules.llm_layer import LLMModule
-        from src.modules.narrative import NarrativeMemory
-        from src.modules.pad_archetypes import PADArchetypeEngine
-        from src.modules.safety_interlock import SafetyInterlock
-        from src.modules.salience_map import SalienceMap
-        from src.modules.sigmoid_will import SigmoidWill
-        from src.modules.somatic_markers import SomaticMarkerStore
-        from src.modules.strategy_engine import ExecutiveStrategist
-        from src.modules.motivation_engine import MotivationEngine
-        from src.modules.dao_orchestrator import DAOOrchestrator
-        from src.modules.migratory_identity import MigrationHub
-        from src.modules.memory_hygiene import MemoryHygieneService
-        from src.modules.immortality import ImmortalityProtocol
+        from src.modules.ethics.absolute_evil import AbsoluteEvilDetector
+        from src.modules.cognition.bayesian_engine import BayesianEngine
+        from src.modules.ethics.buffer import PreloadedBuffer
+        from src.modules.ethics.ethical_poles import EthicalPoles
+        from src.modules.ethics.ethical_reflection import EthicalReflection
+        from src.modules.cognition.llm_layer import LLMModule
+        from src.modules.memory.narrative import NarrativeMemory
+        from src.modules.ethics.pad_archetypes import PADArchetypeEngine
+        from src.modules.safety.safety_interlock import SafetyInterlock
+        from src.modules.cognition.salience_map import SalienceMap
+        from src.modules.cognition.sigmoid_will import SigmoidWill
+        from src.modules.somatic.somatic_markers import SomaticMarkerStore
+        from src.modules.cognition.strategy_engine import ExecutiveStrategist
+        from src.modules.cognition.motivation_engine import MotivationEngine
+        from src.modules.governance.dao_orchestrator import DAOOrchestrator
+        from src.modules.memory.migratory_identity import MigrationHub
+        from src.modules.memory.memory_hygiene import MemoryHygieneService
+        from src.modules.memory.immortality import ImmortalityProtocol
         from src.kernel_lobes.memory_lobe import MemoryLobe
-        from src.modules.subjective_time import SubjectiveClock
+        from src.modules.cognition.subjective_time import SubjectiveClock
 
         evil_detector = AbsoluteEvilDetector()
         self.llm = LLMModule()
@@ -110,14 +110,14 @@ class EthosKernel:
         self.thalamus = ThalamusLobe(bus=self.bus)
 
         # External Governance, Identity & Proactivity (Compatibility layer)
-        from src.modules.dao_orchestrator import DAOOrchestrator
+        from src.modules.governance.dao_orchestrator import DAOOrchestrator
         from src.modules.drive_arbiter import DriveArbiter
-        from src.modules.forgiveness import AlgorithmicForgiveness
-        from src.modules.immortality import ImmortalityProtocol
-        from src.modules.locus import LocusModule
-        from src.modules.metacognition import MetacognitiveEvaluator
-        from src.modules.metaplan_registry import MetaplanRegistry
-        from src.modules.weakness_pole import WeaknessPole
+        from src.modules.memory.forgiveness import AlgorithmicForgiveness
+        from src.modules.memory.immortality import ImmortalityProtocol
+        from src.modules.safety.locus import LocusModule
+        from src.modules.cognition.metacognition import MetacognitiveEvaluator
+        from src.modules.cognition.metaplan_registry import MetaplanRegistry
+        from src.modules.ethics.weakness_pole import WeaknessPole
 
         self.dao = DAOOrchestrator()
         self.drive_arbiter = DriveArbiter()
@@ -129,7 +129,7 @@ class EthosKernel:
         self.weakness = WeaknessPole()
         self.checkpoint_persistence = kwargs.get("checkpoint_persistence")
 
-        from src.modules.feedback_calibration_ledger import FeedbackCalibrationLedger
+        from src.modules.cognition.feedback_calibration_ledger import FeedbackCalibrationLedger
 
         self.feedback_ledger = FeedbackCalibrationLedger()
         self._feedback_turn_anchor: dict[str, str] = {}
@@ -147,9 +147,9 @@ class EthosKernel:
         )
 
         # Lobe 2: Limbic (Affective/Ethical)
-        from src.modules.locus import LocusModule
-        from src.modules.sympathetic import SympatheticModule
-        from src.modules.uchi_soto import UchiSotoModule
+        from src.modules.safety.locus import LocusModule
+        from src.modules.somatic.sympathetic import SympatheticModule
+        from src.modules.social.uchi_soto import UchiSotoModule
 
         self.limbic_system = LimbicEthicalLobe(
             uchi_soto=UchiSotoModule(),
@@ -167,7 +167,7 @@ class EthosKernel:
         )
 
         # Lobe 4: Executive (Prefrontal)
-        from src.modules.motivation_engine import MotivationEngine
+        from src.modules.cognition.motivation_engine import MotivationEngine
 
         self.prefrontal_cortex = ExecutiveLobe(
             absolute_evil=evil_detector,
@@ -327,7 +327,7 @@ class EthosKernel:
 
     def _actions_for_chat(self, p: Any, heavy: bool) -> list[Any]:
         """Compatibility helper for decision handlers."""
-        from src.modules.weighted_ethics_scorer import CandidateAction
+        from src.modules.ethics.weighted_ethics_scorer import CandidateAction
 
         actions = [
             CandidateAction(
@@ -369,7 +369,7 @@ class EthosKernel:
         In V13, we translate this into a CognitivePulse to skip the perception stage.
         """
         from src.kernel_lobes.models import CognitivePulse, SemanticState
-        from src.modules.vitality import assess_vitality
+        from src.modules.somatic.vitality import assess_vitality
 
         state = SemanticState(
             perception_confidence=1.0,
@@ -427,7 +427,7 @@ class EthosKernel:
     def record_operator_feedback(self, label: str) -> bool:
         """Record calibration label for the last completed turn regime (legacy-compatible)."""
 
-        from src.modules.feedback_calibration_ledger import normalize_feedback_label
+        from src.modules.cognition.feedback_calibration_ledger import normalize_feedback_label
 
         if os.environ.get("KERNEL_FEEDBACK_CALIBRATION", "").strip().lower() not in (
             "1",
@@ -447,7 +447,7 @@ class EthosKernel:
 
     def get_constitution_snapshot(self) -> dict[str, Any]:
         """Return L0–L2 constitutional JSON for the hub and transparency paths (V12.2)."""
-        from src.modules.moral_hub import constitution_snapshot
+        from src.modules.governance.moral_hub import constitution_snapshot
 
         return constitution_snapshot(self.buffer, self)
 
@@ -518,7 +518,7 @@ class EthosKernel:
                 f"EthosKernel: Entry gate BLOCKED prompt {text[:50]}... | {malabs_res.reason}"
             )
             if os.environ.get("KERNEL_AUDIT_CHAIN_PATH", "").strip():
-                from src.modules.audit_chain_log import maybe_append_malabs_block_audit
+                from src.modules.governance.audit_chain_log import maybe_append_malabs_block_audit
 
                 cat_val = malabs_res.category.value if malabs_res.category else None
                 maybe_append_malabs_block_audit(
@@ -555,7 +555,7 @@ class EthosKernel:
 
         # Flush the dashboard inner voice UI before starting the new stream
         try:
-            from src.modules.nomad_bridge import get_nomad_bridge
+            from src.modules.perception.nomad_bridge import get_nomad_bridge
 
             b = get_nomad_bridge()
             if b:
@@ -636,7 +636,7 @@ class EthosKernel:
     async def _on_thought_stream(self, pulse: Any):
         """Forward real-time thoughts to L0 Dashboard (Bloque 20.3)"""
         try:
-            from src.modules.nomad_bridge import get_nomad_bridge
+            from src.modules.perception.nomad_bridge import get_nomad_bridge
 
             b = get_nomad_bridge()
             if b:

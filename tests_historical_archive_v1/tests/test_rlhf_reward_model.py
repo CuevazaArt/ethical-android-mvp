@@ -11,7 +11,7 @@ import pytest
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
 
-from src.modules.rlhf_reward_model import (
+from src.modules.cognition.rlhf_reward_model import (
     FeatureVector,
     LabeledExample,
     RewardModel,

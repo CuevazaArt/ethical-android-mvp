@@ -5,7 +5,7 @@ from types import SimpleNamespace
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
 
 from src.kernel_lobes.executive_lobe import ExecutiveLobe
-from src.modules.absolute_evil import AbsoluteEvilDetector
+from src.modules.ethics.absolute_evil import AbsoluteEvilDetector
 
 
 def _decision(blocked: bool = False):

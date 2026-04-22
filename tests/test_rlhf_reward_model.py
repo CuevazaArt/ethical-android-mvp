@@ -12,8 +12,8 @@ import numpy as np
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
 
-from src.modules.bayesian_engine import BayesianInferenceEngine
-from src.modules.rlhf_reward_model import (
+from src.modules.cognition.bayesian_engine import BayesianInferenceEngine
+from src.modules.cognition.rlhf_reward_model import (
     FeatureVector,
     LabeledExample,
     RewardModel,

@@ -26,7 +26,7 @@ class TestKernelSwarmIntegration(unittest.TestCase):
             # In EthicalKernel.aprocess, risk > 0.4 triggers it.
             # Let's mock the perceptive lobe to return high risk.
 
-            from src.modules.llm_layer import LLMPerception
+            from src.modules.cognition.llm_layer import LLMPerception
 
             LLMPerception(
                 risk=0.8,
@@ -47,7 +47,7 @@ class TestKernelSwarmIntegration(unittest.TestCase):
             # To be sure, we can inject signals.
 
             # Let's just use a simplified call to aprocess
-            from src.modules.weighted_ethics_scorer import CandidateAction
+            from src.modules.ethics.weighted_ethics_scorer import CandidateAction
 
             actions = [
                 CandidateAction("patrol", "Send a drone to check.", 0.1, 0.9),

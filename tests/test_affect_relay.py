@@ -1,9 +1,9 @@
 import asyncio
 
 import pytest
-from src.modules.affect_projection_relay import get_affect_relay
-from src.modules.nomad_bridge import get_nomad_bridge
-from src.modules.pad_archetypes import AffectProjection
+from src.modules.somatic.affect_projection_relay import get_affect_relay
+from src.modules.perception.nomad_bridge import get_nomad_bridge
+from src.modules.ethics.pad_archetypes import AffectProjection
 
 
 @pytest.mark.asyncio

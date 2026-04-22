@@ -11,7 +11,7 @@ import pytest
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
 
-from src.modules.semantic_anchor_store import (
+from src.modules.memory.semantic_anchor_store import (
     InMemorySemanticAnchorStore,
     SemanticAnchorRecord,
     SemanticAnchorStore,
@@ -206,7 +206,7 @@ class TestChremaSemanticAnchorStoreIntegration:
     def chroma_store(self):
         """Create a temporary Chroma store for testing."""
         try:
-            from src.modules.semantic_anchor_store import ChromaSemanticAnchorStore
+            from src.modules.memory.semantic_anchor_store import ChromaSemanticAnchorStore
 
             with tempfile.TemporaryDirectory(ignore_cleanup_errors=True) as tmpdir:
                 store = ChromaSemanticAnchorStore(persist_path=tmpdir)

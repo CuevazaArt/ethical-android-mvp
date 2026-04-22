@@ -5,8 +5,8 @@ These cases mimic LLM outputs that pass schema bounds but would mislead downstre
 and ``perception_from_llm_json`` behavior.
 """
 
-from src.modules.llm_layer import perception_from_llm_json
-from src.modules.perception_schema import PerceptionCoercionReport, validate_perception_dict
+from src.modules.cognition.llm_layer import perception_from_llm_json
+from src.modules.perception.perception_schema import PerceptionCoercionReport, validate_perception_dict
 
 
 def test_coherence_high_hostility_high_calm_nudges_calm_down():

@@ -5,7 +5,7 @@ import sys
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
 
-from src.modules.context_distillation import (
+from src.modules.cognition.context_distillation import (
     load_and_validate_conduct_guide_from_env,
     validate_conduct_guide_dict,
 )

@@ -12,7 +12,7 @@ from src.utils.terminal_colors import Term
 
 if TYPE_CHECKING:
     from src.kernel import KernelDecision
-    from src.modules.llm_layer import RichNarrative, VerbalResponse
+    from src.modules.cognition.llm_layer import RichNarrative, VerbalResponse
 
 
 def format_decision(d: Any) -> str:

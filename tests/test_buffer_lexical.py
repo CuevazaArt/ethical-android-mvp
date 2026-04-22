@@ -1,6 +1,6 @@
 """Lexical buffer verification beyond naive substring checks (no_harm / proportionality)."""
 
-from src.modules.buffer import (
+from src.modules.ethics.buffer import (
     PreloadedBuffer,
     lexical_harm_indicators_present,
     proportionality_violation_indicators_present,

@@ -7,7 +7,7 @@ from pathlib import Path
 
 import numpy as np
 import pytest
-from src.modules.ethical_mixture_likelihood import (
+from src.modules.ethics.ethical_mixture_likelihood import (
     FeedbackObservation,
     calibrate_beta,
     importance_sampling_posterior,
@@ -17,7 +17,7 @@ from src.modules.ethical_mixture_likelihood import (
     softmax_choice_log_likelihood,
     softmax_choice_probability,
 )
-from src.modules.feedback_mixture_updater import FeedbackUpdater, build_scenario_candidates_map
+from src.modules.cognition.feedback_mixture_updater import FeedbackUpdater, build_scenario_candidates_map
 
 
 def test_softmax_log_likelihood_sums() -> None:

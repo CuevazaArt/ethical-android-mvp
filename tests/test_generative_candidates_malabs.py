@@ -14,8 +14,8 @@ Acceptance criteria:
 from __future__ import annotations
 
 import pytest
-from src.modules.absolute_evil import AbsoluteEvilDetector
-from src.modules.generative_candidates import (
+from src.modules.ethics.absolute_evil import AbsoluteEvilDetector
+from src.modules.cognition.generative_candidates import (
     GENERATIVE_ORIGIN,
     parse_generative_candidates_from_llm,
 )

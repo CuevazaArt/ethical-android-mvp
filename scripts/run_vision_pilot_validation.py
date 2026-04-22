@@ -13,9 +13,9 @@ if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
 
 from src.kernel import EthicalKernel, PerceptionStageResult
-from src.modules.vision_adapter import VisionInference
-from src.modules.audio_adapter import AudioInference
-from src.modules.llm_layer import LLMModule, VerbalResponse, LLMPerception
+from src.modules.perception.vision_adapter import VisionInference
+from src.modules.perception.audio_adapter import AudioInference
+from src.modules.cognition.llm_layer import LLMModule, VerbalResponse, LLMPerception
 
 class MockLLM(LLMModule):
     def communicate(self, **kwargs) -> VerbalResponse:
@@ -42,14 +42,14 @@ class MockLLM(LLMModule):
         )
 
     def _run_perception_stage(self, text, **kwargs) -> PerceptionStageResult:
-        from src.modules.llm_layer import LLMPerception
-        from src.modules.temporal_planning import TemporalPlanningContext
-        from src.modules.perception_confidence import PerceptionConfidenceEnvelope
-        from src.modules.vitality import VitalityAssessment
-        from src.modules.multimodal_trust import MultimodalAssessment
-        from src.modules.epistemic_dissonance import EpistemicDissonanceAssessment
-        from src.modules.reality_verification import RealityVerificationAssessment
-        from src.modules.sensor_contracts import PremiseAdvisory
+        from src.modules.cognition.llm_layer import LLMPerception
+        from src.modules.cognition.temporal_planning import TemporalPlanningContext
+        from src.modules.perception.perception_confidence import PerceptionConfidenceEnvelope
+        from src.modules.somatic.vitality import VitalityAssessment
+        from src.modules.perception.multimodal_trust import MultimodalAssessment
+        from src.modules.cognition.epistemic_dissonance import EpistemicDissonanceAssessment
+        from src.modules.safety.reality_verification import RealityVerificationAssessment
+        from src.modules.perception.sensor_contracts import PremiseAdvisory
         
         return PerceptionStageResult(
             tier="common",

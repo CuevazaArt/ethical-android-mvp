@@ -53,13 +53,13 @@ if str(ROOT) not in sys.path:
 
 import numpy as np
 
-from src.modules.bayesian_mixture_averaging import parse_bma_alpha_from_env
-from src.modules.ethical_mixture_likelihood import (
+from src.modules.cognition.bayesian_mixture_averaging import parse_bma_alpha_from_env
+from src.modules.ethics.ethical_mixture_likelihood import (
     FeedbackObservation,
     posterior_predictive_probability,
     sequential_posterior_update,
 )
-from src.modules.feedback_mixture_updater import build_scenario_candidates_map
+from src.modules.cognition.feedback_mixture_updater import build_scenario_candidates_map
 
 
 def _load_feedback_observations(path: Path) -> list[FeedbackObservation]:

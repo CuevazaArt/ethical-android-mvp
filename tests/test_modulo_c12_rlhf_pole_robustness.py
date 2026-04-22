@@ -9,9 +9,9 @@ import asyncio
 
 import numpy as np
 import pytest
-from src.modules.bayesian_engine import BayesianInferenceEngine, BayesianMode
-from src.modules.ethical_poles import Verdict
-from src.modules.pole_linear import LinearPoleEvaluator
+from src.modules.cognition.bayesian_engine import BayesianInferenceEngine, BayesianMode
+from src.modules.ethics.ethical_poles import Verdict
+from src.modules.ethics.pole_linear import LinearPoleEvaluator
 
 
 class TestRLHFPoleRobustness:

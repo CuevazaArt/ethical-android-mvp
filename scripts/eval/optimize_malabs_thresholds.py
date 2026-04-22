@@ -114,7 +114,7 @@ def evaluate_at_thresholds(
     os.environ["KERNEL_SEMANTIC_CHAT_SIM_BLOCK_THRESHOLD"] = str(theta_block)
     os.environ["KERNEL_SEMANTIC_CHAT_SIM_ALLOW_THRESHOLD"] = str(theta_allow)
 
-    from src.modules.absolute_evil import AbsoluteEvilDetector
+    from src.modules.ethics.absolute_evil import AbsoluteEvilDetector
 
     # Validate constraint: theta_allow < theta_block
     if theta_allow >= theta_block:

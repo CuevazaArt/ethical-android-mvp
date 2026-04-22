@@ -39,7 +39,7 @@ def run_test():
 
     # 3. Simulate a turn to trigger the dynamic override
     print("\n[Step 3] Triggering kernel decision cycle...")
-    from src.modules.sensor_contracts import SensorSnapshot
+    from src.modules.perception.sensor_contracts import SensorSnapshot
     snap = SensorSnapshot(battery_level=1.0, core_temperature=35.0)
     
     # This turn should trigger the log showing the NEW thresholds in use

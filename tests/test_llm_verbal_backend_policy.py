@@ -7,8 +7,8 @@ sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
 
 from src.chat_server import _chat_turn_to_jsonable
 from src.kernel import ChatTurnResult, EthicalKernel
-from src.modules.llm_layer import LLMModule, VerbalResponse
-from src.modules.llm_verbal_backend_policy import (
+from src.modules.cognition.llm_layer import LLMModule, VerbalResponse
+from src.modules.cognition.llm_verbal_backend_policy import (
     DEFAULT_KERNEL_VERBAL_LLM_BACKEND_POLICY,
     resolve_verbal_llm_backend_policy,
 )

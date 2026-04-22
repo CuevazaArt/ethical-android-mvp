@@ -3,7 +3,7 @@ Tests for Block 5.1: Privacidad y Amnesia Selectiva (G4).
 """
 
 from src.kernel import EthicalKernel
-from src.modules.weighted_ethics_scorer import CandidateAction
+from src.modules.ethics.weighted_ethics_scorer import CandidateAction
 
 
 def test_selective_amnesia_purges_episode_and_audit():

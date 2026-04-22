@@ -6,7 +6,7 @@ Verifies the path from LAN WebSocket input to Kernel sensory fusion.
 import asyncio
 
 import pytest
-from src.modules.nomad_bridge import get_nomad_bridge
+from src.modules.perception.nomad_bridge import get_nomad_bridge
 
 
 @pytest.mark.asyncio
@@ -29,7 +29,7 @@ async def test_nomad_telemetry_flow_injects_into_next_turn():
     # Give the consumer a microsecond to process (it runs in background)
     import os
 
-    from src.modules.vitality import (
+    from src.modules.somatic.vitality import (
         start_nomad_telemetry_consumer_from_env,
     )
 
@@ -47,7 +47,7 @@ async def test_nomad_telemetry_flow_injects_into_next_turn():
     assert consumer.latest_telemetry == test_telemetry
 
     # 2. Check kernel fusion
-    from src.modules.vitality import merge_nomad_telemetry_into_snapshot
+    from src.modules.somatic.vitality import merge_nomad_telemetry_into_snapshot
 
     snap = merge_nomad_telemetry_into_snapshot(None, consumer.latest_telemetry)
 
@@ -56,7 +56,7 @@ async def test_nomad_telemetry_flow_injects_into_next_turn():
     assert snap.core_temperature == 98.5
 
     # 3. Check vitality assessment
-    from src.modules.vitality import assess_vitality
+    from src.modules.somatic.vitality import assess_vitality
 
     assessment = assess_vitality(snap)
     assert assessment.is_critical is True  # battery < 0.05
@@ -73,8 +73,8 @@ async def test_nomad_vision_flow_injects_into_next_turn(monkeypatch):
     import os
 
     import numpy as np
-    import src.modules.vision_adapter as vision_adapter
-    from src.modules.vision_adapter import VisionInference, start_nomad_vision_consumer_from_env
+    import src.modules.perception.vision_adapter as vision_adapter
+    from src.modules.perception.vision_adapter import VisionInference, start_nomad_vision_consumer_from_env
 
     os.environ["KERNEL_NOMAD_VISION_CONSUMER"] = "1"
 

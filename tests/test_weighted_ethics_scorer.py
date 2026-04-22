@@ -1,7 +1,7 @@
 """Canonical weighted mixture module + compatibility shim."""
 
-from src.modules import bayesian_engine as shim
-from src.modules import weighted_ethics_scorer as canonical
+from src.modules.cognition import bayesian_engine as shim
+from src.modules.ethics import weighted_ethics_scorer as canonical
 
 
 def test_bayesian_engine_is_alias_of_weighted_ethics_scorer():

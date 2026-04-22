@@ -15,7 +15,7 @@ from src.kernel_lobes.models import (
     SemanticState,
     SensorySpike,
 )
-from src.modules.persistent_threat_tracker import PersistentThreatTracker
+from src.modules.memory.persistent_threat_tracker import PersistentThreatTracker
 
 if TYPE_CHECKING:
     from src.nervous_system.corpus_callosum import CorpusCallosum
@@ -23,9 +23,9 @@ if TYPE_CHECKING:
 _log = logging.getLogger(__name__)
 
 if TYPE_CHECKING:
-    from src.modules.locus import LocusModule
-    from src.modules.sympathetic import SympatheticModule
-    from src.modules.uchi_soto import UchiSotoModule
+    from src.modules.safety.locus import LocusModule
+    from src.modules.somatic.sympathetic import SympatheticModule
+    from src.modules.social.uchi_soto import UchiSotoModule
 
 
 class LimbicEthicalLobe:
@@ -52,15 +52,15 @@ class LimbicEthicalLobe:
         bus: CorpusCallosum | None = None,
     ) -> None:
         if uchi_soto is None:
-            from src.modules.uchi_soto import UchiSotoModule as _US
+            from src.modules.social.uchi_soto import UchiSotoModule as _US
 
             uchi_soto = _US()
         if sympathetic is None:
-            from src.modules.sympathetic import SympatheticModule as _Sym
+            from src.modules.somatic.sympathetic import SympatheticModule as _Sym
 
             sympathetic = _Sym()
         if locus is None:
-            from src.modules.locus import LocusModule as _Loc
+            from src.modules.safety.locus import LocusModule as _Loc
 
             locus = _Loc()
         self.uchi_soto = uchi_soto

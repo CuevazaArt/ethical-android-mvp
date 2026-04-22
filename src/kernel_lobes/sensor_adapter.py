@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from abc import ABC, abstractmethod
 
-from src.modules.sensor_contracts import SensorSnapshot
+from src.modules.perception.sensor_contracts import SensorSnapshot
 
 
 class SensorAdapter(ABC):

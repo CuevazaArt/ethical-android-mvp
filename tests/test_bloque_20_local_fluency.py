@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import pytest
-from src.modules.llm_layer import PROMPT_COMMUNICATION_LOCAL_FLUENCY_APPEND
+from src.modules.cognition.llm_layer import PROMPT_COMMUNICATION_LOCAL_FLUENCY_APPEND
 
 
 def test_local_fluency_prompt_exists() -> None:

@@ -9,7 +9,7 @@ from pathlib import Path
 from typing import Any
 
 import pytest
-from src.modules import audit_chain_log as acl
+from src.modules.governance import audit_chain_log as acl
 
 
 def _canon(obj: dict[str, Any]) -> str:

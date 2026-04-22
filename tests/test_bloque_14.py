@@ -25,7 +25,7 @@ class TestIsPrivateLanIp:
     """_is_private_lan_ip must accept RFC-1918 addresses and reject others."""
 
     def _check(self, ip: str) -> bool:
-        from src.modules.nomad_discovery import _is_private_lan_ip
+        from src.modules.perception.nomad_discovery import _is_private_lan_ip
 
         return _is_private_lan_ip(ip)
 
@@ -52,7 +52,7 @@ class TestSafePort:
     """_safe_port must clamp to valid range and fall back to default."""
 
     def _check(self, v: int, default: int = 8765) -> int:
-        from src.modules.nomad_discovery import _safe_port
+        from src.modules.perception.nomad_discovery import _safe_port
 
         return _safe_port(v, default)
 
@@ -73,20 +73,20 @@ class TestDiscoverLanIpv4Candidates:
     """discover_lan_ipv4_candidates must include the bind_host when valid."""
 
     def test_private_bind_host_included(self) -> None:
-        from src.modules.nomad_discovery import discover_lan_ipv4_candidates
+        from src.modules.perception.nomad_discovery import discover_lan_ipv4_candidates
 
         candidates = discover_lan_ipv4_candidates(bind_host="192.168.1.1")
         assert "192.168.1.1" in candidates
 
     def test_loopback_bind_host_excluded(self) -> None:
-        from src.modules.nomad_discovery import discover_lan_ipv4_candidates
+        from src.modules.perception.nomad_discovery import discover_lan_ipv4_candidates
 
         # 127.0.0.1 is loopback — should not appear in LAN candidates
         candidates = discover_lan_ipv4_candidates(bind_host="127.0.0.1")
         assert "127.0.0.1" not in candidates
 
     def test_returns_list(self) -> None:
-        from src.modules.nomad_discovery import discover_lan_ipv4_candidates
+        from src.modules.perception.nomad_discovery import discover_lan_ipv4_candidates
 
         result = discover_lan_ipv4_candidates()
         assert isinstance(result, list)
@@ -96,7 +96,7 @@ class TestBuildNomadDiscoveryPayload:
     """build_nomad_discovery_payload must produce the expected schema."""
 
     def _build(self, **kwargs: Any) -> dict[str, Any]:
-        from src.modules.nomad_discovery import build_nomad_discovery_payload
+        from src.modules.perception.nomad_discovery import build_nomad_discovery_payload
 
         defaults: dict[str, Any] = {
             "request_host": "192.168.1.10",
@@ -145,34 +145,34 @@ class TestNomadDiscoveryEnvVars:
     """nomad_discovery_service_name/type must read from env or use defaults."""
 
     def test_default_service_name(self) -> None:
-        from src.modules.nomad_discovery import nomad_discovery_service_name
+        from src.modules.perception.nomad_discovery import nomad_discovery_service_name
 
         env = {k: v for k, v in os.environ.items() if k != "KERNEL_NOMAD_DISCOVERY_SERVICE_NAME"}
         with patch.dict(os.environ, env, clear=True):
             assert nomad_discovery_service_name() == "ethos-kernel"
 
     def test_custom_service_name(self) -> None:
-        from src.modules.nomad_discovery import nomad_discovery_service_name
+        from src.modules.perception.nomad_discovery import nomad_discovery_service_name
 
         with patch.dict(os.environ, {"KERNEL_NOMAD_DISCOVERY_SERVICE_NAME": "my-kernel"}):
             assert nomad_discovery_service_name() == "my-kernel"
 
     def test_default_service_type(self) -> None:
-        from src.modules.nomad_discovery import nomad_discovery_service_type
+        from src.modules.perception.nomad_discovery import nomad_discovery_service_type
 
         env = {k: v for k, v in os.environ.items() if k != "KERNEL_NOMAD_DISCOVERY_SERVICE_TYPE"}
         with patch.dict(os.environ, env, clear=True):
             assert "_ethos-kernel._tcp.local." in nomad_discovery_service_type()
 
     def test_discovery_enabled_by_default(self) -> None:
-        from src.modules.nomad_discovery import nomad_discovery_enabled
+        from src.modules.perception.nomad_discovery import nomad_discovery_enabled
 
         env = {k: v for k, v in os.environ.items() if k != "KERNEL_NOMAD_DISCOVERY_ENABLED"}
         with patch.dict(os.environ, env, clear=True):
             assert nomad_discovery_enabled() is True
 
     def test_discovery_disabled_by_env(self) -> None:
-        from src.modules.nomad_discovery import nomad_discovery_enabled
+        from src.modules.perception.nomad_discovery import nomad_discovery_enabled
 
         with patch.dict(os.environ, {"KERNEL_NOMAD_DISCOVERY_ENABLED": "0"}):
             assert nomad_discovery_enabled() is False
@@ -182,7 +182,7 @@ class TestNomadDiscoveryAnnouncerNoOp:
     """NomadDiscoveryAnnouncer.start() must be a graceful no-op when zeroconf is absent."""
 
     def test_start_returns_false_without_zeroconf(self) -> None:
-        from src.modules.nomad_discovery import NomadDiscoveryAnnouncer
+        from src.modules.perception.nomad_discovery import NomadDiscoveryAnnouncer
 
         announcer = NomadDiscoveryAnnouncer(
             bind_host="192.168.1.1",
@@ -198,7 +198,7 @@ class TestNomadDiscoveryAnnouncerNoOp:
         assert isinstance(result, bool)
 
     def test_stop_is_idempotent(self) -> None:
-        from src.modules.nomad_discovery import NomadDiscoveryAnnouncer
+        from src.modules.perception.nomad_discovery import NomadDiscoveryAnnouncer
 
         announcer = NomadDiscoveryAnnouncer(
             bind_host="192.168.1.1",
@@ -210,7 +210,7 @@ class TestNomadDiscoveryAnnouncerNoOp:
         announcer.stop()  # Second call — still must not raise
 
     def test_registered_false_before_start(self) -> None:
-        from src.modules.nomad_discovery import NomadDiscoveryAnnouncer
+        from src.modules.perception.nomad_discovery import NomadDiscoveryAnnouncer
 
         announcer = NomadDiscoveryAnnouncer(
             bind_host="192.168.1.1",
@@ -335,7 +335,7 @@ class TestPublicQueueStatsClinicalFields:
     """public_queue_stats() must expose ``last_rms`` and ``vad_speaking``."""
 
     def _bridge(self):
-        from src.modules.nomad_bridge import NomadBridge
+        from src.modules.perception.nomad_bridge import NomadBridge
 
         return NomadBridge()
 

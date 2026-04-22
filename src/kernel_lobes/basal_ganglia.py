@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from src.modules.basal_ganglia import BasalGanglia as BasalGangliaModule
+from src.modules.cognition.basal_ganglia import BasalGanglia as BasalGangliaModule
 
 
 class BasalGanglia:

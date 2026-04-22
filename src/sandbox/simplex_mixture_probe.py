@@ -12,7 +12,7 @@ from typing import Any
 
 import numpy as np
 
-from src.modules.weighted_ethics_scorer import WeightedEthicsScorer
+from src.modules.ethics.weighted_ethics_scorer import WeightedEthicsScorer
 
 
 def normalize_simplex(w: np.ndarray) -> np.ndarray:

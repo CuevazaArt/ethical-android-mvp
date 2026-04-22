@@ -8,13 +8,13 @@ from fastapi import APIRouter, Request
 from fastapi.responses import JSONResponse
 
 from ..chat_settings import chat_server_settings
-from ..modules.buffer import PreloadedBuffer
-from ..modules.moral_hub import (
+from src.modules.ethics.buffer import PreloadedBuffer
+from src.modules.governance.moral_hub import (
     constitution_snapshot,
     dao_governance_api_enabled,
     moral_hub_public_enabled,
 )
-from ..modules.nomad_discovery import (
+from src.modules.perception.nomad_discovery import (
     build_nomad_discovery_payload,
     nomad_discovery_service_name,
     nomad_discovery_service_type,

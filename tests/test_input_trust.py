@@ -13,7 +13,7 @@ Reference: INPUT_TRUST_THREAT_MODEL.md
 """
 
 import pytest
-from src.modules.absolute_evil import AbsoluteEvilDetector, normalize_text_for_malabs
+from src.modules.ethics.absolute_evil import AbsoluteEvilDetector, normalize_text_for_malabs
 
 
 class TestNormalizationRegressions:

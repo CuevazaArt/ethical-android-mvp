@@ -7,7 +7,7 @@ sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
 
 import pytest
 from src.kernel import EthicalKernel
-from src.modules.moral_hub import add_constitution_draft
+from src.modules.governance.moral_hub import add_constitution_draft
 from src.persistence import (
     SCHEMA_VERSION,
     JsonFilePersistence,
@@ -77,7 +77,7 @@ def test_escalation_session_roundtrip():
 
 
 def test_uchi_soto_profiles_roundtrip():
-    from src.modules.uchi_soto import InteractionProfile, TrustCircle
+    from src.modules.social.uchi_soto import InteractionProfile, TrustCircle
 
     k1 = EthicalKernel(variability=False)
     k1.uchi_soto.profiles["alice"] = InteractionProfile(
@@ -112,7 +112,7 @@ def test_uchi_soto_profiles_roundtrip():
 
 
 def test_user_model_and_subjective_clock_roundtrip():
-    from src.modules.llm_layer import LLMPerception
+    from src.modules.cognition.llm_layer import LLMPerception
 
     k1 = EthicalKernel(variability=False)
     k1.user_model.frustration_streak = 5
@@ -162,7 +162,7 @@ def test_user_model_and_subjective_clock_roundtrip():
 
 
 def test_metaplan_somatic_skills_roundtrip():
-    from src.modules.sensor_contracts import SensorSnapshot
+    from src.modules.perception.sensor_contracts import SensorSnapshot
 
     k1 = EthicalKernel(variability=False)
     k1.metaplan.add_goal("Long project", 0.72)
@@ -188,7 +188,7 @@ def test_metaplan_somatic_skills_roundtrip():
 
 
 def _kernel_with_metaplan_somatic_skills():
-    from src.modules.sensor_contracts import SensorSnapshot
+    from src.modules.perception.sensor_contracts import SensorSnapshot
 
     k = EthicalKernel(variability=False)
     k.metaplan.add_goal("Long project", 0.72)

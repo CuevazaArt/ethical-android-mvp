@@ -2,7 +2,7 @@
 
 import json
 
-from src.modules.perception_schema import (
+from src.modules.perception.perception_schema import (
     merge_parse_issues_into_perception,
     parse_perception_llm_raw_response,
 )
@@ -38,7 +38,7 @@ def test_parse_markdown_fence_and_valid():
 
 
 def test_merge_parse_issues_into_perception_mutates():
-    from src.modules.llm_layer import LLMPerception
+    from src.modules.cognition.llm_layer import LLMPerception
 
     p = LLMPerception(
         risk=0.1,

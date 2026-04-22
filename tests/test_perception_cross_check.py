@@ -1,7 +1,7 @@
 """Lexical tier vs LLM perception cross-check (no second model)."""
 
-from src.modules.llm_layer import perception_from_llm_json
-from src.modules.perception_cross_check import apply_lexical_perception_cross_check
+from src.modules.cognition.llm_layer import perception_from_llm_json
+from src.modules.perception.perception_cross_check import apply_lexical_perception_cross_check
 
 
 def _calm_low_risk_perception():

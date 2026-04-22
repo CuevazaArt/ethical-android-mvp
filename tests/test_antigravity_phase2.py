@@ -2,7 +2,7 @@ import os
 from pathlib import Path
 
 from src.kernel import EthicalKernel
-from src.modules.uchi_soto import RelationalTier
+from src.modules.social.uchi_soto import RelationalTier
 
 
 def test_vector_resonance_retrieval():

@@ -4,7 +4,7 @@ import sys
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", ".."))
 
 import numpy as np
-from src.modules.vision_adapter import MobileNetV2Adapter
+from src.modules.perception.vision_adapter import MobileNetV2Adapter
 
 
 def test_inference():

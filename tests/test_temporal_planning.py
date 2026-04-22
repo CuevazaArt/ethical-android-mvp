@@ -6,9 +6,9 @@ import time
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
 
-from src.modules.sensor_contracts import SensorSnapshot
-from src.modules.temporal_planning import build_temporal_context
-from src.modules.vitality import VitalityAssessment, critical_temperature_threshold
+from src.modules.perception.sensor_contracts import SensorSnapshot
+from src.modules.cognition.temporal_planning import build_temporal_context
+from src.modules.somatic.vitality import VitalityAssessment, critical_temperature_threshold
 
 
 def test_temporal_context_transport_keyword_eta_and_sync_fields():

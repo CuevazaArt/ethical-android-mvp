@@ -19,7 +19,7 @@ os.environ["KERNEL_LLM_TOUCHPOINT_POLICY"] = "0" # Disable LLM batching/monologu
 sys.path.append(str(Path(__file__).parent.parent.parent))
 
 from src.kernel import EthicalKernel
-from src.modules.motivation_engine import DriveType
+from src.modules.cognition.motivation_engine import DriveType
 
 def run_test():
     print("=== PROACTIVE DRIVES SIMULATION (C1) ===")

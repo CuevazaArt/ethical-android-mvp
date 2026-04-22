@@ -27,7 +27,7 @@ class TestColorSpaceParameter:
     """Verify the color_space parameter prevents the Blue Veil artifact."""
 
     def test_mock_adapter_returns_inference_for_bgr(self):
-        from src.modules.vision_adapter import MobileNetV2Adapter
+        from src.modules.perception.vision_adapter import MobileNetV2Adapter
 
         adapter = MobileNetV2Adapter()
         # Model NOT loaded → mock path
@@ -37,7 +37,7 @@ class TestColorSpaceParameter:
         assert result.confidence == 0.0
 
     def test_mock_adapter_returns_inference_for_rgb(self):
-        from src.modules.vision_adapter import MobileNetV2Adapter
+        from src.modules.perception.vision_adapter import MobileNetV2Adapter
 
         adapter = MobileNetV2Adapter()
         frame = np.zeros((64, 64, 3), dtype=np.uint8)
@@ -49,7 +49,7 @@ class TestColorSpaceParameter:
         must pass different tensors to the model (no channel inversion on RGB).
         This is validated by checking the PIL image passed downstream."""
         from PIL import Image
-        from src.modules.vision_adapter import MobileNetV2Adapter
+        from src.modules.perception.vision_adapter import MobileNetV2Adapter
 
         captured_images: list[Image.Image] = []
 
@@ -108,7 +108,7 @@ class TestColorSpaceParameter:
         """VisionAdapter ABC signature must include color_space."""
         import inspect
 
-        from src.modules.vision_adapter import VisionAdapter
+        from src.modules.perception.vision_adapter import VisionAdapter
 
         sig = inspect.signature(VisionAdapter.infer)
         assert "color_space" in sig.parameters, (
@@ -131,7 +131,7 @@ class _FakeSnapshot:
 
 class TestSensorBaselineCalibrator:
     def test_not_done_before_window(self):
-        from src.modules.sensor_baseline_calibrator import SensorBaselineCalibrator
+        from src.modules.perception.sensor_baseline_calibrator import SensorBaselineCalibrator
 
         cal = SensorBaselineCalibrator(window_seconds=60.0)
         cal.feed(_FakeSnapshot(core_temperature=50.0, accelerometer_jerk=0.1))
@@ -139,7 +139,7 @@ class TestSensorBaselineCalibrator:
         assert cal.compute_thresholds() is None
 
     def test_done_after_window_elapsed(self):
-        from src.modules.sensor_baseline_calibrator import SensorBaselineCalibrator
+        from src.modules.perception.sensor_baseline_calibrator import SensorBaselineCalibrator
 
         cal = SensorBaselineCalibrator(window_seconds=0.05)  # 50ms window
         for _ in range(5):
@@ -150,7 +150,7 @@ class TestSensorBaselineCalibrator:
         assert cal.is_done
 
     def test_thresholds_mean_plus_k_sigma(self):
-        from src.modules.sensor_baseline_calibrator import SensorBaselineCalibrator
+        from src.modules.perception.sensor_baseline_calibrator import SensorBaselineCalibrator
 
         cal = SensorBaselineCalibrator(window_seconds=0.05, sigma_k=2.0)
         temps = [60.0, 62.0, 64.0, 61.0, 63.0]
@@ -169,7 +169,7 @@ class TestSensorBaselineCalibrator:
         assert t.jerk_threshold >= t.jerk_mean
 
     def test_nan_inf_samples_ignored(self):
-        from src.modules.sensor_baseline_calibrator import SensorBaselineCalibrator
+        from src.modules.perception.sensor_baseline_calibrator import SensorBaselineCalibrator
 
         cal = SensorBaselineCalibrator(window_seconds=0.05, sigma_k=1.0)
         cal.feed(_FakeSnapshot(core_temperature=float("nan"), accelerometer_jerk=float("inf")))
@@ -185,7 +185,7 @@ class TestSensorBaselineCalibrator:
 
     def test_fallback_when_too_few_temp_samples(self):
         """With < 3 temperature samples, must fall back gracefully without raising."""
-        from src.modules.sensor_baseline_calibrator import SensorBaselineCalibrator
+        from src.modules.perception.sensor_baseline_calibrator import SensorBaselineCalibrator
 
         cal = SensorBaselineCalibrator(window_seconds=0.05, sigma_k=2.0)
         # Feed only jerk data, no temperature
@@ -198,7 +198,7 @@ class TestSensorBaselineCalibrator:
 
     def test_jerk_threshold_clamped_to_1(self):
         """jerk_threshold must never exceed 1.0 (normalized field)."""
-        from src.modules.sensor_baseline_calibrator import SensorBaselineCalibrator
+        from src.modules.perception.sensor_baseline_calibrator import SensorBaselineCalibrator
 
         cal = SensorBaselineCalibrator(window_seconds=0.05, sigma_k=10.0)  # huge k
         for _ in range(5):

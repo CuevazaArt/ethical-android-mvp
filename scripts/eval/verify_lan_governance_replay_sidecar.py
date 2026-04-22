@@ -15,11 +15,11 @@ REPO_ROOT = Path(__file__).resolve().parents[2]
 if str(REPO_ROOT) not in sys.path:
     sys.path.insert(0, str(REPO_ROOT))
 
-from src.modules.lan_governance_replay_sidecar import (  # noqa: E402
+from src.modules.governance.lan_governance_replay_sidecar import (  # noqa: E402
     LAN_GOVERNANCE_REPLAY_SIDECAR_SCHEMA_V1,
     fingerprint_replay_sidecar,
 )
-from src.modules.mock_dao_audit_replay import fingerprint_audit_ledger  # noqa: E402
+from src.modules.governance.mock_dao_audit_replay import fingerprint_audit_ledger  # noqa: E402
 
 
 def _load_json_object(path: Path) -> dict[str, object]:

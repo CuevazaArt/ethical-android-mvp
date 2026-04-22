@@ -283,7 +283,7 @@ class TestNomadBridgeVadEvent:
     """NomadBridge._recv_loop must update vad_speaking on vad_event payloads."""
 
     def _make_bridge(self) -> Any:
-        from src.modules.nomad_bridge import NomadBridge
+        from src.modules.perception.nomad_bridge import NomadBridge
 
         return NomadBridge()
 
@@ -357,7 +357,7 @@ class TestNomadBridgeChatTextQueue:
     """chat_text events must be enqueued; empty strings must be dropped."""
 
     def _make_bridge(self) -> Any:
-        from src.modules.nomad_bridge import NomadBridge
+        from src.modules.perception.nomad_bridge import NomadBridge
 
         return NomadBridge()
 
@@ -428,7 +428,7 @@ class TestChatTextConsumerCallback:
     """_chat_text_consumer must dispatch to the callback and survive errors."""
 
     def _make_bridge(self) -> Any:
-        from src.modules.nomad_bridge import NomadBridge
+        from src.modules.perception.nomad_bridge import NomadBridge
 
         return NomadBridge()
 

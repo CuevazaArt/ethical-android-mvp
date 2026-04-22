@@ -3,8 +3,8 @@ Integration tests for perception hardening — confirming that LLMModule.perceiv
 automatically engages lexical cross-checks and detects inconsistencies.
 """
 
-from src.modules.llm_backends import TextCompletionBackend
-from src.modules.llm_layer import LLMModule
+from src.modules.cognition.llm_backends import TextCompletionBackend
+from src.modules.cognition.llm_layer import LLMModule
 
 
 class MockSuccessBackend(TextCompletionBackend):

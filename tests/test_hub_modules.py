@@ -6,11 +6,11 @@ import sys
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
 
 from src.kernel import EthicalKernel
-from src.modules.hub_audit import record_dao_integrity_alert, register_hub_calibration
-from src.modules.ml_ethics_tuner import maybe_log_gray_zone_tuning_opportunity
-from src.modules.mock_dao import MockDAO
-from src.modules.nomad_identity import nomad_identity_public
-from src.modules.reparation_vault import (
+from src.modules.governance.hub_audit import record_dao_integrity_alert, register_hub_calibration
+from src.modules.ethics.ml_ethics_tuner import maybe_log_gray_zone_tuning_opportunity
+from src.modules.governance.mock_dao import MockDAO
+from src.modules.governance.nomad_identity import nomad_identity_public
+from src.modules.memory.reparation_vault import (
     STATE_INTENT,
     STATE_POST_TRIBUNAL,
     ReparationVault,
@@ -98,7 +98,7 @@ def test_ml_ethics_tuner_logs_on_gray_zone(monkeypatch):
     import json
     from types import SimpleNamespace
 
-    from src.modules.ethical_poles import Verdict
+    from src.modules.ethics.ethical_poles import Verdict
 
     k = EthicalKernel(variability=False)
     n0 = len(k.dao.records)

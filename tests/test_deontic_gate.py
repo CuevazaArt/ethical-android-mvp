@@ -6,8 +6,8 @@ import sys
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
 
 import pytest
-from src.modules.buffer import PreloadedBuffer
-from src.modules.deontic_gate import (
+from src.modules.ethics.buffer import PreloadedBuffer
+from src.modules.ethics.deontic_gate import (
     check_calibration_payload_against_l0,
     check_cultural_draft_against_l0,
     deontic_gate_enabled,

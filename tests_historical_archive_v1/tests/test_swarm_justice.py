@@ -5,9 +5,9 @@ import unittest
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
 
-from src.modules.mock_dao import MockDAO
-from src.modules.swarm_negotiator import SwarmNegotiator
-from src.modules.swarm_oracle import SwarmOracle
+from src.modules.governance.mock_dao import MockDAO
+from src.modules.social.swarm_negotiator import SwarmNegotiator
+from src.modules.social.swarm_oracle import SwarmOracle
 
 class TestSwarmJusticeIntegration(unittest.TestCase):
     def setUp(self):

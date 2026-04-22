@@ -11,11 +11,11 @@ import numpy as np
 _log = logging.getLogger(__name__)
 
 if TYPE_CHECKING:
-    from src.modules.bayesian_engine import BayesianInferenceEngine
-    from src.modules.narrative import NarrativeMemory
-    from src.modules.rlhf_reward_model import RLHFPipeline
-    from src.modules.strategy_engine import ExecutiveStrategist
-    from src.modules.weighted_ethics_scorer import CandidateAction, EthicsMixtureResult
+    from src.modules.cognition.bayesian_engine import BayesianInferenceEngine
+    from src.modules.memory.narrative import NarrativeMemory
+    from src.modules.cognition.rlhf_reward_model import RLHFPipeline
+    from src.modules.cognition.strategy_engine import ExecutiveStrategist
+    from src.modules.ethics.weighted_ethics_scorer import CandidateAction, EthicsMixtureResult
 
 
 from src.kernel_lobes.models import (
@@ -51,7 +51,7 @@ class CerebellumLobe:
         self.rlhf = rlhf
         self.bus = bus
 
-        from src.modules.session_checkpoint import SessionCheckpointTracker
+        from src.modules.memory.session_checkpoint import SessionCheckpointTracker
 
         self.tracker = SessionCheckpointTracker(self.memory)
         # Mnemónica asíncrona: El Cerebelo escucha estímulos para pre-calcular confianza
@@ -74,7 +74,7 @@ class CerebellumLobe:
         """
         t0 = time.perf_counter()
         # 0. Sync Scorer and Priors (High-Friction Restorative Logic)
-        from src.modules.dao_orchestrator import DAOOrchestrator
+        from src.modules.governance.dao_orchestrator import DAOOrchestrator
 
         priors = None
         if hasattr(self.bayesian, "dao") and isinstance(self.bayesian.dao, DAOOrchestrator):
@@ -113,7 +113,7 @@ class CerebellumLobe:
         if fb_path:
             p = Path(fb_path)
             if p.is_file():
-                from src.modules.feedback_mixture_posterior import (
+                from src.modules.cognition.feedback_mixture_posterior import (
                     context_level3_enabled,
                     load_and_apply_feedback,
                 )
@@ -147,7 +147,7 @@ class CerebellumLobe:
         from src.kernel_utils import kernel_env_truthy
 
         if kernel_env_truthy("KERNEL_TEMPORAL_HORIZON_PRIOR"):
-            from src.modules.temporal_horizon_prior import apply_horizon_prior_to_engine
+            from src.modules.cognition.temporal_horizon_prior import apply_horizon_prior_to_engine
 
             # We use the 'genome' stored in the kernel if available, or the current state
             # Here we assume the mixture should not drift more than 15% from its core geometry.
@@ -172,7 +172,7 @@ class CerebellumLobe:
 
                 # ADR 0013 — Hierarchical updater: apply per-context Dirichlet blending
                 if _hier_on:
-                    from src.modules.hierarchical_updater import (
+                    from src.modules.cognition.hierarchical_updater import (
                         HierarchicalUpdater,
                         canonical_context_type,
                     )
@@ -210,7 +210,7 @@ class CerebellumLobe:
         bma_dirichlet = None
         bma_n_s = None
 
-        from src.modules.bayesian_mixture_averaging import (
+        from src.modules.cognition.bayesian_mixture_averaging import (
             bma_enabled,
             bma_n_samples,
             monte_carlo_win_probabilities,

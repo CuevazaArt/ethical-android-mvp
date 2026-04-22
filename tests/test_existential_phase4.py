@@ -7,7 +7,7 @@ sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
 
 from cryptography.hazmat.primitives.asymmetric.ed25519 import Ed25519PrivateKey
 from src.kernel import EthicalKernel
-from src.modules.existential_serialization import (
+from src.modules.governance.existential_serialization import (
     HANDSHAKE_ALGORITHM_V1,
     canonical_narrative_commitment_hex,
     export_nomadic_handshake_bundle,

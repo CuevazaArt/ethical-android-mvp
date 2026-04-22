@@ -1945,3 +1945,54 @@ This file is automatically managed by `scripts/swarm_sync.py`.
 - **Message:** Swarm Master Prompts Added for Opus 4.6 and Generic Normalization
 - **Files Modified:**
   - `docs/proposals/PLAN_WORK_DISTRIBUTION_TREE.md`
+
+### Execution (Swarm) | Date: 2026-04-22 11:01:00 | Author: Anonymous Agent
+- **Block:** `15.2`
+- **Message:** Phase 15.2: Structural collapse of src/modules into 8 domains completed. Imports repaired.
+- **Files Modified:**
+  - `fix_relative.py`
+  - `fix_tests.py`
+  - `pytest_failures.txt`
+  - `pytest_output.txt`
+  - `refactor_modules.py`
+  - `scripts/audit_mixture_simplex_corners.py`
+  - `scripts/build_bloque_34_4_ws_chat.py`
+  - `scripts/eval/compare_audit_ledger_anchor.py`
+  - `scripts/eval/eval_rlhf_alignment.py`
+  - `scripts/eval/optimize_malabs_thresholds.py`
+  - `scripts/eval/run_burst_cancel_smoke.py`
+  - `scripts/eval/run_red_team.py`
+  - `scripts/eval/synthetic_weight_tuner.py`
+  - `scripts/eval/test_trauma_sensitivity.py`
+  - `scripts/eval/verify_chroma_persistence.py`
+  - `scripts/eval/verify_lan_governance_replay_sidecar.py`
+  - `scripts/eval/verify_mock_dao_audit_replay.py`
+  - `scripts/eval/verify_nomad_async_loop.py`
+  - `scripts/evaluate_semantic_thresholds.py`
+  - `scripts/report_semantic_zone_table.py`
+  - `scripts/run_feedback_posterior.py`
+  - `scripts/run_likelihood_calibration.py`
+  - `scripts/run_simplex_decision_map.py`
+  - `scripts/run_vision_pilot_validation.py`
+  - `scripts/run_weight_sweep_batch.py`
+  - `scripts/validate_anti_sycophancy.py`
+  - `simulations/scripts/device_emulator.py`
+  - `simulations/scripts/test_adversarial_witness.py`
+  - `simulations/scripts/test_ethical_flashback.py`
+  - `simulations/scripts/test_identity_healing.py`
+  - `simulations/scripts/test_proactive_drives.py`
+  - `simulations/scripts/test_realm_switching.py`
+  - `simulations/scripts/test_visual_threat_veto.py`
+  - `tests_historical_archive_v1/tests/experimental/scratch.py`
+  - `tests_historical_archive_v1/tests/experimental/test_vision_adapter.py`
+  - `tests_historical_archive_v1/tests/test_bayesian_minimal_update.py`
+  - `tests_historical_archive_v1/tests/test_chat_async_llm_cancel.py`
+  - `tests_historical_archive_v1/tests/test_external_audit_framework.py`
+  - `tests_historical_archive_v1/tests/test_llm_http_cancel.py`
+  - `tests_historical_archive_v1/tests/test_multi_realm_governance.py`
+  - `tests_historical_archive_v1/tests/test_perception_hardening_integration.py`
+  - `tests_historical_archive_v1/tests/test_rlhf_reward_model.py`
+  - `tests_historical_archive_v1/tests/test_semantic_robustness.py`
+  - `tests_historical_archive_v1/tests/test_semantic_threshold_proposal_doc_alignment.py`
+  - `tests_historical_archive_v1/tests/test_soft_robotics.py`
+  - `tests_historical_archive_v1/tests/test_swarm_justice.py`

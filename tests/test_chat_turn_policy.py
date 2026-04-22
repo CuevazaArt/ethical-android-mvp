@@ -9,7 +9,7 @@ from src.kernel_lobes.chat_turn_policy import (
     chat_turn_is_heavy,
     prioritized_principles_for_context,
 )
-from src.modules.llm_layer import LLMPerception
+from src.modules.cognition.llm_layer import LLMPerception
 
 
 def _perception(**kwargs: float | str) -> LLMPerception:

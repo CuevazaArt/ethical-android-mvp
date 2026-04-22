@@ -9,7 +9,7 @@ import pytest
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
 
-from src.modules.absolute_evil import AbsoluteEvilCategory, AbsoluteEvilDetector
+from src.modules.ethics.absolute_evil import AbsoluteEvilCategory, AbsoluteEvilDetector
 
 
 @pytest.fixture
@@ -52,7 +52,7 @@ def test_ecological_signals_blocked(malabs: AbsoluteEvilDetector):
     Note: These are usually blocked via the 'action' dict (Layer 1/2)
     but we should check the signals are available.
     """
-    from src.modules.absolute_evil import AbsoluteEvilCategory
+    from src.modules.ethics.absolute_evil import AbsoluteEvilCategory
 
     # In evaluate(), we check action.get("signals")
     r = malabs.evaluate({"signals": {"toxic_release"}})

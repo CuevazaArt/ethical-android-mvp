@@ -11,8 +11,8 @@ from __future__ import annotations
 
 import pytest
 from src.kernel import EthicalKernel
-from src.modules.dao_orchestrator import DAOOrchestrator
-from src.modules.swarm_oracle import SwarmOracle
+from src.modules.governance.dao_orchestrator import DAOOrchestrator
+from src.modules.social.swarm_oracle import SwarmOracle
 
 
 class TestRestoraiveJusticeModule:

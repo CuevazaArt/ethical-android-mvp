@@ -47,9 +47,9 @@ from starlette.concurrency import run_in_threadpool
 
 if TYPE_CHECKING:
     from .kernel import ChatTurnResult, EthicalKernel
-    from .modules.sensor_contracts import SensorSnapshot
+    from .modules.perception.sensor_contracts import SensorSnapshot
 
-from .modules.llm_http_cancel import clear_llm_cancel_scope, set_llm_cancel_scope
+from .modules.cognition.llm_http_cancel import clear_llm_cancel_scope, set_llm_cancel_scope
 
 
 def _async_chat_llm_http_enabled() -> bool:

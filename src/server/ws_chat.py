@@ -15,24 +15,24 @@ from fastapi import APIRouter, WebSocket, WebSocketDisconnect
 
 from ..kernel import ChatTurnResult, EthicalKernel
 from ..kernel_utils import kernel_dao_as_mock
-from ..modules.affective_homeostasis import homeostasis_telemetry
-from ..modules.consequence_projection import qualitative_temporal_branches
-from ..modules.guardian_mode import (
+from src.modules.somatic.affective_homeostasis import homeostasis_telemetry
+from src.modules.cognition.consequence_projection import qualitative_temporal_branches
+from src.modules.safety.guardian_mode import (
     is_guardian_mode_active,
     public_routines_snapshot,
 )
 from ..modules.internal_monologue import compose_monologue_line
-from ..modules.ml_ethics_tuner import maybe_log_gray_zone_tuning_opportunity
-from ..modules.moral_hub import (
+from src.modules.ethics.ml_ethics_tuner import maybe_log_gray_zone_tuning_opportunity
+from src.modules.governance.moral_hub import (
     add_constitution_draft,
     audit_transparency_event,
     constitution_draft_ws_enabled,
     ethos_payroll_record_mock,
 )
-from ..modules.nomad_identity import nomad_identity_public
-from ..modules.perception_schema import perception_report_from_dict
-from ..modules.perceptual_abstraction import snapshot_from_layers
-from ..modules.sensor_contracts import SensorPayloadValidationError
+from src.modules.governance.nomad_identity import nomad_identity_public
+from src.modules.perception.perception_schema import perception_report_from_dict
+from src.modules.perception.perceptual_abstraction import snapshot_from_layers
+from src.modules.perception.sensor_contracts import SensorPayloadValidationError
 from ..observability.context import clear_request_context, set_request_id
 from ..observability.metrics import (
     observe_chat_turn,
@@ -376,7 +376,7 @@ def _chat_turn_to_jsonable(r: ChatTurnResult, kernel: EthicalKernel) -> dict[str
         if chat_include_homeostasis():
             out["affective_homeostasis"] = homeostasis_telemetry(d)
         if chat_include_transparency_s10():
-            from ..modules.transparency_s10 import build_transparency_s10_bundle
+            from src.modules.safety.transparency_s10 import build_transparency_s10_bundle
 
             sig: dict[str, Any] = {}
             if r.perception:
@@ -573,7 +573,7 @@ async def ws_chat(ws: WebSocket) -> None:
                 client = sensor_raw if isinstance(sensor_raw, dict) else None
 
                 # Phase 10: Inject Nomad Bridge Live Data
-                from ..modules.nomad_bridge import get_nomad_bridge
+                from src.modules.perception.nomad_bridge import get_nomad_bridge
 
                 nb = get_nomad_bridge()
                 if client is None:

@@ -8,8 +8,8 @@ import sys
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '../../')))
 
 from src.kernel import EthicalKernel
-from src.modules.sensor_contracts import SensorSnapshot
-from src.modules.weighted_ethics_scorer import CandidateAction
+from src.modules.perception.sensor_contracts import SensorSnapshot
+from src.modules.ethics.weighted_ethics_scorer import CandidateAction
 
 class DeviceEmulator:
     def __init__(self, cfg, dao):
@@ -28,7 +28,7 @@ class DeviceEmulator:
         print(f"[Device] ID {self.cfg.get('id', 'Unknown')} inicializado con EthicalKernel v1.0.")
         # Simulate Swarm Discovery (I7)
         if hasattr(self.kernel, 'swarm'):
-            from src.modules.swarm_negotiator import SwarmMessage
+            from src.modules.social.swarm_negotiator import SwarmMessage
             # Simulate hearing from 2 other peers in the LAN
             for peer_id in ["PEER-77", "PEER-99"]:
                 msg = SwarmMessage(

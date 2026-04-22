@@ -6,7 +6,7 @@ import asyncio
 
 import pytest
 
-from src.modules.llm_backends import MockLLMBackend
+from src.modules.cognition.llm_backends import MockLLMBackend
 
 
 def test_mock_acompletion_cancelled_by_wait_for() -> None:

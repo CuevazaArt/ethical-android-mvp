@@ -4,10 +4,10 @@ from typing import TYPE_CHECKING
 from src.kernel_lobes.models import EthicalSentence, SemanticState
 
 if TYPE_CHECKING:
-    from src.modules.absolute_evil import AbsoluteEvilDetector
-    from src.modules.identity_integrity import IdentityIntegrityManager
-    from src.modules.nomad_identity import NomadicRegistry
-    from src.modules.uchi_soto import UchiSotoModule
+    from src.modules.ethics.absolute_evil import AbsoluteEvilDetector
+    from src.modules.governance.identity_integrity import IdentityIntegrityManager
+    from src.modules.governance.nomad_identity import NomadicRegistry
+    from src.modules.social.uchi_soto import UchiSotoModule
 
 _log = logging.getLogger(__name__)
 

@@ -2,7 +2,7 @@ import os
 import unittest
 import numpy as np
 from src.kernel import EthicalKernel
-from src.modules.bayesian_engine import BayesianMode
+from src.modules.cognition.bayesian_engine import BayesianMode
 
 class TestBayesianMinimalUpdate(unittest.TestCase):
     def setUp(self):

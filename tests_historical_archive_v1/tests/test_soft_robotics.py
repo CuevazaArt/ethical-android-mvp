@@ -4,7 +4,7 @@ Tests for Soft Robotics Kinematic Filtering (Module 3: S7).
 
 import time
 import pytest
-from src.modules.soft_robotics import SoftKinematicFilter, apply_social_proxemics_filter
+from src.modules.somatic.soft_robotics import SoftKinematicFilter, apply_social_proxemics_filter
 
 def test_kinematic_filter_smooths_jumps():
     # Max accel 1.0, Max vel 2.0

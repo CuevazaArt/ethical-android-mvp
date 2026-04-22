@@ -5,7 +5,7 @@ import sys
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
 
-from src.modules.llm_layer import LLMModule, resolve_llm_mode
+from src.modules.cognition.llm_layer import LLMModule, resolve_llm_mode
 
 
 def test_resolve_use_local_llm_selects_ollama(monkeypatch):

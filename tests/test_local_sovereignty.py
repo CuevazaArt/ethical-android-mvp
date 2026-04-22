@@ -5,8 +5,8 @@ import sys
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
 
-from src.modules.buffer import PreloadedBuffer
-from src.modules.local_sovereignty import (
+from src.modules.ethics.buffer import PreloadedBuffer
+from src.modules.safety.local_sovereignty import (
     evaluate_calibration_update,
     local_sovereignty_scan_enabled,
 )

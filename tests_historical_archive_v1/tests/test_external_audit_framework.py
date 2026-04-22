@@ -10,7 +10,7 @@ import pytest
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
 
-from src.modules.external_audit_framework import (
+from src.modules.governance.external_audit_framework import (
     AuditLog,
     AuditReport,
     ExternalAuditFramework,

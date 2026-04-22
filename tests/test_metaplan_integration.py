@@ -19,7 +19,7 @@ import json
 
 import pytest
 from src.kernel import EthicalKernel
-from src.modules.metaplan_registry import MetaplanRegistry
+from src.modules.cognition.metaplan_registry import MetaplanRegistry
 
 
 class TestMetaplanIntegration:

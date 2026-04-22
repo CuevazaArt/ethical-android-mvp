@@ -3,8 +3,8 @@ Tests for Block 4.3: Identidad Migratoria e Interoperabilidad (C5).
 """
 
 from src.kernel import EthicalKernel
-from src.modules.narrative_types import HardwareProfile
-from src.modules.weighted_ethics_scorer import CandidateAction
+from src.modules.memory.narrative_types import HardwareProfile
+from src.modules.ethics.weighted_ethics_scorer import CandidateAction
 from src.persistence.kernel_io import apply_snapshot, extract_snapshot
 
 

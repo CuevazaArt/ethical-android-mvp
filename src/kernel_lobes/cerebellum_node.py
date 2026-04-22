@@ -25,7 +25,7 @@ class CerebellumNode(threading.Thread):
     def run(self) -> None:
         """Pure hardware polling loop."""
         try:
-            from src.modules.vitality import (
+            from src.modules.somatic.vitality import (
                 critical_battery_threshold,
                 critical_temperature_threshold,
             )

@@ -6,19 +6,19 @@ import time
 from typing import TYPE_CHECKING, Any, Optional
 
 from src.kernel_lobes.models import SemanticState, TimeoutTrauma, MotorCommandDispatch
-from src.modules.session_checkpoint import SessionCheckpointTracker
+from src.modules.memory.session_checkpoint import SessionCheckpointTracker
 
 if TYPE_CHECKING:
     from src.nervous_system.corpus_callosum import CorpusCallosum
-    from src.modules.dao_orchestrator import DAOOrchestrator
-    from src.modules.immortality import ImmortalityProtocol
-    from src.modules.llm_layer import LLMModule
-    from src.modules.memory_hygiene import MemoryHygieneService
-    from src.modules.migratory_identity import MigrationHub
-    from src.modules.narrative import NarrativeMemory
-    from src.modules.sympathetic import InternalState
-    from src.modules.uchi_soto import SocialEvaluation
-    from src.modules.weighted_ethics_scorer import EthicsMixtureResult
+    from src.modules.governance.dao_orchestrator import DAOOrchestrator
+    from src.modules.memory.immortality import ImmortalityProtocol
+    from src.modules.cognition.llm_layer import LLMModule
+    from src.modules.memory.memory_hygiene import MemoryHygieneService
+    from src.modules.memory.migratory_identity import MigrationHub
+    from src.modules.memory.narrative import NarrativeMemory
+    from src.modules.somatic.sympathetic import InternalState
+    from src.modules.social.uchi_soto import SocialEvaluation
+    from src.modules.ethics.weighted_ethics_scorer import EthicsMixtureResult
 
 _log = logging.getLogger(__name__)
 

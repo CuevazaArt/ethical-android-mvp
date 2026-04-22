@@ -5,12 +5,12 @@ import sys
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
 
-from src.modules.lan_governance_coordinator import (
+from src.modules.governance.lan_governance_coordinator import (
     LAN_GOVERNANCE_COORDINATOR_SCHEMA_V1,
     fingerprint_lan_governance_coordinator,
     normalize_lan_governance_coordinator,
 )
-from src.modules.lan_governance_envelope import LAN_GOVERNANCE_ENVELOPE_SCHEMA_V1
+from src.modules.governance.lan_governance_envelope import LAN_GOVERNANCE_ENVELOPE_SCHEMA_V1
 
 
 def _env(kind: str, node: str, ms: int, event_id: str, summary: str) -> dict:

@@ -7,7 +7,7 @@ import pytest
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
 
-from src.modules.semantic_chat_gate import (
+from src.modules.safety.semantic_chat_gate import (
     add_semantic_anchor,
     run_semantic_malabs_after_lexical,
     semantic_chat_gate_env_enabled,

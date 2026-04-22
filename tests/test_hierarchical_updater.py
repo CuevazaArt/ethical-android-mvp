@@ -3,10 +3,10 @@
 from __future__ import annotations
 
 import pytest
-from src.modules.feedback_mixture_updater import (
+from src.modules.cognition.feedback_mixture_updater import (
     FeedbackItem,
 )
-from src.modules.hierarchical_updater import (
+from src.modules.cognition.hierarchical_updater import (
     HierarchicalUpdater,
     _tau,
     canonical_context_type,

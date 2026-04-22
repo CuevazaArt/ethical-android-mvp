@@ -5,8 +5,8 @@ import sys
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
 
-from src.modules.mock_dao import MockDAO
-from src.modules.mock_dao_audit_replay import (
+from src.modules.governance.mock_dao import MockDAO
+from src.modules.governance.mock_dao_audit_replay import (
     audit_record_to_public_dict,
     fingerprint_audit_ledger,
 )

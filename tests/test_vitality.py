@@ -5,8 +5,8 @@ import sys
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
 
-from src.modules.sensor_contracts import SensorSnapshot
-from src.modules.vitality import (
+from src.modules.perception.sensor_contracts import SensorSnapshot
+from src.modules.somatic.vitality import (
     VitalityAssessment,
     apply_nomad_telemetry_if_enabled,
     assess_vitality,
@@ -84,7 +84,7 @@ def test_normalize_nomad_skin_temp_alias():
 
 def test_apply_nomad_telemetry_fills_battery_when_missing(monkeypatch):
     monkeypatch.setenv("KERNEL_NOMAD_TELEMETRY_VITALITY", "1")
-    from src.modules.nomad_bridge import get_nomad_bridge
+    from src.modules.perception.nomad_bridge import get_nomad_bridge
 
     reset_thermal_interrupt_latch_for_tests()
     bridge = get_nomad_bridge()
@@ -100,7 +100,7 @@ def test_apply_nomad_telemetry_fills_battery_when_missing(monkeypatch):
 
 def test_apply_nomad_telemetry_respects_explicit_battery(monkeypatch):
     monkeypatch.setenv("KERNEL_NOMAD_TELEMETRY_VITALITY", "1")
-    from src.modules.nomad_bridge import get_nomad_bridge
+    from src.modules.perception.nomad_bridge import get_nomad_bridge
 
     bridge = get_nomad_bridge()
     with bridge._telemetry_lock:
@@ -113,7 +113,7 @@ def test_apply_nomad_telemetry_respects_explicit_battery(monkeypatch):
 
 def test_apply_nomad_telemetry_disabled(monkeypatch):
     monkeypatch.setenv("KERNEL_NOMAD_TELEMETRY_VITALITY", "0")
-    from src.modules.nomad_bridge import get_nomad_bridge
+    from src.modules.perception.nomad_bridge import get_nomad_bridge
 
     bridge = get_nomad_bridge()
     with bridge._telemetry_lock:

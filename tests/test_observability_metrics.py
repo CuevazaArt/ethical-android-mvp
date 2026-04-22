@@ -33,7 +33,7 @@ os.environ["KERNEL_SEMANTIC_CHAT_GATE"] = "1"
 os.environ["KERNEL_SEMANTIC_EMBED_HASH_FALLBACK"] = "1"
 from fastapi.testclient import TestClient
 from src.chat_server import app
-from src.modules.semantic_chat_gate import run_semantic_malabs_after_lexical
+from src.modules.safety.semantic_chat_gate import run_semantic_malabs_after_lexical
 with TestClient(app) as c:
     run_semantic_malabs_after_lexical("metrics probe benign hello", None)
     r = c.get("/metrics")
@@ -79,7 +79,7 @@ os.environ["KERNEL_METRICS"] = "1"
 from src.observability.metrics import init_metrics
 init_metrics()
 from src.kernel import EthicalKernel
-from src.modules.weighted_ethics_scorer import CandidateAction
+from src.modules.ethics.weighted_ethics_scorer import CandidateAction
 k = EthicalKernel(variability=False, llm_mode="local")
 acts = [
     CandidateAction("act_civically", "x", estimated_impact=0.5, confidence=0.8),

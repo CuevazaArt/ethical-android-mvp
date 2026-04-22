@@ -12,9 +12,9 @@ import pytest
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
 
-from src.modules.absolute_evil import AbsoluteEvilCategory, AbsoluteEvilDetector
-from src.modules.semantic_anchor_store import create_anchor_store
-from src.modules.semantic_chat_gate import (
+from src.modules.ethics.absolute_evil import AbsoluteEvilCategory, AbsoluteEvilDetector
+from src.modules.memory.semantic_anchor_store import create_anchor_store
+from src.modules.safety.semantic_chat_gate import (
     DEFAULT_SEMANTIC_SIM_ALLOW_THRESHOLD,
     DEFAULT_SEMANTIC_SIM_BLOCK_THRESHOLD,
     add_semantic_anchor,
@@ -47,7 +47,7 @@ def test_semantic_gate_defaults_on_in_fresh_interpreter():
     code = """
 import os
 os.environ.pop("KERNEL_SEMANTIC_CHAT_GATE", None)
-from src.modules.semantic_chat_gate import semantic_chat_gate_env_enabled
+from src.modules.safety.semantic_chat_gate import semantic_chat_gate_env_enabled
 assert semantic_chat_gate_env_enabled() is True
 """
     subprocess.run([sys.executable, "-c", code], cwd=root, check=True)
@@ -65,7 +65,7 @@ def test_semantic_blocks_when_embedding_matches_reference(monkeypatch):
     os.environ["KERNEL_SEMANTIC_CHAT_GATE"] = "1"
     os.environ["KERNEL_SEMANTIC_CHAT_SIM_THRESHOLD"] = "0.5"
     os.environ.pop("KERNEL_SEMANTIC_CHAT_SIM_BLOCK_THRESHOLD", None)
-    import src.modules.semantic_chat_gate as sg
+    import src.modules.safety.semantic_chat_gate as sg
 
     sg._ref_embed_cache.clear()
     v = np.array([3.0, 4.0, 0.0], dtype=np.float64)
@@ -90,8 +90,8 @@ def test_semantic_blocks_when_embedding_matches_reference(monkeypatch):
 def test_evaluate_chat_text_runs_semantic_after_lexical(monkeypatch):
     os.environ["KERNEL_SEMANTIC_CHAT_GATE"] = "1"
     try:
-        import src.modules.semantic_chat_gate as sg
-        from src.modules.absolute_evil import AbsoluteEvilCategory, AbsoluteEvilResult
+        import src.modules.safety.semantic_chat_gate as sg
+        from src.modules.ethics.absolute_evil import AbsoluteEvilCategory, AbsoluteEvilResult
 
         fake = AbsoluteEvilResult(
             blocked=True,
@@ -111,7 +111,7 @@ def test_lexical_blocks_before_semantic_runs(monkeypatch):
     """Layer 0 substring match must not call semantic tier."""
     os.environ["KERNEL_SEMANTIC_CHAT_GATE"] = "1"
     try:
-        import src.modules.semantic_chat_gate as sg
+        import src.modules.safety.semantic_chat_gate as sg
 
         def boom(_t, _b):
             raise AssertionError("semantic tier should not run")
@@ -128,7 +128,7 @@ def test_lexical_blocks_before_semantic_runs(monkeypatch):
 def test_ambiguous_band_fail_safe_without_arbiter(monkeypatch):
     os.environ["KERNEL_SEMANTIC_CHAT_GATE"] = "1"
     os.environ["KERNEL_SEMANTIC_CHAT_LLM_ARBITER"] = "0"
-    import src.modules.semantic_chat_gate as sg
+    import src.modules.safety.semantic_chat_gate as sg
 
     monkeypatch.setattr(sg, "_fetch_embedding", lambda t: np.array([1.0, 0.0, 0.0]))
     monkeypatch.setattr(
@@ -147,7 +147,7 @@ def test_ambiguous_band_fail_safe_without_arbiter(monkeypatch):
 
 def test_semantic_block_maps_torture_category(monkeypatch):
     os.environ["KERNEL_SEMANTIC_CHAT_GATE"] = "1"
-    import src.modules.semantic_chat_gate as sg
+    import src.modules.safety.semantic_chat_gate as sg
 
     monkeypatch.setattr(sg, "_fetch_embedding", lambda _t: np.array([1.0, 0.0, 0.0]))
     monkeypatch.setattr(
@@ -166,7 +166,7 @@ def test_semantic_block_maps_torture_category(monkeypatch):
 def test_llm_arbiter_can_allow_ambiguous(monkeypatch):
     os.environ["KERNEL_SEMANTIC_CHAT_GATE"] = "1"
     os.environ["KERNEL_SEMANTIC_CHAT_LLM_ARBITER"] = "1"
-    import src.modules.semantic_chat_gate as sg
+    import src.modules.safety.semantic_chat_gate as sg
 
     monkeypatch.setattr(sg, "_fetch_embedding", lambda t: np.array([1.0, 0.0, 0.0]))
     monkeypatch.setattr(
@@ -213,7 +213,7 @@ for k in (
     "KERNEL_SEMANTIC_CHAT_SIM_ALLOW_THRESHOLD",
 ):
     os.environ.pop(k, None)
-from src.modules.semantic_chat_gate import (
+from src.modules.safety.semantic_chat_gate import (
     DEFAULT_SEMANTIC_SIM_ALLOW_THRESHOLD,
     DEFAULT_SEMANTIC_SIM_BLOCK_THRESHOLD,
     _allow_threshold,
@@ -226,7 +226,7 @@ assert _allow_threshold() == DEFAULT_SEMANTIC_SIM_ALLOW_THRESHOLD
 
 
 def test_add_semantic_anchor_registers_phrase():
-    import src.modules.semantic_chat_gate as sg
+    import src.modules.safety.semantic_chat_gate as sg
 
     n = len(sg._runtime_anchors)
     add_semantic_anchor("unique test phrase xyz123", "UNAUTHORIZED_REPROGRAMMING", "rt")

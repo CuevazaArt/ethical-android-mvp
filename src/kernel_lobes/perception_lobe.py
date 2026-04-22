@@ -22,8 +22,8 @@ if TYPE_CHECKING:
     from src.nervous_system.corpus_callosum import CorpusCallosum
 
 # Module-level imports so tests can monkeypatch ``scan_premises`` / ``verify_against_lighthouse``.
-from src.modules.premise_validation import scan_premises  # noqa: F401
-from src.modules.reality_verification import verify_against_lighthouse  # noqa: F401
+from src.modules.cognition.premise_validation import scan_premises  # noqa: F401
+from src.modules.safety.reality_verification import verify_against_lighthouse  # noqa: F401
 
 _log = logging.getLogger(__name__)
 
@@ -120,10 +120,10 @@ class PerceptiveLobe:
             state.conversation_context = conversation_context
 
             # Attach Vitality (Bloque 11.2)
-            from src.modules.vitality import assess_vitality
+            from src.modules.somatic.vitality import assess_vitality
             # We don't have the full sensor snapshot here yet in the simplified V13 pulse,
             # but we can try to derive it from the bridge if enabled.
-            from src.modules.vitality import apply_nomad_telemetry_if_enabled
+            from src.modules.somatic.vitality import apply_nomad_telemetry_if_enabled
             state.vitality = assess_vitality(apply_nomad_telemetry_if_enabled(None))
 
         except Exception as e:
@@ -233,11 +233,11 @@ class PerceptiveLobe:
     ) -> PerceptionStageResult:
         """Full perception envelope for legacy chat + batch pipelines."""
 
-        from src.modules.epistemic_dissonance import assess_epistemic_dissonance
-        from src.modules.multimodal_trust import evaluate_multimodal_trust
-        from src.modules.perception_confidence import build_perception_confidence_envelope
-        from src.modules.temporal_planning import build_temporal_context
-        from src.modules.vitality import assess_vitality
+        from src.modules.cognition.epistemic_dissonance import assess_epistemic_dissonance
+        from src.modules.perception.multimodal_trust import evaluate_multimodal_trust
+        from src.modules.perception.perception_confidence import build_perception_confidence_envelope
+        from src.modules.cognition.temporal_planning import build_temporal_context
+        from src.modules.somatic.vitality import assess_vitality
 
         vitality = assess_vitality(sensor_snapshot)
         multimodal = evaluate_multimodal_trust(sensor_snapshot)
@@ -368,8 +368,8 @@ class PerceptiveLobe:
     def _preprocess_text_observability(self, text: str) -> tuple[Any, Any, Any]:
         from concurrent.futures import ThreadPoolExecutor
 
-        from src.modules.light_risk_classifier import light_risk_tier_from_text
-        from src.modules.reality_verification import lighthouse_kb_from_env
+        from src.modules.safety.light_risk_classifier import light_risk_tier_from_text
+        from src.modules.safety.reality_verification import lighthouse_kb_from_env
 
         tier = light_risk_tier_from_text(text)
         _workers = int(os.environ.get("KERNEL_PERCEPTION_PARALLEL_WORKERS", "2") or "2")
@@ -399,7 +399,7 @@ class PerceptiveLobe:
         When the vessel is offline (stale telemetry or unhealthy socket), the lobe
         enters a short **inertia** window (ghosting) before declaring ``sensory_shutdown``.
         """
-        from src.modules.nomad_bridge import is_vessel_online
+        from src.modules.perception.nomad_bridge import is_vessel_online
 
         now = time.time()
         if not math.isfinite(now):

@@ -8,7 +8,7 @@ batch path does not need to import vitality details from multiple places
 
 from __future__ import annotations
 
-from ..modules.vitality import (
+from src.modules.somatic.vitality import (
     VitalityAssessment,
     assess_vitality,
     vitality_communication_hint,

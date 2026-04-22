@@ -5,7 +5,7 @@ import sys
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
 
-from src.modules.perception_confidence import build_perception_confidence_envelope
+from src.modules.perception.perception_confidence import build_perception_confidence_envelope
 
 
 def test_perception_confidence_high_when_no_distrust_signals():

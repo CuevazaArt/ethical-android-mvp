@@ -2,7 +2,7 @@ import asyncio
 import os
 from pathlib import Path
 
-import src.modules.semantic_chat_gate as sem_gate
+import src.modules.safety.semantic_chat_gate as sem_gate
 from src.kernel import EthicalKernel
 
 

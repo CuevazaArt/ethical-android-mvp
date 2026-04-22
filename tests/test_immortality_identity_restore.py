@@ -15,8 +15,8 @@ Covers:
 import json
 import types
 
-from src.modules.narrative_identity import NarrativeIdentityState
-from src.modules.narrative_types import NarrativeArc
+from src.modules.memory.narrative_identity import NarrativeIdentityState
+from src.modules.memory.narrative_types import NarrativeArc
 
 # ---------------------------------------------------------------------------
 # Helpers
@@ -25,7 +25,7 @@ from src.modules.narrative_types import NarrativeArc
 
 def _make_memory(tmp_path):
     """Build a NarrativeMemory backed by a temp SQLite db."""
-    from src.modules.narrative import NarrativeMemory
+    from src.modules.memory.narrative import NarrativeMemory
 
     return NarrativeMemory(db_path=tmp_path / "test.db")
 
@@ -83,7 +83,7 @@ class TestNarrativeIdentityStateMutableDefault:
 
 class TestImmortalitySnapshotVersion:
     def test_backup_version_is_3_2(self, tmp_path):
-        from src.modules.immortality import ImmortalityProtocol
+        from src.modules.memory.immortality import ImmortalityProtocol
 
         mem = _make_memory(tmp_path)
         kernel = _make_kernel_stub(mem)
@@ -94,7 +94,7 @@ class TestImmortalitySnapshotVersion:
         assert snap.version == "3.2", "Version must be 3.2 after identity_state_json addition"
 
     def test_backup_includes_identity_state_json(self, tmp_path):
-        from src.modules.immortality import ImmortalityProtocol
+        from src.modules.memory.immortality import ImmortalityProtocol
 
         mem = _make_memory(tmp_path)
         # Seed some leans via an episode
@@ -125,7 +125,7 @@ class TestImmortalitySnapshotVersion:
         Changing identity_state_json must produce a different hash,
         proving it is part of the signed payload.
         """
-        from src.modules.immortality import ImmortalityProtocol, Snapshot
+        from src.modules.memory.immortality import ImmortalityProtocol, Snapshot
 
         protocol = ImmortalityProtocol(str(tmp_path / "immortality.json"))
 
@@ -164,7 +164,7 @@ class TestImmortalitySnapshotVersion:
 
 class TestImmortalityIdentityRestore:
     def test_restore_preserves_civic_lean(self, tmp_path):
-        from src.modules.immortality import ImmortalityProtocol
+        from src.modules.memory.immortality import ImmortalityProtocol
 
         mem = _make_memory(tmp_path)
         # Register civic episodes to push lean above default 0.5
@@ -201,7 +201,7 @@ class TestImmortalityIdentityRestore:
         )
 
     def test_restore_preserves_care_lean(self, tmp_path):
-        from src.modules.immortality import ImmortalityProtocol
+        from src.modules.memory.immortality import ImmortalityProtocol
 
         mem = _make_memory(tmp_path)
         for _ in range(5):
@@ -228,7 +228,7 @@ class TestImmortalityIdentityRestore:
         assert abs(mem.identity.state.care_lean - original_care) < 0.001
 
     def test_restore_preserves_episode_count(self, tmp_path):
-        from src.modules.immortality import ImmortalityProtocol
+        from src.modules.memory.immortality import ImmortalityProtocol
 
         mem = _make_memory(tmp_path)
         for i in range(4):
@@ -246,7 +246,7 @@ class TestImmortalityIdentityRestore:
         assert mem.identity.state.episode_count == 4
 
     def test_restore_preserves_core_beliefs(self, tmp_path):
-        from src.modules.immortality import ImmortalityProtocol
+        from src.modules.memory.immortality import ImmortalityProtocol
 
         mem = _make_memory(tmp_path)
         # Inject a high-significance episode with morals (Phase 6 Core Beliefs)
@@ -282,7 +282,7 @@ class TestImmortalityIdentityRestore:
 
     def test_restore_graceful_on_empty_identity_json(self, tmp_path):
         """_restore_identity_state with '{}' must not crash or corrupt state."""
-        from src.modules.immortality import ImmortalityProtocol
+        from src.modules.memory.immortality import ImmortalityProtocol
 
         mem = _make_memory(tmp_path)
         kernel = _make_kernel_stub(mem)
@@ -390,7 +390,7 @@ class TestSubjectiveToneHistoricalBlend:
 
 class TestTheaterMathBridge:
     def test_threshold_context_returns_four_deltas(self, tmp_path):
-        from src.modules.identity_reflection import IdentityReflector
+        from src.modules.governance.identity_reflection import IdentityReflector
 
         mem = _make_memory(tmp_path)
         reflector = IdentityReflector(mem)
@@ -403,7 +403,7 @@ class TestTheaterMathBridge:
         }
 
     def test_threshold_context_neutral_at_start(self, tmp_path):
-        from src.modules.identity_reflection import IdentityReflector
+        from src.modules.governance.identity_reflection import IdentityReflector
 
         mem = _make_memory(tmp_path)
         reflector = IdentityReflector(mem)

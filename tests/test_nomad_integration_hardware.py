@@ -7,8 +7,8 @@ Replaces v12-only mocks against ``audio_ring_buffer`` (removed in EthosKernel V1
 from __future__ import annotations
 
 from src.kernel import EthicalKernel
-from src.modules.nomad_bridge import get_nomad_bridge
-from src.modules.sensor_contracts import SensorSnapshot
+from src.modules.perception.nomad_bridge import get_nomad_bridge
+from src.modules.perception.sensor_contracts import SensorSnapshot
 
 
 def test_fuse_sensory_stream_none_is_safe() -> None:

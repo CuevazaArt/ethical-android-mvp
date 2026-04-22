@@ -3,13 +3,13 @@ pytest.importorskip("torch")
 """Nomad vision pipeline (Module S.1 — consumer env gate)."""
 
 import pytest
-from src.modules.sensor_contracts import SensorSnapshot, merge_nomad_vision_into_snapshot
-from src.modules.vision_adapter import VisionInference
+from src.modules.perception.sensor_contracts import SensorSnapshot, merge_nomad_vision_into_snapshot
+from src.modules.perception.vision_adapter import VisionInference
 
 
 def test_start_nomad_vision_consumer_respects_env_off(monkeypatch: pytest.MonkeyPatch) -> None:
     """Without KERNEL_NOMAD_VISION_CONSUMER, no background consumer is registered."""
-    import src.modules.vision_adapter as vision_adapter
+    import src.modules.perception.vision_adapter as vision_adapter
 
     monkeypatch.delenv("KERNEL_NOMAD_VISION_CONSUMER", raising=False)
     vision_adapter._nomad_vision_consumer = None
@@ -20,7 +20,7 @@ def test_merge_nomad_vision_into_snapshot_noop_without_consumer(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     monkeypatch.setenv("KERNEL_NOMAD_VISION_CONSUMER", "1")
-    import src.modules.vision_adapter as vision_adapter
+    import src.modules.perception.vision_adapter as vision_adapter
 
     vision_adapter._nomad_vision_consumer = None
     assert merge_nomad_vision_into_snapshot(None) is None
@@ -30,7 +30,7 @@ def test_merge_nomad_vision_into_snapshot_fuses_latest_inference(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     monkeypatch.setenv("KERNEL_NOMAD_VISION_CONSUMER", "1")
-    import src.modules.vision_adapter as vision_adapter
+    import src.modules.perception.vision_adapter as vision_adapter
 
     class _Stub:
         latest_inference = VisionInference(
