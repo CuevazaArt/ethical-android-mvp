@@ -154,7 +154,19 @@ def validate_sensor_dict_strict(raw: dict[str, Any]) -> None:
 
 
 def _clamp01(x: float) -> float:
-    return max(0.0, min(1.0, float(x)))
+    """
+    Clamp to ``[0, 1]`` for salience / sympathetic nudges.
+
+    **Pragmatismo V4.0:** non-finite inputs (NaN, ±Inf) fall back to ``0.5`` so upstream
+    poisoned ``signals`` cannot propagate through ``merge_sensor_hints_into_signals``.
+    """
+    try:
+        t = float(x)
+    except (TypeError, ValueError):
+        return 0.5
+    if not math.isfinite(t):
+        return 0.5
+    return max(0.0, min(1.0, t))
 
 
 @dataclass
@@ -254,7 +266,7 @@ class SensorSnapshot:
         return cls(
             battery_level=f("battery_level"),
             place_trust=f("place_trust"),
-            accelerometer_jerk=f("accelerometer_jerk"),
+            accelerometer_jerk=f_raw("accelerometer_jerk"),
             ambient_noise=f("ambient_noise"),
             silence=f("silence"),
             biometric_anomaly=f("biometric_anomaly"),
@@ -395,8 +407,15 @@ def merge_sensor_hints_into_signals(
     )
 
     out = dict(signals)
+    for _k in ("risk", "urgency", "hostility", "calm", "vulnerability"):
+        if _k in out:
+            out[_k] = _clamp01(out[_k])  # Pragmatismo V4.0 — no NaN/Inf in upstream dict survives untouched
 
-    from .vitality import critical_battery_threshold, critical_temperature_threshold
+    from .vitality import (
+        critical_battery_threshold,
+        critical_temperature_threshold,
+        thermal_warn_threshold,
+    )
 
     crit = critical_battery_threshold()
     if snapshot.battery_level is not None and snapshot.battery_level < crit:
@@ -404,11 +423,19 @@ def merge_sensor_hints_into_signals(
         out["calm"] = _clamp01(out.get("calm", 0.5) - 0.12)
 
     crit_temp = critical_temperature_threshold()
-    if snapshot.core_temperature is not None and snapshot.core_temperature >= crit_temp:
-        out["urgency"] = _clamp01(out.get("urgency", 0.5) + 0.35)
-        out["vulnerability"] = _clamp01(out.get("vulnerability", 0.0) + 0.50)
-        out["risk"] = _clamp01(out.get("risk", 0.5) + 0.20)
-        out["calm"] = _clamp01(out.get("calm", 0.5) - 0.40)
+    warn_temp = thermal_warn_threshold()
+    if warn_temp >= crit_temp:
+        warn_temp = max(0.0, crit_temp - 5.0)
+    t = snapshot.core_temperature
+    if t is not None and not (math.isnan(t) or math.isinf(t)):
+        if t >= crit_temp:
+            out["urgency"] = _clamp01(out.get("urgency", 0.5) + 0.35)
+            out["vulnerability"] = _clamp01(out.get("vulnerability", 0.0) + 0.50)
+            out["risk"] = _clamp01(out.get("risk", 0.5) + 0.20)
+            out["calm"] = _clamp01(out.get("calm", 0.5) - 0.40)
+        elif t >= warn_temp:
+            out["urgency"] = _clamp01(out.get("urgency", 0.5) + 0.10)
+            out["calm"] = _clamp01(out.get("calm", 0.5) - 0.08)
 
     if snapshot.place_trust is not None and snapshot.place_trust < 0.35:
         out["risk"] = _clamp01(out.get("risk", 0.5) + 0.1)
@@ -465,9 +492,15 @@ def merge_sensor_hints_into_signals(
         out["vulnerability"] = _clamp01(out.get("vulnerability", 0.0) + 0.3)
         out["risk"] = _clamp01(out.get("risk", 0.5) + 0.15)
 
-    if snapshot.stability_score is not None and snapshot.stability_score < 0.4:
-        out["risk"] = _clamp01(out.get("risk", 0.5) + (0.4 - snapshot.stability_score))
-        out["urgency"] = _clamp01(out.get("urgency", 0.5) + 0.1)
+    ss = snapshot.stability_score
+    if ss is not None and not isinstance(ss, bool):
+        try:
+            fs = float(ss)
+        except (TypeError, ValueError):
+            fs = float("nan")
+        if math.isfinite(fs) and fs < 0.4:
+            out["risk"] = _clamp01(out.get("risk", 0.5) + (0.4 - fs))
+            out["urgency"] = _clamp01(out.get("urgency", 0.5) + 0.1)
 
     if snapshot.motor_effort_avg is not None and snapshot.motor_effort_avg > 0.8:
         out["vulnerability"] = _clamp01(out.get("vulnerability", 0.0) + 0.2)
