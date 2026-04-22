@@ -2,6 +2,11 @@
 Synthetic Weight Tuner (L1-IMPROVEMENT)
 Coarse-to-fine parameter search for ethical mixture weights.
 Exportable and reusable for future telemetry-based DAO tuning.
+
+NOTE: This instrument is for calibration and adjustment for testing and experimental 
+purposes only. Legitimate and organic weights are expected to be derived from ML 
+based on user feedback via the DAO and/or empirical data collected from the 
+community of nomads and agents of the model.
 """
 
 import math
