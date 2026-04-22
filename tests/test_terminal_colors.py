@@ -173,3 +173,14 @@ def test_header_default_width_follows_subclass_sep_width(monkeypatch: pytest.Mon
     h = _Narrow.header("Section")
     assert h.count("═") == 40 * 2
     assert _Narrow.rule_heavy().count("=") == 40
+
+
+def test_header_invalid_width_fallback_uses_clamped_default(monkeypatch: pytest.MonkeyPatch) -> None:
+    """``width=True``/bad values use ``default=`` from :meth:`_rule_width`, not raw huge ``SEP_WIDTH`` (8.1.26)."""
+
+    class _Wide(Term):
+        SEP_WIDTH = 9_999
+
+    monkeypatch.setenv("KERNEL_TERM_COLOR", "0")
+    h = _Wide.header("C", width=True)  # type: ignore[arg-type]  # invalid width → default
+    assert h.count("═") == _MAX_HEADER_BAR * 2

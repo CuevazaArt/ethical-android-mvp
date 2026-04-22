@@ -236,12 +236,13 @@ class Term:
         When *width* is ``None`` (the default), uses :meth:`_rule_width` — same subclass-aware
         bar length as :meth:`rule_heavy` / :meth:`rule_light` (not a frozen module literal).
         Otherwise *width* is passed to :func:`_clamped_header_bar_width` with
-        ``default=cls.SEP_WIDTH``.
+        ``default=cls._rule_width()`` (invalid *width* may resolve to *default* verbatim, so
+        the default must be clamped like the nominal bar width, not an uncapped ``SEP_WIDTH``).
         """
         if width is None:
             w = cls._rule_width()
         else:
-            w = _clamped_header_bar_width(width, default=cls.SEP_WIDTH)
+            w = _clamped_header_bar_width(width, default=cls._rule_width())
         bar = cls.color("═" * w, cls.DIM)
         line = f"  {cls.color(title.strip(), cls.B_CYAN + cls.BOLD)}"
         return f"\n{bar}\n{line}\n{bar}"
