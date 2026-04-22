@@ -6,7 +6,7 @@ import time
 from typing import TYPE_CHECKING, Any, Optional
 
 from src.kernel_lobes.models import SemanticState, TimeoutTrauma, MotorCommandDispatch
-from src.modules.biographic_memory import BiographicMemoryTracker
+from src.modules.session_checkpoint import SessionCheckpointTracker
 
 if TYPE_CHECKING:
     from src.nervous_system.corpus_callosum import CorpusCallosum
@@ -48,7 +48,7 @@ class MemoryLobe:
         self.immortality = immortality
         self.llm = llm
         self.bus = bus
-        self.tracker = BiographicMemoryTracker(self.memory)
+        self.tracker = SessionCheckpointTracker(self.memory)
 
         if self.bus:
             self.bus.subscribe(MotorCommandDispatch, self._on_motor_dispatch)

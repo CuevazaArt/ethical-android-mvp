@@ -1,4 +1,4 @@
-from src.ethical_kernel_batch import EthicalKernel
+from src.kernel import EthicalKernel
 from src.modules.safety_interlock import EStopSource
 from src.modules.weighted_ethics_scorer import CandidateAction
 

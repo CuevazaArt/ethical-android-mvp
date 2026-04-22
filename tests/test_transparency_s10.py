@@ -5,7 +5,7 @@ import sys
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
 
-from src.ethical_kernel_batch import EthicalKernel
+from src.kernel import EthicalKernel
 from src.kernel import KernelDecision
 from src.modules.absolute_evil import AbsoluteEvilResult
 from src.modules.bayesian_engine import CandidateAction
