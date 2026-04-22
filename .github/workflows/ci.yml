@@ -35,6 +35,10 @@ jobs:
         python-version: ["3.11", "3.12", "3.13"]
     steps:
       - uses: actions/checkout@v4
+        with:
+          # Full history so scripts/eval/verify_collaboration_invariants.py can see origin/main
+          # for the protected-files diff; merge-marker scan uses `git ls-files` either way.
+          fetch-depth: 0
 
       - name: Set up Python ${{ matrix.python-version }}
         uses: actions/setup-python@v5
@@ -50,6 +54,9 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r requirements.txt -r requirements-dev.txt
           pip freeze
+
+      - name: L1 collaboration invariants
+        run: python scripts/eval/verify_collaboration_invariants.py
 
       - name: Ruff lint
         run: python -m ruff check src tests

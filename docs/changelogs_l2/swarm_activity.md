@@ -1335,3 +1335,11 @@ This file is automatically managed by `scripts/swarm_sync.py`.
   - `tests/test_thalamus_lobe_integration.py`
   - `tests/test_thalamus_node.py`
   - `tests/test_v13_distributed_brain.py`
+
+### 🛠️ Execution | Date: 2026-04-21 20:31:34 | Author: Anonymous Agent
+- **Block:** `22.0`
+- **Message:** docs: nomad_pwa comment references sync_identity_v1 (matches chat_server schema). Tri-Lobe: no bus change.
+- **Files Modified:**
+  - `.github/workflows/ci.yml`
+  - `CONTRIBUTING.md`
+  - `docs/proposals/PLAN_WORK_DISTRIBUTION_TREE.md`

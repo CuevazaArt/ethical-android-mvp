@@ -56,6 +56,9 @@ Aquí es donde los agentes de ejecución (LLMs en IDEs) reclaman sus tareas.
 - Tarea 26.1: **GitHub Actions `quality` + Python 3.13:** [COMPLETED — L2 Cursor] Matriz `quality` en `.github/workflows/ci.yml` ampliada a CPython 3.11 / 3.12 / 3.13; `CONTRIBUTING.md` actualizado. La suite completa corre en GitHub Actions en cada push/PR (job `quality`).
 - Tarea 26.2: **Integridad legacy / D1:** [COMPLETED — L2 Cursor] `kernel_legacy_v12._run_social_and_locus_stage` corregido a ``async def`` con ``await`` en el call site (``await`` fuera de ``async`` era inválido). `tests/integration/test_cross_tier_decisions.py` importa el kernel v12 solo si existen `kernel_handlers/communication.py` y dependencias; en árboles mínimos el módulo se omite con ``pytest.skip`` a nivel de módulo.
 
+**Bloque 27.0: GHA L1 collaboration-audit parity [DONE]**
+- Tarea 27.1: **verify_collaboration_invariants en CI:** [COMPLETED — L2 Cursor] En el job `quality` de `.github/workflows/ci.yml` se añade el paso `L1 collaboration invariants` (`python scripts/eval/verify_collaboration_invariants.py`); el checkout del job usa `fetch-depth: 0` para que el diff frente a `main` y las reglas L1 sean fiables en PRs. `CONTRIBUTING.md` alinea comprobación local y GHA.
+
 ---
 
 ## 🗄️ RESERVA DEL ENJAMBRE (Buffer de Optimización Continua V14)

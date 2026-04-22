@@ -94,11 +94,12 @@ pre-commit install
 
 If `pip` hits read timeouts on a slow network, retry with a higher default timeout, e.g. `pip install --default-timeout=300 -r requirements.txt -r requirements-dev.txt -e .`.
 
-**Run the full suite on GitHub Actions** (same as the `quality` job) after you push: open the **Actions** tab → workflow **CI** → confirm the matrix for your branch. With the [GitHub CLI](https://cli.github.com/): `gh workflow run CI --ref <branch>` (requires `gh auth login`).
+**Run the full suite on GitHub Actions** (same as the `quality` job) after you push: open the **Actions** tab → workflow **CI** → confirm the matrix for your branch. The `quality` job also runs the L1 collaboration audit (`python scripts/eval/verify_collaboration_invariants.py` — merge markers, `CHANGELOG.md` namespace, governance warnings). With the [GitHub CLI](https://cli.github.com/): `gh workflow run CI --ref <branch>` (requires `gh auth login`).
 
 Run the same checks as [`.github/workflows/ci.yml`](.github/workflows/ci.yml) before opening a PR:
 
 ```bash
+python scripts/eval/verify_collaboration_invariants.py
 python -m ruff check src tests
 python -m ruff format --check src tests
 python -m mypy src
