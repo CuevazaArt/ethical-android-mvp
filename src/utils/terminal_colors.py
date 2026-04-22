@@ -71,7 +71,7 @@ def _clamped_header_bar_width(raw: object, *, default: int) -> int:
             w = 1
         return min(_MAX_HEADER_BAR, w)
     try:
-        w = int(raw)  # type: ignore[arg-type]
+        w = operator.index(raw)
     except (TypeError, ValueError, OverflowError):
         return default
     if w < 1:
@@ -105,7 +105,9 @@ if _colors_enabled():
         _enable_windows_ansi()
     except (OSError, AttributeError, TypeError, ValueError) as exc:
         # Best-effort VT: missing APIs, headless, or old consoles — never fail import.
-        _log.debug("Windows VT ANSI not enabled (continuing with plain or stripped output): %s", exc)
+        _log.debug(
+            "Windows VT ANSI not enabled (continuing with plain or stripped output): %s", exc
+        )
 
 
 class Term:
@@ -179,11 +181,11 @@ class Term:
         return cls.color(s, cls.BOLD)
 
     @classmethod
-    def highlight_impact(cls, val: float) -> str:
+    def highlight_impact(cls, val: object) -> str:
         """Format expected impact; non-finite values are shown dimmed (no misleading hue ladder)."""
         try:
             v = float(val)
-        except (TypeError, ValueError):
+        except (TypeError, ValueError, OverflowError):
             return cls.color("?", cls.DIM)
         if not math.isfinite(v):
             return cls.color(f"{v:+.3f}", cls.DIM)

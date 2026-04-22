@@ -85,8 +85,19 @@ def test_highlight_impact_nonfinite_dimmed():
 
 def test_highlight_impact_invalid_coercion_falls_back(monkeypatch):
     monkeypatch.setenv("KERNEL_TERM_COLOR", "1")
-    out = Term.highlight_impact(object())  # type: ignore[arg-type]
+    out = Term.highlight_impact(object())
     assert "?" in out
+
+
+def test_highlight_impact_overflow_in_float_protocol_falls_back(monkeypatch):
+    """``float(x)`` may raise ``OverflowError`` (e.g. pathological ``__float__``)."""
+
+    class _OverflowOnFloat:
+        def __float__(self) -> float:
+            raise OverflowError("huge")
+
+    monkeypatch.setenv("KERNEL_TERM_COLOR", "1")
+    assert "?" in Term.highlight_impact(_OverflowOnFloat())
 
 
 def test_header_bar_width_clamped_and_safe(monkeypatch):
@@ -96,9 +107,9 @@ def test_header_bar_width_clamped_and_safe(monkeypatch):
     assert h.count("═") == _MAX_HEADER_BAR * 2
     h2 = Term.header("B", width=-5)
     assert h2.count("═") == 1 * 2
-    h3 = Term.header("C", width=True)  # type: ignore[arg-type]  # bool is a bad width
+    h3 = Term.header("C", width=True)  # bool is a bad width
     assert h3.count("═") == 70 * 2
-    h4 = Term.header("N", width=float("nan"))  # type: ignore[arg-type]
+    h4 = Term.header("N", width=float("nan"))
     assert h4.count("═") == Term.SEP_WIDTH * 2
 
 
