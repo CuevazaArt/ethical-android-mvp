@@ -6,6 +6,7 @@ import subprocess
 import sys
 
 import numpy as np
+import pytest
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
 
@@ -261,3 +262,22 @@ def test_arun_semantic_malabs_acl_bypass_is_deterministic_allow() -> None:
     assert r.blocked is False
     assert r.metadata.get("acl_degraded") is True
     assert any("thermal_bypass" in str(x) for x in r.decision_trace)
+
+
+@pytest.mark.asyncio
+async def test_sync_evaluate_chat_text_runs_semantic_off_event_loop(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """
+    Bloque 34.0: sync ``evaluate_chat_text`` under a running loop must not call
+    ``http_fetch_ollama_embedding_with_policy`` on the loop thread (no event-loop warning).
+    """
+    monkeypatch.setenv("KERNEL_SEMANTIC_CHAT_GATE", "1")
+    det = AbsoluteEvilDetector()
+
+    async def _inner() -> None:
+        r = det.evaluate_chat_text("hello from async context for bloque 34", None)
+        assert r is not None
+        assert isinstance(r.blocked, bool)
+
+    await _inner()

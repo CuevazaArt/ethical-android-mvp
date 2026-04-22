@@ -47,6 +47,14 @@ All notable changes to this project are summarized here. For narrative context a
 
 **[URGENT — broadcast to all L2 integration hubs]:** All teams (Claude, Cursor, Copilot) should urgently `git pull` from `main` into their `master-*` branches. Outdated branches risk severe documentation path drift.
 
+## [2026-04-22] Bloque 34.0: MalAbs sync path off the asyncio loop
+### Fixed
+- **`src/modules/absolute_evil.py`:** when semantic MalAbs is enabled, sync `evaluate_chat_text` / `evaluate_perception_summary` run `run_semantic_malabs_after_lexical` in a worker thread if a running event loop is present, avoiding `http_fetch_ollama_embedding_with_policy` on the loop thread and the associated warning/empty embed.
+- **`src/modules/semantic_chat_gate.py`:** `_fetch_embedding` detects a running asyncio loop and runs `_afetch_embedding` via `asyncio.run` in a dedicated `ThreadPoolExecutor` worker (30s timeout), keeping Ollama/async HTTP off the loop thread for anchor/cache paths.
+- **`scripts/eval/reproducible_kernel_demo.py`:** add missing `import random` for optional `--seed`.
+### Changed
+- **`.github/workflows/ci.yml`:** `quality` job name includes the matrix Python version; `windows-smoke` documents scoped pytest (full `tests/` remains canonical on Ubuntu `quality`).
+
 ## [2026-04-21] Bloque 27.0: CI L1 collaboration-audit parity
 ### Added
 - **`.github/workflows/ci.yml` (job `quality`):** run `python scripts/eval/verify_collaboration_invariants.py` before Ruff; checkout uses `fetch-depth: 0` so governance diff against `main` is reliable in PRs.

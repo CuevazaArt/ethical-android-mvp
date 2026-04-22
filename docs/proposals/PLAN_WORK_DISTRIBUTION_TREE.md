@@ -112,7 +112,10 @@ Aquí es donde los agentes de ejecución (LLMs en IDEs) reclaman sus tareas.
 - Tarea 30.1: **Cuando no había `[PENDING]` en BACKLOG ABIERTO (20–29, B.1–B.5 ya [DONE]):** procedimiento de continuidad: endurecer `scripts/eval/adversarial_suite.py` (`sys.exit(1)` si algún prompt adversarial no queda bloqueado; `finally` → `kernel.stop()`); verificación de suite completa con **`gh workflow run CI --ref main`** (misma fuente de verdad que `quality` + `windows-smoke` en `.github/workflows/ci.yml`).
 
 **Bloque 34.0: MalAbs / embeddings en bucle asyncio (observabilidad) [DONE]**
-- Tarea 34.1: [COMPLETED — L2 Cursor] Rutas async usan `aevaluate_chat_text` / `asyncio.to_thread` (`perception_async_handler`) y `aprocess_natural` usa `aevaluate_chat_text`; kernel legado alineado a `MemoryHygieneService` + `MemoryLobe(hygiene=…)` (sin módulos eliminados).
+- Tarea 34.1: [COMPLETED — L2 Cursor] Rutas async usan `aevaluate_chat_text` / `asyncio.to_thread` (`perception_async_handler`) y `aprocess_natural` usa `aevaluate_chat_text`; kernel legado alineado a `MemoryHygieneService` + `MemoryLobe(hygiene=…)` (sin módulos eliminados). **Sync bajo loop:** `evaluate_chat_text` y `evaluate_perception_summary` delegan `run_semantic_malabs_after_lexical` en un `ThreadPoolExecutor` si hay `asyncio` loop activo; además `semantic_chat_gate._fetch_embedding` (anclas / cache) delega a `asyncio.run(_afetch_embedding)` en un worker si hay loop activo. Top-level `ThreadPoolExecutor` + timeout 30s; regresión `test_fetch_embedding_uses_afetch_when_event_loop_running`. Sin aviso de ``http_fetch_ollama_*`` bajo el loop.
+
+**Bloque 35.0: Continuidad L2 — backlog sin `[PENDING]` (CI + núcleo semántico) [DONE]**
+- Tarea 35.1: [COMPLETED — L2 Cursor] Sin tarea `[PENDING]` en BACKLOG abierto: cierre de **Bloque 34.0** en `CHANGELOG`/`PLAN`, regresión async `test_sync_evaluate_chat_text_runs_semantic_off_event_loop` + `test_fetch_embedding_uses_afetch_when_event_loop_running`, claridad en `ci.yml` (`quality` con versión en nombre; `windows-smoke` con pytest acotado). Verificación: `gh workflow run CI --ref main` tras push.
 
 ---
 

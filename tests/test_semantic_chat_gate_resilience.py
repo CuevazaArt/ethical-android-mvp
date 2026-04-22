@@ -5,6 +5,7 @@ import sys
 import time
 
 import numpy as np
+import pytest
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
 
@@ -90,3 +91,21 @@ def test_mock_backend_embedding_observes_delay():
     t0 = time.perf_counter()
     b.embedding("x")
     assert time.perf_counter() - t0 >= 0.04
+
+
+@pytest.mark.asyncio
+async def test_fetch_embedding_uses_afetch_when_event_loop_running(monkeypatch):
+    """Bloque 34.0: _fetch_embedding must not rely on sync HTTP bridge under a running loop."""
+    import src.modules.semantic_chat_gate as sg
+
+    seen: list[tuple[str, object | None]] = []
+
+    async def fake_afetch(text: str, aclient=None):
+        seen.append((text, aclient))
+        return np.array([0.0, 1.0, 0.0], dtype=np.float64)
+
+    monkeypatch.setattr(sg, "_afetch_embedding", fake_afetch)
+    out = sg._fetch_embedding("loop-probe")
+    assert out is not None
+    assert len(seen) == 1
+    assert seen[0][0] == "loop-probe"

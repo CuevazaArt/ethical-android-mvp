@@ -48,6 +48,7 @@ import os
 import re
 import threading
 import time
+from concurrent.futures import ThreadPoolExecutor
 from typing import TYPE_CHECKING, Any, Final, Literal, Protocol
 
 import httpx
@@ -579,20 +580,39 @@ def _list_to_unit_vector(raw: Any) -> np.ndarray | None:
 
 
 def _fetch_embedding(text: str) -> np.ndarray | None:
+    """
+    Sync Ollama/backend embedding for anchor paths that are not ``async``-first.
+
+    When this runs **inside a running asyncio loop** (e.g. rare sync callouts from
+    coroutine stack), :func:`semantic_embedding_client.http_fetch_ollama_embedding_with_policy`
+    cannot use ``asyncio.run`` and would log + return ``None`` (Bloque 34.0). In that case we
+    schedule :func:`_afetch_embedding` on a fresh loop in a worker thread — same transport as
+    the async API, no warning spam.
+    """
     from .semantic_embedding_client import (
         http_fetch_ollama_embedding_with_policy,
         maybe_hash_fallback_embedding,
     )
 
-    url = f"{_ollama_base()}/api/embeddings"
-    v = http_fetch_ollama_embedding_with_policy(url, _embed_model(), text)
-    if v is not None:
-        return v
-    hf = maybe_hash_fallback_embedding(text)
-    if hf is not None:
-        return hf
-    observe_embedding_error("http")
-    return None
+    def _sync_http_path() -> np.ndarray | None:
+        url = f"{_ollama_base()}/api/embeddings"
+        v = http_fetch_ollama_embedding_with_policy(url, _embed_model(), text)
+        if v is not None:
+            return v
+        hf = maybe_hash_fallback_embedding(text)
+        if hf is not None:
+            return hf
+        observe_embedding_error("http")
+        return None
+
+    try:
+        asyncio.get_running_loop()
+    except RuntimeError:
+        return _sync_http_path()
+
+    with ThreadPoolExecutor(max_workers=1) as pool:
+        fut = pool.submit(lambda: asyncio.run(_afetch_embedding(text, aclient=None)))
+        return fut.result(timeout=30.0)
 
 
 async def _afetch_embedding(
