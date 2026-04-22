@@ -553,23 +553,13 @@ async function connectKernel() {
             try {
                 const data = JSON.parse(event.data);
                 if (data.type === '[SYNC_IDENTITY]' || data.type === 'SYNC_IDENTITY') {
+                    applySyncIdentity(data);
                     const inner =
                         data.payload && typeof data.payload === 'object' ? data.payload : {};
-                    applySyncIdentity({
-                        ...inner,
-                        narrative_identity: data.narrative_identity || inner.narrative_identity,
-                        identity: data.identity || inner.identity,
-                        manifest: data.manifest || inner.identity_manifest,
-                        identity_manifest: inner.identity_manifest || data.manifest,
-                        gestalt_snapshot: inner.gestalt_snapshot || data.gestalt_snapshot || data.gestalt,
-                        identity_ascription: inner.identity_ascription || data.identity_ascription,
-                        identity_reflection: inner.identity_reflection || data.identity_reflection,
-                        existence_digest: inner.existence_digest || data.existence_digest,
-                        experience_digest: inner.experience_digest || data.experience_digest,
-                    });
                     const narr = data.narrative_identity || inner.narrative_identity || inner.identity || {};
                     const hint =
                         (typeof narr.ascription === 'string' && narr.ascription.trim()) ||
+                        (typeof data.identity_ascription === 'string' && data.identity_ascription.trim()) ||
                         (typeof inner.identity_ascription === 'string' && inner.identity_ascription.trim()) ||
                         (typeof inner.identity_reflection === 'string' && inner.identity_reflection.trim().slice(0, 400)) ||
                         'Identity synchronized with kernel.';
@@ -658,23 +648,13 @@ async function connectKernel() {
             try {
                 const msg = JSON.parse(event.data);
                 if (msg.type === 'SYNC_IDENTITY' || msg.type === '[SYNC_IDENTITY]') {
+                    applySyncIdentity(msg);
                     const inner =
                         msg.payload && typeof msg.payload === 'object' ? msg.payload : {};
-                    applySyncIdentity({
-                        ...inner,
-                        narrative_identity: msg.narrative_identity || inner.narrative_identity,
-                        identity: msg.identity || inner.identity,
-                        manifest: msg.manifest || inner.identity_manifest,
-                        identity_manifest: inner.identity_manifest || msg.manifest,
-                        gestalt_snapshot: inner.gestalt_snapshot || msg.gestalt_snapshot || msg.gestalt,
-                        identity_ascription: inner.identity_ascription || msg.identity_ascription,
-                        identity_reflection: inner.identity_reflection || msg.identity_reflection,
-                        existence_digest: inner.existence_digest || msg.existence_digest,
-                        experience_digest: inner.experience_digest || msg.experience_digest,
-                    });
                     const narr = msg.narrative_identity || inner.narrative_identity || inner.identity || {};
                     const hint =
                         (typeof narr.ascription === 'string' && narr.ascription.trim()) ||
+                        (typeof msg.identity_ascription === 'string' && msg.identity_ascription.trim()) ||
                         (typeof inner.identity_ascription === 'string' && inner.identity_ascription.trim()) ||
                         (typeof inner.identity_reflection === 'string' && inner.identity_reflection.trim().slice(0, 400)) ||
                         'Identity synchronized (Nomad bridge).';

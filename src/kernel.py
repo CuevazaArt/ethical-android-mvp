@@ -88,6 +88,11 @@ class EthosKernel:
         self.weakness = WeaknessPole()
         self.checkpoint_persistence = kwargs.get("checkpoint_persistence")
 
+        from src.modules.feedback_calibration_ledger import FeedbackCalibrationLedger
+
+        self.feedback_ledger = FeedbackCalibrationLedger()
+        self._feedback_turn_anchor: dict[str, str] = {}
+
         # Lobe 1: Perceptive (Sensory Cortex)
         self.sensory_cortex = PerceptiveLobe(
             safety_interlock=SafetyInterlock(),
@@ -153,6 +158,32 @@ class EthosKernel:
     def poles(self):
         """Compatibility property for EthicalPoles."""
         return self.prefrontal_cortex.poles
+
+    def _snapshot_feedback_anchor(self, regime: str) -> None:
+        """Anchor for optional ``record_operator_feedback`` (chat_server / KERNEL_FEEDBACK_CALIBRATION)."""
+        self._feedback_turn_anchor = {"regime": (regime or "").strip() or "unknown"}
+
+    def record_operator_feedback(self, label: str) -> bool:
+        """Record calibration label for the last completed turn regime (legacy-compatible)."""
+        import os
+
+        from src.modules.feedback_calibration_ledger import normalize_feedback_label
+
+        if os.environ.get("KERNEL_FEEDBACK_CALIBRATION", "").strip().lower() not in (
+            "1",
+            "true",
+            "yes",
+            "on",
+        ):
+            return False
+        lab = normalize_feedback_label(label)
+        if lab is None:
+            return False
+        anchor = getattr(self, "_feedback_turn_anchor", None) or {}
+        if not anchor.get("regime"):
+            return False
+        self.feedback_ledger.record(str(anchor["regime"]), lab)
+        return True
 
     async def start(self) -> None:
         """Awaken the Android's Nervous System."""

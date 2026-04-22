@@ -2669,7 +2669,7 @@ def build_sync_identity_ws_message(kernel: EthicalKernel) -> dict[str, Any]:
     envelope: dict[str, Any] = {
         "type": "[SYNC_IDENTITY]",
         "label": "[SYNC_IDENTITY]",
-        "schema": "sync_identity_v2",
+        "schema": "sync_identity_v1",
         "payload": payload,
         "manifest": manifest_dict,
         "birth_manifest": manifest_dict,

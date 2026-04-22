@@ -1013,3 +1013,15 @@ This file is automatically managed by `scripts/swarm_sync.py`.
   - `src/modules/vision_inference.py`
   - `tests/test_chat_server.py`
   - `tests/test_nomad_session_sync.py`
+
+### 🛠️ Execution | Date: 2026-04-21 20:24:07 | Author: Cursor L2
+- **Block:** `22.0`
+- **Message:** tests/test_chat_server.py: accept [SYNC_IDENTITY] type and sync_identity_v2 schema in sync-on-connect test. src/clients/nomad_pwa/app.js: call applySyncIdentity with full WS envelope (top-level manifest/gestalt) and prefer identity_ascription for welcome hint. Architecture: Nomad PWA aligns with chat_server build_sync_identity_ws_message contract without flattening payload.
+- **Files Modified:**
+  - `docs/proposals/PLAN_WORK_DISTRIBUTION_TREE.md`
+  - `src/chat_server.py`
+  - `src/clients/nomad_pwa/app.js`
+  - `src/kernel.py`
+  - `src/modules/nomad_session_sync.py`
+  - `tests/test_chat_server.py`
+  - `tests/test_nomad_session_sync.py`
