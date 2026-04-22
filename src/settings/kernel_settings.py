@@ -73,6 +73,24 @@ _DEFAULT_CHAT_TURN_TIMEOUT_REMOTE_S = 30.0
 _DEFAULT_CHAT_TURN_TIMEOUT_NOMAD_S = 60.0
 _DEFAULT_CHAT_TURN_TIMEOUT_LOCAL_LLM_S = 180.0
 
+_DEFAULT_CHAT_WS_MAX_MESSAGE_BYTES = 2 * 1024 * 1024
+_CAP_CHAT_WS_MAX_MESSAGE_BYTES = 32 * 1024 * 1024
+_MIN_CHAT_WS_MAX_MESSAGE_BYTES = 64
+
+
+def _env_kernel_chat_ws_max_message_bytes() -> int:
+    """Max UTF-8 bytes per inbound WebSocket text frame (pre-parse); mirrors legacy chat_settings."""
+    raw = os.environ.get("KERNEL_CHAT_WS_MAX_MESSAGE_BYTES", "").strip()
+    if not raw:
+        return _DEFAULT_CHAT_WS_MAX_MESSAGE_BYTES
+    try:
+        n = int(raw)
+    except ValueError:
+        return _DEFAULT_CHAT_WS_MAX_MESSAGE_BYTES
+    if n < _MIN_CHAT_WS_MAX_MESSAGE_BYTES:
+        return _DEFAULT_CHAT_WS_MAX_MESSAGE_BYTES
+    return min(n, _CAP_CHAT_WS_MAX_MESSAGE_BYTES)
+
 
 def _env_local_ollama_stack_active() -> bool:
     """True when env clearly targets local Ollama (not API-only defaults)."""
@@ -194,6 +212,15 @@ class KernelSettings(BaseModel):
     kernel_chat_include_malabs_trace: bool = Field(
         default=True,
         description="KERNEL_CHAT_INCLUDE_MALABS_TRACE — include malabs_trace in WebSocket JSON.",
+    )
+    kernel_chat_ws_max_message_bytes: int = Field(
+        default=_DEFAULT_CHAT_WS_MAX_MESSAGE_BYTES,
+        ge=_MIN_CHAT_WS_MAX_MESSAGE_BYTES,
+        le=_CAP_CHAT_WS_MAX_MESSAGE_BYTES,
+        description=(
+            "KERNEL_CHAT_WS_MAX_MESSAGE_BYTES — max UTF-8 size of one inbound WebSocket text "
+            "frame before JSON parse; default 2 MiB, cap 32 MiB."
+        ),
     )
 
     # ════ LLM LAYER ════
@@ -351,6 +378,7 @@ class KernelSettings(BaseModel):
             kernel_chat_async_llm_http=_env_truthy("KERNEL_CHAT_ASYNC_LLM_HTTP", default_true=False),
             kernel_chat_json_offload=_env_truthy("KERNEL_CHAT_JSON_OFFLOAD", default_true=True),
             kernel_chat_include_malabs_trace=_env_truthy("KERNEL_CHAT_INCLUDE_MALABS_TRACE", default_true=True),
+            kernel_chat_ws_max_message_bytes=_env_kernel_chat_ws_max_message_bytes(),
             # LLM
             llm_mode=_env_optional_str("LLM_MODE"),
             llm_provider=_env_str("LLM_PROVIDER", "anthropic"),
@@ -431,6 +459,7 @@ Async / Chat Orchestration:
   Async LLM HTTP: {self.kernel_chat_async_llm_http}
   JSON Offload: {self.kernel_chat_json_offload}
   Include MalAbs Trace: {self.kernel_chat_include_malabs_trace}
+  WS Max Message Bytes: {self.kernel_chat_ws_max_message_bytes}
 
 LLM Configuration:
   Provider: {self.llm_provider}

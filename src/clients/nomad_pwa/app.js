@@ -392,7 +392,7 @@ function setAppAffectState(state) {
     }
 }
 
-/** Bloque 22.3 — PAD / sigma from GestaltSnapshot (server ``sync_identity_v1``). */
+/** Bloque 22.3 — PAD / sigma from gestalt dict (server ``sync_identity_v2``). */
 function applyGestaltPad(gestalt) {
     if (!gestalt || typeof gestalt !== 'object') return;
     const pad = gestalt.pad_state;
@@ -400,16 +400,29 @@ function applyGestaltPad(gestalt) {
         const p = Math.max(0, Math.min(1, Number(pad[0])));
         const a = Math.max(0, Math.min(1, Number(pad[1])));
         const d = Math.max(0, Math.min(1, Number(pad[2])));
-        if (Number.isFinite(p)) document.documentElement.style.setProperty('--pad-pleasure', String(p));
-        if (Number.isFinite(a)) document.documentElement.style.setProperty('--pad-arousal', String(a));
-        if (Number.isFinite(d)) document.documentElement.style.setProperty('--pad-dominance', String(d));
+        if (Number.isFinite(p)) {
+            document.documentElement.style.setProperty('--pad-p', String(p));
+            document.documentElement.style.setProperty('--pad-pleasure', String(p));
+        }
+        if (Number.isFinite(a)) {
+            document.documentElement.style.setProperty('--pad-a', String(a));
+            document.documentElement.style.setProperty('--pad-arousal', String(a));
+        }
+        if (Number.isFinite(d)) {
+            document.documentElement.style.setProperty('--pad-d', String(d));
+            document.documentElement.style.setProperty('--pad-dominance', String(d));
+        }
+        let axis = 'pleasure';
+        if (a >= p && a >= d) axis = 'arousal';
+        else if (d >= p && d >= a) axis = 'dominance';
+        if (UI.orb) UI.orb.setAttribute('data-pad-axis', axis);
     }
     const sigma = Number(gestalt.sigma);
     if (Number.isFinite(sigma)) {
         document.documentElement.style.setProperty('--gestalt-sigma', String(sigma));
         if (sigma > 0.72) setAppAffectState('alert');
-        else if (sigma < 0.38) setAppAffectState('calm');
-        else setAppAffectState('active');
+        else if (sigma < 0.28) setAppAffectState('active');
+        else setAppAffectState('calm');
     }
 }
 
@@ -531,8 +544,10 @@ async function connectKernel() {
                 if (data.type === '[SYNC_IDENTITY]' || data.type === 'SYNC_IDENTITY') {
                     const inner = data.payload && typeof data.payload === 'object' ? data.payload : data;
                     applySyncIdentity(inner);
+                    const narr = inner.narrative_identity || inner.identity || {};
                     const hint =
-                        (typeof inner.ascription === 'string' && inner.ascription.trim()) ||
+                        (typeof inner.identity_ascription === 'string' && inner.identity_ascription.trim()) ||
+                        (typeof narr.ascription === 'string' && narr.ascription.trim()) ||
                         (typeof inner.identity_reflection === 'string' && inner.identity_reflection.trim().slice(0, 400)) ||
                         'Identity synchronized with kernel.';
                     if (UI.transcript) {
@@ -672,10 +687,10 @@ async function connectKernel() {
 function initNomadUiModeFromQuery() {
     try {
         const q = new URLSearchParams(window.location.search);
-        if (q.get('fullui') === '1') {
+        if (q.get('fullui') === '1' || q.get('text') === '0' || q.get('solo_text') === '0') {
             document.body.classList.remove('nomad-text-focus');
         }
-        if (q.get('mode') === 'text' || q.get('solo') === '1') {
+        if (q.get('mode') === 'text' || q.get('solo') === '1' || q.get('text') === '1' || q.get('solo_text') === '1') {
             document.body.classList.add('nomad-text-focus');
         }
     } catch (_) { /* ignore */ }
@@ -772,10 +787,10 @@ window.updateOrbScale = function(volume) {
 // ... existing SW registration ...
 if ('serviceWorker' in navigator) {
     window.addEventListener('load', () => {
-        navigator.serviceWorker.register('./sw.js?v=13.1.6')
+        navigator.serviceWorker.register('./sw.js?v=13.1.7')
             .then(reg => console.log('Nomad Service Worker registered', reg))
             .catch(err => console.error('SW block:', err));
     });
 }
 
-console.log("Nomad PWA V13.1.6 Initialized.");
+console.log("Nomad PWA V13.1.7 Initialized.");

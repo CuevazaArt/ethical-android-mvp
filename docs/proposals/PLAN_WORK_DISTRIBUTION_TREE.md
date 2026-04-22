@@ -45,12 +45,12 @@ Aquí es donde los agentes de ejecución (LLMs en IDEs) reclaman sus tareas.
 - Tarea 21.1: **Manifiesto de Identidad (Birth Context):** [COMPLETED] Crear `src/persistence/identity_manifest.py` para gestionar la narrativa base del agente.
 - Tarea 21.2: **BiographicMemoryTracker:** [COMPLETED] Implementar el rastreador de episodios biográficos en el `CerebellumLobe` para que las sesiones de chat se guarden como hitos narrativos.
 
-**Bloque 22.0: Nomad Field Test (Texto en Terreno) [IN_PROGRESS]**
-- Tarea 22.1: **Puente Web Chat Robustecido:** [COMPLETED — L2 Cursor] PWA: cola saliente (48) con `flush` al reconectar, envío dual `/ws/chat` + relay `chat_text` por `/ws/nomad` si el chat no está `OPEN`, `onclose` simétrico y un solo temporizador de backoff. Servidor: `NomadBridge.chat_text_queue` 48, `public_queue_stats` con `chat_text_queue_*`, `last_rms` finito, `vessel_online`, `last_sensor_update_delta`, `_chat_text_consumer` tipado a `str`.
-- Tarea 22.2: **Inyección de Identidad al Front (Backend):** [COMPLETED — L2] `chat_server.py` emite un único marco inicial `{"type": "[SYNC_IDENTITY]", ...}` tras `try_load_checkpoint`, con manifiesto (`IdentityManifestStore`), `narrative_tail` (episodios JSON-safe), `narrative_identity` (leans finitos + `ascription`), `identity_reflection` y `experience_digest` acotado.
-- Tarea 22.3: **Inyección de Identidad al Front (Frontend PWA):** [COMPLETED — L2] `nomad_pwa/app.js` consume `[SYNC_IDENTITY]` / legado `SYNC_IDENTITY`, rellena `#identity-strip`, título de documento, variable CSS `--identity-warmth` desde leans narrativos, y mensaje de bienvenida en el transcript.
+**Bloque 22.0: Nomad Field Test (Texto en Terreno) [DONE]**
+- Tarea 22.1: **Puente Web Chat Robustecido:** [COMPLETED — L2 Cursor] PWA: cola saliente (48) con `flush` al reconectar, envío dual `/ws/chat` + relay `chat_text` por `/ws/nomad` si el chat no está `OPEN`, `onclose` simétrico y un solo temporizador de backoff. Servidor: `NomadBridge.chat_text_queue` default 48 (`KERNEL_NOMAD_CHAT_TEXT_QUEUE_MAX`), `public_queue_stats` con `chat_text_queue_*`, `last_rms` finito, `vessel_online`, `last_sensor_update_delta`, `_chat_text_consumer` tipado a `str`.
+- Tarea 22.2: **Inyección de Identidad al Front (Backend):** [COMPLETED — L2] `chat_server.py` emite `build_sync_identity_ws_message` tras `try_load_checkpoint` (tipo `[SYNC_IDENTITY]`, `payload` con `gestalt_snapshot`, `identity_manifest`, `narrative_recent`, `identity_ascription`, etc.).
+- Tarea 22.3: **Inyección de Identidad al Front (Frontend PWA):** [COMPLETED — L2] `nomad_pwa/app.js` consume `[SYNC_IDENTITY]` / legado `SYNC_IDENTITY`, `gestalt_snapshot` → PAD CSS, `#identity-strip`, título y transcript.
 - Tarea 22.4: **Optimización Layout Nomad:** [COMPLETED — L2] Modo `body.nomad-text-focus` por defecto + toggle `#btn-ui-mode`; CSS oculta orbe, pulso ético, rejilla de telemetría y botón STREAM; prioriza panel de chat.
-- Tarea 22.5: **Zero-API Fast TTFT (Time-To-First-Token):** [PENDING] Auditar la cadena de `Thalamus -> Executive -> LLM` para asegurar que el retraso artificial sea nulo. Optimizar el `System Prompt` maestro de chat para favorecer réplicas conversacionales instantáneas (<800ms) sin introspección profunda.
+- Tarea 22.5: **Zero-API Fast TTFT (Time-To-First-Token):** [COMPLETED — L2] Cadena Thalamus sin `sleep` en ruta de chat; `PROMPT_COMMUNICATION_NOMAD_APPEND` reforzado (sin preámbulos; arranque inmediato de la réplica hablada).
 ---
 
 ## 🗄️ RESERVA DEL ENJAMBRE (Buffer de Optimización Continua V14)

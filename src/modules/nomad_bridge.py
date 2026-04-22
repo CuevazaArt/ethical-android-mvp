@@ -33,6 +33,7 @@ drops oversized dicts before they hit the queue or ``peek_latest_telemetry``.
 import asyncio
 import base64
 import binascii
+import queue as std_queue
 import json
 import logging
 import math
@@ -71,12 +72,6 @@ def _parse_positive_int_env(name: str, default: int) -> int:
         return default
 
 
-def _nomad_chat_text_queue_maxsize() -> int:
-    """Bounded queue for typed Nomad relay (Bloque 22.1 — mobile WS flaps)."""
-
-    return _parse_positive_int_env("KERNEL_NOMAD_CHAT_TEXT_QUEUE_MAX", 64)
-
-
 def max_vision_frame_bytes() -> int:
     """Upper bound on decoded JPEG bytes accepted from ``vision_frame`` (env override)."""
 
@@ -95,6 +90,19 @@ def max_telemetry_dict_keys() -> int:
     return _parse_positive_int_env("KERNEL_NOMAD_MAX_TELEMETRY_KEYS", 128)
 
 
+def _nomad_charm_replay_maxlen() -> int:
+    """Bounded deque for ``charm_feedback`` payloads to replay after a brief WS drop (Bloque 22.1)."""
+
+    raw = _parse_positive_int_env("KERNEL_NOMAD_CHARM_REPLAY_MAX", 32)
+    return max(4, min(128, raw))
+
+
+def _nomad_chat_text_queue_max() -> int:
+    """Async queue depth for ``chat_text`` bursts on flaky mobile links (Bloque 22.1)."""
+
+    return max(8, min(256, _parse_positive_int_env("KERNEL_NOMAD_CHAT_TEXT_QUEUE_MAX", 48)))
+
+
 _DEFAULT_WS_MAX_MESSAGE_BYTES = 4 * 1024 * 1024
 _CAP_WS_MAX_MESSAGE_BYTES = 32 * 1024 * 1024
 _MIN_WS_MAX_MESSAGE_BYTES = 64
@@ -105,11 +113,11 @@ def nomad_chat_text_queue_maxsize() -> int:
 
     raw = os.environ.get("KERNEL_NOMAD_CHAT_TEXT_QUEUE_MAX", "").strip()
     if not raw:
-        return 64
+        return 48
     try:
         n = int(raw, 10)
     except ValueError:
-        return 64
+        return 48
     return max(8, min(n, 512))
 
 
@@ -164,6 +172,8 @@ class NomadBridge:
         self.chat_text_queue: asyncio.Queue[Union[str, dict[str, Any]]] = asyncio.Queue(
             maxsize=nomad_chat_text_queue_maxsize()
         )
+        # Thread-safe mirror of JPEG bytes for VisionContinuousDaemon (docs + tests v4).
+        self.vision_queue_threadsafe: std_queue.Queue[bytes] = std_queue.Queue(maxsize=8)
 
         # Phase 10: L0 Dashboard Telemetry Broadcaster
         self.dashboard_queues: list[asyncio.Queue[dict[str, Any]]] = []
@@ -314,8 +324,9 @@ class NomadBridge:
             last_delta = 0.0
 
         return {
-            "schema": "nomad_bridge_queue_stats_v2",
+            "schema": "nomad_bridge_queue_stats_v4",
             "vision_queue_depth": self.vision_queue.qsize(),
+            "vision_sync_queued": self.vision_queue_threadsafe.qsize(),
             "audio_queue_depth": self.audio_queue.qsize(),
             "telemetry_queue_depth": self.telemetry_queue.qsize(),
             "charm_feedback_queue_depth": self.charm_feedback_queue.qsize(),
@@ -327,6 +338,7 @@ class NomadBridge:
             "vessel_online": bool(self._is_vessel_healthy),
             "last_rms": lr,
             "vad_speaking": bool(self.vad_speaking),
+            "dashboard_subscribers": len(self.dashboard_queues),
             "vessel_metadata": dict(self.vessel_metadata),
             "vessel_context": self.vessel_context.to_public_dict(),
             "last_sensor_update_delta": round(last_delta, 3),
@@ -334,9 +346,10 @@ class NomadBridge:
             "latest_telemetry_present": latest_tel is not None,
             "latest_telemetry_keys": list(latest_tel.keys()) if latest_tel else [],
             "limits": {
-                "max_vision_frame_bytes": 512 * 1024,   # 512 KB — standard JPEG cap
-                "max_audio_pcm_bytes": 64 * 1024,       # 64 KB — ~1 s @ 16-bit/32 kHz
-                "max_telemetry_keys": 64,               # max keys per telemetry payload
+                "max_vision_frame_bytes": max_vision_frame_bytes(),
+                "max_audio_pcm_bytes": max_audio_pcm_bytes(),
+                "max_telemetry_keys": max_telemetry_dict_keys(),
+                "max_ws_message_bytes": max_ws_inbound_message_bytes(),
             },
         }
 
@@ -379,8 +392,10 @@ class NomadBridge:
                 if q.full():
                     q.get_nowait()
                 q.put_nowait(msg)
-            except Exception:
-                pass
+            except asyncio.QueueFull:
+                _log.debug("Nomad Bridge: dashboard queue full; dropped oldest then retry skipped")
+            except Exception as dash_e:
+                _log.warning("Nomad Bridge: dashboard broadcast error: %s", dash_e)
         
         # Periodic debug log to ensure broadcast is reaching targets
         if time.time() - getattr(self, "_last_broadcast_log", 0) > 10.0:
@@ -438,6 +453,16 @@ class NomadBridge:
                             "detections": payload.get("detections", [])
                         }
                         self.vision_queue.put_nowait(combined_payload)
+                        try:
+                            if isinstance(raw_bytes, (bytes, bytearray)) and len(raw_bytes) > 0:
+                                if self.vision_queue_threadsafe.full():
+                                    try:
+                                        self.vision_queue_threadsafe.get_nowait()
+                                    except std_queue.Empty:
+                                        pass
+                                self.vision_queue_threadsafe.put_nowait(bytes(raw_bytes))
+                        except Exception as vts_e:
+                            _log.debug("Nomad Bridge: vision threadsafe mirror skipped: %s", vts_e)
                         self._last_sensor_update = time.time()
                         self._is_vessel_healthy = True
 

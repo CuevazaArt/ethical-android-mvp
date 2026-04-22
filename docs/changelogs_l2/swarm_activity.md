@@ -981,3 +981,20 @@ This file is automatically managed by `scripts/swarm_sync.py`.
   - `docs/changelogs_l2/swarm_activity.md`
   - `src/clients/nomad_pwa/app.js`
   - `src/modules/nomad_bridge.py`
+
+### 🛠️ Execution | Date: 2026-04-21 20:22:57 | Author: Cursor L2
+- **Block:** `22.0`
+- **Message:** Bloque 22.0 Nomad field test: wire build_sync_identity_ws_message on /ws/chat (GestaltSnapshot payload + identity_ascription); prune orphan sync helpers in chat_server; nomad_chat_text_queue_maxsize env KERNEL_NOMAD_CHAT_TEXT_QUEUE_MAX default 48; PWA apply gestalt_snapshot + identity_ascription (v13.1.7); NOMAD prompt TTFT line; PLAN 22.0 DONE.
+- **Files Modified:**
+  - `docs/proposals/PLAN_WORK_DISTRIBUTION_TREE.md`
+  - `src/chat_server.py`
+  - `src/clients/nomad_pwa/app.js`
+  - `src/clients/nomad_pwa/index.html`
+  - `src/clients/nomad_pwa/style.css`
+  - `src/modules/llm_layer.py`
+  - `src/modules/nomad_bridge.py`
+  - `src/modules/nomad_session_sync.py`
+  - `src/persistence/identity_manifest.py`
+  - `src/settings/kernel_settings.py`
+  - `tests/test_chat_server.py`
+  - `tests/test_nomad_session_sync.py`

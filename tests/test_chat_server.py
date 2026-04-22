@@ -41,8 +41,8 @@ def _recv_turn_payload(ws):
             return msg
         if msg.get("event_type") == "turn_finished":
             return msg["payload"]
-        # Ouroboros / haptic side-channel frames (no ``event_type``); keep draining.
-        if msg.get("type") in ("kernel_voice", "haptic_feedback"):
+        # Identity sync + Ouroboros / haptic side-channel frames; keep draining.
+        if msg.get("type") in ("SYNC_IDENTITY", "[SYNC_IDENTITY]", "kernel_voice", "haptic_feedback"):
             continue
         if msg.get("event_type") is None:
             return msg
@@ -190,6 +190,23 @@ def test_root_lists_websocket():
     assert "metrics" in body
 
 
+def test_websocket_sync_identity_on_connect():
+    """Bloque 22.2: first server frame after accept carries narrative identity."""
+    with client.websocket_connect("/ws/chat") as ws:
+        msg = ws.receive_json()
+    assert isinstance(msg, dict)
+    assert msg.get("type") == "SYNC_IDENTITY"
+    assert msg.get("label") == "[SYNC_IDENTITY]"
+    assert msg.get("schema") == "sync_identity_v1"
+    assert isinstance(msg.get("manifest"), dict)
+    assert msg["manifest"].get("name")
+    nid = msg.get("narrative_identity")
+    assert isinstance(nid, dict) and "ascription" in nid
+    assert isinstance(msg.get("narrative_tail"), list)
+    pl = msg.get("payload")
+    assert isinstance(pl, dict) and "gestalt_snapshot" in pl and "base_history" in pl
+
+
 def test_websocket_rejects_oversized_inbound_message(monkeypatch):
     """Inbound UTF-8 byte length is checked before json.loads (0.2.1)."""
     monkeypatch.setenv("KERNEL_CHAT_WS_MAX_MESSAGE_BYTES", "200")
@@ -197,7 +214,13 @@ def test_websocket_rejects_oversized_inbound_message(monkeypatch):
         huge = json.dumps({"text": "x" * 500})
         assert len(huge.encode("utf-8")) > 200
         ws.send_text(huge)
-        msg = ws.receive_json()
+        msg = None
+        for _ in range(12):
+            msg = ws.receive_json()
+            if isinstance(msg, dict) and msg.get("type") in ("[SYNC_IDENTITY]", "SYNC_IDENTITY"):
+                continue
+            break
+        assert isinstance(msg, dict)
         assert msg.get("error") == "message_too_large"
         assert msg.get("max_bytes") == 200
 

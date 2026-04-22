@@ -17,11 +17,11 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;600&family=Inter:wght@300;400;600&display=swap" rel="stylesheet">
     
-    <link rel="stylesheet" href="style.css?v=13.1.5">
+    <link rel="stylesheet" href="style.css?v=13.1.6">
     <!-- PWA Manifest stub (for Copilot to complete later) -->
     <link rel="manifest" href="manifest.json">
 </head>
-<body>
+<body class="nomad-text-focus">
     <!-- Dynamic animated gradient background -->
     <div class="mesh-background" id="mesh-bg"></div>
 
@@ -34,12 +34,15 @@
                 <span class="status-dot" id="socket-status"></span>
                 <span class="status-text" id="socket-text">Disconnected</span>
             </div>
+            <button type="button" id="btn-ui-mode" class="glass-btn small ui-mode-toggle" title="Toggle full sensory UI">Full UI</button>
             <div class="ethical-pulse" id="ethical-heartbeat"></div>
             <div class="telemetry">
                 <span id="battery-level">--%</span> <span class="telemetry-icon">🔋</span>
-                <div style="font-size: 0.5rem; opacity: 0.5; margin-top: 2px;">v13.1.1-L1</div>
+                <div style="font-size: 0.5rem; opacity: 0.5; margin-top: 2px;">v13.1.6</div>
             </div>
         </header>
+
+        <section id="identity-strip" class="identity-strip glass-panel" hidden aria-live="polite"></section>
 
         <!-- Center Orb / Emotional Anchor -->
         <section class="orb-container">
@@ -79,7 +82,7 @@
 
     </main>
 
-    <script src="media_engine.js?v=13.1.5"></script>
-    <script src="app.js?v=13.1.5"></script>
+    <script src="media_engine.js?v=13.1.7"></script>
+    <script src="app.js?v=13.1.7"></script>
 </body>
 </html>

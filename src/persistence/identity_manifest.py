@@ -39,10 +39,12 @@ class IdentityManifestStore:
     def _load(self) -> IdentityManifest:
         if self.path.exists():
             try:
-                with open(self.path, "r") as f:
+                with open(self.path, "r", encoding="utf-8") as f:
                     data = json.load(f)
-                    return IdentityManifest(**data)
-            except Exception as e:
+                if not isinstance(data, dict):
+                    raise TypeError("manifest root must be a JSON object")
+                return IdentityManifest(**data)
+            except (OSError, json.JSONDecodeError, TypeError, ValueError, KeyError) as e:
                 _log.error("IDENTITY MANIFEST LOADING FAILED: %s. Using defaults.", e)
         return IdentityManifest()
 
@@ -50,8 +52,8 @@ class IdentityManifestStore:
         """Persists the manifest to disk."""
         try:
             self.path.parent.mkdir(parents=True, exist_ok=True)
-            with open(self.path, "w") as f:
+            with open(self.path, "w", encoding="utf-8") as f:
                 json.dump(asdict(self.manifest), f, indent=4)
             _log.info("Identity Manifest saved to %s", self.path)
-        except Exception as e:
+        except (OSError, TypeError, ValueError) as e:
             _log.error("FAILED TO SAVE IDENTITY MANIFEST: %s", e)
