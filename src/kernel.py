@@ -1,6 +1,7 @@
 import asyncio
 import logging
 import os
+import threading
 from collections.abc import AsyncGenerator
 from dataclasses import dataclass
 from typing import Any
@@ -62,6 +63,10 @@ class EthosKernel:
         self.bus.modulator = self.modulator
         self.mode = mode
         self._kwargs = kwargs
+
+        # ADR 0002 — cooperative chat turn abandonment (chat_server timeout path)
+        self._chat_turn_abandon_lock = threading.Lock()
+        self._abandoned_chat_turn_ids: set[int] = set()
 
         # Mnemónica de Reacciones (Boy Scout Refactor 19.3)
         self.reactions = ReactionTable()
@@ -346,6 +351,22 @@ class EthosKernel:
                         pass
         except Exception as e:
             _log.debug(f"Failed to forward ThoughtStreamPulse: {e}")
+
+    def abandon_chat_turn(self, turn_id: int) -> None:
+        """Mark ``turn_id`` abandoned so late completions can skip STM side effects (ADR 0002)."""
+
+        try:
+            tid = int(turn_id)
+        except (TypeError, ValueError):
+            return
+        with self._chat_turn_abandon_lock:
+            self._abandoned_chat_turn_ids.add(tid)
+
+    def _chat_turn_abandoned(self, chat_turn_id: int | None) -> bool:
+        if chat_turn_id is None:
+            return False
+        with self._chat_turn_abandon_lock:
+            return chat_turn_id in self._abandoned_chat_turn_ids
 
     async def process_chat_turn_stream(
         self, text: str, **kwargs

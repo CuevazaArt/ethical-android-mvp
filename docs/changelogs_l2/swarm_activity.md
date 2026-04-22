@@ -1343,3 +1343,31 @@ This file is automatically managed by `scripts/swarm_sync.py`.
   - `.github/workflows/ci.yml`
   - `CONTRIBUTING.md`
   - `docs/proposals/PLAN_WORK_DISTRIBUTION_TREE.md`
+
+### 🛠️ Execution | Date: 2026-04-21 21:05:00 | Author: Cursor L2 Swarm
+- **Block:** `B.5.1`
+- **Message:** Bloque B.5.1 Thalamus/executive hardening: ThalamusLobe `ingest_telemetry` / `get_sensory_summary` / `fuse_sensory_stream`; ACL bypass `arun_semantic_malabs_acl_bypass`; perception finite temp/latency; delete obsolete `tests/test_nomad_resilience.py`; rewrite `test_nomad_integration_hardware` for V13; fix `asyncio` import in `absolute_evil.aevaluate_chat_text`; executive `formulate_response` tuple returns, valid `EthicalSentence`, `_default_deliberation_decision_v13`; relax `test_v13` phrase assertion. Post-push: run GitHub Actions workflow `CI` for full pytest matrix.
+- **Files Modified:**
+  - `docs/changelogs_l2/swarm_activity.md`
+  - `docs/proposals/PLAN_WORK_DISTRIBUTION_TREE.md`
+  - `src/kernel_handlers/perception.py`
+  - `src/kernel_lobes/executive_lobe.py`
+  - `src/kernel_lobes/thalamus_lobe.py`
+  - `src/modules/absolute_evil.py`
+  - `src/modules/semantic_chat_gate.py`
+  - `tests/test_nomad_integration_hardware.py`
+  - `tests/test_nomad_resilience.py`
+  - `tests/test_semantic_chat_gate.py`
+  - `tests/test_v13_distributed_brain.py`
+
+### Execution (Swarm) | Date: 2026-04-21 20:36:14 | Author: Anonymous Agent
+- **Block:** `B.5`
+- **Message:** Bloque B.5 Thalamus hardening: ThalamusNode _finite_unit + isfinite on fuse_signals/RMS/orientation; tests test_thalamus_node NaN/Inf; test_nomad_resilience rewritten with CorpusCallosum+ThalamusLobe (no MagicMock); stress_thalamus_filtering await bus.stop. EthosKernel abandon_chat_turn + _chat_turn_abandoned for ADR0002/chat_server. ci.yml comment for gh workflow run CI. GitHub Actions: workflow_dispatch CI triggered.
+- **Files Modified:**
+  - `.github/workflows/ci.yml`
+  - `docs/changelogs_l2/swarm_activity.md`
+  - `pyproject.toml`
+  - `scripts/swarm_sync.py`
+  - `src/chat_server.py`
+  - `src/kernel.py`
+  - `tests/test_pruning.db`

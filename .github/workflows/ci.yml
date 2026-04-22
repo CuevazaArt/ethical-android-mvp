@@ -1,5 +1,6 @@
 # Quality gate: same dependency pins as local dev (requirements.txt + requirements-dev.txt).
 # Runs on pushes and PRs to main; matches local checks + optional pre-commit (see CONTRIBUTING.md).
+# Manual run (full pytest matrix): `gh workflow run CI --ref main`
 name: CI
 
 on:

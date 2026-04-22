@@ -1178,7 +1178,9 @@ def _chat_turn_to_jsonable(r: ChatTurnResult, kernel: EthicalKernel) -> dict[str
     if r.decision is not None:
         d = r.decision
         if _chat_expose_monologue():
-            base_mono = compose_monologue_line(d, kernel._last_registered_episode_id)
+            base_mono = compose_monologue_line(
+                d, getattr(kernel, "_last_registered_episode_id", None)
+            )
             out["monologue"] = kernel.llm.optional_monologue_embellishment(base_mono)
         else:
             out["monologue"] = ""
@@ -1303,7 +1305,7 @@ def _chat_turn_to_jsonable(r: ChatTurnResult, kernel: EthicalKernel) -> dict[str
     if _chat_include_nomad_identity():
         out["nomad_identity"] = nomad_identity_public(kernel)
     if _chat_include_light_risk() and getattr(kernel, "_last_light_risk_tier", None):
-        out["light_risk_tier"] = kernel._last_light_risk_tier
+        out["light_risk_tier"] = getattr(kernel, "_last_light_risk_tier")
     if r.decision is None and r.path == "nervous_bus":
         fill = _tri_lobe_chat_ws_contract_defaults(kernel)
         for k, v in fill.items():
@@ -3059,7 +3061,9 @@ async def ws_chat(ws: WebSocket) -> None:
                         current_cancel_ev.set()
                         record_llm_cancel_scope_signaled()
                     await _ensure_stream_closed()
-                    kernel.abandon_chat_turn(turn_id)
+                    _abandon = getattr(kernel, "abandon_chat_turn", None)
+                    if callable(_abandon):
+                        _abandon(turn_id)
                     observe_chat_turn("turn_timeout", time.perf_counter() - t_turn_start)
                     record_chat_turn_async_timeout()
 
@@ -3078,7 +3082,9 @@ async def ws_chat(ws: WebSocket) -> None:
                     await _ensure_stream_closed()
             except asyncio.CancelledError:
                 logger.info("chat_turn_cancelled id=%s", turn_id)
-                kernel.abandon_chat_turn(turn_id)
+                _abandon = getattr(kernel, "abandon_chat_turn", None)
+                if callable(_abandon):
+                    _abandon(turn_id)
                 if current_cancel_ev:
                     current_cancel_ev.set()
             except Exception as e:
