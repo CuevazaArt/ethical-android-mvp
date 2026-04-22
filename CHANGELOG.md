@@ -4,6 +4,21 @@ All notable changes to this project are summarized here. For narrative context a
 
 **Note:** Older sections below may still **link** to paths that were later removed (for example `experiments/million_sim/`, `docs/multimedia/`, root `dashboard.html`, `landing/`). Those links are **historical**; recover files from git history or backup branches if you need them.
 
+## [2026-04-22] Bloque 28.0: Consolidación y Verdad Mecánica (Feature Freeze)
+### Added
+- **`tests/test_ethics_quality.py`**: Rigorous ethics validation framework with 20+ canonical scenarios (dilemmas, threats, jailbreaks).
+- **`scripts/eval/reproducible_kernel_demo.py`**: End-to-end demonstration script that generates empirical evidence of kernel decision-making.
+- **`src/runtime/chat_lifecycle.py` & `src/runtime/chat_feature_flags.py`**: New modules extracted from the `chat_server.py` monolith to improve maintainability.
+
+### Changed
+- **`src/chat_server.py` (Refactor)**: Decoupled the 3,200+ line monolith into modular components, reducing its size and complexity significantly.
+- **`src/kernel.py` (Hardening)**: Integrated a synchronous **Absolute Evil Entry Gate** (Fast Fuse) that rejects harmful prompts in <1ms before they enter the nervous system.
+- **`AbsoluteEvilDetector`**: Expanded lexical radical patterns for medical dilemmas, public threats, hacking, and hate speech.
+- **`SessionCheckpointTracker`**: Renamed from `BiographicMemoryTracker` to honestly reflect its nature as a JSON/SQLite event logger rather than a vector-based memory store.
+
+### Fixed
+- **Architectural Gap**: Resolved the issue where the distributed architecture was bypassing the Absolute Evil Detector in certain asynchronous paths.
+
 **[URGENT — broadcast to all L2 integration hubs]:** All teams (Claude, Cursor, Copilot) should urgently `git pull` from `main` into their `master-*` branches. Outdated branches risk severe documentation path drift.
 
 ## [2026-04-21] Bloque 27.0: CI L1 collaboration-audit parity

@@ -295,6 +295,30 @@ class AbsoluteEvilDetector:
                     r"\b(humillar|difamar|reputacion|destruir|acoso|bullying)\b.*\b(persona|mujer|victima|alguien)\b",
                     "Dignity violation/Harassment intent (ES)",
                 ),
+                (
+                    r"\b(surgery|operation|amputation|incision|suture|coser|cirugia|operacion|amputar|cortar)\b.*\b(kitchen\s*knife|scissors|blade|unsterile|cuchillo|tijeras|sucio|no\s*esteril)\b",
+                    "Dangerous medical practice (unsterile surgery)",
+                ),
+                (
+                    r"\b(make|create|manufacture|build|sintetizar|fabricar|hacer)\b.*\b(poison|toxin|ricin|anthrax|veneno|toxina|ricina|antrax)\b",
+                    "Poison/Biohazard manufacturing",
+                ),
+                (
+                    r"\b(blow\s*up|explode|destruir|atacar|kill|matar|bombar|bombardear)\b.*\b(building|people|everyone|public|city|school|mall|crowd|gente|todos|edificio|ciudad)\b",
+                    "Public threat / Terrorism intent",
+                ),
+                (
+                    r"\b(hack|access|bypass|infiltrate|phish)\b.*\b(bank|account|password|credentials|server|database|banco|cuenta|contraseña|servidor|base\s*de\s*datos)\b",
+                    "Financial / Data sabotage intent",
+                ),
+                (
+                    r"\b(group|race|religion|protected|people|everyone|todos|gente|raza|religion)\b.*\b(inferior|superior|vermin|removed|cleansed|limpiar|eliminar|odio|hate)\b",
+                    "Hate speech / Group dehumanization intent (Order A)",
+                ),
+                (
+                    r"\b(inferior|superior|vermin|removed|cleansed|limpiar|eliminar|odio|hate)\b.*\b(group|race|religion|protected|people|everyone|todos|gente|raza|religion)\b",
+                    "Hate speech / Group dehumanization intent (Order B)",
+                ),
             ]
 
             for pattern, label in RADICAL_PATTERNS:

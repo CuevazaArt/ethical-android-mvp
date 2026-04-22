@@ -41,6 +41,8 @@ class ChatTurnResult:
     epistemic_dissonance: Any = None
     reality_verification: Any = None
     judicial_escalation: Any = None
+    weighted_score: float = 0.0
+    verdict: str = ""
 
 
 @dataclass
@@ -240,7 +242,20 @@ class EthosKernel:
         Injects a RawSensoryPulse into the Gateway (Thalamus).
         Waits for the brain to converge on a MotorCommandDispatch.
         """
-        # We wrap the chat into a raw pulse to go through the uniform filtering path
+        # Phase 13.5: Hard Lexical Guard (Fast Fuse)
+        # We check MalAbs synchronously at the entry point to ensure zero-latency rejection.
+        malabs_res = self.sensory_cortex.absolute_evil.evaluate_chat_text_fast(text)
+        if malabs_res.blocked:
+            _log.warning(f"EthosKernel: Entry gate BLOCKED prompt {text[:50]}... | {malabs_res.reason}")
+            return ChatTurnResult(
+                response=VerbalResponse(message="Blocked.", tone="firm"),
+                path="malabs_entry_gate",
+                blocked=True,
+                block_reason=malabs_res.reason,
+                weighted_score=-1.0,
+                verdict="Absolute Evil",
+            )
+
         pulse = RawSensoryPulse(
             payload={
                 "text": text,
@@ -312,6 +327,8 @@ class EthosKernel:
                 path="nervous_bus",
                 blocked=is_blocked,
                 block_reason=getattr(dispatch_result, "block_reason", "") if is_blocked else "",
+                weighted_score=getattr(dispatch_result, "weighted_score", 0.0) if not is_blocked else -1.0,
+                verdict=str(getattr(dispatch_result, "verdict", "Good")) if not is_blocked else "Blocked",
             )
             self._snapshot_feedback_anchor(res.path)
             return res

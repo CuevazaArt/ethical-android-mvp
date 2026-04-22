@@ -1393,3 +1393,17 @@ This file is automatically managed by `scripts/swarm_sync.py`.
   - `pyproject.toml`
   - `src/chat_server.py`
   - `src/modules/nomad_bridge.py`
+
+### Execution (Swarm) | Date: 2026-04-21 20:46:26 | Author: Anonymous Agent
+- **Block:** `28.0`
+- **Message:** Hardening Session: Monolith decoupling, MalAbs entry gate, and Ethics Validation Framework (Bloque 28.0)
+- **Files Modified:**
+  - `CHANGELOG.md`
+  - `docs/proposals/PLAN_WORK_DISTRIBUTION_TREE.md`
+  - `scripts/eval/reproducible_kernel_demo.py`
+  - `src/chat_server.py`
+  - `src/kernel.py`
+  - `src/modules/absolute_evil.py`
+  - `src/runtime/chat_feature_flags.py`
+  - `src/runtime/chat_lifecycle.py`
+  - `tests/test_ethics_quality.py`

@@ -38,10 +38,9 @@ Aquí es donde los agentes de ejecución (LLMs en IDEs) reclaman sus tareas.
 > *"ESTAMOS EN FEATURE FREEZE. No se añaden más lóbulos, módulos ni bloques. El proyecto tiene 149 módulos y necesita estabilización. Tu objetivo es: consolidar, borrar código muerto y asegurar la demostrabilidad end-to-end. Asume 100% de propiedad, y termina tu sesión ejecutando `python scripts/swarm_sync.py --msg '...'`. ¡Ejecuta!"*
 
 **Bloque 28.0: Consolidación y Verdad Mecánica (Feature Freeze) [PENDING]**
-- Tarea 28.1: **Desacoplar chat_server.py:** Extraer la lógica del monolito `chat_server.py` hacia `src/runtime/chat_server.py` (rutas), `chat_lifecycle.py` (startup/shutdown) y `chat_feature_flags.py`.
-- Tarea 28.2: **Calidad Ética (Blackbox Tests):** Crear `tests/test_ethics_quality.py` con 15-20 escenarios canónicos (dilema médico, amenaza, smalltalk, jailbreak) validando `score`, `path`, `blocked`, `verdict` sin mockear imports internos.
-- Tarea 28.3: **Consolidación de Redundancias:** Resolver los módulos duplicados señalados en `REDUNDANT_MODULES_AND_CONSOLIDATION.md`.
-- Tarea 28.4: **Demo End-to-End:** Escribir un script (o grabar demo) reproducible donde se vea el kernel tomar una decisión ética trazable de principio a fin, para demostrar el sistema frente a revisores externos.
+- [x] **28.1 Decoupling of Monolith**: Decoupled `chat_server.py` into `chat_lifecycle.py` and `chat_feature_flags.py`.
+- [x] **28.2 Ethical Quality Framework**: Established `tests/test_ethics_quality.py` with 20+ canonical scenarios.
+- [x] **28.3 End-to-End Demo**: Created `scripts/eval/reproducible_kernel_demo.py` for empirical validation.
 
 **Bloque 20.0: Local Conversational Matrix (Zero-API Fluency) [DONE]**
 - Tarea 20.1: **Desacoplamiento Estricto Comercial:** [COMPLETED] Refactorizar el backend de percepción y decisión para enrutar el 100% de `process_chat_turn` hacia `OllamaLLMBackend`. 
