@@ -157,9 +157,10 @@ Aquí es donde los agentes de ejecución (LLMs en IDEs) reclaman sus tareas.
 **Bloque 35.0: Continuidad L2 — backlog sin `[PENDING]` (CI + núcleo semántico) [DONE]**
 - Tarea 35.1: [COMPLETED — L2 Cursor] Sin tarea `[PENDING]` en BACKLOG abierto: cierre de **Bloque 34.0** en `CHANGELOG`/`PLAN`, regresión async `test_sync_evaluate_chat_text_runs_semantic_off_event_loop` + `test_fetch_embedding_uses_afetch_when_event_loop_running`, claridad en `ci.yml` (`quality` con versión en nombre; `windows-smoke` con pytest acotado). Verificación: `gh workflow run CI --ref main` tras push.
 
-**Bloque 37.0: Recursive Narrative Memory (P3) [PENDING]**
-- Tarea 37.1: **Destilador Episódico:** Implementar `NarrativeEpisodicSummarizer` en `src/modules/narrative.py`. El sistema debe ser capaz de colapsar hilos de 20+ episodios en un solo "Predicado de Identidad" para ahorrar memoria en hardware nómada.
-- Tarea 37.2: **Auto-Reflexión de Identidad:** Integrar el destilador en el ciclo de `LimbicSleep`. Cada vez que el sistema "duerme", debe re-escribir su biografía condensada, permitiendo que el núcleo mantenga coherencia de largo plazo sin saturar el bus.
+**Bloque 37.0: Recursive Narrative Memory (P3) [DONE]**
+- Tarea 37.1: **Destilador Episódico:** [COMPLETED] Implementado `NarrativeEpisodicSummarizer` en `src/modules/memory/narrative.py`.
+- Tarea 37.2: **Auto-Reflexión de Identidad:** [COMPLETED] Integrado destilador en `PsiSleep` (asíncrono).
+- Tarea 37.3: **Persistencia del Alma:** [COMPLETED] Snapshot distributivo en `ImmortalityProtocol` integrado en ciclo de sueño.
 
 ---
 

@@ -221,17 +221,9 @@ class RealTimeBridge:
 
     async def run_execute_sleep(self) -> str:
         """
-        Run :meth:`~src.kernel.EthicalKernel.execute_sleep` in the chat worker pool.
-
-        Psi Sleep, forgiveness, and related work are CPU- and I/O-heavy relative to a single
-        asyncio tick. Call this from FastAPI/WebSocket handlers or background tasks instead of
-        invoking ``kernel.execute_sleep()`` directly on the event loop.
+        Run :meth:`~src.kernel.EthicalKernel.execute_sleep`.
         """
-        ex = _get_dedicated_executor()
-        if ex is None:
-            return await run_in_threadpool(self.kernel.execute_sleep)
-        loop = asyncio.get_running_loop()
-        return await loop.run_in_executor(ex, self.kernel.execute_sleep)
+        return await self.kernel.execute_sleep()
 
     async def run_sync_in_chat_thread(
         self,

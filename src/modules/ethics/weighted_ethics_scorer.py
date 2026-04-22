@@ -286,8 +286,9 @@ class WeightedEthicsScorer:
         Returns a NumPy array of three floats. If the file is missing, malformed,
         or the values are non‑finite, fallback to ``DEFAULT_HYPOTHESIS_WEIGHTS``.
         The loaded weights are normalized to sum to 1.0.
+        # Status: REAL
         """
-        config_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "config", "ethics_weights.yaml")
+        config_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "..", "config", "ethics_weights.yaml")
         try:
             with open(config_path, encoding="utf-8") as f:
                 data = yaml.safe_load(f)

@@ -12,6 +12,7 @@ from datetime import datetime
 from pathlib import Path
 
 import numpy as np
+from typing import Any
 
 from src.persistence.narrative_storage import NarrativePersistence
 
@@ -24,6 +25,32 @@ from src.modules.memory.semantic_embedding_client import (
     maybe_hash_fallback_embedding,
 )
 from src.modules.social.uchi_soto import RelationalTier
+
+# Status: REAL
+
+class NarrativeEpisodicSummarizer:
+    """
+    Cognitive component for distilling episodic memories into chronicles.
+    """
+    def __init__(self, llm=None):
+        from src.modules.cognition.llm_layer import LLMModule
+        self.llm = llm or LLMModule()
+
+    async def distill(self, episodes: list[NarrativeEpisode]) -> dict[str, Any]:
+        """
+        Uses the LLM to summarize a list of episodes into a single thematic digest.
+        """
+        if not episodes:
+            return {"summary": "No history to distill.", "predominant_themes": [], "identity_drift": "none"}
+            
+        # 1. Prepare text for the LLM
+        episodes_text = "\n".join([
+            f"[{ep.timestamp}] {ep.event_description} -> {ep.action_taken} (Moral: {ep.morals.get('synthesis', 'n/a')})"
+            for ep in episodes
+        ])
+        
+        # 2. Call the chronicler LLM
+        return await self.llm.asummarize(episodes_text)
 
 
 class NarrativeMemory:
@@ -45,6 +72,7 @@ class NarrativeMemory:
         self._counter = 0
         self.identity = NarrativeIdentityTracker()
         self.reflector = IdentityReflector(self)
+        self.summarizer = NarrativeEpisodicSummarizer()
         self.experience_digest: str = ""
 
         # Persistence setup (Tier 2)
@@ -123,10 +151,11 @@ class NarrativeMemory:
         poles_summary = ", ".join([f"{p} ({c})" for p, c in top_poles])
 
         # 3. Request LLM Summary (Thematic Distillation)
-        # For MVP, we'll do a structured procedural summary if LLM not available
-        # In full Phase 13, this calls a dedicated 'chronicler' prompt.
-        events_text = "; ".join([ep.event_description for ep in to_summarize[:10]])  # sample
-        summary_text = f"Chronicle of {len(to_summarize)} episodes. Predominant themes: {poles_summary}. Key events sample: {events_text}..."
+        # Using the new NarrativeEpisodicSummarizer (Tarea 37.1)
+        distillation = await self.summarizer.distill(to_summarize)
+        summary_text = distillation.get("summary", "Procedural summary failed.")
+        themes = distillation.get("predominant_themes", [])
+        poles_summary = ", ".join(themes) if themes else poles_summary
 
         # 3.1 Fetch Semantic Embedding for the Chronicle summary
         ollama_url = os.environ.get("OLLAMA_BASE_URL", "http://localhost:11434/api/embeddings")

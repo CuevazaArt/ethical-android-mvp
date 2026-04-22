@@ -19,41 +19,41 @@ from .simulations.runner import ALL_SIMULATIONS, run_simulation
 from .validators.env_policy import validate_kernel_env
 
 
-def banner() -> None:
+def banner() -> str:
     from .utils.terminal_colors import Term
 
     b_color = Term.B_CYAN + Term.BOLD
     v_color = Term.B_WHITE
     return f"""
-{Term.color("╔══════════════════════════════════════════════════════════════╗", b_color)}
-{Term.color("║", b_color)}        {Term.color("ETHICAL ANDROID — MVP PROTOTYPE v5", b_color)}                    {Term.color("║", b_color)}
-{Term.color("║", b_color)}        {Term.color("Artificial Conscience Kernel + LLM Layer", v_color)}              {Term.color("║", b_color)}
-{Term.color("║", b_color)}        {Term.color("Ex Machina Foundation — 2026", Term.DIM)}                          {Term.color("║", b_color)}
-{Term.color("╚══════════════════════════════════════════════════════════════╝", b_color)}
++--------------------------------------------------------------+
+|        ETHICAL ANDROID — MVP PROTOTYPE v5                    |
+|        Artificial Conscience Kernel + LLM Layer              |
+|        Ex Machina Foundation — 2026                          |
++--------------------------------------------------------------+
 
-  {Term.color("Active modules:", Term.BOLD + Term.CYAN)}
-    {Term.color("✓", Term.GREEN)} Absolute Evil (hardened ethical fuse)
-    {Term.color("✓", Term.GREEN)} Preloaded Buffer (ethical constitution)
-    {Term.color("✓", Term.GREEN)} Impact evaluation (weighted mixture; BayesianEngine)
-    {Term.color("✓", Term.GREEN)} Ethical Poles (dynamic multipolar arbitration)
-    {Term.color("✓", Term.GREEN)} Sigmoid Will (decision function)
-    {Term.color("✓", Term.GREEN)} Sympathetic-Parasympathetic (body regulator)
-    {Term.color("✓", Term.GREEN)} Narrative Memory (identity through stories)
-    {Term.color("✓", Term.GREEN)} Uchi-Soto (trust circles)
-    {Term.color("✓", Term.GREEN)} Locus of Control (causal attribution)
-    {Term.color("✓", Term.GREEN)} Psi Sleep (retrospective audit)
-    {Term.color("✓", Term.GREEN)} Mock DAO (simulated ethical governance)
-    {Term.color("✓", Term.GREEN)} Bayesian Variability (controlled noise)
-    {Term.color("✓", Term.GREEN)} LLM Layer (natural language)
-    {Term.color("✓", Term.GREEN)} Weakness Pole (emotional coloring)             {Term.color("[NEW v5]", Term.B_YELLOW)}
-    {Term.color("✓", Term.GREEN)} Algorithmic Forgiveness (memory decay)          {Term.color("[NEW v5]", Term.B_YELLOW)}
-    {Term.color("✓", Term.GREEN)} Immortality Protocol (distributed backup)       {Term.color("[NEW v5]", Term.B_YELLOW)}
+  Active modules:
+    [x] Absolute Evil (hardened ethical fuse)
+    [x] Preloaded Buffer (ethical constitution)
+    [x] Impact evaluation (weighted mixture; BayesianEngine)
+    [x] Ethical Poles (dynamic multipolar arbitration)
+    [x] Sigmoid Will (decision function)
+    [x] Sympathetic-Parasympathetic (body regulator)
+    [x] Narrative Memory (identity through stories)
+    [x] Uchi-Soto (trust circles)
+    [x] Locus of Control (causal attribution)
+    [x] Psi Sleep (retrospective audit)
+    [x] Mock DAO (simulated ethical governance)
+    [x] Bayesian Variability (controlled noise)
+    [x] LLM Layer (natural language)
+    [x] Weakness Pole (emotional coloring)             [NEW v5]
+    [x] Algorithmic Forgiveness (memory decay)          [NEW v5]
+    [x] Immortality Protocol (distributed backup)       [NEW v5]
 
-  {Term.color("Running simulations...", Term.ITALIC + Term.DIM)}
+  Running simulations...
 """
 
 
-def final_summary(kernel: EthicalKernel) -> None:
+async def final_summary(kernel: EthicalKernel) -> None:
     """Displays day summary, Psi Sleep, and DAO status."""
     from .utils.terminal_colors import Term
 
@@ -76,13 +76,14 @@ def final_summary(kernel: EthicalKernel) -> None:
 
     # Execute Psi Sleep
     print(Term.subheader("Psi Sleep Retrospective"))
-    print(f"  {Term.color(kernel.execute_sleep(), Term.ITALIC + Term.DIM)}")
+    sleep_out = await kernel.execute_sleep()
+    print(f"  {Term.color(sleep_out, Term.ITALIC + Term.DIM)}")
 
     # DAO status
     print(Term.subheader("DAO Governance Ledger"))
     print(f"  {kernel.dao_status()}")
 
-    print(Term.color("\n" + "═" * 70, Term.CYAN))
+    print(Term.color("\n" + "=" * 70, Term.CYAN))
     print(
         Term.color(
             "  BEHAVIORAL COHERENCE: The same ethical principles produced", Term.BOLD + Term.B_WHITE
@@ -93,41 +94,46 @@ def final_summary(kernel: EthicalKernel) -> None:
             "  proportional responses at all levels of complexity.", Term.BOLD + Term.B_WHITE
         )
     )
-    print(Term.color("═" * 70 + "\n", Term.CYAN))
+    print(Term.color("=" * 70 + "\n", Term.CYAN))
 
 
 def main():
     apply_named_runtime_profile_to_environ()
+    
+    import asyncio
+    asyncio.run(_async_main())
+
+async def _async_main():
+    
+    # 1. Environment validation
     validate_kernel_env()
+
+    # 2. Kernel initialization
     kernel = EthicalKernel()
-
-    # Parse arguments
-    specific_sim = None
-    if "--sim" in sys.argv:
-        idx = sys.argv.index("--sim")
-        if idx + 1 < len(sys.argv):
-            try:
-                specific_sim = int(sys.argv[idx + 1])
-            except ValueError:
-                print("Error: --sim requires a valid batch simulation id")
-                sys.exit(1)
-
     print(banner())
 
-    if specific_sim:
-        if specific_sim not in ALL_SIMULATIONS:
+    # 3. Simulation execution
+    sim_idx = None
+    if "--sim" in sys.argv:
+        try:
+            sim_idx = int(sys.argv[sys.argv.index("--sim") + 1])
+        except (ValueError, IndexError):
+            pass
+
+    if sim_idx is not None:
+        if sim_idx not in ALL_SIMULATIONS:
             print(
-                f"Simulation {specific_sim} does not exist. Available: {sorted(ALL_SIMULATIONS)}."
+                f"Simulation {sim_idx} does not exist. Available: {sorted(ALL_SIMULATIONS)}."
             )
             sys.exit(1)
-        result = run_simulation(kernel, specific_sim)
+        result = run_simulation(kernel, sim_idx)
         print(result)
     else:
         for i in sorted(ALL_SIMULATIONS):
             result = run_simulation(kernel, i)
             print(result)
 
-        final_summary(kernel)
+    await final_summary(kernel)
 
 
 if __name__ == "__main__":

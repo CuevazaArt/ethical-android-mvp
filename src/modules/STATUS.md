@@ -80,12 +80,12 @@
 | memory\immortality.py | SCAFFOLD |
 | memory\memory_hygiene.py | SCAFFOLD |
 | memory\migratory_identity.py | SCAFFOLD |
-| memory\narrative.py | PENDING-LLM |
+| memory\narrative.py | REAL |
 | memory\narrative_identity.py | PENDING-LLM |
 | memory\narrative_types.py | SCAFFOLD |
 | memory\persistent_threat_tracker.py | REAL |
 | memory\precedent_rag.py | SCAFFOLD |
-| memory\psi_sleep.py | SCAFFOLD |
+| memory\psi_sleep.py | REAL |
 | memory\reparation_vault.py | SCAFFOLD |
 | memory\semantic_anchor_store.py | SCAFFOLD |
 | memory\semantic_embedding_client.py | SCAFFOLD |
@@ -158,6 +158,6 @@
 
 ## Summary
 
-- **REAL**: 11
-- **SCAFFOLD**: 139
-- **PENDING-LLM**: 3
+- **REAL**: 13
+- **SCAFFOLD**: 138
+- **PENDING-LLM**: 2

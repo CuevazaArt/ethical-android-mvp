@@ -48,6 +48,14 @@ class Term:
     B_MAGENTA = "\033[1;35m"
 
     @staticmethod
+    def header(text: str) -> str:
+        return f"\n{Term.BOLD}{Term.B_CYAN}=== {text.upper()} ==={Term.END}"
+
+    @staticmethod
+    def subheader(text: str) -> str:
+        return f"\n{Term.BOLD}{Term.CYAN}--- {text} ---{Term.END}"
+
+    @staticmethod
     def color(text: str, style: str) -> str:
         if not style:
             return text

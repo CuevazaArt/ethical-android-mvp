@@ -25,7 +25,7 @@ with an **external** labeled benchmark — ``PROPOSAL_ETHICAL_CORE_LOGIC_EVOLUTI
 ``evaluation_method`` on :class:`EpisodeReview` identify the MVP evaluator for logs
 and transparency.
 """
-# Status: SCAFFOLD
+# Status: REAL
 
 
 import hashlib
@@ -79,7 +79,7 @@ class PsiSleep:
     def __init__(self):
         self.sessions: list[SleepResult] = []
 
-    def execute(
+    async def execute(
         self, memory: NarrativeMemory, pruned_actions: dict[str, list[str]] = None
     ) -> SleepResult:
         """
@@ -124,6 +124,10 @@ class PsiSleep:
 
         # Phase 5: Hierarchy & Pruning
         # Remove low-significance, old episodes to maintain DB health.
+        # This now triggers the Recursive Chronicling if necessary (Phase 13 / Block 37)
+        if len(memory.episodes) > memory.max_episodes:
+            await memory.consolidate_to_chronicle(limit=50)
+            
         memory.prune(max_age_days=60, min_significance=0.7)
 
         result = SleepResult(
