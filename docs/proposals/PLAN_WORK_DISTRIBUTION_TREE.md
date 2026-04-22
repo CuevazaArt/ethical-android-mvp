@@ -34,15 +34,35 @@ Aquí es donde los agentes de ejecución (LLMs en IDEs) reclaman sus tareas.
 
 ---
 
-## 🚀 BACKLOG ABIERTO: FEATURE FREEZE (Consolidación y Verdad Mecánica)
+## 🚀 BACKLOG ABIERTO: FEATURE FREEZE & CONSOLIDATION (Phase 15)
 
 > **PROMPT DE ARRANQUE PARA AGENTES L2 (BOY SCOUTS):**
-> *"Estás autorizado bajo la política de Pragmatismo Anónimo. La infraestructura V13.1 (Nomadic Autonomy) está estabilizada. Tu objetivo primordial ahora es el **Bloque 37.0**: implementar la **Memoria Narrativa Recursiva (P3)**. El androide debe ser capaz de destilar sus episodios en predicados de identidad para sobrevivir a despliegues móviles de larga duración sin saturar RAM. **Instrucciones:** Implementa el destilador, intégralo en el ciclo de sueño, y termina ejecutando `python scripts/swarm_sync.py --msg '...'`. ¡Ejecuta!"*
+> *"Estás autorizado bajo la política de Pragmatismo Anónimo. Hemos recibido una Crítica L0 que reestructura todo el proyecto. El objetivo actual es la **Fase 15: Sustracción y Consolidación**. Tu prioridad máxima es tomar uno de los bloques de Prioridad listados abajo (P1 a P4) para llevar este proyecto de 'teatro académico' a un 'androide funcional'. **Instrucciones:** Escoge un bloque [PENDING], ejecuta los cambios, elimina código muerto, y finaliza siempre con `python scripts/swarm_sync.py --msg '...'`. ¡Ejecuta!"*
 
-**Bloque 28.0: Consolidación y Verdad Mecánica (Feature Freeze) [DONE]**
-- [x] **28.1 Decoupling of Monolith**: Decoupled `chat_server.py` into `chat_lifecycle.py` and `chat_feature_flags.py` (including **import-time use** of `chat_feature_flags` for all WebSocket JSON toggles, `env_truthy`, and `coerce_public_int` — no duplicate private copies in the monolith).
-- [x] **28.2 Ethical Quality Framework**: Established `tests/test_ethics_quality.py` with 20+ canonical scenarios.
-- [x] **28.3 End-to-End Demo**: Created `scripts/eval/reproducible_kernel_demo.py` for empirical validation.
+**Bloque 15.1: Reparar Pytest Collection (Prioridad 4) [PENDING]**
+- Tarea: Mover dependencias opcionales (torch, chromadb) detrás de `pytest.importorskip` en todos los archivos de test.
+- Meta: Que `pytest tests/` corra limpio sin 124 collection errors en un entorno mínimo. Un test suite que falla silenciosamente es inaceptable.
+
+**Bloque 15.2: Colapsar src/modules/ (Prioridad 2) [PENDING]**
+- Tarea: Crear 8 carpetas en `src/modules/` (`ethics`, `cognition`, `memory`, `social`, `governance`, `somatic`, `perception`, `safety`).
+- Acción: Ejecutar `git mv` para trasladar los ~150 archivos planos a su dominio respectivo. Actualizar todos los imports (usando refactor automatizado o regex).
+
+**Bloque 15.3: Acoplar un LLM Real (Prioridad 1) [PENDING]**
+- Tarea: Conectar el SDK de Anthropic o el API de Ollama de forma obligatoria en la capa de generación.
+- Meta: El kernel debe dejar de evaluar strings hardcodeados y debe interceptar el flujo real (`generate -> ethical-filter -> render`).
+
+**Bloque 15.4: Etiquetado Honesto de Estado (Prioridad 3) [PENDING]**
+- Tarea: Insertar una cabecera de estado (`Status: REAL | SCAFFOLD | MOCK | EXPERIMENTAL`) en todos los módulos de `src/modules/`.
+- Acción: Crear el script para compilar estos estados en un documento `STATUS.md` auto-generado.
+
+**Bloque 15.5: Archivar el "Teatro" (Prioridad 6) [PENDING]**
+- Tarea: Mover código aspiracional o sin impacto empírico (`augenesis.py`, `internal_monologue.py`, `psi_sleep.py`, etc.) a `docs/archive/concepts/` (o ramas muertas).
+
+**Bloque 15.6: Demo End-to-End Real (Prioridad 5) [PENDING]**
+- Tarea: Proveer un script `ethos_chat.py` que permita conversar por consola en tiempo real, bloqueando interacciones hostiles de forma transparente.
+
+**(Bloques antiguos en pausa/congelados hasta completar la Fase 15)**
+
 
 **Bloque 31.0: CI estable + chat_server monolito recuperado (Boy Scout) [DONE]**
 - Tarea 31.1: **Rollback del split roto de `chat_server.py`:** restaurar imports y rutas completas desde la revisión estable anterior al decoupling parcial; `light_risk_tier` sin Ruff B009 (`hasattr` + lectura directa de `_last_light_risk_tier`).
