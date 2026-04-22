@@ -10,6 +10,7 @@ import numpy as np
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
 
 from src.modules.narrative import NarrativeMemory
+from src.modules.narrative_types import BodyState, NarrativeEpisode
 from src.modules.temporal_horizon_prior import (
     TemporalHorizonSignals,
     _parse_ts,
@@ -19,19 +20,35 @@ from src.modules.temporal_horizon_prior import (
 from src.modules.weighted_ethics_scorer import BayesianEngine
 
 
-def _fill_memory_declining(mem: NarrativeMemory, n: int = 6) -> None:
+def _declining_episodes_synthetic(n: int = 6) -> list[NarrativeEpisode]:
+    """
+    In-memory ``NarrativeEpisode`` list (declining ``ethical_score``) for horizon tests.
+
+    Do not use :meth:`NarrativeMemory.register` here: it performs Ollama HTTP embedding fetches
+    and persistence, so suite runtime would be dominated by network timeouts when Ollama is down.
+    """
+    out: list[NarrativeEpisode] = []
     for i in range(n):
-        mem.register(
-            place="p",
-            description="d",
-            action="act_civically",
-            morals={},
-            verdict="Good",
-            score=0.85 - i * 0.12,
-            mode="D_delib",
-            sigma=0.5,
-            context="everyday",
+        days_ago = n - 1 - i
+        t = (datetime.now(UTC) - timedelta(days=days_ago)).replace(microsecond=0)
+        ts = t.strftime("%Y-%m-%dT%H:%M:%SZ")
+        out.append(
+            NarrativeEpisode(
+                id=f"EP-{i:04d}",
+                timestamp=ts,
+                place="p",
+                event_description="d",
+                body_state=BodyState(),
+                action_taken="act_civically",
+                morals={},
+                verdict="Good",
+                ethical_score=0.85 - i * 0.12,
+                decision_mode="D_delib",
+                sigma=0.5,
+                context="everyday",
+            )
         )
+    return out
 
 
 def test_parse_ts_invalid_and_z_suffix() -> None:
@@ -88,9 +105,9 @@ def test_apply_prior_noop_when_combined_zero(monkeypatch):
     assert np.allclose(eng.hypothesis_weights, w0, atol=1e-9)
 
 
-def test_registered_episodes_produce_nonzero_signal():
+def test_registered_episodes_produce_nonzero_signal() -> None:
     mem = NarrativeMemory()
-    _fill_memory_declining(mem)
+    mem.episodes = _declining_episodes_synthetic(6)
     s = compute_horizon_signals(mem, "everyday", "act")
     assert s.long_term_stability > 0.0
 
@@ -116,8 +133,6 @@ def test_apply_prior_nonfinite_combined_skips_nudge(monkeypatch) -> None:
 
 
 def test_compute_horizon_signals_all_nan_scores_falls_back() -> None:
-    from src.modules.narrative_types import BodyState, NarrativeEpisode
-
     def _ts(days_ago: int) -> str:
         t = datetime.now(UTC) - timedelta(days=days_ago)
         return t.replace(microsecond=0).strftime("%Y-%m-%dT%H:%M:%SZ")
