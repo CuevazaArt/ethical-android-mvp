@@ -4,7 +4,12 @@ from __future__ import annotations
 
 import math
 
-from src.modules.charm_engine import CharmEngine, StyleParametrizer, _as_nonneg_int_streak, _as_unit01
+from src.modules.charm_engine import (
+    CharmEngine,
+    StyleParametrizer,
+    _as_nonneg_int_streak,
+    _as_unit01,
+)
 from src.modules.uchi_soto import InteractionProfile, TrustCircle
 from src.modules.user_model import UserModelTracker
 

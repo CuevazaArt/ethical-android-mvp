@@ -156,7 +156,9 @@ class GesturePlanner:
             plan.append({"actuator": "eyes", "action": "direct_contact", "duration_ms": 3000})
 
         if charm.playfulness > 0.5:
-            plan.append({"actuator": "eyebrows", "action": "quick_raise", "intensity": charm.playfulness})
+            plan.append(
+                {"actuator": "eyebrows", "action": "quick_raise", "intensity": charm.playfulness}
+            )
 
         return plan
 
@@ -197,7 +199,12 @@ class ResponseSculptor:
             # Full bypass for L0 safety
             return StylizedResponse(
                 final_text=base_text,
-                charm_vector={"warmth": 0.0, "mystery": 0.0, "playfulness": 0.0, "directiveness": 1.0},
+                charm_vector={
+                    "warmth": 0.0,
+                    "mystery": 0.0,
+                    "playfulness": 0.0,
+                    "directiveness": 1.0,
+                },
                 gesture_plan=[{"actuator": "posture", "action": "rigid_block", "intensity": 1.0}],
                 haptic_plan=[{"type": "vibrate", "pattern": [500], "label": "absolute_evil_warning"}]
             )
@@ -244,6 +251,7 @@ class CharmEngine:
     """
     Facade for the Charm pipeline in the Executive Lobe.
     """
+
     def __init__(self, llm_module: Any = None):
         self.sculptor = ResponseSculptor(llm_module)
 
