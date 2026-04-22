@@ -14,6 +14,8 @@ Env:
 
 See ``context_distillation.validate_conduct_guide_dict`` and ``docs/proposals/README.md``.
 """
+# Status: SCAFFOLD
+
 
 from __future__ import annotations
 

@@ -10,6 +10,8 @@ Ingress normalization and fusion pipeline: ``docs/proposals/PROPOSAL_SENSOR_FUSI
 See docs/proposals/README.md, multimodal_trust.py (cross-modal doubt),
 and epistemic_dissonance.py (v9.1 telemetry).
 """
+# Status: SCAFFOLD
+
 
 from __future__ import annotations
 

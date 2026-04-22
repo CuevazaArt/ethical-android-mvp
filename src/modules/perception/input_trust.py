@@ -5,6 +5,8 @@ These are **heuristic** defenses against trivial evasions (Unicode tricks, spaci
 bidirectional overrides). They are **not** a robust content classifier; see
 ``docs/proposals/README.md``.
 """
+# Status: SCAFFOLD
+
 
 from __future__ import annotations
 

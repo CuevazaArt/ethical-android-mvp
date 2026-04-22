@@ -8,6 +8,8 @@ Does **not** replace ``PreloadedBuffer`` or MalAbs. Provides:
 
 See docs/proposals/README.md and UNIVERSAL_ETHOS_AND_HUB.md.
 """
+# Status: REAL
+
 
 from __future__ import annotations
 

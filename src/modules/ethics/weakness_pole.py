@@ -11,6 +11,8 @@ Each generates morals that reflect human limitations.
 The weakness pole has temporal decay to prevent
 pathological accumulation (resolved together with algorithmic forgiveness).
 """
+# Status: SCAFFOLD
+
 
 from dataclasses import dataclass
 from enum import Enum

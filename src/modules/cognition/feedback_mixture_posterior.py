@@ -22,6 +22,8 @@ Env:
 - ``KERNEL_CONTEXT_SCENARIO_MAP_JSON`` — optional ``{"1":"type_a","2":"type_b"}`` for ``[SIM n]`` in scenario text.
 - ``KERNEL_CONTEXT_KEYWORDS_JSON`` — optional ``{"type_a":["word"],...}`` substring match on scenario+context.
 """
+# Status: SCAFFOLD
+
 
 from __future__ import annotations
 

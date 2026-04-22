@@ -10,6 +10,8 @@ Integration chain:
   → LimbicLobe.escalate_threat_tension()
   → relational_tension modulation
 """
+# Status: REAL
+
 
 from __future__ import annotations
 

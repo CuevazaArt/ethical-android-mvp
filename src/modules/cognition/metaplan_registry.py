@@ -11,6 +11,8 @@ unchanged (safe fallback). Advisory-only; does not alter MalAbs or scoring.
 
 See docs/proposals/README.md
 """
+# Status: SCAFFOLD
+
 
 from __future__ import annotations
 

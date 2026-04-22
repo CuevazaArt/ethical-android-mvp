@@ -19,6 +19,8 @@ Pydantic validation for LLM perception JSON (structured input before Bayes).
 See :func:`validate_perception_dict` and ``llm_layer.LLMModule.perceive`` (fallback uses
 the **current** user message only for local heuristics).
 """
+# Status: SCAFFOLD
+
 
 from __future__ import annotations
 

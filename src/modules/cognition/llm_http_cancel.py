@@ -15,6 +15,8 @@ not only the thread path that wraps :meth:`EthicalKernel.process` in
 ``httpx`` request is still bounded by its read timeout; use async LLM HTTP for
 cancellable in-flight requests (ADR 0002).
 """
+# Status: SCAFFOLD
+
 
 from __future__ import annotations
 

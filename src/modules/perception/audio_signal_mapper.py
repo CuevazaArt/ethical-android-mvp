@@ -2,6 +2,8 @@
 Audio Signal Mapper (Block A8)
 Translates acoustic inference results into ethical signals for the Ethos Kernel.
 """
+# Status: SCAFFOLD
+
 
 from src.modules.perception.audio_adapter import AudioInference
 

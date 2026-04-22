@@ -24,6 +24,8 @@ Precedence for **communicate** and **narrate** is documented in
 Degradation events are logged on :class:`LLMModule` for WebSocket observability (see ``kernel`` /
 ``chat_server``).
 """
+# Status: SCAFFOLD
+
 
 from __future__ import annotations
 

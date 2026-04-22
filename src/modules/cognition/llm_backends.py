@@ -12,6 +12,8 @@ The kernel still routes only through ``LLMModule``; semantic MalAbs may use
 “inference provider” contract (completion + optional embeddings). Alias
 ``InferenceProvider`` documents intent without adding a second type hierarchy.
 """
+# Status: SCAFFOLD
+
 
 from __future__ import annotations
 

@@ -6,6 +6,8 @@ When a gross misfit is detected, feeds a **style** hint so the LLM avoids
 affirming dangerous false premises. For **local lighthouse / RAG-style** checks vs
 rival-model premises, see ``reality_verification.py`` (``KERNEL_LIGHTHOUSE_KB_PATH``).
 """
+# Status: SCAFFOLD
+
 
 from __future__ import annotations
 

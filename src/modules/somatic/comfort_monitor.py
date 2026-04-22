@@ -7,6 +7,8 @@ Adjusts android behavior or stops interaction when human discomfort is detected.
 Uses multimodal signals: proximity, voice stress, facial tension, posture,
 sensor-derived vitality hints to preemptively withdraw or reduce threat.
 """
+# Status: SCAFFOLD
+
 
 from __future__ import annotations
 

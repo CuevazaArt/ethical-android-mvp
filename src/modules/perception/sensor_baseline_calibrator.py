@@ -25,6 +25,8 @@ Env vars
 ``KERNEL_CALIBRATION_SIGMA_K``   — multiplicador de sigma para el umbral crítico
                                    (default 2.0).  Umbral = mean + k·sigma.
 """
+# Status: SCAFFOLD
+
 
 from __future__ import annotations
 

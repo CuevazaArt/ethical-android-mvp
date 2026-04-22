@@ -15,6 +15,8 @@ Gap closed (April 2026 — Antigravity): _apply_snapshot now
 restores NarrativeIdentityTracker leans and core beliefs so
 the Reflexive Mirror and Broken-Mirror logic survive restores.
 """
+# Status: SCAFFOLD
+
 
 import hashlib
 import json

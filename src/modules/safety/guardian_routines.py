@@ -4,6 +4,8 @@ Guardian care routines — public API surface for JSON-backed hints.
 Implementation lives in :mod:`src.modules.guardian_mode`; this module exists so
 imports stay stable for tests and callers (``src.modules.guardian_routines``).
 """
+# Status: SCAFFOLD
+
 
 from __future__ import annotations
 

@@ -6,6 +6,8 @@ Quantizes :class:`SensorSnapshot` into a key; optional **negative** weight bumps
 
 See docs/proposals/README.md
 """
+# Status: SCAFFOLD
+
 
 import logging
 import math

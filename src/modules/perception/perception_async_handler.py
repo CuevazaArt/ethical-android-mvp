@@ -7,6 +7,8 @@ standalone async handler, enabling better resource management and turnover.
 Separates I/O-bound perception operations from CPU-bound ethical decisions,
 matching hemisphere refactor architecture.
 """
+# Status: SCAFFOLD
+
 
 from __future__ import annotations
 

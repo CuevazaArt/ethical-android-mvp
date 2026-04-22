@@ -19,6 +19,8 @@ See ``docs/proposals/PROPOSAL_PERCEPTION_BACKEND_DEGRADATION_POLICY.md`` and the
 ``docs/proposals/PROPOSAL_LLM_TOUCHPOINT_DEGRADATION_MATRIX.md`` (``KERNEL_LLM_TP_*`` precedence,
 optional ``KERNEL_LLM_GLOBAL_DEFAULT_POLICY`` after legacy).
 """
+# Status: SCAFFOLD
+
 
 from __future__ import annotations
 

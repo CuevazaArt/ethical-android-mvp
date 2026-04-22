@@ -11,6 +11,8 @@ Principle: forgiveness is not forgetting. The event remains in
 narrative memory, but its emotional weight and influence on
 future decisions gradually decreases.
 """
+# Status: SCAFFOLD
+
 
 import logging
 import math

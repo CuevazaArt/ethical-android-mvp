@@ -2,6 +2,8 @@
 Migratory Identity Service (Block 4.3: C5).
 Handles the transition between different hardware bodies while preserving narrative continuity.
 """
+# Status: SCAFFOLD
+
 
 from __future__ import annotations
 

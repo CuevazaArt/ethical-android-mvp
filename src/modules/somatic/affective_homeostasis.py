@@ -4,6 +4,8 @@ Affective homeostasis telemetry (UX-only).
 Does not change kernel decisions or MalAbs; exposes σ / PAD / reflection strain
 for clients to adapt presentation (robustez pilar 4).
 """
+# Status: REAL
+
 
 from __future__ import annotations
 

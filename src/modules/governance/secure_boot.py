@@ -11,6 +11,8 @@ Secure Boot Service (Block 5.2: G2) — **Hardened Cryptographic Integrity**.
    If any file is modified, or if the manifest is forged, the Kernel will
    refuse to boot.
 """
+# Status: SCAFFOLD
+
 
 from __future__ import annotations
 

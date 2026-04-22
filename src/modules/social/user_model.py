@@ -7,6 +7,8 @@ circle. Feeds **style-only** guidance into communication — does not change act
 Enrichment (cognitive pattern, risk band, judicial snapshot for tone):
 ``docs/proposals/README.md``.
 """
+# Status: SCAFFOLD
+
 
 from __future__ import annotations
 

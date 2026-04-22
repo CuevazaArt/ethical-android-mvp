@@ -6,6 +6,8 @@ Manages the kernel's core identity across sessions:
 - Accumulated Reputation (from DAO).
 - Genome Guard: Prevents calibration drift beyond birth reference.
 """
+# Status: SCAFFOLD
+
 
 from __future__ import annotations
 

@@ -12,6 +12,8 @@ aggregates them deterministically (dedupe by claimant, max turn, sort) and echoe
 ``frontier_witness_resolution`` with ``evidence_posture=advisory_aggregate_not_quorum`` — see
 ``docs/proposals/PROPOSAL_LAN_GOVERNANCE_FRONTIER_WITNESS.md``.
 """
+# Status: SCAFFOLD
+
 
 from __future__ import annotations
 

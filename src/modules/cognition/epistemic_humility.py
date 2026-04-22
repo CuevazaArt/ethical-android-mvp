@@ -4,6 +4,8 @@ Epistemic Humility (Block 4.2: Humility C3).
 Implements the 'I don't know' logic for the kernel when uncertainty is high
 or model confidence is low, preventing the derivation of doubtful or risky solutions.
 """
+# Status: SCAFFOLD
+
 
 from __future__ import annotations
 

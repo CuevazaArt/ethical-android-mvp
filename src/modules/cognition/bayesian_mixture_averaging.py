@@ -13,6 +13,8 @@ Env (see ADR 0012):
 - ``KERNEL_BMA_ALPHA`` — single scalar (symmetric) or three comma-separated positives.
 - ``KERNEL_BMA_SAMPLES`` — MC draws (default 5000).
 """
+# Status: SCAFFOLD
+
 
 from __future__ import annotations
 

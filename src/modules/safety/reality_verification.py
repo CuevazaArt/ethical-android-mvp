@@ -12,6 +12,8 @@ Does **not** bypass MalAbs, the Buffer, or Bayesian scoring — same contract as
 Env:
   ``KERNEL_LIGHTHOUSE_KB_PATH`` — path to JSON (schema + limits: ``docs/proposals/README.md``).
 """
+# Status: SCAFFOLD
+
 
 from __future__ import annotations
 

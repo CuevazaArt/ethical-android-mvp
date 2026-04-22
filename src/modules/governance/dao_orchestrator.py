@@ -4,6 +4,8 @@ DAO Orchestrator Adapter (OGA Bridge).
 Decouples the Ethical Kernel from the specific DAO implementation (on-chain or mock).
 Handles evidence anchoring and ethical appeals.
 """
+# Status: SCAFFOLD
+
 
 from __future__ import annotations
 

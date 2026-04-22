@@ -8,6 +8,8 @@ context and sensors. Resolves multipolar conflicts.
 
 Per-pole scores use :class:`LinearPoleEvaluator` (JSON-configurable); see ADR 0004.
 """
+# Status: SCAFFOLD
+
 
 from dataclasses import dataclass
 from enum import Enum

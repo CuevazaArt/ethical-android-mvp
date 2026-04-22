@@ -4,6 +4,8 @@ Somatic Signal Mapper — Translates body state into ethical tensors.
 Maps SomaticInference (e.g., balance, fatigue, battery) into risk, urgency,
 and vulnerability signals for the EthicalKernel's perception stage.
 """
+# Status: SCAFFOLD
+
 
 from src.modules.somatic.somatic_adapter import SomaticInference
 

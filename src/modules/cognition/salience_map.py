@@ -6,6 +6,8 @@ for telemetry, UI, and optional LLM nuance ΓÇö not a policy change.
 
 See docs/proposals/README.md (Fase 2).
 """
+# Status: SCAFFOLD
+
 
 from __future__ import annotations
 

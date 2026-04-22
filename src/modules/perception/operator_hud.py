@@ -2,6 +2,8 @@
 Operator HUD — Real-time terminal visualization for the Ethical Kernel.
 Part of Tarea 8.1.2: Refactorización y embellecimiento de las salidas ANSI.
 """
+# Status: SCAFFOLD
+
 
 import os
 from typing import Any

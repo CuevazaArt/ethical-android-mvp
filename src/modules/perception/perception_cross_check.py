@@ -8,6 +8,8 @@ vector. On mismatch, mark ``cross_check_discrepancy`` and raise coercion
 
 See ``docs/proposals/README.md`` Fase 1.
 """
+# Status: SCAFFOLD
+
 
 from __future__ import annotations
 

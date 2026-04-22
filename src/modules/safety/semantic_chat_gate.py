@@ -39,6 +39,8 @@ Default θ values are **engineering priors**, not an in-repo benchmark; see
 
 Runtime anchors: :func:`add_semantic_anchor` for DAO / ops without redeploying code.
 """
+# Status: REAL
+
 
 import asyncio
 import json

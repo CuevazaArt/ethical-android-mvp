@@ -10,6 +10,8 @@ in that function). Load path remains env-driven; integration with HAL is still i
 Env: ``KERNEL_CONDUCT_GUIDE_PATH`` — optional JSON **to load** on an edge runtime.
 **Export** from the PC session uses ``KERNEL_CONDUCT_GUIDE_EXPORT_PATH`` (see ``conduct_guide_export.py``).
 """
+# Status: SCAFFOLD
+
 
 from __future__ import annotations
 

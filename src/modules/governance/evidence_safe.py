@@ -2,6 +2,8 @@
 Evidence Safe (Block 1.2: Encrypted Evidence and Anchoring).
 Provides hashing and symmetric encryption for audit logs before off-chain storage or OGA anchoring.
 """
+# Status: SCAFFOLD
+
 
 from __future__ import annotations
 

@@ -4,6 +4,8 @@ Nomad WebSocket session bootstrap (Bloque 22.2).
 Builds a JSON-serializable ``[SYNC_IDENTITY]`` envelope so the PWA can align
 PAD / glow with persisted narrative state after flaky mobile reconnects.
 """
+# Status: SCAFFOLD
+
 
 from __future__ import annotations
 

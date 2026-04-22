@@ -6,6 +6,8 @@ dicts (layers merge: fixture → preset → client overrides).
 
 See docs/proposals/README.md (fase B).
 """
+# Status: SCAFFOLD
+
 
 from __future__ import annotations
 

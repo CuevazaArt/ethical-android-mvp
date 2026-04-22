@@ -17,6 +17,8 @@ Priority: 0 (Absolute override).
    Until then, treat this module as a **structural placeholder** for *where*
    an E-stop fits in the kernel safety chain.
 """
+# Status: SCAFFOLD
+
 
 from __future__ import annotations
 

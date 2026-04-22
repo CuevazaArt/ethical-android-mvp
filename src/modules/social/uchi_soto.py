@@ -7,6 +7,8 @@ Uchi (内) = intimate, openness. Soto (外) = external, caution.
 Each interaction is classified into a trust circle.
 In soto contexts, defensive dialectical reasoning is activated.
 """
+# Status: SCAFFOLD
+
 
 from __future__ import annotations
 

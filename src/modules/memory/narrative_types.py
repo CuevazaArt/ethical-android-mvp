@@ -1,6 +1,8 @@
 """
 Shared types for the Narrative module to avoid circular imports.
 """
+# Status: SCAFFOLD
+
 
 from dataclasses import dataclass, field
 from enum import Enum

@@ -11,6 +11,8 @@ instead of template candidates (still capped by ``KERNEL_GENERATIVE_ACTIONS_MAX`
 
 See docs/proposals/README.md (pillar 2).
 """
+# Status: SCAFFOLD
+
 
 from __future__ import annotations
 

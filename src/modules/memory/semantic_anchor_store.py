@@ -14,6 +14,8 @@ Enables DAO operators to add/update semantic reference phrases without redeployi
 - `KERNEL_SEMANTIC_VECTOR_PERSIST_PATH` — path for Chroma DB (default: `.chroma/`).
 - `KERNEL_SEMANTIC_ANCHOR_TTL_S` — seconds before anchor expiry (default: 0 = no expiry).
 """
+# Status: SCAFFOLD
+
 
 from __future__ import annotations
 

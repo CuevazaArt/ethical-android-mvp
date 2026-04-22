@@ -7,6 +7,8 @@ mixture is a **separate** path: :mod:`temporal_horizon_prior` (ADR 0005) when
 
 These strings remain advisory / UX and LLM tone only.
 """
+# Status: PENDING-LLM
+
 
 from __future__ import annotations
 

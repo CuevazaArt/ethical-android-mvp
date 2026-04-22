@@ -6,6 +6,8 @@ W(x) = 1/(1 + e^(-k*(x - x0))) + λ * I(x)
 Will is a smooth curve, not a switch.
 Avoids numerical explosions and allows gradual transitions.
 """
+# Status: SCAFFOLD
+
 
 from dataclasses import dataclass
 

@@ -4,6 +4,8 @@ Soft Robotics & Kinematic Filtering (Module 3: S7).
 Provides smoothing and acceleration control for physical android actions.
 The goal is to prevent 'jerkiness' and ensure ethical motion (proxemics).
 """
+# Status: SCAFFOLD
+
 
 import math
 import time

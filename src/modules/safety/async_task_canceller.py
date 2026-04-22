@@ -8,6 +8,8 @@ for cooperative signals.
 Integrates with LLM HTTP async-aware backends to ensure true cancellation of
 httpx.AsyncClient requests when deadline passes.
 """
+# Status: SCAFFOLD
+
 
 from __future__ import annotations
 

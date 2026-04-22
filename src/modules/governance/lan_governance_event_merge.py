@@ -9,6 +9,8 @@ override MalAbs / L0. See ``docs/proposals/PROPOSAL_DISTRIBUTED_JUSTICE_CONTRIBU
 **Evidence posture:** ordering keys are ``turn_index`` and ``processor_elapsed_ms`` (aligned
 with ``temporal_sync_v1``). Events without ``id_key`` are **skipped** (caller must tag events).
 """
+# Status: SCAFFOLD
+
 
 from __future__ import annotations
 

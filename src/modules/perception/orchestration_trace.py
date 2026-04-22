@@ -7,6 +7,8 @@ Provides structured logging and tracing of the ethical decision flow:
 Each transition is logged with timestamps, state changes, and decision rationale.
 Used for auditing, debugging, and transparency.
 """
+# Status: SCAFFOLD
+
 
 import logging
 import time

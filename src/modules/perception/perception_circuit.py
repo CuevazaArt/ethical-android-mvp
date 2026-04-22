@@ -9,6 +9,8 @@ caution hint for the LLM communicator.
 
 Streak resets on any non-stressed turn; metacognitive doubt clears when the streak resets.
 """
+# Status: SCAFFOLD
+
 
 from __future__ import annotations
 

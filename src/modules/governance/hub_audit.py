@@ -3,6 +3,8 @@ Hub audit — single calibration-line format for DAO transparency (nomadic, hub 
 
 Keeps a stable prefix so logs can be filtered without parsing free-form strings everywhere.
 """
+# Status: SCAFFOLD
+
 
 from __future__ import annotations
 

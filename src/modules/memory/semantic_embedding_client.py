@@ -15,6 +15,8 @@ Env:
 - ``KERNEL_SEMANTIC_EMBED_HASH_DIM`` — dimension for hash fallback (default ``256``).
 - ``KERNEL_SEMANTIC_EMBED_HASH_SCOPE`` — ASCII scope string mixed into hash (default ``malabs_embed_v1``).
 """
+# Status: SCAFFOLD
+
 
 from __future__ import annotations
 

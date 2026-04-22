@@ -9,6 +9,8 @@ Thresholds are tunable via environment (see :func:`thresholds_from_env`).
 
 See docs/proposals/README.md §5
 """
+# Status: SCAFFOLD
+
 
 from __future__ import annotations
 

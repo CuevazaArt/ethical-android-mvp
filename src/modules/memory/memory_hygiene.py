@@ -3,6 +3,8 @@ Memory Hygiene — Services for pruning, amnesia, and biographic maintenance.
 
 Consolidates Selective Amnesia (Right to be Forgotten) and Biographic Pruning.
 """
+# Status: SCAFFOLD
+
 
 from __future__ import annotations
 

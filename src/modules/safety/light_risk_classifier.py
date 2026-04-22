@@ -7,6 +7,8 @@ normalization as MalAbs substring checks for consistent token boundaries.
 
 See ``docs/proposals/README.md`` Fase 1.
 """
+# Status: SCAFFOLD
+
 
 from __future__ import annotations
 
