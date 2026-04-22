@@ -28,43 +28,30 @@ Aquí es donde los agentes de ejecución (LLMs en IDEs) reclaman sus tareas.
 
 ---
 
-## 🚀 BACKLOG ABIERTO (Próximos Pasos V13.0+)
+---
 
-**Bloque 20.0: Sincronización de Identidad Narrativa (Mind-Sync) [PENDING]**
-- Tarea 20.1: **GestaltSnapshot**: Congelar el estado telemetrico (PAD, sigma) y memoria al momento de invocar al LLM en `ExecutiveLobe` para evitar Race Conditions.
-- Tarea 20.2: **Preempción por Trauma**: Abortar la deliberación asíncrona del LLM si el Talamus emite un pulso perjudicial urgente (daño físico o extremo).
-- Tarea 20.3: **Thought Streaming / Inner Voice**: Emitir `ThoughtStreamPulse` al bus desde la inferencia del LLM para iterar pensamientos en vivo hacia el Dashboard (Dominio 05).
-- Tarea 20.4: **Fusión de Snapshot Temporal**: Acoplar la fotometría `GestaltSnapshot` al contexto persistente de `NarrativeMemory`.
+## 🚀 BACKLOG ABIERTO (Próximos Pasos V14.0: Encarnación Conversacional Nómada)
 
-**Bloque 16.0: Refinamiento de la Telemetría y Modulación Neuronal [DONE]**
-- Tarea 16.1: **Visualización de Carga del Bus**: Integración de métricas de latencia de `CorpusCallosum` en el Dashboard Clínico (WebSockets). (Completado: Antigravity)
-- Tarea 16.2: **Throttling Dinámico del Bus**: Implementar lógica en `BusModulator` para ajustar el `asyncio.sleep` de los lóbulos basado en el uso de CPU. (Completado: Antigravity)
-- Tarea 16.3: **Decoupling de Judgement**: Mover la lógica de `AbsoluteEvilDetector` de forma nativa al loop reactivo del `ExecutiveLobe` sin dependencias del kernel. (Completado: Antigravity)
 
-**Bloque 17.0: Reducción del Monolito Perceptual (Siguiente Hito Fase 2 Lóbulos) [DONE]**
-- Tarea 17.1: **Decoupling del Sensory Cortex**: Desensamblar `PerceptiveLobe` para mover el procesamiento de texto a un manejador asíncrono y la emisión de sensores a pulsos brutos. (Completado: Antigravity)
-- Tarea 17.2: **Thalamus Gateway**: Integrar el `ThalamusLobe` (o nodo Gateway) para pre-filtrar el tráfico sensorial masivo antes de publicarlo en el CorpusCallosum. (Completado: Antigravity)
-- Tarea 17.3: **Refinamiento de Tolerancia a Fallos Límbicos**: Desvincular el `_run_perception_timeout` para permitir modo "supervivencia" asíncrono si el servidor LLM principal colapsa. (Completado: Antigravity)
+> **PROMPT DE ARRANQUE PARA AGENTES L2 (BOY SCOUTS):**
+> *"Estás autorizado bajo la política de Pragmatismo Anónimo. El monolito ha sido abolido y la infraestructura asíncrona V13.0 está estable. Tu objetivo primordial absoluto ahora es consolidar el **Bloque 20.0 y 21.0**: la fluidez de interacción usando estrictamente LLMs locales (Ollama), desvinculándonos de dependencias API cerradas, y dotando a la matriz del Cerebelo de una identidad biográfica persistente. **Instrucciones:** Toma un ticket de `V14.0`, enfócate en el código (Python en `src/`), asume 100% de propiedad, y termina tu sesión ejecutando `python scripts/swarm_sync.py --msg '...'`. ¡Ejecuta!"*
 
-**Bloque 19.0: Sello de Calidad y Cierre de Brechas (Stabilization Tranche) [DONE]**
-- Tarea 19.1: **Expansión de Input Trust**: Añadir anchors semánticos para `HARM_TO_MINOR`, `TORTURE` y `DIGNITY_VIOLATION` en `semantic_chat_gate.py`. (Completado: Antigravity)
-- Tarea 19.2: **Corrección de Evidencia (P0)**: Alineación de `docs/proposals/RUNTIME_PHASES.md` con la implementación real de encriptación en `json_store.py`. (Completado: Antigravity)
-- Tarea 19.3: **Poda del Monolito (Regla Boy Scout)**: Extraer la lógica de gestión de sesión y contexto de `src/kernel.py` hacia un módulo especializado. (Completado: Antigravity)
+**Bloque 20.0: Local Conversational Matrix (Zero-API Fluency) [PENDING]**
+- Tarea 20.1: **Desacoplamiento Estricto Comercial:** [COMPLETED] Refactorizar el backend de percepción y decisión para enrutar el 100% de `process_chat_turn` hacia `OllamaLLMBackend`. 
+- Tarea 20.2: **Refinamiento de Tiempos y Tolerancia Textual:** Sincronizar el `KERNEL_CHAT_TURN_TIMEOUT` con latencias largas realistas de modelos Llama3/Mistral corriendo en local. Optimizar el `System Prompt` maestro de chat para favorecer réplicas cortas y directas sin introspección verbosa.
+ 
+**Bloque 21.0: Biographic Memory & Persistent Identity [COMPLETED]**
+- Tarea 21.1: **Manifiesto de Identidad (Birth Context):** [COMPLETED] Crear `src/persistence/identity_manifest.py` para gestionar la narrativa base del agente.
+- Tarea 21.2: **BiographicMemoryTracker:** [COMPLETED] Implementar el rastreador de episodios biográficos en el `CerebellumLobe` para que las sesiones de chat se guarden como hitos narrativos.
 
-**Bloque 18.0: Consolidación y Poda de Dependencias (Siguiente Hito Fase 3) [DONE]**
-- Tarea 18.1: **Hardening contra Cognitive Stalling**: Implementar timeouts de seguridad (5s) en el semantic gate de MalAbs para evitar bloqueos por latencia. (Completado: Antigravity)
-- Tarea 18.2: **Convergencia en Modo Supervivencia**: Refacturación del `ExecutiveLobe` para despachar voluntad inmediata ante fallos de percepción/timeout. (Completado: Antigravity)
-- Tarea 18.3: **Restauración de Suite Adversarial**: Reparación de importaciones del kernel v13.0 y adición de vectores de manipulación profunda. (Completado: Antigravity)
-
-**Bloque 15.0: Desmonolitización del Sistema Nervioso (Ethos V13.0) [DONE]**
-- Tarea 15.1: Guillotina del Kernel Monolítico y creación de la fachada `EthosKernel`. (Completado: Antigravity)
-- Tarea 15.2: Implementación de `CorpusCallosum` (Pub/Sub Async) y modelos de pulsos `NervousPulse`. (Completado: Antigravity)
-- Tarea 15.3: Migración de los 4 lóbulos al modelo "Bus-Aware" y resolución de importaciones circulares. (Completado: Antigravity)
+**Bloque 22.0: Nomad Field Test (Texto en Terreno) [PENDING]**
+- Tarea 22.1: **Puente Web Chat Robustecido:** Refinar la PWA de `NomadBridge` (foco en modo texto/chat clásico). Eliminar o enmascarar componentes irrelevantes de UI pesadas para priorizar input/output liviano de texto.
+- Tarea 22.2: **Inyección de Identidad al Front:** El servidor backend asíncrono debe enviar un paquete `[SYNC_IDENTITY]` al WebSocket conectarse al origen, para que la UI de chat se alinee al estado actual e historia de la entidad.
 
 ---
 
-## 🗄️ RESERVA DEL ENJAMBRE (Buffer de Optimización Continua)
-> *Estas tareas no bloquean el progreso crítico (`main` branch) y deben ser tomadas por los agentes L2 cuando hay cuellos de botella en la inferencia, sobran tokens horarios, o mientras el L1 está en procesos de consolidación.*
+## 🗄️ RESERVA DEL ENJAMBRE (Buffer de Optimización Continua V14)
+> *Estas tareas no bloquean el progreso crítico (main branch) y son para mantenimiento estructural.*
 
 **Bloque B.1: Cacería de NaNs y Hardening Matemático [DONE]**
 - Tarea B.1.1: Revisar funciones trigonométricas/logarítmicas en `modules/ethical_poles.py` y `modules/sigmoid_will.py` agregando `math.isfinite()`. (Completado: Antigravity)
@@ -74,13 +61,42 @@ Aquí es donde los agentes de ejecución (LLMs en IDEs) reclaman sus tareas.
 
 **Bloque B.3: Documentación y Refactorización Pasiva [DONE]**
 - Tarea B.3.1: Actualizar docstrings en `kernel_utils.py` y diagramas de Mermaid si las interfaces han cambiado sin documentarse. (Completado: Antigravity)
-|
+
 **Bloque B.4: Mantenimiento y Accesibilidad de Red [DONE]**
 - Tarea B.4.1: Habilitar binding 0.0.0.0 por defecto para permitir acceso LAN desde dispositivos móviles. (Completado: Antigravity)
+
+**Bloque B.5: Poda de Viejas Vías [PENDING]**
+- Tarea B.5.1: Eliminar y purgar todos los mocks asíncronos residuales temporales en las áreas de Thalamus que ya cumplieron su propósito durante el salto de la V12 a V13.
+
 
 ---
 
 ## 🟢 CERRADOS (Histórico de Producción)
+
+**Bloque 24.0: Memoria de Largo Plazo (LTM) Vectorial [DONE]**
+- Tarea 24.1: Integración de Hito 14.x: Memoria de Largo Plazo LTM Vectorial y Conversación Full-Duplex. (Completado: Anonymous Agent)
+
+**Bloque 25.0: Refinamiento de Fluidez y Preemption [DONE]**
+- Tarea 25.1: Interrupción nativa biológica (Preemption) e identidad de Dashboard. (Completado: Anonymous Agent)
+
+**Bloque 23.0: Sincronización de Identidad Narrativa (Mind-Sync) [DONE]**
+- Tarea 23.1: **GestaltSnapshot**: Congelar el estado telemetrico (PAD, sigma). (Completado: Anonymous Agent)
+- Tarea 23.2: **Preempción por Trauma**: Abortar deliberación asíncrona. (Completado: Anonymous Agent)
+- Tarea 23.3: **Thought Streaming**: Inner Voice broadcast. (Completado: Anonymous Agent)
+
+**Bloque 16.0: Refinamiento de la Telemetría y Modulación Neuronal [DONE]**
+- Tarea 16.1: **Visualización de Carga del Bus**: Integración de métricas de latencia de `CorpusCallosum`. (Completado: Antigravity)
+- Tarea 16.2: **Throttling Dinámico del Bus**: Ajuste en `BusModulator`. (Completado: Antigravity)
+- Tarea 16.3: **Decoupling de Judgement**: Remoción nativa de `AbsoluteEvilDetector` hacia `ExecutiveLobe`. (Completado: Antigravity)
+
+**Bloque 17.0: Reducción del Monolito Perceptual [DONE]**
+- Tareas 17.1 a 17.3 completadas. Desacoplamiento de Cortex Sensorial y Supervivencia Asíncrona. (Completado: Antigravity)
+
+**Bloque 18.0 & 19.0: Consolidación Tri-Lobe y Sello de Calidad [DONE]**
+- Hardening contra Cognitive Stalling, Restauración Suite Adversarial, Limpieza del Monolito (Regla Boy Scout). (Completado: Antigravity)
+
+**Bloques Extra B.1 a B.3: Tipado Estricto y NaNs [DONE]**
+- Hardening Numérico (math.isfinite), Docstrings MyPy. (Completado: Antigravity)
 
 **Bloque 14.0: Cero Fricción y Recuperación Autónoma [DONE]**
 - Tarea 14.1: Auto-Descubrimiento (mDNS/Zeroconf) integrado en el servidor. (Completado: Antigravity)

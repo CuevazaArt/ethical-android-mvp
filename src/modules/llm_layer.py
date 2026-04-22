@@ -296,6 +296,15 @@ Respond ONLY with JSON:
   "inner_voice": "internal reasoning guiding the response (not visible to the human)"
 }}"""
 
+PROMPT_COMMUNICATION_NOMAD_APPEND = """
+CRITICAL NOMADIC DIRECTIVE:
+You are running on limited hardware. Every token counts for latency.
+- Prioritize extreme brevity and directness.
+- Maximum two short sentences.
+- No verbose introspection or filler.
+- If in D_fast, use max 10 words.
+"""
+
 PROMPT_NARRATIVE = """You are the narrative module of the Ethos Kernel. You transform ethical
 evaluations into rich, humanly understandable morals.
 
@@ -326,7 +335,7 @@ class LLMModule:
 
     Operating modes:
     - "api": uses Claude API (requires ANTHROPIC_API_KEY)
-    - "ollama": local HTTP server (OLLAMA_BASE_URL, OLLAMA_MODEL default llama3.2:3b); requires httpx
+    - "ollama": local HTTP server (OLLAMA_BASE_URL, OLLAMA_MODEL default llama3.2:1b); requires httpx
     - "local": uses local templates (no API, functional but basic)
     - "auto": tries API, falls back to local if no key. If ``USE_LOCAL_LLM=1``, uses Ollama instead.
 
@@ -348,7 +357,7 @@ class LLMModule:
         self.client = None
         self._aclient_internal = aclient
         self.model = "claude-sonnet-4-20250514"
-        self.ollama_model = os.environ.get("OLLAMA_MODEL", "llama3.2:3b")
+        self.ollama_model = os.environ.get("OLLAMA_MODEL", "llama3.2:1b")
         self._llm_backend: LLMBackend | None = None
         self._verbal_degradation_events: list[dict[str, str]] = []
 
@@ -362,6 +371,12 @@ class LLMModule:
             return
 
         self.mode = _normalize_llm_mode((mode or "auto").strip())
+        self.nomad_mode = os.environ.get("KERNEL_NOMAD_MODE", "").lower() in ("1", "true", "yes", "on")
+
+        if self.nomad_mode:
+            if self.mode != "ollama":
+                logger.warning("NOMAD_MODE ACTIVE: Forcing Zero-API Fluency (ollama). Ignoring mode: %s", self.mode)
+                self.mode = "ollama"
 
         if self.mode == "ollama":
             if not HAS_HTTPX:
@@ -905,7 +920,11 @@ class LLMModule:
         if not math.isfinite(score): score = 0.5
 
         if self.mode in ("api", "ollama", "injected"):
-            prompt = PROMPT_COMMUNICATION.format(
+            prompt = PROMPT_COMMUNICATION
+            if self.nomad_mode:
+                prompt += PROMPT_COMMUNICATION_NOMAD_APPEND
+
+            prompt = prompt.format(
                 action=action,
                 mode=mode,
                 mode_desc=mode_descs.get(mode, mode),
@@ -1034,7 +1053,11 @@ class LLMModule:
         }
 
         if self.mode in ("api", "ollama", "injected"):
-            prompt = PROMPT_COMMUNICATION.format(
+            prompt = PROMPT_COMMUNICATION
+            if self.nomad_mode:
+                prompt += PROMPT_COMMUNICATION_NOMAD_APPEND
+
+            prompt = prompt.format(
                 action=action,
                 mode=mode,
                 mode_desc=mode_descs.get(mode, mode),
@@ -1178,7 +1201,11 @@ class LLMModule:
             "D_delib": "deep deliberation",
             "gray_zone": "uncertainty, active caution",
         }
-        system = PROMPT_COMMUNICATION.format(
+        system_base = PROMPT_COMMUNICATION
+        if self.nomad_mode:
+            system_base += PROMPT_COMMUNICATION_NOMAD_APPEND
+
+        system = system_base.format(
             action=action,
             mode=mode,
             mode_desc=mode_descs.get(mode, mode),
