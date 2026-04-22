@@ -71,6 +71,12 @@ def _parse_positive_int_env(name: str, default: int) -> int:
         return default
 
 
+def _nomad_chat_text_queue_maxsize() -> int:
+    """Bounded queue for typed Nomad relay (Bloque 22.1 — mobile WS flaps)."""
+
+    return _parse_positive_int_env("KERNEL_NOMAD_CHAT_TEXT_QUEUE_MAX", 64)
+
+
 def max_vision_frame_bytes() -> int:
     """Upper bound on decoded JPEG bytes accepted from ``vision_frame`` (env override)."""
 
@@ -92,6 +98,19 @@ def max_telemetry_dict_keys() -> int:
 _DEFAULT_WS_MAX_MESSAGE_BYTES = 4 * 1024 * 1024
 _CAP_WS_MAX_MESSAGE_BYTES = 32 * 1024 * 1024
 _MIN_WS_MAX_MESSAGE_BYTES = 64
+
+
+def nomad_chat_text_queue_maxsize() -> int:
+    """Bounded async queue for ``chat_text`` relay (Bloque 22.1); env ``KERNEL_NOMAD_CHAT_TEXT_QUEUE_MAX``."""
+
+    raw = os.environ.get("KERNEL_NOMAD_CHAT_TEXT_QUEUE_MAX", "").strip()
+    if not raw:
+        return 64
+    try:
+        n = int(raw, 10)
+    except ValueError:
+        return 64
+    return max(8, min(n, 512))
 
 
 def max_ws_inbound_message_bytes() -> int:
@@ -141,8 +160,10 @@ class NomadBridge:
         self.audio_queue: asyncio.Queue[bytes] = asyncio.Queue(maxsize=20)
         self.telemetry_queue: asyncio.Queue[dict[str, Any]] = asyncio.Queue(maxsize=10)
         self.charm_feedback_queue: asyncio.Queue[dict[str, Any]] = asyncio.Queue(maxsize=10)
-        # Bloque 13.1: relay queue for chat_text messages arriving via /ws/nomad
-        self.chat_text_queue: asyncio.Queue[str] = asyncio.Queue(maxsize=20)
+        # Bloque 13.1 / 22.1: relay queue for chat_text via /ws/nomad (wider cap for 4G/5G bursts)
+        self.chat_text_queue: asyncio.Queue[Union[str, dict[str, Any]]] = asyncio.Queue(
+            maxsize=nomad_chat_text_queue_maxsize()
+        )
 
         # Phase 10: L0 Dashboard Telemetry Broadcaster
         self.dashboard_queues: list[asyncio.Queue[dict[str, Any]]] = []
@@ -226,6 +247,7 @@ class NomadBridge:
         self,
         websocket: WebSocket,
         chat_text_callback: Optional[Callable[[str], Coroutine[Any, Any, None]]] = None,
+        session_ready_hook: Optional[Callable[[WebSocket], Coroutine[Any, Any, None]]] = None,
     ) -> None:
         """Handles a Nomad smartphone connection after handshake.
 
@@ -234,6 +256,8 @@ class NomadBridge:
             chat_text_callback: Optional async callable invoked with each dequeued
                 ``chat_text`` message.  When provided, a consumer task runs
                 concurrently alongside the recv/send loops.
+            session_ready_hook: Optional coroutine run once immediately after the
+                socket is accepted (Bloque 22.2 — e.g. emit ``SYNC_IDENTITY``).
         """
         try:
             await websocket.accept()
@@ -244,6 +268,12 @@ class NomadBridge:
         except Exception as e:
             _log.error("Nomad Bridge: Failed to accept connection: %s", e)
             return
+
+        if session_ready_hook is not None:
+            try:
+                await session_ready_hook(websocket)
+            except Exception as hook_e:
+                _log.warning("Nomad Bridge: session_ready_hook error: %s", hook_e)
 
         tasks: list[asyncio.Task[Any]] = [
             asyncio.create_task(self._recv_loop(websocket)),
@@ -268,11 +298,20 @@ class NomadBridge:
     def public_queue_stats(self) -> dict[str, Any]:
         """Return observable queue depths and vessel health for /health endpoint (Module S.1/S.2.1)."""
         # Peek at the latest telemetry item without consuming it
+        latest_tel: dict[str, Any] | None = None
         try:
-            latest_tel: dict[str, Any] | None = self.telemetry_queue.get_nowait()
+            latest_tel = self.telemetry_queue.get_nowait()
             self.telemetry_queue.put_nowait(latest_tel)
-        except Exception:
+        except asyncio.QueueEmpty:
             latest_tel = None
+
+        lr = float(self.last_rms)
+        if not math.isfinite(lr):
+            lr = 0.0
+        now = time.time()
+        last_delta = now - float(self._last_sensor_update)
+        if not math.isfinite(last_delta):
+            last_delta = 0.0
 
         return {
             "schema": "nomad_bridge_queue_stats_v2",
@@ -282,7 +321,15 @@ class NomadBridge:
             "charm_feedback_queue_depth": self.charm_feedback_queue.qsize(),
             "charm_feedback_queued": self.charm_feedback_queue.qsize(),
             "charm_feedback_max": self.charm_feedback_queue.maxsize,
+            "chat_text_queue_depth": self.chat_text_queue.qsize(),
+            "chat_text_queue_max": self.chat_text_queue.maxsize,
             "vessel_healthy": self._is_vessel_healthy,
+            "vessel_online": bool(self._is_vessel_healthy),
+            "last_rms": lr,
+            "vad_speaking": bool(self.vad_speaking),
+            "vessel_metadata": dict(self.vessel_metadata),
+            "vessel_context": self.vessel_context.to_public_dict(),
+            "last_sensor_update_delta": round(last_delta, 3),
             "last_sensor_update_keys": ["_last_sensor_update"],
             "latest_telemetry_present": latest_tel is not None,
             "latest_telemetry_keys": list(latest_tel.keys()) if latest_tel else [],
@@ -305,12 +352,13 @@ class NomadBridge:
             while True:
                 try:
                     msg = await self.chat_text_queue.get()
-                    if msg:
+                    if isinstance(msg, dict):
+                        text = str(msg.get("text", "")).strip()
+                    else:
+                        text = str(msg).strip() if msg else ""
+                    if text:
                         try:
-                            # If msg is a dict (json), extract text; if string, use it directly.
-                            text = msg.get("text", "") if isinstance(msg, dict) else str(msg)
-                            if text:
-                                await callback(text)
+                            await callback(text)
                         except Exception as cb_e:
                             _log.warning("Nomad Bridge: chat_text_callback error: %s", cb_e)
                 except asyncio.CancelledError:
@@ -425,8 +473,8 @@ class NomadBridge:
                                             "type": "audio_energy", 
                                             "payload": {"rms": rms}
                                         })
-                            except (struct.error, ZeroDivisionError, ValueError) as e:
-                                pass
+                            except (struct.error, ZeroDivisionError, ValueError) as rms_e:
+                                _log.debug("Nomad Bridge: RMS decode skipped: %s", rms_e)
 
                     elif event_type == "telemetry":
                         batt = payload.get("battery")
@@ -513,22 +561,50 @@ class NomadBridge:
         except Exception as e:
             _log.error(f"Nomad Bridge read error: {e}")
 
+    def _requeue_charm_payload(self, payload: dict[str, Any]) -> None:
+        """Put a failed outbound payload back for the next session (Bloque 22.1)."""
+
+        try:
+            if self.charm_feedback_queue.full():
+                try:
+                    self.charm_feedback_queue.get_nowait()
+                except asyncio.QueueEmpty:
+                    pass
+            self.charm_feedback_queue.put_nowait(payload)
+        except asyncio.QueueFull:
+            _log.warning("Nomad Bridge: charm_feedback re-queue dropped (queue full)")
+
     async def _send_loop(self, ws: WebSocket) -> None:
         try:
             while True:
                 try:
                     payload = await asyncio.wait_for(self.charm_feedback_queue.get(), timeout=10.0)
-                    await ws.send_json({
-                        "type": "charm_feedback", # Also known as somatic_feedback in Phase 9
-                        "payload": payload,
-                    })
                 except asyncio.TimeoutError:
+                    payload = None
+
+                if payload is not None:
+                    try:
+                        await ws.send_json(
+                            {
+                                "type": "charm_feedback",
+                                "payload": payload,
+                            }
+                        )
+                    except Exception as send_e:
+                        _log.warning("Nomad Bridge: charm_feedback send failed, re-queueing: %s", send_e)
+                        self._requeue_charm_payload(payload)
+                        break
+                else:
                     ping_start = time.perf_counter()
-                    await ws.send_json({"type": "ping", "payload": {"timestamp": ping_start}})
+                    try:
+                        await ws.send_json({"type": "ping", "payload": {"timestamp": ping_start}})
+                    except Exception as ping_e:
+                        _log.warning("Nomad Bridge: ping send failed: %s", ping_e)
+                        break
         except asyncio.CancelledError:
-            pass
+            raise
         except Exception as e:
-            _log.error(f"Nomad Bridge send error: {e}")
+            _log.error("Nomad Bridge send error: %s", e)
 
 # Global instance
 _NOMAD_BRIDGE = NomadBridge()

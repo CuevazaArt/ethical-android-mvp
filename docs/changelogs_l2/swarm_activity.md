@@ -972,3 +972,12 @@ This file is automatically managed by `scripts/swarm_sync.py`.
 - **Message:** PLAN: mark Bloque 20.0 Local Conversational Matrix DONE (20.1+20.2)
 - **Files Modified:**
   - `docs/proposals/PLAN_WORK_DISTRIBUTION_TREE.md`
+
+### 🛠️ Execution | Date: 2026-04-21 20:15:00 | Author: Cursor L2 Swarm
+- **Block:** `22.1`
+- **Message:** Bloque 22.1 Nomad field resilience: PWA outbound chat buffer + dual-path send (ws/chat + nomad chat_text relay), single backoff timer and symmetric onclose; NomadBridge wider chat_text_queue, public_queue_stats clinical fields and finite last_rms; PLAN task 22.1 marked complete. Architectural impact: Module S ingress remains the single `get_nomad_bridge()` instance; no CorpusCallosum interface changes; observability extended for LAN chat relay depth.
+- **Files Modified:**
+  - `docs/proposals/PLAN_WORK_DISTRIBUTION_TREE.md`
+  - `docs/changelogs_l2/swarm_activity.md`
+  - `src/clients/nomad_pwa/app.js`
+  - `src/modules/nomad_bridge.py`

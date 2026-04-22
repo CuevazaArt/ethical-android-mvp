@@ -12,13 +12,16 @@ const UI = {
     batterySpan: document.getElementById('battery-level'),
     transcript: document.getElementById('charm-transcript'),
     videoElement: document.getElementById('hidden-video'),
-    // NEW BLOCK 13.1 elements
+    identityStrip: document.getElementById('identity-strip'),
+    btnUiMode: document.getElementById('btn-ui-mode'),
+    btnInstall: document.getElementById('btn-install'),
     chatInput: document.getElementById('chat-input'),
     btnSend: document.getElementById('btn-send'),
     telBat: document.getElementById('tel-bat'),
     telTemp: document.getElementById('tel-temp'),
     telKin: document.getElementById('tel-kin'),
     telAud: document.getElementById('tel-aud'),
+    nomadRtt: document.getElementById('nomad-rtt'),
 };
 
 let wsChat = null;
@@ -157,6 +160,125 @@ let reconnectAttempts = 0;
 const MAX_RECONNECT_ATTEMPTS = 5;
 const RECONNECT_DELAY_BASE = 2000;
 
+/** Bloque 22.1: outbound chat while /ws/chat or relay path is briefly down (mobile 4G/5G). */
+const OUTBOUND_CHAT_MAX = 48;
+/** @type {string[]} */
+let outboundChatBuffer = [];
+/** @type {ReturnType<typeof setTimeout>|null} */
+let reconnectTimerId = null;
+
+function clearKernelReconnectTimer() {
+    if (reconnectTimerId != null) {
+        clearTimeout(reconnectTimerId);
+        reconnectTimerId = null;
+    }
+}
+
+function enqueueOutboundChat(text) {
+    while (outboundChatBuffer.length >= OUTBOUND_CHAT_MAX) {
+        outboundChatBuffer.shift();
+    }
+    outboundChatBuffer.push(text);
+}
+
+function trySendChatWsJSON(obj) {
+    if (!wsChat || wsChat.readyState !== WebSocket.OPEN) return false;
+    try {
+        wsChat.send(JSON.stringify(obj));
+        return true;
+    } catch (e) {
+        console.warn('Nomad: chat WS send failed', e);
+        return false;
+    }
+}
+
+function trySendNomadChatRelay(text) {
+    if (!wsNomad || wsNomad.readyState !== WebSocket.OPEN) return false;
+    try {
+        wsNomad.send(JSON.stringify({ type: 'chat_text', payload: { text } }));
+        return true;
+    } catch (e) {
+        console.warn('Nomad: chat_text relay send failed', e);
+        return false;
+    }
+}
+
+function flushOutboundChatBuffer() {
+    while (outboundChatBuffer.length > 0) {
+        const t = outboundChatBuffer[0];
+        if (trySendChatWsJSON({ text: t })) {
+            outboundChatBuffer.shift();
+        } else if (trySendNomadChatRelay(t)) {
+            outboundChatBuffer.shift();
+        } else {
+            break;
+        }
+    }
+}
+
+function scheduleKernelReconnect(reason) {
+    if (reconnectTimerId != null) return;
+    if (reconnectAttempts >= MAX_RECONNECT_ATTEMPTS) {
+        if (UI.statusText) UI.statusText.innerText = 'Offline — tap Reconnect';
+        return;
+    }
+    const delay = RECONNECT_DELAY_BASE * Math.pow(2, reconnectAttempts);
+    if (UI.statusText) UI.statusText.innerText = `Disconnected (${reason}). Retry in ${delay / 1000}s…`;
+    reconnectTimerId = setTimeout(() => {
+        reconnectTimerId = null;
+        reconnectAttempts += 1;
+        connectKernel();
+    }, delay);
+}
+
+function teardownKernelSockets() {
+    clearKernelReconnectTimer();
+    if (nomadPingIntervalId != null) {
+        try { clearInterval(nomadPingIntervalId); } catch (_) { /* ignore */ }
+        nomadPingIntervalId = null;
+    }
+    if (nomadHeartbeatIntervalId != null) {
+        try { clearInterval(nomadHeartbeatIntervalId); } catch (_) { /* ignore */ }
+        nomadHeartbeatIntervalId = null;
+    }
+    try { if (wsChat) wsChat.close(); } catch (_) { /* ignore */ }
+    try { if (wsNomad) wsNomad.close(); } catch (_) { /* ignore */ }
+    wsChat = null;
+    wsNomad = null;
+}
+
+function nomadApplySendingUi(thinking) {
+    if (thinking && UI.transcript) {
+        UI.transcript.innerText = '...';
+        UI.transcript.classList.remove('placeholder');
+    }
+    if (UI.chatInput) {
+        UI.chatInput.value = '';
+        UI.chatInput.classList.add('sending');
+        setTimeout(() => {
+            try { UI.chatInput.classList.remove('sending'); } catch (_) { /* ignore */ }
+        }, 500);
+    }
+}
+
+function sendNomadChatMessage() {
+    const raw = UI.chatInput ? UI.chatInput.value : '';
+    const text = (raw || '').trim();
+    if (!text) return;
+
+    if (trySendChatWsJSON({ text })) {
+        nomadApplySendingUi(true);
+        return;
+    }
+    if (trySendNomadChatRelay(text)) {
+        nomadApplySendingUi(true);
+        return;
+    }
+    enqueueOutboundChat(text);
+    nomadApplySendingUi(false);
+    if (UI.statusText) UI.statusText.innerText = 'Queued (waiting for link)…';
+}
+
 /**
  * Battery & Kinetic Telemetry (Replaced Temp due to browser security)
  */
@@ -260,10 +382,75 @@ window.addEventListener('devicemotion', (event) => {
  * Expected states: 'calm', 'alert', 'active'
  */
 function setAppAffectState(state) {
-    document.body.className = ''; // reset 
+    const textFocus = document.body.classList.contains('nomad-text-focus');
+    document.body.className = '';
+    if (textFocus) {
+        document.body.classList.add('nomad-text-focus');
+    }
     if (state && state !== 'calm') {
         document.body.classList.add(`state-${state}`);
     }
+}
+
+/** Bloque 22.3 — PAD / sigma from GestaltSnapshot (server ``sync_identity_v1``). */
+function applyGestaltPad(gestalt) {
+    if (!gestalt || typeof gestalt !== 'object') return;
+    const pad = gestalt.pad_state;
+    if (Array.isArray(pad) && pad.length >= 3) {
+        const p = Math.max(0, Math.min(1, Number(pad[0])));
+        const a = Math.max(0, Math.min(1, Number(pad[1])));
+        const d = Math.max(0, Math.min(1, Number(pad[2])));
+        if (Number.isFinite(p)) document.documentElement.style.setProperty('--pad-pleasure', String(p));
+        if (Number.isFinite(a)) document.documentElement.style.setProperty('--pad-arousal', String(a));
+        if (Number.isFinite(d)) document.documentElement.style.setProperty('--pad-dominance', String(d));
+    }
+    const sigma = Number(gestalt.sigma);
+    if (Number.isFinite(sigma)) {
+        document.documentElement.style.setProperty('--gestalt-sigma', String(sigma));
+        if (sigma > 0.72) setAppAffectState('alert');
+        else if (sigma < 0.38) setAppAffectState('calm');
+        else setAppAffectState('active');
+    }
+}
+
+/** Bloque 22.2 — align UI with kernel ``SYNC_IDENTITY`` envelope. */
+function applySyncIdentity(data) {
+    if (!data || typeof data !== 'object') return;
+    const bm = data.identity_manifest || data.manifest || data.birth_manifest || {};
+    const name = typeof bm.name === 'string' && bm.name.trim() ? bm.name.trim() : 'Kernel';
+    const narr = data.narrative_identity || data.identity || {};
+    let asc = '';
+    if (typeof data.identity_ascription === 'string' && data.identity_ascription.trim()) {
+        asc = data.identity_ascription.trim();
+    } else if (typeof data.ascription === 'string' && data.ascription.trim()) {
+        asc = data.ascription.trim();
+    } else if (typeof narr.ascription === 'string' && narr.ascription.trim()) {
+        asc = narr.ascription.trim();
+    } else if (typeof data.identity_reflection === 'string' && data.identity_reflection.trim()) {
+        asc = data.identity_reflection.trim().slice(0, 360);
+    }
+    const parts = [name];
+    if (asc) parts.push(asc);
+    const digest = data.identity_digest || data.experience_digest;
+    if (typeof digest === 'string' && digest.trim()) {
+        parts.push(digest.trim().slice(0, 220));
+    }
+    if (UI.identityStrip) {
+        UI.identityStrip.textContent = parts.join(' — ');
+        UI.identityStrip.hidden = false;
+    }
+    try {
+        const care = Number(narr.care_lean);
+        const civ = Number(narr.civic_lean);
+        if (Number.isFinite(care) && Number.isFinite(civ)) {
+            const warmth = Math.max(0, Math.min(1, (care + civ) * 0.5 - 0.35));
+            document.documentElement.style.setProperty('--identity-warmth', String(warmth));
+        }
+    } catch (_) { /* ignore */ }
+    try {
+        document.title = `Nomad — ${name}`;
+    } catch (_) { /* ignore */ }
+    applyGestaltPad(data.gestalt_snapshot || data.gestalt);
 }
 
 /**
@@ -283,6 +470,8 @@ async function connectKernel() {
     console.log("Nomad: Initializing connection sequence...");
 
     try {
+        teardownKernelSockets();
+
         const candidates = await resolveKernelEndpointCandidates();
         console.log("Nomad: Candidates identified:", candidates);
         
@@ -311,6 +500,9 @@ async function connectKernel() {
 
         wsChat = connected.chat;
         wsNomad = connected.nomad;
+
+        reconnectAttempts = 0;
+        clearKernelReconnectTimer();
         
         try {
             localStorage.setItem(NOMAD_LAST_GOOD_HOST_KEY, connected.host || '');
@@ -336,13 +528,30 @@ async function connectKernel() {
         wsChat.onmessage = (event) => {
             try {
                 const data = JSON.parse(event.data);
-                // Bloque 13.1: Native response handling from Ethos Kernel
+                if (data.type === '[SYNC_IDENTITY]' || data.type === 'SYNC_IDENTITY') {
+                    const inner = data.payload && typeof data.payload === 'object' ? data.payload : data;
+                    applySyncIdentity(inner);
+                    const hint =
+                        (typeof inner.ascription === 'string' && inner.ascription.trim()) ||
+                        (typeof inner.identity_reflection === 'string' && inner.identity_reflection.trim().slice(0, 400)) ||
+                        'Identity synchronized with kernel.';
+                    if (UI.transcript) {
+                        UI.transcript.innerText = hint;
+                        UI.transcript.classList.remove('placeholder');
+                    }
+                    return;
+                }
                 if (data.event_type === "turn_finished") {
                     const msg = data.payload?.response?.message || "";
-                    if (msg) {
+                    if (msg && UI.transcript) {
                         UI.transcript.innerText = msg;
                         UI.transcript.classList.remove('placeholder');
                     }
+                    return;
+                }
+                if (data.type === 'kernel_voice' && data.text && UI.transcript) {
+                    UI.transcript.innerText = data.text;
+                    UI.transcript.classList.remove('placeholder');
                 }
             } catch (e) {
                 console.warn("Nomad: Chat message parse error", e);
@@ -352,23 +561,23 @@ async function connectKernel() {
         wsChat.onclose = () => {
             isConnected = false;
             UI.statusDot.classList.remove('connected');
-            UI.statusText.innerText = "Disconnected";
             setAppAffectState('calm');
-            
             UI.btnConnect.disabled = false;
-            UI.btnConnect.innerText = "Reconnect";
+            UI.btnConnect.innerText = 'Reconnect';
             UI.btnStream.disabled = true;
             UI.btnStream.classList.add('inactive');
+            scheduleKernelReconnect('chat');
+        };
 
-            // Trigger reconnection (Claude's backoff)
-            if (reconnectAttempts < MAX_RECONNECT_ATTEMPTS) {
-                const delay = RECONNECT_DELAY_BASE * Math.pow(2, reconnectAttempts);
-                UI.statusText.innerText = `Retrying in ${delay / 1000}s...`;
-                setTimeout(() => {
-                    reconnectAttempts++;
-                    connectKernel();
-                }, delay);
-            }
+        wsNomad.onclose = () => {
+            isConnected = false;
+            UI.statusDot.classList.remove('connected');
+            setAppAffectState('calm');
+            UI.btnConnect.disabled = false;
+            UI.btnConnect.innerText = 'Reconnect';
+            UI.btnStream.disabled = true;
+            UI.btnStream.classList.add('inactive');
+            scheduleKernelReconnect('nomad');
         };
 
         wsNomad.onopen = () => { 
@@ -407,6 +616,19 @@ async function connectKernel() {
         wsNomad.onmessage = (event) => {
             try {
                 const msg = JSON.parse(event.data);
+                if (msg.type === 'SYNC_IDENTITY' || msg.type === '[SYNC_IDENTITY]') {
+                    const inner = msg.payload && typeof msg.payload === 'object' ? msg.payload : msg;
+                    applySyncIdentity(inner);
+                    const hint =
+                        (typeof inner.ascription === 'string' && inner.ascription.trim()) ||
+                        (typeof inner.identity_reflection === 'string' && inner.identity_reflection.trim().slice(0, 400)) ||
+                        'Identity synchronized (Nomad bridge).';
+                    if (UI.transcript) {
+                        UI.transcript.innerText = hint;
+                        UI.transcript.classList.remove('placeholder');
+                    }
+                    return;
+                }
                 if (msg.type === 'pong' && msg.payload && nomadBridgePingT0 != null) {
                     const rttMs = Math.round(performance.now() - nomadBridgePingT0);
                     nomadBridgePingT0 = null;
@@ -414,26 +636,19 @@ async function connectKernel() {
                     if (UI.nomadRtt) {
                         UI.nomadRtt.textContent = `${rttMs} ms`;
                     }
-                } else if (msg.type === 'charm_feedback') {
-                    console.debug('Nomad charm_feedback', msg.payload);
+                    return;
                 }
-            } catch (e) {
-                console.warn('Nomad WS message parse error', e);
-            }
-        };
-
-        wsNomad.onmessage = (event) => {
-            try {
-                const msg = JSON.parse(event.data);
                 if (msg.type === 'charm_feedback') {
-                    const payload = msg.payload;
-                    // Support standard voice nudges from the bridge (S.2.1)
-                    if (payload.type === 'kernel_voice' || payload.text) {
-                        const text = payload.text || payload.content;
-                        UI.transcript.innerText = `[Proxied] Kernel: ${text}`;
-                        if ('speechSynthesis' in window) {
-                            const utterance = new SpeechSynthesisUtterance(text);
-                            window.speechSynthesis.speak(utterance);
+                    console.debug('Nomad charm_feedback', msg.payload);
+                    const payload = msg.payload || {};
+                    if (payload.type === 'kernel_voice' || payload.text || payload.content) {
+                        const text = payload.text || payload.content || '';
+                        if (text && UI.transcript) {
+                            UI.transcript.innerText = `[Proxied] Kernel: ${text}`;
+                            if ('speechSynthesis' in window) {
+                                const utterance = new SpeechSynthesisUtterance(text);
+                                window.speechSynthesis.speak(utterance);
+                            }
                         }
                     }
                     if (payload.type === 'haptic_feedback' || payload.haptics) {
@@ -442,9 +657,11 @@ async function connectKernel() {
                     }
                 }
             } catch (e) {
-                console.error("Nomad Bridge message error", e);
+                console.warn('Nomad WS message parse error', e);
             }
         };
+
+        flushOutboundChatBuffer();
 
     } catch (e) {
         alert(`Connectivity Error: ${e.message || e}\n\nTroubleshoot:\n1. Ensure you are on the SAME Wi-Fi.\n2. Allow port 8765 in Windows Firewall (PC).\n3. Keep mobile browser 'Shields' off for this IP.`);
@@ -452,84 +669,75 @@ async function connectKernel() {
     }
 }
 
-// Event Listeners with Safe-Check (Boy Scout Hardening)
-if (UI.btnConnect) {
- /**
- * Dispatch typed message to the kernel via /ws/chat
- */
-function sendNomadChatMessage() {
-    const text = (UI.chatInput.value || "").trim();
-    if (!text || !wsChat || wsChat.readyState !== WebSocket.OPEN) return;
-
-    wsChat.send(JSON.stringify({ text }));
-    UI.transcript.innerText = `...`; // Thinking state
-    UI.chatInput.value = "";
+function initNomadUiModeFromQuery() {
+    try {
+        const q = new URLSearchParams(window.location.search);
+        if (q.get('fullui') === '1') {
+            document.body.classList.remove('nomad-text-focus');
+        }
+        if (q.get('mode') === 'text' || q.get('solo') === '1') {
+            document.body.classList.add('nomad-text-focus');
+        }
+    } catch (_) { /* ignore */ }
 }
 
-// ── INIT ───────────────────────────────────────────────────────────────────
-UI.btnConnect.addEventListener('click', connectKernel);
-UI.btnStream.addEventListener('click', () => {
-    if (typeof startSensors === 'function') startSensors();
-    UI.btnStream.disabled = true;
-    UI.btnStream.innerText = "STREAMING";
-});
-
-UI.btnSend.addEventListener('click', sendNomadChatMessage);
-UI.chatInput.addEventListener('keypress', (e) => {
-    if (e.key === 'Enter') sendNomadChatMessage();
-});
+function syncUiModeButtonLabel() {
+    if (!UI.btnUiMode) return;
+    UI.btnUiMode.textContent = document.body.classList.contains('nomad-text-focus')
+        ? 'Full UI'
+        : 'Text focus';
 }
 
-// Expose a function to scale the orb based on audio volume
-window.updateOrbScale = function(volume) {
-    // Volume is typically between 0 and 1
-    const scale = 1 + (volume * 1.5);
-    UI.orb.style.transform = `scale(${scale})`;
-};
+initNomadUiModeFromQuery();
+syncUiModeButtonLabel();
+
+if (UI.btnUiMode) {
+    UI.btnUiMode.addEventListener('click', () => {
+        document.body.classList.toggle('nomad-text-focus');
+        syncUiModeButtonLabel();
+    });
+}
 
 // Application Installation (PWA Service Worker)
 let deferredPrompt;
 window.addEventListener('beforeinstallprompt', (e) => {
-    // Prevent default mini-infobar
     e.preventDefault();
     deferredPrompt = e;
 });
 
-UI.btnInstall.addEventListener('click', async () => {
-    if (deferredPrompt) {
-        deferredPrompt.prompt();
-        const { outcome } = await deferredPrompt.userChoice;
-        if (outcome === 'accepted') {
-            UI.btnInstall.style.display = 'none';
+if (UI.btnInstall) {
+    UI.btnInstall.addEventListener('click', async () => {
+        if (deferredPrompt) {
+            deferredPrompt.prompt();
+            const { outcome } = await deferredPrompt.userChoice;
+            if (outcome === 'accepted') {
+                UI.btnInstall.style.display = 'none';
+            }
+            deferredPrompt = null;
+        } else {
+            alert("Modo Manual:\n1. Toca los tres puntos (Menú) de tu navegador.\n2. Toca 'Instalar Aplicación' o 'Añadir a pantalla de inicio'.\n¡Esto evitará que el sistema cierre la cámara!");
         }
-        deferredPrompt = null;
-    } else {
-        alert("Modo Manual:\n1. Toca los tres puntos (Menú) de tu navegador.\n2. Toca 'Instalar Aplicación' o 'Añadir a pantalla de inicio'.\n¡Esto evitará que el sistema cierre la cámara!");
-    }
-});
-
-/**
- * Dispatch typed message to the kernel via /ws/chat
- */
-function sendNomadChatMessage() {
-    const text = (UI.chatInput.value || "").trim();
-    if (!text || !wsChat || wsChat.readyState !== WebSocket.OPEN) return;
-
-    wsChat.send(JSON.stringify({ text }));
-    UI.transcript.innerText = `...`; // Thinking state
-    UI.chatInput.classList.add('sending');
-    UI.chatInput.value = "";
-    setTimeout(() => UI.chatInput.classList.remove('sending'), 500);
+    });
 }
 
 // ── Sensory HUD Updates ──────────────────────────────────────────────────
 function updateHud(type, val) {
     try {
-        if (type === 'bat' && UI.telBat) UI.telBat.innerText = `${Math.round(val * 100)}%`;
-        if (type === 'temp' && UI.telTemp) UI.telTemp.innerText = `${Math.round(val)}°`;
-        if (type === 'kin' && UI.telKin) UI.telKin.innerText = val.toFixed(1);
-        if (type === 'aud' && UI.telAud) UI.telAud.innerText = val.toFixed(2);
-    } catch(_) {}
+        const n = Number(val);
+        const ok = Number.isFinite(n);
+        if (type === 'bat' && UI.telBat) {
+            UI.telBat.innerText = ok ? `${Math.round(n * 100)}%` : '--';
+        }
+        if (type === 'temp' && UI.telTemp) {
+            UI.telTemp.innerText = ok ? `${Math.round(n)}°` : '--';
+        }
+        if (type === 'kin' && UI.telKin) {
+            UI.telKin.innerText = ok ? n.toFixed(1) : '0.0';
+        }
+        if (type === 'aud' && UI.telAud) {
+            UI.telAud.innerText = ok ? n.toFixed(2) : '0.00';
+        }
+    } catch (_) { /* ignore */ }
 }
 
 // ── INIT ───────────────────────────────────────────────────────────────────
@@ -564,10 +772,10 @@ window.updateOrbScale = function(volume) {
 // ... existing SW registration ...
 if ('serviceWorker' in navigator) {
     window.addEventListener('load', () => {
-        navigator.serviceWorker.register('./sw.js?v=13.1.5')
+        navigator.serviceWorker.register('./sw.js?v=13.1.6')
             .then(reg => console.log('Nomad Service Worker registered', reg))
             .catch(err => console.error('SW block:', err));
     });
 }
 
-console.log("Nomad PWA V13.1.5 Initialized.");
+console.log("Nomad PWA V13.1.6 Initialized.");
