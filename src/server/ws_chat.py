@@ -816,9 +816,11 @@ async def ws_chat(ws: WebSocket) -> None:
                     draft_ok = True
                 except Exception:
                     pass
+                # Always ack so clients see draft result; combined text+draft messages still run
+                # the chat turn below without losing this feedback.
+                await ws.send_json({"constitution_draft": {"ok": draft_ok}})
+                maybe_autosave_episodes(kernel, session_ckpt)
                 if not text_preview:
-                    await ws.send_json({"constitution_draft": {"ok": draft_ok}})
-                    maybe_autosave_episodes(kernel, session_ckpt)
                     continue
 
             sensor_raw = data.get("sensor")

@@ -11,6 +11,12 @@ All notable changes to this project are summarized here. For narrative context a
 - **`docs/proposals/ASPIRATIONAL_DISCLAIMER.md`:** reusable note that “consciousness/soul” language in proposals is vision unless tied to `src/`.
 - **`docs/proposals/archived/README.md`:** incremental `git mv` policy for superseded proposal files.
 
+### Changed
+- **`docs/proposals/PULSE_SYNC_2026-04-17.md`:** pre-merge pulse report text moved to `archived/PULSE_SYNC_2026-04-17.md`; short redirect stub keeps old URL stable.
+
+### Fixed
+- **`src/server/ws_chat.py`:** combined `constitution_draft` + `text` messages now always receive the draft `ok` JSON ack before the chat turn stream; tests: `test_websocket_constitution_draft_with_text_sends_draft_ack`, `test_websocket_constitution_draft_combined_with_text_sends_draft_ack`.
+
 ## [2026-04-22] Bloque 35.0: Núcleo — vitalidad + retirada del nombre `kernel_legacy_v12`
 
 ### Added

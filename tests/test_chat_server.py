@@ -254,6 +254,28 @@ def test_nomad_discovery_endpoint_contract():
     assert first.get("dashboard_ws", "").endswith("/ws/dashboard")
 
 
+def test_websocket_constitution_draft_with_text_sends_draft_ack(monkeypatch):
+    """If both ``constitution_draft`` and ``text`` are present, ack the draft before chat streaming."""
+    monkeypatch.setenv("KERNEL_MORAL_HUB_DRAFT_WS", "1")
+    with client.websocket_connect("/ws/chat") as ws:
+        sync = ws.receive_json()
+        assert sync.get("type") in ("[SYNC_IDENTITY]", "SYNC_IDENTITY")
+        ws.send_json(
+            {
+                "constitution_draft": {
+                    "level": 1,
+                    "title": "Combo draft",
+                    "body": "Article body.",
+                },
+                "text": "Hello kernel.",
+            }
+        )
+        first = ws.receive_json()
+        assert first.get("constitution_draft") == {"ok": True}
+        turn = _recv_turn_payload(ws)
+    assert isinstance(turn, dict) and (turn.get("path") is not None or "response" in turn)
+
+
 @pytest.mark.skip(
     reason="EthosKernel v13: nomad migration audit path pulls kernel_io snapshot fields not yet on slim kernel."
 )
@@ -836,6 +858,33 @@ def test_websocket_lan_governance_integrity_batch_invalid_events_type(monkeypatc
     batch = data.get("lan_governance", {}).get("integrity_batch", {})
     assert batch.get("ok") is False
     assert batch.get("error") == "events_must_be_list"
+
+
+def test_websocket_constitution_draft_combined_with_text_sends_draft_ack(monkeypatch):
+    """Draft is stored and acked even when the same message starts a chat turn (Bug 1)."""
+    monkeypatch.setenv("KERNEL_MORAL_HUB_DRAFT_WS", "1")
+    with client.websocket_connect("/ws/chat") as ws:
+        ws.send_json(
+            {
+                "text": "hello",
+                "constitution_draft": {
+                    "level": 1,
+                    "title": "Joint norm",
+                    "body": "Preamble with chat.",
+                },
+            }
+        )
+        got_draft = False
+        for _ in range(40):
+            msg = ws.receive_json()
+            if not isinstance(msg, dict):
+                continue
+            if "constitution_draft" in msg:
+                assert msg["constitution_draft"] == {"ok": True}
+                got_draft = True
+                break
+        assert got_draft, "constitution_draft success ack must be sent before turn stream"
+        _recv_turn_payload(ws)
 
 
 def test_websocket_lan_governance_dao_batch_merges_and_resolves(monkeypatch):

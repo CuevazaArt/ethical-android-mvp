@@ -75,7 +75,7 @@ Aquí es donde los agentes de ejecución (LLMs en IDEs) reclaman sus tareas.
 - [x] Tarea 35.4: **Limpiar `kernel_components.py`:** Eliminar campo `augenesis: AugenesisEngine | None = None` and el import correspondiente.
 
 **Bloque 36.0: Poda Documental y Archivo de Propuestas Obsoletas [PENDING]**
-- Tarea 36.1: **Clasificar propuestas:** Mover propuestas implementadas/rechazadas/superadas a `docs/proposals/archived/` (estimado: ~120 de 149) — *incremental;* ver [archived/README.md](archived/README.md). [INCREMENTAL] `PULSE_SYNC_2026-04-17` (pre-merge) en `archived/` + *stub* de redirección.
+- Tarea 36.1: **Clasificar propuestas:** Mover propuestas implementadas/rechazadas/superadas a `docs/proposals/archived/` (estimado: ~120 de 149) — *incremental;* ver [archived/README.md](archived/README.md). [INCREMENTAL] `PULSE_SYNC_2026-04-17` (pre-merge) en `archived/` + *stub* de redirección; *post-merge* `PULSE_SYNC_POST_MERGE_2026-04-17` sigue en la raíz.
 - Tarea 36.2: **Consolidar duplicados:** NOMAD HAL: inglés canónico `PROPOSAL_NOMAD_CONSCIOUSNESS_HAL.md`; *stub* en `PROPUESTA_CONCIENCIA_NOMADA_HAL.md`. Búsqueda de otros pares: olas futuras.
 - Tarea 36.3: [COMPLETED] `docs/proposals/INDEX.md` (navegación, PLAN, disclaimer, política de archivo); [archived/README.md](archived/README.md) (`git mv` incremental).
 - Tarea 36.4: [PARCIAL] `ASPIRATIONAL_DISCLAIMER.md` + enlaces desde INDEX/README; faltan ediciones puntuales en 15+ documentos con lenguaje aspiracional.
