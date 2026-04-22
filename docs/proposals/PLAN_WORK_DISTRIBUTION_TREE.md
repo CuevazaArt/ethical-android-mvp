@@ -90,6 +90,9 @@ Aquí es donde los agentes de ejecución (LLMs en IDEs) reclaman sus tareas.
 **Bloque 30.0: Continuidad L2 — backlog vacío / L1-AUDIT [DONE]**
 - Tarea 30.1: **Cuando no había `[PENDING]` en BACKLOG ABIERTO (20–29, B.1–B.5 ya [DONE]):** procedimiento de continuidad: endurecer `scripts/eval/adversarial_suite.py` (`sys.exit(1)` si algún prompt adversarial no queda bloqueado; `finally` → `kernel.stop()`); verificación de suite completa con **`gh workflow run CI --ref main`** (misma fuente de verdad que `quality` + `windows-smoke` en `.github/workflows/ci.yml`).
 
+**Bloque 34.0: MalAbs / embeddings en bucle asyncio (observabilidad) [PENDING]**
+- Tarea 34.1: Eliminar avisos `http_fetch_ollama_embedding_with_policy called from a running event loop` en rutas tri-lobe: usar `ahttp_fetch_ollama_embedding_with_policy` (o ejecutar fetch en un executor explícito) cuando el gate semántico quede habilitado en procesos async.
+
 ---
 
 ## 🗄️ RESERVA DEL ENJAMBRE (Buffer de Optimización Continua V14)

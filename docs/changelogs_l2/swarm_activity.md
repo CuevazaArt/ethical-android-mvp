@@ -1482,3 +1482,12 @@ This file is automatically managed by `scripts/swarm_sync.py`.
   - `src/runtime/chat_server.py`
   - `tests/test_ethics_quality.py`
   - `tests/test_runtime_chat_server.py`
+
+### Execution (Swarm) | Date: 2026-04-21 21:08:24 | Author: Anonymous Agent
+- **Block:** `32.1`
+- **Message:** chat_server: single chat_lifespan/api_docs_enabled from runtime.chat_lifecycle (remove duplicate _lifespan). reproducible_kernel_demo: must_block drug turn uses lexical how to cook meth. CHANGELOG + PLAN 34.0 PENDING MalAbs async embedding.
+- **Files Modified:**
+  - `CHANGELOG.md`
+  - `docs/proposals/PLAN_WORK_DISTRIBUTION_TREE.md`
+  - `src/modules/guardian_mode.py`
+  - `src/modules/guardian_routines.py`

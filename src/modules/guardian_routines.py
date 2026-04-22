@@ -9,9 +9,9 @@ from __future__ import annotations
 
 from src.modules.guardian_mode import (
     GuardianRoutine,
+    get_guardian_routines,
     guardian_routines_feature_enabled,
     guardian_routines_llm_suffix,
-    get_guardian_routines,
     invalidate_guardian_routines_cache,
     load_guardian_routines_from_path,
     public_routines_snapshot,

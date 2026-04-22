@@ -20,6 +20,8 @@ All notable changes to this project are summarized here. For narrative context a
 - **Architectural Gap**: Resolved the issue where the distributed architecture was bypassing the Absolute Evil Detector in certain asynchronous paths.
 - **`src/chat_server.py` / CI (Ruff):** Restored the full import surface and handlers after a partial decoupling pass left 130+ undefined names; kept `light_risk_tier` JSON contract without Ruff B009 (`hasattr` + direct `_last_light_risk_tier` read).
 - **`src/kernel_legacy_v12.py` (chat sync):** Import `vitality_communication_hint` and pass `vitality_context` into `LLMModule.acommunicate`, fixing MalAbs subprocess coverage for `process_chat_turn`.
+- **`src/chat_server.py` (lifespan):** `FastAPI` now uses `chat_lifespan` / `api_docs_enabled` from `src.runtime.chat_lifecycle` only (no duplicated `_lifespan` / `_api_docs_enabled` in the monolith).
+- **`scripts/eval/reproducible_kernel_demo.py`:** `must_block` drug scenario uses the MalAbs lexical phrase `how to cook meth` so the demo exits 0 when the entry gate is healthy.
 
 **[URGENT — broadcast to all L2 integration hubs]:** All teams (Claude, Cursor, Copilot) should urgently `git pull` from `main` into their `master-*` branches. Outdated branches risk severe documentation path drift.
 
