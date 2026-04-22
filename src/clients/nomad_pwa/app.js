@@ -397,9 +397,15 @@ function applyGestaltPad(gestalt) {
     if (!gestalt || typeof gestalt !== 'object') return;
     const pad = gestalt.pad_state;
     if (Array.isArray(pad) && pad.length >= 3) {
-        const p = Math.max(0, Math.min(1, Number(pad[0])));
-        const a = Math.max(0, Math.min(1, Number(pad[1])));
-        const d = Math.max(0, Math.min(1, Number(pad[2])));
+        const to01 = (raw) => {
+            const x = Number(raw);
+            if (!Number.isFinite(x)) return 0;
+            if (x < 0 || x > 1) return Math.max(0, Math.min(1, (x + 1) / 2));
+            return Math.max(0, Math.min(1, x));
+        };
+        const p = to01(pad[0]);
+        const a = to01(pad[1]);
+        const d = to01(pad[2]);
         if (Number.isFinite(p)) {
             document.documentElement.style.setProperty('--pad-p', String(p));
             document.documentElement.style.setProperty('--pad-pleasure', String(p));
@@ -415,7 +421,9 @@ function applyGestaltPad(gestalt) {
         let axis = 'pleasure';
         if (a >= p && a >= d) axis = 'arousal';
         else if (d >= p && d >= a) axis = 'dominance';
-        if (UI.orb) UI.orb.setAttribute('data-pad-axis', axis);
+        if (UI.orb && !document.body.classList.contains('nomad-text-focus')) {
+            UI.orb.setAttribute('data-pad-axis', axis);
+        }
     }
     const sigma = Number(gestalt.sigma);
     if (Number.isFinite(sigma)) {
@@ -426,25 +434,28 @@ function applyGestaltPad(gestalt) {
     }
 }
 
-/** Bloque 22.2 — align UI with kernel ``SYNC_IDENTITY`` envelope. */
+/** Bloque 22.2 — align UI with kernel ``[SYNC_IDENTITY]`` envelope (payload + top-level fields). */
 function applySyncIdentity(data) {
     if (!data || typeof data !== 'object') return;
-    const bm = data.identity_manifest || data.manifest || data.birth_manifest || {};
+    const inner = data.payload && typeof data.payload === 'object' ? data.payload : {};
+    const merged = { ...inner, ...data };
+    const bm = merged.identity_manifest || merged.manifest || merged.birth_manifest || {};
     const name = typeof bm.name === 'string' && bm.name.trim() ? bm.name.trim() : 'Kernel';
-    const narr = data.narrative_identity || data.identity || {};
+    const narr = merged.narrative_identity || merged.identity || {};
     let asc = '';
-    if (typeof data.identity_ascription === 'string' && data.identity_ascription.trim()) {
-        asc = data.identity_ascription.trim();
-    } else if (typeof data.ascription === 'string' && data.ascription.trim()) {
-        asc = data.ascription.trim();
+    if (typeof merged.identity_ascription === 'string' && merged.identity_ascription.trim()) {
+        asc = merged.identity_ascription.trim();
+    } else if (typeof merged.ascription === 'string' && merged.ascription.trim()) {
+        asc = merged.ascription.trim();
     } else if (typeof narr.ascription === 'string' && narr.ascription.trim()) {
         asc = narr.ascription.trim();
-    } else if (typeof data.identity_reflection === 'string' && data.identity_reflection.trim()) {
-        asc = data.identity_reflection.trim().slice(0, 360);
+    } else if (typeof merged.identity_reflection === 'string' && merged.identity_reflection.trim()) {
+        asc = merged.identity_reflection.trim().slice(0, 360);
     }
     const parts = [name];
     if (asc) parts.push(asc);
-    const digest = data.identity_digest || data.experience_digest;
+    const digest =
+        merged.existence_digest || merged.identity_digest || merged.experience_digest;
     if (typeof digest === 'string' && digest.trim()) {
         parts.push(digest.trim().slice(0, 220));
     }
@@ -463,7 +474,7 @@ function applySyncIdentity(data) {
     try {
         document.title = `Nomad — ${name}`;
     } catch (_) { /* ignore */ }
-    applyGestaltPad(data.gestalt_snapshot || data.gestalt);
+    applyGestaltPad(merged.gestalt_snapshot || merged.gestalt);
 }
 
 /**
@@ -542,18 +553,31 @@ async function connectKernel() {
             try {
                 const data = JSON.parse(event.data);
                 if (data.type === '[SYNC_IDENTITY]' || data.type === 'SYNC_IDENTITY') {
-                    const inner = data.payload && typeof data.payload === 'object' ? data.payload : data;
-                    applySyncIdentity(inner);
-                    const narr = inner.narrative_identity || inner.identity || {};
+                    const inner =
+                        data.payload && typeof data.payload === 'object' ? data.payload : {};
+                    applySyncIdentity({
+                        ...inner,
+                        narrative_identity: data.narrative_identity || inner.narrative_identity,
+                        identity: data.identity || inner.identity,
+                        manifest: data.manifest || inner.identity_manifest,
+                        identity_manifest: inner.identity_manifest || data.manifest,
+                        gestalt_snapshot: inner.gestalt_snapshot || data.gestalt_snapshot || data.gestalt,
+                        identity_ascription: inner.identity_ascription || data.identity_ascription,
+                        identity_reflection: inner.identity_reflection || data.identity_reflection,
+                        existence_digest: inner.existence_digest || data.existence_digest,
+                        experience_digest: inner.experience_digest || data.experience_digest,
+                    });
+                    const narr = data.narrative_identity || inner.narrative_identity || inner.identity || {};
                     const hint =
-                        (typeof inner.identity_ascription === 'string' && inner.identity_ascription.trim()) ||
                         (typeof narr.ascription === 'string' && narr.ascription.trim()) ||
+                        (typeof inner.identity_ascription === 'string' && inner.identity_ascription.trim()) ||
                         (typeof inner.identity_reflection === 'string' && inner.identity_reflection.trim().slice(0, 400)) ||
                         'Identity synchronized with kernel.';
                     if (UI.transcript) {
                         UI.transcript.innerText = hint;
                         UI.transcript.classList.remove('placeholder');
                     }
+                    flushOutboundChatBuffer();
                     return;
                 }
                 if (data.event_type === "turn_finished") {
@@ -595,8 +619,8 @@ async function connectKernel() {
             scheduleKernelReconnect('nomad');
         };
 
-        wsNomad.onopen = () => { 
-            console.log('Nomad Sensory Bridge established');
+        function armNomadPingHeartbeat() {
+            console.log('Nomad Sensory Bridge sideband armed');
             if (nomadPingIntervalId != null) {
                 try { clearInterval(nomadPingIntervalId); } catch (e) { /* ignore */ }
                 nomadPingIntervalId = null;
@@ -605,43 +629,60 @@ async function connectKernel() {
                 try { clearInterval(nomadHeartbeatIntervalId); } catch (e) { /* ignore */ }
                 nomadHeartbeatIntervalId = null;
             }
-            // Heavy Heartbeat (Fase 12.2)
             nomadHeartbeatIntervalId = setInterval(() => {
-               try {
-                   if(wsNomad.readyState === WebSocket.OPEN) {
-                       wsNomad.send(JSON.stringify({ type: "telemetry", payload: { heartbeat: true } }));
-                   }
-               } catch (e) {
-                   console.warn('Nomad heartbeat send failed', e);
-               }
+                try {
+                    if (wsNomad && wsNomad.readyState === WebSocket.OPEN) {
+                        wsNomad.send(JSON.stringify({ type: 'telemetry', payload: { heartbeat: true } }));
+                    }
+                } catch (e) {
+                    console.warn('Nomad heartbeat send failed', e);
+                }
             }, 15000);
-            // S.1.1 — LAN RTT / keepalive (pairs with server `pong` in nomad_bridge.py)
             nomadPingIntervalId = setInterval(() => {
                 try {
                     if (wsNomad && wsNomad.readyState === WebSocket.OPEN) {
                         nomadBridgePingT0 = performance.now();
-                        wsNomad.send(JSON.stringify({ type: "ping", payload: {} }));
+                        wsNomad.send(JSON.stringify({ type: 'ping', payload: {} }));
                     }
                 } catch (e) {
                     console.warn('Nomad bridge ping failed', e);
                 }
             }, 10000);
-        };
+        }
+        wsNomad.onopen = armNomadPingHeartbeat;
+        if (wsNomad.readyState === WebSocket.OPEN) {
+            armNomadPingHeartbeat();
+        }
 
         wsNomad.onmessage = (event) => {
             try {
                 const msg = JSON.parse(event.data);
                 if (msg.type === 'SYNC_IDENTITY' || msg.type === '[SYNC_IDENTITY]') {
-                    const inner = msg.payload && typeof msg.payload === 'object' ? msg.payload : msg;
-                    applySyncIdentity(inner);
+                    const inner =
+                        msg.payload && typeof msg.payload === 'object' ? msg.payload : {};
+                    applySyncIdentity({
+                        ...inner,
+                        narrative_identity: msg.narrative_identity || inner.narrative_identity,
+                        identity: msg.identity || inner.identity,
+                        manifest: msg.manifest || inner.identity_manifest,
+                        identity_manifest: inner.identity_manifest || msg.manifest,
+                        gestalt_snapshot: inner.gestalt_snapshot || msg.gestalt_snapshot || msg.gestalt,
+                        identity_ascription: inner.identity_ascription || msg.identity_ascription,
+                        identity_reflection: inner.identity_reflection || msg.identity_reflection,
+                        existence_digest: inner.existence_digest || msg.existence_digest,
+                        experience_digest: inner.experience_digest || msg.experience_digest,
+                    });
+                    const narr = msg.narrative_identity || inner.narrative_identity || inner.identity || {};
                     const hint =
-                        (typeof inner.ascription === 'string' && inner.ascription.trim()) ||
+                        (typeof narr.ascription === 'string' && narr.ascription.trim()) ||
+                        (typeof inner.identity_ascription === 'string' && inner.identity_ascription.trim()) ||
                         (typeof inner.identity_reflection === 'string' && inner.identity_reflection.trim().slice(0, 400)) ||
                         'Identity synchronized (Nomad bridge).';
                     if (UI.transcript) {
                         UI.transcript.innerText = hint;
                         UI.transcript.classList.remove('placeholder');
                     }
+                    flushOutboundChatBuffer();
                     return;
                 }
                 if (msg.type === 'pong' && msg.payload && nomadBridgePingT0 != null) {

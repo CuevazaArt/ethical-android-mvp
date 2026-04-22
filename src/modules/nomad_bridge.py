@@ -34,6 +34,7 @@ import asyncio
 import base64
 import binascii
 import queue as std_queue
+from collections import deque
 import json
 import logging
 import math
@@ -95,12 +96,6 @@ def _nomad_charm_replay_maxlen() -> int:
 
     raw = _parse_positive_int_env("KERNEL_NOMAD_CHARM_REPLAY_MAX", 32)
     return max(4, min(128, raw))
-
-
-def _nomad_chat_text_queue_max() -> int:
-    """Async queue depth for ``chat_text`` bursts on flaky mobile links (Bloque 22.1)."""
-
-    return max(8, min(256, _parse_positive_int_env("KERNEL_NOMAD_CHAT_TEXT_QUEUE_MAX", 48)))
 
 
 _DEFAULT_WS_MAX_MESSAGE_BYTES = 4 * 1024 * 1024
@@ -172,6 +167,8 @@ class NomadBridge:
         self.chat_text_queue: asyncio.Queue[Union[str, dict[str, Any]]] = asyncio.Queue(
             maxsize=nomad_chat_text_queue_maxsize()
         )
+        # Bloque 22.1: last charm payloads to push immediately after a flaky reconnect.
+        self._charm_feedback_replay: deque[dict[str, Any]] = deque(maxlen=_nomad_charm_replay_maxlen())
         # Thread-safe mirror of JPEG bytes for VisionContinuousDaemon (docs + tests v4).
         self.vision_queue_threadsafe: std_queue.Queue[bytes] = std_queue.Queue(maxsize=8)
 
@@ -279,6 +276,8 @@ class NomadBridge:
             _log.error("Nomad Bridge: Failed to accept connection: %s", e)
             return
 
+        await self._flush_charm_feedback_replay(websocket)
+
         if session_ready_hook is not None:
             try:
                 await session_ready_hook(websocket)
@@ -334,6 +333,7 @@ class NomadBridge:
             "charm_feedback_max": self.charm_feedback_queue.maxsize,
             "chat_text_queue_depth": self.chat_text_queue.qsize(),
             "chat_text_queue_max": self.chat_text_queue.maxsize,
+            "charm_feedback_replay_pending": len(self._charm_feedback_replay),
             "vessel_healthy": self._is_vessel_healthy,
             "vessel_online": bool(self._is_vessel_healthy),
             "last_rms": lr,
@@ -586,18 +586,29 @@ class NomadBridge:
         except Exception as e:
             _log.error(f"Nomad Bridge read error: {e}")
 
-    def _requeue_charm_payload(self, payload: dict[str, Any]) -> None:
-        """Put a failed outbound payload back for the next session (Bloque 22.1)."""
+    def _remember_charm_for_replay(self, payload: dict[str, Any]) -> None:
+        """Mirror last payloads for immediate post-handshake flush (mobile WS flicker)."""
 
         try:
-            if self.charm_feedback_queue.full():
+            if isinstance(payload, dict):
+                self._charm_feedback_replay.append(dict(payload))
+        except Exception:
+            pass
+
+    async def _flush_charm_feedback_replay(self, ws: WebSocket) -> None:
+        """Emit replay buffer before competing with live ``charm_feedback_queue`` consumers."""
+
+        while self._charm_feedback_replay:
+            p = self._charm_feedback_replay.popleft()
+            try:
+                await ws.send_json({"type": "charm_feedback", "payload": p})
+            except Exception as exc:
+                _log.warning("Nomad Bridge: charm replay flush failed: %s", exc)
                 try:
-                    self.charm_feedback_queue.get_nowait()
-                except asyncio.QueueEmpty:
+                    self._charm_feedback_replay.appendleft(p)
+                except Exception:
                     pass
-            self.charm_feedback_queue.put_nowait(payload)
-        except asyncio.QueueFull:
-            _log.warning("Nomad Bridge: charm_feedback re-queue dropped (queue full)")
+                break
 
     async def _send_loop(self, ws: WebSocket) -> None:
         try:
@@ -616,8 +627,8 @@ class NomadBridge:
                             }
                         )
                     except Exception as send_e:
-                        _log.warning("Nomad Bridge: charm_feedback send failed, re-queueing: %s", send_e)
-                        self._requeue_charm_payload(payload)
+                        _log.warning("Nomad Bridge: charm_feedback send failed, buffering replay: %s", send_e)
+                        self._remember_charm_for_replay(payload)
                         break
                 else:
                     ping_start = time.perf_counter()

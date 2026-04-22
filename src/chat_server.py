@@ -456,6 +456,7 @@ async def nomad_bridge_ws_handler(websocket: WebSocket) -> None:
         llm_mode=st.llm_mode,
         aclient=getattr(websocket.app.state, "aclient", None),
     )
+    try_load_checkpoint(nomad_kernel)
     nomad_rt_bridge = RealTimeBridge(nomad_kernel)
     nb = get_nomad_bridge()
 
@@ -2578,6 +2579,24 @@ def build_sync_identity_ws_message(kernel: EthicalKernel) -> dict[str, Any]:
             arc_id = str(arc.id)
     except (AttributeError, TypeError, ValueError):
         arc_id = None
+    dominant = "neutral"
+    try:
+        tone = kernel.memory.get_subjective_tone()
+        if isinstance(tone, dict) and tone:
+            best_k: str | None = None
+            best_v = -1.0
+            for k, v in tone.items():
+                try:
+                    fv = float(v)
+                except (TypeError, ValueError):
+                    continue
+                if math.isfinite(fv) and fv > best_v:
+                    best_v = fv
+                    best_k = str(k)
+            if best_k:
+                dominant = best_k
+    except (AttributeError, TypeError, ValueError, KeyError):
+        dominant = "neutral"
     bc = _bayesian_posterior_confidence(kernel)
     gs = GestaltSnapshot(
         timestamp=time.time(),
@@ -2586,7 +2605,7 @@ def build_sync_identity_ws_message(kernel: EthicalKernel) -> dict[str, Any]:
         sympathetic_mode=smode,
         tension_level=tension,
         pad_state=(pad[0], pad[1], pad[2]),
-        dominant_archetype="neutral",
+        dominant_archetype=dominant,
         active_arc_id=arc_id,
         social_circle="neutral_soto",
         bayesian_confidence=bc,
@@ -2649,12 +2668,17 @@ def build_sync_identity_ws_message(kernel: EthicalKernel) -> dict[str, Any]:
     }
     envelope: dict[str, Any] = {
         "type": "[SYNC_IDENTITY]",
-        "schema": "sync_identity_v1",
+        "label": "[SYNC_IDENTITY]",
+        "schema": "sync_identity_v2",
         "payload": payload,
         "manifest": manifest_dict,
         "birth_manifest": manifest_dict,
         "narrative_tail": narrative_recent,
+        "base_history": narrative_recent,
         "gestalt": gestalt_dict,
+        "gestalt_snapshot": gestalt_dict,
+        "identity_reflection": reflection[:2000],
+        "identity_ascription": ascription,
         "identity": identity_pub,
         "narrative_identity": identity_pub,
         "episode_total": ep_total,

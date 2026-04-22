@@ -998,3 +998,18 @@ This file is automatically managed by `scripts/swarm_sync.py`.
   - `src/settings/kernel_settings.py`
   - `tests/test_chat_server.py`
   - `tests/test_nomad_session_sync.py`
+
+### 🛠️ Execution | Date: 2026-04-21 20:23:50 | Author: Cursor L2
+- **Block:** `22.0`
+- **Message:** Nomad sync envelope v2: root identity_ascription + schema bump; PWA PAD axis on orb, sigma thresholds, query text=0/1; LOCAL_FLUENCY TTFT line. Impact: chat_server WebSocket first-frame contract for Nomad PWA; llm_layer verbal prompt for faster Ollama openers; PWA affect chrome tied to gestalt.
+- **Files Modified:**
+  - `docs/proposals/PLAN_WORK_DISTRIBUTION_TREE.md`
+  - `src/chat_server.py`
+  - `src/clients/nomad_pwa/app.js`
+  - `src/clients/nomad_pwa/index.html`
+  - `src/clients/nomad_pwa/style.css`
+  - `src/modules/nomad_bridge.py`
+  - `src/modules/nomad_session_sync.py`
+  - `src/modules/vision_inference.py`
+  - `tests/test_chat_server.py`
+  - `tests/test_nomad_session_sync.py`

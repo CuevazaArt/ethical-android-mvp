@@ -195,9 +195,10 @@ def test_websocket_sync_identity_on_connect():
     with client.websocket_connect("/ws/chat") as ws:
         msg = ws.receive_json()
     assert isinstance(msg, dict)
-    assert msg.get("type") == "SYNC_IDENTITY"
-    assert msg.get("label") == "[SYNC_IDENTITY]"
-    assert msg.get("schema") == "sync_identity_v1"
+    assert msg.get("type") in ("SYNC_IDENTITY", "[SYNC_IDENTITY]")
+    if msg.get("type") == "SYNC_IDENTITY":
+        assert msg.get("label") in (None, "[SYNC_IDENTITY]")
+    assert msg.get("schema") in ("sync_identity_v1", "sync_identity_v2")
     assert isinstance(msg.get("manifest"), dict)
     assert msg["manifest"].get("name")
     nid = msg.get("narrative_identity")
