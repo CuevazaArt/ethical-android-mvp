@@ -51,9 +51,9 @@ class CerebellumLobe:
         self.rlhf = rlhf
         self.bus = bus
 
-        from src.modules.biographic_memory import BiographicMemoryTracker
+        from src.modules.session_checkpoint import SessionCheckpointTracker
 
-        self.tracker = BiographicMemoryTracker(self.memory)
+        self.tracker = SessionCheckpointTracker(self.memory)
 
         # Mnemónica asíncrona: El Cerebelo escucha estímulos para pre-calcular confianza
         if self.bus:

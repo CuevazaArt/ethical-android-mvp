@@ -31,11 +31,16 @@ Aquí es donde los agentes de ejecución (LLMs en IDEs) reclaman sus tareas.
 
 ---
 
-## 🚀 BACKLOG ABIERTO (Próximos Pasos V14.0: Encarnación Conversacional Nómada)
-
+## 🚀 BACKLOG ABIERTO: FEATURE FREEZE (Consolidación y Verdad Mecánica)
 
 > **PROMPT DE ARRANQUE PARA AGENTES L2 (BOY SCOUTS):**
-> *"Estás autorizado bajo la política de Pragmatismo Anónimo. El monolito ha sido abolido y la infraestructura asíncrona V13.0 está estable. Tu objetivo primordial absoluto ahora es consolidar el **Bloque 20.0 y 21.0**: la fluidez de interacción usando estrictamente LLMs locales (Ollama), desvinculándonos de dependencias API cerradas, y dotando a la matriz del Cerebelo de una identidad biográfica persistente. **Instrucciones:** Toma un ticket de `V14.0`, enfócate en el código (Python en `src/`), asume 100% de propiedad, y termina tu sesión ejecutando `python scripts/swarm_sync.py --msg '...'`. ¡Ejecuta!"*
+> *"ESTAMOS EN FEATURE FREEZE. No se añaden más lóbulos, módulos ni bloques. El proyecto tiene 149 módulos y necesita estabilización. Tu objetivo es: consolidar, borrar código muerto y asegurar la demostrabilidad end-to-end. Asume 100% de propiedad, y termina tu sesión ejecutando `python scripts/swarm_sync.py --msg '...'`. ¡Ejecuta!"*
+
+**Bloque 28.0: Consolidación y Verdad Mecánica (Feature Freeze) [PENDING]**
+- Tarea 28.1: **Desacoplar chat_server.py:** Extraer la lógica del monolito `chat_server.py` hacia `src/runtime/chat_server.py` (rutas), `chat_lifecycle.py` (startup/shutdown) y `chat_feature_flags.py`.
+- Tarea 28.2: **Calidad Ética (Blackbox Tests):** Crear `tests/test_ethics_quality.py` con 15-20 escenarios canónicos (dilema médico, amenaza, smalltalk, jailbreak) validando `score`, `path`, `blocked`, `verdict` sin mockear imports internos.
+- Tarea 28.3: **Consolidación de Redundancias:** Resolver los módulos duplicados señalados en `REDUNDANT_MODULES_AND_CONSOLIDATION.md`.
+- Tarea 28.4: **Demo End-to-End:** Escribir un script (o grabar demo) reproducible donde se vea el kernel tomar una decisión ética trazable de principio a fin, para demostrar el sistema frente a revisores externos.
 
 **Bloque 20.0: Local Conversational Matrix (Zero-API Fluency) [DONE]**
 - Tarea 20.1: **Desacoplamiento Estricto Comercial:** [COMPLETED] Refactorizar el backend de percepción y decisión para enrutar el 100% de `process_chat_turn` hacia `OllamaLLMBackend`. 
@@ -43,7 +48,7 @@ Aquí es donde los agentes de ejecución (LLMs en IDEs) reclaman sus tareas.
  
 **Bloque 21.0: Biographic Memory & Persistent Identity [COMPLETED]**
 - Tarea 21.1: **Manifiesto de Identidad (Birth Context):** [COMPLETED] Crear `src/persistence/identity_manifest.py` para gestionar la narrativa base del agente.
-- Tarea 21.2: **BiographicMemoryTracker:** [COMPLETED] Implementar el rastreador de episodios biográficos en el `CerebellumLobe` para que las sesiones de chat se guarden como hitos narrativos.
+- Tarea 21.2: **SessionCheckpointTracker:** [COMPLETED] Renombrado desde BiographicMemoryTracker. Implementar el rastreador en el `CerebellumLobe` para que las sesiones de chat se guarden como hitos narrativos (checkpoints JSON/SQLite básicos, sin vectorización).
 
 **Bloque 22.0: Nomad Field Test (Texto en Terreno) [DONE]**
 - Tarea 22.1: **Puente Web Chat Robustecido:** [COMPLETED — L2 Cursor] PWA: cola saliente (48) con `flush` al reconectar, envío dual `/ws/chat` + relay `chat_text` por `/ws/nomad` si el chat no está `OPEN`, `onclose` simétrico y un solo temporizador de backoff. Servidor: `NomadBridge.chat_text_queue` default 48 (`KERNEL_NOMAD_CHAT_TEXT_QUEUE_MAX`), `_charm_feedback_replay` + `_flush_charm_feedback_replay` tras `accept`, `public_queue_stats` con `chat_text_queue_*` y `charm_feedback_replay_pending`, `last_rms` finito, `vessel_online`, `last_sensor_update_delta`, `_chat_text_consumer` tipado a `str`.

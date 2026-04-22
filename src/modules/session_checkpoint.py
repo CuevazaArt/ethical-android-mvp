@@ -1,6 +1,6 @@
 """
-Biographic Memory Tracker (Block 21.2) — Persistent Chat Milestones.
-Converts chat turns and executive decisions into biographic episodes.
+Session Checkpoint Tracker (formerly Biographic Memory Tracker).
+Converts chat turns and executive decisions into basic SQLite/JSON checkpoints.
 """
 
 from __future__ import annotations
@@ -15,10 +15,10 @@ if TYPE_CHECKING:
 _log = logging.getLogger(__name__)
 
 
-class BiographicMemoryTracker:
+class SessionCheckpointTracker:
     """
     Subsystem that monitors the nervous system outcomes and promotes them
-    to long-term biographic episodes in the NarrativeMemory.
+    to basic session checkpoints in the NarrativeMemory (no vector embeddings).
     """
 
     def __init__(self, memory: NarrativeMemory):
@@ -53,7 +53,7 @@ class BiographicMemoryTracker:
                 context="conversational_biography",
             )
             _log.info(
-                "BiographicMemoryTracker: Event %s promoted to narrative episode.",
+                "SessionCheckpointTracker: Event %s promoted to narrative episode.",
                 dispatch.ref_pulse_id,
             )
         except Exception as e:
