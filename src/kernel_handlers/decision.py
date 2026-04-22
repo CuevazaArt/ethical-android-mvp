@@ -1,8 +1,8 @@
 """
-Post-perception decision adapter for :meth:`~src.kernel_legacy_v12.EthicalKernel.process_chat_turn_stream`.
+Post-perception decision adapter for streaming chat (``process_chat_turn_stream`` / ``aprocess``).
 
-The batch :meth:`~src.kernel_legacy_v12.EthicalKernel.process` path does not use this module; it exists so
-minimal checkouts can import ``kernel_legacy_v12`` while streaming chat reuses ``aprocess``.
+Delegates to :meth:`src.kernel.EthosKernel.aprocess` with chat-stage candidates and sensor context.
+The batch simulation path (``process`` in ``kernel_legacy_v12``) does not use this module.
 """
 
 from __future__ import annotations

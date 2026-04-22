@@ -4,6 +4,19 @@ All notable changes to this project are summarized here. For narrative context a
 
 **Note:** Older sections below may still **link** to paths that were later removed (for example `experiments/million_sim/`, `docs/multimedia/`, root `dashboard.html`, `landing/`). Those links are **historical**; recover files from git history or backup branches if you need them.
 
+## [2026-04-22] Bloque 35.0: Núcleo — vitalidad + retirada del nombre `kernel_legacy_v12`
+
+### Added
+- **`src/kernel_handlers/vitality_hints.py`:** reexporta señales de vitalidad para handlers; el batch kernel las consume en lugar de importar solo desde `modules.vitality`.
+- **`src/kernel_decision.py`:** dataclass canónica `KernelDecision` (ciclo batch) compartida con formatters, audit y re-export de `src.kernel`.
+
+### Changed
+- **`src/kernel_legacy_v12.py` → `src/ethical_kernel_batch.py`:** mismo `EthicalKernel` monolítico (`process` / `aprocess`); se elimina el **nombre de archivo** «zombie»; pyproject Ruff/mypy exclude + mypy `ignore_errors` actualizados al nuevo path.
+- **`src.kernel`:** importa y reexporta `KernelDecision` real desde `kernel_decision` (corrige el alias erróneo `KernelDecision = ChatTurnResult` para el tipo rico de decisión).
+- **`kernel_components.KernelComponentOverrides`:** eliminado el slot `augenesis` (módulo `augenesis` sigue en repo; el batch kernel instancia `AugenesisEngine()` al construir).
+- **`kernel_formatters`:** tipos de decisión en `format_decision` / `format_natural` como `Any` (TYPE_CHECKING desacoplado del módulo batch).
+- **Tests / scripts:** `test_malabs_semantic_integration`, `run_empirical_pilot` → `ethical_kernel_batch`; `test_transparency_s10` y `test_safety_interlock` usan batch `EthicalKernel` donde aplica; `safety_interlock` importa `KernelDecision` / `InternalState` desde los módulos canónicos.
+
 ## [2026-04-22] Bloque 34.0: Decomposición `chat_server.py` (parcial)
 
 ### Added

@@ -6,16 +6,15 @@ Extracted from God-Object src/kernel.py (Task 5 - Minor Backlog Hardening).
 from __future__ import annotations
 
 import math
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
 
 from src.utils.terminal_colors import Term
 
 if TYPE_CHECKING:
-    from src.kernel_legacy_v12 import KernelDecision
     from src.modules.llm_layer import RichNarrative, VerbalResponse
 
 
-def format_decision(d: KernelDecision) -> str:
+def format_decision(d: Any) -> str:
     """Formats a complete decision for readable presentation with ANSI colors."""
     try:
         sep = Term.color("═" * 70, Term.DIM)
@@ -176,7 +175,7 @@ def format_decision(d: KernelDecision) -> str:
 
 
 def format_natural(
-    decision: KernelDecision, response: VerbalResponse, narrative: RichNarrative = None
+    decision: Any, response: VerbalResponse, narrative: RichNarrative = None
 ) -> str:
     """Formats complete result of natural language processing."""
     lines = [format_decision(decision)]

@@ -108,6 +108,11 @@ from .kernel_components import KernelComponentOverrides
 from .kernel_handlers.communication import get_bridge_phrase, run_communication_stream
 from .kernel_handlers.decision import run_decision_pipeline
 from .kernel_handlers.perception import run_perception_pipeline
+from .kernel_handlers.vitality_hints import (
+    VitalityAssessment,
+    assess_vitality,
+    vitality_communication_hint,
+)
 from .kernel_utils import (
     coercion_uncertainty_from_perception,
     enrich_chat_turn_signals_for_bayesian,
@@ -210,11 +215,6 @@ from .modules.user_model import UserModelTracker
 from .modules.variability import VariabilityConfig, VariabilityEngine
 from .modules.vision_adapter import VisionInference
 from .modules.vision_inference import VisionInferenceEngine
-from .modules.vitality import (
-    VitalityAssessment,
-    assess_vitality,
-    vitality_communication_hint,
-)
 from .modules.weakness_pole import WeaknessPole
 from .modules.weighted_ethics_scorer import (
     CandidateAction,
@@ -469,7 +469,7 @@ class EthicalKernel:
         self.immortality = (
             co.immortality if co and co.immortality is not None else ImmortalityProtocol()
         )
-        self.augenesis = co.augenesis if co and co.augenesis is not None else AugenesisEngine()
+        self.augenesis = AugenesisEngine()
         self.pad_archetypes = (
             co.pad_archetypes if co and co.pad_archetypes is not None else PADArchetypeEngine()
         )
