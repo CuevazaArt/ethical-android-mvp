@@ -37,6 +37,11 @@ Aquí es donde los agentes de ejecución (LLMs en IDEs) reclaman sus tareas.
 > **PROMPT DE ARRANQUE PARA AGENTES L2 (BOY SCOUTS):**
 > *"ESTAMOS EN FEATURE FREEZE. No se añaden más lóbulos, módulos ni bloques. El proyecto tiene 149 módulos y necesita estabilización. Tu objetivo es: consolidar, borrar código muerto y asegurar la demostrabilidad end-to-end. Asume 100% de propiedad, y termina tu sesión ejecutando `python scripts/swarm_sync.py --msg '...'`. ¡Ejecuta!"*
 
+**Bloque 28.0: Consolidación y Verdad Mecánica (Feature Freeze) [DONE]**
+- [x] **28.1 Decoupling of Monolith**: Decoupled `chat_server.py` into `chat_lifecycle.py` and `chat_feature_flags.py`.
+- [x] **28.2 Ethical Quality Framework**: Established `tests/test_ethics_quality.py` with 20+ canonical scenarios.
+- [x] **28.3 End-to-End Demo**: Created `scripts/eval/reproducible_kernel_demo.py` for empirical validation.
+
 **Bloque 31.0: CI estable + chat_server monolito recuperado (Boy Scout) [DONE]**
 - Tarea 31.1: **Rollback del split roto de `chat_server.py`:** restaurar imports y rutas completas desde la revisión estable anterior al decoupling parcial; `light_risk_tier` sin Ruff B009 (`hasattr` + lectura directa de `_last_light_risk_tier`).
 - Tarea 31.2: **`kernel_legacy_v12` chat sync:** import de `vitality_communication_hint` y `vitality_context` en `acommunicate` para el camino `process_chat_turn` / subprocess MalAbs.
@@ -47,6 +52,11 @@ Aquí es donde los agentes de ejecución (LLMs en IDEs) reclaman sus tareas.
 - Tarea 32.2: **Ampliar `tests/test_ethics_quality.py`:** 15-20+ escenarios y aserciones de `path`/`verdict` acordes al tri-lobe.
 - Tarea 32.3: **Redundancias:** cerrar ítems en `REDUNDANT_MODULES_AND_CONSOLIDATION.md`.
 - Tarea 32.4: **Demo E2E:** endurecer `scripts/eval/reproducible_kernel_demo.py` + documentación operador.
+
+**Bloque 33.0: Consolidación Arquitectónica y Poda de Teatro (Sprint Final de Desmonolitización) [DONE]**
+- [x] Tarea 33.1: **Unificación de Higiene de Memoria:** [COMPLETED] Creado `MemoryHygieneService` consolidando `SelectiveAmnesia` y `BiographicPruner`.
+- [x] Tarea 33.2: **Fusión de Rutinas Guardian:** [COMPLETED] Unificado `guardian_mode.py` y `guardian_routines.py`.
+- [x] Tarea 33.3: **Eliminación de Residuos Teatrales:** [COMPLETED] Borrado `augenesis.py`, `biographic_monologue.py` y módulos obsoletos. (Nota: `kernel_legacy_v12.py` mantenido temporalmente por dependencia de Tarea 31.2).
 
 **Bloque 20.0: Local Conversational Matrix (Zero-API Fluency) [DONE]**
 - Tarea 20.1: **Desacoplamiento Estricto Comercial:** [COMPLETED] Refactorizar el backend de percepción y decisión para enrutar el 100% de `process_chat_turn` hacia `OllamaLLMBackend`. 

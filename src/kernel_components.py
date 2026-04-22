@@ -14,9 +14,8 @@ from __future__ import annotations
 from dataclasses import dataclass
 
 from .modules.absolute_evil import AbsoluteEvilDetector
-from .modules.augenesis import AugenesisEngine
 from .modules.bayesian_engine import BayesianInferenceEngine
-from .modules.biographic_pruning import BiographicPruner
+from .modules.memory_hygiene import MemoryHygieneService
 from .modules.buffer import PreloadedBuffer
 from .modules.dao_orchestrator import DAOOrchestrator
 from .modules.drive_arbiter import DriveArbiter
@@ -92,5 +91,5 @@ class KernelComponentOverrides:
     llm: LLMModule | None = None
     swarm_negotiator: SwarmNegotiator | None = None
     strategist: ExecutiveStrategist | None = None
-    biographic_pruner: BiographicPruner | None = None
+    hygiene: MemoryHygieneService | None = None
     checkpoint_persistence: CheckpointPersistencePort | None = None

@@ -152,8 +152,10 @@ from .modules.existential_serialization import (
     nomad_simulation_ws_enabled,
     simulate_nomadic_migration,
 )
-from .modules.guardian_mode import is_guardian_mode_active
-from .modules.guardian_routines import public_routines_snapshot
+from .modules.guardian_mode import (
+    is_guardian_mode_active,
+    public_routines_snapshot,
+)
 from .modules.hub_audit import record_dao_integrity_alert
 from .modules.internal_monologue import compose_monologue_line
 from .modules.judicial_escalation import chat_include_judicial

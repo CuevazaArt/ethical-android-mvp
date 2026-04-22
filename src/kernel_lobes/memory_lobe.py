@@ -6,13 +6,12 @@ import time
 from typing import TYPE_CHECKING, Any
 
 if TYPE_CHECKING:
-    from src.modules.biographic_pruning import BiographicPruner
     from src.modules.dao_orchestrator import DAOOrchestrator
     from src.modules.immortality import ImmortalityProtocol
     from src.modules.llm_layer import LLMModule
+    from src.modules.memory_hygiene import MemoryHygieneService
     from src.modules.migratory_identity import MigrationHub
     from src.modules.narrative import NarrativeMemory
-    from src.modules.selective_amnesia import SelectiveAmnesia
     from src.modules.sympathetic import InternalState
     from src.modules.uchi_soto import SocialEvaluation
     from src.modules.weighted_ethics_scorer import EthicsMixtureResult
@@ -25,7 +24,7 @@ class MemoryLobe:
     Subsystem for Episodic Memory, DAO Auditing, and Biographic Identity.
 
     Acts as the 'Hippocampus' and 'Long-Term Storage' of the kernel.
-    Vertical growth: Includes memory hygiene (Amnesia) and survival (Immortality).
+    Vertical growth: Includes memory hygiene (Amnesia/Pruning) and survival (Immortality).
     """
 
     def __init__(
@@ -33,17 +32,15 @@ class MemoryLobe:
         memory: NarrativeMemory,
         dao: DAOOrchestrator,
         migration: MigrationHub,
-        biographic_pruner: BiographicPruner | None = None,
+        hygiene: MemoryHygieneService | None = None,
         immortality: ImmortalityProtocol | None = None,
-        amnesia: SelectiveAmnesia | None = None,
         llm: LLMModule | None = None,
     ):
         self.memory = memory
         self.dao = dao
         self.migration = migration
-        self.biographic_pruner = biographic_pruner
+        self.hygiene = hygiene
         self.immortality = immortality
-        self.amnesia = amnesia
         self.llm = llm
 
     async def execute_episodic_stage_async(
@@ -196,10 +193,10 @@ class MemoryLobe:
             _log.error("MemoryLobe: Error in biographic impact: %s", e)
 
     def forget_episode(self, episode_id: str) -> bool:
-        """Cascading deletion via SelectiveAmnesia."""
+        """Cascading deletion via MemoryHygieneService."""
         try:
-            if self.amnesia:
-                return self.amnesia.forget_episode(episode_id)
+            if self.hygiene:
+                return self.hygiene.forget_episode(episode_id)
         except Exception as e:
             _log.error("MemoryLobe: Error in forget_episode: %s", e)
         return False
@@ -214,9 +211,9 @@ class MemoryLobe:
         return None
 
     def prune_stale_memories(self) -> None:
-        """Prune memories based on biographic pruner rules."""
+        """Prune memories based on hygiene rules."""
         try:
-            if self.biographic_pruner:
-                self.biographic_pruner.prune(self.memory)
+            if self.hygiene:
+                self.hygiene.run_pruning_cycle(self.llm)
         except Exception as e:
             _log.error("MemoryLobe: Error in prune_stale_memories: %s", e)

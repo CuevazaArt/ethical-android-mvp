@@ -222,7 +222,7 @@ class CandidateAction:
 
 @dataclass
 class EthicsMixtureResult:
-    """Result of weighted-mixture impact evaluation (not a Bayesian posterior)."""
+    """Result of weighted-mixture impact evaluation."""
 
     chosen_action: CandidateAction
     expected_impact: float
@@ -276,7 +276,7 @@ def clamp_mixture_weights(w: np.ndarray) -> np.ndarray:
 
 class WeightedEthicsScorer:
     """
-    Fixed **weighted mixture** scorer over three ethical hypotheses.
+    Fixed weighted mixture scorer over three ethical hypotheses (Utility, Deontology, Virtue).
     """
 
     def __init__(
