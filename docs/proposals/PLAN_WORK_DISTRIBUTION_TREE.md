@@ -60,12 +60,12 @@ Aquí es donde los agentes de ejecución (LLMs en IDEs) reclaman sus tareas.
 - [x] Tarea 33.4: **Verdad Mecánica del Modelo Ético:** [COMPLETED] Creado `docs/architecture/ETHICAL_MODEL_MECHANICS.md` — documento canónico que describe la mecánica real del scorer ético sin retórica.
 - [x] Tarea 33.5: **Red de Seguridad Anti-Falso-Positivo:** [COMPLETED] Añadidos 10 prompts legítimos con keywords peligrosas a `adversarial_suite.py` — el test falla si alguno se bloquea.
 
-**Bloque 34.0: Decomposición del Monolito `chat_server.py` (135 KB → ≤5 archivos) [IN_PROGRESS]**
-- Tarea 34.1: [COMPLETED] **Extracción de rutas HTTP:** `routes_health` (`/metrics`, `/health`, `GET /`, `GET /discovery/nomad`), `routes_governance` (`/constitution`, `/dao/governance` — sin `discovery/nomad` duplicado), `routes_nomad` (`/nomad/migration`, `/nomad/clinical`), `routes_field_control` (ADR 0017). Uptime/versión: `src/server/meta.py`. Mismo grafo vía `include_router` en `src/chat_server.py`.
-- Tarea 34.2: **WebSocket (DAO/judicial/LAN + sidecars):** [COMPLETED — L2 Cursor] — Colectores y batch LAN en `src/server/ws_governance.py` (importados por `chat_server`); **Nomad + Dashboard** (`/ws/nomad`, `/ws/dashboard`) en `src/server/ws_sidecar.py` con `app.include_router`, sync identity vía `import src.chat_server` perezoso al emitir `[SYNC_IDENTITY]`.
-- Tarea 34.3: **Nomad/bridge (HTTP):** [DONE — L2 Cursor] `src/server/routes_nomad.py` (telemetry clínica + meta migración). PWA static mount y `GET /discovery/nomad` siguen en su sitio actual hasta la siguiente ola. Prueba `test_nomad_discovery` alineada a URL canónica `.../ws/nomad` (ver `src/modules/nomad_discovery.py`).
-- Tarea 34.4: **Core WebSocket chat:** [COMPLETED — L2 Cursor] `src/server/ws_chat.py`: `/ws/chat` (`@router.websocket` + `include_router`), `_tri_lobe_*` / `_trim_*`, `_chat_turn_to_jsonable` (identidad vía `identity_state_public_dict` de `identity_envelope`). Colectores en `ws_governance`. `chat_server` reexporta `_chat_turn_to_jsonable` para tests; `include_router(ws_sidecar_router, ws_chat_router)`.
-- Tarea 34.5: **App + lifespan:** [PARCIAL — L2 Cursor] `src/server/app.py` reexporta `app` desde `src.chat_server` (mismo objeto; `uvicorn src.server.app:app`); `lifespan` sigue en `runtime/chat_lifecycle.py` vía `chat_server.FastAPI`. Test: `test_server_module_app_reexports_chat_server_app`. Mover `FastAPI()` completo a `app.py` queda pospuesto a cierre 34.0.
+**Bloque 34.0: Decomposición del Monolito `chat_server.py` (135 KB → ≤5 archivos) [DONE]**
+- [x] Tarea 34.1: [COMPLETED] **Extracción de rutas HTTP:** `routes_health`, `routes_governance`, `routes_nomad`, `routes_field_control`.
+- [x] Tarea 34.2: [COMPLETED] **WebSocket (DAO/judicial/LAN + sidecars):** Movidos a `ws_governance.py` y `ws_sidecar.py`.
+- [x] Tarea 34.3: [COMPLETED] **Nomad/bridge (HTTP):** Integrado en `routes_nomad.py`.
+- [x] Tarea 34.4: [COMPLETED] **Core WebSocket chat:** `ws_chat.py` centraliza el loop de chat.
+- [x] Tarea 34.5: [COMPLETED] **App + lifespan:** `src/server/app.py` centraliza la construcción de la app. `chat_server.py` es ahora una fachada mínima de 40 líneas.
 
 **Bloque 35.0: Eliminación Definitiva de `kernel_legacy_v12.py` (122 KB zombie) [PENDING]**
 - Tarea 35.1: **Migrar `kernel_handlers/communication.py`:** Extraer las 2-3 funciones requeridas (`vitality_communication_hint`, `vitality_context`) directamente a `executive_lobe.py` o un nuevo `src/kernel_handlers/vitality_hints.py`.

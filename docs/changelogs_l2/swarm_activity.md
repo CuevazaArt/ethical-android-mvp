@@ -1557,3 +1557,11 @@ This file is automatically managed by `scripts/swarm_sync.py`.
 - **Message:** L1-AUDIT: Sync general, finalize weight tuner with disclaimer note and experimental calibration
 - **Files Modified:**
   - *(No files modified)*
+
+### Execution (Swarm) | Date: 2026-04-21 23:34:49 | Author: Anonymous Agent
+- **Block:** `34.0`
+- **Message:** Closed Bloque 34.0. Finalized monolith decomposition by moving app construction and mounting to src/server/app.py and slimming chat_server.py to a lean facade.
+- **Files Modified:**
+  - `docs/proposals/PLAN_WORK_DISTRIBUTION_TREE.md`
+  - `src/chat_server.py`
+  - `src/server/app.py`
