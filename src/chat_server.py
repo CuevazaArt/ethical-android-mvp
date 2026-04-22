@@ -940,6 +940,29 @@ def _identity_state_public_dict(kernel: EthicalKernel) -> dict[str, Any]:
 
 def _chat_turn_to_jsonable(r: ChatTurnResult, kernel: EthicalKernel) -> dict[str, Any]:
     """Compact JSON-safe view (no full internal objects)."""
+    # Tri-lobe EthosKernel returns a slim ChatTurnResult without legacy v12 graph fields.
+    if not hasattr(r, "metacognitive_doubt"):
+        out_min: dict[str, Any] = {
+            "blocked": r.blocked,
+            "path": r.path,
+            "block_reason": r.block_reason,
+            "response": {
+                "message": r.response.message,
+                "tone": r.response.tone,
+                "hax_mode": getattr(r.response, "hax_mode", ""),
+                "inner_voice": getattr(r.response, "inner_voice", ""),
+            },
+            "identity": _identity_state_public_dict(kernel),
+            "drive_intents": [
+                {"suggest": di.suggest, "reason": di.reason, "priority": di.priority}
+                for di in kernel.drive_arbiter.evaluate(kernel)
+            ],
+            "monologue": "",
+        }
+        if _chat_include_experience_digest():
+            out_min["experience_digest"] = kernel.memory.experience_digest
+        return out_min
+
     out: dict[str, Any] = {
         "blocked": r.blocked,
         "path": r.path,

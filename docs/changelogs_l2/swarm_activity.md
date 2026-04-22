@@ -1040,3 +1040,9 @@ This file is automatically managed by `scripts/swarm_sync.py`.
   - `docs/changelogs_l2/swarm_activity.md`
   - `docs/proposals/PLAN_WORK_DISTRIBUTION_TREE.md`
   - `src/kernel.py`
+
+### 🛠️ Execution | Date: 2026-04-21 20:24:15 | Author: Cursor L2
+- **Block:** `22.0`
+- **Message:** Nomad Bloque 22: chat_server build_sync_identity_ws_message adds existence_digest (biographic generate_existence_digest), module-level GestaltSnapshot/IdentityManifestStore imports, envelope type literal [SYNC_IDENTITY]. PWA: PAD finite guards, existence_digest in identity strip, nomad bridge SYNC_IDENTITY merge fields, orb PAD axis skipped in text-focus. Tests: sync_identity contract. PLAN 22.2 documents existence_digest. Tri-Lobe: read-only mind-sync on /ws/chat accept only; no CorpusCallosum contract change.
+- **Files Modified:**
+  - `src/chat_server.py`
