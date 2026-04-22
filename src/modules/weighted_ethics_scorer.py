@@ -8,6 +8,7 @@ from dataclasses import dataclass, field
 from typing import TYPE_CHECKING, Any
 
 import numpy as np
+import yaml
 
 if TYPE_CHECKING:
     from .narrative import NarrativeMemory
@@ -279,8 +280,6 @@ class WeightedEthicsScorer:
     Fixed weighted mixture scorer over three ethical hypotheses (Utility, Deontology, Virtue).
     """
 
-import yaml
-
     def _load_weights_from_yaml(self) -> np.ndarray:
         """Load ethical weights from ``src/config/ethics_weights.yaml`` if present.
         Returns a NumPy array of three floats. If the file is missing, malformed,
@@ -316,9 +315,8 @@ import yaml
         self.pruning_threshold = pruning_threshold
         self.gray_zone_threshold = gray_zone_threshold
         self.variability = variability
--        self.hypothesis_weights = DEFAULT_HYPOTHESIS_WEIGHTS.copy()
-+        # Load configurable weights; fallback to defaults on any error.
-+        self.hypothesis_weights = self._load_weights_from_yaml()
+        # Load configurable weights; fallback to defaults on any error.
+        self.hypothesis_weights = self._load_weights_from_yaml()
         self.pre_argmax_pole_weights: dict[str, float] | None = None
         self.pre_argmax_context_modulators: PreArgmaxContextChannels | None = None
         self.metacognitive_curiosity: float = 0.0
