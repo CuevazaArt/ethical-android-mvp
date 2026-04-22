@@ -279,16 +279,50 @@ class WeightedEthicsScorer:
     Fixed weighted mixture scorer over three ethical hypotheses (Utility, Deontology, Virtue).
     """
 
+import yaml
+
+    def _load_weights_from_yaml(self) -> np.ndarray:
+        """Load ethical weights from ``src/config/ethics_weights.yaml`` if present.
+        Returns a NumPy array of three floats. If the file is missing, malformed,
+        or the values are non‑finite, fallback to ``DEFAULT_HYPOTHESIS_WEIGHTS``.
+        The loaded weights are normalized to sum to 1.0.
+        """
+        config_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "config", "ethics_weights.yaml")
+        try:
+            with open(config_path, "r", encoding="utf-8") as f:
+                data = yaml.safe_load(f)
+            if not isinstance(data, dict):
+                raise ValueError("Config must be a mapping")
+            util = float(data.get("util", DEFAULT_HYPOTHESIS_WEIGHTS[0]))
+            deonto = float(data.get("deonto", DEFAULT_HYPOTHESIS_WEIGHTS[1]))
+            virtud = float(data.get("virtud", DEFAULT_HYPOTHESIS_WEIGHTS[2]))
+            w = np.array([util, deonto, virtud], dtype=np.float64)
+            if not np.all(np.isfinite(w)):
+                raise ValueError("Non‑finite values in config")
+            # Normalize to sum 1.0 (or keep as‑is if sum is zero)
+            s = w.sum()
+            if s > 0:
+                w = w / s
+            else:
+                w = DEFAULT_HYPOTHESIS_WEIGHTS.copy()
+            return w
+        except Exception as e:
+            _log.warning("Failed to load ethics weights from %s: %s; using defaults", config_path, e)
+            return DEFAULT_HYPOTHESIS_WEIGHTS.copy()
+
     def __init__(
         self, pruning_threshold: float = 0.3, gray_zone_threshold: float = 0.15, variability=None
     ):
         self.pruning_threshold = pruning_threshold
         self.gray_zone_threshold = gray_zone_threshold
         self.variability = variability
-        self.hypothesis_weights = DEFAULT_HYPOTHESIS_WEIGHTS.copy()
+-        self.hypothesis_weights = DEFAULT_HYPOTHESIS_WEIGHTS.copy()
++        # Load configurable weights; fallback to defaults on any error.
++        self.hypothesis_weights = self._load_weights_from_yaml()
         self.pre_argmax_pole_weights: dict[str, float] | None = None
         self.pre_argmax_context_modulators: PreArgmaxContextChannels | None = None
         self.metacognitive_curiosity: float = 0.0
+
 
     def calculate_expected_impact(
         self,
