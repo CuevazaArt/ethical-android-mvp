@@ -1144,12 +1144,17 @@ def _chat_turn_to_jsonable(r: ChatTurnResult, kernel: EthicalKernel) -> dict[str
     if _chat_include_experience_digest():
         out["experience_digest"] = kernel.memory.experience_digest
     if _chat_include_user_model():
-        out["user_model"] = kernel.user_model.to_public_dict()
+        um = getattr(kernel, "user_model", None)
+        if um is not None and hasattr(um, "to_public_dict"):
+            out["user_model"] = um.to_public_dict()
     if _chat_include_chrono():
-        out["chronobiology"] = kernel.subjective_clock.to_public_dict()
+        sc = getattr(kernel, "subjective_clock", None)
+        if sc is not None and hasattr(sc, "to_public_dict"):
+            out["chronobiology"] = sc.to_public_dict()
     if _chat_include_premise():
-        pa = kernel._last_premise_advisory
-        out["premise_advisory"] = {"flag": pa.flag, "detail": pa.detail}
+        pa = getattr(kernel, "_last_premise_advisory", None)
+        if pa is not None and hasattr(pa, "flag") and hasattr(pa, "detail"):
+            out["premise_advisory"] = {"flag": pa.flag, "detail": pa.detail}
     if _chat_include_multimodal_trust() and r.multimodal_trust is not None:
         mt = r.multimodal_trust
         out["multimodal_trust"] = {
@@ -1158,7 +1163,9 @@ def _chat_turn_to_jsonable(r: ChatTurnResult, kernel: EthicalKernel) -> dict[str
             "requires_owner_anchor": mt.requires_owner_anchor,
         }
     if _chat_include_vitality():
-        out["vitality"] = kernel._last_vitality_assessment.to_public_dict()
+        va = getattr(kernel, "_last_vitality_assessment", None)
+        if va is not None and hasattr(va, "to_public_dict"):
+            out["vitality"] = va.to_public_dict()
     if _chat_include_guardian():
         out["guardian_mode"] = is_guardian_mode_active()
     if _chat_include_guardian_routines():
@@ -1179,7 +1186,9 @@ def _chat_turn_to_jsonable(r: ChatTurnResult, kernel: EthicalKernel) -> dict[str
     if _chat_include_judicial() and r.judicial_escalation is not None:
         out["judicial_escalation"] = r.judicial_escalation.to_public_dict()
     if _chat_include_constitution():
-        out["constitution"] = kernel.get_constitution_snapshot()
+        snap = getattr(kernel, "get_constitution_snapshot", None)
+        if callable(snap):
+            out["constitution"] = snap()
     if _chat_include_nomad_identity():
         out["nomad_identity"] = nomad_identity_public(kernel)
     if _chat_include_light_risk() and getattr(kernel, "_last_light_risk_tier", None):
