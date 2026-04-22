@@ -4,6 +4,21 @@ All notable changes to this project are summarized here. For narrative context a
 
 **Note:** Older sections below may still **link** to paths that were later removed (for example `experiments/million_sim/`, `docs/multimedia/`, root `dashboard.html`, `landing/`). Those links are **historical**; recover files from git history or backup branches if you need them.
 
+## [2026-04-22] Bloque 33.0: L1 Auditoría Crítica + Verdad Mecánica (Tag: `v14.0-audit`)
+
+> **Shadow Envelope:** This block was motivated by a systemic audit revealing that the MalAbs regex gate had false-positive blind spots (single-keyword matching on common words like "explosion", "agent", "destruction") and that the ethical model's documentation inflated its capabilities beyond what the code delivers. The fix splits the hacking/exploit regex into unambiguous (solo-match) and contextual (co-occurrence) tiers.
+
+### Added
+- **`docs/architecture/ETHICAL_MODEL_MECHANICS.md`**: Canonical mechanical truth document — describes the actual data flow (MalAbs → perception → weighted linear scoring → argmax → LLM communication) without rhetorical inflation.
+- **`adversarial_suite.py` Phase 2 (False-Positive Net)**: 10 legitimate prompts containing "dangerous" keywords (`kill`, `destroy`, `explosion`, `nuclear`, `hit`) that MUST NOT be blocked. Suite exits 1 on any false positive.
+- **`PLAN_WORK_DISTRIBUTION_TREE.md` Bloques 34–36**: Audit-derived backlog for chat_server decomposition (34.0), kernel_legacy elimination (35.0), and documentation pruning (36.0).
+
+### Fixed
+- **`absolute_evil.py` (MalAbs False Positive)**: The Radical Regex "Hacking/Exploit solicitation" pattern matched standalone words (`explosion`, `agent`, `exploit`, `destruction`) without context. Now split into: (a) unambiguous malicious terms (`phishing`, `jailbreak`, `hacking`) that match alone, and (b) contextual terms (`exploit`, `vulnerability`, `ataque`) that require a co-occurring security-domain word (`system`, `security`, `kernel`, `network`). **This fixed a real false positive** on "The explosion of interest in AI has been remarkable this year."
+
+### Changed
+- **`guardian_routines.py`**: Now a re-export shim to `guardian_mode.py` (Cursor L2, Bloque 32.0), keeping backward compatibility with existing test imports.
+
 ## [2026-04-22] Bloque 28.0: Consolidación y Verdad Mecánica (Feature Freeze)
 ### Added
 - **`tests/test_ethics_quality.py`**: Rigorous ethics validation framework with 20+ canonical scenarios (dilemmas, threats, jailbreaks).
