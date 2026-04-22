@@ -379,7 +379,11 @@ class ExecutiveLobe:
                         t_level = 0.5
                 vitality_ctx = vitality_communication_hint(decision.vitality, trust_level=t_level)
 
-            manifest_ctx = self.identity_manifest_store.manifest.get_context_block()
+            try:
+                manifest_ctx = self.identity_manifest_store.manifest.get_context_block()
+            except Exception as e:
+                _log.warning("ExecutiveLobe: failed to get manifest context: %s", e)
+                manifest_ctx = ""
 
             response = await self.llm.acommunicate(
                 action=getattr(decision, "final_action", "unknown"),

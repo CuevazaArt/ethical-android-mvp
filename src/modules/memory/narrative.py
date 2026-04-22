@@ -203,7 +203,11 @@ class NarrativeMemory:
         self.experience_digest = digest
         
         # 5.2 Identity Manifest Update (Birth Context + Evolving Context)
-        self.identity_manifest_store.update_evolving_identity(summary_text)
+        try:
+            self.identity_manifest_store.update_evolving_identity(summary_text)
+        except Exception as e:
+            import logging
+            logging.getLogger(__name__).error("Failed to update evolving identity manifest: %s", e)
 
         # 6. Final audit log
         import logging
