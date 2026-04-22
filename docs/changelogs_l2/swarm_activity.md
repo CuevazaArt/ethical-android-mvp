@@ -1054,3 +1054,9 @@ This file is automatically managed by `scripts/swarm_sync.py`.
   - `src/clients/nomad_pwa/app.js`
   - `src/kernel.py`
   - `tests/test_chat_server.py`
+
+### 🛠️ Execution | Date: 2026-04-21 20:25:03 | Author: Cursor L2
+- **Block:** `22.0`
+- **Message:** Bloque 22.0 field alignment: unified [SYNC_IDENTITY] via build_sync_identity_ws_message (gestalt_snapshot, narrative_tail, identity_reflection); KernelSettings.kernel_chat_ws_max_message_bytes restores WS inbound cap for kernel_settings(); EthosKernel feedback_ledger + record_operator_feedback + _snapshot_feedback_anchor; _chat_turn_to_jsonable slim-path for tri-lobe ChatTurnResult; Nomad PWA/CSS text-focus + PAD gestalt hooks. Files: src/chat_server.py, src/kernel.py, src/settings/kernel_settings.py, src/clients/nomad_pwa/style.css, tests/test_chat_server.py, docs/proposals/PLAN_WORK_DISTRIBUTION_TREE.md.
+- **Files Modified:**
+  - `src/clients/nomad_pwa/app.js`

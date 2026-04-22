@@ -392,7 +392,7 @@ function setAppAffectState(state) {
     }
 }
 
-/** Bloque 22.3 — PAD / sigma from gestalt dict (server ``sync_identity_v2``). */
+/** Bloque 22.3 — PAD / sigma from gestalt dict (server ``sync_identity_v1`` envelope). */
 function applyGestaltPad(gestalt) {
     if (!gestalt || typeof gestalt !== 'object') return;
     const pad = gestalt.pad_state;
