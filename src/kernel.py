@@ -6,6 +6,7 @@ from collections.abc import AsyncGenerator
 from dataclasses import dataclass
 from typing import Any
 
+from src.kernel_decision import KernelDecision
 from src.kernel_lobes.cerebellum_lobe import CerebellumLobe
 from src.kernel_lobes.executive_lobe import ExecutiveLobe
 from src.kernel_lobes.limbic_lobe import LimbicEthicalLobe
@@ -479,4 +480,11 @@ class EthosKernel:
 
 # Legacy Aliases
 EthicalKernel = EthosKernel
-KernelDecision = ChatTurnResult
+
+__all__ = [
+    "ChatTurnCooperativeAbort",
+    "ChatTurnResult",
+    "EthicalKernel",
+    "EthosKernel",
+    "KernelDecision",
+]

@@ -1,8 +1,8 @@
 """
-Post-perception decision adapter for streaming chat (``process_chat_turn_stream`` / ``aprocess``).
+Post-perception decision adapter for streaming chat (``process_chat_turn_stream``).
 
-Delegates to :meth:`src.kernel.EthosKernel.aprocess` with chat-stage candidates and sensor context.
-The batch simulation path (``process`` in ``kernel_legacy_v12``) does not use this module.
+Calls :meth:`src.ethical_kernel_batch.EthicalKernel.aprocess` with chat-stage candidates and
+sensor context. The tri-lobe :class:`src.kernel.EthosKernel` path does not use this function.
 """
 
 from __future__ import annotations

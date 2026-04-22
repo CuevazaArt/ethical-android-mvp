@@ -222,58 +222,10 @@ from .modules.weighted_ethics_scorer import (
 )
 from .modules.working_memory import WorkingMemory
 from .persistence.checkpoint_port import CheckpointPersistencePort
+from .kernel_decision import KernelDecision
 from .utils.kernel_formatters import format_decision, format_natural
 
 # Extracted helpers moved to kernel_utils.py
-
-
-@dataclass
-class KernelDecision:
-    """Complete result of a kernel decision."""
-
-    # Identity
-    scenario: str
-    place: str
-
-    # Pre-checks
-    absolute_evil: AbsoluteEvilResult
-
-    # Internal state
-    sympathetic_state: InternalState
-
-    # Additional modules
-    social_evaluation: SocialEvaluation | None
-    locus_evaluation: LocusEvaluation | None
-
-    # Evaluation
-    bayesian_result: EthicsMixtureResult | None
-    moral: TripartiteMoral | None
-
-    # Final decision
-    final_action: str
-    decision_mode: str
-    blocked: bool = False
-    block_reason: str = ""
-    affect: AffectProjection | None = None
-    reflection: ReflectionSnapshot | None = None
-    salience: SalienceSnapshot | None = None
-
-    # ADR 0012 — optional Bayesian mixture reporting (does not replace final_action by default)
-    bma_win_probabilities: dict[str, float] | None = None
-    bma_dirichlet_alpha: tuple[float, float, float] | None = None
-    bma_n_samples: int | None = None
-    mixture_posterior_alpha: tuple[float, float, float] | None = None
-    feedback_consistency: str | None = None
-    mixture_context_key: str | None = None  # ADR 0012 Level 3 — which context bucket α came from
-    l0_integrity_hash: str | None = None  # Issue 6 — fingerprint of PreloadedBuffer
-    l0_stable: bool = True  # Issue 6 — True if fingerprint matches boot state
-    hierarchical_context_key: str | None = (
-        None  # ADR 0013 — canonical context type used by hierarchical updater
-    )
-    applied_mixture_weights: tuple[float, float, float] | None = (
-        None  # weights actually used in evaluate()
-    )
-    episode_id: str | None = None
 
 
 @dataclass

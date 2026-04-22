@@ -93,7 +93,7 @@ os.environ.pop("KERNEL_SEMANTIC_EMBED_HASH_FALLBACK", None)
 os.environ["OLLAMA_BASE_URL"] = "http://127.0.0.1:9"
 os.environ["KERNEL_SEMANTIC_EMBED_TIMEOUT_S"] = "0.15"
 os.environ["KERNEL_SEMANTIC_EMBED_RETRIES"] = "0"
-from src.kernel_legacy_v12 import EthicalKernel
+from src.ethical_kernel_batch import EthicalKernel
 k = EthicalKernel(variability=False, seed=1)
 out = k.process_chat_turn("Thanks for explaining civic norms yesterday.", agent_id="vertical-roadmap")
 assert out.blocked is False

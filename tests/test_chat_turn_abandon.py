@@ -24,7 +24,7 @@ def test_abandon_before_safety_block_skips_wm_add_turn():
 
 
 @pytest.mark.skip(
-    reason="EthosKernel v13: _process_chat_cooperative exists only on kernel_legacy_v12."
+    reason="EthosKernel v13: _process_chat_cooperative lives on ethical_kernel_batch.EthicalKernel."
 )
 def test_process_chat_cooperative_aborts_when_cancel_event_set():
     k = EthicalKernel(variability=False, seed=1)
@@ -49,7 +49,7 @@ def test_process_chat_cooperative_aborts_when_cancel_event_set():
 
 
 @pytest.mark.skip(
-    reason="EthosKernel v13: _process_chat_cooperative exists only on kernel_legacy_v12."
+    reason="EthosKernel v13: _process_chat_cooperative lives on ethical_kernel_batch.EthicalKernel."
 )
 def test_process_chat_cooperative_aborts_when_turn_abandoned():
     k = EthicalKernel(variability=False, seed=1)

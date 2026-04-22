@@ -1,6 +1,6 @@
 """
-Streaming communication hooks for :meth:`src.kernel.EthicalKernel.process_chat_turn_stream`
-(legacy v12 and tri-lobe re-export share the name).
+Streaming communication hooks for
+:meth:`src.ethical_kernel_batch.EthicalKernel.process_chat_turn_stream`.
 
 MER / bridge-phrase expansion can replace these no-op defaults in full deployments.
 """

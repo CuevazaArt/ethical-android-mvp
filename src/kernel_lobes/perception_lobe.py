@@ -173,7 +173,7 @@ class PerceptiveLobe:
         sensor_snapshot: Any,
         interrupt_event: Any = None,
     ) -> dict[str, Any]:
-        """Legacy adapter for :meth:`src.kernel.EthicalKernel.aprocess` (batch path, v12 harness)."""
+        """Legacy adapter for :meth:`src.ethical_kernel_batch.EthicalKernel.aprocess` (batch path)."""
 
         del place
         stage = await self.run_perception_stage_async(
