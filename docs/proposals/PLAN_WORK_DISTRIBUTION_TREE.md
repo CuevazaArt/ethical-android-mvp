@@ -20,7 +20,7 @@ Aquí es donde los agentes de ejecución (LLMs en IDEs) reclaman sus tareas.
 - **Phase 9 (Hardened Embodiment)**: INTEGRADO. Handshake seguro y telemetría en tiempo real desde Nomad Bridge operativa.
 - **V13.0 (Distributed Brain Initialization)**: COMPLETADO. Monolito destruido, bus asíncrono CorpusCallosum verificado.
 - **V13.1 (Aesthetic & Legacy Stabilization)**: COMPLETADO. Enriquecimiento de terminal (TColors) y restauración de puentes de compatibilidad legado.
-- **L1-AUDIT-PULSE (2026-04-22)**: EXITOSO. 100% de efectividad en la Suite Adversarial tras integración de V14.0 Baseline.
+- **L1-AUDIT-PULSE (2026-04-22)**: EXITOSO. 100% de efectividad en la Suite Adversarial tras integración de V14.0 Baseline y eliminación del monolito V12.
 
 ---
 
@@ -67,11 +67,11 @@ Aquí es donde los agentes de ejecución (LLMs en IDEs) reclaman sus tareas.
 - [x] Tarea 34.4: [COMPLETED] **Core WebSocket chat:** `ws_chat.py` centraliza el loop de chat.
 - [x] Tarea 34.5: [COMPLETED] **App + lifespan:** `src/server/app.py` centraliza la construcción de la app. `chat_server.py` es ahora una fachada mínima de 40 líneas.
 
-**Bloque 35.0: Eliminación Definitiva de `kernel_legacy_v12.py` (122 KB zombie) [PENDING]**
-- Tarea 35.1: **Migrar `kernel_handlers/communication.py`:** Extraer las 2-3 funciones requeridas (`vitality_communication_hint`, `vitality_context`) directamente a `executive_lobe.py` o un nuevo `src/kernel_handlers/vitality_hints.py`.
-- Tarea 35.2: **Migrar `kernel_handlers/decision.py`:** Redirigir `run_decision_pipeline` hacia el `EthosKernel.aprocess` nativo del V13.
-- Tarea 35.3: **Eliminar `kernel_legacy_v12.py`:** Borrar el archivo y validar que CI pasa sin él.
-- Tarea 35.4: **Limpiar `kernel_components.py`:** Eliminar campo `augenesis: AugenesisEngine | None = None` y el import correspondiente.
+**Bloque 35.0: Eliminación Definitiva de `kernel_legacy_v12.py` (122 KB zombie) [DONE]**
+- [x] Tarea 35.1: **Migrar `kernel_handlers/communication.py`:** Extraer las 2-3 funciones requeridas (`vitality_communication_hint`, `vitality_context`) directamente a `executive_lobe.py` o un nuevo `src/kernel_handlers/vitality_hints.py`.
+- [x] Tarea 35.2: **Migrar `kernel_handlers/decision.py`:** Redirigir `run_decision_pipeline` hacia el `EthosKernel.aprocess` nativo del V13.
+- [x] Tarea 35.3: **Eliminar `kernel_legacy_v12.py`:** Borrar el archivo y validar que CI pasa sin él.
+- [x] Tarea 35.4: **Limpiar `kernel_components.py`:** Eliminar campo `augenesis: AugenesisEngine | None = None` y el import correspondiente.
 
 **Bloque 36.0: Poda Documental y Archivo de Propuestas Obsoletas [PENDING]**
 - Tarea 36.1: **Clasificar propuestas:** Mover propuestas implementadas/rechazadas/superadas a `docs/proposals/archived/` (estimado: ~120 de 149).

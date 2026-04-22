@@ -1,3 +1,8 @@
+# Affective Phenomena and Hypotheses in the Ethos Kernel
+
+> [!IMPORTANT]
+> **Aspirational Terminology Disclaimer:** Terms such as "consciousness", "soul", "sentience", or "artificial conscience" are used within this document in a purely aspirational or metaphorical sense to describe the intended complexity and systemic behavior of the ethical kernel. These do not imply actual biological sentience or metaphysical soulhood. All kernel behaviors are deterministic or stochastic mathematical processes.
+
 # Phenomena to expect when combining affective projection (PAD) and archetypes with the ethical core: discussion and reserved hypotheses
 
 | Field | Value |

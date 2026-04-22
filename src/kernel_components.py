@@ -14,7 +14,6 @@ from __future__ import annotations
 from dataclasses import dataclass
 
 from .modules.absolute_evil import AbsoluteEvilDetector
-from .modules.augenesis import AugenesisEngine
 from .modules.bayesian_engine import BayesianInferenceEngine
 from .modules.buffer import PreloadedBuffer
 from .modules.dao_orchestrator import DAOOrchestrator
@@ -77,7 +76,6 @@ class KernelComponentOverrides:
     weakness: WeaknessPole | None = None
     forgiveness: AlgorithmicForgiveness | None = None
     immortality: ImmortalityProtocol | None = None
-    augenesis: AugenesisEngine | None = None
     pad_archetypes: PADArchetypeEngine | None = None
     working_memory: WorkingMemory | None = None
     ethical_reflection: EthicalReflection | None = None

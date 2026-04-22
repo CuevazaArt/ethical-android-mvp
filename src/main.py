@@ -48,7 +48,6 @@ def banner():
     {Term.color("✓", Term.GREEN)} Weakness Pole (emotional coloring)             {Term.color("[NEW v5]", Term.B_YELLOW)}
     {Term.color("✓", Term.GREEN)} Algorithmic Forgiveness (memory decay)          {Term.color("[NEW v5]", Term.B_YELLOW)}
     {Term.color("✓", Term.GREEN)} Immortality Protocol (distributed backup)       {Term.color("[NEW v5]", Term.B_YELLOW)}
-    {Term.color("✓", Term.GREEN)} Augenesis Engine (synthetic soul creation)      {Term.color("[NEW v5]", Term.B_YELLOW)}
 
   {Term.color("Running simulations...", Term.ITALIC + Term.DIM)}
 """

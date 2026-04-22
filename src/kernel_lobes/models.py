@@ -33,6 +33,16 @@ class SemanticState:
     timeout_trauma: TimeoutTrauma | None = None
     agent_id: str | None = None
     conversation_context: str = ""
+    vitality: Any | None = None  # VitalityAssessment snapshot
+
+    def to_core_signals(self) -> dict[str, float]:
+        """Flatten internal signals for the Limbic/Executive lobes."""
+        out = dict(self.signals)
+        if "confidence" not in out:
+            out["confidence"] = self.perception_confidence
+        if "sentiment" not in out:
+            out["sentiment"] = self.audio_sentiment
+        return out
 
 
 @dataclass

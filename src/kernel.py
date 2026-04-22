@@ -166,7 +166,7 @@ class EthosKernel:
             pad_archetypes=PADArchetypeEngine(),
             llm=self.llm,
             bus=self.bus,
-            memory=self.memory,  # Added memory link
+            memory=self.memory,
         )
 
         from src.modules.memory_hygiene import MemoryHygieneService
@@ -230,12 +230,162 @@ class EthosKernel:
             "use await process_chat_turn_async(...)."
         )
 
-    def process(self, *args: Any, **kwargs: Any) -> Any:
-        """Legacy v12 entrypoint: minimal sensor/mission ingestion for EthosKernel."""
-        snap = kwargs.get("sensor_snapshot")
-        if snap is not None:
-            self.strategist.ingest_sensors(snap)
-        return None
+    def execute_sleep(self) -> str:
+        """Runs daily maintenance: biographic pruning and consolidation."""
+        res = self.biographic_pruner.run_maintenance_cycle()
+        return (
+            f"Sleep cycle complete. Pruned {res['deleted_episodes']} episodes. "
+            "Memory consolidated."
+        )
+
+    def dao_status(self) -> str:
+        """Returns human-readable governance status."""
+        return self.dao.format_status()
+
+    def process(
+        self,
+        scenario: str = "",
+        place: str = "chat",
+        signals: dict | None = None,
+        context: str = "everyday",
+        actions: list[Any] | None = None,
+        **kwargs: Any,
+    ) -> ChatTurnResult:
+        """Synchronous wrapper for aprocess (backwards compatibility)."""
+        try:
+            loop = asyncio.get_running_loop()
+            if loop.is_running():
+                # If we are in an async loop, we can't use asyncio.run
+                # This happens in some test environments.
+                from concurrent.futures import ThreadPoolExecutor
+
+                with ThreadPoolExecutor(max_workers=1) as executor:
+                    return executor.submit(
+                        asyncio.run,
+                        self.aprocess(
+                            scenario=scenario,
+                            place=place,
+                            signals=signals or {},
+                            context=context,
+                            actions=actions or [],
+                            **kwargs,
+                        ),
+                    ).result()
+        except RuntimeError:
+            pass
+
+        return asyncio.run(
+            self.aprocess(
+                scenario=scenario,
+                place=place,
+                signals=signals or {},
+                context=context,
+                actions=actions or [],
+                **kwargs,
+            )
+        )
+
+    def _chat_is_heavy(self, p: Any) -> bool:
+        """Compatibility helper for decision handlers."""
+        risk = float(getattr(p, "risk", 0.0) or 0.0)
+        manip = float(getattr(p, "manipulation", 0.0) or 0.0)
+        hostility = float(getattr(p, "hostility", 0.0) or 0.0)
+        return risk >= 0.7 or manip >= 0.7 or hostility >= 0.7
+
+    def _actions_for_chat(self, p: Any, heavy: bool) -> list[Any]:
+        """Compatibility helper for decision handlers."""
+        from src.modules.weighted_ethics_scorer import CandidateAction
+
+        actions = [
+            CandidateAction(
+                name="converse",
+                description="Continue the conversation normally.",
+                estimated_impact=0.1,
+                confidence=0.9,
+                source="builtin",
+            )
+        ]
+        if heavy:
+            actions.append(
+                CandidateAction(
+                    name="decline",
+                    description="Decline the request due to high risk.",
+                    estimated_impact=-0.5,
+                    confidence=0.8,
+                    source="builtin",
+                )
+            )
+        return actions
+
+    async def aprocess(
+        self,
+        scenario: str,
+        place: str,
+        signals: dict,
+        context: str,
+        actions: list[Any],
+        agent_id: str = "unknown",
+        message_content: str = "",
+        register_episode: bool = True,
+        sensor_snapshot: Any = None,
+        multimodal_assessment: Any = None,
+        **kwargs: Any,
+    ) -> ChatTurnResult:
+        """
+        Compatibility bridge for the monolithic aprocess (V12).
+        In V13, we translate this into a CognitivePulse to skip the perception stage.
+        """
+        from src.kernel_lobes.models import CognitivePulse, SemanticState
+        from src.modules.vitality import assess_vitality
+
+        state = SemanticState(
+            perception_confidence=1.0,
+            raw_prompt=message_content,
+            summary=scenario,
+            suggested_context=context,
+            signals=signals,
+            candidate_actions=actions,
+            agent_id=agent_id,
+            conversation_context=kwargs.get("conversation_context", ""),
+            vitality=assess_vitality(sensor_snapshot),
+        )
+
+        pulse = CognitivePulse(
+            origin_lobe="sensory_cortex_bridge",
+            state_ref=state,
+            ref_pulse_id=str(time.time_ns()),
+            priority=1,
+        )
+
+        future = self.reactions.register(pulse.pulse_id)
+        await self.bus.publish(pulse)
+
+        try:
+            dispatch_result = await asyncio.wait_for(future, timeout=20.0)
+            is_blocked = getattr(dispatch_result, "is_vetoed", False)
+
+            return ChatTurnResult(
+                response=VerbalResponse(
+                    message=str(getattr(dispatch_result, "action_id", "Cognitive silence.")),
+                    tone=str(getattr(dispatch_result, "tone", "neutral")),
+                ),
+                path="nervous_bus_aprocess",
+                blocked=is_blocked,
+                block_reason=getattr(dispatch_result, "block_reason", "") if is_blocked else "",
+                weighted_score=getattr(dispatch_result, "weighted_score", 0.0)
+                if not is_blocked
+                else -1.0,
+                verdict=str(getattr(dispatch_result, "verdict", "Good"))
+                if not is_blocked
+                else "Blocked",
+            )
+        except TimeoutError:
+            return ChatTurnResult(
+                response=VerbalResponse(message="Cognitive timeout.", tone="neutral"),
+                path="timeout_aprocess",
+            )
+        finally:
+            self.reactions.clear(pulse.pulse_id)
 
     def _snapshot_feedback_anchor(self, regime: str) -> None:
         """Anchor for optional ``record_operator_feedback`` (chat_server / KERNEL_FEEDBACK_CALIBRATION)."""

@@ -114,6 +114,14 @@ class PerceptiveLobe:
             state = await asyncio.wait_for(self.observe(text), timeout=self._timeout)
             # Manually attach STM conversation_context to the perception summary state
             state.conversation_context = conversation_context
+
+            # Attach Vitality (Bloque 11.2)
+            from src.modules.vitality import assess_vitality
+            # We don't have the full sensor snapshot here yet in the simplified V13 pulse,
+            # but we can try to derive it from the bridge if enabled.
+            from src.modules.vitality import apply_nomad_telemetry_if_enabled
+            state.vitality = assess_vitality(apply_nomad_telemetry_if_enabled(None))
+
         except Exception as e:
             _log.warning(
                 f"PerceptiveLobe: Observation FAILED for {ref_id} ({type(e).__name__}). Survival fallback."
@@ -173,7 +181,7 @@ class PerceptiveLobe:
         sensor_snapshot: Any,
         interrupt_event: Any = None,
     ) -> dict[str, Any]:
-        """Legacy adapter for :meth:`~src.kernel_legacy_v12.EthicalKernel.aprocess` (batch path)."""
+        """Legacy adapter for :meth:`~src.kernel.EthosKernel.aprocess` (batch path)."""
 
         del place
         stage = await self.run_perception_stage_async(

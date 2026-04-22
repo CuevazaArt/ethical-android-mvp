@@ -1,9 +1,7 @@
-"""
-Post-perception decision adapter for :meth:`~src.kernel_legacy_v12.EthicalKernel.process_chat_turn_stream`.
+Post-perception decision adapter for :meth:`~src.kernel.EthosKernel.process_chat_turn_stream`.
 
-The batch :meth:`~src.kernel_legacy_v12.EthicalKernel.process` path does not use this module; it exists so
-minimal checkouts can import ``kernel_legacy_v12`` while streaming chat reuses ``aprocess``.
-"""
+The batch :meth:`~src.kernel.EthosKernel.process` path does not use this module; it exists so
+minimal checkouts can import the native V13 kernel while streaming chat reuses ``aprocess``.
 
 from __future__ import annotations
 

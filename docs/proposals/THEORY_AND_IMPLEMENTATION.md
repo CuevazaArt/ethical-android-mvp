@@ -1,3 +1,8 @@
+# Theory and Implementation of the Artificial Conscience
+
+> [!IMPORTANT]
+> **Aspirational Terminology Disclaimer:** Terms such as "consciousness", "soul", "sentience", or "artificial conscience" are used within this document in a purely aspirational or metaphorical sense to describe the intended complexity and systemic behavior of the ethical kernel. These do not imply actual biological sentience or metaphysical soulhood. All kernel behaviors are deterministic or stochastic mathematical processes.
+
 # Theory and implementation
 
 This document aligns the **mathematical and logical specification** of the Ethos Kernel with **what the repository actually implements** (MVP **v5** decision core, plus **v6** presentation and real-time layers: reflection, salience, PAD, identity, chat). It is the primary reference for answering critiques that reduce the system to a “stochastic parrot”: the **decision core is not an LLM**; it is explicit predicates, numeric scoring, and a fixed pipeline you can read in code and test.

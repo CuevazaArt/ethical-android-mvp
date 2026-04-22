@@ -11,7 +11,7 @@ from typing import TYPE_CHECKING
 from src.utils.terminal_colors import Term
 
 if TYPE_CHECKING:
-    from src.kernel_legacy_v12 import KernelDecision
+    from src.kernel import KernelDecision
     from src.modules.llm_layer import RichNarrative, VerbalResponse
 
 

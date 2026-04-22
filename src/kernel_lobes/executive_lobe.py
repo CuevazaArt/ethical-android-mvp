@@ -28,6 +28,7 @@ from src.modules.salience_map import SalienceMap
 from src.modules.sigmoid_will import SigmoidWill
 from src.modules.sympathetic import InternalState
 from src.modules.uchi_soto import SocialEvaluation
+from src.modules.vitality import vitality_communication_hint
 from src.modules.weighted_ethics_scorer import CandidateAction, EthicsMixtureResult
 from src.nervous_system.corpus_callosum import CorpusCallosum
 
@@ -240,9 +241,9 @@ class ExecutiveLobe:
             d = float(affect.pad[2]) if math.isfinite(affect.pad[2]) else 0.0
 
             affect.pad = (
-                self.ganglia.smooth("pleasure", p),
-                self.ganglia.smooth("arousal", a),
-                self.ganglia.smooth("dominance", d),
+                self.ganglia.smooth("pleasure", p) if math.isfinite(p) else 0.0,
+                self.ganglia.smooth("arousal", a) if math.isfinite(a) else 0.0,
+                self.ganglia.smooth("dominance", d) if math.isfinite(d) else 0.0,
             )
 
             # 7. Real-Time Hardware Projection (Phase 10.5)
@@ -364,6 +365,18 @@ class ExecutiveLobe:
                 dominant_archetype=affect.dominant_archetype_id if affect else "neutral",
             )
 
+            # --- Vitality Context (Bloque 11.2) ---
+            vitality_ctx = ""
+            if hasattr(decision, "vitality") and decision.vitality:
+                # Use trust level from social circle (Inner=1.0, Soto=0.5, outer=0.0)
+                t_level = 1.0
+                if social_eval and hasattr(social_eval, "circle"):
+                    if social_eval.circle.value == "outer_soto":
+                        t_level = 0.0
+                    elif social_eval.circle.value == "neutral_soto":
+                        t_level = 0.5
+                vitality_ctx = vitality_communication_hint(decision.vitality, trust_level=t_level)
+
             response = await self.llm.acommunicate(
                 action=getattr(decision, "final_action", "unknown"),
                 mode=getattr(decision, "decision_mode", "light"),
@@ -381,6 +394,7 @@ class ExecutiveLobe:
                 affect_pad=affect.pad if affect else None,
                 dominant_archetype=affect.dominant_archetype_id if affect else "",
                 identity_context=identity_ctx,
+                vitality_context=vitality_ctx,
                 stream_callback=stream_callback,
             )
 
