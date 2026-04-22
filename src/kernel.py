@@ -174,6 +174,11 @@ class EthosKernel:
         # Pruning / hygiene surface expected by legacy integration tests (BiographicPruner removal).
         self.biographic_pruner = MemoryHygieneService(memory=self.memory, dao=self.dao)
 
+        # V12 moral hub: per-session L1/L2 draft lists + ``buffer`` alias for draft validation (see moral_hub).
+        self.constitution_l1_drafts: list[dict[str, Any]] = []
+        self.constitution_l2_drafts: list[dict[str, Any]] = []
+        self.buffer = self.sensory_cortex.buffer
+
     @property
     def memory(self):
         """Compatibility property for NarrativeMemory access."""
@@ -261,6 +266,12 @@ class EthosKernel:
             return False
         self.feedback_ledger.record(str(anchor["regime"]), lab)
         return True
+
+    def get_constitution_snapshot(self) -> dict[str, Any]:
+        """Return L0–L2 constitutional JSON for the hub and transparency paths (V12.2)."""
+        from src.modules.moral_hub import constitution_snapshot
+
+        return constitution_snapshot(self.buffer, self)
 
     async def start(self) -> None:
         """Awaken the Android's Nervous System."""

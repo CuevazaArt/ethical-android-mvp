@@ -1565,3 +1565,11 @@ This file is automatically managed by `scripts/swarm_sync.py`.
   - `docs/proposals/PLAN_WORK_DISTRIBUTION_TREE.md`
   - `src/chat_server.py`
   - `src/server/app.py`
+
+### Execution (Swarm) | Date: 2026-04-21 23:41:50 | Author: Cursor
+- **Block:** `34.4`
+- **Message:** Harden governance WebSocket: ack JSON for constitution_draft-only frames; EthosKernel exposes buffer, L1/L2 draft lists, get_constitution_snapshot; moral_hub centralizes draft list init and safe apply_proposal_resolution. LAN governance and moral_hub tests pass. Reviewed governance paths for NaN/latency regressions (none).
+- **Files Modified:**
+  - `src/kernel.py`
+  - `src/modules/moral_hub.py`
+  - `src/server/ws_chat.py`
