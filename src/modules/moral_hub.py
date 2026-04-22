@@ -37,6 +37,21 @@ class ConstitutionLevel(IntEnum):
     OWNER_DIRECTIVE = 2
 
 
+def _ensure_constitution_draft_lists(
+    kernel: Any,
+) -> tuple[list[dict[str, Any]], list[dict[str, Any]]]:
+    """The session kernel may omit L1/L2 draft lists until first hub use (V12.2)."""
+    l1 = getattr(kernel, "constitution_l1_drafts", None)
+    if not isinstance(l1, list):
+        l1 = []
+        kernel.constitution_l1_drafts = l1
+    l2 = getattr(kernel, "constitution_l2_drafts", None)
+    if not isinstance(l2, list):
+        l2 = []
+        kernel.constitution_l2_drafts = l2
+    return l1, l2
+
+
 def moral_hub_public_enabled() -> bool:
     """Expose GET /constitution and related when set."""
     v = os.environ.get("KERNEL_MORAL_HUB_PUBLIC", "0").strip().lower()
@@ -249,10 +264,8 @@ def add_constitution_draft(
         "created": datetime.now().isoformat(),
         "status": "draft",
     }
-    if level == 1:
-        kernel.constitution_l1_drafts.append(d)
-    else:
-        kernel.constitution_l2_drafts.append(d)
+    l1, l2 = _ensure_constitution_draft_lists(kernel)
+    (l1 if level == 1 else l2).append(d)
     return d
 
 
@@ -271,7 +284,8 @@ def submit_constitution_draft_for_vote(
     did = (draft_id or "").strip()
     if not did:
         return {"ok": False, "error": "draft_id required"}
-    lst = kernel.constitution_l1_drafts if level == 1 else kernel.constitution_l2_drafts
+    l1, l2 = _ensure_constitution_draft_lists(kernel)
+    lst = l1 if level == 1 else l2
     draft = next((d for d in lst if d.get("id") == did), None)
     if not draft:
         return {"ok": False, "error": "draft not found"}
@@ -316,7 +330,11 @@ def apply_proposal_resolution_to_constitution_drafts(
         return 0
     ts = datetime.now().isoformat()
     n = 0
-    for lst in (kernel.constitution_l1_drafts, kernel.constitution_l2_drafts):
+    l1 = getattr(kernel, "constitution_l1_drafts", None)
+    l2 = getattr(kernel, "constitution_l2_drafts", None)
+    if not isinstance(l1, list) or not isinstance(l2, list):
+        return 0
+    for lst in (l1, l2):
         for d in lst:
             if d.get("dao_proposal_id") == pid:
                 d["status"] = "approved" if outcome == "approved" else "rejected"

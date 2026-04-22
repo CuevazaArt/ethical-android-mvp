@@ -67,17 +67,25 @@ Aquí es donde los agentes de ejecución (LLMs en IDEs) reclaman sus tareas.
 - [x] Tarea 34.4: [COMPLETED] **Core WebSocket chat:** `ws_chat.py` centraliza el loop de chat.
 - [x] Tarea 34.5: [COMPLETED] **App + lifespan:** `src/server/app.py` centraliza la construcción de la app. `chat_server.py` es ahora una fachada mínima de 40 líneas.
 
+<<<<<<< HEAD
 **Bloque 35.0: Eliminación Definitiva de `kernel_legacy_v12.py` (122 KB zombie) [DONE]**
 - [x] Tarea 35.1: **Migrar `kernel_handlers/communication.py`:** Extraer las 2-3 funciones requeridas (`vitality_communication_hint`, `vitality_context`) directamente a `executive_lobe.py` o un nuevo `src/kernel_handlers/vitality_hints.py`.
 - [x] Tarea 35.2: **Migrar `kernel_handlers/decision.py`:** Redirigir `run_decision_pipeline` hacia el `EthosKernel.aprocess` nativo del V13.
 - [x] Tarea 35.3: **Eliminar `kernel_legacy_v12.py`:** Borrar el archivo y validar que CI pasa sin él.
 - [x] Tarea 35.4: **Limpiar `kernel_components.py`:** Eliminar campo `augenesis: AugenesisEngine | None = None` y el import correspondiente.
+=======
+**Bloque 35.0: Eliminación Definitiva de `kernel_legacy_v12.py` (122 KB zombie) [COMPLETED]**
+- Tarea 35.1: [DONE — L2 Cursor] **`src/kernel_handlers/vitality_hints.py`:** reexporta `vitality_communication_hint`, `assess_vitality`, `VitalityAssessment` desde `modules.vitality`; `ethical_kernel_batch` importa desde aquí (superficie estable para handlers).
+- Tarea 35.2: [DONE — L2 Cursor] **`kernel_handlers/decision.py`:** `run_decision_pipeline` delega en `kernel.aprocess` del batch :class:`EthicalKernel` en :mod:`src.ethical_kernel_batch` (el tri-lobe :class:`EthosKernel` en :mod:`src.kernel` no usa este módulo).
+- Tarea 35.3: [DONE] **Retirar `kernel_legacy_v12.py`:** implementación renombrada a **`src/ethical_kernel_batch.py`**; `KernelDecision` extraído a **`src/kernel_decision.py`**; Ruff/mypy ignore apuntan al nuevo módulo; `scripts/run_empirical_pilot` y pruebas MalAbs/S10/E-stop importan el batch kernel explícitamente donde hace falta.
+- Tarea 35.4: [DONE — L2 Cursor] **`kernel_components.py`:** eliminado `augenesis` de `KernelComponentOverrides` y su import; el batch kernel instancia `AugenesisEngine()` en `__init__` (sin inyección por dataclass).
+>>>>>>> e66a5e389f733337013e643fa4817dbcdaddd69f
 
 **Bloque 36.0: Poda Documental y Archivo de Propuestas Obsoletas [PENDING]**
-- Tarea 36.1: **Clasificar propuestas:** Mover propuestas implementadas/rechazadas/superadas a `docs/proposals/archived/` (estimado: ~120 de 149).
+- Tarea 36.1: **Clasificar propuestas:** Mover propuestas implementadas/rechazadas/superadas a `docs/proposals/archived/` (estimado: ~120 de 149) — *incremental;* ver [archived/README.md](archived/README.md).
 - Tarea 36.2: **Consolidar duplicados:** Eliminar o fusionar documentos con nombres casi idénticos (ej. `PROPOSAL_NOMADIC_CONSCIOUSNESS_HAL.md` vs `PROPOSAL_NOMAD_CONSCIOUSNESS_HAL.md`).
-- Tarea 36.3: **Índice activo:** Crear `docs/proposals/INDEX.md` con solo las propuestas vigentes y su estado.
-- Tarea 36.4: **Purga de retórica:** En los 15+ documentos que mencionan "consciousness", "soul", "sentient", añadir disclaimer claro de que es aspiracional, no implementado.
+- Tarea 36.3: [COMPLETED — L2 Cursor] `docs/proposals/INDEX.md` (steering + enlace a README, PLAN, disclaimer); `docs/proposals/archived/README.md` (política de `git mv`).
+- Tarea 36.4: [PARCIAL — L2 Cursor] `docs/proposals/ASPIRATIONAL_DISCLAIMER.md` reutilizable; enlace desde INDEX. La edición documento-a-documento de los 15+ archivos queda en olas posteriores.
 
 **Bloque 20.0: Local Conversational Matrix (Zero-API Fluency) [DONE]**
 - Tarea 20.1: **Desacoplamiento Estricto Comercial:** [COMPLETED] Refactorizar el backend de percepción y decisión para enrutar el 100% de `process_chat_turn` hacia `OllamaLLMBackend`. 

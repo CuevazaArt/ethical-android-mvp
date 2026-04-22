@@ -804,6 +804,7 @@ async def ws_chat(ws: WebSocket) -> None:
             # ══ Constitution Drafts etc ══
             cd = data.get("constitution_draft")
             if isinstance(cd, dict) and constitution_draft_ws_enabled():
+                draft_ok = False
                 try:
                     add_constitution_draft(
                         kernel,
@@ -812,8 +813,13 @@ async def ws_chat(ws: WebSocket) -> None:
                         str(cd.get("body") or ""),
                         str(cd.get("proposer") or data.get("agent_id") or "user"),
                     )
+                    draft_ok = True
                 except Exception:
                     pass
+                if not text_preview:
+                    await ws.send_json({"constitution_draft": {"ok": draft_ok}})
+                    maybe_autosave_episodes(kernel, session_ckpt)
+                    continue
 
             sensor_raw = data.get("sensor")
             client = sensor_raw if isinstance(sensor_raw, dict) else None

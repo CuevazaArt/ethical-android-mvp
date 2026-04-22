@@ -101,8 +101,9 @@ class SafetyInterlock:
     def evaluate(self, scenario: str, place: str, context: str) -> Any | None:
         """Perceptual stage safety check."""
         if not self.is_safe_to_operate():
-            from src.kernel import InternalState, KernelDecision
+            from src.kernel_decision import KernelDecision
             from src.modules.absolute_evil import AbsoluteEvilResult
+            from src.modules.sympathetic import InternalState
 
             return KernelDecision(
                 scenario=scenario,

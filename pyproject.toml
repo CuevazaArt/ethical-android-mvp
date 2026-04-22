@@ -117,7 +117,7 @@ exclude = [
     "build",
     "dist",
     # V13+ tri-lobe uses ``src/kernel.py``; this file remains as an archival reference (ADR 0018).
-    "src/kernel_legacy_v12.py",
+    "src/ethical_kernel_batch.py",
     "androide-etico-mvp-v2",
     "androide-etico-mvp-v3",
     "androide-etico-mvp-v4-llm",
@@ -179,7 +179,7 @@ disable_error_code = [
 ]
 
 [[tool.mypy.overrides]]
-module = "src.kernel_legacy_v12"
+module = "src.ethical_kernel_batch"
 ignore_errors = true
 
 [[tool.mypy.overrides]]

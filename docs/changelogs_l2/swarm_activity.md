@@ -1566,6 +1566,7 @@ This file is automatically managed by `scripts/swarm_sync.py`.
   - `src/chat_server.py`
   - `src/server/app.py`
 
+<<<<<<< HEAD
 ### Execution (Swarm) | Date: 2026-04-21 23:47:44 | Author: Anonymous Agent
 - **Block:** `35.0`
 - **Message:** Obliterated legacy kernel monolith (V12). Hardened EthosKernel (V13) with compatibility stubs and maintenance methods. Pruned redundant Augenesis infrastructure. Redirected decision handlers and pilot scripts to the native distributed architecture. Performed documentation archival and added aspirational terminology disclaimers.
@@ -1789,3 +1790,12 @@ This file is automatically managed by `scripts/swarm_sync.py`.
   - `src/modules/augenesis.py`
   - `src/utils/kernel_formatters.py`
   - `tests/test_malabs_semantic_integration.py`
+=======
+### Execution (Swarm) | Date: 2026-04-21 23:41:50 | Author: Cursor
+- **Block:** `34.4`
+- **Message:** Harden governance WebSocket: ack JSON for constitution_draft-only frames; EthosKernel exposes buffer, L1/L2 draft lists, get_constitution_snapshot; moral_hub centralizes draft list init and safe apply_proposal_resolution. LAN governance and moral_hub tests pass. Reviewed governance paths for NaN/latency regressions (none).
+- **Files Modified:**
+  - `src/kernel.py`
+  - `src/modules/moral_hub.py`
+  - `src/server/ws_chat.py`
+>>>>>>> e66a5e389f733337013e643fa4817dbcdaddd69f
