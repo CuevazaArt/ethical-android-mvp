@@ -44,15 +44,15 @@ Aquí es donde los agentes de ejecución (LLMs en IDEs) reclaman sus tareas.
 > 1. **Block 15.2 (Refactorización Estructural):** Ejecutar el colapso del monolítico `src/modules/` (que contiene ~150 archivos) hacia las 8 carpetas cohesivas (`ethics`, `cognition`, `memory`, `social`, `governance`, `somatic`, `perception`, `safety`). Esto requiere usar `git mv` sistemáticamente y reparar TODOS los imports del repositorio en cascada sin quebrar el Tri-Lobo.
 > 2. **Block 15.3 (Acoplamiento LLM Real):** Una vez organizado el código, debes conectar el Anthropic SDK (ya en `pyproject.toml`) o la API de Ollama para que el `kernel` intercepte la generación de tokens en tiempo real, pasando del teatro de validación de strings al flujo real `generate -> ethical-filter -> render`. Eres el modelo más capaz para garantizar que las referencias cruzadas no se rompan y que el stream asíncrono no asfixie el Event Bus. Inicia con el refactor de carpetas, commitea el avance, y luego integra la capa generativa."*
 
-**Bloque 15.1: Reparar Pytest Collection (Prioridad 4) [PENDING]**
+**Bloque 15.1: Reparar Pytest Collection (Prioridad 4) [DONE]**
 - Tarea: Mover dependencias opcionales (torch, chromadb) detrás de `pytest.importorskip` en todos los archivos de test.
 - Meta: Que `pytest tests/` corra limpio sin 124 collection errors en un entorno mínimo. Un test suite que falla silenciosamente es inaceptable.
 
-**Bloque 15.2: Colapsar src/modules/ (Prioridad 2) [PENDING]**
+**Bloque 15.2: Colapsar src/modules/ (Prioridad 2) [DONE]**
 - Tarea: Crear 8 carpetas en `src/modules/` (`ethics`, `cognition`, `memory`, `social`, `governance`, `somatic`, `perception`, `safety`).
 - Acción: Ejecutar `git mv` para trasladar los ~150 archivos planos a su dominio respectivo. Actualizar todos los imports (usando refactor automatizado o regex).
 
-**Bloque 15.3: Acoplar un LLM Real (Prioridad 1) [PENDING]**
+**Bloque 15.3: Acoplar un LLM Real (Prioridad 1) [DONE]**
 - Tarea: Conectar el SDK de Anthropic o el API de Ollama de forma obligatoria en la capa de generación.
 - Meta: El kernel debe dejar de evaluar strings hardcodeados y debe interceptar el flujo real (`generate -> ethical-filter -> render`).
 
