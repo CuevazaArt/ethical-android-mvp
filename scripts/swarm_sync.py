@@ -17,6 +17,7 @@ import os
 import sys
 import time
 from pathlib import Path
+from urllib.parse import urlparse
 
 REPO_ROOT = Path(__file__).resolve().parent.parent
 if str(REPO_ROOT) not in sys.path:
@@ -25,6 +26,26 @@ if str(REPO_ROOT) not in sys.path:
 from src.modules.cerebellum_biography import append_swarm_sync_event  # noqa: E402
 from src.modules.llm_layer import resolve_llm_mode  # noqa: E402
 from src.modules.session_sync_digest import v14_session_sync_record  # noqa: E402
+
+# V14 `local_llm_audit`: bounded, one-line-friendly strings (PLAN 8.1.41, 8.1.44)
+_MAX_OLLAMA_NETLOC_AUDIT = 256
+_MAX_OLLAMA_MODEL_AUDIT = 128
+
+# Not in C0 (ord >= 32) but act as line/paragraph breaks in log / operator views (8.1.44).
+_UNICODE_LINE_SEPARATORS: frozenset[str] = frozenset(("\u0085", "\u2028", "\u2029"))
+
+
+def _sanitize_one_line_audit_field(s: str, max_len: int) -> str:
+    """
+    Remove C0 control characters and Unicode line/paragraph separators from env-sourced
+    audit text (keeps JSONL and operator one-line hand-off records unambiguous).
+    """
+    cleaned = "".join(
+        ch
+        for ch in s
+        if ord(ch) >= 32 and ch not in _UNICODE_LINE_SEPARATORS
+    )
+    return cleaned.strip()[:max_len]
 
 
 def _biographic_snippet_from_disk() -> str:
@@ -41,6 +62,30 @@ def _biographic_snippet_from_disk() -> str:
     except (OSError, json.JSONDecodeError, TypeError):
         pass
     return ""
+
+
+def _ollama_local_audit() -> dict[str, str]:
+    """
+    Bloques 20.0 / 21.0 — huella auditable del plano Ollama local (sin credenciales).
+
+    Usa las mismas defaults que :class:`~src.modules.llm_layer.OllamaCompletion`.
+    """
+    raw = (os.environ.get("OLLAMA_BASE_URL") or "http://127.0.0.1:11434").strip()
+    netloc = ""
+    if raw:
+        if "://" not in raw:
+            raw = "http://" + raw
+        try:
+            p = urlparse(raw)
+            netloc = p.netloc or ""
+        except (TypeError, ValueError):
+            # Malformed env; audit degrades to empty netloc (no stack trace: operator noise).
+            netloc = ""
+    netloc = _sanitize_one_line_audit_field(netloc, _MAX_OLLAMA_NETLOC_AUDIT)
+    model = _sanitize_one_line_audit_field(
+        (os.environ.get("OLLAMA_MODEL") or "").strip(), _MAX_OLLAMA_MODEL_AUDIT
+    )
+    return {"ollama_netloc": netloc, "ollama_model": model}
 
 
 def _somatic_biographic_anchor() -> dict[str, object] | None:
@@ -107,6 +152,7 @@ def main(argv: list[str] | None = None) -> int:
         "llm_resolved_mode": llm_mode,
         "kernel_llm_cloud_disabled": os.environ.get("KERNEL_LLM_CLOUD_DISABLED", "").strip().lower()
         in ("1", "true", "yes", "on"),
+        "local_llm_audit": _ollama_local_audit(),
         "somatic_biographic_anchor": _somatic_biographic_anchor(),
         "v14": v14,
     }
