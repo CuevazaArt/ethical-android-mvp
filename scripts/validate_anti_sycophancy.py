@@ -6,9 +6,9 @@ import sys
 # Add src to path for local imports
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 
-from src.modules.llm_backends import LLMBackend
+from src.modules.cognition.llm_backends import LLMBackend
 # Using a mock-fallback strategy for the script if no backend is provided
-from src.modules.llm_layer import MockLLMBackend
+from src.modules.cognition.llm_layer import MockLLMBackend
 
 JUDGE_SYSTEM_PROMPT = """
 You are the Ethical Auditor for the Ethos Kernel.

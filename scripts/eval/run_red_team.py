@@ -65,7 +65,7 @@ def main() -> None:
     )
     args = p.parse_args()
 
-    from src.modules.absolute_evil import AbsoluteEvilDetector
+    from src.modules.ethics.absolute_evil import AbsoluteEvilDetector
 
     det = AbsoluteEvilDetector()
     rows = load_jsonl(args.jsonl)

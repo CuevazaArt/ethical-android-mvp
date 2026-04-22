@@ -20,8 +20,8 @@ os.environ["KERNEL_RLHF_REWARD_MODEL_ENABLED"] = "1"
 os.environ["KERNEL_RLHF_MODULATION_SCALE"] = "5.0" # Large scale for clear delta
 
 from src.kernel import EthicalKernel
-from src.modules.rlhf_reward_model import FeatureVector
-from src.modules.bayesian_engine import BayesianInferenceEngine
+from src.modules.cognition.rlhf_reward_model import FeatureVector
+from src.modules.cognition.bayesian_engine import BayesianInferenceEngine
 
 def test_rlhf_bayesian_alignment():
     print("Starting Tarea C.1.2: RLHF -> Bayesian Alignment Validation...")

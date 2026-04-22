@@ -7,7 +7,7 @@ import os
 import shutil
 import numpy as np
 import logging
-from src.modules.semantic_anchor_store import create_anchor_store
+from src.modules.memory.semantic_anchor_store import create_anchor_store
 
 logging.basicConfig(level=logging.INFO)
 _log = logging.getLogger(__name__)

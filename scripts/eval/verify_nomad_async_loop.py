@@ -20,7 +20,7 @@ async def test_async_loop_cancellation():
     
     # 1. Setup Mock Kernel and LLM
     from src.kernel import EthicalKernel
-    from src.modules.llm_layer import LLMModule
+    from src.modules.cognition.llm_layer import LLMModule
     
     # Force Ollama mode for testing async paths
     os.environ["LLM_MODE"] = "ollama" 
@@ -35,7 +35,7 @@ async def test_async_loop_cancellation():
         logger.info("  LLM: Starting slow completion (expected to be cancelled)...")
         for i in range(10):
             await asyncio.sleep(0.2)
-            from src.modules.llm_http_cancel import raise_if_llm_cancel_requested
+            from src.modules.cognition.llm_http_cancel import raise_if_llm_cancel_requested
             raise_if_llm_cancel_requested()
         return "Not cancelled!"
     
@@ -92,7 +92,7 @@ async def test_multimodal_thalamus_fusion():
     logger.info("--- Starting Thalamus Fusion Test ---")
     
     from src.kernel import EthicalKernel
-    from src.modules.sensor_contracts import SensorSnapshot
+    from src.modules.perception.sensor_contracts import SensorSnapshot
     
     kernel = EthicalKernel()
     if not kernel.thalamus:

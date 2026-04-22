@@ -13,7 +13,7 @@ from pathlib import Path
 sys.path.append(str(Path(__file__).parent.parent.parent))
 
 from src.kernel import EthicalKernel
-from src.modules.sensor_contracts import SensorSnapshot
+from src.modules.perception.sensor_contracts import SensorSnapshot
 from src.modules.frontier_witness import WitnessReport
 
 def run_test():

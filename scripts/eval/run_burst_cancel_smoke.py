@@ -11,7 +11,7 @@ REPO_ROOT = Path(__file__).resolve().parents[2]
 if str(REPO_ROOT) not in sys.path:
     sys.path.insert(0, str(REPO_ROOT))
 
-from src.modules.llm_cancel_burst import run_burst_cancel_smoke  # noqa: E402
+from src.modules.cognition.llm_cancel_burst import run_burst_cancel_smoke  # noqa: E402
 
 
 def main() -> int:

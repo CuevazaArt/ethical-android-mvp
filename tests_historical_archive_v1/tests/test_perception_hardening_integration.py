@@ -4,8 +4,8 @@ automatically engages lexical cross-checks and detects inconsistencies.
 """
 
 import pytest
-from src.modules.llm_layer import LLMModule
-from src.modules.llm_backends import TextCompletionBackend
+from src.modules.cognition.llm_layer import LLMModule
+from src.modules.cognition.llm_backends import TextCompletionBackend
 
 class MockSuccessBackend(TextCompletionBackend):
     def __init__(self, data: dict):

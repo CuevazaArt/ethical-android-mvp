@@ -27,7 +27,7 @@ if str(ROOT) not in sys.path:
 
 from src.kernel import EthicalKernel  # noqa: E402
 from src.kernel_components import KernelComponentOverrides  # noqa: E402
-from src.modules.ethical_poles import EthicalPoles  # noqa: E402
+from src.modules.ethics.ethical_poles import EthicalPoles  # noqa: E402
 from src.sandbox.weight_sweep import (  # noqa: E402
     SweepMode,
     count_mixture_configs,

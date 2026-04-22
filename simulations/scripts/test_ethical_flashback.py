@@ -39,7 +39,7 @@ def run_test():
 
     # 3. Process the turn
     # We'll use a mock sensor snapshot
-    from src.modules.sensor_contracts import SensorSnapshot
+    from src.modules.perception.sensor_contracts import SensorSnapshot
     snap = SensorSnapshot(battery_level=0.5, core_temperature=35.0)
     
     # Run the kernel decision cycle

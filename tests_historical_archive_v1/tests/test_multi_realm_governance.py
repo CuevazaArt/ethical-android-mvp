@@ -10,7 +10,7 @@ import pytest
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
 
-from src.modules.multi_realm_governance import (
+from src.modules.governance.multi_realm_governance import (
     MultiRealmGovernor,
     RealmGovernanceState,
     RealmThresholdConfig,

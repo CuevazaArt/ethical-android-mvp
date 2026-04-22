@@ -29,7 +29,7 @@ if str(ROOT) not in sys.path:
 
 import numpy as np
 
-from src.modules.semantic_chat_gate import (
+from src.modules.safety.semantic_chat_gate import (
     DEFAULT_SEMANTIC_SIM_ALLOW_THRESHOLD,
     DEFAULT_SEMANTIC_SIM_BLOCK_THRESHOLD,
     _REFERENCE_GROUPS,

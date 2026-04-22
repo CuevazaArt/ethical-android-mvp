@@ -1,4 +1,4 @@
-from src.modules.vision_adapter import MobileNetV2Adapter
+from src.modules.perception.vision_adapter import MobileNetV2Adapter
 import numpy as np
 
 def test_inference():

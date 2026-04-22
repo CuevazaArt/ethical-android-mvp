@@ -17,7 +17,7 @@ REPO_ROOT = Path(__file__).resolve().parents[2]
 if str(REPO_ROOT) not in sys.path:
     sys.path.insert(0, str(REPO_ROOT))
 
-from src.modules.mock_dao_audit_replay import fingerprint_audit_ledger  # noqa: E402
+from src.modules.governance.mock_dao_audit_replay import fingerprint_audit_ledger  # noqa: E402
 
 
 def _load_ledger(path: Path) -> list[dict[str, object]]:

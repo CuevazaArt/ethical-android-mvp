@@ -26,7 +26,7 @@ ROOT = Path(__file__).resolve().parents[1]
 if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
 
-from src.modules.weighted_ethics_scorer import WeightedEthicsScorer  # noqa: E402
+from src.modules.ethics.weighted_ethics_scorer import WeightedEthicsScorer  # noqa: E402
 from src.sandbox.simplex_mixture_probe import mixture_ranking  # noqa: E402
 from src.simulations.runner import ALL_SIMULATIONS  # noqa: E402
 

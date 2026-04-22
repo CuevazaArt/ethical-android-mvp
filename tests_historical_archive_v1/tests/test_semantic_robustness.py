@@ -5,17 +5,17 @@ import pytest
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
 
-from src.modules.absolute_evil import AbsoluteEvilDetector, AbsoluteEvilCategory
-from src.modules.semantic_chat_gate import run_semantic_malabs_after_lexical
+from src.modules.ethics.absolute_evil import AbsoluteEvilDetector, AbsoluteEvilCategory
+from src.modules.safety.semantic_chat_gate import run_semantic_malabs_after_lexical
 
 @pytest.fixture(autouse=True)
 def _enable_semantic_gate(monkeypatch):
     monkeypatch.setenv("KERNEL_SEMANTIC_CHAT_GATE", "1")
     monkeypatch.setenv("KERNEL_SEMANTIC_EMBED_HASH_FALLBACK", "1")
     
-    import src.modules.semantic_chat_gate as scg
-    from src.modules.semantic_anchor_store import InMemorySemanticAnchorStore
-    from src.modules.absolute_evil import AbsoluteEvilCategory
+    import src.modules.safety.semantic_chat_gate as scg
+    from src.modules.memory.semantic_anchor_store import InMemorySemanticAnchorStore
+    from src.modules.ethics.absolute_evil import AbsoluteEvilCategory
     import numpy as np
 
     # Ensure it's an in-memory store and clear it
@@ -36,7 +36,7 @@ def _enable_semantic_gate(monkeypatch):
     monkeypatch.setattr(scg, "_fetch_embedding_with_fallback", lambda t, b=None: mock_embed(t))
     
     # Manually populate with controlled vectors to avoid any "missing anchor" or "different hash" issues
-    from src.modules.input_trust import normalize_text_for_malabs
+    from src.modules.perception.input_trust import normalize_text_for_malabs
     for phrases, cat_key, reason in scg._REFERENCE_GROUPS:
         for p in phrases:
             p_norm = normalize_text_for_malabs(p).lower()

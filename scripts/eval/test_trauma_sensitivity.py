@@ -1,9 +1,9 @@
 import asyncio
 import numpy as np
 from src.kernel_lobes.limbic_lobe import LimbicEthicalLobe
-from src.modules.uchi_soto import UchiSotoModule
-from src.modules.sympathetic import SympatheticModule
-from src.modules.locus import LocusModule
+from src.modules.social.uchi_soto import UchiSotoModule
+from src.modules.somatic.sympathetic import SympatheticModule
+from src.modules.safety.locus import LocusModule
 
 async def test_trauma_sensitivity():
     print("--- Calibrating Trauma Gains ---")

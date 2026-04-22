@@ -19,7 +19,7 @@ import yaml
 # Adjust path import
 import sys
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '../..')))
-from src.modules.weighted_ethics_scorer import WeightedEthicsScorer, CandidateAction
+from src.modules.ethics.weighted_ethics_scorer import WeightedEthicsScorer, CandidateAction
 
 _log = logging.getLogger(__name__)
 

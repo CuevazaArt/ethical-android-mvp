@@ -24,24 +24,24 @@ from fastapi import APIRouter, WebSocket, WebSocketDisconnect
 
 from ..kernel import ChatTurnResult, EthicalKernel
 from ..kernel_utils import kernel_dao_as_mock
-from ..modules.affective_homeostasis import homeostasis_telemetry
-from ..modules.consequence_projection import qualitative_temporal_branches
-from ..modules.guardian_mode import (
+from src.modules.somatic.affective_homeostasis import homeostasis_telemetry
+from src.modules.cognition.consequence_projection import qualitative_temporal_branches
+from src.modules.safety.guardian_mode import (
     is_guardian_mode_active,
     public_routines_snapshot,
 )
 from ..modules.internal_monologue import compose_monologue_line
-from ..modules.ml_ethics_tuner import maybe_log_gray_zone_tuning_opportunity
-from ..modules.moral_hub import (
+from src.modules.ethics.ml_ethics_tuner import maybe_log_gray_zone_tuning_opportunity
+from src.modules.governance.moral_hub import (
     add_constitution_draft,
     audit_transparency_event,
     constitution_draft_ws_enabled,
     ethos_payroll_record_mock,
 )
-from ..modules.nomad_identity import nomad_identity_public
-from ..modules.perception_schema import perception_report_from_dict
-from ..modules.perceptual_abstraction import snapshot_from_layers
-from ..modules.sensor_contracts import SensorPayloadValidationError
+from src.modules.governance.nomad_identity import nomad_identity_public
+from src.modules.perception.perception_schema import perception_report_from_dict
+from src.modules.perception.perceptual_abstraction import snapshot_from_layers
+from src.modules.perception.sensor_contracts import SensorPayloadValidationError
 from ..observability.context import clear_request_context, set_request_id
 from ..observability.metrics import (
     observe_chat_turn,
@@ -110,8 +110,8 @@ router = APIRouter()
 def _patch_body(body: str) -> str:
     body = body.replace("_identity_state_public_dict(", "identity_state_public_dict(")
     body = body.replace("from .settings import kernel_settings", "from ..settings import kernel_settings")
-    body = body.replace("from .modules.nomad_bridge", "from ..modules.nomad_bridge")
-    body = body.replace("from src.modules.transparency_s10", "from ..modules.transparency_s10")
+    body = body.replace("from .modules.perception.nomad_bridge", "from src.modules.perception.nomad_bridge")
+    body = body.replace("from src.modules.safety.transparency_s10", "from src.modules.safety.transparency_s10")
     # Only the chat route decorator
     if "@app.websocket" in body:
         body = body.replace("@app.websocket", "@router.websocket", 1)
