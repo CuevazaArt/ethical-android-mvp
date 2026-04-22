@@ -12,6 +12,7 @@ See ``docs/proposals/README.md``.
 
 from __future__ import annotations
 
+import math
 import os
 from dataclasses import dataclass
 from datetime import UTC, datetime
@@ -36,10 +37,12 @@ class TemporalHorizonSignals:
 def _parse_ts(ep: NarrativeEpisode) -> datetime | None:
     try:
         ts = ep.timestamp
+        if not isinstance(ts, str):
+            return None
         if ts.endswith("Z"):
             ts = ts[:-1] + "+00:00"
         return datetime.fromisoformat(ts)
-    except Exception:
+    except (ValueError, TypeError, AttributeError):
         return None
 
 
@@ -83,7 +86,11 @@ def compute_horizon_signals(
     scores_all = np.array([float(e.ethical_score) for e in by_time], dtype=np.float64)
 
     std_all = float(np.std(scores_all)) if len(scores_all) > 1 else 0.0
+    if not math.isfinite(std_all):
+        std_all = 0.0
     long_term_stability = float(1.0 / (1.0 + std_all))
+    if not math.isfinite(long_term_stability):
+        long_term_stability = 0.5
 
     def _age_days(e: NarrativeEpisode) -> float | None:
         t = _parse_ts(e)
@@ -112,6 +119,13 @@ def compute_horizon_signals(
     arc_long = float(np.clip(2.0 * long_term_stability - 1.0, -1.0, 1.0))
     combined = float(0.55 * weeks_trend + 0.45 * arc_long)
     combined = float(np.clip(combined, -1.0, 1.0))
+
+    if not (
+        math.isfinite(weeks_trend)
+        and math.isfinite(long_term_stability)
+        and math.isfinite(combined)
+    ):
+        return TemporalHorizonSignals(0.0, 0.5, 0.0)
 
     return TemporalHorizonSignals(
         weeks_trend=weeks_trend,
@@ -147,8 +161,9 @@ def apply_horizon_prior_to_engine(
     alpha = max(0.0, min(0.25, alpha))
 
     sig = compute_horizon_signals(memory, context, action_hint)
+    comb = float(sig.combined) if math.isfinite(sig.combined) else 0.0
     w = np.asarray(engine.hypothesis_weights, dtype=np.float64).copy()
-    w += _nudge_delta(sig.combined, alpha)
+    w += _nudge_delta(comb, alpha)
     w = np.maximum(w, 1e-9)
     w /= float(np.sum(w))
 

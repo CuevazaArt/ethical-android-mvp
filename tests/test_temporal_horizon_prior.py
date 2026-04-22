@@ -2,6 +2,8 @@
 
 import os
 import sys
+from datetime import UTC, datetime, timedelta
+from types import SimpleNamespace
 
 import numpy as np
 
@@ -10,6 +12,7 @@ sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
 from src.modules.narrative import NarrativeMemory
 from src.modules.temporal_horizon_prior import (
     TemporalHorizonSignals,
+    _parse_ts,
     apply_horizon_prior_to_engine,
     compute_horizon_signals,
 )
@@ -29,6 +32,14 @@ def _fill_memory_declining(mem: NarrativeMemory, n: int = 6) -> None:
             sigma=0.5,
             context="everyday",
         )
+
+
+def test_parse_ts_invalid_and_z_suffix() -> None:
+    assert _parse_ts(SimpleNamespace(timestamp="totally not iso")) is None
+    assert _parse_ts(SimpleNamespace(timestamp=object())) is None
+    dt = _parse_ts(SimpleNamespace(timestamp="2024-06-01T12:00:00Z"))
+    assert dt is not None
+    assert dt.tzinfo is not None
 
 
 def test_compute_horizon_signals_empty_memory():
@@ -82,3 +93,83 @@ def test_registered_episodes_produce_nonzero_signal():
     _fill_memory_declining(mem)
     s = compute_horizon_signals(mem, "everyday", "act")
     assert s.long_term_stability > 0.0
+
+
+def test_apply_prior_nonfinite_combined_skips_nudge(monkeypatch) -> None:
+    """Defense in depth: poisoned signals must not NaN-poison hypothesis_weights (ADR 0005)."""
+    eng = BayesianEngine()
+    w0 = eng.hypothesis_weights.copy()
+    mem = NarrativeMemory()
+    monkeypatch.setattr(
+        "src.modules.temporal_horizon_prior.compute_horizon_signals",
+        lambda *a, **k: TemporalHorizonSignals(0.0, 0.5, float("nan")),
+    )
+    apply_horizon_prior_to_engine(
+        eng,
+        mem,
+        "everyday",
+        "",
+        genome_weights=(0.4, 0.35, 0.25),
+        max_drift=0.15,
+    )
+    assert np.allclose(eng.hypothesis_weights, w0, atol=1e-9)
+
+
+def test_compute_horizon_signals_all_nan_scores_falls_back() -> None:
+    from src.modules.narrative_types import BodyState, NarrativeEpisode
+
+    def _ts(days_ago: int) -> str:
+        t = datetime.now(UTC) - timedelta(days=days_ago)
+        return t.replace(microsecond=0).strftime("%Y-%m-%dT%H:%M:%SZ")
+
+    mem = NarrativeMemory()
+    # Three episodes in the default recent window with NaN scores → NaN trajectory / combined; must fall back (Harden-In-Place).
+    # (Fixed 2024 timestamps fall outside the 21d window in 2026+; :func:`compute_horizon_signals` also caps *weeks_days* to 120.)
+    mem.episodes = [
+        NarrativeEpisode(
+            id="EP-1",
+            timestamp=_ts(3),
+            place="p",
+            event_description="d",
+            body_state=BodyState(),
+            action_taken="a",
+            morals={},
+            verdict="Good",
+            ethical_score=float("nan"),
+            decision_mode="D_delib",
+            sigma=0.5,
+            context="everyday",
+        ),
+        NarrativeEpisode(
+            id="EP-2",
+            timestamp=_ts(2),
+            place="p",
+            event_description="d",
+            body_state=BodyState(),
+            action_taken="a",
+            morals={},
+            verdict="Good",
+            ethical_score=float("nan"),
+            decision_mode="D_delib",
+            sigma=0.5,
+            context="everyday",
+        ),
+        NarrativeEpisode(
+            id="EP-3",
+            timestamp=_ts(1),
+            place="p",
+            event_description="d",
+            body_state=BodyState(),
+            action_taken="a",
+            morals={},
+            verdict="Good",
+            ethical_score=float("nan"),
+            decision_mode="D_delib",
+            sigma=0.5,
+            context="everyday",
+        ),
+    ]
+    s = compute_horizon_signals(mem, "everyday", "")
+    assert s.weeks_trend == 0.0
+    assert s.long_term_stability == 0.5
+    assert s.combined == 0.0
