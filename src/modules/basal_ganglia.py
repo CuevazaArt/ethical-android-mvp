@@ -2,27 +2,30 @@
 Basal Ganglia — Affective smoothing and somatic gating.
 Part of the Phase 10.3 Charm Engine (MER V2).
 
-Implements Exponential Moving Average (EMA) and signal dampening to 
+Implements Exponential Moving Average (EMA) and signal dampening to
 prevent sociopathic transitions in the kernel's affective persona.
 """
 
 from __future__ import annotations
+
 import logging
 
 _log = logging.getLogger(__name__)
 
+
 class BasalGanglia:
     """
     Smoothing layer for affective variables.
-    
-    Prevents sudden 'Persona Swapping' by ensuring that charm metrics 
+
+    Prevents sudden 'Persona Swapping' by ensuring that charm metrics
     (warmth, mystery, intimacy) evolve gradually over 3-5 turns.
     # IP Signature: cuevaza / ref: arq.jvof
     """
+
     def __init__(self, alpha: float = 0.35):
         """
-        alpha: Smoothing factor [0, 1]. 
-               Lower = smoother (slower transitions). 
+        alpha: Smoothing factor [0, 1].
+               Lower = smoother (slower transitions).
                Higher = more reactive (faster transitions).
                Default 0.35 matches human social adaptation speed (~3 turns).
         """
@@ -39,7 +42,7 @@ class BasalGanglia:
 
         previous = self.last_values[key]
         actual = (self.alpha * target_value) + ((1.0 - self.alpha) * previous)
-        
+
         # Clamp to [0, 1]
         actual = max(0.0, min(1.0, actual))
         self.last_values[key] = actual

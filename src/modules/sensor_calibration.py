@@ -1,12 +1,13 @@
-import time
-import math
 import logging
+import math
 import statistics
+import time
 from dataclasses import dataclass
-from typing import Dict, List, Optional
+
 from .sensor_contracts import SensorSnapshot
 
 _log = logging.getLogger(__name__)
+
 
 @dataclass
 class CalibrationBaseline:
@@ -15,28 +16,30 @@ class CalibrationBaseline:
     samples: int = 0
     unit: str = ""
 
+
 class SensorBaselineCalibrator:
     """
     Bloque 12.2: Autocalibración Física (Aclimatación).
-    Collects sensor data for a defined period to establish environmental 
+    Collects sensor data for a defined period to establish environmental
     baselines instead of using static global thresholds.
     """
+
     def __init__(self, duration_s: float = 60.0):
         self.duration_s = duration_s
-        self.start_time: Optional[float] = None
+        self.start_time: float | None = None
         self.is_active = False
         self.is_complete = False
-        
-        self._buffers: Dict[str, List[float]] = {
+
+        self._buffers: dict[str, list[float]] = {
             "core_temperature": [],
             "accelerometer_jerk": [],
             "ambient_noise": [],
             "vessel_latency": [],
             "motor_effort_avg": [],
-            "stability_score": []
+            "stability_score": [],
         }
-        
-        self.baselines: Dict[str, CalibrationBaseline] = {}
+
+        self.baselines: dict[str, CalibrationBaseline] = {}
 
     def start(self):
         """Starts the acclimatization cycle."""
@@ -46,13 +49,15 @@ class SensorBaselineCalibrator:
         # Clear buffers
         for k in self._buffers:
             self._buffers[k] = []
-        _log.info("SensorBaselineCalibrator: Starting %.1fs acclimatization cycle.", self.duration_s)
+        _log.info(
+            "SensorBaselineCalibrator: Starting %.1fs acclimatization cycle.", self.duration_s
+        )
 
     def update(self, snapshot: SensorSnapshot):
         """Feed latest sensor data into the calibration buffers."""
         if not self.is_active or self.is_complete:
             return
-            
+
         now = time.perf_counter()
         if now - self.start_time > self.duration_s:
             self._finalize()
@@ -77,32 +82,39 @@ class SensorBaselineCalibrator:
         t0 = time.perf_counter()
         self.is_active = False
         self.is_complete = True
-        
+
         results = {}
         for key, buffer in self._buffers.items():
             if not buffer:
                 continue
-            
+
             # Swarm Rule 2: Anti-NaN / Finite Hardening
             clean_buffer = [x for x in buffer if math.isfinite(x)]
             if not clean_buffer:
                 continue
-                
+
             mean = statistics.mean(clean_buffer)
             # Standard deviation requires at least 2 samples
             stddev = statistics.stdev(clean_buffer) if len(clean_buffer) > 1 else 0.0
-            
+
             self.baselines[key] = CalibrationBaseline(
                 mean=float(mean),
                 stddev=float(stddev),
                 samples=len(clean_buffer),
-                unit="C" if key == "core_temperature" else "ms" if key == "vessel_latency" else "ratio"
+                unit="C"
+                if key == "core_temperature"
+                else "ms"
+                if key == "vessel_latency"
+                else "ratio",
             )
             results[key] = f"μ={mean:.2f}"
-        
+
         latency = (time.perf_counter() - t0) * 1000
-        _log.info("SensorBaselineCalibrator: Calibration complete in %.2fms. Results: %s", 
-                  latency, results)
+        _log.info(
+            "SensorBaselineCalibrator: Calibration complete in %.2fms. Results: %s",
+            latency,
+            results,
+        )
 
     def get_threshold(self, key: str, sigma: float = 3.0, default: float = 0.0) -> float:
         """
@@ -116,7 +128,9 @@ class SensorBaselineCalibrator:
         val = b.mean + (sigma * b.stddev)
         return val if math.isfinite(val) else default
 
+
 _CALIBRATOR = SensorBaselineCalibrator()
+
 
 def get_sensor_calibrator() -> SensorBaselineCalibrator:
     return _CALIBRATOR

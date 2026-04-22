@@ -44,9 +44,10 @@ class NarrativeIdentityTracker:
 
     def update_from_episode(self, ep: NarrativeEpisode) -> None:
         import math
+
         a = self.EMA_ALPHA
         self.state.episode_count += 1
-        
+
         try:
             sc = float(ep.ethical_score)
             if not math.isfinite(sc):

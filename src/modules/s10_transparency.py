@@ -84,7 +84,9 @@ def build_help_request_signal(
 ) -> dict[str, Any]:
     """Generate clear visual/acoustic help protocol when human intervention is needed."""
     is_critical = bool(getattr(vitality, "is_critical", False)) if vitality is not None else False
-    thermal_critical = bool(getattr(vitality, "thermal_critical", False)) if vitality is not None else False
+    thermal_critical = (
+        bool(getattr(vitality, "thermal_critical", False)) if vitality is not None else False
+    )
     impacted = bool(getattr(vitality, "is_impacted", False)) if vitality is not None else False
 
     high_discomfort = str(discomfort.get("status", "")) == "high_discomfort"
@@ -92,7 +94,9 @@ def build_help_request_signal(
     if isinstance(limbic_profile, dict):
         limbic_vitality_critical = bool(limbic_profile.get("vitality_critical", False))
 
-    needs_help = is_critical or thermal_critical or impacted or limbic_vitality_critical or high_discomfort
+    needs_help = (
+        is_critical or thermal_critical or impacted or limbic_vitality_critical or high_discomfort
+    )
 
     if not needs_help:
         return {

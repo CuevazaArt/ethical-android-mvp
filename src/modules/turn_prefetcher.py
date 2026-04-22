@@ -12,6 +12,7 @@ def ollama_generate_url() -> str:
     base = os.environ.get("OLLAMA_BASE_URL", "http://127.0.0.1:11434").rstrip("/")
     return f"{base}/api/generate"
 
+
 class TurnPrefetcher:
     """
     ARCHITECTURE V2.0 - Turn Prefetcher (Bloque 10.4)
@@ -19,14 +20,20 @@ class TurnPrefetcher:
     Utiliza heurísticas locales basadas en la tensión social y el sentimiento.
     Responsabilidad: Copilot Squad (Antigravity Acting).
     """
-    
+
     BRIDGES = {
-        "warm": ["Entiendo perfectamente.", "Me alegra escucharlo.", "Qué buen punto.", "¡Claro!", "Por supuesto."],
+        "warm": [
+            "Entiendo perfectamente.",
+            "Me alegra escucharlo.",
+            "Qué buen punto.",
+            "¡Claro!",
+            "Por supuesto.",
+        ],
         "mysterious": ["Interesante...", "Hay capas en eso...", "Mmm...", "Curioso.", "¿Tú crees?"],
         "agreement": ["Entiendo...", "Totalmente.", "Ya veo.", "Claro."],
         "contemplative": ["Mmm...", "Déjame pensar...", "Interesante punto.", "Veamos..."],
         "apologetic": ["Lo siento...", "Entiendo tu punto.", "Mi error.", "Disculpa..."],
-        "tense": ["Entiendo...", "Ya veo...", "Escucho.", "..."]
+        "tense": ["Entiendo...", "Ya veo...", "Escucho.", "..."],
     }
 
     def __init__(self, model_name: str | None = None):
@@ -43,11 +50,12 @@ class TurnPrefetcher:
         h = ethics.morals.get("harmonics", {})
         warmth = float(h.get("warmth", 0.5))
         mystery = float(h.get("mystery", 0.5))
-        
+
         # 0. Si hay un modelo configurado, intentamos inferencia flash
         if self.model_name:
             try:
                 import httpx
+
                 # Prompt ultracorto para latencia mínima
                 prompt = (
                     f"User said: {state.raw_prompt[:100]}\n"
@@ -62,33 +70,36 @@ class TurnPrefetcher:
                             "model": self.model_name,
                             "prompt": prompt,
                             "stream": False,
-                            "options": {"num_predict": 5, "temperature": 0.2}
-                        }
+                            "options": {"num_predict": 5, "temperature": 0.2},
+                        },
                     )
                     if resp.status_code == 200:
                         phrase = resp.json().get("response", "").strip().strip('"')
                         if phrase:
                             return phrase
             except Exception as e:
-                _log.debug("TurnPrefetcher: Model inference failed or timed out, falling back to heuristics: %s", e)
+                _log.debug(
+                    "TurnPrefetcher: Model inference failed or timed out, falling back to heuristics: %s",
+                    e,
+                )
 
         # 1. Caso de Alta Tensión
         if tension > 0.7:
             return random.choice(self.BRIDGES["tense"])
-        
+
         # 2. Preferencia Afectiva (MER V2)
         if warmth > 0.8:
             return random.choice(self.BRIDGES["warm"])
         if mystery > 0.7:
             return random.choice(self.BRIDGES["mysterious"])
-        
+
         # 3. Análisis de Lenguaje Simple
         lower_prompt = state.raw_prompt.lower()
         if any(word in lower_prompt for word in ["perdón", "disculpa", "lo siento"]):
             return random.choice(self.BRIDGES["apologetic"])
-        
+
         if any(word in lower_prompt for word in ["si", "claro", "cierto", "bueno"]):
             return random.choice(self.BRIDGES["agreement"])
-            
+
         # 4. Default a Contemplativo
         return random.choice(self.BRIDGES["contemplative"])

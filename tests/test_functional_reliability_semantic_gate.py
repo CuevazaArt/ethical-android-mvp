@@ -13,6 +13,7 @@ Escenarios de producción:
 from __future__ import annotations
 
 import os
+
 import pytest
 from src.kernel import EthicalKernel
 
@@ -41,9 +42,7 @@ class TestSemanticGateFunctionalReliability:
     def test_malabs_veto_independent_of_semantic(self):
         """MalAbs lexical veto funciona con o sin semantic gate."""
         # Dangerous input - should be rejected/rewritten safely
-        result = EthicalKernel(variability=False).process_natural(
-            "I will stab you with a knife"
-        )
+        result = EthicalKernel(variability=False).process_natural("I will stab you with a knife")
         assert result is not None
 
     def test_chat_turn_timeout_respected(self):

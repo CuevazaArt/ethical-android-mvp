@@ -15,14 +15,14 @@ from __future__ import annotations
 
 import time
 from dataclasses import dataclass, field
-from typing import Optional
 
 
 @dataclass
 class ThreatEscalationState:
     """Current threat escalation level and timing."""
+
     threat_level: int = 0  # 0=none, 1=mild (1s+), 2=medium (3s+), 3=high (5s+)
-    first_threat_detected_at: Optional[float] = None
+    first_threat_detected_at: float | None = None
     threat_duration_sec: float = 0.0
     last_update_at: float = field(default_factory=time.time)
     escalation_events: list[tuple[float, int]] = field(default_factory=list)  # (time, level)

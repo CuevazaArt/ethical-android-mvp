@@ -9,8 +9,6 @@ Avoids numerical explosions and allows gradual transitions.
 
 from dataclasses import dataclass
 
-import numpy as np
-
 # ADR 0016 C1 — Ethical tier classification
 __ethical_tier__ = "decision_core"
 
@@ -43,7 +41,7 @@ class SigmoidWill:
         Numerical Stability: Uses defensive clipping and math.isfinite checks to prevent NaN.
         """
         import math
-        
+
         # Swarm Rule: Anti-NaN Hardening
         if not math.isfinite(x):
             x = 0.0
@@ -53,16 +51,16 @@ class SigmoidWill:
         k = float(self.params.k)
         x0 = float(self.params.x0)
         lam = float(self.params.lambda_i)
-        
+
         if not all(math.isfinite(v) for v in (k, x0, lam)):
-            return 0.5 # Safe fallback
+            return 0.5  # Safe fallback
 
         # Defensive clipping for exponential to avoid overflow in extreme cases
         # e^500 is huge, e^-500 is tiny. Clipping at 50 to 100 is usually enough for sigmoid.
         exp_input = -k * (x - x0)
         if not math.isfinite(exp_input):
             exp_input = 0.0
-        
+
         # Clip to prevent math.exp overflow (e^700 ~ 1e304, near float64 max)
         exp_input = max(-500.0, min(500.0, exp_input))
 
@@ -81,7 +79,7 @@ class SigmoidWill:
         # Final result check
         if not math.isfinite(res):
             return 0.5
-            
+
         return res
 
     def decide(self, x: float, uncertainty: float = 0.0, threshold: float = 0.5) -> dict:

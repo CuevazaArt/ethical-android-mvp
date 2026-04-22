@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 import pytest
-
 from src.modules.llm_layer import PROMPT_COMMUNICATION_LOCAL_FLUENCY_APPEND
 
 

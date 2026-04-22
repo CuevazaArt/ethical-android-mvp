@@ -10,16 +10,15 @@ from __future__ import annotations
 
 import math
 import time
-from dataclasses import dataclass, field
-from typing import Any
+from dataclasses import dataclass
 from unittest.mock import MagicMock, patch
 
 import numpy as np
-import pytest
 
 # ---------------------------------------------------------------------------
 # 12.1 — RGB/BGR fix in MobileNetV2Adapter.infer()
 # ---------------------------------------------------------------------------
+
 
 class TestColorSpaceParameter:
     """Verify the color_space parameter prevents the Blue Veil artifact."""
@@ -46,8 +45,8 @@ class TestColorSpaceParameter:
         """When model IS ready, BGR and RGB frames with different color channels
         must pass different tensors to the model (no channel inversion on RGB).
         This is validated by checking the PIL image passed downstream."""
-        from src.modules.vision_adapter import MobileNetV2Adapter
         from PIL import Image
+        from src.modules.vision_adapter import MobileNetV2Adapter
 
         captured_images: list[Image.Image] = []
 
@@ -61,12 +60,14 @@ class TestColorSpaceParameter:
         def fake_transform(img: Image.Image):
             captured_images.append(img.copy())
             import torch
+
             return torch.zeros(3, 224, 224)
 
         adapter.transform = fake_transform
 
         # Mock model output
         import torch
+
         mock_output = MagicMock()
         mock_softmax = torch.tensor([1.0])
         mock_conf = torch.tensor(1.0)
@@ -74,10 +75,12 @@ class TestColorSpaceParameter:
         adapter.model.return_value = MagicMock()
 
         # Patch torch operations used inside infer
-        with patch("torch.nn.functional.softmax") as mock_sm, \
-             patch("torch.max") as mock_max, \
-             patch("torch.topk") as mock_topk, \
-             patch("torch.no_grad"):
+        with (
+            patch("torch.nn.functional.softmax") as mock_sm,
+            patch("torch.max") as mock_max,
+            patch("torch.topk") as mock_topk,
+            patch("torch.no_grad"),
+        ):
             mock_sm.return_value = mock_softmax
             mock_max.return_value = (mock_conf, mock_idx)
             mock_topk.return_value = (torch.tensor([1.0]), torch.tensor([0]))
@@ -101,7 +104,9 @@ class TestColorSpaceParameter:
     def test_abstract_signature_accepts_color_space(self):
         """VisionAdapter ABC signature must include color_space."""
         import inspect
+
         from src.modules.vision_adapter import VisionAdapter
+
         sig = inspect.signature(VisionAdapter.infer)
         assert "color_space" in sig.parameters, (
             "VisionAdapter.infer must declare color_space parameter"
@@ -112,15 +117,16 @@ class TestColorSpaceParameter:
 # 12.2 — SensorBaselineCalibrator
 # ---------------------------------------------------------------------------
 
+
 @dataclass
 class _FakeSnapshot:
     """Minimal duck-type snapshot for calibrator tests."""
+
     core_temperature: float | None = None
     accelerometer_jerk: float | None = None
 
 
 class TestSensorBaselineCalibrator:
-
     def test_not_done_before_window(self):
         from src.modules.sensor_baseline_calibrator import SensorBaselineCalibrator
 

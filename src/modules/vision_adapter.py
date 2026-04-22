@@ -6,7 +6,6 @@ converting visual streams into ethical signals for the kernel.
 """
 
 import logging
-import queue as queue_mod
 from abc import ABC, abstractmethod
 from dataclasses import dataclass, field
 from typing import Any
@@ -56,9 +55,10 @@ class VisionAdapter(ABC):
 
 import os
 
+
 def from_env_vision_adapter() -> "MobileNetV2Adapter":
     """
-    Factory method to create a MobileNetV2Adapter using 
+    Factory method to create a MobileNetV2Adapter using
     KERNEL_VISION_DEVICE environment variable (cpu/cuda).
     """
     device = os.environ.get("KERNEL_VISION_DEVICE", "cpu").lower()
@@ -72,6 +72,7 @@ class MobileNetV2Adapter(VisionAdapter):
     This adapter handles image preprocessing, model execution, and
     label mapping for ethical signal extraction.
     """
+
     def __init__(self, device: str = "cpu"):
         self.model = None
         self.transform = None
@@ -92,18 +93,22 @@ class MobileNetV2Adapter(VisionAdapter):
             # Use recommended weights and categories from torchvision
             weights = MobileNet_V2_Weights.DEFAULT
             self.model = models.mobilenet_v2(weights=weights)
-            
+
             # Map device strings to torch devices
             if self.device == "cuda" and torch.cuda.is_available():
                 actual_device = torch.device("cuda")
-            elif self.device == "mps" and hasattr(torch.backends, "mps") and torch.backends.mps.is_available():
+            elif (
+                self.device == "mps"
+                and hasattr(torch.backends, "mps")
+                and torch.backends.mps.is_available()
+            ):
                 actual_device = torch.device("mps")
             else:
                 actual_device = torch.device("cpu")
-                
+
             self.model = self.model.to(actual_device)
             self.model.eval()
-            
+
             self._torch_device = actual_device
             self.categories = weights.meta["categories"]
             self.transform = weights.transforms()
@@ -140,7 +145,7 @@ class MobileNetV2Adapter(VisionAdapter):
                 if color_space.lower() == "bgr":
                     frame_rgb = frame[:, :, ::-1]  # BGR → RGB
                 else:
-                    frame_rgb = frame              # already RGB — skip flip
+                    frame_rgb = frame  # already RGB — skip flip
                 img = Image.fromarray(frame_rgb.astype("uint8"))
             else:
                 img = frame
@@ -176,6 +181,7 @@ class MobileNetV2Adapter(VisionAdapter):
             _log.error("Inference error: %s", e)
             return VisionInference(primary_label="error", confidence=0.0)
 
+
 import asyncio
 
 
@@ -201,9 +207,10 @@ def jpeg_bytes_from_vision_queue_item(item: Any) -> bytes | None:
 
 class NomadVisionConsumer:
     """
-    Consumes frames from NomadBridge asynchronously and dispatches them 
+    Consumes frames from NomadBridge asynchronously and dispatches them
     to the underlying VisionAdapter.
     """
+
     def __init__(self, adapter: VisionAdapter):
         self.adapter = adapter
         self._task: asyncio.Task | None = None
@@ -213,11 +220,12 @@ class NomadVisionConsumer:
         self._task = asyncio.create_task(self._consume_loop())
 
     async def _consume_loop(self):
-        from .nomad_bridge import get_nomad_bridge
         import numpy as np
-        
-        # We assume cv2 or PIL is used inside the adapter, we can decode using cv2 here 
-        # or pass bytes to the adapter if it handles it. 
+
+        from .nomad_bridge import get_nomad_bridge
+
+        # We assume cv2 or PIL is used inside the adapter, we can decode using cv2 here
+        # or pass bytes to the adapter if it handles it.
         # Since adapter expects numpy array (OpenCV BGR), we decode here.
         try:
             import cv2
@@ -227,17 +235,11 @@ class NomadVisionConsumer:
 
         bridge = get_nomad_bridge()
 
-        def _timed_get() -> Any | None:
-            try:
-                return bridge.vision_queue.get(timeout=0.3)
-            except queue_mod.Empty:
-                return None
-
         while True:
             try:
-                raw = await asyncio.to_thread(_timed_get)
-                if raw is None:
-                    await asyncio.sleep(0)
+                try:
+                    raw = await asyncio.wait_for(bridge.vision_queue.get(), timeout=0.3)
+                except TimeoutError:
                     continue
                 frame_bytes = jpeg_bytes_from_vision_queue_item(raw)
                 if not frame_bytes:
@@ -252,11 +254,11 @@ class NomadVisionConsumer:
                     # This is CORRECT: imdecode always returns BGR regardless of source.
                     # The "Blue Veil" was caused by a second flip inside infer() when the
                     # frame_rgb assignment was done unconditionally. That is now gated.
-                    infer_result = await asyncio.to_thread(
-                        self.adapter.infer, img, "bgr"
-                    )
+                    infer_result = await asyncio.to_thread(self.adapter.infer, img, "bgr")
                     self.latest_inference = infer_result
-                    _log.debug("Nomad vision inferred: %s (color_space=bgr)", infer_result.primary_label)
+                    _log.debug(
+                        "Nomad vision inferred: %s (color_space=bgr)", infer_result.primary_label
+                    )
             except asyncio.CancelledError:
                 break
             except Exception as e:

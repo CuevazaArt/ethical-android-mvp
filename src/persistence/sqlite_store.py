@@ -48,8 +48,9 @@ class SqlitePersistence:
         validate_snapshot_for_apply(snapshot)
         self.path.parent.mkdir(parents=True, exist_ok=True)
         raw = json.dumps(kernel_snapshot_to_json_dict(snapshot), ensure_ascii=False)
-        
+
         from ..utils.db_locks import sqlite_safe_write
+
         with sqlite_safe_write(self.path) as conn:
             _ensure_schema(conn)
             conn.execute(

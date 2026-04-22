@@ -7,8 +7,8 @@ import pytest
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
 
-from src.modules.turn_prefetcher import TurnPrefetcher, ollama_generate_url
 from src.kernel_lobes.models import EthicalSentence, SemanticState
+from src.modules.turn_prefetcher import TurnPrefetcher, ollama_generate_url
 
 
 @pytest.mark.asyncio

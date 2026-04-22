@@ -1,17 +1,13 @@
 """Tests for External Audit Framework (Phase 3+ security compliance)."""
 
-import json
 import os
 import sys
 import tempfile
 from pathlib import Path
 
-import pytest
-
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
 
 from src.modules.external_audit_framework import (
-    AuditLog,
     AuditReport,
     ExternalAuditFramework,
     SecurityFinding,

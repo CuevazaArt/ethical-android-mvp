@@ -8,7 +8,6 @@ The android does not store data: it builds history.
 import os
 from datetime import datetime
 from pathlib import Path
-from typing import Optional, List, Any
 
 import numpy as np
 
@@ -16,11 +15,11 @@ from src.persistence.narrative_storage import NarrativePersistence
 
 from .identity_reflection import IdentityReflector
 from .narrative_identity import NarrativeIdentityTracker
-from .narrative_types import BodyState, NarrativeArc, NarrativeEpisode, NarrativeChronicle
+from .narrative_types import BodyState, NarrativeArc, NarrativeChronicle, NarrativeEpisode
 from .semantic_embedding_client import (
-    ahttp_fetch_ollama_embedding, 
-    http_fetch_ollama_embedding, 
-    maybe_hash_fallback_embedding
+    ahttp_fetch_ollama_embedding,
+    http_fetch_ollama_embedding,
+    maybe_hash_fallback_embedding,
 )
 from .uchi_soto import RelationalTier
 
@@ -97,34 +96,34 @@ class NarrativeMemory:
         self.persistence.save_identity_digest(self.experience_digest)
         return self.experience_digest
 
-    async def consolidate_to_chronicle(self, limit: int = 50) -> Optional[NarrativeChronicle]:
+    async def consolidate_to_chronicle(self, limit: int = 50) -> NarrativeChronicle | None:
         """
         Phase 13: Recursive Chronicle Consolidation.
         Summarizes the oldest 'limit' episodes into a single Chronicle block.
         """
         if len(self.episodes) < limit:
             return None
-        
+
         to_summarize = self.episodes[:limit]
-        
+
         # 1. Gather stats
         start_ts = to_summarize[0].timestamp
         end_ts = to_summarize[-1].timestamp
         avg_sig = sum(ep.significance for ep in to_summarize) / len(to_summarize)
-        
+
         # 2. Extract Ethical Poles Summary
         poles_counts = {}
         for ep in to_summarize:
             for pole in ep.morals:
                 poles_counts[pole] = poles_counts.get(pole, 0) + 1
-        
+
         top_poles = sorted(poles_counts.items(), key=lambda x: -x[1])[:3]
         poles_summary = ", ".join([f"{p} ({c})" for p, c in top_poles])
-        
+
         # 3. Request LLM Summary (Thematic Distillation)
         # For MVP, we'll do a structured procedural summary if LLM not available
         # In full Phase 13, this calls a dedicated 'chronicler' prompt.
-        events_text = "; ".join([ep.event_description for ep in to_summarize[:10]]) # sample
+        events_text = "; ".join([ep.event_description for ep in to_summarize[:10]])  # sample
         summary_text = f"Chronicle of {len(to_summarize)} episodes. Predominant themes: {poles_summary}. Key events sample: {events_text}..."
 
         # 3.1 Fetch Semantic Embedding for the Chronicle summary
@@ -151,29 +150,32 @@ class NarrativeMemory:
             ethical_poles_summary=poles_summary,
             significance_avg=round(avg_sig, 4),
             episode_count=len(to_summarize),
-            semantic_embedding=embedding
+            semantic_embedding=embedding,
         )
-        
+
         # 4. Save and persist
         self.chronicles.append(chronicle)
         self.persistence.save_chronicle(chronicle)
-        
-        # 5. REMOVE summarized episodes from active memory list 
+
+        # 5. REMOVE summarized episodes from active memory list
         # (Disk retains them, but active session list is trimmed)
         self.episodes = self.episodes[limit:]
-        
+
         # 5.1 Neuroplasticity Digest Update (Bloque 26.0)
         # We assimilate the new chronicle into the Evolving Identity matrix
         digest = getattr(self, "experience_digest", "")
         if len(digest) > 1000:
-            digest = digest[-500:] # Truncate old digest to prevent explosion
+            digest = digest[-500:]  # Truncate old digest to prevent explosion
         digest += f"\n- {start_ts}: {summary_text}"
         self.experience_digest = digest
-        
+
         # 6. Final audit log
         import logging
-        logging.getLogger(__name__).info(f"Memory Chronicle Created: {chron_id} distilling {limit} episodes.")
-        
+
+        logging.getLogger(__name__).info(
+            f"Memory Chronicle Created: {chron_id} distilling {limit} episodes."
+        )
+
         return chronicle
 
     def get_reflection(self) -> str:
@@ -181,7 +183,7 @@ class NarrativeMemory:
         base_reflection = self.reflector.generate_first_person_mirror()
         # Bloque 23.0: Dynamic Identity Reflection
         if hasattr(self, "experience_digest") and self.experience_digest:
-             return f"{base_reflection}\n[EVOLVING IDENTITY (Neuroplasticity)]:\n{self.experience_digest}"
+            return f"{base_reflection}\n[EVOLVING IDENTITY (Neuroplasticity)]:\n{self.experience_digest}"
         return base_reflection
 
     def get_subjective_tone(self) -> dict[str, float]:
@@ -315,13 +317,17 @@ class NarrativeMemory:
         Bloque Mnemotécnico LTM: Búsqueda Semántica Vectorial In-Memory.
         Usa Similitud Coseno de Python puro para no depender de librerías vectoriales masivas en edge.
         """
-        import os
         import math
-        from .semantic_embedding_client import ahttp_fetch_ollama_embedding, maybe_hash_fallback_embedding
-        
+        import os
+
+        from .semantic_embedding_client import (
+            ahttp_fetch_ollama_embedding,
+            maybe_hash_fallback_embedding,
+        )
+
         ollama_url = os.environ.get("OLLAMA_BASE_URL", "http://localhost:11434/api/embeddings")
         ollama_model = os.environ.get("OLLAMA_EMBED_MODEL", "mxbai-embed-large")
-        
+
         try:
             emb_vec = await ahttp_fetch_ollama_embedding(ollama_url, ollama_model, query)
             if emb_vec is not None:
@@ -331,20 +337,21 @@ class NarrativeMemory:
                 if fallback is None:
                     return []
                 query_emb = fallback.tolist()
-                
+
             def cosine_sim(a, b):
-                dot = sum(x*y for x, y in zip(a, b))
-                norm_a = math.sqrt(sum(x*x for x in a))
-                norm_b = math.sqrt(sum(x*x for x in b))
-                if norm_a == 0 or norm_b == 0: return 0.0
+                dot = sum(x * y for x, y in zip(a, b))
+                norm_a = math.sqrt(sum(x * x for x in a))
+                norm_b = math.sqrt(sum(x * x for x in b))
+                if norm_a == 0 or norm_b == 0:
+                    return 0.0
                 return dot / (norm_a * norm_b)
-                
+
             scored = []
             for ep in self.episodes:
                 if ep.semantic_embedding:
                     score = cosine_sim(query_emb, ep.semantic_embedding)
                     scored.append((score, ep))
-            
+
             # Sort by similarity
             scored.sort(key=lambda x: x[0], reverse=True)
             # Threshold basic (> 0.5) to avoid injecting irrelevant memories
@@ -373,7 +380,7 @@ class NarrativeMemory:
     ) -> NarrativeEpisode:
         """Async version of register."""
         self._counter += 1
-        
+
         # 1. Significance calculation
         score_intensity = abs(score)
         arousal_intensity = abs(sigma - 0.5) * 2.0
@@ -400,7 +407,9 @@ class NarrativeMemory:
         ollama_model = os.environ.get("OLLAMA_EMBED_MODEL", "mxbai-embed-large")
 
         try:
-            embedding_vec = await ahttp_fetch_ollama_embedding(ollama_url, ollama_model, combined_text)
+            embedding_vec = await ahttp_fetch_ollama_embedding(
+                ollama_url, ollama_model, combined_text
+            )
             if embedding_vec is not None:
                 embedding = embedding_vec.tolist()
             else:
@@ -434,13 +443,14 @@ class NarrativeMemory:
         self.episodes.append(ep)
         self.identity.update_from_episode(ep)
         self._update_arcs(ep)
-        
+
         # 4. Async Persistence (Phase 9.3)
         import asyncio
+
         await asyncio.to_thread(self.persistence.save_episode, ep)
 
         # 5. Recursive Chronicling logic (Phase 13)
-        # If we exceed max_episodes, we summarize the bottom 10% of memory 
+        # If we exceed max_episodes, we summarize the bottom 10% of memory
         # instead of just discarding it.
         if len(self.episodes) > self.max_episodes:
             # We summarize a chunk (e.g. 50 episodes) to make space
@@ -554,6 +564,7 @@ class NarrativeMemory:
             return []
 
         import asyncio
+
         all_episodes = await asyncio.to_thread(self.persistence.load_all_episodes)
         candidates = []
         current_arc_archetype = self.active_arc.predominant_archetype if self.active_arc else None
@@ -585,8 +596,8 @@ class NarrativeMemory:
                     # Use cosine similarity between query and chronicle summary
                     # This finds high-level thematic resonance (Phase 12.1.3)
                     chron_sim = float(np.dot(query_embed, chr_vec))
-                    if chron_sim > 0.6: # Significant thematic match
-                         resonant_chronicle_ranges.append((chr.start_timestamp, chr.end_timestamp))
+                    if chron_sim > 0.6:  # Significant thematic match
+                        resonant_chronicle_ranges.append((chr.start_timestamp, chr.end_timestamp))
 
         for ep in all_episodes:
             resonance = 0.0
@@ -612,7 +623,7 @@ class NarrativeMemory:
                 ep_vec = np.array(ep.semantic_embedding)
                 dot = float(np.dot(query_embed, ep_vec))
                 resonance += max(0, 0.5 * dot)
-            
+
             # Chronicle Boost (Phase 12.1.3)
             for start, end in resonant_chronicle_ranges:
                 if start <= ep.timestamp <= end:

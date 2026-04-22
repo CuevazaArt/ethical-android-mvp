@@ -1,13 +1,13 @@
 import asyncio
 import logging
 import os
-from typing import Optional
 
 from ..kernel import EthicalKernel
-from .nomad_bridge import get_nomad_bridge
 from ..real_time_bridge import RealTimeBridge
+from .nomad_bridge import get_nomad_bridge
 
 _log = logging.getLogger(__name__)
+
 
 class NomadChatConsumer:
     """
@@ -19,7 +19,7 @@ class NomadChatConsumer:
     def __init__(self, kernel: EthicalKernel):
         self.kernel = kernel
         self.bridge = RealTimeBridge(kernel)
-        self._task: Optional[asyncio.Task] = None
+        self._task: asyncio.Task | None = None
 
     def start(self) -> None:
         self._task = asyncio.create_task(self._consume_loop())
@@ -43,16 +43,16 @@ class NomadChatConsumer:
                 text = (await nb.chat_text_queue.get()).strip()
                 if not text:
                     continue
-                
+
                 _log.info("NomadChatConsumer: Processing message from Vessel: %s", text[:50])
-                
+
                 # Task 13.1: Strict timeout to prevent limb-lock
                 timeout_raw = os.environ.get("KERNEL_NOMAD_CHAT_TIMEOUT", "5.0")
                 try:
                     timeout = max(0.1, float(timeout_raw))
                 except (TypeError, ValueError):
                     timeout = 5.0
-                
+
                 try:
                     # Run the full kernel turn
                     # In Tri-Lobe mode, this will use process_chat_turn_async if enabled.
@@ -64,38 +64,49 @@ class NomadChatConsumer:
                         ),
                         timeout=timeout,
                     )
-                    
+
                     # Feed back the response to the Nomad Vessel via charm_feedback_queue
                     if result.response and result.response.message:
-                        nb.charm_feedback_queue.put_nowait({
-                            "type": "kernel_voice",
-                            "text": result.response.message,
-                            "role": "nomad_vessel",
-                        })
-                        
+                        nb.charm_feedback_queue.put_nowait(
+                            {
+                                "type": "kernel_voice",
+                                "text": result.response.message,
+                                "role": "nomad_vessel",
+                            }
+                        )
+
                     # Also broadcast response to all connected L0 Dashboards for observability
-                    nb.broadcast_to_dashboards({
-                        "type": "thought",
-                        "payload": {
-                            "text": result.response.inner_voice or result.response.message,
-                            "source": "nomad_vessel_feedback",
-                        },
-                    })
-                    
-                except asyncio.TimeoutError:
-                    _log.warning("NomadChatConsumer: Turn timed out after %ss (Limbic Latency Detected)", timeout)
-                    nb.charm_feedback_queue.put_nowait({
-                        "type": "kernel_voice",
-                        "text": "[Communication Timeout: Neural Delay]",
-                        "role": "error",
-                    })
-                    
+                    nb.broadcast_to_dashboards(
+                        {
+                            "type": "thought",
+                            "payload": {
+                                "text": result.response.inner_voice or result.response.message,
+                                "source": "nomad_vessel_feedback",
+                            },
+                        }
+                    )
+
+                except TimeoutError:
+                    _log.warning(
+                        "NomadChatConsumer: Turn timed out after %ss (Limbic Latency Detected)",
+                        timeout,
+                    )
+                    nb.charm_feedback_queue.put_nowait(
+                        {
+                            "type": "kernel_voice",
+                            "text": "[Communication Timeout: Neural Delay]",
+                            "role": "error",
+                        }
+                    )
+
             except asyncio.CancelledError:
                 break
             except Exception as e:
                 _log.error("NomadChatConsumer error in consume loop: %s", e)
 
-_CONSUMER: Optional[NomadChatConsumer] = None
+
+_CONSUMER: NomadChatConsumer | None = None
+
 
 def start_nomad_chat_consumer(kernel: EthicalKernel) -> NomadChatConsumer:
     global _CONSUMER
@@ -103,6 +114,7 @@ def start_nomad_chat_consumer(kernel: EthicalKernel) -> NomadChatConsumer:
         _CONSUMER = NomadChatConsumer(kernel)
         _CONSUMER.start()
     return _CONSUMER
+
 
 async def stop_nomad_chat_consumer_async():
     global _CONSUMER

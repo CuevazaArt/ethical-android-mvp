@@ -11,13 +11,15 @@ from __future__ import annotations
 import hashlib
 from typing import Any
 
+
 class PrivacyShield:
     """
     Enforces privacy boundaries on sensory and narrative data.
     """
+
     def __init__(self, node_id: str):
         self.node_id = node_id
-        self._policy = "high_privacy" # DEFAULT: GPDR-aligned
+        self._policy = "high_privacy"  # DEFAULT: GPDR-aligned
 
     def anonymize_snapshot(self, snapshot: dict[str, Any]) -> dict[str, Any]:
         """
@@ -26,20 +28,20 @@ class PrivacyShield:
         """
         anonymized = snapshot.copy()
         entities = snapshot.get("entities", [])
-        
+
         # 1. Proactive Privacy: If sensitive objects are detected, block raw stream
         sensitive_targets = ["id_card", "credit_card", "document", "password_input", "face"]
         has_sensitive = any(e in sensitive_targets for e in entities)
-        
+
         if has_sensitive or "visual_frame" in anonymized:
             _type = "SENSITIVE_ENTITY_DETECTED" if has_sensitive else "GPDR_BLUR"
             anonymized["visual_frame"] = f"[REDACTED: {_type}]"
             anonymized["visual_metadata"] = {
                 "anonymization_schema": "proactive_privacy_v1",
                 "triggered_by": [e for e in entities if e in sensitive_targets],
-                "original_hash": self.generate_fingerprint(snapshot.get("visual_frame", ""))
+                "original_hash": self.generate_fingerprint(snapshot.get("visual_frame", "")),
             }
-        
+
         # 2. Precise Coordinates Redaction
         if "gps" in anonymized:
             anonymized["gps"] = "[REDACTED: COARSE_LOCATION]"
@@ -59,4 +61,4 @@ class PrivacyShield:
         Determines if an episode should be purged based on amnesia policy.
         """
         # 30-day default retention for minor events, 24h for high-sensitivity data
-        return episode_age_seconds < 86400 # Mock: 1 day limit for nomadic MVP
+        return episode_age_seconds < 86400  # Mock: 1 day limit for nomadic MVP

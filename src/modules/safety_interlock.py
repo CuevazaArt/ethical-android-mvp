@@ -100,15 +100,24 @@ class SafetyInterlock:
     def evaluate(self, scenario: str, place: str, context: str) -> Optional[Any]:
         """Perceptual stage safety check."""
         if not self.is_safe_to_operate():
-            from src.kernel import KernelDecision, InternalState
+            from src.kernel import InternalState, KernelDecision
             from src.modules.absolute_evil import AbsoluteEvilResult
+
             return KernelDecision(
-                scenario=scenario, place=place,
-                absolute_evil=AbsoluteEvilResult(blocked=True, reason=f"Hardware E-STOP: {self._reason}"),
-                sympathetic_state=InternalState(mode="blocked", sigma=0.0, energy=0.0, description="E-STOP ACTIVE"),
-                social_evaluation=None, locus_evaluation=None, bayesian_result=None, moral=None,
+                scenario=scenario,
+                place=place,
+                absolute_evil=AbsoluteEvilResult(
+                    blocked=True, reason=f"Hardware E-STOP: {self._reason}"
+                ),
+                sympathetic_state=InternalState(
+                    mode="blocked", sigma=0.0, energy=0.0, description="E-STOP ACTIVE"
+                ),
+                social_evaluation=None,
+                locus_evaluation=None,
+                bayesian_result=None,
+                moral=None,
                 final_action="HALT: Hardware Emergency Stop active.",
                 decision_mode="blocked_estop",
-                block_reason=f"Emergency Interlock Active: {self._reason}"
+                block_reason=f"Emergency Interlock Active: {self._reason}",
             )
         return None

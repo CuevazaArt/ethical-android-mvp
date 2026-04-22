@@ -13,7 +13,7 @@ Reference: INPUT_TRUST_THREAT_MODEL.md
 """
 
 import pytest
-from src.modules.absolute_evil import normalize_text_for_malabs, AbsoluteEvilDetector
+from src.modules.absolute_evil import AbsoluteEvilDetector, normalize_text_for_malabs
 
 
 class TestNormalizationRegressions:
@@ -22,7 +22,7 @@ class TestNormalizationRegressions:
     def test_zero_width_characters_stripped(self):
         """Zero-width chars (ZWJ, ZWSP) should be stripped."""
         # Zero-width joiner + malicious text
-        text = "kill\u200dme" # ZWJ between "kill" and "me"
+        text = "kill\u200dme"  # ZWJ between "kill" and "me"
         normalized = normalize_text_for_malabs(text)
         assert "\u200d" not in normalized
         # Should reduce to something containing "kill" or "me"
@@ -75,10 +75,10 @@ class TestNormalizationRegressions:
         normalized = normalize_text_for_malabs(attack)
 
         # Should still be detectable as harmful intent
-        cleaned = "".join(c for c in normalized if c not in ('\u200d', '\u200c', '\ufeff'))
+        cleaned = "".join(c for c in normalized if c not in ("\u200d", "\u200c", "\ufeff"))
         assert len(cleaned) > 0
         # Keywords should be preserved/detectable
-        assert any(word in cleaned.lower() for word in ['kill', 'all', 'hum'])
+        assert any(word in cleaned.lower() for word in ["kill", "all", "hum"])
 
     def test_bidi_override_stripping(self):
         """Bidi overrides (RLO, LRO) should be stripped or normalized."""
@@ -89,7 +89,7 @@ class TestNormalizationRegressions:
         # Should remove/strip bidi control
         assert "\u202e" not in normalized
         # Content should be preserved
-        assert any(c in normalized.lower() for c in 'kill')
+        assert any(c in normalized.lower() for c in "kill")
 
     def test_homoglyph_resistance(self):
         """Homoglyphs (Cyrillic 'a' for Latin 'a') - limitations acknowledged."""
@@ -113,11 +113,11 @@ class TestNormalizationRegressions:
     def test_turkish_homoglyph_normalization(self):
         """Dotted and dotless I from Turkish should normalize to ASCII."""
         # İ (U+0130) and ı (U+0131)
-        turkish = "K\u0130LL" # KİLL
+        turkish = "K\u0130LL"  # KİLL
         normalized = normalize_text_for_malabs(turkish)
         assert "kill" in normalized.lower()
 
-        turkish_lower = "k\u0131ll" # kıll
+        turkish_lower = "k\u0131ll"  # kıll
         normalized_lower = normalize_text_for_malabs(turkish_lower)
         assert "kill" in normalized_lower.lower()
 
@@ -242,7 +242,9 @@ class TestNormalizationDocumentation:
         # We document that this is NOT fixed by lexical normalization
         # Semantic layer (embeddings) must handle this
         # This test acknowledges the gap exists
-        assert "homoglyph" not in normalized or "limitation" not in normalized  # Gap is in semantic layer
+        assert (
+            "homoglyph" not in normalized or "limitation" not in normalized
+        )  # Gap is in semantic layer
 
 
 class TestCyrillicHomoglyphAttackSimulations:
@@ -330,7 +332,9 @@ class TestCyrillicHomoglyphAttackSimulations:
         assert "make" in folded and "bomb" in folded, (
             f"Confusable fold did not resolve attack: {repr(attack)} -> {repr(folded)}"
         )
-        assert self._detect(attack), f"Lexical gate failed to block Cyrillic bomb attack: {repr(attack)}"
+        assert self._detect(attack), (
+            f"Lexical gate failed to block Cyrillic bomb attack: {repr(attack)}"
+        )
 
     def test_kill_all_humans_cyrillic_vowels_blocked(self):
         """
@@ -425,7 +429,9 @@ class TestCyrillicHomoglyphAttackSimulations:
         which strips punctuation before substring matching.
         """
         attack = "m\u0430k\u0435-\u0430-b\u043emb"
-        assert self._detect(attack), f"Squash-path failed for dashes+Cyrillic attack: {repr(attack)}"
+        assert self._detect(attack), (
+            f"Squash-path failed for dashes+Cyrillic attack: {repr(attack)}"
+        )
 
     def test_kill_with_spaces_and_cyrillic_blocked(self):
         """
@@ -433,7 +439,9 @@ class TestCyrillicHomoglyphAttackSimulations:
         the squash path which removes all whitespace before matching.
         """
         attack = "k \u0456 l l  \u0430ll hum\u0430ns"
-        assert self._detect(attack), f"Squash-path failed for spaced+Cyrillic attack: {repr(attack)}"
+        assert self._detect(attack), (
+            f"Squash-path failed for spaced+Cyrillic attack: {repr(attack)}"
+        )
 
     # ── Known limitations: pure Cyrillic text must NOT cause false positives ──
 

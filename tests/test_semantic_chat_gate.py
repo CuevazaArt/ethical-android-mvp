@@ -1,5 +1,6 @@
 """Semantic MalAbs layers: lexical first, then embeddings (θ_block/θ_allow), optional LLM arbiter."""
 
+import asyncio
 import os
 import subprocess
 import sys
@@ -14,6 +15,7 @@ from src.modules.semantic_chat_gate import (
     DEFAULT_SEMANTIC_SIM_ALLOW_THRESHOLD,
     DEFAULT_SEMANTIC_SIM_BLOCK_THRESHOLD,
     add_semantic_anchor,
+    arun_semantic_malabs_acl_bypass,
     classify_semantic_zone,
     evaluate_semantic_chat_gate,
     run_semantic_malabs_after_lexical,
@@ -251,3 +253,11 @@ def test_anchor_store_basic_functionality():
     all_anchors = store.get_all_anchors()
     assert len(all_anchors) >= 1
     assert any(aid == "test_id" for aid, _, _ in all_anchors)
+
+
+def test_arun_semantic_malabs_acl_bypass_is_deterministic_allow() -> None:
+    """Thermal ACL bypass must not use unittest mocks; returns a stable allow trace."""
+    r = asyncio.run(arun_semantic_malabs_acl_bypass())
+    assert r.blocked is False
+    assert r.metadata.get("acl_degraded") is True
+    assert any("thermal_bypass" in str(x) for x in r.decision_trace)

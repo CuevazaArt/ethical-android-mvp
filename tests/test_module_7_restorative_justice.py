@@ -22,9 +22,7 @@ class TestRestoraiveJusticeModule:
         """EthosToken reparation transfer is logged persistently."""
         dao = DAOOrchestrator()
         txn = dao.issue_restorative_reparation(
-            case_id="case_001",
-            recipient="affected_user",
-            amount=100.5
+            case_id="case_001", recipient="affected_user", amount=100.5
         )
         # Should return a mock transaction hash
         assert isinstance(txn, str)
@@ -37,11 +35,7 @@ class TestRestoraiveJusticeModule:
         recipient = "test_user"
         case_id = "case_test_001"
 
-        txn = dao.issue_restorative_reparation(
-            case_id=case_id,
-            recipient=recipient,
-            amount=amount
-        )
+        txn = dao.issue_restorative_reparation(case_id=case_id, recipient=recipient, amount=amount)
 
         # Verify audit entry exists
         assert txn is not None
@@ -92,7 +86,7 @@ class TestRestoraiveJusticeModule:
         # Kernel has dao reference
         assert k.dao is not None
         # DAO should have reparation method
-        assert hasattr(k.dao, 'issue_restorative_reparation')
+        assert hasattr(k.dao, "issue_restorative_reparation")
 
     def test_multiple_slashing_events_cumulative(self):
         """Multiple slashing events accumulate reputation penalty."""
@@ -122,9 +116,7 @@ class TestRestoraiveJusticeModule:
 
         for amount in test_amounts:
             txn = dao.issue_restorative_reparation(
-                case_id=f"precision_test_{amount}",
-                recipient="precision_user",
-                amount=amount
+                case_id=f"precision_test_{amount}", recipient="precision_user", amount=amount
             )
             assert txn is not None
 
@@ -149,9 +141,7 @@ class TestRestoraiveJusticeModule:
 
         # Issue reparation linked to swarm consensus
         txn_hash = dao.issue_restorative_reparation(
-            case_id=case_id,
-            recipient="swarm_affected_user",
-            amount=compensation_amount
+            case_id=case_id, recipient="swarm_affected_user", amount=compensation_amount
         )
 
         # M7.1 acceptance: txn exists, amount is non-zero

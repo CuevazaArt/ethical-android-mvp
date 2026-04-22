@@ -1,21 +1,22 @@
 import asyncio
 import logging
-import time
-from typing import Optional
+
 from src.nervous_system.corpus_callosum import CorpusCallosum
 
 _log = logging.getLogger(__name__)
+
 
 class BusModulator:
     """
     Control unit for the Nervous System.
     Monitors congestion and scales the biological depth of the lobes.
     """
+
     def __init__(self, bus: CorpusCallosum):
         self.bus = bus
         self._running = False
-        self._monitor_task: Optional[asyncio.Task] = None
-        
+        self._monitor_task: asyncio.Task | None = None
+
         # Throttling state
         self.load_factor = 0.0  # 0.0 (Chill) to 1.0 (Panic)
         self.mode = "server"  # server, office_2, nomad_edge
@@ -37,7 +38,7 @@ class BusModulator:
                 await self._monitor_task
             except asyncio.CancelledError:
                 pass
-    
+
     async def _monitor_loop(self):
         """Main loop for biological throttling with awareness of queue caps."""
         from src.kernel_lobes.models import GlobalDegradationPulse
@@ -67,15 +68,14 @@ class BusModulator:
 
             # Exponential smoothing
             self.load_factor = (self.load_factor * 0.7) + (new_load * 0.3)
-            
+
             if self.load_factor > 0.8:
-                _log.warning(f"BusModulator: CRITICAL SATURATION ({self.load_factor:.2f}). Triggering degradation.")
-                pulse = GlobalDegradationPulse(
-                    degradation_factor=self.load_factor,
-                    priority=0
+                _log.warning(
+                    f"BusModulator: CRITICAL SATURATION ({self.load_factor:.2f}). Triggering degradation."
                 )
+                pulse = GlobalDegradationPulse(degradation_factor=self.load_factor, priority=0)
                 await self.bus.publish(pulse)
-            
+
             # Polling rate of clinical state
             await asyncio.sleep(0.1)
 
@@ -84,7 +84,7 @@ class BusModulator:
         base_samples = 500
         if self.mode == "nomad_edge":
             base_samples = 100
-            
+
         return int(base_samples * (1.0 - (self.load_factor * 0.5)))
 
     async def biological_yield(self):
@@ -93,5 +93,5 @@ class BusModulator:
         throttle = 0.0
         if self.load_factor > 0.5:
             throttle = ((self.load_factor - 0.5) * 2.0) * 0.1
-            
+
         await asyncio.sleep(base_sleep + throttle)

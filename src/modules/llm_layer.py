@@ -20,8 +20,9 @@ import logging
 import math
 import os
 import time
+from collections.abc import AsyncGenerator
 from dataclasses import dataclass
-from typing import Any, AsyncGenerator, TYPE_CHECKING
+from typing import Any
 
 try:
     import anthropic
@@ -37,8 +38,8 @@ try:
 except ImportError:
     HAS_HTTPX = False
 
-from .llm_http_cancel import raise_if_llm_cancel_requested
 from ..observability.metrics import observe_llm_completion_seconds
+from .light_risk_classifier import light_risk_classifier_enabled, light_risk_tier_from_text
 from .llm_backends import (
     AnthropicLLMBackend,
     LLMBackend,
@@ -46,6 +47,7 @@ from .llm_backends import (
     TextCompletionBackend,
     coerce_to_llm_backend,
 )
+from .llm_http_cancel import raise_if_llm_cancel_requested
 from .llm_touchpoint_policies import resolve_monologue_llm_backend_policy
 from .llm_verbal_backend_policy import (
     canned_rich_narrative_fields,
@@ -57,14 +59,13 @@ from .perception_backend_policy import (
     build_fast_fail_perception,
     resolve_perception_backend_policy,
 )
+from .perception_cross_check import apply_lexical_perception_cross_check
 from .perception_dual_vote import (
     apply_perception_dual_vote_metadata,
     perception_dual_ollama_model,
     perception_dual_second_temperature,
     perception_dual_vote_enabled,
 )
-from .light_risk_classifier import light_risk_classifier_enabled, light_risk_tier_from_text
-from .perception_cross_check import apply_lexical_perception_cross_check
 from .perception_schema import (
     PerceptionCoercionReport,
     finalize_summary,
@@ -380,11 +381,19 @@ class LLMModule:
             return
 
         self.mode = _normalize_llm_mode((mode or "auto").strip())
-        self.nomad_mode = os.environ.get("KERNEL_NOMAD_MODE", "").lower() in ("1", "true", "yes", "on")
+        self.nomad_mode = os.environ.get("KERNEL_NOMAD_MODE", "").lower() in (
+            "1",
+            "true",
+            "yes",
+            "on",
+        )
 
         if self.nomad_mode:
             if self.mode != "ollama":
-                logger.warning("NOMAD_MODE ACTIVE: Forcing Zero-API Fluency (ollama). Ignoring mode: %s", self.mode)
+                logger.warning(
+                    "NOMAD_MODE ACTIVE: Forcing Zero-API Fluency (ollama). Ignoring mode: %s",
+                    self.mode,
+                )
                 self.mode = "ollama"
 
         if self.mode == "ollama":
@@ -432,7 +441,6 @@ class LLMModule:
     def llm_backend(self) -> LLMBackend | None:
         """Unified adapter (completion + optional ``embedding``) when configured."""
         return self._llm_backend
-
 
     def _llm_completion(
         self,
@@ -553,9 +561,7 @@ class LLMModule:
                     float(os.environ.get("OLLAMA_TIMEOUT", "120")),
                     embed_model=str(inf.get("embed_model") or "nomic-embed-text"),
                 )
-                response_b = await b2.acompletion(
-                    _perception_prompt(), user_block, temperature=t2
-                )
+                response_b = await b2.acompletion(_perception_prompt(), user_block, temperature=t2)
             else:
                 response_b = await self._allm_completion(
                     _perception_prompt(),
@@ -923,10 +929,12 @@ class LLMModule:
             "D_delib": "deep deliberation",
             "gray_zone": "uncertainty, active caution",
         }
-        
+
         # Swarm Rule 2: Anti-NaN check for numeric inputs
-        if not math.isfinite(sigma): sigma = 0.0
-        if not math.isfinite(score): score = 0.5
+        if not math.isfinite(sigma):
+            sigma = 0.0
+        if not math.isfinite(score):
+            score = 0.5
 
         if self.mode in ("api", "ollama", "injected"):
             prompt = PROMPT_COMMUNICATION
@@ -1051,7 +1059,6 @@ class LLMModule:
         salience_context: str = "",
         identity_context: str = "",
         guardian_mode_context: str = "",
-
         ethical_leans: dict[str, float] | None = None,
         vitality_context: str = "",
         stream_callback: Any = None,
@@ -1169,6 +1176,7 @@ class LLMModule:
             identity_context=identity_context,
             guardian_mode_context=guardian_mode_context,
         )
+
     async def acommunicate_stream(
         self,
         *,
@@ -1194,19 +1202,28 @@ class LLMModule:
         """Async stream for verbal communication tokens."""
         if self.mode not in ("api", "ollama", "injected") or self._llm_backend is None:
             resp = self._communicate_local(
-                action, mode, state, circle, scenario,
-                affect_pad=affect_pad, dominant_archetype=dominant_archetype,
-                weakness_line=weakness_line, reflection_context=reflection_context,
-                salience_context=salience_context, identity_context=identity_context,
+                action,
+                mode,
+                state,
+                circle,
+                scenario,
+                affect_pad=affect_pad,
+                dominant_archetype=dominant_archetype,
+                weakness_line=weakness_line,
+                reflection_context=reflection_context,
+                salience_context=salience_context,
+                identity_context=identity_context,
                 guardian_mode_context=guardian_mode_context,
                 vitality_context=vitality_context,
             )
-            yield json.dumps({
-                "message": resp.message,
-                "tone": resp.tone,
-                "hax_mode": resp.hax_mode,
-                "inner_voice": resp.inner_voice
-            })
+            yield json.dumps(
+                {
+                    "message": resp.message,
+                    "tone": resp.tone,
+                    "hax_mode": resp.hax_mode,
+                    "inner_voice": resp.inner_voice,
+                }
+            )
             return
 
         mode_descs = {

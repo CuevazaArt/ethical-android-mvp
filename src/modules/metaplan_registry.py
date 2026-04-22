@@ -179,7 +179,7 @@ class MetaplanRegistry:
         try:
             if not math.isfinite(priority):
                 priority = 0.6
-            
+
             if len(self._goals) >= self._max:
                 self._goals.pop(0)
             g = MasterGoal(
@@ -188,11 +188,11 @@ class MetaplanRegistry:
                 priority=max(0.0, min(1.0, float(priority))),
             )
             self._goals.append(g)
-            
+
             latency = (time.perf_counter() - t0) * 1000
             if latency > 1.0:
                 _log.debug("MetaplanRegistry: add_goal latency = %.2fms", latency)
-            
+
             return g
         except Exception as e:
             _log.error("MetaplanRegistry: Failed to add goal: %s", e)

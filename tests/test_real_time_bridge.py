@@ -6,8 +6,8 @@ import sys
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
 
-from src.kernel import EthicalKernel
 from src import real_time_bridge as rtb
+from src.kernel import EthicalKernel
 from src.real_time_bridge import RealTimeBridge, reset_chat_threadpool_for_tests
 
 

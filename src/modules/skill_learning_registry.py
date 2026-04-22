@@ -64,11 +64,11 @@ class SkillLearningRegistry:
                 status="pending",
             )
             self._tickets.append(t)
-            
+
             latency = (time.perf_counter() - t0) * 1000
             if latency > 1.0:
                 _log.debug("SkillLearningRegistry: request_ticket latency = %.2fms", latency)
-            
+
             return t
         except Exception as e:
             _log.error("SkillLearningRegistry: Failed to request ticket: %s", e)

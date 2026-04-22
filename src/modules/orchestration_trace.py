@@ -12,7 +12,6 @@ import logging
 import time
 from dataclasses import dataclass, field
 from enum import Enum
-from typing import Any, Optional
 
 _log = logging.getLogger(__name__)
 
@@ -46,10 +45,7 @@ class StageTransition:
     def summary(self) -> str:
         """Human-readable summary of the transition."""
         status = "BLOCKED" if self.blocked else "→"
-        return (
-            f"[{self.stage.value:20s}] {status:8s} "
-            f"({self.duration_ms:6.2f}ms) {self.reason}"
-        )
+        return f"[{self.stage.value:20s}] {status:8s} ({self.duration_ms:6.2f}ms) {self.reason}"
 
 
 @dataclass
@@ -60,7 +56,7 @@ class OrchestrationTrace:
     decision_id: str
     start_time: float
     transitions: list[StageTransition] = field(default_factory=list)
-    final_action: Optional[str] = None
+    final_action: str | None = None
     final_blocked: bool = False
     total_duration_ms: float = 0.0
 
@@ -188,7 +184,7 @@ class OrchestrationTracer:
         if trace.decision_id in self.active_traces:
             del self.active_traces[trace.decision_id]
 
-    def get_trace(self, decision_id: str) -> Optional[OrchestrationTrace]:
+    def get_trace(self, decision_id: str) -> OrchestrationTrace | None:
         """Retrieve a trace by ID."""
         return self.active_traces.get(decision_id)
 

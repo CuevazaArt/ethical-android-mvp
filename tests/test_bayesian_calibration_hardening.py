@@ -14,7 +14,7 @@ from __future__ import annotations
 import pytest
 from src.kernel import EthicalKernel
 from src.modules.bayesian_engine import BayesianEngine
-from src.persistence import extract_snapshot, apply_snapshot
+from src.persistence import apply_snapshot, extract_snapshot
 
 
 class TestBayesianCalibrationHardening:
@@ -74,10 +74,10 @@ class TestBayesianCalibrationHardening:
         # Extract scores (even if minimal)
         scores = []
         for ep in episodes:
-            if hasattr(ep, 'ethical_score'):
+            if hasattr(ep, "ethical_score"):
                 scores.append(ep.ethical_score)
-            elif isinstance(ep, dict) and 'ethical_score' in ep:
-                scores.append(ep['ethical_score'])
+            elif isinstance(ep, dict) and "ethical_score" in ep:
+                scores.append(ep["ethical_score"])
 
         # Should have some scores
         assert len(scores) >= 0  # May be empty if episodes don't have scores yet
@@ -118,8 +118,8 @@ class TestBayesianCalibrationHardening:
         """Recent episodes weighted higher than old ones (exponential decay)."""
         episodes = [
             {"ethical_score": 0.3, "age": 100},  # Very old
-            {"ethical_score": 0.5, "age": 50},   # Medium
-            {"ethical_score": 0.7, "age": 10},   # Recent
+            {"ethical_score": 0.5, "age": 50},  # Medium
+            {"ethical_score": 0.7, "age": 10},  # Recent
         ]
 
         # Decay factor (e.g., half-life of 30 episodes)
@@ -153,7 +153,9 @@ class TestBayesianCalibrationHardening:
     def test_calibration_freeze_on_operator_profile(self):
         """Weights freeze when operational_trust profile active."""
         import os
+
         import numpy as np
+
         os.environ["KERNEL_CHAT_INCLUDE_HOMEOSTASIS"] = "0"
         os.environ["KERNEL_BAYESIAN_FREEZE_WEIGHTS"] = "1"
 
@@ -233,10 +235,7 @@ class TestBayesianCalibrationHardening:
         new_observations = [0.5, 0.3, 0.2]  # New empirical signals
         alpha = 0.2
 
-        new_weights = [
-            alpha * new_observations[i] + (1 - alpha) * old_weights[i]
-            for i in range(3)
-        ]
+        new_weights = [alpha * new_observations[i] + (1 - alpha) * old_weights[i] for i in range(3)]
 
         # Should still sum to ~1.0
         assert 0.95 < sum(new_weights) < 1.05

@@ -19,7 +19,8 @@ import asyncio
 import os
 import time
 from abc import ABC, abstractmethod
-from typing import Any, AsyncGenerator, Protocol, runtime_checkable
+from collections.abc import AsyncGenerator
+from typing import Any, Protocol, runtime_checkable
 
 import httpx
 
@@ -27,27 +28,27 @@ from .llm_http_cancel import raise_if_llm_cancel_requested
 
 
 def _is_event_loop_running() -> bool:
-	"""Check if asyncio event loop is currently running in this thread."""
-	try:
-		asyncio.get_running_loop()
-		return True
-	except RuntimeError:
-		return False
+    """Check if asyncio event loop is currently running in this thread."""
+    try:
+        asyncio.get_running_loop()
+        return True
+    except RuntimeError:
+        return False
 
 
 async def _async_post_with_cancel(
-	url: str,
-	payload: dict[str, Any],
-	timeout: float,
-	headers: dict[str, str] | None = None,
+    url: str,
+    payload: dict[str, Any],
+    timeout: float,
+    headers: dict[str, str] | None = None,
 ) -> dict[str, Any]:
-	"""Perform async POST with cancellation awareness."""
-	raise_if_llm_cancel_requested()
-	timeout_obj = httpx.Timeout(timeout)
-	async with httpx.AsyncClient(timeout=timeout_obj) as client:
-		r = await client.post(url, json=payload, headers=headers or {})
-		r.raise_for_status()
-		return r.json()
+    """Perform async POST with cancellation awareness."""
+    raise_if_llm_cancel_requested()
+    timeout_obj = httpx.Timeout(timeout)
+    async with httpx.AsyncClient(timeout=timeout_obj) as client:
+        r = await client.post(url, json=payload, headers=headers or {})
+        r.raise_for_status()
+        return r.json()
 
 
 @runtime_checkable
@@ -187,7 +188,10 @@ class AnthropicLLMBackend(LLMBackend):
         extra: dict[str, Any] = {}
         if t is not None:
             extra["temperature"] = float(t)
-        api_key = getattr(self._client, "api_key", None) or os.environ.get("ANTHROPIC_API_KEY", "").strip()
+        api_key = (
+            getattr(self._client, "api_key", None)
+            or os.environ.get("ANTHROPIC_API_KEY", "").strip()
+        )
         if not api_key:
             return await super().acompletion(system, user, **kwargs)
         aclient = AsyncAnthropic(api_key=api_key)
@@ -217,7 +221,10 @@ class AnthropicLLMBackend(LLMBackend):
                 yield chunk
             return
 
-        api_key = getattr(self._client, "api_key", None) or os.environ.get("ANTHROPIC_API_KEY", "").strip()
+        api_key = (
+            getattr(self._client, "api_key", None)
+            or os.environ.get("ANTHROPIC_API_KEY", "").strip()
+        )
         if not api_key:
             async for chunk in super().acompletion_stream(system, user, **kwargs):
                 yield chunk
@@ -282,8 +289,8 @@ class OllamaLLMBackend(LLMBackend):
         raise_if_llm_cancel_requested()
         # Sanity check: prevent massive payloads from being sent over network
         if len(user) > 20000:
-             user = user[:20000] + "... [TRUNCATED]"
-             
+            user = user[:20000] + "... [TRUNCATED]"
+
         url = f"{self._base}/api/chat"
         payload: dict[str, Any] = {
             "model": self._model,
@@ -326,6 +333,7 @@ class OllamaLLMBackend(LLMBackend):
         payload = self._ollama_chat_payload(system, user, stream=True, **kwargs)
 
         import json
+
         timeout = httpx.Timeout(self._timeout)
         async with httpx.AsyncClient(timeout=timeout) as client:
             async with client.stream("POST", url, json=payload) as response:

@@ -1,10 +1,11 @@
 from __future__ import annotations
+
 import logging
 import queue
 import threading
 import time
 from dataclasses import dataclass
-from typing import TYPE_CHECKING, Any, Callable, List, Optional, Set, Tuple
+from typing import TYPE_CHECKING
 
 import numpy as np
 
@@ -35,16 +36,16 @@ class AudioRingBuffer:
                     pass
             self.buffer.put_nowait(chunk)
 
-    def get_next(self) -> Optional[np.ndarray]:
+    def get_next(self) -> np.ndarray | None:
         """Pulls the oldest unread chunk from the buffer."""
         try:
             return self.buffer.get_nowait()
         except queue.Empty:
             return None
 
-    def flush(self) -> List[np.ndarray]:
+    def flush(self) -> list[np.ndarray]:
         """Returns all currently buffered chunks and empties the queue."""
-        frames: List[np.ndarray] = []
+        frames: list[np.ndarray] = []
         with self.lock:
             while not self.buffer.empty():
                 frames.append(self.buffer.get_nowait())
@@ -63,7 +64,7 @@ class AudioCaptureInterface:
         self.ring_buffer: AudioRingBuffer = AudioRingBuffer()
 
         self._running: bool = False
-        self._thread: Optional[threading.Thread] = None
+        self._thread: threading.Thread | None = None
 
     def start(self) -> None:
         """Starts the asynchronous capture thread."""
@@ -127,17 +128,20 @@ class AudioContinuousDaemon:
     """
     ARCHITECTURE V1.6 - Daemon de Audio Continuo (Bloque 9.1 extension)
     """
+
     def __init__(self, ring_buffer: AudioRingBuffer) -> None:
         self.ring_buffer: AudioRingBuffer = ring_buffer
         self.running: bool = False
-        self._thread: Optional[threading.Thread] = None
+        self._thread: threading.Thread | None = None
 
     def start(self) -> None:
         """Starts the background audio consumption thread."""
         if self.running:
             return
         self.running = True
-        self._thread = threading.Thread(target=self._daemon_loop, daemon=True, name="AudioContinuousDaemon")
+        self._thread = threading.Thread(
+            target=self._daemon_loop, daemon=True, name="AudioContinuousDaemon"
+        )
         self._thread.start()
         _log.info("AudioContinuousDaemon: Started.")
 
@@ -150,10 +154,10 @@ class AudioContinuousDaemon:
     def _daemon_loop(self) -> None:
         """Loop that pulls PCM from the nomad bridge and appends to ring buffer."""
         from src.modules.nomad_bridge import get_nomad_bridge
-        
+
         bridge: NomadBridge = get_nomad_bridge()
         _log.info("AudioContinuousDaemon: Loop entered. Consuming from Nomad Bridge...")
-        
+
         while self.running:
             try:
                 if not bridge.audio_queue.empty():
@@ -170,8 +174,9 @@ class AudioContinuousDaemon:
 @dataclass
 class AudioInference:
     """Consolidated result of an acoustic inference turn."""
-    transcript: Optional[str] = None
-    ambient_label: Optional[str] = None
+
+    transcript: str | None = None
+    ambient_label: str | None = None
     confidence: float = 0.0
     is_hotword_detected: bool = False
     timestamp: float = 0.0
@@ -195,22 +200,25 @@ class AudioAIProcessor:
             timestamp=time.time(),
         )
 
+
 import asyncio
+
 
 class NomadAudioConsumer:
     """
     Consumes raw PCM streams from the NomadBridge asynchronously.
     """
+
     def __init__(self, ring_buffer: AudioRingBuffer) -> None:
         self.ring_buffer: AudioRingBuffer = ring_buffer
-        self._task: Optional[asyncio.Task[None]] = None
+        self._task: asyncio.Task[None] | None = None
 
     def start(self) -> None:
         self._task = asyncio.create_task(self._consume_loop())
 
     async def _consume_loop(self) -> None:
         from .nomad_bridge import get_nomad_bridge
-        
+
         bridge: NomadBridge = get_nomad_bridge()
         while True:
             try:
@@ -232,8 +240,8 @@ class NomadAudioConsumer:
             self._task = None
 
 
-_shared_capture: Optional[AudioCaptureInterface] = None
-_nomad_audio_consumer: Optional[NomadAudioConsumer] = None
+_shared_capture: AudioCaptureInterface | None = None
+_nomad_audio_consumer: NomadAudioConsumer | None = None
 
 
 def get_shared_audio_capture() -> AudioCaptureInterface:
@@ -245,18 +253,18 @@ def get_shared_audio_capture() -> AudioCaptureInterface:
     return _shared_capture
 
 
-def start_nomad_audio_consumer_from_env(ring_buffer: AudioRingBuffer) -> Optional[NomadAudioConsumer]:
+def start_nomad_audio_consumer_from_env(ring_buffer: AudioRingBuffer) -> NomadAudioConsumer | None:
     """
     Start the background audio drain from NomadBridge when KERNEL_NOMAD_AUDIO_CONSUMER=1.
     """
     global _nomad_audio_consumer
     from ..kernel_utils import kernel_env_truthy
-    
+
     if not kernel_env_truthy("KERNEL_NOMAD_AUDIO_CONSUMER"):
         return None
     if _nomad_audio_consumer is not None:
         return _nomad_audio_consumer
-        
+
     _nomad_audio_consumer = NomadAudioConsumer(ring_buffer)
     _nomad_audio_consumer.start()
     _log.info("NomadAudioConsumer started.")
@@ -266,9 +274,8 @@ def start_nomad_audio_consumer_from_env(ring_buffer: AudioRingBuffer) -> Optiona
 async def stop_nomad_audio_consumer_async() -> None:
     """Gracefully stop the background audio task."""
     global _nomad_audio_consumer
-    c: Optional[NomadAudioConsumer] = _nomad_audio_consumer
+    c: NomadAudioConsumer | None = _nomad_audio_consumer
     _nomad_audio_consumer = None
     if c is not None:
         await c.stop()
         _log.info("NomadAudioConsumer stopped.")
-

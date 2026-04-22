@@ -1,66 +1,54 @@
-import pytest
-import asyncio
-import numpy as np
-import time
+"""
+Nomad + Thalamus field path (tri-lobe kernel): real ``ThalamusLobe`` APIs — no legacy ring buffer.
+
+Replaces v12-only mocks against ``audio_ring_buffer`` (removed in EthosKernel V13).
+"""
+
+from __future__ import annotations
+
 from src.kernel import EthicalKernel
 from src.modules.nomad_bridge import get_nomad_bridge
 from src.modules.sensor_contracts import SensorSnapshot
 
-@pytest.mark.asyncio
-async def test_nomad_multimodal_ingestion_stress():
-    """
-    Stress test for Nomad Bridge: Simultaneous Audio, Vision and Telemetry.
-    Validates that Thalamus EMA smoothing and Perceptive Lobe inertia 
-    handle burst data correctly.
-    """
-    # 1. Setup Kernel with Nomad Bridge enabled
-    import os
-    os.environ["KERNEL_NOMAD_BRIDGE_ENABLED"] = "1"
-    os.environ["KERNEL_BAYESIAN_MODE"] = "posterior_driven"
-    
-    kernel = EthicalKernel(variability=False)
+
+def test_fuse_sensory_stream_none_is_safe() -> None:
+    """Guard path: fusion may run before any snapshot exists (B.5 hardening)."""
+    kernel = EthicalKernel(mode="office_2")
+    out = kernel.thalamus.fuse_sensory_stream(None)
+    assert isinstance(out, dict)
+    assert "sensory_tension" in out
+    assert "attention_locus" in out
+
+
+def test_nomad_multimodal_bridge_and_thalamus_fusion() -> None:
+    kernel = EthicalKernel(mode="office_2")
     bridge = get_nomad_bridge()
-    
-    # 2. Simulate High-Frequency Telemetry (IMU)
-    for beta in [30, 90, 30]:
-        bridge.telemetry_queue.put_nowait({"orientation": {"beta": beta, "gamma": 0, "alpha": 0}})
-        # Ingest via Thalamus (usually done in process loop, here direct for test)
-        payload = bridge.telemetry_queue.get_nowait()
-        kernel.thalamus.ingest_telemetry(payload)
-    
-    # Check if EMA smoothed the transition
+
+    for beta in (30.0, 90.0, 30.0):
+        kernel.thalamus.ingest_telemetry(
+            {"orientation": {"beta": beta, "gamma": 0.0, "alpha": 0.0}}
+        )
+
     summary = kernel.thalamus.get_sensory_summary()
     assert "posture" in summary
+    assert summary["posture"] in ("engaged", "speaking", "idle")
 
-    # 3. Simulate Audio Stream (PCM)
-    pcm_data = (np.random.rand(1600) * 0.5).astype(np.float32).tobytes()
-    bridge.audio_queue.put_nowait(pcm_data)
-    
-    # Let the daemon process it
-    time.sleep(0.5)
-    assert not kernel.audio_ring_buffer.buffer.empty()
+    pcm = b"\x01\x02" * 800
+    if not bridge.audio_queue.full():
+        bridge.audio_queue.put_nowait(pcm)
+    assert bridge.audio_queue.qsize() >= 1
 
-    # 4. Simulate Vision Frames
-    dummy_frame = b"\xff\xd8" + b"\x00" * 10
-    bridge.vision_queue.put_nowait(dummy_frame)
-    
-    # 5. Full Process Turn
+    if not bridge.vision_queue.full():
+        bridge.vision_queue.put_nowait(b"\xff\xd8" + b"\x00" * 8)
+    assert bridge.vision_queue.qsize() >= 1
+
     snapshot = SensorSnapshot(
         battery_level=0.8,
-        ambient_noise=0.1
+        ambient_noise=0.1,
+        rms_audio=0.4,
+        image_metadata={"lip_movement": 0.4, "human_presence": 0.6},
     )
-    
-    # Perceptive Lobe should pull from queues via Thalamus
-    # We yield to allow async tasks to run
-    await asyncio.sleep(0.1)
-    
-    # 6. Verify Thalamus Fusion
     fusion = kernel.thalamus.fuse_sensory_stream(snapshot)
-    if fusion:
-        assert "attention_locus" in fusion
-        assert "sensory_tension" in fusion
-
-    print("✅ Nomad Multimodal Ingestion Stress Test Passed.")
-
-if __name__ == "__main__":
-    asyncio.run(test_nomad_multimodal_ingestion_stress())
+    assert fusion
+    assert "attention_locus" in fusion
+    assert "sensory_tension" in fusion

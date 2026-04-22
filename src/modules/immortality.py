@@ -18,9 +18,8 @@ the Reflexive Mirror and Broken-Mirror logic survive restores.
 
 import hashlib
 import json
-import os
 import math
-import shutil
+import os
 from dataclasses import dataclass
 from datetime import datetime
 from pathlib import Path
@@ -139,7 +138,7 @@ class ImmortalityProtocol:
         """Saves snapshots to disk using an atomic write pattern."""
         self.path.parent.mkdir(parents=True, exist_ok=True)
         data = {layer: [snap.__dict__ for snap in snaps] for layer, snaps in self.layers.items()}
-        
+
         temp_path = self.path.with_suffix(".tmp")
         try:
             with open(temp_path, "w", encoding="utf-8") as f:
@@ -222,7 +221,7 @@ class ImmortalityProtocol:
             weakness_t = kernel.weakness.type.value
             weakness_int = kernel.weakness.base_intensity
             emo_load = kernel.weakness.emotional_load()
-            
+
         # Mandatory Anti-NaN / Finitude hardening (Boy Scout)
         def _f(val: float, default: float = 0.5) -> float:
             return float(val) if math.isfinite(val) else default

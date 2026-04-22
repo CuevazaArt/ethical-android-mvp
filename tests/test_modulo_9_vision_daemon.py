@@ -14,18 +14,11 @@ Integration chain:
 
 from __future__ import annotations
 
-import os
-import pytest
-import threading
-import time
-import tempfile
-from pathlib import Path
-from unittest.mock import Mock, patch, MagicMock
 from collections import deque
 
+import pytest
 from src.modules.vision_inference import (
     VisionInferenceEngine,
-    VisionDetection,
 )
 
 

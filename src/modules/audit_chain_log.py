@@ -62,6 +62,7 @@ def _read_last_chain_state(path: Path) -> tuple[int, str]:
     except (json.JSONDecodeError, ValueError, KeyError) as e:
         # Audit file corruption detected; log and return safe defaults
         import logging
+
         logging.getLogger(__name__).warning(
             "Audit chain read error (possibly corrupted): %s. Resuming from genesis.",
             e,
@@ -89,6 +90,7 @@ def append_audit_event(event_type: str, payload: dict[str, Any]) -> None:
 
     lock_path = path.with_name(path.name + ".audit.lock")
     import logging
+
     logger = logging.getLogger(__name__)
 
     try:
@@ -114,19 +116,22 @@ def append_audit_event(event_type: str, payload: dict[str, Any]) -> None:
                     inner_canon.encode("utf-8"),
                     hashlib.sha256,
                 ).hexdigest()
-                
+
             record_line = _canonical_dumps(record) + "\n"
             with open(path, "a", encoding="utf-8") as fh:
                 fh.write(record_line)
                 fh.flush()  # Explicit flush before releasing lock
-                
+
             # Verify by re-reading last line
             try:
-                with open(path, "r", encoding="utf-8") as fh:
+                with open(path, encoding="utf-8") as fh:
                     lines = fh.readlines()
                     last_line = lines[-1] if lines else None
                 if last_line and last_line.strip() != record_line.strip():
-                    logger.error("Audit chain write verification failed (possible corruption); expected seq=%d", next_seq)
+                    logger.error(
+                        "Audit chain write verification failed (possible corruption); expected seq=%d",
+                        next_seq,
+                    )
             except Exception as ve:
                 logger.warning("Audit chain read-back verification failed: %s", ve)
 

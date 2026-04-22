@@ -10,19 +10,17 @@ Covers:
 from __future__ import annotations
 
 import asyncio
-import importlib
 import os
-import sys
 import time
 from typing import Any
-from unittest.mock import AsyncMock, MagicMock, patch
+from unittest.mock import MagicMock, patch
 
 import pytest
-
 
 # ---------------------------------------------------------------------------
 # 13.1a — KERNEL_CHAT_TURN_TIMEOUT default in settings
 # ---------------------------------------------------------------------------
+
 
 class TestChatTurnTimeoutDefault:
     def test_default_is_30s_remote_profile(self):
@@ -65,6 +63,7 @@ class TestChatTurnTimeoutDefault:
         """Explicit env value is honoured."""
         with patch.dict(os.environ, {"KERNEL_CHAT_TURN_TIMEOUT": "15"}):
             from src.settings.kernel_settings import KernelSettings
+
             st = KernelSettings.from_env()
         assert st.kernel_chat_turn_timeout_seconds == 15.0
 
@@ -73,32 +72,38 @@ class TestChatTurnTimeoutDefault:
 # 13.1b — _get_limbic_perception_timeout
 # ---------------------------------------------------------------------------
 
+
 class TestLimbicPerceptionTimeoutHelper:
     def test_default_12s(self):
         env = {k: v for k, v in os.environ.items() if k != "KERNEL_LIMBIC_PERCEPTION_TIMEOUT"}
         with patch.dict(os.environ, env, clear=True):
             from src.kernel_lobes.perception_lobe import PerceptiveLobe
+
             assert PerceptiveLobe._get_limbic_perception_timeout() == 12.0
 
     def test_env_override(self):
         with patch.dict(os.environ, {"KERNEL_LIMBIC_PERCEPTION_TIMEOUT": "5"}):
             from src.kernel_lobes.perception_lobe import PerceptiveLobe
+
             assert PerceptiveLobe._get_limbic_perception_timeout() == 5.0
 
     def test_zero_disables(self):
         with patch.dict(os.environ, {"KERNEL_LIMBIC_PERCEPTION_TIMEOUT": "0"}):
             from src.kernel_lobes.perception_lobe import PerceptiveLobe
+
             assert PerceptiveLobe._get_limbic_perception_timeout() is None
 
     def test_invalid_falls_back_to_12(self):
         with patch.dict(os.environ, {"KERNEL_LIMBIC_PERCEPTION_TIMEOUT": "NaN"}):
             from src.kernel_lobes.perception_lobe import PerceptiveLobe
+
             assert PerceptiveLobe._get_limbic_perception_timeout() == 12.0
 
 
 # ---------------------------------------------------------------------------
 # 13.1c — run_perception_stage_async falls back gracefully on timeout
 # ---------------------------------------------------------------------------
+
 
 class TestPerceptionStageTimeout:
     @pytest.mark.asyncio
@@ -133,8 +138,8 @@ class TestPerceptionStageTimeout:
         """
         When inner stage completes quickly, normal result is returned.
         """
+        from src.kernel_lobes.models import PerceptionStageResult
         from src.kernel_lobes.perception_lobe import PerceptiveLobe
-        from src.kernel_lobes.models import PerceptionStageResult, SemanticState
 
         lobe = PerceptiveLobe.__new__(PerceptiveLobe)
         lobe._timeout = 5.0
@@ -159,6 +164,7 @@ class TestPerceptionStageTimeout:
 # 13.2 — VAD state machine (Python mirror of media_engine.js logic)
 # ---------------------------------------------------------------------------
 
+
 class _VAD:
     """Pure-Python mirror of the JS VAD in media_engine.js (for unit testing).
 
@@ -168,12 +174,12 @@ class _VAD:
     - End: speech=False when hangover drains to 0
     """
 
-    RMS_THRESHOLD    = 0.015
-    ONSET_FRAMES     = 3
-    HANGOVER_FRAMES  = 12
+    RMS_THRESHOLD = 0.015
+    ONSET_FRAMES = 3
+    HANGOVER_FRAMES = 12
 
     def __init__(self) -> None:
-        self._above    = 0
+        self._above = 0
         self._hangover = 0
         self._speaking = False
         self.events: list[str] = []
@@ -272,11 +278,13 @@ class TestVADStateMachine:
 # 13.1 NEW — NomadBridge vad_event + chat_text relay (Bloque 13.1)
 # ---------------------------------------------------------------------------
 
+
 class TestNomadBridgeVadEvent:
     """NomadBridge._recv_loop must update vad_speaking on vad_event payloads."""
 
     def _make_bridge(self) -> Any:
         from src.modules.nomad_bridge import NomadBridge
+
         return NomadBridge()
 
     def test_initial_vad_speaking_is_false(self) -> None:
@@ -292,11 +300,13 @@ class TestNomadBridgeVadEvent:
         async def _recv() -> dict:
             nonlocal idx
             if idx < len(messages):
-                m = messages[idx]; idx += 1
+                m = messages[idx]
+                idx += 1
                 return m
             raise asyncio.CancelledError
 
-        ws = MagicMock(); ws.receive_json = _recv
+        ws = MagicMock()
+        ws.receive_json = _recv
         with pytest.raises(asyncio.CancelledError):
             await bridge._recv_loop(ws)
         assert bridge.vad_speaking is True
@@ -311,11 +321,13 @@ class TestNomadBridgeVadEvent:
         async def _recv() -> dict:
             nonlocal idx
             if idx < len(messages):
-                m = messages[idx]; idx += 1
+                m = messages[idx]
+                idx += 1
                 return m
             raise asyncio.CancelledError
 
-        ws = MagicMock(); ws.receive_json = _recv
+        ws = MagicMock()
+        ws.receive_json = _recv
         with pytest.raises(asyncio.CancelledError):
             await bridge._recv_loop(ws)
         assert bridge.vad_speaking is False
@@ -329,11 +341,13 @@ class TestNomadBridgeVadEvent:
         async def _recv() -> dict:
             nonlocal idx
             if idx < len(messages):
-                m = messages[idx]; idx += 1
+                m = messages[idx]
+                idx += 1
                 return m
             raise asyncio.CancelledError
 
-        ws = MagicMock(); ws.receive_json = _recv
+        ws = MagicMock()
+        ws.receive_json = _recv
         with pytest.raises(asyncio.CancelledError):
             await bridge._recv_loop(ws)
         assert bridge.vad_speaking is False
@@ -344,6 +358,7 @@ class TestNomadBridgeChatTextQueue:
 
     def _make_bridge(self) -> Any:
         from src.modules.nomad_bridge import NomadBridge
+
         return NomadBridge()
 
     @pytest.mark.asyncio
@@ -355,11 +370,13 @@ class TestNomadBridgeChatTextQueue:
         async def _recv() -> dict:
             nonlocal idx
             if idx < len(messages):
-                m = messages[idx]; idx += 1
+                m = messages[idx]
+                idx += 1
                 return m
             raise asyncio.CancelledError
 
-        ws = MagicMock(); ws.receive_json = _recv
+        ws = MagicMock()
+        ws.receive_json = _recv
         with pytest.raises(asyncio.CancelledError):
             await bridge._recv_loop(ws)
 
@@ -375,11 +392,13 @@ class TestNomadBridgeChatTextQueue:
         async def _recv() -> dict:
             nonlocal idx
             if idx < len(messages):
-                m = messages[idx]; idx += 1
+                m = messages[idx]
+                idx += 1
                 return m
             raise asyncio.CancelledError
 
-        ws = MagicMock(); ws.receive_json = _recv
+        ws = MagicMock()
+        ws.receive_json = _recv
         with pytest.raises(asyncio.CancelledError):
             await bridge._recv_loop(ws)
         assert bridge.chat_text_queue.empty()
@@ -393,11 +412,13 @@ class TestNomadBridgeChatTextQueue:
         async def _recv() -> dict:
             nonlocal idx
             if idx < len(messages):
-                m = messages[idx]; idx += 1
+                m = messages[idx]
+                idx += 1
                 return m
             raise asyncio.CancelledError
 
-        ws = MagicMock(); ws.receive_json = _recv
+        ws = MagicMock()
+        ws.receive_json = _recv
         with pytest.raises(asyncio.CancelledError):
             await bridge._recv_loop(ws)
         assert bridge.chat_text_queue.empty()
@@ -408,6 +429,7 @@ class TestChatTextConsumerCallback:
 
     def _make_bridge(self) -> Any:
         from src.modules.nomad_bridge import NomadBridge
+
         return NomadBridge()
 
     @pytest.mark.asyncio
@@ -461,6 +483,7 @@ class TestNomadChatTimeoutSetting:
 
     def test_default_five_seconds(self) -> None:
         from src.settings.kernel_settings import KernelSettings
+
         env = {k: v for k, v in os.environ.items() if k != "KERNEL_NOMAD_CHAT_TIMEOUT"}
         with patch.dict(os.environ, env, clear=True):
             st = KernelSettings.from_env()
@@ -468,8 +491,7 @@ class TestNomadChatTimeoutSetting:
 
     def test_env_override(self) -> None:
         from src.settings.kernel_settings import KernelSettings
+
         with patch.dict(os.environ, {"KERNEL_NOMAD_CHAT_TIMEOUT": "2.5"}):
             st = KernelSettings.from_env()
         assert st.kernel_nomad_chat_timeout_seconds == pytest.approx(2.5)
-
-

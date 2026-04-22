@@ -4,12 +4,13 @@ Stores the descriptive identity of the agent.
 """
 
 import json
-from pathlib import Path
-from dataclasses import dataclass, asdict, field
-from datetime import datetime
 import logging
+from dataclasses import asdict, dataclass, field
+from datetime import datetime
+from pathlib import Path
 
 _log = logging.getLogger(__name__)
+
 
 @dataclass
 class IdentityManifest:
@@ -17,6 +18,7 @@ class IdentityManifest:
     The 'Birth Certificate' and narrative foundation of the agent.
     This provides the baseline persona and versioning info.
     """
+
     name: str = "Antigravity"
     version: str = "14.5-NOMAD"
     birth_date: str = field(default_factory=lambda: datetime.now().strftime("%Y-%m-%d"))
@@ -28,10 +30,12 @@ class IdentityManifest:
     )
     operational_status: str = "NOMADIC_ACTIVE"
 
+
 class IdentityManifestStore:
     """
     Handles persistence for the IdentityManifest.
     """
+
     def __init__(self, path: str = "data/identity_manifest.json"):
         self.path = Path(path)
         self.manifest = self._load()
@@ -39,7 +43,7 @@ class IdentityManifestStore:
     def _load(self) -> IdentityManifest:
         if self.path.exists():
             try:
-                with open(self.path, "r", encoding="utf-8") as f:
+                with open(self.path, encoding="utf-8") as f:
                     data = json.load(f)
                 if not isinstance(data, dict):
                     raise TypeError("manifest root must be a JSON object")

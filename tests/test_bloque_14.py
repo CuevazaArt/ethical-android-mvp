@@ -12,10 +12,9 @@ from __future__ import annotations
 
 import os
 from typing import Any
-from unittest.mock import MagicMock, patch
+from unittest.mock import patch
 
 import pytest
-
 
 # ---------------------------------------------------------------------------
 # 14.1 — nomad_discovery helper functions
@@ -27,6 +26,7 @@ class TestIsPrivateLanIp:
 
     def _check(self, ip: str) -> bool:
         from src.modules.nomad_discovery import _is_private_lan_ip
+
         return _is_private_lan_ip(ip)
 
     def test_192_168_is_private(self) -> None:
@@ -53,6 +53,7 @@ class TestSafePort:
 
     def _check(self, v: int, default: int = 8765) -> int:
         from src.modules.nomad_discovery import _safe_port
+
         return _safe_port(v, default)
 
     def test_valid_port_returned_as_is(self) -> None:
@@ -228,6 +229,7 @@ def _mock_import_block_zeroconf(name: str, *args: Any, **kwargs: Any) -> Any:
 
 
 import builtins as _builtins
+
 original_import = _builtins.__import__
 
 
@@ -243,7 +245,11 @@ class TestPWAAutoDiscovery:
     def app_js_source(self) -> str:
         path = os.path.join(
             os.path.dirname(__file__),
-            "..", "src", "clients", "nomad_pwa", "app.js",
+            "..",
+            "src",
+            "clients",
+            "nomad_pwa",
+            "app.js",
         )
         with open(path, encoding="utf-8") as fh:
             return fh.read()
@@ -304,7 +310,13 @@ class TestNomadClinicalEndpoint:
     def test_queues_block_present(self, clinical_payload: dict[str, Any]) -> None:
         q = clinical_payload["queues"]
         assert isinstance(q, dict)
-        for key in ("vision_depth", "audio_depth", "telemetry_depth", "charm_feedback_depth", "chat_text_depth"):
+        for key in (
+            "vision_depth",
+            "audio_depth",
+            "telemetry_depth",
+            "charm_feedback_depth",
+            "chat_text_depth",
+        ):
             assert key in q
             assert isinstance(q[key], int)
 
@@ -324,6 +336,7 @@ class TestPublicQueueStatsClinicalFields:
 
     def _bridge(self):
         from src.modules.nomad_bridge import NomadBridge
+
         return NomadBridge()
 
     def test_last_rms_key_present(self) -> None:
@@ -357,6 +370,7 @@ class TestPublicQueueStatsClinicalFields:
     def test_last_rms_nan_clamped_to_zero(self) -> None:
         """NaN must never propagate to health JSON — Anti-NaN Boy Scout rule."""
         import math
+
         b = self._bridge()
         b.last_rms = float("nan")
         stats = b.public_queue_stats()
@@ -365,6 +379,7 @@ class TestPublicQueueStatsClinicalFields:
 
     def test_last_rms_inf_clamped_to_zero(self) -> None:
         import math
+
         b = self._bridge()
         b.last_rms = float("inf")
         stats = b.public_queue_stats()
@@ -393,4 +408,3 @@ class TestPublicQueueStatsClinicalFields:
             "last_sensor_update_delta",
         ):
             assert key in stats, f"Missing pre-existing key: {key}"
-

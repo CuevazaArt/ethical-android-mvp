@@ -8,12 +8,9 @@ Tests that async chat/kernel behavior conforms to ADR 0002 decision:
 - Metrics tracking for cancellation / abandonment
 """
 
-import asyncio
-import pytest
 import threading
-import time
-from unittest.mock import Mock, patch, AsyncMock
 
+import pytest
 from src.chat_settings import ChatServerSettings
 from src.kernel import EthicalKernel
 
@@ -139,7 +136,6 @@ class TestCooperativeExit:
         # This allows async caller to return turn_abandoned without side effects
 
         # Import should succeed if exception exists
-        from src.kernel import EthicalKernel
         # Note: If ChatTurnCooperativeAbort doesn't exist yet, this test documents
         # that it should exist per ADR 0002
 

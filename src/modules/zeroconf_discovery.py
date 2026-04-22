@@ -6,11 +6,11 @@ from typing import Optional
 _log = logging.getLogger(__name__)
 
 class ZeroconfAdvertiser:
-    \"\"\"
+    """
     Bloque 14.1: Auto-Descubrimiento (mDNS/Zeroconf).
-    Advertises the Ethos Kernel service on the local network so that Nomad Vessels 
+    Advertises the Ethos Kernel service on the local network so that Nomad Vessels
     (Smartphones) can discover the PC's IP automatically.
-    \"\"\"
+    """
     def __init__(self, name: str, port: int):
         self.name = name
         self.port = port

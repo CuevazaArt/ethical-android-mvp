@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 import pytest
-
 from src.kernel import EthosKernel
 from src.modules.nomad_session_sync import build_sync_identity_payload
 

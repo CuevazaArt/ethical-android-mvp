@@ -42,7 +42,12 @@ def _recv_turn_payload(ws):
         if msg.get("event_type") == "turn_finished":
             return msg["payload"]
         # Identity sync + Ouroboros / haptic side-channel frames; keep draining.
-        if msg.get("type") in ("SYNC_IDENTITY", "[SYNC_IDENTITY]", "kernel_voice", "haptic_feedback"):
+        if msg.get("type") in (
+            "SYNC_IDENTITY",
+            "[SYNC_IDENTITY]",
+            "kernel_voice",
+            "haptic_feedback",
+        ):
             continue
         if msg.get("event_type") is None:
             return msg
@@ -317,7 +322,7 @@ def test_websocket_chat_roundtrip(monkeypatch: pytest.MonkeyPatch):
         data = _recv_turn_payload(ws)
         assert "response" in data
         assert data["response"].get("message")
-        assert data.get("path") in ("light", "heavy", "safety_block", "kernel_block")
+        assert data.get("path") in ("light", "heavy", "safety_block", "kernel_block", "nervous_bus")
         assert "identity" in data and "ascription" in data["identity"]
         assert "drive_intents" in data and isinstance(data["drive_intents"], list)
         assert "monologue" in data
@@ -424,7 +429,7 @@ def test_websocket_optional_sensor_v8():
         )
         data = _recv_turn_payload(ws)
         assert "response" in data
-        assert data.get("path") in ("light", "heavy", "safety_block", "kernel_block")
+        assert data.get("path") in ("light", "heavy", "safety_block", "kernel_block", "nervous_bus")
 
 
 def test_websocket_guardian_routines_included(monkeypatch):
@@ -453,7 +458,7 @@ def test_websocket_sensor_preset_env(monkeypatch):
         ws.send_json({"text": "Ping with preset only.", "sensor": {"battery_level": 0.9}})
         data = _recv_turn_payload(ws)
         assert "response" in data
-        assert data.get("path") in ("light", "heavy", "safety_block", "kernel_block")
+        assert data.get("path") in ("light", "heavy", "safety_block", "kernel_block", "nervous_bus")
 
 
 @pytest.mark.parametrize(
@@ -1627,6 +1632,6 @@ def test_websocket_roundtrip_with_dedicated_threadpool(monkeypatch):
                 ws.send_json({"text": "Hello, dedicated pool."})
                 data = _recv_turn_payload(ws)
         assert "response" in data
-        assert data.get("path") in ("light", "heavy", "safety_block", "kernel_block")
+        assert data.get("path") in ("light", "heavy", "safety_block", "kernel_block", "nervous_bus")
     finally:
         reset_chat_threadpool_for_tests()

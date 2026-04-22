@@ -1,10 +1,10 @@
 import logging
-import time
 import math
 import re
+import time
 import unicodedata
 from dataclasses import dataclass
-from typing import Dict, List, Set, Any, Optional
+from typing import Any
 
 _log = logging.getLogger(__name__)
 
@@ -99,8 +99,8 @@ class PreloadedBuffer:
     """
 
     def __init__(self):
-        self.principles: Dict[str, FoundationalPrinciple] = {}
-        self.protocols: Dict[str, Set[str]] = {}
+        self.principles: dict[str, FoundationalPrinciple] = {}
+        self.protocols: dict[str, set[str]] = {}
         self._load_foundational()
         self._load_protocols()
         self._fixed_fingerprint = self.fingerprint()
@@ -186,19 +186,21 @@ class PreloadedBuffer:
             "first_aid": {"compassion", "no_harm", "legality"},
         }
 
-    def activate(self, situation_type: str) -> Dict[str, FoundationalPrinciple]:
+    def activate(self, situation_type: str) -> dict[str, FoundationalPrinciple]:
         """
         Activates the relevant principles for a situation type.
         """
         names = self.protocols.get(situation_type, {"transparency", "civic_coexistence"})
         return {n: self.principles[n] for n in names if n in self.principles}
 
-    def verify_action(self, action: str, active_principles: Dict[str, FoundationalPrinciple]) -> Dict[str, Any]:
+    def verify_action(
+        self, action: str, active_principles: dict[str, FoundationalPrinciple]
+    ) -> dict[str, Any]:
         """
         Verifies whether an action is consistent with the active principles.
         """
         t0 = time.perf_counter()
-        
+
         violated = []
         fulfilled = []
 
@@ -225,14 +227,14 @@ class PreloadedBuffer:
         context: str,
         *,
         kernel=None,
-        signals: Optional[Dict[str, Any]] = None,
-        limbic_profile: Optional[Dict[str, Any]] = None,
-    ) -> Dict[str, Any]:
+        signals: dict[str, Any] | None = None,
+        limbic_profile: dict[str, Any] | None = None,
+    ) -> dict[str, Any]:
         """
         Read-only summary for perception / chat observability.
         """
         t0 = time.perf_counter()
-        
+
         signals = signals or {}
         limbic_profile = limbic_profile or {}
         active_principles_dict = self.activate(context)
@@ -242,10 +244,10 @@ class PreloadedBuffer:
             risk = float(signals.get("risk", 0.0))
             urgency = float(signals.get("urgency", 0.0))
             hostility = float(signals.get("hostility", 0.0))
-            
+
             # Anti-NaN sanitation
             if not all(math.isfinite(x) for x in (risk, urgency, hostility)):
-                 risk, urgency, hostility = 0.0, 0.0, 0.0
+                risk, urgency, hostility = 0.0, 0.0, 0.0
         except (ValueError, TypeError):
             risk, urgency, hostility = 0.0, 0.0, 0.0
 
@@ -270,7 +272,7 @@ class PreloadedBuffer:
 
         latency_ms = (time.perf_counter() - t0) * 1000
         if latency_ms > 0.5:
-             _log.debug("Buffer: get_snapshot latency: %.4f ms", latency_ms)
+            _log.debug("Buffer: get_snapshot latency: %.4f ms", latency_ms)
 
         return {
             "source": "local_preloaded_buffer",

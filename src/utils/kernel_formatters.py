@@ -4,13 +4,15 @@ Extracted from God-Object src/kernel.py (Task 5 - Minor Backlog Hardening).
 """
 
 from __future__ import annotations
+
 import math
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING
 
 from src.utils.terminal_colors import Term
 
 if TYPE_CHECKING:
-    from src.kernel_lobes.models import KernelDecision, VerbalResponse, RichNarrative
+    from src.kernel_lobes.models import KernelDecision, RichNarrative, VerbalResponse
+
 
 def format_decision(d: KernelDecision) -> str:
     """Formats a complete decision for readable presentation with ANSI colors."""
@@ -24,11 +26,15 @@ def format_decision(d: KernelDecision) -> str:
         ]
 
         if d.blocked:
-            lines.append(f"  {Term.color('⛔ BLOCKED:', Term.B_RED)} {Term.color(d.block_reason, Term.RED)}")
+            lines.append(
+                f"  {Term.color('⛔ BLOCKED:', Term.B_RED)} {Term.color(d.block_reason, Term.RED)}"
+            )
             return "\n".join(lines)
 
         # Internal state
-        mode_color = Term.B_GREEN if "parasympathetic" in d.sympathetic_state.mode.lower() else Term.B_YELLOW
+        mode_color = (
+            Term.B_GREEN if "parasympathetic" in d.sympathetic_state.mode.lower() else Term.B_YELLOW
+        )
         lines.extend(
             [
                 f"  {Term.color('State:', Term.CYAN)} {Term.color(d.sympathetic_state.mode, mode_color)} (σ={d.sympathetic_state.sigma})",
@@ -79,7 +85,9 @@ def format_decision(d: KernelDecision) -> str:
                 ]
             )
             if br.pruned_actions:
-                lines.append(f"  {Term.color('Pruned:', Term.YELLOW)} {', '.join(br.pruned_actions)}")
+                lines.append(
+                    f"  {Term.color('Pruned:', Term.YELLOW)} {', '.join(br.pruned_actions)}"
+                )
             if d.feedback_consistency:
                 lines.append(f"  Feedback consistency: {d.feedback_consistency}")
             if d.applied_mixture_weights is not None:
@@ -103,7 +111,7 @@ def format_decision(d: KernelDecision) -> str:
             total_score = float(mo.total_score)
             if not math.isfinite(total_score):
                 total_score = 0.5
-                
+
             lines.extend(
                 [
                     "",
@@ -151,7 +159,8 @@ def format_decision(d: KernelDecision) -> str:
 
         # Note: composer for monologue belongs to executive_lobe / communications
         from src.modules.internal_monologue import compose_monologue_line
-        ep_id = getattr(d, 'episode_id', None) or 'unknown'
+
+        ep_id = getattr(d, "episode_id", None) or "unknown"
         lines.extend(
             [
                 "",
@@ -166,9 +175,7 @@ def format_decision(d: KernelDecision) -> str:
 
 
 def format_natural(
-    decision: KernelDecision, 
-    response: VerbalResponse, 
-    narrative: RichNarrative = None
+    decision: KernelDecision, response: VerbalResponse, narrative: RichNarrative = None
 ) -> str:
     """Formats complete result of natural language processing."""
     lines = [format_decision(decision)]

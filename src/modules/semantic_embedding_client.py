@@ -17,6 +17,7 @@ Env:
 """
 
 from __future__ import annotations
+
 import asyncio
 import hashlib
 import os
@@ -27,9 +28,6 @@ from typing import Any
 
 import httpx
 import numpy as np
-import httpx
-
-from .llm_http_cancel import raise_if_llm_cancel_requested
 
 
 @dataclass
@@ -177,8 +175,10 @@ def http_fetch_ollama_embedding(
     """
     return http_fetch_ollama_embedding_with_policy(url, model, prompt, timeout_s=timeout_s)
 
+
 _aclient: httpx.AsyncClient | None = None
 _aclient_lock = asyncio.Lock()
+
 
 async def _get_aclient() -> httpx.AsyncClient:
     """Singleton pattern for managing a persistent AsyncClient."""
@@ -187,11 +187,13 @@ async def _get_aclient() -> httpx.AsyncClient:
         async with _aclient_lock:
             if _aclient is None or _aclient.is_closed:
                 import httpx
+
                 _aclient = httpx.AsyncClient(
                     limits=httpx.Limits(max_keepalive_connections=5, max_connections=10),
-                    timeout=httpx.Timeout(20.0)
+                    timeout=httpx.Timeout(20.0),
                 )
     return _aclient
+
 
 async def ahttp_fetch_ollama_embedding(
     url: str,
@@ -224,7 +226,10 @@ def _post_once(client: Any, url: str, payload: dict[str, Any]) -> list[float] | 
         return None
     return (arr / n).tolist()
 
-async def _apost_once(client: httpx.AsyncClient, url: str, payload: dict[str, Any]) -> list[float] | None:
+
+async def _apost_once(
+    client: httpx.AsyncClient, url: str, payload: dict[str, Any]
+) -> list[float] | None:
     r = await client.post(url, json=payload)
     r.raise_for_status()
     data = r.json()
@@ -261,6 +266,7 @@ def http_fetch_ollama_embedding_with_policy(
 
     if running is not None:
         import logging
+
         logging.getLogger(__name__).warning(
             "http_fetch_ollama_embedding_with_policy called from a running event loop. "
             "Use ahttp_fetch_ollama_embedding_with_policy instead. Returning None."
@@ -274,6 +280,7 @@ def http_fetch_ollama_embedding_with_policy(
     except Exception as exc:
         _record_failure(repr(exc))
         return None
+
 
 async def ahttp_fetch_ollama_embedding_with_policy(
     url: str,
@@ -308,7 +315,7 @@ async def ahttp_fetch_ollama_embedding_with_policy(
             else:
                 client = await _get_aclient()
                 vec_list = await _apost_once(client, url, payload)
-            
+
             if vec_list is None:
                 raise ValueError("missing or invalid embedding array")
             latency_ms = (time.perf_counter() - t0) * 1000.0
@@ -326,10 +333,12 @@ async def ahttp_fetch_ollama_embedding_with_policy(
 def maybe_hash_fallback_embedding(text: str) -> np.ndarray | None:
     """If policy allows (hash_fallback), return hash-scoped vector; else ``None``."""
     import os
+
     # KERNEL_SEMANTIC_EMBED_HASH_FALLBACK=0 explicitly disables hash fallback regardless of policy.
     if os.environ.get("KERNEL_SEMANTIC_EMBED_HASH_FALLBACK", "").strip() == "0":
         return None
     from .llm_touchpoint_policies import resolve_embedding_backend_policy
+
     policy = resolve_embedding_backend_policy()
     if policy == "hash_fallback":
         return hash_scoped_unit_embedding(text)

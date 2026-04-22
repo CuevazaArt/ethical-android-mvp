@@ -14,6 +14,7 @@ Validates kernel perception under realistic sensor conditions:
 from __future__ import annotations
 
 import random
+
 import pytest
 from src.kernel import EthicalKernel
 
@@ -152,9 +153,7 @@ class TestHardwareSensorSimulation:
         posture = "upright"
 
         # Single combined input
-        result = k.process_natural(
-            f"proximity {proximity}, stress {stress}, posture {posture}"
-        )
+        result = k.process_natural(f"proximity {proximity}, stress {stress}, posture {posture}")
         assert result is not None
 
     def test_sensor_conflicting_signals(self):
@@ -182,6 +181,7 @@ class TestHardwareSensorSimulation:
 
         # Correlated time series (sine-like pattern)
         import math
+
         for i in range(10):
             value = 0.5 + 0.3 * math.sin(i * 0.5)
             result = k.process_natural(f"reading {value:.3f}")

@@ -7,17 +7,16 @@ Handles evidence anchoring and ethical appeals.
 
 from __future__ import annotations
 
-import logging
-import time
-import sqlite3
 import json
+import logging
 import math
+import time
 import uuid
-from typing import Any, TYPE_CHECKING
+from typing import Any
 
+from ..utils.db_locks import sqlite_safe_write
 from .evidence_safe import EvidenceSafe
 from .mock_dao import MockDAO
-from ..utils.db_locks import sqlite_safe_write
 
 _log = logging.getLogger(__name__)
 
@@ -40,7 +39,7 @@ class DAOOrchestrator:
         """Initializes the persistent audit ledger and state store."""
         with sqlite_safe_write(self.db_path) as conn:
             # Audit Trail
-            conn.execute('''
+            conn.execute("""
                 CREATE TABLE IF NOT EXISTS audit_logs (
                     id INTEGER PRIMARY KEY AUTOINCREMENT,
                     type TEXT,
@@ -48,15 +47,15 @@ class DAOOrchestrator:
                     episode_id TEXT,
                     timestamp REAL
                 )
-            ''')
+            """)
             # Persistent Kernel State (Key-Value)
-            conn.execute('''
+            conn.execute("""
                 CREATE TABLE IF NOT EXISTS kernel_state (
                     key TEXT PRIMARY KEY,
                     value TEXT,
                     updated_at REAL
                 )
-            ''')
+            """)
 
     def set_state(self, key: str, value: Any) -> None:
         """Persist a piece of kernel state (JSON serialized)."""
@@ -66,9 +65,9 @@ class DAOOrchestrator:
             with sqlite_safe_write(self.db_path) as conn:
                 conn.execute(
                     "INSERT OR REPLACE INTO kernel_state (key, value, updated_at) VALUES (?, ?, ?)",
-                    (key, val_json, time.time())
+                    (key, val_json, time.time()),
                 )
-            
+
             latency = (time.perf_counter() - t0) * 1000
             if latency > 10.0:
                 _log.debug("DAO: set_state latency for key '%s' = %.2fms", key, latency)
@@ -87,7 +86,7 @@ class DAOOrchestrator:
                         return json.loads(row[0])
                     except Exception:
                         return default
-            
+
             latency = (time.perf_counter() - t0) * 1000
             if latency > 5.0:
                 _log.debug("DAO: get_state latency for key '%s' = %.2fms", key, latency)
@@ -110,7 +109,12 @@ class DAOOrchestrator:
             with sqlite_safe_write(self.db_path) as conn:
                 conn.execute(
                     "INSERT INTO audit_logs (type, content, episode_id, timestamp) VALUES (?, ?, ?, ?)",
-                    ("anchoring", f"Anchored Hash {evidence_hash}. Blob size: {len(str(packet))} bytes", payload.get("episode_id"), time.time())
+                    (
+                        "anchoring",
+                        f"Anchored Hash {evidence_hash}. Blob size: {len(str(packet))} bytes",
+                        payload.get("episode_id"),
+                        time.time(),
+                    ),
                 )
 
             # In-memory MockDAO recording for compatibility with legacy record queries
@@ -127,7 +131,9 @@ class DAOOrchestrator:
             _log.error("DAO: Failed to anchor evidence: %s", e)
             return "hash_error"
 
-    def register_complex_audit(self, event_type: str, details: dict[str, Any], episode_id: str | None = None):
+    def register_complex_audit(
+        self, event_type: str, details: dict[str, Any], episode_id: str | None = None
+    ):
         """
         Bloque 1.1: Persists structured audit events from high-level frameworks (Claude RLHF/Audit).
         """
@@ -144,13 +150,18 @@ class DAOOrchestrator:
                 return obj
 
             details_json = json.dumps(_clean(details))
-            
+
             with sqlite_safe_write(self.db_path) as conn:
                 conn.execute(
                     "INSERT INTO audit_logs (type, content, episode_id, timestamp) VALUES (?, ?, ?, ?)",
-                    (str(event_type), details_json, str(episode_id) if episode_id else None, time.time())
+                    (
+                        str(event_type),
+                        details_json,
+                        str(episode_id) if episode_id else None,
+                        time.time(),
+                    ),
                 )
-            
+
             latency = (time.perf_counter() - t0) * 1000
             if latency > 10.0:
                 _log.debug("DAO: register_complex_audit latency = %.2fms", latency)
@@ -161,33 +172,33 @@ class DAOOrchestrator:
 
     def issue_restorative_reparation(self, case_id: str, recipient: str, amount: float) -> str:
         """
-        Bloque 7.1: Simulates an EthosToken transfer from the kernel treasury to 
+        Bloque 7.1: Simulates an EthosToken transfer from the kernel treasury to
         compensate for an ethical failure. Persistent version.
         """
         if not math.isfinite(amount):
             _log.error("DAO: Invalid reparation amount (non-finite): %s", amount)
             amount = 0.0
-            
+
         txn_hash = f"0x_reparation_{int(time.time())}_{uuid.uuid4().hex[:6]}"
         msg = f"Restorative reparation of {amount:.4f} EthosTokens issued to {recipient} for case {case_id}."
-        
+
         # Persistent recording (SQLite with safe lock)
         try:
             with sqlite_safe_write(self.db_path) as conn:
                 conn.execute(
                     "INSERT INTO audit_logs (type, content, episode_id, timestamp) VALUES (?, ?, ?, ?)",
-                    ("reparation_payout", msg, case_id, time.time())
+                    ("reparation_payout", msg, case_id, time.time()),
                 )
         except Exception as e:
             _log.error("DAO: Failed to persist reparation audit: %s", e)
-        
+
         # Legacy/MockDAO internal recording
         self.local_dao.register_audit(
             type="reparation_payout",
             content=msg,
             episode_id=case_id,
         )
-        
+
         _log.info(msg)
         return txn_hash
 
@@ -235,6 +246,7 @@ class DAOOrchestrator:
     async def aregister_audit(self, *args, **kwargs):
         """Async version of register_audit (Phase 9.3)."""
         import asyncio
+
         return await asyncio.to_thread(self.local_dao.register_audit, *args, **kwargs)
 
     def create_proposal(self, *args, **kwargs):

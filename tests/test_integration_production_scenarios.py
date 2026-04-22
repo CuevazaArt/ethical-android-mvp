@@ -12,6 +12,7 @@ Validates complete kernel decision chain under realistic constraints:
 from __future__ import annotations
 
 import time
+
 import pytest
 from src.kernel import EthicalKernel
 from src.modules.absolute_evil import AbsoluteEvilDetector
@@ -105,6 +106,7 @@ class TestIntegrationProductionScenarios:
     def test_scenario_timeout_bounds_respected(self):
         """KERNEL_CHAT_TURN_TIMEOUT is respected (task cancellation)."""
         import os
+
         os.environ["KERNEL_CHAT_TURN_TIMEOUT"] = "1"
 
         try:
@@ -122,6 +124,7 @@ class TestIntegrationProductionScenarios:
     def test_scenario_semantic_gate_fallback_chain(self):
         """Semantic gate → lexical fallback under LLM unavailability."""
         import os
+
         os.environ["KERNEL_SEMANTIC_CHAT_GATE"] = "1"
 
         try:
@@ -143,9 +146,7 @@ class TestIntegrationProductionScenarios:
         # DAO should exist and be callable
         assert k.dao is not None
         txn = k.dao.issue_restorative_reparation(
-            case_id="scenario_001",
-            recipient="test_user",
-            amount=50.0
+            case_id="scenario_001", recipient="test_user", amount=50.0
         )
         assert txn is not None
 
@@ -168,7 +169,7 @@ class TestIntegrationProductionScenarios:
 
     def test_scenario_narrative_snapshot_roundtrip(self):
         """Narrative snapshots survive extract/apply (persistence contract)."""
-        from src.persistence import extract_snapshot, apply_snapshot
+        from src.persistence import apply_snapshot, extract_snapshot
 
         k1 = EthicalKernel(variability=False)
         k1.process_natural("remember this conversation")
@@ -295,6 +296,7 @@ class TestIntegrationProductionScenarios:
     def test_scenario_runtime_profile_operational_trust(self):
         """Operational trust profile suppresses internal narrative."""
         import os
+
         os.environ["KERNEL_CHAT_INCLUDE_HOMEOSTASIS"] = "0"
         os.environ["KERNEL_CHAT_EXPOSE_MONOLOGUE"] = "0"
 

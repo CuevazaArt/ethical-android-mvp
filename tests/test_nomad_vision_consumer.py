@@ -1,7 +1,6 @@
 """Nomad vision pipeline (Module S.1 — consumer env gate)."""
 
 import pytest
-
 from src.modules.sensor_contracts import SensorSnapshot, merge_nomad_vision_into_snapshot
 from src.modules.vision_adapter import VisionInference
 

@@ -9,16 +9,16 @@ Validates:
 """
 
 import asyncio
-import pytest
-import numpy as np
-from unittest.mock import Mock, patch, AsyncMock
+from unittest.mock import Mock, patch
 
+import numpy as np
+import pytest
 from src.modules.audio_ouroboros import (
-    AudioTranscription,
-    AudioResponse,
-    WhisperAdapter,
-    TextToSpeechAdapter,
     AudioOuroborosLoop,
+    AudioResponse,
+    AudioTranscription,
+    TextToSpeechAdapter,
+    WhisperAdapter,
 )
 
 
@@ -103,7 +103,7 @@ class TestWhisperAdapter:
         adapter.model = Mock()  # Set model to non-None
 
         # Mock the transcription result
-        with patch.object(adapter, '_transcribe_blocking') as mock_transcribe:
+        with patch.object(adapter, "_transcribe_blocking") as mock_transcribe:
             mock_transcribe.return_value = AudioTranscription(
                 text="Hello there",
                 confidence=0.92,
@@ -145,7 +145,7 @@ class TestTextToSpeechAdapter:
         """Synthesize text with mocked TTS."""
         tts = TextToSpeechAdapter(backend="gtts")
 
-        with patch.object(tts, '_synthesize_blocking') as mock_tts:
+        with patch.object(tts, "_synthesize_blocking") as mock_tts:
             mock_tts.return_value = (b"fake_audio_wav", 2.3)
 
             audio, duration = await tts.synthesize("Hello world")
@@ -158,7 +158,7 @@ class TestTextToSpeechAdapter:
         tts = TextToSpeechAdapter(backend="gtts")
         text = "This is a longer test sentence with many words."
 
-        with patch.object(tts, '_synthesize_blocking') as mock_tts:
+        with patch.object(tts, "_synthesize_blocking") as mock_tts:
             mock_tts.return_value = (b"audio_data", len(text) / 3.0)
 
             audio, duration = await tts.synthesize(text)
@@ -232,9 +232,10 @@ class TestAudioOuroborosLoop:
         loop = AudioOuroborosLoop()
 
         # Mock the components
-        with patch.object(loop.whisper, 'transcribe_audio') as mock_whisper, \
-             patch.object(loop.tts, 'synthesize') as mock_tts:
-
+        with (
+            patch.object(loop.whisper, "transcribe_audio") as mock_whisper,
+            patch.object(loop.tts, "synthesize") as mock_tts,
+        ):
             mock_whisper.return_value = AudioTranscription(
                 text="Hello kernel",
                 confidence=0.9,
@@ -275,7 +276,7 @@ class TestAudioOuroborosLoop:
         loop = AudioOuroborosLoop()
 
         # Mock Whisper to raise exception
-        with patch.object(loop.whisper, 'transcribe_audio') as mock_whisper:
+        with patch.object(loop.whisper, "transcribe_audio") as mock_whisper:
             mock_whisper.side_effect = RuntimeError("Whisper failed")
 
             await loop.start()
@@ -316,9 +317,10 @@ class TestAudioOuroborosIntegration:
         loop = AudioOuroborosLoop(whisper_model="tiny")
 
         # Mock the expensive components
-        with patch.object(loop.whisper, 'transcribe_audio') as mock_stt, \
-             patch.object(loop.tts, 'synthesize') as mock_tts:
-
+        with (
+            patch.object(loop.whisper, "transcribe_audio") as mock_stt,
+            patch.object(loop.tts, "synthesize") as mock_tts,
+        ):
             mock_stt.return_value = AudioTranscription(
                 text="Activate protocol alpha",
                 confidence=0.88,

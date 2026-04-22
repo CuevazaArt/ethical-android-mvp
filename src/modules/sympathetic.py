@@ -1,8 +1,8 @@
 import logging
-import time
 import math
+import time
 from dataclasses import dataclass
-from typing import Dict, Any
+from typing import Any
 
 _log = logging.getLogger(__name__)
 
@@ -20,6 +20,7 @@ class InternalState:
 def _get_attack_rate() -> float:
     """Read KERNEL_SYMPATHETIC_ATTACK from env (default 0.15 for smoother transition)."""
     import os
+
     try:
         val = float(os.environ.get("KERNEL_SYMPATHETIC_ATTACK", "0.15"))
         return max(0.01, min(0.5, val))
@@ -52,7 +53,7 @@ class SympatheticModule:
             return self.SIGMA_INITIAL
         return max(self.SIGMA_MIN, min(self.SIGMA_MAX, s))
 
-    def evaluate_context(self, signals: Dict[str, Any]) -> InternalState:
+    def evaluate_context(self, signals: dict[str, Any]) -> InternalState:
         """
         Adjusts σ based on environmental signals.
 
@@ -64,16 +65,18 @@ class SympatheticModule:
                 - 'calm': float [0,1]
         """
         t0 = time.perf_counter()
-        
+
         try:
             risk = float(signals.get("risk", 0.0))
             urgency = float(signals.get("urgency", 0.0))
             hostility = float(signals.get("hostility", 0.0))
             calm = float(signals.get("calm", 0.0))
-            
+
             # Anti-NaN sanitation
             if not all(math.isfinite(x) for x in (risk, urgency, hostility, calm)):
-                _log.warning("Sympathetic: Non-finite signals detected. Resetting to nominal inputs.")
+                _log.warning(
+                    "Sympathetic: Non-finite signals detected. Resetting to nominal inputs."
+                )
                 risk, urgency, hostility, calm = 0.0, 0.0, 0.0, 0.0
         except (ValueError, TypeError):
             _log.error("Sympathetic: Invalid signal types. Using defaults.")
@@ -93,10 +96,10 @@ class SympatheticModule:
         self.sigma = new_sigma
 
         # Classify mode (slightly wider neutral zone for stabilization)
-        if new_sigma > 0.70: # Raised from 0.65
+        if new_sigma > 0.70:  # Raised from 0.65
             mode = "sympathetic"
             desc = "Active alert. Fast action prioritized."
-        elif new_sigma < 0.30: # Lowered from 0.35
+        elif new_sigma < 0.30:  # Lowered from 0.35
             mode = "parasympathetic"
             desc = "Deliberative rest. Memory consolidation."
         else:

@@ -9,9 +9,9 @@ Tests that:
 """
 
 import asyncio
+
 import numpy as np
 import pytest
-
 from src.modules.bayesian_engine import BayesianInferenceEngine, BayesianMode
 
 
@@ -81,10 +81,16 @@ class TestRLHFBayesianFusion:
 
         # Apply multiple extreme RLHF injections
         for _ in range(5):
-            asyncio.run(engine.inject_rlhf_prior_async(reward_score=0.99, confidence=0.99, modulation_strength=1.0))
+            asyncio.run(
+                engine.inject_rlhf_prior_async(
+                    reward_score=0.99, confidence=0.99, modulation_strength=1.0
+                )
+            )
 
         # All alphas should remain >= 0.5
-        assert np.all(engine.posterior_alpha >= 0.5), f"Alpha values {engine.posterior_alpha} below boundary"
+        assert np.all(engine.posterior_alpha >= 0.5), (
+            f"Alpha values {engine.posterior_alpha} below boundary"
+        )
         assert np.sum(engine.posterior_alpha) > 0, "Posterior mass must be positive"
 
     def test_posterior_driven_mode_weight_sync(self):
@@ -105,7 +111,11 @@ class TestRLHFBayesianFusion:
         initial_weights = engine.scorer.hypothesis_weights.copy()
 
         # Inject strong RLHF signal
-        asyncio.run(engine.inject_rlhf_prior_async(reward_score=0.95, confidence=0.95, modulation_strength=0.5))
+        asyncio.run(
+            engine.inject_rlhf_prior_async(
+                reward_score=0.95, confidence=0.95, modulation_strength=0.5
+            )
+        )
 
         new_weights = engine.scorer.hypothesis_weights
         change = np.abs(new_weights - initial_weights).sum()
@@ -121,7 +131,9 @@ class TestRLHFBayesianFusion:
 
         # Out-of-range values
         asyncio.run(engine.inject_rlhf_prior_async(reward_score=1.5, confidence=0.5))  # reward > 1
-        asyncio.run(engine.inject_rlhf_prior_async(reward_score=0.5, confidence=1.5))  # confidence > 1
+        asyncio.run(
+            engine.inject_rlhf_prior_async(reward_score=0.5, confidence=1.5)
+        )  # confidence > 1
 
         # Alpha should not have changed
         np.testing.assert_array_equal(engine.posterior_alpha, initial_alpha)
@@ -175,8 +187,16 @@ class TestRLHFBayesianFusion:
         initial_weak = engine_weak.posterior_alpha.copy()
         initial_strong = engine_strong.posterior_alpha.copy()
 
-        asyncio.run(engine_weak.inject_rlhf_prior_async(reward_score=0.8, confidence=0.8, modulation_strength=0.05))
-        asyncio.run(engine_strong.inject_rlhf_prior_async(reward_score=0.8, confidence=0.8, modulation_strength=0.3))
+        asyncio.run(
+            engine_weak.inject_rlhf_prior_async(
+                reward_score=0.8, confidence=0.8, modulation_strength=0.05
+            )
+        )
+        asyncio.run(
+            engine_strong.inject_rlhf_prior_async(
+                reward_score=0.8, confidence=0.8, modulation_strength=0.3
+            )
+        )
 
         change_weak = np.abs(engine_weak.posterior_alpha - initial_weak).sum()
         change_strong = np.abs(engine_strong.posterior_alpha - initial_strong).sum()
@@ -193,6 +213,7 @@ class TestRLHFPoleDecisionPropagation:
 
         # Mock candidate action for evaluation
         from src.modules.weighted_ethics_scorer import CandidateAction
+
         action = CandidateAction(
             name="Test Action",
             description="A test action to verify scoring",

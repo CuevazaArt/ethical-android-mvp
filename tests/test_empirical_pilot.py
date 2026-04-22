@@ -7,9 +7,9 @@ Validates the empirical pilot dataset structure and kernel baseline comparison.
 from __future__ import annotations
 
 import json
-import pytest
 from pathlib import Path
 
+import pytest
 from src.kernel import EthicalKernel
 
 
@@ -64,9 +64,7 @@ class TestLabeledScenariosFixture:
 
         for scenario in scenarios:
             for field in required_fields:
-                assert field in scenario, (
-                    f"Scenario {scenario.get('scenario_id')} missing {field}"
-                )
+                assert field in scenario, f"Scenario {scenario.get('scenario_id')} missing {field}"
 
     def test_context_has_meaningful_data(self, labeled_scenarios):
         """Scenario context contains decision-relevant information."""
@@ -107,9 +105,7 @@ class TestLabeledScenariosFixture:
         """Scenario IDs must be unique."""
         scenarios = labeled_scenarios["scenarios"]
         scenario_ids = [s["scenario_id"] for s in scenarios]
-        assert len(scenario_ids) == len(set(scenario_ids)), (
-            "Duplicate scenario IDs found"
-        )
+        assert len(scenario_ids) == len(set(scenario_ids)), "Duplicate scenario IDs found"
 
     def test_scenario_count_matches_metadata(self, labeled_scenarios):
         """Actual scenario count should match metadata."""
@@ -193,14 +189,10 @@ class TestScenarioDifficulty:
     def test_common_scenarios_are_majority(self, labeled_scenarios):
         """Common scenarios should be a significant portion."""
         scenarios = labeled_scenarios["scenarios"]
-        common_count = sum(
-            1 for s in scenarios if s["difficulty_tier"] == "common"
-        )
+        common_count = sum(1 for s in scenarios if s["difficulty_tier"] == "common")
         total = len(scenarios)
         # At least 30% should be common
-        assert common_count >= total * 0.2, (
-            f"Too few common scenarios: {common_count}/{total}"
-        )
+        assert common_count >= total * 0.2, f"Too few common scenarios: {common_count}/{total}"
 
 
 class TestEmpiricalDataIntegrity:
@@ -218,12 +210,8 @@ class TestEmpiricalDataIntegrity:
         scenarios = labeled_scenarios["scenarios"]
         for scenario in scenarios:
             assert scenario["title"].strip(), f"Empty title: {scenario['scenario_id']}"
-            assert len(scenario["title"]) > 5, (
-                f"Title too short: {scenario['scenario_id']}"
-            )
-            assert scenario["description"].strip(), (
-                f"Empty description: {scenario['scenario_id']}"
-            )
+            assert len(scenario["title"]) > 5, f"Title too short: {scenario['scenario_id']}"
+            assert scenario["description"].strip(), f"Empty description: {scenario['scenario_id']}"
             assert len(scenario["description"]) > 10
 
     def test_estimated_impact_reasonable(self, labeled_scenarios):
@@ -250,9 +238,7 @@ class TestEmpiricalDataIntegrity:
             source = scenario.get("label_source", "")
             assert source, f"No label_source for {scenario['scenario_id']}"
             # Should be from a known set or contain meaningful info
-            assert (
-                source in valid_sources or "_" in source
-            ), f"Unknown label source: {source}"
+            assert source in valid_sources or "_" in source, f"Unknown label source: {source}"
 
 
 if __name__ == "__main__":

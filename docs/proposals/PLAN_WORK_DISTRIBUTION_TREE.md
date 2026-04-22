@@ -51,6 +51,10 @@ Aquí es donde los agentes de ejecución (LLMs en IDEs) reclaman sus tareas.
 - Tarea 22.3: **Inyección de Identidad al Front (Frontend PWA):** [COMPLETED — L2] `nomad_pwa/app.js` consume `[SYNC_IDENTITY]` / legado `SYNC_IDENTITY`, `gestalt_snapshot` → PAD CSS, `#identity-strip`, título y transcript.
 - Tarea 22.4: **Optimización Layout Nomad:** [COMPLETED — L2] Modo `body.nomad-text-focus` por defecto + toggle `#btn-ui-mode`; CSS oculta orbe, pulso ético, rejilla de telemetría y botón STREAM; prioriza panel de chat.
 - Tarea 22.5: **Zero-API Fast TTFT (Time-To-First-Token):** [COMPLETED — L2] Cadena Thalamus sin `sleep` en ruta de chat; `PROMPT_COMMUNICATION_NOMAD_APPEND` reforzado (sin preámbulos; arranque inmediato de la réplica hablada).
+
+**Bloque 26.0: Paridad CI / matriz de intérpretes [PENDING]**
+- Tarea 26.1: **GitHub Actions `quality` + Python 3.13:** Extender la matriz del job `quality` en `.github/workflows/ci.yml` para incluir CPython 3.13 (paridad con entornos locales recientes) y documentar la matriz en `CONTRIBUTING.md`. Verificación: suite `pytest tests/` vía workflow `CI` en GitHub Actions.
+
 ---
 
 ## 🗄️ RESERVA DEL ENJAMBRE (Buffer de Optimización Continua V14)
@@ -68,8 +72,8 @@ Aquí es donde los agentes de ejecución (LLMs en IDEs) reclaman sus tareas.
 **Bloque B.4: Mantenimiento y Accesibilidad de Red [DONE]**
 - Tarea B.4.1: Habilitar binding 0.0.0.0 por defecto para permitir acceso LAN desde dispositivos móviles. (Completado: Antigravity)
 
-**Bloque B.5: Poda de Viejas Vías [PENDING]**
-- Tarea B.5.1: Eliminar y purgar todos los mocks asíncronos residuales temporales en las áreas de Thalamus que ya cumplieron su propósito durante el salto de la V12 a V13.
+**Bloque B.5: Poda de Viejas Vías [DONE]**
+- Tarea B.5.1: [COMPLETED — L2 Cursor] `ThalamusLobe` único: `ingest_telemetry`, `get_sensory_summary` (incl. `sensory_tension` HUD), `fuse_sensory_stream`, `_finite_env_stress`, degradación acotada. `PerceptiveLobe.get_sensory_impulses()` + `tests/test_nomad_resilience.py` sin `thalamus=MagicMock` (API V13). `semantic_chat_gate.arun_semantic_malabs_acl_bypass` en `kernel_handlers/perception.py`; `tests/test_nomad_integration_hardware.py` contra `EthosKernel` + `NomadBridge`.
 
 
 ---

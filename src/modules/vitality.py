@@ -49,6 +49,7 @@ def critical_temperature_threshold() -> float:
     Phase 12.2: Uses dynamic baseline if available (μ + 4σ), otherwise falls back to env/default.
     """
     from .sensor_calibration import get_sensor_calibrator
+
     calibrator = get_sensor_calibrator()
     if calibrator.is_complete:
         return calibrator.get_threshold("core_temperature", sigma=4.0, default=80.0)
@@ -69,6 +70,7 @@ def critical_jerk_threshold() -> float:
     Phase 12.2: Uses dynamic baseline if available (μ + 5σ), otherwise falls back to default.
     """
     from .sensor_calibration import get_sensor_calibrator
+
     calibrator = get_sensor_calibrator()
     if calibrator.is_complete:
         # High sigma for jerk to allow common movement but catch impacts
@@ -201,11 +203,11 @@ def merge_nomad_telemetry_into_snapshot(
             continue
         if cur is None and pat is not None:
             overrides[name] = pat
-            
+
     latency = (time.perf_counter() - t0) * 1000
     if latency > 1.0:
         _log.debug("Vitality: merge_nomad_telemetry_into_snapshot latency = %.2fms", latency)
-        
+
     if not overrides:
         return snapshot
     return replace(snapshot, **overrides)
@@ -216,14 +218,16 @@ def apply_nomad_telemetry_if_enabled(snapshot: SensorSnapshot | None) -> SensorS
     Legacy wrapper: merges Nomad telemetry from the bridge if KERNEL_NOMAD_TELEMETRY_VITALITY=1.
     """
     from ..kernel_utils import kernel_env_truthy
+
     if not kernel_env_truthy("KERNEL_NOMAD_TELEMETRY_VITALITY"):
         return snapshot
-    
+
     from .nomad_bridge import get_nomad_bridge
+
     bridge = get_nomad_bridge()
     with bridge._telemetry_lock:
         raw = bridge._latest_telemetry
-    
+
     return merge_nomad_telemetry_into_snapshot(snapshot, raw)
 
 
@@ -258,11 +262,19 @@ def assess_vitality(
     global _thermal_interrupt_latch
 
     t_bat = critical_battery_threshold()
-    t_temp = temperature_threshold if (temperature_threshold is not None and math.isfinite(temperature_threshold)) else critical_temperature_threshold()
-    t_jerk = jerk_threshold if (jerk_threshold is not None and math.isfinite(jerk_threshold)) else critical_jerk_threshold()
+    t_temp = (
+        temperature_threshold
+        if (temperature_threshold is not None and math.isfinite(temperature_threshold))
+        else critical_temperature_threshold()
+    )
+    t_jerk = (
+        jerk_threshold
+        if (jerk_threshold is not None and math.isfinite(jerk_threshold))
+        else critical_jerk_threshold()
+    )
 
     use_hyst = os.environ.get("KERNEL_VITALITY_THERMAL_HYSTERESIS", "0") == "1"
-    
+
     if snapshot is None:
         if use_hyst:
             _thermal_interrupt_latch = False
@@ -275,14 +287,14 @@ def assess_vitality(
     # Swarm Rule 2: Anti-NaN check for jerk
     if jerk is not None and not math.isfinite(jerk):
         jerk = 0.0
-        
+
     is_impacted = False if jerk is None else (jerk > t_jerk)
 
     temp = snapshot.core_temperature
     # Swarm Rule 2: Anti-NaN check for temp
     if temp is not None and not math.isfinite(temp):
-        temp = 40.0 # Default safe temp
-        
+        temp = 40.0  # Default safe temp
+
     is_temp_critical = False if temp is None else (temp >= t_temp)
 
     # Bloque S.2.1: elevated band logic
@@ -309,11 +321,11 @@ def assess_vitality(
         is_impacted=is_impacted,
         thermal_elevated=is_temp_elevated,
     )
-    
+
     latency = (time.perf_counter() - t0) * 1000
     if latency > 1.0:
         _log.debug("VitalityAssessment: assess_vitality latency = %.2fms", latency)
-        
+
     return res
 
 
@@ -322,11 +334,7 @@ def vitality_communication_hint(assessment: VitalityAssessment, trust_level: flo
     Optional line for LLM weakness context when resources are critical.
     Uchi-Soto Aware: modulates technical disclosure based on trust_level.
     """
-    if not (
-        assessment.is_critical
-        or assessment.thermal_critical
-        or assessment.thermal_elevated
-    ):
+    if not (assessment.is_critical or assessment.thermal_critical or assessment.thermal_elevated):
         return ""
 
     is_trusted = trust_level >= 0.5
@@ -342,13 +350,19 @@ def vitality_communication_hint(assessment: VitalityAssessment, trust_level: flo
 
     if assessment.is_critical:
         if is_trusted:
-            hints.append("Operational battery or physical integrity is critically compromised. Need charging area or safe space.")
+            hints.append(
+                "Operational battery or physical integrity is critically compromised. Need charging area or safe space."
+            )
         else:
-            hints.append("Executing power management or emergency physical protocols; pending non-essential tasks.")
+            hints.append(
+                "Executing power management or emergency physical protocols; pending non-essential tasks."
+            )
 
     if assessment.thermal_critical:
         if is_trusted:
-            hints.append("My internal core temperature is critically high, causing thermal tension and degraded processing power.")
+            hints.append(
+                "My internal core temperature is critically high, causing thermal tension and degraded processing power."
+            )
         else:
             hints.append("System load management active; maintaining safety margins.")
 
@@ -360,18 +374,25 @@ _nomad_telemetry_consumer: NomadTelemetryConsumer | None = None
 
 class NomadTelemetryConsumer:
     """
-    Consumes telemetry updates from the NomadBridge asynchronously and 
+    Consumes telemetry updates from the NomadBridge asynchronously and
     updates the global sensor state or individual snapshot buffers.
     """
+
     def __init__(self):
         self._task: asyncio.Task | None = None
         self.latest_raw: dict[str, Any] = {}
+
+    @property
+    def latest_telemetry(self) -> dict[str, Any]:
+        """Alias for ``latest_raw`` (integration tests / Module S.1)."""
+        return dict(self.latest_raw) if isinstance(self.latest_raw, dict) else {}
 
     def start(self):
         self._task = asyncio.create_task(self._consume_loop())
 
     async def _consume_loop(self):
         from .nomad_bridge import get_nomad_bridge
+
         bridge = get_nomad_bridge()
         while True:
             try:
@@ -381,6 +402,7 @@ class NomadTelemetryConsumer:
                     # Phase 12.2: Feed the calibrator with latest telemetry
                     from .sensor_calibration import get_sensor_calibrator
                     from .sensor_contracts import SensorSnapshot
+
                     calibrator = get_sensor_calibrator()
                     if calibrator.is_active:
                         snap = SensorSnapshot.from_dict(raw, strict=False)
@@ -389,6 +411,7 @@ class NomadTelemetryConsumer:
                 break
             except Exception as e:
                 import logging
+
                 logging.getLogger(__name__).error("Error in NomadTelemetryConsumer: %s", e)
 
     async def stop(self) -> None:
@@ -399,6 +422,11 @@ class NomadTelemetryConsumer:
             except asyncio.CancelledError:
                 pass
             self._task = None
+
+
+def get_nomad_telemetry_consumer_optional() -> NomadTelemetryConsumer | None:
+    """Return the active :class:`NomadTelemetryConsumer` if started."""
+    return _nomad_telemetry_consumer
 
 
 def start_nomad_telemetry_consumer_from_env() -> NomadTelemetryConsumer | None:
@@ -412,10 +440,11 @@ def start_nomad_telemetry_consumer_from_env() -> NomadTelemetryConsumer | None:
         return None
     if _nomad_telemetry_consumer is not None:
         return _nomad_telemetry_consumer
-    
+
     _nomad_telemetry_consumer = NomadTelemetryConsumer()
     _nomad_telemetry_consumer.start()
     import logging
+
     logging.getLogger(__name__).info("NomadTelemetryConsumer started.")
     return _nomad_telemetry_consumer
 
@@ -428,4 +457,5 @@ async def stop_nomad_telemetry_consumer_async() -> None:
     if c is not None:
         await c.stop()
         import logging
+
         logging.getLogger(__name__).info("NomadTelemetryConsumer stopped.")

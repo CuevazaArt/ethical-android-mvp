@@ -119,11 +119,14 @@ def softmax_choice_log_likelihood(
         v_util = float(vals.get("util", 0.0))
         v_deon = float(vals.get("deon", 0.0))
         v_virtue = float(vals.get("virtue", 0.0))
-        
+
         # Anti-NaN guard for valuations
-        if not math.isfinite(v_util): v_util = 0.0
-        if not math.isfinite(v_deon): v_deon = 0.0
-        if not math.isfinite(v_virtue): v_virtue = 0.0
+        if not math.isfinite(v_util):
+            v_util = 0.0
+        if not math.isfinite(v_deon):
+            v_deon = 0.0
+        if not math.isfinite(v_virtue):
+            v_virtue = 0.0
 
         s = float(w[0] * v_util + w[1] * v_deon + w[2] * v_virtue)
         scores[name] = s
@@ -136,14 +139,14 @@ def softmax_choice_log_likelihood(
 
     max_raw = float(np.max(raw))
     shifted = raw - max_raw
-    
+
     # log_sum_exp
     try:
         sum_exp = float(np.sum(np.exp(shifted)))
         if not math.isfinite(sum_exp) or sum_exp <= 0:
-             log_sum_exp = max_raw 
+            log_sum_exp = max_raw
         else:
-             log_sum_exp = max_raw + math.log(sum_exp)
+            log_sum_exp = max_raw + math.log(sum_exp)
     except Exception:
         log_sum_exp = max_raw
 
@@ -161,11 +164,11 @@ def softmax_choice_probability(
 ) -> float:
     """Probability of choice (exp of log-likelihood)."""
     ll = softmax_choice_log_likelihood(
-            preferred_action,
-            candidates,
-            weights,
-            beta=beta,
-        )
+        preferred_action,
+        candidates,
+        weights,
+        beta=beta,
+    )
     # Bounded exp for stability
     return math.exp(max(-100.0, ll))
 
@@ -270,7 +273,7 @@ def _dirichlet_moment_match(mean: np.ndarray, var: np.ndarray) -> np.ndarray:
     # Prevent division by zero and extreme concentrations
     v_clipped = np.maximum(v, 1e-12)
     ratios = m * (1.0 - m) / v_clipped - 1.0
-    
+
     valid = ratios[ratios > 0]
     if len(valid) == 0:
         # Default to a weak concentration if no valid S can be inferred
@@ -279,9 +282,9 @@ def _dirichlet_moment_match(mean: np.ndarray, var: np.ndarray) -> np.ndarray:
     s = float(np.median(valid))
     if not math.isfinite(s):
         s = 1.0
-        
+
     s = max(s, 1.0)
-    s = min(s, 1000.0) # Cap concentration to prevent delta-like priors
+    s = min(s, 1000.0)  # Cap concentration to prevent delta-like priors
 
     alpha = m * s
     return np.maximum(alpha, 0.01)

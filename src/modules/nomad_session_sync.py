@@ -96,7 +96,11 @@ def build_sync_identity_payload(kernel: EthicalKernel) -> dict[str, Any]:
     gestalt_dict = asdict(snap)
     pad = gestalt_dict.get("pad_state")
     if isinstance(pad, (list, tuple)):
-        gestalt_dict["pad_state"] = [_finite_float(pad[0], 0.0), _finite_float(pad[1], 0.0), _finite_float(pad[2], 0.0)]
+        gestalt_dict["pad_state"] = [
+            _finite_float(pad[0], 0.0),
+            _finite_float(pad[1], 0.0),
+            _finite_float(pad[2], 0.0),
+        ]
 
     digest = str(getattr(memory, "experience_digest", "") or "")
     if len(digest) > 4000:

@@ -364,7 +364,9 @@ class KernelSettings(BaseModel):
             kernel_bayesian_n_samples=_env_int("KERNEL_BAYESIAN_N_SAMPLES", 5000),
             kernel_bayesian_prior_alpha=_env_float("KERNEL_BAYESIAN_PRIOR_ALPHA", 1.0),
             # Semantic gate
-            kernel_semantic_chat_enabled=_env_truthy("KERNEL_SEMANTIC_CHAT_ENABLED", default_true=True),
+            kernel_semantic_chat_enabled=_env_truthy(
+                "KERNEL_SEMANTIC_CHAT_ENABLED", default_true=True
+            ),
             kernel_semantic_chat_sim_block_threshold=_env_float(
                 "KERNEL_SEMANTIC_CHAT_SIM_BLOCK_THRESHOLD", 0.82
             ),
@@ -372,12 +374,18 @@ class KernelSettings(BaseModel):
                 "KERNEL_SEMANTIC_CHAT_SIM_ALLOW_THRESHOLD", 0.45
             ),
             # Async/chat
-            kernel_nomad_chat_timeout_seconds=max(0.1, _env_float("KERNEL_NOMAD_CHAT_TIMEOUT", 5.0)),
+            kernel_nomad_chat_timeout_seconds=max(
+                0.1, _env_float("KERNEL_NOMAD_CHAT_TIMEOUT", 5.0)
+            ),
             kernel_chat_turn_timeout_seconds=_chat_turn_default,
             kernel_chat_threadpool_workers=max(0, _env_int("KERNEL_CHAT_THREADPOOL_WORKERS", 0)),
-            kernel_chat_async_llm_http=_env_truthy("KERNEL_CHAT_ASYNC_LLM_HTTP", default_true=False),
+            kernel_chat_async_llm_http=_env_truthy(
+                "KERNEL_CHAT_ASYNC_LLM_HTTP", default_true=False
+            ),
             kernel_chat_json_offload=_env_truthy("KERNEL_CHAT_JSON_OFFLOAD", default_true=True),
-            kernel_chat_include_malabs_trace=_env_truthy("KERNEL_CHAT_INCLUDE_MALABS_TRACE", default_true=True),
+            kernel_chat_include_malabs_trace=_env_truthy(
+                "KERNEL_CHAT_INCLUDE_MALABS_TRACE", default_true=True
+            ),
             kernel_chat_ws_max_message_bytes=_env_kernel_chat_ws_max_message_bytes(),
             # LLM
             llm_mode=_env_optional_str("LLM_MODE"),
@@ -388,8 +396,12 @@ class KernelSettings(BaseModel):
             # Governance
             kernel_governance_enabled=_env_truthy("KERNEL_GOVERNANCE_ENABLED", default_true=True),
             kernel_l0_strict_mode=_env_truthy("KERNEL_L0_STRICT_MODE", default_true=False),
-            kernel_judicial_escalation=_env_truthy("KERNEL_JUDICIAL_ESCALATION", default_true=False),
-            kernel_judicial_mock_court=_env_truthy("KERNEL_JUDICIAL_MOCK_COURT", default_true=False),
+            kernel_judicial_escalation=_env_truthy(
+                "KERNEL_JUDICIAL_ESCALATION", default_true=False
+            ),
+            kernel_judicial_mock_court=_env_truthy(
+                "KERNEL_JUDICIAL_MOCK_COURT", default_true=False
+            ),
             kernel_moral_hub_dao_vote=_env_truthy("KERNEL_MORAL_HUB_DAO_VOTE", default_true=False),
             # Narrative
             kernel_narrative_enabled=_env_truthy("KERNEL_NARRATIVE_ENABLED", default_true=True),
@@ -402,7 +414,9 @@ class KernelSettings(BaseModel):
             # Validation
             kernel_env_validation=_parse_env_validation_mode(),
             # Optional features
-            kernel_semantic_chat_gate_disabled=_env_truthy("KERNEL_SEMANTIC_CHAT_GATE_DISABLED", default_true=False),
+            kernel_semantic_chat_gate_disabled=_env_truthy(
+                "KERNEL_SEMANTIC_CHAT_GATE_DISABLED", default_true=False
+            ),
             kernel_chat_include_reality_verification=_env_truthy(
                 "KERNEL_CHAT_INCLUDE_REALITY_VERIFICATION", default_true=False
             ),
@@ -411,7 +425,9 @@ class KernelSettings(BaseModel):
             # Metrics
             kernel_metrics=_env_truthy("KERNEL_METRICS", default_true=False),
             # Audio Ouroboros
-            kernel_audio_ouroboros_enabled=_env_truthy("KERNEL_AUDIO_OUROBOROS_ENABLED", default_true=False),
+            kernel_audio_ouroboros_enabled=_env_truthy(
+                "KERNEL_AUDIO_OUROBOROS_ENABLED", default_true=False
+            ),
             kernel_whisper_model=_env_str("KERNEL_WHISPER_MODEL", "base"),
             kernel_nomad_mode=nomad_m,
         )
@@ -424,9 +440,7 @@ class KernelSettings(BaseModel):
         if "kernel_semantic_chat_sim_block_threshold" in data:
             block = data["kernel_semantic_chat_sim_block_threshold"]
             if v >= block:
-                raise ValueError(
-                    f"allow_threshold ({v}) must be < block_threshold ({block})"
-                )
+                raise ValueError(f"allow_threshold ({v}) must be < block_threshold ({block})")
         return v
 
     def startup_report(self) -> str:
@@ -454,7 +468,7 @@ Semantic Gate:
   Gate Disabled: {self.kernel_semantic_chat_gate_disabled}
 
 Async / Chat Orchestration:
-  Turn Timeout: {f'{self.kernel_chat_turn_timeout_seconds} s' if self.kernel_chat_turn_timeout_seconds is not None else 'unlimited'}
+  Turn Timeout: {f"{self.kernel_chat_turn_timeout_seconds} s" if self.kernel_chat_turn_timeout_seconds is not None else "unlimited"}
   Threadpool Workers: {self.kernel_chat_threadpool_workers}
   Async LLM HTTP: {self.kernel_chat_async_llm_http}
   JSON Offload: {self.kernel_chat_json_offload}

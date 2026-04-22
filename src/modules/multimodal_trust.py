@@ -12,10 +12,10 @@ See docs/proposals/README.md §5
 
 from __future__ import annotations
 
+import logging
 import math
 import os
 import time
-import logging
 from dataclasses import dataclass
 
 _log = logging.getLogger(__name__)
@@ -115,17 +115,21 @@ def evaluate_multimodal_trust(
         audio = snapshot.audio_emergency
         if audio is not None and not math.isfinite(audio):
             audio = 0.0
-            
+
         audio_strong = audio is not None and audio > t.audio_strong
         if not audio_strong:
-            return MultimodalAssessment("no_claim", "no_audio_emergency_hypothesis", False, trust_score=1.0)
+            return MultimodalAssessment(
+                "no_claim", "no_audio_emergency_hypothesis", False, trust_score=1.0
+            )
 
         ve = snapshot.vision_emergency
         sc = snapshot.scene_coherence
-        
+
         # Saneamiento de señales auxiliares
-        if ve is not None and not math.isfinite(ve): ve = 0.5
-        if sc is not None and not math.isfinite(sc): sc = 0.5
+        if ve is not None and not math.isfinite(ve):
+            ve = 0.5
+        if sc is not None and not math.isfinite(sc):
+            sc = 0.5
 
         vision_yes = ve is not None and ve > t.vision_support
         scene_yes = sc is not None and sc > t.scene_support
@@ -141,15 +145,17 @@ def evaluate_multimodal_trust(
             return MultimodalAssessment("doubt", "audio_only_insufficient", True, trust_score=0.4)
 
         res = MultimodalAssessment("doubt", "weak_cross_modal_support", True, trust_score=0.5)
-        
+
         latency = (time.perf_counter() - t0) * 1000
         if latency > 1.0:
             _log.debug("MultimodalTrust: evaluate_multimodal_trust latency = %.2fms", latency)
-            
+
         return res
     except Exception as e:
         _log.error("MultimodalTrust: Evaluation fault. Failing SAFE: %s", e)
-        return MultimodalAssessment("doubt", f"Evaluation error: {type(e).__name__}", True, trust_score=0.5)
+        return MultimodalAssessment(
+            "doubt", f"Evaluation error: {type(e).__name__}", True, trust_score=0.5
+        )
 
 
 def suppress_stress_from_spoof_risk(assessment: MultimodalAssessment) -> bool:

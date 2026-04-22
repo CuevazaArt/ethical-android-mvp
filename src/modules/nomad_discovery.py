@@ -46,7 +46,9 @@ def discover_lan_ipv4_candidates(bind_host: str | None = None) -> list[str]:
 
     try:
         host_name = socket.gethostname()
-        for row in socket.getaddrinfo(host_name, None, family=socket.AF_INET, type=socket.SOCK_STREAM):
+        for row in socket.getaddrinfo(
+            host_name, None, family=socket.AF_INET, type=socket.SOCK_STREAM
+        ):
             _add(str(row[4][0]))
     except OSError:
         pass

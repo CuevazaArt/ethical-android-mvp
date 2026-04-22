@@ -32,31 +32,35 @@ drops oversized dicts before they hit the queue or ``peek_latest_telemetry``.
 
 import asyncio
 import base64
-import binascii
-import queue as std_queue
-from collections import deque
-import json
+import hashlib
+import hmac
 import logging
 import math
-import struct
-import time
-import hmac
-import hashlib
 import os
-from typing import Any, Callable, Coroutine, Union, Optional
-from .hardware_abstraction import HardwareContext, ComputeTier
+import queue as std_queue
+import struct
+import threading
+import time
+from collections import deque
+from collections.abc import Callable, Coroutine
+from typing import Any
+
 from ..observability.metrics import record_nomad_bridge_connection
+from .hardware_abstraction import ComputeTier, HardwareContext
 
 try:
-    from fastapi import FastAPI, WebSocket, WebSocketDisconnect, Query, status
+    from fastapi import FastAPI, Query, WebSocket, WebSocketDisconnect, status
+
     _FASTAPI_AVAILABLE = True
 except ImportError:
+
     class WebSocketDisconnect(Exception):
         """Placeholder when FastAPI is not installed (WebSocket routes are disabled)."""
+
     FastAPI = None  # type: ignore[misc, assignment]
     WebSocket = Any  # type: ignore[misc, assignment]
-    Query = Any # type: ignore[misc, assignment]
-    status = Any # type: ignore[misc, assignment]
+    Query = Any  # type: ignore[misc, assignment]
+    status = Any  # type: ignore[misc, assignment]
     _FASTAPI_AVAILABLE = False
 
 _log = logging.getLogger(__name__)
@@ -159,16 +163,18 @@ class NomadBridge:
     def __init__(self) -> None:
         # Items: raw JPEG bytes or dict { raw_bytes, meta?, detections? } (see vision_adapter)
         # Phase 9: Tightened queues for real-time priority
-        self.vision_queue: asyncio.Queue[Union[bytes, dict[str, Any]]] = asyncio.Queue(maxsize=2)
+        self.vision_queue: asyncio.Queue[bytes | dict[str, Any]] = asyncio.Queue(maxsize=2)
         self.audio_queue: asyncio.Queue[bytes] = asyncio.Queue(maxsize=20)
         self.telemetry_queue: asyncio.Queue[dict[str, Any]] = asyncio.Queue(maxsize=10)
         self.charm_feedback_queue: asyncio.Queue[dict[str, Any]] = asyncio.Queue(maxsize=10)
         # Bloque 13.1 / 22.1: relay queue for chat_text via /ws/nomad (wider cap for 4G/5G bursts)
-        self.chat_text_queue: asyncio.Queue[Union[str, dict[str, Any]]] = asyncio.Queue(
+        self.chat_text_queue: asyncio.Queue[str | dict[str, Any]] = asyncio.Queue(
             maxsize=nomad_chat_text_queue_maxsize()
         )
         # Bloque 22.1: last charm payloads to push immediately after a flaky reconnect.
-        self._charm_feedback_replay: deque[dict[str, Any]] = deque(maxlen=_nomad_charm_replay_maxlen())
+        self._charm_feedback_replay: deque[dict[str, Any]] = deque(
+            maxlen=_nomad_charm_replay_maxlen()
+        )
         # Thread-safe mirror of JPEG bytes for VisionContinuousDaemon (docs + tests v4).
         self.vision_queue_threadsafe: std_queue.Queue[bytes] = std_queue.Queue(maxsize=8)
 
@@ -179,20 +185,21 @@ class NomadBridge:
         self._is_vessel_healthy = False
         self._last_dash_frame = 0  # Throttling for dashboard (S.2.1)
         self._last_heartbeat = 0.0
+        self._is_connected: bool = False
+        self._telemetry_lock = threading.Lock()
+        self._latest_telemetry: dict[str, Any] = {}
         # Bloque 13.1: VAD speaking state tracked server-side
         self.vad_speaking: bool = False
-        
+
         # S.1.1 Hardening: Vessel State Tracking (HAL Aligned)
         self.vessel_context: HardwareContext = HardwareContext(
-            device_label="none",
-            compute_tier=ComputeTier.EDGE_MOBILE,
-            battery_fraction=None
+            device_label="none", compute_tier=ComputeTier.EDGE_MOBILE, battery_fraction=None
         )
         self.vessel_metadata: dict[str, Any] = {
             "thermal_state": "nominal",
             "connection_type": "unknown",
             "latency_ms": 0,
-            "vessel_id": "none"
+            "vessel_id": "none",
         }
 
         self.app: Any = None
@@ -207,23 +214,29 @@ class NomadBridge:
 
             @self.app.get("/")
             async def nomad_root():
-                return {"status": "ok", "bridge": "nomad", "vessel_healthy": self._is_vessel_healthy}
+                return {
+                    "status": "ok",
+                    "bridge": "nomad",
+                    "vessel_healthy": self._is_vessel_healthy,
+                }
 
             @self.app.websocket("/ws/nomad")
             async def websocket_nomad_endpoint(
                 websocket: WebSocket,
                 timestamp: str | None = Query(None),
-                signature: str | None = Query(None)
+                signature: str | None = Query(None),
             ) -> None:
                 # Phase 9: S.4 Cryptographic Handshake (HMAC)
                 secret = os.environ.get("KERNEL_NOMAD_SECRET")
                 if secret:
                     if not timestamp or not signature:
-                        _log.warning("Nomad Bridge: Connection rejected. Missing HMAC query parameters.")
+                        _log.warning(
+                            "Nomad Bridge: Connection rejected. Missing HMAC query parameters."
+                        )
                         record_nomad_bridge_connection("hmac_missing")
                         await websocket.close(code=status.WS_1008_POLICY_VIOLATION)
                         return
-                    
+
                     # Prevent replay attacks (30 seconds window)
                     try:
                         ts_float = float(timestamp)
@@ -236,16 +249,20 @@ class NomadBridge:
                         record_nomad_bridge_connection("hmac_invalid")
                         await websocket.close(code=status.WS_1008_POLICY_VIOLATION)
                         return
-                    
+
                     # Verify HMAC-SHA256 signature
-                    expected_sig = hmac.new(secret.encode(), timestamp.encode(), hashlib.sha256).hexdigest()
+                    expected_sig = hmac.new(
+                        secret.encode(), timestamp.encode(), hashlib.sha256
+                    ).hexdigest()
                     if not hmac.compare_digest(signature, expected_sig):
                         _log.warning("Nomad Bridge: Connection rejected. Invalid HMAC signature.")
                         record_nomad_bridge_connection("hmac_fail")
                         await websocket.close(code=status.WS_1008_POLICY_VIOLATION)
                         return
                 else:
-                    _log.warning("KERNEL_NOMAD_SECRET not set. Nomad Bridge is operating in insecure mode!")
+                    _log.warning(
+                        "KERNEL_NOMAD_SECRET not set. Nomad Bridge is operating in insecure mode!"
+                    )
                     record_nomad_bridge_connection("secret_missing")
 
                 await self.handle_websocket(websocket)
@@ -253,8 +270,8 @@ class NomadBridge:
     async def handle_websocket(
         self,
         websocket: WebSocket,
-        chat_text_callback: Optional[Callable[[str], Coroutine[Any, Any, None]]] = None,
-        session_ready_hook: Optional[Callable[[WebSocket], Coroutine[Any, Any, None]]] = None,
+        chat_text_callback: Callable[[str], Coroutine[Any, Any, None]] | None = None,
+        session_ready_hook: Callable[[WebSocket], Coroutine[Any, Any, None]] | None = None,
     ) -> None:
         """Handles a Nomad smartphone connection after handshake.
 
@@ -269,6 +286,7 @@ class NomadBridge:
         try:
             await websocket.accept()
             self._is_vessel_healthy = True
+            self._is_connected = True
             self._last_heartbeat = time.time()
             record_nomad_bridge_connection("success")
             _log.info("Nomad Bridge: Handshake successful. Nomad Vessel is connected.")
@@ -302,7 +320,18 @@ class NomadBridge:
             _log.error("Nomad Bridge exception in handler: %s", e)
         finally:
             self._is_vessel_healthy = False
+            self._is_connected = False
             _log.info("Nomad Bridge: Nomad Vessel disconnected.")
+
+    @property
+    def is_somatic_blind(self) -> bool:
+        """True when the socket is marked connected but the heartbeat is stale (>5 s)."""
+        if not self._is_connected:
+            return False
+        dt = time.time() - float(self._last_heartbeat)
+        if not math.isfinite(dt):
+            return False
+        return dt > 5.0
 
     def public_queue_stats(self) -> dict[str, Any]:
         """Return observable queue depths and vessel health for /health endpoint (Module S.1/S.2.1)."""
@@ -386,7 +415,7 @@ class NomadBridge:
         """Sends a message to all connected dashboards (Module S / Phase 10)."""
         if not self.dashboard_queues:
             return
-            
+
         for q in self.dashboard_queues:
             try:
                 if q.full():
@@ -396,12 +425,15 @@ class NomadBridge:
                 _log.debug("Nomad Bridge: dashboard queue full; dropped oldest then retry skipped")
             except Exception as dash_e:
                 _log.warning("Nomad Bridge: dashboard broadcast error: %s", dash_e)
-        
+
         # Periodic debug log to ensure broadcast is reaching targets
         if time.time() - getattr(self, "_last_broadcast_log", 0) > 10.0:
-            _log.info("Nomad Bridge: Broadcasting to %d dashboard(s). Latest type: %s", len(self.dashboard_queues), msg.get("type"))
+            _log.info(
+                "Nomad Bridge: Broadcasting to %d dashboard(s). Latest type: %s",
+                len(self.dashboard_queues),
+                msg.get("type"),
+            )
             self._last_broadcast_log = time.time()
-
 
     async def _recv_loop(self, ws: WebSocket) -> None:
         frame_count = 0
@@ -412,13 +444,13 @@ class NomadBridge:
                     if not isinstance(data, dict):
                         _log.warning("Nomad Bridge: Hostile or malformed payload. Not a dict.")
                         continue
-                        
+
                     event_type = data.get("type")
                     payload = data.get("payload")
 
                     if event_type == "heartbeat":
-                         self._last_heartbeat = time.time()
-                         continue
+                        self._last_heartbeat = time.time()
+                        continue
 
                     if not event_type or not isinstance(payload, dict):
                         continue
@@ -426,31 +458,31 @@ class NomadBridge:
                     if event_type == "vision_frame":
                         frame_count += 1
                         b64_img = payload.get("image_b64", "")
-                        
+
                         try:
                             raw_bytes = base64.b64decode(b64_img)
                         except Exception as e:
                             _log.error("Nomad Bridge: Invalid b64 image data: %s", e)
                             continue
-                    
+
                         if frame_count % 10 == 0:
                             _log.info("Nomad Bridge: Received 10 vision frames (Stream Active)")
-                            
+
                         # Throttled Dashboard Broadcast (Phase 10 Stability)
                         now = time.time()
-                        if now - self._last_dash_frame > 0.05: # Max 20fps for dashboard
+                        if now - self._last_dash_frame > 0.05:  # Max 20fps for dashboard
                             self.broadcast_to_dashboards({"type": "frame", "payload": payload})
                             self._last_dash_frame = now
-                        
+
                         # Phase 9: Zero-latency discard
                         while self.vision_queue.full():
                             self.vision_queue.get_nowait()
-                        
+
                         # Phase 14: Pass meta signals into the queue alongside raw bytes
                         combined_payload = {
                             "raw_bytes": raw_bytes,
-                            "meta": payload.get("meta", {}), 
-                            "detections": payload.get("detections", [])
+                            "meta": payload.get("meta", {}),
+                            "detections": payload.get("detections", []),
                         }
                         self.vision_queue.put_nowait(combined_payload)
                         try:
@@ -470,34 +502,35 @@ class NomadBridge:
                         # Tightened audio queue management
                         if self.audio_queue.full():
                             for _ in range(5):
-                                try: self.audio_queue.get_nowait()
-                                except asyncio.QueueEmpty: break
-                                
+                                try:
+                                    self.audio_queue.get_nowait()
+                                except asyncio.QueueEmpty:
+                                    break
+
                         b64_pcm = payload.get("audio_b64", "")
-                        
+
                         try:
                             pcm_bytes = base64.b64decode(b64_pcm)
                         except Exception as e:
                             _log.error("Nomad Bridge: Invalid b64 audio data: %s", e)
                             continue
-                            
+
                         self.audio_queue.put_nowait(pcm_bytes)
-                        
+
                         # Calculate very basic rms for dashboard audio bar and Thalamus
                         if pcm_bytes and len(pcm_bytes) >= 2:
                             try:
                                 count = len(pcm_bytes) // 2
-                                shorts = struct.unpack(f"<{count}h", pcm_bytes[:count * 2])
+                                shorts = struct.unpack(f"<{count}h", pcm_bytes[: count * 2])
                                 if shorts:
                                     sum_sq = sum(float(s) * s for s in shorts)
-                                    rms = (math.sqrt(sum_sq / len(shorts)) / 32768.0) * 5.5 
+                                    rms = (math.sqrt(sum_sq / len(shorts)) / 32768.0) * 5.5
                                     rms = min(1.0, rms)
                                     if math.isfinite(rms):
                                         self.last_rms = rms
-                                        self.broadcast_to_dashboards({
-                                            "type": "audio_energy", 
-                                            "payload": {"rms": rms}
-                                        })
+                                        self.broadcast_to_dashboards(
+                                            {"type": "audio_energy", "payload": {"rms": rms}}
+                                        )
                             except (struct.error, ZeroDivisionError, ValueError) as rms_e:
                                 _log.debug("Nomad Bridge: RMS decode skipped: %s", rms_e)
 
@@ -510,21 +543,31 @@ class NomadBridge:
                                     self.vessel_context.battery_fraction = val
                             except (ValueError, TypeError):
                                 pass
-                        
+
                         device_label = payload.get("device_label") or payload.get("vessel_id")
                         if device_label:
                             self.vessel_context.device_label = str(device_label)
 
-                        self.vessel_metadata.update({
-                            "thermal_state": payload.get("thermal", self.vessel_metadata["thermal_state"]),
-                            "connection_type": payload.get("connection", self.vessel_metadata["connection_type"]),
-                            "vessel_id": payload.get("vessel_id", self.vessel_metadata["vessel_id"])
-                        })
-                        
+                        self.vessel_metadata.update(
+                            {
+                                "thermal_state": payload.get(
+                                    "thermal", self.vessel_metadata["thermal_state"]
+                                ),
+                                "connection_type": payload.get(
+                                    "connection", self.vessel_metadata["connection_type"]
+                                ),
+                                "vessel_id": payload.get(
+                                    "vessel_id", self.vessel_metadata["vessel_id"]
+                                ),
+                            }
+                        )
+
                         self.broadcast_to_dashboards({"type": "telemetry", "payload": payload})
                         if self.telemetry_queue.full():
                             self.telemetry_queue.get_nowait()
                         self.telemetry_queue.put_nowait(payload)
+                        with self._telemetry_lock:
+                            self._latest_telemetry = dict(payload)
                         self._last_sensor_update = time.time()
 
                     elif event_type == "vad_event":
@@ -535,10 +578,12 @@ class NomadBridge:
                                 self.vad_speaking = True
                             elif state == "speech_end":
                                 self.vad_speaking = False
-                            self.broadcast_to_dashboards({
-                                "type": "vad_state",
-                                "payload": {"speaking": self.vad_speaking},
-                            })
+                            self.broadcast_to_dashboards(
+                                {
+                                    "type": "vad_state",
+                                    "payload": {"speaking": self.vad_speaking},
+                                }
+                            )
                         except Exception as vad_e:
                             _log.warning("Nomad Bridge: vad_event parse error: %s", vad_e)
 
@@ -566,11 +611,9 @@ class NomadBridge:
                                 self.vessel_metadata["latency_ms"] = int(latency)
 
                     elif event_type in ("rtc_offer", "rtc_answer", "rtc_ice"):
-                        self.broadcast_to_dashboards({
-                            "type": "rtc_signal",
-                            "event": event_type,
-                            "payload": payload
-                        })
+                        self.broadcast_to_dashboards(
+                            {"type": "rtc_signal", "event": event_type, "payload": payload}
+                        )
 
                 except Exception as inner_e:
                     # Starlette/FastAPI: 'Cannot call "receive" once a disconnect message has been received.'
@@ -615,7 +658,7 @@ class NomadBridge:
             while True:
                 try:
                     payload = await asyncio.wait_for(self.charm_feedback_queue.get(), timeout=10.0)
-                except asyncio.TimeoutError:
+                except TimeoutError:
                     payload = None
 
                 if payload is not None:
@@ -627,7 +670,9 @@ class NomadBridge:
                             }
                         )
                     except Exception as send_e:
-                        _log.warning("Nomad Bridge: charm_feedback send failed, buffering replay: %s", send_e)
+                        _log.warning(
+                            "Nomad Bridge: charm_feedback send failed, buffering replay: %s", send_e
+                        )
                         self._remember_charm_for_replay(payload)
                         break
                 else:
@@ -642,8 +687,10 @@ class NomadBridge:
         except Exception as e:
             _log.error("Nomad Bridge send error: %s", e)
 
+
 # Global instance
 _NOMAD_BRIDGE = NomadBridge()
+
 
 def get_nomad_bridge() -> NomadBridge:
     return _NOMAD_BRIDGE

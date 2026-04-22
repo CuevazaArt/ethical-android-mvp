@@ -11,14 +11,14 @@ See docs/proposals/README.md
 from __future__ import annotations
 
 import hashlib
+import math
 import os
+import time
 import uuid
 from dataclasses import dataclass, field
 from datetime import datetime
 from enum import Enum
 from typing import Any
-import time
-import math
 
 from .ethical_reflection import ReflectionSnapshot
 
@@ -194,7 +194,7 @@ def build_ethical_dossier(
     session_strikes: int = 0,
 ) -> EthicalDossierV1:
     t0 = time.perf_counter()
-    
+
     somatic_bits = []
     for k in sorted(signals.keys())[:12]:
         val = signals[k]
@@ -202,7 +202,7 @@ def build_ethical_dossier(
         if not math.isfinite(val):
             val = 0.0
         somatic_bits.append(f"{k}={val:.3f}")
-        
+
     somatic_summary = ";".join(somatic_bits) if somatic_bits else "no_signals"
     dossier = EthicalDossierV1(
         case_uuid=str(uuid.uuid4()),
@@ -213,14 +213,16 @@ def build_ethical_dossier(
         monologue_digest_hex=_digest_hex(monologue_line or ""),
         session_strikes=session_strikes,
     )
-    
+
     latency = (time.perf_counter() - t0) * 1000
-    from .uchi_soto import _log # Re-using logger or importing logging
     import logging
+
+    from .uchi_soto import _log  # Re-using logger or importing logging
+
     _log = logging.getLogger(__name__)
     if latency > 1.0:
         _log.debug("Judicial: build_ethical_dossier latency = %.2fms", latency)
-        
+
     return dossier
 
 

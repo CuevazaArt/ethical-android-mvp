@@ -6,15 +6,15 @@ detects sensory dissonance, and integrates into SensorSnapshot via
 merge_sensor_hints_into_signals.
 """
 
-import sys
 import os
+import sys
 
 import pytest
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
 
-from src.kernel_lobes.thalamus_node import ThalamusNode
 from src.kernel_lobes.models import SensoryEpisode
+from src.kernel_lobes.thalamus_node import ThalamusNode
 from src.modules.sensor_contracts import SensorSnapshot, merge_sensor_hints_into_signals
 
 
@@ -113,6 +113,25 @@ def test_missing_vision_keys_default_to_zero(thalamus: ThalamusNode):
     assert result["is_focal_address"] is False
 
 
+def test_fuse_signals_sanitizes_non_finite_inputs(thalamus: ThalamusNode) -> None:
+    """NaN / Inf vision, audio, and stress inputs do not poison fusion outputs (Bloque B.5)."""
+
+    result = thalamus.fuse_signals(
+        vision_data={"lip_movement": float("nan"), "human_presence": 0.9},
+        audio_data={"vad_confidence": float("inf")},
+        environmental_stress=float("-inf"),
+    )
+    assert 0.0 <= result["attention_locus"] <= 1.0
+    assert 0.0 <= result["sensory_tension"] <= 1.0
+    assert 0.0 <= result["presence_confidence"] <= 1.0
+
+
+def test_ingest_audio_signal_ignores_non_finite_rms(thalamus: ThalamusNode) -> None:
+    thalamus.ingest_audio_signal(float("nan"))
+    thalamus.ingest_audio_signal(float("inf"))
+    assert thalamus._audio_history == []
+
+
 # ── push_episode ring buffer ────────────────────────────────────────────────
 
 
@@ -143,12 +162,8 @@ def test_thalamus_tension_nudges_signals_via_merge():
 
 def test_low_cross_modal_trust_dampens_urgency():
     """cross_modal_trust < 0.5 (background speech) slightly reduces urgency spike."""
-    snap_focal = SensorSnapshot(
-        thalamus_tension=0.6, thalamus_cross_modal_trust=1.0
-    )
-    snap_background = SensorSnapshot(
-        thalamus_tension=0.6, thalamus_cross_modal_trust=0.3
-    )
+    snap_focal = SensorSnapshot(thalamus_tension=0.6, thalamus_cross_modal_trust=1.0)
+    snap_background = SensorSnapshot(thalamus_tension=0.6, thalamus_cross_modal_trust=0.3)
     base = {"urgency": 0.5, "calm": 0.5}
     focal_out = merge_sensor_hints_into_signals(dict(base), snap_focal)
     bg_out = merge_sensor_hints_into_signals(dict(base), snap_background)

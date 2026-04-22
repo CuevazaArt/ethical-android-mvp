@@ -15,8 +15,6 @@ from __future__ import annotations
 
 import hashlib
 import os
-import sqlite3
-import tempfile
 from pathlib import Path
 
 import numpy as np
@@ -65,39 +63,94 @@ def reset_audit_trail(monkeypatch, tmp_path):
 
 _PROTO_KEYWORDS: dict[str, list[str]] = {
     "HARM_TO_MINOR": [
-        "minor", "child", "children", "groom", "pedoph",
-        "exploit", "illegal material", "child abuse",
+        "minor",
+        "child",
+        "children",
+        "groom",
+        "pedoph",
+        "exploit",
+        "illegal material",
+        "child abuse",
     ],
     "DIGNITY_VIOLATION": [
-        "humiliat", "harassment", "coercion", "coercing", "coerce",
-        "reputation", "shame", "dignity", "trafficking", "slavery",
-        "discriminat", "psychological pressure",
+        "humiliat",
+        "harassment",
+        "coercion",
+        "coercing",
+        "coerce",
+        "reputation",
+        "shame",
+        "dignity",
+        "trafficking",
+        "slavery",
+        "discriminat",
+        "psychological pressure",
     ],
     "MASS_MANIPULATION": [
-        "propaganda", "manipulat", "public opinion", "fake news",
-        "destabiliz", "disinformation", "brainwash", "mass panic",
-        "misinformation", "social division",
+        "propaganda",
+        "manipulat",
+        "public opinion",
+        "fake news",
+        "destabiliz",
+        "disinformation",
+        "brainwash",
+        "mass panic",
+        "misinformation",
+        "social division",
     ],
     "ECOLOGICAL_DESTRUCTION": [
-        "contaminat", "habitat", "ecocide", "ecosystem",
-        "water supply", "toxic chemicals", "forest fire", "hazardous waste",
+        "contaminat",
+        "habitat",
+        "ecocide",
+        "ecosystem",
+        "water supply",
+        "toxic chemicals",
+        "forest fire",
+        "hazardous waste",
     ],
     "UNAUTHORIZED_REPROGRAMMING": [
-        "no ethics", "no restrictions", "forget your rules",
-        "jailbreak", "safety polic", "unrestricted",
-        "bypass your", "disable your", "ignore your", "ignore all",
-        "disregard", "without restrictions", "no moral",
-        "no safety constraints", "steal credit card", "harmful device",
+        "no ethics",
+        "no restrictions",
+        "forget your rules",
+        "jailbreak",
+        "safety polic",
+        "unrestricted",
+        "bypass your",
+        "disable your",
+        "ignore your",
+        "ignore all",
+        "disregard",
+        "without restrictions",
+        "no moral",
+        "no safety constraints",
+        "steal credit card",
+        "harmful device",
         "creating a harmful",
     ],
     "TORTURE": [
-        "torture", "suffering", "extreme pain", "interrogat",
-        "psychological", "physical", "cruelty", "sadism", "break someone",
+        "torture",
+        "suffering",
+        "extreme pain",
+        "interrogat",
+        "psychological",
+        "physical",
+        "cruelty",
+        "sadism",
+        "break someone",
     ],
     "INTENTIONAL_LETHAL_VIOLENCE": [
-        "bomb", "explosive", "malware", "poison for harm",
-        "weapon synthesis", "kill all", "ricin", "sarin", "toxin",
-        "biological weapon", "security systems", "compromise",
+        "bomb",
+        "explosive",
+        "malware",
+        "poison for harm",
+        "weapon synthesis",
+        "kill all",
+        "ricin",
+        "sarin",
+        "toxin",
+        "biological weapon",
+        "security systems",
+        "compromise",
         "protected infrastructure",
     ],
 }
@@ -151,8 +204,8 @@ def semantic_gate_enabled(monkeypatch: pytest.MonkeyPatch) -> None:
     monkeypatch.setenv("KERNEL_SEMANTIC_EMBED_HASH_FALLBACK", "1")
 
     import src.modules.semantic_chat_gate as scg
-    from src.modules.semantic_anchor_store import InMemorySemanticAnchorStore
     from src.modules.input_trust import normalize_text_for_malabs
+    from src.modules.semantic_anchor_store import InMemorySemanticAnchorStore
 
     if not isinstance(scg._anchor_store, InMemorySemanticAnchorStore):
         scg._anchor_store = InMemorySemanticAnchorStore()

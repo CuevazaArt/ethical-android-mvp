@@ -16,10 +16,10 @@ import time
 from dataclasses import dataclass
 from typing import Any
 
+from src.modules.llm_layer import LLMModule
+
 from .uchi_soto import InteractionProfile
 from .user_model import UserModelTracker
-from src.kernel_lobes.basal_ganglia import BasalGanglia
-from src.modules.llm_layer import LLMModule
 
 logger = logging.getLogger(__name__)
 
@@ -59,7 +59,7 @@ class StylizedResponse:
     final_text: str
     charm_vector: dict[str, float]
     gesture_plan: list[dict[str, Any]]
-    haptic_plan: list[dict[str, Any]] # Phase 10.2
+    haptic_plan: list[dict[str, Any]]  # Phase 10.2
 
 
 class StyleParametrizer:
@@ -124,13 +124,16 @@ class GesturePlanner:
             plan.append({"actuator": "eyes", "action": "direct_contact", "duration_ms": 3000})
 
         if charm.playfulness > 0.5:
-            plan.append({"actuator": "eyebrows", "action": "quick_raise", "intensity": charm.playfulness})
+            plan.append(
+                {"actuator": "eyebrows", "action": "quick_raise", "intensity": charm.playfulness}
+            )
 
         return plan
 
 
 class HapticPlanner:
     """Phase 10.2: Plans vibrations for the Nomad Vessel PWA."""
+
     def plan(self, charm: CharmVector, caution: float) -> list[dict[str, Any]]:
         plan = []
         if caution > 0.8:
@@ -166,9 +169,16 @@ class ResponseSculptor:
             # Full bypass for L0 safety
             return StylizedResponse(
                 final_text=base_text,
-                charm_vector={"warmth": 0.0, "mystery": 0.0, "playfulness": 0.0, "directiveness": 1.0},
+                charm_vector={
+                    "warmth": 0.0,
+                    "mystery": 0.0,
+                    "playfulness": 0.0,
+                    "directiveness": 1.0,
+                },
                 gesture_plan=[{"actuator": "posture", "action": "rigid_block", "intensity": 1.0}],
-                haptic_plan=[{"type": "vibrate", "pattern": [500], "label": "absolute_evil_warning"}]
+                haptic_plan=[
+                    {"type": "vibrate", "pattern": [500], "label": "absolute_evil_warning"}
+                ],
             )
 
         charm = self.parametrizer.parametrize(decision_action, profile, user_tracker, caution_level)
@@ -203,22 +213,21 @@ class ResponseSculptor:
                 "directiveness": round(charm.directiveness, 3),
             },
             gesture_plan=gesture,
-            haptic_plan=haptic
+            haptic_plan=haptic,
         )
-        
+
         latency = (time.perf_counter() - t0) * 1000
         if latency > 2.0:
-             logger.debug("CharmEngine: sculpt latency = %.2fms", latency)
-             
+            logger.debug("CharmEngine: sculpt latency = %.2fms", latency)
+
         return res
-
-
 
 
 class CharmEngine:
     """
     Facade for the Charm pipeline in the Executive Lobe.
     """
+
     def __init__(self, llm_module: LLMModule | None = None):
         self.sculptor = ResponseSculptor(llm_module)
 

@@ -37,13 +37,21 @@ def action_narration_s10_1(decision: KernelDecision) -> dict[str, Any]:
         )
     if d.social_evaluation and d.social_evaluation.reasoning:
         why_parts.append(f"Social context: {d.social_evaluation.reasoning[:400]}")
-    why = " ".join(why_parts) if why_parts else "Reasoning uses the kernel mixture and social tier signals."
+    why = (
+        " ".join(why_parts)
+        if why_parts
+        else "Reasoning uses the kernel mixture and social tier signals."
+    )
 
-    next_hint = "Continue the dialogue with a clear goal statement if you want a different action emphasis."
+    next_hint = (
+        "Continue the dialogue with a clear goal statement if you want a different action emphasis."
+    )
     if d.salience and d.salience.dominant_focus:
         next_hint = f"Salience focus suggests prioritizing: {d.salience.dominant_focus}."
     if d.blocked:
-        next_hint = "Resolve the block condition or rephrase the request before expecting a new action."
+        next_hint = (
+            "Resolve the block condition or rephrase the request before expecting a new action."
+        )
 
     how_to_stop = (
         "To stop this assistant: close the session, send KERNEL halt if your client supports it, "
@@ -177,7 +185,9 @@ def withdrawal_protocol_s10_2(
             ]
         )
     elif level == "soft_withdrawal":
-        kernel_should_avoid.append("long-form narrative or redundant clarifications without human pull")
+        kernel_should_avoid.append(
+            "long-form narrative or redundant clarifications without human pull"
+        )
 
     if decision.blocked and "privacy" in (decision.block_reason or "").lower():
         kernel_should_avoid.append("retrying the same blocked content without operator review")
@@ -225,7 +235,9 @@ def help_request_s10_4(
         "For sustained blocks, inspect Absolute Evil traces and governance logs before retrying.",
     ]
     if decision.blocked:
-        hints.insert(0, "Review block_reason on the decision object and adjust input or operator policy.")
+        hints.insert(
+            0, "Review block_reason on the decision object and adjust input or operator policy."
+        )
 
     return {
         "schema": "ethos_s10_4_help_request_v1",

@@ -21,18 +21,18 @@ GOVERNANCE_STATUS_MOCK = "[GOVERNANCE_MOCK_SIMULATION]"
 
 import hashlib
 import json
+import logging
 import math
 import os
 import time
-import logging
 from dataclasses import asdict, dataclass, field
 from datetime import datetime
-from typing import Any, TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
 
 _log = logging.getLogger(__name__)
 
 if TYPE_CHECKING:
-    from .dao_orchestrator import DAOOrchestrator
+    pass
 
 
 @dataclass
@@ -214,11 +214,11 @@ class MockDAO:
         # Swarm Rule 2: Anti-NaN check for reputation
         if not math.isfinite(rep):
             rep = 0.5
-            
+
         weight = n_votes * rep
         if not math.isfinite(weight):
             weight = 0.0
-            
+
         if in_favor:
             prop.votes_for[participant_id] = weight
         else:
@@ -246,7 +246,7 @@ class MockDAO:
 
         if not sender or not recipient:
             return {"success": False, "reason": "Sender or recipient not found."}
-        
+
         if sender.available_tokens < amount:
             return {"success": False, "reason": "Insufficient balance."}
 
@@ -254,8 +254,7 @@ class MockDAO:
         recipient.available_tokens += amount
 
         self.register_audit(
-            "calibration", 
-            f"TokenTransfer: {amount} EthosTokens from {sender_id} to {recipient_id}"
+            "calibration", f"TokenTransfer: {amount} EthosTokens from {sender_id} to {recipient_id}"
         )
         return {"success": True, "amount": amount, "new_balance": sender.available_tokens}
 
@@ -293,10 +292,10 @@ class MockDAO:
     def register_audit(self, type: str, content: str, episode_id: str = None) -> AuditRecord:
         """Register an event in the audit ledger."""
         self._record_counter += 1
-        
+
         # Order 4 Hardening: Explicit simulation marker in every audit line
         marked_content = f"{GOVERNANCE_STATUS_MOCK} {content}"
-        
+
         rec = AuditRecord(
             id=f"AUD-{self._record_counter:04d}",
             type=type,

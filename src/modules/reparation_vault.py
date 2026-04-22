@@ -31,10 +31,11 @@ STATE_POST_TRIBUNAL = "pending_human_review"
 class ReparationVault:
     """
     Subsystem for third-party indemnification and social repair.
-    
+
     Acts as the 'Compensation' unit of the MockDAO ecosystem.
     Kernel and CLI facade for the mock reparation ledger (uses module-level ``_case_store``).
     """
+
     def __init__(self, dao: MockDAO):
         self.dao = dao
 
@@ -120,7 +121,7 @@ class ReparationVault:
             return {"success": False, "reason": "ReparationVault mock disabled."}
 
         ref = self._normalize_ref(case_ref)
-        
+
         # Bloque 7.1 Hardening: Payout Velocity Limiting
         case_data = _case_store.get(ref, {})
         last_payout_time = case_data.get("last_payout_ts", 0)
@@ -140,8 +141,7 @@ class ReparationVault:
                 "amount": amount,
             }
             self.dao.register_audit(
-                "calibration", 
-                f"ReparationVaultV1 (PAYOUT): {json.dumps(payload)}"
+                "calibration", f"ReparationVaultV1 (PAYOUT): {json.dumps(payload)}"
             )
         return res
 
@@ -151,17 +151,14 @@ class ReparationVault:
         """
         if not self.reparation_vault_mock_enabled():
             return
-        
+
         payload = {
             "schema": VAULT_SCHEMA,
             "node_id": node_id,
             "action": "slashing_intent",
-            "reason": reason[:400]
+            "reason": reason[:400],
         }
-        self.dao.register_audit(
-            "incident", 
-            f"ReparationVaultV1 (SLASHING): {json.dumps(payload)}"
-        )
+        self.dao.register_audit("incident", f"ReparationVaultV1 (SLASHING): {json.dumps(payload)}")
 
     def get_summary(self) -> dict[str, Any]:
         """Shape expected by ``ethos_cli`` transparency output."""
@@ -209,7 +206,12 @@ def maybe_register_reparation_after_mock_court(
 
 def reparation_vault_mock_enabled() -> bool:
     """Module-level: return True when KERNEL_REPARATION_VAULT_MOCK is truthy."""
-    return os.environ.get("KERNEL_REPARATION_VAULT_MOCK", "").strip().lower() in ("1", "true", "yes", "on")
+    return os.environ.get("KERNEL_REPARATION_VAULT_MOCK", "").strip().lower() in (
+        "1",
+        "true",
+        "yes",
+        "on",
+    )
 
 
 def execute_simulated_payout(

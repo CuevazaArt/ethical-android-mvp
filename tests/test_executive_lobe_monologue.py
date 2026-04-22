@@ -1,6 +1,6 @@
-from types import SimpleNamespace
 import os
 import sys
+from types import SimpleNamespace
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
 

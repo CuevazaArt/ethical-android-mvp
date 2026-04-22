@@ -6,7 +6,7 @@ by encoding latency, confidence, and timeout state for Bayesian adjustment and D
 """
 
 from dataclasses import dataclass, field
-from typing import Optional, Dict, Any
+from typing import Any
 
 
 @dataclass
@@ -54,7 +54,7 @@ class PerceptionLatencyVector:
         else:
             return 0.5  # Severe discount
 
-    def serialize(self) -> Dict[str, Any]:
+    def serialize(self) -> dict[str, Any]:
         """Serialize to dict for audit trail and RLHF feature extraction."""
         return {
             "wall_time_ms": self.wall_time_ms,
@@ -83,19 +83,21 @@ class PerceptionPartialSignal:
     timeout_occurred: bool = False
     """True if asyncio.TimeoutError or httpx.TimeoutException occurred."""
 
-    last_stable_frame: Dict[str, Any] = field(default_factory=dict)
+    last_stable_frame: dict[str, Any] = field(default_factory=dict)
     """Last successfully parsed perception state (visual/audio/sensor). Used as fallback."""
 
     urgency_override: bool = False
     """True if hardware state critical (temp > KERNEL_VITALITY_CRITICAL_TEMP, etc.)."""
 
-    latency_vector: Optional[PerceptionLatencyVector] = None
+    latency_vector: PerceptionLatencyVector | None = None
     """Latency metadata for Bayesian adjustment."""
 
     error_msg: str = ""
     """Human-readable error or degradation reason."""
 
-    def should_trigger_dao_veto(self, fallback_threshold: float = 0.3, enforce_on_degradation: bool = False) -> bool:
+    def should_trigger_dao_veto(
+        self, fallback_threshold: float = 0.3, enforce_on_degradation: bool = False
+    ) -> bool:
         """
         Decide if Limbic Lobe should trigger DAO veto despite incomplete perception.
 
@@ -124,7 +126,7 @@ class PerceptionPartialSignal:
         """Returns True if perception completed successfully (no timeout, confidence > 0.5)."""
         return not self.timeout_occurred and self.confidence >= 0.5
 
-    def serialize(self) -> Dict[str, Any]:
+    def serialize(self) -> dict[str, Any]:
         """Serialize for audit trail and RLHF training."""
         result = {
             "confidence": self.confidence,

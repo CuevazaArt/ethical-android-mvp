@@ -1,8 +1,8 @@
 import logging
-import time
 import math
+import time
 from dataclasses import dataclass
-from typing import Dict, Any
+from typing import Any
 
 _log = logging.getLogger(__name__)
 
@@ -52,17 +52,19 @@ class LocusModule:
         self.success_history = 0
         self.failure_history = 0
 
-    def evaluate(self, signals: Dict[str, Any], trust_circle: str = "soto_neutro") -> LocusEvaluation:
+    def evaluate(
+        self, signals: dict[str, Any], trust_circle: str = "soto_neutro"
+    ) -> LocusEvaluation:
         """
         Evaluate the locus of control for the current situation.
         """
         t0 = time.perf_counter()
-        
+
         try:
             control = float(signals.get("self_control", 0.5))
             external = float(signals.get("external_factors", 0.5))
             predict = float(signals.get("predictability", 0.5))
-            
+
             # Anti-NaN sanitation
             if not all(math.isfinite(x) for x in (control, external, predict)):
                 _log.warning("Locus: Non-finite signals in evaluate. Using nominal defaults.")
@@ -88,7 +90,7 @@ class LocusModule:
         p_internal = control * predict
         p_external = (1.0 - external) * predict
         total = alpha_ctx + beta_ctx
-        
+
         confidence = (alpha_ctx * p_internal + beta_ctx * p_external) / (total + 1e-9)
         if not math.isfinite(confidence):
             confidence = 0.5
@@ -135,7 +137,7 @@ class LocusModule:
         else:
             self.failure_history += 1
             self.beta = min(self.BETA_MAX, self.beta + delta)
-            
+
         # Bloque 4.2 Hardening: Self-Efficacy Recovery
         if self.beta > self.alpha + 0.4:
             self.alpha = min(self.alpha + 0.005, 1.0)

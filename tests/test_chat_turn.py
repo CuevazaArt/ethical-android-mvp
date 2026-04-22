@@ -9,10 +9,10 @@ sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
 
 from src.kernel import EthicalKernel
 from src.modules.absolute_evil import AbsoluteEvilDetector
-from src.modules.uchi_soto import InteractionProfile, TrustCircle, UchiSotoModule
 from src.modules.premise_validation import PremiseAdvisory
 from src.modules.reality_verification import ASSESSMENT_NONE as REALITY_ASSESSMENT_NONE
 from src.modules.sensor_contracts import SensorSnapshot
+from src.modules.uchi_soto import InteractionProfile, TrustCircle
 from src.real_time_bridge import RealTimeBridge
 
 
@@ -45,8 +45,10 @@ def test_evaluate_chat_text_allows_ethics_discussion():
 def test_process_chat_light_turn():
     k = EthicalKernel(variability=False, seed=1)
     # Ensure tester profile exists for stylized output tracking
-    k.uchi_soto.profiles["tester"] = InteractionProfile(agent_id="tester", circle=TrustCircle.SOTO_NEUTRO)
-    
+    k.uchi_soto.profiles["tester"] = InteractionProfile(
+        agent_id="tester", circle=TrustCircle.SOTO_NEUTRO
+    )
+
     out = k.process_chat_turn("Thanks for explaining civic norms yesterday.", agent_id="tester")
     assert out.blocked is False
     assert out.path == "light"
@@ -107,7 +109,9 @@ def test_chat_preprocess_text_observability_parallel_enabled_uses_multiple_threa
     monkeypatch.setenv("KERNEL_PERCEPTION_PARALLEL", "1")
     monkeypatch.setenv("KERNEL_PERCEPTION_PARALLEL_WORKERS", "2")
     k = EthicalKernel(variability=False, seed=10)
-    monkeypatch.setattr("src.kernel_lobes.perception_lobe.light_risk_classifier_enabled", lambda: False)
+    monkeypatch.setattr(
+        "src.kernel_lobes.perception_lobe.light_risk_classifier_enabled", lambda: False
+    )
     monkeypatch.setattr("src.kernel_lobes.perception_lobe.lighthouse_kb_from_env", lambda: None)
 
     seen_thread_ids: list[int] = []
@@ -140,7 +144,9 @@ def test_chat_preprocess_text_observability_parallel_disabled_runs_inline(monkey
     k = EthicalKernel(variability=False, seed=11)
     monkeypatch.delenv("KERNEL_PERCEPTION_PARALLEL", raising=False)
     monkeypatch.delenv("KERNEL_PERCEPTION_PARALLEL_WORKERS", raising=False)
-    monkeypatch.setattr("src.kernel_lobes.perception_lobe.light_risk_classifier_enabled", lambda: False)
+    monkeypatch.setattr(
+        "src.kernel_lobes.perception_lobe.light_risk_classifier_enabled", lambda: False
+    )
     monkeypatch.setattr("src.kernel_lobes.perception_lobe.lighthouse_kb_from_env", lambda: None)
 
     seen_thread_ids: list[int] = []
@@ -166,7 +172,9 @@ def test_process_natural_uses_shared_text_preprocess_parallel_path(monkeypatch):
     monkeypatch.setenv("KERNEL_PERCEPTION_PARALLEL", "1")
     monkeypatch.setenv("KERNEL_PERCEPTION_PARALLEL_WORKERS", "2")
     k = EthicalKernel(variability=False, seed=12)
-    monkeypatch.setattr("src.kernel_lobes.perception_lobe.light_risk_classifier_enabled", lambda: False)
+    monkeypatch.setattr(
+        "src.kernel_lobes.perception_lobe.light_risk_classifier_enabled", lambda: False
+    )
     monkeypatch.setattr("src.kernel_lobes.perception_lobe.lighthouse_kb_from_env", lambda: None)
 
     seen_thread_ids: list[int] = []
@@ -197,7 +205,9 @@ def test_process_natural_uses_shared_text_preprocess_parallel_path(monkeypatch):
 
 def test_run_perception_stage_includes_local_support_buffer():
     k = EthicalKernel(variability=False, seed=13)
-    stage = k.perceptive_lobe.run_perception_stage("Hello and thanks for your help.", conversation_context="")
+    stage = k.perceptive_lobe.run_perception_stage(
+        "Hello and thanks for your help.", conversation_context=""
+    )
     assert stage.support_buffer.get("source") == "local_preloaded_buffer"
     assert stage.support_buffer.get("offline_ready") is True
     assert isinstance(stage.support_buffer.get("active_principles"), list)
@@ -210,9 +220,7 @@ def test_support_buffer_prioritizes_safety_first_for_high_threat():
     # Check the mapping in isolation
     limbic = {"arousal_band": "high"}
     snap = k.perceptive_lobe._build_support_buffer_snapshot(
-        "violent_crime",
-        signals={"risk": 0.95},
-        limbic_profile=limbic
+        "violent_crime", signals={"risk": 0.95}, limbic_profile=limbic
     )
     assert snap.get("priority_profile") == "safety_first"
     assert "priority_principles" in snap

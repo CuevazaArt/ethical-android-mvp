@@ -214,21 +214,20 @@ def cmd_config(args: argparse.Namespace) -> int:
 
 
 def cmd_transparency(args: argparse.Namespace) -> int:
-    from .modules.moral_hub import moral_hub_public_enabled
     from .modules.nomad_identity import nomad_identity_public
 
     k = _kernel(llm_mode=args.llm_mode)
     _load_checkpoint_if_given(k, args.checkpoint)
-    
+
     nomad = nomad_identity_public(k)
     reparation = k.reparation_vault.get_summary()
-    
+
     if args.json:
         out = {
             "nomad_identity": nomad,
             "reparation_vault": reparation,
             "dao_records_count": len(k.dao.records),
-            "reputation": k.identity.snapshot.reputation_score
+            "reputation": k.identity.snapshot.reputation_score,
         }
         print(json.dumps(out, indent=2))
     else:
@@ -241,10 +240,13 @@ def cmd_transparency(args: argparse.Namespace) -> int:
         print("REPARATION VAULT (V12.1)")
         print(f"  Treasury Balance: {reparation['balance']} {reparation['currency']}")
         print(f"  Total Intents: {reparation['total_intents_volume']}")
-        print(f"  Pending: {reparation['pending_intents_count']} | Audited: {reparation['audited_intents_count']}")
+        print(
+            f"  Pending: {reparation['pending_intents_count']} | Audited: {reparation['audited_intents_count']}"
+        )
         print("-" * 40)
         print("CONSTITUTION SUMMARY (UNIVERSAL ETHOS)")
         from .modules.moral_hub import constitution_snapshot
+
         snapshot = constitution_snapshot(k.buffer, k)
         for level_key, level_data in snapshot.get("levels", {}).items():
             principles = level_data.get("principles", [])

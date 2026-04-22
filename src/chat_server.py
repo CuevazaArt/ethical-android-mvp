@@ -132,17 +132,18 @@ import math
 import os
 import threading
 import time
-import httpx
 from collections.abc import Mapping
 from contextlib import asynccontextmanager
 from dataclasses import asdict
 from typing import Any
 
+import httpx
 from fastapi import FastAPI, Request, WebSocket, WebSocketDisconnect
 from fastapi.responses import JSONResponse, Response
 from fastapi.staticfiles import StaticFiles
 
 from .kernel import ChatTurnResult, EthicalKernel
+from .kernel_lobes.models import GestaltSnapshot
 from .kernel_utils import kernel_dao_as_mock
 from .modules.affective_homeostasis import homeostasis_telemetry
 from .modules.buffer import PreloadedBuffer
@@ -217,7 +218,6 @@ from .observability.metrics import (
     record_malabs_block,
 )
 from .observability.middleware import RequestContextMiddleware
-from .kernel_lobes.models import GestaltSnapshot
 from .persistence.checkpoint import (
     checkpoint_persistence_from_env,
     init_session_checkpoint_state,
@@ -253,15 +253,25 @@ def _package_version() -> str:
 async def _lifespan(app: FastAPI):
     configure_logging()
     init_metrics()
-    
+
     # Phase 9: Nomad hardware loop consumers (Hardened Embodiment)
-    from .modules.vision_adapter import start_nomad_vision_consumer_from_env, stop_nomad_vision_consumer_async
-    from .modules.vitality import start_nomad_telemetry_consumer_from_env, stop_nomad_telemetry_consumer_async
-    from .modules.audio_adapter import start_nomad_audio_consumer_from_env, stop_nomad_audio_consumer_async, get_shared_audio_capture
+    from .modules.audio_adapter import (
+        get_shared_audio_capture,
+        start_nomad_audio_consumer_from_env,
+        stop_nomad_audio_consumer_async,
+    )
+    from .modules.vision_adapter import (
+        start_nomad_vision_consumer_from_env,
+        stop_nomad_vision_consumer_async,
+    )
+    from .modules.vitality import (
+        start_nomad_telemetry_consumer_from_env,
+        stop_nomad_telemetry_consumer_async,
+    )
 
     start_nomad_vision_consumer_from_env()
     start_nomad_telemetry_consumer_from_env()
-    
+
     capture = get_shared_audio_capture()
     if capture:
         start_nomad_audio_consumer_from_env(capture.ring_buffer)
@@ -320,6 +330,7 @@ app = FastAPI(
 
 # Mounting Nomad Bridge (Fase 8+ / Módulo S)
 from .modules.nomad_bridge import get_nomad_bridge
+
 app.mount("/nomad_bridge", get_nomad_bridge().app)
 
 app.add_middleware(RequestContextMiddleware)
@@ -342,7 +353,6 @@ def nomad_migration_meta() -> dict[str, Any]:
             }
         },
     }
-
 
 
 @app.get("/nomad/clinical")
@@ -406,6 +416,7 @@ else:
 try:
     if os.environ.get("KERNEL_METRICS", "1").strip().lower() in ("1", "true", "on"):
         from prometheus_client import make_asgi_app
+
         metrics_app = make_asgi_app()
         app.mount("/metrics", metrics_app)
         logger.info("Prometheus metrics endpoint mounted at /metrics")
@@ -481,10 +492,11 @@ async def nomad_bridge_ws_handler(websocket: WebSocket) -> None:
                     if event["event_type"] == "turn_finished":
                         result = event["payload"]["result"]
                         break
-                except asyncio.TimeoutError:
+                except TimeoutError:
                     logger.warning(
                         "nomad_chat_text_timeout text_len=%d timeout=%.1fs",
-                        len(text), nomad_timeout,
+                        len(text),
+                        nomad_timeout,
                     )
                     record_chat_turn_async_timeout()
                     try:
@@ -524,17 +536,18 @@ async def nomad_bridge_ws_handler(websocket: WebSocket) -> None:
         except Exception:
             logger.debug("nomad_kernel_stop_failed", exc_info=True)
 
+
 @app.websocket("/ws/dashboard")
 async def dashboard_ws_handler(websocket: WebSocket) -> None:
     """L0 Dashboard telemetry stream and command receiver."""
     from .modules.nomad_bridge import get_nomad_bridge
     from .settings import kernel_settings
-    
+
     await websocket.accept()
     q: asyncio.Queue[dict[str, Any]] = asyncio.Queue(maxsize=30)
     bridge = get_nomad_bridge()
     bridge.dashboard_queues.append(q)
-    
+
     st = kernel_settings()
     # Phase 10: Virtual session for dashboard commands
     kernel = EthicalKernel(
@@ -549,7 +562,7 @@ async def dashboard_ws_handler(websocket: WebSocket) -> None:
         nonlocal turn_seq
         # Bloque 22.0: Conversational Fluidity STM
         session_context = ""
-        
+
         try:
             while True:
                 data = await websocket.receive_json()
@@ -558,38 +571,48 @@ async def dashboard_ws_handler(websocket: WebSocket) -> None:
                     if text:
                         turn_seq += 1
                         logger.info("Dashboard User Input: %s", text)
-                        
+
                         # Process as a Kernel Turn to get a real response
                         async for event in rt_bridge.process_chat_stream(
-                            text, 
-                            agent_id="dashboard_op", 
+                            text,
+                            agent_id="dashboard_op",
                             place="dashboard",
-                            conversation_context=session_context
+                            conversation_context=session_context,
                         ):
                             if event["event_type"] == "turn_finished":
                                 result = event["payload"]["result"]
-                                response_text = result.response.message if result.response else "Affirmative."
-                                
+                                response_text = (
+                                    result.response.message if result.response else "Affirmative."
+                                )
+
                                 # Append to Short Term Memory buffer
                                 if len(session_context) > 2000:
-                                    session_context = session_context[-1000:] # Truncate old WS context
+                                    session_context = session_context[
+                                        -1000:
+                                    ]  # Truncate old WS context
                                 session_context += f"User: {text}\nKernel: {response_text}\n"
-                                
+
                                 # Send response back to Dashboard
-                                await websocket.send_json({
-                                    "type": "thought",
-                                    "payload": {
-                                        "text": response_text,
-                                        "dissonance": bool(result.epistemic_dissonance.active) if result.epistemic_dissonance else False
+                                await websocket.send_json(
+                                    {
+                                        "type": "thought",
+                                        "payload": {
+                                            "text": response_text,
+                                            "dissonance": bool(result.epistemic_dissonance.active)
+                                            if result.epistemic_dissonance
+                                            else False,
+                                        },
                                     }
-                                })
-                                
+                                )
+
                                 # Forward to Nomad Vessel as kernel voice
-                                bridge.charm_feedback_queue.put_nowait({
-                                    "type": "kernel_voice",
-                                    "text": response_text,
-                                    "role": "dashboard_relay"
-                                })
+                                bridge.charm_feedback_queue.put_nowait(
+                                    {
+                                        "type": "kernel_voice",
+                                        "text": response_text,
+                                        "role": "dashboard_relay",
+                                    }
+                                )
                                 break
 
         except Exception as e:
@@ -610,6 +633,7 @@ async def dashboard_ws_handler(websocket: WebSocket) -> None:
     finally:
         if q in bridge.dashboard_queues:
             bridge.dashboard_queues.remove(q)
+
 
 def _chat_expose_monologue() -> bool:
     """If false, omit monologue from WebSocket JSON (privacy; skips LLM embellishment)."""
@@ -2580,12 +2604,8 @@ def build_sync_identity_ws_message(kernel: EthicalKernel) -> dict[str, Any]:
     else:
         smode = "neutral"
     tension = max(
-        _ws_sync_sanitize_float(
-            getattr(limbic, "relational_tension", 0.0), 0.0, lo=0.0, hi=1.0
-        ),
-        _ws_sync_sanitize_float(
-            getattr(limbic, "situational_stress", 0.0), 0.0, lo=0.0, hi=1.0
-        ),
+        _ws_sync_sanitize_float(getattr(limbic, "relational_tension", 0.0), 0.0, lo=0.0, hi=1.0),
+        _ws_sync_sanitize_float(getattr(limbic, "situational_stress", 0.0), 0.0, lo=0.0, hi=1.0),
     )
     reflection = ""
     try:
@@ -2644,19 +2664,18 @@ def build_sync_identity_ws_message(kernel: EthicalKernel) -> dict[str, Any]:
     )
     gestalt_dict = asdict(gs)
     gestalt_dict["pad_state"] = [pad[0], pad[1], pad[2]]
-    gestalt_dict["timestamp"] = _ws_sync_sanitize_float(
-        gs.timestamp, time.time(), lo=0.0, hi=1e12
-    )
+    gestalt_dict["timestamp"] = _ws_sync_sanitize_float(gs.timestamp, time.time(), lo=0.0, hi=1e12)
 
     manifest_path = (
-        os.environ.get("KERNEL_IDENTITY_MANIFEST_PATH", "").strip()
-        or "data/identity_manifest.json"
+        os.environ.get("KERNEL_IDENTITY_MANIFEST_PATH", "").strip() or "data/identity_manifest.json"
     )
     try:
         manifest_dict = asdict(IdentityManifestStore(path=manifest_path).manifest)
     except (OSError, TypeError, ValueError, KeyError):
         try:
-            manifest_dict = asdict(IdentityManifestStore(path="data/identity_manifest.json").manifest)
+            manifest_dict = asdict(
+                IdentityManifestStore(path="data/identity_manifest.json").manifest
+            )
         except (OSError, TypeError, ValueError, KeyError):
             manifest_dict = {}
 
@@ -2760,6 +2779,7 @@ async def ws_chat(ws: WebSocket) -> None:
     set_request_id()
     logger.info("websocket_session_open")
     from .settings import kernel_settings
+
     st = kernel_settings()
     kernel = EthicalKernel(
         variability=st.kernel_variability,
@@ -2778,6 +2798,11 @@ async def ws_chat(ws: WebSocket) -> None:
         _session_dao,
         "session_start channel=websocket (EthosPayroll mock ledger line)",
     )
+    try:
+        await kernel.start()
+    except Exception as exc:
+        logger.warning("websocket kernel_start failed: %s", exc)
+
     bridge = RealTimeBridge(kernel)
     chat_turn_seq = 0
 
@@ -2824,7 +2849,7 @@ async def ws_chat(ws: WebSocket) -> None:
             nonlocal current_cancel_ev
             t_turn_start = time.perf_counter()
             set_request_id()
-            
+
             try:
                 text = (data_in.get("text") or "").strip()
                 agent_id = data_in.get("agent_id") or "user"
@@ -2834,13 +2859,14 @@ async def ws_chat(ws: WebSocket) -> None:
                 # Situated v8 sensors
                 sensor_raw = data_in.get("sensor")
                 client = sensor_raw if isinstance(sensor_raw, dict) else None
-                
+
                 # Phase 10: Inject Nomad Bridge Live Data
                 from .modules.nomad_bridge import get_nomad_bridge
+
                 nb = get_nomad_bridge()
                 if client is None:
                     client = {}
-                
+
                 # Drain telemetry_queue to get the LATEST entry (S.2.1 Calibration)
                 live_t = {}
                 while not nb.telemetry_queue.empty():
@@ -2848,10 +2874,10 @@ async def ws_chat(ws: WebSocket) -> None:
                         live_t = nb.telemetry_queue.get_nowait()
                     except asyncio.QueueEmpty:
                         break
-                
+
                 if live_t:
                     client.update(live_t)
-                
+
                 client["rms_audio"] = nb.last_rms
 
                 fixture = os.environ.get("KERNEL_SENSOR_FIXTURE", "").strip() or None
@@ -2922,24 +2948,17 @@ async def ws_chat(ws: WebSocket) -> None:
                         else:
                             payload = _chat_turn_to_jsonable(result, kernel)
 
-                        await ws.send_json({
-                            "event_type": "turn_finished",
-                            "payload": payload
-                        })
+                        await ws.send_json({"event_type": "turn_finished", "payload": payload})
 
                         android_text = payload.get("response", {}).get("message", "")
                         if android_text:
-                            await ws.send_json({
-                                "type": "kernel_voice",
-                                "text": android_text
-                            })
+                            await ws.send_json({"type": "kernel_voice", "text": android_text})
 
                         haptic_plan = payload.get("limbic_profile", {}).get("haptic_plan", [])
                         if haptic_plan:
-                            await ws.send_json({
-                                "type": "haptic_feedback",
-                                "payload": {"haptics": haptic_plan}
-                            })
+                            await ws.send_json(
+                                {"type": "haptic_feedback", "payload": {"haptics": haptic_plan}}
+                            )
 
                         maybe_autosave_episodes(kernel, session_ckpt)
 
@@ -2952,12 +2971,17 @@ async def ws_chat(ws: WebSocket) -> None:
                     observe_chat_turn("turn_timeout", time.perf_counter() - t_turn_start)
                     record_chat_turn_async_timeout()
 
-                    await ws.send_json({
-                        "error": "chat_turn_timeout",
-                        "timeout_seconds": chat_to,
-                        "path": "turn_timeout",
-                        "response": {"message": "Turn exceeded server time limit.", "tone": "neutral"}
-                    })
+                    await ws.send_json(
+                        {
+                            "error": "chat_turn_timeout",
+                            "timeout_seconds": chat_to,
+                            "path": "turn_timeout",
+                            "response": {
+                                "message": "Turn exceeded server time limit.",
+                                "tone": "neutral",
+                            },
+                        }
+                    )
                 finally:
                     await _ensure_stream_closed()
             except asyncio.CancelledError:
@@ -3012,7 +3036,7 @@ async def ws_chat(ws: WebSocket) -> None:
 
             # ══ Integrity & Governance Payloads (Non-text) ══
             text_preview = (data.get("text") or "").strip()
-            
+
             # Check for non-text payloads
             dao_payload = _collect_dao_ws_actions(kernel, data)
             nomad_payload = _collect_nomad_ws_actions(kernel, data)
@@ -3022,25 +3046,31 @@ async def ws_chat(ws: WebSocket) -> None:
             lan_judicial_payload = _collect_lan_governance_judicial_batch(kernel, data)
             lan_mock_court_payload = _collect_lan_governance_mock_court_batch(kernel, data)
             lan_envelope_payload = _collect_lan_governance_envelope(
-                kernel, data,
+                kernel,
+                data,
                 replay_cache=lan_envelope_replay_cache,
                 replay_cache_stats=lan_envelope_replay_cache_stats,
                 replay_cache_ttl_ms=lan_envelope_replay_cache_ttl_ms,
                 replay_cache_max_entries=lan_envelope_replay_cache_max_entries,
             )
             lan_coordinator_payload = _collect_lan_governance_coordinator(
-                kernel, data,
+                kernel,
+                data,
                 replay_cache=lan_envelope_replay_cache,
                 replay_cache_stats=lan_envelope_replay_cache_stats,
                 replay_cache_ttl_ms=lan_envelope_replay_cache_ttl_ms,
                 replay_cache_max_entries=lan_envelope_replay_cache_max_entries,
             )
             lan_governance_merged = _merge_lan_governance_ws_payloads(
-                lan_batch_payload, lan_dao_payload, lan_judicial_payload,
-                lan_mock_court_payload, lan_envelope_payload, lan_coordinator_payload,
+                lan_batch_payload,
+                lan_dao_payload,
+                lan_judicial_payload,
+                lan_mock_court_payload,
+                lan_envelope_payload,
+                lan_coordinator_payload,
             )
 
-            if (dao_payload or nomad_payload or integrity_payload or lan_governance_merged):
+            if dao_payload or nomad_payload or integrity_payload or lan_governance_merged:
                 out_ws: dict[str, Any] = {}
                 if dao_payload:
                     out_ws["dao"] = dao_payload
@@ -3060,8 +3090,11 @@ async def ws_chat(ws: WebSocket) -> None:
             if isinstance(cd, dict) and constitution_draft_ws_enabled():
                 try:
                     add_constitution_draft(
-                        kernel, int(cd.get("level", 1)), str(cd.get("title") or ""),
-                        str(cd.get("body") or ""), str(cd.get("proposer") or data.get("agent_id") or "user")
+                        kernel,
+                        int(cd.get("level", 1)),
+                        str(cd.get("title") or ""),
+                        str(cd.get("body") or ""),
+                        str(cd.get("proposer") or data.get("agent_id") or "user"),
                     )
                 except Exception:
                     pass
@@ -3089,7 +3122,7 @@ async def ws_chat(ws: WebSocket) -> None:
                 current_turn_task.cancel()
                 if current_cancel_ev:
                     current_cancel_ev.set()
-            
+
             chat_turn_seq += 1
             current_cancel_ev = threading.Event()
             current_turn_task = asyncio.create_task(run_turn(data, chat_turn_seq))
@@ -3113,6 +3146,10 @@ async def ws_chat(ws: WebSocket) -> None:
                 except asyncio.CancelledError:
                     pass
         await bridge.run_sync_in_chat_thread(on_websocket_session_end, kernel)
+        try:
+            await kernel.stop()
+        except Exception:
+            pass
 
 
 def get_uvicorn_bind() -> tuple[str, int]:

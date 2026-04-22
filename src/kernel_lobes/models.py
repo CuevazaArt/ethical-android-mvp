@@ -1,68 +1,80 @@
 from __future__ import annotations
-from dataclasses import dataclass, field
-from typing import Dict, Any, Optional, List, Deque
-from collections import deque
+
 import time
+from dataclasses import dataclass, field
+from typing import Any
 
 
 @dataclass
 class TimeoutTrauma:
     """Record of a cooperative timeout or sensory crash to punish the Bayesian model."""
+
     source_lobe: str
     latency_ms: int
     severity: float = 1.0
     context: str = "Network Unreachable / API Timeout"
 
+
 @dataclass
 class SemanticState:
     """Raw, unjudged semantic interpretation from the Perceptive Lobe."""
+
     perception_confidence: float
     raw_prompt: str
     summary: str = ""
     scenario_summary: str = ""
     suggested_context: str = "everyday"
-    signals: Dict[str, float] = field(default_factory=dict)
+    signals: dict[str, float] = field(default_factory=dict)
     candidate_actions: list[Any] = field(default_factory=list)
     visual_entities: list[str] = field(default_factory=list)
     audio_sentiment: float = 0.5
     generative_candidates: list[dict[str, Any]] = field(default_factory=list)
     sensory_latency_lag: int = 0
-    timeout_trauma: Optional[TimeoutTrauma] = None
-    agent_id: Optional[str] = None
+    timeout_trauma: TimeoutTrauma | None = None
+    agent_id: str | None = None
     conversation_context: str = ""
+
 
 @dataclass
 class EthicalSentence:
     """The absolute, unshakeable boolean decision from the Limbic Lobe."""
+
     is_safe: bool
     social_tension_locus: float  # 0.0 to 1.0 (0=Chill, 1=Terrified)
-    veto_reason: Optional[str] = None
-    dao_consensus_hash: Optional[str] = None
+    veto_reason: str | None = None
+    dao_consensus_hash: str | None = None
     applied_trauma_weight: float = 0.0
-    
+
     # Optional extended fields (V2.0 EthicalLobe / Uchi-Soto path)
-    social_posture: Optional[str] = None
-    morals: Optional[Dict[str, Any]] = None
+    social_posture: str | None = None
+    morals: dict[str, Any] | None = None
+
+
 @dataclass
 class LimbicStageResult:
     """Consolidated result from the Limbic Lobe (Social, State, Locus)."""
+
     social_evaluation: Any
     internal_state: Any
     locus_evaluation: Any
 
+
 @dataclass
 class ExecutiveStageResult:
     """Consolidated result from the Executive Lobe."""
+
     clean_actions: list[Any]
-    decision: Optional[Any] = None
+    decision: Any | None = None
+
 
 @dataclass
 class GestaltSnapshot:
     """
     Cognitive Snapshot (Phase 13.3)
-    Freezes the state of the mind and subjective reality at the exact millisecond 
+    Freezes the state of the mind and subjective reality at the exact millisecond
     a conversation turn begins. Prevents race conditions with asynchronous sensory spikes.
     """
+
     timestamp: float = field(default_factory=time.time)
     identity_reflection: str = ""
     sigma: float = 0.5
@@ -70,40 +82,46 @@ class GestaltSnapshot:
     tension_level: float = 0.0
     pad_state: tuple[float, float, float] = (0.0, 0.0, 0.0)
     dominant_archetype: str = "neutral"
-    active_arc_id: Optional[str] = None
+    active_arc_id: str | None = None
     social_circle: str = "neutral_soto"
-    bayesian_confidence: Optional[float] = None
+    bayesian_confidence: float | None = None
+
 
 @dataclass
 class BayesianStageMetadata:
     """Metadata output from STAGE 3: Bayesian Scoring."""
-    mixture_posterior_alpha: Optional[tuple[float, float, float]] = None
-    feedback_consistency: Optional[str] = None
-    mixture_context_key: Optional[str] = None
-    hierarchical_context_key: Optional[str] = None
-    applied_mixture_weights: Optional[tuple[float, float, float]] = None
-    bma_win_probabilities: Optional[dict[str, float]] = None
-    bma_dirichlet_alpha: Optional[tuple[float, float, float]] = None
-    bma_n_samples: Optional[int] = None
+
+    mixture_posterior_alpha: tuple[float, float, float] | None = None
+    feedback_consistency: str | None = None
+    mixture_context_key: str | None = None
+    hierarchical_context_key: str | None = None
+    applied_mixture_weights: tuple[float, float, float] | None = None
+    bma_win_probabilities: dict[str, float] | None = None
+    bma_dirichlet_alpha: tuple[float, float, float] | None = None
+    bma_n_samples: int | None = None
+
 
 @dataclass
 class PerceptionStageResult:
     """Shared perception stage output for chat/natural entrypoints."""
+
     tier: Any
-    premise_advisory: Any # PremiseAdvisory
-    reality_verification: Any # RealityVerificationAssessment
-    perception: Any # LLMPerception
-    vitality: Any # VitalityAssessment
-    multimodal_trust: Any # MultimodalAssessment
-    epistemic_dissonance: Any # EpistemicDissonanceAssessment
+    premise_advisory: Any  # PremiseAdvisory
+    reality_verification: Any  # RealityVerificationAssessment
+    perception: Any  # LLMPerception
+    vitality: Any  # VitalityAssessment
+    multimodal_trust: Any  # MultimodalAssessment
+    epistemic_dissonance: Any  # EpistemicDissonanceAssessment
     signals: dict[str, float]
     support_buffer: dict[str, Any]
     limbic_profile: dict[str, Any]
-    temporal_context: Any # TemporalContext
-    perception_confidence: Any # PerceptionConfidenceEnvelope
-    malabs_result: Optional[Any] = None # AbsoluteEvilResult
+    temporal_context: Any  # TemporalContext
+    perception_confidence: Any  # PerceptionConfidenceEnvelope
+    malabs_result: Any | None = None  # AbsoluteEvilResult
+
 
 # ═══ MODULE 9: SENSORY FUSION & LIMBIC TENSION ═══
+
 
 @dataclass
 class SensoryEpisode:
@@ -112,12 +130,15 @@ class SensoryEpisode:
     Generated by VisionContinuousDaemon at 5Hz polling rate.
     Absorbed into kernel's sensory buffer for Perceptive Lobe processing.
     """
+
     timestamp: float = field(default_factory=time.time)
     episode_id: str = ""  # Unique identifier for this episode
-    origin: str = "vision" # "vision", "audio", "somatic"
+    origin: str = "vision"  # "vision", "audio", "somatic"
 
     # Vision data
-    vision_detections: list[dict] = field(default_factory=list)  # [{"class": "person", "confidence": 0.95, "bbox": [...]}, ...]
+    vision_detections: list[dict] = field(
+        default_factory=list
+    )  # [{"class": "person", "confidence": 0.95, "bbox": [...]}, ...]
     vision_entities: list[str] = field(default_factory=list)  # ["person", "weapon", ...]
     vision_confidence: float = 0.0  # Overall vision confidence
 
@@ -128,8 +149,9 @@ class SensoryEpisode:
     # Fused features
     threat_load: float = 0.0  # Aggregated threat assessment (0.0 = safe, 1.0 = critical)
     presence_confidence: float = 0.0  # How confident we are about user/entity presence
-    signals: Dict[str, float] = field(default_factory=dict) # {"tension": 0.4}
-    raw_data_ref: Optional[str] = None # Link to shared memory or file if heavy
+    signals: dict[str, float] = field(default_factory=dict)  # {"tension": 0.4}
+    raw_data_ref: str | None = None  # Link to shared memory or file if heavy
+
 
 @dataclass
 class PersistentThreatTracker:
@@ -137,13 +159,14 @@ class PersistentThreatTracker:
     Tracks sustained threat over time for limbic escalation.
     Maintains threat_load history and duration counters.
     """
-    threat_detection_time: Optional[float] = None  # When threat first detected
+
+    threat_detection_time: float | None = None  # When threat first detected
     max_threat_load: float = 0.0  # Peak threat level sustained
     current_threat_load: float = 0.0  # Current threat assessment
     threat_duration_sec: float = 0.0  # Seconds since threat first detected
     escalation_level: int = 0  # 0=none, 1=mild (1s), 2=medium (3s), 3=high (5s)
 
-    def update_threat_load(self, threat_load: float, current_time: Optional[float] = None) -> None:
+    def update_threat_load(self, threat_load: float, current_time: float | None = None) -> None:
         """
         Update threat tracking with new threat assessment.
         Triggers escalation if threat sustained for threshold durations.
@@ -195,29 +218,36 @@ class PersistentThreatTracker:
 
 # ═══ MODULE 15: ASYNCHRONOUS NERVOUS SYSTEM (CORPUS CALLOSUM) ═══
 
+
 @dataclass
 class NervousPulse:
     """Base pulse for the multithreaded asynchronous network."""
+
     pulse_id: str = field(default_factory=lambda: str(time.time_ns()))
     timestamp: float = field(default_factory=time.time)
     origin_lobe: str = "unknown"
     priority: int = 1  # 0=Critical (Reflex Arc), 1=Normal, 2=Background
     payload: Any = None
-    metadata: Dict[str, Any] = field(default_factory=dict)
+    metadata: dict[str, Any] = field(default_factory=dict)
+
 
 @dataclass
 class SensorySpike(NervousPulse):
     """Mnemonic: Aferent spike from Córtex Sensorial to the network."""
+
     origin_lobe: str = "sensory_cortex"
     pulse_type: str = "stimulus"
-    ref_pulse_id: Optional[str] = None
+    ref_pulse_id: str | None = None
+
 
 @dataclass
 class CognitivePulse(NervousPulse):
     """Mnemonic: Thought formed by Perceptive/Límbico for the Executive to review."""
+
     origin_lobe: str = "sensory_cortex"
-    state_ref: Optional[SemanticState] = None
-    ref_pulse_id: Optional[str] = None
+    state_ref: SemanticState | None = None
+    ref_pulse_id: str | None = None
+
 
 @dataclass
 class ThoughtStreamPulse(NervousPulse):
@@ -225,51 +255,64 @@ class ThoughtStreamPulse(NervousPulse):
     Mnemonic: Fragment of the Inner Voice (Phase 13.3).
     Streamed out character by character or chunk by chunk during LLM deliberation.
     """
+
     origin_lobe: str = "prefrontal_cortex"
     chunk: str = ""
-    ref_pulse_id: Optional[str] = None
+    ref_pulse_id: str | None = None
+
 
 @dataclass
 class LimbicTensionAlert(NervousPulse):
     """Mnemonic: Reactive alert from Sistema Límbico (Trauma/Tension)."""
+
     origin_lobe: str = "limbic_system"
     tension_load: float = 0.0
-    ref_pulse_id: Optional[str] = None
+    ref_pulse_id: str | None = None
+
 
 @dataclass
 class MotorCommandDispatch(NervousPulse):
     """Mnemonic: Efferent command from Córtex Prefrontal to the world."""
+
     origin_lobe: str = "prefrontal_cortex"
     action_id: str = ""
     is_vetoed: bool = False
     tone: str = "neutral"
-    gestalt_snapshot: Optional[GestaltSnapshot] = None
-    ref_pulse_id: Optional[str] = None
+    gestalt_snapshot: GestaltSnapshot | None = None
+    ref_pulse_id: str | None = None
+
 
 @dataclass
 class BayesianEcograde(NervousPulse):
     """Mnemonic: Mathematical assist from Cerebelo Auxiliar (Buffer)."""
+
     origin_lobe: str = "auxiliary_cerebellum"
     confidence_delta: float = 0.0
-    ref_pulse_id: Optional[str] = None
+    ref_pulse_id: str | None = None
+
 
 @dataclass
 class CognitivePulse(NervousPulse):
     """Mnemonic: High-level mental state broadcast (Ethical/Semantic)."""
+
     state_ref: Any = None
     priority: int = 1
-    ref_pulse_id: Optional[str] = None
+    ref_pulse_id: str | None = None
+
 
 @dataclass
 class RawSensoryPulse(NervousPulse):
     """Mnemonic: High-frequency data from bridge (VVAD/VAD/IMU) before filtering."""
+
     origin_lobe: str = "hardware_bridge"
-    priority: int = 2 # Background usually
-    ref_pulse_id: Optional[str] = None
+    priority: int = 2  # Background usually
+    ref_pulse_id: str | None = None
+
 
 @dataclass
 class GlobalDegradationPulse(NervousPulse):
     """Mnemonic: Signal from BusModulator to all lobes to reduce fidelity."""
+
     origin_lobe: str = "bus_modulator"
-    degradation_factor: float = 0.0 # 0.0=none, 1.0=maximum (only reflex path)
-    priority: int = 0 # High priority
+    degradation_factor: float = 0.0  # 0.0=none, 1.0=maximum (only reflex path)
+    priority: int = 0  # High priority

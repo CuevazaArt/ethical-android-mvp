@@ -4,12 +4,13 @@ Implements the "Right to be Forgotten" for ethical kernels.
 """
 
 from __future__ import annotations
+
 import logging
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
-    from .narrative import NarrativeMemory
     from .dao_orchestrator import DAOOrchestrator
+    from .narrative import NarrativeMemory
 
 _log = logging.getLogger(__name__)
 
@@ -33,18 +34,17 @@ class SelectiveAmnesia:
         narrative_deleted = self.memory.persistence.delete_episode(episode_id)
 
         # 2. Sync in-memory list
-        self.memory.episodes = [
-            ep for ep in self.memory.episodes if ep.id != episode_id
-        ]
+        self.memory.episodes = [ep for ep in self.memory.episodes if ep.id != episode_id]
 
         # 3. Delete from Audit Ledger (DAO)
         from .dao_orchestrator import DAOOrchestrator
+
         mock_face = self.dao.local_dao if isinstance(self.dao, DAOOrchestrator) else self.dao
         audit_deleted_count = mock_face.delete_records_by_episode(episode_id)
 
         # 4. Success verification
         success = narrative_deleted or (audit_deleted_count > 0)
-        
+
         # 5. Re-trigger Identity Reflection
         self.memory.consolidate()
 

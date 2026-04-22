@@ -4,11 +4,11 @@ SQLite-based persistent storage for Narrative Episodes (Tier 2).
 
 from __future__ import annotations
 
+import contextlib
 import json
 import sqlite3
 from datetime import datetime
 from pathlib import Path
-import contextlib
 
 from src.modules.narrative_types import BodyState, NarrativeArc, NarrativeEpisode
 from src.utils.db_locks import get_db_lock
@@ -424,7 +424,9 @@ class NarrativePersistence:
                             chronicle.ethical_poles_summary,
                             chronicle.significance_avg,
                             chronicle.episode_count,
-                            json.dumps(chronicle.semantic_embedding) if chronicle.semantic_embedding else None,
+                            json.dumps(chronicle.semantic_embedding)
+                            if chronicle.semantic_embedding
+                            else None,
                         ),
                     )
                 conn.commit()

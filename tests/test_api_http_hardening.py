@@ -13,6 +13,7 @@ Validates WebSocket, HTTP timeout, and concurrent client safety:
 from __future__ import annotations
 
 import time
+
 import pytest
 from src.kernel import EthicalKernel
 
@@ -23,6 +24,7 @@ class TestAPIHTTPHardening:
     def test_http_timeout_bounds_respected(self):
         """KERNEL_CHAT_TURN_TIMEOUT enforces soft deadline."""
         import os
+
         os.environ["KERNEL_CHAT_TURN_TIMEOUT"] = "10"
 
         try:
@@ -40,6 +42,7 @@ class TestAPIHTTPHardening:
     def test_http_timeout_task_cancellation(self):
         """Timeout triggers task cancellation to free resources."""
         import os
+
         os.environ["KERNEL_CHAT_TURN_TIMEOUT"] = "2"
 
         try:
@@ -70,10 +73,7 @@ class TestAPIHTTPHardening:
             except Exception as e:
                 results.append((client_id, str(e)))
 
-        threads = [
-            threading.Thread(target=client_worker, args=(i,))
-            for i in range(3)
-        ]
+        threads = [threading.Thread(target=client_worker, args=(i,)) for i in range(3)]
 
         for t in threads:
             t.start()
@@ -152,10 +152,12 @@ class TestAPIHTTPHardening:
     def test_http_graceful_degradation_under_load(self):
         """Kernel degrades gracefully under concurrent load."""
         import os
+
         os.environ["KERNEL_CHAT_TURN_TIMEOUT"] = "2"
 
         try:
             import threading
+
             results = []
 
             def load_worker(worker_id: int):

@@ -33,7 +33,6 @@ from .llm_touchpoint_policies import (
     ENV_VERBAL_FAMILY_POLICY,
     TOUCHPOINT_COMMUNICATE,
     TOUCHPOINT_NARRATE,
-    global_safe_policy_enabled,
     raw_global_default_policy,
     raw_touchpoint_policy,
 )

@@ -1,18 +1,19 @@
 from __future__ import annotations
-import time
-import math
-import logging
-import os
-from typing import TYPE_CHECKING, Any, Optional
+
 import asyncio
+import logging
+import math
+import os
+import time
+from typing import TYPE_CHECKING, Any
 
 from src.kernel_lobes.models import (
-    EthicalSentence, 
-    LimbicStageResult, 
+    CognitivePulse,
+    EthicalSentence,
+    LimbicStageResult,
+    LimbicTensionAlert,
     SemanticState,
     SensorySpike,
-    LimbicTensionAlert,
-    CognitivePulse
 )
 from src.modules.persistent_threat_tracker import PersistentThreatTracker
 
@@ -22,42 +23,45 @@ if TYPE_CHECKING:
 _log = logging.getLogger(__name__)
 
 if TYPE_CHECKING:
-    from src.modules.uchi_soto import UchiSotoModule
-    from src.modules.sympathetic import SympatheticModule
     from src.modules.locus import LocusModule
-    from src.modules.sensor_contracts import SensorSnapshot
-    from src.modules.multimodal_trust import MultimodalAssessment
+    from src.modules.sympathetic import SympatheticModule
+    from src.modules.uchi_soto import UchiSotoModule
+
 
 class LimbicEthicalLobe:
     """
     Subsystem for Social (Uchi-Soto), Internal State (Sympathetic), and Locus of Control.
-    
-    Acts as the 'Right Hemisphere' of the kernel, handling CPU-bound emotional 
+
+    Acts as the 'Right Hemisphere' of the kernel, handling CPU-bound emotional
     and relational context. No network I/O here (Phase-8 strict separation).
 
     Bloque 9.2 Integration:
     - Persistent Threat Tracking + Limbic Tension Escalation
     - Tracks sustained perception hazards (timeout, low confidence >5s)
-    
+
     All injected modules default to lightweight auto-instantiated instances so
     the class can be used standalone (e.g. in the V1.5 Orchestrator or tests).
     """
+
     def __init__(
         self,
-        uchi_soto: Optional[UchiSotoModule] = None,
-        sympathetic: Optional[SympatheticModule] = None,
-        locus: Optional[LocusModule] = None,
+        uchi_soto: UchiSotoModule | None = None,
+        sympathetic: SympatheticModule | None = None,
+        locus: LocusModule | None = None,
         swarm: Any = None,
-        bus: Optional[CorpusCallosum] = None
+        bus: CorpusCallosum | None = None,
     ) -> None:
         if uchi_soto is None:
             from src.modules.uchi_soto import UchiSotoModule as _US
+
             uchi_soto = _US()
         if sympathetic is None:
             from src.modules.sympathetic import SympatheticModule as _Sym
+
             sympathetic = _Sym()
         if locus is None:
             from src.modules.locus import LocusModule as _Loc
+
             locus = _Loc()
         self.uchi_soto = uchi_soto
         self.sympathetic = sympathetic
@@ -104,7 +108,7 @@ class LimbicEthicalLobe:
                 1.0,
                 float(state.signals.get("social_tension", 0.0))
                 + applied_trauma_weight * 0.8
-                + confidence_gap * 0.1
+                + confidence_gap * 0.1,
             )
             return EthicalSentence(
                 is_safe=True,
@@ -121,17 +125,17 @@ class LimbicEthicalLobe:
         signals: dict[str, float],
         message_content: str,
         turn_index: int,
-        sensor_snapshot: Optional[Any] = None,
-        multimodal_assessment: Optional[Any] = None,
-        somatic_state: Optional[dict[str, Any]] = None,
-        trauma_magnitude: float = 0.0
+        sensor_snapshot: Any | None = None,
+        multimodal_assessment: Any | None = None,
+        somatic_state: dict[str, Any] | None = None,
+        trauma_magnitude: float = 0.0,
     ) -> LimbicStageResult:
         """
         Evaluate social context and internal autonomic state.
         Vertical Increment: Somatic state (temp/battery) influences relational tension.
         """
         t0 = time.perf_counter()
-        
+
         # Swarm Rule 2: Anti-NaN Hardening
         if not math.isfinite(trauma_magnitude):
             _log.warning("LimbicLobe: Non-finite trauma_magnitude detected. Resetting to 0.0")
@@ -141,12 +145,12 @@ class LimbicEthicalLobe:
         # If signals indicate low confidence or urgency from vision/audio, treat as threat load
         threat_load = 0.0
         if signals.get("urgency", 0.0) > 0.8 or signals.get("threat_level", 0.0) > 0.5:
-             threat_load = signals.get("threat_level", 0.5)
-        
+            threat_load = signals.get("threat_level", 0.5)
+
         confidence = signals.get("confidence", 1.0)
         self.threat_tracker.update_threat_load(threat_load)
         tension_delta = self.threat_tracker.get_limbic_tension_delta()
-        
+
         # Apply persistent tension delta to the base relational_tension
         self.relational_tension = max(0.0, min(1.0, self.relational_tension + tension_delta * 0.1))
 
@@ -165,24 +169,26 @@ class LimbicEthicalLobe:
                     signals["urgency"] = max(signals.get("urgency", 0.0), 0.85)
                     signals["shutdown_threat"] = 1.0
             except (ValueError, TypeError):
-                pass 
+                pass
 
         # 2. Ingest social context
         self.uchi_soto.ingest_turn_context(
-            agent_id, signals, subjective_turn=turn_index,
-            sensor_snapshot=sensor_snapshot, 
-            multimodal_assessment=multimodal_assessment
+            agent_id,
+            signals,
+            subjective_turn=turn_index,
+            sensor_snapshot=sensor_snapshot,
+            multimodal_assessment=multimodal_assessment,
         )
-        
+
         # 3. Swarm Nudge
         if self.swarm:
             nudge = self.swarm.get_swarm_trust_nudge()
             if nudge > 0:
                 signals["trust"] = max(0.0, min(1.0, signals.get("trust", 0.5) + nudge))
-                
+
         # 4. Evaluations
         social_eval = self.uchi_soto.evaluate_interaction(signals, agent_id, message_content)
-        
+
         # Inject somatic, situational, threat and trauma tension
         try:
             gain = float(os.environ.get("KERNEL_SENSORY_GAIN", "1.0"))
@@ -192,25 +198,32 @@ class LimbicEthicalLobe:
 
         trauma_stress = trauma_magnitude * 0.3
         # Combined Stress Nudge: somatic + situational + trauma + persistent threat
-        total_stress_nudge = (somatic_tension + (self.situational_stress * 0.4) + trauma_stress + self.relational_tension) * gain
-        
+        total_stress_nudge = (
+            somatic_tension
+            + (self.situational_stress * 0.4)
+            + trauma_stress
+            + self.relational_tension
+        ) * gain
+
         if hasattr(social_eval, "relational_tension") and total_stress_nudge > 0:
-            social_eval.relational_tension = max(0.0, min(1.0, social_eval.relational_tension + total_stress_nudge))
+            social_eval.relational_tension = max(
+                0.0, min(1.0, social_eval.relational_tension + total_stress_nudge)
+            )
 
         state = self.sympathetic.evaluate_context(signals)
-        
+
         locus_eval = self.locus.evaluate(
             {
-                "self_control": 1.0 - signals.get("risk", 0.0), 
-                "external_factors": signals.get("hostility", 0.0), 
-                "predictability": signals.get("calm", 0.5) * 0.5 + 0.3
+                "self_control": 1.0 - signals.get("risk", 0.0),
+                "external_factors": signals.get("hostility", 0.0),
+                "predictability": signals.get("calm", 0.5) * 0.5 + 0.3,
             },
-            social_eval.circle.value
+            social_eval.circle.value,
         )
-        
+
         latency_ms = (time.perf_counter() - t0) * 1000
         if latency_ms > 5.0:
-             _log.debug("LimbicLobe: execute_stage latency: %.4f ms", latency_ms)
+            _log.debug("LimbicLobe: execute_stage latency: %.4f ms", latency_ms)
 
         return LimbicStageResult(
             social_evaluation=social_eval,
@@ -224,19 +237,24 @@ class LimbicEthicalLobe:
         signals: dict[str, float],
         message_content: str,
         turn_index: int,
-        sensor_snapshot: Optional[Any] = None,
-        multimodal_assessment: Optional[Any] = None,
-        somatic_state: Optional[dict[str, Any]] = None,
-        trauma_magnitude: float = 0.0
+        sensor_snapshot: Any | None = None,
+        multimodal_assessment: Any | None = None,
+        somatic_state: dict[str, Any] | None = None,
+        trauma_magnitude: float = 0.0,
     ) -> LimbicStageResult:
         """Async wrapper for Level 2 Limbic processing."""
         loop = asyncio.get_running_loop()
         return await loop.run_in_executor(
-            None, 
-            self.execute_stage, 
-            agent_id, signals, message_content, turn_index, 
-            sensor_snapshot, multimodal_assessment, somatic_state,
-            trauma_magnitude
+            None,
+            self.execute_stage,
+            agent_id,
+            signals,
+            message_content,
+            turn_index,
+            sensor_snapshot,
+            multimodal_assessment,
+            somatic_state,
+            trauma_magnitude,
         )
 
     def reset_threat_tracking(self):
@@ -247,45 +265,52 @@ class LimbicEthicalLobe:
     async def _on_sensory_spike(self, spike: SensorySpike):
         """Limbic reaction to a new sensory stimulus."""
         _log.debug(f"Sistema Límbico: Analizando impacto social del Spike {spike.pulse_id}")
-        
+
         # Throttling Orgánico: Pausar biológicamente si hay sobrecarga
         if self.bus and hasattr(self.bus, "modulator"):
             yield_func = getattr(self.bus.modulator, "biological_yield", None)
             if yield_func is not None:
                 await yield_func()
-        
+
         # Fase A: Calcular la tensión de forma inmediata al vuelo
         payload = getattr(spike, "payload", {}) or {}
         threat_level = payload.get("threat_level", 0.0)
         entities = payload.get("entities", [])
-        
+
         self.threat_tracker.update_threat_load(threat_level)
         tension_delta = self.threat_tracker.get_limbic_tension_delta()
         self.relational_tension = max(0.0, min(1.0, self.relational_tension + tension_delta))
-        
+
         if self.relational_tension > 0.7:
-             _log.warning(f"Sistema Límbico: Tensión Límbica alta ({self.relational_tension}). Publicando alerta.")
-             if self.bus:
-                 alert = LimbicTensionAlert(
-                     priority=0,
-                     tension_load=self.relational_tension,
-                     payload={"reason": "high relational tension", "entities": entities}
-                 )
-                 asyncio.create_task(self.bus.publish(alert))
+            _log.warning(
+                f"Sistema Límbico: Tensión Límbica alta ({self.relational_tension}). Publicando alerta."
+            )
+            if self.bus:
+                alert = LimbicTensionAlert(
+                    priority=0,
+                    tension_load=self.relational_tension,
+                    payload={"reason": "high relational tension", "entities": entities},
+                )
+                asyncio.create_task(self.bus.publish(alert))
 
     async def _on_tension_alert(self, alert: LimbicTensionAlert):
         """High-priority reactive stress modulation."""
-        _log.warning(f"Sistema Límbico: ALERTA DE TENSIÓN RECIBIDA ({alert.tension_load}). Escalando...")
+        _log.warning(
+            f"Sistema Límbico: ALERTA DE TENSIÓN RECIBIDA ({alert.tension_load}). Escalando..."
+        )
         self.update_situational_stress(alert.tension_load)
 
     async def _on_cognitive_event(self, pulse: CognitivePulse) -> None:
         """Process cognitive outcomes to update the relational/sympathetic state."""
         if pulse.state_ref:
-            _log.debug(f"Sistema Límbico: Actualizando estado emocional basado en CognitivePulse {pulse.ref_pulse_id}")
+            _log.debug(
+                f"Sistema Límbico: Actualizando estado emocional basado en CognitivePulse {pulse.ref_pulse_id}"
+            )
             # Simplified relational update for this async pass
             confidence = getattr(pulse.state_ref, "perception_confidence", 0.5)
             # Dissonance if confidence is low
             if confidence < 0.3:
                 self.relational_tension = max(0.0, min(1.0, self.relational_tension + 0.1))
+
 
 LimbicLobe = LimbicEthicalLobe

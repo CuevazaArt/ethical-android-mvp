@@ -79,7 +79,11 @@ class DriveArbiter:
                     )
                 )
 
-            if n_ep >= 1 and hasattr(kernel, "immortality") and hasattr(kernel.immortality, "layers"):
+            if (
+                n_ep >= 1
+                and hasattr(kernel, "immortality")
+                and hasattr(kernel.immortality, "layers")
+            ):
                 local_n = len(kernel.immortality.layers.get("local", []))
                 if local_n > 0:
                     out.append(
@@ -102,11 +106,18 @@ class DriveArbiter:
             if hasattr(kernel, "strategist"):
                 try:
                     active = [
-                        m for m in kernel.strategist.missions.values() if m.status == MissionStatus.ACTIVE
+                        m
+                        for m in kernel.strategist.missions.values()
+                        if m.status == MissionStatus.ACTIVE
                     ]
                     if active:
                         # Defensive sort in case mission priorities are unstable
-                        active_sorted = sorted(active, key=lambda x: -float(x.priority) if math.isfinite(float(x.priority)) else 0.0)
+                        active_sorted = sorted(
+                            active,
+                            key=lambda x: -float(x.priority)
+                            if math.isfinite(float(x.priority))
+                            else 0.0,
+                        )
                         top_m = active_sorted[0]
                         mp = float(top_m.priority)
                         if not math.isfinite(mp):
@@ -126,7 +137,7 @@ class DriveArbiter:
             for di in out:
                 p = float(di.priority)
                 if not math.isfinite(p):
-                    p = 0.25 # Safe low priority
+                    p = 0.25  # Safe low priority
                 sanitized.append(DriveIntent(di.suggest, di.reason, max(0.0, min(1.0, p))))
 
             sanitized.sort(key=lambda x: -x.priority)
@@ -141,14 +152,14 @@ class DriveArbiter:
             goals = kernel.metaplan.goals()
             out = apply_drive_intent_metaplan_filter(out, goals, max_intents=self.MAX_INTENTS)
             out = maybe_append_metaplan_drive_extra(out, goals, max_intents=self.MAX_INTENTS)
-            
+
         except Exception as e:
             _log.error("DriveArbiter: Critical evaluation error: %s", e)
             if not out:
-                 out = [DriveIntent("system_check", "Arbiter failure fallback.", 0.1)]
+                out = [DriveIntent("system_check", "Arbiter failure fallback.", 0.1)]
 
         latency = (time.perf_counter() - t0) * 1000
         if latency > 1.0:
             _log.debug("DriveArbiter: evaluate latency = %.2fms", latency)
-            
+
         return out
