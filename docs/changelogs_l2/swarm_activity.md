@@ -1919,4 +1919,16 @@ This file is automatically managed by `scripts/swarm_sync.py`.
   - `src/ethos_cli.py`
   - `src/kernel.py`
   - `src/main.py`
->>>>>>> origin/main
+
+### Execution (Swarm) | Date: 2026-04-22 09:31:02 | Author: Anonymous Agent
+- **Block:** `14.1`
+- **Message:** Phase 14: Stabilized Tri-Lobe Architecture merge. Resolved PWA UI conflicts for Nomad TTS and WebCam logic. Fixed test suite imports. Added PROPOSAL_L1_CROSS_OFFICE_HANDOVER_PROTOCOL.md for L1 synchronization between physical labs.
+- **Files Modified:**
+  - `audit_trail.db`
+
+### Execution (Swarm) | Date: 2026-04-22 09:32:32 | Author: Anonymous Agent
+- **Block:** `14.2`
+- **Message:** Fixed merge marker in swarm_activity.md
+- **Files Modified:**
+  - `audit_trail.db`
+  - `docs/changelogs_l2/swarm_activity.md`
