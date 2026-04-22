@@ -112,6 +112,8 @@ from .kernel_utils import (
     coercion_uncertainty_from_perception,
     enrich_chat_turn_signals_for_bayesian,
     kernel_decision_event_payload,
+)
+from .kernel_utils import (
     kernel_env_truthy as _kernel_env_truthy,
 )
 from .modules.absolute_evil import AbsoluteEvilDetector, AbsoluteEvilResult

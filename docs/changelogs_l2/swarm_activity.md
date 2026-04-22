@@ -1439,3 +1439,10 @@ This file is automatically managed by `scripts/swarm_sync.py`.
   - `tests/conftest.py`
   - `tests/test_ethics_quality.py`
   - `tests/test_malabs_semantic_integration.py`
+
+### Execution (Swarm) | Date: 2026-04-21 21:01:53 | Author: Anonymous Agent
+- **Block:** `31.0`
+- **Message:** Stabilize legacy kernel for CI: kernel_handlers (decision, communication), PerceptiveLobe execute_stage and full run_perception_stage_async, RLHF and event_bus init order, kernel_utils and MalAbs mal_edge fixes, empirical pilot on kernel_legacy_v12, EthosKernel process_chat_turn, conftest KERNEL_IGNORE_BOOT_FAILURE, Term formatter, runner Any types, dispatch CI workflow.
+- **Files Modified:**
+  - `audit_trail.db`
+  - `src/kernel_legacy_v12.py`
