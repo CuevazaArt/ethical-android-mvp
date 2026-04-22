@@ -4,8 +4,7 @@ from types import SimpleNamespace
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
 
-from src.kernel_lobes.executive_lobe import ExecutiveLobe
-from src.modules.ethics.absolute_evil import AbsoluteEvilDetector
+from src.modules.internal_monologue import compose_monologue_line
 
 
 def _decision(blocked: bool = False):
@@ -25,24 +24,16 @@ def _decision(blocked: bool = False):
 
 
 def test_build_safe_monologue_emits_only_on_safe_path():
-    lobe = ExecutiveLobe(absolute_evil=AbsoluteEvilDetector())
-    line = lobe.build_safe_monologue(
+    line = compose_monologue_line(
         _decision(blocked=False),
-        episode_id="ep-1",
-        is_safe=True,
-        expose_monologue=True,
-        embellish=None,
+        episode_id="ep-1"
     )
     assert line
 
 
 def test_build_safe_monologue_blocks_when_not_safe():
-    lobe = ExecutiveLobe(absolute_evil=AbsoluteEvilDetector())
-    line = lobe.build_safe_monologue(
+    line = compose_monologue_line(
         _decision(blocked=True),
-        episode_id="ep-1",
-        is_safe=False,
-        expose_monologue=True,
-        embellish=None,
+        episode_id="ep-1"
     )
-    assert line == ""
+    assert "[MONO] blocked=1" in line

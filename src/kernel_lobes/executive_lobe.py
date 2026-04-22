@@ -511,7 +511,10 @@ class ExecutiveLobe:
 
                 from src.kernel_lobes.models import ThoughtStreamPulse
 
+                accumulated_generation = ""
+
                 async def _on_chunk(chunk: str):
+                    nonlocal accumulated_generation
                     if self._trauma_abort_active:
                         raise Exception("Deliberation Preempted by Trauma")
                     if (
@@ -521,6 +524,14 @@ class ExecutiveLobe:
                         raise Exception(
                             "Deliberation Preempted by Semantic Override (Interruption)"
                         )
+                    
+                    # Intercepción en tiempo real (generate -> ethical-filter -> render)
+                    accumulated_generation += chunk
+                    malabs_check = self.absolute_evil.evaluate_chat_text_fast(accumulated_generation)
+                    if malabs_check.blocked:
+                        _log.warning(f"Córtex Prefrontal: MAL ABSOLUTO DETECTADO EN TIEMPO REAL! Interceptando generación: {malabs_check.reason}")
+                        raise Exception(f"Real-time Absolute Evil Intercept: {malabs_check.reason}")
+
                     if self.bus:
                         await self.bus.publish(
                             ThoughtStreamPulse(chunk=chunk, ref_pulse_id=pulse.ref_pulse_id)
