@@ -45,9 +45,11 @@ Aquí es donde los agentes de ejecución (LLMs en IDEs) reclaman sus tareas.
 - Tarea 21.2: **BiographicMemoryTracker:** [COMPLETED] Implementar el rastreador de episodios biográficos en el `CerebellumLobe` para que las sesiones de chat se guarden como hitos narrativos.
 
 **Bloque 22.0: Nomad Field Test (Texto en Terreno) [PENDING]**
-- Tarea 22.1: **Puente Web Chat Robustecido:** Refinar la PWA de `NomadBridge` (foco en modo texto/chat clásico). Eliminar o enmascarar componentes irrelevantes de UI pesadas para priorizar input/output liviano de texto.
-- Tarea 22.2: **Inyección de Identidad al Front:** El servidor backend asíncrono debe enviar un paquete `[SYNC_IDENTITY]` al WebSocket conectarse al origen, para que la UI de chat se alinee al estado actual e historia de la entidad.
-
+- Tarea 22.1: **Puente Web Chat Robustecido:** Refinar la lógica de reconexión del `NomadBridge`. Implementar colas de mensajes (buffering) asíncronas para no perder pulsos si el WebSocket de la PWA parpadea en redes móviles 4G/5G.
+- Tarea 22.2: **Inyección de Identidad al Front (Backend):** El servidor `chat_server.py` debe emitir un paquete `[SYNC_IDENTITY]` al reconectar, enviando el `GestaltSnapshot` y el historial base para alinear a la entidad.
+- Tarea 22.3: **Inyección de Identidad al Front (Frontend PWA):** Modificar `app.js` en la PWA para procesar `[SYNC_IDENTITY]` y mostrar el estado PAD actual (colores, glow) según la identidad biográfica persistente.
+- Tarea 22.4: **Optimización Layout Nomad:** Enmascarar o eliminar componentes pesados de la UI web que no son relevantes en modo "Solo Texto" para priorizar velocidad en hardware limitado.
+- Tarea 22.5: **Zero-API Fast TTFT (Time-To-First-Token):** Auditar la cadena de `Thalamus -> Executive -> LLM` para asegurar que el retraso artificial sea nulo. Optimizar el `System Prompt` maestro de chat para favorecer réplicas conversacionales instantáneas (<800ms) sin introspección profunda.
 ---
 
 ## 🗄️ RESERVA DEL ENJAMBRE (Buffer de Optimización Continua V14)
