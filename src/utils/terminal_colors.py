@@ -26,6 +26,8 @@ __all__ = ("Term", "_MAX_HEADER_BAR", "_clamped_header_bar_width")
 
 # ``Term.header`` bar length cap (operator / demo scripts; avoids pathological ``"═" * n``).
 _MAX_HEADER_BAR = 512
+# Default class separator width (rules + :meth:`Term.header`); single source to avoid magic ``70`` drift.
+_DEFAULT_SEP_WIDTH = 70
 
 
 def _clamped_header_bar_width(raw: object, *, default: int) -> int:
@@ -114,7 +116,7 @@ if _colors_enabled():
 class Term:
     """ANSI color codes for the Ethos Kernel."""
 
-    SEP_WIDTH = 70
+    SEP_WIDTH = _DEFAULT_SEP_WIDTH
 
     # Text colors
     RESET = "\033[0m"
@@ -154,25 +156,39 @@ class Term:
     @classmethod
     def _rule_width(cls) -> int:
         """Like :meth:`header` — same cap as :func:`_clamped_header_bar_width` (subclass ``SEP_WIDTH``)."""
-        return _clamped_header_bar_width(getattr(cls, "SEP_WIDTH", 70), default=70)
+        return _clamped_header_bar_width(
+            getattr(cls, "SEP_WIDTH", _DEFAULT_SEP_WIDTH),
+            default=_DEFAULT_SEP_WIDTH,
+        )
 
     @classmethod
-    def rule_heavy(cls) -> str:
+    def rule_heavy(cls, *, width: int | float | str | None = None) -> str:
         """Full-width strong separator (section boundaries in operator debug output)."""
-        w = cls._rule_width()
+        w = (
+            _clamped_header_bar_width(width, default=cls._rule_width())
+            if width is not None
+            else cls._rule_width()
+        )
         return cls.color("=" * w, cls.DIM)
 
     @classmethod
-    def rule_light(cls) -> str:
+    def rule_light(cls, *, width: int | float | str | None = None) -> str:
         """Full-width light separator."""
-        w = cls._rule_width()
+        w = (
+            _clamped_header_bar_width(width, default=cls._rule_width())
+            if width is not None
+            else cls._rule_width()
+        )
         return cls.color("-" * w, cls.DIM)
 
     @classmethod
-    def highlight_decision(cls, mode: str) -> str:
+    def highlight_decision(cls, mode: object) -> str:
         """
         Color known decision-mode labels from the kernel. Unknown / empty labels
         are still shown (default emphasis); whitespace-only or unusable input → dim ``?``.
+
+        ``mode`` is ``object`` (kernel may pass ``None`` or non-``str`` labels); coercion
+        is best-effort, same contract as :meth:`highlight_impact`.
         """
         try:
             s = str(mode).strip() if mode is not None else ""
@@ -213,10 +229,19 @@ class Term:
         cls,
         title: str,
         *,
-        width: int | float | str | None = 70,
+        width: int | float | str | None = None,
     ) -> str:
-        """Primary section block (demo summaries, operator debug). *width* via :func:`_clamped_header_bar_width`."""
-        w = _clamped_header_bar_width(width, default=cls.SEP_WIDTH)
+        """Primary section block (demo summaries, operator debug).
+
+        When *width* is ``None`` (the default), uses :meth:`_rule_width` — same subclass-aware
+        bar length as :meth:`rule_heavy` / :meth:`rule_light` (not a frozen module literal).
+        Otherwise *width* is passed to :func:`_clamped_header_bar_width` with
+        ``default=cls.SEP_WIDTH``.
+        """
+        if width is None:
+            w = cls._rule_width()
+        else:
+            w = _clamped_header_bar_width(width, default=cls.SEP_WIDTH)
         bar = cls.color("═" * w, cls.DIM)
         line = f"  {cls.color(title.strip(), cls.B_CYAN + cls.BOLD)}"
         return f"\n{bar}\n{line}\n{bar}"

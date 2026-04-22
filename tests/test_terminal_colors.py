@@ -9,8 +9,8 @@ sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
 
 from src.utils.terminal_colors import (
     _MAX_HEADER_BAR,
-    _clamped_header_bar_width,
     Term,
+    _clamped_header_bar_width,
     _enable_windows_ansi,
 )
 
@@ -71,6 +71,8 @@ def test_highlight_decision_whitespace_trim_and_empty(monkeypatch):
     assert "?" in h2
     h3 = Term.highlight_decision("   \t  ")
     assert "?" in h3
+    h4 = Term.highlight_decision(None)
+    assert "?" in h4
 
 
 def test_highlight_impact_brackets_float():
@@ -109,7 +111,7 @@ def test_header_bar_width_clamped_and_safe(monkeypatch):
     h2 = Term.header("B", width=-5)
     assert h2.count("═") == 1 * 2
     h3 = Term.header("C", width=True)  # bool is a bad width
-    assert h3.count("═") == 70 * 2
+    assert h3.count("═") == Term.SEP_WIDTH * 2
     h4 = Term.header("N", width=float("nan"))
     assert h4.count("═") == Term.SEP_WIDTH * 2
 
@@ -140,3 +142,34 @@ def test_clamped_header_bar_width_is_public_and_matches_header_logic() -> None:
     assert _clamped_header_bar_width("  40  ", default=Term.SEP_WIDTH) == 40
     assert _clamped_header_bar_width(40, default=Term.SEP_WIDTH) == 40
     assert _clamped_header_bar_width(9_999, default=Term.SEP_WIDTH) == _MAX_HEADER_BAR
+
+
+def test_rule_heavy_and_light_respect_clamped_width(monkeypatch) -> None:
+    """``rule_heavy``/``rule_light`` optional *width* uses :func:`_clamped_header_bar_width` (Plan 8.1.19/22)."""
+    monkeypatch.setenv("KERNEL_TERM_COLOR", "0")
+    assert Term.rule_heavy(width=9_999_999).count("=") == _MAX_HEADER_BAR
+    assert Term.rule_light(width=12).count("-") == 12
+    assert Term.rule_heavy().count("=") == Term.SEP_WIDTH
+
+
+def test_rule_bars_clamp_when_subclass_sep_width_huge(monkeypatch: pytest.MonkeyPatch) -> None:
+    """``rule_heavy`` / ``rule_light`` must not allocate beyond :data:`_MAX_HEADER_BAR` (Plan 8.1.19)."""
+
+    class _Wide(Term):
+        SEP_WIDTH = 9_999
+
+    monkeypatch.setenv("KERNEL_TERM_COLOR", "0")
+    assert _Wide.rule_heavy().count("=") == _MAX_HEADER_BAR
+    assert _Wide.rule_light().count("-") == _MAX_HEADER_BAR
+
+
+def test_header_default_width_follows_subclass_sep_width(monkeypatch: pytest.MonkeyPatch) -> None:
+    """Default :meth:`Term.header` (no *width*) matches :meth:`_rule_width` / rules (Plan 8.1.22)."""
+
+    class _Narrow(Term):
+        SEP_WIDTH = 40
+
+    monkeypatch.setenv("KERNEL_TERM_COLOR", "0")
+    h = _Narrow.header("Section")
+    assert h.count("═") == 40 * 2
+    assert _Narrow.rule_heavy().count("=") == 40
