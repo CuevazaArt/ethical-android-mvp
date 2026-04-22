@@ -1,5 +1,7 @@
 ﻿# `docs/proposals/` — design, theory, and operations
 
+**Index (navigation + backlog cross-links):** [INDEX.md](INDEX.md)
+
 **Reference** and **exploratory** material: versioned proposals, runtime contracts, theory ↔ code maps, operator guides, and design threads. This is **not** a substitute for the issue backlog or the root product README.
 
 This directory is the **single** unified location for what used to live in `docs/discusion/`, `docs/experimental/`, and assorted top-level `docs/*.md` files. **ADRs** remain in [`docs/adr/`](../adr/README.md). Graphics and media: [`docs/multimedia/`](../multimedia/README.md).

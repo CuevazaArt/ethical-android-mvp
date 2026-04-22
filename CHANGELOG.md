@@ -4,6 +4,13 @@ All notable changes to this project are summarized here. For narrative context a
 
 **Note:** Older sections below may still **link** to paths that were later removed (for example `experiments/million_sim/`, `docs/multimedia/`, root `dashboard.html`, `landing/`). Those links are **historical**; recover files from git history or backup branches if you need them.
 
+## [2026-04-22] Bloque 36.0: Poda documental (parcial)
+
+### Added
+- **`docs/proposals/INDEX.md`:** navigation hub (PLAN, README, aspirational disclaimer, archive policy).
+- **`docs/proposals/ASPIRATIONAL_DISCLAIMER.md`:** reusable note that “consciousness/soul” language in proposals is vision unless tied to `src/`.
+- **`docs/proposals/archived/README.md`:** incremental `git mv` policy for superseded proposal files.
+
 ## [2026-04-22] Bloque 35.0: Núcleo — vitalidad + retirada del nombre `kernel_legacy_v12`
 
 ### Added

@@ -74,10 +74,10 @@ Aquí es donde los agentes de ejecución (LLMs en IDEs) reclaman sus tareas.
 - Tarea 35.4: [DONE — L2 Cursor] **`kernel_components.py`:** eliminado `augenesis` de `KernelComponentOverrides` y su import; el batch kernel instancia `AugenesisEngine()` en `__init__` (sin inyección por dataclass).
 
 **Bloque 36.0: Poda Documental y Archivo de Propuestas Obsoletas [PENDING]**
-- Tarea 36.1: **Clasificar propuestas:** Mover propuestas implementadas/rechazadas/superadas a `docs/proposals/archived/` (estimado: ~120 de 149).
+- Tarea 36.1: **Clasificar propuestas:** Mover propuestas implementadas/rechazadas/superadas a `docs/proposals/archived/` (estimado: ~120 de 149) — *incremental;* ver [archived/README.md](archived/README.md).
 - Tarea 36.2: **Consolidar duplicados:** Eliminar o fusionar documentos con nombres casi idénticos (ej. `PROPOSAL_NOMADIC_CONSCIOUSNESS_HAL.md` vs `PROPOSAL_NOMAD_CONSCIOUSNESS_HAL.md`).
-- Tarea 36.3: **Índice activo:** Crear `docs/proposals/INDEX.md` con solo las propuestas vigentes y su estado.
-- Tarea 36.4: **Purga de retórica:** En los 15+ documentos que mencionan "consciousness", "soul", "sentient", añadir disclaimer claro de que es aspiracional, no implementado.
+- Tarea 36.3: [COMPLETED — L2 Cursor] `docs/proposals/INDEX.md` (steering + enlace a README, PLAN, disclaimer); `docs/proposals/archived/README.md` (política de `git mv`).
+- Tarea 36.4: [PARCIAL — L2 Cursor] `docs/proposals/ASPIRATIONAL_DISCLAIMER.md` reutilizable; enlace desde INDEX. La edición documento-a-documento de los 15+ archivos queda en olas posteriores.
 
 **Bloque 20.0: Local Conversational Matrix (Zero-API Fluency) [DONE]**
 - Tarea 20.1: **Desacoplamiento Estricto Comercial:** [COMPLETED] Refactorizar el backend de percepción y decisión para enrutar el 100% de `process_chat_turn` hacia `OllamaLLMBackend`. 
