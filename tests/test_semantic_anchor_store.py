@@ -1,3 +1,5 @@
+import pytest
+pytest.importorskip("chromadb")
 """Tests for SemanticAnchorStore (in-memory and Chroma backends)."""
 
 import os

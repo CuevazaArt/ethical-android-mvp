@@ -1,3 +1,5 @@
+import pytest
+pytest.importorskip("torch")
 """Module 9.1 — VisionContinuousDaemon and JPEG inference path."""
 
 import queue

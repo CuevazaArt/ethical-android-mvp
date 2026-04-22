@@ -55,8 +55,8 @@
   },
   "peer_scenario_001": {
     "node_id": "peer_scenario_001",
-    "last_seen": 1776704304.3142147,
+    "last_seen": 1776874281.267783,
     "reputation": 1.0,
-    "confirmed_witnesses": 3
+    "confirmed_witnesses": 4
   }
 }
