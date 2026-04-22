@@ -7,11 +7,16 @@ All notable changes to this project are summarized here. For narrative context a
 ## [2026-04-22] Bloque 34.0: Decomposición `chat_server.py` (parcial)
 
 ### Added
+- **`src/server/ws_sidecar.py`:** `APIRouter` with WebSocket routes `/ws/nomad` (Nomad bridge) and `/ws/dashboard`; Nomad `SYNC_IDENTITY` uses a lazy import of `src.chat_server` after the app module is fully loaded.
+- **`src/server/ws_chat.py` (Bloque 34.4):** `APIRouter` for `/ws/chat` — streaming turn loop, `_chat_turn_to_jsonable`, tri-lobe contract fill; reuses `ws_governance` collectors and `identity_envelope` for `SYNC_IDENTITY` / public identity.
 - **`src/server/app.py`:** stable ASGI import path — re-exports the same `FastAPI` `app` object as `src.chat_server` (`uvicorn src.server.app:app`).
 
 ### Changed
+- **`src/chat_server.py`:** monolith cut to app factory, HTTP `include_router`s, WebSocket `ws_sidecar` + `ws_chat`, static mounts, and `get_uvicorn_bind` (~350 lines); re-exports `_chat_turn_to_jsonable` for existing tests.
+- **`tests/test_nomad_discovery.py`:** `nomad_ws` expectation aligned to canonical `.../ws/nomad` (see `src/modules/nomad_discovery.py`).
 - **`tests/test_runtime_chat_server.py`:** regression that ``from src.server.app import app`` and ``from src.chat_server import app`` refer to the same object.
 - **`src/chat_server.py`:** `include_router` para `routes_field_control` (ADR 0017); se eliminó el bloque inline de `/control/*` y `/phone` (~220 líneas).
+- **`src/server/routes_nomad.py` + `src/chat_server.py`:** `GET /nomad/migration` and `GET /nomad/clinical` live in the router module; `app.include_router(nomad_http_router)` (URLs unchanged; static PWA mount after API routes).
 - **`src/server/routes_health.py`:** `uptime_seconds` en `GET /health` desde `meta.py` (mismo ancla de proceso que el resto del servicio).
 
 ## [2026-04-21] Bloque 34.0: MalAbs async / embeddings (observabilidad)
