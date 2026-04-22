@@ -271,7 +271,7 @@ class EthosKernel:
                 context=place
             )
 
-            return ChatTurnResult(
+            res = ChatTurnResult(
                 response=VerbalResponse(
                     message=str(getattr(dispatch_result, 'action_id', 'Cognitive silence.')), 
                     tone=str(getattr(dispatch_result, 'tone', 'neutral'))
@@ -280,8 +280,11 @@ class EthosKernel:
                 blocked=is_blocked,
                 block_reason=getattr(dispatch_result, 'block_reason', "") if is_blocked else ""
             )
+            self._snapshot_feedback_anchor(res.path)
+            return res
         except asyncio.TimeoutError:
             _log.error(f"EthosKernel: Response timeout for {pulse.pulse_id}.")
+            self._snapshot_feedback_anchor("timeout")
             return ChatTurnResult(
                 response=VerbalResponse(message="Cognitive timeout.", tone="neutral"),
                 path="timeout"

@@ -1025,3 +1025,18 @@ This file is automatically managed by `scripts/swarm_sync.py`.
   - `src/modules/nomad_session_sync.py`
   - `tests/test_chat_server.py`
   - `tests/test_nomad_session_sync.py`
+
+### 🛠️ Execution | Date: 2026-04-21 20:24:12 | Author: Anonymous Agent
+- **Block:** `22.0`
+- **Message:** Bloque 22.2/22.3 hardening: chat_server build_sync_identity_ws_message uses [SYNC_IDENTITY] type, dominant_archetype from subjective_tone, existence_digest, base_history+label; nomad /ws/nomad loads checkpoint before SYNC; PWA flushOutboundChatBuffer after identity sync on chat and nomad WS. Tri-Lobe: identity envelope aligns Nomad UI with NarrativeMemory/GestaltSnapshot without extra chat turn; CorpusCallosum unchanged.
+- **Files Modified:**
+  - `docs/proposals/PLAN_WORK_DISTRIBUTION_TREE.md`
+  - `src/kernel.py`
+
+### 🛠️ Execution | Date: 2026-04-21 20:24:12 | Author: Cursor L2
+- **Block:** `22.0`
+- **Message:** NomadBridge (Bloque 22.1): add bounded _charm_feedback_replay deque, _flush_charm_feedback_replay after WS accept, _remember_charm_for_replay on failed charm_feedback send; expose charm_feedback_replay_pending in public_queue_stats; remove duplicate re-queue path. PWA (22.3): PAD normalization [-1,1] to [0,1] in applyGestaltPad; applyGestaltPad uses merged gestalt; digest from merged. PLAN: sync 22.1/22.2 task notes with base_history and replay buffer. Impact: Nomad sensory WS recovers last affect payloads after mobile flicker; identity sync contract unchanged for chat_server.
+- **Files Modified:**
+  - `docs/changelogs_l2/swarm_activity.md`
+  - `docs/proposals/PLAN_WORK_DISTRIBUTION_TREE.md`
+  - `src/kernel.py`
