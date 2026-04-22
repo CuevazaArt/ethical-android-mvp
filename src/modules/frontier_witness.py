@@ -4,6 +4,8 @@ Frontier Witness Protocol (I1) — Peer-to-peer sensor verification.
 Allows an Ethical Kernel to request confirmation of sensory signals from
 nearby peers in the LAN to mitigate individual perception noise or adversarial spoofing.
 """
+# Status: SCAFFOLD
+
 
 from __future__ import annotations
 

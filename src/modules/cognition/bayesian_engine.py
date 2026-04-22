@@ -4,6 +4,8 @@ Bayesian Inference Engine — Mechanical Dirichlet-Multinomial updates.
 Employs formal conjugate prior updates on a low-dimensional state
 (Deontology, Social, Utility) to modulate the ethical mixture weights.
 """
+# Status: REAL
+
 
 from __future__ import annotations
 

@@ -35,6 +35,8 @@ See also
 - :class:`~src.modules.feedback_mixture_updater.FeedbackUpdater` — Level 2 component.
 - ADR 0013 — full design rationale and blending derivation.
 """
+# Status: SCAFFOLD
+
 
 from __future__ import annotations
 

@@ -4,6 +4,8 @@ Subjective time / session rhythm (cronobiología — MVP v7).
 Binds turn count and perceived stimulus to soft hints (boredom-like under-stimulation).
 Does not replace wall-clock for auditing; does not change ethical scores.
 """
+# Status: SCAFFOLD
+
 
 from __future__ import annotations
 

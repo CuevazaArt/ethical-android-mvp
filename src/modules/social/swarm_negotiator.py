@@ -4,6 +4,8 @@ Swarm Negotiator — Cross-kernel moral alignment and consensus.
 Handles identity exchange, goal synchronization, and conflict resolution
 between multiple Ethical Kernels. Supports offline-mode deltas.
 """
+# Status: SCAFFOLD
+
 
 from __future__ import annotations
 

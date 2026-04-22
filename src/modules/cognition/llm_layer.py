@@ -12,6 +12,8 @@ Designed to work with or without an API key:
 - With key: uses Claude for real generation
 - Without key: uses local templates (functional but less natural)
 """
+# Status: REAL
+
 
 from __future__ import annotations
 

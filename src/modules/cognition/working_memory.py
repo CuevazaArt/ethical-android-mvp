@@ -3,6 +3,8 @@ Short-term conversational memory (STM).
 
 Holds recent turns for coherence; does not replace NarrativeMemory (long-term episodes).
 """
+# Status: SCAFFOLD
+
 
 from dataclasses import dataclass, field
 from typing import Any

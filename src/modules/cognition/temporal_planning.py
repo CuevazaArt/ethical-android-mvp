@@ -4,6 +4,8 @@ Temporal planning helpers for perception-adjacent strategy.
 Offline-safe temporal context combining processor timing, human wall-clock,
 battery horizon, and lightweight ETA heuristics for known tasks.
 """
+# Status: SCAFFOLD
+
 
 from __future__ import annotations
 

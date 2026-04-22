@@ -5,6 +5,8 @@ Maps **compute tier** and **sensor affordances** so the ethical core can adapt
 narrative and timing without believing it has changed bodies catastrophically.
 No device drivers here — only typed profiles and apply hooks.
 """
+# Status: SCAFFOLD
+
 
 from __future__ import annotations
 

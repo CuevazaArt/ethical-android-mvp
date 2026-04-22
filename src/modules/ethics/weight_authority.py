@@ -25,6 +25,8 @@ KERNEL_FEEDBACK_TRUST_WEIGHT : float, default 1.0
     - ``0.0`` → nudge layer wins entirely (feedback ignored for weight setting)
     - ``0.7`` → 70 % posterior, 30 % nudge
 """
+# Status: SCAFFOLD
+
 
 from __future__ import annotations
 

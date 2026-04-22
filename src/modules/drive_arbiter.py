@@ -6,6 +6,8 @@ Does not execute hardware, contracts, or actions that bypass DAO / policy.
 
 See docs/proposals/README.md (Fase 3).
 """
+# Status: SCAFFOLD
+
 
 from __future__ import annotations
 

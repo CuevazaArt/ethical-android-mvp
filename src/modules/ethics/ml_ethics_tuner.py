@@ -5,6 +5,8 @@ Does **not** change Bayesian weights. When enabled, appends a DAO audit line wit
 **structured JSON** payload (parseable; schema versioned) so gray-zone turns are
 traceable for future human review.
 """
+# Status: SCAFFOLD
+
 
 from __future__ import annotations
 

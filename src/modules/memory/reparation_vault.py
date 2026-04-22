@@ -8,6 +8,8 @@ line when ``KERNEL_REPARATION_VAULT_MOCK`` is on.
 
 Audit lines prefix ``ReparationVaultV1:`` + JSON for machine-readable parsing.
 """
+# Status: SCAFFOLD
+
 
 from __future__ import annotations
 

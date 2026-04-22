@@ -14,6 +14,8 @@ Flow:
 
 This closes the gap between perception (vision+audio) and user-facing I/O.
 """
+# Status: REAL
+
 
 from __future__ import annotations
 

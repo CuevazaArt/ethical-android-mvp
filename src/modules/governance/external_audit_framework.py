@@ -22,6 +22,8 @@ Env:
 - ``KERNEL_EXTERNAL_AUDITORS`` — comma-separated auditor IDs
 - ``KERNEL_AUDIT_RETENTION_DAYS`` — log retention (default 365)
 """
+# Status: SCAFFOLD
+
 
 from __future__ import annotations
 

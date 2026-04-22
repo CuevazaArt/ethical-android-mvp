@@ -4,6 +4,8 @@ Linear pole evaluator — configurable weights and verdict thresholds (ADR 0004)
 Score is a weighted sum of named features over ``context_data`` (risk, benefit, …).
 Nonlinear / sklearn evaluators can follow the same ``evaluate`` contract later.
 """
+# Status: SCAFFOLD
+
 
 from __future__ import annotations
 

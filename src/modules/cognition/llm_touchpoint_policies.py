@@ -29,6 +29,8 @@ Precedence is documented in
 Concrete validation and canned templates live in
 :mod:`perception_backend_policy`, :mod:`llm_verbal_backend_policy`, and :meth:`LLMModule` methods.
 """
+# Status: SCAFFOLD
+
 
 from __future__ import annotations
 

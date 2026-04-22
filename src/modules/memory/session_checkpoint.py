@@ -2,6 +2,8 @@
 Session Checkpoint Tracker (formerly Biographic Memory Tracker).
 Converts chat turns and executive decisions into basic SQLite/JSON checkpoints.
 """
+# Status: SCAFFOLD
+
 
 from __future__ import annotations
 

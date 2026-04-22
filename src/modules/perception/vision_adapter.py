@@ -4,6 +4,8 @@ Vision Adapter Contract — Interface for Computer Vision models.
 This module defines the abstract base class and data structures for
 converting visual streams into ethical signals for the kernel.
 """
+# Status: SCAFFOLD
+
 
 import logging
 from abc import ABC, abstractmethod

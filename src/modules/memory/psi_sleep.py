@@ -25,6 +25,8 @@ with an **external** labeled benchmark — ``PROPOSAL_ETHICAL_CORE_LOGIC_EVOLUTI
 ``evaluation_method`` on :class:`EpisodeReview` identify the MVP evaluator for logs
 and transparency.
 """
+# Status: SCAFFOLD
+
 
 import hashlib
 from collections import Counter

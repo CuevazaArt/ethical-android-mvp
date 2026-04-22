@@ -16,6 +16,8 @@ and security effort (``contracts/README.md`` holds a non-functional stub only).
 **Honesty/Status (Order 4):**
 This module is a **MOCK/SIMULATION**. It holds NO real world authority or tokens.
 """
+# Status: SCAFFOLD
+
 
 GOVERNANCE_STATUS_MOCK = "[GOVERNANCE_MOCK_SIMULATION]"
 

@@ -7,6 +7,8 @@ This does **not** bypass MalAbs or the decision stack; it refines transparency.
 
 See docs/proposals/README.md (pillar 1).
 """
+# Status: SCAFFOLD
+
 
 from __future__ import annotations
 

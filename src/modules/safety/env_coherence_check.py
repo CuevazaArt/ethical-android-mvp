@@ -22,6 +22,8 @@ Severity levels:
   ``"warning"`` — the combination may produce unexpected results.
   ``"info"``    — informational note; no action required.
 """
+# Status: SCAFFOLD
+
 
 from __future__ import annotations
 

@@ -5,6 +5,8 @@ Used during :meth:`EthicalKernel.execute_sleep` when ``KERNEL_PSI_SLEEP_UPDATE_M
 Counts (decision_regime, feedback_label) pairs — a calibration aid, not a clinical metric.
 See ``docs/proposals/README.md`` (B1).
 """
+# Status: SCAFFOLD
+
 
 from __future__ import annotations
 

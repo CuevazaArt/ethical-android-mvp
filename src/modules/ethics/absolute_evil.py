@@ -5,6 +5,8 @@ If an action crosses this line, it is discarded without deliberation.
 Non-negotiable, non-adjustable. Exists to cut the circuit before
 something burns.
 """
+# Status: REAL
+
 
 from __future__ import annotations
 

@@ -5,6 +5,8 @@ Does not change MalAbs or final_action by itself; feeds sympathetic merge and to
 
 See docs/proposals/README.md §1–2
 """
+# Status: SCAFFOLD
+
 
 from __future__ import annotations
 

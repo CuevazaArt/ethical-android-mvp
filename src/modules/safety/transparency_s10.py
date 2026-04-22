@@ -4,6 +4,8 @@ Embodied sociability blocks S10.1–S10.4 — transparency and emotional safety.
 See ``docs/archive_v1-7/proposals/PROPOSAL_EMBODIED_SOCIABILITY.md`` (Bloque S10).
 Structured JSON for operators and LAN clients; no substitute for full narrative memory.
 """
+# Status: SCAFFOLD
+
 
 from __future__ import annotations
 

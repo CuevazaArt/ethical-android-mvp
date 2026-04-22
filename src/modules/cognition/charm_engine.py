@@ -8,6 +8,8 @@ smoothing on warmth/mystery (MER Block 10.3).
 **Env (optional):** ``KERNEL_BASAL_GANGLIA_SMOOTHING=1`` — run :class:`basal_ganglia.BasalGanglia`
 on ``CharmVector`` warmth/mystery to reduce sociopathic parametric jumps (default off).
 """
+# Status: SCAFFOLD
+
 
 from __future__ import annotations
 

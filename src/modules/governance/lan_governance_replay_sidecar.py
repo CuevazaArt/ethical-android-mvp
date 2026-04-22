@@ -8,6 +8,8 @@ in one artifact. This does **not** prove cross-session quorum; it pairs with
 
 See ``docs/proposals/PROPOSAL_LAN_GOVERNANCE_REPLAY_SIDECAR.md`` (DJ-BL-15).
 """
+# Status: SCAFFOLD
+
 
 from __future__ import annotations
 

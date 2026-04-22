@@ -9,6 +9,8 @@ Enables the android to articulate:
 
 Integrates with NarrativeMemory and decision trace for transparent accountability.
 """
+# Status: SCAFFOLD
+
 
 from __future__ import annotations
 

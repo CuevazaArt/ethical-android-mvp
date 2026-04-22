@@ -7,6 +7,8 @@ transparent negotiation over blunt refusal. Does **not** weaken MalAbs or buffer
 
 See docs/proposals/README.md
 """
+# Status: SCAFFOLD
+
 
 from __future__ import annotations
 

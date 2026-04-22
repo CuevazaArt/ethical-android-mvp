@@ -9,6 +9,8 @@ Default: **inactive** unless ``KERNEL_TEMPORAL_HORIZON_PRIOR`` is set.
 
 See ``docs/proposals/README.md``.
 """
+# Status: SCAFFOLD
+
 
 from __future__ import annotations
 

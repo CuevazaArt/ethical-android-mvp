@@ -7,6 +7,8 @@ Provides multiple channels: visual (LED patterns, gestures), acoustic (speech),
 and digital (API flags) to request help in a way that reduces human uncertainty
 and enables rapid, safe intervention.
 """
+# Status: SCAFFOLD
+
 
 from __future__ import annotations
 

@@ -10,6 +10,8 @@ Env:
 - ``KERNEL_AUDIT_HMAC_SECRET`` — optional UTF-8 secret for ``hmac_sha256`` on each line.
 - ``KERNEL_AUDIT_INCLUDE_REASON_HASH`` — default on; set ``0`` to omit ``reason_sha256``.
 """
+# Status: SCAFFOLD
+
 
 from __future__ import annotations
 

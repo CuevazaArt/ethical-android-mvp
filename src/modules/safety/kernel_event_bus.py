@@ -7,6 +7,8 @@ logged and **do not** abort ``EthicalKernel.process``. Opt-in via ``KERNEL_EVENT
 This is **not** a distributed bus; it decouples optional listeners (telemetry, bridges,
 future ``ethos-extensions``) from the core decision path without async or threads.
 """
+# Status: REAL
+
 
 from __future__ import annotations
 

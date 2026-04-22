@@ -22,6 +22,8 @@ Env:
 - ``KERNEL_REALM_CONSENSUS_THRESHOLD`` — voting majority % (default 0.5)
 - ``KERNEL_REALM_MAX_VOTING_ROUNDS`` — governance rounds (default 3)
 """
+# Status: SCAFFOLD
+
 
 from __future__ import annotations
 

@@ -4,6 +4,8 @@ Metacognitive Evaluator — Internal drive for moral curiosity and consistency.
 Analyzes the gap between identity (who I think I am) and experience (what I actually do).
 Generates 'Doubt' and 'Curiosity' signals for the Drive Arbiter.
 """
+# Status: SCAFFOLD
+
 
 from __future__ import annotations
 

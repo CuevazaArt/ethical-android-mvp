@@ -15,6 +15,8 @@ to use importance sampling + moment-matched Dirichlet projection from
 Genome drift: clamps the **normalized** posterior mean to stay within ``max_drift`` of the
 initial normalized prior per axis, then rescales to preserve total Dirichlet concentration.
 """
+# Status: SCAFFOLD
+
 
 from __future__ import annotations
 

@@ -6,6 +6,8 @@ simulates a chat thread: bind cancel scope, start a long mock completion, signal
 cancel shortly after — all workers share one :class:`MockLLMBackend` (thread-safe
 delay loop + thread-local cancel scope).
 """
+# Status: SCAFFOLD
+
 
 from __future__ import annotations
 

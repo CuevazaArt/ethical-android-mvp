@@ -10,6 +10,8 @@ from a lone hallucinated high-threat parse.
 This is **not** a ground-truth validator: two samples from the same flawed model can
 still agree wrongly. Pair with lexical tier + cross-check where possible.
 """
+# Status: SCAFFOLD
+
 
 from __future__ import annotations
 

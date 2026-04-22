@@ -4,6 +4,8 @@ Executive Strategy Engine — Planning and Mission Management.
 Transitions from passive goal hints to active mission tracking and tactical selection.
 Supports Self-generated missions (identity-driven) and External missions (owner-driven).
 """
+# Status: SCAFFOLD
+
 
 from __future__ import annotations
 

@@ -2,6 +2,8 @@
 Vision Capture Interface (Block B4)
 Handles real-time video stream acquisition from local hardware.
 """
+# Status: SCAFFOLD
+
 
 import logging
 import threading

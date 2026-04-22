@@ -8,6 +8,8 @@ maintaining ethical consistency (the chosen action is robust, scores vary).
 Principle: a human who would always help the elderly person but with
 different levels of urgency depending on how they feel that day.
 """
+# Status: SCAFFOLD
+
 
 from dataclasses import dataclass
 

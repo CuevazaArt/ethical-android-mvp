@@ -6,6 +6,8 @@ Tickets record *intent* to acquire a new digital capability; approval is explici
 
 See docs/proposals/README.md
 """
+# Status: SCAFFOLD
+
 
 from __future__ import annotations
 

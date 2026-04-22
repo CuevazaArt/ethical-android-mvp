@@ -9,6 +9,8 @@ Module 9.1 (``VisionContinuousDaemon``): background loop (~5 Hz by default) drai
 runs JPEG decode + ``VisionInferenceEngine.analyze_jpeg_bytes`` in a worker thread
 so the cadence loop stays non-blocking (async preprocessing vs the hot path).
 """
+# Status: SCAFFOLD
+
 
 from __future__ import annotations
 

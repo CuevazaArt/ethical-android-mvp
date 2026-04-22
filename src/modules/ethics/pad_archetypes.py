@@ -7,6 +7,8 @@ v = (P, A, D) ∈ [0,1]³, then softmax weights over fixed prototypes.
 Does not influence MalAbs, buffer, Bayesian choice, poles, or will — only
 records tone for narrative / downstream presentation (see docs §7).
 """
+# Status: SCAFFOLD
+
 
 from __future__ import annotations
 

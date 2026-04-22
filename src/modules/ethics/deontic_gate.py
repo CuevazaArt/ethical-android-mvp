@@ -7,6 +7,8 @@ DemocraticBuffer cultural-overlay path. See docs/proposals/README.md
 **Vertical depth (Phase 1):** minimal **structural** validation (length / non-empty)
 plus phrase-level conflicts; not a theorem prover for ethics.
 """
+# Status: SCAFFOLD
+
 
 from __future__ import annotations
 

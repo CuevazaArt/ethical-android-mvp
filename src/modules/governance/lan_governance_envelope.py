@@ -4,6 +4,8 @@ Versioned LAN governance envelope contract (Phase 2 coordinator schema stub).
 This module validates a schema-tagged wrapper so cross-node batches can travel with
 stable metadata (node id, send time, kind). It does not perform networking.
 """
+# Status: SCAFFOLD
+
 
 from __future__ import annotations
 

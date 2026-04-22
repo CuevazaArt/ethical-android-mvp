@@ -56,7 +56,7 @@ Aquí es donde los agentes de ejecución (LLMs en IDEs) reclaman sus tareas.
 - Tarea: Conectar el SDK de Anthropic o el API de Ollama de forma obligatoria en la capa de generación.
 - Meta: El kernel debe dejar de evaluar strings hardcodeados y debe interceptar el flujo real (`generate -> ethical-filter -> render`).
 
-**Bloque 15.4: Etiquetado Honesto de Estado (Prioridad 3) [PENDING]**
+**Bloque 15.4: Etiquetado Honesto de Estado (Prioridad 3) [DONE]**
 - Tarea: Insertar una cabecera de estado (`Status: REAL | SCAFFOLD | MOCK | EXPERIMENTAL`) en todos los módulos de `src/modules/`.
 - Acción: Crear el script para compilar estos estados en un documento `STATUS.md` auto-generado.
 

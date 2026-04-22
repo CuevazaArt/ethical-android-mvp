@@ -10,6 +10,8 @@ Phases A–D (design): encapsulate → **Ed25519 handshake** → sensor adapt �
 signature over the digest so a receiving device (e.g. smartphone) can confirm the bundle was
 produced by the holder of the private key and matches the loaded narrative state.
 """
+# Status: SCAFFOLD
+
 
 from __future__ import annotations
 

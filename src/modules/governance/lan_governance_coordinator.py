@@ -6,6 +6,8 @@ hub node can forward batches from several peers in a single WebSocket frame. Ord
 deterministic (fingerprint sort) with duplicate fingerprint removal. This module does not
 perform networking or cross-session consensus.
 """
+# Status: SCAFFOLD
+
 
 from __future__ import annotations
 

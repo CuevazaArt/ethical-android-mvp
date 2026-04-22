@@ -7,6 +7,8 @@ Phase 3: optional ``MockDAO.run_mock_escalation_court`` after dossier registrati
 
 See docs/proposals/README.md
 """
+# Status: SCAFFOLD
+
 
 from __future__ import annotations
 

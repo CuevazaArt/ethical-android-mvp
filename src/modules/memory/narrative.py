@@ -4,6 +4,8 @@ Long-Term Narrative Memory.
 Converts experiences into narrative cycles with morals.
 The android does not store data: it builds history.
 """
+# Status: PENDING-LLM
+
 
 import os
 from datetime import datetime

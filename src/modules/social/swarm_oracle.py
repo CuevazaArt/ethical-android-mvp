@@ -4,6 +4,8 @@ Swarm Oracle (I4) — Persistence for peer reputation and session hints.
 Maintains a local cache of discovered peers, their voting history, and
 reputation scores to enable cross-session trust even in disconnected (offline) modes.
 """
+# Status: SCAFFOLD
+
 
 from __future__ import annotations
 

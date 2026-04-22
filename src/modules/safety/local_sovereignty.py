@@ -9,6 +9,8 @@ without claiming distributed consensus or ML trajectory modeling.
 
 See ``docs/proposals/README.md`` (pillar 3).
 """
+# Status: SCAFFOLD
+
 
 from __future__ import annotations
 

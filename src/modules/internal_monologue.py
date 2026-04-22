@@ -6,6 +6,8 @@ single grep-friendly line.
 
 See docs/proposals/README.md (Fase 5).
 """
+# Status: SCAFFOLD
+
 
 from __future__ import annotations
 

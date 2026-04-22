@@ -5,6 +5,8 @@ Enables the kernel to perform an ethical 'Flashback':
 Retrieving detailed past episodes to inform current ambiguous contexts.
 Prioritizes Traumas (highly negative precedents) to ensure absolute safety.
 """
+# Status: SCAFFOLD
+
 
 from __future__ import annotations
 

@@ -4,6 +4,8 @@ Somatic Adapter Contract — Interface for Body State and Proprioception.
 This module defines the structures for internal sensing: IMU (balance),
 Joint encoders (posture), and Motor current (effort/pain).
 """
+# Status: SCAFFOLD
+
 
 from abc import ABC, abstractmethod
 from dataclasses import dataclass, field

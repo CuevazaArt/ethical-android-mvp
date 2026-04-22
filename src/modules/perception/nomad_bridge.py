@@ -29,6 +29,8 @@ rejects oversize text frames before ``json.loads`` (aligned with chat server har
 **Telemetry shape:** ``payload`` must be a **flat JSON object**; ``KERNEL_NOMAD_MAX_TELEMETRY_KEYS`` (default 128)
 drops oversized dicts before they hit the queue or ``peek_latest_telemetry``.
 """
+# Status: REAL
+
 
 import asyncio
 import base64

@@ -9,6 +9,8 @@ callers that want to gate optional telemetry (default **off**).
 
 See docs/proposals/README.md
 """
+# Status: SCAFFOLD
+
 
 from __future__ import annotations
 

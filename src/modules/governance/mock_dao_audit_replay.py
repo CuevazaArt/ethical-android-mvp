@@ -7,6 +7,8 @@ snapshots can be compared for **bit-exact** ledger equality (order-sensitive).
 This does **not** prove blockchain integrity; it supports operator diagnostics and staged
 execution Phase 1 acceptance. See ``docs/proposals/PROPOSAL_DISTRIBUTED_JUSTICE_CONTRIBUTIONS.md``.
 """
+# Status: SCAFFOLD
+
 
 from __future__ import annotations
 

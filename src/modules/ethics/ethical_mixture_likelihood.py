@@ -60,6 +60,8 @@ See Also
 - :mod:`bayesian_mixture_averaging` -- Level 1 BMA (unchanged by this module)
 - ADR 0012 -- design rationale
 """
+# Status: SCAFFOLD
+
 
 from __future__ import annotations
 
