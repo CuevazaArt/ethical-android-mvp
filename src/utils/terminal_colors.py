@@ -20,8 +20,9 @@ _STD_OUTPUT_HANDLE = -11
 _ENABLE_VIRTUAL_TERMINAL_PROCESSING = 0x0004
 _log = logging.getLogger(__name__)
 
-# Operator / tests: ``Term`` is the public API; bar cap is exposed for integration assertions.
-__all__ = ("Term", "_MAX_HEADER_BAR")
+# Operator / tests: ``Term`` is the public API; width helpers keep demo scripts aligned with
+# the same anti-DoS / finitude rules as :meth:`Term.header` (V4.0 / Pragmatismo).
+__all__ = ("Term", "_MAX_HEADER_BAR", "_clamped_header_bar_width")
 
 # ``Term.header`` bar length cap (operator / demo scripts; avoids pathological ``"═" * n``).
 _MAX_HEADER_BAR = 512
@@ -151,14 +152,21 @@ class Term:
         return f"{color_code}{text}{cls.RESET}"
 
     @classmethod
+    def _rule_width(cls) -> int:
+        """Like :meth:`header` — same cap as :func:`_clamped_header_bar_width` (subclass ``SEP_WIDTH``)."""
+        return _clamped_header_bar_width(getattr(cls, "SEP_WIDTH", 70), default=70)
+
+    @classmethod
     def rule_heavy(cls) -> str:
         """Full-width strong separator (section boundaries in operator debug output)."""
-        return cls.color("=" * cls.SEP_WIDTH, cls.DIM)
+        w = cls._rule_width()
+        return cls.color("=" * w, cls.DIM)
 
     @classmethod
     def rule_light(cls) -> str:
         """Full-width light separator."""
-        return cls.color("-" * cls.SEP_WIDTH, cls.DIM)
+        w = cls._rule_width()
+        return cls.color("-" * w, cls.DIM)
 
     @classmethod
     def highlight_decision(cls, mode: str) -> str:

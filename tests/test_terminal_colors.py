@@ -9,6 +9,7 @@ sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
 
 from src.utils.terminal_colors import (
     _MAX_HEADER_BAR,
+    _clamped_header_bar_width,
     Term,
     _enable_windows_ansi,
 )
@@ -132,3 +133,10 @@ def test_header_bar_width_bad_str_falls_back_to_default(monkeypatch):
     monkeypatch.setenv("KERNEL_TERM_COLOR", "0")
     h = Term.header("S", width="nope")
     assert h.count("═") == Term.SEP_WIDTH * 2
+
+
+def test_clamped_header_bar_width_is_public_and_matches_header_logic() -> None:
+    """``__all__`` exports the same coercions :meth:`Term.header` uses (Plan 8.1.18)."""
+    assert _clamped_header_bar_width("  40  ", default=Term.SEP_WIDTH) == 40
+    assert _clamped_header_bar_width(40, default=Term.SEP_WIDTH) == 40
+    assert _clamped_header_bar_width(9_999, default=Term.SEP_WIDTH) == _MAX_HEADER_BAR
