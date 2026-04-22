@@ -13,7 +13,7 @@ from typing import TYPE_CHECKING, Any
 if TYPE_CHECKING:
     from ..kernel import EthicalKernel
     from ..kernel_lobes.models import PerceptionStageResult
-    from ..modules.sensor_contracts import SensorSnapshot
+    from src.modules.perception.sensor_contracts import SensorSnapshot
 
 _log = logging.getLogger(__name__)
 
@@ -32,8 +32,8 @@ async def run_perception_pipeline(
     2. Parallel LLM Perception & Semantic MalAbs
     3. RLHF Feature extraction and Bayesian modulation
     """
-    from ..modules.rlhf_reward_model import FeatureVector
-    from ..modules.semantic_chat_gate import (
+    from src.modules.cognition.rlhf_reward_model import FeatureVector
+    from src.modules.safety.semantic_chat_gate import (
         arun_semantic_malabs_acl_bypass,
         arun_semantic_malabs_after_lexical,
     )
@@ -89,7 +89,7 @@ async def run_perception_pipeline(
     stage, mal_semantic = await asyncio.gather(perception_task, mal_semantic_task)
 
     # 3. RLHF & Somatic Latency Bayesian Modulation
-    from ..modules.nomad_bridge import get_nomad_bridge
+    from src.modules.perception.nomad_bridge import get_nomad_bridge
 
     bridge = get_nomad_bridge()
     latency_raw = bridge.vessel_metadata.get("latency_ms", 0)
@@ -105,7 +105,7 @@ async def run_perception_pipeline(
 
     if kernel.rlhf.reward_model.is_trained and mal_semantic.rlhf_features:
         try:
-            from ..modules.rlhf_reward_model import FeatureVector
+            from src.modules.cognition.rlhf_reward_model import FeatureVector
 
             fv = FeatureVector.from_dict(mal_semantic.rlhf_features)
             score, conf = kernel.rlhf.reward_model.predict(fv)

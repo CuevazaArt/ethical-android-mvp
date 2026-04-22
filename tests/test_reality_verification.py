@@ -8,7 +8,7 @@ import pytest
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
 
 from src.kernel import EthicalKernel
-from src.modules.reality_verification import (
+from src.modules.safety.reality_verification import (
     ASSESSMENT_NONE,
     clear_lighthouse_cache,
     load_lighthouse_kb,

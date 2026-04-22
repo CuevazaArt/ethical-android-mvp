@@ -27,7 +27,7 @@ async def run_decision_pipeline(
     actions = kernel._actions_for_chat(perception, heavy)
     ctx = perception.suggested_context or ""
     from ..kernel_utils import enrich_chat_turn_signals_for_bayesian
-    from ..modules.generative_candidates import augment_generative_candidates
+    from src.modules.cognition.generative_candidates import augment_generative_candidates
 
     actions = augment_generative_candidates(
         actions,

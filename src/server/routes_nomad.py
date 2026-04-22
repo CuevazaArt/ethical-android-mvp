@@ -12,8 +12,8 @@ from typing import Any
 
 from fastapi import APIRouter
 
-from ..modules.existential_serialization import nomad_simulation_ws_enabled
-from ..modules.nomad_bridge import get_nomad_bridge
+from src.modules.governance.existential_serialization import nomad_simulation_ws_enabled
+from src.modules.perception.nomad_bridge import get_nomad_bridge
 
 router = APIRouter(tags=["nomad"])
 

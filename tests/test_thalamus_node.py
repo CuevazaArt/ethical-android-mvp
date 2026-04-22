@@ -15,7 +15,7 @@ sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
 
 from src.kernel_lobes.models import SensoryEpisode
 from src.kernel_lobes.thalamus_node import ThalamusNode
-from src.modules.sensor_contracts import SensorSnapshot, merge_sensor_hints_into_signals
+from src.modules.perception.sensor_contracts import SensorSnapshot, merge_sensor_hints_into_signals
 
 
 @pytest.fixture

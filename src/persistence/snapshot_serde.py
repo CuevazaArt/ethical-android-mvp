@@ -9,8 +9,8 @@ from __future__ import annotations
 
 from typing import Any
 
-from src.modules.metaplan_registry import MasterGoal
-from src.modules.mock_dao import AuditRecord, SolidarityAlert
+from src.modules.cognition.metaplan_registry import MasterGoal
+from src.modules.governance.mock_dao import AuditRecord, SolidarityAlert
 
 from .schema import KernelSnapshotV1
 

@@ -5,14 +5,14 @@ import sys
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
 
-from src.modules.llm_touchpoint_policies import (
+from src.modules.cognition.llm_touchpoint_policies import (
     DEFAULT_MONOLOGUE_BACKEND_POLICY,
     ENV_LLM_GLOBAL_DEFAULT_POLICY,
     resolve_monologue_llm_backend_policy,
     touchpoint_policy_env_key,
 )
-from src.modules.llm_verbal_backend_policy import resolve_verbal_llm_backend_policy
-from src.modules.perception_backend_policy import resolve_perception_backend_policy
+from src.modules.cognition.llm_verbal_backend_policy import resolve_verbal_llm_backend_policy
+from src.modules.perception.perception_backend_policy import resolve_perception_backend_policy
 
 
 def test_touchpoint_env_key_shape():

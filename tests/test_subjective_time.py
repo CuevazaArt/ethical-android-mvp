@@ -5,8 +5,8 @@ import sys
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
 
-from src.modules.llm_layer import LLMPerception
-from src.modules.subjective_time import SubjectiveClock
+from src.modules.cognition.llm_layer import LLMPerception
+from src.modules.cognition.subjective_time import SubjectiveClock
 
 
 def _p() -> LLMPerception:

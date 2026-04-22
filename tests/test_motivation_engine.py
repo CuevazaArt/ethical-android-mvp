@@ -1,5 +1,5 @@
 from src.kernel import EthicalKernel
-from src.modules.motivation_engine import DriveType
+from src.modules.cognition.motivation_engine import DriveType
 
 
 def test_motivation_drives_growth():
@@ -49,7 +49,7 @@ def test_social_tension_boosts_repair_drive():
     agent_id = "trusted_friend"
 
     # 1. Promote agent to a trusted tier explicitly
-    from src.modules.uchi_soto import RelationalTier
+    from src.modules.social.uchi_soto import RelationalTier
 
     kernel.uchi_soto.set_relational_tier_explicit(agent_id, RelationalTier.TRUSTED_UCHI)
     # Manually nudge trust score to high level

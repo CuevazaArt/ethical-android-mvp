@@ -9,7 +9,7 @@ import pytest
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
 
 from src.kernel import EthicalKernel
-from src.modules.conduct_guide_export import (
+from src.modules.governance.conduct_guide_export import (
     build_conduct_guide,
     conduct_guide_export_path_from_env,
     should_export_conduct_guide_on_disconnect,

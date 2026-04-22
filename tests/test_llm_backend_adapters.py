@@ -8,7 +8,7 @@ import pytest
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
 
-from src.modules.llm_backends import (
+from src.modules.cognition.llm_backends import (
     CompletionOnlyAdapter,
     HttpJsonLLMBackend,
     MockLLMBackend,
@@ -200,7 +200,7 @@ def test_ollama_llm_backend_embed_uses_env_model(monkeypatch):
 
 
 def test_anthropic_llm_backend_messages_api(monkeypatch):
-    from src.modules.llm_backends import AnthropicLLMBackend
+    from src.modules.cognition.llm_backends import AnthropicLLMBackend
 
     class FakeContent:
         text = "anthropic reply"

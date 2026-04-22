@@ -9,7 +9,7 @@ from __future__ import annotations
 from collections.abc import Mapping
 from typing import Any
 
-from ..modules.lan_governance_merge_context import (
+from src.modules.governance.lan_governance_merge_context import (
     EVIDENCE_POSTURE_ADVISORY_AGGREGATE,
     LanMergeContextParsed,
 )

@@ -15,7 +15,7 @@ import time
 from dataclasses import dataclass
 from typing import TYPE_CHECKING
 
-from .strategy_engine import MissionStatus
+from src.modules.cognition.strategy_engine import MissionStatus
 
 _log = logging.getLogger(__name__)
 
@@ -144,7 +144,7 @@ class DriveArbiter:
             out = sanitized[: self.MAX_INTENTS]
 
             # v9.4 — optional metaplan-aware filtering / extra hint (advisory only)
-            from .metaplan_registry import (
+            from src.modules.cognition.metaplan_registry import (
                 apply_drive_intent_metaplan_filter,
                 maybe_append_metaplan_drive_extra,
             )

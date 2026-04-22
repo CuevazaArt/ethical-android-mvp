@@ -1,6 +1,6 @@
 from src.kernel import EthicalKernel
-from src.modules.strategy_engine import MissionOrigin
-from src.modules.weighted_ethics_scorer import CandidateAction
+from src.modules.cognition.strategy_engine import MissionOrigin
+from src.modules.ethics.weighted_ethics_scorer import CandidateAction
 
 
 def test_strategic_boost_influence():

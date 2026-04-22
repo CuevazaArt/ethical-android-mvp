@@ -19,7 +19,7 @@ from unittest.mock import Mock
 import pytest
 from src.kernel_lobes.limbic_lobe import LimbicEthicalLobe
 from src.kernel_lobes.models import SemanticState
-from src.modules.persistent_threat_tracker import PersistentThreatTracker
+from src.modules.memory.persistent_threat_tracker import PersistentThreatTracker
 
 
 class TestThreatTrackerDetectsPersistentThreat:

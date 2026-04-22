@@ -15,7 +15,7 @@ from typing import Any
 
 from ..kernel import EthicalKernel
 from ..kernel_lobes.models import GestaltSnapshot
-from ..modules.nomad_identity import nomad_identity_public
+from src.modules.governance.nomad_identity import nomad_identity_public
 from ..persistence.identity_manifest import IdentityManifestStore
 from ..runtime.chat_feature_flags import chat_include_nomad_identity
 

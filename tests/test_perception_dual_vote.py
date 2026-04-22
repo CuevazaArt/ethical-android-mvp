@@ -9,9 +9,9 @@ import pytest
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
 
-from src.modules.llm_backends import MockLLMBackend
-from src.modules.llm_layer import LLMModule, perception_from_llm_json
-from src.modules.perception_dual_vote import apply_perception_dual_vote_metadata
+from src.modules.cognition.llm_backends import MockLLMBackend
+from src.modules.cognition.llm_layer import LLMModule, perception_from_llm_json
+from src.modules.perception.perception_dual_vote import apply_perception_dual_vote_metadata
 
 
 class _AlternatingMock(MockLLMBackend):

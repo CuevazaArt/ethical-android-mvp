@@ -6,7 +6,7 @@ import sys
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
 
 from src.kernel import EthicalKernel
-from src.modules.weighted_ethics_scorer import CandidateAction
+from src.modules.ethics.weighted_ethics_scorer import CandidateAction
 
 # High arousal + strong candidate → sympathetic + non-gray will → baseline ``D_fast``.
 _FAST_SIGNALS = {

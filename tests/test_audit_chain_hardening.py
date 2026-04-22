@@ -12,7 +12,7 @@ import os
 import tempfile
 from pathlib import Path
 
-from src.modules.audit_chain_log import (
+from src.modules.governance.audit_chain_log import (
     _read_last_chain_state,
     append_audit_event,
 )

@@ -6,10 +6,10 @@ from collections.abc import Mapping
 from typing import TYPE_CHECKING, Any
 
 if TYPE_CHECKING:
-    from .modules.bayesian_engine import BayesianEngine
-    from .modules.dao_orchestrator import DAOOrchestrator
-    from .modules.mock_dao import MockDAO
-    from .modules.weighted_ethics_scorer import WeightedEthicsScorer
+    from .modules.cognition.bayesian_engine import BayesianEngine
+    from .modules.governance.dao_orchestrator import DAOOrchestrator
+    from .modules.governance.mock_dao import MockDAO
+    from .modules.ethics.weighted_ethics_scorer import WeightedEthicsScorer
 
 
 def kernel_env_truthy(name: str) -> bool:
@@ -217,7 +217,7 @@ def kernel_dao_as_mock(dao: MockDAO | DAOOrchestrator) -> MockDAO:
     Helper to extract the underlying MockDAO from the DAOOrchestrator.
     Useful for components that require direct local database access.
     """
-    from .modules.dao_orchestrator import DAOOrchestrator
+    from .modules.governance.dao_orchestrator import DAOOrchestrator
 
     if isinstance(dao, DAOOrchestrator):
         return dao.local_dao
@@ -228,7 +228,7 @@ def kernel_mixture_scorer(bayesian: BayesianEngine | WeightedEthicsScorer) -> We
     """
     Helper to expose the current WeightedEthicsScorer regardless of the bridge's naming convention.
     """
-    from .modules.bayesian_engine import BayesianInferenceEngine
+    from .modules.cognition.bayesian_engine import BayesianInferenceEngine
 
     if isinstance(bayesian, BayesianInferenceEngine):
         return bayesian.scorer

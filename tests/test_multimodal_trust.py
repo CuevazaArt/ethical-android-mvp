@@ -5,14 +5,14 @@ import sys
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
 
-from src.modules.multimodal_trust import (
+from src.modules.perception.multimodal_trust import (
     MultimodalThresholds,
     evaluate_multimodal_trust,
     owner_anchor_hint,
     suppress_stress_from_spoof_risk,
     thresholds_from_env,
 )
-from src.modules.sensor_contracts import SensorSnapshot, merge_sensor_hints_into_signals
+from src.modules.perception.sensor_contracts import SensorSnapshot, merge_sensor_hints_into_signals
 
 
 def test_no_claim_without_audio_emergency():

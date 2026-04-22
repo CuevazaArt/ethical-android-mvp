@@ -5,7 +5,7 @@ import sys
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
 
-from src.modules.lan_governance_envelope import (
+from src.modules.governance.lan_governance_envelope import (
     LAN_GOVERNANCE_ENVELOPE_IDEMPOTENCY_PREFIX,
     LAN_GOVERNANCE_ENVELOPE_SCHEMA_V1,
     fingerprint_lan_governance_envelope,

@@ -6,9 +6,9 @@ import sys
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
 
 from src.kernel import EthicalKernel
-from src.modules.ethical_poles import PoleEvaluation, TripartiteMoral, Verdict
-from src.modules.ethical_reflection import EthicalReflection, reflection_to_llm_context
-from src.modules.weighted_ethics_scorer import BayesianResult, CandidateAction
+from src.modules.ethics.ethical_poles import PoleEvaluation, TripartiteMoral, Verdict
+from src.modules.ethics.ethical_reflection import EthicalReflection, reflection_to_llm_context
+from src.modules.ethics.weighted_ethics_scorer import BayesianResult, CandidateAction
 
 
 def _make_moral(scores: list) -> TripartiteMoral:

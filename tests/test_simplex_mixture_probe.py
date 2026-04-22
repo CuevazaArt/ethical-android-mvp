@@ -12,7 +12,7 @@ if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
 
 from scripts.run_simplex_decision_map import run_one_scenario  # noqa: E402
-from src.modules.weighted_ethics_scorer import WeightedEthicsScorer  # noqa: E402
+from src.modules.ethics.weighted_ethics_scorer import WeightedEthicsScorer  # noqa: E402
 from src.sandbox.simplex_mixture_probe import (  # noqa: E402
     adjacent_barycentric_pairs,
     bisect_flip_along_segment,

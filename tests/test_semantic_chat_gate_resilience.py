@@ -9,14 +9,14 @@ import pytest
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
 
-from src.modules.llm_backends import MockLLMBackend
-from src.modules.semantic_chat_gate import run_semantic_malabs_after_lexical
+from src.modules.cognition.llm_backends import MockLLMBackend
+from src.modules.safety.semantic_chat_gate import run_semantic_malabs_after_lexical
 
 
 def test_semantic_tier_prefers_llm_backend_embedding_without_http(monkeypatch):
     os.environ["KERNEL_SEMANTIC_CHAT_GATE"] = "1"
     os.environ["KERNEL_SEMANTIC_CHAT_LLM_ARBITER"] = "0"
-    import src.modules.semantic_chat_gate as sg
+    import src.modules.safety.semantic_chat_gate as sg
 
     sg._ref_embed_cache.clear()
     try:
@@ -39,7 +39,7 @@ def test_semantic_tier_prefers_llm_backend_embedding_without_http(monkeypatch):
 def test_semantic_tier_falls_back_when_backend_embedding_returns_none(monkeypatch):
     os.environ["KERNEL_SEMANTIC_CHAT_GATE"] = "1"
     os.environ["KERNEL_SEMANTIC_CHAT_LLM_ARBITER"] = "0"
-    import src.modules.semantic_chat_gate as sg
+    import src.modules.safety.semantic_chat_gate as sg
 
     sg._ref_embed_cache.clear()
     unit = np.array([1.0, 0.0, 0.0], dtype=np.float64)
@@ -66,7 +66,7 @@ def test_semantic_tier_falls_back_when_backend_embedding_returns_none(monkeypatc
 def test_semantic_tier_falls_back_when_backend_embedding_raises(monkeypatch):
     os.environ["KERNEL_SEMANTIC_CHAT_GATE"] = "1"
     os.environ["KERNEL_SEMANTIC_CHAT_LLM_ARBITER"] = "0"
-    import src.modules.semantic_chat_gate as sg
+    import src.modules.safety.semantic_chat_gate as sg
 
     sg._ref_embed_cache.clear()
     unit = np.array([1.0, 0.0, 0.0], dtype=np.float64)
@@ -96,7 +96,7 @@ def test_mock_backend_embedding_observes_delay():
 @pytest.mark.asyncio
 async def test_fetch_embedding_uses_afetch_when_event_loop_running(monkeypatch):
     """Bloque 34.0: _fetch_embedding must not rely on sync HTTP bridge under a running loop."""
-    import src.modules.semantic_chat_gate as sg
+    import src.modules.safety.semantic_chat_gate as sg
 
     seen: list[tuple[str, object | None]] = []
 

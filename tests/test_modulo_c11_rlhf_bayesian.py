@@ -12,7 +12,7 @@ import asyncio
 
 import numpy as np
 import pytest
-from src.modules.bayesian_engine import BayesianInferenceEngine, BayesianMode
+from src.modules.cognition.bayesian_engine import BayesianInferenceEngine, BayesianMode
 
 
 class TestRLHFBayesianFusion:
@@ -212,7 +212,7 @@ class TestRLHFPoleDecisionPropagation:
         engine = BayesianInferenceEngine(mode=BayesianMode.POSTERIOR_DRIVEN)
 
         # Mock candidate action for evaluation
-        from src.modules.weighted_ethics_scorer import CandidateAction
+        from src.modules.ethics.weighted_ethics_scorer import CandidateAction
 
         action = CandidateAction(
             name="Test Action",

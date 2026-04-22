@@ -11,16 +11,16 @@ from pathlib import Path
 import numpy as np
 import pytest
 from src.kernel import EthicalKernel
-from src.modules.bayesian_mixture_averaging import (
+from src.modules.cognition.bayesian_mixture_averaging import (
     analytic_expected_weights,
     monte_carlo_win_probabilities,
     parse_bma_alpha_from_env,
 )
-from src.modules.feedback_mixture_posterior import (
+from src.modules.cognition.feedback_mixture_posterior import (
     joint_satisfaction_monte_carlo,
     load_feedback_records,
 )
-from src.modules.weighted_ethics_scorer import CandidateAction, WeightedEthicsScorer
+from src.modules.ethics.weighted_ethics_scorer import CandidateAction, WeightedEthicsScorer
 from src.simulations.runner import ALL_SIMULATIONS
 
 
@@ -96,7 +96,7 @@ def test_feedback_json_roundtrip(tmp_path: Path) -> None:
 
 
 def test_joint_satisfaction_runs() -> None:
-    from src.modules.feedback_mixture_posterior import FeedbackRecord
+    from src.modules.cognition.feedback_mixture_posterior import FeedbackRecord
 
     recs = [
         FeedbackRecord(17, "distribute_by_need"),

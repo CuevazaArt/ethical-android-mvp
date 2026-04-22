@@ -9,7 +9,7 @@ import pytest
 
 
 def _drain_threadsafe_vision() -> None:
-    from src.modules.nomad_bridge import get_nomad_bridge
+    from src.modules.perception.nomad_bridge import get_nomad_bridge
 
     q = get_nomad_bridge().vision_queue_threadsafe
     while True:
@@ -21,7 +21,7 @@ def _drain_threadsafe_vision() -> None:
 
 def test_analyze_jpeg_bytes_stub_env(monkeypatch: pytest.MonkeyPatch) -> None:
     monkeypatch.setenv("KERNEL_VISION_JPEG_STUB_LABEL", "rifle")
-    from src.modules.vision_inference import VisionInferenceEngine
+    from src.modules.perception.vision_inference import VisionInferenceEngine
 
     eng = VisionInferenceEngine()
     dets = eng.analyze_jpeg_bytes(b"not-a-real-jpeg")
@@ -32,8 +32,8 @@ def test_analyze_jpeg_bytes_stub_env(monkeypatch: pytest.MonkeyPatch) -> None:
 
 def test_vision_continuous_daemon_emits_episode(monkeypatch: pytest.MonkeyPatch) -> None:
     monkeypatch.setenv("KERNEL_VISION_JPEG_STUB_LABEL", "knife")
-    from src.modules.nomad_bridge import get_nomad_bridge
-    from src.modules.vision_inference import VisionContinuousDaemon, VisionInferenceEngine
+    from src.modules.perception.nomad_bridge import get_nomad_bridge
+    from src.modules.perception.vision_inference import VisionContinuousDaemon, VisionInferenceEngine
 
     _drain_threadsafe_vision()
     absorbed: list = []
@@ -52,7 +52,7 @@ def test_vision_continuous_daemon_emits_episode(monkeypatch: pytest.MonkeyPatch)
 
 
 def test_public_queue_stats_includes_vision_sync_queued() -> None:
-    from src.modules.nomad_bridge import get_nomad_bridge
+    from src.modules.perception.nomad_bridge import get_nomad_bridge
 
     stats = get_nomad_bridge().public_queue_stats()
     assert stats.get("schema") == "nomad_bridge_queue_stats_v4"

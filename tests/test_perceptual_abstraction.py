@@ -5,14 +5,14 @@ import sys
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
 
-from src.modules.perceptual_abstraction import (
+from src.modules.perception.perceptual_abstraction import (
     SENSOR_PRESETS,
     list_sensor_presets,
     load_sensor_fixture,
     merge_sensor_payload_layers,
     snapshot_from_layers,
 )
-from src.modules.sensor_contracts import merge_sensor_hints_into_signals
+from src.modules.perception.sensor_contracts import merge_sensor_hints_into_signals
 
 
 def _fixture(name: str) -> str:

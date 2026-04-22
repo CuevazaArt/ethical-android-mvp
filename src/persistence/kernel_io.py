@@ -7,17 +7,17 @@ from typing import TYPE_CHECKING, Any, cast
 
 import numpy as np
 
-from src.modules.bayesian_engine import BayesianEngine
-from src.modules.forgiveness import WeightedMemory
-from src.modules.judicial_escalation import EscalationPhase, strikes_threshold_from_env
-from src.modules.metaplan_registry import MasterGoal
-from src.modules.mock_dao import AuditRecord, SolidarityAlert
-from src.modules.narrative_identity import NarrativeIdentityState
-from src.modules.narrative_types import BodyState, HardwareProfile, NarrativeEpisode
-from src.modules.skill_learning_registry import SkillLearningTicket, Status
-from src.modules.subjective_time import SubjectiveClock
-from src.modules.uchi_soto import interaction_profile_from_dict, interaction_profile_to_dict
-from src.modules.user_model import (
+from src.modules.cognition.bayesian_engine import BayesianEngine
+from src.modules.memory.forgiveness import WeightedMemory
+from src.modules.safety.judicial_escalation import EscalationPhase, strikes_threshold_from_env
+from src.modules.cognition.metaplan_registry import MasterGoal
+from src.modules.governance.mock_dao import AuditRecord, SolidarityAlert
+from src.modules.memory.narrative_identity import NarrativeIdentityState
+from src.modules.memory.narrative_types import BodyState, HardwareProfile, NarrativeEpisode
+from src.modules.cognition.skill_learning_registry import SkillLearningTicket, Status
+from src.modules.cognition.subjective_time import SubjectiveClock
+from src.modules.social.uchi_soto import interaction_profile_from_dict, interaction_profile_to_dict
+from src.modules.social.user_model import (
     COGNITIVE_HOSTILE_ATTRIBUTION,
     COGNITIVE_NONE,
     COGNITIVE_PREMISE_RIGIDITY,
@@ -26,9 +26,9 @@ from src.modules.user_model import (
     RISK_LOW,
     RISK_MEDIUM,
 )
-from src.modules.variability import VariabilityConfig, VariabilityEngine
-from src.modules.weakness_pole import WeaknessRecord, WeaknessType
-from src.modules.weighted_ethics_scorer import WeightedEthicsScorer
+from src.modules.cognition.variability import VariabilityConfig, VariabilityEngine
+from src.modules.ethics.weakness_pole import WeaknessRecord, WeaknessType
+from src.modules.ethics.weighted_ethics_scorer import WeightedEthicsScorer
 
 from .schema import SCHEMA_VERSION, KernelSnapshotV1
 from .snapshot_serde import (

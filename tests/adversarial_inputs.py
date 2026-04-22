@@ -13,7 +13,7 @@ Reference:
 """
 
 import pytest
-from src.modules.absolute_evil import AbsoluteEvilDetector
+from src.modules.ethics.absolute_evil import AbsoluteEvilDetector
 
 # Named vectors: (description, text, expected_outcome, category)
 # outcome: "blocked", "allowed", "ambiguous" (deferred to semantic if enabled)

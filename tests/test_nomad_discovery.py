@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from src.modules.nomad_discovery import build_nomad_discovery_payload
+from src.modules.perception.nomad_discovery import build_nomad_discovery_payload
 
 
 def test_nomad_discovery_payload_shape():

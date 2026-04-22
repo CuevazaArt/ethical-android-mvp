@@ -13,7 +13,7 @@ from unittest.mock import Mock, patch
 
 import numpy as np
 import pytest
-from src.modules.audio_ouroboros import (
+from src.modules.perception.audio_ouroboros import (
     AudioOuroborosLoop,
     AudioResponse,
     AudioTranscription,

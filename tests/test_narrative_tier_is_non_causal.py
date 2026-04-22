@@ -20,7 +20,7 @@ import sys
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
 
 from src.kernel import EthicalKernel
-from src.modules.bayesian_engine import CandidateAction
+from src.modules.cognition.bayesian_engine import CandidateAction
 
 # ---------------------------------------------------------------------------
 # Helpers

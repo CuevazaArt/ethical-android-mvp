@@ -21,7 +21,7 @@ class TestSwarmPeerStub:
 
     def test_swarm_stub_module_exists(self):
         """swarm_peer_stub module is importable."""
-        from src.modules import swarm_peer_stub
+        from src.modules.social import swarm_peer_stub
 
         assert swarm_peer_stub is not None
 
@@ -35,21 +35,21 @@ class TestSwarmPeerStub:
 
     def test_verdict_digest_v1_schema_exists(self):
         """verdict_digest_v1 type/schema is defined."""
-        from src.modules.swarm_peer_stub import verdict_digest_v1
+        from src.modules.social.swarm_peer_stub import verdict_digest_v1
 
         # Should be a dict or dataclass with predictable structure
         assert verdict_digest_v1 is not None
 
     def test_peer_agreement_stats_callable(self):
         """peer_agreement_stats function exists."""
-        from src.modules.swarm_peer_stub import peer_agreement_stats
+        from src.modules.social.swarm_peer_stub import peer_agreement_stats
 
         assert callable(peer_agreement_stats)
 
     def test_swarm_consensus_non_veto(self):
         """Swarm consensus is advisory; no policy veto."""
         # Swarm module should not block action pipeline
-        from src.modules.swarm_peer_stub import swarm_stub_enabled
+        from src.modules.social.swarm_peer_stub import swarm_stub_enabled
 
         # Feature gate: enabled state is boolean, veto is never enforced
         enabled = swarm_stub_enabled()
@@ -58,7 +58,7 @@ class TestSwarmPeerStub:
     def test_frontier_witness_protocol(self):
         """Frontier witness protocol for sensor verification."""
         # Optional: swarm cross-check of sensors between agents
-        from src.modules.swarm_peer_stub import peer_agreement_stats
+        from src.modules.social.swarm_peer_stub import peer_agreement_stats
 
         # peer_agreement_stats aggregates verdict fingerprints across agents
         assert callable(peer_agreement_stats)
@@ -67,7 +67,7 @@ class TestSwarmPeerStub:
         """Verdict digests can be aggregated for reputation hints."""
         # Stub: deterministic digest generation for offline comparison
         # Real P2P: would be distributed ledger
-        from src.modules.swarm_peer_stub import verdict_digest_v1
+        from src.modules.social.swarm_peer_stub import verdict_digest_v1
 
         digest = verdict_digest_v1("ep_001", "safe", 0.85, "greeting")
         assert digest is not None
@@ -75,7 +75,7 @@ class TestSwarmPeerStub:
 
     def test_swarm_consensus_via_agreement_stats(self):
         """peer_agreement_stats computes consensus over verdict digests."""
-        from src.modules.swarm_peer_stub import peer_agreement_stats, verdict_digest_v1
+        from src.modules.social.swarm_peer_stub import peer_agreement_stats, verdict_digest_v1
 
         # Three agents with same verdict → high agreement
         digests = [

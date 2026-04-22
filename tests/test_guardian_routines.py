@@ -6,7 +6,7 @@ from pathlib import Path
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
 
-from src.modules.guardian_routines import (
+from src.modules.safety.guardian_routines import (
     guardian_routines_feature_enabled,
     guardian_routines_llm_suffix,
     invalidate_guardian_routines_cache,

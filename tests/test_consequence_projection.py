@@ -5,7 +5,7 @@ import sys
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
 
-from src.modules.consequence_projection import qualitative_temporal_branches
+from src.modules.cognition.consequence_projection import qualitative_temporal_branches
 
 
 def test_branches_have_three_horizons():

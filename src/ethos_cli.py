@@ -38,7 +38,7 @@ def _load_checkpoint_if_given(kernel, path: Path | None) -> bool:
 
 
 def cmd_diagnostics(args: argparse.Namespace) -> int:
-    from src.modules.existential_serialization import (
+    from src.modules.governance.existential_serialization import (
         canonical_narrative_commitment_hex,
         narrative_integrity_phase4,
     )
@@ -105,7 +105,7 @@ def cmd_checkpoint_save(args: argparse.Namespace) -> int:
 
 
 def cmd_handshake_export(args: argparse.Namespace) -> int:
-    from src.modules.existential_serialization import export_nomadic_handshake_bundle
+    from src.modules.governance.existential_serialization import export_nomadic_handshake_bundle
 
     k = _kernel(llm_mode=args.llm_mode)
     _load_checkpoint_if_given(k, args.checkpoint)
@@ -115,7 +115,7 @@ def cmd_handshake_export(args: argparse.Namespace) -> int:
 
 
 def cmd_handshake_verify(args: argparse.Namespace) -> int:
-    from src.modules.existential_serialization import verify_nomadic_handshake
+    from src.modules.governance.existential_serialization import verify_nomadic_handshake
 
     raw = Path(args.bundle).read_text(encoding="utf-8")
     bundle = json.loads(raw)
@@ -214,7 +214,7 @@ def cmd_config(args: argparse.Namespace) -> int:
 
 
 def cmd_transparency(args: argparse.Namespace) -> int:
-    from .modules.nomad_identity import nomad_identity_public
+    from .modules.governance.nomad_identity import nomad_identity_public
 
     k = _kernel(llm_mode=args.llm_mode)
     _load_checkpoint_if_given(k, args.checkpoint)
@@ -245,7 +245,7 @@ def cmd_transparency(args: argparse.Namespace) -> int:
         )
         print("-" * 40)
         print("CONSTITUTION SUMMARY (UNIVERSAL ETHOS)")
-        from .modules.moral_hub import constitution_snapshot
+        from .modules.governance.moral_hub import constitution_snapshot
 
         snapshot = constitution_snapshot(k.buffer, k)
         for level_key, level_data in snapshot.get("levels", {}).items():

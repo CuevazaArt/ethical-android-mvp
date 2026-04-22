@@ -19,12 +19,12 @@ from pathlib import Path
 from unittest.mock import patch
 
 import pytest
-from src.modules import semantic_chat_gate
-from src.modules.kernel_event_bus import (
+from src.modules.safety import semantic_chat_gate
+from src.modules.safety.kernel_event_bus import (
     EVENT_GOVERNANCE_THRESHOLD_UPDATED,
     KernelEventBus,
 )
-from src.modules.multi_realm_governance import (
+from src.modules.governance.multi_realm_governance import (
     MultiRealmGovernor,
 )
 

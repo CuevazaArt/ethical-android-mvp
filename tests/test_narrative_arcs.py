@@ -1,4 +1,4 @@
-from src.modules.narrative import NarrativeMemory
+from src.modules.memory.narrative import NarrativeMemory
 
 
 def test_narrative_arcs_creation_on_context_shift(tmp_path):

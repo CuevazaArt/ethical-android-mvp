@@ -1,6 +1,6 @@
 """Offline lexical light risk tier (defense in depth, not MalAbs replacement)."""
 
-from src.modules.light_risk_classifier import (
+from src.modules.safety.light_risk_classifier import (
     light_risk_classifier_enabled,
     light_risk_tier_from_text,
 )

@@ -19,8 +19,8 @@ from dataclasses import dataclass
 
 import pytest
 from src.kernel import EthicalKernel, KernelDecision
-from src.modules.absolute_evil import AbsoluteEvilDetector
-from src.modules.weighted_ethics_scorer import CandidateAction
+from src.modules.ethics.absolute_evil import AbsoluteEvilDetector
+from src.modules.ethics.weighted_ethics_scorer import CandidateAction
 
 
 @dataclass

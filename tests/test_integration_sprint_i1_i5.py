@@ -20,7 +20,7 @@ from unittest.mock import MagicMock
 # I1 — weights_snapshot persisted in NarrativeEpisode
 # ──────────────────────────────────────────────────────────────────────
 def test_i1_weights_snapshot_stored():
-    from src.modules.narrative import NarrativeMemory
+    from src.modules.memory.narrative import NarrativeMemory
 
     mem = NarrativeMemory()
     ep = mem.register(
@@ -39,7 +39,7 @@ def test_i1_weights_snapshot_stored():
 
 
 def test_i1_weights_snapshot_none_by_default():
-    from src.modules.narrative import NarrativeMemory
+    from src.modules.memory.narrative import NarrativeMemory
 
     mem = NarrativeMemory()
     ep = mem.register(
@@ -60,13 +60,13 @@ def test_i1_weights_snapshot_none_by_default():
 # I2 — EVENT_KERNEL_WEIGHTS_UPDATED on event bus
 # ──────────────────────────────────────────────────────────────────────
 def test_i2_event_constant_exists():
-    from src.modules.kernel_event_bus import EVENT_KERNEL_WEIGHTS_UPDATED
+    from src.modules.safety.kernel_event_bus import EVENT_KERNEL_WEIGHTS_UPDATED
 
     assert EVENT_KERNEL_WEIGHTS_UPDATED == "kernel.weights_updated"
 
 
 def test_i2_event_bus_receives_weights_updated():
-    from src.modules.kernel_event_bus import EVENT_KERNEL_WEIGHTS_UPDATED, KernelEventBus
+    from src.modules.safety.kernel_event_bus import EVENT_KERNEL_WEIGHTS_UPDATED, KernelEventBus
 
     bus = KernelEventBus()
     received = []

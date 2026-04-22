@@ -8,7 +8,7 @@ from pathlib import Path
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
 
-from src.modules.lan_governance_replay_sidecar import (
+from src.modules.governance.lan_governance_replay_sidecar import (
     LAN_GOVERNANCE_REPLAY_SIDECAR_SCHEMA_V1,
     build_replay_sidecar_v1,
     fingerprint_event_conflicts_only,

@@ -14,22 +14,22 @@ from src.kernel_lobes.models import (
     GestaltSnapshot,
     SensorySpike,
 )
-from src.modules.absolute_evil import AbsoluteEvilDetector
-from src.modules.basal_ganglia import BasalGanglia
-from src.modules.ethical_poles import EthicalPoles
-from src.modules.ethical_reflection import EthicalReflection
+from src.modules.ethics.absolute_evil import AbsoluteEvilDetector
+from src.modules.cognition.basal_ganglia import BasalGanglia
+from src.modules.ethics.ethical_poles import EthicalPoles
+from src.modules.ethics.ethical_reflection import EthicalReflection
 from src.modules.internal_monologue import compose_monologue_line
-from src.modules.llm_layer import LLMModule, VerbalResponse
-from src.modules.locus import LocusEvaluation
-from src.modules.motivation_engine import MotivationEngine
-from src.modules.narrative import NarrativeMemory
-from src.modules.pad_archetypes import PADArchetypeEngine
-from src.modules.salience_map import SalienceMap
-from src.modules.sigmoid_will import SigmoidWill
-from src.modules.sympathetic import InternalState
-from src.modules.uchi_soto import SocialEvaluation
-from src.modules.vitality import vitality_communication_hint
-from src.modules.weighted_ethics_scorer import CandidateAction, EthicsMixtureResult
+from src.modules.cognition.llm_layer import LLMModule, VerbalResponse
+from src.modules.safety.locus import LocusEvaluation
+from src.modules.cognition.motivation_engine import MotivationEngine
+from src.modules.memory.narrative import NarrativeMemory
+from src.modules.ethics.pad_archetypes import PADArchetypeEngine
+from src.modules.cognition.salience_map import SalienceMap
+from src.modules.cognition.sigmoid_will import SigmoidWill
+from src.modules.somatic.sympathetic import InternalState
+from src.modules.social.uchi_soto import SocialEvaluation
+from src.modules.somatic.vitality import vitality_communication_hint
+from src.modules.ethics.weighted_ethics_scorer import CandidateAction, EthicsMixtureResult
 from src.nervous_system.corpus_callosum import CorpusCallosum
 
 _log = logging.getLogger(__name__)
@@ -248,7 +248,7 @@ class ExecutiveLobe:
 
             # 7. Real-Time Hardware Projection (Phase 10.5)
             try:
-                from src.modules.affect_projection_relay import get_affect_relay
+                from src.modules.somatic.affect_projection_relay import get_affect_relay
 
                 get_affect_relay().transmit(affect)
             except Exception as re_err:
@@ -328,7 +328,7 @@ class ExecutiveLobe:
                             )
 
                             # Telemetry for Dashboard Domain (Bloque 24.0)
-                            from src.modules.nomad_bridge import get_nomad_bridge
+                            from src.modules.perception.nomad_bridge import get_nomad_bridge
 
                             bridge = get_nomad_bridge()
                             if bridge:

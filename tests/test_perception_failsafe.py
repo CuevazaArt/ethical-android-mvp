@@ -1,7 +1,7 @@
 """Fail-safe numeric prior when LLM perception coercion indicates unreliable output."""
 
 import pytest
-from src.modules.perception_schema import PerceptionCoercionReport, validate_perception_dict
+from src.modules.perception.perception_schema import PerceptionCoercionReport, validate_perception_dict
 
 
 def test_clean_payload_no_fail_safe_prior():

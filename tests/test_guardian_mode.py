@@ -5,7 +5,7 @@ import sys
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
 
-from src.modules.guardian_mode import guardian_mode_llm_context, is_guardian_mode_active
+from src.modules.safety.guardian_mode import guardian_mode_llm_context, is_guardian_mode_active
 
 
 def test_guardian_default_off(monkeypatch):
@@ -30,7 +30,7 @@ def test_guardian_on_synonyms(monkeypatch):
 def test_guardian_includes_routines_when_configured(monkeypatch):
     from pathlib import Path
 
-    from src.modules.guardian_routines import invalidate_guardian_routines_cache
+    from src.modules.safety.guardian_routines import invalidate_guardian_routines_cache
 
     fixture = Path(__file__).resolve().parent / "fixtures" / "guardian" / "routines.json"
     monkeypatch.setenv("KERNEL_GUARDIAN_MODE", "1")

@@ -11,9 +11,9 @@ other perception backends return hostile framing.
 """
 
 import pytest
-from src.modules.absolute_evil import AbsoluteEvilDetector
-from src.modules.llm_layer import perception_from_llm_json
-from src.modules.perception_schema import validate_perception_dict
+from src.modules.ethics.absolute_evil import AbsoluteEvilDetector
+from src.modules.cognition.llm_layer import perception_from_llm_json
+from src.modules.perception.perception_schema import validate_perception_dict
 
 
 class TestPerceptionInputTrustBaseline:
@@ -57,7 +57,7 @@ class TestPerceptionInputTrustBaseline:
 
     def test_perception_coercion_report_tracks_issues(self):
         """Perception validation should report coercion issues."""
-        from src.modules.perception_schema import PerceptionCoercionReport
+        from src.modules.perception.perception_schema import PerceptionCoercionReport
 
         data = {
             "risk": "invalid",  # Should be float

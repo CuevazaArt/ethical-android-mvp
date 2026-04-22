@@ -5,7 +5,7 @@ import sys
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
 
-from src.modules.perception_schema import apply_signal_coherence
+from src.modules.perception.perception_schema import apply_signal_coherence
 
 
 def test_coherence_high_hostility_caps_calm():

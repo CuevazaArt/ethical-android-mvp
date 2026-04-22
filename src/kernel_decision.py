@@ -9,15 +9,15 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 
-from .modules.absolute_evil import AbsoluteEvilResult
-from .modules.ethical_poles import TripartiteMoral
-from .modules.ethical_reflection import ReflectionSnapshot
-from .modules.locus import LocusEvaluation
-from .modules.pad_archetypes import AffectProjection
-from .modules.salience_map import SalienceSnapshot
-from .modules.sympathetic import InternalState
-from .modules.uchi_soto import SocialEvaluation
-from .modules.weighted_ethics_scorer import EthicsMixtureResult
+from .modules.ethics.absolute_evil import AbsoluteEvilResult
+from .modules.ethics.ethical_poles import TripartiteMoral
+from .modules.ethics.ethical_reflection import ReflectionSnapshot
+from .modules.safety.locus import LocusEvaluation
+from .modules.ethics.pad_archetypes import AffectProjection
+from .modules.cognition.salience_map import SalienceSnapshot
+from .modules.somatic.sympathetic import InternalState
+from .modules.social.uchi_soto import SocialEvaluation
+from .modules.ethics.weighted_ethics_scorer import EthicsMixtureResult
 
 
 @dataclass

@@ -12,8 +12,8 @@ import pytest
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
 
 from src.kernel import ChatTurnCooperativeAbort, EthicalKernel
-from src.modules.llm_backends import MockLLMBackend
-from src.modules.llm_cancel_burst import run_burst_cancel_smoke
+from src.modules.cognition.llm_backends import MockLLMBackend
+from src.modules.cognition.llm_cancel_burst import run_burst_cancel_smoke
 from src.real_time_bridge import _async_chat_llm_http_enabled
 
 

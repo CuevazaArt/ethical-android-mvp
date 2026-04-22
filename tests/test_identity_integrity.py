@@ -5,7 +5,7 @@ import sys
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
 
-from src.modules.identity_integrity import (
+from src.modules.governance.identity_integrity import (
     hypothesis_weights_allowed,
     pruning_recalibration_allowed,
     relative_deviation,

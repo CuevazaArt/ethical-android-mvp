@@ -4,9 +4,9 @@ Verifies stylistic rendering, gesture planning, and safety-bypass invariants.
 """
 
 import pytest
-from src.modules.charm_engine import CharmEngine
-from src.modules.uchi_soto import InteractionProfile, TrustCircle
-from src.modules.user_model import UserModelTracker
+from src.modules.cognition.charm_engine import CharmEngine
+from src.modules.social.uchi_soto import InteractionProfile, TrustCircle
+from src.modules.social.user_model import UserModelTracker
 
 
 @pytest.fixture

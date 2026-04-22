@@ -7,16 +7,16 @@ sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
 
 from src.kernel import EthicalKernel
 from src.kernel import KernelDecision
-from src.modules.absolute_evil import AbsoluteEvilResult
-from src.modules.bayesian_engine import CandidateAction
-from src.modules.sympathetic import InternalState
-from src.modules.transparency_s10 import (
+from src.modules.ethics.absolute_evil import AbsoluteEvilResult
+from src.modules.cognition.bayesian_engine import CandidateAction
+from src.modules.somatic.sympathetic import InternalState
+from src.modules.safety.transparency_s10 import (
     build_transparency_s10_bundle,
     discomfort_assessment_s10_3,
     help_request_s10_4,
     withdrawal_protocol_s10_2,
 )
-from src.modules.uchi_soto import SocialEvaluation, TrustCircle
+from src.modules.social.uchi_soto import SocialEvaluation, TrustCircle
 
 
 def test_s10_bundle_safe_process():

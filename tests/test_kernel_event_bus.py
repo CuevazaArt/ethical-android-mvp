@@ -8,13 +8,13 @@ import pytest
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
 
 from src.kernel import EthicalKernel
-from src.modules.kernel_event_bus import (
+from src.modules.safety.kernel_event_bus import (
     EVENT_KERNEL_DECISION,
     EVENT_KERNEL_EPISODE_REGISTERED,
     KernelEventBus,
     kernel_event_bus_enabled,
 )
-from src.modules.weighted_ethics_scorer import CandidateAction
+from src.modules.ethics.weighted_ethics_scorer import CandidateAction
 
 
 def test_kernel_event_bus_enabled_env(monkeypatch: pytest.MonkeyPatch):

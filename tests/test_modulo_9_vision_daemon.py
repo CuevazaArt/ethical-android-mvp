@@ -17,7 +17,7 @@ from __future__ import annotations
 from collections import deque
 
 import pytest
-from src.modules.vision_inference import (
+from src.modules.perception.vision_inference import (
     VisionInferenceEngine,
 )
 

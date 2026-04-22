@@ -5,9 +5,9 @@ import sys
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
 
-from src.modules.buffer import PreloadedBuffer
-from src.modules.mock_dao import MockDAO
-from src.modules.moral_hub import (
+from src.modules.ethics.buffer import PreloadedBuffer
+from src.modules.governance.mock_dao import MockDAO
+from src.modules.governance.moral_hub import (
     ConstitutionLevel,
     add_constitution_draft,
     audit_transparency_event,
@@ -102,7 +102,7 @@ def test_kernel_constitution_drafts_in_snapshot():
 
 def test_resolve_updates_linked_draft_status():
     from src.kernel import EthicalKernel
-    from src.modules.moral_hub import (
+    from src.modules.governance.moral_hub import (
         apply_proposal_resolution_to_constitution_drafts,
         submit_constitution_draft_for_vote,
     )

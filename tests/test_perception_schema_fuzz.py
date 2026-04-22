@@ -6,7 +6,7 @@ import sys
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
 
-from src.modules.perception_schema import (
+from src.modules.perception.perception_schema import (
     parse_perception_llm_raw_response,
     validate_perception_dict,
 )
@@ -70,7 +70,7 @@ def test_parse_perception_fenced_garbage_inside():
 
 
 def test_validate_perception_report_counts_invalid_fields():
-    from src.modules.perception_schema import PerceptionCoercionReport
+    from src.modules.perception.perception_schema import PerceptionCoercionReport
 
     rep = PerceptionCoercionReport()
     validate_perception_dict({"risk": math.nan, "urgency": object()}, report=rep)

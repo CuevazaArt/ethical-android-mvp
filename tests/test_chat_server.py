@@ -13,7 +13,7 @@ sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
 from fastapi.testclient import TestClient
 from src.chat_server import app
 from src.kernel import EthicalKernel
-from src.modules.nomad_bridge import get_nomad_bridge
+from src.modules.perception.nomad_bridge import get_nomad_bridge
 
 client = TestClient(app)
 
@@ -475,7 +475,7 @@ def test_websocket_optional_sensor_v8():
 def test_websocket_guardian_routines_included(monkeypatch):
     from pathlib import Path
 
-    from src.modules.guardian_routines import invalidate_guardian_routines_cache
+    from src.modules.safety.guardian_routines import invalidate_guardian_routines_cache
 
     fixture = Path(__file__).resolve().parent / "fixtures" / "guardian" / "routines.json"
     invalidate_guardian_routines_cache()
@@ -793,7 +793,7 @@ def test_websocket_lan_governance_integrity_batch_cross_session_invalid_hint_war
 
 
 def test_websocket_lan_governance_integrity_replay_sidecar_roundtrip(monkeypatch):
-    from src.modules.lan_governance_replay_sidecar import (
+    from src.modules.governance.lan_governance_replay_sidecar import (
         build_replay_sidecar_v1,
         fingerprint_replay_sidecar,
     )
@@ -967,8 +967,8 @@ def test_websocket_lan_governance_dao_batch_stress_reorder_and_duplicates_conver
     """
     import random
 
-    from src.modules.lan_governance_event_merge import merge_lan_governance_events
-    from src.modules.mock_dao import MockDAO
+    from src.modules.governance.lan_governance_event_merge import merge_lan_governance_events
+    from src.modules.governance.mock_dao import MockDAO
 
     monkeypatch.setenv("KERNEL_MORAL_HUB_DAO_VOTE", "1")
     monkeypatch.setenv("KERNEL_LAN_GOVERNANCE_MERGE_WS", "1")
@@ -1065,8 +1065,8 @@ def test_websocket_lan_governance_judicial_batch_stress_reorder_and_duplicates_c
     """
     import random
 
-    from src.modules.lan_governance_event_merge import merge_lan_governance_events
-    from src.modules.mock_dao import MockDAO
+    from src.modules.governance.lan_governance_event_merge import merge_lan_governance_events
+    from src.modules.governance.mock_dao import MockDAO
 
     monkeypatch.setenv("KERNEL_JUDICIAL_ESCALATION", "1")
     monkeypatch.setenv("KERNEL_LAN_GOVERNANCE_MERGE_WS", "1")
@@ -1121,8 +1121,8 @@ def test_websocket_lan_governance_mock_court_batch_stress_reorder_and_duplicates
     """
     import random
 
-    from src.modules.lan_governance_event_merge import merge_lan_governance_events
-    from src.modules.mock_dao import MockDAO
+    from src.modules.governance.lan_governance_event_merge import merge_lan_governance_events
+    from src.modules.governance.mock_dao import MockDAO
 
     monkeypatch.setenv("KERNEL_JUDICIAL_ESCALATION", "1")
     monkeypatch.setenv("KERNEL_JUDICIAL_MOCK_COURT", "1")
@@ -1663,7 +1663,7 @@ def test_websocket_lan_governance_merges_coordinator_with_direct_batch(monkeypat
 
 
 def test_websocket_reality_verification_lighthouse(monkeypatch):
-    from src.modules.reality_verification import clear_lighthouse_cache
+    from src.modules.safety.reality_verification import clear_lighthouse_cache
 
     clear_lighthouse_cache()
     kb = os.path.join(os.path.dirname(__file__), "fixtures", "lighthouse", "demo_kb.json")

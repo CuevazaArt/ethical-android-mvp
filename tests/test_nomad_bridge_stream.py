@@ -6,10 +6,10 @@ import pytest
 
 pytest.importorskip("fastapi")
 from fastapi.testclient import TestClient
-from src.modules.nomad_bridge import get_nomad_bridge
-from src.modules.sensor_contracts import SensorSnapshot
-from src.modules.vision_adapter import jpeg_bytes_from_vision_queue_item
-from src.modules.vitality import assess_vitality
+from src.modules.perception.nomad_bridge import get_nomad_bridge
+from src.modules.perception.sensor_contracts import SensorSnapshot
+from src.modules.perception.vision_adapter import jpeg_bytes_from_vision_queue_item
+from src.modules.somatic.vitality import assess_vitality
 
 
 def test_jpeg_bytes_from_vision_queue_item_accepts_bytes_and_bridge_dict():

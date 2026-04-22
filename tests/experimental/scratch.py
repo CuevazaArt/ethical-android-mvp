@@ -1,5 +1,5 @@
 from src.kernel import EthicalKernel
-from src.modules.sensor_contracts import SensorSnapshot
+from src.modules.perception.sensor_contracts import SensorSnapshot
 
 
 def run_thermal_pilot():

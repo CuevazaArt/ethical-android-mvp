@@ -1,7 +1,7 @@
 import time
 
 from src.kernel import EthicalKernel
-from src.modules.swarm_negotiator import SwarmMessage
+from src.modules.social.swarm_negotiator import SwarmMessage
 
 
 def test_swarm_identity_exchange():

@@ -7,9 +7,9 @@ import pytest
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
 
-from src.modules.llm_backends import LLMBackend
-from src.modules.llm_layer import LLMModule
-from src.modules.perception_backend_policy import (
+from src.modules.cognition.llm_backends import LLMBackend
+from src.modules.cognition.llm_layer import LLMModule
+from src.modules.perception.perception_backend_policy import (
     DEFAULT_KERNEL_PERCEPTION_BACKEND_POLICY,
     resolve_perception_backend_policy,
 )
@@ -69,7 +69,7 @@ def test_session_banner_recommended_flag(monkeypatch: pytest.MonkeyPatch):
 def test_chat_json_surfaces_perception_backend_banner():
     from src.chat_server import _chat_turn_to_jsonable
     from src.kernel import ChatTurnResult, EthicalKernel
-    from src.modules.llm_layer import LLMPerception, VerbalResponse
+    from src.modules.cognition.llm_layer import LLMPerception, VerbalResponse
 
     k = EthicalKernel(variability=False)
     p = LLMPerception(

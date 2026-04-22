@@ -21,7 +21,7 @@ from enum import Enum
 
 import numpy as np
 
-from src.modules.ethical_poles import EthicalPoles
+from src.modules.ethics.ethical_poles import EthicalPoles
 
 # Canonical pole keys (must match EthicalPoles.BASE_WEIGHTS).
 POLE_KEYS: tuple[str, ...] = ("compassionate", "conservative", "optimistic")

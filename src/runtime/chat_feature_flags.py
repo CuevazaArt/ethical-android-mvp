@@ -87,14 +87,14 @@ def chat_include_reality_verification() -> bool:
 
 def chat_include_judicial() -> bool:
     """V11 Phase 1 — include judicial_escalation when KERNEL_CHAT_INCLUDE_JUDICIAL is on."""
-    from src.modules.judicial_escalation import chat_include_judicial as ci_judicial
+    from src.modules.safety.judicial_escalation import chat_include_judicial as ci_judicial
 
     return ci_judicial()
 
 
 def chat_include_constitution() -> bool:
     """V12 — include full constitution JSON (L0 + L1/L2 drafts) on WebSocket payloads."""
-    from src.modules.moral_hub import chat_include_constitution as ci_constitution
+    from src.modules.governance.moral_hub import chat_include_constitution as ci_constitution
 
     return ci_constitution()
 

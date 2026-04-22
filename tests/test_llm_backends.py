@@ -5,7 +5,7 @@ import sys
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
 
-from src.modules.llm_backends import (
+from src.modules.cognition.llm_backends import (
     HttpJsonLLMBackend,
     HTTPRemote,
     MockBackend,

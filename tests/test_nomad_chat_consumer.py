@@ -5,7 +5,7 @@ from types import SimpleNamespace
 from unittest.mock import patch
 
 import pytest
-from src.modules.nomad_chat_adapter import NomadChatConsumer
+from src.modules.perception.nomad_chat_adapter import NomadChatConsumer
 
 
 class _FakeBridgeQueueHolder:

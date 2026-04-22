@@ -9,7 +9,7 @@ import time
 from pathlib import Path
 
 import pytest
-from src.modules.narrative_types import BodyState, NarrativeEpisode
+from src.modules.memory.narrative_types import BodyState, NarrativeEpisode
 from src.persistence.narrative_storage import NarrativePersistence
 
 

@@ -10,7 +10,7 @@ import sqlite3
 from datetime import datetime
 from pathlib import Path
 
-from src.modules.narrative_types import (
+from src.modules.memory.narrative_types import (
     BodyState,
     NarrativeArc,
     NarrativeChronicle,
@@ -552,7 +552,7 @@ class NarrativePersistence:
                 ) = row
                 payload = json.loads(payload_str)
                 bs_data = payload.get("body_state", {})
-                from src.modules.narrative_types import BodyState
+                from src.modules.memory.narrative_types import BodyState
 
                 bs = BodyState(
                     energy=bs_data.get("energy", 1.0),

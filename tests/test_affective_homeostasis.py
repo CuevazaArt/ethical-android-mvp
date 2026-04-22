@@ -6,7 +6,7 @@ from types import SimpleNamespace
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
 
-from src.modules.affective_homeostasis import homeostasis_telemetry
+from src.modules.somatic.affective_homeostasis import homeostasis_telemetry
 
 
 def test_homeostasis_high_sigma_elevated():

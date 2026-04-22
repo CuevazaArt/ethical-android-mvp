@@ -15,7 +15,7 @@ import time
 
 import pytest
 from src.kernel import EthicalKernel
-from src.modules.absolute_evil import AbsoluteEvilDetector
+from src.modules.ethics.absolute_evil import AbsoluteEvilDetector
 
 
 class TestIntegrationProductionScenarios:
@@ -152,7 +152,7 @@ class TestIntegrationProductionScenarios:
 
     def test_scenario_swarm_consensus_integration(self):
         """Kernel ready for swarm oracle integration (Module 7)."""
-        from src.modules.swarm_oracle import SwarmOracle
+        from src.modules.social.swarm_oracle import SwarmOracle
 
         k = EthicalKernel(variability=False)
         assert k.dao is not None

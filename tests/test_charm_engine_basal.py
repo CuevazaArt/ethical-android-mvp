@@ -7,12 +7,12 @@ import pytest
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
 
-from src.modules.charm_engine import (
+from src.modules.cognition.charm_engine import (
     CharmEngine,
     clear_charm_engine_basal_singleton_for_tests,
 )
-from src.modules.uchi_soto import InteractionProfile, TrustCircle
-from src.modules.user_model import UserModelTracker
+from src.modules.social.uchi_soto import InteractionProfile, TrustCircle
+from src.modules.social.user_model import UserModelTracker
 
 
 def _profile() -> InteractionProfile:

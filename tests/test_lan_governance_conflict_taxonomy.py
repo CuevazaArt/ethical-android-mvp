@@ -5,7 +5,7 @@ import sys
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
 
-from src.modules.lan_governance_conflict_taxonomy import (
+from src.modules.governance.lan_governance_conflict_taxonomy import (
     CONFLICT_DIFFERENT_CLOCK,
     CONFLICT_SAME_TURN,
     CONFLICT_STALE_EVENT,

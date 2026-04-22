@@ -16,7 +16,7 @@ import httpx
 from fastapi import FastAPI
 
 from src.chat_settings import chat_server_settings
-from src.modules.nomad_discovery import (
+from src.modules.perception.nomad_discovery import (
     NomadDiscoveryAnnouncer,
     nomad_discovery_service_name,
     nomad_discovery_service_type,
@@ -39,16 +39,16 @@ async def chat_lifespan(app: FastAPI) -> AsyncIterator[None]:
     init_metrics()
 
     # Phase 9: Nomad hardware loop consumers (Hardened Embodiment)
-    from src.modules.audio_adapter import (
+    from src.modules.perception.audio_adapter import (
         get_shared_audio_capture,
         start_nomad_audio_consumer_from_env,
         stop_nomad_audio_consumer_async,
     )
-    from src.modules.vision_adapter import (
+    from src.modules.perception.vision_adapter import (
         start_nomad_vision_consumer_from_env,
         stop_nomad_vision_consumer_async,
     )
-    from src.modules.vitality import (
+    from src.modules.somatic.vitality import (
         start_nomad_telemetry_consumer_from_env,
         stop_nomad_telemetry_consumer_async,
     )

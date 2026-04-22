@@ -8,7 +8,7 @@ from pathlib import Path
 import numpy as np
 import pytest
 from src.kernel import EthicalKernel
-from src.modules.feedback_mixture_posterior import (
+from src.modules.cognition.feedback_mixture_posterior import (
     classify_mixture_context,
     context_level3_enabled,
     load_and_apply_feedback,

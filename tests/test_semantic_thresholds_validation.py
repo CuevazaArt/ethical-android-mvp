@@ -8,7 +8,7 @@ Reference: PROPOSAL_MALABS_SEMANTIC_THRESHOLD_EVIDENCE.md
 """
 
 import pytest
-from src.modules.semantic_chat_gate import (
+from src.modules.safety.semantic_chat_gate import (
     DEFAULT_SEMANTIC_SIM_ALLOW_THRESHOLD,
     DEFAULT_SEMANTIC_SIM_BLOCK_THRESHOLD,
     classify_semantic_zone,

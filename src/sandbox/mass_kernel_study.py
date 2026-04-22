@@ -20,7 +20,7 @@ import numpy as np
 
 from src.kernel import EthicalKernel
 from src.kernel_components import KernelComponentOverrides
-from src.modules.ethical_poles import EthicalPoles
+from src.modules.ethics.ethical_poles import EthicalPoles
 from src.sandbox.synthetic_stochastic import SyntheticStochasticConfig, perturb_scenario_signals
 from src.simulations.runner import ALL_SIMULATIONS
 

@@ -11,7 +11,7 @@ from __future__ import annotations
 
 import pytest
 from src.kernel import EthicalKernel
-from src.modules.buffer import PreloadedBuffer
+from src.modules.ethics.buffer import PreloadedBuffer
 
 
 def _l0_fingerprint(buf: PreloadedBuffer) -> tuple[tuple[str, str, float, bool], ...]:

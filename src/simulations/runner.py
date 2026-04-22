@@ -20,7 +20,7 @@ margin — for boundary calibration (see ``docs/proposals/README.md``).
 from dataclasses import dataclass
 
 from ..kernel import EthicalKernel
-from ..modules.weighted_ethics_scorer import CandidateAction
+from src.modules.ethics.weighted_ethics_scorer import CandidateAction
 
 
 @dataclass

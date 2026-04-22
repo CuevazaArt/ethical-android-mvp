@@ -6,7 +6,7 @@ import json
 from pathlib import Path
 
 import numpy as np
-from src.modules.feedback_mixture_updater import (
+from src.modules.cognition.feedback_mixture_updater import (
     FeedbackItem,
     FeedbackUpdater,
     build_scenario_candidates_map,
@@ -76,7 +76,7 @@ def test_drift_guard_clamps_after_feedback() -> None:
 
 def test_compatible_fixture_explicit_triples_path() -> None:
     """Versioned JSON matches scenarios 17–19 explicit triples → explicit_triples updater."""
-    from src.modules.feedback_mixture_posterior import load_and_apply_feedback
+    from src.modules.cognition.feedback_mixture_posterior import load_and_apply_feedback
 
     root = Path(__file__).resolve().parents[1]
     p = root / "tests" / "fixtures" / "feedback" / "compatible_17_18_19.json"

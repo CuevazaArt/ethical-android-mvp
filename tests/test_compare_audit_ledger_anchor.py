@@ -6,7 +6,7 @@ import sys
 from pathlib import Path
 
 import pytest
-from src.modules.mock_dao_audit_replay import fingerprint_audit_ledger
+from src.modules.governance.mock_dao_audit_replay import fingerprint_audit_ledger
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
 SCRIPT = REPO_ROOT / "scripts" / "eval" / "compare_audit_ledger_anchor.py"

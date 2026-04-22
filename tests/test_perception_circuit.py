@@ -9,7 +9,7 @@ import pytest
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
 
 from src.kernel import EthicalKernel
-from src.modules.perception_circuit import update_perception_circuit
+from src.modules.perception.perception_circuit import update_perception_circuit
 
 
 def _stress_report() -> dict:

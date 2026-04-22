@@ -5,7 +5,7 @@ import sys
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
 
-from src.modules.lan_governance_event_merge import merge_lan_governance_events
+from src.modules.governance.lan_governance_event_merge import merge_lan_governance_events
 
 
 def test_merge_sorts_by_turn_then_processor_elapsed() -> None:

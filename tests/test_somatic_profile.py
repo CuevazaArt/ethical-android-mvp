@@ -4,8 +4,8 @@ Verifies that critical temperatures trigger correct ethical nudges and LLM hints
 """
 
 import pytest
-from src.modules.sensor_contracts import SensorSnapshot, merge_sensor_hints_into_signals
-from src.modules.vitality import assess_vitality, vitality_communication_hint
+from src.modules.perception.sensor_contracts import SensorSnapshot, merge_sensor_hints_into_signals
+from src.modules.somatic.vitality import assess_vitality, vitality_communication_hint
 
 
 def test_somatic_profile_thermal_critical():

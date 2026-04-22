@@ -13,7 +13,7 @@ sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
 
 from src.kernel import EthicalKernel
 from src.kernel_lobes.sensor_adapter import FixedSensorAdapter, StubSensorAdapter
-from src.modules.sensor_contracts import SensorSnapshot
+from src.modules.perception.sensor_contracts import SensorSnapshot
 
 
 def test_limbic_execute_stage_smoke() -> None:

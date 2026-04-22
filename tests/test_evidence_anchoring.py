@@ -2,8 +2,8 @@
 Tests for Block 1.2: Encrypted Evidence and Anchoring (REO).
 """
 
-from src.modules.dao_orchestrator import DAOOrchestrator
-from src.modules.evidence_safe import EvidenceSafe
+from src.modules.governance.dao_orchestrator import DAOOrchestrator
+from src.modules.governance.evidence_safe import EvidenceSafe
 
 
 def test_evidence_safe_hashing():

@@ -3,7 +3,7 @@ import os
 import numpy as np
 import pytest
 from src.kernel import EthicalKernel
-from src.modules.dao_orchestrator import DAOOrchestrator
+from src.modules.governance.dao_orchestrator import DAOOrchestrator
 
 
 @pytest.mark.asyncio
@@ -37,7 +37,7 @@ async def test_bayesian_persistence_across_instances():
     assert new_alpha[0] > initial_alpha[0], "Alpha should have increased for Deontic pole"
 
     # Create a dummy decision to trigger persistence in aprocess
-    from src.modules.weighted_ethics_scorer import CandidateAction
+    from src.modules.ethics.weighted_ethics_scorer import CandidateAction
 
     actions = [CandidateAction("test", "test", 0.5, 0.5)]
 

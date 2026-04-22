@@ -6,7 +6,7 @@ import sys
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
 
 from src.kernel import EthicalKernel
-from src.modules.llm_layer import LLMModule
+from src.modules.cognition.llm_layer import LLMModule
 
 
 class _RaisingCompletion:

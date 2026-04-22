@@ -6,8 +6,8 @@ import threading
 import time
 
 import pytest
-from src.modules.llm_backends import MockLLMBackend
-from src.modules.llm_http_cancel import (
+from src.modules.cognition.llm_backends import MockLLMBackend
+from src.modules.cognition.llm_http_cancel import (
     LLMHttpCancelledError,
     check_llm_cancel_requested,
     clear_llm_cancel_scope,

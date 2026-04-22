@@ -2,7 +2,7 @@
 
 from src.chat_server import _chat_turn_to_jsonable
 from src.kernel import ChatTurnResult, EthicalKernel
-from src.modules.llm_layer import LLMPerception, VerbalResponse
+from src.modules.cognition.llm_layer import LLMPerception, VerbalResponse
 
 
 def _mk_perception(*, coercion_report):

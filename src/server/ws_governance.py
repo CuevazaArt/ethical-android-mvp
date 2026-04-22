@@ -11,25 +11,25 @@ from typing import Any
 
 from ..kernel import EthicalKernel
 from ..kernel_utils import kernel_dao_as_mock
-from ..modules.existential_serialization import (
+from src.modules.governance.existential_serialization import (
     nomad_simulation_ws_enabled,
     simulate_nomadic_migration,
 )
-from ..modules.hub_audit import record_dao_integrity_alert
-from ..modules.lan_governance_coordinator import (
+from src.modules.governance.hub_audit import record_dao_integrity_alert
+from src.modules.governance.lan_governance_coordinator import (
     fingerprint_lan_governance_coordinator,
     normalize_lan_governance_coordinator,
 )
-from ..modules.lan_governance_envelope import (
+from src.modules.governance.lan_governance_envelope import (
     fingerprint_lan_governance_envelope,
     idempotency_token_for_envelope,
     normalize_lan_governance_envelope,
     reject_reason_for_envelope_error,
 )
-from ..modules.lan_governance_event_merge import merge_lan_governance_events_detailed
-from ..modules.lan_governance_merge_context import parse_lan_merge_context
-from ..modules.mock_dao_audit_replay import fingerprint_audit_ledger
-from ..modules.moral_hub import (
+from src.modules.governance.lan_governance_event_merge import merge_lan_governance_events_detailed
+from src.modules.governance.lan_governance_merge_context import parse_lan_merge_context
+from src.modules.governance.mock_dao_audit_replay import fingerprint_audit_ledger
+from src.modules.governance.moral_hub import (
     apply_proposal_resolution_to_constitution_drafts,
     dao_governance_api_enabled,
     dao_integrity_audit_ws_enabled,
@@ -41,7 +41,7 @@ from ..modules.moral_hub import (
     proposal_to_public,
     submit_constitution_draft_for_vote,
 )
-from ..modules.reparation_vault import maybe_register_reparation_after_mock_court
+from src.modules.memory.reparation_vault import maybe_register_reparation_after_mock_court
 from ..observability.metrics import (
     record_dao_ws_operation,
     record_lan_envelope_replay_cache_event,

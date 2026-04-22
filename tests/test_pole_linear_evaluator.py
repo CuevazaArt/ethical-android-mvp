@@ -6,8 +6,8 @@ import sys
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
 
-from src.modules.ethical_poles import EthicalPoles, Verdict
-from src.modules.pole_linear import LinearPoleEvaluator
+from src.modules.ethics.ethical_poles import EthicalPoles, Verdict
+from src.modules.ethics.pole_linear import LinearPoleEvaluator
 
 
 def test_default_linear_matches_known_scores():

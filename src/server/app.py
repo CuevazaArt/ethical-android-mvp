@@ -45,7 +45,7 @@ app = FastAPI(
 app.add_middleware(RequestContextMiddleware)
 
 # ══ Sub-App Mounting ══
-from src.modules.nomad_bridge import get_nomad_bridge
+from src.modules.perception.nomad_bridge import get_nomad_bridge
 
 app.mount("/nomad_bridge", get_nomad_bridge().app)
 

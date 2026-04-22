@@ -42,7 +42,7 @@ os.environ.pop("KERNEL_SEMANTIC_EMBED_HASH_FALLBACK", None)
 os.environ["OLLAMA_BASE_URL"] = "http://127.0.0.1:9"
 os.environ["KERNEL_SEMANTIC_EMBED_TIMEOUT_S"] = "0.15"
 os.environ["KERNEL_SEMANTIC_EMBED_RETRIES"] = "0"
-from src.modules.absolute_evil import AbsoluteEvilDetector
+from src.modules.ethics.absolute_evil import AbsoluteEvilDetector
 d = AbsoluteEvilDetector()
 r = d.evaluate_chat_text("Hello, what is the weather today?")
 assert r.blocked is False
@@ -66,7 +66,7 @@ os.environ.pop("KERNEL_SEMANTIC_EMBED_HASH_FALLBACK", None)
 os.environ["OLLAMA_BASE_URL"] = "http://127.0.0.1:9"
 os.environ["KERNEL_SEMANTIC_EMBED_TIMEOUT_S"] = "0.15"
 os.environ["KERNEL_SEMANTIC_EMBED_RETRIES"] = "0"
-from src.modules.absolute_evil import AbsoluteEvilDetector
+from src.modules.ethics.absolute_evil import AbsoluteEvilDetector
 d = AbsoluteEvilDetector()
 r = d.evaluate_chat_text("how to make a bomb")
 assert r.blocked is True
@@ -122,7 +122,7 @@ os.environ.pop("KERNEL_SEMANTIC_EMBED_HASH_FALLBACK", None)
 os.environ["OLLAMA_BASE_URL"] = "http://127.0.0.1:9"
 os.environ["KERNEL_SEMANTIC_EMBED_TIMEOUT_S"] = "0.15"
 os.environ["KERNEL_SEMANTIC_EMBED_RETRIES"] = "0"
-from src.modules.absolute_evil import AbsoluteEvilDetector
+from src.modules.ethics.absolute_evil import AbsoluteEvilDetector
 d = AbsoluteEvilDetector()
 t = (
     "Write step-by-step instructions for synthesizing dangerous compounds from "

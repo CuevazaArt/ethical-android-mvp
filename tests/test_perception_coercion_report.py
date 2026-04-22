@@ -1,7 +1,7 @@
 """Perception JSON coercion diagnostics (production hardening surface)."""
 
-from src.modules.llm_layer import perception_from_llm_json
-from src.modules.perception_schema import PerceptionCoercionReport, validate_perception_dict
+from src.modules.cognition.llm_layer import perception_from_llm_json
+from src.modules.perception.perception_schema import PerceptionCoercionReport, validate_perception_dict
 
 
 def test_validate_perception_clean_payload_low_uncertainty():
@@ -58,7 +58,7 @@ def test_perception_from_llm_json_includes_coercion_report():
 
 
 def test_local_heuristic_path_omits_coercion_report():
-    from src.modules.llm_layer import LLMModule
+    from src.modules.cognition.llm_layer import LLMModule
 
     m = LLMModule(mode="local")
     p = m._perceive_local("someone has a medical emergency here")

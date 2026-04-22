@@ -5,7 +5,7 @@ import sys
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
 
-from src.modules.reality_verification import (
+from src.modules.safety.reality_verification import (
     clear_lighthouse_cache,
     validate_lighthouse_kb_file,
     validate_lighthouse_kb_structure,

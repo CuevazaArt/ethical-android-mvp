@@ -13,7 +13,7 @@ from __future__ import annotations
 
 import pytest
 from src.kernel import EthicalKernel
-from src.modules.bayesian_engine import BayesianEngine
+from src.modules.cognition.bayesian_engine import BayesianEngine
 from src.persistence import apply_snapshot, extract_snapshot
 
 

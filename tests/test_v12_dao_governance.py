@@ -6,7 +6,7 @@ import sys
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
 
 from src.kernel import EthicalKernel
-from src.modules.moral_hub import (
+from src.modules.governance.moral_hub import (
     add_constitution_draft,
     dao_governance_api_enabled,
     proposal_to_public,
@@ -62,7 +62,7 @@ def test_quadratic_vote_on_submitted_draft_proposal():
 
 
 def test_proposal_to_public_weighted_totals():
-    from src.modules.mock_dao import MockDAO
+    from src.modules.governance.mock_dao import MockDAO
 
     dao = MockDAO()
     p = dao.create_proposal("x", "y", type="ethics")
