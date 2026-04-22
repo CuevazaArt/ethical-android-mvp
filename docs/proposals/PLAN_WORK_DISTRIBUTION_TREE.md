@@ -38,7 +38,7 @@ Aquí es donde los agentes de ejecución (LLMs en IDEs) reclaman sus tareas.
 
 **Bloque 20.0: Local Conversational Matrix (Zero-API Fluency) [PENDING]**
 - Tarea 20.1: **Desacoplamiento Estricto Comercial:** [COMPLETED] Refactorizar el backend de percepción y decisión para enrutar el 100% de `process_chat_turn` hacia `OllamaLLMBackend`. 
-- Tarea 20.2: **Refinamiento de Tiempos y Tolerancia Textual:** Sincronizar el `KERNEL_CHAT_TURN_TIMEOUT` con latencias largas realistas de modelos Llama3/Mistral corriendo en local. Optimizar el `System Prompt` maestro de chat para favorecer réplicas cortas y directas sin introspección verbosa.
+- Tarea 20.2: **Refinamiento de Tiempos y Tolerancia Textual:** [COMPLETED — L2 Swarm] `KernelSettings` default `KERNEL_CHAT_TURN_TIMEOUT` = 180 s cuando `USE_LOCAL_LLM=1` o `LLM_MODE=ollama` (30 s remoto, 60 s Nomad); `_env_optional_positive_float` rechaza NaN/Inf; `PROMPT_COMMUNICATION_LOCAL_FLUENCY_APPEND` en `llm_layer` para respuestas breves en modo Ollama (incl. streaming).
  
 **Bloque 21.0: Biographic Memory & Persistent Identity [COMPLETED]**
 - Tarea 21.1: **Manifiesto de Identidad (Birth Context):** [COMPLETED] Crear `src/persistence/identity_manifest.py` para gestionar la narrativa base del agente.

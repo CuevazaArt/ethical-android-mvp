@@ -296,6 +296,13 @@ Respond ONLY with JSON:
   "inner_voice": "internal reasoning guiding the response (not visible to the human)"
 }}"""
 
+PROMPT_COMMUNICATION_LOCAL_FLUENCY_APPEND = """
+LOCAL LLM FLUENCY (Ollama / on-device):
+- Keep the spoken "message" to at most three short sentences; prefer one or two.
+- Avoid meta-commentary about being an AI or about your own reasoning process.
+- "inner_voice" must be a single short clause (no chain-of-thought, no numbered steps).
+"""
+
 PROMPT_COMMUNICATION_NOMAD_APPEND = """
 CRITICAL NOMADIC DIRECTIVE:
 You are running on limited hardware. Every token counts for latency.
@@ -921,6 +928,8 @@ class LLMModule:
 
         if self.mode in ("api", "ollama", "injected"):
             prompt = PROMPT_COMMUNICATION
+            if self.mode == "ollama":
+                prompt += PROMPT_COMMUNICATION_LOCAL_FLUENCY_APPEND
             if self.nomad_mode:
                 prompt += PROMPT_COMMUNICATION_NOMAD_APPEND
 
@@ -1054,6 +1063,8 @@ class LLMModule:
 
         if self.mode in ("api", "ollama", "injected"):
             prompt = PROMPT_COMMUNICATION
+            if self.mode == "ollama":
+                prompt += PROMPT_COMMUNICATION_LOCAL_FLUENCY_APPEND
             if self.nomad_mode:
                 prompt += PROMPT_COMMUNICATION_NOMAD_APPEND
 
@@ -1202,6 +1213,8 @@ class LLMModule:
             "gray_zone": "uncertainty, active caution",
         }
         system_base = PROMPT_COMMUNICATION
+        if self.mode == "ollama":
+            system_base += PROMPT_COMMUNICATION_LOCAL_FLUENCY_APPEND
         if self.nomad_mode:
             system_base += PROMPT_COMMUNICATION_NOMAD_APPEND
 

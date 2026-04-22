@@ -25,13 +25,41 @@ import pytest
 # ---------------------------------------------------------------------------
 
 class TestChatTurnTimeoutDefault:
-    def test_default_is_30s(self):
-        """When env var is absent, settings must give 30 s (not None)."""
-        env = {k: v for k, v in os.environ.items() if k != "KERNEL_CHAT_TURN_TIMEOUT"}
+    def test_default_is_30s_remote_profile(self):
+        """Unset KERNEL_CHAT_TURN_TIMEOUT + no local-Ollama stack → 30 s API-style default."""
+        skip = {
+            "KERNEL_CHAT_TURN_TIMEOUT",
+            "USE_LOCAL_LLM",
+            "LLM_MODE",
+            "KERNEL_NOMAD_MODE",
+        }
+        env = {k: v for k, v in os.environ.items() if k not in skip}
         with patch.dict(os.environ, env, clear=True):
             from src.settings.kernel_settings import KernelSettings
+
             st = KernelSettings.from_env()
         assert st.kernel_chat_turn_timeout_seconds == 30.0
+
+    def test_default_is_180s_when_use_local_llm(self):
+        """Bloque 20.2: local stack needs a longer async wait than cloud API defaults."""
+        skip = {"KERNEL_CHAT_TURN_TIMEOUT", "LLM_MODE", "KERNEL_NOMAD_MODE"}
+        env = {k: v for k, v in os.environ.items() if k not in skip}
+        env["USE_LOCAL_LLM"] = "1"
+        with patch.dict(os.environ, env, clear=True):
+            from src.settings.kernel_settings import KernelSettings
+
+            st = KernelSettings.from_env()
+        assert st.kernel_chat_turn_timeout_seconds == 180.0
+
+    def test_default_is_60s_when_nomad_mode(self):
+        skip = {"KERNEL_CHAT_TURN_TIMEOUT", "USE_LOCAL_LLM", "LLM_MODE"}
+        env = {k: v for k, v in os.environ.items() if k not in skip}
+        env["KERNEL_NOMAD_MODE"] = "1"
+        with patch.dict(os.environ, env, clear=True):
+            from src.settings.kernel_settings import KernelSettings
+
+            st = KernelSettings.from_env()
+        assert st.kernel_chat_turn_timeout_seconds == 60.0
 
     def test_env_override(self):
         """Explicit env value is honoured."""

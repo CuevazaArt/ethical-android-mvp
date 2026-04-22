@@ -953,3 +953,16 @@ This file is automatically managed by `scripts/swarm_sync.py`.
   - `src/modules/llm_layer.py`
   - `src/settings/kernel_settings.py`
 
+
+### 🛠️ Execution | Date: 2026-04-21 19:47:47 | Author: Cursor L2 Swarm
+- **Block:** `20.2`
+- **Message:** Bloque 20.2: local Ollama chat timeout defaults (180s), finite env parsing, PROMPT_COMMUNICATION_LOCAL_FLUENCY_APPEND; KernelSettings field default None
+- **Files Modified:**
+  - `.env.example`
+  - `CHANGELOG.md`
+  - `docs/proposals/PLAN_WORK_DISTRIBUTION_TREE.md`
+  - `src/chat_settings.py`
+  - `src/modules/llm_layer.py`
+  - `src/settings/kernel_settings.py`
+  - `tests/test_bloque_13.py`
+  - `tests/test_bloque_20_local_fluency.py`

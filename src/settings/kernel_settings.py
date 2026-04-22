@@ -15,6 +15,7 @@ See: docs/PYDANTIC_SETTINGS_CONSOLIDATION_PLAN.md
 from __future__ import annotations
 
 import logging
+import math
 import os
 from typing import Any, Literal
 
@@ -54,7 +55,7 @@ def _env_float(name: str, default: float) -> float:
 
 
 def _env_optional_positive_float(name: str) -> float | None:
-    """Unset/empty or non-positive → no limit; otherwise as float."""
+    """Unset/empty or non-positive → no limit; otherwise as float (finite only)."""
     raw = os.environ.get(name, "").strip()
     if not raw:
         return None
@@ -62,7 +63,24 @@ def _env_optional_positive_float(name: str) -> float | None:
         v = float(raw)
     except ValueError:
         return None
-    return v if v > 0.0 else None
+    if not math.isfinite(v) or v <= 0.0:
+        return None
+    return v
+
+
+# Bloque 20.2 — realistic async wait for local Llama/Mistral on CPU/GPU (ADR 0002 alignment).
+_DEFAULT_CHAT_TURN_TIMEOUT_REMOTE_S = 30.0
+_DEFAULT_CHAT_TURN_TIMEOUT_NOMAD_S = 60.0
+_DEFAULT_CHAT_TURN_TIMEOUT_LOCAL_LLM_S = 180.0
+
+
+def _env_local_ollama_stack_active() -> bool:
+    """True when env clearly targets local Ollama (not API-only defaults)."""
+    use_local = os.environ.get("USE_LOCAL_LLM", "").strip().lower()
+    if use_local in ("1", "true", "yes", "on"):
+        return True
+    mode = os.environ.get("LLM_MODE", "").strip().lower()
+    return mode == "ollama"
 
 
 def _env_truthy(name: str, *, default_true: bool = True) -> bool:
@@ -147,11 +165,11 @@ class KernelSettings(BaseModel):
         ),
     )
     kernel_chat_turn_timeout_seconds: float | None = Field(
-        default=30.0,
+        default=None,
         description=(
-            "KERNEL_CHAT_TURN_TIMEOUT — max seconds for one WebSocket chat turn (async wait); "
-            "default 30 s. Set to 0 or a negative value to disable. "
-            "For Nomad LAN use-cases keep ≤30 s to prevent limbic-latency stalls."
+            "KERNEL_CHAT_TURN_TIMEOUT — max seconds for one WebSocket chat turn (async wait). "
+            "When unset: 30 s remote API profile, 180 s when USE_LOCAL_LLM=1 or LLM_MODE=ollama "
+            "(local Llama/Mistral), 60 s when KERNEL_NOMAD_MODE=1. Tune with OLLAMA_TIMEOUT (C-008)."
         ),
     )
     kernel_chat_threadpool_workers: int = Field(
@@ -295,6 +313,17 @@ class KernelSettings(BaseModel):
     def from_env(cls) -> KernelSettings:
         """Load settings from environment variables."""
         nomad_m = _env_truthy("KERNEL_NOMAD_MODE", default_true=False)
+        _raw_chat_turn = os.environ.get("KERNEL_CHAT_TURN_TIMEOUT", "").strip()
+        if _raw_chat_turn:
+            _parsed_turn = _env_optional_positive_float("KERNEL_CHAT_TURN_TIMEOUT")
+            _chat_turn_default = _parsed_turn if _parsed_turn is not None else None
+        elif nomad_m:
+            _chat_turn_default = _DEFAULT_CHAT_TURN_TIMEOUT_NOMAD_S
+        elif _env_local_ollama_stack_active():
+            _chat_turn_default = _DEFAULT_CHAT_TURN_TIMEOUT_LOCAL_LLM_S
+        else:
+            _chat_turn_default = _DEFAULT_CHAT_TURN_TIMEOUT_REMOTE_S
+
         return cls(
             # Chat server
             chat_host=_env_str("CHAT_HOST", "0.0.0.0"),
@@ -317,7 +346,7 @@ class KernelSettings(BaseModel):
             ),
             # Async/chat
             kernel_nomad_chat_timeout_seconds=max(0.1, _env_float("KERNEL_NOMAD_CHAT_TIMEOUT", 5.0)),
-            kernel_chat_turn_timeout_seconds=_env_optional_positive_float("KERNEL_CHAT_TURN_TIMEOUT") or (60.0 if nomad_m else 30.0),
+            kernel_chat_turn_timeout_seconds=_chat_turn_default,
             kernel_chat_threadpool_workers=max(0, _env_int("KERNEL_CHAT_THREADPOOL_WORKERS", 0)),
             kernel_chat_async_llm_http=_env_truthy("KERNEL_CHAT_ASYNC_LLM_HTTP", default_true=False),
             kernel_chat_json_offload=_env_truthy("KERNEL_CHAT_JSON_OFFLOAD", default_true=True),
@@ -397,7 +426,7 @@ Semantic Gate:
   Gate Disabled: {self.kernel_semantic_chat_gate_disabled}
 
 Async / Chat Orchestration:
-  Turn Timeout: {self.kernel_chat_turn_timeout_seconds}s
+  Turn Timeout: {f'{self.kernel_chat_turn_timeout_seconds} s' if self.kernel_chat_turn_timeout_seconds is not None else 'unlimited'}
   Threadpool Workers: {self.kernel_chat_threadpool_workers}
   Async LLM HTTP: {self.kernel_chat_async_llm_http}
   JSON Offload: {self.kernel_chat_json_offload}

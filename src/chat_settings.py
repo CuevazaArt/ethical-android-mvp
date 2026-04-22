@@ -17,6 +17,7 @@ Migration guide: docs/PYDANTIC_SETTINGS_CONSOLIDATION_PLAN.md
 
 from __future__ import annotations
 
+import math
 import os
 import warnings
 from typing import Any
@@ -54,7 +55,7 @@ def _env_int(name: str, default: int) -> int:
 
 
 def _env_optional_positive_float(name: str) -> float | None:
-    """Unset/empty or non-positive → no limit; otherwise seconds as float."""
+    """Unset/empty or non-positive → no limit; otherwise seconds as float (finite only)."""
     raw = os.environ.get(name, "").strip()
     if not raw:
         return None
@@ -62,7 +63,9 @@ def _env_optional_positive_float(name: str) -> float | None:
         v = float(raw)
     except ValueError:
         return None
-    return v if v > 0.0 else None
+    if not math.isfinite(v) or v <= 0.0:
+        return None
+    return v
 
 
 # WebSocket: reject inbound text frames larger than this (UTF-8 byte length) before json.loads.
