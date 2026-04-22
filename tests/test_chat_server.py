@@ -205,6 +205,7 @@ def test_websocket_sync_identity_on_connect():
     pl = msg.get("payload")
     assert isinstance(pl, dict) and "gestalt_snapshot" in pl and "base_history" in pl
     assert "existence_digest" in pl and isinstance(pl.get("existence_digest"), str)
+    assert "identity_reflection" in msg and isinstance(msg.get("identity_reflection"), str)
 
 
 def test_websocket_rejects_oversized_inbound_message(monkeypatch):

@@ -1046,3 +1046,11 @@ This file is automatically managed by `scripts/swarm_sync.py`.
 - **Message:** Nomad Bloque 22: chat_server build_sync_identity_ws_message adds existence_digest (biographic generate_existence_digest), module-level GestaltSnapshot/IdentityManifestStore imports, envelope type literal [SYNC_IDENTITY]. PWA: PAD finite guards, existence_digest in identity strip, nomad bridge SYNC_IDENTITY merge fields, orb PAD axis skipped in text-focus. Tests: sync_identity contract. PLAN 22.2 documents existence_digest. Tri-Lobe: read-only mind-sync on /ws/chat accept only; no CorpusCallosum contract change.
 - **Files Modified:**
   - `src/chat_server.py`
+
+### 🛠️ Execution | Date: 2026-04-21 20:24:27 | Author: Anonymous Agent
+- **Block:** `22.0`
+- **Message:** Nomad Bloque 22.1-22.3: NomadBridge _send_loop re-queues charm_feedback on send failure; KERNEL_NOMAD_CHAT_TEXT_QUEUE_MAX for chat_text_queue; session_ready_hook emits build_sync_identity_ws_message on /ws/nomad after try_load_checkpoint with kernel start/stop. PWA: SYNC_IDENTITY on nomad WS, PAD CSS vars, outbound chat buffer+flush, ?mode=text, no Google Fonts CDN in index for flaky LAN. Removed orphan nomad_session_sync.py; tests/test_nomad_session_sync targets chat_server envelope. Tri-Lobe: CorpusCallosum-driven kernel lifecycle per Nomad session without orphan bridge modules.
+- **Files Modified:**
+  - `src/clients/nomad_pwa/app.js`
+  - `src/kernel.py`
+  - `tests/test_chat_server.py`

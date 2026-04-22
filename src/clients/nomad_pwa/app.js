@@ -808,7 +808,7 @@ window.updateOrbScale = function(volume) {
 // ... existing SW registration ...
 if ('serviceWorker' in navigator) {
     window.addEventListener('load', () => {
-        navigator.serviceWorker.register('./sw.js?v=13.1.7')
+        navigator.serviceWorker.register('./sw.js?v=22.0.0')
             .then(reg => console.log('Nomad Service Worker registered', reg))
             .catch(err => console.error('SW block:', err));
     });

@@ -23,6 +23,20 @@ class ChatTurnResult:
     path: str = "distributed_distributed"
     blocked: bool = False
     block_reason: str = ""
+    # Optional enrichment from legacy / monolithic chat paths (tri-lobe defaults)
+    metacognitive_doubt: bool = False
+    support_buffer: dict[str, Any] | None = None
+    limbic_profile: dict[str, Any] | None = None
+    temporal_context: Any = None
+    perception_confidence: Any = None
+    verbal_llm_degradation_events: Any = None
+    perception: Any = None
+    decision: Any = None
+    narrative: Any = None
+    multimodal_trust: Any = None
+    epistemic_dissonance: Any = None
+    reality_verification: Any = None
+    judicial_escalation: Any = None
 
 @dataclass
 class ChatTurnCooperativeAbort(Exception):
