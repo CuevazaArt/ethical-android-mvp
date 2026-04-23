@@ -23,6 +23,7 @@ from src.modules.cognition.llm_layer import LLMModule, VerbalResponse
 from src.modules.safety.locus import LocusEvaluation
 from src.modules.cognition.motivation_engine import MotivationEngine
 from src.modules.memory.narrative import NarrativeMemory
+from src.persistence.identity_manifest import IdentityManifestStore
 from src.modules.ethics.pad_archetypes import PADArchetypeEngine
 from src.modules.cognition.salience_map import SalienceMap
 from src.modules.cognition.sigmoid_will import SigmoidWill
@@ -94,6 +95,7 @@ class ExecutiveLobe:
         self.bus = bus
         self.memory = memory
 
+        self.identity_manifest_store = IdentityManifestStore()
         self.ganglia = BasalGanglia()  # Smoothing layer
 
         # Escuchar señales convergentes para decidir la acción final
@@ -377,6 +379,12 @@ class ExecutiveLobe:
                         t_level = 0.5
                 vitality_ctx = vitality_communication_hint(decision.vitality, trust_level=t_level)
 
+            try:
+                manifest_ctx = self.identity_manifest_store.manifest.get_context_block()
+            except Exception as e:
+                _log.warning("ExecutiveLobe: failed to get manifest context: %s", e)
+                manifest_ctx = ""
+
             response = await self.llm.acommunicate(
                 action=getattr(decision, "final_action", "unknown"),
                 mode=getattr(decision, "decision_mode", "light"),
@@ -396,6 +404,7 @@ class ExecutiveLobe:
                 identity_context=identity_ctx,
                 social_tension=sentence.social_tension_locus if sentence else 0.5,
                 vitality_context=vitality_ctx,
+                manifest_context=manifest_ctx,
                 stream_callback=stream_callback,
             )
 
@@ -438,7 +447,7 @@ class ExecutiveLobe:
 
     async def _on_cognitive_event(self, pulse: CognitivePulse) -> None:
         """Process high-level mental states and deliberate actions."""
-        if pulse.origin_lobe == "sensory_cortex" and pulse.state_ref:
+        if pulse.origin_lobe in ("sensory_cortex", "sensory_cortex_bridge") and pulse.state_ref:
             # Swarm Rule 3: Latency Telemetry
             t0: float = time.perf_counter()
 

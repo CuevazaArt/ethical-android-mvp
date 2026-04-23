@@ -2,6 +2,7 @@ import asyncio
 import logging
 import os
 import threading
+import time
 from collections.abc import AsyncGenerator
 from dataclasses import dataclass
 from typing import Any
@@ -14,6 +15,7 @@ from src.kernel_lobes.models import MotorCommandDispatch, RawSensoryPulse
 from src.kernel_lobes.perception_lobe import PerceptiveLobe
 from src.kernel_lobes.thalamus_lobe import ThalamusLobe
 from src.modules.cognition.llm_layer import VerbalResponse
+from src.modules.memory.psi_sleep import PsiSleep
 from src.nervous_system.bus_modulator import BusModulator
 from src.nervous_system.corpus_callosum import CorpusCallosum
 
@@ -95,31 +97,18 @@ class EthosKernel:
         from src.modules.memory.immortality import ImmortalityProtocol
         from src.kernel_lobes.memory_lobe import MemoryLobe
         from src.modules.cognition.subjective_time import SubjectiveClock
+        from src.modules.drive_arbiter import DriveArbiter
+        from src.modules.cognition.metaplan_registry import MetaplanRegistry
+        from src.modules.cognition.metacognition import MetacognitiveEvaluator
+        from src.modules.memory.forgiveness import AlgorithmicForgiveness
+        from src.modules.safety.locus import LocusModule
+        from src.modules.ethics.weakness_pole import WeaknessPole
+        from src.modules.cognition.feedback_calibration_ledger import FeedbackCalibrationLedger
 
         evil_detector = AbsoluteEvilDetector()
         self.llm = LLMModule()
         self.strategist = ExecutiveStrategist()
         self.motivation_engine = MotivationEngine()
-        
-        self.narrative = NarrativeMemory()
-        self.dao = DAOOrchestrator()
-        self.migration = MigrationHub()
-        self.hygiene = MemoryHygieneService(memory=self.narrative, dao=self.dao)
-        self._proactive_task = None
-        # Lobe 0: Thalamus Gateway
-        self.thalamus = ThalamusLobe(bus=self.bus)
-
-        # External Governance, Identity & Proactivity (Compatibility layer)
-        from src.modules.governance.dao_orchestrator import DAOOrchestrator
-        from src.modules.drive_arbiter import DriveArbiter
-        from src.modules.memory.forgiveness import AlgorithmicForgiveness
-        from src.modules.memory.immortality import ImmortalityProtocol
-        from src.modules.safety.locus import LocusModule
-        from src.modules.cognition.metacognition import MetacognitiveEvaluator
-        from src.modules.cognition.metaplan_registry import MetaplanRegistry
-        from src.modules.ethics.weakness_pole import WeaknessPole
-
-        self.dao = DAOOrchestrator()
         self.drive_arbiter = DriveArbiter()
         self.metaplan = MetaplanRegistry()
         self.metacognition = MetacognitiveEvaluator()
@@ -127,10 +116,14 @@ class EthosKernel:
         self.forgiveness = AlgorithmicForgiveness()
         self.locus = LocusModule()
         self.weakness = WeaknessPole()
+        
+        self.narrative = NarrativeMemory()
+        self.dao = DAOOrchestrator()
+        self.migration = MigrationHub()
+        self.hygiene = MemoryHygieneService(memory=self.narrative, dao=self.dao)
+        self._proactive_task = None
+        self.sleep = PsiSleep()
         self.checkpoint_persistence = kwargs.get("checkpoint_persistence")
-
-        from src.modules.cognition.feedback_calibration_ledger import FeedbackCalibrationLedger
-
         self.feedback_ledger = FeedbackCalibrationLedger()
         self._feedback_turn_anchor: dict[str, str] = {}
 
@@ -190,18 +183,11 @@ class EthosKernel:
             bus=self.bus
         )
 
-        # Lobe 6: Memory (Hippocampus/DAO/Identity) [Block 26.0 Integration]
-        self.memory_lobe = MemoryLobe(
-            memory=self.narrative,
-            dao=self.dao,
-            migration=self.migration,
-            hygiene=self.hygiene,
-            bus=self.bus
-        )
+        # Lobe 0: Thalamus Gateway
+        self.thalamus = ThalamusLobe(bus=self.bus)
 
         # Pruning / hygiene surface expected by legacy integration tests (BiographicPruner removal).
         self.biographic_pruner = self.hygiene
-
         # V12 moral hub: per-session L1/L2 draft lists + ``buffer`` alias for draft validation (see moral_hub).
         self.constitution_l1_drafts: list[dict[str, Any]] = []
         self.constitution_l2_drafts: list[dict[str, Any]] = []
@@ -263,17 +249,40 @@ class EthosKernel:
             "use await process_chat_turn_async(...)."
         )
 
-    def execute_sleep(self) -> str:
-        """Runs daily maintenance: biographic pruning and consolidation."""
-        res = self.biographic_pruner.run_maintenance_cycle()
+    async def execute_sleep(self) -> str:
+        """Runs daily maintenance: biographic pruning, counterfactual audit, and narrative distillation."""
+        _log.info("EthosKernel: Initializing Psi Sleep cycle (Limbic Sleep).")
+        
+        # 1. Run the new PsiSleep audit (Block 37)
+        # This triggers counterfactuals, narrative distillation, and parameter recalibration
+        sleep_result = await self.sleep.execute(self.memory)
+        
+        # 2. Run legacy pruning and maintenance via Hygiene service
+        prune_res = self.hygiene.run_maintenance_cycle()
+        
+        # 3. Trigger Immortality backup (Soul Snapshot)
+        # Tarea 37.3: Persistencia del Alma Narrative
+        snapshot = self.immortality.backup(self)
+        
         return (
-            f"Sleep cycle complete. Pruned {res['deleted_episodes']} episodes. "
-            "Memory consolidated."
+            f"Psi Sleep Complete. Ethical Health: {sleep_result.ethical_health:.2f}. "
+            f"Pruned {prune_res['deleted_episodes']} episodes. "
+            f"Backup saved: {snapshot.id} (Hash: {snapshot.integrity_hash})."
         )
 
     def dao_status(self) -> str:
         """Returns human-readable governance status."""
         return self.dao.format_status()
+
+    def format_decision(self, res: ChatTurnResult) -> str:
+        """Human-readable summary of a decision turn."""
+        status = " [BLOCKED]" if res.blocked else ""
+        reason = f" ({res.block_reason})" if res.blocked else ""
+        return (
+            f"Result: {res.response.message}{status}{reason}\n"
+            f"  Verdict: {res.verdict} (score: {res.weighted_score:.3f})\n"
+            f"  Path: {res.path}\n"
+        )
 
     def process(
         self,
@@ -396,6 +405,19 @@ class EthosKernel:
         try:
             dispatch_result = await asyncio.wait_for(future, timeout=20.0)
             is_blocked = getattr(dispatch_result, "is_vetoed", False)
+
+            if register_episode:
+                await self.memory.aregister(
+                    place=place,
+                    description=scenario,
+                    action=str(getattr(dispatch_result, "action_id", "Cognitive silence.")),
+                    morals={},
+                    verdict=str(getattr(dispatch_result, "verdict", "Good")) if not is_blocked else "Blocked",
+                    score=float(getattr(dispatch_result, "weighted_score", 0.0)) if not is_blocked else -1.0,
+                    mode=getattr(dispatch_result, "decision_mode", "D_delib"),
+                    sigma=0.5, # Default for bridge
+                    context=context,
+                )
 
             return ChatTurnResult(
                 response=VerbalResponse(

@@ -499,7 +499,7 @@ class MockDAO:
             for r in latest:
                 lines.append(f"    [{r.type}] {r.content[:60]}")
 
-        lines.append(f"{'─' * 70}")
+        lines.append(f"{'-' * 70}")
         return "\n".join(lines)
 
     def extract_community_feedback(self, recent_count: int = 10) -> dict[str, int]:

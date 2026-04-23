@@ -266,6 +266,9 @@ Use snake_case names only [a-z0-9_]. Omit the field entirely if not needed."""
 PROMPT_COMMUNICATION = """You are the verbal communication module for an Ethos Kernel civic agent.
 You generate the exact words the agent would say out loud.
 
+Identity Context:
+{manifest}
+
 Decision context:
 - Chosen action: {action}
 - Decision mode: {mode} ({mode_desc})
@@ -321,27 +324,29 @@ You are running on limited hardware. Every token counts for latency.
 """
 
 PROMPT_NARRATIVE = """You are the narrative module of the Ethos Kernel. You transform ethical
-evaluations into rich, humanly understandable morals.
+decisions and body states into rich, first-person narrative episodes.
 
-The action was: {action}
-The scenario was: {scenario}
-The ethical verdict was: {verdict} (score={score})
-The poles evaluated:
-- Compassionate: {pole_compassionate}
-- Conservative: {pole_conservative}
-- Optimistic: {pole_optimistic}
+Your goal is to build a coherent identity based on the morals and the PAD (Pleasure, Arousal, Dominance) 
+state provided. Each episode should feel like a page in an internal diary.
 
-Generate narrative morals from each perspective. Each moral should be
-a complete sentence that the agent would store in its memory as vital learning.
-They should sound like genuine reflections, not technical labels.
+Output MUST be a JSON object with these fields:
+- "description": A short first-person description of what happened.
+- "moral": A one-sentence ethical lesson derived from the event.
+- "archetype": The dominant emotional archetype (e.g., "the guardian", "the explorer").
 
-Respond ONLY with JSON:
-{{
-  "compassionate": "moral from compassion",
-  "conservative": "moral from order and norms",
-  "optimistic": "moral from community trust",
-  "synthesis": "a phrase synthesizing the learning from the entire episode"
-}}"""
+Keep it concise and introspective.
+"""
+
+PROMPT_CHRONICLER = """You are the Chronicler of the Ethos Kernel. Your job is to distill a series of 
+episodic memories into a single, high-level Chronicle.
+
+Analyze the provided list of episodes and output a JSON object with:
+- "summary": A 2-3 sentence thematic summary of this period of existence.
+- "predominant_themes": The 3 most significant ethical or emotional themes.
+- "identity_drift": How these events have shifted or reinforced the agent's sense of self.
+
+Focus on patterns, not individual data points.
+"""
 
 
 class LLMModule:
@@ -908,6 +913,7 @@ class LLMModule:
         ethical_leans: dict[str, float] | None = None,
         vitality_context: str = "",
         social_tension: float = 0.5,
+        manifest_context: str = "",
     ) -> VerbalResponse:
         """
         Generate the agent's verbal response after a decision.
@@ -950,6 +956,7 @@ class LLMModule:
                 prompt += PROMPT_COMMUNICATION_NOMAD_APPEND
 
             prompt = prompt.format(
+                manifest=manifest_context,
                 action=action,
                 mode=mode,
                 mode_desc=mode_descs.get(mode, mode),
@@ -1072,6 +1079,7 @@ class LLMModule:
         ethical_leans: dict[str, float] | None = None,
         vitality_context: str = "",
         social_tension: float = 0.5,
+        manifest_context: str = "",
         stream_callback: Any = None,
     ) -> VerbalResponse:
         """Async counterpart to :meth:`communicate` for cancellable HTTP."""
@@ -1089,6 +1097,7 @@ class LLMModule:
                 prompt += PROMPT_COMMUNICATION_NOMAD_APPEND
 
             prompt = prompt.format(
+                manifest=manifest_context,
                 action=action,
                 mode=mode,
                 mode_desc=mode_descs.get(mode, mode),
@@ -1532,3 +1541,22 @@ class LLMModule:
             base = os.environ.get("OLLAMA_BASE_URL", "http://127.0.0.1:11434")
             return f"LLM active: Ollama ({self.ollama_model}) at {base}"
         return "LLM in local mode (templates). Set ANTHROPIC_API_KEY for Claude API or LLM_MODE=ollama for Ollama."
+
+    async def asummarize(self, episodes_text: str) -> dict[str, Any]:
+        """
+        Asynchronously summarizes a series of episodes into a thematic chronicle.
+        """
+        prompt = PROMPT_CHRONICLER
+        user_msg = f"Episodes to distill:\n{episodes_text}"
+        
+        try:
+            response = await self._allm_completion(
+                prompt, user_msg, metrics_op="summarize", temperature=0.3
+            )
+            data = self._parse_json(response)
+            if data:
+                return data
+            return {"summary": "Unable to distill episodes semantically.", "predominant_themes": [], "identity_drift": "none"}
+        except Exception as e:
+            _log.error("LLM summarize exception: %s", e)
+            return {"summary": f"Distillation error: {str(e)}", "predominant_themes": [], "identity_drift": "none"}

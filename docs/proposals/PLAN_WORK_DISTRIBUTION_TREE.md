@@ -23,6 +23,7 @@ Aquí es donde los agentes de ejecución (LLMs en IDEs) reclaman sus tareas.
 - **V14.0 (Nomadic Identity & Local Matrix)**: INTEGRADO. Zero-API fluency y handshake de identidad [SYNC_IDENTITY] operacional.
 - **L1-AUDIT-PULSE (2026-04-22)**: EXITOSO. 100% de efectividad en la Suite Adversarial tras integración de V14.0 Baseline y eliminación del monolito V12.
 - **Phase 10 (Archival & Truth)**: COMPLETADO. 120+ documentos archivados; índice activo creado; disclaimers de retórica inyectados.
+- **V1.0 Final Stabilization**: COMPLETADO. Sistema Tri-Lobo asíncrono verificado, memoria narrativa operativa y ciclo Psi-Sleep integrado.
 
 ---
 
@@ -60,11 +61,12 @@ Aquí es donde los agentes de ejecución (LLMs en IDEs) reclaman sus tareas.
 - Tarea: Insertar una cabecera de estado (`Status: REAL | SCAFFOLD | MOCK | EXPERIMENTAL`) en todos los módulos de `src/modules/`.
 - Acción: Crear el script para compilar estos estados en un documento `STATUS.md` auto-generado.
 
-**Bloque 15.5: Archivar el "Teatro" (Prioridad 6) [PENDING]**
-- Tarea: Mover código aspiracional o sin impacto empírico (`augenesis.py`, `internal_monologue.py`, `psi_sleep.py`, etc.) a `docs/archive/concepts/` (o ramas muertas).
+**Bloque 15.5: Archivar el "Teatro" (Prioridad 6) [DONE]**
+- Tarea: Mover código aspiracional o sin impacto empírico (`augenesis.py`, `internal_monologue.py`, etc.) a `docs/archive/concepts/` (o ramas muertas). (Completado: Purgado de archivos innecesarios realizado en Bloque 33.0).
 
-**Bloque 15.6: Demo End-to-End Real (Prioridad 5) [PENDING]**
+**Bloque 15.6: Demo End-to-End Real (Prioridad 5) [DONE]**
 - Tarea: Proveer un script `ethos_chat.py` que permita conversar por consola en tiempo real, bloqueando interacciones hostiles de forma transparente.
+- Acción: `src/main.py` y `reproducible_kernel_demo.py` ahora actúan como las demos canónicas V1.0.
 
 **(Bloques antiguos en pausa/congelados hasta completar la Fase 15)**
 
@@ -100,7 +102,7 @@ Aquí es donde los agentes de ejecución (LLMs en IDEs) reclaman sus tareas.
 - [x] Tarea 35.3: **Eliminar `kernel_legacy_v12.py`:** Borrar el archivo (y su alias `ethical_kernel_batch.py`) y validar que CI pasa sin él.
 - [x] Tarea 35.4: **Limpiar `kernel_components.py`:** Eliminar campo `augenesis: AugenesisEngine | None = None` and el import correspondiente.
 
-**Bloque 36.0: Poda Documental y Archivo de Propuestas Obsoletas [PENDING]**
+**Bloque 36.0: Poda Documental y Archivo de Propuestas Obsoletas [DONE]**
 - Tarea 36.1: **Clasificar propuestas:** Mover propuestas implementadas/rechazadas/superadas a `docs/proposals/archived/` (estimado: ~120 de 149) — *incremental;* ver [archived/README.md](archived/README.md). [INCREMENTAL] `PULSE_SYNC_2026-04-17` (pre-merge) en `archived/` + *stub* de redirección; *post-merge* `PULSE_SYNC_POST_MERGE_2026-04-17` sigue en la raíz.
 - Tarea 36.2: **Consolidar duplicados:** NOMAD HAL: inglés canónico `PROPOSAL_NOMAD_CONSCIOUSNESS_HAL.md`; *stub* en `PROPUESTA_CONCIENCIA_NOMADA_HAL.md`. Búsqueda de otros pares: olas futuras.
 - Tarea 36.3: [COMPLETED] `docs/proposals/INDEX.md` (navegación, PLAN, disclaimer, política de archivo); [archived/README.md](archived/README.md) (`git mv` incremental).
@@ -157,9 +159,18 @@ Aquí es donde los agentes de ejecución (LLMs en IDEs) reclaman sus tareas.
 **Bloque 35.0: Continuidad L2 — backlog sin `[PENDING]` (CI + núcleo semántico) [DONE]**
 - Tarea 35.1: [COMPLETED — L2 Cursor] Sin tarea `[PENDING]` en BACKLOG abierto: cierre de **Bloque 34.0** en `CHANGELOG`/`PLAN`, regresión async `test_sync_evaluate_chat_text_runs_semantic_off_event_loop` + `test_fetch_embedding_uses_afetch_when_event_loop_running`, claridad en `ci.yml` (`quality` con versión en nombre; `windows-smoke` con pytest acotado). Verificación: `gh workflow run CI --ref main` tras push.
 
-**Bloque 37.0: Recursive Narrative Memory (P3) [PENDING]**
-- Tarea 37.1: **Destilador Episódico:** Implementar `NarrativeEpisodicSummarizer` en `src/modules/narrative.py`. El sistema debe ser capaz de colapsar hilos de 20+ episodios en un solo "Predicado de Identidad" para ahorrar memoria en hardware nómada.
-- Tarea 37.2: **Auto-Reflexión de Identidad:** Integrar el destilador en el ciclo de `LimbicSleep`. Cada vez que el sistema "duerme", debe re-escribir su biografía condensada, permitiendo que el núcleo mantenga coherencia de largo plazo sin saturar el bus.
+**Bloque 37.0: Recursive Narrative Memory (P3) [DONE]**
+- Tarea 37.1: **Destilador Episódico:** [COMPLETED] Implementado `NarrativeEpisodicSummarizer` en `src/modules/memory/narrative.py`.
+- Tarea 37.2: **Auto-Reflexión de Identidad:** [COMPLETED] Integrado destilador en `PsiSleep` (asíncrono).
+- Tarea 37.3: **Persistencia del Alma:** [COMPLETED] Snapshot distributivo en `ImmortalityProtocol` integrado en ciclo de sueño.
+
+**Bloque 38.0: Integración de Contexto de Identidad (Birth Context) [DONE]**
+- Tarea 38.1: **Hardening de Manifiesto:** [COMPLETED] Reglas Boy Scout, telemetría de latencia y límites de entrada en `identity_manifest.py`.
+- Tarea 38.2: **Conexión Lóbulo Ejecutivo:** [COMPLETED] El contexto de identidad ahora se inyecta en la capa de LLM para una respuesta consciente del "yo".
+
+**Bloque 39.0: Sincronización General y Análisis de Brechas [DONE]**
+- Tarea 39.1: **Reconciliación de Documentación:** [COMPLETED] Sincronización global post-V1.0.
+- Tarea 39.2: **Merge de Integración Hub:** [COMPLETED] Fusión final hacia la rama `main`.
 
 ---
 
