@@ -18,11 +18,15 @@ TEST_TARGETS = [
     "tests/test_kernel_utils.py",
     "tests/test_real_time_bridge.py",
     "tests/test_temporal_planning.py",
+    # ADR 0005 / PLAN 8.1.33 — finite horizon prior → hypothesis_weights (np.std / combined)
+    "tests/test_temporal_horizon_prior.py",
     "tests/test_perception_confidence.py",
     # LLM integration track (PROPOSAL_LLM_INTEGRATION_TRACK.md G-10)
     "tests/test_process_natural_verbal_observability.py",
     "tests/test_perception_dual_vote_failure.py",
     "tests/test_semantic_chat_gate.py",
+    # Input trust + homoglyph matrix (PLAN 8.1.3) — MalAbs normalize path before absoluto
+    "tests/test_input_trust.py",
     "tests/test_llm_touchpoint_policies.py",
     "tests/test_llm_http_cancel.py",
     "tests/test_llm_cancel_burst_operational.py",
@@ -46,6 +50,23 @@ TEST_TARGETS = [
     "tests/test_nomad_bridge_stream.py",
     # Nomad → Vitality merge Module S.2.1 (peek_latest_telemetry + merge_nomad_telemetry_into_snapshot)
     "tests/test_vitality.py",
+    # Variability engine finite I/O (PLAN 16.0.2) — Bayes noise → weighted ethics scorer
+    "tests/test_variability_engine.py",
+    # Terminal DX (PLAN 8.1.2 / 16.0.4) — header width clamp, NO_COLOR
+    "tests/test_terminal_colors.py",
+    # PerceptiveLobe (PLAN 16.0.5) — Tri-Lobe / MOCK observe_async + aclose
+    "tests/test_perceptive_lobe.py",
+    # Tri-Lobe stack: ProactivePulse line + limbic nudge (PLAN 8.1.5 / 8.1.24) — finite operator strings
+    "tests/test_kernel_lobes_stack.py",
+    # kernel_utils facades (Fase 15.18 / 0.1.9-0.1.10 / 8.1.30-8.1.31) — env coercers, reexport identity, Proactive line
+    "tests/test_kernel_utils.py",
+    # V14 hand-off CLI — swarm_sync + local_llm_audit (ollama netloc / model, dry-run)
+    "tests/test_swarm_sync_script.py",
+    # MemoryLobe ↔ kernel event bus (PLAN 26.0.1) — amnesia / episode_registered wiring
+    "tests/test_kernel_tri_lobe_bus_memory.py",
+    # Salience + somatic nudges (PLAN 8.1.4 / 8.1.6) — finite GWT-lite + v10 EXPERIMENTAL
+    "tests/test_salience_map.py",
+    "tests/test_somatic_markers.py",
 ]
 
 

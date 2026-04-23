@@ -1,0 +1,12 @@
+---
+description: Tri-Lóbulo (Perceptive / Limbic / Executive) + Cerebelo — wiring estándar
+globs: src/kernel.py,src/kernel_lobes/**/*.py,src/modules/kernel_event_bus.py,src/real_time_bridge.py,src/chat_server.py
+---
+
+# Tri-Lóbulo — estándar de implementación
+
+- **Raíz:** `EthicalKernel` instancia lóbulos en `kernel.py` y no deja subsistemas “huérfanos” (memoria, DAO, amnesia) fuera del bus cuando `KERNEL_EVENT_BUS=1`.
+- **MemoryLobe:** debe llamarse `subscribe_to_kernel_event_bus(bus)` una vez desde el constructor del kernel; los despachos RTBF van por `EVENT_KERNEL_AMNESIA_FORGET_EPISODE`; la narrativa publica `EVENT_KERNEL_EPISODE_REGISTERED` tras `register_episode=True`.
+- **MotivationEngine:** compartido con `ExecutiveLobe` y con `emit_proactive_pulse_if_idle` / `seek_internal_purpose`; sin mocks pasivos en rutas de producción.
+- **Async:** pulsos de inactividad y Psi Sleep usan `RealTimeBridge.run_*` / `run_sync_in_chat_thread` para no bloquear el loop.
+- **Verificación:** antes de integrar, `grep` por `subscribe_to_kernel_event_bus`, `EVENT_KERNEL_EPISODE_REGISTERED`, `EVENT_KERNEL_PROACTIVE_PULSE` en `src/`.

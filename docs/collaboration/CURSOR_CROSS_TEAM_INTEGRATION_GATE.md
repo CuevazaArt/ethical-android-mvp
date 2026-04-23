@@ -40,10 +40,12 @@
      - `tests/test_kernel_utils.py` (Module 0.1.3 — `kernel_decision_event_payload` and env helpers)
      - `tests/test_real_time_bridge.py` (Module 0.2.1 — chat thread offload / pool cap)
      - `tests/test_temporal_planning.py`
+     - `tests/test_temporal_horizon_prior.py` (ADR 0005 + PLAN **8.1.33** + **16.0.11** — finite `compute_horizon_signals` / `apply_horizon_prior_to_engine` vs Bayesian weights)
      - `tests/test_perception_confidence.py`
      - `tests/test_process_natural_verbal_observability.py`
      - `tests/test_perception_dual_vote_failure.py`
      - `tests/test_semantic_chat_gate.py`
+     - `tests/test_input_trust.py` (PLAN **8.1.3** + **8.1.36** — homoglyph matrix / `normalize_text_for_malabs`)
      - `tests/test_llm_touchpoint_policies.py`
      - `tests/test_llm_http_cancel.py` (G-05 cooperative cancel scope)
      - `tests/test_llm_cancel_burst_operational.py` (G-05 burst concurrency smoke + abandon short-circuit)
@@ -59,6 +61,15 @@
      - `tests/test_charm_engine_basal.py` (MER Block **10.3** — optional `KERNEL_BASAL_GANGLIA_SMOOTHING` EMA on charm vector)
      - `tests/test_nomad_bridge_stream.py` (Nomad LAN bridge Module S.1)
      - `tests/test_vitality.py` (Nomad → vitality merge Module S.2.1)
+     - `tests/test_variability_engine.py` (PLAN 16.0.2 — VariabilityEngine finite I/O on Bayes noise path)
+     - `tests/test_terminal_colors.py` (PLAN 8.1.2 / 16.0.4 — `Term.header` width clamp, `NO_COLOR`)
+     - `tests/test_perceptive_lobe.py` (PLAN 16.0.5 — PerceptiveLobe MOCK / `aclose`)
+     - `tests/test_kernel_lobes_stack.py` (PLAN **8.1.5** / **8.1.24** — Tri-Lobe stack: finite ProactivePulse operator line, limbic swarm nudge, `CorpusCallosum` probes)
+     - `tests/test_kernel_utils.py` (Fase **15.18** / **0.1.9-0.1.10** / **8.1.30-8.1.31** — `kernel_utils` env coercers, `format_proactive_candidate_line`, `kernel` reexport identity vs `kernel_utils`)
+     - `tests/test_swarm_sync_script.py` (V14 — `scripts/swarm_sync.py` dry-run JSON, `local_llm_audit` / Ollama netloc; PLAN **8.1.29**)
+     - `tests/test_salience_map.py` (PLAN 8.1.4 + **16.0.8** — SalienceMap finite inputs; uniform 1/n axes)
+     - `tests/test_somatic_markers.py` (PLAN 8.1.6 + **16.0.8** — somatic nudges; `quantize` without `int(nan)`)
+     - `tests/test_kernel_tri_lobe_bus_memory.py` (PLAN 26.0.1 — Tri-Lobe MemoryLobe ↔ `EVENT_KERNEL_AMNESIA_FORGET_EPISODE` / `EVENT_KERNEL_EPISODE_REGISTERED`)
 
 6. **Adversarial suite (promotion toward `master-antigravity`)**
    - Run `python scripts/eval/adversarial_suite.py` from the repository root. This is **in addition to** item 5 (pytest gate), not a substitute. Policy: [`AGENTS.md`](../../AGENTS.md); Cursor red-team lane: [`CURSOR_ROJO1.md`](./CURSOR_ROJO1.md). See also [`ADVERSARIAL_ROBUSTNESS_PLAN.md`](../proposals/ADVERSARIAL_ROBUSTNESS_PLAN.md) and [`INPUT_TRUST_THREAT_MODEL.md`](../proposals/INPUT_TRUST_THREAT_MODEL.md) for threat context.

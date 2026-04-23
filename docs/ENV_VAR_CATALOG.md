@@ -39,6 +39,8 @@ variable read by the codebase (`src/`). Variables are grouped by functional tier
 | `KERNEL_PERCEPTION_FAILSAFE_BLEND` | `0.5` | float | Blend factor for failsafe template. |
 | `KERNEL_PERCEPTION_PARSE_FAIL_LOCAL` | `0` | bool | Use local template on parse failure (no LLM retry). |
 | `KERNEL_PERCEPTION_UNCERTAINTY_MIN` | `0.5` | float | Coercion uncertainty floor that upgrades D_fast → D_delib. |
+| `KERNEL_PERCEPTION_PARALLEL` | `0` | bool | When truthy, runs independent perception-side enrichments concurrently (**EXPERIMENTAL** local thread pool; see `perception_parallel_workers` in `kernel_utils.py`). |
+| `KERNEL_PERCEPTION_PARALLEL_WORKERS` | `0` (use hardware default when parallel is on) | int | When `KERNEL_PERCEPTION_PARALLEL` is on, positive values set the pool size; the runtime caps this at **64** (`_MAX_PERCEPTION_PARALLEL_ENV_WORKERS` in `kernel_utils.py`) so a typo cannot reserve unbounded threads. If unset, zero, or invalid, `perception_parallel_workers` uses a conservative `max(2, min(cpu_count, 8))`. |
 | `KERNEL_GENERATIVE_ACTIONS_MAX` | `3` | int | Max generative candidates to propose via LLM. |
 | `KERNEL_GENERATIVE_LLM` | `0` | bool | Enable generative candidate generation. |
 
@@ -77,6 +79,19 @@ variable read by the codebase (`src/`). Variables are grouped by functional tier
 | `KERNEL_TEMPORAL_HORIZON_WEEKS_DAYS` | `""` | str | Override horizon weeks/days for temporal prior. |
 | `KERNEL_TEMPORAL_REFERENCE_ETA_S` | `""` | float | Reference ETA in seconds for temporal modulation. |
 
+### 3.1 RLHF reward model & MalAbs → Bayesian priors (Plan C.1)
+
+| Variable | Default | Type | Description |
+|----------|---------|------|-------------|
+| `KERNEL_RLHF_REWARD_MODEL_ENABLED` | `0` | bool | Master switch for RLHF training / pipeline use (`rlhf_reward_model.py`). |
+| `KERNEL_RLHF_ARTIFACTS_PATH` | `artifacts/rlhf/` | str | Base directory; `reward_model.json` and training JSONL live here. |
+| `KERNEL_RLHF_MAX_STEPS` | `1000` | int | Training steps for the logistic reward classifier. |
+| `KERNEL_RLHF_LEARNING_RATE` | `0.001` | float | Training learning rate. |
+| `KERNEL_RLHF_MODULATE_BAYESIAN` | `0` | bool | When on, nudge `BayesianInferenceEngine` priors from MalAbs `rlhf_features` (`maybe_modulate_from_malabs_rlhf_features` and async bridge in `rlhf_reward_model`). |
+| `KERNEL_RLHF_MODULATE_USE_TRAINED_MODEL` | `0` | bool | When on with modulation, load `reward_model.json` and use `RewardModel` predictions; else bounded heuristic from lexical/semantic features. |
+| `KERNEL_RLHF_MODULATION_SCALE` | `1.5` | float | Scales Dirichlet count increments in `apply_rlhf_modulation` (clamped finite). |
+| `KERNEL_RLHF_AMBIGUOUS_CONFIDENCE_SCALE` | `0.85` | float | Multiplier on confidence when `is_ambiguous` is true in `maybe_modulate_from_malabs_rlhf_features`. |
+
 ---
 
 ## 4. Safety & MalAbs
@@ -114,11 +129,8 @@ variable read by the codebase (`src/`). Variables are grouped by functional tier
 | `KERNEL_EPISTEMIC_MOTION_MAX` | `""` | float | Max jerk for epistemic dissonance pass. |
 | `KERNEL_EPISTEMIC_VISION_LOW` | `""` | float | Low vision threshold for dissonance. |
 | `KERNEL_VITALITY_CRITICAL_BATTERY` | `0.15` | float ⚙ | Battery fraction below which guardian mode activates. |
-| `KERNEL_VITALITY_CRITICAL_TEMP` | `80` | float ⚙ | °C — thermal critical band for vitality (see `vitality.py`). |
-| `KERNEL_VITALITY_WARNING_TEMP` | `70` | float ⚙ | °C — elevated thermal band (soft interrupt) below critical. |
-| `KERNEL_VITALITY_THERMAL_HYSTERESIS` | `1` | bool | Latched thermal critical until temp drops by `KERNEL_VITALITY_THERMAL_HYSTERESIS_C` below critical. |
-| `KERNEL_VITALITY_THERMAL_HYSTERESIS_C` | `4` | float | °C hysteresis delta for clearing latched thermal critical. |
-| `KERNEL_VITALITY_IMPACT_JERK_THRESHOLD` | `0.8` | float ⚙ | Accelerometer jerk above this `[0,1]` marks `is_impacted`. |
+| `KERNEL_VITALITY_CRITICAL_TEMP` | `80.0` | float ⚙ | Core temperature (°C) at or above which `thermal_critical` is set. |
+| `KERNEL_VITALITY_THERMAL_WARN_C` | `70.0` | float ⚙ | Lower advisory band (°C): at or above this and below critical, `thermal_elevated` is set and perception confidence is nudged (S.2.1 / Nomad). If ≥ critical, coerced to `critical - 5` °C. |
 | `KERNEL_FIELD_CONTROL` | `0` | bool | Enable phone-relay field test control surface (ADR 0017). |
 | `KERNEL_FIELD_PAIRING_TOKEN` | `""` | str | One-time token for phone pairing. Keep secret. |
 | `KERNEL_FIELD_SENSOR_HZ` | `2` | int ⚙ | Max sensor frame rate from phone relay (Hz). |
@@ -229,9 +241,6 @@ variable read by the codebase (`src/`). Variables are grouped by functional tier
 | `KERNEL_NOMAD_SIMULATION` | `0` | bool | Enable nomadic HAL migration simulation. |
 | `KERNEL_NOMAD_MIGRATION_AUDIT` | `0` | bool | Append DAO calibration line on migration. |
 | `KERNEL_NOMAD_TELEMETRY_VITALITY` | `1` | bool | Merge latest Nomad `telemetry` into the sensor snapshot before `assess_vitality` when fields are missing (`0` disables). |
-| `KERNEL_NOMAD_MAX_VISION_FRAME_BYTES` | `5242880` | int | Max decoded JPEG bytes accepted per `vision_frame` WebSocket event (Nomad LAN bridge). |
-| `KERNEL_NOMAD_MAX_AUDIO_PCM_BYTES` | `1048576` | int | Max decoded PCM bytes accepted per `audio_pcm` WebSocket event. |
-| `KERNEL_NOMAD_MAX_TELEMETRY_KEYS` | `128` | int | Max key count on each `telemetry` WebSocket payload (flat JSON object). |
 | `KERNEL_NOMADIC_ED25519_PRIVATE_KEY` | `""` | str | Ed25519 private key for nomadic identity signing. **Secret.** |
 | `KERNEL_NOMADIC_ED25519_PUBLIC_KEY` | `""` | str | Ed25519 public key. |
 | `KERNEL_ETHICAL_GENOME_MAX_DRIFT` | `0.2` | float | Maximum allowed genome drift before identity alert. |

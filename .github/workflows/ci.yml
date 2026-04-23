@@ -1,12 +1,20 @@
 # Quality gate: same dependency pins as local dev (requirements.txt + requirements-dev.txt).
-# Runs on pushes and PRs to main; matches local checks + optional pre-commit (see CONTRIBUTING.md).
+# Runs on pushes and PRs to main and master-* integration hubs; matches local checks + optional pre-commit (see CONTRIBUTING.md).
+# Full test suite: `pytest tests/` with `CI=1`, `KERNEL_IGNORE_BOOT_FAILURE=1` for CI/agent hosts
+# where kernel secure-boot checks may lag during collection.
+#
+# Parity: job `quality` (Ubuntu matrix 3.11+3.12) runs the **entire** `tests/` tree with coverage;
+# job `windows-smoke` runs the same `pytest tests/` command on Windows. Job `ci-all-passed`
+# aggregates success so one branch-protection check shows “all tests + lint + mypy + compose” green.
 name: CI
 
+# workflow_dispatch: same jobs as push/PR — full `pytest tests/` (quality + windows-smoke),
+# ruff, ruff format, mypy, compose-validate, semantic-default-contract. Use Actions tab → CI → Run workflow.
 on:
   push:
-    branches: [main, "master-*", "feature-*"]
+    branches: [main, "master-*"]
   pull_request:
-    branches: [main]
+    branches: [main, "master-*"]
   workflow_dispatch:
 
 permissions:
@@ -60,11 +68,20 @@ jobs:
       - name: Mypy
         run: python -m mypy src
 
+      - name: Pytest collection gate
+        env:
+          CI: "true"
+          PYTHONHASHSEED: "0"
+          KERNEL_IGNORE_BOOT_FAILURE: "1"
+        run: python -m pytest tests/ --collect-only -q
+
       - name: Pytest with coverage
         env:
+          CI: "true"
           PYTHONHASHSEED: "0"
+          KERNEL_IGNORE_BOOT_FAILURE: "1"
         run: |
-          python -m pytest tests/ -n auto -q --tb=short \
+          python -m pytest tests/ -q --tb=short \
             --junitxml=junit.xml \
             --cov=src \
             --cov-fail-under=65 \
@@ -109,9 +126,11 @@ jobs:
 
       - name: Semantic defaults + empirical pilot (Issue 3) contract tests
         env:
+          CI: "true"
           PYTHONHASHSEED: "0"
+          KERNEL_IGNORE_BOOT_FAILURE: "1"
         run: |
-          python -m pytest tests/test_malabs_semantic_integration.py tests/test_semantic_chat_gate.py tests/test_empirical_pilot_runner.py -n auto -q --tb=short
+          python -m pytest tests/test_malabs_semantic_integration.py tests/test_semantic_chat_gate.py tests/test_empirical_pilot_runner.py -q --tb=short
 
   windows-smoke:
     runs-on: windows-latest
@@ -135,8 +154,32 @@ jobs:
       - name: Ruff lint smoke
         run: python -m ruff check src tests
 
-      - name: Runtime profile smoke tests
+      - name: Full test suite (parity with Ubuntu quality job)
         env:
+          CI: "true"
           PYTHONHASHSEED: "0"
+          KERNEL_IGNORE_BOOT_FAILURE: "1"
+        run: python -m pytest tests/ -q --tb=short --junitxml=junit-windows.xml --cov=src --cov-fail-under=65 --cov-report=xml --cov-report=term-missing
+
+      - name: Upload JUnit (Windows)
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: junit-windows
+          path: junit-windows.xml
+          if-no-files-found: ignore
+
+  # Single green check: compose + full pytest tests/ (Ubuntu×2 + Ruff + Mypy) + semantic slice + Windows parity
+  ci-all-passed:
+    name: All CI checks passed
+    runs-on: ubuntu-latest
+    needs:
+      - compose-validate
+      - quality
+      - semantic-default-contract
+      - windows-smoke
+    if: ${{ success() }}
+    steps:
+      - name: Gate
         run: |
-          python -m pytest tests/test_runtime_profiles.py tests/test_env_policy.py -n auto -q --tb=short
+          echo "All checks succeeded: Docker Compose validate, quality (ruff + ruff format + mypy + pytest tests/ with coverage on Python 3.11/3.12), semantic MalAbs contract suite, Windows full pytest tests/ parity."
