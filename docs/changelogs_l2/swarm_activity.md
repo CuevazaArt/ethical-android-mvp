@@ -2315,3 +2315,10 @@ This file is automatically managed by `scripts/swarm_sync.py`.
 - **Message:** Fix LLM stream format: Added a CRITICAL STREAMING OVERRIDE to acommunicate. When stream_callback is provided, we explicitly instruct the LLM to output raw prose instead of JSON, preventing the Nomad PWA from rendering raw JSON brackets and fields.
 - **Files Modified:**
   - `src/modules/cognition/llm_layer.py`
+
+### Execution (Swarm) | Date: 2026-04-23 08:50:30 | Author: Anonymous Agent
+- **Block:** `41.0`
+- **Message:** Integrate Narrative Identity persistence in execute_sleep and add Field Test Integration script
+- **Files Modified:**
+  - `scripts/field_test_chat_integration.py`
+  - `src/kernel.py`

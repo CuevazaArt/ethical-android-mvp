@@ -258,10 +258,17 @@ class EthosKernel:
         # This triggers counterfactuals, narrative distillation, and parameter recalibration
         sleep_result = await self.sleep.execute(self.memory)
         
-        # 2. Run legacy pruning and maintenance via Hygiene service
+        # 2. Update Evolving Identity Manifest with the sleep summary
+        # This ensures the narrative identity reflects the retrospective audit
+        if hasattr(self.prefrontal_cortex, "identity_manifest_store"):
+            store = self.prefrontal_cortex.identity_manifest_store
+            store.update_evolving_identity(sleep_result.narrative_summary)
+            _log.info("EthosKernel: Evolving Identity Manifest updated with Psi Sleep findings.")
+
+        # 3. Run legacy pruning and maintenance via Hygiene service
         prune_res = self.hygiene.run_maintenance_cycle()
         
-        # 3. Trigger Immortality backup (Soul Snapshot)
+        # 4. Trigger Immortality backup (Soul Snapshot)
         # Tarea 37.3: Persistencia del Alma Narrative
         snapshot = self.immortality.backup(self)
         
