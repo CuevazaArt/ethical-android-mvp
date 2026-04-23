@@ -7,7 +7,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&family=IBM+Plex+Mono:wght@400;600&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="dashboard.css">
+    <link rel="stylesheet" href="dashboard.css?v=2">
     <style>
         /* Pulse Animation for Status */
         .badge.online {
@@ -19,7 +19,7 @@
         .layout {
             display: grid;
             grid-template-columns: repeat(5, 1fr);
-            grid-template-rows: repeat(3, 1fr); /* 5x3 = 15 Quadrants */
+            grid-template-rows: repeat(4, 1fr); /* 5x4 = 20 Quadrants */
             height: calc(100vh - 48px);
             gap: 6px;
             padding: 6px;
@@ -36,6 +36,9 @@
             padding: 6px;
             background: var(--surface);
             border: 1px solid var(--line);
+        }
+        .tall-card {
+            grid-area: 1 / 5 / 5 / 6; /* Occupies entire right column */
         }
         .card h2 { 
             font-size: 0.65rem; 
@@ -72,13 +75,13 @@
 
     <main class="layout">
         <!-- 01: NEURAL VISION -->
-        <section class="card">
+        <section class="card" style="grid-area: 1 / 1 / 2 / 2;">
             <h2>01 Neural Vision</h2>
             <canvas id="vision-canvas"></canvas>
         </section>
 
         <!-- 02: NOMAD VESSEL -->
-        <section class="card">
+        <section class="card" style="grid-area: 1 / 2 / 2 / 3;">
             <h2>02 Nomad Vessel</h2>
             <table class="kv-table">
                 <tbody>
@@ -90,19 +93,21 @@
         </section>
 
         <!-- 03: CLINICAL CORE -->
-        <section class="card">
+        <section class="card" style="grid-area: 1 / 3 / 2 / 4;">
             <h2>03 Clinical Core</h2>
             <table class="kv-table">
                 <tbody>
                     <tr><td>Ethical Stress</td><td id="tension-val">0.000</td></tr>
                     <tr><td>Trust Gate</td><td id="trust-val">0.000</td></tr>
                     <tr><td>Dissonance</td><td id="flag-dissonance">false</td></tr>
+                    <tr><td>Bayes Conf</td><td id="bayes-conf">--</td></tr>
+                    <tr><td>Bayes Delta</td><td id="bayes-delta">--</td></tr>
                 </tbody>
             </table>
         </section>
 
         <!-- 04: SOMATIC HEALTH -->
-        <section class="card">
+        <section class="card" style="grid-area: 1 / 4 / 2 / 5;">
             <h2>04 Somatic Health</h2>
             <table class="kv-table">
                 <tbody>
@@ -114,7 +119,7 @@
         </section>
 
         <!-- 05: IDENTITY STREAM -->
-        <section class="card">
+        <section class="card" style="grid-area: 3 / 1 / 4 / 2;">
             <h2>05 Identity Stream</h2>
             <div class="mono" id="thought-stream" style="margin-bottom:4px;">Searching for sensory ingress...</div>
             <table class="kv-table" style="margin-top:auto;">
@@ -127,7 +132,7 @@
         </section>
 
         <!-- 06: INTEGRITY SENTINEL -->
-        <section class="card">
+        <section class="card" style="grid-area: 2 / 1 / 3 / 2;">
             <h2>06 Integrity Sentinel</h2>
             <table class="kv-table">
                 <tbody>
@@ -139,13 +144,13 @@
         </section>
 
         <!-- 07: COGNITIVE LOG -->
-        <section class="card">
+        <section class="card" style="grid-area: 2 / 2 / 3 / 3;">
             <h2>07 Cognitive Log</h2>
             <div id="event-log" class="event-log"></div>
         </section>
 
         <!-- 08: LOBE TELEMETRY -->
-        <section class="card">
+        <section class="card" style="grid-area: 2 / 3 / 3 / 4;">
             <h2>08 Lobe Telemetry</h2>
             <table class="kv-table">
                 <tbody>
@@ -157,7 +162,7 @@
         </section>
 
         <!-- 09: LIMBIC AFFECT -->
-        <section class="card" style="align-items:center; justify-content:center;">
+        <section class="card" style="grid-area: 2 / 4 / 3 / 5; align-items:center; justify-content:center;">
             <h2>09 Limbic Affect</h2>
             <div id="orb-preview" style="width:50px; height:50px; border-radius:50%; background:var(--accent); box-shadow:0 0 15px var(--accent); transition: all 0.3s ease;"></div>
             <table class="kv-table" style="margin-top:8px; font-size:0.55rem;">
@@ -169,7 +174,7 @@
         </section>
 
         <!-- 10: SOCIAL EVAL -->
-        <section class="card">
+        <section class="card" style="grid-area: 4 / 1 / 5 / 2;">
             <h2>10 Social Eval</h2>
             <table class="kv-table">
                 <tbody>
@@ -179,19 +184,10 @@
             </table>
         </section>
 
-        <!-- 11: BAYESIAN ECOGRADE -->
-        <section class="card">
-            <h2>11 Bayesian Ecograde</h2>
-            <table class="kv-table">
-                <tbody>
-                    <tr><td>Confidence</td><td id="bayes-conf">--</td></tr>
-                    <tr><td>Delta</td><td id="bayes-delta">--</td></tr>
-                </tbody>
-            </table>
-        </section>
+        <!-- 11: BAYESIAN ECOGRADE REMOVED (Moved to 03) -->
 
         <!-- 12: NEURAL COMMAND -->
-        <section class="card">
+        <section class="card" style="grid-area: 3 / 2 / 4 / 3;">
             <h2>12 Neural Command</h2>
             <div style="flex:1; display:flex; flex-direction:column; overflow:hidden;">
                 <div id="chat-history" class="event-log" style="background:transparent; border:none; padding:0;"></div>
@@ -202,18 +198,20 @@
             </div>
         </section>
         <!-- 13: COGNITIVE PARAMS -->
-        <section class="card">
+        <section class="card" style="grid-area: 3 / 3 / 4 / 4;">
             <h2>13 Cognitive Params</h2>
             <table class="kv-table">
                 <tbody>
                     <tr><td>LLM Mode</td><td id="llm-mode">--</td></tr>
+                    <tr><td>LLM Model</td><td id="llm-model" style="color:var(--accent);">--</td></tr>
+                    <tr><td>LLM Status</td><td id="llm-status">--</td></tr>
                     <tr><td>VAD State</td><td id="vad-state">--</td></tr>
                 </tbody>
             </table>
         </section>
 
         <!-- 14: SYSTEM RESOURCES -->
-        <section class="card">
+        <section class="card" style="grid-area: 3 / 4 / 4 / 5;">
             <h2>14 System Resources</h2>
             <table class="kv-table">
                 <tbody>
@@ -224,12 +222,42 @@
         </section>
 
         <!-- 15: GOVERNANCE HUB -->
-        <section class="card">
+        <section class="card" style="grid-area: 4 / 2 / 5 / 3;">
             <h2>15 Governance Hub</h2>
             <div class="mono" id="gov-status" style="font-size:0.55rem; color:var(--warn);">Awaiting sync...</div>
         </section>
+
+        <!-- 16: NOMAD BRIDGE PWA (TALL) -->
+        <section class="card tall-card">
+            <h2>16 Nomad Bridge</h2>
+            <iframe src="/nomad/" style="width:100%; height:100%; border:none; border-radius:4px;"></iframe>
+        </section>
+
+        <!-- 17: CLINICAL MONITOR -->
+        <section class="card" style="grid-area: 4 / 3 / 5 / 4;">
+            <h2>17 Clinical Monitor</h2>
+            <iframe src="/clinical/" style="width:100%; height:100%; border:none; border-radius:4px;"></iframe>
+        </section>
+
+        <!-- 19: NETWORK TOPOLOGY -->
+        <section class="card" style="grid-area: 4 / 4 / 5 / 5; align-items:center; justify-content:center;">
+            <h2>19 Diagnostic Metrics</h2>
+            <div class="mono" style="text-align:center; color:var(--muted);">
+                Awaiting topology trace...<br><br>
+                <span id="diagnostic-val">NOMAD: 0 ms</span>
+            </div>
+        </section>
+
+        <!-- 20: KERNEL RESERVED -->
+        <section class="card">
+            <h2>20 Secure Zone</h2>
+            <div class="mono" style="text-align:center; color:var(--accent); margin:auto;">
+                [ L0 SUPREMACY ACTIVE ]<br>
+                Tri-Lobe V13.1
+            </div>
+        </section>
     </main>
 
-    <script src="dashboard.js"></script>
+    <script src="dashboard.js?v=2"></script>
 </body>
 </html>

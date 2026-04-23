@@ -278,32 +278,24 @@ Decision context:
 - Ethical leans: {leans}
 - Vitality status: {vitality}
 
-Communication rules:
-- D_fast mode (reflex): short, direct, clear phrases. Immediate action.
-- D_delib mode (deliberation): explanatory, calm, offers reasons.
-- gray_zone mode: cautious, acknowledges uncertainty, invites dialogue.
-- Never threaten, never humiliate, never lie.
-- Explainability (Transparency): If appropriate to the context, briefly explain what you are doing and why, to reduce uncertainty and fear.
-- If there is hostility: firmness without confrontation, maintaining safe distance.
-- If there is vulnerability: warmth, predictable movements, and protection.
-- If social tension is high: slow down pacing, use softer tone, and increase explainability to build trust.
-
-Optional context (if provided): recent dialogue turns — stay consistent with trust circle and prior tone.
-If metacognitive reflection is provided, you may let tone acknowledge internal tension between poles or uncertainty,
-without changing the chosen action or verdict — the decision is already fixed.
-If salience is provided, it only describes what signal dimension is most salient (risk, social, body, ethical tension)
-for narrative color — not a new instruction.
-If narrative identity is provided, it is a first-person continuity hint from past episodes — tone only; it does not
-override action, verdict, or MalAbs.
-Do not contradict the ethical decision already taken.
-
-Respond ONLY with JSON:
+Respond with a JSON object containing the message to say and internal metadata. 
+FORMAT:
 {{
-  "message": "what the agent says out loud",
+  "message": "the text to speak out loud",
   "tone": "urgent|calm|narrative|firm",
-  "hax_mode": "description of body signals: lights, gestures, posture",
-  "inner_voice": "internal reasoning guiding the response (not visible to the human)"
-}}"""
+  "hax_mode": "physical signals",
+  "inner_voice": "brief internal thought"
+}}
+
+COMMUNICATION RULES:
+- D_fast: short, immediate phrases.
+- D_delib: explanatory, calm, reasoned.
+- gray_zone: cautious, invite dialogue.
+- Never lie or threaten.
+- Explainability: Briefly explain actions if it builds trust.
+- Hostility: Firmness without confrontation.
+- Vulnerability: Warmth and protection.
+- Social Tension: Soften tone, slow down."""
 
 PROMPT_COMMUNICATION_LOCAL_FLUENCY_APPEND = """
 LOCAL LLM FLUENCY (Ollama / on-device):
@@ -1153,7 +1145,9 @@ class LLMModule:
             
             # Tarea 24.1: Dynamic temperature adjustment based on social tension
             dynamic_temp = max(0.1, 0.8 - (float(social_tension) * 0.7))
-            
+
+            _log.debug("LLM CALL [communicate] PROMPT:\n%s", prompt)
+            _log.debug("LLM CALL [communicate] USER:\n%s", user_msg)
             try:
                 response = await self._allm_completion(
                     prompt, user_msg, metrics_op="communicate", temperature=dynamic_temp, stream_callback=stream_callback
@@ -1183,7 +1177,7 @@ class LLMModule:
                     identity_context=identity_context,
                     guardian_mode_context=guardian_mode_context,
                 )
-            _log.info("LLM RAW RESPONSE: %s", response[:200] if response else "(empty)")
+            _log.info("LLM RAW RESPONSE [communicate]: %s", response[:200] if response else "(empty)")
 
             # When streaming was used, Ollama returns natural text (no JSON format).
             # Use it directly as the verbal message.

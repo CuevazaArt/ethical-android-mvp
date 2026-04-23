@@ -152,10 +152,29 @@ def root() -> JSONResponse:
             "decision (chosen_action_source / proposal_id v9.2), …"
         ),
     }
-    prof = _prof()
-    if prof:
-        body["runtime_profile"] = prof
-        body["runtime_profile_hint"] = (
-            "Set ETHOS_RUNTIME_PROFILE to a name from src/runtime_profiles.py"
-        )
     return JSONResponse(body)
+
+
+@router.get("/test/llm")
+async def test_llm():
+    """Debug route to test Ollama connectivity directly from the kernel layer."""
+    from src.modules.cognition.llm_layer import LLMModule
+    
+    llm = LLMModule()
+    try:
+        # Simple non-streaming call for sanity check
+        res = await llm.acommunicate(
+            action="test_vocal",
+            mode="D_fast",
+            state="neutral",
+            sigma=0.5,
+            circle="inner_soto",
+            verdict="safe",
+            score=1.0,
+            scenario="Say 'Kernel test successful' in Spanish.",
+            stream_callback=None,
+        )
+        return {"status": "ok", "provider": llm.mode, "response": res.message}
+    except Exception as e:
+        import traceback
+        return {"status": "error", "error": str(e), "traceback": traceback.format_exc()}

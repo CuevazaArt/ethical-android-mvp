@@ -148,16 +148,18 @@ class TextToSpeechAdapter:
     Generates audio bytes from kernel narrative responses.
     """
 
-    def __init__(self, backend: Literal["gtts", "pyttsx3"] = "pyttsx3", language: str = "en"):
+    def __init__(self, backend: Literal["gtts", "pyttsx3"] = "pyttsx3", language: str = "es", tld: str = "com.mx"):
         """
         Initialize TTS adapter.
 
         Args:
             backend: "gtts" (online, high quality) or "pyttsx3" (offline, faster)
             language: Language code (e.g., "en", "es")
+            tld: Top-level domain for gTTS accent (e.g., "com.mx" for LatAm Spanish)
         """
         self.backend = backend
         self.language = language
+        self.tld = tld
         self._engine = None
 
     async def synthesize(self, text: str) -> tuple[bytes, float]:
@@ -222,7 +224,7 @@ class TextToSpeechAdapter:
 
             from gtts import gTTS
 
-            tts = gTTS(text=text, lang=self.language, slow=False)
+            tts = gTTS(text=text, lang=self.language, tld=self.tld, slow=False)
             buffer = io.BytesIO()
             tts.write_to_fp(buffer)
             audio_bytes = buffer.getvalue()

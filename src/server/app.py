@@ -12,6 +12,7 @@ import os
 
 from fastapi import FastAPI
 from fastapi.staticfiles import StaticFiles
+from dotenv import load_dotenv
 
 from src.observability.middleware import RequestContextMiddleware
 from src.runtime.chat_lifecycle import api_docs_enabled, chat_lifespan
@@ -28,6 +29,7 @@ logger = logging.getLogger(__name__)
 
 # ══ Runtime Setup ══
 # Profiles and env validation must run before FastAPI instantiation to ensure correct defaults.
+load_dotenv()
 apply_named_runtime_profile_to_environ()
 validate_kernel_env()
 

@@ -32,6 +32,8 @@ const EL = {
     bayesConf: document.getElementById('bayes-conf'),
     bayesDelta: document.getElementById('bayes-delta'),
     llmMode: document.getElementById('llm-mode'),
+    llmModel: document.getElementById('llm-model'),
+    llmStatus: document.getElementById('llm-status'),
     vadState: document.getElementById('vad-state'),
     cpuUsage: document.getElementById('cpu-usage'),
     ramUsage: document.getElementById('ram-usage'),
@@ -108,6 +110,11 @@ function updateTelemetry(payload) {
     if (payload.bayes_delta !== undefined) EL.bayesDelta.textContent = asFloat(payload.bayes_delta).toFixed(3);
     
     if (payload.llm_mode !== undefined) EL.llmMode.textContent = payload.llm_mode;
+    if (payload.llm_model !== undefined && EL.llmModel) EL.llmModel.textContent = payload.llm_model;
+    if (payload.llm_status !== undefined && EL.llmStatus) {
+        EL.llmStatus.textContent = payload.llm_status;
+        EL.llmStatus.style.color = payload.llm_status === 'active' ? 'var(--ok)' : 'var(--warn)';
+    }
     if (payload.vad_state !== undefined) EL.vadState.textContent = payload.vad_state;
     if (payload.cpu_usage !== undefined) EL.cpuUsage.textContent = asFloat(payload.cpu_usage).toFixed(1) + "%";
     if (payload.ram_usage !== undefined) EL.ramUsage.textContent = asFloat(payload.ram_usage).toFixed(1) + "%";
