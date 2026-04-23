@@ -2302,3 +2302,10 @@ This file is automatically managed by `scripts/swarm_sync.py`.
 - **Message:** Fix LLM plain-text response: Ollama llama3.2:1b returns prose not JSON; use raw text directly in communicate/acommunicate instead of falling to _communicate_local template.
 - **Files Modified:**
   - `src/modules/cognition/llm_layer.py`
+
+### Execution (Swarm) | Date: 2026-04-23 00:35:53 | Author: Anonymous Agent
+- **Block:** `40.5`
+- **Message:** Fix LLM_MODE being ignored: LLMModule init now correctly calls resolve_llm_mode instead of _normalize_llm_mode('auto'), preventing silent fallback to local templates. Also set default embedding model to fallback to OLLAMA_MODEL instead of hardcoded 'nomic-embed-text'.
+- **Files Modified:**
+  - `src/modules/cognition/llm_layer.py`
+  - `src/modules/safety/semantic_chat_gate.py`

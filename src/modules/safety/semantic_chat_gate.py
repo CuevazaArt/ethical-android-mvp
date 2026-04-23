@@ -543,9 +543,11 @@ def _ollama_base() -> str:
 
 
 def _embed_model() -> str:
+    # Use dedicated embed model if provided, otherwise fallback to the general OLLAMA_MODEL
+    default_model = os.environ.get("OLLAMA_MODEL", "llama3.2:1b").strip()
     return (
-        os.environ.get("KERNEL_SEMANTIC_CHAT_EMBED_MODEL", "nomic-embed-text").strip()
-        or "nomic-embed-text"
+        os.environ.get("KERNEL_SEMANTIC_CHAT_EMBED_MODEL", default_model).strip()
+        or default_model
     )
 
 

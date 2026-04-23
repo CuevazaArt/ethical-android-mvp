@@ -390,7 +390,7 @@ class LLMModule:
             self.mode = "injected"
             return
 
-        self.mode = _normalize_llm_mode((mode or "auto").strip())
+        self.mode = resolve_llm_mode(mode if mode and mode != "auto" else None)
         self.nomad_mode = os.environ.get("KERNEL_NOMAD_MODE", "").lower() in (
             "1",
             "true",
@@ -525,7 +525,7 @@ class LLMModule:
                     str(inf["base_url"]),
                     dual_model,
                     float(os.environ.get("OLLAMA_TIMEOUT", "120")),
-                    embed_model=str(inf.get("embed_model") or "nomic-embed-text"),
+                    embed_model=str(inf.get("embed_model") or os.environ.get("OLLAMA_MODEL", "llama3.2:1b")),
                     aclient=self._aclient_internal,
                 )
                 response_b = b2.completion(_perception_prompt(), user_block, temperature=t2)
@@ -570,7 +570,7 @@ class LLMModule:
                     str(inf["base_url"]),
                     dual_model,
                     float(os.environ.get("OLLAMA_TIMEOUT", "120")),
-                    embed_model=str(inf.get("embed_model") or "nomic-embed-text"),
+                    embed_model=str(inf.get("embed_model") or os.environ.get("OLLAMA_MODEL", "llama3.2:1b")),
                     aclient=self._aclient_internal,
                 )
                 response_b = await b2.acompletion(_perception_prompt(), user_block, temperature=t2)
