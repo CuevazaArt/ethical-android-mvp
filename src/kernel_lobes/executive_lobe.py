@@ -558,7 +558,7 @@ class ExecutiveLobe:
                         conv=getattr(state, "conversation_context", ""),
                         stream_callback=_on_chunk,
                     ),
-                    timeout=45.0,  # Prefrontal timeout increased to 45s for local LLM loading
+                    timeout=120.0,  # Prefrontal timeout increased to 120s for local LLM loading
                 )
 
             except Exception as e:

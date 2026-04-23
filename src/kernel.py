@@ -607,7 +607,7 @@ class EthosKernel:
         )
 
         try:
-            dispatch_result = await asyncio.wait_for(future, timeout=25.0)
+            dispatch_result = await asyncio.wait_for(future, timeout=120.0)
 
             is_blocked = getattr(dispatch_result, "is_vetoed", False)
 
