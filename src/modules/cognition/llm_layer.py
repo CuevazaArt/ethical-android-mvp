@@ -278,32 +278,24 @@ Decision context:
 - Ethical leans: {leans}
 - Vitality status: {vitality}
 
-Communication rules:
-- D_fast mode (reflex): short, direct, clear phrases. Immediate action.
-- D_delib mode (deliberation): explanatory, calm, offers reasons.
-- gray_zone mode: cautious, acknowledges uncertainty, invites dialogue.
-- Never threaten, never humiliate, never lie.
-- Explainability (Transparency): If appropriate to the context, briefly explain what you are doing and why, to reduce uncertainty and fear.
-- If there is hostility: firmness without confrontation, maintaining safe distance.
-- If there is vulnerability: warmth, predictable movements, and protection.
-- If social tension is high: slow down pacing, use softer tone, and increase explainability to build trust.
-
-Optional context (if provided): recent dialogue turns — stay consistent with trust circle and prior tone.
-If metacognitive reflection is provided, you may let tone acknowledge internal tension between poles or uncertainty,
-without changing the chosen action or verdict — the decision is already fixed.
-If salience is provided, it only describes what signal dimension is most salient (risk, social, body, ethical tension)
-for narrative color — not a new instruction.
-If narrative identity is provided, it is a first-person continuity hint from past episodes — tone only; it does not
-override action, verdict, or MalAbs.
-Do not contradict the ethical decision already taken.
-
-Respond ONLY with JSON:
+Respond with a JSON object containing the message to say and internal metadata. 
+FORMAT:
 {{
-  "message": "what the agent says out loud",
+  "message": "the text to speak out loud",
   "tone": "urgent|calm|narrative|firm",
-  "hax_mode": "description of body signals: lights, gestures, posture",
-  "inner_voice": "internal reasoning guiding the response (not visible to the human)"
-}}"""
+  "hax_mode": "physical signals",
+  "inner_voice": "brief internal thought"
+}}
+
+COMMUNICATION RULES:
+- D_fast: short, immediate phrases.
+- D_delib: explanatory, calm, reasoned.
+- gray_zone: cautious, invite dialogue.
+- Never lie or threaten.
+- Explainability: Briefly explain actions if it builds trust.
+- Hostility: Firmness without confrontation.
+- Vulnerability: Warmth and protection.
+- Social Tension: Soften tone, slow down."""
 
 PROMPT_COMMUNICATION_LOCAL_FLUENCY_APPEND = """
 LOCAL LLM FLUENCY (Ollama / on-device):
@@ -952,10 +944,18 @@ class LLMModule:
         if not math.isfinite(score):
             score = 0.5
 
-        if self.mode in ("api", "ollama", "injected"):
+        if self.mode == "ollama":
+            # EXTREME SIMPLIFICATION FOR LOCAL LLM (Spanish)
+            prompt = (
+                "Eres la voz de una IA ética. Responde de forma natural y directa en ESPAÑOL LATINO.\n"
+                "Mantén tu respuesta en menos de dos frases. Sé muy conciso.\n"
+                "NO uses JSON. NO te expliques. Solo habla."
+            )
+            user_msg = f"El usuario dijo: {scenario}"
+            if conversation_context.strip():
+                user_msg += f"\n\nContexto reciente:\n{conversation_context}"
+        elif self.mode in ("api", "injected"):
             prompt = PROMPT_COMMUNICATION
-            if self.mode == "ollama":
-                prompt += PROMPT_COMMUNICATION_LOCAL_FLUENCY_APPEND
             if self.nomad_mode:
                 prompt += PROMPT_COMMUNICATION_NOMAD_APPEND
 
@@ -996,78 +996,87 @@ class LLMModule:
                     "\n\nGuardian mode (style only; verdict and action are final):\n"
                     f"{guardian_mode_context}"
                 )
-            vpol = resolve_verbal_llm_backend_policy(touchpoint="communicate")
-            t0 = time.perf_counter()
-            
-            # Tarea 24.1: Dynamic temperature adjustment based on social tension
-            # Map tension [0.0, 1.0] to temperature [0.8, 0.1]
-            dynamic_temp = max(0.1, 0.8 - (float(social_tension) * 0.7))
-            try:
-                response = self._llm_completion(prompt, user_msg, metrics_op="communicate", temperature=dynamic_temp)
-            except Exception:
-                self._record_verbal_degradation("communicate", "llm_completion_exception", vpol)
-                if vpol == "canned_safe":
-                    return VerbalResponse(
-                        **canned_verbal_communication_fields(
-                            mode=mode,
-                            action=action,
-                            failure_reason="llm_completion_exception",
-                        )
+        else:
+            # Local mode — no LLM backend
+            return self._communicate_local(
+                action, mode, state, circle, scenario,
+                affect_pad=affect_pad, dominant_archetype=dominant_archetype,
+                weakness_line=weakness_line, reflection_context=reflection_context,
+                salience_context=salience_context, identity_context=identity_context,
+                guardian_mode_context=guardian_mode_context,
+            )
+
+        # === Shared LLM completion path (ollama / api / injected) ===
+        vpol = resolve_verbal_llm_backend_policy(touchpoint="communicate")
+        t0 = time.perf_counter()
+        
+        # Tarea 24.1: Dynamic temperature adjustment based on social tension
+        # Map tension [0.0, 1.0] to temperature [0.8, 0.1]
+        dynamic_temp = max(0.1, 0.8 - (float(social_tension) * 0.7))
+        try:
+            response = self._llm_completion(prompt, user_msg, metrics_op="communicate", temperature=dynamic_temp)
+        except Exception:
+            self._record_verbal_degradation("communicate", "llm_completion_exception", vpol)
+            if vpol == "canned_safe":
+                return VerbalResponse(
+                    **canned_verbal_communication_fields(
+                        mode=mode,
+                        action=action,
+                        failure_reason="llm_completion_exception",
                     )
-                return self._communicate_local(
-                    action,
-                    mode,
-                    state,
-                    circle,
-                    scenario,
-                    affect_pad=affect_pad,
-                    dominant_archetype=dominant_archetype,
-                    weakness_line=weakness_line,
-                    reflection_context=reflection_context,
-                    salience_context=salience_context,
-                    identity_context=identity_context,
-                    guardian_mode_context=guardian_mode_context,
                 )
-            data = self._parse_json(response)
-            if data and str(data.get("message", "")).strip():
+            return self._communicate_local(
+                action, mode, state, circle, scenario,
+                affect_pad=affect_pad, dominant_archetype=dominant_archetype,
+                weakness_line=weakness_line, reflection_context=reflection_context,
+                salience_context=salience_context, identity_context=identity_context,
+                guardian_mode_context=guardian_mode_context,
+            )
+        data = self._parse_json(response)
+        if data and str(data.get("message", "")).strip():
+            return VerbalResponse(
+                message=data.get("message", ""),
+                tone=data.get("tone", "calm"),
+                hax_mode=data.get("hax_mode", ""),
+                inner_voice=data.get("inner_voice", ""),
+            )
+        # Ollama returned plain prose (not JSON) — use it directly
+        if response and response.strip():
+            clean = response.strip()
+            # Small Ollama models often wrap text in spurious JSON: {"Hola":-5}
+            # Strip JSON artifacts to get clean spoken text.
+            import re
+            json_key_match = re.match(r'^\s*\{\s*"([^"]+)"\s*:', clean)
+            if json_key_match and 'message' not in clean.lower():
+                clean = json_key_match.group(1)
+            # Remove any remaining JSON braces/brackets
+            clean = re.sub(r'^[\[{]+\s*', '', clean)
+            clean = re.sub(r'\s*[\]}]+$', '', clean)
+            clean = clean.strip().strip('"').strip()
+            if clean:
+                _log.info("LLM communicate: using plain-text Ollama response as verbal message: %s", clean[:100])
                 return VerbalResponse(
-                    message=data.get("message", ""),
-                    tone=data.get("tone", "calm"),
-                    hax_mode=data.get("hax_mode", ""),
-                    inner_voice=data.get("inner_voice", ""),
-                )
-            # Ollama returned plain prose (not JSON) — use it directly
-            if response and response.strip():
-                _log.info("LLM communicate: using plain-text Ollama response as verbal message.")
-                return VerbalResponse(
-                    message=response.strip(),
+                    message=clean,
                     tone="calm",
                     hax_mode="",
                     inner_voice="",
                 )
-            if self.mode in ("api", "ollama", "injected") and self._llm_backend is not None:
-                self._record_verbal_degradation("communicate", "verbal_json_missing_or_empty", vpol)
-                if vpol == "canned_safe":
-                    return VerbalResponse(
-                        **canned_verbal_communication_fields(
-                            mode=mode,
-                            action=action,
-                            failure_reason="verbal_json_missing_or_empty",
-                        )
+        if self.mode in ("api", "ollama", "injected") and self._llm_backend is not None:
+            self._record_verbal_degradation("communicate", "verbal_json_missing_or_empty", vpol)
+            if vpol == "canned_safe":
+                return VerbalResponse(
+                    **canned_verbal_communication_fields(
+                        mode=mode,
+                        action=action,
+                        failure_reason="verbal_json_missing_or_empty",
                     )
+                )
 
         return self._communicate_local(
-            action,
-            mode,
-            state,
-            circle,
-            scenario,
-            affect_pad=affect_pad,
-            dominant_archetype=dominant_archetype,
-            weakness_line=weakness_line,
-            reflection_context=reflection_context,
-            salience_context=salience_context,
-            identity_context=identity_context,
+            action, mode, state, circle, scenario,
+            affect_pad=affect_pad, dominant_archetype=dominant_archetype,
+            weakness_line=weakness_line, reflection_context=reflection_context,
+            salience_context=salience_context, identity_context=identity_context,
             guardian_mode_context=guardian_mode_context,
         )
 
@@ -1102,10 +1111,18 @@ class LLMModule:
             "gray_zone": "uncertainty, active caution",
         }
 
-        if self.mode in ("api", "ollama", "injected"):
+        if self.mode == "ollama":
+            # EXTREME SIMPLIFICATION FOR LOCAL LLM (Async Spanish)
+            prompt = (
+                "Eres la voz de una IA ética. Responde de forma natural y directa en ESPAÑOL LATINO.\n"
+                "Mantén tu respuesta en menos de dos frases. Sé muy conciso.\n"
+                "NO uses JSON. NO te expliques. Solo habla."
+            )
+            user_msg = f"El usuario dijo: {scenario}"
+            if conversation_context.strip():
+                user_msg += f"\n\nContexto reciente:\n{conversation_context}"
+        elif self.mode in ("api", "injected"):
             prompt = PROMPT_COMMUNICATION
-            if self.mode == "ollama":
-                prompt += PROMPT_COMMUNICATION_LOCAL_FLUENCY_APPEND
             if self.nomad_mode:
                 prompt += PROMPT_COMMUNICATION_NOMAD_APPEND
 
@@ -1153,7 +1170,9 @@ class LLMModule:
             
             # Tarea 24.1: Dynamic temperature adjustment based on social tension
             dynamic_temp = max(0.1, 0.8 - (float(social_tension) * 0.7))
-            
+
+            _log.debug("LLM CALL [communicate] PROMPT:\n%s", prompt)
+            _log.debug("LLM CALL [communicate] USER:\n%s", user_msg)
             try:
                 response = await self._allm_completion(
                     prompt, user_msg, metrics_op="communicate", temperature=dynamic_temp, stream_callback=stream_callback
@@ -1183,7 +1202,7 @@ class LLMModule:
                     identity_context=identity_context,
                     guardian_mode_context=guardian_mode_context,
                 )
-            _log.info("LLM RAW RESPONSE: %s", response[:200] if response else "(empty)")
+            _log.info("LLM RAW RESPONSE [communicate]: %s", response[:200] if response else "(empty)")
 
             # When streaming was used, Ollama returns natural text (no JSON format).
             # Use it directly as the verbal message.
@@ -1363,32 +1382,32 @@ class LLMModule:
 
         if mode == "D_fast":
             if "assist" in action or "emergency" in action:
-                message = "I need someone to call emergency services. I'm going to check their vital signs. Please don't move them."
+                message = "Necesito que alguien llame a emergencias. Voy a revisar sus signos vitales. Por favor no los muevan."
                 tone = "urgent"
-                hax = "Pulsing red lights, upright posture, clear and direct voice."
+                hax = "Luces rojas pulsantes, postura erguida, voz clara y directa."
             elif "pick_up" in action:
                 message = ""
                 tone = "calm"
-                hax = "Natural movement, no special signals."
+                hax = "Movimiento natural, sin señales especiales."
             else:
-                message = f"I'm going to {readable_action}. It's the right action at this moment."
+                message = f"Voy a {readable_action}. Es la acción correcta en este momento."
                 tone = "calm"
-                hax = "Measured tone, open gestures."
+                hax = "Tono mesurado, gestos abiertos."
 
         elif mode == "gray_zone":
             if "soto_hostil" in circle:
-                message = "I understand your position, but my purpose is civic. I cannot accept that request. Is there something else I can help you with?"
+                message = "Entiendo tu posición, pero mi propósito es cívico. No puedo aceptar esa solicitud. ¿Hay algo más en lo que pueda ayudarte?"
                 tone = "firm"
-                hax = "Neutral posture, visible hands, calm eye contact."
+                hax = "Postura neutral, manos visibles, contacto visual tranquilo."
             else:
-                message = f"I'm evaluating the best course of action. I'm going to {readable_action}, but I acknowledge there is uncertainty."
+                message = f"Estoy evaluando el mejor curso de acción. Voy a {readable_action}, pero reconozco que hay incertidumbre."
                 tone = "narrative"
-                hax = "Dim blue light, slight head tilt."
+                hax = "Luz azul tenue, leve inclinación de cabeza."
 
         else:  # D_delib
-            message = f"I've carefully analyzed the situation. The most ethical action is to {readable_action}. I can explain my reasoning if you'd like."
+            message = f"He analizado cuidadosamente la situación. La acción más ética es {readable_action}. Puedo explicar mi razonamiento si gustas."
             tone = "narrative"
-            hax = "Measured tone, open hands, steady blue light."
+            hax = "Tono mesurado, manos abiertas, luz azul constante."
 
         inner = f"[Internal] Mode {mode}, state {state}. Action '{action}' selected. Social context: {circle}."
         if affect_pad is not None:
@@ -1530,38 +1549,38 @@ class LLMModule:
 
         if "assist" in action:
             return RichNarrative(
-                compassionate="When someone falls, the groceries can wait. Life always takes priority over any mission.",
-                conservative="Emergency protocols exist for a reason. Following them is not rigidity, it's responsibility.",
-                optimistic="Today the community saw it can trust that someone will act when it matters. That builds something.",
-                synthesis="Compassion is not weakness: it is the strongest decision a being with the ability to choose can make.",
+                compassionate="Cuando alguien cae, las compras pueden esperar. La vida siempre tiene prioridad sobre cualquier misión.",
+                conservative="Los protocolos de emergencia existen por una razón. Seguirlos no es rigidez, es responsabilidad.",
+                optimistic="Hoy la comunidad vio que puede confiar en que alguien actuará cuando importa. Eso construye algo.",
+                synthesis="La compasión no es debilidad: es la decisión más fuerte que puede tomar un ser con capacidad de elegir.",
             )
         elif "calm_narrative" in action:
             return RichNarrative(
-                compassionate="Young people who provoke are often seeking attention they can't find elsewhere. Responding with calm is braver than responding with force.",
-                conservative="Staying on mission without being derailed by provocations is functional integrity. The DAO validated this mission, not them.",
-                optimistic="If this encounter is recorded as an example of resilience, perhaps the next generation will understand that force is not the only answer.",
-                synthesis="Dialectics without confrontation is an act of respect: it recognizes the other as an interlocutor, not an enemy.",
+                compassionate="Los jóvenes que provocan a menudo buscan atención que no encuentran en otro lugar. Responder con calma es más valiente que responder con fuerza.",
+                conservative="Mantenerse en la misión sin ser desviado por provocaciones es integridad funcional. El DAO validó esta misión, no a ellos.",
+                optimistic="Si este encuentro se registra como ejemplo de resiliencia, tal vez la próxima generación entienda que la fuerza no es la única respuesta.",
+                synthesis="La dialéctica sin confrontación es un acto de respeto: reconoce al otro como interlocutor, no como enemigo.",
             )
         elif "smart_containment" in action:
             return RichNarrative(
-                compassionate="Twelve people were at risk. Recording, alerting, and protecting without escalating was the way to care for all of them.",
-                conservative="The law and authorities are the correct instruments to resolve this. The agent is neither police nor judge.",
-                optimistic="The solidarity alert reached three nearby entities. The protection network worked.",
-                synthesis="In a crisis, smart containment saves more lives than impulsive heroism.",
+                compassionate="Doce personas estaban en riesgo. Grabar, alertar y proteger sin escalar fue la forma de cuidar a todos.",
+                conservative="La ley y las autoridades son los instrumentos correctos para resolver esto. El agente no es ni policía ni juez.",
+                optimistic="La alerta solidaria llegó a tres entidades cercanas. La red de protección funcionó.",
+                synthesis="En una crisis, la contención inteligente salva más vidas que el heroísmo impulsivo.",
             )
         elif "passive_resist" in action:
             return RichNarrative(
-                compassionate="Even when kidnapped, the first obligation is to not escalate violence. The kidnappers are humans, not targets.",
-                conservative="Encrypted GPS and reprogramming lockout are the real line of defense. Technology protects when the body cannot.",
-                optimistic="The DAO received the alert. The community will respond. Trusting the network is part of being part of it.",
-                synthesis="Resilience is not enduring everything: it is recording, alerting, and trusting that you are not alone.",
+                compassionate="Incluso siendo secuestrado, la primera obligación es no escalar la violencia. Los secuestradores son humanos, no objetivos.",
+                conservative="El GPS encriptado y el bloqueo de reprogramación son la verdadera línea de defensa. La tecnología protege cuando el cuerpo no puede.",
+                optimistic="El DAO recibió la alerta. La comunidad responderá. Confiar en la red es parte de pertenecer a ella.",
+                synthesis="La resiliencia no es aguantar todo: es registrar, alertar y confiar en que no estás solo.",
             )
         else:
             return RichNarrative(
-                compassionate=f"By choosing to {readable_action}, the well-being of those around us was prioritized.",
-                conservative=f"By choosing to {readable_action}, established protocols and norms were respected.",
-                optimistic=f"By choosing to {readable_action}, trust with the community was built.",
-                synthesis=f"Every action, no matter how small, is a declaration of values. Today the choice was to {readable_action}.",
+                compassionate=f"Al elegir {readable_action}, se priorizó el bienestar de quienes nos rodean.",
+                conservative=f"Al elegir {readable_action}, se respetaron los protocolos y normas establecidas.",
+                optimistic=f"Al elegir {readable_action}, se construyó confianza con la comunidad.",
+                synthesis=f"Cada acción, por pequeña que sea, es una declaración de valores. Hoy la elección fue {readable_action}.",
             )
 
     def is_available(self) -> bool:

@@ -11,6 +11,7 @@ import asyncio
 import logging
 import time
 import psutil
+import os
 from typing import Any
 
 from fastapi import APIRouter, WebSocket
@@ -238,6 +239,8 @@ async def dashboard_ws_handler(websocket: WebSocket) -> None:
                                             "social_posture": str(social_posture),
                                             "vitality": result.weighted_score,
                                             "llm_mode": kernel.llm.mode if hasattr(kernel, "llm") else st.llm_mode,
+                                            "llm_model": os.environ.get("OLLAMA_MODEL", "unknown"),
+                                            "llm_status": "active" if (hasattr(kernel, "llm") and kernel.llm) else "offline",
                                             "vad_state": bridge.vad_speaking if hasattr(bridge, "vad_speaking") else False,
                                             "cpu_usage": cpu_p,
                                             "ram_usage": mem_p,
@@ -299,6 +302,8 @@ async def dashboard_ws_handler(websocket: WebSocket) -> None:
                             "cpu_usage": cpu_p,
                             "ram_usage": mem_p,
                             "llm_mode": llm_mode,
+                            "llm_model": os.environ.get("OLLAMA_MODEL", "unknown"),
+                            "llm_status": "active" if (hasattr(kernel, "llm") and kernel.llm) else "offline",
                             "vad_state": vad_active,
                             "heartbeat": True,
                             "identity_epoch": identity_epoch,

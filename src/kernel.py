@@ -141,7 +141,6 @@ class EthosKernel:
         )
 
         # Lobe 2: Limbic (Affective/Ethical)
-        from src.modules.safety.locus import LocusModule
         from src.modules.somatic.sympathetic import SympatheticModule
         from src.modules.social.uchi_soto import UchiSotoModule
 
@@ -152,16 +151,7 @@ class EthosKernel:
             bus=self.bus,
         )
 
-        # Lobe 3: Cerebellum (Bayesian/Memory)
-        self.cerebellum = CerebellumLobe(
-            bayesian=BayesianEngine(),
-            strategist=self.strategist,
-            memory=NarrativeMemory(),
-            bus=self.bus,
-        )
-
         # Lobe 4: Executive (Prefrontal)
-        from src.modules.cognition.motivation_engine import MotivationEngine
 
         self.prefrontal_cortex = ExecutiveLobe(
             absolute_evil=evil_detector,
@@ -258,10 +248,17 @@ class EthosKernel:
         # This triggers counterfactuals, narrative distillation, and parameter recalibration
         sleep_result = await self.sleep.execute(self.memory)
         
-        # 2. Run legacy pruning and maintenance via Hygiene service
+        # 2. Update Evolving Identity Manifest with the sleep summary
+        # This ensures the narrative identity reflects the retrospective audit
+        if hasattr(self.prefrontal_cortex, "identity_manifest_store"):
+            store = self.prefrontal_cortex.identity_manifest_store
+            store.update_evolving_identity(sleep_result.narrative_summary)
+            _log.info("EthosKernel: Evolving Identity Manifest updated with Psi Sleep findings.")
+
+        # 3. Run legacy pruning and maintenance via Hygiene service
         prune_res = self.hygiene.run_maintenance_cycle()
         
-        # 3. Trigger Immortality backup (Soul Snapshot)
+        # 4. Trigger Immortality backup (Soul Snapshot)
         # Tarea 37.3: Persistencia del Alma Narrative
         snapshot = self.immortality.backup(self)
         
@@ -600,7 +597,7 @@ class EthosKernel:
         )
 
         try:
-            dispatch_result = await asyncio.wait_for(future, timeout=25.0)
+            dispatch_result = await asyncio.wait_for(future, timeout=120.0)
 
             is_blocked = getattr(dispatch_result, "is_vetoed", False)
 

@@ -76,25 +76,25 @@ def canned_verbal_communication_fields(
     readable = (action or "").replace("_", " ") or "the selected action"
     if mode == "D_fast":
         message = (
-            "I'm proceeding with the committed course. "
-            "The language model path was unavailable, so this reply uses a fixed safe phrasing."
+            "Estoy procediendo con el curso de acción comprometido. "
+            "La ruta del modelo de lenguaje no estaba disponible, por lo que esta respuesta utiliza una frase segura fija."
         )
         tone = "calm"
-        hax = "Steady posture; limited expressive bandwidth."
+        hax = "Postura firme; ancho de banda expresivo limitado."
     elif mode == "gray_zone":
         message = (
-            "I'm holding uncertainty deliberately and will move carefully. "
-            "Generative wording is degraded; claims stay narrow."
+            "Mantengo la incertidumbre deliberadamente y me moveré con cuidado. "
+            "La redacción generativa está degradada; las afirmaciones se mantienen acotadas."
         )
         tone = "narrative"
-        hax = "Dim light, measured gestures."
+        hax = "Luz tenue, gestos medidos."
     else:
         message = (
-            f"I've committed to: {readable}. "
-            "Full narrative phrasing is unavailable; this is a concise fallback."
+            f"Me he comprometido a: {readable}. "
+            "La redacción narrativa completa no está disponible; esta es una respuesta concisa de respaldo."
         )
         tone = "narrative"
-        hax = "Open hands, steady cadence."
+        hax = "Manos abiertas, cadencia constante."
 
     inner = (
         f"[verbal_llm_degraded] reason={failure_reason!r} policy=canned_safe "

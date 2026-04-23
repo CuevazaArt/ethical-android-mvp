@@ -339,13 +339,22 @@ class KernelSettings(BaseModel):
     @classmethod
     def from_env(cls) -> KernelSettings:
         """Load settings from environment variables."""
+        try:
+            from dotenv import load_dotenv
+            load_dotenv()
+        except ImportError:
+            pass
+
         nomad_m = _env_truthy("KERNEL_NOMAD_MODE", default_true=False)
         _raw_chat_turn = os.environ.get("KERNEL_CHAT_TURN_TIMEOUT", "").strip()
         if _raw_chat_turn:
             _parsed_turn = _env_optional_positive_float("KERNEL_CHAT_TURN_TIMEOUT")
             _chat_turn_default = _parsed_turn if _parsed_turn is not None else None
         elif nomad_m:
-            _chat_turn_default = _DEFAULT_CHAT_TURN_TIMEOUT_NOMAD_S
+            # NOMAD_MODE always implies local Ollama inference → use the LOCAL_LLM default (180 s).
+            # The old 60 s NOMAD_S constant was below Ollama's actual generation window on CPU,
+            # causing premature ws_chat TimeoutError before kernel.py (120 s) was even reached.
+            _chat_turn_default = _DEFAULT_CHAT_TURN_TIMEOUT_LOCAL_LLM_S
         elif _env_local_ollama_stack_active():
             _chat_turn_default = _DEFAULT_CHAT_TURN_TIMEOUT_LOCAL_LLM_S
         else:
@@ -389,8 +398,8 @@ class KernelSettings(BaseModel):
             kernel_chat_ws_max_message_bytes=_env_kernel_chat_ws_max_message_bytes(),
             # LLM
             llm_mode=_env_optional_str("LLM_MODE"),
-            llm_provider=_env_str("LLM_PROVIDER", "anthropic"),
-            llm_model=_env_str("LLM_MODEL", "claude-opus"),
+            llm_provider=_env_str("LLM_PROVIDER", "ollama" if _env_optional_str("LLM_MODE") == "ollama" else "anthropic"),
+            llm_model=_env_str("LLM_MODEL", os.environ.get("OLLAMA_MODEL", "llama3.2:1b") if _env_optional_str("LLM_MODE") == "ollama" else "claude-opus"),
             llm_temperature=_env_float("LLM_TEMPERATURE", 0.7),
             llm_max_tokens=_env_int("LLM_MAX_TOKENS", 2000),
             # Governance

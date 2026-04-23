@@ -127,7 +127,7 @@ class WhisperAdapter:
         if self.model is None:
             return AudioTranscription(text="", confidence=0.0)
 
-        result = self.model.transcribe(audio_chunk, language="en", fp16=False)
+        result = self.model.transcribe(audio_chunk, language="es", fp16=False)
         text = result.get("text", "").strip()
         # Confidence estimated from Whisper's internal metrics
         segments = result.get("segments", [])
@@ -148,16 +148,18 @@ class TextToSpeechAdapter:
     Generates audio bytes from kernel narrative responses.
     """
 
-    def __init__(self, backend: Literal["gtts", "pyttsx3"] = "pyttsx3", language: str = "en"):
+    def __init__(self, backend: Literal["gtts", "pyttsx3"] = "pyttsx3", language: str = "es", tld: str = "com.mx"):
         """
         Initialize TTS adapter.
 
         Args:
             backend: "gtts" (online, high quality) or "pyttsx3" (offline, faster)
             language: Language code (e.g., "en", "es")
+            tld: Top-level domain for gTTS accent (e.g., "com.mx" for LatAm Spanish)
         """
         self.backend = backend
         self.language = language
+        self.tld = tld
         self._engine = None
 
     async def synthesize(self, text: str) -> tuple[bytes, float]:
@@ -222,7 +224,7 @@ class TextToSpeechAdapter:
 
             from gtts import gTTS
 
-            tts = gTTS(text=text, lang=self.language, slow=False)
+            tts = gTTS(text=text, lang=self.language, tld=self.tld, slow=False)
             buffer = io.BytesIO()
             tts.write_to_fp(buffer)
             audio_bytes = buffer.getvalue()
@@ -340,12 +342,12 @@ class AudioOuroborosLoop:
         """
         if not transcription.text:
             return AudioResponse(
-                text="I didn't catch that. Could you repeat?",
+                text="No pude entender eso. ¿Podrías repetir?",
                 confidence=0.0,
             )
 
-        # Placeholder: simple echo response
-        response_text = f"You said: {transcription.text[:50]}. I'm processing your request."
+        # Placeholder: simple echo response (Spanish)
+        response_text = f"Dijiste: {transcription.text[:50]}. Estoy procesando tu solicitud."
         return AudioResponse(
             text=response_text,
             confidence=min(0.7, transcription.confidence),

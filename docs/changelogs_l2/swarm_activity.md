@@ -2315,3 +2315,90 @@ This file is automatically managed by `scripts/swarm_sync.py`.
 - **Message:** Fix LLM stream format: Added a CRITICAL STREAMING OVERRIDE to acommunicate. When stream_callback is provided, we explicitly instruct the LLM to output raw prose instead of JSON, preventing the Nomad PWA from rendering raw JSON brackets and fields.
 - **Files Modified:**
   - `src/modules/cognition/llm_layer.py`
+
+### Execution (Swarm) | Date: 2026-04-23 08:50:30 | Author: Anonymous Agent
+- **Block:** `41.0`
+- **Message:** Integrate Narrative Identity persistence in execute_sleep and add Field Test Integration script
+- **Files Modified:**
+  - `scripts/field_test_chat_integration.py`
+  - `src/kernel.py`
+
+### Execution (Swarm) | Date: 2026-04-23 11:11:37 | Author: Anonymous Agent
+- **Block:** `14.2`
+- **Message:** Integrate Bayesian sector into Clinical Core, optimize Nomad Bridge UI grid, simplify LLM prompts for Ollama streaming, and fix /test/llm endpoint timeouts and NameError bugs.
+- **Files Modified:**
+  - `src/kernel_lobes/executive_lobe.py`
+  - `src/modules/cognition/llm_layer.py`
+  - `src/modules/perception/audio_ouroboros.py`
+  - `src/server/app.py`
+  - `src/server/routes_health.py`
+  - `src/server/ws_sidecar.py`
+  - `src/static/dashboard/dashboard.js`
+  - `src/static/dashboard/index.html`
+
+### Execution (Swarm) | Date: 2026-04-23 11:56:52 | Author: Anonymous Agent
+- **Block:** `14.2`
+- **Message:** L1-SYNC: Swarm pulse confirmed. Nomad chat & UI stabilization complete. Branch up to date with main.
+- **Files Modified:**
+  - *(No files modified)*
+
+### Execution (Swarm) | Date: 2026-04-23 12:01:21 | Author: Anonymous Agent
+- **Block:** `14.2`
+- **Message:** L1-AUDIT-FIX: Applied extreme prompt simplification to acommunicate() in llm_layer.py. Previously it was only in the synchronous method, which caused the async ws_chat to still use the massive PROMPT_COMMUNICATION, crashing Ollama. Also increased nomad_chat_text_queue_maxsize to 128.
+- **Files Modified:**
+  - `src/modules/cognition/llm_layer.py`
+  - `src/modules/perception/nomad_bridge.py`
+
+### Execution (Swarm) | Date: 2026-04-23 12:24:46 | Author: Anonymous Agent
+- **Block:** `14.3`
+- **Message:** CRITICAL-FIX: communicate() never called Ollama - LLM call was nested inside elif api/injected block. Restructured to shared path. Translated ALL template text (communicate_local, narrate_local, canned_verbal, timeout msg, audio_ouroboros) to Spanish. Added JSON artifact cleanup for 1B model. Fixed TTS from es-ES to es-MX.
+- **Files Modified:**
+  - `src/clients/nomad_pwa/app.js`
+  - `src/modules/cognition/llm_layer.py`
+  - `src/modules/cognition/llm_verbal_backend_policy.py`
+  - `src/modules/perception/audio_ouroboros.py`
+  - `src/server/ws_chat.py`
+  - `src/settings/kernel_settings.py`
+
+### Execution (Swarm) | Date: 2026-04-23 12:39:15 | Author: Anonymous Agent
+- **Block:** `14.4`
+- **Message:** PURGE: Rutina en piloto automatico. Removidos 23+ modulos no utilizados, mocks abandonados y redundancias de integracion swarm (e.g. ethical_lobe, basuras de sensores, llm_cancel_burst). Limpieza del Lobe Cerebellum duplicado en kernel.py.
+- **Files Modified:**
+  - `src/kernel.py`
+  - `src/kernel_lobes/__init__.py`
+  - `src/kernel_lobes/ethical_lobe.py`
+  - `src/modules/cognition/llm_cancel_burst.py`
+  - `src/modules/cognition/turn_prefetcher.py`
+  - `src/modules/ethics/weight_authority.py`
+  - `src/modules/governance/external_audit_framework.py`
+  - `src/modules/memory/precedent_rag.py`
+  - `src/modules/perception/action_narrator.py`
+  - `src/modules/perception/audio_signal_mapper.py`
+  - `src/modules/perception/nomad_chat_adapter.py`
+  - `src/modules/perception/nomad_session_sync.py`
+  - `src/modules/perception/perception_async_handler.py`
+  - `src/modules/perception/sensor_baseline_calibrator.py`
+  - `src/modules/perception/vision_multiprocess.py`
+  - `src/modules/perception/zeroconf_discovery.py`
+  - `src/modules/safety/async_task_canceller.py`
+  - `src/modules/safety/help_request_protocol.py`
+  - `src/modules/safety/privacy_shield.py`
+  - `src/modules/social/gray_zone_diplomacy.py`
+  - `src/modules/social/swarm_oracle.py`
+  - `src/modules/social/swarm_peer_stub.py`
+  - `src/modules/somatic/comfort_monitor.py`
+  - `src/modules/somatic/soft_robotics.py`
+  - `src/modules/somatic/somatic_signal_mapper.py`
+  - `src/server/ws_chat.py`
+
+### Execution (Swarm) | Date: 2026-04-23 12:46:36 | Author: Anonymous Agent
+- **Block:** `14.5`
+- **Message:** PURGE-DEEP: Segunda pasada piloto automatico. Eliminados modulos con 0 referencias reales (vitality_hints, somatic_adapter, sensor_adapter, perception_signals, registry). Consolidado compute_file_hash en scripts/utils/hash_utils.py (era copia-paste en 5 scripts). Auditoria identifico 69 simbolos duplicados: 95% son polimorfismo de interfaz legitimo (evaluate, is_available, completion en backends LLM). Tag v13.2-pre-purge-deep creado.
+- **Files Modified:**
+  - `scripts/eval/autopilot_purge_audit.py`
+  - `scripts/utils/hash_utils.py`
+  - `src/kernel_handlers/vitality_hints.py`
+  - `src/kernel_lobes/perception_signals.py`
+  - `src/kernel_lobes/registry.py`
+  - `src/kernel_lobes/sensor_adapter.py`
+  - `src/modules/somatic/somatic_adapter.py`

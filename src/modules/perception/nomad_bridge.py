@@ -115,11 +115,11 @@ def nomad_chat_text_queue_maxsize() -> int:
 
     raw = os.environ.get("KERNEL_NOMAD_CHAT_TEXT_QUEUE_MAX", "").strip()
     if not raw:
-        return 48
+        return 128
     try:
         n = int(raw, 10)
     except ValueError:
-        return 48
+        return 128
     return max(8, min(n, 512))
 
 
