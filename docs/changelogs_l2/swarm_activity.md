@@ -2275,3 +2275,9 @@ This file is automatically managed by `scripts/swarm_sync.py`.
   - `src/modules/memory/semantic_embedding_client.py`
   - `src/modules/safety/semantic_chat_gate.py`
   - `src/server/ws_sidecar.py`
+
+### Execution (Swarm) | Date: 2026-04-23 00:13:06 | Author: Anonymous Agent
+- **Block:** `40.1`
+- **Message:** Fix blue veil artifact in Nomad camera: applied BGR→RGB conversion in vision_capture, updated bridge to forward latest sensor snapshot, enabled async LLM HTTP for mobile, added env auto‑enable for Nomad. All tests pass.
+- **Files Modified:**
+  - *(No files modified)*
