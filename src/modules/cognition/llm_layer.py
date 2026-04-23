@@ -1109,6 +1109,9 @@ class LLMModule:
             if self.nomad_mode:
                 prompt += PROMPT_COMMUNICATION_NOMAD_APPEND
 
+            if stream_callback is not None:
+                prompt += "\n\nCRITICAL STREAMING OVERRIDE: DO NOT output JSON formatting. Ignore previous format instructions. Respond ONLY with the direct raw text of the spoken message. Do not include JSON brackets, fields, 'message:', or 'inner_voice'."
+
             prompt = prompt.format(
                 manifest=manifest_context,
                 action=action,

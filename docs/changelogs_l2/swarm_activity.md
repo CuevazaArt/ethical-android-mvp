@@ -2309,3 +2309,9 @@ This file is automatically managed by `scripts/swarm_sync.py`.
 - **Files Modified:**
   - `src/modules/cognition/llm_layer.py`
   - `src/modules/safety/semantic_chat_gate.py`
+
+### Execution (Swarm) | Date: 2026-04-23 00:42:58 | Author: Anonymous Agent
+- **Block:** `40.6`
+- **Message:** Fix LLM stream format: Added a CRITICAL STREAMING OVERRIDE to acommunicate. When stream_callback is provided, we explicitly instruct the LLM to output raw prose instead of JSON, preventing the Nomad PWA from rendering raw JSON brackets and fields.
+- **Files Modified:**
+  - `src/modules/cognition/llm_layer.py`
