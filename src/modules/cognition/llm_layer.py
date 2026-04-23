@@ -1036,6 +1036,15 @@ class LLMModule:
                     hax_mode=data.get("hax_mode", ""),
                     inner_voice=data.get("inner_voice", ""),
                 )
+            # Ollama returned plain prose (not JSON) — use it directly
+            if response and response.strip():
+                _log.info("LLM communicate: using plain-text Ollama response as verbal message.")
+                return VerbalResponse(
+                    message=response.strip(),
+                    tone="calm",
+                    hax_mode="",
+                    inner_voice="",
+                )
             if self.mode in ("api", "ollama", "injected") and self._llm_backend is not None:
                 self._record_verbal_degradation("communicate", "verbal_json_missing_or_empty", vpol)
                 if vpol == "canned_safe":
@@ -1172,7 +1181,7 @@ class LLMModule:
                     guardian_mode_context=guardian_mode_context,
                 )
             _log.info("LLM RAW RESPONSE: %s", response[:200] if response else "(empty)")
-            
+
             # When streaming was used, Ollama returns natural text (no JSON format).
             # Use it directly as the verbal message.
             if stream_callback is not None and response and response.strip():
@@ -1182,8 +1191,8 @@ class LLMModule:
                     hax_mode="",
                     inner_voice="",
                 )
-            
-            # Non-streaming path: Ollama returns JSON format
+
+            # Non-streaming path: try JSON first, then treat as plain text (Ollama llama3 returns prose)
             data = self._parse_json(response)
             _log.info("LLM PARSED JSON: %s", data)
             if data and str(data.get("message", "")).strip():
@@ -1192,6 +1201,15 @@ class LLMModule:
                     tone=data.get("tone", "calm"),
                     hax_mode=data.get("hax_mode", ""),
                     inner_voice=data.get("inner_voice", ""),
+                )
+            # Ollama returned plain prose (not JSON) — use it directly
+            if response and response.strip():
+                _log.info("LLM acommunicate: using plain-text Ollama response as verbal message.")
+                return VerbalResponse(
+                    message=response.strip(),
+                    tone="calm",
+                    hax_mode="",
+                    inner_voice="",
                 )
             if self.mode in ("api", "ollama", "injected") and self._llm_backend is not None:
                 self._record_verbal_degradation("communicate", "verbal_json_missing_or_empty", vpol)

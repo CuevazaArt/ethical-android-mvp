@@ -2296,3 +2296,9 @@ This file is automatically managed by `scripts/swarm_sync.py`.
   - `src/kernel.py`
   - `src/modules/memory/semantic_embedding_client.py`
   - `src/modules/safety/semantic_chat_gate.py`
+
+### Execution (Swarm) | Date: 2026-04-23 00:29:21 | Author: Anonymous Agent
+- **Block:** `40.4`
+- **Message:** Fix LLM plain-text response: Ollama llama3.2:1b returns prose not JSON; use raw text directly in communicate/acommunicate instead of falling to _communicate_local template.
+- **Files Modified:**
+  - `src/modules/cognition/llm_layer.py`
