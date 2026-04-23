@@ -2341,3 +2341,10 @@ This file is automatically managed by `scripts/swarm_sync.py`.
 - **Message:** L1-SYNC: Swarm pulse confirmed. Nomad chat & UI stabilization complete. Branch up to date with main.
 - **Files Modified:**
   - *(No files modified)*
+
+### Execution (Swarm) | Date: 2026-04-23 12:01:21 | Author: Anonymous Agent
+- **Block:** `14.2`
+- **Message:** L1-AUDIT-FIX: Applied extreme prompt simplification to acommunicate() in llm_layer.py. Previously it was only in the synchronous method, which caused the async ws_chat to still use the massive PROMPT_COMMUNICATION, crashing Ollama. Also increased nomad_chat_text_queue_maxsize to 128.
+- **Files Modified:**
+  - `src/modules/cognition/llm_layer.py`
+  - `src/modules/perception/nomad_bridge.py`

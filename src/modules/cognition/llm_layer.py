@@ -1102,10 +1102,18 @@ class LLMModule:
             "gray_zone": "uncertainty, active caution",
         }
 
-        if self.mode in ("api", "ollama", "injected"):
+        if self.mode == "ollama":
+            # EXTREME SIMPLIFICATION FOR LOCAL LLM (Async)
+            prompt = (
+                "You are the voice of an ethical AI. Respond naturally and directly to the user's input.\n"
+                "Keep your answer under two sentences. Be concise.\n"
+                "Do NOT use JSON. Do NOT explain yourself. Just speak."
+            )
+            user_msg = f"User said: {scenario}"
+            if conversation_context.strip():
+                user_msg += f"\n\nRecent context:\n{conversation_context}"
+        elif self.mode in ("api", "injected"):
             prompt = PROMPT_COMMUNICATION
-            if self.mode == "ollama":
-                prompt += PROMPT_COMMUNICATION_LOCAL_FLUENCY_APPEND
             if self.nomad_mode:
                 prompt += PROMPT_COMMUNICATION_NOMAD_APPEND
 
