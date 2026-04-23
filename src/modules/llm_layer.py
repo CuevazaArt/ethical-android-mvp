@@ -7,10 +7,8 @@ The LLM does NOT decide. The kernel decides. The LLM translates and communicates
 2. COMMUNICATION: kernel decision → agent verbal response
 3. NARRATIVE: multipolar evaluation → morals in rich language
 
-Uses **Ollama** when ``LLM_MODE=ollama`` / ``USE_LOCAL_LLM``; otherwise heuristic templates or optional HTTP backends (see ``resolve_llm_mode``).
-Designed to work with or without an API key:
-- With key: uses Claude for real generation
-- Without key: uses local templates (functional but less natural)
+Uses **Ollama** when ``LLM_MODE=ollama`` / ``USE_LOCAL_LLM``; optional Anthropic when ``LLM_MODE=api``/``auto`` and ``KERNEL_LLM_CLOUD_DISABLED`` is unset (see ``resolve_llm_mode``).
+When ``KERNEL_LLM_CLOUD_DISABLED=1``, ``auto`` / ``api`` resolve to Ollama (or template ``local`` without ``httpx``) — Blocks 20.0+ local-first fluency.
 """
 
 import json
@@ -76,15 +74,55 @@ __ethical_tier__ = "decision_support"
 
 def _normalize_llm_mode(mode: str) -> str:
     m = (mode or "auto").strip()
-    if m == "auto" and os.environ.get("USE_LOCAL_LLM", "").lower() in ("1", "true", "yes"):
+    if m != "auto":
+        return m
+    u = os.environ.get("USE_LOCAL_LLM", "").lower()
+    k = os.environ.get("KERNEL_LOCAL_LLM_FIRST", "").lower()
+    a = os.environ.get("KERNEL_LLM_AUTO_OLLAMA", "").lower()
+    if (
+        u in ("1", "true", "yes")
+        or k in ("1", "true", "yes", "on")
+        or a in ("1", "true", "yes", "on")
+    ):
         return "ollama"
     return m
 
 
+def _cloud_llm_disabled() -> bool:
+    """Block 20.x — prefer open weights / local HTTP only; no closed chat APIs."""
+    return os.environ.get("KERNEL_LLM_CLOUD_DISABLED", "").strip().lower() in (
+        "1",
+        "true",
+        "yes",
+        "on",
+    )
+
+
 def resolve_llm_mode(explicit: str | None = None) -> str:
-    """Resolve ``LLM_MODE`` / ``USE_LOCAL_LLM`` into a concrete ``LLMModule`` mode string."""
+    """Resolve ``LLM_MODE`` / ``USE_LOCAL_LLM`` into a concrete ``LLMModule`` mode string.
+
+    When ``KERNEL_PREFER_OLLAMA_OVER_TEMPLATES`` is on, ``LLM_MODE=auto`` with no
+    ``ANTHROPIC_API_KEY`` prefers local Ollama (requires ``httpx``) instead of
+    heuristic templates — local sovereignty without closed chat APIs.
+
+    When ``KERNEL_LLM_CLOUD_DISABLED=1``, ``auto`` and ``api`` resolve to ``ollama`` (if ``httpx``)
+    or ``local`` — Anthropic is not selected (Blocks 20.0 / local-first fluency).
+    """
     m = explicit if explicit is not None else os.environ.get("LLM_MODE", "auto")
-    return _normalize_llm_mode(str(m).strip())
+    m = _normalize_llm_mode(str(m).strip())
+    if _cloud_llm_disabled() and m in ("auto", "api"):
+        return "ollama" if HAS_HTTPX else "local"
+    if m == "auto":
+        prefer = os.environ.get("KERNEL_PREFER_OLLAMA_OVER_TEMPLATES", "").strip().lower() in (
+            "1",
+            "true",
+            "yes",
+            "on",
+        )
+        api_key = (os.environ.get("ANTHROPIC_API_KEY") or "").strip()
+        if prefer and not api_key and HAS_HTTPX:
+            return "ollama"
+    return m
 
 
 def _perception_parse_fail_local() -> bool:
@@ -321,11 +359,11 @@ class LLMModule:
     """
     Natural language layer for the ethical kernel.
 
-    Operating modes:
-    - "api": uses Claude API (requires ANTHROPIC_API_KEY)
+    Operating modes (see :func:`resolve_llm_mode` for ``KERNEL_LLM_CLOUD_DISABLED`` / ``USE_LOCAL_LLM``):
+    - "api": Anthropic API when key present (unless cloud is disabled — then Ollama or local)
     - "ollama": local HTTP server (OLLAMA_BASE_URL, OLLAMA_MODEL default llama3.2:3b); requires httpx
-    - "local": uses local templates (no API, functional but basic)
-    - "auto": tries API, falls back to local if no key. If ``USE_LOCAL_LLM=1``, uses Ollama instead.
+    - "local": uses local templates (no remote APIs)
+    - "auto": API if key and cloud allowed; else templates, or Ollama when local-first env flags apply
 
     Text completion is routed through :mod:`llm_backends` (Fase 3.1).
 
@@ -358,7 +396,7 @@ class LLMModule:
             self.mode = "injected"
             return
 
-        self.mode = _normalize_llm_mode((mode or "auto").strip())
+        self.mode = resolve_llm_mode((mode or "auto").strip())
 
         if self.mode == "ollama":
             if not HAS_HTTPX:
