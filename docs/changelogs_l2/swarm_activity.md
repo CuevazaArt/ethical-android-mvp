@@ -2348,3 +2348,14 @@ This file is automatically managed by `scripts/swarm_sync.py`.
 - **Files Modified:**
   - `src/modules/cognition/llm_layer.py`
   - `src/modules/perception/nomad_bridge.py`
+
+### Execution (Swarm) | Date: 2026-04-23 12:24:46 | Author: Anonymous Agent
+- **Block:** `14.3`
+- **Message:** CRITICAL-FIX: communicate() never called Ollama - LLM call was nested inside elif api/injected block. Restructured to shared path. Translated ALL template text (communicate_local, narrate_local, canned_verbal, timeout msg, audio_ouroboros) to Spanish. Added JSON artifact cleanup for 1B model. Fixed TTS from es-ES to es-MX.
+- **Files Modified:**
+  - `src/clients/nomad_pwa/app.js`
+  - `src/modules/cognition/llm_layer.py`
+  - `src/modules/cognition/llm_verbal_backend_policy.py`
+  - `src/modules/perception/audio_ouroboros.py`
+  - `src/server/ws_chat.py`
+  - `src/settings/kernel_settings.py`

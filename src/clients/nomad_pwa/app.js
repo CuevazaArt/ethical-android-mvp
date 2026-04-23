@@ -650,9 +650,9 @@ async function connectKernel() {
                         if ('speechSynthesis' in window) {
                             window.speechSynthesis.cancel();
                             const utter = new SpeechSynthesisUtterance(reply.replace(/[*_~`#>\-]/g, '').trim());
-                            utter.lang = 'es-ES';
+                            utter.lang = 'es-MX';
                             const voices = window.speechSynthesis.getVoices();
-                            const preferred = voices.find(v => v.lang.startsWith('es')) || voices[0];
+                            const preferred = voices.find(v => v.lang === 'es-MX') || voices.find(v => v.lang.startsWith('es')) || voices[0];
                             if (preferred) utter.voice = preferred;
                             utter.onstart = () => { if (UI.orb) UI.orb.classList.add('speaking'); };
                             utter.onend   = () => { if (UI.orb) UI.orb.classList.remove('speaking'); };
@@ -671,9 +671,9 @@ async function connectKernel() {
                         }
                         if ('speechSynthesis' in window) {
                             const utterance = new SpeechSynthesisUtterance(data.text);
-                            utterance.lang = 'es-ES'; // Forzar pronunciación en español
+                            utterance.lang = 'es-MX'; // Forzar pronunciación en español latino
                             const voices = window.speechSynthesis.getVoices();
-                            const preferred = voices.find(v => v.lang.startsWith("es")) || voices[0];
+                            const preferred = voices.find(v => v.lang === 'es-MX') || voices.find(v => v.lang.startsWith("es")) || voices[0];
                             if (preferred) utterance.voice = preferred;
                             
                             utterance.onstart = () => {

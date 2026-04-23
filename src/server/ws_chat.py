@@ -691,7 +691,7 @@ async def ws_chat(ws: WebSocket) -> None:
                             "timeout_seconds": chat_to,
                             "path": "turn_timeout",
                             "response": {
-                                "message": "Turn exceeded server time limit.",
+                                "message": "El turno excedió el límite de tiempo del servidor.",
                                 "tone": "neutral",
                             },
                         }

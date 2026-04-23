@@ -127,7 +127,7 @@ class WhisperAdapter:
         if self.model is None:
             return AudioTranscription(text="", confidence=0.0)
 
-        result = self.model.transcribe(audio_chunk, language="en", fp16=False)
+        result = self.model.transcribe(audio_chunk, language="es", fp16=False)
         text = result.get("text", "").strip()
         # Confidence estimated from Whisper's internal metrics
         segments = result.get("segments", [])
@@ -342,12 +342,12 @@ class AudioOuroborosLoop:
         """
         if not transcription.text:
             return AudioResponse(
-                text="I didn't catch that. Could you repeat?",
+                text="No pude entender eso. ¿Podrías repetir?",
                 confidence=0.0,
             )
 
-        # Placeholder: simple echo response
-        response_text = f"You said: {transcription.text[:50]}. I'm processing your request."
+        # Placeholder: simple echo response (Spanish)
+        response_text = f"Dijiste: {transcription.text[:50]}. Estoy procesando tu solicitud."
         return AudioResponse(
             text=response_text,
             confidence=min(0.7, transcription.confidence),
