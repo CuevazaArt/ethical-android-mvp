@@ -622,6 +622,46 @@ class EthosKernel:
                 context=place,
             )
 
+            # Build a proper perception shim with ALL fields _chat_turn_to_jsonable expects
+            _tension = getattr(snapshot, "tension_level", 0.0) or 0.0
+            _circle  = getattr(snapshot, "social_circle", "neutral_soto") or "neutral_soto"
+            _bayes   = getattr(snapshot, "bayesian_confidence", 0.5) or 0.5
+
+            class _ConfShim:
+                def __init__(self, conf: float) -> None:
+                    self.confidence = conf
+                def to_public_dict(self) -> dict:
+                    return {"score": self.confidence, "band": "nominal" if self.confidence > 0.5 else "low"}
+
+            class _SocCtx:
+                def __init__(self, circle: str) -> None:
+                    self.circle  = circle
+                    self.posture = "neutral"
+
+            class _PercShim:
+                """Minimal perception shim satisfying ws_chat._chat_turn_to_jsonable."""
+                def __init__(self, circle: str, tension: float) -> None:
+                    self.risk              = min(1.0, max(0.0, tension))
+                    self.urgency           = 0.0
+                    self.hostility         = 0.0
+                    self.calm              = max(0.0, 1.0 - tension)
+                    self.manipulation      = 0.0
+                    self.suggested_context = "conversational"
+                    self.summary           = ""
+                    self.social_context    = _SocCtx(circle)
+                    self.coercion_report   = None
+                def to_public_dict(self) -> dict:
+                    return {
+                        "risk":              self.risk,
+                        "urgency":           self.urgency,
+                        "hostility":         self.hostility,
+                        "calm":              self.calm,
+                        "manipulation":      self.manipulation,
+                        "suggested_context": self.suggested_context,
+                        "social_circle":     self.social_context.circle,
+                        "social_posture":    self.social_context.posture,
+                    }
+
             res = ChatTurnResult(
                 response=VerbalResponse(
                     message=str(getattr(dispatch_result, "action_id", "Cognitive silence.")),
@@ -637,20 +677,11 @@ class EthosKernel:
                 if not is_blocked
                 else "Blocked",
                 limbic_profile={
-                    "social_tension": getattr(snapshot, "tension_level", 0.0),
-                    "social_trust": 0.0,
+                    "social_tension": _tension,
+                    "social_trust":   0.0,
                 } if snapshot else None,
-                perception_confidence=type('ConfShim', (object,), {
-                    'confidence': getattr(snapshot, "bayesian_confidence", 0.0) or 0.0,
-                    'to_public_dict': lambda self: {"score": self.confidence, "band": "nominal" if self.confidence > 0.5 else "low"},
-                })() if snapshot else None,
-                perception=type('PercShim', (object,), {
-                    'social_context': type('SocCtx', (object,), {
-                        'circle': getattr(snapshot, "social_circle", "neutral_soto"),
-                        'posture': 'neutral',
-                    })(),
-                    'to_public_dict': lambda self: {"social_circle": self.social_context.circle, "social_posture": self.social_context.posture},
-                })() if snapshot else None,
+                perception_confidence=_ConfShim(_bayes) if snapshot else None,
+                perception=_PercShim(_circle, _tension) if snapshot else None,
                 gestalt_snapshot=snapshot,
             )
             self._snapshot_feedback_anchor(res.path)

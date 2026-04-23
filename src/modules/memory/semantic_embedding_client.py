@@ -314,15 +314,22 @@ async def ahttp_fetch_ollama_embedding_with_policy(
     if _circuit_blocks():
         return None
 
-    payload: dict[str, Any] = {"model": model, "input": prompt}
-    # Auto-detect: if URL uses /api/embed (new), prepare fallback to /api/embeddings (legacy)
-    alt_url = None
-    if url.endswith("/api/embed"):
-        alt_url = url.replace("/api/embed", "/api/embeddings")
-        # New API uses 'input', legacy uses 'prompt'
-    elif url.endswith("/api/embeddings"):
-        alt_url = url.replace("/api/embeddings", "/api/embed")
+    # Auto-detect: try /api/embeddings first (legacy, more widely supported),
+    # fall back to /api/embed (new API, Ollama >= 0.1.26).
+    # The primary URL in the call should always end with one of these;
+    # we derive the alt from it.
+    if url.endswith("/api/embeddings"):
+        # Primary = legacy endpoint (payload key: 'prompt')
         payload = {"model": model, "prompt": prompt}
+        alt_url = url.replace("/api/embeddings", "/api/embed")
+        # alt uses new API key 'input'
+    elif url.endswith("/api/embed"):
+        # Primary = new endpoint (payload key: 'input')
+        payload = {"model": model, "input": prompt}
+        alt_url = url.replace("/api/embed", "/api/embeddings")
+    else:
+        # Unknown path; keep payload as-is, no alt
+        alt_url = None
     last_err = ""
     for attempt in range(retries + 1):
         if _circuit_blocks():

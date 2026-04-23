@@ -2288,3 +2288,11 @@ This file is automatically managed by `scripts/swarm_sync.py`.
 - **Files Modified:**
   - `src/clients/nomad_pwa/app.js`
   - `src/clients/nomad_pwa/media_engine.js`
+
+### Execution (Swarm) | Date: 2026-04-23 00:23:52 | Author: Anonymous Agent
+- **Block:** `40.3`
+- **Message:** Fix chat LLM silent: PercShim now has all required perception attrs (risk/urgency/hostility/calm/manipulation/coercion_report), fix Ollama /api/embed 404 -> /api/embeddings in semantic_chat_gate.
+- **Files Modified:**
+  - `src/kernel.py`
+  - `src/modules/memory/semantic_embedding_client.py`
+  - `src/modules/safety/semantic_chat_gate.py`
