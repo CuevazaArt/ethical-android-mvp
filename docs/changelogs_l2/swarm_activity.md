@@ -2390,3 +2390,15 @@ This file is automatically managed by `scripts/swarm_sync.py`.
   - `src/modules/somatic/soft_robotics.py`
   - `src/modules/somatic/somatic_signal_mapper.py`
   - `src/server/ws_chat.py`
+
+### Execution (Swarm) | Date: 2026-04-23 12:46:36 | Author: Anonymous Agent
+- **Block:** `14.5`
+- **Message:** PURGE-DEEP: Segunda pasada piloto automatico. Eliminados modulos con 0 referencias reales (vitality_hints, somatic_adapter, sensor_adapter, perception_signals, registry). Consolidado compute_file_hash en scripts/utils/hash_utils.py (era copia-paste en 5 scripts). Auditoria identifico 69 simbolos duplicados: 95% son polimorfismo de interfaz legitimo (evaluate, is_available, completion en backends LLM). Tag v13.2-pre-purge-deep creado.
+- **Files Modified:**
+  - `scripts/eval/autopilot_purge_audit.py`
+  - `scripts/utils/hash_utils.py`
+  - `src/kernel_handlers/vitality_hints.py`
+  - `src/kernel_lobes/perception_signals.py`
+  - `src/kernel_lobes/registry.py`
+  - `src/kernel_lobes/sensor_adapter.py`
+  - `src/modules/somatic/somatic_adapter.py`
