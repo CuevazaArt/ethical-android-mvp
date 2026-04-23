@@ -1,5 +1,6 @@
 """Tests for situated sensor contracts (v8) — no hardware required."""
 
+import math
 import os
 import sys
 
@@ -23,6 +24,22 @@ def test_merge_empty_snapshot_returns_same_dict():
     snap = SensorSnapshot()
     out = merge_sensor_hints_into_signals(base, snap)
     assert out is base
+
+
+def test_merge_clamps_nonfinite_incoming_signal_values():
+    """V4.0: NaN/Inf in upstream ``signals`` must not propagate through nudges."""
+    base = {
+        "risk": 0.5,
+        "urgency": float("nan"),
+        "hostility": 0.0,
+        "calm": float("inf"),
+        "vulnerability": 0.0,
+    }
+    snap = SensorSnapshot(battery_level=0.02)
+    out = merge_sensor_hints_into_signals(base, snap)
+    assert all(math.isfinite(v) for k, v in out.items() if isinstance(v, float))
+    assert 0.0 <= out["urgency"] <= 1.0
+    assert 0.0 <= out["calm"] <= 1.0
 
 
 def test_low_battery_nudges_urgency():

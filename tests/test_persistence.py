@@ -355,3 +355,57 @@ def test_json_encrypted_load_fallback_plain_file(tmp_path, monkeypatch):
     snap = JsonFilePersistence(path).load()
     assert snap is not None
     assert snap.schema_version == SCHEMA_VERSION
+
+
+def test_json_encrypted_load_fallback_plain_file_emits_info_log(tmp_path, monkeypatch, caplog):
+    """Fase 15.6: fallback is observable (not a bare except)."""
+    import logging
+
+    from cryptography.fernet import Fernet
+
+    k1 = EthicalKernel(variability=False)
+    path = tmp_path / "legacy2.json"
+    JsonFilePersistence(path).save(extract_snapshot(k1))
+    monkeypatch.setenv("KERNEL_CHECKPOINT_FERNET_KEY", Fernet.generate_key().decode())
+    with caplog.at_level(logging.INFO, logger="src.persistence.json_store"):
+        snap = JsonFilePersistence(path).load()
+    assert snap is not None
+    assert "Fernet path unusable" in caplog.text
+
+
+def test_atomic_write_bytes_persists_content(tmp_path):
+    from src.persistence.atomic_io import atomic_write_bytes
+
+    p = tmp_path / "k.bin"
+    atomic_write_bytes(p, b"checkpoint-bytes")
+    assert p.read_bytes() == b"checkpoint-bytes"
+    assert not list(tmp_path.glob("*.tmp.*"))
+
+
+def test_atomic_write_bytes_cleans_tmp_on_replace_failure(tmp_path, monkeypatch):
+    from src.persistence import atomic_io
+
+    p = tmp_path / "k2.bin"
+    real_replace = os.replace
+
+    def flaky_replace(src, dst, *, _real=real_replace):
+        if p.name in str(src):
+            raise OSError("replace failed (test double)")
+        return _real(src, dst)
+
+    monkeypatch.setattr(atomic_io.os, "replace", flaky_replace)
+    with pytest.raises(OSError, match="replace failed"):
+        atomic_io.atomic_write_bytes(p, b"x")
+    assert not p.is_file()
+    assert not list(tmp_path.glob("k2.bin.tmp.*"))
+
+
+def test_atomic_write_bytes_typeerror_for_non_bytes_no_orphan_tmp(tmp_path):
+    """``Path.write_bytes`` raises TypeError for non-bytes; cleanup still runs; no tmp leak."""
+    from src.persistence import atomic_io
+
+    p = tmp_path / "k3.bin"
+    with pytest.raises(TypeError):
+        atomic_io.atomic_write_bytes(p, "not bytes")  # type: ignore[arg-type]
+    assert not p.is_file()
+    assert not list(tmp_path.glob("k3.bin.tmp.*"))

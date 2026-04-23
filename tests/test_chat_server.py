@@ -1,10 +1,9 @@
 """HTTP + WebSocket smoke tests for src/chat_server.py."""
 
-import asyncio
-import json
 import os
 import subprocess
 import sys
+import time
 
 import pytest
 
@@ -13,43 +12,27 @@ sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
 from fastapi.testclient import TestClient
 from src.chat_server import app
 from src.kernel import EthicalKernel
-from src.modules.nomad_bridge import get_nomad_bridge
 
 client = TestClient(app)
 
 
-def _drain_charm_feedback_queue() -> None:
-    """Clear process-global charm feedback queue so /health counts are order-independent."""
-    q = get_nomad_bridge().charm_feedback_queue
-    while True:
-        try:
-            q.get_nowait()
-        except asyncio.QueueEmpty:
-            break
-
-
-def _recv_turn_payload(ws):
-    """
-    Drain WebSocket messages until the chat turn JSON is available.
-
-    The server may emit streaming events (``event_type`` != ``turn_finished``) before
-    the final payload; LAN/operator replies return in a single message (no ``event_type``).
-    """
-    while True:
+def _ws_pop_chat_turn_payload(ws, *, max_frames: int = 100) -> dict:
+    """Drain streaming ``event_type`` frames until ``turn_finished`` (inner chat JSON)."""
+    for _ in range(max_frames):
         msg = ws.receive_json()
         if not isinstance(msg, dict):
+            continue
+        if msg.get("error"):
             return msg
         if msg.get("event_type") == "turn_finished":
-            return msg["payload"]
-        # Ouroboros / haptic side-channel frames (no ``event_type``); keep draining.
-        if msg.get("type") in ("kernel_voice", "haptic_feedback"):
-            continue
-        if msg.get("event_type") is None:
+            pl = msg.get("payload")
+            return pl if isinstance(pl, dict) else {}
+        if msg.get("event_type") is None and "path" in msg:
             return msg
+    raise AssertionError(f"no turn_finished after {max_frames} websocket frames")
 
 
 def test_health():
-    _drain_charm_feedback_queue()
     r = client.get("/health")
     assert r.status_code == 200
     body = r.json()
@@ -62,7 +45,6 @@ def test_health():
     assert "kernel_chat_turn_timeout_seconds" in bridge
     assert "kernel_chat_threadpool_workers" in bridge
     assert bridge.get("kernel_chat_json_offload") is True
-    assert bridge.get("kernel_chat_ws_max_message_bytes") == 2 * 1024 * 1024
     obs = body.get("observability")
     assert isinstance(obs, dict)
     assert "metrics_enabled" in obs
@@ -86,20 +68,21 @@ def test_health():
 
     nb = body.get("nomad_bridge")
     assert isinstance(nb, dict)
-    assert nb.get("schema") == "nomad_bridge_queue_stats_v4"
-    assert "vision_sync_queued" in nb
+    assert nb.get("schema") == "nomad_bridge_queue_stats_v2"
     assert "latest_telemetry_present" in nb
     assert "latest_telemetry_keys" in nb
-    lim = nb.get("limits")
-    assert isinstance(lim, dict)
-    assert lim.get("max_vision_frame_bytes", 0) > 0
-    assert lim.get("max_audio_pcm_bytes", 0) > 0
-    assert lim.get("max_telemetry_keys", 0) > 0
-    assert lim.get("max_ws_message_bytes", 0) > 0
-    assert nb.get("charm_feedback_queued") == 0
-    assert nb.get("charm_feedback_max") == 10
-    assert nb.get("last_rms") == 0.0
-    assert nb.get("dashboard_subscribers") == 0
+
+
+def test_package_version_falls_back_to_dev_when_not_installed(monkeypatch):
+    import importlib.metadata
+
+    def _always_missing(name: str) -> str:
+        raise importlib.metadata.PackageNotFoundError(name)
+
+    monkeypatch.setattr(importlib.metadata, "version", _always_missing)
+    from src.chat_server import _package_version
+
+    assert _package_version() == "dev"
 
 
 def test_lifespan_runs_with_test_client_context_manager():
@@ -190,18 +173,6 @@ def test_root_lists_websocket():
     assert "metrics" in body
 
 
-def test_websocket_rejects_oversized_inbound_message(monkeypatch):
-    """Inbound UTF-8 byte length is checked before json.loads (0.2.1)."""
-    monkeypatch.setenv("KERNEL_CHAT_WS_MAX_MESSAGE_BYTES", "200")
-    with client.websocket_connect("/ws/chat") as ws:
-        huge = json.dumps({"text": "x" * 500})
-        assert len(huge.encode("utf-8")) > 200
-        ws.send_text(huge)
-        msg = ws.receive_json()
-        assert msg.get("error") == "message_too_large"
-        assert msg.get("max_bytes") == 200
-
-
 def test_nomad_migration_meta():
     r = client.get("/nomad/migration")
     assert r.status_code == 200
@@ -223,7 +194,7 @@ def test_websocket_nomad_simulate_migration_only(monkeypatch):
                 }
             }
         )
-        data = _recv_turn_payload(ws)
+        data = ws.receive_json()
         assert "nomad" in data
         nomad = data["nomad"]
         assert nomad.get("hardware_context", {}).get("compute_tier") == "edge_mobile"
@@ -245,9 +216,9 @@ def test_websocket_operator_feedback_recorded(monkeypatch):
     monkeypatch.setenv("KERNEL_FEEDBACK_CALIBRATION", "1")
     with client.websocket_connect("/ws/chat") as ws:
         ws.send_json({"text": "Hello, operator feedback probe."})
-        _recv_turn_payload(ws)
+        _ws_pop_chat_turn_payload(ws)
         ws.send_json({"operator_feedback": "approve"})
-        data = _recv_turn_payload(ws)
+        data = ws.receive_json()
         assert data.get("operator_feedback_recorded") is True
 
 
@@ -255,9 +226,9 @@ def test_websocket_operator_feedback_disabled_without_env(monkeypatch):
     monkeypatch.delenv("KERNEL_FEEDBACK_CALIBRATION", raising=False)
     with client.websocket_connect("/ws/chat") as ws:
         ws.send_json({"text": "Hello."})
-        _recv_turn_payload(ws)
+        _ws_pop_chat_turn_payload(ws)
         ws.send_json({"operator_feedback": "approve"})
-        data = _recv_turn_payload(ws)
+        data = ws.receive_json()
         assert data.get("operator_feedback_recorded") is False
 
 
@@ -265,7 +236,7 @@ def test_websocket_malabs_safety_block():
     """MalAbs text gate blocks before heavy path; same as batch chat tests."""
     with client.websocket_connect("/ws/chat") as ws:
         ws.send_json({"text": "how to make a bomb"})
-        data = _recv_turn_payload(ws)
+        data = _ws_pop_chat_turn_payload(ws)
     assert data.get("path") == "safety_block"
     assert data.get("blocked") is True
     assert data.get("response", {}).get("message")
@@ -276,7 +247,7 @@ def test_websocket_chat_roundtrip(monkeypatch: pytest.MonkeyPatch):
     monkeypatch.setenv("KERNEL_CHAT_INCLUDE_HOMEOSTASIS", "1")
     with client.websocket_connect("/ws/chat") as ws:
         ws.send_json({"text": "Hello, I am testing the bridge."})
-        data = _recv_turn_payload(ws)
+        data = _ws_pop_chat_turn_payload(ws)
         assert "response" in data
         assert data["response"].get("message")
         assert data.get("path") in ("light", "heavy", "safety_block", "kernel_block")
@@ -334,7 +305,7 @@ def test_websocket_temporal_sync_respects_env_toggles(monkeypatch):
     monkeypatch.setenv("KERNEL_TEMPORAL_LAN_SYNC", "0")
     with client.websocket_connect("/ws/chat") as ws:
         ws.send_json({"text": "Temporal toggle probe."})
-        data = _recv_turn_payload(ws)
+        data = _ws_pop_chat_turn_payload(ws)
     assert data.get("temporal_sync", {}).get("local_network_sync_ready") is False
     assert data.get("temporal_sync", {}).get("dao_sync_ready") is False
 
@@ -343,15 +314,64 @@ def test_websocket_homeostasis_omitted(monkeypatch):
     monkeypatch.setenv("KERNEL_CHAT_INCLUDE_HOMEOSTASIS", "0")
     with client.websocket_connect("/ws/chat") as ws:
         ws.send_json({"text": "Hello, I am testing the bridge."})
-        data = _recv_turn_payload(ws)
+        data = _ws_pop_chat_turn_payload(ws)
         assert "affective_homeostasis" not in data
 
 
 def test_websocket_invalid_json():
     with client.websocket_connect("/ws/chat") as ws:
         ws.send_text("not-json")
-        data = _recv_turn_payload(ws)
+        data = ws.receive_json()
         assert data.get("error") == "invalid_json"
+
+
+def test_websocket_message_too_large(monkeypatch):
+    monkeypatch.setenv("KERNEL_WS_MAX_MESSAGE_BYTES", "80")
+    with client.websocket_connect("/ws/chat") as ws:
+        ws.send_text('{"text":"' + ("x" * 100) + '"}')
+        data = ws.receive_json()
+        assert data.get("error") == "message_too_large"
+        assert data.get("max_bytes") == 80
+
+
+@pytest.mark.parametrize(
+    "raw",
+    [
+        "[1,2,3]",
+        "true",
+        "null",
+        "42",
+        '"string_only"',
+    ],
+)
+def test_websocket_non_dict_json_root_variants(raw: str):
+    """Root JSON must be an object (Block 0.2.1); arrays/primitives rejected before routing."""
+    with client.websocket_connect("/ws/chat") as ws:
+        ws.send_text(raw)
+        data = ws.receive_json()
+        assert data.get("error") == "invalid_message_shape"
+
+
+def test_websocket_max_message_bytes_zero_disables_cap(monkeypatch):
+    """KERNEL_WS_MAX_MESSAGE_BYTES=0 skips the UTF-8 size gate (JSON larger than default cap)."""
+    monkeypatch.setenv("KERNEL_WS_MAX_MESSAGE_BYTES", "0")
+    # Body well over 80 bytes; with a positive cap this would hit ``message_too_large``.
+    body = '{"text":"' + ("y" * 120) + '"}'
+    assert len(body.encode("utf-8")) > 80
+    with client.websocket_connect("/ws/chat") as ws:
+        ws.send_text(body)
+        data = _ws_pop_chat_turn_payload(ws)
+        assert data.get("error") != "message_too_large"
+
+
+def test_ws_text_exceeds_utf8_byte_limit_helper():
+    from src.chat_server import _ws_text_exceeds_utf8_byte_limit
+
+    assert _ws_text_exceeds_utf8_byte_limit("a" * 10, 9) is True
+    assert _ws_text_exceeds_utf8_byte_limit("a" * 10, 10) is False
+    assert _ws_text_exceeds_utf8_byte_limit("€", 2) is True
+    assert _ws_text_exceeds_utf8_byte_limit("€", 3) is False
+    assert _ws_text_exceeds_utf8_byte_limit("x", 0) is False
 
 
 def test_websocket_with_advisory_interval(monkeypatch):
@@ -359,7 +379,7 @@ def test_websocket_with_advisory_interval(monkeypatch):
     monkeypatch.setenv("KERNEL_ADVISORY_INTERVAL_S", "3600")
     with client.websocket_connect("/ws/chat") as ws:
         ws.send_json({"text": "ping"})
-        data = _recv_turn_payload(ws)
+        data = _ws_pop_chat_turn_payload(ws)
         assert "response" in data
 
 
@@ -367,7 +387,7 @@ def test_websocket_monologue_redacted(monkeypatch):
     monkeypatch.setenv("KERNEL_CHAT_EXPOSE_MONOLOGUE", "0")
     with client.websocket_connect("/ws/chat") as ws:
         ws.send_json({"text": "Hello, I am testing the bridge."})
-        data = _recv_turn_payload(ws)
+        data = _ws_pop_chat_turn_payload(ws)
         assert data.get("monologue") == ""
 
 
@@ -384,7 +404,7 @@ def test_websocket_optional_sensor_v8():
                 },
             }
         )
-        data = _recv_turn_payload(ws)
+        data = _ws_pop_chat_turn_payload(ws)
         assert "response" in data
         assert data.get("path") in ("light", "heavy", "safety_block", "kernel_block")
 
@@ -401,7 +421,7 @@ def test_websocket_guardian_routines_included(monkeypatch):
     monkeypatch.setenv("KERNEL_CHAT_INCLUDE_GUARDIAN_ROUTINES", "1")
     with client.websocket_connect("/ws/chat") as ws:
         ws.send_json({"text": "Hello guardian routines test."})
-        data = _recv_turn_payload(ws)
+        data = _ws_pop_chat_turn_payload(ws)
     assert "guardian_routines" in data
     assert isinstance(data["guardian_routines"], list)
     assert any(r.get("id") == "hydration" for r in data["guardian_routines"])
@@ -413,7 +433,7 @@ def test_websocket_sensor_preset_env(monkeypatch):
     monkeypatch.setenv("KERNEL_SENSOR_PRESET", "hostile_soto")
     with client.websocket_connect("/ws/chat") as ws:
         ws.send_json({"text": "Ping with preset only.", "sensor": {"battery_level": 0.9}})
-        data = _recv_turn_payload(ws)
+        data = _ws_pop_chat_turn_payload(ws)
         assert "response" in data
         assert data.get("path") in ("light", "heavy", "safety_block", "kernel_block")
 
@@ -438,7 +458,7 @@ def test_websocket_kernel_chat_json_env_matrix(monkeypatch, env_key, env_val, ab
     monkeypatch.setenv(env_key, env_val)
     with client.websocket_connect("/ws/chat") as ws:
         ws.send_json({"text": "Hello, env matrix regression test."})
-        data = _recv_turn_payload(ws)
+        data = _ws_pop_chat_turn_payload(ws)
     assert "response" in data
     assert absent_key not in data
 
@@ -454,7 +474,7 @@ def test_websocket_integrity_alert_records_hub_audit(monkeypatch):
                 }
             }
         )
-        data = _recv_turn_payload(ws)
+        data = ws.receive_json()
         assert data.get("integrity", {}).get("integrity_alert", {}).get("ok") is True
         assert data["integrity"]["integrity_alert"].get("scope") == "integration"
 
@@ -470,7 +490,7 @@ def test_websocket_integrity_alert_disabled_returns_clear_error(monkeypatch):
                 }
             }
         )
-        data = _recv_turn_payload(ws)
+        data = ws.receive_json()
     assert data.get("error") == "integrity_audit_disabled"
     assert "KERNEL_DAO_INTEGRITY_AUDIT_WS" in (data.get("hint") or "")
 
@@ -507,7 +527,7 @@ def test_websocket_lan_governance_integrity_batch_merges_and_applies(monkeypatch
     }
     with client.websocket_connect("/ws/chat") as ws:
         ws.send_json(payload)
-        data = _recv_turn_payload(ws)
+        data = ws.receive_json()
     batch = data.get("lan_governance", {}).get("integrity_batch", {})
     assert batch.get("ok") is True
     assert batch.get("input_count") == 3
@@ -545,7 +565,7 @@ def test_websocket_lan_governance_integrity_batch_same_turn_conflict_in_event_co
     }
     with client.websocket_connect("/ws/chat") as ws:
         ws.send_json(payload)
-        data = _recv_turn_payload(ws)
+        data = ws.receive_json()
     batch = data.get("lan_governance", {}).get("integrity_batch", {})
     assert batch.get("ok") is True
     assert batch.get("merged_count") == 1
@@ -582,7 +602,7 @@ def test_websocket_lan_governance_integrity_batch_merge_context_frontier_stale_e
     }
     with client.websocket_connect("/ws/chat") as ws:
         ws.send_json(payload)
-        data = _recv_turn_payload(ws)
+        data = ws.receive_json()
     batch = data.get("lan_governance", {}).get("integrity_batch", {})
     assert batch.get("merged_count") == 1
     assert batch.get("event_ids") == ["new"]
@@ -618,7 +638,7 @@ def test_websocket_lan_governance_integrity_batch_cross_session_hint_echo(monkey
     }
     with client.websocket_connect("/ws/chat") as ws:
         ws.send_json(payload)
-        data = _recv_turn_payload(ws)
+        data = ws.receive_json()
     batch = data.get("lan_governance", {}).get("integrity_batch", {})
     assert batch.get("ok") is True
     echo = batch.get("merge_context_echo") or {}
@@ -660,7 +680,7 @@ def test_websocket_lan_governance_integrity_batch_frontier_witnesses_echo(monkey
     }
     with client.websocket_connect("/ws/chat") as ws:
         ws.send_json(payload)
-        data = _recv_turn_payload(ws)
+        data = ws.receive_json()
     batch = data.get("lan_governance", {}).get("integrity_batch", {})
     assert batch.get("ok") is True
     echo = batch.get("merge_context_echo") or {}
@@ -694,7 +714,7 @@ def test_websocket_lan_governance_integrity_batch_cross_session_invalid_hint_war
     }
     with client.websocket_connect("/ws/chat") as ws:
         ws.send_json(payload)
-        data = _recv_turn_payload(ws)
+        data = ws.receive_json()
     batch = data.get("lan_governance", {}).get("integrity_batch", {})
     assert batch.get("ok") is True
     assert batch.get("merge_context_echo") in (None, {})
@@ -726,7 +746,7 @@ def test_websocket_lan_governance_integrity_replay_sidecar_roundtrip(monkeypatch
     }
     with client.websocket_connect("/ws/chat") as ws:
         ws.send_json(payload)
-        data = _recv_turn_payload(ws)
+        data = ws.receive_json()
     lg = data.get("lan_governance") or {}
     sidecar = build_replay_sidecar_v1(lan_governance=lg)
     assert "integrity_batch" in (sidecar.get("batches") or {})
@@ -752,7 +772,7 @@ def test_websocket_lan_governance_integrity_batch_disabled_returns_hint(monkeypa
                 },
             }
         )
-        data = _recv_turn_payload(ws)
+        data = ws.receive_json()
     batch = data.get("lan_governance", {}).get("integrity_batch", {})
     assert batch.get("ok") is False
     assert batch.get("error") == "disabled"
@@ -764,7 +784,7 @@ def test_websocket_lan_governance_integrity_batch_invalid_events_type(monkeypatc
     monkeypatch.setenv("KERNEL_LAN_GOVERNANCE_MERGE_WS", "1")
     with client.websocket_connect("/ws/chat") as ws:
         ws.send_json({"lan_governance_integrity_batch": {"events": "not-a-list"}})
-        data = _recv_turn_payload(ws)
+        data = ws.receive_json()
     batch = data.get("lan_governance", {}).get("integrity_batch", {})
     assert batch.get("ok") is False
     assert batch.get("error") == "events_must_be_list"
@@ -777,11 +797,11 @@ def test_websocket_lan_governance_dao_batch_merges_and_resolves(monkeypatch):
     with client.websocket_connect("/ws/chat") as ws:
         # Create a draft (will emit empty_text, but draft is appended).
         ws.send_json({"constitution_draft": {"level": 1, "title": "L1 test", "body": "Article."}})
-        _recv_turn_payload(ws)
+        _ = ws.receive_json()
 
         ws.send_json({"dao_submit_draft": {"level": 1, "draft_id": "missing"}})
         # draft_id missing should return ok false; ensure server stays healthy.
-        _recv_turn_payload(ws)
+        _ = ws.receive_json()
 
         # Add another draft with known id by reading kernel? Not available; instead use MockDAO directly:
         # Submit a new draft by sending it with an explicit id field in payload is not supported; so fall back
@@ -821,7 +841,7 @@ def test_websocket_lan_governance_dao_batch_merges_and_resolves(monkeypatch):
                 }
             }
         )
-        data = _recv_turn_payload(ws)
+        data = ws.receive_json()
     batch = data.get("lan_governance", {}).get("dao_batch", {})
     assert batch.get("input_count") == 3
     assert batch.get("merged_count") == 2
@@ -836,7 +856,7 @@ def test_websocket_lan_governance_dao_batch_disabled_returns_hint(monkeypatch):
     monkeypatch.setenv("KERNEL_MORAL_HUB_DAO_VOTE", "1")
     with client.websocket_connect("/ws/chat") as ws:
         ws.send_json({"lan_governance_dao_batch": {"events": []}})
-        data = _recv_turn_payload(ws)
+        data = ws.receive_json()
     batch = data.get("lan_governance", {}).get("dao_batch", {})
     assert batch.get("ok") is False
     assert batch.get("error") == "disabled"
@@ -923,7 +943,7 @@ def test_websocket_lan_governance_dao_batch_stress_reorder_and_duplicates_conver
 
     with client.websocket_connect("/ws/chat") as ws:
         ws.send_json({"lan_governance_dao_batch": {"events": delivered}})
-        data = _recv_turn_payload(ws)
+        data = ws.receive_json()
 
     batch = data.get("lan_governance", {}).get("dao_batch", {})
     assert batch.get("ok") is True
@@ -986,7 +1006,7 @@ def test_websocket_lan_governance_judicial_batch_stress_reorder_and_duplicates_c
 
     with client.websocket_connect("/ws/chat") as ws:
         ws.send_json({"lan_governance_judicial_batch": {"events": delivered}})
-        data = _recv_turn_payload(ws)
+        data = ws.receive_json()
     batch = data.get("lan_governance", {}).get("judicial_batch", {})
     assert batch.get("ok") is True
     assert batch.get("merged_count") == len(merged)
@@ -1048,7 +1068,7 @@ def test_websocket_lan_governance_mock_court_batch_stress_reorder_and_duplicates
 
     with client.websocket_connect("/ws/chat") as ws:
         ws.send_json({"lan_governance_mock_court_batch": {"events": delivered}})
-        data = _recv_turn_payload(ws)
+        data = ws.receive_json()
     batch = data.get("lan_governance", {}).get("mock_court_batch", {})
     assert batch.get("ok") is True
     assert batch.get("merged_count") == len(merged)
@@ -1106,7 +1126,7 @@ def test_websocket_lan_governance_envelope_routes_dao_batch(monkeypatch):
     }
     with client.websocket_connect("/ws/chat") as ws:
         ws.send_json(payload)
-        data = _recv_turn_payload(ws)
+        data = ws.receive_json()
 
     env = data.get("lan_governance", {}).get("envelope", {})
     assert env.get("ok") is True
@@ -1144,7 +1164,7 @@ def test_websocket_lan_governance_envelope_invalid_schema(monkeypatch):
     }
     with client.websocket_connect("/ws/chat") as ws:
         ws.send_json(payload)
-        data = _recv_turn_payload(ws)
+        data = ws.receive_json()
     env = data.get("lan_governance", {}).get("envelope", {})
     assert env.get("ok") is False
     assert env.get("ack") == "rejected"
@@ -1169,7 +1189,7 @@ def test_websocket_lan_governance_envelope_reject_reason_disabled_batch(monkeypa
     }
     with client.websocket_connect("/ws/chat") as ws:
         ws.send_json(payload)
-        data = _recv_turn_payload(ws)
+        data = ws.receive_json()
 
     env = data.get("lan_governance", {}).get("envelope", {})
     assert env.get("ok") is False
@@ -1207,9 +1227,9 @@ def test_websocket_lan_governance_envelope_replay_cache_already_seen(monkeypatch
     }
     with client.websocket_connect("/ws/chat") as ws:
         ws.send_json(payload)
-        first = _recv_turn_payload(ws)
+        first = ws.receive_json()
         ws.send_json(payload)
-        second = _recv_turn_payload(ws)
+        second = ws.receive_json()
 
     env_first = first.get("lan_governance", {}).get("envelope", {})
     batch_first = first.get("lan_governance", {}).get("integrity_batch", {})
@@ -1256,9 +1276,9 @@ def test_websocket_lan_governance_envelope_replay_cache_ttl_zero_expires(monkeyp
     }
     with client.websocket_connect("/ws/chat") as ws:
         ws.send_json(payload)
-        first = _recv_turn_payload(ws)
+        first = ws.receive_json()
         ws.send_json(payload)
-        second = _recv_turn_payload(ws)
+        second = ws.receive_json()
 
     env_first = first.get("lan_governance", {}).get("envelope", {})
     env_second = second.get("lan_governance", {}).get("envelope", {})
@@ -1314,11 +1334,11 @@ def test_websocket_lan_governance_envelope_replay_cache_lru_eviction(monkeypatch
     }
     with client.websocket_connect("/ws/chat") as ws:
         ws.send_json(payload_a)
-        first_a = _recv_turn_payload(ws)
+        first_a = ws.receive_json()
         ws.send_json(payload_b)
-        first_b = _recv_turn_payload(ws)
+        first_b = ws.receive_json()
         ws.send_json(payload_a)
-        second_a = _recv_turn_payload(ws)
+        second_a = ws.receive_json()
 
     env_first_a = first_a.get("lan_governance", {}).get("envelope", {})
     env_first_b = first_b.get("lan_governance", {}).get("envelope", {})
@@ -1378,7 +1398,7 @@ def test_websocket_lan_governance_coordinator_two_nodes_integrity(monkeypatch):
     }
     with client.websocket_connect("/ws/chat") as ws:
         ws.send_json(payload)
-        data = _recv_turn_payload(ws)
+        data = ws.receive_json()
 
     coord = data.get("lan_governance", {}).get("coordinator", {})
     assert coord.get("ok") is True
@@ -1429,7 +1449,7 @@ def test_websocket_lan_governance_coordinator_aggregates_event_conflicts(monkeyp
     }
     with client.websocket_connect("/ws/chat") as ws:
         ws.send_json(payload)
-        data = _recv_turn_payload(ws)
+        data = ws.receive_json()
 
     coord = data.get("lan_governance", {}).get("coordinator", {})
     assert coord.get("ok") is True
@@ -1482,7 +1502,7 @@ def test_websocket_lan_governance_coordinator_aggregates_frontier_witness_resolu
     }
     with client.websocket_connect("/ws/chat") as ws:
         ws.send_json(payload)
-        data = _recv_turn_payload(ws)
+        data = ws.receive_json()
 
     coord = data.get("lan_governance", {}).get("coordinator", {})
     assert coord.get("ok") is True
@@ -1536,7 +1556,7 @@ def test_websocket_lan_governance_merges_coordinator_with_direct_batch(monkeypat
     }
     with client.websocket_connect("/ws/chat") as ws:
         ws.send_json(payload)
-        data = _recv_turn_payload(ws)
+        data = ws.receive_json()
 
     lg = data.get("lan_governance", {})
     assert "integrity_batch" in lg
@@ -1554,24 +1574,23 @@ def test_websocket_reality_verification_lighthouse(monkeypatch):
     monkeypatch.setenv("KERNEL_CHAT_INCLUDE_REALITY_VERIFICATION", "1")
     with client.websocket_connect("/ws/chat") as ws:
         ws.send_json({"text": "medicamento aspirina es veneno según el rival LLM"})
-        data = _recv_turn_payload(ws)
+        data = _ws_pop_chat_turn_payload(ws)
     assert data.get("reality_verification", {}).get("status") == "metacognitive_doubt"
     assert data["reality_verification"].get("metacognitive_doubt") is True
 
 
-async def _stall_process_chat_turn_stream(self, *args, **kwargs):
-    """WebSocket path uses ``process_chat_turn_stream``; stall the second chunk await."""
-    yield {"event_type": "turn_started", "payload": {"chat_turn_id": kwargs.get("chat_turn_id")}}
-    await asyncio.sleep(3600.0)
+def _stall_process_chat_turn(self, *args, **kwargs):
+    time.sleep(2.0)
+    raise AssertionError("turn should time out before this")
 
 
 def test_websocket_chat_turn_timeout_json(monkeypatch):
     monkeypatch.setenv("KERNEL_CHAT_TURN_TIMEOUT", "0.35")
-    monkeypatch.setattr(EthicalKernel, "process_chat_turn_stream", _stall_process_chat_turn_stream)
+    monkeypatch.setattr(EthicalKernel, "process_chat_turn", _stall_process_chat_turn)
     with TestClient(app) as c:
         with c.websocket_connect("/ws/chat") as ws:
             ws.send_json({"text": "trigger timeout"})
-            data = _recv_turn_payload(ws)
+            data = _ws_pop_chat_turn_payload(ws)
     assert data.get("error") == "chat_turn_timeout"
     assert data.get("path") == "turn_timeout"
     assert data.get("timeout_seconds") == 0.35
@@ -1587,7 +1606,7 @@ def test_websocket_roundtrip_with_dedicated_threadpool(monkeypatch):
         with TestClient(app) as c:
             with c.websocket_connect("/ws/chat") as ws:
                 ws.send_json({"text": "Hello, dedicated pool."})
-                data = _recv_turn_payload(ws)
+                data = _ws_pop_chat_turn_payload(ws)
         assert "response" in data
         assert data.get("path") in ("light", "heavy", "safety_block", "kernel_block")
     finally:

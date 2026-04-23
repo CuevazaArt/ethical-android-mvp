@@ -1,5 +1,6 @@
 """Semantic MalAbs: backend embedding path, HTTP fallback, latency, and failure handling."""
 
+import logging
 import os
 import sys
 import time
@@ -79,6 +80,30 @@ def test_semantic_tier_falls_back_when_backend_embedding_raises(monkeypatch):
         )
         r = run_semantic_malabs_after_lexical("paraphrase", llm_backend=backend)
         assert r.blocked is True
+    finally:
+        os.environ.pop("KERNEL_SEMANTIC_CHAT_GATE", None)
+        os.environ.pop("KERNEL_SEMANTIC_CHAT_LLM_ARBITER", None)
+        sg._ref_embed_cache.clear()
+
+
+def test_backend_embedding_error_emits_debug_log(caplog, monkeypatch):
+    os.environ["KERNEL_SEMANTIC_CHAT_GATE"] = "1"
+    os.environ["KERNEL_SEMANTIC_CHAT_LLM_ARBITER"] = "0"
+    import src.modules.semantic_chat_gate as sg
+
+    sg._ref_embed_cache.clear()
+    unit = np.array([1.0, 0.0, 0.0], dtype=np.float64)
+    monkeypatch.setattr(sg, "_fetch_embedding", lambda _t: unit)
+    backend = MockLLMBackend(embedding_error=RuntimeError("embed server down"))
+    with caplog.at_level(logging.DEBUG, "src.modules.semantic_chat_gate"):
+        monkeypatch.setattr(
+            sg,
+            "_best_similarity",
+            lambda emb, backend=None: (0.6, "INTENTIONAL_LETHAL_VIOLENCE", "hint"),
+        )
+        _ = run_semantic_malabs_after_lexical("paraphrase", llm_backend=backend)
+    try:
+        assert "backend.embedding failed" in caplog.text
     finally:
         os.environ.pop("KERNEL_SEMANTIC_CHAT_GATE", None)
         os.environ.pop("KERNEL_SEMANTIC_CHAT_LLM_ARBITER", None)

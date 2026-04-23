@@ -22,7 +22,14 @@ def test_temporal_context_transport_keyword_eta_and_sync_fields():
         context="everyday_ethics",
         text="I need transport options for a long trip.",
         vitality=VitalityAssessment(
-            0.8, 0.05, False, None, critical_temperature_threshold(), False, False, False
+            0.8,
+            0.05,
+            False,
+            None,
+            critical_temperature_threshold(),
+            False,
+            False,
+            False,
         ),
         sensor_snapshot=SensorSnapshot(place_trust=0.9),
     )

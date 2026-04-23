@@ -2,8 +2,20 @@
 Tests for Block 1.2: Encrypted Evidence and Anchoring (REO).
 """
 
+import logging
+
+import pytest
+
 from src.modules.dao_orchestrator import DAOOrchestrator
 from src.modules.evidence_safe import EvidenceSafe
+
+
+def test_evidence_safe_invalid_fernet_key_falls_back_with_warning(caplog: pytest.LogCaptureFixture) -> None:
+    """Invalid env-style keys must not crash init; operator sees WARNING (Fase 15 / Boy Scout)."""
+    with caplog.at_level(logging.WARNING):
+        safe = EvidenceSafe(fernet_key="nope_not_a_fernet_key")
+    assert safe._is_transient is True
+    assert "transient" in caplog.text.lower() or "invalid" in caplog.text.lower()
 
 
 def test_evidence_safe_hashing():

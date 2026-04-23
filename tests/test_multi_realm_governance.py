@@ -365,6 +365,34 @@ class TestMultiRealmGovernor:
             assert approved is False
 
 
+class TestGovernanceMalabsHotReloadContract:
+    """C.2.1 — successful vote must publish θ_allow/θ_block for :meth:`EthicalKernel._on_governance_threshold_updated`."""
+
+    def test_resolve_proposal_publishes_kernel_threshold_payload(self) -> None:
+        from src.modules.kernel_event_bus import EVENT_GOVERNANCE_THRESHOLD_UPDATED
+
+        events: list[tuple[str, dict]] = []
+
+        class FakeBus:
+            def publish(self, event: str, payload: dict) -> None:
+                events.append((event, payload))
+
+        with tempfile.TemporaryDirectory() as tmpdir:
+            gov = MultiRealmGovernor(artifacts_path=Path(tmpdir), event_bus=FakeBus())
+            gov.create_realm("realm-1", theta_allow=0.45, theta_block=0.82)
+            proposal = gov.propose_threshold_update(
+                "realm-1", "user-1", theta_allow=0.36, theta_block=0.79
+            )
+            gov.cast_vote("realm-1", proposal.proposal_id, "user-2", 1.0, vote_for=True)
+            assert gov.resolve_proposal("realm-1", proposal.proposal_id) is True
+
+        assert len(events) >= 1
+        last_ev, last_pay = events[-1]
+        assert last_ev == EVENT_GOVERNANCE_THRESHOLD_UPDATED
+        assert last_pay.get("theta_allow") == pytest.approx(0.36)
+        assert last_pay.get("theta_block") == pytest.approx(0.79)
+
+
 class TestMultiRealmGovernanceEnabled:
     """Tests for is_multi_realm_governance_enabled() flag."""
 

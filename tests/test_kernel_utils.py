@@ -1,173 +1,158 @@
-"""Unit tests for :mod:`src.kernel_utils` (Module 0.1.3 extractions)."""
+"""Unit tests for :mod:`src.kernel_utils` (MINOR_CONTRIBUTIONS_BACKLOG §5)."""
 
-import os
-import sys
-from types import SimpleNamespace
+import math
 
 import pytest
 
-sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
-
 from src.kernel_utils import (
-    apply_temporal_eta_urgency_to_signals,
-    coercion_uncertainty_from_perception,
-    enrich_chat_turn_signals_for_bayesian,
-    kernel_decision_event_payload,
+    _MAX_PERCEPTION_PARALLEL_ENV_WORKERS,
+    format_proactive_candidate_line,
+    kernel_dao_as_mock,
     kernel_env_float,
+    kernel_env_int,
     kernel_env_truthy,
-    merge_perception_uncertainty_into_signals,
+    kernel_mixture_scorer,
+    perception_coercion_u_value,
+    perception_parallel_workers,
 )
+from src.modules.bayesian_engine import BayesianEngine
+from src.modules.dao_orchestrator import DAOOrchestrator
+from src.modules.mock_dao import MockDAO
+from src.modules.weighted_ethics_scorer import WeightedEthicsScorer
 
 
-def test_kernel_decision_event_payload_minimal() -> None:
-    d = SimpleNamespace(
-        scenario="hello world " * 100,
-        place="p",
-        final_action="a",
-        decision_mode="m",
-        blocked=True,
-        block_reason="r",
-        moral=SimpleNamespace(global_verdict=SimpleNamespace(value="Gray"), total_score=0.42),
-    )
-    p = kernel_decision_event_payload(d, context="ctx")
-    assert p["place"] == "p"
-    assert p["context"] == "ctx"
-    assert p["verdict"] == "Gray"
-    assert p["score"] == pytest.approx(0.42)
-    assert len(p["scenario"]) <= 500
+def test_kernel_env_truthy(monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.setenv("TEST_T", "1")
+    assert kernel_env_truthy("TEST_T") is True
+    monkeypatch.setenv("TEST_T", "0")
+    assert kernel_env_truthy("TEST_T") is False
+    monkeypatch.setenv("TEST_T", "yes")
+    assert kernel_env_truthy("TEST_T") is True
 
 
-def test_kernel_decision_event_payload_no_moral() -> None:
-    d = SimpleNamespace(
-        scenario="s",
-        place="p",
-        final_action="a",
-        decision_mode="m",
-        blocked=False,
-        block_reason="",
-        moral=None,
-    )
-    p = kernel_decision_event_payload(d, context="c")
-    assert p["verdict"] is None
-    assert p["score"] is None
+def test_kernel_env_int_invalid_falls_back(monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.setenv("TEST_I", "not-an-int")
+    assert kernel_env_int("TEST_I", 7) == 7
+    monkeypatch.setenv("TEST_I", "42")
+    assert kernel_env_int("TEST_I", 7) == 42
+    monkeypatch.delenv("TEST_I", raising=False)
+    assert kernel_env_int("TEST_I", 7) == 7
 
 
-def test_kernel_env_truthy() -> None:
-    import os
-
-    old = os.environ.get("KUT_TEST_X")
-    try:
-        os.environ["KUT_TEST_X"] = "1"
-        assert kernel_env_truthy("KUT_TEST_X") is True
-        del os.environ["KUT_TEST_X"]
-        assert kernel_env_truthy("KUT_TEST_X") is False
-    finally:
-        if old is not None:
-            os.environ["KUT_TEST_X"] = old
-        elif "KUT_TEST_X" in os.environ:
-            del os.environ["KUT_TEST_X"]
+def test_kernel_env_int_scientific_or_floatish_string(monkeypatch: pytest.MonkeyPatch) -> None:
+    """Finite float text that int() rejects still yields a truncated int when unambiguously numeric."""
+    monkeypatch.setenv("TEST_I", "1e2")
+    assert kernel_env_int("TEST_I", 0) == 100
+    monkeypatch.setenv("TEST_I", "3.0")
+    assert kernel_env_int("TEST_I", 0) == 3
+    monkeypatch.setenv("TEST_I", "-2.1")
+    assert kernel_env_int("TEST_I", 0) == -2
 
 
-def test_coercion_uncertainty_from_perception_dict() -> None:
-    p = SimpleNamespace(coercion_report={"uncertainty": 0.4})
-    assert coercion_uncertainty_from_perception(p) == pytest.approx(0.4)
+def test_kernel_env_int_nonfinite_float_string_falls_back(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    d = 9
+    for val in ("nan", "inf", "-inf", "1e400"):
+        monkeypatch.setenv("TEST_INF", val)
+        assert kernel_env_int("TEST_INF", d) == d
 
 
-class _U:
-    def uncertainty(self) -> float:
-        return 0.6
+def test_kernel_env_float_invalid_falls_back(monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.setenv("TEST_F", "x")
+    assert kernel_env_float("TEST_F", 0.5) == 0.5
+    monkeypatch.setenv("TEST_F", "1.25")
+    assert math.isclose(kernel_env_float("TEST_F", 0.5), 1.25)
 
 
-def test_coercion_uncertainty_from_perception_callable() -> None:
-    p = SimpleNamespace(coercion_report=_U())
-    assert coercion_uncertainty_from_perception(p) == pytest.approx(0.6)
+def test_kernel_env_float_nonfinite_falls_back(monkeypatch: pytest.MonkeyPatch) -> None:
+    d = 12.0
+    for val in ("nan", "inf", "-inf", "NaN", "+Inf"):
+        monkeypatch.setenv("TEST_FNF", val)
+        assert kernel_env_float("TEST_FNF", d) == d
 
 
-def test_merge_perception_uncertainty_into_signals() -> None:
-    s = {"perception_uncertainty": 0.1}
-    out = merge_perception_uncertainty_into_signals(s, 0.5)
-    assert isinstance(out, dict)
-    assert out["perception_uncertainty"] == pytest.approx(0.5)
-    s2: dict = {}
-    assert merge_perception_uncertainty_into_signals(s2, None) is s2
-    assert merge_perception_uncertainty_into_signals(s2, 0.0) is s2
+def test_perception_parallel_workers_respects_flags(monkeypatch: pytest.MonkeyPatch) -> None:
+    for k in ("KERNEL_PERCEPTION_PARALLEL", "KERNEL_PERCEPTION_PARALLEL_WORKERS"):
+        monkeypatch.delenv(k, raising=False)
+    assert perception_parallel_workers() == 0
+    monkeypatch.setenv("KERNEL_PERCEPTION_PARALLEL", "1")
+    w = perception_parallel_workers()
+    assert 2 <= w <= 8
+    monkeypatch.setenv("KERNEL_PERCEPTION_PARALLEL_WORKERS", "3")
+    assert perception_parallel_workers() == 3
 
 
-def test_enrich_chat_turn_i3_i5() -> None:
-    old_t = os.environ.get("KERNEL_TEMPORAL_ETA_MODULATION")
-    old_ref = os.environ.get("KERNEL_TEMPORAL_REFERENCE_ETA_S")
-    try:
-        os.environ["KERNEL_TEMPORAL_ETA_MODULATION"] = "1"
-        os.environ["KERNEL_TEMPORAL_REFERENCE_ETA_S"] = "300"
-        p = SimpleNamespace(
-            coercion_report={"uncertainty": 0.25},
-            temporal_context=SimpleNamespace(eta_seconds=100.0, battery_horizon_state="nominal"),
-        )
-        base = {"urgency": 0.1, "perception_uncertainty": 0.0}
-        out = enrich_chat_turn_signals_for_bayesian(base, p)
-        assert isinstance(out, dict)
-        assert out["perception_uncertainty"] == pytest.approx(0.25)
-        assert out["urgency"] > 0.1
-    finally:
-        if old_t is not None:
-            os.environ["KERNEL_TEMPORAL_ETA_MODULATION"] = old_t
-        elif "KERNEL_TEMPORAL_ETA_MODULATION" in os.environ:
-            del os.environ["KERNEL_TEMPORAL_ETA_MODULATION"]
-        if old_ref is not None:
-            os.environ["KERNEL_TEMPORAL_REFERENCE_ETA_S"] = old_ref
-        elif "KERNEL_TEMPORAL_REFERENCE_ETA_S" in os.environ:
-            del os.environ["KERNEL_TEMPORAL_REFERENCE_ETA_S"]
+def test_perception_parallel_workers_env_capped(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.setenv("KERNEL_PERCEPTION_PARALLEL", "1")
+    monkeypatch.setenv("KERNEL_PERCEPTION_PARALLEL_WORKERS", "99999")
+    assert perception_parallel_workers() == _MAX_PERCEPTION_PARALLEL_ENV_WORKERS
 
 
-def test_apply_temporal_eta_urgency_disabled_returns_same() -> None:
-    old = os.environ.get("KERNEL_TEMPORAL_ETA_MODULATION")
-    try:
-        if "KERNEL_TEMPORAL_ETA_MODULATION" in os.environ:
-            del os.environ["KERNEL_TEMPORAL_ETA_MODULATION"]
-        s = {"urgency": 0.2}
-        p = SimpleNamespace(
-            temporal_context=SimpleNamespace(eta_seconds=50.0, battery_horizon_state="nominal")
-        )
-        out = apply_temporal_eta_urgency_to_signals(s, p)
-        assert out is s
-    finally:
-        if old is not None:
-            os.environ["KERNEL_TEMPORAL_ETA_MODULATION"] = old
+def test_perception_coercion_u_value() -> None:
+    assert perception_coercion_u_value(None) is None
+    assert perception_coercion_u_value(0.4) == pytest.approx(0.4)
+    assert perception_coercion_u_value(float("nan")) is None
+    assert perception_coercion_u_value(1.5) == pytest.approx(1.0)
+    assert perception_coercion_u_value("not") is None
 
 
-def test_kernel_env_float_clamp() -> None:
-    assert kernel_env_float("_MISSING_XX", 3.0, min_v=1.0, max_v=10.0) == 3.0
-    old = os.environ.get("KUT_FLOAT_X")
-    try:
-        os.environ["KUT_FLOAT_X"] = "not_a_number"
-        assert kernel_env_float("KUT_FLOAT_X", 2.0, min_v=1.0, max_v=5.0) == 2.0
-        os.environ["KUT_FLOAT_X"] = "9999"
-        assert kernel_env_float("KUT_FLOAT_X", 1.0, min_v=1.0, max_v=10.0) == 10.0
-    finally:
-        if old is not None:
-            os.environ["KUT_FLOAT_X"] = old
-        elif "KUT_FLOAT_X" in os.environ:
-            del os.environ["KUT_FLOAT_X"]
+def test_perception_coercion_u_value_rejects_bool() -> None:
+    assert perception_coercion_u_value(True) is None
+    assert perception_coercion_u_value(False) is None
 
 
-def test_merge_perception_uncertainty_tolerates_garbage_signal() -> None:
-    s = {"perception_uncertainty": "nope"}
-    out = merge_perception_uncertainty_into_signals(s, 0.3)
-    assert out["perception_uncertainty"] == pytest.approx(0.3)
+def test_format_proactive_candidate_line_smoke() -> None:
+    class A:
+        name = "n"
+        description = "d"
+        estimated_impact = 0.1
+        confidence = 0.8
+
+    out = format_proactive_candidate_line(A())
+    assert "n" in out and "0.100" in out
 
 
-def test_apply_temporal_skips_non_finite_eta() -> None:
-    old = os.environ.get("KERNEL_TEMPORAL_ETA_MODULATION")
-    try:
-        os.environ["KERNEL_TEMPORAL_ETA_MODULATION"] = "1"
-        s = {"urgency": 0.1}
-        p = SimpleNamespace(
-            temporal_context=SimpleNamespace(eta_seconds=float("nan"), battery_horizon_state="nominal")
-        )
-        out = apply_temporal_eta_urgency_to_signals(s, p)
-        assert out is s
-    finally:
-        if old is not None:
-            os.environ["KERNEL_TEMPORAL_ETA_MODULATION"] = old
-        elif "KERNEL_TEMPORAL_ETA_MODULATION" in os.environ:
-            del os.environ["KERNEL_TEMPORAL_ETA_MODULATION"]
+def test_format_proactive_candidate_line_bool_impact_is_not_numeric() -> None:
+    class B:
+        name = "x"
+        description = "y"
+        estimated_impact = True
+        confidence = 0.5
+
+    out = format_proactive_candidate_line(B())
+    assert "impact=0.000" in out
+    assert "conf=0.500" in out
+
+
+def test_kernel_dao_as_mock_plain_and_orchestrator() -> None:
+    plain = MockDAO()
+    assert kernel_dao_as_mock(plain) is plain
+    orch = DAOOrchestrator()
+    assert kernel_dao_as_mock(orch) is orch.local_dao
+
+
+def test_kernel_mixture_scorer_bayesian_or_facade() -> None:
+    be = BayesianEngine()
+    assert kernel_mixture_scorer(be) is be.scorer
+    ws = WeightedEthicsScorer()
+    assert kernel_mixture_scorer(ws) is ws
+
+
+def test_kernel_module_reexports_match_kernel_utils() -> None:
+    """
+    Guard against reintroducing duplicate `def` bodies in :mod:`src.kernel` that shadow
+    :mod:`src.kernel_utils` imports (Bloque 0.1.10 / Backlog §5).
+    """
+    import src.kernel as kernel_mod
+    from src import kernel_utils
+
+    assert kernel_mod._format_proactive_candidate_line is kernel_utils.format_proactive_candidate_line
+    assert kernel_mod._kernel_env_float is kernel_utils.kernel_env_float
+    assert kernel_mod._kernel_env_int is kernel_utils.kernel_env_int
+    assert kernel_mod._kernel_env_truthy is kernel_utils.kernel_env_truthy
+    assert kernel_mod._perception_parallel_workers is kernel_utils.perception_parallel_workers
+    assert kernel_mod.kernel_dao_as_mock is kernel_utils.kernel_dao_as_mock
+    assert kernel_mod.kernel_mixture_scorer is kernel_utils.kernel_mixture_scorer

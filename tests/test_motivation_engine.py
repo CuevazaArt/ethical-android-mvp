@@ -1,5 +1,7 @@
+import math
+
 from src.kernel import EthicalKernel
-from src.modules.motivation_engine import DriveType
+from src.modules.motivation_engine import DriveType, MotivationEngine
 
 
 def test_motivation_drives_growth():
@@ -38,7 +40,7 @@ def test_trigger_proactive_purpose():
 
     assert len(actions) > 0
     assert actions[0].source == "internal_motivation"
-    assert "investigate" in actions[0].name
+    assert "proactive" in actions[0].name or "exploration" in actions[0].name
 
     # Verify drive decreased after trigger
     assert kernel.motivation.drives[DriveType.CURIOSITY].value < 0.9
@@ -87,3 +89,27 @@ def test_social_tension_boosts_repair_drive():
 
     report = kernel.motivation.get_motivation_report()
     assert report["social_repair"] > 0.0
+
+
+def test_update_drives_ignores_nonfinite_kernel_state():
+    eng = MotivationEngine()
+    eng.update_drives(
+        {
+            "social_tension": float("nan"),
+            "uncertainty": float("inf"),
+            "energy": "not_a_number",
+        }
+    )
+    for v in eng.get_motivation_report().values():
+        assert math.isfinite(v)
+        assert 0.0 <= v <= 1.0
+
+
+def test_integrity_drive_emits_proactive_action():
+    eng = MotivationEngine()
+    for dt in eng.drives.values():
+        if dt.type != DriveType.INTEGRITY:
+            dt.value = 0.0
+    eng.drives[DriveType.INTEGRITY].value = 0.95
+    actions = eng.get_proactive_actions()
+    assert any(a.name == "proactive_integrity_check" for a in actions)

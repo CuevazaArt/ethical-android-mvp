@@ -35,3 +35,30 @@ def test_perception_confidence_very_low_when_multiple_distrust_signals():
     assert env.band in ("low", "very_low")
     assert env.score < 0.5
     assert "multimodal_mismatch" in env.reasons
+
+
+def test_thermal_elevated_penalty_smaller_than_critical():
+    e0 = build_perception_confidence_envelope(
+        coercion_report=None,
+        multimodal_state="aligned",
+        epistemic_active=False,
+        vitality_critical=False,
+    )
+    e_elev = build_perception_confidence_envelope(
+        coercion_report=None,
+        multimodal_state="aligned",
+        epistemic_active=False,
+        vitality_critical=False,
+        thermal_elevated=True,
+    )
+    e_crit = build_perception_confidence_envelope(
+        coercion_report=None,
+        multimodal_state="aligned",
+        epistemic_active=False,
+        vitality_critical=False,
+        thermal_critical=True,
+    )
+    assert e_elev.score == e0.score - 0.05
+    assert e_crit.score == e0.score - 0.15
+    assert "thermal_elevated" in e_elev.reasons
+    assert "thermal_critical" in e_crit.reasons

@@ -55,6 +55,26 @@ def test_salience_to_llm_empty():
     assert salience_to_llm_context(None) == ""
 
 
+def test_salience_non_finite_inputs_fallback_to_uniform():
+    """NaN/Inf in signals must not break normalization (uniform budget if sum degenerates)."""
+    sm = SalienceMap()
+    state = InternalState(sigma=float("nan"), mode="neutral", energy=1.0)
+    signals = {"risk": float("inf"), "hostility": float("-inf")}
+    social = SocialEvaluation(
+        circle=TrustCircle.SOTO_NEUTRO,
+        trust=0.5,
+        dialectic_active=False,
+        openness_level=0.5,
+        caution_level=float("nan"),
+        recommended_response="",
+        reasoning="",
+    )
+    snap = sm.compute(signals, state, social, None, curiosity=float("inf"))
+    u = 1.0 / 5.0
+    assert all(abs(w - u) < 1e-9 for w in snap.weights.values())
+    assert abs(sum(snap.weights.values()) - 1.0) < 1e-6
+
+
 def test_kernel_has_salience():
     k = EthicalKernel(variability=False, seed=3)
     actions = [

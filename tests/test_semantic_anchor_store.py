@@ -1,5 +1,6 @@
 """Tests for SemanticAnchorStore (in-memory and Chroma backends)."""
 
+import logging
 import os
 import sys
 import tempfile
@@ -13,6 +14,7 @@ from src.modules.semantic_anchor_store import (
     InMemorySemanticAnchorStore,
     SemanticAnchorRecord,
     SemanticAnchorStore,
+    create_anchor_store,
 )
 
 
@@ -165,6 +167,10 @@ class TestSemanticAnchorRecord:
         )
         assert rec.is_expired() is False
 
+    def test_record_nonfinite_ttl_coerces_to_zero(self):
+        r = SemanticAnchorRecord("a", "t", [0.1], metadata={}, ttl_s=float("nan"))
+        assert r.ttl_s == 0.0
+
 
 class TestSemanticAnchorStoreFactory:
     """Test SemanticAnchorStore.from_env() factory."""
@@ -183,6 +189,17 @@ class TestSemanticAnchorStoreFactory:
         monkeypatch.setenv("KERNEL_SEMANTIC_ANCHOR_TTL_S", "3.14")
         store = SemanticAnchorStore.from_env()
         assert store.default_ttl_s == 3.14
+
+    def test_from_env_nonfinite_or_negative_ttl_coerces_to_zero(self, monkeypatch):
+        monkeypatch.setenv("KERNEL_SEMANTIC_VECTOR_BACKEND", "memory")
+        monkeypatch.setenv("KERNEL_SEMANTIC_ANCHOR_TTL_S", "nan")
+        assert SemanticAnchorStore.from_env().default_ttl_s == 0.0
+        monkeypatch.setenv("KERNEL_SEMANTIC_ANCHOR_TTL_S", "-9")
+        assert SemanticAnchorStore.from_env().default_ttl_s == 0.0
+
+    def test_create_anchor_store_coerces_nonfinite_ttl(self):
+        m = create_anchor_store("memory", default_ttl_s=float("inf"))
+        assert m.default_ttl_s == 0.0
 
     def test_from_env_chroma_raises_import_error_if_not_installed(self, monkeypatch):
         # This test assumes chromadb is not always installed
@@ -248,3 +265,22 @@ class TestChremaSemanticAnchorStoreIntegration:
 
     def test_chroma_delete_nonexistent(self, chroma_store):
         assert chroma_store.delete("nonexistent") is False
+
+    def test_chroma_query_neighbors_failure_emits_debug(self, chroma_store, caplog):
+        """Fase 15.19: Chroma best-effort path is observable, not a silent []."""
+        def boom(*_a, **_k):
+            raise RuntimeError("injected chroma query failure")
+        chroma_store.collection.query = boom  # type: ignore[assignment, method-assign]
+        with caplog.at_level(logging.DEBUG, "src.modules.semantic_anchor_store"):
+            out = chroma_store.query_neighbors([0.1, 0.2, 0.3, 0.4], k=2)
+        assert out == []
+        assert "Chroma query_neighbors failed" in caplog.text
+
+    def test_chroma_delete_failure_emits_debug(self, chroma_store, caplog):
+        """Fase 15.20: delete() logs DEBUG on Chroma errors (parity with get/query)."""
+        def boom(*_a, **_k):
+            raise RuntimeError("injected chroma get/delete failure")
+        chroma_store.collection.get = boom  # type: ignore[assignment, method-assign]
+        with caplog.at_level(logging.DEBUG, "src.modules.semantic_anchor_store"):
+            assert chroma_store.delete("any-id") is False
+        assert "Chroma delete id=" in caplog.text

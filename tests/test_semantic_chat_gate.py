@@ -1,5 +1,6 @@
 """Semantic MalAbs layers: lexical first, then embeddings (θ_block/θ_allow), optional LLM arbiter."""
 
+import logging
 import os
 import subprocess
 import sys
@@ -230,6 +231,25 @@ def test_add_semantic_anchor_registers_phrase():
         assert any("xyz123" in a[0] for a in sg._runtime_anchors)
     finally:
         sg._runtime_anchors[:] = [a for a in sg._runtime_anchors if "xyz123" not in a[0]]
+
+
+def test_add_semantic_anchor_store_failure_is_logged(caplog, monkeypatch):
+    """Persistent and legacy store paths do not fail silently (Fase 15.17 / Boy Scout)."""
+    monkeypatch.setenv("KERNEL_SEMANTIC_VECTOR_BACKEND", "memory")
+    import src.modules.semantic_chat_gate as sg
+
+    def boom(*_a, **_k):
+        raise RuntimeError("injected store failure")
+
+    monkeypatch.setattr(sg._anchor_store, "upsert_anchor", boom)
+    with caplog.at_level(logging.WARNING, "src.modules.semantic_chat_gate"):
+        add_semantic_anchor("phrase for store log", "UNAUTHORIZED_REPROGRAMMING", "r")
+    assert "persistent store path failed" in caplog.text
+    assert "upsert failed" in caplog.text
+    # cleanup runtime list if phrase was still appended
+    sg._runtime_anchors[:] = [
+        a for a in sg._runtime_anchors if "phrase for store log" not in a[0]
+    ]
 
 
 def test_anchor_store_basic_functionality():

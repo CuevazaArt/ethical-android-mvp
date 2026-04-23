@@ -1,7 +1,10 @@
 """Unit tests for LLM adapter implementations (mock, HTTP JSON, Ollama-shaped HTTP)."""
 
+import asyncio
 import os
 import sys
+import threading
+import types
 from unittest.mock import MagicMock
 
 import pytest
@@ -199,6 +202,65 @@ def test_ollama_llm_backend_embed_uses_env_model(monkeypatch):
         os.environ.pop("KERNEL_SEMANTIC_CHAT_EMBED_MODEL", None)
 
 
+def test_http_json_llm_backend_malformed_json_raises_valueerror(monkeypatch):
+    class BadResp:
+        def raise_for_status(self):
+            pass
+
+        def json(self):
+            raise ValueError("boom")
+
+        @property
+        def text(self):
+            return "not json"
+
+        @property
+        def status_code(self):
+            return 200
+
+    class FakeClient:
+        def __init__(self, *a, **k):
+            pass
+
+        def __enter__(self):
+            return self
+
+        def __exit__(self, *a):
+            return False
+
+        def post(self, url, json=None, headers=None):
+            return BadResp()
+
+    monkeypatch.setattr("src.modules.llm_backends.httpx.Client", FakeClient)
+    b = HttpJsonLLMBackend("http://lab.example/infer", response_text_key="text")
+    with pytest.raises(ValueError, match="invalid JSON"):
+        b.completion("sys", "usr")
+
+
+def test_ollama_embedding_propagates_llm_cancel(monkeypatch):
+    import threading
+
+    from src.modules.llm_http_cancel import LLMHttpCancelledError, clear_llm_cancel_scope, set_llm_cancel_scope
+
+    class NeverCalled:
+        def __enter__(self):
+            raise AssertionError("should not open client when cancelled first")
+
+        def __exit__(self, *a):
+            return False
+
+    monkeypatch.setattr("src.modules.llm_backends.httpx.Client", NeverCalled)
+    b = OllamaLLMBackend("http://ollama.test", "m", 1.0)
+    ev = threading.Event()
+    ev.set()
+    set_llm_cancel_scope(ev)
+    try:
+        with pytest.raises(LLMHttpCancelledError):
+            b.embedding("x")
+    finally:
+        clear_llm_cancel_scope()
+
+
 def test_anthropic_llm_backend_messages_api(monkeypatch):
     from src.modules.llm_backends import AnthropicLLMBackend
 
@@ -214,3 +276,73 @@ def test_anthropic_llm_backend_messages_api(monkeypatch):
     assert b.completion("sys", "user") == "anthropic reply"
     assert b.embedding("x") is None
     client.messages.create.assert_called_once()
+
+
+async def test_anthropic_acompletion_stream_cooperative_cancel_between_chunks(monkeypatch):
+    from src.modules.llm_backends import AnthropicLLMBackend
+    from src.modules.llm_http_cancel import (
+        LLMHttpCancelledError,
+        clear_llm_cancel_scope,
+        set_llm_cancel_scope,
+    )
+
+    class FakeStream:
+        async def __aenter__(self):
+            return self
+
+        async def __aexit__(self, *args: object) -> None:
+            return None
+
+        class _TextIter:
+            def __init__(self) -> None:
+                self._i = 0
+
+            def __aiter__(self):
+                return self
+
+            async def __anext__(self) -> str:
+                self._i += 1
+                if self._i > 40:
+                    raise StopAsyncIteration
+                await asyncio.sleep(0)
+                return "x"
+
+        @property
+        def text_stream(self):
+            return self._TextIter()
+
+    class FakeMessages:
+        def stream(self, **kwargs: object):
+            return FakeStream()
+
+    class FakeAsyncAnthropic:
+        def __init__(self, api_key: str | None = None) -> None:
+            self.messages = FakeMessages()
+
+        async def close(self) -> None:
+            pass
+
+    monkeypatch.setenv("ANTHROPIC_API_KEY", "test-key-stream-cancel")
+    fake_anthropic = types.ModuleType("anthropic")
+    fake_anthropic.AsyncAnthropic = FakeAsyncAnthropic  # type: ignore[attr-defined]
+    monkeypatch.setitem(sys.modules, "anthropic", fake_anthropic)
+
+    sync_client = MagicMock()
+    sync_client.api_key = "k"
+    b = AnthropicLLMBackend(sync_client, "claude-test")
+
+    ev = threading.Event()
+    set_llm_cancel_scope(ev)
+    try:
+
+        async def consume() -> None:
+            n = 0
+            async for _t in b.acompletion_stream("sys", "usr"):
+                n += 1
+                if n >= 5:
+                    ev.set()
+
+        with pytest.raises(LLMHttpCancelledError):
+            await consume()
+    finally:
+        clear_llm_cancel_scope()

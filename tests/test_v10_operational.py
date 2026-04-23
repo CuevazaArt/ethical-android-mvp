@@ -1,5 +1,6 @@
 """v10 operational layer: diplomacy, skills, somatic markers, metaplan."""
 
+import math
 import os
 import sys
 
@@ -97,6 +98,34 @@ def test_somatic_nudge_after_learn():
     base = {"risk": 0.3, "urgency": 0.4, "calm": 0.6}
     out = apply_somatic_nudges(base, snap, store)
     assert out["risk"] >= base["risk"]
+
+
+def test_somatic_learn_ignores_nonfinite_weight() -> None:
+    store = SomaticMarkerStore()
+    snap = SensorSnapshot.from_dict(
+        {"audio_emergency": 0.9, "place_trust": 0.2, "accelerometer_jerk": 0.1}
+    )
+    k = quantize_snapshot(snap)
+    assert k
+    store.learn_negative_pattern(snap, weight=float("nan"))  # type: ignore[arg-type]
+    assert k not in store._negative_weights
+
+
+def test_somatic_nudges_sanitize_nonfinite_signal_bases() -> None:
+    store = SomaticMarkerStore()
+    snap = SensorSnapshot.from_dict(
+        {"audio_emergency": 0.9, "place_trust": 0.2, "accelerometer_jerk": 0.1}
+    )
+    store.learn_negative_pattern(snap, weight=0.5)
+    base = {
+        "risk": float("nan"),
+        "urgency": 0.4,
+        "calm": float("inf"),
+    }
+    out = apply_somatic_nudges(base, snap, store)
+    for ax in ("risk", "urgency", "calm"):
+        v = out[ax]
+        assert math.isfinite(v) and 0.0 <= v <= 1.0
 
 
 def test_somatic_disabled(monkeypatch):

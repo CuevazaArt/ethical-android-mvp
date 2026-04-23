@@ -136,6 +136,29 @@ def test_header_title_coercion_object_like_subheader(monkeypatch: pytest.MonkeyP
     assert "Title" in h2
 
 
+def test_header_subheader_pathological_str_parity_with_color(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """8.1.41 — :meth:`header` / :meth:`subheader` do not crash when ``str()`` raises (8.1.40 family)."""
+
+    class _Bad:
+        def __str__(self) -> str:
+            raise ValueError("no")
+
+    b = _Bad()
+    monkeypatch.setenv("KERNEL_TERM_COLOR", "0")
+    assert "?" in Term.header(b, width=8)
+    assert "?" in Term.subheader(b)
+    monkeypatch.setenv("KERNEL_TERM_COLOR", "1")
+    monkeypatch.delenv("NO_COLOR", raising=False)
+    h = Term.header(b, width=10)
+    s = Term.subheader(b)
+    assert "?" in h
+    assert "?" in s
+    assert "\033" in h
+    assert "\033" in s
+
+
 def test_highlight_impact_brackets_float():
     assert "+0.000" in Term.highlight_impact(0.0)
 

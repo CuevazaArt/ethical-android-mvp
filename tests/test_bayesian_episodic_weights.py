@@ -60,6 +60,7 @@ def test_kernel_resets_weights_each_process_when_flag_off(monkeypatch):
 
 def test_kernel_episodic_flag_changes_weights(monkeypatch):
     monkeypatch.setenv("KERNEL_BAYESIAN_EMPIRICAL_WEIGHTS", "1")
+    # Isolated DB so prior test runs cannot leave unrelated episodes on disk.
     monkeypatch.setenv("KERNEL_NARRATIVE_DB_PATH", ":memory:")
     k = EthicalKernel(variability=False)
     for _ in range(6):
