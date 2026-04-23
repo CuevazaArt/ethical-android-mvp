@@ -102,7 +102,7 @@ Aquí es donde los agentes de ejecución (LLMs en IDEs) reclaman sus tareas.
 - [x] Tarea 35.3: **Eliminar `kernel_legacy_v12.py`:** Borrar el archivo (y su alias `ethical_kernel_batch.py`) y validar que CI pasa sin él.
 - [x] Tarea 35.4: **Limpiar `kernel_components.py`:** Eliminar campo `augenesis: AugenesisEngine | None = None` and el import correspondiente.
 
-**Bloque 36.0: Poda Documental y Archivo de Propuestas Obsoletas [PENDING]**
+**Bloque 36.0: Poda Documental y Archivo de Propuestas Obsoletas [DONE]**
 - Tarea 36.1: **Clasificar propuestas:** Mover propuestas implementadas/rechazadas/superadas a `docs/proposals/archived/` (estimado: ~120 de 149) — *incremental;* ver [archived/README.md](archived/README.md). [INCREMENTAL] `PULSE_SYNC_2026-04-17` (pre-merge) en `archived/` + *stub* de redirección; *post-merge* `PULSE_SYNC_POST_MERGE_2026-04-17` sigue en la raíz.
 - Tarea 36.2: **Consolidar duplicados:** NOMAD HAL: inglés canónico `PROPOSAL_NOMAD_CONSCIOUSNESS_HAL.md`; *stub* en `PROPUESTA_CONCIENCIA_NOMADA_HAL.md`. Búsqueda de otros pares: olas futuras.
 - Tarea 36.3: [COMPLETED] `docs/proposals/INDEX.md` (navegación, PLAN, disclaimer, política de archivo); [archived/README.md](archived/README.md) (`git mv` incremental).
@@ -163,6 +163,14 @@ Aquí es donde los agentes de ejecución (LLMs en IDEs) reclaman sus tareas.
 - Tarea 37.1: **Destilador Episódico:** [COMPLETED] Implementado `NarrativeEpisodicSummarizer` en `src/modules/memory/narrative.py`.
 - Tarea 37.2: **Auto-Reflexión de Identidad:** [COMPLETED] Integrado destilador en `PsiSleep` (asíncrono).
 - Tarea 37.3: **Persistencia del Alma:** [COMPLETED] Snapshot distributivo en `ImmortalityProtocol` integrado en ciclo de sueño.
+
+**Bloque 38.0: Integración de Contexto de Identidad (Birth Context) [DONE]**
+- Tarea 38.1: **Hardening de Manifiesto:** [COMPLETED] Reglas Boy Scout, telemetría de latencia y límites de entrada en `identity_manifest.py`.
+- Tarea 38.2: **Conexión Lóbulo Ejecutivo:** [COMPLETED] El contexto de identidad ahora se inyecta en la capa de LLM para una respuesta consciente del "yo".
+
+**Bloque 39.0: Sincronización General y Análisis de Brechas [DONE]**
+- Tarea 39.1: **Reconciliación de Documentación:** [COMPLETED] Sincronización global post-V1.0.
+- Tarea 39.2: **Merge de Integración Hub:** [COMPLETED] Fusión final hacia la rama `main`.
 
 ---
 

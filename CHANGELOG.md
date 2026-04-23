@@ -9,6 +9,8 @@ All notable changes to this project are summarized here. For narrative context a
 - **Recursive Narrative Memory (Task 37.1):** Implemented `NarrativeEpisodicSummarizer`. The kernel now distills raw episodes into thematic chronicles using LLM-based thematic compression.
 - **Psi-Sleep Lifecycle (Task 37.2):** Fully asynchronous maintenance cycle that triggers narrative consolidation and ethical auditing during downtime.
 - **Immortality Protocol (Task 37.3):** Distributed identity backup system (Soul Snapshot) that preserves narrative identity, Bayesian priors, and ethical leans across hardware resets.
+- **Identity Manifest Context (Task 38.0):** Integrated birth context and evolving narrative into the LLM prompt layer. The kernel now possesses "self-awareness" of its own history and mission during conversation.
+- **Hardened Identity (Task 38.1):** Applied Boy Scout rules to `identity_manifest.py`, added latency telemetry for narrative retrieval, and enforced input length limits to prevent context overflow.
 - **V1.0 Compatibility Layer:** Fixed path resolution, missing imports, and Windows console encoding issues (ASCII fallback for banner/DAO status) to ensure deployment readiness.
 
 ### Changed
@@ -20,6 +22,11 @@ All notable changes to this project are summarized here. For narrative context a
 - **Windows Encoding Crash:** Replaced Unicode box-drawing characters with ASCII in `main.py` and `mock_dao.py` to prevent `UnicodeEncodeError` on Windows consoles.
 - **Simulation Harness:** Fixed multiple `NameError` and `AttributeError` bugs in `main.py` and `runner.py` during kernel execution.
 - **Module Paths:** Standardized `config/ethics_weights.yaml` access in a modularized environment.
+
+## [2026-04-22] Bloque 39.0: Sincronización general y análisis de brechas
+### Changed
+- **General Sync:** Performed a global reconciliation of documentation and code following the V1.0 stabilization pulse.
+- **Gap Analysis:** Verified that all critical Phase 15 tasks are integrated and that the distributed tri-lobe architecture maintains parity with the original ethical mandate.
 
 ## [2026-04-22] Bloque 36.0: Poda documental (parcial)
 
