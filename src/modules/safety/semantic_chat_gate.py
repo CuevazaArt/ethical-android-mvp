@@ -597,7 +597,7 @@ def _fetch_embedding(text: str) -> np.ndarray | None:
     )
 
     def _sync_http_path() -> np.ndarray | None:
-        url = f"{_ollama_base()}/api/embeddings"
+        url = f"{_ollama_base()}/api/embed"
         v = http_fetch_ollama_embedding_with_policy(url, _embed_model(), text)
         if v is not None:
             return v
@@ -625,7 +625,7 @@ async def _afetch_embedding(
         maybe_hash_fallback_embedding,
     )
 
-    url = f"{_ollama_base()}/api/embeddings"
+    url = f"{_ollama_base()}/api/embed"
     v = await ahttp_fetch_ollama_embedding_with_policy(url, _embed_model(), text, aclient=aclient)
     if v is not None:
         return v

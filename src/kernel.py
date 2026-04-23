@@ -640,8 +640,17 @@ class EthosKernel:
                     "social_tension": getattr(snapshot, "tension_level", 0.0),
                     "social_trust": 0.0,
                 } if snapshot else None,
-                perception_confidence=type('obj', (object,), {'confidence': getattr(snapshot, "bayesian_confidence", 0.0) or 0.0}) if snapshot else None,
-                perception=type('obj', (object,), {'social_context': type('obj2', (object,), {'circle': getattr(snapshot, "social_circle", "neutral_soto"), 'posture': 'neutral'})}) if snapshot else None,
+                perception_confidence=type('ConfShim', (object,), {
+                    'confidence': getattr(snapshot, "bayesian_confidence", 0.0) or 0.0,
+                    'to_public_dict': lambda self: {"score": self.confidence, "band": "nominal" if self.confidence > 0.5 else "low"},
+                })() if snapshot else None,
+                perception=type('PercShim', (object,), {
+                    'social_context': type('SocCtx', (object,), {
+                        'circle': getattr(snapshot, "social_circle", "neutral_soto"),
+                        'posture': 'neutral',
+                    })(),
+                    'to_public_dict': lambda self: {"social_circle": self.social_context.circle, "social_posture": self.social_context.posture},
+                })() if snapshot else None,
                 gestalt_snapshot=snapshot,
             )
             self._snapshot_feedback_anchor(res.path)

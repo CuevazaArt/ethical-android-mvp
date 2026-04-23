@@ -217,7 +217,12 @@ def _post_once(client: Any, url: str, payload: dict[str, Any]) -> list[float] | 
     r = client.post(url, json=payload)
     r.raise_for_status()
     data = r.json()
+    # New API: 'embeddings' is a list of lists; Legacy: 'embedding' is a flat list
     emb = data.get("embedding")
+    if not emb and "embeddings" in data:
+        embs = data["embeddings"]
+        if isinstance(embs, list) and len(embs) > 0:
+            emb = embs[0]
     if not emb or not isinstance(emb, list):
         return None
     arr = np.asarray([float(x) for x in emb], dtype=np.float64).reshape(-1)
@@ -235,7 +240,12 @@ async def _apost_once(
     r = await client.post(url, json=payload)
     r.raise_for_status()
     data = r.json()
+    # New API: 'embeddings' is a list of lists; Legacy: 'embedding' is a flat list
     emb = data.get("embedding")
+    if not emb and "embeddings" in data:
+        embs = data["embeddings"]
+        if isinstance(embs, list) and len(embs) > 0:
+            emb = embs[0]
     if not emb or not isinstance(emb, list):
         return None
     arr = np.asarray([float(x) for x in emb], dtype=np.float64).reshape(-1)
@@ -304,7 +314,15 @@ async def ahttp_fetch_ollama_embedding_with_policy(
     if _circuit_blocks():
         return None
 
-    payload: dict[str, Any] = {"model": model, "prompt": prompt}
+    payload: dict[str, Any] = {"model": model, "input": prompt}
+    # Auto-detect: if URL uses /api/embed (new), prepare fallback to /api/embeddings (legacy)
+    alt_url = None
+    if url.endswith("/api/embed"):
+        alt_url = url.replace("/api/embed", "/api/embeddings")
+        # New API uses 'input', legacy uses 'prompt'
+    elif url.endswith("/api/embeddings"):
+        alt_url = url.replace("/api/embeddings", "/api/embed")
+        payload = {"model": model, "prompt": prompt}
     last_err = ""
     for attempt in range(retries + 1):
         if _circuit_blocks():

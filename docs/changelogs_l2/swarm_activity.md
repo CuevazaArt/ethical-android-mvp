@@ -2266,3 +2266,12 @@ This file is automatically managed by `scripts/swarm_sync.py`.
   - `src/clients/nomad_pwa/index.html`
   - `src/clients/nomad_pwa/media_engine.js`
   - `src/server/ws_sidecar.py`
+
+### Execution (Swarm) | Date: 2026-04-23 00:01:44 | Author: Anonymous Agent
+- **Block:** `40.0`
+- **Message:** Telemetry & Dashboard Stabilization: Fixed WebSocket race conditions, synchronized Ollama embedding fallback, and added identity handshake to dashboard.
+- **Files Modified:**
+  - `src/kernel.py`
+  - `src/modules/memory/semantic_embedding_client.py`
+  - `src/modules/safety/semantic_chat_gate.py`
+  - `src/server/ws_sidecar.py`

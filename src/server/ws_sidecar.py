@@ -10,6 +10,7 @@ from __future__ import annotations
 import asyncio
 import logging
 import time
+import psutil
 from typing import Any
 
 from fastapi import APIRouter, WebSocket
@@ -131,6 +132,13 @@ async def dashboard_ws_handler(websocket: WebSocket) -> None:
         await kernel.start()
     except Exception as exc:
         logger.warning("Dashboard kernel.start() failed: %s", exc)
+    
+    # Sync identity at start (Handshake for UI initialization)
+    try:
+        q.put_nowait(build_sync_identity_ws_message(kernel))
+    except Exception as exc:
+        logger.warning("Dashboard sync_identity failed: %s", exc)
+
     rt_bridge = RealTimeBridge(kernel)
     _turn_seq = 0
 
@@ -163,7 +171,7 @@ async def dashboard_ws_handler(websocket: WebSocket) -> None:
                                     session_context = session_context[-1000:]
                                 session_context += f"User: {text}\nKernel: {response_text}\n"
 
-                                await websocket.send_json(
+                                q.put_nowait(
                                     {
                                         "type": "thought",
                                         "payload": {
@@ -193,7 +201,6 @@ async def dashboard_ws_handler(websocket: WebSocket) -> None:
                                     social_circle = getattr(result.perception.social_context, "circle", "unknown")
                                     social_posture = getattr(result.perception.social_context, "posture", "unknown")
 
-                                import psutil
                                 cpu_p = psutil.cpu_percent() if hasattr(psutil, "cpu_percent") else 0.0
                                 mem_p = psutil.virtual_memory().percent if hasattr(psutil, "virtual_memory") else 0.0
                                 
@@ -218,7 +225,7 @@ async def dashboard_ws_handler(websocket: WebSocket) -> None:
                                 except Exception:
                                     pass
 
-                                await websocket.send_json(
+                                q.put_nowait(
                                     {
                                         "type": "telemetry",
                                         "payload": {
@@ -265,8 +272,6 @@ async def dashboard_ws_handler(websocket: WebSocket) -> None:
 
     async def heartbeat_task() -> None:
         """Push system telemetry to dashboard every 2s regardless of chat activity."""
-        import psutil
-
         try:
             while True:
                 await asyncio.sleep(2.0)
