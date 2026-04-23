@@ -1171,7 +1171,19 @@ class LLMModule:
                     identity_context=identity_context,
                     guardian_mode_context=guardian_mode_context,
                 )
-            _log.info("LLM RAW RESPONSE: %s", response)
+            _log.info("LLM RAW RESPONSE: %s", response[:200] if response else "(empty)")
+            
+            # When streaming was used, Ollama returns natural text (no JSON format).
+            # Use it directly as the verbal message.
+            if stream_callback is not None and response and response.strip():
+                return VerbalResponse(
+                    message=response.strip(),
+                    tone="calm",
+                    hax_mode="",
+                    inner_voice="",
+                )
+            
+            # Non-streaming path: Ollama returns JSON format
             data = self._parse_json(response)
             _log.info("LLM PARSED JSON: %s", data)
             if data and str(data.get("message", "")).strip():

@@ -2245,3 +2245,15 @@ This file is automatically managed by `scripts/swarm_sync.py`.
   - `src/static/dashboard/dashboard.css`
   - `src/static/dashboard/dashboard.js`
   - `src/static/dashboard/index.html`
+
+### Execution (Swarm) | Date: 2026-04-22 23:36:13 | Author: Anonymous Agent
+- **Block:** `9.5`
+- **Message:** Fixed 5 critical field test bugs: (1) Ollama stream param ignored causing broken streaming, (2) embeddings 404 via auto-detect /api/embed vs /api/embeddings, (3) streaming path now returns text directly instead of failing JSON parse, (4) periodic 2s heartbeat task for dashboard telemetry, (5) enriched dashboard with identity epoch/PAD/archetype/episode count
+- **Files Modified:**
+  - `CHANGELOG.md`
+  - `src/kernel.py`
+  - `src/modules/cognition/llm_backends.py`
+  - `src/modules/cognition/llm_layer.py`
+  - `src/server/ws_sidecar.py`
+  - `src/static/dashboard/dashboard.js`
+  - `src/static/dashboard/index.html`

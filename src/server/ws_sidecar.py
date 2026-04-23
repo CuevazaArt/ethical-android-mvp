@@ -193,6 +193,27 @@ async def dashboard_ws_handler(websocket: WebSocket) -> None:
                                 cpu_p = psutil.cpu_percent() if hasattr(psutil, "cpu_percent") else 0.0
                                 mem_p = psutil.virtual_memory().percent if hasattr(psutil, "virtual_memory") else 0.0
                                 
+                                # Extract GestaltSnapshot data for richer telemetry
+                                pad_state = ""
+                                dominant_archetype = ""
+                                try:
+                                    snap = getattr(result, "gestalt_snapshot", None) or getattr(result, "snapshot", None)
+                                    if snap:
+                                        pad = getattr(snap, "pad_state", None)
+                                        if pad:
+                                            pad_state = f"P={pad[0]:.2f} A={pad[1]:.2f} D={pad[2]:.2f}"
+                                        dominant_archetype = getattr(snap, "dominant_archetype", "")
+                                except Exception:
+                                    pass
+                                
+                                ep_count = 0
+                                identity_epoch = 0
+                                try:
+                                    ep_count = len(kernel.memory.episodes)
+                                    identity_epoch = ep_count // 50
+                                except Exception:
+                                    pass
+
                                 await websocket.send_json(
                                     {
                                         "type": "telemetry",
@@ -204,12 +225,16 @@ async def dashboard_ws_handler(websocket: WebSocket) -> None:
                                             "bayes_delta": bayes_delta,
                                             "social_circle": str(social_circle),
                                             "social_posture": str(social_posture),
-                                            "vitality": result.weighted_score, # Mapping score to vitality as fallback
+                                            "vitality": result.weighted_score,
                                             "llm_mode": kernel.llm.mode if hasattr(kernel, "llm") else st.llm_mode,
                                             "vad_state": bridge.vad_speaking if hasattr(bridge, "vad_speaking") else False,
                                             "cpu_usage": cpu_p,
                                             "ram_usage": mem_p,
                                             "gov_status": kernel.dao_status(),
+                                            "pad_state": pad_state,
+                                            "dominant_archetype": dominant_archetype,
+                                            "identity_epoch": identity_epoch,
+                                            "episode_count": ep_count,
                                         }
                                     }
                                 )
@@ -234,8 +259,54 @@ async def dashboard_ws_handler(websocket: WebSocket) -> None:
         except Exception as e:
             logger.debug("Dashboard send task ended: %s", e)
 
+    async def heartbeat_task() -> None:
+        """Push system telemetry to dashboard every 2s regardless of chat activity."""
+        import psutil
+
+        try:
+            while True:
+                await asyncio.sleep(2.0)
+                try:
+                    cpu_p = psutil.cpu_percent()
+                    mem_p = psutil.virtual_memory().percent
+
+                    # Identity epoch from kernel memory
+                    ep_count = 0
+                    identity_epoch = 0
+                    identity_digest = ""
+                    try:
+                        ep_count = len(kernel.memory.episodes)
+                        identity_epoch = ep_count // 50
+                        identity_digest = kernel.memory.get_reflection()[:80] if hasattr(kernel.memory, "get_reflection") else ""
+                    except Exception:
+                        pass
+
+                    llm_mode = kernel.llm.mode if hasattr(kernel, "llm") and kernel.llm else st.llm_mode
+                    vad_active = bridge.vad_speaking if hasattr(bridge, "vad_speaking") else False
+
+                    heartbeat_payload = {
+                        "type": "telemetry",
+                        "payload": {
+                            "cpu_usage": cpu_p,
+                            "ram_usage": mem_p,
+                            "llm_mode": llm_mode,
+                            "vad_state": vad_active,
+                            "heartbeat": True,
+                            "identity_epoch": identity_epoch,
+                            "identity_digest": identity_digest,
+                            "episode_count": ep_count,
+                        },
+                    }
+                    await websocket.send_json(heartbeat_payload)
+                except Exception as hb_err:
+                    logger.debug("Dashboard heartbeat error: %s", hb_err)
+        except asyncio.CancelledError:
+            pass
+        except Exception as e:
+            logger.debug("Dashboard heartbeat task ended: %s", e)
+
     try:
-        await asyncio.gather(recv_task(), send_task())
+        await asyncio.gather(recv_task(), send_task(), heartbeat_task())
     except Exception as e:
         logger.error("Dashboard WS handler error: %s", e)
     finally:

@@ -300,9 +300,12 @@ class OllamaLLMBackend(LLMBackend):
                 {"role": "system", "content": system},
                 {"role": "user", "content": user},
             ],
-            "stream": bool(kwargs.get("stream", False)),
-            "format": "json",
+            "stream": stream,
         }
+        # JSON format only for non-streaming (streaming JSON sends raw tokens
+        # character-by-character which makes the thought stream unreadable)
+        if not stream:
+            payload["format"] = "json"
         options = {}
         t = kwargs.get("temperature")
         if t is not None:
@@ -392,41 +395,58 @@ class OllamaLLMBackend(LLMBackend):
     def embedding(self, text: str) -> list[float] | None:
         if not (text or "").strip():
             return None
-        url = f"{self._base}/api/embeddings"
-        payload = {"model": self._embed_model, "prompt": text}
-        try:
-            # Use sync httpx.Client for synchronous embedding
-            with httpx.Client(timeout=self._embed_timeout) as client:
-                r = client.post(url, json=payload)
-                r.raise_for_status()
-                data = r.json()
-        except Exception:
-            return None
-        emb = data.get("embedding")
-        return [float(x) for x in emb] if isinstance(emb, list) else None
+        # Try new Ollama API first (/api/embed), fallback to legacy (/api/embeddings)
+        for endpoint, body_key, resp_key in [
+            ("/api/embed", "input", "embeddings"),
+            ("/api/embeddings", "prompt", "embedding"),
+        ]:
+            url = f"{self._base}{endpoint}"
+            payload = {"model": self._embed_model, body_key: text}
+            try:
+                with httpx.Client(timeout=self._embed_timeout) as client:
+                    r = client.post(url, json=payload)
+                    if r.status_code == 404:
+                        continue  # try next endpoint
+                    r.raise_for_status()
+                    data = r.json()
+                emb = data.get(resp_key)
+                # /api/embed returns {"embeddings": [[...]]}
+                if isinstance(emb, list) and emb and isinstance(emb[0], list):
+                    emb = emb[0]
+                return [float(x) for x in emb] if isinstance(emb, list) else None
+            except Exception:
+                continue
+        return None
 
     async def aembedding(self, text: str) -> list[float] | None:
-        """Async ``/api/embeddings``."""
+        """Async embedding with auto-detection of Ollama API version."""
         if not (text or "").strip():
             return None
         raise_if_llm_cancel_requested()
-        url = f"{self._base}/api/embeddings"
-        payload = {"model": self._embed_model, "prompt": text}
         timeout = httpx.Timeout(self._embed_timeout)
-        try:
-            if self._aclient is not None:
-                r = await self._aclient.post(url, json=payload, timeout=timeout)
+        for endpoint, body_key, resp_key in [
+            ("/api/embed", "input", "embeddings"),
+            ("/api/embeddings", "prompt", "embedding"),
+        ]:
+            url = f"{self._base}{endpoint}"
+            payload = {"model": self._embed_model, body_key: text}
+            try:
+                if self._aclient is not None:
+                    r = await self._aclient.post(url, json=payload, timeout=timeout)
+                else:
+                    async with httpx.AsyncClient(timeout=timeout) as client:
+                        r = await client.post(url, json=payload)
+                if r.status_code == 404:
+                    continue
                 r.raise_for_status()
                 data = r.json()
-            else:
-                async with httpx.AsyncClient(timeout=timeout) as client:
-                    r = await client.post(url, json=payload)
-                    r.raise_for_status()
-                    data = r.json()
-        except Exception:
-            return None
-        emb = data.get("embedding")
-        return [float(x) for x in emb] if isinstance(emb, list) else None
+                emb = data.get(resp_key)
+                if isinstance(emb, list) and emb and isinstance(emb[0], list):
+                    emb = emb[0]
+                return [float(x) for x in emb] if isinstance(emb, list) else None
+            except Exception:
+                continue
+        return None
 
     def info(self) -> dict[str, Any]:
         return {

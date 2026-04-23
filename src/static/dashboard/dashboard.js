@@ -36,6 +36,11 @@ const EL = {
     cpuUsage: document.getElementById('cpu-usage'),
     ramUsage: document.getElementById('ram-usage'),
     govStatus: document.getElementById('gov-status'),
+    identityEpoch: document.getElementById('identity-epoch'),
+    episodeCount: document.getElementById('episode-count'),
+    identityDigest: document.getElementById('identity-digest'),
+    padState: document.getElementById('pad-state'),
+    affectArchetype: document.getElementById('affect-archetype'),
 };
 
 const state = {
@@ -116,6 +121,25 @@ function updateTelemetry(payload) {
         EL.rtt.textContent = (now - state.lastVesselUpdate) + " ms";
     }
     state.lastVesselUpdate = now;
+    
+    // Identity & Memory
+    if (payload.identity_epoch !== undefined && EL.identityEpoch) EL.identityEpoch.textContent = payload.identity_epoch;
+    if (payload.episode_count !== undefined && EL.episodeCount) EL.episodeCount.textContent = payload.episode_count;
+    if (payload.identity_digest && EL.identityDigest) EL.identityDigest.textContent = payload.identity_digest;
+    
+    // Limbic Affect Orb — color shifts from blue (calm) to red (danger)
+    if (payload.tension !== undefined && EL.orbPreview) {
+        const t = Math.min(1, Math.max(0, asFloat(payload.tension)));
+        // Hue: 200 (blue/calm) → 0 (red/danger)
+        const hue = Math.round(200 * (1 - t));
+        const sat = 70 + Math.round(t * 30);
+        const color = `hsl(${hue}, ${sat}%, 55%)`;
+        EL.orbPreview.style.background = color;
+        EL.orbPreview.style.boxShadow = `0 0 ${15 + t * 25}px ${color}`;
+        state.orbColor = color;
+    }
+    if (payload.pad_state && EL.padState) EL.padState.textContent = payload.pad_state;
+    if (payload.dominant_archetype && EL.affectArchetype) EL.affectArchetype.textContent = payload.dominant_archetype;
 }
 
 function updateAudio(rms) {

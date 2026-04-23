@@ -46,6 +46,7 @@ class ChatTurnResult:
     judicial_escalation: Any = None
     weighted_score: float = 0.0
     verdict: str = ""
+    gestalt_snapshot: Any = None
 
 
 @dataclass
@@ -641,6 +642,7 @@ class EthosKernel:
                 } if snapshot else None,
                 perception_confidence=type('obj', (object,), {'confidence': getattr(snapshot, "bayesian_confidence", 0.0) or 0.0}) if snapshot else None,
                 perception=type('obj', (object,), {'social_context': type('obj2', (object,), {'circle': getattr(snapshot, "social_circle", "neutral_soto"), 'posture': 'neutral'})}) if snapshot else None,
+                gestalt_snapshot=snapshot,
             )
             self._snapshot_feedback_anchor(res.path)
             return res
